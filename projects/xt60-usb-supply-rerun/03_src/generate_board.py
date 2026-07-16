@@ -9,6 +9,7 @@ merges it afterwards; rules run LAST in the chain).
 
 Hard rules honored: missing footprint = raise; zero-yield parse = raise.
 """
+import argparse
 import sys
 from pathlib import Path
 
@@ -47,8 +48,8 @@ FLOORPLAN = {
     "U1":  (152.0, 118.0, 180),
     "CIN_A1": (149.0, 114.5, 90),
     "CIN_A2": (149.0, 121.5, 90),
-    "CVCC1": (152.0, 123.1, 0),
-    "CBS1": (154.6, 124.9, 0),
+    "CVCC1": (151.8, 123.6, 0),
+    "CBS1": (154.6, 125.3, 0),
     "RFA1": (154.5, 127.2, 0),
     "RFA2": (158.0, 127.2, 0),
     "L1":  (163.0, 118.0, 0),
@@ -60,10 +61,10 @@ FLOORPLAN = {
     "U2":  (152.0, 146.0, 180),
     "CIN_C1": (149.0, 142.5, 90),
     "CIN_C2": (149.0, 149.5, 90),
-    "CVCC2": (152.0, 151.1, 0),
-    "CBS2": (154.6, 152.9, 0),
-    "RFC1": (154.5, 154.8, 0),
-    "RFC2": (158.0, 154.8, 0),
+    "CVCC2": (151.8, 151.6, 0),
+    "CBS2": (154.6, 153.3, 0),
+    "RFC1": (154.5, 155.1, 0),
+    "RFC2": (158.0, 155.1, 0),
     "L2":  (163.0, 146.0, 0),
     "COUT_C1": (166.0, 151.2, 0),
     "COUT_C2": (166.0, 154.6, 0),
@@ -102,8 +103,13 @@ ZONES = [
     # VBAT_P: L-shape. Big east rect reaches both bucks' IN pads;
     # west lobe (south of Q1's leads) picks up Q1 source, CBs, D1, R2.
     ("VBAT_P", "F.Cu", 1, [
-        (128.0, 108.0), (151.6, 108.0), (151.6, 154.0), (122.5, 154.0),
+        (128.0, 108.0), (151.9, 108.0), (151.9, 119.0), (151.6, 119.0),
+        (151.6, 136.5), (151.9, 136.5), (151.9, 147.0), (151.6, 147.0),
+        (151.6, 154.0), (122.5, 154.0),
         (122.5, 128.2), (128.0, 128.2)], 0.5),
+    ("VBAT_P", "In2.Cu", 1, (126.0, 110.0, 153.4, 152.0), 0.5),
+    ("5V_A", "In2.Cu", 1, (167.0, 107.0, 189.5, 146.5), 0.5),
+    ("5V_C", "In2.Cu", 1, (163.0, 149.5, 189.5, 160.0), 0.5),
     # switch nodes: minimal pours, converter LX pad -> inductor pad 1.
     # South edge clears the EN signal pad row (y=119.0/147.0 + clearance).
     ("SW_A", "F.Cu", 1, (152.3, 113.5, 161.5, 118.85), 0.5),
@@ -142,6 +148,29 @@ DESIGNED_VIAS = [
     ("GND", 152.05, 118.00, 0.55, 0.3),
     ("GND", 152.05, 145.00, 0.55, 0.3),
     ("GND", 152.05, 146.00, 0.55, 0.3),
+    # FB layer changes
+    ("FB_A", 151.45, 121.00, 0.6, 0.3),
+    ("FB_A", 154.50, 126.20, 0.6, 0.3),
+    ("FB_C", 151.45, 149.00, 0.6, 0.3),
+    ("FB_C", 154.45, 154.15, 0.6, 0.3),
+    ("BST_A", 149.90, 118.60, 0.6, 0.3),
+    ("BST_A", 153.00, 126.35, 0.6, 0.3),
+    ("BST_C", 149.90, 146.60, 0.6, 0.3),
+    # EN horizontals end in fill pockets the pour cannot reach (designed-
+    # copper kill zones seal them): bond them to the VBAT_P In2 patch.
+    ("VBAT_P", 152.90, 122.70, 0.6, 0.3),
+    ("VBAT_P", 152.90, 150.70, 0.6, 0.3),
+    # U6 VBUS pin (pad 5) gets sealed into a pocket by the CC tracks:
+    # dedicated via to the 5V_C In2 patch.
+    ("5V_C", 180.10, 156.00, 0.6, 0.3),
+    # U4/U5 VBUS pins pocket the same way
+    ("5V_A", 178.35, 126.40, 0.6, 0.3),
+    ("5V_A", 178.35, 143.80, 0.6, 0.3),
+    # J5 VBUS pads A9/B4 are cut off from the main pour by the CC
+    # escapes: two-via In2 feed (3 A share)
+    ("5V_C", 183.55, 153.10, 0.6, 0.3),
+    ("5V_C", 183.55, 152.35, 0.6, 0.3),
+    ("BST_C", 153.84, 152.30, 0.6, 0.3),
 ]
 
 # Designed tracks (net, layer, width_mm, [(x,y), ...]) — deterministic
@@ -156,12 +185,54 @@ DESIGNED_TRACKS = [
     ("VBAT_P", "F.Cu", 0.5, [(153.13, 121.90), (151.00, 121.90)]),
     ("VBAT_P", "F.Cu", 0.25, [(153.13, 147.30), (153.13, 149.90)]),
     ("VBAT_P", "F.Cu", 0.5, [(153.13, 149.90), (151.00, 149.90)]),
-    ("SW_A", "F.Cu", 0.5, [(155.36, 124.90), (155.36, 118.50)]),
+    ("SW_A", "F.Cu", 0.5, [(155.36, 125.30), (155.36, 118.50)]),
     # ILMT (pad 3, tied GND) cannot reach the GND pour between QFN pads:
     # short 0.2 track south out of the row to a via (DESIGNED_VIAS).
     ("GND", "F.Cu", 0.2, [(152.23, 119.30), (152.23, 120.90)]),
     ("GND", "F.Cu", 0.2, [(152.23, 147.30), (152.23, 148.90)]),
-    ("SW_C", "F.Cu", 0.5, [(155.36, 152.90), (155.36, 146.50)]),
+    # VCC + FB runs: these pads sit in the QFN signal row between the
+    # designed EN/ILMT corridors; no router geometry reaches them.
+    # Hand-planned (0.2mm floors): VCC skirts west on F.Cu; FB dives to
+    # B.Cu under the EN corridor (In1 GND plane shields it from LX).
+    ("VCC_A", "F.Cu", 0.2, [(151.32, 119.30), (151.32, 120.10),
+                            (150.40, 120.10), (150.40, 123.60),
+                            (151.04, 123.60)]),
+    ("VCC_C", "F.Cu", 0.2, [(151.32, 147.30), (151.32, 148.10),
+                            (150.40, 148.10), (150.40, 151.60),
+                            (151.04, 151.60)]),
+    ("FB_A", "F.Cu", 0.2, [(151.78, 119.30), (151.78, 120.60),
+                           (151.45, 121.00)]),
+    ("FB_A", "B.Cu", 0.2, [(151.45, 121.00), (151.45, 125.45),
+                           (154.50, 125.45), (154.50, 126.20)]),
+    ("FB_A", "F.Cu", 0.2, [(154.50, 126.20), (155.26, 127.20),
+                           (157.24, 127.20)]),
+    ("FB_C", "F.Cu", 0.2, [(151.78, 147.30), (151.78, 148.60),
+                           (151.45, 149.00)]),
+    ("FB_C", "B.Cu", 0.2, [(151.45, 149.00), (151.45, 153.45),
+                           (154.45, 153.45), (154.45, 154.15)]),
+    ("FB_C", "F.Cu", 0.2, [(154.45, 154.15), (155.26, 155.10),
+                           (157.24, 155.10)]),
+    # BST runs (BS pin -> bootstrap cap): the QFN row region is saturated
+    # with designed corridors, so these are designed too. B.Cu mid-span.
+    ("BST_A", "F.Cu", 0.2, [(150.88, 119.30), (150.00, 119.30),
+                            (149.90, 118.60)]),
+    ("BST_A", "B.Cu", 0.2, [(149.90, 118.60), (149.90, 126.35),
+                            (153.00, 126.35)]),
+    ("BST_A", "F.Cu", 0.2, [(153.00, 126.35), (153.84, 126.35),
+                            (153.84, 125.30)]),
+    ("BST_C", "F.Cu", 0.2, [(150.88, 147.30), (150.00, 147.30),
+                            (149.90, 146.60)]),
+    ("BST_C", "B.Cu", 0.2, [(149.90, 146.60), (149.90, 148.30),
+                            (153.84, 148.30), (153.84, 152.30)]),
+    ("BST_C", "F.Cu", 0.2, [(153.84, 152.30), (153.84, 153.30)]),
+    ("SW_C", "F.Cu", 0.5, [(155.36, 153.30), (155.36, 146.50)]),
+    # EN-via bond stubs (EN horizontal -> VBAT_P In2 vias)
+    ("VBAT_P", "F.Cu", 0.5, [(152.90, 121.90), (152.90, 122.70)]),
+    ("VBAT_P", "F.Cu", 0.5, [(152.90, 149.90), (152.90, 150.70)]),
+    ("5V_C", "F.Cu", 0.3, [(179.1375, 156.00), (180.10, 156.00)]),
+    ("5V_A", "F.Cu", 0.3, [(177.1375, 126.40), (178.35, 126.40)]),
+    ("5V_A", "F.Cu", 0.3, [(177.1375, 143.80), (178.35, 143.80)]),
+    ("5V_C", "F.Cu", 0.4, [(183.55, 154.16), (183.55, 152.35)]),
 ]
 
 
@@ -210,11 +281,10 @@ def add_zone(board, netcode, layer_name, prio, rect, min_w):
     z.SetThermalReliefSpokeWidth(FromMM(0.5))
     z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL if prio >= 1
                        else pcbnew.ZONE_CONNECTION_THERMAL)
-    if prio == 0:
-        # drop tiny isolated GND slivers (fully isolated only; islands
-        # holding any connection — PTH barrel, via — survive)
-        z.SetIslandRemovalMode(pcbnew.ISLAND_REMOVAL_MODE_AREA)
-        z.SetMinIslandArea(int(3e12))  # nm^2 == 3 mm^2
+    # drop tiny isolated slivers (fully isolated only; islands holding
+    # any connection — PTH barrel, via — survive)
+    z.SetIslandRemovalMode(pcbnew.ISLAND_REMOVAL_MODE_AREA)
+    z.SetMinIslandArea(int(5e12))  # nm^2 == 5 mm^2
     if isinstance(rect, tuple):
         x0, y0, x1, y1 = rect
         pts = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
@@ -230,9 +300,20 @@ def add_zone(board, netcode, layer_name, prio, rect, min_w):
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--krt-input", action="store_true",
+                    help="emit a TRACK-FREE routing-input board to "
+                         "06_build/route/krt_input.kicad_pcb with User.2 "
+                         "keepouts over designed corridors + screw heads")
+    args = ap.parse_args()
+    out_path = BOARD
+    if args.krt_input:
+        out_path = PROJ / "06_build" / "route" / "krt_input.kicad_pcb"
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+
     comps, nets = parse_netlist(NETLIST)
 
-    board = pcbnew.NewBoard(str(BOARD))
+    board = pcbnew.NewBoard(str(out_path))
     board.SetCopperLayerCount(4)
 
     # outline
@@ -309,8 +390,9 @@ def main():
             raise SystemExit(f"ERROR: zone net {net} not in netlist")
         add_zone(board, netinfo[net].GetNetCode(), layer, prio, rect, minw)
 
-    # named rule areas
-    for name, layer, (ax, ay, bx, by) in RULE_AREAS:
+    # named rule areas (skipped in krt-input mode: not copper, and KRT's
+    # parser must see the simplest possible board)
+    for name, layer, (ax, ay, bx, by) in ([] if args.krt_input else RULE_AREAS):
         z = pcbnew.ZONE(board)
         z.SetIsRuleArea(True)
         z.SetZoneName(name)
@@ -327,8 +409,9 @@ def main():
         z.Outline().AddOutline(chain)
         board.Add(z)
 
-    # designed tap tracks
-    for net, layer, width, pts in DESIGNED_TRACKS:
+    # designed tap tracks (NEVER in krt-input mode — KRT mis-parses
+    # pcbnew tracks and routes through them)
+    for net, layer, width, pts in ([] if args.krt_input else DESIGNED_TRACKS):
         for (ax, ay), (bx, by) in zip(pts, pts[1:]):
             t = pcbnew.PCB_TRACK(board)
             t.SetStart(VECTOR2I(FromMM(ax), FromMM(ay)))
@@ -337,6 +420,71 @@ def main():
             t.SetLayer(board.GetLayerID(layer))
             t.SetNet(netinfo[net])
             board.Add(t)
+
+    if args.krt_input:
+        # keepouts for KRT (--keepout-layer User.2): designed corridors +
+        # mounting-hole screw heads
+        rects = []
+        for dy in (0.0, 28.0):   # rail A, rail C (+28mm mirror)
+            rects += [
+                (151.70, 116.55 + dy, 152.45, 118.45 + dy),  # in-pad vias
+                (152.00, 119.00 + dy, 153.45, 122.20 + dy),  # ILMT+EN vert
+                (150.70, 121.60 + dy, 153.45, 122.20 + dy),  # EN horizontal
+                (154.80, 118.20 + dy, 155.80, 125.80 + dy),  # CBS SW tap
+                (151.07, 119.00 + dy, 151.57, 120.35 + dy),  # VCC stub
+                (150.15, 119.85 + dy, 150.65, 123.35 + dy),  # VCC vertical
+                (150.40, 122.85 + dy, 151.60, 123.35 + dy),  # VCC pad run
+                (151.00, 118.95 + dy, 152.20, 121.55 + dy),  # FB stub + via
+                (151.05, 120.65 + dy, 151.85, 125.75 + dy),  # FB B.Cu vert
+            ]
+        # FB B.Cu horizontals + via-up + divider segments (rail-specific y)
+        rects += [
+            (151.30, 125.15, 154.90, 125.75),
+            (154.10, 125.15, 154.90, 126.70),
+            (154.20, 125.90, 155.60, 127.50),
+            (155.00, 126.90, 157.50, 127.50),
+            (151.30, 153.15, 154.95, 153.75),
+            (154.20, 153.60, 155.00, 154.40),
+            (154.20, 153.60, 155.60, 155.10),
+            (155.00, 154.80, 157.50, 155.40),
+            # SW pours: an F.Cu route across them slices them into islands
+            (152.10, 113.30, 161.70, 119.05),
+            (152.10, 141.30, 161.70, 147.05),
+            # BST designed corridors
+            (149.35, 118.05, 151.00, 119.60),
+            (149.60, 118.50, 150.20, 126.70),
+            (149.60, 126.10, 154.10, 126.95),
+            (152.60, 125.95, 154.25, 126.80),
+            (153.50, 125.00, 154.20, 126.80),
+            (149.35, 146.05, 151.00, 147.60),
+            (149.60, 146.50, 150.20, 148.70),
+            (149.60, 147.90, 154.30, 148.70),
+            (153.45, 147.90, 154.25, 152.75),
+            (153.40, 151.85, 154.30, 153.45),
+            # VBUS rescue corridors (vias + stubs above)
+            (176.90, 125.90, 179.00, 126.90),
+            (176.90, 143.30, 179.00, 144.30),
+            (179.00, 155.50, 180.60, 156.50),
+            (182.70, 151.75, 184.40, 153.80),
+        ]
+        rects += [(x - 3.35, y - 3.35, x + 3.35, y + 3.35)
+                  for x, y in MOUNTING_HOLES]
+        for (ax, ay, bx, by) in rects:
+            sh = pcbnew.PCB_SHAPE(board)
+            sh.SetShape(pcbnew.SHAPE_T_POLY)
+            pts = pcbnew.VECTOR_VECTOR2I(
+                [VECTOR2I(FromMM(ax), FromMM(ay)),
+                 VECTOR2I(FromMM(bx), FromMM(ay)),
+                 VECTOR2I(FromMM(bx), FromMM(by)),
+                 VECTOR2I(FromMM(ax), FromMM(by))])
+            sh.SetPolyPoints(pts)
+            sh.SetLayer(board.GetLayerID("User.2"))
+            sh.SetFilled(True)
+            board.Add(sh)
+        board.Save(str(out_path))
+        print(f"KRT INPUT: wrote {out_path} (track-free, unfilled, "
+              f"{len(rects)} keepouts)")
+        return
 
     for net, x, y, dia, drill in DESIGNED_VIAS:
         v = pcbnew.PCB_VIA(board)
