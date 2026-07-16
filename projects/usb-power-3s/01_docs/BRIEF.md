@@ -83,6 +83,14 @@ fit (rotation x mirror), rotation-DB audit, adjudication register
 vendored LM5145 footprint mirror-numbered (dead board) -> footprint fixed,
 full re-route, v1.1. The SPF power_board_v1 shares the defect (already ordered).
 
+### D6 — 2026-07-16 — user directive
+> can we add a verification step where we review a sets of parts in a new context agent, against schematic and PCB routing to make sure all pins are correctly setup?
+Impact: fresh-context pin review stage (skills/kicad-pcb: pin_audit.py +
+pin-review-protocol.md); dossiers are conclusion-free, reviewers are
+independent agents deriving expected pinouts from datasheet figures. First
+run: 17 parts reviewed, 0 unresolved FAILs, one part.yaml label fixed
+(07_releases/v1.1-2026-07-16/verification/pin_review.md).
+
 ## Decision register
 
 | id | decision | decided by | depth |
@@ -96,3 +104,4 @@ full re-route, v1.1. The SPF power_board_v1 shares the defect (already ordered).
 | D3 | Folders number-prefixed in pipeline order | user (D3) | Log D3 |
 | D4 | Commission record kept in 01_docs/BRIEF.md | user (D4) | Log D4 |
 | D5 | JLC digital-twin order gate; LM5145 footprint fixed + re-route (v1.1) | user (D5) | Log D5 |
+| D6 | Fresh-context pin review required before every order | user (D6) | Log D6 |
