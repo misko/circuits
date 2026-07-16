@@ -3,7 +3,8 @@ manufacturer: Littelfuse
 type: fuse_smd
 datasheet:
   doc_id: 451/453 Series
-  revision: Revised 09/10/15
+  revision: Rev2015-09-10
+  revision_note: "footer reads 'Revised: 09/10/15'"
   url: https://datasheet.lcsc.com/datasheet/pdf/00c9748756ca418792b5b22a2bd74996.pdf?productCode=C44480
   sha256: ade583d66dc303591035fa92a9f3874828f567f59a3cb4f5d24984c3de96ea87
   fetched: 2026-07-16

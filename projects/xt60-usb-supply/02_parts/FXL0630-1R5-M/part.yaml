@@ -3,7 +3,8 @@ manufacturer: SZ CJIANG Technology (cjiang / Changjiang Microelectronics)
 type: inductor_power
 datasheet:
   doc_id: FXL series spec
-  revision: Rev 3.0 (2024/3/25, "Merge all sizes")
+  revision: Rev3.0
+  revision_note: "version history: Rev 3.0, 2024/3/25, 'Merge all sizes'"
   url: https://datasheet.lcsc.com/datasheet/pdf/9072344370debcf88f3b085e450e71ce.pdf?productCode=C167217
   sha256: a3d5f476e6e2e56af77424cf70a59a3862ac4481376893e37a68dbc678a41587
   fetched: 2026-07-16

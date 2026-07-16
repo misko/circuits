@@ -3,7 +3,8 @@ manufacturer: STMicroelectronics
 type: esd_protection_array
 datasheet:
   doc_id: "Doc ID 11265"
-  revision: Rev 5 (October 2011)
+  revision: Rev5
+  revision_note: "Doc ID 11265 Rev 5, October 2011"
   url: https://datasheet.lcsc.com/datasheet/pdf/0d3a2ab954b34651a0695e7ccf534db0.pdf?productCode=C7519
   sha256: 8ba7ab4ec1781b7f6052f5999a2304bd611c0ed2b5e8f36ffa5092552932a42e
   fetched: 2026-07-16

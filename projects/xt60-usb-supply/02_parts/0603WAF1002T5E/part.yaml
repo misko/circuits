@@ -1,0 +1,38 @@
+mpn: 0603WAF1002T5E
+manufacturer: UNI-ROYAL (Uniroyal Elec)
+type: resistor_thick_film
+value: 10k 1% 0603
+description: >
+  Thick film chip resistor 10k +/-1% 1/10W 0603. MPN decode per series
+  sheet sec 2: 0603 size, WA=1/10W, F=+/-1%, 1002=10k (100 x 10^2),
+  T=tape/reel, 5=5000 pcs, E=packing code.
+datasheet:
+  doc_id: UNIROYAL_ThickFilm
+  revision: V3_2019-02-12
+  url: https://datasheet.lcsc.com/datasheet/pdf/0a975aaa49b7c97f38a963127be4a823.pdf?productCode=C25804
+  sha256: 11cd644d5d8a34a6d12775afb80bf58d8fc11f0c3b700dbd0f7a59942ceaa5ef
+  fetched: 2026-07-16
+package: 0603 (1608 metric)
+footprint: Resistor_SMD:R_0603_1608Metric
+pins:
+  "1":
+    name: T1
+    note: non-polar
+  "2":
+    name: T2
+limits:
+  power: 0.1W at 70C
+  working_voltage: 75V
+  overload_voltage: 150V
+  temp_range: -55C to +155C
+gotchas:
+  - Series datasheet (one PDF covers 01005..2512); per-part facts derived
+    from the 0603 rows plus MPN decoding - allowed deviation, see
+    02_parts/README.md.
+verified: >
+  MPN decoded against series sheet sec 2 part-number coding; 0603 ratings
+  row (1/10W @70C, 75V RCWV, 150V overload, -55..155C) from the sheet's
+  ratings tables (doc dated Feb.12,2019 V.3). LCSC C25804 listing agrees
+  (RES 10kOhm +/-1% 100mW 0603, UNI-ROYAL). 2026-07-16.
+sourcing:
+  lcsc: C25804

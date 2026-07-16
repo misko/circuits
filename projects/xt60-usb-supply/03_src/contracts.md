@@ -18,6 +18,7 @@ and `04_kicad/` disagree, `03_src/` is right and `04_kicad/` is stale.
 | pipeline scripts (`route_taps*.py`, `stitch_and_fill.py`, …) | project-specific routing/stitching steps | every one must be invoked by `rebuild_all.sh` — a script the chain doesn't run is an experiment (forbidden) |
 | `bom_seed.py` | maps BOM comments → `02_parts/` MPN → LCSC; fails on unmapped/TBD lines | required before ordering |
 | `export_pdfs.sh` | release PDF set (schematic, layers, assembly) + PNG verification renders | |
+| `route/routed_final.kicad_pcb` | the COMMITTED final KRT chain file — the routing source of truth that `import_routing.py` re-imports on every rebuild (regenerating the board strips geometry; this file is how the rebuild is reproducible from a clean clone). Regenerate via `route_board.sh` | project adaptation |
 | `rules/` | see `rules/contracts.md` |
 | `lib/` | see `lib/contracts.md` |
 | `contracts.md` | this file |

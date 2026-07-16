@@ -1,0 +1,92 @@
+mpn: TYPE-C-31-M-12A
+manufacturer: Korean Hroparts Elec (HRO)
+type: usb_c_receptacle
+description: >
+  USB Type-C 16-pin SMD+THT receptacle, high-conductivity-copper 6 A
+  high-current variant (drawing title "gao dao tong, guo 6A da dian liu
+  kuan"). 16 signal contacts, stainless shell with 4 THT legs, 2 locating
+  pegs. Power-only / USB 2.0 class (no SuperSpeed pins).
+datasheet:
+  doc_id: TYPE-C-31-M-12A
+  revision: RevA_2022-10-26
+  url: https://datasheet.lcsc.com/datasheet/pdf/12a90887c690607bfae27dd23b7920e4.pdf?productCode=C5337088
+  sha256: fd8a23ee5f8bad1c98f53d3269d70d727d342216a4de7abc438f099b21ca62f5
+  fetched: 2026-07-16
+package: USB-C 16P hybrid SMD signal / THT shell, 8.94 x 7.35 mm body
+footprint: Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12
+footprint_note: >
+  Mechanical match verified against the -12A drawing: locating holes Dia0.60
+  on 5.78 mm centers (KiCad NPTH Dia0.65 at x=+/-2.89 - same centers, +0.05
+  clearance), 4 shell oval slots at x=+/-4.32 with 4.18 mm front/rear row
+  spacing (KiCad slots 0.6x1.7 front / 0.6x1.2 rear at y spacing 4.18 -
+  drawing shows the same 1.70/1.20 slots). Signal pad x-positions identical
+  (A5-A8 at +/-0.25,+/-1.25; B5-B8 at +/-0.75,+/-1.75; outer pads at
+  +/-2.4(5),+/-3.2(5)). KiCad uses slightly longer pads (1.45 vs 1.14 mm)
+  and separate overlapping A/B pads where the LCSC vendor footprint
+  (easyeda2kicad C5337088) merges A1/B12, A4/B9, B1/A12, B4/A9 - both fine.
+  HRO -12 and -12A share the land pattern; confirmed empirically here.
+pins:
+  "A1":
+    name: GND
+  "A4":
+    name: VBUS
+  "A5":
+    name: CC1
+  "A6":
+    name: "D+"
+    note: drawing signal name DP1
+  "A7":
+    name: "D-"
+    note: drawing signal name DN1
+  "A8":
+    name: SBU1
+  "A9":
+    name: VBUS
+  "A12":
+    name: GND
+  "B1":
+    name: GND
+  "B4":
+    name: VBUS
+  "B5":
+    name: CC2
+  "B6":
+    name: "D+"
+    note: drawing signal name DP2
+  "B7":
+    name: "D-"
+    note: drawing signal name DN2
+  "B8":
+    name: SBU2
+  "B9":
+    name: VBUS
+  "B12":
+    name: GND
+  "SH":
+    name: SHIELD
+    note: 4 THT shell legs (KiCad pads "SH"); tie to chassis/GND per design
+limits:
+  rated_current: 6A total VBUS (drawing note 4-1, CURRENT RATING 6A, in red)
+  rated_voltage: 20V
+  insulation_resistance: 100MOhm min
+  withstand_voltage: AC 100V 1 min
+  temp_range: -30C to +80C
+  durability: 10000 cycles
+gotchas:
+  - >
+    6 A is the CONNECTOR total across the 4 VBUS pads (A4,A9,B4,B9) - route
+    all four VBUS and all GND pads with copper sized for 6 A.
+  - CC1 AND CC2 both need their own 5.1k pulldown (sink) - do not share one
+    resistor, or one plug orientation loses power negotiation.
+  - D+/D- appear twice (A6/A7 and B6/B7); short A/B pairs together for
+    USB 2.0 data in either plug orientation.
+  - Shell legs are THT slots (oval 0.6x1.7 and 0.6x1.2); board must be
+    fabbed with plated slots, not round holes.
+verified: >
+  Pin table transcribed from the datasheet's PIN/SIGNAL NAME table (sheet 1,
+  Rev A drawn 2022.10.26); 6A/20V from note 4 ELECTRICAL PERFORMANCE;
+  land-pattern match measured pad-by-pad between the drawing's RECOMMEND
+  P.C.B LAYOUT, KiCad USB_C_Receptacle_HRO_TYPE-C-31-M-12, and easyeda2kicad
+  C5337088. 2026-07-16.
+sourcing:
+  lcsc: C5337088

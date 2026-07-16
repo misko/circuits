@@ -1,0 +1,39 @@
+mpn: CL32B226KOJNNNE
+manufacturer: Samsung Electro-Mechanics
+type: mlcc
+value: 22uF 16V X7R 1210
+description: >
+  22 uF +/-10% 16 V X7R (B) MLCC, 1210 (3225 metric). CL=Samsung MLCC,
+  32=1210(3225), B=X7R, 226=22uF, K=+/-10%, O=16V, J=thickness.
+datasheet:
+  doc_id: CL32B226KOJNNNE_spec
+  revision: noRev
+  url: https://datasheet.lcsc.com/datasheet/pdf/61b8a52ad9f6bbda0838948a03e436a3.pdf?productCode=C55530
+  sha256: 07d5b0ec861b16df570af962387da02677542d2605196094568a7b8fe3824f8d
+  fetched: 2026-07-16
+package: 1210 (3225 metric)
+footprint: Capacitor_SMD:C_1210_3225Metric
+pins:
+  "1":
+    name: T1
+    note: non-polar
+  "2":
+    name: T2
+limits:
+  rated_voltage: 16V
+  dielectric: X7R (+/-15% over -55C..+125C)
+  tolerance: +/-10%
+gotchas:
+  - >
+    DC BIAS AT 5V (rough figure): a 22uF/16V X7R 1210 typically loses only
+    ~10-20% at 5V bias - expect ~18-20uF effective on a 5V rail. Large-case
+    1210 derates much less at 5V than 0805/1206 equivalents; this is why
+    the 1210 was chosen for the 5V output.
+  - PDF carries no printed revision code; filename marked noRev. Re-verify
+    if a re-download hash-mismatches.
+verified: >
+  Value/voltage/dielectric cross-checked between the Samsung spec PDF
+  (General MLCC, rated-voltage/X7R sections) and the LCSC C55530 listing
+  (CAP CER 22uF 16V X7R 1210). 2026-07-16.
+sourcing:
+  lcsc: C55530

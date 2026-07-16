@@ -41,6 +41,7 @@ _NS = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
 
 GRID = 1.27          # KiCad wire/pin grid, mm
 A3_W, A3_H = 420.0, 297.0
+PAPER = {"A4": (297.0, 210.0), "A3": (420.0, 297.0), "A2": (594.0, 420.0)}
 _MARGIN_L, _MARGIN_T = 20.0, 20.0     # keep clear of the sheet frame
 _MARGIN_R, _MARGIN_B = 20.0, 30.0     # bottom also clears the title block
 _FONT = 1.27
@@ -199,7 +200,7 @@ class Schematic:
         Returns (placements {ref:(x,y)}, boxes [(x1,y1,x2,y2,title)])."""
         if not self.parts():
             raise ValueError("schematic has zero parts")
-        sheet_w, sheet_h = (A3_W, A3_H) if self.paper == "A3" else (A3_W, A3_H)
+        sheet_w, sheet_h = PAPER[self.paper]
         placements, boxes = {}, []
         pad, title_h, gap = 4.0, 6.5, 8.0
         cx, cy, row_h = _MARGIN_L, _MARGIN_T, 0.0

@@ -38,17 +38,20 @@ Duty D = Vout/(Vin x eta): 0.42 @ 12.6 V ... 0.58 @ 9.0 V (CCM).
 dI = Vout x (1 - D) / (fsw x L), D_min = 5/12.6 = 0.397
 
 - Rail A: L1 = 1.5 uH (FXL0630-1R5-M): dI = 5 x 0.603 / (0.8e6 x 1.5e-6)
-  = 2.5 A = 31% of 8 A. I_pk = 8 + 1.26 = 9.3 A < Isat 14 A (1.5x) ok.
+  = 2.5 A = 33% of 7.5 A. I_pk = 7.5 + 1.26 = 8.8 A < Isat 12 A ok
+  (datasheet Isat, not the catalog's 14 A).
 - Rail C: L2 = 2.2 uH (FXL0630-2R2-M): dI = 1.7 A = 29% of 6 A.
-  I_pk = 6.9 A < Isat 9.5 A (1.4x) ok.
+  I_pk = 6.9 A < Isat 10.5 A ok.
 
-### Current limits (ILMT strap, valley-mode)
+### Current limits (ILMT strap, valley-mode; decisions/0007)
 
-- U1 (8 A): ILMT FLOATING -> 12 A valley limit. Valley at full load =
-  8 - 1.26 = 6.7 A; 5.3 A headroom, no false trips, still limits a short.
-- U2 (6 A): ILMT LOW (tie to GND) -> 8 A valley limit. Valley at full
-  load = 6 - 0.85 = 5.1 A; 2.9 A headroom. Hard short -> ~8-9 A max into
-  the USB-C port, satisfying "6 A max" as a capability bound (BRIEF A1).
+Both rails: ILMT LOW (tie to GND) -> 8 A valley limit.
+- U1: valley at full load = 7.5 - 1.25 = 6.25 A (< 8 A, no false trip);
+  max deliverable = 8 + dI/2 = 9.25 A > 7.5 A required; fault peak =
+  8 + dI = 9.3 A < L1 Isat 12 A (inductor never saturates).
+- U2: valley at full load = 6 - 0.85 = 5.1 A; fault peak 8.9 A < L2 Isat
+  10.5 A. Hard short -> ~9 A max into the USB-C port, satisfying "6 A
+  max" as a capability bound (BRIEF A1).
 
 ### Feedback dividers (Vout = 0.6 x (1 + R1/R2))
 

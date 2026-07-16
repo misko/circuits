@@ -25,11 +25,12 @@ echo "=== 4. board (placement + zones) ==="
 $PY 03_src/generate_board.py
 
 echo "=== 5. routing import + stitch + fill ==="
-if [ -f 06_build/route/routed_final.kicad_pcb ]; then
+if [ -f 03_src/route/routed_final.kicad_pcb ]; then
   $PY 03_src/import_routing.py
 else
   echo "(no routing artifact yet — board is placement-only)"
 fi
+$PY 03_src/stitch_and_fill.py
 
 echo "=== 6. placement/pad audit ==="
 $PY 03_src/audit_board.py

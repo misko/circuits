@@ -65,9 +65,14 @@ def conn_by_function(mpn, func_to_net):
                 f"(available: {sorted(fmap)})")
         for pad in fmap[key]:
             pads[pad] = {"name": func, "net": net}
-    # every part.yaml pin must be addressed (no silently floating pins)
+    # every part.yaml pin must be addressed (no silently floating pins).
+    # Mechanical-only entries (unnumbered pegs documented as MP/SHELL_PEG)
+    # have no numbered footprint pad and are exempt.
+    MECH = {"SHELL_PEG", "MP", "PEG"}
     for pad, v in (d.get("pins") or {}).items():
         name = (v["name"] if isinstance(v, dict) else str(v)).upper()
+        if name in MECH or str(pad).upper() in MECH:
+            continue
         if str(pad) not in pads:
             raise SystemExit(
                 f"ERROR: {mpn}: part.yaml pin {pad} ({name}) not wired by the "
@@ -81,10 +86,22 @@ def two_pin(net1, net2, names=("1", "2")):
 
 
 def build():
-    s = Schematic(title="xt60-usb-supply")
+    s = Schematic(title="xt60-usb-supply", paper="A2")
+    # pre-declare sections; big symbols get their own sections so small
+    # passives don't inherit giant grid cells
+    s.add_section("Input power path", cols=6)
+    s.add_section("Buck A passives", cols=5)
+    s.add_section("Buck A power", cols=2)
+    s.add_section("Buck C passives", cols=5)
+    s.add_section("Buck C power", cols=2)
+    s.add_section("USB-A jacks", cols=3)
+    s.add_section("USB ESD", cols=3)
+    s.add_section("USB-C port", cols=1)
+    s.add_section("Input aux", cols=3)
+    s.add_section("Indicators", cols=4)
 
     # ---------------- Input & protection ----------------
-    sec = "Input + protection"
+    sec = "Input power path"
     s.add_part(Part("J1", "XT60PW-M",
                     "Connector_AMASS:AMASS_XT60PW-M_1x02_P7.20mm_Horizontal",
                     conn_by_function("XT60PW-M", {"+": "VBAT_RAW", "-": "GND"})),
@@ -96,32 +113,33 @@ def build():
                                      {"G": "PFET_G", "D": "VBAT_F", "S": "VBAT_P"})),
                section=sec)
     s.add_part(Part("R1", "100k", "Resistor_SMD:R_0603_1608Metric",
-                    two_pin("PFET_G", "GND")), section=sec)
+                    two_pin("PFET_G", "GND")), section="Input aux")
     s.add_part(Part("D1", "SMBJ15A", "Diode_SMD:D_SMB",
                     conn_by_function("SMBJ15A", {"K": "VBAT_P", "A": "GND"})),
                section=sec)
     for ref in ("CB1", "CB2"):
         s.add_part(Part(ref, "100uF 25V polymer",
-                        f"{VENDOR_LIB}:CAP-SMD_BD6.3-L6.6-W6.6-LS7.3-FD",
-                        conn_by_function("MA25V101M06600600601",
+                        "Capacitor_SMD:CP_Elec_6.3x5.9",
+                        conn_by_function("MA25V100M6x6",
                                          {"+": "VBAT_P", "-": "GND"})),
                    section=sec)
     s.add_part(Part("LED1", "red", "LED_SMD:LED_0805_2012Metric",
                     conn_by_function("NCD0805R1", {"K": "GND", "A": "LED1_A"})),
-               section=sec)
+               section="Input aux")
     s.add_part(Part("R2", "1k", "Resistor_SMD:R_0603_1608Metric",
-                    two_pin("VBAT_P", "LED1_A")), section=sec)
+                    two_pin("VBAT_P", "LED1_A")), section="Input aux")
 
     # ---------------- Buck rails ----------------
     for rail, U, L, lval, ilmt_net, cin, cout, rf, cvcc, cbs, sw, v5, fb in (
-        ("A", "U1", "L1", "1.5uH", "NC_U1_ILMT",
+        ("A", "U1", "L1", "1.5uH", "GND",
          ("CIN_A1", "CIN_A2"), ("COUT_A1", "COUT_A2", "COUT_A3", "COUT_A4"),
-         ("RFA1", "RFA2"), "CVCC_A", "CBS_A", "SW_A", "5V_A", "FB_A"),
+         ("RFA1", "RFA2"), "CVCC1", "CBS1", "SW_A", "5V_A", "FB_A"),
         ("C", "U2", "L2", "2.2uH", "GND",
          ("CIN_C1", "CIN_C2"), ("COUT_C1", "COUT_C2", "COUT_C3", "COUT_C4"),
-         ("RFC1", "RFC2"), "CVCC_C", "CBS_C", "SW_C", "5V_C", "FB_C"),
+         ("RFC1", "RFC2"), "CVCC2", "CBS2", "SW_C", "5V_C", "FB_C"),
     ):
-        sec = f"Buck {rail} (5V {'8A' if rail == 'A' else '6A'})"
+        sec = f"Buck {rail} passives"
+        sec_pwr = f"Buck {rail} power"
         vcc_net = f"VCC_{rail}"
         bst_net = f"BST_{rail}"
         s.add_part(Part(U, "SY8368QNC",
@@ -131,7 +149,7 @@ def build():
                             "FB": fb, "EN": "VBAT_P", "VCC": vcc_net,
                             "PG": f"NC_{U}_PG", "ILMT": ilmt_net,
                             "GND": "GND",
-                        })), section=sec)
+                        })), section=sec_pwr)
         for ref in cin:
             s.add_part(Part(ref, "10uF 25V X7R", "Capacitor_SMD:C_1206_3216Metric",
                             two_pin("VBAT_P", "GND")), section=sec)
@@ -141,8 +159,8 @@ def build():
                         two_pin(bst_net, sw)), section=sec)
         mpn_l = "FXL0630-1R5-M" if rail == "A" else "FXL0630-2R2-M"
         load_part_yaml(mpn_l)  # existence + facts gate
-        s.add_part(Part(L, lval, f"{VENDOR_LIB}:IND-SMD_L7.0-W6.6",
-                        two_pin(sw, v5)), section=sec)
+        s.add_part(Part(L, lval, f"{VENDOR_LIB}:L_FXL0630_7.0x6.6mm",
+                        two_pin(sw, v5)), section=sec_pwr)
         for ref in cout:
             s.add_part(Part(ref, "22uF 16V X7R", "Capacitor_SMD:C_1210_3225Metric",
                             two_pin(v5, "GND")), section=sec)
@@ -152,42 +170,41 @@ def build():
                         two_pin(fb, "GND")), section=sec)
 
     # ---------------- USB-A ports ----------------
-    sec = "USB-A ports (BC1.2 DCP)"
+    sec = "USB-A jacks"
     for i, (jref, uref) in enumerate((("J2", "U3"), ("J3", "U4"), ("J4", "U5")), 1):
         dcp = f"DCP{i}"
-        s.add_part(Part(jref, "USB-A", f"{VENDOR_LIB}:USB-A-TH_XY-AF90-WJDG",
+        s.add_part(Part(jref, "USB-A",
+                        "Connector_USB:USB_A_Stewart_SS-52100-001_Horizontal",
                         conn_by_function("XY-AF90-WJDG", {
                             "VBUS": "5V_A", "D-": dcp, "D+": dcp,
-                            "GND": "GND", "SHIELD1": "GND", "SHIELD2": "GND",
+                            "GND": "GND", "SHIELD": "GND",
                         })), section=sec)
         s.add_part(Part(uref, "USBLC6-2SC6", "Package_TO_SOT_SMD:SOT-23-6",
                         conn_by_function("USBLC6-2SC6", {
                             "I/O1": dcp, "GND": "GND", "I/O2": dcp,
                             "VBUS": "5V_A",
-                        })), section=sec)
+                        })), section="USB ESD")
 
     # ---------------- USB-C port ----------------
-    sec = "USB-C port (5V 6A, Rp 3A)"
+    sec = "USB-C port"
     s.add_part(Part("J5", "TYPE-C-31-M-12A",
-                    f"{VENDOR_LIB}:USB-C-SMD_TYPE-C-31-M-12A",
+                    "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12",
                     conn_by_function("TYPE-C-31-M-12A", {
-                        "VBUS1": "5V_C", "VBUS2": "5V_C",
-                        "GNDP1": "GND", "GNDP2": "GND",
+                        "VBUS": "5V_C", "GND": "GND",
                         "CC1": "CC1", "CC2": "CC2",
-                        "DP1": "NC_J5_DP1", "DN1": "NC_J5_DN1",
-                        "DP2": "NC_J5_DP2", "DN2": "NC_J5_DN2",
+                        "D+": "NC_J5_DP", "D-": "NC_J5_DN",
                         "SBU1": "NC_J5_SBU1", "SBU2": "NC_J5_SBU2",
-                        "SHELL": "GND",
+                        "SHIELD": "GND",
                     })), section=sec)
     s.add_part(Part("U6", "USBLC6-2SC6", "Package_TO_SOT_SMD:SOT-23-6",
                     conn_by_function("USBLC6-2SC6", {
                         "I/O1": "CC1", "GND": "GND", "I/O2": "CC2",
                         "VBUS": "5V_C",
-                    })), section=sec)
+                    })), section="USB ESD")
     s.add_part(Part("R3", "10k 1%", "Resistor_SMD:R_0603_1608Metric",
-                    two_pin("5V_C", "CC1")), section=sec)
+                    two_pin("5V_C", "CC1")), section="USB ESD")
     s.add_part(Part("R4", "10k 1%", "Resistor_SMD:R_0603_1608Metric",
-                    two_pin("5V_C", "CC2")), section=sec)
+                    two_pin("5V_C", "CC2")), section="USB ESD")
 
     # ---------------- Indicators ----------------
     sec = "Indicators"
@@ -220,8 +237,8 @@ def polarity_audit(s):
         ("J1", first_pin("XT60PW-M", "-"), "GND", "XT60 '-' blade to GND"),
         ("J1", first_pin("XT60PW-M", "+"), "VBAT_RAW", "XT60 '+' blade to VBAT_RAW"),
         ("D1", first_pin("SMBJ15A", "K"), "VBAT_P", "TVS cathode to +rail"),
-        ("CB1", first_pin("MA25V101M06600600601", "+"), "VBAT_P", "polymer + to rail"),
-        ("CB2", first_pin("MA25V101M06600600601", "+"), "VBAT_P", "polymer + to rail"),
+        ("CB1", first_pin("MA25V100M6x6", "+"), "VBAT_P", "polymer + to rail"),
+        ("CB2", first_pin("MA25V100M6x6", "+"), "VBAT_P", "polymer + to rail"),
         ("LED1", first_pin("NCD0805R1", "K"), "GND", "LED cathode to GND"),
         ("LED2", first_pin("KT-0805G", "K"), "GND", "LED cathode to GND"),
         ("LED3", first_pin("KT-0805G", "K"), "GND", "LED cathode to GND"),

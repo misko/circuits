@@ -1,0 +1,53 @@
+mpn: KT-0805G
+manufacturer: Hubei KENTO Electronics
+type: led
+value: emerald green 0805
+description: >
+  0805 SMD LED, emerald green (dominant 513-528 nm), transparent planar
+  lens, 2.0 x 1.25 x 0.85 mm. Spec approval sheet Rev A.0, 2018-12-06.
+datasheet:
+  doc_id: KT-0805G
+  revision: RevA.0_2018-12-06
+  url: https://datasheet.lcsc.com/datasheet/pdf/de342fde3322df0797012cd7a04e2194.pdf?productCode=C2297
+  sha256: 853e6752f600e247475ba548092207fa4fc707a3f8a0b1562a834bc9a901a8d9
+  fetched: 2026-07-16
+package: LED 0805 (2012 metric)
+footprint: LED_SMD:LED_0805_2012Metric
+pins:
+  "1":
+    name: K
+    note: >
+      CATHODE on the BOARD footprint (LED_SMD:LED_0805_2012Metric, pad 1 =
+      cathode by KiCad convention; footprint silk bar + fab chamfer on the
+      pad-1 side). The part's green-triangle apex / green corner mark
+      (cathode end) must land on this pad at assembly.
+  "2":
+    name: A
+    note: >
+      ANODE on the board footprint. NOTE the vendor drawing numbers its
+      terminals OPPOSITELY (vendor terminal 1 = anode "+"); pins here are
+      keyed to the KiCad footprint pads, which is what the netlist and
+      pick-and-place reference. See gotchas.
+limits:
+  if_max: 30mA DC
+  ifp_max: 60mA (0.1ms, 1/10 duty)
+  vf: 2.6-3.1V at IF=5mA
+  vr_max: 5V
+  pd_max: 100mW
+  temp_range: -40C to +85C
+gotchas:
+  - >
+    NUMBERING MISMATCH WITH KICAD: this vendor numbers 1=ANODE, but the
+    KiCad LED_0805_2012Metric footprint convention is pad 1 = CATHODE
+    (verified from the footprint geometry: silkscreen bar at x=-1.685
+    beside pad 1 at x=-0.94, and F.Fab chamfered corner on the pad-1 side).
+    Place the part with its green-triangle (cathode) end on KiCad pad 1.
+  - >
+    Vf up to 3.1V - on a 5V rail with ~1k series R expect ~2mA; this part
+    is bright (175-430 mcd at just 5mA), so low drive is fine.
+verified: >
+  Electro-optical table p.3 (IF=5mA conditions), absolute max table p.3,
+  polarity from p.2 outline figure (terminal 1 "+", terminal 2 "|", green
+  triangle apex toward cathode). 2026-07-16.
+sourcing:
+  lcsc: C2297

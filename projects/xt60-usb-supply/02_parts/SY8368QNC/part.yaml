@@ -3,7 +3,7 @@ manufacturer: Silergy
 type: buck_regulator_sync
 datasheet:
   doc_id: AN_SY8368
-  revision: AN_SY8368 Rev 0.9B
+  revision: Rev0.9B
   url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1808011441_Silergy-Corp-SY8368QNC_C125897.pdf
   sha256: 68a783bb925c686da0e8ff6ab27514f778c120343b699eb1fc2bd97182a931a4
   fetched: 2026-07-16

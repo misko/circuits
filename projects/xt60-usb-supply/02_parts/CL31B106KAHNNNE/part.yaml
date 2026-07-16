@@ -1,0 +1,41 @@
+mpn: CL31B106KAHNNNE
+manufacturer: Samsung Electro-Mechanics
+type: mlcc
+value: 10uF 25V X7R 1206
+description: >
+  10 uF +/-10% 25 V X7R (B) MLCC, 1206 (3216 metric). Part number decode per
+  catalog "Part Numbering" page - CL=Samsung MLCC, 31=1206(3216), B=X7R,
+  106=10uF, K=+/-10%, A=25V, H=thickness, NNN=plating/control, E=reel.
+datasheet:
+  doc_id: Samsung_MLCC_catalog
+  revision: 2015-11
+  url: https://datasheet.lcsc.com/datasheet/pdf/02336ea48ea44ca18c72517dd3cb7b47.pdf?productCode=C14860
+  sha256: 96baebe4bd0ce363e87be28b5b003f511f1502e084a6fc4f02333ded56c808f6
+  fetched: 2026-07-16
+package: 1206 (3216 metric)
+footprint: Capacitor_SMD:C_1206_3216Metric
+pins:
+  "1":
+    name: T1
+    note: non-polar
+  "2":
+    name: T2
+limits:
+  rated_voltage: 25V
+  dielectric: X7R (+/-15% over -55C..+125C)
+  tolerance: +/-10%
+gotchas:
+  - >
+    DC BIAS DERATING (rough figure, not from a table in this catalog): a
+    10uF/25V X7R 1206 typically loses ~20-30% capacitance at 12V bias and
+    ~40-50% near 25V. Budget ~6-7uF effective at 12V; check Samsung's
+    online simulator for the exact curve before relying on tighter margins.
+  - Datasheet is Samsung's general MLCC catalog (Nov 2015, 84 pp), not a
+    per-part sheet; the MPN is validated by decoding against the catalog's
+    part-numbering table plus the LCSC listing (CAP CER 10uF 25V X7R 1206).
+verified: >
+  MPN decode against catalog Part Numbering page; value/voltage/dielectric
+  cross-checked with LCSC C14860 listing (Samsung, 1206, 10uF 25V X7R).
+  2026-07-16.
+sourcing:
+  lcsc: C14860

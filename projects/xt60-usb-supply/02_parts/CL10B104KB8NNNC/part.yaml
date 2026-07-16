@@ -1,0 +1,39 @@
+mpn: CL10B104KB8NNNC
+manufacturer: Samsung Electro-Mechanics
+type: mlcc
+value: 100nF 50V X7R 0603
+description: >
+  100 nF +/-10% 50 V X7R MLCC, 0603 (1608 metric). This exact MPN is the
+  catalog's own part-numbering example (CL 10 B 104 K B 8 N N N C).
+  Chosen over Yageo CC0603KRX7R9BB104 (C14663) because C1591 is the
+  JLC/LCSC BASIC 100nF 0603 with deep stock (3.3M+ at check time).
+datasheet:
+  doc_id: Samsung_MLCC_catalog
+  revision: 2015-11
+  url: https://datasheet.lcsc.com/datasheet/pdf/02336ea48ea44ca18c72517dd3cb7b47.pdf?productCode=C1591
+  sha256: 96baebe4bd0ce363e87be28b5b003f511f1502e084a6fc4f02333ded56c808f6
+  fetched: 2026-07-16
+package: 0603 (1608 metric)
+footprint: Capacitor_SMD:C_0603_1608Metric
+pins:
+  "1":
+    name: T1
+    note: non-polar
+  "2":
+    name: T2
+limits:
+  rated_voltage: 50V
+  dielectric: X7R (+/-15% over -55C..+125C)
+  tolerance: +/-10%
+gotchas:
+  - Negligible DC-bias worry at 5V on a 50V-rated 100nF; use freely as
+    bypass.
+  - Same shared Samsung general catalog PDF as CL31B106KAHNNNE.
+verified: >
+  MPN decode against the catalog Part Numbering page (which uses this exact
+  MPN as its worked example); value/voltage from LCSC C1591 listing
+  (CAP CER 100nF 50V X7R 0603, Samsung). 2026-07-16.
+sourcing:
+  lcsc: C1591
+  alternates:
+    - C14663

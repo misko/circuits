@@ -29,65 +29,67 @@ PROJ_LIB = PROJ / "03_src" / "lib"
 # ---------------- board geometry ----------------
 X0, Y0, X1, Y1 = 100.0, 100.0, 192.0, 162.0   # outline (92 x 62 mm)
 
-MOUNTING_HOLES = [(104.5, 104.5), (104.5, 157.5), (166.0, 104.5), (166.0, 157.5)]
+MOUNTING_HOLES = [(104.5, 104.5), (104.5, 157.5), (166.0, 104.5), (160.0, 158.5)]
 
 # ref: (x, y, rot_deg). rot is CCW in KiCad UI convention.
 FLOORPLAN = {
-    # input chain, west
-    "J1":  (101.5, 131.0, 90),    # XT60, mates west (verify render)
-    "F1":  (114.0, 131.0, 0),
-    "Q1":  (124.0, 131.0, 90),
-    "D1":  (133.0, 148.0, 0),
-    "CB1": (136.0, 122.0, 90),
-    "CB2": (136.0, 140.0, 90),
-    "LED1": (106.0, 145.0, 90),
-    "R2":  (106.0, 150.0, 90),
-    # buck A (north center): LX east, IN west after 180
+    # input chain, west (J1 pegs sit 6mm inboard of the blade row)
+    "J1":  (107.5, 134.6, 90),    # XT60, nose overhangs west edge
+    "F1":  (114.8, 127.4, 0),
+    "Q1":  (124.0, 124.0, 90),    # tab (drain) north, G/S leads south
+    "R1":  (120.0, 133.0, 90),    # PFET gate bleed
+    "D1":  (131.0, 140.0, 0),
+    "CB1": (134.0, 134.0, 0),
+    "CB2": (134.0, 144.0, 0),
+    "LED1": (127.0, 155.5, -90),
+    "R2":  (127.0, 151.5, 90),
+    # buck A (north center): rot 180 -> signal row south, IN west, LX east
     "U1":  (152.0, 118.0, 180),
-    "CIN_A1": (147.0, 112.0, 0),
-    "CIN_A2": (147.0, 124.0, 0),
-    "CVCC_A": (146.5, 128.5, 0),
-    "CBS_A": (158.0, 112.5, 0),
-    "RFA1": (150.0, 132.0, 0),
-    "RFA2": (155.0, 132.0, 0),
+    "CIN_A1": (149.0, 114.5, 90),
+    "CIN_A2": (149.0, 121.5, 90),
+    "CVCC1": (152.0, 122.8, 0),
+    "CBS1": (154.0, 124.2, 0),
+    "RFA1": (154.5, 127.2, 0),
+    "RFA2": (158.0, 127.2, 0),
     "L1":  (163.0, 118.0, 0),
     "COUT_A1": (170.5, 110.0, 0),
     "COUT_A2": (170.5, 114.5, 0),
     "COUT_A3": (170.5, 121.5, 0),
     "COUT_A4": (170.5, 126.0, 0),
-    # buck C (south center)
+    # buck C (south center), mirror at y ~ +28
     "U2":  (152.0, 146.0, 180),
-    "CIN_C1": (147.0, 140.0, 0),
-    "CIN_C2": (147.0, 152.0, 0),
-    "CVCC_C": (146.5, 156.5, 0),
-    "CBS_C": (158.0, 140.5, 0),
-    "RFC1": (150.0, 158.0, 0),
-    "RFC2": (155.0, 158.0, 0),
+    "CIN_C1": (149.0, 142.5, 90),
+    "CIN_C2": (149.0, 149.5, 90),
+    "CVCC2": (152.0, 150.8, 0),
+    "CBS2": (154.0, 152.2, 0),
+    "RFC1": (154.5, 155.2, 0),
+    "RFC2": (158.0, 155.2, 0),
     "L2":  (163.0, 146.0, 0),
-    "COUT_C1": (170.5, 138.0, 0),
-    "COUT_C2": (170.5, 142.5, 0),
-    "COUT_C3": (170.5, 149.5, 0),
-    "COUT_C4": (170.5, 154.0, 0),
-    # USB-A east edge (mate east)
-    "J2":  (188.0, 112.0, -90),
-    "J3":  (188.0, 128.0, -90),
-    "J4":  (188.0, 144.0, -90),
-    "U3":  (178.0, 106.5, 0),
-    "U4":  (178.0, 122.5, 0),
-    "U5":  (178.0, 138.5, 0),
-    # USB-C southeast (mate east)
-    "J5":  (188.5, 157.0, -90),
-    "U6":  (177.0, 152.0, 0),
-    "R3":  (181.0, 148.0, 0),
-    "R4":  (181.0, 155.5, 90),
+    "COUT_C1": (166.0, 151.2, 0),
+    "COUT_C2": (166.0, 154.6, 0),
+    "COUT_C3": (166.0, 158.0, 0),
+    "COUT_C4": (170.5, 158.0, 0),
+    # USB-A east edge (rot +90 -> opening east, front overhangs edge)
+    "J2":  (180.0, 112.5, 90),
+    "J3":  (180.0, 129.1, 90),
+    "J4":  (180.0, 145.7, 90),
+    "U3":  (174.5, 109.0, 0),
+    "U4":  (174.5, 125.6, 0),
+    "U5":  (174.5, 142.2, 0),
+    # USB-C southeast (rot +90 -> opening east)
+    "J5":  (186.0, 158.2, 0),
+    "U6":  (186.0, 150.2, 0),
+    "R3":  (181.5, 151.0, 0),
+    "R4":  (190.0, 151.0, 0),
     # indicators
-    "LED2": (176.0, 104.5, 0),
-    "R5":  (181.0, 104.5, 0),
-    "LED3": (172.0, 158.5, 0),
-    "R6":  (172.0, 155.0, 0),
+    "LED2": (173.0, 105.5, 0),
+    "R5":  (177.0, 105.5, 0),
+    "LED3": (176.0, 159.5, 0),
+    "R6":  (172.0, 159.5, 0),
 }
 
-# (net, layer, priority, rect(x0,y0,x1,y1), min_width_mm)
+# (net, layer, priority, outline, min_width_mm)
+# outline: rect tuple (x0,y0,x1,y1) OR list of (x,y) polygon points.
 ZONES = [
     # full-board GND
     ("GND", "F.Cu", 0, (X0, Y0, X1, Y1), 0.25),
@@ -95,18 +97,43 @@ ZONES = [
     ("GND", "In1.Cu", 0, (X0, Y0, X1, Y1), 0.25),
     ("GND", "In2.Cu", 0, (X0, Y0, X1, Y1), 0.25),
     # input trunk pours (F.Cu, prio 1)
-    ("VBAT_RAW", "F.Cu", 1, (103.0, 126.0, 115.5, 136.0), 0.5),
-    ("VBAT_F", "F.Cu", 1, (112.5, 126.0, 125.5, 136.0), 0.5),
-    ("VBAT_P", "F.Cu", 1, (122.5, 108.0, 148.5, 154.0), 0.5),
-    # VBAT_P reinforcement on In2 under the input block
-    ("VBAT_P", "In2.Cu", 1, (124.0, 108.0, 148.0, 154.0), 0.5),
-    # switch nodes: minimal pours U LX -> L pad 1
-    ("SW_A", "F.Cu", 1, (152.0, 113.5, 161.0, 122.5), 0.5),
-    ("SW_C", "F.Cu", 1, (152.0, 141.5, 161.0, 150.5), 0.5),
-    # 5V rails to the ports
-    ("5V_A", "F.Cu", 1, (166.0, 106.0, 190.5, 146.5), 0.5),
-    ("5V_A", "In2.Cu", 1, (166.0, 106.0, 189.0, 146.0), 0.5),
-    ("5V_C", "F.Cu", 1, (166.0, 148.5, 190.5, 160.5), 0.5),
+    ("VBAT_RAW", "F.Cu", 1, (104.0, 124.4, 112.5, 130.4), 0.5),
+    ("VBAT_F", "F.Cu", 1, (114.6, 119.6, 127.4, 128.0), 0.5),
+    # VBAT_P: L-shape. Big east rect reaches both bucks' IN pads;
+    # west lobe (south of Q1's leads) picks up Q1 source, CBs, D1, R2.
+    ("VBAT_P", "F.Cu", 1, [
+        (128.0, 108.0), (151.6, 108.0), (151.6, 154.0), (123.4, 154.0),
+        (123.4, 128.2), (128.0, 128.2)], 0.5),
+    ("VBAT_P", "In2.Cu", 1, (126.0, 110.0, 150.5, 152.0), 0.5),
+    # switch nodes: minimal pours, converter LX pad -> inductor pad 1.
+    # South edge clears the EN signal pad row (y=119.0/147.0 + clearance).
+    ("SW_A", "F.Cu", 1, (152.3, 113.5, 161.5, 118.85), 0.5),
+    ("SW_C", "F.Cu", 1, (152.3, 141.5, 161.5, 146.85), 0.5),
+    # 5V_A: east block feeding the three USB-A ports + FB-sense finger
+    # west to the divider. SW notch below y=143.5 leaves room for 5V_C.
+    ("5V_A", "F.Cu", 1, [
+        (164.5, 106.0), (190.5, 106.0), (190.5, 147.5), (172.0, 147.5),
+        (172.0, 143.5), (164.5, 143.5), (164.5, 128.8), (153.0, 128.8),
+        (153.0, 125.5), (164.5, 125.5)], 0.5),
+    ("5V_A", "In2.Cu", 1, (165.0, 106.0, 189.5, 143.0), 0.5),
+    # 5V_C: south-east block (USB-C + COUT_C column) + lobe up to L2
+    # pad 2 + FB-sense finger west to the divider.
+    ("5V_C", "F.Cu", 1, [
+        (163.5, 144.5), (168.5, 144.5), (168.5, 148.5), (190.5, 148.5),
+        (190.5, 161.0), (162.0, 161.0), (162.0, 156.8), (153.0, 156.8),
+        (153.0, 153.5), (162.0, 153.5), (162.0, 148.5), (163.5, 148.5)],
+     0.5),
+]
+
+# Designed tracks (net, layer, width_mm, [(x,y), ...]) — deterministic
+# taps that pour-served nets need and no router should improvise:
+# EN pins tap VBAT_P around the signal row; CBS bootstrap caps tap their
+# SW pour. Widths satisfy the netclass floors (nets.yaml).
+DESIGNED_TRACKS = [
+    ("VBAT_P", "F.Cu", 0.5, [(153.13, 119.30), (153.13, 121.60), (151.00, 121.60)]),
+    ("VBAT_P", "F.Cu", 0.5, [(153.13, 147.30), (153.13, 149.60), (151.00, 149.60)]),
+    ("SW_A", "F.Cu", 0.5, [(154.76, 124.20), (154.76, 118.50)]),
+    ("SW_C", "F.Cu", 0.5, [(154.76, 152.20), (154.76, 146.50)]),
 ]
 
 
@@ -155,8 +182,11 @@ def add_zone(board, netcode, layer_name, prio, rect, min_w):
     z.SetThermalReliefSpokeWidth(FromMM(0.5))
     z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL if prio >= 1
                        else pcbnew.ZONE_CONNECTION_THERMAL)
-    x0, y0, x1, y1 = rect
-    pts = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
+    if isinstance(rect, tuple):
+        x0, y0, x1, y1 = rect
+        pts = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
+    else:
+        pts = rect
     chain = pcbnew.SHAPE_LINE_CHAIN()
     for x, y in pts:
         chain.Append(VECTOR2I(FromMM(x), FromMM(y)))
@@ -240,6 +270,17 @@ def main():
         if net not in netinfo:
             raise SystemExit(f"ERROR: zone net {net} not in netlist")
         add_zone(board, netinfo[net].GetNetCode(), layer, prio, rect, minw)
+
+    # designed tap tracks
+    for net, layer, width, pts in DESIGNED_TRACKS:
+        for (ax, ay), (bx, by) in zip(pts, pts[1:]):
+            t = pcbnew.PCB_TRACK(board)
+            t.SetStart(VECTOR2I(FromMM(ax), FromMM(ay)))
+            t.SetEnd(VECTOR2I(FromMM(bx), FromMM(by)))
+            t.SetWidth(FromMM(width))
+            t.SetLayer(board.GetLayerID(layer))
+            t.SetNet(netinfo[net])
+            board.Add(t)
 
     board.Save(str(BOARD))
 
