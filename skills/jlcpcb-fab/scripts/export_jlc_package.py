@@ -55,7 +55,10 @@ ap.add_argument("--layers", type=int, default=4, choices=(2, 4, 6))
 args = ap.parse_args()
 
 board = pcbnew.LoadBoard(args.board)
-out = Path(args.outdir)
+# ABSOLUTE outdir: PLOT_CONTROLLER resolves relative paths against the BOARD
+# file's directory, silently writing gerbers to <board_dir>/<outdir> while the
+# zip step (python cwd-relative) sees only drills (found 2026-07-16)
+out = Path(args.outdir).resolve()
 out.mkdir(parents=True, exist_ok=True)
 stem = Path(args.board).stem
 
