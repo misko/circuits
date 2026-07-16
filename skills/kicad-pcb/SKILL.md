@@ -55,11 +55,20 @@ credits, or debugging time — check provenance notes before assuming staleness.
     clean-context agent describe them back — it catches defects the author
     is blind to (8 classes on first use). Red/green every fix; netlist
     parity (node-for-node) after any schematic regeneration.
+12. **Separate source / generated / build / releases; extract datasheets
+    once.** Every fab order freezes into an immutable `releases/<ver>-<date>/`
+    with a MANIFEST (git SHA + tool versions) — a single mutable `fab/` dir
+    silently mixed KiCad 7 and 10 gerbers and cannot answer "what did we
+    send?". Datasheet FACTS (physical pad numbers, polarity, package) go once
+    into `parts/<MPN>/part.yaml` with the revision pinned; the PDF is cached
+    globally by sha256 and committed into the project only when the part is
+    actually used. See `references/project-structure.md`.
 
 ## Reference map (open on demand)
 
 | When you need... | Read |
 |---|---|
+| Folder layout spec→fab, datasheet/parts caching, releases | `references/project-structure.md` |
 | The 7-step generate→route→verify pipeline + KRT invocations | `references/routing-pipeline.md` |
 | Which routing/placement tool to use, all empirics + traps | `references/autorouter-landscape.md` |
 | pcbnew Python API gotchas with workaround patterns | `references/pcbnew-scripting.md` |
@@ -77,8 +86,10 @@ credits, or debugging time — check provenance notes before assuming staleness.
 | `scripts/classified_drc.py` | Severity-classified DRC report (real / margin / same-net) |
 | `scripts/import_krt.py` | Import KRT-dialect output into a pcbnew board |
 
-Fab output + ordering (gerber zip, BOM/CPL, JLC stock checks) live in the
-**`jlcpcb-fab` skill** — use it for everything order-facing.
+Fab output + ordering (gerber zip, BOM/CPL, JLC stock checks) moved to the
+**`jlcpcb-fab` skill** — use it for everything order-facing. The old
+`scripts/export_fab_jlc.py` here is superseded by its
+`export_jlc_package.py` (adds the upload zip + version-safe extensions).
 
 Run them with the KiCad-bundled interpreter (`/usr/bin/python3` with
 `import pcbnew` working). Each takes `--help`-documented arguments; none
