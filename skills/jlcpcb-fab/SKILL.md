@@ -182,3 +182,23 @@ board, 2026-07); the stock endpoint response shape was captured live
 2026-07-14. When JLC changes the endpoint or CSV formats, fix the scripts
 AND update this file in the same change. Board-design empirics stay in
 `kicad-pcb`; only JLC-facing knowledge lives here.
+
+
+## Learnings 2026-07-16 (usb-power-3s order prep)
+
+- `PLOT_CONTROLLER.SetOutputDirectory(relative)` resolves against the BOARD
+  file's directory, not the cwd — the zip step then ships a drills-only
+  "gerber" zip (2 files instead of 13). The export script now resolves the
+  outdir absolute; always sanity-check the zip file count (4-layer = 13).
+- Sourcing lives in `parts/<MPN>/part.yaml`; the BOM seed step maps BOM
+  comments -> MPN -> lcsc and FAILS on unmapped lines or TBD sourcing.
+  Inline `# comments` inside YAML flow mappings (`{lcsc: C123  # note}`)
+  are a parse error that hides until the first automated read — use block
+  mappings with a `note:` key.
+- `jlc_stock_check.py --search-missing` resolves value-only passives to
+  live LCSC candidates (basic-first) well; still confirm V/tol/dielectric
+  by eye before adopting, then create the real-MPN parts/ entry and delete
+  the TBD placeholder.
+- Parts genuinely not in the JLC catalog (e.g. CNCTech USB-A jacks) stay
+  UNCODED in the BOM on purpose: an explicit hand-solder list in the seed
+  script + `not_assembled:` line in the release MANIFEST, not a fake code.
