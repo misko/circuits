@@ -25,3 +25,6 @@ RELEASED must additionally pass the release gate at the bottom.
 - [ ] stock re-verified TODAY (not from cache)
 - [ ] `07_releases/<ver>-<date>/` written with MANIFEST + verification evidence
 - [ ] fab options in ORDER_README match the board (layers, via tier)
+
+- [ ] BRIEF.md: every acceptance criterion `met` (with evidence link) or `dropped` citing a user D#/Q# — never release with an `unmet` criterion
+- [ ] BRIEF.md prompt hash verifies (`sed -n "/prompt-verbatim-begin/,/prompt-verbatim-end/p" 01_docs/BRIEF.md | sed "1d;\$d" | sha256sum`)

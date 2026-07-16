@@ -10,6 +10,7 @@ one that is unrecoverable if lost.
 
 | File | What | Rule |
 |---|---|---|
+| `BRIEF.md` | the commission record: original prompt (verbatim), end goal + acceptance criteria, clarification/directive/assumption log, decision register | see structure below; user quotes immutable, log append-only |
 | `ARCHITECTURE.md` | the high-level concepts: power tree, net domains, stackup, ground strategy, critical geometries | prose + diagrams; the "why". Machine-readable net facts belong in `03_src/rules/nets.yaml`, not here — link to it |
 | `DETAIL_DESIGN.md` | the math: ripple, compensation, ampacity, thermal, tolerance | every number that a component value depends on, with its equation |
 | `CHANGELOG.md` | one entry per revision | see structure below |
@@ -25,6 +26,106 @@ one that is unrecoverable if lost.
   hand-drawn (block diagrams) and their source is in `03_src/`.
 - Decisions inline in `ARCHITECTURE.md` — link to `decisions/NNNN-*.md` instead.
   Architecture says WHAT IS; decisions say WHY IT IS.
+
+## Structure: `BRIEF.md` — the commission record
+
+The file that answers, at any moment: *what did the user actually ask for,
+what have they said since, what did we assume on their behalf, and are we
+done?* It is the only file whose primary content is **user-sourced, verbatim,
+and immutable**; everything the agent writes around those quotes is
+bookkeeping and stays mutable.
+
+The organizing rule — every requirement and every commission-level decision
+must TRACE to exactly one of:
+
+| Tag | Source | Mutability |
+|---|---|---|
+| `P` | the original prompt | verbatim, hashed, never edited |
+| `D#` | a later user directive | verbatim, append-only |
+| `Q#` | a clarification we asked + the user's answer | verbatim answer, append-only |
+| `A#` | an assumption we declared instead of asking | append-only; supersedable by a later D#/Q# |
+
+Required sections, in order:
+
+### 1. Header block
+
+```
+status: draft | agreed | in-progress | delivered | superseded
+prompt_sha256: <sha256 of the bytes between the prompt markers>
+current_release: no | 07_releases/<dir>
+```
+
+### 2. `## Original prompt` — verbatim, immutable
+
+The user's commissioning message, quoted exactly (typos included), between
+`<!-- prompt-verbatim-begin/end -->` markers, with date and channel.
+
+### 3. `## End goal — definition of done`
+
+One paragraph, then the acceptance table:
+
+```
+| # | Criterion | Source | Status |
+|---|---|---|---|
+| G1 | 3x USB-A outputs at 2.5 A max each | P | met — 07_releases/v1.0-... |
+```
+
+`Status` is `unmet`, `met — <evidence link>`, or `dropped — D#/Q#` (only a
+user utterance can drop a criterion; an agent cannot).
+
+### 4. `## Log` — directives, clarifications, assumptions (append-only)
+
+Chronological entries, ids monotonic per type, prior entries never edited:
+
+```
+### D2 — 2026-07-16 — user directive
+> verbatim quote
+Impact: <what changed; link to files/ADRs/criteria>
+
+### Q1 — <date> — clarification asked
+Asked: <our question>
+Answer: > verbatim user answer   (or: UNANSWERED — proceeding on A#n)
+Impact: ...
+
+### A1 — <date> — assumption (not asked)
+Assumed: <the choice>  Authority: <e.g. P delegates design decisions>
+Escalate if: <condition that should turn this into a real question>
+```
+
+### 5. `## Decision register` — the index of ALL decisions
+
+| id | decision (one line) | decided by | depth |
+|---|---|---|---|
+
+`decided by` is `user (P/D#/Q#)` or `agent (A# / P-delegation)`. Engineering
+decisions link their `decisions/NNNN-*.md`; commission-level ones link a log
+entry. The register is an index — rationale lives in the linked file/entry.
+
+## Validate — BRIEF.md
+
+- `sha256sum` of the bytes between the prompt markers equals `prompt_sha256`
+  (runnable: `sed -n '/prompt-verbatim-begin/,/prompt-verbatim-end/p' | sed '1d;$d' | sha256sum`)
+- git history: section 2 and existing log entries byte-identical since the
+  commit that introduced them (only appends and Status/Impact edits allowed)
+- every `Source`/`Authority` tag (P, D#, Q#, A#) resolves to an existing
+  prompt/log entry; log ids are monotonic with no gaps or renumbering
+- every acceptance criterion `Status` is one of the three forms; every
+  `dropped` cites a D#/Q# (never an A#)
+- decision register ↔ `decisions/`: every ADR file appears in exactly one
+  register row; every register row's depth link exists
+- release gate: cutting a `07_releases/` dir while any criterion is `unmet`
+  is a contract violation — `CHECKLIST.md` must carry this line
+
+## Repair — BRIEF.md
+
+- Original prompt lost or known only as a paraphrase → mark the section
+  `UNVERIFIED (reconstructed)`, drop `prompt_sha256`, and ask the user to
+  confirm the wording at the next contact. Never hash a reconstruction.
+- A requirement found in ARCHITECTURE/code with no P/D/Q/A trace → someone
+  invented it. Add an `A#` entry declaring it retroactively and flag it for
+  the user, or remove the feature.
+- A log entry edited after the fact (git shows it) → the log is no longer
+  evidence; restore the original from history and append a correction entry.
 
 ## Structure: `ARCHITECTURE.md`
 
@@ -53,6 +154,8 @@ Released: no
 a revision and a fab order.
 
 ## Validate
+
+- `BRIEF.md` passes its own Validate block (above)
 
 - every net named in `ARCHITECTURE.md` exists in `03_src/rules/nets.yaml`
 - every `CHANGELOG.md` entry has a git tag that exists
