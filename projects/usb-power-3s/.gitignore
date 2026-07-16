@@ -1,0 +1,8 @@
+build/*
+!build/contracts.md
+
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*-backups/
+_autosave-*
+fp-info-cache

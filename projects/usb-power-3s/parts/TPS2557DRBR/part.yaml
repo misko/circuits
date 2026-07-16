@@ -1,0 +1,26 @@
+mpn: TPS2557DRBR
+manufacturer: Texas Instruments
+type: power_switch_high_side
+datasheet:
+  doc_id: SLVS931
+  revision: SLVS931B
+  url: https://www.ti.com/lit/ds/symlink/tps2557.pdf
+  sha256: 5c6f52eb999d02c131f41f2b78370bbad94452a24a98873e9bb7c3dab7fe0b0c
+  fetched: 2026-07-16
+package: VSON-8 DRB 3x3
+footprint: usb_power_3s:VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm
+pins:
+  1: 'GND'
+  2: 'IN'
+  3: 'IN'
+  4: 'EN (active high)'
+  5: 'ILIM'
+  6: 'OUT'
+  7: 'OUT'
+  8: 'FAULT (open drain)'
+  9: 'EP tie GND'
+limits: '2.5-6.5V, 5A max switch'
+gotchas:
+  - 'IOS(mA) ~ 61050/RILIM(kOhm): 20k->3.05A verified; 24k3->2.51A (this board)'
+verified: 'pin map from SPF generator, verified vs SLVS931B (2026-07)'
+sourcing: {lcsc: C130056}

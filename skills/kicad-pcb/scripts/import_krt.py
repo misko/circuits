@@ -41,9 +41,11 @@ seen = []
 for m in re.finditer(
         r'\(segment\s+\(start ([\d.-]+) ([\d.-]+)\)\s+\(end ([\d.-]+) '
         r'([\d.-]+)\)\s+\(width ([\d.]+)\)\s+\(layer "([^"]+)"\)\s+'
-        r'\(net (\d+)\)', src):
-    x1, y1, x2, y2, w, lay, nn = m.groups()
-    name = netname.get(nn, "")
+        r'\(net (?:(\d+)|"([^"]+)")\)', src):
+    x1, y1, x2, y2, w, lay, nn, nname = m.groups()
+    # KRT emits numeric net ids when fed KiCad-7 boards and QUOTED NET NAMES
+    # when fed KiCad-10 boards - accept both (found the hard way, 2026-07)
+    name = nname if nname is not None else netname.get(nn, "")
     if want is not None and name not in want:
         continue
     net = board.FindNet(name)
@@ -61,10 +63,10 @@ for m in re.finditer(
     nseg += 1
 for m in re.finditer(
         r'\(via\s+\(at ([\d.-]+) ([\d.-]+)\)\s+\(size ([\d.]+)\)\s+'
-        r'\(drill ([\d.]+)\)\s+\(layers "[^"]+" "[^"]+"\)[^)]*\(net (\d+)\)',
+        r'\(drill ([\d.]+)\)\s+\(layers "[^"]+" "[^"]+"\)[\s\S]*?\(net (?:(\d+)|"([^"]+)")\)',
         src):
-    x, y, s, dr, nn = m.groups()
-    name = netname.get(nn, "")
+    x, y, s, dr, nn, nname = m.groups()
+    name = nname if nname is not None else netname.get(nn, "")
     if want is not None and name not in want:
         continue
     px, py = pcbnew.FromMM(float(x)), pcbnew.FromMM(float(y))

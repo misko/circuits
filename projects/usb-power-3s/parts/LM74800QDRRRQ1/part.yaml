@@ -1,0 +1,30 @@
+mpn: LM74800QDRRRQ1
+manufacturer: Texas Instruments
+type: ideal_diode_controller
+datasheet:
+  doc_id: SNOSD95
+  revision: SNOSD95C
+  url: https://www.ti.com/lit/ds/symlink/lm74800-q1.pdf
+  sha256: PENDING-FETCH   # see docs/decisions + release notes: facts carry SPF provenance
+  fetched: null
+package: WSON-12 DRR 3x3
+footprint: usb_power_3s:WSON-12_3x3_P0.5_LM74800DRR
+pins:
+  1: 'DGATE'
+  2: 'A'
+  3: 'VSNS'
+  4: 'SW(ladder top)'
+  5: 'OV'
+  6: 'EN/UVLO'
+  7: 'GND'
+  8: 'HGATE'
+  9: 'OUT'
+  10: 'VS'
+  11: 'CAP'
+  12: 'C'
+limits: '3-65V operating'
+gotchas:
+  - 'EN/OV thresholds 1.231V rising'
+  - "JLC search for 'LM74800' returns a DRV8835 first — match by full MPN"
+verified: 'pin map from SPF generator, verified vs SNOSD95C table 6-1 (2026-07)'
+sourcing: {lcsc: C3215600}

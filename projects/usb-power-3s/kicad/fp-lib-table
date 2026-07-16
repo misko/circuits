@@ -1,0 +1,12 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "usb_power_3s")(type "KiCad")(uri "${KIPRJMOD}/../src/lib/usb_power_3s.pretty")(options "")(descr "project footprints"))
+  (lib (name "Capacitor_SMD")(type "KiCad")(uri "/usr/share/kicad/footprints/Capacitor_SMD.pretty")(options "")(descr "system"))
+  (lib (name "Connector_USB")(type "KiCad")(uri "/usr/share/kicad/footprints/Connector_USB.pretty")(options "")(descr "system"))
+  (lib (name "Diode_SMD")(type "KiCad")(uri "/usr/share/kicad/footprints/Diode_SMD.pretty")(options "")(descr "system"))
+  (lib (name "Inductor_SMD")(type "KiCad")(uri "/usr/share/kicad/footprints/Inductor_SMD.pretty")(options "")(descr "system"))
+  (lib (name "LED_SMD")(type "KiCad")(uri "/usr/share/kicad/footprints/LED_SMD.pretty")(options "")(descr "system"))
+  (lib (name "MountingHole")(type "KiCad")(uri "/usr/share/kicad/footprints/MountingHole.pretty")(options "")(descr "system"))
+  (lib (name "Package_SON")(type "KiCad")(uri "/usr/share/kicad/footprints/Package_SON.pretty")(options "")(descr "system"))
+  (lib (name "Resistor_SMD")(type "KiCad")(uri "/usr/share/kicad/footprints/Resistor_SMD.pretty")(options "")(descr "system"))
+)
