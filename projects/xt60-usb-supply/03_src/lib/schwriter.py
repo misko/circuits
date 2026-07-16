@@ -123,6 +123,13 @@ class Part:
 
     def _geometry(self):
         """Compute body size and per-pin symbol-frame coordinates (+y up)."""
+        # KiCad draws the pad number over the pin stem; a long number
+        # ("B12", "EP") overruns a short stem and collides with the global
+        # label anchored at the tip. Widen the stem to fit the number.
+        max_pad_chars = max(len(p) for p in self.pins)
+        need = max_pad_chars * _CHAR_W + 1.8
+        if need > self.pin_len:
+            self.pin_len = _snap(need + GRID / 2, GRID) or GRID
         left = [p for p in self.pins if self.pins[p]["side"] == "L"]
         right = [p for p in self.pins if self.pins[p]["side"] == "R"]
         pitch = 2.54
@@ -403,7 +410,10 @@ def parse_kicad_netlist(path):
     real s-expr walk, never a same-line regex). Returns {net: set((ref,pin))}.
     Zero nets parsed is a HARD ERROR (format-drift guard)."""
     with open(path) as f:
-        tree, _ = _parse_sexpr(_tokenize(f.read()))
+        toks = _tokenize(f.read())
+    if not toks:
+        raise ValueError(f"{path}: empty netlist file")
+    tree, _ = _parse_sexpr(toks)
     nets = {}
     def walk(node):
         if not isinstance(node, list) or not node:
