@@ -1,0 +1,36 @@
+# Fresh-context pin review — usb-power-3s v1.1 (2026-07-16)
+
+Protocol: skills/kicad-pcb/references/pin-review-protocol.md. Three
+independent agents (no session context) derived expected pinouts from the
+datasheets and reviewed the pin_audit.py dossiers for all 17 active parts.
+
+## Verdicts
+
+| Group | Parts | Verdict |
+|---|---|---|
+| Controllers | U1 (LM74800), U2 (LM5145) | PASS |
+| | U3 (LM5145) | QUESTION -> resolved PASS (below) |
+| Power switches | Q1,Q2,QA1,QA2,QB1,QB2 (CSD18543Q3A) | PASS — winding, S/G/D vs rendered SLPS432 figure |
+| | U4,U5,U6 (TPS2557) | QUESTION -> resolved PASS (below) |
+| Connectors | J5 (USB-C), J2-J4 (USB-A), F1 (fuse) | PASS — CC order, VBUS/GND pads, fuse in series |
+
+Key independent confirmations: every package winding CCW / rotation-only vs
+its datasheet figure (no mirrors — the v1.0 defect class); LM74800 EP
+correctly FLOATING (datasheet forbids grounding it); LM5145 EPs on GND;
+USB-C CC1/CC2 not swapped.
+
+## Question resolutions (orchestrator, with netlist evidence)
+
+1. U3 pin 1 (EN) on PGOOD_A while U2 uses EN_A — intentional sequencing.
+   Chain verified in the netlist: R21 20k pulls PGOODA_RAW to 5V_C; R33 20k
+   PGOODA_RAW->PGOOD_A; R34 16k5 PGOOD_A->GND. With U2 PGOOD released,
+   U3.EN = 5.08 x 16.5/36.5 = 2.30 V > 1.2 V threshold. Buck B enables only
+   after buck A is good.
+2. U4/U5/U6 EN hardwired to 5V_A, FAULT floating — intended: hardware-only
+   board (no MCU), ports always-on, no fault monitor (01_docs/ARCHITECTURE.md
+   firmware boundary).
+3. LM5145 part.yaml labeled pin 15 'NC'; datasheet table 6-1 says pin 15 =
+   EP-pin (isolated), pin 16 = NC. Label fixed in 02_parts/LM5145RGYR
+   (pins unconnected either way — documentation-only).
+
+Result: ZERO unresolved FAILs. Order may proceed.

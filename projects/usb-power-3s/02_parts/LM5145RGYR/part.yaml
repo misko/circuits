@@ -24,7 +24,7 @@ pins:
   12: 'PGND'
   13: 'LO'
   14: 'VCC'
-  15: 'NC'
+  15: 'EP-pin (internally tied to exposed pad, electrically isolated - SNVSAI4 table 6-1; leave open)'
   16: 'NC'
   17: 'BST'
   18: 'HO'

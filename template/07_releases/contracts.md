@@ -35,6 +35,7 @@ makes the failure impossible instead of detectable.
     └── verification/               the reports that PASSED, as evidence
         ├── drc.json  audit.txt  stock_check.{txt,csv}
         ├── twin_report.csv          the JLC digital-twin verification (jlc_twin.py)
+        ├── pin_review.md            fresh-context pin review verdicts (pin-review-protocol)
 ```
 
 Nothing else. No working files, no "v2" of a release, no edits.

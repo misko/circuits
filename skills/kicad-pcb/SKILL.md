@@ -95,6 +95,17 @@ Run them with the KiCad-bundled interpreter (`/usr/bin/python3` with
 `import pcbnew` working). Each takes `--help`-documented arguments; none
 hardcodes a board.
 
+### Fresh-context pin review (scripts/pin_audit.py + references/pin-review-protocol.md)
+
+The gate that breaks the consistently-wrong-together failure mode (a
+mirror-numbered footprint passed DRC+parity+polarity twice): per active part,
+`pin_audit.py` extracts a conclusion-free dossier (pad positions/sides,
+computed winding, part.yaml functions, actual board nets, datasheet path);
+the orchestrator then spawns FRESH agents - no session context - who derive
+the expected pinout from the datasheet figure and judge every pin's net
+electrically, per the protocol. Verdicts land in the release's
+verification/pin_review.md; any FAIL blocks the order.
+
 ## Companion tools
 
 - **KRT** (`~/gits/KiCadRoutingTools`, github drandyhaas/KiCadRoutingTools):

@@ -30,3 +30,5 @@ RELEASED must additionally pass the release gate at the bottom.
 - [ ] BRIEF.md prompt hash verifies (`sed -n "/prompt-verbatim-begin/,/prompt-verbatim-end/p" 01_docs/BRIEF.md | sed "1d;\$d" | sha256sum`)
 
 - [ ] JLC twin gate: `jlc_twin.py` exits 0 with the project adjudications file — zero unadjudicated MIRRORED/PAD-MISMATCH findings; twin_report.csv copied into the release verification/
+
+- [ ] Fresh-context pin review: `pin_audit.py` dossiers generated; independent agents (no session context) reviewed every active part per `pin-review-protocol.md`; verdicts in the release verification/pin_review.md with ZERO unresolved FAILs
