@@ -74,8 +74,9 @@ battery-lead resonance; MLCCs take the 800 kHz component.
 
 ### Small caps (typical application circuit)
 
-- VCC: 0.1 uF X7R 0603 per converter (internal LDO decouple).
-- BS (bootstrap): 0.1 uF X7R 0603 per converter, VCC-quality.
+- VCC: 2.2 uF ceramic 0603 per converter (internal 3.3 V LDO decouple —
+  datasheet application table; NOT 0.1 uF).
+- BS (bootstrap): 0.1 uF X7R 0603 per converter, BS to LX.
 
 ## USB port networks
 

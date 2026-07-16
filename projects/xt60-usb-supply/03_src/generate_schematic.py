@@ -35,31 +35,36 @@ def load_part_yaml(mpn):
 
 
 def pins_by_function(mpn):
-    """{function_name_upper: pad_str} from part.yaml pins."""
+    """{function_name_upper: [pad_str, ...]} from part.yaml pins."""
     d = load_part_yaml(mpn)
     out = {}
     for pad, v in (d.get("pins") or {}).items():
         name = v["name"] if isinstance(v, dict) else str(v)
-        out.setdefault(str(name).upper(), str(pad))
+        out.setdefault(str(name).upper(), []).append(str(pad))
     if not out:
         raise SystemExit(f"ERROR: {mpn} part.yaml has no pins")
     return out
 
 
+def first_pin(mpn, func):
+    return pins_by_function(mpn)[func.upper()][0]
+
+
 def conn_by_function(mpn, func_to_net):
-    """Resolve {function: net} -> ordered {pad: {name, net}} via part.yaml."""
+    """Resolve {function: net} -> {pad: {name, net}} via part.yaml.
+    A function spanning several pads (e.g. SY8368 IN = pads 7+8) wires
+    every one of them to the net."""
     fmap = pins_by_function(mpn)
     d = load_part_yaml(mpn)
     pads = {}
-    used = set()
     for func, net in func_to_net.items():
         key = func.upper()
         if key not in fmap:
             raise SystemExit(
                 f"ERROR: {mpn}: function {func!r} not in part.yaml pins "
                 f"(available: {sorted(fmap)})")
-        pads[fmap[key]] = {"name": func, "net": net}
-        used.add(key)
+        for pad in fmap[key]:
+            pads[pad] = {"name": func, "net": net}
     # every part.yaml pin must be addressed (no silently floating pins)
     for pad, v in (d.get("pins") or {}).items():
         name = (v["name"] if isinstance(v, dict) else str(v)).upper()
@@ -120,7 +125,7 @@ def build():
         vcc_net = f"VCC_{rail}"
         bst_net = f"BST_{rail}"
         s.add_part(Part(U, "SY8368QNC",
-                        f"{VENDOR_LIB}:QFN-10_L3.0-W3.0-P0.45-TL_SILERGY",
+                        f"{VENDOR_LIB}:QFN3x3-10_FC_SY8368",
                         conn_by_function("SY8368QNC", {
                             "IN": "VBAT_P", "LX": sw, "BS": bst_net,
                             "FB": fb, "EN": "VBAT_P", "VCC": vcc_net,
@@ -130,7 +135,7 @@ def build():
         for ref in cin:
             s.add_part(Part(ref, "10uF 25V X7R", "Capacitor_SMD:C_1206_3216Metric",
                             two_pin("VBAT_P", "GND")), section=sec)
-        s.add_part(Part(cvcc, "100nF", "Capacitor_SMD:C_0603_1608Metric",
+        s.add_part(Part(cvcc, "2.2uF", "Capacitor_SMD:C_0603_1608Metric",
                         two_pin(vcc_net, "GND")), section=sec)
         s.add_part(Part(cbs, "100nF", "Capacitor_SMD:C_0603_1608Metric",
                         two_pin(bst_net, sw)), section=sec)
@@ -158,7 +163,7 @@ def build():
         s.add_part(Part(uref, "USBLC6-2SC6", "Package_TO_SOT_SMD:SOT-23-6",
                         conn_by_function("USBLC6-2SC6", {
                             "I/O1": dcp, "GND": "GND", "I/O2": dcp,
-                            "I/O2B": dcp, "VBUS": "5V_A", "I/O1B": dcp,
+                            "VBUS": "5V_A",
                         })), section=sec)
 
     # ---------------- USB-C port ----------------
@@ -177,7 +182,7 @@ def build():
     s.add_part(Part("U6", "USBLC6-2SC6", "Package_TO_SOT_SMD:SOT-23-6",
                     conn_by_function("USBLC6-2SC6", {
                         "I/O1": "CC1", "GND": "GND", "I/O2": "CC2",
-                        "I/O2B": "CC2", "VBUS": "5V_C", "I/O1B": "CC1",
+                        "VBUS": "5V_C",
                     })), section=sec)
     s.add_part(Part("R3", "10k 1%", "Resistor_SMD:R_0603_1608Metric",
                     two_pin("5V_C", "CC1")), section=sec)
@@ -212,14 +217,14 @@ def polarity_audit(s):
 
     checks = [
         # (ref, pad, expected_net, why)
-        ("J1", pins_by_function("XT60PW-M")["-"], "GND", "XT60 '-' blade to GND"),
-        ("J1", pins_by_function("XT60PW-M")["+"], "VBAT_RAW", "XT60 '+' blade to VBAT_RAW"),
-        ("D1", pins_by_function("SMBJ15A")["K"], "VBAT_P", "TVS cathode to +rail"),
-        ("CB1", pins_by_function("MA25V101M06600600601")["+"], "VBAT_P", "polymer + to rail"),
-        ("CB2", pins_by_function("MA25V101M06600600601")["+"], "VBAT_P", "polymer + to rail"),
-        ("LED1", pins_by_function("NCD0805R1")["K"], "GND", "LED cathode to GND"),
-        ("LED2", pins_by_function("KT-0805G")["K"], "GND", "LED cathode to GND"),
-        ("LED3", pins_by_function("KT-0805G")["K"], "GND", "LED cathode to GND"),
+        ("J1", first_pin("XT60PW-M", "-"), "GND", "XT60 '-' blade to GND"),
+        ("J1", first_pin("XT60PW-M", "+"), "VBAT_RAW", "XT60 '+' blade to VBAT_RAW"),
+        ("D1", first_pin("SMBJ15A", "K"), "VBAT_P", "TVS cathode to +rail"),
+        ("CB1", first_pin("MA25V101M06600600601", "+"), "VBAT_P", "polymer + to rail"),
+        ("CB2", first_pin("MA25V101M06600600601", "+"), "VBAT_P", "polymer + to rail"),
+        ("LED1", first_pin("NCD0805R1", "K"), "GND", "LED cathode to GND"),
+        ("LED2", first_pin("KT-0805G", "K"), "GND", "LED cathode to GND"),
+        ("LED3", first_pin("KT-0805G", "K"), "GND", "LED cathode to GND"),
     ]
     for ref, pad, want, why in checks:
         got = net_of(ref, pad)

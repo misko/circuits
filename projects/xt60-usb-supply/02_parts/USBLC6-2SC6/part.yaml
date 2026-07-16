@@ -1,0 +1,74 @@
+mpn: USBLC6-2SC6
+manufacturer: STMicroelectronics
+type: esd_protection_array
+datasheet:
+  doc_id: "Doc ID 11265"
+  revision: Rev 5 (October 2011)
+  url: https://datasheet.lcsc.com/datasheet/pdf/0d3a2ab954b34651a0695e7ccf534db0.pdf?productCode=C7519
+  sha256: 8ba7ab4ec1781b7f6052f5999a2304bd611c0ed2b5e8f36ffa5092552932a42e
+  fetched: 2026-07-16
+  note: "original ST document (Doc ID 11265 Rev 5); st.com direct download
+    stalls to curl, fetched the identical PDF from the LCSC datasheet CDN"
+package: SOT-23-6L
+footprint: Package_TO_SOT_SMD:SOT-23-6
+pins:
+  "1":
+    name: I/O1
+    note: "line 1, connector side (flow-through partner of pin 6)"
+  "2":
+    name: GND
+    note: "ground"
+  "3":
+    name: I/O2
+    note: "line 2, connector side (flow-through partner of pin 4)"
+  "4":
+    name: I/O2
+    note: "line 2, device side — internally the same protected line as pin 3"
+  "5":
+    name: VBUS
+    note: "supply/rail clamp pin — tie to the protected 5V rail"
+  "6":
+    name: I/O1
+    note: "line 1, device side — internally the same protected line as pin 1"
+limits:
+  vrm_io: 5.25V (leakage spec point)
+  esd: "IEC 61000-4-2 level 4: 15kV air / 8kV contact; MIL-STD-883G 25kV"
+  tj_range: -40C to 125C
+electrical:
+  vbr_vbus_gnd: 6V min @ 1mA
+  vcl_1a_8_20us: 12V max (any I/O to GND)
+  vcl_5a_8_20us: 17V max
+  c_io_gnd: 2.5pF typ / 3.5pF max
+  c_io_io: 1.2pF typ / 1.7pF max
+  leakage: 150nA max @ 5.25V
+wiring:
+  charge_only_usb_a: "BC1.2 DCP with D+ shorted to D-: run the shorted D+/D-
+    node through ONE flow-through pair (connector D+/D- short -> pin 1, pin 6
+    -> nothing further needed), or protect the pair before the short: D+ on
+    pins 1->6, D- on pins 3->4, short on the device side. Simplest: tie the
+    single shorted DP/DM net to pin 1 (or 3); the paired pin may be left
+    tied to the same net. Pin 5 -> 5V_A rail, pin 2 -> GND."
+  usb_c_cc_protection: "CC1 -> pins 1..6 pair, CC2 -> pins 3..4 pair (route
+    CC1 in pin 1, out pin 6; CC2 in pin 3, out pin 4). Pin 5 -> 5V_C rail,
+    pin 2 -> GND. Note Rp pull-ups sit on the same CC nets; USBLC6 leakage
+    (150nA) is negligible against Rp 10k."
+gotchas:
+  - "Pins 1/6 and 3/4 are flow-through PAIRS of the same line (1 and 6 are
+    both named I/O1, 3 and 4 both I/O2 in Figure 1). Route the signal in one
+    side and out the other for best ESD layout; do NOT treat 4 and 6 as two
+    additional independent channels — the device protects exactly 2 lines
+    plus VBUS."
+  - "VBUS pin 5 must be connected to the 5V rail for the rail-to-rail
+    topology to clamp correctly; leaving it floating degrades positive-surge
+    clamping."
+  - "Keep GND (pin 2) stub to the ground plane short: datasheet section 2.2
+    shows 10mm of 0.5mm trace adds ~144V to the clamp during an 8kV strike."
+  - "Not suitable as the only protection for rails above 5.25V working
+    voltage — this is a 5V-class part."
+verified: "pin map read from Figure 1 'Functional diagram (top view)' of Doc
+  ID 11265 Rev 5, p.1: left side top-to-bottom 1=I/O1, 2=GND, 3=I/O2; right
+  side 4=I/O2, 5=VBUS, 6=I/O1 (standard SOT-23-6 numbering, matches KiCad
+  SOT-23-6) — 2026-07-16"
+sourcing:
+  lcsc: C7519
+  alternates: []

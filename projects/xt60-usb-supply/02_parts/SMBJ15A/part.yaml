@@ -1,0 +1,53 @@
+mpn: SMBJ15A
+manufacturer: Littelfuse
+type: tvs_diode_unidirectional
+datasheet:
+  doc_id: SMBJ series
+  revision: JC.07/04/25 v4
+  url: https://datasheet.lcsc.com/datasheet/pdf/4ab84a227fae39f9eac85241b8264ead.pdf?productCode=C83846
+  sha256: d7df155be4b1f612085401e8c946f065e284d65a0e7de22b9225a7b73946e51b
+  fetched: 2026-07-16
+  note: "Littelfuse SMBJ series datasheet (littelfuse.com asset link is an
+    HTML redirector to curl; fetched the identical document from the LCSC
+    datasheet CDN)"
+package: DO-214AA (SMB, J-bend)
+footprint: Diode_SMD:D_SMB
+pins:
+  "1":
+    name: K
+    note: "CATHODE — the end with the printed band. Connect to the POSITIVE
+      rail (VBAT after fuse/FET) for an anode-to-GND positive-rail clamp.
+      KiCad D_SMB footprint: pad 1 is at x=-2.15 and the silkscreen band
+      (extra bar at x=-3.66) wraps pad 1, i.e. pad 1 = cathode — verified in
+      /usr/share/kicad/footprints/Diode_SMD.pretty/D_SMB.kicad_mod"
+  "2":
+    name: A
+    note: "ANODE — connect to GND"
+limits:
+  standoff_vr: 15V
+  vbr_at_1ma: 16.7V min / 18.5V max
+  vc_max_at_ipp: 24.4V
+  ipp_max: 24.6A
+  pppm_10_1000us: 600W
+  ifsm_8_3ms: 100A
+  tj_range: -65C to 150C
+electrical:
+  ir_at_vr: 1uA max
+  marking_code_uni: LM
+  vbr_tempco: 0.083 %/C
+  esd: IEC 61000-4-2 30kV air / 30kV contact
+gotchas:
+  - "UNIDIRECTIONAL: polarity matters. Cathode band faces the positive rail;
+    anode to GND. Reversed, it conducts at ~ -VF and shorts the rail."
+  - "Standoff 15V > 3S max 12.6V (ok), but VC is 24.4V at full 24.6A pulse —
+    downstream parts must tolerate ~25V transients (SY8368 abs max 30V: ok)."
+  - "Typical failure mode is SHORT — acceptable here because the 15A fuse is
+    upstream and opens on a shorted TVS."
+verified: "SMBJ15A row read from Electrical Characteristics table (VR 15.0,
+  VBR 16.70-18.50 @1mA, VC 24.4V @ Ipp 24.6A, IR 1uA, marking LM);
+  cathode-band polarity from Physical Specifications ('Uni-directional
+  products are denoted with a cathode band') and DO-214AA dimensions figure,
+  SMBJ datasheet v4 — 2026-07-16"
+sourcing:
+  lcsc: C83846
+  alternates: []

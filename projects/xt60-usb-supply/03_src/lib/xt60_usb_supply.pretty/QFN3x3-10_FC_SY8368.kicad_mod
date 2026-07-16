@@ -1,4 +1,4 @@
-(module easyeda2kicad:QFN-10_L3.0-W3.0-P0.45-TL_SILERGY (layer F.Cu) (tedit 5DC5F6A4)
+(module "QFN3x3-10_FC_SY8368" (layer F.Cu) (tedit 5DC5F6A4)
 	(attr smd)
 	(fp_text reference REF** (at 0.000 -5.300) (layer F.SilkS)
 		(effects (font (size 1 1) (thickness 0.15)))

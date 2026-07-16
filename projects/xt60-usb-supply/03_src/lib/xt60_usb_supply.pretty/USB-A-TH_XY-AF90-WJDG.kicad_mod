@@ -1,4 +1,4 @@
-(module easyeda2kicad:USB-A-TH_XY-AF90-WJDG (layer F.Cu) (tedit 5DC5F6A4)
+(module "USB-A-TH_XY-AF90-WJDG" (layer F.Cu) (tedit 5DC5F6A4)
 	(attr through_hole)
 	(fp_text reference REF** (at 0.000 -5.355) (layer F.SilkS)
 		(effects (font (size 1 1) (thickness 0.15)))
