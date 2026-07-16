@@ -11,9 +11,9 @@ from pathlib import Path
 rpt = Path(sys.argv[1]).read_text()
 
 by_type = collections.Counter(re.findall(r"^\[(\w+)\]", rpt, re.M))
-m_v = re.search(r"^Found (\d+) violations?$", rpt, re.M)
-m_u = re.search(r"^Found (\d+) unconnected items?$", rpt, re.M)
-m_p = re.search(r"^Found (\d+) schematic parity issues?$", rpt, re.M)
+m_v = re.search(r"Found (\d+) DRC violations", rpt)
+m_u = re.search(r"Found (\d+) unconnected (?:pads|items)", rpt)
+m_p = re.search(r"Found (\d+) Footprint errors", rpt)
 if not (m_v and m_u):
     raise SystemExit("ERROR: DRC report parse yielded nothing — format drift?")
 v, u = int(m_v.group(1)), int(m_u.group(1))

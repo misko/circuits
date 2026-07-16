@@ -62,6 +62,15 @@ def parse_nets_yaml(path):
         if m:
             classes[cur]["min_width"] = float(m.group(1))
             continue
+        m = re.match(r"^      - area:\s*(\w+)\s*$", line)
+        if m:
+            classes[cur].setdefault("exemptions", []).append(
+                {"area": m.group(1), "min_width": None})
+            continue
+        m = re.match(r"^        min_width:\s*([0-9.]+)mm\s*$", line)
+        if m and classes[cur].get("exemptions"):
+            classes[cur]["exemptions"][-1]["min_width"] = float(m.group(1))
+            continue
     if not classes:
         raise SystemExit("ERROR: parsed zero classes from nets.yaml")
     for name, c in classes.items():
@@ -95,11 +104,11 @@ def merge_pro(classes):
     pro_path = KICAD / f"{BOARD}.kicad_pro"
     pro = json.loads(pro_path.read_text()) if pro_path.exists() else {}
     ns = pro.setdefault("net_settings", {})
-    existing = [c for c in ns.get("classes", []) if c.get("name") == "Default"]
-    if not existing:
-        d = netclass_entry("Default", 0.2)
-        d["track_width"] = 0.2
-        existing = [d]
+    d = netclass_entry("Default", 0.2)
+    d["track_width"] = 0.2
+    d["clearance"] = 0.127   # QFN 0.45mm-pitch row gap is 0.20; pcbnew's
+                             # stock Default (0.2) flags every adjacent pad
+    existing = [d]
     for name, c in sorted(classes.items()):
         existing.append(netclass_entry(name, c["min_width"]))
     ns["classes"] = existing
@@ -121,6 +130,11 @@ def merge_pro(classes):
     sev.update({
         "lib_footprint_issues": "ignore",
         "lib_footprint_mismatch": "ignore",
+        # silk policy (drc-discipline.md): identity lives on fab layer +
+        # CPL; fab clips silk over mask/edge. Owner: release PDF review.
+        "silk_overlap": "ignore",
+        "silk_over_copper": "ignore",
+        "silk_edge_clearance": "ignore",
     })
     pro.setdefault("meta", {"filename": f"{BOARD}.kicad_pro", "version": 3})
     pro_path.write_text(json.dumps(pro, indent=2, sort_keys=True) + "\n")
@@ -143,6 +157,18 @@ def write_dru(classes):
             f"  (constraint track_width (min {w})))",
             "",
         ]
+    # scoped exemptions AFTER the class floors (later rules win)
+    for name, c in sorted(classes.items()):
+        for ex in c.get("exemptions", []) or []:
+            if ex["min_width"] is None:
+                raise SystemExit(f"ERROR: exemption {ex['area']} lacks min_width")
+            lines += [
+                f'(rule "width_{name.lower()}_{ex["area"].lower()}"',
+                f'  (condition "A.NetClass == \'{name}\' && '
+                f'A.intersectsArea(\'{ex["area"]}\')")',
+                f'  (constraint track_width (min {ex["min_width"]:g}mm)))',
+                "",
+            ]
     # unnetted mechanical pads (connector pegs, shields) are exempt from
     # copper clearance-to-anything-same-position noise
     lines += [

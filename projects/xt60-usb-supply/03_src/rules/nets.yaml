@@ -26,6 +26,8 @@ classes:
       the pour into islands (island-to-island unconnected check).
 
   PWR_INPUT:
+    # exemptions below are emitted by generate_rules.py as later dru rules
+
     intent: >
       Battery trunk from XT60 through fuse and reverse-polarity FET to both
       buck inputs. 8.5 A worst case at 9 V pack-empty.
@@ -36,6 +38,16 @@ classes:
       Priority-1 F.Cu pours XT60->F1->Q1->buck VIN pins. Input ceramics and
       bulk caps sit inside/adjacent to the VBAT_P pour.
     verify: "walk XT60+ -> F1 -> Q1 -> U1/U2 VIN for continuous pour coverage"
+    exemptions:
+      - area: EN_TAP_A
+        min_width: 0.2mm
+        why: >
+          U1 EN pin taps VBAT_P out of the 0.45mm QFN signal row; a 0.5mm
+          track cannot exist there. The tap carries uA. Named rule area on
+          the board scopes a 0.2mm floor to just that corridor.
+      - area: EN_TAP_C
+        min_width: 0.2mm
+        why: same, U2
 
   PWR_5V:
     intent: >

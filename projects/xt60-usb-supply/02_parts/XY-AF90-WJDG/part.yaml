@@ -35,12 +35,11 @@ pins:
     name: "D+"
   "4":
     name: GND
-  "5":
+  "SH":
     name: SHIELD
-    note: shell leg, Dia2.30 hole; vendor symbol ties both shell pins to GND
-  "6":
-    name: SHIELD
-    note: second shell leg
+    note: >
+      Two shell legs; the KiCad Stewart footprint names BOTH pads "SH"
+      (the LCSC drawing numbers them 5/6). Tie to GND.
 limits:
   contact_resistance: 30mOhm max
   insulation_resistance: 1000MOhm min

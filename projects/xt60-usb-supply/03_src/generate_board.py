@@ -29,7 +29,7 @@ PROJ_LIB = PROJ / "03_src" / "lib"
 # ---------------- board geometry ----------------
 X0, Y0, X1, Y1 = 100.0, 100.0, 192.0, 162.0   # outline (92 x 62 mm)
 
-MOUNTING_HOLES = [(104.5, 104.5), (104.5, 157.5), (166.0, 104.5), (160.0, 158.5)]
+MOUNTING_HOLES = [(104.5, 104.5), (104.5, 157.5), (166.0, 104.5), (144.0, 158.0)]
 
 # ref: (x, y, rot_deg). rot is CCW in KiCad UI convention.
 FLOORPLAN = {
@@ -38,7 +38,7 @@ FLOORPLAN = {
     "F1":  (114.8, 127.4, 0),
     "Q1":  (124.0, 124.0, 90),    # tab (drain) north, G/S leads south
     "R1":  (120.0, 133.0, 90),    # PFET gate bleed
-    "D1":  (131.0, 140.0, 0),
+    "D1":  (125.5, 137.8, 0),
     "CB1": (134.0, 134.0, 0),
     "CB2": (134.0, 144.0, 0),
     "LED1": (127.0, 155.5, -90),
@@ -48,7 +48,7 @@ FLOORPLAN = {
     "CIN_A1": (149.0, 114.5, 90),
     "CIN_A2": (149.0, 121.5, 90),
     "CVCC1": (152.0, 122.8, 0),
-    "CBS1": (154.0, 124.2, 0),
+    "CBS1": (154.3, 124.5, 0),
     "RFA1": (154.5, 127.2, 0),
     "RFA2": (158.0, 127.2, 0),
     "L1":  (163.0, 118.0, 0),
@@ -61,31 +61,31 @@ FLOORPLAN = {
     "CIN_C1": (149.0, 142.5, 90),
     "CIN_C2": (149.0, 149.5, 90),
     "CVCC2": (152.0, 150.8, 0),
-    "CBS2": (154.0, 152.2, 0),
-    "RFC1": (154.5, 155.2, 0),
-    "RFC2": (158.0, 155.2, 0),
+    "CBS2": (154.3, 152.5, 0),
+    "RFC1": (154.5, 154.4, 0),
+    "RFC2": (158.0, 154.4, 0),
     "L2":  (163.0, 146.0, 0),
     "COUT_C1": (166.0, 151.2, 0),
     "COUT_C2": (166.0, 154.6, 0),
     "COUT_C3": (166.0, 158.0, 0),
-    "COUT_C4": (170.5, 158.0, 0),
+    "COUT_C4": (171.0, 158.0, 0),
     # USB-A east edge (rot +90 -> opening east, front overhangs edge)
     "J2":  (180.0, 112.5, 90),
-    "J3":  (180.0, 129.1, 90),
-    "J4":  (180.0, 145.7, 90),
-    "U3":  (174.5, 109.0, 0),
-    "U4":  (174.5, 125.6, 0),
-    "U5":  (174.5, 142.2, 0),
+    "J3":  (180.0, 129.9, 90),
+    "J4":  (180.0, 147.3, 90),
+    "U3":  (176.0, 109.0, 0),
+    "U4":  (176.0, 126.4, 0),
+    "U5":  (176.0, 143.8, 0),
     # USB-C southeast (rot +90 -> opening east)
     "J5":  (186.0, 158.2, 0),
-    "U6":  (186.0, 150.2, 0),
-    "R3":  (181.5, 151.0, 0),
-    "R4":  (190.0, 151.0, 0),
+    "U6":  (178.0, 156.0, 0),
+    "R3":  (178.0, 153.4, 0),
+    "R4":  (173.6, 153.8, 0),
     # indicators
     "LED2": (173.0, 105.5, 0),
     "R5":  (177.0, 105.5, 0),
-    "LED3": (176.0, 159.5, 0),
-    "R6":  (172.0, 159.5, 0),
+    "LED3": (176.6, 151.0, 0),
+    "R6":  (172.8, 151.0, 0),
 }
 
 # (net, layer, priority, outline, min_width_mm)
@@ -102,9 +102,8 @@ ZONES = [
     # VBAT_P: L-shape. Big east rect reaches both bucks' IN pads;
     # west lobe (south of Q1's leads) picks up Q1 source, CBs, D1, R2.
     ("VBAT_P", "F.Cu", 1, [
-        (128.0, 108.0), (151.6, 108.0), (151.6, 154.0), (123.4, 154.0),
-        (123.4, 128.2), (128.0, 128.2)], 0.5),
-    ("VBAT_P", "In2.Cu", 1, (126.0, 110.0, 150.5, 152.0), 0.5),
+        (128.0, 108.0), (151.6, 108.0), (151.6, 154.0), (122.5, 154.0),
+        (122.5, 128.2), (128.0, 128.2)], 0.5),
     # switch nodes: minimal pours, converter LX pad -> inductor pad 1.
     # South edge clears the EN signal pad row (y=119.0/147.0 + clearance).
     ("SW_A", "F.Cu", 1, (152.3, 113.5, 161.5, 118.85), 0.5),
@@ -112,10 +111,9 @@ ZONES = [
     # 5V_A: east block feeding the three USB-A ports + FB-sense finger
     # west to the divider. SW notch below y=143.5 leaves room for 5V_C.
     ("5V_A", "F.Cu", 1, [
-        (164.5, 106.0), (190.5, 106.0), (190.5, 147.5), (172.0, 147.5),
+        (164.5, 106.0), (190.5, 106.0), (190.5, 148.2), (172.0, 148.2),
         (172.0, 143.5), (164.5, 143.5), (164.5, 128.8), (153.0, 128.8),
         (153.0, 125.5), (164.5, 125.5)], 0.5),
-    ("5V_A", "In2.Cu", 1, (165.0, 106.0, 189.5, 143.0), 0.5),
     # 5V_C: south-east block (USB-C + COUT_C column) + lobe up to L2
     # pad 2 + FB-sense finger west to the divider.
     ("5V_C", "F.Cu", 1, [
@@ -125,15 +123,27 @@ ZONES = [
      0.5),
 ]
 
+# Named rule areas (name, layer, rect) — scoped DRC exemptions that live
+# ON THE BOARD (nets.yaml exemptions reference these names).
+RULE_AREAS = [
+    ("EN_TAP_A", "F.Cu", (152.83, 119.00, 153.43, 121.90)),
+    ("EN_TAP_C", "F.Cu", (152.83, 147.00, 153.43, 149.90)),
+]
+
 # Designed tracks (net, layer, width_mm, [(x,y), ...]) — deterministic
 # taps that pour-served nets need and no router should improvise:
 # EN pins tap VBAT_P around the signal row; CBS bootstrap caps tap their
 # SW pour. Widths satisfy the netclass floors (nets.yaml).
 DESIGNED_TRACKS = [
-    ("VBAT_P", "F.Cu", 0.5, [(153.13, 119.30), (153.13, 121.60), (151.00, 121.60)]),
-    ("VBAT_P", "F.Cu", 0.5, [(153.13, 147.30), (153.13, 149.60), (151.00, 149.60)]),
-    ("SW_A", "F.Cu", 0.5, [(154.76, 124.20), (154.76, 118.50)]),
-    ("SW_C", "F.Cu", 0.5, [(154.76, 152.20), (154.76, 146.50)]),
+    # EN taps: first (vertical) segment lives inside the EN_TAP_A/C rule
+    # areas (scoped 0.2mm floor, nets.yaml exemptions) because a 0.5mm
+    # track cannot pass the QFN signal row; the horizontal run is 0.5.
+    ("VBAT_P", "F.Cu", 0.25, [(153.13, 119.30), (153.13, 121.60)]),
+    ("VBAT_P", "F.Cu", 0.5, [(153.13, 121.60), (151.00, 121.60)]),
+    ("VBAT_P", "F.Cu", 0.25, [(153.13, 147.30), (153.13, 149.60)]),
+    ("VBAT_P", "F.Cu", 0.5, [(153.13, 149.60), (151.00, 149.60)]),
+    ("SW_A", "F.Cu", 0.5, [(155.06, 124.50), (155.06, 118.50)]),
+    ("SW_C", "F.Cu", 0.5, [(155.06, 152.50), (155.06, 146.50)]),
 ]
 
 
@@ -150,7 +160,7 @@ def parse_netlist(path):
 
     comps, nets = {}, {}
     for comp in kids(kids(tree, "components")[0], "comp"):
-        comps[val(comp, "ref")] = val(comp, "footprint")
+        comps[val(comp, "ref")] = (val(comp, "footprint"), val(comp, "value"))
     for net in kids(kids(tree, "nets")[0], "net"):
         name = val(net, "name")
         nodes = [(val(n, "ref"), val(n, "pin")) for n in kids(net, "node")]
@@ -227,7 +237,7 @@ def main():
 
     # place parts
     missing_fp, missing_pos = [], []
-    for ref, fpid in sorted(comps.items()):
+    for ref, (fpid, value) in sorted(comps.items()):
         if not fpid:
             missing_fp.append(ref)
             continue
@@ -236,6 +246,8 @@ def main():
             continue
         fp = load_footprint(fpid)
         fp.SetReference(ref)
+        fp.SetValue(value or "")
+        fp.SetFPIDAsString(fpid)   # full lib:name FPID or parity flags it
         x, y, rot = FLOORPLAN[ref]
         fp.SetPosition(VECTOR2I(FromMM(x), FromMM(y)))
         fp.SetOrientationDegrees(rot)
@@ -247,6 +259,9 @@ def main():
             key = (ref, pnum)
             if key in pad_net:
                 pad.SetNet(netinfo[pad_net[key]])
+            # solid zone connections everywhere: kills starved_thermal
+            # (reflow SMD + high-current THT; skill drc-discipline)
+            pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
             # a numbered pad with no net entry stays unnetted only if the
             # schematic really has no node for it — schematic parity gates it
     if missing_fp:
@@ -270,6 +285,24 @@ def main():
         if net not in netinfo:
             raise SystemExit(f"ERROR: zone net {net} not in netlist")
         add_zone(board, netinfo[net].GetNetCode(), layer, prio, rect, minw)
+
+    # named rule areas
+    for name, layer, (ax, ay, bx, by) in RULE_AREAS:
+        z = pcbnew.ZONE(board)
+        z.SetIsRuleArea(True)
+        z.SetZoneName(name)
+        z.SetLayer(board.GetLayerID(layer))
+        z.SetDoNotAllowZoneFills(False)
+        z.SetDoNotAllowTracks(False)
+        z.SetDoNotAllowVias(False)
+        z.SetDoNotAllowPads(False)
+        z.SetDoNotAllowFootprints(False)
+        chain = pcbnew.SHAPE_LINE_CHAIN()
+        for x, y in ((ax, ay), (bx, ay), (bx, by), (ax, by)):
+            chain.Append(VECTOR2I(FromMM(x), FromMM(y)))
+        chain.SetClosed(True)
+        z.Outline().AddOutline(chain)
+        board.Add(z)
 
     # designed tap tracks
     for net, layer, width, pts in DESIGNED_TRACKS:
