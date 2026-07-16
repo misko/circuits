@@ -56,10 +56,20 @@ bom = HERE / "06_build" / "fab" / "bom_jlc.csv"
 # parts sourced outside JLC: BOM line stays uncoded, ordered/hand-soldered separately
 HAND_SOLDER = {"USB-A 2.5A"}
 
+# after LCSC seeding, re-export MERGES same-code lines and shortens the
+# comment to the shared value token ("100n BST"+"100n CAP-VS" -> "100n"),
+# so exact-comment lookup must fall back to the first token - which is
+# unambiguous by construction (lines only merge when the MPN already agrees)
+TOKEN_MAP = {}
+for k, v in MAP.items():
+    t = k.split()[0]
+    if TOKEN_MAP.setdefault(t, v) != v:
+        sys.exit(f"ambiguous token {t!r}: {TOKEN_MAP[t]} vs {v}")
+
 rows = list(csv.DictReader(open(bom)))
 missing = []
 for r in rows:
-    mpn = MAP.get(r["Comment"])
+    mpn = MAP.get(r["Comment"]) or TOKEN_MAP.get(r["Comment"].split()[0])
     if not mpn:
         missing.append(f"unmapped BOM line: {r['Comment']}")
         continue
