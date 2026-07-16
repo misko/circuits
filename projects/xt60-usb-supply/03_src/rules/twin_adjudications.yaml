@@ -1,0 +1,22 @@
+# Twin adjudications — known-different findings between our footprints and
+# JLC's EasyEDA CAD, each with verification evidence. Gate: zero
+# UNadjudicated criticals. Format (top-level YAML list):
+#   - {lcsc: Cxxxx, refs: [U1], status: <finding status>, why: "<evidence>"}
+# Optional per-part render override: model_rot_z.
+- lcsc: C400894
+  refs: [Q1]
+  status: MODEL-REG
+  why: >
+    DPAK body-bbox asymmetry, not a mis-mount. Pixel-measured twin_top.png
+    against the 4 mounting holes (10.487 px/mm, H4 cross-check exact,
+    2026-07-16): tab metal centered x=124.1mm on our 6.4mm tab pad
+    (center 124.0), both gull-wing lead groups on the pin pads
+    (121.35/125.95 vs pads 121.72/126.28 — the 0.4mm is the reported
+    pad-fit residual, fit=0.43mm), pin-1 dot at pad 1 (PFET_G). Rendered
+    body 6.3x5.7mm matches the TO-252 6.6x6.1 spec, so not a wrong-model
+    swap. The 1.3mm bbox-center delta decomposes as the WRL bbox's
+    inherent lead-axis asymmetry (x range -4.19..+2.39mm, 0.9mm
+    off-center: leads protrude one side, exposed tab the other) plus the
+    courtyard center sitting between tab and lead spans; the script's own
+    180-flip probe did NOT bring it under 1mm, confirming it is not a
+    flipped model.
