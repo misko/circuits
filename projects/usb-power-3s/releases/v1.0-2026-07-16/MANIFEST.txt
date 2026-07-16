@@ -12,4 +12,7 @@ sha256_16:
   usb_power_3s_gerbers.zip  0889d8533ee6e2ed
   bom.csv                   9e91af464124ced0
   cpl.csv                   c2ba6b1a29215372
+  pdf/schematic.pdf         b0de3929d28ae595
+  pdf/pcb_layers.pdf        e5c5c34ff7416ecd
+  pdf/assembly_top.pdf      bca302cae753520b
 not_assembled: J2,J3,J4 (USB-A CNCTech 1001-011-01101, Digi-Key 3064739, hand-solder) - fuse cartridge 15A ATO user-supplied

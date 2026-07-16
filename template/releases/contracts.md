@@ -26,6 +26,12 @@ releases/
     ├── ORDER_README.md             REQUIRED — order options + human checklist
     ├── <board>_gerbers.zip         what goes to the PCB order page
     ├── bom.csv  cpl.csv            what goes to the assembly step
+    ├── pdf/                        REQUIRED human-readable documentation
+    │   ├── schematic.pdf           kicad-cli sch export pdf
+    │   ├── pcb_layers.pdf          multipage: every copper layer + silk/mask,
+    │   │                           Edge.Cuts on every page
+    │   └── assembly_top.pdf        F.Fab + silk + sketch pads + refdes -
+    │                               the hand-solder / rework / debug aid
     └── verification/               the reports that PASSED, as evidence
         ├── drc.json  audit.txt  stock_check.txt
 ```
@@ -75,6 +81,8 @@ can be reproduced byte-for-byte from source.
 - `git_sha` exists in this repo's history
 - exactly one gerber zip; the BOM/CPL are siblings, **not inside** the zip
   (fab uploads them separately)
+- `pdf/` holds schematic.pdf + pcb_layers.pdf + assembly_top.pdf, each listed
+  in the MANIFEST sha256 table and visually verified via PNG before release
 - `verification/` non-empty and its reports show passing gates
 - `docs/CHANGELOG.md` has an entry whose `Released:` names this directory
 

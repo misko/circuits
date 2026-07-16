@@ -202,3 +202,9 @@ AND update this file in the same change. Board-design empirics stay in
 - Parts genuinely not in the JLC catalog (e.g. CNCTech USB-A jacks) stay
   UNCODED in the BOM on purpose: an explicit hand-solder list in the seed
   script + `not_assembled:` line in the release MANIFEST, not a fake code.
+- Every release also ships `pdf/`: `kicad-cli sch export pdf` (schematic),
+  `kicad-cli pcb export pdf --mode-multipage -l <coppers,silk,mask>
+  --cl Edge.Cuts` (layer review), and a `--mode-single -l
+  F.Fab,F.Silkscreen,Edge.Cuts --sketch-pads-on-fab-layers` assembly view
+  (hand-solder/rework aid). Render each to PNG and eyeball before shipping;
+  list all three in the MANIFEST sha256 table.
