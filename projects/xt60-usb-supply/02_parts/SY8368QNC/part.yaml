@@ -1,0 +1,107 @@
+mpn: SY8368QNC
+manufacturer: Silergy
+type: buck_regulator_sync
+datasheet:
+  doc_id: AN_SY8368
+  revision: AN_SY8368 Rev 0.9B
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1808011441_Silergy-Corp-SY8368QNC_C125897.pdf
+  sha256: 68a783bb925c686da0e8ff6ab27514f778c120343b699eb1fc2bd97182a931a4
+  fetched: 2026-07-16
+  note: >
+    Silergy publishes the application note as the customer-facing datasheet;
+    it contains the full pinout, abs-max, electrical tables and package
+    drawing. The www.lcsc.com datasheet URL serves the same document but is
+    Cloudflare-gated to curl; the wmsc.lcsc.com CDN URL above is the direct
+    file. Matches the extracted app-note text supplied with the commission.
+package: QFN3x3-10 FC (irregular-pad flip-chip QFN, 3.0x3.0mm body)
+footprint: xt60_usb_supply:QFN3x3-10_FC_SY8368
+pins:
+  "1":
+    name: EN
+    note: "enable, active high. MUST NOT FLOAT. VENH>0.8V on, VENL<0.4V off"
+  "2":
+    name: PG
+    note: "power good, open drain; released when FB within 90%..120% of VREF"
+  "3":
+    name: ILMT
+    note: "current-limit strap: LOW=8A, FLOATING=12A, HIGH=16A (bottom-FET
+      valley limit). Thresholds: high > VCC-0.8V, low < 0.8V, float band
+      1.3-2.0V"
+  "4":
+    name: FB
+    note: "feedback, VREF=0.6V +/-1.5%; Vout=0.6*(1+R1/R2); keep divider and
+      FB trace away from LX"
+  "5":
+    name: VCC
+    note: "internal 3.3V LDO output (labelled VC in the pin table, VCC in
+      abs-max/text); bypass 2.2uF ceramic to GND; powers internal
+      analog/driver — not a load supply"
+  "6":
+    name: BS
+    note: "bootstrap; 0.1uF (100nF) ceramic from BS to LX"
+  "7":
+    name: IN
+    note: "input, internally common with pad 8; decouple >=10uF ceramic to
+      GND, minimize CIN loop"
+  "8":
+    name: IN
+    note: "input, large irregular pad, common with pad 7"
+  "9":
+    name: GND
+    note: "ground, large center pad; there is NO separate exposed pad — pad 9
+      is the thermal pad. Maximize GND copper"
+  "10":
+    name: LX
+    note: "switch node, large irregular pad; minimize LX copper area"
+limits:
+  vin_range: 4V to 28V
+  abs_max_in_lx_pg_en: -0.3V to 30V
+  abs_max_bslx_fb_ilmt_vcc: -0.3V to 4V
+  lx_dynamic_50ns: IN+3V to GND-4V
+  iout_continuous: 8A
+  iout_peak: 16A
+  tj_max: 125C
+  pd_max_25c: 3.3W
+  theta_ja: 30C/W
+electrical:
+  vref_fb: 0.6V +/-1.5% (0.591-0.609V)
+  fsw: 800kHz pseudo-constant (0.68-0.92MHz)
+  rdson_top_bottom: 20/10 mohm
+  soft_start: 400us internal
+  uvlo: 3.9V max rising, 0.3V hysteresis
+  vcc_ldo: 3.3V
+  ovp: latch-off at 120% VREF typ
+  scp: short-circuit latch-off
+application:
+  cin: ">=10uF X5R ceramic close to IN/GND"
+  cvcc: 2.2uF ceramic VCC to GND
+  cbs: 100nF ceramic BS to LX
+  cout: ">=66uF ceramic (X5R or better) for most applications"
+  inductor: "target ~40% ripple; 1.5uH used in the 5V typical app; DCR<10mohm"
+gotchas:
+  - "Signal-pin pitch is 0.45mm, NOT 0.5mm: package drawing p.10 gives body
+    3.000+/-0.100, edge margin 0.275 each side, pad width 0.200, pitch dim
+    0.450 (0.275*2 + 0.200 + 5*0.450 = 3.000 exactly). Any footprint built
+    assuming 0.5mm pitch is wrong."
+  - "Irregular flip-chip pad set: pins 1-6 are small edge pads, pads 8/9/10
+    (IN/GND/LX) are large odd-shaped pads. Use the recommended PCB layout on
+    p.10 — a generic QFN-10 footprint does not fit."
+  - "No separate exposed pad; pad 9 (GND) is the thermal pad and must get
+    maximum copper."
+  - "EN must not be left floating (datasheet pin table). If the EN driver can
+    tri-state while IN is powered (e.g. battery input), add ~1M pulldown
+    EN->GND to prevent false turn-on."
+  - "ILMT strap semantics: low=8A / float=12A / high=16A BOTTOM-FET (valley)
+    current limit — 'high' means tie to VCC (3.3V), not to VIN (abs max 4V!)."
+  - "OVP and short-circuit protection are LATCH-OFF: requires EN toggle or
+    input power cycle to recover."
+  - "FB divider and trace must not run adjacent to LX net."
+verified: "pin map cross-checked against AN_SY8368 Rev 0.9B pinout figure and
+  pin table, p.2; pitch measured from QFN3x3-10 FC package outline drawing,
+  p.10 — 2026-07-16"
+sourcing:
+  lcsc: C125897
+  alternates:
+    - C3187827
+  alternates_note: "C3187827 = MPS MP8759GD-Z, functional alternate, NOT
+    pin/footprint compatible — requires layout change"
