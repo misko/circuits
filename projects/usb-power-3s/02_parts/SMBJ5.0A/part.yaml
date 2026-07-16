@@ -1,0 +1,19 @@
+mpn: SMBJ5.0A
+manufacturer: MDD (generic)
+type: tvs_unidirectional
+datasheet:
+  doc_id: SMBJ
+  revision: series
+  url: https://www.littelfuse.com/media?resourcetype=datasheets&itemid=smbj
+  sha256: PENDING-FETCH   # see 01_docs/decisions + release notes: facts carry SPF provenance
+  fetched: null
+package: SMB/DO-214AA
+footprint: Diode_SMD:D_SMB
+pins:
+  1: 'K (cathode, band) -> 5V rail'
+  2: 'A -> GND'
+limits: '5V standoff, 9.2V clamp, 600W'
+gotchas:
+  - 'PAD 1 = CATHODE'
+verified: 'same as SMBJ16A'
+sourcing: {lcsc: C113974}

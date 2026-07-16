@@ -11,16 +11,16 @@ firmware; all protection is hardware.
   USB-C, one feeding 3× TPS2557 (2.51 A per-port limit) to the USB-A jacks
 - 100×60 mm, 4-layer (sig / GND / power planes / GND+escape)
 
-Start with [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md); design math in
-[docs/DETAIL_DESIGN.md](docs/DETAIL_DESIGN.md); decisions in
-[docs/decisions/](docs/decisions/).
+Start with [01_docs/ARCHITECTURE.md](01_docs/ARCHITECTURE.md); design math in
+[01_docs/DETAIL_DESIGN.md](01_docs/DETAIL_DESIGN.md); decisions in
+[01_docs/decisions/](01_docs/decisions/).
 
-Everything in `kicad/` is GENERATED — edit `src/` and run
-`bash src/rebuild_all.sh` (regenerates schematic, netlist, board, imports the
+Everything in `04_kicad/` is GENERATED — edit `03_src/` and run
+`bash 03_src/rebuild_all.sh` (regenerates schematic, netlist, board, imports the
 KRT routing, stitches/fills, and runs the full DRC gate; it must end
 `violations: 0 / unconnected: 0`).
 
 **Ordering**: JLCPCB 4-layer with the ADVANCED (small-via) option — the VQFN
 fanout uses 0.25/0.15 vias. USB-A jacks (CNCTech 1001-011-01101) are not in
 the JLC catalog: order from Digi-Key (3064739) and hand-solder. See the
-`releases/` directory for the exact ordered packages.
+`07_releases/` directory for the exact ordered packages.

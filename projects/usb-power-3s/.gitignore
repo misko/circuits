@@ -1,5 +1,5 @@
-build/*
-!build/contracts.md
+06_build/*
+!06_build/contracts.md
 
 *.kicad_pcb-bak
 *.kicad_sch-bak

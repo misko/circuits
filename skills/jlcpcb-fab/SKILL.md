@@ -186,6 +186,11 @@ AND update this file in the same change. Board-design empirics stay in
 
 ## Learnings 2026-07-16 (usb-power-3s order prep)
 
+- Template-derived projects number-prefix their folders in pipeline order
+  (01_docs, 02_parts, 03_src, 04_kicad, 05_firmware, 06_build, 07_releases);
+  generic references like `parts/<MPN>` mean the parts folder whatever its
+  prefix.
+
 - `PLOT_CONTROLLER.SetOutputDirectory(relative)` resolves against the BOARD
   file's directory, not the cwd — the zip step then ships a drills-only
   "gerber" zip (2 files instead of 13). The export script now resolves the
