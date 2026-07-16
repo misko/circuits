@@ -1,2 +1,0 @@
-pads audited across 96 footprints
-AUDIT: PASS (0 fails, 0 warns)
