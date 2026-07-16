@@ -1,90 +1,59 @@
-# <board> — architecture
+# architecture: xt60-usb-supply
 
-The high-level concepts a reader (or agent) must hold before touching
-anything. This file says **what is**; `decisions/` says **why**; and machine-
-enforced facts live in `../03_src/rules/nets.yaml`, which generates the
-netclasses and DRC floors.
-
-Rule of thumb: if a tool must check it, it belongs in `nets.yaml`. If a human
-must understand it, it belongs here. Never restate widths/floors here — they
-drift. Link instead.
-
----
+3S LiPo (9.0-12.6 V) in via XT60; out: three USB-A charge ports (2.5 A
+each) and one USB-C port (6 A). Two independent 5 V buck rails
+(decisions/0001), no digital logic, no firmware.
 
 ## Power tree
 
-Every rail, source → conversion → load, with worst-case current. Net names
-must match `nets.yaml` exactly.
-
 ```
-J1 XT60 (3S, 9–13V, 13A)
-  └─ F1 15A ATO ─ VBATT_RAW
-       └─ U4 LM74800 ideal diode + Q2/Q3 back-to-back ─ VBATT_F → VSW
-            ├─ Buck A (U1 LM5145) ─ SW_A ─ LA1 3.3µH ─ 5V_A  5.18V / 6A → Pi
-            └─ Buck B (U2 LM5145) ─ SW_B ─ LB1 3.3µH ─ 5VB_PRE
-                 └─ L4 π-filter ─ 5V_B  5.08V / 6A → 3× USB-A + aux
+XT60 (J1)          VBAT_RAW   8.5 A worst case (73 W out / 9 V / 0.92 eff)
+  └─ F1 15A fuse → VBAT_F
+       └─ Q1 P-FET (reverse polarity, drain=VBAT_F, source=VBAT_P)
+            └─ VBAT_P  ── TVS D1, bulk C
+                 ├─ Buck A (U1) ── SW_A ── L1 ── 5V_A  8 A → J2,J3,J4 USB-A VBUS
+                 └─ Buck C (U2) ── SW_C ── L2 ── 5V_C  6 A → J5 USB-C VBUS
+GND: single solid plane (In1), all returns.
 ```
 
-State, per rail: nominal, tolerance, max load, and what browns out first.
+Net names here are exactly those in `03_src/rules/nets.yaml`.
 
 ## Net domains
 
-One row per class in `nets.yaml`. This table is a reader's index, not the
-source — the source is the YAML.
-
-| Class | Nets | Why it is special |
-|---|---|---|
-| `SWITCH_NODE` | SW_A, SW_B | 6A + highest dV/dt; the EMI aggressor. Poured, minimal area, tight loop. |
-| `PWR_RAIL` | VBATT_*, VSW, 5V_* | trunk on planes/pours; also carries mA sense taps |
-| `VBUS` | VBUS1-3, AUX_5V | current-limited port power |
-| `USB_DATA` | D?_N, D?_P | passed through, ESD in series |
-
-**Any net carrying >1A that is not in a class is a bug** — nothing checks
-ampacity for you.
+- **SWITCH_NODE** (SW_A, SW_C): buck half-bridge to inductor; highest
+  dV/dt, full inductor current. Minimal-area F.Cu pours. → nets.yaml.
+- **PWR_RAIL** (VBAT_RAW, VBAT_F, VBAT_P, 5V_A, 5V_C): trunk current on
+  F.Cu pours; also carries FB sense taps (low floor + pours). → nets.yaml.
+- **FB/CC/DCP signals** (FB_A, FB_C, CC1, CC2, DCP1..3, LED nets):
+  ordinary signal geometry. DCPn is the per-port shorted D+/D- pair
+  (BC1.2 DCP, decisions/0002 & BRIEF A3).
+- **GND**: plane-served.
 
 ## Stackup
 
-What each layer is FOR, not just what it is.
-
-| Layer | Purpose |
-|---|---|
-| F.Cu | components + signal + power pours |
-| In1.Cu | **solid GND** — the return path for everything above |
-| In2.Cu | power planes (VSW, 5V_A, 5V_B, VBATT_S) |
-| B.Cu | GND pour + escape routing |
-
-Fab tier and the option it forces (e.g. advanced/small-via if any via is
-below 0.45/0.2) — state it here AND in every release's ORDER_README.
+4-layer JLC standard (decisions/0005):
+- F.Cu — power pours (VBAT trunk, SW pours, 5 V trunks) + component routing
+- In1.Cu — solid GND, never routed
+- In2.Cu — GND fill + 5 V reinforcement patches if needed
+- B.Cu — signal routing + pour patches
 
 ## Ground strategy
 
-Planes, splits, stitching, and the return-path intent. If there are no
-splits, say so explicitly — "solid, unbroken In1 GND" is a decision a future
-router can otherwise destroy silently.
+One GND net, one unbroken In1 plane. Buck input caps sit tight to each
+converter's VIN/GND pins so the hot loop closes locally on F.Cu + via
+stitch to In1. Port grounds (USB shells + GND pins) stitch straight to the
+plane. No splits, no star points.
 
 ## Critical geometries
 
-The things a router will wreck if it does not know. Each one needs a
-`nets.yaml` `verify:` line or a rule area — prose alone does not survive.
-
-- **Hot loops** — the FET/inductor/input-cap loop on each buck. Minimal area.
-- **Kelvin sense** — the shunt's sense taps: they must meet AT the shunt, not
-  share trunk copper.
-- **Tap corridors** — gate-drive returns are deliberately thin (0.15mm) and
-  exempted by NAMED rule areas so the strict floor still governs the trunk.
-- **Keep-outs** — mounting-hole screw heads; connector bodies (a shell over a
-  hole means no screw access — check in 3D, not just DRC).
-
-## Interfaces
-
-Connector-by-connector: what plugs in, pinout reference, and polarity. For
-any keyed/polarized connector, the authoritative pad↔polarity fact lives in
-`02_parts/<MPN>/part.yaml` — cite it, do not restate it. (A reversed battery
-connector is invisible to every electrical check; the netlist is
-self-consistent either way.)
-
-## Firmware boundary
-
-What the board does with the MCU **unprogrammed**. If the power path is
-hardware-default-on, say so loudly: the board will appear to work and quietly
-lack every protection.
+- **Hot loop A/C**: CIN ceramic -> U1/U2 VIN -> SW -> L -> COUT -> GND back
+  to CIN. Input ceramics within ~3 mm of converter VIN.
+- **SW pours**: minimal area, must cover converter SW pad(s) and inductor
+  pad; no signal trace may slice them into islands.
+- **FB dividers**: at the converter FB pin (<= 10 mm), sensed at the last
+  output cap, routed away from SW.
+- **6 A USB-C VBUS**: all four VBUS contacts and all four GND contacts of
+  J5 carry current; pour from 5V_C to the pad group.
+- **XT60 polarity**: KiCad AMASS footprint pad 1 = "-" blade. Audit gate.
+- **Port edge**: J2-J4 USB-A + J5 USB-C overhang the east board edge;
+  XT60 overhangs west. Mounting holes: 4x M3 with screw-head keepouts.

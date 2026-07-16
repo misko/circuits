@@ -1,34 +1,43 @@
-# Revision checklist
+# checklist: xt60-usb-supply — pre-release gate
 
-Every revision passes this before it is tagged. A revision that will be
-RELEASED must additionally pass the release gate at the bottom.
+Every line is a runnable command or a file inspection with an expected
+result. A release dir may not be cut while any BRIEF.md criterion is
+`unmet` (contract rule).
 
-## Gates (mechanical — no judgement)
-- [ ] `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity`
-      → 0 violations, 0 unconnected, 0 missing footprints
-- [ ] `03_src/audit_board.py` → PASS (placement/pad invariants)
-- [ ] rules regenerate byte-identical from `03_src/rules/nets.yaml` (no hand-edits)
-- [ ] BOM ↔ `02_parts/` parity (every used part has a datasheet + facts on file)
-- [ ] netlist node-for-node parity after any schematic regeneration
+## Build + electrical gates
 
-## Judgement (a human or a fresh-context agent)
-- [ ] every net >1A walked end-to-end for copper cross-section
-- [ ] every 2-pad polarized part: pad 1's net checked against `02_parts/*/part.yaml`
-      (diodes, LEDs, electrolytics, AND connectors — this is invisible to DRC)
-- [ ] 3D/render review: connector bodies vs mounting holes, silk collisions
-- [ ] `01_docs/CHANGELOG.md` entry written
-- [ ] anything surprising captured as an ADR in `01_docs/decisions/`
+- [ ] `bash 03_src/rebuild_all.sh` completes; final lines `violations: 0 {}`
+      and `unconnected: 0` (includes schematic parity on KiCad 10).
+- [ ] Rebuild output contains `AUDIT: PASS` (placement/pad invariants I1-I7).
+- [ ] `04_kicad/xt60-usb-supply.kicad_dru` byte-identical to committed after
+      rebuild (`git diff --stat` empty for it).
+- [ ] Netlist parity: rebuild prints `NETLIST PARITY: PASS`.
+- [ ] Polarity audit: rebuild prints `POLARITY: PASS` for every 2-pad
+      polarized part (XT60 pad1 = "-" blade to GND; TVS cathode to VBAT_P;
+      LED cathodes to their resistor/GND per schematic).
+- [ ] Ampacity walk: SW_A/SW_C/5V_A/5V_C/VBAT_* trunk cross-sections are
+      pour-served; `grep min_width 03_src/rules/nets.yaml` floors present in
+      the generated .kicad_dru.
+- [ ] No tracks on In1.Cu: `python3 -c` one-liner in rebuild prints
+      `IN1_CLEAN: PASS`.
 
-## Release gate (only when ordering)
-- [ ] working tree clean (`git_dirty: false`)
-- [ ] tagged
-- [ ] stock re-verified TODAY (not from cache)
-- [ ] `07_releases/<ver>-<date>/` written with MANIFEST + verification evidence
-- [ ] fab options in ORDER_README match the board (layers, via tier)
+## Parts + sourcing gates
 
-- [ ] BRIEF.md: every acceptance criterion `met` (with evidence link) or `dropped` citing a user D#/Q# — never release with an `unmet` criterion
-- [ ] BRIEF.md prompt hash verifies (`sed -n "/prompt-verbatim-begin/,/prompt-verbatim-end/p" 01_docs/BRIEF.md | sed "1d;\$d" | sha256sum`)
+- [ ] `python3 03_src/bom_seed.py` exits 0 (every BOM line maps to
+      02_parts/<MPN>/part.yaml with real LCSC or explicit hand-solder).
+- [ ] `python3 skills/jlcpcb-fab/scripts/jlc_stock_check.py <fab>/bom_jlc.csv`
+      — every coded line found, stock >= 5x qty, on order day.
+- [ ] Every 02_parts/<MPN>/ has the datasheet PDF, sha256 matches part.yaml.
 
-- [ ] JLC twin gate: `jlc_twin.py` exits 0 with the project adjudications file — zero unadjudicated MIRRORED/PAD-MISMATCH findings; twin_report.csv copied into the release verification/
+## Fab package gates
 
-- [ ] Fresh-context pin review: `pin_audit.py` dossiers generated; independent agents (no session context) reviewed every active part per `pin-review-protocol.md`; verdicts in the release verification/pin_review.md with ZERO unresolved FAILs
+- [ ] `export_jlc_package.py` ran on the gated board; gerber zip contains 13
+      files (4-layer).
+- [ ] JLC digital twin (`jlc_twin.py`): zero unadjudicated criticals;
+      MODEL-REG pass; report saved to release verification/.
+- [ ] Fresh-context pin review (pin_audit.py protocol): every active part
+      verdict PASS; report in release verification/.
+- [ ] PDFs (schematic, layers, assembly) exported, rendered to PNG, and
+      visually verified by a fresh-context agent; findings dispositioned.
+- [ ] Release MANIFEST: sha256 table, git SHA exists, tool versions,
+      hand-solder list present.
