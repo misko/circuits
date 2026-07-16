@@ -1,0 +1,65 @@
+mpn: XY-AF90-WJDG
+manufacturer: Xiamen XinYi Xyeconn Electronics (XYECONN)
+type: usb_a_receptacle
+description: >
+  USB Type-A THT right-angle (90 degree) receptacle, 4 signal pins + shell.
+  Customer drawing XY-AF90-WJDG Rev A ("USB AF 90du"). Contact area
+  gold-flashed, shell nickel plated.
+datasheet:
+  doc_id: XY-AF90-WJDG
+  revision: RevA
+  url: https://datasheet.lcsc.com/datasheet/pdf/4c9a3f2e7fe6cad4c37ad5e273be8966.pdf?productCode=C53133490
+  sha256: f4d8992a6bc5b4ccc69589a30b680171e41358c1ebffbbaf98455d95170b43f1
+  fetched: 2026-07-16
+package: USB-A THT right-angle, 4 pins 2.5/2.0/2.5 mm pitch + 2 shell legs
+footprint: Connector_USB:USB_A_Stewart_SS-52100-001_Horizontal
+footprint_note: >
+  The drawing's PCB LAYOUT figure specifies 4x Dia0.92 signal holes spaced
+  2.50/2.00/2.50 mm (7.00 mm end-to-end) and 2x Dia2.30 shell holes 13.14 mm
+  apart, offset 2.71 mm behind the signal row. This EXACTLY matches KiCad
+  library footprints USB_A_Stewart_SS-52100-001_Horizontal and
+  USB_A_Connfly_DS1095 (signal drill 0.92, shell drill 2.3, shell at
+  -3.07/+10.07 relative to pin 1, 2.71 mm row offset); USB_A_Molex_67643
+  matches with 0.95 signal drills. USB_A_Connfly_DS1098_Horizontal does NOT
+  match (different board-lock scheme, shell holes 11.7 mm apart, Dia2.5).
+  The LCSC vendor footprint (easyeda2kicad C53133490, USB-A-TH_XY-AF90-WJDG)
+  has identical geometry: pins at x=-3.5/-1.0/+1.0/+3.5 drill 0.92, shells
+  at +/-6.57 drill 2.3, 2.70 mm behind pin row. No vendored footprint needed.
+pins:
+  "1":
+    name: VBUS
+    note: standard USB-A pin 1; LCSC/EasyEDA vendor symbol names pin 1 "VCC"
+  "2":
+    name: "D-"
+  "3":
+    name: "D+"
+  "4":
+    name: GND
+  "SH":
+    name: SHIELD
+    note: >
+      Two shell legs; the KiCad Stewart footprint names BOTH pads "SH"
+      (the LCSC drawing numbers them 5/6). Tie to GND.
+limits:
+  contact_resistance: 30mOhm max
+  insulation_resistance: 1000MOhm min
+  withstand_voltage: 500V AC 1 min
+  current_note: >
+    Drawing states no current rating. Generic USB-A receptacle contacts are
+    ~1.5 A/pin; do not plan more than 1.5 A continuous on VBUS without bench
+    verification.
+gotchas:
+  - >
+    The Rev A drawing does NOT label pin numbers/signals on the connector
+    views; the 1=VBUS/2=D-/3=D+/4=GND map is the USB-A standard, confirmed
+    by the LCSC vendor schematic symbol (pins VCC, D-, D+, GND, GND, GND in
+    order 1..6). Sanity-check VBUS-to-shell orientation before powering.
+  - Signal pins are on the FRONT (mating side) row and shell legs BEHIND
+    them (2.71 mm) - opposite of some USB-A parts; do not mirror.
+verified: >
+  Hole pattern read from drawing "PCB.LAYOUT" figure (sheet 1/1, Rev A) and
+  cross-checked pad-by-pad against KiCad USB_A_Stewart_SS-52100-001 and the
+  easyeda2kicad C53133490 footprint. Pin naming from LCSC vendor symbol.
+  2026-07-16.
+sourcing:
+  lcsc: C53133490

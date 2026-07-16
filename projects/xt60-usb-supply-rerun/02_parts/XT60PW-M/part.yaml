@@ -1,0 +1,65 @@
+mpn: XT60PW-M
+manufacturer: Changzhou Amass Electronics (Amass)
+type: power_connector_battery
+description: >
+  XT60 horizontal (right-angle) PCB-mount MALE battery connector, 2 blades on
+  7.2 mm pitch plus two press-fit mounting pegs. Yellow PA66 UL94-V0 housing,
+  gold-plated H59-1 brass blades. Datasheet model string is XT60PW30-M.G.*
+  (G = thick gold plating, * = housing color); the trade/orderable name at
+  LCSC is XT60PW-M.
+datasheet:
+  doc_id: XT60PW-M_Amass_spec
+  revision: noRev
+  url: https://datasheet.lcsc.com/datasheet/pdf/7b24a2fc2f12211661aac663f03c7437.pdf?productCode=C98732
+  sha256: bdde16c3d962051160f4c330fecc414495e99c2915e0cf603de9ecff0fe1f3a6
+  fetched: 2026-07-16
+package: XT60PW horizontal THT, 2 blades P7.2mm + 2 board-lock pegs
+footprint: Connector_AMASS:AMASS_XT60PW-M_1x02_P7.20mm_Horizontal
+pins:
+  "1":
+    name: "-"
+    note: >
+      NEGATIVE blade. KiCad footprint pad 1 (2.7 mm drill hole at origin);
+      footprint silkscreen prints "-" next to pad 1 and "+" next to pad 2.
+  "2":
+    name: "+"
+    note: >
+      POSITIVE blade. KiCad footprint pad 2, 7.2 mm from pad 1.
+  "MP":
+    name: SHELL_PEG
+    note: >
+      Two unnumbered mounting-peg slots in the KiCad footprint (oval drill
+      0.6x1.7 mm at (-3.15,-6) and (10.35,-6)), electrically unconnected.
+      Datasheet installation figure (sec 9) dimensions them 2-0.60x1.50,
+      13.5 mm apart, with the 2-Dia2.70 blade holes 7.2 mm apart.
+limits:
+  rated_current: 20A per UL1977 (datasheet sec 5); instantaneous 40A <1 min
+  current_note: >
+    Amass markets XT60 as 30A continuous; THIS datasheet's tested rating is
+    20A (UL1977, 20A 4h with <60C temperature rise). Sec 6 wire table allows
+    40A at 60C rise with 12AWG. Do not assume more than 20-30A continuous.
+  withstand_voltage: DC 500V
+  contact_resistance: 0.60mOhm
+  temp_range: -20C to +120C
+gotchas:
+  - >
+    POLARITY: pad 1 = "-", pad 2 = "+". Verified from three sources:
+    (1) KiCad footprint AMASS_XT60PW-M_1x02_P7.20mm_Horizontal silkscreen
+    fp_text "-" at (-2.8,2.5) beside pad 1 (0,0) and "+" at (9.5,2.5) beside
+    pad 2 (7.2,0); (2) LCSC/EasyEDA vendor footprint CONN-TH_XT60PW-M
+    (easyeda2kicad C98732) independently silkscreens "-" beside its pad 1
+    and "+" beside its pad 2, and after rotating both footprints into the
+    same frame (pegs toward mating face) both pad 1s are the SAME physical
+    blade; (3) EasyEDA vendor symbol names pin 1 "-" and pin 2 "+".
+    The housing itself has molded +/- next to the blades (visible in the
+    datasheet outline drawing, sec 3) - check against silkscreen at bring-up.
+  - Wiring this backwards ships a reversed battery connector; netlist checks
+    cannot catch it. This exact bug shipped once (power_board v4.8 fix).
+  - Blade holes are 2.7 mm drill; needs slot/hole soldering, 3.0 mm pin
+    standoff height per datasheet.
+verified: >
+  Pin pitch 7.2 mm, blade hole Dia2.7, peg slots 0.6x1.5 @ 13.5 mm
+  cross-checked between datasheet sec 9 installation-hole figure and the
+  KiCad footprint pads. Polarity evidence trail in gotchas. 2026-07-16.
+sourcing:
+  lcsc: C98732

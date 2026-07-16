@@ -1,0 +1,48 @@
+mpn: NCD0805R1
+manufacturer: NATIONSTAR (Foshan NationStar Optoelectronics)
+type: led
+value: red 0805
+description: >
+  0805 SMD LED, red (dominant 615-630 nm, peak 630 nm), 2.0 x 1.2 mm body.
+  Spec form FGH/BD-0053.01-21B, 2 pages.
+datasheet:
+  doc_id: NCD0805R1_FGH-BD-0053.01-21B
+  revision: FGH-BD-0053.01-21B
+  url: https://datasheet.lcsc.com/datasheet/pdf/e3e35db60c068efe42b02d21fe498cf3.pdf?productCode=C84256
+  sha256: 3a6caf350b15816633bfee4b063cc7ad5a3f337d32b0366817f95e4b7b77eb76
+  fetched: 2026-07-16
+package: LED 0805 (2012 metric)
+footprint: LED_SMD:LED_0805_2012Metric
+pins:
+  "1":
+    name: K
+    note: >
+      CATHODE = the end carrying the GREEN silkscreen marks (two green
+      corner squares in the p.2 outline drawing, legend "Solder Area /
+      bottom silkscreen"). Verified via the p.2 carrier-tape figure: the
+      diode symbol beside the tape points its cathode bar toward the same
+      edge where the green marks sit on the pocketed parts. Numbered "1"
+      here to match KiCad pad 1 = cathode; the vendor drawing itself does
+      not print pin numbers.
+  "2":
+    name: A
+    note: anode, unmarked end
+limits:
+  if_max: 25mA DC
+  ifp_max: 50mA (0.1ms, 1/10 duty)
+  vf: 1.5-2.6V typ 2.0V
+  vr_max: 5V
+  pd_max: 65mW
+  temp_range: -30C to +85C
+gotchas:
+  - >
+    KiCad LED_0805_2012Metric pad 1 = cathode (footprint silkscreen bar and
+    F.Fab chamfer on the pad-1 side) - orient the green-marked end of this
+    part onto pad 1.
+  - Red Vf (~2.0V) is a volt below the green KT-0805G (~2.8V); if both LEDs
+    share a series-resistor value the red will draw noticeably more current.
+verified: >
+  Electro-optical and absolute-max tables from p.1; polarity from p.2
+  outline + carrier-tape figures (green mark = cathode end). 2026-07-16.
+sourcing:
+  lcsc: C84256

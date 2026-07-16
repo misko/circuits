@@ -1,0 +1,68 @@
+mpn: MA25V100M6x6
+manufacturer: Shenzhen Jieerrui Technology (JIERR / jieerrui)
+type: polymer_electrolytic_capacitor
+value: 100uF 25V polymer SMD 6.3x6mm
+description: >
+  Solid polymer aluminum electrolytic, MA series, 100 uF +/-20% 25 V,
+  6.3 mm dia x 6 mm high V-chip SMD. MPN string per JLCPCB listing
+  C46550465 is "MA25V100M6x6"; the manufacturer's electrical table (p.3)
+  prints the same part as "MA25V100M6X6" (capital X) - same part.
+  Coding: MA series + 25V + 100uF + M(+/-20%) + 6x6 case.
+datasheet:
+  doc_id: JIERR_MA_series
+  revision: noRev
+  url: https://jlcpcb.com/api/file/downloadByFileSystemAccessId/8756670298806726656
+  sha256: 02b29a444e914ad94432e4919ac52931aa014e4e8d2ab36482ab37227217749e
+  fetched: 2026-07-16
+package: SMD V-chip 6.3x6 mm (base A=B=6.6 mm, lead gap P=2.1 mm)
+footprint: Capacitor_SMD:CP_Elec_6.3x5.9
+footprint_note: >
+  Body is 6.3 dia x 6.0 h with 6.6 mm square base; KiCad CP_Elec_6.3x5.9
+  (Panasonic C6 6.3x5.9) is the matching land pattern family. The LCSC
+  vendor footprint (easyeda2kicad C46550465,
+  CAP-SMD_BD6.3-L6.6-W6.6-LS7.3-FD) uses 3.5x1.2 mm pads on 5.34 mm centers
+  - compatible.
+pins:
+  "1":
+    name: "+"
+    note: >
+      POSITIVE terminal = KiCad CP_Elec pad 1. Evidence: (a) KiCad
+      CP_Elec_6.3x5.9 silkscreens a "+" cross (lines crossing at x=-4.04)
+      beside pad 1 at x=-2.8 and draws the chamfered body corners on the
+      pad-1 side; (b) the LCSC vendor footprint independently silkscreens a
+      solid "+" polygon beside ITS pad 1 and a "-" bar beside pad 2, with
+      the chamfered outline corners on the pad-1 side; (c) the MA series
+      dimension figure (p.2) shows the base plate with two beveled corners
+      on one terminal side - on V-chip electrolytics the beveled-base side
+      is the positive terminal.
+  "2":
+    name: "-"
+    note: negative terminal
+limits:
+  rated_voltage: 25V
+  capacitance: 100uF +/-20% (120Hz 20C)
+  esr: 30mOhm max @100kHz 20C
+  ripple_current: 2650mA rms @105C 100kHz (multiply by 0.7 for 10-100kHz, 0.05 for 120Hz)
+  tan_delta: 0.10 (120Hz)
+  temp_range: -55C to +105C
+  endurance: 2000h @105C
+  leakage: I <= 0.2CV or 500uA (whichever larger) after 2 min
+gotchas:
+  - >
+    POLARITY TRAP: on wet SMD electrolytics the dark half-circle on the can
+    top marks NEGATIVE, but polymer-cap top markings vary by maker (some
+    mark positive). Do NOT trust the colored top mark alone on this part -
+    orient by the beveled base corners / land-pattern chamfer (= positive
+    side) and the board silkscreen "+".
+  - Reversed polymer caps fail short. Double-check orientation at bring-up.
+  - Datasheet PDF has no revision code (marked noRev); MPN row is on p.3 of
+    the electrical characteristics table.
+verified: >
+  25V/100uF/6.3x6 row of MA series electrical table (p.3): ESR 30mOhm
+  @100kHz, ripple 2650mA @105C/100kHz, part number MA25V100M6X6. Case/land
+  dims from Dimensions table p.2 (6.3x6: A=6.6 B=6.6 P=2.1). MPN string and
+  ESR/ripple cross-checked against JLCPCB C46550465 attributes (30mOhm
+  @100kHz, 2.65A @100kHz, D6.3xL6mm). 2026-07-16.
+sourcing:
+  lcsc: C46550465
+  note: JLC-catalog part; LCSC retail API returns null for this code

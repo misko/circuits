@@ -1,0 +1,84 @@
+# Net architecture — THE source of truth for net classes (xt60-usb-supply).
+#
+# Documentation AND generator input: generate_rules.py emits the netclasses
+# into xt60-usb-supply.kicad_pro and the width floors into
+# xt60-usb-supply.kicad_dru from these fields. Never hand-edit those two.
+#
+# Floors are BACKSTOPS — trunk current rides F.Cu pours (In1 is solid GND).
+
+fab_tier: jlc_4layer_standard   # floors: 0.10 clearance / 0.09 track / 0.45-0.20 via
+
+classes:
+
+  SWITCH_NODE:
+    intent: >
+      Buck half-bridge output to the inductor. Highest dV/dt on the board,
+      carries full inductor current (8 A rail A, 6 A rail C). Primary EMI
+      aggressor: minimal-area pour, tight FET-inductor loop.
+    nets: [SW_A, SW_C]
+    current: 8A
+    min_width: 0.5mm            # backstop; the trunk is a priority-1 F.Cu pour
+    routing: >
+      POUR (priority 1, above GND pour), not tracks. Pour covers the
+      converter SW pad(s) and the inductor pad and nothing more.
+    verify: >
+      Pour fill covers converter SW + inductor pads; no signal trace slices
+      the pour into islands (island-to-island unconnected check).
+
+  PWR_INPUT:
+    # exemptions below are emitted by generate_rules.py as later dru rules
+
+    intent: >
+      Battery trunk from XT60 through fuse and reverse-polarity FET to both
+      buck inputs. 8.5 A worst case at 9 V pack-empty.
+    nets: [VBAT_RAW, VBAT_F, VBAT_P]
+    current: 9A
+    min_width: 0.5mm            # backstop; trunk is a priority-1 F.Cu pour
+    routing: >
+      Priority-1 F.Cu pours XT60->F1->Q1->buck VIN pins. Input ceramics and
+      bulk caps sit inside/adjacent to the VBAT_P pour.
+    verify: "walk XT60+ -> F1 -> Q1 -> U1/U2 VIN for continuous pour coverage"
+    exemptions:
+      - area: EN_TAP_A
+        min_width: 0.2mm
+        why: >
+          U1 EN pin taps VBAT_P out of the 0.45mm QFN signal row; a 0.5mm
+          track cannot exist there. The tap carries uA. Named rule area on
+          the board scopes a 0.2mm floor to just that corridor.
+      - area: EN_TAP_C
+        min_width: 0.2mm
+        why: same, U2
+
+  PWR_5V:
+    intent: >
+      Converted 5 V trunks: 5V_A (8 A, feeds three USB-A VBUS pin groups),
+      5V_C (6 A, feeds all four USB-C VBUS contacts). Trunk rides pours; the
+      floor is a backstop for short taps/spurs (LED feeds, Rp pull-ups).
+    nets: [5V_A, 5V_C]
+    current: 8A
+    min_width: 0.3mm
+    routing: >
+      Priority-1 F.Cu pours from inductor/COUT bank to the port pin groups.
+      FB taps sensed at the last output cap, routed as normal tracks.
+    verify: "pour reaches every VBUS pad; port pin group fully covered"
+
+  USB_SIGNAL:
+    intent: >
+      Port small-signals: per-port shorted D+/D- (BC1.2 DCP), USB-C CC
+      lines with Rp pull-ups, ESD diodes. mA-level.
+    nets: [DCP1, DCP2, DCP3, CC1, CC2]
+    min_width: 0.2mm
+    routing: "short tracks port <-> ESD <-> Rp; ESD within 12 mm of connector"
+    verify: "DRC floor; ESD part present per port (schematic parity)"
+
+  FEEDBACK:
+    intent: >
+      Buck FB dividers — noise-sensitive, mA. Keep away from SW pours;
+      divider within 10 mm of the FB pin.
+    nets: [FB_A, FB_C]
+    min_width: 0.2mm
+    routing: "sense at last output cap; do not cross SW pours on F.Cu"
+    verify: "proximity gate FB divider -> FB pin <= 10 mm"
+
+# Everything else (GND, LED cathode nets, NC) falls to Default. GND rides
+# the In1 plane + stitching vias; no >1A net is outside a class above.

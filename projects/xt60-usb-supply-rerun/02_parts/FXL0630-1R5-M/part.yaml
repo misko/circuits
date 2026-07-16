@@ -1,0 +1,47 @@
+mpn: FXL0630-1R5-M
+manufacturer: SZ CJIANG Technology (cjiang / Changjiang Microelectronics)
+type: inductor_power
+datasheet:
+  doc_id: FXL series spec
+  revision: Rev3.0
+  revision_note: "version history: Rev 3.0, 2024/3/25, 'Merge all sizes'"
+  url: https://datasheet.lcsc.com/datasheet/pdf/9072344370debcf88f3b085e450e71ce.pdf?productCode=C167217
+  sha256: a3d5f476e6e2e56af77424cf70a59a3862ac4481376893e37a68dbc678a41587
+  fetched: 2026-07-16
+  note: "single series document covering all FXL sizes; same PDF committed
+    for FXL0630-2R2-M"
+package: FXL0630 molded wirewound, 7.0 x 6.6 mm body, 2.8mm height (A=7.0
+  +/-0.3, B=6.6 +/-0.2, C=2.8 +/-0.2 mm)
+footprint: xt60_usb_supply:L_FXL0630_7.0x6.6mm
+pins:
+  "1":
+    name: "1"
+    note: "winding terminal — no electrical polarity; if the footprint marks
+      a start-of-winding dot, orient per EMI preference only"
+  "2":
+    name: "2"
+    note: "winding terminal"
+limits:
+  inductance: 1.5uH +/-20% (100kHz, 1V)
+  dcr_max: 12.1 mohm
+  isat: 12A max-rated / 14A typ
+  irms: 9.5A max-rated / 12A typ
+  operating_temp: per series spec (molded wirewound)
+land_pattern:
+  pads: "2 pads, 3.7mm (a) x 3.5mm (c)"
+  outer_span: 8.4mm (b)
+  source: "Recommend Land Pattern table, FXL0630 row: a=3.7, b=8.4, c=3.5 mm"
+gotchas:
+  - "This is the 8A rail (5V_A) buck inductor: Irms rating 9.5A > 8A DC but
+    with only ~19% margin — check temperature rise; Isat 12A covers the
+    SY8368 12A (ILMT floating) valley limit but NOT the 16A setting. Do not
+    strap ILMT high with this inductor."
+  - "MPN decode: FXL(series) 0630(7.0x6.6x3.0 size class) 1R5(1.5uH)
+    M(+/-20%). Sister value 2R2 shares the same body and land pattern."
+verified: "electrical row read from 'FXL0630-XXX series' table (1R5: DCR
+  12.1 mohm max, Isat 12/14A, Irms 9.5/12A); dimensions and land pattern
+  from the Dimensions table FXL0630 row, FXL series spec Rev 3.0 —
+  2026-07-16"
+sourcing:
+  lcsc: C167217
+  alternates: []

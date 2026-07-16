@@ -1,0 +1,54 @@
+mpn: 0451015.MRL
+manufacturer: Littelfuse
+type: fuse_smd
+datasheet:
+  doc_id: 451/453 Series
+  revision: Rev2015-09-10
+  revision_note: "footer reads 'Revised: 09/10/15'"
+  url: https://datasheet.lcsc.com/datasheet/pdf/00c9748756ca418792b5b22a2bd74996.pdf?productCode=C44480
+  sha256: ade583d66dc303591035fa92a9f3874828f567f59a3cb4f5d24984c3de96ea87
+  fetched: 2026-07-16
+  note: "Littelfuse NANO2 451/453 series datasheet fetched from the LCSC
+    datasheet CDN (littelfuse.com asset link is an HTML redirector to curl)"
+package: NANO2 (6.10 x 2.69 x 2.69 mm ceramic body, wire-in-air)
+footprint: Fuse:Fuse_Littelfuse-NANO2-451_453
+pins:
+  "1":
+    name: "~"
+    note: "fuse terminal — NO polarity, either orientation is fine"
+  "2":
+    name: "~"
+    note: "fuse terminal — NO polarity"
+limits:
+  current_rating: 15A
+  voltage_rating: 65V (AC or DC) at 15A rating
+  interrupting_rating: "100A @ 65VAC, 150A @ 65VDC, 400A @ 32VDC (12-15A
+    ratings row)"
+  operating_temp: -55C to 125C
+electrical:
+  speed: very fast-acting (NOT slow-blow — series page title 'Very
+    Fast-Acting Fuse')
+  cold_resistance: 3.7 mohm nominal
+  melting_i2t: 97.82 A2s nominal
+  opening_time_200pct: 20s max (12-20A ratings)
+  opening_time_100pct: 4 hours minimum
+mpn_decode: "0451 = 451 series (gold-plated caps), 015. = 15A amp code,
+  M = 1000 pcs, R = tape and reel, L = RoHS/HF"
+gotchas:
+  - "VERY FAST-ACTING, not slow: expect no tolerance for large inrush.
+    Buck input caps charge through it at plug-in — I2t budget (97.8 A2s) is
+    large vs. a capacitive inrush event, but verify if bulk capacitance
+    grows."
+  - "The 15A and 12A ratings are 65V parts; ratings <=10A in the same series
+    are 125V. Do not substitute across amp codes assuming same voltage."
+  - "Standard derating: 25% for continuous operation, plus thermal rerating
+    curve — 15A rating supports ~11A continuous at 25C."
+  - "Land pattern per datasheet: two pads 1.96 x 3.15 mm, outer span 6.86 mm
+    (matches KiCad Fuse_Littelfuse-NANO2-451_453)."
+verified: "rating row (15A / 65V / 3.7 mohm / 97.82 A2s / interrupting
+  ratings) read from Electrical Specifications by Item table; body and pad
+  dimensions from Dimensions figure; suffix decode from Part Numbering
+  System figure, 451/453 datasheet rev 09/10/15 — 2026-07-16"
+sourcing:
+  lcsc: C44480
+  alternates: []

@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "xt60_usb_supply")(type "KiCad")(uri "${KIPRJMOD}/../03_src/lib/xt60_usb_supply.pretty")(options "")(descr "project vendored"))
+)
