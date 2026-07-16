@@ -36,6 +36,7 @@ classes:
     exemptions:
       - {area: SW_TAP_A, min_width: 0.15mm, why: controller VIN/sense necks, mA-scale}
       - {area: SW_TAP_B, min_width: 0.15mm, why: same, rail B}
+      - {area: FE_TAP, min_width: 0.15mm, why: LM74800 FE_MID sense joins; trunk is the pour+B bond}
 
   VBUS:
     intent: USB-A port power, limited to 2.5A by its TPS2557.

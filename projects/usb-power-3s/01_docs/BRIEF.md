@@ -2,7 +2,7 @@
 
 status: delivered
 prompt_sha256: bb5ae2d40b89086de582a1ad4381d416825d4847a527278c363d67b3ca5462ab
-current_release: 07_releases/v1.0-2026-07-16
+current_release: 07_releases/v1.1-2026-07-16
 
 ## Original prompt
 
@@ -74,6 +74,15 @@ project; 59 files' references rewritten; gate re-run green.
 Impact: this file and its contract (01_docs/contracts.md, BRIEF.md sections);
 release gate now requires all criteria met or user-dropped.
 
+### D5 — 2026-07-16 — user directive
+> Our final output is often for JLCPCB , often we have issues with parts that are not in stock, or not correctly (unambiguously) selected from our BOM/CPL files. In addition we often fail the 3d rendering presented at the end of JLCPCB. [...] Can we download JLCPCB catalog and its 3d renderings and use those to generate a 3d rendering of placed parts using kicad or some other tools?
+Impact: new order-gate stage "JLC digital twin" (skills/jlcpcb-fab/scripts/jlc_twin.py):
+per-LCSC fetch of JLC's own footprint+3D CAD (easyeda2kicad), pad-correspondence
+fit (rotation x mirror), rotation-DB audit, adjudication register
+(03_src/rules/twin_adjudications.yaml), twin renders. Its FIRST RUN found the
+vendored LM5145 footprint mirror-numbered (dead board) -> footprint fixed,
+full re-route, v1.1. The SPF power_board_v1 shares the defect (already ordered).
+
 ## Decision register
 
 | id | decision | decided by | depth |
@@ -86,3 +95,4 @@ release gate now requires all criteria met or user-dropped.
 | D2 | Releases ship PDF schematic + PCB + assembly docs | user (D2) | Log D2 |
 | D3 | Folders number-prefixed in pipeline order | user (D3) | Log D3 |
 | D4 | Commission record kept in 01_docs/BRIEF.md | user (D4) | Log D4 |
+| D5 | JLC digital-twin order gate; LM5145 footprint fixed + re-route (v1.1) | user (D5) | Log D5 |

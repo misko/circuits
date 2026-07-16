@@ -18,6 +18,9 @@
 (rule width_pwr_rail_sw_tap_b
   (condition "A.NetClass == 'PWR_RAIL' && A.intersectsArea('SW_TAP_B')")
   (constraint track_width (min 0.15mm)))
+(rule width_pwr_rail_fe_tap
+  (condition "A.NetClass == 'PWR_RAIL' && A.intersectsArea('FE_TAP')")
+  (constraint track_width (min 0.15mm)))
 (rule width_vbus
   (condition "A.NetClass == 'VBUS'")
   (constraint track_width (min 0.50mm)))

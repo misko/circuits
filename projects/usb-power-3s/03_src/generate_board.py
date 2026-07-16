@@ -316,8 +316,8 @@ def main():
     for lay in (pcbnew.F_Cu, pcbnew.B_Cu, pcbnew.In1_Cu):
         add_zone("GND", lay, FULL, 0)
     # In2 power planes
-    for _z in [add_zone("VSW",  pcbnew.In2_Cu, [(72.5, 52), (99, 52), (99, 108), (64, 108), (64, 72.5), (72.5, 72.5)], 2, minw=0.3),
-               add_zone("VBATT_F", pcbnew.In2_Cu, [(60, 50.8), (72, 50.8), (72, 71.8), (63.5, 71.8), (63.5, 101.5), (52.3, 101.5), (52.3, 71.8), (60, 71.8)], 2, minw=0.3),
+    for _z in [add_zone("VSW",  pcbnew.In2_Cu, [(72.5, 52), (99, 52), (99, 108), (64, 108), (64, 78), (75.6, 78), (75.6, 72.5), (72.5, 72.5)], 2, minw=0.3),
+               add_zone("VBATT_F", pcbnew.In2_Cu, [(60, 50.8), (72, 50.8), (72, 72.6), (75.4, 72.6), (75.4, 77.6), (70.9, 77.6), (70.9, 71.8), (63.5, 71.8), (63.5, 101.5), (52.3, 101.5), (52.3, 71.8), (60, 71.8)], 2, minw=0.3),
                add_zone("5V_C", pcbnew.In2_Cu, [(99, 50.5), (148, 50.5), (148, 63), (99, 63)], 2, minw=0.3),
                add_zone("5V_A", pcbnew.In2_Cu, [(99.6, 63.5), (148, 63.5), (148, 108), (99, 108), (99, 64.2)], 2, minw=0.3)]:
         _z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL)
@@ -341,18 +341,20 @@ def main():
     power_patch("VSW", [(93.5, 91.7), (97.1, 91.7), (97.1, 96.6), (93.5, 96.6)])  # QB1 drain -> In2 vias
     power_patch("SW_A", [(91.3, 53.6), (93.2, 53.6), (93.2, 56.9), (97.4, 56.9),
                          (97.4, 53.6), (99.5, 53.6), (99.5, 63.5), (91.3, 63.5)])
-    power_patch("SW_A", [(91.4, 53.4), (93.0, 53.4), (93.0, 58.6), (91.4, 58.6)], layer=pcbnew.B_Cu)  # bridge over HO_A slice
+    power_patch("SW_A", [(91.4, 53.4), (99.4, 53.4), (99.4, 63.4), (91.4, 63.4)], layer=pcbnew.B_Cu)  # B bond across gate-trace slices
     power_patch("SW_B", [(91.3, 93.6), (93.2, 93.6), (93.2, 96.9), (97.4, 96.9),
                          (97.4, 93.6), (99.5, 93.6), (99.5, 103.5), (91.3, 103.5)])
-    power_patch("SW_B", [(91.4, 93.4), (93.0, 93.4), (93.0, 98.6), (91.4, 98.6)], layer=pcbnew.B_Cu)  # bridge over HO_B slice
+    power_patch("SW_B", [(91.4, 93.4), (99.4, 93.4), (99.4, 103.4), (91.4, 103.4)], layer=pcbnew.B_Cu)  # B bond across gate-trace slices
     power_patch("FE_MID", [(75.6, 72.9), (79.0, 72.9), (79.0, 86.2), (75.6, 86.2)], layer=pcbnew.B_Cu)  # B bond: gate/cap traces shred the F pour into 4 islands
-    power_patch("5V_C", [(107, 51.5), (139, 51.5), (139, 64.5), (119.3, 64.5),
-                         (119.3, 68.9), (110.6, 68.9), (110.6, 64.5), (107, 64.5)])  # lobe: CA7 + and C33
+    power_patch("5V_C", [(113.5, 62.0), (118.8, 62.0), (118.8, 68.6), (113.5, 68.6)], layer=pcbnew.B_Cu)  # B bond: lobe <-> main pour
+    power_patch("5V_C", [(107, 51.5), (139, 51.5), (139, 64.5),
+                         (123.4, 64.5), (123.4, 62.6), (121.6, 62.6), (121.6, 64.5),  # notch: R16.2 GND breathes
+                         (119.3, 64.5), (119.3, 68.9), (110.6, 68.9), (110.6, 64.5), (107, 64.5)])  # lobe: CA7 + and C33
     power_patch("5V_A", [(107, 92.5), (112, 92.5), (112, 87.5), (121, 87.5), (121, 92.5), (131.5, 92.5), (131.5, 108), (107, 108)])  # lobe: CB7
     power_patch("5V_A", [(120.4, 63.9), (126.8, 63.9), (126.8, 68.2), (120.4, 68.2)])  # U4 IN + C20
     power_patch("5V_A", [(120.4, 81.4), (126.8, 81.4), (126.8, 85.7), (120.4, 85.7)])  # U5 IN + C21
     # rule areas for the dru tap exemptions (over the controller side)
-    for name, x0, y0, x1, y1 in (("SW_TAP_A", 57, 50.4, 92.9, 70), ("SW_TAP_B", 57, 91, 92.9, 109.6)):
+    for name, x0, y0, x1, y1 in (("SW_TAP_A", 57, 50.4, 92.9, 70), ("SW_TAP_B", 57, 91, 92.9, 109.6), ("FE_TAP", 66, 70, 80, 92)):
         ra = pcbnew.ZONE(board)
         ra.SetIsRuleArea(True)
         ra.SetZoneName(name)

@@ -15,17 +15,6 @@ $PY 03_src/audit_board.py 2>/dev/null | tail -1
 $PY "$SKILLS"/import_krt.py 06_build/route/r5.kicad_pcb \
     04_kicad/usb_power_3s.kicad_pcb 04_kicad/usb_power_3s.kicad_pcb 2>/dev/null | grep imported
 $PY 03_src/route_taps.py 2>/dev/null
-$PY 03_src/route_taps_krt.py prep 2>/dev/null
-/home/mouse9911/virtual-envs/spf/bin/python ~/gits/KiCadRoutingTools/route.py \
-    06_build/route/taps_in.kicad_pcb --output 06_build/route/taps_out.kicad_pcb \
-    --nets TAPB TAPC --layers F.Cu B.Cu --track-width 0.15 --clearance 0.13 \
-    --via-size 0.45 --via-drill 0.2 2>/dev/null | grep -E "Routed|failed|TAP" | tail -4
-$PY 03_src/route_taps_krt.py finish 2>/dev/null
-# taps_out grew FROM the live board, so it now holds ALL tracks: rebuild the
-# board fresh and import taps_out as the single source (no duplicates)
-$PY 03_src/generate_board.py 2>/dev/null | tail -1
-$PY "$SKILLS"/import_krt.py 06_build/route/taps_out.kicad_pcb \
-    04_kicad/usb_power_3s.kicad_pcb 04_kicad/usb_power_3s.kicad_pcb 2>/dev/null | grep imported
 $PY 03_src/stitch_and_fill.py 2>/dev/null
 python3 03_src/generate_rules.py
 kicad-cli pcb drc --severity-all --refill-zones --schematic-parity --format json \

@@ -55,6 +55,11 @@ for tr in b.GetTracks():
 
 USED = {(v.GetPosition().x/1e6, v.GetPosition().y/1e6)
         for v in b.GetTracks() if v.GetClass() == "PCB_VIA"}
+# PTH drill guard: via_site_ok skips same-net copper, so a via can land
+# overlapping a same-net PTH HOLE (fuse clip, found 2026-07-16). Track all
+# plated holes and enforce hole-edge to hole-edge >= 0.3 ourselves.
+PTH = [(p.GetPosition().x/1e6, p.GetPosition().y/1e6, p.GetDrillSize().x/2e6)
+       for fp in b.GetFootprints() for p in fp.Pads() if p.GetDrillSize().x > 0]
 failures = []
 
 def try_via(net, x, y, size=0.6, drill=0.3):
@@ -62,6 +67,8 @@ def try_via(net, x, y, size=0.6, drill=0.3):
     # identical via - dedupe by coordinate ourselves (found 2026-07-16).
     # Falls back to the 0.45/0.2 advanced-tier via in tight spots.
     if any((x-ux)**2 + (y-uy)**2 < 0.55**2 for ux, uy in USED):
+        return False
+    if any(math.hypot(x-hx, y-hy) < r + drill/2 + 0.3 for hx, hy, r in PTH):
         return False
     if tk.via_site_ok(x, y, net.GetNetCode(), size=size, drill=drill):
         tk.add_via(x, y, net, size=size, drill=drill)
@@ -130,7 +137,7 @@ for netname, x, y, n in JOBS:
 EXPLICIT = [
     # Q2 source patch (VSW, 8A FE output) -> In2 VSW plane; gate pad + HG_FE
     # traces cross y85, so sites live north and at the far south end
-    ("VSW", [(74.45, 79.5), (74.45, 80.3), (74.45, 81.1), (74.45, 81.9),
+    ("VSW", [(74.45, 81.0), (74.45, 81.8), (74.45, 82.6), (74.45, 85.6),
              (74.45, 86.4), (74.45, 87.2), (74.45, 88.0), (74.45, 88.7)], 4),
     # VBATT_F In2 island -> F.Cu pour, south of the F1 input clips (y66)
     ("VBATT_F", [(62.0, 69.3), (63.4, 69.3), (64.8, 69.3), (66.2, 69.3),
@@ -140,14 +147,36 @@ EXPLICIT = [
              (93.9, 53.3), (95.1, 53.3), (96.3, 53.3)], 3),
     ("VSW", [(93.9, 92.5), (94.7, 92.5), (95.5, 92.5), (96.3, 92.5),
              (93.9, 93.3), (95.1, 93.3), (96.3, 93.3)], 3),
-    # SW source-island bridges: 2 vias north of the HO slice, 2 south
-    ("SW_A", [(91.75, 54.0), (92.55, 54.6), (92.55, 53.9), (91.75, 54.8), (91.75, 57.4), (92.55, 58.1), (91.75, 58.2), (92.55, 57.3)], 3),
-    ("SW_B", [(91.75, 94.0), (92.55, 94.6), (92.55, 93.9), (91.75, 94.8), (91.75, 97.4), (92.55, 98.1), (91.75, 98.2), (92.55, 97.3)], 3),
+    # SW island bonds - one ladder per FILL ISLAND (gate traces slice the pours;
+    # islands mapped 2026-07-16): NW source piece, main block, south strip
+    ("SW_A", [(91.75, 54.0), (92.55, 53.9), (91.75, 54.8), (92.3, 54.6)], 0),      # island NW (sources)
+    ("SW_A", [(91.75, 57.4), (92.55, 58.1), (91.75, 58.2), (92.55, 57.3)], 0),     # island main
+    ("SW_A", [(92.8, 61.2), (92.8, 62.0), (92.8, 62.8), (91.8, 61.5), (91.8, 62.6)], 0),  # island south strip
+    ("SW_B", [(91.75, 94.0), (92.55, 93.9), (91.75, 94.8), (92.3, 94.6)], 0),
+    ("SW_B", [(91.75, 97.7), (92.2, 98.2), (91.75, 98.4), (92.2, 99.4), (91.75, 100.0)], 0),
+    ("SW_B", [(92.8, 94.2), (92.8, 96.0), (92.8, 97.0), (92.8, 101.0), (92.8, 102.2)], 0),
+    # 5V_C main pour -> its lobe B-bond patch (the lobe via comes from the island pass)
+    ("5V_C", [(116.0, 63.3), (114.5, 63.3), (117.5, 63.3), (115.2, 62.6)], 1),
+    # VBATT_F island under Q1 sources (8A!) -> In2 finger
+    ("VBATT_F", [(72.5, 73.2), (73.3, 73.2), (72.5, 75.8), (73.3, 75.8), (72.5, 76.6), (74.1, 76.6)], 1),
     # FE_MID island bonds (8A Q1->Q2 path runs island3 -> B patch -> island0)
     ("FE_MID", [(76.3, 73.4), (77.1, 73.4), (76.3, 74.2), (77.1, 74.2)], 3),   # island: Q1 drain
     ("FE_MID", [(77.3, 80.2), (78.1, 80.2), (77.3, 81.0), (78.1, 81.0), (78.05, 79.4)], 3),  # island: Q2 drain side
     ("FE_MID", [(76.05, 76.5), (76.05, 77.3), (76.05, 78.0)], 1),              # island: U1 sense
     ("FE_MID", [(78.05, 77.9), (78.5, 77.9)], 1),                              # island: C1 tie
+    # EP thermal vias (EP pads are unreachable by pour spokes inside the pin ring)
+    ("GND", [(85.0, 57.6), (85.0, 58.4), (84.5, 58.0), (85.5, 58.0), (84.4, 57.2),
+             (85.6, 57.2), (84.4, 58.8), (85.6, 58.8), (85.0, 59.1)], 2),   # U2 EP
+    ("GND", [(85.0, 97.6), (85.0, 98.4), (84.5, 98.0), (85.5, 98.0), (84.4, 97.2),
+             (85.6, 97.2), (84.4, 98.8), (85.6, 98.8), (85.0, 99.1)], 2),   # U3 EP
+    # (U1 EP: B.Cu under it is solid gate routing - no via fits; the EP reaches
+    # GND through the F pour ring, which DRC confirms - no ladder needed)
+    # R16.2 GND is jailed by ILIM1's route: via-in-pad (0402, 0.2 drill - ORDER_README notes it)
+    ("GND", [(122.51, 63.5), (122.4, 63.4), (122.62, 63.6), (122.4, 63.6), (122.62, 63.4)], 1),
+    # CB4.2 same: walled by grid-B routing; via-in-pad
+    ("GND", [(69.48, 98.8), (69.35, 98.7), (69.6, 98.9)], 1),
+    # U2.12 same: only legal site is essentially in-pad
+    ("GND", [(83.6, 56.2), (83.65, 56.25), (83.7, 56.3)], 1),
 ]
 for netname, sites, need in EXPLICIT:
     net = b.FindNet(netname)
@@ -210,11 +239,11 @@ for _t in b.GetTracks():
             if pad.GetNetCode() == _t.GetNetCode():
                 track_fed.add((pad.GetPosition().x/1e6, pad.GetPosition().y/1e6))
 
-FORCE_RESCUE = {("U2", "20"), ("U3", "20"),   # VSW VIN/sense, no pour reach
-                ("U2", "12"), ("U3", "12"),   # GND pads whose stale stubs were removed
+FORCE_RESCUE = {  # (U2.20/U3.20 VIN are KRT tap-wave routed now - TAPU/TAPV)
                 ("CA1", "2"), ("RA1", "2"), ("RA4", "2"),  # grid-A GND, cut off by congestion
-                ("CB2", "2"), ("CB4", "2"),   # grid-B GND, same
+                ("CB2", "2"),                 # grid-B GND, same
                 ("D2", "1"), ("R22", "1")}    # 5V_A parts south/east of pours (plane below)
+# deeply-boxed GND pads (U2.12/U3.12/CB4.2/R16.2) are L/Z-rescued in route_taps
 # inner-plane coverage per net: a rescue via only helps if the plane is under it
 plane_polys = {"GND": [[(51, 51), (149, 51), (149, 109), (51, 109)]]}
 for z in b.Zones():
@@ -232,9 +261,9 @@ for fp in b.GetFootprints():
             continue
         px, py = pad.GetPosition().x/1e6, pad.GetPosition().y/1e6
         forced = (fp.GetReference(), str(pad.GetNumber())) in FORCE_RESCUE
+        if (px, py) in track_fed:
+            continue  # a routed same-net track/via already feeds this pad (even forced)
         if not forced:
-            if (px, py) in track_fed:
-                continue  # a routed same-net track already lands on this pad
             here = [(pr, n2) for n2, pr, poly in pour_polys if in_poly(px, py, poly)]
             winner = max(here)[1] if here else None  # highest-priority pour wins
             if winner == nn:
@@ -247,7 +276,7 @@ for fp in b.GetFootprints():
         L = math.hypot(dx, dy) or 1.0
         base = math.degrees(math.atan2(dy, dx))
         ok = False
-        for off in (0.8, 0.9, 1.1, 1.5, 2.0, 2.6, 3.2, 3.8):
+        for off in (0.7, 0.8, 0.9, 1.1, 1.5, 2.0, 2.6, 3.2, 3.8, 0.5, 0.3):  # near rings LAST (they pinch fill necks)
             for dang in (0, 30, -30, 60, -60, 90, -90, 120, -120, 150, -150, 180):
                 a = math.radians(base + dang)
                 vx, vy = round(px + off*math.cos(a), 2), round(py + off*math.sin(a), 2)
@@ -272,42 +301,63 @@ for fp in b.GetFootprints():
             failures.append(f"rescue {fp.GetReference()}.{pad.GetNumber()} ({nn}) at ({px:.1f},{py:.1f})")
 print(f"pad rescues: {rescued}")
 
-# ---- dangling micro-stub cleanup: only tails whose free end touches nothing
-pts = []
-for t in b.GetTracks():
-    if t.GetClass() == "PCB_VIA":
-        pts.append((t.GetPosition().x, t.GetPosition().y))
-    else:
-        pts.append((t.GetStart().x, t.GetStart().y)); pts.append((t.GetEnd().x, t.GetEnd().y))
-for fp in b.GetFootprints():
-    for pad in fp.Pads():
-        pts.append((pad.GetPosition().x, pad.GetPosition().y))
-
-def touch_count(x, y):
-    return sum(1 for qx, qy in pts if abs(qx-x) < 50000 and abs(qy-y) < 50000)
-
-drop = []
-for t in b.GetTracks():
-    if t.GetClass() == "PCB_TRACK" and t.GetLength() < 0.12e6:
-        e1 = touch_count(t.GetStart().x, t.GetStart().y)
-        e2 = touch_count(t.GetEnd().x, t.GetEnd().y)
-        if min(e1, e2) <= 1:  # a free end counts only itself; a joined end counts 2+
-            drop.append(t)
-for t in drop:
-    b.Remove(t)
-print(f"removed {len(drop)} dangling micro-stubs")
+# (micro-stub cleanup removed 2026-07-16: it ate 0.05mm KRT jog connectors
+# mid-chain; the route_taps trimmer owns dangler handling now)
 
 if failures:
     print("FAILURES:\n  " + "\n  ".join(failures))
     sys.exit(1)
-# ---- three KRT fanout vias are dangling in every build (SS_A/SS_B/RT_B at
-# x83.65); their nets are fully routed elsewhere - remove just these
-KILL_VIAS = {(83.65, 59.25), (83.65, 99.25), (83.65, 99.75)}
-gone = [t for t in b.GetTracks() if t.GetClass() == "PCB_VIA"
-        and (round(t.GetPosition().x/1e6, 2), round(t.GetPosition().y/1e6, 2)) in KILL_VIAS]
-for t in gone:
-    b.Remove(t)
-print(f"removed {len(gone)} known-dangling fanout vias")
+# (a hardcoded dangling-via kill list ONCE lived here; on the re-routed board
+# its coordinates hit a LIVE HO_A fanout via - never kill copper by stale
+# coordinates. Dangling vias are handled case-by-case from DRC output.)
+
+# ---- via janitor: a via is useful iff same-net copper attaches on >= 2
+# layers (F: track/pad/F-zone; B: track/B-zone; inner: In1 GND or In2 plane).
+# KRT fanout leaves orphans when the net later routes on one layer.
+def _seg_d2(px, py, ax, ay, bx, by):
+    dx, dy = bx-ax, by-ay
+    L2 = dx*dx + dy*dy
+    t = 0 if L2 == 0 else max(0, min(1, ((px-ax)*dx + (py-ay)*dy) / L2))
+    return (px - ax - t*dx)**2 + (py - ay - t*dy)**2
+
+_ztmp = {}
+for z in b.Zones():
+    if z.GetNetname() and not z.GetIsRuleArea():
+        o = z.Outline().COutline(0)
+        poly = [(o.CPoint(i).x/1e6, o.CPoint(i).y/1e6) for i in range(o.PointCount())]
+        for lay in z.GetLayerSet().Seq():
+            _ztmp.setdefault((z.GetNetname(), lay), []).append(poly)
+
+_orphans = []
+for v in [t for t in b.GetTracks() if t.GetClass() == "PCB_VIA"]:
+    nn = v.GetNetname()
+    vx, vy = v.GetPosition().x/1e6, v.GetPosition().y/1e6
+    r2 = (v.GetWidth()/2e6) ** 2
+    attach = set()
+    for t in b.GetTracks():
+        if t.GetClass() == "PCB_VIA" or t.GetNetCode() != v.GetNetCode():
+            continue
+        if _seg_d2(vx, vy, t.GetStart().x/1e6, t.GetStart().y/1e6,
+                   t.GetEnd().x/1e6, t.GetEnd().y/1e6) <= r2:
+            attach.add(t.GetLayer())
+    for fp in b.GetFootprints():
+        for p in fp.Pads():
+            if p.GetNetCode() == v.GetNetCode():
+                pp = p.GetPosition()
+                bb = p.GetBoundingBox()  # returned by value - safe to inflate
+                bb.Inflate(v.GetWidth() // 2)  # barrel OVERLAP counts, not just center-inside
+                if abs(pp.x/1e6-vx) < 2.0 and abs(pp.y/1e6-vy) < 2.0 and bb.Contains(v.GetPosition()):
+                    for lay in (pcbnew.F_Cu, pcbnew.B_Cu):
+                        if p.IsOnLayer(lay):
+                            attach.add(lay)
+    for (znet, zlay), polys in _ztmp.items():
+        if znet == nn and any(in_poly(vx, vy, poly) for poly in polys):
+            attach.add(zlay)
+    if len(attach) < 2:
+        _orphans.append((v, nn, round(vx, 2), round(vy, 2)))
+for v, nn, vx, vy in _orphans:
+    b.Remove(v)
+print(f"via janitor removed {len(_orphans)}: {[(n, x, y) for _, n, x, y in _orphans]}")
 
 # ---- fill, then stitch any pad-bearing island that has no via of its net
 filler = pcbnew.ZONE_FILLER(b)
@@ -316,6 +366,12 @@ via_pts = {}
 for t in b.GetTracks():
     if t.GetClass() == "PCB_VIA":
         via_pts.setdefault(t.GetNetname(), []).append(t.GetPosition())
+B_ZONE_POLYS = {}
+for z in b.Zones():
+    if z.GetNetname() and z.GetLayerSet().Contains(pcbnew.B_Cu) and not z.GetIsRuleArea():
+        o = z.Outline().COutline(0)
+        B_ZONE_POLYS.setdefault(z.GetNetname(), []).append(
+            [(o.CPoint(i).x/1e6, o.CPoint(i).y/1e6) for i in range(o.PointCount())])
 added = 0
 for z in b.Zones():
     nn = z.GetNetname()
@@ -332,18 +388,25 @@ for z in b.Zones():
                 continue  # sliver
             if any(o.PointInside(p) for p in via_pts.get(nn, [])):
                 continue  # already stitched
+            # a via helps this island only where same-net copper exists on
+            # ANOTHER layer directly underneath (plane or B-zone GEOMETRY)
+            def _backed(x, y):
+                return (over_plane(nn, x, y) if nn in PLANE_POLYS else False) or \
+                       any(_in_poly0(x, y, bp) for bp in B_ZONE_POLYS.get(nn, []))
             if lay == pcbnew.In2_Cu and not over_plane(nn, bb.Centre().x/1e6, bb.Centre().y/1e6):
                 pass
             placed = False
-            for fx in range(3, 18, 3):
-                for fy in range(3, 18, 3):
+            backed_sites = 0
+            for fx in range(2, 19, 2):
+                for fy in range(2, 19, 2):
                     x = (bb.GetLeft() + bb.GetWidth()*fx//20)
                     y = (bb.GetTop() + bb.GetHeight()*fy//20)
                     if not o.PointInside(pcbnew.VECTOR2I(x, y)):
                         continue
                     xm, ym = round(x/1e6, 2), round(y/1e6, 2)
-                    if not over_plane(nn, xm, ym) and nn in PLANE_POLYS:
+                    if not _backed(xm, ym):
                         continue
+                    backed_sites += 1
                     if try_via(b.FindNet(nn), xm, ym):
                         via_pts.setdefault(nn, []).append(pcbnew.VECTOR2I(x, y))
                         added += 1
@@ -351,7 +414,19 @@ for z in b.Zones():
                         break
                 if placed:
                     break
+            if not placed:
+                # does this island even hold a pad? pad-free slivers are removable noise
+                has_pad = any(fp2.GetReference() for fp2 in b.GetFootprints()
+                              for p2 in fp2.Pads()
+                              if p2.GetNetname() == nn and o.PointInside(p2.GetPosition()))
+                if has_pad:
+                    failures.append(f"island {nn} bbox=({bb.GetLeft()/1e6:.1f},{bb.GetTop()/1e6:.1f})-"
+                                    f"({bb.GetRight()/1e6:.1f},{bb.GetBottom()/1e6:.1f}) "
+                                    f"unstitchable ({backed_sites} backed sites, none placeable)")
 print(f"island stitch vias: {added}")
+if failures:
+    print("FAILURES:\n  " + "\n  ".join(failures))
+    sys.exit(1)
 filler.Fill(b.Zones())
 b.Save(PCB)
 print("filled + saved")
