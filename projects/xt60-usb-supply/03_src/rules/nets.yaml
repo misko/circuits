@@ -1,0 +1,78 @@
+# Net architecture — THE source of truth for net classes.
+#
+# This file is documentation AND generator input. `generate_rules.py` emits
+# the netclasses into <board>.kicad_pro and the width floors into
+# <board>.kicad_dru from exactly these fields. Never hand-edit those two;
+# they are generated. Edit here.
+#
+# Why this file exists: on the SPF power board the classes lived in
+# .kicad_pro (machine-readable, no intent) and the intent lived in a human's
+# head. Both 6A buck switch nodes were routed at 0.15mm — a fuse, not a
+# trace — and DRC could not object because nothing had told it what SW_A was.
+#
+# `intent` is for the human and the agent. `min_width` is for the DRC.
+# They must never disagree.
+
+fab_tier: jlc_4layer          # floors: 0.09mm clearance, 0.09mm track, 0.2/0.1 via
+                              # advanced option REQUIRED if any via < 0.45/0.2
+
+classes:
+
+  SWITCH_NODE:
+    intent: >
+      Buck half-bridge output to the inductor. Highest dV/dt on the board and
+      the primary EMI aggressor. Carries full inductor current.
+    nets: [SW_A, SW_B]
+    current: 6A
+    min_width: 0.3mm          # BACKSTOP ONLY — the trunk rides a pour
+    routing: >
+      POUR (priority above the GND pour), not tracks. Keep the pour area
+      MINIMAL: it is a radiator, so the copper is sized for current and
+      nothing more. Keep the FET-inductor loop tight.
+    verify: >
+      Pour fill covers the FET source pads AND the inductor pad; DRC width
+      floor active; no gate trace slicing the pour into islands (check
+      unconnected-items for island-to-island).
+    exemptions:
+      - area: SW_TAP_A        # named rule areas in the .kicad_dru
+        min_width: 0.15mm
+        why: >
+          Controller SW-sense / bootstrap / ILIM taps carry gate-drive pulses,
+          not trunk current. Scoped exemption so the strict floor still
+          governs everything else. The exemption lives ON THE BOARD as a rule
+          area, not in tribal memory.
+      - area: SW_TAP_B
+        min_width: 0.15mm
+        why: same, rail B
+
+  PWR_RAIL:
+    intent: >
+      Battery and converted rails. Trunk current rides inner planes or F.Cu
+      pours; these nets ALSO carry mA-level sense taps, which is why the
+      floor is low.
+    nets: [VBATT_RAW, VBATT_F, VBATT_S, FE_MID, VSW, 5V_A, 5VB_PRE, 5V_B]
+    current: up to 13A
+    min_width: 0.25mm
+    routing: >
+      Planes/pours for the trunk. A rail with NO inner plane (e.g. a
+      pre-filter rail) must get an F.Cu pour — the pour IS the highway there.
+    verify: "walk each net end-to-end for minimum cross-section; DRC floor"
+
+  VBUS:
+    intent: "USB port power, current-limited by the upstream switch."
+    nets: [VBUS1, VBUS2, VBUS3, AUX_5V]
+    current: 3A
+    min_width: 0.3mm
+    routing: "pad-width-limited by the ESD parts it threads"
+    verify: "DRC floor"
+
+  USB_DATA:
+    intent: "USB 2.0 full-speed pairs. Passed through, not sourced."
+    nets: ["D?_N", "D?_P"]    # patterns allowed
+    min_width: 0.2mm
+    routing: "keep pairs together; ESD array in series before the connector"
+    verify: "DRC floor; ESD part present on every port (parity vs schematic)"
+
+# Nets not listed here fall to Default. That is fine for signals and
+# deliberate: if a net carries >1A and is not in a class above, that is a BUG
+# — no tool checks ampacity for you.
