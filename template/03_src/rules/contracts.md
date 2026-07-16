@@ -13,6 +13,7 @@ belongs here.
 |---|---|
 | `nets.yaml` | net classes: nets, current, intent, min_width, routing strategy, verify, scoped exemptions |
 | `stackup.yaml` | layer count, what each layer is for, fab tier (optional) |
+| `twin_adjudications.yaml` | reviewed jlc_twin findings accepted WITH evidence (see jlcpcb-fab skill) |
 | `contracts.md` | this file |
 
 ## The rule that makes this folder worth existing

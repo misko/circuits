@@ -213,3 +213,41 @@ AND update this file in the same change. Board-design empirics stay in
   F.Fab,F.Silkscreen,Edge.Cuts --sketch-pads-on-fab-layers` assembly view
   (hand-solder/rework aid). Render each to PNG and eyeball before shipping;
   list all three in the MANIFEST sha256 table.
+
+
+## Stage: JLC digital twin (run before EVERY order - scripts/jlc_twin.py)
+
+What JLC will assemble is their CAD at your CPL coordinates - not your
+footprints. This stage verifies the correspondence offline:
+
+```
+python3(pcbnew) scripts/jlc_twin.py BOARD bom_jlc.csv OUTDIR \
+    --adjudications <project>/03_src/rules/twin_adjudications.yaml
+```
+
+1. Fetches JLC's own footprint + 3D model per LCSC code (easyeda2kicad,
+   cached per-code in OUTDIR/easyeda/; EasyEDA rate-limits bursts - the
+   script retries with backoff).
+2. Pad-correspondence best-fit over rotation {0,90,180,270} x mirror.
+   **A MIRRORED best-fit means a mirror-numbered land pattern = dead board.**
+   On its FIRST run this found a live one: a vendored VQFN-20 wound CW
+   (pin 1 bottom-left going up-left-side) where the datasheet + KiCad TI
+   convention wind CCW - invisible to DRC/parity/LVS because the netlist is
+   self-consistent either way. Adjudicate against the DATASHEET pinout
+   figure + the same-family KiCad std footprint (three independent sources).
+3. Rotation audit: fitted angle vs jlc_rotations_db.csv; disagreements print
+   suggested rows. The DB stays the empirical layer (JLC's assembly-zero is
+   not always their EDA-zero) - verify in the JLC preview, don't blind-apply.
+4. Known-different findings (merged drain pad vs JLC's split fingers, THT
+   clip-pin counts, parts absent from EasyEDA) go in the project's
+   twin_adjudications.yaml WITH the verification evidence - the gate is
+   ZERO unadjudicated criticals, and the release MANIFEST cites the twin
+   report in verification/.
+5. Twin render mounts JLC's WRL models on YOUR board (local preview
+   substitute). KNOWN ISSUE: the model offset transform still misplaces
+   some models - trust the pad-fit report; treat the render as advisory.
+
+Stock + selection gates recap (same stage): every assembled BOM line carries
+an explicit LCSC code (bom_seed fails on unmapped/TBD - never rely on JLC
+auto-match); stock re-checked at order time with min-stock >= qty x boards;
+parts not in the JLC catalog stay uncoded with a hand-solder plan.
