@@ -56,13 +56,24 @@ tool:
   package, or an entirely different component (a motor driver proposed as an
   ideal-diode controller; a thermistor coded as a plain resistor).
 
-## Install (Claude Code)
+## Install
+
+These follow the standard skill layout — `SKILL.md` frontmatter for
+discovery, `references/` and `scripts/` read only when needed — so they work
+in any agent that supports it. Only the install path differs:
 
 ```bash
 git clone https://github.com/misko/circuits
-cp -r circuits/skills/kicad-pcb ~/.claude/skills/
-cp -r circuits/skills/jlcpcb-fab ~/.claude/skills/
+
+# Claude Code   (project-scoped: .claude/skills)
+mkdir -p ~/.claude/skills && cp -r circuits/skills/* ~/.claude/skills/
+
+# Codex         (repo-scoped: .agents/skills)
+mkdir -p ~/.agents/skills && cp -r circuits/skills/* ~/.agents/skills/
 ```
+
+Either agent picks a skill up implicitly when a task matches its
+`description`, or on explicit request.
 
 The scripts need the KiCad-bundled interpreter (a `python3` where
 `import pcbnew` works); each takes `--help`-documented arguments and none
