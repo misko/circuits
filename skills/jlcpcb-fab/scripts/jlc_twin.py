@@ -180,7 +180,12 @@ def main():
             rot = fp.GetOrientationDegrees()
             fp.SetOrientationDegrees(0)
             opads = centered(pads_of(fp))
-            oc = centroid(pads_of(fp))
+            _oca = centroid(pads_of(fp))
+            # FOOTPRINT-LOCAL centroid: model offsets are relative to the
+            # footprint origin, not the board (absolute coords put every
+            # model ~60mm off its part - found 2026-07-16)
+            oc = (_oca[0] - fp.GetPosition().x / 1e6,
+                  _oca[1] - fp.GetPosition().y / 1e6)
             fp.SetOrientationDegrees(rot)
             fits = best_fit(opads, jpads)
             good = [f for f in fits if f[0] <= FIT_TOL]
@@ -188,6 +193,11 @@ def main():
                 findings.append((lcsc, ref, "PAD-MISMATCH",
                                  f"best={fits[0] if fits else 'none'}"))
                 criticals.append(ref)
+                # still mount the model at the best NON-mirrored fit: the
+                # render is exactly where a human adjudicates these
+                nm = [x for x in fits if not x[1]]
+                if nm:
+                    twin[ref] = (jfp, nm[0][2], oc)
                 continue
             e, mir, ang = good[0]
             if mir:
@@ -219,18 +229,23 @@ def main():
                 continue
             jc = centroid(pads_of(jfp))
             fp.Models().clear()
+            c, sn = math.cos(math.radians(ang)), math.sin(math.radians(ang))
             for jm in jmodels:
                 m = pcbnew.FP_3DMODEL()
                 m.m_Filename = jm.m_Filename
                 m.m_Scale = jm.m_Scale
                 m.m_Rotation = jm.m_Rotation
-                m.m_Rotation.z = (jm.m_Rotation.z - ang) % 360
-                c, s = math.cos(math.radians(ang)), math.sin(math.radians(ang))
-                ox, oy = jm.m_Offset.x, jm.m_Offset.y
-                dx, dy = oc[0] - (jc[0] * c - jc[1] * s), oc[1] - (jc[0] * s + jc[1] * c)
-                m.m_Offset.x = ox * c - oy * s + dx
-                m.m_Offset.y = ox * s + oy * c - dy  # model y is up-positive
+                # frames: our footprint = JLC footprint rotated by `ang` (the
+                # pad-fit angle, board y-down convention) with JLC's pad
+                # centroid mapped onto ours. Model offsets are y-UP mm.
+                mjx, mjy = jm.m_Offset.x, -jm.m_Offset.y        # -> board frame
+                bx = (mjx - jc[0]) * c - (mjy - jc[1]) * sn + oc[0]
+                by = (mjx - jc[0]) * sn + (mjy - jc[1]) * c + oc[1]
+                m.m_Offset.x = bx
+                m.m_Offset.y = -by                              # -> back to y-up
                 m.m_Offset.z = jm.m_Offset.z
+                # z-rotation is CCW in the y-up 3D frame = -ang of board frame
+                m.m_Rotation.z = (jm.m_Rotation.z - ang) % 360
                 fp.Models().push_back(m)
         tb.Save(str(out / "twin.kicad_pcb"))
         for side in ("top", "bottom"):

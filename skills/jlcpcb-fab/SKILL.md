@@ -243,9 +243,13 @@ python3(pcbnew) scripts/jlc_twin.py BOARD bom_jlc.csv OUTDIR \
    twin_adjudications.yaml WITH the verification evidence - the gate is
    ZERO unadjudicated criticals, and the release MANIFEST cites the twin
    report in verification/.
-5. Twin render mounts JLC's WRL models on YOUR board (local preview
-   substitute). KNOWN ISSUE: the model offset transform still misplaces
-   some models - trust the pad-fit report; treat the render as advisory.
+5. Twin render mounts JLC's WRL models on YOUR board (OUTDIR/twin_top.png,
+   twin_bottom.png + twin.kicad_pcb to orbit in the KiCad 3D viewer) - the
+   local substitute for JLC's end-of-order preview. Adjudicated parts are
+   mounted at their best non-mirrored fit precisely so a human can eyeball
+   them. Transform gotchas encoded 2026-07-16: model offsets are
+   FOOTPRINT-LOCAL mm (absolute coords put every body ~60mm off) and the
+   3D frame is y-UP while board coords are y-down.
 
 Stock + selection gates recap (same stage): every assembled BOM line carries
 an explicit LCSC code (bom_seed fails on unmapped/TBD - never rely on JLC
