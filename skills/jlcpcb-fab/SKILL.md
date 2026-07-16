@@ -254,7 +254,26 @@ python3(pcbnew) scripts/jlc_twin.py BOARD bom_jlc.csv OUTDIR \
    3D frame is y-UP while board coords are y-down; and the fit/mount must
    center on the COMMON pad set only - own-set centroids slide the model
    along the part axis whenever one side names extra pads (an XT60 rendered
-   7mm off its holes, nose not overhanging the board edge).
+   7mm off its holes, nose not overhanging the board edge). Model z-rotation
+   is +fit-angle (verified by pixel-measuring the render against both
+   courtyards; -angle flips asymmetric parts 180deg, and the ORIGINAL
+   registration check agreed with the wrong render because checker and
+   checked shared the sign bug - only the independent pixel measurement
+   broke the tie).
+
+6. MODEL-REG invariant (automated, every part with CAD): parse the WRL plan
+   bbox, push it through the mount transform, and require the mounted body
+   to sit on OUR footprint's courtyard (center delta < 1mm). Catches flipped
+   or mis-registered models, wrong-model swaps, and mount-math bugs; when a
+   180 flip would fix it the finding names the adjudication override
+   ({lcsc, model_rot_z: 180}). The detector is CALIBRATED: a deliberately
+   mis-rotated model must flag ~8mm - keep that as the regression test when
+   touching any transform code.
+
+7. SWIG trap: iterating fp.Models() and assigning m_Rotation.z on the
+   yielded items silently does nothing (the write lands on a temporary).
+   Build a NEW FP_3DMODEL and push_back it; verify the saved file text when
+   in doubt - two no-op probes masqueraded as evidence here.
 
 Stock + selection gates recap (same stage): every assembled BOM line carries
 an explicit LCSC code (bom_seed fails on unmapped/TBD - never rely on JLC
