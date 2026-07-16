@@ -47,8 +47,8 @@ FLOORPLAN = {
     "U1":  (152.0, 118.0, 180),
     "CIN_A1": (149.0, 114.5, 90),
     "CIN_A2": (149.0, 121.5, 90),
-    "CVCC1": (152.0, 122.8, 0),
-    "CBS1": (154.3, 124.5, 0),
+    "CVCC1": (152.0, 123.1, 0),
+    "CBS1": (154.6, 124.9, 0),
     "RFA1": (154.5, 127.2, 0),
     "RFA2": (158.0, 127.2, 0),
     "L1":  (163.0, 118.0, 0),
@@ -60,10 +60,10 @@ FLOORPLAN = {
     "U2":  (152.0, 146.0, 180),
     "CIN_C1": (149.0, 142.5, 90),
     "CIN_C2": (149.0, 149.5, 90),
-    "CVCC2": (152.0, 150.8, 0),
-    "CBS2": (154.3, 152.5, 0),
-    "RFC1": (154.5, 154.4, 0),
-    "RFC2": (158.0, 154.4, 0),
+    "CVCC2": (152.0, 151.1, 0),
+    "CBS2": (154.6, 152.9, 0),
+    "RFC1": (154.5, 154.8, 0),
+    "RFC2": (158.0, 154.8, 0),
     "L2":  (163.0, 146.0, 0),
     "COUT_C1": (166.0, 151.2, 0),
     "COUT_C2": (166.0, 154.6, 0),
@@ -111,7 +111,7 @@ ZONES = [
     # 5V_A: east block feeding the three USB-A ports + FB-sense finger
     # west to the divider. SW notch below y=143.5 leaves room for 5V_C.
     ("5V_A", "F.Cu", 1, [
-        (164.5, 106.0), (190.5, 106.0), (190.5, 148.2), (172.0, 148.2),
+        (164.5, 105.2), (190.5, 105.2), (190.5, 148.2), (172.0, 148.2),
         (172.0, 143.5), (164.5, 143.5), (164.5, 128.8), (153.0, 128.8),
         (153.0, 125.5), (164.5, 125.5)], 0.5),
     # 5V_C: south-east block (USB-C + COUT_C column) + lobe up to L2
@@ -130,6 +130,20 @@ RULE_AREAS = [
     ("EN_TAP_C", "F.Cu", (152.83, 147.00, 153.43, 149.90)),
 ]
 
+# Designed vias (net, x, y, dia, drill)
+DESIGNED_VIAS = [
+    ("GND", 152.23, 120.90, 0.6, 0.3),
+    ("GND", 152.23, 148.90, 0.6, 0.3),
+    # QFN pad-9 (GND, the thermal pad) is walled in by the VBAT_P and SW
+    # pours on F.Cu — in-pad vias bond it to the In1 plane (standard QFN
+    # thermal-via practice; 0.55/0.3 fits the 0.555mm pad strip and meets
+    # the 0.125 annular floor).
+    ("GND", 152.05, 117.00, 0.55, 0.3),
+    ("GND", 152.05, 118.00, 0.55, 0.3),
+    ("GND", 152.05, 145.00, 0.55, 0.3),
+    ("GND", 152.05, 146.00, 0.55, 0.3),
+]
+
 # Designed tracks (net, layer, width_mm, [(x,y), ...]) — deterministic
 # taps that pour-served nets need and no router should improvise:
 # EN pins tap VBAT_P around the signal row; CBS bootstrap caps tap their
@@ -138,12 +152,16 @@ DESIGNED_TRACKS = [
     # EN taps: first (vertical) segment lives inside the EN_TAP_A/C rule
     # areas (scoped 0.2mm floor, nets.yaml exemptions) because a 0.5mm
     # track cannot pass the QFN signal row; the horizontal run is 0.5.
-    ("VBAT_P", "F.Cu", 0.25, [(153.13, 119.30), (153.13, 121.60)]),
-    ("VBAT_P", "F.Cu", 0.5, [(153.13, 121.60), (151.00, 121.60)]),
-    ("VBAT_P", "F.Cu", 0.25, [(153.13, 147.30), (153.13, 149.60)]),
-    ("VBAT_P", "F.Cu", 0.5, [(153.13, 149.60), (151.00, 149.60)]),
-    ("SW_A", "F.Cu", 0.5, [(155.06, 124.50), (155.06, 118.50)]),
-    ("SW_C", "F.Cu", 0.5, [(155.06, 152.50), (155.06, 146.50)]),
+    ("VBAT_P", "F.Cu", 0.25, [(153.13, 119.30), (153.13, 121.90)]),
+    ("VBAT_P", "F.Cu", 0.5, [(153.13, 121.90), (151.00, 121.90)]),
+    ("VBAT_P", "F.Cu", 0.25, [(153.13, 147.30), (153.13, 149.90)]),
+    ("VBAT_P", "F.Cu", 0.5, [(153.13, 149.90), (151.00, 149.90)]),
+    ("SW_A", "F.Cu", 0.5, [(155.36, 124.90), (155.36, 118.50)]),
+    # ILMT (pad 3, tied GND) cannot reach the GND pour between QFN pads:
+    # short 0.2 track south out of the row to a via (DESIGNED_VIAS).
+    ("GND", "F.Cu", 0.2, [(152.23, 119.30), (152.23, 120.90)]),
+    ("GND", "F.Cu", 0.2, [(152.23, 147.30), (152.23, 148.90)]),
+    ("SW_C", "F.Cu", 0.5, [(155.36, 152.90), (155.36, 146.50)]),
 ]
 
 
@@ -192,6 +210,11 @@ def add_zone(board, netcode, layer_name, prio, rect, min_w):
     z.SetThermalReliefSpokeWidth(FromMM(0.5))
     z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL if prio >= 1
                        else pcbnew.ZONE_CONNECTION_THERMAL)
+    if prio == 0:
+        # drop tiny isolated GND slivers (fully isolated only; islands
+        # holding any connection — PTH barrel, via — survive)
+        z.SetIslandRemovalMode(pcbnew.ISLAND_REMOVAL_MODE_AREA)
+        z.SetMinIslandArea(int(3e12))  # nm^2 == 3 mm^2
     if isinstance(rect, tuple):
         x0, y0, x1, y1 = rect
         pts = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
@@ -314,6 +337,14 @@ def main():
             t.SetLayer(board.GetLayerID(layer))
             t.SetNet(netinfo[net])
             board.Add(t)
+
+    for net, x, y, dia, drill in DESIGNED_VIAS:
+        v = pcbnew.PCB_VIA(board)
+        v.SetPosition(VECTOR2I(FromMM(x), FromMM(y)))
+        v.SetWidth(FromMM(dia))
+        v.SetDrill(FromMM(drill))
+        v.SetNet(netinfo[net])
+        board.Add(v)
 
     board.Save(str(BOARD))
 

@@ -50,10 +50,12 @@ def first_pin(mpn, func):
     return pins_by_function(mpn)[func.upper()][0]
 
 
-def conn_by_function(mpn, func_to_net):
+def conn_by_function(mpn, func_to_net, pad_overrides=None):
     """Resolve {function: net} -> {pad: {name, net}} via part.yaml.
     A function spanning several pads (e.g. SY8368 IN = pads 7+8) wires
-    every one of them to the net."""
+    every one of them to the net. pad_overrides={pad: net} wins over the
+    function map (needed for per-pad NC nets on multi-pad functions —
+    two pads on one NC net would demand a copper connection)."""
     fmap = pins_by_function(mpn)
     d = load_part_yaml(mpn)
     pads = {}
@@ -65,6 +67,10 @@ def conn_by_function(mpn, func_to_net):
                 f"(available: {sorted(fmap)})")
         for pad in fmap[key]:
             pads[pad] = {"name": func, "net": net}
+    for pad, net in (pad_overrides or {}).items():
+        if pad not in pads:
+            raise SystemExit(f"ERROR: {mpn}: override pad {pad} unknown")
+        pads[pad] = {"name": pads[pad]["name"], "net": net}
     # every part.yaml pin must be addressed (no silently floating pins).
     # Mechanical-only entries (unnumbered pegs documented as MP/SHELL_PEG)
     # have no numbered footprint pad and are exempt.
@@ -195,6 +201,9 @@ def build():
                         "D+": "NC_J5_DP", "D-": "NC_J5_DN",
                         "SBU1": "NC_J5_SBU1", "SBU2": "NC_J5_SBU2",
                         "SHIELD": "GND",
+                    }, pad_overrides={
+                        "A6": "NC_J5_A6", "B6": "NC_J5_B6",
+                        "A7": "NC_J5_A7", "B7": "NC_J5_B7",
                     })), section=sec)
     s.add_part(Part("U6", "USBLC6-2SC6", "Package_TO_SOT_SMD:SOT-23-6",
                     conn_by_function("USBLC6-2SC6", {
