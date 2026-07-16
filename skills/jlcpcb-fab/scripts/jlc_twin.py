@@ -114,6 +114,66 @@ def best_fit(ours, jlc):
     return sorted(fits)
 
 
+def wrl_bbox(path):
+    """Plan-view (x,y) bbox of a KiCad WRL model, in mm.
+    KiCad VRML convention: 1 VRML unit = 2.54 mm. Returns (minx,miny,maxx,maxy)
+    in the MODEL frame (y-up), or None if unparseable."""
+    import re
+    try:
+        txt = open(path, errors="ignore").read()
+    except OSError:
+        return None
+    pts = []
+    for m in re.finditer(r"point\s*\[([^\]]*)\]", txt):
+        nums = re.findall(r"-?\d+\.?\d*(?:e-?\d+)?", m.group(1))
+        for i in range(0, len(nums) - 2, 3):
+            pts.append((float(nums[i]), float(nums[i + 1])))
+    if not pts:
+        return None
+    xs = [p[0] * 2.54 for p in pts]
+    ys = [p[1] * 2.54 for p in pts]
+    return (min(xs), min(ys), max(xs), max(ys))
+
+
+def reg_check(model_bbox, jm, ang, jc, oc, fp):
+    """Model-registration invariant: the mounted body's plan bbox must sit on
+    OUR footprint's courtyard. Returns (center_delta_mm, size_ratio, our_ctr)
+    or None when there is no courtyard to compare against."""
+    cc = fp.GetCourtyard(pcbnew.F_CrtYd)
+    if not cc.OutlineCount():
+        return None
+    cb = cc.BBox()
+    rot = fp.GetOrientationDegrees()
+    fpos = fp.GetPosition()
+    # model frame (y-up) -> JLC footprint frame (y-down), incl. entry offset/rot
+    mrot = math.radians(jm.m_Rotation.z)
+    cm, sm = math.cos(mrot), math.sin(mrot)
+    corners = []
+    for mx in (model_bbox[0], model_bbox[2]):
+        for my in (model_bbox[1], model_bbox[3]):
+            rx = mx * cm - my * sm            # R(+theta) y-up CCW - the sense
+            ry = mx * sm + my * cm            # KiCad actually renders (verified)
+            jx = rx * jm.m_Scale.x + jm.m_Offset.x
+            jy = -(ry * jm.m_Scale.y + jm.m_Offset.y)   # to y-down
+            # JLC frame -> our footprint local frame (fit transform)
+            c, sn = math.cos(math.radians(ang)), math.sin(math.radians(ang))
+            lx = (jx - jc[0]) * c - (jy - jc[1]) * sn + oc[0]
+            ly = (jx - jc[0]) * sn + (jy - jc[1]) * c + oc[1]
+            # our local -> board (KiCad footprint rotation th: (x,y)->R(-th))
+            th = math.radians(rot)
+            bx = lx * math.cos(th) + ly * math.sin(th) + fpos.x / 1e6
+            by = -lx * math.sin(th) + ly * math.cos(th) + fpos.y / 1e6
+            corners.append((bx, by))
+    mnx = min(c[0] for c in corners); mxx = max(c[0] for c in corners)
+    mny = min(c[1] for c in corners); mxy = max(c[1] for c in corners)
+    mcx, mcy = (mnx + mxx) / 2, (mny + mxy) / 2
+    ccx, ccy = cb.Centre().x / 1e6, cb.Centre().y / 1e6
+    delta = math.hypot(mcx - ccx, mcy - ccy)
+    area_m = max(1e-6, (mxx - mnx) * (mxy - mny))
+    area_c = max(1e-6, cb.GetWidth() / 1e6 * cb.GetHeight() / 1e6)
+    return delta, area_m / area_c, (ccx, ccy)
+
+
 def rot_db(path):
     import re
     db = []
@@ -143,6 +203,9 @@ def main():
     if args.adjudications and os.path.exists(args.adjudications):
         import yaml
         adjudicated = yaml.safe_load(open(args.adjudications)) or []
+
+    model_rot_override = {a["lcsc"]: float(a["model_rot_z"])
+                          for a in adjudicated if a.get("model_rot_z") is not None}
 
     def adjudicate(lcsc, ref, status):
         for a in adjudicated:
@@ -211,7 +274,7 @@ def main():
                 # render is exactly where a human adjudicates these
                 nm = [x for x in fits if not x[1]]
                 if nm:
-                    twin[ref] = (jfp, nm[0][2], oc, _jca)
+                    twin[ref] = (jfp, nm[0][2], oc, _jca, lcsc)
                 continue
             e, mir, ang = good[0]
             if mir:
@@ -231,17 +294,45 @@ def main():
             findings.append((lcsc, ref, status,
                              f"fit={e:.2f}mm jlc_offset={ang} db={db_off}"
                              + (f" -> add: {fpname},{ang}" if status != "OK" else "")))
-            twin[ref] = (jfp, ang, oc, _jca)
+            twin[ref] = (jfp, ang, oc, _jca, lcsc)
 
     # ---- twin render: JLC models mounted on OUR board
     if not args.no_render and twin:
         tb = pcbnew.LoadBoard(args.board)
-        for ref, (jfp, ang, oc, jc_common) in twin.items():
+        mrotz = {}
+        for ref, (jfp, ang, oc, jc_common, lcsc) in twin.items():
+            if lcsc in model_rot_override:
+                mrotz[ref] = model_rot_override[lcsc]
+        for ref, (jfp, ang, oc, jc_common, lcsc) in twin.items():
             fp = tb.FindFootprintByReference(ref)
             jmodels = list(jfp.Models())
             if not fp or not jmodels:
                 continue
             jc = jc_common  # common-pad centroid captured at fit time
+            # --- model-registration invariant: mounted body bbox must sit on
+            # OUR courtyard (catches flipped/shifted/wrong JLC models AND our
+            # own mount bugs - an XT60 WRL was 180deg-flipped vs JLC's own
+            # footprint, rendering flush instead of 9mm overhung, 2026-07-16)
+            mb = wrl_bbox(jmodels[0].m_Filename)
+            if mb:
+                jm0 = jmodels[0]
+                saved = jm0.m_Rotation.z
+                jm0.m_Rotation.z = (saved + mrotz.get(ref, 0.0)) % 360
+                rc = reg_check(mb, jm0, ang, jc, oc, fp)
+                if rc and rc[0] > 1.0:
+                    # would a 180 flip fix it? then say so in the finding
+                    jm0.m_Rotation.z = (jm0.m_Rotation.z + 180) % 360
+                    rc2 = reg_check(mb, jm0, ang, jc, oc, fp)
+                    hint = (" -> 180-flipped model: add {lcsc: %s, model_rot_z: 180} "
+                            "to the adjudications file" % lcsc
+                            if rc2 and rc2[0] < 1.0 else "")
+                    findings.append((lcsc, ref, "MODEL-REG",
+                                     f"body center {rc[0]:.1f}mm off courtyard, "
+                                     f"area ratio {rc[1]:.2f}{hint}"))
+                elif rc:
+                    findings.append((lcsc, ref, "MODEL-REG-OK",
+                                     f"body on courtyard ({rc[0]:.2f}mm)"))
+                jm0.m_Rotation.z = saved
             fp.Models().clear()
             c, sn = math.cos(math.radians(ang)), math.sin(math.radians(ang))
             for jm in jmodels:
@@ -258,8 +349,12 @@ def main():
                 m.m_Offset.x = bx
                 m.m_Offset.y = -by                              # -> back to y-up
                 m.m_Offset.z = jm.m_Offset.z
-                # z-rotation is CCW in the y-up 3D frame = -ang of board frame
-                m.m_Rotation.z = (jm.m_Rotation.z - ang) % 360
+                # z-rotation is +ang, NOT -ang: verified by pixel-measuring the
+                # rendered XT60 against both courtyards (-ang flipped the body
+                # 180deg: flush with the edge instead of 9mm overhung). The
+                # per-part adjudication override composes on top.
+                m.m_Rotation.z = (jm.m_Rotation.z + ang
+                                  + mrotz.get(ref, 0.0)) % 360
                 fp.Models().push_back(m)
         tb.Save(str(out / "twin.kicad_pcb"))
         VIEWS = [  # (name, extra kicad-cli render args)
@@ -295,8 +390,8 @@ def main():
         else:
             out_f.append((lcsc, ref, status, detail))
     findings = out_f
-    order = {"MIRRORED": 0, "PAD-MISMATCH": 1, "ROT-DB-SUGGEST": 2,
-             "NO-CAD": 3, "NOT-ON-BOARD": 4, "OK": 5}
+    order = {"MIRRORED": 0, "PAD-MISMATCH": 1, "MODEL-REG": 2, "ROT-DB-SUGGEST": 3,
+             "NO-CAD": 4, "NOT-ON-BOARD": 5, "MODEL-REG-OK": 6, "OK": 7}
     for f in sorted(findings, key=lambda x: order.get(x[2], 9)):
         print("  ".join(str(x) for x in f))
     n_ok = sum(1 for f in findings if f[2] == "OK")
