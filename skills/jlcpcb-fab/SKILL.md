@@ -243,8 +243,10 @@ python3(pcbnew) scripts/jlc_twin.py BOARD bom_jlc.csv OUTDIR \
    twin_adjudications.yaml WITH the verification evidence - the gate is
    ZERO unadjudicated criticals, and the release MANIFEST cites the twin
    report in verification/.
-5. Twin render mounts JLC's WRL models on YOUR board (OUTDIR/twin_top.png,
-   twin_bottom.png + twin.kicad_pcb to orbit in the KiCad 3D viewer) - the
+5. Twin render mounts JLC's WRL models on YOUR board (six views:
+   twin_{top,bottom,iso_nw,iso_se,edge_west,edge_east}.png + twin.kicad_pcb
+   to orbit in the KiCad 3D viewer; the edge profiles double as component-
+   height / enclosure-clearance checks) - the
    local substitute for JLC's end-of-order preview. Adjudicated parts are
    mounted at their best non-mirrored fit precisely so a human can eyeball
    them. Transform gotchas encoded 2026-07-16: model offsets are

@@ -248,11 +248,21 @@ def main():
                 m.m_Rotation.z = (jm.m_Rotation.z - ang) % 360
                 fp.Models().push_back(m)
         tb.Save(str(out / "twin.kicad_pcb"))
-        for side in ("top", "bottom"):
-            subprocess.run(["kicad-cli", "pcb", "render", "--side", side,
+        VIEWS = [  # (name, extra kicad-cli render args)
+            ("top",      ["--side", "top"]),
+            ("bottom",   ["--side", "bottom"]),
+            ("iso_nw",   ["--side", "top", "--rotate", "-40,0,35",
+                          "--perspective", "--zoom", "0.85"]),
+            ("iso_se",   ["--side", "top", "--rotate", "-40,0,215",
+                          "--perspective", "--zoom", "0.85"]),
+            ("edge_west", ["--side", "left", "--perspective", "--zoom", "0.9"]),
+            ("edge_east", ["--side", "right", "--perspective", "--zoom", "0.9"]),
+        ]
+        for name, extra in VIEWS:
+            subprocess.run(["kicad-cli", "pcb", "render",
                             "--width", "1600", "--height", "1000",
-                            "-o", str(out / f"twin_{side}.png"),
-                            str(out / "twin.kicad_pcb")],
+                            "-o", str(out / f"twin_{name}.png"),
+                            *extra, str(out / "twin.kicad_pcb")],
                            capture_output=True)
 
     with open(out / "twin_report.csv", "w", newline="") as f:

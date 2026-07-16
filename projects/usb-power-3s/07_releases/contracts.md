@@ -29,6 +29,10 @@ makes the failure impossible instead of detectable.
     └── verification/               the reports that PASSED, as evidence
         ├── drc.json  audit.txt  stock_check.{txt,csv}
         ├── twin_report.csv          the JLC digital-twin verification (jlc_twin.py)
+        ├── twin_{top,bottom,iso_nw,iso_se,edge_west,edge_east}.png
+        │                            six renders of the board with JLC's part
+        │                            bodies - top/bottom, two isometrics, two
+        │                            edge profiles (component heights)
         ├── pin_review.md            fresh-context pin review verdicts (pin-review-protocol)
 ```
 
