@@ -34,7 +34,7 @@ Net names here are exactly those in `03_src/rules/nets.yaml`.
 4-layer JLC standard (decisions/0005):
 - F.Cu — power pours (VBAT trunk, SW pours, 5 V trunks) + component routing
 - In1.Cu — solid GND, never routed
-- In2.Cu — GND fill + 5 V reinforcement patches if needed
+- In2.Cu — GND fill + VBAT_P / 5V_A / 5V_C reinforcement patches (via-stitched to their F.Cu pours; they also heal router slices through the pours)
 - B.Cu — signal routing + pour patches
 
 ## Ground strategy
@@ -55,5 +55,7 @@ plane. No splits, no star points.
 - **6 A USB-C VBUS**: all four VBUS contacts and all four GND contacts of
   J5 carry current; pour from 5V_C to the pad group.
 - **XT60 polarity**: KiCad AMASS footprint pad 1 = "-" blade. Audit gate.
-- **Port edge**: J2-J4 USB-A + J5 USB-C overhang the east board edge;
-  XT60 overhangs west. Mounting holes: 4x M3 with screw-head keepouts.
+- **Port edges**: J2-J4 USB-A overhang the east edge; J5 USB-C mates on
+  the SOUTH edge at the south-east corner (three 17.4 mm-wide USB-A
+  courtyards consume the 62 mm east edge). XT60 overhangs west. Mounting
+  holes: 4x M3 with screw-head keepouts.

@@ -9,15 +9,15 @@ Clean-room rerun on branch `rerun-independent`. Board: 3S LiPo XT60 in,
 |---|---|---|
 | 0. Worktree + template copy | DONE | projects/xt60-usb-supply/ |
 | 1. BRIEF.md (commission, hash, assumptions) | DONE | 01_docs/BRIEF.md |
-| 2. Part research (JLC stock) | IN PROGRESS | background agent |
-| 3. ADRs + ARCHITECTURE + DETAIL_DESIGN | todo | |
-| 4. 02_parts/ part.yaml + datasheets | todo | |
-| 5. rules/nets.yaml + generate_rules.py | todo | BEFORE routing |
-| 6. generate_schematic.py + netlist | todo | |
-| 7. generate_board.py (placement, zones, audit) | todo | |
-| 8. Routing (KRT, fanout-first, hardest-first) | todo | |
-| 9. DRC gate 0/0/0 (kicad-cli --severity-all --refill-zones --schematic-parity) | todo | |
-| 10. JLC export + stock check + twin + pin review | todo | |
+| 2. Part research (JLC stock) | DONE | ADRs 0003/0006/0007 |
+| 3. ADRs + ARCHITECTURE + DETAIL_DESIGN | DONE | 01_docs/ |
+| 4. 02_parts/ part.yaml + datasheets | DONE | 22 parts, PDFs committed |
+| 5. rules/nets.yaml + generate_rules.py | DONE | runs LAST in chain |
+| 6. generate_schematic.py + netlist | DONE | parity PASS 29 nets/154 nodes |
+| 7. generate_board.py (placement, zones, audit) | DONE | AUDIT PASS |
+| 8. Routing (KRT port signals + designed QFN corridors) | DONE | 03_src/route/routed_final.kicad_pcb |
+| 9. DRC gate 0/0/0 | DONE | tag v1.0-rc-xt60usb |
+| 10. JLC export + stock check + twin + pin review | IN PROGRESS | background agents |
 | 11. Release dir + MANIFEST | todo | |
 
 ## Key decisions so far (see decision register in BRIEF.md)
