@@ -9,7 +9,7 @@ the board has no MCU.
 
 | Path | What |
 |---|---|
-| `03_src/` or `*.c|*.h|*.rs|*.py` | the firmware |
+| `src/` (local subfolder) or `*.c|*.h|*.rs|*.py` | the firmware |
 | `Makefile` / build config | must take the MCU as a VARIABLE, not a constant |
 | `tests/` | host-runnable logic tests |
 | `README.md` | how to build, how to flash, which connector |

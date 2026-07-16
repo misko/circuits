@@ -139,6 +139,21 @@ Required sections:
 - `## Critical geometries` — hot loops, Kelvin senses, differential pairs,
   keep-out intent. The things a router will destroy if it does not know.
 
+## Structure: `DETAIL_DESIGN.md`
+
+Every component value that came from a calculation gets: the equation, the
+inputs, the result, and the chosen E-series value. Required coverage: switching
+frequency, inductor ripple, output capacitance, feedback dividers, current
+limits, compensation, UVLO/OV thresholds, and worst-case input current.
+A value in the schematic with no line here is UNJUSTIFIED (validate below).
+
+## Structure: `CHECKLIST.md`
+
+The pre-release gate as literal checkboxes. Each line must be CHECKABLE BY A
+FRESH AGENT: name the command to run or the file to inspect and the expected
+result — "review the layout" is not a checklist line, "`bash 03_src/rebuild_all.sh`
+ends `violations: 0`" is.
+
 ## Structure: `CHANGELOG.md`
 
 Reverse-chronological. One entry per revision:

@@ -11,7 +11,10 @@
 |---|---|---|
 | `renders/` | PNG/SVG/PDF of schematic and board | regenerate |
 | `netlists/` | exported netlists | regenerate |
-| `drc/` | DRC/ERC/audit reports | regenerate |
+| `drc/` | DRC/ERC/audit reports (`gate.json` = the current gate result) | regenerate |
+| `route/` | KRT routing chain inputs/outputs (`r0..rN`, `taps_*.kicad_pcb`) | regenerate (needs KiCadRoutingTools) |
+| `fab/` | JLC export: gerbers, `bom_jlc.csv` (carries LCSC codes between runs), CPL, zip | regenerate; bom LCSC column is the seed store |
+| `pdf/` | release PDF set + PNG verification renders | regenerate |
 | `cache/` | **volatile market data**: stock, price, distributor attrs | hours |
 | `contracts.md` | this file (the only tracked file here) | |
 

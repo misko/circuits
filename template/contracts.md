@@ -34,6 +34,28 @@ re-order it.
   `board.kicad_pcb` is a defect: nothing says which one is real.
 - Generated artifacts (PNG/PDF/netlist) — they go in `06_build/`.
 
+## Fresh-agent verification — zero context required
+
+A brand-new agent verifies the whole project in this order; every step names
+its command and expected result:
+
+1. **Read the commission**: `01_docs/BRIEF.md` — verify its own audit block
+   (prompt hash, tag resolution, register↔decisions bijection; commands in
+   `01_docs/contracts.md`). This tells you WHAT the project must do.
+2. **Rebuild + gate**: `bash 03_src/rebuild_all.sh` — must end
+   `violations: 0 {}` / `unconnected: 0`. Exercises every generator and
+   pipeline script (prerequisites listed in `03_src/contracts.md`).
+3. **Placement/pad audit**: printed inside step 2 (`AUDIT: PASS`).
+4. **Parts parity**: `python3 03_src/bom_seed.py` after a fab export — fails
+   on any BOM line without a `02_parts/` entry or with TBD sourcing.
+5. **Checklist**: walk `01_docs/CHECKLIST.md` — every line is a runnable
+   command or file inspection by construction.
+6. **Releases**: for each `07_releases/<dir>`, verify per
+   `07_releases/contracts.md` (sha256 table, git_sha exists, gates evidence).
+
+Each folder's own `contracts.md` carries the folder-local Validate/Repair;
+this sequence is the project-level composition of them.
+
 ## Iteration vs release — the distinction that matters
 
 - **Revision**: any design state. Recorded as a git tag + one

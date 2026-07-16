@@ -27,7 +27,7 @@ makes the failure impossible instead of detectable.
     ├── <board>_gerbers.zip         what goes to the PCB order page
     ├── bom.csv  cpl.csv            what goes to the assembly step
     └── verification/               the reports that PASSED, as evidence
-        ├── drc.json  audit.txt  stock_check.txt
+        ├── drc.json  audit.txt  stock_check.{txt,csv}
 ```
 
 Nothing else. No working files, no "v2" of a release, no edits.

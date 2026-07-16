@@ -4,8 +4,11 @@ swallowed inside differently-netted pours, GND grid, fill zones.
 Every via site collide-checked; script FAILS (before save) if any rescue
 or mandatory cluster comes up short."""
 import os, sys, math
-sys.path.insert(0, os.path.expanduser("~/.claude/skills/kicad-pcb/scripts"))
 from pathlib import Path
+# skills scripts: repo-relative first (standalone clone), else machine-global
+_sk = [p for p in (Path(__file__).resolve().parents[3] / "skills" / "kicad-pcb" / "scripts",
+                   Path(os.path.expanduser("~/.claude/skills/kicad-pcb/scripts"))) if p.is_dir()]
+sys.path.insert(0, str(_sk[0]))
 import pcbnew
 from pcb_toolkit import Toolkit
 

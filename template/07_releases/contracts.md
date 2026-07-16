@@ -33,7 +33,7 @@ makes the failure impossible instead of detectable.
     │   └── assembly_top.pdf        F.Fab + silk + sketch pads + refdes -
     │                               the hand-solder / rework / debug aid
     └── verification/               the reports that PASSED, as evidence
-        ├── drc.json  audit.txt  stock_check.txt
+        ├── drc.json  audit.txt  stock_check.{txt,csv}
 ```
 
 Nothing else. No working files, no "v2" of a release, no edits.

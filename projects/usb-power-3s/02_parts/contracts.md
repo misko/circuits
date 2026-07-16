@@ -42,6 +42,7 @@ iterating over alternatives.
 | `<MPN>/part.yaml` | the facts + provenance. Required for every used part |
 | `<MPN>/<DOCID><REV>.pdf` | the datasheet. Filename carries the REVISION |
 | `<MPN>/notes.md` | optional: errata, application gotchas too long for `gotchas:` |
+| `README.md` | folder status + **deviations register**: every departure from this contract (unfetchable PDF, series-sheet passives without PDFs), each with why + what must happen before bring-up | required if any deviation exists |
 | `contracts.md` | this file |
 
 `<MPN>` is the exact orderable manufacturer part number — the string you

@@ -5,11 +5,14 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PY=/usr/bin/python3
+# skills: repo-relative first (standalone clone), else machine-global
+SKILLS="$(cd "$(dirname "$0")/../../.." 2>/dev/null && pwd)/skills/kicad-pcb/scripts"
+[ -d "$SKILLS" ] || SKILLS="$HOME/.claude/skills/kicad-pcb/scripts"
 $PY 03_src/generate_schematic.py 2>/dev/null | tail -1
 kicad-cli sch export netlist -o 06_build/netlists/usb_power_3s.net 04_kicad/usb_power_3s.kicad_sch >/dev/null
 $PY 03_src/generate_board.py 2>/dev/null | tail -1
 $PY 03_src/audit_board.py 2>/dev/null | tail -1
-$PY ~/.claude/skills/kicad-pcb/scripts/import_krt.py 06_build/route/r5.kicad_pcb \
+$PY "$SKILLS"/import_krt.py 06_build/route/r5.kicad_pcb \
     04_kicad/usb_power_3s.kicad_pcb 04_kicad/usb_power_3s.kicad_pcb 2>/dev/null | grep imported
 $PY 03_src/route_taps.py 2>/dev/null
 $PY 03_src/route_taps_krt.py prep 2>/dev/null
@@ -21,7 +24,7 @@ $PY 03_src/route_taps_krt.py finish 2>/dev/null
 # taps_out grew FROM the live board, so it now holds ALL tracks: rebuild the
 # board fresh and import taps_out as the single source (no duplicates)
 $PY 03_src/generate_board.py 2>/dev/null | tail -1
-$PY ~/.claude/skills/kicad-pcb/scripts/import_krt.py 06_build/route/taps_out.kicad_pcb \
+$PY "$SKILLS"/import_krt.py 06_build/route/taps_out.kicad_pcb \
     04_kicad/usb_power_3s.kicad_pcb 04_kicad/usb_power_3s.kicad_pcb 2>/dev/null | grep imported
 $PY 03_src/stitch_and_fill.py 2>/dev/null
 python3 03_src/generate_rules.py
