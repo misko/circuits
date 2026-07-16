@@ -7,7 +7,7 @@ each) and one USB-C port (6 A). Two independent 5 V buck rails
 ## Power tree
 
 ```
-XT60 (J1)          VBAT_RAW   8.5 A worst case (73 W out / 9 V / 0.92 eff)
+XT60 (J1)          VBAT_RAW   8.2 A worst case (67.5 W out / 0.92 eff / 9 V)
   └─ F1 15A fuse → VBAT_F
        └─ Q1 P-FET (reverse polarity, drain=VBAT_F, source=VBAT_P)
             └─ VBAT_P  ── TVS D1, bulk C
