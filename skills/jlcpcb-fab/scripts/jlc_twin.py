@@ -170,7 +170,6 @@ def main():
             continue
         jfp = pcbnew.FootprintLoad(str(Path(fp_path).parent),
                                    Path(fp_path).stem)
-        jpads = centered(pads_of(jfp))
         for ref in [d.strip() for d in r["Designator"].split(",")]:
             fp = by_ref.get(ref)
             if fp is None:
@@ -179,15 +178,30 @@ def main():
             # compare in the footprint's own frame (undo board rotation)
             rot = fp.GetOrientationDegrees()
             fp.SetOrientationDegrees(0)
-            opads = centered(pads_of(fp))
-            _oca = centroid(pads_of(fp))
+            opads_raw = pads_of(fp)
+            fp.SetOrientationDegrees(rot)
+            # center BOTH sets on the COMMON numbered pads only: centering
+            # each on its own full set biases the fit/mount whenever one side
+            # names extra pads (XT60 pegs, FET drain fingers) - the XT60 model
+            # rendered 7mm off its holes before this (2026-07-16)
+            jraw = pads_of(jfp)
+            common = set(opads_raw) & set(jraw)
+            if not common:
+                findings.append((lcsc, ref, "PAD-MISMATCH", "no common pad numbers"))
+                criticals.append(ref)
+                continue
+            _oca = centroid({k: opads_raw[k] for k in common})
+            _jca = centroid({k: jraw[k] for k in common})
+            opads = {k: [(x - _oca[0], y - _oca[1]) for x, y in v]
+                     for k, v in opads_raw.items()}
+            jpads_c = {k: [(x - _jca[0], y - _jca[1]) for x, y in v]
+                       for k, v in jraw.items()}
             # FOOTPRINT-LOCAL centroid: model offsets are relative to the
             # footprint origin, not the board (absolute coords put every
             # model ~60mm off its part - found 2026-07-16)
             oc = (_oca[0] - fp.GetPosition().x / 1e6,
                   _oca[1] - fp.GetPosition().y / 1e6)
-            fp.SetOrientationDegrees(rot)
-            fits = best_fit(opads, jpads)
+            fits = best_fit(opads, jpads_c)
             good = [f for f in fits if f[0] <= FIT_TOL]
             if not good:
                 findings.append((lcsc, ref, "PAD-MISMATCH",
@@ -197,7 +211,7 @@ def main():
                 # render is exactly where a human adjudicates these
                 nm = [x for x in fits if not x[1]]
                 if nm:
-                    twin[ref] = (jfp, nm[0][2], oc)
+                    twin[ref] = (jfp, nm[0][2], oc, _jca)
                 continue
             e, mir, ang = good[0]
             if mir:
@@ -217,17 +231,17 @@ def main():
             findings.append((lcsc, ref, status,
                              f"fit={e:.2f}mm jlc_offset={ang} db={db_off}"
                              + (f" -> add: {fpname},{ang}" if status != "OK" else "")))
-            twin[ref] = (jfp, ang, oc)
+            twin[ref] = (jfp, ang, oc, _jca)
 
     # ---- twin render: JLC models mounted on OUR board
     if not args.no_render and twin:
         tb = pcbnew.LoadBoard(args.board)
-        for ref, (jfp, ang, oc) in twin.items():
+        for ref, (jfp, ang, oc, jc_common) in twin.items():
             fp = tb.FindFootprintByReference(ref)
             jmodels = list(jfp.Models())
             if not fp or not jmodels:
                 continue
-            jc = centroid(pads_of(jfp))
+            jc = jc_common  # common-pad centroid captured at fit time
             fp.Models().clear()
             c, sn = math.cos(math.radians(ang)), math.sin(math.radians(ang))
             for jm in jmodels:

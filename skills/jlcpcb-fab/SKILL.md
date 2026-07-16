@@ -250,8 +250,11 @@ python3(pcbnew) scripts/jlc_twin.py BOARD bom_jlc.csv OUTDIR \
    local substitute for JLC's end-of-order preview. Adjudicated parts are
    mounted at their best non-mirrored fit precisely so a human can eyeball
    them. Transform gotchas encoded 2026-07-16: model offsets are
-   FOOTPRINT-LOCAL mm (absolute coords put every body ~60mm off) and the
-   3D frame is y-UP while board coords are y-down.
+   FOOTPRINT-LOCAL mm (absolute coords put every body ~60mm off); the
+   3D frame is y-UP while board coords are y-down; and the fit/mount must
+   center on the COMMON pad set only - own-set centroids slide the model
+   along the part axis whenever one side names extra pads (an XT60 rendered
+   7mm off its holes, nose not overhanging the board edge).
 
 Stock + selection gates recap (same stage): every assembled BOM line carries
 an explicit LCSC code (bom_seed fails on unmapped/TBD - never rely on JLC

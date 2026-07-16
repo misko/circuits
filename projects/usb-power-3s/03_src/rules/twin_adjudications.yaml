@@ -11,11 +11,9 @@
   why: >-
     Four clip pins per terminal in the KiCad footprint vs consolidated pads in
     JLC's; blade positions verified identical against the 178.6165 drawing.
-- lcsc: C98732      # XT60PW-M
-  status: PAD-MISMATCH
-  why: >-
-    Blade pads 1/2 fit at rot 90; JLC names the mounting pegs 3/4, ours are
-    unnamed. Polarity fact (pad1 = '-') verified in 02_parts/XT60PW-M.
+# (C98732 XT60PW-M entry removed 2026-07-16: common-pad centering in
+# jlc_twin fixed the false mismatch - it now fits at 0.00mm. Stale
+# adjudications are pruned so they cannot mask future regressions.)
 - lcsc: C17700181   # Sunlord MWSA1005S-3R3
   status: NO-CAD
   why: >-
