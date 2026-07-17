@@ -1,0 +1,31 @@
+mpn: 1206W4F150LT5E
+manufacturer: UNI-ROYAL (Uniroyal Elec)
+type: resistor_sense_150mR          # TMC2209 sense resistor use — value is load-bearing
+datasheet:
+  doc_id: none
+  revision: none
+  url: none
+  sha256: none
+  fetched: 2026-07-17
+  note: "series thick-film chip resistor — specs taken from JLCPCB parts-library
+    search result (C37936) on 2026-07-17; no per-part PDF committed. Deviation
+    recorded in 02_parts/README.md"
+package: "1206 (3216 metric)"
+footprint: Resistor_SMD:R_1206_3216Metric
+pins:
+  1: {name: "1", note: "no polarity"}
+  2: {name: "2", note: "no polarity"}
+limits:
+  resistance: "150mR +/-1%"
+  power: "250mW (1/4W)"
+  v_max: 200V
+  tcr: "+/-800ppm/C"
+  t_range: "-55 to +155C"
+gotchas:
+  - "Thick film, not a dedicated metal-strip sense part; TCR +/-800ppm/C is coarse — acceptable for TMC2209 current scaling, not for measurement"
+  - "TMC2209 dissipation at 1.4A rms is ~0.29W in worst case — above the 250mW rating; keep motor rms current <=1.2A per coil or swap to the 1W alternate below"
+verified: "specs from JLC search endpoint result for C37936 (150mR 1206 250mW +/-1% +/-800ppm/C, JLC extended library, stock 30148 @ $0.0117 on 2026-07-17) — stock/price NOT committed as facts, recorded only in the sourcing note dated below"
+sourcing:
+  lcsc: C37936
+  alternates: [C2683383]
+  note: "JLC extended lib (no basic 0.15R 1206 exists); C2683383 = TA-I RLH12FTCR150 1W current-sense 1%, stock 12.7k @ $0.0274, the upgrade path if sense dissipation is marginal — 2026-07-17"

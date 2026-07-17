@@ -1,0 +1,65 @@
+mpn: LIS2DH12TR
+manufacturer: STMicroelectronics
+type: accelerometer_3axis    # ultra-low-power 3-axis MEMS, ±2/4/8/16 g, I2C/SPI
+datasheet:
+  doc_id: DocID025056
+  revision: Rev6              # DocID025056 Rev 6, May 2017
+  url: https://www.st.com/resource/en/datasheet/lis2dh12.pdf   # st.com refused the direct fetch; byte-identical mirror fetched from github.com/QuecPython/QuecPython_lib_bundles (libraries/lis2dh12/LIS2DH12.pdf)
+  sha256: a2a2a8d1d3b0cae3f5ab6ecd65dcf1a128ab631668c7784119b6b7123c062277
+  fetched: 2026-07-17
+package: LGA-12 2.0x2.0x1.0mm max, 0.5mm pitch
+footprint: Package_LGA:LGA-12_2x2mm_P0.5mm   # matches Fig 12 p.49 outline:
+  # body 2.00x2.00mm +/-0.15, 1.0mm max height, 12 perimeter lands on 0.5mm
+  # pitch (0.5 / 0.275 / 0.1 land dims in the bottom view). DS gives outline
+  # only, no explicit land pattern — the standard KiCad LGA-12 2x2 P0.5 pad
+  # arrangement (4 pads on each long side, 2 on the bottom edge) matches the
+  # Fig 2 p.8 bottom-view pad layout.
+pins:                        # PHYSICAL PADS, read from Figure 2 "Pin connections"
+                             # p.8 (bottom view) + Table 2 "Pin description" p.9.
+                             # Pin 1 corner marked by dot on package top (Fig 2
+                             # top view, dot at pin-1 corner; carrier-tape Fig 14
+                             # p.50 also shows the pin-1 dot).
+  1: {name: SCL_SPC, note: "I2C SCL / SPI SPC"}
+  2: {name: CS, tie: VDD_IO, note: "I2C/SPI select: 1 = I2C enabled (SPI idle), 0 = SPI. TIE HIGH (Vdd_IO) for I2C (Table 2 p.9; Sec 4 p.20 'When using the I2C, CS must be tied high')"}
+  3: {name: SDO_SA0, note: "SPI SDO / I2C address LSb. Internally pulled up, 20-54k typ depending on Vdd_IO (Table 3 p.9). Strap to GND -> 0x18, to Vdd_IO -> 0x19"}
+  4: {name: SDA_SDI_SDO, note: "I2C SDA / SPI SDI / 3-wire SDO"}
+  5: {name: RES, tie: GND, note: "reserved — 'Connect to GND' (Table 2 p.9). NOT optional"}
+  6: {name: GND, tie: GND}
+  7: {name: GND, tie: GND}
+  8: {name: GND, tie: GND}
+  9: {name: VDD, note: "core supply; 100nF ceramic + 10uF (aluminum in Fig 5) as near as possible to pin 9 (Sec 4 p.20)"}
+  10: {name: VDD_IO, note: "IO-pad supply, independent of Vdd; 100nF decoupling (Fig 5 p.20)"}
+  11: INT2
+  12: INT1
+limits:
+  vdd_operating: 1.71-3.6V   # Features p.1
+  vdd_io: "1.71V..Vdd+0.1V — independent IO rail, 1.8V-compatible"
+  ta_operating: "-40..85C"
+i2c_addresses:               # Sec 6.1.1 p.25: SAD = 001100x b
+  SA0_to_GND: 0x18           # 0011000b
+  SA0_to_VDD_IO: 0x19        # 0011001b
+application:
+  i2c_mode_wiring: "CS(2) -> Vdd_IO; SA0(3) strapped GND or Vdd_IO; RES(5) -> GND; GND pads 6/7/8 -> GND (Fig 5 + Table 2)"
+  decoupling: "Vdd(9): 100nF ceramic + 10uF; Vdd_IO(10): 100nF (Fig 5 + Sec 4 text p.20)"
+gotchas:
+  - "RES (pad 5) must go to GND — Table 2 p.9 says 'Connect to GND'. Leaving
+     the reserved pad floating is the classic LIS2DH12 wiring mistake."
+  - "CS (pad 2) must be tied high (Vdd_IO) for I2C; low selects SPI and
+     DISABLES I2C (Table 2 p.9). Never float."
+  - "SDO/SA0 (pad 3) has an INTERNAL pull-up (20-54 kOhm typ, Table 3 p.9):
+     floating reads as SA0=1 (0x19), and strapping it hard to GND burns
+     ~35-90 uA continuously through that pull-up. Strap it deliberately."
+  - "Vdd and Vdd_IO must both be present for proper behavior; Vdd may be
+     removed while Vdd_IO stays up without blocking the bus (Sec 4 p.20)."
+  - "Pin numbering read from a BOTTOM view (Fig 2 p.8) — mirror-error source
+     when hand-building a footprint; pin 1 dot is on the package top."
+  - "Not drop-in register-compatible with LIS3DH despite same pinout family —
+     LIS2DH12 has no ADC/temperature-out on aux pins; do not reuse LIS3DH code
+     that touches ADC registers."
+verified: "pin map read from Figure 2 'Pin connections' (bottom view) p.8 and
+  cross-checked against Table 2 'Pin description' p.9; internal SA0 pull-up
+  from Table 3 p.9; I2C wiring/decoupling from Section 4 'Application hints'
+  Figure 5 + text p.20; I2C address from Section 6.1.1 p.25; package outline
+  from Figure 12 'LGA-12 package outline and mechanical data' p.49 of
+  DocID025056 Rev 6 — 2026-07-17"
+sourcing: {lcsc: C110926}

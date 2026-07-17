@@ -1,0 +1,33 @@
+mpn: B4B-XH-A
+manufacturer: JST
+type: connector_header_xh_4pos_vertical
+# Orderable/LCSC-listed suffix is B4B-XH-A(LF)(SN) — the (LF)(SN) is the
+# tin-plated lead-free finish code printed on the label, same physical part.
+datasheet:
+  doc_id: eXH
+  revision: "eXH-new (JST catalog, uploaded 2021-01; no rev string in PDF)"
+  url: https://www.jst.com/wp-content/uploads/2021/01/eXH-new.pdf
+  sha256: e9efb9e3d31c0d818528123f8878b2a2df94d15b463bbcb77bca6ee1c71cf1c1
+  fetched: 2026-07-17
+package: "XH top-entry shrouded header, 4 circuits, 2.5mm pitch, A=7.5mm pin span, B=12.4mm body, THT phi0.9mm holes"
+footprint: Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical
+# Footprint match: KiCad pad 1 roundrect (pin-1 marker), pads 2-4 oval, 2.5mm
+# pitch — matches catalog 'Top entry type' PC board layout (2.5+/-0.05 pitch,
+# phi0.9 holes for 3+ circuits, catalog p.1) and B4B-XH-A row A=7.5/B=12.4 (p.3).
+pins:                       # pin 1 position fact — keying, not electrical polarity
+  1: {name: "1", note: "PIN 1 = the end marked by the 'Circuit No.1 mark' molded on the housing (Housing figure p.2); on the KiCad footprint it is the rectangular/roundrect pad. Shrouded+keyed: mating XHP-4 housing only inserts one way, so pin-1 net assignment defines harness polarity"}
+  2: "2"
+  3: "3"
+  4: "4"
+limits:
+  current: "3A AC/DC (AWG#22)"
+  voltage: 250V AC/DC
+  t_range: "-25 to +85C (incl. rise)"
+  contact_resistance: "10mR initial max"
+  wire: "AWG#30-22 (SXH contacts)"
+  pcb_thickness: 1.6mm
+gotchas:
+  - "Catalog is a series sheet (XH family, 1-20 circuits); only the B4B-XH-A row (Header table p.3: A=7.5, B=12.4) applies"
+  - "Polarity is by convention: mark pin 1 on silk and keep the harness crimped to match — the connector keys the housing but nothing stops a harness crimped backwards"
+verified: "B4B-XH-A row read from Header table, catalog p.3 (4 circuits, A=7.5, B=12.4mm); pitch/hole from 'PC board layout' top-entry figure p.1 (2.5+/-0.05, phi0.9 for 3+ circuits); pin-1 identified by 'Circuit No.1 mark' callout in Housing figure p.2, JST eXH catalog (2021-01 upload) — 2026-07-17"
+sourcing: {lcsc: C144395}

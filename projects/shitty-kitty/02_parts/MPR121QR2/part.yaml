@@ -1,0 +1,82 @@
+mpn: MPR121QR2
+manufacturer: NXP (Freescale)
+type: cap_touch_controller   # 12-channel capacitive touch sensor controller, I2C
+datasheet:
+  doc_id: MPR121
+  revision: Rev4              # Rev. 4, 02/2013
+  url: https://www.nxp.com/docs/en/data-sheet/MPR121.pdf   # nxp.com blocked robots at fetch time; fetched byte-identical copy from https://cdn-shop.adafruit.com/datasheets/MPR121.pdf
+  sha256: f4416f3ca5c1deef232b212c47af69384369d761f24b6ff0589e1bf6faa86313
+  fetched: 2026-07-17
+package: QFN-20 3x3x0.65mm 0.4mm pitch, CASE 2059-01 (QFN-COL), NO exposed pad
+footprint: Package_DFN_QFN:UQFN-20_3x3mm_P0.4mm   # no-EP variant. Do NOT use
+  # QFN-20-1EP_3x3mm_P0.4mm_EP1.65x1.65mm — the CASE 2059-01 bottom view
+  # (mechanical outline 98ASA00021D, pp.23-25) shows 20 perimeter pads only,
+  # no center pad dimension anywhere in the drawing.
+pins:                        # PHYSICAL PADS, read from "Pin Connections" top-view
+                             # figure p.1 + Table 1 "Pin Descriptions" p.2.
+                             # Pin 1 at TOP-LEFT corner (index area top-left);
+                             # 1-5 down the left side, 6-10 along the bottom
+                             # left-to-right, 11-15 up the right side, 16-20
+                             # along the top right-to-left.
+  1: {name: IRQ, note: "active-low, open-collector interrupt output — external pullup required (Table 1)"}
+  2: {name: SCL, note: "I2C clock, input only; 4.7k pullup typ (Sec 6.1 p.21)"}
+  3: {name: SDA, note: "I2C data, open-drain; 4.7k pullup typ (Sec 6.1 p.21)"}
+  4: {name: ADDR, note: "I2C address select — tie to VSS/VDD/SDA/SCL, never float"}
+  5: {name: VREG, note: "internal regulator node — 0.1uF bypass cap to VSS (Table 1)"}
+  6: {name: VSS, tie: GND}
+  7: {name: REXT, note: "75k 1% resistor from this pin to VSS sets internal reference current (Table 1)"}
+  8: ELE0
+  9: ELE1
+  10: ELE2
+  11: ELE3
+  12: {name: ELE4, note: "ELE4-11 multifunctional: electrode or LED driver/GPIO (LED0)"}
+  13: ELE5                   # LED1
+  14: ELE6                   # LED2
+  15: ELE7                   # LED3
+  16: ELE8                   # LED4
+  17: ELE9                   # LED5
+  18: ELE10                  # LED6
+  19: ELE11                  # LED7
+  20: {name: VDD, note: "0.1uF bypass cap to VSS (Table 1)"}
+limits:
+  vdd_operating: 1.71-3.6V   # Sec 3 "Power Supply" p.4
+  vreg_max: 2.75V            # VREG pin max — bypass-regulator config only below 2.75V
+  ta_operating: "-40..85C"
+i2c_addresses:               # Table 10 "MPR121 Slave Address" p.21 + Table 1 pin 4
+  ADDR_to_VSS: 0x5A
+  ADDR_to_VDD: 0x5B
+  ADDR_to_SDA: 0x5C
+  ADDR_to_SCL: 0x5D
+application:
+  vdd_cap: 0.1uF to VSS (Table 1 pin 20, Figs 1-2 p.3)
+  vreg_cap: 0.1uF to VSS (Table 1 pin 5, Figs 1-2 p.3)
+  rext: 75k 1% REXT(pin7)-to-VSS (Table 1 pin 7, Figs 1-2 p.3)
+  power_configs: |
+    VDD 1.71-2.75V: tie VDD and VREG together, regulator bypassed (Fig 1 p.3).
+    VDD 2.0-3.6V: VDD only; separate 0.1uF on VREG (Fig 2 p.3). Above 2.75V
+    the Fig 2 configuration is MANDATORY (Sec 3 "Power Supply" p.4).
+gotchas:
+  - "NO exposed pad — CASE 2059-01 is a QFN-COL (chip-on-lead) with 20
+     perimeter pads only (outline 98ASA00021D pp.23-25). A footprint with an
+     EP would place unconnectable paste/copper under the part."
+  - "IRQ (pin 1) is open-collector active-low: needs an external pullup
+     (to host IO rail); shown pulled up in Figs 1-2 p.3."
+  - "ADDR (pin 4) must be strapped — Figs 1-2 show it tied (to GND for 0x5A).
+     Do not float."
+  - "Running VDD > 2.75V with VDD-VREG shorted exceeds the 2.75V VREG limit
+     (Sec 3 p.4) — at 3.3V use Fig 2 wiring with the separate VREG cap."
+  - "Unused electrode inputs: datasheet gives no explicit tie-off; unused
+     channels are simply not enabled in the ECR (Sec 5, ECR p.16 — 'Enabling
+     specific channels will save the scan time... spent on the unused
+     channels') and ELE4-11 default to disabled GPIO. Leave unconnected or
+     use ELE4-11 as GPIO/LED (Sec 3 'LED Driver' p.4)."
+  - "Electrode-trace PCB layout guidance is NOT in this datasheet (no layout
+     section; AN references were removed in Rev 3) — see NXP AN3747
+     'MPR121 capacitive touch sensor layout guidelines' before routing
+     electrode traces."
+verified: "pin map read from 'Pin Connections' top-view figure p.1 and
+  cross-checked against Table 1 'Pin Descriptions' p.2; supply/VREG rules from
+  Sec 3 'Power Supply' p.4 and Figs 1-2 p.3; I2C address strap from Table 10
+  p.21; package (no EP) from mechanical outline 98ASA00021D CASE 2059-01
+  pp.23-25 of MPR121 Rev 4 — 2026-07-17"
+sourcing: {lcsc: C91322}

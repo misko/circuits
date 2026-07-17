@@ -1,0 +1,29 @@
+mpn: DC-005C-20A
+manufacturer: Korean Hroparts Elec
+type: barrel_jack_dc_power
+datasheet:
+  doc_id: DC-005C
+  revision: "Rev A (2013/11/11)"   # single-sheet drawing, covers DC-005C-A/-B, pin 2.0/2.5
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2108131530_Korean-Hroparts-Elec-DC-005C-20A_C84007.pdf
+  sha256: da290464b4fbacad4e0067fff50f2644777aad6a9b4d3b7abe2f464744480af6
+  fetched: 2026-07-17
+package: "DC-005 barrel jack, 2.0mm center pin, 6.4mm bushing, body 14.2 x 9.0mm, THT"
+footprint: Connector_BarrelJack:BarrelJack_Horizontal   # pin NUMBERING matches; hole positions do NOT — see gotchas
+pins:                       # from CIRCUIT DIAGRAM box (DC-005C-A) + P.C.B LAYOUT, drawing sheet 1/1
+  1: {name: TIP, note: "center pin (tip) — +12V IN. POLARITY: center-positive supply convention"}
+  2: {name: SLEEVE, note: "outer sleeve moving spring contact — GND"}
+  3: {name: SWITCH, note: "normally-closed shunt to pin 2 (sleeve spring rests on it); opens when plug inserted. Tie to GND or leave open"}
+limits:
+  rating: "DC 24V 3A"
+  contact_resistance: "100mR max"
+  t_range: "-20 to +70C"
+  life: "5000 cycles"
+  insertion_force: "3-20N"
+recommended_holes: "3 slots 1.5x0.8mm (P.C.B LAYOUT, copper-side view): pin1 (tip) rearmost on centerline; pin2 6.65mm forward of pin1 on centerline; pin3 2.55mm forward of pin1, 4.70mm lateral"
+gotchas:
+  - "POLARITY FACT: center-positive. Pin 1 (tip) is +12V, pin 2 (sleeve) is GND — swapping 1/2 reverses the board's supply and no ERC will catch it"
+  - "KiCad BarrelJack_Horizontal pad numbering (1=tip rear, 2=sleeve, 3=switch lateral 4.7mm) matches this jack's roles, BUT hole positions differ: KiCad pin2 at 6.0mm vs jack 6.65mm, pin3 axial 3.0mm vs 2.55mm, with only 1mm-wide slots — leads will NOT enter the stock footprint's slots"
+  - "Closest stock footprint is BarrelJack_Kycon_KLDX-0202-xC_Horizontal (pin2 6.2mm, pin3 3.2/4.7mm) — still 0.45mm off on pin 2; correct fix is a project footprint with 1.5x0.8mm slots at (0,0), (6.65,0), (2.55,4.70) per the drawing"
+  - "Drawing covers -A (3-pin with switch) and -B (2-pin); C84007 is the -A circuit with 2.0mm pin ('Model 1, pin 2.0')"
+verified: "pin roles read from CIRCUIT DIAGRAM box (DC-005C-A: 1=center pin, 2=long moving sleeve contact with switch arrow, 3=stub contact) and pad positions from P.C.B LAYOUT copper-side view (dims 6.90/11.00/13.55 from front face, 4.70 lateral, 3x 1.5x0.8 slots), Hroparts DC-005C drawing Rev A 2013/11/11, sheet 1 of 1 — 2026-07-17"
+sourcing: {lcsc: C84007}

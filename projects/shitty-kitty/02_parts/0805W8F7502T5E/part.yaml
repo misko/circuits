@@ -1,0 +1,10 @@
+mpn: 0805W8F7502T5E
+manufacturer: UNI-ROYAL
+type: resistor_thick_film
+value: "75k 1% 0.125W 0805"
+datasheet: {note: "series passive - no per-part PDF (deviations register 02_parts/README.md)"}
+package: "0805"
+footprint: Resistor_SMD:R_0805_2012Metric
+pins: {1: terminal, 2: terminal}
+verified: "series passive; specs from JLC attribute data 2026-07-17 (06_build/cache/adr_stock*.json)"
+sourcing: {lcsc: C17819, note: "MPR121 REXT charge reference (75k 1% required by DS)"}

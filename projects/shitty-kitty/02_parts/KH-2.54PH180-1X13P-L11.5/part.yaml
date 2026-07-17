@@ -1,0 +1,27 @@
+mpn: KH-2.54PH180-1X13P-L11.5
+manufacturer: Kinghelm (Shenzhen Kinghelm Elec)
+type: pin_header_1x13_254
+datasheet:
+  doc_id: KH-2.54PH180
+  revision: "Rev A (drawn 2019/09/19)"   # series drawing, 1xN 2.54mm PH header family
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2201121530_Shenzhen-Kinghelm-Elec-KH-2-54PH180-1X13P-L11-5_C2932703.pdf
+  sha256: 1ba60bf34a27f03e88d07e6f4a8838fcab1dc7fa686f0fa0d3a0418adaa579a1
+  fetched: 2026-07-17
+package: "1x13 vertical pin header, 2.54mm pitch, sq0.64mm pins, insulator H2.5mm, pin length 11.5mm total / 3.0mm board side"
+footprint: Connector_PinHeader_2.54mm:PinHeader_1x13_P2.54mm_Vertical
+# Footprint match: KiCad 13 pads, pad 1 rect (marker), 2.54mm pitch, 1.0mm drill
+# vs drawing's recommended phi1.02 hole — standard generic header fit.
+pins:                       # generic strip header — pins 1..13, no built-in keying
+  1: {name: "1", note: "pin 1 = the KiCad rectangular pad end; the PART carries no pin-1 mark (series drawing shows none) — orientation is set by silkscreen only"}
+  13: "13"
+limits:
+  current: 3A
+  voltage: "AC 1000V withstanding"
+  contact_resistance: "20mR max"
+  t_range: "-40 to +105C"
+  span_13p: "DIM A = 30.48mm (13 pins), DIM B = 33.02mm overall"
+gotchas:
+  - "Series drawing (1xN, N=1..40, table of DIM A/B); only the 13-pin column applies (A=30.48, B=33.02)"
+  - "No polarity/keying on the part — a socket plugged one position off or reversed is mechanically fine; silkscreen pin-1 marking is the only guard"
+verified: "pitch 2.54+/-0.1, sq0.64 pin, 11.5+/-0.2 length, 3.0+/-0.2 tail and recommended phi1.02 PCB hole read from the dimension drawing; 13-pin DIM A/B from the No.-of-pins table (13: 30.48/33.02), Kinghelm KH-2.54PH180 series drawing Rev A 2019/09/19 — 2026-07-17"
+sourcing: {lcsc: C2932703}

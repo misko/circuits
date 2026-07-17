@@ -1,0 +1,100 @@
+mpn: TMC2209-LA-T
+manufacturer: Analog Devices (Trinamic)
+type: stepper_driver         # 2-phase bipolar, 2.8A peak / 2A RMS, StealthChop/SpreadCycle,
+                             # Step/Dir + single-wire UART, StallGuard4 sensorless stall detect
+datasheet:
+  doc_id: TMC2209_datasheet
+  revision: rev1.09          # "Rev. 1.09 / 2023-FEB-16" on every page header
+  url: https://www.analog.com/media/en/technical-documentation/data-sheets/TMC2209_datasheet_rev1.09.pdf
+  sha256: 1d9e8eed9ad2edc17b112c1d54e3c468c34102a629bc3dbf729828919a7b0893
+  fetched: 2026-07-17        # via web.archive.org snapshot of the analog.com URL (direct fetch blocked; see 02_parts/README.md)
+package: QFN28 5x5mm 0.5mm pitch (die pad 3.7x3.7mm nom)
+footprint: Package_DFN_QFN:QFN-28-1EP_5x5mm_P0.5mm_EP3.75x3.75mm
+# EP choice: Fig 22.1 / table p.84 give exposed die pad J x K = 3.7 nom (3.6-3.8 max) mm.
+# Of the library variants, EP3.75x3.75 brackets the 3.7 nom / 3.8 max die pad; the smaller
+# EP3.1/3.25/3.35 variants under-cover it, EP2.7x2.7 is the TMC2208 (smaller heat slug —
+# datasheet p.84 note: "These parameters differ to TMC2208 package!").
+pins:                        # PHYSICAL PADS from Figure 2.1 p.9 (top view) + tables pp.9-10.
+                             # Pin 1 at TOP-LEFT corner (dot in figure), counterclockwise
+                             # viewed from top: 1-7 down the left side, 8-14 along the
+                             # bottom left-to-right, 15-21 up the right side, 22-28 along
+                             # the top right-to-left.
+  1: OB2                     # motor coil B output 2
+  2: {name: ENN, note: "enable NOT, active low. Driven HIGH = all motor outputs floating. Internal input — pull HIGH (to VCC_IO) at boot so motor is off until MCU drives it low"}
+  3: GND
+  4: {name: CPO, note: "charge pump cap: 22nF 50V between CPO and CPI"}
+  5: CPI
+  6: {name: VCP, note: "charge pump voltage: 100nF from VCP to VS"}
+  7: {name: SPREAD, note: "chopper select, internal pull-down: low=StealthChop, high=SpreadCycle; may be left unconnected (defaults StealthChop)"}
+  8: {name: 5VOUT, note: "internal 5V regulator output: 2.2uF-4.7uF ceramic to GND close to pin, shortest loop to die pad. Can feed VCC_IO. Not a general supply (25mA abs max total)"}
+  9: {name: MS1_AD0, note: "microstep select bit0 / UART address bit0, internal pull-down. Both MS pins GND = UART addr 0"}
+  10: {name: MS2_AD1, note: "microstep select bit1 / UART address bit1, internal pull-down"}
+  11: {name: DIAG, note: "DO: high on stall (StallGuard) or driver error; reset error by ENN=high"}
+  12: {name: INDEX, note: "DO: configurable index pulse output (one pulse per electrical rotation by default)"}
+  13: {name: CLK, note: "tie to GND with short wire for internal 12MHz clock, or feed 10-16MHz external clock"}
+  14: {name: PDN_UART, note: "DIO: single-wire UART; also power-down-not (low = automatic standstill current reduction, function disableable in UART mode)"}
+  15: {name: VCC_IO, note: "3.3-5V IO supply for digital pins; does not supply IC logic"}
+  16: STEP
+  17: {name: VREF, note: "AI: analog current-scale reference. Leave OPEN when current is set via UART with GCONF.i_scale_analog=0 (do NOT ground while running — VREF=0V scales current to 0; drive to 0V only in standby). In internal-RDSon mode it is the IREF reference-current input via resistor"}
+  18: GND
+  19: DIR                    # internal pull-down
+  20: {name: STDBY, note: "DI pull-down (100k): pull up = standby (regulator off); may be left unconnected"}
+  21: OA2                    # motor coil A output 2
+  22: VS                     # motor supply, filter cap close by, shortest loop to GND pad
+  23: {name: BRA, note: "coil A sense resistor to GND, close to pin. Tie DIRECTLY to GND when using internal RDSon sensing"}
+  24: OA1                    # motor coil A output 1
+  25: {name: NC, note: "pin 25 'unused' — may be connected to GND for better PCB routing (table p.10)"}
+  26: OB1                    # motor coil B output 1
+  27: {name: BRB, note: "coil B sense resistor to GND, close to pin. Tie DIRECTLY to GND when using internal RDSon sensing"}
+  28: VS
+  29: {name: EP, tie: GND, note: "exposed die pad 3.7x3.7mm: connect to GND plane, as many vias as possible; serves as GND pin for power drivers and analog circuitry"}
+limits:
+  vs_operating: 4.75-29V     # ops range table p.75: 5.5-29V using internal 5V reg; 4.7-5.4V with 5VOUT bridged to VS; front page says 4.75V min
+  vs_abs_max: 32V            # abs max p.75 (33V transient bridge max); supply ringing counts — keep margin
+  vcc_io: 3.0-5.25V          # operational; abs max 5.5V
+  vref_abs_max: 6V           # do not exceed both VCC_IO and 5VOUT by >10% (enables test mode)
+  irms_coil: 1.4A            # continuous design guideline; 2.0A RMS with duty-cycle limit; 2.8A sine peak abs max
+  i5vout_abs_max: 25mA       # internal + external load on 5VOUT
+  tj_max: 125C               # operational; 150C abs max
+gotchas:
+  - "SENSE RESISTORS: external Rsense from BRA (23) and BRB (27) to GND, one per coil, no
+     shared GND trace between the two, low-inductance type. I_RMS = VFS/(Rsense+20mOhm) * 1/sqrt(2),
+     VFS = 325mV (vsense=0, default) or 180mV (vsense=1) — formulas p.53-54. 0.15 ohm, vsense=0:
+     0.325/0.170*0.707 = 1.35A RMS max — confirms ~1.3A-class; matches Rsense table p.52
+     ('150m -> 1.35A, 1.5A motor'). In internal-RDSon mode omit resistors, tie BRA/BRB straight
+     to GND, current set by resistor into VREF (IREF), and MUST set otp_internalRsense/GCONF
+     internal_Rsense=1 BEFORE enabling driver (sec 3.2 p.12)."
+  - "UART: single-wire on PDN_UART (14). With separate MCU TX/RX: MCU_TX -> 1k resistor ->
+     PDN_UART, MCU_RX -> PDN_UART directly (Figure 4.1 p.20). MCU echoes its own TX on RX —
+     firmware must discard the echo. Address = MS2(bit1),MS1(bit0): both GND = addr 0 (sec 4.3
+     p.21). Max 4 devices per bus by straps."
+  - "ENN (2) is ACTIVE-LOW ENABLE with no default: pull HIGH (10k to VCC_IO) so the motor is
+     disabled at boot; MCU drives low to run. Warning p.52: if ENN is hard-tied active, full
+     IRUN=31 current flows immediately at power-up until UART lowers it."
+  - "VREF (17): when current is set via UART, disable analog scaling (GCONF.i_scale_analog=0)
+     and leave VREF OPEN — table p.11 'Analog current scaling or leave open'. Do not ground it
+     as a 'safe strap' in analog mode (default i_scale_analog=1): VREF<0.5V is explicitly not
+     recommended and 0V means zero current. Drive VREF and ENN to 0V only during STDBY standby
+     (hint p.10). Open pin in analog mode gives 73% scale."
+  - "SPREAD (7): internal pull-down, low = StealthChop (quiet). Safe strap: leave open or tie
+     GND; UART CHOPCONF can override mode selection anyway."
+  - "CLK (13): tie to GND with a SHORT wire for the factory-trimmed internal 12MHz clock;
+     do not float. External 10-16MHz optional, with timeout fallback to internal clock."
+  - "Charge pump: 22nF 50V between CPI(5)/CPO(4), 100nF from VCP(6) to VS — pin table p.9.
+     5VOUT(8): 2.2-4.7uF ceramic to GND, shortest possible loop to the die pad."
+  - "VS ramp must stay below 1V/us and needs >=100uF bulk close by — faster slopes drive
+     destructive current through the charge pump cap (sec 3.1 p.11)."
+  - "Pin 25 has NO function (unused) — may be grounded for routing; do not treat as thermal."
+  - "EP is pad 29 in this yaml (datasheet lists it unnumbered) — a generator that omits it
+     floats the driver's power ground. Via-stitch to GND plane; thermal limit: sustained
+     >=1.4A RMS needs good copper cooling (p.15)."
+  - "QFN body is 5x5mm like TMC2208 but the die pad is BIGGER (3.7 vs ~2.7mm) and lead length
+     shorter — do NOT reuse a TMC2208 EP2.7x2.7 footprint (p.84 attention note)."
+verified: "pin map read from Figure 2.1 'TMC2209 Pinning Top View' p.9 and signal tables
+  sec 2.2 pp.9-10; package/EP from Figure 22.1 'Dimensional drawings QFN28' p.83 and
+  parameter table + package codes sec 22.2 p.84; abs max sec 19 p.75 and operational range
+  sec 20.1 p.75; Rsense table + formulas ch.8 pp.52-54; VSRTL/VSRTH 325/180mV + 20mOhm
+  internal BRxy resistance from DC characteristics p.79; UART wiring Figure 4.1 p.20,
+  addressing sec 4.3-4.4 p.21; VREF sec 9.1 pp.54-55; internal RDSon sec 3.2 p.12 —
+  datasheet rev 1.09, 2026-07-17"
+sourcing: {lcsc: C2150710, alternates: [], note: "TMC2209-LA-T = QFN28 tape&reel (sec 22.2); no drop-in alternate — TMC2208 differs in EP and features"}

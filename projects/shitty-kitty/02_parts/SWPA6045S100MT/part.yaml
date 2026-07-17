@@ -1,0 +1,25 @@
+mpn: SWPA6045S100MT
+manufacturer: Sunlord
+type: power_inductor_shielded
+datasheet:
+  doc_id: Sunlord_SWPA_Catalog
+  revision: "2023-09-01"      # series catalog; footer 'Revised 2023/09/01'
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2310251551_Sunlord-SWPA6045S100MT_C79272.pdf
+  sha256: 435da2e32ce68b2df1fe14b42aa26f5e841b281aaf423890a3e8c03912e0e2b0
+  fetched: 2026-07-17
+package: SWPA6045S (6.0x6.0x4.5mm shielded)
+footprint: Inductor_SMD:L_Sunlord_SWPA6045S
+pins:                       # non-polarized two-terminal wound inductor
+  1: {name: "1", note: "no polarity"}
+  2: {name: "2", note: "no polarity"}
+limits:
+  inductance: "10uH +/-20% @ 100kHz/1V"
+  isat: "3.20A max-spec / 3.50A typ (inductance drop)"
+  irms: "2.45A max-spec / 2.70A typ (temperature rise)"
+  dcr: "48mR typ / 62mR max"
+  srf: "15MHz min"
+gotchas:
+  - "Buck at 2A load with ~0.7A p-p ripple peaks ~2.35A — inside the 3.2A Isat floor, OK for the AP63205"
+  - "Irms 2.45A limits continuous current, not Isat — at full 2A load the margin is on heating, keep copper generous"
+verified: "row read from SPECIFICATIONS 'SWPA6045S Series' table (SWPA6045S100MT: 10+/-20%, 0.062/0.048 DCR, SRF 15, Isat 3.20/3.50, Irms 2.45/2.70), catalog p.13, zoomed render cross-checked, Sunlord SWPA catalog revised 2023/09/01 — 2026-07-17"
+sourcing: {lcsc: C79272}

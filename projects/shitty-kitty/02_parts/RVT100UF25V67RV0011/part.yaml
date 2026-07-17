@@ -1,0 +1,29 @@
+mpn: RVT100UF25V67RV0011
+manufacturer: KNSCHA (Dongguan Knscha Electronics)
+type: aluminum_electrolytic_capacitor_smd
+datasheet:
+  doc_id: KNSCHA_RVT_Spec
+  revision: "2015-07-01"      # spec-for-approval, version history: full reissue 2015-07-01
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2105281608_KNSCHA-RVT100UF25V67RV0011_C2836443.pdf
+  sha256: 07e989288c3933b21ce18acf0cbb539e7109151173ec382a0a355072a2653d40
+  fetched: 2026-07-17
+package: SMD V-chip D6.3 x L7.7mm
+footprint: Capacitor_SMD:CP_Elec_6.3x7.7
+pins:                       # POLARIZED — from Marking (sec 5) + Drawing (sec 7)
+  1: {name: "+", note: "POSITIVE terminal = KiCad CP_Elec pad 1. On the part, the base drawing (sec 7) labels one terminal '正极 Positive'; the can TOP marking carries the NEGATIVE-polarity bar (sec 5: black band on the can top marks the negative side). Positive side of the plastic base is the side with the beveled/chamfered corners"}
+  2: {name: "-", note: "negative terminal — the can-top black polarity band points to this side"}
+limits:
+  capacitance: "100uF +/-20% @ 120Hz/20C"
+  v_rated: 25VDC
+  v_surge: 32VDC
+  tan_delta: "0.18 max @ 120Hz/20C (25V column)"
+  leakage: "25uA max (0.01CV, 2 min)"
+  ripple_current: "93mA rms max @ 105C/120Hz"
+  t_range: "-55 to +105C"
+  endurance: "2000h @ 105C rated voltage"
+gotchas:
+  - "POLARITY: electrolytic — reverse voltage destroys it. KiCad CP_Elec_6.3x7.7 pad 1 must land on the net that is positive"
+  - "Ripple rating only 93mA @ 120Hz — this is a bulk/hold-up cap, not a low-ESR switching cap; keep MLCCs next to the converter for HF ripple"
+  - "Silkscreen convention check at layout review: KiCad CP footprint marks '+' at pad 1; the PART's printed band marks the NEGATIVE side — opposite ends, a classic assembly trap"
+verified: "polarity read from sec 5 'Marking' (negative-polarity band on can top) and sec 7 'Drawing' base view labeled '正极 Positive', spec pages 6/16; electricals from item table p.3 (100/25, +/-20%, DF 0.18, LC 25uA, 6.3*7.7, ripple <=93mA) and spec table p.4, KNSCHA RVT spec reissued 2015-07-01 — 2026-07-17"
+sourcing: {lcsc: C2836443}

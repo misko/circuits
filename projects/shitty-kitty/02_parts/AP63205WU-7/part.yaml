@@ -1,0 +1,43 @@
+mpn: AP63205WU-7
+manufacturer: Diodes Incorporated
+type: buck_converter_fixed_5v
+datasheet:
+  doc_id: DS41326
+  revision: "Rev 3-2 (November 2024)"
+  url: https://www.diodes.com/assets/Datasheets/AP63200-AP63201-AP63203-AP63205.pdf
+  sha256: ef99daa3789d835bc025dfcb4c605c5c2e6d3e7223e86d40b33e6b497ea5a722
+  fetched: 2026-07-17
+package: TSOT26 (TSOT-23-6), body 2.9x1.6mm, pitch 0.95mm
+footprint: Package_TO_SOT_SMD:TSOT-23-6
+# Footprint match verified: KiCad TSOT-23-6 pads 1-2-3 / 6-5-4 two rows, 0.95mm
+# pitch, row span 2.275mm — matches datasheet TSOT26 outline (e=0.95 BSC,
+# E=2.8 BSC, D=2.9, E1=1.6) and suggested pad layout (C=0.95, Y1=3.2), p.17.
+pins:                       # PHYSICAL PADS, "Pin Assignments TOP VIEW" fig p.1
+  1: {name: FB, note: "on fixed AP63203/AP63205 connect FB DIRECTLY to VOUT (Fig 21 p.9) — no divider; internal divider sets 5.00V (4.95-5.05V, CCM)"}
+  2: {name: EN, note: "precision enable, 1.18V rising / 1.10V falling typ; internal 1.5uA (+4uA hysteresis) pull-up auto-starts if left OPEN"}
+  3: VIN
+  4: GND
+  5: SW
+  6: {name: BST, note: "bootstrap; 100nF ceramic from BST to SW required"}
+limits:
+  vin_abs_max: "35V DC (40V for 400ms); recommended operating 3.8-32V"
+  vout: "5.0V fixed (4.95/5.00/5.05V CCM)"
+  iout_max: 2A continuous
+  ipeak_limit_hs: "2.8A typ (2.5 min / 3.1 max), cycle-by-cycle, hiccup after 2ms"
+  fsw: "1.1MHz (AP63203/AP63205), +/-6% FSS jitter"
+  ven_abs_max: "-0.3 to +35V"
+  uvlo: "3.50V typ rising / 440mV hysteresis"
+  tj_max: "160C abs max; thermal shutdown +160C typ; theta_ja 89C/W (TSOT26)"
+recommended_circuit:        # Table 3 p.13 (AP63205, 5V out) + Fig 21 p.9
+  L: "4.7uH (Table 3); Isat >= 35% above max load, DCR < 100mR; ripple 30-50% of 2A"
+  C1_in: "10uF ceramic at VIN (ceramic >10uF sufficient for most applications)"
+  C2_out: "2 x 22uF ceramic (22-68uF ceramic sufficient for most applications)"
+  C3_bst: "100nF ceramic BST to SW"
+  en: "EN is a high-voltage pin and can be tied DIRECTLY to VIN (no resistor needed) for automatic startup, p.11; or leave open (internal pull-up); optional R5/R6 divider from VIN programs higher UVLO (Fig 22, Eq.1/2); small C EN-GND delays startup (Eq.3)"
+gotchas:
+  - "Pin 1 is FB even on the fixed-output versions — it is a SENSE pin that must be wired to the 5V output; leaving it floating loses regulation (Fig 21)"
+  - "Fixed vs adjustable: AP63200/01 need external divider on FB; AP63205 must NOT have one"
+  - "DS layout note (p.15): 2oz copper top+bottom; vias on input/output caps' GND side for heat; bottom layer under device = large GND plane; VIN caps as close to device as possible; FB components close to FB"
+  - "Layer under SW/L kept to top pour in DS Fig 25; BST cap C3 sits directly between pins 6 and 5"
+verified: "pin map read from 'Pin Assignments TOP VIEW TSOT26' figure, datasheet p.1 of 18, cross-checked with Pin Descriptions table p.2 and Marking Information top-view p.16 (pins 1-2-3 bottom row left-to-right with pin-1 dot, 6-5-4 top row), DS41326 Rev 3-2 — 2026-07-17"
+sourcing: {lcsc: C2071056}

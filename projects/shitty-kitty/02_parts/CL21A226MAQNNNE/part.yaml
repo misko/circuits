@@ -1,0 +1,12 @@
+mpn: CL21A226MAQNNNE
+manufacturer: Samsung Electro-Mechanics
+type: cap_mlcc
+value: '22uF 25V X5R'
+package: '0805'
+footprint: Capacitor_SMD:C_0805_2012Metric
+pins: {1: '1', 2: '2'}   # symmetric 2-pad
+datasheet: {doc_id: series, revision: n/a, url: n/a, sha256: n/a, fetched: null}
+verified: 'JLC attribute check 2026-07-17 (capacitance/voltage/dielectric confirmed live via parts search; BASIC tier; DC-bias derating noted in DETAIL_DESIGN)'
+sourcing:
+  lcsc: C45783
+  note: 'basic'

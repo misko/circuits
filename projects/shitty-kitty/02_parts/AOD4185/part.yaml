@@ -1,0 +1,36 @@
+mpn: AOD4185
+manufacturer: Alpha & Omega Semiconductor
+type: p_channel_mosfet
+datasheet:
+  doc_id: AOD4185
+  revision: "Rev 4.2 (June 2024)"
+  url: http://www.aosmd.com/pdfs/datasheet/AOD4185.pdf
+  sha256: 802ddad7fe99d4e597e764385da570b3f9699725d9c8a1755682113476f9991b
+  fetched: 2026-07-17
+package: TO-252 (DPAK)
+footprint: Package_TO_SOT_SMD:TO-252-2
+# Footprint match verified: KiCad TO-252-2 has pad 1 = left lead, pad 2 = big
+# tab pad, pad 3 = right lead (center lead of the 3-lead DPAK is cut).
+pins:                       # from "TO252 DPAK Top View / Bottom View" figure, p.1
+  1: {name: G, note: "left lead in top view"}
+  2: {name: D, tie: TAB, note: "tab IS the drain; center lead (cut on DPAK) is also drain. KiCad pad 2 = the tab — copper under the tab is at DRAIN potential"}
+  3: {name: S, note: "right lead in top view"}
+limits:
+  vds_abs_max: -40V
+  vgs_abs_max: "+/-20V"
+  vgs_th: "-1.7 to -3V (-1.9V typ)"
+  id_max: "-40A @ Tc=25C (bond-wire limited)"
+  rds_on: "12.5mR typ / 15mR max @ Vgs=-10V, Id=-20A; 16mR typ / 20mR max @ Vgs=-4.5V"
+  body_diode_vf: "-0.72V typ / -1V max"
+  tj_max: 175C
+gotchas:
+  - "P-channel: gate is pulled BELOW source to turn on; Vgs abs max +/-20V — fine directly on a 12V rail (source at +12V, gate to GND gives Vgs=-12V), but NOT on >20V rails without a gate zener/divider"
+  - "Tab = DRAIN. For reverse-polarity high-side protection the INPUT goes to the DRAIN (tab)
+     and the LOAD to the SOURCE, gate pulled to GND: the body diode (anode=drain, cathode=source)
+     conducts input->load at startup until the channel enhances; with reversed input the body
+     diode blocks and Vgs>=0 keeps the channel off. The tab copper is therefore at the RAW
+     input potential (VIN_F), not the protected rail. (Corrected 2026-07-17: an earlier note
+     had input/load swapped — that topology fails reversed-input through the body diode.)"
+  - "Polarity fact: body diode points S->D (anode at D, cathode at S in P-FET convention: conducts when drain is above source)"
+verified: "pin map read from 'TO252 DPAK Top View / Bottom View' package figure, datasheet p.1 of 6 (top view: tab=D, left lead=G, right lead=S; bottom view mirror-checked G on right), AOD4185 Rev 4.2 — 2026-07-17"
+sourcing: {lcsc: C400894}

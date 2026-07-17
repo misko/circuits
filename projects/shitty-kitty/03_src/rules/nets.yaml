@@ -1,0 +1,98 @@
+# shitty-kitty net architecture — source of truth for netclasses + DRU
+# floors. generate_rules.py emits these into 04_kicad/shitty_kitty.kicad_pro
+# and .kicad_dru. Defined BEFORE routing (kicad-pcb golden rule 3).
+
+fab_tier: jlc_4layer_standard  # 0.45/0.3 vias only — no advanced option needed (ADR-0003)
+
+classes:
+  PWR12:
+    intent: >
+      12V entry chain + motor supply: barrel -> fuse -> P-FET -> VIN_12V
+      -> TMC2209 VS. Worst case ~1.5A steady (DETAIL_DESIGN). 0.8mm floor
+      (~2.2A at 20C rise, 1oz) + In2 pour under the power corner.
+    nets: [VIN_RAW, VIN_F, VIN_12V]
+    current: 1.5A
+    min_width: 0.8mm
+    routing: SE power corner; In2 pour is the trunk, F.Cu wide taps
+    verify: DRC floor; audit checks entry chain polarity
+
+  MOTOR:
+    intent: >
+      Four phase lines U2 -> J5, 1A RMS chopped. 0.6mm floor (~1.6A).
+      Short, paired (A1/A2, B1/B2), SE corner only, over In1 GND.
+    nets: [MOT_A1, MOT_A2, MOT_B1, MOT_B2]
+    current: 1.0A
+    min_width: 0.6mm
+    routing: direct driver->connector, no wandering
+    verify: DRC floor; audit I7 separation from ELEC region
+
+  SENSE:
+    intent: >
+      TMC2209 BRA/BRB sense-resistor returns; carry full phase current
+      into the sense resistors. Same ampacity as MOTOR.
+    nets: [BRA, BRB]
+    current: 1.0A
+    min_width: 0.6mm
+    routing: tight at U2/Rs pads
+    verify: DRC floor
+
+  PWR5:
+    intent: >
+      5V buck output: 2A max (1.5A host header + 0.5A on-board). 0.6mm
+      floor + In2 pour segment.
+    nets: ["5V"]
+    current: 2.0A
+    min_width: 0.6mm
+    routing: buck -> host header + LDO, In2 pour assist
+    verify: DRC floor
+
+  SW:
+    intent: >
+      Buck switch node, 1.1MHz, 2A peaks. Kept minimal area but full
+      ampacity — 0.6mm floor. The aggressor: never near ELEC nets.
+    nets: [SW_BUCK, BST]
+    current: 2.0A
+    min_width: 0.5mm
+    routing: shortest possible U8 -> L1
+    verify: DRC floor; audit I7
+
+  PWR3V3:
+    intent: >
+      3V3 logic rail, ESP32 WiFi peaks ~0.4A. 0.5mm floor + In2 pour.
+    nets: [3V3]
+    current: 0.5A
+    min_width: 0.5mm
+    routing: LDO -> module + sensor cluster
+    verify: DRC floor
+
+  ELEC:
+    intent: >
+      THE product-critical class: 24 capacitive electrode lines, header
+      pad -> MPR121 ELE pin. High impedance, sub-pF sensitivity. Short
+      (<20mm), 0.25mm width, >=0.3mm clearance, F.Cu over unbroken In1
+      GND, never crossing under buck/driver/motor nets (audit I7).
+    nets: [INNER1, INNER2, INNER3, INNER4, INNER5, INNER6, INNER7,
+           INNER8, INNER9, INNER10, INNER11, INNER12,
+           OUTER1, OUTER2, OUTER3, OUTER4, OUTER5, OUTER6, OUTER7,
+           OUTER8, OUTER9, OUTER10, OUTER11, OUTER12]
+    current: signal
+    min_width: 0.25mm
+    # NOTE: no hard DRU clearance floor — the MPR121's own 0.4mm-pitch pads
+    # sit 0.2mm apart between adjacent electrode nets; a 0.3mm floor would
+    # fail the footprint itself. Router is invoked with 0.3mm clearance for
+    # the ELEC wave instead; audit checks the separation intent.
+    routing: adjacency-by-placement; stubs straight north to headers
+    verify: audit I7 (separation) + fresh-eyes render review
+
+  USB:
+    intent: >
+      Full-speed USB pair, J2 -> ESD -> module IO19/20. Tight pair over
+      In1 GND, < 40mm.
+    nets: [USB_DP, USB_DM]
+    current: signal
+    min_width: 0.2mm
+    routing: paired, W region
+    verify: render review
+
+# Everything else Default 0.25mm signal / 0.2mm clearance: I2C, IRQs,
+# STEP/DIR/ENN/DIAG/INDEX, TMC UART, host UART, endstop, LEDs, straps.

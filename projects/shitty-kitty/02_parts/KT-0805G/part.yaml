@@ -1,0 +1,21 @@
+mpn: KT-0805G
+manufacturer: Hubei KENTO
+type: led
+datasheet:
+  doc_id: KT-0805G
+  revision: series
+  url: https://www.kento-led.com/
+  sha256: PENDING-FETCH   # series-sheet part, no PDF committed; see README.md deviations
+  fetched: null
+package: 0805
+footprint: LED_SMD:LED_0805_2012Metric
+pins:
+  1: 'K (cathode) -> GND'
+  2: 'A (anode) <- resistor'
+limits: 'Vf ~2.7V green, 5mA nominal'
+gotchas:
+  - 'PAD 1 = CATHODE - a pin1=A symbol reversed an LED once'
+verified: 'polarity fact pad1=cathode carried from crowsync-recorder/usb-power-3s footprint marker check (2026-07-14); re-verify green dot/cathode mark on first reel'
+sourcing:
+  lcsc: C2297
+  note: 'BASIC, 3.2M stock 2026-07-17'
