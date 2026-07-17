@@ -1,5 +1,14 @@
 # CHANGELOG — esp32-laser-timing
 
+## v1.2 — 2026-07-17
+Released: 07_releases/v1.2-2026-07-17/
+- FIX (render only): J1 USB-C 3D model rendered 180deg flipped (JLC model
+  vs footprint); mouth appeared to face inboard. model_rot_z:180
+  adjudication -> mouth faces board edge, body on courtyard 0.09mm. Pads
+  always correct (fit 0.00mm). Present since v1.0.
+- Fab files (gerbers/BOM/CPL/PDF) BYTE-IDENTICAL to v1.1. Supersedes v1.1.
+
+
 ## v1.1 — 2026-07-17
 Released: 07_releases/v1.1-2026-07-17/
 - FIX: all 72 reference designators now print on the silkscreen (F.SilkS)

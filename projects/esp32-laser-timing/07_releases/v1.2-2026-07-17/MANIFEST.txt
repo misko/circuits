@@ -1,0 +1,20 @@
+board:        esp32_laser_timing
+version:      v1.2
+ordered:      2026-07-17
+git_sha:      431561d
+git_dirty:    false
+kicad:        10.0.4
+tools:        KRT@b0b1067, python 3.12, jlcpcb-fab skill scripts 2026-07
+supersedes:   v1.1-2026-07-17 — J1 USB-C twin-render orientation fix (model_rot_z:180). FAB FILES BYTE-IDENTICAL to v1.1 (hashes below match v1.1).
+fab:          JLCPCB, 2 layer, STANDARD options (no small-via needed; min drill 0.3mm)
+quantity:     5
+change:       twin render only — J1 model_rot_z:180 (mouth now faces board edge; body on courtyard 0.09mm). No board/copper/BOM/CPL change.
+gates:        ERC 0 · DRC 0/0/0 · parity 0 · AUDIT PASS 0/0 (I10 refdes-on-silk) · jlc_twin exit 0 (J1 + U2 mount, 0 unadjudicated criticals) · pin review carried fwd · render review dispositioned
+sha256:
+  esp32_laser_timing_gerbers.zip  b3a0c897a47e584904fb17ccfbe725145ba3dd7b2180b49679c793b084ae4466
+  bom.csv                         015ee5ea6037766b653e46ffb68449117cd30afcb13a5da0cd6d16271ecc64b2
+  cpl.csv                         a54ecc66cbafa885aedbd910030e46fa5e1a362fe4338ee8c885505e0bb9511d
+  pdf/schematic.pdf               c72902742dd96f9cfdba1a10304d157f739dfa54902d350b36cee671eb6f141e
+  pdf/pcb_layers.pdf              be04ac99afbc327253fd1f22e04830510bda1cbffe167bc07204d81fb97b486e
+  pdf/assembly_top.pdf            742f6e0c43bca19ed249041dda406cb071c5f585bcc6020d47571f3ab009503d
+not_assembled: J4-J12 (9x KF128L-3.5-2P 3.5mm screw terminals, C474930, hand-solder) · J2 (2.54mm 1x4 female socket, e.g. C2718488, hand-solder)
