@@ -6,7 +6,9 @@ actually send?*
 
 **Mutability** — **IMMUTABLE**. A release directory is written once, at
 order time, and never touched again. Not re-exported into. Not "refreshed".
-Not tidied.
+Not tidied. ONE exception: when a later release supersedes this one, a
+single new file `SUPERSEDED.md` may be ADDED (never editing anything that
+exists) naming the successor directory and the one-line reason.
 
 ## Why this folder exists
 
@@ -62,6 +64,17 @@ not_assembled: J4,J5,J13 (THT USB-A, hand-solder) · F1 cartridge (user-supplied
 
 `git_sha` + `git_dirty: false` is the load-bearing pair: it means the release
 can be reproduced byte-for-byte from source.
+
+## Fix-claim evidence rule
+
+A release whose MANIFEST claims a FIX or verification refresh relative to a
+prior release must carry, in `verification/`, the MEASUREMENT that proves
+that specific claim (numbers + method + what was measured), by a method
+able to FALSIFY it independently of whoever produced the fix (render
+before/after diff, landmark-calibrated pixels, or a fresh-context agent
+confirming the specific claim). A refresh once shipped claiming a model
+re-seated when the nudge had moved it 90deg the wrong way — checker and
+checked shared a method.
 
 ## Forbidden
 

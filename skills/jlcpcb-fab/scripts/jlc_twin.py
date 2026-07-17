@@ -162,6 +162,49 @@ def best_fit(ours, jlc):
     return sorted(fits)
 
 
+def board_to_local(bdx, bdy, rot_deg):
+    """Convert a board-frame nudge (+x east, +y south) to footprint-local
+    (rot-0) frame for a part rotated rot_deg on the board. KiCad rotation
+    is CCW in the y-down screen frame: local->board is
+    (lx*cos+ly*sin, -lx*sin+ly*cos); this is the inverse."""
+    th = math.radians(rot_deg)
+    return (bdx * math.cos(th) - bdy * math.sin(th),
+            bdx * math.sin(th) + bdy * math.cos(th))
+
+
+def local_to_board(ldx, ldy, rot_deg):
+    th = math.radians(rot_deg)
+    return (ldx * math.cos(th) + ldy * math.sin(th),
+            -ldx * math.sin(th) + ldy * math.cos(th))
+
+
+def model_self_check(jfp, jca):
+    """MODEL-SELF: does JLC's 3D model sit on JLC's OWN footprint pads?
+    Computed entirely in THEIR frame - no mount math, no land-pattern
+    involvement - so it isolates model-internal defects (a DPAK model was
+    drawn ~0.95mm off its own pads and every mount-side check misfiled it,
+    2026-07-16). Returns (dx, dy) of model plan-bbox center vs the
+    common-pad centroid in the JLC footprint frame (y-down), or None."""
+    jmodels = list(jfp.Models())
+    if not jmodels:
+        return None
+    mb = wrl_bbox(jmodels[0].m_Filename)
+    if not mb:
+        return None
+    jm = jmodels[0]
+    mrot = math.radians(jm.m_Rotation.z)
+    cm, sm = math.cos(mrot), math.sin(mrot)
+    xs, ys = [], []
+    for mx in (mb[0], mb[2]):
+        for my in (mb[1], mb[3]):
+            rx = mx * cm - my * sm
+            ry = mx * sm + my * cm
+            xs.append(rx * jm.m_Scale.x + jm.m_Offset.x)
+            ys.append(-(ry * jm.m_Scale.y + jm.m_Offset.y))
+    return ((min(xs) + max(xs)) / 2 - jca[0],
+            (min(ys) + max(ys)) / 2 - jca[1])
+
+
 def wrl_bbox(path):
     """Plan-view (x,y) bbox of a KiCad WRL model, in mm.
     KiCad VRML convention: 1 VRML unit = 2.54 mm. Returns (minx,miny,maxx,maxy)
@@ -262,6 +305,14 @@ def main():
                          for a in adjudicated
                          if a.get("model_dx") is not None
                          or a.get("model_dy") is not None}
+    # board-frame nudges: PREFERRED - the tool converts through each ref's
+    # rotation, so the adjudicator never does frame math (a hand-converted
+    # nudge shipped 90deg wrong once, 2026-07-16)
+    board_xy_override = {a["lcsc"]: (float(a.get("board_dx", 0)),
+                                     float(a.get("board_dy", 0)))
+                         for a in adjudicated
+                         if a.get("board_dx") is not None
+                         or a.get("board_dy") is not None}
 
     def adjudicate(lcsc, ref, status):
         for a in adjudicated:
@@ -294,6 +345,7 @@ def main():
             continue
         jfp = pcbnew.FootprintLoad(str(Path(fp_path).parent),
                                    Path(fp_path).stem)
+        self_checked = False
         for ref in [d.strip() for d in r["Designator"].split(",")]:
             fp = by_ref.get(ref)
             if fp is None:
@@ -343,6 +395,18 @@ def main():
             # model ~60mm off its part - found 2026-07-16)
             oc = (_oca[0] - fp.GetPosition().x / 1e6,
                   _oca[1] - fp.GetPosition().y / 1e6)
+            if not self_checked:
+                self_checked = True
+                sc = model_self_check(jfp, _jca)
+                if sc and min(abs(sc[0]), abs(sc[1])) > 0.4:
+                    findings.append((lcsc, ref, "MODEL-SELF",
+                                     f"JLC model bbox center off JLC's OWN "
+                                     f"pads by ({sc[0]:+.2f},{sc[1]:+.2f})mm "
+                                     "in their frame - model-internal "
+                                     "defect; expect the render to need an "
+                                     "adjudicated board_dx/board_dy nudge, "
+                                     "and distrust bbox MODEL-REG numbers "
+                                     "for this part"))
             fits = best_fit(opads, jpads_c)
             good = [f for f in fits if f[0] <= FIT_TOL]
             if not good:
@@ -398,12 +462,23 @@ def main():
             if lcsc in model_rot_override:
                 mrotz[ref] = model_rot_override[lcsc]
         for ref, (jfp, ang, oc, jc_common, lcsc) in twin.items():
-            # adjudicated per-part mount nudge (our footprint-local mm,
-            # +x east +y south at rot 0) - evidence-backed, for PAD-GEOM
-            # parts whose land-pattern disagreement mis-seats the render
-            dx, dy = model_xy_override.get(lcsc, (0.0, 0.0))
-            oc = (oc[0] + dx, oc[1] + dy)
+            # adjudicated per-part mount nudge - evidence-backed, for parts
+            # whose model mis-seats in the render. board_dx/board_dy are
+            # converted per-ref through the part rotation; model_dx/dy are
+            # raw footprint-local. Every applied nudge is echoed in BOTH
+            # frames so intent vs applied is auditable in the log.
             fp = tb.FindFootprintByReference(ref)
+            dx, dy = model_xy_override.get(lcsc, (0.0, 0.0))
+            if fp and lcsc in board_xy_override:
+                bdx, bdy = board_xy_override[lcsc]
+                cdx, cdy = board_to_local(bdx, bdy, fp.GetOrientationDegrees())
+                dx, dy = dx + cdx, dy + cdy
+            if fp and (dx or dy):
+                ebx, eby = local_to_board(dx, dy, fp.GetOrientationDegrees())
+                print(f"NUDGE {ref} ({lcsc}): local({dx:+.2f},{dy:+.2f})mm "
+                      f"-> board({ebx:+.2f},{eby:+.2f})mm east+/south+ "
+                      f"[rot {fp.GetOrientationDegrees():.0f}]")
+            oc = (oc[0] + dx, oc[1] + dy)
             jmodels = list(jfp.Models())
             if not fp or not jmodels:
                 continue
@@ -495,7 +570,7 @@ def main():
         else:
             out_f.append((lcsc, ref, status, detail))
     findings = out_f
-    order = {"MIRRORED": 0, "PAD-MISMATCH": 1, "PAD-GEOM": 2, "MODEL-REG": 3,
+    order = {"MIRRORED": 0, "PAD-MISMATCH": 1, "PAD-GEOM": 2, "MODEL-SELF": 3, "MODEL-REG": 3,
              "POLARITY-CHECK": 4, "ROT-DB-SUGGEST": 5, "NO-CAD": 6,
              "NOT-ON-BOARD": 7, "MODEL-REG-OK": 8, "OK": 9}
     for f in sorted(findings, key=lambda x: order.get(x[2], 9)):

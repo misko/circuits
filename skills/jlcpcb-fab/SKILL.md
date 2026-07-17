@@ -253,18 +253,24 @@ never runs for exactly the parts a human solders by eye.
    `model_dy` in the adjudication entry (OUR footprint-local mm, +x east
    +y south at rot 0), chosen from pixel measurements of the metal vs our
    pads and recorded with that evidence - never a global anchor tweak.
-   THREE traps, each hit live (2026-07-16): (a) the nudge is FOOTPRINT-
-   LOCAL - for a part rotated 90deg on the board, local +x is board -y;
-   convert board-frame corrections through the part rotation, then verify
-   the applied vector by DIFFING the before/after renders (body-pixel
-   centroid), never by re-eyeballing. (b) classify model vs board pixels
-   by the render DIFF, not by color: exposed pads are NOT reliably bright,
-   lead metal IS - a color-rule scan validated a wrong nudge once, and a
-   static bright board feature near a pad polluted the measurement twice.
-   (c) a JLC model can be drawn OFF JLC'S OWN footprint (model-internal
-   defect, ~1mm seen live) - transverse to the land-pattern delta, and it
-   makes bbox MODEL-REG numbers worse AFTER a correct fix, including a
-   spurious 180-flip hint; when metal-vs-pad and bbox disagree, metal wins.
+   THREE traps, each hit live (2026-07-16), now with tool-side guards:
+   (a) FRAME: write nudges as `board_dx`/`board_dy` (board frame, +x east
+   +y south) and let the tool convert through each ref's rotation - a
+   hand-converted `model_dx` shipped 90deg wrong once. Every applied
+   nudge prints a `NUDGE ref: local(..)->board(..)` echo line: READ IT
+   and check the board-frame vector matches your intent before trusting
+   any render. Then verify the applied shift by DIFFING before/after
+   renders (body-pixel centroid), never by re-eyeballing.
+   (b) MEASUREMENT: classify model vs board pixels by the render DIFF,
+   not by color - exposed pads are NOT reliably bright, lead metal IS; a
+   color-rule scan validated a wrong nudge once, and a static bright
+   board feature near a pad polluted the measurement twice.
+   (c) MODEL-SELF (automated): the twin now checks each JLC model
+   against JLC's OWN pads in THEIR frame - a model drawn off its own
+   footprint (~1mm seen live) fires MODEL-SELF, which tells you a nudge
+   will be needed and that bbox MODEL-REG numbers (including the
+   180-flip hint) are untrustworthy for that part. When metal-vs-pad
+   and bbox disagree, metal wins.
 3b. PAD-GEOM gate (critical, exit 1): pairwise pad-center distances between
    our footprint and JLC's must agree within 0.3mm. Pairwise distances are
    rotation/translation-INVARIANT, so unlike the best-fit residual - which

@@ -6,7 +6,10 @@ actually send?*
 
 **Mutability** — **IMMUTABLE**. A release directory is written once, at
 order time, and never touched again. Not re-exported into. Not "refreshed".
-Not tidied.
+Not tidied. ONE exception: when a later release supersedes this one, a
+single new file `SUPERSEDED.md` may be ADDED (never editing anything that
+exists) naming the successor directory and the one-line reason — so nobody
+finds the old folder first and trusts a superseded artifact.
 
 ## Why this folder exists
 
@@ -69,11 +72,28 @@ not_assembled: J4,J5,J13 (THT USB-A, hand-solder) · F1 cartridge (user-supplied
 `git_sha` + `git_dirty: false` is the load-bearing pair: it means the release
 can be reproduced byte-for-byte from source.
 
+## Fix-claim evidence rule
+
+A release whose MANIFEST claims a FIX or verification refresh relative to a
+prior release (e.g. "Q1 seated", "renders corrected") must carry, in
+`verification/`, the MEASUREMENT that proves that specific claim: the
+numbers, the method, and what was measured — and the method must be able to
+FALSIFY the claim independently of whoever produced the fix (render
+before/after diff, landmark-calibrated pixel measurement, or a
+fresh-context agent confirming the specific claim). Why: a verification
+refresh (v1.0.1) once shipped claiming a model re-seated when the nudge had
+actually moved it 90 degrees the wrong way — the claim was "verified" by
+the same flawed color-scan reasoning that produced the fix. Checker and
+checked must not share a method.
+
 ## Forbidden
 
 - **Generators writing here.** They write `04_kicad/` and `06_build/` only.
-- Editing any file in a release directory after it is written. If something
-  is wrong, cut a NEW release; the wrong one is a historical fact.
+- Editing any file in a release directory after it is written (SUPERSEDED.md
+  addition excepted). If something is wrong, cut a NEW release; the wrong
+  one is a historical fact.
+- A fix-claim in the MANIFEST without its falsifiable measurement in
+  `verification/` (see rule above).
 - Releasing from a dirty working tree (`git_dirty: true`).
 - A release whose gates did not pass. `verification/` holds the evidence;
   an empty or failing `verification/` means it is not a release.
@@ -91,6 +111,10 @@ can be reproduced byte-for-byte from source.
   in the MANIFEST sha256 table and visually verified via PNG before release
 - `verification/` non-empty and its reports show passing gates
 - `01_docs/CHANGELOG.md` has an entry whose `Released:` names this directory
+- if any later sibling release names this one as superseded, this directory
+  contains `SUPERSEDED.md` pointing forward
+- if the MANIFEST claims a fix/refresh vs a prior release, `verification/`
+  contains the falsifiable measurement for that claim
 
 ## Repair
 
