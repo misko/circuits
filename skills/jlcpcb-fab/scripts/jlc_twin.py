@@ -12,7 +12,25 @@ For every BOM line with an LCSC code, fetch JLC's OWN footprint + 3D model
      and render top/bottom - a local preview of what JLC's viewer will show.
 
 usage: jlc_twin.py board.kicad_pcb bom_jlc.csv outdir
-Exit 1 on any MIRRORED or PAD-MISMATCH finding.
+Exit 1 on any MIRRORED, PAD-MISMATCH, or PAD-GEOM finding.
+
+Checks beyond the fit itself:
+  - PAD-GEOM: pairwise pad-center distances (rotation/translation-invariant,
+    so no best-fit can smear them) must agree between our footprint and
+    JLC's within PAD_GEOM_TOL. A disagreement means the two land patterns
+    differ dimensionally - the model WILL render off our pads by part of
+    that delta, and someone must decide which pattern matches the part
+    datasheet (adjudicate with evidence). Found via a DPAK whose tab-to-lead
+    distance differed 0.65mm; the fit split it into an unexplained 0.43mm
+    residual (2026-07-16).
+  - POLARITY-CHECK: 2-pad polarized parts (electrolytics, diodes, LEDs)
+    where 0 and 180 fit the pads equally - the pad fit cannot orient the
+    model, so its polarity marking in the render is unverified and must be
+    checked against our silk + the JLC order preview.
+  - --also REF=LCSC[,REF=LCSC..]: include hand-solder/uncoded parts with
+    known LCSC codes so their bodies render too (connector overhang and
+    orientation checks otherwise never run for exactly the parts a human
+    solders by eye).
 
 Run with the KiCad-bundled python (/usr/bin/python3, pcbnew importable).
 Requires easyeda2kicad (pip); resolved from $EASYEDA2KICAD or known venvs.
@@ -38,6 +56,8 @@ E2K = next((c for c in E2K_CANDIDATES if c and os.path.exists(c)), None)
 RIGHT_ANGLES = (0, 90, 180, 270)
 FIT_TOL = 0.5      # mm max per-pad error for a "fit"
 MIRROR_MARGIN = 1.0  # mirrored fit must beat non-mirrored by this to accuse
+PAD_GEOM_TOL = 0.3   # mm max pairwise pad-distance disagreement ours vs JLC
+POLARIZED_FP = ("CP_", "C_Elec", "D_", "LED", "Diode")  # 0/180-ambiguity check
 
 
 def fetch(lcsc, cachedir):
@@ -88,6 +108,34 @@ def xform(d, ang, mir):
         out[k] = sorted((round(x * c - y * s, 3), round(x * s + y * c, 3))
                         for x, y in pts)
     return out
+
+
+def pad_centroids(d):
+    return {k: (sum(x for x, _ in v) / len(v), sum(y for _, y in v) / len(v))
+            for k, v in d.items()}
+
+
+def pad_geom_diff(ours, jlc, common):
+    """Worst pairwise pad-center distance disagreement between the two
+    footprints over the common pad numbers. Rotation/translation-invariant:
+    unlike the best-fit residual (which splits a land-pattern disagreement
+    across pads and reports an unexplained scalar), this pins the delta to a
+    named pad pair. Returns (max_delta_mm, "k1<->k2 ours X vs JLC Y")."""
+    oc = pad_centroids({k: ours[k] for k in common})
+    jc = pad_centroids({k: jlc[k] for k in common})
+    ks = sorted(common)
+    worst, detail = 0.0, ""
+    for i in range(len(ks)):
+        for j in range(i + 1, len(ks)):
+            do = math.hypot(oc[ks[i]][0] - oc[ks[j]][0],
+                            oc[ks[i]][1] - oc[ks[j]][1])
+            dj = math.hypot(jc[ks[i]][0] - jc[ks[j]][0],
+                            jc[ks[i]][1] - jc[ks[j]][1])
+            if abs(do - dj) > worst:
+                worst = abs(do - dj)
+                detail = (f"pad {ks[i]}<->{ks[j]} ours {do:.2f}mm "
+                          f"vs JLC {dj:.2f}mm")
+    return worst, detail
 
 
 def fit_err(a, b):
@@ -198,6 +246,9 @@ def main():
     ap.add_argument("--adjudications", default="",
                     help="YAML list of reviewed findings to accept: "
                          "[{lcsc, refs: [..], status, why}]")
+    ap.add_argument("--also", default="",
+                    help="REF=LCSC[,REF=LCSC..]: mount+check hand-solder/"
+                         "uncoded parts with known codes (e.g. J1=C98732)")
     args = ap.parse_args()
     adjudicated = []
     if args.adjudications and os.path.exists(args.adjudications):
@@ -224,7 +275,12 @@ def main():
     db = rot_db(args.rotations_db)
 
     lines = [r for r in csv.DictReader(open(args.bom)) if r.get("LCSC")]
-    findings, criticals, twin = [], [], {}
+    for pair in [p for p in args.also.split(",") if p.strip()]:
+        ref, _, code = pair.partition("=")
+        if not code:
+            sys.exit(f"--also expects REF=LCSC, got: {pair}")
+        lines.append({"Designator": ref.strip(), "LCSC": code.strip()})
+    findings, criticals, twin, padgeom = [], [], {}, {}
     for r in lines:
         lcsc = r["LCSC"]
         fp_path, err = fetch(lcsc, out / "easyeda")
@@ -253,6 +309,16 @@ def main():
                 findings.append((lcsc, ref, "PAD-MISMATCH", "no common pad numbers"))
                 criticals.append(ref)
                 continue
+            # land-pattern geometry gate: pairwise distances can't be smeared
+            # by the fit the way the residual can
+            gd, gdet = pad_geom_diff(opads_raw, jraw, common)
+            padgeom[ref] = gd
+            if gd > PAD_GEOM_TOL:
+                findings.append((lcsc, ref, "PAD-GEOM",
+                                 f"{gdet} (d{gd:.2f}mm) - land patterns "
+                                 "disagree; adjudicate against the part "
+                                 "datasheet's recommended pattern"))
+                criticals.append(ref)
             _oca = centroid({k: opads_raw[k] for k in common})
             _jca = centroid({k: jraw[k] for k in common})
             opads = {k: [(x - _oca[0], y - _oca[1]) for x, y in v]
@@ -289,6 +355,21 @@ def main():
                 e, mir, ang = nonmir[0]
             # rotation-db audit: fitted ang is the JLC CPL offset
             fpname = str(fp.GetFPID().GetLibItemName())
+            # 2-pad polarized parts: the pad-number fit orients the MOUNT,
+            # but a 180-flipped MODEL (wrong internal orientation vs JLC's
+            # own footprint - the XT60 class) is invisible to both the fit
+            # and MODEL-REG when the body bbox is symmetric. The polarity
+            # marking in the render is the only signal: check it by eye
+            # against our silk, and the CPL rotation in the JLC preview.
+            if (len(common) == 2
+                    and any(fpname.startswith(p) or f"_{p}" in fpname
+                            for p in POLARIZED_FP)):
+                findings.append((lcsc, ref, "POLARITY-CHECK",
+                                 "2-pad polarized part: verify the model's "
+                                 "polarity marking vs our silk in the render "
+                                 "(if the model is unmarked, verify via the "
+                                 "JLC order preview) - machine checks cannot "
+                                 "see a 180-flipped symmetric model"))
             db_off = next((off for _, pat, off in db if pat.search(fpname)), 0.0)
             status = "OK" if (ang - db_off) % 360 == 0 else "ROT-DB-SUGGEST"
             findings.append((lcsc, ref, status,
@@ -326,9 +407,15 @@ def main():
                     hint = (" -> 180-flipped model: add {lcsc: %s, model_rot_z: 180} "
                             "to the adjudications file" % lcsc
                             if rc2 and rc2[0] < 1.0 else "")
+                    # decomposition context: any land-pattern disagreement is
+                    # PART of this delta - an adjudication must account for
+                    # it separately, not file it under "bbox asymmetry"
+                    pg = padgeom.get(ref, 0.0)
+                    pgnote = (f", incl. pad_geom_delta={pg:.2f}mm"
+                              if pg > 0.1 else "")
                     findings.append((lcsc, ref, "MODEL-REG",
                                      f"body center {rc[0]:.1f}mm off courtyard, "
-                                     f"area ratio {rc[1]:.2f}{hint}"))
+                                     f"area ratio {rc[1]:.2f}{pgnote}{hint}"))
                 elif rc:
                     findings.append((lcsc, ref, "MODEL-REG-OK",
                                      f"body on courtyard ({rc[0]:.2f}mm)"))
@@ -382,7 +469,7 @@ def main():
     out_f = []
     for lcsc, ref, status, detail in findings:
         why = adjudicate(lcsc, ref, status)
-        if why and status in ("MIRRORED", "PAD-MISMATCH", "NO-CAD"):
+        if why and status in ("MIRRORED", "PAD-MISMATCH", "PAD-GEOM", "NO-CAD"):
             for r in str(ref).split(","):
                 if r.strip() in criticals:
                     criticals.remove(r.strip())
@@ -390,8 +477,9 @@ def main():
         else:
             out_f.append((lcsc, ref, status, detail))
     findings = out_f
-    order = {"MIRRORED": 0, "PAD-MISMATCH": 1, "MODEL-REG": 2, "ROT-DB-SUGGEST": 3,
-             "NO-CAD": 4, "NOT-ON-BOARD": 5, "MODEL-REG-OK": 6, "OK": 7}
+    order = {"MIRRORED": 0, "PAD-MISMATCH": 1, "PAD-GEOM": 2, "MODEL-REG": 3,
+             "POLARITY-CHECK": 4, "ROT-DB-SUGGEST": 5, "NO-CAD": 6,
+             "NOT-ON-BOARD": 7, "MODEL-REG-OK": 8, "OK": 9}
     for f in sorted(findings, key=lambda x: order.get(x[2], 9)):
         print("  ".join(str(x) for x in f))
     n_ok = sum(1 for f in findings if f[2] == "OK")

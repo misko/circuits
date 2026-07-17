@@ -222,8 +222,14 @@ footprints. This stage verifies the correspondence offline:
 
 ```
 python3(pcbnew) scripts/jlc_twin.py BOARD bom_jlc.csv OUTDIR \
-    --adjudications <project>/03_src/rules/twin_adjudications.yaml
+    --adjudications <project>/03_src/rules/twin_adjudications.yaml \
+    --also J1=C98732,J2=C53133490   # hand-solder parts with known codes
 ```
+
+Always pass `--also REF=LCSC` for hand-solder/uncoded parts whose LCSC code
+is known (they're in the MANIFEST's not_assembled list): otherwise their
+bodies never render and the connector-overhang/orientation class of check
+never runs for exactly the parts a human solders by eye.
 
 1. Fetches JLC's own footprint + 3D model per LCSC code (easyeda2kicad,
    cached per-code in OUTDIR/easyeda/; EasyEDA rate-limits bursts - the
@@ -238,11 +244,37 @@ python3(pcbnew) scripts/jlc_twin.py BOARD bom_jlc.csv OUTDIR \
 3. Rotation audit: fitted angle vs jlc_rotations_db.csv; disagreements print
    suggested rows. The DB stays the empirical layer (JLC's assembly-zero is
    not always their EDA-zero) - verify in the JLC preview, don't blind-apply.
+3b. PAD-GEOM gate (critical, exit 1): pairwise pad-center distances between
+   our footprint and JLC's must agree within 0.3mm. Pairwise distances are
+   rotation/translation-INVARIANT, so unlike the best-fit residual - which
+   splits a land-pattern disagreement across the pads and reports an
+   unexplained scalar - they pin the delta to a named pad pair. Case that
+   forced this: a DPAK whose KiCad tab-to-lead distance was 6.70mm vs JLC's
+   7.31mm rendered its body 0.4-0.9mm off-pad, while the old output showed
+   only "fit=0.43mm" and a MODEL-REG that got adjudicated away as bbox
+   asymmetry. Adjudicating a PAD-GEOM requires citing which pattern matches
+   the part datasheet's recommended land pattern.
+3c. POLARITY-CHECK (informational, every 2-pad polarized part): the
+   pad-number fit orients the MOUNT, but a 180-flipped MODEL (wrong internal
+   orientation vs JLC's own footprint - the XT60 class) is invisible to the
+   fit AND to MODEL-REG when the body bbox is symmetric. The render's
+   polarity marking is the only machine-unverifiable signal left: check it
+   by eye against our silk (prefer structural markers - polymer-can base
+   bevel = positive side - over ambiguous paint like top crescents), and if
+   the model is unmarked (some LED models are), fall back to the JLC order
+   preview + CPL rotation.
 4. Known-different findings (merged drain pad vs JLC's split fingers, THT
    clip-pin counts, parts absent from EasyEDA) go in the project's
    twin_adjudications.yaml WITH the verification evidence - the gate is
    ZERO unadjudicated criticals, and the release MANIFEST cites the twin
-   report in verification/.
+   report in verification/. Adjudication decomposition rule: a position
+   finding's delta must be accounted for BY MECHANISM - MODEL-REG now
+   prints `incl. pad_geom_delta=X` when a land-pattern disagreement is
+   part of the number, and "bbox asymmetry" may only explain the portion
+   measured in the model's own frame. If per-pad measurements show a
+   pad GROUP shifted systematically in one direction, that is a land-
+   pattern delta and may NOT be filed under "fit residual" (an
+   adjudication did exactly that and buried a real 0.6mm disagreement).
 5. Twin render mounts JLC's WRL models on YOUR board (six views:
    twin_{top,bottom,iso_nw,iso_se,edge_west,edge_east}.png + twin.kicad_pcb
    to orbit in the KiCad 3D viewer; the edge profiles double as component-
