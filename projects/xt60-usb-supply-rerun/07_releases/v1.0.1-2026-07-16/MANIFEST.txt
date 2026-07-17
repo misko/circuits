@@ -1,0 +1,19 @@
+board:        xt60-usb-supply
+version:      v1.0.1
+ordered:      2026-07-16 (package cut; order not yet placed)
+git_sha:      341a8ea (verification refresh; fab files IDENTICAL to v1.0, source 2316609)
+git_dirty:    false
+kicad:        10.0.4
+tools:        KiCadRoutingTools@b0b1067, python 3.12 (/usr/bin/python3 pcbnew), easyeda2kicad 1.0.1
+fab:          JLCPCB, 4 layer standard (JLC04161H-7628), 1.6mm, 1oz outer; NO small-via option needed (min via 0.55/0.3)
+quantity:     5
+gates:        DRC 0 violations / 0 unconnected / 0 schematic-parity - audit PASS (I1-I7, proximity 21 pairs, polarity 8 checks, In1 clean) - netlist parity PASS (28 nets/151 nodes) - stock 20/20 coded lines >=5x qty - digital twin v2: exit 0, PAD-GEOM land-pattern gate active (Q1/D1/LED1 adjudicated with evidence), Q1 render seated via model_dx, XT60 body mounted (--also C98732); see 03_src/rules/twin_adjudications.yaml - fresh-context pin review ALL PASS
+not_assembled: J1 (XT60PW-M, C98732) + J2,J3,J4 (XY-AF90-WJDG USB-A, C53133490) - THT hand-solder, see ORDER_README
+preview_check: rotation-DB disagreements to verify in JLC preview before paying: CB1/CB2 (polymer +), Q1 (TO-252), J5 (USB-C), U3-U6 (SOT-23-6), LED1-LED3 (reel orientation)
+sha256:
+  xt60-usb-supply_gerbers.zip  78e2669c786ce94449103bb100dd47ed75b279bdc4f34f347a967bce1dac37aa
+  bom.csv                      8f41f00cf4dd3ccbc2add79ec8ba8d1b1a06399be396f544c7c8fcdfb904d26c
+  cpl.csv                      bcad17d72b2cc2c381a6b7a0fc8e78167fa42a0a2c51f9b1a2cd041a4bc6cafa
+  pdf/schematic.pdf            74f75c99f4028c777d7f64604b14f5342d023e60a624d994fbb0fd268d683a8e
+  pdf/pcb_layers.pdf           ec07027ca4732a8f731d9569a5dded693dd7d9cc90bfc33930cd62f601ee62a3
+  pdf/assembly_top.pdf         778534af33403e0e7e411bf72b47c2914418d67265ad3faf774005c3e2ac4b13

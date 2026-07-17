@@ -1,0 +1,8 @@
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+WARN: I6 bbox-overlaps (3): [('U6', 'R3'), ('CB1', 'D1'), ('J2', 'R5')]
+AUDIT: PASS (0 fails, 1 warns)
+IN1_CLEAN: PASS
+PROXIMITY: PASS (21 pairs)
+AUDIT: PASS
