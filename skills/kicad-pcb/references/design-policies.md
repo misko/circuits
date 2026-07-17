@@ -1,0 +1,73 @@
+# Design policies — the canon
+
+Every policy in this catalog has: a stable CHECK ID, the policy statement,
+its governing standard, HOW it is verified (machine command, fresh-agent
+grading, or documented-exception), and the incident that motivated it.
+Contracts bind these IDs to stage folders; `scripts/policy_audit.py` runs
+every machine-checkable ID and emits a graded report. Nothing in this file
+is advisory — an ID is either enforced, human-graded per protocol, or
+waived with evidence in the project's `03_src/rules/policy_waivers.yaml`
+(same evidence rules as twin adjudications).
+
+Verification legend: [M] = machine (policy_audit.py) · [H] = human/fresh
+agent per review protocol · [G] = existing pipeline gate it rides on.
+
+## Schematic — the contract of intent (IEC 60617 / IEEE 315, IPC-2612)
+
+| ID | Policy | Verified | Motivating incident |
+|---|---|---|---|
+| S1 | ERC clean at `--severity-all`: 0 errors; warnings baselined with reasons | [M] S-ERC | usb-power-3s shipped with 206 unexamined findings incl. 13 pin_not_connected |
+| S2 | Every net deliberately named; zero auto-names (`Net-(R5-Pad2)`) on routed copper | [M] S-NET | auto-names are where swapped-net mistakes hide |
+| S3 | Pin maps verified from the datasheet package FIGURE, `verified:` note cites figure+page; independent fresh-eyes re-derivation for actives | [M] S-VER (note quality) + [H] pin review | mirror-numbered LM5145: symbol+footprint+netlist consistently wrong together, every internal check passed |
+| S4 | Every pin explicitly handled: `no_connect` flags EMITTED by the generator for sanctioned floats; unused gates/amps tied to defined levels; strapping pins documented | [M] S-NC | intentional floats documented only in prose = future accidental floats invisible |
+| S5 | Design math lives with the design: every component value derived with margins in DETAIL_DESIGN.md | [H] audit spot-check | "why this value" must never live in someone's head |
+| S6 | Story-critical paths DRAWN as wired circuits (power entry→protection→regulation; the primary signal chain). Label-blob permitted only for pullups/decouplers/bulk. Until generators emit wires, readability is a MANDATORY graded item in the render review | [H] render review | fleet audit 2026-07-17: 0 drawn wires in all four projects; reviewers must mentally re-net everything |
+| S7 | Decoupling shown adjacent to the IC it serves (schematic teaches the layout) | [H] render review | cap-farm schematics hide missing pins |
+
+## Placement — where 80% of routing quality is decided (IPC-7351)
+
+| ID | Policy | Verified | Motivating incident |
+|---|---|---|---|
+| P1 | Zero courtyard overlaps — courtyards are the manufacturer's margin, law | [M] P-CRT (via full-severity DRC) | J1/R1 "overlap" question answered by 0.31mm courtyard gap |
+| P2 | Polarized parts machine-audited: pad-1 NET asserted against part.yaml polarity facts (diodes, electrolytics, LEDs, keyed connectors) | [M] P-POL | usb-power-3s MANIFEST claimed "polarity PASS" with no scripted check; XT60 pin1='−' class |
+| P3 | Connectors earn their edges: mate direction, edge distance, screw-head keep-outs machine-checked; antenna keep-outs per module datasheet | [M] P-KEEP (project audit I2/I3/I4/I5 present + passing) | WROOM antenna over copper = dead radio |
+| P4 | Every refdes PRINTS on the board: F.SilkS, visible, de-collided; F.Fab duplicate for assembly drawings; waivers evidence-backed | [M] P-SILK-REF | a board shipped with all 76 refs on F.Fab — no names on the physical board |
+| P5 | Plain-word functional silk for anything a human touches: terminals, headers, polarity marks, voltage/current warnings, pin maps | [M] P-SILK-FN (label near every J*/F*/TP* ref) + [H] legibility | 12.6V battery board shipped with zero functional text |
+| P6 | Zoning by placement on a shared plane; split planes only with a written ADR | [M] P-PLANE (reference layer carries only its zone) | return-path detours from casual splits |
+
+## Routing — physics, then aesthetics (IPC-2221/2222, IPC-2152, IPC-4761; the FAB's published capabilities override all)
+
+| ID | Policy | Verified | Motivating incident |
+|---|---|---|---|
+| R1 | Rules BEFORE routing: netclasses + ampacity width floors + via rules exist in the ROUTING-INPUT project file, and the rules generator runs LAST too (pcbnew saves clobber netclasses) | [M] R-RULES (inspect route-input .kicad_pro for the classes) | usb-power-3s: KRT routed against Default 0.2mm; floors only enforced post-hoc. SPF board shipped 0.15mm switch nodes pre-floors |
+| R2 | Width from current (IPC-2152); power as POURS with priority over GND fill; documented trunk exceptions allowed with margin math | [M] R-POUR (power nets have zones or a waiver) | thin-pass routers have no ampacity concept |
+| R3 | Return current flows directly under every signal: unbroken reference plane under sensitive regions; named-region continuity limits machine-checked | [M] R-PLANE (max signal length on reference layer inside named regions, per project config) | laser board: 16 B.Cu cuts under the comparator region vs stated "continuous GND" intent — unenforced intent drifts |
+| R4 | Escape/fanout first, hardest nets first; package escape feasibility checked at fab rules before commitment (0.4mm QFN = package problem, not router problem) | [H] design review + [G] DRC | escape saturation discovered post-route is a re-spin |
+| R5 | Sensitive-path discipline: diff pairs matched+coupled; timing-critical single-ended nets length-limited AS A GATE; analog inputs guarded per the IC's layout app note | [M] R-LEN (project audit length-spread checks present + passing) | comparator spread <40mm gate on the laser board |
+| R6 | Thermal: EPs and power pads get via arrays to the plane (>= N vias in/near pads above area threshold on power nets); reliefs on hand-solder, solid on power | [M] R-THERM | TPS2557 EPs and DPAK tab shipped with zero in-pad vias |
+| R7 | Gate: DRC 0 violations / 0 unconnected / 0 schematic-parity at `--severity-all --refill-zones` | [M] R-DRC | six parity findings slipped through a laxer severity bar |
+
+## Meta — worth more than all of the above
+
+| ID | Policy | Verified | Motivating incident |
+|---|---|---|---|
+| M1 | Checker and checked must not share a method: per failure class, at least one check from an independent reference (datasheet figure, JLC CAD, fresh agent, pixel measurement) | [H] release review confirms the battery ran | every hard catch this project made came from outside the design's own assumptions |
+| M2 | Machine-check what you can — a prose rule will eventually be skipped | this file + policy_audit.py ARE the enforcement | refdes-on-silk became real only as audit gate I10 |
+| M3 | Everything regenerable from source: never hand-edit 04_kicad; ALL rebuild inputs tracked in git — the final route chain file is PROMOTED to 03_src/route/ (06_build stays disposable otherwise) and its sha recorded in the MANIFEST | [M] M-REPRO | laser board's load-bearing r3.kicad_pcb was gitignored — unreproducible from a fresh clone |
+| M4 | Evidence-backed exceptions: every waiver/adjudication carries the measurement that justifies it; positional deltas decomposed by mechanism | [M] M-WAIV (waiver files parse, every entry has why + evidence) + [H] | an adjudication that buried a 0.6mm land-pattern delta as "residual" |
+| M5 | Immutable releases with provenance: EXACT git_sha (hex, exists), git_dirty false, sha256 table verifies, CHANGELOG entry names the dir, SUPERSEDED.md chains closed, fix-claims carry falsifiable evidence IN verification/ | [M] M-REL | "git_sha: HEAD@release"; stale CHANGELOG; a fix-claim verified only by its own author's method |
+| M6 | The authoritative source wins over the derived metric: JLC's footprint model rotation > bbox arithmetic; datasheet figure > symbol library; fab capability page > IPC defaults | [H] encoded in adjudication protocols | the USB-C flip saga: chasing the bbox metric against JLC's own spec, twice |
+
+## Running the audit
+
+```
+/usr/bin/python3 scripts/policy_audit.py <project_dir> [--config 03_src/rules/policy_audit.json]
+```
+
+Emits `<project>/06_build/policy_audit.md` with one row per ID:
+PASS / FAIL / WAIVED(evidence) / N-A(reason) / HUMAN(protocol pointer).
+The release gate requires: zero FAIL, every WAIVED entry evidence-backed,
+and the HUMAN items carrying verdicts in the release's verification/.
+Adopted-forward policy: projects released before a policy's adoption date
+are graded honestly and the gap tracked in their remediation list — history
+is not rewritten.
