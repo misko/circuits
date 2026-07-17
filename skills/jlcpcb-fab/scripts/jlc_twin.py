@@ -313,6 +313,15 @@ def main():
                          for a in adjudicated
                          if a.get("board_dx") is not None
                          or a.get("board_dy") is not None}
+    # pad_alias: {jlc_pad: our_pad} renames JLC pad NUMBERS before the
+    # correspondence fit. Naming-convention families (SOT-223 tab: KiCad
+    # TabPin2 merges tab+lead as "2", JLC names the tab "4"; DPAK
+    # merged-drain variants) otherwise yield PAD-MISMATCH best=none and
+    # an unmounted model - the render then shows bare pads and every
+    # model-side check (MODEL-REG, rotation, polarity) silently skips.
+    pad_alias = {a["lcsc"]: {str(k): str(v)
+                             for k, v in a["pad_alias"].items()}
+                 for a in adjudicated if a.get("pad_alias")}
 
     def adjudicate(lcsc, ref, status):
         for a in adjudicated:
@@ -361,6 +370,10 @@ def main():
             # names extra pads (XT60 pegs, FET drain fingers) - the XT60 model
             # rendered 7mm off its holes before this (2026-07-16)
             jraw = pads_of(jfp)
+            for src, dst in pad_alias.get(lcsc, {}).items():
+                if src in jraw:
+                    jraw.setdefault(dst, []).extend(jraw.pop(src))
+                    jraw[dst] = sorted(jraw[dst])
             common = set(opads_raw) & set(jraw)
             if not common:
                 findings.append((lcsc, ref, "PAD-MISMATCH", "no common pad numbers"))

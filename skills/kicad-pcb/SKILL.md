@@ -28,6 +28,15 @@ credits, or debugging time — check provenance notes before assuming staleness.
    (priority-N over GND), not tracks; sub-floor tap corridors get named
    rule areas. Retrofitting this after routing cost a full repair campaign
    (SPF power board, 2026-07).
+3b. **Reference designators PRINT on the board: F.SilkS, visible, always.**
+   Generators must place every part's refdes on the silkscreen (run the
+   de-collision pass so they stay legible), IN ADDITION to functional
+   labels (terminal words, pin maps) and the F.Fab copy for assembly
+   drawings. A board shipped with refdes on F.Fab only — perfect
+   functional silk, but no U/R/C names anywhere on the physical board for
+   probing and debug (2026-07-17). The placement audit enforces this as
+   I8 refdes-not-on-silk (audit_template.py; per-project waivers via
+   cfg["ref_silk_ok"], e.g. passives too small next to their body).
 4. **Fanout before routing, hardest nets first.** Escape lanes are claimed
    by whoever routes first. `bga_fanout.py` on fine-pitch ICs, then a thin
    pass (0.15/0.13, 0.45/0.2 vias) for escape-bound nets, then the standard

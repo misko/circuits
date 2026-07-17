@@ -118,6 +118,20 @@ for r, f in fps.items():
                 and num not in FLOAT_OK_NUMS):
             warns.append(f"I5 unnetted: {r} pad {num}")
 
+# I8 refdes-on-silk: every part's reference must PRINT on the physical
+# board (F.SilkS or B.SilkS, visible). F.Fab-only refdes shipped once -
+# the board had functional labels but no U/R/C names for probing/debug.
+# Exceptions (e.g. tiny passives the user waives) go in cfg["ref_silk_ok"].
+REF_SILK_OK = set(cfg.get("ref_silk_ok", []))
+for r, f in fps.items():
+    if r.startswith("H") or r in REF_SILK_OK:
+        continue
+    ref = f.Reference()
+    lay = ref.GetLayerName() if hasattr(ref, "GetLayerName") else ""
+    if "Silk" not in lay or not ref.IsVisible():
+        fails.append(f"I8 refdes-not-on-silk: {r} (layer={lay}, "
+                     f"visible={ref.IsVisible()})")
+
 boxes = [(r, f.GetBoundingBox(False, False)) for r, f in fps.items()
          if not r.startswith("H")]
 ov = [(boxes[i][0], boxes[j][0]) for i in range(len(boxes))

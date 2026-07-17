@@ -290,6 +290,14 @@ never runs for exactly the parts a human solders by eye.
    bevel = positive side - over ambiguous paint like top crescents), and if
    the model is unmarked (some LED models are), fall back to the JLC order
    preview + CPL rotation.
+3d. pad_alias (adjudication field): naming-convention clashes - SOT-223
+   (KiCad TabPin2 merges tab+lead as "2", JLC tab="4"), merged-drain DPAKs -
+   yield PAD-MISMATCH best=none, an UNMOUNTED model, and silently skipped
+   model-side checks. Add {pad_alias: {"4": "2"}} to the part's entry to
+   rename JLC pads before the fit; validated live: an AMS1117 went from
+   PAD-MISMATCH+PAD-GEOM(1.6mm artifact) to OK fit=0.27mm (2026-07-17).
+   Prefer an alias over adjudicating the MISMATCH away: the alias RESTORES
+   verification coverage instead of waiving it.
 4. Known-different findings (merged drain pad vs JLC's split fingers, THT
    clip-pin counts, parts absent from EasyEDA) go in the project's
    twin_adjudications.yaml WITH the verification evidence - the gate is

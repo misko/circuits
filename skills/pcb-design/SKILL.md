@@ -54,8 +54,12 @@ generate_board (placement) → audit gate (polarity, proximity, plane-clean)
 stitch_and_fill (pours + thermal vias) → **generate_rules LAST** (pcbnew
 saves clobber netclasses) → DRC gate:
 `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity`
-must report **0 violations / 0 unconnected / 0 parity**. Never hand-edit
-`04_kicad/`; fix the generator and rerun. Commit at each green gate.
+must report **0 violations / 0 unconnected / 0 parity** at FULL severity.
+Never hand-edit `04_kicad/`; fix the generator and rerun. Commit at each
+green gate. Silkscreen carries BOTH the functional labels (terminal words,
+pin map) AND every reference designator (F.SilkS, visible, de-collided) —
+the audit's I8 check enforces the refdes rule; F.Fab keeps a copy for the
+assembly drawing.
 
 ## 7. Verify — independent eyes, then release
 
