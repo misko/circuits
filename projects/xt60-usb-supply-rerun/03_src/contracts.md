@@ -98,3 +98,19 @@ fresh agent runs it FIRST; everything below is what it does:
 - Generator with a soft skip → convert to `raise`.
 - Hand-edited `.kicad_dru` → port the change into `rules/nets.yaml` and
   regenerate.
+
+## Compliance audit (design-policies.md IDs)
+
+This folder answers: **S1/S4** (ERC gate at severity-all = 0 errors;
+no_connect flags EMITTED by generate_schematic for sanctioned floats),
+**S2** (no auto-named nets reach copper), **R1** (netclasses exist in the
+route-INPUT project file — R-RULES inspects it), **M3** (everything
+regenerable: the final route chain file is PROMOTED to 03_src/route/ and
+committed; 06_build stays disposable), **M4** (waivers/adjudications in
+rules/ each carry measurement evidence).
+
+- Audit: `policy_audit.py <project>` runs S-ERC, S-NC, S-NET, R-RULES,
+  M-REPRO, M-WAIV directly. Zero FAIL required at release.
+- Waivers live in `rules/policy_waivers.yaml`:
+  `{id: <CHECK-ID>, refs: [...], why: "<measurement evidence>"}` — an
+  entry without evidence is itself a FAIL.

@@ -106,3 +106,19 @@ checked shared a method.
   evidence of anything. Rename to `TAINTED-<name>` and re-release.
 - Someone re-exported into an existing release → same as above. The whole
   point is that this is detectable.
+
+## Compliance audit (design-policies.md IDs)
+
+This folder answers **M5** (M-REL) and hosts the evidence for everything:
+
+- MANIFEST `git_sha` is an EXACT commit hash that exists; `git_dirty:
+  false`; every sha256 in the table verifies against the file beside it.
+- `01_docs/CHANGELOG.md` has an entry naming this directory.
+- Every superseded sibling carries `SUPERSEDED.md`.
+- Any fix-claim in the MANIFEST has its falsifiable measurement IN
+  `verification/` (checker and claimed-fixer must not share a method).
+- `verification/policy_audit.md` ships in the bundle: zero FAIL, waivers
+  evidence-backed, HUMAN items (S5/S6/S7, M1) carrying reviewer verdicts.
+
+Audit: `policy_audit.py <project>` runs M-REL mechanically; a release cut
+with any policy FAIL is invalid (cut a new one after the fix or waiver).

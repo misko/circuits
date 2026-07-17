@@ -117,3 +117,16 @@ part nothing else could:
   (git history keeps it) and note the swap in `01_docs/CHANGELOG.md`.
 - sha256 mismatch → the PDF was replaced with a different revision. STOP: the
   extracted facts may be wrong. Re-verify `pins:` before trusting anything.
+
+## Compliance audit (design-policies.md IDs)
+
+This folder answers: **S3** — every part.yaml pin map read from the
+datasheet FIGURE with a `verified:` note citing figure+page (2-pad
+passives exempt), and the PDF set includes the PACKAGE/land-pattern
+drawing, not just electricals.
+
+- Audit: `policy_audit.py` S-VER flags weak/missing citations
+  mechanically; the fresh-context pin review re-derives pinouts for
+  actives (the independent half of S3).
+- A part that fails S-VER may not enter the BOM until its note cites the
+  figure. "Same as <other part>" and "standard pinout" are not citations.

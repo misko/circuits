@@ -184,3 +184,17 @@ a revision and a fab order.
   net is undeclared. Check the netlist to decide which, then fix that one.
 - Rationale found inside `ARCHITECTURE.md` → extract to a new ADR, replace
   with a link.
+
+## Compliance audit (design-policies.md IDs)
+
+This folder answers: **S5** (design math with margins in DETAIL_DESIGN.md),
+**M5-partial** (CHANGELOG entry naming every release directory), plus the
+ADR obligations referenced throughout (protection ADR mandatory; split
+planes, trunk-instead-of-pour, and any policy waiver each need a written
+decision).
+
+- Audit: run `policy_audit.py <project>` — M-REL includes the CHANGELOG
+  check; S5 is HUMAN-graded (a fresh reviewer re-derives two values from
+  DETAIL_DESIGN.md per the render-review protocol).
+- A failing S5 spot-check (underivable value) reopens the design doc, not
+  the board.
