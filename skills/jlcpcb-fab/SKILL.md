@@ -336,6 +336,14 @@ never runs for exactly the parts a human solders by eye.
    ({lcsc, model_rot_z: 180}). The detector is CALIBRATED: a deliberately
    mis-rotated model must flag ~8mm - keep that as the regression test when
    touching any transform code.
+   MODEL-REG is NON-FATAL (twin exits 0 with it), so it does NOT block a
+   release on its own - the render/pin review MUST disposition every
+   MODEL-REG (adjudicate with model_rot_z / model_dx-dy + evidence, or
+   record why it's cosmetic). A USB-C (HRO TYPE-C-31-M-12) shipped in a
+   v1.0 with its 3D model 180deg-flipped because the MODEL-REG line was
+   left un-acted through review; pads were perfect (0.00mm) so only the
+   render lied. Gate the release on: zero unadjudicated MODEL-REG, not
+   just twin exit 0.
 
 7. SWIG trap: iterating fp.Models() and assigning m_Rotation.z on the
    yielded items silently does nothing (the write lands on a temporary).
