@@ -49,6 +49,11 @@ for p in j1.Pads():
         x, y = p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
         keepout_rect(x - 1.0, y - 1.0, x + 1.0, y + 1.0)
 
+# USB dive corridor: reserved east of J1 pad A6 for the post-import
+# fix_usb_dive.py relocation of KRT's illegal 0.3/0.2 tap via (the router
+# emits it at the pad center every run; JLC 2L standard floor is 0.3 drill)
+keepout_rect(58.85, 65.85, 59.65, 66.65)
+
 # antenna guard: nothing routes in the strip above the module's top pad row
 u1 = b.FindFootprintByReference("U1")
 p1 = {p.GetNumber(): p.GetPosition() for p in u1.Pads() if p.GetNumber()}

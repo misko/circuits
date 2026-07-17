@@ -25,6 +25,7 @@ $PY 03_src/audit_board.py 2>/dev/null | tail -1
 [ -f 06_build/route/r3.kicad_pcb ] || { echo "no route chain: run 03_src/route_prep.py + 03_src/route_waves.sh"; exit 1; }
 $PY "$SKILLS"/import_krt.py 06_build/route/r3.kicad_pcb \
     04_kicad/esp32_laser_timing.kicad_pcb 04_kicad/esp32_laser_timing.kicad_pcb 2>/dev/null | grep imported
+$PY 03_src/fix_usb_dive.py 2>/dev/null | tail -1
 $PY 03_src/stitch_and_fill.py 2>/dev/null | tail -3
 # rules BEFORE repair too: repair's internal DRC needs the pro-file floors
 # (hole/connection constraints live in .kicad_pro and pcbnew saves clobber it)

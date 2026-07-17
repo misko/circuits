@@ -30,7 +30,8 @@ def run_drc():
                    check=True, capture_output=True)
     d = json.loads(PRE.read_text())
     return [v for v in d["violations"]
-            if v["type"] in ("hole_to_hole", "hole_clearance", "connection_width")]
+            if v["type"] in ("hole_to_hole", "hole_clearance", "connection_width",
+                             "via_diameter", "drill_out_of_range")]
 
 
 targets = run_drc()
@@ -59,7 +60,9 @@ def attached(v):
     for t in segs:
         for endsel in (0, 1):
             e = t.GetStart() if endsel == 0 else t.GetEnd()
-            if abs(e.x - pos.x) < 20000 and abs(e.y - pos.y) < 20000:
+            # KRT tap endpoints can sit up to ~0.1mm off the via center and
+            # still connect through the barrel - a 20um tolerance severed one
+            if abs(e.x - pos.x) < 120000 and abs(e.y - pos.y) < 120000:
                 out.append((t, endsel))
     return out
 
@@ -78,13 +81,19 @@ def other_holes(exclude):
     return hs
 
 
-def nudge(v, away_from):
+def nudge(v, away_from, size=None, drill=None):
+    """Relocate via (moving attached endpoints); optionally resize at the
+    new site (sub-floor micro-via upgrades)."""
     pos = v.GetPosition()
     vx, vy = pos.x / 1e6, pos.y / 1e6
+    if size:
+        v.SetWidth(pcbnew.FromMM(size))
+    if drill:
+        v.SetDrill(pcbnew.FromMM(drill))
     att = attached(v)
     holes = other_holes(v)
     base_ang = math.degrees(math.atan2(vy - away_from[1], vx - away_from[0]))
-    for r in (0.3, 0.45, 0.6):
+    for r in (0.3, 0.45, 0.6, 0.8, 1.0):
         for da in (0, 30, -30, 60, -60, 90, -90, 135, -135, 180):
             ang = math.radians(base_ang + da)
             nx, ny = round(vx + r * math.cos(ang), 3), round(vy + r * math.sin(ang), 3)
@@ -115,11 +124,45 @@ def nudge(v, away_from):
     return None
 
 
+def fix_microvia(v0):
+    """via_diameter / drill_out_of_range: bring the via to 0.45/0.3, moving
+    it out of whatever pocket forced the fallback geometry."""
+    items = v0["items"]
+    cand = via_at(items[0]["pos"]["x"], items[0]["pos"]["y"])
+    if cand is None:
+        return False
+    if cand.GetWidth() >= pcbnew.FromMM(0.449) and cand.GetDrillValue() >= pcbnew.FromMM(0.299):
+        return True  # already fixed by the twin finding of this violation
+    cx, cy = cand.GetPosition().x / 1e6, cand.GetPosition().y / 1e6
+    # in-place resize if legal
+    if tk.via_site_ok(cx, cy, cand.GetNetCode(), size=0.45, drill=0.3):
+        near = [h for h in other_holes(cand) if math.hypot(h[0]-cx, h[1]-cy) < 0.3 + h[2] + 0.52]
+        if not near:
+            cand.SetWidth(pcbnew.FromMM(0.45))
+            cand.SetDrill(pcbnew.FromMM(0.3))
+            return True
+    # nudge away from the nearest DIFFERENT-net pad (the pocket)
+    bd, away = 9, (cx + 1, cy)
+    for fp in b.GetFootprints():
+        for pd in fp.Pads():
+            if pd.GetNetCode() != cand.GetNetCode():
+                dd = math.hypot(pd.GetPosition().x / 1e6 - cx, pd.GetPosition().y / 1e6 - cy)
+                if dd < bd:
+                    bd, away = dd, (pd.GetPosition().x / 1e6, pd.GetPosition().y / 1e6)
+    return nudge(cand, away, size=0.45, drill=0.3) is not None
+
+
 fixed, failed = 0, []
 for v in targets:
     t = v["type"]
     items = v["items"]
     pos0 = items[0]["pos"]
+    if t in ("via_diameter", "drill_out_of_range"):
+        if fix_microvia(v):
+            fixed += 1
+        else:
+            failed.append(f"{t}: microvia unfixable at ({pos0['x']},{pos0['y']})")
+        continue
     if t == "connection_width":
         # pad/track neck: overlay a fat segment from the pad center to the
         # track's far end (same net, collision-checked)

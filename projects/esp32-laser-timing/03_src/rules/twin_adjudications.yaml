@@ -1,0 +1,50 @@
+# Reviewed jlc_twin findings, accepted with evidence. Each entry silences ONE
+# (lcsc, status) finding class - never add one without the verification note.
+- lcsc: C2913204    # ESP32-S3-WROOM-1-N8R2 (U1)
+  status: PAD-MISMATCH
+  why: >-
+    best=none is an EP-naming artifact: JLC's CAD models the thermal pad as a
+    GRID of small paste pads all named "41" (multi-position name breaks the
+    1:1 pad-correspondence fit), while ours is the single 3.7x3.7 EP per
+    Espressif fig 11-1. The 40 perimeter leads match EXACTLY: measured
+    JLC-vs-ours deltas pad1/14/15/26/27/40 are a uniform translation
+    (dx=0, dy=-3.63mm = origin choice), rotation 0, no mirror — columns at
+    x=+-8.75mm, 1.27mm pitch, bottom row y-pitch identical (2026-07-17,
+    06_build/twin/easyeda/C2913204 vs 03_src/lib vendored footprint; vendored
+    footprint = KiCad std RF_Module minus EP micro-holes + silk, pads
+    untouched). Winding verified against datasheet fig 3-1 (part.yaml).
+- lcsc: C6186       # AMS1117-3.3 (U2)
+  status: PAD-GEOM
+  why: >-
+    "pad1<->2 ours 3.90 vs JLC 2.30" compares our TAB (KiCad SOT-223-3_TabPin2
+    merges the tab into pad number 2) against JLC's middle LEAD pad 2. The
+    physical lead row matches: 2.30mm pitch both patterns (JLC pads 1/2/3 at
+    y +-2.3; ours at +-2.3). Tab column: ours x 3.15 vs JLC 2.97 — 0.18mm
+    longer tab pad, same SOT-223 package drawing (ds1117 p.8), lead span
+    covers both. Same KiCad footprint class shipped on crowsync (TabPin
+    convention).
+- lcsc: C6186
+  status: PAD-MISMATCH
+  why: >-
+    Naming only: JLC's pad "4" is the tab; our tab is the second pad "2"
+    (KiCad TabPin2, because tab = VOUT = same net as lead 2; part.yaml:
+    "TAB IS OUTPUT" per ds1117 fixed-version figure). Nets agree at every
+    physical location: lead col 1=GND 2=VOUT 3=VIN, tab=VOUT=3V3.
+- lcsc: C318884     # TS-1187A-B-A-B (SW1, SW2)
+  status: PAD-GEOM
+  why: >-
+    "pad1<->2 ours 3.75 vs JLC 6.00" is pad-NAME mapping, not geometry: the
+    KiCad XKB footprint numbers the two TOP pads "1" (internally common A-B
+    rail) and the two BOTTOM pads "2" (C-D rail); JLC numbers all four 1..4.
+    Physical grids match: ours (+-3.0, +-1.875) vs JLC (+-3.0, +-1.85) —
+    0.025mm pad-center delta on 1.0x0.75 pads. Internal pairing verified from
+    the drawing rev A0 circuit diagram (02_parts/TS-1187A-B-A-B): top rail
+    common, bottom rail common — our numbering puts one net per rail, JLC's
+    1,2 (top) get the signal and 3,4 (bottom) get GND identically.
+- lcsc: C318884
+  status: PAD-MISMATCH
+  why: >-
+    Same naming artifact as the PAD-GEOM entry above: 2 merged names vs 4
+    distinct numbers over an identical 4-pad grid; electrically equivalent by
+    the internal A-B / C-D pairing (drawing rev A0 + EasyEDA symbol,
+    2026-07-17).
