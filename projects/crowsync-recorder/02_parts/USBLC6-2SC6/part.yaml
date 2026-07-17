@@ -18,6 +18,7 @@ pins:                       # UMW datasheet section 4 "Pinning information", p1
   6: I/O1
 limits: {vrwm: 5V, ipp: '6A 8/20us', esd: '+-30kV air+contact', cap: '0.35-0.8pF line'}
 gotchas:
+  - "the LCSC-hosted PDF for C2687116 renders with ST branding (Doc ID 11265-class content); UMW copies the ST pinning 1:1 - figure verified independently 2026-07-16"
   - "rail-referenced steering: VBUS pin must tie to the protected rail (5V for D1, 3V3A for D2)"
   - "pins 1/6 and 3/4 are pass-through pairs - route through OR tie both to the line"
 verified: "pin map read from UMW datasheet pinning figure, p1 - 2026-07-16"
