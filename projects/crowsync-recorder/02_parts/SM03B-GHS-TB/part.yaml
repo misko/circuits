@@ -1,0 +1,22 @@
+mpn: SM03B-GHS-TB
+manufacturer: JST
+type: connector_jst_gh_horizontal
+datasheet:
+  doc_id: JST-eGH
+  revision: eGH-2019
+  url: https://www.jst-mfg.com/product/pdf/eng/eGH.pdf
+  sha256: b1dcb317b6b9a4fbbedd2dbf42c64c95306a252d23de8933b85fcf161240b722
+  fetched: 2026-07-16
+package: GH 1.25mm 3-pos side-entry SMT
+footprint: Connector_JST:JST_GH_SM03B-GHS-TB_1x03-1MP_P1.25mm_Horizontal
+pins:                       # JST eGH drawing: pin 1 marked end; MP = mounting pads
+  1: 'MIC (bias+signal)'
+  2: GND
+  3: 'SHIELD -> GND'
+  MP: 'mounting pads -> GND'
+limits: {current: 1A/pin, voltage: 50V}
+gotchas:
+  - "side (horizontal) entry: harness exits parallel to board - orient opening toward board edge"
+  - "genuine JST stock is thin at JLC (40 on 2026-07-16); XY clone C54582898 is the fallback, same footprint"
+verified: "pin pitch/pattern from JST eGH catalog drawing p2-3 - 2026-07-16"
+sourcing: {lcsc: C514175, alternates: [C54582898], note: 'orderable suffix (LF)(SN)'}

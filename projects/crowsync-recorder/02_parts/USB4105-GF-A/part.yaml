@@ -1,0 +1,27 @@
+mpn: USB4105-GF-A
+manufacturer: GCT
+type: connector_usb_c
+datasheet:
+  doc_id: USB4105
+  revision: drawing (gct.co usb4105.pdf)
+  url: https://gct.co/connector/usb4105
+  sha256: fb331fbabee8392ed2937ed757c1610cb0f174b84625147c0b580a18eea8c0e5
+  fetched: 2026-07-16
+package: USB-C 16P power-only, top-mount hybrid
+footprint: Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal
+pins:
+  A4/A9/B4/B9: 'VBUS (all four carry current)'
+  A1/A12/B1/B12: 'GND'
+  A5: 'CC1'
+  B5: 'CC2'
+  A6/B6: 'D+'
+  A7/B7: 'D-'
+  A8/B8: 'SBU NC'
+  S1: 'SHIELD'
+limits: '5A/contact-pair rated; 6A across 4 VBUS pins ok'
+gotchas:
+  - 'THIS project is a SINK (UFP): Rd 5k1 pulldowns on CC1+CC2 (usb-power-3s used it as source)'
+verified: 'pad names from SPF footprint use (2026-07); drawing PDF fetched+committed 2026-07-16'
+sourcing:
+  lcsc: C3020560
+  note: JLC matcher needs full MPN or manual confirm

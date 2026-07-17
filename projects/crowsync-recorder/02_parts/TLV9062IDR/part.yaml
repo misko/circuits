@@ -1,0 +1,25 @@
+mpn: TLV9062IDR
+manufacturer: Texas Instruments
+type: opamp_dual_rrio
+datasheet:
+  doc_id: SBOS839
+  revision: SBOS839N
+  url: https://www.ti.com/lit/ds/symlink/tlv9062.pdf
+  sha256: 2afa9f4704f3ab38b7a5cea346d012b865fd22582adf6124ec3b2c60501e5508
+  fetched: 2026-07-16
+package: SOIC-8 D
+footprint: Package_SO:SOIC-8_3.9x4.9mm_P1.27mm
+pins:                       # SBOS839N fig 5-6 + table 5-3 (p6)
+  1: OUT1
+  2: IN1-
+  3: IN1+
+  4: V-
+  5: IN2+
+  6: IN2-
+  7: OUT2
+  8: V+
+limits: {supply: '1.8-5.5V', gbw: 10MHz, noise: '10nV/rtHz', iq: '538uA/ch'}
+gotchas:
+  - "RRIO but output sat ~50mV from rails at light load"
+verified: "pin map read from SBOS839N figure 5-6 / table 5-3, p6 - 2026-07-16"
+sourcing: {lcsc: C398355, note: extended}

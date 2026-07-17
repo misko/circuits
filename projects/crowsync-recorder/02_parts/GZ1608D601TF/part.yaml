@@ -1,0 +1,17 @@
+mpn: GZ1608D601TF
+manufacturer: Sunlord
+type: ferrite_bead            # NOT a resistor - 600R is @100MHz
+datasheet:
+  doc_id: GZ-series
+  revision: series
+  url: https://www.lcsc.com/datasheet/lcsc_datasheet_2310301640_Sunlord-GZ1608D601TF_C1002.pdf
+  sha256: UNFETCHABLE-2026-07-16   # deviation: LCSC viewer blocks non-browser fetch; specs live-verified via JLC attributes
+  fetched: null
+package: 0603
+footprint: Inductor_SMD:L_0603_1608Metric
+pins: {1: '1', 2: '2'}   # symmetric
+limits: {z_100mhz: '600R +-25%', idc: 200mA, dcr: 450mR}
+gotchas:
+  - "200mA rating >> 0.5mA mic bias; DCR 0.45R drops nothing at bias current"
+verified: 'JLC attribute check 2026-07-16 (600R@100MHz, 200mA, 450mR confirmed live)'
+sourcing: {lcsc: C1002, note: basic tier}

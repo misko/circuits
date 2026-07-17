@@ -1,0 +1,23 @@
+mpn: TPS7A2033PDBVR
+manufacturer: Texas Instruments
+type: ldo_fixed_3v3
+datasheet:
+  doc_id: SBVS338
+  revision: SBVS338H
+  url: https://www.ti.com/lit/ds/symlink/tps7a20.pdf
+  sha256: d0235bf03b67ac27f041ed213ccdc35b969c626341e9713bbeecdd8f98274d8e
+  fetched: 2026-07-16
+package: SOT-23-5 DBV
+footprint: Package_TO_SOT_SMD:SOT-23-5
+pins:                       # SBVS338H fig 4-4 (DBV, p4)
+  1: IN
+  2: GND
+  3: EN                     # internal 500k pulldown - must be tied high (to IN here)
+  4: NC
+  5: OUT
+limits: {vin_max: 6V, iout: 300mA, noise: 10uVrms, dropout: '140mV@300mA'}
+gotchas:
+  - "EN has internal 500k pulldown: floating EN = OFF; tie to IN"
+  - "needs >=0.47u effective in AND out caps (DC-bias derated)"
+verified: "pin map read from SBVS338H figure 4-4, p4 - 2026-07-16"
+sourcing: {lcsc: C2862740, note: extended}

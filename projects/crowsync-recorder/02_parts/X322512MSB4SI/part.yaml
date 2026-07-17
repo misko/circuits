@@ -1,0 +1,21 @@
+mpn: X322512MSB4SI
+manufacturer: YXC (YSX321SL series)
+type: crystal
+datasheet:
+  doc_id: YSX321SL
+  revision: LCSC-2403291504
+  url: https://www.lcsc.com/datasheet/lcsc_datasheet_2403291504_YXC-Crystal-Oscillators-X322512MSB4SI_C9002.pdf
+  sha256: 7bc18549e407d8e381075b0f5fc696e48cf0fa060aeee67971925f43cfdfbb8b
+  fetched: 2026-07-16
+package: SMD3225-4P
+footprint: Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm
+pins:                       # YSX321SL sheet, "Top View Crystal Connection" figure
+  1: XTAL_A                 # to XTI
+  2: GND
+  3: XTAL_B                 # to XTO
+  4: GND
+limits: {freq: 12MHz, cl: 20pF, tol: '+-10ppm', esr: '80R max @12MHz', drive: '100uW typ / 200uW max'}
+gotchas:
+  - "CL=20pF -> load caps 2x(CL-Cstray) = 33pF (PCM2900C window is 10-33pF)"
+verified: "connection figure + spec table from YSX321SL sheet p1 - 2026-07-16"
+sourcing: {lcsc: C9002, note: basic tier}

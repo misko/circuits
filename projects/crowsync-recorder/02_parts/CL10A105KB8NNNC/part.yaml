@@ -1,0 +1,12 @@
+mpn: CL10A105KB8NNNC
+manufacturer: various
+type: cap_mlcc
+value: '1u 50V X5R'
+package: 0603
+footprint: Capacitor_SMD:C_0603_1608Metric
+pins: {1: '1', 2: '2'}   # symmetric 2-pad
+datasheet: {doc_id: series, revision: n/a, url: n/a, sha256: n/a, fetched: null}
+verified: 'JLC attribute check 2026-07-16 (value/voltage/dielectric/tolerance confirmed live - 06_build/cache/spec_confirm_2026-07-16.txt)'
+sourcing:
+  lcsc: C15849
+  note: 'basic'

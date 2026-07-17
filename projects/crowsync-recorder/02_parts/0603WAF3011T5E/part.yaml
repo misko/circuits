@@ -1,0 +1,12 @@
+mpn: 0603WAF3011T5E
+manufacturer: various
+type: res_thick
+value: '3k01 1%'
+package: 0603
+footprint: Resistor_SMD:R_0603_1608Metric
+pins: {1: '1', 2: '2'}   # symmetric 2-pad
+datasheet: {doc_id: series, revision: n/a, url: n/a, sha256: n/a, fetched: null}
+verified: 'JLC attribute check 2026-07-16 (value/voltage/dielectric/tolerance confirmed live - 06_build/cache/spec_confirm_2026-07-16.txt)'
+sourcing:
+  lcsc: C22991
+  note: 'extended; gain resistor ship value (decisions/0003)'

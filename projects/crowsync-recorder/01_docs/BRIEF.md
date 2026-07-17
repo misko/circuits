@@ -112,11 +112,45 @@ The recorder board does not include:
   A4 (user, 2026-07-16): **JLC assembles everything** — standard/extended
   assembly, all SMT including JST GH + USB-C placed by JLC.
 
+## End goal — definition of done
+
+An orderable, verified JLCPCB release of the two-channel recorder board.
+
+| # | Criterion | Source | Status |
+|---|---|---|---|
+| G1 | PCM2900C 48k/16 stereo USB recorder, bus-powered | P1 | unmet |
+| G2 | CH1 mic chain (bias/protection/TLV9062 -> VINL), both PUI capsules | P2/A1 | unmet |
+| G3 | CH2 PPS chain (protection/divider/AC couple -> VINR), 3.3V CMOS in | P3/A2 | unmet |
+| G4 | TPS7A2033 low-noise 3.3V analog rail | P4 | unmet |
+| G5 | 4-layer ~65x42mm, continuous GND plane, 4x M2.5, USB-C clear of hardware | P5 | unmet |
+| G6 | JST GH mic + PPS headers | P6 | unmet |
+| G7 | Top-side SMT, JLC-compatible BOM/CPL, all-JLC assembly | P7/A4 | unmet |
+| G8 | Order package for 5 PCBs / 3 assembled | P8 | unmet |
+
 ## Decision register
 
-(D# appended as decisions are made; mirrors 01_docs/decisions/)
+| id | decision (one line) | decided by | depth |
+|---|---|---|---|
+| ADR-0001 | USB + harness protection: 2x USBLC6-2SC6, 100R series, ferrite bias | agent (A3 delegation) | decisions/0001-input-protection.md |
+| ADR-0002 | Codec bus-powered (fig 38); 3V3A rail scope = analog front-end only | agent (P4 delegation) | decisions/0002-bus-powered-codec-3v3a-scope.md |
+| ADR-0003 | Gain pair Rf/Rg = 3k01/1k ship, 39k/1k alt; only Rf swaps | user (Q1) + agent | decisions/0003-dual-capsule-gain-plan.md |
+| ADR-0004 | One continuous GND plane; A/D separation by placement | user (P5) + agent | decisions/0004-continuous-ground-plane.md |
+| ADR-0005 | USB4105-GF-A + JST GH SM03B/SM02B, 100% top-side JLC SMT | user (Q4) + agent | decisions/0005-connectors-and-assembly.md |
 
 ## Log
 
 - 2026-07-16: commissioned; folders + contracts created from usb-power-3s
   canonical set.
+
+### A5 — 2026-07-16 — assumption (not asked)
+Assumed: PCM2900C runs in the datasheet fig-38 bus-powered configuration
+(internal regulators); the pinned TPS7A2033 3.3V rail powers only the
+preamp + mic bias, because 3.3V is below the codec's 3.6-3.85V
+external-supply window. Authority: P delegates design decisions; P4 wording
+("low-noise 3.3V ANALOG rail") is consistent.
+Escalate if: the user expected fig-36 high-performance codec supply.
+
+### A6 — 2026-07-16 — assumption (not asked)
+Assumed: full-scale reference point = 104 dB SPL at the capsule for both
+gain builds (crow calls at close range without clipping).
+Escalate if: field data shows habitual clipping or > 20 dB unused headroom.

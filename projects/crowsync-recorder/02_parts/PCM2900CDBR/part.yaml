@@ -1,0 +1,48 @@
+mpn: PCM2900CDBR
+manufacturer: Texas Instruments
+type: usb_audio_codec
+datasheet:
+  doc_id: SBFS039
+  revision: SBFS039
+  url: https://www.ti.com/lit/ds/symlink/pcm2900c.pdf
+  sha256: ffd94fcfc16024b525c053abbcfc9f5dc10b4feb0de95444c3153ac9b8247aea
+  fetched: 2026-07-16
+package: SSOP-28 DB (208 mil)
+footprint: Package_SO:SSOP-28_5.3x10.2mm_P0.65mm
+pins:                       # SBFS039 p6, "PCM2900C PIN ASSIGNMENTS" + Table 1
+  1: D+                     # USB, LV-TTL
+  2: D-
+  3: VBUS                   # power input (bus-powered) via 2R2/1u filter (fig 38)
+  4: DGNDU
+  5: HID0                   # internal pulldown, active high - NC when unused
+  6: HID1
+  7: HID2
+  8: SEL0                   # must be HIGH (tie VDDI)
+  9: SEL1                   # must be HIGH (tie VDDI)
+  10: VCCCI                 # INTERNAL analog reg output - decouple 10u, do NOT power at 3.3V
+  11: AGNDC
+  12: VINL
+  13: VINR
+  14: VCOM                  # VCCCI/2 reference out - 10u decouple; buffer before use
+  15: VOUTR
+  16: VOUTL
+  17: VCCP1I                # internal PLL reg out - 1u
+  18: AGNDP
+  19: VCCP2I                # internal PLL reg out - 1u
+  20: XTO
+  21: XTI
+  22: AGNDX
+  23: VCCXI                 # internal osc reg out - 1u
+  24: TEST0                 # tie GND
+  25: TEST1                 # leave OPEN
+  26: DGND
+  27: VDDI                  # internal digital reg out - 1u; also the D+ pullup + SEL0/1 reference
+  28: SSPND                 # active-low suspend flag output
+limits: {vbus: '4.35-5.25V', digital_in_max: 'VDDI+0.3 <4V', analog_in: '-0.3..+4V'}
+gotchas:
+  - "ALL VCC*I/VDDI pins are internal-regulator OUTPUTS (Table 1 note 4): decoupling only in fig-38 mode; external drive requires 3.6-3.85V (fig 36) - NOT 3.3V"
+  - "decouplers on the 1u pins must be < 2uF (fig 38 note)"
+  - "needs external 1k5 D+ pullup to VDDI and 22R series on D+/D-"
+  - "full-scale input 0.6xVCCCI Vpp centered 0.5xVCCCI; 30k input impedance, self-biased -> AC couple"
+verified: "pin map read from SBFS039 p6 pinout figure + Table 1 - 2026-07-16"
+sourcing: {lcsc: C180425, note: 'extended; stock 286 on 2026-07-16 - recheck order day'}
