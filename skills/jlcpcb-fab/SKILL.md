@@ -253,6 +253,18 @@ never runs for exactly the parts a human solders by eye.
    `model_dy` in the adjudication entry (OUR footprint-local mm, +x east
    +y south at rot 0), chosen from pixel measurements of the metal vs our
    pads and recorded with that evidence - never a global anchor tweak.
+   THREE traps, each hit live (2026-07-16): (a) the nudge is FOOTPRINT-
+   LOCAL - for a part rotated 90deg on the board, local +x is board -y;
+   convert board-frame corrections through the part rotation, then verify
+   the applied vector by DIFFING the before/after renders (body-pixel
+   centroid), never by re-eyeballing. (b) classify model vs board pixels
+   by the render DIFF, not by color: exposed pads are NOT reliably bright,
+   lead metal IS - a color-rule scan validated a wrong nudge once, and a
+   static bright board feature near a pad polluted the measurement twice.
+   (c) a JLC model can be drawn OFF JLC'S OWN footprint (model-internal
+   defect, ~1mm seen live) - transverse to the land-pattern delta, and it
+   makes bbox MODEL-REG numbers worse AFTER a correct fix, including a
+   spurious 180-flip hint; when metal-vs-pad and bbox disagree, metal wins.
 3b. PAD-GEOM gate (critical, exit 1): pairwise pad-center distances between
    our footprint and JLC's must agree within 0.3mm. Pairwise distances are
    rotation/translation-INVARIANT, so unlike the best-fit residual - which
