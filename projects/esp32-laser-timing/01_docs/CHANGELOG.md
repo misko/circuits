@@ -1,5 +1,16 @@
 # CHANGELOG — esp32-laser-timing
 
+## v1.3 — 2026-07-17
+Released: 07_releases/v1.3-2026-07-17/
+- REVERT v1.2's wrong J1 render fix. v1.1's USB-C render was already
+  correct (model at JLC's authoritative rot_z=180). v1.2's model_rot_z:180
+  cancelled JLC's built-in flip (mouth inboard); v1.3 removes the override.
+- MODEL-REG 2.1mm on J1 dispositioned as an asymmetric-body FALSE ALARM
+  (no rotation). Twin hint fixed to never suggest deviating from JLC's own
+  model rotation (the metric lured a wrong override twice — Q1 red herring).
+- Fab byte-identical across v1.1/v1.2/v1.3. Supersedes v1.2.
+
+
 ## v1.2 — 2026-07-17
 Released: 07_releases/v1.2-2026-07-17/
 - FIX (render only): J1 USB-C 3D model rendered 180deg flipped (JLC model
