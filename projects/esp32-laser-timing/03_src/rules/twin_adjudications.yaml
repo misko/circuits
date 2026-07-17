@@ -13,23 +13,21 @@
     06_build/twin/easyeda/C2913204 vs 03_src/lib vendored footprint; vendored
     footprint = KiCad std RF_Module minus EP micro-holes + silk, pads
     untouched). Winding verified against datasheet fig 3-1 (part.yaml).
-- lcsc: C6186       # AMS1117-3.3 (U2)
-  status: PAD-GEOM
-  why: >-
-    "pad1<->2 ours 3.90 vs JLC 2.30" compares our TAB (KiCad SOT-223-3_TabPin2
-    merges the tab into pad number 2) against JLC's middle LEAD pad 2. The
-    physical lead row matches: 2.30mm pitch both patterns (JLC pads 1/2/3 at
-    y +-2.3; ours at +-2.3). Tab column: ours x 3.15 vs JLC 2.97 — 0.18mm
-    longer tab pad, same SOT-223 package drawing (ds1117 p.8), lead span
-    covers both. Same KiCad footprint class shipped on crowsync (TabPin
-    convention).
-- lcsc: C6186
+- lcsc: C6186       # AMS1117-3.3 (U2) — SOT-223 tab-naming family
   status: PAD-MISMATCH
+  pad_alias: {"4": "2"}
   why: >-
-    Naming only: JLC's pad "4" is the tab; our tab is the second pad "2"
-    (KiCad TabPin2, because tab = VOUT = same net as lead 2; part.yaml:
-    "TAB IS OUTPUT" per ds1117 fixed-version figure). Nets agree at every
-    physical location: lead col 1=GND 2=VOUT 3=VIN, tab=VOUT=3V3.
+    KiCad SOT-223-3_TabPin2 merges the tab into pad "2" (tab = VOUT = same
+    net as lead 2; part.yaml "TAB IS OUTPUT", ds1117 p.8). JLC's CAD names
+    the tab pad "4". Without an alias the fitter finds no correspondence
+    (PAD-MISMATCH best=none), the 3D body never mounts, and every
+    model-side check silently skips. pad_alias 4->2 renames JLC's tab so
+    correspondence is restored — validated 2026-07-17: U2 -> OK
+    fit=0.27mm, body mounts on our pads. Nets agree at every location:
+    lead col 1=GND 2=VOUT 3=VIN, tab=VOUT=3V3. Supersedes the earlier
+    PAD-GEOM/PAD-MISMATCH waivers (which hid the part instead of mounting
+    it); the 3.90-vs-2.30 PAD-GEOM was an artifact of the same merged-tab
+    numbering and disappears once the alias aligns the pad sets.
 - lcsc: C318884     # TS-1187A-B-A-B (SW1, SW2)
   status: PAD-GEOM
   why: >-

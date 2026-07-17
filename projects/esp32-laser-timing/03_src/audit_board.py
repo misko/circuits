@@ -133,6 +133,30 @@ for ref, pad, want in [("C11", "1", "5V"), ("D2", "1", "GND")]:
     if got != want:
         fails.append(f"I9 {ref} pad{pad} net {got} != {want} (polarity)")
 
+# I10 refdes-on-silk: every part's reference must PRINT on the board
+# (F.SilkS/B.SilkS, visible). Fab-only refdes = no U/R/C names on the
+# physical board (kicad-pcb golden rule 3b). Mounting holes exempt.
+# The generator's de-collision pass may hide a few refdes that find NO
+# clear silk spot in a dense passive cluster; those are listed in
+# 06_build/refdes_waiver.json (they keep an F.Fab copy for the assembly
+# drawing). I10 WARNS on waived passives, FAILS on any unwaived miss and
+# on any waived IC/connector (those must always be printable).
+import json
+_wf = PCB.parent.parent / "06_build" / "refdes_waiver.json"
+WAIVED = set(json.loads(_wf.read_text())) if _wf.exists() else set()
+SILK_LAYERS = (pcbnew.F_SilkS, pcbnew.B_SilkS)
+for f in b.GetFootprints():
+    r = f.GetReference()
+    if r.startswith("H"):
+        continue
+    ref = f.Reference()
+    if ref.GetLayer() not in SILK_LAYERS or not ref.IsVisible():
+        if r in WAIVED and r[0] in "RC":
+            warns.append(f"I10 refdes {r} waived to Fab (no clear silk spot)")
+        else:
+            fails.append(f"I10 refdes not on silk: {r} "
+                         f"(layer={ref.GetLayerName()}, vis={ref.IsVisible()})")
+
 print(f"pads audited across {len(names)} footprints")
 for w in warns[:8]:
     print("WARN:", w)

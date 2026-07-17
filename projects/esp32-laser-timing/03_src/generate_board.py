@@ -12,6 +12,7 @@ ERROR (never a warning).
 
 Run with KiCad-bundled python: /usr/bin/python3 03_src/generate_board.py
 """
+import json
 import math
 import re
 import sys
@@ -148,7 +149,7 @@ SILK = [
     ("LASER1-3 = IO7 IO15 IO16", 105.5, 77.7, 0.7),
     ("BTN1-3 = IO17 IO18 IO21", 105.5, 79.2, 0.7),
     ("SDA=IO1 SCL=IO2", 105.5, 80.7, 0.7),
-    ("esp32-laser-timing v1.0", 96.0, 71.0, 0.9),
+    ("esp32-laser-timing v1.1", 96.0, 71.0, 0.9),
 ]
 
 
@@ -354,11 +355,82 @@ def main():
         t.SetTextThickness(pcbnew.FromMM(max(0.13, size * 0.16)))
         board.Add(t)
 
+    # Reference designators PRINT on the board (kicad-pcb golden rule 3b;
+    # audit I10). Every part's refdes goes on F.SilkS at a JLC-legal size,
+    # de-collided against pads (silk_over_copper) and other silk items
+    # (silk_overlap) by trying clear positions near the part; an F.Fab
+    # duplicate always exists for the assembly drawing. A refdes that can
+    # find NO clear spot on a dense cluster falls back to silk-hidden and
+    # is recorded in 06_build/refdes_waiver.json, which the audit reads so
+    # I10 stays honest about which names could not be printed.
+    MM = pcbnew.ToMM
+    TH = 0.6            # legal silk text height (board min)
+    THK = 0.12
+    CLR = 0.16          # keep-out around obstacles (>= min_silk_clearance)
+    def box(bb, pad=0.0):
+        return (MM(bb.GetLeft()) - pad, MM(bb.GetTop()) - pad,
+                MM(bb.GetRight()) + pad, MM(bb.GetBottom()) + pad)
+    def hit(a, b):
+        return not (a[2] < b[0] or b[2] < a[0] or a[3] < b[1] or b[3] < a[1])
+    # obstacles from GROUND TRUTH bboxes (KiCad's own), not estimates:
+    # pads (mask openings -> silk_over_copper), footprint silk graphics and
+    # standalone functional labels (silk_overlap). A part's OWN silk outline
+    # counts too, so a refdes never clips its body.
+    pad_obst, silk_obst = [], []
     for fp in board.GetFootprints():
+        for p in fp.Pads():
+            pad_obst.append(box(p.GetBoundingBox(), CLR))
+        for g in fp.GraphicalItems():
+            if g.IsOnLayer(pcbnew.F_SilkS):
+                silk_obst.append(box(g.GetBoundingBox(), CLR * 0.5))
+    for t in board.GetDrawings():
+        if t.GetClass() == "PCB_TEXT" and t.IsOnLayer(pcbnew.F_SilkS):
+            silk_obst.append(box(t.GetBoundingBox(), CLR * 0.5))
+    OFF = [(0, o * s) for o in (1.0, 1.6, 2.2, 2.9, 3.6) for s in (-1, 1)] + \
+          [(o * s, 0) for o in (1.3, 2.0, 2.8, 3.6) for s in (-1, 1)] + \
+          [(dx, dy) for d in (1.4, 2.2, 3.0) for dx in (-d, d) for dy in (-d, d)]
+    waived = []
+    def prio(fp):
+        r = fp.GetReference()
+        return (0 if r[0] in "UJQD" or r.startswith(("SW", "TP")) else 1, r)
+    for fp in sorted(board.GetFootprints(), key=prio):
+        r = fp.GetReference()
         ref = fp.Reference()
-        ref.SetLayer(pcbnew.F_Fab)
-        ref.SetTextSize(pcbnew.VECTOR2I_MM(0.5, 0.5))
-        ref.SetTextThickness(int(0.08e6))
+        ref.SetTextSize(pcbnew.VECTOR2I_MM(TH, TH))
+        ref.SetTextThickness(int(THK * 1e6))
+        fab = pcbnew.PCB_TEXT(board)      # assembly-drawing copy, always
+        fab.SetText(r); fab.SetLayer(pcbnew.F_Fab)
+        fab.SetPosition(fp.GetPosition())
+        fab.SetTextSize(pcbnew.VECTOR2I_MM(0.5, 0.5))
+        fab.SetTextThickness(int(0.08e6))
+        board.Add(fab)
+        if r.startswith("H"):
+            continue
+        ref.SetLayer(pcbnew.F_SilkS)
+        ref.SetVisible(True)
+        fx, fy = MM(fp.GetPosition().x), MM(fp.GetPosition().y)
+        placed_ok = False
+        for dx, dy in OFF:
+            ref.SetPosition(pcbnew.VECTOR2I_MM(fx + dx, fy + dy))
+            cand = box(ref.GetBoundingBox())     # KiCad's REAL text bbox
+            if not (X0 + 0.2 < cand[0] and cand[2] < X1 - 0.2
+                    and Y0 + 0.2 < cand[1] and cand[3] < Y1 - 0.2):
+                continue
+            if any(hit(cand, o) for o in pad_obst):
+                continue
+            if any(hit(cand, o) for o in silk_obst):
+                continue
+            silk_obst.append(cand)
+            placed_ok = True
+            break
+        if not placed_ok:
+            ref.SetVisible(False)          # no clear silk spot; Fab copy remains
+            waived.append(r)
+    (Path(__file__).parent.parent / "06_build").mkdir(exist_ok=True)
+    (Path(__file__).parent.parent / "06_build" / "refdes_waiver.json").write_text(
+        json.dumps(sorted(waived)))
+    print(f"refdes on silk: {placed - len(waived)}/{placed} placed, "
+          f"{len(waived)} waived to Fab: {sorted(waived)}")
     board.Save(str(PCB))
     print(f"placed {placed} footprints + {len(MOUNT)} holes; zones; silk; saved {PCB.name}")
 
