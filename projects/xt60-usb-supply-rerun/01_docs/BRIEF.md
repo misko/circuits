@@ -1,8 +1,8 @@
 # brief: xt60-usb-supply
 
-status: in-progress
+status: delivered
 prompt_sha256: bb5ae2d40b89086de582a1ad4381d416825d4847a527278c363d67b3ca5462ab
-current_release: no
+current_release: 07_releases/v1.0-2026-07-16
 
 ## Original prompt
 
@@ -23,12 +23,12 @@ stock-checked, twin-verified JLCPCB manufacturing package in `07_releases/`.
 
 | # | Criterion | Source | Status |
 |---|---|---|---|
-| G1 | XT60 input accepting 3S LiPo (9.0–12.6 V) | P | unmet |
-| G2 | 3x USB-A ports, each able to supply 2.5 A at 5 V | P | unmet |
-| G3 | 1x USB-C port able to supply 6 A at 5 V | P | unmet |
-| G4 | All design decisions researched and recorded internally (ADRs) | P | unmet |
-| G5 | Fully placed + routed board, DRC gate green (0/0/0) | P | unmet |
-| G6 | JLCPCB manufacturing files (gerbers, BOM, CPL), stock-checked, twin-verified, in an immutable release dir | P | unmet |
+| G1 | XT60 input accepting 3S LiPo (9.0–12.6 V) | P | met — 07_releases/v1.0-2026-07-16 (schematic+pin_review) |
+| G2 | 3x USB-A ports, each able to supply 2.5 A at 5 V | P | met — 07_releases/v1.0-2026-07-16 (rail A 8 A design, DETAIL_DESIGN) |
+| G3 | 1x USB-C port able to supply 6 A at 5 V | P | met — 07_releases/v1.0-2026-07-16 (rail C 6 A design, ADR 0002/0008) |
+| G4 | All design decisions researched and recorded internally (ADRs) | P | met — 01_docs/decisions/0001-0008 |
+| G5 | Fully placed + routed board, DRC gate green (0/0/0) | P | met — 07_releases/v1.0-2026-07-16/verification/drc.rpt |
+| G6 | JLCPCB manufacturing files (gerbers, BOM, CPL), stock-checked, twin-verified, in an immutable release dir | P | met — 07_releases/v1.0-2026-07-16 |
 
 ## Log
 
@@ -78,3 +78,6 @@ Escalate if: the user requires 100% turnkey assembly.
 | R6 | Buck converter selection | agent (P-delegation) | decisions/0003-buck-selection.md |
 | R7 | Input protection: fuse + P-FET reverse polarity + TVS | agent (P-delegation) | decisions/0004-input-protection.md |
 | R8 | Board: 4-layer, JLC standard tier | agent (P-delegation) | decisions/0005-stackup.md |
+| R9 | Connector selection (XT60PW-M, XY-AF90-WJDG, TYPE-C-31-M-12A) | agent (P-delegation) | decisions/0006-connector-selection.md |
+| R10 | ILMT tied LOW on both rails (8 A valley limit) | agent (P-delegation) | decisions/0007-ilmt-low-both-rails.md |
+| R11 | USB-C data pads shorted as BC1.2 DCP | agent (P-delegation) | decisions/0008-usbc-dcp-short.md |
