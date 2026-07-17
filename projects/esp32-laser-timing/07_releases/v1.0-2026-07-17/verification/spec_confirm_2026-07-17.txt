@@ -1,0 +1,34 @@
+Spec-confirmation pass (jlcpcb-fab skill) — 2026-07-17, live JLC attributes
+fetched during part selection (parts search endpoint). fetched_at: 2026-07-17.
+
+C2913204 ESP32-S3-WROOM-1-N8R2: Espressif original, 8MB flash + 2MB quad
+  PSRAM (R2-or-better per P3), -40..85C. $5.39@1, 19.6k stock.
+C165948 TYPE-C-31-M-12: HRO 16P USB2.0 receptacle, 5A, matches KiCad
+  footprint named for the MPN. 326k stock.
+C2687116 USBLC6-2SC6 (UMW): 5V working, 0.35-0.8pF line, clone choice
+  deliberate (crowsync precedent; ST C7519 alternate). 90k stock.
+C71036 LM339DT (ST): 2-36V, CM to VCC-1.5, inputs +36V abs independent of
+  supply, open collector. 45.8k stock. NO Basic LM339 exists (ADR-0002).
+C20917 AO3400A (AOS original, Basic): 30V 5.7A, Rds 48mR@2.5Vgs (logic
+  level at 3.3V gate). 1.28M stock.
+C6186 AMS1117-3.3 (AMS original, Basic): 1A, dropout 1.1V typ. 1.49M stock.
+C318884 TS-1187A-B-A-B (XKB, Basic): SPST 50mA/12V, 160gf. 1.44M stock.
+C2297 KT-0805G (Basic): green 0805, pad1=cathode (footprint-check
+  provenance usb-power-3s/crowsync). 3.2M stock.
+C2887276 RVT100UF16V67RV0016 (KNSCHA): 100uF 16V (3.2x derating on 5V),
+  D6.3xL5.4 SMD alu electrolytic, -55..105C. 622k stock. Extended — no
+  Basic >=100uF exists (D3).
+C45783 CL21A226MAQNNNE (Basic): 22uF 25V X5R 0805 — at 5V bias ~12uF
+  effective (>=10uF requirement holds, DETAIL_DESIGN); at 3.3V more.
+C28323 CL21B105KBFNNNE (Basic): 1uF 50V X7R 0805 (EN RC).
+C49678 CC0805KRX7R9BB104 (Basic): 100nF 50V X7R 0805 decouplers/debounce.
+R 0805 UNI-ROYAL 0805W8F 1% Basic series: C17408 100R, C17513 1k, C17530
+  2.7k, C17673 4.7k, C27834 5.1k, C17414 10k, C17633 33k, C149504 100k —
+  all 1%, 125mW (>= any dissipation on board; max is 1k PD load 9mW).
+  Divider/hysteresis tolerance analysis in DETAIL_DESIGN (Vth ±1.1%).
+Hand-solder (uncoded): C474930 KF128L-3.5-2P screw terminal x9 (10A/300V,
+  26-16AWG); C2718488 BOOMELE 2.54 1x4 female socket x1.
+
+Part-class greps done: no NTC/PTC/fuse/bead comments in BOM; the only
+polarized 2-pad parts are C11 (electrolytic, pad1=+=5V audited) and D2
+(LED, pad1=K=GND audited).

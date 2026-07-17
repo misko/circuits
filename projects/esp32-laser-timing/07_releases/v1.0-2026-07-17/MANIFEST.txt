@@ -1,0 +1,18 @@
+board:        esp32_laser_timing
+version:      v1.0
+ordered:      2026-07-17
+git_sha:      8e4dd80
+git_dirty:    false                # tree clean at export (release dir itself added in the release commit)
+kicad:        10.0.4
+tools:        KRT@b0b1067, python 3.12, jlcpcb-fab skill scripts 2026-07
+fab:          JLCPCB, 2 layer, STANDARD options (no small-via needed; min drill 0.3mm)
+quantity:     5
+gates:        ERC 0 · DRC 0/0 · parity 0 · AUDIT PASS 0/0 · stock 20/20 coded lines >=5x (2026-07-17) · jlc_twin exit 0 (5 evidence adjudications) · pin review 12 parts zero FAIL · render review dispositioned
+sha256:
+  esp32_laser_timing_gerbers.zip  ab9324f00da994b3025d069624637e82767b9c25019d76aeea43729018681f22
+  bom.csv                         015ee5ea6037766b653e46ffb68449117cd30afcb13a5da0cd6d16271ecc64b2
+  cpl.csv                         a54ecc66cbafa885aedbd910030e46fa5e1a362fe4338ee8c885505e0bb9511d
+  pdf/schematic.pdf               0e07dda41313d9bf027e91b35af3781feff9a118e46dc6a348e7ca9ed94da266
+  pdf/pcb_layers.pdf              31eea7f67f35e96194dd9cfd6b1ed65be39a7208ef643a62c2ffbb8de4194176
+  pdf/assembly_top.pdf            ef0a55760f4be709b09265492de8037ad5782619cded3cc35991fdfc0d761441
+not_assembled: J4-J12 (9x KF128L-3.5-2P 3.5mm screw terminals, C474930, hand-solder) · J2 (2.54mm 1x4 female socket, e.g. C2718488, hand-solder)
