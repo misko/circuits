@@ -1,0 +1,49 @@
+mpn: LM339DT
+manufacturer: STMicroelectronics
+type: comparator_quad_oc
+datasheet:
+  doc_id: DocID2159
+  revision: DocID2159Rev4
+  url: https://www.st.com/resource/en/datasheet/lm339.pdf
+  mirror: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1809191019_STMicroelectronics-LM339DT_C71036.pdf
+  sha256: 43f26b36abed732df33452b9f3297b7a834bbd01ad86e46d386995420a5ab033
+  fetched: 2026-07-17
+  note: "st.com blocks curl (HTTP/2 INTERNAL_ERROR mid-stream); fetched LCSC-hosted copy, same ST document DocID2159 Rev 4"
+package: SO-14 (SOIC-14 3.9x8.7mm)
+footprint: Package_SO:SOIC-14_3.9x8.7mm_P1.27mm
+pins:                       # from Figure 1 "Pin connections (top view)", p3/19
+  1: OUT2                   # Output2
+  2: OUT1                   # Output1
+  3: {name: VCC, note: "VCC+ (single 5V supply on this board)"}
+  4: IN1-                   # Inverting input 1
+  5: IN1+                   # Non-inverting input 1
+  6: IN2-                   # Inverting input 2
+  7: IN2+                   # Non-inverting input 2
+  8: IN3-                   # Inverting input 3 (NOT IN3+ — figure order is minus-first on this side)
+  9: IN3+                   # Non-inverting input 3
+  10: IN4-                  # Inverting input 4
+  11: IN4+                  # Non-inverting input 4
+  12: {name: GND, note: "VCC- in ST naming; tie to GND for single supply"}
+  13: OUT4                  # Output4
+  14: OUT3                  # Output3
+limits:
+  vcc_abs_max: 36V          # Table 1: ±18 or 36 V
+  vcc_operating: 2-32V      # Table 2 (single supply); ±1 to ±16 V dual
+  vin_abs_max: "-0.3 to +36V, independent of VCC (Table 1 VIN)"
+  vid_abs_max: ±36V
+  vicm: "0 to (VCC+ - 1.5V); 0 to (VCC+ - 2V) over temp (Table 2 / Table 3)"
+  isink_min: 6mA            # Table 3, VID=1V Vo=1.5V; 16 mA typ
+  iout_short_max: "~20mA (abs-max note 1); output short to GND ok indefinitely, short to VCC+ destroys"
+  vol: "250mV typ / 400mV max at ISINK=4mA"
+  response_time_typ: 1.3us  # RL=5.1k to VCC+, 100mV step 5mV overdrive
+  tj_max: 150C
+  toper: 0-70C              # LM339 grade
+gotchas:
+  - "Open-collector outputs: no internal pullup — every used OUT pin needs an external pullup or it never goes high"
+  - "Input common-mode range tops out ~1.5V below VCC (2V over temp) — the reason this board runs the comparator from 5V, not 3V3, to compare signals near 3.3V"
+  - "Inputs tolerate up to +36V regardless of supply — sensor swings above VCC are safe, but below -0.3V is not"
+  - "Comparator-to-pin mapping is asymmetric: comparators 1/2 have outputs on pins 2/1 (left side, top) and inputs on pins 4-7; comparators 3/4 have inputs on pins 8-11 and outputs on pins 14/13. Per-side input order is minus-first: 4=IN1-, 5=IN1+ ... 8=IN3-, 9=IN3+"
+  - "Unused comparators: tie inputs to defined levels (e.g. IN+ to GND, IN- to VCC) and leave OUT unconnected — floating inputs oscillate; an OC output with no pullup sinks nothing either way"
+  - "Response time is ~1.3us typ with small overdrive — fine for laser-timing threshold detect at this board's speeds, but do not expect ns-class edges"
+verified: "pin map read from datasheet Figure 1 'Pin connections (top view)', page 3/19, DocID2159 Rev 4 — 2026-07-17"
+sourcing: {lcsc: C71036, alternates: [C63821, C7948], note: 'extended - NO basic LM339 exists at JLC (checked 2026-07-17); ST LM339DT $0.14 45.8k stock; alts onsemi LM339DR2G, TI LM339DR'}

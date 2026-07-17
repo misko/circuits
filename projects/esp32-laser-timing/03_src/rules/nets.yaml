@@ -1,0 +1,42 @@
+# esp32-laser-timing net architecture — source of truth for netclasses +
+# DRU floors. generate_rules.py emits these into 04_kicad/*.kicad_pro and
+# .kicad_dru. Defined BEFORE routing (kicad-pcb golden rule 3).
+
+fab_tier: jlc_2layer_default  # standard 0.6/0.3 vias only — no advanced option needed
+
+classes:
+  PWR:
+    intent: >
+      Supply distribution: 5V from USB-C (laser feeds + LM339 + LDO input,
+      worst case ~0.6A) and 3V3 (ESP32 WiFi peaks ~370mA). 0.5mm floor =
+      ~1.4A ampacity at 20C rise on 1oz — 2x margin over worst case.
+    nets: [5V, 3V3]
+    current: 0.7A
+    min_width: 0.5mm
+    routing: wide F.Cu trunks; B.Cu crossings kept short (GND plane priority)
+    verify: DRC floor; every net > 0.2A outside this class is a bug
+
+  COMP:
+    intent: >
+      The three comparator outputs (timing path). Wide-ish floor so they
+      never get thin-pass treatment; similar length; away from LSW nets;
+      over continuous B.Cu GND.
+    nets: [COMP1, COMP2, COMP3]
+    current: signal
+    min_width: 0.25mm
+    routing: F.Cu preferred, matched-ish length (audit checks spread)
+    verify: audit checks length spread + separation from FET corner
+
+  LSW:
+    intent: >
+      Laser switched-ground drains, 40mA each, the aggressors relative to
+      COMP. Kept in the SW corner.
+    nets: [LSW1, LSW2, LSW3]
+    current: 0.04A
+    min_width: 0.3mm
+    routing: short terminal->drain runs in the FET corner
+    verify: separation from COMP region (audit)
+
+# Everything else Default 0.25mm signal width (USB pair, gates, buttons,
+# I2C, PD nodes, thresholds). USB_DP/USB_DM: full-speed 12Mbps — routed as
+# a tight pair over B.Cu GND; no impedance control needed at these lengths.

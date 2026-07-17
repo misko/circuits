@@ -155,8 +155,29 @@ DELIVERABLES
 
 ## Decision register
 
-(D# appended as decisions are made)
+All agent decisions below are made under the A4 full delegation; rationale
+in the linked ADR/doc.
+
+| id | decision (one line) | decided by | depth |
+|---|---|---|---|
+| D1 | LM339 has NO Basic option at JLC → ST LM339DT C71036 (Extended, cheapest/deep-stock cross) | agent (A4; P2 cross rule) | decisions/0002 |
+| D2 | All passives 0805 UNI-ROYAL/YAGEO/Samsung Basic (0603 Basic 1k+10k stock=0 on 2026-07-17) | agent (A4) | decisions/0003 |
+| D3 | 5V bulk = 100uF/16V SMD aluminum electrolytic C2887276 (Extended; no Basic ≥100uF exists) | agent (A4; P4 pins ≥100uF) | decisions/0003 |
+| D4 | Protection posture: USBLC6 pin-5 clamps VBUS; no polyfuse/inrush device; PD lines protected by LM339 36V-rated inputs; no parts added beyond brief | agent (A4) | decisions/0001 |
+| D5 | Pin map: COMP=IO4/5/6, LASER=IO7/15/16, BTN=IO17/18/21, I2C=IO1(SDA)/IO2(SCL); MCPWM/RMT are GPIO-matrix-routed so these satisfy P7 | agent (A4) | decisions/0004 |
+| D6 | Thresholds: three independent 10k/2.7k dividers (0.702V); hysteresis Rf=33k (≈88mV ≈ "roughly 100mV") | agent (A4; P6/A1) | DETAIL_DESIGN |
+| D7 | EN reset RC = 10k + 1uF; BOOT/RESET tactiles = TS-1187A-B-A-B (Basic) | agent (A4) | DETAIL_DESIGN |
+| D8 | Power LED (green 0805 + 1k on 3V3) added — bring-up aid, Basic parts, no GPIO | agent (A4) | decisions/0005 |
+| D9 | USB-C = HRO TYPE-C-31-M-12 C165948 (Extended; std KiCad footprint matches MPN) | agent (A4; P2) | decisions/0005 |
+| D10 | Terminals = KF128L-3.5-2P x9 + 1x4 female socket, hand-solder THT; socket deliberately uncoded | agent (A4; A3/P2) | decisions/0005 |
+| D11 | Board 92x62mm, 2-layer, B.Cu = continuous GND pour; antenna overhangs north edge | agent (A4; P10) | ARCHITECTURE |
+| D12 | Module/LDO caps consolidated on 22uF 0805 Basic (C45783); no separate 10uF line | agent (A4) | DETAIL_DESIGN |
+| D13 | 4th comparator: +IN→GND, −IN→3V3, output floating | agent (A4; P6) | decisions/0002 |
+| D14 | MCU = ESP32-S3-WROOM-1-N8R2 C2913204 ($5.39, 19.6k stock) — cheapest in-stock R2-or-better | agent (A4; P3) | decisions/0003 |
+| D15 | ESD = UMW USBLC6-2SC6 C2687116 (clone; figure-verified on crowsync; ST C7519 alternate) | agent (A4; P2/P3) | decisions/0001 |
 
 ## Log
 
 - 2026-07-16: commissioned; folders + contracts created from canonical set.
+- 2026-07-17: A4 delegation received; D1–D15 recorded; ADRs 0001–0005
+  written; parts extracted (02_parts/), design docs written.

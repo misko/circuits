@@ -1,0 +1,84 @@
+mpn: ESP32-S3-WROOM-1-N8R2
+manufacturer: Espressif Systems
+type: mcu_module_wifi        # ESP32-S3, 8 MB Quad SPI flash + 2 MB Quad SPI PSRAM, PCB antenna
+datasheet:
+  doc_id: esp32-s3-wroom-1_wroom-1u_datasheet_en
+  revision: v1.8
+  url: https://www.espressif.com/sites/default/files/documentation/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf
+  sha256: 27d71971da07c280c6068d08c74720d1a25b8f20cf8494dc1765bdd28d40d435
+  fetched: 2026-07-17
+package: LCC-40 18x25.5mm + EP
+footprint: esp32_laser_timing:ESP32-S3-WROOM-1
+pins:                        # PHYSICAL PADS, read from Fig 3-1 / Table 3-1.
+                             # Pin 1 top-left (antenna end), 1-14 down left side,
+                             # 15-26 along bottom, 27-40 up right side to top-right.
+  1: GND
+  2: 3V3
+  3: {name: EN, note: "high = chip on; do NOT leave floating"}
+  4: IO4
+  5: IO5
+  6: IO6
+  7: IO7
+  8: IO15                    # also XTAL_32K_P
+  9: IO16                    # also XTAL_32K_N
+  10: IO17
+  11: IO18
+  12: IO8
+  13: {name: IO19, note: "USB_D-"}
+  14: {name: IO20, note: "USB_D+"}
+  15: {name: IO3, note: "strapping: JTAG signal source, floats by default"}
+  16: {name: IO46, note: "strapping: boot mode / ROM print, weak pull-down"}
+  17: IO9
+  18: IO10
+  19: IO11
+  20: IO12
+  21: IO13
+  22: IO14
+  23: IO21
+  24: IO47                   # SPICLK_P_DIFF
+  25: IO48                   # SPICLK_N_DIFF
+  26: {name: IO45, note: "strapping: VDD_SPI voltage, weak pull-down"}
+  27: {name: IO0, note: "strapping: boot mode, weak pull-up; low+IO46 low = download boot"}
+  28: {name: IO35, note: "free on N8R2 (quad PSRAM); used by octal PSRAM on R8/R16V"}
+  29: {name: IO36, note: "free on N8R2 (quad PSRAM); used by octal PSRAM on R8/R16V"}
+  30: {name: IO37, note: "free on N8R2 (quad PSRAM); used by octal PSRAM on R8/R16V"}
+  31: IO38
+  32: IO39                   # MTCK
+  33: IO40                   # MTDO
+  34: IO41                   # MTDI
+  35: IO42                   # MTMS
+  36: {name: RXD0, note: "GPIO44, U0RXD"}
+  37: {name: TXD0, note: "GPIO43, U0TXD"}
+  38: IO2
+  39: IO1
+  40: GND
+  41: {name: EPAD, tie: GND, note: "thermal pad 3.7x3.7mm, must be grounded, stitch vias"}
+limits:
+  vdd33_abs_max: 3.6V        # Table 6-1: -0.3 ~ 3.6 V absolute max
+  vdd33_operating: 3.0-3.6V  # Table 6-2: recommended 3.0 ~ 3.6 V, typ 3.3 V
+  supply_current_min: 0.5A   # Table 6-2: external supply must deliver >= 0.5 A
+  peak_tx_current: 355mA     # Table 6-4: 802.11b 1 Mbps @20.5 dBm
+  ta_operating: "-40..85C"   # N8R2 is an 85C variant (Table 1-1)
+  t_storage: "-40..105C"
+gotchas:
+  - "ANTENNA KEEPOUT: PCB antenna occupies the top 6 mm of the module, at the
+     pin1/pin40 end (Fig 3-1 keepout zone, Fig 11-1 'Antenna Area' 18x6 mm).
+     Overhang it off the board edge or keep all copper/ground off that area on
+     every layer; details per ESP32-S3 Hardware Design Guidelines."
+  - "Strapping pins IO0 (pad 27), IO3 (pad 15), IO45 (pad 26), IO46 (pad 16) —
+     do not load at reset. IO0 weak pull-up, IO45/IO46 weak pull-down, IO3
+     floating (Table 4-1)."
+  - "GPIO19 (pad 13) = USB_D-, GPIO20 (pad 14) = USB_D+ — native USB / JTAG."
+  - "N8R2 has QUAD PSRAM: IO35/IO36/IO37 (pads 28-30) ARE available. On octal
+     PSRAM variants (R8/R16V) they are consumed by the PSRAM (Table 3-1 note b)
+     — do not port a design from an N8R8 pinout without checking."
+  - "EPAD is pad 41, not implicit — a generator that omits it floats the pad.
+     Ground it with thermal vias (Fig 11-1 shows via-in-pad grid)."
+  - "EN (pad 3) must not float — RC delay (10k + 1 uF typical) or supervisor."
+  - "Bottom-row pads 15-26 are numbered LEFT to RIGHT viewed from top —
+     mirror-error source when hand-building the footprint from the bottom view."
+verified: "pin map read from Figure 3-1 'Pin Layout (Top View)' p.10 and
+  cross-checked against Table 3-1 'Pin Definitions' pp.11-12 of datasheet v1.8;
+  antenna area from Figure 11-1 p.45; limits from Tables 6-1/6-2 p.27 and
+  Table 6-4 p.28 — 2026-07-17"
+sourcing: {lcsc: C2913204, alternates: [C2913202], note: 'extended; N8R2 $5.39 19.5k stock 2026-07-17; alt N16R8'}

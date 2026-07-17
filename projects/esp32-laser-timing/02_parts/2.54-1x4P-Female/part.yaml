@@ -1,0 +1,22 @@
+mpn: 2.54-1x4P-Female         # dir-safe form; orderable model string is '2.54-1*4P' (Female Header) - '*' is filesystem-hostile
+manufacturer: BOOMELE (Boom Precision Elec)
+type: connector_pin_socket
+datasheet:
+  doc_id: 2.54-1xNA-H8.5MM
+  revision: series              # BOOMELE series drawing '2.54-1xNA-H8.5MM' covers 1xN, N=1..40
+  url: https://datasheet.lcsc.com/datasheet/pdf/dd9ea55d1b8cfc5050f226d062b24d7e.pdf
+  sha256: 45f67ca61a53de8c5bdf0a0a25caaf1daf18f0540af96c784c22ae726d8f0daa
+  fetched: 2026-07-17
+package: THT vertical female pin socket 1x4, pitch 2.54mm, body H 8.5mm, pins 3.2mm, square-hole entry
+footprint: Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical
+pins:
+  1: 'OLED GND (sequential 1-4, pin 1 marked end)'
+  2: 'OLED VCC'
+  3: 'OLED SCL'
+  4: 'OLED SDA'
+limits: {current: 3A, dielectric: '550V AC/min', temp: '-55C..+105C', solder: '220C 10s max'}
+gotchas:
+  - "HAND-SOLDER THT (OLED header); drawing asks Ø1.0 PCB holes at 2.54 pitch - matches the KiCad PinSocket_1x04 std footprint (1.0mm drill) exactly"
+  - "Pin assignment above is the board's OLED module pinout, not a part property - match the OLED silk before soldering"
+verified: "pitch 2.54, hole Ø1.0, pin 0.64x0.40, H8.5 body from BOOMELE series drawing 2.54-1xNA-H8.5MM - 2026-07-17"
+sourcing: {lcsc: C2718488, alternates: [], note: "orderable model '2.54-1*4P' BOOMELE female header; extended; 234k stock 2026-07-17; hand-solder, or user-supplied cuttable 1xN 2.54mm female socket"}
