@@ -46,18 +46,21 @@
     distinct numbers over an identical 4-pad grid; electrically equivalent by
     the internal A-B / C-D pairing (drawing rev A0 + EasyEDA symbol,
     2026-07-17).
-- lcsc: C165948     # HRO TYPE-C-31-M-12 USB-C (J1) — model-orientation fix
+- lcsc: C165948     # HRO TYPE-C-31-M-12 USB-C (J1)
   refs: [J1]
   status: MODEL-REG
-  model_rot_z: 180
   why: >-
-    JLC's 3D model for this USB-C is drawn 180deg rotated vs the footprint,
-    so the twin rendered the receptacle mouth facing INBOARD (east) with the
-    body 2.1mm off courtyard (area ratio 0.69). PAD fit is perfect
-    (fit=0.00mm, 22/22 pads = JLC CAD) so copper is unaffected — this is a
-    render-only model-orientation issue. model_rot_z 180 confirmed correct
-    TWO ways (metric + eye, since the flip-hint was a red herring on a DPAK
-    earlier): MODEL-REG 2.1mm -> 0.09mm on courtyard, AND the corrected
-    render shows the mouth + shell brackets facing WEST toward the board
-    edge (courtyard front 50.01mm = board edge 50.00mm, flush). Present
-    since v1.0; corrected in v1.2 renders.
+    FALSE ALARM — accept, NO rotation override. MODEL-REG reports 2.1mm off
+    courtyard because this USB-C body is ASYMMETRIC along the insertion
+    axis (WRL plan bbox y[-5.05,+2.85]: the mouth extends ~2.2mm further
+    than the contact end), so the bbox-center-vs-courtyard-center metric is
+    inherently offset even when orientation is correct. The orientation IS
+    correct: JLC's OWN footprint mounts this model at (rotate 0 0 180)
+    (jlc.pretty/*.kicad_mod), the twin applies exactly that (mounted
+    rot_z=180), and the render shows the SMD contacts over the east pads
+    (x53.15-58.24) with the mouth at the WEST board edge. The script's
+    "180 would fix it" hint is the SAME red herring as the Q1 DPAK: flipping
+    to net-0 aligns the bbox metric but cancels JLC's built-in flip and
+    puts the mouth inboard. (An erroneous model_rot_z:180 was applied in
+    v1.2 and reverted in v1.3 after visual leads-on-pads verification.)
+    PAD fit perfect: fit=0.00mm, 22/22 = JLC CAD.

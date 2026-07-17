@@ -507,15 +507,34 @@ def main():
                 jm0.m_Rotation.z = (saved + mrotz.get(ref, 0.0)) % 360
                 rc = reg_check(mb, jm0, ang, jc, oc, fp)
                 if rc and rc[0] > 1.0:
-                    # would a 180 flip fix it? then say so in the finding
+                    # JLC's OWN footprint model rotation is authoritative: the
+                    # twin already mounts at it. bbox-center-vs-courtyard is
+                    # UNRELIABLE for asymmetric bodies (connectors with a
+                    # mouth) - measure how far the model bbox center sits from
+                    # the model origin; a big asymmetry means this metric, and
+                    # the "a flip fixes it" arithmetic, are both suspect.
+                    jlc_rot = saved                      # from JLC's .kicad_mod
+                    asym = math.hypot((mb[0] + mb[2]) / 2, (mb[1] + mb[3]) / 2)
                     jm0.m_Rotation.z = (jm0.m_Rotation.z + 180) % 360
                     rc2 = reg_check(mb, jm0, ang, jc, oc, fp)
-                    hint = (" -> 180-flipped model: add {lcsc: %s, model_rot_z: 180} "
-                            "to the adjudications file" % lcsc
-                            if rc2 and rc2[0] < 1.0 else "")
-                    # decomposition context: any land-pattern disagreement is
-                    # PART of this delta - an adjudication must account for
-                    # it separately, not file it under "bbox asymmetry"
+                    flip_helps = rc2 and rc2[0] < 1.0
+                    # NEVER auto-suggest a rotation that DEVIATES from JLC's
+                    # own spec - a USB-C false alarm got a wrong model_rot_z
+                    # twice because the old hint chased the metric (2026-07-17,
+                    # same red herring as the Q1 DPAK). Only hint a flip when
+                    # the body is near-symmetric AND no override is active
+                    # (i.e. our WRL genuinely disagrees with JLC's footprint).
+                    if flip_helps and asym < 0.5 and ref not in mrotz:
+                        hint = (" -> possible 180-flipped WRL vs JLC footprint; "
+                                "VERIFY leads-on-pads in the render, then "
+                                "{lcsc: %s, model_rot_z: 180}" % lcsc)
+                    else:
+                        hint = (f" -> DO NOT blind-flip: JLC's footprint mounts "
+                                f"this model at rot_z={jlc_rot:.0f} (authoritative); "
+                                f"body asymmetric ({asym:.1f}mm bbox-center offset) "
+                                f"so this metric is unreliable. VERIFY leads sit "
+                                f"on pads visually; if correct, adjudicate as a "
+                                f"false alarm with NO rotation override")
                     pg = padgeom.get(ref, 0.0)
                     pgnote = (f", incl. pad_geom_delta={pg:.2f}mm"
                               if pg > 0.1 else "")
