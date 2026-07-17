@@ -1,0 +1,31 @@
+# Policy-audit waivers — evidence-backed per canon M4.
+- id: M-REL
+  why: >-
+    v1.0.2 MANIFEST git_sha reads "HEAD@release" (not an exact hash) and
+    the v1.0.1/v1.0.2 CHANGELOG entries were added late (2026-07-17).
+    Release dirs are immutable so the MANIFEST stands; the exact content
+    commit is 41ae1a6 (verified: git show 41ae1a6 contains the release
+    files whose sha256 table verifies byte-for-byte). Both the exact-sha
+    rule and the fix-claim-evidence rule were adopted AFTER v1.0.2 was
+    cut (rule commit 036ae11 > release sync 41ae1a6). Next release must
+    comply fully.
+- id: S-ERC
+  why: >-
+    55 errors / 94 warnings at severity-all, dominated by generator lint
+    (unresolved_variable 55, lib/footprint-link 90) — no electrical
+    findings; the netlist-parity gate and fresh-context pin review (ALL
+    PASS, 12 parts) cover connectivity independently. ERC gate + lint
+    fixes are queued as the retrofit task; waiver expires when that lands.
+- id: P-SILK-FN
+  why: >-
+    Board shipped with refdes silk only (47/47) and no functional words;
+    policy P5 adopted 2026-07-17 after release. Terminal functions are
+    documented in ORDER_README + assembly_top.pdf; the first-power beep
+    test verifies polarity before energizing. Add functional silk at the
+    next copper spin (tracked in remediation).
+- id: R-THERM
+  why: >-
+    Q1 DPAK tab (VBAT_F) has 0 in-pad vias: DETAIL_DESIGN computes ~1.0W
+    worst-case at the 8.2A pack-empty corner with ~70C/W single-sided
+    spreading — hot but within rating; accepted for v1.0.x, add tab via
+    stitch to In2 at next spin.

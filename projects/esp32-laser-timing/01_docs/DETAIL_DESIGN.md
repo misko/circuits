@@ -36,7 +36,7 @@ trace+GPIO ~15pF) ≈ 150ns — well under the microsecond requirement.
 Fall is active (comparator sinks, 16mA capable): fast edge on the
 beam-interruption direction.
 
-**4th comparator (D13):** +IN4 -> GND, −IN4 -> 3V3 (defined levels,
+**4th comparator (D13):** +IN4 -> GND, −IN4 -> VTH3 (retied for routability, D13; doc corrected 2026-07-17 — was written as 3V3) (defined levels,
 output transistor on, output pin floating per P6).
 
 ## Laser channels (x3) — P5

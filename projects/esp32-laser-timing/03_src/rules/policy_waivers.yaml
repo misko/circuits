@@ -1,0 +1,14 @@
+# Policy-audit waivers — evidence-backed per canon M4.
+- id: R-POUR
+  why: >-
+    5V is distributed as 0.5mm DRC-floor-enforced trunks, not a pour:
+    documented in rules/nets.yaml PWR class with 2x ampacity margin at
+    the 0.6A total budget (IPC-2152 ~1.5A capacity at 0.5mm/1oz).
+    Deliberate trunk exception per canon R2; revisit if load grows.
+- id: R-RULES
+  why: >-
+    Route-input r0.kicad_pro carried only Default 0.2mm; floors were
+    enforced by the post-route severity-all DRC gate (0/0/0 reproduced
+    independently 2026-07-17). Canon R1's route-input requirement was
+    adopted 2026-07-17, after release; the retrofit task moves rules
+    emission before route-prep. Waiver expires when that lands.

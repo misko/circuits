@@ -12,6 +12,9 @@ $PY 03_src/generate_schematic.py 2>/dev/null | tail -1
 kicad-cli sch export netlist -o 06_build/netlists/usb_power_3s.net 04_kicad/usb_power_3s.kicad_sch >/dev/null
 $PY 03_src/generate_board.py 2>/dev/null | tail -1
 $PY 03_src/audit_board.py 2>/dev/null | tail -1
+# canonical route artifact is PROMOTED + git-tracked (canon M3)
+mkdir -p 06_build/route
+[ -f 06_build/route/r5.kicad_pcb ] || cp 03_src/route/r5.kicad_pcb 06_build/route/r5.kicad_pcb 2>/dev/null || true
 $PY "$SKILLS"/import_krt.py 06_build/route/r5.kicad_pcb \
     04_kicad/usb_power_3s.kicad_pcb 04_kicad/usb_power_3s.kicad_pcb 2>/dev/null | grep imported
 $PY 03_src/route_taps.py 2>/dev/null

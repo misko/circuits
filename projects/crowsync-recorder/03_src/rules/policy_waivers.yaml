@@ -1,0 +1,23 @@
+# Policy-audit waivers — evidence-backed per canon M4.
+- id: R-POUR
+  why: >-
+    MIC_BIAS_F and VBUS_PCM are in the 0.6mm PWR class for voltage-drop
+    reasons, not ampacity: total board budget is 70mA (DETAIL_DESIGN
+    power section), so 0.6mm trunks carry >20x margin (IPC-2152). GND is
+    poured on 3 layers; In2 pours cover VBUS_5V and 3V3A. Deliberate
+    trunk exception per canon R2.
+- id: R-RULES
+  why: >-
+    Same as fleet: route-input r0.kicad_pro had Default only; floors
+    enforced post-route by the severity-all DRC gate (0/0/0 reproduced
+    independently 2026-07-17). Canon R1 adopted after release; retrofit
+    queued, waiver expires when it lands.
+- id: P-SILK-REF
+  why: >-
+    Policy P4 adopted 2026-07-17, after the v1.0 release; refdes are on
+    F.Fab (assembly drawing). Next-spin remediation; see ERRATA.md.
+- id: P-SILK-FN
+  why: >-
+    Policy P5 adopted 2026-07-17, after release; zero silk text shipped.
+    Connector functions documented in ORDER_README + assembly PDF.
+    Next-spin remediation.

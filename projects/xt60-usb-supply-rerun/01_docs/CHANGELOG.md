@@ -1,5 +1,20 @@
 # changelog: xt60-usb-supply
 
+## v1.0.2 — 2026-07-16
+Released: 07_releases/v1.0.2-2026-07-16/
+- Verification refresh: twin v2 renders (Q1 seated via evidence-backed
+  model_dy nudge), XT60 body mounted. Fab byte-identical to v1.0.
+- Retro-note (2026-07-17): its MANIFEST git_sha reads "HEAD@release"
+  rather than an exact hash — release dirs are immutable, so this is
+  waived with evidence in 03_src/rules/policy_waivers.yaml; the exact
+  content commit is 41ae1a6 (snapshot sync).
+
+## v1.0.1 — 2026-07-16
+Released: 07_releases/v1.0.1-2026-07-16/ (SUPERSEDED — bad Q1 render)
+- Verification refresh whose Q1 nudge was applied in the wrong frame;
+  superseded by v1.0.2. Fab byte-identical to v1.0.
+
+
 (newest first; one entry per revision; `Released:` links a fab order)
 
 ## v1.0 — 2026-07-16  [tag: v1.0-xt60usb]

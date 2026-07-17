@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 PY=/usr/bin/python3
 SKILLS="$(cd "$(dirname "$0")/../../.." 2>/dev/null && pwd)/skills/kicad-pcb/scripts"
 [ -d "$SKILLS" ] || SKILLS="$HOME/.claude/skills/kicad-pcb/scripts"
-mkdir -p 06_build/netlists 06_build/drc
+mkdir -p 06_build/netlists 06_build/drc 06_build/route
 python3 03_src/generate_schematic.py | tail -1
 kicad-cli sch export netlist -o 06_build/netlists/esp32_laser_timing.net 04_kicad/esp32_laser_timing.kicad_sch >/dev/null
 # ERC gate (P11 deliverable): 0 violations at severity-all
@@ -22,6 +22,8 @@ sys.exit(1 if v else 0)
 PYEOF
 $PY 03_src/generate_board.py 2>/dev/null | tail -1
 $PY 03_src/audit_board.py 2>/dev/null | tail -1
+# canonical route artifact is PROMOTED + git-tracked (canon M3); 06_build copy optional
+[ -f 06_build/route/r3.kicad_pcb ] || cp 03_src/route/r3.kicad_pcb 06_build/route/r3.kicad_pcb 2>/dev/null || true
 [ -f 06_build/route/r3.kicad_pcb ] || { echo "no route chain: run 03_src/route_prep.py + 03_src/route_waves.sh"; exit 1; }
 $PY "$SKILLS"/import_krt.py 06_build/route/r3.kicad_pcb \
     04_kicad/esp32_laser_timing.kicad_pcb 04_kicad/esp32_laser_timing.kicad_pcb 2>/dev/null | grep imported
