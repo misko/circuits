@@ -198,12 +198,9 @@ def build():
                     conn_by_function("TYPE-C-31-M-12A", {
                         "VBUS": "5V_C", "GND": "GND",
                         "CC1": "CC1", "CC2": "CC2",
-                        "D+": "NC_J5_DP", "D-": "NC_J5_DN",
+                        "D+": "DCPC", "D-": "DCPC",
                         "SBU1": "NC_J5_SBU1", "SBU2": "NC_J5_SBU2",
                         "SHIELD": "GND",
-                    }, pad_overrides={
-                        "A6": "NC_J5_A6", "B6": "NC_J5_B6",
-                        "A7": "NC_J5_A7", "B7": "NC_J5_B7",
                     })), section=sec)
     s.add_part(Part("U6", "USBLC6-2SC6", "Package_TO_SOT_SMD:SOT-23-6",
                     conn_by_function("USBLC6-2SC6", {

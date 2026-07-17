@@ -1,0 +1,45 @@
+mpn: CL10A225KO8NNNC
+manufacturer: Samsung Electro-Mechanics
+type: mlcc
+value: 2.2uF 16V X5R 0603
+description: >
+  2.2 uF +/-10% 16 V X5R MLCC, 0603 (1608 metric). SY8368QNC VCC decoupling
+  (datasheet calls for 2.2 uF ceramic on VCC, an internal ~3.3 V LDO rail).
+  MPN decode per the Samsung catalog numbering table: CL 10 A 225 K O 8 NNNC
+  = 0603 size, X5R dielectric, 2.2 uF, +/-10%, 16 V, 0.8 mm height.
+  Chosen because C23630 is the JLC BASIC 2.2uF 0603 with deep stock
+  (4.17M at check time, 2026-07-16).
+datasheet:
+  doc_id: Samsung_MLCC_catalog
+  revision: 2015-11
+  url: https://datasheet.lcsc.com/datasheet/pdf/02336ea48ea44ca18c72517dd3cb7b47.pdf?productCode=C1591
+  sha256: 96baebe4bd0ce363e87be28b5b003f511f1502e084a6fc4f02333ded56c808f6
+  fetched: 2026-07-16
+package: 0603 (1608 metric)
+footprint: Capacitor_SMD:C_0603_1608Metric
+pins:
+  "1":
+    name: T1
+    note: non-polar
+  "2":
+    name: T2
+limits:
+  rated_voltage: 16V
+  dielectric: X5R (+/-15% over -55C..+85C)
+  tolerance: +/-10%
+gotchas:
+  - X5R DC-bias derating is mild at 3.3V on a 16V-rated 2.2uF (worst-case
+    a few percent loss) — fine for SY8368 VCC decoupling. Do NOT reuse this
+    part on rails near or above ~10V without re-checking bias curves.
+  - Same shared Samsung general catalog PDF as CL10B104KB8NNNC and
+    CL31B106KAHNNNE (deviations register #2).
+verified: >
+  MPN decode against the catalog Part Numbering page (same worked-example
+  scheme as CL10B104KB8NNNC); value/voltage/dielectric cross-checked against
+  the live JLC search result for C23630 (CAP CER 2.2uF 16V X5R 0603,
+  Samsung, componentLibraryType=base). 2026-07-16.
+sourcing:
+  lcsc: C23630
+  alternates:
+    - C57895  # CL10A225KA8NNNC, 25V X5R 0603, extended
+    - C77047  # Murata GRM188R61E225KA12D, 25V X5R 0603, extended

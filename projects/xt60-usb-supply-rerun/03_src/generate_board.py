@@ -136,6 +136,19 @@ RULE_AREAS = [
     ("EN_TAP_C", "F.Cu", (152.83, 147.00, 153.43, 149.90)),
 ]
 
+# refdes silk de-collide: ref -> (dx, dy) offset from footprint origin.
+# Values live on F.Fab; only these silk refs collided in review renders.
+REF_TEXT_OFFSET = {
+    "RFA1": (-1.2, 2.0), "RFA2": (1.2, 2.0),
+    "RFC1": (-1.2, 2.0), "RFC2": (1.2, 2.0),
+    "COUT_C4": (0.0, 2.2), "COUT_C3": (0.0, -2.2),
+    "CVCC1": (-3.6, 0.0), "CVCC2": (-3.6, 0.0),
+    "CBS1": (2.2, -1.6), "CBS2": (2.2, -1.6),
+    "R6": (0.0, 2.0), "R4": (-2.4, 0.0), "R3": (0.0, -1.8),
+    "U6": (0.0, 2.4), "LED3": (0.0, -1.8),
+    "U1": (0.0, -2.6), "U2": (0.0, -2.6),
+}
+
 # Designed vias (net, x, y, dia, drill)
 DESIGNED_VIAS = [
     ("GND", 152.23, 120.90, 0.6, 0.3),
@@ -164,6 +177,7 @@ DESIGNED_VIAS = [
     # dedicated via to the 5V_C In2 patch.
     ("5V_C", 180.10, 156.00, 0.6, 0.3),
     # U4/U5 VBUS pins pocket the same way
+    ("5V_A", 178.35, 109.00, 0.6, 0.3),
     ("5V_A", 178.35, 126.40, 0.6, 0.3),
     ("5V_A", 178.35, 143.80, 0.6, 0.3),
     # J5 VBUS pads A9/B4 are cut off from the main pour by the CC
@@ -230,9 +244,13 @@ DESIGNED_TRACKS = [
     ("VBAT_P", "F.Cu", 0.5, [(152.90, 121.90), (152.90, 122.70)]),
     ("VBAT_P", "F.Cu", 0.5, [(152.90, 149.90), (152.90, 150.70)]),
     ("5V_C", "F.Cu", 0.3, [(179.1375, 156.00), (180.10, 156.00)]),
+    ("5V_A", "F.Cu", 0.3, [(177.1375, 109.00), (178.35, 109.00)]),
     ("5V_A", "F.Cu", 0.3, [(177.1375, 126.40), (178.35, 126.40)]),
     ("5V_A", "F.Cu", 0.3, [(177.1375, 143.80), (178.35, 143.80)]),
     ("5V_C", "F.Cu", 0.4, [(183.55, 154.16), (183.55, 152.35)]),
+    # J5 BC1.2 DCP short: one track across the tips of the contiguous
+    # B6/A7/A6/B7 pad run (ADR 0008)
+    ("DCPC", "F.Cu", 0.25, [(185.25, 153.70), (186.75, 153.70)]),
 ]
 
 
@@ -355,6 +373,11 @@ def main():
         x, y, rot = FLOORPLAN[ref]
         fp.SetPosition(VECTOR2I(FromMM(x), FromMM(y)))
         fp.SetOrientationDegrees(rot)
+        if ref in REF_TEXT_OFFSET:
+            dx, dy = REF_TEXT_OFFSET[ref]
+            fp.Reference().SetPosition(
+                VECTOR2I(FromMM(x + dx), FromMM(y + dy)))
+            fp.Reference().SetTextAngleDegrees(0)
         board.Add(fp)
         for pad in fp.Pads():
             pnum = pad.GetNumber()
@@ -382,6 +405,7 @@ def main():
                          | pcbnew.FP_BOARD_ONLY
                          | pcbnew.FP_EXCLUDE_FROM_BOM
                          | pcbnew.FP_EXCLUDE_FROM_POS_FILES)
+        fp.Reference().SetVisible(False)   # H* refs clipped off-board (review)
         board.Add(fp)
 
     # zones
@@ -462,10 +486,12 @@ def main():
             (153.45, 147.90, 154.25, 152.75),
             (153.40, 151.85, 154.30, 153.45),
             # VBUS rescue corridors (vias + stubs above)
+            (176.90, 108.50, 179.00, 109.50),
             (176.90, 125.90, 179.00, 126.90),
             (176.90, 143.30, 179.00, 144.30),
             (179.00, 155.50, 180.60, 156.50),
             (182.70, 151.75, 184.40, 153.80),
+            (184.90, 153.40, 187.10, 154.00),   # DCPC short corridor
         ]
         rects += [(x - 3.35, y - 3.35, x + 3.35, y + 3.35)
                   for x, y in MOUNTING_HOLES]
