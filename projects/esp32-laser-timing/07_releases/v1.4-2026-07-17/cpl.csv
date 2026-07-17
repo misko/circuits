@@ -1,0 +1,67 @@
+Designator,Val,Package,Mid X,Mid Y,Layer,Rotation
+C1,1u EN,C_0805_2012Metric,78.0,-63.0,top,0.0
+C10,100n btn,C_0805_2012Metric,128.0,-90.0,top,180.0
+C11,100u 5V bulk,CP_Elec_6.3x5.4,88.8,-105.4,top,90.0
+C12,100n 5V bulk,C_0805_2012Metric,86.5,-96.5,top,0.0
+C2,22u LDO in,C_0805_2012Metric,56.5,-88.5,top,90.0
+C3,22u LDO out,C_0805_2012Metric,71.5,-88.5,top,90.0
+C4,22u MCU 3V3,C_0805_2012Metric,84.8,-53.5,top,90.0
+C5,100n MCU 3V3,C_0805_2012Metric,82.0,-56.0,top,90.0
+C6,100n LM339,C_0805_2012Metric,98.5,-81.0,top,0.0
+C7,100n OLED,C_0805_2012Metric,114.0,-63.0,top,0.0
+C8,100n btn,C_0805_2012Metric,128.0,-66.0,top,180.0
+C9,100n btn,C_0805_2012Metric,128.0,-78.0,top,180.0
+D1,USBLC6-2SC6,SOT-23-6,63.5,-57.0,top,270.0
+D2,green PWR,LED_0805_2012Metric,65.5,-80.0,top,0.0
+J1,TYPE-C-31-M-12,USB_C_Receptacle_HRO_TYPE-C-31-M-12,54.2,-66.5,top,90.0
+J10,BUTTON 1 TERM,TerminalBlock_3.5-2P_NoSilk,137.8,-66.0,top,90.0
+J11,BUTTON 2 TERM,TerminalBlock_3.5-2P_NoSilk,137.8,-78.0,top,90.0
+J12,BUTTON 3 TERM,TerminalBlock_3.5-2P_NoSilk,137.8,-90.0,top,90.0
+J2,OLED HDR 1x4F,PinSocket_1x04_P2.54mm_Vertical,122.0,-54.5,top,90.0
+J4,LASER 1 TERM,TerminalBlock_3.5-2P_NoSilk,61.5,-107.0,top,0.0
+J5,LASER 2 TERM,TerminalBlock_3.5-2P_NoSilk,70.0,-107.0,top,0.0
+J6,LASER 3 TERM,TerminalBlock_3.5-2P_NoSilk,78.5,-107.0,top,0.0
+J7,PHOTODIODE 1 TERM,TerminalBlock_3.5-2P_NoSilk,97.0,-107.0,top,0.0
+J8,PHOTODIODE 2 TERM,TerminalBlock_3.5-2P_NoSilk,105.5,-107.0,top,0.0
+J9,PHOTODIODE 3 TERM,TerminalBlock_3.5-2P_NoSilk,114.0,-107.0,top,0.0
+Q1,AO3400A,SOT-23,63.0,-99.0,top,270.0
+Q2,AO3400A,SOT-23,71.5,-99.0,top,270.0
+Q3,AO3400A,SOT-23,80.0,-99.0,top,270.0
+R1,5.1k CC1,R_0805_2012Metric,61.5,-70.5,top,0.0
+R10,100R gate,R_0805_2012Metric,62.5,-94.0,top,0.0
+R11,100k gate pd,R_0805_2012Metric,59.0,-96.5,top,0.0
+R12,100R gate,R_0805_2012Metric,71.0,-94.0,top,0.0
+R13,100k gate pd,R_0805_2012Metric,67.5,-96.5,top,0.0
+R14,100R gate,R_0805_2012Metric,79.5,-94.0,top,0.0
+R15,100k gate pd,R_0805_2012Metric,76.0,-96.5,top,0.0
+R2,5.1k CC2,R_0805_2012Metric,61.5,-73.0,top,0.0
+R20,1k PD load,R_0805_2012Metric,96.0,-99.2,top,0.0
+R21,1k PD load,R_0805_2012Metric,104.5,-99.2,top,0.0
+R22,1k PD load,R_0805_2012Metric,113.0,-99.2,top,0.0
+R23,10k div top,R_0805_2012Metric,112.0,-80.5,top,0.0
+R24,10k div top,R_0805_2012Metric,112.0,-86.0,top,0.0
+R25,10k div top,R_0805_2012Metric,112.0,-91.5,top,0.0
+R26,2.7k div bot,R_0805_2012Metric,112.0,-83.0,top,0.0
+R27,2.7k div bot,R_0805_2012Metric,112.0,-88.5,top,0.0
+R28,2.7k div bot,R_0805_2012Metric,112.0,-94.0,top,0.0
+R29,33k hyst,R_0805_2012Metric,120.0,-80.5,top,0.0
+R3,10k EN,R_0805_2012Metric,78.0,-60.0,top,0.0
+R30,33k hyst,R_0805_2012Metric,120.0,-86.0,top,0.0
+R31,33k hyst,R_0805_2012Metric,120.0,-91.5,top,0.0
+R32,10k comp pu,R_0805_2012Metric,120.0,-83.0,top,0.0
+R33,10k comp pu,R_0805_2012Metric,120.0,-88.5,top,0.0
+R34,10k comp pu,R_0805_2012Metric,120.0,-94.0,top,0.0
+R4,1k LED,R_0805_2012Metric,60.0,-80.0,top,0.0
+R40,10k btn pu,R_0805_2012Metric,128.0,-63.5,top,0.0
+R41,10k btn pu,R_0805_2012Metric,128.0,-75.5,top,0.0
+R42,10k btn pu,R_0805_2012Metric,128.0,-87.5,top,0.0
+R43,1k btn ser,R_0805_2012Metric,128.0,-68.5,top,0.0
+R44,1k btn ser,R_0805_2012Metric,128.0,-80.5,top,0.0
+R45,1k btn ser,R_0805_2012Metric,128.0,-92.5,top,0.0
+R50,4.7k SDA pu,R_0805_2012Metric,114.0,-58.0,top,0.0
+R51,4.7k SCL pu,R_0805_2012Metric,114.0,-60.5,top,0.0
+SW1,TS-1187A BOOT,SW_Push_1P1T_XKB_TS-1187A,85.0,-76.0,top,0.0
+SW2,TS-1187A RESET,SW_Push_1P1T_XKB_TS-1187A,75.0,-76.0,top,0.0
+U1,ESP32-S3-WROOM-1-N8R2,ESP32-S3-WROOM-1,96.0,-56.0,top,0.0
+U2,AMS1117-3.3,SOT-223-3_TabPin2,64.0,-88.5,top,180.0
+U3,LM339DT,SOIC-14_3.9x8.7mm_P1.27mm,104.0,-88.0,top,270.0

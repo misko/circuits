@@ -1,5 +1,15 @@
 # CHANGELOG — esp32-laser-timing
 
+## v1.4 — 2026-07-17
+Released: 07_releases/v1.4-2026-07-17/
+- Schematic occlusion cleanup (canon S-OCCL, added to policy_audit this
+  release): 79 dashed pseudo-wires removed, section boxes separated,
+  refs corner-justified + small values left-justified (S-OCCL 28 -> 0),
+  title-block rev generated from the release tag (was stuck at v1.0).
+- Wire-stub attempt REVERTED (T-junction merges; documented in generator).
+  Wired story paths remain Phase-2. Fab byte-identical to v1.1-v1.3.
+
+
 ## v1.3 — 2026-07-17
 Released: 07_releases/v1.3-2026-07-17/
 - REVERT v1.2's wrong J1 render fix. v1.1's USB-C render was already

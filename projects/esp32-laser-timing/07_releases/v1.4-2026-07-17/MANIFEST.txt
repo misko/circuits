@@ -1,0 +1,20 @@
+board:        esp32_laser_timing
+version:      v1.4
+ordered:      2026-07-17
+git_sha:      7dc85e4
+git_dirty:    false
+kicad:        10.0.4
+tools:        KRT@b0b1067, python 3.12, jlcpcb-fab+kicad-pcb skill scripts 2026-07 (policy_audit S-OCCL)
+supersedes:   v1.3-2026-07-17 — schematic-PDF occlusion cleanup (S-OCCL 28->0, pseudo-wires removed, title rev fixed). FAB FILES BYTE-IDENTICAL to v1.1/v1.2/v1.3.
+fab:          JLCPCB, 2 layer, STANDARD options (no small-via needed; min drill 0.3mm)
+quantity:     5
+change:       pdf/schematic.pdf regenerated from the cleaned generator; everything else copied from v1.3 (hashes match)
+gates:        ERC 0 total · parity 0 · DRC 0/0/0 (v1.3 evidence carried, board untouched) · policy_audit ZERO FAIL incl new S-OCCL=0 (verification/policy_audit.md) · pin review carried fwd · render review this release
+sha256:
+  esp32_laser_timing_gerbers.zip  b3a0c897a47e584904fb17ccfbe725145ba3dd7b2180b49679c793b084ae4466
+  bom.csv                         015ee5ea6037766b653e46ffb68449117cd30afcb13a5da0cd6d16271ecc64b2
+  cpl.csv                         a54ecc66cbafa885aedbd910030e46fa5e1a362fe4338ee8c885505e0bb9511d
+  pdf/schematic.pdf               4f89c05cdb979c079af5372e9bb99b705b5907d0a6aa022d2c760d85e2293788
+  pdf/pcb_layers.pdf              be04ac99afbc327253fd1f22e04830510bda1cbffe167bc07204d81fb97b486e
+  pdf/assembly_top.pdf            742f6e0c43bca19ed249041dda406cb071c5f585bcc6020d47571f3ab009503d
+not_assembled: J4-J12 (9x KF128L-3.5-2P 3.5mm screw terminals, C474930, hand-solder) · J2 (2.54mm 1x4 female socket, e.g. C2718488, hand-solder)
