@@ -195,15 +195,27 @@ def place(sym, ref, value, x, y, nets):
     pm, w, h = PINMAPS[sym]
     _grow_section(x - w / 2 - 14, y - h / 2 - 3.2, x + w / 2 + 14, y + h / 2 + 3.2)
     ry, vy = y - h / 2 - 1.6, y + h / 2 + 1.8
-    vsz = 0.9 if sym in ("RES", "CAP", "CAPP", "LED", "SW", "TP") else 1.27
+    small = sym in ("RES", "CAP", "CAPP", "LED", "SW", "TP", "TERM2")
+    vsz = 0.9 if small else 1.27
     fp = REF_FP.get(ref, SYM_FP.get(sym, ""))
     in_bom = "no" if sym == "TP" else "yes"  # TPs: exclude-from-BOM on BOTH sides (parity)
     BODY.append(
         f'  (symbol (lib_id "elt:{sym}") (at {x:.2f} {y:.2f} 0) (unit 1)'
         f' (in_bom {in_bom}) (on_board yes) (dnp no) (uuid "{u()}")\n'
-        f'    (property "Reference" "{ref}" (at {x:.2f} {ry:.2f} 0) (effects (font (size 1.27 1.27))))\n'
-        f'    (property "Value" "{value}" (at {x:.2f} {vy:.2f} 0) (effects (font (size {vsz} {vsz}))))\n'
-        f'    (property "Footprint" "{fp}" (at {x:.2f} {y:.2f} 0) (effects (font (size 1.27 1.27)) hide))\n'
+        # small parts: ref right-justified at the top-LEFT corner so it never
+        # sits directly above the next stacked part's centered value
+        # (S-OCCL fix 2026-07-17; value-inside-body was tried and reverted —
+        # long value strings clipped the body edges and pin numbers)
+        + (f'    (property "Reference" "{ref}" (at {x - w/2 - 0.6:.2f} {ry:.2f} 0)'
+           f' (effects (font (size 1.0 1.0)) (justify right)))\n' if small else
+           f'    (property "Reference" "{ref}" (at {x:.2f} {ry:.2f} 0) (effects (font (size 1.27 1.27))))\n')
+        # small parts: value left-justified from the body's LEFT edge — it
+        # extends RIGHT while stacked refs extend LEFT from the same edge,
+        # so the two text families are horizontally disjoint by construction
+        + (f'    (property "Value" "{value}" (at {x - w/2:.2f} {vy:.2f} 0)'
+           f' (effects (font (size {vsz} {vsz})) (justify left)))\n' if small else
+           f'    (property "Value" "{value}" (at {x:.2f} {vy:.2f} 0) (effects (font (size {vsz} {vsz}))))\n')
+        + f'    (property "Footprint" "{fp}" (at {x:.2f} {y:.2f} 0) (effects (font (size 1.27 1.27)) hide))\n'
         + "\n".join(f'    (pin "{n}" (uuid "{u()}"))' for n in pm)
         + f'\n    (instances (project "{PROJECT}" (path "/{ROOT_UUID}" (reference "{ref}") (unit 1))))\n  )'
     )
@@ -213,12 +225,19 @@ def place(sym, ref, value, x, y, nets):
             ex = x - _ / 2 - 2.54 if side == "L" else x + _ / 2 + 2.54
             BODY.append(f'  (no_connect (at {ex:.2f} {y - py:.2f}) (uuid "{u()}"))')
             continue
+        # Labels attach directly at pin tips. A 5.08mm wire-stub variant was
+        # tried and REVERTED (2026-07-17): part spacing assumes 2.54mm label
+        # reach, and longer stubs T-junctioned onto neighbours' stubs,
+        # merging GND/5V/3V3 (81 parity conflicts). Wire emission is a
+        # placement-coupled Phase-2 change; the label/pin-name occlusion is
+        # fixed at the SYMBOL (pin names drawn inside the body) instead.
+        tipx = x - _ / 2 - 2.54 if side == "L" else x + _ / 2 + 2.54
         if side == "L":
             lx, ang, just = x - _ / 2 - 2.54, 180, "right"
         else:
             lx, ang, just = x + _ / 2 + 2.54, 0, "left"
         PIN_NET[(ref, pin_num)] = net
-        PIN_POS[(ref, pin_num)] = (x - _ / 2 if side == "L" else x + _ / 2, y - py, side)
+        PIN_POS[(ref, pin_num)] = (tipx, y - py, side)
         LABELS.append(
             f'  (global_label "{net}" (shape passive) (at {lx:.2f} {y - py:.2f} {ang})'
             f' (fields_autoplaced) (effects (font (size 1.27 1.27)) (justify {just})) (uuid "{u()}"))'
@@ -248,12 +267,12 @@ place("AMS1117", "U2", "AMS1117-3.3", 40, 92,
 place("CAP", "C2", "22u LDO in", 22, 92, {"1": "5V", "2": "GND"})
 place("CAP", "C3", "22u LDO out", 58, 92, {"1": "3V3", "2": "GND"})
 place("CAPP", "C11", "100u 5V bulk", 22, 104, {"1": "5V", "2": "GND"})
-place("CAP", "C12", "100n 5V bulk", 40, 104, {"1": "5V", "2": "GND"})
+place("CAP", "C12", "100n 5V bulk", 56, 104, {"1": "5V", "2": "GND"})
 place("RES", "R4", "1k LED", 74, 92, {"1": "3V3", "2": "LED_A"})
 place("LED", "D2", "green PWR", 74, 100, {"1": "GND", "2": "LED_A"})  # pad1 = cathode
-place("TP", "TP4", "TP 5V", 22, 114, {"1": "5V"})
-place("TP", "TP5", "TP 3V3", 40, 114, {"1": "3V3"})
-place("TP", "TP6", "TP GND", 58, 114, {"1": "GND"})
+place("TP", "TP4", "TP 5V", 22, 117, {"1": "5V"})
+place("TP", "TP5", "TP 3V3", 40, 117, {"1": "3V3"})
+place("TP", "TP6", "TP GND", 58, 117, {"1": "GND"})
 
 # --- section 3: MCU ---
 section("3. ESP32-S3-WROOM-1 (native USB; pin map ADR-0004)", 20, 128)
@@ -416,17 +435,58 @@ sch = []
 sch.append('(kicad_sch (version 20230121) (generator elt_generate_schematic)')
 sch.append(f'  (uuid "{ROOT_UUID}")')
 sch.append('  (paper "A2")')
-sch.append('  (title_block (title "esp32-laser-timing") (date "2026-07-17") (rev "v1.0")')
+# title-block rev tracks the release tag (canon: provenance is generated,
+# never hand-set — the v1.3 release PDF shipped saying "Rev: v1.0")
+import subprocess as _sp
+try:
+    import os as _os
+    _rev = (_os.environ.get("ELT_REV")
+            or _sp.run(["git", "describe", "--tags", "--match", "elt-v*",
+                        "--abbrev=0"], capture_output=True, text=True,
+                       cwd=str(HERE)).stdout.strip().replace("elt-", "")
+            or "dev")
+except Exception:
+    _rev = "dev"
+import datetime as _dt
+_date = _dt.date.today().isoformat()
+sch.append(f'  (title_block (title "esp32-laser-timing") (date "{_date}") (rev "{_rev}")')
 sch.append('    (comment 1 "Laser interruption timing bench controller; 01_docs/ + ADRs in repo"))')
 sch.append("  (lib_symbols")
 sch.extend(SYMBOLS.values())
 sch.append("  )")
 sch.extend(LABELS)
 sch.extend(BODY)
-sch.extend(LINKS)
+# LINKS (dashed pseudo-wires) intentionally NOT emitted: decorative
+# connectivity crossed section boxes and symbols (occlusion review
+# 2026-07-17); real wire stubs at every labeled pin carry the intent now.
+_rects = []
 for title, x0, y0, x1, y1 in SECTIONS:
     x0, y0 = max(x0 - 2, 12.0), max(y0 - 4.5, 12.0)
     x1, y1 = x1 + 2, y1 + 2.5
+    _rects.append([title, x0, y0, x1, y1])
+# separate intersecting section boxes: pull the shared edge to the overlap
+# midline on the axis of least overlap — boxes may abut, never cross
+# (occlusion review 2026-07-17: borders struck through neighboring content)
+for _i in range(len(_rects)):
+    for _j in range(_i + 1, len(_rects)):
+        _a, _b = _rects[_i], _rects[_j]
+        _ox = min(_a[3], _b[3]) - max(_a[1], _b[1])
+        _oy = min(_a[4], _b[4]) - max(_a[2], _b[2])
+        if _ox <= 0 or _oy <= 0:
+            continue
+        if _ox <= _oy:
+            _mid = (max(_a[1], _b[1]) + min(_a[3], _b[3])) / 2
+            if _a[1] < _b[1]:
+                _a[3] = min(_a[3], _mid - 0.5); _b[1] = max(_b[1], _mid + 0.5)
+            else:
+                _b[3] = min(_b[3], _mid - 0.5); _a[1] = max(_a[1], _mid + 0.5)
+        else:
+            _mid = (max(_a[2], _b[2]) + min(_a[4], _b[4])) / 2
+            if _a[2] < _b[2]:
+                _a[4] = min(_a[4], _mid - 0.5); _b[2] = max(_b[2], _mid + 0.5)
+            else:
+                _b[4] = min(_b[4], _mid - 0.5); _a[2] = max(_a[2], _mid + 0.5)
+for title, x0, y0, x1, y1 in _rects:
     sch.append(f'  (rectangle (start {x0:.2f} {y0:.2f}) (end {x1:.2f} {y1:.2f})'
                f" (stroke (width 0.35) (type solid) (color 120 120 130 0.7))"
                f' (fill (type none)) (uuid "{u()}"))')

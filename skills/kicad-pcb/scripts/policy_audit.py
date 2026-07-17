@@ -147,6 +147,54 @@ def main():
     else:
         rows.append(("S-VER", "N-A", "no 02_parts entries"))
 
+    # S-OCCL: schematic text occlusions — global-label plates vs each other
+    # and vs symbol Reference/Value property texts (approx bboxes; the same
+    # ground-truth-geometry philosophy as the board silk de-collision).
+    if sch_p:
+        stxt = Path(sch_p).read_text()
+        items = []  # (x0,y0,x1,y1,desc)
+        CH_W, CH_H = 1.05, 2.2   # per-char width, line height @1.27mm font
+        for m in re.finditer(r'\(global_label "([^"]+)"[^(]*\(at ([-\d.]+) ([-\d.]+) (\d+)\)', stxt):
+            txt, gx, gy, ang = m.group(1), float(m.group(2)), float(m.group(3)), int(m.group(4))
+            wlen = (len(txt) + 2) * CH_W
+            if ang == 180:   # plate extends left of anchor
+                items.append((gx - wlen, gy - CH_H / 2, gx, gy + CH_H / 2,
+                              f"label {txt}"))
+            else:
+                items.append((gx, gy - CH_H / 2, gx + wlen, gy + CH_H / 2,
+                              f"label {txt}"))
+        # INSTANCE properties only — lib_symbols prototypes all sit at the
+        # same local coords and generate pure false positives
+        for im_ in re.finditer(r'\(symbol \(lib_id[^\n]*\n(.{0,1200}?)\(pin ',
+                               stxt, re.S):
+            blk = im_.group(1)
+            for pm in re.finditer(r'\(property "(Reference|Value)" "([^"]+)" \(at ([-\d.]+) ([-\d.]+) \d+\)\s*\(effects \(font \(size ([\d.]+) [\d.]+\)\)(?: \(justify (\w+)\))?', blk):
+                kind, txt, gx, gy, fs, just = (pm.group(1), pm.group(2),
+                                               float(pm.group(3)),
+                                               float(pm.group(4)),
+                                               float(pm.group(5)), pm.group(6))
+                if "hide" in blk[pm.end():pm.end() + 60]:
+                    continue
+                w = len(txt) * fs * 0.82
+                if just == "right":
+                    box = (gx - w, gy - fs * 0.9, gx, gy + fs * 0.9)
+                elif just == "left":
+                    box = (gx, gy - fs * 0.9, gx + w, gy + fs * 0.9)
+                else:
+                    box = (gx - w / 2, gy - fs * 0.9, gx + w / 2, gy + fs * 0.9)
+                items.append(box + (f"{kind} {txt}",))
+        occl = []
+        for i in range(len(items)):
+            for j in range(i + 1, len(items)):
+                a, b = items[i], items[j]
+                if a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]:
+                    occl.append(f"{a[4]} x {b[4]}")
+        thr = int(cfg.get("soccl_max", 0))
+        grade("S-OCCL", len(occl) <= thr,
+              f"{len(occl)} text occlusions (<= {thr})",
+              f"{len(occl)} schematic text occlusions: {occl[:6]}")
+    else:
+        rows.append(("S-OCCL", "N-A", "no schematic"))
     rows.append(("S5", "HUMAN", "design-math spot-check per review protocol"))
     rows.append(("S6", "HUMAN", "schematic readability graded in render review"))
     rows.append(("S7", "HUMAN", "decoupling-adjacency graded in render review"))

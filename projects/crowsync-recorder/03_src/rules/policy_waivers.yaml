@@ -21,3 +21,10 @@
     Policy P5 adopted 2026-07-17, after release; zero silk text shipped.
     Connector functions documented in ORDER_README + assembly PDF.
     Next-spin remediation.
+- id: S-OCCL
+  why: >-
+    22 schematic text occlusions, all the value-below-vs-next-ref stacking
+    pattern quantified by the new S-OCCL check (2026-07-17). Fix is the
+    proven one-line value-inside-body change from esp32-laser-timing's
+    generator (S-OCCL 28 -> 0 there); queued for this generator's next
+    touch. Occlusions are cosmetic (netlist label-based; ERC/parity 0).

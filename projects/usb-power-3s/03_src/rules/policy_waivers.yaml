@@ -45,3 +45,10 @@
     battery input with unmarked terminals is exactly the incident class
     behind P5 — next-spin remediation: plain-word labels (BATT 3S +/-,
     FUSE 15A, 5V 2.5A per USB-A, USB-C 3A) via the generator silk pass.
+- id: S-OCCL
+  why: >-
+    52 schematic text occlusions (value-vs-ref stacking + long annotation
+    strings), quantified by the new S-OCCL check (2026-07-17). Same proven
+    fix as esp32-laser-timing (value-inside-body, 28 -> 0); queued for this
+    generator's next touch. Cosmetic: netlist is label-based, ERC now
+    gated at 0 errors, parity 0.
