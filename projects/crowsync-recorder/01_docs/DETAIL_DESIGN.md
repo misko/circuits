@@ -105,8 +105,9 @@ reference from injected noise.
 ## 8. Indicators
 
 - D3 green LED + R17 = 1k from SSPND (pin 28, high = operational):
-  (3.3 − 2.1)/1k ≈ 1.2 mA — enumeration/activity indicator.
-- D4 green LED + R18 = 2k2 from VBUS_5V: (5 − 2.1)/2.2k ≈ 1.3 mA — power.
+  KT-0805G Vf ≈ 2.6–3.1 V → (3.3 − 2.8)/1k ≈ 0.5 mA — dim-but-visible
+  enumeration indicator (430 mcd part at 5 mA; ~10% still obvious indoors).
+- D4 green LED + R18 = 2k2 from VBUS_5V: (5 − 2.8)/2.2k ≈ 1.0 mA — power.
 
 ## 9. Worst-case input current (USB budget)
 
