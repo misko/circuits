@@ -343,7 +343,17 @@ never runs for exactly the parts a human solders by eye.
    v1.0 with its 3D model 180deg-flipped because the MODEL-REG line was
    left un-acted through review; pads were perfect (0.00mm) so only the
    render lied. Gate the release on: zero unadjudicated MODEL-REG, not
-   just twin exit 0.
+   just twin exit 0. BUT the disposition is often "false alarm, NO
+   rotation": JLC's OWN footprint model rotation (the (rotate ...) in
+   jlc.pretty/*.kicad_mod, which the twin already applies) is
+   AUTHORITATIVE. For an asymmetric body (connector with a mouth) the
+   bbox-center-vs-courtyard metric is offset even when correct, so the
+   "a 180 flip fixes it" arithmetic is a RED HERRING (same as the Q1
+   DPAK) - it lured a wrong model_rot_z onto a USB-C twice before the
+   JLC .kicad_mod rot_z was checked. NEVER apply a model_rot_z that
+   deviates from JLC's own model rotation unless the RENDER shows leads
+   off the pads. Verify leads-on-pads visually + read JLC's .kicad_mod
+   rotation; do not chase the metric.
 
 7. SWIG trap: iterating fp.Models() and assigning m_Rotation.z on the
    yielded items silently does nothing (the write lands on a temporary).
