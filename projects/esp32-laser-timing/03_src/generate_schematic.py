@@ -197,9 +197,10 @@ def place(sym, ref, value, x, y, nets):
     ry, vy = y - h / 2 - 1.6, y + h / 2 + 1.8
     vsz = 0.9 if sym in ("RES", "CAP", "CAPP", "LED", "SW", "TP") else 1.27
     fp = REF_FP.get(ref, SYM_FP.get(sym, ""))
+    in_bom = "no" if sym == "TP" else "yes"  # TPs: exclude-from-BOM on BOTH sides (parity)
     BODY.append(
         f'  (symbol (lib_id "elt:{sym}") (at {x:.2f} {y:.2f} 0) (unit 1)'
-        f' (in_bom yes) (on_board yes) (dnp no) (uuid "{u()}")\n'
+        f' (in_bom {in_bom}) (on_board yes) (dnp no) (uuid "{u()}")\n'
         f'    (property "Reference" "{ref}" (at {x:.2f} {ry:.2f} 0) (effects (font (size 1.27 1.27))))\n'
         f'    (property "Value" "{value}" (at {x:.2f} {vy:.2f} 0) (effects (font (size {vsz} {vsz}))))\n'
         f'    (property "Footprint" "{fp}" (at {x:.2f} {y:.2f} 0) (effects (font (size 1.27 1.27)) hide))\n'

@@ -46,6 +46,7 @@ from collections import Counter
 d = json.load(open('06_build/drc/gate.json'))
 print('violations:', len(d['violations']), dict(Counter(v['type'] for v in d['violations'])))
 print('unconnected:', len(d['unconnected_items']))
+print('parity:', len(d.get('schematic_parity', [])))
 import sys
-sys.exit(1 if (d['violations'] or d['unconnected_items']) else 0)
+sys.exit(1 if (d['violations'] or d['unconnected_items'] or d.get('schematic_parity')) else 0)
 PYEOF
