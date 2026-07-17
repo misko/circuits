@@ -174,13 +174,14 @@ def link(refA, pinA, refB, pinB):
 def place(sym, ref, value, x, y, nets):
     pm, w, h = PINMAPS[sym]
     _grow_section(x - w / 2 - 14, y - h / 2 - 3.2, x + w / 2 + 14, y + h / 2 + 3.2)
-    ry, vy = y - h / 2 - 1.6, y + h / 2 + 1.6
+    ry, vy = y - h / 2 - 1.6, y + h / 2 + 1.8
+    vsz = 0.9 if sym in ("RES", "CAP", "FB", "LED", "XTAL4") else 1.27
     fp = REF_FP.get(ref, SYM_FP.get(sym, ""))
     BODY.append(
         f'  (symbol (lib_id "csr:{sym}") (at {x:.2f} {y:.2f} 0) (unit 1)'
         f' (in_bom yes) (on_board yes) (dnp no) (uuid "{u()}")\n'
         f'    (property "Reference" "{ref}" (at {x:.2f} {ry:.2f} 0) (effects (font (size 1.27 1.27))))\n'
-        f'    (property "Value" "{value}" (at {x:.2f} {vy:.2f} 0) (effects (font (size 1.27 1.27))))\n'
+        f'    (property "Value" "{value}" (at {x:.2f} {vy:.2f} 0) (effects (font (size {vsz} {vsz}))))\n'
         f'    (property "Footprint" "{fp}" (at {x:.2f} {y:.2f} 0) (effects (font (size 1.27 1.27)) hide))\n'
         + "\n".join(f'    (pin "{n}" (uuid "{u()}"))' for n in pm)
         + f'\n    (instances (project "{PROJECT}" (path "/{ROOT_UUID}" (reference "{ref}") (unit 1))))\n  )'
@@ -249,7 +250,7 @@ place("RES", "R18", "2k2 LED 5V", 125, 46, {"1": "VBUS_5V", "2": "LED4_A"})
 place("LED", "D4", "green PWR", 125, 54, {"1": "GND", "2": "LED4_A"})
 
 # --- section 3: crystal ---
-section("3. 12 MHz CRYSTAL (CL 20pF -> 33p; SBFS039 fig 38)", 130, 105)
+section("3. 12 MHz CRYSTAL (CL 20pF -> 33p)", 130, 105)
 place("XTAL4", "Y1", "12MHz 3225 20pF", 160, 118,
       {"1": "XTI", "3": "XTO", "2": "GND", "4": "GND"})
 place("RES", "R6", "1M XTI-XTO", 160, 130, {"1": "XTI", "2": "XTO"})
@@ -257,7 +258,7 @@ place("CAP", "C5", "33p XTI", 135, 118, {"1": "XTI", "2": "GND"})
 place("CAP", "C6", "33p XTO", 185, 118, {"1": "XTO", "2": "GND"})
 
 # --- section 4: analog rail ---
-section("4. 3V3A LOW-NOISE RAIL (TPS7A2033; scope = front-end, ADR-0002)", 20, 105)
+section("4. 3V3A RAIL (TPS7A2033, ADR-0002)", 20, 105)
 place("TPS7A20", "U3", "TPS7A2033PDBVR", 45, 118,
       {"1": "VBUS_5V", "3": "VBUS_5V", "2": "GND", "5": "3V3A", "4": None})
 place("CAP", "C14", "1u LDO in", 22, 130, {"1": "VBUS_5V", "2": "GND"})

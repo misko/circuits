@@ -118,14 +118,14 @@ An orderable, verified JLCPCB release of the two-channel recorder board.
 
 | # | Criterion | Source | Status |
 |---|---|---|---|
-| G1 | PCM2900C 48k/16 stereo USB recorder, bus-powered | P1 | unmet |
-| G2 | CH1 mic chain (bias/protection/TLV9062 -> VINL), both PUI capsules | P2/A1 | unmet |
-| G3 | CH2 PPS chain (protection/divider/AC couple -> VINR), 3.3V CMOS in | P3/A2 | unmet |
-| G4 | TPS7A2033 low-noise 3.3V analog rail | P4 | unmet |
-| G5 | 4-layer ~65x42mm, continuous GND plane, 4x M2.5, USB-C clear of hardware | P5 | unmet |
-| G6 | JST GH mic + PPS headers | P6 | unmet |
-| G7 | Top-side SMT, JLC-compatible BOM/CPL, all-JLC assembly | P7/A4 | unmet |
-| G8 | Order package for 5 PCBs / 3 assembled | P8 | unmet |
+| G1 | PCM2900C 48k/16 stereo USB recorder, bus-powered | P1 | met — 07_releases/v1.0-2026-07-16 |
+| G2 | CH1 mic chain (bias/protection/TLV9062 -> VINL), both PUI capsules | P2/A1 | met — decisions/0003 + DETAIL_DESIGN §6 |
+| G3 | CH2 PPS chain (protection/divider/AC couple -> VINR), 3.3V CMOS in | P3/A2 | met — DETAIL_DESIGN §7 |
+| G4 | TPS7A2033 low-noise 3.3V analog rail | P4 | met — decisions/0002 |
+| G5 | 4-layer ~65x42mm, continuous GND plane, 4x M2.5, USB-C clear of hardware | P5 | met — audit I1-I7 PASS + render review (In1 unbroken) |
+| G6 | JST GH mic + PPS headers | P6 | met — decisions/0005 |
+| G7 | Top-side SMT, JLC-compatible BOM/CPL, all-JLC assembly | P7/A4 | met — 07_releases/v1.0-2026-07-16 (27/27 coded, 0 hand-solder) |
+| G8 | Order package for 5 PCBs / 3 assembled | P8 | met — 07_releases/v1.0-2026-07-16/ORDER_README.md |
 
 ## Decision register
 
