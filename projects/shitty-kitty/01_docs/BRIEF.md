@@ -126,11 +126,38 @@ Video: https://www.youtube.com/watch?v=x2Yv9KRT77E
   A4 (user, 2026-07-17): **Goal 1 only** — PCB release + 10k-unit cost
   estimate docs (1b/1c); mechanics (Goals 2-3) out of this run.
 
+## End goal — definition of done
+
+Goal-1 (A4) deliverables: an orderable, verified JLCPCB release of the
+controller PCB plus the two 10k-unit cost estimates.
+
+| # | Criterion | Source | Status |
+|---|---|---|---|
+| G1 | PCB with power distribution (12V in, 12V motor, 5V+3V3 out), accelerometer, 4x MPR121, 24 electrode lines, stepper driver, endstop input | P4-P6 | unmet |
+| G2 | Fab package for 5 prototype boards (gerbers+BOM+CPL, KiCad 10 per A1) | P7/Goal 1a | unmet |
+| G3 | COST_ESTIMATE.md (b): current PCB at 10k units | Goal 1b | unmet |
+| G4 | COST_ESTIMATE.md (c): optimized PCB at 10k+ units | Goal 1c | unmet |
+| G5 | Motor disabled at boot (hardware pull), endstop on interrupt GPIO | P4 + commission | unmet |
+
 ## Decision register
 
-(D# appended as decisions are made)
+| id | decision (one line) | decided by | depth |
+|---|---|---|---|
+| D1 | Input entry: barrel jack + polyfuse 2A + P-FET reverse polarity + SMBJ16A TVS | agent (P-delegation) | decisions/0001-input-protection.md |
+| D2 | Stepper driver = TMC2209-LA-T (quiet StealthChop, UART, StallGuard) over DRV8825 | agent (P4 "or better") | decisions/0002-motor-driver.md |
+| D3 | 4-layer board, JLC standard tier (In1 GND plane for cap-sense floor) | agent (P-delegation) | decisions/0003-layer-count.md |
+| D4 | Accelerometer = LIS2DH12TR; 4x MPR121QR2 at 0x5A-0x5D, 6 electrodes/chip | agent (P5 "similar to") | decisions/0004-sensors-and-compute.md |
+| D5 | 5V = AP63205 2A buck; host budget 1.5A; 3V3 = AMS1117; USB-C is data-only | agent (P6 delegation) | decisions/0004-sensors-and-compute.md |
+| D6 | Sourcing: 12 unique Extended + 10 Basic lines; THT connectors hand-solder | agent (pipeline rule) | decisions/0005-sourcing-and-connectors.md |
+| D7 | Connectors: XH-4 motor, 2P screw endstop, 2x 1x13 headers for electrodes, 1x6 host | agent (P-delegation) | decisions/0005-sourcing-and-connectors.md |
+| D8 | Host link = UART (TXD0/RXD0) not I2C on the 1x6 header | agent (A2 delegation) | decisions/0004-sensors-and-compute.md |
+| D9 | ENN pull-up 10k to 3V3: motor hardware-disabled at boot (cat safety) | agent (commission mandate) | decisions/0002-motor-driver.md |
+| D10 | TMC2209 external sense 0.15R (1.35A max) rather than RDSon-only mode | agent (P-delegation) | DETAIL_DESIGN.md §TMC2209 |
 
 ## Log
 
 - 2026-07-17: commissioned from page 1 of the PNG brief; awaiting
   remaining pages and answers to Q1-Q4.
+
+- 2026-07-17: Stage-1 docs cut — ARCHITECTURE, DETAIL_DESIGN, ADRs
+  0001-0005, decisions D1-D10 (live JLC stock data in 06_build/cache/).

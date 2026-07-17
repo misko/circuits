@@ -1,0 +1,1910 @@
+{
+ "MPR121QR2": [
+  {
+   "code": "C91322",
+   "mpn": "MPR121QR2",
+   "brand": "NXP Semicon",
+   "pkg": "QFN-20(3x3)",
+   "stock": 1200,
+   "lib": "expand",
+   "p1": 2.669,
+   "desc": "-40\u2103~+85\u2103 1.71V~3.6V 12 29uA 2kV 3uA Capacitive Touch QFN-20(3x3) Touch Sensors ROHS"
+  }
+ ],
+ "MPR121": [
+  {
+   "code": "C9900003850",
+   "mpn": "MPR121",
+   "brand": "JLCPCB Assembly",
+   "pkg": "SMD-20_3.0X3.0X0.40P",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0007,
+   "desc": "SMD-20_3.0X3.0X0.40P SMT ROHS"
+  },
+  {
+   "code": "C91322",
+   "mpn": "MPR121QR2",
+   "brand": "NXP Semicon",
+   "pkg": "QFN-20(3x3)",
+   "stock": 1200,
+   "lib": "expand",
+   "p1": 2.669,
+   "desc": "-40\u2103~+85\u2103 1.71V~3.6V 12 29uA 2kV 3uA Capacitive Touch QFN-20(3x3) Touch Sensors ROHS"
+  }
+ ],
+ "TMC2209": [
+  {
+   "code": "C2150710",
+   "mpn": "TMC2209-LA-T",
+   "brand": "TRINAMIC Motion Control GmbH",
+   "pkg": "QFN-28-EP(5x5)",
+   "stock": 10544,
+   "lib": "expand",
+   "p1": 2.6383,
+   "desc": "-40\u2103~+125\u2103 2 256\u30018\u300116\u300132\u300164 2A 340m\u03a9 4.75V~29V 4.75V~29V Bipolar Driver Overcurrent Protec"
+  },
+  {
+   "code": "C465949",
+   "mpn": "TMC2209-LA",
+   "brand": "TRINAMIC Motion Control GmbH",
+   "pkg": "QFN-28-EP(5x5)",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 3.4587,
+   "desc": "-40\u2103~+125\u2103 170m\u03a9 2.8A 256 3V~5.5V 4.75V~29V Bipolar Driver Overcurrent Protection\u3001Short-Ci"
+  },
+  {
+   "code": "C17375345",
+   "mpn": "TMC2209SILENTSTEPSTICK",
+   "brand": "TRINAMIC Motion Control GmbH",
+   "pkg": "-",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 4.1436,
+   "desc": "Power Management - Modules ROHS"
+  },
+  {
+   "code": "C17536249",
+   "mpn": "TMC2209-BOB",
+   "brand": "TRINAMIC Motion Control GmbH",
+   "pkg": "-",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 37.713,
+   "desc": "Power Management - Modules ROHS"
+  },
+  {
+   "code": "C9900017095",
+   "mpn": "TMC2209",
+   "brand": "JLCPCB Assembly",
+   "pkg": "QFN28",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0392,
+   "desc": "VQFN-28-EP(5x5) SMT ROHS"
+  },
+  {
+   "code": "C9900252371",
+   "mpn": "TMC2209",
+   "brand": "JLCPCB Assembly",
+   "pkg": "TH-16P-P2.54",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0392,
+   "desc": "TH-16P-P2.54 SMT ROHS"
+  },
+  {
+   "code": "C9900294805",
+   "mpn": "TMC2209",
+   "brand": "JLCPCB Assembly",
+   "pkg": "Through hole",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0392,
+   "desc": "Through hole SMT ROHS"
+  },
+  {
+   "code": "C52677670",
+   "mpn": "TMC2209-LA",
+   "brand": "Analog Devices",
+   "pkg": "QFN-28-EP_5x5",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 15.8814,
+   "desc": "QFN-28-EP(5x5) SMT ROHS"
+  }
+ ],
+ "TMC2208": [
+  {
+   "code": "C7400847",
+   "mpn": "TMC2208-LA",
+   "brand": "TRINAMIC Motion Control GmbH",
+   "pkg": "QFN-28(5x5)",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 6.2936,
+   "desc": "1.4A 256 3.3V~5V 570m\u03a9 Bipolar Driver Overcurrent Protection\u3001Short-Circuit  Protection\u3001Ove"
+  },
+  {
+   "code": "C115944",
+   "mpn": "TMC2208-LA-T",
+   "brand": "TRINAMIC Motion Control GmbH",
+   "pkg": "QFN-28-EP(5x5)",
+   "stock": 7158,
+   "lib": "expand",
+   "p1": 2.5529,
+   "desc": "-40\u2103~+125\u2103 1.4A 2 256\u30012\u30014\u30018\u300116\u300132 4.75V~36V 4.75V~36V 570m\u03a9 Bipolar Driver Overcurrent Pro"
+  },
+  {
+   "code": "C17327666",
+   "mpn": "TMC2208SILENTSTEPSTICK",
+   "brand": "TRINAMIC Motion Control GmbH",
+   "pkg": "-",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 30.0157,
+   "desc": "Overcurrent Protection\u3001Thermal Protection\u3001Undervoltage Protection\u3001Short-Circuit  Protectio"
+  }
+ ],
+ "DRV8825": [
+  {
+   "code": "C9900268935",
+   "mpn": "DRV8825",
+   "brand": "JLCPCB Assembly",
+   "pkg": "TH-16P-P2.54",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0392,
+   "desc": "TH-16P-P2.54 SMT ROHS"
+  },
+  {
+   "code": "C1523893",
+   "mpn": "DRV8825PWP",
+   "brand": "Texas Instruments",
+   "pkg": "HTSSOP-28-EP",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 3.1122,
+   "desc": "-40\u2103~+85\u2103 1\u30012\u30014\u30018\u300116\u300132 2 2.5A 400m\u03a9 8.2V~45V 8.2V~45V Bipolar Driver STEP/DIR Yes HTSSOP-"
+  },
+  {
+   "code": "C81582",
+   "mpn": "DRV8825PWPR",
+   "brand": "Texas Instruments",
+   "pkg": "HTSSOP-28-EP",
+   "stock": 7450,
+   "lib": "expand",
+   "p1": 2.171,
+   "desc": "-40\u2103~+85\u2103 2 2.5A 200m\u03a9 32 8.2V~45V Bipolar Driver STEP/DIR Yes HTSSOP-28-EP Stepper Motor "
+  },
+  {
+   "code": "C9900031997",
+   "mpn": "DRV8825Stepper Motor Driver Module",
+   "brand": "JLCPCB Assembly",
+   "pkg": "DIP16",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0392,
+   "desc": "DIP16 New Arrivals ROHS"
+  }
+ ],
+ "LIS2DH12TR": [
+  {
+   "code": "C110926",
+   "mpn": "LIS2DH12TR",
+   "brand": "STMicroelectronics",
+   "pkg": "LGA-12(2x2)",
+   "stock": 9326,
+   "lib": "expand",
+   "p1": 0.9268,
+   "desc": "-40\u2103~+85\u2103 1.71V~3.6V 500nA Accelerometer SPI\u3001I2C X,Y,Z \u00b116g LGA-12(2x2) Accelerometers ROH"
+  }
+ ],
+ "LIS3DHTR": [
+  {
+   "code": "C15134",
+   "mpn": "LIS3DHTR",
+   "brand": "STMicroelectronics",
+   "pkg": "LGA-16(3x3)",
+   "stock": 4370,
+   "lib": "expand",
+   "p1": 1.6439,
+   "desc": "-40\u2103~+85\u2103 1.71V~3.6V 16bit 500nA Accelerometer SPI\u3001I2C X,Y,Z \u00b116g \u8fd0\u52a8\u4e8b\u4ef6\u68c0\u6d4b LGA-16(3x3) Accel"
+  }
+ ],
+ "ADXL345BCCZ": [
+  {
+   "code": "C9667",
+   "mpn": "ADXL345BCCZ-RL7",
+   "brand": "Analog Devices",
+   "pkg": "LGA-14(3x5)",
+   "stock": 1241,
+   "lib": "expand",
+   "p1": 4.64,
+   "desc": "-40\u2103~+85\u2103 100nA 16bit 2V~3.6V Accelerometer SPI\u3001I2C X,Y,Z \u00b116g \u8fd0\u52a8\u4e8b\u4ef6\u68c0\u6d4b LGA-14(3x5) Accelero"
+  },
+  {
+   "code": "C579456",
+   "mpn": "ADXL345BCCZ",
+   "brand": "Analog Devices",
+   "pkg": "LGA-14(3x5)",
+   "stock": 1072,
+   "lib": "expand",
+   "p1": 4.8544,
+   "desc": "-40\u2103~+85\u2103 100nA 16bit 2V~3.6V Accelerometer SPI\u3001I2C X,Y,Z \u00b116g \u8fd0\u52a8\u4e8b\u4ef6\u68c0\u6d4b LGA-14(3x5) Accelero"
+  },
+  {
+   "code": "C579457",
+   "mpn": "ADXL345BCCZ-RL",
+   "brand": "Analog Devices",
+   "pkg": "LGA-14",
+   "stock": 530,
+   "lib": "expand",
+   "p1": 4.9511,
+   "desc": "-40\u2103~+85\u2103 100nA 13bit 2V~3.6V Accelerometer SPI\u3001I2C X,Y,Z \u00b116g LGA-14(3x5) Accelerometers "
+  }
+ ],
+ "AP63205WU": [
+  {
+   "code": "C2071056",
+   "mpn": "AP63205WU-7",
+   "brand": "Diodes Incorporated",
+   "pkg": "TSOT-23-6",
+   "stock": 32221,
+   "lib": "expand",
+   "p1": 0.4368,
+   "desc": "-40\u2103~+85\u2103@(TA) 1 1.1MHz 22uA 2A 3.8V~32V 5V Buck Built-in Fixed Overcurrent Protection\u3001Lig"
+  }
+ ],
+ "MP1584EN": [
+  {
+   "code": "C454188",
+   "mpn": "MP1584EN",
+   "brand": "Monolithic Power Systems",
+   "pkg": "SOIC-8-EP",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0007,
+   "desc": "-20\u2103~+85\u2103 1 100kHz~1.5MHz 4.5V~28V Adjustable Buck Buck Built-in SOIC-8-EP DC-DC Converter"
+  },
+  {
+   "code": "C9900214195",
+   "mpn": "MP1584EN",
+   "brand": "JLCPCB Assembly",
+   "pkg": "Through hole",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0392,
+   "desc": "Through hole SMT ROHS"
+  },
+  {
+   "code": "C9900004648",
+   "mpn": "MP1584ENLF",
+   "brand": "JLCPCB Assembly",
+   "pkg": "ESOP-8_150MIL",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0007,
+   "desc": "ESOP-8_150MIL SMT ROHS"
+  },
+  {
+   "code": "C55109561",
+   "mpn": "MP1584EN-Z",
+   "brand": "Monolithic Power Systems",
+   "pkg": "SOIC-8-EP",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0392,
+   "desc": "SOIC-8-EP SMT ROHS"
+  },
+  {
+   "code": "C9900093174",
+   "mpn": "MP1584EN-5V",
+   "brand": "JLCPCB Assembly",
+   "pkg": "TH-8P",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0392,
+   "desc": "TH-8P New Arrivals ROHS"
+  },
+  {
+   "code": "C15051",
+   "mpn": "MP1584EN-LF-Z",
+   "brand": "Monolithic Power Systems",
+   "pkg": "SOIC-8-EP",
+   "stock": 8294,
+   "lib": "expand",
+   "p1": 2.901,
+   "desc": "-20\u2103~+85\u2103@(TA) 1 100kHz~1.5MHz 100uA 3A 4.5V~28V 800mV~25V Adjustable Buck Buck Built-in N"
+  },
+  {
+   "code": "C9900026963",
+   "mpn": "MP1584EN-LF-Z",
+   "brand": "JLCPCB Assembly",
+   "pkg": "SOIC-8",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0392,
+   "desc": "SOIC-8 New Arrivals ROHS"
+  },
+  {
+   "code": "C7304223",
+   "mpn": "MP1584EN-LF-P",
+   "brand": "Monolithic Power Systems",
+   "pkg": "SOIC-8-EP",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 2.922,
+   "desc": "-20\u2103~+85\u2103@(TA) 1 100kHz~1.5MHz 100uA 3A 4.5V~28V Adjustable Buck Buck Built-in No SOIC-8-E"
+  }
+ ],
+ "TPS54331DR": [
+  {
+   "code": "C9865",
+   "mpn": "TPS54331DR",
+   "brand": "Texas Instruments",
+   "pkg": "SOIC-8",
+   "stock": 90539,
+   "lib": "expand",
+   "p1": 0.4355,
+   "desc": "-40\u2103~+150\u2103@(TJ) 1 110uA 3.5V~28V 3A 570kHz 800mV~25V Adjustable Buck Buck Built-in No SOIC"
+  },
+  {
+   "code": "C2071648",
+   "mpn": "TPS54331DRG4",
+   "brand": "Texas Instruments",
+   "pkg": "SOIC-8",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 1.133,
+   "desc": "-40\u2103~+150\u2103@(TJ) 1 3.5V~28V 3A 800mV~25V Adjustable Buck Buck No SOIC-8 DC-DC Converters RO"
+  },
+  {
+   "code": "C52948524",
+   "mpn": "TPS54331DR-JSM",
+   "brand": "JSMSEMI",
+   "pkg": "SOP-8",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.3206,
+   "desc": "SOP-8 DC-DC Converters ROHS"
+  },
+  {
+   "code": "C2911486",
+   "mpn": "TPS54331DR-YJLTY",
+   "brand": "Texas Instruments",
+   "pkg": "SOIC-8",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0007,
+   "desc": "SOIC-8 DC-DC Converters ROHS"
+  }
+ ],
+ "MT2492": [
+  {
+   "code": "C89358",
+   "mpn": "MT2492",
+   "brand": "XI'AN Aerosemi Tech",
+   "pkg": "SOT-23-6",
+   "stock": 303924,
+   "lib": "expand",
+   "p1": 0.0671,
+   "desc": "-40\u2103~+85\u2103@(TA) 1 2A 4.5V~16V 600kHz Adjustable Buck Buck Built-in Yes SOT-23-6 DC-DC Conve"
+  }
+ ],
+ "TPS562201": [
+  {
+   "code": "C90061",
+   "mpn": "TPS562201DDCR",
+   "brand": "Texas Instruments",
+   "pkg": "TSOT-23-6",
+   "stock": 59492,
+   "lib": "expand",
+   "p1": 0.0579,
+   "desc": "-40\u2103~+125\u2103@(TJ) 1 2A 380uA 4.5V~17V 580kHz 768mV~7V Adjustable Buck Built-in Overcurrent P"
+  },
+  {
+   "code": "C2863595",
+   "mpn": "TPS562201DDCT",
+   "brand": "Texas Instruments",
+   "pkg": "TSOT-23-6",
+   "stock": 7,
+   "lib": "expand",
+   "p1": 0.0971,
+   "desc": "-40\u2103~+125\u2103@(TJ) 1 2A 4.5V~17V 580kHz 768mV~7V Adjustable Buck Buck Built-in Yes TSOT-23-6 "
+  },
+  {
+   "code": "C49208506",
+   "mpn": "MSTPS562201DDCR",
+   "brand": "MSKSEMI",
+   "pkg": "SOT-23-6",
+   "stock": 1133,
+   "lib": "expand",
+   "p1": 0.0951,
+   "desc": "-40\u2103~+85\u2103 2A 4.5V~16V 600uA 700kHz 800mV~6V Adjustable Buck Buck Built-in Yes SOT-23-6 DC-"
+  }
+ ],
+ "ESP32-S3-WROOM-1": [
+  {
+   "code": "C9900171795",
+   "mpn": "ESP32-S3-WROOM-1",
+   "brand": "JLCPCB Assembly",
+   "pkg": "LCC-40_18x25.5mm",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0392,
+   "desc": "LCC-40_18x25.5mm SMT ROHS"
+  },
+  {
+   "code": "C9900282406",
+   "mpn": "ESP32-S3-WROOM-1",
+   "brand": "JLCPCB Assembly",
+   "pkg": "SMD",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0392,
+   "desc": "SMD SMT ROHS"
+  },
+  {
+   "code": "C9900027631",
+   "mpn": "ESP32-S3-WROOM-1U",
+   "brand": "JLCPCB Assembly",
+   "pkg": "ESP32-S3-WROOM-1U",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0392,
+   "desc": "ESP32-S3-WROOM-1U New Arrivals ROHS"
+  },
+  {
+   "code": "C2913197",
+   "mpn": "ESP32-S3-WROOM-1-N4",
+   "brand": "Espressif Systems",
+   "pkg": "SMD,25.5x18mm",
+   "stock": 5241,
+   "lib": "expand",
+   "p1": 4.6352,
+   "desc": "-103.5dBm -40\u2103~+85\u2103 2.4GHz 20.5dBm 355mA 3V~3.6V 95mA Bluetooth5.0 ESP32-S3 On-board PCB A"
+  },
+  {
+   "code": "C2913198",
+   "mpn": "ESP32-S3-WROOM-1-N8",
+   "brand": "Espressif Systems",
+   "pkg": "SMD,25.5x18mm",
+   "stock": 8799,
+   "lib": "expand",
+   "p1": 5.3201,
+   "desc": "-40\u2103~+85\u2103 -98.2dBm 2.4GHz 20.5dBm 355mA 3V~3.6V 95mA Bluetooth5.0 ESP32-S3 Chip On-board P"
+  },
+  {
+   "code": "C2913199",
+   "mpn": "ESP32-S3-WROOM-1-N16",
+   "brand": "Espressif Systems",
+   "pkg": "SMD,25.5x18mm",
+   "stock": 3477,
+   "lib": "expand",
+   "p1": 5.441,
+   "desc": "-103.5dBm -40\u2103~+85\u2103 2.4GHz 20.5dBm 355mA 3V~3.6V 95mA Bluetooth5.0 ESP32-S3 On-board PCB A"
+  },
+  {
+   "code": "C2980296",
+   "mpn": "ESP32-S3-WROOM-1U-N4",
+   "brand": "Espressif Systems",
+   "pkg": "SMD,19.2x18mm",
+   "stock": 2414,
+   "lib": "expand",
+   "p1": 4.8221,
+   "desc": "-103.5dBm -40\u2103~+85\u2103 2.4GHz 20.5dBm 355mA 3V~3.6V 95mA Bluetooth5.0 ESP32-S3 UART\u3001SPI\u3001I2C\u3001I"
+  },
+  {
+   "code": "C2980297",
+   "mpn": "ESP32-S3-WROOM-1U-N8",
+   "brand": "Espressif Systems",
+   "pkg": "SMD,19.2x18mm",
+   "stock": 989,
+   "lib": "expand",
+   "p1": 5.1251,
+   "desc": "-103.5dBm -40\u2103~+85\u2103 2.4GHz 20.5dBm 355mA 3V~3.6V 95mA Bluetooth5.0 ESP32-S3 UART\u3001SPI\u3001I2C\u3001I"
+  }
+ ],
+ "SMBJ18A": [
+  {
+   "code": "C10212",
+   "mpn": "SMBJ18A",
+   "brand": "RUILON(Shenzhen Ruilongyuan Elec)",
+   "pkg": "DO-214AA(SMB)",
+   "stock": 2881,
+   "lib": "expand",
+   "p1": 0.0777,
+   "desc": "-55\u2103~+150\u2103 18V 1uA 20.5A 23.3V 29.2V 600W@10/1000us TVS Unidirectional DO-214AA(SMB) ESD a"
+  },
+  {
+   "code": "C78412",
+   "mpn": "SMBJ18A/TR13",
+   "brand": "Brightking",
+   "pkg": "SMB(DO-214AA)",
+   "stock": 8729,
+   "lib": "expand",
+   "p1": 0.0537,
+   "desc": "-65\u2103~+150\u2103 18V 1uA 20.6A 20V 29.2V 600W TVS Unidirectional SMB(DO-214AA) ESD and Surge Pro"
+  },
+  {
+   "code": "C86368",
+   "mpn": "SMBJ18A",
+   "brand": "Changzhou Starsea Elec",
+   "pkg": "SMB(DO-214AA)",
+   "stock": 2749,
+   "lib": "expand",
+   "p1": 0.0727,
+   "desc": "-55\u2103~+150\u2103 18V 20.5A 23.3V 29.2V 5uA 600W TVS SMB(DO-214AA) ESD and Surge Protection (TVS/"
+  },
+  {
+   "code": "C135055",
+   "mpn": "SMBJ18A-13-F",
+   "brand": "Diodes Incorporated",
+   "pkg": "SMB",
+   "stock": 24,
+   "lib": "expand",
+   "p1": 0.2681,
+   "desc": "-55\u2103~+150\u2103 18V 20.5A 23.3V 29.2V 5uA 600W TVS Unidirectional SMB ESD and Surge Protection "
+  },
+  {
+   "code": "C151256",
+   "mpn": "SMBJ18A",
+   "brand": "Littelfuse",
+   "pkg": "DO-214AA",
+   "stock": 7516,
+   "lib": "expand",
+   "p1": 0.1496,
+   "desc": "-65\u2103~+150\u2103 18V 1uA 20.6A@10/1000us 22.1V 29.2V 600W@10/1000us IEC 61000-4-2 TVS Unidirecti"
+  },
+  {
+   "code": "C152104",
+   "mpn": "SMBJ18A",
+   "brand": "BORN",
+   "pkg": "DO-214AA(SMB)",
+   "stock": 10324,
+   "lib": "expand",
+   "p1": 0.0626,
+   "desc": "18V 1uA 20.6A@10/1000us 22.1V 29.2V 600W@10/1000us TVS Unidirectional DO-214AA(SMB) ESD an"
+  },
+  {
+   "code": "C168805",
+   "mpn": "SMBJ18A",
+   "brand": "MDD(Microdiode Semiconductor)",
+   "pkg": "DO-214AA(SMB)",
+   "stock": 16141,
+   "lib": "expand",
+   "p1": 0.0582,
+   "desc": "-65\u2103~+150\u2103 18V 1uA 20.6A@10/1000us 22.1V 29.2V 600W@10/1000us TVS Unidirectional DO-214AA("
+  },
+  {
+   "code": "C284006",
+   "mpn": "SMBJ18A",
+   "brand": "DOWO",
+   "pkg": "SMB(DO-214AA)",
+   "stock": 3,
+   "lib": "expand",
+   "p1": 0.0508,
+   "desc": "-55\u2103~+150\u2103 18V 1uA 20.55A 20V 29.2V 600W@10/1000us TVS Unidirectional SMB(DO-214AA) ESD an"
+  }
+ ],
+ "SMBJ16A": [
+  {
+   "code": "C10211",
+   "mpn": "SMBJ16A",
+   "brand": "RUILON(Shenzhen Ruilongyuan Elec)",
+   "pkg": "DO-214AA(SMB)",
+   "stock": 2866,
+   "lib": "expand",
+   "p1": 0.085,
+   "desc": "-55\u2103~+150\u2103 16V 1uA 20.5V 23.1A 26V 600W@10/1000us IEC 61000-4-2\u3001IEC 61000-4-4 TVS Unidirec"
+  },
+  {
+   "code": "C133672",
+   "mpn": "SMBJ16A-TR",
+   "brand": "STMicroelectronics",
+   "pkg": "SMB(DO-214AA)",
+   "stock": 840,
+   "lib": "expand",
+   "p1": 0.1791,
+   "desc": "-55\u2103~+150\u2103 16V 17.8V 1uA 34.4A@8/20us 34.4V 4kW@8/20us IEC 61000-4-2\u3001IEC 61000-4-5 TVS Uni"
+  },
+  {
+   "code": "C135050",
+   "mpn": "SMBJ16A-13-F",
+   "brand": "Diodes Incorporated",
+   "pkg": "SMB",
+   "stock": 196,
+   "lib": "expand",
+   "p1": 0.2877,
+   "desc": "-55\u2103~+150\u2103 16V 20.5V 23.1A 26V 5uA 600W TVS Unidirectional SMB ESD and Surge Protection (T"
+  },
+  {
+   "code": "C151254",
+   "mpn": "SMBJ16A",
+   "brand": "Littelfuse",
+   "pkg": "DO-214AA",
+   "stock": 5285,
+   "lib": "expand",
+   "p1": 0.1322,
+   "desc": "-65\u2103~+150\u2103 16V 19.7V 1uA 23.1A@10/1000us 26V 600W@10/1000us IEC 61000-4-2\u3001IEC 61000-4-4 TV"
+  },
+  {
+   "code": "C151923",
+   "mpn": "SMBJ16A",
+   "brand": "BORN",
+   "pkg": "DO-214AA(SMB)",
+   "stock": 1408,
+   "lib": "expand",
+   "p1": 0.0805,
+   "desc": "16V 19.7V 1uA 23.1A@10/1000us 26V 600W@10/1000us TVS Unidirectional DO-214AA(SMB) ESD and "
+  },
+  {
+   "code": "C284000",
+   "mpn": "SMBJ16A",
+   "brand": "DOWO",
+   "pkg": "SMB(DO-214AA)",
+   "stock": 1715,
+   "lib": "expand",
+   "p1": 0.0536,
+   "desc": "-55\u2103~+150\u2103 16V 17.8V 1uA 23.08A 26V 600W@10/1000us TVS Unidirectional SMB(DO-214AA) ESD an"
+  },
+  {
+   "code": "C309939",
+   "mpn": "SMBJ16A/TR13",
+   "brand": "Brightking",
+   "pkg": "SMB(DO-214AA)",
+   "stock": 1105,
+   "lib": "expand",
+   "p1": 0.0631,
+   "desc": "-65\u2103~+150\u2103 16V 17.8V 1uA 23.1A 26V 600W TVS Unidirectional SMB(DO-214AA) ESD and Surge Pro"
+  },
+  {
+   "code": "C353386",
+   "mpn": "SMBJ16A",
+   "brand": "Shandong Jingdao Microelectronics",
+   "pkg": "SMB",
+   "stock": 141819,
+   "lib": "expand",
+   "p1": 0.0381,
+   "desc": "-65\u2103~+150\u2103 16V 19.7V 1uA 23.1A 26V 390pF 600W@10/1000us TVS SMB ESD and Surge Protection ("
+  }
+ ],
+ "SS54": [
+  {
+   "code": "C16103",
+   "mpn": "SS54C",
+   "brand": "MDD(Microdiode Semiconductor)",
+   "pkg": "SMC(DO-214AB)",
+   "stock": 48520,
+   "lib": "expand",
+   "p1": 0.1019,
+   "desc": "-55\u2103~+150\u2103 175A 1mA@40V 40V 550mV@5A 5A Independent SMC(DO-214AB) Schottky Diodes ROHS"
+  },
+  {
+   "code": "C22452",
+   "mpn": "SS54",
+   "brand": "MDD(Microdiode Semiconductor)",
+   "pkg": "SMA(DO-214AC)",
+   "stock": 1947511,
+   "lib": "base",
+   "p1": 0.0461,
+   "desc": "-55\u2103~+125\u2103 1mA@40V 40V 550mV@5A 5A Independent SMA(DO-214AC) Schottky Diodes ROHS"
+  },
+  {
+   "code": "C32513",
+   "mpn": "SS54B",
+   "brand": "MDD(Microdiode Semiconductor)",
+   "pkg": "SMB(DO-214AA)",
+   "stock": 108086,
+   "lib": "expand",
+   "p1": 0.0885,
+   "desc": "-50\u2103~+150\u2103 1mA@40V 40V 550mV@5A 5A Independent SMB(DO-214AA) Schottky Diodes ROHS"
+  },
+  {
+   "code": "C64882",
+   "mpn": "SS54F",
+   "brand": "MDD(Microdiode Semiconductor)",
+   "pkg": "SMAF",
+   "stock": 49090,
+   "lib": "expand",
+   "p1": 0.0542,
+   "desc": "-50\u2103~+125\u2103 1 Independent 150A 40V 500uA@40V 550mV@5A 5A SMAF Schottky Diodes ROHS"
+  },
+  {
+   "code": "C64884",
+   "mpn": "SS54BF",
+   "brand": "MDD(Microdiode Semiconductor)",
+   "pkg": "SMBF",
+   "stock": 6449,
+   "lib": "expand",
+   "p1": 0.0806,
+   "desc": "-55\u2103~+125\u2103 1 Independent 120A 1mA@40V 40V 550mV@5A 5A SMBF Schottky Diodes ROHS"
+  },
+  {
+   "code": "C108840",
+   "mpn": "SS54BF",
+   "brand": "Shandong Jingdao Microelectronics",
+   "pkg": "SMBF",
+   "stock": 11850,
+   "lib": "expand",
+   "p1": 0.0611,
+   "desc": "-55\u2103~+150\u2103 1 Independent 150A 1mA@40V 40V 550mV@5A 5A SMBF Schottky Diodes ROHS"
+  },
+  {
+   "code": "C108841",
+   "mpn": "SS54F",
+   "brand": "Shandong Jingdao Microelectronics",
+   "pkg": "SMAF",
+   "stock": 25031,
+   "lib": "expand",
+   "p1": 0.0486,
+   "desc": "-55\u2103~+125\u2103 1 Independent 150A 1mA@40V 40V 550mV@5A 5A SMAF Schottky Diodes ROHS"
+  },
+  {
+   "code": "C110212",
+   "mpn": "SS54F",
+   "brand": "Shikues",
+   "pkg": "SMAF",
+   "stock": 422,
+   "lib": "expand",
+   "p1": 0.0801,
+   "desc": "-55\u2103~+125\u2103 150A 1mA@40V 40V 550mV@5A 5A Independent SMAF Schottky Diodes ROHS"
+  }
+ ],
+ "SS34": [
+  {
+   "code": "C8678",
+   "mpn": "SS34",
+   "brand": "MDD(Microdiode Semiconductor)",
+   "pkg": "SMA(DO-214AC)",
+   "stock": 2315687,
+   "lib": "base",
+   "p1": 0.0363,
+   "desc": "-55\u2103~+125\u2103 3A 40V 500uA@40V 550mV@3A Independent SMA(DO-214AC) Schottky Diodes ROHS"
+  },
+  {
+   "code": "C13354",
+   "mpn": "SS34-E3/57T",
+   "brand": "Vishay Intertech",
+   "pkg": "SMC(DO-214AB)",
+   "stock": 4200,
+   "lib": "expand",
+   "p1": 0.2607,
+   "desc": "-55\u2103~+125\u2103 1 Independent 100A 3A 40V 500mV@3A 500uA@40V SMC(DO-214AB) Schottky Diodes ROHS"
+  },
+  {
+   "code": "C13762",
+   "mpn": "SS34B",
+   "brand": "MDD(Microdiode Semiconductor)",
+   "pkg": "SMB(DO-214AA)",
+   "stock": 281088,
+   "lib": "expand",
+   "p1": 0.0529,
+   "desc": "-55\u2103~+150\u2103 3A 40V 500uA@40V 550mV@3A Independent SMB(DO-214AA) Schottky Diodes ROHS"
+  },
+  {
+   "code": "C13763",
+   "mpn": "SS34C",
+   "brand": "MDD(Microdiode Semiconductor)",
+   "pkg": "SMC(DO-214AB)",
+   "stock": 48902,
+   "lib": "expand",
+   "p1": 0.0779,
+   "desc": "-55\u2103~+150\u2103 3A 40V 500uA@40V 550mV@3A Independent SMC(DO-214AB) Schottky Diodes ROHS"
+  },
+  {
+   "code": "C60396",
+   "mpn": "SS34F",
+   "brand": "MDD(Microdiode Semiconductor)",
+   "pkg": "SMAF",
+   "stock": 30266,
+   "lib": "expand",
+   "p1": 0.0432,
+   "desc": "-55\u2103~+125\u2103 3A 40V 500uA@40V 550mV@3A 80A Independent SMAF Schottky Diodes ROHS"
+  },
+  {
+   "code": "C64883",
+   "mpn": "SS34BF",
+   "brand": "MDD(Microdiode Semiconductor)",
+   "pkg": "SMBF",
+   "stock": 3,
+   "lib": "expand",
+   "p1": 0.0452,
+   "desc": "-55\u2103~+125\u2103 1 Independent 3A 40V 500uA@40V 550mV@3A 80A SMBF Schottky Diodes ROHS"
+  },
+  {
+   "code": "C77276",
+   "mpn": "1SS344",
+   "brand": "Jiangsu Changjing Electronics Technology Co., Ltd.",
+   "pkg": "SOT-23",
+   "stock": 704,
+   "lib": "expand",
+   "p1": 0.0353,
+   "desc": "1 Independent 100uA@20V 20V 500mA 550mV@500mA 5A SOT-23 Schottky Diodes ROHS"
+  },
+  {
+   "code": "C83961",
+   "mpn": "SS34",
+   "brand": "Changzhou Starsea Elec",
+   "pkg": "SMA(DO-214AC)",
+   "stock": 34413,
+   "lib": "expand",
+   "p1": 0.0502,
+   "desc": "-65\u2103~+125\u2103 1 Independent 100A 3A 40V 500uA@40V 550mV@3A SMA(DO-214AC) Schottky Diodes ROHS"
+  }
+ ],
+ "AO3401A": [
+  {
+   "code": "C15127",
+   "mpn": "AO3401A",
+   "brand": "Alpha & Omega Semicon",
+   "pkg": "SOT-23",
+   "stock": 456667,
+   "lib": "base",
+   "p1": 0.099,
+   "desc": "1 P-Channel 14nC@10V 30V 47m\u03a9@10V\u300160m\u03a9@4.5V\u300185m\u03a9@2.5V 4A 55pF 645pF 80pF 900mV SOT-23 MOSF"
+  },
+  {
+   "code": "C306862",
+   "mpn": "AO3401A",
+   "brand": "BORN",
+   "pkg": "SOT-23",
+   "stock": 64,
+   "lib": "expand",
+   "p1": 0.0605,
+   "desc": "1 P-Channel 1.4W 115pF 2V 30V 4.2A 85m\u03a9@2.5V 954pF P-Channel SOT-23 MOSFETs ROHS"
+  },
+  {
+   "code": "C347476",
+   "mpn": "AO3401A",
+   "brand": "UMW(Youtai Semiconductor Co., Ltd.)",
+   "pkg": "SOT-23",
+   "stock": 434496,
+   "lib": "expand",
+   "p1": 0.0363,
+   "desc": "-55\u2103~+150\u2103 1 P-Channel 1.3V 1.4W 115pF 30V 4.2A 50m\u03a9@10V 77pF 9.4nC@4.5V 954pF P-Channel S"
+  },
+  {
+   "code": "C693260",
+   "mpn": "AO3401A-VB",
+   "brand": "VBsemi Elec",
+   "pkg": "SOT-23(TO-236)",
+   "stock": 663,
+   "lib": "expand",
+   "p1": 0.1206,
+   "desc": "-55\u2103~+150\u2103 1 P-Channel 1.295nF 130pF 150pF 2.5W 24nC@10V 2V 30V 46m\u03a9@10V 5.6A P-Channel SO"
+  },
+  {
+   "code": "C700954",
+   "mpn": "AO3401A",
+   "brand": "HUASHUO",
+   "pkg": "SOT-23",
+   "stock": 85533,
+   "lib": "expand",
+   "p1": 0.0445,
+   "desc": "-55\u2103~+150\u2103 1 P-Channel 10.9nC@4.5V 1W 30V 4.2A 500mV 54m\u03a9@4.5V 58pF 670pF SOT-23 MOSFETs R"
+  },
+  {
+   "code": "C727156",
+   "mpn": "AO3401",
+   "brand": "TWGMC",
+   "pkg": "SOT-23",
+   "stock": 346421,
+   "lib": "expand",
+   "p1": 0.0424,
+   "desc": "-55\u2103~+150\u2103 1 P-Channel 1.3V 115pF 30V 350mW 4.2A 65m\u03a9@10V 77pF 954pF P-Channel SOT-23 MOSF"
+  },
+  {
+   "code": "C2926127",
+   "mpn": "FS3401",
+   "brand": "FOSAN",
+   "pkg": "SOT-23-3L",
+   "stock": 2379,
+   "lib": "expand",
+   "p1": 0.0529,
+   "desc": "-55\u2103~+150\u2103 1 P-Channel 1.5W 2V 30V 4.5A 85m\u03a9@2.5V 954pF P-Channel SOT-23-3L MOSFETs ROHS"
+  },
+  {
+   "code": "C2936839",
+   "mpn": "FS3401M",
+   "brand": "FOSAN",
+   "pkg": "SOT-23",
+   "stock": 67958,
+   "lib": "expand",
+   "p1": 0.0387,
+   "desc": "-55\u2103~+150\u2103 1 P-Channel 1.4W 2V 30V 4.1A 50m\u03a9@10V 954pF P-Channel SOT-23 MOSFETs ROHS"
+  }
+ ],
+ "DMG3415U": [
+  {
+   "code": "C7202986",
+   "mpn": "DMG3415U",
+   "brand": "TECH PUBLIC",
+   "pkg": "SOT-23",
+   "stock": 9765,
+   "lib": "expand",
+   "p1": 0.0629,
+   "desc": "-55\u2103~+150\u2103 1 P-Channel 1.1811nF 1.4W 10.2nC@4.5V 114.8pF 121.3pF 20V 350mV 49m\u03a9@2.5V 4A SO"
+  },
+  {
+   "code": "C96616",
+   "mpn": "DMG3415U-7",
+   "brand": "Diodes Incorporated",
+   "pkg": "SOT-23",
+   "stock": 1677,
+   "lib": "expand",
+   "p1": 0.128,
+   "desc": "-55\u2103~+150\u2103 1 P-Channel 1V 20V 25pF 294pF 42.5m\u03a9@4.5V 4A 9.1nC 900mW SOT-23 MOSFETs ROHS"
+  },
+  {
+   "code": "C42401390",
+   "mpn": "HDMG3415U7",
+   "brand": "HXY MOSFET",
+   "pkg": "SOT-23-3L",
+   "stock": 8,
+   "lib": "expand",
+   "p1": 0.086,
+   "desc": "-55\u2103~+150\u2103 1 P-Channel 1.4W 120pF 12nC@4.5V 165pF 20V 34m\u03a9@4.5V 4.1A 550mV 950pF P-Channel"
+  },
+  {
+   "code": "C459537",
+   "mpn": "DMG3415UQ-7",
+   "brand": "Diodes Incorporated",
+   "pkg": "SOT-23",
+   "stock": 227,
+   "lib": "expand",
+   "p1": 0.2681,
+   "desc": "-55\u2103~+150\u2103 1 P-Channel 104pF 20V 25pF 294pF 31m\u03a9@4.5V 4.9A 550mV 9.1nC@4.5V 900mW SOT-23 M"
+  },
+  {
+   "code": "C709946",
+   "mpn": "DMG3415U-7-VB",
+   "brand": "VBsemi Elec",
+   "pkg": "SOT-23",
+   "stock": 75,
+   "lib": "expand",
+   "p1": 0.0971,
+   "desc": "-55\u2103~+150\u2103 1 P-Channel 1.6W 190pF 20V 265pF 34m\u03a9@4.5V 500mV 5A 695pF 8.4nC@4.5V P-Channel "
+  },
+  {
+   "code": "C5124975",
+   "mpn": "DMG3415UFY4Q-7",
+   "brand": "Diodes Incorporated",
+   "pkg": "X2-DFN2015-3",
+   "stock": 1700,
+   "lib": "expand",
+   "p1": 0.4209,
+   "desc": "-55\u2103~+150\u2103 1 P-Channel 10nC@4.5V 16V 1V 2.5A 282pF 39m\u03a9@4.5V 650mW X2-DFN2015-3 MOSFETs RO"
+  },
+  {
+   "code": "C5878786",
+   "mpn": "DMG3415U-7-F-VB",
+   "brand": "VBsemi Elec",
+   "pkg": "SOT-23(TO-236)",
+   "stock": 217,
+   "lib": "expand",
+   "p1": 0.1016,
+   "desc": "-55\u2103~+150\u2103 1 P-Channel 1.295nF 2.5W 24nC@10V 30V 46m\u03a9@10V 5.6A 500mV P-Channel SOT-23(TO-2"
+  },
+  {
+   "code": "C6285748",
+   "mpn": "DMG3415UQ-7-HXY",
+   "brand": "HXY MOSFET",
+   "pkg": "SOT-23",
+   "stock": 15,
+   "lib": "expand",
+   "p1": 0.0579,
+   "desc": "-55\u2103~+150\u2103 1 P-Channel 18V 250pF 28m\u03a9@4.5V 2W 6.5A 700mV 980pF SOT-23 MOSFETs ROHS"
+  }
+ ],
+ "AOD4185": [
+  {
+   "code": "C77993",
+   "mpn": "AOD4185L",
+   "brand": "Alpha & Omega Semicon",
+   "pkg": "TO-252-2(DPAK)",
+   "stock": 2340,
+   "lib": "expand",
+   "p1": 0.5045,
+   "desc": "-55\u2103~+175\u2103 1 P-Channel 1.7V 190pF 2.55nF 20m\u03a9@4.5V 40A 40V 42nC@10V 62.5W TO-252-2(DPAK) M"
+  },
+  {
+   "code": "C400894",
+   "mpn": "AOD4185",
+   "brand": "Alpha & Omega Semicon",
+   "pkg": "TO-252(DPAK)",
+   "stock": 91204,
+   "lib": "expand",
+   "p1": 0.4288,
+   "desc": "-55\u2103~+175\u2103 1 P-Channel 15m\u03a9@10V 190pF 2.55nF 280pF 3V 40A 40V 55nC@10V 62.5W P-Channel TO-"
+  },
+  {
+   "code": "C879147",
+   "mpn": "AOD4185-VB",
+   "brand": "VBsemi Elec",
+   "pkg": "TO-252",
+   "stock": 974,
+   "lib": "expand",
+   "p1": 0.7108,
+   "desc": "-55\u2103~+175\u2103 1 P-Channel 12m\u03a9@10V 352pF 3nF 40V 508pF 50A 60nC@10V P-Channel TO-252 MOSFETs "
+  },
+  {
+   "code": "C5261064",
+   "mpn": "AOD4185",
+   "brand": "HXY MOSFET",
+   "pkg": "TO-252-2L",
+   "stock": 20034,
+   "lib": "expand",
+   "p1": 0.2993,
+   "desc": "-55\u2103~+150\u2103 1 P-Channel 1.5V 172pF 190pF 19m\u03a9@10V 2.525nF 35nC@10V 40.3W 40A 40V P-Channel "
+  },
+  {
+   "code": "C5346822",
+   "mpn": "AOD4185(UMW)",
+   "brand": "UMW(Youtai Semiconductor Co., Ltd.)",
+   "pkg": "TO-252",
+   "stock": 11169,
+   "lib": "expand",
+   "p1": 0.2078,
+   "desc": "-55\u2103~+175\u2103 1 P-Channel 1.9V 12.5m\u03a9@10V 190pF 2.55nF 280pF 40A 40V 42nC@10V 62.5W TO-252 MO"
+  },
+  {
+   "code": "C5371006",
+   "mpn": "AOD4185",
+   "brand": "TECH PUBLIC",
+   "pkg": "TO-252",
+   "stock": 1272,
+   "lib": "expand",
+   "p1": 0.3076,
+   "desc": "-55\u2103~+150\u2103 1 P-Channel 14m\u03a9@10V 1V 2.76nF 25W 25nC@4.5V 40A 40V 85pF TO-252 MOSFETs ROHS"
+  },
+  {
+   "code": "C2984007",
+   "mpn": "AOD4185",
+   "brand": "ISC",
+   "pkg": "TO-252",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.967,
+   "desc": "TO-252 MOSFETs ROHS"
+  },
+  {
+   "code": "C9900011031",
+   "mpn": "AOD4185",
+   "brand": "JLCPCB Assembly",
+   "pkg": "TO-252-3_L6.5-W5.8-P4.58-BL",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0007,
+   "desc": "TO-252-3_L6.5-W5.8-P4.58-BL SMT ROHS"
+  }
+ ],
+ "1812 fuse 2A": [
+  {
+   "code": "C20812",
+   "mpn": "SMD1812P200TF16",
+   "brand": "RUILON(Shenzhen Ruilongyuan Elec)",
+   "pkg": "1812",
+   "stock": 33096,
+   "lib": "expand",
+   "p1": 0.1129,
+   "desc": "-40\u2103~+85\u2103 1.1mm 100m\u03a9 16V 20m\u03a9 2A 2s 3.41mm 35A 4.73mm 4A 800mW 1812 Resettable Fuses ROHS"
+  },
+  {
+   "code": "C21010",
+   "mpn": "SMD1812P200TF",
+   "brand": "RUILON(Shenzhen Ruilongyuan Elec)",
+   "pkg": "1812",
+   "stock": 3221,
+   "lib": "expand",
+   "p1": 0.0969,
+   "desc": "-40\u2103~+85\u2103 1.1mm 100m\u03a9 20m\u03a9 2A 2s 3.41mm 35A 4.73mm 4A 800mW 8V 1812 Resettable Fuses ROHS"
+  },
+  {
+   "code": "C70124",
+   "mpn": "mSMD200",
+   "brand": "TECHFUSE",
+   "pkg": "1812",
+   "stock": 634,
+   "lib": "expand",
+   "p1": 0.0656,
+   "desc": "-40\u2103~+85\u2103 100A 100m\u03a9 20m\u03a9 2A 4A 800mW 8V 8s 1812 Resettable Fuses ROHS"
+  },
+  {
+   "code": "C70125",
+   "mpn": "mSMD200-13.2V",
+   "brand": "TECHFUSE",
+   "pkg": "1812",
+   "stock": 272,
+   "lib": "expand",
+   "p1": 0.0663,
+   "desc": "100A 13.2V 2A 360m\u03a9 400ms 4A 60m\u03a9 800mW 1812 Resettable Fuses ROHS"
+  },
+  {
+   "code": "C70126",
+   "mpn": "mSMD200-16V",
+   "brand": "TECHFUSE",
+   "pkg": "1812",
+   "stock": 1531,
+   "lib": "expand",
+   "p1": 0.0721,
+   "desc": "-40\u2103~+85\u2103 100A 100m\u03a9 16V 20m\u03a9 2A 4A 800mW 8s 1812 Resettable Fuses ROHS"
+  },
+  {
+   "code": "C70128",
+   "mpn": "mSMD260-13.2V",
+   "brand": "TECHFUSE",
+   "pkg": "1812",
+   "stock": 388,
+   "lib": "expand",
+   "p1": 0.08,
+   "desc": "-40\u2103~+85\u2103 0.6mm 100A 13.2V 15m\u03a9 2A 3.41mm 4.73mm 5A 800mW 80m\u03a9 8s 1812 Resettable Fuses RO"
+  },
+  {
+   "code": "C89650",
+   "mpn": "MF-MSMF200L-2",
+   "brand": "BOURNS",
+   "pkg": "1812",
+   "stock": 6304,
+   "lib": "expand",
+   "p1": 0.0479,
+   "desc": "-40\u2103~+85\u2103 20m\u03a9 2A 3s 40A 4A 800mW 80m\u03a9 8V 1812 Resettable Fuses ROHS"
+  },
+  {
+   "code": "C135364",
+   "mpn": "ASMD1812-200",
+   "brand": "Shenzhen JDT Fuse",
+   "pkg": "1812",
+   "stock": 15748,
+   "lib": "expand",
+   "p1": 0.0665,
+   "desc": "-40\u2103~+85\u2103 1.3mm 100A 100m\u03a9 20m\u03a9 2A 2s 3.41mm 4.73mm 4A 800mW 8V 1812 Resettable Fuses ROHS"
+  }
+ ],
+ "DC-005": [
+  {
+   "code": "C16214",
+   "mpn": "DC-005 2.0",
+   "brand": "BOOMELE(Boom Precision Elec)",
+   "pkg": "Plugin",
+   "stock": 82049,
+   "lib": "expand",
+   "p1": 0.0579,
+   "desc": "-25\u2103~+85\u2103 12V 1A 2mm 6.4mm DC Power Jack Right Angle \u63d2\u4ef6 DC Power Connectors ROHS"
+  },
+  {
+   "code": "C84007",
+   "mpn": "DC-005C-20A",
+   "brand": "Korean Hroparts Elec",
+   "pkg": "Plugin",
+   "stock": 3493,
+   "lib": "expand",
+   "p1": 0.2144,
+   "desc": "-20\u2103~+70\u2103 24V 2mm 3A 6.4mm DC Power Jack Right Angle \u63d2\u4ef6 DC Power Connectors ROHS"
+  },
+  {
+   "code": "C130239",
+   "mpn": "DC-005-20A",
+   "brand": "Korean Hroparts Elec",
+   "pkg": "Plugin",
+   "stock": 36776,
+   "lib": "expand",
+   "p1": 0.1464,
+   "desc": "-25\u2103~+80\u2103 2mm 30V 500mA 6.4mm DC Power Jack Right Angle \u63d2\u4ef6 DC Power Connectors ROHS"
+  },
+  {
+   "code": "C136715",
+   "mpn": "DC-005-25A",
+   "brand": "Korean Hroparts Elec",
+   "pkg": "Plugin",
+   "stock": 3343,
+   "lib": "expand",
+   "p1": 0.147,
+   "desc": "-25\u2103~+80\u2103 2.5mm 30V 500mA 6.4mm DC Power Jack Right Angle \u63d2\u4ef6 DC Power Connectors ROHS"
+  },
+  {
+   "code": "C136744",
+   "mpn": "DC-005-20A",
+   "brand": "Korean Hroparts Elec",
+   "pkg": "Plugin",
+   "stock": 18465,
+   "lib": "expand",
+   "p1": 0.1493,
+   "desc": "-25\u2103~+80\u2103 2mm 30V 500mA 6.4mm DC Power Jack Right Angle \u63d2\u4ef6 DC Power Connectors ROHS"
+  },
+  {
+   "code": "C145931",
+   "mpn": "DC-005B-13A",
+   "brand": "Korean Hroparts Elec",
+   "pkg": "Plugin",
+   "stock": 520,
+   "lib": "expand",
+   "p1": 0.1404,
+   "desc": "-20\u2103~+70\u2103 1.3mm 3.9mm 30V 500mA DC Power Jack Right Angle \u63d2\u4ef6 DC Power Connectors ROHS"
+  },
+  {
+   "code": "C191049",
+   "mpn": "DC-005A-20A",
+   "brand": "Korean Hroparts Elec",
+   "pkg": "Plugin",
+   "stock": 441,
+   "lib": "expand",
+   "p1": 0.2502,
+   "desc": "-20\u2103~+70\u2103 2mm 30V 500mA 6.4mm DC Power Jack Right Angle \u63d2\u4ef6 DC Power Connectors ROHS"
+  },
+  {
+   "code": "C223903",
+   "mpn": "DC-005C-25A",
+   "brand": "Korean Hroparts Elec",
+   "pkg": "Plugin",
+   "stock": 344,
+   "lib": "expand",
+   "p1": 0.2336,
+   "desc": "-20\u2103~+70\u2103 2.5mm 24V 3A 6.4mm DC Power Jack Right Angle \u63d2\u4ef6 DC Power Connectors ROHS"
+  }
+ ],
+ "KF128L-3.5-2P": [
+  {
+   "code": "C474930",
+   "mpn": "KF128L-3.5-2P",
+   "brand": "Cixi Kefa Elec",
+   "pkg": "Plugin,P=3.5mm",
+   "stock": 5927,
+   "lib": "expand",
+   "p1": 0.1517,
+   "desc": "-40\u2103~+105\u2103 1 1 10A 16~26 1x2P 2 2P 3.5mm 300V Green Through Hole \u63d2\u4ef6,P=3.5mm Screw Terminal"
+  }
+ ],
+ "KF128L-3.5-3P": [
+  {
+   "code": "C474931",
+   "mpn": "KF128L-3.5-3P",
+   "brand": "Cixi Kefa Elec",
+   "pkg": "Plugin,P=3.5mm",
+   "stock": 866,
+   "lib": "expand",
+   "p1": 0.3001,
+   "desc": "-40\u2103~+105\u2103 1 1 10A 16~26 1x3P 3 3.5mm 300V 3P Green Through Hole \u63d2\u4ef6,P=3.5mm Screw Terminal"
+  }
+ ],
+ "B4B-XH-A": [
+  {
+   "code": "C41422491",
+   "mpn": "B4B-XH-A",
+   "brand": "JST",
+   "pkg": "Plugin,P=2.5mm,4P",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0392,
+   "desc": "Plugin,P=2.5mm,4P New Arrivals ROHS"
+  },
+  {
+   "code": "C594232",
+   "mpn": "B4B-XH-A-G",
+   "brand": "JST",
+   "pkg": "Plugin,P=2.5mm",
+   "stock": 1,
+   "lib": "expand",
+   "p1": 0.2471,
+   "desc": "-25\u2103~+85\u2103 1 12.4mm 1x4P 2.5mm 250V 3A 4 4P 5.75mm 7mm Brass Gold K Pin PA66 Through Hole U"
+  },
+  {
+   "code": "C5306542",
+   "mpn": "B4B-XH-A-GU",
+   "brand": "JST",
+   "pkg": "Plugin,P=2.5mm",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.2842,
+   "desc": "-25\u2103~+85\u2103 1 12.4mm 1x4P 2.5mm 250V 3A 4 4P 5.75mm 7mm Brass Gold K Pin PA66 Through Hole U"
+  },
+  {
+   "code": "C5352968",
+   "mpn": "B4B-XH-AM-BK",
+   "brand": "JST",
+   "pkg": "Plugin,P=2.5mm",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0392,
+   "desc": "-25\u2103~+85\u2103 1 12.4mm 1x4P 2.5mm 250V 3A 4 4P 5.75mm 7mm Black Brass K Pin\u3001With post PA66 Thr"
+  },
+  {
+   "code": "C144395",
+   "mpn": "B4B-XH-A(LF)(SN)",
+   "brand": "JST",
+   "pkg": "Plugin,P=2.5mm",
+   "stock": 43672,
+   "lib": "expand",
+   "p1": 0.0569,
+   "desc": "-25\u2103~+85\u2103 1 12.4mm 1x4P 2.5mm 250V 3A 4 4P 5.75mm 7mm Brass K Pin PA66 Through Hole Tin UL"
+  },
+  {
+   "code": "C161871",
+   "mpn": "B4B-XH-AM(LF)(SN)",
+   "brand": "JST",
+   "pkg": "Plugin,P=2.5mm",
+   "stock": 18546,
+   "lib": "expand",
+   "p1": 0.11,
+   "desc": "-25\u2103~+85\u2103 1 12.4mm 1x4P 2.5mm 250V 3A 4 4P 5.75mm 7mm Brass K Pin\u3001With post PA66 Through H"
+  },
+  {
+   "code": "C566014",
+   "mpn": "B4B-XH-A-E(LF)(SN)",
+   "brand": "JST",
+   "pkg": "Plugin,P=2.5mm",
+   "stock": 5930,
+   "lib": "expand",
+   "p1": 0.1071,
+   "desc": "-25\u2103~+85\u2103 1 12.4mm 1x4P 2.5mm 250V 3A 4 4P 5.75mm 7mm Blue Brass K Pin PA66 Through Hole T"
+  },
+  {
+   "code": "C595709",
+   "mpn": "B4B-XH-A-R(LF)(SN)",
+   "brand": "JST",
+   "pkg": "Plugin,P=2.5mm",
+   "stock": 11286,
+   "lib": "expand",
+   "p1": 0.0934,
+   "desc": "-25\u2103~+85\u2103 1 12.4mm 1x4P 2.5mm 250V 3A 4 4P 5.75mm 7mm Brass K Pin PA66 Red Through Hole Ti"
+  }
+ ],
+ "XH-4AW": [
+  {
+   "code": "C21273",
+   "mpn": "XH-4AW",
+   "brand": "BOOMELE(Boom Precision Elec)",
+   "pkg": "Push-Pull,P=2.5mm",
+   "stock": 84836,
+   "lib": "expand",
+   "p1": 0.0149,
+   "desc": "-25\u2103~+85\u2103 1 12.5mm 1x4P 2.5mm 250V 3A 4 4P 5.8mm 7mm Right Angle White XH \u5f2f\u63d2,P=2.5mm Wire "
+  },
+  {
+   "code": "C722872",
+   "mpn": "XH-4AW",
+   "brand": "CAX",
+   "pkg": "Push-Pull,P=2.5mm",
+   "stock": 19836,
+   "lib": "expand",
+   "p1": 0.0158,
+   "desc": "-25\u2103~+85\u2103 1 1x4P 2.5mm 250V 2A 4 4P 5.8mm Beige Brass PA66 Right Angle \u5f2f\u63d2,P=2.5mm Wire To "
+  },
+  {
+   "code": "C2904965",
+   "mpn": "XH-4AW",
+   "brand": "DEALON",
+   "pkg": "Push-Pull,P=2.5mm",
+   "stock": 6120,
+   "lib": "expand",
+   "p1": 0.0229,
+   "desc": "-25\u2103~+85\u2103 1 12.5mm 1x4P 2.5mm 250V 3A 4 4P 5.7mm 7mm Beige Right Angle XH \u5f2f\u63d2,P=2.5mm Wire "
+  },
+  {
+   "code": "C2908613",
+   "mpn": "XH-4AW",
+   "brand": "HCTL",
+   "pkg": "Push-Pull,P=2.5mm",
+   "stock": 159528,
+   "lib": "expand",
+   "p1": 0.0263,
+   "desc": "-25\u2103~+85\u2103 1 1x4P 2.54mm 250V 3A 4 4P 5.9mm 7mm Brass PA66 Right Angle Tin UL94V-0 XH \u5f2f\u63d2,P="
+  },
+  {
+   "code": "C22360319",
+   "mpn": "XH-4AW",
+   "brand": "Korean Hroparts Elec",
+   "pkg": "Push-Pull,P=2.5mm",
+   "stock": 575,
+   "lib": "expand",
+   "p1": 0.0444,
+   "desc": "-25\u2103~+85\u2103 1 12.5mm 1x4P 2.5mm 250V 4 4P 5.7mm 7.2mm Brass PA66 Right Angle Tin XH Push-Pul"
+  },
+  {
+   "code": "C53055490",
+   "mpn": "XH-4AW",
+   "brand": "LXWCONN",
+   "pkg": "Push-Pull,P=2.5mm",
+   "stock": 409,
+   "lib": "expand",
+   "p1": 0.0242,
+   "desc": "1x4P 2.54mm 4P Right Angle XH \u5f2f\u63d2,P=2.5mm Wire To Board Connector ROHS"
+  },
+  {
+   "code": "C31954",
+   "mpn": "XH-4AW",
+   "brand": "BOOMELE(Boom Precision Elec)",
+   "pkg": "XH-TH",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0145,
+   "desc": "\u63d2\u4ef6 Wire To Board Connector ROHS"
+  },
+  {
+   "code": "C8877",
+   "mpn": "XH-4AWD",
+   "brand": "BOOMELE(Boom Precision Elec)",
+   "pkg": "Push-Pull,P=2.5mm",
+   "stock": 14052,
+   "lib": "expand",
+   "p1": 0.0225,
+   "desc": "-55\u2103~+105\u2103 1 1x4P 2.5mm 250V 3A 4 4P 5.8mm 7.5mm 7mm Right Angle White XH \u5f2f\u63d2,P=2.5mm Wire "
+  }
+ ],
+ "pin header 2.54mm 1x13": [
+  {
+   "code": "C52928",
+   "mpn": "2.54-1*13PStraight Bent Pin",
+   "brand": "BOOMELE(Boom Precision Elec)",
+   "pkg": "Push-Pull,P=2.54mm",
+   "stock": 940,
+   "lib": "expand",
+   "p1": 0.0934,
+   "desc": "-40\u2103~+105\u2103 1 13P 1x13P 2.54mm 3A Black Brass Pin Header Right Angle \u5f2f\u63d2,P=2.54mm Pin Header"
+  },
+  {
+   "code": "C2932694",
+   "mpn": "KH-2.54PH90-1X13P-L13.8",
+   "brand": "Shenzhen Kinghelm Elec",
+   "pkg": "Push-Pull,P=2.54mm",
+   "stock": 484,
+   "lib": "expand",
+   "p1": 0.1067,
+   "desc": "-40\u2103~+105\u2103 1 13P 1x13P 2.54mm 2.5mm 3A 6mm Black Pin Header Right Angle \u5f2f\u63d2,P=2.54mm Pin He"
+  },
+  {
+   "code": "C2932703",
+   "mpn": "KH-2.54PH180-1X13P-L11.5",
+   "brand": "Shenzhen Kinghelm Elec",
+   "pkg": "Plugin,P=2.54mm",
+   "stock": 759,
+   "lib": "expand",
+   "p1": 0.0938,
+   "desc": "-40\u2103~+105\u2103 1 13P 1x13P 2.54mm 2.5mm 3A 3mm 6mm Black Pin Header Through Hole \u63d2\u4ef6,P=2.54mm P"
+  },
+  {
+   "code": "C7430369",
+   "mpn": "DS1021-1x13SF11-B",
+   "brand": "CONNFLY Elec",
+   "pkg": "Plugin,P=2.54mm",
+   "stock": 298,
+   "lib": "expand",
+   "p1": 0.0565,
+   "desc": "-40\u2103~+105\u2103 1 13P 1x13P 2.54mm 250V 3A Black Copper alloy Gold Pin Header Through Hole Plug"
+  },
+  {
+   "code": "C49569559",
+   "mpn": "2011-1X13G00LB",
+   "brand": "WingTAT",
+   "pkg": "Push-Pull,P=2.54mm",
+   "stock": 485,
+   "lib": "expand",
+   "p1": 0.0755,
+   "desc": "-40\u2103~+105\u2103 1 13P 1x13P 2.54mm 2.5mm 3A 3mm 600V 6mm Black Brass Gold Pin Header Right Angl"
+  },
+  {
+   "code": "C49569636",
+   "mpn": "2011-1X13G00SB",
+   "brand": "WingTAT",
+   "pkg": "Plugin,P=2.54mm",
+   "stock": 505,
+   "lib": "expand",
+   "p1": 0.0573,
+   "desc": "-40\u2103~+105\u2103 1 13P 1x13P 2.54mm 2.5mm 3A 3mm 600V 6mm Black Brass Gold Pin Header Through Ho"
+  },
+  {
+   "code": "C2333",
+   "mpn": "2.54-2*40PPin",
+   "brand": "BOOMELE(Boom Precision Elec)",
+   "pkg": "Plugin,P=2.54mm",
+   "stock": 21540,
+   "lib": "expand",
+   "p1": 0.3228,
+   "desc": "-25\u2103~+85\u2103 2 2.54mm 2.54mm 250V 2x40P 3A 80P Black Pin Header Through Hole \u63d2\u4ef6,P=2.54mm Pin "
+  },
+  {
+   "code": "C2334",
+   "mpn": "2.54-1*40PStraight Bent Pin",
+   "brand": "BOOMELE(Boom Precision Elec)",
+   "pkg": "Push-Pull,P=2.54mm",
+   "stock": 11019,
+   "lib": "expand",
+   "p1": 0.1947,
+   "desc": "-55\u2103~+105\u2103 1 1x40P 2.54mm 2.54mm 3A 3mm 40P Black Brass Gold Pin Header Right Angle \u5f2f\u63d2,P=2"
+  }
+ ],
+ "AMS1117-3.3": [
+  {
+   "code": "C6186",
+   "mpn": "AMS1117-3.3",
+   "brand": "Advanced Monolithic Systems",
+   "pkg": "SOT-223",
+   "stock": 1491903,
+   "lib": "base",
+   "p1": 0.1984,
+   "desc": "-40\u2103~+125\u2103 0.003%Vout 1 1.1V@(800mA) 15V 1A 3.3V 5mA 72dB@(120Hz) Fixed Over Current Prote"
+  },
+  {
+   "code": "C347222",
+   "mpn": "AMS1117-3.3",
+   "brand": "UMW(Youtai Semiconductor Co., Ltd.)",
+   "pkg": "SOT-223",
+   "stock": 1259140,
+   "lib": "expand",
+   "p1": 0.0481,
+   "desc": "-40\u2103~+125\u2103 0.003%Vout 1 1.3V@(1A) 12V 1A 3.3V 5mA 60dB@(120Hz) Fixed Over Current Protecti"
+  },
+  {
+   "code": "C347256",
+   "mpn": "AMS1117-3.3S",
+   "brand": "UMW(Youtai Semiconductor Co., Ltd.)",
+   "pkg": "SOT-89",
+   "stock": 345888,
+   "lib": "expand",
+   "p1": 0.046,
+   "desc": "-40\u2103~+125\u2103 0.003%Vout 1 1.3V@(1A) 18V 1A 3.3V 5mA 60dB@(120Hz) Fixed Over Current Protecti"
+  },
+  {
+   "code": "C351784",
+   "mpn": "AMS1117-3.3",
+   "brand": "PUOLOP",
+   "pkg": "SOT-223-3",
+   "stock": 9210,
+   "lib": "expand",
+   "p1": 0.0621,
+   "desc": "-20\u2103~+125\u2103@(Ta) 1 1.4V@(1A) 10V 12mA 1A 3.3V Fixed Positive SOT-223-3 Voltage Regulators -"
+  },
+  {
+   "code": "C369933",
+   "mpn": "AMS1117-3.3",
+   "brand": "KEXIN",
+   "pkg": "SOT-223-4",
+   "stock": 57902,
+   "lib": "expand",
+   "p1": 0.0626,
+   "desc": "1 1.3V@(800mA) 18V 1A 3.3V 8mA Fixed Over Temperature Protection Positive SOT-223-4 Voltag"
+  },
+  {
+   "code": "C880752",
+   "mpn": "AMS1117-3.3",
+   "brand": "Slkor(SLKORMICRO Elec.)",
+   "pkg": "SOT-89-3",
+   "stock": 24978,
+   "lib": "expand",
+   "p1": 0.0492,
+   "desc": "-40\u2103~+125\u2103@(Tj) 0.003%Vout 1 1.3V@(800mA) 18V 3.3V 3mA 70dB@(120Hz) 800mA Fixed Over Tempe"
+  },
+  {
+   "code": "C917183",
+   "mpn": "AMS1117-3.3",
+   "brand": "JSMSEMI",
+   "pkg": "SOT-223-3",
+   "stock": 58327,
+   "lib": "expand",
+   "p1": 0.0566,
+   "desc": "-20\u2103~+125\u2103@(Tj) 0.003%Vout 1 1.3V@(800mA) 15V 1A 2mA 3.3V 75dB@(120Hz) Fixed Over Temperat"
+  },
+  {
+   "code": "C2688239",
+   "mpn": "AMS1117-3.3V",
+   "brand": "WPMtek(Wei Pan Microelectronics)",
+   "pkg": "SOT-223-3L",
+   "stock": 13259,
+   "lib": "expand",
+   "p1": 0.0644,
+   "desc": "-40\u2103~+125\u2103@(Tj) 0.003%Vout 1 1.4V@(1A) 12V 1A 3.3V 5mA 70dB@(120Hz) Fixed Over Temperature"
+  }
+ ],
+ "USBLC6-2SC6": [
+  {
+   "code": "C7519",
+   "mpn": "USBLC6-2SC6",
+   "brand": "STMicroelectronics",
+   "pkg": "SOT-23-6L",
+   "stock": 30418,
+   "lib": "expand",
+   "p1": 0.181,
+   "desc": "-40\u2103~+125\u2103 150nA 17V 2 3.5pF 5.25V 5A 6V ESD IEC 61000-4-2 Unidirectional SOT-23-6L ESD an"
+  },
+  {
+   "code": "C558442",
+   "mpn": "TPUSBLC6-2SC6",
+   "brand": "TECH PUBLIC",
+   "pkg": "SOT-23-6",
+   "stock": 6872,
+   "lib": "expand",
+   "p1": 0.0574,
+   "desc": "-55\u2103~+125\u2103 0.35pF\u30010.8pF 100nA 15V 2 5V 9V ESD IEC 61000-4-2\u3001IEC 61000-4-5\u3001IEC 61000-4-4 SO"
+  },
+  {
+   "code": "C2687116",
+   "mpn": "USBLC6-2SC6",
+   "brand": "UMW(Youtai Semiconductor Co., Ltd.)",
+   "pkg": "SOT-23-6",
+   "stock": 90872,
+   "lib": "expand",
+   "p1": 0.0513,
+   "desc": "0.35pF\u30010.8pF 100nA 150W@8/20us 15V 2 5V 6A@8/20us 6V ESD SOT-23-6 ESD and Surge Protection"
+  },
+  {
+   "code": "C2827654",
+   "mpn": "USBLC6-2SC6",
+   "brand": "TECH PUBLIC",
+   "pkg": "SOT-23-6",
+   "stock": 72010,
+   "lib": "expand",
+   "p1": 0.0442,
+   "desc": "-55\u2103~+125\u2103 0.35pF 12V 150W 2 5V 6A 6V 80nA ESD IEC 61000-4-2\u3001IEC 61000-4-5\u3001IEC 61000-4-4 U"
+  },
+  {
+   "code": "C2830148",
+   "mpn": "MSUSBLC6-2SC6",
+   "brand": "MSKSEMI",
+   "pkg": "SOT-23-6",
+   "stock": 841,
+   "lib": "expand",
+   "p1": 0.1221,
+   "desc": "-40\u2103~+125\u2103 0.8pF 150W 15V 1uA 2 5V 6A 9V ESD IEC 61000-4-2 Unidirectional SOT-23-6 ESD and"
+  },
+  {
+   "code": "C2969755",
+   "mpn": "USBLC6-2SC6Y",
+   "brand": "STMicroelectronics",
+   "pkg": "SOT-23-6L",
+   "stock": 940,
+   "lib": "expand",
+   "p1": 0.3167,
+   "desc": "-40\u2103~+150\u2103 10nA 12V 2 2.5pF 6V ESD Unidirectional SOT-23-6L ESD and Surge Protection (TVS/"
+  },
+  {
+   "code": "C3029034",
+   "mpn": "USBLC6-2SC6-MS",
+   "brand": "MSKSEMI",
+   "pkg": "SOT-23-6",
+   "stock": 1057,
+   "lib": "expand",
+   "p1": 0.0666,
+   "desc": "-40\u2103~+125\u2103 0.8pF 150W 15V 1uA 2 4.5A 5V 6V ESD IEC 61000-4-2 Unidirectional SOT-23-6 ESD a"
+  },
+  {
+   "code": "C5180249",
+   "mpn": "USBLC6-2SC6-ES",
+   "brand": "ElecSuper",
+   "pkg": "SOT-23-6L",
+   "stock": 52783,
+   "lib": "expand",
+   "p1": 0.0276,
+   "desc": "-40\u2103~+85\u2103 0.6pF 15V 1uA 2 4.5A 5V 6V 70W@8/20us ESD IEC 61000-4-2 Unidirectional SOT-23-6L"
+  }
+ ],
+ "TYPE-C-31-M-12": [
+  {
+   "code": "C165948",
+   "mpn": "TYPE-C-31-M-12",
+   "brand": "Korean Hroparts Elec",
+   "pkg": "SMD",
+   "stock": 326467,
+   "lib": "expand",
+   "p1": 0.1841,
+   "desc": "-30\u2103~+80\u2103 1 10,000 cycles 16P 20V 5A 7.35mm Female Surface Mount, Right Angle Type-C SMD U"
+  },
+  {
+   "code": "C9900091786",
+   "mpn": "TYPE-C-31-M-12",
+   "brand": "JLCPCB Assembly",
+   "pkg": "type-c-16",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0392,
+   "desc": "type-c-16 New Arrivals ROHS"
+  },
+  {
+   "code": "C5337088",
+   "mpn": "TYPE-C-31-M-12A",
+   "brand": "Korean Hroparts Elec",
+   "pkg": "SMD",
+   "stock": 1410,
+   "lib": "expand",
+   "p1": 0.2362,
+   "desc": "-30\u2103~+85\u2103 1 10,000 cycles 16P 20V 6A 7.35mm Female Surface Mount, Right Angle Type-C SMD U"
+  },
+  {
+   "code": "C9900015525",
+   "mpn": "USB_C_Receptacle_HRO_TYPE-C-31-M-12",
+   "brand": "JLCPCB Assembly",
+   "pkg": "USB_C_Receptacle_USB2.0",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0392,
+   "desc": "USB_C_Receptacle_USB2.0 SMT ROHS"
+  }
+ ],
+ "TS-1187A": [
+  {
+   "code": "C42420254",
+   "mpn": "TS-1187A-S16",
+   "brand": "JXTCONN",
+   "pkg": "SMD-4P,5.2x5.2mm",
+   "stock": 56604,
+   "lib": "expand",
+   "p1": 0.0199,
+   "desc": "-\u3001-\u3001- -\u3001-\u3001- -\u3001-\u3001- 1.6N\u30012.6N\u30012.6N 100,000 cycles\u3001100,000 cycles\u3001100,000 cycles 12V\u300112V\u300112V "
+  },
+  {
+   "code": "C52190655",
+   "mpn": "TS-1187A-BAB",
+   "brand": "XYECONN",
+   "pkg": "SMD-4P,5.2x5.2mm",
+   "stock": 39,
+   "lib": "expand",
+   "p1": 0.0181,
+   "desc": "1.5mm 1.6N 12V 5.1mm 5.1mm 50mA Gull Wing Round Button SPST Surface Mount,Vertical Without"
+  },
+  {
+   "code": "C9900052981",
+   "mpn": "TS-1187A-B-A",
+   "brand": "JLCPCB Assembly",
+   "pkg": "SW4-SMD",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0392,
+   "desc": "SW4-SMD New Arrivals ROHS"
+  },
+  {
+   "code": "C318884",
+   "mpn": "TS-1187A-B-A-B",
+   "brand": "XKB Connection",
+   "pkg": "SMD-4P,5.1x5.1mm",
+   "stock": 1440547,
+   "lib": "base",
+   "p1": 0.02,
+   "desc": "-30\u2103~+85\u2103 1.5mm 1.6N 100,000 cycles 12V 5.1mm 5.1mm 50mA Gold No Round Button SPST Surface"
+  },
+  {
+   "code": "C318885",
+   "mpn": "TS-1187A-C-J-B",
+   "brand": "XKB Connection",
+   "pkg": "SMD-4P,5.1x5.1mm",
+   "stock": 935,
+   "lib": "expand",
+   "p1": 0.0507,
+   "desc": "-30\u2103~+85\u2103 100,000 cycles 12V 2.6N 5.1mm 5.1mm 50mA 5mm Gold No Round Button SPST Surface M"
+  },
+  {
+   "code": "C318886",
+   "mpn": "TS-1187A-C-G-B",
+   "brand": "XKB Connection",
+   "pkg": "SMD-4P,5.1x5.1mm",
+   "stock": 12208,
+   "lib": "expand",
+   "p1": 0.0508,
+   "desc": "-30\u2103~+85\u2103 100,000 cycles 12V 2.6N 3.5mm 5.1mm 5.1mm 50mA Gold No Round Button SPST Surface"
+  },
+  {
+   "code": "C318887",
+   "mpn": "TS-1187A-C-E-B",
+   "brand": "XKB Connection",
+   "pkg": "SMD-4P,5.1x5.1mm",
+   "stock": 132760,
+   "lib": "expand",
+   "p1": 0.0403,
+   "desc": "-30\u2103~+85\u2103 100,000 cycles 12V 2.5mm 2.6N 5.1mm 5.1mm 50mA Gold No Round Button SPST Surface"
+  },
+  {
+   "code": "C318888",
+   "mpn": "TS-1187A-C-D-B",
+   "brand": "XKB Connection",
+   "pkg": "SMD-4P,5.1x5.1mm",
+   "stock": 16055,
+   "lib": "expand",
+   "p1": 0.0402,
+   "desc": "-30\u2103~+85\u2103 100,000 cycles 12V 2.6N 2mm 5.1mm 5.1mm 50mA Gold No Round Button SPST Surface M"
+  }
+ ],
+ "SWPA6045S100MT": [
+  {
+   "code": "C79272",
+   "mpn": "SWPA6045S100MT",
+   "brand": "Sunlord",
+   "pkg": "SMD,6x6mm",
+   "stock": 33915,
+   "lib": "expand",
+   "p1": 0.089,
+   "desc": "10uH 2.45A 3.5A 48m\u03a9 \u00b120% SMD,6x6mm Power Inductors ROHS"
+  },
+  {
+   "code": "C5363717",
+   "mpn": "APSWPA6045S100MTF",
+   "brand": "APV",
+   "pkg": "SMD,6x6mm",
+   "stock": 0,
+   "lib": "expand",
+   "p1": 0.0747,
+   "desc": "10uH 2.45A 3.2A 62m\u03a9 Magnetic Shielded Inductor \u00b120% SMD,6x6mm Power Inductors ROHS"
+  }
+ ],
+ "10uH 4A inductor": [
+  {
+   "code": "C3002639",
+   "mpn": "CKST0603-10uH/M",
+   "brand": "CENKER",
+   "pkg": "SMD,7.4x6.6mm",
+   "stock": 4937,
+   "lib": "expand",
+   "p1": 0.1366,
+   "desc": "10uH 4A 5A 68m\u03a9 Molded Inductor \u00b120% SMD,7.4x6.6mm Power Inductors ROHS"
+  },
+  {
+   "code": "C5189958",
+   "mpn": "CYA0630-10UH",
+   "brand": "SHOU HAN",
+   "pkg": "SMD,7.2x6.6mm",
+   "stock": 65475,
+   "lib": "expand",
+   "p1": 0.1632,
+   "desc": "10uH 4A 5.5A 71m\u03a9 \u00b120% SMD,7.2x6.6mm Inductors (SMD) ROHS"
+  },
+  {
+   "code": "C7187312",
+   "mpn": "CXP0530-100M-AG(10uh)",
+   "brand": "DMBJ",
+   "pkg": "SMD,5.7x5.2mm",
+   "stock": 1593,
+   "lib": "expand",
+   "p1": 0.1327,
+   "desc": "10uH 115m\u03a9 3.2A 4A Molded Inductor \u00b120% SMD,5.7x5.2mm Power Inductors ROHS"
+  },
+  {
+   "code": "C11035",
+   "mpn": "SM1054-100MT",
+   "brand": "SXN(Shun Xiang Nuo Elec)",
+   "pkg": "SMD,10x9mm",
+   "stock": 655,
+   "lib": "expand",
+   "p1": 0.1404,
+   "desc": "10uH 2.6A 4A 60m\u03a9 Unshielded Inductor \u00b120% SMD,10x9mm Power Inductors ROHS"
+  },
+  {
+   "code": "C108290",
+   "mpn": "MHCI06030-100M-R8A",
+   "brand": "Chilisin Elec",
+   "pkg": "SMD,7.3x6.6mm",
+   "stock": 18,
+   "lib": "expand",
+   "p1": 0.1287,
+   "desc": "10uH 4A 5.5A 68m\u03a9 Magnetic Shielded Inductor \u00b120% SMD,7.3x6.6mm Power Inductors ROHS"
+  },
+  {
+   "code": "C127785",
+   "mpn": "SWRH1205B-100MT",
+   "brand": "Sunlord",
+   "pkg": "SMD,12.5x12.5mm",
+   "stock": 1,
+   "lib": "expand",
+   "p1": 0.2832,
+   "desc": "10uH 25m\u03a9 4A \u00b120% SMD,12.5x12.5mm Power Inductors ROHS"
+  },
+  {
+   "code": "C132135",
+   "mpn": "MWSA0618S-100MT",
+   "brand": "Sunlord",
+   "pkg": "SMD,7x6.6mm",
+   "stock": 145,
+   "lib": "expand",
+   "p1": 0.176,
+   "desc": "10uH 155m\u03a9 2.3A 4A \u00b120% SMD,7x6.6mm Power Inductors ROHS"
+  },
+  {
+   "code": "C167292",
+   "mpn": "0630CDMCCDS-100MC",
+   "brand": "Sumida",
+   "pkg": "SMD,7x6.6mm",
+   "stock": 6153,
+   "lib": "expand",
+   "p1": 0.2934,
+   "desc": "10uH 4A 5.5A 67m\u03a9 Molded Inductor \u00b120% SMD,7x6.6mm Power Inductors ROHS"
+  }
+ ]
+}
