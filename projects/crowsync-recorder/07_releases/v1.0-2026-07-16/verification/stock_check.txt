@@ -1,0 +1,31 @@
+27 BOM lines: 27 with LCSC, 0 without
+
+  OK               C22775     x3   100R                                   base   stock=4733821
+  OK               C25803     x1   100k bias->VCOM                        base   stock=6565449
+  OK               C14663     x3   100n                                   base   stock=56472600
+  OK               C98220     x1   10k div bottom                         expand stock=4807245
+  OK               C19702     x6   10u                                    base   stock=15169894
+  OK               C9002      x1   12MHz 3225 20pF                        base   stock=194463
+  OK               C22935     x1   1M XTI-XTO                             base   stock=2525685
+  OK               C21190     x2   1k                                     base   stock=50050
+  OK               C22843     x1   1k5 D+ pullup (VDDI)                   base   stock=1363125
+  OK               C1588      x1   1n RF stop                             base   stock=2159723
+  OK               C15849     x9   1u                                     base   stock=10307574
+  OK               C23345     x2   22R                                    base   stock=1393889
+  OK               C31850     x1   22k div top                            base   stock=868850
+  OK               C22356360  x1   2R2 VBUS filter                        expand stock=7994
+  OK               C4190      x2   2k2                                    base   stock=1808868
+  OK               C1663      x2   33p                                    base   stock=1270927
+  OK               C22991     x1   3k01 Rf (gain 4.0)                     expand stock=17279
+  OK               C23186     x2   5k1                                    base   stock=3403784
+  OK               C1002      x1   600R@100MHz bias                       base   stock=1140584
+  OK               C189893    x1   JST-GH PPS                             expand stock=38965
+  OK               C514175    x1   JST-GH mic                             expand stock=40
+  OK               C180425    x1   PCM2900CDBR                            expand stock=286
+  OK               C398355    x1   TLV9062IDR                             expand stock=29271
+  OK               C2862740   x1   TPS7A2033PDBVR                         expand stock=60615
+  OK               C3020560   x1   USB4105-GF-A                           expand stock=4543
+  OK               C2687116   x2   USBLC6-2SC6                            expand stock=91823
+  OK               C2297      x2   green                                  base   stock=3249709
+
+PASS: 0 coded lines with problems; 0 lines still uncoded
