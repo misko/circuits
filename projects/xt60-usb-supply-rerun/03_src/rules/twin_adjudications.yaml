@@ -20,3 +20,41 @@
     courtyard center sitting between tab and lead spans; the script's own
     180-flip probe did NOT bring it under 1mm, confirming it is not a
     flipped model.
+    ADDENDUM 2026-07-16 (post-audit decomposition): the original why
+    mis-filed part of this delta - it is ~0.9mm WRL bbox asymmetry PLUS
+    ~0.4mm of REAL land-pattern disagreement (the same 0.37mm systematic
+    lead shift measured above; see the C400894 PAD-GEOM entry). Render
+    seating restored via model_dx there; MODEL-REG now 1.1mm.
+- lcsc: C400894
+  refs: [Q1]
+  status: PAD-GEOM
+  model_dx: 0.4
+  why: >
+    KiCad TO-252-2 vs JLC DPAK land-pattern style delta, not a part
+    mismatch: tab-to-lead pad-center distance 6.70mm (ours) vs 7.31mm
+    (JLC), dominated by differing pad extents (our lead pads 2.2mm long
+    vs JLC 2.5mm; tab pads differ in body-side reach). Physical fit
+    verified: DPAK foot span sits fully on our lead pads under either
+    interpretation; fresh-context reviewer confirmed copper at design
+    positions (east anon-pad edge 126.97 vs expected 126.90). Render
+    seating restored with model_dx +0.4mm east, chosen from pixel
+    measurement (tab metal was centered, both gull leads 0.37mm west;
+    +0.4 splits metal deviation across tab and leads - MODEL-REG
+    1.3mm -> 1.1mm). AOS package drawing not in 02_parts (electrical-only
+    datasheet) - noted as parts-stage gap; JEDEC TO-252 geometry used.
+- lcsc: C83846
+  refs: [D1]
+  status: PAD-GEOM
+  why: >
+    SMB pad-extent style delta: pad1<->pad2 4.30mm (ours) vs 4.72mm
+    (JLC) - KiCad D_SMB uses shorter pads than JLC's toe-extended ones.
+    Fresh-context per-component review PASSed D1 seating (terminals on
+    both pads, cathode band west over pad 1 = VBAT_P); no render nudge
+    needed.
+- lcsc: C84256
+  refs: [LED1]
+  status: PAD-GEOM
+  why: >
+    0805 pad-extent style delta: pad1<->pad2 1.88mm (ours) vs 2.20mm
+    (JLC toe-extended). Fresh-context review PASSed LED1 seating and
+    cathode-north orientation under rot -90; no render nudge needed.
