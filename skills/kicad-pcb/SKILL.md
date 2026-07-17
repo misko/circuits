@@ -28,6 +28,11 @@ credits, or debugging time — check provenance notes before assuming staleness.
    (priority-N over GND), not tracks; sub-floor tap corridors get named
    rule areas. Retrofitting this after routing cost a full repair campaign
    (SPF power board, 2026-07).
+3a. **The policy canon is `references/design-policies.md`** — every schematic/
+   placement/routing/meta policy with a stable check ID, verified by
+   `scripts/policy_audit.py` (machine items) or the review protocols (human
+   items). Run the auditor before any release; zero FAIL + evidence-backed
+   waivers is the gate. Rules added below are summaries; the canon governs.
 3b. **Reference designators PRINT on the board: F.SilkS, visible, always.**
    Generators must place every part's refdes on the silkscreen (run the
    de-collision pass so they stay legible), IN ADDITION to functional
@@ -37,6 +42,35 @@ credits, or debugging time — check provenance notes before assuming staleness.
    probing and debug (2026-07-17). The placement audit enforces this as
    I8 refdes-not-on-silk (audit_template.py; per-project waivers via
    cfg["ref_silk_ok"], e.g. passives too small next to their body).
+3c. **Functional silk for anything a human touches** (canon P5): terminals,
+   fuses, headers get plain-word labels (function, polarity, voltage);
+   policy_audit P-SILK-FN checks a label exists near every J*/F*/TP* ref.
+   Three boards shipped with ZERO functional text — one of them a 12.6V
+   battery board with unmarked terminals (fleet audit 2026-07-17).
+3d. **Schematics draw their story** (canon S6): generators must WIRE the
+   story-critical paths (power entry -> protection -> regulation; the
+   primary signal chain); net-label-only connection is acceptable for
+   pullups/decouplers/bulk. The whole fleet audited at 0 drawn wires —
+   pure label-blob schematics that reviewers must mentally re-net. Until
+   schwriter emits wires, the render review MUST grade readability.
+3e. **NC pins are emitted, not narrated** (canon S4): generate_schematic
+   places no_connect flags for every sanctioned float; the rebuild chain
+   gates `kicad-cli sch erc --severity-all` at ZERO errors (warnings
+   baselined with reasons). Prose-only "intentionally floating" notes let
+   13 unflagged floats ship on one board and 9 on another.
+3f. **Rules ride INTO the router** (canon R1): the route-input project
+   file must contain the netclasses — verify with policy_audit R-RULES.
+   Fleet audit: every board's r0.kicad_pro had only Default 0.2mm; floors
+   were enforced only by the post-route DRC gate. Emit rules before
+   route-prep AND last (pcbnew saves clobber netclasses).
+3g. **The final route artifact is PROMOTED, not disposable** (canon M3):
+   06_build/ stays throwaway EXCEPT the imported final chain file, which
+   moves to 03_src/route/ and is committed (sha in the MANIFEST). A
+   released board's only route input was gitignored — unreproducible from
+   a fresh clone.
+3h. **Thermal-via floors** (canon R6): on >=4-layer boards, EPs and power
+   pads above ~4mm2 get >=2 same-net vias in/near the pad (policy_audit
+   R-THERM). TPS2557 EPs and a DPAK tab shipped with zero.
 4. **Fanout before routing, hardest nets first.** Escape lanes are claimed
    by whoever routes first. `bga_fanout.py` on fine-pitch ICs, then a thin
    pass (0.15/0.13, 0.45/0.2 vias) for escape-bound nets, then the standard

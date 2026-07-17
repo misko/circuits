@@ -54,3 +54,20 @@ the order. Do not soften: "probably fine" is a QUESTION.
   paths. Not the schematic, not the session history.
 - Record verdicts + findings in the release's `verification/pin_review.md`;
   any FAIL reopens the design before ordering.
+
+## Render-review additions (canon S5/S6/S7 — human-graded policy items)
+
+When the fresh-context reviewer examines the schematic PDF, three graded
+verdicts are MANDATORY (recorded in the release's render_review.md):
+
+1. **S6 readability**: can you trace power entry -> protection ->
+   regulation and the primary signal chain as DRAWN circuits, or must you
+   mentally re-net label-blobs? Grade READABLE / EFFORTFUL / OPAQUE, with
+   one concrete example. (The fleet audited at 0 drawn wires, 2026-07-17 —
+   until generators emit wires, expect EFFORTFUL and say so; the grade
+   keeps the debt visible.)
+2. **S7 decoupling adjacency**: are decouplers shown at the IC they serve
+   (schematic teaches the layout), or farmed in a corner?
+3. **S5 design math spot-check**: pick TWO derived values (a divider, a
+   current limit) and re-derive them from DETAIL_DESIGN.md. Flag any value
+   whose derivation you cannot find.

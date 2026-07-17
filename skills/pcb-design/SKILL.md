@@ -48,9 +48,14 @@ hard-won traps; this skill is the orchestration layer only.
 ## 4-6. Generate, place, route — all regenerable from 03_src
 
 Build `03_src/` generators + `rebuild_all.sh` (set -euo pipefail) in the
-canonical order: generate_schematic → netlist-parity gate →
-generate_board (placement) → audit gate (polarity, proximity, plane-clean)
-→ KRT routing chain (fanout-first, track-free board, import once) →
+canonical order: generate_schematic (with no_connect flags for every
+sanctioned float; wire the story-critical paths per canon S6) →
+**ERC gate** (`kicad-cli sch erc --severity-all` = 0 errors) →
+netlist-parity gate → generate_board (placement) → audit gate (polarity,
+proximity, plane-clean, refdes-on-silk) → generate_rules BEFORE route-prep
+(the route-input .kicad_pro must carry the netclasses — canon R1) → KRT
+routing chain (fanout-first, track-free board, import once; promote the
+final chain file to 03_src/route/ and commit it — canon M3) →
 stitch_and_fill (pours + thermal vias) → **generate_rules LAST** (pcbnew
 saves clobber netclasses) → DRC gate:
 `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity`
@@ -84,6 +89,13 @@ produce (checker and checked must not share a method):
   disposition).
 - `export_pdfs.sh`: schematic / pcb_layers / assembly PDFs, visually
   verified via PNG export.
+
+- POLICY AUDIT (final gate): `/usr/bin/python3
+  <kicad-pcb skill>/scripts/policy_audit.py <project>` — zero FAIL; any
+  WAIVED entry evidence-backed in `03_src/rules/policy_waivers.yaml`; the
+  HUMAN-graded items (schematic readability S6, decoupling S7, design-math
+  S5) carry verdicts from the fresh-context reviews. Ship
+  `06_build/policy_audit.md` in the release's verification/.
 
 Then cut `07_releases/v1.0-<date>/` per the release contract: gerber zip,
 bom.csv, cpl.csv, pdf/, verification/ (all evidence incl. 6 twin renders),
