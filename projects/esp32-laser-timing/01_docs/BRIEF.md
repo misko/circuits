@@ -1,5 +1,8 @@
 # BRIEF — esp32-laser-timing
 
+status: delivered
+current_release: 07_releases/v1.0-2026-07-17
+
 Commissioned: 2026-07-16, via /pcb-design. Prompt sha256: 221b4ba9cc4c0d5caae4484dd7ca0dffd051d64b5a9a320b4e57c02f81fdd899
 
 <!-- prompt-verbatim-begin -->
@@ -181,3 +184,6 @@ in the linked ADR/doc.
 - 2026-07-16: commissioned; folders + contracts created from canonical set.
 - 2026-07-17: A4 delegation received; D1–D15 recorded; ADRs 0001–0005
   written; parts extracted (02_parts/), design docs written.
+- 2026-07-17: all gates green (ERC 0, AUDIT PASS, DRC 0/0/0+parity, twin
+  exit 0, pin reviews zero FAIL, render review dispositioned); release
+  v1.0-2026-07-17 cut at git 8e4dd80, tag elt-v1.0.
