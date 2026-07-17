@@ -18,7 +18,10 @@ pins:
 limits: '60V, 8.1mOhm@10V'
 gotchas:
   - "footprint merges drain pins 6-8 into pad 5 - schematic parity flags 'no pad for pin 6/7/8' as known noise"
-verified: 'pin map from SPF generator, verified vs SLPS432 (2026-07)'
+verified: 'Top View figure, SLPS633 Dec-2016 page 1 (NOTE: cached file is named
+  SLPS432.pdf but the document itself is SLPS633): pins 1/2/3=S left, 4=G
+  bottom-left, 5-8=D right, center pad=D - matches pins: incl. the footprint
+  5-8+thermal drain merge. Re-verified from the rendered figure 2026-07-17'
 sourcing:
   lcsc: C840100
   note: TI original; C49108752 is an ElecSuper clone

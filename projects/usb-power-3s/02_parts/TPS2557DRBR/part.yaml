@@ -22,5 +22,8 @@ pins:
 limits: '2.5-6.5V, 5A max switch'
 gotchas:
   - 'IOS(mA) ~ 61050/RILIM(kOhm): 20k->3.05A verified; 24k3->2.51A (this board)'
-verified: 'pin map from SPF generator, verified vs SLVS931B (2026-07)'
+verified: 'Pin Configuration and Functions figure, SLVS931B section 6 page 3 (DRB
+  8-pin VSON Top View): 1=GND, 2/3=IN, 4=EN (TPS2557 active HIGH per the
+  figure note), 5=ILIM, 6/7=OUT, 8=FAULT, PowerPAD tie GND externally -
+  matches pins: pad-for-pad. Re-verified from the rendered figure 2026-07-17'
 sourcing: {lcsc: C130056}

@@ -1,0 +1,47 @@
+# Policy-audit waivers — evidence-backed per canon M4.
+# usb-power-3s released v1.1-2026-07-16; the canon policies below were
+# adopted 2026-07-17 (adopted-forward: released boards are graded honestly,
+# fab outputs are NOT changed, and the gap is tracked for the next spin).
+- id: R-POUR
+  refs: [VBUS1, VBUS2, VBUS3]
+  why: >-
+    MEASURED (pcbnew, 2026-07-17): each VBUS net is a continuous 0.8mm
+    F.Cu run (1oz), ~9mm TPS2557->USB-A THT pad, all segments 0.8mm; the
+    two small vias per net feed only the C30/31/32 port-cap spur on B.Cu,
+    not the load path. IPC-2221 external ampacity for 0.8mm/1oz: 2.03A
+    at 10C rise, 2.76A at 20C, 3.30A at 30C; at the ILIM-bounded worst
+    case 2.51A the rise is ~16C. HONEST VERDICT: functional (modest
+    temperature rise, current hard-limited by the TPS2557), but the
+    1.5x ampacity-margin bar is NOT met at any reasonable rise budget
+    (1.10x at 20C, 1.32x at 30C; 1.5x only above ~40C rise). Recorded
+    as a NEXT-SPIN DEFECT, not an evidence-of-adequacy waiver: rev-next
+    must carry VBUS1-3 as priority pours or >=1.5mm trunks per canon R2.
+    Released fab outputs stay untouched (board is ordered).
+- id: R-RULES
+  why: >-
+    Adopted-forward (canon R1 dated 2026-07-17, release v1.1-2026-07-16
+    predates it). Route inputs r0..r6 were ad-hoc pcbnew saves whose
+    .kicad_pro carries only Default 0.2mm; width floors were enforced
+    post-route by the severity-all DRC gate, which passed 0/0/0 for the
+    release. Remediation LANDED for future routes: 03_src/route_prep.py
+    now builds every route-input project with the full netclasses +
+    floors from 04_kicad (refuses tracked/filled boards). The historical
+    06_build/route/r0.kicad_pro is deliberately left as-shipped; waiver
+    expires when the next routing campaign produces a route_prep input.
+- id: P-SILK-REF
+  why: >-
+    Policy P4 adopted 2026-07-17, one day AFTER the v1.1 release; the
+    board shipped with all 96 refdes on F.Fab only (assembly drawing has
+    them; the physical board does not). Copper/silk of the released fab
+    outputs must not change. Next-spin remediation: generator refdes
+    silk pass + de-collision, gated by audit I10/P-SILK-REF.
+- id: P-SILK-FN
+  refs: [F1, J1, J2, J3, J4, J5]
+  why: >-
+    Policy P5 adopted 2026-07-17, after release: zero functional silk
+    text near the fuse and connectors. Functions are documented in the
+    release ORDER_README and assembly PDF (XT60 battery polarity, 15A
+    ATO fuse, per-port 2.5A limits, USB-C 3A advertisement). A 12.6V
+    battery input with unmarked terminals is exactly the incident class
+    behind P5 — next-spin remediation: plain-word labels (BATT 3S +/-,
+    FUSE 15A, 5V 2.5A per USB-A, USB-C 3A) via the generator silk pass.
