@@ -136,6 +136,19 @@ RULE_AREAS = [
     ("EN_TAP_C", "F.Cu", (152.83, 147.00, 153.43, 149.90)),
 ]
 
+# refdes silk de-collide: ref -> (dx, dy) offset from footprint origin.
+# Values live on F.Fab; only these silk refs collided in review renders.
+REF_TEXT_OFFSET = {
+    "RFA1": (-1.2, 2.0), "RFA2": (1.2, 2.0),
+    "RFC1": (-1.2, 2.0), "RFC2": (1.2, 2.0),
+    "COUT_C4": (0.0, 2.2), "COUT_C3": (0.0, -2.2),
+    "CVCC1": (-3.6, 0.0), "CVCC2": (-3.6, 0.0),
+    "CBS1": (2.2, -1.6), "CBS2": (2.2, -1.6),
+    "R6": (0.0, 2.0), "R4": (-2.4, 0.0), "R3": (0.0, -1.8),
+    "U6": (0.0, 2.4), "LED3": (0.0, -1.8),
+    "U1": (0.0, -2.6), "U2": (0.0, -2.6),
+}
+
 # Designed vias (net, x, y, dia, drill)
 DESIGNED_VIAS = [
     ("GND", 152.23, 120.90, 0.6, 0.3),
@@ -360,6 +373,11 @@ def main():
         x, y, rot = FLOORPLAN[ref]
         fp.SetPosition(VECTOR2I(FromMM(x), FromMM(y)))
         fp.SetOrientationDegrees(rot)
+        if ref in REF_TEXT_OFFSET:
+            dx, dy = REF_TEXT_OFFSET[ref]
+            fp.Reference().SetPosition(
+                VECTOR2I(FromMM(x + dx), FromMM(y + dy)))
+            fp.Reference().SetTextAngleDegrees(0)
         board.Add(fp)
         for pad in fp.Pads():
             pnum = pad.GetNumber()
