@@ -20,28 +20,41 @@
     courtyard center sitting between tab and lead spans; the script's own
     180-flip probe did NOT bring it under 1mm, confirming it is not a
     flipped model.
-    ADDENDUM 2026-07-16 (post-audit decomposition): the original why
-    mis-filed part of this delta - it is ~0.9mm WRL bbox asymmetry PLUS
-    ~0.4mm of REAL land-pattern disagreement (the same 0.37mm systematic
-    lead shift measured above; see the C400894 PAD-GEOM entry). Render
-    seating restored via model_dx there; MODEL-REG now 1.1mm.
+    ADDENDUM 2 (2026-07-16, supersedes addendum 1): the true decomposition
+    is in the C400894 PAD-GEOM entry below - a land-pattern delta ALONG
+    the tab-lead axis plus a ~0.95mm MODEL-INTERNAL offset TRANSVERSE to
+    it (EasyEDA model drawn off JLC's own footprint). Addendum 1's
+    "0.9 bbox + 0.4 land" split and the v1.0.1 model_dx nudge were both
+    wrong (nudge applied in the rotated frame moved the model north).
+    After the correct model_dy fix the bbox-based MODEL-REG reads 2.0mm
+    by construction - metal-vs-pad pixel measurement is authoritative.
 - lcsc: C400894
   refs: [Q1]
   status: PAD-GEOM
-  model_dx: 0.4
+  model_dy: 0.92
   why: >
-    KiCad TO-252-2 vs JLC DPAK land-pattern style delta, not a part
-    mismatch: tab-to-lead pad-center distance 6.70mm (ours) vs 7.31mm
-    (JLC), dominated by differing pad extents (our lead pads 2.2mm long
-    vs JLC 2.5mm; tab pads differ in body-side reach). Physical fit
-    verified: DPAK foot span sits fully on our lead pads under either
-    interpretation; fresh-context reviewer confirmed copper at design
-    positions (east anon-pad edge 126.97 vs expected 126.90). Render
-    seating restored with model_dx +0.4mm east, chosen from pixel
-    measurement (tab metal was centered, both gull leads 0.37mm west;
-    +0.4 splits metal deviation across tab and leads - MODEL-REG
-    1.3mm -> 1.1mm). AOS package drawing not in 02_parts (electrical-only
-    datasheet) - noted as parts-stage gap; JEDEC TO-252 geometry used.
+    Two INDEPENDENT defects, separated by pixel measurement (2026-07-16):
+    (1) land-pattern style delta ALONG the tab-lead axis: our TO-252-2
+    tab<->lead pad distance 6.70mm vs JLC 7.31mm - pads differ in extents,
+    physical DPAK foot lands on our lead pads under either reading;
+    (2) the JLC 3D MODEL is drawn ~0.95mm off JLC's OWN footprint
+    TRANSVERSE to that axis (both gull leads measured 0.92mm west of pad
+    centers in the v1.0 render while transverse pad centroids of both
+    footprints are symmetric - so the offset is model-internal, an
+    EasyEDA model defect, not a mount or land-pattern error).
+    model_dy +0.92 (footprint-LOCAL frame, rot 0: +y = board +x only
+    for THIS part's 90deg board rotation) re-seats the metal: measured
+    after nudge, gate lead 121.65 vs pad 121.72, source 126.25 vs
+    126.28, body centerline 124.01 vs 124.0. CAUTION: an earlier
+    model_dx nudge (v1.0.1) was wrong - it moved the model NORTH
+    because local +x rotates to board -y at rot 90; always convert
+    board-frame corrections to footprint-local through the part
+    rotation, and verify by diffing renders (a static bright board
+    feature near the gate pad polluted color-only measurements twice).
+    MODEL-REG reads 2.0mm AFTER the fix and its 180-flip hint is a red
+    herring: the WRL bbox center is doubly confounded here (lead-axis
+    bbox asymmetry + the model-internal transverse offset), so the
+    metal-vs-pad pixel measurement above is authoritative for this part.
 - lcsc: C83846
   refs: [D1]
   status: PAD-GEOM
