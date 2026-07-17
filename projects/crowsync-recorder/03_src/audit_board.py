@@ -4,7 +4,8 @@ I1 pads inside outline; I2 connector mate-direction (J1 overhangs W; J2/J3
 openings within 1.5mm of E edge); I3 In1 carries nothing but the GND zone
 (ADR-0004 continuous plane); I4 body-over-mounting-hole; I5 screw-head
 keepout warn; I6 footprint bbox overlaps; I7 analog/aggressor separation
-(preamp+mic parts >= 5mm from Y1 crystal and DP/DM parts)."""
+(preamp+mic parts >= 5mm from Y1 crystal and DP/DM parts); I9 polarized
+parts: pad-1/rail nets vs part.yaml facts (D3/D4 pad1=K=GND, D1/D2 GND/rail)."""
 import sys
 from pathlib import Path
 import pcbnew
@@ -78,6 +79,33 @@ for a in ANALOG:
         d = ((ax - gx) ** 2 + (ay - gy) ** 2) ** 0.5
         if d < 5.0:
             fails.append(f"I7 analog {a} within {d:.1f}mm of aggressor {g}")
+
+# I9 polarized parts: pad-1 NET asserted against 02_parts/*/part.yaml facts
+# (canon P2 / P-POL; modeled on esp32-laser-timing I9).
+#  - KT-0805G LEDs (D3/D4): part.yaml pin 1 = 'K (cathode) -> GND'.
+#  - USBLC6-2SC6 ESD arrays (D1/D2): part.yaml pins 2=GND, 5=VBUS clamp rail
+#    (rail-referenced steering: D1 -> VBUS_5V, D2 -> 3V3A); pins 1/6 and 3/4
+#    are the same line's pass-through pair, so both members must share a net.
+POLARITY = {
+    "D1": {"2": "GND", "5": "VBUS_5V"},
+    "D2": {"2": "GND", "5": "3V3A"},
+    "D3": {"1": "GND"},   # pad1 = cathode = GND
+    "D4": {"1": "GND"},   # pad1 = cathode = GND
+}
+PASSTHRU_PAIRS = {"D1": [("1", "6"), ("3", "4")], "D2": [("1", "6"), ("3", "4")]}
+for ref, want in POLARITY.items():
+    f = b.FindFootprintByReference(ref)
+    if f is None:
+        fails.append(f"I9 polarized part {ref} missing from board")
+        continue
+    got = {p.GetNumber(): p.GetNetname() for p in f.Pads()}
+    for pad, net in want.items():
+        if got.get(pad) != net:
+            fails.append(f"I9 {ref} pad{pad} net {got.get(pad)} != {net} (polarity)")
+    for pa, pb in PASSTHRU_PAIRS.get(ref, []):
+        if got.get(pa) != got.get(pb):
+            fails.append(f"I9 {ref} pass-through pads {pa}/{pb} nets differ "
+                         f"({got.get(pa)} vs {got.get(pb)})")
 
 print(f"pads audited across {len(names)} footprints")
 for w in warns[:8]:

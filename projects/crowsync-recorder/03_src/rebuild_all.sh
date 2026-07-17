@@ -10,6 +10,28 @@ SKILLS="$(cd "$(dirname "$0")/../../.." 2>/dev/null && pwd)/skills/kicad-pcb/scr
 [ -d "$SKILLS" ] || SKILLS="$HOME/.claude/skills/kicad-pcb/scripts"
 mkdir -p 06_build/netlists 06_build/drc
 python3 03_src/generate_schematic.py | tail -1
+# ERC gate (canon S1/S4): severity-all, ZERO errors. Warnings baselined:
+# endpoint_off_grid only (generator places parts on a 1mm grid vs KiCad's
+# 1.27mm connection grid; connectivity is global-label-based, so geometry
+# cannot change the netlist — parity gate below proves it). Any NEW warning
+# type fails the gate.
+mkdir -p 06_build/erc
+kicad-cli sch erc --severity-all --format json \
+    -o 06_build/erc/gate.json 04_kicad/crowsync_recorder.kicad_sch >/dev/null
+python3 - <<'PYEOF'
+import json, sys
+from collections import Counter
+d = json.load(open('06_build/erc/gate.json'))
+viols = [v for s in d['sheets'] for v in s['violations']]
+errs = [v for v in viols if v['severity'] == 'error']
+warn_types = Counter(v['type'] for v in viols if v['severity'] != 'error')
+BASELINE = {'endpoint_off_grid'}   # reasons above
+new = set(warn_types) - BASELINE
+print(f"ERC: {len(errs)} errors, warnings {dict(warn_types)}")
+for v in errs[:10]:
+    print('  ERR', v['type'], [i.get('description') for i in v['items']])
+sys.exit(1 if (errs or new) else 0)
+PYEOF
 kicad-cli sch export netlist -o 06_build/netlists/crowsync_recorder.net 04_kicad/crowsync_recorder.kicad_sch >/dev/null
 $PY 03_src/generate_board.py 2>/dev/null | tail -1
 $PY 03_src/audit_board.py 2>/dev/null | tail -1

@@ -124,6 +124,22 @@ REF_FP = {}
 # ------------------------------------------------------------------ instances
 BODY = []
 LABELS = []
+NO_CONNECTS = []
+NC_PINS = set()
+# Sanctioned floats (canon S4: no_connect flags EMITTED, not narrated).
+# Verified against 07_releases/v1.0-2026-07-16/verification/pin_review.md and
+# ORDER_README "known intentional oddities":
+#  - J1 A8/B8 (SBU1/SBU2): "SBU NC" per the GCT pin table (pin_review J1 PASS)
+#  - U3 pin 4: TPS7A20 NC, "NC floating per datasheet" (pin_review U3 PASS)
+#  - U1 pins 5/6/7/25/15/16 (HID0-2, TEST1, VOUTR, VOUTL): "VOUTL/VOUTR/
+#    TEST1/HID0-2 codec pins unconnected (datasheet-sanctioned)" (ORDER_README;
+#    pin_review U1 PASS "HID NC on internal pulldowns")
+SANCTIONED_FLOATS = {
+    ("J1", "A8"), ("J1", "B8"),
+    ("U3", "4"),
+    ("U1", "5"), ("U1", "6"), ("U1", "7"),
+    ("U1", "25"), ("U1", "15"), ("U1", "16"),
+}
 PIN_NET = {}
 PIN_POS = {}
 LINKS = []
@@ -188,6 +204,13 @@ def place(sym, ref, value, x, y, nets):
     )
     for pin_num, net in nets.items():
         if net is None:
+            # canon S4: sanctioned float -> EMIT a no_connect flag at the
+            # pin endpoint (same point the global label would attach to).
+            side, py, _ = pm[pin_num]
+            ncx = x - _ / 2 - 2.54 if side == "L" else x + _ / 2 + 2.54
+            NO_CONNECTS.append(
+                f'  (no_connect (at {ncx:.2f} {y - py:.2f}) (uuid "{u()}"))')
+            NC_PINS.add((ref, pin_num))
             continue
         side, py, _ = pm[pin_num]
         if side == "L":
@@ -390,7 +413,12 @@ sch.append('    (comment 1 "USB stereo recorder: CH1 mic preamp, CH2 GNSS PPS; 0
 sch.append("  (lib_symbols")
 sch.extend(SYMBOLS.values())
 sch.append("  )")
+# canon S4 gate: emitted no_connects must exactly match the sanctioned list —
+# a new None-net pin is an ACCIDENTAL float until reviewed and added here.
+assert NC_PINS == SANCTIONED_FLOATS, (
+    "unsanctioned floats" , sorted(NC_PINS ^ SANCTIONED_FLOATS))
 sch.extend(LABELS)
+sch.extend(NO_CONNECTS)
 sch.extend(BODY)
 sch.extend(LINKS)
 for title, x0, y0, x1, y1 in SECTIONS:
@@ -407,11 +435,30 @@ assert content.count("(") == content.count(")"), (
 (HERE.parent / "04_kicad").mkdir(exist_ok=True)
 (HERE.parent / "04_kicad" / "crowsync_recorder.kicad_sch").write_text(content)
 
+# Project symbol library + sym-lib-table so ERC can resolve the 'csr' lib
+# (kills the lib_symbol_issues "library not in configuration" warnings).
+# The library is generated from the SAME SYMBOLS dict the schematic embeds,
+# so embedded copies always match the library byte-for-byte.
+lib = ['(kicad_symbol_lib (version 20220914) (generator csr_generate_schematic)']
+for name, s in SYMBOLS.items():
+    lib.append(s.replace(f'(symbol "csr:{name}"', f'(symbol "{name}"', 1))
+lib.append(')')
+libtxt = "\n".join(lib) + "\n"
+assert libtxt.count("(") == libtxt.count(")")
+(HERE / "lib").mkdir(exist_ok=True)
+(HERE / "lib" / "csr.kicad_sym").write_text(libtxt)
+(HERE.parent / "04_kicad" / "sym-lib-table").write_text(
+    '(sym_lib_table\n  (version 7)\n'
+    '  (lib (name "csr")(type "KiCad")'
+    '(uri "${KIPRJMOD}/../03_src/lib/csr.kicad_sym")(options "")'
+    '(descr "generated project symbols"))\n)\n')
+
 # NEVER overwrite an existing project file — it carries DRC floors/netclasses.
 if not (HERE.parent / "04_kicad" / "crowsync_recorder.kicad_pro").exists():
     (HERE.parent / "04_kicad" / "crowsync_recorder.kicad_pro").write_text(
         '{\n  "board": { "design_settings": {} },\n'
         '  "meta": { "filename": "crowsync_recorder.kicad_pro", "version": 1 },\n'
         '  "schematic": { "legacy_lib_dir": "", "legacy_lib_list": [] }\n}\n')
-print("wrote crowsync_recorder.kicad_sch (+.kicad_pro);",
-      f"{len(BODY)} items, {len(LABELS)} net labels, parens balanced")
+print("wrote crowsync_recorder.kicad_sch (+.kicad_pro, csr.kicad_sym, sym-lib-table);",
+      f"{len(BODY)} items, {len(LABELS)} net labels,",
+      f"{len(NO_CONNECTS)} no_connects, parens balanced")

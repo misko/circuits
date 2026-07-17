@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "csr")(type "KiCad")(uri "${KIPRJMOD}/../03_src/lib/csr.kicad_sym")(options "")(descr "generated project symbols"))
+)
