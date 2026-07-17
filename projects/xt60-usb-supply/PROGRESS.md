@@ -17,8 +17,8 @@ Clean-room rerun on branch `rerun-independent`. Board: 3S LiPo XT60 in,
 | 7. generate_board.py (placement, zones, audit) | DONE | AUDIT PASS |
 | 8. Routing (KRT port signals + designed QFN corridors) | DONE | 03_src/route/routed_final.kicad_pcb |
 | 9. DRC gate 0/0/0 | DONE | tag v1.0-rc-xt60usb |
-| 10. JLC export + stock check + twin + pin review | IN PROGRESS | background agents |
-| 11. Release dir + MANIFEST | todo | |
+| 10. JLC export + stock check + twin + pin review | DONE | all PASS; verification/ in release |
+| 11. Release dir + MANIFEST | DONE | 07_releases/v1.0-2026-07-16 |
 
 ## Key decisions so far (see decision register in BRIEF.md)
 
