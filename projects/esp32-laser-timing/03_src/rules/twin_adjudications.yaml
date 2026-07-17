@@ -46,3 +46,18 @@
     distinct numbers over an identical 4-pad grid; electrically equivalent by
     the internal A-B / C-D pairing (drawing rev A0 + EasyEDA symbol,
     2026-07-17).
+- lcsc: C165948     # HRO TYPE-C-31-M-12 USB-C (J1) — model-orientation fix
+  refs: [J1]
+  status: MODEL-REG
+  model_rot_z: 180
+  why: >-
+    JLC's 3D model for this USB-C is drawn 180deg rotated vs the footprint,
+    so the twin rendered the receptacle mouth facing INBOARD (east) with the
+    body 2.1mm off courtyard (area ratio 0.69). PAD fit is perfect
+    (fit=0.00mm, 22/22 pads = JLC CAD) so copper is unaffected — this is a
+    render-only model-orientation issue. model_rot_z 180 confirmed correct
+    TWO ways (metric + eye, since the flip-hint was a red herring on a DPAK
+    earlier): MODEL-REG 2.1mm -> 0.09mm on courtyard, AND the corrected
+    render shows the mouth + shell brackets facing WEST toward the board
+    edge (courtyard front 50.01mm = board edge 50.00mm, flush). Present
+    since v1.0; corrected in v1.2 renders.
