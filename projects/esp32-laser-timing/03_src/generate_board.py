@@ -24,6 +24,7 @@ K = HERE.parent / "04_kicad"
 NETLIST = HERE.parent / "06_build" / "netlists" / "esp32_laser_timing.net"
 PCB = K / "esp32_laser_timing.kicad_pcb"
 STD = "/usr/share/kicad/footprints"
+PROJ = str(HERE / "lib" / "esp32_laser_timing.pretty")
 
 X0, Y0, W, H = 50.0, 50.0, 92.0, 62.0
 X1, Y1 = X0 + W, Y0 + H
@@ -52,9 +53,10 @@ def parse_netlist(path):
 
 def load_fp(fpid):
     lib, name = fpid.split(":")
-    fp = pcbnew.FootprintLoad(f"{STD}/{lib}.pretty", name)
+    root = PROJ if lib == "esp32_laser_timing" else f"{STD}/{lib}.pretty"
+    fp = pcbnew.FootprintLoad(root, name)
     if fp is None:
-        raise RuntimeError(f"footprint not found: {fpid}")
+        raise RuntimeError(f"footprint not found: {fpid} in {root}")
     fp.SetFPID(pcbnew.LIB_ID(lib, name))
     return fp
 
@@ -70,7 +72,7 @@ ANCHOR = {
     "R3": (78.0, 60.0, 0), "C1": (78.0, 63.0, 0),
     "SW2": (75.0, 76.0, 0), "SW1": (85.0, 76.0, 0),
     # USB-C west edge, opening W; ESD + CC pulldowns behind it
-    "J1": (54.2, 64.0, 270),
+    "J1": (54.2, 66.5, 270),
     "D1": (63.5, 57.0, 0),
     "R1": (61.5, 70.5, 0), "R2": (61.5, 73.0, 0),
     # power LED
@@ -100,9 +102,9 @@ ANCHOR = {
     "TP4": (89.0, 93.0, 0), "TP5": (84.0, 70.0, 0), "TP6": (92.0, 99.0, 0),
     # buttons east edge (opening E) + networks
     "J10": (137.8, 66.0, 90), "J11": (137.8, 78.0, 90), "J12": (137.8, 90.0, 90),
-    "R40": (128.0, 63.5, 0), "C8": (128.0, 66.0, 0), "R43": (128.0, 68.5, 0),
-    "R41": (128.0, 75.5, 0), "C9": (128.0, 78.0, 0), "R44": (128.0, 80.5, 0),
-    "R42": (128.0, 87.5, 0), "C10": (128.0, 90.0, 0), "R45": (128.0, 92.5, 0),
+    "R40": (128.0, 63.5, 0), "C8": (128.0, 66.0, 180), "R43": (128.0, 68.5, 0),
+    "R41": (128.0, 75.5, 0), "C9": (128.0, 78.0, 180), "R44": (128.0, 80.5, 0),
+    "R42": (128.0, 87.5, 0), "C10": (128.0, 90.0, 180), "R45": (128.0, 92.5, 0),
     # OLED header NE, pins W->E (GND VCC SCL SDA)
     "J2": (122.0, 54.5, 90),
     "R50": (114.0, 58.0, 0), "R51": (114.0, 60.5, 0), "C7": (114.0, 63.0, 0),
@@ -126,22 +128,22 @@ SILK = [
     # OLED header words + swapped-module warning (P8: prominent)
     ("GND", 122.0, 52.2, 0.8), ("VCC", 124.5, 52.2, 0.8),
     ("SCL", 127.0, 52.2, 0.8), ("SDA", 129.5, 52.2, 0.8),
-    ("OLED 3V3", 125.0, 57.0, 0.9),
-    ("CHECK MODULE PINOUT!", 125.0, 58.8, 0.9),
-    ("SOME OLEDS SWAP GND/VCC", 125.0, 60.5, 0.75),
+    ("OLED 3V3 HEADER", 128.5, 56.8, 0.7),
+    ("CHECK MODULE PINOUT:", 128.5, 58.3, 0.7),
+    ("SOME SWAP GND/VCC!", 128.5, 59.8, 0.7),
     # tactiles + LED + USB
     ("RESET", 75.0, 71.8, 0.9), ("BOOT", 85.0, 71.8, 0.9),
     ("PWR", 65.5, 78.2, 0.7),
     ("USB-C 5V", 55.5, 58.0, 0.8),
     # test points
-    ("COMP1", 129.5, 80.5, 0.7), ("COMP2", 129.5, 86.0, 0.7), ("COMP3", 129.5, 91.5, 0.7),
+    ("COMP1", 126.0, 82.4, 0.6), ("COMP2", 126.0, 87.9, 0.6), ("COMP3", 126.0, 93.4, 0.6),
     ("5V", 89.0, 91.3, 0.7), ("3V3", 84.0, 68.3, 0.7), ("GND", 92.0, 97.3, 0.7),
     # pin map (P7: silkscreened)
-    ("PIN MAP", 78.0, 82.5, 0.9),
-    ("COMP1-3 = IO4 IO5 IO6", 78.0, 84.2, 0.7),
-    ("LASER1-3 = IO7 IO15 IO16", 78.0, 85.7, 0.7),
-    ("BTN1-3 = IO17 IO18 IO21", 78.0, 87.2, 0.7),
-    ("SDA=IO1 SCL=IO2", 78.0, 88.7, 0.7),
+    ("PIN MAP", 105.5, 74.5, 0.9),
+    ("COMP1-3 = IO4 IO5 IO6", 105.5, 76.2, 0.7),
+    ("LASER1-3 = IO7 IO15 IO16", 105.5, 77.7, 0.7),
+    ("BTN1-3 = IO17 IO18 IO21", 105.5, 79.2, 0.7),
+    ("SDA=IO1 SCL=IO2", 105.5, 80.7, 0.7),
     ("esp32-laser-timing v1.0", 96.0, 71.0, 0.9),
 ]
 
@@ -251,6 +253,9 @@ def main():
     # ---------------------------------------------------- legalize passives
     KEEP = {r for r in ANCHOR if r[0] in "JQU" or r.startswith("SW") or r.startswith("TP")}
     def bbox(f):
+        if f.GetReference() == "U1":
+            # module bbox includes keepout graphics; use the tight body box
+            return (87.0, Y0, 105.0, 69.4)
         bb = f.GetBoundingBox(False, False)
         return (pcbnew.ToMM(bb.GetLeft()), pcbnew.ToMM(bb.GetTop()),
                 pcbnew.ToMM(bb.GetRight()), pcbnew.ToMM(bb.GetBottom()))
@@ -328,10 +333,10 @@ def main():
         return z
 
     FULL = [(X0, Y0), (X1, Y0), (X1, Y1), (X0, Y1)]
-    add_zone("GND", pcbnew.F_Cu, FULL, 0)
+    add_zone("GND", pcbnew.F_Cu, FULL, 0, full=True)  # solid: 2L necks/thermal starvation
     add_zone("GND", pcbnew.B_Cu, FULL, 0, full=False)
     # 3V3 thermal patch under the LDO tab (tab = VOUT = 3V3, part.yaml gotcha)
-    add_zone("3V3", pcbnew.F_Cu, [(66, 84), (76, 84), (76, 93), (66, 93)], 2,
+    add_zone("3V3", pcbnew.F_Cu, [(65.8, 86.2), (70.5, 86.2), (70.5, 90.8), (65.8, 90.8)], 2,
              minw=0.3, full=True)
 
     # ------------------------------------------------------------- silk text

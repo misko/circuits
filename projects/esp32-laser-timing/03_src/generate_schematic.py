@@ -125,11 +125,11 @@ SYM_FP = {
     "LED": "LED_SMD:LED_0805_2012Metric",
     "TP": "TestPoint:TestPoint_Pad_D1.5mm",
     "SW": "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A",
-    "TERM2": "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal",
+    "TERM2": "esp32_laser_timing:TerminalBlock_3.5-2P_NoSilk",  # vendored no-silk variant (make_lib.py)
     "HDR4": "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical",
     "USBC": "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12",
     "USBLC6": "Package_TO_SOT_SMD:SOT-23-6",
-    "ESP32S3": "RF_Module:ESP32-S3-WROOM-1",
+    "ESP32S3": "esp32_laser_timing:ESP32-S3-WROOM-1",  # vendored: EP micro-holes + silk stripped (make_lib.py)
     "LM339": "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm",
     "NFET": "Package_TO_SOT_SMD:SOT-23",
     "AMS1117": "Package_TO_SOT_SMD:SOT-223-3_TabPin2",
@@ -294,7 +294,7 @@ place("LM339", "U3", "LM339DT", 172, 135,
       {"5": "PD1", "4": "VTH1", "2": "COMP1",
        "7": "PD2", "6": "VTH2", "1": "COMP2",
        "9": "PD3", "8": "VTH3", "14": "COMP3",
-       "11": "GND", "10": "3V3", "13": None,
+       "11": "GND", "10": "VTH3", "13": None,   # spare comparator: +IN=GND, -IN=VTH3 (0.7V, defined; adjacent pad => routable at signal width; D13)
        "3": "5V", "12": "GND"})
 place("CAP", "C6", "100n LM339", 196, 118, {"1": "5V", "2": "GND"})
 for i in range(3):
@@ -454,6 +454,9 @@ STD = "/usr/share/kicad/footprints"
 libs = sorted({fp.split(":")[0] for fp in SYM_FP.values()} | {"MountingHole"})
 rows = ['(fp_lib_table', '  (version 7)']
 for l in libs:
+    if l == "esp32_laser_timing":
+        rows.append('  (lib (name "esp32_laser_timing")(type "KiCad")(uri "${KIPRJMOD}/../03_src/lib/esp32_laser_timing.pretty")(options "")(descr "project footprints"))')
+        continue
     rows.append(f'  (lib (name "{l}")(type "KiCad")(uri "{STD}/{l}.pretty")(options "")(descr "system"))')
 rows.append(')')
 (HERE.parent / "04_kicad" / "fp-lib-table").write_text("\n".join(rows) + "\n")

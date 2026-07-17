@@ -32,10 +32,12 @@ classes, pats = [base], []
 for name, c in cfg["classes"].items():
     d = dict(base); d["name"] = name
     d["track_width"] = max(mm(c["min_width"]), 0.25)
-    d["clearance"] = 0.15
+    d["clearance"] = 0.127
     classes.append(d)
     for net in c["nets"]:
         pats.append({"netclass": name, "pattern": net})
+for c in classes:
+    c["clearance"] = 0.127  # JLC 2L floor; router grades to 0.144 nominal
 ns["classes"] = classes
 ns["netclass_patterns"] = pats
 bds = pro.setdefault("board", {}).setdefault("design_settings", {})

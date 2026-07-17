@@ -33,9 +33,11 @@ is pinned, so we pick the best Extended cross.
 - Thresholds derive from **3.3V** (pinned, A1 fixed): the LDO output is
   tighter than USB VBUS (±1% + load reg vs 4.4–5.25V USB), so a 0.70V
   threshold from 3.3V is supply-stable even when VBUS sags.
-- 4th comparator: +IN→GND, −IN→3V3, output floating (P6; output
-  transistor saturated-off state is defined, zero pin left floating
-  at an input).
+- 4th comparator: +IN4→GND, −IN4→VTH3 (the 0.7V channel-3 threshold —
+  a defined DC level already present on the same SOIC pad column, so the
+  tie routes at signal width; 3V3 at the 0.5mm PWR floor could not reach
+  the mid-column pad), output floating per P6. Loading on VTH3: <=250nA
+  bias -> <=0.5mV threshold shift, negligible.
 
 ## Decision
 

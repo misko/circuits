@@ -172,7 +172,7 @@ in the linked ADR/doc.
 | D10 | Terminals = KF128L-3.5-2P x9 + 1x4 female socket, hand-solder THT; socket deliberately uncoded | agent (A4; A3/P2) | decisions/0005 |
 | D11 | Board 92x62mm, 2-layer, B.Cu = continuous GND pour; antenna overhangs north edge | agent (A4; P10) | ARCHITECTURE |
 | D12 | Module/LDO caps consolidated on 22uF 0805 Basic (C45783); no separate 10uF line | agent (A4) | DETAIL_DESIGN |
-| D13 | 4th comparator: +IN→GND, −IN→3V3, output floating | agent (A4; P6) | decisions/0002 |
+| D13 | 4th comparator: +IN→GND, −IN→VTH3 (0.7V defined level; routable), output floating | agent (A4; P6) | decisions/0002 |
 | D14 | MCU = ESP32-S3-WROOM-1-N8R2 C2913204 ($5.39, 19.6k stock) — cheapest in-stock R2-or-better | agent (A4; P3) | decisions/0003 |
 | D15 | ESD = UMW USBLC6-2SC6 C2687116 (clone; figure-verified on crowsync; ST C7519 alternate) | agent (A4; P2/P3) | decisions/0001 |
 
