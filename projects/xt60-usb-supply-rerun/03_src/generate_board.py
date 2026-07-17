@@ -522,12 +522,20 @@ def main():
 
     board.Save(str(BOARD))
 
-    # fp-lib-table so the project resolves the vendored lib
+    # fp-lib-table: vendored lib + every SYSTEM lib the schematic footprint
+    # fields reference (missing entries = ERC footprint_link_issues warnings).
+    _SYS_FP_LIBS = ["Capacitor_SMD", "Connector_AMASS", "Connector_USB",
+                    "Diode_SMD", "Fuse", "LED_SMD", "Package_TO_SOT_SMD",
+                    "Resistor_SMD"]
     (KICAD / "fp-lib-table").write_text(
         '(fp_lib_table\n  (version 7)\n'
         '  (lib (name "xt60_usb_supply")(type "KiCad")'
         '(uri "${KIPRJMOD}/../03_src/lib/xt60_usb_supply.pretty")'
-        '(options "")(descr "project vendored"))\n)\n')
+        '(options "")(descr "project vendored"))\n'
+        + "".join(f'  (lib (name "{n}")(type "KiCad")'
+                  f'(uri "/usr/share/kicad/footprints/{n}.pretty")'
+                  '(options "")(descr "system"))\n' for n in _SYS_FP_LIBS)
+        + ')\n')
 
     n_parts = len(board.GetFootprints())
     print(f"BOARD: wrote {BOARD.name}: {n_parts} footprints, "

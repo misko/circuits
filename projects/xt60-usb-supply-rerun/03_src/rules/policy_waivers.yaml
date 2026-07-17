@@ -9,13 +9,11 @@
     rule and the fix-claim-evidence rule were adopted AFTER v1.0.2 was
     cut (rule commit 036ae11 > release sync 41ae1a6). Next release must
     comply fully.
-- id: S-ERC
-  why: >-
-    55 errors / 94 warnings at severity-all, dominated by generator lint
-    (unresolved_variable 55, lib/footprint-link 90) — no electrical
-    findings; the netlist-parity gate and fresh-context pin review (ALL
-    PASS, 12 parts) cover connectivity independently. ERC gate + lint
-    fixes are queued as the retrofit task; waiver expires when that lands.
+# S-ERC waiver REMOVED 2026-07-17: the retrofit landed (its stated expiry).
+# Generator lint fixed at source (INTERSHEET_REFS variable, schwriter.kicad_sym
+# + sym-lib-table, system fp-lib-table entries); rebuild_all.sh now gates ERC
+# at --severity-all / 0 errors. 55 errors/94 warnings -> 0 errors/4 baselined
+# isolated_pin_label warnings (deliberate NC_* one-pin nets, reason in gate).
 - id: P-SILK-FN
   why: >-
     Board shipped with refdes silk only (47/47) and no functional words;

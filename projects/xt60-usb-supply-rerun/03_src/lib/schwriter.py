@@ -305,7 +305,7 @@ class Schematic:
                 f'(at {_n(x)} {_n(y)} {ang}) '
                 f'(effects (font (size {_FONT} {_FONT})) (justify {justify}))\n'
                 f'    (uuid "{u}")\n'
-                f'    (property "Intersheetrefs" "${{INTERSHEETREFS}}" '
+                f'    (property "Intersheetrefs" "${{INTERSHEET_REFS}}" '
                 f'(at {_n(x)} {_n(y)} 0) '
                 f'(effects (font (size {_FONT} {_FONT})) hide))\n'
                 f'  )')
@@ -353,7 +353,32 @@ class Schematic:
         text = "\n".join(out) + "\n"
         with open(path, "w") as f:
             f.write(text)
+        self._write_symbol_lib(path, sym_names, protos)
         return path
+
+    def _write_symbol_lib(self, sch_path, sym_names, protos):
+        """Standalone schwriter.kicad_sym + sym-lib-table so ERC resolves the
+        'schwriter' library (kills lib_symbol_issues). Generated from the SAME
+        prototypes the schematic embeds, so copies always match."""
+        import os
+        lib = ['(kicad_symbol_lib (version 20220914) (generator schwriter)']
+        for key in sym_names:
+            name = sym_names[key]
+            lib.append(self._emit_lib_symbol(name, protos[key])
+                       .replace(f'(symbol "schwriter:{name}"',
+                                f'(symbol "{name}"', 1))
+        lib.append(')')
+        text = "\n".join(lib) + "\n"
+        assert text.count("(") == text.count(")")
+        here = os.path.dirname(os.path.abspath(__file__))
+        with open(os.path.join(here, "schwriter.kicad_sym"), "w") as f:
+            f.write(text)
+        with open(os.path.join(os.path.dirname(os.path.abspath(str(sch_path))),
+                               "sym-lib-table"), "w") as f:
+            f.write('(sym_lib_table\n  (version 7)\n'
+                    '  (lib (name "schwriter")(type "KiCad")'
+                    '(uri "${KIPRJMOD}/../03_src/lib/schwriter.kicad_sym")'
+                    '(options "")(descr "generated project symbols"))\n)\n')
 
 
 # ---------------- verification ----------------
