@@ -1,0 +1,32 @@
+# crowsync-recorder net architecture — source of truth for netclasses + DRU
+# floors. generate_rules.py emits these into 04_kicad/crowsync_recorder.kicad_pro
+# and .kicad_dru. Defined BEFORE routing (kicad-pcb golden rule 3).
+
+fab_tier: jlc_4layer_advanced  # KRT fanout emits 0.25/0.15 vias -> JLC advanced small-via option REQUIRED
+
+classes:
+  PWR:
+    intent: >
+      Supply distribution: USB 5V entry, codec VBUS-pin feed, low-noise
+      analog rail, filtered mic bias source. Total board draw < 100 mA —
+      the 0.3 mm floor is a robustness backstop, not an ampacity need.
+    nets: [VBUS_5V, VBUS_PCM, 3V3A, MIC_BIAS_F]
+    current: 0.1A
+    min_width: 0.3mm
+    routing: F.Cu runs + In2 islands (VBUS_5V, 3V3A); short and direct
+    verify: DRC floor; every net > 0.1 A outside this class is a bug
+
+  USB:
+    intent: >
+      Full-speed (12 Mbps) differential pair, connector -> ESD -> 22R ->
+      codec. Route as a tight matched pair over unbroken GND, < 20 mm,
+      no stubs, no layer changes if avoidable.
+    nets: [DP_C, DM_C, DP, DM]
+    current: signal
+    min_width: 0.15mm
+    routing: F.Cu only, paired, over the In1 GND plane
+    verify: render review checks pairing + no plane crossings
+
+# Everything else is Default 0.15 mm (signals, analog audio nets, codec
+# decoupler nets). Analog nets (MIC*, AMP*, VCOM*, PPS*) are protected by
+# placement + pours, not width rules.
