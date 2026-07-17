@@ -244,6 +244,15 @@ never runs for exactly the parts a human solders by eye.
 3. Rotation audit: fitted angle vs jlc_rotations_db.csv; disagreements print
    suggested rows. The DB stays the empirical layer (JLC's assembly-zero is
    not always their EDA-zero) - verify in the JLC preview, don't blind-apply.
+3a2. Mount anchor is the UNWEIGHTED common-pad centroid - by measurement,
+   not principle. A wetting-force (pad-area-weighted) anchor was tried and
+   made the known PAD-GEOM case WORSE: JLC's big tab pad center sits ~0.3mm
+   off their own tab METAL, so every pad-anchoring flavor inherits pad-
+   style offsets that have nothing to do with the part. When a PAD-GEOM
+   part renders visibly off-pad, the fix is a per-part `model_dx` /
+   `model_dy` in the adjudication entry (OUR footprint-local mm, +x east
+   +y south at rot 0), chosen from pixel measurements of the metal vs our
+   pads and recorded with that evidence - never a global anchor tweak.
 3b. PAD-GEOM gate (critical, exit 1): pairwise pad-center distances between
    our footprint and JLC's must agree within 0.3mm. Pairwise distances are
    rotation/translation-INVARIANT, so unlike the best-fit residual - which

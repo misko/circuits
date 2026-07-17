@@ -257,6 +257,11 @@ def main():
 
     model_rot_override = {a["lcsc"]: float(a["model_rot_z"])
                           for a in adjudicated if a.get("model_rot_z") is not None}
+    model_xy_override = {a["lcsc"]: (float(a.get("model_dx", 0)),
+                                     float(a.get("model_dy", 0)))
+                         for a in adjudicated
+                         if a.get("model_dx") is not None
+                         or a.get("model_dy") is not None}
 
     def adjudicate(lcsc, ref, status):
         for a in adjudicated:
@@ -319,6 +324,14 @@ def main():
                                  "disagree; adjudicate against the part "
                                  "datasheet's recommended pattern"))
                 criticals.append(ref)
+            # NOTE (2026-07-16, validated by pixel measurement): the mount
+            # anchor stays the UNWEIGHTED common-pad centroid. An area-
+            # weighted (wetting-force) anchor was tried and made the known
+            # PAD-GEOM case WORSE - JLC's big tab pad center sits ~0.3mm
+            # off their own tab METAL, so pad-anchoring of any flavor
+            # inherits pad-style offsets. When a PAD-GEOM part renders
+            # off-pad, the adjudication may set model_dx/model_dy (our
+            # footprint-local mm, +x east +y south) with pixel evidence.
             _oca = centroid({k: opads_raw[k] for k in common})
             _jca = centroid({k: jraw[k] for k in common})
             opads = {k: [(x - _oca[0], y - _oca[1]) for x, y in v]
@@ -385,6 +398,11 @@ def main():
             if lcsc in model_rot_override:
                 mrotz[ref] = model_rot_override[lcsc]
         for ref, (jfp, ang, oc, jc_common, lcsc) in twin.items():
+            # adjudicated per-part mount nudge (our footprint-local mm,
+            # +x east +y south at rot 0) - evidence-backed, for PAD-GEOM
+            # parts whose land-pattern disagreement mis-seats the render
+            dx, dy = model_xy_override.get(lcsc, (0.0, 0.0))
+            oc = (oc[0] + dx, oc[1] + dy)
             fp = tb.FindFootprintByReference(ref)
             jmodels = list(jfp.Models())
             if not fp or not jmodels:
