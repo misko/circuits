@@ -306,13 +306,13 @@ for i in range(3):
     place("RES", f"R{20+i}", "1k PD load", 148, y, {"1": f"PD{n}", "2": "GND"})
 for i in range(3):
     n = i + 1
-    y = 162 + i * 8
-    place("RES", f"R{23+i}", "10k div top", 138, y, {"1": "3V3", "2": f"VTH{n}"})
-    place("RES", f"R{26+i}", "2.7k div bot", 154, y, {"1": f"VTH{n}", "2": "GND"})
-    place("RES", f"R{29+i}", "33k hyst", 172, y, {"1": f"PD{n}", "2": f"COMP{n}"})
-    place("RES", f"R{32+i}", "10k comp pu", 188, y, {"1": "3V3", "2": f"COMP{n}"})
+    y = 166 + i * 10
+    place("RES", f"R{23+i}", "10k div top", 136, y, {"1": "3V3", "2": f"VTH{n}"})
+    place("RES", f"R{26+i}", "2.7k div bot", 156, y, {"1": f"VTH{n}", "2": "GND"})
+    place("RES", f"R{29+i}", "33k hyst", 176, y, {"1": f"PD{n}", "2": f"COMP{n}"})
+    place("RES", f"R{32+i}", "10k comp pu", 196, y, {"1": "3V3", "2": f"COMP{n}"})
 for i in range(3):
-    place("TP", f"TP{i+1}", f"TP COMP{i+1}", 200, 132 + i * 8, {"1": f"COMP{i+1}"})
+    place("TP", f"TP{i+1}", f"TP COMP{i+1}", 214, 132 + i * 8, {"1": f"COMP{i+1}"})
 
 # --- section 6: buttons ---
 section("6. BUTTON CHANNELS x3: 10k pu / 100n / 1k series   [P9]", 130, 196)
@@ -321,17 +321,17 @@ for i in range(3):
     y = 208 + i * 12
     place("TERM2", f"J{10+i}", f"BUTTON {n} TERM", 132, y,
           {"1": f"BTN{n}_N", "2": "GND"})
-    place("RES", f"R{40+i}", "10k btn pu", 148, y, {"1": "3V3", "2": f"BTN{n}_N"})
-    place("CAP", f"C{8+i}", "100n btn", 163, y, {"1": f"BTN{n}_N", "2": "GND"})
-    place("RES", f"R{43+i}", "1k btn ser", 178, y, {"1": f"BTN{n}_N", "2": f"BTN{n}_G"})
+    place("RES", f"R{40+i}", "10k btn pu", 150, y, {"1": "3V3", "2": f"BTN{n}_N"})
+    place("CAP", f"C{8+i}", "100n btn", 168, y, {"1": f"BTN{n}_N", "2": "GND"})
+    place("RES", f"R{43+i}", "1k btn ser", 186, y, {"1": f"BTN{n}_N", "2": f"BTN{n}_G"})
 
 # --- section 7: OLED ---
-section("7. OLED HEADER (GND VCC SCL SDA - CHECK MODULE PINOUT)   [P8]", 20, 196)
-place("HDR4", "J2", "OLED HDR 1x4F", 30, 210,
+section("7. OLED HEADER (GND VCC SCL SDA - CHECK MODULE PINOUT)   [P8]", 20, 212)
+place("HDR4", "J2", "OLED HDR 1x4F", 30, 226,
       {"1": "GND", "2": "3V3", "3": "SCL", "4": "SDA"})
-place("RES", "R50", "4.7k SDA pu", 50, 206, {"1": "3V3", "2": "SDA"})
-place("RES", "R51", "4.7k SCL pu", 50, 214, {"1": "3V3", "2": "SCL"})
-place("CAP", "C7", "100n OLED", 68, 210, {"1": "3V3", "2": "GND"})
+place("RES", "R50", "4.7k SDA pu", 52, 222, {"1": "3V3", "2": "SDA"})
+place("RES", "R51", "4.7k SCL pu", 52, 230, {"1": "3V3", "2": "SCL"})
+place("CAP", "C7", "100n OLED", 72, 226, {"1": "3V3", "2": "GND"})
 
 # ------------------------------------------------------------------ structure links
 link("J1", "A6", "D1", "1")
