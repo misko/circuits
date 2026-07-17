@@ -26,7 +26,15 @@ $PY 03_src/audit_board.py 2>/dev/null | tail -1
 $PY "$SKILLS"/import_krt.py 06_build/route/r3.kicad_pcb \
     04_kicad/esp32_laser_timing.kicad_pcb 04_kicad/esp32_laser_timing.kicad_pcb 2>/dev/null | grep imported
 $PY 03_src/stitch_and_fill.py 2>/dev/null | tail -3
-$PY 03_src/repair_drc.py 2>/dev/null | tail -3
+# rules BEFORE repair too: repair's internal DRC needs the pro-file floors
+# (hole/connection constraints live in .kicad_pro and pcbnew saves clobber it)
+python3 03_src/generate_rules.py >/dev/null
+# repair iterates: a nudge can shift a conflict to a neighbour (max 4 passes)
+for _pass in 1 2 3 4; do
+    OUT=$($PY 03_src/repair_drc.py 2>/dev/null | tail -2)
+    echo "$OUT"
+    echo "$OUT" | grep -q "remain" || break
+done
 # audit again post-route (I8 COMP length spread needs tracks)
 $PY 03_src/audit_board.py 2>/dev/null | tail -2
 python3 03_src/generate_rules.py
