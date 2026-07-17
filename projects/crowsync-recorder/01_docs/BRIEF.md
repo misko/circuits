@@ -154,3 +154,9 @@ Escalate if: the user expected fig-36 high-performance codec supply.
 Assumed: full-scale reference point = 104 dB SPL at the capsule for both
 gain builds (crow calls at close range without clipping).
 Escalate if: field data shows habitual clipping or > 20 dB unused headroom.
+- 2026-07-17: user delegated open choices ("please make reasonable
+  decisions for these open choices and record your rationale") — the
+  flagged assumptions A5 (bus-powered codec, 3V3A scope limited to
+  preamp+bias per PCM2900C internal-regulator spec) and A6 (104 dB SPL
+  full-scale gain point) STAND as accepted decisions; rationale lives in
+  ADR-0002/ADR-0003. Escalate only if bench validation contradicts them.

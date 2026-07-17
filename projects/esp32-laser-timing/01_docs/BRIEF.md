@@ -148,6 +148,11 @@ DELIVERABLES
 - Q3: Screw terminal pitch?
   A3 (user, 2026-07-16): **All 3.5mm**, one terminal family (qty 9).
 
+- Q4 (implicit): how to handle open/future design choices?
+  A4 (user, 2026-07-17): "please make reasonable decisions for these open
+  choices and record your rationale" — FULL DELEGATION: engineer decides,
+  records D# with rationale (ADR when substantive), flags in final report.
+
 ## Decision register
 
 (D# appended as decisions are made)
