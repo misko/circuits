@@ -1,0 +1,30 @@
+# Reviewed jlc_twin findings, accepted with evidence. Each entry silences ONE
+# (lcsc, status) finding class - never add one without the verification note.
+- lcsc: C3020560    # GCT USB4105-GF-A (J1)
+  status: PAD-GEOM
+  why: >-
+    B4<->B9 ours 4.80mm vs JLC 4.50mm. OUR footprint matches the GCT
+    drawing's Recommended PCB Layout exactly ("2x 2.40" power-pad columns =
+    4.80mm across; USB4105 rev B4 sheet 1/2, committed at
+    02_parts/USB4105-GF-A/USB4105-drawing.pdf). JLC's CAD consolidates the
+    power pads 0.15mm/side inboard; the wide VBUS leads land on both
+    patterns. Same footprint+LCSC pair passed the usb-power-3s twin and
+    order flow (2026-07-16).
+- lcsc: C398355     # TLV9062IDR (U2)
+  status: PAD-GEOM
+  why: >-
+    pad1<->8 ours 4.95mm vs JLC 5.42mm. TI D0008A land-pattern example
+    (SBOS839N p60, drawing 4214825/C) shows 1.55mm pads at 5.4mm across -
+    JLC follows TI; KiCad SOIC-8_3.9x4.9mm is the IPC-7351 nominal that
+    TI note 6 explicitly allows ("IPC-7351 may have alternate designs").
+    Lead span 5.8-6.2mm lands fully on both patterns (our pads cover
+    x 1.74..3.21mm per side). Non-mirrored fit 0.24mm, winding verified
+    against SBOS839N fig 5-6.
+- lcsc: C2297       # KT-0805G LEDs (D3, D4)
+  status: NO-CAD
+  why: >-
+    Not in the EasyEDA CAD library (stock-checkable only). Footprint is the
+    KiCad LED_0805 standard; polarity is a netlist fact audited separately
+    (pad 1 = cathode = GND on both D3 and D4, per 02_parts/KT-0805G
+    part.yaml gotcha). JLC preview must be eyeballed for D3/D4 orientation
+    at order time (ORDER_README checklist).
