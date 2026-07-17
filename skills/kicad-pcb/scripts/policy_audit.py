@@ -362,13 +362,19 @@ def main():
     if reb.exists():
         deps = re.findall(r"(0[36]_\w+/[\w./-]+\.kicad_pcb)", reb.read_text())
         untracked, absent = [], []
+        def tracked(path):
+            return sh(["git", "ls-files", "--error-unmatch", str(path)],
+                      cwd=str(proj)).returncode == 0
         for d in set(deps):
+            # a 06_build dep counts as tracked when its PROMOTED 03_src/route
+            # counterpart is committed (canon M3: 06_build copy is a cache)
+            promoted = proj / "03_src" / "route" / Path(d).name
+            if promoted.exists() and tracked(promoted):
+                continue
             if not (proj / d).exists():
                 absent.append(d)
                 continue
-            r = sh(["git", "ls-files", "--error-unmatch", str(proj / d)],
-                   cwd=str(proj))
-            if r.returncode != 0:
+            if not tracked(proj / d):
                 untracked.append(d)
         if untracked:
             grade("M-REPRO", False, "",
