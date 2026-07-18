@@ -94,14 +94,14 @@ ANCHOR = {
     # power SW corner (>=25mm from ADCs)
     "J9": (X0 + 8.0, Y0 + 90.0, 0),           # barrel
     "J11": (X0 + 8.0, Y0 + 78.0, 0),          # terminal DNP
-    "F1": (X0 + 20.0, Y0 + 92.0, 0),          # entry PTC
-    "D9": (X0 + 26.0, Y0 + 96.0, 0),          # TVS
-    "Q9": (X0 + 26.0, Y0 + 88.0, 0),          # reverse FET
-    "U10": (X0 + 34.0, Y0 + 84.0, 0),         # buck 3V3
-    "L10": (X0 + 40.0, Y0 + 88.0, 0),
-    "U11": (X0 + 34.0, Y0 + 96.0, 0),         # buck 0V9
-    "L11": (X0 + 40.0, Y0 + 100.0, 0),
-    "U12": (X0 + 46.0, Y0 + 92.0, 0),         # LDO 1V8
+    "F1": (X0 + 20.0, Y0 + 90.0, 0),          # entry PTC
+    "D9": (X0 + 30.0, Y0 + 96.0, 0),          # TVS (clear of F1: I6 fix)
+    "Q9": (X0 + 30.0, Y0 + 86.0, 0),          # reverse FET
+    "U10": (X0 + 40.0, Y0 + 82.0, 0),         # buck 3V3
+    "L10": (X0 + 47.0, Y0 + 82.0, 0),
+    "U11": (X0 + 40.0, Y0 + 96.0, 0),         # buck 0V9
+    "L11": (X0 + 47.0, Y0 + 96.0, 0),
+    "U12": (X0 + 56.0, Y0 + 90.0, 0),         # LDO 1V8
     "J10": (X0 + 150.0, Y0 + 96.0, 0),        # injection header (SE)
     "J13": (X0 + 158.0, Y0 + 88.0, 0),        # debug headers
     "J14": (X0 + 168.0, Y0 + 88.0, 0),
@@ -120,10 +120,10 @@ def grp(refs, cx, cy):
 
 
 # power-entry passives
-grp(["R90", "C90", "TP9"], X0 + 20.0, Y0 + 98.0)
-grp(["R10", "R11", "C10", "C11", "C12", "R12"], X0 + 30.0, Y0 + 78.0)
-grp(["R13", "R14", "C13", "C14", "C15", "R15", "TP11"], X0 + 30.0, Y0 + 100.0)
-grp(["C16", "C17"], X0 + 50.0, Y0 + 96.0)
+grp(["R90", "C90", "TP9"], X0 + 22.0, Y0 + 98.0)
+grp(["R10", "R11", "C10", "C11", "C12", "R12"], X0 + 36.0, Y0 + 76.0)
+grp(["R13", "R14", "C13", "C14", "C15", "R15", "TP11"], X0 + 40.0, Y0 + 102.0)
+grp(["C16", "C17"], X0 + 58.0, Y0 + 96.0)
 grp(["C18", "C19", "C20", "R16"], X0 + 82.0, Y0 + 40.0)
 # XU316 decoupling ring
 xu_dec = [f"C1{i:02d}" for i in range(1, 43)] + ["FB3"]
@@ -151,15 +151,25 @@ grp(["C60", "C61", "C62", "C63", "C64", "C65", "C66", "C67",
 for n in range(1, 9):
     base = 200 + n * 10
     cx = X0 + 64.0 if n <= 4 else X0 + 112.0
-    cy = Y0 + 40.0 + ((n - 1) % 4) * 2.0
+    cy = Y0 + 46.0 + ((n - 1) % 4) * 2.0
     grp([f"C{base}", f"R{base}", f"C{base+1}", f"R{base+1}", f"C{base+2}"],
         cx + (n - 1) % 4 * 3 - 5, cy)
 grp(["C90i", "R80", "R81"], X0 + 148.0, Y0 + 90.0)
-# per-port channel small parts (below each jack)
+# per-port channel small parts (below each jack). Seed as a tidy 2-col x 4-row
+# grid inside the port column (pitch 20mm) so parts stay SPREAD (the legalizer
+# only re-packs overlaps): every part — incl. the TP2n test point — keeps
+# refdes room. y starts at 34 (below the jack-refdes lane at ~31).
 for n in range(1, 9):
     px = port_x(n)
-    grp([f"D{20+n}", f"F{10+n}", f"F{20+n}", f"R{100+n}", f"Q{n}",
-         f"C{300+n}", f"R{110+n}", f"TP{20+n}"], px, PORT_Y + 14.0)
+    # beeper AGGRESSORS (port ESD D2n, beep PTC F2n, beep FET Qn) in the
+    # NORTH rows so they stay >=12mm off the coupling caps (audit I3);
+    # audio PTC + passives + TP fill the south rows.
+    cluster = [f"D{20+n}", f"F{20+n}", f"Q{n}", f"F{10+n}",
+               f"R{100+n}", f"R{110+n}", f"C{300+n}", f"TP{20+n}"]
+    for i, r in enumerate(cluster):
+        col = px - 4.6 if i % 2 == 0 else px + 4.6
+        row = (PORT_Y + 12.0) + (i // 2) * 4.0
+        GROUPS[r] = (col, row)
 
 
 def main():
@@ -379,9 +389,25 @@ def main():
         ref.SetLayer(pcbnew.F_SilkS)
         ref.SetVisible(True)
         fx, fy = MM(fp.GetPosition().x), MM(fp.GetPosition().y)
+        # fixed small grid (position-relative) works for compact passives
+        cand_pts = [(fx + dx, fy + dy) for dx, dy in OFF]
+        # adaptive body-edge candidates (bbox-relative, ABSOLUTE) — the only
+        # way a refdes escapes a large body (RJ45 jack ~20mm, XU316 ~17mm):
+        # push the label just past each body edge, south first so the big
+        # ICs/jacks label into the clear lane, not over neighbours.
+        bb = fp.GetBoundingBox(False, False)
+        bl, bt, br_, bb_ = (MM(bb.GetLeft()), MM(bb.GetTop()),
+                            MM(bb.GetRight()), MM(bb.GetBottom()))
+        bcx, bcy = (bl + br_) / 2, (bt + bb_) / 2
+        for extra in (1.0, 1.8, 2.8, 3.8):
+            cand_pts += [(bcx, bb_ + extra), (bcx, bt - extra),
+                         (br_ + extra, bcy), (bl - extra, bcy)]
+        for extra in (1.0, 2.0):
+            cand_pts += [(br_ + extra, bb_ + extra), (bl - extra, bb_ + extra),
+                         (br_ + extra, bt - extra), (bl - extra, bt - extra)]
         ok = False
-        for dx, dy in OFF:
-            ref.SetPosition(pcbnew.VECTOR2I_MM(fx + dx, fy + dy))
+        for px, py in cand_pts:
+            ref.SetPosition(pcbnew.VECTOR2I_MM(px, py))
             cand = box(ref.GetBoundingBox())
             if not (X0 + 0.2 < cand[0] and cand[2] < X1 - 0.2
                     and Y0 + 0.2 < cand[1] and cand[3] < Y1 - 0.2):
