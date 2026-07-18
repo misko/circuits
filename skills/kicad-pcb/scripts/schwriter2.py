@@ -66,10 +66,10 @@ def snap_up(v):
 
 
 # ------------------------------------------------------------------ symbols
-def lib_symbol(name, w, h, pins, ref="U"):
+def lib_symbol(name, w, h, pins, ref="U", lib="elt"):
     """Verbatim from the verified elt generator (crowsync provenance)."""
     x0, y0 = -w / 2, -h / 2
-    out = [f'    (symbol "elt:{name}" (in_bom yes) (on_board yes)']
+    out = [f'    (symbol "{lib}:{name}" (in_bom yes) (on_board yes)']
     out.append(f'      (property "Reference" "{ref}" (at 0 {h/2+1.27:.2f} 0) (effects (font (size 1.27 1.27))))')
     out.append(f'      (property "Value" "{name}" (at 0 {-h/2-1.27:.2f} 0) (effects (font (size 1.27 1.27))))')
     out.append(f'      (symbol "{name}_0_1"')
@@ -179,8 +179,10 @@ class Schematic:
 
     def __init__(self, project, title, paper="A2", comment=None,
                  rev=None, date=None, small_syms=None,
-                 sheet_margin=14.0, sheet_reserved_bottom=24.0):
+                 sheet_margin=14.0, sheet_reserved_bottom=24.0,
+                 libname="elt"):
         self.project, self.title, self.paper = project, title, paper
+        self.libname = libname  # symbol-library nickname (sym-lib-table must match)
         self.comment = comment
         self.rev = rev or "dev"
         self.date = date or datetime.date.today().isoformat()
@@ -197,7 +199,7 @@ class Schematic:
 
     # -- declaration API ------------------------------------------------
     def defsym(self, name, w, h, pins, ref="U"):
-        s, pm = lib_symbol(name, w, h, pins, ref)
+        s, pm = lib_symbol(name, w, h, pins, ref, lib=self.libname)
         self.symbols[name] = s
         self.pinmaps[name] = (pm, w, h)
 
@@ -457,7 +459,7 @@ class Schematic:
         fp = self.ref_fp.get(c.ref, self.sym_fp.get(c.sym, ""))
         in_bom = "no" if c.sym in self.no_bom_syms else "yes"
         body = [
-            f'  (symbol (lib_id "elt:{c.sym}") (at {x:.2f} {y:.2f} 0) (unit 1)'
+            f'  (symbol (lib_id "{self.libname}:{c.sym}") (at {x:.2f} {y:.2f} 0) (unit 1)'
             f' (in_bom {in_bom}) (on_board yes) (dnp no) (uuid "{_u()}")\n'
             + (f'    (property "Reference" "{c.ref}" (at {x - w/2 - 0.6:.2f} {ry:.2f} 0)'
                f' (effects (font (size 1.0 1.0)) (justify right)))\n' if c.small else
@@ -542,7 +544,7 @@ class Schematic:
     def write_symbol_lib(self, path):
         lib = ['(kicad_symbol_lib (version 20231120) (generator schwriter2)']
         for name, s in self.symbols.items():
-            lib.append(s.replace(f'(symbol "elt:{name}"', f'(symbol "{name}"', 1))
+            lib.append(s.replace(f'(symbol "{self.libname}:{name}"', f'(symbol "{name}"', 1))
         lib.append(')')
         path.write_text("\n".join(lib) + "\n")
 
