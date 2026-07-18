@@ -79,3 +79,33 @@ body2 = head + "\n  ".join(kept) + tail
 body2 = body2.replace('"ESP32-S3-WROOM-1"', '"ESP32-S3-WROOM-1"', 1)
 (LIB / "ESP32-S3-WROOM-1.kicad_mod").write_text(body2)
 print(f"vendored ESP32-S3-WROOM-1 ({k_hole} EP micro-holes + {k_silk} silk items stripped)")
+
+# ---- DC-005 barrel jack (02_parts/DC-005C-20A: stock KiCad hole positions
+# mismatch the Hroparts drawing — pin2 6.65 vs 6.0mm, pin3 axial 2.55 vs 3.0).
+# Frame: pin1 (tip contact) at origin, PLUG OPENING toward +X. Drawing
+# (P.C.B LAYOUT, Rev A): pin2 6.65mm toward opening, pin3 2.55mm toward
+# opening + 4.70mm lateral; slots 1.5x0.8mm. Body 14.2x9.0mm, front face
+# 13.55mm from pin1 (flush with the board edge at our placement).
+def dc005():
+    def pad(num, x, y):
+        return (f'  (pad "{num}" thru_hole oval (at {x} {y}) (size 2.6 1.9) '
+                f'(drill oval 1.5 0.8) (layers "*.Cu" "*.Mask") (remove_unused_layers no))')
+    lines = ['(footprint "DCJack_DC005_Horizontal" (version 20221018) (generator sk_make_lib)',
+             '  (layer "F.Cu")',
+             '  (descr "DC-005 barrel jack 2.0mm pin, per Hroparts DC-005C Rev A drawing; pin1=tip rear, opening +X")',
+             '  (attr through_hole)',
+             '  (property "Reference" "REF**" (at 6.5 -6.2 0) (layer "F.SilkS") (effects (font (size 1 1) (thickness 0.15))))',
+             '  (property "Value" "DCJack_DC005" (at 6.5 6.2 0) (layer "F.Fab") (effects (font (size 1 1) (thickness 0.15))))',
+             pad("1", 0, 0), pad("2", 6.65, 0), pad("3", 2.55, 4.70)]
+    # body outline (F.Fab) + silk (clipped away from pads) + courtyard
+    x0, x1, ylo, yhi = -0.65, 13.55, -4.5, 4.5
+    lines.append(f'  (fp_rect (start {x0} {ylo}) (end {x1} {yhi}) (stroke (width 0.1) (type default)) (fill none) (layer "F.Fab"))')
+    for seg in [((x0, ylo), (x1, ylo)), ((x0, yhi), (x1, yhi)), ((x0, ylo), (x0, yhi))]:
+        (sx, sy), (ex, ey) = seg
+        lines.append(f'  (fp_line (start {sx} {sy-0.11 if sy<0 else sy+0.11}) (end {ex} {ey-0.11 if ey<0 else ey+0.11}) (stroke (width 0.12) (type solid)) (layer "F.SilkS"))')
+    lines.append(f'  (fp_poly (pts (xy {x0-0.25} {ylo-0.25}) (xy {x1+0.25} {ylo-0.25}) (xy {x1+0.25} {yhi+0.25}) (xy {x0-0.25} {yhi+0.25})) (stroke (width 0.05) (type default)) (fill none) (layer "F.CrtYd"))')
+    lines.append(')')
+    (LIB / "DCJack_DC005_Horizontal.kicad_mod").write_text("\n".join(lines) + "\n")
+    print("vendored DCJack_DC005_Horizontal (pads per Hroparts drawing)")
+
+dc005()
