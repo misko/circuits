@@ -1,0 +1,55 @@
+LCSC,Ref,Status,Detail
+C17477,R12,OK,fit=0.09mm jlc_offset=0 db=0.0
+C17477,R13,OK,fit=0.09mm jlc_offset=0 db=0.0
+C17477,R14,OK,fit=0.09mm jlc_offset=0 db=0.0
+C17408,R1,OK,fit=0.09mm jlc_offset=0 db=0.0
+C149504,R3,OK,fit=0.09mm jlc_offset=0 db=0.0
+C49678,C2,OK,fit=0.05mm jlc_offset=0 db=0.0
+C49678,C5,OK,fit=0.05mm jlc_offset=0 db=0.0
+C49678,C6,OK,fit=0.05mm jlc_offset=0 db=0.0
+C2887276,C1,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C2887276,C1,OK,fit=0.13mm jlc_offset=0 db=0.0
+C17414,R4,OK,fit=0.09mm jlc_offset=0 db=0.0
+C17414,R5,OK,fit=0.09mm jlc_offset=0 db=0.0
+C17414,R6,OK,fit=0.09mm jlc_offset=0 db=0.0
+C15850,C4,OK,fit=0.05mm jlc_offset=0 db=0.0
+C15850,C7,OK,fit=0.05mm jlc_offset=0 db=0.0
+C28323,C3,OK,fit=0.05mm jlc_offset=0 db=0.0
+C4328,R7,OK,fit=0.09mm jlc_offset=0 db=0.0
+C4328,R8,OK,fit=0.09mm jlc_offset=0 db=0.0
+C4328,R9,OK,fit=0.09mm jlc_offset=0 db=0.0
+C17614,R2,OK,fit=0.09mm jlc_offset=0 db=0.0
+C17802,R10,OK,fit=0.09mm jlc_offset=0 db=0.0
+C17802,R11,OK,fit=0.09mm jlc_offset=0 db=0.0
+C22359707,BZ1,OK,fit=0.14mm jlc_offset=0 db=0.0
+C192421,U1,PAD-GEOM,pad 1<->8 ours 4.95mm vs JLC 5.42mm (d0.47mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C192421,U1,ROT-DB-SUGGEST,"fit=0.24mm jlc_offset=90 db=270.0 -> add: SOIC-8_3.9x4.9mm_P1.27mm,90"
+C2480,D2,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C2480,D2,OK,fit=0.04mm jlc_offset=0 db=0.0
+C1972959,D1,OK,fit=0.02mm jlc_offset=0 db=0.0
+C5342501,J1,NO-CAD,['[ERROR] Failed to fetch data from EasyEDA API for part C5342501']
+C17477,R12,MODEL-REG-OK,body on courtyard (0.00mm)
+C17477,R13,MODEL-REG-OK,body on courtyard (0.00mm)
+C17477,R14,MODEL-REG-OK,body on courtyard (0.00mm)
+C17408,R1,MODEL-REG-OK,body on courtyard (0.00mm)
+C149504,R3,MODEL-REG-OK,body on courtyard (0.00mm)
+C49678,C2,MODEL-REG-OK,body on courtyard (0.00mm)
+C49678,C5,MODEL-REG-OK,body on courtyard (0.00mm)
+C49678,C6,MODEL-REG-OK,body on courtyard (0.00mm)
+C2887276,C1,MODEL-REG-OK,body on courtyard (0.00mm)
+C17414,R4,MODEL-REG-OK,body on courtyard (0.00mm)
+C17414,R5,MODEL-REG-OK,body on courtyard (0.00mm)
+C17414,R6,MODEL-REG-OK,body on courtyard (0.00mm)
+C15850,C4,MODEL-REG-OK,body on courtyard (0.00mm)
+C15850,C7,MODEL-REG-OK,body on courtyard (0.00mm)
+C28323,C3,MODEL-REG-OK,body on courtyard (0.00mm)
+C4328,R7,MODEL-REG-OK,body on courtyard (0.00mm)
+C4328,R8,MODEL-REG-OK,body on courtyard (0.00mm)
+C4328,R9,MODEL-REG-OK,body on courtyard (0.00mm)
+C17614,R2,MODEL-REG-OK,body on courtyard (0.00mm)
+C17802,R10,MODEL-REG-OK,body on courtyard (0.00mm)
+C17802,R11,MODEL-REG-OK,body on courtyard (0.00mm)
+C22359707,BZ1,MODEL-REG-OK,body on courtyard (0.00mm)
+C192421,U1,MODEL-REG-OK,body on courtyard (0.00mm)
+C2480,D2,MODEL-REG-OK,body on courtyard (0.00mm)
+C1972959,D1,MODEL-REG-OK,body on courtyard (0.00mm)

@@ -110,8 +110,8 @@ SILK = [
     ("5 GND", 62.9, 74.0, 0.7), ("6 BEEP RET", 64.4, 77.5, 0.7),
     ("7 5V", 62.4, 81.0, 0.7), ("8 GND", 62.9, 84.5, 0.7),
     # beeper block
-    ("BEEPER", 72.0, 78.5, 0.7), ("FLYBACK", 81.0, 78.5, 0.6),
-    ("TVS DNP", 81.0, 88.4, 0.6),
+    ("BEEPER", 72.0, 78.5, 0.7), ("FLYBACK", 84.0, 78.4, 0.6),
+    ("TVS DNP", 80.8, 90.2, 0.6),
     # mic
     ("MIC PADS", 139.5, 66.2, 0.7), ("MIC+", 135.8, 70.5, 0.6),
     ("MIC-", 135.8, 73.04, 0.6),
@@ -365,12 +365,43 @@ def main():
         for g in fp.GraphicalItems():
             if g.IsOnLayer(pcbnew.F_SilkS):
                 silk_obst.append(box(g.GetBoundingBox(), CLR * 0.5))
+        # part BODY is an obstacle too: silk under a body is invisible on
+        # the assembled board (U1 refdes shipped under the SOIC in review)
+        if not fp.GetReference().startswith("H"):
+            pad_obst.append(box(fp.GetBoundingBox(False, False), 0.05))
     for t in board.GetDrawings():
         if t.GetClass() == "PCB_TEXT" and t.IsOnLayer(pcbnew.F_SilkS):
             silk_obst.append(box(t.GetBoundingBox(), CLR * 0.5))
-    OFF = [(0, o * s) for o in (1.0, 1.6, 2.2, 2.9, 3.6) for s in (-1, 1)] + \
-          [(o * s, 0) for o in (1.3, 2.0, 2.8, 3.6) for s in (-1, 1)] + \
-          [(dx, dy) for d in (1.4, 2.2, 3.0) for dx in (-d, d) for dy in (-d, d)]
+    # cathode marks: "K" beside pad 1 of D2/D3 (flyback/TVS polarity is
+    # load-bearing — ADR-0002; the D_SMA bar alone graded too subtle)
+    for dref in ("D2", "D3"):
+        dfp = board.FindFootprintByReference(dref)
+        p1 = next(p for p in dfp.Pads() if p.GetNumber() == "1")
+        px, py = MM(p1.GetPosition().x), MM(p1.GetPosition().y)
+        KOFF = [(0, -2.4), (0, 2.4), (0, -2.1), (0, 2.1), (-1.6, -1.7), (-1.6, 1.7), (-2.4, 0),
+                (0, -2.6), (0, 2.6), (-1.2, -2.4), (-1.2, 2.4), (1.2, -2.4),
+                (1.2, 2.4), (0, -3.2), (0, 3.2), (-2.0, -2.0), (-2.0, 2.0)]
+        for dx, dy in KOFF:
+            kt = pcbnew.PCB_TEXT(board)
+            kt.SetText("K")
+            kt.SetLayer(pcbnew.F_SilkS)
+            kt.SetPosition(pcbnew.VECTOR2I_MM(px + dx, py + dy))
+            kt.SetTextSize(pcbnew.VECTOR2I_MM(0.6, 0.6))
+            kt.SetTextThickness(pcbnew.FromMM(0.13))
+            cand = box(kt.GetBoundingBox())
+            if (X0 + 0.2 < cand[0] and cand[2] < X1 - 0.2
+                    and Y0 + 0.2 < cand[1] and cand[3] < Y1 - 0.2
+                    and not any(hit(cand, o) for o in pad_obst)
+                    and not any(hit(cand, o) for o in silk_obst)):
+                board.Add(kt)
+                silk_obst.append(cand)
+                break
+        else:
+            raise RuntimeError(f"no clear spot for {dref} cathode K mark")
+
+    OFF = [(0, o * s) for o in (1.0, 1.6, 2.2, 2.9, 3.6, 4.4, 5.2, 6.0) for s in (-1, 1)] + \
+          [(o * s, 0) for o in (1.3, 2.0, 2.8, 3.6, 4.5, 5.4, 6.2) for s in (-1, 1)] + \
+          [(dx, dy) for d in (1.4, 2.2, 3.0, 4.0, 5.0) for dx in (-d, d) for dy in (-d, d)]
     waived = []
 
     def prio(fp):

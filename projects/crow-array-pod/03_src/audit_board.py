@@ -123,6 +123,28 @@ for f in b.GetFootprints():
             fails.append(f"I10 refdes not on silk: {r} "
                          f"(layer={ref.GetLayerName()}, vis={ref.IsVisible()})")
 
+# I10b refdes legibility: a visible silk refdes must not sit under any
+# part BODY (layer+visibility alone passed a refdes printed under U1)
+bodies = {}
+for f in b.GetFootprints():
+    r = f.GetReference()
+    if r.startswith("H"):
+        continue
+    bb = f.GetBoundingBox(False, False)
+    bodies[r] = (MM(bb.GetLeft()), MM(bb.GetTop()), MM(bb.GetRight()), MM(bb.GetBottom()))
+for f in b.GetFootprints():
+    r = f.GetReference()
+    if r.startswith("H"):
+        continue
+    ref = f.Reference()
+    if ref.GetLayer() not in SILK_LAYERS or not ref.IsVisible():
+        continue
+    tb = ref.GetBoundingBox()
+    t = (MM(tb.GetLeft()), MM(tb.GetTop()), MM(tb.GetRight()), MM(tb.GetBottom()))
+    for r2, bx in bodies.items():
+        if not (t[2] <= bx[0] or bx[2] <= t[0] or t[3] <= bx[1] or bx[3] <= t[1]):
+            fails.append(f"I10b refdes {r} printed under body of {r2}")
+
 print(f"pads audited across {len(names)} footprints")
 for w in warns[:8]:
     print("WARN:", w)

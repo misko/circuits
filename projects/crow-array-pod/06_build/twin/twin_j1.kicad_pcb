@@ -4979,6 +4979,50 @@
 				(xyz 0 0 0)
 			)
 		)
+		(model "/home/mouse9911/gits/circuits/projects/crow-array-pod/06_build/twin/j1_model/CONN-TH_P3.50_KF128L-3.5-2P.wrl"
+			(offset
+				(xyz 1.75 0 0)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz 0 0 0)
+			)
+		)
+		(model "/home/mouse9911/gits/circuits/projects/crow-array-pod/06_build/twin/j1_model/CONN-TH_P3.50_KF128L-3.5-2P.wrl"
+			(offset
+				(xyz 8.75 0 0)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz 0 0 0)
+			)
+		)
+		(model "/home/mouse9911/gits/circuits/projects/crow-array-pod/06_build/twin/j1_model/CONN-TH_P3.50_KF128L-3.5-2P.wrl"
+			(offset
+				(xyz 15.75 0 0)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz 0 0 0)
+			)
+		)
+		(model "/home/mouse9911/gits/circuits/projects/crow-array-pod/06_build/twin/j1_model/CONN-TH_P3.50_KF128L-3.5-2P.wrl"
+			(offset
+				(xyz 22.75 0 0)
+			)
+			(scale
+				(xyz 1 1 1)
+			)
+			(rotate
+				(xyz 0 0 0)
+			)
+		)
 	)
 	(footprint "Resistor_SMD:R_0805_2012Metric"
 		(layer "F.Cu")

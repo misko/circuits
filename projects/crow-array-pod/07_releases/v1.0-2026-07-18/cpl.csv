@@ -1,0 +1,28 @@
+Designator,Val,Package,Mid X,Mid Y,Layer,Rotation
+BZ1,CMT-8504-100-SMT-TR,CMT-8504,72.0,-84.0,top,0.0
+C1,100u 5VF,CP_Elec_6.3x5.4,91.6,-83.6,top,0.0
+C2,100n 5VF,C_0805_2012Metric,98.5,-88.5,top,0.0
+C3,1u coupling,C_0805_2012Metric,104.0,-70.5,top,0.0
+C4,10u VMID,C_0805_2012Metric,114.0,-87.5,top,0.0
+C5,100n VMID,C_0805_2012Metric,120.5,-87.5,top,0.0
+C6,100n U1,C_0805_2012Metric,107.5,-61.5,top,0.0
+C7,10u 5V bulk,C_0805_2012Metric,96.0,-59.5,top,0.0
+D1,TPD2E2U06DRLR,SOT-553,69.5,-61.0,top,0.0
+D2,SS14 flyback,D_SMA,81.0,-81.0,top,0.0
+J1,KF128L-3.5-8P,TerminalBlock_3.5-8P_NoSilk,57.5,-60.0,top,270.0
+J2,MIC PADS (AOM-5024L),PinHeader_1x02_P2.54mm_Vertical,139.5,-70.5,top,0.0
+R1,100R 5VF,R_0805_2012Metric,86.0,-88.5,top,0.0
+R10,68R iso +,R_0805_2012Metric,88.0,-60.5,top,0.0
+R11,68R iso -,R_0805_2012Metric,88.0,-64.0,top,0.0
+R12,0R beep series,R_0805_2012Metric,63.5,-79.0,top,0.0
+R13,0R choke byp +,R_0805_2012Metric,77.5,-57.5,top,0.0
+R14,0R choke byp -,R_0805_2012Metric,77.5,-67.5,top,0.0
+R2,3.9k mic bias,R_0805_2012Metric,124.0,-66.0,top,0.0
+R3,100k bias,R_0805_2012Metric,104.0,-74.0,top,0.0
+R4,10k div hi,R_0805_2012Metric,114.0,-84.0,top,0.0
+R5,10k div lo,R_0805_2012Metric,120.5,-84.0,top,0.0
+R6,10k fb A,R_0805_2012Metric,98.5,-77.5,top,0.0
+R7,20k gain A,R_0805_2012Metric,105.0,-77.5,top,0.0
+R8,20k inv in,R_0805_2012Metric,98.5,-81.0,top,0.0
+R9,20k inv fb,R_0805_2012Metric,105.0,-81.0,top,0.0
+U1,OPA1678IDR,SOIC-8_3.9x4.9mm_P1.27mm,102.0,-66.0,top,270.0
