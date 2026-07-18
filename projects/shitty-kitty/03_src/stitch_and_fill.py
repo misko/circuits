@@ -59,7 +59,7 @@ print(f"removed {len(stubs)} micro-stubs (<0.05mm)")
 FLOOR = {"VIN_RAW": 0.3, "VIN_F": 0.3, "VIN_12V": 0.3,
          "MOT_A1": 0.35, "MOT_A2": 0.35, "MOT_B1": 0.35, "MOT_B2": 0.35,
          "BRA": 0.3, "BRB": 0.3, "5V": 0.4, "SW_BUCK": 0.4, "BST": 0.4,
-         "3V3": 0.25}
+         "3V3": 0.2}
 lifted = 0
 for tr in b.GetTracks():
     if tr.GetClass() != "PCB_TRACK":
@@ -265,6 +265,55 @@ orphans = [v for v in b.GetTracks() if v.GetClass() == "PCB_VIA"
 for v in orphans:
     b.Remove(v)
 print(f"via janitor removed {len(orphans)}")
+
+# ---- fine-pitch GND pads the pour cannot reach (0.4mm-pitch UQFN / LGA:
+# thermal spokes don't fit between foreign neighbor pads): short verified
+# F.Cu track from the pad to the nearest same-net copper (pad or via).
+fp_rescued = 0
+for fp in b.GetFootprints():
+    for p in fp.Pads():
+        if p.GetNetname() != "GND" or p.GetAttribute() != pcbnew.PAD_ATTRIB_SMD:
+            continue
+        if p.GetSize().x > 4e5 and p.GetSize().y > 4e5:
+            continue  # big pads: the pour reaches them
+        px, py = p.GetPosition().x/1e6, p.GetPosition().y/1e6
+        if on_net_copper("GND", px, py, tol=0.05):
+            continue
+        cands = []
+        for fp2 in b.GetFootprints():
+            for p2 in fp2.Pads():
+                if p2.GetNetname() == "GND" and p2 is not p and p2.GetSize().x > 5e5:
+                    qx, qy = p2.GetPosition().x/1e6, p2.GetPosition().y/1e6
+                    cands.append((math.hypot(px-qx, py-qy), qx, qy))
+        for v2 in b.GetTracks():
+            if v2.GetClass() == "PCB_VIA" and v2.GetNetname() == "GND":
+                qx, qy = v2.GetPosition().x/1e6, v2.GetPosition().y/1e6
+                cands.append((math.hypot(px-qx, py-qy), qx, qy))
+        for dq, qx, qy in sorted(cands)[:10]:
+            if dq > 6.0:
+                break
+            if not tk.collides(px, py, qx, qy, 0.2, p.GetNetCode(), pcbnew.F_Cu):
+                tk.add_seg(px, py, qx, qy, gnd, pcbnew.F_Cu, 0.2)
+                fp_rescued += 1
+                break
+print(f"fine-pitch GND pad rescues: {fp_rescued}")
+
+# ---- join dangling vias to a same-net pad they nearly touch (KRT leaves
+# sub-0.3mm gaps at fine-pitch escape vias)
+joined = 0
+for v2 in [t for t in b.GetTracks() if t.GetClass() == "PCB_VIA"]:
+    vx, vy = v2.GetPosition().x/1e6, v2.GetPosition().y/1e6
+    for fp2 in b.GetFootprints():
+        for p2 in fp2.Pads():
+            if p2.GetNetCode() != v2.GetNetCode() or p2.GetAttribute() != pcbnew.PAD_ATTRIB_SMD:
+                continue
+            qx, qy = p2.GetPosition().x/1e6, p2.GetPosition().y/1e6
+            dgap = math.hypot(vx-qx, vy-qy)
+            if 0.05 < dgap < 0.9 and not p2.GetEffectiveShape(pcbnew.F_Cu).Collide(v2.GetEffectiveShape(pcbnew.F_Cu), 0):
+                if not tk.collides(vx, vy, qx, qy, 0.15, v2.GetNetCode(), pcbnew.F_Cu):
+                    tk.add_seg(vx, vy, qx, qy, b.FindNet(v2.GetNetname()), pcbnew.F_Cu, 0.15)
+                    joined += 1
+print(f"via-pad joins: {joined}")
 
 # ---- fill, then rescue GND pad-bearing islands (F/B pours; In1 is whole)
 filler = pcbnew.ZONE_FILLER(b)

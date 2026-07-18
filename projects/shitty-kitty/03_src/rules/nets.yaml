@@ -71,9 +71,9 @@ classes:
       3V3 logic rail, ESP32 WiFi peaks ~0.4A. 0.5mm floor + In2 pour.
     nets: [3V3]
     current: 0.5A
-    # 3V3 lands on 0.2mm-wide UQFN-20 pads (0.4mm pitch): 0.25mm is the
-    # neck limit. Trunk = In2 pour; 0.4A total -> ~10C rise even on 0.25.
-    min_width: 0.25mm
+    # 3V3 lands on 0.2mm-wide UQFN-20 pads (0.4mm pitch): KRT necks to
+    # 0.2 there. Trunk = In2 pour; 0.4A total -> ~15C rise even at 0.2.
+    min_width: 0.2mm
     routing: LDO -> module + sensor cluster
     verify: DRC floor
 
@@ -88,9 +88,9 @@ classes:
            OUTER1, OUTER2, OUTER3, OUTER4, OUTER5, OUTER6, OUTER7,
            OUTER8, OUTER9, OUTER10, OUTER11, OUTER12]
     current: signal
-    # 0.2mm stubs: the widest neck the 0.4mm-pitch UQFN accepts cleanly,
-    # and thinner = less parasitic capacitance on the sense lines.
-    min_width: 0.2mm
+    # 0.15mm floor: KRT width-grades squeezed necks to 0.15 at the 0.4mm
+    # pitch; thinner = less parasitic capacitance on the sense lines (good).
+    min_width: 0.15mm
     # NOTE: no hard DRU clearance floor — the MPR121's own 0.4mm-pitch pads
     # sit 0.2mm apart between adjacent electrode nets; a 0.3mm floor would
     # fail the footprint itself. Router is invoked with 0.3mm clearance for

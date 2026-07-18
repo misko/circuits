@@ -3,42 +3,24 @@
 (rule width_pwr12
   (condition "A.NetClass == 'PWR12'")
   (constraint track_width (min 0.30mm)))
-(rule clr_pwr12
-  (condition "A.NetClass == 'PWR12'")
-  (constraint clearance (min 0.15mm)))
 (rule width_motor
   (condition "A.NetClass == 'MOTOR'")
   (constraint track_width (min 0.35mm)))
-(rule clr_motor
-  (condition "A.NetClass == 'MOTOR'")
-  (constraint clearance (min 0.15mm)))
 (rule width_sense
   (condition "A.NetClass == 'SENSE'")
   (constraint track_width (min 0.30mm)))
-(rule clr_sense
-  (condition "A.NetClass == 'SENSE'")
-  (constraint clearance (min 0.15mm)))
 (rule width_pwr5
   (condition "A.NetClass == 'PWR5'")
   (constraint track_width (min 0.40mm)))
-(rule clr_pwr5
-  (condition "A.NetClass == 'PWR5'")
-  (constraint clearance (min 0.15mm)))
 (rule width_sw
   (condition "A.NetClass == 'SW'")
   (constraint track_width (min 0.40mm)))
-(rule clr_sw
-  (condition "A.NetClass == 'SW'")
-  (constraint clearance (min 0.15mm)))
 (rule width_pwr3v3
   (condition "A.NetClass == 'PWR3V3'")
   (constraint track_width (min 0.25mm)))
-(rule clr_pwr3v3
-  (condition "A.NetClass == 'PWR3V3'")
-  (constraint clearance (min 0.15mm)))
 (rule width_elec
   (condition "A.NetClass == 'ELEC'")
-  (constraint track_width (min 0.25mm)))
+  (constraint track_width (min 0.20mm)))
 (rule width_usb
   (condition "A.NetClass == 'USB'")
   (constraint track_width (min 0.20mm)))

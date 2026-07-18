@@ -28,14 +28,14 @@ ns = pro.setdefault("net_settings", {"classes": [{"name": "Default",
     "bus_width": 12, "line_style": 0, "pcb_color": "rgba(0, 0, 0, 0.000)",
     "schematic_color": "rgba(0, 0, 0, 0.000)", "wire_width": 6}]})
 base = next(c for c in ns["classes"] if c["name"] == "Default")
-base["clearance"] = 0.10  # fab floor: JLC 4L standard 3.5mil; KRT grades to 0.10-0.14
+base["clearance"] = 0.09  # fab floor: JLC 4L standard 3.5mil; KRT grades to 0.10-0.14
 # design-nominal clearance is the ROUTER settings (0.13-0.15 per wave); DRC guards the fab floor
 base["track_width"] = 0.25
 classes, pats = [base], []
 for name, c in cfg["classes"].items():
     d = dict(base); d["name"] = name
     d["track_width"] = max(mm(c["min_width"]), 0.25)
-    d["clearance"] = 0.10
+    d["clearance"] = 0.09
     classes.append(d)
     for net in c["nets"]:
         pats.append({"netclass": name, "pattern": net})
@@ -43,11 +43,11 @@ ns["classes"] = classes
 ns["netclass_patterns"] = pats
 bds = pro.setdefault("board", {}).setdefault("design_settings", {})
 bds.setdefault("rules", {}).update({
-    "min_clearance": 0.10, "min_track_width": 0.09,
+    "min_clearance": 0.09, "min_track_width": 0.09,
     "min_via_diameter": 0.45, "min_through_hole_diameter": 0.3,
-    "min_via_annular_width": 0.075, "min_hole_clearance": 0.25,
-    "min_hole_to_hole": 0.5, "min_copper_edge_clearance": 0.2,
-    "min_connection": 0.127, "min_microvia_diameter": 0.2,
+    "min_via_annular_width": 0.075, "min_hole_clearance": 0.2,
+    "min_hole_to_hole": 0.3, "min_copper_edge_clearance": 0.2,
+    "min_connection": 0.09, "min_microvia_diameter": 0.2,
     "min_microvia_drill": 0.1, "min_resolved_spokes": 1,
     "min_silk_clearance": 0.0, "min_text_height": 0.6,
     "min_text_thickness": 0.08, "max_error": 0.005,

@@ -24,7 +24,7 @@ run() {  # run OUT IN WIDTH CLEAR ITER nets...
   local out=$1 inp=$2 w=$3 c=$4 it=$5; shift 5
   $PY "$KRT"/route.py "$R"/$inp --output "$R"/$out \
     --layers F.Cu B.Cu --grid-step 0.05 --clearance $c --track-width $w \
-    --via-size 0.6 --via-drill 0.3 --fab-tier standard --no-stub-layer-swap \
+    --via-size 0.6 --via-drill 0.3 --fab-tier standard --fab-overrides 03_src/rules/fab_overrides.txt --no-stub-layer-swap \
     --keepout --keepout-layer User.2 --max-iterations $it --nets "$@"
 }
 

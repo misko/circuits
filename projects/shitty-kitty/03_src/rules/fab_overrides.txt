@@ -1,0 +1,9 @@
+# KRT fab-floor pin for shitty-kitty (ADR-0003: JLC 4-layer STANDARD tier,
+# no advanced small-via option). Supplying this file DISABLES KRT's
+# standard->advanced auto-escalation: escapes must work at these floors
+# or fail loudly (we then fix placement, not the tier).
+via_diameter = 0.45
+via_drill = 0.30
+clearance = 0.09
+track_width = 0.15
+hole_to_hole = 0.30
