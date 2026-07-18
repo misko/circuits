@@ -20,8 +20,15 @@ pins:
   S1: 'SHIELD'
 limits: '5A/contact-pair rated; 6A across 4 VBUS pins ok'
 gotchas:
-  - 'THIS project is a SINK (UFP): Rd 5k1 pulldowns on CC1+CC2 (usb-power-3s used it as source)'
-verified: 'pad names from SPF footprint use (2026-07); drawing PDF fetched+committed 2026-07-16'
+  - 'THIS project is a SINK (UFP): Rd 5.1k pulldown on CC1 AND CC2 (one each, separate resistors — do not common them)'
+  - 'SELF-POWERED UAC2 device: system power comes from the external 5V barrel/screw-terminal input, NOT from VBUS. VBUS is used ONLY for host-presence detect via a resistor divider to an XU316 GPIO — do not feed VBUS into the 5V rail, and size the divider so the GPIO stays safe at VBUS = 5.5V'
+  - 'Self-powered devices must not back-drive VBUS; with VBUS only on a high-impedance divider this is satisfied by construction'
+  - 'Brief specifies MPN USB4105-GF-A-060: the -060 suffix is a tape-and-reel packaging code for the SAME connector; electrically/mechanically identical to USB4105-GF-A'
+verified: 'pad names from SPF footprint use (2026-07); drawing PDF fetched+committed 2026-07-16 (folder copied from crowsync-recorder 2026-07-17)'
 sourcing:
   lcsc: C3020560
-  note: JLC matcher needs full MPN or manual confirm
+  alternates: [C3025063]
+  note: >-
+    C3020560 = USB4105-GF-A, confirmed still exact match, 4,489 stock, $1.05
+    (2026-07-17). C3025063 = USB4105-GF-A-060 (the brief's exact MPN, tape
+    suffix), 520 stock, $1.07 — same part, either code assembles correctly.

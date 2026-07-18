@@ -24,10 +24,15 @@ limits:
   rds_on_10v: "18mOhm typ / 26.5mOhm max (VGS=10V, ID=5.7A)"
   pd_max: "1.4W at TA=25C (1in2 FR-4, 2oz Cu)"
   tj_max: 150C
+note: >-
+  THIS project: low-side driver for the BEEP load (~150mA down the RJ45
+  BEEP_SWITCHED_RETURN line). Massively over-specced (5.7A part at 150mA) —
+  chosen for the JLC BASIC-part gate drive convenience.
 gotchas:
   - "Logic-level gate: Vgs(th) max 1.45V, Rds(on) specced down at VGS=2.5V — fully enhanced from a 3.3V GPIO, no driver needed"
+  - "SLOW THE GATE EDGES on purpose: the drain drives a long unshielded RJ45 pair next to mic audio pairs — use a large series gate R (10k-class) and optionally a gate-drain C to Miller-slow the edges into the ~100us range; at 150mA the switching loss is irrelevant"
   - "Pinout per top-view figure: pins 1(G) and 2(S) share the two-lead side, pin 3(D) alone opposite — standard SOT-23 FET order G/S/D, do not confuse with BJT E/B/C footprints"
   - "VGS abs max is only ±12V — gate is the fragile terminal, keep drive well under this and mind ESD"
   - "The datasheet pinout figure carries no printed pin numbers; assignment fixed by the pin-1 index dot next to the G lead (top view, page 1)"
-verified: "pin map read from datasheet SOT23 Top View / Bottom View figure, page 1/5, Rev 3.1 July 2023 — 2026-07-17"
-sourcing: {lcsc: C20917, alternates: [C344010], note: 'BASIC part, 1.28M stock 2026-07-17'}
+verified: "pin map read from datasheet SOT23 Top View / Bottom View figure, page 1/5, Rev 3.1 July 2023 — 2026-07-17 (folder copied from esp32-laser-timing 2026-07-17)"
+sourcing: {lcsc: C20917, alternates: [C344010], note: 'BASIC part, exact MPN, 1,273,952 stock 2026-07-17, $0.084'}

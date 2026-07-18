@@ -1,0 +1,38 @@
+mpn: SHT40-AD1B-R2
+manufacturer: Sensirion
+type: sensor_temp_humidity_i2c
+datasheet:
+  doc_id: Datasheet SHT4x
+  revision: Version 6.4 (November 2023)
+  url: https://sensirion.com/media/documents/33FD6951/6555C40E/Sensirion_Datasheet_SHT4x.pdf
+  sha256: c615676c5b1ddc7b1e389eb7c93345f20e4a88dadc36ebe2eb93074559cbc614
+  fetched: 2026-07-17
+package: DFN-4 1.5x1.5x0.5mm, 0.8mm pitch, central die pad (not internally connected)
+footprint: Sensor_Humidity:Sensirion_DFN-4_1.5x1.5mm_P0.8mm_SHT4x_NoCentralPad
+pins:                       # from Figure 18 "Pin assignment (transparent top view)", p.16; pin 1 = filled-circle marker, counterclockwise
+  1: SDA                    # top-left; serial data, bidirectional
+  2: SCL                    # bottom-left; serial clock, input
+  3: VDD                    # bottom-right; supply
+  4: VSS                    # top-right; ground
+i2c:
+  address: "0x44 (7-bit) — 'A' variant; B variant = 0x45, C = 0x46 (Table 11 p.19)"
+  speed: up to 1MHz (I2C fast mode plus)
+  measure_cmd_example: "0xFD = measure high repeatability; ~8.3ms; T and RH, each 16-bit + CRC-8 (0x31 poly)"
+limits:
+  vdd_range: 1.08-3.6V (3.3V typ)
+  vdd_slew_max: 20V/ms (faster slew can reset the sensor)
+  idd_idle: 0.08uA typ (25C)
+  idd_measure: 320uA typ / 500uA max
+  idd_heater: up to 100mA max at nominal 200mW heater setting
+  accuracy: "+/-1.8%RH, +/-0.2C typ (SHT40 A-grade)"
+  temp_range: -40 to +125C
+  pullups: "Rp >= 390 Ohm at VDD >= 1.62V; app circuit Fig.1 shows 10k on SDA and SCL"
+decoupling: "100nF ceramic VDD-VSS close to the sensor (Figure 1 typical application circuit, p.3)"
+gotchas:
+  - "Land pattern (Figure 17 p.16): 4 pads 0.5x0.3mm, 1.4mm x-span, 0.8mm y-pitch; KiCad Sensirion_DFN-4_1.5x1.5mm_P0.8mm_SHT4x_NoCentralPad pads match exactly (0.5x0.3 at +/-0.7,+/-0.4). Use the NoCentralPad variant: Sensirion recommends NOT soldering the die pad (heat + stress) and 'no copper under the sensor other than at the pin pads'"
+  - "Pin numbering runs counterclockwise in top view (1 top-left, 2 bottom-left, 3 bottom-right, 4 top-right) — unusual; do not assume clockwise QFN convention"
+  - "Keep the sensor thermally isolated: away from the XU316/bucks, slot the PCB if RH accuracy matters (self-heating and board heat skew RH readings)"
+  - "Heater draws up to 100mA from VDD — decoupling and trace width must handle it if heater commands are used"
+  - "Reflow per JEDEC J-STD-020, and the sensor needs a rehydration/recondition period after soldering for spec RH accuracy"
+verified: "pin map read from datasheet Figure 18 'Pin assignment (transparent top view)' and pin table, page 16 (page image rendered); land pattern from Figure 17 page 16; decoupling from Figure 1 page 3 — Version 6.4 — 2026-07-17"
+sourcing: {lcsc: C2909890, alternates: [], note: 'extended; exact MPN; 14517 stock 2026-07-17'}
