@@ -28,3 +28,34 @@ board-local decisions only.
 - D8: XMOS-reference fidelity ADR-0003 (power sequencing / clocking /
   USB copied from the platform hardware manual, figure-cited) — pending
   the manual extraction, appended on completion.
+
+## Board-local design decisions (D9-D14; recorded during generator build 2026-07-18)
+
+- D9 (2026-07-18): **Q9 reverse-FET orientation** = SOURCE(pad2)=5V load,
+  DRAIN(pad3)=5V_P input, GATE(pad1)=GATE9->R90 100k->GND —
+  decisions/0007-reverse-fet-orientation.md. This is the electrically-
+  correct reading of ADR-0002's "body diode conducts first" (AO3401A P-ch
+  body-diode anode=drain) and SUPERSEDES ADR-0002's literal "drain toward
+  load". Flagged for the dedicated pin reviewer (polarity-trap class).
+- D10: **schematic on A0 sheet** — the XU316 is a single 129-pad symbol
+  (~165mm tall); A0 is the smallest KiCad sheet that holds it plus the ~20
+  other functional regions. generate_schematic.py registers A0 in the
+  schwriter2 paper table.
+- D11: **W25Q16 footprint = KiCad SOIC-8_5.3x5.3mm_P1.27mm** (208-mil SS).
+  The part.yaml's named 5.23x5.23 footprint does not exist in KiCad; 5.3x5.3
+  is the 208-mil match (body 5.23 nom, sec 11.3 drawing). part.yaml updated.
+- D12: **PLL_AVDD filter = FB3 600R ferrite (0402) + 1uF C123**, copying
+  the XMOS FB3 (§14 p30, our fidelity mandate). No qualified ferrite-bead
+  part existed in 02_parts; FB3 carries footprint L_0402_1005Metric and the
+  exact 600R@100MHz bead MPN is chosen at bom_seed. Not a resistor (a
+  resistor RC was rejected: worse HF rejection on a PLL analog supply).
+- D13: **XU316 pin assignment** (from part.yaml Table 4 + XMOS-ref port map):
+  MCLK from APLLOUT (pin23 X1D11) -> NC7NZ34 buffer -> both ADC SCKI, tile0
+  loopback on pin7 (X0D11); LRCK=X1D01(20), BCLK=X1D10(22), TDM DATA1/2 =
+  X1D24(107)/X1D25(108); I2C SCL/SDA = X0D35(93)/X0D36(94); 8 beeper GPIOs
+  on 3.3V IOR/IOT pins X0D24-29 + X1D26-27; LV_L/T/R_N tied to 3V3 (3.3V IO);
+  MIPI unused (VDD pins->GND, data->NC); pin55 & USB_ID(58) NC.
+- D14: **USB self-powered posture** — CC1/CC2 get 5.1k Rd device pulldowns;
+  VBUS presence sensed via a 220k/330k divider to VBUS_DET (X0D14); RJ45 SH
+  and USB-C SH tied to GND (single-point chassis-to-GND, no separate shield
+  net in Rev-A).
