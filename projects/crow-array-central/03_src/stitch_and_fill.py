@@ -57,7 +57,7 @@ print(f"removed {len(stubs)} degenerate point-tracks (<0.002mm)")
 
 # pre-pass: lift sub-floor power segments to their class floors (dru backstop)
 FLOOR = {"5V": 0.5, "5V_P": 0.5, "5V_IN": 0.5,
-         "3V3": 0.4, "0V9": 0.4, "1V8": 0.4, "3V3A": 0.4,
+         "3V3": 0.4, "0V9": 0.4, "1V8": 0.4, "3V3A": 0.2,
          "BK1_SW": 0.4, "BK2_SW": 0.4}
 FLOOR.update({f"BEEP_5V{n}": 0.4 for n in range(1, 9)})
 FLOOR.update({f"BEEP_RET{n}": 0.4 for n in range(1, 9)})

@@ -41,8 +41,13 @@ $PY "$KRT"/qfn_fanout.py "$R"/r0.kicad_pcb  -o "$R"/r0fa.kicad_pcb -c U1 \
 $PY "$KRT"/qfn_fanout.py "$R"/r0fa.kicad_pcb -o "$R"/r0fb.kicad_pcb -c U2 \
   --width 0.15 --clearance 0.13 --via-size 0.45 --via-drill 0.3 \
   --fab-tier standard --grid-step 0.1
-$PY "$KRT"/qfn_fanout.py "$R"/r0fb.kicad_pcb -o "$R"/r0f.kicad_pcb  -c U3 \
+$PY "$KRT"/qfn_fanout.py "$R"/r0fb.kicad_pcb -o "$R"/r0fc.kicad_pcb -c U3 \
   --width 0.15 --clearance 0.13 --via-size 0.45 --via-drill 0.3 \
+  --fab-tier standard --grid-step 0.1
+# USB-C receptacle (J12, 0.5mm pitch) — fan the pins out too so the USB pair
+# + CC/VBUS escape the connector field instead of crowding to sub-fab gaps.
+$PY "$KRT"/qfn_fanout.py "$R"/r0fc.kicad_pcb -o "$R"/r0f.kicad_pcb  -c J12 \
+  --width 0.2 --clearance 0.13 --via-size 0.45 --via-drill 0.3 \
   --fab-tier standard --grid-step 0.1
 
 $PY "$KRT"/route.py "$R"/r0f.kicad_pcb --output "$R"/r1.kicad_pcb \

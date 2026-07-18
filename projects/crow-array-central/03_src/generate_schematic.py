@@ -155,8 +155,8 @@ sch.defsym("ADC", 25.4, 45.72, PCM_PINS, ref="U")
 # ── XU316-1024-TQ128 — full 129-pad map (02_parts/XU316.../part.yaml) ──
 XU = {
     1: "QSPI_D2", 2: "QSPI_CS", 3: "QSPI_D3", 4: "QSPI_CLK", 5: "0V9",
-    6: None, 7: "MCLK_SRC", 8: "VBUS_DET", 9: None, 10: "3V3",
-    11: "0V9", 12: None, 13: None, 14: "0V9", 15: None, 16: None,
+    6: "BEEP_G1", 7: "MCLK_SRC", 8: "VBUS_DET", 9: "BEEP_G2", 10: "3V3",
+    11: "0V9", 12: "BEEP_G3", 13: None, 14: "0V9", 15: None, 16: None,
     17: "3V3", 18: "0V9", 19: None, 20: "LRCK_X", 21: None, 22: "BCLK_X",
     23: "MCLK_SRC", 24: "GND", 25: None, 26: None, 27: "GND", 28: None,
     29: None, 30: "GND", 31: None, 32: None, 33: "XOUT", 34: "XIN",
@@ -166,16 +166,16 @@ XU = {
     53: None, 54: "0V9", 55: None, 56: "1V8", 57: None, 58: None,
     59: "USB_DM", 60: "USB_DP", 61: "3V3", 62: "1V8", 63: None, 64: None,
     65: None, 66: None, 67: None, 68: "0V9", 69: None, 70: None, 71: None,
-    72: "3V3", 73: None, 74: None, 75: None, 76: None, 77: None, 78: None,
-    79: None, 80: None, 81: None, 82: None, 83: None, 84: None, 85: "0V9",
-    86: "BEEP_G1", 87: "BEEP_G2", 88: "BEEP_G3", 89: "3V3", 90: "BEEP_G4",
-    91: "BEEP_G5", 92: "BEEP_G6", 93: "I2C_SCL", 94: "I2C_SDA", 95: "0V9",
+    72: "3V3", 73: None, 74: None, 75: None, 76: None, 77: "BEEP_G8", 78: None,
+    79: None, 80: "BEEP_G7", 81: None, 82: None, 83: None, 84: None, 85: "0V9",
+    86: None, 87: None, 88: None, 89: "3V3", 90: None,
+    91: None, 92: None, 93: "I2C_SCL", 94: "I2C_SDA", 95: "0V9",
     96: None, 97: None, 98: None, 99: None, 100: None, 101: None, 102: None,
     103: None, 104: "0V9", 105: "0V9", 106: "0V9", 107: "DATA1",
-    108: "DATA2", 109: "3V3", 110: "BEEP_G7", 111: "BEEP_G8", 112: None,
-    113: "0V9", 114: None, 115: None, 116: None, 117: None, 118: None,
+    108: "DATA2", 109: "3V3", 110: None, 111: None, 112: "BEEP_G6",
+    113: "0V9", 114: None, 115: None, 116: None, 117: None, 118: "BEEP_G5",
     119: None, 120: None, 121: "3V3", 122: None, 123: None, 124: None,
-    125: None, 126: None, 127: "QSPI_D0", 128: "QSPI_D1", 129: "GND",
+    125: None, 126: "BEEP_G4", 127: "QSPI_D0", 128: "QSPI_D1", 129: "GND",
 }
 # signal name per pad for the symbol pin label (from part.yaml)
 XU_NAME = {

@@ -28,11 +28,23 @@ classes:
       (<=60mA) + the buck switch nodes BK1_SW/BK2_SW (1.5A-class
       converters, pours at the parts). Distribution on In2 islands;
       0.4mm floor (~1A external) backstops every tap.
-    nets: [3V3, 0V9, 1V8, 3V3A, BK1_SW, BK2_SW]
+    nets: [3V3, 0V9, 1V8, BK1_SW, BK2_SW]
     current: 0.8A max (0V9)
     min_width: 0.4mm
     routing: In2 islands; SW nodes tight F.Cu pours at the bucks
     verify: DRC floor + R-POUR + R-THERM
+
+  ARAIL:
+    intent: >
+      3V3A analog rail (D20): AVDD to both PCM1865 (~31mA typ x2 = 60mA);
+      0.2mm floor (~0.6A external) is ample and lets the ADC AVDD taps
+      escape the TSSOP pin field (0.4mm boxed 2 pins). Trunk 23mm at 0.4
+      from the XC6227 stays wide from the router; floor is the tap backstop.
+    nets: [3V3A]
+    current: 0.06A
+    min_width: 0.2mm
+    routing: analog LDO -> both ADC AVDD; keep off the switching corridors
+    verify: DRC floor
 
   PORTPWR:
     intent: >

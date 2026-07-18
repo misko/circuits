@@ -36,8 +36,9 @@ PLANE = {"GND", "5V", "5V_P", "5V_IN", "3V3", "0V9", "1V8", "3V3A"}
 def net_width(net):
     return "0.15"
 COMMON = ["--via-size", "0.6", "--via-drill", "0.3", "--fab-tier", "standard",
-          "--keepout", "--keepout-layer", "User.2",
-          "--layers", "F.Cu", "In2.Cu", "B.Cu"]
+          "--no-stub-layer-swap",   # escape vias land in diverged space, not
+          "--keepout", "--keepout-layer", "User.2",   # at the 0.4mm pad pitch
+          "--layers", "F.Cu", "In2.Cu", "In3.Cu", "B.Cu"]
 
 
 def unrouted_signal_nets(board):
