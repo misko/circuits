@@ -35,7 +35,10 @@ X0, Y0, W, H = 10.0, 10.0, 176.0, 122.0  # D18: +18mm height opens the
 # XU316<->ADC escape gap (was 104mm; the north-edge power+data escapes were
 # at 4L capacity — 2 XU316 3V3 pins / DATA1 could not both route).
 X1, Y1 = X0 + W, Y0 + H
-HOLES = [(X0 + 5.0, Y0 + 5.0), (X1 - 5.0, Y0 + 5.0),
+# top holes pushed into the extreme corners (jacks span the top edge; at
+# +5 the RJ45 courtyards overlapped H1/H2 — at +3.8 the M3 heads clear the
+# jack bodies). Bottom holes stay at +5 (open corner).
+HOLES = [(X0 + 3.8, Y0 + 3.8), (X1 - 3.8, Y0 + 3.8),
          (X0 + 5.0, Y1 - 5.0), (X1 - 5.0, Y1 - 5.0)]
 
 
@@ -95,7 +98,7 @@ ANCHOR = {
     "U3": (X0 + 112.0, Y0 + 52.0, 0),         # PCM1865 ADC2
     "U13": (X0 + 88.0, Y0 + 44.0, 0),         # XC6227 3V3A (analog LDO)
     # power SW corner (>=25mm from ADCs)
-    "J9": (X0 + 8.0, Y0 + 106.0, 0),          # barrel
+    "J9": (X0 + 13.0, Y0 + 106.0, 0),          # barrel
     "J11": (X0 + 8.0, Y0 + 94.0, 0),          # terminal DNP
     "F1": (X0 + 20.0, Y0 + 106.0, 0),         # entry PTC
     "D9": (X0 + 30.0, Y0 + 112.0, 0),         # TVS (clear of F1: I6 fix)
@@ -359,12 +362,15 @@ def main():
 
     # ------------------------------------------------------------ silk text
     SILK = [
-        ("NOT ETHERNET - CUSTOM 5V/AUDIO PINOUT", X0 + 88.0, Y0 + 4.0, 1.4),
+        # banner in the thin strip ABOVE the jack row (was y+4, inside the
+        # jack silk + PORT labels -> silk_overlap); size 1.1 keeps it off the
+        # PORT n labels (y+3) below it.
+        ("NOT ETHERNET - CUSTOM 5V/AUDIO PINOUT", X0 + 88.0, Y0 + 1.1, 1.0),
         ("crow-array-central v1.0", X0 + 88.0, Y1 - 2.5, 1.1),
     ]
     for n in range(1, 9):
         SILK.append((f"PORT {n}" + (" DNP" if n >= 7 else ""),
-                     port_x(n), PORT_Y - 9.0, 0.8))
+                     port_x(n), PORT_Y - 9.4, 0.7))   # y+2.6, between banner+jack
     for txt, x, y, size in SILK:
         t = pcbnew.PCB_TEXT(board)
         t.SetText(txt)

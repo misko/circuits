@@ -51,6 +51,19 @@ for f in b.GetFootprints():
     x, y = f.GetPosition().x / 1e6, f.GetPosition().y / 1e6
     keepout_rect(x - R, y - R, x + R, y + R)
 
+# The SHT40 (U6) footprint ships a track/via keepout over the DFN body — but
+# it sits ON the sensor's own I2C/3V3 pad approaches, so mirroring it onto
+# User.2 blocked the sensor's own connections. Instead strip the track/via
+# keepout flags from U6's rule area here (keep it a copper-POUR keepout so
+# the GND pour still stays off the sensing area). Fixes items_not_allowed.
+for f in b.GetFootprints():
+    if f.GetReference() != "U6":
+        continue
+    for z in f.Zones():
+        if z.GetIsRuleArea():
+            z.SetDoNotAllowTracks(False)
+            z.SetDoNotAllowVias(False)
+
 b.Save(str(OUT))
 # rules ride into the router (R-RULES): copy the pro + dru beside r0
 shutil.copy(SRC.with_suffix(".kicad_pro"), OUT.with_suffix(".kicad_pro"))

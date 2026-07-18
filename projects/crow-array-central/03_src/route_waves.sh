@@ -37,18 +37,18 @@ V="--via-size 0.6 --via-drill 0.3 --fab-tier standard --no-stub-layer-swap --kee
 # space (not at the pad pitch, where 0.6mm vias overlap -> shorts).
 $PY "$KRT"/qfn_fanout.py "$R"/r0.kicad_pcb  -o "$R"/r0fa.kicad_pcb -c U1 \
   --width 0.15 --clearance 0.13 --via-size 0.45 --via-drill 0.3 \
-  --fab-tier standard --grid-step 0.1
+  --fab-tier standard --grid-step 0.1 --extension 0.6
 $PY "$KRT"/qfn_fanout.py "$R"/r0fa.kicad_pcb -o "$R"/r0fb.kicad_pcb -c U2 \
   --width 0.15 --clearance 0.13 --via-size 0.45 --via-drill 0.3 \
-  --fab-tier standard --grid-step 0.1
+  --fab-tier standard --grid-step 0.1 --extension 0.6
 $PY "$KRT"/qfn_fanout.py "$R"/r0fb.kicad_pcb -o "$R"/r0fc.kicad_pcb -c U3 \
   --width 0.15 --clearance 0.13 --via-size 0.45 --via-drill 0.3 \
-  --fab-tier standard --grid-step 0.1
+  --fab-tier standard --grid-step 0.1 --extension 0.6
 # USB-C receptacle (J12, 0.5mm pitch) — fan the pins out too so the USB pair
 # + CC/VBUS escape the connector field instead of crowding to sub-fab gaps.
 $PY "$KRT"/qfn_fanout.py "$R"/r0fc.kicad_pcb -o "$R"/r0f.kicad_pcb  -c J12 \
   --width 0.2 --clearance 0.13 --via-size 0.45 --via-drill 0.3 \
-  --fab-tier standard --grid-step 0.1
+  --fab-tier standard --grid-step 0.1 --extension 0.6
 
 $PY "$KRT"/route.py "$R"/r0f.kicad_pcb --output "$R"/r1.kicad_pcb \
   --layers $L --clearance 0.15 --track-width 0.5 $V --max-iterations 500000 \

@@ -31,6 +31,16 @@ tk = Toolkit(b, 0.15)
 X0, Y0, X1, Y1 = 10.0, 10.0, 186.0, 132.0
 failures = []
 
+# SHT40 (U6) ships a track/via keepout over its own I2C/3V3 pad approaches —
+# strip those flags (keep it a copper-pour keepout) so the sensor's own
+# connections don't fire items_not_allowed. Matches route_prep.
+for f in b.GetFootprints():
+    if f.GetReference() == "U6":
+        for z in f.Zones():
+            if z.GetIsRuleArea():
+                z.SetDoNotAllowTracks(False)
+                z.SetDoNotAllowVias(False)
+
 # pre-pass: dedupe same-net twin vias from pass chaining
 vinfo = [(t, t.GetNetCode(), t.GetPosition().x, t.GetPosition().y)
          for t in b.GetTracks() if t.GetClass() == "PCB_VIA"]
@@ -54,6 +64,41 @@ stubs = [t for t in b.GetTracks() if t.GetClass() == "PCB_TRACK"
 for t in stubs:
     b.Remove(t)
 print(f"removed {len(stubs)} degenerate point-tracks (<0.002mm)")
+
+# remove DANGLING track stubs (KRT rip-up leftovers): a track whose one end
+# touches NO pad, NO via and NO other same-net track endpoint is loose copper
+# (track_dangling). Iterate — removing one can expose the next.
+def _endpoint_connected(b, tr, pt):
+    px, py = pt.x, pt.y
+    nc = tr.GetNetCode()
+    for t in b.GetTracks():
+        if t is tr or t.GetNetCode() != nc:
+            continue
+        if t.GetClass() == "PCB_VIA":
+            if abs(t.GetPosition().x - px) < 30000 and abs(t.GetPosition().y - py) < 30000:
+                return True
+        else:
+            for q in (t.GetStart(), t.GetEnd()):
+                if abs(q.x - px) < 30000 and abs(q.y - py) < 30000:
+                    return True
+    for fp in b.GetFootprints():
+        for p in fp.Pads():
+            if p.GetNetCode() == nc and p.HitTest(pcbnew.VECTOR2I(px, py), 0):
+                return True
+    return False
+
+
+dang_total = 0
+for _ in range(6):
+    dang = [t for t in b.GetTracks() if t.GetClass() == "PCB_TRACK"
+            and (not _endpoint_connected(b, t, t.GetStart())
+                 or not _endpoint_connected(b, t, t.GetEnd()))]
+    if not dang:
+        break
+    for t in dang:
+        b.Remove(t)
+    dang_total += len(dang)
+print(f"removed {dang_total} dangling track stubs")
 
 # pre-pass: lift sub-floor power segments to their class floors (dru backstop)
 FLOOR = {"5V": 0.5, "5V_P": 0.5, "5V_IN": 0.5,
@@ -248,6 +293,35 @@ for v in [t for t in b.GetTracks() if t.GetClass() == "PCB_VIA"]:
 for v, nn, vx, vy in _orphans:
     b.Remove(v)
 print(f"via janitor removed {len(_orphans)}: {[(n, x, y) for _, n, x, y in _orphans][:10]}")
+
+# Starved-thermal rescue: GND SMD pads left unconnected by thermal spokes
+# get a via dropped ON the pad (same-net) bonding pad->plane directly.
+_gvias = [(v.GetPosition().x / 1e6, v.GetPosition().y / 1e6)
+          for v in b.GetTracks() if v.GetClass() == "PCB_VIA" and v.GetNetname() == "GND"]
+_added_svc = 0
+for fp in b.GetFootprints():
+    for p in fp.Pads():
+        if p.GetNetname() != "GND" or p.GetAttribute() != pcbnew.PAD_ATTRIB_SMD:
+            continue
+        px, py = p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
+        hw, hh = p.GetSize().x / 2e6, p.GetSize().y / 2e6
+        if any(abs(px - vx) < hw + 0.05 and abs(py - vy) < hh + 0.05 for vx, vy in _gvias):
+            continue
+        for r in (0.0, min(hw, hh) * 0.6, min(hw, hh) + 0.1, 0.5, 0.8):
+            done = False
+            for ang in range(0, 360, 45):
+                x = round(px + r * math.cos(math.radians(ang)), 2)
+                y = round(py + r * math.sin(math.radians(ang)), 2)
+                if try_via(gnd, x, y, size=0.45, drill=0.3):
+                    _gvias.append((x, y))
+                    _added_svc += 1
+                    done = True
+                    break
+                if r == 0.0:
+                    break
+            if done:
+                break
+print(f"GND pad-on-via rescue: {_added_svc}")
 
 # ---- fill, then stitch any pad-bearing GND island without continuity
 filler = pcbnew.ZONE_FILLER(b)
