@@ -19,12 +19,21 @@ Wire tiers:
                 the right cell so the pins align, and wires them (nets must
                 already match — a wrong chain is a build error, not a lie).
   T3          — every other connected pin gets a global label at its tip.
+  GND         — pins on net "GND" get a POWER SYMBOL (ground icon) at the
+                tip instead of a global label: hidden power_in pin named
+                "GND" (length 0 at the tip) names the net; refs #PWR01..
+                are virtual (in_bom no, excluded from netlist/BOM/parity).
+                GND is excluded from T1/T2 (each pin gets its own icon —
+                conventional) and exempt from the >=1-label-per-net gate.
+                ONE PWR_FLAG (hidden power_out) rides on a roomy GND tip
+                so ERC's power_pin_not_driven stays at zero.
 
 Safety invariants enforced in code (each cost hours on 2026-07-17):
   * wire endpoints EXACTLY on pin tips (body edge + 2.54), all on 1.27 grid;
   * no wire span passes over a third pin tip or another wire endpoint at the
     same y (KiCad T-junctions connect);
-  * parens balanced; every net keeps >= 1 global label;
+  * parens balanced; every net keeps >= 1 global label (GND exempt: the
+    icons' hidden power pins name that net);
   * no_connect flags emitted at every explicit-None pin tip;
   * internal S-OCCL == 0 (plates + ref/value texts, justify-aware, re-parsed
     from the EMITTED text with policy_audit.py's own regex model);
@@ -51,6 +60,9 @@ ROW_GAP = 1.5               # gap between row envelopes
 REGION_GAP = 6.0            # gap between packed regions
 BOX_MARGIN = 1.5            # section rectangle margin around region bounds
 PAPERS = {"A2": (594.0, 420.0), "A3": (420.0, 297.0), "A1": (841.0, 594.0)}
+GND_NET = "GND"             # net drawn as ground icons, not labels
+GND_D, GND_HH = 2.8, 1.0    # icon envelope: depth beyond the tip, half-height
+FLAG_UP, FLAG_HW = 3.0, 1.2  # PWR_FLAG envelope: rise above tip, half-width
 
 
 def _u():
@@ -91,6 +103,43 @@ def lib_symbol(name, w, h, pins, ref="U", lib="elt"):
     out.append("      )")
     out.append("    )")
     return "\n".join(out), {num: (side, h / 2 - 2.54 * (slot + 1)) for num, _, side, slot in pins}
+
+
+def power_lib_symbols(lib):
+    """Standard KiCad power symbols for the emitted lib: GND ground icon
+    (hidden power_in "GND" length 0 at origin names the net) and PWR_FLAG
+    (hidden power_out satisfies ERC power_pin_not_driven). Both virtual:
+    (power) flagged, #-refs, in_bom no — invisible to netlist/BOM/parity."""
+    gnd = "\n".join([
+        f'    (symbol "{lib}:GND" (power) (pin_names (offset 0)) (in_bom no) (on_board yes)',
+        '      (property "Reference" "#PWR" (at 0 -3.81 0) (effects (font (size 1.27 1.27)) hide))',
+        '      (property "Value" "GND" (at 0 -3.81 0) (effects (font (size 1.27 1.27)) hide))',
+        '      (symbol "GND_0_1"',
+        '        (polyline (pts (xy 0 0) (xy 0 -1.27)) (stroke (width 0.254) (type default)) (fill (type none)))',
+        '        (polyline (pts (xy -1.00 -1.27) (xy 1.00 -1.27) (xy 0 -2.54) (xy -1.00 -1.27))'
+        ' (stroke (width 0.254) (type default)) (fill (type none)))',
+        '      )',
+        '      (symbol "GND_1_1"',
+        '        (pin power_in line (at 0 0 270) (length 0) hide'
+        ' (name "GND" (effects (font (size 1.27 1.27))))'
+        ' (number "1" (effects (font (size 1.27 1.27)))))',
+        '      )',
+        '    )'])
+    flag = "\n".join([
+        f'    (symbol "{lib}:PWR_FLAG" (power) (pin_names (offset 0)) (in_bom no) (on_board yes)',
+        '      (property "Reference" "#FLG" (at 0 3.81 0) (effects (font (size 1.27 1.27)) hide))',
+        '      (property "Value" "PWR_FLAG" (at 0 3.81 0) (effects (font (size 1.27 1.27)) hide))',
+        '      (symbol "PWR_FLAG_0_1"',
+        '        (polyline (pts (xy 0 0) (xy 0 1.27) (xy -1.02 1.91) (xy 0 2.54) (xy 1.02 1.91) (xy 0 1.27))'
+        ' (stroke (width 0.254) (type default)) (fill (type none)))',
+        '      )',
+        '      (symbol "PWR_FLAG_1_1"',
+        '        (pin power_out line (at 0 0 90) (length 0) hide'
+        ' (name "pwr" (effects (font (size 1.27 1.27))))'
+        ' (number "1" (effects (font (size 1.27 1.27)))))',
+        '      )',
+        '    )'])
+    return {"GND": gnd, "PWR_FLAG": flag}
 
 
 class Cell:
@@ -143,19 +192,33 @@ class Cell:
             return (ax, ay - size * 0.9, ax + wid, ay + size * 0.9)
         return (ax - wid / 2, ay - size * 0.9, ax + wid / 2, ay + size * 0.9)
 
+    def _pin_boxes(self, pin):
+        """Local envelope boxes owned by one pin (stub + plate/icon/flag)."""
+        net = self.nets[pin]
+        tip, y, side = self.pin_local(pin)
+        edge = -self.w / 2 if side == "L" else self.w / 2
+        out = [(min(edge, tip) - 0.3, y - 0.9, max(edge, tip) + 0.3, y + 0.9)]
+        if net == GND_NET:
+            # ground icon extends beyond the tip, away from the body
+            if side == "L":
+                out.append((tip - GND_D, y - GND_HH, tip, y + GND_HH))
+            else:
+                out.append((tip, y - GND_HH, tip + GND_D, y + GND_HH))
+            if self.eng._flag_host == (self.ref, pin):
+                out.append((tip - FLAG_HW, y - FLAG_UP, tip + FLAG_HW, y))
+        elif net is not None and pin not in self.suppressed:
+            wl = (len(net) + 2) * CH_W
+            if side == "L":
+                out.append((tip - wl, y - CH_H / 2, tip, y + CH_H / 2))
+            else:
+                out.append((tip, y - CH_H / 2, tip + wl, y + CH_H / 2))
+        return out
+
     def boxes(self):
-        """Local envelope boxes (body, pin stubs, plates, texts)."""
+        """Local envelope boxes (body, pin stubs, plates/icons, texts)."""
         out = [(-self.w / 2, -self.h / 2, self.w / 2, self.h / 2)]
-        for pin, net in self.nets.items():
-            tip, y, side = self.pin_local(pin)
-            edge = -self.w / 2 if side == "L" else self.w / 2
-            out.append((min(edge, tip) - 0.3, y - 0.9, max(edge, tip) + 0.3, y + 0.9))
-            if net is not None and pin not in self.suppressed:
-                wl = (len(net) + 2) * CH_W
-                if side == "L":
-                    out.append((tip - wl, y - CH_H / 2, tip, y + CH_H / 2))
-                else:
-                    out.append((tip, y - CH_H / 2, tip + wl, y + CH_H / 2))
+        for pin in self.nets:
+            out.extend(self._pin_boxes(pin))
         for _k, txt, ax, ay, sz, j in self._texts():
             out.append(self._text_box(txt, ax, ay, sz, j))
         return out
@@ -186,7 +249,9 @@ class Schematic:
         self.comment = comment
         self.rev = rev or "dev"
         self.date = date or datetime.date.today().isoformat()
-        self.symbols, self.pinmaps = {}, {}
+        self.symbols, self.pinmaps = dict(power_lib_symbols(libname)), {}
+        self._flag_host = None   # (ref, pin) hosting the single PWR_FLAG
+        self._pwr_n = 0          # #PWRnn counter
         self.small_syms = small_syms  # set of symbol names treated "small"
         self.regions, self.chains = [], []
         self.cells = {}              # ref -> Cell
@@ -262,6 +327,8 @@ class Schematic:
             na, nb = A.nets[pa], B.nets[pb]
             assert na is not None and na == nb, (
                 f"chain {sa}->{sb}: nets differ ({na} vs {nb}) — chains may not re-net")
+            assert na != GND_NET, (
+                f"chain {sa}->{sb}: GND is never wired — each GND pin gets its own icon")
             _, ya, sidea = A.pin_local(pa)
             _, yb, sideb = B.pin_local(pb)
             assert sidea == "R" and sideb == "L", (
@@ -278,7 +345,7 @@ class Schematic:
                 for i in range(len(row) - 1):
                     A, B = row[i], row[i + 1]
                     for pa, na in A.nets.items():
-                        if na is None or (A.ref, pa) in wired_pins:
+                        if na is None or na == GND_NET or (A.ref, pa) in wired_pins:
                             continue
                         _, ya, sa = A.pin_local(pa)
                         if sa != "R":
@@ -329,8 +396,38 @@ class Schematic:
             rel.append(rel[-1] + snap_up(need))
         return rel
 
+    def _pick_flag_host(self):
+        """First GND pin whose upward PWR_FLAG envelope collides with nothing
+        else in its own cell (inter-cell spacing is handled by boxes())."""
+        def hit(a, b):
+            return a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]
+        first = None
+        for reg in self.regions:
+            for row in reg.rows:
+                for c in row:
+                    for pin, net in c.nets.items():
+                        if net != GND_NET:
+                            continue
+                        if first is None:
+                            first = (c.ref, pin)
+                        tip, y, _side = c.pin_local(pin)
+                        fb = (tip - FLAG_HW, y - FLAG_UP, tip + FLAG_HW, y)
+                        others = [(-c.w / 2, -c.h / 2, c.w / 2, c.h / 2)]
+                        for p2 in c.nets:
+                            if p2 != pin:
+                                others.extend(c._pin_boxes(p2))
+                        others.extend(c._text_box(t, ax, ay, sz, j)
+                                      for _k, t, ax, ay, sz, j in c._texts())
+                        if not any(hit(fb, o) for o in others):
+                            self._flag_host = (c.ref, pin)
+                            return
+        # fallback: first GND pin anywhere (flag may brush its own cell's art;
+        # the render review must eyeball it) — or no GND at all
+        self._flag_host = first
+
     def _layout(self):
         row_wires = self._resolve_wires()
+        self._pick_flag_host()
         # per-region relative layout
         for reg in self.regions:
             tw = 1.9 * len(reg.title)
@@ -452,6 +549,19 @@ class Schematic:
         return occl
 
     # -- emission -------------------------------------------------------
+    def _emit_power(self, sym, ref, value, x, y, ang):
+        """One power-symbol instance (GND icon / PWR_FLAG): hidden props,
+        virtual ref, in_bom no — invisible to BOM/netlist/parity/S-OCCL."""
+        return (
+            f'  (symbol (lib_id "{self.libname}:{sym}") (at {x:.2f} {y:.2f} {ang}) (unit 1)'
+            f' (in_bom no) (on_board yes) (dnp no) (uuid "{_u()}")\n'
+            f'    (property "Reference" "{ref}" (at {x:.2f} {y:.2f} 0) (effects (font (size 1.27 1.27)) hide))\n'
+            f'    (property "Value" "{value}" (at {x:.2f} {y:.2f} 0) (effects (font (size 1.27 1.27)) hide))\n'
+            f'    (property "Footprint" "" (at {x:.2f} {y:.2f} 0) (effects (font (size 1.27 1.27)) hide))\n'
+            f'    (pin "1" (uuid "{_u()}"))\n'
+            f'    (instances (project "{self.project}" (path "/{self._root_uuid}"'
+            f' (reference "{ref}") (unit 1))))\n  )')
+
     def _emit_cell(self, c):
         x, y, w, h = c.x, c.y, c.w, c.h
         ry, vy = y - h / 2 - 1.6, y + h / 2 + 1.8
@@ -477,6 +587,17 @@ class Schematic:
             ex, ey = x + tip, y + py
             if net is None:
                 body.append(f'  (no_connect (at {ex:.2f} {ey:.2f}) (uuid "{_u()}"))')
+                continue
+            if net == GND_NET:
+                # ground icon at the tip; connection point IS the tip
+                # (angle: 0 = extends down, 90 = right, 270 = left)
+                self._pwr_n += 1
+                ang = 270 if side == "L" else 90
+                body.append(self._emit_power(
+                    "GND", f"#PWR{self._pwr_n:02d}", "GND", ex, ey, ang))
+                if self._flag_host == (c.ref, pin):
+                    body.append(self._emit_power(
+                        "PWR_FLAG", "#FLG01", "PWR_FLAG", ex, ey, 0))
                 continue
             if pin in c.suppressed:
                 continue
@@ -505,8 +626,9 @@ class Schematic:
         for (x1, x2, y, _n) in self.wires:
             body.append(f'  (wire (pts (xy {x1:.2f} {y:.2f}) (xy {x2:.2f} {y:.2f}))'
                         f' (stroke (width 0)) (uuid "{_u()}"))')
-        # every net keeps >= 1 global label (net glue for wires; parity)
-        nets = {n for c in self.cells.values() for n in c.nets.values() if n}
+        # every net keeps >= 1 global label (net glue for wires; parity).
+        # GND is exempt: the hidden power_in pins of the icons name that net.
+        nets = {n for c in self.cells.values() for n in c.nets.values() if n} - {GND_NET}
         labeled = {m.group(1) for m in re.finditer(r'\(global_label "([^"]+)"', "\n".join(labels))}
         assert nets <= labeled, f"nets without any label: {sorted(nets - labeled)}"
         rects = []
