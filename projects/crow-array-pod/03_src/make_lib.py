@@ -44,8 +44,8 @@ fp = f'''(footprint "CMT-8504"
   (fp_circle (center 0 0) (end 1.0 0) (stroke (width 0.12) (type solid)) (fill none) (layer "F.Fab"))
   (fp_line (start -5.3 -1.6) (end -5.3 -2.6) (stroke (width 0.15) (type solid)) (layer "F.SilkS"))
   (fp_line (start -5.8 -2.1) (end -4.8 -2.1) (stroke (width 0.15) (type solid)) (layer "F.SilkS"))
-  (fp_line (start -4.5 -4.5) (end 4.5 -4.5) (stroke (width 0.15) (type solid)) (layer "F.SilkS"))
-  (fp_line (start -4.5 4.5) (end 4.5 4.5) (stroke (width 0.15) (type solid)) (layer "F.SilkS"))
+  (fp_line (start -2.0 -4.5) (end 2.0 -4.5) (stroke (width 0.15) (type solid)) (layer "F.SilkS"))
+  (fp_line (start -2.0 4.5) (end 2.0 4.5) (stroke (width 0.15) (type solid)) (layer "F.SilkS"))
   (fp_rect (start -4.85 -4.85) (end 4.85 4.85) (stroke (width 0.05) (type solid)) (fill none) (layer "F.CrtYd"))
 {pad_s}
 )

@@ -1,0 +1,412 @@
+Loading 06_build/route/r0.kicad_pcb to expand net patterns...
+Routing 11 nets: ['MIC', 'AIN', 'A_OUT', 'B_OUT', 'FB_A']...
+Loading 06_build/route/r0.kicad_pcb...
+Using 2 routing layers: ['F.Cu', 'B.Cu']
+  Layer costs: F.Cu=1.0x, B.Cu=3.0x
+No BGA components detected - no exclusion zones needed
+Keepout: blocking routes from 8 polygon(s) on User.2
+
+Using MPS ordering strategy...
+MPS: Using segment intersection method (no nets on BGA chips)
+MPS: 11 nets with 14 crossing conflicts detected
+MPS Round 1: 6 units: AUD_P_I, AUD_N_I, FB_A, FB_B, VMID, A_OUT
+MPS Round 2: 2 units: AIN, AUDIO_N
+MPS Round 3: 2 units: B_OUT, AUDIO_P
+MPS Round 4: 1 units: MIC
+
+Routing 11 single-ended net(s)...
+============================================================
+Building base obstacle map...
+Base obstacle map built in 1.58s
+Found 18 unrouted nets in PCB for stub proximity
+Pre-computing net obstacle cache...
+Net obstacle cache built in 0.01s (18 nets)
+
+[1/11] Routing AUD_P_I (id=3)
+----------------------------------------
+  Detected multi-point net with 3 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 2 and 1, length=15.32mm)
+  Phase 1 routed in 208 iterations, 9 segments
+  SUCCESS: 9 segments, 0 vias, 208 iterations, length=14.31mm (stubs=0.00mm) (0.00s)
+
+[2/11] Routing AUD_N_I (id=4)
+----------------------------------------
+  Detected multi-point net with 3 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 0 and 2, length=15.64mm)
+  Phase 1 routed in 241 iterations, 9 segments
+  SUCCESS: 9 segments, 0 vias, 241 iterations, length=16.28mm (stubs=0.00mm) (0.00s)
+
+[3/11] Routing FB_A (id=18)
+----------------------------------------
+  Detected multi-point net with 3 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 0 and 2, length=12.25mm)
+  Phase 1 routed in 447 iterations, 6 segments
+  SUCCESS: 6 segments, 0 vias, 447 iterations, length=13.48mm (stubs=0.00mm) (0.00s)
+
+[4/11] Routing FB_B (id=19)
+----------------------------------------
+  Detected multi-point net with 3 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 0 and 1, length=14.75mm)
+  Phase 1 routed in 505 iterations, 15 segments
+  SUCCESS: 15 segments, 0 vias, 505 iterations, length=16.66mm (stubs=0.00mm) (0.00s)
+
+[5/11] Routing VMID (id=14)
+----------------------------------------
+  Detected multi-point net with 8 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 6 and 4, length=15.50mm)
+  Phase 1 routed in 91 iterations, 4 segments
+  SUCCESS: 4 segments, 0 vias, 91 iterations, length=11.72mm (stubs=0.00mm) (0.00s)
+
+[6/11] Routing A_OUT (id=7)
+----------------------------------------
+  Detected multi-point net with 4 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 0 and 1, length=16.03mm)
+  Phase 1 routed in 125 iterations, 4 segments
+  SUCCESS: 4 segments, 0 vias, 125 iterations, length=13.93mm (stubs=0.00mm) (0.00s)
+
+[7/11] Routing AIN (id=15)
+----------------------------------------
+  Detected multi-point net with 3 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 0 and 1, length=9.29mm)
+  Phase 1 routed in 4217 iterations, 11 segments
+  SUCCESS: 11 segments, 0 vias, 4217 iterations, length=15.85mm (stubs=0.00mm) (0.00s)
+
+[8/11] Routing AUDIO_N (id=5)
+----------------------------------------
+  Detected multi-point net with 5 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 1 and 4, length=15.71mm)
+  Phase 1 routed in 238 iterations, 9 segments
+  SUCCESS: 9 segments, 0 vias, 238 iterations, length=14.62mm (stubs=0.00mm) (0.00s)
+
+[9/11] Routing B_OUT (id=20)
+----------------------------------------
+  Detected multi-point net with 3 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 0 and 1, length=18.75mm)
+  Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+  Phase 1 routed in 42615 iterations, 11 segments
+  SUCCESS: 11 segments, 4 vias, 42615 iterations, length=19.86mm (stubs=0.00mm) (0.01s)
+
+[10/11] Routing AUDIO_P (id=6)
+----------------------------------------
+  Detected multi-point net with 5 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 0 and 1, length=12.98mm)
+  Phase 1 routed in 413 iterations, 9 segments
+  SUCCESS: 9 segments, 0 vias, 413 iterations, length=13.17mm (stubs=0.00mm) (0.00s)
+
+[11/11] Routing MIC (id=13)
+----------------------------------------
+  Detected multi-point net with 3 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 2 and 1, length=26.36mm)
+  Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+  Phase 1 routed in 69609 iterations, 10 segments
+  SUCCESS: 10 segments, 2 vias, 69609 iterations, length=24.90mm (stubs=0.00mm) (0.01s)
+
+Sync pcb_data: 97 -> 0 (kept stubs) -> 97 (after adding 97)
+
+============================================================
+Multi-point Phase 3: Routing 21 tap connections
+============================================================
+
+AUD_P_I (net 3):
+  Multi-point net Phase 3: routing 1 remaining MST edges (longest first)
+    [1/21] Routing MST edge: pad 2 -> pad 0 (length=6.32mm) target=(73.75, 60.98)
+      Routed in 33 iterations (0.00s)
+  Phase 3 routing complete: 1 edges, 13 total segments, 0 total vias
+  Added 4 tap segments, 0 tap vias
+  Net total time: 0.01s, 241 iterations
+
+AUD_N_I (net 4):
+  Multi-point net Phase 3: routing 1 remaining MST edges (longest first)
+    [2/21] Routing MST edge: pad 0 -> pad 1 (length=6.82mm) target=(76.59, 67.50)
+      Routed in 36 iterations (0.00s)
+  Phase 3 routing complete: 1 edges, 11 total segments, 0 total vias
+  Added 2 tap segments, 0 tap vias
+  Net total time: 0.01s, 277 iterations
+
+FB_A (net 18):
+  Multi-point net Phase 3: routing 1 remaining MST edges (longest first)
+    [3/21] Routing MST edge: pad 2 -> pad 1 (length=4.68mm) target=(104.09, 77.50)
+      Routed in 7302 iterations (0.00s)
+  Phase 3 routing complete: 1 edges, 14 total segments, 0 total vias
+  Added 8 tap segments, 0 tap vias
+  Net total time: 0.00s, 7749 iterations
+
+FB_B (net 19):
+  Multi-point net Phase 3: routing 1 remaining MST edges (longest first)
+    [4/21] Routing MST edge: pad 1 -> pad 2 (length=4.68mm) target=(99.41, 81.00)
+      Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+      Routed in 18415 iterations (0.00s)
+  Phase 3 routing complete: 1 edges, 27 total segments, 0 total vias
+  Added 12 tap segments, 0 tap vias
+  Net total time: 0.01s, 18920 iterations
+
+VMID (net 14):
+  Multi-point net Phase 3: routing 6 remaining MST edges (longest first)
+    [5/21] Routing MST edge: pad 6 -> pad 7 (length=5.36mm) target=(113.05, 87.50)
+      Routed in 36 iterations (0.00s)
+    [6/21] Routing MST edge: pad 6 -> pad 2 (length=4.68mm) target=(119.59, 84.00)
+      Routed in 48 iterations (0.00s)
+    [7/21] Routing MST edge: pad 2 -> pad 0 (length=8.41mm) target=(126.50, 85.50)
+      Routed in 70 iterations (0.00s)
+    [8/21] Routing MST edge: pad 4 -> pad 5 (length=4.50mm) target=(104.91, 74.00)
+      Routed in 36 iterations (0.00s)
+    [9/21] Routing MST edge: pad 5 -> pad 3 (length=6.53mm) target=(104.47, 67.91)
+      Routed in 9978 iterations (0.00s)
+    [10/21] Routing MST edge: pad 2 -> pad 1 (length=3.54mm) target=(119.55, 87.50)
+      Routed in 21 iterations (0.00s)
+  Phase 3 routing complete: 6 edges, 30 total segments, 2 total vias
+  Added 26 tap segments, 2 tap vias
+  Net total time: 0.01s, 10280 iterations
+
+A_OUT (net 7):
+  Multi-point net Phase 3: routing 2 remaining MST edges (longest first)
+    [11/21] Routing MST edge: pad 1 -> pad 2 (length=15.34mm) target=(97.59, 77.50)
+      Routed in 135 iterations (0.00s)
+    [12/21] Routing MST edge: pad 2 -> pad 3 (length=3.50mm) target=(97.59, 81.00)
+      Routed in 36 iterations (0.00s)
+  Phase 3 routing complete: 2 edges, 9 total segments, 0 total vias
+  Added 5 tap segments, 0 tap vias
+  Net total time: 0.01s, 296 iterations
+
+AIN (net 15):
+  Multi-point net Phase 3: routing 1 remaining MST edges (longest first)
+    [13/21] Routing MST edge: pad 0 -> pad 2 (length=5.36mm) target=(103.09, 74.00)
+      Routed in 2098 iterations (0.00s)
+  Phase 3 routing complete: 1 edges, 17 total segments, 0 total vias
+  Added 6 tap segments, 0 tap vias
+  Net total time: 0.00s, 6315 iterations
+
+AUDIO_N (net 5):
+  Multi-point net Phase 3: routing 3 remaining MST edges (longest first)
+    [14/21] Routing MST edge: pad 1 -> pad 0 (length=14.06mm) target=(81.25, 63.52)
+      Routed in 9506 iterations (0.00s)
+    [15/21] Routing MST edge: pad 0 -> pad 3 (length=11.47mm) target=(80.50, 52.80)
+      Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+      Routed in 15140 iterations (0.00s)
+    [16/21] Routing MST edge: pad 0 -> pad 2 (length=6.82mm) target=(78.41, 67.50)
+      Routed in 3073 iterations (0.00s)
+  Phase 3 routing complete: 3 edges, 33 total segments, 0 total vias
+  Added 24 tap segments, 0 tap vias
+  Net total time: 0.01s, 27957 iterations
+
+B_OUT (net 20):
+  Multi-point net Phase 3: routing 1 remaining MST edges (longest first)
+    [17/21] Routing MST edge: pad 0 -> pad 2 (length=17.07mm) target=(105.91, 81.00)
+      Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+      Routed in 74142 iterations (0.01s)
+  Phase 3 routing complete: 1 edges, 25 total segments, 8 total vias
+  Added 14 tap segments, 4 tap vias
+  Net total time: 0.02s, 116757 iterations
+
+AUDIO_P (net 6):
+  Multi-point net Phase 3: routing 3 remaining MST edges (longest first)
+    [18/21] Routing MST edge: pad 1 -> pad 4 (length=12.79mm) target=(57.50, 60.00)
+      Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+      Routed in 31176 iterations (0.00s)
+    [19/21] Routing MST edge: pad 0 -> pad 3 (length=6.32mm) target=(78.41, 57.50)
+      Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+      Routed in 15096 iterations (0.00s)
+    [20/21] Routing MST edge: pad 3 -> pad 2 (length=8.11mm) target=(75.00, 52.80)
+      Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+      Routed in 18807 iterations (0.00s)
+  Phase 3 routing complete: 3 edges, 29 total segments, 3 total vias
+  Added 20 tap segments, 3 tap vias
+  Net total time: 0.02s, 65492 iterations
+
+MIC (net 13):
+  Multi-point net Phase 3: routing 1 remaining MST edges (longest first)
+    [21/21] Routing MST edge: pad 2 -> pad 0 (length=19.09mm) target=(139.50, 70.50)
+      Routed in 147 iterations (0.00s)
+  Phase 3 routing complete: 1 edges, 13 total segments, 2 total vias
+  Added 3 tap segments, 0 tap vias
+  Net total time: 0.00s, 69756 iterations
+Cycle prune: removed 33 redundant loop segment(s) across 11 net(s)
+Strict collapse: removed 2 redundant segment(s) (superseded parallel/buried copper)
+
+============================================================
+Routing complete
+============================================================
+  Single-ended:  11/11 routed
+  Multi-point:   43/43 pads connected (11 nets)
+  Total vias:    15
+  Total time:    0.03s
+  Iterations:    118,709
+JSON_SUMMARY: {"routed_single": ["AUD_P_I", "AUD_N_I", "FB_A", "FB_B", "VMID", "A_OUT", "AIN", "AUDIO_N", "B_OUT", "AUDIO_P", "MIC"], "failed_single": [], "failed_multipoint": [], "multipoint_nets": 11, "multipoint_pads_connected": 43, "multipoint_pads_total": 43, "multipoint_edges_routed": 32, "multipoint_edges_failed": 0, "ripup_success_pairs": [], "rerouted_pairs": [], "single_ended_target_swaps": [], "layer_swaps": 0, "successful": 11, "failed": 0, "total_time": 0.03, "total_iterations": 118709, "total_vias": 15, "cleanup_disconnected": [], "min_clearance_used": 0.15}
+
+Writing output to 06_build/route/r1.kicad_pcb...
+Successfully wrote 06_build/route/r1.kicad_pcb
+  DRC settings already consistent (06_build/route/r1.kicad_pro)
+Loading 06_build/route/r1.kicad_pcb to expand net patterns...
+Routing 3 nets: ['BEEP_5V', 'BZ_P', 'BEEP_RET']
+Loading 06_build/route/r1.kicad_pcb...
+Using 2 routing layers: ['F.Cu', 'B.Cu']
+  Layer costs: F.Cu=1.0x, B.Cu=3.0x
+No BGA components detected - no exclusion zones needed
+Keepout: blocking routes from 8 polygon(s) on User.2
+
+Using MPS ordering strategy...
+MPS: Using segment intersection method (no nets on BGA chips)
+MPS: 3 nets with 0 crossing conflicts detected
+MPS Round 1: 3 units: BZ_P, BEEP_5V, BEEP_RET
+
+Routing 3 single-ended net(s)...
+============================================================
+Building base obstacle map...
+Base obstacle map built in 1.56s
+Found 18 unrouted nets in PCB for stub proximity
+Pre-computing net obstacle cache...
+Net obstacle cache built in 0.03s (18 nets)
+
+[1/3] Routing BZ_P (id=9)
+----------------------------------------
+  Detected multi-point net with 4 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 1 and 2, length=11.00mm)
+  Phase 1 routed in 816 iterations, 5 segments
+  SUCCESS: 5 segments, 0 vias, 816 iterations, length=12.03mm (stubs=0.00mm) (0.00s)
+
+[2/3] Routing BEEP_5V (id=22)
+----------------------------------------
+Route found in 121 iterations, path length: 121
+  SUCCESS: 3 segments, 0 vias, 121 iterations, length=14.12mm (stubs=0.00mm) (0.00s)
+
+[3/3] Routing BEEP_RET (id=10)
+----------------------------------------
+  Detected multi-point net with 4 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 2 and 3, length=21.00mm)
+  Phase 1 routed in 111 iterations, 2 segments
+  SUCCESS: 2 segments, 0 vias, 111 iterations, length=15.14mm (stubs=0.00mm) (0.00s)
+
+Sync pcb_data: 195 -> 185 (kept stubs) -> 195 (after adding 10)
+
+============================================================
+Multi-point Phase 3: Routing 4 tap connections
+============================================================
+
+BZ_P (net 9):
+  Multi-point net Phase 3: routing 2 remaining MST edges (longest first)
+    [1/4] Routing MST edge: pad 2 -> pad 3 (length=5.59mm) target=(64.41, 79.00)
+      Routed in 42 iterations (0.00s)
+    [2/4] Routing MST edge: pad 1 -> pad 0 (length=4.20mm) target=(78.80, 85.00)
+      Routed in 28 iterations (0.00s)
+  Phase 3 routing complete: 2 edges, 10 total segments, 0 total vias
+  Added 5 tap segments, 0 tap vias
+  Net total time: 0.01s, 886 iterations
+
+BEEP_RET (net 10):
+  Multi-point net Phase 3: routing 2 remaining MST edges (longest first)
+    [3/4] Routing MST edge: pad 2 -> pad 0 (length=16.80mm) target=(82.80, 85.00)
+      Routed in 6574 iterations (0.00s)
+    [4/4] Routing MST edge: pad 0 -> pad 1 (length=4.20mm) target=(83.00, 81.00)
+      Routed in 41 iterations (0.00s)
+  Phase 3 routing complete: 2 edges, 12 total segments, 0 total vias
+  Added 10 tap segments, 0 tap vias
+  Net total time: 0.01s, 6726 iterations
+Cycle prune: removed 2 redundant loop segment(s) across 2 net(s)
+
+============================================================
+Routing complete
+============================================================
+  Single-ended:  3/3 routed
+  Multi-point:   8/8 pads connected (2 nets)
+  Total vias:    0
+  Total time:    0.01s
+  Iterations:    1,048
+JSON_SUMMARY: {"routed_single": ["BZ_P", "BEEP_5V", "BEEP_RET"], "failed_single": [], "failed_multipoint": [], "multipoint_nets": 2, "multipoint_pads_connected": 8, "multipoint_pads_total": 8, "multipoint_edges_routed": 6, "multipoint_edges_failed": 0, "ripup_success_pairs": [], "rerouted_pairs": [], "single_ended_target_swaps": [], "layer_swaps": 0, "successful": 3, "failed": 0, "total_time": 0.01, "total_iterations": 1048, "total_vias": 0, "cleanup_disconnected": [], "min_clearance_used": 0.15}
+
+Writing output to 06_build/route/r2.kicad_pcb...
+Successfully wrote 06_build/route/r2.kicad_pcb
+  DRC settings already consistent (06_build/route/r2.kicad_pro)
+Loading 06_build/route/r2.kicad_pcb to expand net patterns...
+Routing 3 nets: ['5V', '5VF', 'SHIELD']
+Loading 06_build/route/r2.kicad_pcb...
+Using 2 routing layers: ['F.Cu', 'B.Cu']
+  Layer costs: F.Cu=1.0x, B.Cu=3.0x
+No BGA components detected - no exclusion zones needed
+Keepout: blocking routes from 8 polygon(s) on User.2
+
+Using MPS ordering strategy...
+MPS: Using segment intersection method (no nets on BGA chips)
+MPS: 3 nets with 1 crossing conflicts detected
+MPS Round 1: 2 units: SHIELD, 5VF
+MPS Round 2: 1 units: 5V
+
+Routing 3 single-ended net(s)...
+============================================================
+Building base obstacle map...
+Base obstacle map built in 1.58s
+Found 18 unrouted nets in PCB for stub proximity
+Pre-computing net obstacle cache...
+Net obstacle cache built in 0.03s (18 nets)
+
+[1/3] Routing SHIELD (id=21)
+----------------------------------------
+Route found in 42 iterations, path length: 42
+  SUCCESS: 2 segments, 0 vias, 42 iterations, length=4.11mm (stubs=0.00mm) (0.00s)
+
+[2/3] Routing 5VF (id=8)
+----------------------------------------
+  Detected multi-point net with 5 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 3 and 1, length=28.00mm)
+  Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+  Phase 1 routed in 60732 iterations, 9 segments
+  SUCCESS: 9 segments, 4 vias, 60732 iterations, length=23.00mm (stubs=0.00mm) (0.01s)
+
+[3/3] Routing 5V (id=1)
+----------------------------------------
+  Detected multi-point net with 7 pads (Phase 1: main route only)
+  Multi-point net Phase 1: routing longest MST edge (pads 6 and 5, length=35.09mm)
+  Phase 1 routed in 367 iterations, 10 segments
+  SUCCESS: 10 segments, 0 vias, 367 iterations, length=33.78mm (stubs=0.00mm) (0.00s)
+
+Sync pcb_data: 229 -> 208 (kept stubs) -> 229 (after adding 21)
+
+============================================================
+Multi-point Phase 3: Routing 8 tap connections
+============================================================
+
+5VF (net 8):
+  Multi-point net Phase 3: routing 3 remaining MST edges (longest first)
+    [1/8] Routing MST edge: pad 3 -> pad 2 (length=20.04mm) target=(97.55, 88.50)
+      Routed in 158 iterations (0.00s)
+    [2/8] Routing MST edge: pad 2 -> pad 4 (length=10.64mm) target=(86.91, 88.50)
+      Routed in 108 iterations (0.00s)
+    [3/8] Routing MST edge: pad 4 -> pad 0 (length=6.79mm) target=(88.80, 83.60)
+      Routed in 50 iterations (0.00s)
+  Phase 3 routing complete: 3 edges, 18 total segments, 4 total vias
+  Added 9 tap segments, 0 tap vias
+  Net total time: 0.01s, 61048 iterations
+
+5V (net 1):
+  Multi-point net Phase 3: routing 5 remaining MST edges (longest first)
+    [4/8] Routing MST edge: pad 6 -> pad 1 (length=17.91mm) target=(103.00, 88.50)
+      Routed in 569 iterations (0.00s)
+    [5/8] Routing MST edge: pad 1 -> pad 2 (length=25.88mm) target=(104.47, 64.09)
+      Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+      Routed in 183449 iterations (0.03s)
+    [6/8] Routing MST edge: pad 5 -> pad 4 (length=10.50mm) target=(57.50, 70.50)
+      Routed in 268 iterations (0.00s)
+    [7/8] Routing MST edge: pad 2 -> pad 3 (length=4.67mm) target=(106.55, 61.50)
+      Routed in 512 iterations (0.00s)
+    [8/8] Routing MST edge: pad 3 -> pad 0 (length=13.50mm) target=(95.05, 59.50)
+      Probe: forward=5000, backward=5000 iters, trying forward with full iterations...
+      Routed in 16760 iterations (0.00s)
+  Phase 3 routing complete: 5 edges, 42 total segments, 3 total vias
+  Added 32 tap segments, 3 tap vias
+  Net total time: 0.05s, 201925 iterations
+Cycle prune: removed 7 redundant loop segment(s) across 2 net(s)
+Strict collapse: removed 1 redundant segment(s) (superseded parallel/buried copper)
+
+============================================================
+Routing complete
+============================================================
+  Single-ended:  3/3 routed
+  Multi-point:   12/12 pads connected (2 nets)
+  Total vias:    7
+  Total time:    0.02s
+  Iterations:    61,141
+JSON_SUMMARY: {"routed_single": ["SHIELD", "5VF", "5V"], "failed_single": [], "failed_multipoint": [], "multipoint_nets": 2, "multipoint_pads_connected": 12, "multipoint_pads_total": 12, "multipoint_edges_routed": 10, "multipoint_edges_failed": 0, "ripup_success_pairs": [], "rerouted_pairs": [], "single_ended_target_swaps": [], "layer_swaps": 0, "successful": 3, "failed": 0, "total_time": 0.02, "total_iterations": 61141, "total_vias": 7, "cleanup_disconnected": [], "min_clearance_used": 0.15}
+
+Writing output to 06_build/route/r3.kicad_pcb...
+Successfully wrote 06_build/route/r3.kicad_pcb
+  DRC settings already consistent (06_build/route/r3.kicad_pro)
+waves done -> 06_build/route/r3.kicad_pcb
