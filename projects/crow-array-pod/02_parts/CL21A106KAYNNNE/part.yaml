@@ -8,5 +8,5 @@ pins: {1: '1', 2: '2'}   # symmetric 2-pad
 datasheet: {doc_id: CL series, revision: n/a, url: n/a, sha256: n/a, fetched: null}
 verified: '25V X5R on a 5V rail (VMID/opamp bulk): >4x voltage headroom keeps DC-bias capacitance loss small'
 sourcing:
-  lcsc: TBD-STOCK-CHECK
-  note: 'to confirm via jlc_stock_check'
+  lcsc: C15850
+  note: 'basic; 10.5M stock 2026-07-18; 25V X5R = 5x headroom on 5V'

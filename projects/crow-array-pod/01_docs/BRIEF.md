@@ -30,6 +30,11 @@ board-local decisions only.
   SMAJ6.0A TVS empty (A3; decisions/0002); R12 0R = the doc's series pads.
   Gain stays single-value 10k/20k (doc table); gain-change table lives in
   README + ORDER_README instead of dual footprints.
+- D10 (2026-07-18): CMT-8504-100-SMT-TR IS in the JLC catalog
+  (C22359707, exact MPN): coded for machine assembly instead of the
+  expected hand-solder line. Stock is thin (182 on 2026-07-18 vs 10
+  needed) - order-day re-check mandatory; Digi-Key hand-solder fallback
+  stays in ORDER_README.
 - D9 (2026-07-18): op-amp powered from the raw 5V rail (local 100n+10u);
   the 100R RC-filtered 5VF feeds only mic bias + midpoint divider
   (sub-mA), keeping the filter drop at ~75mV while the bias string gets

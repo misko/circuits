@@ -34,4 +34,4 @@ gotchas:
   - "Stable at gain >= 1: both the 1.5V/V stage and the unity inverter are fine"
   - "Bias current ~10pA typ (FET input): 100k input bias resistor adds negligible offset"
 verified: "pin map read from datasheet Figure 5-3 'OPA1678: D Package, 8-Pin SOIC (Top View)', page 4, SBOS855E — 2026-07-18"
-sourcing: {lcsc: TBD-STOCK-CHECK, alternates: [], note: 'to be confirmed by jlc_stock_check search'}
+sourcing: {lcsc: C192421, alternates: [], note: 'extended; exact MPN; 4990 stock 2026-07-18; $0.92'}

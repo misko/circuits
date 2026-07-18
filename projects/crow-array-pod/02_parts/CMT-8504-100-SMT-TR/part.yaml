@@ -32,4 +32,4 @@ gotchas:
   - "Sound port is a 2.0mm hole in the TOP face: no PCB hole needed, but keep the port unobstructed in the enclosure"
   - "Reflow within 48h of opening vacuum pack; 260C max"
 verified: "pad polarity + land pattern read from datasheet Mechanical Drawing (top/bottom views) and 'Recommended PCB Layout Top View', page 2, rev 2024-09-11 — 2026-07-18"
-sourcing: {lcsc: none, alternates: [], note: 'not expected in JLC catalog - hand-solder; Digi-Key 102-CMT-8504-100-SMT-TR (~$1.59)'}
+sourcing: {lcsc: C22359707, alternates: [], note: 'extended; exact MPN; stock 182 on 2026-07-18 (THIN - need 10; re-check order day, hand-solder Digi-Key fallback documented in ORDER_README)'}

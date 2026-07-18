@@ -1,12 +1,12 @@
-mpn: 0805W8F0680T5E
+mpn: 0805W8F680JT5E
 manufacturer: UNI-ROYAL(Uniroyal Elec)
 type: res_thick
-value: '68R 1%'
+value: '68R 5%'
 package: '0805'
 footprint: Resistor_SMD:R_0805_2012Metric
 pins: {1: '1', 2: '2'}   # symmetric 2-pad
 datasheet: {doc_id: series, revision: n/a, url: n/a, sha256: n/a, fetched: null}
-verified: 'value-only passive; JLC attribute check pending (stock-check stage)'
+verified: '68R 5% adopted (1% variant low-stock): output isolation tolerance non-critical - 68R±5% shifts the 4.3MHz cable-C pole by 5%'
 sourcing:
-  lcsc: TBD-STOCK-CHECK
-  note: 'to confirm via jlc_stock_check --search-missing'
+  lcsc: C17802
+  note: 'extended; 98k stock 2026-07-18'

@@ -29,4 +29,4 @@ gotchas:
   - "DRL top view: pins 1,2,3 down the LEFT side (1=NC top-left), 4=GND bottom-right, 5=IO2 top-right — matches KiCad SOT-553 numbering (left column top-down 1-3, right column bottom-up 4-5)"
   - "Place at the cable connector, not at the op-amp: the 68R isolation resistors sit BETWEEN the amp and this clamp so strike current dumps at the entry"
 verified: "pin map read from datasheet Section 5 pin configuration figure (DRL Package 5-Pin SOT Top View) + Pin Functions table, page 3, SLLSEG9C — 2026-07-18"
-sourcing: {lcsc: TBD-STOCK-CHECK, alternates: [], note: 'to be confirmed by jlc_stock_check search'}
+sourcing: {lcsc: C1972959, alternates: [C51886141], note: 'extended; exact MPN; 11609 stock 2026-07-18'}

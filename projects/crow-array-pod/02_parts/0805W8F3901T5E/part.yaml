@@ -8,5 +8,5 @@ pins: {1: '1', 2: '2'}   # symmetric 2-pad
 datasheet: {doc_id: series, revision: n/a, url: n/a, sha256: n/a, fetched: null}
 verified: 'value-only passive; JLC attribute check pending (stock-check stage)'
 sourcing:
-  lcsc: TBD-STOCK-CHECK
-  note: 'to confirm via jlc_stock_check --search-missing'
+  lcsc: C17614
+  note: 'basic; 404k stock 2026-07-18'
