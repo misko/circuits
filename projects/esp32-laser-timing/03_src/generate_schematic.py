@@ -139,6 +139,9 @@ REF_FP = {}
 # ------------------------------------------------------------------ instances
 BODY = []
 LABELS = []
+DEFERRED_LABELS = []
+BODIES = []
+PART_AT = {}
 PIN_NET = {}
 PIN_POS = {}
 LINKS = []
@@ -193,6 +196,8 @@ def snap(v):
 def place(sym, ref, value, x, y, nets):
     x, y = snap(x), snap(y)
     pm, w, h = PINMAPS[sym]
+    PART_AT[ref] = (x, y, sym)
+    BODIES.append((x - w / 2, y - h / 2, x + w / 2, y + h / 2))
     _grow_section(x - w / 2 - 14, y - h / 2 - 3.2, x + w / 2 + 14, y + h / 2 + 3.2)
     ry, vy = y - h / 2 - 1.6, y + h / 2 + 1.8
     small = sym in ("RES", "CAP", "CAPP", "LED", "SW", "TP", "TERM2")
@@ -238,10 +243,9 @@ def place(sym, ref, value, x, y, nets):
             lx, ang, just = x + _ / 2 + 2.54, 0, "left"
         PIN_NET[(ref, pin_num)] = net
         PIN_POS[(ref, pin_num)] = (tipx, y - py, side)
-        LABELS.append(
-            f'  (global_label "{net}" (shape passive) (at {lx:.2f} {y - py:.2f} {ang})'
-            f' (fields_autoplaced) (effects (font (size 1.27 1.27)) (justify {just})) (uuid "{u()}"))'
-        )
+        # deferred: the chain-collapse pass may replace facing label pairs
+        # with one real wire (S-OCCL: facing plates double-printed)
+        DEFERRED_LABELS.append([ref, pin_num, net, lx, y - py, ang, just])
 
 
 # ═══════════════════ esp32-laser-timing circuit ═══════════════════
@@ -254,9 +258,9 @@ place("USBC", "J1", "TYPE-C-31-M-12", 35, 45,
        "A1": "GND", "A12": "GND", "B1": "GND", "B12": "GND",
        "A6": "USB_DP", "A7": "USB_DM", "B6": "USB_DP", "B7": "USB_DM",
        "A8": None, "B8": None, "SH": "GND"})
-place("RES", "R1", "5.1k CC1", 62, 28, {"1": "CC1", "2": "GND"})
-place("RES", "R2", "5.1k CC2", 62, 36, {"1": "CC2", "2": "GND"})
-place("USBLC6", "D1", "USBLC6-2SC6", 66, 52,
+place("RES", "R1", "5.1k CC1", 67, 28, {"1": "CC1", "2": "GND"})
+place("RES", "R2", "5.1k CC2", 67, 36, {"1": "CC2", "2": "GND"})
+place("USBLC6", "D1", "USBLC6-2SC6", 69, 56,
       {"1": "USB_DP", "6": "USB_DP", "3": "USB_DM", "4": "USB_DM",
        "2": "GND", "5": "5V"})
 
@@ -265,10 +269,10 @@ section("2. POWER: 5V -> AMS1117 -> 3V3; bulk at lasers   [P4]", 20, 78)
 place("AMS1117", "U2", "AMS1117-3.3", 40, 92,
       {"3": "5V", "1": "GND", "2": "3V3"})
 place("CAP", "C2", "22u LDO in", 22, 92, {"1": "5V", "2": "GND"})
-place("CAP", "C3", "22u LDO out", 58, 92, {"1": "3V3", "2": "GND"})
+place("CAP", "C3", "22u LDO out", 62, 92, {"1": "3V3", "2": "GND"})
 place("CAPP", "C11", "100u 5V bulk", 22, 104, {"1": "5V", "2": "GND"})
 place("CAP", "C12", "100n 5V bulk", 56, 104, {"1": "5V", "2": "GND"})
-place("RES", "R4", "1k LED", 74, 92, {"1": "3V3", "2": "LED_A"})
+place("RES", "R4", "1k LED", 87, 92, {"1": "3V3", "2": "LED_A"})
 place("LED", "D2", "green PWR", 74, 100, {"1": "GND", "2": "LED_A"})  # pad1 = cathode
 place("TP", "TP4", "TP 5V", 22, 117, {"1": "5V"})
 place("TP", "TP5", "TP 3V3", 40, 117, {"1": "3V3"})
@@ -291,7 +295,7 @@ place("ESP32S3", "U1", "ESP32-S3-WROOM-1-N8R2", 55, 170,
 place("CAP", "C4", "22u MCU 3V3", 22, 140, {"1": "3V3", "2": "GND"})
 place("CAP", "C5", "100n MCU 3V3", 22, 148, {"1": "3V3", "2": "GND"})
 place("RES", "R3", "10k EN", 90, 140, {"1": "3V3", "2": "EN"})
-place("CAP", "C1", "1u EN", 90, 148, {"1": "EN", "2": "GND"})
+place("CAP", "C1", "1u EN", 96, 153, {"1": "EN", "2": "GND"})
 place("SW", "SW2", "TS-1187A RESET", 90, 158, {"1": "EN", "2": "GND"})
 place("SW", "SW1", "TS-1187A BOOT", 90, 170, {"1": "BOOT", "2": "GND"})
 
@@ -310,7 +314,7 @@ for i, (q, rs, rp, jt, gpio) in enumerate([
 
 # --- section 5: photodiode comparators ---
 section("5. PHOTODIODE CHANNELS x3: BPW34 -> 1k load -> LM339 @5V   [P6, ADR-0002]", 130, 106)
-place("LM339", "U3", "LM339DT", 172, 135,
+place("LM339", "U3", "LM339DT", 178, 135,
       {"5": "PD1", "4": "VTH1", "2": "COMP1",
        "7": "PD2", "6": "VTH2", "1": "COMP2",
        "9": "PD3", "8": "VTH3", "14": "COMP3",
@@ -328,8 +332,8 @@ for i in range(3):
     y = 166 + i * 10
     place("RES", f"R{23+i}", "10k div top", 136, y, {"1": "3V3", "2": f"VTH{n}"})
     place("RES", f"R{26+i}", "2.7k div bot", 156, y, {"1": f"VTH{n}", "2": "GND"})
-    place("RES", f"R{29+i}", "33k hyst", 176, y, {"1": f"PD{n}", "2": f"COMP{n}"})
-    place("RES", f"R{32+i}", "10k comp pu", 196, y, {"1": "3V3", "2": f"COMP{n}"})
+    place("RES", f"R{29+i}", "33k hyst", 181, y, {"1": f"PD{n}", "2": f"COMP{n}"})
+    place("RES", f"R{32+i}", "10k comp pu", 208, y, {"1": "3V3", "2": f"COMP{n}"})
 for i in range(3):
     place("TP", f"TP{i+1}", f"TP COMP{i+1}", 214, 132 + i * 8, {"1": f"COMP{i+1}"})
 
@@ -342,7 +346,7 @@ for i in range(3):
           {"1": f"BTN{n}_N", "2": "GND"})
     place("RES", f"R{40+i}", "10k btn pu", 150, y, {"1": "3V3", "2": f"BTN{n}_N"})
     place("CAP", f"C{8+i}", "100n btn", 168, y, {"1": f"BTN{n}_N", "2": "GND"})
-    place("RES", f"R{43+i}", "1k btn ser", 186, y, {"1": f"BTN{n}_N", "2": f"BTN{n}_G"})
+    place("RES", f"R{43+i}", "1k btn ser", 195, y, {"1": f"BTN{n}_N", "2": f"BTN{n}_G"})
 
 # --- section 7: OLED ---
 section("7. OLED HEADER (GND VCC SCL SDA - CHECK MODULE PINOUT)   [P8]", 20, 212)
@@ -431,6 +435,102 @@ auto_links()
 
 
 # ------------------------------------------------------------------ emit
+# ---- chain-collapse: facing same-net pins joined by ONE real wire ----
+# The label-per-pin model double-prints facing plates in series chains
+# (S-OCCL review 2026-07-17). For each net: an R-side tip facing an L-side
+# tip at the same y, gap <= 30mm, with the span EMPTY (no body bbox, no
+# third pin tip that a wire endpoint-on-segment would T-join), becomes one
+# wire; both labels are suppressed. Every net keeps >= 1 label (netlist
+# name = parity invariant); a net whose only pins got wired keeps one
+# label at a wire endpoint (labels attach to wire ends).
+from collections import defaultdict as _dd
+_by_net = _dd(list)
+for _i, (_r, _p, _n, _lx, _ly, _ang, _j) in enumerate(DEFERRED_LABELS):
+    _by_net[_n].append(_i)
+_suppress, _pairedpins = set(), set()
+for _net, _idxs in _by_net.items():
+    for _i in _idxs:
+        _ri, _pi = DEFERRED_LABELS[_i][0], DEFERRED_LABELS[_i][1]
+        if (_ri, _pi) in _pairedpins:
+            continue
+        _ax, _ay, _sa = PIN_POS[(_ri, _pi)]
+        if _sa != "R":
+            continue
+        _best = None
+        for _jj in _idxs:
+            if _jj == _i:
+                continue
+            _rj, _pj = DEFERRED_LABELS[_jj][0], DEFERRED_LABELS[_jj][1]
+            if (_rj, _pj) in _pairedpins:
+                continue
+            _bx, _by, _sb = PIN_POS[(_rj, _pj)]
+            if _sb != "L" or abs(_by - _ay) > 0.01:
+                continue
+            _gap = _bx - _ax
+            if _gap <= 0 or _gap > 30:
+                continue
+            if _best is None or _gap < _best[0]:
+                _best = (_gap, _jj, _bx)
+        if _best is None:
+            continue
+        _gap, _jj, _bx = _best
+        _rj, _pj = DEFERRED_LABELS[_jj][0], DEFERRED_LABELS[_jj][1]
+        _blocked = any(not (bb[2] <= _ax + 0.01 or _bx - 0.01 <= bb[0]
+                            or bb[3] <= _ay - 1.0 or _ay + 1.0 <= bb[1])
+                       for bb in BODIES)
+        if not _blocked:
+            for (_r3, _p3), (_tx, _ty, _s3) in PIN_POS.items():
+                if (_r3, _p3) in ((_ri, _pi), (_rj, _pj)):
+                    continue
+                if abs(_ty - _ay) < 0.01 and _ax < _tx < _bx:
+                    _blocked = True
+                    break
+        if _blocked:
+            continue
+        BODY.append(f'  (wire (pts (xy {_ax:.2f} {_ay:.2f})'
+                    f' (xy {_bx:.2f} {_ay:.2f}))'
+                    f' (stroke (width 0)) (uuid "{u()}"))')
+        _pairedpins.add((_ri, _pi)); _pairedpins.add((_rj, _pj))
+        # keep ONE label per wire: a global label is the glue that ties the
+        # wire island into its net — suppressing both sides orphaned 8 wire
+        # pairs into auto-named islands (16 parity conflicts, 2026-07-17).
+        # The surviving plate sits on the wire span: standard KiCad reading.
+        _suppress.add(_jj)
+_n_wires = sum(1 for b in BODY if b.startswith('  (wire'))
+for _i, (_r, _p, _net, _lx, _ly, _ang, _j) in enumerate(DEFERRED_LABELS):
+    if _i in _suppress:
+        continue
+    LABELS.append(
+        f'  (global_label "{_net}" (shape passive) (at {_lx:.2f} {_ly:.2f} {_ang})'
+        f' (fields_autoplaced) (effects (font (size 1.27 1.27)) (justify {_j})) (uuid "{u()}"))'
+    )
+print(f"chain-collapse: {_n_wires} wires, {len(_suppress)} labels suppressed, "
+      f"{len(DEFERRED_LABELS) - len(_suppress)} labels kept")
+
+# ---- plate-pitch reporter: different-net label plates must not overlap ----
+# (machine-computed nudges; apply and regenerate until it reports none)
+_plates=[]
+for _i,(_r,_p,_n,_lx,_ly,_ang,_j) in enumerate(DEFERRED_LABELS):
+    if _i in _suppress: continue
+    _wl=(len(_n)+2)*1.05
+    if _ang==180: _plates.append((_lx-_wl,_ly-1.1,_lx,_ly+1.1,_r,_n))
+    else: _plates.append((_lx,_ly-1.1,_lx+_wl,_ly+1.1,_r,_n))
+_nudge={}
+for _a in range(len(_plates)):
+    for _b in range(_a+1,len(_plates)):
+        A,B=_plates[_a],_plates[_b]
+        if A[5]==B[5] and A[4]==B[4]: continue
+        if A[0]<B[2] and B[0]<A[2] and A[1]<B[3] and B[1]<A[3]:
+            _ox=min(A[2],B[2])-max(A[0],B[0])
+            # move the part whose PART x is rightmost, right by overlap+0.8
+            _ra,_rb=A[4],B[4]
+            _mover=_ra if PART_AT.get(_ra,(0,0))[0]>=PART_AT.get(_rb,(0,0))[0] else _rb
+            _need=_ox+0.8
+            _nudge[_mover]=max(_nudge.get(_mover,0),_need)
+for _r,_d in sorted(_nudge.items()):
+    _x,_y,_sym=PART_AT[_r]
+    print(f"PITCH-NUDGE {_r} ({_sym}): x {_x:.0f} -> {_x+_d:.1f}  (move right {_d:.1f}mm)")
+
 sch = []
 sch.append('(kicad_sch (version 20230121) (generator elt_generate_schematic)')
 sch.append(f'  (uuid "{ROOT_UUID}")')
