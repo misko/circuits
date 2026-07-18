@@ -1,5 +1,16 @@
 # CHANGELOG — esp32-laser-timing
 
+## v1.5 — 2026-07-17
+Released: 07_releases/v1.5-2026-07-17/
+- Chain-collapse wiring: 8 real wires join facing same-net pins; facing
+  label plates no longer double-print (one plate per junction, on-wire).
+  First drawn wires in the fleet; divider chains now read as chains.
+- S-OCCL label-blind checker bug fixed; honest recount 24 -> 0 via wires
+  + 13 machine-computed pitch nudges. ERRATA entry resolved.
+- Wire-island lesson: every wire keeps one global label (net glue).
+- Fab byte-identical to v1.1-v1.4. Supersedes v1.4.
+
+
 ## v1.4 — 2026-07-17
 Released: 07_releases/v1.4-2026-07-17/
 - Schematic occlusion cleanup (canon S-OCCL, added to policy_audit this
