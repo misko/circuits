@@ -1,0 +1,55 @@
+mpn: RJHSE-5384
+manufacturer: Amphenol ICC (Commercial Products / Amphenol Canada)
+type: connector_rj45_jack_tht
+datasheet:
+  doc_id: Amphenol ModularJacks Catalogue (RJHS series pp.3-6, LED options p.69)
+  revision: "April 2015 catalogue edition (PDF created 2015-04-17)"
+  url: https://www.farnell.com/datasheets/1914870.pdf   # mirror; Amphenol origin https://www.amphenol-icc.com/media/wysiwyg/files/documentation/datasheet/inputoutput/io-modjack-rjhse.pdf is bot-blocked
+  sha256: 983f3e4691b704ef2c9aaf099a63fb0703c7ba23537ec4d9b33a9cf63a99cfb8
+  fetched: 2026-07-17
+package: "RJ45 8P8C right-angle THT jack, shielded (EMI fingers), 2 built-in LEDs, board-lock posts"
+footprint: Connector_RJ:RJ45_Amphenol_RJHSE538X   # exists in KiCad 10; RJHSE5381 does NOT exist
+pins:                       # hole numbering from RECOMMENDED PCB LAYOUT drawings, catalogue p.4 (RJHSE-548X, same hole pattern) and p.6 (RJHSE-538X-04)
+  1: {name: CT1, note: "8P8C contact 1 — our AUDIO+"}
+  2: {name: CT2, note: "contact 2 — our AUDIO-"}
+  3: {name: CT3, note: "contact 3 — our +5V_BEEP"}
+  4: {name: CT4, note: "contact 4 — our +5V_AUDIO (pair with 5)"}
+  5: {name: CT5, note: "contact 5 — our +5V_AUDIO"}
+  6: {name: CT6, note: "contact 6 — our BEEP_SWITCHED_RETURN (pairs with 3, T568B)"}
+  7: {name: CT7, note: "contact 7 — our GND_AUDIO (pair with 8)"}
+  8: {name: CT8, note: "contact 8 — our GND_AUDIO"}
+  9: {name: LED1_A, note: "LED1 (right side viewed into jack face) — YELLOW on -5384; unused here, leave unconnected"}
+  10: {name: LED1_B, note: "LED1 second lead; anode/cathode NOT identified in catalogue drawing"}
+  11: {name: LED2_A, note: "LED2 (left side viewed into jack face) — GREEN on -5384; unused here"}
+  12: {name: LED2_B, note: "LED2 second lead"}
+  SH: {name: SHIELD, note: "2x shield tails, o1.57mm holes 16.26mm apart (.640) — tie to chassis/shield net"}
+limits:
+  current_per_contact: 1.5A     # catalogue p.3 Electrical: Current Rating 1.5 Amps
+  voltage: 125VAC
+  contact_resistance: 20mR max
+  dwv: 1000VAC 60Hz 1min
+  insulation: 500MR min at 500VDC
+  durability: 750 mating cycles
+  temp: -55 to +85C
+  led_vf: "2.1V typ (standard LEDs, 5V systems); 6V reverse min"
+note: >-
+  CUSTOM NON-ETHERNET PINOUT on this board: 1/2 = AUDIO+/AUDIO- (T568B orange pair),
+  3/6 = +5V_BEEP / BEEP_SWITCHED_RETURN (green pair), 4/5 = +5V_AUDIO (blue pair),
+  7/8 = GND_AUDIO (brown pair). Never plug into real Ethernet gear — 5V on 3-8.
+  8 jacks, one per pod port, per-port PTC + ESD at entry.
+gotchas:
+  - "BRIEF SAID 'no LEDs' — WRONG. Part-number decode (catalogue p.3 ordering info + p.69 LED table): RJHS-E / 5=right-angle 8-pos 50u gold / 3=shield (single port: top tabs only) / 8=8 contacts / 4=LED code 4 = GREEN left + YELLOW right. Digi-Key confirms 'Green - Yellow'. The truly LED-less part is RJHSE-5380."
+  - "Because it has LEDs, the PCB needs the 4 LED tail holes (pins 9-12): use RJ45_Amphenol_RJHSE538X (16 pads: 1-8 + 9-12 LED + 2 SH + 2 NPTH posts). KiCad's RJ45_Amphenol_RJHSE5380 (no LED holes) will NOT accept this part — LED tails have nowhere to go."
+  - "KiCad 10 footprint check: RJ45_Amphenol_RJHSE538X geometry matches catalogue p.4 layout — contact stagger 1.02mm x-pitch/2.03mm row pitch/1.78mm row offset, LED pair spacing 2.29mm, LED pairs 9.14mm apart, shield holes o1.57 at 16.26mm, NPTH posts o3.25 at 12.70mm. Contact/LED numbering agrees with the drawing (drawing is the same pattern rotated 180 deg). No mismatch found."
+  - "PIN-1 CONVENTION: looking INTO the jack opening (mounted, latch/tab UP, contacts at bottom of opening), contact 1 is on the RIGHT. Derived two ways: (a) standard 8P8C convention for contacts-down jacks; (b) footprint geometry — LED tails mark the mating face (+y in footprint), pin 1 is leftmost in top view hence rightmost seen face-on. Sanity-check on first article before soldering 8 of them."
+  - "LED pin polarity (which of 9/10, 11/12 is anode) is NOT given in the catalogue; per-part customer drawing RJHSE538X.pdf at amphenolcanada.com is dead/bot-blocked. Irrelevant here (LEDs unconnected) but blocks ever driving them without a bench check."
+  - "5V/audio current path: 1.5A per contact — +5V_AUDIO uses 2 contacts (4/5) and return 2 contacts (7/8), so 3A pair budget >> 0.5A PTC limit. Fine."
+  - "Catalogue has no dedicated single-port RJHSE-538X drawing page; hole pattern verified against RJHSE-548X single-port (p.4, identical layout, different shield-tab count) and RJHSE-538X-04 multi-port (p.6). Deviation noted in README if strict S3 audit complains."
+verified: "hole numbering + pattern read from RECOMMENDED PCB LAYOUT figure, catalogue p.4 (RJHSE-548X) cross-checked with p.6 (RJHSE-538X-04, holes labelled 12 11 / 10 9 and 8..1); LED code from LED Designation table p.69; electricals from Specifications p.3 — April 2015 catalogue — 2026-07-17"
+sourcing:
+  lcsc: null
+  alternates: []
+  note: >-
+    NOT practically in JLC catalog: JLC shows RJHSE-5384 only as zero-stock consigned
+    entries (C9900035627/C9900056698, stock 0, 2026-07-17) — hand-solder line item.
+    Digi-Key RJHSE-5384-ND: 9,841 in stock, $2.14 qty1, Active (2026-07-17).

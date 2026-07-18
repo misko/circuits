@@ -11,7 +11,7 @@ board-local decisions only.
   decisions/0001-layer-count-4.md. Solid In1 GND under everything; In2
   power islands; 6L rejected as cost without a passing-gate benefit.
 - D4: 5V entry = DC-005 barrel (center+, matches GST25A05-P1J) populated
-  + KF128L-3.5-2P terminal DNP alternate; protection = 2A PTC + SMAJ5.0A
+  + KF128L-3.5-2P terminal DNP alternate; protection = 2A PTC + SMBJ5.0A
   + AO3401A reverse P-FET — decisions/0002-input-protection.md.
 - D5: TQ128 escape verified feasible at JLC 4L STANDARD tier before
   commitment (peripheral pins escape straight out; no between-pad

@@ -24,7 +24,7 @@ is the power entry).
   1. **F1 SMD1812P200TF16 PTC, 2A hold** — limits fault current from the
      5A-capable supply into any board fault; 2A >= 1.7x worst-case draw
      so no nuisance trips (math in DETAIL_DESIGN.md).
-  2. **D9 SMAJ5.0A TVS to GND** — clamps cable ESD/inductive transients;
+  2. **D9 SMBJ5.0A TVS to GND (reused fleet part C113974)** — clamps cable ESD/inductive transients;
      5V working = exactly the rail, acceptable because the GST25A05 is
      regulated +-2% (leakage at 5.0V standoff is uA-class).
   3. **Q9 AO3401A P-FET reverse-polarity guard** (drain toward load, gate

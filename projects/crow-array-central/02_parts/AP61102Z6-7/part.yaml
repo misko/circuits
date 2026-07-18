@@ -1,0 +1,51 @@
+mpn: AP61102Z6-7
+manufacturer: Diodes Incorporated
+type: buck_regulator_sync
+datasheet:
+  doc_id: DS42004
+  revision: DS42004 Rev. 6 - 2 (September 2022)
+  url: https://www.diodes.com/assets/Datasheets/AP61102.pdf   # vendor URL 404s from CLI; fetched via LCSC mirror (wmsc.lcsc.com .../2308101634_Diodes-Incorporated-AP61102Z6-7_C3193199.pdf)
+  sha256: f759bf71b09cf7cb0f65004b90f0c3c8b48b0d42dcea48beffb0ccf91e6b9895
+  fetched: 2026-07-17
+package: SOT-563 (1.6x1.2mm body, 6 leads, 0.5mm pitch)
+footprint: Package_TO_SOT_SMD:SOT-563
+pins:                       # from "Pin Assignments (Top View)" figure, p.1 — AP61102 variant (right-hand drawing)
+  1: FB                     # feedback, 0.6V reference; external divider to VOUT
+  2: GND                    # power ground
+  3: VIN                    # 2.3-5.5V input; bypass to GND close-in
+  4: SW                     # switch node; LC filter from SW to output
+  5: EN                     # enable + mode select; >0.91V(typ) enables; EN > VIN-200mV = PFM, EN high but < VIN-200mV = forced PWM
+  6: PG                     # power-good, open drain w/ internal 5Mohm pull-up to VIN (AP61100 has OUT here instead — different part!)
+limits:
+  vin_abs_max: 6.5V DC (7.0V 400ms)
+  vin_operating: 2.3-5.5V
+  vout_range: 0.6-3.6V adjustable
+  iout_max: 1A continuous     # NOTE: this is a 1A converter, NOT 1.5A
+  vfb_ref: 0.6V +/-2% (0.588-0.612V)
+  fsw: 2.2MHz typ (1.7-2.7MHz, spec'd at VOUT=1.8V CCM; COT — pseudo-fixed, scales with operating point)
+  ipk_limit_hs: 2.5A typ (1.7A min)
+  ivalley_limit_ls: 1.9A typ
+  en_high: 0.91V typ rising
+  en_low: 0.83V typ falling
+  vin_ovp: 6.3V rising (converter stops above this)
+  ton_min: 70ns
+  soft_start: 0.5ms internal
+  theta_ja: 141C/W (SOT-563, 2-layer 2oz)
+  tj_max: 125C operating (160C shutdown)
+app_circuit:                # Table 1 "Recommended Component Selections" p.17 + Figure 2 p.2
+  topology: "FB divider R1 (VOUT->FB) / R2 (FB->GND); VOUT = 0.6V*(1+R1/R2); R2 = 0.6*R1/(VOUT-0.6)  [Eq.5]"
+  rail_3v3: {r1: 200k, r2: 44.2k, l: 1uH, cin: 10uF, cout: 10uF, c3_ff: "33pF across R1 (AP61102 column)"}
+  rail_0v9: {r1: 100k, r2: 200k, l: 1uH, cin: 10uF, cout: 10uF, c3_ff: "33pF across R1", note: "0.9V not in Table 1; from Eq.5 exact with E24 values (200k/400k also exact but noisier node)"}
+  inductor: "1.0-1.5uH recommended; ripple 30-50% of 1A; Isat > ILOAD + dIL/2; DC rating >= 1.35x load; DCR < 50mOhm (p.17)"
+  cout_note: "10-22uF ceramic sufficient for most applications (p.18)"
+  bootstrap: "NO external bootstrap cap — SOT-563 has no BST pin; bootstrap is internal. C3 33pF is a feedforward cap across R1, not a bootstrap."
+gotchas:
+  - "1A part, not 1.5A: budget rails at <=1A each; peak current limit 1.7A min"
+  - "AP61100 and AP61102 share the package and 5 of 6 pins but pin 6 differs (OUT vs PG) — schematic symbol must be the AP61102 one"
+  - "SOT-563 top-view pin order: left side top-to-bottom 1,2,3 (FB,GND,VIN); right side bottom-to-top 4,5,6 (SW,EN,PG). Easy to mirror — verify against Fig p.1"
+  - "FB divider: place close to FB pin, keep FB node small and away from SW (layout section p.18, item 5)"
+  - "EN doubles as mode pin: tie EN to VIN for PFM (light-load efficiency), or drive from logic <VIN-200mV for forced PWM (lower ripple/audio noise). For the audio board, forced PWM avoids PFM tones"
+  - "VOUT=3.3V from VIN=5V: fine. VOUT=0.9V duty ~0.18 at 2.2MHz -> ton ~82ns vs 70ns min on-time — OK but near the floor; COT will shift fsw down as needed"
+  - "PG (AP61102) already has internal 5Mohm pull-up to VIN — external pull-up optional"
+verified: "pin map read from datasheet 'Pin Assignments (Top View)' figure, page 1 (AP61102 drawing, right side), DS42004 Rev. 6-2 — page image rendered and cross-checked with Pin Descriptions table p.3 — 2026-07-17"
+sourcing: {lcsc: C5224055, alternates: [C3193199], note: 'extended; exact MPN; C5224055 461 stock / C3193199 329 stock 2026-07-17; two codes for same orderable part'}

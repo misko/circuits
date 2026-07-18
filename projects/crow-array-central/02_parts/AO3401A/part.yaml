@@ -1,0 +1,28 @@
+mpn: AO3401A
+manufacturer: Alpha & Omega Semiconductor
+type: mosfet_p_channel
+datasheet:
+  doc_id: AO3401A
+  revision: "Rev 3.1 (December 2023)"
+  url: https://aosmd.com/res/data_sheets/AO3401A.pdf
+  sha256: 0d8e3261ae280e007b5837fff60c55142f2d92af71edc4d02aee6f7a760a785c
+  fetched: 2026-07-18
+package: SOT-23
+footprint: Package_TO_SOT_SMD:SOT-23
+pins:                       # from SOT23 Top View figure, page 1/5 (same G/S/D order as sibling AO3400A)
+  1: {name: G, note: "gate"}
+  2: {name: S, note: "source"}
+  3: {name: D, note: "drain — the lone lead on the opposite side; body diode S->D"}
+limits:
+  vds: -30V
+  vgs_abs_max: "+-12V"
+  id_25c: -4.0A
+  rdson_4v5: "<60mR at Vgs=-4.5V"
+  pd_25c: 1.4W
+  tj_max: 150C
+gotchas:
+  - "Reverse-polarity guard orientation: SOURCE to the input (jack), DRAIN to the load, gate to GND — body diode conducts at first power, then the channel shorts it. Wired backwards it protects nothing"
+  - "Vgs abs max +-12V: fine at 5V input with gate tied to GND via 100k; on >12V inputs a gate zener divider would be mandatory"
+  - "Pinout per top-view figure: 1(G) 2(S) on the two-lead side, 3(D) alone opposite — FET G/S/D order, not BJT"
+verified: "pin map read from datasheet SOT23 Top View / Bottom View figure, page 1/5, Rev 3.1 December 2023 — 2026-07-18"
+sourcing: {lcsc: C15127, note: "JLC Basic part, verify stock at bom_seed; P-ch complement of AO3400A"}
