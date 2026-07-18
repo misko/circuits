@@ -1,0 +1,30 @@
+mpn: KF128L-3.5-8P
+manufacturer: Cixi Kefa Rong (KEFA) — or equivalent 3.5mm 8-pos screw terminal
+type: screw_terminal_3.5mm_8pos
+datasheet:
+  doc_id: KF128L-3.5 series
+  revision: revA 2021-03-13 (2-pos edition of the same series drawing, in esp32-laser-timing/02_parts/KF128L-3.5-2P)
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2110081130_Cixi-Kefa-Rong-Electronic-KF128L-3-5-2P_C474930.pdf
+  sha256: see-sibling-project-copy
+  fetched: 2026-07-17 (esp32-laser-timing campaign, same series)
+package: 8x 3.5mm pitch THT screw terminal, horizontal wire entry, 26.6mm pin row
+footprint: TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-8-3.5-H_1x08_P3.50mm_Horizontal
+pins:                     # linear 1..8, 3.5mm pitch; wiring assignment is board-level (P4 pinout)
+  1: P1                   # AUDIO+  (Cat5e orange)
+  2: P2                   # AUDIO-  (orange-white)
+  3: P3                   # +5V_BEEP (green)
+  4: P4                   # +5V_AUDIO (blue)
+  5: P5                   # GND_AUDIO (blue-white)
+  6: P6                   # BEEP_SWITCHED_RETURN (green-white)
+  7: P7                   # +5V_AUDIO (brown)
+  8: P8                   # GND_AUDIO (brown-white)
+limits:
+  current: 10A per pole (far above the 150mA beeper / 5mA pod loads)
+  voltage: 300V
+  wire: 26-16 AWG — takes the 24AWG solid Cat5e conductors directly
+gotchas:
+  - "Symmetric-looking block: the silkscreen terminal words + 'NOT ETHERNET' banner are the only thing preventing a mis-wire — they are load-bearing (P-SILK-FN)"
+  - "Pin numbering 1-8 matches the RJ45/T568B pin numbers at the central end ON PURPOSE: wire straight through, pair colors printed on silk"
+  - "THT hand-solder line (uncoded in BOM): JLC THT terminals are consign-only; Digi-Key equivalent: On Shore OSTVN08A150 or TE 282834-8"
+verified: "series drawing (KF128L-3.5 revA) in the sibling project verifies pitch/pin geometry; 8P variant is the same series at 8 positions; footprint pad row 3.5mm pitch matches"
+sourcing: {lcsc: none, alternates: [C474936], note: 'hand-solder; C474936 is the LCSC KF128L-3.5-8P if consigning'}

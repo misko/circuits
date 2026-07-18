@@ -1,0 +1,32 @@
+mpn: AOM-5024L-HD-R
+manufacturer: PUI Audio
+type: electret_condenser_microphone
+datasheet:
+  doc_id: specs-AOM-5024L-HD-R
+  revision: released 6/6/2017 (rev "-")
+  url: https://puiaudio.com/file/specs-AOM-5024L-HD-R.pdf
+  sha256: b1981ae73606fafde7ce27a54e71a2f6aa655e2dd83c9e268a45ab9cebe1969b
+  fetched: 2026-07-18
+package: 9.7mm dia x 5.0mm capsule, back solder pads, wire-attach
+footprint: Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical  # MIC+ / MIC- wire pads (D6)
+pins:                     # from Dimensions figure p.3 (back view) + Recommended Drive Circuit p.3
+  1: "+"                  # output/bias pad, marked with the cross symbol on the capsule back
+  2: "-"                  # ground pad (connected to case)
+limits:
+  sensitivity: -24±3 dB (0dB=1V/Pa, 1kHz at 50cm)
+  rated_voltage: 3VDC
+  operating_voltage: 1-10VDC
+  output_impedance: 2.2k at 1kHz
+  current: 500uA (3V supply, 2.2k load)
+  snr: 80dB (1kHz, 94dB input, A-weighted)
+  freq_range: 20-20000Hz
+  max_spl: 110dB (THD<3%)
+  temp_operating: -30 to +70C
+gotchas:
+  - "Two-terminal electret: + pad is BOTH bias input and signal output — the 3.9k bias resistor from the filtered 5V rail sets the ~3V operating point (5V - 3.9k x ~0.5mA)"
+  - "The (-) pad is tied to the metal case: connect to GND, and note case = GND when mounting near other metal"
+  - "Soldering: iron < 90W, <= 360C, <= 2s per terminal — this is the reason the board carries wire pads / header rather than direct capsule reflow"
+  - "Board footprint is a 2.54mm 2-pin pad pair (D6): capsule mounts in the enclosure acoustic cavity and connects by short twisted leads"
+  - "NOT conformal-coated (project rule): coating blocks the acoustic port"
+verified: "polarity read from datasheet Dimensions figure (capsule back view, cross-marked + pad), page 3, and Recommended Drive Circuit, page 3, 2017 release — 2026-07-18"
+sourcing: {lcsc: none, alternates: [], note: 'not in JLC catalog - hand-wire; Digi-Key 668-1538-ND (~$4.19)'}

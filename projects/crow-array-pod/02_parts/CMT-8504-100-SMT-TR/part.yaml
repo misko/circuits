@@ -1,0 +1,35 @@
+mpn: CMT-8504-100-SMT-TR
+manufacturer: Same Sky (formerly CUI Devices)
+type: magnetic_transducer_ext_drive
+datasheet:
+  doc_id: cmt-8504-100-smt-tr
+  revision: 2024-09-11
+  url: https://www.sameskydevices.com/product/resource/cmt-8504-100-smt-tr.pdf
+  sha256: 8d99f06fac3fc94c0653506604168ba46390c59c5ccbc561bf3a82c316d2410b
+  fetched: 2026-07-18
+package: SMT 8.5x8.5x4.0mm, 4 corner castellated pads
+footprint: pod:CMT-8504  # vendored (03_src/make_lib.py) from the datasheet recommended layout
+pins:                     # from Mechanical Drawing p.2: top-view + recommended PCB layout
+  1: "+"                  # POLARITY PAD (+) — top-left corner in the recommended-layout top view
+  2: "-"                  # POLARITY PAD (-) — bottom-left corner (same side as +)
+  3: DUMMY                # 2-DUMMY PAD — right-side corners, mechanical only
+  4: DUMMY                # mechanical only
+land_pattern:             # Recommended PCB Layout p.2: 9.5mm outer span, 4.5mm inner span
+  pad_size: 2.5x2.5mm     # (9.5-4.5)/2 per side
+  pad_centers: ±3.5mm both axes (corners)
+limits:
+  rated_voltage: 5.0 Vo-p
+  operating_voltage: 1.0-6.0 Vo-p
+  current: 150mA max at rated voltage, 4kHz, 1/2-duty square wave
+  rated_frequency: 4000Hz
+  spl: 100dB min at 10cm, rated drive
+  coil_resistance: 12-18 ohm (15 typ)
+  temp: -40 to +85C
+gotchas:
+  - "EXTERNALLY DRIVEN magnetic transducer (no internal oscillator): the central board's AO3400A low-side switch provides the 4kHz square wave over the dedicated pair — this pod carries no driver"
+  - "Inductive load: needs the flyback clamp (SS14 populated) across the pair at the pod; TVS footprint provided empty as the doc's alternative clamp"
+  - "Polarity pads are BOTH on one side (left column in the layout top view): + top-left, - bottom-left; the right-column pads are dummies — do not net them"
+  - "Sound port is a 2.0mm hole in the TOP face: no PCB hole needed, but keep the port unobstructed in the enclosure"
+  - "Reflow within 48h of opening vacuum pack; 260C max"
+verified: "pad polarity + land pattern read from datasheet Mechanical Drawing (top/bottom views) and 'Recommended PCB Layout Top View', page 2, rev 2024-09-11 — 2026-07-18"
+sourcing: {lcsc: none, alternates: [], note: 'not expected in JLC catalog - hand-solder; Digi-Key 102-CMT-8504-100-SMT-TR (~$1.59)'}

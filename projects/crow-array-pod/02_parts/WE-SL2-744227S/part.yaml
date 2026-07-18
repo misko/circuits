@@ -1,0 +1,12 @@
+mpn: 744227S
+manufacturer: Wuerth Elektronik (WE-SL2 series) — footprint-only, NOT POPULATED
+type: common_mode_choke
+value: 'CM choke DNP'
+package: 'WE-SL2 (5.1x5.1mm SMT, 4 pads)'
+footprint: Inductor_SMD:L_CommonMode_Wuerth_WE-SL2
+pins: {1: '1', 2: '2', 3: '3', 4: '4'}  # winding A: 1-2? — PIN MAP TO BE READ FROM THE WE-SL2 DRAWING IF EVER POPULATED
+datasheet: {doc_id: 744227S, revision: DNP - pin if populated, url: 'https://www.we-online.com/components/products/datasheet/744227S.pdf', sha256: none-dnp, fetched: null}
+verified: 'DNP reserve footprint (A3/doc section 4: start unshielded/unchoked, reserve for EMI testing). The 0R bypass resistors R13/R14 carry the audio pair by default; KiCad WE-SL2 pads 1/2 west column, 3/4 east column — bypass bridges 1-2 and 4-3 straight through'
+sourcing:
+  lcsc: none
+  note: 'DNP - uncoded on purpose'
