@@ -164,12 +164,57 @@ for v in targets:
             failed.append(f"{t}: microvia unfixable at ({pos0['x']},{pos0['y']})")
         continue
     if t == "connection_width":
-        # pad/track neck: overlay a fat segment from the pad center to the
-        # track's far end (same net, collision-checked)
         padit = [it for it in items if it["description"].startswith("Pad")]
         trkit = [it for it in items if it["description"].startswith("Track")]
         done = False
-        if padit and trkit:
+        # PRIORITY FIX: an OFFSET TRACK JUNCTION (the KRT chain left two
+        # same-net segments overlapping in a hairline lens rather than sharing
+        # a vertex) is the usual cause. DRC labels it either track-track or
+        # track-pad depending on which endpoints it reports, so this runs FIRST
+        # and unconditionally. A PARALLEL bridge does NOT cure the acute-angle
+        # lens (verified: 4 stacked bridges still measured 0.0581mm) — the fix
+        # is to SNAP the two closest same-net endpoints onto one shared vertex.
+        nets = set()
+        for it in items:
+            d = it["description"]
+            if "[" in d and "]" in d:
+                nets.add(d[d.index("[") + 1:d.index("]")])
+        eps = []
+        for tr in segs:
+            if tr.GetNetname() in nets:
+                for endsel in (0, 1):
+                    e = tr.GetStart() if endsel == 0 else tr.GetEnd()
+                    if math.hypot(e.x/1e6 - pos0["x"], e.y/1e6 - pos0["y"]) < 3.5:
+                        eps.append((tr, endsel, e.x/1e6, e.y/1e6, tr.GetLayer()))
+        bestj = None
+        for i in range(len(eps)):
+            for j in range(i + 1, len(eps)):
+                ta, ea, ax, ay, la = eps[i]
+                tb, eb, bx, by, lb = eps[j]
+                if ta is tb or la != lb:
+                    continue
+                dd = math.hypot(ax - bx, ay - by)
+                if 0.02 < dd < 0.35 and (bestj is None or dd < bestj[0]):
+                    bestj = (dd, eps[i], eps[j])
+        if bestj:
+            _, (ta, ea, ax, ay, la), (tb, eb, bx, by, _lb) = bestj
+            # snap tb's endpoint onto ta's; if that collides, snap ta onto tb
+            for (mv, es, tx, ty), (kx, ky) in (((tb, eb, bx, by), (ax, ay)),
+                                               ((ta, ea, ax, ay), (bx, by))):
+                orig = mv.GetStart() if es == 0 else mv.GetEnd()
+                (mv.SetStart if es == 0 else mv.SetEnd)(pcbnew.VECTOR2I_MM(kx, ky))
+                oth = mv.GetEnd() if es == 0 else mv.GetStart()
+                bl = tk.all_blockers(kx, ky, oth.x/1e6, oth.y/1e6,
+                                     mv.GetWidth()/1e6, mv.GetNetCode(), mv.GetLayer())
+                if not [x for x in bl if x[0] == "pad" or x[0] == "track"]:
+                    print("SNAP connection_width offset junction -> shared vertex")
+                    fixed += 1
+                    done = True
+                    break
+                (mv.SetStart if es == 0 else mv.SetEnd)(orig)  # revert, try other
+        if not done and padit and trkit:
+            # pad/track neck: overlay a fat segment from the pad center to the
+            # NON-adjacent far end of the touching track (same net, checked)
             ppos = padit[0]["pos"]
             best, bd = None, 9
             for tr in segs:
@@ -185,11 +230,14 @@ for v in targets:
                            abs(pd.GetPosition().y / 1e6 - ppos["y"]) < 0.05:
                             pad = pd
                 if pad is not None and best.GetNetCode() == pad.GetNetCode():
-                    # far end of the touching segment
+                    # far end of the touching segment (the one NOT at the pad)
                     s0, e0 = best.GetStart(), best.GetEnd()
                     near = s0 if math.hypot(s0.x/1e6-ppos["x"], s0.y/1e6-ppos["y"]) < \
                                  math.hypot(e0.x/1e6-ppos["x"], e0.y/1e6-ppos["y"]) else e0
-                    if not tk.collides(ppos["x"], ppos["y"], near.x / 1e6, near.y / 1e6,
+                    # skip if that end coincides with the pad (would be a
+                    # zero-length no-op segment)
+                    if math.hypot(near.x/1e6 - ppos["x"], near.y/1e6 - ppos["y"]) > 0.1 and \
+                       not tk.collides(ppos["x"], ppos["y"], near.x / 1e6, near.y / 1e6,
                                        0.4, pad.GetNetCode(), best.GetLayer()):
                         tk.add_seg(ppos["x"], ppos["y"], near.x / 1e6, near.y / 1e6,
                                    pad.GetNet(), best.GetLayer(), 0.4)

@@ -296,6 +296,13 @@ for z in b.Zones():
         gnd_fill = z.GetFilledPolysList(pcbnew.F_Cu)
         break
 fp_rescued = 0
+# every drilled hole (vias + PTH pads) — the fine-pitch rescue must space new
+# vias off ALL of them (via_site_ok ignores SAME-net holes, so it will stack
+# GND vias at 0.5mm-pitch LGA/QFN pads and violate hole_to_hole).
+HOLES = [(v.GetPosition().x/1e6, v.GetPosition().y/1e6, v.GetDrillValue()/2e6)
+         for v in b.GetTracks() if v.GetClass() == "PCB_VIA"]
+HOLES += [(pp.GetPosition().x/1e6, pp.GetPosition().y/1e6, pp.GetDrillSize().x/2e6)
+          for ff in b.GetFootprints() for pp in ff.Pads() if pp.GetDrillSize().x > 0]
 for fp in b.GetFootprints():
     for p in fp.Pads():
         if p.GetNetname() != "GND" or p.GetAttribute() != pcbnew.PAD_ATTRIB_SMD:
@@ -320,28 +327,49 @@ for fp in b.GetFootprints():
                     break
         if fed_by_pour:
             continue
-        cands = []
+        via_cands = sorted((math.hypot(px - v2.GetPosition().x/1e6, py - v2.GetPosition().y/1e6),
+                            v2.GetPosition().x/1e6, v2.GetPosition().y/1e6)
+                           for v2 in b.GetTracks()
+                           if v2.GetClass() == "PCB_VIA" and v2.GetNetname() == "GND")
+        cands = list(via_cands)
         for fp2 in b.GetFootprints():
             for p2 in fp2.Pads():
                 if p2.GetNetname() == "GND" and p2 is not p and p2.GetSize().x > 5e5:
                     qx, qy = p2.GetPosition().x/1e6, p2.GetPosition().y/1e6
                     cands.append((math.hypot(px-qx, py-qy), qx, qy))
-        for v2 in b.GetTracks():
-            if v2.GetClass() == "PCB_VIA" and v2.GetNetname() == "GND":
-                qx, qy = v2.GetPosition().x/1e6, v2.GetPosition().y/1e6
-                cands.append((math.hypot(px-qx, py-qy), qx, qy))
+        cands.sort()
         done_r = False
-        # strategy 1: via to the In1 GND plane near the pad; the stub may
-        # take an L/Z path (joinpath) through the fine-pitch maze
+        # strategy 0: CONSOLIDATE — tie the pad to an already-placed nearby GND
+        # via with a track rather than drilling another hole. Prevents the
+        # fine-pitch via pileup (one via per GND pad at 0.5mm LGA/QFN pitch ->
+        # hole_to_hole). The first pad of a cluster drops a via (strategy 1);
+        # its neighbours join that via here.
+        for dq, qx, qy in via_cands:
+            if dq > 1.9:
+                break
+            if dq < 0.2:            # pad already sits on a via
+                done_r = True
+                break
+            if tk.joinpath("GND", (px, py), (qx, qy), 0.2) is not None:
+                fp_rescued += 1
+                done_r = True
+                break
+        # strategy 1: new via to the In1 GND plane near the pad, spaced off
+        # EVERY hole (via_site_ok ignores same-net holes -> would stack vias)
         for ring in (0.5, 0.7, 0.9, 1.2, 1.6, 2.0, 2.4, 2.8, 3.2):
+            if done_r:
+                break
             for ang in range(0, 360, 15):
                 x = round(px + ring*math.cos(math.radians(ang)), 2)
                 y = round(py + ring*math.sin(math.radians(ang)), 2)
+                if any(math.hypot(x-hx, y-hy) < hr + 0.15 + 0.31 for hx, hy, hr in HOLES):
+                    continue
                 if not tk.via_site_ok(x, y, gnd.GetNetCode(), size=0.45, drill=0.3):
                     continue
                 if tk.joinpath("GND", (px, py), (x, y), 0.15) is None:
                     continue
                 tk.add_via(x, y, gnd, size=0.45, drill=0.3)
+                HOLES.append((x, y, 0.15))
                 fp_rescued += 1
                 done_r = True
                 break

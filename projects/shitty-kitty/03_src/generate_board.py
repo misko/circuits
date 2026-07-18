@@ -344,10 +344,17 @@ def main():
     add_zone("GND", pcbnew.F_Cu, FULL, 0, minw=0.2, clr=0.15, full=True)
     add_zone("GND", pcbnew.B_Cu, FULL, 0, minw=0.2, clr=0.15)
     add_zone("GND", pcbnew.In1_Cu, FULL, 0, full=True)   # THE return plane
-    # In2 power pours (non-overlapping partition)
+    # In2 power pours (non-overlapping partition).
+    # VIN_12V uses a 0.6mm min-fill-thickness (vs 0.45 for the others): its
+    # top-LEFT convex corner sits mid-span on the top board edge (138,50) —
+    # a KiCad zone-fill quirk turns that specific corner into a sub-0.09mm
+    # connection_width sliver at 0.45 min thickness (3V3's top-left is the
+    # board corner (50,50) and is unaffected; VIN's top-RIGHT board corner is
+    # fine too). 0.6mm rounds the corner enough to clear it; verified 0
+    # unconnected, so no VIN stitch via is stranded by the coarser fill.
     add_zone("VIN_12V", pcbnew.In2_Cu,
              [(138, 50), (180, 50), (180, 125), (154, 125), (154, 96), (138, 96)],
-             2, minw=0.45, full=True)
+             2, minw=0.6, full=True)
     add_zone("5V", pcbnew.In2_Cu,
              [(108, 96), (154, 96), (154, 125), (108, 125)], 2, minw=0.45, full=True)
     add_zone("3V3", pcbnew.In2_Cu,
