@@ -23,8 +23,10 @@
     Next-spin remediation.
 - id: S-OCCL
   why: >-
-    22 schematic text occlusions, all the value-below-vs-next-ref stacking
-    pattern quantified by the new S-OCCL check (2026-07-17). Fix is the
-    proven one-line value-inside-body change from esp32-laser-timing's
-    generator (S-OCCL 28 -> 0 there); queued for this generator's next
-    touch. Occlusions are cosmetic (netlist label-based; ERC/parity 0).
+    34 schematic text occlusions measured with the LABEL-AWARE checker
+    (2026-07-17; an earlier label-blind count read 22): value-vs-ref
+    stacking PLUS facing/stacked label plates. Fix = port to the
+    schwriter2 layout engine (envelope-computed coordinates + chain
+    wires; esp32-laser-timing went 28+24 -> 0 by construction, released
+    v1.6). Queued as the next generator touch. Cosmetic: netlist is
+    label-based, ERC gated 0, parity 0.

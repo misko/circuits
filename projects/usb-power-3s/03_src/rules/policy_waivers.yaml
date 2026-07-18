@@ -47,8 +47,10 @@
     FUSE 15A, 5V 2.5A per USB-A, USB-C 3A) via the generator silk pass.
 - id: S-OCCL
   why: >-
-    52 schematic text occlusions (value-vs-ref stacking + long annotation
-    strings), quantified by the new S-OCCL check (2026-07-17). Same proven
-    fix as esp32-laser-timing (value-inside-body, 28 -> 0); queued for this
-    generator's next touch. Cosmetic: netlist is label-based, ERC now
-    gated at 0 errors, parity 0.
+    65 schematic text occlusions measured with the LABEL-AWARE checker
+    (2026-07-17; an earlier label-blind count read 52): value-vs-ref
+    stacking, long annotation strings, and facing/stacked label plates.
+    Fix = port to the schwriter2 layout engine (envelope-computed
+    coordinates + chain wires; esp32-laser-timing went to 0 by
+    construction, released v1.6). Queued as the next generator touch.
+    Cosmetic: netlist label-based, ERC gated 0, parity 0.
