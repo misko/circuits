@@ -64,10 +64,12 @@ for ref in ("J3", "J4"):
         fails.append(f"I2 {ref} pins must run west->east")
     if MM(jp["1"].y) - Y0 > 6.0:
         fails.append(f"I2 {ref} must hug the N edge (pin row at y={MM(jp['1'].y):.1f})")
-for ref, last in [("J5", "4"), ("J8", "6")]:
-    jp = pads_of(ref)
-    if not (jp["1"].y < jp[last].y and abs(jp["1"].x - jp[last].x) < 1000):
-        fails.append(f"I2 {ref} pins must run north->south")
+jp = pads_of("J5")
+if not (jp["1"].y < jp["4"].y and abs(jp["1"].x - jp["4"].x) < 1000):
+    fails.append("I2 J5 pins must run north->south")
+jp = pads_of("J8")
+if not (jp["1"].x < jp["6"].x and abs(jp["1"].y - jp["6"].y) < 1000):
+    fails.append("I2 J8 pins must run west->east")
 
 # I3 antenna guard strip (south): module x-span, from pad row down to edge
 u1 = b.FindFootprintByReference("U1")

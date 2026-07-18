@@ -6,6 +6,10 @@ and the barrel-jack hole cluster. KRT routes F.Cu/B.Cu only; In1 (GND
 plane) and In2 (power pours) stay track-free.
 
 Run: /usr/bin/python3 03_src/route_prep.py, then 03_src/route_waves.sh."""
+import json
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 import pcbnew
 
@@ -49,4 +53,15 @@ ax1 = max(p1["1"].x, p1["40"].x) / 1e6 + 1.0
 keepout_rect(ax0, p1["1"].y / 1e6 + 0.9, ax1, 125.0)
 
 b.Save(str(OUT))
-print(f"wrote {OUT} (keepouts on User.2, zones unfilled)")
+
+# canon R1: the ROUTE-INPUT project file must carry the netclasses so KRT
+# routes against the real floors, not Default. Run generate_rules against
+# 04_kicad, then copy the .kicad_pro/.kicad_dru beside r0.
+subprocess.run([sys.executable, str(HERE / "generate_rules.py")], check=True)
+for ext in (".kicad_pro", ".kicad_dru"):
+    shutil.copy(HERE.parent / "04_kicad" / ("shitty_kitty" + ext),
+                OUT.with_name("r0" + ext))
+pro = json.loads(OUT.with_name("r0.kicad_pro").read_text())
+classes = [c["name"] for c in pro["net_settings"]["classes"]]
+assert set(classes) >= {"PWR12", "MOTOR", "ELEC"}, classes
+print(f"wrote {OUT} (keepouts on User.2, zones unfilled); route-input rules: {classes}")

@@ -10,6 +10,7 @@ TMC2209 -> motor XH on the east edge. Missing footprint = HARD ERROR.
 
 Run with KiCad-bundled python: /usr/bin/python3 03_src/generate_board.py
 """
+import json
 import math
 import re
 import sys
@@ -62,7 +63,7 @@ def load_fp(fpid):
 # ------------------------------------------------------------- floorplan
 ANCHOR = {
     # north edge: electrode headers (pin1 west, row horizontal) + MPR121s
-    "J3": (58.0, 54.5, 270), "J4": (100.0, 54.5, 270),
+    "J3": (58.0, 54.5, 90), "J4": (100.0, 54.5, 90),
     "U3": (64.0, 63.5, 0), "U4": (79.0, 63.5, 0),
     "U5": (106.0, 63.5, 0), "U6": (121.0, 63.5, 0),
     # per-chip support (legalizer may nudge)
@@ -77,7 +78,7 @@ ANCHOR = {
     "J2": (54.2, 95.0, 270), "D1": (64.0, 88.0, 0),
     "R4": (62.0, 99.5, 0), "R5": (62.0, 102.0, 0), "C8": (62.0, 104.5, 0),
     # ESP32: antenna overhangs SOUTH edge (rot 180)
-    "U1": (95.0, 118.5, 180),
+    "U1": (95.0, 119.1, 180),
     "C9": (107.5, 106.0, 90), "C10": (107.5, 110.0, 90),
     "R6": (76.0, 104.0, 0), "C11": (76.0, 107.0, 0),
     "SW2": (70.0, 96.0, 0), "SW1": (70.0, 112.0, 0),
@@ -98,10 +99,10 @@ ANCHOR = {
     "C12": (166.5, 108.0, 0), "C26": (153.5, 108.0, 0), "C13": (153.5, 111.0, 0),
     "C16": (153.5, 114.0, 0), "R8": (153.5, 117.0, 0), "R9": (157.0, 117.0, 90),
     "R30": (160.5, 96.0, 0), "R31": (160.5, 110.5, 0),
-    "J5": (176.0, 103.0, 90), "J6": (176.0, 116.5, 90),
+    "J5": (176.0, 98.0, 270), "J6": (176.0, 116.5, 90),
     "R10": (166.5, 111.5, 0), "C17": (166.5, 114.5, 0), "R11": (166.5, 117.5, 0),
     # host header south edge (east of module antenna span)
-    "J8": (118.0, 121.0, 270),
+    "J8": (113.0, 121.0, 90),
 }
 MOUNT = [(55.5, 55.5), (174.5, 55.5), (55.5, 119.5), (174.5, 119.5)]
 
@@ -121,7 +122,9 @@ SILK = [
     ("B1", 172.6, 104.3, 0.7), ("B2", 172.6, 106.8, 0.7),
     ("ENDSTOP", 170.0, 111.5, 0.9), ("SIG", 171.5, 114.8, 0.65), ("GND", 171.5, 118.3, 0.65),
     # host header pins (vertical column at x=118, pin1 y=121? see anchor rot)
-    ("HOST UART+5V", 121.5, 113.5, 0.9), ("5V MAX 1.5A", 121.5, 115.2, 0.7),
+    ("HOST UART+5V", 119.5, 116.2, 0.9), ("5V MAX 1.5A", 119.5, 117.9, 0.7),
+    ("5V", 113.0, 119.3, 0.55), ("5V", 115.5, 119.3, 0.55), ("G", 118.1, 119.3, 0.55),
+    ("G", 120.6, 119.3, 0.55), ("TX", 123.2, 119.3, 0.55), ("RX", 125.7, 119.3, 0.55),
     # usb
     ("USB-C DATA ONLY", 57.0, 87.5, 0.7), ("POWER FROM 12V", 57.0, 89.0, 0.7),
     ("RESET", 70.0, 92.2, 0.8), ("BOOT", 70.0, 108.2, 0.8),
@@ -211,8 +214,8 @@ def main():
     if not (j5["1"].y < j5["4"].y and abs(j5["1"].x - j5["4"].x) < 1000):
         raise RuntimeError("J5 pins must run north->south")
     j8 = pads_of("J8")
-    if not (j8["1"].y < j8["6"].y and abs(j8["1"].x - j8["6"].x) < 1000):
-        raise RuntimeError("J8 pins must run north->south")
+    if not (j8["1"].x < j8["6"].x and abs(j8["1"].y - j8["6"].y) < 1000):
+        raise RuntimeError("J8 pins must run west->east")
     # USB-C opening W
     vx, vy = centv("J2")
     if vx >= 0:
@@ -355,11 +358,69 @@ def main():
         t.SetTextThickness(pcbnew.FromMM(max(0.13, size * 0.16)))
         board.Add(t)
 
+    # ---------------- refdes on F.SilkS, de-collided (canon P4 / audit I10)
+    MMf = pcbnew.ToMM
+    TH = 0.6
+    THK = 0.12
+    CLR = 0.16
+    def tbox(bb, pad=0.0):
+        return (MMf(bb.GetLeft()) - pad, MMf(bb.GetTop()) - pad,
+                MMf(bb.GetRight()) + pad, MMf(bb.GetBottom()) + pad)
+    def hit(a, bx):
+        return not (a[2] < bx[0] or bx[2] < a[0] or a[3] < bx[1] or bx[3] < a[1])
+    pad_obst, silk_obst = [], []
     for fp in board.GetFootprints():
+        for p in fp.Pads():
+            pad_obst.append(tbox(p.GetBoundingBox(), CLR))
+        for g in fp.GraphicalItems():
+            if g.IsOnLayer(pcbnew.F_SilkS):
+                silk_obst.append(tbox(g.GetBoundingBox(), CLR * 0.5))
+    for t in board.GetDrawings():
+        if t.GetClass() == "PCB_TEXT" and t.IsOnLayer(pcbnew.F_SilkS):
+            silk_obst.append(tbox(t.GetBoundingBox(), CLR * 0.5))
+    OFF = [(0, o * s2) for o in (1.0, 1.6, 2.2, 2.9, 3.6) for s2 in (-1, 1)] + \
+          [(o * s2, 0) for o in (1.3, 2.0, 2.8, 3.6) for s2 in (-1, 1)] + \
+          [(dx, dy) for d in (1.4, 2.2, 3.0) for dx in (-d, d) for dy in (-d, d)]
+    waived = []
+    def prio(fp):
+        r = fp.GetReference()
+        return (0 if r[0] in "UJQDFL" or r.startswith("SW") else 1, r)
+    for fp in sorted(board.GetFootprints(), key=prio):
+        r = fp.GetReference()
         ref = fp.Reference()
-        ref.SetLayer(pcbnew.F_Fab)
-        ref.SetTextSize(pcbnew.VECTOR2I_MM(0.5, 0.5))
-        ref.SetTextThickness(int(0.08e6))
+        ref.SetTextSize(pcbnew.VECTOR2I_MM(TH, TH))
+        ref.SetTextThickness(int(THK * 1e6))
+        fab = pcbnew.PCB_TEXT(board)
+        fab.SetText(r); fab.SetLayer(pcbnew.F_Fab)
+        fab.SetPosition(fp.GetPosition())
+        fab.SetTextSize(pcbnew.VECTOR2I_MM(0.5, 0.5))
+        fab.SetTextThickness(int(0.08e6))
+        board.Add(fab)
+        if r.startswith("H"):
+            continue
+        ref.SetLayer(pcbnew.F_SilkS)
+        ref.SetVisible(True)
+        fx, fy = MMf(fp.GetPosition().x), MMf(fp.GetPosition().y)
+        placed_ok = False
+        for dx, dy in OFF:
+            ref.SetPosition(pcbnew.VECTOR2I_MM(fx + dx, fy + dy))
+            cand = tbox(ref.GetBoundingBox())
+            if not (X0 + 0.2 < cand[0] and cand[2] < X1 - 0.2
+                    and Y0 + 0.2 < cand[1] and cand[3] < Y1 - 0.2):
+                continue
+            if any(hit(cand, o) for o in pad_obst):
+                continue
+            if any(hit(cand, o) for o in silk_obst):
+                continue
+            silk_obst.append(cand)
+            placed_ok = True
+            break
+        if not placed_ok:
+            ref.SetVisible(False)
+            waived.append(r)
+    (HERE.parent / "06_build").mkdir(exist_ok=True)
+    (HERE.parent / "06_build" / "refdes_waiver.json").write_text(json.dumps(sorted(waived)))
+    print(f"refdes on silk: {placed - len(waived)}/{placed} placed, {len(waived)} waived: {sorted(waived)}")
     board.Save(str(PCB))
     print(f"placed {placed} footprints + {len(MOUNT)} holes; zones; silk; saved {PCB.name}")
 
