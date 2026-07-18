@@ -1,0 +1,3 @@
+I8 electrode stubs: 24 routed, max 22.7mm
+pads audited across 78 footprints
+AUDIT: PASS (0 fails, 0 warns)

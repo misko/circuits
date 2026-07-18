@@ -1,2 +1,4 @@
 __pycache__/
 *.pyc
+.easyeda_cache/
+projects/*/.easyeda_cache/

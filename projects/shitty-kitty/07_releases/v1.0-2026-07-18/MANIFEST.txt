@@ -1,0 +1,30 @@
+board:        shitty-kitty (cat-litter toilet-lid controller PCB)
+version:      v1.0
+ordered:      2026-07-18
+git_sha:      326aba3                 # EXACT commit the fab files were exported from
+git_dirty:    false                   # source (03_src/04_kicad/06_build) clean at export
+kicad:        10.0.4
+tools:        python 3.12; KRT not invoked (route chain committed at 03_src/route/r5.kicad_pcb, imported by rebuild_all.sh)
+fab:          JLCPCB, 4 layer, 130.2 x 75.2 mm. Min via 0.45/0.30 mm, min trace/space ~0.09 mm — JLC 4L standard tier, NO advanced small-via option required.
+quantity:     5 (prototype, Goal 1a)
+assembly:     top-side SMT, 27 coded lines / 72 placements; 6 THT connectors hand-soldered (see not_assembled)
+gates:        DRC 0/0/0 (severity-all, refill-zones, schematic-parity) · audit PASS · policy_audit FULL zero-FAIL · stock 27/27 coded verified >=5x qty · jlc_twin exit 0 (14 criticals adjudicated w/ evidence) · pin review PASS (5 fresh-context agents, 0 FAIL, no mirrors) · render review PASS-WITH-NOTES
+
+sha256:
+  shitty_kitty_gerbers.zip  e8f168562ae2e24ad1f4bb1e0993f28cd38e91fbc9dc4bfa16d7ac63e92a46b6
+  bom.csv                   aed8d34b2a2455519a66c4865dc1f84ac8f546d57cb34f7edc64c572e9c4151e
+  cpl.csv                   dc695378302dfcfd06b3434e6672f61d770f425af108329849e5a514fc6d68aa
+
+not_assembled: J1 (DC-005C-20A barrel jack, C84007) · J3,J4 (KH-2.54PH180-1X13P electrode headers, C2932703) · J5 (B4B-XH-A JST-XH motor, C144395) · J6 (KF128L-3.5-2P endstop screw terminal, C98221) · J8 (KH-2.54PH180-1X6P host header) — all THT, hand-soldered (decision D6/D7)
+
+verification/ (evidence, all gates PASSED):
+  drc.json              0 violations / 0 unconnected / 0 parity
+  audit.txt             placement/pad invariants PASS
+  erc.json              0 ERC errors
+  policy_audit.md       FULL mode zero FAIL (PASS=18, HUMAN=6 satisfied by reviews, N-A=2)
+  stock_check.csv       live JLC stock+price 2026-07-18, all coded lines >=5x qty
+  twin_report.csv       jlc_twin: 54 OK, all PAD-GEOM/MISMATCH/MIRROR criticals adjudicated
+  twin_adjudications.yaml   14 evidenced adjudications
+  twin_{top,bottom,iso_nw,iso_se,edge_west,edge_east}.png   JLC part bodies on our board
+  pin_review.md         5 fresh-context agents, every active part PASS
+  render_review.md      fresh-context visual review, PASS-WITH-NOTES
