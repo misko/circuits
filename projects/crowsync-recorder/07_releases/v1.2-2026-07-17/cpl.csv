@@ -1,0 +1,52 @@
+Designator,Val,Package,Mid X,Mid Y,Layer,Rotation
+C1,10u VCCCI,C_0603_1608Metric,71.1,-65.8,top,90.0
+C10,1u VINR couple,C_0603_1608Metric,101.0,-88.0,top,0.0
+C11,1u VBUS pin,C_0603_1608Metric,71.5,-55.0,top,0.0
+C12,10u 5V bulk,C_0603_1608Metric,58.0,-60.1,top,90.0
+C13,100n 5V,C_0603_1608Metric,61.0,-60.1,top,90.0
+C14,1u LDO in,C_0603_1608Metric,62.5,-84.0,top,90.0
+C15,10u 3V3A,C_0603_1608Metric,72.0,-84.0,top,90.0
+C16,100n 3V3A U2,C_0603_1608Metric,101.4,-75.5,top,0.0
+C17,10u bias res,C_0603_1608Metric,95.5,-63.0,top,0.0
+C18,100n bias,C_0603_1608Metric,96.0,-66.0,top,0.0
+C19,1u mic couple,C_0603_1608Metric,103.0,-79.0,top,90.0
+C2,10u VCOM,C_0603_1608Metric,72.5,-76.0,top,0.0
+C20,10u Cg (15.9Hz),C_0603_1608Metric,95.0,-86.5,top,0.0
+C21,1n RF stop,C_0603_1608Metric,87.0,-76.5,top,0.0
+C3,1u VDDI,C_0603_1608Metric,83.0,-59.5,top,0.0
+C4,1u VCCXI,C_0603_1608Metric,83.5,-65.0,top,90.0
+C5,33p XTI,C_0603_1608Metric,89.0,-62.5,top,0.0
+C6,33p XTO,C_0603_1608Metric,89.0,-70.0,top,0.0
+C7,1u VCCP2I,C_0603_1608Metric,83.0,-69.5,top,90.0
+C8,1u VCCP1I,C_0603_1608Metric,86.0,-72.5,top,0.0
+C9,1u VINL couple,C_0603_1608Metric,80.5,-76.0,top,0.0
+D1,USBLC6-2SC6 USB,SOT-23-6,60.5,-64.0,top,270.0
+D2,USBLC6-2SC6 harness,SOT-23-6,104.5,-70.5,top,270.0
+D3,green ACT,LED_0805_2012Metric,87.5,-56.5,top,0.0
+D4,green PWR,LED_0805_2012Metric,59.0,-88.0,top,0.0
+FB1,600R@100MHz bias,L_0603_1608Metric,95.5,-60.0,top,0.0
+J1,USB4105-GF-A,USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal,53.2,-71.0,top,270.0
+J2,JST-GH mic,JST_GH_SM03B-GHS-TB_1x03-1MP_P1.25mm_Horizontal,111.3,-62.0,top,270.0
+J3,JST-GH PPS,JST_GH_SM02B-GHS-TB_1x02-1MP_P1.25mm_Horizontal,111.3,-80.0,top,270.0
+R1,22R D+ series,R_0603_1608Metric,68.5,-60.5,top,0.0
+R10,100k bias->VCOM,R_0603_1608Metric,102.0,-84.0,top,90.0
+R11,3k01 Rf (gain 4.0),R_0603_1608Metric,92.0,-79.0,top,90.0
+R12,1k Rg,R_0603_1608Metric,92.0,-84.0,top,90.0
+R13,100R amp out,R_0603_1608Metric,91.0,-74.5,top,0.0
+R14,100R PPS series,R_0603_1608Metric,105.0,-84.0,top,0.0
+R15,22k div top,R_0603_1608Metric,105.0,-86.5,top,0.0
+R16,10k div bottom,R_0603_1608Metric,106.8,-89.5,top,90.0
+R17,1k LED SSPND,R_0603_1608Metric,83.0,-56.5,top,0.0
+R18,2k2 LED 5V,R_0603_1608Metric,59.0,-85.0,top,0.0
+R2,22R D- series,R_0603_1608Metric,68.5,-63.0,top,0.0
+R3,1k5 D+ pullup (VDDI),R_0603_1608Metric,68.5,-58.0,top,0.0
+R4,5k1 Rd CC1 (UFP),R_0603_1608Metric,58.5,-79.5,top,0.0
+R5,5k1 Rd CC2 (UFP),R_0603_1608Metric,58.5,-82.0,top,0.0
+R6,1M XTI-XTO,R_0603_1608Metric,93.0,-66.5,top,90.0
+R7,2R2 VBUS filter,R_0603_1608Metric,67.0,-55.0,top,0.0
+R8,2k2 mic bias,R_0603_1608Metric,100.5,-63.0,top,0.0
+R9,100R mic series,R_0603_1608Metric,105.5,-65.5,top,0.0
+U1,PCM2900CDBR,SSOP-28_5.3x10.2mm_P0.65mm,77.0,-67.5,top,270.0
+U2,TLV9062IDR,SOIC-8_3.9x4.9mm_P1.27mm,97.0,-79.5,top,270.0
+U3,TPS7A2033PDBVR,SOT-23-5,67.5,-84.5,top,270.0
+Y1,12MHz 3225 20pF,Crystal_SMD_3225-4Pin_3.2x2.5mm,89.0,-66.5,top,0.0
