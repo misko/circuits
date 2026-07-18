@@ -1,0 +1,183 @@
+LCSC,Ref,Status,Detail
+C25741,R4,OK,fit=0.08mm jlc_offset=0 db=0.0
+C131394,C1,OK,fit=0.06mm jlc_offset=0 db=0.0
+C131394,C15,OK,fit=0.06mm jlc_offset=0 db=0.0
+C131394,C2,OK,fit=0.06mm jlc_offset=0 db=0.0
+C131394,C20,OK,fit=0.06mm jlc_offset=0 db=0.0
+C131394,C21,OK,fit=0.06mm jlc_offset=0 db=0.0
+C131394,C22,OK,fit=0.06mm jlc_offset=0 db=0.0
+C131394,CA3,OK,fit=0.06mm jlc_offset=0 db=0.0
+C131394,CB3,OK,fit=0.06mm jlc_offset=0 db=0.0
+C454289,CE1,ROT-DB-SUGGEST,"fit=0.35mm jlc_offset=0 db=180.0 -> add: CP_Elec_8x10,0"
+C60490,R19,OK,fit=0.08mm jlc_offset=0 db=0.0
+C60490,R20,OK,fit=0.08mm jlc_offset=0 db=0.0
+C77102,CA51,OK,fit=0.05mm jlc_offset=0 db=0.0
+C77102,CA52,OK,fit=0.05mm jlc_offset=0 db=0.0
+C77102,CA53,OK,fit=0.05mm jlc_offset=0 db=0.0
+C77102,CB51,OK,fit=0.05mm jlc_offset=0 db=0.0
+C77102,CB52,OK,fit=0.05mm jlc_offset=0 db=0.0
+C77102,CB53,OK,fit=0.05mm jlc_offset=0 db=0.0
+C25754,RA5,OK,fit=0.08mm jlc_offset=0 db=0.0
+C25754,RB5,OK,fit=0.08mm jlc_offset=0 db=0.0
+C207061,F1,PAD-MISMATCH,best=none
+C226807,R34,OK,fit=0.08mm jlc_offset=0 db=0.0
+C226807,R5,OK,fit=0.08mm jlc_offset=0 db=0.0
+C226807,RA1,OK,fit=0.08mm jlc_offset=0 db=0.0
+C226807,RB1,OK,fit=0.08mm jlc_offset=0 db=0.0
+C1549,CA4,OK,fit=0.06mm jlc_offset=0 db=0.0
+C1549,CB4,OK,fit=0.06mm jlc_offset=0 db=0.0
+C11702,R22,OK,fit=0.08mm jlc_offset=0 db=0.0
+C11702,R23,OK,fit=0.08mm jlc_offset=0 db=0.0
+C107021,CA10,OK,fit=0.06mm jlc_offset=0 db=0.0
+C107021,CB10,OK,fit=0.06mm jlc_offset=0 db=0.0
+C25765,R21,OK,fit=0.08mm jlc_offset=0 db=0.0
+C25765,R33,OK,fit=0.08mm jlc_offset=0 db=0.0
+C25765,RA3,OK,fit=0.08mm jlc_offset=0 db=0.0
+C25765,RB3,OK,fit=0.08mm jlc_offset=0 db=0.0
+C128504,CA7,ROT-DB-SUGGEST,"fit=0.13mm jlc_offset=0 db=180.0 -> add: CP_Elec_6.3x5.9,0"
+C128504,CB7,ROT-DB-SUGGEST,"fit=0.13mm jlc_offset=0 db=180.0 -> add: CP_Elec_6.3x5.9,0"
+C12891,C30,OK,fit=0.12mm jlc_offset=0 db=0.0
+C12891,C31,OK,fit=0.12mm jlc_offset=0 db=0.0
+C12891,C32,OK,fit=0.12mm jlc_offset=0 db=0.0
+C12891,C33,OK,fit=0.12mm jlc_offset=0 db=0.0
+C12891,C34,OK,fit=0.12mm jlc_offset=0 db=0.0
+C276264,R16,OK,fit=0.08mm jlc_offset=0 db=0.0
+C276264,R17,OK,fit=0.08mm jlc_offset=0 db=0.0
+C276264,R18,OK,fit=0.08mm jlc_offset=0 db=0.0
+C23630,C16,OK,fit=0.08mm jlc_offset=0 db=0.0
+C23630,CA2,OK,fit=0.08mm jlc_offset=0 db=0.0
+C23630,CB2,OK,fit=0.08mm jlc_offset=0 db=0.0
+C852731,RA2,OK,fit=0.08mm jlc_offset=0 db=0.0
+C106223,CA9,OK,fit=0.06mm jlc_offset=0 db=0.0
+C106223,CB9,OK,fit=0.06mm jlc_offset=0 db=0.0
+C15172,RA4,OK,fit=0.08mm jlc_offset=0 db=0.0
+C15172,RB4,OK,fit=0.08mm jlc_offset=0 db=0.0
+C137981,RB2,OK,fit=0.08mm jlc_offset=0 db=0.0
+C82219,C3,OK,fit=0.06mm jlc_offset=0 db=0.0
+C82219,CA1,OK,fit=0.06mm jlc_offset=0 db=0.0
+C82219,CB1,OK,fit=0.06mm jlc_offset=0 db=0.0
+C84494,CA61,OK,fit=0.05mm jlc_offset=0 db=0.0
+C84494,CA62,OK,fit=0.05mm jlc_offset=0 db=0.0
+C84494,CA63,OK,fit=0.05mm jlc_offset=0 db=0.0
+C84494,CA64,OK,fit=0.05mm jlc_offset=0 db=0.0
+C84494,CB61,OK,fit=0.05mm jlc_offset=0 db=0.0
+C84494,CB62,OK,fit=0.05mm jlc_offset=0 db=0.0
+C84494,CB63,OK,fit=0.05mm jlc_offset=0 db=0.0
+C84494,CB64,OK,fit=0.05mm jlc_offset=0 db=0.0
+C60154,RA6,OK,fit=0.08mm jlc_offset=0 db=0.0
+C60154,RB6,OK,fit=0.08mm jlc_offset=0 db=0.0
+C26982,R2,OK,fit=0.08mm jlc_offset=0 db=0.0
+C453769,R3,OK,fit=0.08mm jlc_offset=0 db=0.0
+C409935,R1,OK,fit=0.08mm jlc_offset=0 db=0.0
+C45186,CA8,OK,fit=0.06mm jlc_offset=0 db=0.0
+C45186,CB8,OK,fit=0.06mm jlc_offset=0 db=0.0
+C840100,Q1,PAD-MISMATCH,"best=(1.236938155285051, False, 90)"
+C840100,Q2,PAD-MISMATCH,"best=(1.236938155285051, False, 90)"
+C840100,QA1,PAD-MISMATCH,"best=(1.236938155285051, False, 90)"
+C840100,QA2,PAD-MISMATCH,"best=(1.236938155285051, False, 90)"
+C840100,QB1,PAD-MISMATCH,"best=(1.236938155285051, False, 90)"
+C840100,QB2,PAD-MISMATCH,"best=(1.236938155285051, False, 90)"
+C485912,U2,OK,fit=0.40mm jlc_offset=270 db=270.0
+C485912,U3,OK,fit=0.40mm jlc_offset=270 db=270.0
+C3215600,U1,ROT-DB-SUGGEST,"fit=0.02mm jlc_offset=0 db=270.0 -> add: WSON-12_3x3_P0.5_LM74800DRR,0"
+C17700181,"LA1,LB1",NO-CAD,['[ERROR] Failed to fetch data from EasyEDA API for part C17700181']
+C353386,D1,OK,fit=0.21mm jlc_offset=0 db=0.0
+C113974,D2,OK,fit=0.21mm jlc_offset=0 db=0.0
+C113974,D3,OK,fit=0.21mm jlc_offset=0 db=0.0
+C130056,U4,ROT-DB-SUGGEST,"fit=0.05mm jlc_offset=90 db=270.0 -> add: VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm,90"
+C130056,U5,ROT-DB-SUGGEST,"fit=0.05mm jlc_offset=90 db=270.0 -> add: VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm,90"
+C130056,U6,ROT-DB-SUGGEST,"fit=0.05mm jlc_offset=90 db=270.0 -> add: VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm,90"
+C3020560,J5,OK,fit=0.15mm jlc_offset=0 db=0.0
+C98732,J1,ROT-DB-SUGGEST,"fit=0.00mm jlc_offset=90 db=0.0 -> add: XT60PW-M_EdgeTrim,90"
+C2297,D4,ROT-DB-SUGGEST,"fit=0.11mm jlc_offset=180 db=0.0 -> add: LED_0805_2012Metric,180"
+C2297,D5,ROT-DB-SUGGEST,"fit=0.11mm jlc_offset=180 db=0.0 -> add: LED_0805_2012Metric,180"
+C25741,R4,MODEL-REG-OK,body on courtyard (0.00mm)
+C131394,C1,MODEL-REG-OK,body on courtyard (0.00mm)
+C131394,C15,MODEL-REG-OK,body on courtyard (0.00mm)
+C131394,C2,MODEL-REG-OK,body on courtyard (0.00mm)
+C131394,C20,MODEL-REG-OK,body on courtyard (0.00mm)
+C131394,C21,MODEL-REG-OK,body on courtyard (0.00mm)
+C131394,C22,MODEL-REG-OK,body on courtyard (0.00mm)
+C131394,CA3,MODEL-REG-OK,body on courtyard (0.00mm)
+C131394,CB3,MODEL-REG-OK,body on courtyard (0.00mm)
+C454289,CE1,MODEL-REG-OK,body on courtyard (0.00mm)
+C60490,R19,MODEL-REG-OK,body on courtyard (0.00mm)
+C60490,R20,MODEL-REG-OK,body on courtyard (0.00mm)
+C77102,CA51,MODEL-REG-OK,body on courtyard (0.00mm)
+C77102,CA52,MODEL-REG-OK,body on courtyard (0.00mm)
+C77102,CA53,MODEL-REG-OK,body on courtyard (0.00mm)
+C77102,CB51,MODEL-REG-OK,body on courtyard (0.00mm)
+C77102,CB52,MODEL-REG-OK,body on courtyard (0.00mm)
+C77102,CB53,MODEL-REG-OK,body on courtyard (0.00mm)
+C25754,RA5,MODEL-REG-OK,body on courtyard (0.00mm)
+C25754,RB5,MODEL-REG-OK,body on courtyard (0.00mm)
+C226807,R34,MODEL-REG-OK,body on courtyard (0.00mm)
+C226807,R5,MODEL-REG-OK,body on courtyard (0.00mm)
+C226807,RA1,MODEL-REG-OK,body on courtyard (0.00mm)
+C226807,RB1,MODEL-REG-OK,body on courtyard (0.00mm)
+C1549,CA4,MODEL-REG-OK,body on courtyard (0.00mm)
+C1549,CB4,MODEL-REG-OK,body on courtyard (0.00mm)
+C11702,R22,MODEL-REG-OK,body on courtyard (0.00mm)
+C11702,R23,MODEL-REG-OK,body on courtyard (0.00mm)
+C107021,CA10,MODEL-REG-OK,body on courtyard (0.00mm)
+C107021,CB10,MODEL-REG-OK,body on courtyard (0.00mm)
+C25765,R21,MODEL-REG-OK,body on courtyard (0.00mm)
+C25765,R33,MODEL-REG-OK,body on courtyard (0.00mm)
+C25765,RA3,MODEL-REG-OK,body on courtyard (0.00mm)
+C25765,RB3,MODEL-REG-OK,body on courtyard (0.00mm)
+C128504,CA7,MODEL-REG-OK,body on courtyard (0.00mm)
+C128504,CB7,MODEL-REG-OK,body on courtyard (0.00mm)
+C12891,C30,MODEL-REG-OK,body on courtyard (0.00mm)
+C12891,C31,MODEL-REG-OK,body on courtyard (0.00mm)
+C12891,C32,MODEL-REG-OK,body on courtyard (0.00mm)
+C12891,C33,MODEL-REG-OK,body on courtyard (0.00mm)
+C12891,C34,MODEL-REG-OK,body on courtyard (0.00mm)
+C276264,R16,MODEL-REG-OK,body on courtyard (0.00mm)
+C276264,R17,MODEL-REG-OK,body on courtyard (0.00mm)
+C276264,R18,MODEL-REG-OK,body on courtyard (0.00mm)
+C23630,C16,MODEL-REG-OK,body on courtyard (0.00mm)
+C23630,CA2,MODEL-REG-OK,body on courtyard (0.00mm)
+C23630,CB2,MODEL-REG-OK,body on courtyard (0.00mm)
+C852731,RA2,MODEL-REG-OK,body on courtyard (0.00mm)
+C106223,CA9,MODEL-REG-OK,body on courtyard (0.00mm)
+C106223,CB9,MODEL-REG-OK,body on courtyard (0.00mm)
+C15172,RA4,MODEL-REG-OK,body on courtyard (0.00mm)
+C15172,RB4,MODEL-REG-OK,body on courtyard (0.00mm)
+C137981,RB2,MODEL-REG-OK,body on courtyard (0.00mm)
+C82219,C3,MODEL-REG-OK,body on courtyard (0.00mm)
+C82219,CA1,MODEL-REG-OK,body on courtyard (0.00mm)
+C82219,CB1,MODEL-REG-OK,body on courtyard (0.00mm)
+C84494,CA61,MODEL-REG-OK,body on courtyard (0.00mm)
+C84494,CA62,MODEL-REG-OK,body on courtyard (0.00mm)
+C84494,CA63,MODEL-REG-OK,body on courtyard (0.00mm)
+C84494,CA64,MODEL-REG-OK,body on courtyard (0.00mm)
+C84494,CB61,MODEL-REG-OK,body on courtyard (0.00mm)
+C84494,CB62,MODEL-REG-OK,body on courtyard (0.00mm)
+C84494,CB63,MODEL-REG-OK,body on courtyard (0.00mm)
+C84494,CB64,MODEL-REG-OK,body on courtyard (0.00mm)
+C60154,RA6,MODEL-REG-OK,body on courtyard (0.00mm)
+C60154,RB6,MODEL-REG-OK,body on courtyard (0.00mm)
+C26982,R2,MODEL-REG-OK,body on courtyard (0.00mm)
+C453769,R3,MODEL-REG-OK,body on courtyard (0.00mm)
+C409935,R1,MODEL-REG-OK,body on courtyard (0.00mm)
+C45186,CA8,MODEL-REG-OK,body on courtyard (0.00mm)
+C45186,CB8,MODEL-REG-OK,body on courtyard (0.00mm)
+C840100,Q1,MODEL-REG-OK,body on courtyard (0.33mm)
+C840100,Q2,MODEL-REG-OK,body on courtyard (0.33mm)
+C840100,QA1,MODEL-REG-OK,body on courtyard (0.33mm)
+C840100,QA2,MODEL-REG-OK,body on courtyard (0.33mm)
+C840100,QB1,MODEL-REG-OK,body on courtyard (0.33mm)
+C840100,QB2,MODEL-REG-OK,body on courtyard (0.33mm)
+C485912,U2,MODEL-REG-OK,body on courtyard (0.00mm)
+C485912,U3,MODEL-REG-OK,body on courtyard (0.00mm)
+C3215600,U1,MODEL-REG-OK,body on courtyard (0.00mm)
+C353386,D1,MODEL-REG-OK,body on courtyard (0.00mm)
+C113974,D2,MODEL-REG-OK,body on courtyard (0.00mm)
+C113974,D3,MODEL-REG-OK,body on courtyard (0.00mm)
+C130056,U4,MODEL-REG-OK,body on courtyard (0.00mm)
+C130056,U5,MODEL-REG-OK,body on courtyard (0.00mm)
+C130056,U6,MODEL-REG-OK,body on courtyard (0.00mm)
+C3020560,J5,MODEL-REG-OK,body on courtyard (0.13mm)
+C98732,J1,MODEL-REG-OK,body on courtyard (0.05mm)
+C2297,D4,MODEL-REG-OK,body on courtyard (0.00mm)
+C2297,D5,MODEL-REG-OK,body on courtyard (0.00mm)
