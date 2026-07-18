@@ -48,7 +48,9 @@ hard-won traps; this skill is the orchestration layer only.
 ## 4-6. Generate, place, route — all regenerable from 03_src
 
 Build `03_src/` generators + `rebuild_all.sh` (set -euo pipefail) in the
-canonical order: generate_schematic (with no_connect flags for every
+canonical order. Schematics are AUTHORED as schwriter2 declarations
+(structure-only; prefer the path/subcircuit/net-object API where
+available — canon S-DSL): generate_schematic (with no_connect flags for every
 sanctioned float; wire the story-critical paths per canon S6) →
 **ERC gate** (`kicad-cli sch erc --severity-all` = 0 errors) →
 netlist-parity gate → generate_board (placement) → audit gate (polarity,

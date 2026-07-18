@@ -58,6 +58,8 @@ agent per review protocol · [G] = existing pipeline gate it rides on.
 | M5 | Immutable releases with provenance: EXACT git_sha (hex, exists), git_dirty false, sha256 table verifies, CHANGELOG entry names the dir, SUPERSEDED.md chains closed, fix-claims carry falsifiable evidence IN verification/ | [M] M-REL | "git_sha: HEAD@release"; stale CHANGELOG; a fix-claim verified only by its own author's method |
 | M6 | The authoritative source wins over the derived metric: JLC's footprint model rotation > bbox arithmetic; datasheet figure > symbol library; fab capability page > IPC defaults | [H] encoded in adjudication protocols | the USB-C flip saga: chasing the bbox metric against JLC's own spec, twice |
 
+| S-DSL | Circuit declarations COMPILE TO NATIVE KiCad artifacts; every gate runs on artifacts, never on a DSL's claims about them. Front-ends may vary (schwriter2 declarations, future adapters); .kicad_sch/.kicad_pcb + the gate stack are fixed | [G] structural | evaluated CircuitScript 2026-07-18: netlist-only KiCad export would break ERC/parity/S-OCCL at their strongest link |
+
 ## Running the audit
 
 ```

@@ -275,6 +275,27 @@ verification/pin_review.md; any FAIL blocks the order.
   twice). One `set -euo pipefail` rebuild script; every failing checker
   exits BEFORE saving.
 
+## Circuit-as-code landscape + adoption policy (2026-07-18)
+
+Boards-as-code tools: CircuitScript (Python-ish DSL, SVG schematics, KiCad
+NETLIST export, MIT, young), google/pcbdl, tscircuit (React), SKiDL,
+atopile, JITX. Our position: the LAYERING RULE (canon S-DSL) — declaration
+ergonomics may evolve; native artifacts + gates never move. We do NOT
+adopt external DSLs into the gate chain: CircuitScript's netlist-only
+export would disconnect ERC, schematic-parity, and S-OCCL (all keyed to
+native .kicad_sch), replacing our least-problematic layer while breaking
+the most valuable ones; young single-maintainer projects also lack our
+incident-hardened invariants (one-label-per-wire, T-junction spans,
+envelope collision-freedom). What we DO take: API ergonomics into
+schwriter2 — path syntax for series chains, first-class parameterized
+Subcircuits with net prefixing, net OBJECTS instead of strings (typo ->
+NameError, closing an S2 hazard). Additive-only; regenerating every
+schwriter2 board with netlist parity 0 is the proof any sugar is pure.
+Optional sandboxed front-end adapter (csimport.py: their netlist ->
+schwriter2 declarations -> full gates) may exist for sketching; no board
+may DEPEND on it. Re-evaluate external tools at each new commission;
+adopt deeper only on native .kicad_sch emission + multi-maintainer health.
+
 ## Version scoping
 
 Everything here is verified on **KiCad 7.0.x**, re-validated on **10.0.4**
