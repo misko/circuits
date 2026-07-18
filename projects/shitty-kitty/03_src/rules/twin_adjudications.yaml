@@ -1,3 +1,86 @@
 # Reviewed jlc_twin findings, accepted with evidence. Each entry silences ONE
 # (lcsc, status) finding class - never add one without the verification note.
-# (Populated during the twin stage.)
+# Populated 2026-07-18 during the twin stage.
+
+# --- U9 AMS1117-3.3, SOT-223 --------------------------------------------------
+# JLC footprint: pads 1,2,3 leads + pad 4 = tab. KiCad SOT-223-3_TabPin2 merges
+# the tab into lead pad "2" (part.yaml: pad4=TAB=VOUT=electrically pin2).
+# pad_alias 4->2 renames JLC's tab pad to ours, restoring correspondence
+# (documented AMS1117 case in the jlcpcb-fab skill).
+- lcsc: C6186
+  refs: [U9]
+  status: PAD-MISMATCH
+  pad_alias: {'4': '2'}
+  why: "SOT-223 tab convention: KiCad SOT-223-3_TabPin2 merges the tab into lead pad 2; JLC numbers the tab pad 4. pad_alias 4->2 restores the fit. part.yaml verified: pad4=TAB=VOUT electrically = pin2."
+- lcsc: C6186
+  refs: [U9]
+  status: PAD-GEOM
+  why: "Tab-naming artifact: 'pad1<->2 3.90 vs 2.30' compared our lead-2 to JLC's tab-2 before the 4->2 alias. Our SOT-223-3_TabPin2 is the KiCad standard IPC pattern; the 2.30mm lead pitch matches JLC exactly (pads 1,2,3 at x=2.97, 2.30mm spacing)."
+
+# --- SW1/SW2 TS-1187A, 4-pad tact switch, 2 nets ------------------------------
+# JLC 4 pads: 1,2 top edge (y=-1.85), 3,4 bottom edge (y=1.85). KiCad
+# SW_Push_1P1T_XKB_TS-1187A merges the top rail (A-B) into pad "1" and the
+# bottom rail (C-D) into pad "2" (part.yaml: A-B one contact, C-D the other;
+# nets on OPPOSITE edges). alias JLC {1,2}->1, {3,4}->2.
+- lcsc: C318884
+  refs: [SW1, SW2]
+  status: PAD-MISMATCH
+  pad_alias: {'2': '1', '3': '2', '4': '2'}
+  why: "TS-1187A 4-pad/2-net convention: JLC lists 4 corner pads (1,2 top rail; 3,4 bottom rail); KiCad merges each internally-shorted rail to one pad (1=top A-B, 2=bottom C-D, per part.yaml drawing rev A0). alias {1,2}->1,{3,4}->2 restores the fit; pairing verified (A-B & C-D each shorted, nets on opposite edges)."
+- lcsc: C318884
+  refs: [SW1, SW2]
+  status: PAD-GEOM
+  why: "Same 4-vs-2 pad merge: 'pad1<->2 3.75 vs 6.00' compared our merged-rail centroid to JLC's corner-pad diagonal before the alias. Our pad columns ARE 6.00mm apart in x (67<->73mm), matching JLC's L6.5 body; the y-rail spacing 3.76mm matches JLC's P3.70."
+
+# --- U1 ESP32-S3-WROOM-1 (LCC-40 + EP) ----------------------------------------
+- lcsc: C2913204
+  refs: [U1]
+  status: PAD-MISMATCH
+  why: "EP thermal-pad representation differs (ours: 1 EP pad #41 + 9 unnamed paste sub-pads; JLC: 9 pads all numbered 41). The 40 PERIMETER signal pads correspond NON-MIRRORED at rotation 180deg, residual 0.008mm (direct centroid-aligned fit computed 2026-07-18; mirror residual 10.85mm rules out a flip). No geometry defect; EP is GND either way. Pinout re-verified electrically in pin_review (dedicated ESP32 reviewer)."
+
+# --- Q1 AOD4185, TO-252 (DPAK) ------------------------------------------------
+- lcsc: C400894
+  refs: [Q1]
+  status: PAD-GEOM
+  why: "DPAK tab-pad geometry: our Package_TO_SOT_SMD:TO-252-2 is the KiCad standard IPC DPAK land pattern; JLC's EasyEDA footprint centers the tab 0.61mm further (6.70 vs 7.31 tab-to-lead). part.yaml verified pin map (tab=D, gate left, source right) vs AOD4185 Rev4.2 datasheet fig. Documented DPAK precedent (kicad-pcb skill). Physical DPAK leads land within the 6.4x5.8mm tab pad; body-on-pad checked in render review."
+- lcsc: C400894
+  refs: [Q1]
+  status: MODEL-SELF
+  why: "JLC's 3D model is drawn off its own footprint pads by (-1.16,-0.90)mm (their model defect); bbox MODEL-REG numbers untrustworthy for this part. Leads-on-pads confirmed in render review (twin_top.png), not by the model bbox."
+
+# --- L1 SWPA6045S shielded power inductor -------------------------------------
+- lcsc: C79272
+  refs: [L1]
+  status: PAD-GEOM
+  why: "Our Inductor_SMD:L_Sunlord_SWPA6045S is the Sunlord VENDOR-specific land pattern (authoritative: the part IS Sunlord SWPA6045S100MT), 4.50mm pad pitch; JLC's generic EasyEDA uses 5.20mm. Pads are 1.70x5.70mm; the Sunlord terminals seat on the Sunlord pattern. Body-on-pad checked in render review."
+
+# --- F1 SMD1812P200TF16 polyfuse, 1812 ----------------------------------------
+- lcsc: C20812
+  refs: [F1]
+  status: PAD-GEOM
+  why: "Our Fuse:Fuse_1812_4532Metric is the KiCad standard IPC-7351 1812 land pattern (4.27mm center pitch); JLC's EasyEDA uses 3.70mm. Pads 1.12x3.40mm; the 1812 (4.5x3.2mm) terminals land within pad overlap. Body-on-pad checked in render review."
+
+# --- D3 SMBJ16A, SMB / DO-214AA -----------------------------------------------
+- lcsc: C10211
+  refs: [D3]
+  status: PAD-GEOM
+  why: "Our Diode_SMD:D_SMB is the KiCad standard IPC SMB/DO-214AA land pattern (4.30mm center pitch); JLC's EasyEDA uses 4.72mm. Pads 2.5x2.3mm; SMB terminals land within overlap. Cathode/polarity verified in pin review; body-on-pad checked in render review."
+
+# --- J1 DC-005C-20A barrel jack (HAND-SOLDER, not JLC-assembled) ---------------
+- lcsc: C84007
+  refs: [J1]
+  status: MIRRORED
+  why: "Hand-solder THT barrel jack (not JLC-assembled; MANIFEST not_assembled). Our vendored DCJack_DC005_Horizontal holes sit at the exact Hroparts drawing Rev A positions (pin1 tip 0,0; pin2 sleeve 6.65,0; pin3 switch 2.55,4.70 - verified in board: pad2 6.65mm & pad3 2.55/4.70mm from pad1). Polarity verified: pad1=TIP=VIN_RAW(+12V), pad2=SLEEVE=GND, pad3=SWITCH=GND (center-positive convention). The twin 'mirror' vs JLC's EasyEDA is a THT top-vs-copper-side VIEW convention, not a land defect; the jack inserts into the 3 datasheet-positioned holes either way. First-power ritual multimeters polarity."
+- lcsc: C84007
+  refs: [J1]
+  status: MODEL-SELF
+  why: "JLC's DC-005 3D model is drawn off its own pads by (-2.40,3.91)mm (their model defect); bbox metrics unreliable. Hand-solder part; edge fit/overhang checked visually in render review."
+# --- J6 KF128L-3.5-2P screw terminal (HAND-SOLDER, not JLC-assembled) ----------
+- lcsc: C98221
+  refs: [J6]
+  status: PAD-GEOM
+  why: "Hand-solder THT screw terminal (not JLC-assembled). Our TerminalBlock_3.5-2P is 3.50mm pitch (board: pad1 y=113.0, pad2 y=109.5), matching KF128L-3.5-2P (the '-3.5' IS the 3.5mm pitch). JLC's C98221 EasyEDA model is a 2.10mm-pitch variant, irrelevant: the physical 3.5mm terminal is hand-soldered into our 3.5mm holes."
+- lcsc: C98221
+  refs: [J6]
+  status: PAD-MISMATCH
+  why: "Same 3.5 vs 2.1mm pitch mismatch in JLC's EasyEDA model (best fit residual 0.7mm, non-mirror). Hand-solder; our 3.50mm footprint matches the physical KF128L-3.5-2P."
