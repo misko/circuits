@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate 04_kicad/crow_array_central.kicad_pcb from the netlist + floorplan.
 
-4-layer board (ADR-0001): F.Cu signal / In1 solid GND / In2 power islands /
+6-layer board (ADR-0008): F sig / In1 GND / In2 sig / In3 sig / In4 GND /
 B.Cu signal+GND. ~175x105mm. Floorplan (ARCHITECTURE.md "Layout zones"):
   north edge   : 8 RJ45 ports J1..J8 + their beeper current path (feeds,
                  FETs, returns) — beeper copper never enters the analog band.
@@ -31,7 +31,9 @@ PCB = K / "crow_array_central.kicad_pcb"
 STD = "/usr/share/kicad/footprints"
 PROJ = str(HERE / "lib" / "cac.pretty")
 
-X0, Y0, W, H = 10.0, 10.0, 176.0, 104.0
+X0, Y0, W, H = 10.0, 10.0, 176.0, 122.0  # D18: +18mm height opens the
+# XU316<->ADC escape gap (was 104mm; the north-edge power+data escapes were
+# at 4L capacity — 2 XU316 3V3 pins / DATA1 could not both route).
 X1, Y1 = X0 + W, Y0 + H
 HOLES = [(X0 + 5.0, Y0 + 5.0), (X1 - 5.0, Y0 + 5.0),
          (X0 + 5.0, Y1 - 5.0), (X1 - 5.0, Y1 - 5.0)]
@@ -80,31 +82,32 @@ def port_x(n):
 
 
 ANCHOR = {
-    # big digital cluster (south-center)
-    "U1": (X0 + 90.0, Y0 + 74.0, 0),          # XU316 center
-    "U4": (X0 + 66.0, Y0 + 88.0, 0),          # flash SW of XU316
-    "Y1": (X0 + 74.0, Y0 + 92.0, 0),          # crystal near XU316
-    "U5": (X0 + 108.0, Y0 + 90.0, 0),         # MCLK buffer
-    "J12": (X0 + 92.0, Y0 + 100.0, 0),        # USB-C south edge
-    "U6": (X0 + 120.0, Y0 + 96.0, 0),         # SHT40
+    # big digital cluster (south-center) — shifted +16mm south (D18) to open
+    # the escape gap to the ADCs.
+    "U1": (X0 + 90.0, Y0 + 90.0, 0),          # XU316 center
+    "U4": (X0 + 66.0, Y0 + 104.0, 0),         # flash SW of XU316
+    "Y1": (X0 + 74.0, Y0 + 108.0, 0),         # crystal near XU316
+    "U5": (X0 + 110.0, Y0 + 106.0, 0),        # MCLK buffer
+    "J12": (X0 + 92.0, Y0 + 116.0, 0),        # USB-C south edge
+    "U6": (X0 + 128.0, Y0 + 110.0, 0),        # SHT40
     # analog band (center-north), between the port strip and the XU316
     "U2": (X0 + 64.0, Y0 + 52.0, 0),          # PCM1865 ADC1
     "U3": (X0 + 112.0, Y0 + 52.0, 0),         # PCM1865 ADC2
     "U13": (X0 + 88.0, Y0 + 44.0, 0),         # XC6227 3V3A (analog LDO)
     # power SW corner (>=25mm from ADCs)
-    "J9": (X0 + 8.0, Y0 + 90.0, 0),           # barrel
-    "J11": (X0 + 8.0, Y0 + 78.0, 0),          # terminal DNP
-    "F1": (X0 + 20.0, Y0 + 90.0, 0),          # entry PTC
-    "D9": (X0 + 30.0, Y0 + 96.0, 0),          # TVS (clear of F1: I6 fix)
-    "Q9": (X0 + 30.0, Y0 + 86.0, 0),          # reverse FET
-    "U10": (X0 + 40.0, Y0 + 82.0, 0),         # buck 3V3
-    "L10": (X0 + 47.0, Y0 + 82.0, 0),
-    "U11": (X0 + 40.0, Y0 + 96.0, 0),         # buck 0V9
-    "L11": (X0 + 47.0, Y0 + 96.0, 0),
-    "U12": (X0 + 56.0, Y0 + 90.0, 0),         # LDO 1V8
-    "J10": (X0 + 150.0, Y0 + 96.0, 0),        # injection header (SE)
-    "J13": (X0 + 158.0, Y0 + 88.0, 0),        # debug headers
-    "J14": (X0 + 168.0, Y0 + 88.0, 0),
+    "J9": (X0 + 8.0, Y0 + 106.0, 0),          # barrel
+    "J11": (X0 + 8.0, Y0 + 94.0, 0),          # terminal DNP
+    "F1": (X0 + 20.0, Y0 + 106.0, 0),         # entry PTC
+    "D9": (X0 + 30.0, Y0 + 112.0, 0),         # TVS (clear of F1: I6 fix)
+    "Q9": (X0 + 30.0, Y0 + 102.0, 0),         # reverse FET
+    "U10": (X0 + 40.0, Y0 + 98.0, 0),         # buck 3V3
+    "L10": (X0 + 47.0, Y0 + 98.0, 0),
+    "U11": (X0 + 40.0, Y0 + 112.0, 0),        # buck 0V9
+    "L11": (X0 + 47.0, Y0 + 112.0, 0),
+    "U12": (X0 + 56.0, Y0 + 106.0, 0),        # LDO 1V8
+    "J10": (X0 + 156.0, Y0 + 110.0, 0),       # injection header (SE)
+    "J13": (X0 + 160.0, Y0 + 102.0, 0),       # debug headers
+    "J14": (X0 + 170.0, Y0 + 102.0, 0),
 }
 # 8 RJ45 jacks + per-port cluster centroids
 for n in range(1, 9):
@@ -119,28 +122,28 @@ def grp(refs, cx, cy):
         GROUPS[r] = (cx, cy)
 
 
-# power-entry passives
-grp(["R90", "C90", "TP9"], X0 + 22.0, Y0 + 98.0)
-grp(["R10", "R11", "C10", "C11", "C12", "R12"], X0 + 36.0, Y0 + 76.0)
-grp(["R13", "R14", "C13", "C14", "C15", "R15", "TP11"], X0 + 40.0, Y0 + 102.0)
-grp(["C16", "C17"], X0 + 58.0, Y0 + 96.0)
+# power-entry passives (south corner, shifted +16 with the power anchors)
+grp(["R90", "C90", "TP9"], X0 + 22.0, Y0 + 114.0)
+grp(["R10", "R11", "C10", "C11", "C12", "R12"], X0 + 36.0, Y0 + 92.0)
+grp(["R13", "R14", "C13", "C14", "C15", "R15", "TP11"], X0 + 40.0, Y0 + 118.0)
+grp(["C16", "C17"], X0 + 58.0, Y0 + 112.0)
 grp(["C18", "C19", "C20", "R16"], X0 + 82.0, Y0 + 40.0)
-# XU316 decoupling ring
-xu_dec = [f"C1{i:02d}" for i in range(1, 43)] + ["FB3"]
-grp([r for r in xu_dec if r in ()], 0, 0)  # placeholder
+# XU316 decoupling ring — centre follows U1 (100,100); wider annulus (19x17)
+# to give the 0.4mm escapes room (D18). North arc at y~83 stays clear of the
+# ADCs (~66).
 for i, r in enumerate([f"C1{i:02d}" for i in range(1, 43)]):
     ang = i / 42.0 * 2 * math.pi
-    GROUPS[r] = (X0 + 90.0 + 16.0 * math.cos(ang), Y0 + 74.0 + 14.0 * math.sin(ang))
-grp(["FB3", "C123"], X0 + 90.0, Y0 + 60.0)
+    GROUPS[r] = (X0 + 90.0 + 19.0 * math.cos(ang), Y0 + 90.0 + 17.0 * math.sin(ang))
+grp(["FB3", "C123"], X0 + 96.0, Y0 + 78.0)   # PLL filter, U1 north side
 # crystal + flash
-grp(["R20", "R21", "C25", "C26"], X0 + 78.0, Y0 + 96.0)
-grp(["R30", "C30"], X0 + 60.0, Y0 + 92.0)
+grp(["R20", "R21", "C25", "C26"], X0 + 78.0, Y0 + 112.0)
+grp(["R30", "C30"], X0 + 60.0, Y0 + 108.0)
 # USB
-grp(["D10", "R31", "R32", "R33", "R34", "C31"], X0 + 92.0, Y0 + 92.0)
+grp(["D10", "R31", "R32", "R33", "R34", "C31"], X0 + 92.0, Y0 + 108.0)
 # clock buffer + terminations
-grp(["C35", "R40", "R41", "R42", "R43"], X0 + 108.0, Y0 + 82.0)
+grp(["C35", "R40", "R41", "R42", "R43"], X0 + 110.0, Y0 + 98.0)
 # reset + i2c + sht
-grp(["R50", "C40", "R51", "R52", "C41"], X0 + 120.0, Y0 + 88.0)
+grp(["R50", "C40", "R51", "R52", "C41"], X0 + 128.0, Y0 + 102.0)
 # ADC1 support
 grp(["C50", "C51", "C52", "C53", "C54", "C55", "C56", "C57",
      "R60", "R61", "R62", "R63"], X0 + 64.0, Y0 + 64.0)
@@ -154,7 +157,7 @@ for n in range(1, 9):
     cy = Y0 + 46.0 + ((n - 1) % 4) * 2.0
     grp([f"C{base}", f"R{base}", f"C{base+1}", f"R{base+1}", f"C{base+2}"],
         cx + (n - 1) % 4 * 3 - 5, cy)
-grp(["C90i", "R80", "R81"], X0 + 148.0, Y0 + 90.0)
+grp(["C90i", "R80", "R81"], X0 + 150.0, Y0 + 108.0)
 # per-port channel small parts (below each jack). Seed as a tidy 2-col x 4-row
 # grid inside the port column (pitch 20mm) so parts stay SPREAD (the legalizer
 # only re-packs overlaps): every part — incl. the TP2n test point — keeps
@@ -175,7 +178,7 @@ for n in range(1, 9):
 def main():
     comps, pad_net, nets = parse_netlist(NETLIST)
     board = pcbnew.BOARD()
-    board.SetCopperLayerCount(4)
+    board.SetCopperLayerCount(6)   # ADR-0008: 6L (F/In1 GND/In2/In3/In4 GND/B)
 
     netmap = {}
     for n in sorted(nets):
@@ -293,7 +296,7 @@ def main():
             raise RuntimeError(f"legalizer: no clear spot for {r} within 30mm")
     print(f"legalized {moved} small parts")
 
-    # design-rule floors (JLC 4-layer standard)
+    # design-rule floors (JLC 6-layer standard, ADR-0008)
     ds = board.GetDesignSettings()
     ds.m_TrackMinWidth = pcbnew.FromMM(0.127)
     ds.m_MinClearance = int(0.127e6)
@@ -320,10 +323,39 @@ def main():
         board.Add(z)
         return z
 
+    # ADR-0008 6L stackup: In1 + In4 are the SOLID GND reference planes
+    # (full connect); F + B carry signal + a GND pour. In2/In3 are the inner
+    # SIGNAL layers and get NO GND pour — they carry routed signals + the
+    # XU316 rail pour patches (3V3 on In2, 0V9 on In3, added by the
+    # stitcher); a GND pour there only fragments into unstitchable islands
+    # under the XU316. GND reference for In2/In3 signals is the adjacent
+    # In1/In4 plane. GND is not routed — planes + F/B pours + stitch vias.
     add_zone("GND", pcbnew.F_Cu, 0)
-    add_zone("GND", pcbnew.In1_Cu, 0, full=True)   # THE reference plane
-    add_zone("GND", pcbnew.In2_Cu, 0)              # power islands cut in at routing
+    add_zone("GND", pcbnew.In1_Cu, 0, full=True)   # reference plane 1
+    add_zone("GND", pcbnew.In4_Cu, 0, full=True)   # reference plane 2
     add_zone("GND", pcbnew.B_Cu, 0)
+
+    # Named rule area "xu316_taps" over the XU316 escape (non-blocking): the
+    # dru grants power nets a 0.15mm width floor HERE so the per-pin 3V3/0V9
+    # IO taps (short, low-current, at 0.4mm pitch) neck down without a
+    # track_width violation and without the stitcher widening them into
+    # each other (skill: sub-floor tap runs get a scoped rule area).
+    ux, uy = X0 + 90.0, Y0 + 90.0
+    ra = pcbnew.ZONE(board)
+    ra.SetIsRuleArea(True)
+    ra.SetZoneName("xu316_taps")
+    for setter in ("SetDoNotAllowTracks", "SetDoNotAllowVias", "SetDoNotAllowPads",
+                   "SetDoNotAllowZoneFills", "SetDoNotAllowCopperPour",
+                   "SetDoNotAllowFootprints"):
+        fn = getattr(ra, setter, None)
+        if fn is not None:
+            fn(False)
+    ra.SetLayerSet(pcbnew.LSET.AllCuMask())
+    ra.Outline().NewOutline()
+    for x, y in [(ux - 16, uy - 16), (ux + 16, uy - 16),
+                 (ux + 16, uy + 16), (ux - 16, uy + 16)]:
+        ra.Outline().Append(pcbnew.VECTOR2I_MM(x, y))
+    board.Add(ra)
 
     # ------------------------------------------------------------ silk text
     SILK = [
@@ -424,7 +456,7 @@ def main():
     (HERE.parent / "06_build" / "refdes_waiver.json").write_text(json.dumps(sorted(waived)))
     print(f"refdes on silk: {placed - len(waived)}/{placed} placed, {len(waived)} waived")
     board.Save(str(PCB))
-    print(f"placed {placed} footprints + {len(HOLES)} holes; 4 zones; saved {PCB.name}")
+    print(f"placed {placed} footprints + {len(HOLES)} holes; 6 zones; saved {PCB.name}")
 
 
 if __name__ == "__main__":

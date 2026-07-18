@@ -10,7 +10,7 @@ rm -f "$OUT"/*.pdf "$OUT"/*.png
 kicad-cli sch export pdf -o "$OUT/schematic.pdf" 04_kicad/crow_array_central.kicad_sch >/dev/null
 
 kicad-cli pcb export pdf --mode-multipage \
-    -l F.Cu,B.Cu,F.Silkscreen,B.Silkscreen,F.Mask,B.Mask \
+    -l F.Cu,In1.Cu,In2.Cu,In3.Cu,In4.Cu,B.Cu,F.Silkscreen,B.Silkscreen,F.Mask,B.Mask \
     --cl Edge.Cuts --include-border-title \
     -o "$OUT/pcb_layers.pdf" 04_kicad/crow_array_central.kicad_pcb >/dev/null
 

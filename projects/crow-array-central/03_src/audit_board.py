@@ -20,7 +20,7 @@ import pcbnew
 PCB = Path(__file__).parent.parent / "04_kicad" / "crow_array_central.kicad_pcb"
 b = pcbnew.LoadBoard(str(PCB))
 MM = pcbnew.ToMM
-X0, Y0, X1, Y1 = 10.0, 10.0, 186.0, 114.0
+X0, Y0, X1, Y1 = 10.0, 10.0, 186.0, 132.0
 fails, warns = [], []
 boxes, holes = {}, []
 for f in b.GetFootprints():

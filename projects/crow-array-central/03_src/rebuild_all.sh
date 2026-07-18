@@ -22,13 +22,16 @@ v = [x for s in d['sheets'] for x in s['violations']]
 print(f'ERC: {len(v)} violations')
 sys.exit(1 if v else 0)
 PYEOF
+# Placement verification (the promoted route below carries the SAME
+# placement; this regen + audit guards the generator, then is overwritten).
 $PY 03_src/generate_board.py 2>/dev/null | tail -1
 $PY 03_src/audit_board.py 2>/dev/null | tail -1
-# canonical route artifact is PROMOTED + git-tracked (canon M3)
+# The PROMOTED route artifact (canon M3) is a COMPLETE board (placement +
+# tracks). Use it DIRECTLY as 04_kicad — import_krt fragmented fanout-stub /
+# power-tap connectivity, so the routed board is copied, not re-imported.
 [ -f 06_build/route/final.kicad_pcb ] || cp 03_src/route/final.kicad_pcb 06_build/route/final.kicad_pcb 2>/dev/null || true
 [ -f 06_build/route/final.kicad_pcb ] || { echo "no route chain: run 03_src/route_prep.py + 03_src/route_waves.sh"; exit 1; }
-$PY "$SKILLS"/import_krt.py 06_build/route/final.kicad_pcb \
-    04_kicad/crow_array_central.kicad_pcb 04_kicad/crow_array_central.kicad_pcb 2>/dev/null | grep imported
+cp 06_build/route/final.kicad_pcb 04_kicad/crow_array_central.kicad_pcb
 # rules BEFORE stitch: the stitcher's internal checks + fill honor the floors
 python3 03_src/generate_rules.py >/dev/null
 $PY 03_src/stitch_and_fill.py 2>/dev/null | tail -3

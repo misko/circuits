@@ -77,8 +77,14 @@ board generators (commission requirement). Per port n:
 
 ## Stackup
 
-4-layer JLC7628 (ADR-0001): F.Cu signal — In1.Cu solid GND — In2.Cu power
-islands (3V3 / 0V9 / 5V / 3V3A) — B.Cu signal + GND pour.
+**6-layer** JLC (ADR-0008, supersedes ADR-0001's 4L): F.Cu signal —
+In1.Cu GND plane — In2.Cu signal — In3.Cu signal — In4.Cu GND plane —
+B.Cu signal. Four signal layers, each over a GND plane. Power distributes
+as floored TRACKS across the signal layers (D15 — rails spatially
+intermixed, no clean plane partition); GND = In1+In4 planes + F/In2/In3/B
+pours + stitch vias. 4L was withdrawn after measured escape saturation
+(ADR-0008: the XU316 escape + distributed power + the 8 beeper-gate lines
+crossing the analog band could not co-route on 3 signal layers).
 
 ## Firmware/bring-up posture
 

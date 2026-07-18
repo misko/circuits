@@ -2,10 +2,12 @@
 # DRU floors. generate_rules.py emits these into 04_kicad/*.kicad_pro and
 # .kicad_dru. Defined BEFORE routing (kicad-pcb golden rule 3 / canon R1).
 #
-# 4-layer JLC STANDARD tier (ADR-0001/ADR-0004): 0.45/0.3 vias, no
-# advanced small-via option needed (TQFP escape is peripheral).
+# 6-layer JLC STANDARD tier (ADR-0008, supersedes ADR-0001's 4L): 0.45/0.3
+# vias, no advanced small-via option (TQFP escape is peripheral, ADR-0004).
+# Stackup F/In1 GND/In2/In3/In4 GND/B; power = floored tracks on the 4
+# signal layers (D15); GND = In1+In4 planes + pours + stitch.
 
-fab_tier: jlc_4layer_standard
+fab_tier: jlc_6layer_standard
 
 classes:
   PWR5:
@@ -59,7 +61,7 @@ classes:
     nets: [MCLK_SRC, MCLK_A0, MCLK_B0, MCLK_A, MCLK_B, BCLK, LRCK,
            DATA1, DATA2]
     current: signal
-    min_width: 0.2mm
+    min_width: 0.15mm  # D17: fab floor; XU316 escapes neck to 0.15 (0.2 nominal)
     routing: wave 1 with USB; F.Cu preferred, minimal via count
     verify: DRC floor + audit clock-length spread check
 
@@ -70,7 +72,7 @@ classes:
       XU316 USB corner); 0.25mm width floor = the impedance geometry.
     nets: [USB_DP, USB_DM]
     current: signal
-    min_width: 0.25mm
+    min_width: 0.15mm  # D17: fab floor; escape necks to 0.15 (0.25 nominal for ~90R)
     routing: wave 0, F.Cu only, no vias, matched within 1mm (audit)
     verify: DRC floor + audit USB checks
 
@@ -86,7 +88,7 @@ classes:
            "AIN_P4", "AIN_N4", "AIN_P5", "AIN_N5", "AIN_P6", "AIN_N6",
            "AIN_P7", "AIN_N7", "AIN_P8", "AIN_N8", "INJ", "INJ_C"]
     current: signal
-    min_width: 0.2mm
+    min_width: 0.15mm  # D17: fab floor (0.2 nominal)
     routing: pairs adjacent F.Cu; ADC-side stubs short
     verify: DRC floor + audit separation
 
