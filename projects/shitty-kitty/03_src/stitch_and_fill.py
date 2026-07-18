@@ -135,6 +135,52 @@ for ref, padnum, grid, need in [("U1", "41", (-1.1, 0, 1.1), 4),
     if got < need:
         failures.append(f"{ref} EPAD vias {got}<{need}")
 
+# ---- power-pad thermal/current vias (canon R6): power pads > ~4mm2 get >=2
+# same-net vias. U9 SOT-223 tab (3V3) reaches the In2 3V3 pour directly; Q1
+# DPAK drain tab (VIN_F) is F.Cu-only, so its two vias are bridged by a short
+# B.Cu VIN_F strip (keeps them same-net-attached on both layers, not dangling).
+def _hole_clear(x, y, drill=0.3, margin=0.31):
+    for v in b.GetTracks():
+        if v.GetClass() == "PCB_VIA" and math.hypot(
+                x - v.GetPosition().x/1e6, y - v.GetPosition().y/1e6) \
+                < drill/2 + v.GetDrillValue()/2e6 + margin:
+            return False
+    for fp2 in b.GetFootprints():
+        for p2 in fp2.Pads():
+            if p2.GetDrillSize().x > 0 and math.hypot(
+                    x - p2.GetPosition().x/1e6, y - p2.GetPosition().y/1e6) \
+                    < drill/2 + p2.GetDrillSize().x/2e6 + margin:
+                return False
+    return True
+
+# bcu=True bridges the two vias with a short same-net B.Cu strip so they stay
+# attached on two layers (F.Cu pad + B.Cu strip) and survive the post-fill
+# dangling-via cleanup regardless of whether the In2 pour fill reaches them.
+for ref, padnum, netname, bcu in [("U9", "2", "3V3", True),
+                                  ("Q1", "2", "VIN_F", True)]:
+    f = b.FindFootprintByReference(ref)
+    net = b.FindNet(netname)
+    pad = max((p for p in f.Pads() if p.GetNumber() == padnum),
+              key=lambda p: p.GetSize().x * p.GetSize().y)
+    cx, cy = pad.GetPosition().x/1e6, pad.GetPosition().y/1e6
+    hx, hy = pad.GetSize().x/2e6, pad.GetSize().y/2e6
+    sites = ([(cx - 0.55*hx, cy), (cx + 0.55*hx, cy)] if hx >= hy
+             else [(cx, cy - 0.55*hy), (cx, cy + 0.55*hy)])
+    placed = []
+    for x, y in sites:
+        x, y = round(x, 2), round(y, 2)
+        if _hole_clear(x, y) and tk.via_site_ok(x, y, net.GetNetCode(),
+                                                size=0.6, drill=0.3):
+            tk.add_via(x, y, net, size=0.6, drill=0.3)
+            USED.add((x, y))
+            placed.append((x, y))
+    if bcu and len(placed) >= 2:
+        tk.add_seg(placed[0][0], placed[0][1], placed[1][0], placed[1][1],
+                   net, pcbnew.B_Cu, 0.6)
+    print(f"{ref}.{padnum} power-pad vias: {len(placed)}")
+    if len(placed) < 2:
+        failures.append(f"{ref}.{padnum} power-pad vias {len(placed)}<2")
+
 def on_net_copper(netname, x, y, tol=0.30):
     for t in b.GetTracks():
         if t.GetClass() != "PCB_TRACK" or t.GetNetname() != netname:

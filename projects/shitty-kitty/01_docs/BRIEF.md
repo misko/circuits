@@ -153,6 +153,9 @@ controller PCB plus the two 10k-unit cost estimates.
 | D8 | Host link = UART (TXD0/RXD0) not I2C on the 1x6 header | agent (A2 delegation) | decisions/0004-sensors-and-compute.md |
 | D9 | ENN pull-up 10k to 3V3: motor hardware-disabled at boot (cat safety) | agent (commission mandate) | decisions/0002-motor-driver.md |
 | D10 | TMC2209 external sense 0.15R (1.35A max) rather than RDSon-only mode | agent (P-delegation) | DETAIL_DESIGN.md §TMC2209 |
+| D11 | Routing resolution = FINISH the in-progress surgery (not rebuild). 7 residual DRC (WIP said 18) were tractable: fixed root causes in the regenerable chain (stitch consolidation, ACC_INT vertex-snap, VIN pour min-thickness) rather than re-routing from r5. 04_kicad never hand-edited. | agent (task judgment) | PROGRESS + commit 004633b |
+| D12 | VIN_12V In2 pour min-fill-thickness 0.45->0.6mm. Its top-left convex corner sits mid-span on the top board edge; a KiCad zone-fill quirk makes a 0.0266mm connection_width sliver at 0.45 (3V3's top-left is the board corner, unaffected). 0.6 rounds it clear; 0 unconnected verified. | agent (DRC gate) | generate_board.py zones |
+| D13 | COST optimization (Goal 1c): 24 electrodes need only 2x MPR121 (12ch each), not 4 (design runs 6/chip = half capacity). Halving MPR121 count is the dominant 10k saving (~$3.6/board). Design change, out of v1.0 scope; flagged for next spin. | agent (cost analysis) | COST_ESTIMATE.md |
 
 ## Log
 
