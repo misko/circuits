@@ -129,23 +129,26 @@ for tr in b.GetTracks():
         lifted += 1
 print(f"lifted {lifted} power segments to class floor (tap area exempt)")
 
-# pre-pass: normalize sub-floor vias (KRT emits a few 0.30/0.35mm vias at
-# tight escapes; JLC 4L standard floor is 0.45/0.3). Enlarge to 0.45/0.3
-# (the minimum that passes min_via_diameter/min_through_hole) — small bump,
-# least collision risk near fine-pitch pads.
+# pre-pass: normalize sub-floor vias to the JLC 6L SMALL-VIA floor 0.30/0.15
+# (ADR-0009). The 0.4mm-pitch XU316 via-in-pad escapes cannot use 0.45/0.30
+# standard-tier vias (0.45 copper shorts the adjacent TDO/TDI pair 0.4mm apart
+# and the 0.30 drill encroaches neighbour pads). 0.30dia keeps a 0.10mm copper
+# gap at 0.4mm pitch and 0.075mm annular on a 0.15 drill; the escape rides the
+# JLC small-via option (invoked by the 0.25-drill DRU floor). Only enlarge
+# what is smaller; the 0.6/0.3 grid + service vias are untouched.
 norm = 0
 for v in b.GetTracks():
     if v.GetClass() != "PCB_VIA":
         continue
     changed = False
-    if v.GetWidth() < int(0.45e6):
-        v.SetWidth(int(0.45e6))
+    if v.GetWidth() < int(0.30e6):
+        v.SetWidth(int(0.30e6))
         changed = True
-    if v.GetDrillValue() < int(0.3e6):
-        v.SetDrill(int(0.3e6))
+    if v.GetDrillValue() < int(0.15e6):
+        v.SetDrill(int(0.15e6))
         changed = True
     norm += changed
-print(f"normalized {norm} sub-floor vias to 0.45/0.3")
+print(f"normalized {norm} sub-floor vias to 0.30/0.15 (small-via floor)")
 
 USED = {(v.GetPosition().x / 1e6, v.GetPosition().y / 1e6)
         for v in b.GetTracks() if v.GetClass() == "PCB_VIA"}

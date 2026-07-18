@@ -12,7 +12,7 @@ footprint: Package_TO_SOT_SMD:SOT-23
 pins:                       # from SOT23 Top View figure, page 1/5 (same G/S/D order as sibling AO3400A)
   1: {name: G, note: "gate"}
   2: {name: S, note: "source"}
-  3: {name: D, note: "drain — the lone lead on the opposite side; body diode S->D"}
+  3: {name: D, note: "drain — the lone lead on the opposite side; body diode D->S (P-channel: anode=drain, cathode=source, conducts drain->source). Corrected 2026-07-18 per dedicated Q9 datasheet review; see ADR-0007"}
 limits:
   vds: -30V
   vgs_abs_max: "+-12V"
@@ -21,7 +21,7 @@ limits:
   pd_25c: 1.4W
   tj_max: 150C
 gotchas:
-  - "Reverse-polarity guard orientation: SOURCE to the input (jack), DRAIN to the load, gate to GND — body diode conducts at first power, then the channel shorts it. Wired backwards it protects nothing"
+  - "Reverse-polarity guard orientation (high-side P-FET): DRAIN to the input (jack/F1/D9), SOURCE to the load, gate to GND via 100k — the body diode (anode=drain=input) conducts input->load at first power, then Vgs=-Vrail enhances the channel and shorts it. Wired backwards (SOURCE=input) it protects nothing. Corrected 2026-07-18 per Q9 datasheet review; agrees with ADR-0007 and the board (pad2/S=5V load, pad3/D=5V_P input)"
   - "Vgs abs max +-12V: fine at 5V input with gate tied to GND via 100k; on >12V inputs a gate zener divider would be mandatory"
   - "Pinout per top-view figure: 1(G) 2(S) on the two-lead side, 3(D) alone opposite — FET G/S/D order, not BJT"
 verified: "pin map read from datasheet SOT23 Top View / Bottom View figure, page 1/5, Rev 3.1 December 2023 — 2026-07-18"

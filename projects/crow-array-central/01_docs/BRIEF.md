@@ -92,3 +92,48 @@ board-local decisions only.
   wave 3 = beeper gates + GPIO + straps + VBUS sense + debug + remainder;
   wave 4 = power rails (In2-preferred, wide). TQ128 peripheral escape is
   straight-out on F.Cu per ADR-0004 (standard tier, no advanced vias).
+
+## DRC-cleanup + release-prep decisions (D19-D24; 2026-07-18)
+
+- D19 (2026-07-18): **Q9 AO3401A polarity CONFIRMED CORRECT on the board** by
+  a dedicated fresh-context datasheet review. The P-channel body diode is
+  anode=DRAIN / cathode=SOURCE (conducts D->S); a high-side reverse guard
+  therefore needs DRAIN=input, SOURCE=load. Board: pad3=DRAIN=5V_P (input),
+  pad2=SOURCE=5V (load) -> CORRECT. ADR-0007 is right; the board is right.
+  Two WRONG statements in 02_parts/AO3401A/part.yaml (pin-3 note "body diode
+  S->D"; gotcha "SOURCE to the input, DRAIN to the load") were FIXED to agree
+  with the datasheet + ADR-0007. No board change.
+- D20 (2026-07-18): **DRU set to JLC 6L ACTUAL capability** (generate_rules.py):
+  clearance/track 0.09 (was netclass 0.127), hole-to-hole 0.2 EDGE (was 0.5 -
+  KiCad measures edge-to-edge; JLC's ~0.5 quote is CENTRE-to-centre = 0.2 edge
+  for 0.3 drills; the 0.5-edge floor false-failed 13 diff-pair vias), via
+  0.30/0.15 (see D21), hole-to-copper 0.2, edge 0.2. This dropped the inflated
+  101-count report of manufacturable-margin items (canon golden-rule-8).
+- D21 (2026-07-18): **fine-pitch escape uses JLC 6L small-via option**
+  (0.30/0.15) - ADR-0009. 0.45/0.30 standard vias short the 0.4mm-pitch
+  via-in-pad pair + encroach neighbours; 0.30 clears both. Cost adder flagged.
+- D22 (2026-07-18): **SHT40 (U6) + barrel jack (J9) VENDORED** into cac.pretty
+  to end runtime footprint edits: U6 keepout tracks/vias baked ALLOWED (was a
+  runtime DoNotAllow flip -> lib_footprint_mismatch); J9 west barrel silk
+  clamped inside the x=10 board edge (was 0.8mm overhang -> silk_edge). Both
+  re-pointed to cac: in generate_schematic + the promoted route artifact.
+- D23 (2026-07-18): **TDO escape dogbone** (route_fixups.py): TDO relocated
+  out of pad 37 south into the escape channel (F.Cu dogbone + B.Cu bridge) so
+  the 0.30/0.15 TDO/TDI drills clear the 0.2mm hole-to-copper floor.
+- D24 (2026-07-18): **GND pad rescue** (gnd_rescue.py): boxed GND SMD pads the
+  pour/grid could not thermal-reach (PCM1865 decoupling, USB-C escape) get an
+  outer-edge on-pad 0.30/0.15 via (bond to In1/In4 plane) or a short F.Cu stub
+  to the nearest GND via. Cut unconnected GND 15 -> 6.
+
+## DRC status (2026-07-18) — NOT yet 0/0/0; residual is route-quality rework
+
+Start 101 violations + 15 unconnected. After the above: **32 violations
+(18 clearance sub-0.09 different-net + 14 track_dangling loose copper) + 6
+unconnected GND**. All shorts, hole_to_hole, hole_clearance, lib_mismatch,
+silk_edge, and the TDO/TDI pair are FIXED. The residual are KRT route-quality
+artifacts (0.4mm power-rail-vs-signal tight spacing; loose escape spurs;
+6 boxed GND connections) that need targeted RE-ROUTE of the affected nets
+(3V3/RST_N/MCLK/5V taps + R34 GND + loose-copper trim), not floor changes or
+waivers - they are genuine sub-floor items. The v1.0 release is therefore NOT
+sealed at 0/0/0; see 06_build for the current gate report. Ordering is gated
+on field tests regardless (ORDER_README), so this rework precedes the order.

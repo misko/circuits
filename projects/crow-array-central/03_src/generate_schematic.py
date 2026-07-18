@@ -224,7 +224,10 @@ sch.sym_fp = {
     "TP": "TestPoint:TestPoint_Pad_D1.5mm",
     "DIODE2": "Diode_SMD:D_SMB",
     "FET3": "Package_TO_SOT_SMD:SOT-23",
-    "BARREL": "Connector_BarrelJack:BarrelJack_Horizontal",
+    # Vendored into cac.pretty with the west barrel-body silk clamped inside
+    # the board edge (the jack overhangs the west edge by design; the stock
+    # silk drew the outline 0.8mm past it -> silk_edge_clearance). 2026-07-18.
+    "BARREL": "cac:BarrelJack_Horizontal",
     "TERM2": "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal",
     "HDR2": "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
     "BUCK": "Package_TO_SOT_SMD:SOT-563",
@@ -232,7 +235,10 @@ sch.sym_fp = {
     "LDO_XC": "Package_TO_SOT_SMD:SOT-89-5",
     "BUF3": "Package_SO:VSSOP-8_2.3x2mm_P0.5mm",
     "FLASH": "Package_SO:SOIC-8_5.3x5.3mm_P1.27mm",
-    "SHT": "Sensor_Humidity:Sensirion_DFN-4_1.5x1.5mm_P0.8mm_SHT4x_NoCentralPad",
+    # Vendored into cac.pretty (keepout: tracks/vias ALLOWED, copperpour
+    # not_allowed) so the board copy matches the lib without a runtime
+    # DoNotAllow edit (that edit caused lib_footprint_mismatch). 2026-07-18.
+    "SHT": "cac:Sensirion_DFN-4_1.5x1.5mm_P0.8mm_SHT4x_NoCentralPad",
     "XTAL": "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm",
     "ESD2": "Package_TO_SOT_SMD:SOT-553",
     "ESD4": "Package_SON:USON-10_2.5x1.0mm_P0.5mm",

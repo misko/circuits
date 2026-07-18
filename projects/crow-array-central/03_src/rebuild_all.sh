@@ -29,12 +29,20 @@ $PY 03_src/audit_board.py 2>/dev/null | tail -1
 # The PROMOTED route artifact (canon M3) is a COMPLETE board (placement +
 # tracks). Use it DIRECTLY as 04_kicad — import_krt fragmented fanout-stub /
 # power-tap connectivity, so the routed board is copied, not re-imported.
-[ -f 06_build/route/final.kicad_pcb ] || cp 03_src/route/final.kicad_pcb 06_build/route/final.kicad_pcb 2>/dev/null || true
-[ -f 06_build/route/final.kicad_pcb ] || { echo "no route chain: run 03_src/route_prep.py + 03_src/route_waves.sh"; exit 1; }
+# NOTE: 03_src/route_fixups.py has already been applied ONCE to the promoted
+# 03_src/route/final.kicad_pcb (U6/J9 vendored-FPID identity, J9 edge-silk
+# clamp, TDO escape dogbone out of pad 37); it is baked in + committed, NOT
+# re-run here (it edits the source in place). See ADR-0007/0009.
+cp 03_src/route/final.kicad_pcb 06_build/route/final.kicad_pcb
 cp 06_build/route/final.kicad_pcb 04_kicad/crow_array_central.kicad_pcb
 # rules BEFORE stitch: the stitcher's internal checks + fill honor the floors
 python3 03_src/generate_rules.py >/dev/null
 $PY 03_src/stitch_and_fill.py 2>/dev/null | tail -3
+python3 03_src/generate_rules.py >/dev/null
+# GND rescue: bond the boxed GND SMD pads the pour/grid can't reach (PCM1865 /
+# USB-C escape), then clearance nudge on sub-0.09 power-vs-signal tracks.
+$PY 03_src/gnd_rescue.py 2>/dev/null | tail -2
+$PY 03_src/clearance_nudge.py 2>/dev/null | tail -1
 # audit again post-route (I8 AIN length needs tracks)
 $PY 03_src/audit_board.py 2>/dev/null | tail -2
 # rules LAST: pcbnew saves clobber .kicad_pro netclasses
