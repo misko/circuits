@@ -1,0 +1,3 @@
+I8 COMP lengths {'COMP1': 65.9, 'COMP2': 62.9, 'COMP3': 74.9} spread 11.9mm
+pads audited across 72 footprints
+AUDIT: PASS (0 fails, 0 warns)
