@@ -154,7 +154,7 @@ def main():
         stxt = Path(sch_p).read_text()
         items = []  # (x0,y0,x1,y1,desc)
         CH_W, CH_H = 1.05, 2.2   # per-char width, line height @1.27mm font
-        for m in re.finditer(r'\(global_label "([^"]+)"[^(]*\(at ([-\d.]+) ([-\d.]+) (\d+)\)', stxt):
+        for m in re.finditer(r'\(global_label "([^"]+)".{0,80}?\(at ([-\d.]+) ([-\d.]+) (\d+)\)', stxt):
             txt, gx, gy, ang = m.group(1), float(m.group(2)), float(m.group(3)), int(m.group(4))
             wlen = (len(txt) + 2) * CH_W
             if ang == 180:   # plate extends left of anchor
