@@ -1,0 +1,19 @@
+board:        crow_array_pod
+version:      v1.0
+ordered:      2026-07-18
+git_sha:      17ceffe
+git_dirty:    false
+kicad:        10.0.4
+tools:        schwriter2 (kicad-pcb skill), KRT (~/gits/KiCadRoutingTools), jlc_twin/policy_audit (skills), python3
+fab:          JLCPCB, 2 layer, STANDARD options (0.6/0.3 vias, min drill 0.3mm)
+quantity:     10 (6 pods + spares)
+gates:        ERC 0 · audit PASS (incl I9 polarity, I10b refdes-legibility) · DRC 0/0/0 severity-all with --schematic-parity · KRT 17/17 nets routed · twin exit 0 (zero unadjudicated criticals; adjudications evidence-backed) · stock 15/15 coded lines >= 10x · pin review 6/6 PASS · render review dispositioned (verification/render_review.md) · policy_audit ZERO FAIL
+sha256:
+  crow_array_pod_gerbers.zip  041eb27d03a96a4d869775cce277386dd3e9417dab13b0dafd2a08e0a6ee0650
+  bom.csv                     ad2d1bc56f249cbb5506470dd575a33fb21deb91002bd90bbd1d38380f17caf7
+  cpl.csv                     919cc53c5bd2b13b1abdd9c0d531e2828435a83b6f92b5f4087277290490bd6b
+  pdf/schematic.pdf           194dca6b129004450018e2545d3a90634896de387e699bcd584837531d591cb1
+  pdf/pcb_layers.pdf          a4d0ee7c407f33c29dcd6fd7d5b440e307398b21f3c2c532f5ccbbc25b86ba6e
+  pdf/assembly_top.pdf        11bc26ed187b7b341f9fcb31f77ff190008a3404341285025236f16040c13008
+not_assembled: J1 (KF128L-3.5-8P 8-pos 3.5mm screw terminal, hand-solder, Digi-Key list in ORDER_README) · J2 pads + AOM-5024L-HD-R mic capsule (hand-wire, 2s solder limit) · D3/L1/R15 DNP reserves (TVS clamp, CM choke, shield bond)
+stock_note:   C22359707 (CMT-8504 transducer) stock 182 on 2026-07-18 - MANDATORY order-day re-check (ORDER_README item 1)
