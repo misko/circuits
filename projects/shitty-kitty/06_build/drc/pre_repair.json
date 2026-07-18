@@ -1,0 +1,3669 @@
+{
+    "$schema": "https://schemas.kicad.org/drc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-07-17T19:38:57",
+    "ignored_checks": [
+        {
+            "description": "Footprint has no courtyard defined",
+            "key": "missing_courtyard"
+        },
+        {
+            "description": "Track endpoint not centered on via",
+            "key": "track_not_centered_on_via"
+        },
+        {
+            "description": "Tuning profile track geometries",
+            "key": "tuning_profile_track_geometries"
+        },
+        {
+            "description": "Footprint doesn't match symbol's footprint filters",
+            "key": "footprint_filters_mismatch"
+        },
+        {
+            "description": "Footprint component type doesn't match footprint pads",
+            "key": "footprint_type_mismatch"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning",
+        "exclusion"
+    ],
+    "kicad_version": "10.0.4",
+    "schematic_parity": [],
+    "source": "shitty_kitty.kicad_pcb",
+    "unconnected_items": [
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 4 [GND] of U3 on F.Cu",
+                    "pos": {
+                        "x": 62.6125,
+                        "y": 63.9
+                    },
+                    "uuid": "a3c574cd-768f-4eca-8a27-44bedfe03794"
+                },
+                {
+                    "description": "Zone [GND] on F.Cu, priority 0",
+                    "pos": {
+                        "x": 50.0,
+                        "y": 50.0
+                    },
+                    "uuid": "740d33e5-5ae1-4dfa-b5b0-2c8eab0ea820"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Zone [GND] on F.Cu, priority 0",
+                    "pos": {
+                        "x": 50.0,
+                        "y": 50.0
+                    },
+                    "uuid": "740d33e5-5ae1-4dfa-b5b0-2c8eab0ea820"
+                },
+                {
+                    "description": "Pad 6 [GND] of U4 on F.Cu",
+                    "pos": {
+                        "x": 78.2,
+                        "y": 64.8875
+                    },
+                    "uuid": "050f0e31-822f-4169-a540-9c7707184632"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 6 [GND] of U5 on F.Cu",
+                    "pos": {
+                        "x": 105.2,
+                        "y": 64.8875
+                    },
+                    "uuid": "766c55ef-e14c-409f-a53d-a949b662cf4d"
+                },
+                {
+                    "description": "Zone [GND] on F.Cu, priority 0",
+                    "pos": {
+                        "x": 50.0,
+                        "y": 50.0
+                    },
+                    "uuid": "740d33e5-5ae1-4dfa-b5b0-2c8eab0ea820"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Zone [GND] on In1.Cu, priority 0",
+                    "pos": {
+                        "x": 50.0,
+                        "y": 50.0
+                    },
+                    "uuid": "6f524461-7ddb-41d5-a4c0-aaef894f43c0"
+                },
+                {
+                    "description": "Zone [GND] on F.Cu, priority 0",
+                    "pos": {
+                        "x": 50.0,
+                        "y": 50.0
+                    },
+                    "uuid": "740d33e5-5ae1-4dfa-b5b0-2c8eab0ea820"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad A6 [USB_DP] of J2 on F.Cu",
+                    "pos": {
+                        "x": 58.245,
+                        "y": 94.75
+                    },
+                    "uuid": "04697584-6474-4cff-94a2-7a8a314bfb03"
+                },
+                {
+                    "description": "Pad B6 [USB_DP] of J2 on F.Cu",
+                    "pos": {
+                        "x": 58.245,
+                        "y": 95.75
+                    },
+                    "uuid": "27c1c23f-3ae2-4efb-b5e8-f202b722e49a"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad B6 [USB_DP] of J2 on F.Cu",
+                    "pos": {
+                        "x": 58.245,
+                        "y": 95.75
+                    },
+                    "uuid": "27c1c23f-3ae2-4efb-b5e8-f202b722e49a"
+                },
+                {
+                    "description": "Track [USB_DP] on B.Cu, length 1.1340 mm",
+                    "pos": {
+                        "x": 59.584,
+                        "y": 94.683
+                    },
+                    "uuid": "53782634-085e-4404-8afe-0671683770ac"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad A7 [USB_DM] of J2 on F.Cu",
+                    "pos": {
+                        "x": 58.245,
+                        "y": 95.25
+                    },
+                    "uuid": "1db847d5-1467-4210-9f8e-a114804c6c63"
+                },
+                {
+                    "description": "Track [USB_DM] on F.Cu, length 0.1534 mm",
+                    "pos": {
+                        "x": 58.1,
+                        "y": 94.2
+                    },
+                    "uuid": "72dc6a93-bec8-4d25-a52a-7906ac1927ea"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Track [3V3] on B.Cu, length 1.7000 mm",
+                    "pos": {
+                        "x": 77.4,
+                        "y": 64.2
+                    },
+                    "uuid": "bf4a1416-2fae-4a03-9969-98e64185cbc5"
+                },
+                {
+                    "description": "Pad 4 [3V3] of U4 on F.Cu",
+                    "pos": {
+                        "x": 77.6125,
+                        "y": 63.9
+                    },
+                    "uuid": "474d0fe9-d034-4bf2-b2ad-53a1defb658c"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 2 [3V3] of U7 on F.Cu",
+                    "pos": {
+                        "x": 94.2375,
+                        "y": 83.75
+                    },
+                    "uuid": "f0c8d5a9-2b8b-4fd1-a14c-490135e992a4"
+                },
+                {
+                    "description": "Track [3V3] on B.Cu, length 0.5000 mm",
+                    "pos": {
+                        "x": 93.9,
+                        "y": 83.0
+                    },
+                    "uuid": "169418c9-edf5-4829-a747-ca711dc610f0"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 2 [SCL] of U4 on F.Cu",
+                    "pos": {
+                        "x": 77.6125,
+                        "y": 63.1
+                    },
+                    "uuid": "0f48843f-0985-4bc2-9657-e1a49b51495c"
+                },
+                {
+                    "description": "Pad 2 [SCL] of U3 on F.Cu",
+                    "pos": {
+                        "x": 62.6125,
+                        "y": 63.1
+                    },
+                    "uuid": "d382e531-c66f-4907-88dc-24e604f9348a"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Track [SCL] on F.Cu, length 9.6167 mm",
+                    "pos": {
+                        "x": 99.1,
+                        "y": 67.9
+                    },
+                    "uuid": "f66bdfe9-d752-4c8c-9ae8-b3c823b43843"
+                },
+                {
+                    "description": "Pad 2 [SCL] of U4 on F.Cu",
+                    "pos": {
+                        "x": 77.6125,
+                        "y": 63.1
+                    },
+                    "uuid": "0f48843f-0985-4bc2-9657-e1a49b51495c"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Track [SDA] on B.Cu, length 3.1113 mm",
+                    "pos": {
+                        "x": 65.2,
+                        "y": 65.7
+                    },
+                    "uuid": "bd43f97d-b391-4cc2-b9d1-907472651925"
+                },
+                {
+                    "description": "Pad 3 [SDA] of U3 on F.Cu",
+                    "pos": {
+                        "x": 62.6125,
+                        "y": 63.5
+                    },
+                    "uuid": "bbd2e1ff-ff87-42b1-8fc6-ebe12c54e5e9"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Track [SDA] on B.Cu, length 3.1113 mm",
+                    "pos": {
+                        "x": 80.2,
+                        "y": 65.7
+                    },
+                    "uuid": "c22dfcb9-6060-464c-b8a2-4d65ff752637"
+                },
+                {
+                    "description": "Pad 3 [SDA] of U4 on F.Cu",
+                    "pos": {
+                        "x": 77.6125,
+                        "y": 63.5
+                    },
+                    "uuid": "4c436662-f865-4637-90c5-02309e892d9e"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 3 [SDA] of U6 on F.Cu",
+                    "pos": {
+                        "x": 119.6125,
+                        "y": 63.5
+                    },
+                    "uuid": "248717ef-9e01-42c6-87e4-feeaea15d9e9"
+                },
+                {
+                    "description": "Track [SDA] on B.Cu, length 2.9698 mm",
+                    "pos": {
+                        "x": 102.6,
+                        "y": 65.8
+                    },
+                    "uuid": "411fd23d-3002-4868-8237-852861d1b189"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 12 [ACC_INT] of U7 on F.Cu",
+                    "pos": {
+                        "x": 94.75,
+                        "y": 83.2375
+                    },
+                    "uuid": "aa09fae8-ac10-4387-b73d-814b9b4b9f2f"
+                },
+                {
+                    "description": "Pad 20 [ACC_INT] of U1 on F.Cu",
+                    "pos": {
+                        "x": 95.635,
+                        "y": 106.6
+                    },
+                    "uuid": "2966123c-c715-4fa0-a600-a9b634c2bd42"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 1 [BRA] of R30 on F.Cu",
+                    "pos": {
+                        "x": 159.0375,
+                        "y": 96.0
+                    },
+                    "uuid": "fc04e59a-8569-4622-9e36-2b720ac21132"
+                },
+                {
+                    "description": "Pad 23 [BRA] of U2 on F.Cu",
+                    "pos": {
+                        "x": 161.0,
+                        "y": 100.5375
+                    },
+                    "uuid": "66102bca-486f-46a3-abb6-df017592d530"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 27 [BRB] of U2 on F.Cu",
+                    "pos": {
+                        "x": 159.0,
+                        "y": 100.5375
+                    },
+                    "uuid": "24401633-a950-4f0f-889a-f312e8fbd6ec"
+                },
+                {
+                    "description": "Pad 1 [BRB] of R31 on F.Cu",
+                    "pos": {
+                        "x": 159.0375,
+                        "y": 110.5
+                    },
+                    "uuid": "58c33ac4-4ff1-40ec-a253-97850451cc26"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "PTH pad 7 [INNER7] of J3",
+                    "pos": {
+                        "x": 73.24,
+                        "y": 54.5
+                    },
+                    "uuid": "ee5cf16a-9a81-4df3-9ec2-c16197716ec8"
+                },
+                {
+                    "description": "Pad 8 [INNER7] of U4 on F.Cu",
+                    "pos": {
+                        "x": 79.0,
+                        "y": 64.8875
+                    },
+                    "uuid": "ada0c115-d3ef-4117-b3d3-58acc1a9d1a6"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "PTH pad 8 [INNER8] of J3",
+                    "pos": {
+                        "x": 75.78,
+                        "y": 54.5
+                    },
+                    "uuid": "4da954ef-f1d3-415c-b468-c20667028e17"
+                },
+                {
+                    "description": "Pad 9 [INNER8] of U4 on F.Cu",
+                    "pos": {
+                        "x": 79.4,
+                        "y": 64.8875
+                    },
+                    "uuid": "7a192047-72ed-4531-8c6d-8e2adcaa2eb3"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 12 [INNER11] of U4 on F.Cu",
+                    "pos": {
+                        "x": 80.3875,
+                        "y": 63.9
+                    },
+                    "uuid": "f7ad7a94-4318-4817-b519-936968900fe7"
+                },
+                {
+                    "description": "PTH pad 11 [INNER11] of J3",
+                    "pos": {
+                        "x": 83.4,
+                        "y": 54.5
+                    },
+                    "uuid": "5938b2bc-ddef-49c4-a31c-b8e2f4211709"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 13 [INNER12] of U4 on F.Cu",
+                    "pos": {
+                        "x": 80.3875,
+                        "y": 63.5
+                    },
+                    "uuid": "75f3a0bd-f06b-4275-9aee-bd372399404f"
+                },
+                {
+                    "description": "PTH pad 12 [INNER12] of J3",
+                    "pos": {
+                        "x": 85.94,
+                        "y": 54.5
+                    },
+                    "uuid": "abd53cda-967e-4912-9c6a-c9fc7ac37a21"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 7 [REXT_U6] of U6 on F.Cu",
+                    "pos": {
+                        "x": 120.6,
+                        "y": 64.8875
+                    },
+                    "uuid": "51d71c52-1cfc-4a00-bd05-10e351c1d18e"
+                },
+                {
+                    "description": "Track [REXT_U6] on B.Cu, length 1.7120 mm",
+                    "pos": {
+                        "x": 120.6,
+                        "y": 64.087999
+                    },
+                    "uuid": "43598872-6499-4026-83c0-73bc072f8874"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "PTH pad 7 [OUTER7] of J4",
+                    "pos": {
+                        "x": 115.24,
+                        "y": 54.5
+                    },
+                    "uuid": "e5d42363-febf-4e04-9e79-450462016b99"
+                },
+                {
+                    "description": "Pad 8 [OUTER7] of U6 on F.Cu",
+                    "pos": {
+                        "x": 121.0,
+                        "y": 64.8875
+                    },
+                    "uuid": "efdecd9e-fa10-44e0-9eaf-b2a764fa1fee"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "PTH pad 8 [OUTER8] of J4",
+                    "pos": {
+                        "x": 117.78,
+                        "y": 54.5
+                    },
+                    "uuid": "20703e78-cf29-475a-9392-f5078411c1fb"
+                },
+                {
+                    "description": "Pad 9 [OUTER8] of U6 on F.Cu",
+                    "pos": {
+                        "x": 121.4,
+                        "y": 64.8875
+                    },
+                    "uuid": "93ee0025-9928-4acb-9cd0-4510faea1c7d"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 12 [OUTER11] of U6 on F.Cu",
+                    "pos": {
+                        "x": 122.3875,
+                        "y": 63.9
+                    },
+                    "uuid": "59669ac7-4ad7-49ba-af4e-37be4c234e56"
+                },
+                {
+                    "description": "PTH pad 11 [OUTER11] of J4",
+                    "pos": {
+                        "x": 125.4,
+                        "y": 54.5
+                    },
+                    "uuid": "f30cda9f-4d35-494c-8c4d-9b5598dc1efc"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 13 [OUTER12] of U6 on F.Cu",
+                    "pos": {
+                        "x": 122.3875,
+                        "y": 63.5
+                    },
+                    "uuid": "8c10a992-4664-4861-9bd8-f8be9f1bf8d1"
+                },
+                {
+                    "description": "PTH pad 12 [OUTER12] of J4",
+                    "pos": {
+                        "x": 127.94,
+                        "y": 54.5
+                    },
+                    "uuid": "4565539b-cfd0-4933-95b3-68b2b385020f"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "PTH pad 1 [OUTER1] of J4",
+                    "pos": {
+                        "x": 100.0,
+                        "y": 54.5
+                    },
+                    "uuid": "494f60ba-c23c-4f84-9ba9-1f4462293f9e"
+                },
+                {
+                    "description": "Pad 8 [OUTER1] of U5 on F.Cu",
+                    "pos": {
+                        "x": 106.0,
+                        "y": 64.8875
+                    },
+                    "uuid": "c8bb87f4-e4c1-449d-b05e-9ea8b5ac1453"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "PTH pad 2 [OUTER2] of J4",
+                    "pos": {
+                        "x": 102.54,
+                        "y": 54.5
+                    },
+                    "uuid": "f65b7a52-0b5c-4a73-846e-06e9d80dca64"
+                },
+                {
+                    "description": "Pad 9 [OUTER2] of U5 on F.Cu",
+                    "pos": {
+                        "x": 106.4,
+                        "y": 64.8875
+                    },
+                    "uuid": "8d104c44-a9dc-4876-8a90-7d2c2fc6aacf"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 12 [OUTER5] of U5 on F.Cu",
+                    "pos": {
+                        "x": 107.3875,
+                        "y": 63.9
+                    },
+                    "uuid": "359f9e85-7bea-4adb-8964-da4465ae4889"
+                },
+                {
+                    "description": "PTH pad 5 [OUTER5] of J4",
+                    "pos": {
+                        "x": 110.16,
+                        "y": 54.5
+                    },
+                    "uuid": "634e991b-91b1-452f-aba3-cb7705124ae2"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 13 [OUTER6] of U5 on F.Cu",
+                    "pos": {
+                        "x": 107.3875,
+                        "y": 63.5
+                    },
+                    "uuid": "045aab8b-4604-402b-b9c4-aff864cfe869"
+                },
+                {
+                    "description": "PTH pad 6 [OUTER6] of J4",
+                    "pos": {
+                        "x": 112.7,
+                        "y": 54.5
+                    },
+                    "uuid": "58e66447-0c35-4bf4-987c-ca145e08f12b"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "PTH pad 1 [INNER1] of J3",
+                    "pos": {
+                        "x": 58.0,
+                        "y": 54.5
+                    },
+                    "uuid": "e54077bd-f4d0-4a8a-aaad-482c971412c8"
+                },
+                {
+                    "description": "Pad 8 [INNER1] of U3 on F.Cu",
+                    "pos": {
+                        "x": 64.0,
+                        "y": 64.8875
+                    },
+                    "uuid": "3d0568d0-c4cb-46dc-a1de-a5a4640ed904"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "PTH pad 2 [INNER2] of J3",
+                    "pos": {
+                        "x": 60.54,
+                        "y": 54.5
+                    },
+                    "uuid": "6c1f61ec-75f6-4232-a521-ef63b6aa1eb0"
+                },
+                {
+                    "description": "Pad 9 [INNER2] of U3 on F.Cu",
+                    "pos": {
+                        "x": 64.4,
+                        "y": 64.8875
+                    },
+                    "uuid": "9db430ca-357f-451b-8d21-2fad7146460e"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 12 [INNER5] of U3 on F.Cu",
+                    "pos": {
+                        "x": 65.3875,
+                        "y": 63.9
+                    },
+                    "uuid": "1264b85a-76a9-4f07-ac33-4284868ef1f1"
+                },
+                {
+                    "description": "PTH pad 5 [INNER5] of J3",
+                    "pos": {
+                        "x": 68.16,
+                        "y": 54.5
+                    },
+                    "uuid": "fdb1f788-0bda-4454-bf7c-d2a74664e5d9"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Pad 13 [INNER6] of U3 on F.Cu",
+                    "pos": {
+                        "x": 65.3875,
+                        "y": 63.5
+                    },
+                    "uuid": "b7768216-0564-40da-ae9d-8470ca71c450"
+                },
+                {
+                    "description": "PTH pad 6 [INNER6] of J3",
+                    "pos": {
+                        "x": 70.7,
+                        "y": 54.5
+                    },
+                    "uuid": "b6ff27cb-a9f6-45b4-9166-40dc444cecd8"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        }
+    ],
+    "violations": [
+        {
+            "description": "Board edge clearance violation (board setup constraints edge clearance 0.2000 mm; actual 0.1900 mm)",
+            "items": [
+                {
+                    "description": "Segment on Edge.Cuts",
+                    "pos": {
+                        "x": 180.0,
+                        "y": 125.0
+                    },
+                    "uuid": "0b368e9a-8250-4d14-956e-f4e253686e4e"
+                },
+                {
+                    "description": "Pad 1 [GND] of U1 on F.Cu",
+                    "pos": {
+                        "x": 103.75,
+                        "y": 124.36
+                    },
+                    "uuid": "3551b7ce-ce34-4834-a4d3-fd23fe8e75b3"
+                }
+            ],
+            "severity": "error",
+            "type": "copper_edge_clearance"
+        },
+        {
+            "description": "Board edge clearance violation (board setup constraints edge clearance 0.2000 mm; actual 0.1900 mm)",
+            "items": [
+                {
+                    "description": "Segment on Edge.Cuts",
+                    "pos": {
+                        "x": 180.0,
+                        "y": 125.0
+                    },
+                    "uuid": "0b368e9a-8250-4d14-956e-f4e253686e4e"
+                },
+                {
+                    "description": "Pad 40 [GND] of U1 on F.Cu",
+                    "pos": {
+                        "x": 86.25,
+                        "y": 124.36
+                    },
+                    "uuid": "9a1172db-2d52-475d-bc60-a4f45e5cf5dd"
+                }
+            ],
+            "severity": "error",
+            "type": "copper_edge_clearance"
+        },
+        {
+            "description": "Board edge clearance violation (board setup constraints edge clearance 0.2000 mm; actual 0.0000 mm)",
+            "items": [
+                {
+                    "description": "Segment on Edge.Cuts",
+                    "pos": {
+                        "x": 180.0,
+                        "y": 50.0
+                    },
+                    "uuid": "f8225dde-5388-47dc-85ce-1d7518df4884"
+                },
+                {
+                    "description": "PTH pad 2 [GND] of J1",
+                    "pos": {
+                        "x": 179.15,
+                        "y": 70.0
+                    },
+                    "uuid": "dfb885c1-9826-4bb6-ad70-ac8b6bdcdc65"
+                }
+            ],
+            "severity": "error",
+            "type": "copper_edge_clearance"
+        },
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint H4",
+                    "pos": {
+                        "x": 174.5,
+                        "y": 119.5
+                    },
+                    "uuid": "06e01645-424e-467f-864f-51be6723260c"
+                },
+                {
+                    "description": "Footprint J6",
+                    "pos": {
+                        "x": 176.0,
+                        "y": 116.5
+                    },
+                    "uuid": "8fdbdb3a-f998-45dd-952c-3e7360499ca5"
+                }
+            ],
+            "severity": "error",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "PTH inside courtyard",
+            "items": [
+                {
+                    "description": "PTH pad 1 [ENDSTOP_N] of J6",
+                    "pos": {
+                        "x": 176.0,
+                        "y": 116.5
+                    },
+                    "uuid": "dd01452b-90e5-4213-8012-357830c9f51b"
+                },
+                {
+                    "description": "Footprint H4",
+                    "pos": {
+                        "x": 174.5,
+                        "y": 119.5
+                    },
+                    "uuid": "06e01645-424e-467f-864f-51be6723260c"
+                }
+            ],
+            "severity": "error",
+            "type": "pth_inside_courtyard"
+        },
+        {
+            "description": "NPTH inside courtyard",
+            "items": [
+                {
+                    "description": "NPTH pad of H4",
+                    "pos": {
+                        "x": 174.5,
+                        "y": 119.5
+                    },
+                    "uuid": "ee0a8d13-2d13-454b-bbda-3fa4c3293896"
+                },
+                {
+                    "description": "Footprint J6",
+                    "pos": {
+                        "x": 176.0,
+                        "y": 116.5
+                    },
+                    "uuid": "8fdbdb3a-f998-45dd-952c-3e7360499ca5"
+                }
+            ],
+            "severity": "error",
+            "type": "npth_inside_courtyard"
+        },
+        {
+            "description": "Courtyards overlap",
+            "items": [
+                {
+                    "description": "Footprint J3",
+                    "pos": {
+                        "x": 58.0,
+                        "y": 54.5
+                    },
+                    "uuid": "a5449d8f-0c1a-4907-8341-540148131e06"
+                },
+                {
+                    "description": "Footprint H1",
+                    "pos": {
+                        "x": 55.5,
+                        "y": 55.5
+                    },
+                    "uuid": "fa4441b0-b475-4990-95db-6084fa28e434"
+                }
+            ],
+            "severity": "error",
+            "type": "courtyards_overlap"
+        },
+        {
+            "description": "NPTH inside courtyard",
+            "items": [
+                {
+                    "description": "NPTH pad of H1",
+                    "pos": {
+                        "x": 55.5,
+                        "y": 55.5
+                    },
+                    "uuid": "ed7c3019-6a1a-4e09-a4f6-d056334b0923"
+                },
+                {
+                    "description": "Footprint J3",
+                    "pos": {
+                        "x": 58.0,
+                        "y": 54.5
+                    },
+                    "uuid": "a5449d8f-0c1a-4907-8341-540148131e06"
+                }
+            ],
+            "severity": "error",
+            "type": "npth_inside_courtyard"
+        },
+        {
+            "description": "PTH inside courtyard",
+            "items": [
+                {
+                    "description": "PTH pad 1 [INNER1] of J3",
+                    "pos": {
+                        "x": 58.0,
+                        "y": 54.5
+                    },
+                    "uuid": "e54077bd-f4d0-4a8a-aaad-482c971412c8"
+                },
+                {
+                    "description": "Footprint H1",
+                    "pos": {
+                        "x": 55.5,
+                        "y": 55.5
+                    },
+                    "uuid": "fa4441b0-b475-4990-95db-6084fa28e434"
+                }
+            ],
+            "severity": "error",
+            "type": "pth_inside_courtyard"
+        },
+        {
+            "description": "Clearance violation (netclass 'Default' clearance 0.1500 mm; actual 0.0750 mm)",
+            "items": [
+                {
+                    "description": "Via [REXT_U3] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 63.6,
+                        "y": 64.8875
+                    },
+                    "uuid": "73002a56-0b61-42cf-b971-d55732c7e110"
+                },
+                {
+                    "description": "Pad 6 [GND] of U3 on F.Cu",
+                    "pos": {
+                        "x": 63.2,
+                        "y": 64.8875
+                    },
+                    "uuid": "bca9ff4f-650b-47f4-b0bd-5b60a10fab9a"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1750 mm)",
+            "items": [
+                {
+                    "description": "Pad 12 [INNER5] of U3 on F.Cu",
+                    "pos": {
+                        "x": 65.3875,
+                        "y": 63.9
+                    },
+                    "uuid": "1264b85a-76a9-4f07-ac33-4284868ef1f1"
+                },
+                {
+                    "description": "Track [INNER4] on F.Cu, length 0.1414 mm",
+                    "pos": {
+                        "x": 65.5,
+                        "y": 64.4
+                    },
+                    "uuid": "b543f7ca-0207-4edd-9994-7b5db0cbf702"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1743 mm)",
+            "items": [
+                {
+                    "description": "Track [INNER4] on F.Cu, length 0.7000 mm",
+                    "pos": {
+                        "x": 66.4,
+                        "y": 63.2
+                    },
+                    "uuid": "5bbc9495-c8d9-4d5e-9f8c-e780278d2bca"
+                },
+                {
+                    "description": "Track [INNER3] on F.Cu, length 1.6971 mm",
+                    "pos": {
+                        "x": 67.0,
+                        "y": 63.9
+                    },
+                    "uuid": "d59bff6e-9be7-452c-b3f2-d30945a4659e"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1750 mm)",
+            "items": [
+                {
+                    "description": "Track [INNER3] on F.Cu, length 0.2828 mm",
+                    "pos": {
+                        "x": 65.0,
+                        "y": 65.099999
+                    },
+                    "uuid": "46d833cc-f680-4a49-a175-2b01aec0e136"
+                },
+                {
+                    "description": "Pad 9 [INNER2] of U3 on F.Cu",
+                    "pos": {
+                        "x": 64.4,
+                        "y": 64.8875
+                    },
+                    "uuid": "9db430ca-357f-451b-8d21-2fad7146460e"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1833 mm)",
+            "items": [
+                {
+                    "description": "Track [INNER3] on F.Cu, length 0.6000 mm",
+                    "pos": {
+                        "x": 67.0,
+                        "y": 63.3
+                    },
+                    "uuid": "4537e2a7-962e-419d-a571-726ebc909b9d"
+                },
+                {
+                    "description": "Via [INNER4] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 66.4,
+                        "y": 63.2
+                    },
+                    "uuid": "be330478-0be4-4b06-ae70-25831e59a7f5"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1750 mm)",
+            "items": [
+                {
+                    "description": "Pad 12 [OUTER5] of U5 on F.Cu",
+                    "pos": {
+                        "x": 107.3875,
+                        "y": 63.9
+                    },
+                    "uuid": "359f9e85-7bea-4adb-8964-da4465ae4889"
+                },
+                {
+                    "description": "Track [OUTER4] on F.Cu, length 0.1414 mm",
+                    "pos": {
+                        "x": 107.7,
+                        "y": 64.3
+                    },
+                    "uuid": "864f88fb-9043-4020-9fe5-0d91229835ae"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1743 mm)",
+            "items": [
+                {
+                    "description": "Track [OUTER4] on F.Cu, length 8.0000 mm",
+                    "pos": {
+                        "x": 108.7,
+                        "y": 63.6
+                    },
+                    "uuid": "2f504c28-b681-4e53-bb93-0ec750e1aaf3"
+                },
+                {
+                    "description": "Track [OUTER3] on F.Cu, length 1.8385 mm",
+                    "pos": {
+                        "x": 108.0,
+                        "y": 64.9
+                    },
+                    "uuid": "c257f3f5-ec3a-454a-aae8-5a87068d13f4"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Track [OUTER4] on F.Cu, length 8.0000 mm",
+                    "pos": {
+                        "x": 108.7,
+                        "y": 63.6
+                    },
+                    "uuid": "2f504c28-b681-4e53-bb93-0ec750e1aaf3"
+                },
+                {
+                    "description": "Track [OUTER3] on F.Cu, length 0.2828 mm",
+                    "pos": {
+                        "x": 109.3,
+                        "y": 63.6
+                    },
+                    "uuid": "c4259895-911a-4702-b3cd-bfe9278a00f6"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Track [OUTER4] on F.Cu, length 8.0000 mm",
+                    "pos": {
+                        "x": 108.7,
+                        "y": 63.6
+                    },
+                    "uuid": "2f504c28-b681-4e53-bb93-0ec750e1aaf3"
+                },
+                {
+                    "description": "Track [OUTER3] on F.Cu, length 8.0000 mm",
+                    "pos": {
+                        "x": 109.1,
+                        "y": 63.4
+                    },
+                    "uuid": "8ad0dc69-2fe7-4d2d-925e-0411e4a1c257"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1750 mm)",
+            "items": [
+                {
+                    "description": "Track [OUTER3] on F.Cu, length 1.2000 mm",
+                    "pos": {
+                        "x": 106.8,
+                        "y": 64.9
+                    },
+                    "uuid": "6aba9f4b-f47a-401f-9bb9-64c4dc38a8da"
+                },
+                {
+                    "description": "Pad 9 [OUTER2] of U5 on F.Cu",
+                    "pos": {
+                        "x": 106.4,
+                        "y": 64.8875
+                    },
+                    "uuid": "8d104c44-a9dc-4876-8a90-7d2c2fc6aacf"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1833 mm)",
+            "items": [
+                {
+                    "description": "Track [INNER3] on F.Cu, length 0.2828 mm",
+                    "pos": {
+                        "x": 67.2,
+                        "y": 63.1
+                    },
+                    "uuid": "7233063b-c2c4-45bb-afa0-61082c5b2b5d"
+                },
+                {
+                    "description": "Via [INNER4] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 66.4,
+                        "y": 63.2
+                    },
+                    "uuid": "be330478-0be4-4b06-ae70-25831e59a7f5"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1743 mm)",
+            "items": [
+                {
+                    "description": "Track [OUTER3] on F.Cu, length 1.1000 mm",
+                    "pos": {
+                        "x": 108.8,
+                        "y": 55.1
+                    },
+                    "uuid": "335d0a87-7dc8-47c8-9387-756f9f533926"
+                },
+                {
+                    "description": "Track [OUTER4] on F.Cu, length 1.5556 mm",
+                    "pos": {
+                        "x": 108.7,
+                        "y": 55.6
+                    },
+                    "uuid": "a3afe8de-6d6c-495d-b879-842fb122d28d"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1743 mm)",
+            "items": [
+                {
+                    "description": "Track [OUTER4] on F.Cu, length 8.0000 mm",
+                    "pos": {
+                        "x": 108.7,
+                        "y": 63.6
+                    },
+                    "uuid": "2f504c28-b681-4e53-bb93-0ec750e1aaf3"
+                },
+                {
+                    "description": "Track [OUTER3] on F.Cu, length 0.4243 mm",
+                    "pos": {
+                        "x": 109.1,
+                        "y": 55.4
+                    },
+                    "uuid": "fa7141bf-5236-41bc-a72a-fd4bc7eaa61a"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1750 mm)",
+            "items": [
+                {
+                    "description": "Pad 12 [OUTER11] of U6 on F.Cu",
+                    "pos": {
+                        "x": 122.3875,
+                        "y": 63.9
+                    },
+                    "uuid": "59669ac7-4ad7-49ba-af4e-37be4c234e56"
+                },
+                {
+                    "description": "Track [OUTER10] on F.Cu, length 0.1414 mm",
+                    "pos": {
+                        "x": 122.4,
+                        "y": 64.3
+                    },
+                    "uuid": "61bf3a23-db15-4efc-aa97-8525e092b043"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Track [OUTER9] on F.Cu, length 0.7071 mm",
+                    "pos": {
+                        "x": 123.6,
+                        "y": 55.5
+                    },
+                    "uuid": "274c6372-6c89-40c6-88f4-9489f44dcc02"
+                },
+                {
+                    "description": "Track [OUTER10] on F.Cu, length 9.3000 mm",
+                    "pos": {
+                        "x": 123.2,
+                        "y": 64.099999
+                    },
+                    "uuid": "8fe81175-b1d5-42df-835f-76b23127fea5"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1743 mm)",
+            "items": [
+                {
+                    "description": "Track [OUTER9] on F.Cu, length 0.8485 mm",
+                    "pos": {
+                        "x": 123.0,
+                        "y": 64.9
+                    },
+                    "uuid": "08d8c255-41a7-4b51-8bb5-271b6e59eba3"
+                },
+                {
+                    "description": "Track [OUTER10] on F.Cu, length 0.4243 mm",
+                    "pos": {
+                        "x": 122.9,
+                        "y": 64.4
+                    },
+                    "uuid": "366f55ca-aa58-4204-8582-425a2ef4f234"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1750 mm)",
+            "items": [
+                {
+                    "description": "Track [OUTER9] on F.Cu, length 1.2000 mm",
+                    "pos": {
+                        "x": 121.8,
+                        "y": 64.9
+                    },
+                    "uuid": "5a5837d8-c5de-411e-b289-e73018fb5533"
+                },
+                {
+                    "description": "Pad 9 [OUTER8] of U6 on F.Cu",
+                    "pos": {
+                        "x": 121.4,
+                        "y": 64.8875
+                    },
+                    "uuid": "93ee0025-9928-4acb-9cd0-4510faea1c7d"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Track [OUTER10] on F.Cu, length 0.4243 mm",
+                    "pos": {
+                        "x": 122.9,
+                        "y": 64.4
+                    },
+                    "uuid": "366f55ca-aa58-4204-8582-425a2ef4f234"
+                },
+                {
+                    "description": "Track [OUTER9] on F.Cu, length 8.8000 mm",
+                    "pos": {
+                        "x": 123.6,
+                        "y": 64.3
+                    },
+                    "uuid": "72f7ef87-d519-4daa-af46-45c15437703d"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'Default' clearance 0.1500 mm; actual 0.0750 mm)",
+            "items": [
+                {
+                    "description": "Via [REXT_U5] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 105.6,
+                        "y": 64.8875
+                    },
+                    "uuid": "66aacf05-92d8-4f37-8791-d10bd133531f"
+                },
+                {
+                    "description": "Pad 6 [GND] of U5 on F.Cu",
+                    "pos": {
+                        "x": 105.2,
+                        "y": 64.8875
+                    },
+                    "uuid": "766c55ef-e14c-409f-a53d-a949b662cf4d"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1750 mm)",
+            "items": [
+                {
+                    "description": "Pad 12 [OUTER5] of U5 on F.Cu",
+                    "pos": {
+                        "x": 107.3875,
+                        "y": 63.9
+                    },
+                    "uuid": "359f9e85-7bea-4adb-8964-da4465ae4889"
+                },
+                {
+                    "description": "Track [OUTER4] on F.Cu, length 0.3000 mm",
+                    "pos": {
+                        "x": 107.4,
+                        "y": 64.3
+                    },
+                    "uuid": "e49f98c6-4581-4767-b1e9-be4812a1f363"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'Default' clearance 0.1500 mm; actual 0.1250 mm)",
+            "items": [
+                {
+                    "description": "Via [CC1] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 57.7,
+                        "y": 93.75
+                    },
+                    "uuid": "841e00ed-800f-4c3f-ac15-40af348c5a26"
+                },
+                {
+                    "description": "Pad B8 [unconnected-(J2-SBU2-PadB8)] of J2 on F.Cu",
+                    "pos": {
+                        "x": 58.245,
+                        "y": 93.25
+                    },
+                    "uuid": "90cecd10-fd48-4455-835b-e98bb40abcf1"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1391 mm)",
+            "items": [
+                {
+                    "description": "Track [INNER10] on F.Cu, length 1.1314 mm",
+                    "pos": {
+                        "x": 80.4,
+                        "y": 61.8
+                    },
+                    "uuid": "3f484924-5cd6-4134-8a43-9a0b4c35265a"
+                },
+                {
+                    "description": "Pad 15 [unconnected-(U4-ELE7-Pad15)] of U4 on F.Cu",
+                    "pos": {
+                        "x": 80.3875,
+                        "y": 62.7
+                    },
+                    "uuid": "b93ffa45-ccc4-404e-887b-ec836b2254cf"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1750 mm)",
+            "items": [
+                {
+                    "description": "Track [INNER9] on F.Cu, length 1.2000 mm",
+                    "pos": {
+                        "x": 79.8,
+                        "y": 64.9
+                    },
+                    "uuid": "712b92b6-ed2d-4516-b615-2b3a46e4d85e"
+                },
+                {
+                    "description": "Pad 9 [INNER8] of U4 on F.Cu",
+                    "pos": {
+                        "x": 79.4,
+                        "y": 64.8875
+                    },
+                    "uuid": "7a192047-72ed-4531-8c6d-8e2adcaa2eb3"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1743 mm)",
+            "items": [
+                {
+                    "description": "Track [INNER9] on F.Cu, length 0.8485 mm",
+                    "pos": {
+                        "x": 81.0,
+                        "y": 64.9
+                    },
+                    "uuid": "03edcfde-f4d6-45fc-adc8-00a814caaa40"
+                },
+                {
+                    "description": "Track [INNER10] on F.Cu, length 0.4000 mm",
+                    "pos": {
+                        "x": 80.9,
+                        "y": 64.4
+                    },
+                    "uuid": "10b93a5c-b91e-491e-ae7f-6e863a1c0c5c"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'Default' clearance 0.1500 mm; actual 0.0750 mm)",
+            "items": [
+                {
+                    "description": "Pad 6 [GND] of U4 on F.Cu",
+                    "pos": {
+                        "x": 78.2,
+                        "y": 64.8875
+                    },
+                    "uuid": "050f0e31-822f-4169-a540-9c7707184632"
+                },
+                {
+                    "description": "Via [REXT_U4] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 78.6,
+                        "y": 64.8875
+                    },
+                    "uuid": "7909b8d9-2a06-4b0b-9fce-80f9895ff055"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Track [INNER9] on F.Cu, length 8.8000 mm",
+                    "pos": {
+                        "x": 81.6,
+                        "y": 64.3
+                    },
+                    "uuid": "981a4f64-546b-48e3-9947-59b943577a07"
+                },
+                {
+                    "description": "Track [INNER10] on F.Cu, length 0.4243 mm",
+                    "pos": {
+                        "x": 81.2,
+                        "y": 64.099999
+                    },
+                    "uuid": "b1fa1d78-2f47-4b7f-996d-227a32f4811e"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1750 mm)",
+            "items": [
+                {
+                    "description": "Track [INNER10] on F.Cu, length 0.1414 mm",
+                    "pos": {
+                        "x": 80.5,
+                        "y": 64.4
+                    },
+                    "uuid": "392cc460-3749-4ab9-940c-448c6455a981"
+                },
+                {
+                    "description": "Pad 12 [INNER11] of U4 on F.Cu",
+                    "pos": {
+                        "x": 80.3875,
+                        "y": 63.9
+                    },
+                    "uuid": "f7ad7a94-4318-4817-b519-936968900fe7"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'Default' clearance 0.1500 mm; actual 0.1460 mm)",
+            "items": [
+                {
+                    "description": "Via [TMC_UART] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 105.482,
+                        "y": 112.096
+                    },
+                    "uuid": "52ea9a9b-f205-4514-b28a-18e4832d527c"
+                },
+                {
+                    "description": "Track [INDEX] on B.Cu, length 3.8000 mm",
+                    "pos": {
+                        "x": 105.0,
+                        "y": 111.5
+                    },
+                    "uuid": "92ad643d-663f-46c5-9cdb-761cb291c5fb"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'Default' clearance 0.1500 mm; actual 0.1264 mm)",
+            "items": [
+                {
+                    "description": "Via [CPI] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 157.5375,
+                        "y": 103.5
+                    },
+                    "uuid": "4e108ff7-5176-4433-83ea-6518a976d405"
+                },
+                {
+                    "description": "Track [CPO] on F.Cu, length 0.7000 mm",
+                    "pos": {
+                        "x": 156.8,
+                        "y": 103.0
+                    },
+                    "uuid": "84824cec-9a84-45e5-b5ae-31b89b43d86c"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2250 mm)",
+            "items": [
+                {
+                    "description": "Pad 6 [VCP] of U2 on F.Cu",
+                    "pos": {
+                        "x": 157.5375,
+                        "y": 104.0
+                    },
+                    "uuid": "92899fdb-feb7-4377-8075-dd86a7050a3b"
+                },
+                {
+                    "description": "Via [CPI] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 157.5375,
+                        "y": 103.5
+                    },
+                    "uuid": "4e108ff7-5176-4433-83ea-6518a976d405"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1750 mm)",
+            "items": [
+                {
+                    "description": "Via [SDA] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 65.2,
+                        "y": 65.7
+                    },
+                    "uuid": "4c7293b6-4b0c-4ae5-a865-bf5346848013"
+                },
+                {
+                    "description": "Track [INNER3] on F.Cu, length 0.8000 mm",
+                    "pos": {
+                        "x": 65.8,
+                        "y": 65.099999
+                    },
+                    "uuid": "e2303cee-69ad-4ff6-bdc7-7b18e0b297e2"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Track [SDA] on F.Cu, length 0.6000 mm",
+                    "pos": {
+                        "x": 66.0,
+                        "y": 65.5
+                    },
+                    "uuid": "bd8e06d0-8612-4b8b-babe-ef8290846d4f"
+                },
+                {
+                    "description": "Track [INNER3] on F.Cu, length 0.8000 mm",
+                    "pos": {
+                        "x": 65.8,
+                        "y": 65.099999
+                    },
+                    "uuid": "e2303cee-69ad-4ff6-bdc7-7b18e0b297e2"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1774 mm)",
+            "items": [
+                {
+                    "description": "Pad 10 [INNER9] of U4 on F.Cu",
+                    "pos": {
+                        "x": 79.8,
+                        "y": 64.8875
+                    },
+                    "uuid": "2020b6dc-fb10-448b-972f-63d89d36c2e5"
+                },
+                {
+                    "description": "Via [SDA] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 80.2,
+                        "y": 65.7
+                    },
+                    "uuid": "c03a6c9f-eece-4383-ae06-c6efd477e0ca"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2319 mm)",
+            "items": [
+                {
+                    "description": "Pad 4 [3V3] of U4 on F.Cu",
+                    "pos": {
+                        "x": 77.6125,
+                        "y": 63.9
+                    },
+                    "uuid": "474d0fe9-d034-4bf2-b2ad-53a1defb658c"
+                },
+                {
+                    "description": "Via [SDA] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 78.45,
+                        "y": 64.027
+                    },
+                    "uuid": "b8dc5719-4aa4-4d23-bbeb-104708245df7"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Track [INNER3] on F.Cu, length 0.6000 mm",
+                    "pos": {
+                        "x": 67.0,
+                        "y": 63.3
+                    },
+                    "uuid": "4537e2a7-962e-419d-a571-726ebc909b9d"
+                },
+                {
+                    "description": "Track [SDA] on F.Cu, length 0.2000 mm",
+                    "pos": {
+                        "x": 67.4,
+                        "y": 63.9
+                    },
+                    "uuid": "b7e6b951-984d-46aa-b6a7-ba9c2fbc94a5"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Track [INNER3] on F.Cu, length 0.6000 mm",
+                    "pos": {
+                        "x": 67.0,
+                        "y": 63.3
+                    },
+                    "uuid": "4537e2a7-962e-419d-a571-726ebc909b9d"
+                },
+                {
+                    "description": "Track [SDA] on F.Cu, length 0.5657 mm",
+                    "pos": {
+                        "x": 67.8,
+                        "y": 63.5
+                    },
+                    "uuid": "a5ef3989-ac64-413c-a36e-a170e9d01c19"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1743 mm)",
+            "items": [
+                {
+                    "description": "Track [SDA] on F.Cu, length 1.9799 mm",
+                    "pos": {
+                        "x": 67.4,
+                        "y": 64.099999
+                    },
+                    "uuid": "3c621ab7-758d-4146-b8ca-eeef4db7d239"
+                },
+                {
+                    "description": "Track [INNER3] on F.Cu, length 0.8000 mm",
+                    "pos": {
+                        "x": 65.8,
+                        "y": 65.099999
+                    },
+                    "uuid": "e2303cee-69ad-4ff6-bdc7-7b18e0b297e2"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'ELEC' clearance 0.2000 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Track [SDA] on F.Cu, length 0.2828 mm",
+                    "pos": {
+                        "x": 65.4,
+                        "y": 65.5
+                    },
+                    "uuid": "3b898846-bf4d-41ab-9463-265c288fe239"
+                },
+                {
+                    "description": "Track [INNER3] on F.Cu, length 0.8000 mm",
+                    "pos": {
+                        "x": 65.8,
+                        "y": 65.099999
+                    },
+                    "uuid": "e2303cee-69ad-4ff6-bdc7-7b18e0b297e2"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2250 mm)",
+            "items": [
+                {
+                    "description": "Track [MPR_IRQ3] on F.Cu, length 0.4000 mm",
+                    "pos": {
+                        "x": 104.1,
+                        "y": 62.6
+                    },
+                    "uuid": "b448006f-c80f-4308-b2d4-f231a6f89581"
+                },
+                {
+                    "description": "Via [SCL] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 104.45,
+                        "y": 63.1
+                    },
+                    "uuid": "fcdfa4ab-befc-4e77-9e71-07632fc1f2e3"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'Default' clearance 0.1500 mm; actual 0.0772 mm)",
+            "items": [
+                {
+                    "description": "Via [SCL] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 119.45,
+                        "y": 63.1
+                    },
+                    "uuid": "8eed55fd-e19a-4636-9cf9-38e7e2a246b3"
+                },
+                {
+                    "description": "Track [MPR_IRQ4] on F.Cu, length 0.1414 mm",
+                    "pos": {
+                        "x": 119.5,
+                        "y": 62.6
+                    },
+                    "uuid": "e066c77b-c0cf-4832-a9af-9c120784b9a3"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'Default' clearance 0.1500 mm; actual 0.1250 mm)",
+            "items": [
+                {
+                    "description": "Via [SDA] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 104.7,
+                        "y": 63.7
+                    },
+                    "uuid": "9110394a-44fc-4155-b617-ec84a5587191"
+                },
+                {
+                    "description": "Via [SCL] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 104.45,
+                        "y": 63.1
+                    },
+                    "uuid": "fcdfa4ab-befc-4e77-9e71-07632fc1f2e3"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'Default' clearance 0.1500 mm; actual 0.1250 mm)",
+            "items": [
+                {
+                    "description": "Via [SDA] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 104.7,
+                        "y": 63.7
+                    },
+                    "uuid": "9110394a-44fc-4155-b617-ec84a5587191"
+                },
+                {
+                    "description": "Via [SCL] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 104.45,
+                        "y": 63.1
+                    },
+                    "uuid": "fcdfa4ab-befc-4e77-9e71-07632fc1f2e3"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'Default' clearance 0.1500 mm; actual 0.1250 mm)",
+            "items": [
+                {
+                    "description": "Via [SDA] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 104.7,
+                        "y": 63.7
+                    },
+                    "uuid": "9110394a-44fc-4155-b617-ec84a5587191"
+                },
+                {
+                    "description": "Via [SCL] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 104.45,
+                        "y": 63.1
+                    },
+                    "uuid": "fcdfa4ab-befc-4e77-9e71-07632fc1f2e3"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (rule 'clr_pwr3v3' clearance 0.1500 mm; actual 0.1319 mm)",
+            "items": [
+                {
+                    "description": "Track [SDA] on B.Cu, length 2.6039 mm",
+                    "pos": {
+                        "x": 78.45,
+                        "y": 64.027
+                    },
+                    "uuid": "a6832441-ecad-42a6-834f-042dc2855003"
+                },
+                {
+                    "description": "Track [3V3] on B.Cu, length 1.7000 mm",
+                    "pos": {
+                        "x": 77.4,
+                        "y": 64.2
+                    },
+                    "uuid": "bf4a1416-2fae-4a03-9969-98e64185cbc5"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2280 mm)",
+            "items": [
+                {
+                    "description": "Pad 3 [GND] of U7 on F.Cu",
+                    "pos": {
+                        "x": 94.2375,
+                        "y": 84.25
+                    },
+                    "uuid": "d27f7dd0-d1b9-4ec8-9997-21494f6f5335"
+                },
+                {
+                    "description": "Via [3V3] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 93.672,
+                        "y": 84.316
+                    },
+                    "uuid": "fdb86aef-d95f-42e2-a62d-345819d9f92f"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'USB' clearance 0.2000 mm; actual 0.1217 mm)",
+            "items": [
+                {
+                    "description": "Via [CC1] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 57.7,
+                        "y": 93.75
+                    },
+                    "uuid": "841e00ed-800f-4c3f-ac15-40af348c5a26"
+                },
+                {
+                    "description": "Track [USB_DM] on B.Cu, length 0.2000 mm",
+                    "pos": {
+                        "x": 58.1,
+                        "y": 94.0
+                    },
+                    "uuid": "c70f9968-0716-467d-acb1-b562aff2bc10"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'USB' clearance 0.2000 mm; actual 0.1217 mm)",
+            "items": [
+                {
+                    "description": "Track [USB_DM] on B.Cu, length 1.6971 mm",
+                    "pos": {
+                        "x": 59.3,
+                        "y": 92.8
+                    },
+                    "uuid": "0106d6e8-786d-4256-a264-2fb6cce56068"
+                },
+                {
+                    "description": "Via [CC1] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 57.7,
+                        "y": 93.75
+                    },
+                    "uuid": "841e00ed-800f-4c3f-ac15-40af348c5a26"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'USB' clearance 0.2000 mm; actual 0.1521 mm)",
+            "items": [
+                {
+                    "description": "Via [USB_DM] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 58.1,
+                        "y": 94.2
+                    },
+                    "uuid": "4103af94-cb18-4070-a5d8-ce63dda319cf"
+                },
+                {
+                    "description": "Via [CC1] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 57.7,
+                        "y": 93.75
+                    },
+                    "uuid": "841e00ed-800f-4c3f-ac15-40af348c5a26"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'USB' clearance 0.2000 mm; actual 0.1521 mm)",
+            "items": [
+                {
+                    "description": "Via [USB_DM] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 58.1,
+                        "y": 94.2
+                    },
+                    "uuid": "4103af94-cb18-4070-a5d8-ce63dda319cf"
+                },
+                {
+                    "description": "Via [CC1] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 57.7,
+                        "y": 93.75
+                    },
+                    "uuid": "841e00ed-800f-4c3f-ac15-40af348c5a26"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'USB' clearance 0.2000 mm; actual 0.1521 mm)",
+            "items": [
+                {
+                    "description": "Via [USB_DM] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 58.1,
+                        "y": 94.2
+                    },
+                    "uuid": "4103af94-cb18-4070-a5d8-ce63dda319cf"
+                },
+                {
+                    "description": "Via [CC1] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 57.7,
+                        "y": 93.75
+                    },
+                    "uuid": "841e00ed-800f-4c3f-ac15-40af348c5a26"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'USB' clearance 0.2000 mm; actual 0.1521 mm)",
+            "items": [
+                {
+                    "description": "Via [USB_DM] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 58.1,
+                        "y": 94.2
+                    },
+                    "uuid": "4103af94-cb18-4070-a5d8-ce63dda319cf"
+                },
+                {
+                    "description": "Via [CC1] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 57.7,
+                        "y": 93.75
+                    },
+                    "uuid": "841e00ed-800f-4c3f-ac15-40af348c5a26"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'USB' clearance 0.2000 mm; actual 0.1750 mm)",
+            "items": [
+                {
+                    "description": "Track [USB_DM] on F.Cu, length 0.1534 mm",
+                    "pos": {
+                        "x": 58.1,
+                        "y": 94.2
+                    },
+                    "uuid": "72dc6a93-bec8-4d25-a52a-7906ac1927ea"
+                },
+                {
+                    "description": "Pad A5 [CC1] of J2 on F.Cu",
+                    "pos": {
+                        "x": 58.245,
+                        "y": 93.75
+                    },
+                    "uuid": "e65170c5-e568-4e45-8d18-70aaed919907"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'USB' clearance 0.2000 mm; actual 0.1743 mm)",
+            "items": [
+                {
+                    "description": "Track [USB_DP] on F.Cu, length 4.5255 mm",
+                    "pos": {
+                        "x": 59.5,
+                        "y": 93.5
+                    },
+                    "uuid": "b6c3f922-825f-41f7-80de-ac35c4f54f88"
+                },
+                {
+                    "description": "Track [USB_DM] on F.Cu, length 3.9598 mm",
+                    "pos": {
+                        "x": 63.2,
+                        "y": 90.4
+                    },
+                    "uuid": "cdfabe75-4b0c-417d-85e6-d4526434c69c"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'USB' clearance 0.2000 mm; actual 0.1750 mm)",
+            "items": [
+                {
+                    "description": "Track [MPR_IRQ1] on F.Cu, length 1.3000 mm",
+                    "pos": {
+                        "x": 102.4,
+                        "y": 105.5
+                    },
+                    "uuid": "8c0a99fe-05fd-45a6-be6c-a1006feb7aa6"
+                },
+                {
+                    "description": "Via [USB_DP] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 103.4,
+                        "y": 106.1
+                    },
+                    "uuid": "93ce5bdf-0ad9-46fc-baef-42ff2f5cd517"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'USB' clearance 0.2000 mm; actual 0.1743 mm)",
+            "items": [
+                {
+                    "description": "Track [USB_DP] on F.Cu, length 1.2728 mm",
+                    "pos": {
+                        "x": 62.7,
+                        "y": 90.3
+                    },
+                    "uuid": "3624cf59-d220-417b-a417-a22ab856a911"
+                },
+                {
+                    "description": "Track [USB_DM] on F.Cu, length 3.9598 mm",
+                    "pos": {
+                        "x": 63.2,
+                        "y": 90.4
+                    },
+                    "uuid": "cdfabe75-4b0c-417d-85e6-d4526434c69c"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'USB' clearance 0.2000 mm; actual 0.1750 mm)",
+            "items": [
+                {
+                    "description": "Via [SCL] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 96.8,
+                        "y": 103.0
+                    },
+                    "uuid": "a522a61c-d371-4e06-a4be-e06bc744e1ea"
+                },
+                {
+                    "description": "Track [USB_DM] on F.Cu, length 2.0000 mm",
+                    "pos": {
+                        "x": 97.4,
+                        "y": 102.7
+                    },
+                    "uuid": "d5e4c8ea-8e87-4922-b1a3-c2e1e9b4aeea"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'USB' clearance 0.2000 mm; actual 0.1650 mm)",
+            "items": [
+                {
+                    "description": "Track [USB_DP] on F.Cu, length 1.7000 mm",
+                    "pos": {
+                        "x": 61.8,
+                        "y": 89.4
+                    },
+                    "uuid": "31f368ab-c75d-414f-ae75-8ef43fc46371"
+                },
+                {
+                    "description": "Via [GND] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 62.39,
+                        "y": 87.99
+                    },
+                    "uuid": "e6d79b0c-7383-4302-b47d-7a558fd3c955"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Clearance violation (netclass 'USB' clearance 0.2000 mm; actual 0.1750 mm)",
+            "items": [
+                {
+                    "description": "Track [USB_DM] on F.Cu, length 0.0000 mm",
+                    "pos": {
+                        "x": 58.1,
+                        "y": 94.2
+                    },
+                    "uuid": "7415e581-eadb-4f30-8269-5217a7634c7c"
+                },
+                {
+                    "description": "Pad A5 [CC1] of J2 on F.Cu",
+                    "pos": {
+                        "x": 58.245,
+                        "y": 93.75
+                    },
+                    "uuid": "e65170c5-e568-4e45-8d18-70aaed919907"
+                }
+            ],
+            "severity": "error",
+            "type": "clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.0568 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [INNER1] of J3",
+                    "pos": {
+                        "x": 58.0,
+                        "y": 54.5
+                    },
+                    "uuid": "e54077bd-f4d0-4a8a-aaad-482c971412c8"
+                },
+                {
+                    "description": "NPTH pad of H1",
+                    "pos": {
+                        "x": 55.5,
+                        "y": 55.5
+                    },
+                    "uuid": "ed7c3019-6a1a-4e09-a4f6-d056334b0923"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Pad 1 [MPR_IRQ4] of U6 on F.Cu",
+                    "pos": {
+                        "x": 119.6125,
+                        "y": 62.7
+                    },
+                    "uuid": "4429e377-7dfa-4947-a35f-cc752af0d3c1"
+                },
+                {
+                    "description": "Via [SCL] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 119.45,
+                        "y": 63.1
+                    },
+                    "uuid": "8eed55fd-e19a-4636-9cf9-38e7e2a246b3"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.0568 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [INNER1] of J3",
+                    "pos": {
+                        "x": 58.0,
+                        "y": 54.5
+                    },
+                    "uuid": "e54077bd-f4d0-4a8a-aaad-482c971412c8"
+                },
+                {
+                    "description": "NPTH pad of H1",
+                    "pos": {
+                        "x": 55.5,
+                        "y": 55.5
+                    },
+                    "uuid": "ed7c3019-6a1a-4e09-a4f6-d056334b0923"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.0568 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [INNER1] of J3",
+                    "pos": {
+                        "x": 58.0,
+                        "y": 54.5
+                    },
+                    "uuid": "e54077bd-f4d0-4a8a-aaad-482c971412c8"
+                },
+                {
+                    "description": "NPTH pad of H1",
+                    "pos": {
+                        "x": 55.5,
+                        "y": 55.5
+                    },
+                    "uuid": "ed7c3019-6a1a-4e09-a4f6-d056334b0923"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.0568 mm)",
+            "items": [
+                {
+                    "description": "PTH pad 1 [INNER1] of J3",
+                    "pos": {
+                        "x": 58.0,
+                        "y": 54.5
+                    },
+                    "uuid": "e54077bd-f4d0-4a8a-aaad-482c971412c8"
+                },
+                {
+                    "description": "NPTH pad of H1",
+                    "pos": {
+                        "x": 55.5,
+                        "y": 55.5
+                    },
+                    "uuid": "ed7c3019-6a1a-4e09-a4f6-d056334b0923"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Pad 1 [MPR_IRQ3] of U5 on F.Cu",
+                    "pos": {
+                        "x": 104.6125,
+                        "y": 62.7
+                    },
+                    "uuid": "bcad9843-36e6-45b6-897a-b92ad455c94d"
+                },
+                {
+                    "description": "Via [SCL] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 104.45,
+                        "y": 63.1
+                    },
+                    "uuid": "fcdfa4ab-befc-4e77-9e71-07632fc1f2e3"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2250 mm)",
+            "items": [
+                {
+                    "description": "Pad 4 [CPO] of U2 on F.Cu",
+                    "pos": {
+                        "x": 157.5375,
+                        "y": 103.0
+                    },
+                    "uuid": "df59f234-0fa3-4845-be44-1509684c9f55"
+                },
+                {
+                    "description": "Via [CPI] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 157.5375,
+                        "y": 103.5
+                    },
+                    "uuid": "4e108ff7-5176-4433-83ea-6518a976d405"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2319 mm)",
+            "items": [
+                {
+                    "description": "Pad 4 [3V3] of U4 on F.Cu",
+                    "pos": {
+                        "x": 77.6125,
+                        "y": 63.9
+                    },
+                    "uuid": "474d0fe9-d034-4bf2-b2ad-53a1defb658c"
+                },
+                {
+                    "description": "Via [SDA] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 78.45,
+                        "y": 64.027
+                    },
+                    "uuid": "b8dc5719-4aa4-4d23-bbeb-104708245df7"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Pad A5 [CC1] of J2 on F.Cu",
+                    "pos": {
+                        "x": 58.245,
+                        "y": 93.75
+                    },
+                    "uuid": "e65170c5-e568-4e45-8d18-70aaed919907"
+                },
+                {
+                    "description": "Via [USB_DM] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 58.1,
+                        "y": 94.2
+                    },
+                    "uuid": "4103af94-cb18-4070-a5d8-ce63dda319cf"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2250 mm)",
+            "items": [
+                {
+                    "description": "Pad 6 [VCP] of U2 on F.Cu",
+                    "pos": {
+                        "x": 157.5375,
+                        "y": 104.0
+                    },
+                    "uuid": "92899fdb-feb7-4377-8075-dd86a7050a3b"
+                },
+                {
+                    "description": "Via [CPI] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 157.5375,
+                        "y": 103.5
+                    },
+                    "uuid": "4e108ff7-5176-4433-83ea-6518a976d405"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Pad 6 [GND] of U4 on F.Cu",
+                    "pos": {
+                        "x": 78.2,
+                        "y": 64.8875
+                    },
+                    "uuid": "050f0e31-822f-4169-a540-9c7707184632"
+                },
+                {
+                    "description": "Via [REXT_U4] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 78.6,
+                        "y": 64.8875
+                    },
+                    "uuid": "7909b8d9-2a06-4b0b-9fce-80f9895ff055"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2280 mm)",
+            "items": [
+                {
+                    "description": "Pad 3 [GND] of U7 on F.Cu",
+                    "pos": {
+                        "x": 94.2375,
+                        "y": 84.25
+                    },
+                    "uuid": "d27f7dd0-d1b9-4ec8-9997-21494f6f5335"
+                },
+                {
+                    "description": "Via [3V3] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 93.672,
+                        "y": 84.316
+                    },
+                    "uuid": "fdb86aef-d95f-42e2-a62d-345819d9f92f"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Pad 3 [SDA] of U6 on F.Cu",
+                    "pos": {
+                        "x": 119.6125,
+                        "y": 63.5
+                    },
+                    "uuid": "248717ef-9e01-42c6-87e4-feeaea15d9e9"
+                },
+                {
+                    "description": "Via [SCL] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 119.45,
+                        "y": 63.1
+                    },
+                    "uuid": "8eed55fd-e19a-4636-9cf9-38e7e2a246b3"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Pad 6 [GND] of U3 on F.Cu",
+                    "pos": {
+                        "x": 63.2,
+                        "y": 64.8875
+                    },
+                    "uuid": "bca9ff4f-650b-47f4-b0bd-5b60a10fab9a"
+                },
+                {
+                    "description": "Via [REXT_U3] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 63.6,
+                        "y": 64.8875
+                    },
+                    "uuid": "73002a56-0b61-42cf-b971-d55732c7e110"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Pad 8 [INNER7] of U4 on F.Cu",
+                    "pos": {
+                        "x": 79.0,
+                        "y": 64.8875
+                    },
+                    "uuid": "ada0c115-d3ef-4117-b3d3-58acc1a9d1a6"
+                },
+                {
+                    "description": "Via [REXT_U4] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 78.6,
+                        "y": 64.8875
+                    },
+                    "uuid": "7909b8d9-2a06-4b0b-9fce-80f9895ff055"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Pad 3 [SDA] of U5 on F.Cu",
+                    "pos": {
+                        "x": 104.6125,
+                        "y": 63.5
+                    },
+                    "uuid": "693489a9-ad4f-4690-905d-a9b2aef6ee12"
+                },
+                {
+                    "description": "Via [SCL] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 104.45,
+                        "y": 63.1
+                    },
+                    "uuid": "fcdfa4ab-befc-4e77-9e71-07632fc1f2e3"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Pad 8 [INNER1] of U3 on F.Cu",
+                    "pos": {
+                        "x": 64.0,
+                        "y": 64.8875
+                    },
+                    "uuid": "3d0568d0-c4cb-46dc-a1de-a5a4640ed904"
+                },
+                {
+                    "description": "Via [REXT_U3] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 63.6,
+                        "y": 64.8875
+                    },
+                    "uuid": "73002a56-0b61-42cf-b971-d55732c7e110"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2000 mm)",
+            "items": [
+                {
+                    "description": "Pad B7 [USB_DM] of J2 on F.Cu",
+                    "pos": {
+                        "x": 58.245,
+                        "y": 94.25
+                    },
+                    "uuid": "1d2f4575-6c4b-497a-ae79-f7695d321aba"
+                },
+                {
+                    "description": "Via [CC1] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 57.7,
+                        "y": 93.75
+                    },
+                    "uuid": "841e00ed-800f-4c3f-ac15-40af348c5a26"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Pad 6 [GND] of U5 on F.Cu",
+                    "pos": {
+                        "x": 105.2,
+                        "y": 64.8875
+                    },
+                    "uuid": "766c55ef-e14c-409f-a53d-a949b662cf4d"
+                },
+                {
+                    "description": "Via [REXT_U5] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 105.6,
+                        "y": 64.8875
+                    },
+                    "uuid": "66aacf05-92d8-4f37-8791-d10bd133531f"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.2000 mm)",
+            "items": [
+                {
+                    "description": "Pad B8 [unconnected-(J2-SBU2-PadB8)] of J2 on F.Cu",
+                    "pos": {
+                        "x": 58.245,
+                        "y": 93.25
+                    },
+                    "uuid": "90cecd10-fd48-4455-835b-e98bb40abcf1"
+                },
+                {
+                    "description": "Via [CC1] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 57.7,
+                        "y": 93.75
+                    },
+                    "uuid": "841e00ed-800f-4c3f-ac15-40af348c5a26"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Hole clearance violation (board setup constraints hole clearance 0.2500 mm; actual 0.1500 mm)",
+            "items": [
+                {
+                    "description": "Pad 8 [OUTER1] of U5 on F.Cu",
+                    "pos": {
+                        "x": 106.0,
+                        "y": 64.8875
+                    },
+                    "uuid": "c8bb87f4-e4c1-449d-b05e-9ea8b5ac1453"
+                },
+                {
+                    "description": "Via [REXT_U5] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 105.6,
+                        "y": 64.8875
+                    },
+                    "uuid": "66aacf05-92d8-4f37-8791-d10bd133531f"
+                }
+            ],
+            "severity": "error",
+            "type": "hole_clearance"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "PCB text 'G' on F.Silkscreen",
+                    "pos": {
+                        "x": 120.6,
+                        "y": 119.3
+                    },
+                    "uuid": "e0113075-3e0e-48a7-8140-2fca33e57c52"
+                },
+                {
+                    "description": "Segment of J8 on F.Silkscreen",
+                    "pos": {
+                        "x": 114.27,
+                        "y": 119.62
+                    },
+                    "uuid": "fc617290-9310-4e6d-bf4c-9f24a08abeff"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "PCB text 'MOTOR OFF AT BOOT: ENN PULLUP R8' on F.Silkscreen",
+                    "pos": {
+                        "x": 128.0,
+                        "y": 118.7
+                    },
+                    "uuid": "06a288b8-4be4-4ace-860a-4d9cec267081"
+                },
+                {
+                    "description": "PCB text 'TX' on F.Silkscreen",
+                    "pos": {
+                        "x": 123.2,
+                        "y": 119.3
+                    },
+                    "uuid": "4964b8e0-af52-4b62-b3ee-43900c8b3ab7"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "PCB text 'TX' on F.Silkscreen",
+                    "pos": {
+                        "x": 123.2,
+                        "y": 119.3
+                    },
+                    "uuid": "4964b8e0-af52-4b62-b3ee-43900c8b3ab7"
+                },
+                {
+                    "description": "Segment of J8 on F.Silkscreen",
+                    "pos": {
+                        "x": 114.27,
+                        "y": 119.62
+                    },
+                    "uuid": "fc617290-9310-4e6d-bf4c-9f24a08abeff"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "PCB text 'MOTOR OFF AT BOOT: ENN PULLUP R8' on F.Silkscreen",
+                    "pos": {
+                        "x": 128.0,
+                        "y": 118.7
+                    },
+                    "uuid": "06a288b8-4be4-4ace-860a-4d9cec267081"
+                },
+                {
+                    "description": "PCB text 'RX' on F.Silkscreen",
+                    "pos": {
+                        "x": 125.7,
+                        "y": 119.3
+                    },
+                    "uuid": "43a43f14-ba1f-4b38-90fe-e52f05e54a5c"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "PCB text 'RX' on F.Silkscreen",
+                    "pos": {
+                        "x": 125.7,
+                        "y": 119.3
+                    },
+                    "uuid": "43a43f14-ba1f-4b38-90fe-e52f05e54a5c"
+                },
+                {
+                    "description": "Segment of J8 on F.Silkscreen",
+                    "pos": {
+                        "x": 114.27,
+                        "y": 119.62
+                    },
+                    "uuid": "fc617290-9310-4e6d-bf4c-9f24a08abeff"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "PCB text '5V' on F.Silkscreen",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 119.3
+                    },
+                    "uuid": "33d0f48d-dedf-433f-9268-ccf3a5daaffa"
+                },
+                {
+                    "description": "Segment of J8 on F.Silkscreen",
+                    "pos": {
+                        "x": 114.27,
+                        "y": 119.62
+                    },
+                    "uuid": "fc617290-9310-4e6d-bf4c-9f24a08abeff"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "PCB text 'MOTOR OFF AT BOOT: ENN PULLUP R8' on F.Silkscreen",
+                    "pos": {
+                        "x": 128.0,
+                        "y": 118.7
+                    },
+                    "uuid": "06a288b8-4be4-4ace-860a-4d9cec267081"
+                },
+                {
+                    "description": "PCB text 'G' on F.Silkscreen",
+                    "pos": {
+                        "x": 120.6,
+                        "y": 119.3
+                    },
+                    "uuid": "e0113075-3e0e-48a7-8140-2fca33e57c52"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "PCB text 'G' on F.Silkscreen",
+                    "pos": {
+                        "x": 118.1,
+                        "y": 119.3
+                    },
+                    "uuid": "a44afaef-3bce-4189-aea0-64961e9cd118"
+                },
+                {
+                    "description": "Segment of J8 on F.Silkscreen",
+                    "pos": {
+                        "x": 114.27,
+                        "y": 119.62
+                    },
+                    "uuid": "fc617290-9310-4e6d-bf4c-9f24a08abeff"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "Rectangle of J5 on F.Silkscreen",
+                    "pos": {
+                        "x": 178.46,
+                        "y": 95.44
+                    },
+                    "uuid": "10ba8d70-2422-488f-9366-c729e543e16e"
+                },
+                {
+                    "description": "PCB text 'B2' on F.Silkscreen",
+                    "pos": {
+                        "x": 172.6,
+                        "y": 106.8
+                    },
+                    "uuid": "6592b197-d430-4699-b771-714801f60804"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "PCB text 'B2' on F.Silkscreen",
+                    "pos": {
+                        "x": 172.6,
+                        "y": 106.8
+                    },
+                    "uuid": "6592b197-d430-4699-b771-714801f60804"
+                },
+                {
+                    "description": "Segment of J5 on F.Silkscreen",
+                    "pos": {
+                        "x": 173.25,
+                        "y": 107.3
+                    },
+                    "uuid": "ddc0eb04-d267-48ab-878b-b5e436cecdb9"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "Rectangle of J5 on F.Silkscreen",
+                    "pos": {
+                        "x": 178.46,
+                        "y": 95.44
+                    },
+                    "uuid": "10ba8d70-2422-488f-9366-c729e543e16e"
+                },
+                {
+                    "description": "PCB text 'A1' on F.Silkscreen",
+                    "pos": {
+                        "x": 172.6,
+                        "y": 99.3
+                    },
+                    "uuid": "be26a393-c195-473a-90cd-8527a2fb94cc"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "Rectangle of J5 on F.Silkscreen",
+                    "pos": {
+                        "x": 178.46,
+                        "y": 95.44
+                    },
+                    "uuid": "10ba8d70-2422-488f-9366-c729e543e16e"
+                },
+                {
+                    "description": "PCB text 'A2' on F.Silkscreen",
+                    "pos": {
+                        "x": 172.6,
+                        "y": 101.8
+                    },
+                    "uuid": "ee9a934c-03f6-4000-a7b8-f7d776357910"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "Rectangle of J5 on F.Silkscreen",
+                    "pos": {
+                        "x": 178.46,
+                        "y": 95.44
+                    },
+                    "uuid": "10ba8d70-2422-488f-9366-c729e543e16e"
+                },
+                {
+                    "description": "PCB text 'B1' on F.Silkscreen",
+                    "pos": {
+                        "x": 172.6,
+                        "y": 104.3
+                    },
+                    "uuid": "3332af56-5320-45d0-b382-1554a803c77e"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "Rectangle of J5 on F.Silkscreen",
+                    "pos": {
+                        "x": 178.46,
+                        "y": 95.44
+                    },
+                    "uuid": "10ba8d70-2422-488f-9366-c729e543e16e"
+                },
+                {
+                    "description": "PCB text 'MOTOR' on F.Silkscreen",
+                    "pos": {
+                        "x": 171.5,
+                        "y": 96.5
+                    },
+                    "uuid": "a9add537-afe1-4c43-8286-e8468685287d"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "PCB text 'B1' on F.Silkscreen",
+                    "pos": {
+                        "x": 172.6,
+                        "y": 104.3
+                    },
+                    "uuid": "3332af56-5320-45d0-b382-1554a803c77e"
+                },
+                {
+                    "description": "Segment of J5 on F.Silkscreen",
+                    "pos": {
+                        "x": 173.25,
+                        "y": 107.3
+                    },
+                    "uuid": "ddc0eb04-d267-48ab-878b-b5e436cecdb9"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "Segment of J5 on F.Silkscreen",
+                    "pos": {
+                        "x": 173.25,
+                        "y": 96.2
+                    },
+                    "uuid": "28fbb670-1908-496f-9887-b1f72242612e"
+                },
+                {
+                    "description": "PCB text 'MOTOR' on F.Silkscreen",
+                    "pos": {
+                        "x": 171.5,
+                        "y": 96.5
+                    },
+                    "uuid": "a9add537-afe1-4c43-8286-e8468685287d"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "Segment of J5 on F.Silkscreen",
+                    "pos": {
+                        "x": 176.2,
+                        "y": 96.2
+                    },
+                    "uuid": "8ab1d000-f676-44c3-9a39-b8b9cc20c924"
+                },
+                {
+                    "description": "PCB text 'MOTOR' on F.Silkscreen",
+                    "pos": {
+                        "x": 171.5,
+                        "y": 96.5
+                    },
+                    "uuid": "a9add537-afe1-4c43-8286-e8468685287d"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of J3 on F.Silkscreen",
+                    "pos": {
+                        "x": 56.62,
+                        "y": 55.88
+                    },
+                    "uuid": "9bbe5f01-2939-4728-ae1c-3750b57db699"
+                },
+                {
+                    "description": "NPTH pad of H1",
+                    "pos": {
+                        "x": 55.5,
+                        "y": 55.5
+                    },
+                    "uuid": "ed7c3019-6a1a-4e09-a4f6-d056334b0923"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of J3 on F.Silkscreen",
+                    "pos": {
+                        "x": 58.0,
+                        "y": 55.88
+                    },
+                    "uuid": "f50b0b22-c6c6-409f-849d-b581fa4fa985"
+                },
+                {
+                    "description": "NPTH pad of H1",
+                    "pos": {
+                        "x": 55.5,
+                        "y": 55.5
+                    },
+                    "uuid": "ed7c3019-6a1a-4e09-a4f6-d056334b0923"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "PCB text '2.1mm CENTER +' on F.Silkscreen",
+                    "pos": {
+                        "x": 170.0,
+                        "y": 63.5
+                    },
+                    "uuid": "39e6b34c-4970-4a02-87e0-cb5ef6cd814e"
+                },
+                {
+                    "description": "Pad 2 [VIN_F] of F1 on F.Cu",
+                    "pos": {
+                        "x": 165.1375,
+                        "y": 63.0
+                    },
+                    "uuid": "ccb8e397-0afa-412b-9685-69d75e948d35"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of J1 on F.Silkscreen",
+                    "pos": {
+                        "x": 171.85,
+                        "y": 74.61
+                    },
+                    "uuid": "8e98eed0-3c48-4aa7-8a1c-313d197f8a29"
+                },
+                {
+                    "description": "PTH pad 3 [GND] of J1",
+                    "pos": {
+                        "x": 175.05,
+                        "y": 74.7
+                    },
+                    "uuid": "49115d4f-1d67-4ce5-8a10-6b2c7bfba319"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Segment of J1 on F.Silkscreen",
+                    "pos": {
+                        "x": 171.85,
+                        "y": 65.39
+                    },
+                    "uuid": "45ae18c2-6aa3-4039-9775-316bc2ed760b"
+                },
+                {
+                    "description": "PTH pad 1 [VIN_RAW] of J1",
+                    "pos": {
+                        "x": 172.5,
+                        "y": 70.0
+                    },
+                    "uuid": "f1c945ef-117b-492e-bae7-851c5cd7542a"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "PCB text 'ENDSTOP' on F.Silkscreen",
+                    "pos": {
+                        "x": 170.0,
+                        "y": 111.5
+                    },
+                    "uuid": "ba9cb17c-f93e-4eae-8b6d-94ab89f71651"
+                },
+                {
+                    "description": "Pad 2 [ENDSTOP_N] of R10 on F.Cu",
+                    "pos": {
+                        "x": 167.4125,
+                        "y": 111.5
+                    },
+                    "uuid": "1c0f8e5a-5511-4f65-8938-f0876a003c51"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Silkscreen clipped by solder mask",
+            "items": [
+                {
+                    "description": "Reference field of H4",
+                    "pos": {
+                        "x": 174.5,
+                        "y": 115.35
+                    },
+                    "uuid": "77943077-70b4-4c3e-bdfb-18f5f192346b"
+                },
+                {
+                    "description": "PTH pad 1 [ENDSTOP_N] of J6",
+                    "pos": {
+                        "x": 176.0,
+                        "y": 116.5
+                    },
+                    "uuid": "dd01452b-90e5-4213-8012-357830c9f51b"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_over_copper"
+        },
+        {
+            "description": "Text height out of range (board setup constraints silk text height min height 0.6000 mm; actual 0.5500 mm)",
+            "items": [
+                {
+                    "description": "PCB text '5V' on F.Silkscreen",
+                    "pos": {
+                        "x": 113.0,
+                        "y": 119.3
+                    },
+                    "uuid": "ba1f5bcb-a29e-43e1-bcbc-8a2efa6744dd"
+                }
+            ],
+            "severity": "warning",
+            "type": "text_height"
+        },
+        {
+            "description": "Text height out of range (board setup constraints silk text height min height 0.6000 mm; actual 0.5500 mm)",
+            "items": [
+                {
+                    "description": "PCB text '5V' on F.Silkscreen",
+                    "pos": {
+                        "x": 115.5,
+                        "y": 119.3
+                    },
+                    "uuid": "33d0f48d-dedf-433f-9268-ccf3a5daaffa"
+                }
+            ],
+            "severity": "warning",
+            "type": "text_height"
+        },
+        {
+            "description": "Text height out of range (board setup constraints silk text height min height 0.6000 mm; actual 0.5500 mm)",
+            "items": [
+                {
+                    "description": "PCB text 'G' on F.Silkscreen",
+                    "pos": {
+                        "x": 118.1,
+                        "y": 119.3
+                    },
+                    "uuid": "a44afaef-3bce-4189-aea0-64961e9cd118"
+                }
+            ],
+            "severity": "warning",
+            "type": "text_height"
+        },
+        {
+            "description": "Text height out of range (board setup constraints silk text height min height 0.6000 mm; actual 0.5500 mm)",
+            "items": [
+                {
+                    "description": "PCB text 'G' on F.Silkscreen",
+                    "pos": {
+                        "x": 120.6,
+                        "y": 119.3
+                    },
+                    "uuid": "e0113075-3e0e-48a7-8140-2fca33e57c52"
+                }
+            ],
+            "severity": "warning",
+            "type": "text_height"
+        },
+        {
+            "description": "Text height out of range (board setup constraints silk text height min height 0.6000 mm; actual 0.5500 mm)",
+            "items": [
+                {
+                    "description": "PCB text 'TX' on F.Silkscreen",
+                    "pos": {
+                        "x": 123.2,
+                        "y": 119.3
+                    },
+                    "uuid": "4964b8e0-af52-4b62-b3ee-43900c8b3ab7"
+                }
+            ],
+            "severity": "warning",
+            "type": "text_height"
+        },
+        {
+            "description": "Text height out of range (board setup constraints silk text height min height 0.6000 mm; actual 0.5500 mm)",
+            "items": [
+                {
+                    "description": "PCB text 'RX' on F.Silkscreen",
+                    "pos": {
+                        "x": 125.7,
+                        "y": 119.3
+                    },
+                    "uuid": "43a43f14-ba1f-4b38-90fe-e52f05e54a5c"
+                }
+            ],
+            "severity": "warning",
+            "type": "text_height"
+        },
+        {
+            "description": "Drilled hole too close to other hole (board setup constraints min 0.4995 mm; actual 0.3021 mm)",
+            "items": [
+                {
+                    "description": "Via [USB_DM] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 58.1,
+                        "y": 94.2
+                    },
+                    "uuid": "4103af94-cb18-4070-a5d8-ce63dda319cf"
+                },
+                {
+                    "description": "Via [CC1] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 57.7,
+                        "y": 93.75
+                    },
+                    "uuid": "841e00ed-800f-4c3f-ac15-40af348c5a26"
+                }
+            ],
+            "severity": "warning",
+            "type": "hole_to_hole"
+        },
+        {
+            "description": "Drilled hole too close to other hole (board setup constraints min 0.4995 mm; actual 0.3500 mm)",
+            "items": [
+                {
+                    "description": "Via [SDA] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 104.7,
+                        "y": 63.7
+                    },
+                    "uuid": "9110394a-44fc-4155-b617-ec84a5587191"
+                },
+                {
+                    "description": "Via [SCL] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 104.45,
+                        "y": 63.1
+                    },
+                    "uuid": "fcdfa4ab-befc-4e77-9e71-07632fc1f2e3"
+                }
+            ],
+            "severity": "warning",
+            "type": "hole_to_hole"
+        },
+        {
+            "description": "Silkscreen clipped by board edge",
+            "items": [
+                {
+                    "description": "Segment on Edge.Cuts",
+                    "pos": {
+                        "x": 180.0,
+                        "y": 50.0
+                    },
+                    "uuid": "f8225dde-5388-47dc-85ce-1d7518df4884"
+                },
+                {
+                    "description": "Segment of J1 on F.Silkscreen",
+                    "pos": {
+                        "x": 171.85,
+                        "y": 65.39
+                    },
+                    "uuid": "883c6207-84b8-44f5-bc36-5b2461fa3448"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_edge_clearance"
+        },
+        {
+            "description": "Silkscreen clipped by board edge",
+            "items": [
+                {
+                    "description": "Segment on Edge.Cuts",
+                    "pos": {
+                        "x": 180.0,
+                        "y": 50.0
+                    },
+                    "uuid": "f8225dde-5388-47dc-85ce-1d7518df4884"
+                },
+                {
+                    "description": "Segment of J1 on F.Silkscreen",
+                    "pos": {
+                        "x": 171.85,
+                        "y": 74.61
+                    },
+                    "uuid": "8e98eed0-3c48-4aa7-8a1c-313d197f8a29"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_edge_clearance"
+        },
+        {
+            "description": "Via is not connected or connected on only one layer",
+            "items": [
+                {
+                    "description": "Via [USB_DP] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 59.584,
+                        "y": 94.683
+                    },
+                    "uuid": "323cf719-1943-4a59-ac8d-02bfc753436e"
+                }
+            ],
+            "severity": "warning",
+            "type": "via_dangling"
+        },
+        {
+            "description": "Via is not connected or connected on only one layer",
+            "items": [
+                {
+                    "description": "Via [USB_DP] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 59.584,
+                        "y": 95.817
+                    },
+                    "uuid": "ccec0fa3-3439-4f9e-9d85-ee49d379ae26"
+                }
+            ],
+            "severity": "warning",
+            "type": "via_dangling"
+        },
+        {
+            "description": "Track has unconnected end",
+            "items": [
+                {
+                    "description": "Track [3V3] on B.Cu, length 1.7000 mm",
+                    "pos": {
+                        "x": 77.4,
+                        "y": 64.2
+                    },
+                    "uuid": "bf4a1416-2fae-4a03-9969-98e64185cbc5"
+                }
+            ],
+            "severity": "warning",
+            "type": "track_dangling"
+        },
+        {
+            "description": "Via is not connected or connected on only one layer",
+            "items": [
+                {
+                    "description": "Via [SDA] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 63.4,
+                        "y": 63.525
+                    },
+                    "uuid": "043dfbb5-c4e5-42b1-ad4b-ae2821e3e7b8"
+                }
+            ],
+            "severity": "warning",
+            "type": "via_dangling"
+        },
+        {
+            "description": "Via is not connected or connected on only one layer",
+            "items": [
+                {
+                    "description": "Via [SDA] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 78.45,
+                        "y": 64.027
+                    },
+                    "uuid": "b8dc5719-4aa4-4d23-bbeb-104708245df7"
+                }
+            ],
+            "severity": "warning",
+            "type": "via_dangling"
+        },
+        {
+            "description": "Via is not connected or connected on only one layer",
+            "items": [
+                {
+                    "description": "Via [REXT_U6] on F.Cu - B.Cu",
+                    "pos": {
+                        "x": 120.6,
+                        "y": 64.087999
+                    },
+                    "uuid": "ef43f1b4-4dd0-4871-bee6-5c68b6bcab56"
+                }
+            ],
+            "severity": "warning",
+            "type": "via_dangling"
+        }
+    ]
+}

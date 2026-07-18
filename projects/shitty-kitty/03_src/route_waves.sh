@@ -15,39 +15,59 @@ R=06_build/route
 PY=~/gits/KiCadRoutingTools/.venv/bin/python
 
 $PY "$KRT"/route.py "$R"/r0.kicad_pcb --output "$R"/r1.kicad_pcb \
-  --layers F.Cu B.Cu --clearance 0.3 --track-width 0.25 \
+  --layers F.Cu B.Cu --grid-step 0.05 --clearance 0.13 --track-width 0.2 \
   --via-size 0.6 --via-drill 0.3 --fab-tier standard --no-stub-layer-swap \
   --keepout --keepout-layer User.2 --max-iterations 300000 \
   --nets INNER1 INNER2 INNER3 INNER4 INNER5 INNER6 INNER7 INNER8 \
          INNER9 INNER10 INNER11 INNER12 OUTER1 OUTER2 OUTER3 OUTER4 \
          OUTER5 OUTER6 OUTER7 OUTER8 OUTER9 OUTER10 OUTER11 OUTER12
 
-$PY "$KRT"/route.py "$R"/r1.kicad_pcb --output "$R"/r2.kicad_pcb \
-  --layers F.Cu B.Cu --clearance 0.15 --track-width 0.25 \
+# Wave 1b: MPR121/accel support stubs BEFORE the I2C bus — I2C tracks hug
+# the 0.4mm-pitch corner pads and box in these escapes if routed first
+# (VREG_U6/ACC_INT/MPR_IRQ2 failed instantly until this reorder).
+$PY "$KRT"/route.py "$R"/r1.kicad_pcb --output "$R"/r1b.kicad_pcb \
+  --layers F.Cu B.Cu --grid-step 0.05 --clearance 0.15 --track-width 0.25 \
+  --via-size 0.6 --via-drill 0.3 --fab-tier standard --no-stub-layer-swap \
+  --keepout --keepout-layer User.2 --max-iterations 300000 \
+  --nets VREG_U3 VREG_U4 VREG_U5 VREG_U6 REXT_U3 REXT_U4 REXT_U5 REXT_U6 \
+         MPR_IRQ1 MPR_IRQ2 MPR_IRQ3 MPR_IRQ4 ACC_INT BRA BRB
+
+$PY "$KRT"/route.py "$R"/r1b.kicad_pcb --output "$R"/r2.kicad_pcb \
+  --layers F.Cu B.Cu --grid-step 0.05 --clearance 0.15 --track-width 0.25 \
   --via-size 0.6 --via-drill 0.3 --fab-tier standard --no-stub-layer-swap \
   --keepout --keepout-layer User.2 --max-iterations 300000 \
   --nets USB_DP USB_DM SDA SCL
 
 $PY "$KRT"/route.py "$R"/r2.kicad_pcb --output "$R"/r3.kicad_pcb \
-  --layers F.Cu B.Cu --clearance 0.2 --track-width 0.8 \
+  --layers F.Cu B.Cu --grid-step 0.05 --clearance 0.15 --track-width 0.8 \
   --via-size 0.6 --via-drill 0.3 --fab-tier standard --no-stub-layer-swap \
   --keepout --keepout-layer User.2 --max-iterations 300000 \
-  --nets VIN_RAW VIN_F VIN_12V
+  --nets VIN_RAW VIN_F
 
-$PY "$KRT"/route.py "$R"/r3.kicad_pcb --output "$R"/r4.kicad_pcb \
-  --layers F.Cu B.Cu --clearance 0.2 --track-width 0.6 \
+$PY "$KRT"/route.py "$R"/r3.kicad_pcb --output "$R"/r4a.kicad_pcb \
+  --layers F.Cu B.Cu --grid-step 0.05 --clearance 0.15 --track-width 0.35 \
   --via-size 0.6 --via-drill 0.3 --fab-tier standard --no-stub-layer-swap \
   --keepout --keepout-layer User.2 --max-iterations 300000 \
-  --nets 5V MOT_A1 MOT_A2 MOT_B1 MOT_B2 BRA BRB SW_BUCK BST 3V3
+  --nets VIN_12V MOT_A1 MOT_A2 MOT_B1 MOT_B2
+
+$PY "$KRT"/route.py "$R"/r4a.kicad_pcb --output "$R"/r4b.kicad_pcb \
+  --layers F.Cu B.Cu --grid-step 0.05 --clearance 0.15 --track-width 0.4 \
+  --via-size 0.6 --via-drill 0.3 --fab-tier standard --no-stub-layer-swap \
+  --keepout --keepout-layer User.2 --max-iterations 300000 \
+  --nets 5V SW_BUCK BST
+
+$PY "$KRT"/route.py "$R"/r4b.kicad_pcb --output "$R"/r4.kicad_pcb \
+  --layers F.Cu B.Cu --grid-step 0.05 --clearance 0.15 --track-width 0.25 \
+  --via-size 0.6 --via-drill 0.3 --fab-tier standard --no-stub-layer-swap \
+  --keepout --keepout-layer User.2 --max-iterations 300000 \
+  --nets 3V3
 
 $PY "$KRT"/route.py "$R"/r4.kicad_pcb --output "$R"/r5.kicad_pcb \
-  --layers F.Cu B.Cu --clearance 0.15 --track-width 0.3 \
+  --layers F.Cu B.Cu --grid-step 0.05 --clearance 0.15 --track-width 0.3 \
   --via-size 0.6 --via-drill 0.3 --fab-tier standard --no-stub-layer-swap \
   --keepout --keepout-layer User.2 --max-iterations 400000 \
   --nets EN BOOT STEP DIR ENN DIAG INDEX TMC_TX TMC_UART \
-         ENDSTOP_N ENDSTOP_G MPR_IRQ1 MPR_IRQ2 MPR_IRQ3 MPR_IRQ4 \
-         ACC_INT LED_ST LED_A LED_SA HOST_TX HOST_RX CC1 CC2 USB_VBUS \
-         VREG_U3 VREG_U4 VREG_U5 VREG_U6 REXT_U3 REXT_U4 REXT_U5 REXT_U6 \
-         V5OUT VCP CPO CPI GATE_Q1 EN_BUCK
+         ENDSTOP_N ENDSTOP_G LED_ST LED_A LED_SA HOST_TX HOST_RX CC1 CC2 \
+         USB_VBUS V5OUT VCP CPO CPI GATE_Q1 EN_BUCK
 
 echo "waves done -> $R/r5.kicad_pcb"

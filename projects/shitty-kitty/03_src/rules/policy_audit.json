@@ -1,0 +1,8 @@
+{
+  "therm_pad_area_mm2": 4.0,
+  "therm_min_vias": 2,
+  "therm_search_mm": 1.2,
+  "silk_fn_refs": "^(J|F)[0-9]",
+  "silk_fn_radius_mm": 9.0,
+  "route_pro_glob": "03_src/route/*.kicad_pro"
+}

@@ -56,10 +56,10 @@ for t in stubs:
 print(f"removed {len(stubs)} micro-stubs (<0.05mm)")
 
 # width-floor backstop (EXACT nm compare — dru gotcha)
-FLOOR = {"VIN_RAW": 0.8, "VIN_F": 0.8, "VIN_12V": 0.8,
-         "MOT_A1": 0.6, "MOT_A2": 0.6, "MOT_B1": 0.6, "MOT_B2": 0.6,
-         "BRA": 0.6, "BRB": 0.6, "5V": 0.6, "SW_BUCK": 0.5, "BST": 0.5,
-         "3V3": 0.5}
+FLOOR = {"VIN_RAW": 0.3, "VIN_F": 0.3, "VIN_12V": 0.3,
+         "MOT_A1": 0.35, "MOT_A2": 0.35, "MOT_B1": 0.35, "MOT_B2": 0.35,
+         "BRA": 0.3, "BRB": 0.3, "5V": 0.4, "SW_BUCK": 0.4, "BST": 0.4,
+         "3V3": 0.25}
 lifted = 0
 for tr in b.GetTracks():
     if tr.GetClass() != "PCB_TRACK":

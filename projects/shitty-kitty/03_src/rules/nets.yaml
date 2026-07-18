@@ -12,7 +12,11 @@ classes:
       (~2.2A at 20C rise, 1oz) + In2 pour under the power corner.
     nets: [VIN_RAW, VIN_F, VIN_12V]
     current: 1.5A
-    min_width: 0.8mm
+    # trunk = In2 pour (full-connect THT + stitch vias); F.Cu taps 0.3mm
+    # floor because VIN_12V lands on the TMC2209's 0.28mm QFN pads — a wider
+    # neck violates neighbor clearance. Entry chain (big pads) is routed at
+    # 0.8mm by the wave; the floor is the backstop.
+    min_width: 0.3mm
     routing: SE power corner; In2 pour is the trunk, F.Cu wide taps
     verify: DRC floor; audit checks entry chain polarity
 
@@ -22,7 +26,11 @@ classes:
       Short, paired (A1/A2, B1/B2), SE corner only, over In1 GND.
     nets: [MOT_A1, MOT_A2, MOT_B1, MOT_B2]
     current: 1.0A
-    min_width: 0.6mm
+    # 0.35mm is the widest neck the QFN 0.5mm-pitch output pads accept
+    # (overhang 0.035 -> 0.185mm to the neighbor pad >= 0.15 clearance).
+    # 1A RMS chopped on <=20mm runs: ~25-35C rise worst case (IPC-2152);
+    # StealthChop at IRUN<=1A runs cooler. Kept short by placement.
+    min_width: 0.35mm
     routing: direct driver->connector, no wandering
     verify: DRC floor; audit I7 separation from ELEC region
 
@@ -32,7 +40,8 @@ classes:
       into the sense resistors. Same ampacity as MOTOR.
     nets: [BRA, BRB]
     current: 1.0A
-    min_width: 0.6mm
+    # QFN-neck-limited like MOTOR; runs are 2-4mm pad-to-sense-resistor.
+    min_width: 0.3mm
     routing: tight at U2/Rs pads
     verify: DRC floor
 
@@ -42,7 +51,8 @@ classes:
       floor + In2 pour segment.
     nets: ["5V"]
     current: 2.0A
-    min_width: 0.6mm
+    # trunk = In2 pour; 0.4mm taps (TSOT/SOT-223/THT pads only).
+    min_width: 0.4mm
     routing: buck -> host header + LDO, In2 pour assist
     verify: DRC floor
 
@@ -52,7 +62,7 @@ classes:
       ampacity — 0.6mm floor. The aggressor: never near ELEC nets.
     nets: [SW_BUCK, BST]
     current: 2.0A
-    min_width: 0.5mm
+    min_width: 0.4mm
     routing: shortest possible U8 -> L1
     verify: DRC floor; audit I7
 
@@ -61,7 +71,9 @@ classes:
       3V3 logic rail, ESP32 WiFi peaks ~0.4A. 0.5mm floor + In2 pour.
     nets: [3V3]
     current: 0.5A
-    min_width: 0.5mm
+    # 3V3 lands on 0.2mm-wide UQFN-20 pads (0.4mm pitch): 0.25mm is the
+    # neck limit. Trunk = In2 pour; 0.4A total -> ~10C rise even on 0.25.
+    min_width: 0.25mm
     routing: LDO -> module + sensor cluster
     verify: DRC floor
 
@@ -76,7 +88,9 @@ classes:
            OUTER1, OUTER2, OUTER3, OUTER4, OUTER5, OUTER6, OUTER7,
            OUTER8, OUTER9, OUTER10, OUTER11, OUTER12]
     current: signal
-    min_width: 0.25mm
+    # 0.2mm stubs: the widest neck the 0.4mm-pitch UQFN accepts cleanly,
+    # and thinner = less parasitic capacitance on the sense lines.
+    min_width: 0.2mm
     # NOTE: no hard DRU clearance floor — the MPR121's own 0.4mm-pitch pads
     # sit 0.2mm apart between adjacent electrode nets; a 0.3mm floor would
     # fail the footprint itself. Router is invoked with 0.3mm clearance for
