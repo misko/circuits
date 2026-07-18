@@ -8,7 +8,7 @@ datasheet:
   sha256: 81af3f69b0bff95fd1097949a1005431dc5b3a6ecb5f1947e695a17298e7cf1b
   fetched: 2026-07-17
 package: SS (SOIC-8 208-mil; body D1/E1 5.13-5.33 mm sq (5.23 nom), lead span H 7.70-8.10 (7.90 nom), pitch 1.27 BSC)
-footprint: Package_SO:SOIC-8_5.23x5.23mm_P1.27mm   # verified vs section 11.3 drawing: 5.23x5.23 nom body, 1.27 pitch, 7.9 span
+footprint: Package_SO:SOIC-8_5.3x5.3mm_P1.27mm   # KiCad 208-mil SOIC-8 (5.3x5.3 nom) for W25Q16 SS package, sec 11.3 drawing
 pins:                       # from Figure 1a "Pin Assignments, 8-pin SOIC 150-mil/208-mil (Package Code SN, SS)", Top View, p.5
   1: /CS                    # chip select input
   2: DO_IO1                 # data out (IO1 in quad)

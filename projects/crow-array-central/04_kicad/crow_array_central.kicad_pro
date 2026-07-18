@@ -1,0 +1,471 @@
+{
+  "board": {
+    "design_settings": {
+      "rules": {
+        "min_clearance": 0.127,
+        "min_track_width": 0.127,
+        "min_via_diameter": 0.45,
+        "min_through_hole_diameter": 0.3,
+        "min_via_annular_width": 0.05,
+        "min_hole_clearance": 0.25,
+        "min_hole_to_hole": 0.5,
+        "min_copper_edge_clearance": 0.2,
+        "min_connection": 0.127,
+        "min_microvia_diameter": 0.2,
+        "min_microvia_drill": 0.1,
+        "min_resolved_spokes": 1,
+        "min_silk_clearance": 0.0,
+        "min_text_height": 0.6,
+        "min_text_thickness": 0.08,
+        "max_error": 0.005,
+        "solder_mask_to_copper_clearance": 0.0,
+        "use_height_for_length_calcs": true
+      }
+    }
+  },
+  "meta": {
+    "filename": "crow_array_central.kicad_pro",
+    "version": 1
+  },
+  "schematic": {
+    "legacy_lib_dir": "",
+    "legacy_lib_list": []
+  },
+  "net_settings": {
+    "classes": [
+      {
+        "name": "Default",
+        "clearance": 0.127,
+        "track_width": 0.25,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "diff_pair_width": 0.25,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "wire_width": 6
+      },
+      {
+        "name": "PWR5",
+        "clearance": 0.127,
+        "track_width": 0.5,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "diff_pair_width": 0.25,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "wire_width": 6
+      },
+      {
+        "name": "RAIL",
+        "clearance": 0.127,
+        "track_width": 0.4,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "diff_pair_width": 0.25,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "wire_width": 6
+      },
+      {
+        "name": "PORTPWR",
+        "clearance": 0.127,
+        "track_width": 0.4,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "diff_pair_width": 0.25,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "wire_width": 6
+      },
+      {
+        "name": "CLK",
+        "clearance": 0.127,
+        "track_width": 0.25,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "diff_pair_width": 0.25,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "wire_width": 6
+      },
+      {
+        "name": "USB",
+        "clearance": 0.127,
+        "track_width": 0.25,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "diff_pair_width": 0.25,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "wire_width": 6
+      },
+      {
+        "name": "AUDIO",
+        "clearance": 0.127,
+        "track_width": 0.25,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "diff_pair_width": 0.25,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "wire_width": 6
+      }
+    ],
+    "netclass_patterns": [
+      {
+        "netclass": "PWR5",
+        "pattern": "5V_IN"
+      },
+      {
+        "netclass": "PWR5",
+        "pattern": "5V_P"
+      },
+      {
+        "netclass": "PWR5",
+        "pattern": "5V"
+      },
+      {
+        "netclass": "RAIL",
+        "pattern": "3V3"
+      },
+      {
+        "netclass": "RAIL",
+        "pattern": "0V9"
+      },
+      {
+        "netclass": "RAIL",
+        "pattern": "1V8"
+      },
+      {
+        "netclass": "RAIL",
+        "pattern": "3V3A"
+      },
+      {
+        "netclass": "RAIL",
+        "pattern": "BK1_SW"
+      },
+      {
+        "netclass": "RAIL",
+        "pattern": "BK2_SW"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "5V_AUD1"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "5V_AUD2"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "5V_AUD3"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "5V_AUD4"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "5V_AUD5"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "5V_AUD6"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "5V_AUD7"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "5V_AUD8"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "BEEP_5V1"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "BEEP_5V2"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "BEEP_5V3"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "BEEP_5V4"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "BEEP_5V5"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "BEEP_5V6"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "BEEP_5V7"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "BEEP_5V8"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "BEEP_RET1"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "BEEP_RET2"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "BEEP_RET3"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "BEEP_RET4"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "BEEP_RET5"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "BEEP_RET6"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "BEEP_RET7"
+      },
+      {
+        "netclass": "PORTPWR",
+        "pattern": "BEEP_RET8"
+      },
+      {
+        "netclass": "CLK",
+        "pattern": "MCLK_SRC"
+      },
+      {
+        "netclass": "CLK",
+        "pattern": "MCLK_A0"
+      },
+      {
+        "netclass": "CLK",
+        "pattern": "MCLK_B0"
+      },
+      {
+        "netclass": "CLK",
+        "pattern": "MCLK_A"
+      },
+      {
+        "netclass": "CLK",
+        "pattern": "MCLK_B"
+      },
+      {
+        "netclass": "CLK",
+        "pattern": "BCLK"
+      },
+      {
+        "netclass": "CLK",
+        "pattern": "LRCK"
+      },
+      {
+        "netclass": "CLK",
+        "pattern": "DATA1"
+      },
+      {
+        "netclass": "CLK",
+        "pattern": "DATA2"
+      },
+      {
+        "netclass": "USB",
+        "pattern": "USB_DP"
+      },
+      {
+        "netclass": "USB",
+        "pattern": "USB_DM"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AUD_P1"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AUD_N1"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AUD_P2"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AUD_N2"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AUD_P3"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AUD_N3"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AUD_P4"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AUD_N4"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AUD_P5"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AUD_N5"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AUD_P6"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AUD_N6"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AUD_P7"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AUD_N7"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AUD_P8"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AUD_N8"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AIN_P1"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AIN_N1"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AIN_P2"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AIN_N2"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AIN_P3"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AIN_N3"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AIN_P4"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AIN_N4"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AIN_P5"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AIN_N5"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AIN_P6"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AIN_N6"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AIN_P7"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AIN_N7"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AIN_P8"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "AIN_N8"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "INJ"
+      },
+      {
+        "netclass": "AUDIO",
+        "pattern": "INJ_C"
+      }
+    ]
+  }
+}
