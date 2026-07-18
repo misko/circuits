@@ -1,0 +1,27 @@
+C19702 | CL10A106KP8NNNC | base | stock 15188154 | Samsung Electro-Mechanics | 10V 10uF X5R ±10% 0603 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS
+C15849 | CL10A105KB8NNNC | base | stock 10288344 | Samsung Electro-Mechanics | 1uF 50V X5R ±10% 0603 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS
+C14663 | CC0603KRX7R9BB104 | base | stock 56422730 | YAGEO | 100nF 50V X7R ±10% 0603 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS
+C1663 | CL10C330JB8NNNC | base | stock 1270424 | Samsung Electro-Mechanics | 33pF 50V C0G ±5% 0603 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS
+C1588 | CL10B102KB8NNNC | base | stock 2162832 | Samsung Electro-Mechanics | 1nF 50V X7R ±10% 0603 Multilayer Ceramic Capacitors MLCC - SMD/SMT ROHS
+C1002 | GZ1608D601TF | base | stock 1138327 | Sunlord | -55℃~+125℃ 1 200mA 450mΩ 600Ω@100MHz ±25% 0603 Ferrite Beads ROHS
+C9002 | X322512MSB4SI | base | stock 191516 | YXC Crystal Oscillators | -40℃~+85℃ 12MHz 20pF Crystal Oscillator ±10ppm ±20ppm SMD3225-4P Crystals ROHS
+C2297 | KT-0805G | base | stock 3251159 | Hubei KENTO Elec | -40℃~+85℃ 100mW 120° 2.6V~3.1V 430mcd 513nm~528nm 525nm 5mA Discrete Diode Emerald Green Water Clear 0805 LED 
+C180425 | PCM2900CDBR | expand | stock 286 | Texas Instruments | -25℃~+85℃ 4.35V~5.25V 8kHz~48kHz Encoder/decoder USB SSOP-28-208mil Audio Interface ICs ROHS
+C398355 | TLV9062IDR | expand | stock 29273 | Texas Instruments | -40℃~+125℃ 0.05pA 0.5pA 1.6mV 1.8V~5.5V 103dB 10MHz 10nV/√Hz@1kHz 2 5.5V 50mA 530nV/℃ 538uA 6.5V/us Rail-to-Ra
+C2862740 | TPS7A2033PDBVR | expand | stock 60620 | Texas Instruments | -40℃~+125℃@(Tj) 1 10uVrms 140mV@(300mA) 3.3V 300mA 65dB@(100kHz) 6V 8.5uA Fixed Over Current Protection、Enable
+C2687116 | USBLC6-2SC6 | expand | stock 92045 | UMW(Youtai Semiconductor Co., Ltd.) | 0.35pF、0.8pF 100nA 150W@8/20us 15V 2 5V 6A@8/20us 6V ESD SOT-23-6 ESD and Surge Protection (TVS/ESD) ROHS
+C3020560 | USB4105-GF-A | expand | stock 4563 | Global Connector Technology | -40℃~+85℃ 1 12P 48V 5A Black Female Surface Mount, Right Angle Type-C USB 2.0 SMD USB Connectors ROHS
+C514175 | SM03B-GHS-TB(LF)(SN) | expand | stock 40 | JST | -25℃~+85℃ 1 1.25mm 1A 1x3P 3 3P 4.13mm 4.25mm 50V 7mm Auxiliary Solder Pin GH PA9T Phosphor bronze Surface Mou
+C189893 | SM02B-GHS-TB(LF)(SN) | expand | stock 38965 | JST | -25℃~+85℃ 1 1.25mm 1A 1x2P 2 2P 4.13mm 4.25mm 5.75mm 50V Auxiliary Solder Pin GH PA9T Phosphor bronze Surface 
+C23345 | 0603WAF220JT5E | base | stock 1400261 | UNI-ROYAL(Uniroyal Elec) | -55℃~+155℃ 100mW 22Ω 75V Thick Film Resistor ±1% ±100ppm/℃ 0603 Chip Resistor - Surface Mount ROHS
+C22843 | 0603WAF1501T5E | base | stock 1361513 | UNI-ROYAL(Uniroyal Elec) | -55℃~+155℃ 1.5kΩ 100mW 75V Thick Film Resistor ±1% ±100ppm/℃ 0603 Chip Resistor - Surface Mount ROHS
+C23186 | 0603WAF5101T5E | base | stock 3402515 | UNI-ROYAL(Uniroyal Elec) | -55℃~+155℃ 100mW 5.1kΩ 75V Thick Film Resistor ±1% ±100ppm/℃ 0603 Chip Resistor - Surface Mount ROHS
+C22935 | 0603WAF1004T5E | base | stock 2525716 | UNI-ROYAL(Uniroyal Elec) | -55℃~+155℃ 100mW 1MΩ 75V Thick Film Resistor ±1% ±100ppm/℃ 0603 Chip Resistor - Surface Mount ROHS
+C22775 | 0603WAF1000T5E | base | stock 4735466 | UNI-ROYAL(Uniroyal Elec) | -55℃~+155℃ 100mW 100Ω 75V Thick Film Resistor ±1% ±100ppm/℃ 0603 Chip Resistor - Surface Mount ROHS
+C4190 | 0603WAF2201T5E | base | stock 1807260 | UNI-ROYAL(Uniroyal Elec) | -55℃~+155℃ 100mW 2.2kΩ 75V Thick Film Resistor ±1% ±100ppm/℃ 0603 Chip Resistor - Surface Mount ROHS
+C25803 | 0603WAF1003T5E | base | stock 6570120 | UNI-ROYAL(Uniroyal Elec) | -55℃~+155℃ 100kΩ 100mW 75V Thick Film Resistor ±1% ±100ppm/℃ 0603 Chip Resistor - Surface Mount ROHS
+C22991 | 0603WAF3011T5E | expand | stock 17279 | UNI-ROYAL(Uniroyal Elec) | -55℃~+155℃ 100mW 3.01kΩ 75V Thick Film Resistor ±1% ±100ppm/℃ 0603 Chip Resistor - Surface Mount ROHS
+C21190 | 0603WAF1001T5E | base | stock 93524 | UNI-ROYAL(Uniroyal Elec) | -55℃~+155℃ 100mW 1kΩ 75V Thick Film Resistor ±1% ±100ppm/℃ 0603 Chip Resistor - Surface Mount ROHS
+C31850 | 0603WAF2202T5E | base | stock 869428 | UNI-ROYAL(Uniroyal Elec) | -55℃~+155℃ 100mW 22kΩ 75V Thick Film Resistor ±1% ±100ppm/℃ 0603 Chip Resistor - Surface Mount ROHS
+C98220 | RC0603FR-0710KL | expand | stock 4592436 | YAGEO | -55℃~+155℃ 100mW 10kΩ 75V Thick Film Resistor ±1% ±100ppm/℃ 0603 Chip Resistor - Surface Mount ROHS
+C22356360 | RCA032R2FLF | expand | stock 7974 | HKR(Hong Kong Resistors) | -55℃~+155℃ 100mW 2.2Ω 75V Thick Film Resistor ±1% ±200ppm/℃ 0603 Chip Resistor - Surface Mount ROHS
