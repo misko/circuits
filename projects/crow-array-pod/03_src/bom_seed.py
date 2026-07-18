@@ -26,6 +26,9 @@ MAP = {  # BOM Comment -> 02_parts/ MPN
     "20k inv fb": "0805W8F2002T5E",
     "68R iso +": "0805W8F680JT5E", "68R iso -": "0805W8F680JT5E",
     "100k bias": "0805W8F1003T5E",
+    # merged-line comments (exporter merges per (LCSC, footprint) after codes land)
+    "0R": "0805W8F0000T5E", "100n": "CC0805KRX7R9BB104", "10k": "0805W8F1002T5E",
+    "10u": "CL21A106KAYNNNE", "20k": "0805W8F2002T5E", "68R": "0805W8F680JT5E",
     "CMT-8504-100-SMT-TR": "CMT-8504-100-SMT-TR",
     "0R beep series": "0805W8F0000T5E", "0R choke byp +": "0805W8F0000T5E",
     "0R choke byp -": "0805W8F0000T5E",

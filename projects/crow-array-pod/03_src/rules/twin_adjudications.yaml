@@ -1,0 +1,33 @@
+# Reviewed jlc_twin findings, accepted with evidence. Each entry silences ONE
+# (lcsc, status) finding class - never add one without the verification note.
+- lcsc: C192421     # OPA1678IDR (U1), SOIC-8
+  status: PAD-GEOM
+  why: >-
+    "pad 1<->8 ours 4.95 vs JLC 5.42 (d0.47)" is the classic KiCad-IPC vs
+    TI-datasheet SOIC-8 pad-length split, not a wrong land pattern: TI's
+    own D0008A land-pattern/stencil drawing (4214825/C 02/2019, fetched
+    2026-07-18) dimensions the pad-center span across the package at
+    (.213")[5.4mm] with 1.55x0.6 pads - JLC's 5.42 matches the datasheet
+    pattern; KiCad's std SOIC-8_3.9x4.9mm centers at +-2.475 with the SAME
+    1.55x0.6 pads (delta 0.235mm per side along the pad length). The 0.84mm
+    lead foot lands fully on both variants; twin render shows all 8 leads
+    on our pads, fit=0.24mm, MODEL-REG 0.00mm.
+- lcsc: C192421     # OPA1678IDR (U1)
+  status: ROT-DB-SUGGEST
+  why: >-
+    Keep the db rule ("^SOIC-",270): the fitted jlc_offset=90 measures
+    JLC's EDA frame, while the rotation DB is the ASSEMBLY-zero empirical
+    layer (skill: "JLC's assembly-zero is not always their EDA-zero -
+    verify in the JLC preview, don't blind-apply"). The same "^SOIC-",270
+    rule produced the shipped esp32-laser-timing v1.x order (LM339DT
+    SOIC-14, U3). MANDATORY order-day check recorded in ORDER_README:
+    U1 pin-1 dot orientation in the JLC 3D preview before paying.
+- lcsc: C5342501    # KF128L-3.5-8P (J1) - consign-only, uncoded hand-solder
+  status: NO-CAD
+  why: >-
+    EasyEDA has no CAD for this consign-only part (stock 0, uncoded in the
+    BOM by design - D6). Land pattern verified instead against the KF128L-3.5
+    series drawing revA 2021-03-13 (02_parts/KF128L-3.5-8P/): 3.5mm pitch
+    THT row, 1.3mm drills - the KiCad Phoenix PT-1,5-8-3.5-H footprint pad
+    row matches the series pitch; the 2P sibling of the same series shipped
+    hand-soldered on esp32-laser-timing v1.x with the same footprint family.

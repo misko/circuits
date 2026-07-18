@@ -23,8 +23,8 @@ LIB.mkdir(parents=True, exist_ok=True)
 pads = [
     ("1", -3.5, -3.5),   # POLARITY (+) top-left
     ("2", -3.5, 3.5),    # POLARITY (-) bottom-left
-    ("3", 3.5, -3.5),    # DUMMY top-right
-    ("4", 3.5, 3.5),     # DUMMY bottom-right
+    ("3", 3.5, 3.5),     # DUMMY bottom-right (numbering matches JLC C22359707 CAD)
+    ("4", 3.5, -3.5),    # DUMMY top-right
 ]
 pad_s = "\n".join(
     f'  (pad "{n}" smd rect (at {x} {y}) (size 2.5 2.5) (layers "F.Cu" "F.Paste" "F.Mask"))'

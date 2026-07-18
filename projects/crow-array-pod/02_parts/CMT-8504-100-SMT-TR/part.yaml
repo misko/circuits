@@ -12,8 +12,8 @@ footprint: pod:CMT-8504  # vendored (03_src/make_lib.py) from the datasheet reco
 pins:                     # from Mechanical Drawing p.2: top-view + recommended PCB layout
   1: "+"                  # POLARITY PAD (+) — top-left corner in the recommended-layout top view
   2: "-"                  # POLARITY PAD (-) — bottom-left corner (same side as +)
-  3: DUMMY                # 2-DUMMY PAD — right-side corners, mechanical only
-  4: DUMMY                # mechanical only
+  3: DUMMY                # 2-DUMMY PAD bottom-right, mechanical only (3/4 numbered to match JLC C22359707 CAD: 1 TL, 2 BL, 3 BR, 4 TR)
+  4: DUMMY                # dummy top-right, mechanical only
 land_pattern:             # Recommended PCB Layout p.2: 9.5mm outer span, 4.5mm inner span
   pad_size: 2.5x2.5mm     # (9.5-4.5)/2 per side
   pad_centers: ±3.5mm both axes (corners)
