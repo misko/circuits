@@ -47,11 +47,28 @@ Q/A, and decision register.
 
 ## Q / A
 
-(pending — asked at commission)
+- Q1 scope: A1 (user, 2026-07-18): **BOTH boards now** — pod board and
+  central recorder both designed in this campaign (overrides the doc's
+  sequential gating for the PCB work; field-test gates still apply to
+  ORDERING/mechanical freeze, recorded in each ORDER_README).
+- Q2 assembly: A2: **JLC SMT + hand-solder specials** — mic, transducer,
+  terminal blocks, RJ45s as uncoded hand-solder lines with a Digi-Key
+  order list in ORDER_README.
+- Q3 configurables: A3: **delegated** — dual clamp footprints (flyback
+  populated, TVS empty), gain per the doc's starting values, CM-choke +
+  shield pads unpopulated; each a D# with rationale.
 
 ## Decision register
 
-(D# appended as decisions are made)
+- D1 (2026-07-18): two-board system implemented as TWO sibling pipeline
+  projects sharing this commission: projects/crow-array-pod (2-layer,
+  qty 8-10) and projects/crow-array-central (4-6 layer XU316 recorder).
+  Each carries the full contract set and its own release chain; both
+  BRIEFs point here. Rationale: the pipeline's contracts, gates, and
+  release model are per-board.
+- D2: execution order pod -> central (limits concurrent writers in the
+  repo alongside the active shitty-kitty run; also matches the doc's
+  risk ordering) — both are in scope per A1.
 
 ## Log
 
