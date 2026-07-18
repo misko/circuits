@@ -102,7 +102,7 @@ def dc005():
     lines.append(f'  (fp_rect (start {x0} {ylo}) (end {x1} {yhi}) (stroke (width 0.1) (type default)) (fill none) (layer "F.Fab"))')
     # silk: west-half outline only — full-length lines clipped the board edge
     # (front face is edge-flush) and crossed the pin-2/3 pad rings
-    for seg in [((x0, ylo), (4.6, ylo)), ((x0, yhi), (0.9, yhi)), ((x0, ylo), (x0, yhi))]:
+    for seg in [((-1.6, ylo), (4.6, ylo)), ((-1.6, yhi), (0.9, yhi)), ((-1.6, ylo), (-1.6, yhi))]:
         (sx, sy), (ex, ey) = seg
         lines.append(f'  (fp_line (start {sx} {sy-0.11 if sy<0 else sy+0.11}) (end {ex} {ey-0.11 if ey<0 else ey+0.11}) (stroke (width 0.12) (type solid)) (layer "F.SilkS"))')
     lines.append(f'  (fp_poly (pts (xy {x0-0.25} {ylo-0.25}) (xy {x1+0.25} {ylo-0.25}) (xy {x1+0.25} {yhi+0.25}) (xy {x0-0.25} {yhi+0.25})) (stroke (width 0.05) (type default)) (fill none) (layer "F.CrtYd"))')

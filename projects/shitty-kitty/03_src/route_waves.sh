@@ -31,9 +31,18 @@ run() {  # run OUT IN WIDTH CLEAR ITER nets...
 run w1.kicad_pcb r0.kicad_pcb 0.8 0.15 300000 VIN_RAW VIN_F
 
 # motor + VS + sense returns together (QFN top row is zero-sum)
-run w2.kicad_pcb w1.kicad_pcb 0.35 0.13 500000 \
+# charge pump FIRST (serialized): the VIN/motor/BRB walls fence the CP
+# pocket if they route before these four short stubs (found the hard way).
+run w1b1.kicad_pcb w1.kicad_pcb 0.25 0.13 200000 VCP
+run w1b2.kicad_pcb w1b1.kicad_pcb 0.25 0.13 200000 CPO
+run w1b3.kicad_pcb w1b2.kicad_pcb 0.25 0.13 200000 CPI
+run w1b.kicad_pcb w1b3.kicad_pcb 0.25 0.13 200000 V5OUT
+
+run w2.kicad_pcb w1b.kicad_pcb 0.35 0.13 500000 \
     VIN_12V MOT_A1 MOT_A2 MOT_B1 MOT_B2 BRA BRB
 
+# charge-pump + driver-support escapes get FIRST pick of the corridor west
+# of the TMC2209 (they failed loudly once escalation was pinned off).
 # ONE mega wave for every remaining signal: KRT's intra-wave ripup is the
 # only arbiter that can trade corridors between electrode stubs, UQFN
 # support pins, the TMC logic cluster and the buses. Split waves deadlock
@@ -46,7 +55,7 @@ run w3.kicad_pcb w2.kicad_pcb 0.2 0.13 2000000 \
     OUTER5 OUTER6 OUTER7 OUTER8 OUTER9 OUTER10 OUTER11 OUTER12 \
     VREG_U3 VREG_U4 VREG_U5 VREG_U6 REXT_U3 REXT_U4 REXT_U5 REXT_U6 \
     MPR_IRQ1 MPR_IRQ2 MPR_IRQ3 MPR_IRQ4 ACC_INT SDA SCL 3V3 \
-    DIR STEP ENN DIAG INDEX CPO CPI VCP V5OUT TMC_UART TMC_TX \
+    DIR STEP ENN DIAG INDEX TMC_UART TMC_TX \
     USB_DP USB_DM CC1 CC2 USB_VBUS EN BOOT ENDSTOP_N ENDSTOP_G \
     LED_ST LED_A LED_SA HOST_TX HOST_RX GATE_Q1 EN_BUCK
 

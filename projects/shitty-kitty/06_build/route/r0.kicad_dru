@@ -17,10 +17,10 @@
   (constraint track_width (min 0.40mm)))
 (rule width_pwr3v3
   (condition "A.NetClass == 'PWR3V3'")
-  (constraint track_width (min 0.25mm)))
+  (constraint track_width (min 0.20mm)))
 (rule width_elec
   (condition "A.NetClass == 'ELEC'")
-  (constraint track_width (min 0.20mm)))
+  (constraint track_width (min 0.15mm)))
 (rule width_usb
   (condition "A.NetClass == 'USB'")
   (constraint track_width (min 0.20mm)))

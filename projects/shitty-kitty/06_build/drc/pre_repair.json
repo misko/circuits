@@ -1,7 +1,7 @@
 {
     "$schema": "https://schemas.kicad.org/drc.v1.json",
     "coordinate_units": "mm",
-    "date": "2026-07-17T20:03:31",
+    "date": "2026-07-17T21:20:01",
     "ignored_checks": [
         {
             "description": "Footprint has no courtyard defined",
@@ -32,938 +32,186 @@
     "kicad_version": "10.0.4",
     "schematic_parity": [],
     "source": "shitty_kitty.kicad_pcb",
-    "unconnected_items": [
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Pad 4 [GND] of U3 on F.Cu",
-                    "pos": {
-                        "x": 66.9,
-                        "y": 64.8875
-                    },
-                    "uuid": "c1bcbc72-cc41-4ac1-ba5a-efb7335e7f7a"
-                },
-                {
-                    "description": "Pad 6 [GND] of U3 on F.Cu",
-                    "pos": {
-                        "x": 67.8875,
-                        "y": 64.3
-                    },
-                    "uuid": "68b0b364-322d-4054-a016-fb0f6092cf80"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        },
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Pad 6 [GND] of U3 on F.Cu",
-                    "pos": {
-                        "x": 67.8875,
-                        "y": 64.3
-                    },
-                    "uuid": "68b0b364-322d-4054-a016-fb0f6092cf80"
-                },
-                {
-                    "description": "Zone [GND] on F.Cu, priority 0",
-                    "pos": {
-                        "x": 50.0,
-                        "y": 50.0
-                    },
-                    "uuid": "0c47a08b-e9a8-4b4a-a419-a6b3e426413a"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        },
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Track [VCP] on B.Cu, length 1.5521 mm",
-                    "pos": {
-                        "x": 157.537,
-                        "y": 105.0
-                    },
-                    "uuid": "c19cd4f6-df44-4e75-9aa3-8c26e110fc90"
-                },
-                {
-                    "description": "Pad 6 [VCP] of U2 on F.Cu",
-                    "pos": {
-                        "x": 157.5375,
-                        "y": 104.0
-                    },
-                    "uuid": "8d9b2e9c-da8c-4b67-b0a8-ad6ac509cfea"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        }
-    ],
+    "unconnected_items": [],
     "violations": [
         {
-            "description": "Track width (rule 'width_pwr3v3' min width 0.2500 mm; actual 0.1500 mm)",
+            "description": "Track width (rule 'width_pwr3v3' min width 0.2000 mm; actual 0.1500 mm)",
             "items": [
                 {
-                    "description": "Track [3V3] on F.Cu, length 0.7641 mm",
+                    "description": "Track [3V3] on F.Cu, length 0.6962 mm",
                     "pos": {
-                        "x": 118.85,
-                        "y": 64.349999
+                        "x": 94.93,
+                        "y": 84.09
                     },
-                    "uuid": "032f0c86-e9ff-4c57-b1e8-1f11d857a0b1"
+                    "uuid": "371be2d2-7bcd-46d7-96ca-05615c0bfef5"
                 }
             ],
             "severity": "error",
             "type": "track_width"
         },
         {
-            "description": "Track width (rule 'width_pwr3v3' min width 0.2500 mm; actual 0.1500 mm)",
+            "description": "Track width (rule 'width_pwr3v3' min width 0.2000 mm; actual 0.1500 mm)",
             "items": [
                 {
-                    "description": "Track [3V3] on F.Cu, length 0.6012 mm",
+                    "description": "Track [3V3] on F.Cu, length 0.8713 mm",
                     "pos": {
-                        "x": 80.15,
-                        "y": 64.9
+                        "x": 94.93,
+                        "y": 84.09
                     },
-                    "uuid": "d93deebb-4fe7-4925-b993-1eda4eff000a"
+                    "uuid": "a02bd31c-b98b-4c2f-bbce-9ec8e89cfbf7"
                 }
             ],
             "severity": "error",
             "type": "track_width"
         },
         {
-            "description": "Track width (rule 'width_elec' min width 0.2000 mm; actual 0.1500 mm)",
+            "description": "Track width (rule 'width_motor' min width 0.3500 mm; actual 0.1500 mm)",
             "items": [
                 {
-                    "description": "Track [INNER7] on F.Cu, length 0.8931 mm",
+                    "description": "Track [MOT_B2] on F.Cu, length 0.5896 mm",
                     "pos": {
-                        "x": 82.0,
-                        "y": 63.6
+                        "x": 157.75,
+                        "y": 100.95
                     },
-                    "uuid": "6dcce749-f1e3-470d-a148-81d9ac0967d1"
+                    "uuid": "54fe1406-cd3c-4591-8927-b708478ad681"
                 }
             ],
             "severity": "error",
             "type": "track_width"
         },
         {
-            "description": "Track width (rule 'width_elec' min width 0.2000 mm; actual 0.1500 mm)",
+            "description": "Drilled hole too close to other hole (board setup constraints min 0.2995 mm; actual 0.0000 mm)",
             "items": [
                 {
-                    "description": "Track [OUTER2] on F.Cu, length 0.8139 mm",
+                    "description": "Via [GND] on F.Cu - B.Cu",
                     "pos": {
-                        "x": 106.5749,
-                        "y": 63.0533
+                        "x": 95.75,
+                        "y": 83.74
                     },
-                    "uuid": "7f6e0d54-7e3a-481a-97db-1f581953a653"
-                }
-            ],
-            "severity": "error",
-            "type": "track_width"
-        },
-        {
-            "description": "Clearance violation ( clearance 0.0900 mm; actual 0.0500 mm)",
-            "items": [
-                {
-                    "description": "Via [CPI] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 157.5375,
-                        "y": 103.5
-                    },
-                    "uuid": "a460d158-a8e3-4256-bcf8-827cff936ef5"
+                    "uuid": "0bea6868-64e0-428d-a187-f3efd827ca25"
                 },
                 {
-                    "description": "Via [CPO] on F.Cu - B.Cu",
+                    "description": "Via [GND] on F.Cu - B.Cu",
                     "pos": {
-                        "x": 157.5375,
-                        "y": 103.0
+                        "x": 95.51,
+                        "y": 83.82
                     },
-                    "uuid": "f1262948-30e1-43ea-91f3-65219c054172"
-                }
-            ],
-            "severity": "error",
-            "type": "clearance"
-        },
-        {
-            "description": "Clearance violation ( clearance 0.0900 mm; actual 0.0833 mm)",
-            "items": [
-                {
-                    "description": "Via [MOT_B2] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 157.65,
-                        "y": 101.4
-                    },
-                    "uuid": "44df4e9d-2272-4c44-87a5-c5b3bac88d56"
-                },
-                {
-                    "description": "Via [ENN] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 157.55,
-                        "y": 102.0
-                    },
-                    "uuid": "e72276d4-459c-4cf3-a7b0-bc5f0e1f9a83"
-                }
-            ],
-            "severity": "error",
-            "type": "clearance"
-        },
-        {
-            "description": "Clearance violation ( clearance 0.0900 mm; actual 0.0500 mm)",
-            "items": [
-                {
-                    "description": "Via [CPI] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 157.5375,
-                        "y": 103.5
-                    },
-                    "uuid": "a460d158-a8e3-4256-bcf8-827cff936ef5"
-                },
-                {
-                    "description": "Via [CPO] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 157.5375,
-                        "y": 103.0
-                    },
-                    "uuid": "f1262948-30e1-43ea-91f3-65219c054172"
-                }
-            ],
-            "severity": "error",
-            "type": "clearance"
-        },
-        {
-            "description": "Clearance violation ( clearance 0.0900 mm; actual 0.0500 mm)",
-            "items": [
-                {
-                    "description": "Via [CPI] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 157.5375,
-                        "y": 103.5
-                    },
-                    "uuid": "a460d158-a8e3-4256-bcf8-827cff936ef5"
-                },
-                {
-                    "description": "Via [CPO] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 157.5375,
-                        "y": 103.0
-                    },
-                    "uuid": "f1262948-30e1-43ea-91f3-65219c054172"
-                }
-            ],
-            "severity": "error",
-            "type": "clearance"
-        },
-        {
-            "description": "Clearance violation ( clearance 0.0900 mm; actual 0.0833 mm)",
-            "items": [
-                {
-                    "description": "Via [MOT_B2] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 157.65,
-                        "y": 101.4
-                    },
-                    "uuid": "44df4e9d-2272-4c44-87a5-c5b3bac88d56"
-                },
-                {
-                    "description": "Via [ENN] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 157.55,
-                        "y": 102.0
-                    },
-                    "uuid": "e72276d4-459c-4cf3-a7b0-bc5f0e1f9a83"
-                }
-            ],
-            "severity": "error",
-            "type": "clearance"
-        },
-        {
-            "description": "Clearance violation ( clearance 0.0900 mm; actual 0.0833 mm)",
-            "items": [
-                {
-                    "description": "Via [MOT_B2] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 157.65,
-                        "y": 101.4
-                    },
-                    "uuid": "44df4e9d-2272-4c44-87a5-c5b3bac88d56"
-                },
-                {
-                    "description": "Via [ENN] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 157.55,
-                        "y": 102.0
-                    },
-                    "uuid": "e72276d4-459c-4cf3-a7b0-bc5f0e1f9a83"
-                }
-            ],
-            "severity": "error",
-            "type": "clearance"
-        },
-        {
-            "description": "Clearance violation ( clearance 0.0900 mm; actual 0.0500 mm)",
-            "items": [
-                {
-                    "description": "Via [CPI] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 157.5375,
-                        "y": 103.5
-                    },
-                    "uuid": "a460d158-a8e3-4256-bcf8-827cff936ef5"
-                },
-                {
-                    "description": "Via [CPO] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 157.5375,
-                        "y": 103.0
-                    },
-                    "uuid": "f1262948-30e1-43ea-91f3-65219c054172"
-                }
-            ],
-            "severity": "error",
-            "type": "clearance"
-        },
-        {
-            "description": "Clearance violation ( clearance 0.0900 mm; actual 0.0833 mm)",
-            "items": [
-                {
-                    "description": "Via [MOT_B2] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 157.65,
-                        "y": 101.4
-                    },
-                    "uuid": "44df4e9d-2272-4c44-87a5-c5b3bac88d56"
-                },
-                {
-                    "description": "Via [ENN] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 157.55,
-                        "y": 102.0
-                    },
-                    "uuid": "e72276d4-459c-4cf3-a7b0-bc5f0e1f9a83"
-                }
-            ],
-            "severity": "error",
-            "type": "clearance"
-        },
-        {
-            "description": "Hole clearance violation (board setup constraints hole clearance 0.2000 mm; actual 0.1750 mm)",
-            "items": [
-                {
-                    "description": "Pad 1 [SCL] of U7 on F.Cu",
-                    "pos": {
-                        "x": 94.25,
-                        "y": 84.7625
-                    },
-                    "uuid": "bf08a9d3-a36a-4e42-9385-13d380393e75"
-                },
-                {
-                    "description": "Via [3V3] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 94.75,
-                        "y": 84.75
-                    },
-                    "uuid": "bcf12f3e-ff50-40d0-b2f5-72f548815a16"
-                }
-            ],
-            "severity": "error",
-            "type": "hole_clearance"
-        },
-        {
-            "description": "Clearance violation ( clearance 0.0900 mm; actual 0.0752 mm)",
-            "items": [
-                {
-                    "description": "Via [3V3] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 81.9,
-                        "y": 64.8875
-                    },
-                    "uuid": "6da81688-2570-471d-bb4e-14e1c48917bb"
-                },
-                {
-                    "description": "Track [VREG_U4] on F.Cu, length 2.8500 mm",
-                    "pos": {
-                        "x": 82.3,
-                        "y": 64.9
-                    },
-                    "uuid": "cfd5ada2-6377-4463-8016-1f1e8e2fa0ad"
-                }
-            ],
-            "severity": "error",
-            "type": "clearance"
-        },
-        {
-            "description": "Clearance violation ( clearance 0.0900 mm; actual 0.0752 mm)",
-            "items": [
-                {
-                    "description": "Via [3V3] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 81.9,
-                        "y": 64.8875
-                    },
-                    "uuid": "6da81688-2570-471d-bb4e-14e1c48917bb"
-                },
-                {
-                    "description": "Track [SDA] on F.Cu, length 0.0707 mm",
-                    "pos": {
-                        "x": 81.5,
-                        "y": 64.9
-                    },
-                    "uuid": "e5aaae2e-e926-48a0-beff-926ddd2c4884"
-                }
-            ],
-            "severity": "error",
-            "type": "clearance"
-        },
-        {
-            "description": "Hole clearance violation (board setup constraints hole clearance 0.2000 mm; actual 0.1817 mm)",
-            "items": [
-                {
-                    "description": "Track [SDA] on F.Cu, length 0.0707 mm",
-                    "pos": {
-                        "x": 81.5,
-                        "y": 65.05
-                    },
-                    "uuid": "6135d8a1-362c-4a57-98cd-57800546ce5d"
-                },
-                {
-                    "description": "Via [3V3] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 81.9,
-                        "y": 64.8875
-                    },
-                    "uuid": "6da81688-2570-471d-bb4e-14e1c48917bb"
-                }
-            ],
-            "severity": "error",
-            "type": "hole_clearance"
-        },
-        {
-            "description": "Clearance violation ( clearance 0.0900 mm; actual 0.0752 mm)",
-            "items": [
-                {
-                    "description": "Track [SDA] on F.Cu, length 0.0707 mm",
-                    "pos": {
-                        "x": 81.45,
-                        "y": 64.95
-                    },
-                    "uuid": "388cd1fd-7295-443f-9195-109dc07770cf"
-                },
-                {
-                    "description": "Via [3V3] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 81.9,
-                        "y": 64.8875
-                    },
-                    "uuid": "6da81688-2570-471d-bb4e-14e1c48917bb"
-                }
-            ],
-            "severity": "error",
-            "type": "clearance"
-        },
-        {
-            "description": "Clearance violation ( clearance 0.0900 mm; actual 0.0750 mm)",
-            "items": [
-                {
-                    "description": "Pad 3 [SDA] of U6 on F.Cu",
-                    "pos": {
-                        "x": 121.0,
-                        "y": 64.8875
-                    },
-                    "uuid": "1fd25bd6-2c7b-4f10-92fb-5b43a3146a43"
-                },
-                {
-                    "description": "Via [SCL] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 121.4,
-                        "y": 64.8875
-                    },
-                    "uuid": "8c036d4b-d82d-49a4-bbd1-f4b01057fbeb"
-                }
-            ],
-            "severity": "error",
-            "type": "clearance"
-        },
-        {
-            "description": "Clearance violation ( clearance 0.0900 mm; actual 0.0286 mm)",
-            "items": [
-                {
-                    "description": "Track [ACC_INT] on F.Cu, length 0.6364 mm",
-                    "pos": {
-                        "x": 94.25,
-                        "y": 85.5
-                    },
-                    "uuid": "2b969b9e-ebc3-4ad0-8c6a-2de3bef9da54"
-                },
-                {
-                    "description": "Via [SCL] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 94.15,
-                        "y": 84.9
-                    },
-                    "uuid": "7a246833-948f-4854-9ed2-6eb6b5937eb6"
-                }
-            ],
-            "severity": "error",
-            "type": "clearance"
-        },
-        {
-            "description": "Clearance violation ( clearance 0.0900 mm; actual 0.0308 mm)",
-            "items": [
-                {
-                    "description": "Track [3V3] on B.Cu, length 0.2500 mm",
-                    "pos": {
-                        "x": 94.5,
-                        "y": 84.75
-                    },
-                    "uuid": "32b502e1-8ff5-4323-93a2-4db2bc8baaf3"
-                },
-                {
-                    "description": "Via [SCL] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 94.15,
-                        "y": 84.9
-                    },
-                    "uuid": "7a246833-948f-4854-9ed2-6eb6b5937eb6"
-                }
-            ],
-            "severity": "error",
-            "type": "clearance"
-        },
-        {
-            "description": "Hole clearance violation (board setup constraints hole clearance 0.2000 mm; actual 0.1817 mm)",
-            "items": [
-                {
-                    "description": "Track [SDA] on F.Cu, length 0.5500 mm",
-                    "pos": {
-                        "x": 81.5,
-                        "y": 65.599999
-                    },
-                    "uuid": "7ab493ff-762a-492d-bc88-22a30227f549"
-                },
-                {
-                    "description": "Via [3V3] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 81.9,
-                        "y": 64.8875
-                    },
-                    "uuid": "6da81688-2570-471d-bb4e-14e1c48917bb"
-                }
-            ],
-            "severity": "error",
-            "type": "hole_clearance"
-        },
-        {
-            "description": "Clearance violation ( clearance 0.0900 mm; actual 0.0750 mm)",
-            "items": [
-                {
-                    "description": "Pad 1 [MPR_IRQ4] of U6 on F.Cu",
-                    "pos": {
-                        "x": 120.2,
-                        "y": 64.8875
-                    },
-                    "uuid": "1529314d-5c34-4aaf-82d1-3fe60cae5cba"
-                },
-                {
-                    "description": "Via [SCL] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 120.6,
-                        "y": 64.9
-                    },
-                    "uuid": "3a7dc2d7-5312-4c63-bc94-6344a4602a71"
-                }
-            ],
-            "severity": "error",
-            "type": "clearance"
-        },
-        {
-            "description": "Hole clearance violation (board setup constraints hole clearance 0.2000 mm; actual 0.1500 mm)",
-            "items": [
-                {
-                    "description": "Pad 1 [MPR_IRQ4] of U6 on F.Cu",
-                    "pos": {
-                        "x": 120.2,
-                        "y": 64.8875
-                    },
-                    "uuid": "1529314d-5c34-4aaf-82d1-3fe60cae5cba"
-                },
-                {
-                    "description": "Via [SCL] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 120.6,
-                        "y": 64.9
-                    },
-                    "uuid": "3a7dc2d7-5312-4c63-bc94-6344a4602a71"
-                }
-            ],
-            "severity": "error",
-            "type": "hole_clearance"
-        },
-        {
-            "description": "Hole clearance violation (board setup constraints hole clearance 0.2000 mm; actual 0.1750 mm)",
-            "items": [
-                {
-                    "description": "Pad 1 [SCL] of U7 on F.Cu",
-                    "pos": {
-                        "x": 94.25,
-                        "y": 84.7625
-                    },
-                    "uuid": "bf08a9d3-a36a-4e42-9385-13d380393e75"
-                },
-                {
-                    "description": "Via [3V3] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 94.75,
-                        "y": 84.75
-                    },
-                    "uuid": "bcf12f3e-ff50-40d0-b2f5-72f548815a16"
-                }
-            ],
-            "severity": "error",
-            "type": "hole_clearance"
-        },
-        {
-            "description": "Hole clearance violation (board setup constraints hole clearance 0.2000 mm; actual 0.1750 mm)",
-            "items": [
-                {
-                    "description": "Pad 3 [GND] of U7 on F.Cu",
-                    "pos": {
-                        "x": 95.25,
-                        "y": 84.7625
-                    },
-                    "uuid": "e0a26774-8f69-4a11-8ff3-4ef84bb46ad5"
-                },
-                {
-                    "description": "Via [3V3] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 94.75,
-                        "y": 84.75
-                    },
-                    "uuid": "bcf12f3e-ff50-40d0-b2f5-72f548815a16"
-                }
-            ],
-            "severity": "error",
-            "type": "hole_clearance"
-        },
-        {
-            "description": "Hole clearance violation (board setup constraints hole clearance 0.2000 mm; actual 0.1500 mm)",
-            "items": [
-                {
-                    "description": "Pad 3 [SDA] of U6 on F.Cu",
-                    "pos": {
-                        "x": 121.0,
-                        "y": 64.8875
-                    },
-                    "uuid": "1fd25bd6-2c7b-4f10-92fb-5b43a3146a43"
-                },
-                {
-                    "description": "Via [SCL] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 120.6,
-                        "y": 64.9
-                    },
-                    "uuid": "3a7dc2d7-5312-4c63-bc94-6344a4602a71"
-                }
-            ],
-            "severity": "error",
-            "type": "hole_clearance"
-        },
-        {
-            "description": "Hole clearance violation (board setup constraints hole clearance 0.2000 mm; actual 0.1500 mm)",
-            "items": [
-                {
-                    "description": "Pad 3 [SDA] of U6 on F.Cu",
-                    "pos": {
-                        "x": 121.0,
-                        "y": 64.8875
-                    },
-                    "uuid": "1fd25bd6-2c7b-4f10-92fb-5b43a3146a43"
-                },
-                {
-                    "description": "Via [SCL] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 121.4,
-                        "y": 64.8875
-                    },
-                    "uuid": "8c036d4b-d82d-49a4-bbd1-f4b01057fbeb"
-                }
-            ],
-            "severity": "error",
-            "type": "hole_clearance"
-        },
-        {
-            "description": "Hole clearance violation (board setup constraints hole clearance 0.2000 mm; actual 0.1500 mm)",
-            "items": [
-                {
-                    "description": "Pad 3 [SDA] of U4 on F.Cu",
-                    "pos": {
-                        "x": 81.5,
-                        "y": 64.8875
-                    },
-                    "uuid": "fa14a374-f1f2-41d2-bca1-8a4117196ace"
-                },
-                {
-                    "description": "Via [3V3] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 81.9,
-                        "y": 64.8875
-                    },
-                    "uuid": "6da81688-2570-471d-bb4e-14e1c48917bb"
-                }
-            ],
-            "severity": "error",
-            "type": "hole_clearance"
-        },
-        {
-            "description": "Hole clearance violation (board setup constraints hole clearance 0.2000 mm; actual 0.1500 mm)",
-            "items": [
-                {
-                    "description": "Pad 5 [VREG_U6] of U6 on F.Cu",
-                    "pos": {
-                        "x": 121.8,
-                        "y": 64.8875
-                    },
-                    "uuid": "3f882794-29c6-475e-baa7-74e2fa172b93"
-                },
-                {
-                    "description": "Via [SCL] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 121.4,
-                        "y": 64.8875
-                    },
-                    "uuid": "8c036d4b-d82d-49a4-bbd1-f4b01057fbeb"
-                }
-            ],
-            "severity": "error",
-            "type": "hole_clearance"
-        },
-        {
-            "description": "Hole clearance violation (board setup constraints hole clearance 0.2000 mm; actual 0.1500 mm)",
-            "items": [
-                {
-                    "description": "Pad 5 [VREG_U4] of U4 on F.Cu",
-                    "pos": {
-                        "x": 82.3,
-                        "y": 64.8875
-                    },
-                    "uuid": "b31d1e96-3f07-4838-8f48-4a33fd720d9c"
-                },
-                {
-                    "description": "Via [3V3] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 81.9,
-                        "y": 64.8875
-                    },
-                    "uuid": "6da81688-2570-471d-bb4e-14e1c48917bb"
-                }
-            ],
-            "severity": "error",
-            "type": "hole_clearance"
-        },
-        {
-            "description": "Silkscreen clearance",
-            "items": [
-                {
-                    "description": "PCB text 'MOTOR' on F.Silkscreen",
-                    "pos": {
-                        "x": 172.8,
-                        "y": 86.0
-                    },
-                    "uuid": "12eae0f6-ed33-4010-81be-83f02c0b61ef"
-                },
-                {
-                    "description": "Segment of C41 on F.Silkscreen",
-                    "pos": {
-                        "x": 166.654437,
-                        "y": 85.91
-                    },
-                    "uuid": "d62ff769-cd2e-4533-8eaa-50c2e3d12e99"
-                }
-            ],
-            "severity": "warning",
-            "type": "silk_overlap"
-        },
-        {
-            "description": "Silkscreen clearance",
-            "items": [
-                {
-                    "description": "PCB text 'MOTOR' on F.Silkscreen",
-                    "pos": {
-                        "x": 172.8,
-                        "y": 86.0
-                    },
-                    "uuid": "12eae0f6-ed33-4010-81be-83f02c0b61ef"
-                },
-                {
-                    "description": "Segment of C41 on F.Silkscreen",
-                    "pos": {
-                        "x": 172.41,
-                        "y": 85.91
-                    },
-                    "uuid": "53bc3608-72fe-4fb5-8b69-94cb4bba261b"
-                }
-            ],
-            "severity": "warning",
-            "type": "silk_overlap"
-        },
-        {
-            "description": "Silkscreen clipped by solder mask",
-            "items": [
-                {
-                    "description": "Segment of J1 on F.Silkscreen",
-                    "pos": {
-                        "x": 165.85,
-                        "y": 65.39
-                    },
-                    "uuid": "e9e4419c-b58c-467e-940e-9e18ab40f0fe"
-                },
-                {
-                    "description": "PTH pad 1 [VIN_RAW] of J1",
-                    "pos": {
-                        "x": 166.5,
-                        "y": 70.0
-                    },
-                    "uuid": "80adf5a6-25f1-4452-aa5b-6a5aaf194a7b"
-                }
-            ],
-            "severity": "warning",
-            "type": "silk_over_copper"
-        },
-        {
-            "description": "Drilled hole too close to other hole (board setup constraints min 0.4995 mm; actual 0.3185 mm)",
-            "items": [
-                {
-                    "description": "Via [SCL] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 94.15,
-                        "y": 84.9
-                    },
-                    "uuid": "7a246833-948f-4854-9ed2-6eb6b5937eb6"
-                },
-                {
-                    "description": "Via [3V3] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 94.75,
-                        "y": 84.75
-                    },
-                    "uuid": "bcf12f3e-ff50-40d0-b2f5-72f548815a16"
+                    "uuid": "15a2f6ea-7a13-4c30-9051-0945b69dfac4"
                 }
             ],
             "severity": "warning",
             "type": "hole_to_hole"
         },
         {
-            "description": "Drilled hole too close to other hole (board setup constraints min 0.4995 mm; actual 0.4500 mm)",
+            "description": "Drilled hole too close to other hole (board setup constraints min 0.2995 mm; actual 0.2012 mm)",
             "items": [
                 {
-                    "description": "Via [HOST_RX] on F.Cu - B.Cu",
+                    "description": "Via [GND] on F.Cu - B.Cu",
                     "pos": {
-                        "x": 87.5,
-                        "y": 119.95
+                        "x": 95.75,
+                        "y": 83.74
                     },
-                    "uuid": "c7b1f08c-9070-4517-9726-b22ab1065a10"
+                    "uuid": "0bea6868-64e0-428d-a187-f3efd827ca25"
                 },
                 {
-                    "description": "Via [SCL] on F.Cu - B.Cu",
+                    "description": "Via [GND] on F.Cu - B.Cu",
                     "pos": {
-                        "x": 87.5,
-                        "y": 119.2
+                        "x": 95.51,
+                        "y": 84.18
                     },
-                    "uuid": "fe01d90d-56f8-489f-b27c-d0f2e1b97b9a"
+                    "uuid": "40739514-ec09-4ad7-87f2-5676215b86eb"
                 }
             ],
             "severity": "warning",
             "type": "hole_to_hole"
         },
         {
-            "description": "Drilled hole too close to other hole (board setup constraints min 0.4995 mm; actual 0.3083 mm)",
+            "description": "Drilled hole too close to other hole (board setup constraints min 0.2995 mm; actual 0.0705 mm)",
             "items": [
                 {
-                    "description": "Via [MOT_B2] on F.Cu - B.Cu",
+                    "description": "Via [GND] on F.Cu - B.Cu",
                     "pos": {
-                        "x": 157.65,
-                        "y": 101.4
+                        "x": 95.75,
+                        "y": 83.74
                     },
-                    "uuid": "44df4e9d-2272-4c44-87a5-c5b3bac88d56"
+                    "uuid": "0bea6868-64e0-428d-a187-f3efd827ca25"
                 },
                 {
-                    "description": "Via [ENN] on F.Cu - B.Cu",
+                    "description": "Via [GND] on F.Cu - B.Cu",
                     "pos": {
-                        "x": 157.55,
-                        "y": 102.0
+                        "x": 95.73,
+                        "y": 83.37
                     },
-                    "uuid": "e72276d4-459c-4cf3-a7b0-bc5f0e1f9a83"
+                    "uuid": "e3bc96f7-7282-4198-b4e1-94c8ab123401"
                 }
             ],
             "severity": "warning",
             "type": "hole_to_hole"
         },
         {
-            "description": "Drilled hole too close to other hole (board setup constraints min 0.4995 mm; actual 0.2000 mm)",
+            "description": "Drilled hole too close to other hole (board setup constraints min 0.2995 mm; actual 0.0600 mm)",
             "items": [
                 {
-                    "description": "Via [CPI] on F.Cu - B.Cu",
+                    "description": "Via [GND] on F.Cu - B.Cu",
                     "pos": {
-                        "x": 157.5375,
-                        "y": 103.5
+                        "x": 95.51,
+                        "y": 83.82
                     },
-                    "uuid": "a460d158-a8e3-4256-bcf8-827cff936ef5"
+                    "uuid": "15a2f6ea-7a13-4c30-9051-0945b69dfac4"
                 },
                 {
-                    "description": "Via [CPO] on F.Cu - B.Cu",
+                    "description": "Via [GND] on F.Cu - B.Cu",
                     "pos": {
-                        "x": 157.5375,
-                        "y": 103.0
+                        "x": 95.51,
+                        "y": 84.18
                     },
-                    "uuid": "f1262948-30e1-43ea-91f3-65219c054172"
+                    "uuid": "40739514-ec09-4ad7-87f2-5676215b86eb"
                 }
             ],
             "severity": "warning",
             "type": "hole_to_hole"
         },
         {
-            "description": "Drilled hole too close to other hole (board setup constraints min 0.4995 mm; actual 0.4500 mm)",
+            "description": "Drilled hole too close to other hole (board setup constraints min 0.2995 mm; actual 0.2009 mm)",
             "items": [
                 {
-                    "description": "Via [MPR_IRQ4] on F.Cu - B.Cu",
+                    "description": "Via [GND] on F.Cu - B.Cu",
                     "pos": {
-                        "x": 122.35,
-                        "y": 67.05
+                        "x": 95.51,
+                        "y": 83.82
                     },
-                    "uuid": "2b793c8f-9afc-4c57-bd4a-caa38519a362"
+                    "uuid": "15a2f6ea-7a13-4c30-9051-0945b69dfac4"
                 },
                 {
-                    "description": "Via [REXT_U6] on F.Cu - B.Cu",
+                    "description": "Via [GND] on F.Cu - B.Cu",
                     "pos": {
-                        "x": 122.35,
-                        "y": 67.8
+                        "x": 95.73,
+                        "y": 83.37
                     },
-                    "uuid": "b7bb5dc8-4d3a-4e98-80f4-2f1a1b9ad7c4"
+                    "uuid": "e3bc96f7-7282-4198-b4e1-94c8ab123401"
                 }
             ],
             "severity": "warning",
             "type": "hole_to_hole"
         },
         {
-            "description": "Drilled hole too close to other hole (board setup constraints min 0.4995 mm; actual 0.4500 mm)",
+            "description": "Drilled hole too close to other hole (board setup constraints min 0.2995 mm; actual 0.2869 mm)",
             "items": [
                 {
-                    "description": "Via [MPR_IRQ4] on F.Cu - B.Cu",
+                    "description": "Via [3V3] on F.Cu - B.Cu",
                     "pos": {
-                        "x": 122.35,
-                        "y": 67.05
+                        "x": 94.93,
+                        "y": 84.09
                     },
-                    "uuid": "2b793c8f-9afc-4c57-bd4a-caa38519a362"
+                    "uuid": "36c95278-d0b0-4aca-a5ee-fec346795d77"
                 },
                 {
-                    "description": "Via [REXT_U6] on F.Cu - B.Cu",
+                    "description": "Via [GND] on F.Cu - B.Cu",
                     "pos": {
-                        "x": 123.1,
-                        "y": 67.05
+                        "x": 95.51,
+                        "y": 84.18
                     },
-                    "uuid": "fcc97c79-49ed-4104-8407-3f9c50b47ef8"
+                    "uuid": "40739514-ec09-4ad7-87f2-5676215b86eb"
                 }
             ],
             "severity": "warning",
@@ -973,39 +221,24 @@
             "description": "Copper connection too narrow (board setup constraints minimum connection width 0.0900 mm; actual 0.0581 mm) (F.Cu)",
             "items": [
                 {
-                    "description": "Track [ACC_INT] on F.Cu, length 0.1000 mm",
-                    "pos": {
-                        "x": 95.05,
-                        "y": 105.95
-                    },
-                    "uuid": "d407f334-2b38-48f2-a90d-6d8392f5d584"
-                },
-                {
-                    "description": "Track [ACC_INT] on F.Cu, length 19.8500 mm",
+                    "description": "Track [ACC_INT] on F.Cu, length 4.9000 mm",
                     "pos": {
                         "x": 95.1,
                         "y": 105.8
                     },
-                    "uuid": "56aa6f24-81a7-4fcc-9a4e-ff54ae18d3f6"
+                    "uuid": "b1b8471f-0c93-4531-9cef-7acfa4b29622"
+                },
+                {
+                    "description": "Track [ACC_INT] on F.Cu, length 0.8485 mm",
+                    "pos": {
+                        "x": 95.65,
+                        "y": 106.55
+                    },
+                    "uuid": "830235f1-2a0c-4db3-a287-9363d36db763"
                 }
             ],
             "severity": "warning",
             "type": "connection_width"
-        },
-        {
-            "description": "Via is not connected or connected on only one layer",
-            "items": [
-                {
-                    "description": "Via [VCP] on F.Cu - B.Cu",
-                    "pos": {
-                        "x": 157.537,
-                        "y": 105.0
-                    },
-                    "uuid": "ed39a64d-6e3f-4732-a2af-d4cef1cf8073"
-                }
-            ],
-            "severity": "warning",
-            "type": "via_dangling"
         }
     ]
 }

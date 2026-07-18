@@ -16,7 +16,7 @@ from pcb_toolkit import Toolkit
 
 PCB = str(Path(__file__).parent.parent / "04_kicad" / "shitty_kitty.kicad_pcb")
 b = pcbnew.LoadBoard(PCB)
-tk = Toolkit(b, 0.15)
+tk = Toolkit(b, 0.095)  # JLC 4L fab floor 0.09 + margin
 
 X0, Y0, X1, Y1 = 50.0, 50.0, 180.0, 125.0
 failures = []
@@ -119,7 +119,7 @@ gnd = b.FindNet("GND")
 
 # ---- EPAD thermal vias: U1 module EPAD (pad 41), U2 TMC2209 EP (pad 29)
 for ref, padnum, grid, need in [("U1", "41", (-1.1, 0, 1.1), 4),
-                                ("U2", "29", (-0.95, 0.95), 3)]:
+                                ("U2", "29", (-1.2, -0.6, 0, 0.6, 1.2), 3)]:
     f = b.FindFootprintByReference(ref)
     ep = next(p for p in f.Pads() if p.GetNumber() == padnum)
     ex, ey = ep.GetPosition().x/1e6, ep.GetPosition().y/1e6
@@ -266,38 +266,6 @@ for v in orphans:
     b.Remove(v)
 print(f"via janitor removed {len(orphans)}")
 
-# ---- fine-pitch GND pads the pour cannot reach (0.4mm-pitch UQFN / LGA:
-# thermal spokes don't fit between foreign neighbor pads): short verified
-# F.Cu track from the pad to the nearest same-net copper (pad or via).
-fp_rescued = 0
-for fp in b.GetFootprints():
-    for p in fp.Pads():
-        if p.GetNetname() != "GND" or p.GetAttribute() != pcbnew.PAD_ATTRIB_SMD:
-            continue
-        if p.GetSize().x > 4e5 and p.GetSize().y > 4e5:
-            continue  # big pads: the pour reaches them
-        px, py = p.GetPosition().x/1e6, p.GetPosition().y/1e6
-        if on_net_copper("GND", px, py, tol=0.05):
-            continue
-        cands = []
-        for fp2 in b.GetFootprints():
-            for p2 in fp2.Pads():
-                if p2.GetNetname() == "GND" and p2 is not p and p2.GetSize().x > 5e5:
-                    qx, qy = p2.GetPosition().x/1e6, p2.GetPosition().y/1e6
-                    cands.append((math.hypot(px-qx, py-qy), qx, qy))
-        for v2 in b.GetTracks():
-            if v2.GetClass() == "PCB_VIA" and v2.GetNetname() == "GND":
-                qx, qy = v2.GetPosition().x/1e6, v2.GetPosition().y/1e6
-                cands.append((math.hypot(px-qx, py-qy), qx, qy))
-        for dq, qx, qy in sorted(cands)[:10]:
-            if dq > 6.0:
-                break
-            if not tk.collides(px, py, qx, qy, 0.2, p.GetNetCode(), pcbnew.F_Cu):
-                tk.add_seg(px, py, qx, qy, gnd, pcbnew.F_Cu, 0.2)
-                fp_rescued += 1
-                break
-print(f"fine-pitch GND pad rescues: {fp_rescued}")
-
 # ---- join dangling vias to a same-net pad they nearly touch (KRT leaves
 # sub-0.3mm gaps at fine-pitch escape vias)
 joined = 0
@@ -318,6 +286,87 @@ print(f"via-pad joins: {joined}")
 # ---- fill, then rescue GND pad-bearing islands (F/B pours; In1 is whole)
 filler = pcbnew.ZONE_FILLER(b)
 filler.Fill(b.Zones())
+# ---- fine-pitch GND pads the pour cannot reach (0.4mm-pitch UQFN / LGA):
+# decided POST-FILL — a pad is orphaned only if no track copper touches it
+# AND the filled F.Cu GND poly does not reach it. Rescue = joinpath / A*
+# to nearby GND copper.
+gnd_fill = None
+for z in b.Zones():
+    if z.GetNetname() == "GND" and not z.GetIsRuleArea() and z.GetLayerSet().Contains(pcbnew.F_Cu):
+        gnd_fill = z.GetFilledPolysList(pcbnew.F_Cu)
+        break
+fp_rescued = 0
+for fp in b.GetFootprints():
+    for p in fp.Pads():
+        if p.GetNetname() != "GND" or p.GetAttribute() != pcbnew.PAD_ATTRIB_SMD:
+            continue
+        if p.GetSize().x > 4e5 and p.GetSize().y > 4e5:
+            continue
+        px, py = p.GetPosition().x/1e6, p.GetPosition().y/1e6
+        if on_net_copper("GND", px, py, tol=0.05):
+            continue
+        fed_by_pour = False
+        if gnd_fill is not None:
+            for _i in range(gnd_fill.OutlineCount()):
+                _o = gnd_fill.Outline(_i)
+                if _o.PointInside(p.GetPosition()) or gnd_fill.Collide(p.GetEffectiveShape(pcbnew.F_Cu), 0):
+                    # the touching outline must itself be tied to the net
+                    # (a pad-feeding FINGER can be an isolated island)
+                    if _o.PointInside(p.GetPosition()) or _o.BBox().Contains(p.GetPosition()):
+                        _tied = any(_o.PointInside(v.GetPosition()) for v in b.GetTracks()
+                                    if v.GetClass() == "PCB_VIA" and v.GetNetname() == "GND")
+                        if _tied:
+                            fed_by_pour = True
+                    break
+        if fed_by_pour:
+            continue
+        cands = []
+        for fp2 in b.GetFootprints():
+            for p2 in fp2.Pads():
+                if p2.GetNetname() == "GND" and p2 is not p and p2.GetSize().x > 5e5:
+                    qx, qy = p2.GetPosition().x/1e6, p2.GetPosition().y/1e6
+                    cands.append((math.hypot(px-qx, py-qy), qx, qy))
+        for v2 in b.GetTracks():
+            if v2.GetClass() == "PCB_VIA" and v2.GetNetname() == "GND":
+                qx, qy = v2.GetPosition().x/1e6, v2.GetPosition().y/1e6
+                cands.append((math.hypot(px-qx, py-qy), qx, qy))
+        done_r = False
+        # strategy 1: via to the In1 GND plane near the pad; the stub may
+        # take an L/Z path (joinpath) through the fine-pitch maze
+        for ring in (0.5, 0.7, 0.9, 1.2, 1.6, 2.0, 2.4, 2.8, 3.2):
+            for ang in range(0, 360, 15):
+                x = round(px + ring*math.cos(math.radians(ang)), 2)
+                y = round(py + ring*math.sin(math.radians(ang)), 2)
+                if not tk.via_site_ok(x, y, gnd.GetNetCode(), size=0.45, drill=0.3):
+                    continue
+                if tk.joinpath("GND", (px, py), (x, y), 0.15) is None:
+                    continue
+                tk.add_via(x, y, gnd, size=0.45, drill=0.3)
+                fp_rescued += 1
+                done_r = True
+                break
+            if done_r:
+                break
+        # strategy 2: lateral join to nearby GND copper
+        for dq, qx, qy in (sorted(cands)[:14] if not done_r else []):
+            if dq > 8.0:
+                break
+            if dq < 0.25:
+                continue
+            if tk.joinpath("GND", (px, py), (qx, qy), 0.2) is not None:
+                fp_rescued += 1
+                done_r = True
+                break
+            if dq < 4.5 and tk.verified_astar("GND", (px, py), (qx, qy), 0.15,
+                                              grid=0.05, viacost=12, window=3.0,
+                                              attempts=10):
+                fp_rescued += 1
+                done_r = True
+                break
+        if not done_r:
+            failures.append(f"fine-pitch GND pad {fp.GetReference()}.{p.GetNumber()} unreachable")
+print(f"fine-pitch GND pad rescues: {fp_rescued}")
+
 via_by_net = {}
 for t in b.GetTracks():
     if t.GetClass() == "PCB_VIA":

@@ -26,6 +26,7 @@ $PY 03_src/audit_board.py 2>/dev/null | tail -1
 [ -f 03_src/route/r5.kicad_pcb ] || { echo "no route chain: run 03_src/route_prep.py + 03_src/route_waves.sh"; exit 1; }
 $PY "$SKILLS"/import_krt.py 03_src/route/r5.kicad_pcb \
     04_kicad/shitty_kitty.kicad_pcb 04_kicad/shitty_kitty.kicad_pcb 2>/dev/null | grep imported
+$PY 03_src/route_taps.py 2>/dev/null | tail -2
 $PY 03_src/stitch_and_fill.py 2>/dev/null | tail -3
 # rules BEFORE repair too (repair's internal DRC needs the pro-file floors)
 python3 03_src/generate_rules.py >/dev/null
@@ -34,6 +35,7 @@ for _pass in 1 2 3 4; do
     echo "$OUT"
     echo "$OUT" | grep -q "remain" || break
 done
+$PY 03_src/lift_floors.py 2>/dev/null | tail -1
 # audit again post-route (I7/I8 electrode checks need tracks)
 $PY 03_src/audit_board.py 2>/dev/null | tail -2
 python3 03_src/generate_rules.py

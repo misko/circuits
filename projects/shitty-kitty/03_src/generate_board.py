@@ -120,7 +120,7 @@ SILK = [
     # power entry
     ("12V IN", 172.0, 62.5, 1.0), ("2.1mm CENTER +", 172.0, 64.3, 0.7),
     # motor + endstop (J5 pins vertical from pin1 y=99.25)
-    ("MOTOR", 172.8, 86.0, 1.0),
+    ("MOTOR", 174.8, 87.3, 0.9),
     ("A1", 170.6, 91.0, 0.7), ("A2", 170.6, 93.5, 0.7),
     ("B1", 170.6, 96.0, 0.7), ("B2", 170.6, 98.5, 0.7),
     ("ENDSTOP", 170.8, 106.2, 0.9), ("SIG", 172.3, 113.3, 0.65), ("GND", 172.3, 109.8, 0.65),
@@ -338,18 +338,21 @@ def main():
         return z
 
     FULL = [(X0, Y0), (X1, Y0), (X1, Y1), (X0, Y1)]
-    add_zone("GND", pcbnew.F_Cu, FULL, 0, full=True)
-    add_zone("GND", pcbnew.B_Cu, FULL, 0)
+    # F.Cu GND pour: fine fill (0.2 min / 0.15 clearance) so it can snake
+    # through the 0.6mm corridors between fine-pitch escapes and feed the
+    # ADDR-GND strap pads directly (U3.4 was unreachable at 0.25/0.25).
+    add_zone("GND", pcbnew.F_Cu, FULL, 0, minw=0.2, clr=0.15, full=True)
+    add_zone("GND", pcbnew.B_Cu, FULL, 0, minw=0.2, clr=0.15)
     add_zone("GND", pcbnew.In1_Cu, FULL, 0, full=True)   # THE return plane
     # In2 power pours (non-overlapping partition)
     add_zone("VIN_12V", pcbnew.In2_Cu,
              [(138, 50), (180, 50), (180, 125), (154, 125), (154, 96), (138, 96)],
-             2, minw=0.3, full=True)
+             2, minw=0.45, full=True)
     add_zone("5V", pcbnew.In2_Cu,
-             [(108, 96), (154, 96), (154, 125), (108, 125)], 2, minw=0.3, full=True)
+             [(108, 96), (154, 96), (154, 125), (108, 125)], 2, minw=0.45, full=True)
     add_zone("3V3", pcbnew.In2_Cu,
              [(50, 50), (138, 50), (138, 96), (108, 96), (108, 125), (50, 125)],
-             2, minw=0.3, full=True)
+             2, minw=0.45, full=True)
 
     # ------------------------------------------------------------- silk text
     for txt, x, y, size in SILK:
