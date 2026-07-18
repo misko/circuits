@@ -45,12 +45,8 @@
     battery input with unmarked terminals is exactly the incident class
     behind P5 — next-spin remediation: plain-word labels (BATT 3S +/-,
     FUSE 15A, 5V 2.5A per USB-A, USB-C 3A) via the generator silk pass.
-- id: S-OCCL
-  why: >-
-    65 schematic text occlusions measured with the LABEL-AWARE checker
-    (2026-07-17; an earlier label-blind count read 52): value-vs-ref
-    stacking, long annotation strings, and facing/stacked label plates.
-    Fix = port to the schwriter2 layout engine (envelope-computed
-    coordinates + chain wires; esp32-laser-timing went to 0 by
-    construction, released v1.6). Queued as the next generator touch.
-    Cosmetic: netlist label-based, ERC gated 0, parity 0.
+# S-OCCL waiver REMOVED 2026-07-17: cleared, not waived — generator ported
+# to the schwriter2 layout engine (envelope-computed coordinates, 25 chain/
+# auto wires); label-aware S-OCCL went 65 -> 0 by construction (internal
+# engine assert + independent policy_audit check both 0). Netlist parity 0
+# vs pre-port (68 nets / 303 nodes); board untouched.
