@@ -21,12 +21,8 @@
     Policy P5 adopted 2026-07-17, after release; zero silk text shipped.
     Connector functions documented in ORDER_README + assembly PDF.
     Next-spin remediation.
-- id: S-OCCL
-  why: >-
-    34 schematic text occlusions measured with the LABEL-AWARE checker
-    (2026-07-17; an earlier label-blind count read 22): value-vs-ref
-    stacking PLUS facing/stacked label plates. Fix = port to the
-    schwriter2 layout engine (envelope-computed coordinates + chain
-    wires; esp32-laser-timing went 28+24 -> 0 by construction, released
-    v1.6). Queued as the next generator touch. Cosmetic: netlist is
-    label-based, ERC gated 0, parity 0.
+# S-OCCL waiver REMOVED 2026-07-17: cleared, not waived — generator ported
+# to the schwriter2 layout engine (envelope-computed coordinates, 13 chain
+# wires); label-aware S-OCCL went 34 -> 0 by construction (internal engine
+# assert + independent policy_audit check both 0). Netlist parity 0 vs
+# pre-port; board untouched.
