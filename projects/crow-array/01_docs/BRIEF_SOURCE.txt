@@ -1,0 +1,831 @@
+CROW ACOUSTIC LOCALIZATION ARRAY
+REV-A WORKING DESIGN - TEXT EDITION
+================================================
+
+Six microphones | 25 ft radius | 24-bit / 48 kHz synchronized USB audio
+
+Source document: Crow Acoustic Localization Array - Rev-A Working Design (PDF)
+Prepared: July 18, 2026
+Format: Plain ASCII text. Diagrams are represented by placeholders and captions.
+Budgetary prices and availability must be rechecked before ordering.
+
++--------------+----------------------------------------------------------------------------------------+
+| Purpose      | Outdoor crow-call localization, event capture, and eventual speaker differentiation.   |
++==============+========================================================================================+
+| Architecture | Six active-balanced microphone pods feeding one shared-clock, eight-                   |
+|              | channel-capable USB recorder.                                                          |
++--------------+----------------------------------------------------------------------------------------+
+| Status       | Engineering concept ready for pod prototyping and central-board                        |
+|              | schematic capture; key field tests remain.                                             |
++--------------+----------------------------------------------------------------------------------------+
+
+Prepared: July 18, 2026
+
+Budgetary prices and availability must be rechecked before ordering.
+
+
+DOCUMENT MAP
+============
+
+A concise design-review package organized for prototype decisions.
+
++-----------+-------------------------------+---------------------------------------------------+
+| Section   | Topic                         | What it covers                                    |
++===========+===============================+===================================================+
+| 1         | Executive design freeze       | Target architecture, key metrics, assumptions and |
+|           |                               | non-goals                                         |
++-----------+-------------------------------+---------------------------------------------------+
+| 2         | Array geometry and timing     | Why the 25 ft radius works and the key TDOA math  |
++-----------+-------------------------------+---------------------------------------------------+
+| 3         | Remote microphone pod         | Candidate microphone, balanced driver, beeper and |
+|           |                               | weatherproofing                                   |
++-----------+-------------------------------+---------------------------------------------------+
+| 4         | Cabling and pinout            | One custom Cat5e star run per pod, voltage drop   |
+|           |                               | and safety labeling                               |
++-----------+-------------------------------+---------------------------------------------------+
+| 5         | Central synchronized recorder | Two PCM1865 ADCs, XU316 USB audio, clocking and   |
+|           |                               | power                                             |
++-----------+-------------------------------+---------------------------------------------------+
+| 6         | Calibration and health checks | Initial survey, portable source, built-in coded   |
+|           |                               | transducers                                       |
++-----------+-------------------------------+---------------------------------------------------+
+| 7         | Raspberry Pi 5 requirements   | Data rate, storage, FFT workload and processing   |
+|           |                               | pipeline                                          |
++-----------+-------------------------------+---------------------------------------------------+
+| 8         | BOM and cost model            | Pod, central recorder, cabling and first-article  |
+|           |                               | budget                                            |
++-----------+-------------------------------+---------------------------------------------------+
+| 9         | Constraints and open risks    | What needs bench and field validation before      |
+|           |                               | production                                        |
++-----------+-------------------------------+---------------------------------------------------+
+| 10        | Recommended build sequence    | A staged path that isolates risk and avoids a     |
+|           |                               | costly all-at-once build                          |
++-----------+-------------------------------+---------------------------------------------------+
+
++----------------------------------------------------------------------------------------------------------+
+| DESIGN PRINCIPLE                                                                                         |
+| Use one physical sample clock for every microphone channel. The large outdoor array does not need        |
+| independent USB microphones, GPS timing, or distributed network synchronization.                         |
++----------------------------------------------------------------------------------------------------------+
+
+
+1 EXECUTIVE DESIGN FREEZE
+=========================
+
+The recommended Rev-A architecture and the assumptions behind it.
+
+[Figure 1 image omitted in this text edition; see its caption and the PDF.]
+
+Figure 1. One cable per pod and one shared-clock USB recorder at the center.
+
++----------------------+---------------------------------------------------------------------+
+| Parameter            | Rev-A choice                                                        |
++======================+=====================================================================+
+| Microphones          | 6 normal channels; bring up with 4                                  |
++----------------------+---------------------------------------------------------------------+
+| Physical layout      | 25 ft nominal radius, 60-degree spacing                             |
++----------------------+---------------------------------------------------------------------+
+| Recorder capacity    | 8 channels, with 6 populated                                        |
++----------------------+---------------------------------------------------------------------+
+| Audio format         | 24-bit, 48 kHz, USB Audio Class 2                                   |
++----------------------+---------------------------------------------------------------------+
+| Clocking             | One central shared audio clock                                      |
++----------------------+---------------------------------------------------------------------+
+| Computer             | Raspberry Pi 5, active cooling, NVMe                                |
++----------------------+---------------------------------------------------------------------+
+| Primary localization | 2D TDOA using GCC-PHAT and robust least squares                     |
++----------------------+---------------------------------------------------------------------+
+| Calibration          | Survey + portable broadband source + six built-in coded transducers |
++----------------------+---------------------------------------------------------------------+
+
+
+Why six microphones instead of four
+-----------------------------------
+
+Four microphones are enough to prove the concept, but six microphones create 15 unique pairs, provide
+all-around geometry, and allow the solver to reject one weak, obstructed, or wind-contaminated channel
+without falling back to the minimum viable geometry.
+
+Unique microphone pairs = M(M - 1) / 2 = 6 x 5 / 2 = 15
+
++----------------------------------------------------------------------------------------------------------+
+| DESIGN FREEZE                                                                                            |
+| Proceed with an eight-channel-capable central board and six field pods. Populate four channels during    |
+| bring-up, then add the final two after USB, analog noise, and cable crosstalk are proven.                |
++----------------------------------------------------------------------------------------------------------+
+
+
+2 ARRAY GEOMETRY AND TIMING
+===========================
+
+A 25 ft radius is already a very large acoustic aperture.
+
+[Figure 2 image omitted in this text edition; see its caption and the PDF.]
+
+Figure 2. Nominal hexagonal geometry; software must use the measured x, y and z coordinates.
+
+Adjacent spacing = 2R sin(30 deg) = 2 x 25 ft x 0.5 = 25 ft
+
+Maximum acoustic delay = 50 ft / 1125 ft/s = 44.4 ms
+
+Maximum delay at 48 kHz = 0.0444 s x 48,000 = about 2,133 samples
+
++-----------------------+---------------+-------------------------------------------+
+| Metric                | Value         | Interpretation                            |
++=======================+===============+===========================================+
+| Radius                | 25 ft         | Nominal center-to-pod distance            |
++-----------------------+---------------+-------------------------------------------+
+| Diameter              | 50 ft         | Maximum microphone-to-microphone baseline |
++-----------------------+---------------+-------------------------------------------+
+| Angular spacing       | 60 deg        | Six evenly distributed positions          |
++-----------------------+---------------+-------------------------------------------+
+| Adjacent chord        | 25 ft         | Useful medium-length baselines            |
++-----------------------+---------------+-------------------------------------------+
+| Maximum TDOA          | 44.4 ms       | Across opposite microphones               |
++-----------------------+---------------+-------------------------------------------+
+| Maximum sample offset | 2,133 samples | Large, easily searchable delay window     |
++-----------------------+---------------+-------------------------------------------+
+
++----------------------------------------------------------------------------------------------------------+
+| IMPORTANT                                                                                                |
+| The microphones do not need to form a perfect hexagon. Localization accuracy depends on knowing their    |
+| actual coordinates and fixed channel delays, not on physically forcing ideal spacing.                    |
++----------------------------------------------------------------------------------------------------------+
+
+
+3 REMOTE MICROPHONE POD
+=======================
+
+An active-balanced pod lowers cable sensitivity and keeps the central board simple.
+
+[Figure 3 image omitted in this text edition; see its caption and the PDF.]
+
+Figure 3. Candidate pod architecture and separate beeper-current path.
+
+
+Primary candidate parts
+-----------------------
+
++------------------------+------------------------------+---------------------------------------------------+
+| Function               | Part number                  | Why it is here                                    |
++========================+==============================+===================================================+
+| Microphone capsule     | PUI Audio AOM-5024L-HD-R     | High sensitivity, 80 dB SNR candidate             |
++------------------------+------------------------------+---------------------------------------------------+
+| Dual audio op-amp      | TI OPA1678IDR                | Two amplifier stages in one package               |
++------------------------+------------------------------+---------------------------------------------------+
+| Calibration transducer | Same Sky CMT-8504-100-SMT-TR | 5 V, 4 kHz, externally driven magnetic transducer |
++------------------------+------------------------------+---------------------------------------------------+
+| Optional ESD protector | TI TPD2E2U06DRLR             | Two-line low-capacitance protection               |
++------------------------+------------------------------+---------------------------------------------------+
+| Enclosure candidate    | Hammond 1551WYBK             | Compact outdoor-rated family before acoustic      |
+|                        |                              | holes                                             |
++------------------------+------------------------------+---------------------------------------------------+
+| Cable gland candidate  | Phoenix Contact 1415177      | M12 gland, approximately 3-7 mm cable range       |
++------------------------+------------------------------+---------------------------------------------------+
+
+
+Starting analog values
+----------------------
+
++--------------------------+--------------------------------------+
+| Function                 | Starting value                       |
++==========================+======================================+
+| Electret bias resistor   | 3.9 kohm from filtered 5 V           |
++--------------------------+--------------------------------------+
+| Input coupling capacitor | 1 uF                                 |
++--------------------------+--------------------------------------+
+| Input bias resistor      | 100 kohm to 2.5 V midpoint           |
++--------------------------+--------------------------------------+
+| Midpoint divider         | 10 kohm / 10 kohm, decoupled         |
++--------------------------+--------------------------------------+
+| OPA1678 stage A gain     | 1.5 V/V                              |
++--------------------------+--------------------------------------+
+| Stage B inversion        | 1.0 V/V around midpoint              |
++--------------------------+--------------------------------------+
+| Differential gain        | Approximately 3 V/V                  |
++--------------------------+--------------------------------------+
+| Output isolation         | 68 ohm per leg                       |
++--------------------------+--------------------------------------+
+| ADC PGA starting point   | 0 dB; adjust after real call testing |
++--------------------------+--------------------------------------+
+
+
+3A POD MECHANICS AND CALIBRATION TRANSDUCER
+===========================================
+
+The acoustic opening is the highest-risk physical detail.
+
+
+Low-cost built-in transducer
+----------------------------
+
+The CMT-8504-100-SMT-TR is driven from the central board through a dedicated twisted pair and an AO3400A
+low-side MOSFET. Only one transducer operates at a time. A coded 4 kHz carrier is used instead of a
+continuous tone, enabling matched filtering and absolute burst detection.
+
++----------------------+--------------------------------------------------------------------+
+| Item                 | Rev-A target                                                       |
++======================+====================================================================+
+| Nominal drive        | 5 V, approximately 150 mA                                          |
++----------------------+--------------------------------------------------------------------+
+| Carrier              | Near 4 kHz resonance                                               |
++----------------------+--------------------------------------------------------------------+
+| Recommended envelope | 31-chip pseudorandom on/off code                                   |
++----------------------+--------------------------------------------------------------------+
+| Chip duration        | 5-10 ms                                                            |
++----------------------+--------------------------------------------------------------------+
+| Repeats              | 4 per pod                                                          |
++----------------------+--------------------------------------------------------------------+
+| Inter-pod quiet time | About 500 ms                                                       |
++----------------------+--------------------------------------------------------------------+
+| Local microphone     | Exclude during its own transducer burst if clipped or mechanically |
+|                      | coupled                                                            |
++----------------------+--------------------------------------------------------------------+
+| Primary purpose      | Health check, channel identity, movement detection and geometry    |
+|                      | refinement                                                         |
++----------------------+--------------------------------------------------------------------+
+
+
+Mechanical guidance
+-------------------
+
+- Mount the microphone and transducer in separate small acoustic cavities.
+
+- Place them at opposite ends of the enclosure or move the transducer 100-150 mm down the stake if
+  structural vibration is excessive.
+
+- Use a downward-facing or side-facing port under a rain hood, with drainage and replaceable acoustic
+  foam.
+
+- Conformal-coat the PCB but exclude the microphone, transducer, connectors and test points.
+
+- Treat IP ratings as invalid after custom acoustic holes unless the complete housing is tested.
+
++----------------------------------------------------------------------------------------------------------+
+| FIELD-TEST GATE                                                                                          |
+| Before freezing the mechanical design, prove that the coded transducer is detectable at 25 ft and 50 ft  |
+| through the intended hood or membrane, in wind, and without a dominant zero-delay electrical artifact.   |
++----------------------------------------------------------------------------------------------------------+
+
+
+4 CABLING AND PINOUT
+====================
+
+One low-cost outdoor Cat5e star run carries audio, pod power and beeper control.
+
+Use 24 AWG solid bare-copper outdoor Cat5e. Do not use copper-clad aluminum. Each pod receives its own
+home-run cable to the central enclosure; the custom pinout is not Ethernet.
+
++--------------+-------------+--------------------------------+
+| T568B pair   | RJ45 pins   | Assignment                     |
++==============+=============+================================+
+| Orange       | 1, 2        | AUDIO+, AUDIO-                 |
++--------------+-------------+--------------------------------+
+| Green        | 3, 6        | +5V_BEEP, BEEP_SWITCHED_RETURN |
++--------------+-------------+--------------------------------+
+| Blue         | 4, 5        | +5V_AUDIO, GND_AUDIO           |
++--------------+-------------+--------------------------------+
+| Brown        | 7, 8        | +5V_AUDIO, GND_AUDIO           |
++--------------+-------------+--------------------------------+
+
+
+Cable-length and voltage-drop assumptions
+-----------------------------------------
+
+Allow approximately 30-35 ft per pod, including routing and a service loop. Six 35 ft runs consume about 210
+ft of cable. A 250 ft reel is minimally sufficient; 500 ft gives useful installation and repair margin.
+
+Approximate beeper drop = 0.15 A x 1.8 ohm = 0.27 V on a 35 ft loop
+
+Approximate pod-power drop = 0.005 A x 0.9 ohm = 4.5 mV using two parallel power loops
+
+
+Termination and safety
+----------------------
+
+- At the pod, pass the cable through a gland and terminate directly on a PCB terminal block or solder
+  pads.
+
+- At the center, use internal RJ45 jacks behind glands or a sealed bulkhead. Keep the custom connectors
+  inaccessible to ordinary network equipment.
+
+- Label every cable and enclosure: NOT ETHERNET - CUSTOM 5 V AUDIO PINOUT.
+
+- Use ESD suppressors at cable entry. They do not replace lightning protection or a storm-disconnection
+  policy.
+
+- Start with unshielded cable; reserve shield-bonding pads for later EMI testing.
+
+
+5 CENTRAL SYNCHRONIZED RECORDER
+===============================
+
+Two four-channel ADCs and one XMOS processor provide a mature eight-input path.
+
+[Figure 4 image omitted in this text edition; see its caption and the PDF.]
+
+Figure 4. All ADC channels share the same physical sample clock and USB stream.
+
++--------------+------------------------+-------------------+----------------------------------+
+| Function     | Part number            | Qty / note        | Role                             |
++==============+========================+===================+==================================+
+| USB/audio    | XU316-1024-TQ128-I24   | Industrial-       |                                  |
+| processor    |                        | temperature XU316 |                                  |
++--------------+------------------------+-------------------+----------------------------------+
+| Audio ADC    | PCM1865DBTR            | 2                 | Four channels each; channels 7-8 |
+|              |                        |                   | reserved                         |
++--------------+------------------------+-------------------+----------------------------------+
+| Boot flash   | W25Q16JVSSIQ           | 1                 | QSPI firmware storage            |
++--------------+------------------------+-------------------+----------------------------------+
+| Crystal      | FA-238 24.0000MD30X-W5 | 1                 | 24 MHz reference                 |
++--------------+------------------------+-------------------+----------------------------------+
+| Clock buffer | NC7NZ34K8X             | 1                 | Clean MCLK fan-out               |
++--------------+------------------------+-------------------+----------------------------------+
+| USB-C        | USB4105-GF-A-060       | 1                 | Device connection                |
+| receptacle   |                        |                   |                                  |
++--------------+------------------------+-------------------+----------------------------------+
+| USB ESD      | TPD4EUSB30DQAR         | 1                 | High-speed data protection       |
++--------------+------------------------+-------------------+----------------------------------+
+| Environment  | SHT40-AD1B-R2          | 1                 | Temperature and humidity         |
+| sensor       |                        |                   | measurement                      |
++--------------+------------------------+-------------------+----------------------------------+
+
+
+Clocking and USB choices
+------------------------
+
+- Use the XU316 application PLL for the lowest-cost fixed-48 kHz implementation.
+
+- Distribute MCLK, BCLK, LRCK, reset and configuration timing to both PCM1865 devices.
+
+- Carry one four-channel TDM stream from each ADC into the XU316.
+
+- Expose six channels by default and reserve an eight-channel diagnostic mode.
+
+- Use asynchronous USB Audio Class 2 so the recorder clock, not the host, is the timing authority.
+
++----------------------------------------------------------------------------------------------------------+
+| REFERENCE-DESIGN STRATEGY                                                                                |
+| The XMOS multichannel audio platform uses an XU316 with two PCM1865 devices for eight analog inputs.     |
+| Copy its power sequencing, clocking and USB implementation closely rather than inventing these sections  |
+| from scratch.                                                                                            |
++----------------------------------------------------------------------------------------------------------+
+
+
+5A CENTRAL INTERFACES, POWER AND PCB LAYOUT
+===========================================
+
+Cable protection and mixed-signal layout deserve as much attention as the codec selection.
+
++------------------+------------------------+-------------------------------------+
+| Function         | Part number            | Use                                 |
++==================+========================+=====================================+
+| RJ45 jack        | RJHSE5384              | 6 populated, 8 footprints preferred |
++------------------+------------------------+-------------------------------------+
+| Analog ESD       | TPD2E2U06DRLR          | One per audio pair                  |
++------------------+------------------------+-------------------------------------+
+| Resettable fuse  | MINISMDC050F-2         | One per cable power feed            |
++------------------+------------------------+-------------------------------------+
+| Beeper MOSFET    | AO3400A                | One per pod                         |
++------------------+------------------------+-------------------------------------+
+| 5 V supply       | Mean Well GST25A05-P1J | Central recorder supply candidate   |
++------------------+------------------------+-------------------------------------+
+| 3.3 V buck       | AP61102Z6-7            | Digital rail                        |
++------------------+------------------------+-------------------------------------+
+| 0.9 V buck       | AP61102Z6-7            | XU316 core rail                     |
++------------------+------------------------+-------------------------------------+
+| 1.8 V LDO        | TCR2LF18,LM(CT)        | Support rail                        |
++------------------+------------------------+-------------------------------------+
+| 3.3 V analog LDO | XC6227C331PR-G         | Quiet analog rail                   |
++------------------+------------------------+-------------------------------------+
+
+
+Per-cable central interface
+---------------------------
+
+Each cable port should provide ESD protection, power-current limiting, differential AC coupling into the
+ADC, and a separately returned low-side beeper driver. Slow beeper MOSFET edges modestly; fast edges provide
+no acoustic benefit and increase crosstalk.
+
+
+PCB and enclosure recommendations
+---------------------------------
+
+- Use four PCB layers minimum; six layers are preferred.
+
+- Keep USB routing controlled and short, with a continuous ground reference.
+
+- Place the ADCs and input RC networks in a quiet analog region away from switching regulators and beeper
+  traces.
+
+- Provide eight cable-port footprints, six populated in Rev-A.
+
+- Add test points for every rail, MCLK/BCLK/LRCK, both TDM data lines and the beeper returns.
+
+- Include a same-signal injection header so channels on different ADC chips can be checked for
+  deterministic skew.
+
+- Keep the Pi thermally separate unless a larger sealed enclosure has been tested under worst-case summer
+  conditions.
+
+
+6 CALIBRATION AND HEALTH CHECKS
+===============================
+
+Calibration separates physical geometry, fixed channel delay, gain response and sound-speed effects.
+
++-----------------------------------+-----------------------------------------------------------------------+
+| Stage                             | Procedure                                                             |
++===================================+=======================================================================+
+| 1. Physical survey                | Measure all six radii, all six adjacent distances, three opposite     |
+|                                   | distances, and microphone heights. Fit actual coordinates with least  |
+|                                   | squares.                                                              |
++-----------------------------------+-----------------------------------------------------------------------+
+| 2. Colocated timing test          | Temporarily place microphones close together and play repeated        |
+|                                   | broadband chirps to estimate fixed electronic and transducer delay    |
+|                                   | offsets.                                                              |
++-----------------------------------+-----------------------------------------------------------------------+
+| 3. In-place broadband calibration | Use a portable speaker at 8-12 surveyed locations inside and around   |
+|                                   | the ring. Refine coordinates, fixed delays and effective sound speed. |
++-----------------------------------+-----------------------------------------------------------------------+
+| 4. Built-in maintenance cycle     | Operate the six pod transducers one at a time and compare matched-    |
+|                                   | filter TDOAs and received levels with the saved baseline.             |
++-----------------------------------+-----------------------------------------------------------------------+
+| 5. Long-term trend checks         | Track noise floor, gain, calibration residuals, temperature and       |
+|                                   | channel dropouts over time.                                           |
++-----------------------------------+-----------------------------------------------------------------------+
+
+Measured TDOA(i,j,k) = (distance(source k, mic i) - distance(source k, mic j)) / c + delay_i - delay_j
+
+Pairwise TDOA removes the unknown acoustic launch time of the inexpensive transducer. Six emissions and 15
+microphone pairs provide as many as 90 raw pairwise constraints, although they are not statistically
+independent.
+
++------------------+-------------------------------+--------------+
+| Position error   | Equivalent propagation time   | At 48 kHz    |
++==================+===============================+==============+
+| 1 mm             | 2.9 us                        | 0.14 sample  |
++------------------+-------------------------------+--------------+
+| 1 cm             | 29 us                         | 1.40 samples |
++------------------+-------------------------------+--------------+
+| 1 inch / 2.54 cm | 74 us                         | 3.55 samples |
++------------------+-------------------------------+--------------+
+| 10 cm            | 292 us                        | 14.0 samples |
++------------------+-------------------------------+--------------+
+| 1 ft / 30.5 cm   | 0.89 ms                       | 42.7 samples |
++------------------+-------------------------------+--------------+
+
++----------------------------------------------------------------------------------------------------------+
+| PRACTICAL TARGET                                                                                         |
+| Measure physical coordinates to roughly 1-2 inches, then use acoustic calibration to improve the         |
+| effective model. Recalibrate whenever a stand moves, a pod is serviced, or the daily residuals shift     |
+| materially.                                                                                              |
++----------------------------------------------------------------------------------------------------------+
+
+
+7 RASPBERRY PI 5 COMPUTATIONAL REQUIREMENTS
+===========================================
+
+The Pi 5 has ample compute; storage and field reliability dominate.
+
++------------------------+------------+--------------+-------------+
+| Audio representation   | Rate       | Per hour     | Per day     |
++========================+============+==============+=============+
+| Six-channel            | 0.864 MB/s | 3.11 GB/hour | 74.6 GB/day |
+| packed 24-bit          |            |              |             |
++------------------------+------------+--------------+-------------+
+| Six-channel            | 1.152 MB/s | 4.15 GB/hour | 99.5 GB/day |
+| 32-bit                 |            |              |             |
+| container              |            |              |             |
++------------------------+------------+--------------+-------------+
+
+
+GCC-PHAT workload estimate
+--------------------------
+
+With 4096-sample windows, 50% overlap and six microphones, the system processes about 23.4 windows per
+second. Each window requires six forward FFTs and 15 inverse FFTs, or roughly 492 total 4096-point FFT
+operations per second. This is a modest workload for optimized native libraries on a Raspberry Pi 5.
+
+Windows/s = 48,000 / 2,048 = 23.4
+
+FFT operations/s = 23.4 x (6 forward + 15 inverse) = about 492
+
++------------------------------+--------------------------------------+
+| Task                         | Pi 5 suitability                     |
++==============================+======================================+
+| Acquisition and USB capture  | Easy                                 |
++------------------------------+--------------------------------------+
+| Band-pass filtering and call | Easy                                 |
+| detection                    |                                      |
++------------------------------+--------------------------------------+
+| 15-pair GCC-PHAT             | Easy                                 |
++------------------------------+--------------------------------------+
+| Robust 2D nonlinear solve    | Easy                                 |
++------------------------------+--------------------------------------+
+| Spectrogram generation       | Easy                                 |
++------------------------------+--------------------------------------+
+| Small quantized classifier   | Likely real time                     |
++------------------------------+--------------------------------------+
+| Large audio transformer      | Possible but not the design baseline |
++------------------------------+--------------------------------------+
+| Model training               | Use a desktop or GPU                 |
++------------------------------+--------------------------------------+
+
+
+Recommended Pi subsystem
+------------------------
+
+- Raspberry Pi 5, 8 GB
+
+- Active cooler
+
+- Separate high-quality 5 V / 5 A supply
+
+- 500 GB minimum NVMe; 1 TB preferred
+
+- Wired Ethernet when practical
+
+- Hardware watchdog and hardened or read-only system partition
+
+- Event-triggered clip storage rather than indefinite raw recording
+
+
+8 BILL OF MATERIALS AND COST MODEL
+==================================
+
+Budgetary first-article figures; verify before purchase.
+
+
+Remote pod BOM - per microphone
+-------------------------------
+
++----------------+-------------------------+-------+----------------+
+| Item           | Part number             | Qty   | Budget         |
++================+=========================+=======+================+
+| High-SNR       | AOM-5024L-HD-R          | 1     | $4.19          |
+| electret       |                         |       |                |
+| microphone     |                         |       |                |
++----------------+-------------------------+-------+----------------+
+| Dual audio op- | OPA1678IDR              | 1     | $0.92          |
+| amp            |                         |       |                |
++----------------+-------------------------+-------+----------------+
+| Calibration    | CMT-8504-100-SMT-TR     | 1     | $1.59          |
+| transducer     |                         |       |                |
++----------------+-------------------------+-------+----------------+
+| Optional local | TPD2E2U06DRLR           | 1     | about $1       |
+| ESD            |                         |       |                |
++----------------+-------------------------+-------+----------------+
+| Pod enclosure  | Hammond 1551WYBK        | 1     | $7-10 budget   |
++----------------+-------------------------+-------+----------------+
+| Cable gland    | Phoenix Contact 1415177 | 1     | $1-2 budget    |
++----------------+-------------------------+-------+----------------+
+| Passives and   | Various                 | set   | $1.50-2.50     |
+| clamp parts    |                         |       |                |
++----------------+-------------------------+-------+----------------+
+| Two-layer pod  | Custom                  | 1     | $2-4 allocated |
+| PCB            |                         |       |                |
++----------------+-------------------------+-------+----------------+
+| Hood, foam,    | Mechanical              | set   | $3-6           |
+| seals,         |                         |       |                |
+| isolation      |                         |       |                |
++----------------+-------------------------+-------+----------------+
+
++----------------------------------------------------------------------------------------------------------+
+| POD BUDGET                                                                                               |
+| Approximately $23-$30 per complete pod, or $138-$180 for six pods, before installation labor.            |
++----------------------------------------------------------------------------------------------------------+
+
+
+Alternative waterproof microphone
+---------------------------------
+
+The Same Sky CMC-6035-130T is an IP67-rated electret candidate, but its lower sensitivity and approximately
+70 dB SNR require more gain and reduce acoustic headroom. Purchase one or two for an outdoor A/B test rather
+than switching the entire design immediately.
+
+
+8A CENTRAL RECORDER BOM
+=======================
+
+Core silicon and cable-interface components.
+
++-----------------+----------------------------+-------+--------------+
+| Function        | Part number(s)             | Qty   | Budget       |
++=================+============================+=======+==============+
+| USB/audio       | XU316-1024-TQ128-I24       | 1     | $15.54       |
+| processor       |                            |       |              |
++-----------------+----------------------------+-------+--------------+
+| Four-channel    | PCM1865DBTR                | 2     | $14.56 total |
+| ADC             |                            |       |              |
++-----------------+----------------------------+-------+--------------+
+| Boot flash and  | W25Q16JVSSIQ, FA-238,      | set   | about $2     |
+| clock           | NC7NZ34K8X                 |       |              |
++-----------------+----------------------------+-------+--------------+
+| Power rails     | 2x AP61102Z6-7, TCR2LF18,  | set   | $2-3         |
+|                 | XC6227C331PR-G             |       |              |
++-----------------+----------------------------+-------+--------------+
+| USB connector   | USB4105-GF-A-060,          | set   | about $2.50  |
+| and ESD         | TPD4EUSB30DQAR             |       |              |
++-----------------+----------------------------+-------+--------------+
+| Six cable       | 6x RJHSE5384, TPD2E2U06,   | set   | about $22    |
+| interfaces      | MINISMDC050F-2             |       |              |
++-----------------+----------------------------+-------+--------------+
+| Six beeper      | 6x AO3400A plus clamp/gate | set   | $4-6         |
+| drivers         | parts                      |       |              |
++-----------------+----------------------------+-------+--------------+
+| Temperature/hum | SHT40-AD1B-R2              | 1     | $1.88        |
+| idity           |                            |       |              |
++-----------------+----------------------------+-------+--------------+
+| ADC networks    | Various                    | set   | $15-25       |
+| and passives    |                            |       |              |
++-----------------+----------------------------+-------+--------------+
+
++----------------------------------------------------------------------------------------------------------+
+| CENTRAL COMPONENT BUDGET                                                                                 |
+| Approximately $79-$90 in electronic components, excluding custom PCB fabrication, assembly, enclosure    |
+| and development tooling.                                                                                 |
++----------------------------------------------------------------------------------------------------------+
+
+
+First-article system budget
+---------------------------
+
++----------------------------------+-----------------------------------+
+| Category                         | Budgetary range                   |
++==================================+===================================+
+| Central electronic components    | $79-$90                           |
++----------------------------------+-----------------------------------+
+| Central PCB fabrication and      | $100-$250                         |
+| assembly                         |                                   |
++----------------------------------+-----------------------------------+
+| Central enclosure, glands and    | $35-$75                           |
+| mounting                         |                                   |
++----------------------------------+-----------------------------------+
+| Six complete pods                | $138-$180                         |
++----------------------------------+-----------------------------------+
+| Outdoor solid-copper Cat5e       | $60-$230, strongly reel-dependent |
++----------------------------------+-----------------------------------+
+| Central 5 V supply               | about $14                         |
++----------------------------------+-----------------------------------+
+| Stakes, hoods, foam and          | $30-$80                           |
+| miscellaneous hardware           |                                   |
++----------------------------------+-----------------------------------+
+| Estimated total excluding Pi and | approximately $500-$920           |
+| dev tools                        |                                   |
++----------------------------------+-----------------------------------+
+
+A Pi 5, active cooler, NVMe storage and its separate power supply should be budgeted independently. An XMOS
+XK-AUDIO-316-MC-AB evaluation board and XA-XTAG4 debugger can reduce firmware and USB risk before the custom
+central PCB is built.
+
+
+9 CONSTRAINTS AND OPEN RISKS
+============================
+
+The central questions to answer before a production revision.
+
++----------------------+---------------------------------+---------------------------------------------------+
+| Risk                 | Consequence                     | Mitigation / test                                 |
++======================+=================================+===================================================+
+| Acoustic             | The membrane, hood and foam can | Build and compare several pod openings outdoors.  |
+| weatherproofing      | change sensitivity and phase.   |                                                   |
++----------------------+---------------------------------+---------------------------------------------------+
+| Wind and foliage     | Signals may correlate poorly    | Use wind protection, band limiting and robust     |
+|                      | across the full aperture.       | pair rejection.                                   |
++----------------------+---------------------------------+---------------------------------------------------+
+| Beeper electrical    | PWM edges may appear as a zero- | Separate return pair, slow edges, differential    |
+| crosstalk            | delay artifact.                 | audio, reject zero-delay peak.                    |
++----------------------+---------------------------------+---------------------------------------------------+
+| Mechanical beeper    | The local microphone may        | Isolate the transducer and exclude the local      |
+| coupling             | receive enclosure vibration.    | channel.                                          |
++----------------------+---------------------------------+---------------------------------------------------+
+| Two ADC devices      | A fixed inter-chip latency may  | Share clocks/reset and verify with same-signal    |
+|                      | exist.                          | injection.                                        |
++----------------------+---------------------------------+---------------------------------------------------+
+| Coplanar geometry    | Height is weakly constrained.   | Reserve channel 7 or 8 for an elevated            |
+|                      |                                 | microphone.                                       |
++----------------------+---------------------------------+---------------------------------------------------+
+| Custom RJ45 pinout   | Accidental network connection   | Internalize connectors and apply conspicuous      |
+|                      | can damage equipment.           | labeling.                                         |
++----------------------+---------------------------------+---------------------------------------------------+
+| Outdoor conductors   | ESD and lightning exposure      | Add TVS/PTC, disconnect during storms, engineer   |
+|                      | remain.                         | surge protection for permanence.                  |
++----------------------+---------------------------------+---------------------------------------------------+
+| Sealed central box   | A Pi 5 may overheat.            | Use a separate Pi enclosure or validate a         |
+|                      |                                 | thermally designed larger box.                    |
++----------------------+---------------------------------+---------------------------------------------------+
+| Continuous recording | Storage grows by 75-100 GB/day. | Use event clips, FLAC where useful, and retention |
+|                      |                                 | policies.                                         |
++----------------------+---------------------------------+---------------------------------------------------+
+
++----------------------------------------------------------------------------------------------------------+
+| HIGHEST-PRIORITY UNKNOWN                                                                                 |
+| The outdoor acoustic-mechanical design of the microphone port is the strongest unresolved system risk.   |
+| Prove it before spending effort on a production-quality central PCB.                                     |
++----------------------------------------------------------------------------------------------------------+
+
+
+10 RECOMMENDED BUILD SEQUENCE
+=============================
+
+A staged plan that isolates electrical, acoustic and software risk.
+
++--------+-------------------------------+---------------------------------------------------+
+| Step   | Milestone                     | Exit criterion                                    |
++========+===============================+===================================================+
+| 1      | One-pod analog prototype      | Measure self-noise, gain, clipping, current and   |
+|        |                               | mechanical coupling.                              |
++--------+-------------------------------+---------------------------------------------------+
+| 2      | Full 35 ft cable test         | Check oscillation, RF pickup, voltage drop and    |
+|        |                               | beeper crosstalk.                                 |
++--------+-------------------------------+---------------------------------------------------+
+| 3      | Outdoor transducer range test | Detect the coded signal at 25 ft and 50 ft with   |
+|        |                               | the intended hood or membrane.                    |
++--------+-------------------------------+---------------------------------------------------+
+| 4      | USB firmware proof            | Use the XMOS evaluation platform or a reduced     |
+|        |                               | central prototype to establish stable Pi capture. |
++--------+-------------------------------+---------------------------------------------------+
+| 5      | Four-channel field array      | Validate known-position speaker localization and  |
+|        |                               | the calibration workflow.                         |
++--------+-------------------------------+---------------------------------------------------+
+| 6      | Six-channel expansion         | Populate the second ADC and final two pods;       |
+|        |                               | verify inter-ADC skew.                            |
++--------+-------------------------------+---------------------------------------------------+
+| 7      | Initial survey and broadband  | Measure real coordinates and collect known-source |
+|        | calibration                   | calibration data.                                 |
++--------+-------------------------------+---------------------------------------------------+
+| 8      | Automated maintenance checks  | Trend residuals, levels, noise floors,            |
+|        |                               | temperature and channel health.                   |
++--------+-------------------------------+---------------------------------------------------+
+| 9      | Rev-B mechanical freeze       | Select the final membrane, enclosure, connector   |
+|        |                               | and surge strategy after soak testing.            |
++--------+-------------------------------+---------------------------------------------------+
+
+
+Rev-A design statement
+----------------------
+
++----------------------------------------------------------------------------------------------------------+
+| RECOMMENDED ARCHITECTURE                                                                                 |
+| Six AOM-5024L-HD-R / OPA1678 active-balanced pods, each with a CMT-8504-100-SMT-TR calibration           |
+| transducer; one custom outdoor Cat5e run per pod; two shared-clock PCM1865 ADCs; an industrial XU316 USB |
+| interface; self-powered 24-bit / 48 kHz UAC2 output; and a cooled Raspberry Pi 5 with NVMe storage.      |
++----------------------------------------------------------------------------------------------------------+
+
+
+Decisions deliberately left configurable
+----------------------------------------
+
+- Input RC values and final analog gain
+
+- Beeper flyback diode versus zener/TVS clamp
+
+- Common-mode choke footprints
+
+- Cable shield connection pads
+
+- Two spare input/cable-port footprints
+
+- Alternative waterproof microphone daughterboard
+
+- External clock and test-injection points
+
+
+REFERENCE LINKS AND CANDIDATE DATASHEETS
+========================================
+
+Sources named in the working design. Availability and specifications should be reconfirmed during schematic
+capture.
+
+1. PUI Audio AOM-5024L-HD-R microphone: https://puiaudio.com/file/specs-AOM-5024L-HD-R.pdf
+
+2. Texas Instruments OPA1678: https://www.ti.com/product/OPA1678
+
+3. Same Sky CMT-8504-100-SMT-TR: https://www.digikey.com/en/products/detail/same-sky-formerly-cui-devices/CMT-8504-100-SMT-TR/10326202
+
+4. Texas Instruments PCM1865: https://www.ti.com/product/PCM1865
+
+5. XMOS XCORE.AI multichannel audio platform hardware manual: https://www.xmos.com/download/XCORE_AI-Multichannel-Audio-Platform-1V1-Hardware-Manual%281V1%29.pdf
+
+6. XMOS XU316 part listing: https://www.digikey.com/en/products/detail/xmos/XU316-1024-TQ128-I24/17764324
+
+7. Raspberry Pi 5 product page: https://www.raspberrypi.com/products/raspberry-pi-5/
+
+8. Hammond 1551W enclosure family: https://www.hammfg.com/electronics/small-case/plastic/1551w
+
+9. Hammond 1554UA2GY enclosure: https://www.hammfg.com/part/1554UA2GY
+
+10. trueCABLE direct-burial Cat5e family: https://www.truecable.com/products/cat5e-direct-burial-ethernet-cable
+
+11. Sensirion SHT40 family: https://sensirion.com/products/catalog/SHT40
+
+12. Mean Well GST25A05-P1J: https://www.digikey.com/en/products/detail/mean-well-usa-inc/GST25A05-P1J/7703645
+
+13. XMOS XK-AUDIO-316-MC-AB evaluation board: https://www.digikey.com/en/products/detail/xmos/XK-AUDIO-316-MC-AB/18633264
+
++----------------------------------------------------------------------------------------------------------+
+| DOCUMENT STATUS                                                                                          |
+| This report consolidates the current working design into a prototype specification. It is not a released |
+| schematic, safety certification, purchasing commitment, or guarantee of outdoor localization accuracy.   |
++----------------------------------------------------------------------------------------------------------+
