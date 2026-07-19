@@ -1,0 +1,50 @@
+# ble-bus-bar net architecture — source of truth for netclasses + DRU floors.
+# generate_rules.py emits these into 04_kicad/*.kicad_pro and .kicad_dru.
+# Defined BEFORE routing (kicad-pcb golden rule 3). Ampacity math:
+# 01_docs/DETAIL_DESIGN.md #1 (IPC-2221, 2oz, dT<=30C). ADR-0002.
+
+fab_tier: jlc_2layer_2oz   # 2 oz outer: min track/space 0.254mm; vias 0.6/0.3
+
+classes:
+  TRUNK:
+    intent: >
+      60A input trunk (VBUS). Carried by PAIRED priority-1 pours
+      (F.Cu 16.5mm + B.Cu 16.5mm, bonded by the input-stud barrel and
+      the 24 fuse-holder THT pins) — never by tracks. The 3.0mm track
+      floor is a tripwire: any track on this net is a design error the
+      DRC now catches, not a sized conductor.
+    nets: [VBUS]
+    current: 60A
+    min_width: 3.0mm
+    routing: pours only (stitch_and_fill), thermal relief NONE
+    verify: DRC floor + audit pour-presence check
+
+  PORT:
+    intent: >
+      Per-port 30A paths: VF* (fuse->shunt) and VP* (shunt->stud).
+      Single-layer F.Cu pours >=10.5mm (dT~21C at 30A). Tracks floored
+      at 3.0mm as a tripwire; the ONLY sanctioned sub-floor copper is
+      the Kelvin sense taps inside the named KELVIN rule areas
+      (scoped .kicad_dru exception below the floor — canon R1).
+    nets: [VF1, VF2, VF3, VF4, VF5, VF6, VP1, VP2, VP3, VP4, VP5, VP6]
+    current: 30A
+    min_width: 3.0mm
+    kelvin_exception: 0.4mm inside rule areas named KELVIN
+    routing: pours only except Kelvin taps (route_channels.py)
+    verify: DRC floor + audit I-KELVIN attach-point check
+
+  EPWR:
+    intent: >
+      Electronics power: bus tap (0.2A max), buck switching cell, 3V3
+      rail (<=0.5A peak). 0.5mm floor ~= 1.5A-class at 2oz — 3x margin.
+      SW node floored so no thin-pass can turn it into a fuse.
+    nets: [VTAP, VIN_E, SW, 3V3, VLDO, VUSB]
+    current: 0.6A
+    min_width: 0.5mm
+    routing: KRT wave 2 at 0.6mm; corridor 3V3 lane 0.6mm (route_channels)
+    verify: DRC floor
+
+# Default 0.3mm (JLC 2oz floor 0.254 + margin): I2C (SDA/SCL), ALERT,
+# sense taps after the 10R filters (KP*/KN*/VB* — nA-class), SPI, USB,
+# straps, buttons, LEDs, FB/CB. GND is not routed: F.Cu pour (west) +
+# B.Cu plane + stitch/rescue vias (stitch_and_fill.py).

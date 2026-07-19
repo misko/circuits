@@ -1,0 +1,5 @@
+{
+  "board": { "design_settings": {} },
+  "meta": { "filename": "ble_bus_bar.kicad_pro", "version": 1 },
+  "schematic": { "legacy_lib_dir": "", "legacy_lib_list": [] }
+}
