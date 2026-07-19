@@ -71,6 +71,40 @@ for name, c in cfg["classes"].items():
 dru.append("(rule iso_keypad\n"
            "  (condition \"A.NetClass == 'KEYPAD' && B.NetClass != 'KEYPAD'\")\n"
            "  (constraint clearance (min 6.00mm)))")
+# ---- courtyard-overlap waivers (evidence-backed, golden rule 8) ----------
+# Every pair below is an INTENTIONAL placement-density overlap of COURTYARDS
+# only (pad/body bboxes do NOT overlap; pre-route audit I-checks + screw
+# keepouts pass). Categories:
+#  * coil test point under its relay body (ADR-0002/D15: TP41-56 probe the
+#    coil nets straight south of pin 7, deliberately beneath the DIP relay);
+#  * decoupler tight to its IC (canon 7 snap-back: C8/C12/C13/C14 at U3/U4/U7);
+#  * ESD/opto tight to its connector/neighbour (U10/U11/U13/U14 at J*/U5);
+#  * small part under the Pico socket footprint (module sits on the header
+#    stack above C21/R23/SW1);
+#  * courtyard graze of adjacent connectors / a mounting-hole ring (H1/H5).
+# The ONE real overlap (H6 mounting hole on J13 pads) was FIXED by relocating
+# H6 (geom.HOLES), not waived. KiCad 10 only honours '==' in DRU conditions
+# ('=~' regex is a no-op here), so each pair is emitted explicitly.
+COURTYARD_WAIVERS = [
+    ("K1", "TP41"), ("K2", "TP41"), ("K2", "TP42"), ("K3", "TP43"),
+    ("K4", "TP43"), ("K4", "TP44"), ("K5", "TP45"), ("K6", "TP45"),
+    ("K6", "TP46"), ("K7", "TP47"), ("K8", "TP47"), ("K8", "TP48"),
+    ("K9", "TP49"), ("K10", "TP49"), ("K10", "TP50"), ("K11", "TP51"),
+    ("K12", "TP51"), ("K12", "TP52"), ("K13", "TP53"), ("K14", "TP53"),
+    ("K14", "TP54"), ("K15", "TP55"), ("K16", "TP55"), ("K16", "TP56"),
+    ("C12", "U3"), ("C13", "U4"), ("C14", "U7"), ("C8", "U7"), ("Q1", "U7"),
+    ("J14", "U14"), ("J3", "U13"), ("J4", "U14"), ("J2", "U14"),
+    ("U10", "U11"), ("U11", "U5"), ("CE1", "D2"),
+    ("C21", "J2"), ("J2", "R23"), ("J2", "SW1"),
+    ("J3", "J5"), ("C6", "H1"), ("FB1", "H1"), ("H5", "R52"),
+]
+for i, (a, c) in enumerate(COURTYARD_WAIVERS):
+    dru.append(f"(rule cy_waive_{i}\n"
+               f"  (condition \"(A.Reference == '{a}' && B.Reference == '{c}') || "
+               f"(A.Reference == '{c}' && B.Reference == '{a}')\")\n"
+               f"  (constraint courtyard_clearance (min -6mm)))")
+
 (K / f"{BOARD}.kicad_dru").write_text("\n".join(dru) + "\n")
 print(f"netclasses: {[c['name'] for c in classes]}; {len(pats)} patterns; "
-      f"dru width rules + iso_keypad 6mm written")
+      f"dru width rules + iso_keypad 6mm + {len(COURTYARD_WAIVERS)} "
+      f"courtyard waivers written")

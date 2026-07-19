@@ -95,8 +95,12 @@ TC_XY = (31.0, 33.0)           # U1 MAX31856 (NW analog corner)
 # H5 west-mid support relocated 62->110.5: the west edge is fully packed with
 # JST connectors J3(y35-49) J4(51-65) J14(65-81) J7/J8(84-107); the only clear
 # west-edge gap for a 3.2mm hole is y107-114 between J8 and the F1 power corner.
+# H6 south-mid support: was (133,136) — collided with J13 (137,136) pads
+# (npth_inside_courtyard + courtyard overlap + hole clearance). Moved to
+# (126,124), a south-central pocket north of the J12/J13 connector row with
+# 7.75mm clearance to the nearest pad.
 HOLES = [(24.0, 24.0), (201.0, 24.5), (24.0, 136.0), (201.0, 136.0),
-         (24.0, 110.5), (133.0, 136.0)]
+         (24.0, 110.5), (126.0, 124.0)]
 
 # KRT keepouts (User.2): iso comb + bank + lanes + TP rows + ULN north row
 KRT_KEEPOUTS = [
