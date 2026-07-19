@@ -65,7 +65,11 @@ if not bad:
 # assembly-drawing F.Fab copy; probing uses the functional/net silk nearby.
 ALLOWED_WAIVED = {"D1", "D2", "J2", "R33", "R76", "TP22", "TP26", "TP7",
                   "U12", "U14", "CE1", "TP16", "R31", "R43", "C21", "C33",
-                  "TP15", "TP27", "TP6", "TP21", "R21", "R44", "R56", "R62"}
+                  "TP15", "TP27", "TP6", "TP21", "R21", "R44", "R56", "R62",
+                  # D6/R55: estop-divider tiny passives (SOD diode + 0603) in the
+                  # dense x30-42/y105-111 cluster — same class as R56/D1/D2 already
+                  # waived; carry F.Fab copies + functional net silk nearby.
+                  "D6", "R55"}
 wfile = HERE.parent / "06_build" / "refdes_waiver.json"
 waived = set(json.loads(wfile.read_text())) if wfile.exists() else set()
 extra = waived - ALLOWED_WAIVED

@@ -69,9 +69,15 @@ def try_via(net, x, y, size=0.6, drill=0.3):
 
 
 def rescue_pad(pad, label, mandatory=True):
-    """Via adjacent to an SMD pad + short F/B stub from the pad."""
+    """Via-in-pad (same-net barrel bonds the pad straight to its plane), else a
+    via adjacent to the SMD pad + short F/B stub from the pad."""
     net = pad.GetNet()
     px, py = MM(pad.GetPosition().x), MM(pad.GetPosition().y)
+    # via-in-pad first for GND (In1 is a solid GND plane, so a same-net barrel
+    # on the pad always bonds it): rescues pads too boxed-in (dense ESD SOT23 /
+    # crowded corners) for an adjacent via + stub. Standard 0.6/0.3 (DRU floor).
+    if net.GetNetname() == "GND" and try_via(net, px, py, size=0.6, drill=0.3):
+        return True
     bbox = pad.GetBoundingBox()
     w2 = MM(bbox.GetWidth()) / 2
     h2 = MM(bbox.GetHeight()) / 2
@@ -121,7 +127,11 @@ for fp in b.GetFootprints():
             if pad_has_via(p):
                 gnd_ok += 1
                 continue
-            if rescue_pad(p, f"GND {fp.GetReference()}.{p.GetNumber()}"):
+            # non-fatal: a GND SMD pad boxed-in for both via-in-pad and an
+            # adjacent via+stub (dense ESD/divider clusters, KRT tracks crossing
+            # under) is reported by the DRC unconnected gate, not silently shipped.
+            if rescue_pad(p, f"GND {fp.GetReference()}.{p.GetNumber()}",
+                          mandatory=False):
                 gnd_ok += 1
         elif nname in IN2_POUR and IN2_POUR[nname](px, py):
             if not pad_has_via(p, 2.2):
@@ -135,9 +145,10 @@ u12 = b.FindFootprintByReference("U12")
 tab = next(p for p in u12.Pads() if p.GetNumber() == "2" and p.GetDrillSize().x == 0)
 tabn = 0
 tx, ty = MM(tab.GetPosition().x), MM(tab.GetPosition().y)
-for dx in (-1.0, 0.0, 1.0):
-    for dy in (1.0, 1.5):
-        if try_via(tab.GetNet(), tx + dx, ty + dy) or try_via(tab.GetNet(), tx + dx, ty - dy):
+# tab pad is 2x3.8mm; vias land inside it (same-net) or just off it
+for dx in (0.0, -0.6, 0.6, -1.0, 1.0):
+    for dy in (0.0, 1.0, -1.0, 1.5, -1.5, 0.6, -0.6):
+        if try_via(tab.GetNet(), tx + dx, ty + dy):
             tabn += 1
         if tabn >= 2:
             break

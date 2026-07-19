@@ -15,6 +15,6 @@ excluded items per §14.3.
 | **Total BOM (excl. Pico, PCB, sensors)** | | **≈ $81.7** |
 
 vs combined envelope $140 → 42% headroom. (Sensor modules MLX90640/SHT45/TC
-probe/load cells are §14.1 items, not board BOM.) PCB fab 4L 185×112 qty 5 ≈
+probe/load cells are §14.1 items, not board BOM.) PCB fab 4L 185×120 qty 5 ≈
 $40–60/order (excluded from BOM target per §14.2 "BOM"). Within budget even
 if relay pricing lands at $5.5/pc ($88 relays → $107 total).

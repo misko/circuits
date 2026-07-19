@@ -86,7 +86,7 @@ ANCHOR.update({
     "J10": (99.0, 136.0, 0), "J12": (116.0, 136.0, 0), "J13": (137.0, 136.0, 0),
     # power entry / rails — SW corner power column (freed by moving logic east)
     "F1": (28.0, 117.0, 90), "Q3": (34.0, 117.0, 0), "D2": (40.0, 117.0, 0),
-    "CE1": (46.0, 121.0, 0), "U12": (53.0, 122.0, 0),
+    "CE1": (46.0, 121.0, 0), "U12": (56.0, 122.0, 0),  # U12 +3mm E: SOT-223 tab was shorting CE1 GND pad (ADR-0006 power column extends to x60)
     "D1": (34.0, 122.0, 0), "FB1": (28.0, 26.0, 0),
     # analog corner
     "U1": (34.0, 33.0, 0),
@@ -106,11 +106,14 @@ ANCHOR.update({
     "C12": (112.0, 124.5, 0), "C13": (170.0, 124.5, 0),
     # U7 watchdog trio pinned (390k R11 + timing C14 + decoupler C11): the
     # SC70 + 3 passives in one pocket is too tight for the ring-legalizer
-    "R11": (69.5, 112.5, 0), "C14": (68.5, 108.5, 0), "C11": (72.0, 110.0, 0),
+    # loosened out of the U7 pad-field into the free pocket S/E of U7 (NOGO y<=106.8
+    # forbids going N; U8 y117 bounds S). All keep IP<=6mm to U7: R11 4.3, C14 4.95, C11 2.3.
+    "R11": (66.5, 114.3, 0), "C14": (70.0, 113.5, 0), "C11": (71.5, 110.0, 90),
     # contactor opto + ESD, above J10
     "U10": (99.0, 127.0, 0), "U15": (110.0, 127.0, 0),
     # I2C ESD (C21 pinned at U14: crowded I2C1 cluster pushed it as a floater)
-    "U13": (30.2, 48.0, 0), "U14": (30.2, 64.0, 0), "C21": (35.0, 60.0, 0),
+    # C21 was landing pad1 on J2 Pico socket pad1 (SDA0); moved N of its IC U14 (IP 3mm)
+    "U13": (30.2, 48.0, 0), "U14": (30.2, 64.0, 0), "C21": (30.2, 61.0, 0),
     # estop/door schmitt (east-south open area; RC caps seed alongside)
     "U11": (90.0, 120.0, 0),
     "SW1": (56.0, 94.0, 0),

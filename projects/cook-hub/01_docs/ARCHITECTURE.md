@@ -1,6 +1,6 @@
 # ARCHITECTURE — cook-hub
 
-One 4-layer board, 185 × 112 mm, that is the entire SELV electronics of the
+One 4-layer board, 185 × 120 mm (height grown +8mm per ADR-0006), that is the entire SELV electronics of the
 SMC0985KS Phase-1 rig except the load-cell front-end (cook-loadcell) and the
 Pi 5 itself. A pluggable Raspberry Pi Pico 2 is the deterministic controller;
 the Pi 5 talks to it only over the Pico's own USB (§2.2).
