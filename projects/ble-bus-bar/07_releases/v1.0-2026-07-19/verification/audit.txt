@@ -1,0 +1,43 @@
+  ok I1 all pads inside outline
+  ok I8 refdes on silk (waived to functional labels: ['C8', 'J1', 'J2', 'J3', 'J4', 'J5', 'J6', 'J7', 'J8', 'R21', 'U7'])
+  ok I9 D7 pad1 = VIN_E
+  ok I9 D8 pad1 = 3V3
+  ok I9 D9 pad1 = VBUS
+  ok I9 D10 pad1 = VIN_E
+  ok I9 D11 pad1 = SW
+  ok I9 LED1 pad1 = GND
+  ok I9 LED2 pad1 = GND
+  ok IK KP1 attach (105.00,75.60) w=0.4
+  ok IK KN1 attach (105.00,72.50) w=0.4
+  ok IK KP2 attach (124.00,75.60) w=0.4
+  ok IK KN2 attach (124.00,72.50) w=0.4
+  ok IK KP3 attach (143.00,75.60) w=0.4
+  ok IK KN3 attach (143.00,72.50) w=0.4
+  ok IK KP4 attach (162.00,75.60) w=0.4
+  ok IK KN4 attach (162.00,72.50) w=0.4
+  ok IK KP5 attach (181.00,75.60) w=0.4
+  ok IK KN5 attach (181.00,72.50) w=0.4
+  ok IK KP6 attach (200.00,75.60) w=0.4
+  ok IK KN6 attach (200.00,72.50) w=0.4
+  ok IA antenna keepout clean
+  ok IP CB1<->U1 4.7mm
+  ok IP CD1<->U1 5.0mm
+  ok IP CB2<->U2 4.7mm
+  ok IP CD2<->U2 5.0mm
+  ok IP CB3<->U3 4.7mm
+  ok IP CD3<->U3 5.0mm
+  ok IP CB4<->U4 4.7mm
+  ok IP CD4<->U4 5.0mm
+  ok IP CB5<->U5 4.7mm
+  ok IP CD5<->U5 5.0mm
+  ok IP CB6<->U6 4.7mm
+  ok IP CD6<->U6 5.0mm
+  ok IP C8<->U7 13.3mm
+  ok IP C4<->U8 5.9mm
+  ok IP C9<->U11 6.7mm
+  ok IP C1<->U8 5.2mm
+  ok IP D11<->U8 6.0mm
+  ok IP C12<->U9 7.9mm
+  ok IS functional silk checked
+  ok IZ power pours present (14 zone nets)
+AUDIT PASS (0 failures)

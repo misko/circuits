@@ -1,0 +1,22 @@
+board:        ble_bus_bar
+version:      v1.0
+ordered:      not-yet (package cut 2026-07-19)
+git_sha:      ab9abda
+git_dirty:    false
+kicad:        10.0.4
+tools:        KRT@b0b1067, python 3.12; route chain 03_src/route/r3.kicad_pcb sha256 c4d36e045bf29332...
+fab:          JLCPCB, 2 layer, 2 oz OUTER COPPER (required), min via hole 0.2mm option (required)
+quantity:     5
+gates:        ERC 0 . DRC severity-all 0/0/0 (violations/unconnected/parity) . audit PASS . policy audit 0 FAIL (2 evidence waivers) . twin exit 0 (13 adjudications + MODEL-REG dispositions) . pin reviews 0 FAIL (2 rounds) . render review PASS . stock 30/30 coded lines >= 25x
+sha256:
+  ble_bus_bar_gerbers.zip    c3971aadc3a9e9c007a5c0efbe5386eec8ed15689c0697971578302377ddc5e1
+  bom.csv                    8a573c19a9d0712f8629bebabc39ef90baaee83ce623778ffb63d5b5110affeb
+  cpl.csv                    8281d92f4725f83cb7ba1a52d007f34a4bc4fa9be52f299b351aaa87a830e8ef
+not_assembled: F1-F6 (Keystone 3557-2 ATO holders x6, LCSC C352820, hand-solder; order 30+ pcs) . J1-J8 studs (bare plated holes, user M5/M4 hardware) . J10 debug header (DNP) . port fuses (user-supplied ATO/ATC <=30A)
+notes: |
+  Post-gate rework in this release: W25Q64JVSSIQ footprint corrected from
+  narrow SOIC-8 (3.9mm) to the 208-mil WIDE body (5.3mm) — caught by the
+  JLC digital twin (JLC CAD lead span 7.06 vs our 4.95), confirmed from
+  the Winbond package spec by a fresh-context reviewer. Status LED moved
+  IO1->IO0 and west-zone placements reshuffled during the routing
+  convergence campaign (see CHANGELOG + git history).
