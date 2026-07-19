@@ -159,10 +159,26 @@ seg(G.BOUND_X["3V3"], G.BOUND_PAD1_Y, 85.7, G.BOUND_PAD1_Y, "3V3", layer=B)
 seg(85.7, G.BOUND_PAD1_Y, 85.7, 60.9, "3V3", layer=B)
 seg(85.7, 60.9, G.BOUND_X["ALERT"], 60.9, "3V3")
 seg(G.BOUND_X["ALERT"], 60.9, G.BOUND_X["ALERT"], G.BOUND_Y - 0.9575, "3V3")
+# guaranteed overlap with KRT's west tree: touch R16.2's pad TOP portion
+# (KRT attaches the pad center from open sides; both meet in the pad)
+seg(G.BOUND_X["ALERT"], 60.9, G.BOUND_X["SCL"], 60.9, "3V3")
+seg(G.BOUND_X["SCL"], 60.9, G.BOUND_X["SCL"], 61.9, "3V3")
+
 
 # C8 (module bulk decoupler) 3V3 pad straight up into module pin 1
 # (3V3) — KRT repeatedly failed this boxed pad (module courtyard + SW1).
 seg(62.25, 73.4, 62.24, 70.2, "3V3")
+# ...and east to R21.1 (3V3) through SW1's inter-pad band, so the island
+# meets KRT's west tree inside a pad it reliably attaches (R16.2 pattern)
+seg(62.25, 73.4, 62.25, 74.7, "3V3")   # dodge C8's own GND pad
+seg(62.25, 74.7, 74.84, 74.7, "3V3")
+seg(74.84, 74.7, 74.84, 72.9, "3V3")
+
+# C8.2 / C7.2 GND pockets: their F.Cu pour pockets are fenced by west
+# routing — deterministic vias-in-pad tie them to the B.Cu plane.
+via(64.15, 73.4, "GND")    # C8.2
+via(95.5575, 71.5, "GND")  # C7.2 (relocated over the solid under-slice plane)
+via(60.3575, 77.1, "GND")  # U10.2 (USB ESD array's fenced pocket)
 
 # W25Q64 power cluster (deterministic anchors): /WP(3) + /HOLD(7) +
 # VCC(8) tied along the body, C9 decoupler into pin 8. KRT treats these

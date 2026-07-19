@@ -95,7 +95,7 @@ ANCHOR.update({
     "R18": (92.0, 52.6, 0), "R19": (92.0, 55.2, 0), "R20": (92.0, 57.8, 0),
     "R21": (75.8, 72.8, 0), "C10": (79.9, 72.8, 0),
     "SW1": (69.5, 73.6, 0), "SW2": (69.5, 81.2, 0),
-    "C7": (77.6, 66.0, 0), "C8": (63.2, 73.4, 0),
+    "C7": (94.6, 71.5, 0), "C8": (63.2, 73.4, 0),
     "LED1": (95.8, 52.3, 0), "LED2": (95.8, 55.1, 0),
     "R28": (95.8, 57.9, 0), "R29": (95.8, 60.7, 0),
     "J10": (86.0, 100.5, 90),    # header horizontal, pads run east
@@ -123,7 +123,7 @@ SILK = [
     ("ble-bus-bar v1.0  BLE 12-24V 6x30A", 150.0, 50.7, 0.8),
     ("USB-C", 54.5, 76.6, 0.7), ("5V IN", 54.5, 90.7, 0.6),
     ("RESET", 69.5, 77.4, 0.7), ("BOOT", 69.5, 84.9, 0.7),
-    ("PWR", 90.0, 52.3, 0.55), ("ST", 89.8, 55.1, 0.55),
+    ("PWR", 95.8, 50.9, 0.5), ("ST", 95.8, 56.5, 0.5),
     ("UART 1=3V3 2=G 3=TX 4=RX", 89.8, 98.6, 0.55),
 ]
 for i in range(1, 7):
@@ -335,7 +335,7 @@ def main():
     ds.m_CopperEdgeClearance = int(0.2e6)
     ds.m_ViasMinSize = pcbnew.FromMM(0.3)       # USB-weave dive vias (JLC: dia >= hole+0.1)
     ds.m_MinThroughDrill = pcbnew.FromMM(0.2)
-    ds.m_MinConn = pcbnew.FromMM(0.05)
+    ds.m_MinConn = 0   # KiCad default: no connection-width constraint (JLC has none)
     ds.m_SolderMaskMinWidth = 0
     ds.m_SolderMaskExpansion = 0
 

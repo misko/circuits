@@ -1,7 +1,7 @@
 {
     "$schema": "https://schemas.kicad.org/drc.v1.json",
     "coordinate_units": "mm",
-    "date": "2026-07-19T00:24:37",
+    "date": "2026-07-19T08:21:35",
     "ignored_checks": [
         {
             "description": "Footprint has no courtyard defined",
@@ -32,123 +32,6 @@
     "kicad_version": "10.0.4",
     "schematic_parity": [],
     "source": "ble_bus_bar.kicad_pcb",
-    "unconnected_items": [
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Zone [GND] on F.Cu, priority 0",
-                    "pos": {
-                        "x": 50.0,
-                        "y": 50.0
-                    },
-                    "uuid": "0c2d4f5f-f43b-435f-8dc0-96ea5631b17f"
-                },
-                {
-                    "description": "Zone [GND] on F.Cu, priority 0",
-                    "pos": {
-                        "x": 50.0,
-                        "y": 50.0
-                    },
-                    "uuid": "0c2d4f5f-f43b-435f-8dc0-96ea5631b17f"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        },
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Pad 2 [3V3] of R16 on F.Cu",
-                    "pos": {
-                        "x": 90.9,
-                        "y": 62.1875
-                    },
-                    "uuid": "19533d10-81e2-49fc-a51a-76a678d3ffb7"
-                },
-                {
-                    "description": "Pad 2 [3V3] of R17 on F.Cu",
-                    "pos": {
-                        "x": 88.7,
-                        "y": 62.1875
-                    },
-                    "uuid": "4d34a96b-bfa2-4add-a2e8-cf251d401f2e"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        },
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Pad 1 [FLASH_CS] of R19 on F.Cu",
-                    "pos": {
-                        "x": 91.0875,
-                        "y": 55.2
-                    },
-                    "uuid": "f75aaf46-d002-4ff5-abee-a7377858b18f"
-                },
-                {
-                    "description": "Pad 1 [FLASH_CS] of U11 on F.Cu",
-                    "pos": {
-                        "x": 76.4125,
-                        "y": 59.095
-                    },
-                    "uuid": "b7eef12d-242b-4b41-9b58-065d8a77f4ab"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        },
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Pad 2 [SPI_MISO] of U11 on F.Cu",
-                    "pos": {
-                        "x": 76.4125,
-                        "y": 60.365
-                    },
-                    "uuid": "79e2ec95-7c2e-4517-9f9a-3c2a9b02339c"
-                },
-                {
-                    "description": "Pad 1 [SPI_MISO] of R18 on F.Cu",
-                    "pos": {
-                        "x": 91.0875,
-                        "y": 52.6
-                    },
-                    "uuid": "5c08befc-e466-4aed-b705-4175d914fdff"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        }
-    ],
-    "violations": [
-        {
-            "description": "Silkscreen clipped by solder mask",
-            "items": [
-                {
-                    "description": "PCB text 'PWR' on F.Silkscreen",
-                    "pos": {
-                        "x": 90.0,
-                        "y": 52.3
-                    },
-                    "uuid": "298b9350-addd-4e53-9a60-dae1af96fea5"
-                },
-                {
-                    "description": "Pad 1 [SPI_MISO] of R18 on F.Cu",
-                    "pos": {
-                        "x": 91.0875,
-                        "y": 52.6
-                    },
-                    "uuid": "5c08befc-e466-4aed-b705-4175d914fdff"
-                }
-            ],
-            "severity": "warning",
-            "type": "silk_over_copper"
-        }
-    ]
+    "unconnected_items": [],
+    "violations": []
 }

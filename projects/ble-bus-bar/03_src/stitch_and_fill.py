@@ -57,6 +57,18 @@ for t in b.GetTracks():
         dups.append(t)
     else:
         seen_keys[key] = t
+# near-coincident same-net via dedupe (router twin-vias violate the
+# 0.25 hole-to-hole floor)
+vseen = []
+for t in b.GetTracks():
+    if t.GetClass() != "PCB_VIA":
+        continue
+    p = (t.GetPosition().x / 1e6, t.GetPosition().y / 1e6, t.GetNetname())
+    if any(vn == p[2] and ((vx - p[0])**2 + (vy - p[1])**2) ** 0.5 < 0.7
+           for vx, vy, vn in vseen):
+        dups.append(t)
+    else:
+        vseen.append(p)
 for t in dups:
     b.Remove(t)
 if dups:
@@ -152,15 +164,24 @@ def end_served(px, py, netn, lay, me):
             return True
     return False
 orphans = []
-for t in tracks3:
-    n, lay = t.GetNetname(), t.GetLayer()
-    s_ = (t.GetStart().x/1e6, t.GetStart().y/1e6)
-    e_ = (t.GetEnd().x/1e6, t.GetEnd().y/1e6)
-    s_ok, e_ok = end_served(*s_, n, lay, t), end_served(*e_, n, lay, t)
-    if not s_ok and not e_ok:
-        orphans.append(t)
-    elif (not s_ok or not e_ok) and d2(s_, e_) < 0.12:
-        orphans.append(t)   # dangling micro-stub (router stair remnant)
+live = list(tracks3)
+for _sweep in range(3):   # dangling stubs can chain; sweep to fixpoint
+    removed_this = []
+    for t in live:
+        n, lay = t.GetNetname(), t.GetLayer()
+        s_ = (t.GetStart().x/1e6, t.GetStart().y/1e6)
+        e_ = (t.GetEnd().x/1e6, t.GetEnd().y/1e6)
+        s_ok, e_ok = end_served(*s_, n, lay, t), end_served(*e_, n, lay, t)
+        if not s_ok and not e_ok:
+            removed_this.append(t)
+        elif (not s_ok or not e_ok) and d2(s_, e_) < 0.35:
+            removed_this.append(t)   # dangling stub (router stair remnant)
+    if not removed_this:
+        break
+    orphans.extend(removed_this)
+    for t in removed_this:
+        live.remove(t)
+    tracks3 = live
 for t in orphans:
     b.Remove(t)
 
@@ -183,7 +204,7 @@ for t in tracks3:
                 continue
             f = foot(px, py, t2.GetStart().x/1e6, t2.GetStart().y/1e6,
                      t2.GetEnd().x/1e6, t2.GetEnd().y/1e6)
-            if f and d2((px, py), f) < 0.25:
+            if f and d2((px, py), f) < 0.45:
                 hit = True
                 break
         if hit:
@@ -196,25 +217,51 @@ for t in tracks3:
             b.Add(v)
             allvias.append((px, py, n))
             nxvia += 1
-# 3V3 corridor west landing: the routed chain's west tree descends to
-# F.Cu at (82.5, 68.6) (KRT chose the lane latitude as its attach row);
-# extend the B.Cu lane west to meet it with a via. Deterministic for the
-# promoted chain (03_src/route/r3); a fresh re-route re-lands here too
-# (the via is an attach anchor).
-t3 = pcbnew.PCB_TRACK(b)
-t3.SetStart(pcbnew.VECTOR2I_MM(82.5, 68.6))
-t3.SetEnd(pcbnew.VECTOR2I_MM(86.5, 68.6))
-t3.SetWidth(pcbnew.FromMM(0.5))
-t3.SetLayer(pcbnew.B_Cu)
-t3.SetNet(b.FindNet("3V3"))
-b.Add(t3)
-v3 = pcbnew.PCB_VIA(b)
-v3.SetPosition(pcbnew.VECTOR2I_MM(82.5, 68.6))
-v3.SetWidth(pcbnew.FromMM(0.56))
-v3.SetDrill(pcbnew.FromMM(0.3))
-v3.SetViaType(pcbnew.VIATYPE_THROUGH)
-v3.SetNet(b.FindNet("3V3"))
-b.Add(v3)
+# cross-layer endpoint PAIRS (a layer change the router left implicit
+# with no track body to foot onto): via at the midpoint bridges both.
+for i in range(len(pts)):
+    for j in range(i + 1, len(pts)):
+        a, c = pts[i], pts[j]
+        if a[2] != c[2] or a[3] == c[3]:
+            continue
+        d = d2(a, c)
+        if d < 0.45:   # incl. exact-coincident ends missing their via
+            mx, my = (a[0] + c[0]) / 2, (a[1] + c[1]) / 2
+            # skip if a same-net via already sits AT this junction
+            if any(vn == a[2] and d2((mx, my), (vx, vy)) < 0.3
+                   for vx, vy, vn in allvias):
+                continue
+            # candidate spots: midpoint, then either endpoint; must clear
+            # other vias (holes >=0.25 edge -> centers >=0.58) and foreign
+            # tracks (ring 0.28 + clearance 0.15 + half-width)
+            def spot_ok(px, py):
+                if any(d2((px, py), (vx, vy)) < 0.58 for vx, vy, vn in allvias):
+                    return False
+                for t in tracks3:
+                    if t.GetNetname() == a[2]:
+                        continue
+                    f = foot(px, py, t.GetStart().x/1e6, t.GetStart().y/1e6,
+                             t.GetEnd().x/1e6, t.GetEnd().y/1e6)
+                    dd = min(x for x in (
+                        d2((px, py), f) if f else None,
+                        d2((px, py), (t.GetStart().x/1e6, t.GetStart().y/1e6)),
+                        d2((px, py), (t.GetEnd().x/1e6, t.GetEnd().y/1e6))) if x is not None)
+                    if dd < 0.28 + 0.15 + t.GetWidth() / 2e6:
+                        return False
+                return True
+            pos = next(((px, py) for px, py in [(mx, my), (a[0], a[1]), (c[0], c[1])]
+                        if spot_ok(px, py)), None)
+            if pos is None:
+                continue   # cannot place safely; DRC will show if truly open
+            allvias.append((pos[0], pos[1], a[2]))
+            v = pcbnew.PCB_VIA(b)
+            v.SetPosition(pcbnew.VECTOR2I_MM(pos[0], pos[1]))
+            v.SetWidth(pcbnew.FromMM(0.56))
+            v.SetDrill(pcbnew.FromMM(0.3))
+            v.SetViaType(pcbnew.VIATYPE_THROUGH)
+            v.SetNet(b.FindNet(a[2]))
+            b.Add(v)
+            nxvia += 1
 
 b.Save(str(PCB))
 print(f"pass0: {len(kill)} micro-fragments removed; {len(seen)} joint patches, "

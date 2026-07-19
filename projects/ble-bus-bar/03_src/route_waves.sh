@@ -19,14 +19,14 @@ $PY "$KRT"/route.py "$R"/r0.kicad_pcb --output "$R"/rA.kicad_pcb \
   --layers F.Cu B.Cu --clearance 0.16 --track-width 0.25 --grid-step 0.05 \
   --via-size 0.6 --via-drill 0.3 --fab-tier standard --no-stub-layer-swap \
   --keepout --keepout-layer User.2 --max-iterations 300000 \
-  --nets SDA SCL ALERT LED_ST EN BOOT9 IO8
+  --nets SDA SCL ALERT LED_ST EN BOOT9 IO8 SPI_MISO FLASH_CS
 
 # Wave B — remaining signals, standard grid
 $PY "$KRT"/route.py "$R"/rA.kicad_pcb --output "$R"/rB.kicad_pcb \
   --layers F.Cu B.Cu --clearance 0.2 --track-width 0.3 \
   --via-size 0.6 --via-drill 0.3 --fab-tier standard --no-stub-layer-swap \
   --keepout --keepout-layer User.2 --max-iterations 400000 \
-  --nets USB_DP USB_DM CC1 CC2 SPI_CLK SPI_MOSI SPI_MISO FLASH_CS \
+  --nets USB_DP USB_DM CC1 CC2 SPI_CLK SPI_MOSI \
          LED1A LED2A TXD RXD FB SHDN
 
 # Wave B2 — USB-C 0.5mm weave + fine-pitch stragglers (fine grid)
@@ -34,7 +34,7 @@ $PY "$KRT"/route.py "$R"/rB.kicad_pcb --output "$R"/rB2.kicad_pcb \
   --layers F.Cu B.Cu --clearance 0.16 --track-width 0.2 --grid-step 0.05 \
   --via-size 0.6 --via-drill 0.3 --fab-tier standard --no-stub-layer-swap \
   --keepout --keepout-layer User.2 --max-iterations 200000 \
-  --nets USB_DM USB_DP SPI_MISO RXD TXD
+  --nets USB_DM USB_DP RXD TXD
 
 # Wave B3 — NE stragglers (J10/pullup column behind the LED col): rip
 # the earlier claimants and re-route together, fine grid
@@ -42,7 +42,7 @@ $PY "$KRT"/route.py "$R"/rB2.kicad_pcb --output "$R"/rB3.kicad_pcb \
   --layers F.Cu B.Cu --clearance 0.18 --track-width 0.25 --grid-step 0.05 \
   --via-size 0.6 --via-drill 0.3 --fab-tier standard --no-stub-layer-swap \
   --keepout --keepout-layer User.2 --max-iterations 300000 \
-  --nets TXD RXD SPI_MISO FLASH_CS IO8 USB_DM \
+  --nets TXD RXD IO8 USB_DM \
   --rip-existing-nets LED1A LED2A USB_DP CC1 CC2 SPI_CLK SPI_MOSI
 
 # Wave C — electronics power (EPWR floor 0.5)

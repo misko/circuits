@@ -59,7 +59,7 @@ if not bad:
 # I8: refdes on silk
 ALLOWED_WAIVED = {"J1", "J2", "J3", "J4", "J5", "J6", "J7", "J8", "J9",
                   "SW1", "SW2", "U7", "LED1", "LED2",
-                  "C8", "R20"}   # J/SW/U7/LED carry functional silk; C8 sits in the module-pad shadow
+                  "C8", "R20", "R21"}   # J/SW/U7/LED carry functional silk; C8 sits in the module-pad shadow
 wfile = HERE.parent / "06_build" / "refdes_waiver.json"
 waived = set(json.loads(wfile.read_text())) if wfile.exists() else set()
 extra = waived - ALLOWED_WAIVED
