@@ -6,16 +6,17 @@ ADR-0002 (isolation numbers). ISO_MIN = 6.0mm creepage/clearance (§6.3).
 
 Bank routing scheme (as-built, ADR-0002 amendment 2026-07-19):
 - per super-column k, ALL THREE sanctioned SELV verticals share
-  x = COIL_X[k] + COIL_V_X (west of the coil pads) on three layers:
-  F.Cu = RELAY_5V trunk, B.Cu = odd coil (row0), In2.Cu = even coil (row1);
-  short stubs reach the coil pads. West edge of that track stack is
-  COIL_X-1.5; the previous column's easternmost keypad copper is
-  CONT_X[k-1]+2.2 = COIL_X[k]-7.96 => gap 6.46mm >= ISO_MIN.
-- coil nets travel E-W on B.Cu/In2 lanes (COIL_LANE_YS), drop at their
-  bridge test point (THT, all-layer) in the TP row by the ULNs, and finish
-  on F.Cu into the ULN OUT pad. KRT never touches COIL/KC/RELAY_5V nets.
-- contact nets: 4 corridor lane offsets per super-column (2 per layer),
-  E-W fan lanes in FAN band (16 per layer), jog-drops into J11.
+  two x slots west of the coil pads: COIL_V_ODD (-1.15: odd-coil B.Cu +
+  RELAY_5V F.Cu) and COIL_V_EVEN (-1.7: even-coil B.Cu); short stubs
+  reach the coil pads. West edge of the stack is COIL_X-1.9; the previous
+  column's easternmost keypad copper is CONT_X[k-1]+1.9 = COIL_X[k]-8.26
+  => gap 6.36mm >= ISO_MIN. Binding minimum is the package's own
+  coil-pad-to-contact-pad distance: 7.62 - 2x0.75 = 6.12mm.
+- coil nets travel E-W on B.Cu lanes (COIL_LANE_YS), drop at a via IN
+  the tail of their ULN OUT pad (COIL_VIA_Y row). KRT never touches
+  KEYPAD/COIL/RELAY_5V nets (route_bank.py draws them).
+- contact nets: corridor lane offsets {0,1.15,1.7} (2 per layer),
+  E-W fan lanes in the FAN band (16 per layer), jog-drops into J11.
 """
 
 # board outline
@@ -33,11 +34,11 @@ ROW_Y = [58.0, 78.5]                   # pin1/14 y for row0 (north), row1
 PIN_SPAN = 15.24                       # pin1->pin7 (and 14->8) span
 # relay Kn: n = 2k-1 (row0) / 2k (row1) of super-column k (1-based)
 
-# contact corridor lane x-offsets from CONT_X (all EAST, <= 2.0)
+# contact corridor lane x-offsets from CONT_X (all EAST, <= 1.7)
 LANE_F0 = 0.0     # row0 pin14 (A net) F.Cu — straight off the pad
-LANE_F1 = 1.3     # row1 pin8  (B net) F.Cu
-LANE_B0 = 1.3     # row0 pin8  (B net) B.Cu
-LANE_B1 = 2.0     # row1 pin14 (A net) B.Cu
+LANE_F1 = 1.15    # row1 pin8  (B net) F.Cu
+LANE_B0 = 1.15    # row0 pin8  (B net) B.Cu
+LANE_B1 = 1.7     # row1 pin14 (A net) B.Cu
 W_CONTACT = 0.4
 
 # isolation slots (Edge.Cuts), 2mm wide, between super-columns
@@ -63,45 +64,38 @@ CORR_HALF_W = 2.7                                # x_c-0.5 .. x_c+2.7 span
 # SELV keep-back (planes / KRT / floaters): no SELV copper here except
 # the sanctioned bank routing (verticals, lanes, TP bridges, R5V bus)
 NOGO = (60.0, Y0, X1, 106.8)   # x0,y0,x1,y1
-COIL_V_X = -1.3                # shared vertical offset from COIL_X:
-                               #   F.Cu=RELAY_5V, B.Cu=odd coil, In2=even coil
+COIL_V_ODD = -1.15             # odd-coil vertical (B.Cu) + RELAY_5V (F.Cu)
+COIL_V_EVEN = -1.7             # even-coil vertical (B.Cu)
 W_COIL = 0.4
 
 R5V_BUS_Y = 101.8              # RELAY_5V F.Cu bus (Q1 -> all columns)
 W_R5V = 0.8
-COIL_LANE_YS = [98.8, 99.5, 100.2, 100.9]   # E-W coil lanes (B.Cu and In2)
+COIL_LANE_YS = [100.9 + 0.6 * i for i in range(8)]   # B.Cu E-W coil lanes
+COIL_VIA_Y = 106.0             # via-in-pad-tail row at the ULN OUT pads
 
-# coil bridge test points (THT D2.0/1.0): one row per ULN, 2.54 pitch
-TP_ROW_Y = 104.8
-ULN1_XY = (98.0, 110.0)        # U5 (K1-K8)
+ULN1_XY = (92.0, 110.0)        # U5 (K1-K8; pad row must clear the col-3 coil verticals)
 ULN2_XY = (158.0, 110.0)       # U6 (K9-K16)
 
-
-def tp_x(uln_x, i):            # i = 0..7 west->east
-    return uln_x + (i - 3.5) * 2.54
-
-
-# ULN pads (SOIC-18W rotated so pin rows run E-W): north row y = uln_y - 4.35,
-# 9 pads west->east = 10(COM),11(OUT8)..18(OUT1); south row = 1(IN1)..9(GND).
-ULN_PAD_DY = 4.35
+# ULN pads (SOIC-18W rotated so pin rows run E-W): north row y = uln_y - 4.65,
+# west->east = 18(OUT1)..10(COM); south row = 1(IN1)..9(GND) west->east.
+ULN_PAD_DY = 4.65
 
 # ---------------- SELV floorplan anchors ----------------
 PICO_XY = (42.0, 84.0)         # J2 socket center; rows x = +-8.89
 SR1_XY = (84.0, 121.0)         # U3 74HC595 #1
 SR2_XY = (144.0, 121.0)        # U4 #2
-WD_XY = (63.0, 110.0)          # U7 LVC1G123
-Q1_XY = (56.0, 101.8)          # high-side PFET on the bus line
+WD_XY = (66.5, 110.0)          # U7 LVC1G123
+Q1_XY = (61.5, 108.8)          # high-side PFET below the bank, drain north
 TC_XY = (31.0, 33.0)           # U1 MAX31856 (NW analog corner)
 
 # mounting holes (NPTH 3.2mm; nylon standoffs)
 HOLES = [(24.0, 24.0), (201.0, 24.5), (24.0, 128.0), (201.0, 128.0),
-         (24.0, 62.0), (120.0, 128.0)]
+         (24.0, 62.0), (133.0, 128.0)]
 
 # KRT keepouts (User.2): iso comb + bank + lanes + TP rows + ULN north row
 KRT_KEEPOUTS = [
-    (60.0, Y0, X1, 102.6),                    # bank + strip + lanes + bus
-    (ULN1_XY[0] - 10.4, 102.6, ULN1_XY[0] + 10.4, 106.8),
-    (ULN2_XY[0] - 10.4, 102.6, ULN2_XY[0] + 10.4, 106.8),
+    (60.0, Y0, X1, 106.8),     # bank + strip + lanes + via rows + ULN north
+    (60.3, 106.8, 62.7, 107.9),  # Q1 drain-pad tongue (drain faces north)
 ]
 
 # track/via dims

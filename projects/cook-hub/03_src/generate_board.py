@@ -1,0 +1,621 @@
+#!/usr/bin/env python3
+"""Generate 04_kicad/cook_hub.kicad_pcb from the netlist + floorplan.
+
+185x112mm 4-layer (L1 sig / In1 GND / In2 power pours / L4 sig). NE
+quadrant = relay bank + isolated keypad comb (ADR-0002/D15): 8 super-columns
+x 2 rows of DIP05-1A72-12L, J11 2x16 IDC in the north strip, milled slots
+between columns. NO SELV plane/pour/KRT copper inside geom.NOGO; the
+sanctioned bank copper (contact comb, coil verticals/lanes, RELAY_5V bus)
+is drawn post-route by route_bank.py. Missing footprint = HARD ERROR.
+Refdes de-collision prints every reference on F.SilkS (canon 3b) +
+functional silk (P5) incl. the silk-labelled isolation boundary (§8.4).
+
+Run with KiCad-bundled python: /usr/bin/python3 03_src/generate_board.py
+"""
+import json
+import math
+import re
+import sys
+from pathlib import Path
+
+import pcbnew
+
+HERE = Path(__file__).parent
+sys.path.insert(0, str(HERE))
+import geom as G  # noqa: E402
+
+K = HERE.parent / "04_kicad"
+NETLIST = HERE.parent / "06_build" / "netlists" / "cook_hub.net"
+PCB = K / "cook_hub.kicad_pcb"
+STD = "/usr/share/kicad/footprints"
+PROJ = str(HERE / "lib" / "cookhub.pretty")
+MM = pcbnew.ToMM
+
+
+def parse_netlist(path):
+    s = path.read_text()
+    comps = {}
+    for m in re.finditer(r'\(comp\s+\(ref\s+"([^"]+)"\)(.*?)(?=\(comp\s+\(ref|\(libparts)', s, re.S):
+        ref, body = m.group(1), m.group(2)
+        fp = re.search(r'\(footprint\s+"([^"]*)"\)', body)
+        val = re.search(r'\(value\s+"([^"]*)"\)', body)
+        comps[ref] = (fp.group(1) if fp else "", val.group(1) if val else "")
+    if not comps:
+        raise RuntimeError(f"parsed 0 components from {path}")
+    pad_net, nets = {}, set()
+    for m in re.finditer(r'\(net\s+\(code\s+"\d+"\)\s+\(name\s+"([^"]+)"\)(.*?)(?=\(net\s+\(code|\Z)', s, re.S):
+        name, body = m.group(1), m.group(2)
+        nets.add(name)
+        for r, p in re.findall(r'\(node\s+\(ref\s+"([^"]+)"\)\s+\(pin\s+"([^"]+)"\)', body):
+            pad_net[(r, p)] = name
+    if not nets:
+        raise RuntimeError(f"parsed 0 nets from {path}")
+    return comps, pad_net, nets
+
+
+def load_fp(fpid):
+    lib, name = fpid.split(":")
+    root = PROJ if lib == "cookhub" else f"{STD}/{lib}.pretty"
+    fp = pcbnew.FootprintLoad(root, name)
+    if fp is None:
+        raise RuntimeError(f"footprint not found: {fpid} in {root}")
+    fp.SetFPID(pcbnew.LIB_ID(lib, name))
+    return fp
+
+
+# ------------------------------------------------------------- floorplan
+ANCHOR = {}
+# relay bank: Kn center = (COIL_X[k]+3.81, ROW_Y[row]+7.62)
+for n in range(1, 17):
+    k = (n + 1) // 2 - 1
+    row = (n - 1) % 2
+    ANCHOR[f"K{n}"] = (G.COIL_X[k] + 3.81, G.ROW_Y[row] + 7.62, 0)
+    # coil test point: on the coil net, straight south of pin 7
+    ANCHOR[f"TP{40 + n}"] = (G.COIL_X[k], G.ROW_Y[row] + G.PIN_SPAN + 1.85, 0)
+ANCHOR["J11"] = (*G.J11_XY, 0)
+ANCHOR["J2"] = (*G.PICO_XY, 0)
+ANCHOR["U5"] = (*G.ULN1_XY, None)      # rot resolved by assert below
+ANCHOR["U6"] = (*G.ULN2_XY, None)
+ANCHOR.update({
+    # west edge connectors (north->south)
+    "J5": (25.0, 33.0, 90), "J15": (37.0, 23.2, 270),
+    "J3": (24.5, 46.0, 90), "J4": (24.5, 62.0, 90), "J14": (24.5, 78.0, 90),
+    "J7": (24.5, 92.0, 90), "J8": (24.5, 101.0, 90),
+    # south edge connectors
+    "J1": (37.0, 125.5, 270), "J9": (53.0, 128.0, 0), "J6": (73.0, 128.0, 0),
+    "J10": (89.0, 128.5, 0), "J12": (102.0, 128.0, 0), "J13": (117.0, 128.0, 0),
+    # power entry / rails
+    "F1": (31.0, 116.0, 90), "Q3": (38.0, 116.0, 0), "D2": (44.0, 116.0, 0),
+    "CE1": (51.0, 118.0, 0), "U12": (58.0, 124.0, 0),
+    "D1": (46.0, 111.5, 0), "FB1": (28.0, 26.0, 0),
+    # analog corner
+    "U1": (34.0, 33.0, 0),
+    # safety chain cluster
+    "U7": (66.5, 110.0, 0), "U8": (66.5, 118.0, 0), "U9": (75.0, 110.0, 0),
+    "Q2": (74.0, 118.0, 0), "Q1": (*G.Q1_XY, 0), "R23": (52.0, 110.5, 0),
+    "C8": (61.5, 112.5, 0), "C9": (64.5, 112.5, 0), "R25": (58.0, 111.5, 0),
+    "TP33": (58.0, 114.5, 0),
+    # coil drive
+    "U3": (84.0, 121.0, 270), "U4": (144.0, 121.0, 270),
+    # opto
+    "U10": (93.0, 122.5, 0),
+    # I2C ESD
+    "U13": (30.2, 48.0, 0), "U14": (30.2, 64.0, 0), "U15": (80.0, 122.0, 0),
+    # estop schmitt
+    "U11": (44.0, 117.0, 90),
+    "SW1": (56.0, 94.0, 0),
+})
+
+# floater seeds (ring-legalized): near their electrical neighbours
+SEED = {
+    "R12": (38, 120), "C4": (55, 112), "C5": (58, 112), "C1": (53, 124),
+    "C2": (63, 122), "C3": (66, 124), "C6": (28, 29), "C7": (30.5, 26),
+    "C10": (51, 111.5), "TP1": (37, 112), "TP2": (63, 118), "TP3": (30.5, 29),
+    "TP4": (46, 108), "TP5": (150, 118),
+    "R11": (71, 110), "C11": (71, 113), "C14": (66, 114), "R21": (71, 118),
+    "R22": (71, 121), "R24": (75, 114), 
+    "C15": (60, 121), "C16": (78, 110),
+    "TP20": (70, 121), "TP21": (58, 113), "TP22": (66, 124),
+    "C12": (90, 116), "C13": (150, 116), "TP17": (95, 124), "TP18": (98, 126),
+    "TP19": (101, 124),
+    "R26": (90, 119), "TP28": (96, 127), "C22": (76, 119),
+    "TP15": (72, 124), "TP16": (76, 125),
+    "C20": (31.5, 51), "R41": (36, 44), "R42": (36, 46.5), "R71": (37, 50),
+    "R72": (40, 50), "R73": (43, 50), "R74": (46, 50), "JP1": (37, 54),
+    "TP6": (34, 46), "TP7": (34, 48.5),
+    "C21": (31.5, 61.5), "R43": (36, 64), "R44": (36, 66.5), "R75": (29, 68),
+    "R76": (31.5, 68), "R77": (29, 70.5), "R78": (31.5, 70.5), "JP2": (29.5, 74),
+    "TP8": (29, 72.8), "TP9": (31.5, 72.8),
+    "R61": (28.5, 37), "R62": (31, 37), "C61": (33.5, 37), "C62": (36, 37),
+    "C63": (38.5, 37), "C18": (41, 33), "C19": (43.5, 33), "TP34": (41, 29.5),
+    "TP35": (44, 29.5), "TP10": (37, 26.5), "TP11": (40, 26.5), "TP12": (43, 26.5),
+    "TP13": (46, 26.5), "TP14": (49, 26.5),
+    "R51": (30, 108), "R54": (33, 108), "C51": (36, 108), "D5": (39, 108),
+    "TP25": (42, 108), "R52": (30, 111), "R55": (33, 111), "C52": (36, 111),
+    "D6": (39, 111), "TP26": (42, 111), "R53": (30, 105), "R56": (33, 105),
+    "C53": (36, 105), "D7": (39, 105), "TP27": (42, 105),
+    "R33": (29.5, 87), "R34": (32, 87), "C33": (34.5, 87), "D4": (29.5, 85),
+    "SJ1": (32, 85), "JP5": (29.5, 82.5), "TP23": (34.5, 85),
+    "R31": (29.5, 97), "R32": (32, 97), "C31": (34.5, 97), "D3": (29.5, 95),
+    "C17": (38, 120), "TP24": (50, 117),
+    "TP29": (56, 88), "TP30": (56, 91), "TP31": (56, 85), "TP32": (56, 82),
+}
+
+# refs with exact engineered positions — legalizer must not move them
+KEEP = set(ANCHOR)
+
+# plain-words silkscreen (P-SILK-FN + §8.4/§8.5). (text, x, y, size[, rot])
+SILK = [
+    ("EXT 5V 2A IN", 37.0, 120.5, 1.0), ("CENTER PIN +5V", 37.0, 122.2, 0.7),
+    ("NTC: PORT GND ENCL GND SPARE GND", 53.0, 123.5, 0.7),
+    ("J9 THERMISTORS", 53.0, 125.2, 0.8),
+    ("LOADCELL DIGITAL", 73.0, 123.5, 0.8), ("5V 3V3 G DAT CLK", 73.0, 125.2, 0.7),
+    ("CONTACTOR OUT", 89.0, 123.7, 0.8), ("C  E  30V 50mA MAX", 89.0, 125.4, 0.7),
+    ("TURNTABLE ENC (DNP)", 102.0, 123.5, 0.7), ("3V3 G A B HOME", 102.0, 125.2, 0.65),
+    ("STEP DIR EN G (DNP)", 117.0, 123.5, 0.7),
+    ("TC K-TYPE", 25.2, 27.8, 0.9), ("YEL+  RED-", 25.2, 29.4, 0.8),
+    ("MAX31865 DNP", 43.0, 20.9, 0.7), ("3V3A G SCK MOSI MISO CS1", 43.0, 25.0, 0.6),
+    ("I2C0 MLX90640+SHT45", 33.0, 40.2, 0.8), ("3V3 G SDA SCL", 24.7, 48.4, 0.7),
+    ("I2C1 EXHAUST SHT45", 33.5, 58.5, 0.8), ("3V3 G SDA SCL", 24.7, 64.4, 0.7),
+    ("SPARE I2C0+GP4", 25.2, 80.5, 0.8),
+    ("DOOR NC+EOL", 30.5, 90.5, 0.8), ("HALL RAW GND", 24.7, 94.6, 0.65),
+    ("E-STOP NC", 30.0, 103.8, 0.8),
+    ("PICO 2 MODULE - USB TO PI 5", 42.0, 111.5, 0.9),
+    ("JP1: I2C0 PU 1-2=2k2 2-3=4k7", 40.0, 56.5, 0.6),
+    ("JP2: I2C1 PU 1-2=2k2 2-3=4k7", 36.5, 74.5, 0.6),
+    ("JP5 1-2: HALL PWR", 30.5, 79.5, 0.6),
+    ("SJ1: DOOR EOL->ADC2 (unfit TH3)", 33.5, 88.7, 0.55),
+    ("RUN", 56.0, 91.7, 0.7),
+    ("cook-hub v1.0  SMC0985KS PHASE-1 HUB", 130.0, 118.5, 1.1),
+    ("HW WATCHDOG", 68.5, 106.9, 0.7),
+    ("RELAY COIL DRIVERS", 128.0, 110.0, 0.8),
+    # isolation boundary story (§8.4)
+    ("ISOLATED KEYPAD ZONE - UNKNOWN VOLTAGE", 132.0, 22.3, 1.2),
+    ("NO SELV COPPER / NO PROBING IN ENCLOSURE", 132.0, 24.4, 0.8),
+    ("J11 KEYPAD: CH n = PINS 2n-1,2n  (CH1 WEST)", 140.0, 36.6, 0.8),
+    ("SELV SIDE", 55.0, 24.0, 0.9, 90),
+    ("BOUNDARY: >=6MM CREEPAGE + MILLED SLOTS", 132.0, 99.5, 0.8),
+]
+for n in (1, 8, 9, 16):
+    SILK.append((f"CH{n}", G.J11_COL0_X + (n - 1) * 2.54, 26.2, 0.6))
+for k in range(G.NSC):
+    SILK.append(("KEYPAD", G.CONT_X[k] + 1.1, 48.8, 0.55, 90))
+
+
+def main():
+    comps, pad_net, nets = parse_netlist(NETLIST)
+    board = pcbnew.BOARD()
+    board.SetCopperLayerCount(4)
+
+    netmap = {}
+    for n in sorted(nets):
+        ni = pcbnew.NETINFO_ITEM(board, n)
+        board.Add(ni)
+        netmap[n] = ni
+
+    def edge_seg(xa, ya, xb, yb):
+        s = pcbnew.PCB_SHAPE(board)
+        s.SetShape(pcbnew.SHAPE_T_SEGMENT)
+        s.SetStart(pcbnew.VECTOR2I_MM(xa, ya))
+        s.SetEnd(pcbnew.VECTOR2I_MM(xb, yb))
+        s.SetLayer(pcbnew.Edge_Cuts)
+        s.SetWidth(pcbnew.FromMM(0.1))
+        board.Add(s)
+
+    edge_seg(G.X0, G.Y0, G.X1, G.Y0)
+    edge_seg(G.X1, G.Y0, G.X1, G.Y1)
+    edge_seg(G.X1, G.Y1, G.X0, G.Y1)
+    edge_seg(G.X0, G.Y1, G.X0, G.Y0)
+
+    # milled isolation slots (Edge.Cuts closed rectangles, 2mm wide)
+    def slot(xc, y0, y1):
+        h = G.SLOT_W / 2
+        edge_seg(xc - h, y0, xc + h, y0)
+        edge_seg(xc + h, y0, xc + h, y1)
+        edge_seg(xc + h, y1, xc - h, y1)
+        edge_seg(xc - h, y1, xc - h, y0)
+
+    for sx in G.SLOT_X:
+        slot(sx, G.SLOT_Y0, G.SLOT_Y1)
+    slot(G.WSLOT_X, G.WSLOT_Y0, G.WSLOT_Y1)
+
+    # NPTH mounting holes (nylon standoffs)
+    for i, (hx, hy) in enumerate(G.HOLES, 1):
+        mh = pcbnew.FootprintLoad(f"{STD}/MountingHole.pretty",
+                                  "MountingHole_3.2mm_M3")
+        if mh is None:
+            raise RuntimeError("mounting hole footprint missing")
+        mh.SetFPID(pcbnew.LIB_ID("MountingHole", "MountingHole_3.2mm_M3"))
+        mh.SetReference(f"H{i}")
+        mh.SetAttributes(mh.GetAttributes() | pcbnew.FP_BOARD_ONLY | pcbnew.FP_EXCLUDE_FROM_BOM)
+        mh.SetPosition(pcbnew.VECTOR2I_MM(hx, hy))
+        board.Add(mh)
+
+    placed = 0
+    for ref, (fpid, val) in sorted(comps.items()):
+        if not fpid:
+            raise RuntimeError(f"{ref} has no footprint in the netlist")
+        fp = load_fp(fpid)
+        fp.SetReference(ref)
+        fp.SetValue(val)
+        if ref in ANCHOR:
+            x, y, rot = ANCHOR[ref]
+        elif ref in SEED:
+            x, y = SEED[ref]
+            rot = 0
+        else:
+            raise RuntimeError(f"{ref} has no anchor and no seed")
+        fp.SetPosition(pcbnew.VECTOR2I_MM(x, y))
+        if rot:
+            fp.SetOrientationDegrees(rot)
+        for pad in fp.Pads():
+            key = (ref, pad.GetNumber())
+            if key in pad_net:
+                pad.SetNet(netmap[pad_net[key]])
+        board.Add(fp)
+        placed += 1
+
+    board_pads = {(f.GetReference(), p.GetNumber())
+                  for f in board.GetFootprints() for p in f.Pads()}
+    missing = [k for k in pad_net if k not in board_pads]
+    if missing:
+        raise RuntimeError(f"netlist pads missing on board: {missing}")
+
+    fps = {f.GetReference(): f for f in board.GetFootprints()}
+
+    def padpos(ref, num):
+        p = next(p for p in fps[ref].Pads() if p.GetNumber() == num)
+        return MM(p.GetPosition().x), MM(p.GetPosition().y)
+
+    def padnet(ref, num):
+        return next(p for p in fps[ref].Pads()
+                    if p.GetNumber() == num).GetNetname()
+
+    # ULN rotation: find the angle putting pad 18 (OUT1) at west-north
+    for ref, (ux, uy) in (("U5", G.ULN1_XY), ("U6", G.ULN2_XY)):
+        ok = False
+        for ang in (90, 270, 0, 180):
+            fps[ref].SetOrientationDegrees(ang)
+            x18, y18 = padpos(ref, "18")
+            x10, y10 = padpos(ref, "10")
+            x1, y1 = padpos(ref, "1")
+            if (abs(x18 - (ux - 5.08)) < 0.05 and y18 < uy - 4
+                    and abs(x10 - (ux + 5.08)) < 0.05 and y10 < uy - 4
+                    and y1 > uy + 4):
+                ok = True
+                break
+        if not ok:
+            raise RuntimeError(f"{ref}: no rotation puts OUT1 west-north")
+
+    # J15: pin-1-origin header must run EAST along the top edge
+    okj = False
+    for ang in (270, 90, 0, 180):
+        fps["J15"].SetOrientationDegrees(ang)
+        x1j, y1j = padpos("J15", "1")
+        x6j, y6j = padpos("J15", "6")
+        if x6j > x1j + 10 and abs(y6j - y1j) < 0.01:
+            okj = True
+            break
+    if not okj:
+        raise RuntimeError("J15 pads not running east")
+
+    # Q1: drain (pad 3) must face NORTH into the pocket tongue
+    okq = False
+    for ang in (0, 180, 90, 270):
+        fps["Q1"].SetOrientationDegrees(ang)
+        _, y3 = padpos("Q1", "3")
+        if y3 < G.Q1_XY[1] - 0.5:
+            okq = True
+            break
+    if not okq:
+        raise RuntimeError("Q1 drain not north")
+
+    # J1 barrel: rotation whose bbox reaches the south edge (mouth south)
+    j1 = fps["J1"]
+    best = None
+    for ang in (0, 90, 180, 270):
+        j1.SetOrientationDegrees(ang)
+        bb = j1.GetBoundingBox(False, False)
+        if best is None or MM(bb.GetBottom()) > best[1]:
+            best = (ang, MM(bb.GetBottom()))
+    j1.SetOrientationDegrees(best[0])
+    if best[1] < G.Y1 - 8.0:
+        raise RuntimeError(f"J1 mouth not reaching south edge (bottom {best[1]:.1f})")
+
+    # ---- engineered-position asserts (part.yaml facts; audit re-checks) ----
+    for n in range(1, 17):
+        k = (n + 1) // 2 - 1
+        row = (n - 1) % 2
+        assert padnet(f"K{n}", "1") == "RELAY_5V", f"K{n} pin1"
+        assert padnet(f"K{n}", "7") == f"COIL_{n}", f"K{n} pin7"
+        assert padnet(f"K{n}", "14") == f"KC{n}A", f"K{n} pin14"
+        assert padnet(f"K{n}", "8") == f"KC{n}B", f"K{n} pin8"
+        x1, y1 = padpos(f"K{n}", "1")
+        assert abs(x1 - G.COIL_X[k]) < 0.01 and abs(y1 - G.ROW_Y[row]) < 0.01, \
+            f"K{n} pin1 at ({x1},{y1})"
+        x14, _ = padpos(f"K{n}", "14")
+        assert abs(x14 - G.CONT_X[k]) < 0.01, f"K{n} pin14 x {x14}"
+    for c in range(1, 17):
+        xa, ya = padpos("J11", str(2 * c - 1))
+        assert abs(xa - (G.J11_COL0_X + (c - 1) * 2.54)) < 0.01, f"J11 ch{c}"
+        assert abs(ya - G.J11_ROWA_Y) < 0.01
+        assert padnet("J11", str(2 * c - 1)) == f"KC{c}A"
+        assert padnet("J11", str(2 * c)) == f"KC{c}B"
+    # Pico: pin1 NW, pin 40 NE
+    x, y = padpos("J2", "1")
+    assert abs(x - (G.PICO_XY[0] - 8.89)) < 0.01 and abs(y - (G.PICO_XY[1] - 24.13)) < 0.01
+    assert padnet("J2", "39") == "VSYS" and padnet("J2", "3") == "GND"
+    # polarized pad-1 nets (D_* pad1 = cathode; CP_Elec pad1 = +)
+    for ref, want in [("D1", "VSYS"), ("D2", "5VP"), ("D3", "ESTOP_RAW"),
+                      ("D4", "DOOR_RAW"), ("D5", "TH1"), ("D6", "TH2"),
+                      ("D7", "TH3"), ("CE1", "5VP")]:
+        got = padnet(ref, "1")
+        if got != want:
+            raise RuntimeError(f"{ref} pad1 net {got} != {want}")
+    # FET sanity (SOT-23 1=G 2=S 3=D)
+    assert padnet("Q1", "2") == "5VP" and padnet("Q1", "3") == "RELAY_5V"
+    assert padnet("Q3", "3") == "5V_D" and padnet("Q3", "2") == "5VP"
+    assert padnet("Q2", "2") == "GND" and padnet("Q2", "3") == "Q1G"
+    # ULN pairing (IN1 opposite corner from OUT1)
+    assert padnet("U5", "18") == "COIL_1" and padnet("U5", "1") == "DRV1"
+    assert padnet("U6", "18") == "COIL_9" and padnet("U6", "10") == "RELAY_5V"
+
+    # ---------------------------------------------------- legalize floaters
+    def bbox(f):
+        bb = f.GetBoundingBox(False, False)
+        return (MM(bb.GetLeft()), MM(bb.GetTop()), MM(bb.GetRight()), MM(bb.GetBottom()))
+
+    holes = [(hx, hy) for hx, hy in G.HOLES]
+
+    def clear_at(f, x, y, skip):
+        old = f.GetPosition()
+        f.SetPosition(pcbnew.VECTOR2I_MM(x, y))
+        l, t, r_, bt = bbox(f)
+        f.SetPosition(old)
+        w2, h2 = (r_ - l) / 2, (bt - t) / 2
+        if not (G.X0 + 1.0 + w2 < x < G.X1 - 1.0 - w2 and
+                G.Y0 + 1.0 + h2 < y < G.Y1 - 1.0 - h2):
+            return False
+        # keep floaters out of the NOGO bank region + KRT keepouts
+        for (nx0, ny0, nx1, ny1) in [G.NOGO] + list(G.KRT_KEEPOUTS):
+            if not (x + w2 < nx0 - 0.3 or x - w2 > nx1 + 0.3 or
+                    y + h2 < ny0 - 0.3 or y - h2 > ny1 + 0.3):
+                return False
+        for hx, hy in holes:
+            if max(abs(x - hx) - w2, abs(y - hy) - h2, 0) < 2.6:
+                return False
+        for r2, f2 in fps.items():
+            if r2 == skip or r2.startswith("H"):
+                continue
+            L, T, Rr, B = bbox(f2)
+            if not (x + w2 + 0.25 <= L or Rr <= x - w2 - 0.25 or
+                    y + h2 + 0.25 <= T or B <= y - h2 - 0.25):
+                return False
+        return True
+
+    moved = 0
+    for r in sorted(fps):
+        f = fps[r]
+        if r in KEEP or r.startswith("H"):
+            continue
+        ox, oy = MM(f.GetPosition().x), MM(f.GetPosition().y)
+        if clear_at(f, ox, oy, r):
+            continue
+        done = False
+        for ring in [0.5 * k for k in range(1, 100)]:
+            for ang in range(0, 360, 20):
+                nx = round(ox + ring * math.cos(math.radians(ang)), 1)
+                ny = round(oy + ring * math.sin(math.radians(ang)), 1)
+                if clear_at(f, nx, ny, r):
+                    f.SetPosition(pcbnew.VECTOR2I_MM(nx, ny))
+                    moved += 1
+                    done = True
+                    break
+            if done:
+                break
+        if not done:
+            raise RuntimeError(f"legalizer: no clear spot for {r} within 50mm")
+    print(f"legalized {moved} small parts")
+
+    # design rules floor (JLC 4-layer standard: 0.09/0.09 capability,
+    # 0.45/0.2 via floor; we run 0.6/0.3 vias, 0.2 tracks, 0.127 clearance)
+    ds = board.GetDesignSettings()
+    ds.m_TrackMinWidth = pcbnew.FromMM(0.15)
+    ds.m_MinClearance = int(0.127e6)
+    ds.m_ViasMinAnnularWidth = int(0.13e6)
+    ds.m_HoleClearance = int(0.25e6)
+    ds.m_HoleToHoleMin = int(0.5e6)
+    ds.m_CopperEdgeClearance = int(0.3e6)
+    ds.m_ViasMinSize = pcbnew.FromMM(0.45)
+    ds.m_MinThroughDrill = pcbnew.FromMM(0.2)
+    ds.m_MinConn = 0
+    ds.m_SolderMaskMinWidth = 0
+    ds.m_SolderMaskExpansion = 0
+
+    # ------------------------------------------------------------- zones
+    def add_zone(net, layer, pts, prio, minw=0.3, clr=0.3, full=False):
+        z = pcbnew.ZONE(board)
+        z.SetLayer(layer)
+        z.SetNet(netmap[net])
+        z.SetAssignedPriority(prio)
+        z.SetIslandRemovalMode(pcbnew.ISLAND_REMOVAL_MODE_ALWAYS)
+        z.SetMinThickness(pcbnew.FromMM(minw))
+        z.SetLocalClearance(pcbnew.FromMM(clr))
+        z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL if full
+                           else pcbnew.ZONE_CONNECTION_THERMAL)
+        z.Outline().NewOutline()
+        for x, y in pts:
+            z.Outline().Append(pcbnew.VECTOR2I_MM(x, y))
+        board.Add(z)
+        return z
+
+    # SELV L-shape: whole board minus the NOGO/keypad NE region
+    nx0, ny0, nx1, ny1 = G.NOGO
+    LSHAPE = [(G.X0, G.Y0), (nx0, G.Y0), (nx0, ny1), (G.X1, ny1),
+              (G.X1, G.Y1), (G.X0, G.Y1)]
+    add_zone("GND", pcbnew.In1_Cu, LSHAPE, 0)                 # THE plane
+    add_zone("GND", pcbnew.B_Cu, LSHAPE, 0)
+    add_zone("3V3", pcbnew.In2_Cu, LSHAPE, 1, minw=0.4)
+    add_zone("5VP", pcbnew.In2_Cu,
+             [(26, 110), (53, 110), (53, 131), (26, 131)], 2, minw=0.4)
+    add_zone("3V3A", pcbnew.In2_Cu,
+             [(21, 21), (52, 21), (52, 40), (21, 40)], 2, minw=0.4)
+
+    # ------------------------------------------------------------- silk text
+    silk_texts = []
+    for entry in SILK:
+        txt, x, y, size = entry[:4]
+        rot = entry[4] if len(entry) > 4 else 0
+        t = pcbnew.PCB_TEXT(board)
+        t.SetText(txt)
+        t.SetLayer(pcbnew.F_SilkS)
+        t.SetPosition(pcbnew.VECTOR2I_MM(x, y))
+        t.SetTextSize(pcbnew.VECTOR2I_MM(size, size))
+        t.SetTextThickness(pcbnew.FromMM(max(0.13, size * 0.16)))
+        if rot:
+            t.SetTextAngleDegrees(rot)
+        board.Add(t)
+        silk_texts.append(t)
+
+    # isolation boundary comb outline on silk (§8.4): strip + corridors
+    def silk_line(xa, ya, xb, yb, w=0.3):
+        s = pcbnew.PCB_SHAPE(board)
+        s.SetShape(pcbnew.SHAPE_T_SEGMENT)
+        s.SetStart(pcbnew.VECTOR2I_MM(xa, ya))
+        s.SetEnd(pcbnew.VECTOR2I_MM(xb, yb))
+        s.SetLayer(pcbnew.F_SilkS)
+        s.SetWidth(pcbnew.FromMM(w))
+        board.Add(s)
+
+    sx0, sy0, sx1, sy1 = G.STRIP_RECT
+    silk_line(sx0, sy1, sx0, sy0)
+    silk_line(sx0, sy0, sx1, sy0)
+    silk_line(sx1, sy0, sx1, min(sy1, 57.0))
+    # corridor combs along each contact column (between strip and bank rows)
+    for k in range(G.NSC):
+        cx = G.CONT_X[k]
+        silk_line(cx - 0.9, sy1, cx - 0.9, 56.5)
+        silk_line(cx + 2.6, sy1, cx + 2.6, 56.5)
+
+    # TP functional labels (net names) — placed with the refdes de-collision
+    TP_LABEL = {}
+    for f in board.GetFootprints():
+        r = f.GetReference()
+        if r.startswith("TP"):
+            TP_LABEL[r] = f.GetValue().replace("TP ", "")
+
+    # refdes on silk, de-collided (golden rule 3b / audit I8)
+    TH, THK, CLR = 0.6, 0.12, 0.16
+
+    def box(bb, pad=0.0):
+        return (MM(bb.GetLeft()) - pad, MM(bb.GetTop()) - pad,
+                MM(bb.GetRight()) + pad, MM(bb.GetBottom()) + pad)
+
+    def hit(a, b):
+        return not (a[2] < b[0] or b[2] < a[0] or a[3] < b[1] or b[3] < a[1])
+
+    pad_obst, silk_obst = [], []
+    for fp in board.GetFootprints():
+        for p in fp.Pads():
+            pad_obst.append(box(p.GetBoundingBox(), CLR))
+        for g in fp.GraphicalItems():
+            if g.IsOnLayer(pcbnew.F_SilkS):
+                silk_obst.append(box(g.GetBoundingBox(), CLR * 0.5))
+        if not fp.GetReference().startswith("H"):
+            pad_obst.append(box(fp.GetBoundingBox(False, False), 0.05))
+    for t in board.GetDrawings():
+        if t.GetClass() == "PCB_TEXT" and t.IsOnLayer(pcbnew.F_SilkS):
+            silk_obst.append(box(t.GetBoundingBox(), CLR * 0.5))
+        if t.GetClass() == "PCB_SHAPE" and t.IsOnLayer(pcbnew.F_SilkS):
+            silk_obst.append(box(t.GetBoundingBox(), 0.05))
+
+    OFF = [(0, o * s) for o in (1.0, 1.6, 2.2, 2.9, 3.6, 4.4, 5.2, 6.0, 7.0, 8.0) for s in (-1, 1)] + \
+          [(o * s, 0) for o in (1.3, 2.0, 2.8, 3.6, 4.5, 5.4, 6.2, 7.4, 8.6, 10.0, 11.5) for s in (-1, 1)] + \
+          [(dx, dy) for d in (1.4, 2.2, 3.0, 4.0, 5.0, 6.0, 7.2, 8.4) for dx in (-d, d) for dy in (-d, d)]
+    waived = []
+
+    def place_text(txt, fx, fy, size=TH):
+        t = pcbnew.PCB_TEXT(board)
+        t.SetText(txt)
+        t.SetLayer(pcbnew.F_SilkS)
+        t.SetTextSize(pcbnew.VECTOR2I_MM(size, size))
+        t.SetTextThickness(int(THK * 1e6))
+        for dx, dy in OFF:
+            t.SetPosition(pcbnew.VECTOR2I_MM(fx + dx, fy + dy))
+            cand = box(t.GetBoundingBox())
+            if not (G.X0 + 0.2 < cand[0] and cand[2] < G.X1 - 0.2
+                    and G.Y0 + 0.2 < cand[1] and cand[3] < G.Y1 - 0.2):
+                continue
+            if any(hit(cand, o) for o in pad_obst):
+                continue
+            if any(hit(cand, o) for o in silk_obst):
+                continue
+            silk_obst.append(cand)
+            board.Add(t)
+            return True
+        return False
+
+    def prio(fp):
+        r = fp.GetReference()
+        return (0 if r[0] in "UJKQ" or r.startswith("SW") else 1, r)
+
+    for fp in sorted(board.GetFootprints(), key=prio):
+        r = fp.GetReference()
+        ref = fp.Reference()
+        ref.SetTextSize(pcbnew.VECTOR2I_MM(TH, TH))
+        ref.SetTextThickness(int(THK * 1e6))
+        fab = pcbnew.PCB_TEXT(board)
+        fab.SetText(r)
+        fab.SetLayer(pcbnew.F_Fab)
+        fab.SetPosition(fp.GetPosition())
+        fab.SetTextSize(pcbnew.VECTOR2I_MM(0.5, 0.5))
+        fab.SetTextThickness(int(0.08e6))
+        board.Add(fab)
+        if r.startswith("H"):
+            ref.SetVisible(False)
+            continue
+        ref.SetLayer(pcbnew.F_SilkS)
+        ref.SetVisible(True)
+        fx, fy = MM(fp.GetPosition().x), MM(fp.GetPosition().y)
+        placed_ok = False
+        for sz in (TH, 0.45):
+            ref.SetTextSize(pcbnew.VECTOR2I_MM(sz, sz))
+            ref.SetTextThickness(int((THK if sz == TH else 0.09) * 1e6))
+            for dx, dy in OFF:
+                ref.SetPosition(pcbnew.VECTOR2I_MM(fx + dx, fy + dy))
+                cand = box(ref.GetBoundingBox())
+                if not (G.X0 + 0.2 < cand[0] and cand[2] < G.X1 - 0.2
+                        and G.Y0 + 0.2 < cand[1] and cand[3] < G.Y1 - 0.2):
+                    continue
+                if any(hit(cand, o) for o in pad_obst):
+                    continue
+                if any(hit(cand, o) for o in silk_obst):
+                    continue
+                silk_obst.append(cand)
+                placed_ok = True
+                break
+            if placed_ok:
+                break
+        if not placed_ok:
+            ref.SetVisible(False)
+            waived.append(r)
+
+    # TP net-name labels (functional silk P5): best effort, next to the TP
+    tp_labeled = 0
+    for r, lbl in sorted(TP_LABEL.items()):
+        f = fps[r]
+        if place_text(lbl, MM(f.GetPosition().x), MM(f.GetPosition().y), 0.5):
+            tp_labeled += 1
+
+    (HERE.parent / "06_build").mkdir(exist_ok=True)
+    (HERE.parent / "06_build" / "refdes_waiver.json").write_text(json.dumps(sorted(waived)))
+    print(f"refdes on silk: {placed - len(waived)}/{placed} placed, "
+          f"{len(waived)} waived: {sorted(waived)}")
+    print(f"TP labels placed: {tp_labeled}/{len(TP_LABEL)}")
+    board.Save(str(PCB))
+    print(f"placed {placed} footprints + {len(G.HOLES)} holes; "
+          f"{len(G.SLOT_X) + 1} slots; zones; saved {PCB.name}")
+
+
+if __name__ == "__main__":
+    main()

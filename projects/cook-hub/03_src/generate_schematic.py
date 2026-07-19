@@ -162,11 +162,10 @@ sch.sym_fp = {
     "USBLC6": "Package_TO_SOT_SMD:SOT-23-6",
     "AMS": "Package_TO_SOT_SMD:SOT-223-3_TabPin2",
 }
-# 10u/22u lines are 0805; coil test points are THT bridges (route_bank)
+# 10u/22u lines are 0805 (coil TPs stay SMD D1.5 — B.Cu verticals pass
+# 1.15mm west of them, a THT barrel would collide)
 BIGCAP = ["C1", "C2", "C3", "C6", "C8", "C10", "C19"]
 sch.ref_fp = {r: "Capacitor_SMD:C_0805_2012Metric" for r in BIGCAP}
-for k in range(1, 17):
-    sch.ref_fp[f"TP{40 + k}"] = "TestPoint:TestPoint_THTPad_D2.0mm_Drill1.0mm"
 
 # ═══════════════════ circuit: structure only ═══════════════════
 
