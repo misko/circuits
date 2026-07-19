@@ -44999,6 +44999,259 @@
 			)
 		)
 	)
+	(gr_text "5V TERM DNP"
+		(at 18 98.615 0)
+		(layer "F.SilkS")
+		(uuid "bdf175c9-310c-46a6-8cef-204c714b19f1")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC"
+		(at 23.55 34 0)
+		(layer "F.SilkS")
+		(uuid "16da1e32-b0ea-417f-995a-914a0a17b6f1")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP 5V"
+		(at 27.8 124 0)
+		(layer "F.SilkS")
+		(uuid "1a6446b2-aaf4-459c-97e4-5ac29e472cd2")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP BEEP_RET1"
+		(at 28.6 49.035 0)
+		(layer "F.SilkS")
+		(uuid "583fac13-2460-4342-a98e-a06bb513fc39")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "2A PTC"
+		(at 36.325 116 0)
+		(layer "F.SilkS")
+		(uuid "0070b090-e743-48f3-b1c3-6ba9a1403938")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC"
+		(at 43.55 34 0)
+		(layer "F.SilkS")
+		(uuid "cb6e0253-9c28-4577-abf2-b80bcbf26030")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP 0V9"
+		(at 43.6 128 0)
+		(layer "F.SilkS")
+		(uuid "ec00c824-8474-44b6-b4f7-4df9dce39872")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP BEEP_RET2"
+		(at 48.6 49.035 0)
+		(layer "F.SilkS")
+		(uuid "96cadeb7-19d2-4566-8f72-7901556c73fd")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC"
+		(at 63.55 34 0)
+		(layer "F.SilkS")
+		(uuid "5493c152-f66f-4b73-8960-98256769de58")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP BEEP_RET3"
+		(at 68.6 49.035 0)
+		(layer "F.SilkS")
+		(uuid "245f2cdc-5230-4a53-be7c-03bfd5c523b7")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC"
+		(at 83.55 34 0)
+		(layer "F.SilkS")
+		(uuid "fa442051-a2de-4ae4-b11f-0cb253218643")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP BEEP_RET4"
+		(at 84.6 48.4 0)
+		(layer "F.SilkS")
+		(uuid "f8e2d1c5-fbf9-47d0-a5ba-0ec75d3328af")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC"
+		(at 103.55 34 0)
+		(layer "F.SilkS")
+		(uuid "b6901fe3-81d1-4f95-83d1-28181a00c9d2")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP BEEP_RET5"
+		(at 108.6 49.035 0)
+		(layer "F.SilkS")
+		(uuid "30851824-4598-43c6-a93a-7d8aba95a3dd")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC"
+		(at 123.55 34 0)
+		(layer "F.SilkS")
+		(uuid "75689f86-56b1-49ae-a308-54283326181c")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP BEEP_RET6"
+		(at 128.6 49.035 0)
+		(layer "F.SilkS")
+		(uuid "1b345048-f766-4c03-afc3-07b143fc43c8")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC"
+		(at 143.55 34 0)
+		(layer "F.SilkS")
+		(uuid "818cd700-d18b-414c-a3a8-7240cce05df2")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP BEEP_RET7"
+		(at 148.6 49.035 0)
+		(layer "F.SilkS")
+		(uuid "4d5a38c5-61e2-4e1b-8158-626e4e9fcbbf")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "xSYS DBG TDI/TDO"
+		(at 160.605 112 0)
+		(layer "F.SilkS")
+		(uuid "f476c53d-55e7-4b7b-8f81-3ac0f450bd08")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "INJ IN"
+		(at 171.145 120 0)
+		(layer "F.SilkS")
+		(uuid "2df970c2-7bae-4b89-bccf-33fa8057d374")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP BEEP_RET8"
+		(at 175.775 46 0)
+		(layer "F.SilkS")
+		(uuid "df20a8c6-01d2-4585-9cbc-c158c42380f3")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC beep 8"
+		(at 176.625 34 0)
+		(layer "F.SilkS")
+		(uuid "a2f86465-2d12-4c8e-8074-9a17c2d50198")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC audio 8"
+		(at 177.45 38.2 0)
+		(layer "F.SilkS")
+		(uuid "d8fa4878-c5d6-4081-a341-705ab3368829")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
 	(gr_text "NOT ETHERNET - CUSTOM 5V/AUDIO PINOUT"
 		(at 98 11.1 0)
 		(layer "F.SilkS")
@@ -50448,6 +50701,14 @@
 		(uuid "8af5e967-a9ca-4fcb-8baa-b60abd0486bc")
 	)
 	(via
+		(at 103.81 81.87)
+		(size 0.6)
+		(drill 0.3)
+		(layers "F.Cu" "B.Cu")
+		(net "GND")
+		(uuid "8b15ee87-1389-4b29-8bf0-a38a174a1117")
+	)
+	(via
 		(at 14 70)
 		(size 0.6)
 		(drill 0.3)
@@ -51056,12 +51317,28 @@
 		(uuid "b943bb5d-1378-4de6-825d-69f4e146ff4a")
 	)
 	(via
+		(at 81.68 46)
+		(size 0.6)
+		(drill 0.3)
+		(layers "F.Cu" "B.Cu")
+		(net "GND")
+		(uuid "b9650afc-7555-4e6a-8800-27db037a4a93")
+	)
+	(via
 		(at 70 49)
 		(size 0.6)
 		(drill 0.3)
 		(layers "F.Cu" "B.Cu")
 		(net "GND")
 		(uuid "ba8b6d80-99f8-4a64-85eb-9df31f17973c")
+	)
+	(via
+		(at 108.18 87.74)
+		(size 0.6)
+		(drill 0.3)
+		(layers "F.Cu" "B.Cu")
+		(net "GND")
+		(uuid "bae1045b-db37-4604-bc46-e73121f18559")
 	)
 	(via
 		(at 123.28 75.3)

@@ -58,6 +58,9 @@ $PY 03_src/neck_approaches.py 2>/dev/null | tail -20
 # clip-to-pad/via fallback for load-bearing through-pin overshoots
 # (connectivity guard reverts any edit that would orphan a pad).
 $PY 03_src/trim_dangling.py 2>/dev/null | tail -20
+# add_silk_fn (D29): functional silkscreen labels for J/F/TP refs (canon
+# P5 / policy_audit P-SILK-FN) — collision-aware, DRC-guarded, idempotent.
+$PY 03_src/add_silk_fn.py 2>/dev/null | tail -3
 # audit again post-route (I8 AIN length needs tracks)
 $PY 03_src/audit_board.py 2>/dev/null | tail -2
 # rules LAST: pcbnew saves clobber .kicad_pro netclasses

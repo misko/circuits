@@ -1,0 +1,41 @@
+mpn: X322524MOB4SI
+manufacturer: YXC (Yangxing Technology)
+type: crystal_24mhz_3225
+role: SOURCING SUBSTITUTE for FA-238 24.0000MD30X-W5 (Y1) — D27. The FA-238
+  exact code C2650433 is JLC stock 0 (global-sourcing only); this part is the
+  same electrical class at 111k JLC stock.
+datasheet:
+  doc_id: YXC YSX321SL series (SMD3225-4P)
+  url: https://datasheet.lcsc.com/lcsc/2306151704_YXC-Crystal-Oscillators-X322524MOB4SI_C70590.pdf
+  note: facts below cross-checked against JLC/LCSC attribute data for
+    C70590 (captured 2026-07-18); geometry independently verified against
+    our Crystal_SMD_3225-4Pin_3.2x2.5mm land by jlc_twin pad-correspondence.
+package: SMD 3225, 3.2 x 2.5 mm, 4 pads (same land as FA-238)
+footprint: Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm   # unchanged from FA-238
+pins:                       # standard 3225-4P convention, same as FA-238
+  1: XTAL1                  # crystal terminal (pin-1 corner mark)
+  2: {name: GND, note: "case/cover terminal — grounded on board"}
+  3: XTAL2                  # crystal terminal (diagonal from pin 1)
+  4: {name: GND, note: "case/cover terminal — grounded on board"}
+limits:
+  freq: 24.000MHz fundamental
+  cl: 12pF                  # SAME as the FA-238 MD30X-W5 code -> the on-board
+                            # 18pF load caps + strays remain correct
+  f_tol_25c: +-10ppm        # tighter than FA-238's +-30ppm
+  f_temp: +-20ppm -40..+85C # tighter than FA-238's +-30ppm (-20..+70C)
+  esr: 60 ohm max (family spec at 24MHz; FA-238 budget was 60 ohm — equal)
+gotchas:
+  - "Same trap as FA-238: terminals 1/3 (diagonal) are the crystal, 2/4 the
+    grounded case. The board's Y1 netting is unchanged."
+  - "CL MUST stay 12pF when substituting again — a 10pF or 20pF 3225 part
+    (X322524MMB4SI / X322524MSB4SI etc.) shifts the USB clock."
+sourcing: {lcsc: C70590, note: 'JLC stock 111072 on 2026-07-18 (extended);
+  the designed-in FA-238 C2650433 remains the Digi-Key alternate
+  (SER4069CT-ND) if YXC sourcing lapses'}
+verified: "pad map read from the 'Top View Crystal Connection' figure,
+  YXC YSX321SL series datasheet p.1 (figure read by the fresh-context Y1
+  reviewer, 2026-07-18: pads 1/3 diagonal crystal electrodes, 2/4
+  case-GND — the FA-238 convention); CL 12pF / 24.000MHz / +-10ppm tol /
+  +-20ppm stability from the LCSC C70590 attribute page, same date;
+  board-net correctness judged in the release pin review (Y1 PASS,
+  verification/pin_review.md) — D27"

@@ -111,6 +111,45 @@ for f in b.GetFootprints():
             fails.append(f"I10b refdes {r} printed under body of {r2}")
             break
 
+# I12 mate-direction + screw keepout (canon P-KEEP): every off-board
+# connector must sit on the edge it mates off (body bbox within EDGE_TOL of
+# that board edge), and no part body may intrude into the M3 screw-head
+# keepout ring around the mounting holes.
+bb_edges = b.GetBoardEdgesBoundingBox()
+EX0, EY0 = MM(bb_edges.GetX()), MM(bb_edges.GetY())
+EX1, EY1 = EX0 + MM(bb_edges.GetWidth()), EY0 + MM(bb_edges.GetHeight())
+EDGE_TOL = 4.0   # RJHSE-5384 bodies sit 3.5mm back from the edge (the
+                 # mating snout projects beyond the courtyard bbox); a
+                 # WRONG-EDGE part would be tens of mm off, not 3.5
+MATE = {  # ref: (edge, which coordinate faces it)
+    "J1": "N", "J2": "N", "J3": "N", "J4": "N",
+    "J5": "N", "J6": "N", "J7": "N", "J8": "N",   # RJ45 row mates north
+    "J9": "W",                                     # barrel jack west
+    "J12": "S",                                    # USB-C south
+}
+for ref, edge in MATE.items():
+    f = b.FindFootprintByReference(ref)
+    if not f:
+        continue
+    fb = f.GetBoundingBox(False, False)
+    t = (MM(fb.GetX()), MM(fb.GetY()),
+         MM(fb.GetX() + fb.GetWidth()), MM(fb.GetY() + fb.GetHeight()))
+    d = {"N": t[1] - EY0, "S": EY1 - t[3],
+         "W": t[0] - EX0, "E": EX1 - t[2]}[edge]
+    if d > EDGE_TOL:
+        fails.append(f"I12 mate-direction: {ref} body {d:.1f}mm off its {edge} edge")
+SCREW_R = 3.2   # M3 head radius + margin
+for h in ("H1", "H2", "H3", "H4"):
+    f = b.FindFootprintByReference(h)
+    if not f:
+        continue
+    hx, hy = MM(f.GetPosition().x), MM(f.GetPosition().y)
+    for r2, bx in bodies.items():
+        cx = max(bx[0], min(hx, bx[2]))
+        cy = max(bx[1], min(hy, bx[3]))
+        if math.hypot(cx - hx, cy - hy) < SCREW_R:
+            fails.append(f"I12 screw keepout: {r2} body within {SCREW_R}mm of {h}")
+
 # I11 EP thermal vias
 u1 = b.FindFootprintByReference("U1")
 if u1:

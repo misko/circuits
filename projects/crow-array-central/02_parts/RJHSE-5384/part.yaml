@@ -13,11 +13,11 @@ pins:                       # hole numbering from RECOMMENDED PCB LAYOUT drawing
   1: {name: CT1, note: "8P8C contact 1 — our AUDIO+"}
   2: {name: CT2, note: "contact 2 — our AUDIO-"}
   3: {name: CT3, note: "contact 3 — our +5V_BEEP"}
-  4: {name: CT4, note: "contact 4 — our +5V_AUDIO (pair with 5)"}
-  5: {name: CT5, note: "contact 5 — our +5V_AUDIO"}
+  4: {name: CT4, note: "contact 4 — our +5V_AUDIO (blue pair 4/5 carries feed+return: 4=5V, 5=GND) [D28: earlier note claimed 4+5 both 5V — WRONG doc; pod v1.0 terminal map J1 4=5V/5=GND is the sealed authority and the board matches it]"}
+  5: {name: CT5, note: "contact 5 — our GND_AUDIO (return of the blue pair) [D28]"}
   6: {name: CT6, note: "contact 6 — our BEEP_SWITCHED_RETURN (pairs with 3, T568B)"}
-  7: {name: CT7, note: "contact 7 — our GND_AUDIO (pair with 8)"}
-  8: {name: CT8, note: "contact 8 — our GND_AUDIO"}
+  7: {name: CT7, note: "contact 7 — our +5V_AUDIO (brown pair 7/8 carries feed+return: 7=5V, 8=GND) [D28: earlier note claimed 7+8 both GND — WRONG doc; pod v1.0 J1 7=5V/8=GND]"}
+  8: {name: CT8, note: "contact 8 — our GND_AUDIO (return of the brown pair) [D28]"}
   9: {name: LED1_A, note: "LED1 (right side viewed into jack face) — YELLOW on -5384; unused here, leave unconnected"}
   10: {name: LED1_B, note: "LED1 second lead; anode/cathode NOT identified in catalogue drawing"}
   11: {name: LED2_A, note: "LED2 (left side viewed into jack face) — GREEN on -5384; unused here"}

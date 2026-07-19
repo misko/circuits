@@ -148,6 +148,40 @@ board-local decisions only.
   tangentially-grazed same-net via center, solidifying a 0.21mm-off-axis
   marginal connection). 1 pure spur removed + 10 clipped -> dangling 0.
 
+- D27 (2026-07-18): **two JLC-stock-0 lines sourcing-substituted** (bom_seed
+  tier-1 remap; evidence part.yamls committed): Y1 FA-238 C2650433 -> YXC
+  X322524MOB4SI C70590 (same 3225-4P land, SAME CL 12pF — USB clock
+  unchanged — tighter +-10/+-20ppm, stock 111k); U12 TCR2LF18 C150173 ->
+  TI TLV70018DDCR C79924 (SOT-23-5, identical IN/GND/EN/NC/OUT winding,
+  1.8V/200mA, stock 5.2k). Both independently confirmed by the release
+  fresh-context pin review (U12/Y1 reviewer: PASS/PASS from TI SLVSA00E +
+  YXC YSX321SL primary sources). C90 100u bulk resolved to RYVP6.3V100UF4*5
+  C48970904 (exact CP_Elec_4x5.4 land, 6.3V = 79% derating on 5V).
+- D28 (2026-07-18): **RJ45 5V/GND contact map — BOARD CORRECT, part.yaml
+  doc was wrong** (Q9-class doc error, caught by the fresh-context J1-J6
+  pin review). The pod v1.0 (SEALED, git 17ceffe) terminal map J1: 4=5V,
+  5=GND, 7=5V, 8=GND — each of the blue/brown pairs carries feed+return
+  ("paralleled" in P4 = the two pairs parallel each other). The central
+  board matches the pod contact-for-contact on all six jacks. The
+  02_parts/RJHSE-5384/part.yaml notes (which claimed 4+5 both 5V, 7+8 both
+  GND — a reading that would put split-pair DC on no conductor pair and,
+  worse, mismatch the sealed pod) are FIXED. Shield: SH pads tie to GND at
+  central (single-point star bond; pod side leaves SHIELD floating with a
+  DNP bond R15) — deliberate.
+
+- D29 (2026-07-18): **functional silkscreen labels generated**
+  (add_silk_fn.py, chained after trim_dangling; canon P5 / P-SILK-FN).
+  The board had every functional word on F.Fab only (unprinted): unmarked
+  5V barrel jack, anonymous debug/injection headers, unlabeled PTCs/TPs —
+  the exact fleet-audit failure class. The stage stamps each J/F/TP ref's
+  VALUE ("DC-005 5V IN", "2A PTC", "TP 5V", "xSYS DBG TDI/TDO", ...) on
+  F.Silk, collision-aware (body-only obstacle model; short-label fallback
+  "PTC" in the dense port clusters), DRC-guarded, idempotent. 32 labels;
+  P-SILK-FN PASS; DRC stays 0. Also: audit_board gains I12
+  (mate-direction: RJ45 row north / barrel west / USB-C south within
+  4.0mm of their edges — RJHSE bodies legitimately sit 3.5mm back; M3
+  screw-head keepout ring 3.2mm at H1-H4) closing policy P-KEEP.
+
 ## DRC status (2026-07-18) — GATE GREEN 0/0(waived-2)/0
 
 Start 101 violations + 15 unconnected. After D19-D24: 32 violations + 6

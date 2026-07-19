@@ -29,9 +29,15 @@ SPECIFIC = [
     ("NC7NZ34", "NC7NZ34K8X"),
     ("SHT40", "SHT40-AD1B-R2"),
     ("AP61102", "AP61102Z6-7"),
-    ("TCR2LF18", "TCR2LF18,LM(CT)"),
+    # D27 SOURCING SUBSTITUTE: Toshiba TCR2LF18 C150173 is JLC stock 0 ->
+    # pin-compatible TI TLV70018DDCR (SOT-23-5, 1.8V/200mA, same winding;
+    # evidence in 02_parts/TLV70018DDCR/part.yaml + release pin review)
+    ("TCR2LF18", "TLV70018DDCR"),
     ("XC6227", "XC6227C331PR-G"),
-    ("FA-238", "FA-238-24.0000MD30X-W5"),
+    # D27 SOURCING SUBSTITUTE: Epson FA-238 exact code C2650433 is JLC
+    # stock 0 -> YXC X322524MOB4SI (same 3225-4P land, SAME CL 12pF,
+    # tighter ppm; evidence in 02_parts/X322524MOB4SI/part.yaml + twin)
+    ("FA-238", "X322524MOB4SI"),
     ("AO3401A", "AO3401A"),
     ("AO3400A", "AO3400A"),
     ("SMBJ5.0A", "SMBJ5.0A"),
@@ -40,6 +46,12 @@ SPECIFIC = [
     ("2A PTC", "SMD1812P200TF16"),           # F1 entry PTC (2A hold)
     ("PTC audio", "MINISMDC050F-2"),         # F1x audio PTC (0.5A hold)
     ("PTC beep", "MINISMDC050F-2"),          # F2x beep PTC (0.5A hold)
+    ("PTC", "MINISMDC050F-2"),               # merged F11-F28 line: the JLC
+                                             # exporter merges same-(LCSC,
+                                             # footprint) lines and reduces
+                                             # the Comment to the common
+                                             # token "PTC" ("2A PTC" F1
+                                             # matches its own entry first)
     ("1u0", "MWSA0402S-1R0MT"),              # L10/L11 buck inductors
 ]
 
@@ -73,7 +85,9 @@ PASSIVE_LCSC = {
     "4n7": "C1538",      # 4.7nF 50V X7R basic (beeper gate slow)
     "10n": "C15195",     # 10nF 50V X7R basic
     "22u": "C385994",    # 22uF 6.3V X5R (extended; 0V9 bulk)
-    "100u": "",          # C90 bulk CP_Elec_4x5.4 — resolve SMD-alu at export
+    "100u": "C48970904", # C90 bulk: RYVP6.3V100UF4*5 SMD alu D4xL5.4mm (exact
+                         # CP_Elec_4x5.4 land), 100uF 6.3V (5V rail = 79%
+                         # derating, ok for alu bulk), stock 1795 2026-07-18
     # resistors 0402 (Uniohm 0402WGF basics where available; 1% class)
     "68k": "C137947",    # (extended)
     "15k": "C25756",     # basic

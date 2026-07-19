@@ -44999,6 +44999,259 @@
 			)
 		)
 	)
+	(gr_text "5V TERM DNP"
+		(at 18 98.615 0)
+		(layer "F.SilkS")
+		(uuid "bdf175c9-310c-46a6-8cef-204c714b19f1")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC"
+		(at 23.55 34 0)
+		(layer "F.SilkS")
+		(uuid "16da1e32-b0ea-417f-995a-914a0a17b6f1")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP 5V"
+		(at 27.8 124 0)
+		(layer "F.SilkS")
+		(uuid "1a6446b2-aaf4-459c-97e4-5ac29e472cd2")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP BEEP_RET1"
+		(at 28.6 49.035 0)
+		(layer "F.SilkS")
+		(uuid "583fac13-2460-4342-a98e-a06bb513fc39")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "2A PTC"
+		(at 36.325 116 0)
+		(layer "F.SilkS")
+		(uuid "0070b090-e743-48f3-b1c3-6ba9a1403938")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC"
+		(at 43.55 34 0)
+		(layer "F.SilkS")
+		(uuid "cb6e0253-9c28-4577-abf2-b80bcbf26030")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP 0V9"
+		(at 43.6 128 0)
+		(layer "F.SilkS")
+		(uuid "ec00c824-8474-44b6-b4f7-4df9dce39872")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP BEEP_RET2"
+		(at 48.6 49.035 0)
+		(layer "F.SilkS")
+		(uuid "96cadeb7-19d2-4566-8f72-7901556c73fd")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC"
+		(at 63.55 34 0)
+		(layer "F.SilkS")
+		(uuid "5493c152-f66f-4b73-8960-98256769de58")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP BEEP_RET3"
+		(at 68.6 49.035 0)
+		(layer "F.SilkS")
+		(uuid "245f2cdc-5230-4a53-be7c-03bfd5c523b7")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC"
+		(at 83.55 34 0)
+		(layer "F.SilkS")
+		(uuid "fa442051-a2de-4ae4-b11f-0cb253218643")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP BEEP_RET4"
+		(at 84.6 48.4 0)
+		(layer "F.SilkS")
+		(uuid "f8e2d1c5-fbf9-47d0-a5ba-0ec75d3328af")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC"
+		(at 103.55 34 0)
+		(layer "F.SilkS")
+		(uuid "b6901fe3-81d1-4f95-83d1-28181a00c9d2")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP BEEP_RET5"
+		(at 108.6 49.035 0)
+		(layer "F.SilkS")
+		(uuid "30851824-4598-43c6-a93a-7d8aba95a3dd")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC"
+		(at 123.55 34 0)
+		(layer "F.SilkS")
+		(uuid "75689f86-56b1-49ae-a308-54283326181c")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP BEEP_RET6"
+		(at 128.6 49.035 0)
+		(layer "F.SilkS")
+		(uuid "1b345048-f766-4c03-afc3-07b143fc43c8")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC"
+		(at 143.55 34 0)
+		(layer "F.SilkS")
+		(uuid "818cd700-d18b-414c-a3a8-7240cce05df2")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP BEEP_RET7"
+		(at 148.6 49.035 0)
+		(layer "F.SilkS")
+		(uuid "4d5a38c5-61e2-4e1b-8158-626e4e9fcbbf")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "xSYS DBG TDI/TDO"
+		(at 160.605 112 0)
+		(layer "F.SilkS")
+		(uuid "f476c53d-55e7-4b7b-8f81-3ac0f450bd08")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "INJ IN"
+		(at 171.145 120 0)
+		(layer "F.SilkS")
+		(uuid "2df970c2-7bae-4b89-bccf-33fa8057d374")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "TP BEEP_RET8"
+		(at 175.775 46 0)
+		(layer "F.SilkS")
+		(uuid "df20a8c6-01d2-4585-9cbc-c158c42380f3")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC beep 8"
+		(at 176.625 34 0)
+		(layer "F.SilkS")
+		(uuid "a2f86465-2d12-4c8e-8074-9a17c2d50198")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(gr_text "PTC audio 8"
+		(at 177.45 38.2 0)
+		(layer "F.SilkS")
+		(uuid "d8fa4878-c5d6-4081-a341-705ab3368829")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
 	(gr_text "NOT ETHERNET - CUSTOM 5V/AUDIO PINOUT"
 		(at 98 11.1 0)
 		(layer "F.SilkS")
@@ -49448,6 +49701,14 @@
 		(uuid "39b0f1a8-b729-471f-ae27-923c0a92ccaa")
 	)
 	(via
+		(at 107.28 87.5)
+		(size 0.6)
+		(drill 0.3)
+		(layers "F.Cu" "B.Cu")
+		(net "GND")
+		(uuid "3bf7a5cf-3d06-49bd-b369-f46733cda533")
+	)
+	(via
 		(at 123.01 71.27)
 		(size 0.6)
 		(drill 0.3)
@@ -50600,6 +50861,14 @@
 		(uuid "9bd7a731-0a15-439e-8f77-94747ef14bd2")
 	)
 	(via
+		(at 103.15 82.53)
+		(size 0.6)
+		(drill 0.3)
+		(layers "F.Cu" "B.Cu")
+		(net "GND")
+		(uuid "9c49b65a-276e-4b93-bb56-5b4502d60540")
+	)
+	(via
 		(at 112 35)
 		(size 0.6)
 		(drill 0.3)
@@ -51144,6 +51413,14 @@
 		(uuid "c4558bd5-3053-442b-b2e6-1a760cf26cb6")
 	)
 	(via
+		(at 103.58 115.5)
+		(size 0.6)
+		(drill 0.3)
+		(layers "F.Cu" "B.Cu")
+		(net "GND")
+		(uuid "c4576307-4f66-4495-b484-10123a0f306c")
+	)
+	(via
 		(at 47.28 104.6)
 		(size 0.6)
 		(drill 0.3)
@@ -51558,6 +51835,14 @@
 		(layers "F.Cu" "B.Cu")
 		(net "GND")
 		(uuid "dfde8012-5680-4b5c-9598-95718b9c4c12")
+	)
+	(via
+		(at 79.23 44.87)
+		(size 0.6)
+		(drill 0.3)
+		(layers "F.Cu" "B.Cu")
+		(net "GND")
+		(uuid "e00f9f80-bdc1-4b0b-82cb-a7c84f2dbd6f")
 	)
 	(via
 		(at 14 98)
@@ -83400,6 +83685,37 @@
 	)
 	(zone
 		(layers "F.Cu" "B.Cu" "In1.Cu" "In2.Cu" "In3.Cu" "In4.Cu")
+		(uuid "ba8b49e4-cdec-4ce3-ae5e-aff838d39f4c")
+		(name "pwr_neck")
+		(hatch edge 0.5)
+		(connect_pads
+			(clearance 0)
+		)
+		(min_thickness 0.25)
+		(keepout
+			(tracks allowed)
+			(vias allowed)
+			(pads allowed)
+			(copperpour allowed)
+			(footprints allowed)
+		)
+		(placement
+			(enabled no)
+			(sheetname "")
+		)
+		(fill
+			(thermal_gap 0.5)
+			(thermal_bridge_width 0.5)
+			(island_removal_mode 0)
+		)
+		(polygon
+			(pts
+				(xy 49 109.0121) (xy 49.5121 108.5) (xy 49.3 108.2879) (xy 48.7879 108.8)
+			)
+		)
+	)
+	(zone
+		(layers "F.Cu" "B.Cu" "In1.Cu" "In2.Cu" "In3.Cu" "In4.Cu")
 		(uuid "beb26740-7687-4e4b-a61e-c993b5c02e86")
 		(name "pwr_neck")
 		(hatch edge 0.5)
@@ -83860,37 +84176,6 @@
 		(polygon
 			(pts
 				(xy 119.1379 110.6) (xy 119.6 111.0621) (xy 119.8121 110.85) (xy 119.35 110.3879)
-			)
-		)
-	)
-	(zone
-		(layers "F.Cu" "B.Cu" "In1.Cu" "In2.Cu" "In3.Cu" "In4.Cu")
-		(uuid "ba8b49e4-cdec-4ce3-ae5e-aff838d39f4c")
-		(name "pwr_neck")
-		(hatch edge 0.5)
-		(connect_pads
-			(clearance 0)
-		)
-		(min_thickness 0.25)
-		(keepout
-			(tracks allowed)
-			(vias allowed)
-			(pads allowed)
-			(copperpour allowed)
-			(footprints allowed)
-		)
-		(placement
-			(enabled no)
-			(sheetname "")
-		)
-		(fill
-			(thermal_gap 0.5)
-			(thermal_bridge_width 0.5)
-			(island_removal_mode 0)
-		)
-		(polygon
-			(pts
-				(xy 49 109.0121) (xy 49.5121 108.5) (xy 49.3 108.2879) (xy 48.7879 108.8)
 			)
 		)
 	)
