@@ -1,16 +1,19 @@
-Comment,Designator,Footprint,LCSC,qty,status,code,type,stock,mpn,pkg,price
-0R,"R12,R13,R14",R_0805_2012Metric,C17477,3,OK,C17477,base,4815871,0805W8F0000T5E,0805,0.0118
-100R 5VF,R1,R_0805_2012Metric,C17408,1,OK,C17408,base,5106121,0805W8F1000T5E,0805,0.0115
-100k bias,R3,R_0805_2012Metric,C149504,1,OK,C149504,base,4172317,0805W8F1003T5E,0805,0.0152
-100n,"C2,C5,C6",C_0805_2012Metric,C49678,3,OK,C49678,base,23568068,CC0805KRX7R9BB104,0805,0.0337
-100u 5VF,C1,CP_Elec_6.3x5.4,C2887276,1,OK,C2887276,expand,621469,RVT100UF16V67RV0016,"SMD,D6.3xL5.4mm",0.0319
-10k,"R4,R5,R6",R_0805_2012Metric,C17414,3,OK,C17414,base,12662333,0805W8F1002T5E,0805,0.0133
-10u,"C4,C7",C_0805_2012Metric,C15850,2,OK,C15850,base,10546174,CL21A106KAYNNNE,0805,0.1284
-1u coupling,C3,C_0805_2012Metric,C28323,1,OK,C28323,base,5715676,CL21B105KBFNNNE,0805,0.0865
-20k,"R7,R8,R9",R_0805_2012Metric,C4328,3,OK,C4328,base,1863123,0805W8F2002T5E,0805,0.0154
-3.9k mic bias,R2,R_0805_2012Metric,C17614,1,OK,C17614,base,404801,0805W8F3901T5E,0805,0.005
-68R,"R10,R11",R_0805_2012Metric,C17802,2,OK,C17802,expand,98371,0805W8F680JT5E,0805,0.0163
-CMT-8504-100-SMT-TR,BZ1,CMT-8504,C22359707,1,OK,C22359707,expand,182,CMT-8504-100-SMT-TR,"SMD,8.5x8.5mm",2.4771
-OPA1678IDR,U1,SOIC-8_3.9x4.9mm_P1.27mm,C192421,1,OK,C192421,expand,4990,OPA1678IDR,SOIC-8-150mil,0.9229
-SS14 flyback,D2,D_SMA,C2480,1,OK,C2480,base,2057981,SS14,SMA(DO-214AC),0.0195
-TPD2E2U06DRLR,D1,SOT-553,C1972959,1,OK,C1972959,expand,11609,TPD2E2U06DRLR,SOT-553-5,0.36
+17 BOM lines: 15 with LCSC, 2 without
+
+  OK               C17477     x3   0R                                     base   stock=5607000
+  OK               C17408     x1   100R 5VF                               base   stock=5416379
+  OK               C149504    x1   100k bias                              base   stock=4475657
+  OK               C49678     x3   100n                                   base   stock=23690135
+  OK               C2887276   x1   100u 5VF                               expand stock=617815
+  OK               C17414     x3   10k                                    base   stock=13351526
+  OK               C15850     x2   10u                                    base   stock=10500996
+  OK               C28323     x1   1u coupling                            base   stock=5914526
+  OK               C4328      x3   20k                                    base   stock=2161355
+  OK               C17614     x1   3.9k mic bias                          base   stock=403968
+  OK               C17802     x2   68R                                    expand stock=98031
+  OK               C22359707  x1   CMT-8504-100-SMT-TR                    expand stock=182
+  OK               C192421    x1   OPA1678IDR                             expand stock=4780
+  OK               C2480      x1   SS14 flyback                           base   stock=2211373
+  OK               C1972959   x1   TPD2E2U06DRLR                          expand stock=11604
+
+PASS: 0 coded lines with problems; 2 lines still uncoded
