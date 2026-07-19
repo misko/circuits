@@ -1,0 +1,22 @@
+mpn: SMCJ33A
+manufacturer: BORN
+type: tvs_unidirectional_1500W
+datasheet:
+  doc_id: lcsc_2208231800
+  revision: LCSC upload 2022-08-23
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2208231800_BORN-SMCJ33A_C152083.pdf
+  sha256: 73e24df52515b1becef30dfecb324c56ec5e389a83852038572506d595ff7eb8
+  fetched: 2026-07-18
+package: SMC (DO-214AB)
+footprint: Diode_SMD:D_SMC
+pins:
+  1: {name: K, note: "cathode (band) -> VBUS; unidirectional TVS clamps +, conducts forward on reverse"}
+  2: {name: A, note: "anode -> GND"}
+limits: {v_standoff: 33V, v_br: "36.7-40.6V", v_clamp: "53.3V @ 28.2A (1500W)"}
+gotchas:
+  - "cathode to the protected rail (VBUS), anode to GND — reversed = dead short at 12V"
+  - "forward conduction on reverse-polarity hookup is a FEATURE (ADR-0001: clamps bus near -1V)"
+verified: "electricals from LCSC/BORN table (33V/40.6V/53.3V rows match JLC attributes); cathode band per SMC drawing — 2026-07-18"
+sourcing:
+  lcsc: C152083
+  note: "2864 stock 2026-07-18; alternate C310047 SMCJ33A/TR13 20666 stock"

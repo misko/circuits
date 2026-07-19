@@ -1,0 +1,19 @@
+mpn: 0805W8F100JT5E
+manufacturer: UNI-ROYAL(Uniroyal Elec)
+type: res_thick
+value: "10R 1%"
+package: "0805"
+footprint: Resistor_SMD:R_0805_2012Metric
+pins: {1: "1", 2: "2"}
+datasheet:
+  doc_id: lcsc_2206010216 (series)
+  revision: LCSC upload 2022-06-01
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2206010216_UNI-ROYAL-Uniroyal-Elec-0805W8F100JT5E_C17415.pdf
+  sha256: 11cd644d5d8a34a6d12775afb80bf58d8fc11f0c3b700dbd0f7a59942ceaa5ef
+  fetched: 2026-07-18
+gotchas:
+  - "INA238 sense-tap filter R: 125mW rating; worst continuous dissipation ~= 0 (nA bias); reverse-polarity event ~70mA -> 49mW, inside rating"
+verified: "JLC attribute check 2026-07-18 (10R 1% 125mW 0805 confirmed live: C17415)"
+sourcing:
+  lcsc: C17415
+  note: "basic tier, 1.72M stock 2026-07-18"

@@ -1,0 +1,19 @@
+mpn: 0466002.NRHF
+manufacturer: Littelfuse
+type: smd_fuse_2A_fast
+datasheet:
+  doc_id: lcsc_1810111920 (466 series)
+  revision: LCSC upload 2018-10-11
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/1810111920_Littelfuse-0466002-NRHF_C3105.pdf
+  sha256: 33f71340c39d8991607a0be589732a29bb11fbfcae8565bc52f849703dfb0276
+  fetched: 2026-07-18
+package: 1206 (3.2 x 1.6 mm) Nano2
+footprint: Fuse:Fuse_1206_3216Metric
+pins: {1: "1", 2: "2"}   # non-polarized
+limits: {i_rated: 2A, v_rated: 63V, i_break: "50A @ 63V"}
+gotchas:
+  - "fast-acting; sized 10x above the ~0.2A electronics draw so it only opens on real faults (DETAIL_DESIGN #2)"
+verified: "rating row from 466-series LCSC sheet (2A / 63V matches JLC attributes) — 2026-07-18"
+sourcing:
+  lcsc: C3105
+  note: "81477 stock 2026-07-18"

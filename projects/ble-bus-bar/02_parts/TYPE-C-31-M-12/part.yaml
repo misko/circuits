@@ -1,0 +1,36 @@
+mpn: TYPE-C-31-M-12
+manufacturer: Korean Hroparts Elec
+type: connector_usb_c
+datasheet:
+  doc_id: TYPE-C-31-M-12
+  revision: A_2020-12-08        # drawing rev A, drawn LIUCAN 2020.12.08, sheet 1/1
+  url: https://datasheet.lcsc.com/datasheet/pdf/9e56b777c022540fcce7c7f67825f55e.pdf
+  sha256: 6ae33d50ac47820114661138dc4e4659f40fdc5d4f485b46685dfec338da1a9e
+  fetched: 2026-07-17
+package: USB-C receptacle 16P, SMD + 4 TH shell legs, 8.94 x 7.35mm, mid-mount lip 0.40
+footprint: Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12
+pins:                          # from the drawing's contact table (16P USB2.0 subset)
+  A1:  GND
+  A4:  VBUS
+  A5:  CC1
+  A6:  'DP1 (D+)'
+  A7:  'DN1 (D-)'
+  A8:  SBU1
+  A9:  VBUS
+  A12: GND
+  B1:  GND
+  B4:  VBUS
+  B5:  CC2
+  B6:  'DP2 (D+)'
+  B7:  'DN2 (D-)'
+  B8:  SBU2
+  B9:  VBUS
+  B12: GND
+  SH:  {name: SHIELD, tie: GND, note: "KiCad pad name is SH (not S1); shell legs + 2x TH holes"}
+limits: {current: 5A, voltage: 20V, temp: '-30C..+80C', reflow: '260C 10s peak'}
+gotchas:
+  - "SINK ROLE: 5.1k Rd to GND on BOTH CC pins (A5 CC1, B5 CC2) or no 5V from a C-C cable"
+  - "Shell/shield pads tie to GND (pad SH in the KiCad footprint)"
+  - "Physically 12 contact fingers: A1/B12, A4/B9, B4/A9, B1/A12 are shared-net pairs (GND/VBUS) - the KiCad footprint draws them as 16 separate pads; nets must agree"
+verified: "contact table + recommended PCB layout on drawing rev A cross-checked against KiCad footprint pads A1-A12/B1-B12(USB2 subset)+SH - 2026-07-17"
+sourcing: {lcsc: C165948, alternates: [], note: 'extended; 326k stock 2026-07-17; the KiCad std footprint is named for exactly this MPN'}

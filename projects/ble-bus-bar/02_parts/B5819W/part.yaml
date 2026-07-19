@@ -1,0 +1,22 @@
+mpn: B5819W
+manufacturer: Jiangsu Changjing (CJ)
+type: schottky_diode_1A_40V
+datasheet:
+  doc_id: lcsc_2304140030
+  revision: LCSC upload 2023-04-14
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Jiangsu-Changjing-Electronics-Technology-Co---Ltd--B5819W-SL_C8598.pdf
+  sha256: 1a0fd53a8ed6c62591a3983fd4c29b607975d30ba96c9381679109461399d442
+  fetched: 2026-07-18
+package: SOD-123
+footprint: Diode_SMD:D_SOD-123
+pins:
+  1: {name: K, note: "cathode - band end"}
+  2: {name: A, note: "anode"}
+limits: {vrrm: 40V, io: 1A, vf: "0.6V @ 1A"}
+gotchas:
+  - "D8 LDO-OR diode: cathode -> 3V3 rail, anode -> VLDO; 40V is fine at 3.3V level"
+  - "LCSC model string is 'B5819W SL' (suffix = plating); dir name drops the space - see 02_parts/README.md"
+verified: "polarity band per SOD-123 drawing in LCSC datasheet — 2026-07-18"
+sourcing:
+  lcsc: C8598
+  note: "JLC Basic tier, 657k stock 2026-07-18"

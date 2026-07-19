@@ -1,0 +1,21 @@
+mpn: SMBJ33A
+manufacturer: MDD (Microdiode Semiconductor)
+type: tvs_unidirectional_600W
+datasheet:
+  doc_id: lcsc_2407291901
+  revision: LCSC upload 2024-07-29
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2407291901_MDD-Microdiode-Semiconductor-SMBJ33A_C173526.pdf
+  sha256: 95385273b5009dc9ec2f2a432e07e215f71626b825bd53a9f5525f4186566d3b
+  fetched: 2026-07-18
+package: SMB (DO-214AA)
+footprint: Diode_SMD:D_SMB
+pins:
+  1: {name: K, note: "cathode (band) -> VIN_E"}
+  2: {name: A, note: "anode -> GND"}
+limits: {v_standoff: 33V, v_br: "36.7-40.6V", v_clamp: "53.3V @ 11.3A (600W)"}
+gotchas:
+  - "cathode to VIN_E (post reverse-block diode), anode to GND"
+verified: "electricals from MDD table (33/40.6/53.3V rows match JLC attributes); cathode band per SMB drawing — 2026-07-18"
+sourcing:
+  lcsc: C173526
+  note: "92860 stock 2026-07-18"

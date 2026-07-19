@@ -1,0 +1,27 @@
+mpn: W25Q64JVSSIQ
+manufacturer: Winbond
+type: spi_nor_flash_64mbit
+datasheet:
+  doc_id: W25Q64JV
+  revision: Rev J (03/27/2018)
+  url: https://www.winbond.com/resource-files/w25q64jv%20revj%2003272018%20plus.pdf
+  sha256: 452d906c3be0da077fd751a2b8aa062629caf6081f8dd1eda04880854ce7c8f9
+  fetched: 2026-07-18
+package: SOIC-8 208-mil (package code SS)
+footprint: Package_SO:SOIC-8_3.9x4.9mm_P1.27mm
+pins:                      # physical pads, datasheet Figure 1a p.5 (SOIC-8 top view)
+  1: /CS
+  2: DO    # IO1
+  3: /WP   # IO2
+  4: GND
+  5: DI    # IO0
+  6: CLK
+  7: /HOLD # IO3
+  8: VCC
+limits: {vcc: "2.7-3.6V", i_active: "25mA max", endurance: "100k program/erase cycles"}
+gotchas:
+  - "/WP and /HOLD tied to 3V3 (quad IO unused); /CS needs pull-up so it stays deselected through ESP32 boot straps"
+verified: "pin map read from Figure 1a, p.5, Rev J — 2026-07-18"
+sourcing:
+  lcsc: C179171
+  note: "57603 stock 2026-07-18"

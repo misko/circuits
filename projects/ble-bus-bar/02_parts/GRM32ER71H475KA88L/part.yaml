@@ -1,0 +1,19 @@
+mpn: GRM32ER71H475KA88L
+manufacturer: Murata
+type: mlcc_x7r
+value: "4.7uF 50V X7R 10% 1210"
+datasheet:
+  doc_id: lcsc_2304140030
+  revision: LCSC upload 2023-04-14
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Murata-Electronics-GRM32ER71H475KA88L_C86052.pdf
+  sha256: 9a8a89cd730ba1b1b678b51bad5ab28083f45ed6a8d1ee61fcf7180834feebb5
+  fetched: 2026-07-18
+package: "1210"
+footprint: Capacitor_SMD:C_1210_3225Metric
+pins: {1: "1", 2: "2"}
+gotchas:
+  - "50V X7R on a 33V-standoff bus: DC-bias derating still leaves usable uF at 24V (X7R 1210 class)"
+verified: "value/voltage/dielectric from JLC attributes + Murata sheet — 2026-07-18"
+sourcing:
+  lcsc: C86052
+  note: "70015 stock 2026-07-18"

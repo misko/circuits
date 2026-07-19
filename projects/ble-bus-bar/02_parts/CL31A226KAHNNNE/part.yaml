@@ -1,0 +1,19 @@
+mpn: CL31A226KAHNNNE
+manufacturer: Samsung Electro-Mechanics
+type: mlcc_x5r
+value: "22uF 25V X5R 10% 1206"
+datasheet:
+  doc_id: lcsc_2304140030
+  revision: LCSC upload 2023-04-14
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_Samsung-Electro-Mechanics-CL31A226KAHNNNE_C12891.pdf
+  sha256: 96baebe4bd0ce363e87be28b5b003f511f1502e084a6fc4f02333ded56c808f6
+  fetched: 2026-07-18
+package: "1206"
+footprint: Capacitor_SMD:C_1206_3216Metric
+pins: {1: "1", 2: "2"}
+gotchas:
+  - "3.3V rail bulk: 25V rating = minimal DC-bias derating at 3.3V"
+verified: "value/voltage/dielectric from JLC attributes + Samsung sheet — 2026-07-18"
+sourcing:
+  lcsc: C12891
+  note: "JLC Basic tier, 697k stock 2026-07-18"

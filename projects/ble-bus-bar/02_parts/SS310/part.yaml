@@ -1,0 +1,22 @@
+mpn: SS310
+manufacturer: MDD (Microdiode Semiconductor)
+type: schottky_diode_3A_100V
+datasheet:
+  doc_id: lcsc_2407101107
+  revision: LCSC upload 2024-07-10
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2407101107_MDD-Microdiode-Semiconductor-SS310_C15874.pdf
+  sha256: fb4970875779696914d235bcf954240569302fb325399838f2861d474cbf9760
+  fetched: 2026-07-18
+package: SMA (DO-214AC)
+footprint: Diode_SMD:D_SMA
+pins:
+  1: {name: K, note: "cathode - band end (KiCad D_SMA pad 1 = cathode)"}
+  2: {name: A, note: "anode"}
+limits: {vrrm: 100V, io: 3A, vf: "0.85V @ 3A"}
+gotchas:
+  - "polarity is the classic un-checkable bug: pad 1 net MUST be the cathode side (audit I9 asserts both uses)"
+  - "used twice: D7 series reverse-block (cathode -> VIN_E) and D11 buck catch (cathode -> SW)"
+verified: "polarity band/marking from package drawing in LCSC datasheet p.1-2 — 2026-07-18"
+sourcing:
+  lcsc: C15874
+  note: "688k stock 2026-07-18"

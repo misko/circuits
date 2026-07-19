@@ -1,0 +1,23 @@
+mpn: 3557-2
+manufacturer: Keystone Electronics
+type: fuse_holder_ato_blade
+datasheet:
+  doc_id: M65 catalog p.41
+  revision: M65
+  url: https://www.keyelco.com/userAssets/file/M65p41.pdf
+  sha256: 8f00eb5abdcbf535f85704fd2236f00737da3d7b15c56975631ff6c0127cfbd0
+  fetched: 2026-07-18
+package: THT 2-in-1 blade fuse holder, body 19.8 x 7.4 mm, vertical entry
+footprint: bbar:FuseHolder_Keystone_3557-2
+pins:                     # 4 THT pins = 2 clips; catalog Mounting Detail p.41
+  1: {name: "1", note: "clip A, both pins of the west pair"}
+  2: {name: "2", note: "clip B, both pins of the east pair"}
+limits: {i_rated: "30A UL @ 500VAC", temp: "-50..+145C"}
+gotchas:
+  - "mounting detail p.41: 4 holes dia .063in (1.6mm); clip pairs .530in (13.5mm) apart, .134in (3.4mm) within pair"
+  - "accepts standard ATO/ATC blades AND low-profile Mini (2-in-1); insulated nylon body"
+  - "hand-solder THT (30A joints); deliberately uncoded in assembly BOM"
+verified: "hole pattern + rating read from CAT. NO. 3557-2 panel + Mounting Detail, M65 catalog p.41 — 2026-07-18"
+sourcing:
+  lcsc: C352820
+  note: "957 stock 2026-07-18 (need 30 + spares for 5 boards); JLC lists as Bracket-type fuse holder 30A 500V"

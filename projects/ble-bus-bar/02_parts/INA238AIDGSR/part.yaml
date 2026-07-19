@@ -1,0 +1,31 @@
+mpn: INA238AIDGSR
+manufacturer: Texas Instruments
+type: current_sense_monitor_i2c
+datasheet:
+  doc_id: SLYS025
+  revision: SLYS025B
+  url: https://www.ti.com/lit/ds/symlink/ina238.pdf
+  sha256: 049cbb21bac89490671a31cfbd616e59df6f5ca84bd7be3ff118995f3c561171
+  fetched: 2026-07-18
+package: VSSOP-10 DGS 3.0x3.0 (4.9 lead span), 0.5mm pitch
+footprint: Package_SO:MSOP-10_3x3mm_P0.5mm
+pins:                      # physical pads, datasheet Figure 4-1 p.3 (top view)
+  1: A1
+  2: A0
+  3: ALERT
+  4: SDA
+  5: SCL
+  6: VS
+  7: GND
+  8: VBUS
+  9: IN-
+  10: "IN+"
+limits: {vs: "2.7-5.5V", cm_abs: "-0.3..+85V (IN+, IN-, VBUS)", diff_abs: "+-40V", i_pin_abs: 5mA, tj_max: 150C}
+gotchas:
+  - "A0/A1 tie to GND/VS/SDA/SCL for 16 addresses; 0x40 = (GND,GND)"
+  - "ADCRANGE=1 gives +-40.96mV shunt FS; LSB 1.25uV"
+  - "IN pin abs-max current 5mA — the 10R filter Rs are also the reverse-polarity survival element (ADR-0001)"
+verified: "pin map read from Figure 4-1 (DGS top view), p.3, SLYS025B — 2026-07-18"
+sourcing:
+  lcsc: C2868250
+  note: "genuine TI reel, 1870 stock 2026-07-18; alternates: none acceptable (abs-max is the selection criterion, ADR-0003)"

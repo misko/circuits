@@ -1,0 +1,21 @@
+mpn: WSLP2726L5000FEA
+manufacturer: Vishay Dale
+type: shunt_resistor_0m5
+value: "0.5mOhm 1% 5W"
+datasheet:
+  doc_id: "30179"
+  revision: 29-Jun-2026
+  url: https://www.vishay.com/docs/30179/wslp2726.pdf
+  sha256: 08127363532b8f44398e57198e54607eff274c3faf92cd842d23388b4cf64c6b
+  fetched: 2026-07-18
+package: 2726 (6.9 x 6.6 mm) Power Metal Strip
+footprint: bbar:R_Shunt_WSLP2726
+pins: {1: "1", 2: "2"}   # symmetric 2-terminal; Kelvin-ness comes from OUR attach geometry
+limits: {p_rated: "5W (JLC attr; datasheet power table by value)", r_th_element: "6C/W (0.5mOhm row)", tcr: "<75ppm/C"}
+gotchas:
+  - "land pattern from datasheet SOLDER PAD table: pads 2.69 x 5.71 mm, centers 4.93mm apart (overall 7.62)"
+  - "sense taps MUST attach at pad inner edges (audit I-KELVIN); pour current enters from outer edges"
+verified: "dimensions + solder pad table read from DIMENSIONS section p.2, doc 30179 rev 29-Jun-2026 — 2026-07-18"
+sourcing:
+  lcsc: C844297
+  note: "2671 stock 2026-07-18 (need 30+attr for 5 boards); cheap 2512 alternate rejected in ADR-0003"

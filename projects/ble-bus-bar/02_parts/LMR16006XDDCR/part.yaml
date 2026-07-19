@@ -1,0 +1,27 @@
+mpn: LMR16006XDDCR
+manufacturer: Texas Instruments
+type: buck_regulator_async
+datasheet:
+  doc_id: SNVSA24
+  revision: SNVSA24 (Oct 2014)
+  url: https://www.ti.com/lit/ds/symlink/lmr16006.pdf
+  sha256: 6a7945205357cafb3ee494b0de099cc32ce1cb1fcd270d8b5c2e44490c098a2c
+  fetched: 2026-07-18
+package: TSOT-23-6 (DDC)
+footprint: Package_TO_SOT_SMD:TSOT-23-6
+pins:                      # physical pads, datasheet p.3 DDC top view
+  1: CB
+  2: GND
+  3: FB
+  4: SHDN
+  5: VIN
+  6: SW
+limits: {vin: "4.5-60V operating, 65V abs", iout: 0.6A, vfb: 0.765V, en_th: "1.25V (SHDN), HV tolerant", fsw: "0.7MHz (X version)"}
+gotchas:
+  - "X = 0.7MHz, Y = 2.1MHz — datasheet p.1; the Y version violates min-on-time at 24V->3.3V (DETAIL_DESIGN #5)"
+  - "async buck: external catch diode SS310 required SW->GND"
+  - "SHDN floats high (internal pull-up); our 560k/100k divider sets 8.25V UVLO"
+verified: "pin map read from Pin Configuration drawing (TSOT-6L top view), p.3, SNVSA24 — 2026-07-18"
+sourcing:
+  lcsc: C87080
+  note: "21968 stock 2026-07-18; alternate TPS54360BDDAR C524806 (ADR-0006)"

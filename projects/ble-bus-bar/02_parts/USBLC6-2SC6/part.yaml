@@ -1,0 +1,25 @@
+mpn: USBLC6-2SC6
+manufacturer: UMW (UTD Semiconductor)  # deliberate clone choice - JLC C2687116 ships UMW; facts from UMW's own datasheet
+type: esd_array_usb
+datasheet:
+  doc_id: UMW-USBLC6-2SC6
+  revision: Nov.2024
+  url: https://www.lcsc.com/datasheet/lcsc_datasheet_2311091738_UMW-Youtai-Semiconductor-Co---Ltd--USBLC6-2SC6_C2687116.pdf
+  sha256: 973ea7520f3cd820e2c9326fcf3ee3ca5239cff491d6f42de057573942dcdf83
+  fetched: 2026-07-16
+package: SOT-23-6
+footprint: Package_TO_SOT_SMD:SOT-23-6
+pins:                       # UMW datasheet section 4 "Pinning information", p1
+  1: I/O1                   # line 1 (pins 1 and 6 are the same line's two ports)
+  2: GND
+  3: I/O2
+  4: I/O2
+  5: VBUS                   # clamp rail reference
+  6: I/O1
+limits: {vrwm: 5V, ipp: '6A 8/20us', esd: '+-30kV air+contact', cap: '0.35-0.8pF line'}
+gotchas:
+  - "the LCSC-hosted PDF for C2687116 renders with ST branding (Doc ID 11265-class content); UMW copies the ST pinning 1:1 - figure verified independently 2026-07-16"
+  - "rail-referenced steering: VBUS pin must tie to the protected rail (5V here: D1 protects the native-USB pair and clamps the 5V rail)"
+  - "pins 1/6 and 3/4 are pass-through pairs - route through OR tie both to the line"
+verified: "pin map read from UMW datasheet pinning figure, p1 - 2026-07-16"
+sourcing: {lcsc: C2687116, alternates: [C7519], note: 'UMW clone of ST original; ST=C7519 if brand matters'}

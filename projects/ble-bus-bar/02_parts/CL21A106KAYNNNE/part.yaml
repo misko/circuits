@@ -1,0 +1,12 @@
+mpn: CL21A106KAYNNNE
+manufacturer: Samsung Electro-Mechanics
+type: cap_mlcc
+value: '10uF 25V X5R'
+package: '0805'
+footprint: Capacitor_SMD:C_0805_2012Metric
+pins: {1: '1', 2: '2'}   # symmetric 2-pad
+datasheet: {doc_id: CL series, revision: n/a, url: n/a, sha256: n/a, fetched: null}
+verified: '25V X5R on a 5V rail (VMID/opamp bulk): >4x voltage headroom keeps DC-bias capacitance loss small'
+sourcing:
+  lcsc: C15850
+  note: 'basic; 10.5M stock 2026-07-18; 25V X5R = 5x headroom on 5V'

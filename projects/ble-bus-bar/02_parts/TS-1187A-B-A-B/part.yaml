@@ -1,0 +1,22 @@
+mpn: TS-1187A-B-A-B
+manufacturer: XKB Connection (XKB Industrial Precision)
+type: switch_tactile
+datasheet:
+  doc_id: TS-1187A-X-X-X
+  revision: A0                  # series drawing, DWG NO. TS-1187A-X-X-X rev A0
+  url: https://datasheet.lcsc.com/datasheet/pdf/56c8799ae5193945a16a1ffbe378246a.pdf
+  sha256: 64b75233cadaceb75ab3f3e33b532af8d04de98821c910ea13eb76c5fd1eed34
+  fetched: 2026-07-17
+package: SMD-4P 5.1 x 5.1mm body (6.5mm over leads), round button
+footprint: Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A   # KiCad std; pad "1"=both TOP pads (A+B rail), pad "2"=both BOTTOM (C+D) - matches internal pairing
+pins:                           # letters per drawing top view; A=top-left, B=top-right, C=bottom-left, D=bottom-right
+  A: 'contact side 1 (INTERNALLY COMMON with B)'
+  B: 'contact side 1 (INTERNALLY COMMON with A)'
+  C: 'contact side 2 (INTERNALLY COMMON with D)'
+  D: 'contact side 2 (INTERNALLY COMMON with C)'
+limits: {contact: '50mA 12VDC', contact_resistance: '100mR max', travel: 0.25mm, temp: '-30C..+85C', force: '160gf (code B)'}
+gotchas:
+  - "INTERNAL PAD PAIRING: A-B are one common contact rail (same top edge), C-D the other (bottom edge). The two nets MUST land on opposite edges (e.g. A and C). Putting both nets on A+B or C+D is a PERMANENT SHORT. Evidence: circuit diagram on drawing rev A0 shows A-B bridged, C-D bridged, switch between the rails."
+  - "SPST momentary; -B-A-B suffix codes: force B=160gf per force table (LCSC lists 1.6N, consistent)"
+verified: "internal pairing read from the circuit diagram on drawing TS-1187A-X-X-X rev A0, cross-checked against EasyEDA C318884 symbol (A-B pair / C-D pair) - 2026-07-17"
+sourcing: {lcsc: C318884, alternates: [], note: 'BASIC, 1.44M stock 2026-07-17'}

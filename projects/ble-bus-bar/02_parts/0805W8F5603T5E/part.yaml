@@ -1,0 +1,12 @@
+mpn: 0805W8F5603T5E
+manufacturer: UNI-ROYAL(Uniroyal Elec)
+type: res_thick
+value: '560k 1%'
+package: '0805'
+footprint: Resistor_SMD:R_0805_2012Metric
+pins: {1: '1', 2: '2'}   # symmetric 2-pad
+datasheet: {doc_id: series, revision: n/a, url: n/a, sha256: n/a, fetched: null}
+verified: 'JLC attribute check 2026-07-18 (560k 1% 125mW 0805 confirmed live: C15785)'
+sourcing:
+  lcsc: C15785
+  note: 'confirmed 2026-07-18'

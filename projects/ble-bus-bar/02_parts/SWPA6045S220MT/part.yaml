@@ -1,0 +1,20 @@
+mpn: SWPA6045S220MT
+manufacturer: Sunlord
+type: power_inductor_22uH
+value: "22uH 20% 6045"
+datasheet:
+  doc_id: lcsc_2310251551 (SWPA catalog)
+  revision: LCSC upload 2023-10-25
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2310251551_Sunlord-SWPA6045S220MT_C83454.pdf
+  sha256: 435da2e32ce68b2df1fe14b42aa26f5e841b281aaf423890a3e8c03912e0e2b0
+  fetched: 2026-07-18
+package: SMD 6.0 x 6.0 x 4.5 mm
+footprint: Inductor_SMD:L_Sunlord_SWPA6045S
+pins: {1: "1", 2: "2"}   # non-polarized
+limits: {isat: "2.2A", irms: "1.8A", dcr: "89mOhm"}
+gotchas:
+  - "buck peak current 0.49A (DETAIL_DESIGN #5) — 4.4x under saturation"
+verified: "22uH/1.8A/2.2A/89mR from JLC attributes, cross-checked SWPA catalog 6045S row — 2026-07-18"
+sourcing:
+  lcsc: C83454
+  note: "49711 stock 2026-07-18"

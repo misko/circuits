@@ -1,0 +1,40 @@
+mpn: ESP32-C3-WROOM-02-N4
+manufacturer: Espressif Systems
+type: mcu_ble_module
+datasheet:
+  doc_id: esp32-c3-wroom-02_datasheet
+  revision: v1.7
+  url: https://www.espressif.com/sites/default/files/documentation/esp32-c3-wroom-02_datasheet_en.pdf
+  sha256: 2375b1be75ebbfcffa050e6a26c3ee7957bc7171b319066081a491d1b2e21161
+  fetched: 2026-07-18
+package: 18x20x3.2mm module, 18 castellated pads + GND EP (pad 19), PCB antenna
+footprint: RF_Module:ESP32-C3-WROOM-02
+pins:                      # physical pads, datasheet 3.1 pin layout + Table 3-1 pp.10-11
+  1: 3V3
+  2: EN
+  3: IO4
+  4: IO5
+  5: IO6
+  6: IO7
+  7: IO8
+  8: IO9
+  9: GND
+  10: IO10
+  11: RXD   # GPIO20
+  12: TXD   # GPIO21
+  13: IO18  # USB D-
+  14: IO19  # USB D+
+  15: IO3
+  16: IO2
+  17: IO1
+  18: IO0
+  19: {name: GND, tie: GND, note: "thermal/EP pad"}
+limits: {vdd: "3.0-3.6V", i_peak_tx: "345mA", temp: "-40..85C"}
+gotchas:
+  - "straps: IO2 (pull UP - our SPI MISO, flash DO is Hi-Z at boot), IO8 (pull UP), IO9 (boot select, internal PU)"
+  - "antenna keepout zone (datasheet 3.1): no copper any layer under/around the antenna end; module antenna must face board edge"
+  - "native USB on IO18/IO19 - no UART bridge needed"
+verified: "pin map read from pin layout figure 3.1 + Table 3-1, pp.10-11, v1.7 — 2026-07-18"
+sourcing:
+  lcsc: C2934560
+  note: "7161 stock 2026-07-18"
