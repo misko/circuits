@@ -1,0 +1,22 @@
+# Policy-audit waivers — each carries measurement evidence (canon M4).
+- id: R-POUR
+  refs: [SW, VIN_E, VLDO, VTAP, VUSB]
+  why: >-
+    EPWR-class nets are track-carried BY DESIGN: worst-case branch current
+    is the buck's 0.49 A peak (DETAIL_DESIGN #5: I_pk = 0.4 A load + 0.09 A
+    ripple; input side 0.21 A; F7 limits faults to 2 A). The 0.50 mm dru
+    floor at 2 oz is ~3 A by IPC-2221 external (A = 54 mil^2) — >=6x margin.
+    Floor enforcement verified: dru width_epwr rule + DRC severity-all 0
+    at the gate (06_build/drc/gate.json). The 60 A trunk and 30 A port
+    paths ARE poured (R-POUR passes for TRUNK/PORT nets).
+- id: R-PLANE
+  refs: [U7@B.Cu]
+  why: >-
+    Flagged 41.2 mm signal run lies under the module BODY, south of the
+    antenna. The antenna region itself has a hard all-layer copper keepout
+    (module-embedded keepout zone + our ANTENNA rule area; audit IA scans
+    every track/pad endpoint against (50,50)-(61.2,75.3) and passes with
+    zero copper). RF-critical plane integrity is the antenna zone +
+    feed, which is untouched; under the body, the EP's 9 PTH drills +
+    pins 9/19 stitch the local B.Cu return. A 2-layer board cannot route
+    the west cluster without B.Cu crossings under the body.

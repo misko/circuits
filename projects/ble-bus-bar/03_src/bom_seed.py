@@ -25,6 +25,7 @@ MAP = {  # BOM Comment -> 02_parts/ MPN
     "B5819W OR": "B5819W",
     "0466002 2A": "0466002.NRHF",
     "RESET": "TS-1187A-B-A-B", "BOOT": "TS-1187A-B-A-B",
+    "BOOT / RESET": "TS-1187A-B-A-B",
     "KT-0805G PWR": "KT-0805G", "KT-0805G ST": "KT-0805G",
     # resistors (UNI-ROYAL 0805 1%)
     "10R sense+": "0805W8F100JT5E", "10R sense-": "0805W8F100JT5E",

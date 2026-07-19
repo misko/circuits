@@ -23,12 +23,12 @@ An orderable, verified JLCPCB release of a 12–24 V / 60 A bus bar PCB.
 
 | # | Criterion | Source | Status |
 |---|---|---|---|
-| G1 | 12–24 V input, 60 A aggregate continuous | P, A1 | unmet |
-| G2 | 6 ports, each ATO-blade fused, up to 30 A | P, A3 | unmet |
-| G3 | Per-port shunt current sensing with statistics | P | unmet |
-| G4 | BLE telemetry (stats reported wirelessly) | P | unmet |
-| G5 | Onboard memory logging (survives BLE absence) | P | unmet |
-| G6 | v1.0 release: DRC/ERC/parity 0, gates green, MANIFEST from clean tree | pipeline | unmet |
+| G1 | 12–24 V input, 60 A aggregate continuous | P, A1 | met — DETAIL_DESIGN #1 (trunk 1.5×), 07_releases/v1.0-2026-07-18 |
+| G2 | 6 ports, each ATO-blade fused, up to 30 A | P, A3 | met — 6× 3557-2 holders + 10.5 mm port pours (ADR-0005/0002) |
+| G3 | Per-port shunt current sensing with statistics | P | met — 6× INA238 + WSLP2726, Kelvin-checked (audit IK) |
+| G4 | BLE telemetry (stats reported wirelessly) | P | met — ESP32-C3-WROOM-02, antenna keepout audited (IA) |
+| G5 | Onboard memory logging (survives BLE absence) | P | met — W25Q64JV 8 MB dedicated log flash (ADR-0004) |
+| G6 | v1.0 release: DRC/ERC/parity 0, gates green, MANIFEST from clean tree | pipeline | met — 07_releases/v1.0-2026-07-18 |
 
 ## Decisions (D#, appended over time; agent decisions under P-delegation)
 

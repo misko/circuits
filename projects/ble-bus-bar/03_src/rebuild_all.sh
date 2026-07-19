@@ -3,7 +3,7 @@
 # set -euo pipefail: ANY stage failure stops the chain.
 # KRT re-route (03_src/route_prep.py + 03_src/route_waves.sh) is only needed
 # when the netlist/placement changes; the chain imports the PROMOTED
-# 03_src/route/r2.kicad_pcb (canon M3).
+# 03_src/route/r3.kicad_pcb (canon M3).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PY=/usr/bin/python3
