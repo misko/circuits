@@ -245,6 +245,12 @@ def main():
         mh.SetReference(f"H{i}")
         mh.SetAttributes(mh.GetAttributes() | pcbnew.FP_BOARD_ONLY | pcbnew.FP_EXCLUDE_FROM_BOM)
         mh.SetPosition(pcbnew.VECTOR2I_MM(hx, hy))
+        # mounting-hole ref off the silkscreen: it sits at the hole centre near
+        # the board edge (silk_edge_clearance) and it is not needed on silk
+        # (no part to identify). Keep an F.Fab copy for the assembly drawing.
+        mhref = mh.Reference()
+        mhref.SetVisible(False)
+        mhref.SetLayer(pcbnew.F_Fab)
         board.Add(mh)
 
     placed = 0

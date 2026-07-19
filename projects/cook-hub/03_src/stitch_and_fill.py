@@ -35,7 +35,7 @@ for i, (v1, n1, x1, y1) in enumerate(vinfo):
         continue
     for j in range(i + 1, len(vinfo)):
         v2, n2, x2, y2 = vinfo[j]
-        if j not in dead and n1 == n2 and abs(x1 - x2) < 450000 and abs(y1 - y2) < 450000:
+        if j not in dead and n1 == n2 and abs(x1 - x2) < 500000 and abs(y1 - y2) < 500000:
             dead.add(j)
 for j in dead:
     b.Remove(vinfo[j][0])

@@ -309,7 +309,7 @@ for si, ref in enumerate(("C8", "C9", "R25", "TP33")):
             # landing point whose via clears the coil B.Cu lanes (the bus y
             # sits inside the coil-lane band, so a through-via at an arbitrary
             # x punches a coil lane — search a clear landing near vx).
-            if tk.collides(vx, vy, vx, G.R5V_BUS_Y, 0.4, r5v.GetNetCode(), pcbnew.In2_Cu) is not None:
+            if tk.collides(vx, vy, vx, G.R5V_BUS_Y, 0.5, r5v.GetNetCode(), pcbnew.In2_Cu) is not None:
                 continue
             lx = None
             for dxl in (0, 0.7, -0.7, 1.4, -1.4, 2.1, -2.1, 2.8, -2.8,
@@ -320,7 +320,7 @@ for si, ref in enumerate(("C8", "C9", "R25", "TP33")):
                 if not tk.via_site_ok(cand, G.R5V_BUS_Y, r5v.GetNetCode(), size=0.6, drill=0.3):
                     continue
                 if abs(cand - vx) > 0.01 and tk.collides(
-                        vx, G.R5V_BUS_Y, cand, G.R5V_BUS_Y, 0.4,
+                        vx, G.R5V_BUS_Y, cand, G.R5V_BUS_Y, 0.5,
                         r5v.GetNetCode(), pcbnew.In2_Cu) is not None:
                     continue
                 lx = cand
@@ -329,9 +329,9 @@ for si, ref in enumerate(("C8", "C9", "R25", "TP33")):
                 continue
             tk.add_seg(px, py, vx, vy, r5v, pcbnew.F_Cu, stub_w)
             tk.add_via(vx, vy, r5v, size=0.6, drill=0.3)
-            tk.add_seg(vx, vy, vx, G.R5V_BUS_Y, r5v, pcbnew.In2_Cu, 0.4)
+            tk.add_seg(vx, vy, vx, G.R5V_BUS_Y, r5v, pcbnew.In2_Cu, 0.5)  # PWR floor
             if abs(lx - vx) > 0.01:
-                tk.add_seg(vx, G.R5V_BUS_Y, lx, G.R5V_BUS_Y, r5v, pcbnew.In2_Cu, 0.4)
+                tk.add_seg(vx, G.R5V_BUS_Y, lx, G.R5V_BUS_Y, r5v, pcbnew.In2_Cu, 0.5)  # PWR floor
             tk.add_via(lx, G.R5V_BUS_Y, r5v, size=0.6, drill=0.3)
             used2.append((vx, vy))
             used2.append((lx, G.R5V_BUS_Y))
@@ -351,7 +351,7 @@ for si, ref in enumerate(("C8", "C9", "R25", "TP33")):
                         continue
                     vs = tk.via_site_ok(vx, vy, r5v.GetNetCode(), size=0.6, drill=0.3)
                     fc = tk.collides(px, py, vx, vy, 0.3, r5v.GetNetCode(), pcbnew.F_Cu)
-                    iv = tk.collides(vx, vy, vx, G.R5V_BUS_Y, 0.4, r5v.GetNetCode(), pcbnew.In2_Cu)
+                    iv = tk.collides(vx, vy, vx, G.R5V_BUS_Y, 0.5, r5v.GetNetCode(), pcbnew.In2_Cu)
                     if vs and fc is None:
                         print(f"    ({vx},{vy}) vs=OK fc=OK iv={iv.GetNetname() if iv else 'OK'}")
         raise RuntimeError(f"RELAY_5V In2 spur failed: {ref}")
