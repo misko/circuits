@@ -87,7 +87,7 @@
     Fit=0.21mm, MODEL-REG 0.00mm; polarity band checked in the render
     review (cathode = VIN_E side, matching pad 1 net).
 - lcsc: C352820      # Keystone 3557-2 (F1-F6), THT fuse holder
-  pad_alias: {"1": "1", "2": "1", "3": "2", "4": "2"}
+  pad_alias: {"2": "1", "3": "2", "4": "2"}   # identity 1->1 implicit (identity keys crash the alias mover)
   status: PAD-MISMATCH
   why: >-
     JLC numbers the 4 THT pins individually (1,2 = west clip at x=-6.74;
@@ -103,15 +103,16 @@
     vs ours (+-1.70, +-6.75); Keystone M65 p.41 mounting detail
     dimensions .530in (13.46) x .134in (3.40) match both.
 - lcsc: C15874       # SS310 (D7, D11)
-  status: NO-CAD
+  status: PAD-GEOM
   why: >-
-    EasyEDA has no CAD for this MDD reel (repeated API failures across
-    two runs while 29 sibling codes fetched clean). Land pattern is
-    KiCad std D_SMA against the standard DO-214AC outline in the LCSC
-    datasheet (02_parts/SS310): terminal span 4.9-5.3mm over 2.5x1.8
-    pads at +-2.0 — the shipped-everywhere SMA pattern. Polarity is
+    "ours 4.00 vs JLC 4.40 (d0.40)": KiCad std D_SMA (2.5x1.8 pads at
+    +-2.0) vs JLC's SMA pattern (+-2.2) — the standard pad-length split
+    on the DO-214AC package (terminal span 4.9-5.3mm, ~1.1mm feet):
+    both patterns sit fully under the feet (JLC 0.2/side outward).
+    fit=0.20mm, MODEL-REG 0.00mm on both instances. Polarity is
     triple-covered: generator I9 assert, audit I9, fresh-context pin
-    review (both instances PASS, cathode nets independently derived).
+    review (both instances PASS, cathode nets independently derived);
+    POLARITY-CHECK render verification in the render review.
 - lcsc: C152083      # SMCJ33A (D9)
   status: NO-CAD
   why: >-
@@ -120,3 +121,24 @@
     (02_parts/SMCJ33A): terminal span 7.75-8.13mm over 3.3x2.5 pads at
     +-3.4. Polarity triple-covered (generator assert + audit I9 + pin
     review PASS: cathode pad1 = VBUS, anode = GND).
+- lcsc: C165948      # TYPE-C-31-M-12 (J9)
+  status: MODEL-REG
+  why: >-
+    False alarm, NO rotation override (the skill's USB-C red-herring
+    class): JLC's own footprint mounts this model at rot_z=180
+    (authoritative) and the body is asymmetric (1.1mm bbox-center
+    offset), so the bbox metric is unreliable. Fresh-context render
+    review 2026-07-19: body mouth faces the west edge, TH shield legs
+    land in their holes (twin_edge_west), rendered body shifted ~2.1mm
+    east of copper = model-origin registration artifact; footprint
+    copper puts the mating face 0.65mm inboard as designed. Final
+    registration check carried in ORDER_README (JLC preview).
+- lcsc: C844297      # WSLP2726L5000FEA (RS1-RS6)
+  status: MODEL-REG
+  why: >-
+    False alarm, NO override: JLC mounts the model at rot_z=0
+    (authoritative); the 2726 body is asymmetric (0.9mm bbox-center
+    offset) making the metric unreliable. Render review 2026-07-19:
+    all six bodies sit centered on their two 5.71x2.69 pads, correct
+    N-S orientation, consistent across instances; measured render
+    offset ~1.1mm matches the bbox artifact exactly.

@@ -32,6 +32,8 @@ hardware contract a firmware bring-up needs. Source of truth:
 ## Logging / brown-out
 
 - W25Q64: 8 MB ring of 16 B/port/10 s stat records, wear-leveled.
+- IQ suffix ships QE=1: do NOT issue quad commands (IO2//WP and IO3//HOLD
+  are hard-tied to 3V3); standard/dual SPI only (pin review advisory).
 - Flush the ring header when any INA VBUS reads < 10 V (bus dying);
   hardware UVLO turns the buck off at ≈8.25 V (ADR-0001 #5).
 - BLE: advertise per-port live stats; GATT read of history pages.

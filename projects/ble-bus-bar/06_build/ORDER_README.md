@@ -27,8 +27,16 @@
 - Preview checks before paying (jlcpcb-fab checklist):
   - U1–U6 (INA238) pin-1 dot orientation in the 3D preview.
   - D7–D11 diode cathode bands vs the board silk.
-  - LED1/LED2 cathode mark (green dot) orientation — no per-part
-    datasheet exists; verify on the first reel (pin_review.md action).
+  - LED1/LED2 cathode mark orientation — no per-part datasheet;
+    verify on the first reel (pin_review.md action). Both carry a
+    rotation-DB suggestion (180) — confirm in the preview.
+  - D8 (SOD-123) band orientation — model unmarked in the twin render;
+    confirm cathode band faces the 3V3 side (render_review.md action).
+  - U7 module presence/orientation — our KiCad STEP did not resolve in
+    the twin render (pads+keepout verified); confirm the module body in
+    the JLC preview, antenna WEST.
+  - U1-U6 (MSOP-10) rotation-DB suggestion (90) — the INA238 pin-1 dot
+    check above is the decisive verification.
   - U7 module antenna points WEST (off-board edge side).
   - J9 USB-C sits flush with the west edge.
   - Rotation of U9 (SOT-223) and U10 (SOT-23-6) — auto-corrected in the

@@ -1,34 +1,18 @@
 ./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
 ./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
 ./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
-23:51:30: Debug: Adding duplicate image handler for 'PNG file'
-23:51:30: Debug: Adding duplicate image handler for 'JPEG file'
-23:51:30: Debug: Adding duplicate image handler for 'TIFF file'
-23:51:30: Debug: Adding duplicate image handler for 'GIF file'
-23:51:30: Debug: Adding duplicate image handler for 'PNM file'
-23:51:30: Debug: Adding duplicate image handler for 'PCX file'
-23:51:30: Debug: Adding duplicate image handler for 'IFF file'
-23:51:30: Debug: Adding duplicate image handler for 'Windows icon file'
-23:51:30: Debug: Adding duplicate image handler for 'Windows cursor file'
-23:51:30: Debug: Adding duplicate image handler for 'Windows animated cursor file'
-23:51:30: Debug: Adding duplicate image handler for 'TGA file'
-23:51:30: Debug: Adding duplicate image handler for 'XPM file'
-C179171  U11  PAD-MISMATCH  best=(1.0550118482747062, False, 90)
-C352820  F1  PAD-MISMATCH  best=none
-C352820  F2  PAD-MISMATCH  best=none
-C352820  F3  PAD-MISMATCH  best=none
-C352820  F4  PAD-MISMATCH  best=none
-C352820  F5  PAD-MISMATCH  best=none
-C352820  F6  PAD-MISMATCH  best=none
-C15874  D11  PAD-GEOM  pad 1<->2 ours 4.00mm vs JLC 4.40mm (d0.40mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
-C15874  D7  PAD-GEOM  pad 1<->2 ours 4.00mm vs JLC 4.40mm (d0.40mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
-C179171  U11  PAD-GEOM  pad 1<->8 ours 4.95mm vs JLC 7.06mm (d2.11mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
-C352820  F1  PAD-GEOM  pad 1<->2 ours 13.50mm vs JLC 3.40mm (d10.10mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
-C352820  F2  PAD-GEOM  pad 1<->2 ours 13.50mm vs JLC 3.40mm (d10.10mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
-C352820  F3  PAD-GEOM  pad 1<->2 ours 13.50mm vs JLC 3.40mm (d10.10mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
-C352820  F4  PAD-GEOM  pad 1<->2 ours 13.50mm vs JLC 3.40mm (d10.10mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
-C352820  F5  PAD-GEOM  pad 1<->2 ours 13.50mm vs JLC 3.40mm (d10.10mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
-C352820  F6  PAD-GEOM  pad 1<->2 ours 13.50mm vs JLC 3.40mm (d10.10mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+08:44:35: Debug: Adding duplicate image handler for 'PNG file'
+08:44:35: Debug: Adding duplicate image handler for 'JPEG file'
+08:44:35: Debug: Adding duplicate image handler for 'TIFF file'
+08:44:35: Debug: Adding duplicate image handler for 'GIF file'
+08:44:35: Debug: Adding duplicate image handler for 'PNM file'
+08:44:35: Debug: Adding duplicate image handler for 'PCX file'
+08:44:35: Debug: Adding duplicate image handler for 'IFF file'
+08:44:35: Debug: Adding duplicate image handler for 'Windows icon file'
+08:44:35: Debug: Adding duplicate image handler for 'Windows cursor file'
+08:44:35: Debug: Adding duplicate image handler for 'Windows animated cursor file'
+08:44:35: Debug: Adding duplicate image handler for 'TGA file'
+08:44:35: Debug: Adding duplicate image handler for 'XPM file'
 C165948  J9  MODEL-REG  body center 2.1mm off courtyard, area ratio 0.69 -> DO NOT blind-flip: JLC's footprint mounts this model at rot_z=180 (authoritative); body asymmetric (1.1mm bbox-center offset) so this metric is unreliable. VERIFY leads sit on pads visually; if correct, adjudicate as a false alarm with NO rotation override
 C844297  RS1  MODEL-REG  body center 1.1mm off courtyard, area ratio 0.68 -> DO NOT blind-flip: JLC's footprint mounts this model at rot_z=0 (authoritative); body asymmetric (0.9mm bbox-center offset) so this metric is unreliable. VERIFY leads sit on pads visually; if correct, adjudicate as a false alarm with NO rotation override
 C844297  RS2  MODEL-REG  body center 1.1mm off courtyard, area ratio 0.68 -> DO NOT blind-flip: JLC's footprint mounts this model at rot_z=0 (authoritative); body asymmetric (0.9mm bbox-center offset) so this metric is unreliable. VERIFY leads sit on pads visually; if correct, adjudicate as a false alarm with NO rotation override
@@ -52,13 +36,19 @@ C2297  LED1  ROT-DB-SUGGEST  fit=0.11mm jlc_offset=180 db=0.0 -> add: LED_0805_2
 C2297  LED2  ROT-DB-SUGGEST  fit=0.11mm jlc_offset=180 db=0.0 -> add: LED_0805_2012Metric,180
 C165948  J9  ROT-DB-SUGGEST  fit=0.00mm jlc_offset=0 db=180.0 -> add: USB_C_Receptacle_HRO_TYPE-C-31-M-12,0
 C2687116  U10  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=90 db=-90.0 -> add: SOT-23-6,90
+C179171  U11  ROT-DB-SUGGEST  fit=0.06mm jlc_offset=90 db=270.0 -> add: SOIC-8_5.3x5.3mm_P1.27mm,90
 C844297  RS1  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: R_Shunt_WSLP2726,270
 C844297  RS2  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: R_Shunt_WSLP2726,270
 C844297  RS3  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: R_Shunt_WSLP2726,270
 C844297  RS4  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: R_Shunt_WSLP2726,270
 C844297  RS5  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: R_Shunt_WSLP2726,270
 C844297  RS6  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: R_Shunt_WSLP2726,270
-C152083  D9  NO-CAD  ['[ERROR] Failed to fetch data from EasyEDA API for part C152083']
+C352820  F1  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: FuseHolder_Keystone_3557-2,270
+C352820  F2  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: FuseHolder_Keystone_3557-2,270
+C352820  F3  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: FuseHolder_Keystone_3557-2,270
+C352820  F4  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: FuseHolder_Keystone_3557-2,270
+C352820  F5  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: FuseHolder_Keystone_3557-2,270
+C352820  F6  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: FuseHolder_Keystone_3557-2,270
 C3105  F7  MODEL-REG-OK  body on courtyard (0.00mm)
 C149504  R27  MODEL-REG-OK  body on courtyard (0.00mm)
 C49678  C13  MODEL-REG-OK  body on courtyard (0.00mm)
@@ -132,6 +122,12 @@ C15874  D11  MODEL-REG-OK  body on courtyard (0.00mm)
 C15874  D7  MODEL-REG-OK  body on courtyard (0.00mm)
 C2687116  U10  MODEL-REG-OK  body on courtyard (0.00mm)
 C179171  U11  MODEL-REG-OK  body on courtyard (0.00mm)
+C352820  F1  MODEL-REG-OK  body on courtyard (0.00mm)
+C352820  F2  MODEL-REG-OK  body on courtyard (0.00mm)
+C352820  F3  MODEL-REG-OK  body on courtyard (0.00mm)
+C352820  F4  MODEL-REG-OK  body on courtyard (0.00mm)
+C352820  F5  MODEL-REG-OK  body on courtyard (0.00mm)
+C352820  F6  MODEL-REG-OK  body on courtyard (0.00mm)
 C3105  F7  OK  fit=0.05mm jlc_offset=0 db=0.0
 C149504  R27  OK  fit=0.09mm jlc_offset=0 db=0.0
 C49678  C13  OK  fit=0.05mm jlc_offset=0 db=0.0
@@ -203,8 +199,10 @@ C87080  U8  ADJUDICATED-PAD-GEOM  "ours 2.28 vs JLC 2.70 (d0.42)": SNVSA24 DDC00
 C87080  U8  OK  fit=0.21mm jlc_offset=180 db=180.0
 C173526  D10  ADJUDICATED-PAD-GEOM  "ours 4.30 vs JLC 4.72 (d0.42)": KiCad D_SMB vs JLC's SMB pattern — the standard DO-214AA terminal span is 5.21-5.59mm with ~1.1mm-long feet; both pad sets sit under the feet (JLC 0.21/side outward). Fit=0.21mm, MODEL-REG 0.00mm; polarity band checked in the render review (cathode = VIN_E side, matching pad 1 net).
 C173526  D10  OK  fit=0.21mm jlc_offset=0 db=0.0
+C152083  D9  ADJUDICATED-NO-CAD  Same repeated-fetch failure class; BORN reel without EasyEDA CAD. Land = KiCad std D_SMC vs the DO-214AB outline in the LCSC sheet (02_parts/SMCJ33A): terminal span 7.75-8.13mm over 3.3x2.5 pads at +-3.4. Polarity triple-covered (generator assert + audit I9 + pin review PASS: cathode pad1 = VBUS, anode = GND).
+C15874  D11  ADJUDICATED-PAD-GEOM  "ours 4.00 vs JLC 4.40 (d0.40)": KiCad std D_SMA (2.5x1.8 pads at +-2.0) vs JLC's SMA pattern (+-2.2) — the standard pad-length split on the DO-214AC package (terminal span 4.9-5.3mm, ~1.1mm feet): both patterns sit fully under the feet (JLC 0.2/side outward). fit=0.20mm, MODEL-REG 0.00mm on both instances. Polarity is triple-covered: generator I9 assert, audit I9, fresh-context pin review (both instances PASS, cathode nets independently derived); POLARITY-CHECK render verification in the render review.
 C15874  D11  OK  fit=0.20mm jlc_offset=0 db=0.0
+C15874  D7  ADJUDICATED-PAD-GEOM  "ours 4.00 vs JLC 4.40 (d0.40)": KiCad std D_SMA (2.5x1.8 pads at +-2.0) vs JLC's SMA pattern (+-2.2) — the standard pad-length split on the DO-214AC package (terminal span 4.9-5.3mm, ~1.1mm feet): both patterns sit fully under the feet (JLC 0.2/side outward). fit=0.20mm, MODEL-REG 0.00mm on both instances. Polarity is triple-covered: generator I9 assert, audit I9, fresh-context pin review (both instances PASS, cathode nets independently derived); POLARITY-CHECK render verification in the render review.
 C15874  D7  OK  fit=0.20mm jlc_offset=0 db=0.0
 
-63 OK / 192 checked; report + renders -> /home/mouse9911/gits/circuits/projects/ble-bus-bar/06_build/twin
-CRITICAL (9 refs): ['D11', 'D7', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'U11']
+63 OK / 191 checked; report + renders -> /home/mouse9911/gits/circuits/projects/ble-bus-bar/06_build/twin

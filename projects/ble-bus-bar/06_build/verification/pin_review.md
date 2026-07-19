@@ -27,3 +27,10 @@ carry the orchestrator's dispositions with evidence.
 PASS — no order-blocking findings. Full reviewer transcripts summarized
 above; QUESTIONs all resolved with board-file evidence or carried as
 explicit assembly-time actions in ORDER_README.
+
+## Delta round (2026-07-19, post-rework: wide-SOIC U11 + LED pin swap)
+
+| Part | Verdict | Notes |
+|---|---|---|
+| U7 ESP32-C3-WROOM-02 | PASS | full 19-pad re-derivation incl. EP grid (fig 10-1/11-1 dims matched exactly); straps verified ON BOARD (R18/R20/R21+C10+SW1/SW2); LED_ST on IO0 (pin 18), pin 17 NC as designed |
+| U11 W25Q64JVSSIQ | PASS | SSIQ = 208-mil WIDE SOIC verified from the ordering + package spec (body 5.28, lead span 7.7-8.1) against the corrected SOIC-8_5.3x5.3 footprint; all 8 nets correct; advisory: QE=1 factory bit means firmware must not issue quad commands (IO2/IO3 hard-tied high) — noted for 05_firmware |
