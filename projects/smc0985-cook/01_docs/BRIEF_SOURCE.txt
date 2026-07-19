@@ -1,0 +1,1143 @@
+SMC0985KS INTELLIGENT COOKING PROTOTYPE
+PHASE 1 SENSOR + RASPBERRY PI INTEGRATION
+PCB DESIGN REQUIREMENTS / AGENT DESIGN BRIEF
+Revision: 1.0
+Purpose: Input specification for schematic, PCB, firmware-interface, and test-plan design
+
+======================================================================
+0. DOCUMENT PURPOSE
+======================================================================
+
+Design a cost-conscious, modular electronics system that allows a Raspberry
+Pi 5 to:
+
+1. Acquire and synchronize all Phase 1 sensors.
+2. Send selected images and summarized sensor data to an online multimodal
+   LLM API.
+3. Receive a structured cooking-plan proposal.
+4. Validate the proposal locally against a fixed Sharp SMC0985KS capability
+   and recipe-profile library.
+5. Program the SMC0985KS by electrically emulating front-panel button presses.
+6. Verify the entered program using an external display camera and an external
+   appliance power monitor.
+7. Stop safely on communication, sensor, software, or user-command faults.
+
+Phase 1 goal:
+    LLM + sensors + basic SMC0985KS program execution.
+
+Phase 2 goal:
+    Phase 1 system + calibrated thermal maps + improved thermal uniformity,
+    with optional controlled turntable position.
+
+This document is a PCB/system design brief. It is not a production appliance
+certification specification.
+
+======================================================================
+1. NON-NEGOTIABLE SAFETY AND ARCHITECTURE BOUNDARIES
+======================================================================
+
+1.1 No powered PCB, camera electronics, humidity sensor, cable connector,
+    microcontroller, or load-cell amplifier may be placed inside the energized
+    microwave cooking cavity.
+
+1.2 Sensors may face or sample the cavity only through:
+    a. The existing door viewing screen for visible RGB imaging.
+    b. A separately engineered and tested optical/RF port for live thermal
+       imaging.
+    c. The existing cavity exhaust path for humidity and temperature sensing.
+
+1.3 The custom electronics must not connect to or modify:
+    a. The magnetron high-voltage circuit.
+    b. The convection heater power circuit.
+    c. Fan motor power circuits.
+    d. OEM door interlocks.
+    e. OEM thermal cutoffs.
+    f. The appliance mains input internally.
+
+1.4 The custom controller may control the appliance only by:
+    a. Simulating front-panel key closures through galvanically isolated,
+       normally-open dry contacts.
+    b. Optionally controlling an external, separately enclosed, listed
+       upstream power contactor as a fault-only power removal layer.
+
+1.5 There must be no electrical ground connection between the Raspberry
+    Pi/Pico low-voltage domain and the microwave front-panel/keypad domain.
+
+1.6 The online LLM must never directly command relays, keypad lines, a
+    magnetron, heater, fan, turntable motor, or mains contactor.
+
+1.7 Cloud/API loss must never prevent:
+    a. Releasing every simulated key.
+    b. Sending STOP/CLEAR.
+    c. Dropping the external power contactor.
+    d. Recording a fault locally.
+
+1.8 All relay outputs must default OFF during:
+    a. Power-up.
+    b. Reset.
+    c. Firmware update.
+    d. USB disconnect.
+    e. Pi heartbeat loss.
+    f. Pico firmware crash.
+    g. Emergency-stop activation.
+
+1.9 Do not finalize the keypad interposer connector or mapping until a donor
+    SMC0985KS has been opened, documented, and the keypad/control-panel
+    connector has been physically measured.
+
+======================================================================
+2. RECOMMENDED SYSTEM PARTITION
+======================================================================
+
+Use a modular system rather than forcing every function onto one PCB.
+
+2.1 Off-the-shelf host:
+    - Raspberry Pi 5.
+    - Runs Linux, cameras, networking, display OCR, perception, LLM API
+      client, recipe validation, program compilation, user interface, and
+      data logging.
+
+2.2 PCB A: Sensor and deterministic control hub:
+    - Raspberry Pi Pico 2 used as a pluggable module for Revision A.
+    - Acquires non-camera sensors.
+    - Maintains precise timestamps.
+    - Drives isolated keypad-relay outputs.
+    - Enforces heartbeat and relay timing.
+    - Interfaces to Pi 5 by USB CDC serial.
+    - Contains hardware relay-disable watchdog.
+
+2.3 PCB B: Keypad relay and interposer board:
+    - Located near the microwave front-panel control PCB.
+    - Provides 12 to 16 normally-open isolated dry-contact channels.
+    - Connects to a passive FPC/FFC interposer or a donor-specific front-panel
+      breakout.
+    - Keeps hazardous/unknown keypad-side copper physically separated from
+      the low-voltage logic side.
+    - May be combined with PCB A only if isolation spacing, serviceability,
+      and routing remain satisfactory.
+
+2.4 PCB C, optional but recommended: Load-cell ADC daughterboard:
+    - Located under the appliance platform close to the load cells.
+    - Contains bridge-combination network and HX711.
+    - Sends digital clock/data to PCB A.
+    - Minimizes microvolt-level analog cable length.
+
+2.5 PCB D, optional: Thermal-port sensor daughterboard:
+    - Carries MLX90640 or a connector for its breakout.
+    - Carries port/window thermistor.
+    - Located outside the RF cavity at the optical port.
+    - Connects to PCB A over short I2C and analog cables.
+
+2.6 External, not on custom PCB:
+    - Two Raspberry Pi RGB cameras.
+    - External USB microphone.
+    - External appliance power-monitoring smart plug or listed power meter.
+    - External emergency-stop and optional external power contactor.
+    - Online LLM API.
+
+======================================================================
+3. PHASE 1 REQUIRED SENSOR SET
+======================================================================
+
+3.1 Cavity-facing RGB camera
+    Recommended device:
+        Raspberry Pi Camera Module 3 Wide.
+    Connection:
+        Raspberry Pi 5 CAM/DISP0 CSI connector.
+    Placement:
+        Outside the microwave, lens close to the existing door viewing screen.
+    Purpose:
+        Food identification, container/accessory recognition, boiling,
+        browning, movement, intervention verification, and anomaly images.
+    PCB requirement:
+        None for video transport. Camera connects directly to Pi.
+    Mechanical requirement:
+        Provide an opaque optical hood to suppress room reflections.
+    Software target:
+        5 to 15 fps during scanning/cooking; higher bursts optional.
+
+3.2 External/display RGB camera
+    Recommended device:
+        Raspberry Pi Camera Module 3 Standard or Wide.
+    Connection:
+        Raspberry Pi 5 CAM/DISP1 CSI connector.
+    Placement:
+        Outside appliance, aimed at control-panel display and staging area.
+    Purpose:
+        Display OCR, package OCR, barcode/label capture, accessory staging,
+        and user-intervention confirmation.
+    PCB requirement:
+        None for video transport. Camera connects directly to Pi.
+    Expansion:
+        Support an optional third USB UVC camera if one view cannot cover both
+        display and package staging.
+
+3.3 Live thermal array
+    Recommended device:
+        MLX90640 wide field-of-view, 32 x 24 pixels.
+    Connection:
+        3.3 V I2C to Pico I2C0.
+    Nominal I2C address:
+        0x33.
+    Target update rate:
+        4 to 8 frames per second.
+    Placement:
+        Sensor electronics outside the cooking cavity, behind an engineered
+        optical/RF port.
+    Purpose:
+        Surface-temperature map, broad hot/cold regions, heating-rate map,
+        boil-over detection, and Phase 2 uniformity feedback.
+    PCB requirements:
+        a. 4-pin locking connector: 3V3, GND, SDA, SCL.
+        b. Selectable I2C pullups, nominal 2.2 kOhm to 4.7 kOhm.
+        c. Optional 22 to 100 Ohm series damping resistors.
+        d. ESD protection with low-capacitance parts.
+        e. Test points for power, SDA, and SCL.
+        f. Cable length target <= 300 mm.
+        g. If cable length exceeds approximately 500 mm or EMI is excessive,
+           provide an option for differential I2C extenders.
+    Important:
+        The thermal sensor is a thermal array, not a CSI camera.
+
+3.4 Proximal exhaust humidity and temperature
+    Recommended device:
+        SHT45 module with PTFE protective membrane.
+    Connection:
+        3.3 V I2C to Pico I2C1.
+    Nominal I2C address:
+        0x44.
+    Target update rate:
+        1 sample per second.
+    Placement:
+        In a short, filtered, drainable bypass sampling the existing cavity
+        exhaust, outside the RF cavity.
+    Purpose:
+        Moisture-release onset, thaw/evaporation transitions, boiling,
+        drying trend, and completion features.
+    PCB requirements:
+        a. Separate I2C bus from ambient SHT45 because both use address 0x44.
+        b. Locking 4-pin connector.
+        c. Selectable pullups and test points.
+        d. Sensor-fault and bus-stuck recovery.
+    Important:
+        Do not put the humidity sensor inside the RF cavity.
+
+3.5 Ambient humidity and temperature reference
+    Recommended device:
+        Second SHT45 module with PTFE membrane.
+    Connection:
+        3.3 V I2C to Pico I2C0, shared with MLX90640.
+    Nominal I2C address:
+        0x44.
+    Target update rate:
+        1 sample per second.
+    Placement:
+        Near appliance air intake, away from direct exhaust.
+    Purpose:
+        Ambient correction and computation of differential absolute humidity.
+
+3.6 Fast exhaust temperature
+    Recommended device:
+        K-type thermocouple plus MAX31856 interface.
+    Connection:
+        3.3 V SPI to Pico SPI0.
+    Target update rate:
+        5 to 10 samples per second.
+    Placement:
+        Thermocouple tip adjacent to the exhaust humidity sample location.
+    Purpose:
+        Faster thermal transients than the SHT45 package, humidity correction,
+        exhaust mode recognition, and overheating research.
+    PCB requirements if MAX31856 is integrated:
+        a. Place MAX31856 at board edge next to thermocouple connector.
+        b. Keep away from relay coils, power regulators, and hot components.
+        c. Provide K-type keyed connector.
+        d. Follow datasheet input filtering and ESD recommendations.
+        e. Provide second chip-select footprint for future MAX31865/PT1000.
+        f. Provide thermocouple open/short fault reporting.
+
+3.7 Appliance weight
+    Recommended devices:
+        Four 50 kg load sensors plus bridge-combination network and HX711.
+    Connection:
+        HX711 digital data and clock to Pico GPIO.
+    Target update rate:
+        10 samples per second.
+    Placement:
+        Load cells under the microwave platform.
+    Purpose:
+        Added food/container mass, stable-load detection, coarse mass-loss
+        trend, and plausibility checking.
+    PCB requirements:
+        a. Prefer a separate HX711 daughterboard near the load cells.
+        b. Support four 3-wire half-bridge load sensors or one standard
+           4/6-wire full bridge.
+        c. Provide shield/drain termination.
+        d. Provide selectable 10/80 SPS; default 10 SPS.
+        e. Keep analog bridge traces short and away from relays and clocks.
+        f. Provide calibration and raw-count test points.
+        g. Store calibration constants in Pi configuration or Pico flash.
+
+3.8 Door-state observation
+    Preferred implementation:
+        External normally-closed reed switch or configurable Hall sensor.
+    Connection:
+        Pico digital input.
+    Purpose:
+        Independent software-visible door state; not a replacement for OEM
+        interlocks.
+    PCB requirements:
+        a. Support 2-wire normally-closed loop with pullup.
+        b. Optional 3-pin 3.3 V Hall sensor mode by jumper.
+        c. Hardware debounce/RC filtering.
+        d. Broken wire must be distinguishable from normal closed state where
+           practical, for example using an end-of-line resistor.
+
+3.9 Emergency stop
+    Implementation:
+        External mushroom switch with at least one normally-closed contact.
+    Connection:
+        One contact to Pico monitored input.
+        A separate independent contact should interrupt the external contactor
+        enable circuit directly.
+    PCB requirements:
+        a. NC input with pullup and debounce.
+        b. E-stop state must hard-disable relay-coil power.
+        c. E-stop recovery requires explicit operator acknowledgment.
+
+3.10 Optical-port/window temperature
+    Recommended device:
+        10 kOhm NTC thermistor bonded to the outer port/window structure.
+    Connection:
+        Pico ADC through precision divider.
+    Target update rate:
+        2 to 5 samples per second.
+    Purpose:
+        Thermal-image correction, port-overtemperature detection, and
+        convection/air-fry characterization.
+    PCB requirements:
+        a. At least two thermistor channels: optical port and electronics
+           enclosure/housing.
+        b. 0.1% or 1% reference resistor, RC filter, ESD protection.
+        c. ADC test points.
+        d. Configurable thermistor beta parameters in firmware.
+
+3.11 Appliance power and energy
+    Preferred Phase 1 implementation:
+        External listed smart plug or power meter communicating to the Pi over
+        local LAN/Wi-Fi.
+    Purpose:
+        Verify actual appliance operation, distinguish idle/microwave/heater/
+        fan signatures, and record energy.
+    PCB requirement:
+        None.
+    Prohibition:
+        Do not route mains voltage or a mains current transformer onto the
+        custom low-voltage PCB in Revision A.
+
+3.12 Audio
+    Preferred Phase 1 implementation:
+        External USB microphone connected to Pi.
+    Purpose:
+        Fan, relay, boiling, popping, and anomaly signatures.
+    PCB requirement:
+        None.
+    Optional expansion:
+        Reserve a 4-pin 3.3 V I2S microphone header.
+
+======================================================================
+4. PHASE 2 / FUTURE SENSOR AND CONTROL EXPANSION
+======================================================================
+
+4.1 Turntable angle sensing
+    Inputs:
+        Quadrature encoder A/B and optional index Z.
+        Home switch.
+    Pico requirements:
+        Reserve at least three digital inputs.
+        Support interrupt or PIO-based counting.
+    Purpose:
+        Register thermal maps to tray coordinates and support angle-indexed
+        heating maps.
+
+4.2 Turntable motor command
+    Outputs:
+        STEP, DIR, ENABLE to external motor driver.
+    Electrical requirement:
+        3.3 V logic outputs; external driver must be independently powered.
+    Purpose:
+        Optional Phase 2 position-controlled turntable.
+    Prohibition:
+        Do not power a stepper motor directly from the sensor PCB.
+
+4.3 Arc/flash detector
+    Input:
+        Digital photodiode/comparator input or analog ADC input.
+    Purpose:
+        Research logging and fault detection through the door window.
+    Requirement:
+        Reserve one digital input and one ADC-capable input.
+
+4.4 Differential pressure / airflow
+    Likely interface:
+        I2C.
+    Purpose:
+        Confirm exhaust airflow and normalize humidity transport delay.
+    Requirement:
+        Provide one spare I2C connector and address-mux option if needed.
+
+4.5 Smoke/particulate sensor
+    Likely interface:
+        UART or I2C.
+    Placement:
+        Cooled, filtered exhaust bypass.
+    Requirement:
+        Provide one spare UART/I2C connector.
+    Note:
+        Research/anomaly channel only; not a certified fire detector.
+
+4.6 Fiber-optic internal temperature probes
+    Purpose:
+        Development ground truth only.
+    Interface:
+        Vendor instrument over USB or Ethernet to Pi.
+    PCB requirement:
+        None.
+
+4.7 Higher-resolution thermal camera
+    Purpose:
+        Later research upgrade.
+    Interface:
+        USB or vendor interface directly to Pi.
+    PCB requirement:
+        None.
+
+======================================================================
+5. PROPOSED PICO 2 PIN ALLOCATION
+======================================================================
+
+Revision A should use a pluggable Raspberry Pi Pico 2 module.
+
+GP0     I2C0 SDA: MLX90640 + ambient SHT45
+GP1     I2C0 SCL
+
+GP2     I2C1 SDA: exhaust SHT45
+GP3     I2C1 SCL
+
+GP4     Spare digital / airflow interrupt
+GP5     Spare digital / future sensor
+
+GP6     HX711 DATA
+GP7     HX711 CLOCK
+
+GP8     Door-state input
+GP9     Emergency-stop monitor
+GP10    Arc/flash detector input
+
+GP11    Relay shift-register DATA
+GP12    Relay shift-register CLOCK
+GP13    Relay shift-register LATCH
+GP14    Relay-bank global ENABLE
+GP15    External contactor fault-cutoff request, optically isolated output
+
+GP16    SPI0 MISO: MAX31856
+GP17    SPI0 CS0: MAX31856
+GP18    SPI0 SCK
+GP19    SPI0 MOSI
+
+GP20    SPI0 CS1: optional MAX31865/PT1000
+GP21    Phase 2 turntable encoder A
+GP22    Phase 2 turntable encoder B
+
+GP26    ADC0: optical-port thermistor
+GP27    ADC1: enclosure/housing thermistor
+GP28    ADC2: spare analog / photodiode / pressure channel
+
+USB    CDC serial, bootloader, and firmware update connection to Pi 5
+
+The PCB designer may alter pins if required, but must preserve:
+    - Two independent I2C buses.
+    - One SPI bus with at least two chip-selects.
+    - Two ADC thermistor channels.
+    - HX711 two-wire interface.
+    - Four relay-control signals.
+    - Door, E-stop, and arc inputs.
+    - Three future turntable signals.
+    - One isolated external contactor output.
+
+======================================================================
+6. KEYPAD INTERCEPTION AND RELAY REQUIREMENTS
+======================================================================
+
+6.1 Donor qualification dependency
+    Exact SMC0985KS keypad details are unknown until teardown.
+    Required measurements before final interposer design:
+        - FPC/FFC pitch.
+        - Number of conductors.
+        - Connector orientation and contact side.
+        - Passive matrix versus local front-panel microcontroller.
+        - Row/column mapping for required keys.
+        - Key scan voltage and waveform, measured only with suitable isolated
+          instruments by a qualified engineer.
+        - Required key hold and inter-key timing.
+
+6.2 Preferred electrical method
+    Use 12 to 16 individually controllable SPST-NO reed relays.
+
+    Reasons:
+        - True dry-contact behavior.
+        - Very low off-state capacitance.
+        - No voltage injection into keypad lines.
+        - Good compatibility with unknown keypad scanning.
+        - Galvanic isolation.
+
+6.3 Relay contact requirements
+    - Normally open.
+    - At least 1 kV contact-to-coil isolation preferred.
+    - Low contact resistance.
+    - Low off capacitance.
+    - Contacts available as two isolated pins per channel.
+    - No shared common on keypad side unless donor mapping proves appropriate.
+    - Keypad-side copper treated as potentially hazardous/unknown voltage.
+    - Minimum 6 to 8 mm clearance and creepage between keypad-contact copper
+      and SELV logic; use slots where practical.
+
+6.4 Relay coil driver
+    Recommended architecture:
+        Pico -> two 74HC595 shift registers -> ULN2803A or MOSFET sink array
+        -> 5 V reed relay coils.
+
+    Requirements:
+        - Flyback suppression.
+        - Global relay-power or output-enable gate.
+        - All outputs OFF if shift-register OE floats.
+        - OE pulled to disabled state by hardware.
+        - One key active at a time by default.
+        - Optional diagnostic LED on coil side only; LEDs must not connect to
+          keypad contacts.
+
+6.5 Hardware watchdog
+    Required independent of Pico firmware.
+
+    Functional requirement:
+        Pico must toggle a watchdog input at 5 to 20 Hz.
+        Missing toggles for 300 to 500 ms must:
+            a. Disable relay output enable.
+            b. Remove relay-coil power or gate.
+            c. Prevent further key closures.
+
+    Acceptable implementation:
+        Dedicated watchdog IC or retriggerable monostable.
+    Not acceptable:
+        Firmware-only timeout.
+
+6.6 Pi-to-Pico heartbeat
+    - Pi sends heartbeat at 5 to 10 Hz over USB.
+    - Pico releases all relays if heartbeat is missing for 500 ms to 1 s.
+    - Pico may send STOP/CLEAR only if the required relay mapping is known and
+      the sequence can be executed without ambiguity.
+    - Otherwise it releases keys and requests upstream power removal.
+
+6.7 Key-command timing limits
+    Configurable by firmware, defaults:
+        - Key hold: 150 ms.
+        - Allowed range: 50 to 500 ms.
+        - Inter-key gap: >= 100 ms.
+        - Maximum command sequence: 32 key presses.
+        - Only one key relay active at a time.
+        - No automatic retry of START unless display state is fully known.
+        - STOP/CLEAR must have highest command priority.
+
+6.8 Keypad interposer requirements
+    - Straight-through pass-through of all OEM conductors.
+    - Original physical control panel remains fully functional.
+    - No intentional series impedance in pass-through path.
+    - Breakout of every conductor to labeled test pads or connector.
+    - Removable without cutting OEM harnesses.
+    - Keyed connectors and strain relief.
+    - Final FPC connector footprint is explicitly TBD pending donor teardown.
+    - Consider a donor-specific small daughterboard rather than putting the
+      unknown FPC connector on the main sensor PCB.
+
+6.9 Generic patchability before matrix is frozen
+    Preferred:
+        Each relay contact pair exits to a labeled connector.
+        A short patch harness or donor-specific daughterboard maps relay pairs
+        to the appropriate keypad row/column conductors.
+
+======================================================================
+7. POWER ARCHITECTURE
+======================================================================
+
+7.1 Low-voltage power source
+    - Use an external SELV 5 V supply, recommended 5 V at 2 A or greater.
+    - Do not draw power from any internal microwave control board.
+    - Pi 5 has its own approved supply.
+    - Pico/sensor hub may be powered from USB or the external 5 V rail, but
+      relay-coil current must not overload the Pi USB port.
+
+7.2 Recommended rails
+    - 5 V relay/sensor input rail.
+    - 3.3 V logic/sensor rail from a low-noise regulator if Pico onboard 3.3 V
+      current/noise is insufficient.
+    - Separate filtered 3.3 V analog rail optional for HX711/thermistor area.
+
+7.3 Input protection
+    - Replaceable fuse or resettable polyfuse.
+    - Reverse-polarity protection.
+    - TVS diode on 5 V input.
+    - Bulk capacitance sized for relay transients.
+    - Local decoupling at every IC and sensor connector.
+
+7.4 Relay power gating
+    - Relay-coil 5 V must pass through a hardware-controlled high-side switch
+      or equivalent.
+    - E-stop and hardware watchdog must both be able to remove relay-coil
+      power.
+    - Default state with no logic power is OFF.
+
+7.5 External contactor output
+    - Custom PCB must not switch appliance mains directly.
+    - Provide an optically isolated open-drain or dry-contact output to a
+      separately enclosed external contactor module.
+    - Contactor default on loss of control power should remove microwave mains.
+    - E-stop should interrupt contactor enable independently of firmware.
+    - Connector must state maximum control-side voltage/current.
+
+7.6 Power budget target
+    Approximate design allowance:
+        Pico 2 module:              < 150 mA typical allowance
+        Sensors and interfaces:     < 300 mA allowance
+        16 relay coils:             size for worst case, though firmware allows
+                                    one active at a time
+        Margin:                     >= 50%
+
+======================================================================
+8. SIGNAL INTEGRITY, EMI, AND PCB LAYOUT
+======================================================================
+
+8.1 Recommended PCB stack
+    - Four-layer FR-4 preferred for Revision A:
+        Layer 1: components/signals
+        Layer 2: continuous ground
+        Layer 3: power and slow signals
+        Layer 4: components/signals
+    - Two-layer is acceptable only if the designer demonstrates adequate
+      separation, ground return, and relay-noise control.
+
+8.2 Mechanical environment
+    - All electronics outside the cooking cavity.
+    - Avoid direct placement above the convection heater or exhaust outlet.
+    - Design for exterior ambient up to at least 50 to 60 degrees C.
+    - Use locking connectors and strain relief.
+    - Provide mounting holes and an enclosure-compatible outline.
+
+8.3 EMI practices
+    - Short I2C cables where possible.
+    - Shielded/twisted cable for load cells and thermocouple.
+    - Ferrite/common-mode options at external sensor connectors.
+    - RC filtering and Schmitt inputs for door/E-stop.
+    - Keep relay current loops away from HX711 and thermocouple circuits.
+    - Keep clocks and USB away from low-level analog inputs.
+    - Provide chassis/shield drain termination pads without tying them to the
+      unknown keypad domain.
+    - Include test during actual microwave operation with a standard water load.
+
+8.4 Isolation zone
+    - Visually and electrically separate relay contact/keypad domain from
+      low-voltage coil/logic domain.
+    - No copper pour crossing the isolation barrier.
+    - Use milled slots when helpful.
+    - Label isolation boundary on silkscreen.
+    - No user-accessible keypad-domain test points in final enclosure.
+
+8.5 Connectors
+    Use keyed, locking connectors where practical.
+    Suggested connector groups:
+        J1  5 V sensor-hub power
+        J2  USB to Pi through Pico connector
+        J3  I2C0 thermal/ambient sensor harness
+        J4  I2C1 exhaust humidity harness
+        J5  thermocouple
+        J6  load-cell/HX711 digital
+        J7  door sensor
+        J8  emergency stop
+        J9  thermistors
+        J10 external contactor command
+        J11 relay contact harness to keypad interposer
+        J12 future turntable encoder
+        J13 future turntable step/dir/enable
+        J14 spare I2C/UART expansion
+
+8.6 Test points
+    Required:
+        5 V
+        3.3 V
+        GND
+        I2C0 SDA/SCL
+        I2C1 SDA/SCL
+        SPI SCK/MISO/MOSI/CS
+        HX711 data/clock
+        relay data/clock/latch/OE
+        watchdog output
+        door and E-stop inputs
+        thermistor ADC nodes
+        one test point per relay coil output
+    Keypad-contact test points must remain in isolated region.
+
+======================================================================
+9. PI 5 HOST INTEGRATION REQUIREMENTS
+======================================================================
+
+9.1 Direct Pi connections
+    - Camera 0 to CAM/DISP0.
+    - Camera 1 to CAM/DISP1.
+    - Pico 2 by USB CDC serial.
+    - USB microphone by USB.
+    - SSD preferred for continuous trial logs.
+    - Ethernet preferred for LLM API and local dashboard.
+    - External power monitor by local network.
+
+9.2 Pi services
+    Required software processes:
+        a. camera_service
+        b. pico_sensor_hub
+        c. feature_service
+        d. display_ocr
+        e. llm_planner
+        f. local_plan_validator
+        g. sharp_program_compiler
+        h. cook_supervisor
+        i. trial_recorder
+        j. health_monitor
+
+9.3 Unified sensor snapshot
+    Pi must combine:
+        - Weight and stability.
+        - Door/E-stop state.
+        - Ambient RH/T.
+        - Exhaust RH/T.
+        - Fast thermocouple temperature.
+        - Differential absolute humidity.
+        - Thermal min/mean/max and 32 x 24 frame.
+        - Port temperature.
+        - Appliance power and energy.
+        - RGB image paths/timestamps.
+        - Display OCR state.
+        - Sensor freshness/fault flags.
+
+9.4 LLM input policy
+    Send only selected data, not continuous raw streams:
+        - One or more cavity RGB frames.
+        - External/package/display image when relevant.
+        - Rendered thermal heatmap.
+        - Concise sensor summary.
+        - OCR/barcode text.
+        - Approved recipe/profile list.
+        - SMC0985KS capability description.
+
+9.5 LLM output policy
+    LLM output must use a strict machine-readable schema containing:
+        - supported/refused
+        - food family
+        - starting state
+        - estimated mass range
+        - container/accessory class
+        - approved profile ID
+        - confidence
+        - ordered cooking steps
+        - required user interventions
+        - refusal reason
+
+    LLM output must not contain:
+        - Relay IDs
+        - Keypad matrix coordinates
+        - Raw key sequences
+        - Magnetron commands
+        - Heater relay commands
+        - Door-interlock commands
+        - Arbitrary executable code
+
+9.6 Local validator
+    Before any key command, Pi must verify:
+        - Profile exists locally.
+        - Food mass is in profile range.
+        - Starting state is supported.
+        - Accessory/container is compatible with selected mode.
+        - Time, power, and temperature are supported by SMC0985KS.
+        - Required sensors are fresh.
+        - Door is closed.
+        - Weight is stable.
+        - No metal/foil or unsupported-object warning.
+        - Confidence threshold is met.
+        - Human approval is present during supervised Phase 1 trials.
+        - Current appliance/display state allows the requested transition.
+
+9.7 Internet/API fault policy
+    - API timeout or invalid output results in no automatic start.
+    - Existing local stop and monitoring functions remain active.
+    - API key stored only on Pi, not Pico.
+    - No credentials stored on the sensor/relay PCB.
+    - All API requests and validated responses logged with prompt/profile
+      versions.
+
+======================================================================
+10. PICO-TO-PI COMMUNICATION PROTOCOL
+======================================================================
+
+10.1 Physical link
+    - USB CDC serial.
+    - Recommended baud-equivalent framing capacity >= 921600 bps, or native
+      USB packet transport.
+
+10.2 Framing
+    Use COBS, SLIP, or another binary framing method with:
+        - Protocol version
+        - Packet type
+        - Sequence number
+        - Pico monotonic timestamp in microseconds
+        - Payload length
+        - Payload
+        - CRC32
+
+10.3 Packet classes
+    - HEARTBEAT
+    - STATUS
+    - THERMAL_FRAME
+    - SENSOR_FAULT
+    - RELAY_COMMAND
+    - RELAY_ACK
+    - RELAY_COMPLETE
+    - STOP_REQUEST
+    - ESTOP_EVENT
+    - CONFIG
+    - TIME_SYNC
+    - FIRMWARE_VERSION
+
+10.4 Suggested rates
+    - Heartbeat: 10 Hz.
+    - Status packet: 10 Hz.
+    - MLX90640 thermal frame: 4 to 8 Hz.
+    - SHT45 channels: 1 Hz.
+    - Thermocouple: 5 to 10 Hz.
+    - HX711: 10 Hz.
+    - Thermistors: 2 to 5 Hz.
+    - Door/E-stop: immediate event plus status repetition.
+
+10.5 Thermal payload
+    - 768 signed 16-bit values.
+    - Units: 0.01 degree C or documented fixed-point scaling.
+    - Include frame counter, sensor status, and calibration/fault flags.
+    - Approximate payload: 1536 bytes plus header.
+
+10.6 Command requirements
+    Every relay command includes:
+        - Unique command ID.
+        - Whitelisted key ID.
+        - Hold duration.
+        - Required current supervisor state.
+        - Maximum allowed start time.
+        - CRC.
+    Pico returns ACK before actuation and COMPLETE after release.
+
+10.7 Time synchronization
+    - Pi periodically estimates Pi/Pico clock offset.
+    - All logs use Pi monotonic time and retain original Pico timestamp.
+    - Camera frames are timestamped at capture.
+    - Power-monitor samples are aligned by Pi receive time.
+
+======================================================================
+11. FIRMWARE REQUIREMENTS FOR PICO 2
+======================================================================
+
+11.1 Boot state
+    - Relay OE disabled.
+    - Relay-coil power gate off.
+    - External contactor request off.
+    - All shift-register outputs zero.
+    - Sensor initialization before declaring READY.
+
+11.2 Sensor drivers
+    - Nonblocking or bounded-time drivers.
+    - Per-sensor timeout and stale-data timer.
+    - I2C bus recovery if SDA/SCL stuck.
+    - Sensor presence and identity check where supported.
+    - Error counters in status packet.
+
+11.3 Relay safety
+    - Whitelist of allowed relay/key IDs.
+    - One active relay maximum unless explicitly compiled for a known safe
+      combination.
+    - Hard maximum key hold 500 ms.
+    - Release on any protocol error.
+    - Release on Pi heartbeat loss.
+    - Release on door-open or E-stop.
+    - Sequence watchdog.
+    - STOP/CLEAR preemption.
+
+11.4 Local fault hierarchy
+    Highest to lowest priority:
+        1. E-stop
+        2. Hardware watchdog timeout
+        3. Door opened during programming/start sequence
+        4. Pi heartbeat loss
+        5. Sensor-hub internal fault
+        6. Invalid relay command
+        7. Sensor stale/fault
+        8. Normal command completion
+
+11.5 Firmware update
+    - Pico USB bootloader accessible without opening microwave cavity.
+    - Updating firmware must leave relay power disabled.
+    - Version reported to Pi.
+    - Configuration CRC/version stored and reported.
+
+======================================================================
+12. PHASE 1 OPERATION SEQUENCE
+======================================================================
+
+1. User places food/accessory and closes door.
+2. Door input confirms closed.
+3. Weight stabilizes.
+4. Pi captures cavity RGB, external RGB, and thermal frame.
+5. Pico provides humidity, thermocouple, weight, door, and port-temperature
+   data.
+6. Pi obtains package/display OCR where relevant.
+7. Pi sends selected inputs to online multimodal LLM.
+8. LLM returns a structured proposal.
+9. Pi validates proposal against local profiles and SMC0985KS rules.
+10. Human approves during supervised Phase 1.
+11. Pi compiles program into model-specific logical keys.
+12. Pi sends one bounded key command at a time to Pico.
+13. Pico closes isolated relay for bounded duration.
+14. External camera verifies expected display transition.
+15. Appliance power monitor verifies expected operating-state signature.
+16. Local monitoring continues during cycle.
+17. Stop/intervention/completion is verified and logged.
+18. Any fault releases keys and triggers STOP/CLEAR or upstream power removal.
+
+======================================================================
+13. PHASE 2 EXPANSION REQUIREMENTS
+======================================================================
+
+Phase 2 retains all Phase 1 hardware and adds thermal-uniformity control.
+
+13.1 Thermal registration
+    - Map each MLX90640 pixel to tray coordinates.
+    - Record port/window temperature.
+    - Track tray angle if encoder is installed.
+    - Identify food, plate, tray, and cavity pixels.
+
+13.2 Software-only control first
+    Before turntable modification, support:
+        - Short microwave pulses.
+        - Rest periods.
+        - Reduced power near target.
+        - Stir/turn prompts.
+        - Microwave/convection/air-fry sequencing.
+        - Early stop plus carryover.
+
+13.3 Optional turntable control
+    - Encoder A/B/index/home inputs.
+    - STEP/DIR/ENABLE outputs to external motor driver.
+    - Motor electronics remain outside RF cavity.
+    - OEM cavity penetration reused; no new cavity hole.
+    - Microwave energy off while repositioning unless separately validated.
+    - Deterministic controller chooses angle; LLM does not.
+
+13.4 Phase 2 objective data
+    Calculate:
+        - Mean surface temperature.
+        - 5th to 95th percentile spread.
+        - Spatial standard deviation.
+        - Cold-region area.
+        - Hot-region area.
+        - Edge/center difference.
+        - Heating-rate map.
+        - Rest-period carryover.
+        - Delivered energy per mass.
+
+======================================================================
+14. COST TARGETS
+======================================================================
+
+14.1 Sensor target prices
+    - Camera Module 3 Wide: approximately $35.
+    - Second RGB camera: approximately $25 to $35.
+    - MLX90640 wide: approximately $75.
+    - Two SHT45 modules: approximately $27 total.
+    - K-type thermocouple + MAX31856: approximately $28.
+    - Four load cells + HX711: approximately $33.
+    - External power monitor: approximately $25.
+    - USB microphone: approximately $7 to $20.
+    - Door/E-stop/thermistors: approximately $15 to $30.
+
+14.2 PCB cost goals, one-off prototype quantities
+    - Sensor/control hub PCB excluding Pico and sensors: target BOM < $60.
+    - 12 to 16 channel reed-relay/keypad board: target BOM < $80.
+    - Load-cell daughterboard: target BOM < $20.
+    - Combined custom low-voltage electronics target: < $150 where practical.
+    - Do not choose an industrial sensor or camera above approximately $100
+      unless there is a documented technical need.
+
+14.3 Cost exclusions
+    - Raspberry Pi 5 and storage.
+    - Microwave oven.
+    - Optical-port machining.
+    - RF leakage survey equipment.
+    - External listed contactor/enclosure.
+    - Fiber-optic temperature instrumentation.
+    - Engineering labor.
+
+======================================================================
+15. PCB DESIGN DELIVERABLES EXPECTED FROM THE DESIGN AGENT
+======================================================================
+
+15.1 Architecture
+    - Updated block diagram.
+    - Recommended board partition.
+    - Power tree.
+    - Isolation diagram.
+    - Connector and cable diagram.
+
+15.2 Schematics
+    - Sensor/control hub schematic.
+    - Relay/keypad interface schematic.
+    - Optional load-cell daughterboard schematic.
+    - Hardware watchdog and fail-safe relay power gating.
+    - External contactor interface.
+    - All connector pinouts and test points.
+
+15.3 PCB
+    - Board outlines and mounting holes.
+    - Four-layer stack recommendation.
+    - Isolation barrier and creepage/clearance callouts.
+    - Layout files.
+    - Gerbers/ODB++.
+    - Drill files.
+    - Pick-and-place files.
+    - Assembly drawings.
+    - 3D STEP model.
+
+15.4 BOM
+    - Manufacturer part numbers.
+    - Supplier part numbers.
+    - Unit pricing at quantities 1, 5, and 25 where available.
+    - Lifecycle/availability notes.
+    - Approved alternates.
+    - Do-not-substitute parts for relays, watchdog, and isolation components.
+
+15.5 Firmware
+    - Pico peripheral initialization.
+    - Sensor-driver skeletons.
+    - USB protocol skeleton.
+    - Relay state machine.
+    - Watchdog heartbeat.
+    - Fault handling.
+    - Unit-test hooks.
+
+15.6 Manufacturing/test
+    - Bring-up checklist.
+    - Sensor connector test jig.
+    - Relay contact test fixture.
+    - Isolation test procedure.
+    - FPC interposer continuity test.
+    - Factory test firmware.
+    - Programming instructions.
+    - Known limitations and unresolved dependencies.
+
+======================================================================
+16. REQUIRED VALIDATION TESTS
+======================================================================
+
+16.1 Power and boot
+    - All relays off at power-up.
+    - No relay glitch during USB connection or firmware reset.
+    - Relay-coil power remains off until watchdog is healthy.
+
+16.2 Heartbeat/fault tests
+    - Disconnect Pi USB: relays release.
+    - Kill Pi supervisor: relays release.
+    - Halt Pico heartbeat: hardware watchdog disables relays.
+    - Activate E-stop: relays and external contactor command drop.
+    - Open door during command sequence: command aborts.
+
+16.3 Sensor tests
+    - Disconnect each sensor individually.
+    - Short/stall each I2C bus.
+    - Open thermocouple.
+    - Remove load-cell connection.
+    - Inject invalid CRC packets.
+    - Confirm stale/fault flags and no automatic start.
+
+16.4 Relay/keypad tests
+    - 1000 actuations per relay on test fixture.
+    - Verify no cross-channel closure.
+    - Verify all relays release after reset.
+    - Verify physical OEM keypad remains operational through interposer.
+    - Perform 100 consecutive program-entry trials with display verification.
+
+16.5 EMI tests
+    - Operate sensor hub while microwave heats a standard water load.
+    - Confirm no USB resets, I2C lockups, false door/E-stop events, or relay
+      activations.
+    - Repeat during convection and air-fry operation.
+    - Test with camera and thermal-port cables in final routing.
+
+16.6 Data synchronization
+    - Verify timestamps across RGB, thermal, humidity, weight, and power data.
+    - Confirm dropped-frame and packet counters.
+    - Confirm trial logs can reconstruct every commanded and observed state.
+
+======================================================================
+17. OPEN QUESTIONS / BLOCKERS THAT MUST BE RESOLVED
+======================================================================
+
+1. Exact SMC0985KS keypad FPC/FFC pitch and conductor count.
+2. Passive key matrix versus local front-panel microcontroller.
+3. Exact key mapping for:
+       STOP/CLEAR
+       START/+30 SEC
+       MICRO
+       AIR FRY
+       CONV
+       MICRO+CONV
+       BAKE
+       ROAST
+       PLUS/MINUS
+       TIME ENTRY KEYS
+4. Key scan voltage/waveform and required press duration.
+5. Final number of relay channels required.
+6. Physical board/enclosure mounting location.
+7. Distance from hub PCB to MLX90640 and SHT45 modules.
+8. Final thermal-port geometry and window material.
+9. External contactor coil voltage and interface requirement.
+10. Load-cell mechanical platform and connector type.
+11. Whether a third external USB camera is required.
+12. Whether the optical-port thermistor is NTC or PT1000 in final design.
+13. Whether an I2C differential extender is needed after EMI testing.
+14. Whether relay PCB and sensor hub should be separate boards.
+15. Whether a Pico 2 module or integrated RP2350 is preferred after Revision A.
+
+======================================================================
+18. DESIGN PREFERENCE SUMMARY
+======================================================================
+
+Preferred Revision A implementation:
+
+- Raspberry Pi 5 as high-level host.
+- Raspberry Pi Pico 2 as pluggable deterministic sensor/control module.
+- Two CSI RGB cameras connected directly to Pi.
+- MLX90640, two SHT45 sensors, MAX31856, HX711, door switch, E-stop, and
+  thermistors connected to Pico.
+- USB CDC binary protocol between Pi and Pico.
+- 12 to 16 SPST-NO reed relays.
+- Hardware relay-disable watchdog.
+- Reversible donor-specific keypad FPC interposer.
+- External display OCR and external power monitor for command verification.
+- No mains or microwave high voltage on custom PCBs.
+- No direct LLM-to-relay path.
+- Phase 2 expansion reserved for turntable encoder/motor control and thermal
+  uniformity.
+
+END OF REQUIREMENTS
