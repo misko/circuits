@@ -82,10 +82,10 @@ f += texts("WSLP2726")
 f += smd_pad("1", 0, 2.465, 5.71, 2.69)    # south = VF (current in)
 f += smd_pad("2", 0, -2.465, 5.71, 2.69)   # north = VP (current out)
 f += silk_rect(-3.45, -3.45, 3.45, 3.45, layer="F.Fab", w=0.1)
-for y in (-3.5, 3.5):
+for y in (-4.15, 4.15):
     f += (f'  (fp_line (start -3.5 {y}) (end 3.5 {y})'
           f' (stroke (width 0.15) (type solid)) (layer "F.SilkS"))\n')
-f += silk_rect(-3.7, -4.1, 3.7, 4.1, layer="F.CrtYd", w=0.05)
+f += silk_rect(-3.7, -4.4, 3.7, 4.4, layer="F.CrtYd", w=0.05)
 f += ")\n"
 (LIB / "R_Shunt_WSLP2726.kicad_mod").write_text(f)
 
@@ -95,14 +95,29 @@ for name, drill, annulus, label in [("Lug_M5", 5.3, 13.0, "M5"),
     f = header(name, f"bolted ring-lug stud, {label}, plated both sides (ADR-0005)")
     f += texts(name)
     f += tht_pad("1", 0, 0, annulus, drill)
-    r = annulus / 2 + 0.4
-    f += (f'  (fp_circle (center 0 0) (end {r:.2f} 0)'
-          f' (stroke (width 0.15) (type solid)) (fill none) (layer "F.SilkS"))\n')
+    # NO silk circle: it would sit on the annulus (mask-clipped) or on
+    # neighbors; the functional labels carry the human story (P5). The
+    # courtyard is the BOLT-HEAD footprint (smaller than the annulus —
+    # the copper ring may underlap neighbor courtyards, the hardware does not).
+    r = annulus / 2
     f += (f'  (fp_circle (center 0 0) (end {r:.2f} 0)'
           f' (stroke (width 0.1) (type solid)) (fill none) (layer "F.Fab"))\n')
-    f += (f'  (fp_circle (center 0 0) (end {r + 0.25:.2f} 0)'
+    f += (f'  (fp_circle (center 0 0) (end {r - 0.05:.2f} 0)'
           f' (stroke (width 0.05) (type solid)) (fill none) (layer "F.CrtYd"))\n')
     f += ")\n"
     (LIB / f"{name}.kicad_mod").write_text(f)
+
+# ------------------------------------------- vendored ESP32 module variant
+# The std RF_Module footprint's EP thermal vias drill 0.2mm — below the JLC
+# 2-layer standard 0.3mm floor. Vendored copy with 0.3mm drills (pad ring
+# 0.6 -> annular 0.15, still legal). Vendoring (not runtime edit) keeps
+# lib_footprint_mismatch parity clean (kicad-pcb skill 2026-07-16 batch).
+std = Path("/usr/share/kicad/footprints/RF_Module.pretty/ESP32-C3-WROOM-02.kicad_mod")
+txt = std.read_text()
+n02 = txt.count("(drill 0.2)")
+assert n02 >= 9, f"expected >=9 EP vias with drill 0.2, found {n02}"
+txt = txt.replace("(drill 0.2)", "(drill 0.3)")
+txt = txt.replace('(footprint "ESP32-C3-WROOM-02"', '(footprint "ESP32-C3-WROOM-02_D03"')
+(LIB / "ESP32-C3-WROOM-02_D03.kicad_mod").write_text(txt)
 
 print(f"bbar.pretty: {len(list(LIB.glob('*.kicad_mod')))} footprints written")

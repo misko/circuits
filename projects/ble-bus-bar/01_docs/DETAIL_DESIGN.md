@@ -60,12 +60,15 @@ ambient → ≤70 °C copper.
   differential — far inside the ±40 V diff abs-max.
 - Input filter (per INA238 datasheet §applications): 10 Ω series in
   IN+ and IN− + 100 nF differential across them at the device:
-  f_c = 1/(2π·(10+10)·100 nF) ≈ 80 kHz — kills conducted switching
+  f_c = 1/(2π·(10+10)·100 nF) ≈ 80 kHz (sense nets named KA/KB) — kills conducted switching
   noise, passes load dynamics. 10 Ω keeps gain error from input bias
   negligible (INA238 IB ≈ nA-class).
-- VBUS pin: sensed at the PORT side (VPi) through a matched 10 Ω — a
-  blown fuse reads as VBUS collapsing to the load-pulled level while
-  current reads 0: fuse-out detection for free.
+- VBUS pin: tied to the IN− node (KBi) — bus voltage is read at the
+  PORT side through RN's 10 Ω (INA238 VBUS input bias is nA-class →
+  error ≪ 1 mV). A blown fuse reads as VBUS collapsing to the
+  load-pulled level while current reads 0: fuse-out detection for free.
+  (Sharing RN keeps the sense cluster planar on 2 layers; the dedicated
+  VBUS tap resistor of the first draft was removed.)
 - Kelvin: sense taps attach at the shunt pad inner edges through the
   pad gap (audit I-KELVIN); pours feed current from the opposite edges.
 - I2C addresses (A1,A0 straps): U1 (GND,GND)=0x40, U2 (GND,VS)=0x41,

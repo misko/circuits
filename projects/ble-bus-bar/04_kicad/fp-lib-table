@@ -11,7 +11,6 @@
   (lib (name "MountingHole")(type "KiCad")(uri "/usr/share/kicad/footprints/MountingHole.pretty")(options "")(descr "system"))
   (lib (name "Package_SO")(type "KiCad")(uri "/usr/share/kicad/footprints/Package_SO.pretty")(options "")(descr "system"))
   (lib (name "Package_TO_SOT_SMD")(type "KiCad")(uri "/usr/share/kicad/footprints/Package_TO_SOT_SMD.pretty")(options "")(descr "system"))
-  (lib (name "RF_Module")(type "KiCad")(uri "/usr/share/kicad/footprints/RF_Module.pretty")(options "")(descr "system"))
   (lib (name "Resistor_SMD")(type "KiCad")(uri "/usr/share/kicad/footprints/Resistor_SMD.pretty")(options "")(descr "system"))
   (lib (name "bbar")(type "KiCad")(uri "${KIPRJMOD}/../03_src/lib/bbar.pretty")(options "")(descr "project footprints"))
 )

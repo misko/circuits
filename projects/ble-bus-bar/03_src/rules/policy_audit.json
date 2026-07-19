@@ -1,0 +1,11 @@
+{
+  "plane_regions": [
+    {"layer": "B.Cu", "ref": "U7", "radius_mm": 10, "max_len_mm": 35},
+    {"layer": "B.Cu", "ref": "U8", "radius_mm": 6, "max_len_mm": 20}
+  ],
+  "silk_fn_refs": "^(J|F|SW)[0-9]",
+  "silk_fn_radius_mm": 13.0,
+  "route_pro_glob": "06_build/route/r0.kicad_pro",
+  "ref_silk_ok": ["J1", "J2", "J3", "J4", "J5", "J6", "J7", "J8", "J9",
+                  "SW1", "SW2", "U7", "LED1", "LED2"]
+}

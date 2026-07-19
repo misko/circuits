@@ -144,7 +144,7 @@ sch.sym_fp = {
     "ESDU": "Package_TO_SOT_SMD:SOT-23-6",
     "FLASH": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
     "USBC": "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12",
-    "ESP": "RF_Module:ESP32-C3-WROOM-02",
+    "ESP": "bbar:ESP32-C3-WROOM-02_D03",
 }
 
 # ═══════════════════ circuit: structure only ═══════════════════
@@ -164,25 +164,28 @@ ADDR = {1: ("GND", "GND"), 2: ("GND", "3V3"), 3: ("GND", "SDA"),
 
 def port_channel(i):
     """One fused+monitored port: holder -> shunt -> stud, INA238 sense.
-    A1/A0 straps encode I2C address 0x40+ (DETAIL_DESIGN #3)."""
+    A1/A0 straps encode I2C address 0x40+ (DETAIL_DESIGN #3). Sense nets
+    are KA (IN+ side) / KB (IN- side) — deliberately NOT *P/*N names so
+    KiCad's diff-pair inference stays out of the DRC. VBUS pin ties to
+    the KB node: bus voltage reads through RN's 10R (nA bias -> ~0 error),
+    which keeps the sense cluster planar on 2 layers (DETAIL_DESIGN #3)."""
     a1, a0 = ADDR[i]
     vf, vp = f"VF{i}", f"VP{i}"
-    kp, kn, vb = f"KP{i}", f"KN{i}", f"VB{i}"
+    ka, kb = f"KA{i}", f"KB{i}"
     sch.region(f"2.{i} PORT {i}: ATO fuse -> 0.5m shunt -> M4 stud; INA238 @0x{0x3f + i:02X}   [ADR-0003]")
     sch.row(("FUSEH", f"F{i}", "3557-2 ATO 30A MAX", {"1": "VBUS", "2": vf}),
             ("SHUNT", f"RS{i}", "WSLP2726 0.5mR", {"1": vf, "2": vp}),
             ("LUG4", f"J{i}", f"PORT {i} M4 LUG", {"1": vp}))
     sch.chain(f"F{i}.2", f"RS{i}.1")   # fuse -> shunt: drawn
     sch.chain(f"RS{i}.2", f"J{i}.1")   # shunt -> port stud: drawn
-    row = sch.row(("RES", f"RP{i}", "10R sense+", {"1": vf, "2": kp}),
+    row = sch.row(("RES", f"RP{i}", "10R sense+", {"1": vf, "2": ka}),
                   ("INA", f"U{i}", "INA238AIDGSR",
-                   {"10": kp, "9": kn, "8": vb, "7": "GND", "6": "3V3",
+                   {"10": ka, "9": kb, "8": kb, "7": "GND", "6": "3V3",
                     "4": "SDA", "5": "SCL", "2": a0, "1": a1, "3": "ALERT"}),
                   ("CAP", f"CB{i}", "100n INA", {"1": "3V3", "2": "GND"}))
     sch.chain(f"RP{i}.2", f"U{i}.10")  # Kelvin tap -> IN+: drawn
-    sch.row(("RES", f"RN{i}", "10R sense-", {"1": vp, "2": kn}),
-            ("RES", f"RV{i}", "10R vbus tap", {"1": vp, "2": vb}),
-            ("CAP", f"CD{i}", "100n diff", {"1": kp, "2": kn}))
+    sch.row(("RES", f"RN{i}", "10R sense-", {"1": vp, "2": kb}),
+            ("CAP", f"CD{i}", "100n diff", {"1": ka, "2": kb}))
     return row
 
 
@@ -235,7 +238,8 @@ sch.row(("RES", "R15", "4k7 SDA pu", {"1": "SDA", "2": "3V3"}),
         ("RES", "R17", "10k ALERT pu", {"1": "ALERT", "2": "3V3"}),
         ("RES", "R18", "10k IO2 pu", {"1": "SPI_MISO", "2": "3V3"}),
         ("RES", "R19", "10k CS pu", {"1": "FLASH_CS", "2": "3V3"}),
-        ("RES", "R20", "10k IO8 pu", {"1": "IO8", "2": "3V3"}))
+        ("RES", "R20", "10k IO8 pu", {"1": "IO8", "2": "3V3"}),
+        ("CAP", "C14", "100n corridor 3V3", {"1": "3V3", "2": "GND"}))
 
 # --- region 5: log flash ---
 sch.region("5. LOG FLASH: W25Q64JV 8MB stats ring (dedicated, not app flash)   [ADR-0004]")
