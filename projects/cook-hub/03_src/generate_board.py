@@ -264,6 +264,13 @@ def main():
         fp.SetPosition(pcbnew.VECTOR2I_MM(x, y))
         if rot:
             fp.SetOrientationDegrees(rot)
+        # Schematic-parity: the SJ symbol is in_bom yes but the KiCad
+        # SolderJumper footprint ships exclude_from_bom set -> footprint_symbol_
+        # mismatch. Clear ONLY SJ*'s BOM-exclude flag to match its symbol
+        # (route/net artifact, not a schematic edit). Test points / mounting
+        # holes keep their exclude flag (their symbols are in_bom no).
+        if ref.startswith("SJ"):
+            fp.SetAttributes(fp.GetAttributes() & ~pcbnew.FP_EXCLUDE_FROM_BOM)
         for pad in fp.Pads():
             key = (ref, pad.GetNumber())
             if key in pad_net:
@@ -481,20 +488,10 @@ def main():
              [(21, 21), (52, 21), (52, 40), (21, 40)], 2, minw=0.4)
 
     # ------------------------------------------------------------- silk text
-    silk_texts = []
-    for entry in SILK:
-        txt, x, y, size = entry[:4]
-        rot = entry[4] if len(entry) > 4 else 0
-        t = pcbnew.PCB_TEXT(board)
-        t.SetText(txt)
-        t.SetLayer(pcbnew.F_SilkS)
-        t.SetPosition(pcbnew.VECTOR2I_MM(x, y))
-        t.SetTextSize(pcbnew.VECTOR2I_MM(size, size))
-        t.SetTextThickness(pcbnew.FromMM(max(0.13, size * 0.16)))
-        if rot:
-            t.SetTextAngleDegrees(rot)
-        board.Add(t)
-        silk_texts.append(t)
+    # NOTE: fixed functional SILK labels are placed LATER, through the unified
+    # obstacle-aware de-collision placer (silk campaign 2026-07-19), so they
+    # never land on pads / over the edge+slots / on other silk. Only the
+    # structural boundary lines are drawn here (they are the §8.4 story).
 
     # isolation boundary comb outline on silk (§8.4): strip + corridors
     def silk_line(xa, ya, xb, yb, w=0.3):
@@ -516,15 +513,15 @@ def main():
         silk_line(cx - 0.9, sy1, cx - 0.9, 56.5)
         silk_line(cx + 2.6, sy1, cx + 2.6, 56.5)
 
-    # TP functional labels (net names) — placed with the refdes de-collision
-    TP_LABEL = {}
-    for f in board.GetFootprints():
-        r = f.GetReference()
-        if r.startswith("TP"):
-            TP_LABEL[r] = f.GetValue().replace("TP ", "")
-
-    # refdes on silk, de-collided (golden rule 3b / audit I8)
+    # ============================================================ SILK CAMPAIGN
+    # Unified obstacle-aware de-collision for ALL silk text (fixed functional
+    # labels + refdes + TP net labels). Text floor = 0.6mm (min_text_height);
+    # text never lands on a pad, over the board edge / milled slots, on
+    # footprint silk, or on other text. (2026-07-19: kills text_height +
+    # text-driven silk_over_copper / silk_overlap / silk_edge_clearance.)
     TH, THK, CLR = 0.6, 0.12, 0.16
+    SILK_MIN = 0.6                      # min_text_height DRU floor
+    PADM = 0.08                        # pad keep-away for silk (min_silk_clr=0)
 
     def box(bb, pad=0.0):
         return (MM(bb.GetLeft()) - pad, MM(bb.GetTop()) - pad,
@@ -533,104 +530,182 @@ def main():
     def hit(a, b):
         return not (a[2] < b[0] or b[2] < a[0] or a[3] < b[1] or b[3] < a[1])
 
-    pad_obst, silk_obst = [], []
+    # obstacle: exposed pad copper (all footprints)
+    pad_obst, body_obst = [], []
     for fp in board.GetFootprints():
         for p in fp.Pads():
-            pad_obst.append(box(p.GetBoundingBox(), CLR))
-        for g in fp.GraphicalItems():
-            if g.IsOnLayer(pcbnew.F_SilkS):
-                silk_obst.append(box(g.GetBoundingBox(), CLR * 0.5))
+            pad_obst.append(box(p.GetBoundingBox(), PADM))
         if not fp.GetReference().startswith("H"):
-            pad_obst.append(box(fp.GetBoundingBox(False, False), 0.05))
-    for t in board.GetDrawings():
-        if t.GetClass() == "PCB_TEXT" and t.IsOnLayer(pcbnew.F_SilkS):
-            silk_obst.append(box(t.GetBoundingBox(), CLR * 0.5))
-        if t.GetClass() == "PCB_SHAPE" and t.IsOnLayer(pcbnew.F_SilkS):
-            silk_obst.append(box(t.GetBoundingBox(), 0.05))
+            body_obst.append(box(fp.GetBoundingBox(False, False), 0.05))
+    # obstacle: Edge.Cuts (board outline + milled isolation slots) keep-away
+    edge_obst = []
+    for g in board.GetDrawings():
+        if g.GetClass() == "PCB_SHAPE" and g.IsOnLayer(pcbnew.Edge_Cuts):
+            edge_obst.append(box(g.GetBoundingBox(), 0.30))
 
-    OFF = [(0, o * s) for o in (1.0, 1.6, 2.2, 2.9, 3.6, 4.4, 5.2, 6.0, 7.0, 8.0) for s in (-1, 1)] + \
+    # SILK-TRIM: drop footprint F.SilkS graphics that overlap any exposed pad
+    # or are clipped by the board edge/slots — silk over copper doesn't print
+    # and F.Fab retains the body outline for assembly. Deterministic.
+    edge_trim = [box(g.GetBoundingBox(), 0.12) for g in board.GetDrawings()
+                 if g.GetClass() == "PCB_SHAPE" and g.IsOnLayer(pcbnew.Edge_Cuts)]
+    def safe_box(item, pad=0.0):
+        try:
+            bb = item.GetBoundingBox()
+            return box(bb, pad)
+        except Exception:
+            return None
+
+    # Footprint silk graphics are LEFT ON the board copies (removing them at
+    # runtime desyncs board vs library -> lib_footprint_mismatch + schematic
+    # parity failures, kicad-pcb skill). They are added to the silk obstacle
+    # set so placed TEXT avoids them; any footprint-silk-over-pad/edge items
+    # are handled separately (vendored trimmed footprints / documented waiver).
+    _ = edge_trim  # retained for the obstacle model below
+    trim_list = []
+    silk_obst = []
+    for t in board.GetDrawings():
+        if t.IsOnLayer(pcbnew.F_SilkS) and t.GetClass() in ("PCB_TEXT", "PCB_SHAPE"):
+            gb = safe_box(t, CLR * 0.5)
+            if gb:
+                silk_obst.append(gb)
+    for fp in board.GetFootprints():
+        for g in fp.GraphicalItems():
+            if not g.IsOnLayer(pcbnew.F_SilkS):
+                continue
+            gb = safe_box(g, PADM)
+            if gb:
+                silk_obst.append(gb)
+    trimmed = 0
+
+    OFF = [(0, 0)] + \
+          [(0, o * s) for o in (1.0, 1.6, 2.2, 2.9, 3.6, 4.4, 5.2, 6.0, 7.0, 8.0) for s in (-1, 1)] + \
           [(o * s, 0) for o in (1.3, 2.0, 2.8, 3.6, 4.5, 5.4, 6.2, 7.4, 8.6, 10.0, 11.5) for s in (-1, 1)] + \
           [(dx, dy) for d in (1.4, 2.2, 3.0, 4.0, 5.0, 6.0, 7.2, 8.4) for dx in (-d, d) for dy in (-d, d)]
-    waived = []
+    # nudge for fixed captions — try tight first (stay in the lane) then widen
+    # progressively so a crowded caption relocates near its connector rather
+    # than being dropped (functional silk P5 must survive).
+    SILK_OFF = [(0, 0)] + \
+        [(o * s, 0) for o in (0.7, 1.2, 1.8, 2.5, 3.3, 4.2, 5.2, 6.4, 7.8) for s in (-1, 1)] + \
+        [(0, o * s) for o in (0.7, 1.2, 1.8, 2.5, 3.3, 4.2, 5.2, 6.4) for s in (-1, 1)] + \
+        [(dx, dy) for d in (1.0, 1.8, 2.8, 4.0, 5.4, 7.0) for dx in (-d, d) for dy in (-d, d)]
 
-    def place_text(txt, fx, fy, size=TH):
-        t = pcbnew.PCB_TEXT(board)
-        t.SetText(txt)
-        t.SetLayer(pcbnew.F_SilkS)
-        t.SetTextSize(pcbnew.VECTOR2I_MM(size, size))
-        t.SetTextThickness(int(THK * 1e6))
-        for dx, dy in OFF:
-            t.SetPosition(pcbnew.VECTOR2I_MM(fx + dx, fy + dy))
-            cand = box(t.GetBoundingBox())
-            if not (G.X0 + 0.2 < cand[0] and cand[2] < G.X1 - 0.2
-                    and G.Y0 + 0.2 < cand[1] and cand[3] < G.Y1 - 0.2):
-                continue
-            if any(hit(cand, o) for o in pad_obst):
-                continue
-            if any(hit(cand, o) for o in silk_obst):
-                continue
-            silk_obst.append(cand)
-            board.Add(t)
-            return True
+    def try_place(t, ax, ay, sizes, offs, avoid_body=False, rots=None):
+        # rots: orientations to try (deg). Default keeps the text's current
+        # angle, then a 90deg rotation so a caption/refdes can stand up in a
+        # tall narrow gap (west connector column) instead of being dropped.
+        if rots is None:
+            base = t.GetTextAngleDegrees()
+            rots = [base, (base + 90) % 360]
+        for rot in rots:
+            t.SetTextAngleDegrees(rot)
+            for sz in sizes:
+                t.SetTextSize(pcbnew.VECTOR2I_MM(sz, sz))
+                t.SetTextThickness(pcbnew.FromMM(max(0.13, sz * 0.16)))
+                for dx, dy in offs:
+                    t.SetPosition(pcbnew.VECTOR2I_MM(ax + dx, ay + dy))
+                    cand = box(t.GetBoundingBox())
+                    if not (G.X0 + 0.3 < cand[0] and cand[2] < G.X1 - 0.3
+                            and G.Y0 + 0.3 < cand[1] and cand[3] < G.Y1 - 0.3):
+                        continue
+                    if any(hit(cand, o) for o in pad_obst):
+                        continue
+                    if any(hit(cand, o) for o in edge_obst):
+                        continue
+                    if any(hit(cand, o) for o in silk_obst):
+                        continue
+                    if avoid_body and any(hit(cand, o) for o in body_obst):
+                        continue
+                    silk_obst.append(cand)
+                    return True
         return False
 
-    def prio(fp):
-        r = fp.GetReference()
-        return (0 if r[0] in "UJKQ" or r.startswith("SW") else 1, r)
-
-    for fp in sorted(board.GetFootprints(), key=prio):
-        r = fp.GetReference()
-        ref = fp.Reference()
-        ref.SetTextSize(pcbnew.VECTOR2I_MM(TH, TH))
-        ref.SetTextThickness(int(THK * 1e6))
+    # F.Fab refdes copy for EVERY part (assembly drawing), independent of silk.
+    for fp in board.GetFootprints():
         fab = pcbnew.PCB_TEXT(board)
-        fab.SetText(r)
+        fab.SetText(fp.GetReference())
         fab.SetLayer(pcbnew.F_Fab)
         fab.SetPosition(fp.GetPosition())
         fab.SetTextSize(pcbnew.VECTOR2I_MM(0.5, 0.5))
         fab.SetTextThickness(int(0.08e6))
         board.Add(fab)
+
+    def place_refdes(fp):
+        r = fp.GetReference()
+        ref = fp.Reference()
         if r.startswith("H"):
             ref.SetVisible(False)
-            continue
+            return True
         ref.SetLayer(pcbnew.F_SilkS)
         ref.SetVisible(True)
         fx, fy = MM(fp.GetPosition().x), MM(fp.GetPosition().y)
-        placed_ok = False
-        for sz in (TH, 0.45):
-            ref.SetTextSize(pcbnew.VECTOR2I_MM(sz, sz))
-            ref.SetTextThickness(int((THK if sz == TH else 0.09) * 1e6))
-            for dx, dy in OFF:
-                ref.SetPosition(pcbnew.VECTOR2I_MM(fx + dx, fy + dy))
-                cand = box(ref.GetBoundingBox())
-                if not (G.X0 + 0.2 < cand[0] and cand[2] < G.X1 - 0.2
-                        and G.Y0 + 0.2 < cand[1] and cand[3] < G.Y1 - 0.2):
-                    continue
-                if any(hit(cand, o) for o in pad_obst):
-                    continue
-                if any(hit(cand, o) for o in silk_obst):
-                    continue
-                silk_obst.append(cand)
-                placed_ok = True
-                break
-            if placed_ok:
-                break
-        if not placed_ok:
-            ref.SetVisible(False)
-            waived.append(r)
+        if try_place(ref, fx, fy, (TH, SILK_MIN), OFF, avoid_body=True):
+            return True
+        ref.SetVisible(False)
+        return False
 
-    # TP net-name labels (functional silk P5): best effort, next to the TP
+    # Placement priority: connector/IC refdes (must-place) -> functional
+    # captions -> passive refdes (waivable tiny parts) -> TP labels. This keeps
+    # the crowded west column's human-critical text (Jxx names + captions)
+    # while letting a few tiny 0402 refdes fall back to F.Fab only.
+    def is_major(fp):
+        r = fp.GetReference()
+        return r[0] in "UJKQ" or r.startswith("SW")
+
+    waived = []
+    for fp in sorted((f for f in board.GetFootprints() if is_major(f)),
+                     key=lambda f: f.GetReference()):
+        if not place_refdes(fp):
+            waived.append(fp.GetReference())
+
+    # ---- fixed functional SILK labels (nudged off collisions; near anchor)
+    silk_dropped = []
+    for entry in SILK:
+        txt, x, y, size = entry[:4]
+        rot = entry[4] if len(entry) > 4 else 0
+        t = pcbnew.PCB_TEXT(board)
+        t.SetText(txt)
+        t.SetLayer(pcbnew.F_SilkS)
+        if rot:
+            t.SetTextAngleDegrees(rot)
+        sizes = list(dict.fromkeys([round(max(size, SILK_MIN), 2), SILK_MIN]))
+        # tight nudge first (stay in the lane), then the wide grid (relocate
+        # into clear board interior — still within the audit's 14mm of the part)
+        if try_place(t, x, y, sizes, SILK_OFF) or try_place(t, x, y, sizes, OFF):
+            board.Add(t)
+        else:
+            silk_dropped.append(txt)
+
+    for fp in sorted((f for f in board.GetFootprints()
+                      if not is_major(f) and not f.GetReference().startswith("H")),
+                     key=lambda f: f.GetReference()):
+        if not place_refdes(fp):
+            waived.append(fp.GetReference())
+
+    # ---- TP net-name labels (functional silk P5): min-height floor, near TP
+    TP_LABEL = {f.GetReference(): f.GetValue().replace("TP ", "")
+                for f in board.GetFootprints() if f.GetReference().startswith("TP")}
     tp_labeled = 0
     for r, lbl in sorted(TP_LABEL.items()):
         f = fps[r]
-        if place_text(lbl, MM(f.GetPosition().x), MM(f.GetPosition().y), 0.5):
+        t = pcbnew.PCB_TEXT(board)
+        t.SetText(lbl)
+        t.SetLayer(pcbnew.F_SilkS)
+        if try_place(t, MM(f.GetPosition().x), MM(f.GetPosition().y),
+                     (SILK_MIN,), OFF):
+            board.Add(t)
             tp_labeled += 1
 
     (HERE.parent / "06_build").mkdir(exist_ok=True)
     (HERE.parent / "06_build" / "refdes_waiver.json").write_text(json.dumps(sorted(waived)))
+    print(f"silk-trim: removed {trimmed} fp silk graphics over pads/edge")
     print(f"refdes on silk: {placed - len(waived)}/{placed} placed, "
           f"{len(waived)} waived: {sorted(waived)}")
+    print(f"SILK labels dropped (couldn't place): {len(silk_dropped)}: {silk_dropped}")
     print(f"TP labels placed: {tp_labeled}/{len(TP_LABEL)}")
+    # batched SILK-TRIM removal — LAST, so no GraphicalItems iterator runs
+    # after the first fp.Remove (SWIG poisoning trap, kicad-pcb skill).
+    for fp, g in trim_list:
+        fp.Remove(g)
     board.Save(str(PCB))
     print(f"placed {placed} footprints + {len(G.HOLES)} holes; "
           f"{len(G.SLOT_X) + 1} slots; zones; saved {PCB.name}")

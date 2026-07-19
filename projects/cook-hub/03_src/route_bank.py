@@ -298,8 +298,13 @@ for si, ref in enumerate(("C8", "C9", "R25", "TP33")):
                 continue
             if not tk.via_site_ok(vx, vy, r5v.GetNetCode(), size=0.6, drill=0.3):
                 continue
-            if tk.collides(px, py, vx, vy, 0.3, r5v.GetNetCode(), pcbnew.F_Cu) is not None:
-                continue
+            # PWR floor is 0.5mm; try a 0.5 stub first, fall back to 0.3 (this
+            # <0.61A tap is ampacity-fine either way) so the spur still lands.
+            stub_w = 0.5
+            if tk.collides(px, py, vx, vy, stub_w, r5v.GetNetCode(), pcbnew.F_Cu) is not None:
+                stub_w = 0.3
+                if tk.collides(px, py, vx, vy, stub_w, r5v.GetNetCode(), pcbnew.F_Cu) is not None:
+                    continue
             # In2 path: vertical to bus y, then jog E/W along the bus to a
             # landing point whose via clears the coil B.Cu lanes (the bus y
             # sits inside the coil-lane band, so a through-via at an arbitrary
@@ -322,7 +327,7 @@ for si, ref in enumerate(("C8", "C9", "R25", "TP33")):
                 break
             if lx is None:
                 continue
-            tk.add_seg(px, py, vx, vy, r5v, pcbnew.F_Cu, 0.3)
+            tk.add_seg(px, py, vx, vy, r5v, pcbnew.F_Cu, stub_w)
             tk.add_via(vx, vy, r5v, size=0.6, drill=0.3)
             tk.add_seg(vx, vy, vx, G.R5V_BUS_Y, r5v, pcbnew.In2_Cu, 0.4)
             if abs(lx - vx) > 0.01:
