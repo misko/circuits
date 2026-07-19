@@ -113,7 +113,10 @@ ANCHOR = {
 
 # plain-words silkscreen (P-SILK-FN). (text, x, y, size)
 SILK = [
-    ("NOT ETHERNET - CUSTOM 5V PINOUT", 100.0, 51.6, 1.1),
+    # north-edge banner: centered x=118 (east of the L1/R13/R14 cluster the
+    # legalizer parks at ~x87-100 after the J1 rot-90 fix — at x=100 the
+    # banner overlapped L1's silk outline, 5x silk_overlap at severity-all)
+    ("NOT ETHERNET - CUSTOM 5V PINOUT", 118.0, 51.6, 1.1),
     # jack-side warning, permanently visible above the plug zone (ADR-0004d)
     ("NOT ETHERNET", 61.0, 58.2, 0.8),
     # T568B function legend in the plug zone west of the jack (readable
