@@ -32,7 +32,7 @@ for t in b.GetTracks():
     if t.GetClass() == "PCB_TRACK":
         # threshold BELOW the 0.05 fine-grid step: the r3 wave's tiny jog
         # segments are structural joints, not fragments (eaten once, 2026-07-18)
-        if (t.GetStart() - t.GetEnd()).EuclideanNorm() < pcbnew.FromMM(0.02):
+        if (t.GetStart() - t.GetEnd()).EuclideanNorm() < pcbnew.FromMM(0.048):
             kill.append(t)
 for t in kill:
     b.Remove(t)
@@ -43,6 +43,27 @@ b.Save(str(PCB))
 # body. Solder them with tiny same-net segments — always safe (same net),
 # and the DRC gate re-verifies everything after.
 b = pcbnew.LoadBoard(str(PCB))
+# exact-duplicate removal (multi-generation chain imports leave twins
+# that then "serve" each other's dangling ends)
+seen_keys = {}
+dups = []
+for t in b.GetTracks():
+    if t.GetClass() != "PCB_TRACK":
+        continue
+    a = (round(t.GetStart().x/1e6, 3), round(t.GetStart().y/1e6, 3))
+    c = (round(t.GetEnd().x/1e6, 3), round(t.GetEnd().y/1e6, 3))
+    key = (min(a, c), max(a, c), t.GetLayer(), t.GetNetname())
+    if key in seen_keys:
+        dups.append(t)
+    else:
+        seen_keys[key] = t
+for t in dups:
+    b.Remove(t)
+if dups:
+    b.Save(str(PCB))
+    b = pcbnew.LoadBoard(str(PCB))
+print(f"dedupe: {len(dups)} duplicate tracks removed")
+
 tracks2 = [t for t in b.GetTracks() if t.GetClass() == "PCB_TRACK"]
 patches = []
 def d2(a, b_):
@@ -57,8 +78,8 @@ for i in range(len(pts)):
         if a[2] != c[2] or a[3] != c[3]:
             continue
         d = d2(a, c)
-        if 0.001 < d < 0.12:
-            patches.append((a[0], a[1], c[0], c[1], a[2], a[3], min(a[4], c[4])))
+        if 0.001 < d < 0.16:
+            patches.append((a[0], a[1], c[0], c[1], a[2], a[3], max(a[4], c[4])))
 seen = set()
 for (x1, y1, x2, y2, netn, lay, w) in patches:
     key = (round(x1,3), round(y1,3), round(x2,3), round(y2,3))
@@ -135,8 +156,11 @@ for t in tracks3:
     n, lay = t.GetNetname(), t.GetLayer()
     s_ = (t.GetStart().x/1e6, t.GetStart().y/1e6)
     e_ = (t.GetEnd().x/1e6, t.GetEnd().y/1e6)
-    if not end_served(*s_, n, lay, t) and not end_served(*e_, n, lay, t):
+    s_ok, e_ok = end_served(*s_, n, lay, t), end_served(*e_, n, lay, t)
+    if not s_ok and not e_ok:
         orphans.append(t)
+    elif (not s_ok or not e_ok) and d2(s_, e_) < 0.12:
+        orphans.append(t)   # dangling micro-stub (router stair remnant)
 for t in orphans:
     b.Remove(t)
 
@@ -295,9 +319,24 @@ for z in b.Zones():
             continue
         if any(outline.PointInside(p) for p in gnd_tht):
             continue
-        target = next((p for p in gnd_smd if outline.PointInside(p)), None)
+        def via_site_ok(pos):
+            px, py = pos.x / 1e6, pos.y / 1e6
+            for t in b.GetTracks():
+                if t.GetClass() != "PCB_TRACK" or t.GetNetname() == "GND":
+                    continue
+                f = foot(px, py, t.GetStart().x/1e6, t.GetStart().y/1e6,
+                         t.GetEnd().x/1e6, t.GetEnd().y/1e6)
+                dd = min([x for x in (
+                    d2((px, py), f) if f else None,
+                    d2((px, py), (t.GetStart().x/1e6, t.GetStart().y/1e6)),
+                    d2((px, py), (t.GetEnd().x/1e6, t.GetEnd().y/1e6))) if x is not None])
+                if dd < 0.30 + 0.15 + t.GetWidth() / 2e6:
+                    return False
+            return True
+        target = next((p for p in gnd_smd
+                       if outline.PointInside(p) and via_site_ok(p)), None)
         if target is None:
-            continue   # padless island — the filler's area removal owns it
+            continue   # no safe via-in-pad site — leave for DRC to flag
         v = pcbnew.PCB_VIA(b)
         v.SetPosition(target)
         v.SetWidth(pcbnew.FromMM(0.56))

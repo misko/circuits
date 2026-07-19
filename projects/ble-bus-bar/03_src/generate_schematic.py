@@ -142,7 +142,7 @@ sch.sym_fp = {
     "BUCK": "Package_TO_SOT_SMD:TSOT-23-6",
     "LDO": "Package_TO_SOT_SMD:SOT-223-3_TabPin2",
     "ESDU": "Package_TO_SOT_SMD:SOT-23-6",
-    "FLASH": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+    "FLASH": "Package_SO:SOIC-8_5.3x5.3mm_P1.27mm",  # SSIQ = 208-mil WIDE body (twin caught the narrow-SOIC error)
     "USBC": "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12",
     "ESP": "bbar:ESP32-C3-WROOM-02_D03",
 }
@@ -221,11 +221,11 @@ sch.chain("R26.2", "R27.1")  # UVLO divider: drawn
 # --- region 4: MCU ---
 sch.region("4. ESP32-C3-WROOM-02: BLE 5.0 + native USB; straps per ADR-0004")
 sch.row(("ESP", "U7", "ESP32-C3-WROOM-02-N4",
-         {"1": "3V3", "2": "EN", "7": "IO8", "8": "BOOT9", "18": None,
+         {"1": "3V3", "2": "EN", "7": "IO8", "8": "BOOT9", "17": None,
           "9": "GND", "19": "GND",
           "3": "SDA", "4": "SCL", "15": "ALERT", "5": "SPI_CLK",
           "6": "SPI_MOSI", "16": "SPI_MISO", "10": "FLASH_CS",
-          "17": "LED_ST", "13": "USB_DM", "14": "USB_DP",
+          "18": "LED_ST", "13": "USB_DM", "14": "USB_DP",
           "11": "RXD", "12": "TXD"}),
         ("CAP", "C8", "100n U7", {"1": "3V3", "2": "GND"}),
         ("C1206", "C7", "22u U7", {"1": "3V3", "2": "GND"}))

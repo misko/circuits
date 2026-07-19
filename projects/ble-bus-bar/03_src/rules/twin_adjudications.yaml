@@ -1,1 +1,122 @@
-# Reviewed jlc_twin findings, accepted with evidence. Empty until findings exist.
+# Reviewed jlc_twin findings, accepted with evidence. Each entry silences ONE
+# (lcsc, status) finding class - never add one without the verification note.
+
+# ---- pad_alias entries (RESTORE verification coverage; jlcpcb-fab skill) ----
+- lcsc: C6186        # AMS1117-3.3 (U9), SOT-223
+  pad_alias: {"4": "2"}
+  status: PAD-MISMATCH
+  why: >-
+    Naming convention clash, the skill's canonical SOT-223 case: KiCad
+    TabPin2 merges tab+lead as pad "2", JLC names the tab "4". Alias
+    restores the fit instead of waiving it (validated live on an AMS1117
+    2026-07-17 per the jlcpcb-fab skill: PAD-MISMATCH+1.6mm artifact ->
+    OK fit=0.27mm).
+- lcsc: C6186
+  status: PAD-GEOM
+  why: >-
+    "pad 1<->2 ours 3.90 vs JLC 2.30" measured their tab-including pad
+    set against our merged TabPin2 BEFORE the alias — a naming artifact,
+    not a land disagreement (their pin pitch is the same 2.30mm; ds1117
+    p.8 SOT-223 pattern: 2.3mm pitch pins, tab opposite). Re-fit with
+    the alias grades OK; MODEL-REG 0.00mm.
+- lcsc: C318884      # TS-1187A-B-A-B (SW1/SW2)
+  pad_alias: {"2": "1", "3": "2", "4": "2"}
+  status: PAD-MISMATCH
+  why: >-
+    JLC numbers the four corner pads 1..4 (1,2 = top row y=-1.85; 3,4 =
+    bottom row y=+1.85 in their frame); the KiCad XKB footprint pairs
+    them electrically as "1" (top rail, A+B internally common) and "2"
+    (bottom rail, C+D common) per the TS-1187A-X-X-X rev A0 circuit
+    diagram (02_parts/TS-1187A-B-A-B). Alias maps their 2->1 (top) and
+    3,4->2 (bottom); coordinates then coincide (+-3.0, +-1.85/1.88).
+- lcsc: C318884
+  status: PAD-GEOM
+  why: >-
+    "ours 3.75 vs JLC 6.00" compared our top-pair pad to our bottom-pair
+    pad against their "1"->"2" (top-left to top-right, 6.0mm) — a
+    pre-alias naming artifact. Physical grid identical: ours (+-3.0,
+    +-1.88) vs theirs (+-3.0, +-1.85): 0.03mm delta.
+- lcsc: C2934560     # ESP32-C3-WROOM-02-N4 (U7)
+  status: PAD-MISMATCH
+  why: >-
+    Direct coordinate-table comparison (easyeda/C2934560 vs our vendored
+    bbar:ESP32-C3-WROOM-02_D03): JLC perimeter pads 1-18 sit at IDENTICAL
+    positions to ours (x=+-8.75, y=-6.0..+6.0, 1.5mm pitch, same
+    numbering direction). The matcher fails only on the EP: both sides
+    name their thermal grid "19" with different subdivision (their 9
+    subpads / our 13 incl. the 2.9mm center + 0.3mm drills) plus our
+    unnamed paste-only pads — duplicate/empty names break the pairwise
+    fit, not the land pattern. Render shows the module on its courtyard,
+    antenna west.
+- lcsc: C2868250     # INA238AIDGSR (U1-U6), VSSOP-10 DGS
+  status: PAD-GEOM
+  why: >-
+    "pad 1<->10 ours 4.20 vs JLC 4.70 (d0.50)" is the KiCad-IPC vs
+    vendor-example split, centered on TI's own number: SLYS025B
+    DGS0010A EXAMPLE BOARD LAYOUT dimensions 10x(1.45) pads with row
+    centers at (4.4). Ours (KiCad MSOP-10_3x3mm_P0.5mm, 1.5-long pads
+    at 4.2) is 0.1/side inside TI; JLC (4.7) is 0.15/side outside TI.
+    The 0.6mm DGS lead foot lands fully on all three; fit=0.25mm,
+    MODEL-REG 0.00mm, all six instances identical.
+- lcsc: C87080       # LMR16006XDDCR (U8), TSOT-23-6 DDC
+  status: PAD-GEOM
+  why: >-
+    "ours 2.28 vs JLC 2.70 (d0.42)": SNVSA24 DDC0006A EXAMPLE BOARD
+    LAYOUT uses 6x(1.1) pads at (2.7) row centers — JLC matches the TI
+    example; ours is the KiCad standard TSOT-23-6 (2.28 centers,
+    1.32-long pads: pad spans 0.48-1.80mm from center vs TI 0.80-1.90 —
+    the 0.6mm SOT foot lands on both, biased 0.2 toward the body).
+    Fit=0.21mm at db rotation 180 (matches the fitted jlc_offset=180),
+    MODEL-REG 0.00mm; leads-on-pads confirmed in twin_top render.
+- lcsc: C83454       # SWPA6045S220MT (L1)
+  status: PAD-GEOM
+  why: >-
+    "ours 4.50 vs JLC 5.20 (d0.70)": ours is KiCad's
+    L_Sunlord_SWPA6045S — the footprint NAMED for this exact Sunlord
+    series; the same family/package (SWPA6045S100MT) shipped on the
+    shitty-kitty v1.0 JLC order from this repo. The 6045S bottom
+    terminals are ~2.4mm long; both patterns keep them fully landed
+    (JLC biases 0.35/side outward). Fit=0.35mm, MODEL-REG 0.00mm,
+    render shows both terminals centered on our pads.
+- lcsc: C173526      # SMBJ33A (D10), SMB
+  status: PAD-GEOM
+  why: >-
+    "ours 4.30 vs JLC 4.72 (d0.42)": KiCad D_SMB vs JLC's SMB pattern —
+    the standard DO-214AA terminal span is 5.21-5.59mm with ~1.1mm-long
+    feet; both pad sets sit under the feet (JLC 0.21/side outward).
+    Fit=0.21mm, MODEL-REG 0.00mm; polarity band checked in the render
+    review (cathode = VIN_E side, matching pad 1 net).
+- lcsc: C352820      # Keystone 3557-2 (F1-F6), THT fuse holder
+  pad_alias: {"1": "1", "2": "1", "3": "2", "4": "2"}
+  status: PAD-MISMATCH
+  why: >-
+    JLC numbers the 4 THT pins individually (1,2 = west clip at x=-6.74;
+    3,4 = east clip at +6.74, pins +-1.70 within a clip); ours pairs
+    them electrically per clip ("1" south pair, "2" north pair). Alias
+    maps their per-clip pins onto our clip pads.
+- lcsc: C352820
+  status: PAD-GEOM
+  why: >-
+    "ours 13.50 vs JLC 3.40" compared our clip-to-clip span to their
+    within-clip pin pitch — pre-alias naming artifact. Physical grids
+    are identical to 0.01mm and 90deg rotation: theirs (+-6.74, +-1.70)
+    vs ours (+-1.70, +-6.75); Keystone M65 p.41 mounting detail
+    dimensions .530in (13.46) x .134in (3.40) match both.
+- lcsc: C15874       # SS310 (D7, D11)
+  status: NO-CAD
+  why: >-
+    EasyEDA has no CAD for this MDD reel (repeated API failures across
+    two runs while 29 sibling codes fetched clean). Land pattern is
+    KiCad std D_SMA against the standard DO-214AC outline in the LCSC
+    datasheet (02_parts/SS310): terminal span 4.9-5.3mm over 2.5x1.8
+    pads at +-2.0 — the shipped-everywhere SMA pattern. Polarity is
+    triple-covered: generator I9 assert, audit I9, fresh-context pin
+    review (both instances PASS, cathode nets independently derived).
+- lcsc: C152083      # SMCJ33A (D9)
+  status: NO-CAD
+  why: >-
+    Same repeated-fetch failure class; BORN reel without EasyEDA CAD.
+    Land = KiCad std D_SMC vs the DO-214AB outline in the LCSC sheet
+    (02_parts/SMCJ33A): terminal span 7.75-8.13mm over 3.3x2.5 pads at
+    +-3.4. Polarity triple-covered (generator assert + audit I9 + pin
+    review PASS: cathode pad1 = VBUS, anode = GND).

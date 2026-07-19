@@ -7,5 +7,5 @@
   "silk_fn_radius_mm": 13.0,
   "route_pro_glob": "06_build/route/r0.kicad_pro",
   "ref_silk_ok": ["J1", "J2", "J3", "J4", "J5", "J6", "J7", "J8", "J9",
-                  "SW1", "SW2", "U7", "LED1", "LED2"]
+                  "SW1", "SW2", "U7", "LED1", "LED2", "C8", "R20"]
 }

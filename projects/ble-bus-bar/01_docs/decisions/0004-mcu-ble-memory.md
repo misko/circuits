@@ -30,7 +30,7 @@ ESP32-C3-MINI or nRF52 by stock; SPI NOR W25Q64+ for logging.
    pull-up (flash DO is Hi-Z until CS); IO8 10 k pull-up; IO9 boot
    button to GND; FLASH_CS 10 k pull-up so the log flash stays
    deselected through boot/strap sampling; EN 10 k + 1 µF RC + reset
-   button. LEDs kept OFF strap pins (IO1/3V3 only).
+   button. LEDs kept OFF strap pins (IO0/3V3 only).
 
 4. **USB-C for flash/debug + bench power** via AMS1117-3.3 → schottky
    OR into the rail (≈3.0 V USB-only — inside every part's operating

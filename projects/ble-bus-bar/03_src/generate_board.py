@@ -90,15 +90,15 @@ ANCHOR.update({
     "R24": (74.5, 79.0, 90), "R25": (74.5, 82.5, 90),
     "R26": (77.5, 86.5, 90), "R27": (74.5, 86.5, 90),
     "F7": (68.0, 103.0, 90), "D7": (68.0, 97.6, 0), "D9": (76.0, 101.0, 90),
-    "U11": (79.0, 59.0, 0),            # W25Q64
-    "C9": (79.0, 63.0, 0),
-    "R18": (86.0, 53.0, 0), "R19": (86.0, 55.5, 0), "R20": (86.0, 58.0, 0),
+    "U11": (80.0, 61.0, 0),            # W25Q64 (208-mil wide SOIC)
+    "C9": (83.6, 55.4, 90),
+    "R18": (92.0, 52.6, 0), "R19": (92.0, 55.2, 0), "R20": (92.0, 57.8, 0),
     "R21": (75.8, 72.8, 0), "C10": (79.9, 72.8, 0),
     "SW1": (69.5, 73.6, 0), "SW2": (69.5, 81.2, 0),
     "C7": (77.6, 66.0, 0), "C8": (63.2, 73.4, 0),
-    "LED1": (93.0, 52.3, 0), "LED2": (93.0, 55.1, 0),
-    "R28": (93.0, 57.7, 0), "R29": (93.0, 60.2, 0),
-    "J10": (96.5, 53.0, 0),
+    "LED1": (95.8, 52.3, 0), "LED2": (95.8, 55.1, 0),
+    "R28": (95.8, 57.9, 0), "R29": (95.8, 60.7, 0),
+    "J10": (86.0, 100.5, 90),    # header horizontal, pads run east
     # corridor boundary parts (pad1 south on lane terminals)
     "R15": (G.BOUND_X["SDA"], G.BOUND_Y, 90),
     "R16": (G.BOUND_X["SCL"], G.BOUND_Y, 90),
@@ -124,7 +124,7 @@ SILK = [
     ("USB-C", 54.5, 76.6, 0.7), ("5V IN", 54.5, 90.7, 0.6),
     ("RESET", 69.5, 77.4, 0.7), ("BOOT", 69.5, 84.9, 0.7),
     ("PWR", 90.0, 52.3, 0.55), ("ST", 89.8, 55.1, 0.55),
-    ("UART", 96.5, 51.05, 0.55),   # pin map: 05_firmware/pinmap.md (1=3V3 2=GND 3=TX 4=RX)
+    ("UART 1=3V3 2=G 3=TX 4=RX", 89.8, 98.6, 0.55),
 ]
 for i in range(1, 7):
     cx = G.CX[i - 1]
@@ -335,7 +335,7 @@ def main():
     ds.m_CopperEdgeClearance = int(0.2e6)
     ds.m_ViasMinSize = pcbnew.FromMM(0.3)       # USB-weave dive vias (JLC: dia >= hole+0.1)
     ds.m_MinThroughDrill = pcbnew.FromMM(0.2)
-    ds.m_MinConn = pcbnew.FromMM(0.1)
+    ds.m_MinConn = pcbnew.FromMM(0.05)
     ds.m_SolderMaskMinWidth = 0
     ds.m_SolderMaskExpansion = 0
 

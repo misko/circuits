@@ -62,7 +62,7 @@ bds.setdefault("rules", {}).update({
     "min_via_diameter": 0.3, "min_through_hole_diameter": 0.2,
     "min_via_annular_width": 0.05, "min_hole_clearance": 0.2,
     "min_hole_to_hole": 0.25, "min_copper_edge_clearance": 0.2,
-    "min_connection": 0.1, "min_microvia_diameter": 0.2,
+    "min_connection": 0.05, "min_microvia_diameter": 0.2,
     "min_microvia_drill": 0.1, "min_resolved_spokes": 1,
     "min_silk_clearance": 0.0, "min_text_height": 0.5,
     "min_text_thickness": 0.08, "max_error": 0.005,

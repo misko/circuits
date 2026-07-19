@@ -146,7 +146,7 @@ Pin map (module pin = physical pad from part.yaml):
 | 16 | IO2 | SPI_MISO | W25Q64 DO (strap: 10 kΩ pull-up R18 — DO is Hi-Z while CS high) |
 | 10 | IO10 | FLASH_CS | W25Q64 /CS (10 kΩ pull-up R19 keeps flash deselected at boot) |
 | 15 | IO3 | ALERT | shared INA238 ALERT (10 kΩ pull-up R17) |
-| 17 | IO1 | LED_ST | status LED (1 kΩ) |
+| 18 | IO0 | LED_ST | status LED (1 kΩ) |
 | 7 | IO8 | IO8 | strap, 10 kΩ pull-up R20, else free |
 | 8 | IO9 | BOOT | boot button SW2 to GND (internal + strap default) |
 | 2 | EN | EN | 10 kΩ pull-up R21 + 1 µF C_EN + reset button SW1 |

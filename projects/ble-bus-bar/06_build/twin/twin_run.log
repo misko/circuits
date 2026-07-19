@@ -1,3 +1,210 @@
 ./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
 ./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
 ./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+23:51:30: Debug: Adding duplicate image handler for 'PNG file'
+23:51:30: Debug: Adding duplicate image handler for 'JPEG file'
+23:51:30: Debug: Adding duplicate image handler for 'TIFF file'
+23:51:30: Debug: Adding duplicate image handler for 'GIF file'
+23:51:30: Debug: Adding duplicate image handler for 'PNM file'
+23:51:30: Debug: Adding duplicate image handler for 'PCX file'
+23:51:30: Debug: Adding duplicate image handler for 'IFF file'
+23:51:30: Debug: Adding duplicate image handler for 'Windows icon file'
+23:51:30: Debug: Adding duplicate image handler for 'Windows cursor file'
+23:51:30: Debug: Adding duplicate image handler for 'Windows animated cursor file'
+23:51:30: Debug: Adding duplicate image handler for 'TGA file'
+23:51:30: Debug: Adding duplicate image handler for 'XPM file'
+C179171  U11  PAD-MISMATCH  best=(1.0550118482747062, False, 90)
+C352820  F1  PAD-MISMATCH  best=none
+C352820  F2  PAD-MISMATCH  best=none
+C352820  F3  PAD-MISMATCH  best=none
+C352820  F4  PAD-MISMATCH  best=none
+C352820  F5  PAD-MISMATCH  best=none
+C352820  F6  PAD-MISMATCH  best=none
+C15874  D11  PAD-GEOM  pad 1<->2 ours 4.00mm vs JLC 4.40mm (d0.40mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C15874  D7  PAD-GEOM  pad 1<->2 ours 4.00mm vs JLC 4.40mm (d0.40mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C179171  U11  PAD-GEOM  pad 1<->8 ours 4.95mm vs JLC 7.06mm (d2.11mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C352820  F1  PAD-GEOM  pad 1<->2 ours 13.50mm vs JLC 3.40mm (d10.10mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C352820  F2  PAD-GEOM  pad 1<->2 ours 13.50mm vs JLC 3.40mm (d10.10mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C352820  F3  PAD-GEOM  pad 1<->2 ours 13.50mm vs JLC 3.40mm (d10.10mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C352820  F4  PAD-GEOM  pad 1<->2 ours 13.50mm vs JLC 3.40mm (d10.10mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C352820  F5  PAD-GEOM  pad 1<->2 ours 13.50mm vs JLC 3.40mm (d10.10mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C352820  F6  PAD-GEOM  pad 1<->2 ours 13.50mm vs JLC 3.40mm (d10.10mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C165948  J9  MODEL-REG  body center 2.1mm off courtyard, area ratio 0.69 -> DO NOT blind-flip: JLC's footprint mounts this model at rot_z=180 (authoritative); body asymmetric (1.1mm bbox-center offset) so this metric is unreliable. VERIFY leads sit on pads visually; if correct, adjudicate as a false alarm with NO rotation override
+C844297  RS1  MODEL-REG  body center 1.1mm off courtyard, area ratio 0.68 -> DO NOT blind-flip: JLC's footprint mounts this model at rot_z=0 (authoritative); body asymmetric (0.9mm bbox-center offset) so this metric is unreliable. VERIFY leads sit on pads visually; if correct, adjudicate as a false alarm with NO rotation override
+C844297  RS2  MODEL-REG  body center 1.1mm off courtyard, area ratio 0.68 -> DO NOT blind-flip: JLC's footprint mounts this model at rot_z=0 (authoritative); body asymmetric (0.9mm bbox-center offset) so this metric is unreliable. VERIFY leads sit on pads visually; if correct, adjudicate as a false alarm with NO rotation override
+C844297  RS3  MODEL-REG  body center 1.1mm off courtyard, area ratio 0.68 -> DO NOT blind-flip: JLC's footprint mounts this model at rot_z=0 (authoritative); body asymmetric (0.9mm bbox-center offset) so this metric is unreliable. VERIFY leads sit on pads visually; if correct, adjudicate as a false alarm with NO rotation override
+C844297  RS4  MODEL-REG  body center 1.1mm off courtyard, area ratio 0.68 -> DO NOT blind-flip: JLC's footprint mounts this model at rot_z=0 (authoritative); body asymmetric (0.9mm bbox-center offset) so this metric is unreliable. VERIFY leads sit on pads visually; if correct, adjudicate as a false alarm with NO rotation override
+C844297  RS5  MODEL-REG  body center 1.1mm off courtyard, area ratio 0.68 -> DO NOT blind-flip: JLC's footprint mounts this model at rot_z=0 (authoritative); body asymmetric (0.9mm bbox-center offset) so this metric is unreliable. VERIFY leads sit on pads visually; if correct, adjudicate as a false alarm with NO rotation override
+C844297  RS6  MODEL-REG  body center 1.1mm off courtyard, area ratio 0.68 -> DO NOT blind-flip: JLC's footprint mounts this model at rot_z=0 (authoritative); body asymmetric (0.9mm bbox-center offset) so this metric is unreliable. VERIFY leads sit on pads visually; if correct, adjudicate as a false alarm with NO rotation override
+C8598  D8  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C2297  LED1  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C2297  LED2  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C173526  D10  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C15874  D11  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C15874  D7  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C2868250  U1  ROT-DB-SUGGEST  fit=0.25mm jlc_offset=90 db=0.0 -> add: MSOP-10_3x3mm_P0.5mm,90
+C2868250  U2  ROT-DB-SUGGEST  fit=0.25mm jlc_offset=90 db=0.0 -> add: MSOP-10_3x3mm_P0.5mm,90
+C2868250  U3  ROT-DB-SUGGEST  fit=0.25mm jlc_offset=90 db=0.0 -> add: MSOP-10_3x3mm_P0.5mm,90
+C2868250  U4  ROT-DB-SUGGEST  fit=0.25mm jlc_offset=90 db=0.0 -> add: MSOP-10_3x3mm_P0.5mm,90
+C2868250  U5  ROT-DB-SUGGEST  fit=0.25mm jlc_offset=90 db=0.0 -> add: MSOP-10_3x3mm_P0.5mm,90
+C2868250  U6  ROT-DB-SUGGEST  fit=0.25mm jlc_offset=90 db=0.0 -> add: MSOP-10_3x3mm_P0.5mm,90
+C2297  LED1  ROT-DB-SUGGEST  fit=0.11mm jlc_offset=180 db=0.0 -> add: LED_0805_2012Metric,180
+C2297  LED2  ROT-DB-SUGGEST  fit=0.11mm jlc_offset=180 db=0.0 -> add: LED_0805_2012Metric,180
+C165948  J9  ROT-DB-SUGGEST  fit=0.00mm jlc_offset=0 db=180.0 -> add: USB_C_Receptacle_HRO_TYPE-C-31-M-12,0
+C2687116  U10  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=90 db=-90.0 -> add: SOT-23-6,90
+C844297  RS1  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: R_Shunt_WSLP2726,270
+C844297  RS2  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: R_Shunt_WSLP2726,270
+C844297  RS3  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: R_Shunt_WSLP2726,270
+C844297  RS4  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: R_Shunt_WSLP2726,270
+C844297  RS5  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: R_Shunt_WSLP2726,270
+C844297  RS6  ROT-DB-SUGGEST  fit=0.01mm jlc_offset=270 db=0.0 -> add: R_Shunt_WSLP2726,270
+C152083  D9  NO-CAD  ['[ERROR] Failed to fetch data from EasyEDA API for part C152083']
+C3105  F7  MODEL-REG-OK  body on courtyard (0.00mm)
+C149504  R27  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  C13  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  C14  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  C3  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  C4  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  C8  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  C9  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  CB1  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  CB2  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  CB3  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  CB4  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  CB5  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  CB6  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  CD1  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  CD2  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  CD3  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  CD4  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  CD5  MODEL-REG-OK  body on courtyard (0.00mm)
+C49678  CD6  MODEL-REG-OK  body on courtyard (0.00mm)
+C17415  RN1  MODEL-REG-OK  body on courtyard (0.00mm)
+C17415  RN2  MODEL-REG-OK  body on courtyard (0.00mm)
+C17415  RN3  MODEL-REG-OK  body on courtyard (0.00mm)
+C17415  RN4  MODEL-REG-OK  body on courtyard (0.00mm)
+C17415  RN5  MODEL-REG-OK  body on courtyard (0.00mm)
+C17415  RN6  MODEL-REG-OK  body on courtyard (0.00mm)
+C17415  RP1  MODEL-REG-OK  body on courtyard (0.00mm)
+C17415  RP2  MODEL-REG-OK  body on courtyard (0.00mm)
+C17415  RP3  MODEL-REG-OK  body on courtyard (0.00mm)
+C17415  RP4  MODEL-REG-OK  body on courtyard (0.00mm)
+C17415  RP5  MODEL-REG-OK  body on courtyard (0.00mm)
+C17415  RP6  MODEL-REG-OK  body on courtyard (0.00mm)
+C17414  R17  MODEL-REG-OK  body on courtyard (0.00mm)
+C17414  R18  MODEL-REG-OK  body on courtyard (0.00mm)
+C17414  R19  MODEL-REG-OK  body on courtyard (0.00mm)
+C17414  R20  MODEL-REG-OK  body on courtyard (0.00mm)
+C17414  R21  MODEL-REG-OK  body on courtyard (0.00mm)
+C17414  R25  MODEL-REG-OK  body on courtyard (0.00mm)
+C15850  C11  MODEL-REG-OK  body on courtyard (0.00mm)
+C17513  R29  MODEL-REG-OK  body on courtyard (0.00mm)
+C28323  C10  MODEL-REG-OK  body on courtyard (0.00mm)
+C12891  C12  MODEL-REG-OK  body on courtyard (0.00mm)
+C12891  C5  MODEL-REG-OK  body on courtyard (0.00mm)
+C12891  C6  MODEL-REG-OK  body on courtyard (0.00mm)
+C12891  C7  MODEL-REG-OK  body on courtyard (0.00mm)
+C83454  L1  MODEL-REG-OK  body on courtyard (0.00mm)
+C17604  R28  MODEL-REG-OK  body on courtyard (0.00mm)
+C17633  R24  MODEL-REG-OK  body on courtyard (0.00mm)
+C17673  R15  MODEL-REG-OK  body on courtyard (0.00mm)
+C17673  R16  MODEL-REG-OK  body on courtyard (0.00mm)
+C86052  C1  MODEL-REG-OK  body on courtyard (0.00mm)
+C86052  C2  MODEL-REG-OK  body on courtyard (0.00mm)
+C15785  R26  MODEL-REG-OK  body on courtyard (0.00mm)
+C27834  R22  MODEL-REG-OK  body on courtyard (0.00mm)
+C27834  R23  MODEL-REG-OK  body on courtyard (0.00mm)
+C6186  U9  MODEL-REG-OK  body on courtyard (0.19mm)
+C8598  D8  MODEL-REG-OK  body on courtyard (0.00mm)
+C318884  SW1  MODEL-REG-OK  body on courtyard (0.00mm)
+C318884  SW2  MODEL-REG-OK  body on courtyard (0.00mm)
+C2868250  U1  MODEL-REG-OK  body on courtyard (0.00mm)
+C2868250  U2  MODEL-REG-OK  body on courtyard (0.00mm)
+C2868250  U3  MODEL-REG-OK  body on courtyard (0.00mm)
+C2868250  U4  MODEL-REG-OK  body on courtyard (0.00mm)
+C2868250  U5  MODEL-REG-OK  body on courtyard (0.00mm)
+C2868250  U6  MODEL-REG-OK  body on courtyard (0.00mm)
+C2297  LED1  MODEL-REG-OK  body on courtyard (0.00mm)
+C2297  LED2  MODEL-REG-OK  body on courtyard (0.00mm)
+C87080  U8  MODEL-REG-OK  body on courtyard (0.00mm)
+C173526  D10  MODEL-REG-OK  body on courtyard (0.00mm)
+C15874  D11  MODEL-REG-OK  body on courtyard (0.00mm)
+C15874  D7  MODEL-REG-OK  body on courtyard (0.00mm)
+C2687116  U10  MODEL-REG-OK  body on courtyard (0.00mm)
+C179171  U11  MODEL-REG-OK  body on courtyard (0.00mm)
+C3105  F7  OK  fit=0.05mm jlc_offset=0 db=0.0
+C149504  R27  OK  fit=0.09mm jlc_offset=0 db=0.0
+C49678  C13  OK  fit=0.05mm jlc_offset=0 db=0.0
+C49678  C14  OK  fit=0.05mm jlc_offset=0 db=0.0
+C49678  C3  OK  fit=0.05mm jlc_offset=0 db=0.0
+C49678  C4  OK  fit=0.05mm jlc_offset=0 db=0.0
+C49678  C8  OK  fit=0.05mm jlc_offset=0 db=0.0
+C49678  C9  OK  fit=0.05mm jlc_offset=0 db=0.0
+C49678  CB1  OK  fit=0.05mm jlc_offset=0 db=0.0
+C49678  CB2  OK  fit=0.05mm jlc_offset=0 db=0.0
+C49678  CB3  OK  fit=0.05mm jlc_offset=0 db=0.0
+C49678  CB4  OK  fit=0.05mm jlc_offset=0 db=0.0
+C49678  CB5  OK  fit=0.05mm jlc_offset=0 db=0.0
+C49678  CB6  OK  fit=0.05mm jlc_offset=0 db=0.0
+C49678  CD1  OK  fit=0.05mm jlc_offset=0 db=0.0
+C49678  CD2  OK  fit=0.05mm jlc_offset=0 db=0.0
+C49678  CD3  OK  fit=0.05mm jlc_offset=0 db=0.0
+C49678  CD4  OK  fit=0.05mm jlc_offset=0 db=0.0
+C49678  CD5  OK  fit=0.05mm jlc_offset=0 db=0.0
+C49678  CD6  OK  fit=0.05mm jlc_offset=0 db=0.0
+C17415  RN1  OK  fit=0.06mm jlc_offset=0 db=0.0
+C17415  RN2  OK  fit=0.06mm jlc_offset=0 db=0.0
+C17415  RN3  OK  fit=0.06mm jlc_offset=0 db=0.0
+C17415  RN4  OK  fit=0.06mm jlc_offset=0 db=0.0
+C17415  RN5  OK  fit=0.06mm jlc_offset=0 db=0.0
+C17415  RN6  OK  fit=0.06mm jlc_offset=0 db=0.0
+C17415  RP1  OK  fit=0.06mm jlc_offset=0 db=0.0
+C17415  RP2  OK  fit=0.06mm jlc_offset=0 db=0.0
+C17415  RP3  OK  fit=0.06mm jlc_offset=0 db=0.0
+C17415  RP4  OK  fit=0.06mm jlc_offset=0 db=0.0
+C17415  RP5  OK  fit=0.06mm jlc_offset=0 db=0.0
+C17415  RP6  OK  fit=0.06mm jlc_offset=0 db=0.0
+C17414  R17  OK  fit=0.09mm jlc_offset=0 db=0.0
+C17414  R18  OK  fit=0.09mm jlc_offset=0 db=0.0
+C17414  R19  OK  fit=0.09mm jlc_offset=0 db=0.0
+C17414  R20  OK  fit=0.09mm jlc_offset=0 db=0.0
+C17414  R21  OK  fit=0.09mm jlc_offset=0 db=0.0
+C17414  R25  OK  fit=0.09mm jlc_offset=0 db=0.0
+C15850  C11  OK  fit=0.05mm jlc_offset=0 db=0.0
+C17513  R29  OK  fit=0.09mm jlc_offset=0 db=0.0
+C28323  C10  OK  fit=0.05mm jlc_offset=0 db=0.0
+C12891  C12  OK  fit=0.12mm jlc_offset=0 db=0.0
+C12891  C5  OK  fit=0.12mm jlc_offset=0 db=0.0
+C12891  C6  OK  fit=0.12mm jlc_offset=0 db=0.0
+C12891  C7  OK  fit=0.12mm jlc_offset=0 db=0.0
+C83454  L1  ADJUDICATED-PAD-GEOM  "ours 4.50 vs JLC 5.20 (d0.70)": ours is KiCad's L_Sunlord_SWPA6045S — the footprint NAMED for this exact Sunlord series; the same family/package (SWPA6045S100MT) shipped on the shitty-kitty v1.0 JLC order from this repo. The 6045S bottom terminals are ~2.4mm long; both patterns keep them fully landed (JLC biases 0.35/side outward). Fit=0.35mm, MODEL-REG 0.00mm, render shows both terminals centered on our pads.
+C83454  L1  OK  fit=0.35mm jlc_offset=0 db=0.0
+C17604  R28  OK  fit=0.09mm jlc_offset=0 db=0.0
+C17633  R24  OK  fit=0.09mm jlc_offset=0 db=0.0
+C17673  R15  OK  fit=0.09mm jlc_offset=0 db=0.0
+C17673  R16  OK  fit=0.09mm jlc_offset=0 db=0.0
+C86052  C1  OK  fit=0.05mm jlc_offset=0 db=0.0
+C86052  C2  OK  fit=0.05mm jlc_offset=0 db=0.0
+C15785  R26  OK  fit=0.09mm jlc_offset=0 db=0.0
+C27834  R22  OK  fit=0.09mm jlc_offset=0 db=0.0
+C27834  R23  OK  fit=0.09mm jlc_offset=0 db=0.0
+C6186  U9  OK  fit=0.27mm jlc_offset=180 db=180.0
+C8598  D8  OK  fit=0.05mm jlc_offset=0 db=0.0
+C318884  SW1  OK  fit=0.02mm jlc_offset=0 db=0.0
+C318884  SW2  OK  fit=0.02mm jlc_offset=0 db=0.0
+C2934560  U7  ADJUDICATED-PAD-MISMATCH  Direct coordinate-table comparison (easyeda/C2934560 vs our vendored bbar:ESP32-C3-WROOM-02_D03): JLC perimeter pads 1-18 sit at IDENTICAL positions to ours (x=+-8.75, y=-6.0..+6.0, 1.5mm pitch, same numbering direction). The matcher fails only on the EP: both sides name their thermal grid "19" with different subdivision (their 9 subpads / our 13 incl. the 2.9mm center + 0.3mm drills) plus our unnamed paste-only pads — duplicate/empty names break the pairwise fit, not the land pattern. Render shows the module on its courtyard, antenna west.
+C2868250  U1  ADJUDICATED-PAD-GEOM  "pad 1<->10 ours 4.20 vs JLC 4.70 (d0.50)" is the KiCad-IPC vs vendor-example split, centered on TI's own number: SLYS025B DGS0010A EXAMPLE BOARD LAYOUT dimensions 10x(1.45) pads with row centers at (4.4). Ours (KiCad MSOP-10_3x3mm_P0.5mm, 1.5-long pads at 4.2) is 0.1/side inside TI; JLC (4.7) is 0.15/side outside TI. The 0.6mm DGS lead foot lands fully on all three; fit=0.25mm, MODEL-REG 0.00mm, all six instances identical.
+C2868250  U2  ADJUDICATED-PAD-GEOM  "pad 1<->10 ours 4.20 vs JLC 4.70 (d0.50)" is the KiCad-IPC vs vendor-example split, centered on TI's own number: SLYS025B DGS0010A EXAMPLE BOARD LAYOUT dimensions 10x(1.45) pads with row centers at (4.4). Ours (KiCad MSOP-10_3x3mm_P0.5mm, 1.5-long pads at 4.2) is 0.1/side inside TI; JLC (4.7) is 0.15/side outside TI. The 0.6mm DGS lead foot lands fully on all three; fit=0.25mm, MODEL-REG 0.00mm, all six instances identical.
+C2868250  U3  ADJUDICATED-PAD-GEOM  "pad 1<->10 ours 4.20 vs JLC 4.70 (d0.50)" is the KiCad-IPC vs vendor-example split, centered on TI's own number: SLYS025B DGS0010A EXAMPLE BOARD LAYOUT dimensions 10x(1.45) pads with row centers at (4.4). Ours (KiCad MSOP-10_3x3mm_P0.5mm, 1.5-long pads at 4.2) is 0.1/side inside TI; JLC (4.7) is 0.15/side outside TI. The 0.6mm DGS lead foot lands fully on all three; fit=0.25mm, MODEL-REG 0.00mm, all six instances identical.
+C2868250  U4  ADJUDICATED-PAD-GEOM  "pad 1<->10 ours 4.20 vs JLC 4.70 (d0.50)" is the KiCad-IPC vs vendor-example split, centered on TI's own number: SLYS025B DGS0010A EXAMPLE BOARD LAYOUT dimensions 10x(1.45) pads with row centers at (4.4). Ours (KiCad MSOP-10_3x3mm_P0.5mm, 1.5-long pads at 4.2) is 0.1/side inside TI; JLC (4.7) is 0.15/side outside TI. The 0.6mm DGS lead foot lands fully on all three; fit=0.25mm, MODEL-REG 0.00mm, all six instances identical.
+C2868250  U5  ADJUDICATED-PAD-GEOM  "pad 1<->10 ours 4.20 vs JLC 4.70 (d0.50)" is the KiCad-IPC vs vendor-example split, centered on TI's own number: SLYS025B DGS0010A EXAMPLE BOARD LAYOUT dimensions 10x(1.45) pads with row centers at (4.4). Ours (KiCad MSOP-10_3x3mm_P0.5mm, 1.5-long pads at 4.2) is 0.1/side inside TI; JLC (4.7) is 0.15/side outside TI. The 0.6mm DGS lead foot lands fully on all three; fit=0.25mm, MODEL-REG 0.00mm, all six instances identical.
+C2868250  U6  ADJUDICATED-PAD-GEOM  "pad 1<->10 ours 4.20 vs JLC 4.70 (d0.50)" is the KiCad-IPC vs vendor-example split, centered on TI's own number: SLYS025B DGS0010A EXAMPLE BOARD LAYOUT dimensions 10x(1.45) pads with row centers at (4.4). Ours (KiCad MSOP-10_3x3mm_P0.5mm, 1.5-long pads at 4.2) is 0.1/side inside TI; JLC (4.7) is 0.15/side outside TI. The 0.6mm DGS lead foot lands fully on all three; fit=0.25mm, MODEL-REG 0.00mm, all six instances identical.
+C87080  U8  ADJUDICATED-PAD-GEOM  "ours 2.28 vs JLC 2.70 (d0.42)": SNVSA24 DDC0006A EXAMPLE BOARD LAYOUT uses 6x(1.1) pads at (2.7) row centers — JLC matches the TI example; ours is the KiCad standard TSOT-23-6 (2.28 centers, 1.32-long pads: pad spans 0.48-1.80mm from center vs TI 0.80-1.90 — the 0.6mm SOT foot lands on both, biased 0.2 toward the body). Fit=0.21mm at db rotation 180 (matches the fitted jlc_offset=180), MODEL-REG 0.00mm; leads-on-pads confirmed in twin_top render.
+C87080  U8  OK  fit=0.21mm jlc_offset=180 db=180.0
+C173526  D10  ADJUDICATED-PAD-GEOM  "ours 4.30 vs JLC 4.72 (d0.42)": KiCad D_SMB vs JLC's SMB pattern — the standard DO-214AA terminal span is 5.21-5.59mm with ~1.1mm-long feet; both pad sets sit under the feet (JLC 0.21/side outward). Fit=0.21mm, MODEL-REG 0.00mm; polarity band checked in the render review (cathode = VIN_E side, matching pad 1 net).
+C173526  D10  OK  fit=0.21mm jlc_offset=0 db=0.0
+C15874  D11  OK  fit=0.20mm jlc_offset=0 db=0.0
+C15874  D7  OK  fit=0.20mm jlc_offset=0 db=0.0
+
+63 OK / 192 checked; report + renders -> /home/mouse9911/gits/circuits/projects/ble-bus-bar/06_build/twin
+CRITICAL (9 refs): ['D11', 'D7', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'U11']

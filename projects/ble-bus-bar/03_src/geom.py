@@ -73,7 +73,7 @@ STUD_IN = (151.0, 105.8)           # J7 M5 (+12-24V)
 STUD_GND = (58.0, 107.0)           # J8 M4 (GND ref)
 
 # mounting holes (NPTH 3.2mm)
-HOLES = [(52.3, 93.0), (211.0, 52.8), (211.0, 111.2), (80.2, 52.6)]
+HOLES = [(52.3, 93.0), (211.0, 52.8), (211.0, 111.2), (79.0, 52.6)]
 
 # KRT keepouts (User.2)
 KRT_KEEPOUTS = [

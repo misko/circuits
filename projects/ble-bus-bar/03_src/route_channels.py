@@ -160,6 +160,22 @@ seg(85.7, G.BOUND_PAD1_Y, 85.7, 60.9, "3V3", layer=B)
 seg(85.7, 60.9, G.BOUND_X["ALERT"], 60.9, "3V3")
 seg(G.BOUND_X["ALERT"], 60.9, G.BOUND_X["ALERT"], G.BOUND_Y - 0.9575, "3V3")
 
+# C8 (module bulk decoupler) 3V3 pad straight up into module pin 1
+# (3V3) — KRT repeatedly failed this boxed pad (module courtyard + SW1).
+seg(62.25, 73.4, 62.24, 70.2, "3V3")
+
+# W25Q64 power cluster (deterministic anchors): /WP(3) + /HOLD(7) +
+# VCC(8) tied along the body, C9 decoupler into pin 8. KRT treats these
+# pads as already-anchored copper.
+seg(76.4125, 61.635, 75.2, 61.635, "3V3")   # /WP west jog (row shared with pin6!)
+seg(75.2, 61.635, 75.2, 58.2, "3V3")
+seg(75.2, 58.2, 83.5875, 58.2, "3V3")        # over the chip's north end
+seg(83.5875, 58.2, 83.5875, 60.365, "3V3")   # down into /HOLD(7), passing VCC(8)
+seg(83.5875, 58.2, 83.5, 56.85, "3V3")       # C9 decoupler
+seg(83.5875, 58.2, 84.8, 58.2, "3V3")        # west-tree link: cluster ->
+seg(84.8, 58.2, 84.8, 60.9, "3V3")           #   corridor bridge west end
+seg(84.8, 60.9, 85.7, 60.9, "3V3")
+
 # C14.2 (GND) sits inside the pocket fenced by the bridge + terminal
 # verticals — give it its own path west to the open B.Cu plane.
 seg(G.BOUND_X["3V3"], G.BOUND_Y - 0.9575, 85.0, G.BOUND_Y - 0.9575, "GND")

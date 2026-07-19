@@ -41,6 +41,8 @@ b.Add(tmp)
 renamed = 0
 for fp in b.GetFootprints():
     for p in fp.Pads():
+        if fp.GetReference() in ("C9", "U11", "C8"):
+            continue   # flash power cluster is hand-routed (route_channels)
         if p.GetNetname() == "3V3" and p.GetPosition().x / 1e6 < 97.5:
             p.SetNet(tmp)
             renamed += 1

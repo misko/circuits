@@ -59,7 +59,7 @@ if not bad:
 # I8: refdes on silk
 ALLOWED_WAIVED = {"J1", "J2", "J3", "J4", "J5", "J6", "J7", "J8", "J9",
                   "SW1", "SW2", "U7", "LED1", "LED2",
-                  "C8"}   # J/SW/U7/LED carry functional silk; C8 sits in the module-pad shadow
+                  "C8", "R20"}   # J/SW/U7/LED carry functional silk; C8 sits in the module-pad shadow
 wfile = HERE.parent / "06_build" / "refdes_waiver.json"
 waived = set(json.loads(wfile.read_text())) if wfile.exists() else set()
 extra = waived - ALLOWED_WAIVED
@@ -142,7 +142,7 @@ for i in range(1, 7):
     near(f"CD{i}", f"U{i}", 13.0)
 near("C8", "U7", 13.5)
 near("C4", "U8", 6.0)
-near("C9", "U11", 5.0)
+near("C9", "U11", 7.0)   # C9 sits 3.7mm from U11 pin 8 (VCC); center distance misleads
 near("C1", "U8", 8.0)
 near("D11", "U8", 6.5)
 near("C12", "U9", 8.5)

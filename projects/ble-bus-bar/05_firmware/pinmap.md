@@ -15,7 +15,7 @@ hardware contract a firmware bring-up needs. Source of truth:
 | IO2 | SPI_MISO | W25Q64 DO (boot strap — has 10k pull-up) |
 | IO10 | FLASH_CS | W25Q64 /CS (10k pull-up keeps it deselected at boot) |
 | IO3 | ALERT | shared INA238 ALERT, open-drain, active low |
-| IO1 | LED_ST | status LED, active high |
+| IO0 | LED_ST | status LED, active high |
 | IO9 | BOOT | boot button (hold low + reset for download mode) |
 | IO18/IO19 | USB D-/D+ | native USB-Serial-JTAG (flash via the USB-C) |
 | IO20/IO21 | RXD/TXD | debug UART on J10 (DNP header) |
