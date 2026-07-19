@@ -1,0 +1,21 @@
+board:        crow_array_pod
+version:      v1.1
+ordered:      2026-07-19
+git_sha:      543e376
+git_dirty:    false                    # projects/crow-array-pod/** clean at 543e376; shared repo carried unrelated cook-hub WIP from a concurrent agent (outside this project)
+kicad:        10.0.4
+tools:        schwriter2 (kicad-pcb skill), KRT (~/gits/KiCadRoutingTools), jlc_twin/policy_audit/pin_audit (skills), python3
+fab:          JLCPCB, 2 layer, STANDARD options (0.6/0.3 vias, min drill 0.3mm)
+quantity:     10 (6 pods + spares)
+gates:        ERC 0 · audit PASS x2 (incl I2 recess containment, I9 polarity, I10b refdes-legibility) · DRC 0/0/0 severity-all with --refill-zones --schematic-parity · twin exit 0 (zero unadjudicated criticals; 25x MODEL-REG-OK; U1 PAD-GEOM + ROT-DB and J1 NO-CAD adjudicated with evidence) · stock 15/15 coded lines >= 10x (2026-07-19) · fresh-context J1 pin review PASS (interop truth table vs central, face-WEST confirmed from datasheet side-view chain) · D1 spot review FAIL dispositioned ACCEPTED per ADR-0004(b2) (written acceptance, clamp-first topology) · fresh delta render review PASS (verification/render_review.md, conditions listed) · policy_audit ZERO FAIL (18 PASS / 6 HUMAN / 2 N-A)
+fix_claims:   (1) J1 mating face WEST (v1.1 pre-release board had it EAST; corrected to rot 90) — falsifiable evidence: verification/pin_review.md, fresh-context reviewer independently re-derived the face side from the catalogue side-view dimension chain (face->post .215 [5.46], LED tails 1.15mm from REAR) and computed absolute board pad positions with pcbnew: NPTH posts x=75.46 WEST of contact rows x=78.00/79.78, LED tails x=84.60 EAST => opening WEST; corroborated by verification/render_review.md (300dpi pixel measurement of the hole field, 11.811 px/mm). (2) north banner silk_overlap fix (5 violations vs L1 at x=100 -> moved to x=118): verification/drc.json shows 0 violations at severity-all; render review measured banner span x~102.4-133.5, ~4mm clear of L1 silk ending x~98.4.
+sha256:
+  crow_array_pod_gerbers.zip  0680875513a84430befa6ae45c93cb5125687b64ff56e75c5bad7bcac3a28557
+  bom.csv                     8290253cd6ca83340650e29e3dc4f1ceceee09b7af4060f42d7e0313037fe517
+  cpl.csv                     a49bcf1e55db645954a26e170f5ab6265a66c279d4e742057335501435491671
+  pdf/schematic.pdf           350610e3a5e375bea53eafbb82afec5e4754fdee914af6364b0693a92a6d8ea8
+  pdf/pcb_layers.pdf          a9a2b9ffec611edf78ba7d58797b817690b640ef5c78d0a65be5c1801bcabf77
+  pdf/assembly_top.pdf        347a7de9b7e2be57718336308db636577d63555de604c80484015042de03baef
+not_assembled: J1 (Amphenol RJHSE-5384 RJ45 jack, hand-solder, Digi-Key RJHSE-5384-ND — solid-core-rated bootless RJ45 plugs required field-side) · J2 pads + AOM-5024L-HD-R mic capsule (hand-wire, 2s solder limit) · D3/L1/R15 DNP reserves (TVS clamp, CM choke, shield bond)
+stock_note:   C22359707 (CMT-8504 transducer) stock 182 on 2026-07-19 (need 10) — MANDATORY order-day re-check (ORDER_README item 1)
+mech_note:    ADR-0004 CONDITIONAL FIT — FIRST-ARTICLE lid-close gate before fleet build (jack body 13.46+-0.38 vs 13.70 recess headroom; top EMI tabs compress on lid)
