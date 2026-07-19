@@ -73,12 +73,16 @@ def load_fp(fpid):
 
 # ------------------------------------------------------------- floorplan
 ANCHOR = {
-    # RJ45 jack (ADR-0004): rot 270 => mating face WEST, pin 1 north.
-    # Anchor = pad 1. Body spans x 69.7-86.6, y 57.8-77.4 (inside the lid
+    # RJ45 jack (ADR-0004): rot 90 => mating face WEST. THE FACE IS ON THE
+    # SNAP-POST SIDE (local -y): catalogue p.4 side view, face->post 5.46
+    # (.215), LED tails 1.15mm from the REAR — the v1.1 fresh pin review
+    # caught the inverted "LED tails mark the face" doctrine (rot 270
+    # pointed the opening EAST into the board; dead pod mechanically).
+    # Anchor = pad 1. Body spans x 69.5-86.3, y 57.6-77.3 (inside the lid
     # recess); exposed plug needs ~12mm west of the face, also in-recess.
-    "J1": (78.0, 64.0, 270),
-    # entry ESD near J1 contact tails 1/2 (east side of the jack)
-    "D1": (88.0, 62.0, 0),
+    "J1": (78.0, 71.0, 90),
+    # entry ESD near J1 contact tails 1/2 (east of the jack rear)
+    "D1": (88.0, 68.5, 0),
     # shield-bond reserve, north strip (J1 SH tails at x 77.1)
     "TP6": (65.5, 52.8, 0), "R15": (70.5, 52.8, 0),
     # audio-pair TPs, north strip
@@ -221,15 +225,19 @@ def main():
         raise RuntimeError(f"netlist pads missing on board: {missing}")
 
     # ---- orientation asserts ----
-    # J1 RJ45 (ADR-0004): mating face WEST (LED-tail pads 9-12 mark the
-    # mating face and must sit west of the contact pads), pin 1 north,
-    # body + exposed-plug volume inside the 1551WY lid's 81x31 recess.
+    # J1 RJ45 (ADR-0004, corrected by the v1.1 fresh pin review): the
+    # MATING FACE is on the SNAP-POST side (local -y; catalogue side view:
+    # face->post 5.46mm), the LED tails mark the REAR (1.15mm from it).
+    # Face WEST => NPTH posts west of the contacts AND LED tails east.
     j1 = board.FindFootprintByReference("J1")
     jp = {p.GetNumber(): p.GetPosition() for p in j1.Pads() if p.GetNumber()}
-    if not jp["9"].x < min(jp[str(n)].x for n in range(1, 9)):
-        raise RuntimeError("J1 mating face must point WEST (LED tails west of contacts)")
-    if not jp["1"].y < jp["8"].y:
-        raise RuntimeError("J1 contacts must run north->south, pin 1 north")
+    npth = [p.GetPosition() for p in j1.Pads()
+            if not p.GetNumber() and p.GetAttribute() == pcbnew.PAD_ATTRIB_NPTH]
+    cts = [jp[str(n)].x for n in range(1, 9)]
+    if not max(p.x for p in npth) < min(cts):
+        raise RuntimeError("J1 mating face must point WEST (snap posts west of contacts)")
+    if not jp["9"].x > max(cts):
+        raise RuntimeError("J1 rear (LED tails) must point EAST")
     RECESS = (56.75, 56.75, 137.75, 87.75)   # lid full-height recess (ADR-0004c)
     PLUG_MM = 12.0                           # exposed rigid plug west of the face
     bbj = j1.GetBoundingBox(False, False)

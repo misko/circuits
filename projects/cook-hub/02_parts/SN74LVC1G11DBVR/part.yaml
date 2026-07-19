@@ -1,0 +1,26 @@
+mpn: SN74LVC1G11DBVR
+manufacturer: Texas Instruments
+type: single_3input_and
+datasheet:
+  doc_id: SCLS520
+  revision: current (fetched via ti.com symlink)
+  url: https://www.ti.com/lit/ds/symlink/sn74lvc1g11.pdf
+  sha256: ffd953703273b43844eae23cfbf31cfc801a3b9443f2c863d49dde62f5a9232b
+  fetched: 2026-07-19
+  local: sn74lvc1g11.pdf
+package: DBV SOT-23-6
+footprint: Package_TO_SOT_SMD:SOT-23-6
+pins:                       # DS Figure 4-1 (DBV top view) p.3
+  1: A
+  2: GND
+  3: B
+  4: Y
+  5: VCC
+  6: C
+limits: {vcc: "1.65-5.5V"}
+gotchas:
+  - "pin 2 = GND on the 6-pin single-gate (NOT the 5-pin convention); Nexperia GV pinout identical (74LVC1G11 rev13.1 sec 6.1)"
+verified: "pin map from Figure 4-1, DBV/DCK 6-pin SOT-23 top view, p.3 - 2026-07-19"
+sourcing:
+  lcsc: C22046
+  note: "genuine TI, 3992 stock 2026-07-19. Part of the coil-rail gate (ADR-0003) - keep genuine."

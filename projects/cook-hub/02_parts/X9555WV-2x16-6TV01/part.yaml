@@ -1,0 +1,46 @@
+mpn: X9555WV-2x16-6TV01
+manufacturer: XKB Connection
+type: box_header_2x16_keyed
+datasheet:
+  doc_id: X9555WV
+  url: https://www.lcsc.com/product-detail/C692429.html
+  fetched: 2026-07-19
+package: 2.54mm 2x16 shrouded/keyed IDC box header, THT vertical
+footprint: Connector_IDC:IDC-Header_2x16_P2.54mm_Vertical
+pins:
+  1: P1
+  2: P2
+  3: P3
+  4: P4
+  5: P5
+  6: P6
+  7: P7
+  8: P8
+  9: P9
+  10: P10
+  11: P11
+  12: P12
+  13: P13
+  14: P14
+  15: P15
+  16: P16
+  17: P17
+  18: P18
+  19: P19
+  20: P20
+  21: P21
+  22: P22
+  23: P23
+  24: P24
+  25: P25
+  26: P26
+  27: P27
+  28: P28
+  29: P29
+  30: P30
+  31: P31
+  32: P32
+verified: "standard 2.54 2x16 IDC grid (odd/even column pairs); keying notch per IDC convention; twin verifies pad grid vs JLC CAD"
+sourcing:
+  lcsc: C692429
+  note: "2678 stock 2026-07-19. J11: channel n on pins 2n-1/2n; IDC ribbon patch harness (spec 6.9, D14)."

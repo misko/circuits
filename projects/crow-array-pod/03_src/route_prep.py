@@ -52,13 +52,17 @@ for f in b.GetFootprints():
             r = p.GetDrillSize().x / 2e6 + 0.25 + 0.35  # hole clr + track headroom
             keepout_rect(x - r, y - r, x + r, y + r)
 
-# GND escape corridor for J1's south GND tail (pad 8): without it the
-# BEEP/5V/SHIELD escapes wall the pad in on both layers and no via fits
-# the hole field (v1.1: A* rescue found NO path). L-shaped keepout from
-# west-of-pad-8 south past LED12/SH2 to the open pour; the stitcher's
-# strap/A* rescue threads GND through the reserved channel after routing.
-keepout_rect(72.3, 71.9, 75.7, 72.9)   # horizontal leg, south of the pad-8 ring
-keepout_rect(72.3, 71.9, 73.5, 76.8)   # vertical leg, east of the LED tails
+# GND escape corridor for J1's mid-field GND tail (pad 5, odd-row center):
+# signal escapes can otherwise wall it in on both layers with no via room
+# in the hole field (v1.1 rot-270 lesson; A* found NO path until a channel
+# was reserved). At the corrected rot-90 orientation the odd contact row
+# is the WEST column; reserve the channel west of it, between the two
+# snap-post fences, so the stitcher's strap/A* rescue can reach the open
+# pour west of the contacts. Reserve ONLY pad 5's lane (y 66.2-67.7):
+# BEEP_5V on pad 3 is the other interior odd-row pad and needs the rest
+# of the west channel for its own escape (a full-channel reservation
+# left it unroutable).
+keepout_rect(75.6, 66.2, 77.2, 67.7)
 
 # corner cutouts: keep the router away from the concave arcs
 X0, Y0, X1, Y1 = 50.0, 50.0, 144.5, 94.5

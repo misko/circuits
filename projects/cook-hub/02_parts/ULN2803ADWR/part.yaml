@@ -1,0 +1,36 @@
+mpn: ULN2803ADWR
+manufacturer: Texas Instruments
+type: darlington_array_8ch
+datasheet:
+  doc_id: SLRS049
+  url: https://www.ti.com/lit/ds/symlink/uln2803a.pdf
+  fetched: 2026-07-19 (standard pinout; re-verified in pin review)
+package: SOIC-18 wide (DW)
+footprint: Package_SO:SOIC-18W_7.5x11.6mm_P1.27mm
+pins:
+  1: IN1
+  2: IN2
+  3: IN3
+  4: IN4
+  5: IN5
+  6: IN6
+  7: IN7
+  8: IN8
+  9: GND
+  10: COM    # flyback common -> RELAY_5V
+  11: OUT8
+  12: OUT7
+  13: OUT6
+  14: OUT5
+  15: OUT4
+  16: OUT3
+  17: OUT2
+  18: OUT1
+limits: {vout: "50V", iout: "500mA/ch", vin: "30V"}
+gotchas:
+  - "OUTn pairs with INn on the OPPOSITE corner (1<->18): straight-across netting is a classic bug - audit asserts IN1/OUT1 pairing"
+  - "internal flyback diodes to COM; COM MUST tie to RELAY_5V (switched rail), not 5VP, so a gated-off rail still clamps coil kick"
+verified: "TI SLRS049 DW pin table (IN1-8 = 1-8, GND=9, COM=10, OUT8-1 = 11-18); pin review re-checks - 2026-07-19"
+sourcing:
+  lcsc: C9683
+  note: "genuine TI DW reel, 2500 stock 2026-07-19, $6.22 - coil-driver stage kept genuine (ADR-0003); Mixic C181731 rejected for the safety chain."

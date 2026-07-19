@@ -22,12 +22,18 @@
     rule produced the shipped esp32-laser-timing v1.x order (LM339DT
     SOIC-14, U3). MANDATORY order-day check recorded in ORDER_README:
     U1 pin-1 dot orientation in the JLC 3D preview before paying.
-- lcsc: C5342501    # KF128L-3.5-8P (J1) - consign-only, uncoded hand-solder
+- lcsc: C9900035627   # RJHSE-5384 RJ45 jack (J1) - consign-only, uncoded hand-solder
   status: NO-CAD
   why: >-
-    EasyEDA has no CAD for this consign-only part (stock 0, uncoded in the
-    BOM by design - D6). Land pattern verified instead against the KF128L-3.5
-    series drawing revA 2021-03-13 (02_parts/KF128L-3.5-8P/): 3.5mm pitch
-    THT row, 1.3mm drills - the KiCad Phoenix PT-1,5-8-3.5-H footprint pad
-    row matches the series pitch; the 2P sibling of the same series shipped
-    hand-soldered on esp32-laser-timing v1.x with the same footprint family.
+    EasyEDA has no CAD for this consign-only placeholder code (stock 0,
+    uncoded in the BOM by design - D11/ADR-0004). Land pattern verified
+    instead against the Amphenol catalogue RECOMMENDED PCB LAYOUT figures
+    (p.4 RJHSE-548X single-port + p.6 RJHSE-538X-04 multi-port, April 2015
+    edition, 02_parts/RJHSE-5384/): KiCad RJ45_Amphenol_RJHSE538X matches
+    hole-for-hole (contacts 1.02mm stagger/1.78mm row offset, LED tails at
+    4.83mm, shield o1.57 at 16.26mm, NPTH o3.25 at 12.70mm) - independent
+    pod re-read 2026-07-19 (S3), agreeing with the central project's
+    verification; the central board orders 8 of the same part on the same
+    footprint. Physical jack orientation covered by the board render review + the
+    fresh pin review's face-side correction (mating face west = SNAP-POST
+    side of the hole field; LED tails mark the REAR, on the east side).

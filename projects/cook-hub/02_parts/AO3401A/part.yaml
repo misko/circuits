@@ -1,0 +1,18 @@
+mpn: AO3401A
+manufacturer: Alpha & Omega
+type: pfet_30v_4a
+datasheet:
+  url: https://aosmd.com/res/data_sheets/AO3401A.pdf
+  fetched: 2026-07-19
+package: SOT-23
+footprint: Package_TO_SOT_SMD:SOT-23
+pins:
+  1: GATE
+  2: SOURCE
+  3: DRAIN
+gotchas:
+  - "SOT-23 FET: 1=G 2=S 3=D (AOS ds p.1); Vgs max +-12V, Vds -30V"
+verified: "2/3-pad commodity; polarity/pad-1 asserted in board generator + audit I9"
+sourcing:
+  lcsc: C15127
+  note: "BASIC, 455k stock. Q1 coil-rail high-side + Q3 reverse protection."

@@ -40,16 +40,21 @@ for f in b.GetFootprints():
             if math.hypot(x - cx, y - cy) < RCUT + 0.3:
                 fails.append(f"I1 pad in corner cutout: {r}.{p.GetNumber()} at ({x:.1f},{y:.1f})")
 
-# I2 J1 RJ45 (ADR-0004): mating face W (LED tails 9-12 west of contacts),
-# pin1 N, jack body + ~12mm exposed-plug volume inside the 1551WY lid's
-# 81x31 full-height recess (only 7.9mm headroom under the perimeter band)
+# I2 J1 RJ45 (ADR-0004, face doctrine corrected by the v1.1 fresh pin
+# review): the MATING FACE is on the SNAP-POST side (catalogue side view
+# face->post 5.46mm); LED tails mark the REAR. Face W => posts west of
+# contacts, LED tails east; jack body + ~12mm exposed-plug volume inside
+# the 1551WY lid's 81x31 recess (7.9mm headroom under the perimeter band)
 j1 = b.FindFootprintByReference("J1")
 bbj = j1.GetBoundingBox(False, False)
 jp = {p.GetNumber(): p.GetPosition() for p in j1.Pads() if p.GetNumber()}
-if not jp["9"].x < min(jp[str(n)].x for n in range(1, 9)):
-    fails.append("I2 J1 mating face must point WEST (LED tails west of contacts)")
-if not jp["1"].y < jp["8"].y:
-    fails.append("I2 J1 pin1 must be the north end")
+npth = [p.GetPosition() for p in j1.Pads()
+        if not p.GetNumber() and p.GetAttribute() == pcbnew.PAD_ATTRIB_NPTH]
+cts = [jp[str(n)].x for n in range(1, 9)]
+if not (npth and max(p.x for p in npth) < min(cts)):
+    fails.append("I2 J1 mating face must point WEST (snap posts west of contacts)")
+if not jp["9"].x > max(cts):
+    fails.append("I2 J1 rear (LED tails) must point EAST")
 RECESS = (56.75, 56.75, 137.75, 87.75)
 PLUG_MM = 12.0
 jx0, jy0, jx1, jy1 = (MM(bbj.GetLeft()), MM(bbj.GetTop()),

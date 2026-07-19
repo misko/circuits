@@ -1,0 +1,30 @@
+mpn: SN74LVC1G123DCTR
+manufacturer: Texas Instruments
+type: retriggerable_monostable
+datasheet:
+  doc_id: SCES586
+  revision: SCES586E (Mar 2024)
+  url: https://www.ti.com/lit/ds/symlink/sn74lvc1g123.pdf
+  sha256: 7248ef0ff62af4d2da172bb2900f0f1f136a6ae90109a6485228e01269fa1c1d
+  fetched: 2026-07-19
+  local: sn74lvc1g123.pdf
+package: DCT SSOP-8 (SM-8) 0.65mm pitch
+footprint: Package_SO:SSOP-8_3.9x5.05mm_P1.27mm
+pins:                       # DS Figure 4-1 DCT package p.3
+  1: A        # falling-edge trigger input (tie GND: unused direction)
+  2: B        # rising-edge trigger input = WD_PULSE
+  3: CLR_N    # active-low clear, tie 3V3
+  4: GND
+  5: Q        # = WD_OK
+  6: Cext
+  7: REXT_CEXT
+  8: VCC
+limits: {vcc: "1.65-5.5V", rext: "5k-1M", t_op: "-40..125C"}
+gotchas:
+  - "tw = K*Rext*Cext, K~1.0 at 3.3V (DS sec 8): 390k x 1uF -> ~390ms; band 316-472ms within spec 300-500ms (DETAIL_DESIGN #3)"
+  - "Q is LOW at power-up until the first B rising edge - relays locked out until firmware alive"
+  - "C123302 is the DCT reel; KiCad SSOP-8 3.9x5.05 P1.27 matches DCT (verify in twin; DCU VSSOP-8 0.5mm is a DIFFERENT body)"
+verified: "pin map from Figure 4-1/Table 4-1 (DCT 8-pin SSOP top view), p.3, SCES586E - 2026-07-19"
+sourcing:
+  lcsc: C123302
+  note: "genuine TI, 8687 stock 2026-07-19, $0.64. DO-NOT-SUBSTITUTE (watchdog, spec 15.4). 74HC123 clones rejected (ADR-0003)."

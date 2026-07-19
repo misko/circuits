@@ -1,0 +1,23 @@
+mpn: USBLC6-2SC6
+manufacturer: STMicroelectronics
+type: esd_array_low_c
+datasheet:
+  doc_id: USBLC6-2
+  url: https://www.st.com/resource/en/datasheet/usblc6-2.pdf
+  fetched: 2026-07-19 (same facts as projects/ble-bus-bar 02_parts entry, re-used)
+package: SOT-23-6L
+footprint: Package_TO_SOT_SMD:SOT-23-6
+pins:
+  1: IO1
+  2: GND
+  3: IO2
+  4: IO2B
+  5: VBUS
+  6: IO1B
+limits: {vrwm: "5.25V", c_line: "3.5pF max"}
+gotchas:
+  - "1/6 and 3/4 are pass-through pairs; used here as rail-referenced clamps: line to 1 and 3, jumpered 6/4 unused or tied to same line; VBUS pin -> 3V3"
+verified: "ST pinning p.1 (1/6 + 3/4 pairs, 2=GND, 5=VBUS) - carried from ble-bus-bar release v1.0 verification"
+sourcing:
+  lcsc: C7519
+  note: "genuine ST, 35087 stock 2026-07-19."

@@ -1,0 +1,17 @@
+mpn: DC-005-20A
+manufacturer: Korean Hroparts
+type: barrel_jack_5v
+datasheet:
+  doc_id: DC-005-20A
+  url: https://www.lcsc.com/product-detail/C130239.html
+  fetched: 2026-07-19
+package: DC barrel jack 5.5/2.0mm THT
+footprint: Connector_BarrelJack:BarrelJack_Horizontal
+pins:
+  1: TIP      # center pin = +5V
+  2: SLEEVE   # GND
+  3: SWITCH   # normally-closed to sleeve; unused (tie GND)
+verified: "tip/sleeve/switch roles per DC-005 series; KiCad BarrelJack_Horizontal pad map; twin PAD-GEOM gate compares vs JLC CAD C130239 before order"
+sourcing:
+  lcsc: C130239
+  note: "Korean Hroparts, 36770 stock 2026-07-19."

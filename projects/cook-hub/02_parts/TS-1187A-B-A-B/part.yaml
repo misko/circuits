@@ -1,0 +1,15 @@
+mpn: TS-1187A-B-A-B
+manufacturer: XKB Connection
+type: tact_switch
+datasheet:
+  url: https://www.lcsc.com/product-detail/C318884.html
+  fetched: 2026-07-19
+package: SMD 5.1x5.1
+footprint: Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A
+pins:
+  1: A
+  2: B
+verified: "2/3-pad commodity; polarity/pad-1 asserted in board generator + audit I9"
+sourcing:
+  lcsc: C318884
+  note: "SW1 = Pico RUN reset. Twin pad_alias per ble-bus-bar adjudication (JLC pads 1-4 vs KiCad 1/2)."

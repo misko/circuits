@@ -1,0 +1,17 @@
+mpn: SMBJ5.0A
+manufacturer: MDD
+type: tvs_unidir_5v
+datasheet:
+  url: https://www.lcsc.com/product-detail/C113974.html
+  fetched: 2026-07-19
+package: SMB(DO-214AA)
+footprint: Diode_SMD:D_SMB
+pins:
+  1: K
+  2: A
+gotchas:
+  - "unidirectional TVS: pad 1 = CATHODE to +5VP, anode to GND"
+verified: "2/3-pad commodity; polarity/pad-1 asserted in board generator + audit I9"
+sourcing:
+  lcsc: C113974
+  note: "246k stock. D2 5VP clamp."

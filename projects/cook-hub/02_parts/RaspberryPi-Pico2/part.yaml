@@ -1,0 +1,60 @@
+mpn: RaspberryPi-Pico2
+manufacturer: Raspberry Pi
+type: mcu_module_pluggable   # NOT on the BOM - plugs into J2 (2x 1x20 socket, C50981)
+datasheet:
+  doc_id: pico-2-datasheet
+  url: https://datasheets.raspberrypi.com/pico/pico-2-datasheet.pdf
+  sha256: cbcfaf881018c686495a2e53c7bd281e7e0a8217d79447d73eda7c8f74b7f675
+  fetched: 2026-07-19
+  local: pico-2-datasheet.pdf
+package: 51 x 21mm module, 40 castellated/TH pins 2.54mm pitch, rows 17.78mm apart (7x2.54), pin1 hole at corner
+footprint: cookhub:Pico2_Socket_2x20   # two 1x20 female headers
+pins:  # physical module pins, Pico 2 datasheet sec 3.1 Figure 2/4
+  1: GP0    # I2C0 SDA
+  2: GP1    # I2C0 SCL
+  3: GND
+  4: GP2    # I2C1 SDA
+  5: GP3    # I2C1 SCL
+  6: GP4    # spare / turntable HOME (D7)
+  7: GP5    # WD_PULSE (D6)
+  8: GND
+  9: GP6    # HX711 DATA
+  10: GP7   # HX711 CLOCK
+  11: GP8   # door input
+  12: GP9   # E-stop monitor
+  13: GND
+  14: GP10  # arc reserve (TP)
+  15: GP11  # relay shift DATA
+  16: GP12  # relay shift CLOCK
+  17: GP13  # relay shift LATCH
+  18: GND
+  19: GP14  # relay enable RLY_EN
+  20: GP15  # contactor request
+  21: GP16  # SPI0 MISO
+  22: GP17  # SPI0 CS0 (MAX31856)
+  23: GND
+  24: GP18  # SPI0 SCK
+  25: GP19  # SPI0 MOSI
+  26: GP20  # SPI0 CS1 (J15 / MAX31865)
+  27: GP21  # turntable A
+  28: GND
+  29: GP22  # turntable B
+  30: RUN
+  31: GP26  # ADC0 thermistor 1
+  32: GP27  # ADC1 thermistor 2
+  33: AGND
+  34: GP28  # ADC2 spare / door EOL via SJ1
+  35: ADC_VREF
+  36: 3V3   # module regulator OUT - unused on board (ADR-0005)
+  37: 3V3_EN  # NC (no_connect)
+  38: GND
+  39: VSYS  # board 5VP via SS34
+  40: VBUS  # TP only (D12)
+limits: {vsys: "1.8-5.5V"}
+gotchas:
+  - "PIN40=VBUS PIN39=VSYS PIN37=3V3_EN PIN36=3V3 PIN35=ADC_VREF PIN33=AGND confirmed from datasheet sec 3.1 text"
+  - "USB exits via the module's own connector to the Pi 5 (J2 in the spec connector map)"
+verified: "pin roles from Pico 2 datasheet sec 3.1 (Figure 2/4 + the seven special-pin list, p.7-9) - 2026-07-19"
+sourcing:
+  lcsc: ""
+  note: "user-supplied module (~$5); sockets = 2x C50981 (1x20 female 2.54, 65000 stock), hand-solder"

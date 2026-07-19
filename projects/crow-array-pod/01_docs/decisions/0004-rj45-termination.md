@@ -82,7 +82,16 @@ generate_board.py + audit I2):
 - The full-height lid recess is the central **81 x 31 mm** (board coords
   x 56.75-137.75, y 56.75-87.75). The jack BODY (13.46 tall) and the
   EXPOSED PLUG (~10-11.5 tall, protruding ~12 mm west of the jack face)
-  must BOTH sit inside it: jack mating face at board x ≈ 69.7 ≥ 56.75+12.
+  must BOTH sit inside it: jack mating face at board x ≈ 70.0 ≥ 56.75+12.
+- **FACE-SIDE CORRECTION (2026-07-19, the v1.1 fresh pin review's catch):
+  the mating face is on the SNAP-POST side of the hole pattern (footprint
+  local -y; catalogue side view: face->post .215 [5.46]), and the LED
+  tails sit 1.15 mm from the REAR.** The first v1.1 layout used the
+  inherited (inverted) "LED tails mark the face" doctrine and mounted the
+  jack 180 deg backwards — opening EAST into the board. Corrected to
+  rot 90 (posts west of contacts, LED tails east); generator + audit
+  asserts now key on the NPTH posts, and the part.yaml doctrine is fixed.
+  The central board's jacks are placed correctly (rot 0, openings north).
 - **Orientation: side-entry, opening WEST toward the gland wall** (the
   M12 gland sits on the west end per ARCHITECTURE) — the crimped plug
   points east into the jack, the cable exits west toward the gland with a
@@ -95,6 +104,21 @@ generate_board.py + audit I2):
   The lid would likely not have closed. v1.0 never ran this height math
   (twin edge renders had no model for the uncoded terminal); v1.1 adds it
   here and moves ALL tall bodies inside the recess.
+
+## (b2) Entry ESD clamp position (D1) — accepted deviation note
+
+The v1.1 fresh-context pin review flagged D1 (TPD2E2U06) at ~11.6 mm from
+the J1 audio tails vs the datasheet's "as close to the connector as
+possible". ACCEPTED, with reasons: (1) the RJHSE-5384 is a THT jack whose
+contact tails sit under a 15.75 mm-deep body — the courtyard's east edge
+(x 86.6) is the physically closest legal component position, and D1 sits
+directly against it; (2) topology is clamp-FIRST: the routed AUDIO_P/N
+tracks run J1 tail -> D1 IO pin -> onward to R13/R14/L1 (verified from
+the routed board's net order), so the full strike current reaches the
+clamp before any protected element; (3) v1.0 (sealed) shipped the same
+~12 mm figure with the screw terminal. The extra ~9 nH of pre-clamp trace
+slightly ADDS series impedance ahead of the clamp — not a protection
+regression.
 
 ## (d) Silkscreen safety policy (P5 / P-SILK-FN)
 

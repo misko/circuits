@@ -6,17 +6,17 @@ C3,1u coupling,C_0805_2012Metric,104.0,-70.5,top,0.0
 C4,10u VMID,C_0805_2012Metric,114.0,-87.5,top,0.0
 C5,100n VMID,C_0805_2012Metric,120.5,-87.5,top,0.0
 C6,100n U1,C_0805_2012Metric,107.5,-61.5,top,0.0
-C7,10u 5V bulk,C_0805_2012Metric,96.0,-59.5,top,0.0
-D1,TPD2E2U06DRLR,SOT-553,69.5,-61.0,top,0.0
+C7,10u 5V bulk,C_0805_2012Metric,95.8,-59.1,top,0.0
+D1,TPD2E2U06DRLR,SOT-553,88.5,-59.0,top,0.0
 D2,SS14 flyback,D_SMA,81.0,-81.0,top,0.0
-J1,KF128L-3.5-8P,TerminalBlock_3.5-8P_NoSilk,57.5,-60.0,top,270.0
+J1,RJHSE-5384,RJ45_Amphenol_RJHSE538X,78.0,-64.0,top,270.0
 J2,MIC PADS (AOM-5024L),PinHeader_1x02_P2.54mm_Vertical,139.5,-70.5,top,0.0
 R1,100R 5VF,R_0805_2012Metric,86.0,-88.5,top,0.0
-R10,68R iso +,R_0805_2012Metric,88.0,-60.5,top,0.0
-R11,68R iso -,R_0805_2012Metric,88.0,-64.0,top,0.0
-R12,0R beep series,R_0805_2012Metric,63.5,-79.0,top,0.0
-R13,0R choke byp +,R_0805_2012Metric,77.5,-57.5,top,0.0
-R14,0R choke byp -,R_0805_2012Metric,77.5,-67.5,top,0.0
+R10,68R iso +,R_0805_2012Metric,96.0,-63.0,top,0.0
+R11,68R iso -,R_0805_2012Metric,96.0,-66.5,top,0.0
+R12,0R beep series,R_0805_2012Metric,63.0,-79.0,top,0.0
+R13,0R choke byp +,R_0805_2012Metric,92.0,-60.0,top,0.0
+R14,0R choke byp -,R_0805_2012Metric,92.0,-68.0,top,0.0
 R2,3.9k mic bias,R_0805_2012Metric,124.0,-66.0,top,0.0
 R3,100k bias,R_0805_2012Metric,104.0,-74.0,top,0.0
 R4,10k div hi,R_0805_2012Metric,114.0,-84.0,top,0.0

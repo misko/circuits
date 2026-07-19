@@ -1,0 +1,22 @@
+mpn: SN74LVC1G00DCKR
+manufacturer: Texas Instruments
+type: single_2input_nand
+datasheet:
+  doc_id: SCES214
+  url: https://www.ti.com/lit/ds/symlink/sn74lvc1g00.pdf
+  fetched: 2026-07-19 (pinout cross-checked vs 1G-family convention; 5-pin)
+package: DCK SC-70-5 (SOT-353)
+footprint: Package_TO_SOT_SMD:SOT-353_SC-70-5
+pins:                       # 5-pin single-gate standard (DS pin config)
+  1: A
+  2: B
+  3: GND
+  4: Y
+  5: VCC
+limits: {vcc: "1.65-5.5V"}
+gotchas:
+  - "drives /OE of both 74HC595 from (RLY_EN, WD_OK); /OE also has 10k pullup so unpowered/removed gate = disabled"
+verified: "5-pin DCK pin config per TI SCES214 pin table (industry-uniform 5-pin gate); re-verify in fresh pin review - 2026-07-19"
+sourcing:
+  lcsc: C8185
+  note: "genuine TI SOT-353, 20457 stock 2026-07-19."

@@ -1,7 +1,7 @@
 {
     "$schema": "https://schemas.kicad.org/drc.v1.json",
     "coordinate_units": "mm",
-    "date": "2026-07-19T09:04:17",
+    "date": "2026-07-19T09:37:05",
     "ignored_checks": [
         {
             "description": "Footprint has no courtyard defined",
@@ -33,5 +33,121 @@
     "schematic_parity": [],
     "source": "crow_array_pod.kicad_pcb",
     "unconnected_items": [],
-    "violations": []
+    "violations": [
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "PCB text 'NOT ETHERNET - CUSTOM 5V PINOUT' on F.Silkscreen",
+                    "pos": {
+                        "x": 100.0,
+                        "y": 51.6
+                    },
+                    "uuid": "62527b54-8494-4788-9b05-2ac8a734f162"
+                },
+                {
+                    "description": "Segment of L1 on F.Silkscreen",
+                    "pos": {
+                        "x": 89.0,
+                        "y": 51.1
+                    },
+                    "uuid": "ab38a254-3800-45e7-9d1f-37e17084f87a"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "PCB text 'NOT ETHERNET - CUSTOM 5V PINOUT' on F.Silkscreen",
+                    "pos": {
+                        "x": 100.0,
+                        "y": 51.6
+                    },
+                    "uuid": "62527b54-8494-4788-9b05-2ac8a734f162"
+                },
+                {
+                    "description": "Segment of L1 on F.Silkscreen",
+                    "pos": {
+                        "x": 98.4,
+                        "y": 51.1
+                    },
+                    "uuid": "f119aa37-1050-4b51-b922-0146fa05cd07"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "PCB text 'NOT ETHERNET - CUSTOM 5V PINOUT' on F.Silkscreen",
+                    "pos": {
+                        "x": 100.0,
+                        "y": 51.6
+                    },
+                    "uuid": "62527b54-8494-4788-9b05-2ac8a734f162"
+                },
+                {
+                    "description": "Segment of L1 on F.Silkscreen",
+                    "pos": {
+                        "x": 89.0,
+                        "y": 51.1
+                    },
+                    "uuid": "ce3112e9-e838-4aab-b10a-d72e4f9278af"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "PCB text 'NOT ETHERNET - CUSTOM 5V PINOUT' on F.Silkscreen",
+                    "pos": {
+                        "x": 100.0,
+                        "y": 51.6
+                    },
+                    "uuid": "62527b54-8494-4788-9b05-2ac8a734f162"
+                },
+                {
+                    "description": "Segment of L1 on F.Silkscreen",
+                    "pos": {
+                        "x": 88.8,
+                        "y": 52.0
+                    },
+                    "uuid": "e41c0fd7-c3c1-461a-b5f3-9d103aa3f488"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        },
+        {
+            "description": "Silkscreen clearance",
+            "items": [
+                {
+                    "description": "PCB text 'NOT ETHERNET - CUSTOM 5V PINOUT' on F.Silkscreen",
+                    "pos": {
+                        "x": 100.0,
+                        "y": 51.6
+                    },
+                    "uuid": "62527b54-8494-4788-9b05-2ac8a734f162"
+                },
+                {
+                    "description": "Segment of L1 on F.Silkscreen",
+                    "pos": {
+                        "x": 89.0,
+                        "y": 52.0
+                    },
+                    "uuid": "72bab18a-e5bf-4041-b460-2af6a7964eb0"
+                }
+            ],
+            "severity": "warning",
+            "type": "silk_overlap"
+        }
+    ]
 }

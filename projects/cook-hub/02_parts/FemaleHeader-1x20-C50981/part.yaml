@@ -1,0 +1,16 @@
+mpn: FemaleHeader-1x20-C50981
+manufacturer: BOOMELE
+type: socket_1x20_2.54
+datasheet:
+  doc_id: C50981
+  url: https://www.lcsc.com/product-detail/C50981.html
+  fetched: 2026-07-19
+package: 2.54mm 1x20 female header THT
+footprint: cookhub:Pico2_Socket_2x20   # ONE footprint = TWO of these headers
+pins:
+  1: P1
+  2: P2
+verified: "positional 2.54 grid; two units make the Pico 2 socket (rows 17.78mm apart per Pico 2 datasheet Figure 3)"
+sourcing:
+  lcsc: C50981
+  note: "65000 stock 2026-07-19; qty 2 per board, HAND-SOLDER (THT consign class)."

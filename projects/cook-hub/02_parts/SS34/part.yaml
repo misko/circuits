@@ -1,0 +1,17 @@
+mpn: SS34
+manufacturer: MDD
+type: schottky_3a_40v
+datasheet:
+  url: https://www.lcsc.com/product-detail/C8678.html
+  fetched: 2026-07-19
+package: SMA(DO-214AC)
+footprint: Diode_SMD:D_SMA
+pins:
+  1: K
+  2: A
+gotchas:
+  - "KiCad D_SMA pad 1 = CATHODE; D1 cathode faces VSYS"
+verified: "2/3-pad commodity; polarity/pad-1 asserted in board generator + audit I9"
+sourcing:
+  lcsc: C8678
+  note: "BASIC, 2.47M stock. D1 5VP->VSYS OR diode."

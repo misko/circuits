@@ -1,0 +1,12 @@
+mpn: MF-MSMF200L-2
+manufacturer: BOURNS
+type: polyfuse_2a_16v
+datasheet:
+  url: https://www.lcsc.com/product-detail/C89650.html
+  fetched: 2026-07-19
+package: 1812
+footprint: Fuse:Fuse_1812_4532Metric
+verified: "2/3-pad commodity; polarity/pad-1 asserted in board generator + audit I9"
+sourcing:
+  lcsc: C89650
+  note: "6286 stock. F1: Ihold 2A, Itrip 4A, 16V (ADR-0001)."

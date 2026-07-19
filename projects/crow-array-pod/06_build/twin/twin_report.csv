@@ -27,7 +27,7 @@ C192421,U1,ROT-DB-SUGGEST,"fit=0.24mm jlc_offset=90 db=270.0 -> add: SOIC-8_3.9x
 C2480,D2,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
 C2480,D2,OK,fit=0.04mm jlc_offset=0 db=0.0
 C1972959,D1,OK,fit=0.02mm jlc_offset=0 db=0.0
-C5342501,J1,NO-CAD,['[ERROR] Failed to fetch data from EasyEDA API for part C5342501']
+C9900035627,J1,NO-CAD,['[ERROR] Failed to fetch data from EasyEDA API for part C9900035627']
 C17477,R12,MODEL-REG-OK,body on courtyard (0.00mm)
 C17477,R13,MODEL-REG-OK,body on courtyard (0.00mm)
 C17477,R14,MODEL-REG-OK,body on courtyard (0.00mm)

@@ -1,0 +1,21 @@
+mpn: LTV-817S-TA1
+manufacturer: Lite-On
+type: optocoupler_transistor
+datasheet:
+  doc_id: LTV-817S
+  url: https://optoelectronics.liteon.com/upload/download/DS-70-96-0016/LTV-8X7S%20series.PDF
+  fetched: 2026-07-19 (DIP-4/SMD-4 standard pinout; re-verified in pin review)
+package: SMD-4 (gullwing DIP-4)
+footprint: Package_DIP:SMDIP-4_W9.53mm
+pins:
+  1: ANODE
+  2: CATHODE
+  3: EMITTER
+  4: COLLECTOR
+limits: {ctr: "50-600% (TA1 bin)", vceo: "35V", viso: "5kVrms"}
+gotchas:
+  - "J10 output is the C/E pair (dry open-collector, spec 7.5); silk marks 30V/50mA max and polarity C/E"
+verified: "Lite-On LTV-817S series pinout (1=A 2=K 3=E 4=C, package top mark dot = pin 1); pin review re-checks - 2026-07-19"
+sourcing:
+  lcsc: C125121
+  note: "genuine Lite-On, 8684 stock 2026-07-19."

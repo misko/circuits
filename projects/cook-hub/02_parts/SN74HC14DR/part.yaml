@@ -1,0 +1,32 @@
+mpn: SN74HC14DR
+manufacturer: Texas Instruments
+type: hex_schmitt_inverter
+datasheet:
+  doc_id: SCLS085
+  url: https://www.ti.com/lit/ds/symlink/sn74hc14.pdf
+  fetched: 2026-07-19 (standard pinout; re-verified in pin review)
+package: SOIC-14 (D)
+footprint: Package_SO:SOIC-14_3.9x8.7mm_P1.27mm
+pins:
+  1: 1A
+  2: 1Y
+  3: 2A
+  4: 2Y
+  5: 3A
+  6: 3Y
+  7: GND
+  8: 4Y
+  9: 4A
+  10: 5Y
+  11: 5A
+  12: 6A_Y   # placeholder - see gotcha
+  13: 6A
+  14: VCC
+limits: {vcc: "2-6V"}
+gotchas:
+  - "pin 12 = 6Y (output), pin 13 = 6A (input) - name key kept unique; symbol uses 12=6Y"
+  - "gates A/B: E-stop chain (raw->1A, 1Y->2A, 2Y=ESTOP_OK); unused inputs 3A/4A/5A/6A tied GND, outputs NC"
+verified: "TI SCLS085 D pin table (standard hex inverter); pin review re-checks - 2026-07-19"
+sourcing:
+  lcsc: C6820
+  note: "genuine TI, 89125 stock 2026-07-19. ESTOP_OK path is hardware (ADR-0003)."

@@ -1,0 +1,33 @@
+mpn: MAX31856MUD+T
+manufacturer: Analog Devices / Maxim
+type: thermocouple_digital_converter_spi
+datasheet:
+  doc_id: MAX31856
+  url: https://www.analog.com/media/en/technical-documentation/data-sheets/MAX31856.pdf
+  fetched: "2026-07-19 (analog.com PDF fetch blocked; pin map taken from JLC/EasyEDA CAD for C2653162 and MUST be re-verified against the ADI datasheet figure in the fresh pin review)"
+package: TSSOP-14 (MUD)
+footprint: Package_SO:TSSOP-14_4.4x5mm_P0.65mm
+pins:                       # EasyEDA CAD C2653162 symbol (14 pins)
+  1: AGND
+  2: BIAS
+  3: T_MINUS
+  4: T_PLUS
+  5: AVDD
+  6: DNC
+  7: DRDY_N
+  8: DVDD
+  9: CS_N
+  10: SCK
+  11: SDO
+  12: SDI
+  13: FAULT_N
+  14: DGND
+limits: {vdd: "3.0-3.6V both supplies", tc_input: "AGND-0.3 .. AVDD+0.3"}
+gotchas:
+  - "BIAS ties to the T- input node (sets TC common mode); input filter 100R/leg + 100n diff + 10n each to AGND per datasheet typical circuit"
+  - "open/short TC fault detection internal (spec 3.6f); DRDY_N/FAULT_N open-drain-ish -> test points only (no Pico pins left)"
+  - "SPI mode 1/3, CS_N = GP17 (SPI0 CS0)"
+verified: "pin map from EasyEDA CAD (JLC C2653162); PENDING datasheet-figure confirmation in pin review - 2026-07-19"
+sourcing:
+  lcsc: C2653162
+  note: "genuine ADI reel, 3577 stock 2026-07-19, $4.07."
