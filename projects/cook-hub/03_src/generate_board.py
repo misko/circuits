@@ -83,26 +83,34 @@ ANCHOR.update({
     "J7": (24.5, 92.0, 90), "J8": (24.5, 101.0, 90),
     # south edge connectors (row Y1-4 = y136; respaced along the wider south edge)
     "J1": (37.0, 129.0, 270), "J9": (55.0, 136.0, 0), "J6": (76.0, 136.0, 0),
-    "J10": (99.0, 136.0, 0), "J12": (122.0, 136.0, 0), "J13": (143.0, 136.0, 0),
+    "J10": (99.0, 136.0, 0), "J12": (116.0, 136.0, 0), "J13": (137.0, 136.0, 0),
     # power entry / rails — SW corner power column (freed by moving logic east)
     "F1": (28.0, 117.0, 90), "Q3": (34.0, 117.0, 0), "D2": (40.0, 117.0, 0),
     "CE1": (46.0, 121.0, 0), "U12": (53.0, 122.0, 0),
     "D1": (34.0, 122.0, 0), "FB1": (28.0, 26.0, 0),
     # analog corner
     "U1": (34.0, 33.0, 0),
-    # safety/watchdog chain around Q1 (below the bank's west columns)
-    "U7": (69.0, 113.0, 0), "U8": (76.0, 113.0, 0), "U9": (83.0, 113.0, 0),
-    "Q2": (76.0, 118.0, 0), "Q1": (*G.Q1_XY, 0), "R23": (55.0, 110.5, 0),
-    "C8": (61.5, 112.5, 0), "C9": (64.5, 112.5, 0), "R25": (58.0, 111.5, 0),
-    "TP33": (58.0, 115.5, 0),
+    # safety/watchdog chain around Q1 (original layout — route_bank RELAY_5V
+    # spurs are tuned for these C8/C9/R25/TP33 via-sites; the coil-driver
+    # squeeze this ADR fixes was in the east strip, not here)
+    "U7": (66.5, 110.0, 0), "U8": (66.5, 118.0, 0), "U9": (75.0, 110.0, 0),
+    "Q2": (74.0, 118.0, 0), "Q1": (*G.Q1_XY, 0), "R23": (52.0, 110.5, 0),
+    # C8 (Q1 output decoupler) stays in the Q1 pocket (IP<=6mm); the other
+    # RELAY_5V bus parts distribute east into clear inter-column gaps so their
+    # bus spurs get uncontested In2 lanes and free the pocket for WD_PULSE
+    "C8": (61.5, 112.5, 0), "C9": (124.0, 109.0, 0), "R25": (128.0, 109.0, 0),
+    "TP33": (132.0, 109.0, 0),
     # coil-drive shift registers -> EAST strip, each south-east of its ULN
     # (decouplers pinned: dense TP/logic cluster pushed floaters off-limit)
     "U3": (112.0, 120.0, 0), "U4": (170.0, 120.0, 0),
-    "C12": (112.0, 124.5, 0), "C13": (170.0, 124.5, 0), "R11": (66.0, 110.0, 0),
+    "C12": (112.0, 124.5, 0), "C13": (170.0, 124.5, 0),
+    # U7 watchdog trio pinned (390k R11 + timing C14 + decoupler C11): the
+    # SC70 + 3 passives in one pocket is too tight for the ring-legalizer
+    "R11": (69.5, 112.5, 0), "C14": (68.5, 108.5, 0), "C11": (72.0, 110.0, 0),
     # contactor opto + ESD, above J10
     "U10": (99.0, 127.0, 0), "U15": (110.0, 127.0, 0),
     # I2C ESD (C21 pinned at U14: crowded I2C1 cluster pushed it as a floater)
-    "U13": (30.2, 48.0, 0), "U14": (30.2, 64.0, 0), "C21": (34.0, 61.5, 0),
+    "U13": (30.2, 48.0, 0), "U14": (30.2, 64.0, 0), "C21": (35.0, 60.0, 0),
     # estop/door schmitt (east-south open area; RC caps seed alongside)
     "U11": (90.0, 120.0, 0),
     "SW1": (56.0, 94.0, 0),
@@ -114,9 +122,9 @@ SEED = {
     "C2": (53, 125), "C3": (39, 121), "C6": (28, 29), "C7": (30.5, 26),
     "C10": (37, 124), "TP1": (44, 128), "TP2": (50, 128), "TP3": (30.5, 29),
     "TP4": (31, 124), "TP5": (176, 124),
-    "R11": (66, 116), "C11": (72, 116), "C14": (69, 116), "R21": (66, 109),
-    "R22": (72, 109), "R24": (88, 113),
-    "C15": (80, 116), "C16": (86, 116),
+    "C11": (73, 113), "C14": (67, 114), "R21": (71, 116),
+    "R22": (72, 121), "R24": (79, 114),
+    "C15": (62, 121), "C16": (78, 113),
     "TP20": (108, 116), "TP21": (58, 118), "TP22": (63, 116),
     "C12": (112, 124), "C13": (170, 124), "TP17": (106, 124), "TP18": (116, 124),
     "TP19": (110, 116),
@@ -155,8 +163,8 @@ SILK = [
     ("J9 THERMISTORS", 55.0, 132.6, 0.8),
     ("LOADCELL DIGITAL", 76.0, 131.0, 0.8), ("5V 3V3 G DAT CLK", 76.0, 132.6, 0.7),
     ("CONTACTOR OUT", 99.0, 131.0, 0.8), ("C  E  30V 50mA MAX", 99.0, 132.6, 0.7),
-    ("TURNTABLE ENC (DNP)", 122.0, 131.0, 0.7), ("3V3 G A B HOME", 122.0, 132.6, 0.65),
-    ("STEP DIR EN G (DNP)", 143.0, 131.0, 0.7),
+    ("TURNTABLE ENC (DNP)", 116.0, 131.0, 0.7), ("3V3 G A B HOME", 116.0, 132.6, 0.65),
+    ("STEP DIR EN G (DNP)", 137.0, 131.0, 0.7),
     ("TC K-TYPE", 25.2, 27.8, 0.9), ("YEL+  RED-", 25.2, 29.4, 0.8),
     ("MAX31865 DNP", 43.0, 20.9, 0.7), ("3V3A G SCK MOSI MISO CS1", 43.0, 25.0, 0.6),
     ("I2C0 MLX90640+SHT45", 33.0, 40.2, 0.8), ("3V3 G SDA SCL", 24.7, 48.4, 0.7),
@@ -461,8 +469,11 @@ def main():
     add_zone("GND", pcbnew.In1_Cu, LSHAPE, 0)                 # THE plane
     add_zone("GND", pcbnew.B_Cu, LSHAPE, 0)
     add_zone("3V3", pcbnew.In2_Cu, LSHAPE, 1, minw=0.4)
+    # 5VP In2 pour stays WEST of x53: the x57-66 In2 corridor is reserved for
+    # the RELAY_5V bank spurs (route_bank C8/C9/R25/TP33 -> bus). Q1 source 5VP
+    # is routed by KRT (F.Cu west to the pour edge), not covered by the pour.
     add_zone("5VP", pcbnew.In2_Cu,
-             [(26, 109), (66, 109), (66, 134), (26, 134)], 2, minw=0.4)
+             [(26, 110), (53, 110), (53, 134), (26, 134)], 2, minw=0.4)
     add_zone("3V3A", pcbnew.In2_Cu,
              [(21, 21), (52, 21), (52, 40), (21, 40)], 2, minw=0.4)
 

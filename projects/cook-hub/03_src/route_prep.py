@@ -47,6 +47,19 @@ def keepout_rect(x0, y0, x1, y1):
 for (x0, y0, x1, y1) in G.KRT_KEEPOUTS:
     keepout_rect(x0, y0, x1, y1)
 
+# Reserve the RELAY_5V bank-spur In2 lanes (route_bank drops a via at each of
+# C8/C9/R25/TP33 and runs In2 NORTH to the y=101.8 bus). The Q1 pocket is
+# otherwise saturated by the east-bound Pico fan-out — KRT's F<->B via barrels
+# pass through In2 and block the vertical run. These vertical keepout lanes
+# (bus approach down to each pad) force KRT's tracks + vias out of the lane so
+# the In2 verticals are clear. Lanes sit clear of Q1's gate pad (x60.55).
+for (x0, y0, x1, y1) in [(58.8, 111.9, 60.9, 113.4),   # C8 pad+stub box
+                         (58.8, 101.4, 60.2, 111.9),   # C8 north In2 lane
+                         (122.8, 101.4, 125.4, 110.0),  # C9 lane (col3-4 gap)
+                         (126.8, 101.4, 129.4, 110.0),  # R25 lane (col3-4 gap)
+                         (130.8, 101.4, 133.4, 110.0)]:  # TP33 lane (col3-4 gap)
+    keepout_rect(x0, y0, x1, y1)
+
 R = 3.0  # M3 screw head + margin
 for f in b.GetFootprints():
     if f.GetReference().startswith("H"):

@@ -32,6 +32,12 @@ import geom as G  # noqa: E402
 
 PCB = HERE.parent / "04_kicad" / "cook_hub.kicad_pcb"
 b = pcbnew.LoadBoard(str(PCB))
+# The RELAY_5V bank spurs run on the EMPTY In2 layer (docstring); import
+# leaves the power pours FILLED, and the 3V3 In2 pour covers the spur
+# corridor south of the bank. Unfill before drawing so the spur via-sites +
+# In2 verticals are clear; stitch_and_fill refills every zone afterwards.
+for _z in b.Zones():
+    _z.UnFill()
 MM = pcbnew.ToMM
 F, B, I2 = pcbnew.F_Cu, pcbnew.B_Cu, pcbnew.In2_Cu
 
@@ -294,14 +300,27 @@ for si, ref in enumerate(("C8", "C9", "R25", "TP33")):
                 continue
             if tk.collides(px, py, vx, vy, 0.3, r5v.GetNetCode(), pcbnew.F_Cu) is not None:
                 continue
-            # In2 path: vertical to bus y (+ optional east jog to the bus span)
-            lx = max(vx, 60.3 + si * 0.9)
+            # In2 path: vertical to bus y, then jog E/W along the bus to a
+            # landing point whose via clears the coil B.Cu lanes (the bus y
+            # sits inside the coil-lane band, so a through-via at an arbitrary
+            # x punches a coil lane — search a clear landing near vx).
             if tk.collides(vx, vy, vx, G.R5V_BUS_Y, 0.4, r5v.GetNetCode(), pcbnew.In2_Cu) is not None:
                 continue
-            if abs(lx - vx) > 0.01 and tk.collides(vx, G.R5V_BUS_Y, lx, G.R5V_BUS_Y, 0.4,
-                                                   r5v.GetNetCode(), pcbnew.In2_Cu) is not None:
-                continue
-            if not tk.via_site_ok(lx, G.R5V_BUS_Y, r5v.GetNetCode(), size=0.6, drill=0.3):
+            lx = None
+            for dxl in (0, 0.7, -0.7, 1.4, -1.4, 2.1, -2.1, 2.8, -2.8,
+                        3.5, -3.5, 4.2, -4.2, 5.0, -5.0, 6.0, -6.0):
+                cand = round(vx + dxl, 2)
+                if cand < 60.3:
+                    continue
+                if not tk.via_site_ok(cand, G.R5V_BUS_Y, r5v.GetNetCode(), size=0.6, drill=0.3):
+                    continue
+                if abs(cand - vx) > 0.01 and tk.collides(
+                        vx, G.R5V_BUS_Y, cand, G.R5V_BUS_Y, 0.4,
+                        r5v.GetNetCode(), pcbnew.In2_Cu) is not None:
+                    continue
+                lx = cand
+                break
+            if lx is None:
                 continue
             tk.add_seg(px, py, vx, vy, r5v, pcbnew.F_Cu, 0.3)
             tk.add_via(vx, vy, r5v, size=0.6, drill=0.3)
@@ -316,6 +335,20 @@ for si, ref in enumerate(("C8", "C9", "R25", "TP33")):
         if ok:
             break
     if not ok:
+        import os as _os
+        if _os.environ.get("SPUR_DEBUG"):
+            print(f"--- {ref} pad1 ({px:.2f},{py:.2f}) candidate reasons:")
+            for r in (0.9, 1.2, 1.6, 2.1, 2.7):
+                for ang in range(0, 360, 30):
+                    vx = round(px + r * _m.cos(_m.radians(ang)), 2)
+                    vy = round(py + r * _m.sin(_m.radians(ang)), 2)
+                    if vy > 115.9 or vy < 107.2:
+                        continue
+                    vs = tk.via_site_ok(vx, vy, r5v.GetNetCode(), size=0.6, drill=0.3)
+                    fc = tk.collides(px, py, vx, vy, 0.3, r5v.GetNetCode(), pcbnew.F_Cu)
+                    iv = tk.collides(vx, vy, vx, G.R5V_BUS_Y, 0.4, r5v.GetNetCode(), pcbnew.In2_Cu)
+                    if vs and fc is None:
+                        print(f"    ({vx},{vy}) vs=OK fc=OK iv={iv.GetNetname() if iv else 'OK'}")
         raise RuntimeError(f"RELAY_5V In2 spur failed: {ref}")
 b.Save(str(PCB))
 print(f"installed {len(SEGS)} tracks + {len(VIAS)} vias + 4 spurs -> {PCB.name}")
