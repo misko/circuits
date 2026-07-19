@@ -39,3 +39,10 @@ board-local decisions only.
   the 100R RC-filtered 5VF feeds only mic bias + midpoint divider
   (sub-mA), keeping the filter drop at ~75mV while the bias string gets
   the clean rail. PSRR of the OPA1678 covers the rest.
+
+## A4 (user utterance, 2026-07-19)
+User: "i would rather have a ethernet terminal on the pod" — pod cable
+termination changes from 8-pos screw terminal (D6) to an RJ45 jack
+(RJHSE-5384, same as central), cable passed through the gland and
+field-crimped inside. Supersedes D6's terminal choice; T568B mapping
+unchanged (terminal n = RJ45 pin n). Drives release v1.1.
