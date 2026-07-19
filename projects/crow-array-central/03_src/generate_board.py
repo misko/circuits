@@ -320,6 +320,13 @@ def main():
         z.SetLocalClearance(pcbnew.FromMM(0.25))
         z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL if full
                            else pcbnew.ZONE_CONNECTION_THERMAL)
+        # F/B GND pours fragment under the dense routing; orphan fill slivers
+        # (no pad, no via) otherwise persist as isolated islands that DRC
+        # flags as Zone[GND]<->Zone[GND] unconnected. Remove islands not tied
+        # to the net (via-/pad-bonded islands are kept). The In1/In4 solid
+        # reference planes (full=True) keep every island.
+        if not full:
+            z.SetIslandRemovalMode(pcbnew.ISLAND_REMOVAL_MODE_ALWAYS)
         z.Outline().NewOutline()
         for x, y in [(X0, Y0), (X1, Y0), (X1, Y1), (X0, Y1)]:
             z.Outline().Append(pcbnew.VECTOR2I_MM(x, y))

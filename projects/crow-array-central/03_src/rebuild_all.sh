@@ -42,7 +42,14 @@ python3 03_src/generate_rules.py >/dev/null
 # GND rescue: bond the boxed GND SMD pads the pour/grid can't reach (PCM1865 /
 # USB-C escape), then clearance nudge on sub-0.09 power-vs-signal tracks.
 $PY 03_src/gnd_rescue.py 2>/dev/null | tail -2
-$PY 03_src/clearance_nudge.py 2>/dev/null | tail -1
+# close_gnd: DRC-guarded close of the boxed GND pads gnd_rescue can't reach
+# (U3.7 via an I2C_SCL In3 reroute; U1.42 tip via; R34.2 stub). Each edit is
+# kept only if unconnected strictly drops and no hard error is added.
+$PY 03_src/close_gnd.py 2>/dev/null | tail -6
+$PY 03_src/clearance_nudge.py 2>/dev/null | tail -20
+# trim_dangling: DRC-guarded removal of KRT loose-copper spurs (connectivity
+# guard reverts any removal that would orphan a pad).
+$PY 03_src/trim_dangling.py 2>/dev/null | tail -20
 # audit again post-route (I8 AIN length needs tracks)
 $PY 03_src/audit_board.py 2>/dev/null | tail -2
 # rules LAST: pcbnew saves clobber .kicad_pro netclasses
