@@ -41,6 +41,19 @@ for j in dead:
     b.Remove(vinfo[j][0])
 print(f"deduped {len(dead)} twin vias")
 
+# normalize any sub-spec via (KRT occasionally emits a 0.40/0.25 escape via
+# in the analog fanout) up to the 0.6/0.3 board floor -> clears via_diameter
+# (min 0.45) + annular_width (min 0.13; 0.6/0.3 = 0.15 annular). Same-net,
+# same barrel centre, so enlarging only grows copper on its own net.
+resized = 0
+for t in b.GetTracks():
+    if t.GetClass() == "PCB_VIA" and pcbnew.ToMM(t.GetWidth()) < 0.449:
+        t.SetWidth(pcbnew.FromMM(0.6))
+        t.SetDrill(pcbnew.FromMM(0.3))
+        resized += 1
+if resized:
+    print(f"normalized {resized} sub-spec vias to 0.6/0.3")
+
 USED = {(round(v.GetPosition().x / 1e6, 2), round(v.GetPosition().y / 1e6, 2))
         for v in b.GetTracks() if v.GetClass() == "PCB_VIA"}
 PTH = [(p.GetPosition().x / 1e6, p.GetPosition().y / 1e6, p.GetDrillSize().x / 2e6)

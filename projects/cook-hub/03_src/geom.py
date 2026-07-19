@@ -47,7 +47,10 @@ W_CONTACT = 0.4
 # isolation slots (Edge.Cuts), 2mm wide, between super-columns
 SLOT_W = 2.0
 SLOT_X = [COIL_X0 + 13.05 + SC_PITCH * k for k in range(NSC - 1)]
-SLOT_Y0, SLOT_Y1 = 44.0, 97.0
+SLOT_Y0, SLOT_Y1 = 47.0, 97.0   # top was 44.0: the fan band (y34-46) + J11
+# ch11/12 drops grazed the slot tops at x150.2 (copper_edge_clearance). y47
+# keeps the slots fully covering the bank relay region (y58-93) with margin,
+# well clear of the isolated north-strip keypad routing.
 WSLOT_X, WSLOT_Y0, WSLOT_Y1 = 61.5, 22.5, 52.0   # strip west guard slot
 
 # isolated north strip (J11 + fan)

@@ -548,6 +548,11 @@ def main():
     # and F.Fab retains the body outline for assembly. Deterministic.
     edge_trim = [box(g.GetBoundingBox(), 0.12) for g in board.GetDrawings()
                  if g.GetClass() == "PCB_SHAPE" and g.IsOnLayer(pcbnew.Edge_Cuts)]
+    # the §8.4 boundary silk lines (board drawings) are structural and MUST stay
+    # legible; footprint silk that overlaps them (relay/connector outlines near
+    # the isolation comb) is trimmed instead (silk_overlap).
+    board_silk_trim = [box(g.GetBoundingBox(), 0.0) for g in board.GetDrawings()
+                       if g.GetClass() == "PCB_SHAPE" and g.IsOnLayer(pcbnew.F_SilkS)]
     def safe_box(item, pad=0.0):
         try:
             bb = item.GetBoundingBox()
@@ -579,8 +584,10 @@ def main():
             gb = safe_box(g)
             if gb is None:
                 continue
-            if any(hit(gb, po) for po in pad_obst) or any(hit(gb, eo) for eo in edge_trim):
-                trim_list.append((fp, g))         # silk over pad / clipped by edge
+            if (any(hit(gb, po) for po in pad_obst)
+                    or any(hit(gb, eo) for eo in edge_trim)
+                    or any(hit(gb, bo) for bo in board_silk_trim)):
+                trim_list.append((fp, g))         # over pad / clipped by edge / on boundary silk
             else:
                 silk_obst.append(box(g.GetBoundingBox(), PADM))
     trimmed = len(trim_list)
