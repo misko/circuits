@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/home/mouse9911/gits/circuits/projects/crow-array-pod/04_kicad/crow_array_pod.kicad_sch")
-		(date "2026-07-17T20:57:45")
+		(date "2026-07-19T09:04:14")
 		(tool "Eeschema 10.0.4-10.0.4~ubuntu24.04.1")
 		(sheet
 			(number "1")
@@ -11,8 +11,8 @@
 			(title_block
 				(title "crow-array-pod")
 				(company)
-				(rev "dev")
-				(date "2026-07-17")
+				(rev "v1.1")
+				(date "2026-07-19")
 				(source "crow_array_pod.kicad_sch")
 				(comment
 					(number "1")
@@ -85,7 +85,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "73376bca-2f9c-472c-9a8a-cceb498c2af6")
+			(tstamps "bd29ec78-c178-4490-a53c-8ffc98096886")
 			(units
 				(unit
 					(name "A")
@@ -137,7 +137,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "65a2b099-8b8d-4b84-b5a2-e0e416347c9c")
+			(tstamps "6c37c07c-f490-4ec7-b1db-1c74dff58e1e")
 			(units
 				(unit
 					(name "A")
@@ -183,7 +183,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "db9d045b-5960-4502-b3cc-2f386f403ac5")
+			(tstamps "bf5114e3-454e-40fc-a12c-fce058638d69")
 			(units
 				(unit
 					(name "A")
@@ -229,7 +229,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "957e4f54-d450-4067-9b9d-340aeb05e882")
+			(tstamps "f798208c-d17e-454e-bf1d-1d8c3074b4a8")
 			(units
 				(unit
 					(name "A")
@@ -275,7 +275,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "73dbe064-afda-4548-b0f9-90ac15a209b1")
+			(tstamps "7175ffb0-c520-4093-addc-84dfcf3f7300")
 			(units
 				(unit
 					(name "A")
@@ -321,7 +321,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ed699fd5-7ef4-4196-9060-870cd28b0717")
+			(tstamps "484db550-0e30-41f0-8582-101a55bfa0cc")
 			(units
 				(unit
 					(name "A")
@@ -367,7 +367,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "08fca862-547a-42be-ade0-b3e02d5d4081")
+			(tstamps "7524d993-5a3c-4d58-a277-e45e08f4f24b")
 			(units
 				(unit
 					(name "A")
@@ -413,7 +413,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6a0dcd14-5987-43ba-82bb-b498d4023183")
+			(tstamps "ef842da9-32d4-4d5b-8930-a4b731d24b51")
 			(units
 				(unit
 					(name "A")
@@ -459,7 +459,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "eac32f39-f78a-45de-987c-30c1dddeb671")
+			(tstamps "4c8aa786-054f-4e8a-a47a-71e01b83bcfb")
 			(units
 				(unit
 					(name "A")
@@ -514,7 +514,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d9cbf86e-01a7-441f-b014-474fa9ef307b")
+			(tstamps "b89fc408-e1ca-4bd2-82d7-eae1b0069950")
 			(units
 				(unit
 					(name "A")
@@ -560,7 +560,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "33646e1c-6467-4a5b-a30a-09a7216d9d62")
+			(tstamps "cf774308-4fcb-4666-a6ec-417885e08412")
 			(units
 				(unit
 					(name "A")
@@ -577,11 +577,11 @@
 		)
 		(comp
 			(ref "J1")
-			(value "KF128L-3.5-8P")
-			(footprint "pod:TerminalBlock_3.5-8P_NoSilk")
+			(value "RJHSE-5384")
+			(footprint "Connector_RJ:RJ45_Amphenol_RJHSE538X")
 			(fields
 				(field
-					(name "Footprint") "pod:TerminalBlock_3.5-8P_NoSilk")
+					(name "Footprint") "Connector_RJ:RJ45_Amphenol_RJHSE538X")
 				(field
 					(name "Datasheet")
 				)
@@ -591,7 +591,7 @@
 			)
 			(libsource
 				(lib "pod")
-				(part "TERM8")
+				(part "RJ45")
 				(description "")
 			)
 			(property
@@ -606,11 +606,26 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0939eb2d-bc66-4efb-b21d-06d0c7ac7225")
+			(tstamps "a6ad9067-fee6-425f-8b33-51a658f3aed2")
 			(units
 				(unit
 					(name "A")
 					(pins
+						(pin
+							(num "9")
+						)
+						(pin
+							(num "10")
+						)
+						(pin
+							(num "11")
+						)
+						(pin
+							(num "12")
+						)
+						(pin
+							(num "SH")
+						)
 						(pin
 							(num "1")
 						)
@@ -670,7 +685,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c9114007-686a-4060-8f24-9633be3a8586")
+			(tstamps "1c6acfb9-5e62-45cf-9fc6-913946991cf9")
 			(units
 				(unit
 					(name "A")
@@ -716,7 +731,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bc0b374c-9ffd-4865-bea5-6e863b6bad72")
+			(tstamps "19970b4f-667d-47ae-8c43-9ec9372d1bf7")
 			(units
 				(unit
 					(name "A")
@@ -768,7 +783,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b78e3b5d-1b3e-4123-934f-d739387e10cc")
+			(tstamps "ab6c17f7-c397-4277-9c18-271cf6807f69")
 			(units
 				(unit
 					(name "A")
@@ -814,7 +829,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4c640071-8026-4884-842e-cdd84646876c")
+			(tstamps "656443c5-9c24-409e-84e2-21de27492e02")
 			(units
 				(unit
 					(name "A")
@@ -860,7 +875,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5a631cca-94d6-4baf-b9fd-ef1fe061e3cf")
+			(tstamps "49ffc820-b338-4ceb-8280-dec4a882d6a4")
 			(units
 				(unit
 					(name "A")
@@ -906,7 +921,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3fb70da0-bb58-4df8-b590-bf61045307b0")
+			(tstamps "28d1d2a1-2d14-44e2-b12a-6bd7ac80e6f9")
 			(units
 				(unit
 					(name "A")
@@ -952,7 +967,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1e62db9c-414f-4b99-ba31-c0e272e9d506")
+			(tstamps "9f0659ac-b649-4223-ba79-ff8d80c3f9a2")
 			(units
 				(unit
 					(name "A")
@@ -998,7 +1013,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a5f9b2ce-a648-4559-90b8-8a9a4acf7219")
+			(tstamps "8b800a9c-2078-4aa6-b47a-0a4c993943d8")
 			(units
 				(unit
 					(name "A")
@@ -1044,7 +1059,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "954b6c40-822b-4553-af58-271ec164cfc2")
+			(tstamps "6f0db8c5-1f86-43b2-affd-b769e70b0023")
 			(units
 				(unit
 					(name "A")
@@ -1090,7 +1105,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1bec79b5-d49b-49bc-a613-85d32acff60a")
+			(tstamps "539f54a4-30a0-4558-82cf-8cb60df39b54")
 			(units
 				(unit
 					(name "A")
@@ -1136,7 +1151,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "232f3654-4f44-4c6b-b757-11271e6f785d")
+			(tstamps "de0c731c-2083-40cc-b7e6-9a4f0b279018")
 			(units
 				(unit
 					(name "A")
@@ -1182,7 +1197,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "caf40e8b-1f10-48a6-8594-5663f11bdada")
+			(tstamps "7c2781ed-02c0-466b-bfb8-83cfe81fb050")
 			(units
 				(unit
 					(name "A")
@@ -1228,7 +1243,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d384f5e1-d1eb-4544-9355-24592a83e5b7")
+			(tstamps "d1b766db-5e37-475e-9a43-65eaa9b10f6a")
 			(units
 				(unit
 					(name "A")
@@ -1274,7 +1289,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "42d36c9f-57f5-476c-8832-2c15f286d5ca")
+			(tstamps "2007d915-5d52-47d7-bea9-35ed648f9f56")
 			(units
 				(unit
 					(name "A")
@@ -1320,7 +1335,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a85d513a-c875-43ab-ab99-24a731220dd3")
+			(tstamps "f03e5fc6-f66f-49e9-b152-4ccbc504bb9c")
 			(units
 				(unit
 					(name "A")
@@ -1366,7 +1381,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "62fecd92-cd86-4d65-8113-4286247ca36e")
+			(tstamps "22d3e3e5-40ec-424f-9e1b-64706dc6fcd2")
 			(units
 				(unit
 					(name "A")
@@ -1412,7 +1427,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9a54aee3-9326-4923-9281-2aa36e1d23ef")
+			(tstamps "c2bbebd2-e444-45e3-81d9-b29b99610c28")
 			(units
 				(unit
 					(name "A")
@@ -1461,7 +1476,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bc9ab5a9-d6b3-448a-8e19-39eec899af09")
+			(tstamps "1f7603db-8cb2-439b-9cb8-7c9c32d4bedd")
 			(units
 				(unit
 					(name "A")
@@ -1507,7 +1522,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9e6765bd-ccb5-4679-a0f7-eac7a9cada30")
+			(tstamps "66a72c4c-2077-4b8a-a526-3d07f061edf4")
 			(units
 				(unit
 					(name "A")
@@ -1553,7 +1568,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8a03eaa4-2b19-4b52-a8ca-a5df5ef9ce75")
+			(tstamps "dcd9231e-bde8-4311-bb7d-ab167a680e51")
 			(units
 				(unit
 					(name "A")
@@ -1599,7 +1614,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "35310674-8ad9-41b6-985d-72dd13bec480")
+			(tstamps "e7927763-8f0e-4060-8d9f-78d47de4e5c1")
 			(units
 				(unit
 					(name "A")
@@ -1645,7 +1660,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ddeca015-9733-4a03-8c22-0b2c74ca799d")
+			(tstamps "93002262-87e8-4540-8590-d48816336235")
 			(units
 				(unit
 					(name "A")
@@ -1691,7 +1706,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a6cc3f8f-4cd0-4012-b4ce-f5f55525ab7b")
+			(tstamps "acf3c12d-d4d2-47ea-93b9-0e00d1fadda7")
 			(units
 				(unit
 					(name "A")
@@ -1734,7 +1749,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "536f0c26-6241-44d0-ada3-9e62db80aa49")
+			(tstamps "af4b6c3b-73cd-4985-bf1a-18675bfe6726")
 			(units
 				(unit
 					(name "A")
@@ -2117,12 +2132,12 @@
 		)
 		(libpart
 			(lib "pod")
-			(part "TERM8")
+			(part "RJ45")
 			(fields
 				(field
 					(name "Reference") "J")
 				(field
-					(name "Value") "TERM8")
+					(name "Value") "RJ45")
 				(field
 					(name "Footprint")
 				)
@@ -2136,42 +2151,67 @@
 			(pins
 				(pin
 					(num "1")
-					(name "P1")
+					(name "CT1")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "P2")
+					(name "CT2")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "P3")
+					(name "CT3")
 					(type "passive")
 				)
 				(pin
 					(num "4")
-					(name "P4")
+					(name "CT4")
 					(type "passive")
 				)
 				(pin
 					(num "5")
-					(name "P5")
+					(name "CT5")
 					(type "passive")
 				)
 				(pin
 					(num "6")
-					(name "P6")
+					(name "CT6")
 					(type "passive")
 				)
 				(pin
 					(num "7")
-					(name "P7")
+					(name "CT7")
 					(type "passive")
 				)
 				(pin
 					(num "8")
-					(name "P8")
+					(name "CT8")
+					(type "passive")
+				)
+				(pin
+					(num "9")
+					(name "LED1A")
+					(type "passive")
+				)
+				(pin
+					(num "10")
+					(name "LED1B")
+					(type "passive")
+				)
+				(pin
+					(num "11")
+					(name "LED2A")
+					(type "passive")
+				)
+				(pin
+					(num "12")
+					(name "LED2B")
+					(type "passive")
+				)
+				(pin
+					(num "SH")
+					(name "SHLD")
 					(type "passive")
 				)
 			)
@@ -2213,7 +2253,7 @@
 		(net
 			(code "1")
 			(name "5V")
-			(class "Default")
+			(class "PWR")
 			(node
 				(ref "C6")
 				(pin "1")
@@ -2229,13 +2269,13 @@
 			(node
 				(ref "J1")
 				(pin "4")
-				(pinfunction "P4_4")
+				(pinfunction "CT4_4")
 				(pintype "passive")
 			)
 			(node
 				(ref "J1")
 				(pin "7")
-				(pinfunction "P7_7")
+				(pinfunction "CT7_7")
 				(pintype "passive")
 			)
 			(node
@@ -2260,7 +2300,7 @@
 		(net
 			(code "2")
 			(name "5VF")
-			(class "Default")
+			(class "PWR")
 			(node
 				(ref "C1")
 				(pin "1")
@@ -2318,7 +2358,7 @@
 		(net
 			(code "4")
 			(name "AUDIO_N")
-			(class "Default")
+			(class "AUDIO")
 			(node
 				(ref "D1")
 				(pin "5")
@@ -2328,7 +2368,7 @@
 			(node
 				(ref "J1")
 				(pin "2")
-				(pinfunction "P2_2")
+				(pinfunction "CT2_2")
 				(pintype "passive")
 			)
 			(node
@@ -2353,7 +2393,7 @@
 		(net
 			(code "5")
 			(name "AUDIO_P")
-			(class "Default")
+			(class "AUDIO")
 			(node
 				(ref "D1")
 				(pin "3")
@@ -2363,7 +2403,7 @@
 			(node
 				(ref "J1")
 				(pin "1")
-				(pinfunction "P1_1")
+				(pinfunction "CT1_1")
 				(pintype "passive")
 			)
 			(node
@@ -2388,7 +2428,7 @@
 		(net
 			(code "6")
 			(name "AUD_N_I")
-			(class "Default")
+			(class "AUDIO")
 			(node
 				(ref "L1")
 				(pin "2")
@@ -2411,7 +2451,7 @@
 		(net
 			(code "7")
 			(name "AUD_P_I")
-			(class "Default")
+			(class "AUDIO")
 			(node
 				(ref "L1")
 				(pin "1")
@@ -2434,7 +2474,7 @@
 		(net
 			(code "8")
 			(name "A_OUT")
-			(class "Default")
+			(class "AUDIO")
 			(node
 				(ref "R10")
 				(pin "1")
@@ -2463,11 +2503,11 @@
 		(net
 			(code "9")
 			(name "BEEP_5V")
-			(class "Default")
+			(class "BEEP")
 			(node
 				(ref "J1")
 				(pin "3")
-				(pinfunction "P3_3")
+				(pinfunction "CT3_3")
 				(pintype "passive")
 			)
 			(node
@@ -2480,7 +2520,7 @@
 		(net
 			(code "10")
 			(name "BEEP_RET")
-			(class "Default")
+			(class "BEEP")
 			(node
 				(ref "BZ1")
 				(pin "2")
@@ -2502,14 +2542,14 @@
 			(node
 				(ref "J1")
 				(pin "6")
-				(pinfunction "P6_6")
+				(pinfunction "CT6_6")
 				(pintype "passive")
 			)
 		)
 		(net
 			(code "11")
 			(name "BZ_P")
-			(class "Default")
+			(class "BEEP")
 			(node
 				(ref "BZ1")
 				(pin "1")
@@ -2538,7 +2578,7 @@
 		(net
 			(code "12")
 			(name "B_OUT")
-			(class "Default")
+			(class "AUDIO")
 			(node
 				(ref "R11")
 				(pin "1")
@@ -2653,13 +2693,13 @@
 			(node
 				(ref "J1")
 				(pin "5")
-				(pinfunction "P5_5")
+				(pinfunction "CT5_5")
 				(pintype "passive")
 			)
 			(node
 				(ref "J1")
 				(pin "8")
-				(pinfunction "P8_8")
+				(pinfunction "CT8_8")
 				(pintype "passive")
 			)
 			(node
@@ -2721,6 +2761,12 @@
 			(name "SHIELD")
 			(class "Default")
 			(node
+				(ref "J1")
+				(pin "SH")
+				(pinfunction "SHLD_SH")
+				(pintype "passive")
+			)
+			(node
 				(ref "R15")
 				(pin "1")
 				(pinfunction "1_1")
@@ -2736,7 +2782,7 @@
 		(net
 			(code "18")
 			(name "VMID")
-			(class "Default")
+			(class "AUDIO")
 			(node
 				(ref "C4")
 				(pin "1")
@@ -2827,6 +2873,50 @@
 				(ref "D1")
 				(pin "2")
 				(pinfunction "NC_2")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "23")
+			(name "unconnected-(J1-LED1A-Pad9)")
+			(class "Default")
+			(node
+				(ref "J1")
+				(pin "9")
+				(pinfunction "LED1A_9")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "24")
+			(name "unconnected-(J1-LED1B-Pad10)")
+			(class "Default")
+			(node
+				(ref "J1")
+				(pin "10")
+				(pinfunction "LED1B_10")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "25")
+			(name "unconnected-(J1-LED2A-Pad11)")
+			(class "Default")
+			(node
+				(ref "J1")
+				(pin "11")
+				(pinfunction "LED2A_11")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "26")
+			(name "unconnected-(J1-LED2B-Pad12)")
+			(class "Default")
+			(node
+				(ref "J1")
+				(pin "12")
+				(pinfunction "LED2B_12")
 				(pintype "passive+no_connect")
 			)
 		)

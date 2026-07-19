@@ -6,10 +6,14 @@
 (clear the #4 lid-screw bosses; drawing straight spans 82.00/32.00) and
 four Ø2.7 holes on the 75.00x35.00 boss pattern inset (9.75, 4.75).
 
-Placement (ARCHITECTURE.md): J1 terminal on the WEST edge (wire openings
-toward the gland wall), beeper block SW (max separation from the mic),
-5VF filter south-center, OPA1678 center-east, mic pads at the FAR EAST
-(§3A: mic and transducer at opposite ends), midpoint divider SE.
+Placement (ARCHITECTURE.md + ADR-0004): J1 RJ45 jack at the WEST end,
+mate-opening facing WEST toward the gland wall; jack body AND the exposed
+plug volume must sit inside the 1551WY lid's 81x31 full-height recess
+(board x 56.75-137.75, y 56.75-87.75; only 7.9mm headroom under the
+perimeter band — ADR-0004 clearance math). Beeper block SW (max
+separation from the mic), 5VF filter south-center, OPA1678 center-east,
+mic pads at the FAR EAST (§3A: mic and transducer at opposite ends),
+midpoint divider SE.
 Zones: GND pours both sides (B.Cu = the return plane). Missing footprint =
 HARD ERROR. Refdes de-collision pass prints every reference on F.SilkS.
 
@@ -69,11 +73,13 @@ def load_fp(fpid):
 
 # ------------------------------------------------------------- floorplan
 ANCHOR = {
-    # cable terminal, west edge, openings W, pin 1 north
-    "J1": (57.5, 60.0, 270),
-    # entry ESD near J1 pins 1/2
-    "D1": (69.5, 61.0, 0),
-    # shield-bond reserve, north strip
+    # RJ45 jack (ADR-0004): rot 270 => mating face WEST, pin 1 north.
+    # Anchor = pad 1. Body spans x 69.7-86.6, y 57.8-77.4 (inside the lid
+    # recess); exposed plug needs ~12mm west of the face, also in-recess.
+    "J1": (78.0, 64.0, 270),
+    # entry ESD near J1 contact tails 1/2 (east side of the jack)
+    "D1": (88.0, 62.0, 0),
+    # shield-bond reserve, north strip (J1 SH tails at x 77.1)
     "TP6": (65.5, 52.8, 0), "R15": (70.5, 52.8, 0),
     # audio-pair TPs, north strip
     "TP1": (75.0, 52.8, 0), "TP2": (80.5, 52.8, 0),
@@ -94,9 +100,9 @@ ANCHOR = {
     # midpoint reference SE
     "R4": (114.0, 84.0, 0), "R5": (120.5, 84.0, 0),
     "C4": (114.0, 87.5, 0), "C5": (120.5, 87.5, 0), "TP3": (126.5, 85.5, 0),
-    # output isolation + choke reserve, between amp and entry
-    "R10": (88.0, 60.5, 0), "R11": (88.0, 64.0, 0),
-    "L1": (77.5, 62.25, 0), "R13": (77.5, 57.5, 0), "R14": (77.5, 67.5, 0),
+    # output isolation + choke reserve, between amp and the jack's rear
+    "R10": (96.0, 63.0, 0), "R11": (96.0, 66.5, 0),
+    "L1": (92.0, 64.0, 0), "R13": (92.0, 60.0, 0), "R14": (92.0, 68.0, 0),
     # rail TPs
     "TP4": (103.0, 88.5, 0), "TP5": (108.5, 88.5, 0),
 }
@@ -104,11 +110,14 @@ ANCHOR = {
 # plain-words silkscreen (P-SILK-FN). (text, x, y, size)
 SILK = [
     ("NOT ETHERNET - CUSTOM 5V PINOUT", 100.0, 51.6, 1.1),
-    # terminal words, east of the pad column (pads at x=57.5, pins N->S)
-    ("1 AUDIO+", 63.9, 60.0, 0.7), ("2 AUDIO-", 63.9, 63.5, 0.7),
-    ("3 5V BEEP", 64.1, 67.0, 0.7), ("4 5V", 62.4, 70.5, 0.7),
-    ("5 GND", 62.9, 74.0, 0.7), ("6 BEEP RET", 64.4, 77.5, 0.7),
-    ("7 5V", 62.4, 81.0, 0.7), ("8 GND", 62.9, 84.5, 0.7),
+    # jack-side warning, permanently visible above the plug zone (ADR-0004d)
+    ("NOT ETHERNET", 61.0, 58.2, 0.8),
+    # T568B function legend in the plug zone west of the jack (readable
+    # during field crimping/bring-up; covered only once a plug is seated)
+    ("RJ45: 1 AUD+ 2 AUD-", 62.8, 64.2, 0.65),
+    ("3 5V-BEEP 6 BEEP-RET", 62.8, 66.2, 0.65),
+    ("4/7 5V  5/8 GND", 62.8, 68.2, 0.65),
+    ("CUSTOM 5V PINOUT", 62.8, 70.4, 0.65),
     # beeper block
     ("BEEPER", 72.0, 78.5, 0.7), ("FLYBACK", 84.0, 78.4, 0.6),
     ("TVS DNP", 80.8, 90.2, 0.6),
@@ -119,7 +128,7 @@ SILK = [
     ("SHIELD", 65.5, 54.7, 0.6), ("AUD+", 75.0, 54.7, 0.6),
     ("AUD-", 80.5, 54.7, 0.6), ("2V5", 126.5, 87.6, 0.6),
     ("5V", 103.0, 90.6, 0.6), ("GND", 108.5, 90.6, 0.6),
-    ("crow-array-pod v1.0", 100.0, 92.8, 0.9),
+    ("crow-array-pod v1.1", 100.0, 92.8, 0.9),
 ]
 
 
@@ -196,6 +205,12 @@ def main():
             key = (ref, pad.GetNumber())
             if key in pad_net:
                 pad.SetNet(netmap[pad_net[key]])
+            # J1 GND tails: SOLID zone connection on both layers — the
+            # B.Cu plane's thermal spokes starve in the dense tail field
+            # (v1.1: zone-to-zone unconnected + 0.10mm connection_width),
+            # and the jack is hand-soldered anyway (thermal relief moot)
+            if ref == "J1" and pad_net.get(key) == "GND":
+                pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
         board.Add(fp)
         placed += 1
 
@@ -206,22 +221,25 @@ def main():
         raise RuntimeError(f"netlist pads missing on board: {missing}")
 
     # ---- orientation asserts ----
-    def centv(ref):
-        f = board.FindFootprintByReference(ref)
-        bb = f.GetBoundingBox(False, False)
-        pads = [p.GetPosition() for p in f.Pads()]
-        pcx = sum(p.x for p in pads) / len(pads)
-        pcy = sum(p.y for p in pads) / len(pads)
-        return bb.Centre().x - pcx, bb.Centre().y - pcy
-
-    # J1: wire openings W, pin 1 at the north end
-    vx, vy = centv("J1")
-    if vx >= 0:
-        raise RuntimeError(f"J1 opening faces the wrong way v=({vx/1e6:.2f},{vy/1e6:.2f})")
+    # J1 RJ45 (ADR-0004): mating face WEST (LED-tail pads 9-12 mark the
+    # mating face and must sit west of the contact pads), pin 1 north,
+    # body + exposed-plug volume inside the 1551WY lid's 81x31 recess.
     j1 = board.FindFootprintByReference("J1")
-    jp = {p.GetNumber(): p.GetPosition() for p in j1.Pads()}
-    if not (jp["1"].y < jp["8"].y and abs(jp["1"].x - jp["8"].x) < 1000):
-        raise RuntimeError("J1 pins must run north->south, pin 1 north")
+    jp = {p.GetNumber(): p.GetPosition() for p in j1.Pads() if p.GetNumber()}
+    if not jp["9"].x < min(jp[str(n)].x for n in range(1, 9)):
+        raise RuntimeError("J1 mating face must point WEST (LED tails west of contacts)")
+    if not jp["1"].y < jp["8"].y:
+        raise RuntimeError("J1 contacts must run north->south, pin 1 north")
+    RECESS = (56.75, 56.75, 137.75, 87.75)   # lid full-height recess (ADR-0004c)
+    PLUG_MM = 12.0                           # exposed rigid plug west of the face
+    bbj = j1.GetBoundingBox(False, False)
+    jx0, jy0 = pcbnew.ToMM(bbj.GetLeft()), pcbnew.ToMM(bbj.GetTop())
+    jx1, jy1 = pcbnew.ToMM(bbj.GetRight()), pcbnew.ToMM(bbj.GetBottom())
+    if not (jx0 - PLUG_MM >= RECESS[0] and jy0 >= RECESS[1]
+            and jx1 <= RECESS[2] and jy1 <= RECESS[3]):
+        raise RuntimeError(
+            f"J1 body+plug outside the lid recess: bbox ({jx0:.1f},{jy0:.1f})-"
+            f"({jx1:.1f},{jy1:.1f}), plug to x={jx0 - PLUG_MM:.1f}, recess {RECESS}")
     # BZ1 polarity: pad 1 (+) is the top-left pad
     bz = board.FindFootprintByReference("BZ1")
     bp = {p.GetNumber(): p.GetPosition() for p in bz.Pads()}
@@ -401,7 +419,10 @@ def main():
 
     OFF = [(0, o * s) for o in (1.0, 1.6, 2.2, 2.9, 3.6, 4.4, 5.2, 6.0) for s in (-1, 1)] + \
           [(o * s, 0) for o in (1.3, 2.0, 2.8, 3.6, 4.5, 5.4, 6.2) for s in (-1, 1)] + \
-          [(dx, dy) for d in (1.4, 2.2, 3.0, 4.0, 5.0) for dx in (-d, d) for dy in (-d, d)]
+          [(dx, dy) for d in (1.4, 2.2, 3.0, 4.0, 5.0) for dx in (-d, d) for dy in (-d, d)] + \
+          [(0, o * s) for o in (7.0, 8.0, 9.0, 10.0, 11.0) for s in (-1, 1)] + \
+          [(o * s, 0) for o in (7.2, 8.2, 9.2, 10.2) for s in (-1, 1)] + \
+          [(dx, dy) for d in (6.0, 7.0, 8.0, 9.0) for dx in (-d, d) for dy in (-d, d)]
     waived = []
 
     def prio(fp):

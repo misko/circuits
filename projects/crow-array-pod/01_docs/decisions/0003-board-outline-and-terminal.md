@@ -1,6 +1,9 @@
 # ADR-0003 — board outline (1551WY maximum PCB) + cable termination choice
 
-Status: accepted 2026-07-18
+Status: accepted 2026-07-18; **termination section (D6) SUPERSEDED
+2026-07-19 by decisions/0004-rj45-termination.md** (A4: RJ45 jack,
+field-crimped plug inside the gland — drives v1.1). The outline section
+(D4) remains in force.
 
 ## Outline (D4)
 

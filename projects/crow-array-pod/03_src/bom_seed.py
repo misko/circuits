@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fill LCSC + MPN into 06_build/fab/bom_jlc.csv from 02_parts/<MPN>/part.yaml.
 Every ASSEMBLED line must resolve (exit 1 otherwise); the hand-solder set
-(J1 terminal, J2 mic pads — decisions D6/D10; the CMT-8504 transducer IS JLC-coded, C22359707) is
+(J1 RJ45 jack, J2 mic pads — decisions D11/D10; the CMT-8504 transducer IS JLC-coded, C22359707) is
 deliberately UNCODED and listed for the MANIFEST not_assembled line."""
 import csv
 import sys
@@ -34,7 +34,9 @@ MAP = {  # BOM Comment -> 02_parts/ MPN
     "0R choke byp -": "0805W8F0000T5E",
 }
 HAND_SOLDER = {  # Comment prefix -> (MPN, note); uncoded in BOM by design
-    "KF128L-3.5-8P": ("KF128L-3.5-8P", "3.5mm screw terminal, THT"),
+    # RJ45 jack (ADR-0004/D11): JLC consign-only (C9900035627 stock 0) —
+    # Digi-Key RJHSE-5384-ND; same part the central board hand-solders x8
+    "RJHSE-5384": ("RJHSE-5384", "RJ45 jack, THT hand-solder"),
     "MIC PADS": ("PinHeader-1x02", "mic wire pads (capsule on leads)"),
 }
 

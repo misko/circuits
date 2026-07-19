@@ -40,6 +40,15 @@ board-local decisions only.
   (sub-mA), keeping the filter drop at ~75mV while the bias string gets
   the clean rail. PSRR of the OPA1678 covers the rest.
 
+- D11 (2026-07-19): A4 implemented — J1 = RJHSE-5384 RJ45 jack (same part
+  as central), opening WEST toward the gland, jack + exposed-plug volume
+  placed inside the 1551WY lid's 81x31 full-height recess — see
+  decisions/0004 for the clearance math (CONDITIONAL FIT: +0.24mm nominal, top EMI
+  tabs compress on the lid, first-article lid-close gate). Net map is
+  contact-for-contact the v1.0 terminal map = central D28 sealed map.
+  Shield tails -> SHIELD net (D7 provision unchanged). Hand-solder line
+  (Digi-Key), solid-core-rated bootless plugs required for the field crimp.
+
 ## A4 (user utterance, 2026-07-19)
 User: "i would rather have a ethernet terminal on the pod" — pod cable
 termination changes from 8-pos screw terminal (D6) to an RJ45 jack

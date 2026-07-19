@@ -8,7 +8,10 @@ power-symbol ground icons, and gates itself on internal S-OCCL == 0.
 Pin numbers are PHYSICAL PADS from 02_parts/<MPN>/part.yaml (each cites its
 datasheet figure): OPA1678 fig 5-3 p.4 SBOS855E (1=OUT_A 2=-IN_A 3=+IN_A
 4=V- 5=+IN_B 6=-IN_B 7=OUT_B 8=V+); TPD2E2U06 DRL pin table p.3 SLLSEG9C
-(1,2=NC 3=IO1 4=GND 5=IO2); CMT-8504 mech drawing p.2 (1=+ 2=- 3,4=dummy);
+(1,2=NC 3=IO1 4=GND 5=IO2); RJHSE-5384 hole map from the Amphenol catalogue
+p.4/p.6 RECOMMENDED PCB LAYOUT figures (02_parts/RJHSE-5384/part.yaml,
+re-verified for the pod 2026-07-19: contacts 1-8, LED tails 9-12 NC, SH
+shield); CMT-8504 mech drawing p.2 (1=+ 2=- 3,4=dummy);
 SS14/SMAJ D_SMA pad1=cathode; WE-SL2 windings 1-4 / 2-3 (KiCad std pads).
 Circuit per 01_docs/ARCHITECTURE.md + DETAIL_DESIGN.md; decisions D3-D9 in
 01_docs/BRIEF.md. DNP reserves (D3 TVS, L1 choke, R15 shield bond) carry
@@ -48,9 +51,13 @@ sch.defsym("TP", 5.08, 5.08, [("1", "1", "L", 0)], ref="TP")
 sch.defsym("DSMA", 7.62, 5.08, [("1", "K", "L", 0), ("2", "A", "R", 0)], ref="D")
 # mic wire pads (capsule off-board on leads): both pins left, like a header
 sch.defsym("HDR2", 7.62, 7.62, [("1", "MIC+", "L", 0), ("2", "MIC-", "L", 1)], ref="J")
-# 8-pos screw terminal, linear 1..8 (T568B numbering at the central end)
-sch.defsym("TERM8", 10.16, 22.86,
-           [(str(n), f"P{n}", "R", n - 1) for n in range(1, 9)], ref="J")
+# RJ45 RJHSE-5384 (ADR-0004/D11): contacts 1-8 = T568B pin n (same numbers
+# the old screw terminal carried), LED tails 9-12 unused, SH shield tails
+sch.defsym("RJ45", 15.24, 33.02,
+           [(str(k), f"CT{k}", "R", k - 1) for k in range(1, 9)] +
+           [("9", "LED1A", "L", 0), ("10", "LED1B", "L", 1),
+            ("11", "LED2A", "L", 2), ("12", "LED2B", "L", 3),
+            ("SH", "SHLD", "L", 5)], ref="J")
 # OPA1678IDR SOIC-8 (fig 5-3 p.4): A stage inputs top-left, outputs right
 sch.defsym("OPAMP", 12.7, 20.32,
            [("3", "+IN_A", "L", 0), ("2", "-IN_A", "L", 1),
@@ -79,7 +86,7 @@ sch.sym_fp = {
     "TP": "TestPoint:TestPoint_Pad_D1.5mm",
     "DSMA": "Diode_SMD:D_SMA",
     "HDR2": "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
-    "TERM8": "pod:TerminalBlock_3.5-8P_NoSilk",
+    "RJ45": "Connector_RJ:RJ45_Amphenol_RJHSE538X",
     "OPAMP": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
     "ESD": "Package_TO_SOT_SMD:SOT-553",
     "BUZZ": "pod:CMT-8504",
@@ -91,10 +98,11 @@ sch.ref_fp = {"TP6": "TestPoint:TestPoint_Pad_D2.5mm"}
 # ═══════════════════ circuit: structure only ═══════════════════
 
 # --- region 1: cable entry ---
-sch.region("1. CABLE ENTRY (Cat5e NOT-ETHERNET pinout, terminal n = T568B pin n)   [P4, ADR-0001/0003]")
-sch.row(("TERM8", "J1", "KF128L-3.5-8P",
+sch.region("1. CABLE ENTRY (RJ45 jack, field-crimped plug, NOT-ETHERNET T568B map)   [P4, A4, ADR-0001/0004]")
+sch.row(("RJ45", "J1", "RJHSE-5384",
          {"1": "AUDIO_P", "2": "AUDIO_N", "3": "BEEP_5V", "4": "5V",
-          "5": "GND", "6": "BEEP_RET", "7": "5V", "8": "GND"}),
+          "5": "GND", "6": "BEEP_RET", "7": "5V", "8": "GND",
+          "9": None, "10": None, "11": None, "12": None, "SH": "SHIELD"}),
         ("ESD", "D1", "TPD2E2U06DRLR",
          {"3": "AUDIO_P", "5": "AUDIO_N", "4": "GND", "1": None, "2": None}))
 sch.chain("J1.1", "D1.3")   # AUDIO+ into the entry ESD clamp: drawn

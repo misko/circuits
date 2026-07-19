@@ -42,6 +42,24 @@ for f in b.GetFootprints():
     x, y = f.GetPosition().x / 1e6, f.GetPosition().y / 1e6
     keepout_rect(x - R, y - R, x + R, y + R)
 
+# NPTH board-lock posts (J1 RJ45, o3.25): DRC hole clearance is 0.25 but
+# KRT only knows the 0.15 copper clearance — fence the holes (v1.1: 12x
+# hole_clearance violations from tracks grazing the posts)
+for f in b.GetFootprints():
+    for p in f.Pads():
+        if p.GetAttribute() == pcbnew.PAD_ATTRIB_NPTH:
+            x, y = p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
+            r = p.GetDrillSize().x / 2e6 + 0.25 + 0.35  # hole clr + track headroom
+            keepout_rect(x - r, y - r, x + r, y + r)
+
+# GND escape corridor for J1's south GND tail (pad 8): without it the
+# BEEP/5V/SHIELD escapes wall the pad in on both layers and no via fits
+# the hole field (v1.1: A* rescue found NO path). L-shaped keepout from
+# west-of-pad-8 south past LED12/SH2 to the open pour; the stitcher's
+# strap/A* rescue threads GND through the reserved channel after routing.
+keepout_rect(72.3, 71.9, 75.7, 72.9)   # horizontal leg, south of the pad-8 ring
+keepout_rect(72.3, 71.9, 73.5, 76.8)   # vertical leg, east of the LED tails
+
 # corner cutouts: keep the router away from the concave arcs
 X0, Y0, X1, Y1 = 50.0, 50.0, 144.5, 94.5
 C = 6.8

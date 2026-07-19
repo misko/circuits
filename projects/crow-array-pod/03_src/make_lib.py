@@ -6,10 +6,9 @@
   (outer span 9.5, inner 4.5). Pad 1 = POLARITY(+) top-left, pad 2 =
   POLARITY(-) bottom-left, pads 3/4 = the right-column DUMMY pads
   (mechanical only). Silk "+" beside pad 1; body outline 8.5x8.5.
-- TerminalBlock_3.5-8P_NoSilk: std Phoenix PT-1,5-8-3.5-H with ALL silk
-  stripped (our generated plain-word labels + pin numbers replace it, and
-  the stock outline would collide with them). Textual transform per the
-  esp32-laser-timing precedent (FootprintSave is a silent no-op on 10.0.4).
+- (v1.0 also vendored TerminalBlock_3.5-8P_NoSilk for the D6 screw
+  terminal; removed in v1.1 — ADR-0004 replaced J1 with the std-lib
+  Connector_RJ:RJ45_Amphenol_RJHSE538X jack.)
 
 Run: python3 03_src/make_lib.py
 """
@@ -53,42 +52,5 @@ fp = f'''(footprint "CMT-8504"
 (LIB / "CMT-8504.kicad_mod").write_text(fp)
 print("vendored CMT-8504 (4 pads, + mark on silk near pad 1)")
 
-# ------------------------------------------------- terminal, silk stripped
-SRC = Path("/usr/share/kicad/footprints/TerminalBlock_Phoenix.pretty/"
-           "TerminalBlock_Phoenix_PT-1,5-8-3.5-H_1x08_P3.50mm_Horizontal.kicad_mod")
-s = SRC.read_text()
-
-
-def children(text):
-    i = text.index("(", 1)
-    head = text[:i]
-    out, depth, start = [], 0, i
-    for j in range(i, len(text)):
-        c = text[j]
-        if c == "(":
-            if depth == 0:
-                start = j
-            depth += 1
-        elif c == ")":
-            depth -= 1
-            if depth == 0:
-                out.append(text[start:j + 1])
-            elif depth < 0:
-                return head, out, text[j:]
-    raise ValueError("unbalanced")
-
-
-head, chunks, tail = children(s)
-kept, killed = [], 0
-for ch in chunks:
-    kind = ch[1:].split(None, 1)[0]
-    if kind.startswith("fp_") and '"F.SilkS"' in ch and "(property" not in ch:
-        killed += 1
-        continue
-    kept.append(ch)
-assert killed >= 3, f"expected to strip silk graphics, killed only {killed}"
-name_old = 'TerminalBlock_Phoenix_PT-1,5-8-3.5-H_1x08_P3.50mm_Horizontal'
-body2 = head + "\n  ".join(kept) + tail
-body2 = body2.replace(f'"{name_old}"', '"TerminalBlock_3.5-8P_NoSilk"', 1)
-(LIB / "TerminalBlock_3.5-8P_NoSilk.kicad_mod").write_text(body2)
-print(f"vendored TerminalBlock_3.5-8P_NoSilk ({killed} silk items stripped)")
+# v1.1 (ADR-0004): the vendored TerminalBlock_3.5-8P_NoSilk is no longer
+# generated — J1 is now the std-lib Connector_RJ:RJ45_Amphenol_RJHSE538X.

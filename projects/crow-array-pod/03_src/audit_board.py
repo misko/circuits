@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Placement/pad invariant gate. Exit 0 = pass.
 I1 pads inside outline INCLUDING the concave corner cutouts;
-I2 J1 mate direction (wire openings W, body near the W edge, pin1 N);
+I2 J1 RJ45 mate direction (opening W toward the gland, pin1 N) + lid-recess
+   containment for jack body AND exposed plug (ADR-0004 clearance math);
 I3 beeper/mic separation: beeper block (BZ1,D2,D3,R12) >= 15mm from the
    mic/high-Z parts (J2,R2,C3,R3) and >= 12mm from U1;
 I4 body over mounting hole; I5 screw-head keepout warn;
@@ -39,19 +40,24 @@ for f in b.GetFootprints():
             if math.hypot(x - cx, y - cy) < RCUT + 0.3:
                 fails.append(f"I1 pad in corner cutout: {r}.{p.GetNumber()} at ({x:.1f},{y:.1f})")
 
-# I2 J1: opening W, pin1 N, body reaches within 4mm of the W edge
+# I2 J1 RJ45 (ADR-0004): mating face W (LED tails 9-12 west of contacts),
+# pin1 N, jack body + ~12mm exposed-plug volume inside the 1551WY lid's
+# 81x31 full-height recess (only 7.9mm headroom under the perimeter band)
 j1 = b.FindFootprintByReference("J1")
 bbj = j1.GetBoundingBox(False, False)
-pads = [p.GetPosition() for p in j1.Pads()]
-pcx = sum(p.x for p in pads) / len(pads)
-vx = (bbj.Centre().x - pcx) / 1e6
-if vx >= 0:
-    fails.append(f"I2 J1 wire opening faces the wrong way (vx={vx:.2f})")
-if MM(bbj.GetLeft()) - X0 > 4.0:
-    fails.append(f"I2 J1 body must be near the W edge (starts {MM(bbj.GetLeft()):.1f})")
-jp = {p.GetNumber(): p.GetPosition() for p in j1.Pads()}
+jp = {p.GetNumber(): p.GetPosition() for p in j1.Pads() if p.GetNumber()}
+if not jp["9"].x < min(jp[str(n)].x for n in range(1, 9)):
+    fails.append("I2 J1 mating face must point WEST (LED tails west of contacts)")
 if not jp["1"].y < jp["8"].y:
     fails.append("I2 J1 pin1 must be the north end")
+RECESS = (56.75, 56.75, 137.75, 87.75)
+PLUG_MM = 12.0
+jx0, jy0, jx1, jy1 = (MM(bbj.GetLeft()), MM(bbj.GetTop()),
+                      MM(bbj.GetRight()), MM(bbj.GetBottom()))
+if not (jx0 - PLUG_MM >= RECESS[0] and jy0 >= RECESS[1]
+        and jx1 <= RECESS[2] and jy1 <= RECESS[3]):
+    fails.append(f"I2 J1 body+plug outside lid recess: "
+                 f"({jx0:.1f},{jy0:.1f})-({jx1:.1f},{jy1:.1f}) plug->x{jx0 - PLUG_MM:.1f}")
 
 # I3 beeper aggressors vs mic/amp high-Z region
 def center(r):
