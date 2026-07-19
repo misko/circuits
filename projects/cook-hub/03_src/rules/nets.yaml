@@ -1,0 +1,53 @@
+# cook-hub net architecture — source of truth for netclasses + DRU floors.
+# generate_rules.py emits these into 04_kicad/*.kicad_pro and .kicad_dru.
+# Defined BEFORE routing (kicad-pcb golden rule 3). 4-layer JLC standard
+# tier, 0.6/0.3 vias.
+
+fab_tier: jlc_4layer_standard
+
+classes:
+  KEYPAD:
+    intent: >
+      The 32 isolated relay-contact nets (channel n = KC{n}A/KC{n}B) to
+      J11. Potentially hazardous/unknown keypad-scan voltage (spec 6.3):
+      the iso_keypad DRU rule holds them >= 6mm from EVERY other net's
+      copper; audit I-ISO re-measures independently. Confined to the comb
+      region; drawn only by route_bank.py.
+    nets: [KC1A, KC1B, KC2A, KC2B, KC3A, KC3B, KC4A, KC4B, KC5A, KC5B,
+           KC6A, KC6B, KC7A, KC7B, KC8A, KC8B, KC9A, KC9B, KC10A, KC10B,
+           KC11A, KC11B, KC12A, KC12B, KC13A, KC13B, KC14A, KC14B,
+           KC15A, KC15B, KC16A, KC16B]
+    current: "<5mA keypad scan"
+    min_width: 0.4mm
+    iso_clearance: 6.0mm
+    routing: route_bank.py only (corridors + fan + J11 drops)
+    verify: DRU iso_keypad + audit I-ISO + render review of boundary silk
+
+  COIL:
+    intent: >
+      16 relay coil sink nets (ULN2803 OUT -> coil pin 7). 10mA each,
+      one-at-a-time firmware default; 0.4mm floor is pure robustness.
+      Drawn only by route_bank.py (verticals + lanes + TP bridges).
+    nets: [COIL_1, COIL_2, COIL_3, COIL_4, COIL_5, COIL_6, COIL_7, COIL_8,
+           COIL_9, COIL_10, COIL_11, COIL_12, COIL_13, COIL_14, COIL_15,
+           COIL_16]
+    current: 0.01A
+    min_width: 0.4mm
+    routing: route_bank.py only
+    verify: DRC floor + audit NOGO sweep
+
+  PWR:
+    intent: >
+      Power rails. Worst case 0.61A on 5VP (all-coil fault + logic);
+      0.5mm floor ~1.5A-class on outer layers. RELAY_5V trunk = the
+      0.8mm F.Cu bus (route_bank) + 0.5 floor elsewhere. In2 pours carry
+      5VP/3V3/3V3A in the SELV region.
+    nets: [5V_IN, 5V_D, 5VP, RELAY_5V, VSYS, 3V3, 3V3A]
+    current: 0.61A worst
+    min_width: 0.5mm
+    routing: KRT wave 1 + In2 pours; RELAY_5V bank side by route_bank
+    verify: DRC floor
+
+# Default 0.2mm: all logic/sensor signals. GND is not routed: In1 plane
+# + F/B pours + stitch vias (stitch_and_fill.py), all excluded from the
+# keypad comb + 6mm margin.

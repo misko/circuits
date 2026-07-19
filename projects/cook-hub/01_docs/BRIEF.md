@@ -72,3 +72,27 @@ The demonstration of those three conditions is a release deliverable
 
 Every gate artifact lives per contracts; the §16-condensed bring-up checklist
 ships in the release ORDER_README.
+
+## Decision amendments (build phase, 2026-07-19)
+- D9-rev1: J5 = KF350-3.5-2P screw terminal (silk "TC K-TYPE YEL+ RED-"),
+  not a PCB-mount PCC-SMP-K socket: no verifiable land pattern without a
+  donor part, not JLC-sourceable, and TC wire lands directly in a screw
+  terminal. §3.6c "keyed connector" is met at the HARNESS level — an
+  inline PCC-SMP-K panel jack is an ORDER_README accessory line item.
+- D11-rev1: pullup selection is ONE 3-pin jumper per bus (JP1 bus0, JP2
+  bus1): pin2=3V3 center; shunt 1-2 = 2.2k pair active (ship default),
+  shunt 2-3 = 4.7k pair, removed = external pullups only. (D11's four
+  jumpers collapsed to two; same selectability, fewer parts.)
+- D15 (bank routing, ADR-0002 amendment): super-column pitch is 17.78mm
+  (not 15.24 as first drafted): contact column -> next coil column gap
+  10.16mm. All three SELV verticals per column (RELAY_5V / odd coil /
+  even coil) share x=COIL_X-1.3 on F.Cu/B.Cu/In2.Cu; coil nets bridge to
+  the ULN side through THT test points (TP41-56, the §8.6 per-coil test
+  points doubling as layer bridges); KRT never touches KEYPAD/COIL/
+  RELAY_5V nets (route_bank.py draws them). Worst-case keypad-to-SELV
+  copper gap 6.16mm (relay's own coil pad to its contact-corridor lane
+  copper is by the package's 7.62mm row spacing: 6.12mm pad-edge to
+  pad-edge). Audit I-ISO floor stays 6.0mm.
+- D16: Pico module 3V3_OUT (pin 36) and 3V3_EN (pin 37) are no_connect
+  (ADR-0005: module regulator powers nothing on the board); VBUS pin 40
+  = TP29 only (D12). SW1 tact switch on RUN for bench reset.
