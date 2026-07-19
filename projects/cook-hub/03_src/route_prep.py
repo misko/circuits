@@ -71,6 +71,21 @@ for f in b.GetFootprints():
             r = p.GetDrillSize().x / 2e6 + 0.25 + 0.35
             keepout_rect(x - r, y - r, x + r, y + r)
 
+# Board-perimeter keep-away frame: KRT has no board-edge concept and routed
+# GP4_SPARE / HX_CLK right into the corners (copper_edge_clearance, 0.3mm
+# floor). A ~0.7mm keepout band just inside the outline forces its tracks +
+# vias off the edge. (The isolation MILLED SLOTS are already inside the whole-
+# bank User.2 keepout, so keypad/coil copper near a slot is a route_bank
+# concern, handled there — not here.)
+EB = 0.7
+X0, Y0, X1, Y1 = G.X0, G.Y0, G.X1, G.Y1
+for (x0, y0, x1, y1) in [
+        (X0, Y0, X1, Y0 + EB),          # north
+        (X0, Y1 - EB, X1, Y1),          # south
+        (X0, Y0, X0 + EB, Y1),          # west
+        (X1 - EB, Y0, X1, Y1)]:         # east
+    keepout_rect(x0, y0, x1, y1)
+
 b.Save(str(OUT))
 shutil.copy(SRC.with_suffix(".kicad_pro"), OUT.with_suffix(".kicad_pro"))
 shutil.copy(SRC.with_suffix(".kicad_dru"), OUT.with_suffix(".kicad_dru"))

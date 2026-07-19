@@ -118,11 +118,31 @@ def pad_has_via(pad, d=1.6):
     return False
 
 
+# does a same-net TRACK already land on the pad (KRT routed it)? then a pour-
+# bond via is redundant — and 3V3/5VP are wave-1 KRT nets, so an added bond
+# via typically ends up one-layer (via_dangling) because the In2 pour is
+# voided under the KRT copper. Skip the bond when the pad is already routed.
+def pad_has_track(pad):
+    bb = pad.GetBoundingBox()
+    l, t_, r, bt = (MM(bb.GetLeft()), MM(bb.GetTop()),
+                    MM(bb.GetRight()), MM(bb.GetBottom()))
+    nc = pad.GetNetCode()
+    for tr in b.GetTracks():
+        if tr.GetClass() != "PCB_TRACK" or tr.GetNetCode() != nc:
+            continue
+        for pt in (tr.GetStart(), tr.GetEnd()):
+            x, y = MM(pt.x), MM(pt.y)
+            if l - 0.05 <= x <= r + 0.05 and t_ - 0.05 <= y <= bt + 0.05:
+                return True
+    return False
+
+
 IN2_POUR = {"3V3": lambda x, y: not in_nogo(x, y),
             "5VP": lambda x, y: 26 < x < 53 and 110 < y < 131,
             "3V3A": lambda x, y: 21 < x < 52 and 21 < y < 40}
 
 gnd_ok = gnd_n = pour_n = 0
+gnd_fail = []
 for fp in b.GetFootprints():
     for p in fp.Pads():
         if p.GetDrillSize().x > 0:
@@ -131,21 +151,23 @@ for fp in b.GetFootprints():
         px, py = MM(p.GetPosition().x), MM(p.GetPosition().y)
         if nname == "GND":
             gnd_n += 1
-            if pad_has_via(p):
+            if pad_has_via(p) or pad_has_track(p):
                 gnd_ok += 1
                 continue
             # non-fatal: a GND SMD pad boxed-in for both via-in-pad and an
             # adjacent via+stub (dense ESD/divider clusters, KRT tracks crossing
-            # under) is reported by the DRC unconnected gate, not silently shipped.
+            # under) is handled by the stub-to-nearest-GND fallback below.
             if rescue_pad(p, f"GND {fp.GetReference()}.{p.GetNumber()}",
                           mandatory=False, viainpad=True):
                 gnd_ok += 1
+            else:
+                gnd_fail.append((fp.GetReference(), p))
         elif nname in IN2_POUR and IN2_POUR[nname](px, py):
             # U12 (AMS1117) VOUT tab is bonded to the 3V3 pour by the dedicated
             # R-THERM section below (needs >=2 thermal vias); leave it for that.
             if fp.GetReference() == "U12":
                 continue
-            if not pad_has_via(p, 2.2):
+            if not pad_has_via(p, 2.2) and not pad_has_track(p):
                 # adjacent via + short stub (NOT via-in-pad: a 0.6 barrel on a
                 # dense 0402 pour pad bridges to its neighbours -> shorts/mask
                 # bridges). Stub widened to the PWR floor (0.5) where the
@@ -154,6 +176,49 @@ for fp in b.GetFootprints():
                               mandatory=False, viainpad=False, stub_w=0.5):
                     pour_n += 1
 print(f"GND rescue: {gnd_ok}/{gnd_n} SMD pads via'd; {pour_n} pour-bond vias")
+
+# ---- GND stub-to-nearest-GND fallback (plan step 1): a GND SMD pad whose
+# via-in-pad AND adjacent-via+stub are both blocked (a crossing KRT track
+# voids the plane under every candidate site) is instead bonded by a short
+# same-layer stub to the NEAREST existing GND copper (a GND via barrel = the
+# In1-plane link, or a GND track). Collide-checked; each recovered pad prints.
+def nearest_gnd_targets():
+    pts = []
+    for t in b.GetTracks():
+        if t.GetNetCode() != gnd_code:
+            continue
+        if t.GetClass() == "PCB_VIA":
+            pts.append((MM(t.GetPosition().x), MM(t.GetPosition().y), None))
+        else:
+            for e in (t.GetStart(), t.GetEnd()):
+                pts.append((MM(e.x), MM(e.y), t.GetLayer()))
+    return pts
+
+
+gnd_code = b.GetNetInfo().NetsByName()["GND"].GetNetCode()
+gnd_pts = nearest_gnd_targets()
+recovered = 0
+for ref, p in gnd_fail:
+    px, py = MM(p.GetPosition().x), MM(p.GetPosition().y)
+    lay = p.GetLayer() if p.GetLayer() in (pcbnew.F_Cu, pcbnew.B_Cu) else pcbnew.F_Cu
+    net = p.GetNet()
+    # nearest GND target reachable on this pad's layer (via = any layer)
+    cands = sorted(((math.hypot(px - x, py - y), x, y, tl)
+                    for (x, y, tl) in gnd_pts
+                    if tl is None or tl == lay), key=lambda c: c[0])
+    for dist, tx, ty, tl in cands:
+        if dist < 0.2 or dist > 8.0:
+            continue
+        if tk.collides(px, py, round(tx, 2), round(ty, 2), 0.3,
+                       gnd_code, lay) is not None:
+            continue
+        tk.add_seg(px, py, round(tx, 2), round(ty, 2), net, lay, 0.3)
+        recovered += 1
+        gnd_pts.append((px, py, lay))
+        break
+    else:
+        print(f"  GND stub fallback FAILED: {ref}.{p.GetNumber()}")
+print(f"GND stub fallback: recovered {recovered}/{len(gnd_fail)}")
 
 # AMS1117 tab (3V3): >= 2 thermal vias near the tab (canon R6)
 u12 = b.FindFootprintByReference("U12")
