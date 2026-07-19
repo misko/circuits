@@ -1,18 +1,18 @@
 ./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
 ./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
 ./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
-08:44:35: Debug: Adding duplicate image handler for 'PNG file'
-08:44:35: Debug: Adding duplicate image handler for 'JPEG file'
-08:44:35: Debug: Adding duplicate image handler for 'TIFF file'
-08:44:35: Debug: Adding duplicate image handler for 'GIF file'
-08:44:35: Debug: Adding duplicate image handler for 'PNM file'
-08:44:35: Debug: Adding duplicate image handler for 'PCX file'
-08:44:35: Debug: Adding duplicate image handler for 'IFF file'
-08:44:35: Debug: Adding duplicate image handler for 'Windows icon file'
-08:44:35: Debug: Adding duplicate image handler for 'Windows cursor file'
-08:44:35: Debug: Adding duplicate image handler for 'Windows animated cursor file'
-08:44:35: Debug: Adding duplicate image handler for 'TGA file'
-08:44:35: Debug: Adding duplicate image handler for 'XPM file'
+09:08:41: Debug: Adding duplicate image handler for 'PNG file'
+09:08:41: Debug: Adding duplicate image handler for 'JPEG file'
+09:08:41: Debug: Adding duplicate image handler for 'TIFF file'
+09:08:41: Debug: Adding duplicate image handler for 'GIF file'
+09:08:41: Debug: Adding duplicate image handler for 'PNM file'
+09:08:41: Debug: Adding duplicate image handler for 'PCX file'
+09:08:41: Debug: Adding duplicate image handler for 'IFF file'
+09:08:41: Debug: Adding duplicate image handler for 'Windows icon file'
+09:08:41: Debug: Adding duplicate image handler for 'Windows cursor file'
+09:08:41: Debug: Adding duplicate image handler for 'Windows animated cursor file'
+09:08:41: Debug: Adding duplicate image handler for 'TGA file'
+09:08:41: Debug: Adding duplicate image handler for 'XPM file'
 C165948  J9  MODEL-REG  body center 2.1mm off courtyard, area ratio 0.69 -> DO NOT blind-flip: JLC's footprint mounts this model at rot_z=180 (authoritative); body asymmetric (1.1mm bbox-center offset) so this metric is unreliable. VERIFY leads sit on pads visually; if correct, adjudicate as a false alarm with NO rotation override
 C844297  RS1  MODEL-REG  body center 1.1mm off courtyard, area ratio 0.68 -> DO NOT blind-flip: JLC's footprint mounts this model at rot_z=0 (authoritative); body asymmetric (0.9mm bbox-center offset) so this metric is unreliable. VERIFY leads sit on pads visually; if correct, adjudicate as a false alarm with NO rotation override
 C844297  RS2  MODEL-REG  body center 1.1mm off courtyard, area ratio 0.68 -> DO NOT blind-flip: JLC's footprint mounts this model at rot_z=0 (authoritative); body asymmetric (0.9mm bbox-center offset) so this metric is unreliable. VERIFY leads sit on pads visually; if correct, adjudicate as a false alarm with NO rotation override

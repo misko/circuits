@@ -50,7 +50,7 @@
 | +12–24 V input (J7) | M5 bolt, nut, 2 washers + M5 ring lug on 6 AWG-class wire | 4.0–5.0 N·m |
 | Ports 1–6 (J1–J6) | M4 bolt, nut, 2 washers + M4 ring lug on 10 AWG-class wire | 2.0–2.5 N·m |
 | GND REF (J8) | M4 hardware + lug on any sense wire ≥22 AWG — **NOT a load return** | 2.0 N·m |
-| Mounting (H1–H7) | M4 screws + STEEL or BRASS standoffs, DIN 125 flat washer + split washer both sides (holes are PLATED, Ø9 lands) — NYLON REJECTED, ADR-0007 | 1.2–1.5 N·m |
+| Mounting (H1–H7) | M4 screws + STEEL or BRASS standoffs, DIN 125 flat washer (OD 9 — NOT fender/oversize: north lands sit 0.5 mm from the edge) + split washer both sides (holes are PLATED, Ø9 lands) — NYLON REJECTED, ADR-0007 | 1.2–1.5 N·m |
 
 Brass or steel hardware; washer under both lug and nut. Re-torque after
 the first thermal cycle.

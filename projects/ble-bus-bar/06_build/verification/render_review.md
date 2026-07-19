@@ -17,3 +17,14 @@ summarized; verdict PASS (no blockers).
 | Six fuse holders, port chain x6, silk legible (PORT 1-6, +12-24V IN, GND REF, CHECK POLARITY, RESET/BOOT, UART), no collisions, bottom empty | OK | — |
 | Schematic single page, readable story, title-block comment slightly overruns border | NOTE | cosmetic |
 | F.Cu: trunk pour spans all six fuse feeds; Kelvin pairs off shunt pads; B.Cu solid plane | OK | matches ARCHITECTURE intent |
+
+
+## Delta round (v1.1 mounting, 2026-07-19)
+
+Fresh agent, mounting-only diff. Verdict **PASS — approve for release**.
+All 7 M4 washer-lands present/unclipped/floating (F.Cu trunk + B.Cu
+plane moats verified; M5 lug + stud connections intact); washer/head
+fit clear of bodies and silk; all silk legible. NOTEs: north lands
+0.5 mm from edge (Ø9 washers only — carried to ORDER_README); tightest
+land-to-stud ring 1.1–1.5 mm at H2/PORT4 (adequate; flag for any v1.2
+move).

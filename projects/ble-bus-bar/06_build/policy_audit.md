@@ -1,4 +1,4 @@
-ble-bus-bar: HUMAN=6, N-A=4, PASS=14, WAIVED=2
+ble-bus-bar: HUMAN=6, N-A=3, PASS=15, WAIVED=2
 licy_audit.py; canon: design-policies.md
 
 | ID | Grade | Detail |
@@ -25,19 +25,19 @@ licy_audit.py; canon: design-policies.md
 | R4 | HUMAN | escape feasibility at fab rules — design review |
 | R-LEN | N-A | no timing-critical nets declared |
 | M-REPRO | PASS | all rebuild inputs git-tracked |
-| M-REL | N-A | no releases yet |
+| M-REL | PASS | v1.0-2026-07-19: provenance + hashes verify |
 | M-WAIV | PASS | 15 adjudications, all evidenced |
 | M1 | HUMAN | independent-reference coverage — release review |
 | M6 | HUMAN | authoritative-source discipline — encoded in protocols |
 
-Summary: HUMAN=6, N-A=4, PASS=14, WAIVED=2
+Summary: HUMAN=6, N-A=3, PASS=15, WAIVED=2
 
 
-## HUMAN-graded items — reviewer verdicts (2026-07-19)
+## HUMAN-graded items — reviewer verdicts (v1.1, 2026-07-19)
 
 | Item | Verdict | Evidence |
 |---|---|---|
-| S5 design math | PASS | delta pin review re-derived the U7 EP grid + U11 package dims from datasheets and matched; DETAIL_DESIGN values spot-checked in reviews (INA LSB, buck divider) |
-| S6 schematic readability | PASS | render review: "single readable page, tiled story ... no overlapping wire/label text"; note: title-block comment slightly overruns border (cosmetic) |
-| S7 decoupling adjacency | PASS | audit IP gates (CB-U 5mm x6, C8-module, C9-flash pin8 3.7mm, C4-U8, C1-U8, C12-U9); C7 re-tasked as rail bulk near the buck (audit note) |
-| M1 verification independence | PASS | pin reviews + render review by fresh-context agents; twin vs JLC CAD; DRC vs generators |
+| S5 design math | PASS | carried from v1.0 (electrically unchanged); ADR-0007 adds the mechanical load math (nylon creep, shear reaction distances) |
+| S6 schematic readability | PASS | schematic unchanged from v1.0 (mounting is board-level; parity 0) |
+| S7 decoupling adjacency | PASS | unchanged; audit IP gates re-ran green |
+| M1 verification independence | PASS | v1.1 delta render review by a fresh agent (mount lands/isolation verified visually against pours) |
