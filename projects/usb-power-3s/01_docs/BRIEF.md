@@ -2,7 +2,7 @@
 
 status: delivered
 prompt_sha256: bb5ae2d40b89086de582a1ad4381d416825d4847a527278c363d67b3ca5462ab
-current_release: 07_releases/v1.1-2026-07-16
+current_release: 07_releases/v1.3-2026-07-17
 
 ## Original prompt
 
