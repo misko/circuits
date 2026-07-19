@@ -4,16 +4,22 @@
   (condition "A.Type == 'Pad' && A.NetName == ''")
   (constraint hole_clearance (min 0.1mm)))
 (rule width_pwr5
-  (condition "A.NetClass == 'PWR5' && !A.insideArea('xu316_taps')")
+  (condition "A.NetClass == 'PWR5' && !A.insideArea('xu316_taps') && !A.insideArea('pwr_neck')")
   (constraint track_width (min 0.50mm)))
 (rule width_pwr5_tap
   (condition "A.NetClass == 'PWR5' && A.insideArea('xu316_taps')")
   (constraint track_width (min 0.15mm)))
+(rule width_pwr5_neck
+  (condition "A.NetClass == 'PWR5' && A.insideArea('pwr_neck')")
+  (constraint track_width (min 0.15mm)))
 (rule width_rail
-  (condition "A.NetClass == 'RAIL' && !A.insideArea('xu316_taps')")
+  (condition "A.NetClass == 'RAIL' && !A.insideArea('xu316_taps') && !A.insideArea('pwr_neck')")
   (constraint track_width (min 0.40mm)))
 (rule width_rail_tap
   (condition "A.NetClass == 'RAIL' && A.insideArea('xu316_taps')")
+  (constraint track_width (min 0.15mm)))
+(rule width_rail_neck
+  (condition "A.NetClass == 'RAIL' && A.insideArea('pwr_neck')")
   (constraint track_width (min 0.15mm)))
 (rule width_arail
   (condition "A.NetClass == 'ARAIL'")

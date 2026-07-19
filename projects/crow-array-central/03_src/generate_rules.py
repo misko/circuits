@@ -93,11 +93,23 @@ for name, c in cfg["classes"].items():
     if name in ("RAIL", "PWR5"):
         # power keeps its ampacity floor OUTSIDE the XU316 tap area, but the
         # short per-pin IO taps inside it may neck to 0.15 (D19 / rule area).
+        # D25: 'pwr_neck' areas (neck_approaches.py) additionally exempt the
+        # necked fine-pitch/parallel-escape approaches where a full-width
+        # power segment physically cannot clear 0.09mm (clusters A/B/C).
+        # Ampacity margin at the 0.20mm neck (1oz outer, IPC-2152 ~0.65A
+        # at 10C rise): 5V per-buck VIN branch <=0.45A -> >=1.4x headroom on
+        # a <1mm neck; 3V3 trunk <=0.40A -> ~3.8C rise even on the longest
+        # (~16mm) necked run ((0.40/0.65)^2 x 10C). Floors are backstops;
+        # the trunks still ride In2 islands/pours (rules/nets.yaml).
         dru.append(f"(rule width_{name.lower()}\n"
-                   f"  (condition \"A.NetClass == '{name}' && !A.insideArea('xu316_taps')\")\n"
+                   f"  (condition \"A.NetClass == '{name}' && !A.insideArea('xu316_taps')"
+                   f" && !A.insideArea('pwr_neck')\")\n"
                    f"  (constraint track_width (min {w:.2f}mm)))")
         dru.append(f"(rule width_{name.lower()}_tap\n"
                    f"  (condition \"A.NetClass == '{name}' && A.insideArea('xu316_taps')\")\n"
+                   f"  (constraint track_width (min 0.15mm)))")
+        dru.append(f"(rule width_{name.lower()}_neck\n"
+                   f"  (condition \"A.NetClass == '{name}' && A.insideArea('pwr_neck')\")\n"
                    f"  (constraint track_width (min 0.15mm)))")
     else:
         dru.append(f"(rule width_{name.lower()}\n  (condition \"A.NetClass == '{name}'\")\n"

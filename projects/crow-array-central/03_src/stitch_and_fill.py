@@ -119,15 +119,34 @@ def _in_taps(tr):
     return TAPX0 < mx < TAPX1 and TAPY0 < my < TAPY1
 
 
+# 'pwr_neck' rule areas (D25, neck_approaches.py): DRC-guarded necks at
+# unroutable approaches. The lift pass must NOT re-widen them (it did — the
+# rebuild of the promoted board re-inflated every neck back into its
+# clearance violation and neck_approaches had to redo all 18).
+_neck_zones = [z for z in b.Zones()
+               if z.GetIsRuleArea() and z.GetZoneName() == "pwr_neck"]
+
+
+def _in_neck(tr):
+    for pt in (tr.GetStart(), tr.GetEnd(),
+               pcbnew.VECTOR2I((tr.GetStart().x + tr.GetEnd().x) // 2,
+                               (tr.GetStart().y + tr.GetEnd().y) // 2)):
+        for z in _neck_zones:
+            if z.Outline().Collide(pt, 0):
+                return True
+    return False
+
+
 lifted = 0
 for tr in b.GetTracks():
     if tr.GetClass() != "PCB_TRACK":
         continue
     fl = FLOOR.get(tr.GetNetname())
-    if fl and tr.GetWidth() < int(fl * 1e6) and not _in_taps(tr):
+    if (fl and tr.GetWidth() < int(fl * 1e6) and not _in_taps(tr)
+            and not _in_neck(tr)):
         tr.SetWidth(int(fl * 1e6))  # EXACT nm compare (dru gotcha)
         lifted += 1
-print(f"lifted {lifted} power segments to class floor (tap area exempt)")
+print(f"lifted {lifted} power segments to class floor (tap+neck areas exempt)")
 
 # pre-pass: normalize sub-floor vias to the JLC 6L SMALL-VIA floor 0.30/0.15
 # (ADR-0009). The 0.4mm-pitch XU316 via-in-pad escapes cannot use 0.45/0.30
@@ -206,9 +225,15 @@ gnd = b.FindNet("GND")
 # ---- GND stitching grid (bonds F/In1/In2/B GND planes)
 g = sum(try_via(gnd, float(gx), float(gy))
         for gx in range(14, 184, 7) for gy in range(14, 112, 7))
-print(f"GND grid: {g} vias")
-if g < 120:
-    failures.append(f"GND grid too sparse: {g}")
+# IDEMPOTENCY (canon M3 promoted-artifact re-run): on an already-stitched
+# board the grid pass correctly adds ~0 NEW vias, so the density gate must
+# count TOTAL GND vias present, not this run's additions (the added-count
+# check false-failed the rebuild of the promoted final.kicad_pcb).
+g_total = sum(1 for t in b.GetTracks()
+              if t.GetClass() == "PCB_VIA" and t.GetNetname() == "GND")
+print(f"GND grid: {g} vias added, {g_total} total GND vias")
+if g_total < 120:
+    failures.append(f"GND grid too sparse: {g_total} total")
 
 # ---- GND pad service: bond every GND SMD pad DIRECTLY to the In1 plane
 # with a via that OVERLAPS the pad copper (same-net, so via_site_ok allows

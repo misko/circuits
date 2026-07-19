@@ -125,15 +125,36 @@ board-local decisions only.
   outer-edge on-pad 0.30/0.15 via (bond to In1/In4 plane) or a short F.Cu stub
   to the nearest GND via. Cut unconnected GND 15 -> 6.
 
-## DRC status (2026-07-18) — NOT yet 0/0/0; residual is route-quality rework
+- D25 (2026-07-18): **power-neck exemption at unroutable approaches**
+  (neck_approaches.py + generate_rules.py 'pwr_neck' scoped DRU rules). The
+  18 residual clearance items were corridors where the netclass floor width
+  + 0.09mm physically cannot fit: (B) the 0.50mm 5V trace at the AP61102
+  SOT-563 0.5mm-pitch GND pad (U10/U11), (A) the 0.40mm 3V3 east-central
+  trunk parallel to the RST_N/MCLK_B/I2C escapes (F.Cu + In3.Cu), (C) the
+  3V3 tap at the MCLK_A escape near R61. Fix: DRC-guarded local neck to
+  0.20mm with a named 'pwr_neck' rule area over exactly the necked copper
+  (same scoped-width pattern as 'xu316_taps'; DRU floor 0.15 inside).
+  Ampacity margin (1oz outer, IPC-2152 ~0.65A at 10C rise for 0.20mm):
+  5V per-buck VIN branch <=0.45A on <1mm necks; 3V3 trunk <=0.40A -> ~3.8C
+  rise even on the longest ~16mm neck. Floors remain backstops; trunks
+  still ride In2 islands/pours. Cleared all 18 (29->11 violations).
+- D26 (2026-07-18): **trim_dangling rewritten subprocess-per-edit with a
+  clip-to-anchor fallback**. Repeated pcbnew.LoadBoard in one process hits
+  SWIG wrapper corruption -> each removal/clip now runs in a fresh python
+  child. 10 of the 11 dangling spurs were LOAD-BEARING KRT through-pin
+  routes (the track crosses its TSSOP/TQFP pad mid-segment and overshoots;
+  whole-segment removal orphans the pad — guard proved it): fix is CLIPPING
+  the dangling end back to the covered pad center (or, VB3P, to a
+  tangentially-grazed same-net via center, solidifying a 0.21mm-off-axis
+  marginal connection). 1 pure spur removed + 10 clipped -> dangling 0.
 
-Start 101 violations + 15 unconnected. After the above: **32 violations
-(18 clearance sub-0.09 different-net + 14 track_dangling loose copper) + 6
-unconnected GND**. All shorts, hole_to_hole, hole_clearance, lib_mismatch,
-silk_edge, and the TDO/TDI pair are FIXED. The residual are KRT route-quality
-artifacts (0.4mm power-rail-vs-signal tight spacing; loose escape spurs;
-6 boxed GND connections) that need targeted RE-ROUTE of the affected nets
-(3V3/RST_N/MCLK/5V taps + R34 GND + loose-copper trim), not floor changes or
-waivers - they are genuine sub-floor items. The v1.0 release is therefore NOT
-sealed at 0/0/0; see 06_build for the current gate report. Ordering is gated
-on field tests regardless (ORDER_README), so this rework precedes the order.
+## DRC status (2026-07-18) — GATE GREEN 0/0(waived-2)/0
+
+Start 101 violations + 15 unconnected. After D19-D24: 32 violations + 6
+unconnected. After D25 (neck) + D26 (trim/clip): **0 violations, 0 parity,
+and exactly the 2 ADR-0010-waived `Zone [GND] <-> Zone [GND]` micro-sliver
+unconnected items** (fill-engine artifact; zero electrical impact — every
+one of the 234 parts' GND pads is bonded; evidence in ADR-0010). The fixed
+board is baked into the promoted route artifact 03_src/route/final.kicad_pcb
+(canon M3); rebuild_all.sh re-verifies with the guarded stages as no-ops.
+Ordering remains gated on field tests (ORDER_README).
