@@ -1,0 +1,34 @@
+31 BOM lines: 30 with LCSC, 1 without
+
+  OK               C3105      x1   0466002 2A                             expand stock=81477
+  OK               C149504    x1   100k UVLO lo                           base   stock=4475642
+  OK               C49678     x18  100n                                   base   stock=23690255
+  OK               C17415     x12  10R                                    base   stock=1719825
+  OK               C17414     x6   10k                                    base   stock=13351540
+  OK               C15850     x1   10u LDO in                             base   stock=10502173
+  OK               C17513     x1   1k ST LED                              base   stock=6887684
+  OK               C28323     x1   1u EN                                  base   stock=5919443
+  OK               C12891     x4   22u                                    base   stock=696345
+  OK               C83454     x1   22u SWPA6045S                          expand stock=49711
+  OK               C17604     x1   2k PWR LED                             base   stock=4084910
+  OK               C17633     x1   33k FB hi                              base   stock=612919
+  OK               C17673     x2   4k7                                    base   stock=5163029
+  OK               C86052     x2   4u7 50V                                expand stock=70793
+  OK               C15785     x1   560k UVLO hi                           expand stock=104279
+  OK               C27834     x2   5k1                                    base   stock=5347433
+  OK               C6186      x1   AMS1117-3.3                            base   stock=1480271
+  OK               C8598      x1   B5819W OR                              base   stock=656319
+  OK               C318884    x2   BOOT / RESET                           base   stock=1436981
+  OK               C2934560   x1   ESP32-C3-WROOM-02-N4                   expand stock=7141
+  OK               C2868250   x6   INA238AIDGSR                           expand stock=1870
+  OK               C2297      x2   KT-0805G                               base   stock=3202210
+  OK               C87080     x1   LMR16006XDDCR                          expand stock=21989
+  OK               C173526    x1   SMBJ33A tap TVS                        expand stock=92888
+  OK               C152083    x1   SMCJ33A bus TVS                        expand stock=2864
+  OK               C15874     x2   SS310                                  expand stock=686925
+  OK               C165948    x1   TYPE-C-31-M-12                         expand stock=321574
+  OK               C2687116   x1   USBLC6-2SC6                            expand stock=89757
+  OK               C179171    x1   W25Q64JVSSIQ                           expand stock=56917
+  OK               C844297    x6   WSLP2726 0.5mR                         expand stock=2671
+
+PASS: 0 coded lines with problems; 1 lines still uncoded

@@ -1,0 +1,43 @@
+ble-bus-bar: HUMAN=6, N-A=3, PASS=15, WAIVED=2
+licy_audit.py; canon: design-policies.md
+
+| ID | Grade | Detail |
+|---|---|---|
+| S-ERC | PASS | 0 errors (0 warnings) |
+| S-NC | PASS | all floats no_connect-flagged |
+| S-NET | PASS | 53 routed nets, all named |
+| S-VER | PASS | 8/8 verified: cite figure/page |
+| S-OCCL | PASS | 0 text occlusions (<= 0) |
+| S5 | HUMAN | design-math spot-check per review protocol |
+| S6 | HUMAN | schematic readability graded in render review |
+| S7 | HUMAN | decoupling-adjacency graded in render review |
+| P-CRT | PASS | 0 courtyard findings |
+| R-DRC | PASS | 0/0/0 at severity-all |
+| P-POL | PASS | polarity machine-check present (pad-1 nets vs part facts) |
+| P-KEEP | PASS | mate/keepout checks present in project audit |
+| P-SILK-REF | PASS | all refdes on visible silk |
+| P-SILK-FN | PASS | every connector/fuse/TP has functional silk nearby |
+| P-PLANE | N-A | 2-layer: see R-PLANE regions |
+| R-PLANE | WAIVED | U7@B.Cu: 63.5mm signal in plane (max 35) — waived: Flagged 41.2 mm signal run lies under the module BODY, south of the antenna. The antenna r... |
+| R-POUR | WAIVED | high-current-class nets with no pour: ['SW', 'VIN_E', 'VLDO', 'VTAP', 'VUSB'] — waived: EPWR-class nets are track-carried BY DESIGN: worst-case branch current is the buck's 0.49 ... |
+| R-THERM | N-A | 2-layer: no internal plane to sink into |
+| R-RULES | PASS | r0.kicad_pro: classes=['Default', 'TRUNK', 'PORT', 'EPWR', 'RAIL3V3'] |
+| R4 | HUMAN | escape feasibility at fab rules — design review |
+| R-LEN | N-A | no timing-critical nets declared |
+| M-REPRO | PASS | all rebuild inputs git-tracked |
+| M-REL | PASS | v1.0-2026-07-19: provenance + hashes verify |
+| M-WAIV | PASS | 15 adjudications, all evidenced |
+| M1 | HUMAN | independent-reference coverage — release review |
+| M6 | HUMAN | authoritative-source discipline — encoded in protocols |
+
+Summary: HUMAN=6, N-A=3, PASS=15, WAIVED=2
+
+
+## HUMAN-graded items — reviewer verdicts (v1.1, 2026-07-19)
+
+| Item | Verdict | Evidence |
+|---|---|---|
+| S5 design math | PASS | carried from v1.0 (electrically unchanged); ADR-0007 adds the mechanical load math (nylon creep, shear reaction distances) |
+| S6 schematic readability | PASS | schematic unchanged from v1.0 (mounting is board-level; parity 0) |
+| S7 decoupling adjacency | PASS | unchanged; audit IP gates re-ran green |
+| M1 verification independence | PASS | v1.1 delta render review by a fresh agent (mount lands/isolation verified visually against pours) |

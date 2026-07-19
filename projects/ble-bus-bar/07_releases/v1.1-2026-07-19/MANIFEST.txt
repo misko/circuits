@@ -1,0 +1,21 @@
+board:        ble_bus_bar
+version:      v1.1
+ordered:      not-yet (package cut 2026-07-19)
+git_sha:      6d4319b
+git_dirty:    false
+kicad:        10.0.4
+tools:        KRT@b0b1067, python 3.12; route chain 03_src/route/r3.kicad_pcb sha256 c4d36e045bf29332... (unchanged from v1.0 — mounting is board-level)
+fab:          JLCPCB, 2 layer 165x74mm, 2 oz OUTER COPPER (required), min via hole 0.2mm option (required)
+quantity:     5
+gates:        ERC 0 . DRC severity-all 0/0/0 . audit PASS (incl IM mount checks) . policy audit 0 FAIL (2 waivers) . twin exit 0 . delta render review PASS . stock 30/30 >= 25x . parity 0 (schematic unchanged from v1.0)
+sha256:
+  ble_bus_bar_gerbers.zip    376571fc418919dcb53ed1d78f5d0285523f703d22dcd3de7902875ea9617bd8
+  bom.csv                    d6cecbed6331e6104ab94c37d04f795242db144497d66dec20edad9f995ab12f
+  cpl.csv                    8281d92f4725f83cb7ba1a52d007f34a4bc4fa9be52f299b351aaa87a830e8ef
+not_assembled: F1-F6 (Keystone 3557-2, hand-solder) . J1-J8 studs (user hardware) . J10 (DNP) . port fuses (user, <=30A) . H1-H7 mounting (user: 7x M4 steel/brass standoffs >=10mm, DIN125 washers)
+notes: |
+  v1.1 = v1.0 + durable mechanical anchoring ONLY (user feedback A4,
+  D9, ADR-0007): 7x M4 PLATED mounts, O9 washer lands (net-free,
+  0.8mm to 24V copper), board 64->74mm; ALL electrical content keeps
+  v1.0 coordinates (v1.0 wiring documentation remains valid).
+  Supersedes 07_releases/v1.0-2026-07-19.
