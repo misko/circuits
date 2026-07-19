@@ -19,8 +19,11 @@ Bank routing scheme (as-built, ADR-0002 amendment 2026-07-19):
   E-W fan lanes in the FAN band (16 per layer), jog-drops into J11.
 """
 
-# board outline
-X0, Y0, X1, Y1 = 20.0, 20.0, 205.0, 132.0        # 185 x 112
+# board outline — height grown 112->120 (Y1 132->140) per ADR-0006: §8.2 asks
+# only for an enclosure-compatible outline + mounting holes (no fixed enclosure
+# exists), so +8mm south buys a third south row that lets the SELV coil-driver
+# logic chain leave the power/safety strip and decouplers land at their ICs.
+X0, Y0, X1, Y1 = 20.0, 20.0, 205.0, 140.0        # 185 x 120
 
 ISO_MIN = 6.0          # keypad-copper to SELV-copper floor (§6.3)
 
@@ -88,9 +91,9 @@ WD_XY = (66.5, 110.0)          # U7 LVC1G123
 Q1_XY = (61.5, 108.8)          # high-side PFET below the bank, drain north
 TC_XY = (31.0, 33.0)           # U1 MAX31856 (NW analog corner)
 
-# mounting holes (NPTH 3.2mm; nylon standoffs)
-HOLES = [(24.0, 24.0), (201.0, 24.5), (24.0, 128.0), (201.0, 128.0),
-         (24.0, 62.0), (133.0, 128.0)]
+# mounting holes (NPTH 3.2mm; nylon standoffs) — south holes track Y1=140
+HOLES = [(24.0, 24.0), (201.0, 24.5), (24.0, 136.0), (201.0, 136.0),
+         (24.0, 62.0), (133.0, 136.0)]
 
 # KRT keepouts (User.2): iso comb + bank + lanes + TP rows + ULN north row
 KRT_KEEPOUTS = [

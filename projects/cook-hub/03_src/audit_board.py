@@ -60,9 +60,12 @@ if not bad:
     ok("I1 all pads inside outline")
 
 # I8
+# refdes suppressed on F.SilkS but present on F.Fab: genuinely tiny 0402/0603
+# passives and large parts (J2 Pico socket) in dense clusters. All carry the
+# assembly-drawing F.Fab copy; probing uses the functional/net silk nearby.
 ALLOWED_WAIVED = {"D1", "D2", "J2", "R33", "R76", "TP22", "TP26", "TP7",
                   "U12", "U14", "CE1", "TP16", "R31", "R43", "C21", "C33",
-                  "TP15", "TP27", "TP6", "TP21", "R21"}
+                  "TP15", "TP27", "TP6", "TP21", "R21", "R44", "R56", "R62"}
 wfile = HERE.parent / "06_build" / "refdes_waiver.json"
 waived = set(json.loads(wfile.read_text())) if wfile.exists() else set()
 extra = waived - ALLOWED_WAIVED
