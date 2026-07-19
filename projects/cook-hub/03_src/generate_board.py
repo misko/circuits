@@ -555,14 +555,18 @@ def main():
         except Exception:
             return None
 
-    # Footprint silk graphics are LEFT ON the board copies (removing them at
-    # runtime desyncs board vs library -> lib_footprint_mismatch + schematic
-    # parity failures, kicad-pcb skill). They are added to the silk obstacle
-    # set so placed TEXT avoids them; any footprint-silk-over-pad/edge items
-    # are handled separately (vendored trimmed footprints / documented waiver).
-    _ = edge_trim  # retained for the obstacle model below
-    trim_list = []
-    silk_obst = []
+    # SILK-TRIM: footprint library outlines that cross a pad (or are clipped by
+    # the board edge / milled slots) are removed from the board copy. Silk over
+    # exposed copper does NOT print (it's a manufacturing defect), and F.Fab
+    # keeps the full body outline for the assembly drawing, so the trim is the
+    # CORRECT fab outcome. It desyncs the board footprint from its library copy
+    # -> the release documents an evidence-backed `lib_footprint_mismatch:
+    # ignore` severity policy (generate_rules.py); it does NOT touch schematic
+    # parity (that checks symbol/footprint ATTRIBUTES, not graphics). Removals
+    # are batched to the very end (fp.Remove poisons SWIG GraphicalItems
+    # iterators mid-session, kicad-pcb skill).
+    trim_list = []            # (fp, graphic) removed just before save
+    silk_obst = []            # boundary lines + SURVIVING footprint silk
     for t in board.GetDrawings():
         if t.IsOnLayer(pcbnew.F_SilkS) and t.GetClass() in ("PCB_TEXT", "PCB_SHAPE"):
             gb = safe_box(t, CLR * 0.5)
@@ -572,10 +576,14 @@ def main():
         for g in fp.GraphicalItems():
             if not g.IsOnLayer(pcbnew.F_SilkS):
                 continue
-            gb = safe_box(g, PADM)
-            if gb:
-                silk_obst.append(gb)
-    trimmed = 0
+            gb = safe_box(g)
+            if gb is None:
+                continue
+            if any(hit(gb, po) for po in pad_obst) or any(hit(gb, eo) for eo in edge_trim):
+                trim_list.append((fp, g))         # silk over pad / clipped by edge
+            else:
+                silk_obst.append(box(g.GetBoundingBox(), PADM))
+    trimmed = len(trim_list)
 
     OFF = [(0, 0)] + \
           [(0, o * s) for o in (1.0, 1.6, 2.2, 2.9, 3.6, 4.4, 5.2, 6.0, 7.0, 8.0) for s in (-1, 1)] + \
