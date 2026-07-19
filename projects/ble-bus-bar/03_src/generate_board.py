@@ -118,9 +118,9 @@ SILK = [
     ("+12-24V IN", 133.0, 104.0, 1.2), ("M5 LUG", 135.5, 106.5, 0.8),
     ("+", 160.5, 105.8, 3.0), ("+", 141.5, 105.8, 3.0),
     ("GND REF", 58.0, 99.2, 1.0), ("NOT LOAD RETURN", 58.0, 100.7, 0.6),
-    ("CHECK POLARITY BEFORE FIRST POWER", 110.0, 112.7, 0.9),
-    ("FUSES: ATO/ATC BLADE 30A MAX", 176.0, 112.7, 0.9),
-    ("ble-bus-bar v1.0  BLE 12-24V 6x30A", 150.0, 50.7, 0.8),
+    ("CHECK POLARITY", 136.0, 116.0, 0.9), ("BEFORE FIRST POWER", 136.0, 117.5, 0.8),
+    ("FUSES: ATO/ATC BLADE 30A MAX", 178.5, 111.0, 0.8),
+    ("ble-bus-bar v1.1  BLE 12-24V 6x30A", 136.0, 46.5, 0.8),
     ("USB-C", 54.5, 76.6, 0.7), ("5V IN", 54.5, 90.7, 0.6),
     ("RESET", 69.5, 77.4, 0.7), ("BOOT", 69.5, 84.9, 0.7),
     ("PWR", 95.8, 50.9, 0.5), ("ST", 95.8, 56.5, 0.5),
@@ -128,7 +128,7 @@ SILK = [
 ]
 for i in range(1, 7):
     cx = G.CX[i - 1]
-    SILK.append((f"PORT {i}", cx - 8.35, 57.0, 1.0, 90))
+    SILK.append((f"PORT {i}", cx - 8.35, 57.9, 1.0, 90))
     SILK.append((f"30A MAX", cx - 5.6, 89.0, 0.8, 90))
 
 
@@ -158,10 +158,11 @@ def main():
     seg(G.X0, G.Y1, G.X0, G.Y0)
 
     # NPTH mounting holes (nylon standoffs — insulated, ADR-0002 corners)
-    for i, (hx, hy) in enumerate(G.HOLES, 1):
-        mh = pcbnew.FootprintLoad(f"{STD}/MountingHole.pretty", "MountingHole_3.2mm_M3")
+    for i, (hx, hy) in enumerate(G.MOUNTS, 1):
+        mh = pcbnew.FootprintLoad(PROJ, "Mount_M4_Plated")
         if mh is None:
             raise RuntimeError("mounting hole footprint missing")
+        mh.SetFPID(pcbnew.LIB_ID("bbar", "Mount_M4_Plated"))
         mh.SetReference(f"H{i}")
         mh.SetAttributes(mh.GetAttributes() | pcbnew.FP_BOARD_ONLY | pcbnew.FP_EXCLUDE_FROM_BOM)
         mh.SetPosition(pcbnew.VECTOR2I_MM(hx, hy))

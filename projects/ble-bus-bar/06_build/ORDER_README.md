@@ -50,10 +50,19 @@
 | +12–24 V input (J7) | M5 bolt, nut, 2 washers + M5 ring lug on 6 AWG-class wire | 4.0–5.0 N·m |
 | Ports 1–6 (J1–J6) | M4 bolt, nut, 2 washers + M4 ring lug on 10 AWG-class wire | 2.0–2.5 N·m |
 | GND REF (J8) | M4 hardware + lug on any sense wire ≥22 AWG — **NOT a load return** | 2.0 N·m |
-| Mounting (H1–H4) | M3 screws + NYLON standoffs (holes are unplated) | snug |
+| Mounting (H1–H7) | M4 screws + STEEL or BRASS standoffs, DIN 125 flat washer + split washer both sides (holes are PLATED, Ø9 lands) — NYLON REJECTED, ADR-0007 | 1.2–1.5 N·m |
 
 Brass or steel hardware; washer under both lug and nut. Re-torque after
 the first thermal cycle.
+
+Mounting (v1.1, ADR-0007): 7× M4 standoffs, height ≥10 mm (clears the
+stud bolt tails + nuts under the board). Recommended enclosure class:
+vented polycarbonate or painted-steel wall box, ≥180×90 mm internal,
+with the six port studs facing the cable-gland wall. Standoff metal is
+CHASSIS potential — the board's mount lands are floating copper and the
+only ground bond is the J8 GND-REF stud (do not add others; D1).
+DIN-rail OPTION: H4 (117,114.1) and H6 (193,114.1) are 76 mm apart on a
+common line — a 2-point DIN adapter bolts to them.
 
 ## First-power ritual (DO NOT SKIP — ADR-0001)
 

@@ -157,6 +157,23 @@ for ref in [f"J{k}" for k in range(1, 10)] + [f"F{k}" for k in range(1, 8)] + ["
         fail(f"IS no functional silk within 13mm of {ref}")
 ok("IS functional silk checked")
 
+# IM: v1.1 mounting pattern (ADR-0007)
+mounts = [f for f in fps.values() if f.GetReference().startswith("H")]
+if len(mounts) != 7:
+    fail(f"IM expected 7 mounts, found {len(mounts)}")
+for f in mounts:
+    p = list(f.Pads())[0]
+    d = p.GetDrillSize().x / 1e6
+    sz = p.GetSize().x / 1e6
+    clr = p.GetLocalClearance() / 1e6 if p.GetLocalClearance() else 0
+    if abs(d - 4.3) > 0.01 or abs(sz - 9.0) > 0.01:
+        fail(f"IM {f.GetReference()} drill/land {d}/{sz} != 4.3/9.0")
+    elif p.GetNetname() not in ("", None):
+        fail(f"IM {f.GetReference()} land carries net {p.GetNetname()} (must be net-free, D1)")
+    elif clr < 0.79:
+        fail(f"IM {f.GetReference()} pad clearance {clr} < 0.8 (chassis-to-24V, ADR-0007)")
+ok(f"IM 7x M4 plated mounts, O9 lands, net-free, 0.8 clearance")
+
 # IZ: power zones present
 znets = {z.GetNetname() for z in b.Zones() if not z.GetIsRuleArea()}
 for n in ["VBUS", "GND"] + [f"VF{i}" for i in range(1, 7)] + [f"VP{i}" for i in range(1, 7)]:

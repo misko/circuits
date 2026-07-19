@@ -6,7 +6,8 @@ All coordinates in mm, board frame (y-down). Derivations in
 """
 
 # board outline
-X0, Y0, X1, Y1 = 50.0, 50.0, 215.0, 114.0
+X0, Y0, X1, Y1 = 50.0, 45.0, 215.0, 119.0   # v1.1: +5mm mounting rail N+S
+# (ALL electrical content keeps its v1.0 coordinates — ADR-0007)
 
 # port slices
 NPORT = 6
@@ -30,8 +31,8 @@ VF_POUR = (-7.25, 3.25, 76.5, 84.5)
 TRUNK_F = [(66.0, 103.0), (97.0, 103.0), (97.0, 93.5), (208.0, 93.5),
            (208.0, 111.5), (66.0, 111.5)]           # VBUS F.Cu (with west strip)
 TRUNK_B = [(97.0, 93.5), (208.0, 93.5), (208.0, 111.5), (97.0, 111.5)]
-GND_F = [(50.0, 50.0), (99.4, 50.0), (99.4, 93.2), (97.0, 93.2),
-         (97.0, 102.7), (66.0, 102.7), (66.0, 114.0), (50.0, 114.0)]
+GND_F = [(50.0, 45.0), (99.4, 45.0), (99.4, 93.2), (97.0, 93.2),
+         (97.0, 102.7), (66.0, 102.7), (66.0, 119.0), (50.0, 119.0)]
 
 # corridor lanes (B.Cu, full-width E-W under the slices)
 LANE_SDA, LANE_SCL, LANE_ALERT, LANE_3V3 = 66.2, 67.0, 67.8, 68.6
@@ -68,17 +69,25 @@ VIA_STITCH = 0.60                  # GND stitch vias
 
 # electronics anchors (world coords) — see generate_board.py ANCHOR
 MODULE_XY = (68.0, 61.0)           # U7, rot 90 (antenna west)
-ANT_KEEPOUT = (50.0, 61.2, 50.0, 75.3)   # module's own embedded keepout zone + margin
+ANT_KEEPOUT = (50.0, 61.2, 45.0, 75.3)   # module's embedded keepout + new north rail
 STUD_IN = (151.0, 105.8)           # J7 M5 (+12-24V)
 STUD_GND = (58.0, 107.0)           # J8 M4 (GND ref)
 
 # mounting holes (NPTH 3.2mm)
-HOLES = [(52.3, 93.0), (211.0, 52.8), (211.0, 111.2), (98.0, 84.0)]
+# v1.1 mounts (ADR-0007): 8x M4 plated, O9 lands, load-entry pattern
+# 7-point pattern: N rail flanks the port studs (circle-clearances to the
+# O11 stud pads verified 0.9-2.3mm), S rail flanks the M5 input stud
+# (H5 at 163: 14.6mm center, 3.6mm copper gap) + SW point reacts the GND
+# stud 11.5mm away. NO NW mount: the module's antenna keepout + USB own
+# that corner and its loads are in-plane (ADR-0007).
+MOUNTS = [(117.0, 49.9), (155.0, 49.9), (193.0, 49.9),
+          (117.0, 114.1), (163.0, 114.1), (193.0, 114.1), (69.5, 114.1)]
+HOLES = MOUNTS   # keepout/stitch consumers
 
 # KRT keepouts (User.2)
 KRT_KEEPOUTS = [
-    (98.2, 50.0, 215.0, 114.0),    # everything east (slices+trunk+corridor)
+    (98.2, 45.0, 215.0, 119.0),    # everything east (slices+trunk+corridor)
     (86.0, 64.6, 98.2, 69.2),      # corridor strip west portion
-    (64.0, 102.6, 96.0, 114.0),    # trunk west strip
-    (50.0, 50.0, 61.2, 75.3),      # antenna keepout (module-embedded zone)
+    (64.0, 102.6, 96.0, 119.0),    # trunk west strip
+    (50.0, 45.0, 61.2, 75.3),      # antenna keepout (module-embedded zone)
 ]

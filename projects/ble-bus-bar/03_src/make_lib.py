@@ -107,6 +107,21 @@ for name, drill, annulus, label in [("Lug_M5", 5.3, 13.0, "M5"),
     f += ")\n"
     (LIB / f"{name}.kicad_mod").write_text(f)
 
+# --------------------------------------------------- M4 plated mount
+# ADR-0007: plated barrel + O9.0 washer land both sides, NET-FREE
+# (chassis potential — 0.8mm local clearance keeps 24V copper away),
+# courtyard O10 for the DIN125 washer envelope.
+f = header("Mount_M4_Plated", "M4 plated mounting hole, O9 washer land, net-free (ADR-0007)")
+f += texts("Mount_M4")
+f += ('  (pad "1" thru_hole circle (at 0 0) (size 9.00 9.00) (drill 4.30)\n'
+      '   (layers "*.Cu" "*.Mask") (remove_unused_layers no) (clearance 0.8))\n')
+f += (f'  (fp_circle (center 0 0) (end 4.5 0)'
+      f' (stroke (width 0.1) (type solid)) (fill none) (layer "F.Fab"))\n')
+f += (f'  (fp_circle (center 0 0) (end 5.0 0)'
+      f' (stroke (width 0.05) (type solid)) (fill none) (layer "F.CrtYd"))\n')
+f += ")\n"
+(LIB / "Mount_M4_Plated.kicad_mod").write_text(f)
+
 # ------------------------------------------- vendored ESP32 module variant
 # The std RF_Module footprint's EP thermal vias drill 0.2mm — below the JLC
 # 2-layer standard 0.3mm floor. Vendored copy with 0.3mm drills (pad ring
