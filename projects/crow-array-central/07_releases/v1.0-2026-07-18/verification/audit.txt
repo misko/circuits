@@ -1,0 +1,6 @@
+I11 XU316 EP thermal vias: 16
+audited 234 footprints
+WARN: I10 refdes C220 waived to Fab (passive, no silk room)
+WARN: I10 refdes C110 waived to Fab (passive, no silk room)
+WARN: I10 refdes C260 waived to Fab (passive, no silk room)
+AUDIT: PASS (0 fails, 3 warns)

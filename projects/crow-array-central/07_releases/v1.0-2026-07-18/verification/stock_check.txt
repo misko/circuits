@@ -1,0 +1,49 @@
+51 BOM lines: 45 with LCSC, 6 without
+
+  OK               C25741     x17  100k                                   base   stock=408898
+  OK               C1525      x34  100n                                   base   stock=46375786
+  OK               C1546      x1   100p FF                                base   stock=6784266
+  OK               C48970904  x1   100u 5V bulk                           expand stock=1795
+  OK               C25744     x5   10k                                    base   stock=76470
+  OK               C15195     x1   10n RST                                base   stock=6432169
+  OK               C15525     x7   10u                                    base   stock=7426556
+  OK               C25756     x1   15k FB1 lo                             base   stock=1578432
+  OK               C1549      x2   18p                                    base   stock=1660251
+  OK               C26083     x1   1M Rf                                  base   stock=1073582
+  OK               C11702     x10  1k                                     base   stock=269136
+  OK               C1523      x8   1n                                     base   stock=1780965
+  OK               C52923     x21  1u                                     base   stock=13950185
+  OK               C408332    x2   1u0                                    expand stock=25440
+  OK               C25765     x1   20k FB2 lo                             base   stock=533252
+  OK               C138030    x1   220k VBUS                              expand stock=60036
+  OK               C385994    x1   22u 0V9                                expand stock=310245
+  OK               C20812     x1   2A PTC                                 expand stock=33087
+  OK               C12530     x4   2u2                                    base   stock=2342750
+  OK               C25778     x1   330k VBUS                              expand stock=192047
+  OK               C25105     x4   33R                                    base   stock=302982
+  OK               C25120     x16  49R9                                   base   stock=1012355
+  OK               C25900     x3   4k7                                    base   stock=957729
+  OK               C1538      x8   4n7                                    base   stock=833086
+  OK               C23733     x7   4u7                                    base   stock=4111714
+  OK               C107029    x1   560p FF                                expand stock=381183
+  OK               C25905     x2   5k1                                    base   stock=783338
+  OK               C76886     x1   600R PLL                               expand stock=720955
+  OK               C137948    x1   680R Rd                                expand stock=353623
+  OK               C137947    x1   68k FB1 hi                             expand stock=330868
+  OK               C20917     x8   AO3400A                                base   stock=1366543
+  OK               C15127     x1   AO3401A revFET                         base   stock=456189
+  OK               C5224055   x2   AP61102                                expand stock=461
+  OK               C70590     x1   FA-238 24MHz                           expand stock=111067
+  OK               C232798    x1   NC7NZ34 MCLK buf                       expand stock=1508
+  OK               C181312    x2   PCM1865DBTR                            expand stock=1683
+  OK               C2649901   x16  PTC                                    expand stock=34525
+  OK               C2909890   x1   SHT40-AD1B (0x44)                      expand stock=14507
+  OK               C113974    x1   SMBJ5.0A TVS                           expand stock=246701
+  OK               C79924     x1   TCR2LF18 1V8                           expand stock=5270
+  OK               C1972959   x8   TPD2E2U06                              expand stock=11609
+  OK               C90627     x1   TPD4EUSB30                             expand stock=6876
+  OK               C131025    x1   W25Q16JVSSIQ                           expand stock=102911
+  OK               C6035451   x1   XC6227 3V3A                            expand stock=268
+  LOW_STOCK(0)     C6938291   x1   XU316-1024-TQ128-I24                   expand stock=0
+
+FAIL: 1 coded lines with problems; 6 lines still uncoded

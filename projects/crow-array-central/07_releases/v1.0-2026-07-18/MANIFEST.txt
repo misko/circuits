@@ -1,0 +1,21 @@
+board:        crow_array_central
+version:      v1.0
+sealed:       2026-07-18 (ORDER GATED — see ORDER_README section 1; do not order until the commission's field-test gates clear)
+git_sha:      7f077e1
+git_dirty:    false
+kicad:        10.0.4
+tools:        schwriter2 + generators (03_src, kicad-pcb skill), KRT (~/gits/KiCadRoutingTools; promoted route artifact 03_src/route/final.kicad_pcb committed at git_sha), jlc_twin/jlc_stock_check/export_jlc_package/policy_audit (skills), /usr/bin/python3 (KiCad-bundled)
+fab:          JLCPCB, 6 layer, 176.15 x 122.15 mm, SMALL-VIA (advanced) option REQUIRED — min via 0.30/0.15 (ADR-0009); clearance/track floor 0.09mm (D20)
+quantity:     5
+gates:        ERC severity-all 0 · schematic parity 0 · DRC severity-all+refill 0 violations, 0 real unconnected (2 ADR-0010-waived Zone[GND] micro-slivers, gate enforces that exact shape) · audit PASS 0 fails (incl I11 EP-vias, I12 mate/keepout) · stock 45/45 coded lines >=5x qty5 except designated XU316 consign line · jlc_twin exit 0 (444 checks, zero mirrors, zero unadjudicated criticals — 19 evidence-backed adjudications) · fresh-context pin reviews 4/4 PASS after D28 adjudication (U1 129-pin no-mirror, PCM1865 pair, RJ45 group vs sealed pod v1.0, D27 substitutes) · render review PASS-WITH-NOTES dispositioned · policy_audit FULL FAIL=0 (14 PASS / 3 WAIVED evidence-backed / 6 HUMAN graded)
+cost_note:    EXCEEDS the $79-90 electronics target — 6L 176x122 board + JLC small-via tier + XU316 consign; rough $150-220 per assembled board at qty 5 (ORDER_README section 2)
+sha256:
+  crow_array_central_gerbers.zip 2eaf9c516400ccb6a2fb954be698dda6e4e470b89e67f298b31711aa830937d8
+  bom.csv                      8899bfb8f9a22e8f0e2398508deae6cace485744634fd29b013ef62e6c16a24e
+  cpl.csv                      73c09eafbe9c3ff9fb80641787a22063f7f4defaea4edde44d3ce4726869f6c2
+  pdf/assembly_top.pdf         f3877e16ad72e86721588d5c1a08f3e64fb34561fa50c9150724d14e142e193e
+  pdf/pcb_layers.pdf           16b6e1211923a299bd6f32077831e86408c196b494d9559b6213fab1a0bfd0fe
+  pdf/schematic.pdf            17e8798b1c0e39a5776f7349e78cc884a2c6299ad92e28c64003520ca2900f50
+not_assembled: U1 XU316-1024-TQ128-I24 C6938291 JLC stock 0 -> consign or hand-reflow (ORDER_README section 3) · J1-J6 RJHSE-5384 RJ45 (hand-solder, Digi-Key; J7/J8 DNP spares) · J9 DC-005C-20A barrel (hand-solder) · J11 KF128L-3.5-2P (DNP alternate) · J12 USB4105-GF-A (hand-solder or consign C3020560) · J10/J13/J14 2.54mm headers (hand-solder; 1.8V debug domain)
+stock_note:   verified 2026-07-18 at min 25 (5x qty 5); shallow lines to re-check on order day: C6035451 XC6227 (268), C48970904 100u (1795). MANDATORY order-day re-verify + 3D-preview rotation checklist (ORDER_README items 1-2).
+substitutes:  D27 — Y1: YXC X322524MOB4SI C70590 (for FA-238, CL 12pF identical); U12: TI TLV70018DDCR C79924 (for TCR2LF18, pin-compatible); C90: RYVP6.3V100UF4*5 C48970904. Evidence part.yamls at git_sha; pin review PASS.
