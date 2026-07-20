@@ -56,8 +56,12 @@ hard-won traps; this skill is the orchestration layer only.
 Build `03_src/` generators + `rebuild_all.sh` (set -euo pipefail) in the
 canonical order. **Schematic authoring — tscircuit/TSX is THE standard,
 schwriter2 is FALLBACK-ONLY (ADR-0002 Phases D+E, migration COMPLETE):**
-(1) the go-forward path is **tscircuit/TSX**. The whole board rebuilds with ONE
-command — `scripts/tsx_to_board.sh <project>` (Phase E): `tsci build` → converter
+(1) the go-forward path is **tscircuit/TSX**. An ESTABLISHED project rebuilds with ONE
+command — `scripts/tsx_to_board.sh <project>` (Phase E). ⚠️ **It is a REBUILD driver: it
+hard-fails without a pre-existing `03_src/generate_board.py` (+ stitch_and_fill, audit_board,
+a promoted route chain) — it orchestrates a KiCad backend, it does not create one. For a NEW
+board that backend is still hand-written and is the BULK of the work; budget it explicitly**
+(clean-room finding 2026-07-20, ADR-0002 Phase E scope correction). The chain it runs: `tsci build` → converter
 `.kicad_sch` → placement → generate_rules → KRT (reuses the promoted route chain)
 → stitch_and_fill → generate_rules LAST → DRC 0/0/0. For schematic-only render
 use `gen_tscircuit.sh <project>` (default = the BRIDGE ONLY: circuit.json,

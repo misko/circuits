@@ -184,6 +184,20 @@ Two rows stay KiCad-only because the authoring tool must never self-grade them:
   golden-rule 3d (the wired path is now tscircuit, not "until schwriter emits wires"),
   and `tscircuit-folder.md` folder-format (study outputs marked `[--study only]`).
   schwriter2.py is RETAINED.
+- **⚠️ Phase E SCOPE CORRECTION (2026-07-20, found by the clean-room run).**
+  `tsx_to_board.sh` is a **REBUILD driver, not a from-scratch build**. It hard-fails
+  without a pre-existing `03_src/generate_board.py` (line 48: *"FATAL: backend not
+  present"*) and equally needs `stitch_and_fill.py`, `audit_board.py`, and a promoted KRT
+  route chain. It ORCHESTRATES an existing KiCad backend byte-for-byte; it does not create
+  one. Every board it was proven on — cook-loadcell, lipo3s-tsc, lipo3s-usb-hub — already
+  had that backend, **inherited from an earlier project**. So "one command builds the
+  board" was only ever true for ESTABLISHED projects. The clean-room run
+  (`xt60-usb-power`, the first genuinely NEW project it was pointed at) hit the wall
+  immediately. **For a new board the backend is still hand-written work, and it is the
+  bulk of the effort** (generate_board + stitch + audit + a routing campaign). Read Phase E
+  below as "one command to REBUILD". Closing this gap — a backend generator/template for
+  new projects — is the honest next piece of work.
+
 - **Phase E — One command. DONE 2026-07-20.** `scripts/tsx_to_board.sh <project>` is the
   canonical one-command tscircuit-native pipeline, generalized from cook-loadcell's
   `backend_proof/build_from_tsx.sh`:
