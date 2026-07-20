@@ -120,6 +120,9 @@ for fp in board.GetFootprints():
     val = fp.GetValue()
     if "DNP" in val:
         continue
+    if fp.GetAttributes() & pcbnew.FP_EXCLUDE_FROM_BOM:
+        # test points / board-only artifacts: not assembled, not placed
+        continue
     fpname = str(fp.GetFPID().GetLibItemName())
     groups.setdefault((val, fpname), []).append(ref)
     pos = fp.GetPosition()

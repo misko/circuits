@@ -5,12 +5,10 @@ shapes first — a wrong edit is a refusal, not a DRC surprise. Distilled
 from the SPF power-board endgame (2026-07), where circular pad
 approximations and unverified stubs both produced real crossings.
 
-Usage (KiCad-bundled python — the interpreter where `import pcbnew` works).
-Point sys.path at wherever this skill is installed, e.g. Claude Code's
-~/.claude/skills/kicad-pcb/scripts or Codex's ~/.agents/skills/kicad-pcb/scripts:
+Usage (KiCad-bundled python):
     import os, sys
     import pcbnew
-    sys.path.insert(0, os.path.expanduser("~/.agents/skills/kicad-pcb/scripts"))
+    sys.path.insert(0, os.path.expanduser("~/.claude/skills/kicad-pcb/scripts"))
     from pcb_toolkit import Toolkit
     tk = Toolkit(pcbnew.LoadBoard("board.kicad_pcb"), clearance_mm=0.11)
     tk.joinpath("BST_B", (83.35, 92.75), (85.53, 92.03), width=0.2)
