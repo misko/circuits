@@ -101,7 +101,7 @@ bridge mechanism — not the authoring — is the work item. Options (Phase 2 de
 (c) fix/contribute upstream in tscircuit's KiCad exporter; (d) constrain the boundary
 to commodity-footprint boards, keeping custom-footprint-heavy boards on schwriter2.
 Until one is chosen and proven, KiCad `04_kicad/` stays the sole fab-of-record and the
-`tscircuit/` folders remain design studies.
+`03_tscircuit/` folders remain design studies.
 
 ## Phase 2 result (2026-07-19) — OUR converter clears the ceiling: 3/3 ERC + parity
 
@@ -179,7 +179,7 @@ is directly backend-ready and **no per-board adapter is needed**:
    `12V`→`N12V`). `canon_net` strips a single leading `N` that guards a
    digit-leading rail and emits the canonical KiCad name on the global labels
    (`NRST`/`NC` etc. untouched — the char after `N` must be a digit). An optional,
-   auto-discovered per-board `tscircuit/net_aliases.txt` (`TSNAME CANONICAL` per
+   auto-discovered per-board `03_tscircuit/net_aliases.txt` (`TSNAME CANONICAL` per
    line) covers anything the convention can't reach.
 2. **Footprint FPIDs.** Each symbol's Footprint field is filled from (a) a baked-in
    commodity token→FPID map — circuit.json class-disambiguates passives
@@ -226,7 +226,7 @@ Phase 4 standard documented; capstone pending.
 
 ## Reversibility
 
-Additive: every board keeps its KiCad generators; the `tscircuit/` folder stays a
+Additive: every board keeps its KiCad generators; the `03_tscircuit/` folder stays a
 study until a board proves out. If a difficulty class fails (e.g. specialty
 connectors the footprinter can't express), those parts stay KiCad-native (via
 `02_parts` FPID override or schwriter2) and the boundary is recorded here.

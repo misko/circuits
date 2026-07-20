@@ -22,14 +22,14 @@ only the *authoring front-end* changed (schwriter2 hand-KiCad → tscircuit TSX)
 `projects/usb-power-3s/` is the SEALED reference and is never touched by this project.
 
 **How it was built (the proven path):**
-1. `tscircuit/src/lipo3s_tsc.tsx` — the board authored NODE-FOR-NODE in TSX
+1. `03_tscircuit/src/lipo3s_tsc.tsx` — the board authored NODE-FOR-NODE in TSX
    (specialty connectors/ICs as `<footprint>` children carrying the exact KiCad pad
    names; every part with an LCSC code authored via `supplierPartNumbers` so its FPID
    auto-resolves from the copied `02_parts`).
 2. `tsci build` → `circuit.json` → `circuit_json_to_kicad_sch.py` (the BACKEND-READY
    converter: strip-`N` canonical net names, `02_parts`/commodity FPIDs, no MPN field,
-   TP BOM attrs) → `tscircuit/kicad/lipo3s_tsc.kicad_sch`.
-3. `tscircuit/build_backend.sh` — the copied `03_src` backend, run UNCHANGED, sourced
+   TP BOM attrs) → `03_tscircuit/kicad/lipo3s_tsc.kicad_sch`.
+3. `03_tscircuit/build_backend.sh` — the copied `03_src` backend, run UNCHANGED, sourced
    from the converter schematic (board internal name kept `usb_power_3s` so the
    promoted KRT route `r5`, rules, and FPIDs transfer byte-for-byte):
    generate_board → audit → import_krt(r5) → route_taps → stitch_and_fill →

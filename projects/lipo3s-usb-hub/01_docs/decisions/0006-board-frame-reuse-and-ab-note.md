@@ -20,7 +20,7 @@ passes found it. The component VALUES are re-derived from scratch in DETAIL_DESI
 and match because the math matches.
 
 **2. What is genuinely new here (the flagship proof).** The board is authored in
-`tscircuit/src/lipo3s_usb_hub.tsx` (React/TSX, ~250 lines, one parameterized `buckStage`
+`03_tscircuit/src/lipo3s_usb_hub.tsx` (React/TSX, ~250 lines, one parameterized `buckStage`
 composed twice, one `.map` over the three USB-A channels) and built by the
 **one-command tscircuit-native pipeline** `tsx_to_board.sh` — TSX → circuit.json →
 `circuit_json_to_kicad_sch` converter → KiCad backend (generate_board → rules → KRT →

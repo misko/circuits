@@ -105,7 +105,7 @@ unprogrammed-state hazard — the board is safe from first power-up.
 
 ## Build provenance (the flagship claim)
 
-This board was authored `tscircuit/src/lipo3s_usb_hub.tsx` and built to fab-ready
+This board was authored `03_tscircuit/src/lipo3s_usb_hub.tsx` and built to fab-ready
 copper by the **one-command tscircuit-native pipeline** —
 `bash ~/.claude/skills/kicad-pcb/scripts/tsx_to_board.sh lipo3s-usb-hub` — NOT by
 schwriter2 or hand-KiCad. The gate chain (tsci build → converter kicad_sch → ERC 0 →

@@ -18118,19 +18118,7 @@
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_9u5e8lJPgA",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<diode#206 name=\".D1\" /> footprint \"sod323\" does not match supplier footprint jlcpcb:C5158048 (copper IoU 0.4731).",
-    "source_component_id": "source_component_12",
-    "pcb_component_id": "pcb_component_12",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "C5158048",
-    "footprint_copper_intersection_over_union": 0.4731
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_PxdO09cgG5",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_L0ixdGvXvw",
     "warning_type": "supplier_footprint_mismatch_warning",
     "message": "<diode#222 name=\".D2\" /> footprint \"sod323\" does not match supplier footprint jlcpcb:C5158048 (copper IoU 0.4731).",
     "source_component_id": "source_component_13",
@@ -18142,7 +18130,19 @@
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_dzfrFyshdm",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_fa0BDdVZGB",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<diode#206 name=\".D1\" /> footprint \"sod323\" does not match supplier footprint jlcpcb:C5158048 (copper IoU 0.4731).",
+    "source_component_id": "source_component_12",
+    "pcb_component_id": "pcb_component_12",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "C5158048",
+    "footprint_copper_intersection_over_union": 0.4731
+  },
+  {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_H09xK3BWei",
     "warning_type": "supplier_footprint_mismatch_warning",
     "message": "<chip#0 name=\".U1\" /> footprint \"soic16_p1.27mm\" does not match supplier footprint jlcpcb:C43656 (copper IoU 0.7055).",
     "source_component_id": "source_component_0",
@@ -18154,6 +18154,6 @@
   },
   {
     "type": "source_project_metadata",
-    "source_filesystem_md5_hash": "2c8d2053e5da339106bf559dac723a7e"
+    "source_filesystem_md5_hash": "3c421f428aae6b02562ddea819d67f92"
   }
 ]

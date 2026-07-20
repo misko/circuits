@@ -1,7 +1,7 @@
-tscircuit/tsx_build/
-tscircuit/dist/
-tscircuit/build/
-tscircuit/.tscircuit/
-tscircuit/node_modules/
+03_tscircuit/tsx_build/
+03_tscircuit/dist/
+03_tscircuit/build/
+03_tscircuit/.tscircuit/
+03_tscircuit/node_modules/
 .easyeda_cache/
 06_build/

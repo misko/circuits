@@ -71,7 +71,7 @@ Two rows stay KiCad-only because the authoring tool must never self-grade them:
   | xt60-usb-supply | 0 | 211 | 0 | 0 (28 nets / 151 nodes) |
   | esp32-laser-timing | 0 | 230 | 0 | 0 (36 nets / 189 nodes / 25 NC) |
 
-  Before/after renders: `projects/cook-loadcell/tscircuit/verification/schematic_v1_grid.png`
+  Before/after renders: `projects/cook-loadcell/03_tscircuit/verification/schematic_v1_grid.png`
   (the label blob) vs `schematic_v2_wired.png` (the wired sheet). ERC warnings are
   parametric only (`endpoint_off_grid` from the 0.635 mm grid, `lib_symbol_issues`/
   `footprint_link_issues` env notes, a few `unconnected_wire_endpoint` stubs).
@@ -92,7 +92,7 @@ Two rows stay KiCad-only because the authoring tool must never self-grade them:
   mm/y-down, `pcbRotation` → `−orient`), reusing the sch converter's FPID
   resolution + net model; our audit + legalize + route then certify it.
 
-  **The honest two-seed measurement (`projects/cook-loadcell/tscircuit/placement_proof/`,
+  **The honest two-seed measurement (`projects/cook-loadcell/03_tscircuit/placement_proof/`,
   NOTES.md):**
   - **RAW tscircuit AUTO-placement** (the TSX authored `pcbX/pcbY` for the 4 holes
     ONLY; 29 electrical parts auto-placed) → `audit_board` **11 FAIL** (4
@@ -195,11 +195,11 @@ Two rows stay KiCad-only because the authoring tool must never self-grade them:
 
   **The KiCad backend runs BYTE-FOR-BYTE UNCHANGED** (it's netlist-driven) — the driver
   only wires TSX authoring into it and reparents every backend output into an isolated,
-  gitignored build root (`tscircuit/tsx_build/`, wiped each run → idempotent) via a
+  gitignored build root (`03_tscircuit/tsx_build/`, wiped each run → idempotent) via a
   `03_src` symlink + the `__file__.parent.parent` reparent trick, so the sealed
   `04_kicad/` and releases are never touched. It auto-discovers the internal board name,
   the promoted route chain, and optional backend steps; the sealed parity reference is
-  `<project>/04_kicad/<board>.kicad_pcb` or a one-line `tscircuit/sealed_ref.txt`.
+  `<project>/04_kicad/<board>.kicad_pcb` or a one-line `03_tscircuit/sealed_ref.txt`.
 
   **Proven end-to-end on TWO tscircuit-native boards to DRC 0/0/0 + board parity 0:**
 
@@ -209,7 +209,7 @@ Two rows stay KiCad-only because the authoring tool must never self-grade them:
   | lipo3s-tsc (the 100-part capstone) | 96 + 4 holes | r5 + taps | 0 / 0 / 0 | **0** (303 nodes / 56 nets) |
 
   Proof records (non-destructive): each project's
-  `tscircuit/verification/tsx_to_board_proof.md`. Documented as THE go-forward rebuild
+  `03_tscircuit/verification/tsx_to_board_proof.md`. Documented as THE go-forward rebuild
   command in the pcb-design skill (stage 4-6) and `tscircuit-folder.md`. tscircuit checks
   run during authoring (fast feedback); the KiCad gates run at commit/release (CI).
 

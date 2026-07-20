@@ -10,6 +10,7 @@ re-order it.
 |---|---|---|
 | `01_docs/` | humans | hand-edited |
 | `03_src/` | humans | hand-edited — THE source of truth |
+| `03_tscircuit/` | humans | hand-edited — THE source of truth (TSX authoring; optional, per-board) |
 | `02_parts/` | humans (once per part) | append; edit only on datasheet revision |
 | `04_kicad/` | generators | regenerated, committed for reviewable diffs |
 | `05_firmware/` | humans | hand-edited |
@@ -23,7 +24,7 @@ re-order it.
 | `README.md` | what the board is, status, current release, how to build |
 | `contracts.md` | this file |
 | `.gitignore` | must ignore `06_build/`; must NOT ignore `01_docs/decisions/` or `02_parts/` |
-| `01_docs/ 03_src/ 02_parts/ 04_kicad/ 05_firmware/ 06_build/ 07_releases/` | see each folder's contract |
+| `01_docs/ 03_src/ 03_tscircuit/ 02_parts/ 04_kicad/ 05_firmware/ 06_build/ 07_releases/` | see each folder's contract (`03_tscircuit/` only on TSX-authored boards) |
 
 ## Forbidden at root
 

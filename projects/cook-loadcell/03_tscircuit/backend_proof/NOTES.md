@@ -3,7 +3,7 @@
 > **UPDATE 2026-07-19 — ADAPTER FOLDED IN, no per-board adapter remains.**
 > The five gaps below (items 1–5) are now handled inside the converter
 > (`skills/kicad-pcb/scripts/circuit_json_to_kicad_sch.py`): canonical net names
-> (strip-`N` convention + optional `tscircuit/net_aliases.txt`), footprint FPIDs
+> (strip-`N` convention + optional `03_tscircuit/net_aliases.txt`), footprint FPIDs
 > (commodity token map + `02_parts/*/part.yaml` MPN/LCSC override), MPN field
 > dropped, and TP `in_bom no` + concise `TP` value. `build_from_tsx.sh` now copies
 > the converter output **directly** (step [1] is a plain `cp`, no transform) and

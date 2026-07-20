@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# gen_tscircuit.sh — render a board's tscircuit/ folder.
+# gen_tscircuit.sh — render a board's 03_tscircuit/ folder.
 #
 # ADR-0002 Phase D (2026-07-20): the DEFAULT is now the BRIDGE ONLY — the
 # minimal set the KiCad backend actually consumes + the gates that certify it:
@@ -26,8 +26,8 @@
 # Canon S-DSL: KiCad .kicad_sch/.kicad_pcb + the gate stack remain the fab-of-record.
 #
 # Usage: gen_tscircuit.sh <project_dir> [--study]
-#   expects <project_dir>/tscircuit/src/<board>.tsx  (+ package.json)
-#   writes  <project_dir>/tscircuit/{build,kicad,verification}[,fab]/...
+#   expects <project_dir>/03_tscircuit/src/<board>.tsx  (+ package.json)
+#   writes  <project_dir>/03_tscircuit/{build,kicad,verification}[,fab]/...
 #   compares against the newest sealed KiCad board if one exists.
 set -uo pipefail
 export PATH="$HOME/.bun/bin:$PATH"          # bun + tsci are installed per-user, persist on disk
@@ -42,9 +42,9 @@ for a in "$@"; do
 done
 PROJ="${ARGS[0]:?usage: gen_tscircuit.sh <project_dir> [--study]}"
 PROJ="$(cd "$PROJ" && pwd)"                  # absolute — the script cds into $T later
-T="$PROJ/tscircuit"
+T="$PROJ/03_tscircuit"
 SRC=$(ls "$T"/src/*.tsx 2>/dev/null | head -1)
-[ -z "$SRC" ] && { echo "NO tscircuit/src/*.tsx in $PROJ — nothing to render (scaffold only)"; exit 3; }
+[ -z "$SRC" ] && { echo "NO 03_tscircuit/src/*.tsx in $PROJ — nothing to render (scaffold only)"; exit 3; }
 BASE=$(basename "$SRC" .tsx)
 mkdir -p "$T"/build "$T"/kicad "$T"/verification
 [ "$STUDY" = 1 ] && mkdir -p "$T"/fab
@@ -52,7 +52,7 @@ step(){ echo "  [$1] $2"; }
 
 # NOTE: `tsci export -o P` resolves P relative to the INPUT file's directory
 # (src/) and strips leading slashes — so outputs are written as ../<dir>/... to
-# land at the tscircuit/ root. All tsci commands run from $T.
+# land at the 03_tscircuit/ root. All tsci commands run from $T.
 cd "$T" || exit 2
 
 # --- BRIDGE (DEFAULT): circuit.json + human schematic doc ---
@@ -183,4 +183,4 @@ if [ -s "$KSCH" ]; then
       | tee "$T/verification/parity_converter.md"
   fi
 fi
-echo "DONE: $PROJ/tscircuit rendered ($([ "$STUDY" = 1 ] && echo 'bridge + --study' || echo 'bridge only; pass --study for the PCB/gerber second-opinion render'))."
+echo "DONE: $PROJ/03_tscircuit rendered ($([ "$STUDY" = 1 ] && echo 'bridge + --study' || echo 'bridge only; pass --study for the PCB/gerber second-opinion render'))."

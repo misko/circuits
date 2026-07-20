@@ -1,8 +1,8 @@
 (export
 	(version "E")
 	(design
-		(source "/home/mouse9911/gits/circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
-		(date "2026-07-20T10:10:50")
+		(source "/home/mouse9911/gits/circuits/projects/cook-loadcell/03_tscircuit/kicad/cook_loadcell.kicad_sch")
+		(date "2026-07-20T13:10:25")
 		(tool "Eeschema 10.0.4-10.0.4~ubuntu24.04.1")
 		(sheet
 			(number "1")
@@ -79,13 +79,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "99e8f484-11db-461c-893c-293498ef9d3d")
+			(tstamps "d16cac80-d689-4f7d-b4a6-b75ca28c788a")
 			(units
 				(unit
 					(name "A")
@@ -125,13 +125,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d5fe7606-637f-4fec-891a-6dde46e65413")
+			(tstamps "cb202290-efdd-48ed-81a9-5a5ed9d6fc9e")
 			(units
 				(unit
 					(name "A")
@@ -171,13 +171,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b10df5b9-97db-4ccf-a519-73cdc98795bd")
+			(tstamps "6da00425-b9a3-4b8d-915d-fd3ec226288f")
 			(units
 				(unit
 					(name "A")
@@ -217,13 +217,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8b6e7613-012a-45cc-b882-4bdbf148a064")
+			(tstamps "5e8abf78-0255-4ab9-87ac-3f08306e57a7")
 			(units
 				(unit
 					(name "A")
@@ -263,13 +263,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "838458a3-9ed3-4ea5-87cd-227c176ef21d")
+			(tstamps "b7d15b75-e107-46c3-855e-9ba9b47e5837")
 			(units
 				(unit
 					(name "A")
@@ -309,13 +309,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c46aaedd-798d-4f3a-9335-840048f6097f")
+			(tstamps "70c716e3-a39d-4620-a538-a7719300ea6b")
 			(units
 				(unit
 					(name "A")
@@ -355,13 +355,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "381ea823-0450-446d-92fe-daebab19a866")
+			(tstamps "63588f4f-67b6-4420-934e-03c53d7a6d92")
 			(units
 				(unit
 					(name "A")
@@ -401,13 +401,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3f8c1679-3cdf-46fa-beae-48f32b5fe5f2")
+			(tstamps "6845c45c-6974-4db1-87a2-3fd086d42d98")
 			(units
 				(unit
 					(name "A")
@@ -447,13 +447,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8d0967c8-1491-4d63-bac1-1e953990b2db")
+			(tstamps "0525d134-9815-4c46-ae56-5d1f07e29a91")
 			(units
 				(unit
 					(name "A")
@@ -493,13 +493,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "71dd78a6-d24e-4b26-9efa-f2468c9762ee")
+			(tstamps "c8831bd4-42f2-4a3f-b727-0a805c5d2987")
 			(units
 				(unit
 					(name "A")
@@ -542,13 +542,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "04081e0a-7d79-487f-8fc9-15b35d6e70f1")
+			(tstamps "a817b145-a0c8-4f9a-8375-42f6ce3d5340")
 			(units
 				(unit
 					(name "A")
@@ -591,13 +591,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c53d386d-1e61-4564-a81e-49262c782834")
+			(tstamps "ac8cb44a-d90f-4e9a-aada-a02d454e2882")
 			(units
 				(unit
 					(name "A")
@@ -640,13 +640,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "47dd601c-298e-4b17-996d-4ad922d1f66e")
+			(tstamps "0912aa52-322c-41aa-86ea-4527ff248318")
 			(units
 				(unit
 					(name "A")
@@ -689,13 +689,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a439cd50-31a9-401d-b3bb-e5caa21deeb7")
+			(tstamps "1fc0711b-c12a-47bc-960a-214593f05a96")
 			(units
 				(unit
 					(name "A")
@@ -744,13 +744,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cb56316f-3a5e-4ee7-977d-23744e525a6f")
+			(tstamps "1ac1bede-caec-4619-9f80-5a4e169bc5c9")
 			(units
 				(unit
 					(name "A")
@@ -799,13 +799,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7fc64ea0-ae3f-4a72-bc54-796517618d6d")
+			(tstamps "8d4e9ece-8434-410d-a428-28825f607773")
 			(units
 				(unit
 					(name "A")
@@ -848,13 +848,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9c5222bf-4bae-4273-a140-373dcdd11ef6")
+			(tstamps "51556c9f-0c05-465a-a358-6a1cea771263")
 			(units
 				(unit
 					(name "A")
@@ -897,13 +897,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b825a8c4-d301-4b24-9cd2-1d81df2c79e2")
+			(tstamps "e692ad3b-0c74-4771-8ceb-ab59c561bd05")
 			(units
 				(unit
 					(name "A")
@@ -943,13 +943,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "84bf049e-fe60-4fb1-8a5a-0cb4182a7b85")
+			(tstamps "833ef343-fa17-4945-939d-79665067a757")
 			(units
 				(unit
 					(name "A")
@@ -989,13 +989,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e3944c0f-9b34-492c-b593-67ed83049365")
+			(tstamps "d3f07e5a-d8b1-491f-b59d-175b0c2fd3c8")
 			(units
 				(unit
 					(name "A")
@@ -1035,13 +1035,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e6c09337-d0b5-4d50-a881-1a190f88a4ee")
+			(tstamps "17f4d702-62f0-4ef3-a738-1747a01661b2")
 			(units
 				(unit
 					(name "A")
@@ -1081,7 +1081,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -1090,7 +1090,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "45fc159d-7387-4779-b1b0-0d436b218f9c")
+			(tstamps "d1779c1a-86da-4ef4-8f50-18149f21f7bb")
 			(units
 				(unit
 					(name "A")
@@ -1127,7 +1127,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -1136,7 +1136,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "514107dd-4dd3-426d-a5bc-3f206a4ee389")
+			(tstamps "c699e775-bf03-4e9d-92ea-119e46422187")
 			(units
 				(unit
 					(name "A")
@@ -1173,7 +1173,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -1182,7 +1182,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "43b484d1-8d19-4c26-97cb-a85180ed5558")
+			(tstamps "84ef0b29-0a84-446e-8f07-d5dec52e70bb")
 			(units
 				(unit
 					(name "A")
@@ -1219,7 +1219,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -1228,7 +1228,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6b69ca15-ee74-4933-8ca6-8220b2e33ff6")
+			(tstamps "462ddc55-7d52-4a22-ab1d-890c4c203433")
 			(units
 				(unit
 					(name "A")
@@ -1265,7 +1265,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -1274,7 +1274,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "75c91199-a572-4882-8480-47bd927b8c8e")
+			(tstamps "f4066c86-478f-45c5-bd4e-50b3c7240871")
 			(units
 				(unit
 					(name "A")
@@ -1311,7 +1311,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -1320,7 +1320,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5bfa0bb5-cfa1-454b-a4d4-b595db130383")
+			(tstamps "0336b6fb-f6e3-4170-9d18-8df5cdcd03c7")
 			(units
 				(unit
 					(name "A")
@@ -1357,7 +1357,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -1366,7 +1366,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bedebf30-b861-40a2-8749-34a8f0246d3b")
+			(tstamps "d96705e8-4dfb-478a-a23e-9ac1c22c4127")
 			(units
 				(unit
 					(name "A")
@@ -1403,13 +1403,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a1fb0e7d-1571-422e-9254-b6b1d814b943")
+			(tstamps "3fe4383e-a951-44b6-9432-bab4fbd1eb4a")
 			(units
 				(unit
 					(name "A")

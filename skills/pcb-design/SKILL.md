@@ -114,7 +114,7 @@ produce (checker and checked must not share a method):
   disposition).
 - `export_pdfs.sh`: pcb_layers / assembly PDFs, visually verified via PNG
   export. For tscircuit-authored boards the **schematic PDF = tscircuit's own
-  render** (`tscircuit/build/schematic.pdf`), NOT a KiCad re-render (ADR-0002
+  render** (`03_tscircuit/build/schematic.pdf`), NOT a KiCad re-render (ADR-0002
   Phase A) — ship it as `pdf/schematic.pdf`.
 
 - POLICY AUDIT (final gate): `/usr/bin/python3

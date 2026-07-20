@@ -23,9 +23,9 @@
 # is wiped and rebuilt each run.
 #
 # Usage: tsx_to_board.sh <project_dir> [--placement generate_board|tsx] [--build-root DIR]
-#   default build root: <project>/tscircuit/tsx_build
+#   default build root: <project>/03_tscircuit/tsx_build
 #   sealed parity reference: <project>/04_kicad/<board>.kicad_pcb, OR the path in
-#     <project>/tscircuit/sealed_ref.txt (relative to <project> or absolute).
+#     <project>/03_tscircuit/sealed_ref.txt (relative to <project> or absolute).
 set -euo pipefail
 export PATH="$HOME/.bun/bin:$PATH"
 SKILLDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -43,7 +43,7 @@ while [ $# -gt 0 ]; do
 done
 PROJ="${ARGS[0]:?usage: tsx_to_board.sh <project_dir> [--placement generate_board|tsx] [--build-root DIR]}"
 PROJ="$(cd "$PROJ" && pwd)"
-T="$PROJ/tscircuit"
+T="$PROJ/03_tscircuit"
 SRCDIR="$PROJ/03_src"
 [ -f "$SRCDIR/generate_board.py" ] || { echo "FATAL: no $SRCDIR/generate_board.py (backend not present)"; exit 2; }
 TSX=$(ls "$T"/src/*.tsx 2>/dev/null | head -1)
@@ -61,7 +61,7 @@ PY
 )
 [ -n "$BOARD" ] || { echo "FATAL: could not parse board name (.net) from generate_board.py"; exit 2; }
 
-# Sealed parity reference (overridable via tscircuit/sealed_ref.txt).
+# Sealed parity reference (overridable via 03_tscircuit/sealed_ref.txt).
 if [ -f "$T/sealed_ref.txt" ]; then
   SEALED=$(grep -vE '^\s*#|^\s*$' "$T/sealed_ref.txt" | head -1)
   case "$SEALED" in /*) : ;; *) SEALED="$PROJ/$SEALED" ;; esac

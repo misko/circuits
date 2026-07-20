@@ -11,7 +11,7 @@ generate_board.py (hand floorplan) → audit PASS → generate_rules → import 
 KRT route r5 → route_taps → stitch_and_fill → generate_rules LAST →
 DRC --severity-all --refill-zones --schematic-parity → board_netlist_parity vs sealed.
 
-Output board: `tscircuit/tsx_build/04_kicad/lipo3s_usb_hub.kicad_pcb` (throwaway build
+Output board: `03_tscircuit/tsx_build/04_kicad/lipo3s_usb_hub.kicad_pcb` (throwaway build
 root). Promoted to `04_kicad/` as the fab-of-record for the release.
 
 Schematic-only render (human PDF): `gen_tscircuit.sh <project>` → `build/schematic.pdf`.

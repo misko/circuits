@@ -8,7 +8,7 @@ export PATH="$HOME/.bun/bin:$PATH"
 bash <kicad-pcb skill>/scripts/tsx_to_board.sh projects/cook-loadcell
 ```
 
-Reparents outputs into an isolated build root (`tscircuit/tsx_build/`, gitignored,
+Reparents outputs into an isolated build root (`03_tscircuit/tsx_build/`, gitignored,
 throwaway) — the sealed `04_kicad/` + releases are never touched.
 
 ## Result (2026-07-20)

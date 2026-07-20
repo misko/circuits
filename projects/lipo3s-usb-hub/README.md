@@ -2,7 +2,7 @@
 
 3S LiPo (XT60) → 3× USB-A (2.5 A) + 1× USB-C (6 A) power/charging board. Act 2
 validation of the tscircuit-native pipeline (ADR-0002): authored from scratch in
-`tscircuit/src/lipo3s_usb_hub.tsx` and built to a sealed, orderable JLCPCB release by
+`03_tscircuit/src/lipo3s_usb_hub.tsx` and built to a sealed, orderable JLCPCB release by
 the one-command `tsx_to_board.sh`.
 
 - Design: `01_docs/ARCHITECTURE.md`, `01_docs/DETAIL_DESIGN.md`, `01_docs/decisions/`

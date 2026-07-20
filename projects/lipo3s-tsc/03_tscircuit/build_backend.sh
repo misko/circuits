@@ -10,7 +10,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."                 # projects/lipo3s-tsc
 PROJ="$(pwd)"
 SRC="$PROJ/03_src"
-CONV_SCH="$PROJ/tscircuit/kicad/lipo3s_tsc.kicad_sch"
+CONV_SCH="$PROJ/03_tscircuit/kicad/lipo3s_tsc.kicad_sch"
 SEALED="$PROJ/../usb-power-3s/04_kicad/usb_power_3s.kicad_pcb"
 PY=/usr/bin/python3
 SKILLS="$HOME/.claude/skills/kicad-pcb/scripts"
@@ -73,7 +73,7 @@ sys.exit(1 if (nv or nu or np) else 0)
 PYEOF
 
 echo "== [13] board-netlist parity: built vs SEALED usb-power-3s =="
-$PY "$PROJ/../cook-loadcell/tscircuit/backend_proof/board_netlist_parity.py" \
+$PY "$PROJ/../cook-loadcell/03_tscircuit/backend_proof/board_netlist_parity.py" \
     "$K/usb_power_3s.kicad_pcb" "$SEALED"
 echo ""
 echo "CAPSTONE BUILD COMPLETE"

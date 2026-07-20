@@ -30,7 +30,7 @@ cd "$(dirname "$0")"
 PROOF="$(pwd)"
 PROJ="$(cd ../.. && pwd)"                       # projects/cook-loadcell
 SRC="$PROJ/03_src"
-CONV_SCH="$PROJ/tscircuit/kicad/cook_loadcell.kicad_sch"   # TSX-authored schematic
+CONV_SCH="$PROJ/03_tscircuit/kicad/cook_loadcell.kicad_sch"   # TSX-authored schematic
 SEALED_PCB="$PROJ/04_kicad/cook_loadcell.kicad_pcb"        # for board-netlist parity
 PY=/usr/bin/python3
 SKILLS="$(cd "$PROJ/../.." && pwd)/skills/kicad-pcb/scripts"

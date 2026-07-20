@@ -1,9 +1,20 @@
-# The `tscircuit/` folder — an alternate, verified second-opinion render
+# The `03_tscircuit/` folder — the board's AUTHORING source (pipeline stage 03)
 
-Every board project MAY carry a `tscircuit/` folder: the same board authored in
-[tscircuit](https://tscircuit.com) (React/TSX "electronics as code"), rendered to
-a **full JLCPCB fab output** plus a **verification stack** that measures its
-fidelity against the KiCad fab-of-record.
+Every board project MAY carry a `03_tscircuit/` folder: the board authored in
+[tscircuit](https://tscircuit.com) (React/TSX "electronics as code"), compiled by
+our converter into the native KiCad artifacts the backend gates and fabricates.
+
+**Why it is numbered `03_`** (renamed from bare `tscircuit/` 2026-07-20). Under
+ADR-0002 this folder is no longer a side experiment — it holds hand-written
+SOURCE, the same pipeline stage as `03_src/`, so it takes the same number: it
+sorts adjacent to its sibling source stage, and numbering it `03_` avoids
+renumbering `04_kicad` … `07_releases`. A project may carry both (`03_src/` = the
+KiCad-side generators + promoted route; `03_tscircuit/` = the TSX authoring
+source); together they are stage 03, "the hand-written truth".
+
+Note the shared module library `tscircuit_modules/` at the REPO ROOT is NOT a
+project stage and keeps its unnumbered name; so does the tool/product name
+"tscircuit" everywhere it appears in prose.
 
 ## Why this is allowed under canon S-DSL
 
@@ -14,9 +25,9 @@ declarations compile to NATIVE KiCad artifacts and every gate runs on those
 artifacts, never on a DSL's claims. tscircuit satisfies the letter
 of this because `tsci export` emits native `.kicad_pcb` / `.kicad_sch` — so we run
 the SAME `kicad-cli` DRC on tscircuit's output that we run on our own, and we diff
-its netlist against the sealed release. The `tscircuit/` folder is a **second
-opinion, never a fab source**: KiCad + KRT + the gate stack remain authoritative
-and are what actually gets ordered. This is the Model-A adapter the CircuitScript
+its netlist against the sealed release. tscircuit's OWN pcb/gerber render (the
+`--study` artifacts) is **never a fab source**: KiCad + KRT + the gate stack
+remain authoritative and are what actually gets ordered. This is the Model-A adapter the CircuitScript
 evaluation anticipated — proven viable 2026-07-19 because tscircuit (unlike
 CircuitScript) exports native KiCad, and `kicad-cli` loads and DRCs that export.
 
@@ -39,7 +50,7 @@ artifact. Ship tscircuit's `schematic.pdf`.
 ## Folder format
 
 ```
-tscircuit/
+03_tscircuit/
   README.md                 # this format + the board's S-DSL positioning
   GENERATE.md               # how to (re)generate — the one command
   package.json              # tscircuit deps (name, main)
@@ -144,7 +155,7 @@ ESP32-S3) and J1 (USB-C, 17 distinct pads) that truncated to **2 pins each** thr
 the native export now export **all** pins and reach parity. Parity normalization is
 the documented minimum — universal leading-digit net renames (`N3V3`→`3V3`, `N5V`→`5V`)
 plus, on esp32, one footprint pad-name delta (AMS1117 SOT-223 tab `4`≡KiCad `2`),
-recorded in `tscircuit/parity_padmap.txt` and consumed by `kicad_sch_parity.py`.
+recorded in `03_tscircuit/parity_padmap.txt` and consumed by `kicad_sch_parity.py`.
 
 In the DEFAULT `layout` mode the converter kicad_sch is now a WIRED, readable sheet
 that mirrors tscircuit's own schematic (wires where it drew traces, labels where it used
@@ -159,7 +170,7 @@ few `unconnected_wire_endpoint` stubs, and any named-NC single-pin `isolated_pin
 The same converter output that clears the netlist-parity gate now drives the FULL
 KiCad backend (generate_board → rules → KRT → stitch → DRC `--schematic-parity`) to
 DRC 0/0/0 with **no per-board adapter** — proven on cook-loadcell
-(`projects/cook-loadcell/tscircuit/backend_proof/build_from_tsx.sh`, board parity 0
+(`projects/cook-loadcell/03_tscircuit/backend_proof/build_from_tsx.sh`, board parity 0
 vs the sealed board). The converter fills the four things the backend needs that the
 parity gate never inspects:
 
@@ -169,7 +180,7 @@ author a leading-digit net name, so a rail is authored with an author-prefix `N`
 **strips a single leading `N` that guards a digit-leading rail** and emits the
 canonical KiCad name (`N5V`→`5V`, `N5V_A`→`5V_A`). Names where `N` is followed by a
 non-digit (`NRST`, `NC`, `NRESET`) are left untouched. For any rail the convention
-can't reach, drop a per-board **`tscircuit/net_aliases.txt`** (auto-discovered next
+can't reach, drop a per-board **`03_tscircuit/net_aliases.txt`** (auto-discovered next
 to `build/`): one mapping per line, `TSNAME CANONICAL` (`=` or `->` also accepted),
 `#` starts a comment. The convention + alias file are the ONLY net-naming inputs;
 generate_board's polarity asserts, `rules/nets.yaml` netclass patterns, and the
@@ -264,7 +275,7 @@ tsci build  ->  circuit_json_to_kicad_sch  ->  sch export netlist  ->  ERC (0 er
 ```
 
 **The KiCad backend is UNCHANGED** — the driver only wires TSX authoring into it and
-reparents every backend output into an isolated build root (`tscircuit/tsx_build/`,
+reparents every backend output into an isolated build root (`03_tscircuit/tsx_build/`,
 gitignored, wiped each run so the driver is idempotent) via a `03_src` symlink and
 the `__file__.parent.parent` reparent trick. The sealed `04_kicad/` and releases are
 NEVER touched. Discovery is automatic: the internal board name from
@@ -272,7 +283,7 @@ NEVER touched. Discovery is automatic: the internal board name from
 builds `usb_power_3s`), the newest promoted route chain, optional `route_taps.py` /
 `audit_board.py`. The sealed parity reference defaults to
 `<project>/04_kicad/<board>.kicad_pcb`, overridable with a one-line
-`tscircuit/sealed_ref.txt` (used by lipo3s-tsc to point at the sibling usb-power-3s
+`03_tscircuit/sealed_ref.txt` (used by lipo3s-tsc to point at the sibling usb-power-3s
 board it reproduces).
 
 **Proven end-to-end on TWO tscircuit-native boards to DRC 0/0/0 + board parity 0
@@ -283,7 +294,7 @@ board it reproduces).
 | cook-loadcell | 29 + 4 holes | r2 | 0 / 0 / 0 | **0** (77 nodes / 17 nets) |
 | lipo3s-tsc (capstone) | 96 + 4 holes | r5 + taps | 0 / 0 / 0 | **0** (303 nodes / 56 nets) |
 
-Proof records: each project's `tscircuit/verification/tsx_to_board_proof.md`.
+Proof records: each project's `03_tscircuit/verification/tsx_to_board_proof.md`.
 
 ## What the verification stack proves (and its limits)
 

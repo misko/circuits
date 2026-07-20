@@ -10,9 +10,9 @@ export PATH="$HOME/.bun/bin:$PATH"
 bash <kicad-pcb skill>/scripts/tsx_to_board.sh projects/lipo3s-tsc
 ```
 
-Sealed parity reference (via `tscircuit/sealed_ref.txt`):
+Sealed parity reference (via `03_tscircuit/sealed_ref.txt`):
 `../usb-power-3s/04_kicad/usb_power_3s.kicad_pcb`. Reparents into an isolated build
-root (`tscircuit/tsx_build/`, gitignored) — sealed `04_kicad/` + releases untouched.
+root (`03_tscircuit/tsx_build/`, gitignored) — sealed `04_kicad/` + releases untouched.
 
 ## Result (2026-07-20)
 

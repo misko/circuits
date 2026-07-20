@@ -11,5 +11,5 @@ python3 ~/.claude/skills/kicad-pcb/scripts/circuit_json_to_kicad_sch.py \
     dist/src/lipo3s_tsc/circuit.json -o kicad/lipo3s_tsc.kicad_sch --project lipo3s_tsc
 
 # 2. full KiCad backend (GATE 2: DRC 0/0/0 + board parity 0 vs sealed board)
-bash tscircuit/build_backend.sh
+bash 03_tscircuit/build_backend.sh
 ```

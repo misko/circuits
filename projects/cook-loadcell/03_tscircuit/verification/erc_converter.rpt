@@ -1,4 +1,4 @@
-ERC report (2026-07-20T10:10:50, Encoding UTF8)
+ERC report (2026-07-20T13:10:25, Encoding UTF8)
 Report includes: Errors, Warnings, Exclusions
 
 ***** Sheet /
@@ -19,10 +19,10 @@ Report includes: Errors, Warnings, Exclusions
     @(29.845 mm, 46.355 mm): Vertical Wire, length 2.54 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(29.845 mm, 47.625 mm): Symbol C6 Pin 1 [Passive, Line]
+    @(29.845 mm, 47.625 mm): Vertical Wire, length 1.27 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(29.845 mm, 47.625 mm): Vertical Wire, length 1.27 mm
+    @(29.845 mm, 47.625 mm): Symbol C6 Pin 1 [Passive, Line]
 [footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
     ; warning
     @(29.845 mm, 51.435 mm): Symbol C6 [SYM_C6]
@@ -121,10 +121,10 @@ Report includes: Errors, Warnings, Exclusions
     @(54.61 mm, 97.155 mm): Symbol C1 [SYM_C1]
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(54.61 mm, 100.965 mm): Symbol #FLG01 Hidden pin 1 [pwr, Power output, Line]
+    @(54.61 mm, 100.965 mm): Symbol #PWR07 Hidden pin 1 [GND, Power input, Line]
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(54.61 mm, 100.965 mm): Symbol #PWR07 Hidden pin 1 [GND, Power input, Line]
+    @(54.61 mm, 100.965 mm): Symbol #FLG01 Hidden pin 1 [pwr, Power output, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
     @(54.61 mm, 100.965 mm): Symbol #PWR07 [GND]
@@ -181,10 +181,10 @@ Report includes: Errors, Warnings, Exclusions
     @(73.025 mm, 138.43 mm): Vertical Wire, length 1.27 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(73.025 mm, 139.065 mm): Vertical Wire, length 0.635 mm
+    @(73.025 mm, 139.065 mm): Symbol C7 Pin 1 [Passive, Line]
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(73.025 mm, 139.065 mm): Symbol C7 Pin 1 [Passive, Line]
+    @(73.025 mm, 139.065 mm): Vertical Wire, length 0.635 mm
 [footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
     ; warning
     @(73.025 mm, 142.875 mm): Symbol C7 [SYM_C7]
@@ -217,16 +217,16 @@ Report includes: Errors, Warnings, Exclusions
     @(73.66 mm, 123.825 mm): Symbol #PWR06 [GND]
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(75.565 mm, 40.005 mm): Horizontal Wire, length 2.54 mm
-[endpoint_off_grid]: Symbol pin or wire end off connection grid
-    ; warning
     @(75.565 mm, 40.005 mm): Symbol TP1 Pin 1 [Passive, Line]
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(75.565 mm, 88.265 mm): Symbol J5 Pin 1 [Passive, Line]
+    @(75.565 mm, 40.005 mm): Horizontal Wire, length 2.54 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
     @(75.565 mm, 88.265 mm): Horizontal Wire, length 20.955 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(75.565 mm, 88.265 mm): Symbol J5 Pin 1 [Passive, Line]
 [footprint_link_issues]: The current configuration does not include the footprint library 'TestPoint'
     ; warning
     @(78.105 mm, 40.005 mm): Symbol TP1 [SYM_TP1]
@@ -358,10 +358,10 @@ Report includes: Errors, Warnings, Exclusions
     @(111.76 mm, 47.625 mm): Symbol Q1 [SYM_Q1]
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(117.475 mm, 127.635 mm): Symbol #PWR19 Hidden pin 1 [GND, Power input, Line]
+    @(117.475 mm, 127.635 mm): Symbol JP1 Pin 1 [Passive, Line]
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(117.475 mm, 127.635 mm): Symbol JP1 Pin 1 [Passive, Line]
+    @(117.475 mm, 127.635 mm): Symbol #PWR19 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
     @(117.475 mm, 127.635 mm): Symbol #PWR19 [GND]
@@ -388,10 +388,10 @@ Report includes: Errors, Warnings, Exclusions
     @(126.365 mm, 48.895 mm): Horizontal Wire, length 13.335 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(131.445 mm, 163.83 mm): Horizontal Wire, length 20.32 mm
+    @(131.445 mm, 163.83 mm): Symbol TP7 Pin 1 [Passive, Line]
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(131.445 mm, 163.83 mm): Symbol TP7 Pin 1 [Passive, Line]
+    @(131.445 mm, 163.83 mm): Horizontal Wire, length 20.32 mm
 [footprint_link_issues]: The current configuration does not include the footprint library 'TestPoint'
     ; warning
     @(133.985 mm, 163.83 mm): Symbol TP7 [SYM_TP7]
@@ -508,10 +508,10 @@ Report includes: Errors, Warnings, Exclusions
     @(168.275 mm, 85.09 mm): Horizontal Wire, length 7.62 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(170.815 mm, 106.68 mm): Vertical Wire, length 11.43 mm
+    @(182.88 mm, 106.68 mm): Horizontal Wire, length 12.065 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(182.88 mm, 106.68 mm): Horizontal Wire, length 12.065 mm
+    @(170.815 mm, 106.68 mm): Vertical Wire, length 11.43 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
     @(170.815 mm, 118.11 mm): Horizontal Wire, length 5.715 mm
@@ -607,10 +607,10 @@ Report includes: Errors, Warnings, Exclusions
     @(206.375 mm, 122.555 mm): Symbol #PWR15 [GND]
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(213.995 mm, 92.71 mm): Horizontal Wire, length 7.62 mm
+    @(213.995 mm, 92.71 mm): Symbol TP6 Pin 1 [Passive, Line]
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(213.995 mm, 92.71 mm): Symbol TP6 Pin 1 [Passive, Line]
+    @(213.995 mm, 92.71 mm): Horizontal Wire, length 7.62 mm
 [footprint_link_issues]: The current configuration does not include the footprint library 'TestPoint'
     ; warning
     @(216.535 mm, 92.71 mm): Symbol TP6 [SYM_TP6]

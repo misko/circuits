@@ -3,7 +3,7 @@
 This is the **authoring source** for the lipo3s-tsc board: usb-power-3s re-authored
 in tscircuit/TSX and driven through the converter + KiCad backend to DRC 0/0/0,
 node-for-node identical to the sealed usb-power-3s board. Unlike a normal
-`tscircuit/` second-opinion folder, here the TSX is the *actual front-end* whose
+`03_tscircuit/` second-opinion folder, here the TSX is the *actual front-end* whose
 converter output feeds the backend (see ../01_docs/BRIEF.md).
 
 - `src/lipo3s_tsc.tsx`   — the board authored node-for-node (100 parts, 68 nets)

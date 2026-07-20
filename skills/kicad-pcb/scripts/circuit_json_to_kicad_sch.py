@@ -32,7 +32,7 @@ with NO per-board adapter — the five Phase-3 adapter transforms are folded in 
      rail is authored with a documented author-prefix `N` (`5V`->`N5V`,
      `3V3`->`N3V3`, `12V`->`N12V`). `canon_net` strips that guard prefix and emits
      the canonical KiCad name on the global labels; an optional per-board
-     `tscircuit/net_aliases.txt` (auto-discovered) covers anything the convention
+     `03_tscircuit/net_aliases.txt` (auto-discovered) covers anything the convention
      misses.
   2. FOOTPRINT FPIDs. Each symbol's Footprint field is filled from a baked-in
      COMMODITY token->FPID map (circuit.json class-disambiguates: `res0603` vs
@@ -42,7 +42,7 @@ with NO per-board adapter — the five Phase-3 adapter transforms are folded in 
   4. TP BOM ATTRS. Test-point symbols are `in_bom no` (matching the KiCad
      TestPoint footprint) with a concise `TP` Value that won't clip the board edge.
 Proven: cook-loadcell drives the whole backend to DRC 0/0/0 + board parity 0 from
-this output ALONE (projects/cook-loadcell/tscircuit/backend_proof/build_from_tsx.sh).
+this output ALONE (projects/cook-loadcell/03_tscircuit/backend_proof/build_from_tsx.sh).
 
 Connectivity resolution (validated node-for-node vs the sealed KiCad boards):
   * NET per port: group by `source_net.subcircuit_connectivity_map_key`
@@ -150,7 +150,7 @@ def canon_net(name, aliases):
 
 
 def load_aliases(path):
-    """Optional per-board `tscircuit/net_aliases.txt`: one `TSNAME CANONICAL`
+    """Optional per-board `03_tscircuit/net_aliases.txt`: one `TSNAME CANONICAL`
     per line (`=` or `->` also accepted); `#` starts a comment. For rails the
     default convention can't reach."""
     al = {}
@@ -1024,7 +1024,7 @@ def main():
                          "(default: auto-discover next to the project)")
     ap.add_argument("--net-aliases", default=None,
                     help="net_aliases.txt for names the strip-N convention misses "
-                         "(default: auto-discover tscircuit/net_aliases.txt)")
+                         "(default: auto-discover 03_tscircuit/net_aliases.txt)")
     ap.add_argument("--mode", choices=["layout", "grid"], default="layout",
                     help="layout (default, ADR-0002 Phase A): consume tscircuit's "
                          "schematic layout -> a WIRED, readable sheet. grid: v1's "
