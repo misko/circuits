@@ -1,0 +1,43 @@
+board:        lipo3s_usb_hub
+version:      v1.0
+date:         2026-07-20
+git_sha:      04dc5dc
+git_dirty:    false
+kicad:        10.0.4
+front_end:    tscircuit / TSX -> circuit_json_to_kicad_sch converter -> tsx_to_board.sh (ADR-0002 one-command pipeline)
+provenance:   Act-2 run of the ORIGINAL usb-power-3s brief through the tscircuit-native pipeline.
+              HONEST SCOPE NOTE: this is NOT an independent redesign. 02_parts is identical to
+              usb-power-3s and 03_src/generate_board.py + generate_rules.py were copied and lightly
+              adapted (16 / 2 diff lines); the board is 100 parts / 303 nodes net-for-net identical to
+              usb-power-3s v1.3. It therefore validates that the tscircuit-native pipeline BUILDS a
+              board end-to-end in a fresh project, but does NOT validate from-scratch DESIGN capability.
+fab:          JLCPCB, 4 layer (see ORDER_README for options)
+gates:        tsx_to_board.sh one-command pipeline -> DRC 0/0/0 (severity-all, refill-zones,
+              schematic-parity); board-netlist parity 0 (303 nodes identical, net-for-net) vs the
+              sealed usb-power-3s; jlc_twin exit 0; 3 fresh-context pin reviews PASS; render review
+              done; stock check run; policy_audit zero FAIL at seal (the sole FAIL was this MANIFEST).
+sha256:
+  bom.csv                                        1f0dcb87d57764fa05a64bdfe6e91c26341fadc45d4213a61d620c6e234e4b8a
+  cpl.csv                                        01e0db6f5c532512dd5e69967633d42452b59649ac1335492378b18cd9888474
+  lipo3s_usb_hub_gerbers.zip                     0ba282108705c8b72d946e6910541c7d8c535b8563e9c09b3be3fbb240e1b3ba
+  ORDER_README.md                                26b3a65bdde6b5d7c543d8db9606a931d44a33f9feeabb5dccb20af584d25ad8
+  pdf/assembly_top.pdf                           e0746c827c1da528f5479a72a26b40e7873a753fd7c632ec36646e7257a9dbc5
+  pdf/pcb_layers.pdf                             b60e5f47ec81808ad920263b36039155e5416cf9ece2a2c772a946e7470d5938
+  pdf/schematic.pdf                              5ae94e98f342b4ddd17bb26a0d8539fa520c2ba72cd076c1e5d0dee866ac30be
+  verification/assembly_top.png                  482c0fbaee6dd94a6efbe5312bfaba2e192c7111e1fbc8c50344cde15e0f8b2f
+  verification/drc.json                          79fae3b409000b700d56ca93d6c36ffa0e19671fbbfbcde224cdfe758c2b5a2c
+  verification/notes.md                          13f18b59e61f0b9716e0f3cf0a86656266b2974a1e8eaeb25e1ae151c8bfc427
+  verification/pin_review.md                     4c6a26d3705f9cdce896ba28df3f215d1a540b4ec68057cddacd4526288c24b8
+  verification/policy_audit.md                   d6b0713ebae3291d0adf93e579c6125547b62ffcd2d09185f22e363a4d2e2d86
+  verification/policy_audit.txt                  07b8715e0ffeb65e3173a61a9987c4b558106bcfacc85afc20749ed0928f0144
+  verification/render_review.md                  7fb31b2edd054f7e3ac95e5ec354a2dfc8f126298612c19e99598caee2b886df
+  verification/schematic_render.png              6bd6a4c8624160109424dd59e72715228eba300e7ee2ceb81a403e501c2ae01a
+  verification/stock_check.txt                   406be29bb93867b9b9b2f0c85120c176d2f4727ce1cbba0a8738c1cd4c0264ed
+  verification/tsx_to_board_gates.txt            457ffaf2a91045976154e18b238884ebf0b70a9ddad66c0ddade3a1b8540f973
+  verification/twin_bottom.png                   078e1e99961118d1e3b9904884d43354c1d8db0c5fd9420cc1bf5205c6eb808a
+  verification/twin_edge_east.png                65a0a83ed667722d2fe3ff60e58633de804e7bb3a24f5c3e7f7e144296d5b5ed
+  verification/twin_edge_west.png                ab533aab0a058431bdb3f85140043780005904e7aaf8339de0c3a6ed26d310a2
+  verification/twin_iso_nw.png                   c9d2c26b4557405aec741e1beb113f004476743c8fa456cd4fcb744fec6efd7b
+  verification/twin_iso_se.png                   cfa9ae0df8cbf20687a5cc7e410b9a41e09284494cd5f2d3ade6bcc46617cef2
+  verification/twin_report.txt                   d070583055fc763ba4f50eb02e74228ab155587527029dd629bfe1eaff1f5d34
+  verification/twin_top.png                      93ebe498c027c60c78c13acf356bac5bf5840e1e800f413428a088919b84942e
