@@ -292,22 +292,25 @@ Subcircuits with net prefixing, net OBJECTS instead of strings (typo ->
 NameError, closing an S2 hazard). Additive-only; regenerating every
 schwriter2 board with netlist parity 0 is the proof any sugar is pure.
 
-**tscircuit is the exception that proved Model-A viable (2026-07-19).**
-Unlike CircuitScript, `tsci export` emits NATIVE `.kicad_pcb`/`.kicad_sch`,
-and `kicad-cli` loads + DRCs that export — so tscircuit can be a real
-front-end whose output flows into our gate stack (verified end-to-end).
-It is NOT adopted as a toolchain (its own router/DRC/fab bypass KiCad, and
-adopting that deletes KRT/jlc_twin/policy_audit). Instead each board MAY
-carry a `tscircuit/` folder: an alternate second-opinion render with full
-JLCPCB output + a verification stack (kicad-cli DRC run ON the tscircuit
-export + netlist parity vs the sealed board). Never a fab source — KiCad
-stays authoritative. Generator: `scripts/gen_tscircuit.sh <project>`;
-format + limits: `references/tscircuit-folder.md`; runtime is `bun`
-(`~/.bun/bin`) + `tsci` (`npm i -g tscircuit`), both persistent per-user.
-Optional sandboxed front-end adapter (csimport.py: their netlist ->
-schwriter2 declarations -> full gates) may exist for sketching; no board
-may DEPEND on it. Re-evaluate external tools at each new commission;
-adopt deeper only on native .kicad_sch emission + multi-maintainer health.
+**tscircuit is ADOPTED as the design front-end (ADR-0001 + ADR-0002).**
+The governing model: **tscircuit = design environment (dev loop); KiCad
+backend = CI + fabrication; the converter is the compiler between them.**
+`tsci export` emits circuit.json; our `scripts/circuit_json_to_kicad_sch.py`
+(the AUTHORITATIVE bridge — NOT `tsci export -f kicad_sch`, which truncates
+custom-footprint chips) compiles it to a native, annotated, backend-ready
+`.kicad_sch` that flows into the unchanged gate stack (proven: the lipo3s-tsc
+capstone, 100 parts, node-for-node = the hand-KiCad original). What tscircuit
+owns: authoring, schematic layout (its render IS the human schematic PDF —
+`build/schematic.pdf`), placement-as-code (`circuit_json_to_kicad_pcb.py` at
+authored `pcbX/pcbY`, never auto-place), module reuse. **Two permanent hard
+lines stay KiCad** because the authoring tool must never self-grade them:
+**routing physics** (KRT — tscircuit has no ampacity concept, shorts congested
+corners) and **jlc_twin** (checker-independence M1 — caught 4 wrong-footprint
+boards). Generator: `scripts/gen_tscircuit.sh <project>`; the full mechanics,
+converter modes, placement + module details: `references/tscircuit-folder.md`
+and `docs/decisions/0002-tscircuit-native-pipeline.md`. Runtime is `bun`
+(`~/.bun/bin`) + `tsci` (`npm i -g tscircuit`), persistent per-user. schwriter2
+remains the fallback for footprints tscircuit can't yet express.
 
 ## Version scoping
 
