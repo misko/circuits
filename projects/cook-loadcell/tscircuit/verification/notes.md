@@ -149,3 +149,19 @@ congested SH/GND corner. As an *authoring front-end* for capturing this design,
 tscircuit is credible; as a *fab source* it is not — the copper is neither
 netclass-compliant nor JLC-twinned. Exactly the "serious second opinion, never a fab
 source" positioning the folder format claims.
+
+
+---
+
+## Phase-2 update (2026-07-19) — OUR converter is the bridge
+
+The schematic bridge is now `scripts/circuit_json_to_kicad_sch.py` (ADR-0001 Phase 2),
+run by `gen_tscircuit.sh` on `build/circuit.json` to produce the AUTHORITATIVE
+`kicad/cook_loadcell.kicad_sch` (unique `elt:SYM_<refdes>` symbol per component, pins
+keyed to KiCad pad names, one global-label net-glue per pin, GND as power symbols +
+one PWR_FLAG, annotated). Gate result: **`kicad-cli sch erc --severity-all` = 0 errors**
+(51 warnings, all the parametric `lib_symbol_issues` "lib 'elt' not in config" note)
+and **node-for-node netlist parity 0** vs the sealed board — 16/16 nets, 75/75 nodes,
+2/2 no-connects (U1 VBG/XO). Only the documented leading-digit net renames
+(`N3V3`→`3V3`, `N5V`→`5V`) are normalized. See `parity_converter.md` / `erc_converter.rpt`.
+tscircuit's native export is kept as `kicad/cook_loadcell.native.kicad_sch` for reference.

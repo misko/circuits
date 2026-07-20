@@ -38,14 +38,19 @@ tscircuit/
   fab/                      # (generated) JLCPCB fab package
     gerbers.zip
     bom.csv  cpl.csv        # when the parts-engine resolves JLC codes
-  kicad/                    # (generated) NATIVE export — the S-DSL bridge
-    <board>.kicad_pcb
-    <board>.kicad_sch
+  kicad/                    # (generated) the S-DSL bridge
+    <board>.kicad_pcb       # tscircuit native PCB export (study copper)
+    <board>.kicad_sch       # OUR converter output (circuit.json -> annotated sch) — AUTHORITATIVE
+    <board>.native.kicad_sch# tscircuit's native kicad_sch export — reference only (buggy, see below)
   verification/             # (generated) the second-opinion gate
     tsc_netlist.txt         # tscircuit readable-netlist
     drc.json                # kicad-cli DRC run ON the tscircuit kicad export
-    parity.md               # component/net counts vs the sealed KiCad board (M1)
+    parity.md               # first-order component/net counts vs the sealed KiCad board (M1)
+    erc_converter.rpt       # kicad-cli sch ERC on OUR converter kicad_sch (0 errors is the bar)
+    converter_netlist.net   # netlist exported from OUR converter kicad_sch
+    parity_converter.md     # node-for-node netlist parity: converter vs sealed 04_kicad
     notes.md                # fidelity gaps: footprint mapping, DRC deltas, unrouted nets
+  parity_padmap.txt         # (optional) documented per-board pad-name deltas for the parity gate
 ```
 
 ## Generate
@@ -58,6 +63,44 @@ bash <kicad-pcb skill>/scripts/gen_tscircuit.sh <project_dir>
 The script builds every artifact above, runs `kicad-cli` DRC on the tscircuit
 KiCad export, and writes `parity.md`. It is READ-ONLY w.r.t. `04_kicad/` and the
 releases — it only writes under `tscircuit/`.
+
+## The schematic bridge is OUR converter, not `tsci export -f kicad_sch` (ADR-0001 Phase 2)
+
+tscircuit's own `kicad_sch` exporter has two proven, fidelity-killing bugs:
+1. **Symbol-id collision** — it derives a chip's symbol id as
+   `Device:U_chip_<footprintName>`; a hand-authored `<footprint>` has no name, so
+   every custom-footprint chip collapses to bare `Device:U_chip`. With ≥2 such
+   many-pin chips (e.g. an ESP32 module + a USB-C jack) both share one symbol and
+   each **truncates to 2 pins**, silently dropping the rest.
+2. **No annotation** — the exported sheet isn't annotated, so
+   `kicad-cli sch export netlist` builds **0 nets**.
+
+So we do NOT use it for the bridge. `gen_tscircuit.sh` runs
+`scripts/circuit_json_to_kicad_sch.py` on `build/circuit.json` to produce the
+AUTHORITATIVE `kicad/<board>.kicad_sch` (the native tsci export is kept as
+`.native.kicad_sch` for reference only). The converter renders circuit.json's full
+connectivity model into a native sheet with a **UNIQUE `elt:SYM_<refdes>` lib_symbol
+per component** (collision impossible), **pins keyed to the exact KiCad pad name**
+(first non-`unnamed_*` `pcb_*` port hint; internally-connected duplicate pads collapse
+to one pin), and **one `global_label` per pin as net glue** (schwriter2's rule — the
+netlister joins by label-name). Nets resolve via `subcircuit_connectivity_map_key`
+with propagation through `internally_connected_source_port_ids`; GND pins render as
+ground power symbols + one `PWR_FLAG`; explicit no-connects get `no_connect` flags.
+The sheet is annotated, so netlist export builds real nets.
+
+**Proven on all three Phase-1 boards: `kicad-cli sch erc --severity-all` = 0 errors
+and node-for-node netlist parity = 0 vs the sealed `04_kicad` board** (cook-loadcell
+16 nets/75 nodes, xt60 28/151, esp32 36/189 + 25 NC). The esp32 proof: U1 (41-pad
+ESP32-S3) and J1 (USB-C, 17 distinct pads) that truncated to **2 pins each** through
+the native export now export **all** pins and reach parity. Parity normalization is
+the documented minimum — universal leading-digit net renames (`N3V3`→`3V3`, `N5V`→`5V`)
+plus, on esp32, one footprint pad-name delta (AMS1117 SOT-223 tab `4`≡KiCad `2`),
+recorded in `tscircuit/parity_padmap.txt` and consumed by `kicad_sch_parity.py`.
+
+The converter kicad_sch is a net-glue LAYOUT (labels, not drawn wires) — a faithful,
+annotated capture for the pipeline, not a hand-drawn story schematic. ERC warnings are
+parametric only: `lib_symbol_issues` (the embedded `elt` lib isn't in the running
+kicad-cli config) and any named-NC single-pin `isolated_pin_label`.
 
 ## What the verification stack proves (and its limits)
 

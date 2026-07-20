@@ -1,0 +1,3122 @@
+(export
+	(version "E")
+	(design
+		(source "/home/mouse9911/gits/circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+		(date "2026-07-19T23:21:11")
+		(tool "Eeschema 10.0.4-10.0.4~ubuntu24.04.1")
+		(sheet
+			(number "1")
+			(name "/")
+			(tstamps "/")
+			(title_block
+				(title "cook_loadcell")
+				(company)
+				(rev "dev")
+				(date "2026-07-19")
+				(source "cook_loadcell.kicad_sch")
+				(comment
+					(number "1")
+					(value "")
+				)
+				(comment
+					(number "2")
+					(value "")
+				)
+				(comment
+					(number "3")
+					(value "")
+				)
+				(comment
+					(number "4")
+					(value "")
+				)
+				(comment
+					(number "5")
+					(value "")
+				)
+				(comment
+					(number "6")
+					(value "")
+				)
+				(comment
+					(number "7")
+					(value "")
+				)
+				(comment
+					(number "8")
+					(value "")
+				)
+				(comment
+					(number "9")
+					(value "")
+				)
+			)
+		)
+	)
+	(components
+		(comp
+			(ref "C1")
+			(value "10uF")
+			(fields
+				(field
+					(name "MPN") "C15850")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C1")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C15850")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "65bcb839-f3ed-4781-abe6-7965518d6542")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C2")
+			(value "100nF")
+			(fields
+				(field
+					(name "MPN") "C14663")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C2")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C14663")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "b68acacd-0d92-4b96-bef6-ae2921e97936")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C3")
+			(value "100nF")
+			(fields
+				(field
+					(name "MPN") "C14663")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C3")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C14663")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "6e41031d-d180-4fdd-9d00-d523781ed0e9")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C4")
+			(value "10uF")
+			(fields
+				(field
+					(name "MPN") "C15850")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C4")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C15850")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "049bfdab-9f47-4c0e-8f17-a6d7aa9976f7")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C5")
+			(value "100nF")
+			(fields
+				(field
+					(name "MPN") "C14663")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C5")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C14663")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "b7782278-fc23-4667-9de0-588269d6d15f")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C6")
+			(value "10uF")
+			(fields
+				(field
+					(name "MPN") "C15850")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C6")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C15850")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "1829b68c-ee2a-48c1-855a-7413313519ca")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C7")
+			(value "100nF")
+			(fields
+				(field
+					(name "MPN") "C14663")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C7")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C14663")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "a3b34ac6-16e1-40b6-aeb3-b802654ce2a7")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "D1")
+			(value "C5158048")
+			(fields
+				(field
+					(name "MPN") "C5158048")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_D1")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C5158048")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "d0985b5b-e9c2-41a0-ba47-27f8b12ee17b")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "D2")
+			(value "C5158048")
+			(fields
+				(field
+					(name "MPN") "C5158048")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_D2")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C5158048")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "fe13ed0c-deac-4046-997b-887d85377574")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J1")
+			(value "C144394")
+			(fields
+				(field
+					(name "MPN") "C144394")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J1")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C144394")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "e4b95f9d-4ec7-4933-9a91-099726c8b1ac")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J2")
+			(value "C144394")
+			(fields
+				(field
+					(name "MPN") "C144394")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J2")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C144394")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f33c53ac-667c-40c9-8799-86e4f3b6542a")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J3")
+			(value "C144394")
+			(fields
+				(field
+					(name "MPN") "C144394")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J3")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C144394")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "7e29186c-4731-453a-8ed0-04ed2b90fb39")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J4")
+			(value "C144394")
+			(fields
+				(field
+					(name "MPN") "C144394")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J4")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C144394")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "511342bd-93ea-41b4-be24-ba7786fd793e")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J5")
+			(value "C157991")
+			(fields
+				(field
+					(name "MPN") "C157991")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J5")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C157991")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "851a54a3-429d-459f-90ce-4b7d51268454")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "5")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J6")
+			(value "C157991")
+			(fields
+				(field
+					(name "MPN") "C157991")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_J6")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C157991")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "506bf5e6-04b5-459a-8617-ca7a6243b3d3")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "5")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "JP1")
+			(value "simple_chip")
+			(fields
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_JP1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "27823f38-9fdb-4d5b-b9f3-57c5795253e5")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "Q1")
+			(value "C8542")
+			(fields
+				(field
+					(name "MPN") "C8542")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_Q1")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C8542")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "4a459293-73bd-4d74-86a2-b804d638adcf")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R1")
+			(value "20kΩ")
+			(fields
+				(field
+					(name "MPN") "C4184")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R1")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C4184")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "8cac234e-f141-4bb9-a6b8-90b09f4bd7a1")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R2")
+			(value "8.2kΩ")
+			(fields
+				(field
+					(name "MPN") "C25981")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R2")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C25981")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "bb8ae599-258a-4c80-a308-2c83296c3777")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R7")
+			(value "100Ω")
+			(fields
+				(field
+					(name "MPN") "C22775")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R7")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C22775")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f1c0ad12-2cc4-4565-93a4-9f15ed59cc25")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "SJ1")
+			(value "simple_chip")
+			(fields
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_SJ1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "7d6d0bf8-8813-428e-adab-27be389c58e7")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "TP1")
+			(value "simple_test_point")
+			(fields
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_TP1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "638d28af-1d15-4742-b17a-f4e29d9cb173")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "TP2")
+			(value "simple_test_point")
+			(fields
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_TP2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "6c7b1a4a-0c6e-4636-b8dd-4e6e9ef835d3")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "TP3")
+			(value "simple_test_point")
+			(fields
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_TP3")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "2b0776bd-1ada-4c6d-b597-b7e766290cd2")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "TP4")
+			(value "simple_test_point")
+			(fields
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_TP4")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f967ca31-cc82-4756-b2b3-e334773ea75a")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "TP5")
+			(value "simple_test_point")
+			(fields
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_TP5")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "e91b17c3-867b-408a-958b-dbe83d532830")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "TP6")
+			(value "simple_test_point")
+			(fields
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_TP6")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "bff547a1-05b3-49d9-92a6-68d3fec01472")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "TP7")
+			(value "simple_test_point")
+			(fields
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_TP7")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "6da26cd4-df63-4386-8382-93c577167943")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U1")
+			(value "C43656")
+			(fields
+				(field
+					(name "MPN") "C43656")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U1")
+				(description "")
+			)
+			(property
+				(name "MPN")
+				(value "C43656")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "53f4bbaf-5553-4113-803d-a9c9490fa223")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "8")
+						)
+						(pin
+							(num "9")
+						)
+						(pin
+							(num "10")
+						)
+						(pin
+							(num "11")
+						)
+						(pin
+							(num "12")
+						)
+						(pin
+							(num "13")
+						)
+						(pin
+							(num "14")
+						)
+						(pin
+							(num "15")
+						)
+						(pin
+							(num "16")
+						)
+					)
+				)
+			)
+		)
+	)
+	(groups)
+	(variants)
+	(libparts
+		(libpart
+			(lib "elt")
+			(part "SYM_C1")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C2")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C3")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C3")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C4")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C4")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C5")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C5")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C6")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C6")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C7")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C7")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_D1")
+			(fields
+				(field
+					(name "Reference") "D")
+				(field
+					(name "Value") "SYM_D1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_D2")
+			(fields
+				(field
+					(name "Reference") "D")
+				(field
+					(name "Value") "SYM_D2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J1")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "pin3")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J2")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "pin3")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J3")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J3")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "pin3")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J4")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J4")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "pin3")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J5")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J5")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "pin3")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "pin4")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "pin5")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_J6")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_J6")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "pin3")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "pin4")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "pin5")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_JP1")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "SYM_JP1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "pin3")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_Q1")
+			(fields
+				(field
+					(name "Reference") "Q")
+				(field
+					(name "Value") "SYM_Q1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "B")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "E")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "C")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R1")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R2")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R7")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R7")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_SJ1")
+			(fields
+				(field
+					(name "Reference") "S")
+				(field
+					(name "Value") "SYM_SJ1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "pin2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_TP1")
+			(fields
+				(field
+					(name "Reference") "T")
+				(field
+					(name "Value") "SYM_TP1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_TP2")
+			(fields
+				(field
+					(name "Reference") "T")
+				(field
+					(name "Value") "SYM_TP2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_TP3")
+			(fields
+				(field
+					(name "Reference") "T")
+				(field
+					(name "Value") "SYM_TP3")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_TP4")
+			(fields
+				(field
+					(name "Reference") "T")
+				(field
+					(name "Value") "SYM_TP4")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_TP5")
+			(fields
+				(field
+					(name "Reference") "T")
+				(field
+					(name "Value") "SYM_TP5")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_TP6")
+			(fields
+				(field
+					(name "Reference") "T")
+				(field
+					(name "Value") "SYM_TP6")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_TP7")
+			(fields
+				(field
+					(name "Reference") "T")
+				(field
+					(name "Value") "SYM_TP7")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "pin1")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U1")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "VSUP")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "BASE")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "AVDD")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "VFB")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "AGND")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "VBG")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "INA_N")
+					(type "passive")
+				)
+				(pin
+					(num "8")
+					(name "INA_P")
+					(type "passive")
+				)
+				(pin
+					(num "9")
+					(name "INB_N")
+					(type "passive")
+				)
+				(pin
+					(num "10")
+					(name "INB_P")
+					(type "passive")
+				)
+				(pin
+					(num "11")
+					(name "PD_SCK")
+					(type "passive")
+				)
+				(pin
+					(num "12")
+					(name "DOUT")
+					(type "passive")
+				)
+				(pin
+					(num "13")
+					(name "XO")
+					(type "passive")
+				)
+				(pin
+					(num "14")
+					(name "XI")
+					(type "passive")
+				)
+				(pin
+					(num "15")
+					(name "RATE")
+					(type "passive")
+				)
+				(pin
+					(num "16")
+					(name "DVDD")
+					(type "passive")
+				)
+			)
+		)
+	)
+	(libraries)
+	(nets
+		(net
+			(code "1")
+			(name "AVDD_FB")
+			(class "Default")
+			(node
+				(ref "R1")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R2")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "4")
+				(pinfunction "VFB_4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "2")
+			(name "BASE")
+			(class "Default")
+			(node
+				(ref "Q1")
+				(pin "1")
+				(pinfunction "B_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "2")
+				(pinfunction "BASE_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "3")
+			(name "CLK")
+			(class "Default")
+			(node
+				(ref "D2")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J6")
+				(pin "5")
+				(pinfunction "pin5_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP6")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "11")
+				(pinfunction "PD_SCK_11")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "4")
+			(name "DAT")
+			(class "Default")
+			(node
+				(ref "D1")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J6")
+				(pin "4")
+				(pinfunction "pin4_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP5")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "12")
+				(pinfunction "DOUT_12")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "5")
+			(name "E_PLUS")
+			(class "Default")
+			(node
+				(ref "C1")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C2")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J1")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J5")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "Q1")
+				(pin "3")
+				(pinfunction "C_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "R1")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP1")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "3")
+				(pinfunction "AVDD_3")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "6")
+			(name "GND")
+			(class "Default")
+			(node
+				(ref "C1")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C2")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C3")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C4")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C5")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C6")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C7")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "D1")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "D2")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J3")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J5")
+				(pin "4")
+				(pinfunction "pin4_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J6")
+				(pin "3")
+				(pinfunction "pin3_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "JP1")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R2")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R7")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "SJ1")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP4")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "10")
+				(pinfunction "INB_P_10")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "14")
+				(pinfunction "XI_14")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "5")
+				(pinfunction "AGND_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "9")
+				(pinfunction "INB_N_9")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "7")
+			(name "N3V3")
+			(class "Default")
+			(node
+				(ref "C3")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C4")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J6")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "JP1")
+				(pin "3")
+				(pinfunction "pin3_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP7")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "16")
+				(pinfunction "DVDD_16")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "8")
+			(name "N5V")
+			(class "Default")
+			(node
+				(ref "C5")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C6")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J6")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "Q1")
+				(pin "2")
+				(pinfunction "E_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "1")
+				(pinfunction "VSUP_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "9")
+			(name "RATE_SEL")
+			(class "Default")
+			(node
+				(ref "JP1")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "15")
+				(pinfunction "RATE_15")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "10")
+			(name "RING_12")
+			(class "Default")
+			(node
+				(ref "J1")
+				(pin "3")
+				(pinfunction "pin3_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J2")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "11")
+			(name "RING_23")
+			(class "Default")
+			(node
+				(ref "J2")
+				(pin "3")
+				(pinfunction "pin3_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J3")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "12")
+			(name "RING_34")
+			(class "Default")
+			(node
+				(ref "J3")
+				(pin "3")
+				(pinfunction "pin3_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J4")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "13")
+			(name "RING_41")
+			(class "Default")
+			(node
+				(ref "J1")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J4")
+				(pin "3")
+				(pinfunction "pin3_3")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "14")
+			(name "SH")
+			(class "Default")
+			(node
+				(ref "C7")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J5")
+				(pin "5")
+				(pinfunction "pin5_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "R7")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "SJ1")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "15")
+			(name "S_MINUS")
+			(class "Default")
+			(node
+				(ref "J4")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J5")
+				(pin "3")
+				(pinfunction "pin3_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP3")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "7")
+				(pinfunction "INA_N_7")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "16")
+			(name "S_PLUS")
+			(class "Default")
+			(node
+				(ref "J2")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J5")
+				(pin "2")
+				(pinfunction "pin2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP2")
+				(pin "1")
+				(pinfunction "pin1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "8")
+				(pinfunction "INA_P_8")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "17")
+			(name "unconnected-(U1-VBG-Pad6)")
+			(class "Default")
+			(node
+				(ref "U1")
+				(pin "6")
+				(pinfunction "VBG_6")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "18")
+			(name "unconnected-(U1-XO-Pad13)")
+			(class "Default")
+			(node
+				(ref "U1")
+				(pin "13")
+				(pinfunction "XO_13")
+				(pintype "passive+no_connect")
+			)
+		)
+	)
+)

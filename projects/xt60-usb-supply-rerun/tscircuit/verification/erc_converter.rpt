@@ -1,0 +1,297 @@
+ERC report (2026-07-19T23:21:11, Encoding UTF8)
+Report includes: Errors, Warnings, Exclusions
+
+***** Sheet /
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(38.10 mm, 101.60 mm): Symbol R4 [SYM_R4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(39.37 mm, 26.67 mm): Symbol CB1 [SYM_CB1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(43.18 mm, 53.34 mm): Symbol D1 [SYM_D1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(48.26 mm, 26.67 mm): Symbol #FLG01 [PWR_FLAG]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(48.26 mm, 26.67 mm): Symbol #PWR01 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(55.88 mm, 53.34 mm): Symbol #PWR17 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(87.63 mm, 101.60 mm): Symbol R5 [SYM_R5]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(90.17 mm, 26.67 mm): Symbol CB2 [SYM_CB2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(99.06 mm, 26.67 mm): Symbol #PWR02 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(101.60 mm, 53.34 mm): Symbol F1 [SYM_F1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(138.43 mm, 101.60 mm): Symbol R6 [SYM_R6]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(139.70 mm, 26.67 mm): Symbol CBS1 [SYM_CBS1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(151.13 mm, 53.34 mm): Symbol #PWR18 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(162.56 mm, 53.34 mm): Symbol J1 [SYM_J1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(187.96 mm, 26.67 mm): Symbol CBS2 [SYM_CBS2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(187.96 mm, 101.60 mm): Symbol RFA1 [SYM_RFA1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(218.44 mm, 55.88 mm): Symbol J2 [SYM_J2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(229.87 mm, 53.34 mm): Symbol #PWR19 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(229.87 mm, 55.88 mm): Symbol #PWR20 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(234.95 mm, 101.60 mm): Symbol RFA2 [SYM_RFA2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(237.49 mm, 26.67 mm): Symbol CIN_A1 [SYM_CIN_A1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(243.84 mm, 101.60 mm): Symbol #PWR34 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(246.38 mm, 26.67 mm): Symbol #PWR03 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(271.78 mm, 55.88 mm): Symbol J3 [SYM_J3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(283.21 mm, 53.34 mm): Symbol #PWR21 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(283.21 mm, 55.88 mm): Symbol #PWR22 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(283.21 mm, 101.60 mm): Symbol RFC1 [SYM_RFC1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(288.29 mm, 26.67 mm): Symbol CIN_A2 [SYM_CIN_A2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(297.18 mm, 26.67 mm): Symbol #PWR04 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(326.39 mm, 55.88 mm): Symbol J4 [SYM_J4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(330.20 mm, 101.60 mm): Symbol RFC2 [SYM_RFC2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(337.82 mm, 53.34 mm): Symbol #PWR23 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(337.82 mm, 55.88 mm): Symbol #PWR24 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(339.09 mm, 26.67 mm): Symbol CIN_C1 [SYM_CIN_C1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(339.09 mm, 101.60 mm): Symbol #PWR35 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(347.98 mm, 26.67 mm): Symbol #PWR05 [GND]
+[isolated_pin_label]: Label connected to only one pin
+    ; warning
+    @(372.11 mm, 104.14 mm): Global Label 'NC_U1_PG'
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(372.11 mm, 106.68 mm): Symbol #PWR36 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(373.38 mm, 53.34 mm): Symbol #PWR25 [GND]
+[isolated_pin_label]: Label connected to only one pin
+    ; warning
+    @(373.38 mm, 66.04 mm): Global Label 'NC_J5_SBU1'
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(373.38 mm, 71.12 mm): Symbol #PWR26 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(373.38 mm, 73.66 mm): Symbol #PWR27 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(383.54 mm, 106.68 mm): Symbol U1 [SYM_U1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(384.81 mm, 63.50 mm): Symbol J5 [SYM_J5]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(388.62 mm, 26.67 mm): Symbol CIN_C2 [SYM_CIN_C2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(394.97 mm, 109.22 mm): Symbol #PWR37 [GND]
+[isolated_pin_label]: Label connected to only one pin
+    ; warning
+    @(396.24 mm, 63.50 mm): Global Label 'NC_J5_SBU2'
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(396.24 mm, 68.58 mm): Symbol #PWR28 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(396.24 mm, 71.12 mm): Symbol #PWR29 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(397.51 mm, 26.67 mm): Symbol #PWR06 [GND]
+[isolated_pin_label]: Label connected to only one pin
+    ; warning
+    @(431.80 mm, 104.14 mm): Global Label 'NC_U2_PG'
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(431.80 mm, 106.68 mm): Symbol #PWR38 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(438.15 mm, 26.67 mm): Symbol COUT_A1 [SYM_COUT_A1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(443.23 mm, 106.68 mm): Symbol U2 [SYM_U2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(447.04 mm, 26.67 mm): Symbol #PWR07 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(447.04 mm, 53.34 mm): Symbol L1 [SYM_L1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(454.66 mm, 109.22 mm): Symbol #PWR39 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(487.68 mm, 26.67 mm): Symbol COUT_A2 [SYM_COUT_A2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(488.95 mm, 104.14 mm): Symbol #PWR40 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(496.57 mm, 26.67 mm): Symbol #PWR08 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(500.38 mm, 104.14 mm): Symbol U3 [SYM_U3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(508.00 mm, 53.34 mm): Symbol L2 [SYM_L2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(535.94 mm, 26.67 mm): Symbol COUT_A3 [SYM_COUT_A3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(542.29 mm, 104.14 mm): Symbol #PWR41 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(544.83 mm, 26.67 mm): Symbol #PWR09 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(553.72 mm, 104.14 mm): Symbol U4 [SYM_U4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(554.99 mm, 53.34 mm): Symbol #PWR30 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(563.88 mm, 53.34 mm): Symbol LED1 [SYM_LED1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(584.20 mm, 26.67 mm): Symbol COUT_A4 [SYM_COUT_A4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(593.09 mm, 26.67 mm): Symbol #PWR10 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(595.63 mm, 104.14 mm): Symbol #PWR42 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(605.79 mm, 53.34 mm): Symbol #PWR31 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(607.06 mm, 104.14 mm): Symbol U5 [SYM_U5]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(614.68 mm, 53.34 mm): Symbol LED2 [SYM_LED2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(632.46 mm, 26.67 mm): Symbol COUT_C1 [SYM_COUT_C1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(641.35 mm, 26.67 mm): Symbol #PWR11 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(648.97 mm, 104.14 mm): Symbol #PWR43 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(656.59 mm, 53.34 mm): Symbol #PWR32 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(660.40 mm, 104.14 mm): Symbol U6 [SYM_U6]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(665.48 mm, 53.34 mm): Symbol LED3 [SYM_LED3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(680.72 mm, 26.67 mm): Symbol COUT_C2 [SYM_COUT_C2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(689.61 mm, 26.67 mm): Symbol #PWR12 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(718.82 mm, 54.61 mm): Symbol Q1 [SYM_Q1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(728.98 mm, 26.67 mm): Symbol COUT_C3 [SYM_COUT_C3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(737.87 mm, 26.67 mm): Symbol #PWR13 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(772.16 mm, 53.34 mm): Symbol R1 [SYM_R1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(778.51 mm, 26.67 mm): Symbol COUT_C4 [SYM_COUT_C4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(781.05 mm, 53.34 mm): Symbol #PWR33 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(787.40 mm, 26.67 mm): Symbol #PWR14 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(821.69 mm, 53.34 mm): Symbol R2 [SYM_R2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(826.77 mm, 26.67 mm): Symbol CVCC1 [SYM_CVCC1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(835.66 mm, 26.67 mm): Symbol #PWR15 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(871.22 mm, 53.34 mm): Symbol R3 [SYM_R3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(875.03 mm, 26.67 mm): Symbol CVCC2 [SYM_CVCC2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(883.92 mm, 26.67 mm): Symbol #PWR16 [GND]
+
+ ** ERC messages: 95  Errors 0  Warnings 95
+
+ ** Ignored checks:
+    - Global label only appears once in the schematic
+    - Four connection points are joined together
+    - SPICE model issue
+    - Assigned footprint doesn't match footprint filters

@@ -1,0 +1,165 @@
+ERC report (2026-07-19T23:21:11, Encoding UTF8)
+Report includes: Errors, Warnings, Exclusions
+
+***** Sheet /
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(39.37 mm, 26.67 mm): Symbol C1 [SYM_C1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(40.64 mm, 58.42 mm): Symbol R2 [SYM_R2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(48.26 mm, 26.67 mm): Symbol #FLG01 [PWR_FLAG]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(48.26 mm, 26.67 mm): Symbol #PWR01 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(49.53 mm, 58.42 mm): Symbol #PWR14 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(88.90 mm, 58.42 mm): Symbol R7 [SYM_R7]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(90.17 mm, 26.67 mm): Symbol C2 [SYM_C2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(97.79 mm, 58.42 mm): Symbol #PWR15 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(99.06 mm, 26.67 mm): Symbol #PWR02 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(135.89 mm, 58.42 mm): Symbol SJ1 [SYM_SJ1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(138.43 mm, 26.67 mm): Symbol C3 [SYM_C3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(147.32 mm, 26.67 mm): Symbol #PWR03 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(147.32 mm, 58.42 mm): Symbol #PWR16 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(184.15 mm, 26.67 mm): Symbol C4 [SYM_C4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(193.04 mm, 26.67 mm): Symbol #PWR04 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(193.04 mm, 58.42 mm): Symbol TP1 [SYM_TP1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(229.87 mm, 26.67 mm): Symbol C5 [SYM_C5]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(238.76 mm, 26.67 mm): Symbol #PWR05 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(259.08 mm, 58.42 mm): Symbol TP2 [SYM_TP2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(274.32 mm, 26.67 mm): Symbol C6 [SYM_C6]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(283.21 mm, 26.67 mm): Symbol #PWR06 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(318.77 mm, 26.67 mm): Symbol C7 [SYM_C7]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(326.39 mm, 58.42 mm): Symbol TP3 [SYM_TP3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(327.66 mm, 26.67 mm): Symbol #PWR07 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(364.49 mm, 26.67 mm): Symbol D1 [SYM_D1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(373.38 mm, 58.42 mm): Symbol #PWR17 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(374.65 mm, 26.67 mm): Symbol #PWR08 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(389.89 mm, 58.42 mm): Symbol TP4 [SYM_TP4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(411.48 mm, 26.67 mm): Symbol D2 [SYM_D2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(421.64 mm, 26.67 mm): Symbol #PWR09 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(449.58 mm, 58.42 mm): Symbol TP5 [SYM_TP5]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(461.01 mm, 27.94 mm): Symbol J1 [SYM_J1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(509.27 mm, 58.42 mm): Symbol TP6 [SYM_TP6]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(513.08 mm, 27.94 mm): Symbol J2 [SYM_J2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(557.53 mm, 29.21 mm): Symbol #PWR10 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(566.42 mm, 27.94 mm): Symbol J3 [SYM_J3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(568.96 mm, 58.42 mm): Symbol TP7 [SYM_TP7]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(618.49 mm, 27.94 mm): Symbol J4 [SYM_J4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(618.49 mm, 68.58 mm): Symbol #PWR18 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(627.38 mm, 67.31 mm): Symbol U1 [SYM_U1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(636.27 mm, 58.42 mm): Symbol #PWR19 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(636.27 mm, 60.96 mm): Symbol #PWR20 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(636.27 mm, 71.12 mm): Symbol #PWR21 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(671.83 mm, 29.21 mm): Symbol J5 [SYM_J5]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(680.72 mm, 26.67 mm): Symbol #PWR11 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(712.47 mm, 31.75 mm): Symbol #PWR12 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(721.36 mm, 29.21 mm): Symbol J6 [SYM_J6]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(763.27 mm, 26.67 mm): Symbol #PWR13 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(774.70 mm, 27.94 mm): Symbol JP1 [SYM_JP1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(829.31 mm, 27.94 mm): Symbol Q1 [SYM_Q1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(881.38 mm, 26.67 mm): Symbol R1 [SYM_R1]
+
+ ** ERC messages: 51  Errors 0  Warnings 51
+
+ ** Ignored checks:
+    - Global label only appears once in the schematic
+    - Four connection points are joined together
+    - SPICE model issue
+    - Assigned footprint doesn't match footprint filters

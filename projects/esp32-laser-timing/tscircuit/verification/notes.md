@@ -135,3 +135,31 @@ bash ~/.claude/skills/kicad-pcb/scripts/gen_tscircuit.sh ~/gits/circuits/project
 kicad-cli sch erc --severity-all kicad/esp32_laser_timing.kicad_sch
 kicad-cli sch export netlist --format kicadsexpr -o verification/tsc_sch_netlist.net kicad/esp32_laser_timing.kicad_sch
 ```
+
+
+---
+
+## Phase-2 update (2026-07-19) — OUR converter clears the exporter ceiling
+
+The "exporter fidelity gap" section above (14/36 net parity through the NATIVE export;
+U1 + J1 collapsing to 2 pins each via the `Device:U_chip` symbol-id collision) is
+**resolved** by our own converter (ADR-0001 Phase 2). `gen_tscircuit.sh` now renders the
+AUTHORITATIVE `kicad/esp32_laser_timing.kicad_sch` via
+`scripts/circuit_json_to_kicad_sch.py`, which gives every component a UNIQUE
+`elt:SYM_<refdes>` lib_symbol (collision impossible) with pins keyed to the KiCad pad
+names and one global-label net-glue per pin.
+
+- **The ceiling is gone.** U1 (ESP32-S3-WROOM-1, 41 pads) exports **all 41 pins** and
+  J1 (USB-C, 20 pads / 17 distinct) exports **all 17 distinct pads** — both matching the
+  sealed board, vs **2 pins each** through the native export.
+- **Gate result: `kicad-cli sch erc --severity-all` = 0 errors** (119 warnings, all the
+  parametric `lib_symbol_issues` "lib 'elt' not in config" note) and **node-for-node
+  netlist parity 0** vs the sealed board — **36/36 nets, 189/189 nodes, 25/25 no-connects**
+  (up from 14/36 through the native export).
+- Normalization: the leading-digit net renames (`N3V3`→`3V3`, `N5V`→`5V`) plus ONE
+  documented footprint pad-name delta — AMS1117 SOT-223 tab, tscircuit `sot223` pad `4`
+  ≡ KiCad merged pad `2`, same 3V3 net both sides (recorded in `../parity_padmap.txt`).
+
+See `parity_converter.md` / `erc_converter.rpt`. tscircuit's native export is retained
+as `kicad/esp32_laser_timing.native.kicad_sch` for reference (still 2-pin-truncated —
+that is the bug the converter exists to bypass).

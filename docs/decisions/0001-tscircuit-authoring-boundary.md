@@ -103,6 +103,66 @@ to commodity-footprint boards, keeping custom-footprint-heavy boards on schwrite
 Until one is chosen and proven, KiCad `04_kicad/` stays the sole fab-of-record and the
 `tscircuit/` folders remain design studies.
 
+## Phase 2 result (2026-07-19) — OUR converter clears the ceiling: 3/3 ERC + parity
+
+The bridge work item from Phase 1 was resolved by option **(b): our own
+`circuit.json → .kicad_sch` converter**, bypassing tscircuit's native `kicad_sch`
+exporter entirely. `skills/kicad-pcb/scripts/circuit_json_to_kicad_sch.py` renders
+the FULL connectivity model that circuit.json carries (`source_component` /
+`source_port` / `source_net` + the `pcb_*` pad geometry) into a native, annotated
+sheet:
+
+- **Unique symbol per component.** Each `source_component` gets its own
+  `elt:SYM_<refdes>` lib_symbol (a generic N-pin box sized to its ports). Two
+  components can never share a symbol, so the `Device:U_chip_<footprint>` collision
+  is impossible by construction.
+- **Pins keyed to the KiCad pad name.** Each `source_port` becomes a pin numbered
+  with the exact KiCad pad name (first non-`unnamed_*` `pcb_*` `port_hint`), so the
+  exported netlist nodes match the sealed board verbatim. Internally-connected
+  duplicate pads (split shields / thermal pads) collapse to one pin, as KiCad does.
+- **Net glue by global label (schwriter2 rule).** One `global_label` per pin carries
+  the net name; the netlister joins by label-name = parity. Nets are resolved by
+  `subcircuit_connectivity_map_key` with propagation through
+  `internally_connected_source_port_ids`. GND pins render as ground power symbols
+  with a single `PWR_FLAG` so ERC's power-driven check stays at zero; explicit
+  no-connects get `no_connect` flags.
+- **Annotated.** Instance `(reference …)` blocks are emitted, so
+  `kicad-cli sch export netlist` builds real nets (tscircuit's native export builds 0).
+
+**Gate results — all three Phase-1 boards, converter kicad_sch:**
+
+| Board | ERC (`--severity-all`) | Netlist parity vs sealed 04_kicad |
+|---|---|---|
+| cook-loadcell | **0 errors** (51 warn, baselined) | **PARITY 0** — 16/16 nets, 75/75 nodes, 2/2 NC |
+| xt60-usb-supply-rerun | **0 errors** (95 warn) | **PARITY 0** — 28/28 nets, 151/151 nodes |
+| esp32-laser-timing | **0 errors** (119 warn) | **PARITY 0** — 36/36 nets, 189/189 nodes, 25/25 NC |
+
+Warnings are all parametric/environmental: `lib_symbol_issues` ("lib 'elt' not in
+config", one per symbol, embedded lib_symbols still render) plus xt60's 4
+`isolated_pin_label` (its four intentional named-NC single-pin nets). Zero are
+connectivity signal.
+
+**The ceiling is cleared (esp32 proof).** Through tscircuit's NATIVE export the two
+many-pin custom-footprint chips truncated to **2 pins each** — U1 (ESP32-S3-WROOM-1,
+41 pads) → 2, J1 (USB-C, 20 pads / 17 distinct) → 2. Through OUR converter U1 exports
+all **41 pins** and J1 all **17 distinct pads** (both matching the sealed board), and
+the whole board reaches node-for-node parity 0. The `≤1 many-pin custom-footprint
+chip per board` limit that constrained Phase 1's boundary is gone.
+
+Normalization to reach parity 0 is the documented minimum: the universal leading-digit
+net renames (`N3V3→3V3`, `N5V→5V`, `N5V_A/N5V_C`) plus ONE per-board footprint
+pad-name delta on esp32 (AMS1117 SOT-223 tab: tscircuit `sot223` names it pad `4`,
+KiCad merges the tab into pad `2`; same 3V3 net both sides). No refdes renames were
+needed. `gen_tscircuit.sh` now produces `kicad/<board>.kicad_sch` via this converter
+(authoritative for the parity gate) and keeps tscircuit's native export as
+`kicad/<board>.native.kicad_sch` for reference; it runs ERC + the parity gate
+(`kicad_sch_parity.py`) and writes `verification/parity_converter.md`.
+
+**Boundary consequence:** the schematic bridge now holds for custom-footprint-heavy
+boards (modules + USB-C + multi-connector), not just commodity-footprint boards.
+KiCad `04_kicad/` remains the sole fab-of-record; the converter output is the
+verified schematic-capture bridge, not a fab source.
+
 ## Reversibility
 
 Additive until Phase 4: every board keeps its KiCad generators; the `tscircuit/`

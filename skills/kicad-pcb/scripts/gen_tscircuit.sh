@@ -34,8 +34,27 @@ for spec in "schematic-svg:build/schematic.svg" "pcb-svg:build/pcb.svg" "assembl
 done
 step export gerbers;  timeout 240 tsci export "src/$BASE.tsx" -f gerbers -o "../fab/gerbers.zip" >/dev/null 2>&1
 step export kicad_pcb;timeout 240 tsci export "src/$BASE.tsx" -f kicad_pcb -o "../kicad/$BASE.kicad_pcb" >/dev/null 2>&1
-step export kicad_sch;timeout 240 tsci export "src/$BASE.tsx" -f kicad_sch -o "../kicad/$BASE.kicad_sch" >/dev/null 2>&1
+# tscircuit's OWN native kicad_sch export is kept for reference only (ADR-0001
+# Phase-2: it has two proven bugs — the Device:U_chip_<footprint> symbol-id
+# collision that truncates 2+ many-pin custom-footprint chips to 2 pins, and no
+# symbol annotation so `sch export netlist` builds 0 nets). It is NOT authoritative.
+step export kicad_sch_native; timeout 240 tsci export "src/$BASE.tsx" -f kicad_sch -o "../kicad/$BASE.native.kicad_sch" >/dev/null 2>&1
 step export netlist;  timeout 240 tsci export "src/$BASE.tsx" -f readable-netlist -o "../verification/tsc_netlist.txt" >/dev/null 2>&1
+
+# --- OUR converter: circuit.json -> an ANNOTATED, unique-symbol kicad_sch ---
+# This is the AUTHORITATIVE tscircuit->KiCad schematic bridge (ADR-0001 Phase 2):
+# every source_component gets a UNIQUE per-refdes lib_symbol (never a shared
+# Device:U_chip), every source_port a pin keyed to the KiCad pad name, and one
+# global_label per pin glues nets by name -> `kicad-cli sch export netlist` builds
+# real nets and reaches node-for-node parity vs the sealed 04_kicad board.
+SKILLDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -s "build/circuit.json" ]; then
+  step convert "circuit.json -> annotated kicad_sch (OUR converter)"
+  python3 "$SKILLDIR/circuit_json_to_kicad_sch.py" "build/circuit.json" \
+    -o "kicad/$BASE.kicad_sch" --project "$BASE" >/dev/null 2>&1 \
+    && echo "    wrote kicad/$BASE.kicad_sch (authoritative)" \
+    || echo "    CONVERTER FAILED"
+fi
 
 # --- verification: run OUR gate on tscircuit's KiCad export ---
 KPCB="$T/kicad/$BASE.kicad_pcb"
@@ -84,4 +103,26 @@ PY
   fi
 } > "$T/verification/parity.md"
 echo "  parity report -> $T/verification/parity.md"
+
+# --- AUTHORITATIVE gate: ERC + node-for-node parity on OUR converter kicad_sch ---
+# (ADR-0001 Phase 2). This is the bridge the pipeline actually depends on.
+KSCH="$T/kicad/$BASE.kicad_sch"
+if [ -s "$KSCH" ]; then
+  step gate "ERC on converter kicad_sch (severity-all)"
+  kicad-cli sch erc --severity-all -o "$T/verification/erc_converter.rpt" "$KSCH" >/dev/null 2>&1
+  ERRS=$(grep -c '; error' "$T/verification/erc_converter.rpt" 2>/dev/null || echo "?")
+  WARN=$(grep -c '; warning' "$T/verification/erc_converter.rpt" 2>/dev/null || echo "?")
+  echo "    converter ERC: $ERRS errors, $WARN warnings (warnings baselined: lib_symbol_issues env note + named-NC isolated labels)"
+  if [ -n "$SEALED" ]; then
+    step gate "node-for-node netlist parity vs sealed 04_kicad"
+    kicad-cli sch export netlist --format kicadsexpr \
+      -o "$T/verification/converter_netlist.net" "$KSCH" >/dev/null 2>&1
+    # per-board documented pad-name normalization (tscircuit footprinter vs KiCad land)
+    PADMAP=""
+    [ -f "$T/parity_padmap.txt" ] && PADMAP="$(cat "$T/parity_padmap.txt")"
+    python3 "$SKILLDIR/kicad_sch_parity.py" "$BASE" \
+      "$T/verification/converter_netlist.net" "$SEALED" --padmap "$PADMAP" \
+      | tee "$T/verification/parity_converter.md"
+  fi
+fi
 echo "DONE: $PROJ/tscircuit rendered."

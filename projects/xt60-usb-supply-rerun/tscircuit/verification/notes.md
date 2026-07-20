@@ -123,3 +123,21 @@ rename and zero connectivity compromises. The footprinter has no specialty conne
 polymer cap / fuse, but the `<footprint>` child escape hatch reproduced all of them pad- and
 name-for-name — so the gap costs authoring effort, not fidelity. ERC (635) and PCB DRC (217+118)
 are the expected parametric render noise, not design signal.
+
+
+---
+
+## Phase-2 update (2026-07-19) — OUR converter is the bridge
+
+`ERC on the tscircuit kicad_sch export` above refers to tscircuit's NATIVE export,
+which is no longer the bridge. The pipeline now renders the AUTHORITATIVE
+`kicad/xt60-usb-supply.kicad_sch` via `scripts/circuit_json_to_kicad_sch.py`
+(ADR-0001 Phase 2): a UNIQUE `elt:SYM_<refdes>` symbol per component with pins keyed
+to the exact KiCad pad names and one global-label net-glue per pin. Gate result:
+**`kicad-cli sch erc --severity-all` = 0 errors** (95 warnings: parametric
+`lib_symbol_issues` + 4 `isolated_pin_label` for the four intentional named-NC nets
+`NC_U1_PG`/`NC_U2_PG`/`NC_J5_SBU1`/`NC_J5_SBU2`) and **node-for-node netlist parity 0**
+vs the sealed board — 28/28 nets, 151/151 nodes. All 11 hand `<footprint>` connectors
+(XT60, USB-A ×3, USB-C, DPAK, polymer caps, fuse) export their full pin sets with the
+KiCad pad names intact. Normalization: leading-digit net renames (`N5V_A`/`N5V_C`) only.
+See `parity_converter.md` / `erc_converter.rpt`; native export kept as `.native.kicad_sch`.
