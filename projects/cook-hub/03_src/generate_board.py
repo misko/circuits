@@ -511,6 +511,25 @@ def main():
     add_zone("3V3A", pcbnew.In2_Cu,
              [(21, 21), (52, 21), (52, 40), (21, 40)], 2, minw=0.4)
 
+    # named DRU exemption area (crow neck_approaches pattern): the U7
+    # watchdog pocket's 3V3 pour-bond taps run at 0.3mm (sub-PWR-floor) —
+    # the corridor between the D-FIX SSOP-8 pads and the WD/GND vias cannot
+    # take 0.5mm. Ampacity: U7 VCC + R11/R21 pull-ups draw <15mA. The
+    # scoped width_pwr_u7tap DRU rule (generate_rules.py) keys on this area.
+    ra = pcbnew.ZONE(board)
+    ra.SetIsRuleArea(True)
+    ra.SetZoneName("u7_taps")
+    ra.SetDoNotAllowTracks(False)
+    ra.SetDoNotAllowVias(False)
+    ra.SetDoNotAllowZoneFills(False)
+    ra.SetDoNotAllowPads(False)
+    ra.SetDoNotAllowFootprints(False)
+    ra.SetLayerSet(pcbnew.LSET.AllCuMask(4))
+    ra.Outline().NewOutline()
+    for x, y in [(62.0, 108.5), (73.5, 108.5), (73.5, 118.5), (62.0, 118.5)]:
+        ra.Outline().Append(pcbnew.VECTOR2I_MM(x, y))
+    board.Add(ra)
+
     # ------------------------------------------------------------- silk text
     # NOTE: fixed functional SILK labels are placed LATER, through the unified
     # obstacle-aware de-collision placer (silk campaign 2026-07-19), so they

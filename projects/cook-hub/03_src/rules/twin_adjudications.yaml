@@ -38,3 +38,80 @@
     AO3401A SOT-23: 2.10 vs 2.49mm across = the standard KiCad SOT-23
     vs JLC SOT-23 land style delta (2.4-3.0mm lead span fits both);
     same-package U13/U14/D-class parts fitted OK elsewhere on the board.
+- lcsc: C89650
+  refs: [F1]
+  status: PAD-GEOM
+  why: >-
+    MF-MSMF200L-2 polyfuse 1812: KiCad Fuse_1812 pads at 4.27mm centres vs
+    JLC 3.70mm - the 1812 body (4.5x3.2) lands on both; pad-style delta
+    (KiCad pads longer outward). Non-polarized 2-terminal.
+- lcsc: C5158048
+  refs: [D3, D5]
+  status: PAD-GEOM
+  why: >-
+    PESD5V0S1BA SOD-323, same 2.10 vs 2.40mm land-style delta adjudicated
+    on cook-loadcell D2 (NXP recommended land, 1.7mm lead span fits both);
+    sibling pads D4/D6-D8 fitted OK.
+- lcsc: C113974
+  refs: [D2]
+  status: PAD-GEOM
+  why: >-
+    SMBJ5.0A DO-214AA/SMB: 4.30 vs 4.72mm centres - both are the standard
+    SMB land (3.3-4.6 lead span); KiCad D_SMB vs JLC style delta.
+    Non-critical clamp, polarity checked in the pin review (cathode 5VP).
+- lcsc: C8678
+  refs: [D1]
+  status: PAD-GEOM
+  why: >-
+    SS34 DO-214AC/SMA: 4.00 vs 4.40mm centres - standard SMA land style
+    delta; polarity electrically verified (cathode=VSYS, pin review).
+- lcsc: C318884
+  refs: [SW1]
+  status: PAD-MISMATCH
+  why: >-
+    TS-1187A-B-A-B side-push button: our KiCad SW_SPST 2-pad footprint
+    merges the switch's paired terminals (both pads of each side are the
+    same pole per the DS); JLC's 4-pad model cannot map 4->2 by number.
+    Non-polarized momentary switch on RUN/GND - any orientation works
+    electrically; body-on-courtyard MODEL-REG OK.
+- lcsc: C318884
+  refs: [SW1]
+  status: PAD-GEOM
+  why: >-
+    Same 4-pad-vs-2-pad terminal merge as the PAD-MISMATCH above: the
+    3.75 vs 6.00mm across compares different pad pairs.
+- lcsc: C692429
+  refs: [J11]
+  status: MIRRORED
+  why: >-
+    Numbering-CONVENTION disagreement, not a physical mirror: our vendored
+    IDC_2x16_Keyed numbers pads in the IDC RIBBON zigzag (pin1 NW, odd row
+    north, even row south, columns west->east) which is what the spec's
+    "CH n = pins 2n-1,2n" ribbon harness requires (v1.0 connector pin
+    review verified all 32 nets against this map). JLC's C692429 CAD
+    numbers the same physical grid row-major, which the fit reports as a
+    perfect mirror. The part is THT (holes constrain placement) and the
+    keyed shroud is centre-symmetric: assembly cannot mirror it. Pin-1
+    triangle on our silk marks the NW corner; bring-up checklist includes
+    continuity CH1 = pins 1/2 at the shroud key.
+- lcsc: C157991
+  refs: [J6]
+  status: NO-CAD
+  why: >-
+    EasyEDA fetch failed (rate limit) for B5B-XH-A on this run; the SAME
+    code fitted 0.00mm on J14 (and on cook-loadcell J5/J6). Pad grid
+    identical across refs.
+- lcsc: C125121
+  refs: [U10]
+  status: NO-CAD
+  why: >-
+    LTV-817S SMDIP-4 fetch failed (rate limit). Pinout verified in the
+    fresh-context pin review (LED 1/2 SELV side, C/E dry pair to J10);
+    SMDIP-4 land is the vendor-recommended 10.16mm span used fleet-wide.
+- lcsc: C2653162
+  refs: [U1]
+  status: NO-CAD
+  why: >-
+    MAX31856 TSSOP-14 fetch failed (rate limit). Package is JEDEC
+    TSSOP-14 (KiCad std footprint); full pin map independently verified
+    against the ADI datasheet in the v1.0 sensor pin review.

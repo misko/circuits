@@ -51,16 +51,28 @@ print(f"deduped {len(dead)} twin vias")
 resized = 0
 for t in ([] if PHASE2 else b.GetTracks()):
     if t.GetClass() == "PCB_VIA" and (
-            pcbnew.ToMM(t.GetWidth()) < 0.449 or
+            pcbnew.ToMM(t.GetWidth()) < 0.459 or
             (pcbnew.ToMM(t.GetWidth()) - pcbnew.ToMM(t.GetDrillValue())) / 2 < 0.1299):
         # 0.46/0.2 meets every floor (dia>=0.45, drill>=0.2, annular 0.13)
         # and SHRINKS or barely grows the barrel — normalizing to 0.6/0.3 in
         # the dense 0.13-clearance repair pockets collided with neighbours.
-        t.SetWidth(pcbnew.FromMM(0.46))
+        t.SetWidth(pcbnew.FromMM(0.48))
         t.SetDrill(pcbnew.FromMM(0.2))
         resized += 1
 if resized:
     print(f"normalized {resized} sub-spec vias to 0.6/0.3")
+
+# widen sub-floor tracks (KRT repair passes occasionally emit a <0.15mm
+# joint segment) up to the 0.15 board floor — a 0.02mm width bump on a
+# fraction-of-a-mm joint cannot create a clearance violation class that
+# the 0.127 floor DRC wouldn't already flag on the parent tracks.
+widened = 0
+for t in ([] if PHASE2 else b.GetTracks()):
+    if t.GetClass() == "PCB_TRACK" and pcbnew.ToMM(t.GetWidth()) < 0.1499:
+        t.SetWidth(pcbnew.FromMM(0.15))
+        widened += 1
+if widened:
+    print(f"widened {widened} sub-floor track joints to 0.15")
 
 # remove KRT micro-fragments (< 0.12mm) with a FREE end (track_dangling noise;
 # removing a stub whose end touches nothing cannot disconnect anything).
@@ -175,7 +187,7 @@ for i in range(len(vlist)):
             if gap() >= 0.5:
                 break
             if MM(vm.GetDrillValue()) > 0.21:
-                vm.SetWidth(pcbnew.FromMM(0.46))
+                vm.SetWidth(pcbnew.FromMM(0.48))
                 vm.SetDrill(pcbnew.FromMM(0.2))
                 shrunk += 1
 if shrunk:
@@ -222,18 +234,24 @@ def rescue_pad(pad, label, mandatory=True, viainpad=False, stub_w=0.3):
     and NO single-layer (dangling) via. stub_w is the fallback outer-stub
     width (>= the net's DRU floor: 0.5 for PWR pour nets, else 0.3)."""
     net = pad.GetNet()
+    nname = net.GetNetname()
+    pour_net = nname in ("3V3", "5VP", "3V3A")
     px, py = MM(pad.GetPosition().x), MM(pad.GetPosition().y)
-    if viainpad and try_via(net, px, py, size=0.6, drill=0.3):
+    if viainpad and (not pour_net or in2_covered(nname, px, py)) \
+            and try_via(net, px, py, size=0.6, drill=0.3):
         return True
     bbox = pad.GetBoundingBox()
     w2 = MM(bbox.GetWidth()) / 2
     h2 = MM(bbox.GetHeight()) / 2
     lay = pad.GetLayer()
-    for r in (0.75, 0.95, 1.2, 1.5, 1.9, 2.4, 3.0):
+    for r in (0.35, 0.55, 0.75, 0.95, 1.2, 1.5, 1.9, 2.4, 3.0, 3.8, 4.6):
         for ang in range(0, 360, 30):
             vx = px + (w2 + r) * math.cos(math.radians(ang))
             vy = py + (h2 + r) * math.sin(math.radians(ang))
-            # PROBE first: only commit the via once the stub also clears
+            # PROBE first: only commit the via once the stub also clears;
+            # pour-net vias must land on ACTUAL In2 fill
+            if pour_net and not in2_covered(nname, vx, vy):
+                continue
             if not try_via(net, vx, vy, probe=True):
                 continue
             layer = lay if lay in (pcbnew.F_Cu, pcbnew.B_Cu) else pcbnew.F_Cu
@@ -283,6 +301,22 @@ def pad_has_track(pad):
     return False
 
 
+# pre-fill so pour-bond sites can be checked for ACTUAL In2 fill coverage —
+# rescue vias placed where the pour is voided (WD/spur pocket) bond nothing
+# (skill: "rescue vias only where the net has a plane under the site").
+_filler = pcbnew.ZONE_FILLER(b)
+_filler.Fill(b.Zones())
+IN2_FILL = {}
+for _z in b.Zones():
+    if _z.IsOnLayer(pcbnew.In2_Cu) and _z.GetNetname() in ("3V3", "5VP", "3V3A"):
+        IN2_FILL[_z.GetNetname()] = _z.GetFilledPolysList(pcbnew.In2_Cu)
+
+
+def in2_covered(nname, x, y):
+    ps = IN2_FILL.get(nname)
+    return bool(ps) and ps.Contains(pcbnew.VECTOR2I_MM(round(x, 2), round(y, 2)))
+
+
 IN2_POUR = {"3V3": lambda x, y: not in_nogo(x, y),
             "5VP": lambda x, y: 26 < x < 53 and 110 < y < 131,
             "3V3A": lambda x, y: 21 < x < 52 and 21 < y < 40}
@@ -317,7 +351,9 @@ for fp in b.GetFootprints():
             # R-THERM section below (needs >=2 thermal vias); leave it for that.
             if fp.GetReference() == "U12":
                 continue
-            if not pad_has_via(p, 2.2) and not pad_has_track(p):
+            # pour nets: a via 2mm away with NO stub to this pad serves
+            # nothing — require an actual track touching the pad, else rescue
+            if not pad_has_track(p):
                 # adjacent via + short stub (NOT via-in-pad: a 0.6 barrel on a
                 # dense 0402 pour pad bridges to its neighbours -> shorts/mask
                 # bridges). Stub widened to the PWR floor (0.5) where the
@@ -383,6 +419,18 @@ for ref, p in gnd_fail:
         else:
             print(f"  GND stub fallback FAILED: {ref}.{p.GetNumber()}")
 print(f"GND stub fallback: recovered {recovered}/{len(gnd_fail)}")
+
+# the toolkit's verified_astar adds vias at its 0.45/0.2 default (annular
+# 0.125 < the 0.13 floor) — bump any such via to 0.48/0.2 (+15um per side,
+# collision-negligible)
+_fixed = 0
+for _t in b.GetTracks():
+    if _t.GetClass() == "PCB_VIA" and             (MM(_t.GetWidth()) - MM(_t.GetDrillValue())) / 2 < 0.1299:
+        _t.SetWidth(pcbnew.FromMM(0.48))
+        _t.SetDrill(pcbnew.FromMM(0.2))
+        _fixed += 1
+if _fixed:
+    print(f"bumped {_fixed} thin-annulus A* vias to 0.48/0.2")
 
 # ---- COIL_EN deterministic fallback (plan step 1): KRT stochastically drops
 # this short U9.4 -> R24.1 hop (dense watchdog pocket). If the net has no

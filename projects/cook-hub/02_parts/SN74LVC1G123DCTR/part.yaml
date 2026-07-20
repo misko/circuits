@@ -9,7 +9,7 @@ datasheet:
   fetched: 2026-07-19
   local: sn74lvc1g123.pdf
 package: DCT SSOP-8 (SM-8) 0.65mm pitch
-footprint: Package_SO:SSOP-8_3.9x5.05mm_P1.27mm
+footprint: Package_SO:SSOP-8_2.95x2.8mm_P0.65mm  # fixed 2026-07-19 (was 1.27mm-pitch SSOP-8: wrong pitch for DCT, twin-caught)
 pins:                       # DS Figure 4-1 DCT package p.3
   1: A        # falling-edge trigger input (tie GND: unused direction)
   2: B        # rising-edge trigger input = WD_PULSE

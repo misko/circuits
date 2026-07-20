@@ -27,6 +27,27 @@ for fp in b.GetFootprints():
         padbb.setdefault(p.GetNetCode(), []).append(
             (MM(bb.GetLeft()) - 0.1, MM(bb.GetTop()) - 0.1,
              MM(bb.GetRight()) + 0.1, MM(bb.GetBottom()) + 0.1))
+# near-duplicate same-net via dedupe (two barrels < 0.45mm apart = one
+# hole_to_hole violation and zero electrical value; keep the first)
+seen = []
+dups = []
+for t in b.GetTracks():
+    if t.GetClass() != "PCB_VIA":
+        continue
+    vx, vy, nc = MM(t.GetPosition().x), MM(t.GetPosition().y), t.GetNetCode()
+    if any(n == nc and (vx - x) ** 2 + (vy - y) ** 2 < 0.45 ** 2
+           for (n, x, y) in seen):
+        dups.append(t)
+    else:
+        seen.append((nc, vx, vy))
+for t in dups:
+    print(f"post-sweep dup via: ({MM(t.GetPosition().x):.2f},"
+          f"{MM(t.GetPosition().y):.2f}) {t.GetNetname()}")
+    b.Remove(t)
+if dups:
+    b.Save(PCB)
+    b = pcbnew.LoadBoard(PCB)
+
 orphans = []
 for t in b.GetTracks():
     if t.GetClass() != "PCB_VIA" or t.GetNetCode() == gnd_nc:

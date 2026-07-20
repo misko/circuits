@@ -155,7 +155,7 @@ sch.sym_fp = {
     "ULN": "Package_SO:SOIC-18W_7.5x11.6mm_P1.27mm",
     "MAX": "Package_SO:TSSOP-14_4.4x5mm_P0.65mm",
     "HC14": "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm",
-    "WD123": "Package_SO:SSOP-8_3.9x5.05mm_P1.27mm",
+    "WD123": "Package_SO:SSOP-8_2.95x2.8mm_P0.65mm",  # D-FIX 2026-07-19: SN74LVC1G123DCTR is DCT SSOP-8 at 0.65mm pitch (DS mech drawing; JLC pattern 4.10mm across); the old 1.27mm SSOP-8 was unassemblable. Twin PAD-GEOM 6.57 vs 4.10 caught it.
     "G00": "Package_TO_SOT_SMD:SOT-353_SC-70-5",
     "G11": "Package_TO_SOT_SMD:SOT-23-6",
     "OPTO": "Package_DIP:SMDIP-4_W9.53mm",

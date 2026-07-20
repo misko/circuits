@@ -32,6 +32,7 @@ $PY 03_src/route_bank.py 2>/dev/null | tail -2
 python3 03_src/generate_rules.py >/dev/null
 $PY 03_src/stitch_and_fill.py > 06_build/stitch.log 2>&1 || { echo "STITCH FAILED:"; tail -25 06_build/stitch.log; exit 1; }
 grep -vE 'swig|memory leak|Debug:|assert' 06_build/stitch.log | tail -5
+$PY 03_src/fixups.py 2>/dev/null | tail -3
 $PY 03_src/post_sweep.py 2>/dev/null | tail -2
 # audit post-route (I-ISO needs tracks)
 $PY 03_src/audit_board.py 2>/dev/null | tail -2

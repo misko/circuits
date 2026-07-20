@@ -9,6 +9,9 @@
 (rule width_pwr
   (condition "A.NetClass == 'PWR'")
   (constraint track_width (min 0.50mm)))
+(rule width_pwr_u7tap
+  (condition "A.NetClass == 'PWR' && A.insideArea('u7_taps')")
+  (constraint track_width (min 0.25mm)))
 (rule iso_keypad
   (condition "A.NetClass == 'KEYPAD' && B.NetClass != 'KEYPAD'")
   (constraint clearance (min 6.00mm)))
