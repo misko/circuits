@@ -16,3 +16,8 @@
   - Verification: jlc_twin exit 0 (5 evidence-backed adjudications),
     fresh-context pin reviews (U1/U3/group) + render review, PDFs.
   - Release v1.0-2026-07-17 cut.
+- 2026-07-17 (post-v1.0): release chain v1.1..v1.7 (see CHANGELOG) —
+  refdes-on-silk re-fab (v1.1, live copper), USB-C render double-flip +
+  revert (v1.2/v1.3), schematic S-OCCL/wiring/schwriter2/GND-icon
+  improvements (v1.4-v1.7, fab byte-identical to v1.1). Live: v1.7.
+- 2026-07-19: full independent review + audit (06_build/full_review_2026-07-19.md).

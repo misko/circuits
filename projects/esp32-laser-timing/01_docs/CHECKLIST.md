@@ -16,7 +16,7 @@ Every line runnable/inspectable by a fresh agent.
       (ESP32 module and LM339 have dedicated reviewers)
 - [ ] Fresh-context render review: verification/render_review.md — terminal
       silk words legible, OLED pin-order warning present, all findings triaged
-- [ ] Antenna keepout: audit_board.py I8 passes (no copper in antenna zone,
+- [ ] Antenna keepout: audit_board.py I3 passes (no copper in antenna zone,
       module overhangs north edge)
 - [ ] All acceptance criteria in BRIEF.md are met or user-dropped before
       cutting 07_releases/ (contract rule)

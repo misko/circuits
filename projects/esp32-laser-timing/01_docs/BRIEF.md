@@ -1,7 +1,7 @@
 # BRIEF — esp32-laser-timing
 
 status: delivered
-current_release: 07_releases/v1.0-2026-07-17
+current_release: 07_releases/v1.7-2026-07-17
 
 Commissioned: 2026-07-16, via /pcb-design. Prompt sha256: 221b4ba9cc4c0d5caae4484dd7ca0dffd051d64b5a9a320b4e57c02f81fdd899
 

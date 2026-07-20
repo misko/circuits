@@ -6,7 +6,8 @@ channels (LM339 on the 5V rail -> clean 3.3V edges), 3 off-board
 buttons, SSD1306 OLED header. ESP32-S3-WROOM-1-N8R2, native USB-C,
 92x62mm 2-layer, JLC-assembled SMD top side + 10 hand-solder THT joints.
 
-- Status: **v1.0 released** — see `07_releases/v1.0-2026-07-17/`
+- Status: **v1.7 released** (live; fab byte-identical to v1.1) — see
+  `07_releases/v1.7-2026-07-17/`; chain v1.0→v1.7 in `01_docs/CHANGELOG.md`
 - Commissioned brief + decision register: `01_docs/BRIEF.md`
 - Rebuild: `bash 03_src/rebuild_all.sh` (ends ERC 0 / AUDIT PASS /
   DRC `violations: 0` `unconnected: 0` `parity: 0`)
