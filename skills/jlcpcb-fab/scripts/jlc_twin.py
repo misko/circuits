@@ -72,6 +72,14 @@ TRANSIENT_PAT = re.compile(
     r"rate.?limit|429|50[234]|max retries|ssl|certificate|resolve|unreachable",
     re.I)
 
+# AFFIRMATIVE "the library genuinely has no model for this part" messages.
+# Everything else is treated as a fetch failure — see fetch() for why this
+# allowlist, not TRANSIENT_PAT, is what decides the disposition.
+NOCAD_PAT = re.compile(
+    r"no cad data|no 3d model|no footprint|not found|does not exist|"
+    r"is not available|no such (component|part)|empty (model|footprint)",
+    re.I)
+
 
 def fetch(lcsc, cachedir, attempts=None):
     """easyeda2kicad --full into a per-code dir.
@@ -97,7 +105,24 @@ def fetch(lcsc, cachedir, attempts=None):
     if mods:
         return mods[0], None, None
     msg = (((r.stderr or r.stdout).strip().splitlines()[-1:]) if r else []) or ["no CAD data"]
-    kind = "transient" if TRANSIENT_PAT.search(" ".join(msg)) else "nocad"
+    joined = " ".join(msg)
+    # FAIL CLOSED. This used to be `transient if TRANSIENT_PAT else nocad`,
+    # i.e. any message the pattern didn't recognise was declared "the library
+    # has no model" — a DISPOSITION — and exited 0. On 2026-07-20 that let 11
+    # unverified parts through on an `HTTP Error 403: Forbidden`, which
+    # matches neither pattern. A part we could not fetch was never checked,
+    # so the only safe default is to BLOCK. NO-CAD now requires the tool to
+    # say so affirmatively (NOCAD_PAT); a non-zero exit is never NO-CAD.
+    if TRANSIENT_PAT.search(joined):
+        kind = "transient"
+    elif NOCAD_PAT.search(joined) and (r is None or r.returncode == 0):
+        kind = "nocad"
+    else:
+        kind = "transient"
+        msg = list(msg) + [f"(unrecognised fetcher failure, rc="
+                           f"{'?' if r is None else r.returncode}; treated as "
+                           f"FETCH-FAILED because an unfetched part is an "
+                           f"UNCHECKED part)"]
     return None, msg, kind
 
 

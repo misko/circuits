@@ -139,6 +139,36 @@ ov = [(boxes[i][0], boxes[j][0]) for i in range(len(boxes))
 if ov:
     warns.append(f"I6 bbox-overlaps ({len(ov)}): {ov[:10]}")
 
+# I6c COURTYARD OVERLAP — a hard FAIL, independently of DRC.
+# I6 above is bounding-BOX and warn-only: a bbox is the part's rectangular
+# extent including silk, so it over-reports on any dense board and could
+# never be promoted to a fail. The COURTYARD is the assembly-clearance
+# polygon, and two overlapping courtyards mean the parts cannot both be
+# placed — that is unambiguously broken. This used to be caught only via
+# I7's `courtyards_overlap` DRC counter, which is silent whenever the
+# baseline file is missing (a fresh project) or was captured dirty.
+cy = []
+for r, f in fps.items():
+    if r.startswith("H"):
+        continue
+    for side, lay in (("F", pcbnew.F_CrtYd), ("B", pcbnew.B_CrtYd)):
+        poly = f.GetCourtyard(lay)
+        if poly and poly.OutlineCount():
+            cy.append((r, side, poly))
+cy_ov = []
+for i in range(len(cy)):
+    for j in range(i + 1, len(cy)):
+        ra, sa, pa = cy[i]
+        rb, sb, pb = cy[j]
+        if sa != sb:
+            continue                    # opposite board sides never collide
+        test = pcbnew.SHAPE_POLY_SET(pa)
+        test.BooleanIntersection(pb)
+        if test.OutlineCount():
+            cy_ov.append(f"{ra}~{rb}({sa})")
+if cy_ov:
+    fails.append(f"I6c courtyard-overlap ({len(cy_ov)}): {sorted(cy_ov)[:10]}")
+
 rpt = "/tmp/audit_drc.txt"
 _write_drc_report(board, args.board, rpt)
 txt = Path(rpt).read_text()
