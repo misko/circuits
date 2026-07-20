@@ -1,0 +1,4163 @@
+{
+    "$schema": "https://schemas.kicad.org/erc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-07-20T00:24:09",
+    "ignored_checks": [
+        {
+            "description": "Global label only appears once in the schematic",
+            "key": "single_global_label"
+        },
+        {
+            "description": "Four connection points are joined together",
+            "key": "four_way_junction"
+        },
+        {
+            "description": "SPICE model issue",
+            "key": "simulation_model_issue"
+        },
+        {
+            "description": "Assigned footprint doesn't match footprint filters",
+            "key": "footprint_filter"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning",
+        "exclusion"
+    ],
+    "kicad_version": "10.0.4",
+    "sheets": [
+        {
+            "path": "/",
+            "uuid_path": "/3a3ac6ed-4dec-46e3-8a34-81ec8e052c37",
+            "violations": [
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR69 [GND]",
+                            "pos": {
+                                "x": 0.3429,
+                                "y": 2.1336
+                            },
+                            "uuid": "2a0c648f-9d30-41c7-bda6-5535654a6bc4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR70 [GND]",
+                            "pos": {
+                                "x": 0.3429,
+                                "y": 2.1844
+                            },
+                            "uuid": "554894c8-366f-4006-b5cd-32eb9b7c0bd9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CB52 [SYM_CB52]",
+                            "pos": {
+                                "x": 0.3556,
+                                "y": 0.8128
+                            },
+                            "uuid": "7ac0be09-d616-4de7-a21a-513519c73ebf"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CB52 [SYM_CB52]",
+                            "pos": {
+                                "x": 0.3556,
+                                "y": 0.8128
+                            },
+                            "uuid": "7ac0be09-d616-4de7-a21a-513519c73ebf"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CA8 [SYM_CA8]",
+                            "pos": {
+                                "x": 0.3683,
+                                "y": 0.5334
+                            },
+                            "uuid": "e7902a34-2710-4706-9d89-840bb517f4c4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CA8 [SYM_CA8]",
+                            "pos": {
+                                "x": 0.3683,
+                                "y": 0.5334
+                            },
+                            "uuid": "e7902a34-2710-4706-9d89-840bb517f4c4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Inductor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol LA1 [SYM_LA1]",
+                            "pos": {
+                                "x": 0.381,
+                                "y": 1.2827
+                            },
+                            "uuid": "71c21b47-651f-41ab-b2ca-fed26ad9ce9e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol LA1 [SYM_LA1]",
+                            "pos": {
+                                "x": 0.381,
+                                "y": 1.2827
+                            },
+                            "uuid": "71c21b47-651f-41ab-b2ca-fed26ad9ce9e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol C1 [SYM_C1]",
+                            "pos": {
+                                "x": 0.3937,
+                                "y": 0.2667
+                            },
+                            "uuid": "ad93ce0a-c9ea-4eea-bd68-9d0126adb743"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C1 [SYM_C1]",
+                            "pos": {
+                                "x": 0.3937,
+                                "y": 0.2667
+                            },
+                            "uuid": "ad93ce0a-c9ea-4eea-bd68-9d0126adb743"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol R21 [SYM_R21]",
+                            "pos": {
+                                "x": 0.4318,
+                                "y": 1.6002
+                            },
+                            "uuid": "949975db-2ada-4c3e-94b8-8581330d1b01"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R21 [SYM_R21]",
+                            "pos": {
+                                "x": 0.4318,
+                                "y": 1.6002
+                            },
+                            "uuid": "949975db-2ada-4c3e-94b8-8581330d1b01"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'usb_power_3s'",
+                    "items": [
+                        {
+                            "description": "Symbol U2 [SYM_U2]",
+                            "pos": {
+                                "x": 0.4318,
+                                "y": 2.1336
+                            },
+                            "uuid": "0b3cf79b-52e1-457a-81d9-0657eb318201"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U2 [SYM_U2]",
+                            "pos": {
+                                "x": 0.4318,
+                                "y": 2.1336
+                            },
+                            "uuid": "0b3cf79b-52e1-457a-81d9-0657eb318201"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR28 [GND]",
+                            "pos": {
+                                "x": 0.4445,
+                                "y": 0.8128
+                            },
+                            "uuid": "39f49fab-cf71-42ee-8512-bada1f3c9cc8"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR71 [GND]",
+                            "pos": {
+                                "x": 0.5207,
+                                "y": 2.0066
+                            },
+                            "uuid": "9f8f5797-d1b3-491e-845b-51e7b23671fe"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR72 [GND]",
+                            "pos": {
+                                "x": 0.5207,
+                                "y": 2.2352
+                            },
+                            "uuid": "fadb14cf-bc68-4e13-9660-59c196b0cd8b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CB53 [SYM_CB53]",
+                            "pos": {
+                                "x": 0.8001,
+                                "y": 0.8128
+                            },
+                            "uuid": "6ffc614c-feb7-4fa8-9717-b7ee065fb900"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CB53 [SYM_CB53]",
+                            "pos": {
+                                "x": 0.8001,
+                                "y": 0.8128
+                            },
+                            "uuid": "6ffc614c-feb7-4fa8-9717-b7ee065fb900"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CA9 [SYM_CA9]",
+                            "pos": {
+                                "x": 0.8509,
+                                "y": 0.5334
+                            },
+                            "uuid": "f5107830-9429-46c2-93f2-a4338ec91819"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CA9 [SYM_CA9]",
+                            "pos": {
+                                "x": 0.8509,
+                                "y": 0.5334
+                            },
+                            "uuid": "f5107830-9429-46c2-93f2-a4338ec91819"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Inductor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol LB1 [SYM_LB1]",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 1.2827
+                            },
+                            "uuid": "2b9ac192-4338-4533-91a3-c5ed0ce0e79d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol LB1 [SYM_LB1]",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 1.2827
+                            },
+                            "uuid": "2b9ac192-4338-4533-91a3-c5ed0ce0e79d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR29 [GND]",
+                            "pos": {
+                                "x": 0.889,
+                                "y": 0.8128
+                            },
+                            "uuid": "7327b5bf-0981-445a-be51-44582eb07872"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol C2 [SYM_C2]",
+                            "pos": {
+                                "x": 0.9017,
+                                "y": 0.2667
+                            },
+                            "uuid": "41653db8-0668-4ca1-b837-d032c1f88250"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C2 [SYM_C2]",
+                            "pos": {
+                                "x": 0.9017,
+                                "y": 0.2667
+                            },
+                            "uuid": "41653db8-0668-4ca1-b837-d032c1f88250"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR73 [GND]",
+                            "pos": {
+                                "x": 0.9017,
+                                "y": 2.1336
+                            },
+                            "uuid": "bc52d3a5-8bd7-4221-b6e0-36b2a67e1ac6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR74 [GND]",
+                            "pos": {
+                                "x": 0.9017,
+                                "y": 2.1844
+                            },
+                            "uuid": "32f8268f-66ad-4fe6-869f-11eab5c33105"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Label connected to only one pin",
+                    "items": [
+                        {
+                            "description": "Global Label 'PGOOD_B'",
+                            "pos": {
+                                "x": 0.9017,
+                                "y": 2.2352
+                            },
+                            "uuid": "d56ed469-7db4-4136-9ea3-af173f943d8d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "isolated_pin_label"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol R22 [SYM_R22]",
+                            "pos": {
+                                "x": 0.9779,
+                                "y": 1.6002
+                            },
+                            "uuid": "9b80105c-df65-4345-87eb-fa1c4dcc9317"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R22 [SYM_R22]",
+                            "pos": {
+                                "x": 0.9779,
+                                "y": 1.6002
+                            },
+                            "uuid": "9b80105c-df65-4345-87eb-fa1c4dcc9317"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #FLG01 [PWR_FLAG]",
+                            "pos": {
+                                "x": 0.9906,
+                                "y": 0.2667
+                            },
+                            "uuid": "7e711f10-1267-4319-906a-dd2afd619996"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR01 [GND]",
+                            "pos": {
+                                "x": 0.9906,
+                                "y": 0.2667
+                            },
+                            "uuid": "cfd869e9-fee7-4011-8576-65938121017d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'usb_power_3s'",
+                    "items": [
+                        {
+                            "description": "Symbol U3 [SYM_U3]",
+                            "pos": {
+                                "x": 0.9906,
+                                "y": 2.1336
+                            },
+                            "uuid": "c156888f-c1e5-45fa-8e45-7cb08b005072"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U3 [SYM_U3]",
+                            "pos": {
+                                "x": 0.9906,
+                                "y": 2.1336
+                            },
+                            "uuid": "c156888f-c1e5-45fa-8e45-7cb08b005072"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR75 [GND]",
+                            "pos": {
+                                "x": 1.0795,
+                                "y": 2.0066
+                            },
+                            "uuid": "6c414e44-ca00-4a14-b376-0a9d6d8a5bbe"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR76 [GND]",
+                            "pos": {
+                                "x": 1.0795,
+                                "y": 2.2352
+                            },
+                            "uuid": "d8a74ec2-7efc-417d-81a1-f3ee4f271b3a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CB61 [SYM_CB61]",
+                            "pos": {
+                                "x": 1.2573,
+                                "y": 0.8128
+                            },
+                            "uuid": "a8047bcb-1759-438b-a72c-0dd9efe2cf9e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CB61 [SYM_CB61]",
+                            "pos": {
+                                "x": 1.2573,
+                                "y": 0.8128
+                            },
+                            "uuid": "a8047bcb-1759-438b-a72c-0dd9efe2cf9e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CA10 [SYM_CA10]",
+                            "pos": {
+                                "x": 1.3462,
+                                "y": 0.5334
+                            },
+                            "uuid": "62d22f00-a1b5-49f3-9fd9-7a7f7f8a3bbe"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CA10 [SYM_CA10]",
+                            "pos": {
+                                "x": 1.3462,
+                                "y": 0.5334
+                            },
+                            "uuid": "62d22f00-a1b5-49f3-9fd9-7a7f7f8a3bbe"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR30 [GND]",
+                            "pos": {
+                                "x": 1.3462,
+                                "y": 0.8128
+                            },
+                            "uuid": "87df97c9-eb75-44ae-a538-065c046874ef"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Package_SON'",
+                    "items": [
+                        {
+                            "description": "Symbol Q1 [SYM_Q1]",
+                            "pos": {
+                                "x": 1.3843,
+                                "y": 1.3081
+                            },
+                            "uuid": "d09284d7-6d66-4554-88dd-5a30f11a99d7"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol Q1 [SYM_Q1]",
+                            "pos": {
+                                "x": 1.3843,
+                                "y": 1.3081
+                            },
+                            "uuid": "d09284d7-6d66-4554-88dd-5a30f11a99d7"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol C3 [SYM_C3]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.2667
+                            },
+                            "uuid": "60918e5c-037c-4175-8268-8077bb9ed4b0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C3 [SYM_C3]",
+                            "pos": {
+                                "x": 1.397,
+                                "y": 0.2667
+                            },
+                            "uuid": "60918e5c-037c-4175-8268-8077bb9ed4b0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR77 [GND]",
+                            "pos": {
+                                "x": 1.4097,
+                                "y": 2.0066
+                            },
+                            "uuid": "d6015105-8dfc-4d85-a063-7e9dc7c5f5ce"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol R23 [SYM_R23]",
+                            "pos": {
+                                "x": 1.4859,
+                                "y": 1.6002
+                            },
+                            "uuid": "f99fab8c-84c7-4d97-afc5-905a4325eb1d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R23 [SYM_R23]",
+                            "pos": {
+                                "x": 1.4859,
+                                "y": 1.6002
+                            },
+                            "uuid": "f99fab8c-84c7-4d97-afc5-905a4325eb1d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Package_SON'",
+                    "items": [
+                        {
+                            "description": "Symbol U4 [SYM_U4]",
+                            "pos": {
+                                "x": 1.4986,
+                                "y": 2.0574
+                            },
+                            "uuid": "fb9a16a3-53f9-4433-8c1c-d53ce8aad6e8"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U4 [SYM_U4]",
+                            "pos": {
+                                "x": 1.4986,
+                                "y": 2.0574
+                            },
+                            "uuid": "fb9a16a3-53f9-4433-8c1c-d53ce8aad6e8"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR78 [GND]",
+                            "pos": {
+                                "x": 1.5875,
+                                "y": 2.0828
+                            },
+                            "uuid": "777b9138-7e2d-4a11-a968-19bc973bdccd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CB62 [SYM_CB62]",
+                            "pos": {
+                                "x": 1.7272,
+                                "y": 0.8128
+                            },
+                            "uuid": "acdb93c6-c286-4550-a318-d3f1f60a0de3"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CB62 [SYM_CB62]",
+                            "pos": {
+                                "x": 1.7272,
+                                "y": 0.8128
+                            },
+                            "uuid": "acdb93c6-c286-4550-a318-d3f1f60a0de3"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CA51 [SYM_CA51]",
+                            "pos": {
+                                "x": 1.7907,
+                                "y": 0.5334
+                            },
+                            "uuid": "1dccbd34-5cb9-4659-ad84-3fee65de5fbf"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CA51 [SYM_CA51]",
+                            "pos": {
+                                "x": 1.7907,
+                                "y": 0.5334
+                            },
+                            "uuid": "1dccbd34-5cb9-4659-ad84-3fee65de5fbf"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR31 [GND]",
+                            "pos": {
+                                "x": 1.8161,
+                                "y": 0.8128
+                            },
+                            "uuid": "b0d7ae25-c3eb-462b-85d1-866c499b7796"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR16 [GND]",
+                            "pos": {
+                                "x": 1.8796,
+                                "y": 0.5334
+                            },
+                            "uuid": "e6394552-a98a-46c5-bb63-3e11d216e778"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Package_SON'",
+                    "items": [
+                        {
+                            "description": "Symbol Q2 [SYM_Q2]",
+                            "pos": {
+                                "x": 1.8923,
+                                "y": 1.3081
+                            },
+                            "uuid": "fb928833-1865-4e48-b228-d53a1d7efb9a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol Q2 [SYM_Q2]",
+                            "pos": {
+                                "x": 1.8923,
+                                "y": 1.3081
+                            },
+                            "uuid": "fb928833-1865-4e48-b228-d53a1d7efb9a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR79 [GND]",
+                            "pos": {
+                                "x": 1.8923,
+                                "y": 2.0066
+                            },
+                            "uuid": "0bf6def1-b5a1-45a5-ba2e-bb8be7f13b23"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol C15 [SYM_C15]",
+                            "pos": {
+                                "x": 1.905,
+                                "y": 0.2667
+                            },
+                            "uuid": "ab074a34-8dbb-40d3-b37b-f5bd7bfcb35a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C15 [SYM_C15]",
+                            "pos": {
+                                "x": 1.905,
+                                "y": 0.2667
+                            },
+                            "uuid": "ab074a34-8dbb-40d3-b37b-f5bd7bfcb35a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Package_SON'",
+                    "items": [
+                        {
+                            "description": "Symbol U5 [SYM_U5]",
+                            "pos": {
+                                "x": 1.9812,
+                                "y": 2.0574
+                            },
+                            "uuid": "0d2d1997-4eac-4aa6-bd14-07bc7b6f4dc4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U5 [SYM_U5]",
+                            "pos": {
+                                "x": 1.9812,
+                                "y": 2.0574
+                            },
+                            "uuid": "0d2d1997-4eac-4aa6-bd14-07bc7b6f4dc4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR02 [GND]",
+                            "pos": {
+                                "x": 1.9939,
+                                "y": 0.2667
+                            },
+                            "uuid": "2ff30c5b-b1eb-48e4-a65e-bacbf34a9604"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol R33 [SYM_R33]",
+                            "pos": {
+                                "x": 2.032,
+                                "y": 1.6002
+                            },
+                            "uuid": "0cc2b84f-c24d-417c-a525-1e2a5ec5ae41"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R33 [SYM_R33]",
+                            "pos": {
+                                "x": 2.032,
+                                "y": 1.6002
+                            },
+                            "uuid": "0cc2b84f-c24d-417c-a525-1e2a5ec5ae41"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR80 [GND]",
+                            "pos": {
+                                "x": 2.0701,
+                                "y": 2.0828
+                            },
+                            "uuid": "b839bfa7-c1a1-41dd-8dd2-21f438f42064"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CB63 [SYM_CB63]",
+                            "pos": {
+                                "x": 2.1844,
+                                "y": 0.8128
+                            },
+                            "uuid": "81c1223a-8485-46fe-b847-a0dad300c5f1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CB63 [SYM_CB63]",
+                            "pos": {
+                                "x": 2.1844,
+                                "y": 0.8128
+                            },
+                            "uuid": "81c1223a-8485-46fe-b847-a0dad300c5f1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CA52 [SYM_CA52]",
+                            "pos": {
+                                "x": 2.2352,
+                                "y": 0.5334
+                            },
+                            "uuid": "3d8dad0e-2d16-4f39-b338-44bf8cf565f6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CA52 [SYM_CA52]",
+                            "pos": {
+                                "x": 2.2352,
+                                "y": 0.5334
+                            },
+                            "uuid": "3d8dad0e-2d16-4f39-b338-44bf8cf565f6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR32 [GND]",
+                            "pos": {
+                                "x": 2.2733,
+                                "y": 0.8128
+                            },
+                            "uuid": "0d112f55-e040-4563-98cc-fc91503d3e2c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR17 [GND]",
+                            "pos": {
+                                "x": 2.3241,
+                                "y": 0.5334
+                            },
+                            "uuid": "35402fd0-163e-45a2-ae18-2607cdee89d6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR81 [GND]",
+                            "pos": {
+                                "x": 2.3749,
+                                "y": 2.0066
+                            },
+                            "uuid": "6ebe34a2-36b7-42d7-832c-39240374ad04"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Package_SON'",
+                    "items": [
+                        {
+                            "description": "Symbol QA1 [SYM_QA1]",
+                            "pos": {
+                                "x": 2.3876,
+                                "y": 1.3081
+                            },
+                            "uuid": "35955260-b64d-4cee-99b6-b7f68c0959d2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol QA1 [SYM_QA1]",
+                            "pos": {
+                                "x": 2.3876,
+                                "y": 1.3081
+                            },
+                            "uuid": "35955260-b64d-4cee-99b6-b7f68c0959d2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol C16 [SYM_C16]",
+                            "pos": {
+                                "x": 2.4003,
+                                "y": 0.2667
+                            },
+                            "uuid": "c35e89b6-cfb8-47ba-a97f-0d3d93cc1baf"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C16 [SYM_C16]",
+                            "pos": {
+                                "x": 2.4003,
+                                "y": 0.2667
+                            },
+                            "uuid": "c35e89b6-cfb8-47ba-a97f-0d3d93cc1baf"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Package_SON'",
+                    "items": [
+                        {
+                            "description": "Symbol U6 [SYM_U6]",
+                            "pos": {
+                                "x": 2.4638,
+                                "y": 2.0574
+                            },
+                            "uuid": "6fbca13a-3790-419a-92d0-fbc82ed7cbfe"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U6 [SYM_U6]",
+                            "pos": {
+                                "x": 2.4638,
+                                "y": 2.0574
+                            },
+                            "uuid": "6fbca13a-3790-419a-92d0-fbc82ed7cbfe"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR03 [GND]",
+                            "pos": {
+                                "x": 2.4892,
+                                "y": 0.2667
+                            },
+                            "uuid": "4b9b7268-9e0d-4bc5-a204-89c38f3f8f51"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR82 [GND]",
+                            "pos": {
+                                "x": 2.5527,
+                                "y": 2.0828
+                            },
+                            "uuid": "9ba8d334-f1d8-49e3-809f-2ddf4231bf0e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol R34 [SYM_R34]",
+                            "pos": {
+                                "x": 2.5908,
+                                "y": 1.6002
+                            },
+                            "uuid": "c89640fd-8a11-42ec-89aa-c4a500707240"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R34 [SYM_R34]",
+                            "pos": {
+                                "x": 2.5908,
+                                "y": 1.6002
+                            },
+                            "uuid": "c89640fd-8a11-42ec-89aa-c4a500707240"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CB64 [SYM_CB64]",
+                            "pos": {
+                                "x": 2.6543,
+                                "y": 0.8128
+                            },
+                            "uuid": "ea042a83-fc1e-4f3f-9a67-28058e676672"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CB64 [SYM_CB64]",
+                            "pos": {
+                                "x": 2.6543,
+                                "y": 0.8128
+                            },
+                            "uuid": "ea042a83-fc1e-4f3f-9a67-28058e676672"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CA53 [SYM_CA53]",
+                            "pos": {
+                                "x": 2.6797,
+                                "y": 0.5334
+                            },
+                            "uuid": "8f090009-0ea6-46cb-83e4-3c1decfbf3f5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CA53 [SYM_CA53]",
+                            "pos": {
+                                "x": 2.6797,
+                                "y": 0.5334
+                            },
+                            "uuid": "8f090009-0ea6-46cb-83e4-3c1decfbf3f5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR63 [GND]",
+                            "pos": {
+                                "x": 2.6797,
+                                "y": 1.6002
+                            },
+                            "uuid": "d6d5b43d-8d04-4088-ade4-507402c12c95"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR33 [GND]",
+                            "pos": {
+                                "x": 2.7432,
+                                "y": 0.8128
+                            },
+                            "uuid": "4ff431b4-5762-4482-bee9-3d8ce70e87ed"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR52 [GND]",
+                            "pos": {
+                                "x": 2.7559,
+                                "y": 1.2827
+                            },
+                            "uuid": "3ddf5ec6-56d0-4adc-a1f5-e82bce66eba8"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR53 [GND]",
+                            "pos": {
+                                "x": 2.7559,
+                                "y": 1.3081
+                            },
+                            "uuid": "85b773d9-258b-4af5-8d7e-9ac823b2f7bd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR54 [GND]",
+                            "pos": {
+                                "x": 2.7559,
+                                "y": 1.3335
+                            },
+                            "uuid": "24eccdd1-921d-47b5-a0e2-420aee4efbec"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR18 [GND]",
+                            "pos": {
+                                "x": 2.7686,
+                                "y": 0.5334
+                            },
+                            "uuid": "8701ffb9-cf2a-4380-9f86-9810a9764a7f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Package_SON'",
+                    "items": [
+                        {
+                            "description": "Symbol QA2 [SYM_QA2]",
+                            "pos": {
+                                "x": 2.8448,
+                                "y": 1.3081
+                            },
+                            "uuid": "be8a3208-5be2-4a0d-a062-331764b8bb33"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol QA2 [SYM_QA2]",
+                            "pos": {
+                                "x": 2.8448,
+                                "y": 1.3081
+                            },
+                            "uuid": "be8a3208-5be2-4a0d-a062-331764b8bb33"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol C20 [SYM_C20]",
+                            "pos": {
+                                "x": 2.8829,
+                                "y": 0.2667
+                            },
+                            "uuid": "3152cbe8-da83-4625-bb2d-e43c731fc227"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C20 [SYM_C20]",
+                            "pos": {
+                                "x": 2.8829,
+                                "y": 0.2667
+                            },
+                            "uuid": "3152cbe8-da83-4625-bb2d-e43c731fc227"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR04 [GND]",
+                            "pos": {
+                                "x": 2.9718,
+                                "y": 0.2667
+                            },
+                            "uuid": "a3438187-ccd3-4974-94ea-fe077d9eb827"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol RA1 [SYM_RA1]",
+                            "pos": {
+                                "x": 3.0861,
+                                "y": 1.6002
+                            },
+                            "uuid": "55177594-9dfa-43e3-89d0-7b4fe3910301"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol RA1 [SYM_RA1]",
+                            "pos": {
+                                "x": 3.0861,
+                                "y": 1.6002
+                            },
+                            "uuid": "55177594-9dfa-43e3-89d0-7b4fe3910301"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CE1 [SYM_CE1]",
+                            "pos": {
+                                "x": 3.0988,
+                                "y": 0.8128
+                            },
+                            "uuid": "962661d9-0031-451a-aa86-db139a356343"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CE1 [SYM_CE1]",
+                            "pos": {
+                                "x": 3.0988,
+                                "y": 0.8128
+                            },
+                            "uuid": "962661d9-0031-451a-aa86-db139a356343"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CA61 [SYM_CA61]",
+                            "pos": {
+                                "x": 3.1369,
+                                "y": 0.5334
+                            },
+                            "uuid": "6a13a609-aea5-4254-b97f-34b651d1d907"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CA61 [SYM_CA61]",
+                            "pos": {
+                                "x": 3.1369,
+                                "y": 0.5334
+                            },
+                            "uuid": "6a13a609-aea5-4254-b97f-34b651d1d907"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR64 [GND]",
+                            "pos": {
+                                "x": 3.175,
+                                "y": 1.6002
+                            },
+                            "uuid": "e0e1c876-e5bc-4bb9-b8d4-2cfacc497dbb"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR34 [GND]",
+                            "pos": {
+                                "x": 3.1877,
+                                "y": 0.8128
+                            },
+                            "uuid": "aee21813-183f-40bb-825f-8ff31465a977"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR19 [GND]",
+                            "pos": {
+                                "x": 3.2258,
+                                "y": 0.5334
+                            },
+                            "uuid": "0f6b2746-4a48-4137-a1a8-83189a45dc20"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Package_SON'",
+                    "items": [
+                        {
+                            "description": "Symbol QB1 [SYM_QB1]",
+                            "pos": {
+                                "x": 3.3147,
+                                "y": 1.3081
+                            },
+                            "uuid": "50cc4167-2af2-4a27-901e-b0cee9f47708"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol QB1 [SYM_QB1]",
+                            "pos": {
+                                "x": 3.3147,
+                                "y": 1.3081
+                            },
+                            "uuid": "50cc4167-2af2-4a27-901e-b0cee9f47708"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol C21 [SYM_C21]",
+                            "pos": {
+                                "x": 3.3401,
+                                "y": 0.2667
+                            },
+                            "uuid": "6b9781fc-8bd2-4a27-aed9-8e41069d5419"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C21 [SYM_C21]",
+                            "pos": {
+                                "x": 3.3401,
+                                "y": 0.2667
+                            },
+                            "uuid": "6b9781fc-8bd2-4a27-aed9-8e41069d5419"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR05 [GND]",
+                            "pos": {
+                                "x": 3.429,
+                                "y": 0.2667
+                            },
+                            "uuid": "b5fe9f0f-f9b8-477c-a3c4-7f1b8e3ab5d1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol RA2 [SYM_RA2]",
+                            "pos": {
+                                "x": 3.5687,
+                                "y": 1.6002
+                            },
+                            "uuid": "864b2c61-bda6-4c1f-8e08-94203d8e24be"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol RA2 [SYM_RA2]",
+                            "pos": {
+                                "x": 3.5687,
+                                "y": 1.6002
+                            },
+                            "uuid": "864b2c61-bda6-4c1f-8e08-94203d8e24be"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Diode_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol D1 [SYM_D1]",
+                            "pos": {
+                                "x": 3.5814,
+                                "y": 0.8128
+                            },
+                            "uuid": "1480e109-444f-4178-af74-adb32e993cce"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol D1 [SYM_D1]",
+                            "pos": {
+                                "x": 3.5814,
+                                "y": 0.8128
+                            },
+                            "uuid": "1480e109-444f-4178-af74-adb32e993cce"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CA62 [SYM_CA62]",
+                            "pos": {
+                                "x": 3.5941,
+                                "y": 0.5334
+                            },
+                            "uuid": "b5a04268-5f68-4c66-a527-436267076b7f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CA62 [SYM_CA62]",
+                            "pos": {
+                                "x": 3.5941,
+                                "y": 0.5334
+                            },
+                            "uuid": "b5a04268-5f68-4c66-a527-436267076b7f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR35 [GND]",
+                            "pos": {
+                                "x": 3.6703,
+                                "y": 0.8128
+                            },
+                            "uuid": "b4b5e1d3-6e54-4008-8edb-67bc98269f34"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR20 [GND]",
+                            "pos": {
+                                "x": 3.683,
+                                "y": 0.5334
+                            },
+                            "uuid": "34c334a9-f644-4119-a124-a579c51d0bb6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR55 [GND]",
+                            "pos": {
+                                "x": 3.683,
+                                "y": 1.2827
+                            },
+                            "uuid": "2d24422f-f873-4bda-8040-e14eaf2b039c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR56 [GND]",
+                            "pos": {
+                                "x": 3.683,
+                                "y": 1.3081
+                            },
+                            "uuid": "23744b8d-5feb-4d90-bf0e-878edc7955a8"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR57 [GND]",
+                            "pos": {
+                                "x": 3.683,
+                                "y": 1.3335
+                            },
+                            "uuid": "0639aad0-347f-4eb1-9d18-4df7b3a30aa9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Package_SON'",
+                    "items": [
+                        {
+                            "description": "Symbol QB2 [SYM_QB2]",
+                            "pos": {
+                                "x": 3.7719,
+                                "y": 1.3081
+                            },
+                            "uuid": "20ab0983-eb1c-49e3-b30f-e58f9b181fbb"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol QB2 [SYM_QB2]",
+                            "pos": {
+                                "x": 3.7719,
+                                "y": 1.3081
+                            },
+                            "uuid": "20ab0983-eb1c-49e3-b30f-e58f9b181fbb"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol C22 [SYM_C22]",
+                            "pos": {
+                                "x": 3.81,
+                                "y": 0.2667
+                            },
+                            "uuid": "60676692-2ef9-4480-a600-ffec10a0add1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C22 [SYM_C22]",
+                            "pos": {
+                                "x": 3.81,
+                                "y": 0.2667
+                            },
+                            "uuid": "60676692-2ef9-4480-a600-ffec10a0add1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR06 [GND]",
+                            "pos": {
+                                "x": 3.8989,
+                                "y": 0.2667
+                            },
+                            "uuid": "1a8939c6-f542-461a-beaf-9a70534065c8"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CA63 [SYM_CA63]",
+                            "pos": {
+                                "x": 4.064,
+                                "y": 0.5334
+                            },
+                            "uuid": "cdfeea32-7609-4dfe-9b69-a6294adbc3dd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CA63 [SYM_CA63]",
+                            "pos": {
+                                "x": 4.064,
+                                "y": 0.5334
+                            },
+                            "uuid": "cdfeea32-7609-4dfe-9b69-a6294adbc3dd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol RA3 [SYM_RA3]",
+                            "pos": {
+                                "x": 4.064,
+                                "y": 1.6002
+                            },
+                            "uuid": "2e749653-cfc3-4123-9cdc-d71b1637b152"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol RA3 [SYM_RA3]",
+                            "pos": {
+                                "x": 4.064,
+                                "y": 1.6002
+                            },
+                            "uuid": "2e749653-cfc3-4123-9cdc-d71b1637b152"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Diode_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol D2 [SYM_D2]",
+                            "pos": {
+                                "x": 4.0767,
+                                "y": 0.8128
+                            },
+                            "uuid": "5bfe3e63-f53a-4b05-9d6b-1755a19c6104"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol D2 [SYM_D2]",
+                            "pos": {
+                                "x": 4.0767,
+                                "y": 0.8128
+                            },
+                            "uuid": "5bfe3e63-f53a-4b05-9d6b-1755a19c6104"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR21 [GND]",
+                            "pos": {
+                                "x": 4.1529,
+                                "y": 0.5334
+                            },
+                            "uuid": "b7f52450-774b-47e4-bfe8-587c7a3d6712"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR36 [GND]",
+                            "pos": {
+                                "x": 4.1656,
+                                "y": 0.8128
+                            },
+                            "uuid": "3e0ba4e8-3c68-4c63-a688-deae8e46f202"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol R1 [SYM_R1]",
+                            "pos": {
+                                "x": 4.2545,
+                                "y": 1.2827
+                            },
+                            "uuid": "f52b7782-d7a4-4550-aebf-87b1e1ff827c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R1 [SYM_R1]",
+                            "pos": {
+                                "x": 4.2545,
+                                "y": 1.2827
+                            },
+                            "uuid": "f52b7782-d7a4-4550-aebf-87b1e1ff827c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol C30 [SYM_C30]",
+                            "pos": {
+                                "x": 4.2799,
+                                "y": 0.2667
+                            },
+                            "uuid": "2bf55d7e-5d2d-4fa3-a417-7c02d6ea7656"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C30 [SYM_C30]",
+                            "pos": {
+                                "x": 4.2799,
+                                "y": 0.2667
+                            },
+                            "uuid": "2bf55d7e-5d2d-4fa3-a417-7c02d6ea7656"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR07 [GND]",
+                            "pos": {
+                                "x": 4.3688,
+                                "y": 0.2667
+                            },
+                            "uuid": "43d3204f-19d3-422c-b4cc-5bf0210ee89b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CA64 [SYM_CA64]",
+                            "pos": {
+                                "x": 4.5212,
+                                "y": 0.5334
+                            },
+                            "uuid": "6edfacd2-7198-4be8-860a-efb6759e6da5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CA64 [SYM_CA64]",
+                            "pos": {
+                                "x": 4.5212,
+                                "y": 0.5334
+                            },
+                            "uuid": "6edfacd2-7198-4be8-860a-efb6759e6da5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol RA4 [SYM_RA4]",
+                            "pos": {
+                                "x": 4.5212,
+                                "y": 1.6002
+                            },
+                            "uuid": "ff066107-b9a1-4542-b3f8-0a2a094deba0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol RA4 [SYM_RA4]",
+                            "pos": {
+                                "x": 4.5212,
+                                "y": 1.6002
+                            },
+                            "uuid": "ff066107-b9a1-4542-b3f8-0a2a094deba0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Diode_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol D3 [SYM_D3]",
+                            "pos": {
+                                "x": 4.5466,
+                                "y": 0.8128
+                            },
+                            "uuid": "55f8cf0a-8d70-4577-94b0-43e035dc587c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol D3 [SYM_D3]",
+                            "pos": {
+                                "x": 4.5466,
+                                "y": 0.8128
+                            },
+                            "uuid": "55f8cf0a-8d70-4577-94b0-43e035dc587c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR22 [GND]",
+                            "pos": {
+                                "x": 4.6101,
+                                "y": 0.5334
+                            },
+                            "uuid": "6d1c70dd-68c9-400e-be11-2f27ef9273c0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR65 [GND]",
+                            "pos": {
+                                "x": 4.6101,
+                                "y": 1.6002
+                            },
+                            "uuid": "4e1053b6-3897-4b07-b674-6474949c7703"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR37 [GND]",
+                            "pos": {
+                                "x": 4.6355,
+                                "y": 0.8128
+                            },
+                            "uuid": "69b2fc88-2708-4d55-a164-073b564f8f8a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol R2 [SYM_R2]",
+                            "pos": {
+                                "x": 4.7498,
+                                "y": 1.2827
+                            },
+                            "uuid": "cab86229-1c24-4ede-847d-97400ef26986"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R2 [SYM_R2]",
+                            "pos": {
+                                "x": 4.7498,
+                                "y": 1.2827
+                            },
+                            "uuid": "cab86229-1c24-4ede-847d-97400ef26986"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol C31 [SYM_C31]",
+                            "pos": {
+                                "x": 4.7625,
+                                "y": 0.2667
+                            },
+                            "uuid": "a9dda3ae-757a-4a18-955b-b5c5e936a0be"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C31 [SYM_C31]",
+                            "pos": {
+                                "x": 4.7625,
+                                "y": 0.2667
+                            },
+                            "uuid": "a9dda3ae-757a-4a18-955b-b5c5e936a0be"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR08 [GND]",
+                            "pos": {
+                                "x": 4.8514,
+                                "y": 0.2667
+                            },
+                            "uuid": "ab117d79-cc37-4641-9884-386d9955ee47"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR38 [GND]",
+                            "pos": {
+                                "x": 4.9403,
+                                "y": 0.8128
+                            },
+                            "uuid": "e18fe750-5dfa-4ce3-9cf9-f002488e303a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CB1 [SYM_CB1]",
+                            "pos": {
+                                "x": 4.9911,
+                                "y": 0.5334
+                            },
+                            "uuid": "41138256-7675-49b9-90f3-f63e4b2c5c9d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CB1 [SYM_CB1]",
+                            "pos": {
+                                "x": 4.9911,
+                                "y": 0.5334
+                            },
+                            "uuid": "41138256-7675-49b9-90f3-f63e4b2c5c9d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol RA5 [SYM_RA5]",
+                            "pos": {
+                                "x": 5.0038,
+                                "y": 1.6002
+                            },
+                            "uuid": "c4d4313f-03ba-4f96-8a76-3098319084e9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol RA5 [SYM_RA5]",
+                            "pos": {
+                                "x": 5.0038,
+                                "y": 1.6002
+                            },
+                            "uuid": "c4d4313f-03ba-4f96-8a76-3098319084e9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'LED_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol D4 [SYM_D4]",
+                            "pos": {
+                                "x": 5.0292,
+                                "y": 0.8128
+                            },
+                            "uuid": "7b0d786f-5d6c-40a9-9c6d-b8e24544715f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol D4 [SYM_D4]",
+                            "pos": {
+                                "x": 5.0292,
+                                "y": 0.8128
+                            },
+                            "uuid": "7b0d786f-5d6c-40a9-9c6d-b8e24544715f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR23 [GND]",
+                            "pos": {
+                                "x": 5.08,
+                                "y": 0.5334
+                            },
+                            "uuid": "122b6ec0-f4ac-4913-84ea-304171c97c09"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol C32 [SYM_C32]",
+                            "pos": {
+                                "x": 5.2451,
+                                "y": 0.2667
+                            },
+                            "uuid": "646bba57-afcc-4438-88c6-fb192734a7fa"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C32 [SYM_C32]",
+                            "pos": {
+                                "x": 5.2451,
+                                "y": 0.2667
+                            },
+                            "uuid": "646bba57-afcc-4438-88c6-fb192734a7fa"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol R3 [SYM_R3]",
+                            "pos": {
+                                "x": 5.2451,
+                                "y": 1.2827
+                            },
+                            "uuid": "c2fc4531-72a6-4f13-af99-2d0e3a1ca3ef"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R3 [SYM_R3]",
+                            "pos": {
+                                "x": 5.2451,
+                                "y": 1.2827
+                            },
+                            "uuid": "c2fc4531-72a6-4f13-af99-2d0e3a1ca3ef"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR09 [GND]",
+                            "pos": {
+                                "x": 5.334,
+                                "y": 0.2667
+                            },
+                            "uuid": "dc95867b-3081-4cd3-b5a1-a518ba49505e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR58 [GND]",
+                            "pos": {
+                                "x": 5.334,
+                                "y": 1.2827
+                            },
+                            "uuid": "33c0b5ef-fa8c-4a64-86e2-036221bdc3b3"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR39 [GND]",
+                            "pos": {
+                                "x": 5.4483,
+                                "y": 0.8128
+                            },
+                            "uuid": "4f068e5b-b26a-46d6-bb74-ea997840bc06"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CB2 [SYM_CB2]",
+                            "pos": {
+                                "x": 5.461,
+                                "y": 0.5334
+                            },
+                            "uuid": "67db89af-df4b-4398-b90a-81a486c55429"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CB2 [SYM_CB2]",
+                            "pos": {
+                                "x": 5.461,
+                                "y": 0.5334
+                            },
+                            "uuid": "67db89af-df4b-4398-b90a-81a486c55429"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol RA6 [SYM_RA6]",
+                            "pos": {
+                                "x": 5.4991,
+                                "y": 1.6002
+                            },
+                            "uuid": "00f54be4-84fc-434c-821e-0fe3c57ce3ab"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol RA6 [SYM_RA6]",
+                            "pos": {
+                                "x": 5.4991,
+                                "y": 1.6002
+                            },
+                            "uuid": "00f54be4-84fc-434c-821e-0fe3c57ce3ab"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'LED_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol D5 [SYM_D5]",
+                            "pos": {
+                                "x": 5.5372,
+                                "y": 0.8128
+                            },
+                            "uuid": "6be5e6cb-d76e-448a-9f11-09cba9f74c9d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol D5 [SYM_D5]",
+                            "pos": {
+                                "x": 5.5372,
+                                "y": 0.8128
+                            },
+                            "uuid": "6be5e6cb-d76e-448a-9f11-09cba9f74c9d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR24 [GND]",
+                            "pos": {
+                                "x": 5.5499,
+                                "y": 0.5334
+                            },
+                            "uuid": "c83c2ec8-2ec6-405c-b4dc-570cc3e56a64"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol R4 [SYM_R4]",
+                            "pos": {
+                                "x": 5.715,
+                                "y": 1.2827
+                            },
+                            "uuid": "b6cd5d5c-2160-4cb2-8cb0-c289c6405238"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R4 [SYM_R4]",
+                            "pos": {
+                                "x": 5.715,
+                                "y": 1.2827
+                            },
+                            "uuid": "b6cd5d5c-2160-4cb2-8cb0-c289c6405238"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol C33 [SYM_C33]",
+                            "pos": {
+                                "x": 5.7277,
+                                "y": 0.2667
+                            },
+                            "uuid": "c2391754-cae6-43f4-9830-fafddddc7ca4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C33 [SYM_C33]",
+                            "pos": {
+                                "x": 5.7277,
+                                "y": 0.2667
+                            },
+                            "uuid": "c2391754-cae6-43f4-9830-fafddddc7ca4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR10 [GND]",
+                            "pos": {
+                                "x": 5.8166,
+                                "y": 0.2667
+                            },
+                            "uuid": "a246d3b4-d265-4673-b8d9-15c0b25ad719"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CB3 [SYM_CB3]",
+                            "pos": {
+                                "x": 5.9436,
+                                "y": 0.5334
+                            },
+                            "uuid": "0205d173-7def-4e45-9131-d3436ca7a18b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CB3 [SYM_CB3]",
+                            "pos": {
+                                "x": 5.9436,
+                                "y": 0.5334
+                            },
+                            "uuid": "0205d173-7def-4e45-9131-d3436ca7a18b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol RB1 [SYM_RB1]",
+                            "pos": {
+                                "x": 5.9563,
+                                "y": 1.6002
+                            },
+                            "uuid": "9c0a0fd8-ac05-489f-a4b3-3466f1912b58"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol RB1 [SYM_RB1]",
+                            "pos": {
+                                "x": 5.9563,
+                                "y": 1.6002
+                            },
+                            "uuid": "9c0a0fd8-ac05-489f-a4b3-3466f1912b58"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR66 [GND]",
+                            "pos": {
+                                "x": 6.0452,
+                                "y": 1.6002
+                            },
+                            "uuid": "1504cf72-4f6c-4c27-9f37-8f3c97b50c10"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol F1 [SYM_F1]",
+                            "pos": {
+                                "x": 6.096,
+                                "y": 0.8128
+                            },
+                            "uuid": "4215f47f-866e-4204-91b7-e54dc01e7d77"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol R5 [SYM_R5]",
+                            "pos": {
+                                "x": 6.1722,
+                                "y": 1.2827
+                            },
+                            "uuid": "ba59a1c4-ff87-410c-bdd7-5e6f5d1aaea9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R5 [SYM_R5]",
+                            "pos": {
+                                "x": 6.1722,
+                                "y": 1.2827
+                            },
+                            "uuid": "ba59a1c4-ff87-410c-bdd7-5e6f5d1aaea9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol C34 [SYM_C34]",
+                            "pos": {
+                                "x": 6.1849,
+                                "y": 0.2667
+                            },
+                            "uuid": "dfd33c6f-6585-40f2-87a4-05b72d42b71e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C34 [SYM_C34]",
+                            "pos": {
+                                "x": 6.1849,
+                                "y": 0.2667
+                            },
+                            "uuid": "dfd33c6f-6585-40f2-87a4-05b72d42b71e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR59 [GND]",
+                            "pos": {
+                                "x": 6.2611,
+                                "y": 1.2827
+                            },
+                            "uuid": "277a237c-48ab-4141-aff2-2487092d6d30"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR11 [GND]",
+                            "pos": {
+                                "x": 6.2738,
+                                "y": 0.2667
+                            },
+                            "uuid": "08a27226-75b2-4414-8365-b8aba03259c2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CB4 [SYM_CB4]",
+                            "pos": {
+                                "x": 6.4389,
+                                "y": 0.5334
+                            },
+                            "uuid": "47dae8f2-0f5d-4013-b39e-3b2820832d00"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CB4 [SYM_CB4]",
+                            "pos": {
+                                "x": 6.4389,
+                                "y": 0.5334
+                            },
+                            "uuid": "47dae8f2-0f5d-4013-b39e-3b2820832d00"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol RB2 [SYM_RB2]",
+                            "pos": {
+                                "x": 6.4389,
+                                "y": 1.6002
+                            },
+                            "uuid": "2d65647b-3b7e-471b-ba85-6255c869e8cc"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol RB2 [SYM_RB2]",
+                            "pos": {
+                                "x": 6.4389,
+                                "y": 1.6002
+                            },
+                            "uuid": "2d65647b-3b7e-471b-ba85-6255c869e8cc"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR25 [GND]",
+                            "pos": {
+                                "x": 6.5278,
+                                "y": 0.5334
+                            },
+                            "uuid": "0b550ad6-c0f1-42a9-9820-ae1dd7952a65"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR40 [GND]",
+                            "pos": {
+                                "x": 6.604,
+                                "y": 0.8128
+                            },
+                            "uuid": "883e7965-b067-451d-9521-f902e94183d3"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CA1 [SYM_CA1]",
+                            "pos": {
+                                "x": 6.6548,
+                                "y": 0.2667
+                            },
+                            "uuid": "dfe6b7c4-f57b-4ebc-a341-f81064ade35b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CA1 [SYM_CA1]",
+                            "pos": {
+                                "x": 6.6548,
+                                "y": 0.2667
+                            },
+                            "uuid": "dfe6b7c4-f57b-4ebc-a341-f81064ade35b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol R16 [SYM_R16]",
+                            "pos": {
+                                "x": 6.6548,
+                                "y": 1.2827
+                            },
+                            "uuid": "74d8a1fe-974b-454d-9c5e-d416f8ac074a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R16 [SYM_R16]",
+                            "pos": {
+                                "x": 6.6548,
+                                "y": 1.2827
+                            },
+                            "uuid": "74d8a1fe-974b-454d-9c5e-d416f8ac074a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'usb_power_3s'",
+                    "items": [
+                        {
+                            "description": "Symbol J1 [SYM_J1]",
+                            "pos": {
+                                "x": 6.6929,
+                                "y": 0.8128
+                            },
+                            "uuid": "2b678981-3ed6-4795-9a4c-3b2b552af123"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J1 [SYM_J1]",
+                            "pos": {
+                                "x": 6.6929,
+                                "y": 0.8128
+                            },
+                            "uuid": "2b678981-3ed6-4795-9a4c-3b2b552af123"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR12 [GND]",
+                            "pos": {
+                                "x": 6.7437,
+                                "y": 0.2667
+                            },
+                            "uuid": "3db18e88-5ad7-4cd6-8205-4c330509c225"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR60 [GND]",
+                            "pos": {
+                                "x": 6.7437,
+                                "y": 1.2827
+                            },
+                            "uuid": "73ff1450-759f-4ec9-8bd7-28b3e2b4ecac"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol RB3 [SYM_RB3]",
+                            "pos": {
+                                "x": 6.9215,
+                                "y": 1.6002
+                            },
+                            "uuid": "ddfffed7-8809-4e7d-b611-814bf8374e37"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol RB3 [SYM_RB3]",
+                            "pos": {
+                                "x": 6.9215,
+                                "y": 1.6002
+                            },
+                            "uuid": "ddfffed7-8809-4e7d-b611-814bf8374e37"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CB7 [SYM_CB7]",
+                            "pos": {
+                                "x": 6.9342,
+                                "y": 0.5334
+                            },
+                            "uuid": "a3856958-292c-489d-8760-2ed5baa7b1f6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CB7 [SYM_CB7]",
+                            "pos": {
+                                "x": 6.9342,
+                                "y": 0.5334
+                            },
+                            "uuid": "a3856958-292c-489d-8760-2ed5baa7b1f6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR26 [GND]",
+                            "pos": {
+                                "x": 7.0231,
+                                "y": 0.5334
+                            },
+                            "uuid": "53ec328c-7c96-43d5-8b4f-c4cd6b746c28"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CA2 [SYM_CA2]",
+                            "pos": {
+                                "x": 7.1247,
+                                "y": 0.2667
+                            },
+                            "uuid": "81b9c52b-e829-4332-a3c2-5fddd4c8f079"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CA2 [SYM_CA2]",
+                            "pos": {
+                                "x": 7.1247,
+                                "y": 0.2667
+                            },
+                            "uuid": "81b9c52b-e829-4332-a3c2-5fddd4c8f079"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol R17 [SYM_R17]",
+                            "pos": {
+                                "x": 7.1374,
+                                "y": 1.2827
+                            },
+                            "uuid": "4cea7946-29dc-4cd1-b983-b2c1b4b46594"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R17 [SYM_R17]",
+                            "pos": {
+                                "x": 7.1374,
+                                "y": 1.2827
+                            },
+                            "uuid": "4cea7946-29dc-4cd1-b983-b2c1b4b46594"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR13 [GND]",
+                            "pos": {
+                                "x": 7.2136,
+                                "y": 0.2667
+                            },
+                            "uuid": "26e73a3d-426d-4502-91a2-64f3d32a392c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR61 [GND]",
+                            "pos": {
+                                "x": 7.2263,
+                                "y": 1.2827
+                            },
+                            "uuid": "213ef9c2-2ae8-4ca6-8d2c-8c49614087d2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Connector_USB'",
+                    "items": [
+                        {
+                            "description": "Symbol J2 [SYM_J2]",
+                            "pos": {
+                                "x": 7.2771,
+                                "y": 0.8382
+                            },
+                            "uuid": "d012d212-0f35-4dad-87ac-ffc576335cd2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J2 [SYM_J2]",
+                            "pos": {
+                                "x": 7.2771,
+                                "y": 0.8382
+                            },
+                            "uuid": "d012d212-0f35-4dad-87ac-ffc576335cd2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CB8 [SYM_CB8]",
+                            "pos": {
+                                "x": 7.3914,
+                                "y": 0.5334
+                            },
+                            "uuid": "c80abc49-bcf4-4f32-8d6e-c05f05d76b3d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CB8 [SYM_CB8]",
+                            "pos": {
+                                "x": 7.3914,
+                                "y": 0.5334
+                            },
+                            "uuid": "c80abc49-bcf4-4f32-8d6e-c05f05d76b3d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol RB4 [SYM_RB4]",
+                            "pos": {
+                                "x": 7.3914,
+                                "y": 1.6002
+                            },
+                            "uuid": "07911d40-b052-4784-9f5c-23d2f30d0655"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol RB4 [SYM_RB4]",
+                            "pos": {
+                                "x": 7.3914,
+                                "y": 1.6002
+                            },
+                            "uuid": "07911d40-b052-4784-9f5c-23d2f30d0655"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR41 [GND]",
+                            "pos": {
+                                "x": 7.4168,
+                                "y": 0.8128
+                            },
+                            "uuid": "6a02b854-c6ae-461c-9300-6b9a99378c15"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR42 [GND]",
+                            "pos": {
+                                "x": 7.4168,
+                                "y": 0.8382
+                            },
+                            "uuid": "c162b8ce-73c6-49a1-8e57-0964c1e1efa2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR67 [GND]",
+                            "pos": {
+                                "x": 7.4803,
+                                "y": 1.6002
+                            },
+                            "uuid": "a39895f6-8dcd-4294-8777-87a31962da37"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CA3 [SYM_CA3]",
+                            "pos": {
+                                "x": 7.6073,
+                                "y": 0.2667
+                            },
+                            "uuid": "6e481854-76a0-4d66-b8f5-6487805f71c0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CA3 [SYM_CA3]",
+                            "pos": {
+                                "x": 7.6073,
+                                "y": 0.2667
+                            },
+                            "uuid": "6e481854-76a0-4d66-b8f5-6487805f71c0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol R18 [SYM_R18]",
+                            "pos": {
+                                "x": 7.62,
+                                "y": 1.2827
+                            },
+                            "uuid": "e1430b67-0cd9-4792-80ad-cdf6e565c408"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R18 [SYM_R18]",
+                            "pos": {
+                                "x": 7.62,
+                                "y": 1.2827
+                            },
+                            "uuid": "e1430b67-0cd9-4792-80ad-cdf6e565c408"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR62 [GND]",
+                            "pos": {
+                                "x": 7.7089,
+                                "y": 1.2827
+                            },
+                            "uuid": "467dd8d3-07f2-4e46-8353-c8197e1e526f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Connector_USB'",
+                    "items": [
+                        {
+                            "description": "Symbol J3 [SYM_J3]",
+                            "pos": {
+                                "x": 7.8613,
+                                "y": 0.8382
+                            },
+                            "uuid": "e0bcbadc-9a9f-4adf-b683-64a8c758847f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J3 [SYM_J3]",
+                            "pos": {
+                                "x": 7.8613,
+                                "y": 0.8382
+                            },
+                            "uuid": "e0bcbadc-9a9f-4adf-b683-64a8c758847f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CB9 [SYM_CB9]",
+                            "pos": {
+                                "x": 7.874,
+                                "y": 0.5334
+                            },
+                            "uuid": "97d673cb-9dba-4508-8497-56481d8d0cdd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CB9 [SYM_CB9]",
+                            "pos": {
+                                "x": 7.874,
+                                "y": 0.5334
+                            },
+                            "uuid": "97d673cb-9dba-4508-8497-56481d8d0cdd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol RB5 [SYM_RB5]",
+                            "pos": {
+                                "x": 7.874,
+                                "y": 1.6002
+                            },
+                            "uuid": "d8f3bdab-df26-433b-a4f1-84b91896d17b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol RB5 [SYM_RB5]",
+                            "pos": {
+                                "x": 7.874,
+                                "y": 1.6002
+                            },
+                            "uuid": "d8f3bdab-df26-433b-a4f1-84b91896d17b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR43 [GND]",
+                            "pos": {
+                                "x": 8.001,
+                                "y": 0.8128
+                            },
+                            "uuid": "6faea8f5-3f27-4b22-98de-c7e395458889"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR44 [GND]",
+                            "pos": {
+                                "x": 8.001,
+                                "y": 0.8382
+                            },
+                            "uuid": "7bc0844e-dfaa-4d0e-9b54-31818ae92394"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol R19 [SYM_R19]",
+                            "pos": {
+                                "x": 8.0899,
+                                "y": 1.2827
+                            },
+                            "uuid": "958729c7-eb26-48ca-9bb7-42729c5f51ed"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R19 [SYM_R19]",
+                            "pos": {
+                                "x": 8.0899,
+                                "y": 1.2827
+                            },
+                            "uuid": "958729c7-eb26-48ca-9bb7-42729c5f51ed"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CA4 [SYM_CA4]",
+                            "pos": {
+                                "x": 8.1026,
+                                "y": 0.2667
+                            },
+                            "uuid": "50a2653a-c7a0-4953-9d43-ba19e21348ec"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CA4 [SYM_CA4]",
+                            "pos": {
+                                "x": 8.1026,
+                                "y": 0.2667
+                            },
+                            "uuid": "50a2653a-c7a0-4953-9d43-ba19e21348ec"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR14 [GND]",
+                            "pos": {
+                                "x": 8.1915,
+                                "y": 0.2667
+                            },
+                            "uuid": "f83d4634-9f16-4198-ba56-0b96ad646b09"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CB10 [SYM_CB10]",
+                            "pos": {
+                                "x": 8.3566,
+                                "y": 0.5334
+                            },
+                            "uuid": "6b2b4c1c-b256-47fa-954a-246b47c35dea"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CB10 [SYM_CB10]",
+                            "pos": {
+                                "x": 8.3566,
+                                "y": 0.5334
+                            },
+                            "uuid": "6b2b4c1c-b256-47fa-954a-246b47c35dea"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol RB6 [SYM_RB6]",
+                            "pos": {
+                                "x": 8.3566,
+                                "y": 1.6002
+                            },
+                            "uuid": "d43dd9f7-548f-4268-83d5-1e12c880c296"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol RB6 [SYM_RB6]",
+                            "pos": {
+                                "x": 8.3566,
+                                "y": 1.6002
+                            },
+                            "uuid": "d43dd9f7-548f-4268-83d5-1e12c880c296"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Connector_USB'",
+                    "items": [
+                        {
+                            "description": "Symbol J4 [SYM_J4]",
+                            "pos": {
+                                "x": 8.4455,
+                                "y": 0.8382
+                            },
+                            "uuid": "617f3c74-4927-4593-9625-72e634aaf8a6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J4 [SYM_J4]",
+                            "pos": {
+                                "x": 8.4455,
+                                "y": 0.8382
+                            },
+                            "uuid": "617f3c74-4927-4593-9625-72e634aaf8a6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Resistor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol R20 [SYM_R20]",
+                            "pos": {
+                                "x": 8.5598,
+                                "y": 1.2827
+                            },
+                            "uuid": "52bc82d7-2ac3-4b00-9da6-e33f235f8175"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R20 [SYM_R20]",
+                            "pos": {
+                                "x": 8.5598,
+                                "y": 1.2827
+                            },
+                            "uuid": "52bc82d7-2ac3-4b00-9da6-e33f235f8175"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR45 [GND]",
+                            "pos": {
+                                "x": 8.5852,
+                                "y": 0.8128
+                            },
+                            "uuid": "c2cec44c-18df-4a6a-821c-341ea2af224c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR46 [GND]",
+                            "pos": {
+                                "x": 8.5852,
+                                "y": 0.8382
+                            },
+                            "uuid": "69c20b0f-39bd-414c-b5d6-c0b0c02530f2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CA7 [SYM_CA7]",
+                            "pos": {
+                                "x": 8.5979,
+                                "y": 0.2667
+                            },
+                            "uuid": "c7d6a785-a927-4198-9e24-d2d7eebb5861"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CA7 [SYM_CA7]",
+                            "pos": {
+                                "x": 8.5979,
+                                "y": 0.2667
+                            },
+                            "uuid": "c7d6a785-a927-4198-9e24-d2d7eebb5861"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR15 [GND]",
+                            "pos": {
+                                "x": 8.6868,
+                                "y": 0.2667
+                            },
+                            "uuid": "86bfb61c-c18e-4088-893f-fcaf30c21683"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Capacitor_SMD'",
+                    "items": [
+                        {
+                            "description": "Symbol CB51 [SYM_CB51]",
+                            "pos": {
+                                "x": 8.8138,
+                                "y": 0.5334
+                            },
+                            "uuid": "da7252ad-f258-4c58-8113-ceaa9ea77248"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol CB51 [SYM_CB51]",
+                            "pos": {
+                                "x": 8.8138,
+                                "y": 0.5334
+                            },
+                            "uuid": "da7252ad-f258-4c58-8113-ceaa9ea77248"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'usb_power_3s'",
+                    "items": [
+                        {
+                            "description": "Symbol U1 [SYM_U1]",
+                            "pos": {
+                                "x": 8.8646,
+                                "y": 1.6637
+                            },
+                            "uuid": "caf635a2-52e5-43f5-ad3a-17768dd6f6cc"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U1 [SYM_U1]",
+                            "pos": {
+                                "x": 8.8646,
+                                "y": 1.6637
+                            },
+                            "uuid": "caf635a2-52e5-43f5-ad3a-17768dd6f6cc"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR47 [GND]",
+                            "pos": {
+                                "x": 8.8773,
+                                "y": 0.8128
+                            },
+                            "uuid": "ddd3b717-c51e-45f2-8105-0874cbc25bf4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR48 [GND]",
+                            "pos": {
+                                "x": 8.8773,
+                                "y": 0.9906
+                            },
+                            "uuid": "2f4a90b3-c28b-4a06-b375-89e3b6480b00"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR49 [GND]",
+                            "pos": {
+                                "x": 8.8773,
+                                "y": 1.016
+                            },
+                            "uuid": "f2a231ff-35e1-4082-a357-3f21a79fcac9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR27 [GND]",
+                            "pos": {
+                                "x": 8.9027,
+                                "y": 0.5334
+                            },
+                            "uuid": "d67f6695-5686-41a6-b9a9-c14d59d9b400"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR68 [GND]",
+                            "pos": {
+                                "x": 8.9662,
+                                "y": 1.6002
+                            },
+                            "uuid": "ca845928-e84c-4c43-b2c5-2e375a40ae58"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Connector_USB'",
+                    "items": [
+                        {
+                            "description": "Symbol J5 [SYM_J5]",
+                            "pos": {
+                                "x": 8.9789,
+                                "y": 0.9144
+                            },
+                            "uuid": "ae652fb0-dcea-4f8e-82ca-fd6ae6c8542d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J5 [SYM_J5]",
+                            "pos": {
+                                "x": 8.9789,
+                                "y": 0.9144
+                            },
+                            "uuid": "ae652fb0-dcea-4f8e-82ca-fd6ae6c8542d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR50 [GND]",
+                            "pos": {
+                                "x": 9.0805,
+                                "y": 0.9652
+                            },
+                            "uuid": "b66e6838-4b19-4aa4-a30b-5371a6d08c22"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR51 [GND]",
+                            "pos": {
+                                "x": 9.0805,
+                                "y": 0.9906
+                            },
+                            "uuid": "a6290e78-1dbf-4c63-8b0e-b8cc10569c31"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                }
+            ]
+        }
+    ],
+    "source": "lipo3s_tsc.kicad_sch"
+}

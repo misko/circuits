@@ -1,0 +1,19 @@
+mpn: 178.6165.0002
+manufacturer: Littelfuse
+type: fuseholder
+datasheet:
+  doc_id: 178.6165
+  revision: series sheet
+  url: https://www.littelfuse.com/
+  sha256: PENDING-FETCH   # see 01_docs/decisions + release notes: facts carry SPF provenance
+  fetched: null
+package: ATO blade holder THT
+footprint: usb_power_3s:FuseHolder_ATO_FLR_EdgeTrim
+pins:
+  1: '1 (4 solder tabs)'
+  2: '2 (4 solder tabs)'
+limits: '80V/blade rating; fuse user-supplied'
+gotchas:
+  - 'symmetric part - orientation is mechanical only'
+verified: 'SPF use (2026-07)'
+sourcing: {lcsc: C207061}

@@ -1,0 +1,5 @@
+{
+  "name": "lipo3s-tsc",
+  "main": "src/lipo3s_tsc.tsx",
+  "dependencies": {}
+}

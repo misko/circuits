@@ -1,0 +1,10 @@
+mpn: RC0402FR-0710KL
+manufacturer: various
+type: res_thick
+value: '10k 1%'
+package: 0402
+footprint: Resistor_SMD:R_0402_1005Metric
+pins: {1: '1', 2: '2'}   # symmetric 2-pad
+datasheet: {doc_id: series, revision: n/a, url: n/a, sha256: n/a, fetched: null}
+verified: 'JLC attribute check 2026-07-14 (voltage/dielectric/tolerance confirmed live)'
+sourcing: {lcsc: C60490}

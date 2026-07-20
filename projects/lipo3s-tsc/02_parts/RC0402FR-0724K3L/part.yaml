@@ -1,0 +1,10 @@
+mpn: RC0402FR-0724K3L
+manufacturer: Yageo
+type: res_thick
+value: '24.3k 1% (TPS2557 2.51A ILIM)'
+package: 0402
+footprint: Resistor_SMD:R_0402_1005Metric
+pins: {1: '1', 2: '2'}   # symmetric 2-pad
+datasheet: {doc_id: series, revision: n/a, url: n/a, sha256: n/a, fetched: null}
+verified: 'JLC stock+attribute search 2026-07-16 (jlc_stock_check --search-missing)'
+sourcing: {lcsc: C276264}

@@ -1,0 +1,22 @@
+# Reviewed jlc_twin findings, accepted with evidence. Each entry silences ONE
+# (lcsc, status) finding class - never add one without the verification note.
+- lcsc: C840100     # CSD18543Q3A - all six FETs
+  status: PAD-MISMATCH
+  why: >-
+    JLC models the drain as fingers 5-8 + pad 9; KiCad NexFET merges them into
+    pad 5. Signal pads 1-4 align at rot 90 within 0.06mm once centered on the
+    common pad set (verified 2026-07-16); drain copper regions coincide.
+- lcsc: C207061     # Littelfuse ATO holder
+  status: PAD-MISMATCH
+  why: >-
+    Four clip pins per terminal in the KiCad footprint vs consolidated pads in
+    JLC's; blade positions verified identical against the 178.6165 drawing.
+# (C98732 XT60PW-M entry removed 2026-07-16: common-pad centering in
+# jlc_twin fixed the false mismatch - it now fits at 0.00mm. Stale
+# adjudications are pruned so they cannot mask future regressions.)
+- lcsc: C17700181   # Sunlord MWSA1005S-3R3
+  status: NO-CAD
+  why: >-
+    Not in the EasyEDA CAD library (stock-checkable only). Land pattern
+    verified against the MWSA1005S datasheet; JLC preview must be eyeballed
+    for LA1/LB1 at order time.

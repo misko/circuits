@@ -1,0 +1,33 @@
+mpn: USB4105-GF-A
+manufacturer: GCT
+type: connector_usb_c
+datasheet:
+  doc_id: USB4105
+  revision: drawing Rev B4 (2023-12-18)
+  url: https://gct.co/files/drawings/usb4105.pdf
+  sha256: fb331fbabee8392ed2937ed757c1610cb0f174b84625147c0b580a18eea8c0e5
+  fetched: 2026-07-17
+package: USB-C 16P power-only, top-mount hybrid
+footprint: Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal
+pins:
+  A4/A9/B4/B9: 'VBUS (all four carry current)'
+  A1/A12/B1/B12: 'GND'
+  A5: 'CC1'
+  B5: 'CC2'
+  A6/B6: 'D+'
+  A7/B7: 'D-'
+  A8/B8: 'SBU NC'
+  S1: 'SHIELD'
+limits: '5A/contact-pair rated; 6A across 4 VBUS pins ok'
+gotchas:
+  - 'source role: Rp on CC1+CC2 (10k->3A advertisement)'
+  - 'drawing Rev B4 rates VBUS 5.00A COLLECTIVELY (6.25A GND) - the board 6A-copper
+    claim exceeds the connector VBUS rating; compliant sinks self-limit to 3A via Rp
+    (ADR-0002); >5A sustained is connector-overstress territory, flag at next spin'
+verified: 'pin table on GCT drawing USB4105 sheet 1/2 Rev B4 (page 1, top-right):
+  A1/B12/A12/B1=GND, A4/A9/B4/B9=VBUS, A5=CC1, B5=CC2, A6/B6=Dp, A7/B7=Dn,
+  A8=SBU1, B8=SBU2, SHELL=GND - matches pins: above pad-for-pad; footprint pad
+  grid matches Recommended PCB Layout (page 1). Verified 2026-07-17'
+sourcing:
+  lcsc: C3020560
+  note: JLC matcher needs full MPN or manual confirm

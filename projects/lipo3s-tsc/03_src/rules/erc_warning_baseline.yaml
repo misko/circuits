@@ -1,0 +1,25 @@
+# ERC warning baseline (canon S1: 0 errors gated hard; warnings baselined
+# WITH REASONS). Consumed by the rebuild_all.sh ERC gate: any warning type
+# not listed here, or a count above its baseline, fails the build.
+# History: v1.1 released with 206 findings (13 pin_not_connected ERRORS +
+# 193 warnings). 2026-07-17 retrofit: the 13 floats got generator-emitted
+# no_connect flags (errors -> 0); 96 lib_symbol_issues cleared by
+# registering 03_src/lib/pwr.kicad_sym in sym-lib-table. Remaining:
+- type: endpoint_off_grid
+  max: 96
+  why: >-
+    Generator symbol bodies use non-1.27-multiple half-widths, so pin
+    endpoints land off the 1.27mm connection grid. Connectivity is by
+    global labels placed at the exact same coordinates (label anchors
+    computed from the identical expression), so no connection can be
+    missed; netlist parity vs the released board is 0. Fixing means
+    re-gridding every symbol width — schematic-cosmetic, queued for the
+    next generator overhaul, not worth churning a released schematic.
+- type: isolated_pin_label
+  max: 1
+  why: >-
+    PGOOD_B: buck-B power-good is an open-drain output with no pull-up
+    and no consumer on this MCU-free board (buck A's PGOOD sequences
+    buck B; B's own PGOOD is deliberately unused — pin_review.md
+    resolution 1/2 context). The label documents the pin's function;
+    the single-pin net is intentional.
