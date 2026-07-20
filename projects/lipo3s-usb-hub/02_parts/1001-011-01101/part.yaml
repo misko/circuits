@@ -1,0 +1,28 @@
+mpn: 1001-011-01101
+manufacturer: CNC Tech
+type: connector_usb_a
+datasheet:
+  doc_id: 1001-011-01101
+  revision: drawing A0 (2015-09-09)
+  url: https://www.cnctech.us/pdfs/1001-011-01101.pdf
+  sha256: 30fbb8e0582b751501467a2805eef0cb3ab359fc3fb74b8b11cfb85b6c2eb8a6
+  fetched: 2026-07-17
+package: USB-A THT horizontal
+footprint: Connector_USB:USB_A_CNCTech_1001-011-01101_Horizontal
+pins:
+  1: 'VBUS'
+  2: 'D-'
+  3: 'D+'
+  4: 'GND'
+  5: 'SHIELD'
+limits: '1.5A/pin nominal - VBUS+GND pins at 2.5A acceptable (short duty excursions)'
+gotchas:
+  - 'not JLC-assemblable; leave uncoded in BOM, mark Do Not Place'
+verified: 'CNC Tech drawing 1001-011-01101 Rev A0 page 1 has NO signal/pin-number
+  callouts - it is mechanical only (P.C.B Layout: 4 pads at 2.00mm pitch + 2x
+  1.10mm shield holes 11.40mm apart, matches the KiCad footprint; CURRENT-MAX
+  1.5A confirms limits). Signal order VBUS/D-/D+/GND is the USB 2.0 Std-A
+  contact order (USB-IF), not from this drawing. Verified 2026-07-17'
+sourcing:
+  digikey: 3064739
+  note: NOT in JLC catalog - hand-solder after assembly

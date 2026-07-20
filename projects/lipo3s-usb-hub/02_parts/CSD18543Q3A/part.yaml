@@ -1,0 +1,27 @@
+mpn: CSD18543Q3A
+manufacturer: Texas Instruments
+type: nfet_power
+datasheet:
+  doc_id: SLPS432
+  revision: SLPS432
+  url: https://www.ti.com/lit/ds/symlink/csd18543q3a.pdf
+  sha256: 119cdef27d2cb04d43e522c407f2ee4075d0172d26411b7b156c779ba8ca8158
+  fetched: 2026-07-16
+package: VSON-8 SON 3.3x3.3 NexFET
+footprint: Package_SON:VSON-8_3.3x3.3mm_P0.65mm_NexFET
+pins:
+  1: 'S'
+  2: 'S'
+  3: 'S'
+  4: 'G'
+  5: 'D (merged pad 5-8 + thermal)'
+limits: '60V, 8.1mOhm@10V'
+gotchas:
+  - "footprint merges drain pins 6-8 into pad 5 - schematic parity flags 'no pad for pin 6/7/8' as known noise"
+verified: 'Top View figure, SLPS633 Dec-2016 page 1 (NOTE: cached file is named
+  SLPS432.pdf but the document itself is SLPS633): pins 1/2/3=S left, 4=G
+  bottom-left, 5-8=D right, center pad=D - matches pins: incl. the footprint
+  5-8+thermal drain merge. Re-verified from the rendered figure 2026-07-17'
+sourcing:
+  lcsc: C840100
+  note: TI original; C49108752 is an ElecSuper clone

@@ -1,0 +1,6 @@
+# Board-netlist parity reference for lipo3s-usb-hub. The independent conservative
+# design for this 3S->USB envelope converges node-for-node on the sealed prior-art
+# board usb-power-3s (LM74800 ideal-diode + dual LM5145 buck + TPS2557 per-port).
+# Parity 0 vs this reference is the cross-check that our TSX authoring is electrically
+# complete. Path is relative to the project dir.
+../usb-power-3s/04_kicad/usb_power_3s.kicad_pcb

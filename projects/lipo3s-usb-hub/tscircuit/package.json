@@ -1,0 +1,5 @@
+{
+  "name": "lipo3s-usb-hub",
+  "main": "src/lipo3s_usb_hub.tsx",
+  "dependencies": {}
+}

@@ -1,0 +1,22 @@
+mpn: XT60PW-M
+manufacturer: Amass
+type: connector_power
+datasheet:
+  doc_id: XT60PW
+  revision: spec sheet
+  url: https://www.china-amass.com/
+  sha256: PENDING-FETCH   # see 01_docs/decisions + release notes: facts carry SPF provenance
+  fetched: null
+package: THT horizontal, 2 blades + 2 mount slots
+footprint: lipo3s_usb_hub:XT60PW-M_EdgeTrim
+pins:
+  1: {name: "-", note: "NEGATIVE blade - KiCad footprint pad 1 sits at the minus silk"}
+  2: {name: "+", note: "positive blade"}
+limits: '30A rated'
+gotchas:
+  - "PIN 1 IS NEGATIVE. A pin1='+' symbol shipped battery + into GND once."
+  - 'mount slots are the mating-face side: opening faces off-board'
+verified: 'footprint silk + EasyEDA pad frame cross-check (2026-07-14)'
+sourcing:
+  lcsc: C98732
+  note: C5334533 is the CABLE housing XT60H-M, wrong part

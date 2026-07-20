@@ -1,0 +1,91 @@
+# Reviewed jlc_twin findings, accepted with evidence. Each entry silences ONE
+# (lcsc, status) finding class - never add one without the verification note.
+#
+# PAD-GEOM ADJUDICATIONS (lipo3s-tsc, 2026-07-20). The current jlc_twin added a
+# pairwise pad-pitch (PAD-GEOM) gate that postdates the sealed usb-power-3s v1.3
+# release. It flags KiCad-standard / vendored land patterns whose pad centers
+# differ from JLC's own CAD model. PROVEN footprint-inherited, NOT a TSX-authoring
+# artifact: running the current twin on the SEALED usb-power-3s board (git_sha
+# d8992b8) yields the IDENTICAL 14-ref PAD-GEOM critical set
+# {CE1,D1,D2,D3,F1,J5,Q1,Q2,QA1,QA2,QB1,QB2,U2,U3}. This board reuses those exact
+# footprints (board-netlist parity 0, 303/303 nodes), so the sealed board's human
+# pin/render review carries over. Each entry cites the datasheet-conforming land.
+- lcsc: C840100     # CSD18543Q3A - all six FETs
+  status: PAD-MISMATCH
+  why: >-
+    JLC models the drain as fingers 5-8 + pad 9; KiCad NexFET merges them into
+    pad 5. Signal pads 1-4 align at rot 90 within 0.06mm once centered on the
+    common pad set (verified 2026-07-16); drain copper regions coincide.
+- lcsc: C207061     # Littelfuse ATO holder
+  status: PAD-MISMATCH
+  why: >-
+    Four clip pins per terminal in the KiCad footprint vs consolidated pads in
+    JLC's; blade positions verified identical against the 178.6165 drawing.
+# (C98732 XT60PW-M entry removed 2026-07-16: common-pad centering in
+# jlc_twin fixed the false mismatch - it now fits at 0.00mm. Stale
+# adjudications are pruned so they cannot mask future regressions.)
+- lcsc: C17700181   # Sunlord MWSA1005S-3R3
+  status: NO-CAD
+  why: >-
+    Not in the EasyEDA CAD library (stock-checkable only). Land pattern
+    verified against the MWSA1005S datasheet; JLC preview must be eyeballed
+    for LA1/LB1 at order time.
+- lcsc: C454289     # EEHZA1V101P - 100uF hybrid e-cap (CE1)
+  status: PAD-GEOM
+  why: >-
+    KiCad std Capacitor_SMD:CP_Elec_8x10 land (pad pitch 6.50mm) vs JLC model
+    7.20mm (d0.70mm). This is the IDENTICAL footprint the sealed usb-power-3s
+    v1.3 board (git_sha d8992b8) shipped with, reviewed and ordered; the twin's
+    PAD-GEOM check postdates that release. CP_Elec_8x10 is the datasheet 8mm
+    can land; the two large annular pads overlap far more than 0.70mm so both
+    patterns solder. Polarity confirmed by audit_board I9 (pad1 = '+') and the
+    twin render. Eyeball CE1 in the JLC preview at order time.
+- lcsc: C113974     # SMBJ5.0A - rail TVS (D2, D3)
+  status: PAD-GEOM
+  why: >-
+    KiCad std Diode_SMD:D_SMB land (pad pitch 4.30mm) vs JLC model 4.72mm
+    (d0.42mm). IDENTICAL footprint to the sealed usb-power-3s v1.3 board
+    (git_sha d8992b8), which shipped after human pin/render review; the twin's
+    PAD-GEOM check postdates it. D_SMB is the JEDEC DO-214AA (SMB) land; the
+    ~1.9mm-wide pads overlap well past 0.42mm. Cathode polarity confirmed by
+    audit_board I9 (pad1 = cathode -> rail) and the twin render.
+- lcsc: C353386     # SMBJ16A - input TVS (D1)
+  status: PAD-GEOM
+  why: >-
+    Same Diode_SMD:D_SMB land as C113974: ours 4.30mm vs JLC 4.72mm (d0.42mm).
+    JEDEC DO-214AA (SMB); ~1.9mm pads overlap past the delta. Identical footprint
+    to the reviewed/shipped sealed usb-power-3s v1.3 board. Cathode polarity by
+    audit_board I9 (pad1 = cathode -> VBATT_F).
+- lcsc: C207061     # Littelfuse 178.6165 ATO holder (F1) - PAD-GEOM (see also PAD-MISMATCH above)
+  status: PAD-GEOM
+  why: >-
+    d5.80mm is the SAME merged-clip mechanism as the accepted C207061
+    PAD-MISMATCH: KiCad models four clip pins per terminal (pad-1 centroid over
+    the clip array, 9.30mm span) vs JLC's consolidated 2-pad model (3.50mm). The
+    ATO blade positions are verified identical against the 178.6165 drawing;
+    vendored usb_power_3s:FuseHolder_ATO_FLR_EdgeTrim, unchanged from the sealed
+    v1.3 board. (MODEL-SELF on F1 is JLC's own model offset, informational.)
+- lcsc: C3020560    # GCT USB4105-GF-A USB-C receptacle (J5)
+  status: PAD-GEOM
+  why: >-
+    ours 6.40mm vs JLC 6.70mm (d0.30mm, just over the 0.30mm tol). KiCad std
+    Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal - the
+    manufacturer-drawn GCT land; identical footprint to the sealed v1.3 board.
+    The 16 power/CC/D pads are >=0.3mm wide and overlap the 0.30mm delta.
+- lcsc: C485912     # LM5145RGYR VQFN-20 (U2, U3)
+  status: PAD-GEOM
+  why: >-
+    ours 2.70-3.70mm vs JLC 3.50-4.50mm (d0.80mm). Vendored
+    usb_power_3s:VQFN-20_3.5x4.5_P0.5_LM5145RGY, drawn to the LM5145RGY datasheet
+    (SNVSAI4 fig 10-1) recommended land; identical footprint to the reviewed
+    sealed v1.3 board (whose pin_review verified the VQFN pinout). JLC's model
+    packs the peripheral pads tighter; our datasheet land governs.
+- lcsc: C840100     # CSD18543Q3A NexFET VSON-8 (Q1,Q2,QA1,QA2,QB1,QB2) - PAD-GEOM (see also PAD-MISMATCH)
+  status: PAD-GEOM
+  why: >-
+    pad1<->pad5 ours 2.07mm vs JLC 3.59mm (d1.53mm) is the SAME merged-drain
+    mechanism as the accepted C840100 PAD-MISMATCH: KiCad NexFET merges drain
+    fingers 5-8 + pad 9 into one pad 5 (centroid shifted vs JLC's finger 5). The
+    source/gate pads 1-4 fit within 0.06mm at rot 90 once centered on the common
+    set; drain copper regions coincide. Package_SON standard footprint, identical
+    to the sealed v1.3 board.
