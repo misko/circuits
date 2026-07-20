@@ -81,6 +81,16 @@ inputs. See `fixtures/t0/README.md`.
 | `t1_rules_bom.py` | netclasses + widths reach `.kicad_pro` and `.kicad_dru`, rules_audit passes | **ampacity floor** violated, `.kicad_pro`/`.kicad_dru` disagree, unpatterned net, generate_rules never ran, **unmapped BOM line**, missing BOM |
 | `t1_jlc_twin.py` | affirmative NO-CAD does not block, cache replays without the network, empty BOM announces it checked nothing | **HTTP 403 = FETCH-FAILED + exit 1**, fetcher crash blocks, timeout blocks, nonzero exit is never NO-CAD |
 
+**T2 integration tests** (`t2_route_stitch.py`, fast + `--slow` e2e) — the
+generic router/stitcher (`route_and_stitch_generic.py`). Route-prep, the KRT
+command line (driven by a hermetic stub router), import, and the stitch pass
+ordering. KRT is stochastic, so every assertion is a PROPERTY — argv, pass
+order, node sets, exit codes — never bytes.
+
+| suite | clean cases | known-bad cases |
+|---|---|---|
+| `t2_route_stitch.py` | prep writes a track-free r0 with per-layer keepouts + wave lists, the KRT command line carries geometry/keepout/per-wave overrides, waves are chained rN→rN+1, stitch runs the configured pass order, stitch preserves connectivity, two runs agree on connectivity, a removal pass triggers a SWIG barrier | **tracked route input rejected**, **netclass-less project rejected (canon R1)**, **unknown wave net**, **KRT nonzero exit blocks**, **KRT silent no-output caught**, **double-import rejected**, **missing chain file**, **unknown stitch pass**, **no-`fill` pass list**, **unknown KRT flag**, **stitch-grid minimum bites**, **pad-rescue `require:all` bites**, **power-stitch minimum bites**, **a failed gate leaves no stale resume marker** |
+
 **T4 regression corpus** (`t4_regressions.py`, fast) — one named test per
 incident this project has already paid for, so none can silently return.
 Every test names the defect, its DATE, and the commit or doc that records it.
@@ -114,7 +124,11 @@ Two things this file does that the T1 tiers do not:
 
 **E2E** (`--slow`) — regenerate cook-loadcell and crow-array-pod with the
 generic generator and assert netlist parity 0 against the sealed boards plus
-`audit_board` PASS.
+`audit_board` PASS. `t2_route_stitch.py` adds the routing half: both boards
+run generate → rules → prep → **real KRT** → import → stitch → rules-last →
+DRC, and must reach 0 violations / 0 unconnected / 0 parity (cook-loadcell
+also re-checks netlist parity 0 vs the sealed board). KRT is stochastic, so
+this asserts the 0/0/0 PROPERTY across a fresh route, not a golden board.
 
 **Live network** (`--net`) — opt-in only, never in CI-by-default. No such
 suite ships today; add it as `net_live.py` if you need a real EasyEDA fetch.
