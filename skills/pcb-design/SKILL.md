@@ -48,10 +48,18 @@ hard-won traps; this skill is the orchestration layer only.
 ## 4-6. Generate, place, route — all regenerable from 03_src
 
 Build `03_src/` generators + `rebuild_all.sh` (set -euo pipefail) in the
-canonical order. Schematics are AUTHORED as schwriter2 declarations
-(structure-only; prefer the path/subcircuit/net-object API where
-available — canon S-DSL): generate_schematic (with no_connect flags for every
-sanctioned float; wire the story-critical paths per canon S6) →
+canonical order. **Schematic authoring — two proven paths (ADR-0001):**
+(1) the go-forward standard is **tscircuit/TSX** → our converter emits a native,
+annotated, backend-ready `.kicad_sch` (`scripts/circuit_json_to_kicad_sch.py`
+via `gen_tscircuit.sh`; canonical nets + FPIDs from `02_parts` folded in, no
+per-board adapter — see `kicad-pcb/references/tscircuit-folder.md`). Author each
+specialty part with `supplierPartNumbers={{jlcpcb:["C…"]}}` so its FPID resolves,
+and add a `net_aliases.txt` line for any leading-digit rail (`12V`→`N12V`). (2)
+**schwriter2 declarations** remain the co-standard + fallback for footprints
+tscircuit can't yet express (structure-only; path/subcircuit/net-object API —
+canon S-DSL). EITHER path feeds the SAME downstream: generate_schematic (or the
+converter) with no_connect flags for every sanctioned float; wire the
+story-critical paths per canon S6 →
 **ERC gate** (`kicad-cli sch erc --severity-all` = 0 errors) →
 netlist-parity gate → generate_board (placement) → audit gate (polarity,
 proximity, plane-clean, refdes-on-silk) → generate_rules BEFORE route-prep

@@ -210,9 +210,23 @@ injection, MPN surgery, or BOM-attr patching remains — those are the converter
 job now. Watch leading-digit rails beyond `5V`/`3V3` (`12V`→`N12V`, `1V8`→`N1V8`)
 and add a `net_aliases.txt` line for any rail the strip-`N` convention can't reach.
 
+## Phase 4 (2026-07-20) — TSX named the go-forward schematic-authoring standard
+
+The pcb-design skill (stage 4-6) now names **tscircuit/TSX → our converter → native
+`.kicad_sch`** the go-forward authoring path for the schematic stage, with schwriter2
+retained as co-standard + fallback for footprints tscircuit can't yet express. The
+downstream chain (ERC → generate_board → rules → KRT → verify) is unchanged and
+authoring-tool-agnostic (it is netlist-driven). Full retirement of schwriter2 as the
+DEFAULT completes as new boards actually ship through the TSX path with zero parity
+regressions (criterion N≥3); the lipo3s capstone (usb-power-3s re-authored) is the
+first such board and validates the standard end-to-end. Migration status: Phases 0-3
++ backend completion DONE and independently audited (converter breaks the exporter
+ceiling; converter output alone drives the backend to DRC 0/0/0 with no adapter);
+Phase 4 standard documented; capstone pending.
+
 ## Reversibility
 
-Additive until Phase 4: every board keeps its KiCad generators; the `tscircuit/`
-folder stays a study until a board proves out. If a difficulty class fails Phase 1
-(e.g. specialty connectors), those parts stay KiCad-native and the boundary is
-recorded here.
+Additive: every board keeps its KiCad generators; the `tscircuit/` folder stays a
+study until a board proves out. If a difficulty class fails (e.g. specialty
+connectors the footprinter can't express), those parts stay KiCad-native (via
+`02_parts` FPID override or schwriter2) and the boundary is recorded here.
