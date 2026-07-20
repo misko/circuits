@@ -1,0 +1,274 @@
+COMPONENTS:
+ - U1: soic16_p1.27mm
+ - Q1: sot23
+ - R1: 20kΩ res0603 resistor
+ - R2: 8.2kΩ res0603 resistor
+ - R7: 100Ω res0603 resistor
+ - C1: 10uF 0805 capacitor
+ - C2: 100nF 0603 capacitor
+ - C3: 100nF 0603 capacitor
+ - C4: 10uF 0805 capacitor
+ - C5: 100nF 0603 capacitor
+ - C6: 10uF 0805 capacitor
+ - C7: 100nF 0603 capacitor
+ - D1: D1, source_component
+ - D2: D2, source_component
+ - J1: pinrow3_p2.5mm
+ - J2: pinrow3_p2.5mm
+ - J3: pinrow3_p2.5mm
+ - J4: pinrow3_p2.5mm
+ - J5: pinrow5_p2.5mm
+ - J6: pinrow5_p2.5mm
+ - JP1: pinrow3
+ - SJ1: solderjumper2_bridged12
+ - TP1: TP1, source_component
+ - TP2: TP2, source_component
+ - TP3: TP3, source_component
+ - TP4: TP4, source_component
+ - TP5: TP5, source_component
+ - TP6: TP6, source_component
+ - TP7: TP7, source_component
+
+NET: BASE
+  - Q1 B
+  - U1 BASE
+
+NET: AVDD_FB
+  - R2 pin1
+  - R1 pin2
+  - U1 VFB
+
+NET: RING_12
+  - J2 pin1
+  - J1 pin3
+
+NET: RING_23
+  - J3 pin1
+  - J2 pin3
+
+NET: RING_34
+  - J4 pin1
+  - J3 pin3
+
+NET: RING_41
+  - J4 pin3
+  - J1 pin1
+
+NET: N5V
+  - J6 pin1
+  - C6 pin1 (+)
+  - C5 pin1 (+)
+  - Q1 E
+  - U1 VSUP
+
+NET: RATE_SEL
+  - JP1 pin2
+  - U1 RATE
+
+NET: SH
+  - SJ1 pin1
+  - J5 pin5
+  - C7 pin1 (+)
+  - R7 pin1
+
+NET: E_PLUS
+  - TP1 pin1
+  - J5 pin1
+  - J1 pin2
+  - C2 pin1 (+)
+  - C1 pin1 (+)
+  - R1 pin1
+  - Q1 C
+  - U1 AVDD
+
+NET: S_PLUS
+  - TP2 pin1
+  - J5 pin2
+  - J2 pin2
+  - U1 INA_P
+
+NET: S_MINUS
+  - TP3 pin1
+  - J5 pin3
+  - J4 pin2
+  - U1 INA_N
+
+NET: GND
+  - TP4 pin1
+  - SJ1 pin2
+  - JP1 pin1
+  - J6 pin3
+  - J5 pin4
+  - J3 pin2
+  - D2 pin2 (-)
+  - D1 pin2 (-)
+  - C7 pin2 (-)
+  - C6 pin2 (-)
+  - C5 pin2 (-)
+  - C4 pin2 (-)
+  - C3 pin2 (-)
+  - C2 pin2 (-)
+  - C1 pin2 (-)
+  - R7 pin2
+  - R2 pin2
+  - U1 XI
+  - U1 INB_P
+  - U1 INB_N
+  - U1 AGND
+
+NET: DAT
+  - TP5 pin1
+  - J6 pin4
+  - D1 pin1 (+)
+  - U1 DOUT
+
+NET: CLK
+  - TP6 pin1
+  - J6 pin5
+  - D2 pin1 (+)
+  - U1 PD_SCK
+
+NET: N3V3
+  - TP7 pin1
+  - JP1 pin3
+  - J6 pin2
+  - C4 pin1 (+)
+  - C3 pin1 (+)
+  - U1 DVDD
+
+
+COMPONENT_PINS:
+U1
+- pin1(VSUP): NETS(N5V)
+- pin2(BASE): NETS(BASE)
+- pin3(AVDD): NETS(E_PLUS)
+- pin4(VFB): NETS(AVDD_FB)
+- pin5(AGND): NETS(GND)
+- pin6(VBG): NOT_CONNECTED
+- pin7(INA_N): NETS(S_MINUS)
+- pin8(INA_P): NETS(S_PLUS)
+- pin9(INB_N): NETS(GND)
+- pin10(INB_P): NETS(GND)
+- pin11(PD_SCK): NETS(CLK)
+- pin12(DOUT): NETS(DAT)
+- pin13(XO): NOT_CONNECTED
+- pin14(XI): NETS(GND)
+- pin15(RATE): NETS(RATE_SEL)
+- pin16(DVDD): NETS(N3V3)
+
+Q1
+- pin1(B): NETS(BASE)
+- pin2(E): NETS(N5V)
+- pin3(C): NETS(E_PLUS)
+
+R1 (20kΩ res0603)
+- pin1(anode, pos, left): NETS(E_PLUS)
+- pin2(cathode, neg, right): NETS(AVDD_FB)
+
+R2 (8.2kΩ res0603)
+- pin1(anode, pos, left): NETS(AVDD_FB)
+- pin2(cathode, neg, right): NETS(GND)
+
+R7 (100Ω res0603)
+- pin1(anode, pos, left): NETS(SH)
+- pin2(cathode, neg, right): NETS(GND)
+
+C1 (10uF 0805)
+- pin1(pos, anode, left): NETS(E_PLUS)
+- pin2(neg, cathode, right): NETS(GND)
+
+C2 (100nF 0603)
+- pin1(pos, anode, left): NETS(E_PLUS)
+- pin2(neg, cathode, right): NETS(GND)
+
+C3 (100nF 0603)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+C4 (10uF 0805)
+- pin1(pos, anode, left): NETS(N3V3)
+- pin2(neg, cathode, right): NETS(GND)
+
+C5 (100nF 0603)
+- pin1(pos, anode, left): NETS(N5V)
+- pin2(neg, cathode, right): NETS(GND)
+
+C6 (10uF 0805)
+- pin1(pos, anode, left): NETS(N5V)
+- pin2(neg, cathode, right): NETS(GND)
+
+C7 (100nF 0603)
+- pin1(pos, anode, left): NETS(SH)
+- pin2(neg, cathode, right): NETS(GND)
+
+D1
+- pin1(pos, anode, left): NETS(DAT)
+- pin2(neg, cathode, right): NETS(GND)
+
+D2
+- pin1(pos, anode, left): NETS(CLK)
+- pin2(neg, cathode, right): NETS(GND)
+
+J1
+- pin1: NETS(RING_41)
+- pin2: NETS(E_PLUS)
+- pin3: NETS(RING_12)
+
+J2
+- pin1: NETS(RING_12)
+- pin2: NETS(S_PLUS)
+- pin3: NETS(RING_23)
+
+J3
+- pin1: NETS(RING_23)
+- pin2: NETS(GND)
+- pin3: NETS(RING_34)
+
+J4
+- pin1: NETS(RING_34)
+- pin2: NETS(S_MINUS)
+- pin3: NETS(RING_41)
+
+J5
+- pin1: NETS(E_PLUS)
+- pin2: NETS(S_PLUS)
+- pin3: NETS(S_MINUS)
+- pin4: NETS(GND)
+- pin5: NETS(SH)
+
+J6
+- pin1: NETS(N5V)
+- pin2: NETS(N3V3)
+- pin3: NETS(GND)
+- pin4: NETS(DAT)
+- pin5: NETS(CLK)
+
+JP1
+- pin1: NETS(GND)
+- pin2: NETS(RATE_SEL)
+- pin3: NETS(N3V3)
+
+SJ1
+- pin1: NETS(SH)
+- pin2: NETS(GND)
+
+TP1
+- pin1: NETS(E_PLUS)
+
+TP2
+- pin1: NETS(S_PLUS)
+
+TP3
+- pin1: NETS(S_MINUS)
+
+TP4
+- pin1: NETS(GND)
+
+TP5
+- pin1: NETS(DAT)
+
+TP6
+- pin1: NETS(CLK)
+
+TP7
+- pin1: NETS(N3V3)
