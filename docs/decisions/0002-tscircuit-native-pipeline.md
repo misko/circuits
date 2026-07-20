@@ -46,11 +46,35 @@ Two rows stay KiCad-only because the authoring tool must never self-grade them:
 
 ## Rollout (each phase shippable + reversible)
 
-- **Phase A — Schematic quality (converter v2, wired).** Consume circuit.json's
-  `schematic_component` positions + `schematic_trace` wire routes + `schematic_net_label`
-  (not one-label-per-pin). Emit a wired, readable `.kicad_sch` that still ERC-0 +
-  netlist-parity-0. **Retires the fleet-wide S6 label-blob finding.** v1 label-grid stays
-  as fallback for boards whose trace geometry doesn't import cleanly.
+- **Phase A — Schematic quality (converter v2, wired). DONE 2026-07-20.** Consume
+  circuit.json's `schematic_component` positions + `schematic_trace` wire routes +
+  `schematic_net_label` (not one-label-per-pin). Emit a wired, readable `.kicad_sch`
+  that still ERC-0 + netlist-parity-0. **Retires the fleet-wide S6 label-blob finding.**
+  v1 label-grid stays as fallback for boards whose trace geometry doesn't import cleanly.
+
+  **Result.** `circuit_json_to_kicad_sch.py` gained a `--mode layout` (DEFAULT; `--mode
+  grid` = v1 fallback), wired into `gen_tscircuit.sh` as the default emitter. It maps
+  tscircuit schematic units -> KiCad mm (×12.7, y-flipped, snapped to a 0.635 mm grid so
+  pin tips and wire ends coincide exactly), builds a UNIQUE per-refdes lib_symbol whose
+  pins land on the `schematic_port` centers, draws a KiCad `(wire)` per `schematic_trace`
+  edge, emits a KiCad label per `schematic_net_label`, and keeps GND as ground power
+  symbols + one PWR_FLAG. Connectivity is still keyed to v1's authoritative canonical-net
+  model, so parity is preserved *by construction*: cross-net wire segments are filtered,
+  dangling wire ends are pruned (KiCad `wire_dangling` = ERC error), and a self-healing
+  pass adds a name label to any pin a wire didn't reach — and the whole board falls back
+  to the grid if a genuine cross-net short survives. Verified on all three Phase-1 boards
+  with **0 → many** drawn wires, ERC 0, netlist parity 0 (none fell back):
+
+  | board | v1 wires | v2 wires | ERC errors | netlist parity |
+  |---|---|---|---|---|
+  | cook-loadcell | 0 | 80 | 0 | 0 (16 nets / 75 nodes / 2 NC) |
+  | xt60-usb-supply | 0 | 211 | 0 | 0 (28 nets / 151 nodes) |
+  | esp32-laser-timing | 0 | 230 | 0 | 0 (36 nets / 189 nodes / 25 NC) |
+
+  Before/after renders: `projects/cook-loadcell/tscircuit/verification/schematic_v1_grid.png`
+  (the label blob) vs `schematic_v2_wired.png` (the wired sheet). ERC warnings are
+  parametric only (`endpoint_off_grid` from the 0.635 mm grid, `lib_symbol_issues`/
+  `footprint_link_issues` env notes, a few `unconnected_wire_endpoint` stubs).
 - **Phase B — Placement-as-code.** `pcbX/pcbY` in TSX is the placement seed; a
   `circuit.json → .kicad_pcb` placer lands parts there; `generate_board` shrinks to
   "import placement → legalize → audit." Placement lives with the schematic.

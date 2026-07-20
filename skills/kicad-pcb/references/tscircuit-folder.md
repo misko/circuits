@@ -80,13 +80,30 @@ So we do NOT use it for the bridge. `gen_tscircuit.sh` runs
 AUTHORITATIVE `kicad/<board>.kicad_sch` (the native tsci export is kept as
 `.native.kicad_sch` for reference only). The converter renders circuit.json's full
 connectivity model into a native sheet with a **UNIQUE `elt:SYM_<refdes>` lib_symbol
-per component** (collision impossible), **pins keyed to the exact KiCad pad name**
+per component** (collision impossible) and **pins keyed to the exact KiCad pad name**
 (first non-`unnamed_*` `pcb_*` port hint; internally-connected duplicate pads collapse
-to one pin), and **one `global_label` per pin as net glue** (schwriter2's rule — the
-netlister joins by label-name). Nets resolve via `subcircuit_connectivity_map_key`
-with propagation through `internally_connected_source_port_ids`; GND pins render as
-ground power symbols + one `PWR_FLAG`; explicit no-connects get `no_connect` flags.
-The sheet is annotated, so netlist export builds real nets.
+to one pin). Nets resolve via `subcircuit_connectivity_map_key` with propagation through
+`internally_connected_source_port_ids`; GND pins render as ground power symbols + one
+`PWR_FLAG`; explicit no-connects get `no_connect` flags. The sheet is annotated, so
+netlist export builds real nets.
+
+**The converter has two modes (`--mode`, ADR-0002 Phase A, DONE 2026-07-20):**
+- **`layout` (DEFAULT, WIRED)** — consumes tscircuit's OWN schematic layout that
+  circuit.json already carries (`schematic_component` center/size, `schematic_port`
+  geometry, `schematic_trace` routes, `schematic_net_label`) and emits a READABLE WIRED
+  sheet: a KiCad `(wire)` where tscircuit drew a trace, a KiCad label where tscircuit
+  used a net label, GND as ground symbols. tscircuit schematic units map to KiCad mm
+  (×12.7, y-flipped, snapped to a 0.635 mm grid so pin tips and wire ends coincide
+  exactly). **This retires the S6 "label-blob" finding** — cook-loadcell 0→80 wires,
+  xt60 0→211, esp32 0→230, all ERC 0 + netlist parity 0. Parity is preserved *by
+  construction*: connectivity is still keyed to the authoritative canonical-net model,
+  cross-net wire segments are filtered, dangling wire ends are pruned (KiCad
+  `wire_dangling` is an ERC ERROR), and a self-healing pass adds a name label to any pin
+  a wire didn't reach.
+- **`grid` (FALLBACK)** — v1's original layout: **one `global_label` per pin as net
+  glue** (schwriter2's rule — the netlister joins by label-name), no drawn wires. The
+  `layout` mode AUTO-FALLS-BACK to this per board if the trace geometry can't import
+  without a genuine cross-net short (logged to stderr), so parity is never worse than v1.
 
 **Proven on all three Phase-1 boards: `kicad-cli sch erc --severity-all` = 0 errors
 and node-for-node netlist parity = 0 vs the sealed `04_kicad` board** (cook-loadcell
@@ -97,10 +114,13 @@ the documented minimum — universal leading-digit net renames (`N3V3`→`3V3`, 
 plus, on esp32, one footprint pad-name delta (AMS1117 SOT-223 tab `4`≡KiCad `2`),
 recorded in `tscircuit/parity_padmap.txt` and consumed by `kicad_sch_parity.py`.
 
-The converter kicad_sch is a net-glue LAYOUT (labels, not drawn wires) — a faithful,
-annotated capture for the pipeline, not a hand-drawn story schematic. ERC warnings are
-parametric only: `lib_symbol_issues` (the embedded `elt` lib isn't in the running
-kicad-cli config) and any named-NC single-pin `isolated_pin_label`.
+In the DEFAULT `layout` mode the converter kicad_sch is now a WIRED, readable sheet
+that mirrors tscircuit's own schematic (wires where it drew traces, labels where it used
+net labels) — S6 retired. In the `grid` fallback it is a net-glue LAYOUT (labels, not
+drawn wires) — a faithful annotated capture. ERC warnings are parametric only:
+`lib_symbol_issues` (the embedded `elt` lib isn't in the running kicad-cli config),
+`footprint_link_issues`, `endpoint_off_grid` (layout mode's 0.635 mm fidelity grid), a
+few `unconnected_wire_endpoint` stubs, and any named-NC single-pin `isolated_pin_label`.
 
 ## The converter output is BACKEND-READY — no per-board adapter (ADR-0001 backend completion, 2026-07-19)
 

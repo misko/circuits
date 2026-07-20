@@ -42,18 +42,28 @@ step export kicad_sch_native; timeout 240 tsci export "src/$BASE.tsx" -f kicad_s
 step export netlist;  timeout 240 tsci export "src/$BASE.tsx" -f readable-netlist -o "../verification/tsc_netlist.txt" >/dev/null 2>&1
 
 # --- OUR converter: circuit.json -> an ANNOTATED, unique-symbol kicad_sch ---
-# This is the AUTHORITATIVE tscircuit->KiCad schematic bridge (ADR-0001 Phase 2):
-# every source_component gets a UNIQUE per-refdes lib_symbol (never a shared
-# Device:U_chip), every source_port a pin keyed to the KiCad pad name, and one
-# global_label per pin glues nets by name -> `kicad-cli sch export netlist` builds
-# real nets and reaches node-for-node parity vs the sealed 04_kicad board.
+# This is the AUTHORITATIVE tscircuit->KiCad schematic bridge (ADR-0001 Phase 2;
+# ADR-0002 Phase A). DEFAULT MODE = layout (WIRED): it consumes tscircuit's own
+# schematic layout that circuit.json carries — schematic_component positions,
+# schematic_trace wire routes and schematic_net_label — and emits KiCad `(wire)`
+# where tscircuit drew a trace and a KiCad label where tscircuit used a label
+# (GND -> ground power symbols). Every source_component still gets a UNIQUE
+# per-refdes lib_symbol (never a shared Device:U_chip) and every pin is keyed to
+# the KiCad pad name, so `kicad-cli sch export netlist` reaches node-for-node
+# parity vs the sealed 04_kicad board — but the sheet is now READABLE and WIRED,
+# retiring the S6 label-blob finding. If a board's trace geometry can't import
+# without a cross-net short, the converter auto-falls-back to v1's label grid
+# (`--mode grid`) for that board and logs it (parity is never worse than v1).
 SKILLDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -s "build/circuit.json" ]; then
-  step convert "circuit.json -> annotated kicad_sch (OUR converter)"
-  python3 "$SKILLDIR/circuit_json_to_kicad_sch.py" "build/circuit.json" \
-    -o "kicad/$BASE.kicad_sch" --project "$BASE" >/dev/null 2>&1 \
-    && echo "    wrote kicad/$BASE.kicad_sch (authoritative)" \
-    || echo "    CONVERTER FAILED"
+  step convert "circuit.json -> WIRED kicad_sch (OUR converter, layout mode)"
+  CONVOUT=$(python3 "$SKILLDIR/circuit_json_to_kicad_sch.py" "build/circuit.json" \
+    -o "kicad/$BASE.kicad_sch" --project "$BASE" 2>&1)
+  if [ -s "kicad/$BASE.kicad_sch" ]; then
+    echo "    $(echo "$CONVOUT" | head -1)"
+  else
+    echo "    CONVERTER FAILED: $CONVOUT"
+  fi
 fi
 
 # --- verification: run OUR gate on tscircuit's KiCad export ---

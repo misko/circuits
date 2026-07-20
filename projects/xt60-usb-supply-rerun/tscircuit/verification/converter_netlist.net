@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/home/mouse9911/gits/circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
-		(date "2026-07-19T23:21:11")
+		(date "2026-07-20T10:10:51")
 		(tool "Eeschema 10.0.4-10.0.4~ubuntu24.04.1")
 		(sheet
 			(number "1")
@@ -12,7 +12,7 @@
 				(title "xt60-usb-supply")
 				(company)
 				(rev "dev")
-				(date "2026-07-19")
+				(date "2026-07-20")
 				(source "xt60-usb-supply.kicad_sch")
 				(comment
 					(number "1")
@@ -79,13 +79,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cd82ba0e-dfb1-4468-9f7d-9e7bafdad00a")
+			(tstamps "ca51a7b7-ef95-4456-a77c-fb165afe1533")
 			(units
 				(unit
 					(name "A")
@@ -125,13 +125,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "468d7f40-4172-4b23-a80c-621037a59541")
+			(tstamps "c62e9382-db78-46d3-8108-8bd096f9d233")
 			(units
 				(unit
 					(name "A")
@@ -149,12 +149,10 @@
 		(comp
 			(ref "CBS1")
 			(value "100nF")
+			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C14663")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -168,22 +166,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C14663")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "889d1107-df51-4d36-8c67-0e66ac3320a6")
+			(tstamps "a0deb96a-8d41-4ceb-9f75-381cac8ce32b")
 			(units
 				(unit
 					(name "A")
@@ -201,12 +195,10 @@
 		(comp
 			(ref "CBS2")
 			(value "100nF")
+			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C14663")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -220,22 +212,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C14663")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c0dcbdb3-5ba5-4d6c-851a-ca1beb730d0a")
+			(tstamps "12da20db-7f83-4864-bfc6-a13e16d89a55")
 			(units
 				(unit
 					(name "A")
@@ -253,12 +241,10 @@
 		(comp
 			(ref "CIN_A1")
 			(value "10uF")
+			(footprint "Capacitor_SMD:C_1206_3216Metric")
 			(fields
 				(field
-					(name "MPN") "C13585")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_1206_3216Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -272,22 +258,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C13585")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7d45f7f3-e10c-4195-afed-f4e983b2ccd1")
+			(tstamps "c1884016-3635-46d9-9805-c4cc2f7cf6dc")
 			(units
 				(unit
 					(name "A")
@@ -305,12 +287,10 @@
 		(comp
 			(ref "CIN_A2")
 			(value "10uF")
+			(footprint "Capacitor_SMD:C_1206_3216Metric")
 			(fields
 				(field
-					(name "MPN") "C13585")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_1206_3216Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -324,22 +304,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C13585")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1bbd945b-f5ea-45d4-8fc4-bb8d5e88f473")
+			(tstamps "604b2ee0-f7b5-4cfe-a4ab-4d971274d9fb")
 			(units
 				(unit
 					(name "A")
@@ -357,12 +333,10 @@
 		(comp
 			(ref "CIN_C1")
 			(value "10uF")
+			(footprint "Capacitor_SMD:C_1206_3216Metric")
 			(fields
 				(field
-					(name "MPN") "C13585")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_1206_3216Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -376,22 +350,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C13585")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3985b1e0-0a6c-4939-b5a1-00a232115b98")
+			(tstamps "e3c062b4-4c93-4620-bd8b-a79dba12499f")
 			(units
 				(unit
 					(name "A")
@@ -409,12 +379,10 @@
 		(comp
 			(ref "CIN_C2")
 			(value "10uF")
+			(footprint "Capacitor_SMD:C_1206_3216Metric")
 			(fields
 				(field
-					(name "MPN") "C13585")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_1206_3216Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -428,22 +396,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C13585")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a0452dc2-983c-456f-a743-4243e8bc946e")
+			(tstamps "60ad7c94-5394-4e5d-b46b-aba854e9734d")
 			(units
 				(unit
 					(name "A")
@@ -461,12 +425,10 @@
 		(comp
 			(ref "COUT_A1")
 			(value "22uF")
+			(footprint "Capacitor_SMD:C_1210_3225Metric")
 			(fields
 				(field
-					(name "MPN") "C309062")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_1210_3225Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -480,22 +442,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C309062")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f561e6aa-7530-4e83-ad37-3f9d6c58e464")
+			(tstamps "5edd8d35-af30-4bf5-91da-1557b52066ac")
 			(units
 				(unit
 					(name "A")
@@ -513,12 +471,10 @@
 		(comp
 			(ref "COUT_A2")
 			(value "22uF")
+			(footprint "Capacitor_SMD:C_1210_3225Metric")
 			(fields
 				(field
-					(name "MPN") "C309062")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_1210_3225Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -532,22 +488,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C309062")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9f957ff5-07d7-4bff-94f1-a18f11b5c104")
+			(tstamps "fb581de7-8dcb-410b-b5e6-4dd89d76f9b7")
 			(units
 				(unit
 					(name "A")
@@ -565,12 +517,10 @@
 		(comp
 			(ref "COUT_A3")
 			(value "22uF")
+			(footprint "Capacitor_SMD:C_1210_3225Metric")
 			(fields
 				(field
-					(name "MPN") "C309062")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_1210_3225Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -584,22 +534,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C309062")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e6458ea4-eeb2-4a87-a378-25700da290f0")
+			(tstamps "5d27c21a-3522-47e6-bbc8-76dbe6454fbb")
 			(units
 				(unit
 					(name "A")
@@ -617,12 +563,10 @@
 		(comp
 			(ref "COUT_A4")
 			(value "22uF")
+			(footprint "Capacitor_SMD:C_1210_3225Metric")
 			(fields
 				(field
-					(name "MPN") "C309062")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_1210_3225Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -636,22 +580,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C309062")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "620b6698-90de-4a21-82e3-4cc4f7ea6679")
+			(tstamps "d5c96f02-a788-4a19-8a8a-4722689621ea")
 			(units
 				(unit
 					(name "A")
@@ -669,12 +609,10 @@
 		(comp
 			(ref "COUT_C1")
 			(value "22uF")
+			(footprint "Capacitor_SMD:C_1210_3225Metric")
 			(fields
 				(field
-					(name "MPN") "C309062")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_1210_3225Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -688,22 +626,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C309062")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e606f528-49f6-4119-ba30-d0570ad0b284")
+			(tstamps "b306131d-742b-401d-b875-34626f659810")
 			(units
 				(unit
 					(name "A")
@@ -721,12 +655,10 @@
 		(comp
 			(ref "COUT_C2")
 			(value "22uF")
+			(footprint "Capacitor_SMD:C_1210_3225Metric")
 			(fields
 				(field
-					(name "MPN") "C309062")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_1210_3225Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -740,22 +672,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C309062")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3be21089-b75a-422c-88a9-95cda405a3cf")
+			(tstamps "9b4c155a-c753-4ae1-ae0c-7aec854b7525")
 			(units
 				(unit
 					(name "A")
@@ -773,12 +701,10 @@
 		(comp
 			(ref "COUT_C3")
 			(value "22uF")
+			(footprint "Capacitor_SMD:C_1210_3225Metric")
 			(fields
 				(field
-					(name "MPN") "C309062")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_1210_3225Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -792,22 +718,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C309062")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b15299ad-5caa-44a7-808f-b97316a9332d")
+			(tstamps "ad20ba04-810a-4c51-9aac-39d5f7d7c697")
 			(units
 				(unit
 					(name "A")
@@ -825,12 +747,10 @@
 		(comp
 			(ref "COUT_C4")
 			(value "22uF")
+			(footprint "Capacitor_SMD:C_1210_3225Metric")
 			(fields
 				(field
-					(name "MPN") "C309062")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_1210_3225Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -844,22 +764,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C309062")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "427900b0-6409-4b48-8374-49f2abc0dafc")
+			(tstamps "fb0077ed-e372-4331-bf07-b44a8ffb45fd")
 			(units
 				(unit
 					(name "A")
@@ -877,12 +793,10 @@
 		(comp
 			(ref "CVCC1")
 			(value "2.2uF")
+			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C23630")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -896,22 +810,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C23630")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d5446677-4523-41d1-9c5d-6e581abf7a0a")
+			(tstamps "b1dcbfcc-581b-441c-aa92-8e21e02fcb8b")
 			(units
 				(unit
 					(name "A")
@@ -929,12 +839,10 @@
 		(comp
 			(ref "CVCC2")
 			(value "2.2uF")
+			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C23630")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -948,22 +856,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C23630")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1ddb7c5e-ba90-4395-b41f-2e9c006a813d")
+			(tstamps "c8f27bff-18e8-493e-b151-e882fbc98582")
 			(units
 				(unit
 					(name "A")
@@ -981,10 +885,10 @@
 		(comp
 			(ref "D1")
 			(value "simple_diode")
+			(footprint "Diode_SMD:D_SMB")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Diode_SMD:D_SMB")
 				(field
 					(name "Datasheet")
 				)
@@ -1003,13 +907,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a29ce1d0-01e5-4a14-80b2-e8cd0d11a05e")
+			(tstamps "9288c508-fc7a-47c1-9826-4bc38f579cda")
 			(units
 				(unit
 					(name "A")
@@ -1049,13 +953,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0a570f7d-8a73-46bf-92e5-ef5cd26a4156")
+			(tstamps "19c7f947-557b-4b3e-84d0-29609e7cffe6")
 			(units
 				(unit
 					(name "A")
@@ -1095,13 +999,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a30ed165-86db-4ed0-af0e-922489b0a3bb")
+			(tstamps "8557aa2b-0182-4f3e-ba7e-f4477363389c")
 			(units
 				(unit
 					(name "A")
@@ -1141,13 +1045,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e14ed67a-e6bd-424d-b9ac-dff4465446a8")
+			(tstamps "ba0d9674-13df-45c8-be9a-a8a1f9b24693")
 			(units
 				(unit
 					(name "A")
@@ -1162,10 +1066,10 @@
 							(num "3")
 						)
 						(pin
-							(num "4")
+							(num "SH")
 						)
 						(pin
-							(num "SH")
+							(num "4")
 						)
 					)
 				)
@@ -1196,13 +1100,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b2ed4188-1d3b-4357-9a13-ebadcbf88e03")
+			(tstamps "d531c726-1cd3-424b-9a06-2a49210b0c95")
 			(units
 				(unit
 					(name "A")
@@ -1217,10 +1121,10 @@
 							(num "3")
 						)
 						(pin
-							(num "4")
+							(num "SH")
 						)
 						(pin
-							(num "SH")
+							(num "4")
 						)
 					)
 				)
@@ -1251,13 +1155,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "834b0a23-4300-489c-9cbc-d318f6f605d5")
+			(tstamps "81c525c6-8ffc-4e25-a12b-3606281185b6")
 			(units
 				(unit
 					(name "A")
@@ -1272,10 +1176,10 @@
 							(num "3")
 						)
 						(pin
-							(num "4")
+							(num "SH")
 						)
 						(pin
-							(num "SH")
+							(num "4")
 						)
 					)
 				)
@@ -1306,13 +1210,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7b004453-26a5-4415-b403-b72ab28d9140")
+			(tstamps "e86ea8f6-09e2-4c49-80d2-5a75d44ca4e7")
 			(units
 				(unit
 					(name "A")
@@ -1348,25 +1252,25 @@
 							(num "B4")
 						)
 						(pin
-							(num "B5")
-						)
-						(pin
-							(num "B6")
-						)
-						(pin
-							(num "B7")
-						)
-						(pin
-							(num "B8")
-						)
-						(pin
-							(num "B9")
+							(num "SH")
 						)
 						(pin
 							(num "B12")
 						)
 						(pin
-							(num "SH")
+							(num "B9")
+						)
+						(pin
+							(num "B8")
+						)
+						(pin
+							(num "B7")
+						)
+						(pin
+							(num "B6")
+						)
+						(pin
+							(num "B5")
 						)
 					)
 				)
@@ -1397,13 +1301,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "79f77c67-b417-4388-abb3-ccfea39ba564")
+			(tstamps "74d9a046-86f5-465d-a0e6-22e6ec3faa03")
 			(units
 				(unit
 					(name "A")
@@ -1443,13 +1347,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "37580d8f-0025-427e-82ec-98af679f4875")
+			(tstamps "e6a608a1-d87e-4c6d-abf0-063b02f4da54")
 			(units
 				(unit
 					(name "A")
@@ -1467,12 +1371,10 @@
 		(comp
 			(ref "LED1")
 			(value "C84256")
+			(footprint "LED_SMD:LED_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C84256")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "LED_SMD:LED_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1486,31 +1388,27 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C84256")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e08470ce-70c0-402b-ad51-920ef05457d6")
+			(tstamps "78d4ae73-3ded-4033-9ae4-454b7511afdd")
 			(units
 				(unit
 					(name "A")
 					(pins
 						(pin
-							(num "1")
+							(num "2")
 						)
 						(pin
-							(num "2")
+							(num "1")
 						)
 					)
 				)
@@ -1519,12 +1417,10 @@
 		(comp
 			(ref "LED2")
 			(value "C84256")
+			(footprint "LED_SMD:LED_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C84256")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "LED_SMD:LED_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1538,31 +1434,27 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C84256")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ce714b6a-751a-4737-8cc0-ac6110186bb0")
+			(tstamps "249e206a-f3a2-4819-9efc-9b93f9da1f09")
 			(units
 				(unit
 					(name "A")
 					(pins
 						(pin
-							(num "1")
+							(num "2")
 						)
 						(pin
-							(num "2")
+							(num "1")
 						)
 					)
 				)
@@ -1571,12 +1463,10 @@
 		(comp
 			(ref "LED3")
 			(value "C84256")
+			(footprint "LED_SMD:LED_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C84256")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "LED_SMD:LED_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1590,31 +1480,27 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C84256")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "aca2138a-a353-4583-9346-073a9d2574a5")
+			(tstamps "8050857c-0df6-4aaf-ae1d-99e3cc6726de")
 			(units
 				(unit
 					(name "A")
 					(pins
 						(pin
-							(num "1")
+							(num "2")
 						)
 						(pin
-							(num "2")
+							(num "1")
 						)
 					)
 				)
@@ -1645,13 +1531,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "dde19033-be76-4e29-afdf-9315086469a7")
+			(tstamps "0a03338a-e411-47ab-b412-ead585167b82")
 			(units
 				(unit
 					(name "A")
@@ -1672,12 +1558,10 @@
 		(comp
 			(ref "R1")
 			(value "100kΩ")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C25803")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1691,22 +1575,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C25803")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ee2b7784-a810-4707-9e15-e9f983158d4b")
+			(tstamps "e557353b-6912-4396-a0bc-b0a5e169a8cc")
 			(units
 				(unit
 					(name "A")
@@ -1724,12 +1604,10 @@
 		(comp
 			(ref "R2")
 			(value "1kΩ")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C21190")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1743,22 +1621,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C21190")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ab6a96a5-de78-49e7-b7fb-c976f949bba1")
+			(tstamps "fc4454fd-e006-43bf-9742-65bec4bd575a")
 			(units
 				(unit
 					(name "A")
@@ -1776,12 +1650,10 @@
 		(comp
 			(ref "R3")
 			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C25804")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1795,22 +1667,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C25804")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cf6edeec-6bd4-4c6f-9a37-72ae6c80ee56")
+			(tstamps "a30dea81-dcee-4d02-bd26-9edf653803ce")
 			(units
 				(unit
 					(name "A")
@@ -1828,12 +1696,10 @@
 		(comp
 			(ref "R4")
 			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C25804")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1847,22 +1713,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C25804")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0d63be03-127e-463a-9fee-ec1d5d7d87c9")
+			(tstamps "80050c5c-2429-4709-8909-197b2e17fb98")
 			(units
 				(unit
 					(name "A")
@@ -1880,12 +1742,10 @@
 		(comp
 			(ref "R5")
 			(value "1kΩ")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C21190")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1899,22 +1759,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C21190")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9ea51b45-7381-4c65-a73b-695c89f7799d")
+			(tstamps "ccc8dc45-22e6-4e30-a0e9-f032bbe00a30")
 			(units
 				(unit
 					(name "A")
@@ -1932,12 +1788,10 @@
 		(comp
 			(ref "R6")
 			(value "1kΩ")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C21190")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1951,22 +1805,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C21190")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "66819a16-b7b9-4deb-8761-37e605d91579")
+			(tstamps "12cc7c38-a80f-4444-a8c1-28c30a980798")
 			(units
 				(unit
 					(name "A")
@@ -1984,12 +1834,10 @@
 		(comp
 			(ref "RFA1")
 			(value "22kΩ")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C31850")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2003,22 +1851,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C31850")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9e72be20-c316-439c-932c-1f5934d7d477")
+			(tstamps "887efc9b-8c33-4dd8-94ca-52d583615e67")
 			(units
 				(unit
 					(name "A")
@@ -2036,12 +1880,10 @@
 		(comp
 			(ref "RFA2")
 			(value "3kΩ")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C4211")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2055,22 +1897,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C4211")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a63b8f0f-f213-443a-9379-488df4125273")
+			(tstamps "d805dd9e-132b-4919-850c-09f4c4baadae")
 			(units
 				(unit
 					(name "A")
@@ -2088,12 +1926,10 @@
 		(comp
 			(ref "RFC1")
 			(value "22kΩ")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C31850")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2107,22 +1943,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C31850")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3a53491a-4ad3-4b8e-a3c8-3cfb42c932f5")
+			(tstamps "d55d1a6a-915b-42c3-ab59-7682c0e30a52")
 			(units
 				(unit
 					(name "A")
@@ -2140,12 +1972,10 @@
 		(comp
 			(ref "RFC2")
 			(value "3kΩ")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C4211")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2159,22 +1989,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C4211")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a05cd188-0252-4d8f-96a9-86c951546b03")
+			(tstamps "7dfa301b-87f0-4831-a1ea-a784f7a2d11c")
 			(units
 				(unit
 					(name "A")
@@ -2214,13 +2040,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "76ddcd37-e236-4a2c-8ae4-4faae7f36de3")
+			(tstamps "9d79675a-329c-4f3b-9c54-814fed7ff2a1")
 			(units
 				(unit
 					(name "A")
@@ -2241,19 +2067,19 @@
 							(num "5")
 						)
 						(pin
-							(num "6")
-						)
-						(pin
-							(num "7")
-						)
-						(pin
-							(num "8")
+							(num "10")
 						)
 						(pin
 							(num "9")
 						)
 						(pin
-							(num "10")
+							(num "8")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "6")
 						)
 					)
 				)
@@ -2284,13 +2110,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d8bf65c3-d44c-4cf1-8666-222b3dc6d0c3")
+			(tstamps "44b295c8-d240-4a99-980d-41895581fb18")
 			(units
 				(unit
 					(name "A")
@@ -2311,19 +2137,19 @@
 							(num "5")
 						)
 						(pin
-							(num "6")
-						)
-						(pin
-							(num "7")
-						)
-						(pin
-							(num "8")
+							(num "10")
 						)
 						(pin
 							(num "9")
 						)
 						(pin
-							(num "10")
+							(num "8")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "6")
 						)
 					)
 				)
@@ -2332,10 +2158,10 @@
 		(comp
 			(ref "U3")
 			(value "simple_chip")
+			(footprint "Package_TO_SOT_SMD:SOT-23-6")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23-6")
 				(field
 					(name "Datasheet")
 				)
@@ -2354,13 +2180,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5ef3c726-8db9-45b2-bc60-ca401d4a2042")
+			(tstamps "3ac2a337-f8e9-4583-81b9-f25292aeb1dc")
 			(units
 				(unit
 					(name "A")
@@ -2375,13 +2201,13 @@
 							(num "3")
 						)
 						(pin
-							(num "4")
+							(num "6")
 						)
 						(pin
 							(num "5")
 						)
 						(pin
-							(num "6")
+							(num "4")
 						)
 					)
 				)
@@ -2390,10 +2216,10 @@
 		(comp
 			(ref "U4")
 			(value "simple_chip")
+			(footprint "Package_TO_SOT_SMD:SOT-23-6")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23-6")
 				(field
 					(name "Datasheet")
 				)
@@ -2412,13 +2238,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "dd6b897d-b7bf-4e09-afb8-121761603905")
+			(tstamps "047ae6ab-209b-43ce-9684-daf5e4b88790")
 			(units
 				(unit
 					(name "A")
@@ -2433,13 +2259,13 @@
 							(num "3")
 						)
 						(pin
-							(num "4")
+							(num "6")
 						)
 						(pin
 							(num "5")
 						)
 						(pin
-							(num "6")
+							(num "4")
 						)
 					)
 				)
@@ -2448,10 +2274,10 @@
 		(comp
 			(ref "U5")
 			(value "simple_chip")
+			(footprint "Package_TO_SOT_SMD:SOT-23-6")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23-6")
 				(field
 					(name "Datasheet")
 				)
@@ -2470,13 +2296,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f139208b-77c0-4fbc-beb7-18f6148e8991")
+			(tstamps "7debe3f6-5359-4f55-a895-0abfd483a716")
 			(units
 				(unit
 					(name "A")
@@ -2491,13 +2317,13 @@
 							(num "3")
 						)
 						(pin
-							(num "4")
+							(num "6")
 						)
 						(pin
 							(num "5")
 						)
 						(pin
-							(num "6")
+							(num "4")
 						)
 					)
 				)
@@ -2506,10 +2332,10 @@
 		(comp
 			(ref "U6")
 			(value "simple_chip")
+			(footprint "Package_TO_SOT_SMD:SOT-23-6")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23-6")
 				(field
 					(name "Datasheet")
 				)
@@ -2528,13 +2354,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
+				(value "../circuits/projects/xt60-usb-supply-rerun/tscircuit/kicad/xt60-usb-supply.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1ce4f06c-ba81-4d81-a70f-b3c9a5cce236")
+			(tstamps "a7b182d1-3197-47e7-b3c7-7c132c41d4be")
 			(units
 				(unit
 					(name "A")
@@ -2549,13 +2375,13 @@
 							(num "3")
 						)
 						(pin
-							(num "4")
+							(num "6")
 						)
 						(pin
 							(num "5")
 						)
 						(pin
-							(num "6")
+							(num "4")
 						)
 					)
 				)
@@ -2586,12 +2412,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2617,12 +2443,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2648,12 +2474,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2679,12 +2505,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2710,12 +2536,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2741,12 +2567,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2772,12 +2598,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2803,12 +2629,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2834,12 +2660,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2865,12 +2691,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2896,12 +2722,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2927,12 +2753,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2958,12 +2784,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2989,12 +2815,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3020,12 +2846,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3051,12 +2877,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3082,12 +2908,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3113,12 +2939,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3144,12 +2970,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3175,12 +3001,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3206,12 +3032,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3237,27 +3063,27 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "4")
-					(name "pin4")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "SH")
-					(name "pin5")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3283,27 +3109,27 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "4")
-					(name "pin4")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "SH")
-					(name "pin5")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3329,27 +3155,27 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "4")
-					(name "pin4")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "SH")
-					(name "pin5")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3375,87 +3201,87 @@
 			(pins
 				(pin
 					(num "A1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "A4")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "A5")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "A6")
-					(name "pin4")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "A7")
-					(name "pin5")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "A8")
-					(name "pin6")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "A9")
-					(name "pin7")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "A12")
-					(name "pin8")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "B1")
-					(name "pin9")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "B4")
-					(name "pin10")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "B5")
-					(name "pin11")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "B6")
-					(name "pin12")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "B7")
-					(name "pin13")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "B8")
-					(name "pin14")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "B9")
-					(name "pin15")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "B12")
-					(name "pin16")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "SH")
-					(name "pin17")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3481,12 +3307,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3512,12 +3338,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3543,12 +3369,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3574,12 +3400,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3605,12 +3431,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3636,17 +3462,17 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3672,12 +3498,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3703,12 +3529,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3734,12 +3560,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3765,12 +3591,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3796,12 +3622,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3827,12 +3653,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3858,12 +3684,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3889,12 +3715,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3920,12 +3746,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3951,12 +3777,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -3982,52 +3808,52 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "4")
-					(name "pin4")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "5")
-					(name "pin5")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "6")
-					(name "pin6")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "7")
-					(name "pin7")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "8")
-					(name "pin8")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "9")
-					(name "pin9")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "10")
-					(name "pin10")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4053,52 +3879,52 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "4")
-					(name "pin4")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "5")
-					(name "pin5")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "6")
-					(name "pin6")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "7")
-					(name "pin7")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "8")
-					(name "pin8")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "9")
-					(name "pin9")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "10")
-					(name "pin10")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4124,32 +3950,32 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "4")
-					(name "pin4")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "5")
-					(name "pin5")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "6")
-					(name "pin6")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4175,32 +4001,32 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "4")
-					(name "pin4")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "5")
-					(name "pin5")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "6")
-					(name "pin6")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4226,32 +4052,32 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "4")
-					(name "pin4")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "5")
-					(name "pin5")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "6")
-					(name "pin6")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4277,32 +4103,32 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "4")
-					(name "pin4")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "5")
-					(name "pin5")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "6")
-					(name "pin6")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4312,777 +4138,661 @@
 	(nets
 		(net
 			(code "1")
-			(name "BST_A")
-			(class "Default")
-			(node
-				(ref "CBS1")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "U1")
-				(pin "6")
-				(pinfunction "pin6_6")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "2")
-			(name "BST_C")
-			(class "Default")
-			(node
-				(ref "CBS2")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "U2")
-				(pin "6")
-				(pinfunction "pin6_6")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "3")
-			(name "CC1")
-			(class "Default")
-			(node
-				(ref "J5")
-				(pin "A5")
-				(pinfunction "pin3_A5")
-				(pintype "passive")
-			)
-			(node
-				(ref "R3")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "U6")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "U6")
-				(pin "6")
-				(pinfunction "pin6_6")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "4")
-			(name "CC2")
-			(class "Default")
-			(node
-				(ref "J5")
-				(pin "B5")
-				(pinfunction "pin11_B5")
-				(pintype "passive")
-			)
-			(node
-				(ref "R4")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "U6")
-				(pin "3")
-				(pinfunction "pin3_3")
-				(pintype "passive")
-			)
-			(node
-				(ref "U6")
-				(pin "4")
-				(pinfunction "pin4_4")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "5")
-			(name "DCP1")
-			(class "Default")
-			(node
-				(ref "J2")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "J2")
-				(pin "3")
-				(pinfunction "pin3_3")
-				(pintype "passive")
-			)
-			(node
-				(ref "U3")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "U3")
-				(pin "3")
-				(pinfunction "pin3_3")
-				(pintype "passive")
-			)
-			(node
-				(ref "U3")
-				(pin "4")
-				(pinfunction "pin4_4")
-				(pintype "passive")
-			)
-			(node
-				(ref "U3")
-				(pin "6")
-				(pinfunction "pin6_6")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "6")
-			(name "DCP2")
-			(class "Default")
-			(node
-				(ref "J3")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "J3")
-				(pin "3")
-				(pinfunction "pin3_3")
-				(pintype "passive")
-			)
-			(node
-				(ref "U4")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "U4")
-				(pin "3")
-				(pinfunction "pin3_3")
-				(pintype "passive")
-			)
-			(node
-				(ref "U4")
-				(pin "4")
-				(pinfunction "pin4_4")
-				(pintype "passive")
-			)
-			(node
-				(ref "U4")
-				(pin "6")
-				(pinfunction "pin6_6")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "7")
-			(name "DCP3")
-			(class "Default")
-			(node
-				(ref "J4")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "J4")
-				(pin "3")
-				(pinfunction "pin3_3")
-				(pintype "passive")
-			)
-			(node
-				(ref "U5")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "U5")
-				(pin "3")
-				(pinfunction "pin3_3")
-				(pintype "passive")
-			)
-			(node
-				(ref "U5")
-				(pin "4")
-				(pinfunction "pin4_4")
-				(pintype "passive")
-			)
-			(node
-				(ref "U5")
-				(pin "6")
-				(pinfunction "pin6_6")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "8")
-			(name "DCPC")
-			(class "Default")
-			(node
-				(ref "J5")
-				(pin "A6")
-				(pinfunction "pin4_A6")
-				(pintype "passive")
-			)
-			(node
-				(ref "J5")
-				(pin "A7")
-				(pinfunction "pin5_A7")
-				(pintype "passive")
-			)
-			(node
-				(ref "J5")
-				(pin "B6")
-				(pinfunction "pin12_B6")
-				(pintype "passive")
-			)
-			(node
-				(ref "J5")
-				(pin "B7")
-				(pinfunction "pin13_B7")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "9")
-			(name "FB_A")
-			(class "Default")
-			(node
-				(ref "RFA1")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "RFA2")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "U1")
-				(pin "4")
-				(pinfunction "pin4_4")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "10")
-			(name "FB_C")
-			(class "Default")
-			(node
-				(ref "RFC1")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "RFC2")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "U2")
-				(pin "4")
-				(pinfunction "pin4_4")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "11")
-			(name "GND")
-			(class "Default")
-			(node
-				(ref "CB1")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "CB2")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "CIN_A1")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "CIN_A2")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "CIN_C1")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "CIN_C2")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "COUT_A1")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "COUT_A2")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "COUT_A3")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "COUT_A4")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "COUT_C1")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "COUT_C2")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "COUT_C3")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "COUT_C4")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "CVCC1")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "CVCC2")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "D1")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "J1")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "J2")
-				(pin "4")
-				(pinfunction "pin4_4")
-				(pintype "passive")
-			)
-			(node
-				(ref "J2")
-				(pin "SH")
-				(pinfunction "pin5_SH")
-				(pintype "passive")
-			)
-			(node
-				(ref "J3")
-				(pin "4")
-				(pinfunction "pin4_4")
-				(pintype "passive")
-			)
-			(node
-				(ref "J3")
-				(pin "SH")
-				(pinfunction "pin5_SH")
-				(pintype "passive")
-			)
-			(node
-				(ref "J4")
-				(pin "4")
-				(pinfunction "pin4_4")
-				(pintype "passive")
-			)
-			(node
-				(ref "J4")
-				(pin "SH")
-				(pinfunction "pin5_SH")
-				(pintype "passive")
-			)
-			(node
-				(ref "J5")
-				(pin "A1")
-				(pinfunction "pin1_A1")
-				(pintype "passive")
-			)
-			(node
-				(ref "J5")
-				(pin "A12")
-				(pinfunction "pin8_A12")
-				(pintype "passive")
-			)
-			(node
-				(ref "J5")
-				(pin "B1")
-				(pinfunction "pin9_B1")
-				(pintype "passive")
-			)
-			(node
-				(ref "J5")
-				(pin "B12")
-				(pinfunction "pin16_B12")
-				(pintype "passive")
-			)
-			(node
-				(ref "J5")
-				(pin "SH")
-				(pinfunction "pin17_SH")
-				(pintype "passive")
-			)
-			(node
-				(ref "LED1")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "LED2")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "LED3")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R1")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "RFA2")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "RFC2")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "U1")
-				(pin "3")
-				(pinfunction "pin3_3")
-				(pintype "passive")
-			)
-			(node
-				(ref "U1")
-				(pin "9")
-				(pinfunction "pin9_9")
-				(pintype "passive")
-			)
-			(node
-				(ref "U2")
-				(pin "3")
-				(pinfunction "pin3_3")
-				(pintype "passive")
-			)
-			(node
-				(ref "U2")
-				(pin "9")
-				(pinfunction "pin9_9")
-				(pintype "passive")
-			)
-			(node
-				(ref "U3")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "U4")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "U5")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "U6")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "12")
-			(name "LED1_A")
-			(class "Default")
-			(node
-				(ref "LED1")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "R2")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "13")
-			(name "LED2_A")
-			(class "Default")
-			(node
-				(ref "LED2")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "R5")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "14")
-			(name "LED3_A")
-			(class "Default")
-			(node
-				(ref "LED3")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "R6")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "15")
-			(name "N5V_A")
+			(name "5V_A")
 			(class "Default")
 			(node
 				(ref "COUT_A1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "COUT_A2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "COUT_A3")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "COUT_A4")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "J2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "J3")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "J4")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "L1")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R5")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "RFA1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "U3")
 				(pin "5")
-				(pinfunction "pin5_5")
 				(pintype "passive")
 			)
 			(node
 				(ref "U4")
 				(pin "5")
-				(pinfunction "pin5_5")
 				(pintype "passive")
 			)
 			(node
 				(ref "U5")
 				(pin "5")
-				(pinfunction "pin5_5")
 				(pintype "passive")
 			)
 		)
 		(net
-			(code "16")
-			(name "N5V_C")
+			(code "2")
+			(name "5V_C")
 			(class "Default")
 			(node
 				(ref "COUT_C1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "COUT_C2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "COUT_C3")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "COUT_C4")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "J5")
 				(pin "A4")
-				(pinfunction "pin2_A4")
 				(pintype "passive")
 			)
 			(node
 				(ref "J5")
 				(pin "A9")
-				(pinfunction "pin7_A9")
 				(pintype "passive")
 			)
 			(node
 				(ref "J5")
 				(pin "B4")
-				(pinfunction "pin10_B4")
 				(pintype "passive")
 			)
 			(node
 				(ref "J5")
 				(pin "B9")
-				(pinfunction "pin15_B9")
 				(pintype "passive")
 			)
 			(node
 				(ref "L2")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R3")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "R4")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "R6")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "RFC1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "U6")
 				(pin "5")
-				(pinfunction "pin5_5")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "3")
+			(name "BST_A")
+			(class "Default")
+			(node
+				(ref "CBS1")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "6")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "4")
+			(name "BST_C")
+			(class "Default")
+			(node
+				(ref "CBS2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U2")
+				(pin "6")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "5")
+			(name "CC1")
+			(class "Default")
+			(node
+				(ref "J5")
+				(pin "A5")
+				(pintype "passive")
+			)
+			(node
+				(ref "R3")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U6")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U6")
+				(pin "6")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "6")
+			(name "CC2")
+			(class "Default")
+			(node
+				(ref "J5")
+				(pin "B5")
+				(pintype "passive")
+			)
+			(node
+				(ref "R4")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U6")
+				(pin "3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U6")
+				(pin "4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "7")
+			(name "DCP1")
+			(class "Default")
+			(node
+				(ref "J2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J2")
+				(pin "3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U3")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U3")
+				(pin "3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U3")
+				(pin "4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U3")
+				(pin "6")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "8")
+			(name "DCP2")
+			(class "Default")
+			(node
+				(ref "J3")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J3")
+				(pin "3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U4")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U4")
+				(pin "3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U4")
+				(pin "4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U4")
+				(pin "6")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "9")
+			(name "DCP3")
+			(class "Default")
+			(node
+				(ref "J4")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J4")
+				(pin "3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U5")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U5")
+				(pin "3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U5")
+				(pin "4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U5")
+				(pin "6")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "10")
+			(name "DCPC")
+			(class "Default")
+			(node
+				(ref "J5")
+				(pin "A6")
+				(pintype "passive")
+			)
+			(node
+				(ref "J5")
+				(pin "A7")
+				(pintype "passive")
+			)
+			(node
+				(ref "J5")
+				(pin "B6")
+				(pintype "passive")
+			)
+			(node
+				(ref "J5")
+				(pin "B7")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "11")
+			(name "FB_A")
+			(class "Default")
+			(node
+				(ref "RFA1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "RFA2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "12")
+			(name "FB_C")
+			(class "Default")
+			(node
+				(ref "RFC1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "RFC2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U2")
+				(pin "4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "13")
+			(name "GND")
+			(class "Default")
+			(node
+				(ref "CB1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "CB2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "CIN_A1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "CIN_A2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "CIN_C1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "CIN_C2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "COUT_A1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "COUT_A2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "COUT_A3")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "COUT_A4")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "COUT_C1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "COUT_C2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "COUT_C3")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "COUT_C4")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "CVCC1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "CVCC2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "D1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J1")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J2")
+				(pin "4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J2")
+				(pin "SH")
+				(pintype "passive")
+			)
+			(node
+				(ref "J3")
+				(pin "4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J3")
+				(pin "SH")
+				(pintype "passive")
+			)
+			(node
+				(ref "J4")
+				(pin "4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J4")
+				(pin "SH")
+				(pintype "passive")
+			)
+			(node
+				(ref "J5")
+				(pin "A1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J5")
+				(pin "A12")
+				(pintype "passive")
+			)
+			(node
+				(ref "J5")
+				(pin "B1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J5")
+				(pin "B12")
+				(pintype "passive")
+			)
+			(node
+				(ref "J5")
+				(pin "SH")
+				(pintype "passive")
+			)
+			(node
+				(ref "LED1")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "LED2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "LED3")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "RFA2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "RFC2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "9")
+				(pintype "passive")
+			)
+			(node
+				(ref "U2")
+				(pin "3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U2")
+				(pin "9")
+				(pintype "passive")
+			)
+			(node
+				(ref "U3")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U4")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U5")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U6")
+				(pin "2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "14")
+			(name "LED1_A")
+			(class "Default")
+			(node
+				(ref "LED1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R2")
+				(pin "2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "15")
+			(name "LED2_A")
+			(class "Default")
+			(node
+				(ref "LED2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R5")
+				(pin "2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "16")
+			(name "LED3_A")
+			(class "Default")
+			(node
+				(ref "LED3")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R6")
+				(pin "2")
 				(pintype "passive")
 			)
 		)
@@ -5093,7 +4803,6 @@
 			(node
 				(ref "J5")
 				(pin "A8")
-				(pinfunction "pin6_A8")
 				(pintype "passive")
 			)
 		)
@@ -5104,7 +4813,6 @@
 			(node
 				(ref "J5")
 				(pin "B8")
-				(pinfunction "pin14_B8")
 				(pintype "passive")
 			)
 		)
@@ -5115,7 +4823,6 @@
 			(node
 				(ref "U1")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 		)
@@ -5126,7 +4833,6 @@
 			(node
 				(ref "U2")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 		)
@@ -5137,13 +4843,11 @@
 			(node
 				(ref "Q1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "R1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 		)
@@ -5154,19 +4858,16 @@
 			(node
 				(ref "CBS1")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "L1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "U1")
 				(pin "10")
-				(pinfunction "pin10_10")
 				(pintype "passive")
 			)
 		)
@@ -5177,19 +4878,16 @@
 			(node
 				(ref "CBS2")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "L2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "U2")
 				(pin "10")
-				(pinfunction "pin10_10")
 				(pintype "passive")
 			)
 		)
@@ -5200,13 +4898,11 @@
 			(node
 				(ref "F1")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "Q1")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 		)
@@ -5217,91 +4913,76 @@
 			(node
 				(ref "CB1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "CB2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "CIN_A1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "CIN_A2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "CIN_C1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "CIN_C2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "D1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "Q1")
 				(pin "3")
-				(pinfunction "pin3_3")
 				(pintype "passive")
 			)
 			(node
 				(ref "R2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "U1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "U1")
 				(pin "7")
-				(pinfunction "pin7_7")
 				(pintype "passive")
 			)
 			(node
 				(ref "U1")
 				(pin "8")
-				(pinfunction "pin8_8")
 				(pintype "passive")
 			)
 			(node
 				(ref "U2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "U2")
 				(pin "7")
-				(pinfunction "pin7_7")
 				(pintype "passive")
 			)
 			(node
 				(ref "U2")
 				(pin "8")
-				(pinfunction "pin8_8")
 				(pintype "passive")
 			)
 		)
@@ -5312,13 +4993,11 @@
 			(node
 				(ref "F1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "J1")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 		)
@@ -5329,13 +5008,11 @@
 			(node
 				(ref "CVCC1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "U1")
 				(pin "5")
-				(pinfunction "pin5_5")
 				(pintype "passive")
 			)
 		)
@@ -5346,13 +5023,11 @@
 			(node
 				(ref "CVCC2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "U2")
 				(pin "5")
-				(pinfunction "pin5_5")
 				(pintype "passive")
 			)
 		)

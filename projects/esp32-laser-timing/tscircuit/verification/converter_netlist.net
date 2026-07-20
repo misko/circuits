@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/home/mouse9911/gits/circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
-		(date "2026-07-19T23:21:12")
+		(date "2026-07-20T10:10:51")
 		(tool "Eeschema 10.0.4-10.0.4~ubuntu24.04.1")
 		(sheet
 			(number "1")
@@ -12,7 +12,7 @@
 				(title "esp32_laser_timing")
 				(company)
 				(rev "dev")
-				(date "2026-07-19")
+				(date "2026-07-20")
 				(source "esp32_laser_timing.kicad_sch")
 				(comment
 					(number "1")
@@ -57,12 +57,10 @@
 		(comp
 			(ref "C1")
 			(value "1uF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C28323")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -76,22 +74,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C28323")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "21662d66-9bdc-4af5-88c1-aceca3bac997")
+			(tstamps "f773be8d-a0da-4263-8236-56612ad7e0a7")
 			(units
 				(unit
 					(name "A")
@@ -109,12 +103,10 @@
 		(comp
 			(ref "C2")
 			(value "22uF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C45783")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -128,22 +120,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C45783")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0fc169c2-aaa9-47d1-8594-19cd20ad425f")
+			(tstamps "540c27c5-31dc-432c-940c-e3bdbe8e0e82")
 			(units
 				(unit
 					(name "A")
@@ -161,12 +149,10 @@
 		(comp
 			(ref "C3")
 			(value "22uF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C45783")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -180,22 +166,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C45783")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2e1b0d9b-9126-498f-866f-b423644883f2")
+			(tstamps "f15f6619-e5a5-48ae-ab11-ace4f2fee77c")
 			(units
 				(unit
 					(name "A")
@@ -213,12 +195,10 @@
 		(comp
 			(ref "C4")
 			(value "22uF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C45783")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -232,22 +212,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C45783")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b3e31466-3825-4eac-b778-71437286643c")
+			(tstamps "6fef8a52-0062-4052-a629-75ff51620457")
 			(units
 				(unit
 					(name "A")
@@ -265,12 +241,10 @@
 		(comp
 			(ref "C5")
 			(value "100nF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C49678")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -284,22 +258,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C49678")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cf211f8f-4a2c-4ea2-aa23-9e747895a125")
+			(tstamps "9cf3f327-c620-4aa8-96ab-626563f22688")
 			(units
 				(unit
 					(name "A")
@@ -317,12 +287,10 @@
 		(comp
 			(ref "C6")
 			(value "100nF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C49678")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -336,22 +304,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C49678")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e9d2de23-6688-4c0c-a8cd-45a7ccb1e175")
+			(tstamps "aad2232f-5632-42f1-8917-6038d9208d40")
 			(units
 				(unit
 					(name "A")
@@ -369,12 +333,10 @@
 		(comp
 			(ref "C7")
 			(value "100nF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C49678")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -388,22 +350,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C49678")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2183ca70-103b-4cef-8b25-59be82b5d49f")
+			(tstamps "4097bdea-5224-41e4-bee9-c59ad14ac6f8")
 			(units
 				(unit
 					(name "A")
@@ -421,12 +379,10 @@
 		(comp
 			(ref "C8")
 			(value "100nF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C49678")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -440,22 +396,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C49678")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e5532a05-eb82-4aa9-a746-09da54412a7f")
+			(tstamps "a9e6af8f-81b9-4bd0-b187-1f8141c5c27f")
 			(units
 				(unit
 					(name "A")
@@ -473,12 +425,10 @@
 		(comp
 			(ref "C9")
 			(value "100nF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C49678")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -492,22 +442,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C49678")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d0fdf842-8a5d-441b-8248-94bde2e7ae23")
+			(tstamps "16023cb0-9ac5-489d-98b4-d19c3b2e6e68")
 			(units
 				(unit
 					(name "A")
@@ -525,12 +471,10 @@
 		(comp
 			(ref "C10")
 			(value "100nF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C49678")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -544,22 +488,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C49678")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "52472aee-a46c-427b-9940-ea2bf342ae07")
+			(tstamps "a8cd4e6d-edcf-4f68-bfe6-d6538d519315")
 			(units
 				(unit
 					(name "A")
@@ -577,12 +517,10 @@
 		(comp
 			(ref "C11")
 			(value "100uF")
+			(footprint "Capacitor_SMD:CP_Elec_6.3x5.4")
 			(fields
 				(field
-					(name "MPN") "C2887276")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:CP_Elec_6.3x5.4")
 				(field
 					(name "Datasheet")
 				)
@@ -596,22 +534,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C2887276")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "87816129-bb11-4160-ab87-833f282583f7")
+			(tstamps "5485e0cb-9f2b-466c-b5fd-6af4cfe9a855")
 			(units
 				(unit
 					(name "A")
@@ -629,12 +563,10 @@
 		(comp
 			(ref "C12")
 			(value "100nF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C49678")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -648,22 +580,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C49678")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "40703886-e18b-467e-adc3-acc2cbb2d025")
+			(tstamps "da528652-fa1a-4167-aab8-e8fa54967a88")
 			(units
 				(unit
 					(name "A")
@@ -681,12 +609,10 @@
 		(comp
 			(ref "D1")
 			(value "C2687116")
+			(footprint "Package_TO_SOT_SMD:SOT-23-6")
 			(fields
 				(field
-					(name "MPN") "C2687116")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23-6")
 				(field
 					(name "Datasheet")
 				)
@@ -700,22 +626,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C2687116")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "24294bf8-1785-48bb-b96b-bb81e89b34a9")
+			(tstamps "d2956753-8f7d-4a97-99b6-db497fdb71d9")
 			(units
 				(unit
 					(name "A")
@@ -730,13 +652,13 @@
 							(num "3")
 						)
 						(pin
-							(num "4")
+							(num "6")
 						)
 						(pin
 							(num "5")
 						)
 						(pin
-							(num "6")
+							(num "4")
 						)
 					)
 				)
@@ -745,12 +667,10 @@
 		(comp
 			(ref "D2")
 			(value "C2297")
+			(footprint "LED_SMD:LED_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C2297")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "LED_SMD:LED_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -764,31 +684,27 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C2297")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8c72b668-f124-4355-afad-0e06c11eef72")
+			(tstamps "cdaffc53-c99e-4601-ba7b-8370a351a187")
 			(units
 				(unit
 					(name "A")
 					(pins
 						(pin
-							(num "1")
+							(num "2")
 						)
 						(pin
-							(num "2")
+							(num "1")
 						)
 					)
 				)
@@ -797,12 +713,10 @@
 		(comp
 			(ref "J1")
 			(value "C165948")
+			(footprint "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12")
 			(fields
 				(field
-					(name "MPN") "C165948")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12")
 				(field
 					(name "Datasheet")
 				)
@@ -816,22 +730,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C165948")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1dfd78f3-d3f1-478a-8e34-d598fb7e0856")
+			(tstamps "2d2c9e1a-cded-4e32-819d-e43dcd253163")
 			(units
 				(unit
 					(name "A")
@@ -867,25 +777,25 @@
 							(num "B4")
 						)
 						(pin
-							(num "B5")
-						)
-						(pin
-							(num "B6")
-						)
-						(pin
-							(num "B7")
-						)
-						(pin
-							(num "B8")
-						)
-						(pin
-							(num "B9")
+							(num "SH")
 						)
 						(pin
 							(num "B12")
 						)
 						(pin
-							(num "SH")
+							(num "B9")
+						)
+						(pin
+							(num "B8")
+						)
+						(pin
+							(num "B7")
+						)
+						(pin
+							(num "B6")
+						)
+						(pin
+							(num "B5")
 						)
 					)
 				)
@@ -894,12 +804,10 @@
 		(comp
 			(ref "J2")
 			(value "C2718488")
+			(footprint "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical")
 			(fields
 				(field
-					(name "MPN") "C2718488")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical")
 				(field
 					(name "Datasheet")
 				)
@@ -913,22 +821,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C2718488")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f8848665-1d91-4ba4-b985-041114befdb6")
+			(tstamps "0c18f43b-9831-464c-97d9-7995a4ea1b30")
 			(units
 				(unit
 					(name "A")
@@ -940,10 +844,10 @@
 							(num "2")
 						)
 						(pin
-							(num "3")
+							(num "4")
 						)
 						(pin
-							(num "4")
+							(num "3")
 						)
 					)
 				)
@@ -952,12 +856,10 @@
 		(comp
 			(ref "J4")
 			(value "C474930")
+			(footprint "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 			(fields
 				(field
-					(name "MPN") "C474930")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 				(field
 					(name "Datasheet")
 				)
@@ -971,22 +873,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C474930")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6dd7eb41-7923-45c0-9df7-811f562a6018")
+			(tstamps "2813abe3-84cb-46d0-8657-139761865e3a")
 			(units
 				(unit
 					(name "A")
@@ -1004,12 +902,10 @@
 		(comp
 			(ref "J5")
 			(value "C474930")
+			(footprint "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 			(fields
 				(field
-					(name "MPN") "C474930")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 				(field
 					(name "Datasheet")
 				)
@@ -1023,22 +919,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C474930")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "df79170d-6bac-4a7c-b40d-42640e45ccca")
+			(tstamps "ae785524-e6aa-4301-92fe-3354015888c2")
 			(units
 				(unit
 					(name "A")
@@ -1056,12 +948,10 @@
 		(comp
 			(ref "J6")
 			(value "C474930")
+			(footprint "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 			(fields
 				(field
-					(name "MPN") "C474930")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 				(field
 					(name "Datasheet")
 				)
@@ -1075,22 +965,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C474930")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "dad1b021-189d-484f-8536-07679607fecc")
+			(tstamps "acc236c1-7fb3-4889-b3b1-1396db6c2f6c")
 			(units
 				(unit
 					(name "A")
@@ -1108,12 +994,10 @@
 		(comp
 			(ref "J7")
 			(value "C474930")
+			(footprint "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 			(fields
 				(field
-					(name "MPN") "C474930")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 				(field
 					(name "Datasheet")
 				)
@@ -1127,22 +1011,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C474930")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "437f508d-114c-465f-a417-3de854f97d27")
+			(tstamps "c6a79783-cc99-4c08-a6e6-19404dc08089")
 			(units
 				(unit
 					(name "A")
@@ -1160,12 +1040,10 @@
 		(comp
 			(ref "J8")
 			(value "C474930")
+			(footprint "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 			(fields
 				(field
-					(name "MPN") "C474930")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 				(field
 					(name "Datasheet")
 				)
@@ -1179,22 +1057,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C474930")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3ad18743-a811-4e01-8e63-95547e7bda95")
+			(tstamps "d9b32150-36d3-465a-a139-72544456f1d5")
 			(units
 				(unit
 					(name "A")
@@ -1212,12 +1086,10 @@
 		(comp
 			(ref "J9")
 			(value "C474930")
+			(footprint "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 			(fields
 				(field
-					(name "MPN") "C474930")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 				(field
 					(name "Datasheet")
 				)
@@ -1231,22 +1103,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C474930")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a494cb74-4b76-4969-af5f-894e6c2c0c95")
+			(tstamps "837109cb-94b5-474d-8b05-3c6825857e72")
 			(units
 				(unit
 					(name "A")
@@ -1264,12 +1132,10 @@
 		(comp
 			(ref "J10")
 			(value "C474930")
+			(footprint "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 			(fields
 				(field
-					(name "MPN") "C474930")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 				(field
 					(name "Datasheet")
 				)
@@ -1283,22 +1149,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C474930")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a630a196-33bc-4e15-9c36-58e2c96f2694")
+			(tstamps "c86d9d11-1266-4b33-9719-53a5fcad336e")
 			(units
 				(unit
 					(name "A")
@@ -1316,12 +1178,10 @@
 		(comp
 			(ref "J11")
 			(value "C474930")
+			(footprint "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 			(fields
 				(field
-					(name "MPN") "C474930")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 				(field
 					(name "Datasheet")
 				)
@@ -1335,22 +1195,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C474930")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "46cdf02e-96dd-4f3e-bf0b-e2f002b7c073")
+			(tstamps "e3931d8f-a92c-432b-9eeb-14f8c0c880bf")
 			(units
 				(unit
 					(name "A")
@@ -1368,12 +1224,10 @@
 		(comp
 			(ref "J12")
 			(value "C474930")
+			(footprint "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 			(fields
 				(field
-					(name "MPN") "C474930")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TerminalBlock_Phoenix:TerminalBlock_Phoenix_PT-1,5-2-3.5-H_1x02_P3.50mm_Horizontal")
 				(field
 					(name "Datasheet")
 				)
@@ -1387,22 +1241,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C474930")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "52312a52-5da3-4aa2-b3c2-b1b458a5cf6b")
+			(tstamps "fde72089-2448-4657-b132-34fbef8c102e")
 			(units
 				(unit
 					(name "A")
@@ -1420,12 +1270,10 @@
 		(comp
 			(ref "Q1")
 			(value "C20917")
+			(footprint "Package_TO_SOT_SMD:SOT-23")
 			(fields
 				(field
-					(name "MPN") "C20917")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23")
 				(field
 					(name "Datasheet")
 				)
@@ -1439,22 +1287,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C20917")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "444adaa0-e0e1-495d-aca8-5a25b2457f3b")
+			(tstamps "ca565b0f-f9c1-420c-b179-d6b47843c888")
 			(units
 				(unit
 					(name "A")
@@ -1475,12 +1319,10 @@
 		(comp
 			(ref "Q2")
 			(value "C20917")
+			(footprint "Package_TO_SOT_SMD:SOT-23")
 			(fields
 				(field
-					(name "MPN") "C20917")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23")
 				(field
 					(name "Datasheet")
 				)
@@ -1494,22 +1336,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C20917")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "acd99e2e-a678-47a3-a198-0d14c8fa1b6a")
+			(tstamps "e1ad2c54-3a8d-4eee-bbe1-71675dc967c0")
 			(units
 				(unit
 					(name "A")
@@ -1530,12 +1368,10 @@
 		(comp
 			(ref "Q3")
 			(value "C20917")
+			(footprint "Package_TO_SOT_SMD:SOT-23")
 			(fields
 				(field
-					(name "MPN") "C20917")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23")
 				(field
 					(name "Datasheet")
 				)
@@ -1549,22 +1385,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C20917")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e27ee8a7-df84-424a-8c9d-60bbebfa5ae4")
+			(tstamps "0d187b73-65e9-40b7-be68-287c43517f5c")
 			(units
 				(unit
 					(name "A")
@@ -1585,12 +1417,10 @@
 		(comp
 			(ref "R1")
 			(value "5.1kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C27834")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1604,22 +1434,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C27834")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ae203228-c575-41db-afe3-f8b91caad36f")
+			(tstamps "d2062cfa-2dfe-4498-ba85-b738c06f6902")
 			(units
 				(unit
 					(name "A")
@@ -1637,12 +1463,10 @@
 		(comp
 			(ref "R2")
 			(value "5.1kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C27834")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1656,22 +1480,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C27834")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ce02c804-6cff-4de5-8c72-d276caeed84e")
+			(tstamps "57ae3ec0-962f-4e4b-9ffe-1a8758d2141e")
 			(units
 				(unit
 					(name "A")
@@ -1689,12 +1509,10 @@
 		(comp
 			(ref "R3")
 			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17414")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1708,22 +1526,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17414")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2d7aaf75-8e41-47eb-9fde-1f5f1ffdaed2")
+			(tstamps "9853da48-5c39-47fa-91b6-2faed2fe28a1")
 			(units
 				(unit
 					(name "A")
@@ -1741,12 +1555,10 @@
 		(comp
 			(ref "R4")
 			(value "1kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17513")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1760,22 +1572,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17513")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b16d3b27-f894-4bbe-b14a-06ef2b859027")
+			(tstamps "0b85b00d-3233-423f-be02-855f8b033811")
 			(units
 				(unit
 					(name "A")
@@ -1793,12 +1601,10 @@
 		(comp
 			(ref "R10")
 			(value "100Ω")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17408")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1812,22 +1618,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17408")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2d08aea0-9f69-4fa3-b970-a7d8098597cf")
+			(tstamps "7e129674-d444-4be8-8851-e4eb05926e67")
 			(units
 				(unit
 					(name "A")
@@ -1845,12 +1647,10 @@
 		(comp
 			(ref "R11")
 			(value "100kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C149504")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1864,22 +1664,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C149504")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2e0eabd0-749f-4586-9e7c-d52e71d62a8c")
+			(tstamps "4edb772b-a119-4640-9863-77afa7fbdd7e")
 			(units
 				(unit
 					(name "A")
@@ -1897,12 +1693,10 @@
 		(comp
 			(ref "R12")
 			(value "100Ω")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17408")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1916,22 +1710,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17408")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c48459e2-1da8-4515-80c0-ba952e0bccf4")
+			(tstamps "68bee3e7-8c2b-4837-b54d-0a42a59d4c20")
 			(units
 				(unit
 					(name "A")
@@ -1949,12 +1739,10 @@
 		(comp
 			(ref "R13")
 			(value "100kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C149504")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1968,22 +1756,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C149504")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9b81a99f-41b4-4ea8-9297-fd6daad11d7b")
+			(tstamps "7302fc34-30c5-4787-89d2-cf3b6155e870")
 			(units
 				(unit
 					(name "A")
@@ -2001,12 +1785,10 @@
 		(comp
 			(ref "R14")
 			(value "100Ω")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17408")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2020,22 +1802,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17408")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "54d8b179-9653-4930-9bfc-a01bb359e004")
+			(tstamps "3fe492a5-5258-491f-86ed-8f20757b7b06")
 			(units
 				(unit
 					(name "A")
@@ -2053,12 +1831,10 @@
 		(comp
 			(ref "R15")
 			(value "100kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C149504")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2072,22 +1848,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C149504")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0fa6bf89-4581-44a7-8c5a-27389213f9b6")
+			(tstamps "4a33dc78-ada2-4572-9df2-fa779bbab7ee")
 			(units
 				(unit
 					(name "A")
@@ -2105,12 +1877,10 @@
 		(comp
 			(ref "R20")
 			(value "1kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17513")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2124,22 +1894,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17513")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "caf5a059-c627-401b-b7d2-74643113382c")
+			(tstamps "a6f484a3-922c-48a0-8e71-efe2e0965f38")
 			(units
 				(unit
 					(name "A")
@@ -2157,12 +1923,10 @@
 		(comp
 			(ref "R21")
 			(value "1kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17513")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2176,22 +1940,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17513")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "68b48979-81fe-4e70-b489-33986da100f1")
+			(tstamps "408af59b-0937-4d9c-be79-dfc1a029da57")
 			(units
 				(unit
 					(name "A")
@@ -2209,12 +1969,10 @@
 		(comp
 			(ref "R22")
 			(value "1kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17513")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2228,22 +1986,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17513")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "391a8bf6-1448-469e-9df6-4ae50299acec")
+			(tstamps "5656ebd3-fe7b-4934-9b16-523ebe97b5a8")
 			(units
 				(unit
 					(name "A")
@@ -2261,12 +2015,10 @@
 		(comp
 			(ref "R23")
 			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17414")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2280,31 +2032,27 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17414")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "669ee88f-1365-45c5-8b44-550bd8915926")
+			(tstamps "bbdb5068-7ce6-432d-b7b5-707d8a73f030")
 			(units
 				(unit
 					(name "A")
 					(pins
 						(pin
-							(num "1")
+							(num "2")
 						)
 						(pin
-							(num "2")
+							(num "1")
 						)
 					)
 				)
@@ -2313,12 +2061,10 @@
 		(comp
 			(ref "R24")
 			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17414")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2332,31 +2078,27 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17414")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b14ab889-c3ac-4d7d-bf21-e7fcbe297f55")
+			(tstamps "222232d8-472c-4b74-920a-e569b4c73330")
 			(units
 				(unit
 					(name "A")
 					(pins
 						(pin
-							(num "1")
+							(num "2")
 						)
 						(pin
-							(num "2")
+							(num "1")
 						)
 					)
 				)
@@ -2365,12 +2107,10 @@
 		(comp
 			(ref "R25")
 			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17414")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2384,31 +2124,27 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17414")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5c76fd32-e146-477b-b96f-466886401c19")
+			(tstamps "2e92812a-71e2-4e45-9911-7aa33f6f2f27")
 			(units
 				(unit
 					(name "A")
 					(pins
 						(pin
-							(num "1")
+							(num "2")
 						)
 						(pin
-							(num "2")
+							(num "1")
 						)
 					)
 				)
@@ -2417,12 +2153,10 @@
 		(comp
 			(ref "R26")
 			(value "2.7kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17530")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2436,22 +2170,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17530")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "033a78f8-dedb-4f6a-a8bf-0959e4c97bfb")
+			(tstamps "464e9228-2eec-42f9-a001-45f21dfb6be8")
 			(units
 				(unit
 					(name "A")
@@ -2469,12 +2199,10 @@
 		(comp
 			(ref "R27")
 			(value "2.7kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17530")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2488,22 +2216,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17530")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "32dc862a-930a-45d1-bf55-dc57f59de6d4")
+			(tstamps "748c5f99-0954-49ea-a257-5d4f71405823")
 			(units
 				(unit
 					(name "A")
@@ -2521,12 +2245,10 @@
 		(comp
 			(ref "R28")
 			(value "2.7kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17530")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2540,22 +2262,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17530")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "052549de-105d-4e90-88a7-2f929ea3be02")
+			(tstamps "7332ebeb-8fe4-4bec-ac50-77d267beefe9")
 			(units
 				(unit
 					(name "A")
@@ -2573,12 +2291,10 @@
 		(comp
 			(ref "R29")
 			(value "33kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17633")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2592,22 +2308,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17633")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e707766f-b1ac-49e5-9088-ddcc3e1ed5f5")
+			(tstamps "295c2948-30b5-4fbc-927c-36b805dbffb9")
 			(units
 				(unit
 					(name "A")
@@ -2625,12 +2337,10 @@
 		(comp
 			(ref "R30")
 			(value "33kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17633")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2644,22 +2354,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17633")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b23b7b70-e14c-4dbf-8d19-a7d193af28bc")
+			(tstamps "bb805043-aabe-4943-b45a-4b4efe29e654")
 			(units
 				(unit
 					(name "A")
@@ -2677,12 +2383,10 @@
 		(comp
 			(ref "R31")
 			(value "33kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17633")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2696,22 +2400,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17633")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "348f9284-b57b-442e-acf5-c3c819f34668")
+			(tstamps "21f1d007-769b-4404-af4f-29d6ec351087")
 			(units
 				(unit
 					(name "A")
@@ -2729,12 +2429,10 @@
 		(comp
 			(ref "R32")
 			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17414")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2748,22 +2446,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17414")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "01ae8d03-bece-4cb9-a9bf-a02778178421")
+			(tstamps "8f3bfec2-c568-4838-9420-da42d9b6a7fe")
 			(units
 				(unit
 					(name "A")
@@ -2781,12 +2475,10 @@
 		(comp
 			(ref "R33")
 			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17414")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2800,22 +2492,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17414")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e69cab95-5779-48a4-aa81-4f46652dcbfa")
+			(tstamps "7727bbc6-b844-4d18-aec7-dc062cb5a350")
 			(units
 				(unit
 					(name "A")
@@ -2833,12 +2521,10 @@
 		(comp
 			(ref "R34")
 			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17414")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2852,22 +2538,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17414")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "42db1c52-d089-488e-b180-a7e9bdb3fddf")
+			(tstamps "7caa01cd-bab2-4a34-8db9-6acf76445765")
 			(units
 				(unit
 					(name "A")
@@ -2885,12 +2567,10 @@
 		(comp
 			(ref "R40")
 			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17414")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2904,22 +2584,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17414")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d850c59d-3388-44fb-8cdf-c31f20610d65")
+			(tstamps "7b357a05-55f5-49dc-a923-d42a7fa84ca7")
 			(units
 				(unit
 					(name "A")
@@ -2937,12 +2613,10 @@
 		(comp
 			(ref "R41")
 			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17414")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -2956,22 +2630,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17414")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c89737b9-5f5b-4f4e-a978-0559652a0f70")
+			(tstamps "8b829a55-8518-4c00-8ce6-84fd7039d844")
 			(units
 				(unit
 					(name "A")
@@ -2989,12 +2659,10 @@
 		(comp
 			(ref "R42")
 			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17414")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3008,22 +2676,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17414")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d9ad0ea3-f295-42a4-9678-f0577157b221")
+			(tstamps "3e841ec7-1710-49e3-a628-c748301e4ca2")
 			(units
 				(unit
 					(name "A")
@@ -3041,12 +2705,10 @@
 		(comp
 			(ref "R43")
 			(value "1kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17513")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3060,22 +2722,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17513")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9f990baf-e498-4572-87fb-525479a03e3c")
+			(tstamps "eb24f9ff-47a6-44c4-97bc-2b25dda78303")
 			(units
 				(unit
 					(name "A")
@@ -3093,12 +2751,10 @@
 		(comp
 			(ref "R44")
 			(value "1kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17513")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3112,22 +2768,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17513")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "96c28cde-6c92-4cf5-ba43-98813760d3a4")
+			(tstamps "04addf0c-cbec-43d8-a60b-147e889cb622")
 			(units
 				(unit
 					(name "A")
@@ -3145,12 +2797,10 @@
 		(comp
 			(ref "R45")
 			(value "1kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17513")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3164,22 +2814,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17513")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ccf7d5cf-53a5-4982-8b5f-29ebdd1d5cbc")
+			(tstamps "161d395c-8de2-4ade-826f-bcbe8b1cdea0")
 			(units
 				(unit
 					(name "A")
@@ -3197,12 +2843,10 @@
 		(comp
 			(ref "R50")
 			(value "4.7kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17673")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3216,22 +2860,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17673")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0249c576-174c-43e6-9042-3148a5d72d2a")
+			(tstamps "ccdae900-31bf-40c9-8cf5-ecf17199ef86")
 			(units
 				(unit
 					(name "A")
@@ -3249,12 +2889,10 @@
 		(comp
 			(ref "R51")
 			(value "4.7kΩ")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C17673")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -3268,22 +2906,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C17673")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2c1cf66a-51fa-4d1d-995d-a2ad01277fd8")
+			(tstamps "b5586fab-6d62-405b-aa38-e69ca3da7b76")
 			(units
 				(unit
 					(name "A")
@@ -3301,12 +2935,10 @@
 		(comp
 			(ref "SW1")
 			(value "C318884")
+			(footprint "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A")
 			(fields
 				(field
-					(name "MPN") "C318884")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A")
 				(field
 					(name "Datasheet")
 				)
@@ -3320,22 +2952,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C318884")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6178d7cd-1a51-4314-a596-0a9ab2d7db80")
+			(tstamps "6a0feca9-1a9b-44a0-bfe7-21dd3d99093b")
 			(units
 				(unit
 					(name "A")
@@ -3353,12 +2981,10 @@
 		(comp
 			(ref "SW2")
 			(value "C318884")
+			(footprint "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A")
 			(fields
 				(field
-					(name "MPN") "C318884")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A")
 				(field
 					(name "Datasheet")
 				)
@@ -3372,22 +2998,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C318884")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d5ae72d0-b04b-4ecf-a104-94bab9ae0f21")
+			(tstamps "c946f4fa-da16-4ef0-902c-1152a7201cc0")
 			(units
 				(unit
 					(name "A")
@@ -3404,11 +3026,11 @@
 		)
 		(comp
 			(ref "TP1")
-			(value "simple_test_point")
+			(value "TP")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
 				(field
 					(name "Datasheet")
 				)
@@ -3427,13 +3049,16 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c52bea2c-0603-48ec-8455-43a4a5a32aff")
+			(tstamps "650d7d41-128d-40ac-801f-47b933478d9e")
 			(units
 				(unit
 					(name "A")
@@ -3447,11 +3072,11 @@
 		)
 		(comp
 			(ref "TP2")
-			(value "simple_test_point")
+			(value "TP")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
 				(field
 					(name "Datasheet")
 				)
@@ -3470,13 +3095,16 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2a029265-0399-4296-af1a-42c65d7a7ead")
+			(tstamps "90e32646-fcb4-46ff-b521-9a5b683117bc")
 			(units
 				(unit
 					(name "A")
@@ -3490,11 +3118,11 @@
 		)
 		(comp
 			(ref "TP3")
-			(value "simple_test_point")
+			(value "TP")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
 				(field
 					(name "Datasheet")
 				)
@@ -3513,13 +3141,16 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3b832636-0518-4064-8607-1a76f6b1cda2")
+			(tstamps "c375c108-48f4-4de0-8059-882c92ce7acf")
 			(units
 				(unit
 					(name "A")
@@ -3533,11 +3164,11 @@
 		)
 		(comp
 			(ref "TP4")
-			(value "simple_test_point")
+			(value "TP")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
 				(field
 					(name "Datasheet")
 				)
@@ -3556,13 +3187,16 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ca2968a4-5638-46aa-be20-d5cb245c1db9")
+			(tstamps "e940dea5-dae2-4cfe-9ebc-b4b0c25e2df7")
 			(units
 				(unit
 					(name "A")
@@ -3576,11 +3210,11 @@
 		)
 		(comp
 			(ref "TP5")
-			(value "simple_test_point")
+			(value "TP")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
 				(field
 					(name "Datasheet")
 				)
@@ -3599,13 +3233,16 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "021c3b57-a884-43b2-8470-9efc1a7c0873")
+			(tstamps "8f775d8d-a27d-4e5a-8af7-255664730aa9")
 			(units
 				(unit
 					(name "A")
@@ -3619,11 +3256,11 @@
 		)
 		(comp
 			(ref "TP6")
-			(value "simple_test_point")
+			(value "TP")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
 				(field
 					(name "Datasheet")
 				)
@@ -3642,13 +3279,16 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7209c16a-0235-480e-8396-3593ed6eb161")
+			(tstamps "a9e6e283-7450-4518-8169-cdb243824e5d")
 			(units
 				(unit
 					(name "A")
@@ -3663,12 +3303,10 @@
 		(comp
 			(ref "U1")
 			(value "C2913204")
+			(footprint "esp32_laser_timing:ESP32-S3-WROOM-1")
 			(fields
 				(field
-					(name "MPN") "C2913204")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "esp32_laser_timing:ESP32-S3-WROOM-1")
 				(field
 					(name "Datasheet")
 				)
@@ -3682,22 +3320,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C2913204")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6659360c-9f58-431a-91c0-9733c643eb6a")
+			(tstamps "283fd001-e008-4632-b2ff-6d48090b8b08")
 			(units
 				(unit
 					(name "A")
@@ -3766,64 +3400,64 @@
 							(num "21")
 						)
 						(pin
-							(num "22")
-						)
-						(pin
-							(num "23")
-						)
-						(pin
-							(num "24")
-						)
-						(pin
-							(num "25")
-						)
-						(pin
-							(num "26")
-						)
-						(pin
-							(num "27")
-						)
-						(pin
-							(num "28")
-						)
-						(pin
-							(num "29")
-						)
-						(pin
-							(num "30")
-						)
-						(pin
-							(num "31")
-						)
-						(pin
-							(num "32")
-						)
-						(pin
-							(num "33")
-						)
-						(pin
-							(num "34")
-						)
-						(pin
-							(num "35")
-						)
-						(pin
-							(num "36")
-						)
-						(pin
-							(num "37")
-						)
-						(pin
-							(num "38")
-						)
-						(pin
-							(num "39")
+							(num "41")
 						)
 						(pin
 							(num "40")
 						)
 						(pin
-							(num "41")
+							(num "39")
+						)
+						(pin
+							(num "38")
+						)
+						(pin
+							(num "37")
+						)
+						(pin
+							(num "36")
+						)
+						(pin
+							(num "35")
+						)
+						(pin
+							(num "34")
+						)
+						(pin
+							(num "33")
+						)
+						(pin
+							(num "32")
+						)
+						(pin
+							(num "31")
+						)
+						(pin
+							(num "30")
+						)
+						(pin
+							(num "29")
+						)
+						(pin
+							(num "28")
+						)
+						(pin
+							(num "27")
+						)
+						(pin
+							(num "26")
+						)
+						(pin
+							(num "25")
+						)
+						(pin
+							(num "24")
+						)
+						(pin
+							(num "23")
+						)
+						(pin
+							(num "22")
 						)
 					)
 				)
@@ -3832,12 +3466,10 @@
 		(comp
 			(ref "U2")
 			(value "C6186")
+			(footprint "Package_TO_SOT_SMD:SOT-223-3_TabPin2")
 			(fields
 				(field
-					(name "MPN") "C6186")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-223-3_TabPin2")
 				(field
 					(name "Datasheet")
 				)
@@ -3851,22 +3483,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C6186")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5efb0b2d-b6eb-4dab-b1be-a0ed1ca84b81")
+			(tstamps "bc9874f7-37dd-48c1-a9e8-d5602c0aff57")
 			(units
 				(unit
 					(name "A")
@@ -3878,10 +3506,10 @@
 							(num "2")
 						)
 						(pin
-							(num "3")
+							(num "4")
 						)
 						(pin
-							(num "4")
+							(num "3")
 						)
 					)
 				)
@@ -3890,12 +3518,10 @@
 		(comp
 			(ref "U3")
 			(value "C71036")
+			(footprint "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm")
 			(fields
 				(field
-					(name "MPN") "C71036")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm")
 				(field
 					(name "Datasheet")
 				)
@@ -3909,22 +3535,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C71036")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
+				(value "../circuits/projects/esp32-laser-timing/tscircuit/kicad/esp32_laser_timing.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "129700ac-606a-45ac-994a-611268ca14de")
+			(tstamps "de13dde0-6411-4435-bc56-474d51a074ca")
 			(units
 				(unit
 					(name "A")
@@ -3951,25 +3573,25 @@
 							(num "7")
 						)
 						(pin
-							(num "8")
-						)
-						(pin
-							(num "9")
-						)
-						(pin
-							(num "10")
-						)
-						(pin
-							(num "11")
-						)
-						(pin
-							(num "12")
+							(num "14")
 						)
 						(pin
 							(num "13")
 						)
 						(pin
-							(num "14")
+							(num "12")
+						)
+						(pin
+							(num "11")
+						)
+						(pin
+							(num "10")
+						)
+						(pin
+							(num "9")
+						)
+						(pin
+							(num "8")
 						)
 					)
 				)
@@ -4000,12 +3622,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4031,12 +3653,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4062,12 +3684,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4093,12 +3715,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4124,12 +3746,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4155,12 +3777,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4186,12 +3808,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4217,12 +3839,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4248,12 +3870,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4279,12 +3901,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4310,12 +3932,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4341,12 +3963,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4423,12 +4045,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4454,87 +4076,87 @@
 			(pins
 				(pin
 					(num "A1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "A4")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "A5")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "A6")
-					(name "pin4")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "A7")
-					(name "pin5")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "A8")
-					(name "pin6")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "A9")
-					(name "pin7")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "A12")
-					(name "pin8")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "B1")
-					(name "pin9")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "B4")
-					(name "pin10")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "B5")
-					(name "pin11")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "B6")
-					(name "pin12")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "B7")
-					(name "pin13")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "B8")
-					(name "pin14")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "B9")
-					(name "pin15")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "B12")
-					(name "pin16")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "SH")
-					(name "pin17")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4560,12 +4182,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4591,12 +4213,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4622,12 +4244,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4653,22 +4275,22 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "4")
-					(name "pin4")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4694,12 +4316,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4725,12 +4347,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4756,12 +4378,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4787,12 +4409,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4818,12 +4440,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4849,12 +4471,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -4988,12 +4610,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5019,12 +4641,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5050,12 +4672,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5081,12 +4703,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5112,12 +4734,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5143,12 +4765,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5174,12 +4796,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5205,12 +4827,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5236,12 +4858,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5267,12 +4889,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5298,12 +4920,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5329,12 +4951,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5360,12 +4982,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5391,12 +5013,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5422,12 +5044,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5453,12 +5075,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5484,12 +5106,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5515,12 +5137,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5546,12 +5168,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5577,12 +5199,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5608,12 +5230,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5639,12 +5261,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5670,12 +5292,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5701,12 +5323,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5732,12 +5354,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5763,12 +5385,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5794,12 +5416,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5825,12 +5447,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5856,12 +5478,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5887,12 +5509,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5918,12 +5540,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5949,12 +5571,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -5980,12 +5602,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -6011,12 +5633,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -6042,12 +5664,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -6073,7 +5695,7 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -6099,7 +5721,7 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -6125,7 +5747,7 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -6151,7 +5773,7 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -6177,7 +5799,7 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -6203,7 +5825,7 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -6571,12 +6193,227 @@
 	(nets
 		(net
 			(code "1")
+			(name "3V3")
+			(class "Default")
+			(node
+				(ref "C3")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C4")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C5")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C7")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R23")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R24")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R25")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R3")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R32")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R33")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R34")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R4")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R40")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R41")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R42")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R50")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R51")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP5")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "2")
+				(pinfunction "V3V3_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U2")
+				(pin "2")
+				(pinfunction "VOUT_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U2")
+				(pin "4")
+				(pinfunction "TAB_4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "2")
+			(name "5V")
+			(class "Default")
+			(node
+				(ref "C11")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C12")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C6")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "D1")
+				(pin "5")
+				(pinfunction "VBUS_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J1")
+				(pin "A4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J1")
+				(pin "A9")
+				(pintype "passive")
+			)
+			(node
+				(ref "J1")
+				(pin "B4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J1")
+				(pin "B9")
+				(pintype "passive")
+			)
+			(node
+				(ref "J4")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J5")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J6")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J7")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J8")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J9")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP4")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U2")
+				(pin "3")
+				(pinfunction "VIN_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U3")
+				(pin "3")
+				(pinfunction "VCC_3")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "3")
 			(name "BOOT")
 			(class "Default")
 			(node
 				(ref "SW1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -6587,13 +6424,12 @@
 			)
 		)
 		(net
-			(code "2")
+			(code "4")
 			(name "BTN1_G")
 			(class "Default")
 			(node
 				(ref "R43")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
@@ -6604,42 +6440,37 @@
 			)
 		)
 		(net
-			(code "3")
+			(code "5")
 			(name "BTN1_N")
 			(class "Default")
 			(node
 				(ref "C8")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "J10")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "R40")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R43")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 		)
 		(net
-			(code "4")
+			(code "6")
 			(name "BTN2_G")
 			(class "Default")
 			(node
 				(ref "R44")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
@@ -6650,42 +6481,37 @@
 			)
 		)
 		(net
-			(code "5")
+			(code "7")
 			(name "BTN2_N")
 			(class "Default")
 			(node
 				(ref "C9")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "J11")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "R41")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R44")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 		)
 		(net
-			(code "6")
+			(code "8")
 			(name "BTN3_G")
 			(class "Default")
 			(node
 				(ref "R45")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
@@ -6696,88 +6522,77 @@
 			)
 		)
 		(net
-			(code "7")
+			(code "9")
 			(name "BTN3_N")
 			(class "Default")
 			(node
 				(ref "C10")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "J12")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "R42")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R45")
 				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "8")
-			(name "CC1")
-			(class "Default")
-			(node
-				(ref "J1")
-				(pin "A5")
-				(pinfunction "pin3_A5")
-				(pintype "passive")
-			)
-			(node
-				(ref "R1")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "9")
-			(name "CC2")
-			(class "Default")
-			(node
-				(ref "J1")
-				(pin "B5")
-				(pinfunction "pin11_B5")
-				(pintype "passive")
-			)
-			(node
-				(ref "R2")
-				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 		)
 		(net
 			(code "10")
+			(name "CC1")
+			(class "Default")
+			(node
+				(ref "J1")
+				(pin "A5")
+				(pintype "passive")
+			)
+			(node
+				(ref "R1")
+				(pin "1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "11")
+			(name "CC2")
+			(class "Default")
+			(node
+				(ref "J1")
+				(pin "B5")
+				(pintype "passive")
+			)
+			(node
+				(ref "R2")
+				(pin "1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "12")
 			(name "COMP1")
 			(class "Default")
 			(node
 				(ref "R29")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R32")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "TP1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -6794,25 +6609,22 @@
 			)
 		)
 		(net
-			(code "11")
+			(code "13")
 			(name "COMP2")
 			(class "Default")
 			(node
 				(ref "R30")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R33")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "TP2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -6829,25 +6641,22 @@
 			)
 		)
 		(net
-			(code "12")
+			(code "14")
 			(name "COMP3")
 			(class "Default")
 			(node
 				(ref "R31")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R34")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "TP3")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -6864,25 +6673,22 @@
 			)
 		)
 		(net
-			(code "13")
+			(code "15")
 			(name "EN")
 			(class "Default")
 			(node
 				(ref "C1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "R3")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "SW2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -6893,7 +6699,7 @@
 			)
 		)
 		(net
-			(code "14")
+			(code "16")
 			(name "GATE1")
 			(class "Default")
 			(node
@@ -6905,18 +6711,16 @@
 			(node
 				(ref "R10")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R11")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 		)
 		(net
-			(code "15")
+			(code "17")
 			(name "GATE2")
 			(class "Default")
 			(node
@@ -6928,18 +6732,16 @@
 			(node
 				(ref "R12")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R13")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 		)
 		(net
-			(code "16")
+			(code "18")
 			(name "GATE3")
 			(class "Default")
 			(node
@@ -6951,90 +6753,76 @@
 			(node
 				(ref "R14")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R15")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 		)
 		(net
-			(code "17")
+			(code "19")
 			(name "GND")
 			(class "Default")
 			(node
 				(ref "C1")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "C10")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "C11")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "C12")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "C2")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "C3")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "C4")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "C5")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "C6")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "C7")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "C8")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "C9")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
@@ -7046,61 +6834,51 @@
 			(node
 				(ref "D2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "J1")
 				(pin "A1")
-				(pinfunction "pin1_A1")
 				(pintype "passive")
 			)
 			(node
 				(ref "J1")
 				(pin "A12")
-				(pinfunction "pin8_A12")
 				(pintype "passive")
 			)
 			(node
 				(ref "J1")
 				(pin "B1")
-				(pinfunction "pin9_B1")
 				(pintype "passive")
 			)
 			(node
 				(ref "J1")
 				(pin "B12")
-				(pinfunction "pin16_B12")
 				(pintype "passive")
 			)
 			(node
 				(ref "J1")
 				(pin "SH")
-				(pinfunction "pin17_SH")
 				(pintype "passive")
 			)
 			(node
 				(ref "J10")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "J11")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "J12")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "J2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -7124,85 +6902,71 @@
 			(node
 				(ref "R1")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R11")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R13")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R15")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R2")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R20")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R21")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R22")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R26")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R27")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R28")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "SW1")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "SW2")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "TP6")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -7243,13 +7007,12 @@
 			)
 		)
 		(net
-			(code "18")
+			(code "20")
 			(name "LDRV1")
 			(class "Default")
 			(node
 				(ref "R10")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -7260,13 +7023,12 @@
 			)
 		)
 		(net
-			(code "19")
+			(code "21")
 			(name "LDRV2")
 			(class "Default")
 			(node
 				(ref "R12")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -7277,13 +7039,12 @@
 			)
 		)
 		(net
-			(code "20")
+			(code "22")
 			(name "LDRV3")
 			(class "Default")
 			(node
 				(ref "R14")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -7294,30 +7055,27 @@
 			)
 		)
 		(net
-			(code "21")
+			(code "23")
 			(name "LED_A")
 			(class "Default")
 			(node
 				(ref "D2")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R4")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 		)
 		(net
-			(code "22")
+			(code "24")
 			(name "LSW1")
 			(class "Default")
 			(node
 				(ref "J4")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
@@ -7328,13 +7086,12 @@
 			)
 		)
 		(net
-			(code "23")
+			(code "25")
 			(name "LSW2")
 			(class "Default")
 			(node
 				(ref "J5")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
@@ -7345,13 +7102,12 @@
 			)
 		)
 		(net
-			(code "24")
+			(code "26")
 			(name "LSW3")
 			(class "Default")
 			(node
 				(ref "J6")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
@@ -7362,275 +7118,22 @@
 			)
 		)
 		(net
-			(code "25")
-			(name "N3V3")
-			(class "Default")
-			(node
-				(ref "C3")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "C4")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "C5")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "C7")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "J2")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "R23")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R24")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R25")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R3")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R32")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R33")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R34")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R4")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R40")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R41")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R42")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R50")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "R51")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "TP5")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "U1")
-				(pin "2")
-				(pinfunction "V3V3_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "U2")
-				(pin "2")
-				(pinfunction "VOUT_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "U2")
-				(pin "4")
-				(pinfunction "TAB_4")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "26")
-			(name "N5V")
-			(class "Default")
-			(node
-				(ref "C11")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "C12")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "C2")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "C6")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "D1")
-				(pin "5")
-				(pinfunction "VBUS_5")
-				(pintype "passive")
-			)
-			(node
-				(ref "J1")
-				(pin "A4")
-				(pinfunction "pin2_A4")
-				(pintype "passive")
-			)
-			(node
-				(ref "J1")
-				(pin "A9")
-				(pinfunction "pin7_A9")
-				(pintype "passive")
-			)
-			(node
-				(ref "J1")
-				(pin "B4")
-				(pinfunction "pin10_B4")
-				(pintype "passive")
-			)
-			(node
-				(ref "J1")
-				(pin "B9")
-				(pinfunction "pin15_B9")
-				(pintype "passive")
-			)
-			(node
-				(ref "J4")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "J5")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "J6")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "J7")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "J8")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "J9")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "TP4")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "U2")
-				(pin "3")
-				(pinfunction "VIN_3")
-				(pintype "passive")
-			)
-			(node
-				(ref "U3")
-				(pin "3")
-				(pinfunction "VCC_3")
-				(pintype "passive")
-			)
-		)
-		(net
 			(code "27")
 			(name "PD1")
 			(class "Default")
 			(node
 				(ref "J7")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R20")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "R29")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -7647,19 +7150,16 @@
 			(node
 				(ref "J8")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R21")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "R30")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -7676,19 +7176,16 @@
 			(node
 				(ref "J9")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R22")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "R31")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -7705,13 +7202,11 @@
 			(node
 				(ref "J2")
 				(pin "3")
-				(pinfunction "pin3_3")
 				(pintype "passive")
 			)
 			(node
 				(ref "R51")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
@@ -7728,13 +7223,11 @@
 			(node
 				(ref "J2")
 				(pin "4")
-				(pinfunction "pin4_4")
 				(pintype "passive")
 			)
 			(node
 				(ref "R50")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
@@ -7763,13 +7256,11 @@
 			(node
 				(ref "J1")
 				(pin "A7")
-				(pinfunction "pin5_A7")
 				(pintype "passive")
 			)
 			(node
 				(ref "J1")
 				(pin "B7")
-				(pinfunction "pin13_B7")
 				(pintype "passive")
 			)
 			(node
@@ -7798,13 +7289,11 @@
 			(node
 				(ref "J1")
 				(pin "A6")
-				(pinfunction "pin4_A6")
 				(pintype "passive")
 			)
 			(node
 				(ref "J1")
 				(pin "B6")
-				(pinfunction "pin12_B6")
 				(pintype "passive")
 			)
 			(node
@@ -7821,13 +7310,11 @@
 			(node
 				(ref "R23")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R26")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -7844,13 +7331,11 @@
 			(node
 				(ref "R24")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R27")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -7867,13 +7352,11 @@
 			(node
 				(ref "R25")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R28")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -7891,23 +7374,21 @@
 		)
 		(net
 			(code "37")
-			(name "unconnected-(J1-pin6-PadA8)")
+			(name "unconnected-(J1-PadA8)")
 			(class "Default")
 			(node
 				(ref "J1")
 				(pin "A8")
-				(pinfunction "pin6_A8")
 				(pintype "passive+no_connect")
 			)
 		)
 		(net
 			(code "38")
-			(name "unconnected-(J1-pin14-PadB8)")
+			(name "unconnected-(J1-PadB8)")
 			(class "Default")
 			(node
 				(ref "J1")
 				(pin "B8")
-				(pinfunction "pin14_B8")
 				(pintype "passive+no_connect")
 			)
 		)

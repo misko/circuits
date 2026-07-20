@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/home/mouse9911/gits/circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
-		(date "2026-07-19T23:21:11")
+		(date "2026-07-20T10:10:50")
 		(tool "Eeschema 10.0.4-10.0.4~ubuntu24.04.1")
 		(sheet
 			(number "1")
@@ -12,7 +12,7 @@
 				(title "cook_loadcell")
 				(company)
 				(rev "dev")
-				(date "2026-07-19")
+				(date "2026-07-20")
 				(source "cook_loadcell.kicad_sch")
 				(comment
 					(number "1")
@@ -57,12 +57,10 @@
 		(comp
 			(ref "C1")
 			(value "10uF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C15850")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -76,22 +74,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C15850")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "65bcb839-f3ed-4781-abe6-7965518d6542")
+			(tstamps "99e8f484-11db-461c-893c-293498ef9d3d")
 			(units
 				(unit
 					(name "A")
@@ -109,12 +103,10 @@
 		(comp
 			(ref "C2")
 			(value "100nF")
+			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C14663")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -128,22 +120,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C14663")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b68acacd-0d92-4b96-bef6-ae2921e97936")
+			(tstamps "d5fe7606-637f-4fec-891a-6dde46e65413")
 			(units
 				(unit
 					(name "A")
@@ -161,12 +149,10 @@
 		(comp
 			(ref "C3")
 			(value "100nF")
+			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C14663")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -180,22 +166,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C14663")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6e41031d-d180-4fdd-9d00-d523781ed0e9")
+			(tstamps "b10df5b9-97db-4ccf-a519-73cdc98795bd")
 			(units
 				(unit
 					(name "A")
@@ -213,12 +195,10 @@
 		(comp
 			(ref "C4")
 			(value "10uF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C15850")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -232,22 +212,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C15850")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "049bfdab-9f47-4c0e-8f17-a6d7aa9976f7")
+			(tstamps "8b6e7613-012a-45cc-b882-4bdbf148a064")
 			(units
 				(unit
 					(name "A")
@@ -265,12 +241,10 @@
 		(comp
 			(ref "C5")
 			(value "100nF")
+			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C14663")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -284,22 +258,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C14663")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b7782278-fc23-4667-9de0-588269d6d15f")
+			(tstamps "838458a3-9ed3-4ea5-87cd-227c176ef21d")
 			(units
 				(unit
 					(name "A")
@@ -317,12 +287,10 @@
 		(comp
 			(ref "C6")
 			(value "10uF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "MPN") "C15850")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -336,22 +304,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C15850")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1829b68c-ee2a-48c1-855a-7413313519ca")
+			(tstamps "c46aaedd-798d-4f3a-9335-840048f6097f")
 			(units
 				(unit
 					(name "A")
@@ -369,12 +333,10 @@
 		(comp
 			(ref "C7")
 			(value "100nF")
+			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C14663")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -388,22 +350,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C14663")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a3b34ac6-16e1-40b6-aeb3-b802654ce2a7")
+			(tstamps "381ea823-0450-446d-92fe-daebab19a866")
 			(units
 				(unit
 					(name "A")
@@ -421,12 +379,10 @@
 		(comp
 			(ref "D1")
 			(value "C5158048")
+			(footprint "Diode_SMD:D_SOD-323")
 			(fields
 				(field
-					(name "MPN") "C5158048")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Diode_SMD:D_SOD-323")
 				(field
 					(name "Datasheet")
 				)
@@ -440,22 +396,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C5158048")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d0985b5b-e9c2-41a0-ba47-27f8b12ee17b")
+			(tstamps "3f8c1679-3cdf-46fa-beae-48f32b5fe5f2")
 			(units
 				(unit
 					(name "A")
@@ -473,12 +425,10 @@
 		(comp
 			(ref "D2")
 			(value "C5158048")
+			(footprint "Diode_SMD:D_SOD-323")
 			(fields
 				(field
-					(name "MPN") "C5158048")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Diode_SMD:D_SOD-323")
 				(field
 					(name "Datasheet")
 				)
@@ -492,22 +442,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C5158048")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fe13ed0c-deac-4046-997b-887d85377574")
+			(tstamps "8d0967c8-1491-4d63-bac1-1e953990b2db")
 			(units
 				(unit
 					(name "A")
@@ -525,12 +471,10 @@
 		(comp
 			(ref "J1")
 			(value "C144394")
+			(footprint "Connector_JST:JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical")
 			(fields
 				(field
-					(name "MPN") "C144394")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Connector_JST:JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical")
 				(field
 					(name "Datasheet")
 				)
@@ -544,22 +488,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C144394")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e4b95f9d-4ec7-4933-9a91-099726c8b1ac")
+			(tstamps "71dd78a6-d24e-4b26-9efa-f2468c9762ee")
 			(units
 				(unit
 					(name "A")
@@ -580,12 +520,10 @@
 		(comp
 			(ref "J2")
 			(value "C144394")
+			(footprint "Connector_JST:JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical")
 			(fields
 				(field
-					(name "MPN") "C144394")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Connector_JST:JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical")
 				(field
 					(name "Datasheet")
 				)
@@ -599,22 +537,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C144394")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f33c53ac-667c-40c9-8799-86e4f3b6542a")
+			(tstamps "04081e0a-7d79-487f-8fc9-15b35d6e70f1")
 			(units
 				(unit
 					(name "A")
@@ -635,12 +569,10 @@
 		(comp
 			(ref "J3")
 			(value "C144394")
+			(footprint "Connector_JST:JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical")
 			(fields
 				(field
-					(name "MPN") "C144394")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Connector_JST:JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical")
 				(field
 					(name "Datasheet")
 				)
@@ -654,22 +586,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C144394")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7e29186c-4731-453a-8ed0-04ed2b90fb39")
+			(tstamps "c53d386d-1e61-4564-a81e-49262c782834")
 			(units
 				(unit
 					(name "A")
@@ -690,12 +618,10 @@
 		(comp
 			(ref "J4")
 			(value "C144394")
+			(footprint "Connector_JST:JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical")
 			(fields
 				(field
-					(name "MPN") "C144394")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Connector_JST:JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical")
 				(field
 					(name "Datasheet")
 				)
@@ -709,22 +635,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C144394")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "511342bd-93ea-41b4-be24-ba7786fd793e")
+			(tstamps "47dd601c-298e-4b17-996d-4ad922d1f66e")
 			(units
 				(unit
 					(name "A")
@@ -745,12 +667,10 @@
 		(comp
 			(ref "J5")
 			(value "C157991")
+			(footprint "Connector_JST:JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical")
 			(fields
 				(field
-					(name "MPN") "C157991")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Connector_JST:JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical")
 				(field
 					(name "Datasheet")
 				)
@@ -764,22 +684,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C157991")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "851a54a3-429d-459f-90ce-4b7d51268454")
+			(tstamps "a439cd50-31a9-401d-b3bb-e5caa21deeb7")
 			(units
 				(unit
 					(name "A")
@@ -794,10 +710,10 @@
 							(num "3")
 						)
 						(pin
-							(num "4")
+							(num "5")
 						)
 						(pin
-							(num "5")
+							(num "4")
 						)
 					)
 				)
@@ -806,12 +722,10 @@
 		(comp
 			(ref "J6")
 			(value "C157991")
+			(footprint "Connector_JST:JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical")
 			(fields
 				(field
-					(name "MPN") "C157991")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Connector_JST:JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical")
 				(field
 					(name "Datasheet")
 				)
@@ -825,22 +739,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C157991")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "506bf5e6-04b5-459a-8617-ca7a6243b3d3")
+			(tstamps "cb56316f-3a5e-4ee7-977d-23744e525a6f")
 			(units
 				(unit
 					(name "A")
@@ -855,10 +765,10 @@
 							(num "3")
 						)
 						(pin
-							(num "4")
+							(num "5")
 						)
 						(pin
-							(num "5")
+							(num "4")
 						)
 					)
 				)
@@ -867,10 +777,10 @@
 		(comp
 			(ref "JP1")
 			(value "simple_chip")
+			(footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical")
 				(field
 					(name "Datasheet")
 				)
@@ -889,13 +799,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "27823f38-9fdb-4d5b-b9f3-57c5795253e5")
+			(tstamps "7fc64ea0-ae3f-4a72-bc54-796517618d6d")
 			(units
 				(unit
 					(name "A")
@@ -916,12 +826,10 @@
 		(comp
 			(ref "Q1")
 			(value "C8542")
+			(footprint "Package_TO_SOT_SMD:SOT-23")
 			(fields
 				(field
-					(name "MPN") "C8542")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23")
 				(field
 					(name "Datasheet")
 				)
@@ -935,22 +843,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C8542")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4a459293-73bd-4d74-86a2-b804d638adcf")
+			(tstamps "9c5222bf-4bae-4273-a140-373dcdd11ef6")
 			(units
 				(unit
 					(name "A")
@@ -971,12 +875,10 @@
 		(comp
 			(ref "R1")
 			(value "20kΩ")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C4184")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -990,22 +892,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C4184")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8cac234e-f141-4bb9-a6b8-90b09f4bd7a1")
+			(tstamps "b825a8c4-d301-4b24-9cd2-1d81df2c79e2")
 			(units
 				(unit
 					(name "A")
@@ -1023,12 +921,10 @@
 		(comp
 			(ref "R2")
 			(value "8.2kΩ")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C25981")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1042,22 +938,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C25981")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bb8ae599-258a-4c80-a308-2c83296c3777")
+			(tstamps "84bf049e-fe60-4fb1-8a5a-0cb4182a7b85")
 			(units
 				(unit
 					(name "A")
@@ -1075,12 +967,10 @@
 		(comp
 			(ref "R7")
 			(value "100Ω")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "MPN") "C22775")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -1094,22 +984,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C22775")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f1c0ad12-2cc4-4565-93a4-9f15ed59cc25")
+			(tstamps "e3944c0f-9b34-492c-b593-67ed83049365")
 			(units
 				(unit
 					(name "A")
@@ -1127,10 +1013,10 @@
 		(comp
 			(ref "SJ1")
 			(value "simple_chip")
+			(footprint "Jumper:SolderJumper-2_P1.3mm_Open_Pad1.0x1.5mm")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Jumper:SolderJumper-2_P1.3mm_Open_Pad1.0x1.5mm")
 				(field
 					(name "Datasheet")
 				)
@@ -1149,13 +1035,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7d6d0bf8-8813-428e-adab-27be389c58e7")
+			(tstamps "e6c09337-d0b5-4d50-a881-1a190f88a4ee")
 			(units
 				(unit
 					(name "A")
@@ -1172,11 +1058,11 @@
 		)
 		(comp
 			(ref "TP1")
-			(value "simple_test_point")
+			(value "TP")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
 				(field
 					(name "Datasheet")
 				)
@@ -1195,13 +1081,16 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "638d28af-1d15-4742-b17a-f4e29d9cb173")
+			(tstamps "45fc159d-7387-4779-b1b0-0d436b218f9c")
 			(units
 				(unit
 					(name "A")
@@ -1215,11 +1104,11 @@
 		)
 		(comp
 			(ref "TP2")
-			(value "simple_test_point")
+			(value "TP")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
 				(field
 					(name "Datasheet")
 				)
@@ -1238,13 +1127,16 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6c7b1a4a-0c6e-4636-b8dd-4e6e9ef835d3")
+			(tstamps "514107dd-4dd3-426d-a5bc-3f206a4ee389")
 			(units
 				(unit
 					(name "A")
@@ -1258,11 +1150,11 @@
 		)
 		(comp
 			(ref "TP3")
-			(value "simple_test_point")
+			(value "TP")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
 				(field
 					(name "Datasheet")
 				)
@@ -1281,13 +1173,16 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2b0776bd-1ada-4c6d-b597-b7e766290cd2")
+			(tstamps "43b484d1-8d19-4c26-97cb-a85180ed5558")
 			(units
 				(unit
 					(name "A")
@@ -1301,11 +1196,11 @@
 		)
 		(comp
 			(ref "TP4")
-			(value "simple_test_point")
+			(value "TP")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
 				(field
 					(name "Datasheet")
 				)
@@ -1324,13 +1219,16 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f967ca31-cc82-4756-b2b3-e334773ea75a")
+			(tstamps "6b69ca15-ee74-4933-8ca6-8220b2e33ff6")
 			(units
 				(unit
 					(name "A")
@@ -1344,11 +1242,11 @@
 		)
 		(comp
 			(ref "TP5")
-			(value "simple_test_point")
+			(value "TP")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
 				(field
 					(name "Datasheet")
 				)
@@ -1367,13 +1265,16 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e91b17c3-867b-408a-958b-dbe83d532830")
+			(tstamps "75c91199-a572-4882-8480-47bd927b8c8e")
 			(units
 				(unit
 					(name "A")
@@ -1387,11 +1288,11 @@
 		)
 		(comp
 			(ref "TP6")
-			(value "simple_test_point")
+			(value "TP")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
 				(field
 					(name "Datasheet")
 				)
@@ -1410,13 +1311,16 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bff547a1-05b3-49d9-92a6-68d3fec01472")
+			(tstamps "5bfa0bb5-cfa1-454b-a4d4-b595db130383")
 			(units
 				(unit
 					(name "A")
@@ -1430,11 +1334,11 @@
 		)
 		(comp
 			(ref "TP7")
-			(value "simple_test_point")
+			(value "TP")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
 			(fields
 				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
 				(field
 					(name "Datasheet")
 				)
@@ -1453,13 +1357,16 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6da26cd4-df63-4386-8382-93c577167943")
+			(tstamps "bedebf30-b861-40a2-8749-34a8f0246d3b")
 			(units
 				(unit
 					(name "A")
@@ -1474,12 +1381,10 @@
 		(comp
 			(ref "U1")
 			(value "C43656")
+			(footprint "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm")
 			(fields
 				(field
-					(name "MPN") "C43656")
-				(field
-					(name "Footprint")
-				)
+					(name "Footprint") "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm")
 				(field
 					(name "Datasheet")
 				)
@@ -1493,22 +1398,18 @@
 				(description "")
 			)
 			(property
-				(name "MPN")
-				(value "C43656")
-			)
-			(property
 				(name "Sheetname")
 				(value "Root")
 			)
 			(property
 				(name "Sheetfile")
-				(value "projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
+				(value "../circuits/projects/cook-loadcell/tscircuit/kicad/cook_loadcell.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "53f4bbaf-5553-4113-803d-a9c9490fa223")
+			(tstamps "a1fb0e7d-1571-422e-9254-b6b1d814b943")
 			(units
 				(unit
 					(name "A")
@@ -1538,28 +1439,28 @@
 							(num "8")
 						)
 						(pin
-							(num "9")
-						)
-						(pin
-							(num "10")
-						)
-						(pin
-							(num "11")
-						)
-						(pin
-							(num "12")
-						)
-						(pin
-							(num "13")
-						)
-						(pin
-							(num "14")
+							(num "16")
 						)
 						(pin
 							(num "15")
 						)
 						(pin
-							(num "16")
+							(num "14")
+						)
+						(pin
+							(num "13")
+						)
+						(pin
+							(num "12")
+						)
+						(pin
+							(num "11")
+						)
+						(pin
+							(num "10")
+						)
+						(pin
+							(num "9")
 						)
 					)
 				)
@@ -1590,12 +1491,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -1621,12 +1522,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -1652,12 +1553,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -1683,12 +1584,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -1714,12 +1615,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -1745,12 +1646,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -1776,12 +1677,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -1807,12 +1708,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -1838,12 +1739,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -1869,17 +1770,17 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -1905,17 +1806,17 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -1941,17 +1842,17 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -1977,17 +1878,17 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2013,27 +1914,27 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "4")
-					(name "pin4")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "5")
-					(name "pin5")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2059,27 +1960,27 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "4")
-					(name "pin4")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "5")
-					(name "pin5")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2105,17 +2006,17 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "pin3")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2177,12 +2078,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2208,12 +2109,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2239,12 +2140,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2270,12 +2171,12 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "pin2")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2301,7 +2202,7 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2327,7 +2228,7 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2353,7 +2254,7 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2379,7 +2280,7 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2405,7 +2306,7 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2431,7 +2332,7 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2457,7 +2358,7 @@
 			(pins
 				(pin
 					(num "1")
-					(name "pin1")
+					(name "")
 					(type "passive")
 				)
 			)
@@ -2568,18 +2469,84 @@
 	(nets
 		(net
 			(code "1")
+			(name "3V3")
+			(class "Default")
+			(node
+				(ref "C3")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C4")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J6")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "JP1")
+				(pin "3")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP7")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "16")
+				(pinfunction "DVDD_16")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "2")
+			(name "5V")
+			(class "Default")
+			(node
+				(ref "C5")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C6")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J6")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "Q1")
+				(pin "2")
+				(pinfunction "E_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "1")
+				(pinfunction "VSUP_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "3")
 			(name "AVDD_FB")
 			(class "Default")
 			(node
 				(ref "R1")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -2590,7 +2557,7 @@
 			)
 		)
 		(net
-			(code "2")
+			(code "4")
 			(name "BASE")
 			(class "Default")
 			(node
@@ -2607,25 +2574,22 @@
 			)
 		)
 		(net
-			(code "3")
+			(code "5")
 			(name "CLK")
 			(class "Default")
 			(node
 				(ref "D2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "J6")
 				(pin "5")
-				(pinfunction "pin5_5")
 				(pintype "passive")
 			)
 			(node
 				(ref "TP6")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -2636,25 +2600,22 @@
 			)
 		)
 		(net
-			(code "4")
+			(code "6")
 			(name "DAT")
 			(class "Default")
 			(node
 				(ref "D1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "J6")
 				(pin "4")
-				(pinfunction "pin4_4")
 				(pintype "passive")
 			)
 			(node
 				(ref "TP5")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -2665,31 +2626,27 @@
 			)
 		)
 		(net
-			(code "5")
+			(code "7")
 			(name "E_PLUS")
 			(class "Default")
 			(node
 				(ref "C1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "C2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "J1")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "J5")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -2701,13 +2658,11 @@
 			(node
 				(ref "R1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "TP1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -2718,109 +2673,92 @@
 			)
 		)
 		(net
-			(code "6")
+			(code "8")
 			(name "GND")
 			(class "Default")
 			(node
 				(ref "C1")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "C2")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "C3")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "C4")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "C5")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "C6")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "C7")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "D1")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "D2")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "J3")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "J5")
 				(pin "4")
-				(pinfunction "pin4_4")
 				(pintype "passive")
 			)
 			(node
 				(ref "J6")
 				(pin "3")
-				(pinfunction "pin3_3")
 				(pintype "passive")
 			)
 			(node
 				(ref "JP1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "R2")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "R7")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "SJ1")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "TP4")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -2849,89 +2787,12 @@
 			)
 		)
 		(net
-			(code "7")
-			(name "N3V3")
-			(class "Default")
-			(node
-				(ref "C3")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "C4")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "J6")
-				(pin "2")
-				(pinfunction "pin2_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "JP1")
-				(pin "3")
-				(pinfunction "pin3_3")
-				(pintype "passive")
-			)
-			(node
-				(ref "TP7")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "U1")
-				(pin "16")
-				(pinfunction "DVDD_16")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "8")
-			(name "N5V")
-			(class "Default")
-			(node
-				(ref "C5")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "C6")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "J6")
-				(pin "1")
-				(pinfunction "pin1_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "Q1")
-				(pin "2")
-				(pinfunction "E_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "U1")
-				(pin "1")
-				(pinfunction "VSUP_1")
-				(pintype "passive")
-			)
-		)
-		(net
 			(code "9")
 			(name "RATE_SEL")
 			(class "Default")
 			(node
 				(ref "JP1")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
@@ -2948,13 +2809,11 @@
 			(node
 				(ref "J1")
 				(pin "3")
-				(pinfunction "pin3_3")
 				(pintype "passive")
 			)
 			(node
 				(ref "J2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 		)
@@ -2965,13 +2824,11 @@
 			(node
 				(ref "J2")
 				(pin "3")
-				(pinfunction "pin3_3")
 				(pintype "passive")
 			)
 			(node
 				(ref "J3")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 		)
@@ -2982,13 +2839,11 @@
 			(node
 				(ref "J3")
 				(pin "3")
-				(pinfunction "pin3_3")
 				(pintype "passive")
 			)
 			(node
 				(ref "J4")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 		)
@@ -2999,13 +2854,11 @@
 			(node
 				(ref "J1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "J4")
 				(pin "3")
-				(pinfunction "pin3_3")
 				(pintype "passive")
 			)
 		)
@@ -3016,25 +2869,21 @@
 			(node
 				(ref "C7")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "J5")
 				(pin "5")
-				(pinfunction "pin5_5")
 				(pintype "passive")
 			)
 			(node
 				(ref "R7")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "SJ1")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 		)
@@ -3045,19 +2894,16 @@
 			(node
 				(ref "J4")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "J5")
 				(pin "3")
-				(pinfunction "pin3_3")
 				(pintype "passive")
 			)
 			(node
 				(ref "TP3")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node
@@ -3074,19 +2920,16 @@
 			(node
 				(ref "J2")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "J5")
 				(pin "2")
-				(pinfunction "pin2_2")
 				(pintype "passive")
 			)
 			(node
 				(ref "TP2")
 				(pin "1")
-				(pinfunction "pin1_1")
 				(pintype "passive")
 			)
 			(node

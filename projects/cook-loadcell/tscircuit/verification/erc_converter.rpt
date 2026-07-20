@@ -1,162 +1,624 @@
-ERC report (2026-07-19T23:21:11, Encoding UTF8)
+ERC report (2026-07-20T10:10:50, Encoding UTF8)
 Report includes: Errors, Warnings, Exclusions
 
 ***** Sheet /
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(28.575 mm, 71.755 mm): Symbol TP4 Pin 1 [Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(28.575 mm, 71.755 mm): Symbol #PWR21 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(39.37 mm, 26.67 mm): Symbol C1 [SYM_C1]
+    @(28.575 mm, 71.755 mm): Symbol #PWR21 [GND]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(29.845 mm, 43.815 mm): Horizontal Wire, length 25.40 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(29.845 mm, 46.355 mm): Vertical Wire, length 2.54 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(29.845 mm, 47.625 mm): Symbol C6 Pin 1 [Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(29.845 mm, 47.625 mm): Vertical Wire, length 1.27 mm
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(29.845 mm, 51.435 mm): Symbol C6 [SYM_C6]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(40.64 mm, 58.42 mm): Symbol R2 [SYM_R2]
+    @(29.845 mm, 51.435 mm): Symbol C6 [SYM_C6]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(29.845 mm, 55.245 mm): Symbol #PWR12 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(48.26 mm, 26.67 mm): Symbol #FLG01 [PWR_FLAG]
+    @(29.845 mm, 55.245 mm): Symbol #PWR12 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'TestPoint'
+    ; warning
+    @(31.115 mm, 71.755 mm): Symbol TP4 [SYM_TP4]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(48.26 mm, 26.67 mm): Symbol #PWR01 [GND]
+    @(31.115 mm, 71.755 mm): Symbol TP4 [SYM_TP4]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(46.99 mm, 66.675 mm): Vertical Wire, length 22.86 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(46.99 mm, 89.535 mm): Horizontal Wire, length 1.905 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(48.895 mm, 89.535 mm): Horizontal Wire, length 0.635 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(49.53 mm, 89.535 mm): Horizontal Wire, length 5.08 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(50.165 mm, 113.665 mm): Horizontal Wire, length 23.495 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(50.165 mm, 121.285 mm): Vertical Wire, length 7.62 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(50.165 mm, 121.285 mm): Symbol SJ1 Pin 1 [Passive, Line]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Jumper'
+    ; warning
+    @(50.165 mm, 127.00 mm): Symbol SJ1 [SYM_SJ1]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(49.53 mm, 58.42 mm): Symbol #PWR14 [GND]
+    @(50.165 mm, 127.00 mm): Symbol SJ1 [SYM_SJ1]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(50.165 mm, 132.715 mm): Symbol #PWR20 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(88.90 mm, 58.42 mm): Symbol R7 [SYM_R7]
+    @(50.165 mm, 132.715 mm): Symbol #PWR20 [GND]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(54.61 mm, 66.675 mm): Horizontal Wire, length 7.62 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(54.61 mm, 69.215 mm): Vertical Wire, length 2.54 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(54.61 mm, 70.485 mm): Vertical Wire, length 1.27 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(54.61 mm, 70.485 mm): Symbol C2 Pin 1 [Passive, Line]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(54.61 mm, 74.295 mm): Symbol C2 [SYM_C2]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(90.17 mm, 26.67 mm): Symbol C2 [SYM_C2]
+    @(54.61 mm, 74.295 mm): Symbol C2 [SYM_C2]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(54.61 mm, 78.105 mm): Symbol #PWR08 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(97.79 mm, 58.42 mm): Symbol #PWR15 [GND]
+    @(54.61 mm, 78.105 mm): Symbol #PWR08 [GND]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(54.61 mm, 88.265 mm): Vertical Wire, length 3.81 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(54.61 mm, 89.535 mm): Vertical Wire, length 2.54 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(54.61 mm, 92.075 mm): Vertical Wire, length 1.27 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(54.61 mm, 92.075 mm): Vertical Wire, length 1.27 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(54.61 mm, 93.345 mm): Symbol C1 Pin 1 [Passive, Line]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(54.61 mm, 97.155 mm): Symbol C1 [SYM_C1]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(99.06 mm, 26.67 mm): Symbol #PWR02 [GND]
+    @(54.61 mm, 97.155 mm): Symbol C1 [SYM_C1]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(54.61 mm, 100.965 mm): Symbol #FLG01 Hidden pin 1 [pwr, Power output, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(54.61 mm, 100.965 mm): Symbol #PWR07 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(135.89 mm, 58.42 mm): Symbol SJ1 [SYM_SJ1]
+    @(54.61 mm, 100.965 mm): Symbol #PWR07 [GND]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(138.43 mm, 26.67 mm): Symbol C3 [SYM_C3]
+    @(54.61 mm, 100.965 mm): Symbol #FLG01 [PWR_FLAG]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(55.245 mm, 43.815 mm): Vertical Wire, length 2.54 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(55.245 mm, 46.355 mm): Vertical Wire, length 1.27 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(55.245 mm, 47.625 mm): Symbol C5 Pin 1 [Passive, Line]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(55.245 mm, 51.435 mm): Symbol C5 [SYM_C5]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(147.32 mm, 26.67 mm): Symbol #PWR03 [GND]
+    @(55.245 mm, 51.435 mm): Symbol C5 [SYM_C5]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(55.245 mm, 55.245 mm): Symbol #PWR11 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(147.32 mm, 58.42 mm): Symbol #PWR16 [GND]
+    @(55.245 mm, 55.245 mm): Symbol #PWR11 [GND]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(66.675 mm, 60.96 mm): Vertical Wire, length 27.305 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(76.20 mm, 60.96 mm): Horizontal Wire, length 9.525 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(66.675 mm, 88.265 mm): Horizontal Wire, length 8.89 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(73.025 mm, 40.005 mm): Vertical Wire, length 20.955 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(73.025 mm, 60.96 mm): Horizontal Wire, length 3.175 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(73.025 mm, 90.805 mm): Horizontal Wire, length 2.54 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(73.025 mm, 97.155 mm): Vertical Wire, length 6.35 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(73.025 mm, 137.16 mm): Horizontal Wire, length 4.445 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(73.025 mm, 138.43 mm): Vertical Wire, length 1.27 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(73.025 mm, 139.065 mm): Vertical Wire, length 0.635 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(73.025 mm, 139.065 mm): Symbol C7 Pin 1 [Passive, Line]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(73.025 mm, 142.875 mm): Symbol C7 [SYM_C7]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(184.15 mm, 26.67 mm): Symbol C4 [SYM_C4]
+    @(73.025 mm, 142.875 mm): Symbol C7 [SYM_C7]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(73.025 mm, 146.685 mm): Symbol #PWR13 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(193.04 mm, 26.67 mm): Symbol #PWR04 [GND]
+    @(73.025 mm, 146.685 mm): Symbol #PWR13 [GND]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(73.66 mm, 113.665 mm): Vertical Wire, length 2.54 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(73.66 mm, 116.205 mm): Symbol R7 Pin 1 [Passive, Line]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(73.66 mm, 120.015 mm): Symbol R7 [SYM_R7]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(193.04 mm, 58.42 mm): Symbol TP1 [SYM_TP1]
+    @(73.66 mm, 120.015 mm): Symbol R7 [SYM_R7]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(73.66 mm, 123.825 mm): Symbol #PWR06 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(229.87 mm, 26.67 mm): Symbol C5 [SYM_C5]
+    @(73.66 mm, 123.825 mm): Symbol #PWR06 [GND]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(75.565 mm, 40.005 mm): Horizontal Wire, length 2.54 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(75.565 mm, 40.005 mm): Symbol TP1 Pin 1 [Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(75.565 mm, 88.265 mm): Symbol J5 Pin 1 [Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(75.565 mm, 88.265 mm): Horizontal Wire, length 20.955 mm
+[footprint_link_issues]: The current configuration does not include the footprint library 'TestPoint'
+    ; warning
+    @(78.105 mm, 40.005 mm): Symbol TP1 [SYM_TP1]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(238.76 mm, 26.67 mm): Symbol #PWR05 [GND]
+    @(78.105 mm, 40.005 mm): Symbol TP1 [SYM_TP1]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(80.01 mm, 60.96 mm): Symbol R1 [SYM_R1]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(259.08 mm, 58.42 mm): Symbol TP2 [SYM_TP2]
+    @(80.01 mm, 60.96 mm): Symbol R1 [SYM_R1]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Connector_JST'
+    ; warning
+    @(83.185 mm, 90.805 mm): Symbol J5 [SYM_J5]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(274.32 mm, 26.67 mm): Symbol C6 [SYM_C6]
+    @(83.185 mm, 90.805 mm): Symbol J5 [SYM_J5]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(90.805 mm, 92.075 mm): Symbol #PWR17 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(283.21 mm, 26.67 mm): Symbol #PWR06 [GND]
+    @(90.805 mm, 92.075 mm): Symbol #PWR17 [GND]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(94.615 mm, 60.96 mm): Horizontal Wire, length 10.795 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(94.615 mm, 86.995 mm): Vertical Wire, length 26.035 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(96.52 mm, 48.895 mm): Horizontal Wire, length 2.54 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(96.52 mm, 79.375 mm): Vertical Wire, length 30.48 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(97.79 mm, 118.11 mm): Horizontal Wire, length 0.635 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(97.79 mm, 120.015 mm): Symbol R2 Pin 1 [Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(97.79 mm, 120.015 mm): Vertical Wire, length 1.905 mm
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(97.79 mm, 123.825 mm): Symbol R2 [SYM_R2]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(318.77 mm, 26.67 mm): Symbol C7 [SYM_C7]
+    @(97.79 mm, 123.825 mm): Symbol R2 [SYM_R2]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(97.79 mm, 127.635 mm): Symbol #PWR05 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(326.39 mm, 58.42 mm): Symbol TP3 [SYM_TP3]
+    @(97.79 mm, 127.635 mm): Symbol #PWR05 [GND]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(99.06 mm, 46.355 mm): Symbol Q1 Pin 1 [B, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(101.60 mm, 136.525 mm): Horizontal Wire, length 33.655 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(101.60 mm, 144.145 mm): Vertical Wire, length 7.62 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(101.60 mm, 145.415 mm): Vertical Wire, length 1.27 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(101.60 mm, 145.415 mm): Symbol C3 Pin 1 [Passive, Line]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(101.60 mm, 149.225 mm): Symbol C3 [SYM_C3]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(327.66 mm, 26.67 mm): Symbol #PWR07 [GND]
+    @(101.60 mm, 149.225 mm): Symbol C3 [SYM_C3]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(101.60 mm, 153.035 mm): Symbol #PWR09 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(364.49 mm, 26.67 mm): Symbol D1 [SYM_D1]
+    @(101.60 mm, 153.035 mm): Symbol #PWR09 [GND]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(106.045 mm, 79.375 mm): Symbol U1 Pin 1 [VSUP, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(106.045 mm, 79.375 mm): Horizontal Wire, length 9.525 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(106.045 mm, 86.995 mm): Horizontal Wire, length 11.43 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(106.045 mm, 89.535 mm): Symbol #PWR01 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(373.38 mm, 58.42 mm): Symbol #PWR17 [GND]
+    @(106.045 mm, 89.535 mm): Symbol #PWR01 [GND]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(106.045 mm, 97.155 mm): Horizontal Wire, length 33.02 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(111.125 mm, 163.83 mm): Vertical Wire, length 3.175 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(111.125 mm, 167.005 mm): Vertical Wire, length 1.27 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(111.125 mm, 168.275 mm): Symbol C4 Pin 1 [Passive, Line]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(111.125 mm, 172.085 mm): Symbol C4 [SYM_C4]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(374.65 mm, 26.67 mm): Symbol #PWR08 [GND]
+    @(111.125 mm, 172.085 mm): Symbol C4 [SYM_C4]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(111.125 mm, 175.895 mm): Symbol #PWR10 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(389.89 mm, 58.42 mm): Symbol TP4 [SYM_TP4]
+    @(111.125 mm, 175.895 mm): Symbol #PWR10 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_TO_SOT_SMD'
+    ; warning
+    @(111.76 mm, 47.625 mm): Symbol Q1 [SYM_Q1]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(411.48 mm, 26.67 mm): Symbol D2 [SYM_D2]
+    @(111.76 mm, 47.625 mm): Symbol Q1 [SYM_Q1]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(117.475 mm, 127.635 mm): Symbol #PWR19 Hidden pin 1 [GND, Power input, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(117.475 mm, 127.635 mm): Symbol JP1 Pin 1 [Passive, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(421.64 mm, 26.67 mm): Symbol #PWR09 [GND]
+    @(117.475 mm, 127.635 mm): Symbol #PWR19 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_SO'
+    ; warning
+    @(121.92 mm, 88.265 mm): Symbol U1 [SYM_U1]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(449.58 mm, 58.42 mm): Symbol TP5 [SYM_TP5]
+    @(121.92 mm, 88.265 mm): Symbol U1 [SYM_U1]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(124.46 mm, 47.625 mm): Horizontal Wire, length 1.905 mm
+[footprint_link_issues]: The current configuration does not include the footprint library 'Connector_PinHeader_2.54mm'
+    ; warning
+    @(125.095 mm, 128.905 mm): Symbol JP1 [SYM_JP1]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(461.01 mm, 27.94 mm): Symbol J1 [SYM_J1]
+    @(125.095 mm, 128.905 mm): Symbol JP1 [SYM_JP1]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(126.365 mm, 47.625 mm): Vertical Wire, length 1.27 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(126.365 mm, 48.895 mm): Horizontal Wire, length 13.335 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(131.445 mm, 163.83 mm): Horizontal Wire, length 20.32 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(131.445 mm, 163.83 mm): Symbol TP7 Pin 1 [Passive, Line]
+[footprint_link_issues]: The current configuration does not include the footprint library 'TestPoint'
+    ; warning
+    @(133.985 mm, 163.83 mm): Symbol TP7 [SYM_TP7]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(509.27 mm, 58.42 mm): Symbol TP6 [SYM_TP6]
+    @(133.985 mm, 163.83 mm): Symbol TP7 [SYM_TP7]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(135.255 mm, 128.905 mm): Horizontal Wire, length 2.54 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(135.255 mm, 136.525 mm): Vertical Wire, length 7.62 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(137.795 mm, 79.375 mm): Horizontal Wire, length 8.89 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(137.795 mm, 84.455 mm): Symbol #PWR04 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(513.08 mm, 27.94 mm): Symbol J2 [SYM_J2]
+    @(137.795 mm, 84.455 mm): Symbol #PWR04 [GND]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(137.795 mm, 94.615 mm): Symbol #PWR03 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(557.53 mm, 29.21 mm): Symbol #PWR10 [GND]
+    @(137.795 mm, 94.615 mm): Symbol #PWR03 [GND]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(137.795 mm, 97.155 mm): Symbol #PWR02 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(566.42 mm, 27.94 mm): Symbol J3 [SYM_J3]
+    @(137.795 mm, 97.155 mm): Symbol #PWR02 [GND]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(139.70 mm, 46.355 mm): Symbol J1 Pin 1 [Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(140.335 mm, 121.92 mm): Horizontal Wire, length 7.62 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(140.335 mm, 146.05 mm): Vertical Wire, length 24.13 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(142.875 mm, 146.05 mm): Symbol TP3 Pin 1 [Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(142.875 mm, 146.05 mm): Horizontal Wire, length 2.54 mm
+[footprint_link_issues]: The current configuration does not include the footprint library 'TestPoint'
+    ; warning
+    @(145.415 mm, 146.05 mm): Symbol TP3 [SYM_TP3]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(568.96 mm, 58.42 mm): Symbol TP7 [SYM_TP7]
+    @(145.415 mm, 146.05 mm): Symbol TP3 [SYM_TP3]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(146.685 mm, 79.375 mm): Vertical Wire, length 6.985 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(146.685 mm, 86.36 mm): Horizontal Wire, length 6.35 mm
+[footprint_link_issues]: The current configuration does not include the footprint library 'Connector_JST'
+    ; warning
+    @(147.32 mm, 47.625 mm): Symbol J1 [SYM_J1]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(618.49 mm, 27.94 mm): Symbol J4 [SYM_J4]
+    @(147.32 mm, 47.625 mm): Symbol J1 [SYM_J1]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(147.955 mm, 119.38 mm): Symbol J4 Pin 1 [Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(153.035 mm, 83.82 mm): Symbol J6 Pin 1 [Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(153.035 mm, 88.90 mm): Symbol #PWR18 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(618.49 mm, 68.58 mm): Symbol #PWR18 [GND]
+    @(153.035 mm, 88.90 mm): Symbol #PWR18 [GND]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(154.94 mm, 47.625 mm): Horizontal Wire, length 7.62 mm
+[footprint_link_issues]: The current configuration does not include the footprint library 'Connector_JST'
+    ; warning
+    @(155.575 mm, 120.65 mm): Symbol J4 [SYM_J4]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(627.38 mm, 67.31 mm): Symbol U1 [SYM_U1]
+    @(155.575 mm, 120.65 mm): Symbol J4 [SYM_J4]
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(159.385 mm, 53.34 mm): Horizontal Wire, length 1.27 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(159.385 mm, 47.625 mm): Vertical Wire, length 5.715 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(159.385 mm, 53.34 mm): Horizontal Wire, length 1.27 mm
+[footprint_link_issues]: The current configuration does not include the footprint library 'Connector_JST'
+    ; warning
+    @(160.655 mm, 86.36 mm): Symbol J6 [SYM_J6]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(636.27 mm, 58.42 mm): Symbol #PWR19 [GND]
+    @(160.655 mm, 86.36 mm): Symbol J6 [SYM_J6]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(162.56 mm, 47.625 mm): Vertical Wire, length 3.175 mm
+[footprint_link_issues]: The current configuration does not include the footprint library 'TestPoint'
+    ; warning
+    @(167.64 mm, 26.67 mm): Symbol TP2 [SYM_TP2]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(636.27 mm, 60.96 mm): Symbol #PWR20 [GND]
+    @(167.64 mm, 26.67 mm): Symbol TP2 [SYM_TP2]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(168.275 mm, 85.09 mm): Horizontal Wire, length 7.62 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(170.815 mm, 106.68 mm): Vertical Wire, length 11.43 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(182.88 mm, 106.68 mm): Horizontal Wire, length 12.065 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(170.815 mm, 118.11 mm): Horizontal Wire, length 5.715 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(170.815 mm, 123.19 mm): Vertical Wire, length 15.875 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(176.53 mm, 123.19 mm): Horizontal Wire, length 5.715 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(170.815 mm, 139.065 mm): Horizontal Wire, length 2.54 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(173.355 mm, 139.065 mm): Symbol TP5 Pin 1 [Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(175.895 mm, 85.09 mm): Vertical Wire, length 7.62 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(175.895 mm, 92.71 mm): Horizontal Wire, length 38.10 mm
+[footprint_link_issues]: The current configuration does not include the footprint library 'TestPoint'
+    ; warning
+    @(175.895 mm, 139.065 mm): Symbol TP5 [SYM_TP5]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(636.27 mm, 71.12 mm): Symbol #PWR21 [GND]
+    @(175.895 mm, 139.065 mm): Symbol TP5 [SYM_TP5]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Connector_JST'
+    ; warning
+    @(177.80 mm, 52.07 mm): Symbol J2 [SYM_J2]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(671.83 mm, 29.21 mm): Symbol J5 [SYM_J5]
+    @(177.80 mm, 52.07 mm): Symbol J2 [SYM_J2]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(180.975 mm, 67.945 mm): Vertical Wire, length 15.875 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(180.975 mm, 83.82 mm): Horizontal Wire, length 2.54 mm
+[footprint_link_issues]: The current configuration does not include the footprint library 'Diode_SMD'
+    ; warning
+    @(182.88 mm, 115.57 mm): Symbol D1 [SYM_D1]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(680.72 mm, 26.67 mm): Symbol #PWR11 [GND]
+    @(182.88 mm, 115.57 mm): Symbol D1 [SYM_D1]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(182.88 mm, 122.555 mm): Symbol D1 Pin 2 [Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(182.88 mm, 122.555 mm): Symbol #PWR14 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(712.47 mm, 31.75 mm): Symbol #PWR12 [GND]
+    @(182.88 mm, 122.555 mm): Symbol #PWR14 [GND]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(183.515 mm, 83.82 mm): Symbol J3 Pin 1 [Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(183.515 mm, 86.36 mm): Symbol #PWR16 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(721.36 mm, 29.21 mm): Symbol J6 [SYM_J6]
+    @(183.515 mm, 86.36 mm): Symbol #PWR16 [GND]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(187.96 mm, 67.945 mm): Horizontal Wire, length 6.985 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(187.96 mm, 52.07 mm): Vertical Wire, length 15.875 mm
+[footprint_link_issues]: The current configuration does not include the footprint library 'Connector_JST'
+    ; warning
+    @(191.135 mm, 85.09 mm): Symbol J3 [SYM_J3]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(763.27 mm, 26.67 mm): Symbol #PWR13 [GND]
+    @(191.135 mm, 85.09 mm): Symbol J3 [SYM_J3]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(206.375 mm, 92.71 mm): Vertical Wire, length 16.51 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(206.375 mm, 109.22 mm): Symbol D2 Pin 1 [Passive, Line]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Diode_SMD'
+    ; warning
+    @(206.375 mm, 115.57 mm): Symbol D2 [SYM_D2]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(774.70 mm, 27.94 mm): Symbol JP1 [SYM_JP1]
+    @(206.375 mm, 115.57 mm): Symbol D2 [SYM_D2]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(206.375 mm, 122.555 mm): Symbol #PWR15 Hidden pin 1 [GND, Power input, Line]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(829.31 mm, 27.94 mm): Symbol Q1 [SYM_Q1]
+    @(206.375 mm, 122.555 mm): Symbol #PWR15 [GND]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(213.995 mm, 92.71 mm): Horizontal Wire, length 7.62 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(213.995 mm, 92.71 mm): Symbol TP6 Pin 1 [Passive, Line]
+[footprint_link_issues]: The current configuration does not include the footprint library 'TestPoint'
+    ; warning
+    @(216.535 mm, 92.71 mm): Symbol TP6 [SYM_TP6]
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
-    @(881.38 mm, 26.67 mm): Symbol R1 [SYM_R1]
+    @(216.535 mm, 92.71 mm): Symbol TP6 [SYM_TP6]
 
- ** ERC messages: 51  Errors 0  Warnings 51
+ ** ERC messages: 205  Errors 0  Warnings 205
 
  ** Ignored checks:
     - Global label only appears once in the schematic
