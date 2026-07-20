@@ -125,10 +125,33 @@ fixes independently re-confirmed today.
 
 ## 6. Findings table
 
+Finalization pass (Opus, 2026-07-19): the checkpointed draft above was
+independently re-verified end-to-end from the live artifacts — none of its
+load-bearing numbers were taken on trust. Re-confirmed today: git_sha
+543e376 exists and `04_kicad/crow_array_pod.kicad_pcb` at HEAD == at 543e376
+(sha256 09a1f47b…); v1.1 MANIFEST sha256 table 6/6 re-hashed match; gerbers/
+bom/cpl byte-identical release↔06_build; fresh `kicad-cli pcb drc
+--severity-all --refill-zones --schematic-parity` = **0 / 0 / 0** and ERC =
+0 from that exact board; `policy_audit.py` FULL = **18 PASS / 6 HUMAN / 2 N-A
+/ 0 FAIL**; the J1 interop map extracted pin-for-pin from BOTH boards' live
+artifacts (pod `.kicad_pcb` pads vs central `generate_schematic.py` rj_nets)
+— straight-through T568B 1:1, SH = pod SHIELD(float) / central GND
+(single-point ground) CONFIRMED; F2's DNP mechanism confirmed at the board
+(D3/L1/R15 attrs all empty) and exporter (`"DNP" in val`, line 121); S5
+op-amp math re-derived against BOM parts (R6=10k/R7=20k→1.50, R8=R9=20k→−1,
+VMID 2.47 V, R3=100k/C3=1u→1.6 Hz HPF, R6∥R7=6.67k); SUPERSEDED chain
+v1.0→v1.1 closed with reason, v1.0 git_sha 17ceffe + sha table verify; F3
+doc fixes (DETAIL_DESIGN/ARCHITECTURE RJ45) confirmed already landed and
+committed. Pin-review count clarified: THREE fresh-context PASS reviews
+(J1/BZ1/U1) + D1 whose pin-MAPPING/winding/nets are PASS but whose PLACEMENT
+verdict is FAIL, dispositioned ACCEPTED in writing per ADR-0004(b2)
+(clamp-first topology; closest legal position east of the THT jack body).
+All findings below stand as written.
+
 | # | Sev | Finding | Falsifiable evidence | Remediation | New release? |
 |---|---|---|---|---|---|
 | F1 | **MAJOR** | Canon M3 promotion is stale IN SUBSTANCE: the promoted chain `03_src/route/r3.kicad_pcb` (302 segments / 35 vias, committed cf393af) is NOT the chain that produced the shipped copper — the board's 287 segments match `06_build/route/r3.kicad_pcb` (273 seg / 38 vias; 265/273 shared, rest = stitch/fill) and only 36 match the promoted file. Reproducibility survives ONLY because the 06_build copy happens to be git-tracked (WIP checkpoint dfb0950) and rebuild_all.sh prefers an existing 06_build copy; a `git clean` of the canonically-disposable 06_build would silently rebuild DIFFERENT copper from the stale promoted file. Additionally the canon M3 letter (chain sha in MANIFEST) is unmet — no MANIFEST records any route-chain sha. | segment-set comparison (this audit): board∩03_src = 36/287, board∩06_build = 265/287; `grep route 07_releases/*/MANIFEST.txt` → empty; rebuild_all.sh line 28 `[ -f 06_build/... ] \|\| cp` | Promote the REAL final chain: copy 06_build/route/r3.kicad_pcb over 03_src/route/r3.kicad_pcb and commit (route-source artifact — deliberately NOT done by this docs-only audit); make rebuild_all.sh prefer 03_src (copy 03_src→06_build unconditionally); record the chain sha in the next MANIFEST | No (fab artifacts unaffected; board+fab sha-verified against the release) |
-| F2 | **MAJOR (hardening, no wrong output today)** | The flagged item, graded: D3/L1/R15 DNP is enforced ONLY by the value-string convention (`"DNP" in Value`, export_jlc_package.py:121). Schematic has `(dnp no)` `(in_bom yes)`; board footprints carry NO attributes (no DNP, no exclude-from-BOM/POS). Verified correct today: all three absent from bom.csv AND cpl.csv, pads present in gerbers — but a value rename that drops the magic token (e.g. "0R shield bond") would silently populate a deliberate float; R15 populated = pod-side shield bond = defeats the single-point-ground design (ground loop). The release's own pin review RECORDED this observation — it was never remediated. | pcbnew attrs D3/L1/R15 = [] (this audit); .kicad_sch `(dnp no)(in_bom yes)` at refs D3/L1/R15; export_jlc_package.py:121; observation paragraph in v1.1 verification/pin_review.md | Generator emits `(dnp yes)` + board `FP_EXCLUDE_FROM_BOM`/`FP_EXCLUDE_FROM_POS_FILES` (+ DNP field) for the reserve parts; exporter keys off attributes with the value token kept as backstop; re-verify ERC/parity stay 0 with the flags set. Pipeline change + next spin; sealed release untouched | No |
+| F2 | **MAJOR (hardening, no wrong output today)** | The flagged item, graded: D3/L1/R15 DNP is enforced ONLY by the value-string convention (`"DNP" in Value`, export_jlc_package.py:121). Schematic carries `(dnp no)` on all three (D3/L1 `in_bom yes`, R15 `in_bom no`); board footprints carry NO attributes (no DNP, no exclude-from-BOM/POS) — so fab BOM/CPL exclusion rests entirely on the value-string token, independent of the schematic flags. Verified correct today: all three absent from bom.csv AND cpl.csv, pads present in gerbers — but a value rename that drops the magic token (e.g. "0R shield bond") would silently populate a deliberate float; R15 populated = pod-side shield bond = defeats the single-point-ground design (ground loop). The release's own pin review RECORDED this observation — it was never remediated. | pcbnew attrs D3/L1/R15 = [] (this audit); .kicad_sch `(dnp no)(in_bom yes)` at refs D3/L1/R15; export_jlc_package.py:121; observation paragraph in v1.1 verification/pin_review.md | Generator emits `(dnp yes)` + board `FP_EXCLUDE_FROM_BOM`/`FP_EXCLUDE_FROM_POS_FILES` (+ DNP field) for the reserve parts; exporter keys off attributes with the value token kept as backstop; re-verify ERC/parity stay 0 with the flags set. Pipeline change + next spin; sealed release untouched | No |
 | F3 | MINOR | Doc drift: DETAIL_DESIGN.md §Cable-interface + cost roll-up and ARCHITECTURE.md topology still described the v1.0 screw terminal | pre-fix texts at DETAIL_DESIGN.md:6,90 and ARCHITECTURE.md:12 | **FIXED this audit** (doc commit) | No |
 | F4 | MINOR | Release PDF polish (same class as usb-power-3s F6): pcb_layers/assembly title blocks empty (schematic's is filled); assembly_top F.Fab value texts collide in the U1/R6–R9/C4–C7 cluster — hand-solder aid degraded there. Honestly pre-disclosed in ORDER_README "Known cosmetic issue" | fresh render review §H; ORDER_README | export_pdfs.sh title-block vars + Fab de-collision pass, next release | No (cosmetic) |
 | F5 | NOTE | J1 refdes tiny/rotated, crowded against D2's "K"/"FLYBACK" silk group — legible at 300 dpi, could be misread as D2's marking. Already condition 3 of the release's own render review | both render reviews (release + this audit's fresh one, independently) | enlarge/move J1 refdes next rev | No |
