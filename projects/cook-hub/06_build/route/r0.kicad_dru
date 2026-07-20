@@ -12,3 +12,132 @@
 (rule iso_keypad
   (condition "A.NetClass == 'KEYPAD' && B.NetClass != 'KEYPAD'")
   (constraint clearance (min 6.00mm)))
+(rule cy_waive_0
+  (condition "(A.Reference == 'K1' && B.Reference == 'TP41') || (A.Reference == 'TP41' && B.Reference == 'K1')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_1
+  (condition "(A.Reference == 'K2' && B.Reference == 'TP41') || (A.Reference == 'TP41' && B.Reference == 'K2')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_2
+  (condition "(A.Reference == 'K2' && B.Reference == 'TP42') || (A.Reference == 'TP42' && B.Reference == 'K2')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_3
+  (condition "(A.Reference == 'K3' && B.Reference == 'TP43') || (A.Reference == 'TP43' && B.Reference == 'K3')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_4
+  (condition "(A.Reference == 'K4' && B.Reference == 'TP43') || (A.Reference == 'TP43' && B.Reference == 'K4')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_5
+  (condition "(A.Reference == 'K4' && B.Reference == 'TP44') || (A.Reference == 'TP44' && B.Reference == 'K4')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_6
+  (condition "(A.Reference == 'K5' && B.Reference == 'TP45') || (A.Reference == 'TP45' && B.Reference == 'K5')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_7
+  (condition "(A.Reference == 'K6' && B.Reference == 'TP45') || (A.Reference == 'TP45' && B.Reference == 'K6')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_8
+  (condition "(A.Reference == 'K6' && B.Reference == 'TP46') || (A.Reference == 'TP46' && B.Reference == 'K6')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_9
+  (condition "(A.Reference == 'K7' && B.Reference == 'TP47') || (A.Reference == 'TP47' && B.Reference == 'K7')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_10
+  (condition "(A.Reference == 'K8' && B.Reference == 'TP47') || (A.Reference == 'TP47' && B.Reference == 'K8')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_11
+  (condition "(A.Reference == 'K8' && B.Reference == 'TP48') || (A.Reference == 'TP48' && B.Reference == 'K8')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_12
+  (condition "(A.Reference == 'K9' && B.Reference == 'TP49') || (A.Reference == 'TP49' && B.Reference == 'K9')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_13
+  (condition "(A.Reference == 'K10' && B.Reference == 'TP49') || (A.Reference == 'TP49' && B.Reference == 'K10')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_14
+  (condition "(A.Reference == 'K10' && B.Reference == 'TP50') || (A.Reference == 'TP50' && B.Reference == 'K10')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_15
+  (condition "(A.Reference == 'K11' && B.Reference == 'TP51') || (A.Reference == 'TP51' && B.Reference == 'K11')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_16
+  (condition "(A.Reference == 'K12' && B.Reference == 'TP51') || (A.Reference == 'TP51' && B.Reference == 'K12')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_17
+  (condition "(A.Reference == 'K12' && B.Reference == 'TP52') || (A.Reference == 'TP52' && B.Reference == 'K12')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_18
+  (condition "(A.Reference == 'K13' && B.Reference == 'TP53') || (A.Reference == 'TP53' && B.Reference == 'K13')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_19
+  (condition "(A.Reference == 'K14' && B.Reference == 'TP53') || (A.Reference == 'TP53' && B.Reference == 'K14')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_20
+  (condition "(A.Reference == 'K14' && B.Reference == 'TP54') || (A.Reference == 'TP54' && B.Reference == 'K14')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_21
+  (condition "(A.Reference == 'K15' && B.Reference == 'TP55') || (A.Reference == 'TP55' && B.Reference == 'K15')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_22
+  (condition "(A.Reference == 'K16' && B.Reference == 'TP55') || (A.Reference == 'TP55' && B.Reference == 'K16')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_23
+  (condition "(A.Reference == 'K16' && B.Reference == 'TP56') || (A.Reference == 'TP56' && B.Reference == 'K16')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_24
+  (condition "(A.Reference == 'C12' && B.Reference == 'U3') || (A.Reference == 'U3' && B.Reference == 'C12')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_25
+  (condition "(A.Reference == 'C13' && B.Reference == 'U4') || (A.Reference == 'U4' && B.Reference == 'C13')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_26
+  (condition "(A.Reference == 'C14' && B.Reference == 'U7') || (A.Reference == 'U7' && B.Reference == 'C14')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_27
+  (condition "(A.Reference == 'C8' && B.Reference == 'U7') || (A.Reference == 'U7' && B.Reference == 'C8')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_28
+  (condition "(A.Reference == 'Q1' && B.Reference == 'U7') || (A.Reference == 'U7' && B.Reference == 'Q1')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_29
+  (condition "(A.Reference == 'J14' && B.Reference == 'U14') || (A.Reference == 'U14' && B.Reference == 'J14')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_30
+  (condition "(A.Reference == 'J3' && B.Reference == 'U13') || (A.Reference == 'U13' && B.Reference == 'J3')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_31
+  (condition "(A.Reference == 'J4' && B.Reference == 'U14') || (A.Reference == 'U14' && B.Reference == 'J4')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_32
+  (condition "(A.Reference == 'J2' && B.Reference == 'U14') || (A.Reference == 'U14' && B.Reference == 'J2')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_33
+  (condition "(A.Reference == 'U10' && B.Reference == 'U11') || (A.Reference == 'U11' && B.Reference == 'U10')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_34
+  (condition "(A.Reference == 'U11' && B.Reference == 'U5') || (A.Reference == 'U5' && B.Reference == 'U11')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_35
+  (condition "(A.Reference == 'CE1' && B.Reference == 'D2') || (A.Reference == 'D2' && B.Reference == 'CE1')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_36
+  (condition "(A.Reference == 'C21' && B.Reference == 'J2') || (A.Reference == 'J2' && B.Reference == 'C21')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_37
+  (condition "(A.Reference == 'J2' && B.Reference == 'R23') || (A.Reference == 'R23' && B.Reference == 'J2')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_38
+  (condition "(A.Reference == 'J2' && B.Reference == 'SW1') || (A.Reference == 'SW1' && B.Reference == 'J2')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_39
+  (condition "(A.Reference == 'J3' && B.Reference == 'J5') || (A.Reference == 'J5' && B.Reference == 'J3')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_40
+  (condition "(A.Reference == 'C6' && B.Reference == 'H1') || (A.Reference == 'H1' && B.Reference == 'C6')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_41
+  (condition "(A.Reference == 'FB1' && B.Reference == 'H1') || (A.Reference == 'H1' && B.Reference == 'FB1')")
+  (constraint courtyard_clearance (min -6mm)))
+(rule cy_waive_42
+  (condition "(A.Reference == 'H5' && B.Reference == 'R52') || (A.Reference == 'R52' && B.Reference == 'H5')")
+  (constraint courtyard_clearance (min -6mm)))

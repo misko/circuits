@@ -478,10 +478,16 @@ def main():
         board.Add(z)
         return z
 
-    # SELV L-shape: whole board minus the NOGO/keypad NE region
+    # SELV L-shape: whole board minus the NOGO/keypad NE region. The three
+    # outer corners that carry a mounting hole (NW/SW/SE) are chamfered 5mm so
+    # the pour doesn't wrap a thin neck around the corner screw keepout (that
+    # neck tripped connection_width at the 20,20 corner). The NE corner sits in
+    # the NOGO cut-out, so it has no SELV pour to chamfer.
     nx0, ny0, nx1, ny1 = G.NOGO
-    LSHAPE = [(G.X0, G.Y0), (nx0, G.Y0), (nx0, ny1), (G.X1, ny1),
-              (G.X1, G.Y1), (G.X0, G.Y1)]
+    C = 5.0
+    LSHAPE = [(G.X0 + C, G.Y0), (nx0, G.Y0), (nx0, ny1), (G.X1, ny1),
+              (G.X1, G.Y1 - C), (G.X1 - C, G.Y1), (G.X0 + C, G.Y1),
+              (G.X0, G.Y1 - C), (G.X0, G.Y0 + C)]
     add_zone("GND", pcbnew.In1_Cu, LSHAPE, 0)                 # THE plane
     add_zone("GND", pcbnew.B_Cu, LSHAPE, 0)
     add_zone("3V3", pcbnew.In2_Cu, LSHAPE, 1, minw=0.4)
