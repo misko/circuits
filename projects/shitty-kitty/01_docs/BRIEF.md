@@ -131,13 +131,15 @@ Video: https://www.youtube.com/watch?v=x2Yv9KRT77E
 Goal-1 (A4) deliverables: an orderable, verified JLCPCB release of the
 controller PCB plus the two 10k-unit cost estimates.
 
+Current release: **v1.0-2026-07-18** (07_releases/v1.0-2026-07-18, sealed a6ce780).
+
 | # | Criterion | Source | Status |
 |---|---|---|---|
-| G1 | PCB with power distribution (12V in, 12V motor, 5V+3V3 out), accelerometer, 4x MPR121, 24 electrode lines, stepper driver, endstop input | P4-P6 | unmet |
-| G2 | Fab package for 5 prototype boards (gerbers+BOM+CPL, KiCad 10 per A1) | P7/Goal 1a | unmet |
-| G3 | COST_ESTIMATE.md (b): current PCB at 10k units | Goal 1b | unmet |
-| G4 | COST_ESTIMATE.md (c): optimized PCB at 10k+ units | Goal 1c | unmet |
-| G5 | Motor disabled at boot (hardware pull), endstop on interrupt GPIO | P4 + commission | unmet |
+| G1 | PCB with power distribution (12V in, 12V motor, 5V+3V3 out), accelerometer, 4x MPR121, 24 electrode lines, stepper driver, endstop input | P4-P6 | met (v1.0; pin reviews + DRC 0/0/0) |
+| G2 | Fab package for 5 prototype boards (gerbers+BOM+CPL, KiCad 10 per A1) | P7/Goal 1a | met (v1.0 release, ordered 2026-07-18) |
+| G3 | COST_ESTIMATE.md (b): current PCB at 10k units | Goal 1b | met (~$19.35/board @10k) |
+| G4 | COST_ESTIMATE.md (c): optimized PCB at 10k+ units | Goal 1c | met (~$14.20/board; D13 2x-MPR121 next spin) |
+| G5 | Motor disabled at boot (hardware pull), endstop on interrupt GPIO | P4 + commission | met (R8 10k ENN->3V3, ENN active-low; endstop RC -> IO16) |
 
 ## Decision register
 
@@ -164,3 +166,9 @@ controller PCB plus the two 10k-unit cost estimates.
 
 - 2026-07-17: Stage-1 docs cut — ARCHITECTURE, DETAIL_DESIGN, ADRs
   0001-0005, decisions D1-D10 (live JLC stock data in 06_build/cache/).
+
+- 2026-07-18: release v1.0-2026-07-18 cut and sealed (a6ce780); 5 boards
+  ordered. Goal-1 criteria G1-G5 met (table above updated 2026-07-19).
+
+- 2026-07-19: full independent review + audit (06_build/full_review_2026-07-19.md);
+  BRIEF goal-table statuses corrected from stale "unmet".

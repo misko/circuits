@@ -64,8 +64,17 @@ ambient → ≤70 °C copper.
   noise, passes load dynamics. 10 Ω keeps gain error from input bias
   negligible (INA238 IB ≈ nA-class).
 - VBUS pin: tied to the IN− node (KBi) — bus voltage is read at the
-  PORT side through RN's 10 Ω (INA238 VBUS input bias is nA-class →
-  error ≪ 1 mV). A blown fuse reads as VBUS collapsing to the
+  PORT side through RN's 10 Ω. CORRECTION (audit 2026-07-19): the VBUS
+  pin is NOT nA-class — it is a ≈1.2 MΩ (1 MΩ min) resistive input
+  (SLYS025B §5), drawing V_bus/Z ≈ 20 µA at 24 V THROUGH the shared
+  RN. The VBUS reading error (10 Ω/1.2 MΩ) is negligible, but the
+  20 µA×10 Ω ≈ 0.2 mV drop on RN only (RP carries nA) appears as a
+  POSITIVE shunt-offset ≈ 0.4 A-equivalent at 24 V bus (0.2 A at 12 V,
+  proportional to V_bus). Firmware MUST calibrate it out per port
+  (offset ≈ VBUS_reading × 10 Ω / 1.2 MΩ / R_shunt, or zero-load cal
+  at the operating bus voltage — ORDER_README ritual step 4). A next
+  spin that needs uncalibrated accuracy gives VBUS its own 10 Ω tap.
+  A blown fuse reads as VBUS collapsing to the
   load-pulled level while current reads 0: fuse-out detection for free.
   (Sharing RN keeps the sense cluster planar on 2 layers; the dedicated
   VBUS tap resistor of the first draft was removed.)

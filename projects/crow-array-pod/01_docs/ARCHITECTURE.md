@@ -9,7 +9,7 @@ enclosure at the end of a 30-35 ft custom-pinout Cat5e home run.
 
 ```
                      Cat5e (NOT Ethernet, P4 pinout)
-J1 terminal 1..8  ===========================================  central board
+J1 RJ45 contact 1..8 (v1.1, ADR-0004) ======================  central board
  |1 AUDIO+   <- R10 68R <- OPA1678 A (x1.5, non-inv) <- C3 1u <- mic AOM-5024L
  |2 AUDIO-   <- R11 68R <- OPA1678 B (x-1 around VMID) <- from A out
  |3 +5V_BEEP -> R12 0R -> CMT-8504 (+)   [D2 SS14 flyback pop., D3 TVS empty]

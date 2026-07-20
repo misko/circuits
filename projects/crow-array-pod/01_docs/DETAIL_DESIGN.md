@@ -3,9 +3,11 @@
 Values follow the source doc "Starting analog values" table (§3) verbatim
 where given; derivations and margins below. Refdes are final.
 
-## Cable interface (J1, KF128L-3.5-8P screw terminal)
+## Cable interface (J1 — since v1.1: RJHSE-5384 RJ45 jack, ADR-0004)
 
-Terminal n = RJ45/T568B pin n at the central end (straight-through wiring):
+v1.1 (A4/D11) replaced the v1.0 KF128L-3.5-8P screw terminal with an RJ45
+jack; the net map is contact-for-contact unchanged (RJ45 contact n = old
+terminal n = T568B pin n, straight-through to the central end):
 
 | J1 | Net | Cat5e conductor | Silk word |
 |---|---|---|---|
@@ -87,6 +89,7 @@ TP6 SHIELD (bond reserve). First-power ritual: 5V current < 10 mA, TP3 =
 
 Electronics per pod (JLC/Digi-Key mixed, qty-10 pricing, est.):
 mic $4.19 + OPA1678 ~$0.92 + CMT-8504 $1.59 + TPD2E2U06 ~$0.35 + SS14
-~$0.02 + terminal ~$0.60 + passives ~$0.35 + PCB+assembly ~$3-4
+~$0.02 + RJ45 jack ~$2.14 (v1.0 terminal was ~$0.60) + passives ~$0.35 +
+PCB+assembly ~$3-4
 => ~$11-12 electronics+PCB, inside the doc's $23-30 complete-pod envelope
 (enclosure $7-10, gland $1-2, mechanicals $3-6 are off-board).

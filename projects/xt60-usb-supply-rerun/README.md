@@ -7,7 +7,8 @@ rail for USB-C), fuse + P-FET reverse-polarity + TVS input protection.
 92x62 mm, 4-layer JLCPCB standard.
 
 - **Status**: delivered — fab package cut, order not yet placed.
-- **Current release**: `07_releases/v1.0-2026-07-16/` (gerbers, BOM/CPL,
+- **Current release**: `07_releases/v1.0.2-2026-07-16/` (fab byte-identical
+  to v1.0; current verification renders live here) (gerbers, BOM/CPL,
   PDFs, verification evidence, MANIFEST; see its ORDER_README for the
   order + bring-up checklist).
 

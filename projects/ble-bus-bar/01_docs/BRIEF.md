@@ -70,11 +70,11 @@ the ATO 80 % continuous derating convention.
 
 ### A4 — 2026-07-19 — user feedback (verbatim)
 > for the BLE bus bar we need a better way to anchor the board to the enclosure, lets make it durable
-Impact: v1.1 mechanical-anchoring revision (D9, ADR-0007): 8× M4 plated
+Impact: v1.1 mechanical-anchoring revision (D9, ADR-0007): 7× M4 plated
 mounting holes with washer lands placed at the load-entry points, metal
 standoffs; v1.0 superseded.
 
-### D9 — 2026-07-19 — durable anchoring: 8x M4 plated holes + metal standoffs
+### D9 — 2026-07-19 — durable anchoring: 7x M4 plated holes + metal standoffs
 ADR-0007. v1.0's 4x M3 NPTH + nylon standoffs rejected (nylon creep under
 lug torque, no barrel against laminate crush, no mid-span support at the
 fuse row). Board grows 64->74mm tall for the two mounting rails; all
@@ -92,4 +92,4 @@ electrical content keeps its v1.0 coordinates (wiring docs stay valid).
 | D6 | electronics-branch protection, bus TVS, no 60 A series element | agent (P-delegation) | decisions/0001 |
 | D7 | LMR16006X buck + USB LDO co-power | agent (P-delegation) | decisions/0006 |
 | D8 | Keystone 3557-2 holders, fuses user-supplied | agent (P-delegation) | decisions/0005 |
-| D9 | 8x M4 plated mounts + metal standoffs (v1.1) | user (A4) + agent | decisions/0007 |
+| D9 | 7x M4 plated mounts + metal standoffs (v1.1) | user (A4) + agent | decisions/0007 |

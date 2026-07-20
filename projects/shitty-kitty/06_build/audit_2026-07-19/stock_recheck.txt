@@ -1,0 +1,31 @@
+33 BOM lines: 27 with LCSC, 6 without
+
+  OK               C37936     x2   0.15R                                  expand stock=29988
+  OK               C149504    x1   100k gate pd                           base   stock=4466395
+  OK               C49678     x18  100n                                   base   stock=23492588
+  OK               C2836443   x2   100u                                   expand stock=27487
+  OK               C17414     x7   10k                                    base   stock=13299428
+  OK               C79272     x1   10uH SWPA6045S                         expand stock=33593
+  OK               C17513     x4   1k                                     base   stock=6862932
+  OK               C28323     x1   1u EN                                  base   stock=5880667
+  OK               C1729      x1   22n CP fly                             base   stock=306962
+  OK               C45783     x5   22u                                    base   stock=2006894
+  OK               C20812     x1   2A polyfuse 16V                        expand stock=40533
+  OK               C17673     x2   4.7k                                   base   stock=5144091
+  OK               C1779      x4   4.7u                                   base   stock=2748249
+  OK               C27834     x2   5.1k                                   base   stock=5336740
+  OK               C17819     x4   75k REXT                               expand stock=837975
+  OK               C6186      x1   AMS1117-3.3                            base   stock=1478289
+  OK               C400894    x1   AOD4185 revpol                         expand stock=91134
+  OK               C2071056   x1   AP63205WU-7                            expand stock=31583
+  OK               C2913204   x1   ESP32-S3-WROOM-1-N8R2                  expand stock=19547
+  OK               C110926    x1   LIS2DH12TR                             expand stock=10020
+  OK               C91322     x4   MPR121QR2                              expand stock=1179
+  OK               C10211     x1   SMBJ16A                                expand stock=2866
+  OK               C2150710   x1   TMC2209-LA-T                           expand stock=11601
+  OK               C318884    x2   TS-1187A                               base   stock=1436918
+  OK               C165948    x1   TYPE-C-31-M-12                         expand stock=320969
+  OK               C2687116   x1   USBLC6-2SC6                            expand stock=89732
+  OK               C2297      x2   green                                  base   stock=3194727
+
+PASS: 0 coded lines with problems; 6 lines still uncoded
