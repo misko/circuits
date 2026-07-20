@@ -1,0 +1,17 @@
+mpn: B3B-XH-A(LF)(SN)
+manufacturer: JST
+type: connector
+datasheet:
+  doc_id: eXH (JST XH series drawing)
+  url: https://www.jst-mfg.com/product/pdf/eng/eXH.pdf
+  fetched: 2026-07-19
+package: XH 2.5mm 3P top-entry shrouded
+footprint: Connector_JST:JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical
+pins:
+  1: P1
+  2: P2
+  3: P3
+verified: "positional 1..N shrouded header per JST XH drawing; KiCad JST_XH footprint family; twin verifies pads"
+sourcing:
+  lcsc: C144394
+  note: "genuine JST (LF)(SN), stock 214475 2026-07-19."

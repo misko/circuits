@@ -1,0 +1,24 @@
+# cook-loadcell net architecture — netclasses + DRU floors source.
+fab_tier: jlc_2layer_default   # 0.6/0.3 vias, no advanced option
+
+classes:
+  BRIDGE:
+    intent: >
+      Microvolt-level bridge nodes + excitation: the four ring splices and
+      E+/S+/S-/E-. 0.5mm floor = robustness + low IR drop in excitation;
+      kept < 15mm, guarded by both GND pours, no clock crossings (audit).
+    nets: [E_PLUS, S_PLUS, S_MINUS, E_MINUS, RING_12, RING_23, RING_34, RING_41]
+    current: "excitation ~1.5mA (4x 2k bridge) + uV signals"
+    min_width: 0.5mm
+    routing: engineered corner stubs (KRT wave 1, analog corner)
+    verify: audit I-AN separation + DRC floor
+
+  PWR:
+    intent: 5V feed, AVDD regulator loop, 3V3 digital. 0.4mm floor.
+    nets: [5V, 3V3, AVDD_FB]
+    current: 0.02A
+    min_width: 0.4mm
+    routing: KRT
+    verify: DRC floor
+
+# Default 0.25: DAT, CLK, RATE_SEL, SH. GND = pours + stitch.

@@ -1,0 +1,35 @@
+mpn: HX711
+manufacturer: Avia Semiconductor
+type: bridge_adc_24bit
+datasheet:
+  doc_id: HX711
+  url: https://www.mouser.com/datasheet/2/813/hx711_english-1022875.pdf
+  fetched: "2026-07-19 (pin map from the HX711 datasheet pin table as mirrored in the EasyEDA CAD for C97531; MUST be re-verified against the datasheet figure in the fresh pin review + twin PAD fit)"
+package: SOP-16
+footprint: Package_SO:SOIC-16_3.9x9.9mm_P1.27mm
+pins:
+  1: VSUP      # 2.7-5.5V regulator supply
+  2: BASE      # external PNP base drive (analog regulator)
+  3: AVDD      # analog supply / excitation E+
+  4: VFB       # regulator feedback (R1/R2 divider)
+  5: AGND
+  6: VBG       # 1.25V ref bypass? (DS: reference bypass) - decouple
+  7: INA-      # channel A negative = S-
+  8: INA+      # channel A positive = S+
+  9: INB-      # channel B (unused -> AGND)
+  10: INB+     # channel B (unused -> AGND)
+  11: PD_SCK   # clock in (CLK from hub GP7)
+  12: DOUT     # data out (DAT to hub GP6)
+  13: XO       # crystal out - no_connect (internal osc)
+  14: XI       # crystal in - GND selects internal oscillator
+  15: RATE     # 0=10SPS 1=80SPS (JP1)
+  16: DVDD     # digital supply = 3V3
+limits: {vsup: "2.7-5.5V", dvdd: "2.6-5.5V", gain_a: "128/64 (we clock gain-128)"}
+gotchas:
+  - "channel A gain 128 selected by 25 SCK pulses per frame (firmware contract)"
+  - "internal regulator mode: VSUP=5V, PNP S8550 + 20k/8.2k VFB -> AVDD 4.3V; AVDD must be < VSUP-0.35 (DS)"
+  - "XI tied LOW = internal oscillator; XO left no_connect"
+verified: "pin map PENDING datasheet-figure confirmation in fresh pin review - 2026-07-19"
+sourcing:
+  lcsc: C97531
+  note: "Avia original reel; verify stock at order (~10k typical). ~$0.6."

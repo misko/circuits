@@ -1,0 +1,18 @@
+mpn: S8550
+manufacturer: Jiangsu Changjing
+type: pnp_25v_0a5
+datasheet:
+  url: https://www.lcsc.com/product-detail/C9082.html
+  fetched: 2026-07-19
+package: SOT-23
+footprint: Package_TO_SOT_SMD:SOT-23
+pins:
+  1: B
+  2: E
+  3: C
+gotchas:
+  - "SOT-23 BJT: 1=B 2=E 3=C (CJ marking convention); HX711 DS excitation PNP: E->5V, C->AVDD/E+, B->BASE"
+verified: "2/3-pad commodity; pin roles re-checked in fresh pin review"
+sourcing:
+  lcsc: C9082
+  note: "BASIC-class PNP, huge stock; Q1 excitation pass transistor."

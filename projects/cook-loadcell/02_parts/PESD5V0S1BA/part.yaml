@@ -1,0 +1,17 @@
+mpn: PESD5V0S1BA
+manufacturer: UMW
+type: tvs_bidir_5v_sod323
+datasheet:
+  url: https://www.lcsc.com/product-detail/C5158048.html
+  fetched: 2026-07-19
+package: SOD-323
+footprint: Diode_SMD:D_SOD-323
+pins:
+  1: K
+  2: A
+gotchas:
+  - "bidirectional - orientation electrically moot, keep pad1 to signal for CPL uniformity"
+verified: "2/3-pad commodity; polarity/pad-1 asserted in board generator + audit I9"
+sourcing:
+  lcsc: C5158048
+  note: "119k stock; commodity clone accepted for signal ESD (D13). D3-D7."
