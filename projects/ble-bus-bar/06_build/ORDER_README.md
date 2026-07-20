@@ -1,8 +1,10 @@
-# ORDER_README — ble-bus-bar v1.0
+# ORDER_README — ble-bus-bar v1.1
 
 ## JLC order options (PCB step)
 
-- **2 layers, 165 × 64 mm**, qty 5.
+- **2 layers, 165 × 74 mm**, qty 5. (v1.1 grew the outline 64→74 mm for
+  the two M4 mounting rails; ADR-0007. JLC reads the true outline from
+  Edge.Cuts in the gerbers regardless.)
 - **Outer copper weight: 2 oz** — REQUIRED (ampacity design assumes it;
   ADR-0002. A 1 oz board will overheat at rated load).
 - **Min via hole 0.2 mm ("0.2mm/(0.25/0.3mm)" option)** — REQUIRED: the
