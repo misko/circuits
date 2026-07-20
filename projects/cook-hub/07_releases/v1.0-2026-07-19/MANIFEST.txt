@@ -42,3 +42,4 @@ not_assembled: K1-K16 DIP05-1A72-12L reed relays (DO-NOT-SUBSTITUTE spec
 cost_note:    within the commission's hub budget: JLC 4L standard ~$25-40/5
   PCBs + assembled SMD (~$45-60 parts+assembly at qty 5) + hand-solder
   BOM ~$85 (20x DIP05 at $4.36) + connectors ~$10. Pico 2 (~$5) separate.
+seal_commit:  ed97523 (the commit that added this release directory; git_sha above = source-tree state the artifacts were built from)

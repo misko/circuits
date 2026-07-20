@@ -36,3 +36,4 @@ spec_337:     (a) 4x half-bridge ring OR (b) full-bridge via J5 = same 4
   bond + SJ1 hard short; (d) JP1 10/80SPS, default 10; (e) guarded short
   analog, I-AN audited; (f) TP1-TP7 cal/raw test points; (g) no cal
   storage on board. §8.2/8.3 locking XH connectors; plated M3 mounts.
+seal_commit:  ed97523 (the commit that added this release directory; git_sha above = source-tree state the artifacts were built from)
