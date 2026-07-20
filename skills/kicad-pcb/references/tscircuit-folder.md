@@ -20,6 +20,22 @@ and are what actually gets ordered. This is the Model-A adapter the CircuitScrip
 evaluation anticipated — proven viable 2026-07-19 because tscircuit (unlike
 CircuitScript) exports native KiCad, and `kicad-cli` loads and DRCs that export.
 
+## Two audiences, two schematics (ADR-0002)
+
+The schematic has two consumers, and they get DIFFERENT artifacts:
+- **Humans** read `build/schematic.pdf` — tscircuit's OWN native render (clean,
+  collision-free, real symbols). This is what a release ships as its schematic
+  document, and what satisfies the human-graded S6 readability item.
+- **The machine** reads `kicad/<board>.kicad_sch` — OUR converter output. It exists
+  only to feed ERC / netlist / parity and the backend; it is never required to be
+  pretty (in a tscircuit-native flow nobody opens it — you edit the TSX and view
+  tscircuit's render). The v2 converter draws wires so it's readable IF opened, but
+  its looks are not load-bearing.
+
+Both derive from the same `circuit.json`, so they cannot disagree on connectivity.
+Do NOT re-render the KiCad rebuild for the human PDF — that was polishing the wrong
+artifact. Ship tscircuit's `schematic.pdf`.
+
 ## Folder format
 
 ```
@@ -32,6 +48,7 @@ tscircuit/
   build/                    # (generated) renders
     circuit.json            # tscircuit's canonical intermediate
     schematic.svg
+    schematic.pdf           # HUMAN schematic doc = tscircuit's own render (SHIP in release)
     pcb.svg
     assembly.svg
     board.gltf              # 3D

@@ -75,6 +75,16 @@ Two rows stay KiCad-only because the authoring tool must never self-grade them:
   (the label blob) vs `schematic_v2_wired.png` (the wired sheet). ERC warnings are
   parametric only (`endpoint_off_grid` from the 0.635 mm grid, `lib_symbol_issues`/
   `footprint_link_issues` env notes, a few `unconnected_wire_endpoint` stubs).
+  **Phase A refinement (the real quality fix).** The converter v2 rebuild still has
+  KiCad-side label collisions (our generic symbols/text, NOT tscircuit's — tscircuit's
+  own render is clean). Rather than polish the rebuild (S-OCCL on the machine artifact),
+  we SPLIT THE AUDIENCES: the **human schematic document** is tscircuit's own render
+  (`build/schematic.pdf` via `schematic.svg` → rsvg-convert), which a release ships and
+  which satisfies human-graded S6; the **machine artifact** is the converter
+  `.kicad_sch` (ERC/netlist/parity only, never required to be pretty). `gen_tscircuit.sh`
+  now emits `build/schematic.pdf`. Both come from the same circuit.json, so connectivity
+  can't diverge. See `references/tscircuit-folder.md` "Two audiences, two schematics."
+
 - **Phase B — Placement-as-code.** `pcbX/pcbY` in TSX is the placement seed; a
   `circuit.json → .kicad_pcb` placer lands parts there; `generate_board` shrinks to
   "import placement → legalize → audit." Placement lives with the schematic.

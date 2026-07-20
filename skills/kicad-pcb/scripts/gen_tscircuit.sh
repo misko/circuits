@@ -41,6 +41,17 @@ step export kicad_pcb;timeout 240 tsci export "src/$BASE.tsx" -f kicad_pcb -o ".
 step export kicad_sch_native; timeout 240 tsci export "src/$BASE.tsx" -f kicad_sch -o "../kicad/$BASE.native.kicad_sch" >/dev/null 2>&1
 step export netlist;  timeout 240 tsci export "src/$BASE.tsx" -f readable-netlist -o "../verification/tsc_netlist.txt" >/dev/null 2>&1
 
+# --- HUMAN-FACING schematic document = tscircuit's OWN render (ADR-0002) ---
+# The two audiences are split: humans read tscircuit's clean native schematic
+# (no collisions); the machine reads kicad/<board>.kicad_sch (correctness only,
+# ERC/netlist/parity). We do NOT re-render our KiCad rebuild for the human PDF.
+# tscircuit exports schematic-svg; rsvg-convert makes the PDF the release ships.
+if [ -s "build/schematic.svg" ] && command -v rsvg-convert >/dev/null; then
+  step render "schematic.svg -> schematic.pdf (tscircuit render = the human schematic)"
+  rsvg-convert -f pdf -o "build/schematic.pdf" "build/schematic.svg" 2>/dev/null \
+    && echo "    build/schematic.pdf (SHIP THIS as the release schematic document)"
+fi
+
 # --- OUR converter: circuit.json -> an ANNOTATED, unique-symbol kicad_sch ---
 # This is the AUTHORITATIVE tscircuit->KiCad schematic bridge (ADR-0001 Phase 2;
 # ADR-0002 Phase A). DEFAULT MODE = layout (WIRED): it consumes tscircuit's own
