@@ -85,9 +85,42 @@ Two rows stay KiCad-only because the authoring tool must never self-grade them:
   now emits `build/schematic.pdf`. Both come from the same circuit.json, so connectivity
   can't diverge. See `references/tscircuit-folder.md` "Two audiences, two schematics."
 
-- **Phase B — Placement-as-code.** `pcbX/pcbY` in TSX is the placement seed; a
-  `circuit.json → .kicad_pcb` placer lands parts there; `generate_board` shrinks to
-  "import placement → legalize → audit." Placement lives with the schematic.
+- **Phase B — Placement-as-code. PROVEN + measured on cook-loadcell 2026-07-20;
+  verdict: adopt OPTIONAL, per-board, NOT fleet-mandatory.** A `circuit.json →
+  .kicad_pcb` placer (`scripts/circuit_json_to_kicad_pcb.py`) lands each part at
+  tscircuit's `pcb_component` center/rotation/layer (mapped tsc-mm/y-up → KiCad
+  mm/y-down, `pcbRotation` → `−orient`), reusing the sch converter's FPID
+  resolution + net model; our audit + legalize + route then certify it.
+
+  **The honest two-seed measurement (`projects/cook-loadcell/tscircuit/placement_proof/`,
+  NOTES.md):**
+  - **RAW tscircuit AUTO-placement** (the TSX authored `pcbX/pcbY` for the 4 holes
+    ONLY; 29 electrical parts auto-placed) → `audit_board` **11 FAIL** (4
+    decoupler-proximity: C3–C6 13–16 mm from U1 vs 8–12 budget; 7 functional-silk),
+    and `kicad-cli` DRC on the raw seed **214 violations incl. 22 courtyard
+    overlaps + 8 shorting pads** — tscircuit's layout is DRC-clean against its OWN
+    courtyards but physically collides real KiCad footprints. **Golden rule 7
+    confirmed at scale: auto placement is unusable as a seed.**
+  - **AUTHORED placement-as-code** (`pcbX/pcbY/pcbRotation` = the engineered
+    floorplan written into the TSX) → seed reproduces the sealed floorplan **28/29
+    parts pixel-identical** (SJ1 Δ1.27 mm: tscircuit's `<solderjumper>` centers at
+    pad-1 not body-center — documented origin quirk, 1 coord correction);
+    legalize+silk (0 caps snapped — floorplan already satisfies IP; 7 functional
+    captions + 33 refdes + 7 TP labels generated) → **audit PASS**; reused promoted
+    route r2 → **DRC 0/0/0**; board parity **0 (77/77 nodes)**.
+
+  **Verdict.** Placement-as-code is a real **ergonomic** win (placement +
+  schematic + netlist in one reviewable file, edited in the design tool) but it
+  **MOVES the placement hand-work, it does not remove it** — the authored
+  `pcbX/pcbY` are the same coordinates `generate_board`'s `ANCHOR/SEED` dicts hold.
+  And `generate_board` **shrinks but does not vanish**: the silk story (functional
+  captions, refdes de-collision, F.Fab, TP labels) is not in tscircuit's model and
+  stays KiCad-side — it became `legalize_and_silk.py` (the durable, seed-agnostic
+  legalizer any seed needs). So: adopt where the ergonomics pay (boards actively
+  authored in tscircuit); keep hand-coded placement fully valid; **never** seed the
+  backend from tscircuit auto-placement; promote the placer + a generalized
+  legalize+silk pass to the toolchain regardless. Connector-heavy boards need a
+  per-footprint origin-offset table in the placer (the `<solderjumper>` quirk).
 - **Phase C — The registry.** Publish our proven subcircuits as reusable tscircuit
   modules (RJ45 port-channel, power-entry-protection, ESP32 standard hookup, Kelvin-shunt
   block). New boards COMPOSE certified blocks — tscircuit ergonomics, our engineering.

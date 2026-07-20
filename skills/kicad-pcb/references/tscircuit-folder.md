@@ -189,6 +189,41 @@ Note `part.yaml`'s `footprint:` value is read as the first whitespace-free token
 a trailing YAML `# inline comment` (even one containing quotes, as TS-1187A has) is
 dropped cleanly and never corrupts the emitted s-expr.
 
+## Placement-as-code — the PCB bridge (ADR-0002 Phase B, PROVEN 2026-07-20)
+
+The schematic bridge has a PCB sibling: `scripts/circuit_json_to_kicad_pcb.py`
+lands every part at the placement tscircuit carries in `circuit.json`
+(`pcb_component` center / rotation / layer — authored in the TSX as
+`pcbX`/`pcbY`/`pcbRotation`), reusing the sch converter's FPID map + net model,
+into a native `.kicad_pcb` placement SEED. Mapping: `kx = origin_x + tsc_x`,
+`ky = origin_y − tsc_y` (y-flip), `korient = (−pcbRotation) mod 360`;
+`--outline-from <ref.kicad_pcb>` copies the Edge_Cuts + NPTH mounting holes and
+sets the origin to that outline's bbox center (drops the TSX-authored placement
+into the certified board frame). Missing placement / FPID is a hard error.
+
+**It is a SEED, not a finished board — our audit + legalize + route certify it.**
+The measured two-seed result on cook-loadcell (`placement_proof/NOTES.md`):
+
+- **tscircuit's AUTO-placement is unusable as a seed** (golden rule 7 at scale):
+  the raw auto-layout throws **11 audit failures** (4 decoupler-proximity, 7
+  functional-silk) and **214 DRC violations incl. 22 courtyard overlaps + 8
+  shorting pads** — it is DRC-clean against tscircuit's OWN courtyards but
+  physically collides real KiCad footprints. NEVER feed it to the backend.
+- **AUTHORED `pcbX/pcbY`** (the engineered floorplan written as code) reproduces
+  the sealed floorplan pixel-for-pixel (28/29 parts; the `<solderjumper>` centers
+  at pad-1 not body-center → one documented 1.27 mm origin pre-compensation), and
+  after a legalize+silk pass reaches **audit PASS → DRC 0/0/0 → board parity 0**.
+
+**Verdict: a real ERGONOMIC win (placement lives with the schematic + netlist in
+one reviewable file) that MOVES the placement hand-work rather than removing it** —
+authored `pcbX/pcbY` are the same coordinates a hand-coded `generate_board`'s
+`ANCHOR/SEED` dicts hold. And `generate_board` shrinks but does not vanish: the
+silk story (functional captions, refdes de-collision, F.Fab, TP labels) is NOT in
+tscircuit's model and stays KiCad-side (the reusable `legalize_and_silk.py`).
+**Adopt OPTIONAL, per-board** (boards actively authored in tscircuit); keep
+hand-coded placement valid. Connector-heavy boards need a per-footprint
+origin-offset table in the placer.
+
 ## What the verification stack proves (and its limits)
 
 - **DRC-on-export** is the honest number: tscircuit's auto-layout/route does NOT
