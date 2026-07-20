@@ -7,8 +7,11 @@ fidelity against the KiCad fab-of-record.
 
 ## Why this is allowed under canon S-DSL
 
-S-DSL says circuit declarations compile to NATIVE KiCad artifacts and every gate
-runs on those artifacts, never on a DSL's claims. tscircuit satisfies the letter
+The migration boundary is fixed by repo **ADR-0001**
+(`docs/decisions/0001-tscircuit-authoring-boundary.md`): TSX authors the schematic;
+ERC/rules/routing/twin/policy/release stay KiCad-side. S-DSL says circuit
+declarations compile to NATIVE KiCad artifacts and every gate runs on those
+artifacts, never on a DSL's claims. tscircuit satisfies the letter
 of this because `tsci export` emits native `.kicad_pcb` / `.kicad_sch` — so we run
 the SAME `kicad-cli` DRC on tscircuit's output that we run on our own, and we diff
 its netlist against the sealed release. The `tscircuit/` folder is a **second
