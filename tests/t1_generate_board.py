@@ -185,6 +185,30 @@ def t_multilayer_rule_area():
     eq(got, "B.Cu,F.Cu,In1.Cu,In2.Cu", "rule area layer set")
 
 
+@test("a PERMISSIVE named rule area forbids nothing (it is a DRU anchor)")
+def t_permissive_rule_area():
+    """`deny: []` with a name is a real and distinct use: the area exists
+    only so generate_rules.py can scope a .kicad_dru rule to
+    insideArea('<name>') (cook-hub's u7_taps, usb-power-3s's SW_TAP_A/B).
+    An implementation that always denies would silently fence off copper on
+    boards whose rules depend on that area being open."""
+    def mutate(cfg):
+        cfg["keepouts"] = [{"name": "SW_TAP", "deny": [],
+                            "layers": ["F.Cu"], "rect": [30, 30, 40, 40]}]
+    d, p = scratch_config(mutate)
+    out = d / "b.kicad_pcb"
+    gen(p, out)
+    code = ("import pcbnew,sys\nb=pcbnew.LoadBoard(sys.argv[1])\n"
+            "z=[z for z in b.Zones() if z.GetIsRuleArea()][0]\n"
+            "print('@@%s|%s' % (z.GetZoneName(), ','.join(str(int(v)) for v in ("
+            "z.GetDoNotAllowTracks(), z.GetDoNotAllowVias(),"
+            " z.GetDoNotAllowPads(), z.GetDoNotAllowZoneFills()))))\n")
+    r = must_pass(run([KPY, "-c", code, out]), "probe permissive rule area")
+    name, flags = r.out.split("@@")[1].strip().split("|")
+    eq(name, "SW_TAP", "rule area name (generate_rules scopes .kicad_dru to it)")
+    eq(flags, "0,0,0,0", "a permissive rule area must forbid NOTHING")
+
+
 @test("a rule area on a layer the stackup does not have is a hard error",
       kind="known_bad")
 def t_rule_area_layer_not_in_stackup():
