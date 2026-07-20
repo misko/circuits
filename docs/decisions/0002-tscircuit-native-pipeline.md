@@ -163,12 +163,68 @@ Two rows stay KiCad-only because the authoring tool must never self-grade them:
   ESP32 standard hookup. Adopt OPTIONAL, per-board (like placement-as-code); a module is
   an authoring convenience that emits circuit.json — the gates, routing, and twin are
   unmoved.
-- **Phase D — Retire the redundancy.** TSX becomes the sole authoring path (schwriter2
-  deprecated as boards migrate); slim `gen_tscircuit.sh` to the bridge only (drop the
-  duplicate gerber/3D/native-PCB study exports we never use).
-- **Phase E — One command.** `board.tsx → tsci build → converter → [audit → KRT → DRC →
-  twin → policy → release]`, documented as THE process. tscircuit checks run during
-  authoring (fast feedback); KiCad gates run at commit/release (CI).
+- **Phase D — Retire the redundancy. DONE 2026-07-20.** TSX becomes the go-forward
+  authoring path (schwriter2 deprecated to FALLBACK-ONLY, not deleted — still the path
+  for footprints tscircuit can't yet express); slim `gen_tscircuit.sh` to the bridge
+  only (drop the duplicate gerber/3D/native-PCB study exports we never use).
+
+  **Result.** `gen_tscircuit.sh <project>` (no flag) now emits ONLY the bridge:
+  `build/circuit.json`, the human `schematic.svg`/`schematic.pdf`, the converter
+  `kicad/<board>.kicad_sch`, the readable netlist, and the ERC + netlist-parity gates
+  (`parity_converter.md`, `parity.md`). The tscircuit PCB STUDY exports — native
+  `.kicad_pcb`, `pcb.svg`, `assembly.svg`, `board.gltf`, `fab/gerbers.zip`,
+  `.native.kicad_sch`, and the DRC-on-tscircuit-export — are GATED behind `--study`
+  (DEFAULT OFF). tscircuit's own PCB/gerbers are never our fab source (KRT + the KiCad
+  backend own the fab route — the two hard lines), so rendering them by default was
+  duplicate compute; `--study` keeps the capability fully reversible. Verified on
+  cook-loadcell: `gen_tscircuit.sh` (no flag) → bridge + ERC **0 errors** + netlist
+  parity **0**, and does NOT emit the study artifacts; `--study` restores the full
+  render (DRC-on-export 451, as expected for tscircuit's thin default copper). Docs
+  updated: pcb-design schematic-authoring step (schwriter2 = fallback-only), kicad-pcb
+  golden-rule 3d (the wired path is now tscircuit, not "until schwriter emits wires"),
+  and `tscircuit-folder.md` folder-format (study outputs marked `[--study only]`).
+  schwriter2.py is RETAINED.
+- **Phase E — One command. DONE 2026-07-20.** `scripts/tsx_to_board.sh <project>` is the
+  canonical one-command tscircuit-native pipeline, generalized from cook-loadcell's
+  `backend_proof/build_from_tsx.sh`:
+  `tsci build → circuit_json_to_kicad_sch → sch export netlist → ERC →
+  [placement: generate_board OR circuit_json_to_kicad_pcb at pcbX/pcbY] → generate_rules
+  → KRT route (reuse the promoted 03_src/route/r*.kicad_pcb chain if present) →
+  [route_taps] → stitch_and_fill → generate_rules LAST →
+  DRC --severity-all --refill-zones --schematic-parity → board_netlist_parity`.
+
+  **The KiCad backend runs BYTE-FOR-BYTE UNCHANGED** (it's netlist-driven) — the driver
+  only wires TSX authoring into it and reparents every backend output into an isolated,
+  gitignored build root (`tscircuit/tsx_build/`, wiped each run → idempotent) via a
+  `03_src` symlink + the `__file__.parent.parent` reparent trick, so the sealed
+  `04_kicad/` and releases are never touched. It auto-discovers the internal board name,
+  the promoted route chain, and optional backend steps; the sealed parity reference is
+  `<project>/04_kicad/<board>.kicad_pcb` or a one-line `tscircuit/sealed_ref.txt`.
+
+  **Proven end-to-end on TWO tscircuit-native boards to DRC 0/0/0 + board parity 0:**
+
+  | board | parts | route | DRC (viol/unconn/parity) | board parity |
+  |---|---|---|---|---|
+  | cook-loadcell (via backend_proof setup) | 29 + 4 holes | r2 | 0 / 0 / 0 | **0** (77 nodes / 17 nets) |
+  | lipo3s-tsc (the 100-part capstone) | 96 + 4 holes | r5 + taps | 0 / 0 / 0 | **0** (303 nodes / 56 nets) |
+
+  Proof records (non-destructive): each project's
+  `tscircuit/verification/tsx_to_board_proof.md`. Documented as THE go-forward rebuild
+  command in the pcb-design skill (stage 4-6) and `tscircuit-folder.md`. tscircuit checks
+  run during authoring (fast feedback); the KiCad gates run at commit/release (CI).
+
+## Migration status: COMPLETE (2026-07-20)
+
+Phases 0–E are done + audited. tscircuit is the adopted design front-end; the KiCad
+backend + gate stack is the unchanged CI/fab backbone; the converter is the compiler
+between them, and `tsx_to_board.sh` is the one-command pipeline that runs it end to end
+(proven DRC 0/0/0 + board parity 0 on cook-loadcell and the 100-part lipo3s-tsc capstone).
+The two hard lines are permanent by design — **routing physics** (KRT) and the
+**digital twin** (jlc_twin) stay KiCad-only because the authoring tool must never
+self-grade them. schwriter2 is RETAINED as the fallback for footprints tscircuit can't
+yet express (deprecated from co-standard, never deleted). Every step remains additive +
+reversible: each board keeps its KiCad generators until it migrates, `--study` restores
+the full second-opinion render, and no sealed artifact was mutated.
 
 ## Relationship to ADR-0001 & reversibility
 

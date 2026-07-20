@@ -48,22 +48,29 @@ hard-won traps; this skill is the orchestration layer only.
 ## 4-6. Generate, place, route — all regenerable from 03_src
 
 Build `03_src/` generators + `rebuild_all.sh` (set -euo pipefail) in the
-canonical order. **Schematic authoring — two proven paths (ADR-0001/0002):**
-(1) the go-forward standard is **tscircuit/TSX** → our converter emits a native,
-annotated, backend-ready `.kicad_sch` (`scripts/circuit_json_to_kicad_sch.py`
-via `gen_tscircuit.sh`; default `--mode layout` = WIRED, retires S6; canonical
-nets + FPIDs from `02_parts` folded in, no per-board adapter — see
-`kicad-pcb/references/tscircuit-folder.md`). Author each specialty part with
-`supplierPartNumbers={{jlcpcb:["C…"]}}` so its FPID resolves, and add a
-`net_aliases.txt` line for any leading-digit rail (`12V`→`N12V`). **Two audiences
-(ADR-0002 Phase A):** the human schematic document = tscircuit's OWN render
-(`build/schematic.pdf`, shipped in the release); the converter `.kicad_sch` is
-the machine artifact only (ERC/netlist/parity, need not be pretty). Compose proven
-subcircuits from the module library (`tscircuit_modules/`) where one exists (ADR-0002
-Phase C). (2) **schwriter2 declarations** remain the co-standard + fallback for
-footprints tscircuit can't yet express (structure-only; path/subcircuit/net-object
-API — canon S-DSL). EITHER path feeds the SAME downstream: generate_schematic (or the
-converter) with no_connect flags for every sanctioned float; wire the
+canonical order. **Schematic authoring — tscircuit/TSX is THE standard,
+schwriter2 is FALLBACK-ONLY (ADR-0002 Phases D+E, migration COMPLETE):**
+(1) the go-forward path is **tscircuit/TSX**. The whole board rebuilds with ONE
+command — `scripts/tsx_to_board.sh <project>` (Phase E): `tsci build` → converter
+`.kicad_sch` → placement → generate_rules → KRT (reuses the promoted route chain)
+→ stitch_and_fill → generate_rules LAST → DRC 0/0/0. For schematic-only render
+use `gen_tscircuit.sh <project>` (default = the BRIDGE ONLY: circuit.json,
+schematic.svg/.pdf, converter `.kicad_sch`, ERC + netlist-parity gate; pass
+`--study` for tscircuit's own PCB/gerber/3D second-opinion render, which is never
+a fab source). The converter (`circuit_json_to_kicad_sch.py`, default `--mode
+layout` = WIRED, retires S6) folds canonical nets + FPIDs from `02_parts` in with
+no per-board adapter — see `kicad-pcb/references/tscircuit-folder.md`. Author each
+specialty part with `supplierPartNumbers={{jlcpcb:["C…"]}}` so its FPID resolves,
+and add a `net_aliases.txt` line for any leading-digit rail (`12V`→`N12V`).
+**Two audiences (ADR-0002 Phase A):** the human schematic document = tscircuit's
+OWN render (`build/schematic.pdf`, shipped in the release); the converter
+`.kicad_sch` is the machine artifact only (ERC/netlist/parity, need not be pretty).
+Compose proven subcircuits from the module library (`tscircuit_modules/`) where one
+exists (ADR-0002 Phase C). (2) **schwriter2 declarations** are RETAINED as the
+FALLBACK for footprints tscircuit can't yet express (structure-only;
+path/subcircuit/net-object API — canon S-DSL); not deleted, still valid, but no
+longer the co-standard. EITHER path feeds the SAME downstream: generate_schematic
+(or the converter) with no_connect flags for every sanctioned float; wire the
 story-critical paths per canon S6 →
 **ERC gate** (`kicad-cli sch erc --severity-all` = 0 errors) →
 netlist-parity gate → generate_board — placement is hand-coded OR

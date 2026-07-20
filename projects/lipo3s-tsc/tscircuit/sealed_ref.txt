@@ -1,0 +1,3 @@
+# Sealed board-netlist parity reference for lipo3s-tsc (the tscircuit-native
+# rebuild of usb-power-3s). Path is relative to the project dir.
+../usb-power-3s/04_kicad/usb_power_3s.kicad_pcb

@@ -46,23 +46,23 @@ tscircuit/
   src/
     <board>.tsx             # THE BOARD authored in tscircuit
   build/                    # (generated) renders
-    circuit.json            # tscircuit's canonical intermediate
-    schematic.svg
-    schematic.pdf           # HUMAN schematic doc = tscircuit's own render (SHIP in release)
-    pcb.svg
-    assembly.svg
-    board.gltf              # 3D
-  fab/                      # (generated) JLCPCB fab package
+    circuit.json            # [DEFAULT] tscircuit's canonical intermediate
+    schematic.svg           # [DEFAULT]
+    schematic.pdf           # [DEFAULT] HUMAN schematic doc = tscircuit's own render (SHIP in release)
+    pcb.svg                 # [--study only]
+    assembly.svg            # [--study only]
+    board.gltf              # [--study only] 3D
+  fab/                      # [--study only] tscircuit's own JLCPCB fab package (NEVER a fab source)
     gerbers.zip
     bom.csv  cpl.csv        # when the parts-engine resolves JLC codes
   kicad/                    # (generated) the S-DSL bridge
-    <board>.kicad_pcb       # tscircuit native PCB export (study copper)
-    <board>.kicad_sch       # OUR converter output (circuit.json -> annotated sch) — AUTHORITATIVE
-    <board>.native.kicad_sch# tscircuit's native kicad_sch export — reference only (buggy, see below)
-  verification/             # (generated) the second-opinion gate
-    tsc_netlist.txt         # tscircuit readable-netlist
-    drc.json                # kicad-cli DRC run ON the tscircuit kicad export
-    parity.md               # first-order component/net counts vs the sealed KiCad board (M1)
+    <board>.kicad_sch       # [DEFAULT] OUR converter output (circuit.json -> annotated sch) — AUTHORITATIVE
+    <board>.kicad_pcb       # [--study only] tscircuit native PCB export (study copper)
+    <board>.native.kicad_sch# [--study only] tscircuit's native kicad_sch export — reference only (buggy, see below)
+  verification/             # (generated) the bridge gate (+ second-opinion under --study)
+    tsc_netlist.txt         # [DEFAULT] tscircuit readable-netlist
+    drc.json                # [--study only] kicad-cli DRC run ON the tscircuit kicad export
+    parity.md               # [DEFAULT] first-order component/net counts vs the sealed KiCad board (M1)
     erc_converter.rpt       # kicad-cli sch ERC on OUR converter kicad_sch (0 errors is the bar)
     converter_netlist.net   # netlist exported from OUR converter kicad_sch
     parity_converter.md     # node-for-node netlist parity: converter vs sealed 04_kicad
@@ -74,12 +74,27 @@ tscircuit/
 
 ```
 export PATH="$HOME/.bun/bin:$PATH"          # tsci runs on bun (installed per-user)
-bash <kicad-pcb skill>/scripts/gen_tscircuit.sh <project_dir>
+bash <kicad-pcb skill>/scripts/gen_tscircuit.sh <project_dir>            # BRIDGE ONLY (default)
+bash <kicad-pcb skill>/scripts/gen_tscircuit.sh <project_dir> --study    # + tscircuit's own PCB render
 ```
 
-The script builds every artifact above, runs `kicad-cli` DRC on the tscircuit
-KiCad export, and writes `parity.md`. It is READ-ONLY w.r.t. `04_kicad/` and the
-releases — it only writes under `tscircuit/`.
+**DEFAULT = the BRIDGE ONLY (ADR-0002 Phase D).** With no flag the script emits
+only what the KiCad backend consumes + the gates that certify it: `circuit.json`,
+the human `schematic.svg`/`schematic.pdf`, the converter `kicad/<board>.kicad_sch`,
+the readable netlist, and the ERC + netlist-parity gates (`parity_converter.md`,
+`parity.md`). It does NOT render tscircuit's own PCB/gerbers/3D — those are never a
+fab source (KRT + the KiCad backend own the fab route — the two hard lines), so
+producing them by default was duplicate compute.
+
+**`--study`** restores the full second-opinion render (the `[--study only]` rows
+above): `pcb.svg`, `assembly.svg`, `board.gltf`, `fab/gerbers.zip`, the native
+`kicad_pcb`/`native.kicad_sch`, and the `kicad-cli` DRC-on-export (`drc.json`). Use
+it only to eyeball tscircuit's own layout; the capability is retained + reversible.
+
+To rebuild the WHOLE board (not just the schematic) from TSX in one command —
+`tsci build` → converter → placement → rules → KRT → stitch → DRC 0/0/0 — use
+`scripts/tsx_to_board.sh <project>` (ADR-0002 Phase E; see below). Both scripts are
+READ-ONLY w.r.t. sealed `04_kicad/` and the releases.
 
 ## The schematic bridge is OUR converter, not `tsci export -f kicad_sch` (ADR-0001 Phase 2)
 
@@ -223,6 +238,52 @@ tscircuit's model and stays KiCad-side (the reusable `legalize_and_silk.py`).
 **Adopt OPTIONAL, per-board** (boards actively authored in tscircuit); keep
 hand-coded placement valid. Connector-heavy boards need a per-footprint
 origin-offset table in the placer.
+
+## The one command — `tsx_to_board.sh` (ADR-0002 Phase E, THE go-forward rebuild)
+
+`scripts/tsx_to_board.sh <project>` is the canonical ONE-COMMAND tscircuit-native
+pipeline: it drives a TSX-authored board through the UNCHANGED, netlist-driven KiCad
+backend, from source to a DRC-clean, parity-checked board. This is the go-forward
+rebuild command for a tscircuit-native project (the schematic-only `gen_tscircuit.sh`
+stops at the bridge; this runs the whole backend).
+
+```
+export PATH="$HOME/.bun/bin:$PATH"
+bash <kicad-pcb skill>/scripts/tsx_to_board.sh <project>            # generate_board placement (default)
+bash <kicad-pcb skill>/scripts/tsx_to_board.sh <project> --placement tsx   # placement-as-code seed (Phase B)
+```
+
+Flow (each gate's result is printed; ends at DRC 0/0/0):
+```
+tsci build  ->  circuit_json_to_kicad_sch  ->  sch export netlist  ->  ERC (0 err)
+  ->  [placement: generate_board.py  OR  circuit_json_to_kicad_pcb.py at pcbX/pcbY + legalize]
+  ->  generate_rules (rules ride into the router, canon R1)
+  ->  KRT route (reuse the promoted 03_src/route/r*.kicad_pcb chain if present)
+  ->  [route_taps.py if present]  ->  stitch_and_fill  ->  generate_rules LAST
+  ->  DRC --severity-all --refill-zones --schematic-parity  ->  board_netlist_parity vs sealed
+```
+
+**The KiCad backend is UNCHANGED** — the driver only wires TSX authoring into it and
+reparents every backend output into an isolated build root (`tscircuit/tsx_build/`,
+gitignored, wiped each run so the driver is idempotent) via a `03_src` symlink and
+the `__file__.parent.parent` reparent trick. The sealed `04_kicad/` and releases are
+NEVER touched. Discovery is automatic: the internal board name from
+`generate_board.py`'s `.net` path (may differ from the TSX name — `lipo3s_tsc.tsx`
+builds `usb_power_3s`), the newest promoted route chain, optional `route_taps.py` /
+`audit_board.py`. The sealed parity reference defaults to
+`<project>/04_kicad/<board>.kicad_pcb`, overridable with a one-line
+`tscircuit/sealed_ref.txt` (used by lipo3s-tsc to point at the sibling usb-power-3s
+board it reproduces).
+
+**Proven end-to-end on TWO tscircuit-native boards to DRC 0/0/0 + board parity 0
+(2026-07-20):**
+
+| board | parts | route | DRC (v/u/p) | board parity |
+|---|---|---|---|---|
+| cook-loadcell | 29 + 4 holes | r2 | 0 / 0 / 0 | **0** (77 nodes / 17 nets) |
+| lipo3s-tsc (capstone) | 96 + 4 holes | r5 + taps | 0 / 0 / 0 | **0** (303 nodes / 56 nets) |
+
+Proof records: each project's `tscircuit/verification/tsx_to_board_proof.md`.
 
 ## What the verification stack proves (and its limits)
 

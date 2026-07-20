@@ -50,9 +50,13 @@ credits, or debugging time — check provenance notes before assuming staleness.
 3d. **Schematics draw their story** (canon S6): generators must WIRE the
    story-critical paths (power entry -> protection -> regulation; the
    primary signal chain); net-label-only connection is acceptable for
-   pullups/decouplers/bulk. The whole fleet audited at 0 drawn wires —
-   pure label-blob schematics that reviewers must mentally re-net. Until
-   schwriter emits wires, the render review MUST grade readability.
+   pullups/decouplers/bulk. The label-blob era is retired: the go-forward
+   WIRED path is **tscircuit** — author in TSX, and `circuit_json_to_kicad_sch.py`
+   (default `--mode layout`) emits a wired, readable `.kicad_sch` (converter v2,
+   ADR-0002 Phase A). The human schematic document is tscircuit's own render
+   (`build/schematic.pdf`). For the schwriter2 FALLBACK path (footprints
+   tscircuit can't yet express — it still emits label-glue, no drawn wires),
+   the render review MUST grade readability.
 3e. **NC pins are emitted, not narrated** (canon S4): generate_schematic
    places no_connect flags for every sanctioned float; the rebuild chain
    gates `kicad-cli sch erc --severity-all` at ZERO errors (warnings

@@ -1,45 +1,65 @@
 #!/usr/bin/env bash
-# gen_tscircuit.sh — render a board's tscircuit/ folder: an ALTERNATE, non-authoritative
-# tscircuit design/route of a project, with full JLCPCB fab output + a verification stack
-# that proves fidelity against the KiCad fab-of-record.
+# gen_tscircuit.sh — render a board's tscircuit/ folder.
+#
+# ADR-0002 Phase D (2026-07-20): the DEFAULT is now the BRIDGE ONLY — the
+# minimal set the KiCad backend actually consumes + the gates that certify it:
+#   build/circuit.json                 tscircuit's canonical intermediate (tsci build)
+#   build/schematic.svg + .pdf         the HUMAN schematic document (tscircuit's own render)
+#   kicad/<board>.kicad_sch            OUR converter output (AUTHORITATIVE machine bridge)
+#   verification/tsc_netlist.txt       tscircuit readable-netlist (first-order parity signal)
+#   verification/erc_converter.rpt     kicad-cli sch ERC on the converter sch (0 errors = bar)
+#   verification/parity_converter.md   node-for-node netlist parity vs the sealed 04_kicad
+#   verification/parity.md             first-order component/net counts vs the sealed board
+#
+# The tscircuit PCB STUDY exports are GATED behind `--study` (DEFAULT OFF):
+#   build/{pcb.svg,assembly.svg,board.gltf}    tscircuit's own PCB/3D render
+#   fab/gerbers.zip                            tscircuit's own gerbers
+#   kicad/<board>.kicad_pcb                    tscircuit native PCB export (study copper)
+#   kicad/<board>.native.kicad_sch             tscircuit native kicad_sch (buggy — reference only)
+#   verification/drc.json                      kicad-cli DRC ON the tscircuit PCB export
+# tscircuit's own PCB/gerbers are NEVER our fab source (KRT + the KiCad backend
+# route the fab board — the two hard lines, ADR-0002), so rendering them by
+# default was duplicate compute. `--study` restores the full second-opinion render
+# for the rare case someone wants to eyeball tscircuit's own layout; the capability
+# is retained, just no longer the default.
 #
 # Canon S-DSL: KiCad .kicad_sch/.kicad_pcb + the gate stack remain the fab-of-record.
-# This folder is a SECOND OPINION render — tscircuit authors the board, exports NATIVE
-# KiCad, and we run the same kicad-cli gates on it plus a netlist-parity diff against the
-# sealed release. It never feeds a fab order on its own.
 #
-# Usage: gen_tscircuit.sh <project_dir>
+# Usage: gen_tscircuit.sh <project_dir> [--study]
 #   expects <project_dir>/tscircuit/src/<board>.tsx  (+ package.json)
-#   writes  <project_dir>/tscircuit/{build,fab,kicad,verification}/...
+#   writes  <project_dir>/tscircuit/{build,kicad,verification}[,fab]/...
 #   compares against the newest sealed KiCad board if one exists.
 set -uo pipefail
 export PATH="$HOME/.bun/bin:$PATH"          # bun + tsci are installed per-user, persist on disk
-PROJ="${1:?usage: gen_tscircuit.sh <project_dir>}"
+SKILLDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"   # resolve BEFORE any cd
+STUDY=0
+ARGS=()
+for a in "$@"; do
+  case "$a" in
+    --study) STUDY=1 ;;
+    *) ARGS+=("$a") ;;
+  esac
+done
+PROJ="${ARGS[0]:?usage: gen_tscircuit.sh <project_dir> [--study]}"
+PROJ="$(cd "$PROJ" && pwd)"                  # absolute — the script cds into $T later
 T="$PROJ/tscircuit"
 SRC=$(ls "$T"/src/*.tsx 2>/dev/null | head -1)
 [ -z "$SRC" ] && { echo "NO tscircuit/src/*.tsx in $PROJ — nothing to render (scaffold only)"; exit 3; }
 BASE=$(basename "$SRC" .tsx)
-mkdir -p "$T"/build "$T"/fab "$T"/kicad "$T"/verification
+mkdir -p "$T"/build "$T"/kicad "$T"/verification
+[ "$STUDY" = 1 ] && mkdir -p "$T"/fab
 step(){ echo "  [$1] $2"; }
 
 # NOTE: `tsci export -o P` resolves P relative to the INPUT file's directory
 # (src/) and strips leading slashes — so outputs are written as ../<dir>/... to
 # land at the tscircuit/ root. All tsci commands run from $T.
 cd "$T" || exit 2
+
+# --- BRIDGE (DEFAULT): circuit.json + human schematic doc ---
 step build "circuit-json";      timeout 240 tsci build "src/$BASE.tsx" >/dev/null 2>&1 \
   && cp "dist/src/$BASE/circuit.json" "build/circuit.json" 2>/dev/null
-for spec in "schematic-svg:build/schematic.svg" "pcb-svg:build/pcb.svg" "assembly-svg:build/assembly.svg" "gltf:build/board.gltf"; do
-  f=${spec%%:*}; out=${spec#*:}
-  step export "$f"; timeout 240 tsci export "src/$BASE.tsx" -f "$f" -o "../$out" >/dev/null 2>&1
-done
-step export gerbers;  timeout 240 tsci export "src/$BASE.tsx" -f gerbers -o "../fab/gerbers.zip" >/dev/null 2>&1
-step export kicad_pcb;timeout 240 tsci export "src/$BASE.tsx" -f kicad_pcb -o "../kicad/$BASE.kicad_pcb" >/dev/null 2>&1
-# tscircuit's OWN native kicad_sch export is kept for reference only (ADR-0001
-# Phase-2: it has two proven bugs — the Device:U_chip_<footprint> symbol-id
-# collision that truncates 2+ many-pin custom-footprint chips to 2 pins, and no
-# symbol annotation so `sch export netlist` builds 0 nets). It is NOT authoritative.
-step export kicad_sch_native; timeout 240 tsci export "src/$BASE.tsx" -f kicad_sch -o "../kicad/$BASE.native.kicad_sch" >/dev/null 2>&1
-step export netlist;  timeout 240 tsci export "src/$BASE.tsx" -f readable-netlist -o "../verification/tsc_netlist.txt" >/dev/null 2>&1
+step export "schematic-svg";    timeout 240 tsci export "src/$BASE.tsx" -f schematic-svg -o "../build/schematic.svg" >/dev/null 2>&1
+step export netlist;            timeout 240 tsci export "src/$BASE.tsx" -f readable-netlist -o "../verification/tsc_netlist.txt" >/dev/null 2>&1
 
 # --- HUMAN-FACING schematic document = tscircuit's OWN render (ADR-0002) ---
 # The two audiences are split: humans read tscircuit's clean native schematic
@@ -50,6 +70,33 @@ if [ -s "build/schematic.svg" ] && command -v rsvg-convert >/dev/null; then
   step render "schematic.svg -> schematic.pdf (tscircuit render = the human schematic)"
   rsvg-convert -f pdf -o "build/schematic.pdf" "build/schematic.svg" 2>/dev/null \
     && echo "    build/schematic.pdf (SHIP THIS as the release schematic document)"
+fi
+
+# --- STUDY-ONLY (gated behind --study, DEFAULT OFF): tscircuit's own PCB/gerbers/3D ---
+# These are a SECOND-OPINION render of tscircuit's OWN layout. They are never a fab
+# source (KRT + the KiCad backend own the fab route). Retired from the default path
+# (ADR-0002 Phase D) to kill duplicate compute; kept fully reversible under --study.
+if [ "$STUDY" = 1 ]; then
+  echo "  --study: rendering tscircuit's own PCB/gerbers/3D + DRC-on-export (second opinion)"
+  for spec in "pcb-svg:build/pcb.svg" "assembly-svg:build/assembly.svg" "gltf:build/board.gltf"; do
+    f=${spec%%:*}; out=${spec#*:}
+    step export "$f"; timeout 240 tsci export "src/$BASE.tsx" -f "$f" -o "../$out" >/dev/null 2>&1
+  done
+  step export gerbers;  timeout 240 tsci export "src/$BASE.tsx" -f gerbers -o "../fab/gerbers.zip" >/dev/null 2>&1
+  step export kicad_pcb;timeout 240 tsci export "src/$BASE.tsx" -f kicad_pcb -o "../kicad/$BASE.kicad_pcb" >/dev/null 2>&1
+  # tscircuit's OWN native kicad_sch export is kept for reference only (ADR-0001
+  # Phase-2: it has two proven bugs — the Device:U_chip_<footprint> symbol-id
+  # collision that truncates 2+ many-pin custom-footprint chips to 2 pins, and no
+  # symbol annotation so `sch export netlist` builds 0 nets). It is NOT authoritative.
+  step export kicad_sch_native; timeout 240 tsci export "src/$BASE.tsx" -f kicad_sch -o "../kicad/$BASE.native.kicad_sch" >/dev/null 2>&1
+  # verification: run OUR gate on tscircuit's KiCad export
+  KPCB="$T/kicad/$BASE.kicad_pcb"
+  if [ -s "$KPCB" ]; then
+    step verify "kicad-cli DRC on tscircuit export"
+    kicad-cli pcb drc --severity-all --format json -o "$T/verification/drc.json" "$KPCB" >/dev/null 2>&1
+    V=$(python3 -c "import json;d=json.load(open('$T/verification/drc.json'));print(len(d['violations']),len(d['unconnected_items']))" 2>/dev/null || echo "? ?")
+    echo "    tscircuit-export DRC (kicad-cli, severity-all): $V  (violations unconnected)"
+  fi
 fi
 
 # --- OUR converter: circuit.json -> an ANNOTATED, unique-symbol kicad_sch ---
@@ -65,7 +112,6 @@ fi
 # retiring the S6 label-blob finding. If a board's trace geometry can't import
 # without a cross-net short, the converter auto-falls-back to v1's label grid
 # (`--mode grid`) for that board and logs it (parity is never worse than v1).
-SKILLDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -s "build/circuit.json" ]; then
   step convert "circuit.json -> WIRED kicad_sch (OUR converter, layout mode)"
   CONVOUT=$(python3 "$SKILLDIR/circuit_json_to_kicad_sch.py" "build/circuit.json" \
@@ -75,15 +121,6 @@ if [ -s "build/circuit.json" ]; then
   else
     echo "    CONVERTER FAILED: $CONVOUT"
   fi
-fi
-
-# --- verification: run OUR gate on tscircuit's KiCad export ---
-KPCB="$T/kicad/$BASE.kicad_pcb"
-if [ -s "$KPCB" ]; then
-  step verify "kicad-cli DRC on tscircuit export"
-  kicad-cli pcb drc --severity-all --format json -o "$T/verification/drc.json" "$KPCB" >/dev/null 2>&1
-  V=$(python3 -c "import json;d=json.load(open('$T/verification/drc.json'));print(len(d['violations']),len(d['unconnected_items']))" 2>/dev/null || echo "? ?")
-  echo "    tscircuit-export DRC (kicad-cli, severity-all): $V  (violations unconnected)"
 fi
 
 # --- parity vs the sealed KiCad fab-of-record (M1 checker-independence) ---
@@ -146,4 +183,4 @@ if [ -s "$KSCH" ]; then
       | tee "$T/verification/parity_converter.md"
   fi
 fi
-echo "DONE: $PROJ/tscircuit rendered."
+echo "DONE: $PROJ/tscircuit rendered ($([ "$STUDY" = 1 ] && echo 'bridge + --study' || echo 'bridge only; pass --study for the PCB/gerber second-opinion render'))."
