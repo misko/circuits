@@ -1,0 +1,5 @@
+{
+  "name": "shunt-monitor-demo",
+  "main": "shunt_monitor_demo.tsx",
+  "dependencies": {}
+}

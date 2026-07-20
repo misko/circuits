@@ -261,6 +261,53 @@ origin-offset table in the placer.
   handful of real auto-router shorts in congested corners. Parity proves the DESIGN;
   the copper is a study, not fab-grade. Classify in `notes.md` (parametric vs real).
 
+## The registry — reusable module library (ADR-0002 Phase C, PROVEN 2026-07-20)
+
+Our proven, repeated subcircuits live as **parameterized tscircuit modules** in a
+shared library at the repo root, `tscircuit_modules/` (NOT inside any one project — so
+many boards import the same certified block):
+
+```
+tscircuit_modules/
+  README.md                 # catalog + compose pattern + each module's API + next candidates
+  src/<Module>.tsx          # the reusable parameterized components (export a function component)
+  demo/                     # a gate board that composes the module(s) + its verification stack
+    <demo>.tsx  package.json
+    build/circuit.json  kicad/<demo>.kicad_sch  verification/{parity.md,channel_parity.py,erc.rpt,*.net}
+```
+
+**Compose pattern.** A new board `import`s the module and instantiates it (once per
+instance, `.map` for N-identical channels), passing ONLY board-level nets + parameters;
+the module channel-PREFIXES its internal nets so instances never collide. Render +
+certify with the EXISTING bridge — no new tooling:
+
+```tsx
+import { ShuntMonitor } from "../src/ShuntMonitor"
+{[1,2,3,4,5,6].map((ch) => (
+  <ShuntMonitor key={`mon${ch}`} channel={ch} i2cAddress={0x40+(ch-1)}
+    busNet={`VF${ch}`} loadNet={`VP${ch}`} sdaNet="SDA" sclNet="SCL"
+    alertNet="ALERT" vsNet="N3V3" gndNet="GND" />
+))}
+```
+```
+tsci build <demo>.tsx  →  circuit_json_to_kicad_sch.py build/circuit.json \
+   -o kicad/<demo>.kicad_sch --parts-dir <project>/02_parts  →  kicad-cli sch erc / export netlist
+```
+
+**Two authoring rules the registry leans on:** (1) a specialty part in a module needs
+BOTH `supplierPartNumbers={{ jlcpcb: [...] }}` (the JLC code links to the `02_parts`
+footprint via the converter override) AND a `<footprint>` child or footprinter token
+(so tscircuit renders it); point `--parts-dir` at the project that owns those footprints.
+(2) the ADR-0001 canonical-net convention still applies (`N3V3` → `3V3`).
+
+**Proven.** `ShuntMonitor` (INA238 + WSLP2726 Kelvin shunt + input filter + decoupler,
+from ble-bus-bar's `port_channel`) composed **6×** reproduced the 6 hand-authored
+channels **node-for-node** (parity PASS all 6, addresses distinct 0x40..0x45, Kelvin
+preserved, ERC 0 errors). A module emits circuit.json only — every gate still runs on the
+native artifact; routing + twin stay KiCad-only. Adopt OPTIONAL, per-board. Next
+candidates: RJ45 port-channel, power-entry-protection, ESP32 standard hookup
+(`tscircuit_modules/README.md`).
+
 ## Toolchain (persistent, per-user)
 
 - `bun` at `~/.bun/bin/bun` (tscircuit's runtime).

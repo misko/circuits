@@ -121,9 +121,48 @@ Two rows stay KiCad-only because the authoring tool must never self-grade them:
   backend from tscircuit auto-placement; promote the placer + a generalized
   legalize+silk pass to the toolchain regardless. Connector-heavy boards need a
   per-footprint origin-offset table in the placer (the `<solderjumper>` quirk).
-- **Phase C — The registry.** Publish our proven subcircuits as reusable tscircuit
-  modules (RJ45 port-channel, power-entry-protection, ESP32 standard hookup, Kelvin-shunt
-  block). New boards COMPOSE certified blocks — tscircuit ergonomics, our engineering.
+- **Phase C — The registry. PROVEN on ONE module 2026-07-20; verdict: the compose
+  model delivers "author once, compose everywhere" for a proven block.** Publish our
+  proven subcircuits as reusable tscircuit modules. New boards COMPOSE certified blocks
+  — tscircuit ergonomics, our engineering.
+
+  **Library location.** A shared `tscircuit_modules/` at the REPO ROOT (deliberately
+  outside any one project so many boards import it): `src/<Module>.tsx` (the reusable
+  parameterized components), `demo/` (a gate board that composes them + its verification
+  stack), `README.md` (catalog + the compose pattern + the API of each module + the next
+  candidates). See `references/tscircuit-folder.md` "The registry".
+
+  **First module — `ShuntMonitor`** (`tscircuit_modules/src/ShuntMonitor.tsx`), distilled
+  from ble-bus-bar's `port_channel(i)`: the canonical repeated-proven subcircuit —
+  INA238 (I2C, address by A1/A0 strap) + WSLP2726 0.5 mR Kelvin shunt + differential input
+  filter (2×10R + 100n) + 100n decoupler. Props:
+  `ShuntMonitor({ channel, i2cAddress, busNet, loadNet, sdaNet, sclNet, alertNet, vsNet,
+  gndNet, shuntMilliohm?, inaJlc?, shuntJlc? })`. Internal Kelvin nodes `KA{ch}`/`KB{ch}`
+  are channel-prefixed so N instances never collide; the address decodes from `i2cAddress`
+  to the four strap targets {GND,VS,SDA,SCL}. Emits `RS/RP/RN/CD/CB/U{ch}` with
+  ble-bus-bar's exact refdes.
+
+  **Gate (falsifiable, `tscircuit_modules/demo/`, PASS).** The demo composes `ShuntMonitor`
+  **6×** (channels 1..6, addresses 0x40..0x45) + a minimal bus/MCU stub, renders via
+  `tsci build → circuit.json → our converter (`--parts-dir` = ble-bus-bar's `02_parts`) →
+  kicad_sch` (54/54 components with real FPIDs). Result (`verification/parity.md`):
+  - **NODE-FOR-NODE PARITY vs the sealed ble-bus-bar board: PASS on all 6 channels** —
+    every `{RS,RP,RN,CD,CB,U}{i}` pad→net map is identical to the hand-authored channel.
+  - **Addresses distinct 0x40..0x45: PASS** (A1/A0 straps decode correctly per channel;
+    the six channels are byte-identical in topology except at those two strap pins).
+  - **Kelvin sense preserved: PASS** (RP taps the shunt bus stud → IN+, RN taps the load
+    stud → IN-=VBUS, CD bridges KA↔KB, per channel).
+  - **ERC `--severity-all`: 0 errors** (380 warnings, all in the three documented
+    parametric classes: endpoint_off_grid / lib_symbol_issues / footprint_link_issues).
+
+  **Verdict.** One authored module, instantiated 6×, reproduced the 6 hand-authored
+  channels EXACTLY — the only per-channel variation is the I2C address, which is a module
+  *parameter*. The registry model works for our proven repeated blocks with **no new
+  tooling**: the same converter + gate stack certifies a composed board unchanged. Next
+  candidates (in `tscircuit_modules/README.md`): RJ45 port-channel, power-entry-protection,
+  ESP32 standard hookup. Adopt OPTIONAL, per-board (like placement-as-code); a module is
+  an authoring convenience that emits circuit.json — the gates, routing, and twin are
+  unmoved.
 - **Phase D — Retire the redundancy.** TSX becomes the sole authoring path (schwriter2
   deprecated as boards migrate); slim `gen_tscircuit.sh` to the bridge only (drop the
   duplicate gerber/3D/native-PCB study exports we never use).

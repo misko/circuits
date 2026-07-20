@@ -1,0 +1,4 @@
+# tsci build caches (regenerable from <demo>.tsx)
+demo/dist/
+demo/.tscircuit/
+node_modules/
