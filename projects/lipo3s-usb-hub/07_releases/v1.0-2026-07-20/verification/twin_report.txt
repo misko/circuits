@@ -1,0 +1,189 @@
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+11:47:21: Debug: Adding duplicate image handler for 'PNG file'
+11:47:21: Debug: Adding duplicate image handler for 'JPEG file'
+11:47:21: Debug: Adding duplicate image handler for 'TIFF file'
+11:47:21: Debug: Adding duplicate image handler for 'GIF file'
+11:47:21: Debug: Adding duplicate image handler for 'PNM file'
+11:47:21: Debug: Adding duplicate image handler for 'PCX file'
+11:47:21: Debug: Adding duplicate image handler for 'IFF file'
+11:47:21: Debug: Adding duplicate image handler for 'Windows icon file'
+11:47:21: Debug: Adding duplicate image handler for 'Windows cursor file'
+11:47:21: Debug: Adding duplicate image handler for 'Windows animated cursor file'
+11:47:21: Debug: Adding duplicate image handler for 'TGA file'
+11:47:21: Debug: Adding duplicate image handler for 'XPM file'
+C454289  CE1  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C128504  CA7  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C128504  CB7  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C113974  D2  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C113974  D3  POLARITY-CHECK  2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C454289  CE1  ROT-DB-SUGGEST  fit=0.35mm jlc_offset=0 db=180.0 -> add: CP_Elec_8x10,0
+C128504  CA7  ROT-DB-SUGGEST  fit=0.13mm jlc_offset=0 db=180.0 -> add: CP_Elec_6.3x5.9,0
+C128504  CB7  ROT-DB-SUGGEST  fit=0.13mm jlc_offset=0 db=180.0 -> add: CP_Elec_6.3x5.9,0
+C130056  U4  ROT-DB-SUGGEST  fit=0.05mm jlc_offset=90 db=270.0 -> add: VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm,90
+C130056  U5  ROT-DB-SUGGEST  fit=0.05mm jlc_offset=90 db=270.0 -> add: VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm,90
+C130056  U6  ROT-DB-SUGGEST  fit=0.05mm jlc_offset=90 db=270.0 -> add: VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm,90
+C207061  F1  NO-CAD  ['[ERROR] Failed to fetch data from EasyEDA API for part C207061']
+C2297  D4,D5  NO-CAD  ['[ERROR] Failed to fetch data from EasyEDA API for part C2297']
+C3020560  J5  NO-CAD  ['[ERROR] Failed to fetch data from EasyEDA API for part C3020560']
+C3215600  U1  NO-CAD  ['[ERROR] Failed to fetch data from EasyEDA API for part C3215600']
+C353386  D1  NO-CAD  ['[ERROR] Failed to fetch data from EasyEDA API for part C353386']
+C485912  U2,U3  NO-CAD  ['[ERROR] Failed to fetch data from EasyEDA API for part C485912']
+C840100  Q1,Q2,QA1,QA2,QB1,QB2  NO-CAD  ['[ERROR] Failed to fetch data from EasyEDA API for part C840100']
+C98732  J1  NO-CAD  ['[ERROR] Failed to fetch data from EasyEDA API for part C98732']
+C2943127  J2  NO-CAD  ['[ERROR] Failed to fetch data from EasyEDA API for part C2943127']
+C2943127  J3  NO-CAD  ['[ERROR] Failed to fetch data from EasyEDA API for part C2943127']
+C2943127  J4  NO-CAD  ['[ERROR] Failed to fetch data from EasyEDA API for part C2943127']
+C107021  CA10  MODEL-REG-OK  body on courtyard (0.00mm)
+C107021  CB10  MODEL-REG-OK  body on courtyard (0.00mm)
+C25741  R4  MODEL-REG-OK  body on courtyard (0.00mm)
+C131394  C1  MODEL-REG-OK  body on courtyard (0.00mm)
+C131394  C15  MODEL-REG-OK  body on courtyard (0.00mm)
+C131394  C2  MODEL-REG-OK  body on courtyard (0.00mm)
+C131394  C20  MODEL-REG-OK  body on courtyard (0.00mm)
+C131394  C21  MODEL-REG-OK  body on courtyard (0.00mm)
+C131394  C22  MODEL-REG-OK  body on courtyard (0.00mm)
+C131394  CA3  MODEL-REG-OK  body on courtyard (0.00mm)
+C131394  CB3  MODEL-REG-OK  body on courtyard (0.00mm)
+C454289  CE1  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R19  MODEL-REG-OK  body on courtyard (0.00mm)
+C60490  R20  MODEL-REG-OK  body on courtyard (0.00mm)
+C77102  CA51  MODEL-REG-OK  body on courtyard (0.00mm)
+C77102  CA52  MODEL-REG-OK  body on courtyard (0.00mm)
+C77102  CA53  MODEL-REG-OK  body on courtyard (0.00mm)
+C77102  CB51  MODEL-REG-OK  body on courtyard (0.00mm)
+C77102  CB52  MODEL-REG-OK  body on courtyard (0.00mm)
+C77102  CB53  MODEL-REG-OK  body on courtyard (0.00mm)
+C25754  RA5  MODEL-REG-OK  body on courtyard (0.00mm)
+C25754  RB5  MODEL-REG-OK  body on courtyard (0.00mm)
+C226807  R34  MODEL-REG-OK  body on courtyard (0.00mm)
+C226807  R5  MODEL-REG-OK  body on courtyard (0.00mm)
+C226807  RA1  MODEL-REG-OK  body on courtyard (0.00mm)
+C226807  RB1  MODEL-REG-OK  body on courtyard (0.00mm)
+C1549  CA4  MODEL-REG-OK  body on courtyard (0.00mm)
+C1549  CB4  MODEL-REG-OK  body on courtyard (0.00mm)
+C11702  R22  MODEL-REG-OK  body on courtyard (0.00mm)
+C11702  R23  MODEL-REG-OK  body on courtyard (0.00mm)
+C23630  C16  MODEL-REG-OK  body on courtyard (0.00mm)
+C23630  CA2  MODEL-REG-OK  body on courtyard (0.00mm)
+C23630  CB2  MODEL-REG-OK  body on courtyard (0.00mm)
+C25765  R21  MODEL-REG-OK  body on courtyard (0.00mm)
+C25765  R33  MODEL-REG-OK  body on courtyard (0.00mm)
+C25765  RA3  MODEL-REG-OK  body on courtyard (0.00mm)
+C25765  RB3  MODEL-REG-OK  body on courtyard (0.00mm)
+C128504  CA7  MODEL-REG-OK  body on courtyard (0.00mm)
+C128504  CB7  MODEL-REG-OK  body on courtyard (0.00mm)
+C12891  C30  MODEL-REG-OK  body on courtyard (0.00mm)
+C12891  C31  MODEL-REG-OK  body on courtyard (0.00mm)
+C12891  C32  MODEL-REG-OK  body on courtyard (0.00mm)
+C12891  C33  MODEL-REG-OK  body on courtyard (0.00mm)
+C12891  C34  MODEL-REG-OK  body on courtyard (0.00mm)
+C276264  R16  MODEL-REG-OK  body on courtyard (0.00mm)
+C276264  R17  MODEL-REG-OK  body on courtyard (0.00mm)
+C276264  R18  MODEL-REG-OK  body on courtyard (0.00mm)
+C15172  RA4  MODEL-REG-OK  body on courtyard (0.00mm)
+C15172  RB4  MODEL-REG-OK  body on courtyard (0.00mm)
+C852731  RA2  MODEL-REG-OK  body on courtyard (0.00mm)
+C106223  CA9  MODEL-REG-OK  body on courtyard (0.00mm)
+C106223  CB9  MODEL-REG-OK  body on courtyard (0.00mm)
+C60154  RA6  MODEL-REG-OK  body on courtyard (0.00mm)
+C60154  RB6  MODEL-REG-OK  body on courtyard (0.00mm)
+C137981  RB2  MODEL-REG-OK  body on courtyard (0.00mm)
+C82219  C3  MODEL-REG-OK  body on courtyard (0.00mm)
+C82219  CA1  MODEL-REG-OK  body on courtyard (0.00mm)
+C82219  CB1  MODEL-REG-OK  body on courtyard (0.00mm)
+C84494  CA61  MODEL-REG-OK  body on courtyard (0.00mm)
+C84494  CA62  MODEL-REG-OK  body on courtyard (0.00mm)
+C84494  CA63  MODEL-REG-OK  body on courtyard (0.00mm)
+C84494  CA64  MODEL-REG-OK  body on courtyard (0.00mm)
+C84494  CB61  MODEL-REG-OK  body on courtyard (0.00mm)
+C84494  CB62  MODEL-REG-OK  body on courtyard (0.00mm)
+C84494  CB63  MODEL-REG-OK  body on courtyard (0.00mm)
+C84494  CB64  MODEL-REG-OK  body on courtyard (0.00mm)
+C26982  R2  MODEL-REG-OK  body on courtyard (0.00mm)
+C45186  CA8  MODEL-REG-OK  body on courtyard (0.00mm)
+C45186  CB8  MODEL-REG-OK  body on courtyard (0.00mm)
+C453769  R3  MODEL-REG-OK  body on courtyard (0.00mm)
+C409935  R1  MODEL-REG-OK  body on courtyard (0.00mm)
+C113974  D2  MODEL-REG-OK  body on courtyard (0.00mm)
+C113974  D3  MODEL-REG-OK  body on courtyard (0.00mm)
+C130056  U4  MODEL-REG-OK  body on courtyard (0.00mm)
+C130056  U5  MODEL-REG-OK  body on courtyard (0.00mm)
+C130056  U6  MODEL-REG-OK  body on courtyard (0.00mm)
+C107021  CA10  OK  fit=0.06mm jlc_offset=0 db=0.0
+C107021  CB10  OK  fit=0.06mm jlc_offset=0 db=0.0
+C25741  R4  OK  fit=0.08mm jlc_offset=0 db=0.0
+C131394  C1  OK  fit=0.06mm jlc_offset=0 db=0.0
+C131394  C15  OK  fit=0.06mm jlc_offset=0 db=0.0
+C131394  C2  OK  fit=0.06mm jlc_offset=0 db=0.0
+C131394  C20  OK  fit=0.06mm jlc_offset=0 db=0.0
+C131394  C21  OK  fit=0.06mm jlc_offset=0 db=0.0
+C131394  C22  OK  fit=0.06mm jlc_offset=0 db=0.0
+C131394  CA3  OK  fit=0.06mm jlc_offset=0 db=0.0
+C131394  CB3  OK  fit=0.06mm jlc_offset=0 db=0.0
+C454289  CE1  ADJUDICATED-PAD-GEOM  KiCad std Capacitor_SMD:CP_Elec_8x10 land (pad pitch 6.50mm) vs JLC model 7.20mm (d0.70mm). This is the IDENTICAL footprint the sealed usb-power-3s v1.3 board (git_sha d8992b8) shipped with, reviewed and ordered; the twin's PAD-GEOM check postdates that release. CP_Elec_8x10 is the datasheet 8mm can land; the two large annular pads overlap far more than 0.70mm so both patterns solder. Polarity confirmed by audit_board I9 (pad1 = '+') and the twin render. Eyeball CE1 in the JLC preview at order time.
+C60490  R19  OK  fit=0.08mm jlc_offset=0 db=0.0
+C60490  R20  OK  fit=0.08mm jlc_offset=0 db=0.0
+C77102  CA51  OK  fit=0.05mm jlc_offset=0 db=0.0
+C77102  CA52  OK  fit=0.05mm jlc_offset=0 db=0.0
+C77102  CA53  OK  fit=0.05mm jlc_offset=0 db=0.0
+C77102  CB51  OK  fit=0.05mm jlc_offset=0 db=0.0
+C77102  CB52  OK  fit=0.05mm jlc_offset=0 db=0.0
+C77102  CB53  OK  fit=0.05mm jlc_offset=0 db=0.0
+C25754  RA5  OK  fit=0.08mm jlc_offset=0 db=0.0
+C25754  RB5  OK  fit=0.08mm jlc_offset=0 db=0.0
+C226807  R34  OK  fit=0.08mm jlc_offset=0 db=0.0
+C226807  R5  OK  fit=0.08mm jlc_offset=0 db=0.0
+C226807  RA1  OK  fit=0.08mm jlc_offset=0 db=0.0
+C226807  RB1  OK  fit=0.08mm jlc_offset=0 db=0.0
+C1549  CA4  OK  fit=0.06mm jlc_offset=0 db=0.0
+C1549  CB4  OK  fit=0.06mm jlc_offset=0 db=0.0
+C11702  R22  OK  fit=0.08mm jlc_offset=0 db=0.0
+C11702  R23  OK  fit=0.08mm jlc_offset=0 db=0.0
+C23630  C16  OK  fit=0.08mm jlc_offset=0 db=0.0
+C23630  CA2  OK  fit=0.08mm jlc_offset=0 db=0.0
+C23630  CB2  OK  fit=0.08mm jlc_offset=0 db=0.0
+C25765  R21  OK  fit=0.08mm jlc_offset=0 db=0.0
+C25765  R33  OK  fit=0.08mm jlc_offset=0 db=0.0
+C25765  RA3  OK  fit=0.08mm jlc_offset=0 db=0.0
+C25765  RB3  OK  fit=0.08mm jlc_offset=0 db=0.0
+C12891  C30  OK  fit=0.12mm jlc_offset=0 db=0.0
+C12891  C31  OK  fit=0.12mm jlc_offset=0 db=0.0
+C12891  C32  OK  fit=0.12mm jlc_offset=0 db=0.0
+C12891  C33  OK  fit=0.12mm jlc_offset=0 db=0.0
+C12891  C34  OK  fit=0.12mm jlc_offset=0 db=0.0
+C276264  R16  OK  fit=0.08mm jlc_offset=0 db=0.0
+C276264  R17  OK  fit=0.08mm jlc_offset=0 db=0.0
+C276264  R18  OK  fit=0.08mm jlc_offset=0 db=0.0
+C15172  RA4  OK  fit=0.08mm jlc_offset=0 db=0.0
+C15172  RB4  OK  fit=0.08mm jlc_offset=0 db=0.0
+C852731  RA2  OK  fit=0.08mm jlc_offset=0 db=0.0
+C106223  CA9  OK  fit=0.06mm jlc_offset=0 db=0.0
+C106223  CB9  OK  fit=0.06mm jlc_offset=0 db=0.0
+C60154  RA6  OK  fit=0.08mm jlc_offset=0 db=0.0
+C60154  RB6  OK  fit=0.08mm jlc_offset=0 db=0.0
+C137981  RB2  OK  fit=0.08mm jlc_offset=0 db=0.0
+C82219  C3  OK  fit=0.06mm jlc_offset=0 db=0.0
+C82219  CA1  OK  fit=0.06mm jlc_offset=0 db=0.0
+C82219  CB1  OK  fit=0.06mm jlc_offset=0 db=0.0
+C84494  CA61  OK  fit=0.05mm jlc_offset=0 db=0.0
+C84494  CA62  OK  fit=0.05mm jlc_offset=0 db=0.0
+C84494  CA63  OK  fit=0.05mm jlc_offset=0 db=0.0
+C84494  CA64  OK  fit=0.05mm jlc_offset=0 db=0.0
+C84494  CB61  OK  fit=0.05mm jlc_offset=0 db=0.0
+C84494  CB62  OK  fit=0.05mm jlc_offset=0 db=0.0
+C84494  CB63  OK  fit=0.05mm jlc_offset=0 db=0.0
+C84494  CB64  OK  fit=0.05mm jlc_offset=0 db=0.0
+C26982  R2  OK  fit=0.08mm jlc_offset=0 db=0.0
+C45186  CA8  OK  fit=0.06mm jlc_offset=0 db=0.0
+C45186  CB8  OK  fit=0.06mm jlc_offset=0 db=0.0
+C453769  R3  OK  fit=0.08mm jlc_offset=0 db=0.0
+C409935  R1  OK  fit=0.08mm jlc_offset=0 db=0.0
+C113974  D2  ADJUDICATED-PAD-GEOM  KiCad std Diode_SMD:D_SMB land (pad pitch 4.30mm) vs JLC model 4.72mm (d0.42mm). IDENTICAL footprint to the sealed usb-power-3s v1.3 board (git_sha d8992b8), which shipped after human pin/render review; the twin's PAD-GEOM check postdates it. D_SMB is the JEDEC DO-214AA (SMB) land; the ~1.9mm-wide pads overlap well past 0.42mm. Cathode polarity confirmed by audit_board I9 (pad1 = cathode -> rail) and the twin render.
+C113974  D2  OK  fit=0.21mm jlc_offset=0 db=0.0
+C113974  D3  ADJUDICATED-PAD-GEOM  KiCad std Diode_SMD:D_SMB land (pad pitch 4.30mm) vs JLC model 4.72mm (d0.42mm). IDENTICAL footprint to the sealed usb-power-3s v1.3 board (git_sha d8992b8), which shipped after human pin/render review; the twin's PAD-GEOM check postdates it. D_SMB is the JEDEC DO-214AA (SMB) land; the ~1.9mm-wide pads overlap well past 0.42mm. Cathode polarity confirmed by audit_board I9 (pad1 = cathode -> rail) and the twin render.
+C113974  D3  OK  fit=0.21mm jlc_offset=0 db=0.0
+C17700181  LA1,LB1  ADJUDICATED-NO-CAD  Not in the EasyEDA CAD library (stock-checkable only). Land pattern verified against the MWSA1005S datasheet; JLC preview must be eyeballed for LA1/LB1 at order time.
+
+70 OK / 172 checked; report + renders -> /home/mouse9911/gits/circuits/projects/lipo3s-usb-hub/06_build/twin

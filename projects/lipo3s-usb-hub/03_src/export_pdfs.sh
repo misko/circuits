@@ -7,19 +7,19 @@ OUT="$PWD/06_build/pdf"
 mkdir -p "$OUT"
 rm -f "$OUT"/*.pdf "$OUT"/*.png
 
-kicad-cli sch export pdf -o "$OUT/schematic.pdf" 04_kicad/usb_power_3s.kicad_sch >/dev/null
+kicad-cli sch export pdf -o "$OUT/schematic.pdf" 04_kicad/lipo3s_usb_hub.kicad_sch >/dev/null
 
 # one multipage PDF: each copper layer + silk, every page carries the outline
 kicad-cli pcb export pdf --mode-multipage \
     -l F.Cu,In1.Cu,In2.Cu,B.Cu,F.Silkscreen,B.Silkscreen,F.Mask,B.Mask \
     --cl Edge.Cuts --include-border-title \
-    -o "$OUT/pcb_layers.pdf" 04_kicad/usb_power_3s.kicad_pcb >/dev/null
+    -o "$OUT/pcb_layers.pdf" 04_kicad/lipo3s_usb_hub.kicad_pcb >/dev/null
 
 # assembly view: fab layer with refdes + sketch pads (hand-solder / rework aid)
 kicad-cli pcb export pdf --mode-single \
     -l F.Fab,F.Silkscreen,Edge.Cuts --sketch-pads-on-fab-layers \
     --include-border-title --black-and-white \
-    -o "$OUT/assembly_top.pdf" 04_kicad/usb_power_3s.kicad_pcb >/dev/null
+    -o "$OUT/assembly_top.pdf" 04_kicad/lipo3s_usb_hub.kicad_pcb >/dev/null
 
 for f in "$OUT"/*.pdf; do
     pdftoppm -png -r 100 "$f" "${f%.pdf}" >/dev/null

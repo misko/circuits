@@ -1,0 +1,2 @@
+lipo3s-usb-hub: FAIL=1, HUMAN=6, N-A=3, PASS=12, WAIVED=4
+  FAIL M-REL: no MANIFEST.txt
