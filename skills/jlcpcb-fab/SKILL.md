@@ -233,7 +233,22 @@ never runs for exactly the parts a human solders by eye.
 
 1. Fetches JLC's own footprint + 3D model per LCSC code (easyeda2kicad,
    cached per-code in OUTDIR/easyeda/; EasyEDA rate-limits bursts - the
-   script retries with backoff).
+   script retries with backoff, 4 attempts by default,
+   `JLC_TWIN_FETCH_ATTEMPTS=N` to be more patient).
+   **A fetch failure is NOT "this part has no CAD".** Transient network/API
+   errors are classified `FETCH-FAILED` (distinct from `NO-CAD`) and are
+   **BLOCKING** - the part was never checked, so the run is not twin
+   verification for it. The tool prints the partial-retry command: the
+   per-code cache keeps everything already fetched, so simply RE-RUNNING
+   retries only the failed codes. Only adjudicate `FETCH-FAILED` when the
+   part is genuinely absent from the library (verify the land pattern
+   against the datasheet + flag the order-time preview).
+   Why this exists: lipo3s-usb-hub v1.0 lost 11 parts (XT60, USB-C, 3x
+   USB-A, 6 FETs, ICs) to EasyEDA API errors, each recorded as `NO-CAD`,
+   and the gate **exited 0 having verified almost nothing** - the twin's
+   whole value is checker-independence, so a vacuous pass is worse than a
+   failure. A re-run once the API recovered gave 74 OK / 205 checked and
+   immediately surfaced real pad-geometry findings (2026-07-20).
 2. Pad-correspondence best-fit over rotation {0,90,180,270} x mirror.
    **A MIRRORED best-fit means a mirror-numbered land pattern = dead board.**
    On its FIRST run this found a live one: a vendored VQFN-20 wound CW

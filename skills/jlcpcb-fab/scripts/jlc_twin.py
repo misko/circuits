@@ -40,6 +40,7 @@ import csv
 import glob
 import math
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -60,23 +61,44 @@ PAD_GEOM_TOL = 0.3   # mm max pairwise pad-distance disagreement ours vs JLC
 POLARIZED_FP = ("CP_", "C_Elec", "D_", "LED", "Diode")  # 0/180-ambiguity check
 
 
-def fetch(lcsc, cachedir):
-    """easyeda2kicad --full into a per-code dir; returns (fp_path, None) or
-    (None, reason)."""
+# A network/API failure is NOT evidence that a part has no CAD. Conflating the
+# two let a twin run exit 0 having verified almost nothing: lipo3s-usb-hub v1.0
+# lost 11 parts (XT60, USB-C, 3x USB-A, 6 FETs, ICs) to EasyEDA API errors, every
+# one recorded as "NO-CAD", and the gate passed (2026-07-20). The same blind spot
+# would hide a real mirrored footprint. Transient failures are now a DISTINCT,
+# BLOCKING state (FETCH-FAILED) with a partial-retry hint.
+TRANSIENT_PAT = re.compile(
+    r"failed to fetch|timed?\s?out|timeout|connection|network|temporar|"
+    r"rate.?limit|429|50[234]|max retries|ssl|certificate|resolve|unreachable",
+    re.I)
+
+
+def fetch(lcsc, cachedir, attempts=None):
+    """easyeda2kicad --full into a per-code dir.
+    Returns (fp_path, None, None) on success, else (None, reason, kind) where
+    kind is 'transient' (network/API — NOT checked, must block) or
+    'nocad' (the library genuinely has no model for this part)."""
     import time
+    if attempts is None:
+        attempts = int(os.environ.get("JLC_TWIN_FETCH_ATTEMPTS", "4"))
     d = Path(cachedir) / lcsc
     mods = glob.glob(str(d / "jlc.pretty" / "*.kicad_mod"))
-    for attempt in range(3):          # EasyEDA rate-limits bursts
+    r = None
+    for attempt in range(attempts):
         if mods:
-            return mods[0], None
+            return mods[0], None, None
         d.mkdir(parents=True, exist_ok=True)
         r = subprocess.run([E2K, "--full", "--lcsc_id", lcsc, "--output",
                             str(d / "jlc.kicad_sym"), "--use-cache"],
                            capture_output=True, text=True)
         mods = glob.glob(str(d / "jlc.pretty" / "*.kicad_mod"))
-        if not mods:
-            time.sleep(4 * (attempt + 1))
-    return None, (r.stderr or r.stdout).strip().splitlines()[-1:] or ["no CAD data"]
+        if not mods and attempt < attempts - 1:
+            time.sleep(4 * (attempt + 1))   # 4s, 8s, 12s … EasyEDA rate-limits bursts
+    if mods:
+        return mods[0], None, None
+    msg = (((r.stderr or r.stdout).strip().splitlines()[-1:]) if r else []) or ["no CAD data"]
+    kind = "transient" if TRANSIENT_PAT.search(" ".join(msg)) else "nocad"
+    return None, msg, kind
 
 
 def pads_of(fp):
@@ -346,11 +368,17 @@ def main():
             sys.exit(f"--also expects REF=LCSC, got: {pair}")
         lines.append({"Designator": ref.strip(), "LCSC": code.strip()})
     findings, criticals, twin, padgeom = [], [], {}, {}
+    fetch_failed = set()
     for r in lines:
         lcsc = r["LCSC"]
-        fp_path, err = fetch(lcsc, out / "easyeda")
+        fp_path, err, kind = fetch(lcsc, out / "easyeda")
         if err:
-            findings.append((lcsc, r["Designator"], "NO-CAD", str(err)))
+            # transient = the part was NEVER CHECKED -> blocking, not a disposition
+            status = "FETCH-FAILED" if kind == "transient" else "NO-CAD"
+            findings.append((lcsc, r["Designator"], status, str(err)))
+            if kind == "transient":
+                fetch_failed.add(lcsc)
+                criticals.extend(d.strip() for d in r["Designator"].split(","))
             continue
         jfp = pcbnew.FootprintLoad(str(Path(fp_path).parent),
                                    Path(fp_path).stem)
@@ -594,7 +622,12 @@ def main():
     out_f = []
     for lcsc, ref, status, detail in findings:
         why = adjudicate(lcsc, ref, status)
-        if why and status in ("MIRRORED", "PAD-MISMATCH", "PAD-GEOM", "NO-CAD"):
+        # backward compat: before FETCH-FAILED existed, every unfetched part was
+        # recorded as NO-CAD, so existing registers adjudicate it under that name.
+        # Honour those entries (they carry the datasheet-verified land pattern).
+        if not why and status == "FETCH-FAILED":
+            why = adjudicate(lcsc, ref, "NO-CAD")
+        if why and status in ("MIRRORED", "PAD-MISMATCH", "PAD-GEOM", "NO-CAD", "FETCH-FAILED"):
             for r in str(ref).split(","):
                 if r.strip() in criticals:
                     criticals.remove(r.strip())
@@ -602,13 +635,24 @@ def main():
         else:
             out_f.append((lcsc, ref, status, detail))
     findings = out_f
-    order = {"MIRRORED": 0, "PAD-MISMATCH": 1, "PAD-GEOM": 2, "MODEL-SELF": 3, "MODEL-REG": 3,
+    order = {"FETCH-FAILED": -1, "MIRRORED": 0, "PAD-MISMATCH": 1, "PAD-GEOM": 2, "MODEL-SELF": 3, "MODEL-REG": 3,
              "POLARITY-CHECK": 4, "ROT-DB-SUGGEST": 5, "NO-CAD": 6,
              "NOT-ON-BOARD": 7, "MODEL-REG-OK": 8, "OK": 9}
     for f in sorted(findings, key=lambda x: order.get(x[2], 9)):
         print("  ".join(str(x) for x in f))
     n_ok = sum(1 for f in findings if f[2] == "OK")
     print(f"\n{n_ok} OK / {len(findings)} checked; report + renders -> {out}")
+    if fetch_failed:
+        print(f"\nTRANSIENT FETCH FAILURES ({len(fetch_failed)}): {sorted(fetch_failed)}")
+        print("  These are NETWORK/API errors, NOT 'no CAD' — these parts were never checked,")
+        print("  so this run does NOT constitute twin verification for them.")
+        print("  The per-code cache keeps everything already fetched, so simply RE-RUNNING")
+        print("  retries ONLY the failed codes (a partial re-run):")
+        print("    " + " ".join(sys.argv))
+        print("  If the API is flaky, be more patient:")
+        print("    JLC_TWIN_FETCH_ATTEMPTS=8 " + " ".join(sys.argv))
+        print("  Only adjudicate FETCH-FAILED if the part is genuinely absent from the")
+        print("  library (verify the land pattern against the datasheet + flag order-time preview).")
     if criticals:
         print(f"CRITICAL ({len(set(criticals))} refs): {sorted(set(criticals))}")
         sys.exit(1)
