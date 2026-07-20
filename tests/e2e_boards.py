@@ -25,6 +25,7 @@ PARITY = SCRIPTS / "board_netlist_parity.py"
 BOARDS = [
     ("cook-loadcell", "cook_loadcell", 33),
     ("crow-array-pod", "crow_array_pod", 40),
+    ("shitty-kitty", "shitty_kitty", 82),
 ]
 
 
@@ -64,6 +65,70 @@ def t_cook_loadcell():
 def t_crow_array_pod():
     r, rp, ra = _regen_and_check(*BOARDS[1])
     contains(rp.out, "90 nodes identical", "crow-array-pod parity node count")
+
+
+@test("E2E shitty-kitty (4-LAYER): generic generator -> parity 0 + audit PASS",
+      slow=True)
+def t_shitty_kitty():
+    """The 4-layer proof. cook-loadcell and crow-array-pod are both 2-layer
+    with a GND pour on each side; neither has an inner plane, a split plane,
+    or a rule area, so the generator's plane/isolation code was shipped
+    unexercised. This board has all three:
+      * In1.Cu solid GND return plane
+      * In2.Cu SPLIT power plane — three non-overlapping, non-rectangular
+        pours (VIN_12V / 5V / 3V3) at priority 2 with per-zone min fill
+      * a rule area spanning ALL FOUR copper layers (ESP32 antenna clearing)
+    The last one found a real defect: SetLayer() after SetLayerSet() collapsed
+    the rule area to F.Cu alone.
+    """
+    r, rp, ra = _regen_and_check(*BOARDS[2])
+    contains(rp.out, "358 nodes identical", "shitty-kitty parity node count")
+    contains(r.out, "asserts: 18 passed", "shitty-kitty asserts")
+
+
+@test("E2E shitty-kitty: the 4-layer planes and the all-layer rule area "
+      "survive to the saved board", slow=True)
+def t_shitty_kitty_planes():
+    """Parity is node-level, so it cannot see a zone at all: a board with
+    every plane silently dropped would still report parity 0. This asserts
+    the plane/isolation geometry itself, against the sealed board's."""
+    proj = ROOT / "projects" / "shitty-kitty"
+    d = tmpdir("e2e_sk_zones_")
+    out = d / "shitty_kitty.kicad_pcb"
+    must_pass(run([KPY, GEN, proj / "03_src" / "floorplan.yaml", "-o", out],
+                  cwd=proj), "shitty-kitty: generate")
+    built = _zone_summary(out)
+    sealed = _zone_summary(proj / "04_kicad" / "shitty_kitty.kicad_pcb")
+    check(built["layers"] == 4, f"copper layer count is {built['layers']}, want 4")
+    check(built["pours"] == sealed["pours"],
+          "pour zones differ from the sealed board\n"
+          f"  built : {built['pours']}\n  sealed: {sealed['pours']}")
+    # order-independent: LSET.Seq() enumerates outer layers before inner
+    check([(n, sorted(ls)) for n, ls in built["rule_areas"]]
+          == [("ANT_KEEPOUT", sorted(["F.Cu", "In1.Cu", "In2.Cu", "B.Cu"]))],
+          f"antenna rule area is not on all four layers: {built['rule_areas']}")
+
+
+def _zone_summary(path):
+    """(net, layer, priority, min_thickness, pad-connection) per pour, plus
+    (name, layers) per rule area. A subprocess so the harness needs no pcbnew."""
+    import json
+    code = (
+        "import pcbnew,sys,json\n"
+        "b=pcbnew.LoadBoard(sys.argv[1])\n"
+        "o={'layers':b.GetCopperLayerCount(),'pours':[],'rule_areas':[]}\n"
+        "for z in b.Zones():\n"
+        "  ls=[b.GetLayerName(l) for l in z.GetLayerSet().Seq()]\n"
+        "  if z.GetIsRuleArea(): o['rule_areas'].append([z.GetZoneName(),ls])\n"
+        "  else: o['pours'].append([z.GetNetname(),ls,z.GetAssignedPriority(),\n"
+        "      round(pcbnew.ToMM(z.GetMinThickness()),3),int(z.GetPadConnection())])\n"
+        "o['pours'].sort(); o['rule_areas'].sort()\n"
+        "print('@@'+json.dumps(o))\n")
+    r = must_pass(run([KPY, "-c", code, str(path)]), "zone summary")
+    o = json.loads(r.out.split("@@")[1].strip())
+    return {"layers": o["layers"],
+            "pours": [tuple([p[0], tuple(p[1])] + p[2:]) for p in o["pours"]],
+            "rule_areas": [(a[0], a[1]) for a in o["rule_areas"]]}
 
 
 @test("E2E: regenerating twice gives the same CONNECTIVITY (not the same bytes)",

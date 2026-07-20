@@ -160,6 +160,107 @@ def t_bad_zone_net():
     must_fail(r, "generator with a typo'd zone net", "zone on unknown net")
 
 
+@test("a multi-layer rule area really lands on every layer it declares")
+def t_multilayer_rule_area():
+    """The 4-layer plane/isolation path, in a unit test.
+
+    cook-loadcell is 2-layer with no keepouts, so this asked the generator
+    for something no existing floorplan did: a rule area on four layers of a
+    board that HAS four layers.
+    """
+    def mutate(cfg):
+        cfg["board"]["layers"] = 4
+        cfg["keepouts"] = [{"name": "ANT", "deny": ["tracks", "vias", "pours"],
+                            "layers": ["F.Cu", "In1.Cu", "In2.Cu", "B.Cu"],
+                            "rect": [30, 30, 40, 40]}]
+    d, p = scratch_config(mutate)
+    out = d / "b.kicad_pcb"
+    gen(p, out)
+    code = ("import pcbnew,sys\nb=pcbnew.LoadBoard(sys.argv[1])\n"
+            "z=[z for z in b.Zones() if z.GetIsRuleArea()][0]\n"
+            "print('@@'+','.join(sorted(b.GetLayerName(l) "
+            "for l in z.GetLayerSet().Seq())))\n")
+    r = must_pass(run([KPY, "-c", code, out]), "probe rule area")
+    got = r.out.split("@@")[1].strip()
+    eq(got, "B.Cu,F.Cu,In1.Cu,In2.Cu", "rule area layer set")
+
+
+@test("a rule area on a layer the stackup does not have is a hard error",
+      kind="known_bad")
+def t_rule_area_layer_not_in_stackup():
+    """Found while proving the 4-layer path: `LSET` accepts In1.Cu on a
+    2-layer board without complaint, so a rule area (or plane) could be
+    declared on a layer that does not exist. It never fills, DRC is clean,
+    and the isolation you asked for is simply absent."""
+    def mutate(cfg):
+        cfg["board"]["layers"] = 2                    # ...but ask for inners
+        cfg["keepouts"] = [{"name": "ANT", "deny": ["tracks"],
+                            "layers": ["F.Cu", "In1.Cu", "In2.Cu", "B.Cu"],
+                            "rect": [30, 30, 40, 40]}]
+    d, p = scratch_config(mutate)
+    r = run([KPY, GEN, p, "-o", d / "b.kicad_pcb"], cwd=LC)
+    must_fail(r, "generator with a rule area off the stackup",
+              "not in the stackup")
+
+
+@test("a PLANE on a layer the stackup does not have is a hard error",
+      kind="known_bad")
+def t_zone_layer_not_in_stackup():
+    """Same defect on the pour path — an inner GND plane that silently is
+    not there is worse than a missing keepout."""
+    def mutate(cfg):
+        cfg["board"]["layers"] = 2
+        cfg["zones"].append({"net": "GND", "layers": ["In1.Cu"], "priority": 0})
+    d, p = scratch_config(mutate)
+    r = run([KPY, GEN, p, "-o", d / "b.kicad_pcb"], cwd=LC)
+    must_fail(r, "generator with a plane off the stackup", "not in the stackup")
+
+
+@test("a bbox_override on a part the legalizer may move is a hard error",
+      kind="known_bad")
+def t_bbox_override_unpinned():
+    """A bbox_override is an ABSOLUTE rect. On a floating part it would go
+    stale the moment the legalizer moved it, and every later collision test
+    would be computed against empty space."""
+    def mutate(cfg):
+        cfg["placement"]["bbox_override"] = {"C1": [30, 30, 40, 40]}
+        cfg["placement"]["pin"] = ["U*"]          # C1 floats
+    d, p = scratch_config(mutate)
+    r = run([KPY, GEN, p, "-o", d / "b.kicad_pcb"], cwd=LC)
+    must_fail(r, "generator with a bbox_override on a floating part",
+              "which the legalizer may move")
+
+
+@test("a connector whose mouth faces the wrong way blocks the build",
+      kind="known_bad")
+def t_body_offset_assert():
+    """`body_offset` is the only check that catches a 180-degree flip of a
+    connector whose pads are symmetric — pad_order cannot see it."""
+    def mutate(cfg):
+        cfg.setdefault("asserts", {})["body_offset"] = [
+            {"ref": "J1", "axis": "x", "sign": "+"},
+            {"ref": "J1", "axis": "x", "sign": "-"},   # both cannot hold
+        ]
+    d, p = scratch_config(mutate)
+    r = run([KPY, GEN, p, "-o", d / "b.kicad_pcb"], cwd=LC)
+    must_fail(r, "generator with a contradictory body_offset assert",
+              "opening faces the wrong way")
+
+
+@test("an edge-launch clearing that lands ON the board blocks the build",
+      kind="known_bad")
+def t_pad_beyond_edge_assert():
+    """shitty-kitty's ESP32-S3 is only legal because its antenna keepout
+    hangs off the south edge. Creep it inboard and the keepout sits on live
+    copper; `pad_beyond_edge` is what refuses."""
+    def mutate(cfg):
+        cfg.setdefault("asserts", {})["pad_beyond_edge"] = [
+            {"ref": "U1", "pad": 1, "offset": 0.0, "edge": "y1"}]
+    d, p = scratch_config(mutate)
+    r = run([KPY, GEN, p, "-o", d / "b.kicad_pcb"], cwd=LC)
+    must_fail(r, "generator with an on-board edge clearing", "INSIDE the y1 edge")
+
+
 @test("netlist parity 0 vs the sealed cook-loadcell board")
 def t_parity_loadcell():
     d = tmpdir("gbg_")

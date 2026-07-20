@@ -36,14 +36,23 @@ is `projects/cook-loadcell/03_src/floorplan.yaml`. Top-level keys:
               binds one library name to one explicit .pretty dir
   placement:  anchors {REF: [x,y,rot]}, seeds {REF: [x,y]}, regions,
               patterns[] (glob -> region/near/attrs/pad_overrides),
+              repeat[] (array primitive; caption-only blocks allowed),
+              bbox_override {REF: [x0,y0,x1,y1]} for modules whose footprint
+                bbox includes an off-board antenna keepout (pinned refs only),
               legalize {enable, clearance, edge_margin, hole_keepout, ring_max}
   design_rules: pcbnew design-settings floors (mm)
   zones:      list of {net, layers, priority, outline|region|board,
                        connect: thermal|full, min_thickness, clearance}
-  keepouts:   list of {region|points, layers, name, tracks/vias/pours}
+              Inner layers (In1.Cu/In2.Cu) require board.layers >= 3/4.
+  keepouts:   list of {region|points, layers, name, deny[]} — rule areas.
+              ONE zone spans all its layers via an LSET.
   silk:       captions[], refdes {size, min_size, fab_copy, clearance},
               labels {match, from: value|net} for functional captions
-  asserts:    pad_net[] {ref, pad, net}, pad_order[] {ref, pads, axis}
+  asserts:    pad_net[] {ref, pad, net}, pad_order[] {ref, pads, axis},
+              body_offset[] {ref, axis, sign} — which way a connector mouth
+                faces (catches a 180 flip pad_order cannot see),
+              pad_beyond_edge[] {ref, pad, offset, edge} — an edge-launch
+                clearing must hang OFF the board
 
 Everything not supplied falls back to a documented default, so a plain
 rectangular 2-layer board with a GND pour needs ~25 lines of YAML.
@@ -274,12 +283,17 @@ class BoardBuilder:
                     anchors[ref] = [cx + dx, cy + dy, float(spec.get("rot", 0))]
                     n_ref += 1
                 for cap in blk.get("captions") or []:
-                    captions.append({
+                    out = {
                         "text": str(cap["text"]).format(i=i, k=k),
                         "at": [cx + float(cap["at"][0]), cy + float(cap["at"][1])],
                         "size": float(cap.get("size", 0.7)),
-                        "nudge": cap.get("nudge", True),
-                    })
+                    }
+                    # only carry `nudge` when the block SAYS so — hardcoding a
+                    # default here would override the board's `caption_nudge`
+                    # and silently nudge captions on a hand-placed silkscreen.
+                    if "nudge" in cap:
+                        out["nudge"] = cap["nudge"]
+                    captions.append(out)
         if n_ref:
             self.say(f"repeat blocks expanded to {n_ref} anchors")
 
@@ -532,11 +546,71 @@ class BoardBuilder:
                 die(f"ORIENTATION ASSERT: {ref} pads {pads} not ascending in "
                     f"{axis} (part is rotated wrong)")
             n += 1
+        # `body_offset`: WHICH WAY DOES THE CONNECTOR MOUTH FACE. A jack's
+        # pads cluster at its rear, so the body centroid is displaced toward
+        # the opening. Pad order alone cannot catch a 180-degree flip on a
+        # symmetric part; this can, and it is the check every board with an
+        # edge connector needs (shitty-kitty J1/J2/J6, audit_board I2).
+        for e in a.get("body_offset") or []:
+            ref, axis = e["ref"], e.get("axis", "x")
+            sign = str(e.get("sign", "+"))
+            if sign not in ("+", "-"):
+                die(f"body_offset: sign must be '+' or '-', got {sign!r}")
+            f = self.fps.get(ref) or die(f"body_offset: unknown refdes {ref}")
+            pads = [p.GetPosition() for p in f.Pads()]
+            if not pads:
+                die(f"body_offset: {ref} has no pads")
+            bb = f.GetBoundingBox(False, False)
+            v = (bb.Centre().x - sum(p.x for p in pads) / len(pads)) if axis == "x" \
+                else (bb.Centre().y - sum(p.y for p in pads) / len(pads))
+            if (v <= 0) if sign == "+" else (v >= 0):
+                die(f"ORIENTATION ASSERT: {ref} body is offset {MM(v):+.2f}mm in "
+                    f"{axis} from its pads, expected sign {sign} — the connector "
+                    f"opening faces the wrong way")
+            n += 1
+        # `pad_beyond_edge`: a clearing measured off a pad must fall OUTSIDE
+        # the board. An edge-launch antenna (ESP32-S3) is only legal because
+        # its keepout hangs off the edge; if the module creeps inboard the
+        # keepout lands on live copper and nothing else notices.
+        EDGES = {"x0": ("x", -1), "x1": ("x", 1), "y0": ("y", -1), "y1": ("y", 1)}
+        for e in a.get("pad_beyond_edge") or []:
+            ref, edge = e["ref"], e.get("edge", "y1")
+            if edge not in EDGES:
+                die(f"pad_beyond_edge: unknown edge {edge!r} (want {sorted(EDGES)})")
+            axis, out = EDGES[edge]
+            f = self.fps.get(ref) or die(f"pad_beyond_edge: unknown refdes {ref}")
+            pad = next((p for p in f.Pads() if p.GetNumber() == str(e["pad"])), None)
+            if pad is None:
+                die(f"pad_beyond_edge: {ref} has no pad {e['pad']}")
+            pos = MM(pad.GetPosition().x if axis == "x" else pad.GetPosition().y)
+            got = pos + out * float(e.get("offset", 0.0))
+            lim = {"x0": self.X0, "x1": self.X1,
+                   "y0": self.Y0, "y1": self.Y1}[edge]
+            tol = float(e.get("tolerance", 0.05))
+            if (got < lim - tol) if out > 0 else (got > lim + tol):
+                die(f"EDGE ASSERT: {ref} clearing measured from pad {e['pad']} "
+                    f"reaches {axis}={got:.2f}, which is INSIDE the {edge} edge "
+                    f"({lim:.2f}) — it must hang off the board")
+            n += 1
         if n:
             self.say(f"asserts: {n} passed")
 
     # -------------------------------------------------------- legalize
     def bbox(self, f):
+        """The rect the legalizer treats as this part's occupied space.
+
+        Normally the footprint bounding box. But a module whose footprint
+        carries an ANTENNA KEEPOUT (ESP32-S3, and every castellated radio
+        module) has a bbox far larger than its body, and part of it is
+        deliberately off-board. Using it as an obstacle fences off live
+        board and starves the legalizer. `placement.bbox_override` names the
+        real body box in absolute mm; shitty-kitty's audit_board I6 makes
+        the identical exemption, so the two must agree.
+        """
+        ov = (self.place_cfg.get("bbox_override") or {}).get(f.GetReference())
+        if ov:
+            x0, y0, x1, y1 = [float(v) for v in ov]
+            return (x0, y0, x1, y1)
         return box_of(f.GetBoundingBox(False, False))
 
     def clear_at(self, f, x, y, skip, lg):
@@ -588,6 +662,16 @@ class BoardBuilder:
         keep = set(self.pinned)
         for pat in self.place_cfg.get("keep") or []:
             keep |= {r for r in self.fps if fnmatch.fnmatchcase(r, pat)}
+        # A bbox_override is an ABSOLUTE rect, so it cannot travel with a part
+        # the legalizer is free to move. Refuse rather than silently compute
+        # collisions against a stale box.
+        for r in (self.place_cfg.get("bbox_override") or {}):
+            if r not in self.fps:
+                die(f"placement.bbox_override names unknown refdes {r!r}")
+            if r not in keep:
+                die(f"placement.bbox_override on {r!r}, which the legalizer may "
+                    f"move — the override is an absolute rect and would go "
+                    f"stale. Pin {r} (placement.pin/keep) or drop the override.")
         ring_max = int(lg.get("ring_max", 40))
         moved = 0
         for r in sorted(self.fps):
@@ -643,6 +727,22 @@ class BoardBuilder:
     # ------------------------------------------------------------ zones
     LAYER_NAMES = {"F.Cu": pcbnew.F_Cu, "B.Cu": pcbnew.B_Cu,
                    "In1.Cu": pcbnew.In1_Cu, "In2.Cu": pcbnew.In2_Cu}
+    INNER_LAYERS = {"In1.Cu": 3, "In2.Cu": 4}     # min copper count that has it
+
+    def check_layer(self, lname, what):
+        """A copper layer must be BOTH spelled correctly and present in the
+        stackup. pcbnew's LSET will happily hold In1.Cu on a 2-layer board,
+        producing a zone on a layer that does not exist — it just never
+        fills, and no DRC complains."""
+        if lname not in self.LAYER_NAMES:
+            die(f"{what} on unknown layer {lname!r} "
+                f"(known: {sorted(self.LAYER_NAMES)})")
+        need = self.INNER_LAYERS.get(lname)
+        have = int(self.board_cfg.get("layers", 2))
+        if need and have < need:
+            die(f"{what} on {lname}, but board.layers is {have} — that layer "
+                f"is not in the stackup, so the copper would silently vanish")
+        return self.LAYER_NAMES[lname]
 
     def zone_points(self, z):
         if "points" in z:
@@ -666,10 +766,9 @@ class BoardBuilder:
                 die(f"zone on unknown net {net!r} (netlist has no such net)")
             pts = self.zone_points(z)
             for lname in z.get("layers") or ["F.Cu", "B.Cu"]:
-                if lname not in self.LAYER_NAMES:
-                    die(f"zone on unknown layer {lname!r}")
+                lid = self.check_layer(lname, f"zone on net {net!r}")
                 zone = pcbnew.ZONE(self.board)
-                zone.SetLayer(self.LAYER_NAMES[lname])
+                zone.SetLayer(lid)
                 if net:
                     zone.SetNet(self.netmap[net])
                 zone.SetAssignedPriority(int(z.get("priority", 0)))
@@ -713,14 +812,23 @@ class BoardBuilder:
             layers = k.get("layers") or ["F.Cu", "B.Cu"]
             ls = pcbnew.LSET()
             for lname in layers:
-                if lname not in self.LAYER_NAMES:
-                    die(f"keepout on unknown layer {lname!r}")
+                lid = self.check_layer(lname, f"keepout {k.get('name', '?')!r}")
                 # KiCad's SWIG binding spells this AddLayer on some builds and
                 # addLayer on others; both appear across our own generators.
                 add = getattr(ls, "AddLayer", None) or getattr(ls, "addLayer")
-                add(self.LAYER_NAMES[lname])
-            z.SetLayerSet(ls)
+                add(lid)
+            # ORDER IS LOAD-BEARING: ZONE::SetLayer() COLLAPSES the layer set
+            # to that single layer, so it must come FIRST and SetLayerSet must
+            # have the last word. Reversed, a 4-layer antenna keepout silently
+            # became an F.Cu-only rule area — DRC-clean, and wrong on the three
+            # layers nobody looked at. (Found regenerating shitty-kitty; the
+            # two 2-layer proof boards declared no keepouts and never hit it.)
             z.SetLayer(self.LAYER_NAMES[layers[0]])
+            z.SetLayerSet(ls)
+            if set(z.GetLayerSet().Seq()) != {self.LAYER_NAMES[n] for n in layers}:
+                die(f"keepout {k.get('name', '?')!r}: layer set did not stick "
+                    f"(wanted {layers}, got "
+                    f"{[self.board.GetLayerName(l) for l in z.GetLayerSet().Seq()]})")
             z.SetDoNotAllowTracks("tracks" in deny)
             z.SetDoNotAllowVias("vias" in deny)
             z.SetDoNotAllowPads("pads" in deny)

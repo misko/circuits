@@ -1,0 +1,266 @@
+# shitty-kitty floorplan — replaces the 444-line hand-written
+# 03_src/generate_board.py.
+#   /usr/bin/python3 ../../skills/kicad-pcb/scripts/generate_board_generic.py \
+#       03_src/floorplan.yaml
+#
+# 130x75mm 4-LAYER (ADR-0003) — the first 4-layer board proved against the
+# generic generator, and the one that exercises the plane machinery:
+#   F.Cu   parts + routing, GND pour (fine fill)
+#   In1.Cu solid GND — THE return plane
+#   In2.Cu SPLIT power plane: three non-overlapping, non-rectangular pours
+#          (12V east L / 5V south-center / 3V3 west L) at priority 2
+#   B.Cu   routing + GND pour
+# plus a 4-layer-spanning rule area under the ESP32 antenna overhang.
+
+project:
+  name: shitty_kitty
+  netlist: 06_build/netlists/shitty_kitty.net
+  output: 06_build/proof/shitty_kitty.kicad_pcb
+  parts_dir: 02_parts
+
+board:
+  outline: {x0: 50.0, y0: 50.0, w: 130.0, h: 75.0}
+  edge_width: 0.15
+  layers: 4
+  mounting_holes:
+    footprint: MountingHole:MountingHole_3.2mm_M3
+    at: [[55.5, 55.5], [174.5, 55.5], [55.5, 119.5], [174.5, 119.5]]
+
+libraries:
+  - /usr/share/kicad/footprints
+  - {lib: shitty_kitty, path: 03_src/lib/shitty_kitty.pretty}
+
+placement:
+  require_anchor: true          # every part is deliberately located
+  # anchored, but only actives/connectors are immovable — passives float
+  pin: ["J*", "Q*", "U*", "SW*"]
+  # The ESP32-S3 module's footprint bbox includes the ANTENNA KEEPOUT, which
+  # deliberately hangs off the south edge. Using that bbox as an obstacle
+  # would fence off ~20x19mm of live board and starve the legalizer. The
+  # tight BODY box is the real obstacle; audit_board I6 makes the identical
+  # exemption with the identical numbers.
+  bbox_override:
+    U1: [86.0, 105.7, 104.0, 125.0]
+  anchors:
+    # --- north edge: electrode headers (pin1 west, row horizontal) + MPR121s
+    J3: [61.0, 54.5, 90]
+    J4: [100.0, 54.5, 90]
+    # MPR121s rotated 90 (CCW): used electrodes ELE0-5 face north/east
+    # (toward the headers), support pins (IRQ/I2C/ADDR/VREG) face south —
+    # separates the electrode fanout from the support corridor.
+    U3: [66.5, 63.5, 90]
+    U4: [81.5, 63.5, 90]
+    U5: [106.0, 63.5, 90]
+    U6: [121.0, 63.5, 90]
+    # --- per-chip support (legalizer may nudge)
+    C30: [61.0, 69.5, 0]
+    C31: [64.0, 72.0, 0]
+    R20: [67.0, 74.5, 0]
+    R21: [70.0, 72.0, 0]
+    C32: [76.0, 69.5, 0]
+    C33: [79.0, 72.0, 0]
+    R22: [82.0, 69.5, 0]
+    R23: [85.0, 72.0, 0]
+    C34: [100.5, 69.0, 0]
+    C35: [103.5, 71.5, 0]
+    R24: [106.5, 69.0, 0]
+    R25: [109.5, 71.5, 0]
+    C36: [115.5, 69.0, 0]
+    C37: [118.5, 71.5, 0]
+    R26: [121.5, 69.0, 0]
+    R27: [124.5, 71.5, 0]
+    # --- I2C pullups + accelerometer
+    R12: [91.0, 76.0, 0]
+    R13: [91.0, 79.0, 0]
+    U7: [95.0, 84.0, 90]
+    C18: [99.5, 82.0, 0]
+    C19: [99.5, 86.0, 90]
+    # --- USB-C west edge + ESD
+    J2: [54.2, 95.0, 270]
+    D1: [64.0, 88.0, 0]
+    R4: [62.0, 99.5, 0]
+    R5: [62.0, 102.0, 0]
+    C8: [62.0, 104.5, 0]
+    # --- ESP32: antenna overhangs the SOUTH edge (rot 180)
+    U1: [95.0, 119.05, 180]
+    C9: [107.5, 106.0, 90]
+    C10: [107.5, 110.0, 90]
+    R6: [76.0, 104.0, 0]
+    C11: [76.0, 107.0, 0]
+    SW2: [70.0, 96.0, 0]
+    SW1: [70.0, 112.0, 0]
+    R7: [66.0, 84.0, 0]
+    D5: [66.0, 80.5, 0]
+    # --- 12V entry NE (hole-safe: J1 at y=70)
+    J1: [166.5, 70.0, 0]
+    F1: [163.0, 63.0, 0]
+    Q1: [160.0, 74.0, 270]
+    R1: [151.5, 74.0, 0]
+    D3: [155.0, 63.0, 0]
+    C40: [170.0, 80.5, 0]
+    C25: [162.0, 80.5, 0]
+    # --- buck (SW loop tight) + LDO
+    U8: [146.0, 88.0, 0]
+    C1: [140.0, 83.0, 0]
+    C2: [140.0, 86.0, 0]
+    C5: [152.0, 83.0, 0]
+    L1: [146.0, 96.5, 0]
+    C3: [140.0, 102.5, 0]
+    C4: [140.0, 105.5, 0]
+    U9: [128.0, 100.0, 0]
+    C6: [122.0, 96.0, 0]
+    C7: [122.0, 104.0, 0]
+    R3: [130.0, 108.5, 0]
+    D2: [134.5, 108.5, 0]
+    # --- TMC2209 + support, sense, motor + endstop connectors east edge
+    U2: [160.0, 103.0, 0]
+    C14: [153.5, 98.0, 0]
+    C15: [166.5, 98.0, 0]
+    C41: [168.5, 82.5, 0]
+    C26: [154.0, 101.5, 0]
+    C12: [154.0, 104.5, 0]
+    C13: [154.0, 107.5, 0]
+    C16: [154.0, 110.5, 0]
+    R8: [153.5, 117.0, 0]
+    R9: [149.5, 108.0, 90]
+    R30: [160.5, 96.0, 0]
+    R31: [160.5, 110.5, 0]
+    J5: [176.0, 91.0, 270]
+    J6: [176.0, 113.0, 90]
+    R10: [166.0, 107.0, 0]
+    C17: [166.0, 110.0, 0]
+    R11: [166.0, 113.0, 0]
+    # --- host header south edge (east of the module antenna span)
+    J8: [113.0, 121.0, 90]
+  legalize: {enable: true, clearance: 0.3, edge_margin: 0.8, hole_keepout: 2.6, ring_max: 30}
+  repeat:
+    # electrode pin numbering (J3/J4 pins at 2.54 pitch from pin1 x).
+    # Caption-only repeat blocks: no `members`, just the numbered legend.
+    - {name: inner_pins, count: 12, origin: [61.0, 51.2], pitch: [2.54, 0.0],
+       captions: [{text: "{i}", at: [0.0, 0.0], size: 0.7, nudge: false}]}
+    - {name: outer_pins, count: 12, origin: [100.0, 51.2], pitch: [2.54, 0.0],
+       captions: [{text: "{i}", at: [0.0, 0.0], size: 0.7, nudge: false}]}
+
+design_rules:                   # JLC 4-layer standard tier
+  track_min_width: 0.09
+  min_clearance: 0.09
+  via_min_annulus: 0.075
+  hole_clearance: 0.2
+  hole_to_hole: 0.3
+  copper_edge_clearance: 0.2
+  via_min_size: 0.45
+  min_through_drill: 0.3
+
+zones:
+  # F.Cu GND pour: fine fill (0.2 min / 0.15 clearance) so it can snake
+  # through the 0.6mm corridors between fine-pitch escapes and feed the
+  # ADDR-GND strap pads directly (U3.4 was unreachable at 0.25/0.25).
+  - {net: GND, layers: [F.Cu], priority: 0, connect: full, min_thickness: 0.2, clearance: 0.15}
+  - {net: GND, layers: [B.Cu], priority: 0, connect: thermal, min_thickness: 0.2, clearance: 0.15}
+  - {net: GND, layers: [In1.Cu], priority: 0, connect: full}   # THE return plane
+
+  # ---- In2.Cu SPLIT POWER PLANE: a non-overlapping partition of the board.
+  # VIN_12V uses a 0.6mm min-fill-thickness (vs 0.45 for the others): its
+  # top-LEFT convex corner sits mid-span on the top board edge (138,50) — a
+  # KiCad zone-fill quirk turns that specific corner into a sub-0.09mm
+  # connection_width sliver at 0.45 min thickness (3V3's top-left is the
+  # board corner (50,50) and is unaffected; VIN's top-RIGHT board corner is
+  # fine too). 0.6mm rounds the corner enough to clear it; verified 0
+  # unconnected, so no VIN stitch via is stranded by the coarser fill.
+  - net: VIN_12V
+    layers: [In2.Cu]
+    priority: 2
+    connect: full
+    min_thickness: 0.6
+    points: [[138, 50], [180, 50], [180, 125], [154, 125], [154, 96], [138, 96]]
+  - net: 5V
+    layers: [In2.Cu]
+    priority: 2
+    connect: full
+    min_thickness: 0.45
+    points: [[108, 96], [154, 96], [154, 125], [108, 125]]
+  - net: 3V3
+    layers: [In2.Cu]
+    priority: 2
+    connect: full
+    min_thickness: 0.45
+    points: [[50, 50], [138, 50], [138, 96], [108, 96], [108, 125], [50, 125]]
+
+keepouts:
+  # ESP32-S3 antenna clearing. The antenna itself hangs off the south edge
+  # (asserts below prove it), but the guard strip under the module's pad row
+  # must stay bare on EVERY copper layer — one rule area spanning all four
+  # (audit_board I3 re-checks this against routed copper).
+  - name: ANT_KEEPOUT
+    layers: [F.Cu, In1.Cu, In2.Cu, B.Cu]
+    points: [[71, 125.8], [119, 125.8], [119, 146.8], [71, 146.8]]
+    deny: [tracks, vias, pads, pours, footprints]
+
+silk:
+  min_text_height: 0.6
+  caption_nudge: false          # captions are hand-placed and verified in review
+  refdes: {size: 0.6, min_size: 0.6, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQDFL"}
+  captions:
+    - ["G", 91.48, 51.2, 0.7]
+    - ["G", 130.48, 51.2, 0.7]
+    - ["ELECTRODES INNER 1-12 + G", 76.0, 58.5, 1.0]
+    - ["ELECTRODES OUTER 1-12 + G", 115.0, 58.5, 1.0]
+    # power entry
+    - ["12V IN", 172.0, 62.5, 1.0]
+    - ["2.1mm CENTER +", 172.0, 64.3, 0.7]
+    # motor + endstop (J5 pins vertical from pin1 y=99.25)
+    - ["MOTOR", 174.8, 87.3, 0.9]
+    - ["A1", 170.6, 91.0, 0.7]
+    - ["A2", 170.6, 93.5, 0.7]
+    - ["B1", 170.6, 96.0, 0.7]
+    - ["B2", 170.6, 98.5, 0.7]
+    - ["ENDSTOP", 170.8, 106.2, 0.9]
+    - ["SIG", 172.3, 113.3, 0.65]
+    - ["GND", 172.3, 109.8, 0.65]
+    # host header
+    - ["HOST UART+5V", 119.5, 116.2, 0.9]
+    - ["5V MAX 1.5A", 119.5, 117.9, 0.7]
+    - ["5V", 113.0, 123.5, 0.6]
+    - ["5V", 115.5, 123.5, 0.6]
+    - ["G", 118.1, 123.5, 0.6]
+    - ["G", 120.6, 123.5, 0.6]
+    - ["TX", 123.2, 123.5, 0.6]
+    - ["RX", 125.7, 123.5, 0.6]
+    # usb + buttons + status
+    - ["USB-C DATA ONLY", 57.0, 87.5, 0.7]
+    - ["POWER FROM 12V", 57.0, 89.0, 0.7]
+    - ["RESET", 70.0, 92.2, 0.8]
+    - ["BOOT", 70.0, 108.2, 0.8]
+    - ["PWR", 138.0, 108.5, 0.7]
+    - ["STATUS", 66.0, 77.5, 0.7]
+    - ["shitty-kitty v1.0", 95.0, 100.0, 1.0]
+    - ["MOTOR OFF AT BOOT: ENN PULLUP R8", 95.0, 102.3, 0.6]
+
+asserts:
+  pad_net:
+    # polarity (part.yaml facts) — same set audit_board I9 re-checks
+    - {ref: C40, pad: 1, net: VIN_12V}
+    - {ref: C41, pad: 1, net: VIN_12V}
+    - {ref: D2,  pad: 1, net: GND}
+    - {ref: D5,  pad: 1, net: GND}
+    - {ref: D3,  pad: 1, net: VIN_12V}    # TVS cathode to +12V
+    - {ref: Q1,  pad: 2, net: VIN_F}      # P-FET drain (tab) = input side
+    - {ref: Q1,  pad: 3, net: VIN_12V}    # source = load side
+    # cat-safety: ENN pullup 3V3 -> ENN keeps the motor off at boot
+    - {ref: R8,  pad: 1, net: 3V3}
+    - {ref: R8,  pad: 2, net: ENN}
+  pad_order:
+    - {ref: J3, pads: [1, 13], axis: x}   # electrode row runs west->east
+    - {ref: J4, pads: [1, 13], axis: x}
+    - {ref: J5, pads: [1, 4], axis: y}    # motor column runs north->south
+    - {ref: J8, pads: [1, 6], axis: x}    # host header runs west->east
+    - {ref: U1, pads: [14, 1], axis: y}   # module pad1/40 row is the SOUTH end
+  # connector mouths: the body centroid must sit on the given side of the pad
+  # centroid, which is what "the plug goes in from the east" means geometrically.
+  body_offset:
+    - {ref: J1, axis: x, sign: "+"}       # barrel jack opens EAST
+    - {ref: J6, axis: x, sign: "+"}       # endstop terminal opens EAST
+    - {ref: J2, axis: x, sign: "-"}       # USB-C opens WEST
+  # the module's antenna clearing must start SOUTH of the board edge
+  pad_beyond_edge:
+    - {ref: U1, pad: 1, offset: 0.75, edge: y1}
