@@ -102,6 +102,56 @@ annotated capture for the pipeline, not a hand-drawn story schematic. ERC warnin
 parametric only: `lib_symbol_issues` (the embedded `elt` lib isn't in the running
 kicad-cli config) and any named-NC single-pin `isolated_pin_label`.
 
+## The converter output is BACKEND-READY — no per-board adapter (ADR-0001 backend completion, 2026-07-19)
+
+The same converter output that clears the netlist-parity gate now drives the FULL
+KiCad backend (generate_board → rules → KRT → stitch → DRC `--schematic-parity`) to
+DRC 0/0/0 with **no per-board adapter** — proven on cook-loadcell
+(`projects/cook-loadcell/tscircuit/backend_proof/build_from_tsx.sh`, board parity 0
+vs the sealed board). The converter fills the four things the backend needs that the
+parity gate never inspects:
+
+**Net names — the canonical-name convention.** tscircuit's `net.` selector can't
+author a leading-digit net name, so a rail is authored with an author-prefix `N`
+(`5V`→`N5V`, `3V3`→`N3V3`, `12V`→`N12V`, `1V8`→`N1V8`). The converter's `canon_net`
+**strips a single leading `N` that guards a digit-leading rail** and emits the
+canonical KiCad name (`N5V`→`5V`, `N5V_A`→`5V_A`). Names where `N` is followed by a
+non-digit (`NRST`, `NC`, `NRESET`) are left untouched. For any rail the convention
+can't reach, drop a per-board **`tscircuit/net_aliases.txt`** (auto-discovered next
+to `build/`): one mapping per line, `TSNAME CANONICAL` (`=` or `->` also accepted),
+`#` starts a comment. The convention + alias file are the ONLY net-naming inputs;
+generate_board's polarity asserts, `rules/nets.yaml` netclass patterns, and the
+promoted KRT route all key on the canonical names, so getting these right is
+load-bearing, not cosmetic.
+
+**Footprint FPIDs — commodity token map + `02_parts` override.** Each symbol's
+Footprint FPID is resolved from two sources, override-first:
+- **`02_parts/*/part.yaml` (specialty parts, wins).** Auto-discovered by walking up
+  from `build/circuit.json` to the project's `02_parts/`. Each part.yaml's
+  top-level `footprint:` becomes the FPID, keyed by every handle circuit.json might
+  carry — the LCSC/JLC code (`sourcing.lcsc`), the `mpn:`, and the part-folder name.
+  This is why a specialty part must author `supplierPartNumbers={{ jlcpcb: ["Cxxxx"] }}`
+  in its TSX: that code (in `cad_component`/`source_component.supplier_part_numbers`)
+  is what links it to its 02_parts footprint. **A specialty part with NO supplier
+  code in its TSX gets an empty FPID** (generate_board then hard-errors, by design)
+  — this is the one authoring-completeness step, not an adapter.
+- **Baked-in commodity token map (`COMMODITY_FP` in the converter).** For parts not
+  in 02_parts. The token comes from `cad_component.footprinter_string`, which
+  class-disambiguates passives (`res0603` for a `<resistor>` → `Resistor_SMD:...`;
+  bare `0603` for a `<capacitor>` → `Capacitor_SMD:...`) so R-vs-C needs no
+  per-class table. Covers 0402–1210 R/C, SOT-23/-5/-6/-223, SOD-123/-323, SMA/SMB,
+  SOIC-8/14/16 @1.27, 2.54mm pin headers, 2.5mm JST-XH rows, SolderJumper-2, and
+  the `smtpad_circle_d1.5`/`testpoint_pad` test points.
+
+**MPN field dropped** (KiCad footprints carry none → `footprint_symbol_field_mismatch`);
+sourcing lives in `02_parts/` + `bom_seed`. **Test points** emit `in_bom no`
+(matching the KiCad TestPoint footprint's exclude-from-BOM) with a concise `TP`
+Value that won't clip the board edge.
+
+Note `part.yaml`'s `footprint:` value is read as the first whitespace-free token, so
+a trailing YAML `# inline comment` (even one containing quotes, as TS-1187A has) is
+dropped cleanly and never corrupts the emitted s-expr.
+
 ## What the verification stack proves (and its limits)
 
 - **DRC-on-export** is the honest number: tscircuit's auto-layout/route does NOT

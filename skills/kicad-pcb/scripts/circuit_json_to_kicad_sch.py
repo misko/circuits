@@ -25,6 +25,25 @@ PWR_FLAG so ERC's power-driven check stays at zero.
 Emission machinery (lib_symbol grammar, power symbols, instance/label s-exprs) is
 reused from `schwriter2.py` in this same scripts dir — the proven KiCad 7/10 dialect.
 
+BACKEND-READY (ADR-0001 Phase 2/3 completion). The output is directly consumable
+by the full KiCad backend (generate_board -> rules -> KRT -> DRC --schematic-parity)
+with NO per-board adapter — the five Phase-3 adapter transforms are folded in here:
+  1. CANONICAL NET NAMES. tscircuit can't author a leading-digit net name, so a
+     rail is authored with a documented author-prefix `N` (`5V`->`N5V`,
+     `3V3`->`N3V3`, `12V`->`N12V`). `canon_net` strips that guard prefix and emits
+     the canonical KiCad name on the global labels; an optional per-board
+     `tscircuit/net_aliases.txt` (auto-discovered) covers anything the convention
+     misses.
+  2. FOOTPRINT FPIDs. Each symbol's Footprint field is filled from a baked-in
+     COMMODITY token->FPID map (circuit.json class-disambiguates: `res0603` vs
+     `0603`) with a per-board override seeded from `02_parts/*/part.yaml`
+     (MPN/LCSC -> footprint, auto-discovered) that WINS for specialty parts.
+  3. NO MPN FIELD (KiCad footprints carry none -> footprint_symbol_field_mismatch).
+  4. TP BOM ATTRS. Test-point symbols are `in_bom no` (matching the KiCad
+     TestPoint footprint) with a concise `TP` Value that won't clip the board edge.
+Proven: cook-loadcell drives the whole backend to DRC 0/0/0 + board parity 0 from
+this output ALONE (projects/cook-loadcell/tscircuit/backend_proof/build_from_tsx.sh).
+
 Connectivity resolution (validated node-for-node vs the sealed KiCad boards):
   * NET per port: group by `source_net.subcircuit_connectivity_map_key`
     (each source_port carries the same key); a port with no keyed net is a
@@ -60,9 +79,150 @@ PIN_LEN = 2.54
 CH_W = 1.05          # global-label plate per-char width (schwriter2 S-OCCL model)
 LIB = "elt"
 
+# ------------------------------------------------------------------ FPID map
+# Commodity tscircuit-footprinter TOKEN -> canonical KiCad FPID ("lib:name").
+# circuit.json (cad_component.footprinter_string) class-disambiguates passives:
+# a resistor emits `res0603`, a capacitor the bare `0603` — so R-vs-C is decided
+# by the token itself, no per-class table needed. Specialty parts (connectors,
+# ICs) are NOT here; they resolve from the project's 02_parts/*/part.yaml
+# override (MPN/LCSC -> footprint), which takes precedence over this map.
+COMMODITY_FP = {
+    # resistors (circuit.json emits res<size> for a <resistor>)
+    "res0402": "Resistor_SMD:R_0402_1005Metric",
+    "res0603": "Resistor_SMD:R_0603_1608Metric",
+    "res0805": "Resistor_SMD:R_0805_2012Metric",
+    "res1206": "Resistor_SMD:R_1206_3216Metric",
+    "res1210": "Resistor_SMD:R_1210_3225Metric",
+    # capacitors (bare size token == capacitor in circuit.json)
+    "0402": "Capacitor_SMD:C_0402_1005Metric",
+    "0603": "Capacitor_SMD:C_0603_1608Metric",
+    "0805": "Capacitor_SMD:C_0805_2012Metric",
+    "1206": "Capacitor_SMD:C_1206_3216Metric",
+    "1210": "Capacitor_SMD:C_1210_3225Metric",
+    # discrete semiconductors / SOT-SOD packages
+    "sot23": "Package_TO_SOT_SMD:SOT-23",
+    "sot23_3": "Package_TO_SOT_SMD:SOT-23",
+    "sot23_5": "Package_TO_SOT_SMD:SOT-23-5",
+    "sot23_6": "Package_TO_SOT_SMD:SOT-23-6",
+    "sot223": "Package_TO_SOT_SMD:SOT-223-3_TabPin2",
+    "sod323": "Diode_SMD:D_SOD-323",
+    "sod123": "Diode_SMD:D_SOD-123",
+    "sma": "Diode_SMD:D_SMA",
+    "smb": "Diode_SMD:D_SMB",
+    # SO / SOIC packages
+    "soic8_p1.27mm": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+    "soic14_p1.27mm": "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm",
+    "soic16_p1.27mm": "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm",
+    # pin headers / connectors
+    "pinrow2": "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
+    "pinrow3": "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical",
+    "pinrow4": "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical",
+    "pinrow5": "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical",
+    "pinrow3_p2.5mm": "Connector_JST:JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical",
+    "pinrow5_p2.5mm": "Connector_JST:JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical",
+    # jumpers / test points
+    "solderjumper2_bridged12": "Jumper:SolderJumper-2_P1.3mm_Open_Pad1.0x1.5mm",
+    "smtpad_circle_d1.5": "TestPoint:TestPoint_Pad_D1.5mm",
+    "testpoint_pad": "TestPoint:TestPoint_Pad_D1.5mm",
+}
+
 
 def _u():
     return str(uuid.uuid4())
+
+
+# ------------------------------------------------------------------ net names
+def canon_net(name, aliases):
+    """Emit the CANONICAL KiCad net name from the tscircuit-authored one.
+
+    tscircuit's `net.` selector can't author a name starting with a digit, so a
+    rail is authored with a documented author-prefix `N` (`5V`->`N5V`,
+    `3V3`->`N3V3`, `12V`->`N12V`). Rule: an alias file wins first; otherwise
+    strip a single leading `N` that guards a digit-leading rail. `NRST`/`NC`/
+    `NRESET` (N + non-digit) are left untouched."""
+    if name is None:
+        return None
+    if name in aliases:
+        return aliases[name]
+    if len(name) >= 2 and name[0] == "N" and name[1].isdigit():
+        return name[1:]
+    return name
+
+
+def load_aliases(path):
+    """Optional per-board `tscircuit/net_aliases.txt`: one `TSNAME CANONICAL`
+    per line (`=` or `->` also accepted); `#` starts a comment. For rails the
+    default convention can't reach."""
+    al = {}
+    if not path or not os.path.isfile(path):
+        return al
+    for line in open(path):
+        line = line.split("#", 1)[0].strip()
+        if not line:
+            continue
+        parts = re.split(r"\s*(?:=|->|\s)\s*", line, maxsplit=1)
+        if len(parts) == 2 and parts[0] and parts[1]:
+            al[parts[0].strip()] = parts[1].strip()
+    return al
+
+
+# ------------------------------------------------------------------ FPID lookup
+def load_part_overrides(parts_dir):
+    """Per-board FPID override seeded from `02_parts/*/part.yaml` — the project's
+    source of truth for the real KiCad footprint per part. Keyed by every handle
+    circuit.json might carry (LCSC/JLC code, MPN, part folder name) -> FPID.
+    YAML-free line parse so the converter needs no external deps."""
+    ov = {}
+    if not parts_dir or not os.path.isdir(parts_dir):
+        return ov
+    for name in sorted(os.listdir(parts_dir)):
+        p = os.path.join(parts_dir, name, "part.yaml")
+        if not os.path.isfile(p):
+            continue
+        txt = open(p).read()
+        # a KiCad FPID is a single whitespace-free `lib:name` token, so grab the
+        # first token after `footprint:` — this cleanly drops any trailing YAML
+        # `# inline comment` (which may itself contain quotes and would otherwise
+        # corrupt the emitted s-expr).
+        m = re.search(r"^footprint:\s*(\S+)", txt, re.M)
+        if not m:
+            continue
+        fp = m.group(1).strip("\"'")
+        keys = {name}
+        mm = re.search(r"^mpn:\s*(.+?)\s*(?:#.*)?$", txt, re.M)
+        if mm:
+            keys.add(mm.group(1).strip().strip("\"'"))
+        for code in re.findall(r"(?:lcsc|jlc|jlcpcb):\s*([A-Za-z0-9]+)", txt):
+            keys.add(code)
+        for k in keys:
+            ov.setdefault(k, fp)
+    return ov
+
+
+def resolve_fpid(token, codes, overrides):
+    """FPID for one component: the per-board 02_parts override (specialty parts)
+    wins over the baked-in commodity token map; empty string if neither knows it
+    (a blank Footprint the backend's hard-error will then surface, by design)."""
+    for c in codes:
+        if c and c in overrides:
+            return overrides[c]
+    if token and token in COMMODITY_FP:
+        return COMMODITY_FP[token]
+    return ""
+
+
+def _discover_up(start, names, is_dir):
+    d = os.path.dirname(os.path.abspath(start))
+    for _ in range(5):
+        for nm in names:
+            cand = os.path.join(d, nm)
+            if (os.path.isdir(cand) if is_dir else os.path.isfile(cand)):
+                return cand
+        nd = os.path.dirname(d)
+        if nd == d:
+            break
+        d = nd
+    return None
 
 
 def snap(v):
@@ -74,16 +234,26 @@ def natkey(s):
 
 
 # ------------------------------------------------------------------ model
-def load_model(path):
+def load_model(path, aliases=None, overrides=None):
     """Parse circuit.json -> per-component ordered (padname, portname, net) plus
     metadata. Returns (components, flag_host) where components is a list of dicts
     in refdes order. flag_host is (refdes, padname) of the GND pin to carry the
-    single PWR_FLAG, or None."""
+    single PWR_FLAG, or None.
+
+    Net names are CANONICALIZED (`canon_net`) and each component carries a
+    resolved KiCad FPID (`fpid`) so the emitted sheet is backend-ready with no
+    downstream adapter."""
+    aliases = aliases or {}
+    overrides = overrides or {}
     d = json.load(open(path))
     comps = {e['source_component_id']: e for e in d
              if e.get('type') == 'source_component'}
     ports = [e for e in d if e.get('type') == 'source_port']
     port_by_id = {p['source_port_id']: p for p in ports}
+
+    # source_component_id -> tscircuit footprinter token (from cad_component)
+    tok_by_comp = {e['source_component_id']: e.get('footprinter_string')
+                   for e in d if e.get('type') == 'cad_component'}
 
     # net-key -> net name (first wins; ids are stable within a build)
     key2net = {}
@@ -91,8 +261,9 @@ def load_model(path):
         if e.get('type') == 'source_net':
             key2net.setdefault(e['subcircuit_connectivity_map_key'], e['name'])
 
-    # base net per port via its connectivity key
-    portnet = {p['source_port_id']: key2net.get(p.get('subcircuit_connectivity_map_key'))
+    # base net per port via its connectivity key, canonicalized to KiCad names
+    portnet = {p['source_port_id']:
+               canon_net(key2net.get(p.get('subcircuit_connectivity_map_key')), aliases)
                for p in ports}
     # propagate through internal connections (split shields / thermal pads)
     for c in comps.values():
@@ -137,10 +308,17 @@ def load_model(path):
             elif pins[pad]["net"] is None and net is not None:
                 pins[pad]["net"] = net  # a connected duplicate wins over an NC one
         ordered = sorted(pins.items(), key=lambda kv: natkey(kv[0]))
+        refdes = c['name']
+        is_tp = c.get('ftype') == 'simple_test_point' or refdes.startswith('TP')
+        codes = [code for v in (c.get('supplier_part_numbers') or {}).values()
+                 for code in (v or [])]
         components.append({
-            "refdes": c['name'],
-            "value": comp_value(c),
-            "mpn": comp_mpn(c),
+            "refdes": refdes,
+            # a test point's tscircuit default Value (`simple_test_point`, 18ch)
+            # renders as footprint silk clipped by the board edge -> concise "TP".
+            "value": "TP" if is_tp else comp_value(c),
+            "is_tp": is_tp,
+            "fpid": resolve_fpid(tok_by_comp.get(cid), codes, overrides),
             "pins": [(pad, v["port"], v["net"]) for pad, v in ordered],
         })
     components.sort(key=lambda c: natkey(c["refdes"]))
@@ -266,16 +444,19 @@ def emit_component(comp, project, root_uuid, flag_host, pwr_counter):
     cx, cy, w, h = comp["cx"], comp["cy"], comp["w"], comp["h"]
     pinmap = comp["pinmap"]
     ry, vy = cy - h / 2 - 1.6, cy + h / 2 + 1.8
+    # TP symbols track the KiCad TestPoint footprint's exclude-from-BOM default
+    # (footprint_symbol_mismatch on the BOM attr otherwise). No MPN field is
+    # emitted at all: KiCad library footprints carry none, so a symbol MPN
+    # field trips footprint_symbol_field_mismatch — sourcing lives in 02_parts.
+    in_bom = "no" if comp["is_tp"] else "yes"
     body = [
         f'  (symbol (lib_id "{LIB}:{comp["sym"]}") (at {cx:.2f} {cy:.2f} 0) (unit 1)'
-        f' (in_bom yes) (on_board yes) (dnp no) (uuid "{_u()}")\n'
+        f' (in_bom {in_bom}) (on_board yes) (dnp no) (uuid "{_u()}")\n'
         f'    (property "Reference" "{comp["refdes"]}" (at {cx:.2f} {ry:.2f} 0)'
         f' (effects (font (size 1.27 1.27))))\n'
         f'    (property "Value" "{comp["value"]}" (at {cx:.2f} {vy:.2f} 0)'
         f' (effects (font (size 1.27 1.27))))\n'
-        f'    (property "Footprint" "" (at {cx:.2f} {cy:.2f} 0) (effects (font (size 1.27 1.27)) hide))\n'
-        + (f'    (property "MPN" "{comp["mpn"]}" (at {cx:.2f} {cy:.2f} 0) (effects (font (size 1.0 1.0)) hide))\n'
-           if comp["mpn"] else "")
+        f'    (property "Footprint" "{comp["fpid"]}" (at {cx:.2f} {cy:.2f} 0) (effects (font (size 1.27 1.27)) hide))\n'
         + "\n".join(f'    (pin "{pad}" (uuid "{_u()}"))' for pad, _pn, _net in comp["pins"])
         + f'\n    (instances (project "{project}" (path "/{root_uuid}"'
         f' (reference "{comp["refdes"]}") (unit 1))))\n  )'
@@ -305,8 +486,8 @@ def emit_component(comp, project, root_uuid, flag_host, pwr_counter):
     return body, labels
 
 
-def convert(circuit_json, project, title, rev, date):
-    components, flag_host = load_model(circuit_json)
+def convert(circuit_json, project, title, rev, date, aliases=None, overrides=None):
+    components, flag_host = load_model(circuit_json, aliases, overrides)
     placed, pw, ph = layout(components)
     root_uuid = _u()
 
@@ -351,15 +532,31 @@ def main():
     ap.add_argument("--title", default=None)
     ap.add_argument("--rev", default="dev")
     ap.add_argument("--date", default=datetime.date.today().isoformat())
+    ap.add_argument("--parts-dir", default=None,
+                    help="02_parts/ dir for per-board FPID overrides "
+                         "(default: auto-discover next to the project)")
+    ap.add_argument("--net-aliases", default=None,
+                    help="net_aliases.txt for names the strip-N convention misses "
+                         "(default: auto-discover tscircuit/net_aliases.txt)")
     a = ap.parse_args()
     project = a.project or os.path.splitext(os.path.basename(a.out))[0]
     title = a.title or project
-    content, comps = convert(a.circuit_json, project, title, a.rev, a.date)
+
+    parts_dir = a.parts_dir or _discover_up(a.circuit_json, ["02_parts"], True)
+    alias_path = a.net_aliases or _discover_up(a.circuit_json, ["net_aliases.txt"], False)
+    overrides = load_part_overrides(parts_dir)
+    aliases = load_aliases(alias_path)
+
+    content, comps = convert(a.circuit_json, project, title, a.rev, a.date,
+                             aliases, overrides)
     with open(a.out, "w") as f:
         f.write(content + "\n")
     npins = sum(len(c["pins"]) for c in comps)
-    print(f"wrote {a.out}: {len(comps)} components, {npins} pins "
-          f"(unique symbols, annotated, net-glue global labels)")
+    nfp = sum(1 for c in comps if c["fpid"])
+    print(f"wrote {a.out}: {len(comps)} components ({nfp} with FPID), {npins} pins "
+          f"(unique symbols, annotated, canonical nets, net-glue global labels)")
+    print(f"  overrides: {len(overrides)} keys from {parts_dir or '(none)'}; "
+          f"aliases: {len(aliases)} from {alias_path or '(none)'}")
 
 
 if __name__ == "__main__":

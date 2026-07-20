@@ -163,6 +163,53 @@ boards (modules + USB-C + multi-connector), not just commodity-footprint boards.
 KiCad `04_kicad/` remains the sole fab-of-record; the converter output is the
 verified schematic-capture bridge, not a fab source.
 
+## Backend completion (2026-07-19) — adapter folded into the converter; output is backend-ready, no per-board adapter
+
+Phase 3 proved a TSX-authored schematic can drive the full KiCad backend
+(generate_board → rules → KRT → stitch → DRC `--schematic-parity`) to **DRC 0/0/0**
+with board-netlist parity to the sealed board — but only via a one-shot,
+project-local adapter (`prepare_backend_sch.py` + `assign_footprints.py`) that
+patched five gaps the Phase-2 converter left for the netlist-parity gate. Those
+five gaps are now **folded into the converter itself**
+(`skills/kicad-pcb/scripts/circuit_json_to_kicad_sch.py`), so the converter output
+is directly backend-ready and **no per-board adapter is needed**:
+
+1. **Canonical net names.** tscircuit can't author a leading-digit net name, so a
+   rail carries a documented author-prefix `N` (`5V`→`N5V`, `3V3`→`N3V3`,
+   `12V`→`N12V`). `canon_net` strips a single leading `N` that guards a
+   digit-leading rail and emits the canonical KiCad name on the global labels
+   (`NRST`/`NC` etc. untouched — the char after `N` must be a digit). An optional,
+   auto-discovered per-board `tscircuit/net_aliases.txt` (`TSNAME CANONICAL` per
+   line) covers anything the convention can't reach.
+2. **Footprint FPIDs.** Each symbol's Footprint field is filled from (a) a baked-in
+   commodity token→FPID map — circuit.json class-disambiguates passives
+   (`res0603` for a resistor vs bare `0603` for a capacitor), so no per-class
+   guessing — and (b) a per-board override seeded from `02_parts/*/part.yaml`
+   (keyed by LCSC/JLC code, MPN, and part-folder name → its `footprint:`) that
+   **wins** for specialty parts. The token comes from
+   `cad_component.footprinter_string` in circuit.json.
+3. **MPN field dropped** (KiCad footprints carry none → `footprint_symbol_field_mismatch`).
+4. **Test-point BOM attrs.** TP symbols emit `in_bom no` (matching the KiCad
+   TestPoint footprint) with a concise `TP` Value that won't clip the board edge.
+
+**Gate results (falsifiable, re-run):**
+
+| Gate | Result |
+|---|---|
+| A — 3 ladder boards, converter → ERC + netlist parity | cook-loadcell **ERC 0 / parity 0** (16/16 nets, 75/75 nodes); xt60 **0 / 0** (28/28, 151/151); esp32 **0 / 0** (36/36, 189/189, 25 NC). Unchanged from Phase 2. |
+| B — cook-loadcell full backend from converter output ALONE (no `prepare_backend_sch.py`/`assign_footprints.py`) | **DRC 0 / 0 / 0** (violations / unconnected / schematic-parity) and **board-netlist parity 0** vs sealed (77/77 nodes, 17/17 nets). generate_board loaded every FPID, audit PASS, KRT r2 imported. Adapter fully absorbed. |
+| C — xt60 + esp32 backend-readiness spot-check | Canonical nets emitted (parity-proven); MPN fields = 0; esp32 **72/72** components carry an FPID (incl. specialty from 02_parts: ESP32-S3, LM339 SOIC-14, AMS1117 SOT-223, TerminalBlock, TS-1187A button) and 6 TP `in_bom no`; xt60 **34/47** — the 13 gaps are hand-`<footprint>` specialty parts (connectors/inductors/FET/buck ICs) whose TSX omits `supplierPartNumbers`, so circuit.json carries no code to key the 02_parts override. |
+
+**Residual per-board step for the capstone (lipo3s, ~100 parts):** exactly ONE, and
+it is an *authoring-completeness* step, not an adapter — every specialty part must
+carry `supplierPartNumbers={{ jlcpcb: ["Cxxxx"] }}` in its TSX (which you author
+anyway for the JLC BOM) so its LCSC code links to `02_parts/*/part.yaml`. Do that
+and FPID resolution is automatic (cook-loadcell 29/29, esp32 72/72 prove it);
+commodity passives need nothing (token map). No net-name renaming, footprint
+injection, MPN surgery, or BOM-attr patching remains — those are the converter's
+job now. Watch leading-digit rails beyond `5V`/`3V3` (`12V`→`N12V`, `1V8`→`N1V8`)
+and add a `net_aliases.txt` line for any rail the strip-`N` convention can't reach.
+
 ## Reversibility
 
 Additive until Phase 4: every board keeps its KiCad generators; the `tscircuit/`

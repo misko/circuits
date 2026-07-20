@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""Phase-3 integration adapter (the ONE adapter the TSX path needs).
+"""SUPERSEDED (2026-07-19) — NO LONGER IN THE BUILD CHAIN. Kept as the historical
+record of the five converter gaps this adapter used to patch; all five are now
+FOLDED INTO the converter (skills/kicad-pcb/scripts/circuit_json_to_kicad_sch.py),
+so build_from_tsx.sh copies the converter output directly with no transform.
+See NOTES.md and ADR-0001 "Backend completion". Do not reintroduce into the chain.
+
+----------------------------------------------------------------------------
+Phase-3 integration adapter (the ONE adapter the TSX path needed).
 
 Turns the Phase-2 converter kicad_sch into a BACKEND-READY kicad_sch that the
 UNCHANGED cook-loadcell 03_src pipeline (netlist export -> generate_board ->

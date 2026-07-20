@@ -1,5 +1,18 @@
 # Phase-3 backend proof — cook-loadcell (ADR-0001)
 
+> **UPDATE 2026-07-19 — ADAPTER FOLDED IN, no per-board adapter remains.**
+> The five gaps below (items 1–5) are now handled inside the converter
+> (`skills/kicad-pcb/scripts/circuit_json_to_kicad_sch.py`): canonical net names
+> (strip-`N` convention + optional `tscircuit/net_aliases.txt`), footprint FPIDs
+> (commodity token map + `02_parts/*/part.yaml` MPN/LCSC override), MPN field
+> dropped, and TP `in_bom no` + concise `TP` value. `build_from_tsx.sh` now copies
+> the converter output **directly** (step [1] is a plain `cp`, no transform) and
+> still reaches **DRC 0/0/0 + board parity 0**. `prepare_backend_sch.py` /
+> `assign_footprints.py` are **superseded** and out of the chain — retained below
+> only as the historical record of what the converter now does. The table's
+> "One honest caveat" (the fix belongs upstream in the converter) is now resolved.
+
+
 **Claim under test (ADR-0001 Phase 3):** a TSX-authored schematic can drive the
 "unchanged generate_board → rules → KRT → verify chain" to DRC 0/0/0, end to end.
 

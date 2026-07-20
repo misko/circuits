@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Phase-3 adapter #2 — assign KiCad footprint FPIDs to the exported netlist.
+"""SUPERSEDED (2026-07-19) — NO LONGER IN THE BUILD CHAIN. The token->FPID map and
+02_parts sourcing this adapter performed are now folded into the converter
+(skills/kicad-pcb/scripts/circuit_json_to_kicad_sch.py: COMMODITY_FP +
+load_part_overrides). Kept only as the historical record. Do not reintroduce.
+
+----------------------------------------------------------------------------
+Phase-3 adapter #2 — assign KiCad footprint FPIDs to the exported netlist.
 
 The TSX authoring layer expresses each part's footprint as a tscircuit
 footprinter TOKEN (`0603`, `soic16_p1.27mm`, `pinrow3_p2.5mm`, ...) plus pad

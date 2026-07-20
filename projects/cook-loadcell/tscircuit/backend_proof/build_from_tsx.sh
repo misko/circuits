@@ -1,6 +1,9 @@
 #!/bin/bash
-# Phase-3 proof (ADR-0001): drive the ENTIRE cook-loadcell KiCad backend from
-# the TSX-authored (converter) schematic, end to end, to DRC 0/0/0.
+# Backend-completion proof (ADR-0001 Phase 2/3): drive the ENTIRE cook-loadcell
+# KiCad backend from the TSX-authored (converter) schematic, end to end, to DRC
+# 0/0/0 — WITH NO PER-BOARD ADAPTER. The Phase-3 adapter (prepare_backend_sch.py
+# + assign_footprints.py) is now FOLDED INTO the converter itself, so the
+# converter output is backend-ready as-is.
 #
 # This mirrors 03_src/rebuild_all.sh STEP-FOR-STEP. The 03_src backend scripts
 # run BYTE-IDENTICAL: backend_proof/03_src is a symlink to ../../03_src, and
@@ -9,17 +12,19 @@
 # backend_proof/04_kicad + backend_proof/06_build and NEVER touch the sealed
 # 04_kicad/.
 #
-# The path differs from rebuild_all.sh in exactly ONE place:
-#   generate_schematic.py (schwriter2) is replaced by prepare_backend_sch.py — the
-#   single integration adapter. It takes the Phase-2 converter kicad_sch (TSX ->
-#   circuit.json -> skills/kicad-pcb/scripts/circuit_json_to_kicad_sch.py) and makes
-#   it BACKEND-READY: canonical net names (N5V->5V, N3V3->3V3), KiCad footprint
-#   FPIDs filled from the authored TSX footprint tokens, tscircuit's MPN symbol
-#   field dropped, and concise TP silk values. See prepare_backend_sch.py for why
-#   each is needed. After it, the exported netlist carries canonical nets + FPIDs,
-#   so every downstream step — netlist export, generate_board, audit_board,
-#   import_krt(r2), stitch_and_fill, generate_rules, DRC --schematic-parity — is
-#   the project's own 03_src, byte-for-byte UNCHANGED.
+# The path differs from rebuild_all.sh in exactly ONE place, and it is now a
+# PLAIN COPY (no transform): generate_schematic.py (schwriter2) is replaced by
+# the converter's own output. circuit_json_to_kicad_sch.py already emits a
+# backend-ready kicad_sch — canonical net names (N5V->5V, N3V3->3V3 via the
+# strip-N convention + optional net_aliases.txt), KiCad footprint FPIDs (commodity
+# token map + 02_parts MPN/LCSC override), no MPN field, TP exclude-from-BOM +
+# concise TP silk. So every downstream step — netlist export, generate_board,
+# audit_board, import_krt(r2), stitch_and_fill, generate_rules, DRC
+# --schematic-parity — is the project's own 03_src, byte-for-byte UNCHANGED.
+#
+# The old adapters (prepare_backend_sch.py / assign_footprints.py) are SUPERSEDED
+# and no longer in the chain; they remain in this dir marked superseded, as the
+# historical record of the five gaps that are now folded into the converter.
 set -euo pipefail
 cd "$(dirname "$0")"
 PROOF="$(pwd)"
@@ -36,12 +41,12 @@ B="$PROOF/06_build"
 rm -rf "$K" "$B"
 mkdir -p "$K" "$B/netlists" "$B/drc" "$B/route"
 
-echo "== [1] SCHEMATIC SOURCE = TSX converter kicad_sch -> ONE adapter (prepare_backend_sch) =="
-# The only integration adapter: converter kicad_sch -> backend-ready kicad_sch
-# (canonical net names + KiCad FPIDs + MPN drop + concise TP silk). After this,
-# the 03_src backend is byte-for-byte unchanged.
-$PY "$PROOF/prepare_backend_sch.py" "$CONV_SCH" "$PROJ/tscircuit/src/cook_loadcell.tsx" \
-    "$K/cook_loadcell.kicad_sch"
+echo "== [1] SCHEMATIC SOURCE = TSX converter kicad_sch, USED DIRECTLY (no adapter) =="
+# NO adapter: the converter already emits a backend-ready kicad_sch (canonical
+# nets + FPIDs + no-MPN + TP BOM attrs, all folded into
+# circuit_json_to_kicad_sch.py). Just copy it in. This is the proof that the
+# adapter is fully absorbed.
+cp "$CONV_SCH" "$K/cook_loadcell.kicad_sch"
 cp "$PROJ/04_kicad/fp-lib-table" "$K/fp-lib-table" 2>/dev/null || true
 # seed the minimal .kicad_pro generate_schematic would have written (generate_rules
 # merges netclasses+floors into it; it must exist and be valid JSON).
