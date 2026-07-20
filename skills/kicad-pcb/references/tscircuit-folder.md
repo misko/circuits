@@ -71,6 +71,28 @@ releases — it only writes under `tscircuit/`.
   twin remains a KiCad-side, JLC-CAD gate. Do not treat a tscircuit render as
   order-ready; it is a design study.
 
+## Authoring notes (from the cook-loadcell reference, 2026-07-19 — node-for-node parity achieved on 33 parts)
+
+- **Parity by construction:** give each element `connections={{ pin: "net.NAME" }}`
+  rather than pairwise `<trace>`. This binds pins to explicit nets and sidesteps
+  tscircuit's `C1_pos`-style auto-net-naming, so the readable-netlist matches KiCad
+  verbatim.
+- **Leading-digit net names break the `net.` selector** (`3V3`, `5V`): rename to
+  `N3V3`/`N5V` (or similar) and record the map in `notes.md`. This was the ONLY
+  normalization needed to hit node-for-node parity on the reference board.
+- **`<hole>` elements default to (0,0) and STACK** — the resulting "pcb_hole
+  overlaps" error *silently disables the autorouter for the whole board*. Give
+  every `<hole>` (and any pad-relative mechanical) an explicit `pcbX`/`pcbY`.
+- **Footprinter covers commodity parts** (0402-1210, SOT-23, SOD-323, SOIC@1.27,
+  pin rows, test points) with correct pad count/pitch, but has **no JST-XH shroud,
+  no open solder-jumper, and specialty connectors** — use a `<footprint>` child
+  matching the KiCad land pattern for those. Connector-heavy boards need this most.
+- **Expected DRC-on-export is large and mostly parametric:** tscircuit routes thin
+  default geometry (0.15mm tracks, 0.30mm vias) and adds no netclass/pour, so
+  `kicad-cli --severity-all` reports hundreds of track_width/via/silk items plus a
+  handful of real auto-router shorts in congested corners. Parity proves the DESIGN;
+  the copper is a study, not fab-grade. Classify in `notes.md` (parametric vs real).
+
 ## Toolchain (persistent, per-user)
 
 - `bun` at `~/.bun/bin/bun` (tscircuit's runtime).
