@@ -14,10 +14,16 @@ hard-won traps; this skill is the orchestration layer only.
 
 - Pick a short kebab-case project name from the brief.
 - `mkdir -p ~/gits/circuits/projects/<name>` with the numbered stage
-  folders `01_docs 02_parts 03_src 04_kicad 05_firmware 06_build
-  07_releases`. Copy each folder's `contracts.md` from
+  folders `01_docs 02_parts 03_src 03_tscircuit 04_kicad 05_firmware
+  06_build 07_releases`. Copy each folder's `contracts.md` from
   `projects/usb-power-3s/` (the canonical contract set) — read them; they
   are binding.
+- **`03_tscircuit/` is the TSX authoring source** (renamed from bare
+  `tscircuit/` 2026-07-20): it holds hand-written SOURCE, the same pipeline
+  stage as `03_src/`, hence the same number. `03_src/` = the KiCad-side
+  generators + promoted route; `03_tscircuit/` = the TSX the board is
+  authored in. The shared module library `tscircuit_modules/` at the REPO
+  ROOT is not a project stage and stays unnumbered.
 - Write `01_docs/BRIEF.md`: the user's prompt VERBATIM between
   `<!-- prompt-verbatim-begin/end -->` markers with its sha256; then the
   parsed requirements (P#), your clarifying questions (Q#) and the user's
@@ -124,13 +130,31 @@ produce (checker and checked must not share a method):
   S5) carry verdicts from the fresh-context reviews. Ship
   `06_build/policy_audit.md` in the release's verification/.
 
-Then cut `07_releases/v1.0-<date>/` per the release contract: gerber zip,
-bom.csv, cpl.csv, pdf/, verification/ (all evidence incl. 6 twin renders),
-ORDER_README (JLC options, rotation-preview checklist, hand-solder list,
-first-power ritual), sha256'd MANIFEST from a CLEAN tree (`git_dirty:
-false`). Releases are immutable; fixes mean a new release, a fix-claim
-needs its falsifiable measurement in verification/, and superseded
-releases get a SUPERSEDED.md pointer.
+Then cut `07_releases/v1.0-<date>/` per the release contract. **A release is
+a COMPLETE, SELF-CONTAINED ARCHIVE — not a pointer to a git SHA.** Someone
+holding only that directory must be able to open the board, read the
+schematic, check mechanical fit, see every gate's evidence, and re-plot the
+gerbers. Six required parts:
+
+- `fab/` — JLC order set: gerber zip, drill files, `bom.csv`, `cpl.csv`
+- `pdf/` — schematic (on a tscircuit board = tscircuit's OWN render,
+  `03_tscircuit/build/schematic.pdf`), pcb_layers, assembly
+- `source/` — the EXACT artifacts the fab files came from:
+  `<board>.kicad_sch`, `<board>.kicad_pcb`, the authoring `<board>.tsx`,
+  and the exported netlist. **Copied, never symlinked.**
+- `3d/` — STEP and/or GLTF where available (mechanical fit); note absence
+  in the MANIFEST
+- `verification/` — all evidence: DRC/ERC json, twin report + 6 renders,
+  pin_review, render_review, policy_audit, parity
+- `ORDER_README.md` (JLC options, rotation-preview checklist, hand-solder
+  list, first-power ritual) + `MANIFEST.txt` — sha256 of EVERY file above,
+  exact `git_sha`, `git_dirty: false` (CLEAN tree), gate summary
+
+Releases are immutable; fixes mean a new release, a fix-claim needs its
+falsifiable measurement in verification/, and superseded releases get a
+SUPERSEDED.md pointer. **The completeness rule applies to NEW releases
+only** — never retro-fill a sealed release to match it; cut a new version
+and add SUPERSEDED.md to the old one.
 
 ## Report back
 

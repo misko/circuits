@@ -226,6 +226,60 @@ yet express (deprecated from co-standard, never deleted). Every step remains add
 reversible: each board keeps its KiCad generators until it migrates, `--study` restores
 the full second-opinion render, and no sealed artifact was mutated.
 
+## Structural follow-through (2026-07-20, post-migration)
+
+Two structure/contract consequences of this ADR, recorded here because both
+change paths and gates that the phases above describe:
+
+**1. `tscircuit/` → `03_tscircuit/` (all 12 projects that carry it).** Once this
+ADR made TSX the go-forward AUTHORING path, the folder stopped being a side
+experiment and became a first-class pipeline stage — but it was still
+un-numbered, sorting outside the `01_..07_` sequence and reading like a study
+folder. It now takes **`03_`**, the same number as `03_src/`, because it is the
+same stage: **hand-written truth**. A project may carry both (`03_src/` = the
+KiCad-side generators + promoted route; `03_tscircuit/` = the TSX source);
+together they are stage 03. `03_` (rather than a new `08_`) also sorts it
+adjacent to its sibling source stage and avoids renumbering `04`–`07`.
+
+NOT renamed: the shared `tscircuit_modules/` library at the repo root (Phase C
+put it deliberately outside any one project — it is not a project stage), and
+the tool/product name "tscircuit" in prose.
+
+Every path reference was updated across the repo and both skill trees
+(`gen_tscircuit.sh`, `tsx_to_board.sh`, the converter docstrings,
+`references/tscircuit-folder.md`, ADR-0001, the pcb-design + kicad-pcb skills,
+per-project READMEs and `.gitignore`s). The converter's `_discover_up()` walk-up
+is name-agnostic — it searches for `02_parts` / `net_aliases.txt` by NAME, not by
+depth — so it needed no change. Re-verified after the rename on cook-loadcell:
+`tsx_to_board.sh` → ERC 0, **DRC 0/0/0, board parity 0**; `gen_tscircuit.sh` →
+circuit.json + schematic.pdf + converter kicad_sch, ERC 0, **netlist parity 0**.
+
+Two sealed releases record the OLD path in their verification evidence. They are
+immutable historical facts and were deliberately left stale.
+
+The folder also gained a `03_tscircuit/contracts.md` (rolled to all 12 projects)
+fixing the mutability boundary this ADR implies: `src/<board>.tsx` +
+`net_aliases.txt` + `parity_padmap.txt` are HAND-EDITED truth; `build/`,
+`kicad/`, `verification/`, `fab/` are GENERATED and never hand-edited; `dist/`,
+`.tscircuit/`, `tsx_build/` are disposable cache.
+
+**2. Releases must be COMPLETE, SELF-CONTAINED ARCHIVES.** A release carried fab
++ pdf + verification + MANIFEST but **no source snapshot and no 3D** — so it
+could not be inspected or rebuilt without checking out its `git_sha`, resolving a
+toolchain, and re-running the pipeline. The `git_sha` proves provenance; it must
+not be the only way to see what was built. `07_releases/contracts.md` now requires
+`fab/` + `pdf/` + **`source/`** (the exact `.kicad_sch`/`.kicad_pcb`/`.tsx`/`.net`
+the fab files came from, copied never symlinked) + **`3d/`** (STEP/GLTF where
+available) + `verification/` + `ORDER_README.md` + a `MANIFEST.txt` hashing every
+file. This intersects the ADR directly: on a tscircuit board the release schematic
+is tscircuit's OWN render (Phase A's two-audiences split), and `source/` is where
+the authoring `.tsx` is preserved.
+
+**Immutability is unchanged.** Completeness governs what you write at seal time;
+immutability governs everything after. The requirement applies to NEW releases —
+existing sealed releases are NOT retro-filled; a board wanting the fuller archive
+gets a new version with a `SUPERSEDED.md` pointer on the old one.
+
 ## Relationship to ADR-0001 & reversibility
 
 ADR-0001's boundary (native artifacts, gates run on artifacts, S-DSL) is UNCHANGED and
