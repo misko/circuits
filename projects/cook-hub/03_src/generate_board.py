@@ -491,9 +491,18 @@ def main():
               (G.X1, G.Y1 - C), (G.X1 - C, G.Y1 - C), (G.X1 - C, G.Y1),  # SE notch (H4 201,136)
               (G.X0 + C, G.Y1), (G.X0 + C, G.Y1 - C), (G.X0, G.Y1 - C),  # SW notch (H3 24,136)
               (G.X0, G.Y0 + C), (G.X0 + C, G.Y0 + C)]
-    add_zone("GND", pcbnew.In1_Cu, LSHAPE, 0)                 # THE plane
+    # inner-layer planes are INSET 1.3mm from the board edges: the filler
+    # produced sub-0.127 hairline necks in the edge-clearance band between
+    # the outline and west-connector antipads (connection_width 0.0795 In1 /
+    # 0.0628 In2). Planes carry no edge components — the inset costs nothing
+    # and removes the sliver band entirely. NOGO boundary edges unchanged.
+    E = 1.3
+    LSHAPE_IN = [(max(x, G.X0 + E) if x <= G.X0 + E else min(x, G.X1 - E),
+                  max(y, G.Y0 + E) if y <= G.Y0 + E else min(y, G.Y1 - E))
+                 for (x, y) in LSHAPE]
+    add_zone("GND", pcbnew.In1_Cu, LSHAPE_IN, 0)              # THE plane
     add_zone("GND", pcbnew.B_Cu, LSHAPE, 0)
-    add_zone("3V3", pcbnew.In2_Cu, LSHAPE, 1, minw=0.4)
+    add_zone("3V3", pcbnew.In2_Cu, LSHAPE_IN, 1, minw=0.4)
     # 5VP In2 pour stays WEST of x53: the x57-66 In2 corridor is reserved for
     # the RELAY_5V bank spurs (route_bank C8/C9/R25/TP33 -> bus). Q1 source 5VP
     # is routed by KRT (F.Cu west to the pour edge), not covered by the pour.
