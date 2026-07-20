@@ -1,0 +1,1926 @@
+ERC report (2026-07-19T21:40:10, Encoding UTF8)
+Report includes: Errors, Warnings, Exclusions
+
+***** Sheet /
+[pin_not_connected]: Pin not connected
+    ; error
+    @(308.743 mm, 150.905 mm): Symbol GND Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(308.743 mm, 234.905 mm): Symbol GND Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(311.668 mm, 194.405 mm): Symbol GND Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(315.283 mm, 189.74 mm): Symbol U3 Pin 2 [2, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(321.358 mm, 147.74 mm): Symbol U5 Pin 2 [2, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(321.358 mm, 231.74 mm): Symbol U4 Pin 2 [2, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(349.558 mm, 262.865 mm): Symbol CVCC2 Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(349.558 mm, 264.215 mm): Symbol VCC_C Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(349.558 mm, 270.515 mm): Symbol GND Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(349.558 mm, 271.865 mm): Symbol CVCC2 Pin 2 [2, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(351.17 mm, 107.64 mm): Symbol L1 Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(376.707 mm, 334.19 mm): Symbol GND Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(382.918 mm, 180.773 mm): Symbol VCC_C Pin 1 [1, Passive, Line]
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(382.933 mm, 186.188 mm): Horizontal Wire, length 3.00 mm
+    @(385.933 mm, 186.188 mm): Vertical Wire, length 3.00 mm
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(389.007 mm, 228.188 mm): Horizontal Wire, length 3.00 mm
+    @(392.007 mm, 228.188 mm): Vertical Wire, length 3.00 mm
+[pin_not_connected]: Pin not connected
+    ; error
+    @(390.183 mm, 114.112 mm): Symbol R1 Pin 2 [2, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(392.007 mm, 184.838 mm): Symbol GND Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(394.533 mm, 127.815 mm): Symbol GND Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(394.767 mm, 178.523 mm): Symbol VBAT_P Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(396.358 mm, 226.852 mm): Symbol GND Pin 1 [1, Passive, Line]
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(401.082 mm, 180.188 mm): Horizontal Wire, length 6.315 mm
+    @(394.767 mm, 180.188 mm): Vertical Wire, length 3.015 mm
+[label_dangling]: Label not connected
+    ; error
+    @(401.082 mm, 183.188 mm): Global Label 'NC_U2_PG'
+[label_dangling]: Label not connected
+    ; error
+    @(401.082 mm, 189.188 mm): Global Label 'FB_C'
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(401.082 mm, 192.188 mm): Vertical Wire, length 0.75 mm
+    @(401.082 mm, 192.938 mm): Horizontal Wire, length 18.165 mm
+[pin_not_connected]: Pin not connected
+    ; error
+    @(406.108 mm, 291.337 mm): Symbol RFA2 Pin 2 [2, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(406.108 mm, 292.988 mm): Symbol GND Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(407.158 mm, 145.537 mm): Symbol VBAT_F Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(407.308 mm, 353.663 mm): Symbol GND Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(412.295 mm, 121.013 mm): Symbol GND Pin 1 [1, Passive, Line]
+[label_dangling]: Label not connected
+    ; error
+    @(419.082 mm, 180.188 mm): Global Label 'SW_C'
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(419.082 mm, 183.188 mm): Horizontal Wire, length 0.435 mm
+    @(419.517 mm, 183.188 mm): Vertical Wire, length 4.50 mm
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(419.082 mm, 189.188 mm): Horizontal Wire, length 3.00 mm
+    @(422.082 mm, 189.188 mm): Vertical Wire, length 3.00 mm
+[label_dangling]: Label not connected
+    ; error
+    @(419.082 mm, 192.188 mm): Global Label 'BST_C'
+[pin_not_connected]: Pin not connected
+    ; error
+    @(419.082 mm, 256.613 mm): Symbol VBAT_RAW Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(425.19 mm, 387.188 mm): Symbol GND Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(425.19 mm, 388.538 mm): Symbol LED2 Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(426.875 mm, 186.338 mm): Symbol GND Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(429.658 mm, 181.537 mm): Symbol VBAT_P Pin 1 [1, Passive, Line]
+[label_dangling]: Label not connected
+    ; error
+    @(437.233 mm, 183.188 mm): Global Label 'NC_U1_PG'
+[label_dangling]: Label not connected
+    ; error
+    @(437.233 mm, 192.188 mm): Global Label 'VCC_A'
+[pin_not_connected]: Pin not connected
+    ; error
+    @(443.457 mm, 261.337 mm): Symbol CVCC1 Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(443.457 mm, 262.688 mm): Symbol VCC_A Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(443.457 mm, 273.188 mm): Symbol GND Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(445.503 mm, 103.469 mm): Symbol CB2 Pin 2 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(445.503 mm, 104.819 mm): Symbol VBAT_P Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(448.332 mm, 135.863 mm): Symbol VBAT_P Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(448.332 mm, 137.512 mm): Symbol D1 Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(448.332 mm, 151.762 mm): Symbol GND Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(448.332 mm, 153.113 mm): Symbol D1 Pin 2 [2, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(448.753 mm, 76.319 mm): Symbol R2 Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(448.753 mm, 77.669 mm): Symbol VBAT_P Pin 1 [1, Passive, Line]
+[label_dangling]: Label not connected
+    ; error
+    @(455.233 mm, 180.188 mm): Global Label 'SW_A'
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(455.233 mm, 186.188 mm): Horizontal Wire, length 3.00 mm
+    @(458.233 mm, 186.188 mm): Vertical Wire, length 3.00 mm
+[label_dangling]: Label not connected
+    ; error
+    @(455.233 mm, 192.188 mm): Global Label 'BST_A'
+[pin_not_connected]: Pin not connected
+    ; error
+    @(464.308 mm, 184.838 mm): Symbol GND Pin 1 [1, Passive, Line]
+[label_dangling]: Label not connected
+    ; error
+    @(473.382 mm, 192.188 mm): Global Label 'CC1'
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(473.382 mm, 198.188 mm): Horizontal Wire, length 0.938 mm
+    @(472.445 mm, 198.188 mm): Horizontal Wire, length 1.125 mm
+[label_dangling]: Label not connected
+    ; error
+    @(473.382 mm, 201.188 mm): Global Label 'NC_J5_SBU1'
+[pin_not_connected]: Pin not connected
+    ; error
+    @(478.153 mm, 83.594 mm): Symbol VBAT_P Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(479.778 mm, 143.219 mm): Symbol CB1 Pin 2 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(479.778 mm, 144.569 mm): Symbol VBAT_P Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(479.783 mm, 159.113 mm): Symbol CB1 Pin 1 [2, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(495.295 mm, 246.735 mm): Symbol L2 Pin 2 [2, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(501.207 mm, 280.654 mm): Symbol GND Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(501.207 mm, 282.004 mm): Symbol COUT_C3 Pin 2 [2, Passive, Line]
+[wire_dangling]: Wires not connected to anything
+    ; error
+    @(506.382 mm, 195.188 mm): Horizontal Wire, length 3.00 mm
+    @(509.382 mm, 195.188 mm): Vertical Wire, length 3.00 mm
+[label_dangling]: Label not connected
+    ; error
+    @(506.382 mm, 204.188 mm): Global Label 'NC_J5_SBU2'
+[label_dangling]: Label not connected
+    ; error
+    @(506.382 mm, 213.188 mm): Global Label 'CC2'
+[pin_not_connected]: Pin not connected
+    ; error
+    @(508.753 mm, 127.197 mm): Symbol GND Pin 1 [1, Passive, Line]
+[label_dangling]: Label not connected
+    ; error
+    @(509.382 mm, 210.188 mm): Global Label 'DCPC'
+[pin_not_connected]: Pin not connected
+    ; error
+    @(527.87 mm, 348.604 mm): Symbol GND Pin 1 [1, Passive, Line]
+[pin_not_connected]: Pin not connected
+    ; error
+    @(530.232 mm, 194.602 mm): Symbol GND Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(307.467 mm, 186.74 mm): Horizontal Wire, length 7.815 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(307.467 mm, 192.74 mm): Vertical Wire, length 6.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(308.743 mm, 147.74 mm): Vertical Wire, length 4.515 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(308.743 mm, 150.905 mm): Symbol GND Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(308.743 mm, 152.255 mm): Symbol GND [rail_down]
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(308.743 mm, 147.74 mm): Vertical Wire, length 4.515 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(308.743 mm, 231.74 mm): Vertical Wire, length 4.515 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(308.743 mm, 234.905 mm): Symbol GND Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(308.743 mm, 236.255 mm): Symbol GND [rail_down]
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(308.743 mm, 231.74 mm): Vertical Wire, length 4.515 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(311.105 mm, 192.74 mm): Horizontal Wire, length 3.638 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(311.668 mm, 189.74 mm): Vertical Wire, length 6.015 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(311.668 mm, 194.405 mm): Symbol GND Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(311.668 mm, 195.755 mm): Symbol GND [rail_down]
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(311.668 mm, 189.74 mm): Vertical Wire, length 6.015 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(312.23 mm, 192.74 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(315.283 mm, 186.74 mm): Symbol U3 Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(315.283 mm, 189.74 mm): Horizontal Wire, length 3.615 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(315.283 mm, 192.74 mm): Horizontal Wire, length 3.053 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(317.795 mm, 147.74 mm): Horizontal Wire, length 9.053 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(317.795 mm, 231.74 mm): Horizontal Wire, length 9.053 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(318.358 mm, 144.74 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(318.358 mm, 150.74 mm): Vertical Wire, length 6.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(318.358 mm, 228.74 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(318.358 mm, 234.74 mm): Vertical Wire, length 6.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(318.92 mm, 147.74 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(318.92 mm, 231.74 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(321.358 mm, 144.74 mm): Symbol U5 Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(321.358 mm, 147.74 mm): Horizontal Wire, length 2.438 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(321.358 mm, 150.74 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(321.358 mm, 228.74 mm): Symbol U4 Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(321.358 mm, 231.74 mm): Horizontal Wire, length 2.438 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(321.358 mm, 234.74 mm): Horizontal Wire, length 3.00 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(324.283 mm, 189.74 mm): Symbol U3 [U_chip_sot23_6]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(330.358 mm, 147.74 mm): Symbol U5 [U_chip_sot23_6]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(330.358 mm, 231.74 mm): Symbol U4 [U_chip_sot23_6]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(333.283 mm, 186.74 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(333.283 mm, 189.74 mm): Horizontal Wire, length 2.438 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(333.283 mm, 192.74 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(335.72 mm, 189.74 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(336.283 mm, 186.188 mm): Horizontal Wire, length 4.013 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(336.283 mm, 186.74 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(336.283 mm, 186.74 mm): Vertical Wire, length 0.552 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(336.283 mm, 192.74 mm): Vertical Wire, length 6.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(336.845 mm, 189.74 mm): Horizontal Wire, length 4.013 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(338.57 mm, 186.74 mm): Horizontal Wire, length 0.75 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(338.57 mm, 186.74 mm): Horizontal Wire, length 0.75 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(339.32 mm, 181.49 mm): Horizontal Wire, length 1.515 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(339.32 mm, 186.74 mm): Vertical Wire, length 5.25 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(339.358 mm, 144.74 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(339.358 mm, 147.74 mm): Horizontal Wire, length 2.438 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(339.358 mm, 150.74 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(339.358 mm, 228.74 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(339.358 mm, 231.74 mm): Horizontal Wire, length 2.438 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(339.358 mm, 234.74 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(340.295 mm, 186.188 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(340.858 mm, 183.188 mm): Horizontal Wire, length 10.575 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(340.858 mm, 189.74 mm): Horizontal Wire, length 0.75 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(340.858 mm, 189.74 mm): Vertical Wire, length 6.552 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(341.42 mm, 186.188 mm): Horizontal Wire, length 10.012 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(341.608 mm, 189.74 mm): Vertical Wire, length 8.25 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(341.608 mm, 197.99 mm): Horizontal Wire, length 1.515 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(341.795 mm, 147.74 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(341.795 mm, 231.74 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(342.358 mm, 144.188 mm): Horizontal Wire, length 4.013 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(342.358 mm, 144.74 mm): Vertical Wire, length 0.552 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(342.358 mm, 144.74 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(342.358 mm, 150.74 mm): Vertical Wire, length 6.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(342.358 mm, 228.188 mm): Horizontal Wire, length 4.013 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(342.358 mm, 228.74 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(342.358 mm, 228.74 mm): Vertical Wire, length 0.552 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(342.358 mm, 234.74 mm): Vertical Wire, length 6.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(342.92 mm, 147.74 mm): Horizontal Wire, length 4.013 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(342.92 mm, 231.74 mm): Horizontal Wire, length 4.013 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(344.645 mm, 144.74 mm): Horizontal Wire, length 0.75 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(344.645 mm, 144.74 mm): Horizontal Wire, length 0.75 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(344.645 mm, 228.74 mm): Horizontal Wire, length 0.75 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(344.645 mm, 228.74 mm): Horizontal Wire, length 0.75 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(345.395 mm, 139.49 mm): Horizontal Wire, length 1.515 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(345.395 mm, 144.74 mm): Vertical Wire, length 5.25 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(345.395 mm, 223.49 mm): Horizontal Wire, length 1.515 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(345.395 mm, 228.74 mm): Vertical Wire, length 5.25 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(346.37 mm, 144.188 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(346.37 mm, 228.188 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(346.933 mm, 141.188 mm): Horizontal Wire, length 10.575 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(346.933 mm, 147.74 mm): Horizontal Wire, length 0.75 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(346.933 mm, 147.74 mm): Vertical Wire, length 6.552 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(346.933 mm, 225.188 mm): Horizontal Wire, length 10.575 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(346.933 mm, 231.74 mm): Vertical Wire, length 6.552 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(346.933 mm, 231.74 mm): Horizontal Wire, length 0.75 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(347.495 mm, 144.188 mm): Horizontal Wire, length 10.012 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(347.495 mm, 228.188 mm): Horizontal Wire, length 10.012 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(347.683 mm, 147.74 mm): Vertical Wire, length 8.25 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(347.683 mm, 155.99 mm): Horizontal Wire, length 1.515 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(347.683 mm, 231.74 mm): Vertical Wire, length 8.25 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(347.683 mm, 239.99 mm): Horizontal Wire, length 1.515 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(348.433 mm, 186.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(348.433 mm, 189.188 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(349.558 mm, 262.865 mm): Symbol CVCC2 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(349.558 mm, 262.865 mm): Symbol VCC_C [rail_up]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(349.558 mm, 264.215 mm): Symbol VCC_C Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(349.558 mm, 267.365 mm): Symbol CVCC2 [capacitor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(349.558 mm, 270.515 mm): Symbol GND Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(349.558 mm, 271.865 mm): Symbol GND [rail_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(351.17 mm, 107.64 mm): Symbol L1 Pin 1 [1, Passive, Line]
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(340.858 mm, 183.188 mm): Horizontal Wire, length 10.575 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(351.433 mm, 189.188 mm): Horizontal Wire, length 3.00 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(351.433 mm, 189.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(354.507 mm, 144.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(354.507 mm, 147.188 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(354.507 mm, 228.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(354.507 mm, 231.188 mm): Vertical Wire, length 3.00 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(346.933 mm, 141.188 mm): Horizontal Wire, length 10.575 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(357.507 mm, 147.188 mm): Horizontal Wire, length 3.00 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(357.507 mm, 147.188 mm): Horizontal Wire, length 3.00 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(346.933 mm, 225.188 mm): Horizontal Wire, length 10.575 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(357.507 mm, 231.188 mm): Horizontal Wire, length 3.00 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(357.507 mm, 231.188 mm): Horizontal Wire, length 3.00 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(359.089 mm, 107.679 mm): Symbol L1 [inductor_right]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(367.183 mm, 186.188 mm): Symbol J2 [U_chip]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(367.332 mm, 304.94 mm): Horizontal Wire, length 2.438 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(367.332 mm, 335.54 mm): Vertical Wire, length 30.60 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(369.77 mm, 304.94 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(370.332 mm, 287.54 mm): Horizontal Wire, length 6.375 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(370.332 mm, 318.14 mm): Vertical Wire, length 30.60 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(370.895 mm, 304.94 mm): Horizontal Wire, length 5.812 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(370.933 mm, 266.84 mm): Vertical Wire, length 20.70 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(370.933 mm, 287.54 mm): Horizontal Wire, length 5.775 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(373.257 mm, 144.188 mm): Symbol J4 [U_chip]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(373.257 mm, 228.188 mm): Symbol J3 [U_chip]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(373.933 mm, 266.84 mm): Symbol RFA1 Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(373.933 mm, 266.84 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(376.707 mm, 287.54 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(376.707 mm, 287.54 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(376.707 mm, 290.54 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(376.707 mm, 290.54 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(376.707 mm, 291.74 mm): Symbol COUT_A1 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(376.707 mm, 296.24 mm): Symbol COUT_A1 [capacitor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(376.707 mm, 301.94 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(376.707 mm, 304.94 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(376.707 mm, 318.14 mm): Horizontal Wire, length 6.375 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(376.707 mm, 321.14 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(376.707 mm, 322.34 mm): Symbol COUT_A3 Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(376.707 mm, 322.34 mm): Vertical Wire, length 1.20 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(376.707 mm, 326.84 mm): Symbol COUT_A3 [capacitor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(376.707 mm, 331.34 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(376.707 mm, 332.54 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(376.707 mm, 334.19 mm): Symbol GND Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(376.707 mm, 335.54 mm): Horizontal Wire, length 9.375 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(376.707 mm, 335.54 mm): Symbol GND [rail_down]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(378.433 mm, 266.84 mm): Symbol RFA1 [boxresistor_right]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(382.918 mm, 179.423 mm): Symbol VCC_C [rail_up]
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(382.918 mm, 192.938 mm): Vertical Wire, length 13.515 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(382.918 mm, 180.773 mm): Symbol VCC_C Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(382.918 mm, 192.938 mm): Vertical Wire, length 13.515 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(382.933 mm, 186.188 mm): Horizontal Wire, length 3.00 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(385.933 mm, 189.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(385.933 mm, 186.188 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(385.933 mm, 189.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(389.007 mm, 144.188 mm): Horizontal Wire, length 3.00 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(392.007 mm, 147.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(389.007 mm, 228.188 mm): Horizontal Wire, length 3.00 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(389.007 mm, 228.188 mm): Horizontal Wire, length 3.00 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(392.007 mm, 231.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(390.183 mm, 102.112 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(390.183 mm, 105.112 mm): Symbol R1 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(390.183 mm, 109.612 mm): Symbol R1 [boxresistor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(390.183 mm, 114.112 mm): Vertical Wire, length 15.037 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(390.183 mm, 114.112 mm): Vertical Wire, length 30.075 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(390.183 mm, 129.15 mm): Horizontal Wire, length 4.35 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(390.183 mm, 144.188 mm): Horizontal Wire, length 1.175 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(392.007 mm, 144.188 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(392.007 mm, 147.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(392.007 mm, 184.838 mm): Symbol GND Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(392.007 mm, 186.188 mm): Symbol GND [rail_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(392.007 mm, 228.188 mm): Horizontal Wire, length 4.35 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(392.007 mm, 228.188 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(392.007 mm, 231.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(394.533 mm, 127.815 mm): Symbol GND Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(394.533 mm, 129.15 mm): Vertical Wire, length 0.015 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(394.533 mm, 129.165 mm): Symbol GND [rail_down]
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(394.533 mm, 129.15 mm): Vertical Wire, length 0.015 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(394.767 mm, 177.173 mm): Symbol VBAT_P [rail_up]
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(394.767 mm, 180.188 mm): Vertical Wire, length 3.015 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(394.767 mm, 178.523 mm): Symbol VBAT_P Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(394.767 mm, 180.188 mm): Vertical Wire, length 3.015 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(396.358 mm, 226.852 mm): Symbol GND Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(396.358 mm, 228.188 mm): Vertical Wire, length 0.015 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(396.358 mm, 228.202 mm): Symbol GND [rail_down]
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(396.358 mm, 228.188 mm): Vertical Wire, length 0.015 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(397.933 mm, 324.413 mm): Horizontal Wire, length 2.438 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(397.933 mm, 355.012 mm): Vertical Wire, length 30.60 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(398.082 mm, 255.262 mm): Vertical Wire, length 39.075 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(398.082 mm, 294.337 mm): Horizontal Wire, length 8.025 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(400.37 mm, 324.413 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(400.933 mm, 307.012 mm): Horizontal Wire, length 6.375 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(400.933 mm, 337.613 mm): Vertical Wire, length 30.60 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(401.082 mm, 180.188 mm): Horizontal Wire, length 6.315 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(401.082 mm, 180.188 mm): Horizontal Wire, length 6.315 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(401.082 mm, 186.188 mm): Horizontal Wire, length 18.15 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(401.082 mm, 186.188 mm): Horizontal Wire, length 18.15 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(401.082 mm, 192.188 mm): Vertical Wire, length 0.75 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(401.082 mm, 192.188 mm): Vertical Wire, length 0.75 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(401.082 mm, 192.938 mm): Horizontal Wire, length 18.165 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(401.082 mm, 255.262 mm): Horizontal Wire, length 3.00 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(401.082 mm, 255.262 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(401.495 mm, 324.413 mm): Horizontal Wire, length 5.812 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(404.37 mm, 102.112 mm): Horizontal Wire, length 14.188 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(404.37 mm, 141.188 mm): Vertical Wire, length 39.075 mm
+[isolated_pin_label]: Label connected to only one pin
+    ; warning
+    @(404.37 mm, 141.188 mm): Global Label 'PFET_G'
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(406.108 mm, 270.30 mm): Vertical Wire, length 12.037 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(406.108 mm, 282.337 mm): Symbol RFA2 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(406.108 mm, 286.837 mm): Symbol RFA2 [boxresistor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(406.108 mm, 292.988 mm): Symbol GND Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(406.108 mm, 294.337 mm): Vertical Wire, length 3.00 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(406.108 mm, 294.337 mm): Symbol GND [rail_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.158 mm, 141.188 mm): Horizontal Wire, length 2.788 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(407.158 mm, 141.188 mm): Horizontal Wire, length 2.788 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(407.158 mm, 144.188 mm): Symbol VBAT_F [rail_up]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.158 mm, 145.537 mm): Symbol VBAT_F Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.308 mm, 307.012 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.308 mm, 310.012 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.308 mm, 311.212 mm): Symbol COUT_A2 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(407.308 mm, 315.712 mm): Symbol COUT_A2 [capacitor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.308 mm, 321.413 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.308 mm, 321.413 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.308 mm, 324.413 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.308 mm, 328.688 mm): Vertical Wire, length 7.275 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.308 mm, 337.613 mm): Horizontal Wire, length 6.375 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.308 mm, 337.613 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.308 mm, 340.613 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.308 mm, 340.613 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.308 mm, 341.812 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.308 mm, 341.812 mm): Symbol COUT_A4 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(407.308 mm, 346.312 mm): Symbol COUT_A4 [capacitor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.308 mm, 350.812 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.308 mm, 352.012 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.308 mm, 353.663 mm): Symbol GND Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(407.308 mm, 355.012 mm): Horizontal Wire, length 9.375 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(407.308 mm, 355.012 mm): Symbol GND [rail_down]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(410.082 mm, 186.188 mm): Symbol U2 [U_chip]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(410.082 mm, 255.262 mm): Symbol J1 [U_chip]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(412.295 mm, 67.088 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(412.295 mm, 70.088 mm): Vertical Wire, length 0.375 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(412.295 mm, 78.562 mm): Symbol LED1 [led_up]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(412.295 mm, 86.662 mm): Symbol LED1 Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(412.295 mm, 86.662 mm): Vertical Wire, length 0.375 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(412.295 mm, 87.037 mm): Vertical Wire, length 35.325 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(412.295 mm, 121.013 mm): Symbol GND Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(412.295 mm, 122.362 mm): Horizontal Wire, length 33.212 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(412.295 mm, 122.362 mm): Symbol GND [rail_down]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(416.158 mm, 142.688 mm): Symbol Q1 [U_chip]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(419.082 mm, 183.188 mm): Horizontal Wire, length 0.435 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(419.082 mm, 183.188 mm): Horizontal Wire, length 0.435 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(419.082 mm, 186.188 mm): Horizontal Wire, length 0.998 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(419.082 mm, 189.188 mm): Horizontal Wire, length 3.00 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(419.082 mm, 189.188 mm): Horizontal Wire, length 3.00 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(419.082 mm, 255.262 mm): Symbol VBAT_RAW [rail_up]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(419.082 mm, 256.613 mm): Symbol VBAT_RAW Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(419.517 mm, 183.188 mm): Vertical Wire, length 4.50 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(419.517 mm, 187.688 mm): Horizontal Wire, length 2.002 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(420.08 mm, 186.188 mm): Horizontal Wire, length 2.002 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(420.08 mm, 186.188 mm): Horizontal Wire, length 0.998 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(421.52 mm, 187.688 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(422.082 mm, 184.688 mm): Horizontal Wire, length 7.575 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(422.082 mm, 186.188 mm): Vertical Wire, length 1.50 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(422.082 mm, 186.188 mm): Horizontal Wire, length 2.002 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(422.082 mm, 189.188 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(422.645 mm, 187.688 mm): Horizontal Wire, length 11.588 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(425.158 mm, 142.688 mm): Horizontal Wire, length 11.588 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(425.158 mm, 142.688 mm): Horizontal Wire, length 11.588 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(425.19 mm, 360.413 mm): Vertical Wire, length 11.55 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(425.19 mm, 371.962 mm): Vertical Wire, length 0.375 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(425.19 mm, 380.438 mm): Symbol LED2 [led_up]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(425.19 mm, 387.188 mm): Symbol GND Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(425.19 mm, 388.538 mm): Symbol LED2 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(425.19 mm, 388.538 mm): Symbol GND [rail_down]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(425.19 mm, 415.913 mm): Symbol H1 [U_chip]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(425.19 mm, 451.913 mm): Symbol H2 [U_chip]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(425.19 mm, 487.913 mm): Symbol H3 [U_chip]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(425.19 mm, 523.913 mm): Symbol H4 [U_chip]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(426.875 mm, 186.338 mm): Symbol GND Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(426.875 mm, 187.688 mm): Symbol GND [rail_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(427.183 mm, 337.613 mm): Horizontal Wire, length 19.875 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(427.183 mm, 348.863 mm): Vertical Wire, length 11.25 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(429.658 mm, 180.188 mm): Horizontal Wire, length 7.575 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(429.658 mm, 180.188 mm): Symbol VBAT_P [rail_up]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(429.658 mm, 181.537 mm): Symbol VBAT_P Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(429.658 mm, 184.688 mm): Vertical Wire, length 4.50 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(430.524 mm, 67.088 mm): Horizontal Wire, length 18.229 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(430.524 mm, 88.319 mm): Vertical Wire, length 21.232 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(431.397 mm, 189.188 mm): Vertical Wire, length 81.112 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(431.397 mm, 270.30 mm): Horizontal Wire, length 25.29 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(432.733 mm, 348.863 mm): Symbol R5 Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(432.733 mm, 348.863 mm): Horizontal Wire, length 5.55 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(434.233 mm, 186.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(434.233 mm, 187.688 mm): Vertical Wire, length 1.50 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(435.582 mm, 231.262 mm): Horizontal Wire, length 7.725 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(435.582 mm, 274.538 mm): Vertical Wire, length 43.275 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(436.707 mm, 305.10 mm): Vertical Wire, length 11.588 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(436.707 mm, 316.688 mm): Symbol RFC2 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(436.707 mm, 321.188 mm): Symbol RFC2 [boxresistor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(436.707 mm, 325.688 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(436.707 mm, 328.688 mm): Horizontal Wire, length 29.40 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(436.707 mm, 331.613 mm): Vertical Wire, length 5.925 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(436.745 mm, 134.512 mm): Horizontal Wire, length 11.588 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(436.745 mm, 142.688 mm): Vertical Wire, length 8.175 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(429.658 mm, 180.188 mm): Horizontal Wire, length 7.575 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(434.233 mm, 186.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(437.233 mm, 189.188 mm): Horizontal Wire, length 5.835 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(437.233 mm, 189.188 mm): Horizontal Wire, length 5.835 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(437.233 mm, 348.863 mm): Symbol R5 [boxresistor_right]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(440.308 mm, 234.262 mm): Vertical Wire, length 6.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(440.308 mm, 240.262 mm): Horizontal Wire, length 24.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(440.683 mm, 293.512 mm): Symbol RFC1 Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(441.733 mm, 348.863 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(443.308 mm, 228.262 mm): Symbol U6 Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(443.308 mm, 234.262 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(443.457 mm, 261.337 mm): Symbol CVCC1 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(443.457 mm, 261.337 mm): Symbol VCC_A [rail_up]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(443.457 mm, 262.688 mm): Symbol VCC_A Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(443.457 mm, 265.837 mm): Symbol CVCC1 [capacitor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(443.457 mm, 270.337 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(443.457 mm, 271.538 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(443.457 mm, 273.188 mm): Symbol GND Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(443.457 mm, 274.538 mm): Horizontal Wire, length 7.875 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(443.457 mm, 274.538 mm): Symbol GND [rail_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(444.733 mm, 348.863 mm): Vertical Wire, length 11.55 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(444.733 mm, 360.413 mm): Horizontal Wire, length 19.543 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(445.183 mm, 293.512 mm): Symbol RFC1 [boxresistor_right]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(445.503 mm, 103.469 mm): Symbol VBAT_P [rail_up]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(445.503 mm, 104.819 mm): Symbol VBAT_P Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(445.505 mm, 111.416 mm): Symbol CB2 [capacitor_polarized_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(445.507 mm, 119.362 mm): Symbol CB2 Pin 1 [2, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(445.507 mm, 122.362 mm): Vertical Wire, length 3.00 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(446.233 mm, 186.188 mm): Symbol U1 [U_chip]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(448.332 mm, 134.512 mm): Vertical Wire, length 3.00 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(448.332 mm, 134.512 mm): Symbol VBAT_P [rail_up]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(448.332 mm, 135.863 mm): Symbol VBAT_P Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(448.332 mm, 137.512 mm): Symbol D1 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(448.332 mm, 145.312 mm): Symbol D1 [diode_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(448.332 mm, 151.762 mm): Symbol GND Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(448.332 mm, 153.113 mm): Symbol GND [rail_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(448.753 mm, 76.319 mm): Symbol R2 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(448.753 mm, 76.319 mm): Symbol VBAT_P [rail_up]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(448.753 mm, 77.669 mm): Symbol VBAT_P Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(448.753 mm, 80.819 mm): Symbol R2 [boxresistor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(448.753 mm, 85.319 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(448.753 mm, 88.319 mm): Horizontal Wire, length 18.229 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(449.683 mm, 293.512 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(452.067 mm, 198.188 mm): Horizontal Wire, length 16.815 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(452.067 mm, 204.188 mm): Vertical Wire, length 6.00 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(452.308 mm, 231.262 mm): Symbol U6 [U_chip_sot23_6]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(452.683 mm, 293.512 mm): Vertical Wire, length 11.588 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(452.683 mm, 305.10 mm): Horizontal Wire, length 15.975 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(455.233 mm, 183.188 mm): Horizontal Wire, length 9.075 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(455.233 mm, 183.188 mm): Horizontal Wire, length 9.075 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(455.233 mm, 186.188 mm): Horizontal Wire, length 3.00 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(455.233 mm, 186.188 mm): Horizontal Wire, length 3.00 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(458.233 mm, 189.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(458.233 mm, 186.188 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(458.233 mm, 189.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(461.308 mm, 231.262 mm): Horizontal Wire, length 8.715 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(464.308 mm, 183.188 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(464.308 mm, 184.838 mm): Symbol GND Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(464.308 mm, 186.188 mm): Horizontal Wire, length 9.075 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(464.308 mm, 186.188 mm): Symbol GND [rail_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(464.308 mm, 234.262 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(464.308 mm, 240.262 mm): Vertical Wire, length 6.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(466.108 mm, 315.697 mm): Horizontal Wire, length 5.265 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(466.108 mm, 317.212 mm): Vertical Wire, length 1.515 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(466.108 mm, 318.413 mm): Symbol COUT_C1 Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(466.108 mm, 318.413 mm): Vertical Wire, length 1.20 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(466.108 mm, 322.913 mm): Symbol COUT_C1 [capacitor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(466.108 mm, 327.413 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(466.108 mm, 328.613 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(466.108 mm, 331.613 mm): Horizontal Wire, length 29.40 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(467.832 mm, 277.504 mm): Symbol CBS2 Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(468.778 mm, 99.644 mm): Vertical Wire, length 28.80 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(468.778 mm, 128.444 mm): Horizontal Wire, length 9.375 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(468.882 mm, 186.188 mm): Horizontal Wire, length 4.50 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(468.882 mm, 198.188 mm): Vertical Wire, length 12.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(468.882 mm, 204.188 mm): Horizontal Wire, length 16.815 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(468.882 mm, 207.188 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(468.882 mm, 207.188 mm): Horizontal Wire, length 2.438 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(468.882 mm, 210.188 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(470.022 mm, 213.188 mm): Horizontal Wire, length 3.36 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(470.022 mm, 231.262 mm): Vertical Wire, length 18.075 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(470.382 mm, 172.65 mm): Horizontal Wire, length 9.40 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(470.382 mm, 186.188 mm): Vertical Wire, length 13.537 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(470.382 mm, 195.188 mm): Horizontal Wire, length 0.938 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(470.382 mm, 198.188 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(471.216 mm, 99.644 mm): Horizontal Wire, length 2.438 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(471.32 mm, 195.188 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(471.32 mm, 198.188 mm): Horizontal Wire, length 0.938 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(471.32 mm, 207.188 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(471.32 mm, 207.188 mm): Horizontal Wire, length 2.438 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(471.32 mm, 210.188 mm): Horizontal Wire, length 2.438 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(471.778 mm, 82.244 mm): Vertical Wire, length 28.80 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(471.778 mm, 111.044 mm): Horizontal Wire, length 6.375 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(471.882 mm, 189.188 mm): Vertical Wire, length 15.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(471.882 mm, 204.188 mm): Horizontal Wire, length 1.50 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(471.882 mm, 204.188 mm): Vertical Wire, length 9.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(471.882 mm, 213.188 mm): Horizontal Wire, length 1.50 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(472.332 mm, 277.504 mm): Symbol CBS2 [capacitor_right]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(472.341 mm, 99.644 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(472.445 mm, 195.188 mm): Horizontal Wire, length 0.938 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(472.445 mm, 198.188 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(472.445 mm, 207.188 mm): Horizontal Wire, length 0.938 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(472.445 mm, 207.188 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(472.445 mm, 210.188 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(473.382 mm, 186.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(473.382 mm, 189.188 mm): Horizontal Wire, length 1.50 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(473.382 mm, 189.188 mm): Horizontal Wire, length 1.50 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(472.445 mm, 195.188 mm): Horizontal Wire, length 0.938 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(473.382 mm, 198.188 mm): Horizontal Wire, length 0.938 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(473.382 mm, 198.188 mm): Horizontal Wire, length 0.938 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(473.382 mm, 204.188 mm): Horizontal Wire, length 1.50 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(473.382 mm, 207.188 mm): Horizontal Wire, length 0.938 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(473.382 mm, 210.188 mm): Horizontal Wire, length 0.938 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(473.382 mm, 210.188 mm): Horizontal Wire, length 0.938 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(476.457 mm, 246.656 mm): Vertical Wire, length 15.424 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(476.457 mm, 262.08 mm): Horizontal Wire, length 3.375 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(478.153 mm, 82.244 mm): Horizontal Wire, length 6.375 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(478.153 mm, 82.244 mm): Symbol VBAT_P [rail_up]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(478.153 mm, 83.594 mm): Symbol VBAT_P Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(478.153 mm, 85.244 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(478.153 mm, 86.444 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(478.153 mm, 86.444 mm): Symbol CIN_A2 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(478.153 mm, 90.944 mm): Symbol CIN_A2 [capacitor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(478.153 mm, 95.444 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(478.153 mm, 96.644 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(478.153 mm, 99.644 mm): Horizontal Wire, length 5.812 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(478.153 mm, 111.044 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(478.153 mm, 111.147 mm): Vertical Wire, length 2.897 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(478.153 mm, 114.044 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(478.153 mm, 114.044 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(478.153 mm, 115.244 mm): Symbol CIN_A1 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(478.153 mm, 119.744 mm): Symbol CIN_A1 [capacitor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(478.153 mm, 125.444 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(478.153 mm, 125.444 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(478.153 mm, 128.444 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(478.153 mm, 128.547 mm): Vertical Wire, length 3.103 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(479.457 mm, 246.656 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(479.457 mm, 246.656 mm): Symbol L2 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(479.778 mm, 143.219 mm): Symbol VBAT_P [rail_up]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(479.778 mm, 144.569 mm): Symbol VBAT_P Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(479.78 mm, 151.166 mm): Symbol CB1 [capacitor_polarized_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(479.783 mm, 159.113 mm): Symbol CB1 Pin 1 [2, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(479.783 mm, 172.65 mm): Vertical Wire, length 13.537 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(479.832 mm, 262.08 mm): Vertical Wire, length 15.424 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(479.832 mm, 277.504 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(487.332 mm, 316.804 mm): Horizontal Wire, length 2.438 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(487.332 mm, 347.404 mm): Vertical Wire, length 30.60 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(487.376 mm, 246.696 mm): Symbol L2 [inductor_right]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(489.77 mm, 316.804 mm): Horizontal Wire, length 1.125 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(489.882 mm, 199.688 mm): Symbol J5 [U_chip]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(490.332 mm, 299.404 mm): Horizontal Wire, length 6.375 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(490.332 mm, 330.004 mm): Vertical Wire, length 30.60 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(490.895 mm, 316.804 mm): Horizontal Wire, length 5.812 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(495.295 mm, 246.735 mm): Horizontal Wire, length 5.913 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(496.707 mm, 299.404 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(496.707 mm, 299.404 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(496.707 mm, 302.404 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(496.707 mm, 302.404 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(496.707 mm, 303.604 mm): Symbol COUT_C2 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(496.707 mm, 308.104 mm): Symbol COUT_C2 [capacitor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(496.707 mm, 313.804 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(496.707 mm, 316.804 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(496.707 mm, 330.004 mm): Horizontal Wire, length 6.375 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(496.707 mm, 333.004 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(496.707 mm, 334.204 mm): Symbol COUT_C4 Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(496.707 mm, 334.204 mm): Vertical Wire, length 1.20 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(496.707 mm, 338.704 mm): Symbol COUT_C4 [capacitor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(496.707 mm, 343.204 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(496.707 mm, 344.404 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(496.707 mm, 344.404 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(496.707 mm, 347.404 mm): Horizontal Wire, length 9.375 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(496.707 mm, 349.954 mm): Vertical Wire, length 5.55 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(498.816 mm, 111.147 mm): Horizontal Wire, length 20.663 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(499.378 mm, 99.747 mm): Vertical Wire, length 28.80 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(499.378 mm, 128.547 mm): Horizontal Wire, length 9.375 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(499.941 mm, 111.147 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(501.207 mm, 246.735 mm): Vertical Wire, length 25.069 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(501.207 mm, 271.804 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(501.207 mm, 273.004 mm): Symbol COUT_C3 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(501.207 mm, 277.504 mm): Symbol COUT_C3 [capacitor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(501.207 mm, 280.654 mm): Symbol GND Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(501.207 mm, 282.004 mm): Symbol GND [rail_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(501.816 mm, 99.747 mm): Horizontal Wire, length 2.438 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(502.378 mm, 82.347 mm): Vertical Wire, length 28.80 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(502.378 mm, 111.147 mm): Horizontal Wire, length 6.375 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(502.941 mm, 99.747 mm): Horizontal Wire, length 1.125 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(506.203 mm, 152.887 mm): Symbol CBS1 Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(506.382 mm, 195.188 mm): Horizontal Wire, length 3.00 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(506.382 mm, 195.188 mm): Horizontal Wire, length 3.00 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(509.382 mm, 198.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(506.382 mm, 201.188 mm): Horizontal Wire, length 9.075 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(506.382 mm, 201.188 mm): Horizontal Wire, length 9.075 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(506.382 mm, 207.188 mm): Horizontal Wire, length 3.00 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(506.382 mm, 207.188 mm): Horizontal Wire, length 3.00 mm
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(509.382 mm, 210.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(506.876 mm, 236.363 mm): Vertical Wire, length 10.372 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(506.876 mm, 246.735 mm): Horizontal Wire, length 11.581 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 82.347 mm): Horizontal Wire, length 6.375 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 85.347 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 86.547 mm): Symbol CIN_C2 Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 86.547 mm): Vertical Wire, length 1.20 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(508.753 mm, 91.047 mm): Symbol CIN_C2 [capacitor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 95.547 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 96.747 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 99.747 mm): Horizontal Wire, length 5.812 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 111.147 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 111.147 mm): Horizontal Wire, length 8.812 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 114.147 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 114.147 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 115.347 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 115.347 mm): Symbol CIN_C1 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(508.753 mm, 119.847 mm): Symbol CIN_C1 [capacitor_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 124.347 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 125.547 mm): Vertical Wire, length 1.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 125.547 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 127.197 mm): Symbol GND Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 128.547 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(508.753 mm, 128.547 mm): Horizontal Wire, length 30.60 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(508.753 mm, 128.547 mm): Symbol GND [rail_down]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(509.382 mm, 195.188 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(509.382 mm, 195.188 mm): Horizontal Wire, length 20.85 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(509.382 mm, 198.188 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(509.382 mm, 207.188 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(509.382 mm, 210.188 mm): Horizontal Wire, length 3.00 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(510.703 mm, 152.887 mm): Symbol CBS1 [capacitor_right]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(515.457 mm, 201.188 mm): Vertical Wire, length 6.975 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(515.457 mm, 208.162 mm): Horizontal Wire, length 9.075 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(515.457 mm, 208.162 mm): Vertical Wire, length 28.20 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(515.457 mm, 236.363 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(516.058 mm, 299.404 mm): Horizontal Wire, length 19.35 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(516.058 mm, 306.904 mm): Vertical Wire, length 7.50 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(518.457 mm, 236.363 mm): Symbol R3 Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(518.457 mm, 236.363 mm): Horizontal Wire, length 11.581 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(521.082 mm, 306.904 mm): Horizontal Wire, length 5.025 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(521.082 mm, 306.904 mm): Symbol R6 Pin 1 [1, Passive, Line]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(522.957 mm, 236.363 mm): Symbol R3 [boxresistor_right]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(524.533 mm, 208.162 mm): Symbol R4 Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(524.533 mm, 208.162 mm): Horizontal Wire, length 9.075 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(525.582 mm, 306.904 mm): Symbol R6 [boxresistor_right]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(527.87 mm, 318.454 mm): Vertical Wire, length 11.55 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(527.87 mm, 330.004 mm): Vertical Wire, length 0.375 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(527.87 mm, 338.479 mm): Symbol LED3 [led_up]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(527.87 mm, 346.579 mm): Symbol LED3 Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(527.87 mm, 346.579 mm): Vertical Wire, length 0.375 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(527.87 mm, 346.954 mm): Vertical Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(527.87 mm, 348.604 mm): Symbol GND Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(527.87 mm, 349.954 mm): Horizontal Wire, length 31.163 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(527.87 mm, 349.954 mm): Symbol GND [rail_down]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Device'
+    ; warning
+    @(529.033 mm, 208.162 mm): Symbol R4 [boxresistor_right]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(530.082 mm, 306.904 mm): Horizontal Wire, length 3.00 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(530.232 mm, 194.602 mm): Symbol GND Pin 1 [1, Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(530.232 mm, 195.188 mm): Vertical Wire, length 0.765 mm
+[lib_symbol_issues]: The current configuration does not include the symbol library 'Custom'
+    ; warning
+    @(530.232 mm, 195.952 mm): Symbol GND [rail_down]
+[unconnected_wire_endpoint]: Unconnected wire endpoint
+    ; warning
+    @(530.232 mm, 195.188 mm): Vertical Wire, length 0.765 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(533.082 mm, 306.904 mm): Vertical Wire, length 11.55 mm
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(533.082 mm, 318.454 mm): Horizontal Wire, length 5.213 mm
+
+ ** ERC messages: 635  Errors 72  Warnings 563
+
+ ** Ignored checks:
+    - Global label only appears once in the schematic
+    - Four connection points are joined together
+    - SPICE model issue
+    - Assigned footprint doesn't match footprint filters
