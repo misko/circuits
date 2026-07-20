@@ -1,0 +1,64 @@
+==================================================================
+ tsx_to_board.sh — lipo3s-usb-hub
+   TSX          : /home/mouse9911/gits/circuits/projects/lipo3s-usb-hub/tscircuit/src/lipo3s_usb_hub.tsx
+   board name   : lipo3s_usb_hub
+   placement    : generate_board
+   build root   : /home/mouse9911/gits/circuits/projects/lipo3s-usb-hub/tscircuit/tsx_build   (isolated; sealed 04_kicad/ untouched)
+   sealed ref   : /home/mouse9911/gits/circuits/projects/lipo3s-usb-hub/../usb-power-3s/04_kicad/usb_power_3s.kicad_pcb
+==================================================================
+  --> [1] tsci build -> circuit.json
+  --> [2] circuit_json_to_kicad_sch -> lipo3s_usb_hub.kicad_sch
+      wrote /home/mouse9911/gits/circuits/projects/lipo3s-usb-hub/tscircuit/tsx_build/04_kicad/lipo3s_usb_hub.kicad_sch [MODE=layout, WIRED]: 96 components (96 with FPID), 303 pins; 365 wires, 110 tscircuit labels + 21 safety labels, 21 junctions (0 segs dropped as cross-net)
+        overrides: 75 keys from /home/mouse9911/gits/circuits/projects/lipo3s-usb-hub/02_parts; aliases: 0 from (none)
+  --> [3] kicad-cli sch export netlist
+  --> [4] kicad-cli sch erc --severity-all
+      ERC: 0 errors, 608 warnings (baselined)
+  --> [5] placement: generate_board.py (UNCHANGED backend, hand-coded floorplan)
+      legalized 15 small parts
+      placed 96 footprints + 4 holes; zones + rule areas; saved lipo3s_usb_hub.kicad_pcb
+  -->     audit_board.py (placement gate)
+      pads audited across 96 footprints
+      AUDIT: PASS (0 fails, 0 warns)
+  --> [6] generate_rules.py (netclasses + dru floors, pre-route)
+  --> [7] import promoted KRT route: r5.kicad_pcb
+      imported 773 segments, 104 vias -> /home/mouse9911/gits/circuits/projects/lipo3s-usb-hub/tscircuit/tsx_build/04_kicad/lipo3s_usb_hub.kicad_pcb
+  --> [8] route_taps.py
+      WARN: no L/Z rescue for U2.12; deferring to pour + DRC
+      route_taps: all taps routed (120 vias) + saved
+  --> [9] stitch_and_fill.py (pours + thermal vias)
+      via janitor removed 4: [('COMP_B', 86.35, 98.75), ('RT_A', 86.35, 59.75), ('SS_A', 86.35, 59.25), ('SS_B', 86.35, 99.25)]
+      island stitch vias: 12
+      filled + saved
+  -->     audit_board.py (post-route)
+      pads audited across 96 footprints
+      AUDIT: PASS (0 fails, 0 warns)
+  --> [10] generate_rules.py LAST
+      netclasses: ['Default', 'SWITCH_NODE', 'PWR_RAIL', 'VBUS']; 11 patterns; dru rules written
+  --> [11] DRC: --severity-all --refill-zones --schematic-parity
+      violations: 0 {}
+      unconnected: 0
+      schematic-parity: 0
+      DRC 0/0/0 — CLEAN
+  --> [12] board_netlist_parity.py vs sealed reference
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+./kicad/include/properties/property.h(607): assert "m_choices.GetCount() > 0" failed in PROPERTY_ENUM(): No enum choices defined
+11:56:32: Debug: Adding duplicate image handler for 'PNG file'
+11:56:32: Debug: Adding duplicate image handler for 'JPEG file'
+11:56:32: Debug: Adding duplicate image handler for 'TIFF file'
+11:56:32: Debug: Adding duplicate image handler for 'GIF file'
+11:56:32: Debug: Adding duplicate image handler for 'PNM file'
+11:56:32: Debug: Adding duplicate image handler for 'PCX file'
+11:56:32: Debug: Adding duplicate image handler for 'IFF file'
+11:56:32: Debug: Adding duplicate image handler for 'Windows icon file'
+11:56:32: Debug: Adding duplicate image handler for 'Windows cursor file'
+11:56:32: Debug: Adding duplicate image handler for 'Windows animated cursor file'
+11:56:32: Debug: Adding duplicate image handler for 'TGA file'
+11:56:32: Debug: Adding duplicate image handler for 'XPM file'
+      built nodes=303  sealed nodes=303
+      nets built=56  sealed=56
+      BOARD PARITY 0 -> PASS (303 nodes identical, net-for-net)
+==================================================================
+ tsx_to_board.sh COMPLETE — lipo3s_usb_hub -> DRC 0/0/0, board parity vs sealed
+ build root: /home/mouse9911/gits/circuits/projects/lipo3s-usb-hub/tscircuit/tsx_build (throwaway; sealed 04_kicad/ + releases untouched)
+==================================================================

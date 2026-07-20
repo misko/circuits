@@ -1,0 +1,45 @@
+38 BOM lines: 37 with LCSC, 1 without
+
+  OK               C107021    x2   1.2nF                                  expand stock=62995
+  OK               C25741     x1   100kΩ                                  base   stock=250814
+  OK               C131394    x8   100nF                                  expand stock=3677031
+  OK               C454289    x1   100uF                                  expand stock=17
+  OK               C60490     x2   10kΩ                                   expand stock=7354782
+  OK               C77102     x6   10uF                                   expand stock=257546
+  OK               C25754     x2   13kΩ                                   expand stock=307125
+  OK               C226807    x4   16.5kΩ                                 expand stock=3434
+  OK               C1549      x2   18pF                                   base   stock=1645756
+  OK               C11702     x2   1kΩ                                    base   stock=696770
+  OK               C23630     x3   2.2uF                                  base   stock=4046510
+  OK               C25765     x4   20kΩ                                   base   stock=514742
+  OK               C128504    x2   220uF                                  expand stock=2051
+  OK               C12891     x5   22uF                                   base   stock=687694
+  OK               C276264    x3   24.3kΩ                                 expand stock=10315
+  OK               C15172     x2   3.74kΩ                                 expand stock=32290
+  OK               C852731    x1   348Ω                                   expand stock=19795
+  OK               C106223    x2   39pF                                   expand stock=357635
+  OK               C60154     x2   4.64kΩ                                 expand stock=5883
+  OK               C137981    x1   432Ω                                   expand stock=10002
+  OK               C82219     x3   47nF                                   expand stock=455485
+  OK               C84494     x8   47uF                                   expand stock=46378
+  OK               C26982     x1   52.3kΩ                                 expand stock=20570
+  OK               C45186     x2   8.2nF                                  expand stock=199844
+  OK               C453769    x1   82.5kΩ                                 expand stock=12433
+  OK               C409935    x1   887kΩ                                  expand stock=11643
+  OK               C113974    x2   C113974                                expand stock=240507
+  OK               C130056    x3   C130056                                expand stock=7732
+  OK               C17700181  x2   C17700181                              expand stock=303
+  OK               C207061    x1   C207061                                expand stock=299
+  OK               C2297      x2   C2297                                  base   stock=3163702
+  OK               C3020560   x1   C3020560                               expand stock=4095
+  OK               C3215600   x1   C3215600                               expand stock=458
+  OK               C353386    x1   C353386                                expand stock=141785
+  OK               C485912    x2   C485912                                expand stock=569
+  OK               C840100    x6   C840100                                expand stock=1293
+  OK               C98732     x1   C98732                                 expand stock=6412
+
+-- proposals for uncoded lines (HUMAN MUST CONFIRM SPECS) --
+  PROPOSE C2943127   x3   1001-011-01101                         expand stock=0 1001-011-01101 [Plugin]
+      alt C3197704   expand stock=0 1001-011-01101-TR [Plugin]
+
+PASS: 0 coded lines with problems; 1 lines still uncoded
