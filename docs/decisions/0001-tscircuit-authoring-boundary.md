@@ -62,6 +62,47 @@ fleet-wide **S6 label-blob** finding that all 8 project audits flagged.
   through the TSX schematic path with zero parity regressions; keep schwriter2 as
   the fallback for footprints tscircuit can't express.
 
+## Phase 1 findings (2026-07-19) — the ladder ran; the boundary is now precise
+
+Three boards spanning the difficulty spectrum, each authored node-for-node in TSX
+from the sealed KiCad netlist:
+
+| Board | Parts | tscircuit MODEL parity (circuit.json vs KiCad) |
+|---|---|---|
+| cook-loadcell | 33 | **YES** — 29/29 comp, 16/16 nets (2 leading-digit renames) |
+| xt60-usb-supply-rerun (connector-heavy) | 51 | **YES** — 51/51 comp, 28/28 nets, 151/151 nodes (11 hand `<footprint>` children; all specialty connectors expressible) |
+| esp32-laser-timing (large/active) | 76 | **YES** — 72/72 comp, 36/36 nets; ESP32-S3 (41-pad) + LM339 pin maps exact |
+
+**Authoring is proven across the spectrum** — tscircuit models our boards faithfully,
+including specialty connectors (via `<footprint>` children carrying KiCad pad names
+as `portHints`) and many-pin modules/actives.
+
+**But the native `kicad_sch` EXPORT — the actual bridge our pipeline needs — has two
+exporter-maturity gaps found this round (NOT authoring/design gaps):**
+
+1. **Symbol-id collision (root-caused, esp32):** the exporter derives a chip's
+   schematic symbol id as `Device:U_chip_<footprintName>`. A hand-authored
+   `<footprint>` has no name, so every custom-footprint chip collapses to bare
+   `Device:U_chip`; **two** such many-pin chips (module U1 + USB-C J1) then share one
+   symbol and each **truncates to 2 pins**. Empirical rule: **≤1 many-pin
+   hand-authored-footprint chip survives the native export per board.** Dense nets
+   also fragment (`Net-(C4-Pad2)`).
+2. **No symbol annotation:** the exported `.kicad_sch` is not annotated, so
+   `kicad-cli sch export netlist` builds 0 nets from it without an annotation pass
+   (confirmed uniformly across all three boards). ERC on the export is dominated by
+   parametric artifacts (off-grid wires, generated-symbol issues), not design signal.
+
+**Consequence for the boundary:** commodity-footprint boards clear the native export;
+boards needing ≥2 many-pin custom footprints (module + USB-C, multi-connector) author
+faithfully but do NOT yet survive tscircuit's native `kicad_sch` export intact. The
+bridge mechanism — not the authoring — is the work item. Options (Phase 2 decision):
+(a) post-process the exported `.kicad_sch` (annotate + de-collide `U_chip` symbol ids);
+(b) route `circuit.json → our own kicad_sch converter` (control naming/annotation);
+(c) fix/contribute upstream in tscircuit's KiCad exporter; (d) constrain the boundary
+to commodity-footprint boards, keeping custom-footprint-heavy boards on schwriter2.
+Until one is chosen and proven, KiCad `04_kicad/` stays the sole fab-of-record and the
+`tscircuit/` folders remain design studies.
+
 ## Reversibility
 
 Additive until Phase 4: every board keeps its KiCad generators; the `tscircuit/`
