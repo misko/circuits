@@ -1,0 +1,38 @@
+board:        cook_loadcell
+version:      v1.0-2026-07-19
+git_sha:      d0ed295
+kicad:        10.0.4
+sha256:
+  29ff347e19c2c878bcfdfbb754942dc45df2cc541d6364e0ba16b57859c99409  ./bom.csv
+  2b6652824b0d7716bb21dcf9a945c0f4c665ff8f9528e42ada608d164323c942  ./cook_loadcell_gerbers.zip
+  74fdafab3f5049a34ca429d0a93eed790d9cd5f6e85dd31c1356cfcd7343c022  ./cpl.csv
+  60ba3c5601ce6bb22983d58907bcf9e75997acb50f86918d489564655219ed16  ./ORDER_README.md
+  800c0341844293107151149ea87b99ac838f84a20d8c896a958c000e54a5635d  ./pdf/assembly_top.pdf
+  521c85048f975aeb0d2c10198d4e2e6deb6cda909624d7e9566e8a7cb8865643  ./pdf/pcb_layers.pdf
+  9a79709c5bdf59edcf6bb4e7245656ab78e330c3025516f1feb2a08019fd4922  ./pdf/schematic.pdf
+  83609a4951190aed36fc767647f420ffc6bfa9e894559e1d6aec2bb36d1c6240  ./verification/drc_gate.json
+  c2e62441c1a8a6c3a915713ddb565eda2caac497b3f7757a982d205c409f3b30  ./verification/pin_review.md
+  d99155008ea8aa9a5f4c0864e958e1562138482ee0c40ed34a1ca458d1be050d  ./verification/twin_iso_nw.png
+  82dcdbea0ccff74006020f50f7189479c82becd363acebb00317cdd7b6d73c43  ./verification/twin_report.csv
+  940345ad1a86cdf11402750c27e553f3226f7f9489e6133d74693b2c5842114b  ./verification/twin_top.png
+# ---- gate + order metadata (appended at seal) ----
+sealed:       2026-07-19
+fab:          JLCPCB, 2 layer, 55 x 45 mm, standard tier. Qty 5.
+gates:        ERC severity-all 0 · schematic parity 0 · DRC severity-all
+  --refill-zones 0/0/0 (zero waivers on the DRC gate itself) · AUDIT PASS
+  (I-AN bridge-to-digital 4mm guard w/ 7mm U1 escape pocket; IP; IS; IZ)
+  · policy_audit FAIL=0 (8 PASS / 4 WAIVED evidence-backed / 7 HUMAN
+  graded via reviews) · jlc_twin exit 0, 43 checks, zero unadjudicated
+  criticals (caught + fixed: Q1 code was the TO-92 package -> C8542
+  SS8550 SOT-23 basic; stale HX711 code -> C43656) · fresh-context HX711
+  pin review PASS after fixing the twin ship-blocker it found (E_MINUS
+  was floating -> now GND per BRIEF D2; AVDD math 4.30V verified) ·
+  render review PASS-WITH-NOTES · stock verified >= 25 on all coded lines.
+not_assembled: JP1 2.54 3-pin header + shunt on 1-2 (hand-solder).
+cost_note:    well under the $20 BOM target (§14.2): HX711 $0.6 + SS8550
+  basic + 6x XH + passives ~ $4-6/board parts; 2L 55x45 PCBs ~$2-4/5.
+spec_337:     (a) 4x half-bridge ring OR (b) full-bridge via J5 = same 4
+  nodes, MODE=POPULATION (no jumpers); (c) SH shield via R7||C7 hybrid
+  bond + SJ1 hard short; (d) JP1 10/80SPS, default 10; (e) guarded short
+  analog, I-AN audited; (f) TP1-TP7 cal/raw test points; (g) no cal
+  storage on board. §8.2/8.3 locking XH connectors; plated M3 mounts.

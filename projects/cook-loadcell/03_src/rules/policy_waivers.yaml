@@ -1,0 +1,37 @@
+# Policy-audit waivers — evidence-backed per canon M4 (cook-loadcell v1.0).
+- id: R-POUR
+  refs: [E_PLUS, RING_12, RING_23, RING_34, RING_41, S_MINUS]
+  why: >-
+    These are the BRIDGE-class ANALOG nets, not power trunks: excitation
+    current is ~1.5mA total (4x 2k half-bridges at AVDD 4.3V) and the
+    S/RING nodes carry microvolt signals. The 0.5mm BRIDGE DRU floor
+    (nets.yaml) is enforced by the DRC gate; a pour would ADD parasitic
+    coupling area on a guarded instrumentation path. E_PLUS additionally
+    carries C1/C2 storage at the source.
+- id: P-POL
+  why: >-
+    Scripted polarity checks EXIST in 03_src/generate_board.py (hard
+    RuntimeError if D1 pad1 != DAT or D2 pad1 != CLK, plus Q1/U1/J6 net
+    asserts, lines ~152-160); the auditor's grep pattern misses the
+    inline-assert form. D1/D2 are furthermore BIdirectional PESD5V0S1BA
+    (orientation electrically indifferent, v1.0 pin review).
+- id: P-KEEP
+  why: >-
+    All six XH connectors sit on the board's north/south EDGES with mouths
+    facing off-board — verified twice independently for v1.0: the twin
+    render review (J1-J4 shells on pads, mouths outward; J5/J6 pad-fit
+    0.00/0.08mm) and the audit IS/I1 checks (pads-in-outline + functional
+    silk). The 4 corner mounting holes carry screw keepouts in route_prep.
+- id: S-VER
+  refs: [S8550]
+  why: >-
+    SS8550 SOT-23 B/E/C winding independently verified electrically in the
+    v1.0 fresh-context HX711 pin review (1=B->BASE, 2=E->5V, 3=C->E_PLUS,
+    matching the HX711 DS application circuit) and by the twin pad fit of
+    C8542 after the TO-92 code was caught and replaced.
+- id: R-RULES
+  why: >-
+    Netclasses (BRIDGE/PWR) ARE in the route input: 06_build/route/
+    r0.kicad_pro carries them (refreshed from the classed project file);
+    route_prep.py copies the project .kicad_pro which generate_rules.py
+    populates before routing in the documented chain order.

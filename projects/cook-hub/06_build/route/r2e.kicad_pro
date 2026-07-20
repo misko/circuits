@@ -1,0 +1,56 @@
+{
+  "board": {
+    "design_settings": {
+      "rules": {
+        "min_clearance": 0.21,
+        "min_hole_clearance": 0.21,
+        "min_hole_to_hole": 0.2,
+        "min_copper_edge_clearance": 0.0,
+        "min_track_width": 0.2498,
+        "min_via_diameter": 0.4,
+        "min_through_hole_diameter": 0.25,
+        "min_via_annular_width": 0.075
+      },
+      "rule_severities": {
+        "courtyards_overlap": "ignore",
+        "malformed_courtyard": "ignore",
+        "npth_inside_courtyard": "ignore",
+        "pth_inside_courtyard": "ignore",
+        "solder_mask_bridge": "ignore",
+        "annular_width": "ignore",
+        "lib_footprint_issues": "ignore",
+        "lib_footprint_mismatch": "ignore",
+        "starved_thermal": "warning"
+      }
+    }
+  },
+  "meta": {
+    "filename": "r2e.kicad_pro",
+    "version": 1
+  },
+  "net_settings": {
+    "classes": [
+      {
+        "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.2,
+        "name": "Default",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": 2147483647,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.2,
+        "via_diameter": 0.4,
+        "via_drill": 0.25,
+        "wire_width": 6
+      }
+    ],
+    "meta": {
+      "version": 0
+    }
+  }
+}

@@ -1,0 +1,16 @@
+# pin dossier: JP1  (MPN unknown)
+
+- footprint: Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical
+- board position: (63.0, 42.0) rot -90
+- computed winding of pins 1..N: **n/a (too few perimeter pins)**
+- datasheet: (none)
+- part.yaml verification note: (none)
+
+Coordinates are FOOTPRINT-LOCAL mm, rotation undone; +y is DOWN
+(so this table reads like the top view of the part on the board).
+
+| pad | local (x,y) | side | size | function (part.yaml) | NET on board |
+|---|---|---|---|---|---|
+| 1 | (+0.00,+0.00) | N | 1.7x1.7 THT | (not in yaml) | GND |
+| 2 | (+0.00,+2.54) | center | 1.7x1.7 THT | (not in yaml) | RATE_SEL |
+| 3 | (+0.00,+5.08) | S | 1.7x1.7 THT | (not in yaml) | 3V3 |

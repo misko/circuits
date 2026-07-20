@@ -1,0 +1,220 @@
+LCSC,Ref,Status,Detail
+C22775,R61,OK,fit=0.07mm jlc_offset=0 db=0.0
+C22775,R62,OK,fit=0.07mm jlc_offset=0 db=0.0
+C25803,R12,OK,fit=0.08mm jlc_offset=0 db=0.0
+C14663,C12,OK,fit=0.08mm jlc_offset=0 db=0.0
+C14663,C13,OK,fit=0.08mm jlc_offset=0 db=0.0
+C14663,C14,OK,fit=0.08mm jlc_offset=0 db=0.0
+C14663,C15,OK,fit=0.07mm jlc_offset=0 db=0.0
+C14663,C16,OK,fit=0.08mm jlc_offset=0 db=0.0
+C14663,C17,OK,fit=0.08mm jlc_offset=0 db=0.0
+C14663,C18,OK,fit=0.07mm jlc_offset=0 db=0.0
+C14663,C20,OK,fit=0.07mm jlc_offset=0 db=0.0
+C14663,C21,OK,fit=0.08mm jlc_offset=0 db=0.0
+C14663,C22,OK,fit=0.08mm jlc_offset=0 db=0.0
+C14663,C31,OK,fit=0.08mm jlc_offset=0 db=0.0
+C14663,C33,OK,fit=0.08mm jlc_offset=0 db=0.0
+C14663,C51,OK,fit=0.08mm jlc_offset=0 db=0.0
+C14663,C52,OK,fit=0.08mm jlc_offset=0 db=0.0
+C14663,C53,OK,fit=0.07mm jlc_offset=0 db=0.0
+C14663,C61,OK,fit=0.08mm jlc_offset=0 db=0.0
+C14663,C7,OK,fit=0.07mm jlc_offset=0 db=0.0
+C14663,C9,OK,fit=0.08mm jlc_offset=0 db=0.0
+C98220,R21,OK,fit=0.08mm jlc_offset=0 db=0.0
+C98220,R22,OK,fit=0.08mm jlc_offset=0 db=0.0
+C98220,R25,OK,fit=0.08mm jlc_offset=0 db=0.0
+C98220,R32,OK,fit=0.08mm jlc_offset=0 db=0.0
+C98220,R34,OK,fit=0.08mm jlc_offset=0 db=0.0
+C98220,R51,OK,fit=0.07mm jlc_offset=0 db=0.0
+C98220,R52,OK,fit=0.07mm jlc_offset=0 db=0.0
+C98220,R53,OK,fit=0.07mm jlc_offset=0 db=0.0
+C57112,C62,OK,fit=0.07mm jlc_offset=0 db=0.0
+C57112,C63,OK,fit=0.07mm jlc_offset=0 db=0.0
+C15850,C1,OK,fit=0.05mm jlc_offset=0 db=0.0
+C15850,C10,OK,fit=0.05mm jlc_offset=0 db=0.0
+C15850,C19,OK,fit=0.05mm jlc_offset=0 db=0.0
+C15850,C6,OK,fit=0.05mm jlc_offset=0 db=0.0
+C15850,C8,OK,fit=0.05mm jlc_offset=0 db=0.0
+C21190,R24,OK,fit=0.08mm jlc_offset=0 db=0.0
+C21190,R54,OK,fit=0.07mm jlc_offset=0 db=0.0
+C21190,R55,OK,fit=0.08mm jlc_offset=0 db=0.0
+C21190,R56,OK,fit=0.07mm jlc_offset=0 db=0.0
+C15849,C11,OK,fit=0.08mm jlc_offset=0 db=0.0
+C2887273,CE1,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C2887273,CE1,ROT-DB-SUGGEST,"fit=0.03mm jlc_offset=0 db=180.0 -> add: CP_Elec_6.3x7.7,0"
+C45783,C2,OK,fit=0.05mm jlc_offset=0 db=0.0
+C45783,C3,OK,fit=0.05mm jlc_offset=0 db=0.0
+C59461,C4,OK,fit=0.07mm jlc_offset=0 db=0.0
+C59461,C5,OK,fit=0.07mm jlc_offset=0 db=0.0
+C8545,Q2,ROT-DB-SUGGEST,"fit=0.08mm jlc_offset=180 db=-90.0 -> add: SOT-23,180"
+C4190,R71,OK,fit=0.08mm jlc_offset=0 db=0.0
+C4190,R72,OK,fit=0.08mm jlc_offset=0 db=0.0
+C4190,R75,OK,fit=0.07mm jlc_offset=0 db=0.0
+C4190,R76,OK,fit=0.08mm jlc_offset=0 db=0.0
+C23138,R26,OK,fit=0.08mm jlc_offset=0 db=0.0
+C23140,R41,OK,fit=0.08mm jlc_offset=0 db=0.0
+C23140,R42,OK,fit=0.08mm jlc_offset=0 db=0.0
+C23140,R43,OK,fit=0.08mm jlc_offset=0 db=0.0
+C23140,R44,OK,fit=0.07mm jlc_offset=0 db=0.0
+C23150,R11,OK,fit=0.08mm jlc_offset=0 db=0.0
+C22978,R31,OK,fit=0.08mm jlc_offset=0 db=0.0
+C22978,R33,OK,fit=0.08mm jlc_offset=0 db=0.0
+C25819,R23,OK,fit=0.08mm jlc_offset=0 db=0.0
+C23162,R73,OK,fit=0.08mm jlc_offset=0 db=0.0
+C23162,R74,OK,fit=0.08mm jlc_offset=0 db=0.0
+C23162,R77,OK,fit=0.08mm jlc_offset=0 db=0.0
+C23162,R78,OK,fit=0.08mm jlc_offset=0 db=0.0
+C1017,FB1,OK,fit=0.09mm jlc_offset=0 db=0.0
+C6820,U11,ROT-DB-SUGGEST,"fit=0.15mm jlc_offset=90 db=270.0 -> add: SOIC-14_3.9x8.7mm_P1.27mm,90"
+C10092,U3,PAD-GEOM,pad 1<->16 ours 4.95mm vs JLC 5.48mm (d0.53mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C10092,U3,ROT-DB-SUGGEST,"fit=0.27mm jlc_offset=90 db=270.0 -> add: SOIC-16_3.9x9.9mm_P1.27mm,90"
+C10092,U4,PAD-GEOM,pad 1<->16 ours 4.95mm vs JLC 5.48mm (d0.53mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C10092,U4,ROT-DB-SUGGEST,"fit=0.27mm jlc_offset=90 db=270.0 -> add: SOIC-16_3.9x9.9mm_P1.27mm,90"
+C8185,U8,OK,fit=0.00mm jlc_offset=180 db=180.0
+C22046,U9,PAD-GEOM,pad 1<->6 ours 2.28mm vs JLC 2.70mm (d0.42mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C22046,U9,ROT-DB-SUGGEST,"fit=0.21mm jlc_offset=180 db=-90.0 -> add: SOT-23-6,180"
+C6186,U12,OK,fit=0.27mm jlc_offset=180 db=180.0
+C15127,Q1,PAD-GEOM,pad 1<->3 ours 2.10mm vs JLC 2.49mm (d0.39mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C15127,Q1,ROT-DB-SUGGEST,"fit=0.28mm jlc_offset=180 db=-90.0 -> add: SOT-23,180"
+C15127,Q3,PAD-GEOM,pad 1<->3 ours 2.10mm vs JLC 2.49mm (d0.39mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C15127,Q3,ROT-DB-SUGGEST,"fit=0.28mm jlc_offset=180 db=-90.0 -> add: SOT-23,180"
+C144394,J7,OK,fit=0.00mm jlc_offset=0 db=0.0
+C158012,J8,ROT-DB-SUGGEST,"fit=0.00mm jlc_offset=180 db=0.0 -> add: JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical,180"
+C144395,J3,ROT-DB-SUGGEST,"fit=0.00mm jlc_offset=180 db=0.0 -> add: JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical,180"
+C144395,J4,ROT-DB-SUGGEST,"fit=0.00mm jlc_offset=180 db=0.0 -> add: JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical,180"
+C157991,J14,ROT-DB-SUGGEST,"fit=0.08mm jlc_offset=180 db=0.0 -> add: JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical,180"
+C157991,J6,ROT-DB-SUGGEST,"fit=0.08mm jlc_offset=180 db=0.0 -> add: JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical,180"
+C125121,U10,PAD-GEOM,pad 1<->4 ours 9.53mm vs JLC 10.00mm (d0.47mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C125121,U10,ROT-DB-SUGGEST,"fit=0.23mm jlc_offset=90 db=0.0 -> add: SMDIP-4_W9.53mm,90"
+C2653162,U1,ROT-DB-SUGGEST,"fit=0.06mm jlc_offset=90 db=270.0 -> add: TSSOP-14_4.4x5mm_P0.65mm,90"
+C89650,F1,PAD-GEOM,pad 1<->2 ours 4.27mm vs JLC 3.70mm (d0.57mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C89650,F1,OK,fit=0.29mm jlc_offset=0 db=0.0
+C5158048,D3,PAD-GEOM,pad 1<->2 ours 2.10mm vs JLC 2.40mm (d0.30mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C5158048,D3,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C5158048,D3,OK,fit=0.15mm jlc_offset=0 db=0.0
+C5158048,D4,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C5158048,D4,OK,fit=0.15mm jlc_offset=0 db=0.0
+C5158048,D5,PAD-GEOM,pad 1<->2 ours 2.10mm vs JLC 2.40mm (d0.30mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C5158048,D5,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C5158048,D5,OK,fit=0.15mm jlc_offset=0 db=0.0
+C5158048,D6,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C5158048,D6,OK,fit=0.15mm jlc_offset=0 db=0.0
+C5158048,D7,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C5158048,D7,OK,fit=0.15mm jlc_offset=0 db=0.0
+C318884,SW1,PAD-GEOM,pad 1<->2 ours 3.75mm vs JLC 6.00mm (d2.25mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C318884,SW1,PAD-MISMATCH,best=none
+C113974,D2,PAD-GEOM,pad 1<->2 ours 4.30mm vs JLC 4.72mm (d0.42mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C113974,D2,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C113974,D2,OK,fit=0.21mm jlc_offset=0 db=0.0
+C123302,U7,ROT-DB-SUGGEST,"fit=0.10mm jlc_offset=180 db=270.0 -> add: SSOP-8_2.95x2.8mm_P0.65mm,180"
+C8678,D1,PAD-GEOM,pad 1<->2 ours 4.00mm vs JLC 4.40mm (d0.40mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C8678,D1,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C8678,D1,OK,fit=0.20mm jlc_offset=0 db=0.0
+C9683,U5,ROT-DB-SUGGEST,"fit=0.15mm jlc_offset=90 db=270.0 -> add: SOIC-18W_7.5x11.6mm_P1.27mm,90"
+C9683,U6,ROT-DB-SUGGEST,"fit=0.15mm jlc_offset=90 db=270.0 -> add: SOIC-18W_7.5x11.6mm_P1.27mm,90"
+C7519,U13,ROT-DB-SUGGEST,"fit=0.01mm jlc_offset=90 db=-90.0 -> add: SOT-23-6,90"
+C7519,U14,ROT-DB-SUGGEST,"fit=0.01mm jlc_offset=90 db=-90.0 -> add: SOT-23-6,90"
+C7519,U15,ROT-DB-SUGGEST,"fit=0.01mm jlc_offset=90 db=-90.0 -> add: SOT-23-6,90"
+C130239,J1,MODEL-SELF,"JLC model bbox center off JLC's OWN pads by (-2.25,+5.95)mm in their frame - model-internal defect; expect the render to need an adjudicated board_dx/board_dy nudge, and distrust bbox MODEL-REG numbers for this part"
+C130239,J1,ROT-DB-SUGGEST,"fit=0.10mm jlc_offset=270 db=0.0 -> add: BarrelJack_CUI_PJ-063AH_Horizontal,270"
+C474892,J5,OK,fit=0.00mm jlc_offset=0 db=0.0
+C474892,J10,OK,fit=0.00mm jlc_offset=0 db=0.0
+C692429,J11,MIRRORED,mirror fit 0.00mm vs non-mirror 2.54mm
+C22775,R61,MODEL-REG-OK,body on courtyard (0.00mm)
+C22775,R62,MODEL-REG-OK,body on courtyard (0.00mm)
+C25803,R12,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C12,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C13,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C14,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C15,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C16,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C17,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C18,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C20,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C21,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C22,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C31,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C33,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C51,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C52,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C53,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C61,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C7,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C9,MODEL-REG-OK,body on courtyard (0.00mm)
+C98220,R21,MODEL-REG-OK,body on courtyard (0.00mm)
+C98220,R22,MODEL-REG-OK,body on courtyard (0.00mm)
+C98220,R25,MODEL-REG-OK,body on courtyard (0.00mm)
+C98220,R32,MODEL-REG-OK,body on courtyard (0.00mm)
+C98220,R34,MODEL-REG-OK,body on courtyard (0.00mm)
+C98220,R51,MODEL-REG-OK,body on courtyard (0.00mm)
+C98220,R52,MODEL-REG-OK,body on courtyard (0.00mm)
+C98220,R53,MODEL-REG-OK,body on courtyard (0.00mm)
+C57112,C62,MODEL-REG-OK,body on courtyard (0.00mm)
+C57112,C63,MODEL-REG-OK,body on courtyard (0.00mm)
+C15850,C1,MODEL-REG-OK,body on courtyard (0.00mm)
+C15850,C10,MODEL-REG-OK,body on courtyard (0.00mm)
+C15850,C19,MODEL-REG-OK,body on courtyard (0.00mm)
+C15850,C6,MODEL-REG-OK,body on courtyard (0.00mm)
+C15850,C8,MODEL-REG-OK,body on courtyard (0.00mm)
+C21190,R24,MODEL-REG-OK,body on courtyard (0.00mm)
+C21190,R54,MODEL-REG-OK,body on courtyard (0.00mm)
+C21190,R55,MODEL-REG-OK,body on courtyard (0.00mm)
+C21190,R56,MODEL-REG-OK,body on courtyard (0.00mm)
+C15849,C11,MODEL-REG-OK,body on courtyard (0.00mm)
+C2887273,CE1,MODEL-REG-OK,body on courtyard (0.00mm)
+C45783,C2,MODEL-REG-OK,body on courtyard (0.00mm)
+C45783,C3,MODEL-REG-OK,body on courtyard (0.00mm)
+C59461,C4,MODEL-REG-OK,body on courtyard (0.00mm)
+C59461,C5,MODEL-REG-OK,body on courtyard (0.00mm)
+C8545,Q2,MODEL-REG-OK,body on courtyard (0.02mm)
+C4190,R71,MODEL-REG-OK,body on courtyard (0.00mm)
+C4190,R72,MODEL-REG-OK,body on courtyard (0.00mm)
+C4190,R75,MODEL-REG-OK,body on courtyard (0.00mm)
+C4190,R76,MODEL-REG-OK,body on courtyard (0.00mm)
+C23138,R26,MODEL-REG-OK,body on courtyard (0.00mm)
+C23140,R41,MODEL-REG-OK,body on courtyard (0.00mm)
+C23140,R42,MODEL-REG-OK,body on courtyard (0.00mm)
+C23140,R43,MODEL-REG-OK,body on courtyard (0.00mm)
+C23140,R44,MODEL-REG-OK,body on courtyard (0.00mm)
+C23150,R11,MODEL-REG-OK,body on courtyard (0.00mm)
+C22978,R31,MODEL-REG-OK,body on courtyard (0.00mm)
+C22978,R33,MODEL-REG-OK,body on courtyard (0.00mm)
+C25819,R23,MODEL-REG-OK,body on courtyard (0.00mm)
+C23162,R73,MODEL-REG-OK,body on courtyard (0.00mm)
+C23162,R74,MODEL-REG-OK,body on courtyard (0.00mm)
+C23162,R77,MODEL-REG-OK,body on courtyard (0.00mm)
+C23162,R78,MODEL-REG-OK,body on courtyard (0.00mm)
+C1017,FB1,MODEL-REG-OK,body on courtyard (0.00mm)
+C6820,U11,MODEL-REG-OK,body on courtyard (0.00mm)
+C10092,U3,MODEL-REG-OK,body on courtyard (0.00mm)
+C10092,U4,MODEL-REG-OK,body on courtyard (0.00mm)
+C8185,U8,MODEL-REG-OK,body on courtyard (0.00mm)
+C22046,U9,MODEL-REG-OK,body on courtyard (0.00mm)
+C6186,U12,MODEL-REG-OK,body on courtyard (0.19mm)
+C15127,Q1,MODEL-REG-OK,body on courtyard (0.07mm)
+C15127,Q3,MODEL-REG-OK,body on courtyard (0.07mm)
+C144394,J7,MODEL-REG-OK,body on courtyard (0.06mm)
+C158012,J8,MODEL-REG,"body center 1.0mm off courtyard, area ratio 0.74 -> possible 180-flipped WRL vs JLC footprint; VERIFY leads-on-pads in the render, then {lcsc: C158012, model_rot_z: 180}"
+C144395,J3,MODEL-REG-OK,body on courtyard (0.97mm)
+C144395,J4,MODEL-REG-OK,body on courtyard (0.97mm)
+C157991,J14,MODEL-REG-OK,body on courtyard (0.97mm)
+C157991,J6,MODEL-REG-OK,body on courtyard (0.97mm)
+C125121,U10,MODEL-REG-OK,body on courtyard (0.00mm)
+C2653162,U1,MODEL-REG-OK,body on courtyard (0.00mm)
+C89650,F1,MODEL-REG-OK,body on courtyard (0.00mm)
+C5158048,D3,MODEL-REG-OK,body on courtyard (0.00mm)
+C5158048,D4,MODEL-REG-OK,body on courtyard (0.00mm)
+C5158048,D5,MODEL-REG-OK,body on courtyard (0.00mm)
+C5158048,D6,MODEL-REG-OK,body on courtyard (0.00mm)
+C5158048,D7,MODEL-REG-OK,body on courtyard (0.00mm)
+C113974,D2,MODEL-REG-OK,body on courtyard (0.00mm)
+C123302,U7,MODEL-REG-OK,body on courtyard (0.09mm)
+C8678,D1,MODEL-REG-OK,body on courtyard (0.00mm)
+C9683,U5,MODEL-REG-OK,body on courtyard (0.00mm)
+C9683,U6,MODEL-REG-OK,body on courtyard (0.00mm)
+C7519,U13,MODEL-REG-OK,body on courtyard (0.00mm)
+C7519,U14,MODEL-REG-OK,body on courtyard (0.00mm)
+C7519,U15,MODEL-REG-OK,body on courtyard (0.00mm)
+C130239,J1,MODEL-REG,"body center 6.0mm off courtyard, area ratio 0.77, incl. pad_geom_delta=0.20mm -> DO NOT blind-flip: JLC's footprint mounts this model at rot_z=90 (authoritative); body asymmetric (4.2mm bbox-center offset) so this metric is unreliable. VERIFY leads sit on pads visually; if correct, adjudicate as a false alarm with NO rotation override"
+C474892,J5,MODEL-REG-OK,body on courtyard (0.15mm)
+C474892,J10,MODEL-REG-OK,body on courtyard (0.15mm)

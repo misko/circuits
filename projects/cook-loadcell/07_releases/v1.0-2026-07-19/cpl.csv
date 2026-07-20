@@ -1,0 +1,22 @@
+Designator,Val,Package,Mid X,Mid Y,Layer,Rotation
+C1,10u E+,C_0805_2012Metric,28.5,-44.5,top,0.0
+C2,100n E+,C_0603_1608Metric,28.5,-47.0,top,0.0
+C3,100n DVDD,C_0603_1608Metric,43.5,-38.2,top,0.0
+C4,10u 3V3,C_0805_2012Metric,47.0,-38.0,top,0.0
+C5,100n VSUP,C_0603_1608Metric,43.5,-46.2,top,0.0
+C6,10u 5V,C_0805_2012Metric,47.0,-46.0,top,0.0
+C7,100n shield bond,C_0603_1608Metric,63.0,-30.0,top,0.0
+D1,PESD5V0S1BA,D_SOD-323,54.2,-55.6,top,0.0
+D2,PESD5V0S1BA,D_SOD-323,58.0,-55.0,top,0.0
+J1,SENSOR 1 B/R/W,JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical,30.2,-24.2,top,0.0
+J2,SENSOR 2 B/R/W,JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical,41.3,-24.2,top,0.0
+J3,SENSOR 3 B/R/W,JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical,30.2,-60.8,top,0.0
+J4,SENSOR 4 B/R/W,JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical,41.3,-60.8,top,0.0
+J5,FULL BRIDGE ALT,JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical,52.5,-24.2,top,0.0
+J6,TO HUB J6,JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical,53.5,-60.8,top,0.0
+JP1,RATE 1-2=10SPS 2-3=80,PinHeader_1x03_P2.54mm_Vertical,63.0,-42.0,top,270.0
+Q1,S8550,SOT-23,28.5,-36.0,top,270.0
+R1,20k 1% AVDD-VFB,R_0603_1608Metric,28.5,-39.5,top,0.0
+R2,8.2k 1% VFB-GND,R_0603_1608Metric,28.5,-42.0,top,0.0
+R7,100R shield bond,R_0603_1608Metric,67.5,-27.5,top,0.0
+U1,HX711,SOIC-16_3.9x9.9mm_P1.27mm,38.0,-42.0,top,270.0

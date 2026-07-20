@@ -115,3 +115,12 @@
     MAX31856 TSSOP-14 fetch failed (rate limit). Package is JEDEC
     TSSOP-14 (KiCad std footprint); full pin map independently verified
     against the ADI datasheet in the v1.0 sensor pin review.
+- lcsc: C125121
+  refs: [U10]
+  status: PAD-GEOM
+  why: >-
+    LTV-817S SMDIP-4 (this run's fetch succeeded, superseding the NO-CAD
+    entry): our KiCad SMDIP-4_W9.53mm pads at 9.53mm across (the JEDEC
+    300mil smd-gullwing land, Liteon DS "SMD" option) vs JLC's 10.00mm -
+    0.47mm land-style delta on the same 10.16mm lead span; fit 0.23mm,
+    MODEL-REG 0.00mm, leads-on-pads in the twin render.

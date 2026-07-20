@@ -1,0 +1,25 @@
+** Drc report for cook_hub.kicad_pcb **
+** Created on 2026-07-19T18:29:23 **
+** Report includes: Errors, Warnings, Exclusions **
+
+** Found 2 DRC violations **
+[connection_width]: Copper connection too narrow (board setup constraints minimum connection width 0.1270 mm; actual 0.0795 mm) (In1.Cu)
+    Rule: board setup constraints; warning
+    @(27.0000 mm, 20.0000 mm): Zone [GND] on In1.Cu, priority 0
+[connection_width]: Copper connection too narrow (board setup constraints minimum connection width 0.1270 mm; actual 0.0628 mm) (In2.Cu)
+    Rule: board setup constraints; warning
+    @(27.0000 mm, 20.0000 mm): Zone [3V3] on In2.Cu, priority 1
+
+** Found 0 unconnected pads **
+
+** Found 0 Footprint errors **
+
+** Ignored checks **
+    - Footprint has no courtyard defined
+    - Track endpoint not centered on via
+    - Tuning profile track geometries
+    - Footprint doesn't match symbol's footprint filters
+    - Footprint component type doesn't match footprint pads
+    - Footprint doesn't match copy in library
+
+** End of Report **

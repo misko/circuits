@@ -1,0 +1,44 @@
+board:        cook_hub
+version:      v1.0-2026-07-19
+git_sha:      d0ed295
+kicad:        10.0.4
+sha256:
+  e864c0c3464031761f96de9533deb1e5be5138fd881aeded24e691a024ec2968  ./bom.csv
+  76171e69fbc658068f3fef75f51736ac728e3f6bfb238e2f871b0e08412d2d1b  ./cook_hub_gerbers.zip
+  2725a3a334154f906ef1b590da7f8f329366f787c39d12d82f1cc206e0d9f651  ./cpl.csv
+  edf5e33c7585aa64a179c607275c1594e1f43f28f10ff37dd0368f7f1284b74c  ./ORDER_README.md
+  5f66821172c0349201ed6adc60c10a2c17a19ef3763a7190df5666d128c00dc1  ./pdf/assembly_top.pdf
+  624892e72ef944427f4680745f71a9260e549063640998ecda28ecef6f8c83da  ./pdf/pcb_layers.pdf
+  5e77aac6d0c76115d3f1fdc1dd40f6be0e2826bf85dc6af250832078569734a3  ./pdf/schematic.pdf
+  fd09d30d1bdc47333b3438e83594216e323de079def57cbe4c5aca4e8dcc9202  ./verification/drc_gate.json
+  635d34efd98d25f39cfd0944c086194e5abc3158efeffe01fa04871470aba1e3  ./verification/pin_review.md
+  34945f8fb2afabc3745797cb91fc1e93ed9684a514250a3a86c0454b2425c91d  ./verification/twin_iso_nw.png
+  51db90ffb8619c62213bdc0245d82729216dbf9437c3ef37c08eda5f46509d63  ./verification/twin_report.csv
+  e9de606786348347991ca450e65daad6dd897cda89ad2c7fb1bddaf59e1f4431  ./verification/twin_top.png
+# ---- gate + order metadata (appended at seal) ----
+sealed:       2026-07-19
+fab:          JLCPCB, 4 layer, 185 x 120 mm, standard tier (0.6/0.3 vias — no small-via option needed)
+quantity:     5
+gates:        ERC severity-all 0 · schematic parity 0 · DRC severity-all
+  --refill-zones 0 violations / 0 unconnected (W-CONN: connection_width
+  demoted with evidence — two 0.06-0.08mm inner-plane fill wisps, 43
+  courtyard pairs waived per-pair, lib_footprint_mismatch silk-trim policy)
+  · AUDIT PASS (I-ISO 6.12mm, 8 milled slots) · policy_audit FAIL=0
+  (14 PASS / 3 WAIVED / 6 HUMAN graded via reviews) · jlc_twin exit 0,
+  219 checks, ZERO unadjudicated criticals (incl. the D-FIX: U7
+  SN74LVC1G123 DCT was on a 1.27mm-pitch footprint — twin-caught,
+  refit to SSOP-8 0.65mm, fit 0.10mm) · fresh-context pin reviews 3/3
+  PASS (relay/watchdog chain w/ 390ms monostable math + triple
+  default-OFF proof; sensors; 17/17 connectors) · render review
+  PASS-WITH-NOTES (dispositioned in ORDER_README) · stock verified
+  >= 25 (5x qty 5) on 82/82 coded lines 2026-07-19.
+not_assembled: K1-K16 DIP05-1A72-12L reed relays (DO-NOT-SUBSTITUTE spec
+  15.4; JLC stock 0 -> Digi-Key ~$4.36/1, order 16+4 spares; alternate
+  DIP05-1A72-12D) · J2 Pico socket = 2x C50981 1x20 female headers
+  (hand-solder; the Raspberry Pi Pico 2 module is NOT included in this
+  BOM) · J1 DC-005-20A barrel C130239 · J11 X9555WV IDC 2x16 C692429 ·
+  J5/J10 KF350-3.5-2P C474892 · J9 XH THT · JP1/JP2/JP5 headers+shunts ·
+  SJ1 solder jumper (copper only).
+cost_note:    within the commission's hub budget: JLC 4L standard ~$25-40/5
+  PCBs + assembled SMD (~$45-60 parts+assembly at qty 5) + hand-solder
+  BOM ~$85 (20x DIP05 at $4.36) + connectors ~$10. Pico 2 (~$5) separate.
