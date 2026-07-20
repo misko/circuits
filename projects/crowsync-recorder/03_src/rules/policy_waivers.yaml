@@ -1,9 +1,11 @@
 # Policy-audit waivers — evidence-backed per canon M4.
 - id: R-POUR
   why: >-
-    MIC_BIAS_F and VBUS_PCM are in the 0.6mm PWR class for voltage-drop
-    reasons, not ampacity: total board budget is 70mA (DETAIL_DESIGN
-    power section), so 0.6mm trunks carry >20x margin (IPC-2152). GND is
+    MIC_BIAS_F and VBUS_PCM are in the PWR class (0.6mm netclass width,
+    0.3mm dru floor) for voltage-drop reasons, not ampacity: total board
+    budget is 70mA (DETAIL_DESIGN power section). Routed trunks measure
+    0.5mm on the board (re-measured 2026-07-19 audit; the router used
+    0.5mm, above the 0.3mm floor) — still >20x IPC-2152 margin. GND is
     poured on 3 layers; In2 pours cover VBUS_5V and 3V3A. Deliberate
     trunk exception per canon R2.
 - id: R-RULES

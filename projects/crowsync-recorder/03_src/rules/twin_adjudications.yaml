@@ -28,3 +28,12 @@
     (pad 1 = cathode = GND on both D3 and D4, per 02_parts/KT-0805G
     part.yaml gotcha). JLC preview must be eyeballed for D3/D4 orientation
     at order time (ORDER_README checklist).
+    STALE-EVIDENCE note (2026-07-19 full audit): C2297 CAD is NOW present
+    in EasyEDA — the current twin run computes fit=0.11mm, MODEL-REG-OK,
+    and renders LED bodies (twin_top.png), so the NO-CAD row is no longer
+    emitted and "render as empty space" in ORDER_README v1.0-v1.2 is
+    outdated. The twin's POLARITY-CHECK rows for D3/D4 remain open:
+    machine checks cannot see a 180-flipped symmetric model — polarity
+    must still be confirmed via JLC order preview record or first-article
+    inspection (order placed 2026-07-17; first-power ritual step 3 in
+    ORDER_README detects a reversed indicator as a dark LED, non-destructive).
