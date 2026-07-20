@@ -1,0 +1,22 @@
+board:        usb_power_3s  (lipo3s-tsc — tscircuit-authored twin of usb-power-3s)
+version:      v1.0
+ordered:      2026-07-20
+git_sha:      e29f033
+git_dirty:    false
+kicad:        10.0.4
+front_end:    tscircuit / TSX (tsci build -> circuit_json_to_kicad_sch converter)
+tools:        tscircuit tsci 0.0.2112 (bun); ADR-0001 converter (canonical nets + 02_parts/commodity FPIDs); usb-power-3s 03_src backend reused VERBATIM (generate_board -> import_krt r5 -> route_taps -> stitch_and_fill -> generate_rules); policy_audit; jlc_twin
+provenance:   CAPSTONE of ADR-0001. This is projects/usb-power-3s re-authored in TSX and driven through the completed TSX->converter->KiCad backend. Same electrical design; source = usb-power-3s v1.3-2026-07-17 (git_sha d8992b8). Board internal name kept "usb_power_3s" so the promoted route + rules + FPIDs transfer byte-for-byte.
+fab:          JLCPCB, 4 layer, ADVANCED small-via option REQUIRED (0.25/0.15 fanout vias)
+quantity:     5
+gates:        GATE 1 — converter kicad_sch ERC 0 errors (warnings parametric: lib_symbol_issues/footprint_link_issues, isolated_pin_label 1); netlist parity 0 node-for-node vs the sealed usb-power-3s schematic (55 nets / 290 connected nodes / 13 no-connects). GATE 2 — backend DRC 0/0/0 (violations/unconnected/schematic-parity); board-netlist parity 0 vs sealed usb-power-3s board (303/303 nodes identical, net-for-net). policy_audit FULL ZERO FAIL (13 PASS / 3 waived / 6 human / 4 n-a). jlc_twin exit 0 (14 PAD-GEOM + 7 PAD-MISMATCH adjudicated — footprint-inherited, identical set on the sealed board; 0 MIRRORED, 0 unadjudicated MODEL-REG). stock >=5x all coded lines.
+net_aliases:  0 (only 5V_A/5V_C lead with a digit; strip-N convention covers both)
+sha256:
+  usb_power_3s_gerbers.zip     a4c77f5ecda3353c6f0f30d6f1a515571d548163ed00516fe0087fa7dfb34523
+  bom.csv                      5ce65a360657c103c3eca07b6b3563ddb6718d749a2b5632cb81ae1885b25bf3
+  cpl.csv                      01e0db6f5c532512dd5e69967633d42452b59649ac1335492378b18cd9888474
+  pdf/schematic.pdf            ecdf9636459290e30500a23ffe12fb5370f98fbcf1547c892d3c394b8361b7e8
+  pdf/pcb_layers.pdf           072b712447bbd9201a7af7db50f75cdecaf10156f41cbc5d60b38525c0bc992b
+  pdf/assembly_top.pdf         94a7f3b734832057e4dba795a22106dcbbadd56540d9f557227ea0f6a9657a9c
+  verification/twin_report.csv 1bd90a1653b0ead694442a0e8efe63e7c3d9f916e819f0ab9ae806d0cde830ed
+not_assembled: J2,J3,J4 (USB-A CNCTech 1001-011-01101, Digi-Key 3064739, hand-solder) — fuse cartridge 15A ATO user-supplied

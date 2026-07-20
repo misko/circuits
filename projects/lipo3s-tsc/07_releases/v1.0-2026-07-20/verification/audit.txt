@@ -1,0 +1,3 @@
+I9 POLARITY: 10/10 pad-1 net checks pass
+pads audited across 96 footprints
+AUDIT: PASS (0 fails, 0 warns)

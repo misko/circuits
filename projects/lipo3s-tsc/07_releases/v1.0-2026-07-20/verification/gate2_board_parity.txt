@@ -1,0 +1,3 @@
+built nodes=303  sealed nodes=303
+nets built=56  sealed=56
+BOARD PARITY 0 -> PASS (303 nodes identical, net-for-net)

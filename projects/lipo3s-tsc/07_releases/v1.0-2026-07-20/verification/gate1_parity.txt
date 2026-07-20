@@ -1,0 +1,3 @@
+GATE 1 - converter kicad_sch netlist parity vs sealed usb-power-3s schematic
+nets=55  connected_nodes=290  no_connects=13
+RESULT: 0 discrepancies (node-for-node identical to the sealed schematic)
