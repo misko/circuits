@@ -19,7 +19,10 @@ $PY "$SKILLS"/import_krt.py 06_build/route/r2.kicad_pcb \
     04_kicad/cook_hub.kicad_pcb 04_kicad/cook_hub.kicad_pcb 2>/dev/null | grep imported
 echo "== route_bank =="; $PY 03_src/route_bank.py 2>/dev/null | tail -2
 $PY 03_src/generate_rules.py >/dev/null
-echo "== stitch_and_fill =="; $PY 03_src/stitch_and_fill.py 2>/dev/null | tail -4
+echo "== stitch_and_fill =="
+$PY 03_src/stitch_and_fill.py > 06_build/stitch.log 2>&1 || { echo "STITCH FAILED:"; tail -25 06_build/stitch.log; exit 1; }
+grep -vE 'swig|memory leak|Debug:|assert' 06_build/stitch.log | tail -5
+$PY 03_src/post_sweep.py 2>/dev/null | tail -2
 echo "== audit(post) =="; $PY 03_src/audit_board.py 2>/dev/null | tail -3
 $PY 03_src/generate_rules.py >/dev/null
 echo "== DRC =="

@@ -479,15 +479,18 @@ def main():
         return z
 
     # SELV L-shape: whole board minus the NOGO/keypad NE region. The three
-    # outer corners that carry a mounting hole (NW/SW/SE) are chamfered 5mm so
-    # the pour doesn't wrap a thin neck around the corner screw keepout (that
-    # neck tripped connection_width at the 20,20 corner). The NE corner sits in
-    # the NOGO cut-out, so it has no SELV pour to chamfer.
+    # outer corners that carry a mounting hole (NW/SW/SE) get SQUARE NOTCHES
+    # (7mm) that fully absorb the corner hole + its screw keepout — a diagonal
+    # chamfer or a straight corner leaves a sub-min neck of fill wrapped
+    # between the hole void and the board edge (connection_width at 20,20 /
+    # 25,20). The NE corner sits in the NOGO cut-out (no SELV pour there).
     nx0, ny0, nx1, ny1 = G.NOGO
-    C = 5.0
-    LSHAPE = [(G.X0 + C, G.Y0), (nx0, G.Y0), (nx0, ny1), (G.X1, ny1),
-              (G.X1, G.Y1 - C), (G.X1 - C, G.Y1), (G.X0 + C, G.Y1),
-              (G.X0, G.Y1 - C), (G.X0, G.Y0 + C)]
+    C = 7.0
+    LSHAPE = [(G.X0 + C, G.Y0),                     # NW notch (H1 24,24)
+              (nx0, G.Y0), (nx0, ny1), (G.X1, ny1),
+              (G.X1, G.Y1 - C), (G.X1 - C, G.Y1 - C), (G.X1 - C, G.Y1),  # SE notch (H4 201,136)
+              (G.X0 + C, G.Y1), (G.X0 + C, G.Y1 - C), (G.X0, G.Y1 - C),  # SW notch (H3 24,136)
+              (G.X0, G.Y0 + C), (G.X0 + C, G.Y0 + C)]
     add_zone("GND", pcbnew.In1_Cu, LSHAPE, 0)                 # THE plane
     add_zone("GND", pcbnew.B_Cu, LSHAPE, 0)
     add_zone("3V3", pcbnew.In2_Cu, LSHAPE, 1, minw=0.4)
@@ -584,12 +587,14 @@ def main():
     # iterators mid-session, kicad-pcb skill).
     trim_list = []            # (fp, graphic) removed just before save
     silk_obst = []            # boundary lines + SURVIVING footprint silk
+    kept_fp_silk = []         # (ref, box) accepted fp graphics, overlap-trim
     for t in board.GetDrawings():
         if t.IsOnLayer(pcbnew.F_SilkS) and t.GetClass() in ("PCB_TEXT", "PCB_SHAPE"):
             gb = safe_box(t, CLR * 0.5)
             if gb:
                 silk_obst.append(gb)
     for fp in board.GetFootprints():
+        ref_ = fp.GetReference()
         for g in fp.GraphicalItems():
             if not g.IsOnLayer(pcbnew.F_SilkS):
                 continue
@@ -598,9 +603,14 @@ def main():
                 continue
             if (any(hit(gb, po) for po in pad_obst)
                     or any(hit(gb, eo) for eo in edge_trim)
-                    or any(hit(gb, bo) for bo in board_silk_trim)):
-                trim_list.append((fp, g))         # over pad / clipped by edge / on boundary silk
+                    or any(hit(gb, bo) for bo in board_silk_trim)
+                    # fp-vs-fp silk overlap (adjacent dense parts): first
+                    # accepted graphic wins, the later one is trimmed
+                    or any(r2 != ref_ and hit(gb, b2)
+                           for r2, b2 in kept_fp_silk)):
+                trim_list.append((fp, g))
             else:
+                kept_fp_silk.append((ref_, gb))
                 silk_obst.append(box(g.GetBoundingBox(), PADM))
     trimmed = len(trim_list)
 

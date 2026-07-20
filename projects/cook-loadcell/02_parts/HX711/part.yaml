@@ -31,5 +31,5 @@ gotchas:
   - "XI tied LOW = internal oscillator; XO left no_connect"
 verified: "pin map PENDING datasheet-figure confirmation in fresh pin review - 2026-07-19"
 sourcing:
-  lcsc: C97531
+  lcsc: C43656   # was C97531 (NOT_FOUND at JLC 2026-07-19); C43656 = AVIA HX711 SOP-16, stock 12345, verified via parts search; twin pad-fit gates the package
   note: "Avia original reel; verify stock at order (~10k typical). ~$0.6."

@@ -5,6 +5,8 @@
 # plane integrity stays perfect). GND is NOT routed (planes + stitch vias);
 # KEYPAD/COIL/RELAY_5V are NOT routed (route_bank.py engineered copper —
 # keepouts on User.2 wall KRT out of the whole bank region).
+# clearance 0.21 (not 0.15): 0.6/0.3 vias at 0.15 pack drills to ~0.45 < the
+# 0.5 hole-to-hole fab floor; 0.21 forces centres to 0.81 -> drill gap 0.51.
 # Wave 1: power rails at 0.5 (hardest-first: the SW entry cluster)
 # Wave 2: all remaining signals at 0.25
 set -euo pipefail
@@ -14,19 +16,19 @@ R=06_build/route
 PY=~/gits/KiCadRoutingTools/.venv/bin/python
 
 $PY "$KRT"/route.py "$R"/r0.kicad_pcb --output "$R"/r1.kicad_pcb \
-  --layers F.Cu B.Cu --clearance 0.15 --track-width 0.5 \
+  --layers F.Cu B.Cu --clearance 0.21 --track-width 0.5 \
   --via-size 0.6 --via-drill 0.3 --fab-tier standard --no-stub-layer-swap \
   --keepout --keepout-layer User.2 --max-iterations 400000 \
   --nets $(cat "$R"/nets_pwr.txt)
 
 $PY "$KRT"/route.py "$R"/r1.kicad_pcb --output "$R"/r1b.kicad_pcb \
-  --layers F.Cu B.Cu --clearance 0.15 --track-width 0.25 \
+  --layers F.Cu B.Cu --clearance 0.21 --track-width 0.25 \
   --via-size 0.6 --via-drill 0.3 --fab-tier standard --no-stub-layer-swap \
   --keepout --keepout-layer User.2 --max-iterations 400000 \
   --nets $(cat "$R"/nets_spi.txt)
 
 $PY "$KRT"/route.py "$R"/r1b.kicad_pcb --output "$R"/r2.kicad_pcb \
-  --layers F.Cu B.Cu --clearance 0.15 --track-width 0.25 \
+  --layers F.Cu B.Cu --clearance 0.21 --track-width 0.25 \
   --via-size 0.6 --via-drill 0.3 --fab-tier standard --no-stub-layer-swap \
   --keepout --keepout-layer User.2 --max-iterations 1500000 \
   --max-probe-iterations 80000 --max-ripup 40 \
