@@ -1,0 +1,5 @@
+{
+  "name": "esp32-laser-timing-tscircuit",
+  "main": "src/esp32_laser_timing.tsx",
+  "dependencies": {}
+}

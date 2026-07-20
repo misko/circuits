@@ -22,16 +22,20 @@ BASE=$(basename "$SRC" .tsx)
 mkdir -p "$T"/build "$T"/fab "$T"/kicad "$T"/verification
 step(){ echo "  [$1] $2"; }
 
-step build "circuit-json";      ( cd "$T" && timeout 240 tsci build "src/$BASE.tsx" >/dev/null 2>&1 ) \
-  && cp "$T"/dist/*/*.json "$T"/build/circuit.json 2>/dev/null
-for f in schematic-svg pcb-svg assembly-svg gltf; do
-  ext=${f%-svg}; [ "$f" = gltf ] && ext=gltf || ext=svg; name=${f%-svg}
-  step export "$f"; ( cd "$T" && timeout 240 tsci export "src/$BASE.tsx" -f "$f" -o "build/$name.$ext" >/dev/null 2>&1 )
+# NOTE: `tsci export -o P` resolves P relative to the INPUT file's directory
+# (src/) and strips leading slashes — so outputs are written as ../<dir>/... to
+# land at the tscircuit/ root. All tsci commands run from $T.
+cd "$T" || exit 2
+step build "circuit-json";      timeout 240 tsci build "src/$BASE.tsx" >/dev/null 2>&1 \
+  && cp "dist/src/$BASE/circuit.json" "build/circuit.json" 2>/dev/null
+for spec in "schematic-svg:build/schematic.svg" "pcb-svg:build/pcb.svg" "assembly-svg:build/assembly.svg" "gltf:build/board.gltf"; do
+  f=${spec%%:*}; out=${spec#*:}
+  step export "$f"; timeout 240 tsci export "src/$BASE.tsx" -f "$f" -o "../$out" >/dev/null 2>&1
 done
-step export gerbers;  ( cd "$T" && timeout 240 tsci export "src/$BASE.tsx" -f gerbers -o "fab/gerbers.zip" >/dev/null 2>&1 )
-step export kicad_pcb;( cd "$T" && timeout 240 tsci export "src/$BASE.tsx" -f kicad_pcb -o "kicad/$BASE.kicad_pcb" >/dev/null 2>&1 )
-step export kicad_sch;( cd "$T" && timeout 240 tsci export "src/$BASE.tsx" -f kicad_sch -o "kicad/$BASE.kicad_sch" >/dev/null 2>&1 )
-step export netlist;  ( cd "$T" && timeout 240 tsci export "src/$BASE.tsx" -f readable-netlist -o "verification/tsc_netlist.txt" >/dev/null 2>&1 )
+step export gerbers;  timeout 240 tsci export "src/$BASE.tsx" -f gerbers -o "../fab/gerbers.zip" >/dev/null 2>&1
+step export kicad_pcb;timeout 240 tsci export "src/$BASE.tsx" -f kicad_pcb -o "../kicad/$BASE.kicad_pcb" >/dev/null 2>&1
+step export kicad_sch;timeout 240 tsci export "src/$BASE.tsx" -f kicad_sch -o "../kicad/$BASE.kicad_sch" >/dev/null 2>&1
+step export netlist;  timeout 240 tsci export "src/$BASE.tsx" -f readable-netlist -o "../verification/tsc_netlist.txt" >/dev/null 2>&1
 
 # --- verification: run OUR gate on tscircuit's KiCad export ---
 KPCB="$T/kicad/$BASE.kicad_pcb"

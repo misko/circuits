@@ -291,6 +291,19 @@ schwriter2 — path syntax for series chains, first-class parameterized
 Subcircuits with net prefixing, net OBJECTS instead of strings (typo ->
 NameError, closing an S2 hazard). Additive-only; regenerating every
 schwriter2 board with netlist parity 0 is the proof any sugar is pure.
+
+**tscircuit is the exception that proved Model-A viable (2026-07-19).**
+Unlike CircuitScript, `tsci export` emits NATIVE `.kicad_pcb`/`.kicad_sch`,
+and `kicad-cli` loads + DRCs that export — so tscircuit can be a real
+front-end whose output flows into our gate stack (verified end-to-end).
+It is NOT adopted as a toolchain (its own router/DRC/fab bypass KiCad, and
+adopting that deletes KRT/jlc_twin/policy_audit). Instead each board MAY
+carry a `tscircuit/` folder: an alternate second-opinion render with full
+JLCPCB output + a verification stack (kicad-cli DRC run ON the tscircuit
+export + netlist parity vs the sealed board). Never a fab source — KiCad
+stays authoritative. Generator: `scripts/gen_tscircuit.sh <project>`;
+format + limits: `references/tscircuit-folder.md`; runtime is `bun`
+(`~/.bun/bin`) + `tsci` (`npm i -g tscircuit`), both persistent per-user.
 Optional sandboxed front-end adapter (csimport.py: their netlist ->
 schwriter2 declarations -> full gates) may exist for sketching; no board
 may DEPEND on it. Re-evaluate external tools at each new commission;

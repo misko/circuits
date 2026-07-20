@@ -1,0 +1,5 @@
+{
+  "name": "crow-array-pod-tscircuit",
+  "main": "src/crow_array_pod.tsx",
+  "dependencies": {}
+}

@@ -1,0 +1,5 @@
+{
+  "name": "shitty-kitty-tscircuit",
+  "main": "src/shitty_kitty.tsx",
+  "dependencies": {}
+}

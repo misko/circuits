@@ -1,0 +1,5 @@
+{
+  "name": "crow-array-central-tscircuit",
+  "main": "src/crow_array_central.tsx",
+  "dependencies": {}
+}

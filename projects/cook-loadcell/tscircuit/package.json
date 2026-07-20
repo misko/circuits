@@ -1,0 +1,5 @@
+{
+  "name": "cook-loadcell-tscircuit",
+  "main": "src/cook_loadcell.tsx",
+  "dependencies": {}
+}

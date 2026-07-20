@@ -1,0 +1,5 @@
+{
+  "name": "cook-hub-tscircuit",
+  "main": "src/cook_hub.tsx",
+  "dependencies": {}
+}

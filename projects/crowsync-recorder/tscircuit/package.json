@@ -1,0 +1,5 @@
+{
+  "name": "crowsync-recorder-tscircuit",
+  "main": "src/crowsync_recorder.tsx",
+  "dependencies": {}
+}

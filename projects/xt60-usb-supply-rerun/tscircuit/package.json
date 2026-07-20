@@ -1,0 +1,5 @@
+{
+  "name": "xt60-usb-supply-rerun-tscircuit",
+  "main": "src/xt60-usb-supply.tsx",
+  "dependencies": {}
+}
