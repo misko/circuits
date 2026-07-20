@@ -7,7 +7,7 @@ SOD-323 pad1=cathode, JST XH positional. Circuit per 01_docs/
 ARCHITECTURE.md + DETAIL_DESIGN.md, decisions D1-D8 (01_docs/BRIEF.md).
 
 Bridge (D1): ring splices RING_12..RING_41 join neighbouring sensors'
-outer gauges; RED taps = E_PLUS (J1), S_PLUS (J2), E_MINUS (J3),
+outer gauges; RED taps = E_PLUS (J1), S_PLUS (J2), GND=E- (J3),
 S_MINUS (J4); J5 full-bridge lands on the same four nodes.
 Run: python3 03_src/generate_schematic.py"""
 
@@ -72,10 +72,14 @@ sch.ref_fp = {"C1": "Capacitor_SMD:C_0805_2012Metric",
 sch.region("1. LOAD SENSORS: 4x 3-wire half-bridge ring OR J5 full bridge (mode = population)   [D1, spec 3.7b]")
 sch.row(("XH3", "J1", "SENSOR 1 B/R/W", {"1": "RING_41", "2": "E_PLUS", "3": "RING_12"}),
         ("XH3", "J2", "SENSOR 2 B/R/W", {"1": "RING_12", "2": "S_PLUS", "3": "RING_23"}))
-sch.row(("XH3", "J3", "SENSOR 3 B/R/W", {"1": "RING_23", "2": "E_MINUS", "3": "RING_34"}),
+# E- (excitation return) = AGND per BRIEF D2 — the net IS GND on this
+# single-ground board. v1.0 pin review (2026-07-19) caught E_MINUS floating
+# as a separate net with no GND tie: no excitation current path -> dead
+# bridge in both modes. J3.2 and J5.4 now land directly on GND.
+sch.row(("XH3", "J3", "SENSOR 3 B/R/W", {"1": "RING_23", "2": "GND", "3": "RING_34"}),
         ("XH3", "J4", "SENSOR 4 B/R/W", {"1": "RING_34", "2": "S_MINUS", "3": "RING_41"}))
 sch.row(("XH5", "J5", "FULL BRIDGE ALT",
-         {"1": "E_PLUS", "2": "S_PLUS", "3": "S_MINUS", "4": "E_MINUS", "5": "SH"}))
+         {"1": "E_PLUS", "2": "S_PLUS", "3": "S_MINUS", "4": "GND", "5": "SH"}))
 sch.row(("RES", "R7", "100R shield bond", {"1": "SH", "2": "GND"}),
         ("CAP", "C7", "100n shield bond", {"1": "SH", "2": "GND"}),
         ("SJ", "SJ1", "SH hard bond DNP", {"1": "SH", "2": "GND"}))

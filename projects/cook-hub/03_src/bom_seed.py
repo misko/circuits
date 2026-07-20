@@ -58,6 +58,9 @@ XH_BY_FP = {
 PASSIVE_LCSC = {
     # capacitors
     ("100n", "C_0603"): "C14663",   # 100n X7R 50V 0603 basic
+    ("22u", "C_0603"): "C59461",    # 22u X5R 6.3V 0603 (5VP: 5V rail — X5R
+                                    # derating note: bulk 220u + 0805 22u
+                                    # carry the rail; these are HF bypass)
     ("10n", "C_0603"): "C57112",    # 10n X7R 50V 0603 basic
     ("1u", "C_0603"): "C15849",     # 1u X5R 25V 0603 basic
     ("10u", "C_0805"): "C15850",    # 10u X5R 25V 0805 basic
@@ -70,13 +73,19 @@ PASSIVE_LCSC = {
     ("2k2", "R_0603"): "C4190",
     ("3k3", "R_0603"): "C22978",
     ("4k7", "R_0603"): "C23162",
-    ("10k", "R_0603"): "C25804",
+    ("10k", "R_0603"): "C98220",  # RC0603FR-0710KL 1% (C25804 stock 0 on 2026-07-19; 4.5M stock)
     ("47k", "R_0603"): "C25819",
     ("100k", "R_0603"): "C25803",
     ("390k", "R_0603"): "C23150",
 }
 
 HAND_SOLDER = {
+    "CONTACTOR 30V": "J10 KF350-3.5-2P terminal THT (hand-solder, C474892)",
+    "HALL 3V3 opt": "JP5 2.54 header THT (hand-solder)",
+    "I2C0 PU": "JP1 2.54 header THT + shunt (hand-solder)",
+    "I2C1 PU": "JP2 2.54 header THT + shunt (hand-solder)",
+    "DOOR->ADC2 opt": "SJ1 solder jumper: copper-only, no part to place "
+                      "(kept in BOM for parity; nothing to order)",
     "DIP05-1A72-12L": "K1-K16 reed relays — DO-NOT-SUBSTITUTE (spec 15.4); "
                       "Digi-Key DIP05-1A72-12L, order 16 + 4 spares",
     "Pico 2 socket": "J2 socket = 2x FemaleHeader 1x20 C50981 THT "

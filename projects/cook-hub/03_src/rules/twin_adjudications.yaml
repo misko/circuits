@@ -1,0 +1,40 @@
+# cook-hub twin adjudications (jlc_twin --adjudications).
+- lcsc: C6186
+  refs: [U12]
+  pad_alias: {"4": "2"}
+  status: PAD-MISMATCH
+  why: >-
+    AMS1117 SOT-223 naming clash (documented skill case): KiCad TabPin2
+    merges tab+lead as pad "2", JLC names the tab "4". pad_alias restores
+    the fit instead of waiving it; PAD-GEOM 1.6mm was the same artifact.
+- lcsc: C6186
+  refs: [U12]
+  status: PAD-GEOM
+  why: >-
+    Same TabPin2/tab-4 merged-pad artifact as the PAD-MISMATCH above:
+    with the alias applied the pairwise distances compare lead-row to
+    tab correctly; both patterns are the JEDEC SOT-223 land (2.3mm
+    lead-row to tab per the AMS1117 DS).
+- lcsc: C10092
+  refs: [U3, U4]
+  status: PAD-GEOM
+  why: >-
+    SN74HC595 SOIC-16 (TI D, 3.9mm body / 6.0mm lead span): KiCad
+    SOIC-16_3.9x9.9 centres pads at 4.95mm across with 1.55mm pads
+    (outer edge 5.72mm); JLC centres at 5.48mm with shorter pads. Both
+    land the same 6.0mm span - pad style, not package. Twin MODEL-REG
+    body-on-courtyard for both refs.
+- lcsc: C22046
+  refs: [U9]
+  status: PAD-GEOM
+  why: >-
+    SN74LVC1G11 SOT-23-6 (DBV): 2.28 vs 2.70mm across is the standard
+    KiCad-vs-JLC SOT-23 land delta (both land the 2.6-3.0mm DBV lead
+    span per TI DS); leads-on-pads in the twin render.
+- lcsc: C15127
+  refs: [Q1, Q3]
+  status: PAD-GEOM
+  why: >-
+    AO3401A SOT-23: 2.10 vs 2.49mm across = the standard KiCad SOT-23
+    vs JLC SOT-23 land style delta (2.4-3.0mm lead span fits both);
+    same-package U13/U14/D-class parts fitted OK elsewhere on the board.

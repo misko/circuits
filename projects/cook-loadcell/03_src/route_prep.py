@@ -73,7 +73,7 @@ shutil.copy(SRC.with_suffix(".kicad_pro"), OUT.with_suffix(".kicad_pro"))
 shutil.copy(SRC.with_suffix(".kicad_dru"), OUT.with_suffix(".kicad_dru"))
 
 EXCLUDE = (lambda n: n == "GND" or n.startswith("unconnected"))
-AN = ["E_PLUS", "S_PLUS", "S_MINUS", "E_MINUS",
+AN = ["E_PLUS", "S_PLUS", "S_MINUS",
       "RING_12", "RING_23", "RING_34", "RING_41", "AVDD_FB", "BASE"]
 PWR = ["5V", "3V3"]     # 0.5 wave, no analog guard (must reach J6 in the SE)
 allnets = sorted({p.GetNetname() for f in b.GetFootprints() for p in f.Pads()}

@@ -416,21 +416,30 @@ tx, ty = MM(tab.GetPosition().x), MM(tab.GetPosition().y)
 # stay >= 0.82mm apart (same-net hole-to-hole floor 0.5 = 0.8 centres —
 # the old fixed-offset list only ever found a 0.6-spaced pair, which the
 # fab floor rejects and the orphan sweep then deleted).
-placed_tab = []
+# collect ALL legal in-pad sites first, then place the best-separated PAIR
+# (a greedy first-hit scan kept finding a first site whose 0.82 exclusion
+# ring covered every other legal site -> only 1 via shipped).
+sites = []
 for i in range(-7, 8):
-    if tabn >= 2:
-        break
     for j in range(-9, 10):
         x, y = round(tx + i * 0.14, 2), round(ty + j * 0.2, 2)
         if abs(x - tx) > 0.75 or abs(y - ty) > 1.65:
             continue
-        if any(math.hypot(x - ax, y - ay) < 0.82 for ax, ay in placed_tab):
-            continue
+        if try_via(tab.GetNet(), x, y, probe=True):
+            sites.append((x, y))
+best = None
+for a in sites:
+    for c in sites:
+        d = math.hypot(a[0] - c[0], a[1] - c[1])
+        if d >= 0.82 and (best is None or d > best[0]):
+            best = (d, a, c)
+if best:
+    for (x, y) in (best[1], best[2]):
         if try_via(tab.GetNet(), x, y):
-            placed_tab.append((x, y))
             tabn += 1
-        if tabn >= 2:
-            break
+elif sites:
+    if try_via(tab.GetNet(), *sites[0]):
+        tabn += 1
 if tabn < 2:
     failures.append(f"U12 tab thermal vias: only {tabn}")
 

@@ -1,0 +1,30 @@
+# cook-loadcell twin adjudications (jlc_twin --adjudications; policy M-WAIV
+# format: top-level LIST, each entry {lcsc, ref, finding, why}).
+- lcsc: C43656
+  refs: [U1]
+  status: PAD-GEOM
+  why: >-
+    HX711 (AVIA) DS package = SOP-16, body 3.9mm, lead span 6.0mm. Our
+    KiCad Package_SO:SOIC-16_3.9x9.9mm_P1.27mm places pad CENTRES at
+    4.95mm across with 1.55mm pads (outer pad edge 5.72mm); JLC's pattern
+    centres at 5.74mm with shorter pads. Both land the same 6.0mm lead
+    span - a pad-style delta, not a package mismatch. Twin render shows
+    leads on pads; MODEL-REG 0.00mm.
+- lcsc: C5158048
+  refs: [D2]
+  status: PAD-GEOM
+  why: >-
+    PESD5V0S1BA SOD-323: our KiCad D_SOD-323 pads at 2.10mm centres, JLC
+    at 2.40mm - 0.30mm boundary case of the same NXP recommended land
+    (1.7mm lead span, 0.3mm leads); JLC extends pads outward. Same-family
+    D1 fitted OK at 0.15mm; MODEL-REG 0.00mm. Part is BIdirectional
+    (PESD5V0S1BA) so the POLARITY-CHECK note is moot electrically.
+- lcsc: C8542
+  refs: [Q1]
+  status: PAD-MISMATCH
+  why: >-
+    The first twin run mounted C9082 (S8550 TO-92, the wrong package -
+    PAD-GEOM 1.9 vs 14.0mm) which drove the sourcing switch to C8542
+    SS8550 SOT-23 basic. The re-run twin gates C8542 SOT-23 pad fit;
+    board pads are KiCad SOT-23 (B/E/C winding verified in the v1.0 pin
+    review: 1=B->BASE, 2=E->5V, 3=C->E_PLUS).

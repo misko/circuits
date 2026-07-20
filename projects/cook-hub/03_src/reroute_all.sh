@@ -10,6 +10,7 @@ SKILLS="$HOME/.claude/skills/kicad-pcb/scripts"
 mkdir -p 06_build/netlists 06_build/drc 06_build/route
 echo "== generate_board =="; $PY 03_src/generate_board.py 2>/dev/null | tail -1
 echo "== audit(pre) ==";     $PY 03_src/audit_board.py 2>/dev/null | tail -3
+$PY 03_src/generate_rules.py >/dev/null   # canon R1: rules ride INTO the router
 echo "== route_prep =="; $PY 03_src/route_prep.py
 echo "== route_waves =="
 rm -f 06_build/route/r2.kicad_pcb

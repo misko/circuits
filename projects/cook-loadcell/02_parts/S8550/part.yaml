@@ -14,5 +14,5 @@ gotchas:
   - "SOT-23 BJT: 1=B 2=E 3=C (CJ marking convention); HX711 DS excitation PNP: E->5V, C->AVDD/E+, B->BASE"
 verified: "2/3-pad commodity; pin roles re-checked in fresh pin review"
 sourcing:
-  lcsc: C9082
+  lcsc: C8542  # SS8550 Y2 SOT-23 JLC BASIC (599k stock). Original code C9082 is the TO-92 package (twin PAD-GEOM 1.9 vs 14.0mm caught it 2026-07-19); SS8550 = SOT-23 S8550 (PNP -25V -1.5A, HX711 DS uses a generic S8550 PNP for AVDD)
   note: "BASIC-class PNP, huge stock; Q1 excitation pass transistor."

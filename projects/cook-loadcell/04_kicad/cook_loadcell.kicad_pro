@@ -347,10 +347,6 @@
       },
       {
         "netclass": "BRIDGE",
-        "pattern": "E_MINUS"
-      },
-      {
-        "netclass": "BRIDGE",
         "pattern": "RING_12"
       },
       {

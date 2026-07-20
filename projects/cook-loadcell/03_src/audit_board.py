@@ -56,7 +56,7 @@ else:
     ok(f"I8 refdes on silk ({len(waived)} waived)")
 
 # I-AN guarded analog separation
-BRIDGE = {"E_PLUS", "S_PLUS", "S_MINUS", "E_MINUS",
+BRIDGE = {"E_PLUS", "S_PLUS", "S_MINUS",
           "RING_12", "RING_23", "RING_34", "RING_41"}
 DIG = {"DAT", "CLK", "RATE_SEL"}
 
