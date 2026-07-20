@@ -32,13 +32,17 @@ if ! "$KPY" -c 'import pcbnew' 2>/dev/null; then
   exit 2
 fi
 
-# T1 suites, in rough dependency order (converter -> board -> checkers).
+# T1 suites, in rough dependency order (converter -> board -> checkers),
+# then T4 — the regression corpus, one named test per incident this project
+# has already paid for.
 SUITES=(
   t1_converter.py
   t1_generate_board.py
   t1_audit.py
   t1_rules_bom.py
   t1_jlc_twin.py
+  t2_route_stitch.py
+  t4_regressions.py
 )
 [ "$SLOW" = 1 ] && SUITES+=(e2e_boards.py)
 [ "$NET" = 1 ] && SUITES+=(net_live.py)

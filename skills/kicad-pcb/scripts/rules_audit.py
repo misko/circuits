@@ -18,6 +18,15 @@ match its stated intent:
            max(min_width, 0.25) but writes the raw min_width into the DRU,
            so `min_width: 0.1mm` silently yields a 0.25mm netclass and a
            0.10mm DRC floor. The router obeys one, DRC checks the other.
+  A-ORDER  `generate_rules.py` is not the LAST thing to touch the project
+           before the DRC gate in `03_src/rebuild_all.sh`. pcbnew saves
+           rewrite `.kicad_pro`, so ANY board-writing step scheduled after
+           the rules generator can drop the netclasses and their width
+           floors on the floor — the gate then measures a board whose
+           rules are gone, and passes. Every project's contracts.md line 5
+           has said "generate_rules.py — ALWAYS LAST before DRC" since
+           usb-power-3s; nothing read the rebuild script to check.
+
   A-AMP    the declared `current:` is not backed by the declared width.
            nets.yaml documents an ampacity intent per class; until now NO
            CODE READ IT. `current: 5A` next to `min_width: 0.2mm` generated
@@ -91,6 +100,55 @@ def dru_widths(text):
         if nc and w:
             out[nc.group(1)] = float(w.group(1))
     return out
+
+
+DRC_GATE_RE = re.compile(r"kicad-cli\s+pcb\s+drc")
+RULES_RE = re.compile(r"generate_rules\.py")
+# A script invocation, ignoring inline heredoc python (`python3 - <<'PYEOF'`),
+# which reads the DRC json and cannot touch the board.
+SCRIPT_RE = re.compile(r"(?<![-\w])([\w./$\"{}]*\.py)\b")
+
+
+def rebuild_order_fails(path):
+    """A-ORDER — see the incident in this module's docstring.
+
+    THE CONTRACT (every project's 03_src/contracts.md, line 5):
+    "generate_rules.py — ALWAYS LAST before DRC (pcbnew saves clobber
+    .kicad_pro netclasses)". A board-writing step scheduled after the rules
+    generator can drop the netclasses, and the DRC gate then measures a
+    board with no width floors and reports 0/0/0.
+
+    So: between the LAST generate_rules.py and the `kicad-cli pcb drc` gate
+    there must be NO other script invocation.
+    """
+    path = Path(path)
+    if not path.is_file():
+        return []
+    lines = path.read_text().splitlines()
+    gate = next((i for i, l in enumerate(lines) if DRC_GATE_RE.search(l)), None)
+    if gate is None:
+        return []                       # no DRC gate in this chain: not our call
+    rules = [i for i, l in enumerate(lines[:gate]) if RULES_RE.search(l)]
+    if not rules:
+        return [f"A-ORDER {path.name}: the DRC gate runs with no "
+                f"generate_rules.py before it — the board is graded against "
+                f"whatever rules happened to survive the last pcbnew save"]
+    after = []
+    for i in range(rules[-1] + 1, gate):
+        line = lines[i].strip()
+        if not line or line.startswith("#") or line.startswith("<<"):
+            continue
+        for m in SCRIPT_RE.finditer(line):
+            name = m.group(1)
+            if name.endswith("generate_rules.py"):
+                continue
+            after.append(f"{name} (line {i + 1})")
+    if after:
+        return [f"A-ORDER {path.name}: {len(after)} step(s) run AFTER the last "
+                f"generate_rules.py and before the DRC gate — a pcbnew save "
+                f"there clobbers the netclasses the gate is supposed to "
+                f"enforce: {after[:5]}"]
+    return []
 
 
 def main(argv=None):
@@ -187,6 +245,15 @@ def main(argv=None):
     if len(pro_classes) <= 1:
         fails.append(f"A-CLASS: {pro.name} has no netclass beyond Default — "
                      f"generate_rules did not run, or nets.yaml is empty")
+
+    # A-ORDER: generate_rules must be the last thing to touch the project
+    # before the DRC gate. See rebuild_order_fails() for the incident.
+    if a.project:
+        reb = Path(a.project) / "03_src" / "rebuild_all.sh"
+        order_fails = rebuild_order_fails(reb)
+        fails.extend(order_fails)
+        if reb.is_file() and not order_fails:
+            oks.append("A-ORDER generate_rules runs last before the DRC gate")
 
     for o in oks:
         print("  ok  ", o)
