@@ -1,8 +1,14 @@
 # Policy-audit waivers — evidence-backed per canon M4.
-# usb-power-3s released v1.1-2026-07-16; the canon policies below were
-# adopted 2026-07-17 (adopted-forward: released boards are graded honestly,
-# fab outputs are NOT changed, and the gap is tracked for the next spin).
+# PROVENANCE (declared 2026-07-20, canon W-COPY/W-FOREIGN): lipo3s-tsc is a
+# re-authoring of usb-power-3s through the tscircuit backend at NETLIST PARITY
+# 0 (68 nets / 303 nodes identical). The measurements below were made on
+# usb-power-3s; they apply here BECAUSE the copper is identical, and each
+# waiver now says so with `derived_from`. Without that declaration this file
+# was one board's evidence presented as another's (the incident W-COPY exists
+# to catch). Fab outputs are unchanged; adopted-forward policies (2026-07-17)
+# post-date the v1.1-2026-07-16 release of the parent.
 - id: R-POUR
+  derived_from: usb-power-3s
   refs: [VBUS1, VBUS2, VBUS3]
   why: >-
     MEASURED (pcbnew, 2026-07-17): each VBUS net is a continuous 0.8mm
@@ -18,6 +24,7 @@
     must carry VBUS1-3 as priority pours or >=1.5mm trunks per canon R2.
     Released fab outputs stay untouched (board is ordered).
 - id: R-RULES
+  derived_from: usb-power-3s
   why: >-
     Adopted-forward (canon R1 dated 2026-07-17, release v1.1-2026-07-16
     predates it). Route inputs r0..r6 were ad-hoc pcbnew saves whose
@@ -29,6 +36,7 @@
     06_build/route/r0.kicad_pro is deliberately left as-shipped; waiver
     expires when the next routing campaign produces a route_prep input.
 - id: P-SILK-REF
+  derived_from: usb-power-3s
   why: >-
     Policy P4 adopted 2026-07-17, one day AFTER the v1.1 release; the
     board shipped with all 96 refdes on F.Fab only (assembly drawing has
@@ -36,6 +44,7 @@
     outputs must not change. Next-spin remediation: generator refdes
     silk pass + de-collision, gated by audit I10/P-SILK-REF.
 - id: P-SILK-FN
+  derived_from: usb-power-3s
   refs: [F1, J1, J2, J3, J4, J5]
   why: >-
     Policy P5 adopted 2026-07-17, after release: zero functional silk

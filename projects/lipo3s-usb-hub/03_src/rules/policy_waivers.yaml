@@ -7,6 +7,7 @@
 # adequacy.
 
 - id: S-OCCL
+  derived_from: usb-power-3s
   why: >-
     ARCHITECTURAL DISPOSITION (ADR-0002 Phase A / kicad-pcb tscircuit-folder.md), not a
     defect. For a tscircuit-native board the HUMAN schematic document is tscircuit's OWN
@@ -20,6 +21,7 @@
     render review (verification/render_review.md), which is the correct consumer.
 
 - id: R-POUR
+  derived_from: usb-power-3s
   refs: [VBUS1, VBUS2, VBUS3]
   why: >-
     MEASURED (pcbnew) on THIS board — identical copper to the reviewed/ordered
@@ -34,6 +36,7 @@
     trunks. The board is orderable and safe as-is (hard-limited, small rise).
 
 - id: P-SILK-REF
+  derived_from: usb-power-3s
   why: >-
     REAL DEFECT, deferred with mitigation. The reused generate_board floorplan places
     every refdes on F.Fab (assembly drawing) but not F.SilkS (physical board).
@@ -47,6 +50,7 @@
     is placed before copper density forbids it.
 
 - id: P-SILK-FN
+  derived_from: usb-power-3s
   refs: [F1, J1, J2, J3, J4, J5]
   why: >-
     REAL DEFECT, deferred with mitigation (same root cause as P-SILK-REF: reused floorplan
