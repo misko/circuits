@@ -44,7 +44,7 @@ SUITES=(
   t2_route_stitch.py
   t4_regressions.py
 )
-[ "$SLOW" = 1 ] && SUITES+=(e2e_boards.py)
+[ "$SLOW" = 1 ] && SUITES+=(e2e_boards.py t3_acceptance.py)
 [ "$NET" = 1 ] && SUITES+=(net_live.py)
 
 rc=0; TP=0; TF=0; TK=0
