@@ -132,7 +132,8 @@ credits, or debugging time — check provenance notes before assuming staleness.
 | `scripts/audit_template.py` | Placement/pad invariant gates (I1–I7): pads-in-outline, mate directions, screw keepouts, classified DRC baseline |
 | `scripts/classified_drc.py` | Severity-classified DRC report (real / margin / same-net) |
 | `scripts/import_krt.py` | Import KRT-dialect output into a pcbnew board |
-| `scripts/route_and_stitch_generic.py` | ONE parameterized route+stitch backend (prep/route/import/stitch) driven by `03_src/route.yaml` — replaces per-board route_prep.py + route_waves.sh + stitch_and_fill.py. See `docs/generic-router-proof.md` |
+| `scripts/fab_tier_util.py` | Resolve a project's declared `fab_tier` into capability floors (`references/fab_tiers.yaml` is the single source) — the generators derive missing via/clearance/silk geometry from it and reject explicit sub-floor values |
+| `scripts/route_and_stitch_generic.py` | ONE parameterized route+stitch backend (prep/route/import/taps/stitch) driven by `03_src/route.yaml` — replaces per-board route_prep.py + route_waves.sh + stitch_and_fill.py (+ bespoke tap scripts). See `docs/generic-router-proof.md` |
 
 Fab output + ordering (gerber zip, BOM/CPL, JLC stock checks) moved to the
 **`jlcpcb-fab` skill** — use it for everything order-facing. The old
