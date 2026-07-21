@@ -56,6 +56,35 @@ hard-won traps; this skill is the orchestration layer only.
    FIGURE (not assumed), `verified:` note naming figure+page, LCSC code +
    alternates + stock. The PDF set MUST include the package/land-pattern
    drawing, not just electricals.
+
+   **Mandatory design-decision gates (D-ESC / D-TIER / D-ADJ)** — encoded
+   2026-07-21 after a clean-room 3S board stalled at DRC on decisions the
+   skill had never captured (they lived in one interactive session and one
+   board's ORDER_README; two copied boards masked the gap):
+   - **D-ESC, escape feasibility at part selection.** Before sealing a
+     part.yaml for any multi-pin package, CHECK it can escape at the target
+     fab tier: lanes ≈ pad pitch vs (min trace + space + via land). A
+     0.4-0.5mm-pitch QFN at standard rules is a PACKAGE problem, not a
+     router problem — no autorouter can create a lane the rules forbid.
+     Record the check (one line: pitch, tier, verdict) in the part.yaml.
+     For bucks >3A, PREFER controller + external FETs over an integrated
+     fine-pitch QFN: the shipped 3S board (LM5145 + CSD18543) routes at
+     geometry an integrated 3x3 QFN-10 (SY8368 incident) cannot.
+   - **D-TIER, fab tier is a DECISION, not a default.** JLC 4-layer
+     ADVANCED (0.25/0.15mm vias, via-in-pad allowed) is proven and
+     orderable — the shipped 3S board REQUIRED it "(VQFN fanout)". If
+     D-ESC is marginal at standard tier, choose advanced EARLY (it sets
+     the via floors in nets.yaml before routing) and state it in the
+     ORDER_README exactly: "ADVANCED option REQUIRED: min via
+     0.25/0.15mm (<reason>)". Do not discover the tier at the DRC gate
+     (symptom: drill_out_of_range on router-emitted small vias).
+   - **D-ADJ, adjacency placement is part of the DESIGN.** Region/anchor
+     placement is electrically blind (golden rule 7). The floorplan MUST
+     place each bootstrap cap, feedback divider, decoupler, and CC/config
+     resistor HARD AGAINST the pin it serves, and rotate dense packages so
+     their hard nets (BST/SW/FB) face open copper. An "escape failure" on
+     a short-local net (bootstrap, CC) is almost always a stranded passive,
+     not a routing problem.
 3. `03_src/rules/nets.yaml` + `generate_rules.py` BEFORE any layout.
 
 ## 4-6. Generate, place, route — all regenerable from 03_src
