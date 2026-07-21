@@ -31,6 +31,7 @@ usage: generate_rules_generic.py <project-root>   (dir containing 03_src/ and 04
        generate_rules_generic.py                   (cwd is the project root)
 """
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -45,6 +46,47 @@ def mm(v):
         return None
     s = str(v).strip().lower().replace("mm", "").strip()
     return round(float(s), 3)
+
+
+def extract_rules(text):
+    """Parse a .kicad_dru into [(name, block_text), ...] by paren-depth scan.
+    Handles quoted `(rule "X_width" ...)` and bare `(rule pad_rescue_stubs ...)`."""
+    out = []
+    i = 0
+    while True:
+        j = text.find("(rule", i)
+        if j < 0:
+            break
+        depth, k = 0, j
+        while k < len(text):
+            if text[k] == "(":
+                depth += 1
+            elif text[k] == ")":
+                depth -= 1
+                if depth == 0:
+                    k += 1
+                    break
+            k += 1
+        block = text[j:k]
+        m = re.match(r'\(rule\s+"?([^"\s()]+)"?', block)
+        out.append((m.group(1) if m else "", block))
+        i = k
+    return out
+
+
+def foreign_dru_rules(dru_path, generated_names):
+    """Rules already in the .kicad_dru that generate_rules does NOT own — e.g.
+    the `pad_rescue_stubs` insideArea sub-floor that stitch appends. generate_rules
+    runs LAST and rewrites the dru wholesale; without this it would CLOBBER that
+    exemption and the plane-drop via stubs would fail track_width again (the exact
+    collision the clean-room 3S run's stub-floor fix would otherwise lose to
+    generate_rules-LAST). Preserve them, and emit them AFTER our netclass rules so
+    KiCad last-match precedence keeps the exemption winning inside its area."""
+    p = Path(dru_path)
+    if not p.is_file():
+        return []
+    return [blk for name, blk in extract_rules(p.read_text())
+            if name and name not in generated_names]
 
 
 def main(argv=None):
@@ -114,11 +156,18 @@ def main(argv=None):
     ns["netclass_patterns"] = patterns
     ns.setdefault("meta", {"version": 4})
 
+    # PRESERVE foreign rules (e.g. stitch's pad_rescue_stubs sub-floor) so this
+    # wholesale rewrite does not clobber them — emit them LAST for precedence.
+    generated_names = {f"{name}_width" for name in classes}
+    foreign = foreign_dru_rules(dru, generated_names)
+
     pro.write_text(json.dumps(proj, indent=2) + "\n")
-    dru.write_text("\n".join(dru_rules) + "\n")
+    dru.write_text("\n".join(dru_rules + foreign) + "\n")
     print(f"generate_rules_generic: {len(out_classes)-1} netclasses + "
           f"{len(patterns)} patterns -> {pro.name}; {len(dru_rules)-1} width "
-          f"rules -> {dru.name}")
+          f"rules"
+          + (f" + {len(foreign)} preserved foreign rules" if foreign else "")
+          + f" -> {dru.name}")
 
 
 if __name__ == "__main__":

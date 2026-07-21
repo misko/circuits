@@ -66,6 +66,41 @@ def t_rules_audit_clean():
     contains(r.out, "RULES AUDIT: PASS", "rules_audit verdict")
 
 
+GEN_RULES = SCRIPTS / "generate_rules_generic.py"
+
+
+@test("SHARED generate_rules_generic PRESERVES a foreign pad_rescue_stubs rule "
+      "through its wholesale .kicad_dru rewrite (gap #1/#3 collision)")
+def t_generate_rules_preserves_foreign():
+    """generate_rules runs LAST and rewrites .kicad_dru wholesale; stitch's
+    pad_rescue stub-floor exemption (a `pad_rescue_stubs` insideArea rule) is
+    written EARLIER. Without preservation the rewrite clobbers it and the
+    plane-drop via stubs fail track_width again — the exact collision between
+    the clean-room 3S run's shared-generate_rules (gap #1) and stub-floor
+    scoping (gap #3). Verified RED against the pre-preservation wholesale write
+    (which drops the rule) — 2026-07-20."""
+    d = tmpdir("grforeign_")
+    proj = project_copy("cook-loadcell", d / "proj")
+    shutil.copy(LC / "04_kicad" / "cook_loadcell.kicad_pro", proj / "04_kicad")
+    dru = proj / "04_kicad" / "cook_loadcell.kicad_dru"
+    # step 5: generate_rules runs first, creating the dru
+    must_pass(run([PY, GEN_RULES, proj]), "generate_rules_generic (first)")
+    # step 8: simulate stitch having appended the exemption
+    dru.write_text(dru.read_text().rstrip() + "\n"
+                   "(rule pad_rescue_stubs\n"
+                   "  (condition \"A.insideArea('pad_rescue_stubs')\")\n"
+                   "  (constraint track_width (min 0.300mm)))\n")
+    # step 9: the SHARED emitter, run LAST, must not clobber it
+    must_pass(run([PY, GEN_RULES, proj]), "generate_rules_generic (last)")
+    txt = dru.read_text()
+    contains(txt, "(rule pad_rescue_stubs", "foreign rule survived rewrite")
+    contains(txt, "A.NetClass == 'BRIDGE'", "netclass rules still regenerated")
+    # foreign rule must be LAST (KiCad last-match precedence keeps the exemption)
+    check(txt.rstrip().endswith("mm)))") and
+          txt.index("pad_rescue_stubs") > txt.index("BRIDGE"),
+          "pad_rescue_stubs must be emitted AFTER the netclass rules")
+
+
 # ------------------------------------------------------- known-bad cases
 @test("rules_audit FAILS when a declared current exceeds its width (ampacity)",
       kind="known_bad")
