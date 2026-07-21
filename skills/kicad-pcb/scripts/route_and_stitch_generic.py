@@ -1136,10 +1136,19 @@ def _scope_stub_floor(ctx, c, stub_boxes):
     name = scope.get("area_name", "pad_rescue_stubs")
     layers = scope.get("layers") or ["F.Cu", "B.Cu"]
     min_w = float(scope.get("min_track_width", c.get("stub_width", 0.3)))
+    # NET-SCOPE the exemption to the rescued plane-nets. Without this the
+    # insideArea rule relaxes the floor for ANY track crossing a stub box — so a
+    # thin SIG track (0.25mm) passing through fails the 0.3mm stub floor it never
+    # asked for (measured +2 on the clean-room 3S board, 2026-07-21). Only the
+    # plane-drop net's own stub should be exempted.
+    rescued = [n["net"] for n in (c.get("nets") or []) if isinstance(n, dict) and n.get("net")]
+    if not rescued and c.get("net"):
+        rescued = [c["net"]]
     _add_rule_area(ctx, name, stub_boxes, layers)
-    _append_stub_dru(ctx, name, min_w)
+    _append_stub_dru(ctx, name, min_w, rescued)
     print(f"stub floor scoped: rule area {name!r} over {len(stub_boxes)} "
-          f"plane-drop stub(s), track_width min {min_w}mm on {layers}")
+          f"plane-drop stub(s), track_width min {min_w}mm on {layers}"
+          + (f", nets {rescued}" if rescued else ""))
 
 
 def _add_rule_area(ctx, name, boxes, layer_names):
@@ -1174,15 +1183,22 @@ def _add_rule_area(ctx, name, boxes, layer_names):
         ctx.board.Add(z)
 
 
-def _append_stub_dru(ctx, name, min_w):
+def _append_stub_dru(ctx, name, min_w, nets=None):
     """Append the scoped sub-floor to the board's ride-along `.kicad_dru`
     (idempotent). Last in the file == last match == overrides the trunk floor
     inside the area only. pcbnew.Save() never touches `.kicad_dru`, so this
     survives the stitch save; the caller's generate_rules-LAST, if it rewrites
-    the dru, must preserve/re-emit this rule (documented in the config)."""
+    the dru, must preserve/re-emit this rule (documented in the config).
+
+    `nets` net-scopes the exemption so ONLY the plane-drop net's own stub is
+    relaxed — a SIG track crossing the box keeps its own floor."""
     dru = ctx.path.with_suffix(".kicad_dru")
+    cond = f"A.insideArea('{name}')"
+    if nets:
+        clause = " || ".join(f"A.NetName == '{n}'" for n in nets)
+        cond = f"{cond} && ({clause})"
     rule = (f"(rule {name}\n"
-            f"  (condition \"A.insideArea('{name}')\")\n"
+            f"  (condition \"{cond}\")\n"
             f"  (constraint track_width (min {min_w:.3f}mm)))\n")
     if dru.is_file():
         txt = dru.read_text()
