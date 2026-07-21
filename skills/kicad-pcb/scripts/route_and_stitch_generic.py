@@ -21,12 +21,18 @@ showed the same pipeline every time, with different constants:
     /usr/bin/python3 route_and_stitch_generic.py prep    03_src/route.yaml
     <KRT venv python>  route_and_stitch_generic.py route 03_src/route.yaml
     /usr/bin/python3 route_and_stitch_generic.py import  03_src/route.yaml
+    /usr/bin/python3 route_and_stitch_generic.py quick   03_src/route.yaml
     /usr/bin/python3 route_and_stitch_generic.py stitch  03_src/route.yaml
     /usr/bin/python3 route_and_stitch_generic.py all     03_src/route.yaml
 
-`prep`, `import` and `stitch` need the KiCad-bundled interpreter
+`prep`, `import`, `quick` and `stitch` need the KiCad-bundled interpreter
 (`/usr/bin/python3`, the one with `pcbnew`). `route` only shells out to KRT
 and runs on any python.
+
+`quick` is the LOOP CHEAPENER: seconds-fast unconnected + copper
+clearance/track_width verdict on the post-import pre-stitch board (no
+fill, no zone classes), so a routing iteration is measured without paying
+the full rebuild + DRC cycle. Full DRC after stitch stays the release gate.
 
 LOAD-BEARING ORDER (each deviation reintroduces a debugged failure):
   * netclasses/ampacity floors exist BEFORE routing, and the route input
@@ -690,6 +696,118 @@ def cmd_taps(cfg):
     b.Save(str(target))
     print(f"taps: {len(taps)} routed -> {target.name}")
     return 0
+
+
+# ============================================================= QUICK =====
+_QUICK_COPPER = ("clearance", "track_width")
+
+
+def cmd_quick(cfg, board=None, json_out=None):
+    """Fast mid-loop verdict on the post-import, PRE-STITCH board.
+
+    WHY (2026-07-21). The DRC grind loop dominates board cost: a full
+    rebuild-chain + DRC cycle on the v4 112-part board ran ~8-10 minutes
+    with a frontier agent in the loop, so every routing experiment paid the
+    full price. `quick` reports the two things a routing iteration can
+    actually change — (a) the pcbnew ratsnest unconnected count, (b) copper
+    `clearance` + `track_width` violations — in seconds, with NO fill and
+    NO stitch. Zone-dependent classes are structurally absent: the zones
+    are unfilled at this stage and kicad-cli without --refill-zones emits
+    none. Everything else the DRC reports is counted under
+    `deferred_classes` (visible, never gating — full DRC after stitch
+    remains the release gate, canon: quick is a loop tool, not a gate).
+
+    Unconnected items are split per-net: nets matching prep.waves.exclude
+    (pours/stitch own them, e.g. GND) are DEFERRED and do not dirty the
+    verdict — on a pre-stitch board they are unconnected by design.
+
+    Exit 1 when routed-net unconnected or copper violations remain, 0 when
+    clean. A JSON twin of the summary goes to <build_dir>/quick.json (or
+    --json), which `route --race` and grind_driver consume."""
+    import fnmatch
+    import json as jsonlib
+    import time
+    import pcbnew
+    t0 = time.time()
+    target = Path(board).resolve() if board else rel(cfg, cfg["project"]["board"])
+    if not target.is_file():
+        die(f"quick: board {target} not found")
+    b = pcbnew.LoadBoard(str(target))
+    conn = b.GetConnectivity()
+    conn.RecalculateRatsnest()
+    unconn_total = int(conn.GetUnconnectedCount(True))
+
+    build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
+    build.mkdir(parents=True, exist_ok=True)
+    rpt = build / f"quick_drc.{os.getpid()}.json"
+    r = subprocess.run(["kicad-cli", "pcb", "drc", "--severity-all",
+                        "--format", "json", "-o", str(rpt), str(target)],
+                       capture_output=True, text=True)
+    if not rpt.is_file():
+        die(f"quick: kicad-cli drc wrote no report "
+            f"(exit {r.returncode}): {(r.stderr or r.stdout)[-500:]}")
+    g = jsonlib.loads(rpt.read_text())
+    rpt.unlink()
+
+    excl = list(get(cfg, "prep.waves.exclude", ["GND", "unconnected-*"]))
+
+    def is_deferred(net):
+        return any(fnmatch.fnmatch(net, e) for e in excl)
+
+    per_net = {}
+    for u in g.get("unconnected_items", []):
+        nets = set()
+        for it in u.get("items", []):
+            m = re.search(r"\[([^\]]+)\]", it.get("description", ""))
+            if m:
+                nets.add(m.group(1))
+        key = sorted(nets)[0] if nets else "?"
+        per_net[key] = per_net.get(key, 0) + 1
+    routed = {n: c for n, c in sorted(per_net.items()) if not is_deferred(n)}
+    deferred = {n: c for n, c in sorted(per_net.items()) if is_deferred(n)}
+
+    viol, other = {}, {}
+    for v in g.get("violations", []):
+        dst = viol if v["type"] in _QUICK_COPPER else other
+        e = dst.setdefault(v["type"], {"count": 0, "samples": []})
+        e["count"] += 1
+        if len(e["samples"]) < 3:
+            e["samples"].append(v.get("description", "")[:160])
+    nviol = sum(e["count"] for e in viol.values())
+
+    dirty = bool(routed) or nviol > 0
+    out = {
+        "board": str(target),
+        "runtime_s": round(time.time() - t0, 1),
+        "unconnected": {
+            "ratsnest_total": unconn_total,
+            "routed_total": sum(routed.values()),
+            "deferred_total": sum(deferred.values()),
+            "routed": routed,
+            "deferred": deferred,
+        },
+        "violations": viol,
+        "deferred_classes": {k: e["count"] for k, e in sorted(other.items())},
+        "verdict": "DIRTY" if dirty else "CLEAN",
+    }
+    jp = Path(json_out) if json_out else build / "quick.json"
+    jp.write_text(jsonlib.dumps(out, indent=1) + "\n")
+
+    print(f"quick: {target.name}  ({out['runtime_s']}s)")
+    print(f"  unconnected: {unconn_total} ratsnest "
+          f"({sum(routed.values())} on routed nets, "
+          f"{sum(deferred.values())} deferred to pour/stitch)")
+    for n, c in list(routed.items())[:10]:
+        print(f"    ROUTED-NET OPEN: {n} x{c}")
+    for t, e in sorted(viol.items()):
+        print(f"  {t}: {e['count']}"
+              + (f"  e.g. {e['samples'][0]}" if e['samples'] else ""))
+    if other:
+        print("  deferred classes (full DRC after stitch owns these): "
+              + ", ".join(f"{k}={v}" for k, v in sorted(other.items())))
+    print(f"  -> {jp}")
+    print(f"quick verdict: {out['verdict']}")
+    return 1 if dirty else 0
 
 
 # ============================================================ STITCH =====
@@ -1991,10 +2109,17 @@ def cmd_stitch(cfg):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("command",
-                    choices=["prep", "route", "import", "taps", "stitch", "all"])
+                    choices=["prep", "route", "import", "taps", "quick",
+                             "stitch", "all"])
     ap.add_argument("config")
     ap.add_argument("--root", default=None,
                     help="project root (default: the config's grandparent dir)")
+    ap.add_argument("--board", default=None,
+                    help="quick: evaluate THIS board instead of project.board "
+                         "(race candidates)")
+    ap.add_argument("--json", default=None,
+                    help="quick: write the JSON summary here instead of "
+                         "<build_dir>/quick.json")
     a = ap.parse_args(argv)
     cfg = load_cfg(a.config, a.root)
     try:
@@ -2006,6 +2131,8 @@ def main(argv=None):
             return cmd_import(cfg)
         if a.command == "taps":
             return cmd_taps(cfg)
+        if a.command == "quick":
+            return cmd_quick(cfg, board=a.board, json_out=a.json)
         if a.command == "stitch":
             return cmd_stitch(cfg)
         for fn in (cmd_prep, cmd_route, cmd_import, cmd_taps, cmd_stitch):

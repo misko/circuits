@@ -51,6 +51,7 @@ agent runs it FIRST. `$S` = `skills/kicad-pcb/scripts` (resolved repo-relative,
 | 6 | `$S/route_and_stitch_generic.py prep 03_src/route.yaml` (netclass-carrying, track-free route input) | `/usr/bin/python3` |
 | 7 | `$S/route_and_stitch_generic.py import 03_src/route.yaml` (replay the promoted `route/` chain — canon M3) | `/usr/bin/python3` |
 | 7b | `$S/route_and_stitch_generic.py taps 03_src/route.yaml` — only if `taps:` configured (no-op otherwise); pour-fed sense pins / boxed-in pads, before the pours fill | `/usr/bin/python3` |
+| 7c | `$S/route_and_stitch_generic.py quick 03_src/route.yaml` — the LOOP tool, not a gate: seconds-fast ratsnest-unconnected + copper clearance/track_width verdict on the post-import pre-stitch board (JSON to `06_build/route/quick.json`). Iterate routing against THIS, not against step 10 (~seconds vs ~8-10 min/cycle measured on a 112-part board) | `/usr/bin/python3` |
 | 8 | `$S/route_and_stitch_generic.py stitch 03_src/route.yaml` (pours + thermal vias); verdict must be `gate: clean` | `/usr/bin/python3` |
 | 9 | `$S/generate_rules_generic.py .` — ALWAYS LAST (pcbnew saves clobber `.kicad_pro` netclasses) | any python3 |
 | 10 | DRC gate `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity` = 0/0/0 | `kicad-cli` |

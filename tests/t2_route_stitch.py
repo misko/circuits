@@ -577,6 +577,87 @@ def t_kb_wave_width_below_class():
     contains(r.out, "min_width 0.4", "the failure must cite the floor")
 
 
+# ============================================= QUICK (loop cheapener) ====
+def quick_scratch():
+    """A scratch tree whose 04_kicad board is a COPY of the sealed
+    (routed + stitched, DRC-clean) cook-loadcell board, with its rules
+    sidecars — the post-route state `quick` evaluates. Sealed files are
+    only ever read."""
+    d, p = scratch(with_board=False)
+    for ext in (".kicad_pcb", ".kicad_pro", ".kicad_dru"):
+        src = LC / "04_kicad" / f"{STEM}{ext}"
+        if src.is_file():
+            shutil.copy(src, d / "04_kicad" / f"{STEM}{ext}")
+    return d, p
+
+
+def quick(p, d):
+    return run([KPY, RS, "quick", p])
+
+
+@test("quick passes a fully-routed board and reports the split in seconds")
+def t_quick_clean():
+    d, p = quick_scratch()
+    r = must_pass(quick(p, d), "quick on the sealed-equivalent board")
+    contains(r.out, "quick verdict: CLEAN", "quick verdict")
+    contains(r.out, "0 ratsnest", "unconnected headline")
+    j = json.loads((d / "06_build" / "route" / "quick.json").read_text())
+    eq(j["verdict"], "CLEAN", "json verdict")
+    eq(j["unconnected"]["routed_total"], 0, "routed-net unconnected")
+    check(not j["violations"], f"copper violations on a clean board: "
+                               f"{j['violations']}")
+
+
+@test("quick CATCHES a planted unconnected net (routed-net open -> exit 1)",
+      kind="known_bad")
+def t_kb_quick_unconnected():
+    """Delete one routed 5V segment from a clean board: the net opens, and
+    quick must fail naming it — this is the signal a routing iteration
+    actually needs, at seconds-cost instead of the full rebuild + DRC cycle
+    (~8-10 min on the v4 board). GND stays deferred: pours own it.
+    RED-verified against the pre-quick router (git show HEAD swap,
+    2026-07-21): the subcommand does not exist there and all three quick
+    tests fail."""
+    d, p = quick_scratch()
+    edit_board(d / "04_kicad" / f"{STEM}.kicad_pcb",
+               "segs=[t for t in b.GetTracks() if t.GetClass()=='PCB_TRACK'"
+               " and t.GetNetname()=='5V']\n"
+               "assert segs, 'fixture: no 5V segment to remove'\n"
+               "b.Remove(segs[0])\n")
+    r = must_fail(quick(p, d), "quick on a board with an opened 5V",
+                  "quick verdict: DIRTY")
+    contains(r.out, "ROUTED-NET OPEN: 5V", "the opened net must be named")
+    j = json.loads((d / "06_build" / "route" / "quick.json").read_text())
+    check(j["unconnected"]["routed"].get("5V", 0) >= 1,
+          f"5V missing from the routed-net split: {j['unconnected']}")
+
+
+@test("quick CATCHES a planted sub-floor track (track_width -> exit 1)",
+      kind="known_bad")
+def t_kb_quick_subfloor_track():
+    """A 0.1mm segment on 5V, whose netclass .kicad_dru floor is 0.4mm. The
+    board's rules ride along (canon R1), so quick sees the same floor the
+    full gate enforces — a wave that rode under its class is caught in
+    seconds, not at the end of the chain."""
+    d, p = quick_scratch()
+    edit_board(d / "04_kicad" / f"{STEM}.kicad_pcb",
+               "n=b.FindNet('5V')\n"
+               "segs=[t for t in b.GetTracks() if t.GetClass()=='PCB_TRACK'"
+               " and t.GetNetname()=='5V']\n"
+               "e=segs[0].GetEnd()\n"
+               "t=pcbnew.PCB_TRACK(b)\n"
+               "t.SetStart(e)\n"
+               "t.SetEnd(pcbnew.VECTOR2I(e.x+pcbnew.FromMM(1.5),e.y))\n"
+               "t.SetWidth(pcbnew.FromMM(0.1))\n"
+               "t.SetLayer(segs[0].GetLayer())\n"
+               "t.SetNetCode(n.GetNetCode())\nb.Add(t)\n")
+    r = must_fail(quick(p, d), "quick on a board with a sub-floor track",
+                  "track_width")
+    j = json.loads((d / "06_build" / "route" / "quick.json").read_text())
+    check(j["violations"].get("track_width", {}).get("count", 0) >= 1,
+          f"track_width missing from the quick report: {j['violations']}")
+
+
 # ================================================== TAPS (canon M8) ======
 # A tiny 2-layer board: two SIG pads 20mm apart, plus optional other-net
 # blocking strips so strategy 1 (same-layer join) can be forced to fail and

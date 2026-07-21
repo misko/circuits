@@ -11,6 +11,8 @@
 #   ~/gits/KiCadRoutingTools/.venv/bin/python \
 #       ../../skills/kicad-pcb/scripts/route_and_stitch_generic.py route 03_src/route.yaml
 #   /usr/bin/python3 ... import 03_src/route.yaml
+#   /usr/bin/python3 ... quick  03_src/route.yaml   # loop tool: seconds-fast
+#       unconnected + clearance/track_width verdict, pre-stitch (exit 1 dirty)
 #   /usr/bin/python3 ... stitch 03_src/route.yaml
 #
 # 55x45 2-layer. GND is NOT routed — F/B pours + stitch vias own it.
