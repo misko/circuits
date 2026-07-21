@@ -73,7 +73,7 @@ def parse_allowed(contract_path):
         if not cells or set(cells[0]) <= {"-", " ", ":"}:
             continue
         first = cells[0].strip("`").strip()
-        if first.lower() in ("pattern", ""):
+        if first.lower() in ("pattern", "path", "file", "ref", ""):
             continue
         for tok in first.split():
             pats.append(tok.strip("`"))

@@ -53,6 +53,9 @@ truncates it to 2 pins, and emits an unannotated sheet that netlists to 0 nets.
 | `verification/parity.md` | gen | first-order component/net-count deltas (M1 signal) |
 | `verification/notes.md` | gen+hand | fidelity gaps: footprint mapping, DRC deltas, unrouted nets |
 | `verification/tsx_to_board_proof.md` | gen | the `tsx_to_board.sh` end-to-end proof record |
+| `verification/net_check.net` | gen | scratch netlist export used for node-count sanity mid-authoring |
+| `dist/**` | gen | tsci build output tree (mirrors `build/`; regenerate) |
+| `.tscircuit/**` | gen | tsci cache (gitignored; regenerate) |
 | `contracts.md` | hand | this file |
 
 **`--study`-only artifacts** (DEFAULT OFF; `gen_tscircuit.sh <project> --study`).

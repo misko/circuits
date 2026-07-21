@@ -9,13 +9,17 @@
 
 | Path | What | TTL |
 |---|---|---|
-| `renders/` | PNG/SVG/PDF of schematic and board | regenerate |
-| `netlists/` | exported netlists | regenerate |
-| `drc/` | DRC/ERC/audit reports (`gate.json` = the current gate result) | regenerate |
-| `route/` | KRT routing chain inputs/outputs (`r0..rN`, `taps_*.kicad_pcb`) | regenerate (needs KiCadRoutingTools) |
-| `fab/` | JLC export: gerbers, `bom_jlc.csv` (carries LCSC codes between runs), CPL, zip | regenerate; bom LCSC column is the seed store |
-| `pdf/` | release PDF set + PNG verification renders | regenerate |
-| `cache/` | **volatile market data**: stock, price, distributor attrs | hours |
+| `renders/**` | PNG/SVG/PDF of schematic and board | regenerate |
+| `netlists/**` | exported netlists | regenerate |
+| `drc/**` | DRC/ERC/audit reports (`gate.json` = the current gate result) | regenerate |
+| `route/**` | KRT routing chain inputs/outputs (`r0..rN`, `taps_*.kicad_pcb`) | regenerate (needs KiCadRoutingTools) |
+| `fab/**` | JLC export: gerbers, `bom_jlc.csv` (carries LCSC codes between runs), CPL, zip | regenerate; bom LCSC column is the seed store |
+| `pdf/**` | release PDF set + PNG verification renders | regenerate |
+| `cache/**` | **volatile market data**: stock, price, distributor attrs | hours |
+| `proof/**` | regenerated candidate boards for comparison against the sealed `04_kicad` (never written back) | regenerate |
+| `twin/**` | jlc_twin fetch/compare workspace | regenerate |
+| `reads_outside_root.log` | clean-room runs: every out-of-root read, path + reason (toolchain-only at the end) | keep for the run's audit |
+| `rebuild.sh` `policy_audit.md` `policy_erc.json` `policy_drc.json` | orchestration + audit outputs at build root | regenerate |
 | `contracts.md` | this file (the only tracked file here) | |
 
 ## Why `cache/` matters

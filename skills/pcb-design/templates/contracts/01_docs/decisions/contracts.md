@@ -13,7 +13,7 @@ an accepted ADR to change its meaning; write a new one and mark the old
 
 | Pattern | What |
 |---|---|
-| `NNNN-kebab-title.md` | one ADR. `NNNN` = zero-padded, monotonic, never reused |
+| `<NNNN>-<kebab-title>.md` | one ADR. `NNNN` = zero-padded, monotonic, never reused |
 | `contracts.md` | this file |
 
 Nothing else. No datasheets, no CSVs, no scratch files.
