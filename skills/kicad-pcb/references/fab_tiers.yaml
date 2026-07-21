@@ -12,6 +12,18 @@
 # ADR (D-TIER).
 #
 # Numbers are mm.
+#
+# SILK floors (min_silk_text_height / min_silk_stroke), identical across
+# tiers — silkscreen is the same inkjet process at every JLC copper tier:
+#   * JLC capability page publishes 1.0mm min character height and 0.15mm
+#     min line width as the LEGIBILITY guarantee — "verify at order time"
+#     (canon M6); text below that prints, it just may print badly.
+#   * The ENFORCED height floor here is 0.45mm: what the pipeline has
+#     actually PROVEN by ordering — cook-loadcell / crow-array-pod shipped
+#     legible 0.6mm refdes with a 0.45mm de-collision fallback. Raising the
+#     floor to the published 1.0mm would retroactively outlaw those shipped
+#     boards; heights in [0.45, 1.0) are a documented legibility risk, not
+#     a fab reject.
 
 tiers:
   jlc_2layer_default:
@@ -22,6 +34,8 @@ tiers:
     min_via_diameter: 0.6     # the value the route.yaml templates carry
     min_via_drill: 0.3
     via_in_pad: false
+    min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
+    min_silk_stroke: 0.15       # JLC capability page — verify at order time
     provenance: "cook-loadcell / crow-array-pod shipped at these floors"
 
   jlc_4layer_standard:
@@ -32,6 +46,8 @@ tiers:
     min_via_diameter: 0.45    # JLC no-fee multilayer via 0.45/0.3
     min_via_drill: 0.3
     via_in_pad: false
+    min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
+    min_silk_stroke: 0.15       # JLC capability page — verify at order time
     provenance: >
       JLC published no-fee multilayer floor. The clean-room 3S run's 2
       drill_out_of_range violations (2026-07-20) were router-emitted vias
@@ -45,6 +61,8 @@ tiers:
     min_via_diameter: 0.25
     min_via_drill: 0.15
     via_in_pad: true          # POFV: resin-filled + capped, paid option
+    min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
+    min_silk_stroke: 0.15       # JLC capability page — verify at order time
     order_readme: "ADVANCED option REQUIRED: min via 0.25/0.15 mm (<reason>)"
     provenance: >
       usb-power-3s v1.0-v1.3 ordered with exactly this line ("VQFN fanout");

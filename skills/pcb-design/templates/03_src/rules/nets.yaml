@@ -7,6 +7,13 @@
 # skills/kicad-pcb/references/fab_tiers.yaml. Default to the CHEAPEST
 # plausible tier; policy_audit P-TIER blocks any part whose escape needs a
 # costlier one — raising it requires the tier ADR + ORDER_README line.
+#
+# fab_tier is also the SINGLE SOURCE of capability floors for the generic
+# backend (fab_tier_util.py): generate_rules_generic floors class widths at
+# the tier's min_track (an EXPLICIT width below it is a hard error, never a
+# silent clamp); route_and_stitch_generic derives missing via_size/via_drill/
+# clearance from the tier and rejects explicit sub-floor values; and
+# generate_board_generic floors silk text heights at min_silk_text_height.
 fab_tier: jlc_2layer_default   # 0.6/0.3 vias, no advanced option
 
 classes:

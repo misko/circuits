@@ -115,6 +115,53 @@ def get(cfg, dotted, default=None):
     return node
 
 
+# ------------------------------------------------- fab-tier capability floors
+def fab_tier(cfg):
+    """The project's declared fab tier (fab_tiers.yaml entry, or None).
+    Cached on the cfg dict — nets.yaml is read once per command."""
+    if "_tier" not in cfg:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from fab_tier_util import FabTierError, resolve
+        try:
+            cfg["_tier"] = resolve(cfg["_root"])
+        except FabTierError as e:
+            die(str(e))
+    return cfg["_tier"]
+
+
+# config key -> the fab_tiers.yaml floor it must respect
+_TIER_GEOM = (("via_size", "min_via_diameter"),
+              ("via_drill", "min_via_drill"),
+              ("clearance", "min_space"))
+
+
+def tier_geometry(d, tier, where, derive=True,
+                  keymap={"via_size": "via_size", "via_drill": "via_drill",
+                          "clearance": "clearance"}):
+    """CAPABILITY-DERIVED via/clearance geometry (the clean-room 3S gap:
+    hardcoded 0.6/0.3 defaults on a 4L-standard board whose declared tier's
+    floor is 0.45/0.3 — 2 drill_out_of_range only caught at DRC). Missing
+    values default to the tier floor (the cheapest legal geometry); EXPLICIT
+    values below a floor are an ERROR naming the tier, never a silent clamp.
+    `keymap` renames the keys for callers whose config spells them
+    differently (stitch.via uses size/drill)."""
+    if tier is None:
+        return d
+    for gkey, fkey in _TIER_GEOM:
+        key = keymap.get(gkey)
+        if key is None or fkey not in tier:
+            continue
+        floor = float(tier[fkey])
+        if d.get(key) is None:
+            if derive:
+                d[key] = floor
+        elif float(d[key]) < floor - 1e-9:
+            die(f"{where}.{key} = {d[key]} is below fab tier "
+                f"'{tier['name']}' {fkey} {floor} — raise it, or raise "
+                f"fab_tier (D-TIER)")
+    return d
+
+
 # ============================================================== PREP =====
 def _keepout_rect(pcbnew, b, x0, y0, x1, y1, layer):
     poly = pcbnew.PCB_SHAPE(b)
@@ -352,6 +399,10 @@ def cmd_route(cfg):
     waves = get(cfg, "route.waves", []) or []
     if not waves:
         die("route.waves is empty — nothing to route")
+    # tier-derived geometry: missing via/clearance come from the declared fab
+    # tier; explicit sub-floor values are rejected (per-wave overrides too).
+    tier = fab_tier(cfg)
+    tier_geometry(common, tier, "route.common")
 
     cur = build / get(cfg, "prep.out", "r0.kicad_pcb")
     if not cur.is_file():
@@ -372,6 +423,7 @@ def cmd_route(cfg):
         opts = dict(common)
         opts.update({k: v for k, v in wv.items()
                      if k not in ("name", "nets", "group")})
+        tier_geometry(opts, tier, f"route.waves[{name}]", derive=False)
         cmd = ([py, str(krt / "route.py"), str(cur), "--output", str(nxt)]
                + _krt_args(opts) + ["--nets"] + list(nets))
         print(f"\n=== wave {name}: {len(nets)} nets ===\n  "
@@ -1525,11 +1577,41 @@ DEFAULT_PASSES = ["dedupe_vias", "drop_micro_fragments", "reload",
                   "island_rescue", "gate"]
 
 
+# stitch.via and friends spell the geometry size/drill, not via_size/via_drill
+_VIA_KEYMAP = {"via_size": "size", "via_drill": "drill", "clearance": None}
+
+
+def _stitch_tier_geometry(cfg):
+    """Tier floors for every via geometry the stitcher can EMIT. Missing
+    stitch.via size/drill (and a missing astar_fallback via pin — the
+    toolkit's 0.45/0.2 A* default was below crow-array-pod's own floors)
+    derive from the declared tier; explicit sub-floor values are errors."""
+    tier = fab_tier(cfg)
+    if tier is None:
+        return
+    v = cfg.setdefault("stitch", {}).setdefault("via", {})
+    tier_geometry(v, tier, "stitch.via", keymap=_VIA_KEYMAP)
+    for i, t in enumerate(v.get("tiers") or []):
+        tier_geometry(t, tier, f"stitch.via.tiers[{i}]", derive=False,
+                      keymap=_VIA_KEYMAP)
+    for blk, derive in (("normalize_vias", False), ("hole_to_hole.shrink_to",
+                                                    False)):
+        d = get(cfg, f"stitch.{blk}")
+        if isinstance(d, dict):
+            tier_geometry(d, tier, f"stitch.{blk}", derive=derive,
+                          keymap=_VIA_KEYMAP)
+    av = get(cfg, "stitch.astar_fallback")
+    if isinstance(av, dict):
+        tier_geometry(av.setdefault("via", {}), tier,
+                      "stitch.astar_fallback.via", keymap=_VIA_KEYMAP)
+
+
 def cmd_stitch(cfg):
     global MM
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import pcbnew
     MM = pcbnew.ToMM
+    _stitch_tier_geometry(cfg)     # tier floors BEFORE any via is emitted
     target = rel(cfg, cfg["project"]["board"])
     ctx = Ctx(cfg, target)
     order = get(cfg, "stitch.passes", DEFAULT_PASSES)

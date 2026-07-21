@@ -20,7 +20,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harness import (KPY, ROOT, SCRIPTS, board_nodes, check, contains,  # noqa: E402
-                     edit_board, main, must_fail, must_pass, run, test, tmpdir)
+                     edit_board, eq, main, must_fail, must_pass, run, test,
+                     tmpdir)
 
 RS = SCRIPTS / "route_and_stitch_generic.py"
 GEN = SCRIPTS / "generate_board_generic.py"
@@ -440,6 +441,84 @@ def t_kb_no_stale_resume():
     check(not stale.is_file(),
           "a failed run left a resume marker — the next run would skip passes")
     contains(r.out, "FAILURES", "gate output")
+
+
+# ================================= FAB-TIER CAPABILITY FLOORS (Phase A) ==
+def declare_tier(d, tier="jlc_4layer_standard"):
+    """Give a scratch tree the nets.yaml fab_tier declaration the generic
+    backend derives capability floors from."""
+    (d / "03_src" / "rules").mkdir(parents=True, exist_ok=True)
+    (d / "03_src" / "rules" / "nets.yaml").write_text(f"fab_tier: {tier}\n")
+
+
+@test("route derives missing via/clearance geometry from the declared fab tier")
+def t_tier_derived_route_geometry():
+    """The clean-room 3S board declared jlc_4layer_standard but the route
+    config's hardcoded 0.6/0.3 examples were copied anyway — nothing derived
+    geometry from the tier. With via_size/via_drill/clearance ABSENT, the
+    KRT command line must carry the tier's floors (0.45/0.3, min_space)."""
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        declare_tier(d)
+        for k in ("via_size", "via_drill", "clearance"):
+            cfg["route"]["common"].pop(k, None)
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_pass(run([sys.executable, RS, "route", p]), "route (stub KRT)")
+    for c in krt_calls(d / "krt"):
+        eq(c[c.index("--via-size") + 1], "0.45", "tier-derived via size")
+        eq(c[c.index("--via-drill") + 1], "0.3", "tier-derived via drill")
+        eq(c[c.index("--clearance") + 1], "0.127", "tier-derived clearance")
+
+
+@test("stitch derives missing via geometry from the declared fab tier")
+def t_tier_derived_stitch_geometry():
+    """stitch.via with no size/drill must emit vias at the tier's floor, not
+    the hardcoded 0.6/0.3 example values."""
+    def mutate(cfg, d):
+        declare_tier(d, "jlc_2layer_default")     # floors 0.6/0.3
+        for k in ("size", "drill"):
+            cfg["stitch"]["via"].pop(k, None)
+    d, p = scratch(mutate)
+    r = must_pass(stitch(p), "stitch with tier-derived via geometry")
+    contains(r.out, "gate: clean", "stitch verdict")
+    vn = via_nets(d / "04_kicad" / f"{STEM}.kicad_pcb")
+    check(sum(vn.values()) > 0, "no stitch vias to measure")
+    code = ("import pcbnew,sys\nb=pcbnew.LoadBoard(sys.argv[1])\n"
+            "bad=[t for t in b.GetTracks() if t.GetClass()=='PCB_VIA'"
+            " and (t.GetWidth()<599000 or t.GetDrill()<299000)]\n"
+            "print('SUBFLOOR' if bad else 'ALL-AT-FLOOR')\n")
+    r = must_pass(run([KPY, "-c", code, d / "04_kicad" / f"{STEM}.kicad_pcb"]),
+                  "via geometry scan")
+    contains(r.out, "ALL-AT-FLOOR", "a stitch via was emitted below the tier floor")
+
+
+@test("an explicit route via_drill below the tier floor is a hard error "
+      "naming the tier", kind="known_bad")
+def t_kb_route_via_below_tier():
+    """The clean-room 3S incident (2026-07-20): router-emitted vias below the
+    declared tier's drill floor surfaced only as 2 drill_out_of_range DRC
+    violations after routing. Pre-fix, the sub-floor value passed straight to
+    KRT."""
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        declare_tier(d)                            # floor 0.45/0.3
+        cfg["route"]["common"]["via_drill"] = 0.2
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_fail(run([sys.executable, RS, "route", p]),
+              "route with a sub-tier via drill", "jlc_4layer_standard")
+
+
+@test("an explicit stitch via size below the tier floor is a hard error "
+      "naming the tier", kind="known_bad")
+def t_kb_stitch_via_below_tier():
+    def mutate(cfg, d):
+        declare_tier(d)                            # floor 0.45/0.3
+        cfg["stitch"]["via"]["size"] = 0.4
+    d, p = scratch(mutate)
+    must_fail(stitch(p), "stitch with a sub-tier via size",
+              "jlc_4layer_standard")
 
 
 # ============================ 4-LAYER PLANE FIXTURES (GAP A / GAP B) =====

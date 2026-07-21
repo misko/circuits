@@ -101,6 +101,72 @@ def t_generate_rules_preserves_foreign():
           "pad_rescue_stubs must be emitted AFTER the netclass rules")
 
 
+def generic_rules_project(mutate=None):
+    """A scratch cook-loadcell driven by the SHARED emitter (fab_tier:
+    jlc_2layer_default is declared in its nets.yaml). `mutate` edits the
+    nets.yaml spec before generation; returns (proj, Run)."""
+    import yaml
+    d = tmpdir("grgen_")
+    proj = project_copy("cook-loadcell", d / "proj")
+    shutil.copy(LC / "04_kicad" / "cook_loadcell.kicad_pro", proj / "04_kicad")
+    if mutate:
+        p = proj / "03_src" / "rules" / "nets.yaml"
+        spec = yaml.safe_load(p.read_text())
+        mutate(spec)
+        p.write_text(yaml.safe_dump(spec))
+    return proj, run([PY, GEN_RULES, proj])
+
+
+@test("TIER-AWARE clamp: a declared fab_tier replaces the hardcoded 0.25mm "
+      "floor with the tier's real min_track")
+def t_tier_clamp_uses_tier_floor():
+    """The legacy emitter silently lifted every width to 0.25mm even when the
+    declared tier's published floor is 0.127mm — a 0.15mm class was quietly
+    routed at 0.25. With fab_tier declared, a legal 0.15mm width must survive
+    to the .kicad_dru verbatim."""
+    proj, r = generic_rules_project(
+        lambda s: s["classes"]["PWR"].update({"min_width": "0.15mm"}))
+    must_pass(r, "generate_rules_generic with a sub-0.25 legal width")
+    dru = (proj / "04_kicad" / "cook_loadcell.kicad_dru").read_text()
+    contains(dru, "(min 0.15mm)", "tier-legal width must not be clamped")
+
+
+@test("NO tier declared: the historic 0.25mm clamp still applies (legacy)")
+def t_tier_clamp_fallback():
+    def drop_tier(s):
+        s.pop("fab_tier", None)
+        s["classes"]["PWR"]["min_width"] = "0.15mm"
+    proj, r = generic_rules_project(drop_tier)
+    must_pass(r, "generate_rules_generic without a tier")
+    dru = (proj / "04_kicad" / "cook_loadcell.kicad_dru").read_text()
+    contains(dru, "(min 0.25mm)", "legacy clamp must still lift 0.15 to 0.25")
+
+
+@test("an EXPLICIT class width below the declared tier's min_track FAILS "
+      "naming the tier", kind="known_bad")
+def t_kb_width_below_tier_floor():
+    """Pre-fix, `w = max(w, 0.25)` silently CLAMPED a 0.1mm width — the board
+    routed at a width the config never said. With a declared tier the width is
+    physically unmanufacturable and must be a hard error naming the tier.
+    RED-verified against the pre-fix emitter (git stash; the old code exits 0
+    and emits 0.25mm) — 2026-07-21."""
+    proj, r = generic_rules_project(
+        lambda s: s["classes"]["PWR"].update({"min_width": "0.1mm"}))
+    must_fail(r, "generate_rules_generic on a sub-tier-floor width",
+              "jlc_2layer_default")
+    contains(r.out, "min_track", "the failure must cite the tier floor")
+
+
+@test("a TYPO'd fab_tier is a hard error, not silently no-tier",
+      kind="known_bad")
+def t_kb_tier_typo():
+    """A typo'd tier silently disabling every capability floor is the failure
+    mode tier-derived defaults exist to stop."""
+    proj, r = generic_rules_project(
+        lambda s: s.update({"fab_tier": "jlc_2layer_defualt"}))
+    must_fail(r, "generate_rules_generic on a typo'd tier", "jlc_2layer_defualt")
+
+
 # ------------------------------------------------------- known-bad cases
 @test("rules_audit FAILS when a declared current exceeds its width (ampacity)",
       kind="known_bad")

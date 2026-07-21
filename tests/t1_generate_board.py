@@ -296,5 +296,40 @@ def t_parity_loadcell():
     contains(r.out, "BOARD PARITY 0 -> PASS", "parity output")
 
 
+def _tiered_silk_tree(min_size):
+    """A scratch floorplan tree that DECLARES a fab tier (03_src/rules/
+    nets.yaml beside the config) with one silk height set explicitly."""
+    def mutate(cfg):
+        cfg["silk"]["refdes"] = dict(cfg["silk"]["refdes"],
+                                     min_size=min_size)
+    d, p = scratch_config(mutate)
+    (d / "03_src" / "rules").mkdir(parents=True)
+    (d / "03_src" / "rules" / "nets.yaml").write_text(
+        "fab_tier: jlc_2layer_default\n")
+    return d, p
+
+
+@test("silk heights at the declared tier's floor still generate (control)")
+def t_silk_at_tier_floor():
+    d, p = _tiered_silk_tree(0.45)
+    gen(p, d / "ok.kicad_pcb")
+
+
+@test("an EXPLICIT silk text height below the tier floor FAILS naming the "
+      "tier", kind="known_bad")
+def t_kb_silk_below_tier():
+    """The clean-room 3S run hand-carried its fab's silk floor because
+    nothing read the declared tier; sub-floor silk prints illegibly and no
+    gate saw it. Explicit sub-floor heights must be a hard error naming the
+    tier (defaults are floored, never errored). The control test above
+    proves the failure is the height, not the tier scaffolding. RED-verified
+    against the pre-fix generator (git stash: the old code generates happily
+    at 0.3mm) — 2026-07-21."""
+    d, p = _tiered_silk_tree(0.3)
+    r = gen(p, d / "bad.kicad_pcb", expect_ok=False)
+    must_fail(r, "generate with a sub-tier silk height", "jlc_2layer_default")
+    contains(r.out, "min_silk_text_height", "the failure must cite the floor")
+
+
 if __name__ == "__main__":
     sys.exit(main())

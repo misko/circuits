@@ -236,9 +236,33 @@ class BoardBuilder:
         self.RCUT = float(self.board_cfg.get("corner_cut", 0.0) or 0.0)
         self.place_cfg = cfg.get("placement") or {}
         self.silk_cfg = cfg.get("silk") or {}
+        # capability-derived silk floor from the project's declared fab tier
+        # (None when no tier / no nets.yaml — legacy defaults apply verbatim)
+        from fab_tier_util import FabTierError, resolve as resolve_tier
+        try:
+            self.tier = resolve_tier(base)
+        except FabTierError as e:
+            die(str(e))
         self.holes = []
         self.log = []
         self.waived = []
+
+    def silk_h(self, value, default, what):
+        """A silkscreen text height: the config's explicit value, or
+        `default` floored at the tier's min_silk_text_height. An EXPLICIT
+        height below the tier floor is an ERROR naming the tier (the
+        clean-room 3S run hand-carried its silk floor because nothing here
+        read the declared tier) — never a silent lift. F.Fab text is exempt
+        (it is fab documentation, not silkscreen print)."""
+        floor = float(self.tier.get("min_silk_text_height", 0)) if self.tier else 0.0
+        if value is None:
+            return max(float(default), floor)
+        v = float(value)
+        if floor and v < floor - 1e-9:
+            die(f"silk {what} {v}mm is below fab tier '{self.tier['name']}' "
+                f"min_silk_text_height {floor}mm — illegible at fab; raise "
+                f"the height or the tier (D-TIER)")
+        return v
 
     def _p(self, rel):
         return Path(rel) if os.path.isabs(str(rel)) else (self.base / str(rel))
@@ -933,7 +957,8 @@ class BoardBuilder:
     def add_silk(self):
         rc = self.silk_cfg.get("refdes") or {}
         clr = float(rc.get("clearance", 0.16))
-        min_h = float(self.silk_cfg.get("min_text_height", 0.6))
+        min_h = self.silk_h(self.silk_cfg.get("min_text_height"), 0.6,
+                            "min_text_height")
         pad_obst, silk_obst = self._obstacles(clr)
 
         # ---- fixed functional captions, collision-nudged
@@ -943,12 +968,14 @@ class BoardBuilder:
             if isinstance(cap, dict):
                 txt = cap["text"]
                 x, y = float(cap["at"][0]), float(cap["at"][1])
-                size = float(cap.get("size", 0.7))
+                size = self.silk_h(cap.get("size"), 0.7,
+                                   f"caption {txt[:24]!r} size")
                 nudge = self.NUDGE if cap.get("nudge", cap_nudge) else [(0, 0)]
                 rot = float(cap.get("rot", 0))
             else:
                 txt, x, y = cap[0], float(cap[1]), float(cap[2])
-                size = float(cap[3]) if len(cap) > 3 else 0.7
+                size = self.silk_h(cap[3] if len(cap) > 3 else None, 0.7,
+                                   f"caption {txt[:24]!r} size")
                 nudge = self.NUDGE if cap_nudge else [(0, 0)]
                 rot = 0.0
             size = max(size, min_h)
@@ -991,7 +1018,9 @@ class BoardBuilder:
                     txt = txt.replace(strip, "")
                 txt = txt.strip()
                 if txt:
-                    derived.append((ref, txt, float(rule.get("size", 0.6))))
+                    derived.append((ref, txt,
+                                    self.silk_h(rule.get("size"), 0.6,
+                                                f"label {ref} size")))
 
         # refresh obstacles now that captions are down
         pad_obst, silk_obst2 = self._obstacles(clr)
@@ -1026,7 +1055,7 @@ class BoardBuilder:
                 die(f"polarity_mark: {ref} has no pad {pad}")
             px, py = MM(p1.GetPosition().x), MM(p1.GetPosition().y)
             for dx, dy in self.OFF:
-                kt = self._mktext(glyph, 0.6)
+                kt = self._mktext(glyph, self.silk_h(None, 0.6, "polarity mark"))
                 kt.SetPosition(pcbnew.VECTOR2I_MM(px + dx, py + dy))
                 cand = box_of(kt.GetBoundingBox())
                 if self._in_frame(cand) and not any(hit(cand, o) for o in pad_obst) \
@@ -1038,8 +1067,9 @@ class BoardBuilder:
                 die(f"no clear spot for the {ref} polarity mark {glyph!r}")
 
         # ---- refdes: F.SilkS de-collided + ALWAYS an F.Fab copy
-        size = float(rc.get("size", 0.6))
-        small = float(rc.get("min_size", 0.45))
+        # (fab_size is NOT tier-floored: F.Fab is documentation, not silk)
+        size = self.silk_h(rc.get("size"), 0.6, "refdes size")
+        small = self.silk_h(rc.get("min_size"), 0.45, "refdes min_size")
         fab_copy = bool(rc.get("fab_copy", True))
         prio_first = rc.get("priority_prefixes", "UJDBQ")
 

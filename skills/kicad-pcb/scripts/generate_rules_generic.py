@@ -35,10 +35,13 @@ import re
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 try:
     import yaml
 except ImportError:
     sys.exit("generate_rules_generic needs pyyaml")
+
+from fab_tier_util import FabTierError, resolve as resolve_tier
 
 
 def mm(v):
@@ -100,6 +103,10 @@ def main(argv=None):
 
     nets = yaml.safe_load(nets_path.read_text()) or {}
     classes = nets.get("classes") or {}
+    try:
+        tier = resolve_tier(root)
+    except FabTierError as e:
+        sys.exit(f"generate_rules_generic: {e}")
 
     pros = sorted(ki.glob("*.kicad_pro"))
     if not pros:
@@ -133,7 +140,22 @@ def main(argv=None):
         w = mm(c.get("min_width"))
         if w is None:
             sys.exit(f"generate_rules_generic: class {name} has no min_width")
-        w = max(w, 0.25)
+        # CAPABILITY-DERIVED floor. With a declared fab_tier the fab's real
+        # min_track is the floor, and an EXPLICIT width below it is an ERROR
+        # (a silent clamp routes at a width the config never said — the pro/dru
+        # disagreement incident, but between config and copper). Without a
+        # tier, keep the historic conservative 0.25mm clamp verbatim.
+        if tier is not None:
+            floor = float(tier["min_track"])
+            if w < floor:
+                sys.exit(
+                    f"generate_rules_generic: class {name} min_width {w}mm is "
+                    f"below fab tier '{tier['name']}' min_track {floor}mm — no "
+                    f"process at that tier makes it. Raise the width, or raise "
+                    f"fab_tier (D-TIER); scoped_floors relaxations must also "
+                    f"stay >= the tier floor")
+        else:
+            w = max(w, 0.25)
         clr = mm(c.get("clearance")) or 0.2
         via_d = mm(c.get("via_diameter")) or 0.6
         via_dr = mm(c.get("via_drill")) or 0.3

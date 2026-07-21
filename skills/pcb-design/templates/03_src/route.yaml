@@ -44,6 +44,12 @@ route:
   krt: ~/gits/KiCadRoutingTools
   common:
     layers: [F.Cu, B.Cu]
+    # via_size / via_drill / clearance may be OMITTED: with a nets.yaml
+    # fab_tier declared they default to that tier's published floors
+    # (min_via_diameter / min_via_drill / min_space, fab_tiers.yaml).
+    # Explicit values below the tier floor are a hard error naming the tier
+    # — the clean-room 3S board routed 0.6/0.3 template vias on a tier whose
+    # floor was 0.45/0.3 and only DRC noticed (drill_out_of_range x2).
     via_size: 0.6
     via_drill: 0.3
     fab_tier: standard
@@ -68,6 +74,11 @@ stitch:
   clearance: 0.15
   # spacing 0.85 center-to-center = 0.55mm drill-edge gap > the 0.5mm
   # hole-to-hole floor (0.62 gave 0.32mm and a stochastic route tripped it)
+  # via size/drill may be OMITTED with a declared fab_tier (tier floors are
+  # the default); explicit sub-floor values are a hard error naming the tier.
+  # The same floors gate normalize_vias, hole_to_hole.shrink_to and the
+  # astar_fallback via pin (whose 0.45/0.2 toolkit default was below a
+  # 2-layer standard board's floors — crow-array-pod incident).
   via: {size: 0.6, drill: 0.3, spacing: 0.85, pth_margin: 0.3}
   keepin: {inset: 0.8}
   passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
