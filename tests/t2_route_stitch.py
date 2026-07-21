@@ -521,6 +521,137 @@ def t_kb_stitch_via_below_tier():
               "jlc_4layer_standard")
 
 
+# ================================================== TAPS (canon M8) ======
+# A tiny 2-layer board: two SIG pads 20mm apart, plus optional other-net
+# blocking strips so strategy 1 (same-layer join) can be forced to fail and
+# strategy 2 (via hop) or the whole tap can be forced to fail. Hermetic —
+# every emitted segment/via is toolkit-collision-checked, so the assertions
+# are net/via-count PROPERTIES.
+_MK_TAP = r'''
+import pcbnew, sys, json
+out = sys.argv[1]; blockers = json.loads(sys.argv[2])
+BX, BY = 30.0, 15.0
+b = pcbnew.BOARD()
+for (x1,y1),(x2,y2) in [((0,0),(BX,0)),((BX,0),(BX,BY)),((BX,BY),(0,BY)),((0,BY),(0,0))]:
+    s=pcbnew.PCB_SHAPE(b); s.SetShape(pcbnew.SHAPE_T_SEGMENT)
+    s.SetStart(pcbnew.VECTOR2I_MM(x1,y1)); s.SetEnd(pcbnew.VECTOR2I_MM(x2,y2))
+    s.SetLayer(pcbnew.Edge_Cuts); s.SetWidth(pcbnew.FromMM(0.1)); b.Add(s)
+def mknet(n): x=pcbnew.NETINFO_ITEM(b,n); b.Add(x); return x
+nets={"SIG":mknet("SIG"), "GND":mknet("GND")}
+for i,(x,y) in enumerate([(5.0,7.5),(25.0,7.5)],1):
+    fp=pcbnew.FOOTPRINT(b); fp.SetReference("U%d"%i)
+    fp.SetPosition(pcbnew.VECTOR2I_MM(x,y))
+    p=pcbnew.PAD(fp); p.SetShape(pcbnew.PAD_SHAPE_RECT)
+    p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
+    p.SetSize(pcbnew.VECTOR2I_MM(1.0,1.0)); p.SetLayerSet(pcbnew.PAD.SMDMask())
+    p.SetPosition(pcbnew.VECTOR2I_MM(x,y)); p.SetNumber("1"); p.SetNet(nets["SIG"])
+    fp.Add(p); b.Add(fp)
+for blk in blockers:
+    t=pcbnew.PCB_TRACK(b)
+    t.SetStart(pcbnew.VECTOR2I_MM(blk["x1"],blk["y1"]))
+    t.SetEnd(pcbnew.VECTOR2I_MM(blk["x2"],blk["y2"]))
+    t.SetWidth(pcbnew.FromMM(blk.get("w",1.0)))
+    t.SetLayer(getattr(pcbnew, blk.get("layer","F.Cu").replace(".","_")))
+    t.SetNetCode(nets["GND"].GetNetCode())
+    b.Add(t)
+b.Save(out)
+'''
+
+
+def tap_scratch(blockers, connections, tap_via=None):
+    """A scratch project whose route.yaml has ONLY project + taps."""
+    import yaml
+    d = tmpdir("t2_tap_")
+    (d / "03_src").mkdir()
+    (d / "04_kicad").mkdir()
+    board = d / "04_kicad" / "tap.kicad_pcb"
+    must_pass(run([KPY, "-c", _MK_TAP, board, json.dumps(blockers)]),
+              "build tap board")
+    taps = {"clearance": 0.15, "connections": connections}
+    if tap_via:
+        taps["via"] = tap_via
+    cfg = {"project": {"name": "tap", "board": "04_kicad/tap.kicad_pcb"},
+           "taps": taps}
+    p = d / "03_src" / "route.yaml"
+    p.write_text(yaml.safe_dump(cfg))
+    return d, p, board
+
+
+def taps_cmd(p):
+    return run([KPY, RS, "taps", p])
+
+
+# F.Cu wall spanning the whole board height at x=15 — every same-layer
+# join candidate between x=5 and x=25 must cross it
+_WALL_F = {"x1": 15.0, "y1": -1.0, "x2": 15.0, "y2": 16.0, "w": 1.0,
+           "layer": "F.Cu"}
+_WALL_B = dict(_WALL_F, layer="B.Cu")
+
+
+@test("a clear tap routes on the pad layer with NO vias (strategy 1)")
+def t_tap_direct():
+    d, p, board = tap_scratch([], [{"net": "SIG", "from": "U1.1",
+                                    "to": "U2.1", "width": 0.3}])
+    r = must_pass(taps_cmd(p), "taps (clear board)")
+    contains(r.out, "OK joinpath", "strategy 1 verdict")
+    eq(via_nets(board).get("SIG", 0), 0, "a direct tap must not spend vias")
+    code = ("import pcbnew,sys\nb=pcbnew.LoadBoard(sys.argv[1])\n"
+            "n=sum(1 for t in b.GetTracks() if t.GetClass()=='PCB_TRACK'"
+            " and t.GetNetname()=='SIG')\nprint('SEGS',n)\n")
+    r = must_pass(run([KPY, "-c", code, board]), "count tap segments")
+    check("SEGS 0" not in r.out, "no tap copper was emitted")
+
+
+@test("a blocked tap hops through vias to the hop layer (strategy 2)")
+def t_tap_via_hop():
+    """An other-net F.Cu wall blocks every same-layer candidate; the tap must
+    escape by stub -> via -> B.Cu join -> via, all collision-checked — the
+    clean-room 3S route_taps.py 'via_b' move, now config."""
+    d, p, board = tap_scratch([_WALL_F], [{"net": "SIG", "from": "U1.1",
+                                           "to": "U2.1", "width": 0.3}])
+    r = must_pass(taps_cmd(p), "taps (F.Cu wall)")
+    contains(r.out, "OK via_hop", "strategy 2 verdict")
+    eq(via_nets(board).get("SIG", 0), 2, "a via hop is exactly two vias")
+
+
+@test("a tap that CANNOT be routed is a hard error, not a silent skip",
+      kind="known_bad")
+def t_kb_tap_unroutable():
+    """Walls on BOTH layers: no join exists. Pre-promotion, a failed bespoke
+    tap script printed FAIL and the open only resurfaced as a DRC unconnected
+    item after fill; the generic step must refuse to save."""
+    d, p, board = tap_scratch([_WALL_F, _WALL_B],
+                              [{"net": "SIG", "from": "U1.1", "to": "U2.1",
+                                "width": 0.3}])
+    must_fail(taps_cmd(p), "taps with both layers walled", "unrouted taps")
+
+
+@test("a tap endpoint naming a missing pad / wrong net is a hard error",
+      kind="known_bad")
+def t_kb_tap_bad_endpoint():
+    d, p, board = tap_scratch([], [{"net": "SIG", "from": "U9.1",
+                                    "to": "U2.1", "width": 0.3}])
+    must_fail(taps_cmd(p), "tap from a missing footprint", "no footprint")
+    # wrong-net pad: U2.1 is SIG, the tap says GND — must never bridge.
+    # (the corner stub keeps the padless GND net from being pruned on save)
+    d, p, board = tap_scratch([{"x1": 1.0, "y1": 1.0, "x2": 2.0, "y2": 1.0,
+                                "w": 0.3, "layer": "B.Cu"}],
+                              [{"net": "GND", "from": "U1.1",
+                                "to": "U2.1", "width": 0.3}])
+    must_fail(taps_cmd(p), "tap onto a pad of another net", "never bridge")
+
+
+@test("taps.via below the declared tier floor is a hard error naming the "
+      "tier", kind="known_bad")
+def t_kb_tap_via_below_tier():
+    d, p, board = tap_scratch([_WALL_F],
+                              [{"net": "SIG", "from": "U1.1", "to": "U2.1",
+                                "width": 0.3}],
+                              tap_via={"size": 0.3, "drill": 0.2})
+    declare_tier(d)                                # floor 0.45/0.3
+    must_fail(taps_cmd(p), "taps with a sub-tier via", "jlc_4layer_standard")
+
+
 # ============================ 4-LAYER PLANE FIXTURES (GAP A / GAP B) =====
 # cook-loadcell is 2-layer, so the plane machinery (per-pad rescue to an inner
 # solid plane, plane-drop stub floors) was never exercised in T2. These build a

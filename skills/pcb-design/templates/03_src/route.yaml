@@ -70,6 +70,27 @@ route:
   # fresh stochastic route. Delete this to re-route from scratch.
   final: 03_src/route/r2.kicad_pcb
 
+# TAPS (canon M8 promotion: cook-hub u7 taps, then usb-pwr-hub-3s
+# route_taps.py). NAMED connections KRT cannot thread — pour-fed sense pins,
+# boxed-in connector pads, plane drops. Runs AFTER `import`, BEFORE `stitch`
+# (pours fill around the tap copper):
+#   /usr/bin/python3 .../route_and_stitch_generic.py taps 03_src/route.yaml
+# Strategy 1: same-layer direct/L/Z join; strategy 2: stub -> via ->
+# hop_layer join -> via -> stub. EVERY emitted segment/via is verified
+# against the live board's exact copper (pcb_toolkit); an unroutable tap is
+# a hard error, never a silent skip (a skipped tap resurfaces only as a DRC
+# unconnected item after fill). `plane: true` ends at a via AT the `to`
+# point (a point inside the net's inner plane, merged by the fill).
+#
+# taps:
+#   clearance: 0.15
+#   via: {size: 0.6, drill: 0.3}     # tier-derived when omitted
+#   connections:
+#     - {net: VCC,  from: U1.4,  to: C8.1,         width: 0.3}
+#     - {net: CC1,  from: J5.A5, to: R10.2,        width: 0.25,
+#        layer: F.Cu, hop_layer: B.Cu}
+#     - {net: 5V,   from: R6.1,  to: [41.0, 46.5], width: 0.3, plane: true}
+
 stitch:
   clearance: 0.15
   # spacing 0.85 center-to-center = 0.55mm drill-edge gap > the 0.5mm

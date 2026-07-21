@@ -12,6 +12,8 @@ showed the same pipeline every time, with different constants:
     route-prep (track-free + unfilled + keepouts + rules ride along)
       -> KRT waves, hardest-first, chained rN -> rN+1
       -> import ONCE into the track-free base
+      -> taps (optional): collision-checked NAMED connections KRT cannot
+         thread — pour-fed sense pins, boxed-in pads, plane drops
       -> stitch: clean KRT artifacts -> rescue pads -> stitch grid
                  -> janitor -> FILL -> island rescue -> gate
       -> generate_rules LAST (pcbnew saves clobber .kicad_pro netclasses)
@@ -58,6 +60,8 @@ so the commands work from any cwd. Top-level keys:
             rects[]}, waves {exclude[], groups{}, rest}
   route:    krt, python, common{...}, waves[] {name, nets|group, + any
             KRT flag override}
+  taps:     clearance, via{}, connections[] {net, from, to, width,
+            layer/hop_layer, plane} — see cmd_taps
   stitch:   via{}, keepin{}, passes[] (the ORDER — this is the axis the
             six boards actually disagree on), plus one block per pass
 
@@ -470,6 +474,143 @@ def cmd_import(cfg):
                         str(target), str(target)])
     if r.returncode != 0:
         die(f"import_krt exited {r.returncode}")
+    return 0
+
+
+# ============================================================== TAPS =====
+# Offsets searched for a clear via landing near a tap endpoint (mm) — the
+# proven search pattern from the clean-room 3S route_taps.py, board-free.
+TAP_OFFS = [(0, 0)] \
+    + [(0, s * d) for d in (0.8, 1.0, 1.3) for s in (-1, 1)] \
+    + [(s * d, 0) for d in (0.8, 1.0, 1.3) for s in (-1, 1)] \
+    + [(sx * d, sy * d) for d in (0.8, 1.1) for sx in (-1, 1) for sy in (-1, 1)]
+
+
+def _tap_point(board, spec, netname, what):
+    """A tap endpoint: 'REF.PAD' -> that pad's centre (its net must MATCH the
+    tap's net — a mismatched ref is a config typo that would otherwise emit a
+    short), or [x, y] -> a bare point (e.g. inside the target plane)."""
+    if isinstance(spec, (list, tuple)) and len(spec) == 2:
+        return (float(spec[0]), float(spec[1]))
+    if isinstance(spec, str) and "." in spec:
+        ref, num = spec.split(".", 1)
+        fp = board.FindFootprintByReference(ref)
+        if fp is None:
+            die(f"{what}: no footprint {ref!r} on the board")
+        for p in fp.Pads():
+            if p.GetNumber() == num:
+                if p.GetNetname() != netname:
+                    die(f"{what}: pad {spec} is on net {p.GetNetname()!r}, "
+                        f"not {netname!r} — a tap must never bridge nets")
+                pos = p.GetPosition()
+                return (pos.x / 1e6, pos.y / 1e6)
+        die(f"{what}: footprint {ref} has no pad {num!r}")
+    die(f"{what}: endpoint must be 'REF.PAD' or [x, y], got {spec!r}")
+
+
+def _tap_via_near(tk, p, nc, stub_w, layer, vs, vd):
+    """A collision-checked via site near p, reachable from p by a clear stub
+    on `layer` (the escape-from-a-dense-pin-row move)."""
+    for dx, dy in TAP_OFFS:
+        v = (round(p[0] + dx, 3), round(p[1] + dy, 3))
+        if not tk.via_site_ok(v[0], v[1], nc, size=vs, drill=vd):
+            continue
+        if (dx == 0 and dy == 0) or \
+                tk.collides(p[0], p[1], v[0], v[1], stub_w, nc, layer) is None:
+            return v
+    return None
+
+
+def _route_one_tap(pcbnew, tk, t, i, vs, vd):
+    """One tap, cheapest strategy first; every emitted segment/via is
+    verified against the live board's exact copper (pcb_toolkit collides /
+    via_site_ok / joinpath). Returns how it routed, or None."""
+    netname = t.get("net") or die(f"taps.connections[{i}]: no `net`")
+    nobj = tk.board.FindNet(netname)
+    if nobj is None or nobj.GetNetCode() <= 0:
+        die(f"taps.connections[{i}]: board has no net {netname!r}")
+    nc = nobj.GetNetCode()
+    w = float(t.get("width", 0.3))
+    lay = _layer_id(pcbnew, t.get("layer", "F.Cu"))
+    hop = _layer_id(pcbnew, t.get("hop_layer", "B.Cu"))
+    what = f"taps.connections[{i}] ({netname})"
+    p1 = _tap_point(tk.board, t.get("from"), netname, what + " from")
+    p2 = _tap_point(tk.board, t.get("to"), netname, what + " to")
+
+    if t.get("plane"):
+        # plane tap: stub -> via near `from` -> hop-layer join -> via AT `to`
+        # (a point where the net's inner plane exists, so the fill merges it)
+        v1 = _tap_via_near(tk, p1, nc, w, lay, vs, vd)
+        if not v1 or not tk.via_site_ok(p2[0], p2[1], nc, size=vs, drill=vd):
+            return None
+        if tk.joinpath(netname, v1, p2, w, layer=hop) is None:
+            return None
+        if p1 != v1:
+            tk.add_seg(*p1, *v1, nobj, lay, w)
+        tk.add_via(*v1, nobj, size=vs, drill=vd)
+        tk.add_via(*p2, nobj, size=vs, drill=vd)
+        return "plane_tap"
+
+    # strategy 1: same-layer join (direct / L / Z scan), no vias
+    if tk.joinpath(netname, p1, p2, w, layer=lay) is not None:
+        return "joinpath"
+    # strategy 2: via hop — stub -> via -> hop-layer join -> via -> stub
+    v1 = _tap_via_near(tk, p1, nc, w, lay, vs, vd)
+    v2 = _tap_via_near(tk, p2, nc, w, lay, vs, vd)
+    if v1 and v2 and tk.joinpath(netname, v1, v2, w, layer=hop) is not None:
+        if p1 != v1:
+            tk.add_seg(*p1, *v1, nobj, lay, w)
+        tk.add_via(*v1, nobj, size=vs, drill=vd)
+        tk.add_via(*v2, nobj, size=vs, drill=vd)
+        if p2 != v2:
+            tk.add_seg(*v2, *p2, nobj, lay, w)
+        return "via_hop"
+    return None
+
+
+def cmd_taps(cfg):
+    """Collision-checked tap connections KRT cannot thread (pour-fed sense
+    pins, boxed-in connector pads, plane drops) — the bespoke tail every
+    dense power board wrote by hand (usb-pwr-hub-3s route_taps.py was the
+    second strike after cook-hub; canon M8 promotes it to config). Runs
+    AFTER `import`, BEFORE `stitch`, so pours fill around the tap copper.
+
+      taps:
+        clearance: 0.15
+        via: {size: 0.6, drill: 0.3}   # tier-derived when omitted
+        connections:
+          - {net: VCC,  from: U1.4,  to: C8.1,        width: 0.3}
+          - {net: CC1,  from: J5.A5, to: R10.2,       width: 0.25,
+             layer: F.Cu, hop_layer: B.Cu}
+          - {net: 5V,   from: R6.1,  to: [41.0, 46.5], width: 0.3,
+             plane: true}    # `to` = a point inside the net's plane
+    """
+    import pcbnew
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from pcb_toolkit import Toolkit
+    taps = get(cfg, "taps.connections") or []
+    if not taps:
+        print("taps: none configured")
+        return 0
+    via = dict(get(cfg, "taps.via", {}) or {})
+    tier_geometry(via, fab_tier(cfg), "taps.via", keymap=_VIA_KEYMAP)
+    vs, vd = float(via.get("size", 0.6)), float(via.get("drill", 0.3))
+    target = rel(cfg, cfg["project"]["board"])
+    b = pcbnew.LoadBoard(str(target))
+    tk = Toolkit(b, float(get(cfg, "taps.clearance", 0.15)))
+    fails = []
+    for i, t in enumerate(taps):
+        how = _route_one_tap(pcbnew, tk, t, i, vs, vd)
+        print(f"  tap {t.get('net', '?'):8} {t.get('from')} -> {t.get('to')}"
+              f"  w={t.get('width', 0.3)}  {'OK ' + how if how else 'FAIL'}")
+        if not how:
+            fails.append((t.get("net"), t.get("from"), t.get("to")))
+    if fails:
+        die(f"unrouted taps: {fails} — a tap is a NAMED connection; leaving "
+            f"it to the pour/stitch lottery ships an open (the pad shows up "
+            f"only as a DRC unconnected item after fill)")
+    b.Save(str(target))
+    print(f"taps: {len(taps)} routed -> {target.name}")
     return 0
 
 
@@ -1662,7 +1803,8 @@ def cmd_stitch(cfg):
 # =============================================================== MAIN ====
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("command", choices=["prep", "route", "import", "stitch", "all"])
+    ap.add_argument("command",
+                    choices=["prep", "route", "import", "taps", "stitch", "all"])
     ap.add_argument("config")
     ap.add_argument("--root", default=None,
                     help="project root (default: the config's grandparent dir)")
@@ -1675,9 +1817,11 @@ def main(argv=None):
             return cmd_route(cfg)
         if a.command == "import":
             return cmd_import(cfg)
+        if a.command == "taps":
+            return cmd_taps(cfg)
         if a.command == "stitch":
             return cmd_stitch(cfg)
-        for fn in (cmd_prep, cmd_route, cmd_import, cmd_stitch):
+        for fn in (cmd_prep, cmd_route, cmd_import, cmd_taps, cmd_stitch):
             rc = fn(cfg)
             if rc:
                 return rc
