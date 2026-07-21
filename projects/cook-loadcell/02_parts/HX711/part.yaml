@@ -33,3 +33,4 @@ verified: "pin map PENDING datasheet-figure confirmation in fresh pin review - 2
 sourcing:
   lcsc: C43656   # was C97531 (NOT_FOUND at JLC 2026-07-19); C43656 = AVIA HX711 SOP-16, stock 12345, verified via parts search; twin pad-fit gates the package
   note: "Avia original reel; verify stock at order (~10k typical). ~$0.6."
+escape: {style: leaded, pitch: 1.27, tier_required: jlc_2layer_default, checked: escape_check 2026-07-21 retro-fill}

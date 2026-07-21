@@ -16,3 +16,4 @@ verified: "2/3-pad commodity; pin roles re-checked in fresh pin review"
 sourcing:
   lcsc: C8542  # SS8550 Y2 SOT-23 JLC BASIC (599k stock). Original code C9082 is the TO-92 package (twin PAD-GEOM 1.9 vs 14.0mm caught it 2026-07-19); SS8550 = SOT-23 S8550 (PNP -25V -1.5A, HX711 DS uses a generic S8550 PNP for AVDD)
   note: "BASIC-class PNP, huge stock; Q1 excitation pass transistor."
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: escape_check 2026-07-21 retro-fill}

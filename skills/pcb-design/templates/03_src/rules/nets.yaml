@@ -3,6 +3,10 @@
 # new project's 03_src/ and replace the values — the KEYS are the contract.
 #
 # cook-loadcell net architecture — netclasses + DRU floors source.
+# fab_tier is a COST CEILING decided at commission (D-TIER), named from
+# skills/kicad-pcb/references/fab_tiers.yaml. Default to the CHEAPEST
+# plausible tier; policy_audit P-TIER blocks any part whose escape needs a
+# costlier one — raising it requires the tier ADR + ORDER_README line.
 fab_tier: jlc_2layer_default   # 0.6/0.3 vias, no advanced option
 
 classes:

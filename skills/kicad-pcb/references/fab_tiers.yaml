@@ -1,0 +1,51 @@
+# Fab capability model — the tiers a board can be ordered at, as DATA.
+#
+# Consumed by scripts/escape_check.py (package escape feasibility) and
+# scripts/policy_audit.py (P-ESC / P-TIER). A part.yaml `escape.tier_required`
+# and a nets.yaml `fab_tier:` both name entries from this file.
+#
+# Canon M6: the fab's PUBLISHED capability page overrides these numbers at
+# order time — this file records the values the pipeline has actually proven
+# by ordering (provenance on each entry) plus the fab's published floors.
+# `rank` orders tiers by cost: escape_check reports the LOWEST-rank feasible
+# tier; raising a board's fab_tier above a brief's cost ceiling requires an
+# ADR (D-TIER).
+#
+# Numbers are mm.
+
+tiers:
+  jlc_2layer_default:
+    rank: 0
+    layers: 2
+    min_track: 0.127          # 5mil, conservative floor used by shipped 2-layer boards
+    min_space: 0.127
+    min_via_diameter: 0.6     # the value the route.yaml templates carry
+    min_via_drill: 0.3
+    via_in_pad: false
+    provenance: "cook-loadcell / crow-array-pod shipped at these floors"
+
+  jlc_4layer_standard:
+    rank: 1
+    layers: 4
+    min_track: 0.127
+    min_space: 0.127
+    min_via_diameter: 0.45    # JLC no-fee multilayer via 0.45/0.3
+    min_via_drill: 0.3
+    via_in_pad: false
+    provenance: >
+      JLC published no-fee multilayer floor. The clean-room 3S run's 2
+      drill_out_of_range violations (2026-07-20) were router-emitted vias
+      below this floor — the ADVANCED requirement surfacing as DRC.
+
+  jlc_4layer_advanced:
+    rank: 2
+    layers: 4
+    min_track: 0.09
+    min_space: 0.09
+    min_via_diameter: 0.25
+    min_via_drill: 0.15
+    via_in_pad: true          # POFV: resin-filled + capped, paid option
+    order_readme: "ADVANCED option REQUIRED: min via 0.25/0.15 mm (<reason>)"
+    provenance: >
+      usb-power-3s v1.0-v1.3 ordered with exactly this line ("VQFN fanout");
+      0.09mm track floor used by the 3s-cleanroomv2 advanced-tier grind.

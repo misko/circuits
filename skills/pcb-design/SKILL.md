@@ -61,23 +61,28 @@ hard-won traps; this skill is the orchestration layer only.
    2026-07-21 after a clean-room 3S board stalled at DRC on decisions the
    skill had never captured (they lived in one interactive session and one
    board's ORDER_README; two copied boards masked the gap):
-   - **D-ESC, escape feasibility at part selection.** Before sealing a
-     part.yaml for any multi-pin package, CHECK it can escape at the target
-     fab tier: lanes ≈ pad pitch vs (min trace + space + via land). A
-     0.4-0.5mm-pitch QFN at standard rules is a PACKAGE problem, not a
-     router problem — no autorouter can create a lane the rules forbid.
-     Record the check (one line: pitch, tier, verdict) in the part.yaml.
-     For bucks >3A, PREFER controller + external FETs over an integrated
-     fine-pitch QFN: the shipped 3S board (LM5145 + CSD18543) routes at
-     geometry an integrated 3x3 QFN-10 (SY8368 incident) cannot.
-   - **D-TIER, fab tier is a DECISION, not a default.** JLC 4-layer
-     ADVANCED (0.25/0.15mm vias, via-in-pad allowed) is proven and
-     orderable — the shipped 3S board REQUIRED it "(VQFN fanout)". If
-     D-ESC is marginal at standard tier, choose advanced EARLY (it sets
-     the via floors in nets.yaml before routing) and state it in the
-     ORDER_README exactly: "ADVANCED option REQUIRED: min via
-     0.25/0.15mm (<reason>)". Do not discover the tier at the DRC gate
-     (symptom: drill_out_of_range on router-emitted small vias).
+   - **D-ESC, escape feasibility at part selection — MECHANICAL, not
+     judgment.** For every candidate multi-pin package, run
+     `skills/kicad-pcb/scripts/escape_check.py --style <qfn|dfn|leaded|
+     bga|connector> --pitch <mm>` (capabilities from
+     `references/fab_tiers.yaml`) and paste the emitted `escape:` block
+     into the part.yaml. Prefer the candidate with the LOWEST
+     tier_required that meets spec; for bucks >3A prefer controller +
+     external FETs in leaded packages (the shipped 3S board's LM5145 is
+     itself a VQFN and needed ADVANCED — screen the controller package
+     too). A 0.4-0.5mm-pitch QFN is a PACKAGE decision, never a router
+     problem. ENFORCED: `policy_audit` P-ESC fails any multi-pin part
+     without a block or whose block disagrees with recomputation.
+   - **D-TIER, fab tier is a COST CEILING declared at commission.**
+     `03_src/rules/nets.yaml` `fab_tier:` names a tier from
+     `fab_tiers.yaml` and defaults to the CHEAPEST plausible tier;
+     ENFORCED: `policy_audit` P-TIER fails any part whose tier_required
+     exceeds it. To accept a costlier tier: write the tier ADR
+     (options + why the cheaper tier fails), raise `fab_tier:`, and put
+     the tier's exact `order_readme` line in the ORDER_README. ADVANCED
+     (0.25/0.15mm vias, via-in-pad) is proven orderable (usb-power-3s
+     v1.0-1.3). Do not discover the tier at the DRC gate (symptom:
+     drill_out_of_range on router-emitted small vias).
    - **D-ADJ, adjacency placement is part of the DESIGN.** Region/anchor
      placement is electrically blind (golden rule 7). The floorplan MUST
      place each bootstrap cap, feedback divider, decoupler, and CC/config

@@ -67,6 +67,18 @@ datasheet:
   fetched: 2026-07-14
 package: VQFN-20 RGY 3.5x4.5
 footprint: power_board_v1:VQFN-20_3.5x4.5_P0.5_LM5145RGY
+escape:                     # REQUIRED for every multi-pin part (D-ESC).
+                            # Emitted by skills/kicad-pcb/scripts/
+                            # escape_check.py --style qfn --pitch 0.5;
+                            # policy_audit P-ESC recomputes it and P-TIER
+                            # compares tier_required against the board's
+                            # declared fab_tier (nets.yaml). Never copy
+                            # this block between parts — the checker
+                            # cross-checks it against the footprint text.
+  style: qfn                # qfn|dfn|leaded|bga|connector|module|passive
+  pitch: 0.5                # mm, from the datasheet land pattern
+  tier_required: jlc_4layer_advanced
+  checked: escape_check 2026-07-21
 pins:                       # PHYSICAL PADS, read from the pinout figure
   1: EN
   20: VIN

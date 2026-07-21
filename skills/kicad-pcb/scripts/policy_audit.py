@@ -147,6 +147,52 @@ def main():
     else:
         rows.append(("S-VER", "N-A", "no 02_parts entries"))
 
+    # P-ESC / P-TIER: package escape feasibility vs the declared fab tier
+    # (D-ESC/D-TIER made mechanical — the clean-room 3S stall 2026-07-20:
+    # a 0.5mm QFN at standard tier, discovered as drill_out_of_range at DRC)
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import escape_check as ec
+    part_yamls = sorted(glob.glob(str(proj / "02_parts" / "*" / "part.yaml")))
+    if part_yamls and yaml:
+        tiers = ec.load_tiers()
+        probs = []
+        for py in part_yamls:
+            try:
+                probs += ec.check_part(py, tiers)
+            except Exception as e:
+                probs.append(f"{Path(py).parent.name}: unreadable escape "
+                             f"block ({e})")
+        grade("P-ESC", not probs,
+              f"{len(part_yamls)} parts: escape blocks agree with escape_check",
+              "; ".join(probs[:4]))
+        netsy = proj / "03_src/rules/nets.yaml"
+        declared = None
+        if netsy.exists():
+            declared = (yaml.safe_load(netsy.read_text()) or {}).get("fab_tier")
+        if not netsy.exists():
+            rows.append(("P-TIER", "N-A", "no 03_src/rules/nets.yaml yet"))
+        elif declared not in tiers:
+            grade("P-TIER", False, "",
+                  f"nets.yaml fab_tier '{declared}' is not a tier in "
+                  f"fab_tiers.yaml — declare the ordering tier (D-TIER)")
+        else:
+            drank = tiers[declared]["rank"]
+            over = []
+            for py in part_yamls:
+                y = yaml.safe_load(Path(py).read_text()) or {}
+                tr = (y.get("escape") or {}).get("tier_required")
+                if tr in tiers and tiers[tr]["rank"] > drank:
+                    over.append(f"{y.get('mpn', Path(py).parent.name)} "
+                                f"needs {tr}")
+            grade("P-TIER", not over,
+                  f"all parts escape at declared fab_tier '{declared}'",
+                  f"parts exceed fab_tier '{declared}': {over[:4]} — "
+                  f"re-select the part, OR raise fab_tier + write the tier "
+                  f"ADR (D-TIER) + the ORDER_README line from fab_tiers.yaml")
+    else:
+        rows.append(("P-ESC", "N-A", "no 02_parts entries"))
+        rows.append(("P-TIER", "N-A", "no 02_parts entries"))
+
     # S-OCCL: schematic text occlusions — global-label plates vs each other
     # and vs symbol Reference/Value property texts (approx bboxes; the same
     # ground-truth-geometry philosophy as the board silk de-collision).
@@ -399,7 +445,8 @@ def main():
         grade("R-RULES", ok, det, f"route-input has only Default class ({det})")
     else:
         rows.append(("R-RULES", "N-A", "no route-input .kicad_pro found"))
-    rows.append(("R4", "HUMAN", "escape feasibility at fab rules — design review"))
+    rows.append(("R4", "HUMAN", "escape-first routing order — design review "
+                 "(feasibility itself is machine-checked: P-ESC/P-TIER)"))
     has_len = bool(re.search(r"length|spread", audit_src, re.I))
     rows.append(("R-LEN", "PASS" if has_len else "N-A",
                  "length-spread audit present in 03_src" if has_len

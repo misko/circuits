@@ -17,3 +17,4 @@ verified: "positional 1..N shrouded header per JST XH drawing; KiCad JST_XH foot
 sourcing:
   lcsc: C157991
   note: "genuine JST (LF)(SN), stock 20444 2026-07-19."
+escape: {style: connector, pitch: 2.5, tier_required: jlc_2layer_default, checked: escape_check 2026-07-21 retro-fill}

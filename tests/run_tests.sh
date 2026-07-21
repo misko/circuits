@@ -39,6 +39,7 @@ SUITES=(
   t1_converter.py
   t1_generate_board.py
   t1_audit.py
+  t1_escape_tier.py
   t1_rules_bom.py
   t1_jlc_twin.py
   t2_route_stitch.py
