@@ -10,6 +10,7 @@ belongs here.
 | Pattern | What |
 |---|---|
 | `*.py` | repo tools (`contracts_audit.py`, ...) |
+| `*.sh` | repo scaffolding (`cleanroom_prep.sh` — the clean-room launcher; lives OUTSIDE the skill because the skill under test must not define its own test harness) |
 | `contracts.md` | this file |
 
 ## Audit
