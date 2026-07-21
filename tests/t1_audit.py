@@ -210,5 +210,48 @@ def t_policy_silk_ref():
     check(r.rc != 0, "policy_audit exited 0 on a board with no printed refdes")
 
 
+
+# ------------------------------------------------- M9 journal discipline
+@test("M-JRNL + M-LEARN pass a journaled, harvested project")
+def t_journal_clean():
+    d = tmpdir("jrn_")
+    (d / "01_docs" / "journal").mkdir(parents=True)
+    (d / "01_docs" / "learnings").mkdir()
+    (d / "03_src" / "route").mkdir(parents=True)
+    (d / "07_releases" / "v1.0-x").mkdir(parents=True)
+    (d / "01_docs" / "journal" / "routing.md").write_text(
+        "## 2026-07-21 14:00 - iterate 3\n- did: x\n- result: DRC 8->6\n")
+    (d / "01_docs" / "learnings" / "routing.md").write_text(
+        "## via cluster\n- root cause: x\n- candidate-canon: yes\n")
+    run([KPY, POLICY, d, "--skip-drc"])
+    md = (d / "06_build" / "policy_audit.md").read_text()
+    check("| M-JRNL | PASS" in md, f"M-JRNL not PASS:\n{md}")
+    check("| M-LEARN | PASS" in md, f"M-LEARN not PASS:\n{md}")
+
+
+@test("M-JRNL FAILS a project generating artifacts with an empty journal",
+      kind="known_bad")
+def t_journal_missing():
+    # the knowledge-evaporation incident: analysis lived only in the chat
+    d = tmpdir("jrn_")
+    (d / "01_docs").mkdir()
+    (d / "03_src" / "route").mkdir(parents=True)
+    run([KPY, POLICY, d, "--skip-drc"])
+    md = (d / "06_build" / "policy_audit.md").read_text()
+    check("| M-JRNL | FAIL" in md, f"M-JRNL did not FAIL:\n{md}")
+
+
+@test("M-LEARN FAILS a release with no stage learnings", kind="known_bad")
+def t_learnings_missing():
+    d = tmpdir("jrn_")
+    (d / "01_docs" / "journal").mkdir(parents=True)
+    (d / "01_docs" / "journal" / "routing.md").write_text("## e\n- did: x\n")
+    (d / "03_src" / "route").mkdir(parents=True)
+    (d / "07_releases" / "v1.0-x").mkdir(parents=True)
+    run([KPY, POLICY, d, "--skip-drc"])
+    md = (d / "06_build" / "policy_audit.md").read_text()
+    check("| M-LEARN | FAIL" in md, f"M-LEARN did not FAIL:\n{md}")
+
+
 if __name__ == "__main__":
     sys.exit(main())

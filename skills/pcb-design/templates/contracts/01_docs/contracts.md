@@ -16,6 +16,8 @@ one that is unrecoverable if lost.
 | `CHANGELOG.md` | one entry per revision | see structure below |
 | `CHECKLIST.md` | the gate a revision must pass before release | |
 | `decisions/` | one file per decision | see `decisions/contracts.md` |
+| `journal/` | per-stage diary: append an entry at every stage start/iteration/finish | see `journal/contracts.md`; enforced by policy_audit M-JRNL |
+| `learnings/` | per-stage harvest source, written at stage completion | see `learnings/contracts.md`; enforced by policy_audit M-LEARN at release |
 | `contracts.md` | this file | |
 
 ## Forbidden

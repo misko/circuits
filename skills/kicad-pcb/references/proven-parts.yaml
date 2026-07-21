@@ -1,0 +1,117 @@
+# Proven-parts ledger — part selection as COMPOUNDING CAPITAL.
+#
+# One entry per FUNCTION; candidates are parts this pipeline has actually
+# paid to verify. Consulted FIRST at D-SPEC (sourcing spike) and D-ESC
+# (part selection); every newly verified part is harvested back at release.
+#
+# Rules that keep this honest:
+# - Entries require PROVENANCE: status is one of
+#     shipped        — ordered/released on a named board
+#     designed-in    — schematic+escape verified on a named board, not yet
+#                      ordered
+#     incident       — a NEGATIVE entry: verified to be a trap; the caveat
+#                      is the value
+#     unresolved     — the function has no verified answer yet; the next
+#                      board that needs it runs the sourcing spike and
+#                      founds the entry
+# - Provenance names boards (allowed) — NEVER projects/ paths (C-ISO).
+# - NO stock counts or prices here — they rot in hours; jlc_stock checks
+#   freshness at order time. The ledger stores IDENTITY + judgment.
+# - escape blocks use the same schema as part.yaml (escape_check emits
+#   them); tier names come from fab_tiers.yaml.
+# - layout_refs: routed precedents consulted for the part's LOCAL layout
+#   (datasheet layout-example section, manufacturer EVM, OSHWLab project) —
+#   named so the next board starts from the same references instead of
+#   re-searching. Study-then-re-derive; never imported copper (M3).
+
+functions:
+
+  battery-input-xt60:
+    candidates:
+      - mpn: XT60PW-M
+        maker: AMASS
+        lcsc: C98732
+        package: XT60 horizontal PCB mount
+        escape: {style: connector, pitch: 7.2, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: usb-power-3s v1.0-v1.3; re-verified usb-pwr-hub-3s 2026-07-21
+        gotchas:
+          - "PAD 1 IS '-' — polarity is a PART FACT; assert pad-1 net in
+             audit_board (a reversed XT60 shipped once: spf fa0b9c1)"
+
+  buck-controller-high-current:   # >3A output, controller + external FETs
+    candidates:
+      - mpn: LM5145RGYR
+        maker: Texas Instruments
+        lcsc: C485912
+        package: VQFN-20 3.5x4.5 P0.5
+        escape: {style: qfn, pitch: 0.5, tier_required: jlc_4layer_advanced}
+        status: shipped
+        provenance: usb-power-3s v1.0-v1.3 ("ADVANCED option REQUIRED" ORDER_README)
+        gotchas:
+          - "0.5mm VQFN: ADVANCED tier is REQUIRED (0.25/0.15 vias) — the
+             cost is proven and orderable, decide it at D-TIER not at DRC"
+      - mpn: LM5116MHX/NOPB
+        maker: Texas Instruments
+        lcsc: C13755
+        package: HTSSOP-20-EP P0.65
+        escape: {style: leaded, pitch: 0.65, tier_required: jlc_2layer_default}
+        status: designed-in
+        provenance: usb-pwr-hub-3s (cleanroom v3, 2026-07-21) — ERC 0, placed, routed
+        gotchas:
+          - "ESCAPE BUDGET WALL (ADR-0008): ~8 escapes on one 0.65mm side;
+             at standard tier NO via fits between adjacent pins
+             (0.65-0.3 drill = 0.35 < 0.5 hole-to-hole). Reserve an escape
+             corridor at placement or take the advanced tier. Standard-tier
+             closure is UNPROVEN as of 2026-07-21."
+          - "No internal boot diode — external VCC->HB diode REQUIRED"
+          - "VCCX: tie to 5V output for efficiency (gate drive drops to
+             5V — check FET Rds(on) at Vgs=5V); GROUND if unused, never open"
+        layout_refs:
+          - "TI datasheet SNVS499I: Figure 7-1 / Table 7-1 worked 5V/7A
+             reference design (pp. 21-30) + layout guidelines section —
+             read in full by the 2026-07-21 design extraction"
+          - "TI publishes an LM5116 EVM with full design files — pull the
+             current EVM id from ti.com before the next board's placement"
+
+  buck-integrated-high-current:   # integrated-FET bucks >3A
+    candidates:
+      - mpn: SY8368QNC
+        maker: Silergy
+        lcsc: C125897
+        package: QFN3x3-10 P0.45-0.5
+        escape: {style: qfn, pitch: 0.45, tier_required: jlc_4layer_advanced}
+        status: incident
+        provenance: 3s-power-board-cleanroom v1/v2 (2026-07-20) — stalled at
+          escape; the D-ESC/D-TIER gates exist because of this part
+        gotchas:
+          - "DO NOT select at standard tier. Integrated fine-pitch QFN
+             concentrates every hard net on an unescapable ring — prefer
+             controller + external FETs for >3A (D-ESC)"
+
+  usb-c-receptacle-high-current:
+    candidates:
+      - mpn: TYPE-C-31-M-12A
+        maker: HRO
+        lcsc: C5337088
+        package: USB-C 16P SMT+TH hybrid
+        escape: {style: connector, pitch: 0.5, tier_required: jlc_2layer_default}
+        status: designed-in
+        provenance: usb-pwr-hub-3s (cleanroom v3, 2026-07-21); VBUS pads
+          rated for high current per HRO datasheet
+        gotchas:
+          - "A1..B12 + SH pad names are ALPHANUMERIC — tscircuit drops the
+             part SILENTLY (S-COUNT incident 2026-07-21). Run tsx_preflight,
+             map pads in parity_padmap.txt BEFORE the first tsci build"
+
+  pd-source-5v5a:                 # compliant 5V/5A USB-C source
+    candidates: []
+    status: unresolved
+    note: >
+      No verified standalone PD source controller (fixed 5V/5A PDO +
+      e-marker read + 3A fallback) in the ledger yet. Known constraints
+      from the 2026-07-21 spec analysis: plain Rp tops out at 3A; >3A
+      REQUIRES PD + e-marker per spec; many candidate controllers live in
+      0.5mm QFN (advanced tier — check escape FIRST). The next board that
+      needs this function runs the D-SPEC sourcing spike and FOUNDS this
+      entry with its verified selection.

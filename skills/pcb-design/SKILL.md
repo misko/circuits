@@ -10,6 +10,44 @@ pipeline in `~/gits/circuits/projects/<name>/`. Load the `kicad-pcb` and
 `jlcpcb-fab` skills NOW — they hold the routing/fab mechanics and the
 hard-won traps; this skill is the orchestration layer only.
 
+## The execution model — a LOOP, not a line
+
+The stages below are numbered, but the pipeline is not a one-way march:
+every stage is `(enter → work → gate → EITHER pass forward OR iterate,
+bounded)`, and getting stuck at a stage is an EXPECTED transition, not a
+failure. The full state machine per stage:
+
+    enter(X) → work → measure gate
+      gate green            → commit, journal `finish`, advance to X+1
+      gate red, improving   → journal `iterate N`, adjust THIS stage's
+                              config, re-measure (budget: see D-BACK)
+      STUCK (D-BACK trigger)→ 1. RECOGNIZE  journal the `stuck` entry with
+                                 the measured plateau
+                              2. DIAGNOSE   read the gate's own output and
+                                 name the UPSTREAM DECISION that produced
+                                 it (the D-BACK ladder maps finding class
+                                 → causal stage; verify the hypothesis
+                                 against the artifact — e.g. are ALL
+                                 residual violations inside one package's
+                                 escape? then it is a PART/PLACEMENT
+                                 problem, not a routing problem)
+                              3. BACKTRACK  to that stage (e.g. parts
+                                 selection), carrying the learnings block
+                              4. FIX        the upstream source there
+                                 (part.yaml, floorplan.yaml, nets.yaml,
+                                 the ADR) — never a downstream artifact
+                              5. RESUME     rerun the chain FROM that
+                                 stage forward (canon M3 regenerates
+                                 everything downstream); journal
+                                 `iterate (post-back)` at each re-entered
+                                 gate. Work still valid upstream of the
+                                 fix (parts untouched, ADRs amended not
+                                 rewritten) is kept, not redone.
+
+A stall — repeating a red gate without a new hypothesis — is the ONLY
+prohibited state. The bounded budgets, the ladder, and the honest-stop ADR
+are specified in D-BACK below.
+
 ## 0. Commission (before any engineering)
 
 - Pick a short kebab-case project name from the brief.
@@ -52,6 +90,84 @@ hard-won traps; this skill is the orchestration layer only.
   sink note) + a `Spec tensions` row in BRIEF.md flagged to the user.
   Silently building the out-of-spec reading, or silently downgrading the
   requirement, are both failures.
+  **SOURCING SPIKE (part of D-SPEC): scarcity is discovered at COMMISSION,
+  never at parts stage.** For every SPEC-CRITICAL function (one a
+  requirement/directive names explicitly — "5A compliant USB-C", "isolated
+  CAN", …): first consult `references/proven-parts.yaml` (the ledger of
+  parts this pipeline has already verified); if the ledger has no fit,
+  run a TIMEBOXED part-universe search (LCSC/JLC stock) and classify the
+  outcome NOW, before architecture:
+  (a) sourceable at the cost-ceiling tier → note it, proceed;
+  (b) sourceable only at a costlier tier → make the D-TIER decision here,
+      at the cheapest moment (ADR + ORDER_README line);
+  (c) not sourceable as specified → spec-tension ADR + user flag BEFORE
+      any engineering is spent — propose the nearest compliant reading.
+  The stage-2 part.yaml work then verifies the chosen part; it never
+  DISCOVERS feasibility.
+
+## Journal discipline — every stage, every iteration (canon M9)
+
+The knowledge-evaporation failure mode: the hardest analysis of a run lives
+in the agent's chat report and is gone when the session ends. Journals fix
+this at the source, MANDATORY (`policy_audit` M-JRNL / M-LEARN):
+
+- **`01_docs/journal/<stage>.md`** — one file per pipeline stage (e.g.
+  `02_parts.md`, `03_schematic.md`, `placement.md`, `routing.md`,
+  `verify.md`). APPEND an entry at every stage START, every ITERATION, and
+  every FINISH — never batch-reconstruct at the end:
+
+      ## <date> <time> — <start|iterate N|finish>
+      - did: <the action, one line>
+      - result: <MEASURED outcome — counts, gate output, not hope>
+      - next: <what this implies>
+
+- **`01_docs/learnings/<stage>.md`** — written when a stage COMPLETES:
+  each issue hit, its root cause, and a concrete "how to avoid next time"
+  (a config default? a checker? a part-selection rule?), each marked
+  `candidate-canon: yes/no` with a suggested check ID. These are HARVEST
+  SOURCES for the skill's canon (design-policies.md / T4), not canon
+  themselves — repo policy keeps distilled conclusions in the canon, and a
+  harvest pass promotes them; raw evidence lives here, per board.
+
+## Iteration & backtracking — the STUCK protocol (D-BACK)
+
+Getting stuck at stage X is normal; grinding stage X forever is the defect.
+Canon M3 makes backtracking CHEAP: everything downstream regenerates from
+source, so the fix is always an upstream edit + rerun, never a downstream
+patch. Three rules:
+
+**1. Stagnation trigger — when local iteration must STOP.** After **3
+consecutive iterations with no measured improvement** (the gate count not
+dropping, or the same finding IDs recurring), or on any finding class the
+CURRENT stage's config cannot express, stop iterating. Do not negotiate
+with a wall.
+
+**2. The backtrack ladder — where to land.** Follow the symptom's causal
+edge one stage up (repeat if the upstream stage is also stuck, max depth
+until the spec itself):
+
+| Stuck symptom at stage X | Backtrack to | What changes there |
+|---|---|---|
+| DRC tail resists (clearance/via clusters in one region) | placement | D-ADJ adjacency, escape corridors, rotation |
+| unroutable / congestion across regions | placement, then architecture | floorplan real estate, board size, bank split |
+| width/via/hole floors physically impossible | tier or part | D-TIER ADR (raise fab_tier + ORDER_README line) or D-ESC re-selection |
+| package cannot escape | part selection | different package per escape_check |
+| no sourceable compliant part | architecture, then spec | topology change, or a D-SPEC tension ADR + user flag |
+| schematic/parity churn | parts (pin maps) | part.yaml re-verification vs the datasheet FIGURE |
+
+**3. The backtrack contract — what to carry.** Before leaving stage X:
+(a) commit the attempt (WIP checkpoint — the failed state is evidence,
+canon: reports are claims but artifacts are proof); (b) append a
+`## <ts> — stuck` journal entry: the trigger, the measured plateau, the
+causal hypothesis; (c) write the learnings block NOW, not at stage end —
+it is the context the retry runs on. Then edit the UPSTREAM source, rerun
+the chain from there, and journal the re-entry as `iterate N (post-back)`.
+The same stage may be re-entered at most **3 times** on different upstream
+hypotheses; a fourth arrival means the hypothesis space is exhausted —
+escalate one more stage up, or write the honest-stop ADR naming the wall.
+(Incident: v3 session 2 spent ~50 min re-grinding 4 unconnected pads
+before retreating to placement; the retreat then recovered the board in
+one pass. The trigger existed in hindsight only — now it is a rule.)
 
 ## 1-3. Design docs, parts, rules (order matters)
 
@@ -73,7 +189,12 @@ hard-won traps; this skill is the orchestration layer only.
    skill had never captured (they lived in one interactive session and one
    board's ORDER_README; two copied boards masked the gap):
    - **D-ESC, escape feasibility at part selection — MECHANICAL, not
-     judgment.** For every candidate multi-pin package, run
+     judgment.** Consult `references/proven-parts.yaml` FIRST — a ledger
+     hit is a verified selection (escape block + gotchas included); web
+     research covers only the gaps, and every NEWLY verified part is
+     harvested back into the ledger at release (with provenance), so no
+     board re-pays another board's research. Then, for every candidate
+     multi-pin package, run
      `skills/kicad-pcb/scripts/escape_check.py --style <qfn|dfn|leaded|
      bga|connector> --pitch <mm>` (capabilities from
      `references/fab_tiers.yaml`) and paste the emitted `escape:` block
@@ -114,6 +235,25 @@ hard-won traps; this skill is the orchestration layer only.
      their hard nets (BST/SW/FB) face open copper. An "escape failure" on
      a short-local net (bootstrap, CC) is almost always a stranded passive,
      not a routing problem.
+     **LAYOUT PRECEDENT SEARCH (for every HARD part: dense escapes,
+     switching power, >0.5A analog, RF).** Do not invent the local layout
+     from first principles when a routed reference exists. In authority
+     order: (1) the part datasheet's Layout Guidelines/Example figure —
+     canon M6: the manufacturer's own routed picture WINS over your
+     derivation; (2) the manufacturer's EVAL BOARD design files (EVM
+     layouts are tested instances of the exact local circuit — study the
+     escape pattern, hot-loop shape, sense-line dress, via strategy);
+     (3) OSHWLab/EasyEDA open projects SEARCHED BY LCSC CODE — real
+     JLC-fabbed boards using the exact part, copper viewable; (4) open
+     KiCad projects (GitHub/Kitspace; unvetted — weakest). STUDY, THEN
+     RE-DERIVE: extract the decisions (adjacency, orientation, corridor,
+     layer drops) into part.yaml gotchas + floorplan.yaml — NEVER import
+     copper (canon M3). Record what you consulted as a
+     `layout_refs:` list in the part.yaml (doc names/EVM ids/project
+     links), and harvest it into proven-parts.yaml with the part — the
+     precedent search is paid once per part, ever. Full source catalog,
+     search technique per source, and the study-vs-copy rules:
+     `kicad-pcb/references/layout-precedents.md`.
 3. `03_src/rules/nets.yaml` + `generate_rules.py` BEFORE any layout.
 
 ## 4-6. Generate, place, route — all regenerable from 03_src
@@ -206,6 +346,12 @@ produce (checker and checked must not share a method):
   HUMAN-graded items (schematic readability S6, decoupling S7, design-math
   S5) carry verdicts from the fresh-context reviews. Ship
   `06_build/policy_audit.md` in the release's verification/.
+
+Before cutting the release, HARVEST the ledger: every part this board
+newly verified (shipped or fully twin/pin-verified) gets its entry in
+`kicad-pcb/references/proven-parts.yaml` — function, LCSC, escape block,
+the gotchas you paid to learn, provenance = this board's name. A resolved
+`unresolved` function entry is the most valuable harvest of all.
 
 Then cut `07_releases/v1.0-<date>/` per the release contract. **A release is
 a COMPLETE, SELF-CONTAINED ARCHIVE — not a pointer to a git SHA.** Someone

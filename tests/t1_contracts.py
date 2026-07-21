@@ -140,6 +140,8 @@ def t_template_seed():
     (d / "03_src" / "rules").mkdir()
     (d / "03_src" / "lib").mkdir()
     (d / "01_docs" / "decisions").mkdir()
+    (d / "01_docs" / "journal").mkdir()
+    (d / "01_docs" / "learnings").mkdir()
     for src, dst in [
             ("03_src/floorplan.yaml", "03_src/floorplan.yaml"),
             ("03_src/route.yaml", "03_src/route.yaml"),
@@ -149,6 +151,10 @@ def t_template_seed():
              "01_docs/decisions/0000-example-adr.md"),
             ("contracts/01_docs/decisions/contracts.md",
              "01_docs/decisions/contracts.md"),
+            ("contracts/01_docs/journal/contracts.md",
+             "01_docs/journal/contracts.md"),
+            ("contracts/01_docs/learnings/contracts.md",
+             "01_docs/learnings/contracts.md"),
             ("contracts/03_src/lib/contracts.md", "03_src/lib/contracts.md"),
             ("contracts/03_src/rules/contracts.md",
              "03_src/rules/contracts.md")]:

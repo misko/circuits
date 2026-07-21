@@ -526,6 +526,35 @@ def main():
     else:
         rows.append(("M-REL", "N-A", "no releases yet"))
 
+    # M-JRNL / M-LEARN: per-stage diary + harvest sources (canon M9). Scoped
+    # to commissioned projects (01_docs exists) — scratch/test trees exempt.
+    docs = proj / "01_docs"
+    if docs.is_dir():
+        started = bool(boards) or (proj / "03_src" / "route").is_dir()
+        jrn = [j for j in sorted((docs / "journal").glob("*.md"))
+               if j.name != "contracts.md"] if (docs / "journal").is_dir() else []
+        entries = sum(1 for j in jrn if "## " in j.read_text())
+        if not started:
+            rows.append(("M-JRNL", "N-A", "no board/route artifacts yet"))
+        else:
+            grade("M-JRNL", entries > 0,
+                  f"{len(jrn)} stage journals, {entries} with entries",
+                  "design is generating artifacts but 01_docs/journal/ has no "
+                  "stage entries — every start/iteration/finish must journal "
+                  "(canon M9)")
+        if rels:
+            lrn = [l for l in sorted((docs / "learnings").glob("*.md"))
+                   if l.name != "contracts.md"] if (docs / "learnings").is_dir() else []
+            grade("M-LEARN", bool(lrn),
+                  f"{len(lrn)} stage learnings files",
+                  "released with no 01_docs/learnings/<stage>.md — completion "
+                  "requires the harvest source (canon M9)")
+        else:
+            rows.append(("M-LEARN", "N-A", "no release yet"))
+    else:
+        rows.append(("M-JRNL", "N-A", "no 01_docs (not a commissioned project)"))
+        rows.append(("M-LEARN", "N-A", "no 01_docs"))
+
     adjp = proj / "03_src/rules/twin_adjudications.yaml"
     if adjp.exists() and yaml:
         entries = yaml.safe_load(adjp.read_text()) or []

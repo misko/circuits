@@ -36,6 +36,8 @@ cp <skill>/templates/01_docs/decisions/0000-example-adr.md projects/<name>/01_do
 cp <skill>/templates/project.gitignore             projects/<name>/.gitignore
 # nested sub-stage contracts land at the same relative paths:
 cp <skill>/templates/contracts/01_docs/decisions/contracts.md projects/<name>/01_docs/decisions/
+cp <skill>/templates/contracts/01_docs/journal/contracts.md   projects/<name>/01_docs/journal/
+cp <skill>/templates/contracts/01_docs/learnings/contracts.md projects/<name>/01_docs/learnings/
 cp <skill>/templates/contracts/03_src/lib/contracts.md        projects/<name>/03_src/lib/
 cp <skill>/templates/contracts/03_src/rules/contracts.md      projects/<name>/03_src/rules/
 ```
