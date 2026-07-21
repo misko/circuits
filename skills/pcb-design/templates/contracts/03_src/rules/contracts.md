@@ -11,7 +11,7 @@ belongs here.
 
 | File | What |
 |---|---|
-| `nets.yaml` | net classes: nets, current, intent, min_width, routing strategy, verify, scoped exemptions |
+| `nets.yaml` | net classes: nets, current, intent, min_width, routing strategy, verify, scoped exemptions; `fab_tier` (capability floors for the generic backend); `scoped_floors` (insideArea width relaxations, `why` REQUIRED) |
 | `stackup.yaml` | layer count, what each layer is for, fab tier (optional) |
 | `twin_adjudications.yaml` | reviewed jlc_twin findings accepted WITH evidence (see jlcpcb-fab skill) |
 | `contracts.md` | this file |
@@ -32,6 +32,17 @@ Each class requires: `intent` (prose, why this net is special), `nets` (list
 or patterns), `min_width`, `routing` (pour vs track, and the strategy),
 `verify` (how to prove it). `current` where >1A. `exemptions` are scoped to
 NAMED RULE AREAS that exist on the board — never a blanket carve-out.
+
+Top-level `scoped_floors:` (canon M8 promotion of the hand-appended
+insideArea rules) is the machine-enforced form of a scoped exemption:
+`{zone, nets, min_width, why}` — the generic emitter writes it as a
+last-match `.kicad_dru` rule after the netclass floors. `why` is REQUIRED
+(canon M4); `min_width` must still clear the declared tier's `min_track`.
+
+Top-level `fab_tier:` is also the SINGLE SOURCE of capability floors for
+the generic backend (`fab_tier_util.py`): class widths, route/stitch/tap
+via geometry and silk text heights are floored/derived from it, and
+explicit sub-floor values are generation errors naming the tier.
 
 Floors are BACKSTOPS, not sizing: trunk current rides pours and planes. The
 floor's job is to make "silently thin" impossible, not to carry the amps.

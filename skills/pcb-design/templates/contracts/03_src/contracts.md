@@ -23,7 +23,7 @@ per-board gate: `audit_board.py` (board-specific placement/pad invariants).
 | File | What | Consumed by |
 |---|---|---|
 | `floorplan.yaml` | placement config: outline, mounting holes, named regions, anchors, `repeat:` banks, keepouts, zones, silk, orientation asserts | SHARED `generate_board_generic.py` |
-| `route.yaml` | routing + stitch config: KRT prep/route/import order, pours, thermal vias, pad-rescue | SHARED `route_and_stitch_generic.py` (`prep`/`route`/`import`/`stitch`) |
+| `route.yaml` | routing + stitch config: KRT prep/route/import order, pours, thermal vias, pad-rescue, `taps:` (collision-checked named connections KRT cannot thread) | SHARED `route_and_stitch_generic.py` (`prep`/`route`/`import`/`taps`/`stitch`) |
 | `rules/` | `nets.yaml` (netclasses + ampacity), `policy_waivers.yaml`, `twin_adjudications.yaml` — see `rules/contracts.md` | SHARED `generate_rules_generic.py`, policy_audit, jlc_twin |
 | `route/` | the PROMOTED KRT chain (`*.kicad_pcb`) — a committed ARTIFACT, not code (canon M3); `import` replays it deterministically | SHARED `route_and_stitch_generic.py import` |
 | `audit_board.py` | the ONLY per-board emitter: the placement/pad invariant gate (polarity, proximity, plane-clean, refdes-on-silk, and any BOARD-SPECIFIC guard e.g. an analog-keepout distance). Everything else is config or shared. | — |
@@ -50,6 +50,7 @@ agent runs it FIRST. `$S` = `skills/kicad-pcb/scripts` (resolved repo-relative,
 | 5 | `$S/generate_rules_generic.py .` — netclasses BEFORE route-prep (canon R1) | any python3 |
 | 6 | `$S/route_and_stitch_generic.py prep 03_src/route.yaml` (netclass-carrying, track-free route input) | `/usr/bin/python3` |
 | 7 | `$S/route_and_stitch_generic.py import 03_src/route.yaml` (replay the promoted `route/` chain — canon M3) | `/usr/bin/python3` |
+| 7b | `$S/route_and_stitch_generic.py taps 03_src/route.yaml` — only if `taps:` configured (no-op otherwise); pour-fed sense pins / boxed-in pads, before the pours fill | `/usr/bin/python3` |
 | 8 | `$S/route_and_stitch_generic.py stitch 03_src/route.yaml` (pours + thermal vias); verdict must be `gate: clean` | `/usr/bin/python3` |
 | 9 | `$S/generate_rules_generic.py .` — ALWAYS LAST (pcbnew saves clobber `.kicad_pro` netclasses) | any python3 |
 | 10 | DRC gate `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity` = 0/0/0 | `kicad-cli` |

@@ -116,3 +116,21 @@ Of the six surveyed boards, **two (cook-loadcell, crow-array-pod) route and
 stitch fully through the generic path to 0/0/0** with zero bespoke code. The
 4-layer power boards (usb-power-3s, cook-hub) exercise items 1–5 and 8–9 and
 would still need a per-board tail for those steps; ble-bus-bar needs item 5.
+
+## Addendum 2026-07-21 — what became generic after the usb-pwr-hub-3s clean-room run
+
+The clean-room 3S board (separate worktree) had to write three bespoke
+scripts; each was a confessed backend gap (canon M8), now closed:
+
+| bespoke script | gap | generic replacement |
+|---|---|---|
+| `route_taps.py` | pour-fed / boxed-in connections KRT cannot thread | `route.yaml taps:` + a `taps` pipeline step (after `import`, before `stitch`): same-layer joinpath, else via hop to a hop layer — every segment/via pcb_toolkit-collision-checked; unroutable tap = hard error |
+| `append_sw_floor.py` | a width relaxation scoped to one zone | `nets.yaml scoped_floors:` — last-match `insideArea('<zone>')` `.kicad_dru` rules, net-scoped, `why` REQUIRED (canon M4), emitted/preserved by `generate_rules_generic` |
+| `cleanup_vias.py` | (1) rescue vias stacked on footprint thermal-via grids; (2) stitch vias dangling in fill voids; (3) escape vias above the tier's minimum | (1) `pad_rescue` barrel-credits same-net drilled pads inside the pad outline; (2) `prune_stitch_dangling` epilogue pass — filled-poly connectivity, scoped to the run's own emitted-via ledger; (3) tier-derived via geometry (below) |
+
+Cross-cutting: `fab_tiers.yaml` (now carrying silk floors, provenance in
+the file header) is consumed by all three generators via `fab_tier_util.py`
+— missing route/stitch/tap via geometry and clearances derive from the
+declared tier; explicit sub-floor widths/vias/silk heights are generation
+errors naming the tier. What remains bespoke on that board: its promoted
+route chain and per-board coordinates (config, not code).
