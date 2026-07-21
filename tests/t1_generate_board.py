@@ -285,6 +285,64 @@ def t_pad_beyond_edge_assert():
     must_fail(r, "generator with an on-board edge clearing", "INSIDE the y1 edge")
 
 
+@test("an fp-lib-table is emitted BY DEFAULT beside the output board")
+def t_fp_lib_table_default():
+    """Emission used to be opt-in and the v4 canary never opted in: 116
+    lib_footprint_issues at first DRC, one per footprint. A fresh board must
+    get the table with no config at all; `fp_lib_table: false` opts out; the
+    env var must match the RUNNING KiCad major (a ${KICAD9_*} table on
+    KiCad 10 resolves only through back-compat luck)."""
+    d = tmpdir("gbg_")
+    out = d / "b.kicad_pcb"
+    gen(LC / "03_src" / "floorplan.yaml", out)
+    table = d / "fp-lib-table"
+    check(table.is_file(), "no fp-lib-table emitted by default")
+    txt = table.read_text()
+    for lib in ("Capacitor_SMD", "Resistor_SMD", "MountingHole"):
+        contains(txt, f'(name "{lib}")', "fp-lib-table rows")
+    r = must_pass(run([KPY, "-c",
+                       "import pcbnew,re;"
+                       "print('@@'+re.match(r'\\d+', pcbnew.Version()).group())"]),
+                  "kicad major")
+    major = r.out.split("@@")[1].strip()
+    contains(txt, "${KICAD%s_FOOTPRINT_DIR}" % major,
+             "the env var must match the running KiCad major")
+    # explicit opt-out still works
+    def mutate(cfg):
+        cfg["project"]["fp_lib_table"] = False
+    d2, p2 = scratch_config(mutate)
+    gen(p2, d2 / "b.kicad_pcb")
+    check(not (d2 / "fp-lib-table").exists(),
+          "fp_lib_table: false must suppress emission")
+
+
+@test("DRC's lib_footprint_issues class is EMPTY on a fresh board, and "
+      "would not be without the table", kind="known_bad")
+def t_kb_lib_footprint_issues():
+    """The v4 composition: 116 of 648 first-DRC findings were 'The current
+    configuration does not include the footprint library X'. Both ways: with
+    the emitted table the class is empty; DELETE the table and the same DRC
+    reports the class for every footprint — proving the detection has teeth
+    and the fix is the table, not a quieter checker."""
+    d = tmpdir("gbg_")
+    out = d / "b.kicad_pcb"
+    gen(LC / "03_src" / "floorplan.yaml", out)
+
+    def lib_issues():
+        import json
+        outj = d / "drc.json"
+        run(["kicad-cli", "pcb", "drc", "--severity-all", "--format", "json",
+             "-o", outj, out])
+        g = json.loads(outj.read_text())
+        return sum(1 for v in g["violations"]
+                   if v["type"] == "lib_footprint_issues")
+    eq(lib_issues(), 0, "lib_footprint_issues on a fresh board WITH its table")
+    (d / "fp-lib-table").unlink()
+    n = lib_issues()
+    check(n >= 33, f"deleting the table must expose the class for every "
+                   f"footprint (29 parts + 4 holes), got {n}")
+
+
 @test("netlist parity 0 vs the sealed cook-loadcell board")
 def t_parity_loadcell():
     d = tmpdir("gbg_")

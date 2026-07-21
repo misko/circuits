@@ -84,6 +84,13 @@ MM = pcbnew.ToMM
 STD_FP_ROOT = "/usr/share/kicad/footprints"
 
 
+def _kicad_fp_env():
+    """The running KiCad's versioned footprint-dir env var (KiCad renames it
+    every major: KICAD9_FOOTPRINT_DIR, KICAD10_FOOTPRINT_DIR, ...)."""
+    m = re.match(r"(\d+)", getattr(pcbnew, "Version", lambda: "")() or "")
+    return "${KICAD%s_FOOTPRINT_DIR}" % (m.group(1) if m else "9")
+
+
 # ---------------------------------------------------------------- errors
 class FloorplanError(RuntimeError):
     """Any hard, board-invalidating error. Never caught internally."""
@@ -952,13 +959,21 @@ class BoardBuilder:
 
     # ------------------------------------------------------ fp-lib-table
     def write_fp_lib_table(self):
-        """Emit 04_kicad/fp-lib-table covering exactly the libraries the
-        netlist actually used. Only usb-power-3s did this; every board wants
-        it, because without it KiCad opens the board with broken library
-        links even though the footprints are embedded."""
-        if not self.cfg.get("project", {}).get("fp_lib_table"):
+        """Emit an fp-lib-table covering exactly the libraries the netlist
+        actually used — BY DEFAULT, beside the output board (2026-07-21).
+
+        Emission used to be opt-in (`project.fp_lib_table: <path>`), and the
+        v4 usb-hub-3s canary never opted in: its first DRC carried 116
+        lib_footprint_issues — "The current configuration does not include
+        the footprint library 'X'", one per footprint (112 parts + 4
+        mounting holes), all noise, all preventable at generation. Measured:
+        the same board + the table = 0 in that class. A fresh board now gets
+        `<board dir>/fp-lib-table` unless the project says
+        `fp_lib_table: false`; an explicit path still overrides."""
+        tbl = self.cfg.get("project", {}).get("fp_lib_table")
+        if tbl is False:
             return
-        path = self._p(self.cfg["project"]["fp_lib_table"])
+        path = self._p(tbl) if tbl else self.out.parent / "fp-lib-table"
         prjdir = path.parent.resolve()          # ${KIPRJMOD} == the pro dir
         rows = []
         for lib in sorted(self.res.used_libs):
@@ -971,7 +986,11 @@ class BoardBuilder:
                 if uri:
                     break
             if uri and uri.startswith(STD_FP_ROOT):
-                uri = uri.replace(STD_FP_ROOT, "${KICAD9_FOOTPRINT_DIR}")
+                # the RUNNING KiCad's own env var, not a hardcoded major:
+                # a ${KICAD9_*} table happens to resolve on 10.0.4 through
+                # back-compat vars, but that is version luck, and an
+                # unresolved var is 116 lib_footprint_issues again
+                uri = uri.replace(STD_FP_ROOT, _kicad_fp_env())
             elif uri and os.path.isabs(uri):
                 # A PROJECT-LOCAL lib (e.g. 03_src/lib/pod.pretty) must be
                 # ${KIPRJMOD}-relative, never absolute: contract 04_kicad
