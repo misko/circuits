@@ -194,8 +194,11 @@ This is the whole workflow — follow it every time something ships broken.
 
 - `/usr/bin/python3` is the KiCad-bundled interpreter and the only one with
   `pcbnew`. `run_tests.sh` checks for it up front and refuses to run without.
-- `audit_template.py` writes `/tmp/audit_drc.txt` and `classified_drc.py`
-  writes `/tmp/classified_drc.txt` — both hardcoded, so do not parallelise
-  those two suites.
+- `audit_template.py` and `classified_drc.py` write pid-suffixed DRC
+  reports (`/tmp/audit_drc.<pid>.txt`, `/tmp/classified_drc.<pid>.txt`).
+  They used to share two FIXED paths, and a concurrent session (a live
+  clean-room canary running the same scripts) clobbered a suite run's
+  report mid-read — two t4 flakes with another board's categories in the
+  output (2026-07-21). Per-process paths ended that class.
 - No pytest: `harness.py` is a ~60-line runner so the suite runs on the
   KiCad interpreter with zero installs.

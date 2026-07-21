@@ -13,6 +13,7 @@ Remember: GUI DRC remains authoritative for zone-fill-dependent checks
 """
 import argparse
 import collections
+import os
 import re
 import sys
 from pathlib import Path
@@ -47,7 +48,11 @@ if args.refill:
     board.Save(args.board)
     board = pcbnew.LoadBoard(args.board)
 
-rpt = "/tmp/classified_drc.txt"
+# pid-suffixed: the old fixed /tmp/classified_drc.txt collided across
+# concurrent sessions (a live clean-room canary's DRC clobbered a test-suite
+# run's report mid-read, 2026-07-21 — the t4 clearance pair flaked with
+# another board's categories in its output)
+rpt = f"/tmp/classified_drc.{os.getpid()}.txt"
 _write_drc_report(board, args.board, rpt)
 txt = Path(rpt).read_text()
 

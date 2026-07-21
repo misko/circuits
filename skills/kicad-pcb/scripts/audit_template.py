@@ -29,6 +29,7 @@ audit.json schema:
 import argparse
 import collections
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -169,7 +170,10 @@ for i in range(len(cy)):
 if cy_ov:
     fails.append(f"I6c courtyard-overlap ({len(cy_ov)}): {sorted(cy_ov)[:10]}")
 
-rpt = "/tmp/audit_drc.txt"
+# pid-suffixed: the old fixed /tmp/audit_drc.txt collided across concurrent
+# sessions (a live clean-room canary's audit clobbered a test-suite run's
+# report mid-read, 2026-07-21 — two t4 flakes with impossible categories)
+rpt = f"/tmp/audit_drc.{os.getpid()}.txt"
 _write_drc_report(board, args.board, rpt)
 txt = Path(rpt).read_text()
 blocks = re.split(r"\[(\w+)\]: ", txt)
