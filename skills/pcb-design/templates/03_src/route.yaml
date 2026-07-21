@@ -83,11 +83,26 @@ stitch:
   split_t_junctions: {tol: 0.05}
   hole_to_hole: {min_gap: 0.5, mode: nudge, prefer_keep: [GND]}
   pad_rescue:
-    net: GND
+    net: GND                  # single-plane form (2-layer boards)
+    # 4-LAYER / TWO INNER PLANES (In1=GND, In2=VIN): rescue BOTH plane-nets'
+    # pads, not one. Use `nets` (per-pad via to EACH plane) instead of `net`:
+    #   nets:
+    #     - {net: GND, layer: In1.Cu}
+    #     - {net: VIN, layer: In2.Cu}
+    # or auto-detect every solid inner-plane pour:  auto: true
     via_in_pad: true          # B.Cu is a solid GND pour under the whole board
     served_within: 1.6
     rings: [0.75, 0.95, 1.2, 1.6, 2.1, 2.7]
     stub_width: 0.3
+    # GAP-B SUB-FLOOR SCOPING (default ON): each adjacent-via+stub is a plane
+    # drop, not a trunk, so it is exempted from the netclass ampacity floor by
+    # a named rule area (`pad_rescue_stubs`) + a relaxed insideArea track_width
+    # rule appended to the board's .kicad_dru (KiCad last-match precedence).
+    # Set `stub_scope: false` to disable, or tune it:
+    #   stub_scope: {area_name: pad_rescue_stubs, min_track_width: 0.3,
+    #                layers: [F.Cu, B.Cu]}
+    # NOTE: if your generate_rules-LAST rewrites .kicad_dru, it must preserve
+    # (or re-emit) the pad_rescue_stubs rule, else the exemption is lost.
     # NON-FATAL: a pad whose via sites are blocked by a B.Cu track underneath
     # is still served by top-pour thermal spokes at fill. The DRC unconnected
     # gate is the arbiter.

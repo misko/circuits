@@ -442,6 +442,213 @@ def t_kb_no_stale_resume():
     contains(r.out, "FAILURES", "gate output")
 
 
+# ============================ 4-LAYER PLANE FIXTURES (GAP A / GAP B) =====
+# cook-loadcell is 2-layer, so the plane machinery (per-pad rescue to an inner
+# solid plane, plane-drop stub floors) was never exercised in T2. These build a
+# tiny synthetic 4-layer board (In1=GND solid plane, In2=VIN power plane) with
+# unbonded SMD pads — the clean-room 3S power board's exact shape. Assertions
+# are DRC counts + via-per-net: PROPERTIES, not bytes.
+_MK_4L = r'''
+import pcbnew, sys, json
+out = sys.argv[1]; cfg = json.loads(sys.argv[2])
+BX, BY = 30.0, 20.0
+b = pcbnew.BOARD(); b.SetCopperLayerCount(4)
+for (x1,y1),(x2,y2) in [((0,0),(BX,0)),((BX,0),(BX,BY)),((BX,BY),(0,BY)),((0,BY),(0,0))]:
+    s=pcbnew.PCB_SHAPE(b); s.SetShape(pcbnew.SHAPE_T_SEGMENT)
+    s.SetStart(pcbnew.VECTOR2I_MM(x1,y1)); s.SetEnd(pcbnew.VECTOR2I_MM(x2,y2))
+    s.SetLayer(pcbnew.Edge_Cuts); s.SetWidth(pcbnew.FromMM(0.1)); b.Add(s)
+def mknet(n): x=pcbnew.NETINFO_ITEM(b,n); b.Add(x); return x
+nets={"GND":mknet("GND"), "VIN":mknet("VIN")}
+def plane(net, layer):
+    z=pcbnew.ZONE(b); z.SetNet(net)
+    ls=pcbnew.LSET(); (getattr(ls,"AddLayer",None) or getattr(ls,"addLayer"))(layer)
+    z.SetLayer(layer); z.SetLayerSet(ls); z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL)
+    z.Outline().NewOutline()
+    for x,y in [(0.3,0.3),(BX-0.3,0.3),(BX-0.3,BY-0.3),(0.3,BY-0.3)]:
+        z.Outline().Append(pcbnew.VECTOR2I_MM(x,y))
+    b.Add(z)
+plane(nets["GND"], pcbnew.In1_Cu); plane(nets["VIN"], pcbnew.In2_Cu)
+n=0
+for netname, pads in cfg.items():
+    for (x,y) in pads:
+        n+=1; fp=pcbnew.FOOTPRINT(b); fp.SetReference("U%d"%n)
+        fp.SetPosition(pcbnew.VECTOR2I_MM(x,y))
+        p=pcbnew.PAD(fp); p.SetShape(pcbnew.PAD_SHAPE_RECT)
+        p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
+        p.SetSize(pcbnew.VECTOR2I_MM(1.2,1.2)); p.SetLayerSet(pcbnew.PAD.SMDMask())
+        p.SetPosition(pcbnew.VECTOR2I_MM(x,y)); p.SetNumber("1"); p.SetNet(nets[netname])
+        fp.Add(p); b.Add(fp)
+b.Save(out)
+'''
+
+
+def four_layer_scratch(pads, pad_rescue, passes=("pad_rescue", "fill", "gate"),
+                       dru_floor=3.7, keepin_inset=0.5):
+    """A scratch project: a 4-layer synthetic board + a route.yaml whose stitch
+    runs `pad_rescue`. `pads` is {net: [[x,y],...]}. The .kicad_dru carries a
+    3.7mm VIN trunk floor (the ampacity floor a plane-drop stub violates)."""
+    import yaml
+    d = tmpdir("t2_4l_")
+    (d / "03_src").mkdir(); (d / "04_kicad").mkdir(); (d / "06_build").mkdir()
+    board = d / "04_kicad" / "syn4.kicad_pcb"
+    must_pass(run([KPY, "-c", _MK_4L, board, json.dumps(pads)]), "build 4L board")
+    (d / "04_kicad" / "syn4.kicad_dru").write_text(
+        "(version 1)\n(rule width_vin\n  (condition \"A.NetName == 'VIN'\")\n"
+        f"  (constraint track_width (min {dru_floor}mm)))\n")
+    cfg = {"project": {"name": "syn4", "board": "04_kicad/syn4.kicad_pcb",
+                       "build_dir": "06_build"},
+           "stitch": {"clearance": 0.15,
+                      "via": {"size": 0.6, "drill": 0.3, "spacing": 0.62},
+                      "keepin": {"inset": keepin_inset}, "passes": list(passes),
+                      "pad_rescue": pad_rescue}}
+    p = d / "03_src" / "route.yaml"
+    p.write_text(yaml.safe_dump(cfg))
+    return d, p, board
+
+
+def drc_counts(board):
+    """kicad-cli DRC -> {track_width, unconnected, isolated}. Reads the
+    <stem>.kicad_dru beside the board (the trunk floor + any scoped sub-floor
+    pad_rescue appended)."""
+    from collections import Counter
+    outj = Path(board).parent / "drc.json"
+    run(["kicad-cli", "pcb", "drc", "--severity-all", "--refill-zones",
+         "--format", "json", "-o", str(outj), str(board)])
+    g = json.loads(outj.read_text())
+    c = Counter(v["type"] for v in g["violations"])
+    return {"track_width": c.get("track_width", 0),
+            "unconnected": len(g["unconnected_items"]),
+            "isolated": c.get("isolated_copper", 0)}
+
+
+def via_nets(board):
+    """netname -> via count on the board."""
+    code = ("import pcbnew,sys,json\nb=pcbnew.LoadBoard(sys.argv[1])\no={}\n"
+            "for t in b.GetTracks():\n"
+            "  if t.GetClass()=='PCB_VIA':\n"
+            "    n=t.GetNetname(); o[n]=o.get(n,0)+1\n"
+            "print('@@'+json.dumps(o))\n")
+    r = must_pass(run([KPY, "-c", code, str(board)]), "via_nets")
+    return json.loads(r.out.split("@@", 1)[1].strip())
+
+
+@test("pad_rescue via-bonds EVERY configured plane net (GAP A: two inner planes)")
+def t_pad_rescue_multiplane():
+    """A 4-layer board with In1=GND and In2=VIN needs BOTH plane-nets rescued
+    per-pad. The single-net stitcher served one and left the other's pads to
+    fall through to stitch_grid — a chunk of the clean-room 3S board's 52
+    unconnected. Property: both planes' pads end up via-bonded, DRC 0
+    unconnected. (RED against pre-fix: VIN gets 0 rescue vias.)"""
+    d, p, board = four_layer_scratch(
+        {"GND": [[7, 15], [23, 15]], "VIN": [[7, 10], [23, 10]]},
+        {"nets": [{"net": "GND", "layer": "In1.Cu"},
+                  {"net": "VIN", "layer": "In2.Cu"}],
+         "via_in_pad": False, "stub_width": 0.3})
+    must_pass(stitch(p), "multi-plane pad rescue")
+    vn = via_nets(board)
+    check(vn.get("GND", 0) >= 2 and vn.get("VIN", 0) >= 2,
+          f"a plane net got no rescue vias (single-net stitcher): {vn}")
+    counts = drc_counts(board)
+    check(counts["unconnected"] == 0,
+          f"multi-plane rescue left {counts['unconnected']} unconnected: {counts}")
+
+
+# ======================================================== KNOWN-BAD =====
+@test("pad_rescue require:all bites when a SECOND plane's pad stays unserved",
+      kind="known_bad")
+def t_kb_pad_rescue_second_plane():
+    """require:all must fail if ANY configured plane net is unserved, not only
+    the first. The board has one VIN pad and no GND pads to rescue, at a site
+    where no via fits (huge keepin inset): GND rescues 0/0 cleanly, VIN cannot
+    be served. The single-net stitcher only ever looked at GND, so it shipped a
+    board with an unconnected VIN pad and a green gate (clean-room 3S, 2026)."""
+    d, p, board = four_layer_scratch(
+        {"VIN": [[15, 10]]},
+        {"nets": [{"net": "GND", "layer": "In1.Cu"},
+                  {"net": "VIN", "layer": "In2.Cu"}],
+         "require": "all", "via_in_pad": False},
+        keepin_inset=40.0)
+    must_fail(stitch(p), "require:all with an unserved second plane",
+              "VIN pad rescue")
+
+
+@test("pad_rescue SCOPES the plane-drop stub out of the trunk ampacity floor",
+      kind="known_bad")
+def t_kb_stub_floor_scoped():
+    """A VIN rescue drops a ~0.3mm stub on a net whose trunk floor is 3.7mm;
+    DRC flags it as track_width (33 such on the clean-room 3S board). The stub
+    is a via drop, not a trunk, so pad_rescue emits a named rule area with a
+    relaxed sub-floor (KiCad last-match precedence, the cook-hub u7_taps
+    pattern). Proven both ways: scope OFF, the trunk floor STILL bites the
+    stub; scope ON, the stub is legal. (RED against pre-fix: no rule area, so
+    the stub stays a violation.)"""
+    base = {"net": "VIN", "via_in_pad": False, "stub_width": 0.3}
+    # teeth: the unscoped stub genuinely violates the 3.7mm floor
+    d, p, board = four_layer_scratch({"VIN": [[7, 10], [23, 10]]},
+                                     dict(base, stub_scope=False))
+    must_pass(stitch(p), "stitch (scope off)")
+    off = drc_counts(board)
+    check(off["track_width"] >= 2,
+          f"the 3.7mm trunk floor did not bite the plane-drop stub: {off}")
+    # fix: the rule area exempts exactly the stub, floor untouched elsewhere
+    d, p, board = four_layer_scratch({"VIN": [[7, 10], [23, 10]]}, base)
+    must_pass(stitch(p), "stitch (scope on)")
+    on = drc_counts(board)
+    check(on["track_width"] == 0,
+          f"the plane-drop stub was NOT scoped out of the floor: "
+          f"{on['track_width']} track_width violation(s)")
+
+
+def _fp_lib_scratch():
+    """A scratch cook-loadcell whose netlist puts ONE part on a project-local
+    footprint lib (03_src/lib/local.pretty), with project.fp_lib_table set."""
+    import yaml
+    d = tmpdir("t2_fplib_")
+    for sd in ("03_src", "02_parts"):
+        if (LC / sd).is_dir():
+            shutil.copytree(LC / sd, d / sd)
+    (d / "04_kicad").mkdir()
+    (d / "06_build" / "netlists").mkdir(parents=True)
+    net = (LC / "06_build" / "netlists" / f"{STEM}.net").read_text()
+    net = net.replace('(footprint "Capacitor_SMD:C_0805_2012Metric")',
+                      '(footprint "local:C_0805_2012Metric")', 1)
+    (d / "06_build" / "netlists" / f"{STEM}.net").write_text(net)
+    pretty = d / "03_src" / "lib" / "local.pretty"
+    pretty.mkdir(parents=True, exist_ok=True)
+    shutil.copy("/usr/share/kicad/footprints/Capacitor_SMD.pretty/"
+                "C_0805_2012Metric.kicad_mod",
+                pretty / "C_0805_2012Metric.kicad_mod")
+    cfg = yaml.safe_load((LC / "03_src" / "floorplan.yaml").read_text())
+    libs = cfg.get("libraries") or ["/usr/share/kicad/footprints"]
+    cfg["libraries"] = [{"lib": "local", "path": "03_src/lib/local.pretty"}] + list(libs)
+    cfg["project"]["fp_lib_table"] = "04_kicad/fp-lib-table"
+    cfg["project"]["netlist"] = f"06_build/netlists/{STEM}.net"
+    p = d / "03_src" / "floorplan.yaml"
+    p.write_text(yaml.safe_dump(cfg))
+    return d, p
+
+
+@test("fp-lib-table uses ${KIPRJMOD} for a project-local lib, never an absolute path",
+      kind="known_bad")
+def t_kb_fp_lib_kiprjmod():
+    """A project-local 03_src/lib footprint lib must be ${KIPRJMOD}-relative
+    (contract 04_kicad 'fp-lib-table has no absolute paths'; project-structure
+    'use ${KIPRJMOD} for local libs'). generate_board_generic emitted the
+    RESOLVED absolute path, which breaks the instant the repo is cloned or the
+    board moves. (RED against pre-fix: the local row is an absolute path.)"""
+    d, p = _fp_lib_scratch()
+    must_pass(run([KPY, GEN, p, "-o", d / "04_kicad" / "b.kicad_pcb"], cwd=d),
+              "generate with a project-local lib")
+    table = (d / "04_kicad" / "fp-lib-table").read_text()
+    rows = [l for l in table.splitlines() if '(name "local")' in l]
+    check(rows, f"project-local lib row missing from fp-lib-table:\n{table}")
+    line = rows[0]
+    check("${KIPRJMOD}" in line,
+          f"project-local lib is NOT ${{KIPRJMOD}}-relative: {line}")
+    check('(uri "/' not in line,
+          f"fp-lib-table carries an absolute path for a project-local lib: {line}")
+
+
 # ============================================================== E2E =====
 def _e2e(project, stem, waves):
     """The real validation gate: generate -> rules -> prep -> REAL KRT ->

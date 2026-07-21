@@ -971,14 +971,68 @@ def p_stitch_grid(ctx, c):
         ctx.failures.append(f"stitch grid too sparse: {n} < {lo}")
 
 
-@stitch_pass("pad_rescue")
-def p_pad_rescue(ctx, c):
-    """Every SMD pad of a plane net needs a barrel to that plane. Via-in-pad
-    first where the config allows it (a same-net barrel always bonds when a
-    solid pour of that net lives under the whole board), else an adjacent
-    via plus a short stub."""
+def _rescue_targets(ctx, c):
+    """The (netname, plane_layer) pairs pad_rescue must serve.
+
+    THREE forms, in priority order (GAP A: a 4-layer board with In1=GND and
+    In2=VIN needs BOTH plane-nets rescued, not one):
+      * `nets: [{net: GND, layer: In1.Cu}, {net: VIN, layer: In2.Cu}]` — the
+        explicit multi-plane list. A bare string entry is allowed (layer None).
+      * `net: GND` (+ optional `plane_layer`) — the ORIGINAL single-net form,
+        preserved verbatim so every shipped 2-layer config keeps working.
+      * `auto: true` — detect every SOLID inner-plane pour (a non-Default
+        copper layer carrying a whole-board net zone) and rescue that net.
+    With none of the above it defaults to GND, exactly as before."""
+    nets = c.get("nets")
+    if nets:
+        out = []
+        for e in nets:
+            if isinstance(e, dict):
+                out.append((e["net"], e.get("layer") or e.get("plane_layer")))
+            else:
+                out.append((e, None))
+        return out
+    if c.get("auto"):
+        return _auto_plane_nets(ctx, c)
+    return [(c.get("net", "GND"), c.get("plane_layer"))]
+
+
+def _auto_plane_nets(ctx, c):
+    """Every net that owns a solid pour on an INNER copper layer. A plane is a
+    zone on an In*.Cu layer covering most of the board; its net's SMD pads all
+    need a barrel down to it. Ordered by layer so output is deterministic."""
     pcbnew = ctx.pcbnew
-    netname = c.get("net", "GND")
+    x0, y0, x1, y1 = board_rect(pcbnew, ctx.board, ctx.cfg)
+    board_area = max((x1 - x0) * (y1 - y0), 1.0)
+    frac = float(c.get("auto_min_area_frac", 0.15))
+    seen, out = set(), []
+    for z in ctx.board.Zones():
+        if z.GetIsRuleArea() or not z.GetNetname():
+            continue
+        for lay in z.GetLayerSet().Seq():
+            lname = ctx.board.GetLayerName(lay)
+            if lay in (pcbnew.F_Cu, pcbnew.B_Cu) or ".Cu" not in lname:
+                continue
+            bb = z.GetBoundingBox()
+            if (bb.GetWidth() / 1e6) * (bb.GetHeight() / 1e6) < frac * board_area:
+                continue
+            key = (z.GetNetname(), lname)
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append((z.GetNetname(), lname))
+    out.sort(key=lambda t: (t[1], t[0]))
+    return out
+
+
+def _rescue_one_net(ctx, c, netname, plane_layer, stub_boxes):
+    """Rescue every SMD pad of ONE plane-net to its plane. Via-in-pad first
+    where the config allows it (a same-net barrel always bonds when a solid
+    pour of that net lives under the whole board), else an adjacent via plus a
+    short stub. Each adjacent-via+stub landing appends its footprint to
+    `stub_boxes` so GAP B can scope those thin drops out of the trunk floor.
+    Returns (served, total, [(ref, pad), ...] unserved)."""
+    pcbnew = ctx.pcbnew
     net_obj = ctx.net(netname)
     serve_r = float(c.get("served_within", 1.6))
     rings = c.get("rings", [0.75, 0.95, 1.2, 1.6, 2.1, 2.7])
@@ -1027,6 +1081,12 @@ def p_pad_rescue(ctx, c):
                                        p.GetNetCode(), lay) is not None:
                         continue
                     ctx.tk.add_seg(px, py, vx, vy, p.GetNet(), lay, stub_w)
+                    # GAP B: this <stub_w> drop rides `netname`, whose trunk
+                    # ampacity floor (e.g. 3.7mm) DRC would flag as track_width.
+                    # Record its footprint so a named rule area can scope it.
+                    hw = stub_w / 2.0 + 0.05
+                    stub_boxes.append((min(px, vx) - hw, min(py, vy) - hw,
+                                       max(px, vx) + hw, max(py, vy) + hw))
                     done = True
                     break
                 if done:
@@ -1035,15 +1095,103 @@ def p_pad_rescue(ctx, c):
                 ok += 1
             else:
                 fails.append((fp.GetReference(), p))
-    ctx.bump(f"pad_rescue_{netname}", ok)
-    ctx.pending = [(r, p.GetNumber()) for r, p in fails]
-    print(f"{netname} pad rescue: {ok}/{tot} SMD pads served"
-          + (f", {len(fails)} unserved" if fails else ""))
+    return ok, tot, fails
+
+
+@stitch_pass("pad_rescue")
+def p_pad_rescue(ctx, c):
+    """Every SMD pad of a plane net needs a barrel to that plane. Serves EACH
+    configured plane-net (GAP A), then scopes the thin plane-drop stubs out of
+    the trunk ampacity floor with one named rule area (GAP B)."""
+    targets = _rescue_targets(ctx, c)
+    stub_boxes = []
+    all_fails = []
     req = c.get("require", "none")
-    if req == "all" and fails:
-        ctx.failures.append(
-            f"{netname} pad rescue: {len(fails)} unserved "
-            f"({[f'{r}.{n}' for r, n in ctx.pending][:8]})")
+    for netname, plane_layer in targets:
+        ok, tot, fails = _rescue_one_net(ctx, c, netname, plane_layer, stub_boxes)
+        ctx.bump(f"pad_rescue_{netname}", ok)
+        all_fails.extend(fails)
+        into = f" -> {plane_layer}" if plane_layer else ""
+        print(f"{netname} pad rescue{into}: {ok}/{tot} SMD pads served"
+              + (f", {len(fails)} unserved" if fails else ""))
+        if req == "all" and fails:
+            ctx.failures.append(
+                f"{netname} pad rescue: {len(fails)} unserved "
+                f"({[f'{r}.{n}' for r, p in fails for n in [p.GetNumber()]][:8]})")
+    ctx.pending = [(r, p.GetNumber()) for r, p in all_fails]
+    _scope_stub_floor(ctx, c, stub_boxes)
+
+
+def _scope_stub_floor(ctx, c, stub_boxes):
+    """GAP B: keep plane-drop stubs legal WITHOUT lowering the trunk floor
+    elsewhere. Emit one named rule area hugging each stub and append a
+    `.kicad_dru` rule scoped to `insideArea('<name>')` with a relaxed
+    min_track_width. KiCad resolves track_width by LAST MATCH, so a rule
+    appended after the netclass floor overrides it only inside the area (the
+    same named-rule-area sub-floor pattern cook-hub's `u7_taps` uses)."""
+    scope = c.get("stub_scope")
+    if scope is False or not stub_boxes:
+        return
+    scope = scope if isinstance(scope, dict) else {}
+    name = scope.get("area_name", "pad_rescue_stubs")
+    layers = scope.get("layers") or ["F.Cu", "B.Cu"]
+    min_w = float(scope.get("min_track_width", c.get("stub_width", 0.3)))
+    _add_rule_area(ctx, name, stub_boxes, layers)
+    _append_stub_dru(ctx, name, min_w)
+    print(f"stub floor scoped: rule area {name!r} over {len(stub_boxes)} "
+          f"plane-drop stub(s), track_width min {min_w}mm on {layers}")
+
+
+def _add_rule_area(ctx, name, boxes, layer_names):
+    """Permissive rule areas (forbid nothing) so the DRU can scope
+    `insideArea('<name>')` tight around each plane-drop stub.
+
+    ONE ZONE PER BOX, all sharing `name`: KiCad serialises a zone with a
+    single outline (a multi-outline SHAPE_POLY_SET collapses to its last
+    outline on save — verified on 10.0.x), but `insideArea('<name>')` matches
+    a track inside ANY zone carrying that name, so N tight boxes give N
+    disjoint exemptions without one big rect exempting the trunk between them.
+    Each zone spans all its layers via an LSET (generate_board_generic pattern:
+    SetLayer collapses the set, so it must precede SetLayerSet)."""
+    pcbnew = ctx.pcbnew
+    lids = [_layer_id(pcbnew, n) for n in layer_names]
+    for x0, y0, x1, y1 in boxes:
+        z = pcbnew.ZONE(ctx.board)
+        z.SetIsRuleArea(True)
+        z.SetZoneName(name)
+        ls = pcbnew.LSET()
+        add = getattr(ls, "AddLayer", None) or getattr(ls, "addLayer")
+        for lid in lids:
+            add(lid)
+        z.SetLayer(lids[0])
+        z.SetLayerSet(ls)
+        z.SetDoNotAllowTracks(False)
+        z.SetDoNotAllowVias(False)
+        z.SetDoNotAllowPads(False)
+        z.Outline().NewOutline()
+        for x, y in ((x0, y0), (x1, y0), (x1, y1), (x0, y1)):
+            z.Outline().Append(pcbnew.VECTOR2I_MM(round(x, 3), round(y, 3)))
+        ctx.board.Add(z)
+
+
+def _append_stub_dru(ctx, name, min_w):
+    """Append the scoped sub-floor to the board's ride-along `.kicad_dru`
+    (idempotent). Last in the file == last match == overrides the trunk floor
+    inside the area only. pcbnew.Save() never touches `.kicad_dru`, so this
+    survives the stitch save; the caller's generate_rules-LAST, if it rewrites
+    the dru, must preserve/re-emit this rule (documented in the config)."""
+    dru = ctx.path.with_suffix(".kicad_dru")
+    rule = (f"(rule {name}\n"
+            f"  (condition \"A.insideArea('{name}')\")\n"
+            f"  (constraint track_width (min {min_w:.3f}mm)))\n")
+    if dru.is_file():
+        txt = dru.read_text()
+        if f"(rule {name}\n" in txt:
+            return
+        sep = "" if txt.endswith("\n") else "\n"
+        dru.write_text(txt + sep + rule)
+    else:
+        dru.write_text("(version 1)\n" + rule)
 
 
 @stitch_pass("stub_fallback")

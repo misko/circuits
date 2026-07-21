@@ -328,6 +328,9 @@ class BoardBuilder:
         self.out.parent.mkdir(parents=True, exist_ok=True)
         self.board.Save(str(self.out))
         self.write_waiver()
+        # emit fp-lib-table when configured (no-op otherwise). Kept OUT of the
+        # save path above so a board without the config is unaffected.
+        self.write_fp_lib_table()
         self.say(f"saved {self.out.name}: {placed} parts, {len(self.holes)} holes")
         return self.board
 
@@ -853,6 +856,7 @@ class BoardBuilder:
         if not self.cfg.get("project", {}).get("fp_lib_table"):
             return
         path = self._p(self.cfg["project"]["fp_lib_table"])
+        prjdir = path.parent.resolve()          # ${KIPRJMOD} == the pro dir
         rows = []
         for lib in sorted(self.res.used_libs):
             uri = None
@@ -865,6 +869,22 @@ class BoardBuilder:
                     break
             if uri and uri.startswith(STD_FP_ROOT):
                 uri = uri.replace(STD_FP_ROOT, "${KICAD9_FOOTPRINT_DIR}")
+            elif uri and os.path.isabs(uri):
+                # A PROJECT-LOCAL lib (e.g. 03_src/lib/pod.pretty) must be
+                # ${KIPRJMOD}-relative, never absolute: contract 04_kicad
+                # "fp-lib-table has no absolute paths" / project-structure.md
+                # "use ${KIPRJMOD} for local libs". Absolute paths break the
+                # instant a repo is cloned or the board moves. Only rewrite
+                # libs UNDER the project tree; a stray absolute system path
+                # stays as-is (and the contract check will still catch it).
+                try:
+                    inside = Path(uri).resolve().is_relative_to(self.base.resolve())
+                except AttributeError:                          # py<3.9
+                    inside = str(Path(uri).resolve()).startswith(
+                        str(self.base.resolve()) + os.sep)
+                if inside:
+                    relp = os.path.relpath(Path(uri).resolve(), prjdir)
+                    uri = "${KIPRJMOD}/" + relp.replace(os.sep, "/")
             rows.append(f'  (lib (name "{lib}")(type "KiCad")(uri "{uri}")'
                         f'(options "")(descr ""))')
         path.parent.mkdir(parents=True, exist_ok=True)
