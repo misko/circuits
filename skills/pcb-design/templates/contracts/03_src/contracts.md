@@ -9,11 +9,14 @@ Everything in `04_kicad/` and `06_build/` is derived from here plus
 **Mutability** — hand-edited.
 
 **Where the generators live** — the heavy pipeline scripts are SHARED and live
-in the skill, `skills/kicad-pcb/scripts/`, NOT in this folder. A board does not
-carry its own `generate_board.py` / `route_prep.py` / `stitch_and_fill.py`
-anymore (those bespoke generators are RETIRED — ADR-0002 / generic backend,
-2026-07-20). `03_src/` holds the board-specific **config** the shared scripts
-consume, plus a few small per-board emitters/gates.
+in the skill, `skills/kicad-pcb/scripts/`, NOT in this folder: `generate_board_generic.py`,
+`route_and_stitch_generic.py`, and `generate_rules_generic.py`. A board does not
+carry its own `generate_board.py` / `route_prep.py` / `stitch_and_fill.py` /
+`generate_rules.py` anymore (those are RETIRED — ADR-0002 / generic backend,
+2026-07-20; `generate_rules` was promoted to the shared emitter after a
+clean-room run proved its logic is 100% board-independent). `03_src/` holds the
+board-specific **config** the shared scripts consume, plus exactly ONE small
+per-board gate: `audit_board.py` (board-specific placement/pad invariants).
 
 ## Allowed
 
@@ -21,10 +24,9 @@ consume, plus a few small per-board emitters/gates.
 |---|---|---|
 | `floorplan.yaml` | placement config: outline, mounting holes, named regions, anchors, `repeat:` banks, keepouts, zones, silk, orientation asserts | SHARED `generate_board_generic.py` |
 | `route.yaml` | routing + stitch config: KRT prep/route/import order, pours, thermal vias, pad-rescue | SHARED `route_and_stitch_generic.py` (`prep`/`route`/`import`/`stitch`) |
-| `rules/` | `nets.yaml` (netclasses + ampacity), `policy_waivers.yaml`, `twin_adjudications.yaml` — see `rules/contracts.md` | `generate_rules.py`, policy_audit, jlc_twin |
+| `rules/` | `nets.yaml` (netclasses + ampacity), `policy_waivers.yaml`, `twin_adjudications.yaml` — see `rules/contracts.md` | SHARED `generate_rules_generic.py`, policy_audit, jlc_twin |
 | `route/` | the PROMOTED KRT chain (`*.kicad_pcb`) — a committed ARTIFACT, not code (canon M3); `import` replays it deterministically | SHARED `route_and_stitch_generic.py import` |
-| `generate_rules.py` | the ONLY per-board emitter: writes netclasses into `.kicad_pro` + width floors into `.kicad_dru` from `rules/nets.yaml`. A rules gate, not a generator. | — |
-| `audit_board.py` | the placement/pad invariant gate (polarity, proximity, plane-clean, refdes-on-silk, board-specific guards) | — |
+| `audit_board.py` | the ONLY per-board emitter: the placement/pad invariant gate (polarity, proximity, plane-clean, refdes-on-silk, and any BOARD-SPECIFIC guard e.g. an analog-keepout distance). Everything else is config or shared. | — |
 | `bom_seed.py` | maps BOM comments → `02_parts/` MPN → LCSC; fails on unmapped/TBD lines | required before ordering |
 | `rebuild_all.sh` | THE entry point: thin driver that calls the SHARED generics in canonical order, `set -euo pipefail` | REQUIRED |
 | `export_pdfs.sh` | release PDF set (pcb_layers, assembly) + PNG verification renders | |
@@ -44,11 +46,11 @@ agent runs it FIRST. `$S` = `skills/kicad-pcb/scripts` (resolved repo-relative,
 | 2 | ERC gate `kicad-cli sch erc --severity-all` = 0 errors + netlist-parity gate | `kicad-cli` |
 | 3 | `$S/generate_board_generic.py 03_src/floorplan.yaml -o 04_kicad/<board>.kicad_pcb` (placement + zones) | `/usr/bin/python3` |
 | 4 | `03_src/audit_board.py` (placement/pad invariants) | `/usr/bin/python3` |
-| 5 | `03_src/generate_rules.py` — netclasses BEFORE route-prep (canon R1) | any python3 |
+| 5 | `$S/generate_rules_generic.py .` — netclasses BEFORE route-prep (canon R1) | any python3 |
 | 6 | `$S/route_and_stitch_generic.py prep 03_src/route.yaml` (netclass-carrying, track-free route input) | `/usr/bin/python3` |
 | 7 | `$S/route_and_stitch_generic.py import 03_src/route.yaml` (replay the promoted `route/` chain — canon M3) | `/usr/bin/python3` |
 | 8 | `$S/route_and_stitch_generic.py stitch 03_src/route.yaml` (pours + thermal vias); verdict must be `gate: clean` | `/usr/bin/python3` |
-| 9 | `03_src/generate_rules.py` — ALWAYS LAST (pcbnew saves clobber `.kicad_pro` netclasses) | any python3 |
+| 9 | `$S/generate_rules_generic.py .` — ALWAYS LAST (pcbnew saves clobber `.kicad_pro` netclasses) | any python3 |
 | 10 | DRC gate `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity` = 0/0/0 | `kicad-cli` |
 
 **External prerequisites** (nothing else):
@@ -60,8 +62,9 @@ agent runs it FIRST. `$S` = `skills/kicad-pcb/scripts` (resolved repo-relative,
 ## Forbidden
 
 - **A per-board `generate_board.py` / `route_prep.py` / `route_waves.sh` /
-  `stitch_and_fill.py`.** These are the RETIRED bespoke generators; the shared
-  generics replace them. If the generic backend genuinely cannot express
+  `stitch_and_fill.py` / `generate_rules.py`.** These are the RETIRED bespoke
+  generators; the shared generics replace them (`generate_rules_generic.py` is
+  the shared rules emitter — do not hand-copy it back in). If the generic backend genuinely cannot express
   something, that is a backend gap (a hooks entry-point candidate) — report it,
   do not hand-write a parallel backend. Every 03_src/generate_board.py was 290–780
   lines the product exists to delete.
@@ -106,8 +109,8 @@ agent runs it FIRST. `$S` = `skills/kicad-pcb/scripts` (resolved repo-relative,
 4. every remaining `*.py`/`*.sh` in `03_src/` is either in the Allowed table
    above or invoked by `rebuild_all.sh` (`grep <name> 03_src/rebuild_all.sh`).
 5. no script writes to `07_releases/`.
-6. `.kicad_dru`/`.kicad_pro` netclasses match what `generate_rules.py` emits
-   from `rules/nets.yaml` (regenerate and diff — drift means a hand-edited
+6. `.kicad_dru`/`.kicad_pro` netclasses match what `generate_rules_generic.py`
+   emits from `rules/nets.yaml` (regenerate and diff — drift means a hand-edited
    generated file).
 
 ## Repair
