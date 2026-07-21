@@ -33,6 +33,9 @@ tiers:
     min_space: 0.127
     min_via_diameter: 0.6     # the value the route.yaml templates carry
     min_via_drill: 0.3
+    min_hole_to_hole: 0.5     # JLC published hole-to-hole floor — the binding
+                              # constraint for adjacent-pin escape vias
+                              # (ADR-0008: 0.65mm pitch - 0.3 drill = 0.35 < 0.5)
     via_in_pad: false
     min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
     min_silk_stroke: 0.15       # JLC capability page — verify at order time
@@ -45,6 +48,8 @@ tiers:
     min_space: 0.127
     min_via_diameter: 0.45    # JLC no-fee multilayer via 0.45/0.3
     min_via_drill: 0.3
+    min_hole_to_hole: 0.5     # JLC published — binds adjacent-pin escape vias
+                              # (usb-pwr-hub-3s ADR-0008, 2026-07-21)
     via_in_pad: false
     min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
     min_silk_stroke: 0.15       # JLC capability page — verify at order time
@@ -60,6 +65,7 @@ tiers:
     min_space: 0.09
     min_via_diameter: 0.25
     min_via_drill: 0.15
+    min_hole_to_hole: 0.25    # JLC advanced-option floor — verify at order time
     via_in_pad: true          # POFV: resin-filled + capped, paid option
     min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
     min_silk_stroke: 0.15       # JLC capability page — verify at order time

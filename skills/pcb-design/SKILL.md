@@ -84,6 +84,19 @@ hard-won traps; this skill is the orchestration layer only.
      too). A 0.4-0.5mm-pitch QFN is a PACKAGE decision, never a router
      problem. ENFORCED: `policy_audit` P-ESC fails any multi-pin part
      without a block or whose block disagrees with recomputation.
+     **ESCAPE BUDGET for dense LEADED packages (ADR-0008, usb-pwr-hub-3s
+     2026-07-21):** "leaded = outward escape" is only half the check. At
+     <=0.65mm pitch, COUNT the escapes per side: when one side carries >=6,
+     some signals must cross or drop layers, and adjacent-pin escape vias
+     are bound by the tier's `min_hole_to_hole` (fab_tiers.yaml) — at
+     standard tier, 0.65 pitch − 0.3 drill = 0.35mm hole gap < the 0.5mm
+     floor: NO via fits between adjacent pins. Record the loaded side's
+     escape count in the part.yaml escape block; at placement (D-ADJ)
+     reserve an explicit ESCAPE CORRIDOR on that side (open copper,
+     staggered via rows at >=2x pitch) — or pick advanced tier / a
+     wider-pitch part. (escape_check calibration for this class is pending
+     the ADR-0008 board's measured outcome — do not trust "leaded: ok"
+     alone for dense sides.)
    - **D-TIER, fab tier is a COST CEILING declared at commission.**
      `03_src/rules/nets.yaml` `fab_tier:` names a tier from
      `fab_tiers.yaml` and defaults to the CHEAPEST plausible tier;
