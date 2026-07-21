@@ -521,6 +521,62 @@ def t_kb_stitch_via_below_tier():
               "jlc_4layer_standard")
 
 
+# ================================ NETCLASS-DERIVED WAVE WIDTHS (item 1) ==
+def declare_classes(d):
+    """A nets.yaml whose classes floor the pwr wave's nets at 0.4mm — the
+    SAME file generate_rules_generic emits the .kicad_dru floors from."""
+    (d / "03_src" / "rules").mkdir(parents=True, exist_ok=True)
+    (d / "03_src" / "rules" / "nets.yaml").write_text(
+        "classes:\n"
+        "  PWR:\n"
+        "    nets: [5V, 3V3]\n"
+        "    min_width: 0.4mm\n")
+
+
+@test("a wave with NO track_width derives it from the member nets' "
+      "netclass floor")
+def t_wave_width_derived():
+    """The v4 usb-hub-3s first DRC carried 157 track_width findings: waves
+    routed at widths the netclass .kicad_dru floors reject, because nothing
+    derived the KRT width from the class the nets were already declared in.
+    With the pwr wave's track_width ABSENT, the KRT command line must carry
+    the PWR class floor (0.4); the classless sig wave keeps its explicit
+    width untouched."""
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        declare_classes(d)
+        for wv in cfg["route"]["waves"]:
+            if wv["name"] == "pwr":
+                wv.pop("track_width", None)
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_pass(run([sys.executable, RS, "route", p]), "route (stub KRT)")
+    calls = krt_calls(d / "krt")
+    eq(calls[1][calls[1].index("--track-width") + 1], "0.4",
+       "the pwr wave's derived netclass-floor width")
+    eq(calls[2][calls[2].index("--track-width") + 1], "0.25",
+       "the classless sig wave's explicit width")
+
+
+@test("a wave configured BELOW its member nets' class floor fails PREP "
+      "naming the class", kind="known_bad")
+def t_kb_wave_width_below_class():
+    """The silent ride-under: an explicit wave width below a member net's
+    netclass floor routes the whole class thin, and every segment becomes a
+    track_width DRC finding after the KRT cycle is already spent (the v4
+    composition: 157 of 648). Must die at PREP, naming the class.
+    RED-verified against the pre-fix router (git stash swap, 2026-07-21):
+    the old prep accepts the sub-floor wave and exits 0."""
+    def mutate(cfg, d):
+        declare_classes(d)
+        for wv in cfg["route"]["waves"]:
+            if wv["name"] == "pwr":
+                wv["track_width"] = 0.2            # PWR floor is 0.4
+    d, p = scratch(mutate)
+    r = must_fail(prep(p), "prep with a sub-class-floor wave width", "PWR")
+    contains(r.out, "min_width 0.4", "the failure must cite the floor")
+
+
 # ================================================== TAPS (canon M8) ======
 # A tiny 2-layer board: two SIG pads 20mm apart, plus optional other-net
 # blocking strips so strategy 1 (same-layer join) can be forced to fail and

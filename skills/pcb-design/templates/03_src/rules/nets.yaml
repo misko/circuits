@@ -14,6 +14,12 @@
 # silent clamp); route_and_stitch_generic derives missing via_size/via_drill/
 # clearance from the tier and rejects explicit sub-floor values; and
 # generate_board_generic floors silk text heights at min_silk_text_height.
+#
+# `classes` below are ALSO the width source for the router: a route.yaml
+# wave with no track_width derives it from its member nets' class floors
+# (largest member floor wins), and an explicit wave width below a member's
+# floor is a hard error at route-prep naming the class. One source — the
+# router can no longer disagree with the .kicad_dru gate this file emits.
 fab_tier: jlc_2layer_default   # 0.6/0.3 vias, no advanced option
 
 classes:

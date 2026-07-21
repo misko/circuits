@@ -60,6 +60,13 @@ route:
     # hole-to-hole fab floor; 0.21 forces centres to 0.81 -> drill gap 0.51
     clearance: 0.21
   waves:
+    # track_width may be OMITTED: it then DERIVES from the wave's member
+    # nets' netclass floors (rules/nets.yaml `classes` min_width — the same
+    # source the .kicad_dru gate is generated from), using the LARGEST
+    # member floor so no net rides under its class. An EXPLICIT width below
+    # a member net's class floor is a hard error at PREP naming the class —
+    # never a silent ride-under (v4 usb-hub-3s first DRC: 157 track_width
+    # findings, all waves routed below their class floors, 2026-07-21).
     # HARDEST FIRST (golden rule 4): bridge nets claim the guarded west side
     - {name: an,  group: an,  track_width: 0.5,  keepout_layer: User.3,
        max_iterations: 400000}

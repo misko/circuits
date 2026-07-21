@@ -44,6 +44,9 @@ LOAD-BEARING ORDER (each deviation reintroduces a debugged failure):
 HARD ERRORS (never silent):
   * prep on a board that still has tracks or filled zones
   * prep when the route input would carry no netclasses (canon R1)
+  * a wave whose EXPLICIT track_width is below a member net's netclass
+    floor (nets.yaml classes) — a missing width DERIVES from the largest
+    member floor instead, so a wave cannot ride under its class
   * a KRT wave naming a net the board does not have
   * a KRT wave exiting nonzero
   * any stitch pass falling short of its configured `min` / `require`
@@ -131,6 +134,72 @@ def fab_tier(cfg):
         except FabTierError as e:
             die(str(e))
     return cfg["_tier"]
+
+
+# ------------------------------------------------- netclass width floors
+def net_class_floors(cfg):
+    """{net: (class_name, min_width_mm)} from the project's
+    03_src/rules/nets.yaml `classes` — the SAME source generate_rules_generic
+    emits the .kicad_dru width floors from, so the router and the DRC gate
+    cannot disagree (the v4 board's 157 track_width findings were exactly
+    that disagreement: waves routed at widths the netclass floors reject).
+    Cached on the cfg dict; empty when the project declares no classes."""
+    if "_class_floors" not in cfg:
+        floors = {}
+        p = cfg["_root"] / "03_src" / "rules" / "nets.yaml"
+        if p.is_file():
+            d = yaml.safe_load(p.read_text()) or {}
+            for cname, c in (d.get("classes") or {}).items():
+                c = c or {}
+                w = c.get("min_width")
+                if w is None:
+                    continue
+                w = float(str(w).strip().lower().replace("mm", "").strip())
+                for net in c.get("nets") or []:
+                    floors[str(net)] = (cname, w)
+        cfg["_class_floors"] = floors
+    return cfg["_class_floors"]
+
+
+def wave_track_width(cfg, wname, nets, explicit):
+    """The track width a wave must route at, derived from its member nets'
+    netclass floors. Returns the width to pass to KRT, or None (no floor and
+    no explicit width — KRT's default is fine for classless nets).
+
+    * missing width -> the LARGEST member floor (the minimum LEGAL width for
+      the whole wave: any thinner and some member rides under its class).
+    * an EXPLICIT width below a member net's class floor is a HARD ERROR
+      naming the class — never a silent ride-under. The stitcher's
+      width_floor pass could lift it post-route, but by then KRT has spent
+      its clearance budget on a geometry the DRC gate will reject."""
+    need = None                      # (floor, class, net) of the max floor
+    for n in nets:
+        f = net_class_floors(cfg).get(n)
+        if f and (need is None or f[1] > need[0]):
+            need = (f[1], f[0], n)
+    if explicit is not None:
+        if need and float(explicit) < need[0] - 1e-9:
+            die(f"route wave {wname!r} track_width {explicit} is below "
+                f"netclass {need[1]!r} min_width {need[0]} (member net "
+                f"{need[2]!r}) — the wave would route the class under its "
+                f"ampacity floor and every segment becomes a track_width "
+                f"DRC finding (157 of them on the v4 usb-hub-3s board, "
+                f"2026-07-21). Raise the wave width, or re-class the net")
+        return float(explicit)
+    return need[0] if need else None
+
+
+def check_wave_widths(cfg, groups):
+    """Validate every route.waves entry against the netclass floors, at PREP
+    time — before any KRT cycle is spent. `groups` is wave_nets() output."""
+    common_tw = get(cfg, "route.common.track_width")
+    for i, wv in enumerate(get(cfg, "route.waves", []) or [], 1):
+        name = wv.get("name", f"w{i}")
+        nets = wv.get("nets")
+        if nets is None:
+            nets = groups.get(wv.get("group", name)) or []
+        wave_track_width(cfg, name, list(nets),
+                         wv.get("track_width", common_tw))
 
 
 # config key -> the fab_tiers.yaml floor it must respect
@@ -303,6 +372,9 @@ def cmd_prep(cfg):
     _rules_ride_along(cfg, src, out)
 
     groups = wave_nets(cfg, board_nets(b))
+    # wave widths vs netclass floors, HERE — a sub-floor wave must fail
+    # prep, not surface as a track_width batch after the KRT cycle is spent
+    check_wave_widths(cfg, groups)
     for name, nets in groups.items():
         (build / f"nets_{name}.txt").write_text(" ".join(nets) + "\n")
     print(f"wrote {out} + " + ", ".join(
@@ -428,6 +500,12 @@ def cmd_route(cfg):
         opts.update({k: v for k, v in wv.items()
                      if k not in ("name", "nets", "group")})
         tier_geometry(opts, tier, f"route.waves[{name}]", derive=False)
+        # track width DERIVES from the wave's netclass floors when absent;
+        # an explicit sub-floor width died at prep, and dies again here in
+        # case route ran on a stale prep.
+        tw = wave_track_width(cfg, name, list(nets), opts.get("track_width"))
+        if tw is not None:
+            opts["track_width"] = tw
         cmd = ([py, str(krt / "route.py"), str(cur), "--output", str(nxt)]
                + _krt_args(opts) + ["--nets"] + list(nets))
         print(f"\n=== wave {name}: {len(nets)} nets ===\n  "
