@@ -42,7 +42,7 @@ with NO per-board adapter — the five Phase-3 adapter transforms are folded in 
   4. TP BOM ATTRS. Test-point symbols are `in_bom no` (matching the KiCad
      TestPoint footprint) with a concise `TP` Value that won't clip the board edge.
 Proven: cook-loadcell drives the whole backend to DRC 0/0/0 + board parity 0 from
-this output ALONE (projects/cook-loadcell/03_tscircuit/backend_proof/build_from_tsx.sh).
+this output ALONE (evidence snapshot: examples/tsx-backend-proof/).
 
 Connectivity resolution (validated node-for-node vs the sealed KiCad boards):
   * NET per port: group by `source_net.subcircuit_connectivity_map_key`

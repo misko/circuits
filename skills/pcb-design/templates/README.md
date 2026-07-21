@@ -13,6 +13,13 @@ design source on 2026-07-20; the fix is that the skill carries its own canon.
 - `03_src/{floorplan.yaml,route.yaml,rules/nets.yaml}` → annotated SCHEMA
   EXAMPLES for the generic backend's config. The **keys are the contract**; the
   values are placeholders adopted from a proven board — replace them.
+- `01_docs/{BRIEF,ARCHITECTURE,CHANGELOG,CHECKLIST}.md` +
+  `01_docs/decisions/0000-example-adr.md` → starter skeletons for the design
+  docs (fill, never leave placeholder text in a committed project).
+- `project.gitignore` → the new project's `.gitignore` (ignores `06_build/`
+  per the root contract).
+- Sub-stage contracts nest under `contracts/` exactly as they land in the
+  project (`contracts/01_docs/decisions/`, `contracts/03_src/{lib,rules}/`).
 
 ## Commission a new board (what the SKILL does)
 
@@ -24,6 +31,13 @@ cp <skill>/templates/contracts/ROOT.contracts.md  projects/<name>/contracts.md
 cp <skill>/templates/03_src/floorplan.yaml         projects/<name>/03_src/floorplan.yaml
 cp <skill>/templates/03_src/route.yaml             projects/<name>/03_src/route.yaml
 cp <skill>/templates/03_src/rules/nets.yaml        projects/<name>/03_src/rules/nets.yaml
+cp <skill>/templates/01_docs/*.md                  projects/<name>/01_docs/
+cp <skill>/templates/01_docs/decisions/0000-example-adr.md projects/<name>/01_docs/decisions/
+cp <skill>/templates/project.gitignore             projects/<name>/.gitignore
+# nested sub-stage contracts land at the same relative paths:
+cp <skill>/templates/contracts/01_docs/decisions/contracts.md projects/<name>/01_docs/decisions/
+cp <skill>/templates/contracts/03_src/lib/contracts.md        projects/<name>/03_src/lib/
+cp <skill>/templates/contracts/03_src/rules/contracts.md      projects/<name>/03_src/rules/
 ```
 
 Then derive the board: fill `01_docs`, author `03_tscircuit`, and replace the

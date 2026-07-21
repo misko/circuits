@@ -61,6 +61,18 @@ post-mortems — `git log` is a primary source, not just history).
   a judgement — it is an inherited defect (this happened to the refdes-on-silk
   rule across three boards).
 
+## Structure governance
+
+- **Every folder is governed by a `contracts.md`** (its own, or the nearest
+  ancestor's via explicit patterns) stating permitted names, how to audit,
+  and expected structure. Machine-checked: `/usr/bin/python3
+  scripts/contracts_audit.py` (run by the test suite). Root `contracts.md`
+  states the coverage rule.
+- **Skills never reference `projects/` paths.** Worked evidence a skill
+  cites lives in `examples/` (append-only snapshots with PROVENANCE.md);
+  project templates live in `skills/pcb-design/templates/` — one home each,
+  no drift. Enforced as C-ISO by the same audit.
+
 ## Mechanics
 
 - Use `/usr/bin/python3` for anything importing `pcbnew`.

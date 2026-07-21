@@ -170,7 +170,7 @@ few `unconnected_wire_endpoint` stubs, and any named-NC single-pin `isolated_pin
 The same converter output that clears the netlist-parity gate now drives the FULL
 KiCad backend (generate_board → rules → KRT → stitch → DRC `--schematic-parity`) to
 DRC 0/0/0 with **no per-board adapter** — proven on cook-loadcell
-(`projects/cook-loadcell/03_tscircuit/backend_proof/build_from_tsx.sh`, board parity 0
+(evidence snapshot: `examples/tsx-backend-proof/`, board parity 0
 vs the sealed board). The converter fills the four things the backend needs that the
 parity gate never inspects:
 
@@ -228,7 +228,8 @@ sets the origin to that outline's bbox center (drops the TSX-authored placement
 into the certified board frame). Missing placement / FPID is a hard error.
 
 **It is a SEED, not a finished board — our audit + legalize + route certify it.**
-The measured two-seed result on cook-loadcell (`placement_proof/NOTES.md`):
+The measured two-seed result on cook-loadcell (evidence snapshot:
+`examples/tsx-placement-proof/NOTES.md`):
 
 - **tscircuit's AUTO-placement is unusable as a seed** (golden rule 7 at scale):
   the raw auto-layout throws **11 audit failures** (4 decoupler-proximity, 7

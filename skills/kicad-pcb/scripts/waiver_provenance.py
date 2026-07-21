@@ -9,8 +9,8 @@ WHY THIS EXISTS (incident, 2026-07-20). Canon M4 says every waiver carries the
 measurement that justifies it, and `policy_audit.py` enforces that a waiver has
 a `why` of some length. Nothing enforced that the `why` was about THIS BOARD.
 
-The audit that found it: `projects/lipo3s-tsc/03_src/rules/policy_waivers.yaml`
-is BYTE-IDENTICAL to `projects/usb-power-3s/03_src/rules/policy_waivers.yaml` —
+The audit that found it: lipo3s-tsc's policy_waivers.yaml
+is BYTE-IDENTICAL to usb-power-3s's (03_src/rules/policy_waivers.yaml) —
 including a header sentence that names the other project as its subject
 ("usb-power-3s released v1.1-2026-07-16..."), and four waivers citing
 usb-power-3s's release dates, route inputs r0..r6 and its 96 F.Fab refdes as
