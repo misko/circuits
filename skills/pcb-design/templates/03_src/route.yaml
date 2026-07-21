@@ -138,6 +138,10 @@ stitch:
     # NON-FATAL: a pad whose via sites are blocked by a B.Cu track underneath
     # is still served by top-pour thermal spokes at fill. The DRC unconnected
     # gate is the arbiter.
+    # NOTE: a pad already served by its footprint's OWN thermal via grid
+    # (same-net PTH pads inside the SMD pad outline — HTSSOP/QFN EPs) is
+    # SKIPPED automatically: a rescue via stacked on the grid is a
+    # hole_to_hole clash (3S clean-room cleanup_vias.py part 1 incident).
     require: none
   stub_fallback: {net: GND, min_dist: 0.2, max_dist: 8.0, width: 0.3}
   astar_fallback: {net: GND, width: 0.25, window: 3.0, attempts: 3}
@@ -148,3 +152,12 @@ stitch:
     # OUT of the guarded analog rect — the bridge corner stays quiet
     avoid: [{x0: 20.0, y0: 26.0, x1: 44.0, y1: 58.0, margin: 1.0}]
   island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu], require: all}
+  # EPILOGUE (recommended for 4-layer/plane boards): after the final fill,
+  # prune vias THE STITCHER ITSELF emitted that ended up with same-net copper
+  # on <2 layers — the `via_dangling` DRC class. Tests the FILLED polys
+  # (via_janitor only credits zone OUTLINES, so a via in a fill void passes
+  # janitor and still dangles — 3S clean-room cleanup_vias.py stray-via
+  # deletions). Never touches imported-route or footprint vias. Add it to
+  # `passes` after the last `fill`:
+  #   passes: [..., fill, island_rescue, fill, prune_stitch_dangling, gate]
+  # prune_stitch_dangling: {tol: 0.05, min_layers: 2}

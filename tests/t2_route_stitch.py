@@ -680,7 +680,9 @@ def plane(net, layer):
 plane(nets["GND"], pcbnew.In1_Cu); plane(nets["VIN"], pcbnew.In2_Cu)
 n=0
 for netname, pads in cfg.items():
-    for (x,y) in pads:
+    for entry in pads:
+        x, y = float(entry[0]), float(entry[1])
+        thermal = len(entry) > 2 and entry[2] == "thermal"
         n+=1; fp=pcbnew.FOOTPRINT(b); fp.SetReference("U%d"%n)
         fp.SetPosition(pcbnew.VECTOR2I_MM(x,y))
         p=pcbnew.PAD(fp); p.SetShape(pcbnew.PAD_SHAPE_RECT)
@@ -688,6 +690,18 @@ for netname, pads in cfg.items():
         p.SetSize(pcbnew.VECTOR2I_MM(1.2,1.2)); p.SetLayerSet(pcbnew.PAD.SMDMask())
         p.SetPosition(pcbnew.VECTOR2I_MM(x,y)); p.SetNumber("1"); p.SetNet(nets[netname])
         fp.Add(p); b.Add(fp)
+        if thermal:
+            # a footprint-native thermal via grid INSIDE the SMD pad outline
+            # (the 3S clean-room HTSSOP-20 EP shape, scaled down)
+            for k, dx in enumerate((-0.3, 0.3)):
+                q=pcbnew.PAD(fp); q.SetShape(pcbnew.PAD_SHAPE_CIRCLE)
+                q.SetAttribute(pcbnew.PAD_ATTRIB_PTH)
+                q.SetSize(pcbnew.VECTOR2I_MM(0.6,0.6))
+                q.SetDrillSize(pcbnew.VECTOR2I_MM(0.3,0.3))
+                q.SetLayerSet(pcbnew.PAD.PTHMask())
+                q.SetPosition(pcbnew.VECTOR2I_MM(x+dx,y))
+                q.SetNumber("%d"%(100+k)); q.SetNet(nets[netname])
+                fp.Add(q)
 b.Save(out)
 '''
 
@@ -807,6 +821,131 @@ def t_kb_stub_floor_scoped():
     check(on["track_width"] == 0,
           f"the plane-drop stub was NOT scoped out of the floor: "
           f"{on['track_width']} track_width violation(s)")
+
+
+@test("pad_rescue SKIPS a pad already served by its footprint's own thermal "
+      "via grid (zero rescue vias)")
+def t_pad_rescue_thermal_grid_skip():
+    """Footprints with built-in thermal via grids carry same-net PTH pads
+    inside the SMD pad outline; their barrels already bond the pad to the
+    plane. Pre-fix, pad_rescue's has_via() only saw TRACK vias, so it dropped
+    its own via on/next to the grid — the stacked drills the 3S clean-room
+    run's cleanup_vias.py part 1 existed to delete post-hoc (hole_to_hole).
+    Property: the grid-served pad gains ZERO rescue vias and still verifies
+    connected. RED-VERIFIED against the pre-fix stitcher (git stash swap,
+    2026-07-21): the old code emits 1 GND rescue via and this test fails."""
+    d, p, board = four_layer_scratch(
+        {"GND": [[7, 15, "thermal"]]},
+        {"nets": [{"net": "GND", "layer": "In1.Cu"}],
+         "via_in_pad": True, "require": "all"})
+    must_pass(stitch(p), "pad rescue over a thermal grid")
+    eq(via_nets(board).get("GND", 0), 0,
+       "a grid-served pad must gain ZERO rescue vias")
+    counts = drc_counts(board)
+    eq(counts["unconnected"], 0, "the grid must genuinely serve the pad")
+
+
+# ================================== DANGLING STITCH-VIA PRUNING (item 9) ==
+# A 2-layer synthetic board whose GND pour exists on ONE or BOTH layers: a
+# stitch via over a single-layer pour connects on one layer only — the DRC
+# `via_dangling` class. via_janitor credits the zone OUTLINE, so only a
+# filled-poly test catches it (the 3S cleanup_vias.py stray-via deletions).
+_MK_POUR = r'''
+import pcbnew, sys, json
+out = sys.argv[1]; layers = json.loads(sys.argv[2])
+BX, BY = 30.0, 20.0
+b = pcbnew.BOARD()
+for (x1,y1),(x2,y2) in [((0,0),(BX,0)),((BX,0),(BX,BY)),((BX,BY),(0,BY)),((0,BY),(0,0))]:
+    s=pcbnew.PCB_SHAPE(b); s.SetShape(pcbnew.SHAPE_T_SEGMENT)
+    s.SetStart(pcbnew.VECTOR2I_MM(x1,y1)); s.SetEnd(pcbnew.VECTOR2I_MM(x2,y2))
+    s.SetLayer(pcbnew.Edge_Cuts); s.SetWidth(pcbnew.FromMM(0.1)); b.Add(s)
+gnd=pcbnew.NETINFO_ITEM(b,"GND"); b.Add(gnd)
+fp=pcbnew.FOOTPRINT(b); fp.SetReference("U1")
+fp.SetPosition(pcbnew.VECTOR2I_MM(4.0,10.0))
+p=pcbnew.PAD(fp); p.SetShape(pcbnew.PAD_SHAPE_RECT)
+p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
+p.SetSize(pcbnew.VECTOR2I_MM(1.2,1.2)); p.SetLayerSet(pcbnew.PAD.SMDMask())
+p.SetPosition(pcbnew.VECTOR2I_MM(4.0,10.0)); p.SetNumber("1"); p.SetNet(gnd)
+fp.Add(p); b.Add(fp)
+for lname in layers:
+    lay=getattr(pcbnew, lname.replace(".","_"))
+    z=pcbnew.ZONE(b); z.SetNet(gnd)
+    ls=pcbnew.LSET(); (getattr(ls,"AddLayer",None) or getattr(ls,"addLayer"))(lay)
+    z.SetLayer(lay); z.SetLayerSet(ls)
+    z.Outline().NewOutline()
+    for x,y in [(0.3,0.3),(BX-0.3,0.3),(BX-0.3,BY-0.3),(0.3,BY-0.3)]:
+        z.Outline().Append(pcbnew.VECTOR2I_MM(x,y))
+    b.Add(z)
+b.Save(out)
+'''
+
+
+def pour_scratch(layers, passes):
+    import yaml
+    d = tmpdir("t2_pour_")
+    (d / "03_src").mkdir()
+    (d / "04_kicad").mkdir()
+    (d / "06_build").mkdir()
+    board = d / "04_kicad" / "pour.kicad_pcb"
+    must_pass(run([KPY, "-c", _MK_POUR, board, json.dumps(layers)]),
+              "build pour board")
+    cfg = {"project": {"name": "pour", "board": "04_kicad/pour.kicad_pcb",
+                       "build_dir": "06_build"},
+           "stitch": {"clearance": 0.15,
+                      "via": {"size": 0.6, "drill": 0.3, "spacing": 0.62},
+                      "keepin": {"inset": 0.8}, "passes": list(passes),
+                      "stitch_grid": {"net": "GND", "x": [8, 28, 5],
+                                      "y": [5, 18, 5]}}}
+    p = d / "03_src" / "route.yaml"
+    p.write_text(yaml.safe_dump(cfg))
+    return d, p, board
+
+
+_PRUNE_PASSES = ("stitch_grid", "fill", "prune_stitch_dangling", "gate")
+
+
+@test("prune_stitch_dangling keeps vias that bond two filled pours (control)")
+def t_prune_keeps_bonded():
+    d, p, board = pour_scratch(["F.Cu", "B.Cu"], _PRUNE_PASSES)
+    r = must_pass(stitch(p), "stitch on a two-pour board")
+    contains(r.out, "pruned 0 dangling", "nothing should be pruned")
+    check(via_nets(board).get("GND", 0) > 0, "grid placed no vias to keep")
+
+
+@test("prune_stitch_dangling removes ONLY the stitcher's own single-layer "
+      "vias, never an imported one")
+def t_prune_scope():
+    """GND pour on F.Cu only: every grid via connects on one layer (the
+    via_dangling DRC class — janitor's OUTLINE credit passes it, the filled
+    polys do not). All stitch-emitted vias must go; a pre-existing
+    'imported' via at the same kind of site — equally dangling — must
+    SURVIVE, because imported-route/footprint vias are design intent.
+    RED-VERIFIED against the pre-fix stitcher (git stash swap, 2026-07-21):
+    the pass does not exist there and the config errors out."""
+    d, p, board = pour_scratch(["F.Cu"], _PRUNE_PASSES)
+    edit_board(board,
+               "n=b.FindNet('GND')\n"
+               "v=pcbnew.PCB_VIA(b)\n"
+               "v.SetPosition(pcbnew.VECTOR2I_MM(26.0,16.0))\n"
+               "v.SetWidth(pcbnew.FromMM(0.6))\nv.SetDrill(pcbnew.FromMM(0.3))\n"
+               "v.SetLayerPair(pcbnew.F_Cu,pcbnew.B_Cu)\n"
+               "v.SetNetCode(n.GetNetCode())\nb.Add(v)\n")
+    r = must_pass(stitch(p), "stitch on a one-pour board")
+    check("pruned 0 dangling" not in r.out,
+          "the single-layer grid vias were not pruned")
+    eq(via_nets(board).get("GND", 0), 1,
+       "exactly the imported via must survive")
+
+
+@test("prune_stitch_dangling REFUSES to run before fill", kind="known_bad")
+def t_kb_prune_before_fill():
+    """On an unfilled board every stitch via looks dangling — running the
+    pruner there would eat the whole grid and the board would still gate
+    clean."""
+    d, p, board = pour_scratch(["F.Cu", "B.Cu"],
+                               ("stitch_grid", "prune_stitch_dangling",
+                                "fill", "gate"))
+    must_fail(stitch(p), "prune before fill", "AFTER `fill`")
 
 
 def _fp_lib_scratch():

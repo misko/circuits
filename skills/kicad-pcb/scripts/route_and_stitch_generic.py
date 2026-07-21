@@ -629,6 +629,10 @@ class Ctx:
         self.failures = []
         self.counts = {}
         self.pending = []          # (ref, padnum) of pads still unserved
+        self.emitted = []          # (x, y) of vias THIS stitch run added —
+                                   # the only vias prune_stitch_dangling may
+                                   # touch (imported-route/footprint vias are
+                                   # someone's design intent, never ours)
         self.dirty = False         # a Remove() happened -> barrier required
         self._used = None
         self._pth = None
@@ -660,7 +664,8 @@ class Ctx:
         import json
         self.state_path().write_text(json.dumps(
             {"resume": resume, "counts": self.counts,
-             "failures": self.failures, "pending": self.pending}))
+             "failures": self.failures, "pending": self.pending,
+             "emitted": self.emitted}))
 
     def load_state(self):
         import json
@@ -671,6 +676,7 @@ class Ctx:
         self.counts = d.get("counts", {})
         self.failures = d.get("failures", [])
         self.pending = [tuple(x) for x in d.get("pending", [])]
+        self.emitted = [tuple(x) for x in d.get("emitted", [])]
         return int(d.get("resume", 0))
 
     def pads(self, pending):
@@ -755,6 +761,7 @@ class Ctx:
                                    drill=drill, **kw):
                 self.tk.add_via(x, y, net, size=size, drill=drill)
                 self.used.add((x, y))
+                self.emitted.append((x, y))
                 return True
         return False
 
@@ -1130,6 +1137,9 @@ def p_hole_to_hole(ctx, c):
                     if bad:
                         continue
                     vm.SetPosition(pcbnew.VECTOR2I_MM(nx, ny))
+                    okey = (round(mx, 2), round(my, 2))
+                    if okey in ctx.emitted:      # keep the emitted-via ledger
+                        ctx.emitted[ctx.emitted.index(okey)] = (nx, ny)
                     for t in ends:
                         for gget, gset in ((t.GetStart, t.SetStart),
                                            (t.GetEnd, t.SetEnd)):
@@ -1243,6 +1253,21 @@ def _rescue_one_net(ctx, c, netname, plane_layer, stub_boxes):
                     return True
         return False
 
+    # BUILT-IN THERMAL VIA GRIDS: a footprint EP often carries its own
+    # same-net PTH thermal pads INSIDE the SMD pad outline (the 3S clean-room
+    # HTSSOP-20 EP: 15 of them). Their plated barrels already bond the pad to
+    # the plane; a rescue via dropped on top stacks a new drill into the grid
+    # — the hole_to_hole clashes that board's cleanup_vias.py part 1 existed
+    # to delete post-hoc. A drilled same-net pad inside the outline = served.
+    drilled = [(p2.GetPosition(), p2.GetNetCode())
+               for fp2 in ctx.board.GetFootprints() for p2 in fp2.Pads()
+               if p2.GetDrillSize().x > 0]
+
+    def barrel_served(pad):
+        bb = pad.GetBoundingBox()
+        return any(nc2 == pad.GetNetCode() and bb.Contains(pos)
+                   for pos, nc2 in drilled)
+
     ok = tot = 0
     fails = []
     for fp in ctx.board.GetFootprints():
@@ -1252,7 +1277,7 @@ def _rescue_one_net(ctx, c, netname, plane_layer, stub_boxes):
             if p.GetDrillSize().x > 0 or p.GetNetname() != netname:
                 continue
             tot += 1
-            if has_via(p):
+            if has_via(p) or barrel_served(p):
                 ok += 1
                 continue
             px, py = p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
@@ -1475,6 +1500,12 @@ def p_astar(ctx, c):
         ctx.tk.via_site_ok = (lambda x, y, nc, size=None, drill=None,
                               _f=_orig[1], **kw:
                               _f(x, y, nc, size=vs, drill=vd, **kw))
+    def via_coords():
+        return {(round(t.GetPosition().x / 1e6, 2),
+                 round(t.GetPosition().y / 1e6, 2))
+                for t in ctx.board.GetTracks() if t.GetClass() == "PCB_VIA"}
+
+    before = via_coords()      # A* adds vias inside the toolkit — diff them
     still, fixed = [], 0
     try:
         for ref, p in ctx.pads(ctx.pending):
@@ -1494,6 +1525,7 @@ def p_astar(ctx, c):
     finally:
         ctx.tk.add_via, ctx.tk.via_site_ok = _orig
         ctx._used = None
+        ctx.emitted.extend(sorted(via_coords() - before))
     ctx.pending = still
     ctx.bump("astar_fallback", fixed)
     print(f"A* fallback: recovered {fixed}, {len(still)} left")
@@ -1613,6 +1645,83 @@ def p_janitor(ctx, c):
     ctx._used = None
     ctx.bump("janitor_removed", len(orphans))
     print(f"via janitor removed {len(orphans)} single-layer vias")
+
+
+@stitch_pass("prune_stitch_dangling")
+def p_prune_stitch_dangling(ctx, c):
+    """Epilogue: remove vias THIS STITCH RUN emitted that ended up with
+    same-net copper on fewer than 2 layers — the `via_dangling` DRC class.
+    via_janitor credits a zone by its OUTLINE, so a via inside the outline
+    but in a fill VOID (or over a plane region that belongs to another net)
+    passes janitor and still dangles after fill — the 3S clean-room run
+    deleted exactly these post-hoc in cleanup_vias.py. This pass therefore
+    runs AFTER `fill` and tests the FILLED polys.
+
+    SCOPE: only coordinates in the run's emitted-via ledger (try_via + the
+    A* fallback, carried across SWIG barriers in the resume state) are
+    candidates. Imported-route and footprint vias are somebody's design
+    intent — a dangling one there is a finding for DRC, not for deletion."""
+    pcbnew = ctx.pcbnew
+    tol = float(c.get("tol", 0.05))
+    minlay = int(c.get("min_layers", 2))
+    zones = [z for z in ctx.board.Zones() if not z.GetIsRuleArea()
+             and z.GetNetname()]
+    if zones and not any(z.IsFilled() for z in zones):
+        die("prune_stitch_dangling must run AFTER `fill` — on an unfilled "
+            "board every stitch via looks dangling and would be pruned")
+    emitted = ctx.emitted
+    if not emitted:
+        print("prune_stitch_dangling: no stitch-emitted vias this run")
+        return
+
+    def seg_d2(px, py, ax, ay, bx, by):
+        dx, dy = bx - ax, by - ay
+        L2 = dx * dx + dy * dy
+        t = 0 if L2 == 0 else max(0, min(1, ((px - ax) * dx + (py - ay) * dy) / L2))
+        return (px - ax - t * dx) ** 2 + (py - ay - t * dy) ** 2
+
+    dead = []
+    for v in [t for t in ctx.board.GetTracks() if t.GetClass() == "PCB_VIA"]:
+        vx, vy = v.GetPosition().x / 1e6, v.GetPosition().y / 1e6
+        if not any(abs(vx - ex) <= tol and abs(vy - ey) <= tol
+                   for ex, ey in emitted):
+            continue                        # not ours — never touch it
+        r2 = (v.GetWidth() / 2e6) ** 2
+        attach = set()
+        for t in ctx.board.GetTracks():
+            if t.GetClass() == "PCB_VIA" or t.GetNetCode() != v.GetNetCode():
+                continue
+            if seg_d2(vx, vy, t.GetStart().x / 1e6, t.GetStart().y / 1e6,
+                      t.GetEnd().x / 1e6, t.GetEnd().y / 1e6) <= r2:
+                attach.add(t.GetLayer())
+        for fp in ctx.board.GetFootprints():
+            for p in fp.Pads():
+                if p.GetNetCode() != v.GetNetCode():
+                    continue
+                bb = p.GetBoundingBox()
+                bb.Inflate(v.GetWidth() // 2)
+                if bb.Contains(v.GetPosition()):
+                    for lay in (pcbnew.F_Cu, pcbnew.B_Cu):
+                        if p.IsOnLayer(lay):
+                            attach.add(lay)
+        for z in zones:
+            if z.GetNetCode() != v.GetNetCode():
+                continue
+            for lay in z.GetLayerSet().Seq():
+                if lay in attach:
+                    continue
+                # FILLED polys, not the outline — the whole point
+                if z.IsFilled() and \
+                        z.GetFilledPolysList(lay).Contains(v.GetPosition()):
+                    attach.add(lay)
+        if len(attach) < minlay:
+            dead.append(v)
+    for v in dead:
+        ctx.remove(v)
+    ctx._used = None
+    ctx.bump("stitch_dangling_pruned", len(dead))
+    print(f"pruned {len(dead)} dangling stitch-emitted vias "
+          f"(of {len(emitted)} emitted)")
 
 
 @stitch_pass("fill")
