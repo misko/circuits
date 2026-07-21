@@ -37,3 +37,23 @@ classes:
     verify: DRC floor
 
 # Default 0.25: DAT, CLK, RATE_SEL, SH. GND = pours + stitch.
+
+# SCOPED FLOORS (canon M8 two-strike promotion: cook-hub u7_taps, then the
+# clean-room 3S append_sw_floor.py). A width relaxation that applies ONLY
+# inside a named board zone / rule area, emitted as a KiCad last-match
+# `insideArea('<zone>')` .kicad_dru rule AFTER the netclass floors — for
+# sense taps / thin backstops riding a pour-fed trunk class. `nets` scopes
+# the relaxation to the listed nets so an unrelated thin net crossing the
+# area keeps its own floor. `why` is REQUIRED (canon M4: a floor relaxation
+# without evidence is an inherited defect — generation fails without it),
+# and min_width must still be >= the declared tier's min_track (no scope
+# makes a sub-fab-floor track manufacturable).
+#
+# scoped_floors:
+#   - zone: sw_pour_zone          # zone or rule-area NAME on the board
+#     nets: [SW]                  # optional net scope (recommended)
+#     min_width: 0.3
+#     why: >
+#       U1 SW-sense taps ride inside the SW island; the 15A path is the
+#       POUR, the 0.3mm tracks are connectivity backstops (measured on
+#       usb-pwr-hub-3s: DRC track_width x2 without this, 0 with).

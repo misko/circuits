@@ -178,9 +178,56 @@ def main(argv=None):
     ns["netclass_patterns"] = patterns
     ns.setdefault("meta", {"version": 4})
 
+    # SCOPED FLOORS (canon M8 two-strike promotion, 2026-07-21). Second board
+    # needing a hand-appended insideArea width relaxation: cook-hub's u7_taps,
+    # then the clean-room 3S's append_sw_floor.py (sense taps riding a pour-fed
+    # SWITCH_NODE class inside 'sw_pour_zone'). The relaxation is now CONFIG:
+    #   scoped_floors:
+    #     - {zone: sw_pour_zone, nets: [SW], min_width: 0.3, why: "<evidence>"}
+    # Emitted AFTER the netclass rules so KiCad LAST-MATCH precedence lets the
+    # relaxation win only inside the named zone/rule-area (net-scoped when
+    # `nets` is given — an unrelated thin net crossing the area keeps its own
+    # floor, the stub-floor scoping lesson from 17f3c30). `why` is REQUIRED:
+    # a floor relaxation without evidence is an inherited defect (canon M4).
+    scoped_rules, scoped_names = [], set()
+    for i, sf in enumerate(nets.get("scoped_floors") or []):
+        sf = sf or {}
+        zone = sf.get("zone")
+        if not zone:
+            sys.exit(f"generate_rules_generic: scoped_floors[{i}] has no "
+                     f"`zone` — name the board zone/rule area it relaxes")
+        sw = mm(sf.get("min_width"))
+        if sw is None:
+            sys.exit(f"generate_rules_generic: scoped_floors[{i}] "
+                     f"(zone {zone}) has no min_width")
+        if not str(sf.get("why") or "").strip():
+            sys.exit(f"generate_rules_generic: scoped_floors[{i}] "
+                     f"(zone {zone}) has no `why` — a scoped floor is a "
+                     f"waived ampacity/width rule and needs EVIDENCE, not "
+                     f"just intent (canon M4)")
+        if tier is not None and sw < float(tier["min_track"]):
+            sys.exit(f"generate_rules_generic: scoped_floors[{i}] "
+                     f"(zone {zone}) min_width {sw}mm is below fab tier "
+                     f"'{tier['name']}' min_track {tier['min_track']}mm — "
+                     f"no scope makes that manufacturable")
+        rname = f"scoped_{zone}"
+        while rname in scoped_names:
+            rname += "_"
+        scoped_names.add(rname)
+        cond = f"A.insideArea('{zone}')"
+        snets = sf.get("nets") or []
+        if snets:
+            clause = " || ".join(f"A.NetName == '{n}'" for n in snets)
+            cond += f" && ({clause})"
+        scoped_rules.append(
+            f'(rule "{rname}"\n'
+            f'  (condition "{cond}")\n'
+            f'  (constraint track_width (min {sw}mm)))')
+    dru_rules += scoped_rules
+
     # PRESERVE foreign rules (e.g. stitch's pad_rescue_stubs sub-floor) so this
     # wholesale rewrite does not clobber them — emit them LAST for precedence.
-    generated_names = {f"{name}_width" for name in classes}
+    generated_names = {f"{name}_width" for name in classes} | scoped_names
     foreign = foreign_dru_rules(dru, generated_names)
 
     pro.write_text(json.dumps(proj, indent=2) + "\n")

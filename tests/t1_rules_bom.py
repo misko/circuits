@@ -142,6 +142,56 @@ def t_tier_clamp_fallback():
     contains(dru, "(min 0.25mm)", "legacy clamp must still lift 0.15 to 0.25")
 
 
+SF = {"zone": "sw_pour_zone", "nets": ["5V"], "min_width": "0.3mm",
+      "why": "sense taps ride the pour-fed trunk inside the island; the "
+             "current path is the pour (clean-room 3S append_sw_floor)"}
+
+
+@test("scoped_floors emits a last-match insideArea relaxation, net-scoped, "
+      "idempotent across the rules-LAST rerun")
+def t_scoped_floors_emitted():
+    """The clean-room 3S board hand-appended this exact rule with a bespoke
+    append_sw_floor.py (canon M8 second strike after cook-hub's u7_taps);
+    it is now nets.yaml config."""
+    proj, r = generic_rules_project(
+        lambda s: s.update({"scoped_floors": [dict(SF)]}))
+    must_pass(r, "generate_rules_generic with scoped_floors")
+    dru_p = proj / "04_kicad" / "cook_loadcell.kicad_dru"
+    txt = dru_p.read_text()
+    contains(txt, "A.insideArea('sw_pour_zone')", "scoped rule condition")
+    contains(txt, "A.NetName == '5V'", "net scope clause")
+    contains(txt, "(min 0.3mm)", "relaxed floor")
+    # last-match precedence: the relaxation must come AFTER the netclass rules
+    check(txt.index("scoped_sw_pour_zone") > txt.index("PWR_width"),
+          "scoped floor must be emitted after the netclass floors")
+    # rules-LAST rerun must not duplicate it through foreign-rule preservation
+    must_pass(run([PY, GEN_RULES, proj]), "generate_rules_generic rerun")
+    eq(dru_p.read_text().count("scoped_sw_pour_zone"), 1,
+       "scoped floor duplicated on rerun")
+
+
+@test("a scoped_floors entry with no `why` is a generation error (canon M4)",
+      kind="known_bad")
+def t_kb_scoped_floor_no_why():
+    """A floor relaxation copied without its evidence is an inherited defect
+    — the waiver-provenance incident (canon M4), applied at generation time."""
+    bad = {k: v for k, v in SF.items() if k != "why"}
+    proj, r = generic_rules_project(
+        lambda s: s.update({"scoped_floors": [bad]}))
+    must_fail(r, "scoped floor without evidence", "why")
+    contains(r.out, "M4", "the error must cite the evidence canon")
+
+
+@test("a scoped_floors min_width below the tier's min_track FAILS naming "
+      "the tier", kind="known_bad")
+def t_kb_scoped_floor_below_tier():
+    """scoped_floors may relax a NETCLASS floor, never the FAB's: no scope
+    makes a 0.1mm track manufacturable at a 0.127mm-min_track tier."""
+    proj, r = generic_rules_project(
+        lambda s: s.update({"scoped_floors": [dict(SF, min_width="0.1mm")]}))
+    must_fail(r, "scoped floor below the fab floor", "jlc_2layer_default")
+
+
 @test("an EXPLICIT class width below the declared tier's min_track FAILS "
       "naming the tier", kind="known_bad")
 def t_kb_width_below_tier_floor():
