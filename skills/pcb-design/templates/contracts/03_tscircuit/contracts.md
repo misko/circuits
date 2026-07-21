@@ -40,6 +40,7 @@ truncates it to 2 pins, and emits an unannotated sheet that netlists to 0 nets.
 | `README.md` | hand | what this board is + its authoring positioning |
 | `GENERATE.md` | hand | how to (re)generate — the one command |
 | `net_aliases.txt` | hand | `TSNAME CANONICAL` per line, for rails the strip-`N` convention can't reach. Auto-discovered |
+| `manifest.yaml` | hand | `components: [refdes, …]` — the AUTHOR'S declared part list, written with the tsx. The S-COUNT parity base: after a silent tsci drop every generated artifact agrees, only this file disagrees (`count_parity.py`) |
 | `parity_padmap.txt` | hand | documented per-board footprint pad-name deltas consumed by `kicad_sch_parity.py` |
 | `sealed_ref.txt` | hand | one line: the sealed parity reference board, if not `04_kicad/<board>.kicad_pcb` |
 | `build/circuit.json` | gen | tscircuit's canonical intermediate — the single source both audiences compile from |

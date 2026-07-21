@@ -31,6 +31,7 @@ per-board gate: `audit_board.py` (board-specific placement/pad invariants).
 | `rebuild_all.sh` | THE entry point: thin driver that calls the SHARED generics in canonical order, `set -euo pipefail` | REQUIRED |
 | `export_pdfs.sh` | release PDF set (pcb_layers, assembly) + PNG verification renders | |
 | `lib/` | project-local footprints tscircuit/KiCad can't yet express — see `lib/contracts.md` | |
+| `*.py` | **STOPGAP ONLY (canon M8)**: any script beyond `audit_board.py`/`bom_seed.py` is a declared backend gap — its docstring MUST name the gap and the config schema that would replace it. The SECOND board needing the same script triggers mandatory promotion into the shared backend | `rebuild_all.sh` |
 | `contracts.md` | this file | |
 
 ## The pipeline — what runs, in what order, with which interpreter

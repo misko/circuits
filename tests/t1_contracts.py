@@ -123,5 +123,42 @@ def t_iso_placeholder_ok():
               "audit on placeholder reference")
 
 
+@test("a project seeded from the skill templates audits clean (template/"
+      "contract coherence pinned)")
+def t_template_seed():
+    # replicates templates/README.md's commission copy list exactly; a gap
+    # between what the templates ship and what the contracts permit fails
+    # here (9 such gaps shipped before this test existed — 6a5bd82)
+    tpl = ROOT / "skills" / "pcb-design" / "templates"
+    d = tmpdir("seed_")
+    stages = ["01_docs", "02_parts", "03_src", "03_tscircuit", "04_kicad",
+              "05_firmware", "06_build", "07_releases"]
+    for s in stages:
+        (d / s).mkdir()
+        shutil.copy(tpl / "contracts" / s / "contracts.md", d / s)
+    shutil.copy(tpl / "contracts" / "ROOT.contracts.md", d / "contracts.md")
+    (d / "03_src" / "rules").mkdir()
+    (d / "03_src" / "lib").mkdir()
+    (d / "01_docs" / "decisions").mkdir()
+    for src, dst in [
+            ("03_src/floorplan.yaml", "03_src/floorplan.yaml"),
+            ("03_src/route.yaml", "03_src/route.yaml"),
+            ("03_src/rules/nets.yaml", "03_src/rules/nets.yaml"),
+            ("project.gitignore", ".gitignore"),
+            ("01_docs/decisions/0000-example-adr.md",
+             "01_docs/decisions/0000-example-adr.md"),
+            ("contracts/01_docs/decisions/contracts.md",
+             "01_docs/decisions/contracts.md"),
+            ("contracts/03_src/lib/contracts.md", "03_src/lib/contracts.md"),
+            ("contracts/03_src/rules/contracts.md",
+             "03_src/rules/contracts.md")]:
+        shutil.copy(tpl / src, d / dst)
+    for md in (tpl / "01_docs").glob("*.md"):
+        shutil.copy(md, d / "01_docs")
+    r = must_pass(run([KPY, AUDIT, "--walk", "--root", d]),
+                  "contracts_audit on template-seeded project")
+    contains(r.out, "0 violations", "seeded project audits clean")
+
+
 if __name__ == "__main__":
     main()

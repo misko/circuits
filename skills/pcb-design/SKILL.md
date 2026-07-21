@@ -41,6 +41,17 @@ hard-won traps; this skill is the orchestration layer only.
   budget/tier), ASK the user now — 2-4 questions max — and record Q#/A#.
   If the user is absent, make the conservative choice, record it as D#
   with reasoning, and flag it in the final report.
+- **D-SPEC, spec-tension check (a GATE, with D-ESC/D-TIER/D-ADJ).** Test
+  every numeric requirement against (a) the governing standard and (b) the
+  sourceable-part envelope BEFORE architecture. A brief can demand what no
+  compliant/stocked part delivers — "USB-C 6A" exceeds Type-C's 3A CC
+  advertisement and even PD's 5V/5A; "USB-A 2.5A" exceeds every JLC-stocked
+  receptacle's continuous rating (both: clean-room run 2026-07-21). Each
+  tension gets a spec-tension ADR (what the standard/parts cap is, how the
+  requirement is honoured — e.g. protection-ceiling reading, proprietary
+  sink note) + a `Spec tensions` row in BRIEF.md flagged to the user.
+  Silently building the out-of-spec reading, or silently downgrading the
+  requirement, are both failures.
 
 ## 1-3. Design docs, parts, rules (order matters)
 
@@ -113,6 +124,14 @@ layout` = WIRED, retires S6) folds canonical nets + FPIDs from `02_parts` in wit
 no per-board adapter — see `kicad-pcb/references/tscircuit-folder.md`. Author each
 specialty part with `supplierPartNumbers={{jlcpcb:["C…"]}}` so its FPID resolves,
 and add a `net_aliases.txt` line for any leading-digit rail (`12V`→`N12V`).
+**COUNT EVERYTHING (S-COUNT — tsci drops parts SILENTLY):** before the first
+`tsci build`, run `kicad-pcb/scripts/tsx_preflight.py <project>` — alphanumeric
+pads (USB-C `A1..B12`, shield `SH`) are rejected by tscircuit WITHOUT an error
+and the part vanishes with ERC still 0 (2026-07-21: four USB connectors, 48/52).
+Author `03_tscircuit/manifest.yaml` (`components: [C1, R1, …]` — your declared
+refdes list) alongside the tsx, and gate the schematic AND board stages on
+`kicad-pcb/scripts/count_parity.py <project>` — generated artifacts all agree
+with each other after a silent drop; only declared intent disagrees.
 **Two audiences (ADR-0002 Phase A):** the human schematic document = tscircuit's
 OWN render (`build/schematic.pdf`, shipped in the release); the converter
 `.kicad_sch` is the machine artifact only (ERC/netlist/parity, need not be pretty).

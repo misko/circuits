@@ -21,6 +21,14 @@ One paragraph: what exists when this project is finished, and for whom.
 |---|---|---|---|
 | G1 | ... | P | unmet |
 
+## Spec tensions (D-SPEC — fill at commission, before architecture)
+
+| # | Requirement | Standard / parts cap it exceeds | Resolution (ADR) | User flagged |
+|---|---|---|---|---|
+| T1 | ... | ... | 01_docs/decisions/NNNN-*.md | yes/no |
+
+(none is a valid answer — write "none found" after actually checking.)
+
 ## Log
 
 (append-only — see 01_docs/contracts.md for entry formats: D# directive,
