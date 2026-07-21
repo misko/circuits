@@ -25,8 +25,9 @@ HARD ERRORS (never silent — these are the defects that shipped before):
 Missing FPID is THE one that must never degrade to a warning: a silently
 un-placed part is an electrically-wrong board that still passes DRC.
 
-CONFIG SCHEMA — see `references/floorplan-schema.md`; a real 50-line example
-is `projects/cook-loadcell/03_src/floorplan.yaml`. Top-level keys:
+CONFIG SCHEMA — see `references/floorplan-schema.md`; a skill-owned example
+is `../pcb-design/templates/03_src/floorplan.yaml` (project-independent — do
+NOT read another project's config). Top-level keys:
 
   project:    name, netlist, output, parts_dir
   board:      outline (x0/y0/x1/y1 or x0/y0/w/h), corner_cut, edge_width,

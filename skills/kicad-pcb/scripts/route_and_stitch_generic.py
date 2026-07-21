@@ -47,7 +47,9 @@ HARD ERRORS (never silent):
   * any stitch pass falling short of its configured `min` / `require`
   * `import` onto a board that already has tracks
 
-CONFIG SCHEMA — a real example is `projects/cook-loadcell/03_src/route.yaml`.
+CONFIG SCHEMA — a skill-owned example is
+`../pcb-design/templates/03_src/route.yaml` (project-independent — do NOT read
+another project's config).
 Relative paths resolve against the PROJECT ROOT (the yaml's grandparent dir),
 so the commands work from any cwd. Top-level keys:
 

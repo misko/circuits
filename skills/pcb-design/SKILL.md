@@ -15,9 +15,16 @@ hard-won traps; this skill is the orchestration layer only.
 - Pick a short kebab-case project name from the brief.
 - `mkdir -p ~/gits/circuits/projects/<name>` with the numbered stage
   folders `01_docs 02_parts 03_src 03_tscircuit 04_kicad 05_firmware
-  06_build 07_releases`. Copy each folder's `contracts.md` from
-  `projects/usb-power-3s/` (the canonical contract set) — read them; they
-  are binding.
+  06_build 07_releases`. Copy each folder's `contracts.md` from the SKILL's
+  OWN canonical set — `<pcb-design skill>/templates/contracts/<stage>/contracts.md`
+  (and `templates/contracts/ROOT.contracts.md` → the project-root
+  `contracts.md`). **The skill is project-independent: never copy contracts
+  or config from another project** — that coupling let a clean-room agent read
+  a sibling board's design (2026-07-20). Read the contracts; they are binding.
+- Seed `03_src/` config from the skill's schema examples —
+  `<pcb-design skill>/templates/03_src/{floorplan.yaml,route.yaml,rules/nets.yaml}`
+  — then replace the values for THIS board. The keys are the contract the
+  shared generic backend consumes; the values are yours to derive.
 - **`03_tscircuit/` is the TSX authoring source** (renamed from bare
   `tscircuit/` 2026-07-20): it holds hand-written SOURCE, the same pipeline
   stage as `03_src/`, hence the same number. `03_src/` = the KiCad-side

@@ -1,0 +1,103 @@
+# SCHEMA EXAMPLE (skill-owned, project-independent). Adopted from a proven
+# board as a reference for the generic backend's config format. Copy into a
+# new project's 03_src/ and replace the values — the KEYS are the contract.
+#
+# cook-loadcell route + stitch — the whole per-board input to
+# skills/kicad-pcb/scripts/route_and_stitch_generic.py, replacing the
+# 86-line route_prep.py + 36-line route_waves.sh + 278-line stitch_and_fill.py.
+#
+#   /usr/bin/python3 ../../skills/kicad-pcb/scripts/route_and_stitch_generic.py \
+#       prep 03_src/route.yaml
+#   ~/gits/KiCadRoutingTools/.venv/bin/python \
+#       ../../skills/kicad-pcb/scripts/route_and_stitch_generic.py route 03_src/route.yaml
+#   /usr/bin/python3 ... import 03_src/route.yaml
+#   /usr/bin/python3 ... stitch 03_src/route.yaml
+#
+# 55x45 2-layer. GND is NOT routed — F/B pours + stitch vias own it.
+
+project:
+  name: cook_loadcell
+  board: 04_kicad/cook_loadcell.kicad_pcb
+  build_dir: 06_build/route
+
+prep:
+  out: r0.kicad_pcb
+  keepouts:
+    # User.2 = normal keepouts; User.3 = User.2 + the ANALOG GUARD, used by
+    # the bridge wave only (D5/3.7e, audit I-AN)
+    layers: [User.2, User.3]
+    mounting_holes: {radius: 3.0}      # M3 screw head + margin
+    edge_band: 0.7                     # KRT has no edge concept; dru floor 0.3
+    rects:
+      # the whole digital EAST region is keepout for the BRIDGE wave only
+      - {x0: 42.0, y0: 30.0, x1: 75.0, y1: 56.0, layer: User.3}
+      - {x0: 47.0, y0: 56.0, x1: 75.0, y1: 65.0, layer: User.3}
+  waves:
+    exclude: ["GND", "unconnected-*"]
+    groups:
+      an: [E_PLUS, S_PLUS, S_MINUS, RING_12, RING_23, RING_34, RING_41,
+           AVDD_FB, BASE]
+      pwr: [5V, 3V3]
+      sig: rest
+
+route:
+  krt: ~/gits/KiCadRoutingTools
+  common:
+    layers: [F.Cu, B.Cu]
+    via_size: 0.6
+    via_drill: 0.3
+    fab_tier: standard
+    no_stub_layer_swap: true
+    keepout: true
+    keepout_layer: User.2
+    # 0.21 not 0.15: 0.6/0.3 vias at 0.15 pack drills to ~0.45 < the 0.5
+    # hole-to-hole fab floor; 0.21 forces centres to 0.81 -> drill gap 0.51
+    clearance: 0.21
+  waves:
+    # HARDEST FIRST (golden rule 4): bridge nets claim the guarded west side
+    - {name: an,  group: an,  track_width: 0.5,  keepout_layer: User.3,
+       max_iterations: 400000}
+    - {name: pwr, group: pwr, track_width: 0.5,  max_iterations: 400000}
+    - {name: sig, group: sig, track_width: 0.25, max_iterations: 800000,
+       max_probe_iterations: 60000, max_ripup: 30}
+  # canon M3: the shipped board imports the PROMOTED chain file, not a
+  # fresh stochastic route. Delete this to re-route from scratch.
+  final: 03_src/route/r2.kicad_pcb
+
+stitch:
+  clearance: 0.15
+  # spacing 0.85 center-to-center = 0.55mm drill-edge gap > the 0.5mm
+  # hole-to-hole floor (0.62 gave 0.32mm and a stochastic route tripped it)
+  via: {size: 0.6, drill: 0.3, spacing: 0.85, pth_margin: 0.3}
+  keepin: {inset: 0.8}
+  passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
+           split_t_junctions, reload, hole_to_hole, pad_rescue, stub_fallback, astar_fallback,
+           stitch_grid, fill, island_rescue, fill, gate]
+  dedupe_vias: {radius: 0.5, metric: box}
+  normalize_vias: {below_width: 0.449, size: 0.6, drill: 0.3}
+  drop_micro_fragments: {max_length: 0.12, require_free_end: true}
+  # KRT overshoot tails (one wave left a 0.7mm S_MINUS stub -> track_dangling)
+  drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
+  # KRT T-junctions: a stub end landing MID-BODY is continuous copper
+  # but unanchored, so KiCad reports track_dangling. Split, never delete.
+  split_t_junctions: {tol: 0.05}
+  hole_to_hole: {min_gap: 0.5, mode: nudge, prefer_keep: [GND]}
+  pad_rescue:
+    net: GND
+    via_in_pad: true          # B.Cu is a solid GND pour under the whole board
+    served_within: 1.6
+    rings: [0.75, 0.95, 1.2, 1.6, 2.1, 2.7]
+    stub_width: 0.3
+    # NON-FATAL: a pad whose via sites are blocked by a B.Cu track underneath
+    # is still served by top-pour thermal spokes at fill. The DRC unconnected
+    # gate is the arbiter.
+    require: none
+  stub_fallback: {net: GND, min_dist: 0.2, max_dist: 8.0, width: 0.3}
+  astar_fallback: {net: GND, width: 0.25, window: 3.0, attempts: 3}
+  stitch_grid:
+    net: GND
+    x: [24, 74, 8]
+    y: [24, 64, 8]
+    # OUT of the guarded analog rect — the bridge corner stays quiet
+    avoid: [{x0: 20.0, y0: 26.0, x1: 44.0, y1: 58.0, margin: 1.0}]
+  island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu], require: all}
