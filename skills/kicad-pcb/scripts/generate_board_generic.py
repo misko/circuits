@@ -247,6 +247,15 @@ class BoardBuilder:
         self.log = []
         self.waived = []
 
+    def silk_floors(self):
+        """(min height, min stroke) from the declared tier — (0, 0) when no
+        tier, so every comparison below degrades to a no-op for legacy
+        boards."""
+        if not self.tier:
+            return 0.0, 0.0
+        return (float(self.tier.get("min_silk_text_height", 0) or 0),
+                float(self.tier.get("min_silk_stroke", 0) or 0))
+
     def silk_h(self, value, default, what):
         """A silkscreen text height: the config's explicit value, or
         `default` floored at the tier's min_silk_text_height. An EXPLICIT
@@ -345,6 +354,7 @@ class BoardBuilder:
         self.check_pads_present()
         self.run_asserts()
         self.legalize()
+        self.normalize_footprint_text()
         self.apply_design_rules()
         self.add_zones()
         self.add_keepouts()
@@ -727,6 +737,48 @@ class BoardBuilder:
                     f"over-subscribed; add an anchor or grow the board")
         self.say(f"legalized {moved} floating parts")
 
+    # -------------------------------------- footprint-internal silk text
+    def normalize_footprint_text(self):
+        """Tier-floor FOOTPRINT-INTERNAL silk text — Reference/Value fields
+        and user text items that arrive INSIDE placed library footprints.
+
+        silk_h() already floors every height this generator EMITS, but a
+        library footprint carries its own text, and nothing policed it: the
+        v4 usb-hub-3s first DRC carried 112 text_height findings on a
+        112-part fresh board (2026-07-21). Normalize UP to the tier floor at
+        generation — the same treatment add_silk gives its own text (an
+        explicit config value errors, a library default is silently lifted:
+        the library never declared a tier, so there is nothing to hold it
+        to). F.Fab is documentation, not silkscreen print — exempt, same
+        exemption silk_h documents."""
+        hfloor, tfloor = self.silk_floors()
+        if not hfloor and not tfloor:
+            return
+        silk = {pcbnew.F_SilkS, pcbnew.B_SilkS}
+        n = 0
+        for fp in self.board.GetFootprints():
+            items = [fp.Reference(), fp.Value()] + list(fp.GraphicalItems())
+            for t in items:
+                if not callable(getattr(t, "GetTextSize", None)) \
+                        or t.GetLayer() not in silk:
+                    continue
+                sz = t.GetTextSize()
+                h = sz.y / 1e6
+                changed = False
+                if hfloor and h < hfloor - 1e-9:
+                    scale = hfloor / max(h, 1e-6)
+                    t.SetTextSize(pcbnew.VECTOR2I(int(sz.x * scale),
+                                                  pcbnew.FromMM(hfloor)))
+                    changed = True
+                if tfloor and t.GetTextThickness() / 1e6 < tfloor - 1e-9:
+                    t.SetTextThickness(pcbnew.FromMM(tfloor))
+                    changed = True
+                n += changed
+        if n:
+            self.say(f"normalized {n} footprint-internal silk text item(s) "
+                     f"to the '{self.tier['name']}' floors "
+                     f"({hfloor}mm / {tfloor}mm stroke)")
+
     # ---------------------------------------------------- design rules
     DS_KEYS = {
         "track_min_width": "m_TrackMinWidth", "min_clearance": "m_MinClearance",
@@ -735,6 +787,8 @@ class BoardBuilder:
         "via_min_size": "m_ViasMinSize", "min_through_drill": "m_MinThroughDrill",
         "solder_mask_min_width": "m_SolderMaskMinWidth",
         "solder_mask_expansion": "m_SolderMaskExpansion",
+        "silk_text_height": "m_MinSilkTextHeight",
+        "silk_text_thickness": "m_MinSilkTextThickness",
     }
     DS_DEFAULTS = {
         "track_min_width": 0.127, "min_clearance": 0.127, "via_min_annulus": 0.05,
@@ -746,6 +800,31 @@ class BoardBuilder:
         ds = self.board.GetDesignSettings()
         vals = dict(self.DS_DEFAULTS)
         vals.update(self.cfg.get("design_rules") or {})
+        # CAPABILITY-DERIVED silk DRC constraints. A fresh pcbnew BOARD()
+        # defaults m_MinSilkTextHeight to 0.8mm — ABOVE the 0.6mm refdes
+        # this generator emits — so every fresh board failed its own silk
+        # (112 text_height findings on the v4 112-part board, one per
+        # visible Reference field, 2026-07-21; the shipped 2-layer boards
+        # only pass because their sealed .kicad_pro was hand-set to 0.6).
+        # The constraint now derives from the tier the text heights are
+        # already floored at: one capability source, both sides agree.
+        # Explicit design_rules values BELOW the tier floor are an error
+        # (DRC would stop policing sub-floor silk); stricter is allowed —
+        # but then the silk config must supply matching heights.
+        hfloor, tfloor = self.silk_floors()
+        for key, floor, tkey in (("silk_text_height", hfloor,
+                                  "min_silk_text_height"),
+                                 ("silk_text_thickness", tfloor,
+                                  "min_silk_stroke")):
+            if not floor:
+                continue
+            if vals.get(key) is None:
+                vals[key] = floor
+            elif float(vals[key]) < floor - 1e-9:
+                die(f"design_rules.{key} = {vals[key]} is below fab tier "
+                    f"'{self.tier['name']}' {tkey} {floor} — DRC would stop "
+                    f"policing sub-floor silk; raise it, or raise fab_tier "
+                    f"(D-TIER)")
         for k, v in vals.items():
             if k not in self.DS_KEYS:
                 die(f"unknown design_rules key {k!r} (known: {sorted(self.DS_KEYS)})")
@@ -951,7 +1030,11 @@ class BoardBuilder:
         t.SetText(txt)
         t.SetLayer(layer if layer is not None else pcbnew.F_SilkS)
         t.SetTextSize(pcbnew.VECTOR2I_MM(size, size))
-        t.SetTextThickness(pcbnew.FromMM(max(0.13, size * 0.16)))
+        # stroke floored at the tier's min_silk_stroke: a 0.13mm stroke on a
+        # 0.15mm-floor process prints, just badly — and the board's silk
+        # thickness DRC constraint now derives from the same floor.
+        t.SetTextThickness(pcbnew.FromMM(
+            max(self.silk_floors()[1], 0.13, size * 0.16)))
         return t
 
     def add_silk(self):
@@ -1096,7 +1179,8 @@ class BoardBuilder:
                 ref.SetTextAngleDegrees(rot)
                 for sz in (size, small):
                     ref.SetTextSize(pcbnew.VECTOR2I_MM(sz, sz))
-                    ref.SetTextThickness(int(max(0.09, sz * 0.2) * 1e6))
+                    ref.SetTextThickness(int(max(self.silk_floors()[1],
+                                                 0.09, sz * 0.2) * 1e6))
                     for dx, dy in self.OFF:
                         ref.SetPosition(pcbnew.VECTOR2I_MM(fx + dx, fy + dy))
                         cand = box_of(ref.GetBoundingBox())

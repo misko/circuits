@@ -315,6 +315,138 @@ def t_silk_at_tier_floor():
     gen(p, d / "ok.kicad_pcb")
 
 
+@test("the board's silk DRC constraints derive from the declared tier "
+      "(not KiCad's 0.8mm default)")
+def t_silk_constraints_from_tier():
+    """pcbnew's fresh-BOARD default m_MinSilkTextHeight is 0.8mm, ABOVE the
+    0.6mm refdes this generator emits — so a fresh tiered board failed its
+    own silk at first DRC (112 text_height findings on the v4 112-part
+    board, 2026-07-21; the shipped 2-layer boards only pass because their
+    sealed .kicad_pro was hand-set to 0.6). The constraint must derive from
+    the same tier the text heights are floored at. RED-verified against the
+    pre-fix generator (git show HEAD swap, 2026-07-21): it leaves 0.8/0.08
+    and this test fails."""
+    d, p = _tiered_silk_tree(0.45)
+    out = d / "b.kicad_pcb"
+    gen(p, out)
+    code = ("import pcbnew,sys\nb=pcbnew.LoadBoard(sys.argv[1])\n"
+            "ds=b.GetDesignSettings()\n"
+            "print('@@%.3f,%.3f' % (ds.m_MinSilkTextHeight/1e6,"
+            " ds.m_MinSilkTextThickness/1e6))\n")
+    r = must_pass(run([KPY, "-c", code, out]), "probe silk constraints")
+    h, t = [float(v) for v in r.out.split("@@")[1].strip().split(",")]
+    check(abs(h - 0.45) < 1e-6,
+          f"silk height constraint is {h}, want the tier floor 0.45")
+    check(abs(t - 0.15) < 1e-6,
+          f"silk stroke constraint is {t}, want the tier floor 0.15")
+    # and no emitted silk text may sit below the constraint it now carries
+    code = ("import pcbnew,sys\nb=pcbnew.LoadBoard(sys.argv[1])\nbad=[]\n"
+            "silk={pcbnew.F_SilkS,pcbnew.B_SilkS}\n"
+            "def scan(t,who):\n"
+            "  if not callable(getattr(t,'GetTextSize',None)): return\n"
+            "  if t.GetLayer() not in silk: return\n"
+            "  if hasattr(t,'IsVisible') and not t.IsVisible(): return\n"
+            "  if t.GetTextSize().y<449000 or t.GetTextThickness()<149000:\n"
+            "    bad.append((who,t.GetTextSize().y/1e6,t.GetTextThickness()/1e6))\n"
+            "for f in b.GetFootprints():\n"
+            "  scan(f.Reference(),f.GetReference()); scan(f.Value(),f.GetReference())\n"
+            "  for g in f.GraphicalItems(): scan(g,f.GetReference())\n"
+            "for g in b.GetDrawings(): scan(g,'board')\n"
+            "print('@@'+repr(bad))\n")
+    r = must_pass(run([KPY, "-c", code, out]), "scan silk text floors")
+    got = r.out.split("@@")[1].strip()
+    check(got == "[]", f"silk text below the tier floors survived: {got}")
+
+
+def _tiny_text_tree():
+    """A scratch tree with a declared tier and ONE part on a project-local
+    library whose footprint carries a 0.3mm F.SilkS user text — the
+    footprint-INTERNAL text nothing policed (the library never declared a
+    tier, so generation must normalize, not error)."""
+    import yaml
+    d = tmpdir("gbg_tiny_")
+    net = (LC / "06_build" / "netlists" / "cook_loadcell.net").read_text()
+    broken = net.replace('(footprint "Capacitor_SMD:C_0805_2012Metric")',
+                         '(footprint "local:C_0805_2012Metric")', 1)
+    check(broken != net, "fixture netlist rewrite failed")
+    (d / "06_build").mkdir()
+    (d / "06_build" / "tiny.net").write_text(broken)
+    pretty = d / "03_src" / "lib" / "local.pretty"
+    pretty.mkdir(parents=True)
+    mod = Path("/usr/share/kicad/footprints/Capacitor_SMD.pretty/"
+               "C_0805_2012Metric.kicad_mod").read_text()
+    tiny = ('\t(fp_text user "TINY"\n\t\t(at 0 2.6 0)\n'
+            '\t\t(layer "F.SilkS")\n\t\t(effects\n\t\t\t(font\n'
+            '\t\t\t\t(size 0.3 0.3)\n\t\t\t\t(thickness 0.05)\n'
+            '\t\t\t)\n\t\t)\n\t)\n)\n')
+    body = mod.rstrip()
+    (pretty / "C_0805_2012Metric.kicad_mod").write_text(
+        body[:body.rfind(")")] + tiny)
+    cfg = yaml.safe_load((LC / "03_src" / "floorplan.yaml").read_text())
+    cfg["project"]["netlist"] = str(d / "06_build" / "tiny.net")
+    if cfg["project"].get("parts_dir"):
+        cfg["project"]["parts_dir"] = str(LC / cfg["project"]["parts_dir"])
+    libs = cfg.get("libraries") or ["/usr/share/kicad/footprints"]
+    cfg["libraries"] = [{"lib": "local",
+                         "path": "03_src/lib/local.pretty"}] + list(libs)
+    (d / "03_src" / "rules").mkdir(parents=True)
+    (d / "03_src" / "rules" / "nets.yaml").write_text(
+        "fab_tier: jlc_2layer_default\n")
+    p = d / "fp.yaml"
+    p.write_text(yaml.safe_dump(cfg))
+    return d, p
+
+
+@test("footprint-INTERNAL 0.3mm silk text is normalized to the tier floor "
+      "at generation")
+def t_fp_internal_text_normalized():
+    """silk_h() floors what the generator EMITS; this pins what it PLACES: a
+    library footprint arriving with sub-floor silk text of its own must come
+    out at the tier floor (v4 evidence: 112 text_height findings, all on
+    footprint fields). RED-verified against the pre-fix generator (git show
+    HEAD swap, 2026-07-21): the 0.3mm text survives and this test fails."""
+    d, p = _tiny_text_tree()
+    out = d / "b.kicad_pcb"
+    r = gen(p, out)
+    contains(r.out, "normalized", "generation must report the normalization")
+    code = ("import pcbnew,sys\nb=pcbnew.LoadBoard(sys.argv[1])\n"
+            "hits=[]\n"
+            "for f in b.GetFootprints():\n"
+            "  for g in f.GraphicalItems():\n"
+            "    if callable(getattr(g,'GetText',None)) and g.GetText()=='TINY':\n"
+            "      hits.append((g.GetTextSize().y/1e6, g.GetTextThickness()/1e6))\n"
+            "print('@@'+repr(hits))\n")
+    rr = must_pass(run([KPY, "-c", code, out]), "probe TINY text")
+    hits = eval(rr.out.split("@@")[1].strip())
+    check(hits, "the TINY fixture text is missing from the board")
+    h, t = hits[0]
+    check(abs(h - 0.45) < 1e-6,
+          f"footprint-internal text height is {h}, want normalized 0.45")
+    check(t >= 0.15 - 1e-9,
+          f"footprint-internal text stroke is {t}, want >= 0.15")
+
+
+@test("an explicit design_rules silk constraint below the tier floor FAILS "
+      "naming the tier", kind="known_bad")
+def t_kb_silk_constraint_below_tier():
+    """A sub-tier DRC constraint means DRC stops policing sub-floor silk —
+    the check would exist but could not bite. RED-verified against the
+    pre-fix generator (git show HEAD swap, 2026-07-21): the old code has no
+    silk_text_height key and rejects it as unknown, but with the key mapped
+    it applied any value without consulting the tier."""
+    def mutate(cfg):
+        cfg["design_rules"] = dict(cfg.get("design_rules") or {},
+                                   silk_text_height=0.3)
+    d, p = scratch_config(mutate)
+    (d / "03_src" / "rules").mkdir(parents=True)
+    (d / "03_src" / "rules" / "nets.yaml").write_text(
+        "fab_tier: jlc_2layer_default\n")
+    r = run([KPY, GEN, p, "-o", d / "b.kicad_pcb"], cwd=LC)
+    must_fail(r, "generate with a sub-tier silk DRC constraint",
+              "jlc_2layer_default")
+    contains(r.out, "min_silk_text_height", "the failure must cite the floor")
+
+
 @test("an EXPLICIT silk text height below the tier floor FAILS naming the "
       "tier", kind="known_bad")
 def t_kb_silk_below_tier():
