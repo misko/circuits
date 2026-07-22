@@ -18,7 +18,7 @@ BOARD = "04_kicad/usb_hub_3s.kicad_pcb"
 MM = pcbnew.ToMM
 
 POLARIZED = {  # ref -> (pad, expected net)
-    "J1": ("1", "GND"), "D1": ("1", "VBAT_F"), "D2": ("1", "VCONN5V"),
+    "J1": ("1", "GND"), "D1": ("1", "VIN"), "D2": ("1", "VCONN5V"),  # D1 on VIN: v1.1 X1 fix
     "D3": ("1", "VBUSC"), "D4": ("1", "BOOT_A"), "D5": ("1", "VIN"),
     "D6": ("1", "LX2"), "D7": ("1", "LX1"),
     "C1": ("1", "VIN"), "C2": ("1", "VIN"), "C26": ("1", "VOUT_PD"),

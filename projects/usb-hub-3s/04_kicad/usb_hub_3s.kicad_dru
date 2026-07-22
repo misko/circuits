@@ -36,7 +36,7 @@
   (condition "A.insideArea('sw_sense') && (A.NetName == 'SW_A' || A.NetName == '5VA')")
   (constraint track_width (min 0.3mm)))
 (rule "scoped_pd_sense_"
-  (condition "A.insideArea('pd_sense') && (A.NetName == 'HG1' || A.NetName == 'HG2' || A.NetName == 'LG1' || A.NetName == 'LG2' || A.NetName == 'BST1' || A.NetName == 'BST2' || A.NetName == 'PATH_G')")
+  (condition "A.insideArea('pd_sense') && (A.NetName == 'HG1' || A.NetName == 'HG2' || A.NetName == 'LG1' || A.NetName == 'LG2' || A.NetName == 'QG4' || A.NetName == 'QG5' || A.NetName == 'QG6' || A.NetName == 'QG7' || A.NetName == 'BST1' || A.NetName == 'BST2' || A.NetName == 'PATH_G')")
   (constraint track_width (min 0.19mm)))
 (rule "scoped_vconn_feed"
   (condition "A.insideArea('vconn_feed') && (A.NetName == '5VA')")

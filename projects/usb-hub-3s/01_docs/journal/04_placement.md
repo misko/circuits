@@ -20,3 +20,8 @@
 - did: re-derived the PD stage as a reference cell: one FET row [VOUT_PDS|Q6|LX1|Q7|GND..GND|Q5|LX2|Q4|VIN_S] at y=73, L1 (new 18mm YSPI1770Y) directly under it at y=85.6, HF ceramic banks ON both bridge rails (C46-48 VIN_S, C49-51 VOUT_PDS), shunts outside the HF loop with kelvin stubs off pad ends (R14/R15/R18/R19 re-anchored), gate-R slots R28-R31 at the gates, LX zones F.Cu-only ~60mm2 (was 400mm2 x2 layers), 5VA column narrowed to x95-99 to free the east VIN pool, In2 plane connect=full, via_farms.yaml (0.45/0.3 trunk farms + 6-via thermal arrays)
 - result: floorplan.yaml + route.yaml + via_farms.yaml + nets.yaml (QG4-7) written; promoted v1.0 chain retired (fresh route required)
 - next: generate -> audit -> measure the claimed adjacencies with pcbnew (numbers, not hope)
+
+## 2026-07-22 (v1.1) — finish
+- did: 3 generate->measure iterations (pad-orientation flips at rot 90/270, courtyard collisions from CP polymer size in the 7mm SW pool, R29/C21 north-band shuffle vs L1's 20.5x17.9 courtyard)
+- result: AUDIT PASS (13 polarity, 22 proximity, 4 edge, 128 silk); TRUE courtyard overlaps []; measured cell: Q4.S->Q5.D edge gap ~1.4mm, Q6.S->Q7.D ~1.6mm, C46->Q4.D 2.85mm c-c, kelvin stubs 3.3-5.8mm off pad ends, gate-Rs 2.8-4.3mm from gates, L1 pads bonded to both LX islands
+- next: generate_rules -> KRT fresh route (7 waves) -> taps -> via farms -> stitch -> DRC 0/0/0

@@ -66,3 +66,18 @@ fixpoint on a Python-side model, one removal batch at the end.
 - DRC trajectory: 648/41 → 6/4 → 0/3 → 2/2 → 7/0 → **0/0/0**.
 - Taps: 38/38 routed; stitch gate clean; audit PASS
   (13 polarity / 22 proximity / 4 edge / 116 silk).
+
+## 2026-07-22 (v1.1) — start
+- did: fresh KRT route over the re-floorplanned cell (v1.0 promoted chain retired); race 2
+- result: run1: 0 violations, 7 opens = the tap-owned J5 nets (expected) BUT 4/33 taps FAILED (all long U1 pour-net pin runs: PCIN/PCON/VOUTI+VIO) + 3 zones_intersect (KiCad flags SAME-net same-priority overlaps - v1.0's P3-union precedent re-learned)
+- next: reserve chip-pin tap lanes (v1.0 lesson re-learned the hard way), fix zone priorities
+
+## 2026-07-22 (v1.1) — iterate 2
+- did: restored/added 5 reserved lanes (U1.24->C46.1, U1.15 west lane+drop, both v1.0 west-col via sites for U1.10/12); retargeted VIN_S tap to C46.1 (the pour carries on from the cap pad); LX1 union rects -> priority 3; VIN strip P3 over pool
+- result: run2: 0 violations, 8 opens = 6 tap-owned + VCC5V/VCCIO NEW (sig-wave starvation: east-col channel eaten by earlier waves + C20 body)
+- next: promote VCC5V/VCCIO to the emk wave (routes 3rd), C20 east +0.9mm
+
+## 2026-07-22 (v1.1) — iterate 3 (STUCK pattern named on taps)
+- did: run3 route clean (0 viol, 6 tap-owned opens) but taps again 4/33 FAIL (U1.15/U1.10 long runs + BOTH LX1 spur legs). Measured the corridors: KRT HUGS lane edges (LG1 at y69.9, QG7 at y70.6 around a 0.55mm lane -> free channel 0.40 < 0.51 needed for a threaded 0.25 tap). Threading long chip-pin taps through the escape field is structurally fragile.
+- result: diagnosis = these four are FIXED-GEOMETRY connections, not routing problems. Fix: deterministic seed stubs (03_src/add_seed_stubs.py, explicit segments+vias with collision-REFUSAL, like via_farms) + keepout corridors WITH crossing gaps (QG7 gate gap at x62.3-63.0, sense gap at x64.9-66.0) so KRT traffic crosses on the opposite layer of each emitted run
+- next: emit stubs post-taps, re-route (4th), full chain to DRC

@@ -48,6 +48,8 @@ $PY "$S/generate_rules_generic.py" .
 $PY "$S/route_and_stitch_generic.py" prep   03_src/route.yaml
 $PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml   # replay promoted route/ chain (M3)
 $PY "$S/route_and_stitch_generic.py" taps   03_src/route.yaml
+# [8a] v1.1 deterministic stubs for the four pour-net chip-pin connections
+$PY 03_src/add_seed_stubs.py
 # [8b] v1.1 via program (X22/X23): trunk farms + thermal arrays, before fill
 $PY 03_src/add_via_farms.py
 $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml

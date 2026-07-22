@@ -31,11 +31,25 @@ prep:
       - {x0: 82.5, y0: 75.3, x1: 84.1, y1: 79.2}     # RS2.2 -> R15.1
       - {x0: 43.6, y0: 74.6, x1: 47.9, y1: 78.6}     # RS3.1 -> R18.1
       - {x0: 42.8, y0: 83.7, x1: 47.9, y1: 85.9}     # RS3.2 -> R19.1
-      # LX gate-return spurs (chip LX pin + BST cap -> island): short south lanes
-      - {x0: 68.9, y0: 67.6, x1: 69.6, y1: 70.9}     # U1.21 LX2 spur
-      - {x0: 71.1, y0: 69.35, x1: 73.9, y1: 70.9}    # C21.2 -> LX2 island NW
-      - {x0: 67.4, y0: 67.6, x1: 68.1, y1: 69.0}     # U1.18 LX1 spur start
-      - {x0: 60.2, y0: 70.0, x1: 68.1, y1: 70.55}    # LX1 spur west run to the finger (with U1.18/C22.2)
+      # v1.1 chip-pin pour-connection corridors (routing journal iterate 3:
+      # threaded taps through the escape field are fragile - KRT hugs lane
+      # edges; these lanes now guard DETERMINISTIC seed stubs emitted by
+      # 03_src/add_seed_stubs.py, with GAPS where KRT traffic crosses on the
+      # opposite layer of the emitted run)
+      - {x0: 70.9, y0: 67.7, x1: 78.9, y1: 68.15}    # U1.24 VIN_S -> C46.1 tap lane (threaded tap, works)
+      - {x0: 52.7, y0: 68.1, x1: 64.9, y1: 68.6}     # U1.15 B-run west part
+      - {x0: 66.0, y0: 67.4, x1: 66.5, y1: 68.6}     # U1.15 F stub + via site (gap 64.9-66.0 = pins 13/14 sense crossings)
+      - {x0: 52.75, y0: 68.6, x1: 53.25, y1: 68.9}   # U1.15 zone-landing via site
+      - {x0: 62.6, y0: 65.55, x1: 64.0, y1: 65.95}   # U1.10 F stub + via site (v1.0 west-col lane)
+      - {x0: 62.6, y0: 66.55, x1: 64.0, y1: 66.95}   # U1.12 join site (v1.0 west-col lane)
+      - {x0: 62.6, y0: 66.0, x1: 63.1, y1: 70.6}     # U1.10 B column upper (gap 70.6-71.6 = Q7 gate attach)
+      - {x0: 62.6, y0: 71.6, x1: 63.1, y1: 84.3}     # U1.10 B column lower
+      - {x0: 55.9, y0: 84.35, x1: 63.1, y1: 84.95}   # U1.10 B horizontal to the output pool
+      - {x0: 68.9, y0: 67.6, x1: 69.6, y1: 70.9}     # U1.21 LX2 spur (threaded tap, works)
+      - {x0: 71.1, y0: 69.35, x1: 73.9, y1: 70.9}    # C21.2 -> LX2 island NW (threaded tap, works)
+      - {x0: 67.55, y0: 67.4, x1: 67.95, y1: 70.4}   # LX1 vertical: U1.18 stub + C22.2 drop
+      - {x0: 60.3, y0: 69.9, x1: 62.3, y1: 70.4}     # LX1 B-run west (gap 62.3-63.0 = QG7 gate crossing)
+      - {x0: 63.0, y0: 69.9, x1: 67.3, y1: 70.4}     # LX1 B-run east
   waves:
     exclude: ["GND", "VBAT", "VBAT_F", "VIN", "VIN_S", "SW_A", "CS_A",
               "5VA", "VOUT_PD", "VOUT_PDS", "VBUSC",
@@ -46,7 +60,7 @@ prep:
       # QFN-attached hard nets + the v1.1 gate-R slot nets (R pad -> FET gate)
       qfngate: [LG1, LG2, HG1, HG2, QG4, QG5, QG6, QG7, BST1, BST2,
                 SNS_OUT_P, SNS_OUT_N, PATH_G]
-      emk: [EMK2, EMK1, PDO_CFG]
+      emk: [EMK2, EMK1, PDO_CFG, VCC5V, VCCIO]   # v1.1: LDO decouplers off the contested east col route EARLY (sig-wave starvation measured, route run 2)
       sense: [SNS_IN_P, SNS_IN_N, CSF_A,
               CSGF_A, FB_A, COMP_A, CMZ_A, RAMP_A, RT_A, SS_A, UVLO_A,
               EN_A, VOUT2_SNS, RPP_G]
@@ -71,7 +85,7 @@ route:
        via_size: 0.25, via_drill: 0.15, max_iterations: 800000,
        max_probe_iterations: 60000, max_ripup: 30}
     - {name: emk,     group: emk,     track_width: 0.25, clearance: 0.15,
-       via_size: 0.25, via_drill: 0.15, max_iterations: 400000}
+       via_size: 0.25, via_drill: 0.15, max_iterations: 500000}
     - {name: sense,   group: sense,   track_width: 0.25, clearance: 0.15,
        via_size: 0.25, via_drill: 0.15, max_iterations: 500000}
     - {name: dataa,   group: dataa,   track_width: 0.25, clearance: 0.15,
@@ -94,14 +108,10 @@ taps:
     - {net: VOUT_PDS, from: RS3.1, to: R18.1, width: 0.25, layer: F.Cu, hop_layer: B.Cu}
     - {net: VOUT_PD,  from: RS3.2, to: R19.1, width: 0.25, layer: F.Cu, hop_layer: B.Cu}
     # --- chip pour-net taps (pour-fed nets are excluded from KRT) ---
-    - {net: VOUT_PDS, from: U1.15, to: [51.0, 72.5], width: 0.25, layer: F.Cu, hop_layer: B.Cu}
     - {net: VOUT_PD,  from: U1.12, to: U1.10, width: 0.25, layer: F.Cu, hop_layer: B.Cu}
-    - {net: VOUT_PD,  from: U1.10, to: [55.8, 85.5], width: 0.3, layer: F.Cu, hop_layer: B.Cu}
-    - {net: LX1, from: U1.18, to: [60.5, 70.3], width: 0.25, layer: F.Cu, hop_layer: B.Cu}
-    - {net: LX1, from: C22.2, to: [60.5, 70.3], width: 0.25, layer: F.Cu, hop_layer: B.Cu}
     - {net: LX2, from: U1.21, to: [73.6, 71.3], width: 0.25, layer: F.Cu, hop_layer: B.Cu}
     - {net: LX2, from: C21.2, to: [73.6, 71.3], width: 0.25, layer: F.Cu, hop_layer: B.Cu}
-    - {net: VIN_S, from: U1.24, to: [79.0, 70.2], width: 0.3, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VIN_S, from: U1.24, to: C46.1, width: 0.3, layer: F.Cu, hop_layer: B.Cu}
     # --- J5 data/CC (unchanged region) ---
     - {net: CC1, from: J5.A5, to: Q9.3, width: 0.25, layer: F.Cu, hop_layer: B.Cu}
     - {net: CC2, from: J5.B5, to: [106.5, 104.15], width: 0.25, layer: F.Cu, hop_layer: B.Cu}

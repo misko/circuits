@@ -21,10 +21,17 @@
 #    an artifact of merging, not a land-pattern disagreement. AOS PowerPAK
 #    SO-8 recommended pattern = single drain paddle (AON6354/AON6403 DS,
 #    verified at parts stage; escape_check 2026-07-21).
-- {lcsc: C404363, refs: [Q2, Q3, Q4, Q5, Q6, Q7, Q8], status: PAD-MISMATCH,
+- {lcsc: C404363, refs: [Q2, Q3], status: PAD-MISMATCH,
    why: "merged drain '5' vs JLC 5-9 split; same copper, AOS recommended pattern is the single paddle."}
-- {lcsc: C404363, refs: [Q2, Q3, Q4, Q5, Q6, Q7, Q8], status: PAD-GEOM,
+- {lcsc: C404363, refs: [Q2, Q3], status: PAD-GEOM,
    why: "1<->5 delta = merged-pad centroid vs JLC pin-5 lead; copper regions coincide."}
+# v1.1: Q4-Q8 are AON6262E (C431185) per ADR-0007 - same AOS DFN5x6
+# merged-drain family, same single-paddle recommended pattern (AON6262E DS
+# p.1 bottom view, drains 5-8 + paddle; fetched sha ff82d6bf..., 2026-07-22).
+- {lcsc: C431185, refs: [Q4, Q5, Q6, Q7, Q8], status: PAD-MISMATCH,
+   why: "AON6262E: KiCad single-paddle pad 5 vs JLC 5-8+EP split; AOS recommended pattern is the single paddle (DS bottom view, verified 2026-07-22)."}
+- {lcsc: C431185, refs: [Q4, Q5, Q6, Q7, Q8], status: PAD-GEOM,
+   why: "AON6262E: merged-paddle centroid vs JLC corner-lead pin-5 distance artifact; copper regions coincide (same family artifact measured on C404363, 5.39 vs 6.97mm)."}
 - {lcsc: C2760089, refs: [Q1], status: PAD-MISMATCH,
    why: "AON6403: same PowerPAK/DFN5x6 merged-drain family as C404363 - KiCad single-paddle pad 5 vs JLC pins 5-8+EP9; AOS DS recommended pattern is the single paddle (escape_check 2026-07-21)."}
 - {lcsc: C2760089, refs: [Q1], status: PAD-GEOM,
