@@ -35,3 +35,4 @@ gotchas:
   - "Bias current ~10pA typ (FET input): 100k input bias resistor adds negligible offset"
 verified: "pin map read from datasheet Figure 5-3 'OPA1678: D Package, 8-Pin SOIC (Top View)', page 4, SBOS855E — 2026-07-18"
 sourcing: {lcsc: C192421, alternates: [], note: 'extended; exact MPN; 4990 stock 2026-07-18; $0.92'}
+escape: {style: leaded, pitch: 1.27, tier_required: jlc_2layer_default, checked: escape_check}

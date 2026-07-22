@@ -10,3 +10,4 @@ verified: 'pin map read from datasheet page 1 (Schematic figure: dotted windings
 sourcing:
   lcsc: none
   note: 'DNP - uncoded on purpose'
+escape: {style: leaded, pitch: 2.0, tier_required: jlc_2layer_default, checked: escape_check}

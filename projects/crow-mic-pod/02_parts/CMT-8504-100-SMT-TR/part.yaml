@@ -33,3 +33,4 @@ gotchas:
   - "Reflow within 48h of opening vacuum pack; 260C max"
 verified: "pad polarity + land pattern read from datasheet Mechanical Drawing (top/bottom views) and 'Recommended PCB Layout Top View', page 2, rev 2024-09-11 — 2026-07-18"
 sourcing: {lcsc: C22359707, alternates: [], note: 'extended; exact MPN; stock 182 on 2026-07-18 (THIN - need 10; re-check order day, hand-solder Digi-Key fallback documented in ORDER_README)'}
+escape: {style: connector, pitch: 3.0, tier_required: jlc_2layer_default, checked: escape_check}

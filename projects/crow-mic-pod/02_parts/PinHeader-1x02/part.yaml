@@ -10,3 +10,4 @@ verified: 'generic 2.54mm THT pads; mic capsule attaches by short twisted leads 
 sourcing:
   lcsc: none
   note: 'hand-solder; header optional - leads may solder direct to the pads'
+escape: {style: connector, pitch: 2.54, tier_required: jlc_2layer_default, checked: escape_check}

@@ -290,3 +290,88 @@ functions:
         provenance: usb-hub-3s (cleanroom v4, 2026-07-21) x3 — pass-through
           pairs 1-6/3-4 in-line with the port data nets
         gotchas: []
+
+  audio-opamp-dual-low-noise:
+    candidates:
+      - mpn: OPA1678IDR
+        maker: Texas Instruments
+        lcsc: C192421
+        package: SOIC-8 3.9x4.9 P1.27
+        escape: {style: leaded, pitch: 1.27, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: crow-array-pod v1.0/v1.1; re-verified crow-mic-pod v1.0
+        layout_refs:
+          - "TI D0008A land/stencil drawing 4214825/C 02/2019 (pad-span 5.4mm vs KiCad IPC 4.95mm — twin PAD-GEOM adjudication evidence)"
+        gotchas:
+          - "twin PAD-GEOM d0.47mm vs JLC CAD is the KiCad-IPC vs TI-datasheet
+             SOIC-8 pad-length split — leads land on both; adjudicate, don't
+             re-footprint"
+          - "rotation DB '^SOIC-',270 is assembly-zero truth; twin's EDA-frame
+             fit says 90 — keep 270, eyeball JLC preview pin-1 dot"
+
+  esd-2ch-bidirectional-sot553:
+    candidates:
+      - mpn: TPD2E2U06DRLR
+        maker: Texas Instruments
+        lcsc: C1972959
+        package: SOT-553
+        escape: {style: leaded, pitch: 0.5, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: crow-array-pod v1.0/v1.1; crow-array-central v1.0; re-verified crow-mic-pod v1.0
+        gotchas:
+          - "alternate code C51886141 exists for the same MPN"
+
+  magnetic-transducer-smd-5v:
+    candidates:
+      - mpn: CMT-8504-100-SMT-TR
+        maker: CUI Devices
+        lcsc: C22359707
+        package: 8.5mm SMD transducer (vendored 4-pad footprint)
+        escape: {style: connector, pitch: 3.0, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: crow-array-pod v1.0/v1.1; re-verified crow-mic-pod v1.0
+        gotchas:
+          - "JLC stock chronically THIN (182 on 2026-07-18, 104 on 2026-07-21)
+             — order-day re-check mandatory; Digi-Key hand-solder fallback"
+          - "inductive load: needs flyback/TVS clamp at the driven end when
+             switched (crow pod ADR: SS14 populated + SMAJ6.0A empty position)"
+
+  rj45-jack-shielded-tht:
+    candidates:
+      - mpn: RJHSE-5384
+        maker: Amphenol
+        lcsc: C9900035627
+        package: RJ45 right-angle shielded, LEDs, THT (KiCad RJ45_Amphenol_RJHSE538X)
+        escape: {style: connector, pitch: 1.02, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: crow-array-pod v1.1; crow-array-central v1.0 (x8); re-verified crow-mic-pod v1.0
+        layout_refs:
+          - "Amphenol catalogue RECOMMENDED PCB LAYOUT p.4 RJHSE-548X + p.6
+             RJHSE-538X-04, April 2015 ed. (hole-for-hole match to the KiCad
+             footprint, independently re-read twice)"
+        gotchas:
+          - "C99* code = consign-only placeholder, permanently stock 0, NO
+             EasyEDA CAD — twin needs an evidence-backed NO-CAD adjudication;
+             hand-solder line"
+          - "NPTH o3.25 board-lock posts: DRC hole clearance 0.25 > routed
+             copper clearance — fence the posts with keepouts before KRT or
+             collect hole_clearance violations"
+          - "mating face is on the SNAP-POST side of the hole field; LED
+             tails mark the REAR (a face-side mixup survived one review)"
+          - "dense GND tail field starves thermal spokes on 2-layer pours —
+             set zone connection SOLID for the jack GND tails"
+
+  electret-capsule-wired:
+    candidates:
+      - mpn: AOM-5024L-HD-R
+        maker: PUI Audio
+        lcsc: none
+        package: 9.7mm electret capsule, wire leads to 2.54mm pads
+        escape: {style: connector, pitch: 2.54, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: crow-array-pod v1.0/v1.1; re-verified crow-mic-pod v1.0
+        gotchas:
+          - "not in JLC catalog — hand-wire (Digi-Key 668-1538-ND); capsule
+             solder limit ~2s per lead"
+          - "3.9k bias from RC-filtered rail (100R+100u) — bias string on the
+             FILTERED node, op-amp on the raw rail (PSRR covers it)"

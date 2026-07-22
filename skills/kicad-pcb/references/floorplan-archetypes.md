@@ -57,6 +57,40 @@ to re-derive the island spacing (and harvest the result back here).
 
 ---
 
+## analog-audio-pod (sensor capsule → analog cell → line driver → single cable port)
+
+FOUNDED from the sealed crow-array-pod v1.1 / crow-mic-pod v1.0 floorplan
+(2-layer, 94.5x44.5, enclosure-max outline). The shape (long axis = signal
+flow, port end WEST, sensor end EAST):
+
+- **WEST edge: the cable port** (RJ45/terminal), mating face toward the
+  enclosure gland wall. Entry protection (ESD array) HARD AGAINST the
+  port's signal tails (D-ADJ), on the port side of any choke/filter
+  provision. Reserve the port's dense tail field an escape corridor and
+  set its GND tails to SOLID zone connection (2-layer thermal starvation).
+- **CENTER-EAST: the quiet analog cell** — amp + its passive web (bias
+  divider, feedback, coupling caps) clustered within 2-5mm of their pins;
+  midpoint/VMID reference beside the amp, not across the board.
+- **FAR EAST: the transducer/sensor** (mic pads) — maximum physical
+  separation from both the port and any switched/noisy block.
+- **SW CORNER (port end, opposite edge from audio): the switched block**
+  (beeper/actuator + clamp) — its return pair runs straight to the port
+  without crossing the analog cell.
+- **SOUTH strip: rail filtering** (RC filter, bulk caps) between port
+  power pins and the analog cell; test points along the south edge.
+- **GND = both-layer pours + stitch ring**; no routed GND. Power as
+  DRU-floored tracks (PWR 0.5 / switched 0.6 / signal 0.3 on the sealed
+  instance).
+- Escape corridors: the port tail field's interior pads route FIRST
+  (hardest-first: their single escape lane gets walled in by end-pad nets
+  otherwise — measured on the sealed board).
+
+Scaling notes: one analog channel, one port. For multi-channel pods,
+replicate the analog cell along the long axis before widening the board.
+
+---
+
 _No other class has shipped enough boards to earn an archetype yet.
-Candidates when they do: sensor-chain (cook-loadcell/crow-array family),
+Candidates when they do: sensor-chain (cook-loadcell family),
+mixed-signal-audio-hub (crow-recorder-central, when it seals),
 mcu-hub (cook-hub). Found them from the sealed floorplans, not memory._

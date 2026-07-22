@@ -30,3 +30,4 @@ gotchas:
   - "NOT conformal-coated (project rule): coating blocks the acoustic port"
 verified: "polarity read from datasheet Dimensions figure (capsule back view, cross-marked + pad), page 3, and Recommended Drive Circuit, page 3, 2017 release — 2026-07-18"
 sourcing: {lcsc: none, alternates: [], note: 'not in JLC catalog - hand-wire; Digi-Key 668-1538-ND (~$4.19)'}
+escape: {style: connector, pitch: 2.54, tier_required: jlc_2layer_default, checked: escape_check}

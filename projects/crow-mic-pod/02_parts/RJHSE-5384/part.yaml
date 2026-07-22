@@ -76,3 +76,4 @@ sourcing:
     Central board orders the same part (8x) — combine the Digi-Key line.
     FALLBACK if first-article lid fit fails: RJHSE-L384 low-profile (12.70mm tall,
     catalogue p.5) — VERIFY its hole pattern against RJHSE538X before substituting.
+escape: {style: connector, pitch: 1.02, tier_required: jlc_2layer_default, checked: escape_check}

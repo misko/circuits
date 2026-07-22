@@ -18,3 +18,4 @@ gotchas:
   - "Reversed electrolytic on a rail vents; the netlist is self-consistent either way, only this part fact catches it"
 verified: "MPN from LCSC C2887276 page + spec header 'RVT100UF16V67RV0016'; negative-marking convention from spec Marking section; drawing marks 正极 (positive) at base bevel - 2026-07-17"
 sourcing: {lcsc: C2887276, alternates: [C970684], note: 'extended; 622k stock 2026-07-17; 100uF/16V on 5V rail = 3.2x derating'}
+escape: {style: leaded, pitch: 2.5, tier_required: jlc_2layer_default, checked: escape_check}

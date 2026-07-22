@@ -23,3 +23,4 @@ gotchas:
   - "KiCad D_SMA pad 1 is the cathode (footprint polarity marker): generic 2-pin symbols cannot catch a reversal — the board audit does"
 verified: "polarity: 'Color band denotes cathode end' from Mechanical Data, page 1; 2-pad part, no pinout figure needed"
 sourcing: {lcsc: C2480, alternates: [], note: 'basic-library staple; confirmed by stock check'}
+escape: {style: leaded, pitch: 4.0, tier_required: jlc_2layer_default, checked: escape_check}

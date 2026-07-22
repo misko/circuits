@@ -22,3 +22,4 @@ gotchas:
   - "6.0V standoff chosen so the part stands the full 5V across the pair when the beeper is energized; a 5.0V standoff part would sit at its limit"
 verified: "2-pad polarized; orientation identical to D2 (pad 1 = cathode = +5V_BEEP). Board audit checks pad-1 net for both clamp positions"
 sourcing: {lcsc: none, alternates: [C114215], note: 'DNP - uncoded on purpose; C114215 (SMAJ6.0A) is a candidate if ever populated'}
+escape: {style: leaded, pitch: 4.0, tier_required: jlc_2layer_default, checked: escape_check}
