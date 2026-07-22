@@ -67,7 +67,9 @@ so the commands work from any cwd. Top-level keys:
   project:  name, board (the pcbnew board to route/stitch), build_dir
   prep:     out, keepouts {layers, mounting_holes, npth_pads, edge_band,
             rects[]}, waves {exclude[], groups{}, rest}
-  route:    krt, python, common{...}, waves[] {name, nets|group, + any
+  route:    krt, python, race (N concurrent chains, quick-measured best
+            wins; CLI --race overrides), kicad_python (race import+quick
+            interpreter), common{...}, waves[] {name, nets|group, + any
             KRT flag override}
   taps:     clearance, via{}, connections[] {net, from, to, width,
             layer/hop_layer, plane} — see cmd_taps
@@ -470,7 +472,106 @@ def _krt_args(d):
     return out
 
 
-def cmd_route(cfg):
+def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
+                tag=""):
+    """Run the chained KRT waves rN -> rN+1 inside `workdir`, starting from
+    board `cur`. Returns the final chain file. `env` extends the subprocess
+    environment (race candidates get ROUTE_RACE_CANDIDATE)."""
+    sub_env = dict(os.environ, **(env or {}))
+    for i, wv in enumerate(waves, 1):
+        name = wv.get("name", f"w{i}")
+        nets = wv.get("nets")
+        if nets is None:
+            grp = wv.get("group", name)
+            f = workdir / f"nets_{grp}.txt"
+            if not f.is_file():
+                die(f"wave {name!r}: {f} missing — run `prep` first")
+            nets = f.read_text().split()
+        if not nets:
+            print(f"{tag}wave {name}: 0 nets, skipped")
+            continue
+        nxt = workdir / f"r{i}.kicad_pcb"
+        opts = dict(common)
+        opts.update({k: v for k, v in wv.items()
+                     if k not in ("name", "nets", "group")})
+        tier_geometry(opts, tier, f"route.waves[{name}]", derive=False)
+        # track width DERIVES from the wave's netclass floors when absent;
+        # an explicit sub-floor width died at prep, and dies again here in
+        # case route ran on a stale prep.
+        tw = wave_track_width(cfg, name, list(nets), opts.get("track_width"))
+        if tw is not None:
+            opts["track_width"] = tw
+        cmd = ([py, str(krt / "route.py"), str(cur), "--output", str(nxt)]
+               + _krt_args(opts) + ["--nets"] + list(nets))
+        print(f"\n=== {tag}wave {name}: {len(nets)} nets ===\n  "
+              + " ".join(cmd[:2] + ["..."] + cmd[-min(6, len(nets) + 1):]))
+        r = subprocess.run(cmd, env=sub_env)
+        if r.returncode != 0:
+            die(f"KRT wave {name!r} exited {r.returncode}")
+        if not nxt.is_file():
+            die(f"KRT wave {name!r} produced no {nxt}")
+        cur = nxt
+    return cur
+
+
+def _race_candidate(cfg, py, krt, waves, tier, common, build, i, results):
+    """One race lane: private copy of the prep outputs -> wave chain ->
+    import into a copy of the track-free target -> quick numbers."""
+    tag = f"[c{i}] "
+    try:
+        cdir = build / "race" / f"c{i}"
+        if cdir.is_dir():
+            shutil.rmtree(cdir)
+        cdir.mkdir(parents=True)
+        r0 = build / get(cfg, "prep.out", "r0.kicad_pcb")
+        shutil.copy(r0, cdir / r0.name)
+        for ext in (".kicad_pro", ".kicad_dru"):
+            if r0.with_suffix(ext).is_file():
+                shutil.copy(r0.with_suffix(ext), cdir / (r0.stem + ext))
+        for f in build.glob("nets_*.txt"):
+            shutil.copy(f, cdir / f.name)
+        chain = _wave_chain(cfg, py, krt, waves, tier, dict(common), cdir,
+                            cdir / r0.name,
+                            env={"ROUTE_RACE_CANDIDATE": str(i)}, tag=tag)
+        # evaluate: import into a COPY of the track-free target, then quick.
+        # Needs pcbnew, so both steps shell out to the KiCad interpreter —
+        # cmd_route itself stays runnable on the KRT venv python.
+        kpy = get(cfg, "route.kicad_python", "/usr/bin/python3")
+        target = rel(cfg, cfg["project"]["board"])
+        ev = cdir / "eval.kicad_pcb"
+        shutil.copy(target, ev)
+        for ext in (".kicad_pro", ".kicad_dru"):
+            if target.with_suffix(ext).is_file():
+                shutil.copy(target.with_suffix(ext),
+                            ev.with_suffix(ext))
+        imp = Path(__file__).resolve().parent / "import_krt.py"
+        r = subprocess.run([kpy, str(imp), str(chain), str(ev), str(ev)],
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            die(f"candidate {i}: import_krt exited {r.returncode}: "
+                f"{(r.stderr or r.stdout)[-300:]}")
+        qj = cdir / "quick.json"
+        r = subprocess.run([kpy, os.path.abspath(__file__), "quick",
+                            str(cfg["_path"]), "--root", str(cfg["_root"]),
+                            "--board", str(ev), "--json", str(qj)],
+                           capture_output=True, text=True)
+        if not qj.is_file():
+            die(f"candidate {i}: quick wrote no JSON (exit {r.returncode}): "
+                f"{(r.stderr or r.stdout)[-300:]}")
+        import json
+        q = json.loads(qj.read_text())
+        results[i] = {
+            "chain": str(chain),
+            "unconnected": q["unconnected"]["routed_total"],
+            "violations": sum(e["count"]
+                              for e in q.get("violations", {}).values()),
+            "verdict": q["verdict"],
+        }
+    except Exception as e:                # noqa: BLE001 — lane-isolated
+        results[i] = {"error": str(e)}
+
+
+def cmd_route(cfg, race=None):
     build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
     krt = Path(os.path.expanduser(get(cfg, "route.krt", "~/gits/KiCadRoutingTools")))
     py = get(cfg, "route.python") or str(krt / ".venv" / "bin" / "python")
@@ -489,41 +590,62 @@ def cmd_route(cfg):
     cur = build / get(cfg, "prep.out", "r0.kicad_pcb")
     if not cur.is_file():
         die(f"{cur} missing — run `prep` first")
-    for i, wv in enumerate(waves, 1):
-        name = wv.get("name", f"w{i}")
-        nets = wv.get("nets")
-        if nets is None:
-            grp = wv.get("group", name)
-            f = build / f"nets_{grp}.txt"
-            if not f.is_file():
-                die(f"wave {name!r}: {f} missing — run `prep` first")
-            nets = f.read_text().split()
-        if not nets:
-            print(f"wave {name}: 0 nets, skipped")
-            continue
-        nxt = build / f"r{i}.kicad_pcb"
-        opts = dict(common)
-        opts.update({k: v for k, v in wv.items()
-                     if k not in ("name", "nets", "group")})
-        tier_geometry(opts, tier, f"route.waves[{name}]", derive=False)
-        # track width DERIVES from the wave's netclass floors when absent;
-        # an explicit sub-floor width died at prep, and dies again here in
-        # case route ran on a stale prep.
-        tw = wave_track_width(cfg, name, list(nets), opts.get("track_width"))
-        if tw is not None:
-            opts["track_width"] = tw
-        cmd = ([py, str(krt / "route.py"), str(cur), "--output", str(nxt)]
-               + _krt_args(opts) + ["--nets"] + list(nets))
-        print(f"\n=== wave {name}: {len(nets)} nets ===\n  "
-              + " ".join(cmd[:2] + ["..."] + cmd[-min(6, len(nets) + 1):]))
-        r = subprocess.run(cmd)
-        if r.returncode != 0:
-            die(f"KRT wave {name!r} exited {r.returncode}")
-        if not nxt.is_file():
-            die(f"KRT wave {name!r} produced no {nxt}")
-        cur = nxt
+
+    n = int(race if race is not None else get(cfg, "route.race", 1) or 1)
+    if n > 1:
+        return _cmd_route_race(cfg, py, krt, waves, tier, common, build, n)
+
+    cur = _wave_chain(cfg, py, krt, waves, tier, common, build, cur)
     print(f"\nwaves done -> {cur}")
     (build / "FINAL").write_text(str(cur) + "\n")
+    return 0
+
+
+def _cmd_route_race(cfg, py, krt, waves, tier, common, build, n):
+    """KRT is stochastic: two routes of the same board differ measurably
+    (223 vs 234 segments on cook-loadcell, both DRC-clean — and on dense
+    boards the unconnected tail differs too). `race: N` buys N concurrent
+    attempts and keeps the MEASURED best: fewest routed-net unconnected,
+    tie-broken by fewest copper violations, then lowest index (quick is
+    the ruler). The per-candidate numbers land in the route log
+    (race_log.json) so the choice is auditable, never vibes."""
+    import json
+    import threading
+    print(f"race: {n} candidate wave-chains, concurrent")
+    results = {}
+    threads = [threading.Thread(target=_race_candidate,
+                                args=(cfg, py, krt, waves, tier, common,
+                                      build, i, results))
+               for i in range(n)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    ok = {i: r for i, r in results.items() if "error" not in r}
+    for i in sorted(results):
+        r = results[i]
+        if "error" in r:
+            print(f"  c{i}: FAILED — {r['error'][:160]}")
+        else:
+            print(f"  c{i}: unconnected={r['unconnected']} "
+                  f"violations={r['violations']} ({r['verdict']})")
+    if not ok:
+        die(f"all {n} race candidates failed: "
+            + "; ".join(f"c{i}: {r['error'][:80]}"
+                        for i, r in sorted(results.items())))
+    best = min(ok, key=lambda i: (ok[i]["unconnected"],
+                                  ok[i]["violations"], i))
+    log = {"candidates": {str(i): results[i] for i in sorted(results)},
+           "chosen": best,
+           "rule": "min routed-net unconnected, then min copper violations,"
+                   " then lowest index"}
+    (build / "race_log.json").write_text(json.dumps(log, indent=1) + "\n")
+    chain = Path(ok[best]["chain"])
+    print(f"race winner: c{best} ({ok[best]['unconnected']} unconnected, "
+          f"{ok[best]['violations']} violations) -> {chain}")
+    print(f"race log -> {build / 'race_log.json'}")
+    (build / "FINAL").write_text(str(chain) + "\n")
     return 0
 
 
@@ -2120,13 +2242,16 @@ def main(argv=None):
     ap.add_argument("--json", default=None,
                     help="quick: write the JSON summary here instead of "
                          "<build_dir>/quick.json")
+    ap.add_argument("--race", type=int, default=None,
+                    help="route: run N concurrent wave-chains and keep the "
+                         "quick-measured best (overrides route.race)")
     a = ap.parse_args(argv)
     cfg = load_cfg(a.config, a.root)
     try:
         if a.command == "prep":
             return cmd_prep(cfg)
         if a.command == "route":
-            return cmd_route(cfg)
+            return cmd_route(cfg, race=a.race)
         if a.command == "import":
             return cmd_import(cfg)
         if a.command == "taps":

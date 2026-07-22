@@ -44,6 +44,14 @@ prep:
 
 route:
   krt: ~/gits/KiCadRoutingTools
+  # race: 3      # KRT is stochastic — run N wave-chains CONCURRENTLY in
+  #   isolated temp dirs (06_build/route/race/cN), import each candidate
+  #   into a copy of the track-free board, evaluate each with `quick`, and
+  #   promote the MEASURED best: fewest routed-net unconnected, tie-break
+  #   fewest copper violations. Per-candidate numbers + the choice land in
+  #   06_build/route/race_log.json (auditable, never vibes). CLI --race N
+  #   overrides. Candidates see ROUTE_RACE_CANDIDATE in their environment.
+  # kicad_python: /usr/bin/python3   # interpreter race uses for import+quick
   common:
     layers: [F.Cu, B.Cu]
     # via_size / via_drill / clearance may be OMITTED: with a nets.yaml

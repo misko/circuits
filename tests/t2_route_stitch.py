@@ -577,6 +577,89 @@ def t_kb_wave_width_below_class():
     contains(r.out, "min_width 0.4", "the failure must cite the floor")
 
 
+# ======================================= ROUTE RACE (stochastic router) ==
+def stub_krt_race(d):
+    """A stub router with per-candidate QUALITY: candidate 1 'routes' by
+    connecting two 5V pads on its first wave (via the KiCad interpreter);
+    candidate 0 copies input through unchanged. The measurable difference
+    quick must see: candidate 1 has strictly fewer routed-net unconnected."""
+    k = d / "krt"
+    k.mkdir(exist_ok=True)
+    (k / "route.py").write_text(
+        "import sys, os, shutil, json, pathlib, subprocess\n"
+        "a = sys.argv[1:]\n"
+        "log = pathlib.Path(__file__).parent / 'calls.jsonl'\n"
+        "log.open('a').write(json.dumps(a) + '\\n')\n"
+        "out = a[a.index('--output') + 1]\n"
+        "shutil.copy(a[0], out)\n"
+        "if os.environ.get('ROUTE_RACE_CANDIDATE') == '1' "
+        "and out.endswith('r1.kicad_pcb'):\n"
+        "    code = ('import pcbnew,sys\\n'\n"
+        "            'b=pcbnew.LoadBoard(sys.argv[1])\\n'\n"
+        "            'n=b.FindNet(\"5V\")\\n'\n"
+        "            'pads=[p for f in b.GetFootprints() for p in f.Pads()'\n"
+        "            ' if p.GetNetname()==\"5V\"]\\n'\n"
+        "            't=pcbnew.PCB_TRACK(b)\\n'\n"
+        "            't.SetStart(pads[0].GetPosition())\\n'\n"
+        "            't.SetEnd(pads[1].GetPosition())\\n'\n"
+        "            't.SetWidth(pcbnew.FromMM(0.5))\\n'\n"
+        "            't.SetLayer(pcbnew.F_Cu)\\n'\n"
+        "            't.SetNetCode(n.GetNetCode())\\n'\n"
+        "            'b.Add(t)\\nb.Save(sys.argv[1])\\n')\n"
+        f"    subprocess.run(['{KPY}', '-c', code, out], check=True)\n"
+        "sys.exit(0)\n")
+    return k
+
+
+@test("route --race picks the MEASURABLY better of two stub candidates")
+def t_race_picks_better():
+    """KRT is stochastic, so N concurrent attempts differ; the race must
+    keep the quick-measured best (fewest routed-net unconnected), record
+    every candidate's numbers in race_log.json, and point FINAL at the
+    winner's chain. Candidate 1's stub connects two 5V pads; candidate 0
+    routes nothing — race must choose 1 for a measured reason, not by
+    position (0 wins ties, so a tie would expose a broken comparison).
+    RED-verified against the pre-race router (git show HEAD swap,
+    2026-07-21): --race is an unknown argument there."""
+    def mutate(cfg, d):
+        cfg["route"]["krt"] = str(stub_krt_race(d))
+        cfg["route"]["python"] = sys.executable
+        cfg["route"].pop("final", None)
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    r = must_pass(run([sys.executable, RS, "route", p, "--race", "2"]),
+                  "route --race 2 (stub KRT)")
+    contains(r.out, "race winner: c1", "the measured-better candidate wins")
+    log = json.loads(
+        (d / "06_build" / "route" / "race_log.json").read_text())
+    eq(log["chosen"], 1, "race_log chosen candidate")
+    c0, c1 = log["candidates"]["0"], log["candidates"]["1"]
+    check(c1["unconnected"] < c0["unconnected"],
+          f"candidate 1 must measure strictly better: {c0} vs {c1}")
+    final = Path((d / "06_build" / "route" / "FINAL").read_text().strip())
+    check("c1" in final.parts[-2], f"FINAL must point into c1: {final}")
+    code = ("import pcbnew,sys\nb=pcbnew.LoadBoard(sys.argv[1])\n"
+            "print('@@', sum(1 for t in b.GetTracks()"
+            " if t.GetClass()=='PCB_TRACK'))\n")
+    rr = must_pass(run([KPY, "-c", code, final]), "probe winner chain")
+    check(int(rr.out.split("@@")[1].strip()) >= 1,
+          "the winning chain lost its routed track")
+
+
+@test("a race where EVERY candidate fails is a hard error, not a silent "
+      "promote", kind="known_bad")
+def t_kb_race_all_fail():
+    """A failing lane is disqualified; all lanes failing must fail route —
+    promoting a chain that never routed would ship the r0 board and every
+    downstream gate would blame the stitcher."""
+    def mutate(cfg, d):
+        use_stub(cfg, d, exit_code=3)
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_fail(run([sys.executable, RS, "route", p, "--race", "2"]),
+              "race with all candidates failing", "all 2 race candidates")
+
+
 # ============================================= QUICK (loop cheapener) ====
 def quick_scratch():
     """A scratch tree whose 04_kicad board is a COPY of the sealed
