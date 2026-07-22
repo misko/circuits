@@ -110,10 +110,145 @@ fixes:
       F.Cu converter hot-loop pours sliced by escape tracks), each bridged
       BY HAND by an expensive agent before heal_islands existed.
 
+  - class: zones_intersect_same_net
+    detect: >
+      a `zones_intersect` DRC violation ("Copper zones intersect —
+      intersecting zones must have distinct priorities") whose BOTH items
+      name the SAME net (classify_gate splits this out of the escalate-only
+      `zones_intersect`, which stays cross-net = short = real work).
+    action: auto
+    fix: >
+      rerun stitch with the `unify_zone_priorities` pass
+      (route_and_stitch_generic): it finds same-net same-priority overlapping
+      pours, bumps the SMALLER zone to a distinct higher priority so KiCad
+      sees a legal NESTING instead of an intersection (same net => identical
+      copper union, only the priority integer changes), then refills and
+      RE-VERIFIES. A rebuild reruns stitch, which runs this pass wherever the
+      project's stitch.passes includes it (the template default, after the
+      last fill / before heal_islands; a project without it re-presents the
+      class and D-BACK surfaces the config gap within 3 cycles).
+    run: rebuild
+    safety:
+      reduce: >
+        after the bump + refill the pass re-measures same-net same-priority
+        overlaps and DIES if any remain — a unify that does not clear the
+        intersection is an error, never a silent no-op.
+      no_new_violations: >
+        a CROSS-net zone overlap (a short) is REFUSED loudly, never
+        priority-bumped; and the refill is checked with the heal_islands
+        grouping so a bump that slices a pour into MORE islands (trading
+        zones_intersect for unconnected) is a hard error.
+      idempotent: >
+        once the overlapping zones carry distinct priorities nothing matches
+        the same-net same-priority predicate, so a rerun is a no-op.
+      refuse: >
+        the cross-net case dies (escalate to the shorting_items owner) rather
+        than mechanically merging nets — an auto-fixer must never guess a
+        short away.
+    boards: [usb-hub-3s-v1.0, usb-hub-3s-v1.1]
+    provenance: >
+      usb-hub-3s v1.0 hand-fixed as the "P3-union" (bump overlapping same-net
+      P2 pours to P3); RE-LEARNED by hand on v1.1 (2026-07-22 routing journal
+      iterate 1-2: "3 zones_intersect (KiCad flags SAME-net same-priority
+      overlaps)" — LX1 union rects -> priority 3, VIN strip P3 over pool).
+      Second board = canon M8 promote.
+
+  # ---- PROMOTED BUILD-STEP PASSES (canon M8) ---------------------------
+  # Config-driven passes/mechanisms the REBUILD chain runs, not DRC-class
+  # matches: classify_gate emits no `seed_stubs`/`tap_reattempt` class (they
+  # are build-time robustness, not DRC findings — the pour-fed-pin open they
+  # prevent stays the escalate-only `unconnected`, whose report now names
+  # these as the deterministic remedies). They live in the table as the
+  # canonical registry of promoted mechanical fixes + the two-strike
+  # occurrence record the self-harvest hook reads.
+  - class: seed_stubs
+    detect: >
+      NOT a DRC class. The symptom is a pour-fed chip pin (pad<->zone same
+      net) that stays open because its connection weaves across a dense
+      escape field KRT excludes and taps are too short to thread.
+    action: auto
+    fix: >
+      the `seed_stubs` stitch pass (route_and_stitch_generic, runs BEFORE
+      fill) places EXPLICIT stub geometry from stitch.seed_stubs, verified
+      against the live board's exact copper with collision REFUSAL, then the
+      pour fills around it and bonds the pin. Generalises the hand-written
+      per-board emitter (usb-hub-3s plan_seed_stubs.py + add_seed_stubs.py).
+      A rebuild reruns stitch, which runs it wherever stitch.passes lists it.
+    run: rebuild
+    safety:
+      reduce: >
+        each stub declares the `pin` (REF.PAD) it serves and the pass PROVES
+        the placed copper reaches that pad — a stub that connects nothing is
+        a hard error.
+      no_new_violations: >
+        every segment/via is exact-collision-checked against foreign copper
+        at the stub clearance; a stub grazing another net is REFUSED whole,
+        never shaved.
+      idempotent: >
+        identical same-net copper already on the board is skipped, so a rerun
+        emits nothing.
+      refuse: >
+        a colliding stub is recorded as a gate failure (escalate) rather than
+        placed thin, and a `pin` on the wrong net dies — a seed stub must
+        never bridge nets.
+    boards: [usb-hub-3s-v1.0, usb-hub-3s-v1.1]
+    provenance: >
+      usb-hub-3s v1.0 west-column pour-pin drops, then v1.1 (2026-07-22
+      journal iterate 3-4): LX1/VOUT_PDS/VOUT_PD long U1 south-row runs, hand
+      emitted deterministically after threaded taps proved order-fragile.
+      Same emitter shape as prior boards' via-farm emitters. Second board =
+      canon M8 promote.
+
+  - class: tap_reattempt
+    detect: >
+      NOT a DRC class. The symptom is a `taps` build-step FAILURE on long
+      pour-net pins (the tap threader hugs KRT escape-field lane edges, so a
+      long tap's corridor is order-fragile).
+    action: auto
+    fix: >
+      the bounded reattempt in `cmd_taps` (route_and_stitch_generic): on a
+      tap failure, retry the still-failed taps LONGEST-first (seed-stubs-first
+      ordering — the most-constrained long runs claim the corridor before
+      shorter taps box them in), benefiting from the copper the successes
+      laid. Config: taps.reattempt.max_retries (default 2). A rebuild reruns
+      taps with the reattempt in force.
+    run: rebuild
+    safety:
+      reduce: >
+        each retry must strictly reduce the failed-tap count; a retry that
+        makes no progress stops immediately (the ordering is deterministic —
+        spinning cannot help).
+      no_new_violations: >
+        every emitted tap segment/via still goes through the exact
+        collision-checked _route_one_tap strategies — reattempt only changes
+        ORDER, never the emit discipline.
+      idempotent: >
+        a fully-routed tap set does zero retries; the loop is bounded by
+        max_retries AND progress-gated, so it always terminates.
+      refuse: >
+        after the bound with failures remaining the step DIES naming the
+        stuck taps and pointing at seed_stubs / placement (D-ADJ) — it never
+        ships a silent open.
+    boards: [cook-hub, usb-pwr-hub-3s, usb-hub-3s-v1.1]
+    provenance: >
+      cook-hub u7 taps + usb-pwr-hub-3s route_taps.py were the taps
+      promotion; the U1 pour-pin tap failures RECURRED on usb-hub-3s v1.1
+      (2026-07-22 journal iterate 1 & 3: "4/33 taps FAILED — all long U1
+      pour-net pin runs"). Bounded reattempt is the mechanical response.
+
   # ------------------------------------------------------- ESCALATE -----
   # Real work. An auto-"fix" here would be the muted-gate failure mode
   # (spf 96785a0): the driver must hand these to a designer/agent with the
   # counts and samples, not negotiate with them mechanically.
+  - class: zones_intersect
+    action: escalate
+    why: >
+      a CROSS-net zone overlap is a SHORT — net-identity work, never a
+      mechanical priority bump (the same-net case is the auto
+      zones_intersect_same_net above; classify_gate splits them by whether
+      both items name one net).
+    boards: [usb-hub-3s-v1.1]
+    provenance: "cross-net class of the XT60 short family (spf fa0b9c1)"
   - class: clearance
     action: escalate
     why: >
@@ -133,8 +268,12 @@ fixes:
     why: >
       opens are the actual routing work: wave coverage, taps for boxed-in
       pads, pour service. quick names the nets; the fix is design, and
-      3 stalled cycles of it must retreat up the D-BACK ladder.
-    provenance: "v4 first DRC: 41/648; 40 at snapshot 16:08"
+      3 stalled cycles of it must retreat up the D-BACK ladder. A pad<->zone
+      (pour-fed pin) open has PROMOTED deterministic remedies the escalation
+      report names — stitch seed_stubs and the bounded tap reattempt.
+    boards: [usb-hub-3s-v4, spf, usb-hub-3s-v1.1]
+    provenance: "v4 first DRC: 41/648; 40 at snapshot 16:08; recurred on spf
+      and usb-hub-3s v1.1 (pour-fed U1 pins)"
 
   - class: starved_thermal
     action: escalate

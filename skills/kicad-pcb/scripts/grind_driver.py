@@ -104,6 +104,20 @@ def classify_gate(g, fab_floor=0.10):
             tag = ("REAL" if len(nets) > 1 and 0 <= val < fab_floor
                    else "margin" if len(nets) > 1 else "same-net")
             desc = f"[{tag}] {desc}"
+        elif cls == "zones_intersect":
+            # KiCad flags overlapping zone outlines. SAME-net same-priority
+            # overlaps are the mechanical `zones_intersect_same_net` class:
+            # the fix is a priority bump so the union nests legally (stitch
+            # `unify_zone_priorities` — the usb-hub-3s v1.0 P3-union
+            # precedent, re-learned on v1.1). A CROSS-net overlap is a SHORT
+            # and stays escalate-only. Split by whether both items name the
+            # same net (the classify_gate discipline, like unconnected
+            # islands and the clearance real/margin split).
+            nets = {m.group(1) for it in v.get("items", [])
+                    for m in [re.search(r"\[([^\]]+)\]",
+                                        it.get("description", ""))] if m}
+            if len(nets) == 1:
+                cls = "zones_intersect_same_net"
         add(cls, desc)
     for u in g.get("unconnected_items", []):
         descs = [i.get("description", "") for i in u.get("items", [])]
@@ -191,6 +205,41 @@ def journal(root, n, mode, findings, best, stall, action):
         f.write(entry)
 
 
+def entry_boards(entry):
+    """The distinct boards a grind_fixes entry's provenance cites. An explicit
+    `boards:` list is authoritative; else best-effort tokens are pulled from
+    the prose provenance (project-name-shaped words). This is the two-strike
+    occurrence record: canon M8 says the SECOND board a class is hand-fixed on
+    is the promotion trigger, so an escalate class whose provenance already
+    names >= 2 boards is ripe to mechanize."""
+    if not entry:
+        return []
+    b = entry.get("boards")
+    if isinstance(b, list) and b:
+        return sorted({str(x) for x in b})
+    prov = str(entry.get("provenance", "")) + " " + str(entry.get("why", ""))
+    found = set(re.findall(r"\b(?:usb-[a-z0-9-]+|cook-[a-z0-9-]+|"
+                           r"crow-[a-z0-9-]+|ble-[a-z0-9-]+|esp32[a-z0-9-]*|"
+                           r"spf|crowsync-[a-z0-9-]+)\b", prov))
+    return sorted(found)
+
+
+def two_strike_flags(findings, table):
+    """(class, boards) for every ESCALATED/novel class whose occurrence record
+    already spans >= 2 boards — the self-harvest signal: mechanize this next
+    (canon M8 two-strike). Auto classes are excluded: they are already
+    mechanized."""
+    out = []
+    for cls in sorted(findings):
+        t = table.get(cls)
+        if t and t.get("action") == "auto":
+            continue
+        boards = entry_boards(t)
+        if len(boards) >= 2:
+            out.append((cls, boards))
+    return out
+
+
 def write_escalation(root, reason, findings, table, history):
     p = root / "06_build" / "grind_escalation.md"
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -211,6 +260,22 @@ def write_escalation(root, reason, findings, table, history):
         lines += [f"## {cls} — {e['count']}",
                   f"- why no auto-fix: {why}"]
         lines += [f"- sample: {s}" for s in e["samples"]]
+        # pour-fed pin opens have promoted DETERMINISTIC remedies the summoned
+        # agent should reach for before hand-routing (canon M8).
+        if cls == "unconnected":
+            lines += ["- promoted remedies: a pad<->zone (pour-fed pin) open "
+                      "is what stitch `seed_stubs` (deterministic stub) and "
+                      "the bounded tap reattempt mechanize — configure those "
+                      "before hand-threading."]
+        lines += [""]
+    flags = two_strike_flags(findings, table)
+    if flags:
+        lines += ["## SELF-HARVEST — two-strike promotion candidates", ""]
+        for cls, boards in flags:
+            msg = (f"class {cls} escalated on boards {', '.join(boards)} — "
+                   f"two-strike, promotion candidate")
+            lines.append(f"- {msg}")
+            print(f"two-strike: {msg}")
         lines += [""]
     lines += ["Next: the D-BACK ladder (skills/pcb-design/SKILL.md) maps "
               "each class to the stage that owns it. Re-run grind_driver "

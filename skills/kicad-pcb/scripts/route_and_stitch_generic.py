@@ -804,22 +804,82 @@ def cmd_taps(cfg):
     tier_geometry(via, fab_tier(cfg), "taps.via", keymap=_VIA_KEYMAP)
     vs, vd = float(via.get("size", 0.6)), float(via.get("drill", 0.3))
     target = rel(cfg, cfg["project"]["board"])
-    b = pcbnew.LoadBoard(str(target))
-    tk = Toolkit(b, float(get(cfg, "taps.clearance", 0.15)))
-    fails = []
-    for i, t in enumerate(taps):
-        how = _route_one_tap(pcbnew, tk, t, i, vs, vd)
-        print(f"  tap {t.get('net', '?'):8} {t.get('from')} -> {t.get('to')}"
-              f"  w={t.get('width', 0.3)}  {'OK ' + how if how else 'FAIL'}")
-        if not how:
-            fails.append((t.get("net"), t.get("from"), t.get("to")))
-    if fails:
-        die(f"unrouted taps: {fails} — a tap is a NAMED connection; leaving "
-            f"it to the pour/stitch lottery ships an open (the pad shows up "
-            f"only as a DRC unconnected item after fill)")
-    b.Save(str(target))
-    print(f"taps: {len(taps)} routed -> {target.name}")
+    clr = float(get(cfg, "taps.clearance", 0.15))
+    bref = pcbnew.LoadBoard(str(target))   # read-only, for endpoint geometry
+
+    def route_all(order, tag=""):
+        """Route the whole tap set in `order` on a FRESH copy of the target
+        board (the original is untouched on disk until the final save), so a
+        reattempt is a clean re-route in a new ORDER — not a partial retry
+        that keeps an earlier tap's blocking copper. Returns (board, failed
+        indices)."""
+        bb = pcbnew.LoadBoard(str(target))
+        tkk = Toolkit(bb, clr)
+        failed = []
+        for idx in order:
+            t = taps[idx]
+            how = _route_one_tap(pcbnew, tkk, t, idx, vs, vd)
+            print(f"  {tag}tap {t.get('net', '?'):8} {t.get('from')} -> "
+                  f"{t.get('to')}  w={t.get('width', 0.3)}  "
+                  f"{'OK ' + how if how else 'FAIL'}")
+            if not how:
+                failed.append(idx)
+        return bb, failed
+
+    # BOUNDED tap reattempt (canon M8 — the v1.1 U1 pour-pin tap failures
+    # recurred: KRT hugs the escape-field lane edges, so a long pour-net pin
+    # tap's corridor is ORDER-fragile). On a failure, re-route the whole set
+    # LONGEST-first (seed-stubs-first / most-constrained-first ordering: the
+    # long runs claim their corridor before shorter taps box them in), on a
+    # fresh board. BOUNDED and PROGRESS-GATED — a retry that does not beat the
+    # best failure count stops immediately, so the loop cannot spin: at most
+    # max_retries retries, then escalate (the D-BACK discipline).
+    max_retries = int(get(cfg, "taps.reattempt.max_retries", 2))
+    order = list(range(len(taps)))
+    board, failed = route_all(order)
+    best_board, best_fail = board, failed
+    retries = 0
+    while best_fail and retries < max_retries:
+        retries += 1
+        # most-constrained-first: longest span first (deterministic, stable)
+        order = sorted(range(len(taps)),
+                       key=lambda i: _tap_len(bref, taps[i]), reverse=True)
+        print(f"  tap reattempt {retries}/{max_retries}: "
+              f"{len(best_fail)} failing — full re-route, longest-first")
+        board, failed = route_all(order, tag="[re] ")
+        if len(failed) < len(best_fail):
+            best_board, best_fail = board, failed
+        else:                        # no progress -> further retries can't help
+            print(f"  tap reattempt {retries}: no progress "
+                  f"({len(failed)} still failing) — escalating not spinning")
+            break
+    if best_fail:
+        fl = [(taps[i].get("net"), taps[i].get("from"), taps[i].get("to"))
+              for i in best_fail]
+        die(f"unrouted taps after {retries} bounded reattempt(s): {fl} — a "
+            f"tap is a NAMED connection; leaving it to the pour/stitch "
+            f"lottery ships an open (the pad shows up only as a DRC "
+            f"unconnected item after fill). Reattempt is bounded "
+            f"(max_retries={max_retries}); a tap still stuck here is "
+            f"structurally fragile (a long pour-net pin run) — promote it to "
+            f"a deterministic stitch.seed_stubs, or fix placement (D-ADJ)")
+    best_board.Save(str(target))
+    print(f"taps: {len(taps)} routed"
+          + (f" ({retries} reattempt(s))" if retries else "")
+          + f" -> {target.name}")
     return 0
+
+
+def _tap_len(board, t):
+    """Straight-line span of a tap (mm) — the reattempt orders the longest
+    (most-constrained) pour-net pin runs first. Resolves 'REF.PAD' endpoints
+    against the board; an unresolvable span sorts last (0.0)."""
+    try:
+        p1 = _tap_point(board, t.get("from"), t.get("net"), "reattempt")
+        p2 = _tap_point(board, t.get("to"), t.get("net"), "reattempt")
+        return math.hypot(p1[0] - p2[0], p1[1] - p2[1])
+    except RouteConfigError:
+        return 0.0
 
 
 # ============================================================= QUICK =====
@@ -2503,6 +2563,291 @@ def p_heal_islands(ctx, c):
                       for n, (w, _x) in sorted(healed.items())))
 
 
+# ------------------------------------------------- deterministic seed stubs --
+def _same_seg_exists(ctx, x1, y1, x2, y2, lid, code, tol=0.02):
+    """Idempotency probe: does a same-net track with these endpoints already
+    exist on this layer? A rerun of seed_stubs must emit no new copper."""
+    for t in ctx.board.GetTracks():
+        if (t.GetClass() != "PCB_TRACK" or t.GetNetCode() != code
+                or t.GetLayer() != lid):
+            continue
+        (ax, ay), (bx, by) = _ends_mm(t)
+
+        def near(p, q):
+            return abs(p[0] - q[0]) <= tol and abs(p[1] - q[1]) <= tol
+        if ((near((ax, ay), (x1, y1)) and near((bx, by), (x2, y2)))
+                or (near((ax, ay), (x2, y2)) and near((bx, by), (x1, y1)))):
+            return True
+    return False
+
+
+def _same_via_exists(ctx, x, y, code, tol=0.05):
+    for t in ctx.board.GetTracks():
+        if t.GetClass() == "PCB_VIA" and t.GetNetCode() == code:
+            vx, vy = t.GetPosition().x / 1e6, t.GetPosition().y / 1e6
+            if abs(vx - x) <= tol and abs(vy - y) <= tol:
+                return True
+    return False
+
+
+def _pin_touched(ctx, px, py, code, tol=0.16):
+    """Is the pin pad (px,py) touched by same-net track copper or a via —
+    i.e. did the seed stub actually reach it?"""
+    for t in ctx.board.GetTracks():
+        if t.GetNetCode() != code:
+            continue
+        if t.GetClass() == "PCB_VIA":
+            vx, vy = t.GetPosition().x / 1e6, t.GetPosition().y / 1e6
+            if math.hypot(vx - px, vy - py) <= tol:
+                return True
+        else:
+            for e in _ends_mm(t):
+                if math.hypot(e[0] - px, e[1] - py) <= tol:
+                    return True
+    return False
+
+
+@stitch_pass("seed_stubs")
+def p_seed_stubs(ctx, c):
+    """DETERMINISTIC pour-fed chip-pin stubs (canon M8 promotion). The
+    pour-fed nets that leave a dense IC pin row and must weave across the
+    escape field to reach their pour island are the connections KRT excludes
+    and the tap threader is too short to own: hand-written per board as an
+    explicit-geometry emitter with collision REFUSAL (usb-hub-3s
+    03_src/plan_seed_stubs.py + add_seed_stubs.py, itself the second strike
+    after prior boards' via-farm emitters). This promotes the EMITTER —
+    fixed geometry from the config, verified against the live board's exact
+    copper, idempotent — into the generic backend.
+
+    Runs BEFORE `fill` (place stub copper first so the pour flows around it
+    and bonds the pin). Config (`stitch.seed_stubs`):
+        clearance: 0.13                 # tighter than stitch clearance
+        via: {size: 0.25, drill: 0.15}  # tier-derived when omitted
+        stubs:
+          - {net: LX1, pin: U1.18,
+             segments: [{layer: F.Cu, width: 0.25, pts: [[x,y],[x,y]]}],
+             vias: [[x,y]]}
+    SAFETY (the D-BACK lesson — an unbounded emitter is worse than none):
+      (a) reduce: each stub declares the `pin` (REF.PAD) it serves and the
+          pass PROVES the placed copper reaches that pad — a stub that
+          connects nothing is a hard error, not a silent no-op;
+      (b) zero new violations: EVERY segment/via is exact-collision-checked
+          against foreign copper (tk.collides / via_site_ok) at the stub
+          clearance — a stub grazing another net is REFUSED whole, never
+          shaved (the add_seed_stubs discipline);
+      (c) idempotent: identical same-net copper already on the board is
+          skipped, so a rerun emits nothing;
+      (d) refuse, don't guess: a colliding stub is recorded as a gate
+          failure (escalate) rather than placed thin, and a `pin` on the
+          wrong net dies (a seed stub must NEVER bridge nets)."""
+    pcbnew = ctx.pcbnew
+    stubs = c.get("stubs") or []
+    if not stubs:
+        print("seed_stubs: none configured (0 stubs)")
+        ctx.bump("seed_stubs", 0)
+        return
+    filled = [z for z in ctx.board.Zones()
+              if not z.GetIsRuleArea() and z.GetNetname() and z.IsFilled()]
+    if filled:
+        die("seed_stubs must run BEFORE `fill` — a stub laid after fill is "
+            "not flowed around by the pour, so the pin it serves stays open")
+    via = dict(c.get("via", {}) or {})
+    _stub_tier_via(ctx.cfg, via)
+    vs, vd = float(via.get("size", 0.25)), float(via.get("drill", 0.15))
+    tk = ctx.Toolkit(ctx.board, float(c.get("clearance", 0.13)))
+    served = refused = placed = skipped = 0
+    for i, stub in enumerate(stubs):
+        netname = stub.get("net") or die(f"seed_stubs.stubs[{i}]: no `net`")
+        net = ctx.net(netname)
+        code = net.GetNetCode()
+        pin = stub.get("pin")
+        pinpad = None
+        if pin:
+            ref, num = str(pin).split(".", 1)
+            fp = ctx.board.FindFootprintByReference(ref)
+            if fp is None:
+                die(f"seed_stubs.stubs[{i}]: no footprint {ref!r}")
+            for p in fp.Pads():
+                if p.GetNumber() == num:
+                    pinpad = p
+                    break
+            if pinpad is None:
+                die(f"seed_stubs.stubs[{i}]: {ref} has no pad {num!r}")
+            if pinpad.GetNetname() != netname:
+                die(f"seed_stubs.stubs[{i}]: pin {pin} is on net "
+                    f"{pinpad.GetNetname()!r}, not {netname!r} — a seed stub "
+                    f"must NEVER bridge nets")
+        prims, conflict = [], None
+        for seg in stub.get("segments", []) or []:
+            lid = _layer_id(pcbnew, seg["layer"])
+            w = float(seg["width"])
+            pts = seg["pts"]
+            for (ax, ay), (bx, by) in zip(pts, pts[1:]):
+                ax, ay, bx, by = (round(v, 3) for v in (ax, ay, bx, by))
+                if tk.collides(ax, ay, bx, by, w, code, lid) is not None:
+                    conflict = f"seg ({ax},{ay})->({bx},{by}) {seg['layer']}"
+                    break
+                prims.append(("seg", ax, ay, bx, by, w, lid))
+            if conflict:
+                break
+        if conflict is None:
+            for (vx, vy) in stub.get("vias", []) or []:
+                vx, vy = round(vx, 3), round(vy, 3)
+                if (not _same_via_exists(ctx, vx, vy, code)
+                        and not tk.via_site_ok(vx, vy, code, size=vs, drill=vd)):
+                    conflict = f"via ({vx},{vy})"
+                    break
+                prims.append(("via", vx, vy))
+        if conflict is not None:
+            ctx.failures.append(
+                f"seed_stub {netname} {pin or ''}: REFUSED — {conflict} "
+                f"collides foreign copper")
+            refused += 1
+            print(f"  seed_stub {netname} {pin or '?'}: REFUSED ({conflict})")
+            continue
+        for prim in prims:
+            if prim[0] == "seg":
+                _, ax, ay, bx, by, w, lid = prim
+                if _same_seg_exists(ctx, ax, ay, bx, by, lid, code):
+                    skipped += 1
+                    continue
+                tk.add_seg(ax, ay, bx, by, net, lid, w)
+                placed += 1
+            else:
+                _, vx, vy = prim
+                if _same_via_exists(ctx, vx, vy, code):
+                    skipped += 1
+                    continue
+                tk.add_via(vx, vy, net, size=vs, drill=vd)
+                placed += 1
+        if pinpad is not None:
+            px, py = (pinpad.GetPosition().x / 1e6,
+                      pinpad.GetPosition().y / 1e6)
+            if not _pin_touched(ctx, px, py, code):
+                die(f"seed_stubs.stubs[{i}]: the stub placed for {pin} does "
+                    f"not reach the pin pad — it connects nothing (check the "
+                    f"first segment starts at the pad)")
+        served += 1
+    ctx.bump("seed_stubs", placed)
+    print(f"seed_stubs: {served} pin(s) served ({placed} segments/vias "
+          f"placed, {skipped} idempotent-skip), {refused} refused")
+
+
+# ------------------------------------------ same-net zone priority unify ------
+def _zone_overlap_pairs(ctx):
+    """(same_net_same_prio, cross_net) copper-zone pairs whose OUTLINES
+    overlap on a shared copper layer. KiCad flags a same-net same-priority
+    outline intersection as `zones_intersect` ('intersecting zones must have
+    distinct priorities'); a cross-net area overlap is a SHORT."""
+    pcbnew = ctx.pcbnew
+    zones = [z for z in ctx.board.Zones()
+             if not z.GetIsRuleArea() and z.GetNetname()]
+    same, cross = [], []
+    for i in range(len(zones)):
+        za = zones[i]
+        for j in range(i + 1, len(zones)):
+            zb = zones[j]
+            if not any(zb.GetLayerSet().Contains(l)
+                       for l in za.GetLayerSet().Seq()
+                       if pcbnew.IsCopperLayer(l)):
+                continue
+            if not za.Outline().BBox().Intersects(zb.Outline().BBox()):
+                continue
+            inter = pcbnew.SHAPE_POLY_SET(za.Outline())
+            inter.BooleanIntersection(zb.Outline())
+            if inter.OutlineCount() == 0 or inter.Area() <= 0:
+                continue
+            if za.GetNetCode() == zb.GetNetCode():
+                if za.GetAssignedPriority() == zb.GetAssignedPriority():
+                    same.append((za, zb))
+            else:
+                cross.append((za, zb))
+    return same, cross
+
+
+@stitch_pass("unify_zone_priorities")
+def p_unify_zone_priorities(ctx, c):
+    """AUTO-FIX the `zones_intersect_same_net` class: two pours of the SAME
+    net that overlap at the SAME priority. KiCad reports 'Copper zones
+    intersect (intersecting zones must have distinct priorities)' on the
+    union — the fix hand-applied on usb-hub-3s v1.0 (the 'P3-union'
+    precedent) and re-learned on v1.1 (3 findings, priority-2 pool + strip
+    overlaps): bump the smaller zone to a distinct, higher priority so KiCad
+    sees a legal NESTING instead of an intersection. Same net => the copper
+    union is electrically identical; only the priority integer changes.
+
+    SAFETY (an unbounded auto-fixer is worse than none):
+      (a) reduce: after bumping + refill the pass RE-MEASURES same-net
+          same-priority overlaps and dies if any remain — a unify that does
+          not clear the intersection is an error, never a no-op;
+      (b) zero new violations: cross-net zone overlap is a SHORT and is
+          REFUSED loudly (never priority-bumped — that would hide a short);
+          and the refill is checked with the heal_islands grouping so a
+          bump that slices a pour into MORE islands (trading
+          zones_intersect for unconnected) is a hard error;
+      (c) idempotent: once priorities are distinct nothing matches, so a
+          rerun is a no-op;
+      (d) refuse, don't guess: the cross-net case dies (escalate to the
+          shorting_items owner) rather than mechanically merging nets."""
+    pcbnew = ctx.pcbnew
+    min_bb = float(c.get("min_bbox", 0.8))
+    same, cross = _zone_overlap_pairs(ctx)
+    if cross:
+        za, zb = cross[0]
+        die(f"unify_zone_priorities: zones of DIFFERENT nets overlap "
+            f"([{za.GetNetname()}] and [{zb.GetNetname()}]) — that is a "
+            f"SHORT, not a same-net priority union. Refusing to touch it: a "
+            f"cross-net zone intersection is design work (shorting_items), "
+            f"never a mechanical priority bump")
+    if not same:
+        ctx.bump("zone_priorities_unified", 0)
+        print("unify_zone_priorities: no same-net same-priority zone overlap "
+              "— nothing to unify (0 bumps)")
+        return
+    before = None
+    if any(z.IsFilled() for z in ctx.board.Zones()
+           if not z.GetIsRuleArea() and z.GetNetname()):
+        ctx.board.BuildConnectivity()
+        before = {n: len(g)
+                  for n, g in _heal_groups(ctx, min_bb).items()}
+    maxp = max((z.GetAssignedPriority() for z in ctx.board.Zones()
+                if not z.GetIsRuleArea() and z.GetNetname()), default=0)
+    bumped, seen = 0, set()
+    for za, zb in same:
+        small = za if za.Outline().Area() <= zb.Outline().Area() else zb
+        if id(small) in seen:
+            continue
+        maxp += 1
+        small.SetAssignedPriority(maxp)
+        seen.add(id(small))
+        bumped += 1
+        print(f"  unify {small.GetNetname()}: overlapping zone -> "
+              f"priority {maxp}")
+    pcbnew.ZONE_FILLER(ctx.board).Fill(ctx.board.Zones())
+    ctx.board.BuildConnectivity()
+    same_after, cross_after = _zone_overlap_pairs(ctx)
+    if same_after:
+        za, zb = same_after[0]
+        die(f"unify_zone_priorities: {len(same_after)} same-net same-priority "
+            f"zone overlap(s) REMAIN after the bump (e.g. "
+            f"[{za.GetNetname()}]) — a unify that does not clear the "
+            f"intersection is an ERROR, not a no-op")
+    if cross_after:
+        die("unify_zone_priorities: the priority bump exposed a cross-net "
+            "zone overlap — refusing to report a fix that created a short")
+    if before is not None:
+        after = {n: len(g)
+                 for n, g in _heal_groups(ctx, min_bb).items()}
+        worse = [n for n, cnt in after.items() if cnt > before.get(n, cnt)]
+        if worse:
+            die(f"unify_zone_priorities: the priority bump sliced pour(s) "
+                f"{worse} into MORE islands — refusing a fix that fragments a "
+                f"net (that trades zones_intersect for unconnected)")
+    ctx.bump("zone_priorities_unified", bumped)
+    print(f"unify_zone_priorities: {bumped} zone(s) re-prioritised, "
+          f"{len(same)} same-net intersection(s) cleared")
+
+
 @stitch_pass("gate")
 def p_gate(ctx, c):
     """Flush accumulated failures. Boards gate once (before the final fill)
@@ -2516,13 +2861,23 @@ def p_gate(ctx, c):
     print("gate: clean")
 
 
-DEFAULT_PASSES = ["dedupe_vias", "drop_micro_fragments", "reload",
-                  "pad_rescue", "stitch_grid", "via_janitor", "fill",
-                  "island_rescue", "heal_islands", "gate"]
+DEFAULT_PASSES = ["seed_stubs", "dedupe_vias", "drop_micro_fragments",
+                  "reload", "pad_rescue", "stitch_grid", "via_janitor",
+                  "fill", "island_rescue", "unify_zone_priorities",
+                  "heal_islands", "gate"]
 
 
 # stitch.via and friends spell the geometry size/drill, not via_size/via_drill
 _VIA_KEYMAP = {"via_size": "size", "via_drill": "drill", "clearance": None}
+
+
+def _stub_tier_via(cfg, via):
+    """Tier floors for a seed_stubs via geometry (same discipline as
+    stitch.via): a missing size/drill defaults to the declared fab tier's
+    floor; an explicit sub-floor value is a hard error naming the tier."""
+    tier = fab_tier(cfg)
+    if tier is not None:
+        tier_geometry(via, tier, "stitch.seed_stubs.via", keymap=_VIA_KEYMAP)
 
 
 def _stitch_tier_geometry(cfg):

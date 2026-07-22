@@ -99,9 +99,18 @@ route:
 # unconnected item after fill). `plane: true` ends at a via AT the `to`
 # point (a point inside the net's inner plane, merged by the fill).
 #
+# A long pour-net pin tap's corridor is ORDER-fragile (KRT hugs the escape-
+# field lane edges). `reattempt` re-routes the WHOLE tap set longest-first
+# (most-constrained-first) on a fresh board when a tap fails — BOUNDED by
+# max_retries (default 2) and progress-gated, so it terminates and escalates
+# rather than spinning (the v1.1 U1 pour-pin recurrence, canon M8). A tap
+# still stuck after the bound is structurally fragile — promote it to a
+# deterministic stitch.seed_stubs (below), or fix placement (D-ADJ).
+#
 # taps:
 #   clearance: 0.15
 #   via: {size: 0.6, drill: 0.3}     # tier-derived when omitted
+#   reattempt: {max_retries: 2}      # bounded longest-first re-route on fail
 #   connections:
 #     - {net: VCC,  from: U1.4,  to: C8.1,         width: 0.3}
 #     - {net: CC1,  from: J5.A5, to: R10.2,        width: 0.25,
@@ -119,9 +128,39 @@ stitch:
   # 2-layer standard board's floors — crow-array-pod incident).
   via: {size: 0.6, drill: 0.3, spacing: 0.85, pth_margin: 0.3}
   keepin: {inset: 0.8}
-  passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
-           split_t_junctions, reload, hole_to_hole, pad_rescue, stub_fallback, astar_fallback,
-           stitch_grid, fill, island_rescue, fill, heal_islands, gate]
+  # seed_stubs runs FIRST (before fill so the pour flows around the stub
+  # copper); unify_zone_priorities runs after the last fill, before
+  # heal_islands (it needs filled zones to check for pour fragmentation).
+  passes: [seed_stubs, dedupe_vias, normalize_vias, drop_micro_fragments,
+           drop_dangling, split_t_junctions, reload, hole_to_hole, pad_rescue,
+           stub_fallback, astar_fallback, stitch_grid, fill, island_rescue,
+           fill, unify_zone_priorities, heal_islands, gate]
+  # DETERMINISTIC POUR-FED PIN SEED STUBS (canon M8: usb-hub-3s
+  # plan_seed_stubs.py + add_seed_stubs.py). The pour-fed nets that leave a
+  # dense IC pin row and weave across the escape field to their pour island —
+  # KRT excludes them, taps are too short to thread. Runs BEFORE fill (the
+  # pour bonds the pin around the stub copper). Each stub is EXPLICIT geometry
+  # verified against the live board's exact copper with collision REFUSAL
+  # (refuse whole, never shave), declares the `pin` (REF.PAD) it serves (the
+  # pass proves the copper reaches it), and is idempotent. Plan the coordinates
+  # against the FROZEN promoted chain (a maze router like plan_seed_stubs.py),
+  # not by hand — re-plan if the chain is re-promoted. Omit or leave empty on
+  # boards without pour-fed-pin opens.
+  #   seed_stubs:
+  #     clearance: 0.13                  # tighter than stitch clearance
+  #     via: {size: 0.25, drill: 0.15}   # tier-derived when omitted
+  #     stubs:
+  #       - {net: LX1, pin: U1.18,
+  #          segments: [{layer: F.Cu, width: 0.25, pts: [[60.6,70.9],[57.6,71.9]]}],
+  #          vias: [[57.6,71.9]]}
+  # SAME-NET ZONE PRIORITY UNIFY (canon M8: usb-hub-3s v1.0 "P3-union", v1.1
+  # re-learn). Two pours of the SAME net overlapping at the SAME priority make
+  # KiCad report `zones_intersect` ("intersecting zones must have distinct
+  # priorities"). The pass bumps the smaller zone to a distinct higher priority
+  # so the union NESTS legally (same net => identical copper), refills, and
+  # re-verifies. A CROSS-net overlap is a SHORT and is REFUSED (escalate to
+  # shorting_items — never a mechanical bump). `min_bbox` skips slivers.
+  unify_zone_priorities: {min_bbox: 0.8}
   dedupe_vias: {radius: 0.5, metric: box}
   normalize_vias: {below_width: 0.449, size: 0.6, drill: 0.3}
   drop_micro_fragments: {max_length: 0.12, require_free_end: true}

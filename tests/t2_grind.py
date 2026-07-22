@@ -242,5 +242,87 @@ def t_kb_grind_subset_plateau():
     contains(esc, "subset plateau", "the report names the subset condition")
 
 
+def zi_gate(n, same=True):
+    """A gate.json with n zones_intersect violations — SAME net (the auto
+    zones_intersect_same_net class) or CROSS net (a short, escalate-only)."""
+    g = gate()
+    for i in range(n):
+        bnet = "PWR" if same else "SIG"
+        g["violations"].append({
+            "type": "zones_intersect", "severity": "error",
+            "description": "Copper zones intersect (intersecting zones must "
+                           "have distinct priorities)",
+            "items": [{"description": "Zone [PWR] on F.Cu, priority 2"},
+                      {"description": f"Zone [{bnet}] on F.Cu, priority 2"}]})
+    return g
+
+
+@test("grind classifies SAME-net zones_intersect as the AUTO class "
+      "zones_intersect_same_net and rebuilds to clean")
+def t_grind_zones_intersect_same_net():
+    """usb-hub-3s v1.0 P3-union / v1.1 re-learn (2026-07-22): overlapping
+    same-net same-priority pours. classify_gate must split same-net
+    zones_intersect (both items name one net) out of the escalate-only
+    cross-net `zones_intersect`, so the auto entry (fix: rerun stitch with
+    unify_zone_priorities via the rebuild chain) fires instead of summoning
+    the designer."""
+    d = grind_scratch([zi_gate(3, same=True), gate()])
+    r = must_pass(grind(d), "grind on a same-net zones_intersect tail")
+    contains(r.out, "zones_intersect_same_net=3", "the split-out auto class")
+    eq(rebuilds_run(d), 1, "exactly one auto-fix rebuild")
+    contains(r.out, "0/0/0", "the clean verdict")
+
+
+@test("grind keeps a CROSS-net zones_intersect as the escalate-only class "
+      "(a short is never a priority bump)", kind="known_bad")
+def t_kb_grind_zones_intersect_cross():
+    """A different-net zone overlap is a SHORT: it must stay the escalate-only
+    `zones_intersect`, never the auto same-net class. RED-verified by the
+    reverse of the same-net split: were the cross-net pair classed auto, the
+    driver would rebuild a short away — here it must exit 2 (table-escalate)."""
+    d = grind_scratch([zi_gate(2, same=False)])
+    r = grind(d)
+    eq(r.rc, 2, "cross-net zones_intersect must escalate, not auto-fix")
+    eq(rebuilds_run(d), 0, "a short must never be auto-fixed")
+    contains(r.out, "zones_intersect=2", "stays the escalate-only class")
+
+
+@test("the escalation report SELF-HARVESTS: a class escalated whose "
+      "provenance spans >= 2 boards is flagged a promotion candidate")
+def t_grind_two_strike_harvest():
+    """The self-harvest hook (canon M8): when the driver escalates a class
+    whose grind_fixes provenance already names >= 2 boards, it prints
+    'class X escalated on boards A,B — two-strike, promotion candidate' to
+    stdout and the report, so the loop flags what to mechanize NEXT.
+    `unconnected` carries boards: [usb-hub-3s-v4, spf, usb-hub-3s-v1.1]."""
+    d = grind_scratch([gate(unconnected=3)])
+    r = grind(d)
+    eq(r.rc, 2, "unconnected escalates")
+    contains(r.out, "two-strike", "the hook must print to stdout")
+    esc = (d / "06_build" / "grind_escalation.md").read_text()
+    contains(esc, "two-strike promotion candidates", "the report section")
+    contains(esc, "class unconnected escalated on boards", "the flagged class")
+    contains(esc, "usb-hub-3s-v1.1", "the boards are named from provenance")
+
+
+@test("self-harvest does NOT flag an already-mechanized (auto) class even if "
+      "it escalates because a rebuild stalled", kind="known_bad")
+def t_kb_two_strike_excludes_auto():
+    """A class that is ALREADY auto (zones_intersect_same_net, 2 boards) must
+    not be re-flagged as a promotion candidate — it is already mechanized.
+    Forced to escalate via a never-improving same-net zones_intersect (the
+    rebuild stub does not touch the synthetic findings), it hits D-BACK; the
+    report must NOT carry a two-strike line for it. (Were the auto exclusion
+    dropped, the hook would spam an already-done promotion.)"""
+    d = grind_scratch([zi_gate(3, same=True)])   # never improves -> D-BACK
+    r = grind(d)
+    eq(r.rc, 4, "a stalled auto class D-BACKs")
+    esc = (d / "06_build" / "grind_escalation.md").read_text()
+    check("two-strike promotion candidate" not in esc
+          or "zones_intersect_same_net" not in esc.split(
+              "two-strike promotion candidates")[-1],
+          "an auto class must not be a promotion candidate")
+
+
 if __name__ == "__main__":
     sys.exit(main())

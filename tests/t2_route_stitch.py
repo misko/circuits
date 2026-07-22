@@ -1402,6 +1402,373 @@ def t_kb_heal_before_fill():
     must_fail(stitch(p), "heal before fill", "AFTER `fill`")
 
 
+# ==================== SAME-NET ZONE PRIORITY UNIFY (item 1, zones_intersect)
+# usb-hub-3s v1.0 hand-fixed same-net same-priority overlapping pours as the
+# "P3-union" (bump the smaller to a distinct priority); v1.1 re-learned it (3
+# zones_intersect, 2026-07-22 journal). unify_zone_priorities mechanises it.
+# A dumbbell same-net pour whose two lobes overlap at the SAME priority is the
+# `zones_intersect_same_net` class; two DIFFERENT-net overlapping pours are a
+# SHORT the pass must REFUSE.
+_MK_ZINT = r'''
+import pcbnew, sys, json
+out = sys.argv[1]; cfg = json.loads(sys.argv[2])
+BX, BY = 30.0, 20.0
+b = pcbnew.BOARD()
+for (x1,y1),(x2,y2) in [((0,0),(BX,0)),((BX,0),(BX,BY)),((BX,BY),(0,BY)),((0,BY),(0,0))]:
+    s=pcbnew.PCB_SHAPE(b); s.SetShape(pcbnew.SHAPE_T_SEGMENT)
+    s.SetStart(pcbnew.VECTOR2I_MM(x1,y1)); s.SetEnd(pcbnew.VECTOR2I_MM(x2,y2))
+    s.SetLayer(pcbnew.Edge_Cuts); s.SetWidth(pcbnew.FromMM(0.1)); b.Add(s)
+def mknet(n): x=pcbnew.NETINFO_ITEM(b,n); b.Add(x); return x
+nets={"PWR":mknet("PWR"), "SIG":mknet("SIG")}
+def zone(net, prio, pts):
+    z=pcbnew.ZONE(b); z.SetNet(net)
+    ls=pcbnew.LSET(); (getattr(ls,"AddLayer",None) or getattr(ls,"addLayer"))(pcbnew.F_Cu)
+    z.SetLayer(pcbnew.F_Cu); z.SetLayerSet(ls); z.SetAssignedPriority(prio)
+    z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL)
+    z.Outline().NewOutline()
+    for x,y in pts: z.Outline().Append(pcbnew.VECTOR2I_MM(float(x),float(y)))
+    b.Add(z)
+def pad(ref, net, x, y):
+    fp=pcbnew.FOOTPRINT(b); fp.SetReference(ref); fp.SetPosition(pcbnew.VECTOR2I_MM(x,y))
+    p=pcbnew.PAD(fp); p.SetShape(pcbnew.PAD_SHAPE_RECT); p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
+    p.SetSize(pcbnew.VECTOR2I_MM(1.2,1.2)); p.SetLayerSet(pcbnew.PAD.SMDMask())
+    p.SetPosition(pcbnew.VECTOR2I_MM(x,y)); p.SetNumber("1"); p.SetNet(nets[net])
+    fp.Add(p); b.Add(fp)
+# two overlapping F.Cu zones, SAME priority 0 -> zones_intersect
+zone(nets["PWR"], 0, [(2,2),(18,2),(18,18),(2,18)])
+if cfg["mode"] == "cross":
+    zone(nets["SIG"], 0, [(12,5),(28,5),(28,15),(12,15)])
+    pad("U1","PWR",7,10); pad("U2","SIG",23,10)
+else:
+    zone(nets["PWR"], 0, [(12,5),(28,5),(28,15),(12,15)])
+    pad("U1","PWR",7,10); pad("U2","PWR",23,10)
+b.Save(out)
+'''
+
+
+def zint_scratch(mode, passes=("fill", "unify_zone_priorities", "gate")):
+    import yaml
+    d = tmpdir("t2_zint_")
+    (d / "03_src").mkdir(); (d / "04_kicad").mkdir(); (d / "06_build").mkdir()
+    board = d / "04_kicad" / "zint.kicad_pcb"
+    must_pass(run([KPY, "-c", _MK_ZINT, board, json.dumps({"mode": mode})]),
+              "build zones-intersect board")
+    cfg = {"project": {"name": "zint", "board": "04_kicad/zint.kicad_pcb",
+                       "build_dir": "06_build"},
+           "stitch": {"clearance": 0.15,
+                      "via": {"size": 0.6, "drill": 0.3, "spacing": 0.62},
+                      "keepin": {"inset": 0.8}, "passes": list(passes),
+                      "unify_zone_priorities": {"min_bbox": 0.8}}}
+    p = d / "03_src" / "route.yaml"
+    p.write_text(yaml.safe_dump(cfg))
+    return d, p, board
+
+
+def zones_intersect_count(board):
+    outj = Path(board).parent / "zi.json"
+    run(["kicad-cli", "pcb", "drc", "--severity-all", "--refill-zones",
+         "--format", "json", "-o", str(outj), str(board)])
+    g = json.loads(outj.read_text())
+    zi = sum(1 for v in g["violations"] if v["type"] == "zones_intersect")
+    return zi, len(g["unconnected_items"])
+
+
+@test("unify_zone_priorities clears a same-net same-priority pour overlap "
+      "(zones_intersect_same_net -> 0), no new opens")
+def t_unify_same_net():
+    """The v1.0 P3-union / v1.1 re-learn (2026-07-22) made mechanical: KiCad
+    reports 'Copper zones intersect (intersecting zones must have distinct
+    priorities)' on two same-net pours at the same priority. The pass bumps
+    the smaller to a distinct priority so the union NESTS legally — same net,
+    identical copper, only the priority integer changes. The DRC re-check is
+    kicad-cli (a different method than the pass's own outline-boolean
+    detection, canon M1)."""
+    d, p, board = zint_scratch("same")
+    zi0, _ = zones_intersect_count(board)
+    check(zi0 >= 1, f"fixture must start with a zones_intersect: got {zi0}")
+    r = must_pass(stitch(p), "stitch with unify_zone_priorities")
+    contains(r.out, "re-prioritised", "the pass reports the bump")
+    zi1, un1 = zones_intersect_count(board)
+    eq(zi1, 0, "unify_zone_priorities did not clear the intersection")
+    eq(un1, 0, "the priority bump opened the pour (traded intersect for open)")
+
+
+@test("unify_zone_priorities is IDEMPOTENT: a second run finds nothing to do")
+def t_unify_idempotent():
+    """Safety (c). Once the overlapping zones carry distinct priorities the
+    same-net same-priority predicate matches nothing, so a rerun is a no-op.
+    Runs the pass twice in one stitch (pre-fill state carries between them)."""
+    d, p, board = zint_scratch(
+        "same", passes=("fill", "unify_zone_priorities",
+                        "unify_zone_priorities", "gate"))
+    r = must_pass(stitch(p), "stitch with two unify passes")
+    contains(r.out, "nothing to unify", "the second pass must be a no-op")
+
+
+@test("unify_zone_priorities REFUSES a cross-net zone overlap (a short) — "
+      "never a mechanical priority bump", kind="known_bad")
+def t_kb_unify_cross_net():
+    """Safety (b)/(d). Two DIFFERENT-net pours overlapping is a SHORT, not a
+    same-net union: bumping a priority would HIDE the short. The pass must die
+    naming both nets and pointing at shorting_items — refuse, do not guess.
+    RED-VERIFIED 2026-07-21 by classing the cross-net pair as same (removing
+    the netcode split in _zone_overlap_pairs): the broken pass bumped a
+    priority and 'cleared' the intersection, shipping the short — this test
+    then failed because stitch exited 0."""
+    d, p, board = zint_scratch("cross")
+    r = must_fail(stitch(p), "stitch on a cross-net zone overlap",
+                  "DIFFERENT nets")
+    contains(r.out, "SHORT", "the refusal must call it a short")
+
+
+# ========================= DETERMINISTIC SEED STUBS (item 2, canon M8) ======
+# usb-hub-3s plan_seed_stubs.py + add_seed_stubs.py emitted pour-fed chip-pin
+# stubs by hand (v1.0, then v1.1: LX1/VOUT_PDS/VOUT_PD long U1 runs). The
+# `seed_stubs` pass promotes the EMITTER (explicit geometry, collision REFUSAL,
+# idempotent). Fixture: a PWR pour on B.Cu, an F.Cu SMD pin unbonded to it
+# (open), a second B.Cu PWR pad as the ratsnest anchor. A stub via at the pin
+# drops to the pour and bonds it; a stub segment crossing a foreign track is
+# REFUSED.
+_MK_SEED = r'''
+import pcbnew, sys, json
+out = sys.argv[1]; cfg = json.loads(sys.argv[2])
+BX, BY = 30.0, 20.0
+b = pcbnew.BOARD(); b.SetCopperLayerCount(2)
+for (x1,y1),(x2,y2) in [((0,0),(BX,0)),((BX,0),(BX,BY)),((BX,BY),(0,BY)),((0,BY),(0,0))]:
+    s=pcbnew.PCB_SHAPE(b); s.SetShape(pcbnew.SHAPE_T_SEGMENT)
+    s.SetStart(pcbnew.VECTOR2I_MM(x1,y1)); s.SetEnd(pcbnew.VECTOR2I_MM(x2,y2))
+    s.SetLayer(pcbnew.Edge_Cuts); s.SetWidth(pcbnew.FromMM(0.1)); b.Add(s)
+def mknet(n): x=pcbnew.NETINFO_ITEM(b,n); b.Add(x); return x
+nets={"PWR":mknet("PWR"), "SIG":mknet("SIG")}
+z=pcbnew.ZONE(b); z.SetNet(nets["PWR"])
+ls=pcbnew.LSET(); (getattr(ls,"AddLayer",None) or getattr(ls,"addLayer"))(pcbnew.B_Cu)
+z.SetLayer(pcbnew.B_Cu); z.SetLayerSet(ls); z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL)
+z.Outline().NewOutline()
+for x,y in [(0.3,0.3),(BX-0.3,0.3),(BX-0.3,BY-0.3),(0.3,BY-0.3)]:
+    z.Outline().Append(pcbnew.VECTOR2I_MM(x,y))
+b.Add(z)
+def pad(ref, net, x, y, layer):
+    fp=pcbnew.FOOTPRINT(b); fp.SetReference(ref); fp.SetPosition(pcbnew.VECTOR2I_MM(x,y))
+    p=pcbnew.PAD(fp); p.SetShape(pcbnew.PAD_SHAPE_RECT); p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
+    p.SetSize(pcbnew.VECTOR2I_MM(1.2,1.2))
+    if layer == "F":
+        p.SetLayerSet(pcbnew.PAD.SMDMask())
+    else:
+        m=pcbnew.LSET(); (getattr(m,"AddLayer",None) or getattr(m,"addLayer"))(pcbnew.B_Cu)
+        p.SetLayerSet(m)
+    p.SetPosition(pcbnew.VECTOR2I_MM(x,y)); p.SetNumber("1"); p.SetNet(nets[net])
+    fp.Add(p); b.Add(fp)
+pad("U1","PWR",15,10,"F")     # the OPEN pour-fed pin (F.Cu, no via to B pour)
+pad("U2","PWR",5,10,"B")      # anchor: B.Cu pad bonded to the pour
+# a SIG SMD pad so the SIG net survives the save (net-guard fixture)
+pad("U3","SIG",25,17,"F")
+if cfg.get("blocker"):
+    t=pcbnew.PCB_TRACK(b); t.SetStart(pcbnew.VECTOR2I_MM(18,3)); t.SetEnd(pcbnew.VECTOR2I_MM(18,17))
+    t.SetWidth(pcbnew.FromMM(0.5)); t.SetLayer(pcbnew.F_Cu)
+    t.SetNetCode(nets["SIG"].GetNetCode()); b.Add(t)
+b.Save(out)
+'''
+
+
+def seed_scratch(stubs, blocker=False,
+                 passes=("seed_stubs", "fill", "gate")):
+    import yaml
+    d = tmpdir("t2_seed_")
+    (d / "03_src").mkdir(); (d / "04_kicad").mkdir(); (d / "06_build").mkdir()
+    board = d / "04_kicad" / "seed.kicad_pcb"
+    must_pass(run([KPY, "-c", _MK_SEED, board,
+                   json.dumps({"blocker": blocker})]), "build seed board")
+    cfg = {"project": {"name": "seed", "board": "04_kicad/seed.kicad_pcb",
+                       "build_dir": "06_build"},
+           "stitch": {"clearance": 0.15,
+                      "via": {"size": 0.6, "drill": 0.3, "spacing": 0.62},
+                      "keepin": {"inset": 0.8}, "passes": list(passes),
+                      "seed_stubs": {"clearance": 0.13,
+                                     "via": {"size": 0.6, "drill": 0.3},
+                                     "stubs": stubs}}}
+    p = d / "03_src" / "route.yaml"
+    p.write_text(yaml.safe_dump(cfg))
+    return d, p, board
+
+
+@test("seed_stubs bonds a pour-fed pin its via drops to the plane "
+      "(unconnected -> 0)")
+def t_seed_stubs_serves():
+    """The pour-fed-pin open (usb-hub-3s LX1/VOUT_PD class) made mechanical.
+    Baseline: the F.Cu pin is genuinely open (1 unconnected). A configured
+    stub via at the pin drops to the B.Cu pour and the fill bonds it. DRC
+    (kicad-cli — a different method than the pass) confirms 0 unconnected."""
+    d0, _, board0 = seed_scratch([])          # baseline: no stub
+    base = drc_counts(board0)
+    check(base["unconnected"] >= 1,
+          f"fixture must start with the pin OPEN: {base}")
+    d, p, board = seed_scratch([{"net": "PWR", "pin": "U1.1",
+                                 "vias": [[15, 10]]}])
+    r = must_pass(stitch(p), "stitch with seed_stubs")
+    contains(r.out, "seed_stubs: 1 pin(s) served", "the pass served the pin")
+    eq(drc_counts(board)["unconnected"], 0,
+       "the seed stub did not bond the pour-fed pin")
+
+
+@test("seed_stubs is IDEMPOTENT: a second pass on the still-unfilled board "
+      "emits no new copper")
+def t_seed_stubs_idempotent():
+    """Safety (c). Two seed_stubs passes before fill: the first places the
+    via, the second finds identical same-net copper and skips it."""
+    d, p, board = seed_scratch(
+        [{"net": "PWR", "pin": "U1.1", "vias": [[15, 10]]}],
+        passes=("seed_stubs", "seed_stubs", "fill", "gate"))
+    r = must_pass(stitch(p), "stitch with two seed_stubs passes")
+    contains(r.out, "1 idempotent-skip", "the second pass must skip its copper")
+
+
+@test("seed_stubs REFUSES a stub segment that would collide foreign copper "
+      "and the gate escalates", kind="known_bad")
+def t_kb_seed_stubs_collide():
+    """Safety (b)/(d). A stub whose segment crosses a foreign SIG track must
+    be REFUSED WHOLE (the add_seed_stubs discipline: refuse, never shave a
+    clearance), recorded as a gate failure so the run escalates rather than
+    shipping a stub grazing another net. RED-VERIFIED 2026-07-21 by making
+    the collision probe always-clear (`tk.collides(...) is not None` -> the
+    branch skipped): the broken pass placed the grazing segment, DRC found a
+    clearance violation, and stitch exited 0 — this test then failed on the
+    missing refusal."""
+    d, p, board = seed_scratch(
+        [{"net": "PWR", "pin": "U1.1",
+          "segments": [{"layer": "F.Cu", "width": 0.25,
+                        "pts": [[15, 10], [22, 10]]}], "vias": [[22, 10]]}],
+        blocker=True)
+    r = must_fail(stitch(p), "seed_stub crossing a foreign track",
+                  "REFUSED")
+    contains(r.out, "FAILURES", "the refusal must reach the gate")
+
+
+@test("seed_stubs REFUSES a pin on the wrong net — a stub must never bridge "
+      "nets", kind="known_bad")
+def t_kb_seed_stubs_net_guard():
+    """Safety (d). A `pin` whose pad is on a DIFFERENT net than the stub is a
+    config error that would otherwise emit a short; the pass dies naming the
+    mismatch. (U1.1 is PWR; the stub claims net SIG.)"""
+    d, p, board = seed_scratch([{"net": "SIG", "pin": "U1.1",
+                                 "vias": [[15, 10]]}])
+    must_fail(stitch(p), "seed_stub pin on the wrong net", "NEVER bridge nets")
+
+
+@test("seed_stubs REFUSES to run after fill", kind="known_bad")
+def t_kb_seed_stubs_after_fill():
+    """A stub laid after fill is not flowed around by the pour, so the pin it
+    serves stays open — the pass must run BEFORE fill or refuse."""
+    d, p, board = seed_scratch(
+        [{"net": "PWR", "pin": "U1.1", "vias": [[15, 10]]}],
+        passes=("fill", "seed_stubs", "gate"))
+    must_fail(stitch(p), "seed_stubs after fill", "BEFORE `fill`")
+
+
+# ============================= BOUNDED TAP REATTEMPT (item 3, canon M8) ======
+# The v1.1 U1 pour-pin tap failures recurred: threading a long pour-net pin
+# tap is ORDER-fragile. cmd_taps now re-routes the whole set longest-first on
+# a failure, BOUNDED by max_retries and progress-gated. Fixture: a long tap A
+# that can ONLY route direct on F.Cu (foreign B.Cu patches kill its via-hop),
+# and a short tap B that CAN via-hop; they cross. In config order [short,
+# long] the short's direct copper boxes the long out; longest-first re-routes
+# the long first and the short adapts.
+_MK_TAP2 = r'''
+import pcbnew, sys, json
+out = sys.argv[1]; cfg = json.loads(sys.argv[2])
+BX, BY = 40.0, 24.0
+b = pcbnew.BOARD(); b.SetCopperLayerCount(2)
+for (x1,y1),(x2,y2) in [((0,0),(BX,0)),((BX,0),(BX,BY)),((BX,BY),(0,BY)),((0,BY),(0,0))]:
+    s=pcbnew.PCB_SHAPE(b); s.SetShape(pcbnew.SHAPE_T_SEGMENT)
+    s.SetStart(pcbnew.VECTOR2I_MM(x1,y1)); s.SetEnd(pcbnew.VECTOR2I_MM(x2,y2))
+    s.SetLayer(pcbnew.Edge_Cuts); s.SetWidth(pcbnew.FromMM(0.1)); b.Add(s)
+def mknet(n): x=pcbnew.NETINFO_ITEM(b,n); b.Add(x); return x
+nets={"A":mknet("A"), "B":mknet("B"), "C":mknet("C")}
+def pad(ref, net, x, y):
+    fp=pcbnew.FOOTPRINT(b); fp.SetReference(ref); fp.SetPosition(pcbnew.VECTOR2I_MM(x,y))
+    p=pcbnew.PAD(fp); p.SetShape(pcbnew.PAD_SHAPE_RECT); p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
+    p.SetSize(pcbnew.VECTOR2I_MM(1.0,1.0)); p.SetLayerSet(pcbnew.PAD.SMDMask())
+    p.SetPosition(pcbnew.VECTOR2I_MM(x,y)); p.SetNumber("1"); p.SetNet(nets[net])
+    fp.Add(p); b.Add(fp)
+pad("U1","A",5,12); pad("U2","A",35,12)      # long tap A, horizontal
+pad("U3","B",20,4); pad("U4","B",20,20)      # short tap B, vertical, crosses A
+# foreign net-C B.Cu patches over A's pad neighbourhoods -> A cannot via-hop,
+# it must route direct on F.Cu (so it is the most-constrained: longest-first)
+for cx in (5.0, 35.0):
+    t=pcbnew.PCB_TRACK(b); t.SetStart(pcbnew.VECTOR2I_MM(cx,7.0)); t.SetEnd(pcbnew.VECTOR2I_MM(cx,17.0))
+    t.SetWidth(pcbnew.FromMM(4.0)); t.SetLayer(pcbnew.B_Cu)
+    t.SetNetCode(nets["C"].GetNetCode()); b.Add(t)
+b.Save(out)
+'''
+
+
+def reattempt_scratch(connections, max_retries=2):
+    import yaml
+    d = tmpdir("t2_reatt_")
+    (d / "03_src").mkdir(); (d / "04_kicad").mkdir(); (d / "06_build").mkdir()
+    board = d / "04_kicad" / "reatt.kicad_pcb"
+    must_pass(run([KPY, "-c", _MK_TAP2, board, json.dumps({})]),
+              "build reattempt board")
+    cfg = {"project": {"name": "reatt", "board": "04_kicad/reatt.kicad_pcb",
+                       "build_dir": "06_build"},
+           "taps": {"clearance": 0.15, "via": {"size": 0.6, "drill": 0.3},
+                    "reattempt": {"max_retries": max_retries},
+                    "connections": connections}}
+    p = d / "03_src" / "route.yaml"
+    p.write_text(yaml.safe_dump(cfg))
+    return d, p, board
+
+
+# config order short-first: single-pass FAILS, longest-first reattempt resolves
+_REATT_ORDER = [{"net": "B", "from": "U3.1", "to": "U4.1", "width": 0.3},
+                {"net": "A", "from": "U1.1", "to": "U2.1", "width": 0.3}]
+
+
+@test("tap reattempt re-routes longest-first and RESOLVES an order-fragile "
+      "tap set that a single pass leaves open")
+def t_tap_reattempt_resolves():
+    """The v1.1 recurring failure made mechanical. In config order the short
+    tap routes its direct copper first and boxes the long tap out (long A
+    cannot via-hop — foreign B.Cu walls its pads). The bounded reattempt
+    re-routes the WHOLE set longest-first on a fresh board: A claims its
+    corridor, B adapts to a via-hop. Proven both ways: max_retries=0 FAILS,
+    max_retries>=1 succeeds within the bound."""
+    d0, p0, b0 = reattempt_scratch(_REATT_ORDER, max_retries=0)
+    must_fail(taps_cmd(p0), "single-pass on the order-fragile set", "unrouted")
+    d, p, board = reattempt_scratch(_REATT_ORDER, max_retries=2)
+    r = must_pass(taps_cmd(p), "bounded reattempt on the order-fragile set")
+    contains(r.out, "longest-first", "the reattempt re-orders the set")
+    contains(r.out, "1 reattempt(s)", "it resolved within one retry")
+    eq(via_nets(board).get("A", 0), 0, "long A must route direct (no vias)")
+    check(via_nets(board).get("B", 0) >= 2, "short B must adapt to a via-hop")
+
+
+@test("tap reattempt is BOUNDED: an unroutable tap terminates and escalates "
+      "rather than looping", kind="known_bad")
+def t_kb_tap_reattempt_bounded():
+    """THE critical property (the D-BACK discipline for taps): a tap walled on
+    BOTH layers can never route, so no ordering helps. The step must stop —
+    progress-gated (a retry that does not beat the best failure count breaks
+    immediately) AND capped at max_retries — and DIE naming the stuck tap,
+    never spin. RED-VERIFIED 2026-07-21 by removing the progress-gate and the
+    retry cap (`while best_fail:`): the loop re-routed the same unroutable set
+    forever and the test hung — restored, it escalates after one retry."""
+    d, p, board = reattempt_scratch(
+        [{"net": "A", "from": [3.0, 3.0], "to": [37.0, 21.0], "width": 0.3}],
+        max_retries=2)
+    # a bare-point tap with no clear path across the foreign patches: walled
+    edit_board(board,
+               "n=b.FindNet('C')\n"
+               "for lay in (pcbnew.F_Cu, pcbnew.B_Cu):\n"
+               "  t=pcbnew.PCB_TRACK(b)\n"
+               "  t.SetStart(pcbnew.VECTOR2I_MM(20.0,-1.0))\n"
+               "  t.SetEnd(pcbnew.VECTOR2I_MM(20.0,25.0))\n"
+               "  t.SetWidth(pcbnew.FromMM(2.0)); t.SetLayer(lay)\n"
+               "  t.SetNetCode(n.GetNetCode()); b.Add(t)\n")
+    r = must_fail(taps_cmd(p), "reattempt on an unroutable tap",
+                  "bounded reattempt")
+    contains(r.out, "no progress", "the progress-gate must fire, not spin")
+
+
 def _fp_lib_scratch():
     """A scratch cook-loadcell whose netlist puts ONE part on a project-local
     footprint lib (03_src/lib/local.pretty), with project.fp_lib_table set."""

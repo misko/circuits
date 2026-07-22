@@ -143,3 +143,42 @@ stops (exit codes): 0 = full 0/0/0; 2 = table-escalate; 3 = novel class;
 --max-cycles cap. The driver is deliberately UNABLE to loop forever; when
 it exits nonzero, the expensive agent is summoned ONCE, with counts and
 samples, instead of once per cycle.
+
+### Widening the auto-fix vocabulary (canon M8 two-strike promotions)
+
+The grind cost falls each time a class that was hand-fixed board-after-board
+becomes a bounded mechanical fix. Three more promotions (2026-07-22, from the
+usb-hub-3s v1.1 respin, each already hand-fixed on >= 2 boards):
+
+- **`zones_intersect_same_net`** (auto). Two pours of the SAME net overlapping
+  at the SAME priority — KiCad reports "Copper zones intersect (intersecting
+  zones must have distinct priorities)". The stitch `unify_zone_priorities`
+  pass bumps the smaller zone to a distinct priority so the union NESTS
+  legally (same net => identical copper, only the priority integer changes),
+  refills, and re-verifies. A CROSS-net overlap is a SHORT and is REFUSED
+  (escalate to `shorting_items`). classify_gate splits the DRC `zones_intersect`
+  type by whether both items name one net. Provenance: v1.0 "P3-union", v1.1
+  re-learn.
+- **`seed_stubs`** (config-driven build-step pass). Deterministic pour-fed
+  chip-pin stubs — the connections KRT excludes and taps are too short to
+  thread. The `seed_stubs` stitch pass (runs BEFORE fill) places EXPLICIT
+  geometry from `stitch.seed_stubs`, verified against live copper with
+  collision REFUSAL, proves each declared `pin` is reached, and is idempotent.
+  Generalises usb-hub-3s `plan_seed_stubs.py` + `add_seed_stubs.py`.
+- **`tap_reattempt`** (bounded retry in `cmd_taps`). A long pour-net pin tap's
+  corridor is order-fragile; on a failure the whole tap set is re-routed
+  LONGEST-first (most-constrained-first) on a fresh board, BOUNDED by
+  `taps.reattempt.max_retries` and progress-gated (a retry that does not beat
+  the best failure count stops). Then it escalates, pointing at `seed_stubs`.
+
+Every auto entry carries a `safety:` block naming its four invariants —
+**reduce** (re-measure proves the target class dropped), **no new
+violations**, **idempotent** (second run is a no-op), **refuse** (escalate,
+never guess when it cannot apply safely) — the D-BACK lesson: an unbounded
+auto-fixer is worse than none.
+
+The escalation report **self-harvests** the next promotion: when the driver
+escalates a class whose grind_fixes provenance already names >= 2 boards, it
+prints `class X escalated on boards A,B — two-strike, promotion candidate`, so
+the loop flags what to mechanize next (auto classes are excluded — already
+done).
