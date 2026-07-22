@@ -96,8 +96,12 @@ route:
        max_iterations: 800000, max_probe_iterations: 60000}
     - {name: sig,     group: sig,     track_width: 0.25, clearance: 0.15,
        max_iterations: 800000, max_probe_iterations: 60000, max_ripup: 30}
-  # canon M3: after the v1.1 route goes green, promote the imported chain to
-  # 03_src/route/ and restore a `final:` line here. (v1.0's chain retired.)
+  # canon M3: the v1.1 winning chain (race-5 c0/r7: 0 viol, 6 J5-tap-owned
+  # opens) is FROZEN here. Rebuild replays it deterministically; the seed
+  # stubs are planned against THIS exact chain's free channels (not against a
+  # fresh stochastic race, which is why the fixed-geometry stubs kept
+  # colliding). Re-race only on a floorplan change, then re-promote + re-plan.
+  final: 03_src/route/final_chain.kicad_pcb
 
 taps:
   clearance: 0.13
