@@ -2,6 +2,7 @@ mpn: TPS25740ARGER
 maker: Texas Instruments
 lcsc: C544309
 package: VQFN-24 RGE 4x4 P0.5 (EP 2.7mm sq)
+footprint: Package_DFN_QFN:Texas_RGE0024H_VQFN-24-1EP_4x4mm_P0.5mm_EP2.7x2.7mm_ThermalVias
 type: pd_source_controller     # NOT a converter — pure PD PHY + external FETs
 function: usb-c-pd-source-5v-fixed
 datasheet: "TI SLVSDG8B (TPS25740/TPS25740A USB Type-C and USB PD Source Controller, Apr 2016 rev B Jun 2017); EVM SLVUAP7A (TPS25740AEVM-741)"

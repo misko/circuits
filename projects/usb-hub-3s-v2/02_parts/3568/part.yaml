@@ -20,4 +20,4 @@ gotchas:
      ORDER_README hand-solder list)"
   - "20A > 15.5A worst-case input (ADR 0001)"
 verified: "2-clip holder, drawing from Keystone catalog p.42; non-polarized - 2026-07-21"
-sourcing: {lcsc: null, alternates: [], note: "hand-solder; Keystone 3568 or equivalent MINI holder"}
+sourcing: {lcsc: C5249699, alternates: [], note: "hand-solder; Keystone 3568 or equivalent MINI holder (JLC C5249699)"}
