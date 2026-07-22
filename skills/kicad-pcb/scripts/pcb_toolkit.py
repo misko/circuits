@@ -90,9 +90,15 @@ class Toolkit:
                         probe.Collide(item.GetEffectiveShape(layer), clr):
                     return item
                 # unflashed pads still have HOLES (review finding: a trace
-                # could be routed over an unflashed THT hole unchecked)
+                # could be routed over an unflashed THT hole unchecked).
+                # Holes are checked at HOLE-TO-COPPER clearance, not track
+                # clearance: DRC's min_hole_clearance (0.2) is wider than
+                # the routing clearance, and probing at track clearance let
+                # a tap pass 0.14mm from a J5 NPTH that DRC then rejected
+                # (usb-hub-3s, 2026-07-21 — twice, on both alignment holes).
                 if item.GetDrillSizeX() > 0 and \
-                        probe.Collide(item.GetEffectiveHoleShape(), clr):
+                        probe.Collide(item.GetEffectiveHoleShape(),
+                                      max(clr, pcbnew.FromMM(0.2))):
                     return item
         return None
 

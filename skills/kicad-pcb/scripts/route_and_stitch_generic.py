@@ -447,6 +447,8 @@ _KRT_FLAGMAP = {
     "max_ripup": ("--max-ripup", "val"),
     "grid_step": ("--grid-step", "val"),
     "rip_existing_nets": ("--rip-existing-nets", "list"),
+    "power_nets": ("--power-nets", "list"),
+    "power_nets_widths": ("--power-nets-widths", "list"),
     "no_stub_layer_swap": ("--no-stub-layer-swap", "flag"),
     "keepout": ("--keepout", "flag"),
 }
@@ -1298,61 +1300,77 @@ def p_dangling(ctx, c):
     tol = float(c.get("tol", 0.05))
     cap = float(c.get("max_length", 1.0))
     sweeps = int(c.get("sweeps", 4))
+    # ALL board reads happen up front, ALL removes happen once at the end.
+    # The old shape (remove between sweeps, then GetTracks() again in the
+    # same interpreter) hit the intra-pass SWIG poisoning the driver's
+    # barrier cannot see: sweep 2's GetStart() returned a bare SwigPyObject
+    # (usb-hub-3s, 2026-07-21 — earlier boards survived only because sweep 1
+    # never found anything). The fixpoint now runs on a Python-side model.
+    segs = []                      # [obj, uuid, code, layer, ends, width_mm]
+    vias = []
+    for t in ctx.board.GetTracks():
+        if t.GetClass() == "PCB_TRACK":
+            segs.append([t, t.m_Uuid.AsString(), t.GetNetCode(),
+                         t.GetLayer(), _ends_mm(t), t.GetWidth() / 1e6])
+        elif t.GetClass() == "PCB_VIA":
+            vias.append((t.GetPosition().x / 1e6, t.GetPosition().y / 1e6,
+                         t.GetNetCode()))
+    pads = [(p, p.GetNetCode()) for fp in ctx.board.GetFootprints()
+            for p in fp.Pads()]
+    alive = {s[1] for s in segs}
+
+    def served(s, ex, ey):
+        _, uid, code, layer, _, _ = s
+        for o in segs:
+            if o[1] == uid or o[1] not in alive or o[2] != code \
+                    or o[3] != layer:
+                continue
+            (ox, oy), (px, py) = o[4]
+            if (math.hypot(ex - ox, ey - oy) <= tol
+                    or math.hypot(ex - px, ey - py) <= tol):
+                return True
+            # T-junction: this end lands on the BODY of a same-net
+            # segment. Missing this check ate 8 real connections on
+            # cook-loadcell's multipoint nets (2026-07-20).
+            dx, dy = px - ox, py - oy
+            L2 = dx * dx + dy * dy
+            if L2 == 0:
+                continue
+            u = max(0.0, min(1.0, ((ex - ox) * dx + (ey - oy) * dy) / L2))
+            if math.hypot(ex - ox - u * dx, ey - oy - u * dy) <= \
+                    tol + o[5] / 2:
+                return True
+        for vx, vy, vc in vias:
+            if vc == code and math.hypot(ex - vx, ey - vy) <= 0.32:
+                return True
+        for p, pc in pads:
+            if pc != code:
+                continue
+            bb = p.GetBoundingBox()
+            bb.Inflate(int(tol * 1e6))
+            if bb.Contains(ctx.pcbnew.VECTOR2I_MM(ex, ey)):
+                return True
+        return False
+
     total = 0
     for _ in range(sweeps):
-        segs = [t for t in ctx.board.GetTracks() if t.GetClass() == "PCB_TRACK"]
-        vias = [(t.GetPosition().x / 1e6, t.GetPosition().y / 1e6, t.GetNetCode())
-                for t in ctx.board.GetTracks() if t.GetClass() == "PCB_VIA"]
-        pads = [(p, p.GetNetCode()) for fp in ctx.board.GetFootprints()
-                for p in fp.Pads()]
-
-        def served(t, ex, ey):
-            code = t.GetNetCode()
-            uid = t.m_Uuid.AsString()
-            for o in segs:
-                if o.m_Uuid.AsString() == uid or o.GetNetCode() != code:
-                    continue
-                if o.GetLayer() != t.GetLayer():
-                    continue
-                (ox, oy), (px, py) = _ends_mm(o)
-                if (math.hypot(ex - ox, ey - oy) <= tol
-                        or math.hypot(ex - px, ey - py) <= tol):
-                    return True
-                # T-junction: this end lands on the BODY of a same-net
-                # segment. Missing this check ate 8 real connections on
-                # cook-loadcell's multipoint nets (2026-07-20).
-                dx, dy = px - ox, py - oy
-                L2 = dx * dx + dy * dy
-                if L2 == 0:
-                    continue
-                u = max(0.0, min(1.0, ((ex - ox) * dx + (ey - oy) * dy) / L2))
-                if math.hypot(ex - ox - u * dx, ey - oy - u * dy) <= \
-                        tol + o.GetWidth() / 2e6:
-                    return True
-            for vx, vy, vc in vias:
-                if vc == code and math.hypot(ex - vx, ey - vy) <= 0.32:
-                    return True
-            for p, pc in pads:
-                if pc != code:
-                    continue
-                bb = p.GetBoundingBox()
-                bb.Inflate(int(tol * 1e6))
-                if bb.Contains(ctx.pcbnew.VECTOR2I_MM(ex, ey)):
-                    return True
-            return False
-
         dead = []
-        for t in segs:
-            (ax, ay), (bx, by) = _ends_mm(t)
+        for s in segs:
+            if s[1] not in alive:
+                continue
+            (ax, ay), (bx, by) = s[4]
             if math.hypot(ax - bx, ay - by) > cap:
                 continue
-            if not served(t, ax, ay) or not served(t, bx, by):
-                dead.append(t)
+            if not served(s, ax, ay) or not served(s, bx, by):
+                dead.append(s)
         if not dead:
             break
-        for t in dead:
-            ctx.remove(t)
+        for s in dead:
+            alive.discard(s[1])
         total += len(dead)
+    for s in segs:
+        if s[1] not in alive:
+            ctx.remove(s[0])
     ctx.bump("dangling_removed", total)
     print(f"removed {total} dangling stubs (<= {cap}mm, one end unserved)")
 
