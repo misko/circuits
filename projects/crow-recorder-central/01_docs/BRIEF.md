@@ -1,6 +1,6 @@
 # brief: crow-recorder-central
 
-status: agreed (commissioned; engineering not yet started — pod executes first)
+status: in-progress (design adopted, board reproduces DRC-green at the routing boundary; planned handoff 2026-07-21 — see 01_docs/journal/routing.md for the successor work order)
 prompt_sha256: be9e677e3628dcf801affba573593bc836bfb9a71290dadde58d09e819590c39
 current_release: no
 
