@@ -1,0 +1,194 @@
+# grind_fixes — the mechanical DRC grind table, as DATA.
+#
+# Consumed by scripts/grind_driver.py: each cycle's classified findings are
+# looked up HERE, class by class. `action: auto` fixes are applied by the
+# driver without a human/agent in the loop; `action: escalate` classes stop
+# the loop with a compact report (06_build/grind_escalation.md) — real
+# design work must never be "fixed" mechanically. A class with NO entry is
+# NOVEL and escalates immediately: an auto-fixer guessing at an unknown
+# finding class is worse than none.
+#
+# Canon M4/M6 discipline: every entry carries PROVENANCE — the measured
+# incident it came from. The founding composition is the v4 usb-hub-3s
+# clean-room canary's FIRST full DRC on a fresh 112-part board
+# (2026-07-21, 648 findings): 157 track_width + 116 lib_footprint_issues +
+# 112 text_height were BATCH classes owned by the generators (all three
+# since fixed at generation: 4f280de, b5bdae4, dad8993 — the auto entries
+# below exist to RERUN those fixes when a stale board still carries the
+# class), while 141 clearance + 41 unconnected were real routing/placement
+# work whose loop `quick` cheapens and this driver bounds.
+#
+# `run` names a driver-known procedure, not a shell string:
+#   rebuild — rerun the project's rebuild chain (03_src/rebuild_all.sh):
+#             regeneration + promoted-route re-import + rules-LAST. The v1
+#             conservative set is rebuild-only, because all three shipped
+#             auto fixes live in the generators.
+
+fixes:
+  # ---------------------------------------------------------- AUTO ------
+  - class: track_width
+    detect: "Track width (rule '<CLASS>_width' min width X; actual Y)"
+    action: auto
+    fix: >
+      wave-width/class alignment rerun: wave track_width now DERIVES from
+      the netclass floors and sub-floor waves die at prep (4f280de). A
+      rebuild re-imports the route and re-runs rules-LAST at the derived
+      widths. If the class persists, the PROMOTED chain itself was routed
+      thin — that needs a re-route, which D-BACK will surface within 3
+      cycles.
+    run: rebuild
+    provenance: >
+      v4 usb-hub-3s first DRC 2026-07-21: 157/648 findings; residual
+      sample in its gate.json: 5VA at 0.5mm under PWR_RAIL 0.8mm floor.
+
+  - class: text_height
+    detect: "Text height out of range (board setup constraints silk text height ...)"
+    action: auto
+    fix: >
+      silk floor normalization rerun: the board's silk DRC constraint and
+      footprint-internal text heights both derive from the fab tier since
+      dad8993 (KiCad's fresh-board 0.8mm default vs the 0.6mm emitted
+      refdes was the whole class). Regeneration via rebuild empties it.
+    run: rebuild
+    provenance: >
+      v4 usb-hub-3s first DRC 2026-07-21: 112/648 findings, one per
+      visible Reference field (0.6mm vs the 0.8mm pcbnew default).
+
+  - class: text_thickness
+    detect: "Text thickness out of range (silk constraints)"
+    action: auto
+    fix: same normalization as text_height — emitted and footprint-internal
+      silk strokes are floored at the tier's min_silk_stroke (dad8993).
+    run: rebuild
+    provenance: "same incident family as text_height (v4, 2026-07-21)"
+
+  - class: lib_footprint_issues
+    detect: "The current configuration does not include the footprint library 'X'"
+    action: auto
+    fix: >
+      fp-lib-table emission rerun: the table is emitted by default beside
+      the board since b5bdae4, with the env var matched to the running
+      KiCad major. A rebuild regenerates it.
+    run: rebuild
+    provenance: >
+      v4 usb-hub-3s first DRC 2026-07-21: 116/648 findings (112 parts + 4
+      mounting holes), all "configuration does not include the library";
+      measured 0 with the table present.
+
+  - class: silk_overlap
+    detect: "Silkscreen overlaps another silk item / refdes collision"
+    action: auto
+    fix: >
+      refdes de-collision rerun: add_silk's nudge search is order-dependent
+      and a regeneration re-runs it against the current obstacle set.
+    run: rebuild
+    provenance: >
+      v4 gate.json carried 1; the de-collision pass is the shipped fix for
+      the esp32 v1.0 refdes incident (cfbc83b) — rerunning it is safe, it
+      only moves text.
+
+  # ------------------------------------------------------- ESCALATE -----
+  # Real work. An auto-"fix" here would be the muted-gate failure mode
+  # (spf 96785a0): the driver must hand these to a designer/agent with the
+  # counts and samples, not negotiate with them mechanically.
+  - class: clearance
+    action: escalate
+    why: >
+      spacing is placement/routing judgement — the D-BACK ladder maps a
+      persistent clearance cluster to a PLACEMENT backtrack, not a tweak.
+      The driver still classifies real (< fab floor, cross-net) vs margin.
+    provenance: "v4 first DRC: 141/648; 24 remained at snapshot 16:08"
+
+  - class: hole_clearance
+    action: escalate
+    why: drill-to-copper spacing is routing/via-plan work (KRT clearance
+      budget, tap sites); see the npth fencing note in route-prep.
+    provenance: "v4 gate.json snapshot 16:08: 79 findings"
+
+  - class: unconnected
+    action: escalate
+    why: >
+      opens are the actual routing work: wave coverage, taps for boxed-in
+      pads, pour service. quick names the nets; the fix is design, and
+      3 stalled cycles of it must retreat up the D-BACK ladder.
+    provenance: "v4 first DRC: 41/648; 40 at snapshot 16:08"
+
+  - class: starved_thermal
+    action: escalate
+    why: pad/pour thermal relief needs zone or pad_override judgement
+      (crow-array-pod J1 precedent — solid connection was a design call).
+    provenance: "v4 gate.json snapshot 16:08: 14 findings"
+
+  - class: silk_edge_clearance
+    action: escalate
+    why: text near the edge needs a placement decision (move or waive with
+      evidence) — auto-nudging could push refdes onto pads.
+    provenance: "v4 gate.json snapshot 16:08: 4 findings"
+
+  - class: isolated_copper
+    action: escalate
+    why: an island is either missing stitching (design) or dead copper to
+      remove — island_rescue config, not a mechanical retry.
+    provenance: "crow-array-pod island incidents, 2026-07-20"
+
+  - class: copper_sliver
+    action: escalate
+    why: pour geometry artifact; fixed by zone outline/clearance config.
+    provenance: "v4 gate.json snapshot 16:08: 1 finding"
+
+  - class: hole_to_hole
+    action: escalate
+    why: drill packing is via-plan work (ADR-0008 escape budgets); the
+      stitch hole_to_hole pass already nudges what is safely nudgeable.
+    provenance: "jlc 0.5mm floor incidents, ADR-0008 2026-07-21"
+
+  - class: solder_mask_bridge
+    action: escalate
+    why: mask webbing between different-net pads is footprint/placement
+      geometry, sometimes a legitimate waiver — evidence required.
+    provenance: "seen on the sealed cook-loadcell bare-copy DRC, 2026-07-21"
+
+  - class: track_dangling
+    action: escalate
+    why: >
+      the stitch passes (drop_dangling / split_t_junctions) own this class
+      and are already conservative — a residual dangle means the passes'
+      config needs judgement (cook-loadcell T-stub incident: deleting one
+      disconnected TP3).
+    provenance: "cook-loadcell 2026-07-20 (8 pads eaten by an over-eager pass)"
+
+  - class: via_dangling
+    action: escalate
+    why: prune_stitch_dangling owns stitch-emitted vias; a dangling
+      imported/footprint via is somebody's design intent — a finding, not
+      a deletion.
+    provenance: "3S clean-room cleanup_vias.py post-hoc deletions, 2026-07-20"
+
+  - class: courtyards_overlap
+    action: escalate
+    why: overlap is a floorplan defect (audit_template I6c is the gate) —
+      the fix is placement, not regeneration.
+    provenance: "audit_template stacked-parts incident (tests/README)"
+
+  - class: shorting_items
+    action: escalate
+    why: a short is never mechanical — net identity work, stop everything.
+    provenance: "XT60 polarity class of defect (spf fa0b9c1)"
+
+  - class: tracks_crossing
+    action: escalate
+    why: crossed copper means the route input was not track-free or an
+      import doubled — both are chain-order violations to diagnose.
+    provenance: "KRT routes through pre-existing copper (400+ crossings, x2)"
+
+  - class: drill_out_of_range
+    action: escalate
+    why: sub-floor drills in a PROMOTED chain need a re-route or a tier
+      ADR (D-TIER) — tier-derived geometry prevents new ones (f4a4fd3).
+    provenance: "clean-room 3S 2 drill_out_of_range, 2026-07-20"
+
+  - class: schematic_parity
+    action: escalate
+    why: board/sheet disagreement is upstream (03_tscircuit) — grinding
+      the board cannot fix the netlist.
+    provenance: "spf bed8ace: a part in the schematic never reached the board"

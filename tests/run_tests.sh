@@ -45,6 +45,7 @@ SUITES=(
   t1_rules_bom.py
   t1_jlc_twin.py
   t2_route_stitch.py
+  t2_grind.py
   t4_regressions.py
 )
 [ "$SLOW" = 1 ] && SUITES+=(e2e_boards.py t3_acceptance.py)

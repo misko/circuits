@@ -55,6 +55,7 @@ agent runs it FIRST. `$S` = `skills/kicad-pcb/scripts` (resolved repo-relative,
 | 8 | `$S/route_and_stitch_generic.py stitch 03_src/route.yaml` (pours + thermal vias); verdict must be `gate: clean` | `/usr/bin/python3` |
 | 9 | `$S/generate_rules_generic.py .` — ALWAYS LAST (pcbnew saves clobber `.kicad_pro` netclasses) | any python3 |
 | 10 | DRC gate `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity` = 0/0/0 | `kicad-cli` |
+| 10b | `$S/grind_driver.py .` — the BOUNDED mechanical grind loop when step 10 is dirty: classifies findings, auto-applies only the conservatively-safe generator reruns per `references/grind_fixes.yaml`, escalates real work into `06_build/grind_escalation.md` (exit 2/3/4 — table/novel/D-BACK), journals each cycle (M9). It cannot loop forever; a nonzero exit summons the designer ONCE with counts + samples | `/usr/bin/python3` |
 
 **External prerequisites** (nothing else):
 - KiCad ≥ 10 (`kicad-cli`, `/usr/bin/python3` with `pcbnew` importable)

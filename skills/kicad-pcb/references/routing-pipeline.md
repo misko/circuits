@@ -99,3 +99,33 @@ Run the (free) ordering fix first; swap the package if stragglers survive.
 - A finished dense board typically carries fab-legal margin items
   (0.10–0.20 mm spacings from thin passes). Classify, don't panic
   (see drc-discipline.md).
+
+## Loop economics: quick vs the full cycle, and when grind_driver escalates
+
+Measured on the v4 usb-hub-3s clean-room canary (112 parts, 2026-07-21):
+one FULL cycle — rebuild chain + `kicad-cli` severity-all DRC + a frontier
+agent reading the report — runs **~8-10 minutes**, and the whole grind
+historically burned **~500k tokens per board**. A routing iteration only
+ever changes unconnected + copper clearance/track_width, so paying the
+full cycle per iteration is waste.
+
+The cheap loop: `route_and_stitch_generic.py quick` on the post-import,
+pre-stitch board — pcbnew ratsnest unconnected (split routed vs
+pour-deferred nets) + clearance/track_width from an unfilled-zone DRC.
+**Measured 0.65 s** on cook-loadcell; expect seconds-to-a-minute on a
+dense 4-layer board. Iterate routing against `quick`; run the full gate
+once quick is clean. quick is a loop tool — the severity-all 0/0/0 full
+DRC after stitch stays the only release gate.
+
+`scripts/grind_driver.py` mechanizes the loop between those two levels,
+with `references/grind_fixes.yaml` as the class table. It AUTO-applies
+only conservatively-safe generator reruns (the v4 batch classes:
+track_width wave/class alignment, silk floor normalization,
+fp-lib-table emission, refdes de-collision) and ESCALATES everything else
+into `06_build/grind_escalation.md` — clearance clusters and opens are
+design work, and the D-BACK ladder maps them to the owning stage. Hard
+stops (exit codes): 0 = full 0/0/0; 2 = table-escalate; 3 = novel class;
+4 = D-BACK (3 consecutive cycles without total-count improvement) or the
+--max-cycles cap. The driver is deliberately UNABLE to loop forever; when
+it exits nonzero, the expensive agent is summoned ONCE, with counts and
+samples, instead of once per cycle.
