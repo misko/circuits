@@ -1,0 +1,12 @@
+mpn: PinHeader-1x02
+manufacturer: generic (2.54mm 1x2 male header or bare pads)
+type: connector_header
+value: 'MIC wire pads'
+package: 'THT 2.54mm 1x02'
+footprint: Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical
+pins: {1: 'MIC+', 2: 'MIC-'}   # assignment is board-level; silk marks +
+datasheet: {doc_id: generic, revision: n/a, url: n/a, sha256: n/a, fetched: null}
+verified: 'generic 2.54mm THT pads; mic capsule attaches by short twisted leads (mic part.yaml gotcha: 2s max solder time on the capsule itself)'
+sourcing:
+  lcsc: none
+  note: 'hand-solder; header optional - leads may solder direct to the pads'

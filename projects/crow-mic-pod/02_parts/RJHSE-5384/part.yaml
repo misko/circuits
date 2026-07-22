@@ -1,0 +1,78 @@
+mpn: RJHSE-5384
+manufacturer: Amphenol ICC (Commercial Products / Amphenol Canada)
+type: connector_rj45_jack_tht
+datasheet:
+  doc_id: Amphenol ModularJacks Catalogue (RJHS series pp.3-6, LED options p.69)
+  revision: "April 2015 catalogue edition (PDF created 2015-04-17)"
+  url: https://www.farnell.com/datasheets/1914870.pdf   # mirror; Amphenol origin https://www.amphenol-icc.com/media/wysiwyg/files/documentation/datasheet/inputoutput/io-modjack-rjhse.pdf is bot-blocked
+  sha256: 983f3e4691b704ef2c9aaf099a63fb0703c7ba23537ec4d9b33a9cf63a99cfb8
+  fetched: 2026-07-17
+package: "RJ45 8P8C right-angle THT jack, shielded (EMI fingers), 2 built-in LEDs, board-lock posts"
+footprint: Connector_RJ:RJ45_Amphenol_RJHSE538X   # exists in KiCad 10; RJHSE5381 does NOT exist
+pins:                       # hole numbering from RECOMMENDED PCB LAYOUT drawings, catalogue p.4 (RJHSE-548X, same hole pattern) and p.6 (RJHSE-538X-04)
+  1: {name: CT1, note: "8P8C contact 1 — pod AUDIO_P (T568B orange pair with 2)"}
+  2: {name: CT2, note: "contact 2 — pod AUDIO_N"}
+  3: {name: CT3, note: "contact 3 — pod BEEP_5V (green pair with 6)"}
+  4: {name: CT4, note: "contact 4 — pod 5V (blue pair 4/5 carries feed+return: 4=5V, 5=GND) [central D28 + pod v1.0 sealed terminal map]"}
+  5: {name: CT5, note: "contact 5 — pod GND (return of the blue pair) [D28]"}
+  6: {name: CT6, note: "contact 6 — pod BEEP_RET (pairs with 3, T568B)"}
+  7: {name: CT7, note: "contact 7 — pod 5V (brown pair 7/8 carries feed+return: 7=5V, 8=GND) [D28]"}
+  8: {name: CT8, note: "contact 8 — pod GND (return of the brown pair) [D28]"}
+  9: {name: LED1_A, note: "LED1 (right side viewed into jack face) — YELLOW on -5384; unused here, no_connect"}
+  10: {name: LED1_B, note: "LED1 second lead; anode/cathode NOT identified in catalogue drawing"}
+  11: {name: LED2_A, note: "LED2 (left side viewed into jack face) — GREEN on -5384; unused here"}
+  12: {name: LED2_B, note: "LED2 second lead"}
+  SH: {name: SHIELD, note: "2x shield tails, o1.57mm holes 16.26mm apart (.640) — pod: tied to SHIELD net (TP6 + DNP R15 bond to GND per D7; central end carries the single-point GND star bond per its D28)"}
+limits:
+  current_per_contact: 1.5A     # catalogue p.3 Electrical: Current Rating 1.5 Amps
+  voltage: 125VAC
+  contact_resistance: 20mR max
+  dwv: 1000VAC 60Hz 1min
+  insulation: 500MR min at 500VDC
+  durability: 750 mating cycles
+  temp: -55 to +85C
+  led_vf: "2.1V typ (standard LEDs, 5V systems); 6V reverse min"
+mechanical:                     # catalogue p.4 RJHSE-548X drawing (same body class; -538X single port differs only in shield tab count)
+  body_w: "16.51 +-0.38 mm (.650)"
+  body_h_above_board: "13.46 +-0.38 mm (.530) — EXCLUDES the top EMI spring tabs, which arc ~1.5-2mm above the body (undimensioned) and compress flat against a panel"
+  body_depth: "15.75 +-0.38 mm (.620)"
+  tails_below_board: "contact tails 2.54 (.100); LED tails 3.18 (.125)"
+  note: "1551WY lid-clearance math lives in 01_docs/decisions/0004-rj45-termination.md"
+note: >-
+  CUSTOM NON-ETHERNET PINOUT on this board: 1/2 = AUDIO_P/AUDIO_N (T568B orange pair),
+  3/6 = BEEP_5V / BEEP_RET (green pair), 4/5 = 5V/GND (blue pair), 7/8 = 5V/GND
+  (brown pair). Contact-for-contact IDENTICAL to the crow-array-central v1.0 sealed
+  port map (its D28) and to the pod v1.0 screw-terminal map (terminal n = RJ45 pin n).
+  Never plug into real Ethernet gear — 5V on 3-8.
+gotchas:
+  - "BRIEF SAID 'no LEDs' — WRONG. Part-number decode (catalogue p.3 ordering info + p.69 LED table): RJHS-E / 5=right-angle 8-pos 50u gold / 3=shield (single port: top tabs only) / 8=8 contacts / 4=LED code 4 = GREEN left + YELLOW right. Digi-Key confirms 'Green - Yellow'. The truly LED-less part is RJHSE-5380."
+  - "Because it has LEDs, the PCB needs the 4 LED tail holes (pins 9-12): use RJ45_Amphenol_RJHSE538X (16 pads: 1-8 + 9-12 LED + 2 SH + 2 NPTH posts). KiCad's RJ45_Amphenol_RJHSE5380 (no LED holes) will NOT accept this part — LED tails have nowhere to go."
+  - "KiCad 10 footprint check: RJ45_Amphenol_RJHSE538X geometry matches catalogue p.4 layout — contact stagger 1.02mm x-pitch/2.03mm row pitch/1.78mm row offset, LED pair spacing 2.29mm, LED pairs 9.14mm apart, shield holes o1.57 at 16.26mm, NPTH posts o3.25 at 12.70mm. Contact/LED numbering agrees with the drawing (drawing is the same pattern rotated 180 deg). No mismatch found."
+  - "MATING-FACE SIDE (CORRECTED 2026-07-19, v1.1 fresh pin review): the mating face is on the SNAP-POST side of the hole pattern (footprint local -y), NOT the LED-tail side. Proof from the catalogue p.4 side-view dim chain (600dpi re-measure): face->snap-post centerline .215 [5.46]; every bottom feature then closes against the footprint (post -2.54 = face@-8.0 +5.46; shield tail measured 8.83 from face ~ pad +0.89; far tail 14.73 ~ LED +6.6) => LED tails sit 1.15mm from the REAR. The earlier note here (and in crow-array-central's copy) claimed 'LED tails mark the mating face' — INVERTED; it pointed the pod v1.1 jack backwards until the fresh-context review caught it. Central's boards are unaffected (their rot-0 'openings north' placement is correct)."
+  - "PIN-1 CONVENTION: looking INTO the jack opening (mounted, latch/tab UP, contacts at bottom of opening), contact 1 is on the RIGHT (standard 8P8C convention for contacts-down jacks; consistent with the front view's LED1=9/10 on the pin-1 end). Sanity-check on first article before soldering."
+  - "LED pin polarity (which of 9/10, 11/12 is anode) is NOT given in the catalogue; per-part customer drawing RJHSE538X.pdf at amphenolcanada.com is dead/bot-blocked (re-checked 2026-07-17). Irrelevant here (LEDs unconnected) but blocks ever driving them without a bench check."
+  - "Catalogue has no dedicated single-port RJHSE-538X drawing page; hole pattern verified against RJHSE-548X single-port (p.4, identical layout, different shield-tab count) and RJHSE-538X-04 multi-port (p.6). Deviation noted per S3 audit."
+  - "TOP EMI TABS (shield option 3 = top tabs only) arc ABOVE the 13.46 body top and are the tallest feature; inside the 1551WY they press the polycarbonate lid and compress — see ADR-0004 clearance math + first-article check."
+verified: >-
+  POD RE-VERIFICATION (S3, independent of the central project's read, 2026-07-19):
+  hole numbering re-derived from fresh 300dpi renders of the catalogue RECOMMENDED
+  PCB LAYOUT figures — p.4 RJHSE-548X (holes labelled 8..1 staggered, LED groups
+  '12 11' left / '10 9' right, shield o1.57 at 16.26, NPTH o3.25 at 12.70) and
+  p.6 RJHSE-538X-04 (same labels per port); KiCad RJHSE538X pad table
+  (1@0,0 .. 8@7.112,1.78; 9/10@-3.3/-1.01,6.6; 11/12@8.13/10.42,6.6;
+  SH@-4.57/11.69,0.89) matches the drawing 1:1 as a 180deg-rotated view.
+  FACE-SIDE NOTE (corrected 2026-07-19): the original conclusion here claimed the
+  LED row marks the mating face — INVERTED; the face is on the SNAP-POST side
+  (local -y), see the MATING-FACE SIDE gotcha for the side-view dim-chain proof.
+  Hole GEOMETRY/numbering conclusions stand. Mechanical dims from p.4 front/side
+  views.
+sourcing:
+  lcsc: null
+  alternates: []
+  note: >-
+    NOT practically in JLC catalog: JLC shows RJHSE-5384 only as zero-stock consigned
+    entries (C9900035627/C9900056698, stock 0, 2026-07-17) — hand-solder line item.
+    Digi-Key RJHSE-5384-ND: 9,841 in stock, $2.14 qty1, Active (2026-07-17).
+    Central board orders the same part (8x) — combine the Digi-Key line.
+    FALLBACK if first-article lid fit fails: RJHSE-L384 low-profile (12.70mm tall,
+    catalogue p.5) — VERIFY its hole pattern against RJHSE538X before substituting.

@@ -1,0 +1,65 @@
+# SCHEMA EXAMPLE (skill-owned, project-independent). Adopted from a proven
+# board as a reference for the generic backend's config format. Copy into a
+# new project's 03_src/ and replace the values — the KEYS are the contract.
+#
+# cook-loadcell net architecture — netclasses + DRU floors source.
+# fab_tier is a COST CEILING decided at commission (D-TIER), named from
+# skills/kicad-pcb/references/fab_tiers.yaml. Default to the CHEAPEST
+# plausible tier; policy_audit P-TIER blocks any part whose escape needs a
+# costlier one — raising it requires the tier ADR + ORDER_README line.
+#
+# fab_tier is also the SINGLE SOURCE of capability floors for the generic
+# backend (fab_tier_util.py): generate_rules_generic floors class widths at
+# the tier's min_track (an EXPLICIT width below it is a hard error, never a
+# silent clamp); route_and_stitch_generic derives missing via_size/via_drill/
+# clearance from the tier and rejects explicit sub-floor values; and
+# generate_board_generic floors silk text heights at min_silk_text_height.
+#
+# `classes` below are ALSO the width source for the router: a route.yaml
+# wave with no track_width derives it from its member nets' class floors
+# (largest member floor wins), and an explicit wave width below a member's
+# floor is a hard error at route-prep naming the class. One source — the
+# router can no longer disagree with the .kicad_dru gate this file emits.
+fab_tier: jlc_2layer_default   # 0.6/0.3 vias, no advanced option
+
+classes:
+  BRIDGE:
+    intent: >
+      Microvolt-level bridge nodes + excitation: the four ring splices and
+      E+/S+/S-/E-. 0.5mm floor = robustness + low IR drop in excitation;
+      kept < 15mm, guarded by both GND pours, no clock crossings (audit).
+    nets: [E_PLUS, S_PLUS, S_MINUS, RING_12, RING_23, RING_34, RING_41]
+    current: "excitation ~1.5mA (4x 2k bridge) + uV signals"
+    min_width: 0.5mm
+    routing: engineered corner stubs (KRT wave 1, analog corner)
+    verify: audit I-AN separation + DRC floor
+
+  PWR:
+    intent: 5V feed, AVDD regulator loop, 3V3 digital. 0.4mm floor.
+    nets: [5V, 3V3, AVDD_FB]
+    current: 0.02A
+    min_width: 0.4mm
+    routing: KRT
+    verify: DRC floor
+
+# Default 0.25: DAT, CLK, RATE_SEL, SH. GND = pours + stitch.
+
+# SCOPED FLOORS (canon M8 two-strike promotion: cook-hub u7_taps, then the
+# clean-room 3S append_sw_floor.py). A width relaxation that applies ONLY
+# inside a named board zone / rule area, emitted as a KiCad last-match
+# `insideArea('<zone>')` .kicad_dru rule AFTER the netclass floors — for
+# sense taps / thin backstops riding a pour-fed trunk class. `nets` scopes
+# the relaxation to the listed nets so an unrelated thin net crossing the
+# area keeps its own floor. `why` is REQUIRED (canon M4: a floor relaxation
+# without evidence is an inherited defect — generation fails without it),
+# and min_width must still be >= the declared tier's min_track (no scope
+# makes a sub-fab-floor track manufacturable).
+#
+# scoped_floors:
+#   - zone: sw_pour_zone          # zone or rule-area NAME on the board
+#     nets: [SW]                  # optional net scope (recommended)
+#     min_width: 0.3
+#     why: >
+#       U1 SW-sense taps ride inside the SW island; the 15A path is the
+#       POUR, the 0.3mm tracks are connectivity backstops (measured on
+#       usb-pwr-hub-3s: DRC track_width x2 without this, 0 with).

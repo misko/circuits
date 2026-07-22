@@ -1,0 +1,12 @@
+mpn: 744227S
+manufacturer: Wuerth Elektronik (WE-SL2 series) — footprint-only, NOT POPULATED
+type: common_mode_choke
+value: 'CM choke DNP'
+package: 'WE-SL2 (5.1x5.1mm SMT, 4 pads)'
+footprint: Inductor_SMD:L_CommonMode_Wuerth_WE-SL2
+pins: {1: 'A_IN', 2: 'B_IN', 3: 'B_OUT', 4: 'A_OUT'}  # windings 1-4 (line A) and 2-3 (line B) per the 744227S Schematic figure p.1; land pattern p.1: 1 TL, 2 BL, 3 BR, 4 TR = KiCad WE-SL2 pad frame
+datasheet: {doc_id: 744227S, revision: 009.003 2023-04-12, url: 'https://www.we-online.com/components/products/datasheet/744227S.pdf', sha256: 3ff18dc2812f13f1f8f6555c92699b2d4c0f6b6620bdbaceabb4a70f289c4c52, fetched: null}
+verified: 'pin map read from datasheet page 1 (Schematic figure: dotted windings 1-4 and 2-3; Recommended Land Pattern: 1 TL, 2 BL, 3 BR, 4 TR), rev 009.003 2023-04-12 — matches the KiCad WE-SL2 pad frame; DNP reserve (A3), 0R bypass R13 bridges 1-4, R14 bridges 2-3'
+sourcing:
+  lcsc: none
+  note: 'DNP - uncoded on purpose'
