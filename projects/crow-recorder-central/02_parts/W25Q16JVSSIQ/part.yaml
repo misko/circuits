@@ -1,0 +1,32 @@
+mpn: W25Q16JVSSIQ
+manufacturer: Winbond
+type: spi_nor_flash_16mbit
+datasheet:
+  doc_id: W25Q16JV
+  revision: Revision H (April 08, 2019)
+  url: https://www.winbond.com/resource-files/w25q16jv%20spi%20revh%2004082019%20plus.pdf
+  sha256: 81af3f69b0bff95fd1097949a1005431dc5b3a6ecb5f1947e695a17298e7cf1b
+  fetched: 2026-07-17
+package: SS (SOIC-8 208-mil; body D1/E1 5.13-5.33 mm sq (5.23 nom), lead span H 7.70-8.10 (7.90 nom), pitch 1.27 BSC)
+footprint: Package_SO:SOIC-8_5.3x5.3mm_P1.27mm   # KiCad 208-mil SOIC-8 (5.3x5.3 nom) for W25Q16 SS package, sec 11.3 drawing
+pins:                       # from Figure 1a "Pin Assignments, 8-pin SOIC 150-mil/208-mil (Package Code SN, SS)", Top View, p.5
+  1: /CS                    # chip select input
+  2: DO_IO1                 # data out (IO1 in quad)
+  3: /WP_IO2                # write protect (IO2 in quad — see gotchas: IQ part has QE fixed 1)
+  4: GND
+  5: DI_IO0                 # data in (IO0 in quad)
+  6: CLK
+  7: /HOLD_IO3              # hold or /RESET (IO3 in quad)
+  8: VCC
+limits:
+  vcc: 2.7-3.6V (abs max -0.6 to 4.6V)
+  clk: 133MHz at VCC 3.0-3.6V; 104MHz Dual/Quad at 2.7-3.0V
+  ta: -40 to +85C (industrial)
+  endurance: 100k program-erase cycles, 20-year retention
+gotchas:
+  - "Suffix IQ = QE bit FACTORY FIXED to 1 (datasheet 4.4/8.1: 'factory fixed default for ordering options IQ & JQ') — pins 3 and 7 are permanently IO2/IO3 for quad ops. Do NOT hardwire pin 3 to GND or pin 7 to VCC as /WP//HOLD straps; route them to the QSPI IO2/IO3 lines (XU316 boot QSPI needs all four IOs)"
+  - "/HOLD (or /RESET) function on pin 7 only exists in Standard/Dual SPI (QE=0 parts); with QE=1 the pin is IO3, and hold/reset via pin is unavailable"
+  - "Pin 7 can be configured as /RESET instead of /HOLD via Status Register-3 HOLD/RST bit — irrelevant on IQ parts in quad mode"
+  - "208-mil wide-body SOIC (5.23 mm), NOT the 150-mil 3.9 mm SOIC-8 — the JEDEC SOIC-8_3.9x4.9 footprint will not fit; W25Q16JVSNIQ is the 150-mil variant"
+verified: "pin map read from datasheet Figure 1a 'Pin Assignments, 8-pin SOIC150-mil/208-mil (Package Code SN, SS)' Top View, p.5, cross-checked vs Pin Description table 3.3 p.5, Rev H; package dims from section 11.3 '8-Pin SOIC 208-mil (Package Code SS)' drawing, p.65 — 2026-07-17"
+sourcing: {lcsc: C131025, alternates: [C82317], note: 'exact MPN; C131025 102945 stock, C82317 10295 stock 2026-07-17'}

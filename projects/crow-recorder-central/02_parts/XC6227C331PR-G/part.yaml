@@ -1,0 +1,41 @@
+mpn: XC6227C331PR-G
+manufacturer: Torex Semiconductor
+type: ldo_regulator_fixed_3v3_low_noise
+datasheet:
+  doc_id: ETR03054-006
+  revision: ETR03054-006
+  url: https://www.torexsemi.com/file/xc6227/XC6227.pdf   # vendor URL 403s from CLI; fetched via LCSC mirror (wmsc.lcsc.com .../2312070224_Torex-Semicon-XC6227C331PR-G_C6035451.pdf)
+  sha256: 03781c58b7e1bc8e98fdef0e5c735ce50aa597ac8947a66ed5345739ac378504
+  fetched: 2026-07-17
+package: SOT-89-5   # NOT SOT-25! Ordering table p.2 - suffix MR-G = SOT-25, PR-G = SOT-89-5, ER-G = USP-6C
+footprint: Package_TO_SOT_SMD:SOT-89-5
+pins:                       # from PIN CONFIGURATION, SOT-89-5 (TOP VIEW) drawing + pin table, p.3
+  1: CE                     # bottom-left; active high enable; type C has internal pull-down -> open = standby
+  2: {name: VSS, note: "bottom-center lead AND the large top tab are both pin 2 (ground) - KiCad SOT-89-5 pad 2 includes the tab"}
+  3: NC                     # bottom-right
+  4: VIN                    # top-right
+  5: VOUT                   # top-left
+limits:
+  vin_abs_max: 6.5V
+  vin_operating: 1.7-6.0V
+  vout: 3.3V +/-1% (3.267-3.333V, Voltage Chart 2 p.7)
+  iout_max: 700mA
+  ilim: 950mA typ (720mA min)
+  dropout_3v3: "120mV typ / 200mV max at IOUT=300mA (Voltage Chart 2, p.7); ~80mV typ at 200mA (scaled, see dropout curves sec. 3)"
+  iq: 100uA typ / 220uA max
+  istandby: 0.01uA typ / 0.1uA max
+  psrr: 65dB at 1kHz (30mA)
+  ce_high: ">= 1.2V"
+  ce_low: "<= 0.3V"
+  ce_pull_down_current: 24uA typ at VCE=6V (type C)
+  pd_sot89_5: 1300mW on 40x40mm standard board
+  caps: "CIN 1.0uF ceramic; COUT (CL) REQUIRED for phase compensation: >= 2.2uF ceramic for VOUT 2.5-5.0V (CL table p.15); more is fine"
+gotchas:
+  - "PR-G suffix = SOT-89-5, not SOT-25. If the layout assumed SOT-25, either change footprint or order XC6227C331MR-G (SOT-25, LCSC C216640, 2719 stock 2026-07-17)"
+  - "SOT-89-5 tab is VSS (pin 2) — pour ground under/around it; it is also the heatsink"
+  - "CE is active high WITH internal pull-down (type C): floating CE = regulator OFF. Tie CE to VIN to always-on"
+  - "COUT >= 2.2uF is mandatory for stability at 3.3V — 0.1uF alone will oscillate"
+  - "Reverse current protection built in: safe to have VOUT held up (e.g. by 3.3V digital rail through analog loads) while VIN is down"
+  - "3.3VA from 5V at 200mA: (5-3.3)*0.2 = 340mW — well inside 1300mW board rating"
+verified: "pin map read from datasheet PIN CONFIGURATION SOT-89-5 (TOP VIEW) figure and pin-number table, page 3 (page image rendered), ETR03054-006 — 2026-07-17"
+sourcing: {lcsc: C6035451, alternates: [C216640], note: 'extended; exact MPN; 268 stock 2026-07-17; C216640 is the SOT-25 variant XC6227C331MR-G (2719 stock) — different footprint, otherwise identical'}
