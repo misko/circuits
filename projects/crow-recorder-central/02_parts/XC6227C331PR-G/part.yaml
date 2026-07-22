@@ -39,3 +39,6 @@ gotchas:
   - "3.3VA from 5V at 200mA: (5-3.3)*0.2 = 340mW — well inside 1300mW board rating"
 verified: "pin map read from datasheet PIN CONFIGURATION SOT-89-5 (TOP VIEW) figure and pin-number table, page 3 (page image rendered), ETR03054-006 — 2026-07-17"
 sourcing: {lcsc: C6035451, alternates: [C216640], note: 'extended; exact MPN; 268 stock 2026-07-17; C216640 is the SOT-25 variant XC6227C331MR-G (2719 stock) — different footprint, otherwise identical'}
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: leaded, pitch: 1.5, tier_required: jlc_2layer_default, checked: escape_check}

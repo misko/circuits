@@ -49,3 +49,6 @@ gotchas:
   - "PG (AP61102) already has internal 5Mohm pull-up to VIN — external pull-up optional"
 verified: "pin map read from datasheet 'Pin Assignments (Top View)' figure, page 1 (AP61102 drawing, right side), DS42004 Rev. 6-2 — page image rendered and cross-checked with Pin Descriptions table p.3 — 2026-07-17"
 sourcing: {lcsc: C5224055, alternates: [C3193199], note: 'extended; exact MPN; C5224055 461 stock / C3193199 329 stock 2026-07-17; two codes for same orderable part'}
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: leaded, pitch: 0.5, escapes_worst_side: 3, tier_required: jlc_2layer_default, checked: escape_check}

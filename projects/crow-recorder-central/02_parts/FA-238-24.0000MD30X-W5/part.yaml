@@ -30,3 +30,6 @@ gotchas:
   - "Drive level 200uW max, 10uW recommended — size the series resistor for the XU316 oscillator accordingly"
 verified: "pad map read from 'Internal connection (TOP VIEW)' figure and FA-238 external-dimensions drawing (pads #1 bottom-left, #2 bottom-right, #3 top-right, #4 top-left), Epson brief sheet FA-238_en.pdf p.1, 2025 ed.; CL/tolerance of the MD30X-W5 code cross-checked against Digi-Key product 5259755 — 2026-07-17"
 sourcing: {lcsc: C2650433, alternates: [C2650453], note: 'exact spec code; JLC stock 0 (global-sourcing/special order) 2026-07-17; Digi-Key 28284 stock same date at $0.44/1 — plan Digi-Key or JLC global sourcing for this line'}
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: passive, pitch: 2.2, tier_required: jlc_2layer_default, checked: escape_check}   # 3225 4-pad, 2.2mm pad-center grid

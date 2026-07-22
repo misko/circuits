@@ -36,3 +36,8 @@ gotchas:
   - "Reflow per JEDEC J-STD-020, and the sensor needs a rehydration/recondition period after soldering for spec RH accuracy"
 verified: "pin map read from datasheet Figure 18 'Pin assignment (transparent top view)' and pin table, page 16 (page image rendered); land pattern from Figure 17 page 16; decoupling from Figure 1 page 3 — Version 6.4 — 2026-07-17"
 sourcing: {lcsc: C2909890, alternates: [], note: 'extended; exact MPN; 14517 stock 2026-07-17'}
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: qfn, pitch: 0.8, tier_required: jlc_2layer_default, checked: escape_check}
+# ^ DFN-4: escape_check style vocabulary folds DFN into 'qfn' (identical ring math);
+#   0.6 via + 0.127 space = 0.727 <= 0.8 pitch -> dogbone ring fits at the cheapest tier.

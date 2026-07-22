@@ -44,3 +44,6 @@ sourcing:
     C236671 ME6211C18M5G-N (Microne, 300mA, 50144 stock),
     C59969 RT9013-18GB (Richtek, 500mA, 34283 stock). All checked 2026-07-17.
     Any substitution is a BOM decision — record it in 01_docs, do not silently swap.
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: escape_check}

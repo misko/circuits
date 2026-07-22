@@ -39,3 +39,6 @@ verified: "pad map read from the 'Top View Crystal Connection' figure,
   +-20ppm stability from the LCSC C70590 attribute page, same date;
   board-net correctness judged in the release pin review (Y1 PASS,
   verification/pin_review.md) — D27"
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: passive, pitch: 2.2, tier_required: jlc_2layer_default, checked: escape_check}   # same 3225 land as FA-238

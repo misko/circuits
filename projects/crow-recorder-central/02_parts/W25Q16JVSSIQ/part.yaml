@@ -30,3 +30,6 @@ gotchas:
   - "208-mil wide-body SOIC (5.23 mm), NOT the 150-mil 3.9 mm SOIC-8 — the JEDEC SOIC-8_3.9x4.9 footprint will not fit; W25Q16JVSNIQ is the 150-mil variant"
 verified: "pin map read from datasheet Figure 1a 'Pin Assignments, 8-pin SOIC150-mil/208-mil (Package Code SN, SS)' Top View, p.5, cross-checked vs Pin Description table 3.3 p.5, Rev H; package dims from section 11.3 '8-Pin SOIC 208-mil (Package Code SS)' drawing, p.65 — 2026-07-17"
 sourcing: {lcsc: C131025, alternates: [C82317], note: 'exact MPN; C131025 102945 stock, C82317 10295 stock 2026-07-17'}
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: leaded, pitch: 1.27, tier_required: jlc_2layer_default, checked: escape_check}

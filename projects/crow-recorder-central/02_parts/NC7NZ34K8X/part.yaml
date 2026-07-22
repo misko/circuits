@@ -32,3 +32,6 @@ gotchas:
   - "I/O are high-impedance when VCC=0 (power-down safe); inputs 7V tolerant, outputs are NOT (VOUT max VCC)"
 verified: "pin map read from 'Connection Diagrams (Top View)' US8 figure, datasheet p.1, cross-checked against IEEE logic-symbol pin numbers A1(1)/Y1(7), 2A(3)/2Y(5), 3A(6)/3Y(2), DS500494 rev Nov 2005; package dims from MAB08A physical-dimensions drawing, datasheet p.6 — 2026-07-17"
 sourcing: {lcsc: C232798, alternates: [], note: 'exact MPN; 1508 stock 2026-07-17'}
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: leaded, pitch: 0.5, escapes_worst_side: 4, tier_required: jlc_2layer_default, checked: escape_check}

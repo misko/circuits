@@ -60,3 +60,9 @@ gotchas:
   - "DMIN2 option on pin 22 exists only on PCM1864/PCM1865"
 verified: "pin map read from figure 'DBT Package: PCM1862, PCM1863, PCM1864, and PCM1865 — 30-Pin TSSOP (Top View)', p.10, cross-checked against 'Pin Functions: PCM1862...PCM1865' table p.11, SLAS831D; package dims from DBT0030A outline drawing (4220214/B, p.142) — 2026-07-17"
 sourcing: {lcsc: C181312, alternates: [], note: 'exact MPN, JLC expand lib; 1683 stock 2026-07-17'}
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: leaded, pitch: 0.5, escapes_worst_side: 15, tier_required: jlc_4layer_advanced, checked: escape_check}
+# ^ TSSOP-30 dense side (15 pins used/side): 0.5 - 0.3 drill = 0.2 < 0.5 hole-to-hole
+#   at standard tiers (ADR-0008-class wall). Board carries it at jlc_6layer_smallvia
+#   (rank 4 >= required rank 2, ADR-0012).

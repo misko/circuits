@@ -20,3 +20,6 @@ gotchas:
   - "Task-suggested footprint TerminalBlock_Phoenix_MPT-0,5-2-3.5_1x02 does NOT exist in the KiCad lib (MPT-0,5 series is 2.54mm-pitch only); PT-1,5-2-3.5-H is the actual 3.5mm 2-pos horizontal std footprint (1.2mm drill, 3.5mm pitch)"
 verified: "pitch 3.5±0.03, hole Ø1.30+0.10/-0, pin 0.80x0.50, body 8.6H/7.5D, ratings from UL/IEC table - drawing KF128L-3.5 rev A - 2026-07-17"
 sourcing: {lcsc: C474930, alternates: [], note: 'hand-solder THT (not JLC-assembled); 5.9k stock 2026-07-17; qty 9 per board'}
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: connector, pitch: 3.5, tier_required: jlc_2layer_default, checked: escape_check}

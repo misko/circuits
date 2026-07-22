@@ -2,12 +2,13 @@
 # DRU floors. generate_rules.py emits these into 04_kicad/*.kicad_pro and
 # .kicad_dru. Defined BEFORE routing (kicad-pcb golden rule 3 / canon R1).
 #
-# 6-layer JLC STANDARD tier (ADR-0008, supersedes ADR-0001's 4L): 0.45/0.3
-# vias, no advanced small-via option (TQFP escape is peripheral, ADR-0004).
+# 6-layer JLC SMALL-VIA tier (ADR-0008 layers + ADR-0009 vias, D-TIER
+# ADR-0012): the XU316 TQFP-128 0.4mm via-in-pad escape needs 0.30/0.15
+# vias — ADR-0008's "no small-via option" claim did not survive DRC.
 # Stackup F/In1 GND/In2/In3/In4 GND/B; power = floored tracks on the 4
 # signal layers (D15); GND = In1+In4 planes + pours + stitch.
 
-fab_tier: jlc_6layer_standard
+fab_tier: jlc_6layer_smallvia
 
 classes:
   PWR5:

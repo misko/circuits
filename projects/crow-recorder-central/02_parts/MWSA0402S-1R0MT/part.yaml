@@ -28,3 +28,6 @@ gotchas:
   - "Non-polarized, but keep the marking side up for AOI consistency"
 verified: "value/DCR/Isat/Irms read from MWSA0402S Series specifications table, catalog page 3; dimensions and land pattern from SHAPE AND DIMENSIONS table, page 2 (page images rendered) — 2-pad passive, pinout-exempt — 2026-07-17"
 sourcing: {lcsc: C408332, alternates: [], note: 'extended; exact MPN; 25440 stock 2026-07-17; qty 2 per board (3.3V and 0.9V bucks)'}
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: passive, pitch: 3.4, tier_required: jlc_2layer_default, checked: escape_check}

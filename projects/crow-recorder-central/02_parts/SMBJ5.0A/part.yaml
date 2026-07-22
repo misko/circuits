@@ -17,3 +17,6 @@ gotchas:
   - 'PAD 1 = CATHODE'
 verified: 'same as SMBJ16A'
 sourcing: {lcsc: C113974}
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: leaded, pitch: 4.06, tier_required: jlc_2layer_default, checked: escape_check}

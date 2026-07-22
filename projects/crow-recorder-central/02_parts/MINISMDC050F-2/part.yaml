@@ -38,3 +38,6 @@ sourcing:
     swap silently: C262023 TLC-MSMD050 (TLC Electronic, 4,109 stock, $0.059) and
     C12558 SMD1812P050TF (RUILON, 1,429 stock, $0.096), both 1812 0.5A-hold PTCs;
     re-verify hold/trip/derating from their own datasheets before any substitution.
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: passive, pitch: 4.0, tier_required: jlc_2layer_default, checked: escape_check}

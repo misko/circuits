@@ -32,3 +32,6 @@ sourcing:
     C3020560 = USB4105-GF-A, confirmed still exact match, 4,489 stock, $1.05
     (2026-07-17). C3025063 = USB4105-GF-A-060 (the brief's exact MPN, tape
     suffix), 520 stock, $1.07 — same part, either code assembles correctly.
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: connector, pitch: 0.5, tier_required: jlc_2layer_default, checked: escape_check}

@@ -36,3 +36,6 @@ gotchas:
   - "The datasheet pinout figure carries no printed pin numbers; assignment fixed by the pin-1 index dot next to the G lead (top view, page 1)"
 verified: "pin map read from datasheet SOT23 Top View / Bottom View figure, page 1/5, Rev 3.1 July 2023 — 2026-07-17 (folder copied from esp32-laser-timing 2026-07-17)"
 sourcing: {lcsc: C20917, alternates: [C344010], note: 'BASIC part, exact MPN, 1,273,952 stock 2026-07-17, $0.084'}
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: escape_check}

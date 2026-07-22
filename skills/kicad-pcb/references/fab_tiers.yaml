@@ -73,3 +73,44 @@ tiers:
     provenance: >
       usb-power-3s v1.0-v1.3 ordered with exactly this line ("VQFN fanout");
       0.09mm track floor used by the 3s-cleanroomv2 advanced-tier grind.
+
+  jlc_6layer_standard:
+    rank: 3
+    layers: 6
+    min_track: 0.127
+    min_space: 0.127
+    min_via_diameter: 0.45    # JLC no-fee multilayer via 0.45/0.3
+    min_via_drill: 0.3
+    min_hole_to_hole: 0.5     # JLC published — binds adjacent-pin escape vias
+    via_in_pad: false
+    min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
+    min_silk_stroke: 0.15       # JLC capability page — verify at order time
+    order_readme: "6-layer stackup selected in the order form (<reason>)"
+    provenance: >
+      JLC published 6L standard floor (same via geometry as 4L standard;
+      the layer count is what you pay for). Named by crow-array-central
+      ADR-0008 (6L escalation) — whose "no small-via option needed" claim
+      ADR-0009 then falsified for 0.4mm via-in-pad escapes; kept as the
+      rank step between 4L-advanced and 6L-small-via.
+
+  jlc_6layer_smallvia:
+    rank: 4
+    layers: 6
+    min_track: 0.09
+    min_space: 0.09
+    min_via_diameter: 0.30
+    min_via_drill: 0.15
+    min_hole_to_hole: 0.2     # crow-array-central DRU floor (TDO/TDI pair
+                              # re-dogboned to clear it); verify at order time
+    via_in_pad: true          # ADR-0009: 0.30/0.15 via-in-pad on 0.4mm pitch
+                              # keeps 0.10mm copper gap — resin fill + cap
+    min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
+    min_silk_stroke: 0.15       # JLC capability page — verify at order time
+    order_readme: "6 layers + \"advanced\" SMALL-VIA option REQUIRED: min via 0.30/0.15 mm (<reason>)"
+    provenance: >
+      crow-array-central v1.0-2026-07-18 SEALED at these floors (ADR-0009:
+      0.30/0.15 via-in-pad TQFP-128 0.4mm escape; DRU 0.09 track/clearance,
+      0.2 hole-to-hole, DRC 0/0/0) and adopted by crow-recorder-central
+      (ADR-0011/0012). Design-proven, NOT yet ordered (archive order was
+      gated on field tests) — verify every floor against the JLC capability
+      page at order time (canon M6).

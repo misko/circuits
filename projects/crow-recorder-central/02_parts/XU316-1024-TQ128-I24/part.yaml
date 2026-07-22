@@ -303,3 +303,12 @@ sourcing:
     stock (checked 2026-07-17 via JLC keyword endpoint) — plan for JLC global
     sourcing lead time, consignment, or hand-solder; 0.4mm pitch TQFP-128 is
     hand-solderable with drag technique but EP requires hot air/paste."
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: leaded, pitch: 0.4, escapes_worst_side: 32, tier_required: jlc_4layer_advanced, checked: escape_check}
+# ^ TQFP-128 @ 0.4mm, 32 pins/side (~90 used, power interleaved on every edge):
+#   0.4 - 0.3 drill = 0.1 << 0.5 hole-to-hole at any standard tier — NO via fits
+#   between adjacent pins; cheapest UNCONDITIONAL tier is the via-in-pad class.
+#   ADR-0009 encodes the shipped escape: 0.30/0.15 VIA-IN-PAD (0.10mm copper gap
+#   at 0.4mm pitch) at the JLC small-via option; the board's declared fab_tier is
+#   jlc_6layer_smallvia (ADR-0008 layer escalation + ADR-0009 vias, D-TIER ADR-0012).

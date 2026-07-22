@@ -26,3 +26,6 @@ gotchas:
   - "Pinout per top-view figure: 1(G) 2(S) on the two-lead side, 3(D) alone opposite — FET G/S/D order, not BJT"
 verified: "pin map read from datasheet SOT23 Top View / Bottom View figure, page 1/5, Rev 3.1 December 2023 — 2026-07-18"
 sourcing: {lcsc: C15127, note: "JLC Basic part, verify stock at bom_seed; P-ch complement of AO3400A"}
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: escape_check}
