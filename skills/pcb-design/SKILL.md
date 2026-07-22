@@ -350,6 +350,25 @@ journals every cycle (M9), and STOPS with an escalation report on a novel
 class or the D-BACK trigger — your judgment is for the escalations, not
 the loop. For stochastic route quality, `route --race N` runs N
 candidate chains and keeps the quick-measured best.
+**RUN THE GRIND AT THE LOWEST TIER THE LOOP PERMITS (cost discipline).**
+The routing grind is mostly MECHANICAL, so it should not burn a frontier
+model. Three tiers, escalate only when forced:
+- **Tier 0 — no model:** `grind_driver.py` itself. Its classify→
+  table-lookup→auto-fix→rebuild→re-measure loop is pure script; the
+  bounded D-BACK + subset-plateau stops live in the code, not in model
+  judgment. Everything it can auto-fix costs zero model tokens. Widen
+  `grind_fixes.yaml` (canon M8) before reaching for a model.
+- **Tier 1 — a CHEAP model** (Haiku/Fable): drives the grind_driver, reads
+  its escalation reports, applies TABLE-CLEAR config fixes (widen a
+  corridor, reorder a wave, add a declared seed-stub), journals, commits
+  at gates. Safe at this tier because every gate is machine-MEASURED
+  (`kicad-cli drc` cannot be talked into 0/0/0), canon M3 forbids
+  hand-editing `04_kicad`, and the loop bounds are in the script.
+- **Tier 2 — a frontier model** (Opus/Sonnet): invoked ONLY on a genuine
+  D-BACK escalation — the "is this a placement problem, not a routing
+  problem?" diagnosis and the upstream backtrack. Rare and short.
+The Agent tool takes a per-agent `model`; compose a routing run as a cheap
+operator that defers to frontier only on escalation.
 Never hand-edit `04_kicad/`; fix the generator and rerun. Commit at each
 green gate. Silkscreen carries BOTH the functional labels (terminal words,
 pin map) AND every reference designator (F.SilkS, visible, de-collided) —
