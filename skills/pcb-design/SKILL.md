@@ -308,6 +308,15 @@ stitch_and_fill (pours + thermal vias) → **generate_rules LAST** (pcbnew
 saves clobber netclasses) → DRC gate:
 `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity`
 must report **0 violations / 0 unconnected / 0 parity** at FULL severity.
+**THE GRIND IS MECHANICAL FIRST, JUDGMENT SECOND:** iterate with the CHEAP
+loop — `route_and_stitch_generic.py quick` (seconds: connectivity +
+copper-clearance verdict on the pre-stitch board) — and run
+`kicad-pcb/scripts/grind_driver.py` for the classified fix loop: it
+auto-applies only table-known batch fixes (`references/grind_fixes.yaml`),
+journals every cycle (M9), and STOPS with an escalation report on a novel
+class or the D-BACK trigger — your judgment is for the escalations, not
+the loop. For stochastic route quality, `route --race N` runs N
+candidate chains and keeps the quick-measured best.
 Never hand-edit `04_kicad/`; fix the generator and rerun. Commit at each
 green gate. Silkscreen carries BOTH the functional labels (terminal words,
 pin map) AND every reference designator (F.SilkS, visible, de-collided) —
@@ -317,7 +326,13 @@ assembly drawing.
 ## 7. Verify — independent eyes, then release
 
 Run ALL of these; each compares against a reference the design didn't
-produce (checker and checked must not share a method):
+produce (checker and checked must not share a method). **PARALLELIZE the
+independent ones:** jlc_twin (network fetches), the fresh-context PIN
+REVIEW, and the fresh-context RENDER REVIEW share no inputs or state —
+launch them as CONCURRENT sub-agents/background jobs and join before the
+policy audit (which consumes their verdicts). Serializing them roughly
+doubles the stage's wall-clock for no independence gain. bom_seed +
+jlc_stock run first (seconds, and twin consumes the BOM).
 
 - `bom_seed.py`: 22/22-style unambiguous LCSC mapping; hand-solder THT
   lines deliberately uncoded and listed.
