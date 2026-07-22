@@ -1,0 +1,263 @@
+# usb-hub-3s-v2 floorplan — input for skills/kicad-pcb/scripts/generate_board_generic.py
+#
+# power-hub ARCHETYPE (references/floorplan-archetypes.md). The v2 win: 4
+# SELF-CONTAINED cells, NO shared hot loop (v1's IP6559 buck-boost is gone).
+#   - Input protection  : west column (XT60 -> F1 -> revpol P-FET Q1 -> VIN)
+#   - Buck A (LM5116)    : north band -> 5VA (USB-A rail, <=6 A)
+#   - Buck C (LM5116)    : south band -> 5VC (USB-C rail, <=5 A)  [IDENTICAL to A]
+#   - USB-A x3           : east column (TPS2557 + USBLC6 + KH-AF90DIP, mouths east)
+#   - PD cell            : south-east (TPS25740A + back-to-back path FETs + J5)
+# 4-layer: In1 = GND plane, In2 = VIN plane. Board 130 x 92 (roomy on purpose).
+# LM5116 HTSSOP-20 @ rot0: control pins 1-10 on the LEFT, power pins 12-20
+# (CS/PGND/LO/VCC/HB/HO/SW) on the RIGHT -> FET pair sits EAST of the chip.
+# PowerPAK SO-8 @ rot0: S(1-3)/G(4) on the LEFT, D-tab(5) on the RIGHT.
+
+project:
+  name: usb_hub_3s_v2
+  netlist: 06_build/netlists/usb_hub_3s_v2.net
+  output: 04_kicad/usb_hub_3s_v2.kicad_pcb
+  parts_dir: 02_parts
+  fp_lib_table: 04_kicad/fp-lib-table
+
+board:
+  outline: {x0: 20.0, y0: 20.0, x1: 150.0, y1: 112.0}
+  edge_width: 0.1
+  layers: 4
+  mounting_holes:
+    # east edge is owned by the 18mm-tall USB-A connector column (y26-87,
+    # overhanging) with only ~4.6mm inter-connector gaps -> the two non-west
+    # holes go to clear board: north gap (x100-113) and south of J4.
+    footprint: MountingHole:MountingHole_3.2mm_M3
+    at: [[26.0, 26.0], [26.0, 106.0], [106.0, 24.0], [144.0, 92.0]]
+
+libraries: [/usr/share/kicad/footprints, 03_src/lib]
+
+placement:
+  anchors:
+    # ---------------- INPUT cell (west column) ----------------
+    J1: [30.0, 44.0, 90]      # XT60 mouth WEST; pad1=GND pad2=VBAT
+    F1: [35.0, 56.0, 0]       # fuse holder pads (30,56)=VBAT (40,56)=VBAT_F
+    Q1: [36.0, 66.0, 180]     # revpol P-FET: D-tab WEST=VBAT_F, S EAST=VIN
+    D2: [33.0, 73.0, 0]       # Vgs zener: K(pad1)=VIN, A=RPP_G
+    R1: [41.0, 72.0, 0]       # RPP_G gate pulldown -> GND
+    D1: [44.0, 66.0, 0]       # input TVS SMBJ15A: K(pad1)=VIN, A=GND (on VIN, after Q1)
+    C1: [26.5, 60.0, 90]      # VIN bulk polymer (pad1=VIN)
+    C2: [26.5, 72.0, 90]      # VIN bulk polymer
+
+    # ---------------- BUCK A (north band) -> 5VA ----------------
+    U2:  [60.0, 38.0, 0]      # LM5116; EP(21)=GND
+    Q2:  [76.0, 30.0, 180]    # HS: D-tab WEST=VIN, S EAST=SW_A, G=HO_A
+    Q3:  [76.0, 38.0, 0]      # LS: S WEST=CS_A, D-tab EAST=SW_A, G=LO_A
+    RS1: [72.0, 46.0, 270]    # 10m shunt: pad1(CS_A) NORTH, pad2 GND
+    L1:  [90.0, 34.0, 0]      # 6.8uH SW_A -> 5VA
+    D3:  [66.0, 30.0, 0]      # boot diode: K(pad1)=BOOT_A, A=VCC_A
+
+    # ---------------- BUCK C (south band) -> 5VC  [identical to A] ----------------
+    U11: [60.0, 76.0, 0]
+    Q4:  [76.0, 68.0, 180]    # HS: D-tab WEST=VIN, S EAST=SW_C
+    Q5:  [76.0, 76.0, 0]      # LS: S WEST=CS_C, D-tab EAST=SW_C
+    RS2: [72.0, 84.0, 270]
+    L2:  [90.0, 72.0, 0]
+    D4:  [66.0, 68.0, 0]
+
+    # ---------------- USB-A x3 (east column, mouths EAST) ----------------
+    U3: [108.0, 34.0, 0]
+    U4: [108.0, 56.0, 0]
+    U5: [108.0, 78.0, 0]
+    U8: [131.0, 41.0, 0]      # D+/D- ESD near connector J2
+    U9: [131.0, 63.0, 0]
+    U10: [131.0, 85.0, 0]
+    J2: [139.0, 38.0, 90]     # KH-AF90DIP mouth EAST
+    J3: [139.0, 60.0, 90]
+    J4: [139.0, 82.0, 90]
+
+    # ---------------- DCP advertisement (mid-board, on 5VA, feeds port data) ----
+    U6: [116.0, 48.0, 0]      # TPS2513A ports 1+2 (DP/DM_A1, DP/DM_A2)
+    U7: [116.0, 71.0, 0]      # TPS2513A port 3 (DP/DM_A3)
+
+    # ---------------- PD cell (south-east) ----------------
+    U1:  [110.0, 98.0, 0]     # TPS25740A QFN-24; EP(25)=GND. Top pins 19-24
+                              # (ISNS/VPWR/VBUS/GDNG/GDNS/DSCG) face the FETs NORTH;
+                              # left pins CC1/CC2 face J5.
+    RS3: [102.0, 93.0, 0]     # 5mR sense: pad1=5VC, pad2=RSNS
+    Q6:  [118.0, 94.0, 180]   # path FET: D-tab WEST=RSNS, S EAST=PDSRC
+    Q7:  [126.0, 94.0, 0]     # path FET: S WEST=PDSRC, D-tab EAST=VBUSC
+    U12: [114.0, 103.0, 0]    # C-port data ESD
+    J5:  [122.0, 109.0, 0]    # USB-C mouth SOUTH
+
+  seeds:
+    # -------- Buck A control cluster (LEFT/south of U2) --------
+    R2: [53.0, 34.0]     # RT
+    R6: [53.0, 36.0]     # UVLO top
+    R7: [53.0, 38.0]     # UVLO bot
+    R8: [53.0, 40.0]     # EN
+    C3: [55.0, 44.0]     # RAMP
+    C6: [57.0, 44.0]     # SS
+    R3: [53.0, 44.0]     # FB top
+    R4: [53.0, 46.0]     # FB bot
+    R5: [55.0, 46.0]     # comp R
+    C4: [57.0, 46.0]     # comp CMZ
+    C5: [59.0, 46.0]     # comp hf
+    C7: [68.0, 30.0]     # boot cap HB-SW
+    C8: [64.0, 32.0]     # VCC cap
+    R9: [70.0, 43.0]     # CS kelvin 0R (CSF-CS)
+    R10: [74.0, 47.0]     # CSG kelvin 0R (CSGF-GND)
+    # Buck A input caps (VIN Cin, north of Q2)
+    C9:  [62.0, 26.0]
+    C10: [66.0, 26.0]
+    C11: [70.0, 26.0]
+    C12: [74.0, 26.0]
+    C13: [78.0, 26.0]    # 100n
+    # Buck A output caps (5VA, east of L1)
+    C14: [92.0, 28.0]
+    C15: [96.0, 28.0]
+    C16: [92.0, 40.0]
+    C17: [96.0, 40.0]
+    # -------- Buck C control cluster --------
+    R11: [53.0, 72.0]
+    R15: [53.0, 74.0]
+    R16: [53.0, 76.0]
+    R17: [53.0, 78.0]
+    C18: [55.0, 82.0]
+    C21: [57.0, 82.0]
+    R12: [53.0, 82.0]
+    R13: [53.0, 84.0]
+    R14: [55.0, 84.0]
+    C19: [57.0, 84.0]
+    C20: [59.0, 84.0]
+    C22: [68.0, 68.0]
+    C23: [64.0, 70.0]
+    R18: [70.0, 81.0]
+    R19: [74.0, 85.0]
+    C24: [62.0, 64.0]
+    C25: [66.0, 64.0]
+    C26: [70.0, 64.0]
+    C27: [74.0, 64.0]
+    C28: [78.0, 64.0]
+    C29: [92.0, 66.0]
+    C30: [96.0, 66.0]
+    C31: [92.0, 78.0]
+    C32: [96.0, 78.0]
+    # -------- DCP decouple --------
+    C33: [113.0, 46.0]
+    C34: [113.0, 73.0]
+    # -------- USB-A per-port passives --------
+    R20: [112.0, 30.0]
+    C35: [104.0, 30.0]
+    C38: [120.0, 32.0]
+    C41: [120.0, 34.0]
+    R21: [112.0, 52.0]
+    C36: [104.0, 52.0]
+    C39: [120.0, 54.0]
+    C42: [120.0, 56.0]
+    R22: [112.0, 74.0]
+    C37: [104.0, 74.0]
+    C40: [120.0, 76.0]
+    C43: [120.0, 78.0]
+    # -------- PD cell passives --------
+    R23: [106.0, 102.0]   # HIPWR 100k -> GND
+    R24: [110.0, 102.0]   # PSEL 100k -> GND
+    R25: [122.0, 99.0]    # gate 10R GDNG->PDGATE
+    R26: [128.0, 100.0]   # discharge 120R VBUSC->DSCG_N
+    R27: [112.0, 106.0]   # DCP short DPC-DMC
+    C44: [104.0, 100.0]   # 5VC bypass
+    C45: [106.0, 96.0]    # DVDD
+    C46: [108.0, 104.0]   # VAUX
+    C47: [112.0, 96.0]    # VTX
+    C48: [100.0, 98.0]    # C_PDIN 10u on 5VC
+    C49: [128.0, 96.0]    # VBUSC bulk 10u
+    C50: [132.0, 98.0]    # VBUSC bulk 10u
+    C51: [128.0, 104.0]   # VBUSC 100n
+
+  legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 80}
+
+design_rules:
+  track_min_width: 0.127
+  min_clearance: 0.09       # advanced tier (TPS25740A 0.5mm QFN escape + J5 0.5mm row)
+  via_min_size: 0.25
+  min_through_drill: 0.15
+  via_min_annulus: 0.05
+  hole_clearance: 0.2
+  hole_to_hole: 0.25
+  copper_edge_clearance: 0.3
+  solder_mask_min_width: 0.0
+  solder_mask_expansion: 0.0
+
+zones:
+  # planes
+  - {net: GND, layers: [In1.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal}
+  - {net: VIN, layers: [In2.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: full}
+  # outer GND pours
+  - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: full}
+  # ---- input power patches ----
+  - {net: VBAT,   layers: [F.Cu], priority: 2, rect: [23.0, 38.0, 41.0, 55.0], connect: full}
+  - {net: VBAT_F, layers: [F.Cu], priority: 2, rect: [28.0, 56.5, 40.0, 63.5], connect: full}
+  - {net: VIN,    layers: [F.Cu], priority: 2, rect: [23.0, 60.0, 47.0, 80.0], connect: full}   # input VIN pool: Q1.S + C1/C2 + D1
+  # ---- buck A / buck C VIN Cin pools ----
+  - {net: VIN,    layers: [F.Cu], priority: 2, rect: [58.0, 22.5, 82.0, 32.0], connect: full}   # buck A Cin
+  - {net: VIN,    layers: [F.Cu], priority: 2, rect: [58.0, 60.5, 82.0, 70.0], connect: full}   # buck C Cin
+  # ---- SW islands (tight, F.Cu+B.Cu) ----
+  - {net: SW_A,   layers: [F.Cu, B.Cu], priority: 2, rect: [78.5, 27.0, 92.5, 41.0], connect: full}
+  - {net: SW_C,   layers: [F.Cu, B.Cu], priority: 2, rect: [78.5, 65.0, 92.5, 79.0], connect: full}
+  # ---- CS patches ----
+  - {net: CS_A,   layers: [F.Cu], priority: 2, rect: [68.0, 41.5, 78.0, 49.5], connect: full}
+  - {net: CS_C,   layers: [F.Cu], priority: 2, rect: [68.0, 79.5, 78.0, 87.5], connect: full}
+  # ---- output rails ----
+  - {net: 5VA,    layers: [F.Cu, B.Cu], priority: 2, rect: [86.0, 24.0, 100.0, 58.0], connect: full}  # buck A out -> DCP/USB-A feed
+  - {net: 5VC,    layers: [F.Cu, B.Cu], priority: 2, rect: [86.0, 62.0, 106.0, 96.0], connect: full}  # buck C out -> PD feed
+  # ---- USB-A port rails ----
+  - {net: VBUSA1, layers: [F.Cu, B.Cu], priority: 2, rect: [113.0, 29.0, 142.0, 44.0], connect: full}
+  - {net: VBUSA2, layers: [F.Cu, B.Cu], priority: 2, rect: [113.0, 51.0, 142.0, 66.0], connect: full}
+  - {net: VBUSA3, layers: [F.Cu, B.Cu], priority: 2, rect: [113.0, 73.0, 142.0, 88.0], connect: full}
+  # ---- PD path islands ----
+  - {net: RSNS,   layers: [F.Cu], priority: 3, rect: [100.0, 91.0, 118.5, 97.5], connect: full}   # RS3.2 + Q6.D
+  - {net: PDSRC,  layers: [F.Cu], priority: 3, rect: [119.5, 91.0, 125.5, 97.5], connect: full}   # Q6.S + Q7.S common
+  - {net: VBUSC,  layers: [F.Cu, B.Cu], priority: 2, rect: [124.0, 91.0, 142.0, 108.0], connect: full}  # Q7.D -> J5
+
+keepouts:
+  - {name: pd_escape, deny: [], layers: [F.Cu, B.Cu], rect: [100.0, 90.0, 135.0, 108.0]}   # TPS25740A via-in-pad escape corridor
+  - {name: buckA_sense, deny: [], layers: [F.Cu, B.Cu], rect: [50.0, 22.0, 92.0, 50.0]}
+  - {name: buckC_sense, deny: [], layers: [F.Cu, B.Cu], rect: [50.0, 60.0, 92.0, 88.0]}
+
+silk:
+  min_text_height: 0.6
+  refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQL"}
+  captions:
+    - ["PROTECTED 3S PACK", 30.0, 36.0, 0.7]
+    - ["9-12.6V XT60 IN", 30.0, 38.0, 0.7]
+    - ["FUSE 10A MINI", 35.0, 50.0, 0.7]
+    - ["USB-A 5V 2A", 130.0, 33.0, 0.7]
+    - ["USB-A 5V 2A", 130.0, 55.0, 0.7]
+    - ["USB-A 5V 2A", 130.0, 77.0, 0.7]
+    - {text: "USB-C PD 5V/5A", at: [118.0, 106.0], size: 0.7, nudge: false}
+    - ["usb-hub-3s-v2", 30.0, 100.0, 0.8]
+
+asserts:
+  pad_net:
+    - {ref: J1, pad: 1, net: GND}
+    - {ref: J1, pad: 2, net: VBAT}
+    - {ref: Q1, pad: 5, net: VBAT_F}       # revpol P-FET drain = battery side
+    - {ref: D1, pad: 1, net: VIN}          # TVS cathode on VIN (after Q1)
+    - {ref: D2, pad: 1, net: VIN}          # Vgs zener cathode at source=VIN
+    - {ref: C1, pad: 1, net: VIN}
+    - {ref: C2, pad: 1, net: VIN}
+    - {ref: U2, pad: 21, net: GND}
+    - {ref: U11, pad: 21, net: GND}
+    - {ref: D3, pad: 1, net: BOOT_A}       # boot diode cathode = HB side
+    - {ref: D4, pad: 1, net: BOOT_C}
+    - {ref: Q2, pad: 5, net: VIN}          # HS drain = VIN
+    - {ref: Q3, pad: 5, net: SW_A}         # LS drain = SW
+    - {ref: Q4, pad: 5, net: VIN}
+    - {ref: Q5, pad: 5, net: SW_C}
+    - {ref: RS1, pad: 1, net: CS_A}
+    - {ref: RS2, pad: 1, net: CS_C}
+    - {ref: U1, pad: 25, net: GND}         # QFN EP
+    - {ref: RS3, pad: 1, net: 5VC}         # sense supply side
+    - {ref: Q6, pad: 5, net: RSNS}         # path FET drain (supply side)
+    - {ref: Q7, pad: 5, net: VBUSC}        # path FET drain (connector side)
+  body_offset:
+    - {ref: J1, axis: x, sign: "-"}        # XT60 mouth WEST
+    - {ref: J2, axis: x, sign: "+"}
+    - {ref: J3, axis: x, sign: "+"}
+    - {ref: J4, axis: x, sign: "+"}
+    - {ref: J5, axis: y, sign: "+"}        # USB-C mouth SOUTH

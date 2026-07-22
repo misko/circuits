@@ -22,3 +22,17 @@
 - next: This board REQUIRES `--mode grid` (gen_tscircuit.sh defaults to layout and
   re-introduces the merge). Author 03_src/floorplan.yaml (4 self-contained cells),
   generate_rules, route.yaml, grind to DRC 0/0/0.
+
+## 2026-07-22 — placement finish
+- did: Authored 03_src/floorplan.yaml (power-hub archetype, 4 self-contained cells
+  on a 130x92 4-layer board: In1=GND, In2=VIN). Reused v1's proven LM5116 buck
+  geometry TWICE (buck A north, buck C south, identical), v1's USB-A bank shape
+  (east column, mouths east), fresh simple PD cell (TPS25740A + back-to-back path
+  FETs, no switching). Wrote 03_src/audit_board.py (I-POL/I-PROX/I-EDGE/I-SILK).
+  Relocated the two east mounting holes off the 18mm-tall connector column into
+  clear board; nudged D1/D2/U12/RS3 out of bbox collisions.
+- result: MEASURED — generate_board_generic: 112 placed (37 anchored), 26/26
+  orientation asserts PASS, 38 legalized. audit_board: PASS (20 polarity, 21
+  proximity, 4 edge, 116 silk). bbox overlaps >0.4mm^2: 0.
+- next: generate_rules (netclasses/DRU, advanced tier) BEFORE route-prep; author
+  route.yaml; KRT fanout-first; grind to DRC 0/0/0.
