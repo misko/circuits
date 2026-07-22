@@ -1,0 +1,101 @@
+# usb-hub-3s-v2 — electrical invariants (E-INV / E-ADR, phase E1 netlist kinds).
+#
+# Machine-stated intent for the protection + PD-topology chains, checked against
+# the exported netlist — the gate the v1.0 D1 reverse-polarity defect needed (it
+# passed ERC/DRC/parity/twin/pin-review because every artifact was consistently
+# wrong together). Every protection/topology ADR emits >=1 assertion (E-ADR).
+
+invariants:
+  # --- reverse-polarity / input protection chain (ADR-0001) ---
+  - assert: pin_on_net
+    pin: "D1.1"
+    net: VIN
+    adr: 0001
+    why: >
+      D1 (SMBJ15A) cathode must clamp VIN — the PROTECTED side of Q1 — not
+      VBAT_F. On VBAT_F a reversed pack forward-biases it into a crowbar through
+      F1 (the v1.0 defect). v2 builds it on VIN from the start.
+  - assert: pin_on_net
+    pin: "D1.2"
+    net: GND
+    adr: 0001
+    why: D1 anode to GND (unidirectional TVS clamps VIN-to-GND).
+  - assert: pin_on_net
+    pin: "Q1.5"
+    net: VBAT_F
+    adr: 0001
+    why: >
+      Reverse-polarity P-FET drain (tab, pad5) faces the battery (VBAT_F); body
+      diode conducts battery->load at first contact, blocks on reversal.
+  - assert: pin_on_net
+    pin: "Q1.1"
+    net: VIN
+    adr: 0001
+    why: Q1 source (pad1) to the load rail VIN.
+  - assert: series_chain
+    chain: [VBAT, F1, VBAT_F]
+    adr: 0001
+    why: the fuse F1 must be the FIRST series element, VBAT -> VBAT_F.
+  - assert: pin_on_net
+    pin: "J1.2"
+    net: VBAT
+    adr: 0001
+    why: XT60 pin2 is PLUS -> VBAT (pin1 MINUS -> GND); polarity is a part fact.
+  - assert: pin_on_net
+    pin: "D2.1"
+    net: VIN
+    adr: 0001
+    why: Q1 Vgs zener clamp cathode at the source (VIN), anode at the gate.
+  - assert: pin_on_net
+    pin: "D2.2"
+    net: RPP_G
+    adr: 0001
+    why: D2 anode at the P-FET gate node RPP_G.
+
+  # --- USB-C PD source topology + straps (ADR-0004-v2) ---
+  - assert: pin_on_net
+    pin: "U1.23"
+    net: PDSRC
+    adr: 0004-v2
+    why: >
+      GDNS (gate-driver source sense) must sit on the back-to-back FETs' common
+      source PDSRC, or the charge-pump high-side driver loses its reference.
+  - assert: pin_on_net
+    pin: "Q6.1"
+    net: PDSRC
+    adr: 0004-v2
+    why: Q6 source on the common node PDSRC (reverse-blocking pair).
+  - assert: pin_on_net
+    pin: "Q7.1"
+    net: PDSRC
+    adr: 0004-v2
+    why: Q7 source on the common node PDSRC (back-to-back with Q6).
+  - assert: pin_on_net
+    pin: "U1.8"
+    net: DVDD
+    adr: 0004-v2
+    why: >
+      THE STRAP TRAP: EN9V is active-LOW for enable-9V. For a 5V-ONLY contract
+      EN9V MUST be tied HIGH (to DVDD) — low would advertise a 9V PDO the 5V
+      buck cannot supply.
+  - assert: pin_on_net
+    pin: "U1.15"
+    net: VAUX
+    adr: 0004-v2
+    why: >
+      GD (gate-driver master enable) has an internal ~6M pulldown — it must be
+      actively tied high (VAUX) or the path FETs never turn on.
+  - assert: series_chain
+    chain: [HIPWR, R23, GND]
+    adr: 0004-v2
+    why: >
+      5 A advertisement requires HIPWR in the GND-via-Rsel state: R23 (100k)
+      from HIPWR to GND (NOT a direct short).
+  - assert: net_has_part
+    net: VBUSC
+    part_type: capacitor
+    min: 2
+    adr: 0004-v2
+    why: >
+      A Type-C RECEPTACLE with the TPS25740A needs VBUS bulk >10 uF (back-to-back
+      FET inrush spec) — assert at least 2 bulk caps on VBUSC.

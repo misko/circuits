@@ -1,9 +1,15 @@
 # usb-hub-3s-v2 net architecture — netclasses + DRU floors source.
 #
-# fab_tier is the COST CEILING decided at commission (D3/ADR-0011). v2 has NO
-# buck-boost QFN-48 (the part that forced ADVANCED on v1). Every multi-pin part
-# is leaded/DFN/SOT at >=0.5 mm pitch, so STANDARD 4-layer is the ceiling.
-fab_tier: jlc_4layer_standard
+# fab_tier is the COST CEILING decided at commission, REVISED at D-ESC (ADR-0011).
+# Commission targeted STANDARD (v1's advanced was forced by the IP6559 buck-boost
+# QFN-48, now gone). BUT the D-SPEC sourcing spike's 5A-capable PD SOURCE
+# controller (TPS25740A) is a 4-sided VQFN-24 0.5mm — escape_check grades it
+# jlc_4layer_advanced (via-in-pad; the outward-only rescue is dual-row-only).
+# The 5A PD *requirement* forces the fine-pitch QFN, not over-engineering. Every
+# OTHER multi-pin part is leaded/DFN at >=0.5mm and escapes at standard. If the
+# user accepts 5V/3A (plain-Rp, no PD chip), the board drops to STANDARD — the
+# 3A-vs-5A / standard-vs-advanced tension is flagged in BRIEF T3 + ADR-0011.
+fab_tier: jlc_4layer_advanced
 
 classes:
   SWITCH_NODE:
@@ -35,7 +41,7 @@ classes:
     intent: >
       Buck output trunks: 5VA (6 A) and 5VC (5 A). Pour-fed (floorplan
       islands); floor is the backstop.
-    nets: [N5VA, N5VC]
+    nets: [5VA, 5VC]   # authored net.N5VA/net.N5VC; converter strips the N guard
     current: "6 A / 5 A"
     min_width: 0.6mm
     clearance: 0.15mm

@@ -54,7 +54,7 @@ requires (E-TOPO green). Deliverable of THIS run: the schematic gate
 | G3 | 1× USB-C @ 5 V / 5 A PD source contract (fixed 5 V PDO + e-marker 5 A) | P | design |
 | G4 | ALL converters are step-down BUCK (E-TOPO green, none over-capable) | P (E-TOPO) | design |
 | G5 | fab_tier STANDARD or cheaper (no buck-boost QFN forcing advanced) | P (D-TIER) | design |
-| G6 | Schematic gate: ERC 0 + count-parity, then planned handoff | P (scope) | in progress |
+| G6 | Schematic gate: ERC 0 + count-parity, then planned handoff | P (scope) | **GREEN — handoff** (ERC 0, parity 112==112, E-INV 15/15) |
 
 ## Spec tensions (D-SPEC — filled at commission, before architecture)
 
@@ -62,7 +62,8 @@ requires (E-TOPO green). Deliverable of THIS run: the schematic gate
 |---|---|---|---|---|
 | T1 | USB-A "2.5 A burst" | Classic USB-A contacts are a ~1.5 A-class system; no "2.5 A-rated" A receptacle exists | 0002 (carried from v1) — 2 A cont / 2.5 A short burst, I²R disposition | yes |
 | T2 | USB-C "5 A" | Type-C plain-Rp CC advertisement tops at 3 A; 5 A REQUIRES PD + e-marked cable | 0003 (carried from v1) — real PD source controller advertises 5 A PDO; e-marker in the port cell | yes |
-| T3 | Simple fixed-5V/5A PD SOURCE controller stocked? | v1 ADR-0004 claimed NONE exists → defaulted to IP6559 buck-boost | 0004 (this run) — sourcing spike re-run; see decision register | yes |
+| T3 | Simple fixed-5V/5A PD SOURCE controller stocked? | v1 ADR-0004 claimed NONE exists → defaulted to IP6559 buck-boost | 0004-v2 — REFUTED: TPS25740A (C544309, ~2974 stk) is a pure PD-source PHY, fixed 5V/5A pin-strap, external buck. | yes |
+| T4 | USB-C **5 A** ⇒ fab tier | The 5A PD-source PHY (TPS25740A) is a 4-sided VQFN-24 0.5mm → escape_check forces **jlc_4layer_advanced**. STANDARD is only reachable by dropping to 5V/**3A** plain-Rp (no PD chip). | 0011 — take 5A per spec, accept advanced (ONE small QFN vs v1's whole buck-boost cell); 3A-standard offered as user's call. | **yes — LOUD** |
 
 ## Log
 
@@ -75,10 +76,16 @@ requires (E-TOPO green). Deliverable of THIS run: the schematic gate
   Rationale: each buck is EXACTLY the proven LM5116 5 V/7 A design point (zero
   re-derivation), fault isolation between the A-side and C-side, and a cleanly
   separable PD cell. Trade recorded in ADR-0010.
-- **D3 (2026-07-22):** fab_tier target = jlc_4layer_standard (v1 needed
-  advanced ONLY for the IP6559 QFN-48 0.5 mm; with the buck-boost gone the
-  gating part is removed). Final tier confirmed after the PD-controller
-  package is chosen (sourcing spike).
+- **D3 (2026-07-22):** fab_tier target was jlc_4layer_standard at commission,
+  **REVISED to jlc_4layer_advanced at D-ESC** (ADR-0011). The 5A PD-source PHY
+  (TPS25740A, VQFN-24 0.5mm) forces advanced (via-in-pad escape). This is the
+  ONLY advanced-forcing part — everything else escapes at standard. Flagged as
+  tension T4: 5V/3A (plain-Rp, no chip) would keep the board at STANDARD.
+- **D4 (2026-07-22, sourcing spike / ADR-0004-v2):** PD source controller =
+  **TI TPS25740A** (LCSC C544309). Pure PD-source PHY (CC monitor + BMC PD +
+  external-NMOS gate driver), NO internal DC-DC — sits on the USB-C buck's 5V
+  rail. Pin-strap: HIPWR→GND (5A), EN9V/EN12V low (5V only). Refutes v1's "no
+  such part exists". NRND lifecycle — flagged; migration path TPS65987D.
 
 ## Decision register
 
