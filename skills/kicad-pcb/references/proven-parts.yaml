@@ -81,13 +81,24 @@ functions:
         lcsc: C125897
         package: QFN3x3-10 P0.45-0.5
         escape: {style: qfn, pitch: 0.45, tier_required: jlc_4layer_advanced}
-        status: incident
-        provenance: 3s-power-board-cleanroom v1/v2 (2026-07-20) — stalled at
-          escape; the D-ESC/D-TIER gates exist because of this part
+        status: shipped
+        provenance: >
+          BOTH outcomes are paid-for ground truth: xt60-usb-supply-rerun
+          v1.0-v1.0.2 SHIPPED it x2 at STANDARD tier (measured on the sealed
+          board 2026-07-21: one 0.2-0.25mm outward track per fine pad, zero
+          vias between pads, PG sacrificed as NC, all escape nets terminated
+          in adjacent passives); 3s-power-board-cleanroom v1/v2 (2026-07-20)
+          STALLED on the same part when placement stranded those passives —
+          the D-ESC/D-TIER gates exist because of that failure.
         gotchas:
-          - "DO NOT select at standard tier. Integrated fine-pitch QFN
-             concentrates every hard net on an unescapable ring — prefer
-             controller + external FETs for >3A (D-ESC)"
+          - "STANDARD tier is CONDITIONAL, not impossible: it requires
+             single-side OUTWARD-ONLY escape — every fine-pad net local
+             (passive hard against the pin, D-ADJ), fine side facing open
+             copper, no escape crossings/layer drops, PG-class pins NC'd if
+             unused. If any escape must cross or via down, it is advanced
+             tier or a re-place. escape_check currently grades this part
+             'advanced always' — over-conservative vs the shipped board;
+             recalibration pending (Phase F)"
 
   usb-c-receptacle-high-current:
     candidates:
