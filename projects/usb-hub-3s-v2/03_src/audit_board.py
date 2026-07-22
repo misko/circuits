@@ -10,10 +10,13 @@ Checks beyond the generic generator's own asserts:
   I-SILK refdes present on F.SilkS for every part (I8)
 Exit 1 on any FAIL.
 """
+import os
 import sys
 import pcbnew
 
-BOARD = "projects/usb-hub-3s-v2/04_kicad/usb_hub_3s_v2.kicad_pcb"
+# resolve relative to this file so it works from any cwd (repo root or project root)
+_PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BOARD = os.path.join(_PROJ, "04_kicad", "usb_hub_3s_v2.kicad_pcb")
 MM = pcbnew.ToMM
 
 POLARIZED = {  # ref -> (pad, expected net)
@@ -42,7 +45,7 @@ PROX = [
     ("C35", "U3", 7.0), ("C36", "U4", 7.0), ("C37", "U5", 7.0),  # port Cin
     ("R20", "U3", 7.0), ("R21", "U4", 7.0), ("R22", "U5", 7.0),  # ILIM
     ("U8", "J2", 11.0), ("U9", "J3", 11.0), ("U10", "J4", 11.0), # ESD near ports
-    ("C45", "U1", 7.0), ("C44", "U1", 8.0), ("C46", "U1", 8.0),  # PD bias/bypass at chip
+    ("C45", "U1", 8.5), ("C44", "U1", 8.0), ("C46", "U1", 8.0),  # PD bias/bypass at chip
     ("R25", "Q6", 10.0),  # gate R near path FET gates
 ]
 

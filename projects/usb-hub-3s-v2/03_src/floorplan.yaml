@@ -71,19 +71,21 @@ placement:
     J3: [139.0, 60.0, 90]
     J4: [139.0, 82.0, 90]
 
-    # ---------------- DCP advertisement (mid-board, on 5VA, feeds port data) ----
-    U6: [116.0, 48.0, 0]      # TPS2513A ports 1+2 (DP/DM_A1, DP/DM_A2)
-    U7: [116.0, 71.0, 0]      # TPS2513A port 3 (DP/DM_A3)
+    # ---------------- DCP advertisement (in the 5VA column, feeds port data) ----
+    U6: [111.0, 49.0, 0]      # TPS2513A ports 1+2 (DP/DM_A1, DP/DM_A2)
+    U7: [111.0, 72.0, 0]      # TPS2513A port 3 (DP/DM_A3)
 
-    # ---------------- PD cell (south-east) ----------------
-    U1:  [110.0, 98.0, 0]     # TPS25740A QFN-24; EP(25)=GND. Top pins 19-24
-                              # (ISNS/VPWR/VBUS/GDNG/GDNS/DSCG) face the FETs NORTH;
-                              # left pins CC1/CC2 face J5.
-    RS3: [102.0, 93.0, 0]     # 5mR sense: pad1=5VC, pad2=RSNS
-    Q6:  [118.0, 94.0, 180]   # path FET: D-tab WEST=RSNS, S EAST=PDSRC
-    Q7:  [126.0, 94.0, 0]     # path FET: S WEST=PDSRC, D-tab EAST=VBUSC
-    U12: [114.0, 103.0, 0]    # C-port data ESD
-    J5:  [122.0, 109.0, 0]    # USB-C mouth SOUTH
+    # ---------------- PD cell (south-east) — FET power row y=91, U1 y98, J5 y109 --
+    # power flows W->E along y=91: 5VC -> RS3 -> RSNS -> Q6 -> PDSRC -> Q7 -> VBUSC.
+    # U1 sits at y98 (north pins 19-21 reach the FET row; a ~4mm channel south of
+    # U1 lets CC1/CC2/DPC/DMC thread out to J5).
+    RS3: [100.0, 91.0, 0]     # 5mR sense: pad1(W)=5VC, pad2(E)=RSNS
+    Q6:  [110.0, 91.0, 180]   # path FET: D-tab WEST=RSNS, S EAST=PDSRC
+    Q7:  [120.0, 91.0, 0]     # path FET: S WEST=PDSRC, D-tab EAST=VBUSC
+    U1:  [110.0, 98.0, 0]     # TPS25740A QFN-24; EP(25)=GND. North pins 19-21
+                              # (ISNS/VPWR/VBUS) face the FET row; CC1/CC2 -> J5.
+    U12: [126.0, 103.0, 180]  # C-port data ESD (rot180: DMC pins 3/4 face N channel)
+    J5:  [120.0, 109.0, 0]    # USB-C mouth SOUTH
 
   seeds:
     # -------- Buck A control cluster (LEFT/south of U2) --------
@@ -154,20 +156,20 @@ placement:
     C37: [104.0, 74.0]
     C40: [120.0, 76.0]
     C43: [120.0, 78.0]
-    # -------- PD cell passives --------
-    R23: [106.0, 102.0]   # HIPWR 100k -> GND
-    R24: [110.0, 102.0]   # PSEL 100k -> GND
-    R25: [122.0, 99.0]    # gate 10R GDNG->PDGATE
-    R26: [128.0, 100.0]   # discharge 120R VBUSC->DSCG_N
-    R27: [112.0, 106.0]   # DCP short DPC-DMC
-    C44: [104.0, 100.0]   # 5VC bypass
-    C45: [106.0, 96.0]    # DVDD
-    C46: [108.0, 104.0]   # VAUX
-    C47: [112.0, 96.0]    # VTX
-    C48: [100.0, 98.0]    # C_PDIN 10u on 5VC
-    C49: [128.0, 96.0]    # VBUSC bulk 10u
-    C50: [132.0, 98.0]    # VBUSC bulk 10u
-    C51: [128.0, 104.0]   # VBUSC 100n
+    # -------- PD cell passives (around U1@110,98 and FET row y91) --------
+    R23: [104.0, 100.0]   # HIPWR 100k -> GND (U1.5 west)
+    R24: [113.0, 102.0]   # PSEL 100k -> GND (U1.12 bottom/east)
+    R25: [114.0, 94.0]    # gate 10R GDNG->PDGATE (between U1.22 + FET gates)
+    R26: [124.0, 98.0]    # discharge 120R VBUSC->DSCG_N
+    R27: [132.0, 106.0]   # DCP short DPC-DMC (east of U12, clear of its south channel)
+    C44: [107.0, 95.0]    # 5VC/VPWR bypass at U1.20
+    C45: [112.0, 102.0]   # DVDD (U1.13 bottom)
+    C46: [115.0, 99.0]    # VAUX (U1.14/15/16 east)
+    C47: [106.0, 97.0]    # VTX (U1.1 west)
+    C48: [95.0, 89.0]     # C_PDIN 10u on 5VC
+    C49: [128.0, 95.0]    # VBUSC bulk 10u
+    C50: [133.0, 97.0]    # VBUSC bulk 10u
+    C51: [131.0, 102.0]   # VBUSC 100n
 
   legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 80}
 
@@ -190,8 +192,11 @@ zones:
   # outer GND pours
   - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: full}
   # ---- input power patches ----
-  - {net: VBAT,   layers: [F.Cu], priority: 2, rect: [23.0, 38.0, 41.0, 55.0], connect: full}
-  - {net: VBAT_F, layers: [F.Cu], priority: 2, rect: [28.0, 56.5, 40.0, 63.5], connect: full}
+  # VBAT covers J1.2(30,36.8)+F1.1(35,56-59.4); VBAT_F covers F1.2(45,56-59.4)+
+  # Q1.5(33-35,64-68). Shaped to NOT overlap each other (different nets).
+  - {net: VBAT,   layers: [F.Cu], priority: 2, rect: [23.0, 34.0, 38.0, 60.0], connect: full}
+  - {net: VBAT_F, layers: [F.Cu], priority: 2, rect: [39.0, 54.0, 47.0, 62.0], connect: full}   # F1.2 east
+  - {net: VBAT_F, layers: [F.Cu], priority: 3, rect: [30.0, 60.5, 47.0, 69.0], connect: full}   # Q1.5 south (P3: legal union)
   - {net: VIN,    layers: [F.Cu], priority: 2, rect: [23.0, 60.0, 47.0, 80.0], connect: full}   # input VIN pool: Q1.S + C1/C2 + D1
   # ---- buck A / buck C VIN Cin pools ----
   - {net: VIN,    layers: [F.Cu], priority: 2, rect: [58.0, 22.5, 82.0, 32.0], connect: full}   # buck A Cin
@@ -199,23 +204,37 @@ zones:
   # ---- SW islands (tight, F.Cu+B.Cu) ----
   - {net: SW_A,   layers: [F.Cu, B.Cu], priority: 2, rect: [78.5, 27.0, 92.5, 41.0], connect: full}
   - {net: SW_C,   layers: [F.Cu, B.Cu], priority: 2, rect: [78.5, 65.0, 92.5, 79.0], connect: full}
-  # ---- CS patches ----
-  - {net: CS_A,   layers: [F.Cu], priority: 2, rect: [68.0, 41.5, 78.0, 49.5], connect: full}
-  - {net: CS_C,   layers: [F.Cu], priority: 2, rect: [68.0, 79.5, 78.0, 87.5], connect: full}
-  # ---- output rails ----
-  - {net: 5VA,    layers: [F.Cu, B.Cu], priority: 2, rect: [86.0, 24.0, 100.0, 58.0], connect: full}  # buck A out -> DCP/USB-A feed
-  - {net: 5VC,    layers: [F.Cu, B.Cu], priority: 2, rect: [86.0, 62.0, 106.0, 96.0], connect: full}  # buck C out -> PD feed
+  # ---- CS patches (cover LS-FET source + shunt + kelvin link) ----
+  - {net: CS_A,   layers: [F.Cu], priority: 2, rect: [68.0, 35.0, 78.0, 49.5], connect: full}
+  - {net: CS_C,   layers: [F.Cu], priority: 2, rect: [68.0, 73.0, 78.0, 87.5], connect: full}
+  # ---- output rails: L-shape (buck out + column down the port/PD feed) ----
+  - net: 5VA         # buck A out (x86-98) + column x98-114 feeding U3/U4/U5 IN + DCP
+    layers: [F.Cu, B.Cu]
+    priority: 2
+    connect: full
+    points: [[86.0, 26.0], [114.0, 26.0], [114.0, 84.0], [98.0, 84.0], [98.0, 44.0], [86.0, 44.0]]
+  - net: 5VC         # buck C out (x86-98) + reach east to RS3.1 / C48 / U1.20
+    layers: [F.Cu, B.Cu]
+    priority: 2
+    connect: full
+    points: [[86.0, 62.0], [98.0, 62.0], [98.0, 88.0], [103.0, 88.0], [103.0, 96.5], [92.0, 96.5], [92.0, 78.0], [86.0, 78.0]]
   # ---- USB-A port rails ----
-  - {net: VBUSA1, layers: [F.Cu, B.Cu], priority: 2, rect: [113.0, 29.0, 142.0, 44.0], connect: full}
-  - {net: VBUSA2, layers: [F.Cu, B.Cu], priority: 2, rect: [113.0, 51.0, 142.0, 66.0], connect: full}
-  - {net: VBUSA3, layers: [F.Cu, B.Cu], priority: 2, rect: [113.0, 73.0, 142.0, 88.0], connect: full}
-  # ---- PD path islands ----
-  - {net: RSNS,   layers: [F.Cu], priority: 3, rect: [100.0, 91.0, 118.5, 97.5], connect: full}   # RS3.2 + Q6.D
-  - {net: PDSRC,  layers: [F.Cu], priority: 3, rect: [119.5, 91.0, 125.5, 97.5], connect: full}   # Q6.S + Q7.S common
-  - {net: VBUSC,  layers: [F.Cu, B.Cu], priority: 2, rect: [124.0, 91.0, 142.0, 108.0], connect: full}  # Q7.D -> J5
+  - {net: VBUSA1, layers: [F.Cu, B.Cu], priority: 2, rect: [118.0, 29.0, 143.0, 44.0], connect: full}
+  - {net: VBUSA2, layers: [F.Cu, B.Cu], priority: 2, rect: [118.0, 51.0, 143.0, 66.0], connect: full}
+  - {net: VBUSA3, layers: [F.Cu, B.Cu], priority: 2, rect: [118.0, 73.0, 143.0, 88.0], connect: full}
+  # ---- PD path islands (power row y=94) ----
+  - {net: RSNS,   layers: [F.Cu], priority: 3, rect: [102.5, 88.0, 108.5, 94.0], connect: full}   # RS3.2 + Q6.D-tab
+  - {net: PDSRC,  layers: [F.Cu], priority: 3, rect: [112.5, 88.0, 118.5, 94.0], connect: full}   # Q6.S + Q7.S common source
+  # VBUSC: FET-east + bulk, kept CLEAR of J5's center CC/data pad column
+  # (x118.2-122.3) so CC1/CC2/DPC/DMC can escape north; the two J5 VBUS pad
+  # groups (west A4/B9 @117.55, east A9/B4 @122.45) get their own rects.
+  - {net: VBUSC,  layers: [F.Cu, B.Cu], priority: 2, rect: [121.0, 88.0, 143.0, 102.5], connect: full}  # Q7.D-tab -> C49-51 bulk
+  - {net: VBUSC,  layers: [F.Cu, B.Cu], priority: 3, rect: [122.3, 102.5, 143.0, 108.0], connect: full} # J5 east VBUS (P3 union)
+  - {net: VBUSC,  layers: [F.Cu, B.Cu], priority: 3, rect: [107.0, 103.0, 118.2, 108.0], connect: full} # J5 west VBUS (separate)
+  - {net: VBUSC,  layers: [B.Cu], priority: 4, rect: [110.0, 93.0, 121.5, 96.5], connect: full}         # B.Cu bridge -> U1.21 (P4 union)
 
 keepouts:
-  - {name: pd_escape, deny: [], layers: [F.Cu, B.Cu], rect: [100.0, 90.0, 135.0, 108.0]}   # TPS25740A via-in-pad escape corridor
+  - {name: pd_escape, deny: [], layers: [F.Cu, B.Cu], rect: [98.0, 86.0, 138.0, 108.0]}   # TPS25740A via-in-pad escape corridor
   - {name: buckA_sense, deny: [], layers: [F.Cu, B.Cu], rect: [50.0, 22.0, 92.0, 50.0]}
   - {name: buckC_sense, deny: [], layers: [F.Cu, B.Cu], rect: [50.0, 60.0, 92.0, 88.0]}
 

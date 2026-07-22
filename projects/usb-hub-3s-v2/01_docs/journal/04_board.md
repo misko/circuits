@@ -36,3 +36,60 @@
   proximity, 4 edge, 116 silk). bbox overlaps >0.4mm^2: 0.
 - next: generate_rules (netclasses/DRU, advanced tier) BEFORE route-prep; author
   route.yaml; KRT fanout-first; grind to DRC 0/0/0.
+
+## 2026-07-22 — routing WIP checkpoint (planned handoff, context budget)
+- did: Built the KiCad backend end-to-end and drove the DRC grind. Wrote
+  03_src/{generate uses generate_board_generic}, floorplan.yaml, route.yaml,
+  audit_board.py, rebuild_all.sh; added the PD_NET netclass to rules/nets.yaml;
+  promoted the KRT chain to 03_src/route/final_chain.kicad_pcb (canon M3).
+  Pipeline: generate_board -> audit(PASS) -> generate_rules -> prep -> route
+  (KRT, 50 signal nets) -> import -> taps (28 deterministic taps) -> stitch
+  (pours+pad_rescue+fill) -> generate_rules LAST -> DRC.
+- result (MEASURED): full DRC gate `kicad-cli pcb drc --severity-all
+  --refill-zones --schematic-parity` = **28 violations / 21 unconnected / 0
+  parity**. Trajectory this session: 69/32 -> 42/30 -> 44/23 -> 28/21.
+  Placement GREEN (audit: 20 pol/21 prox/4 edge/116 silk, 0 courtyard except the
+  1 below). ALL 50 signal nets routed; all power poured; buck A/C + input +
+  USB-A + DCP cells fully clean.
+- REMAINING 28 violations:
+  * silk_over_copper (17) + silk_overlap (2): refdes/caption silk clipped over
+    pads. Cosmetic; needs a silk de-collision tune (raise `silk.refdes.clearance`
+    or shrink text, or move captions off dense pad fields). Non-electrical.
+  * track_dangling (8): the pour-connection TAP tracks end at a POINT that the
+    filled pour doesn't quite bond -> free end flags. Fix: retarget each such tap
+    to a same-net PAD inside the pour (not a bare point), or extend the pour to
+    cover the tap endpoint, or add a stitch via at the endpoint.
+  * courtyards_overlap (1): U12 (rot180 @126,103) vs J5 — nudge U12 ~1.5mm NE
+    (watch the DPC/DMC taps that depend on U12 pin positions).
+- REMAINING 21 unconnected (pour-bond opens — pad sits outside its filled pour
+  OR the tap track didn't bond): 5VC(C31.1,RS3.1,C44.1,U1.20), 5VA(C34.1),
+  VBUSA(C38/C39/C40.1), VBUSC(U1.21), RSNS(Q6.5,U1.19), CS(R9.1,R18.1),
+  DPC/DMC(J5.A6/B6/B7,U12.6), PDSRC(U1.23). Most are the tap-endpoint-not-bonded
+  class above (same fix). Two are STRUCTURAL:
+  * **PDSRC U1.23** and the TPS25740A QFN north-edge sense pins (19 RSNS / 20
+    5VC / 21 VBUSC / 23 PDSRC) are the KEY remaining challenge. All 6 north pins
+    (0.5mm pitch) must escape to islands, but the FET row (Q6/Q7) sits directly
+    north and the island net-order does NOT match the pin order -> pins get
+    boxed. U1.21 uses a pad_rescue B.Cu-bridge drop (partial); U1.23 is west of
+    Q6 while the PDSRC island is east of Q6 (cannot cross the FET) -> its tap is
+    commented out. This is a PLACEMENT/ESCAPE problem (D-BACK -> placement),
+    NOT a router tweak.
+- NEXT STEP (routing-gate work order for the successor):
+  1. **PD-cell escape re-design (highest leverage).** Options: (a) rotate U1 so
+     its north power/sense pins face an OPEN side with a via-in-pad fan-out
+     (advanced tier allows via-in-pad — the whole reason for the tier); (b)
+     spread the FET row so a clear escape channel sits directly north of each
+     sense pin; (c) give each of pins 19/20/21/23 its own via-in-pad drop to a
+     dedicated short B.Cu finger (non-overlapping — they are 0.5mm apart, so
+     alternate F.Cu/B.Cu). Re-add the PDSRC U1.23 tap once reachable.
+  2. **Tap-endpoint bonding:** retarget the ~10 pour-connection taps
+     (5VA/5VC/VBUSA/CS/RSNS) from bare points to same-net PADS inside the pour,
+     or extend the pours to swallow the endpoints. Clears most of the 21
+     unconnected + the 8 track_dangling together.
+  3. **Silk:** tune silk de-collision to clear the 19 silk findings.
+  4. Nudge U12 to clear the J5 courtyard.
+  Then DRC 0/0/0 -> commit routing gate -> verification stage.
+- OPEN HYPOTHESES: the board is intrinsically ~90% clean; the residual is
+  concentrated ENTIRELY in the TPS25740A/USB-C corner (the advanced-tier cell)
+  and mechanical pour-bond/silk cleanup. v2's "no shared hot loop" win held —
+  buck A, buck C, input, and all 3 USB-A ports routed without congestion.

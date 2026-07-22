@@ -19,7 +19,8 @@ classes:
       any routed segment. Keep loop area minimal.
     nets: [SW_A, SW_C]
     current: "7 A pulsed"
-    min_width: 1.0mm
+    min_width: 0.6mm   # switch current rides the F.Cu SW pour island; the only
+                       # routed SW track is the LM5116 SW-pin driver-return stub
     clearance: 0.15mm
     routing: pours (floorplan islands); KRT only for short joins
     verify: DRC floor + R-THERM
@@ -43,7 +44,8 @@ classes:
       islands); floor is the backstop.
     nets: [5VA, 5VC]   # authored net.N5VA/net.N5VC; converter strips the N guard
     current: "6 A / 5 A"
-    min_width: 0.6mm
+    min_width: 0.4mm   # POUR-carried power; the only routed 5VA/5VC tracks are
+                       # Kelvin VOUT/FB sense stubs (no current) -> 0.4 backstop
     clearance: 0.15mm
     routing: pours
     verify: DRC floor
@@ -91,7 +93,7 @@ classes:
       CC1/CC2 (PD BMC). Short, paired, ESD at the connector.
     nets: [DP_A1, DM_A1, DP_A2, DM_A2, DP_A3, DM_A3, DPC, DMC, CC1, CC2]
     current: signal
-    min_width: 0.19mm   # KRT emits 199.8um for a 0.2 request (nm-exact dru trap)
+    min_width: 0.15mm   # J5 USB-C 0.5mm-pitch escapes need 0.15 (KRT waves still 0.2)
     clearance: 0.12mm
     routing: KRT
     verify: DRC floor + render review
@@ -106,6 +108,19 @@ classes:
     min_width: 0.24mm   # KRT floor-grades widths (0.2498 artifact trips 0.25)
     clearance: 0.12mm
     routing: KRT
+    verify: DRC floor
+
+  PD_NET:
+    intent: >
+      PD source-controller path + config/bias nets not otherwise classed. RSNS/
+      PDSRC carry the 5 A path (pour-fed, floor is backstop); the rest are low-
+      current config/sense. Graded at the tier clearance so the dense PD-cell
+      escapes are legal (else they inherit Default 0.2 and false-fail).
+    nets: [HIPWR, PSEL, VAUX, DVDD, VTX, DSCG_N, GDNG, PDGATE, RSNS, PDSRC]
+    current: "5 A path (RSNS/PDSRC, poured) / <0.1 A config"
+    min_width: 0.2mm
+    clearance: 0.13mm
+    routing: KRT + taps + pours
     verify: DRC floor
 
   NC_PADS:
