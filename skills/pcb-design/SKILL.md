@@ -48,6 +48,16 @@ A stall — repeating a red gate without a new hypothesis — is the ONLY
 prohibited state. The bounded budgets, the ladder, and the honest-stop ADR
 are specified in D-BACK below.
 
+**PLANNED SESSION SPLITS (handoffs are scheduled, not scrambled).** The
+declared handoff boundaries are: after the schematic gate, and after the
+routing gate (DRC 0/0/0). At a boundary, if your context is past ~70%
+consumed, perform a PLANNED handoff instead of pushing into the next
+stage: commit, append a `handoff` journal entry (state, next step, open
+hypotheses), refresh the BRIEF's status block, and END the session
+cleanly — a successor resumes from the tree alone (proven cheap). An
+emergency mid-stage handoff loses in-flight hypotheses; a boundary
+handoff loses nothing.
+
 ## 0. Commission (before any engineering)
 
 - Pick a short kebab-case project name from the brief.
@@ -183,6 +193,15 @@ one pass. The trigger existed in hindsight only — now it is a rule.)
    FIGURE (not assumed), `verified:` note naming figure+page, LCSC code +
    alternates + stock. The PDF set MUST include the package/land-pattern
    drawing, not just electricals.
+   **FAN OUT the research (parts are independent):** ledger hits
+   (`references/proven-parts.yaml`) need no research — copy the verified
+   block. Partition the REMAINING multi-pin parts into groups of ~4 and
+   run them as CONCURRENT research sub-agents, each returning a complete
+   part.yaml (pin map from the figure, escape block, layout_refs,
+   gotchas). You merge, spot-verify the figure citations (S-VER), and run
+   escape_check over the merged set — the gates validate the merged
+   output, which is what makes the fan-out safe. Serial research on a
+   16-part board wastes ~30 minutes for no verification gain.
 
    **Mandatory design-decision gates (D-ESC / D-TIER / D-ADJ)** — encoded
    2026-07-21 after a clean-room 3S board stalled at DRC on decisions the
@@ -235,6 +254,14 @@ one pass. The trigger existed in hindsight only — now it is a rule.)
      their hard nets (BST/SW/FB) face open copper. An "escape failure" on
      a short-local net (bootstrap, CC) is almost always a stranded passive,
      not a routing problem.
+     **ARCHETYPES FIRST — placement is ADAPTATION, not derivation.**
+     Before drawing a floorplan, check
+     `kicad-pcb/references/floorplan-archetypes.md` for this board's
+     CLASS (power-hub, sensor-chain, …): a proven placement shape with
+     the adjacency groups and escape corridors already drawn. Adapt it to
+     this board's parts; derive from scratch only for an unprecedented
+     class — and then HARVEST the new shape into the archetype file at
+     release (same compounding rule as proven-parts).
      **LAYOUT PRECEDENT SEARCH (for every HARD part: dense escapes,
      switching power, >0.5A analog, RF).** Do not invent the local layout
      from first principles when a routed reference exists. In authority

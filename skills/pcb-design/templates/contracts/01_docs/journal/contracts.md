@@ -17,7 +17,7 @@ entry.
 
 ## Entry structure (every stage start / iteration / finish / stuck)
 
-    ## <YYYY-MM-DD HH:MM> — <start|iterate N|finish|stuck|iterate N (post-back)>
+    ## <YYYY-MM-DD HH:MM> — <start|iterate N|finish|stuck|iterate N (post-back)|handoff>
     - did: <the action, one line>
     - result: <MEASURED outcome — gate output, counts; never hope>
     - next: <what this implies>
