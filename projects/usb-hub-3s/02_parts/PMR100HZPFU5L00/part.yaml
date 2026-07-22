@@ -1,0 +1,12 @@
+mpn: PMR100HZPFU5L00
+manufacturer: ROHM
+type: current_sense_resistor
+datasheet: {doc_id: PMR100, revision: series-sheet, url: "https://www.lcsc.com/product-detail/C308572.html", sha256: null, fetched: 2026-07-21}
+package: 2512 long-side metal alloy
+footprint: Resistor_SMD:R_2512_6332Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-21}
+pins: {1: A, 2: B}
+limits: {r: 5mOhm, tol: "1%", tcr: "<=100ppm", p: 4W}
+gotchas: ["IP6559 CC-limit shunts (RS2 in / RS3 out): alloy <=100ppm 1% REQUIRED (DS Fig.6 note); kelvin routing per DS p.18 rule 5"]
+verified: "2-pad non-polarized - 2026-07-21 (README deviation)"
+sourcing: {lcsc: C308572, alternates: [], note: "stock 3312 on 2026-07-21"}

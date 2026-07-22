@@ -1,0 +1,86 @@
+mpn: IP6559-C
+manufacturer: Injoinic
+type: pd_source_buckboost_soc
+datasheet:
+  doc_id: IP6559
+  revision: V1.4
+  url: https://www.injoinic.com/api//static/uploads/20250529/20250529093501_6837b9c52d0e9.pdf
+  sha256: a87a010f80837437436a3e66b960141dc93bec29904d3aa3bbc60c1c4e63e50d
+  fetched: 2026-07-21
+package: QFN-48 7x7 P0.5 EP5.4 (DS pkg drawing p.19-20 EP 5.3-5.5)
+footprint: Package_DFN_QFN:QFN-48-1EP_7x7mm_P0.5mm_EP5.45x5.45mm_ThermalVias
+escape:
+  style: qfn
+  pitch: 0.5
+  tier_required: jlc_4layer_advanced
+  checked: escape_check 2026-07-21
+pins:
+  1: VOUT2G
+  2: NC
+  3: NC
+  4: GPIO17_VOOCID
+  5: GPIO18_EN
+  6: NC
+  7: NC
+  8: NC
+  9: NC
+  10: VOUTI
+  11: AGND
+  12: VIO
+  13: CSN1
+  14: CSP1
+  15: PCON
+  16: HG1
+  17: BST1
+  18: LX1
+  19: LG1
+  20: LG2
+  21: LX2
+  22: BST2
+  23: HG2
+  24: PCIN
+  25: CSN2
+  26: CSP2
+  27: VIN
+  28: AGND
+  29: VCC5V
+  30: AGND
+  31: NC
+  32: VCCIO
+  33: GPIO4
+  34: GPIO3
+  35: GPIO2
+  36: GPIO1
+  37: GPIO0_NTC
+  38: CC2
+  39: DPC
+  40: DMC
+  41: CC1
+  42: DPA
+  43: DMA
+  44: VOUT1
+  45: VOUT1G
+  46: GPIO21
+  47: GPIO22
+  48: VOUT2
+  49: {name: EP, tie: GND, note: "EPAD = power GND (DS pin 49)"}
+limits: {vin: "3.6-31V", vin_abs_max: 34V, vout_abs_max: 25V, bst_abs_max: 42V, tj_otp: 150C}
+gotchas:
+  - "IP6559_C variant = single C port 100W PD w/ path NMOS (DS p.4 table);
+     port-2 path pins (VOUT2G/VOUTI/VOUT2) drive the VBUS path FET (Fig.8)"
+  - "R7 on GPIO0 selects PDO set; value table is app-note-only (ADR 0004):
+     ship DNP = variant-default 100W; verify PDO list at first power"
+  - "output CC limits: 5/9/12V->3A, 20V->5A ONLY with e-marked cable (DS p.6)"
+  - "Vconn for e-marker: external 5V->D->PFET switches to CC1/CC2 driven by
+     GPIO22(CC1)/GPIO21(CC2) via NFETs, 10k pulls (DS Fig.9)"
+  - "5mOhm sense lines are Kelvin: CSP/CSN pairs + PCIN/PCON leave from the
+     resistor ends, parallel, away from LX (DS p.18 rule 5)"
+  - "input UVP fixed 3.6V - NOT a pack protector; board UVLO comes from
+     LM5116+5VA divider into GPIO18/EN (ADR 0001)"
+  - "gate drive ~5V (VCC5V) - power FETs must be logic-level (Rds spec at 4.5V)"
+verified: "pin map read from Figure 2 pin functions table, IP6559 V1.4 pp.2-3 - 2026-07-21"
+sourcing: {lcsc: C5140592, alternates: [], note: "stock 62 on 2026-07-21 - order-day recheck MANDATORY (ADR 0004)"}
+layout_refs:
+  - "IP6559 V1.4 sec.13 PCB layout precautions (p.18): both hot loops minimal,
+     wide LX-inductor web, kelvin sense, VCC5V/VCCIO caps at pins, GND area"
+  - "Fig.8/9 single-C reference schematic (p.15) - adopted verbatim"

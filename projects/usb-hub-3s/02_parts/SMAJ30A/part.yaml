@@ -1,0 +1,13 @@
+mpn: SMAJ30A
+manufacturer: Littelfuse
+type: tvs_diode
+datasheet: {doc_id: SMAJ, revision: series-sheet, url: "https://www.lcsc.com/product-detail/C148230.html", sha256: null, fetched: 2026-07-21}
+package: SMA (DO-214AC)
+footprint: Diode_SMD:D_SMA
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-21}
+pins:
+  1: {name: K, note: "LX clamps (D6=LX2, D7=LX1): cathode(1) -> LX node, anode(2) -> GND"}
+  2: {name: A}
+limits: {standoff: 30V}
+verified: "2-pad polarized; KiCad pad1=cathode - 2026-07-21 (README deviation)"
+sourcing: {lcsc: C148230, alternates: [C113965], note: ""}

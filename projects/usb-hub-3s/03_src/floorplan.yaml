@@ -1,0 +1,257 @@
+# usb-hub-3s floorplan — input for skills/kicad-pcb/scripts/generate_board_generic.py
+# 110x82 4-layer (In1=GND plane, In2=VIN plane). West: XT60 + protection chain.
+# North: LM5116 5VA buck. East: 3x USB-A (bodies x>110; electronics x 92-110).
+# South: IP6559 PD stage (U1 rot 0: power row faces SOUTH; chip-native order =
+# output west / input east; battery feeds RS2 via the In2 plane; VBUSC exits
+# west -> south strip -> J5 at the SE edge).
+
+project:
+  name: usb_hub_3s
+  netlist: 06_build/netlists/usb_hub_3s.net
+  output: 04_kicad/usb_hub_3s.kicad_pcb
+  parts_dir: 02_parts
+  fp_lib_table: 04_kicad/fp-lib-table
+
+board:
+  outline: {x0: 20.0, y0: 20.0, x1: 130.0, y1: 110.0}
+  edge_width: 0.1
+  layers: 4
+  mounting_holes:
+    footprint: MountingHole:MountingHole_3.2mm_M3
+    at: [[24.0, 24.0], [126.0, 24.0], [24.0, 106.0], [126.0, 106.0]]
+
+libraries: [/usr/share/kicad/footprints, 03_src/lib]
+
+placement:
+  anchors:
+    # ---- input west ----
+    J1: [28.0, 56.0, 90]        # XT60 mouth WEST; pad2 (+ / VBAT) at (28,48.8); mech pegs clear of edge
+    F1: [31.0, 75.0, 270]       # vertical: pad1 (31,75)=VBAT, pad2 (31,84.9)=VBAT_F (rot 270: rot 90 put pad2 NORTH - DRC caught it)
+    Q1: [39.0, 80.0, 180]       # P-FET: D west (38.3)=VBAT_F, S east (41.7)=VIN
+    # ---- 5VA buck north ----
+    U2: [56.0, 38.0, 0]
+    Q2: [72.0, 28.0, 180]       # HS: D west (Cin side), S east (SW)
+    Q3: [72.0, 36.0, 0]         # LS: S west (CS_A), D east (SW)
+    RS1: [68.0, 43.0, 270]     # pad1 (CS_A) NORTH into the CS_A patch
+    L2: [84.0, 32.0, 0]
+    # ---- USB-A ports east ----
+    U3: [100.0, 33.0, 0]
+    U4: [100.0, 51.0, 0]
+    U5: [100.0, 69.0, 0]
+    J2: [118.2, 38.5, 90]   # KH-AF90DIP-112: pins col x118.2 (pin1 VBUS north), face ~130.5
+    J3: [118.2, 56.5, 90]
+    J4: [118.2, 74.5, 90]
+    # ---- PD stage south ----
+    U1: [68.0, 64.0, 0]
+    Q6: [55.5, 74.0, 180]       # out HS: D west (52.8)=VOUT_PDS, S east (58.2)=LX1
+    Q7: [60.5, 84.0, 180]       # out LS: D west (59.8)=LX1, S east (GND)
+    Q4: [79.5, 74.0, 0]         # in HS: S west (76.8)=LX2, D east (80.2)=VIN_S
+    Q5: [68.6, 84.0, 0]         # in LS: S west (GND), D east (69.3)=LX2 - its D pad
+                                # catches U1 pin 21's straight-south drop lane
+    L1: [67.0, 97.0, 180]       # pads 3.5x12.8@±7.35: pad1 (74.35)=LX2, pad2 (59.65)=LX1
+    RS2: [86.0, 68.0, 270]      # pad1 (VIN) NORTH into the VIN patch, pad2 (VIN_S) south
+    RS3: [52.5, 88.0, 270]      # pad1 north (85.1)=VOUT_PDS, pad2 south (90.9)=VOUT_PD
+    Q8: [53.0, 96.0, 90]        # path: D north (95.3)=VOUT_PD, S south (98.7)=VBUSC
+    C1: [47.0, 72.5, 0]         # VIN polymer (pinned - legalizer strayed it)
+    C2: [47.5, 80.5, 0]         # VIN polymer
+    C26: [45.0, 90.0, 0]        # VOUT_PD polymer
+    R18: [66.25, 69.7, 270]     # PCON sense R hard against U1 pin 15 (pad1 north)
+    R19: [63.0, 66.6, 270]      # VOUT_PD sense R: pad1 (63.0,65.75) at the west-lane mouth
+    D1: [36.6, 85.2, 0]         # input TVS south of Q1: K pad (34.4,85.2) in the VBAT_F patch
+    D8: [116.8, 100.5, 0]       # DPC clamp: pad1 west (116.05) faces the J5 row
+    D9: [116.8, 98.0, 0]        # DMC clamp
+    Q11: [106.5, 99.5, 180]     # CC2 Vconn switch west-of-J5; D pad (106.5,100.6) on the tap
+                                # runway; Manhattan(Q11,U1) < Manhattan(J5,U1) so KRT's MST
+                                # includes the routable chip edge (2026-07-21 MST analysis)
+    C21: [74.65, 69.6, 90]      # BST2 cap: pad2 in the LX2 patch
+    C22: [57.7, 69.3, 0]        # BST1 cap: pad2 (58.55)=LX1 inside the LX1 patch
+    D6: [76.8, 79.5, 0]         # LX2 TVS: K pad (74.8,79.5) in the LX2 patch
+    D7: [58.5, 79.5, 0]         # LX1 TVS: K pad (56.5,79.5) in the LX1 patch
+    R16: [77.2, 70.0, 0]        # LX2 snubber R, pad1 (76.35) in the LX2 patch
+    R17: [60.9, 69.6, 0]        # LX1 snubber R (north band, out of LG1's corridor)
+    R15: [80.9, 68.2, 0]        # VIN_S filter R: pad1 (80.05) in the VIN_S pour
+    J5: [114.0, 107.0, 0]        # USB-C mouth SOUTH (rot 0: KRT is rotation-blind
+                                # on rect pad obstacles - rot-90 row was unroutable)
+  seeds:
+    # input
+    D5: [52.0, 68.5]
+    R13: [45.0, 76.0]
+    # buck hot loop + control
+    C5: [58.0, 26.0]
+    C6: [61.2, 26.0]
+    C7: [64.4, 26.0]
+    C8: [67.6, 26.0]
+    C9: [69.5, 24.2]
+    C10: [90.0, 28.0]
+    C11: [93.2, 28.0]
+    C12: [96.4, 28.0]
+    C13: [90.0, 31.5]
+    R1: [52.0, 34.2]
+    C14: [52.0, 36.0]
+    C17: [52.0, 38.0]
+    R2: [49.0, 40.0]
+    R3: [49.0, 42.2]
+    R4: [49.0, 44.4]
+    C15: [46.5, 40.0]
+    C16: [46.5, 42.2]
+    R5: [46.5, 44.4]
+    R6: [44.2, 44.4]
+    R9: [51.5, 44.4]
+    R7: [63.0, 41.0]
+    R8: [63.0, 42.8]
+    D4: [62.0, 34.7]
+    C18: [62.0, 33.0]
+    C19: [62.0, 38.0]
+    # ports (per port: ILIM, in cap, out caps, ESD, DCP)
+    R10: [97.0, 37.0]
+    C33: [97.0, 29.5]
+    C36: [104.0, 31.0]
+    C39: [104.0, 33.4]
+    U8: [107.0, 41.5]
+    R11: [97.0, 55.0]
+    C34: [97.0, 47.5]
+    C37: [104.0, 49.0]
+    C40: [104.0, 51.4]
+    U9: [107.0, 59.5]
+    R12: [97.0, 73.0]
+    C35: [97.0, 65.5]
+    C38: [104.0, 67.0]
+    C41: [104.0, 69.4]
+    U10: [107.0, 77.5]
+    U6: [96.0, 43.0]
+    C42: [96.0, 45.4]
+    U7: [96.0, 61.0]
+    C43: [96.0, 63.4]
+    # PD stage
+    C3: [90.0, 62.0]
+    C4: [90.0, 65.0]
+    R14: [76.0, 63.0]
+    C20: [78.5, 64.0]
+    C25: [62.0, 68.5]
+    C23: [80.9, 72.2]
+    C24: [60.5, 67.3]
+    C27: [52.5, 90.5]
+    R20: [47.0, 99.0]
+    C28: [94.0, 103.0]
+    C29: [97.5, 103.0]
+    D3: [101.0, 103.0]
+    C30: [74.0, 60.0]
+    C31: [74.0, 58.0]
+    R21: [95.5, 70.0]
+    R22: [95.5, 72.0]
+    R25: [72.0, 56.0]
+    # Vconn cluster (between U1 and J5)
+    D2: [92.0, 84.0]
+    C32: [96.0, 84.0]
+    Q9: [109.0, 96.0]
+    Q10: [109.0, 93.0]
+    R23: [106.0, 96.0]
+    R24: [106.0, 93.0]
+    Q12: [104.0, 97.5]
+    R26: [102.5, 99.8]
+    R27: [101.5, 97.5]
+  legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 60}
+
+design_rules:
+  track_min_width: 0.127
+  min_clearance: 0.09   # advanced tier min_space (J5 0.5mm row + QFN escape)
+  via_min_size: 0.25
+  min_through_drill: 0.15
+  via_min_annulus: 0.05
+  hole_clearance: 0.2   # JLC advanced hole-to-copper; verify at order (M6)
+  hole_to_hole: 0.25
+  copper_edge_clearance: 0.3
+  solder_mask_min_width: 0.0
+  solder_mask_expansion: 0.0
+
+zones:
+  # planes
+  - {net: GND, layers: [In1.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal}
+  - {net: VIN, layers: [In2.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal}
+  # outer GND pours
+  - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: full}
+  # F.Cu power patches (priority 2, tight)
+  - {net: VBAT,   layers: [F.Cu], priority: 2, rect: [22.5, 46.0, 34.0, 76.5], connect: full}
+  - {net: VBAT_F, layers: [F.Cu, B.Cu], priority: 2, rect: [24.0, 77.5, 40.5, 87.0], connect: full}
+  - {net: VIN,    layers: [F.Cu], priority: 2, rect: [41.0, 66.0, 50.5, 83.0], connect: full}
+  - {net: VIN,    layers: [F.Cu], priority: 2, rect: [56.0, 22.5, 71.0, 31.0], connect: full}
+  - {net: VIN,    layers: [F.Cu], priority: 2, rect: [83.0, 58.0, 92.3, 66.5], connect: full}
+  - {net: VOUT_PDS, layers: [F.Cu], priority: 2, rect: [66.3, 73.9, 66.9, 74.5], connect: full}  # rendezvous-via F landing (via_dangling fix)
+  # thermal-via landings (R-THERM): B.Cu copper under the FET drain paddles
+  - {net: SW_A,     layers: [B.Cu], priority: 2, rect: [71.5, 33.5, 75.5, 39.0], connect: full}
+  - {net: LX2,      layers: [B.Cu], priority: 3, rect: [67.5, 81.5, 74.6, 86.5], connect: full}
+  - {net: VOUT_PDS, layers: [B.Cu], priority: 3, rect: [54.5, 71.5, 56.9, 76.5], connect: full}
+  - {net: VIN_S,  layers: [F.Cu, B.Cu], priority: 2, rect: [80.0, 67.5, 90.0, 79.0], connect: full}
+  - {net: SW_A,   layers: [F.Cu], priority: 2, rect: [72.5, 24.0, 80.5, 40.0], connect: full}
+  - {net: CS_A,   layers: [F.Cu, B.Cu], priority: 2, rect: [62.0, 33.0, 71.5, 44.0], connect: full}
+  - net: 5VA
+    layers: [F.Cu, B.Cu]
+    priority: 2
+    connect: full
+    points: [[86.0, 24.0], [99.0, 24.0], [99.0, 75.0], [86.0, 75.0],
+             [86.0, 67.0], [92.5, 67.0], [92.5, 57.5], [86.0, 57.5]]
+  - {net: VBUSA1, layers: [F.Cu, B.Cu], priority: 2, rect: [100.0, 29.0, 120.2, 42.5], connect: full}
+  - {net: VBUSA2, layers: [F.Cu, B.Cu], priority: 2, rect: [100.0, 47.0, 120.2, 60.5], connect: full}
+  - {net: VBUSA3, layers: [F.Cu, B.Cu], priority: 2, rect: [100.0, 65.0, 120.2, 78.5], connect: full}
+  - {net: LX2,    layers: [F.Cu, B.Cu], priority: 2, rect: [74.0, 68.5, 79.5, 104.0], connect: full}
+  - {net: LX1,    layers: [F.Cu, B.Cu], priority: 2, rect: [55.0, 68.5, 62.0, 104.0], connect: full}
+  # pin-18 finger + arm as separate higher-priority same-net zones (overlap
+  # with the rect at different priorities = a legal union; the reserved KRT
+  # lanes keep them track-free)
+  - {net: VOUT_PDS, layers: [F.Cu, B.Cu], priority: 2, rect: [51.0, 68.0, 54.6, 86.0], connect: full}
+  - {net: VOUT_PD,  layers: [F.Cu, B.Cu], priority: 2, rect: [42.0, 86.5, 58.0, 95.5], connect: full}
+  - net: VBUSC
+    layers: [F.Cu]
+    priority: 2
+    connect: full
+    points: [[42.0, 97.5], [124.0, 97.5], [124.0, 108.5], [42.0, 108.5]]
+
+keepouts:
+  # PERMISSIVE named areas (deny nothing) - anchors for scoped_floors
+  # relaxations (usb-power-3s SW_TAP precedent). Trunk current rides the
+  # pours; thin tracks inside these areas are sense/backstop copper.
+  - {name: pd_sense, deny: [], layers: [F.Cu, B.Cu], rect: [42.0, 56.0, 87.5, 104.0]}
+  - {name: sw_sense, deny: [], layers: [F.Cu, B.Cu], rect: [44.0, 22.5, 87.0, 47.0]}
+  - {name: vconn_feed, deny: [], layers: [F.Cu, B.Cu], rect: [88.0, 64.0, 100.0, 88.0]}
+  - {name: port_bond, deny: [], layers: [F.Cu, B.Cu], rect: [100.0, 29.0, 116.0, 78.5]}
+  - {name: j5_bond, deny: [], layers: [F.Cu, B.Cu], rect: [108.5, 100.5, 118.5, 108.0]}
+  - {name: vbat_therm, deny: [], layers: [F.Cu, B.Cu], rect: [37.3, 78.9, 40.4, 81.1]}
+
+silk:
+  min_text_height: 0.6
+  refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQL"}
+  captions:
+    - ["3S LIPO 9-12.6V", 32.0, 50.0, 0.8]
+    - ["XT60 IN", 32.0, 52.0, 0.8]
+    - ["FUSE 20A MINI", 37.0, 70.0, 0.8]
+    - ["USB-A 2A", 115.5, 50.5, 0.7]
+    - ["USB-A 2A", 115.5, 68.5, 0.7]
+    - {text: "USB-C PD 5A", at: [107.0, 106.0], size: 0.7, nudge: false}  # 7.1mm from J5 centroid, pad-free spot (west half visible beside the body)
+    - ["USB-A 5V 2A (2.5A BURST)", 108.0, 26.0, 0.8]
+    - ["USB-C PD 5-20V 5A MAX", 100.0, 95.8, 0.8]
+    - ["usb-hub-3s v1.0", 34.0, 103.5, 0.8]
+
+asserts:
+  pad_net:
+    - {ref: J1, pad: 1, net: GND}          # XT60 pad1 IS '-' (part fact)
+    - {ref: J1, pad: 2, net: VBAT}
+    - {ref: Q1, pad: 5, net: VBAT_F}       # rev-pol P-FET drain = battery side
+    - {ref: D1, pad: 1, net: VBAT_F}       # TVS cathode
+    - {ref: D2, pad: 1, net: VCONN5V}      # schottky cathode
+    - {ref: D3, pad: 1, net: VBUSC}
+    - {ref: D4, pad: 1, net: BOOT_A}       # boot diode cathode at HB
+    - {ref: D5, pad: 1, net: VIN}          # zener cathode at source
+    - {ref: D6, pad: 1, net: LX2}
+    - {ref: D7, pad: 1, net: LX1}
+    - {ref: C1, pad: 1, net: VIN}          # polymer positive
+    - {ref: C2, pad: 1, net: VIN}
+    - {ref: C26, pad: 1, net: VOUT_PD}
+    - {ref: U1, pad: 49, net: GND}
+    - {ref: U2, pad: 21, net: GND}
+    - {ref: Q8, pad: 5, net: VOUT_PD}      # path FET drain = converter side
+  body_offset:
+    - {ref: J1, axis: x, sign: "-"}        # XT60 mouth faces WEST
+    - {ref: J2, axis: x, sign: "+"}        # USB-A mouths face EAST
+    - {ref: J3, axis: x, sign: "+"}
+    - {ref: J4, axis: x, sign: "+"}
+    - {ref: J5, axis: y, sign: "+"}        # USB-C mouth faces SOUTH

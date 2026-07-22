@@ -1,0 +1,22 @@
+mpn: 2N7002
+manufacturer: JCET (Jiangsu Changjing)
+type: nfet_small_signal
+datasheet:
+  doc_id: 2N7002
+  revision: J-Sep2016
+  url: https://www.lcsc.com/product-detail/C8545.html
+  sha256: 7941fb423af7c6c6c8979063a7e8819bb19217ece275efcce18948950a41d9f6
+  fetched: 2026-07-21
+package: SOT-23
+footprint: Package_TO_SOT_SMD:SOT-23
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: escape_check 2026-07-21}
+pins:
+  1: G
+  2: S
+  3: D
+limits: {vds: 60V, vgs: "±20V", id: 115mA}
+gotchas:
+  - "Vconn gate-driver (Q10/Q12): D=AO3401A gate, S=GND, G=GPIO22/21 with 10k
+     pull-down (IP6559 Fig.9)"
+verified: "pin map read from SOT-23 pin diagram (1.GATE 2.SOURCE 3.DRAIN), JCET 2N7002 DS p.1 - 2026-07-21"
+sourcing: {lcsc: C8545, alternates: [C16338, C65189], note: "JLC BASIC part"}

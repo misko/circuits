@@ -1,0 +1,192 @@
+# usb-hub-3s route + stitch — input for route_and_stitch_generic.py
+# 100x80 4-layer. Trunk power (VBAT*, VIN*, 5VA, VOUT_PD*, VBUSC, VBUSA*,
+# SW/LX) is POUR/PLANE-owned (floorplan zones + In2 VIN plane) and EXCLUDED
+# from KRT; KRT routes gates, sense, data/CC, aux. GND = pours + In1 + stitch.
+
+project:
+  name: usb_hub_3s
+  board: 04_kicad/usb_hub_3s.kicad_pcb
+  build_dir: 06_build/route
+
+prep:
+  out: r0.kicad_pcb
+  keepouts:
+    layers: [User.2]
+    mounting_holes: {radius: 3.0}
+    edge_band: 0.7
+    rects:
+      # reserved TAP real estate (KRT keeps out; the taps stage threads it):
+      # via-in-pad plane-drop sites (pins 27/28 and 30 of U1 - pin 29 VCC5V
+      # keeps its escape lane between the boxes; pin 11; U2 pin 17)
+      - {x0: 70.9, y0: 65.05, x1: 72.2, y1: 66.05}
+      - {x0: 70.9, y0: 64.0, x1: 72.2, y1: 64.5}
+      - {x0: 63.8, y0: 65.6, x1: 65.1, y1: 66.9}
+      - {x0: 58.2, y0: 36.4, x1: 59.5, y1: 37.7}
+      # SW_A sense-tap lane (U2.20 -> C18.2): east runway at the SW pin row
+      - {x0: 59.5, y0: 31.2, x1: 64.5, y1: 32.5}
+      # the J5 data/CC tap runway (row escape strip north of the pads)
+      - {x0: 104.5, y0: 101.3, x1: 118.5, y1: 104.5}
+      # PCON (U1.15) micro-corridor to R18.1 directly south
+      - {x0: 66.05, y0: 68.05, x1: 66.45, y1: 69.1}
+      # LX1 pin-18 pour finger + arm (zone geometry lives in the lanes)
+      - {x0: 67.45, y0: 68.0, x1: 68.15, y1: 71.35}
+      - {x0: 61.0, y0: 70.55, x1: 68.15, y1: 71.35}
+      - {x0: 58.6, y0: 72.7, x1: 68.15, y1: 73.5}   # pin-18 runway to Q6.3 (west wall dodge)
+      - {x0: 74.55, y0: 62.3, x1: 75.85, y1: 64.7}   # R14.1 plane-drop site (CC2 B.Cu diag ran 0.27mm under the pad)
+      # LX2 pin-21 straight-south drop onto Q5's drain pad
+      - {x0: 69.05, y0: 68.1, x1: 69.45, y1: 82.3}
+      # VIN_S pin-24 -> R15.1 tap band
+      - {x0: 71.0, y0: 67.95, x1: 79.9, y1: 68.45}
+      # horizontal west-col lanes for the VIO/VOUTI (pins 12/10) sense taps
+      - {x0: 62.6, y0: 65.55, x1: 64.0, y1: 65.95}
+      - {x0: 62.6, y0: 66.55, x1: 64.0, y1: 66.95}
+  waves:
+    # pour-fed multi-pad nets stay OUT of KRT: its end-of-wave
+    # reconciliation treats pour connectivity as "incomplete", rips the
+    # successful chip-pin routes and leaves the net bare (2026-07-21 log:
+    # qfngate routed 13/13, reconciliation destroyed LX1+LG1)
+    exclude: ["GND", "VBAT", "VBAT_F", "VIN", "VIN_S", "SW_A", "CS_A",
+              "5VA", "VOUT_PD", "VOUT_PDS", "VBUSC",
+              "VBUSA1", "VBUSA2", "VBUSA3", "LX1", "LX2", "unconnected-*"]
+    groups:
+      # hardest first: FET-side gate drives + bootstraps (coarse pads)
+      gate: [HO_A, LO_A, BOOT_A, SNB1, SNB2]
+      # QFN-attached hard nets: narrower tracks + tighter clearance to attach
+      # to 0.5mm-pitch pads (0.4mm tracks cannot - 2026-07-21 route log)
+      # the U1 south-row ROUTABLE escape population in ONE wave (KRT MPS
+      # arbitrates jointly in the 12mm post-D-ADJ corridor); the pour-fed
+      # nets (LX*, VIN_S, VOUT_PDS) are tap-connected instead
+      qfngate: [LG1, LG2, HG1, HG2, BST1, BST2, SNS_OUT_P,
+                SNS_OUT_N, PATH_G]
+      emk: [EMK2, EMK1, PDO_CFG]
+      # kelvin/analog control
+      sense: [SNS_IN_P, SNS_IN_N, CSF_A,
+              CSGF_A, FB_A, COMP_A, CMZ_A, RAMP_A, RT_A, SS_A, UVLO_A,
+              EN_A, VOUT2_SNS, RPP_G]
+      # USB-A data (coarse THT pads)
+      dataa: [DP_A1, DM_A1, DP_A2, DM_A2, DP_A3, DM_A3]
+      # USB-C data/CC (J5 0.5mm row: fine grid + tight clearance)
+      datac: [CC2, DPC, DMC, CC1]
+      # everything else (ILIM, EN_PD, Vconn, LDO rails)
+      sig: rest
+
+route:
+  krt: ~/gits/KiCadRoutingTools
+  common:
+    layers: [F.Cu, B.Cu]
+    fab_tier: advanced
+    via_size: 0.35
+    via_drill: 0.15
+    no_stub_layer_swap: true
+    keepout: true
+    keepout_layer: User.2
+    clearance: 0.21
+  waves:
+    - {name: gate,    group: gate,    track_width: 0.4,  max_iterations: 400000}
+    - {name: qfngate, group: qfngate, track_width: 0.3,  clearance: 0.15,
+       via_size: 0.25, via_drill: 0.15, max_iterations: 800000,
+       max_probe_iterations: 60000, max_ripup: 30}
+    - {name: emk,     group: emk,     track_width: 0.25, clearance: 0.15,
+       via_size: 0.25, via_drill: 0.15, max_iterations: 400000}
+    - {name: sense,   group: sense,   track_width: 0.25, clearance: 0.15,
+       via_size: 0.25, via_drill: 0.15, max_iterations: 500000}
+    - {name: dataa,   group: dataa,   track_width: 0.25, clearance: 0.15,
+       max_iterations: 400000}
+    - {name: datac,   group: datac,   track_width: 0.2,  clearance: 0.15,
+       via_size: 0.25, via_drill: 0.15, grid_step: 0.05,
+       max_iterations: 800000, max_probe_iterations: 60000}
+    - {name: sig,     group: sig,     track_width: 0.25, clearance: 0.15,
+       max_iterations: 800000, max_probe_iterations: 60000, max_ripup: 30}
+  # canon M3: after the first successful route, the imported chain file is
+  # promoted to 03_src/route/ and a `final:` key here replays it.
+  final: 03_src/route/final_chain.kicad_pcb   # = 06_build/route/r7 of the DRC-0/0/0 run (2026-07-21)
+
+# taps: named connections KRT cannot thread (pour-fed sense taps etc).
+# Extended as the DRC unconnected gate identifies them.
+taps:
+  clearance: 0.13   # QFN-row attach margin; hop legs ride the reserved lanes
+  via: {size: 0.25, drill: 0.15}   # POFV-class (advanced tier): via-in-pad plane drops
+  connections:
+    # ORDER MATTERS: earlier taps claim corridors. Pour-sense chains first
+    # (virgin B.Cu), then J5 (CC1 lane, CC2 via the south-of-row U), then
+    # plane drops, then the long feeds.
+    - {net: VOUT_PDS, from: U1.15, to: R18.1, width: 0.25, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VOUT_PDS, from: R18.1, to: [66.6, 74.2], width: 0.25, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VOUT_PDS, from: Q6.5, to: [66.6, 74.2], width: 0.25, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VOUT_PD, from: U1.12, to: R19.1, width: 0.25, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VOUT_PD, from: U1.10, to: R19.1, width: 0.25, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VOUT_PD, from: R19.1, to: [52.0, 89.0], width: 0.3, layer: F.Cu, hop_layer: B.Cu}
+    - {net: LX1, from: U1.18, to: Q6.3, width: 0.25, layer: F.Cu, hop_layer: B.Cu}
+    - {net: LX2, from: U1.21, to: Q5.5, width: 0.3, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VIN_S, from: U1.24, to: R15.1, width: 0.25, layer: F.Cu, hop_layer: B.Cu}
+    - {net: CC1, from: J5.A5, to: Q9.3, width: 0.25, layer: F.Cu, hop_layer: B.Cu}
+    - {net: CC2, from: J5.B5, to: [106.5, 104.15], width: 0.25, layer: F.Cu, hop_layer: B.Cu}
+    - {net: CC2, from: Q11.3, to: [106.5, 104.15], width: 0.25, layer: F.Cu, hop_layer: B.Cu}
+    - {net: DPC, from: J5.A6, to: D8.1, width: 0.25, layer: F.Cu, hop_layer: B.Cu}
+    - {net: DPC, from: J5.B6, to: D8.1, width: 0.25, layer: F.Cu, hop_layer: B.Cu}
+    - {net: DMC, from: J5.A7, to: D9.1, width: 0.25, layer: F.Cu, hop_layer: B.Cu}
+    - {net: DMC, from: J5.B7, to: D9.1, width: 0.25, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VIN, from: U1.27, to: [71.54, 65.75], width: 0.3, plane: true}
+    - {net: GND, from: U1.28, to: [71.54, 65.25], width: 0.25, plane: true}
+    - {net: GND, from: U1.30, to: [71.54, 64.25], width: 0.25, plane: true}
+    - {net: GND, from: U1.11, to: [64.46, 66.25], width: 0.25, plane: true}
+    - {net: GND, from: U2.17, to: [58.86, 37.02], width: 0.25, plane: true}
+    - {net: SW_A, from: U2.20, to: C18.2, width: 0.5, layer: F.Cu, hop_layer: B.Cu}
+    - {net: SW_A, from: C18.2, to: [74.0, 32.5], width: 0.5, layer: F.Cu, hop_layer: B.Cu}
+    # island bonders: a via-hop stub drops the pad's F island onto the
+    # net's B.Cu pour (fill-time slicing by crossing tracks - measured islands)
+    - {net: LX1, from: R17.1, to: [58.5, 73.5], width: 0.3, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VBUSA1, from: U8.5, to: [106.0, 38.5], width: 0.3, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VBUSA2, from: U9.5, to: [110.5, 59.0], width: 0.3, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VBUSA2, from: C37.1, to: [103.5, 48.2], width: 0.3, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VIN_S, from: R15.1, to: [83.0, 69.9], width: 0.25, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VIN_S, from: RS2.2, to: [86.5, 72.5], width: 0.3, layer: F.Cu, hop_layer: B.Cu}
+    - {net: LX2, from: Q5.5, to: [74.8, 84.0], width: 0.3, layer: F.Cu, hop_layer: B.Cu}
+    - {net: LX2, from: Q4.3, to: [76.8, 78.0], width: 0.3, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VBUSC, from: J5.A4, to: [111.85, 106.8], width: 0.3, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VIN, from: R14.1, to: [75.17, 63.6], width: 0.3, plane: true}
+    - {net: VBUSA3, from: U10.5, to: [106.0, 72.5], width: 0.3, layer: F.Cu, hop_layer: B.Cu}
+    - {net: 5VA, from: D2.2, to: [94.0, 70.5], width: 0.5, layer: F.Cu, hop_layer: B.Cu}
+    - {net: 5VA, from: U2.10, to: [87.0, 29.5], width: 0.4, layer: F.Cu, hop_layer: B.Cu}
+    - {net: 5VA, from: R2.1, to: [86.5, 28.5], width: 0.5, layer: F.Cu, hop_layer: B.Cu}
+    # thermal drops (R-THERM): two POFV vias per FET drain paddle into the B.Cu pour
+    - {net: VBAT_F,   from: [38.31, 80.0],  to: [39.4, 80.0],  width: 0.4, plane: true}
+    - {net: SW_A,     from: [72.69, 36.0],  to: [73.8, 36.0],  width: 0.4, plane: true}
+    - {net: LX2,      from: [69.29, 84.0],  to: [70.4, 84.0],  width: 0.4, plane: true}
+    - {net: VOUT_PDS, from: [54.81, 74.0],  to: [53.9, 74.0],  width: 0.4, plane: true}
+    - {net: LX1,      from: [59.81, 84.0],  to: [58.7, 84.0],  width: 0.4, plane: true}
+    - {net: VOUT_PD,  from: [53.0, 95.31],  to: [51.9, 95.31], width: 0.4, plane: true}
+    - {net: VIN_S,    from: [80.19, 74.0],  to: [81.3, 74.0],  width: 0.4, plane: true}
+
+stitch:
+  clearance: 0.15
+  via: {size: 0.35, drill: 0.15, spacing: 0.85, pth_margin: 0.3}
+  keepin: {inset: 0.8}
+  passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
+           split_t_junctions, reload, hole_to_hole, pad_rescue, stub_fallback,
+           astar_fallback, stitch_grid, fill, island_rescue, dedupe_vias,
+           hole_to_hole, fill, prune_stitch_dangling, gate]
+  dedupe_vias: {radius: 0.28, metric: box}   # 0.5 ate legit 0.25-via hop ladders (HG1/LG1 breaks)
+  normalize_vias: {below_width: 0.24, size: 0.35, drill: 0.15}
+  drop_micro_fragments: {max_length: 0.16, require_free_end: true}
+  drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
+  split_t_junctions: {tol: 0.05}
+  hole_to_hole: {min_gap: 0.25, mode: nudge, prefer_keep: [GND]}
+  pad_rescue:
+    # 4-layer, TWO plane nets: GND -> In1, VIN -> In2
+    nets:
+      - {net: GND, layer: In1.Cu}
+      - {net: VIN, layer: In2.Cu}
+    via_in_pad: true
+    served_within: 1.6
+    rings: [0.75, 0.95, 1.2, 1.6, 2.1, 2.7]
+    stub_width: 0.3
+    require: none
+  stub_fallback: {net: GND, min_dist: 0.2, max_dist: 8.0, width: 0.3}
+  astar_fallback: {net: GND, width: 0.25, window: 3.0, attempts: 3}
+  stitch_grid:
+    net: GND
+    x: [24, 126, 8]
+    y: [24, 106, 8]
+  island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu], require: all}
+  prune_stitch_dangling: {tol: 0.05, min_layers: 2}
