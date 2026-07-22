@@ -62,4 +62,11 @@ sha256:
   8b0dad32252cd16863be20de22d7ff6e300d61d78a8b226330ef6a623fd257fc  verification/twin_iso_se.png
   0b46c251b778cb785a046096a0daa1712e07fc7fae9f1c7aebbb7b89d109f1b5  verification/twin_report.csv
   926a73bc19578f0f1203249a45629560664859dac2302496d37aa9abde5e2aa0  verification/twin_top.png
+  76f4f83f6d9f3bbc1f8677e1be0aeeff1eb5a4bd5398ea3f923c7f417fa6143b  verification/twin_top_bare.png
+  06136ee65e4853bb3a5644d3519fe0ab9fc5e0cf6d6107d2acf72950ce962240  verification/twin_bottom_bare.png
   649cd9407090cc36ba59cf3eb3e8a0375276c716313d2d94280b6cd946cb23c9  verification/verification_report.md
+
+# AMENDED 2026-07-21 (owner directive): verification/twin_top_bare.png
+# + twin_bottom_bare.png added post-seal — the component-less render
+# pair standard, generated from THIS release's source/ board. The
+# only sanctioned post-seal change; hashes above cover both files.
