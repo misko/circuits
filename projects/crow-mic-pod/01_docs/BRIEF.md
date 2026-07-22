@@ -1,8 +1,8 @@
 # brief: crow-mic-pod
 
-status: in-progress
+status: delivered (v1.0)
 prompt_sha256: be9e677e3628dcf801affba573593bc836bfb9a71290dadde58d09e819590c39
-current_release: no
+current_release: 07_releases/v1.0-2026-07-21
 
 ## Original prompt
 
@@ -87,12 +87,12 @@ pinout, fitting the outdoor pod enclosure, with every SKILL gate green.
 
 | # | Criterion | Source | Status |
 |---|---|---|---|
-| G1 | 2-layer pod PCB: AOM-5024L-HD-R + OPA1678IDR active-balanced (~3 V/V diff) | P | unmet |
-| G2 | CMT-8504-100-SMT-TR on-board, driven from central (5V ~150mA coded 4kHz bursts) | P | unmet |
-| G3 | TPD2E2U06DRLR ESD at cable entry | P | unmet |
-| G4 | RJ45 jack termination at the POD end (ethernet connectors everywhere) | P (directive) | unmet |
-| G5 | Custom pinout preserved + "NOT ETHERNET - CUSTOM 5V AUDIO PINOUT" labeling | P | unmet |
-| G6 | All pipeline gates green; orderable JLC release | SKILL | unmet |
+| G1 | 2-layer pod PCB: AOM-5024L-HD-R + OPA1678IDR active-balanced (~3 V/V diff) | P | met — 07_releases/v1.0-2026-07-21 |
+| G2 | CMT-8504-100-SMT-TR on-board, driven from central (5V ~150mA coded 4kHz bursts) | P | met — v1.0 BOM+twin |
+| G3 | TPD2E2U06DRLR ESD at cable entry | P | met — v1.0 (D1, pin review) |
+| G4 | RJ45 jack termination at the POD end (ethernet connectors everywhere) | P (directive) | met — v1.0 (J1 RJHSE-5384, ADR-0004) |
+| G5 | Custom pinout preserved + "NOT ETHERNET - CUSTOM 5V AUDIO PINOUT" labeling | P | met — v1.0 silk (render review) |
+| G6 | All pipeline gates green; orderable JLC release | SKILL | met — v1.0 MANIFEST gate table |
 
 ## Spec tensions (D-SPEC — fill at commission, before architecture)
 
