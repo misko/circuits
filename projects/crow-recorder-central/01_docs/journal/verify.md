@@ -78,3 +78,19 @@
   (0 FAIL; PASS=19 incl. E-INV/E-TOPO/E-ADR, WAIVED=3, HUMAN=6, N-A=5).
 - next: policy_audit.md report + contracts audit; ledger/archetype harvest;
   ORDER_README; seal 07_releases/v1.0-2026-07-22/.
+
+## 2026-07-22 — SEAL v1.0-2026-07-22
+- did: harvested proven-parts (7 USB-audio parts + mixed-signal-audio-hub
+  archetype) + wrote learnings/verify.md; regenerated sealed board (00a9974,
+  regen-noise only vs pause); built fab package (15-file 6L gerber zip + drills
+  + STEP) + assembled the complete self-contained release. Verified source/
+  re-measures STANDALONE (0/2-waived/0) with co-located cac.pretty.
+- result: MEASURED — release 07_releases/v1.0-2026-07-22/ complete (fab/pdf/
+  source/3d/verification + ORDER_README + MANIFEST, 44 hashed files). Gate
+  scoreboard: DRC 0/2-waived/0, ERC 0, audit PASS, E-TOPO PASS(2/2), E-INV
+  PASS(28), E-ADR PASS, twin exit 0, policy_audit 0 FAIL, both red-team ORDER,
+  render PASS-WITH-NOTES, ZERO P0. Order-day: XU316 consign (ADR-0013) + 10k
+  C25744 drop-in C25804.
+- next: SEALED. v1.1 work order (in ORDER_README): F1 OVP, L1 USB F.Cu-only,
+  L2 buck input caps, L3 analog input length. Candidate canon: R-NETLAYER
+  (machine-enforce nets.yaml routing-layer intent — would have caught L1).

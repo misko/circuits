@@ -1,0 +1,24 @@
+# CPL refs with no attached 3D body in the modeled twin render.
+# A bodiless footprint means 'no model', never 'not placed' — the CPL
+# (cpl_jlc.csv, 221 assembled refs) is population ground truth.
+#
+# Method: each CPL footprint's 3D-model reference resolved against the KiCad
+# stock 3D library + the twin's fetched JLC models; the refs below have NO
+# resolvable model FILE, so they render as bare footprints. All are either the
+# vendored/custom footprints (XU316 TQFP-128 EP, XC6227 SOT-89-5, the 100uF
+# bulk CP_Elec) or the THT connectors (RJ45, barrel, headers) that the stock
+# library has no body for. Every one is confirmed PLACED + populated in the
+# assembly drawing / CPL. NONE is a "not placed" finding.
+C90
+J1
+J2
+J3
+J4
+J5
+J6
+J9
+J10
+J13
+J14
+U1
+U13

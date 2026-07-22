@@ -1,0 +1,3 @@
+WARN: I10 refdes C52 waived to Fab (no silk room)
+WARN: I10 refdes R43 waived to Fab (no silk room)
+AUDIT: PASS (0 fails, 33 warns)
