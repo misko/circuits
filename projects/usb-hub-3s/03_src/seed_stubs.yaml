@@ -1,23 +1,85 @@
-# v1.1 deterministic stub copper for the four pour-net chip-pin connections
-# the tap-threader could not reliably close (routing journal, iterate 3).
-# Emitted by add_seed_stubs.py AFTER taps, BEFORE stitch; keepout lanes in
-# route.yaml keep KRT off these paths (crossing gaps let traffic over/under
-# on the opposite layer). Fill bonds the zone-landing vias.
-via: {size: 0.25, drill: 0.15}
+# v1.1 deterministic stub copper for the three pour-net chip-pin connections
+# the tap-threader could not reliably close (routing journal, iterates 3-4).
+# Emitted by add_seed_stubs.py AFTER taps, BEFORE stitch; route.yaml keepout
+# lanes guard these exact paths, with gaps where KRT traffic crosses on the
+# OPPOSITE layer of the emitted run (QG7 crosses the pin18 B-run on F at
+# x62.2-63.1; HG1 crosses the U1.15 B-run on F at x52.85-53.5; pins 13/14
+# sense escapes cross on F at x64.9-66.0). B-runs under F-only SMD pads
+# (C25, L1) are legal and shielded by In1.
+via:
+  size: 0.25
+  drill: 0.15
 stubs:
-  - net: LX1        # U1.18 (gate-drive return) + C22.2 (BST1 cap) -> LX1 island finger
-    segments:
-      - {layer: F.Cu, width: 0.25, pts: [[67.75, 67.45], [67.75, 68.75]]}
-      - {layer: B.Cu, width: 0.3,  pts: [[67.75, 68.75], [67.62, 69.9], [67.37, 70.15], [60.7, 70.15]]}
-      - {layer: F.Cu, width: 0.25, pts: [[67.62, 69.9], [67.625, 69.25]]}
-    vias: [[67.75, 68.75], [67.62, 69.9], [60.7, 70.15]]
-  - net: VOUT_PDS   # U1.15 (PCON) -> VOUT_PDS zone
-    segments:
-      - {layer: F.Cu, width: 0.25, pts: [[66.25, 67.45], [66.25, 68.3]]}
-      - {layer: B.Cu, width: 0.3,  pts: [[66.25, 68.3], [66.0, 68.35], [53.25, 68.35], [53.0, 68.6]]}
-    vias: [[66.25, 68.3], [53.0, 68.6]]
-  - net: VOUT_PD    # U1.10 (VOUTI; U1.12 joins via tap) -> output pool
-    segments:
-      - {layer: F.Cu, width: 0.25, pts: [[64.55, 65.75], [62.85, 65.75]]}
-      - {layer: B.Cu, width: 0.3,  pts: [[62.85, 65.75], [62.85, 84.45], [62.65, 84.65], [56.05, 84.65]]}
-    vias: [[62.85, 65.75], [56.05, 84.65]]
+- net: LX1
+  segments:
+  - layer: F.Cu
+    width: 0.25
+    pts:
+    - - 67.75
+      - 67.45
+    - - 67.75
+      - 68.2
+  - layer: B.Cu
+    width: 0.3
+    pts:
+    - - 67.75
+      - 68.2
+    - - 67.75
+      - 70.9
+    - - 60.6
+      - 70.9
+  vias:
+  - - 67.75
+    - 68.2
+  - - 60.6
+    - 70.9
+- net: VOUT_PDS
+  segments:
+  - layer: F.Cu
+    width: 0.25
+    pts:
+    - - 66.25
+      - 67.45
+    - - 66.25
+      - 68.3
+  - layer: B.Cu
+    width: 0.3
+    pts:
+    - - 66.25
+      - 68.3
+    - - 66.2
+      - 68.35
+    - - 52.35
+      - 68.35
+    - - 52.3
+      - 68.6
+  vias:
+  - - 66.25
+    - 68.3
+  - - 52.3
+    - 68.6
+- net: VOUT_PD
+  segments:
+  - layer: F.Cu
+    width: 0.25
+    pts:
+    - - 64.55
+      - 65.75
+    - - 63.45
+      - 65.75
+  - layer: B.Cu
+    width: 0.3
+    pts:
+    - - 63.45
+      - 65.75
+    - - 63.45
+      - 84.5
+    - - 63.3
+      - 84.65
+    - - 56.05
+      - 84.65
+  vias:
+  - - 63.45
+    - 65.75
+  - - 56.05
+    - 84.65

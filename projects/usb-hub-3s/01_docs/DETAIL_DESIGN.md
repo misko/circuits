@@ -9,9 +9,12 @@ existed on the board).
 
 ## 1. Input protection chain (ADR 0001)
 
-- **F1**: MINI blade fuse 20 A + THT holder. Worst input ≈ 15.5 A
-  (100 W PD + 30 W USB-A at Vin 9.0 V, eff 0.93). 20 A > 15.5 × 1.25 margin
-  on I²t-slow blade curve; wiring/pours sized 16 A continuous.
+- **F1**: MINI blade fuse 20 A + THT holder (Keystone 3568 clips). Worst
+  input ≈ 15.5 A (100 W PD + 30 W USB-A at Vin 9.0 V, eff 0.93); wiring/
+  pours sized 16 A continuous. **Exact fuse (v1.1, X1/X13): Littelfuse
+  0297020.WXNV** — 32 VDC, IR 1000 A, I²t 380 A²s; full time-current
+  coordination vs load/copper/D1/Q1 in ADR-0001 Amendment v1.1
+  (02_parts/0297020WXNV/part.yaml carries the quoted table).
 - **Q1** reverse-polarity P-FET: drain = VBAT_F (battery side), source = VIN,
   body diode conducts battery→load at first contact, then Vgs ≈ −VIN (−8.8
   to −12.6 V) enhances it. R13 100 kΩ gate→GND; D5 BZT52C12 zener S→G

@@ -31,25 +31,26 @@ prep:
       - {x0: 82.5, y0: 75.3, x1: 84.1, y1: 79.2}     # RS2.2 -> R15.1
       - {x0: 43.6, y0: 74.6, x1: 47.9, y1: 78.6}     # RS3.1 -> R18.1
       - {x0: 42.8, y0: 83.7, x1: 47.9, y1: 85.9}     # RS3.2 -> R19.1
-      # v1.1 chip-pin pour-connection corridors (routing journal iterate 3:
-      # threaded taps through the escape field are fragile - KRT hugs lane
-      # edges; these lanes now guard DETERMINISTIC seed stubs emitted by
-      # 03_src/add_seed_stubs.py, with GAPS where KRT traffic crosses on the
-      # opposite layer of the emitted run)
-      - {x0: 70.9, y0: 67.7, x1: 78.9, y1: 68.15}    # U1.24 VIN_S -> C46.1 tap lane (threaded tap, works)
-      - {x0: 52.7, y0: 68.1, x1: 64.9, y1: 68.6}     # U1.15 B-run west part
-      - {x0: 66.0, y0: 67.4, x1: 66.5, y1: 68.6}     # U1.15 F stub + via site (gap 64.9-66.0 = pins 13/14 sense crossings)
-      - {x0: 52.75, y0: 68.6, x1: 53.25, y1: 68.9}   # U1.15 zone-landing via site
-      - {x0: 62.6, y0: 65.55, x1: 64.0, y1: 65.95}   # U1.10 F stub + via site (v1.0 west-col lane)
-      - {x0: 62.6, y0: 66.55, x1: 64.0, y1: 66.95}   # U1.12 join site (v1.0 west-col lane)
-      - {x0: 62.6, y0: 66.0, x1: 63.1, y1: 70.6}     # U1.10 B column upper (gap 70.6-71.6 = Q7 gate attach)
-      - {x0: 62.6, y0: 71.6, x1: 63.1, y1: 84.3}     # U1.10 B column lower
-      - {x0: 55.9, y0: 84.35, x1: 63.1, y1: 84.95}   # U1.10 B horizontal to the output pool
-      - {x0: 68.9, y0: 67.6, x1: 69.6, y1: 70.9}     # U1.21 LX2 spur (threaded tap, works)
-      - {x0: 71.1, y0: 69.35, x1: 73.9, y1: 70.9}    # C21.2 -> LX2 island NW (threaded tap, works)
-      - {x0: 67.55, y0: 67.4, x1: 67.95, y1: 70.4}   # LX1 vertical: U1.18 stub + C22.2 drop
-      - {x0: 60.3, y0: 69.9, x1: 62.3, y1: 70.4}     # LX1 B-run west (gap 62.3-63.0 = QG7 gate crossing)
-      - {x0: 63.0, y0: 69.9, x1: 67.3, y1: 70.4}     # LX1 B-run east
+      # v1.1 chip-pin pour-connection corridors (routing journal iterates 3-4):
+      # lanes guard the DETERMINISTIC seed stubs (03_src/seed_stubs.yaml) and
+      # the two threaded taps; GAPS let named KRT crossings pass on the layer
+      # opposite each emitted run. Lane sizing rule learned it. 3: a stub of
+      # width w inside a lane needs >= w/2+0.28 to each lane edge (KRT hugs
+      # edges at zero gap).
+      - {x0: 70.55, y0: 67.6, x1: 80.15, y1: 68.35}  # U1.24 VIN_S -> C46.1 tap lane (HG2 dives at x~70.2, west of it)
+      - {x0: 51.9, y0: 67.9, x1: 52.85, y1: 68.8}    # U1.15 B-run west end + landing via
+      - {x0: 53.5, y0: 67.9, x1: 64.9, y1: 68.8}     # U1.15 B-run (HG1 descent gap 52.85-53.5; sense gap 64.9-66.0)
+      - {x0: 66.0, y0: 67.4, x1: 66.5, y1: 68.8}     # U1.15 F stub + via
+      - {x0: 63.2, y0: 65.5, x1: 64.1, y1: 66.05}    # U1.10 F stub + via
+      - {x0: 62.6, y0: 66.55, x1: 64.0, y1: 66.95}   # U1.12 join site (threaded tap)
+      - {x0: 63.2, y0: 66.05, x1: 63.7, y1: 84.3}    # U1.10 B column (QG7 stays west of x63.2)
+      - {x0: 55.85, y0: 84.3, x1: 63.7, y1: 85.0}    # U1.10 B horizontal to the output pool
+      - {x0: 67.45, y0: 67.9, x1: 68.05, y1: 71.15}  # pin18 LX1 vertical (via at 68.2)
+      - {x0: 60.25, y0: 70.55, x1: 62.2, y1: 71.25}  # pin18 B-run west (QG7 gap 62.2-63.1)
+      - {x0: 63.1, y0: 70.55, x1: 64.0, y1: 71.25}   # pin18 B-run mid (C25 south-pad gap 64.0-65.3)
+      - {x0: 65.3, y0: 70.55, x1: 68.05, y1: 71.25}  # pin18 B-run east
+      - {x0: 68.9, y0: 67.6, x1: 69.6, y1: 70.9}     # U1.21 LX2 spur (threaded tap)
+      - {x0: 71.1, y0: 69.35, x1: 73.9, y1: 70.9}    # C21.2 -> LX2 island NW (threaded tap)
   waves:
     exclude: ["GND", "VBAT", "VBAT_F", "VIN", "VIN_S", "SW_A", "CS_A",
               "5VA", "VOUT_PD", "VOUT_PDS", "VBUSC",

@@ -77,17 +77,17 @@ placement:
     C4:  [92.0, 68.5, 90]       # 100n
     # gate-R slots AT the gates (X4)
     R28: [79.4, 77.7, 180]        # HG2 -> Q4.G (75.83,75.905)
-    R29: [70.0, 69.35, 0]     # north of the row: LG2 pad west under U1.20, QG5 drops west of the LX2 island       # LG2 -> Q5.G (68.33,75.905)
-    R30: [56.3, 69.3, 0]        # HG1 -> Q6.G (54.17,71.1)
-    R31: [62.6, 68.5, 90]       # LG1 -> Q7.G (62.67,71.1)
+    R29: [66.5, 74.5, 270]    # center alley: QG5 south pad 1.9mm from Q5.G; LG2 rides the x66.5-67.4 alley       # LG2 -> Q5.G (68.33,75.905)
+    R30: [54.5, 69.3, 0]        # HG1 -> Q6.G (54.17,71.1)
+    R31: [62.6, 68.5, 270]     # pin1 LG1 NORTH (level run from U1.19), pin2 QG7 SOUTH (short drop to Q7.G - never crosses the LX1 spur)       # LG1 -> Q7.G (62.67,71.1)
     # BST caps near the chip BST/LX pins
-    C21: [73.2, 69.2, 0]        # BST2: pad1 (69.775) under U1.22, pad2 (71.425) -> LX2 spur
-    C22: [66.8, 69.2, 0]        # BST1: pad1 (66.475) under U1.17, pad2 (68.125) -> LX1 spur
+    C21: [70.6, 69.2, 0]        # BST2: pad1 (69.775) under U1.22, pad2 (71.425) -> LX2 spur
+    C22: [60.6, 67.4, 270]     # BST1 cap ON the LX1 finger (pad2 south in-zone); BST1 is KRT-routable, the LX side is not        # BST1: pad1 (66.475) under U1.17, pad2 (68.125) -> LX1 spur
     # snubbers + per-node TVS (ADR 0007) on the LX islands
     R16: [77.0, 80.9, 270]       # LX2 snubber R: pad1 north (80.125) in the LX2 south rect
     C23: [77.0, 84.6, 90]       # LX2 snubber C -> GND
     D6:  [79.7, 84.0, 270]       # SMAJ15A: K pad north (82.0) in the LX2 south rect
-    R17: [59.6, 69.3, 180]      # LX1 snubber R: pad1 east (60.425) in the LX1 north finger
+    R17: [57.7, 69.3, 180]      # LX1 snubber R: pad1 east (60.425) in the LX1 north finger
     C24: [58.7, 66.9, 90]       # LX1 snubber C -> GND
     D7:  [53.4, 83.4, 270]       # SMAJ24A: K pad north (81.4) in the LX1 west bridge
     # output pool + path FET
@@ -206,7 +206,7 @@ zones:
     connect: full
     points: [[77.9, 68.9], [82.0, 68.9], [82.0, 63.5], [84.2, 63.5], [84.2, 76.3], [77.9, 76.3]]
   - {net: VIN_S,  layers: [B.Cu], priority: 2, rect: [77.6, 70.5, 83.6, 76.5], connect: full}   # thermal spreader under Q4 tab (X23)
-  - {net: VOUT_PDS, layers: [F.Cu], priority: 2, rect: [45.5, 68.4, 53.2, 76.8], connect: full}
+  - {net: VOUT_PDS, layers: [F.Cu], priority: 2, rect: [45.5, 68.4, 53.0, 76.8], connect: full}
   - {net: VOUT_PDS, layers: [B.Cu], priority: 2, rect: [47.5, 70.5, 53.5, 76.5], connect: full} # thermal spreader under Q6 tab (X23)
   # LX islands — F.Cu ONLY, minimum size (X2/X20): FET pads + L1 pad + snubber/TVS/BST landings
   - net: LX2
@@ -217,7 +217,7 @@ zones:
              [80.7, 82.9], [73.3, 82.9], [73.3, 75.3], [69.7, 75.3]]
   - {net: LX1, layers: [F.Cu], priority: 2, rect: [53.4, 71.9, 61.3, 75.3], connect: full}      # strip: Q6.S pins + Q7.D tab
   - {net: LX1, layers: [F.Cu], priority: 3, rect: [57.4, 75.3, 59.3, 79.5], connect: full}      # drop to L1 pad2 (P3: legal union with the strip)
-  - {net: LX1, layers: [F.Cu], priority: 3, rect: [59.9, 68.8, 61.3, 71.9], connect: full}      # R17 snubber finger (P3 union)
+  - {net: LX1, layers: [F.Cu], priority: 3, rect: [57.6, 67.9, 61.3, 71.9], connect: full}      # R17.1 + C22.2 finger (P3 union)
   - {net: LX1, layers: [F.Cu], priority: 3, rect: [52.6, 80.4, 56.0, 82.4], connect: full}      # D7 TVS bridge (P3 union via L1 pad2 west edge)
   # output pool
   - net: VOUT_PD

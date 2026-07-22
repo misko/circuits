@@ -81,3 +81,8 @@ fixpoint on a Python-side model, one removal batch at the end.
 - did: run3 route clean (0 viol, 6 tap-owned opens) but taps again 4/33 FAIL (U1.15/U1.10 long runs + BOTH LX1 spur legs). Measured the corridors: KRT HUGS lane edges (LG1 at y69.9, QG7 at y70.6 around a 0.55mm lane -> free channel 0.40 < 0.51 needed for a threaded 0.25 tap). Threading long chip-pin taps through the escape field is structurally fragile.
 - result: diagnosis = these four are FIXED-GEOMETRY connections, not routing problems. Fix: deterministic seed stubs (03_src/add_seed_stubs.py, explicit segments+vias with collision-REFUSAL, like via_farms) + keepout corridors WITH crossing gaps (QG7 gate gap at x62.3-63.0, sense gap at x64.9-66.0) so KRT traffic crosses on the opposite layer of each emitted run
 - next: emit stubs post-taps, re-route (4th), full chain to DRC
+
+## 2026-07-22 (v1.1) — iterate 4 (post-back: placement, not lanes)
+- did: run4 exposed the real cause - the NE escape corner hosted THREE gate parts whose nets cross every candidate stub path (R29's QG5 6.9mm detour, C22's LX pad far from LX copper, R31 pad order forcing QG7 across the spur). D-ADJ fix: R29 -> center alley (66.5,74.5) QG5 1.9mm; C22 -> ON the LX1 finger (BST1 is the routable side); R31 rot 270 (LG1 north / QG7 south, 1.8mm drop); R30/R17 shuffled west; LX1 finger extended [57.6,67.9,61.3,71.9] to absorb R17.1+C22.2. Seed stubs simplified to 3 runs; lanes re-sized per the w/2+0.28 hug rule with named crossing gaps (QG7, HG1, sense pair, C25 pad)
+- result: regenerated board AUDIT PASS, 0 courtyard overlaps, all 8 pad orientations verified by measurement; route 5 in flight
+- next: import -> taps -> seed stubs -> farms -> stitch -> DRC gate
