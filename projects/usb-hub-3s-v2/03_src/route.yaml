@@ -41,6 +41,10 @@ prep:
       sig: rest
 
 route:
+  # Promoted KRT chain (canon M3): the deterministic signal-route result. When
+  # no fresh build/FINAL marker exists, `import` uses this. Re-run `route` (KRT)
+  # only if PD-cell pins that carry KRT-routed signals move; then re-promote.
+  final: 03_src/route/final_chain.kicad_pcb
   krt: ~/gits/KiCadRoutingTools
   common:
     layers: [F.Cu, B.Cu]

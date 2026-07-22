@@ -243,12 +243,12 @@ silk:
   refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQL"}
   captions:
     - ["PROTECTED 3S PACK", 30.0, 36.0, 0.7]
-    - ["9-12.6V XT60 IN", 30.0, 38.0, 0.7]
+    - {text: "9-12.6V XT60 IN", at: [46.0, 40.0], size: 0.7, nudge: false}   # off J1 body/silk (was 30,38 -> silk_overlap)
     - ["FUSE 10A MINI", 35.0, 50.0, 0.7]
     - ["USB-A 5V 2A", 130.0, 33.0, 0.7]
     - ["USB-A 5V 2A", 130.0, 55.0, 0.7]
     - ["USB-A 5V 2A", 130.0, 77.0, 0.7]
-    - {text: "USB-C PD 5V/5A", at: [118.0, 106.0], size: 0.7, nudge: false}
+    - {text: "USB-C PD 5V/5A", at: [132.0, 110.0], size: 0.7, nudge: false}   # SE VBUSC pour, pad-free (was 118,106 -> 17x silk_over_copper on J5)
     - ["usb-hub-3s-v2", 30.0, 100.0, 0.8]
 
 asserts:
