@@ -481,6 +481,22 @@ def main():
                   detail or "protection ADRs all cited by an invariant",
                   detail or "a protection/topology ADR emitted no invariant")
 
+    # E-TOPO: converter TOPOLOGY must be DERIVED from Vin-vs-Vout, not
+    # interpreted. usb-hub-3s (2026-07-22): an IP6559 BUCK-BOOST + 16A trunk on
+    # a 5V-only USB-C port where Vout(5) < Vin_min(9) ALWAYS => a plain buck
+    # suffices; the buck-boost existed only for >5V PDOs the spec never pinned.
+    ptop = Path(__file__).resolve().parent / "power_topology.py"
+    ptp = proj / "03_src" / "rules" / "power_tree.yaml"
+    if not ptp.exists():
+        rows.append(("E-TOPO", "N-A", "no 03_src/rules/power_tree.yaml"))
+    else:
+        r = sh([sys.executable, str(ptop), str(proj)])
+        detail = (r.stdout + r.stderr).strip().replace("\n", " ")[:200]
+        grade("E-TOPO", r.returncode == 0,
+              detail or "every rail's converter topology matches Vin-vs-Vout",
+              detail or "a converter topology does not match the derived one "
+              "(over-engineered or cannot-meet)")
+
     # ---------------- meta ----------------
     reb = proj / "03_src" / "rebuild_all.sh"
     if reb.exists():

@@ -1,0 +1,59 @@
+# SCHEMA EXAMPLE (skill-owned, project-independent). Copy into a new project's
+# 03_src/rules/ and replace the values — the KEYS are the contract.
+#
+# POWER-TREE TOPOLOGY (canon E-TOPO). Makes converter-topology selection a
+# MECHANICAL commission-stage check DERIVED from Vin-vs-Vout, not interpreted.
+#
+# WHY: usb-hub-3s (2026-07-22) shipped an IP6559 BUCK-BOOST + 4 external FETs +
+# 30V-FET/TVS coordination + a 16A input trunk for a 5V-ONLY USB-C port. But
+# the battery is 9-12.6V and the output is 5V, so Vout(5) < Vin_min(9) ALWAYS:
+# a plain step-down BUCK sufficed. The buck-boost existed only to support >5V
+# PDOs the spec never required. Root cause: D-SPEC pinned the CURRENT ("5A
+# compliant") but never the OUTPUT VOLTAGE RANGE, and topology was interpreted.
+#
+# THE PHYSICS (deterministic — this is the whole check):
+#   Vout_max < Vin_min  -> BUCK        (step-down only)
+#   Vout_min > Vin_max  -> BOOST       (step-up only)
+#   ranges overlap      -> BUCK_BOOST  (must do both)
+# The converter's part.yaml `type:` (buck_converter / boost / buck_boost —
+# spellings normalized) must EQUAL the derived topology. MORE capable than
+# needed = over-engineering (FAIL, waiver-able with an ADR justifying the extra
+# capability, e.g. "future 20V PD"); LESS capable = cannot meet Vout (FAIL).
+#
+# Graded by: power_topology.py PROJECT_DIR (exit 1 names the offending rail).
+# Ad-hoc: power_topology.py --derive VIN_MIN VIN_MAX VOUT_MIN VOUT_MAX.
+
+# OPTIONAL: name the nets.yaml netclass that carries the shared input trunk.
+# When set, an input-trunk current declared MATERIALLY BELOW the derived worst
+# case is an under-built-copper FAIL (not just an advisory). Omit it and the
+# checker falls back to a heuristic and stays advisory-only.
+input_trunk_class: PWR_IN
+
+rails:
+  # A 5V-FIXED output rail sets vout_min == vout_max == 5. `converter` is the
+  # part MPN or its 02_parts directory name; its part.yaml `type:` is read.
+  - name: USB-A            # human label for the rail
+    vin_min: 9.0           # battery / input rail LOW  (worst case for buck)
+    vin_max: 12.6          # battery / input rail HIGH
+    vout_min: 5            # output envelope LOW  (== max for a fixed rail)
+    vout_max: 5            # output envelope HIGH
+    iout_max_A: 7          # max continuous output current, amps
+    converter: LM5116MHX-NOPB   # <refdes or part MPN / 02_parts dir name>
+    eff: 0.9               # converter efficiency (default 0.9 if omitted)
+
+  # A full-PD rail (5-20V) legitimately overlaps Vin -> buck_boost is REQUIRED
+  # and a buck_boost part PASSES (not over-engineering):
+  # - name: USB-C-PD
+  #   vin_min: 9.0
+  #   vin_max: 12.6
+  #   vout_min: 5
+  #   vout_max: 20
+  #   iout_max_A: 5
+  #   converter: IP6559-C
+  #   eff: 0.9
+
+# The checker also PRINTS the worst-case input-trunk current
+#   Sum(vout_max * iout_max) / eff / Vin_min
+# across all rails, and flags a declared trunk/fuse that is under-built
+# (materially below the derived need) or over-built (>2x it — the usb-hub-3s
+# 16A-vs-7A class). Always reported so the mismatch is visible.

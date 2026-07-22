@@ -104,6 +104,16 @@ handoff loses nothing.
   sink note) + a `Spec tensions` row in BRIEF.md flagged to the user.
   Silently building the out-of-spec reading, or silently downgrading the
   requirement, are both failures.
+  **VOLTAGE ENVELOPE, not just current.** Every power PORT/output pins its
+  voltage range (min/max), not only its current — an unpinned output voltage
+  is exactly what let converter TOPOLOGY be interpreted instead of derived
+  (usb-hub-3s 2026-07-22: "5A compliant USB-C" pinned the current but not the
+  5V-only output, so a buck-boost + 16A trunk was built where a buck sufficed).
+  Emit the envelopes into `03_src/rules/power_tree.yaml` (one row per rail:
+  vin/vout min-max, iout, converter) so the E-TOPO gate DERIVES the required
+  buck/boost/buck_boost from Vin-vs-Vout and asserts the chosen part matches —
+  over-capable (buck_boost where buck suffices) fails as over-engineering
+  unless an ADR justifies the extra capability.
   **SOURCING SPIKE (part of D-SPEC): scarcity is discovered at COMMISSION,
   never at parts stage.** For every SPEC-CRITICAL function (one a
   requirement/directive names explicitly — "5A compliant USB-C", "isolated

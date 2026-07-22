@@ -13,6 +13,7 @@ belongs here.
 |---|---|
 | `nets.yaml` | net classes: nets, current, intent, min_width, routing strategy, verify, scoped exemptions; `fab_tier` (capability floors for the generic backend); `scoped_floors` (insideArea width relaxations, `why` REQUIRED) |
 | `electrical_invariants.yaml` | design-INTENT assertions the netlist must satisfy (canon E-INV): `pin_on_net`, `series_chain`, `net_has_part`. Each REQUIRES `adr:` (the ADR that emitted it) + `why:`. Emitted by protection/topology ADRs; graded by `electrical_invariants.py` |
+| `power_tree.yaml` | per-rail voltage ENVELOPES + converter selection (canon E-TOPO): `{name, vin_min, vin_max, vout_min, vout_max, iout_max_A, converter, eff}`. Topology is DERIVED from Vin-vs-Vout (buck/boost/buck_boost) and asserted against the converter part.yaml `type:`; over-capable = over-engineering FAIL. Graded by `power_topology.py` |
 | `stackup.yaml` | layer count, what each layer is for, fab tier (optional) |
 | `twin_adjudications.yaml` | reviewed jlc_twin findings accepted WITH evidence (see jlcpcb-fab skill) |
 | `passives_lcsc.yaml` | passives BOM-comment -> LCSC seed map (bom_seed input; usb-hub-3s) |
