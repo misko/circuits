@@ -16,6 +16,7 @@ one that is unrecoverable if lost.
 | `CHANGELOG.md` | one entry per revision | see structure below |
 | `CHECKLIST.md` | the gate a revision must pass before release | |
 | `decisions/` | one file per decision | see `decisions/contracts.md` |
+| `renders/**` | TRACKED render pair per revision: `bare_<side>.png` (Cu+Mask+Silk fab view — the no-components truth) + the modeled twin renders. ALWAYS produced (SKILL stage 7); a bodiless modeled render means missing 3D model, never unpopulated — CPL is population ground truth (usb-hub-3s incident 2026-07-21) | committed |
 | `journal/` | per-stage diary: append an entry at every stage start/iteration/finish | see `journal/contracts.md`; enforced by policy_audit M-JRNL |
 | `learnings/` | per-stage harvest source, written at stage completion | see `learnings/contracts.md`; enforced by policy_audit M-LEARN at release |
 | `contracts.md` | this file | |
