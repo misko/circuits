@@ -95,3 +95,19 @@ requires (E-TOPO green). Deliverable of THIS run: the schematic gate
 | D2 | Two separate 5 V bucks (per-rail), not one shared 11 A buck | agent / ADR-0010 | architecture |
 | D3 | fab_tier = jlc_4layer_standard (target) | agent / D-TIER | tier |
 | D4 | PD source controller identity | sourcing spike / ADR-0004-v2 | parts (pending) |
+
+### D2 — 2026-07-22 — user directive (locks the 5A path)
+> "we need 5A @ 5V on the USBC its for a raspberry pi"
+Impact: USB-C = 5V/5A PD, HARD requirement (Raspberry Pi 5 draws 5V/5A via
+PD; without the 5A PDO it throttles peripheral current). Resolves the
+5A-vs-3A question from the schematic-gate report DECISIVELY toward 5A.
+- KEEP the TPS25740A PD source PHY (fixed 5V/5A PDO).
+- ADR-0011 (the 5V/3A plain-Rp alternative that would drop to standard tier)
+  is REJECTED by this directive — record it as rejected, do not delete the ADR.
+- fab_tier jlc_4layer_advanced STANDS and is now a JUSTIFIED D-TIER cost
+  (the TPS25740A 0.5mm QFN needs via-in-pad). This is the correct kind of
+  advanced-tier spend: paying for a GENUINELY-NEEDED 5A PD PHY, NOT for the
+  unused 20V boost that made v1 over-engineered. The distinction is the whole
+  point of D-TIER — an explicit, justified capability cost, not an accident.
+- Order-day: TPS25740A is NRND (recheck stock); its 5V OVP window is tight
+  (buck-C transient must stay inside it — bring-up check).
