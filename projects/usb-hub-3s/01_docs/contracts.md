@@ -25,8 +25,10 @@ one that is unrecoverable if lost.
 
 - Part datasheets or PDFs → `02_parts/<MPN>/`.
 - Stock, price, availability → volatile; `06_build/cache/`, never committed as truth.
-- Generated renders → `06_build/renders/`. Committed images are allowed ONLY if
-  hand-drawn (block diagrams) and their source is in `03_src/`.
+- Generated renders → `06_build/renders/`, EXCEPT the tracked
+  `renders/**` pair above (bare + modeled board views — the one
+  sanctioned committed-render set). Other committed images only if
+  hand-drawn (block diagrams) with source in `03_src/`.
 - Decisions inline in `ARCHITECTURE.md` — link to `decisions/NNNN-*.md` instead.
   Architecture says WHAT IS; decisions say WHY IT IS.
 
