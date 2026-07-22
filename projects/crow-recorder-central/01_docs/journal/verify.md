@@ -60,3 +60,21 @@
 - next: red-team release review (2 zero-context adversarial agents), then
   bom_seed/jlc_stock/twin re-verify + render pair + missing_models, policy_audit,
   harvest, seal v1.0.
+
+## 2026-07-22 — RED-TEAM RELEASE REVIEW + twin/stock/renders
+- did: launched 2 zero-context adversarial red-team agents (topology/protection,
+  layout/thermal/PI) + a fresh-context render review, all concurrent. Archived
+  all 3 verbatim in 08_reviews/ with provenance headers + DISPOSITIONS.md (19
+  findings, each verified vs artifacts). Re-ran bom_seed (187+6), jlc_stock
+  (live), jlc_twin (adjudicated), full twin render + missing_models.txt.
+- result: MEASURED — BOTH red-team verdicts = ORDER; render = PASS-WITH-NOTES;
+  ZERO P0. 4x P1 (F1 no-OVP-on-wrong-supply, L1 USB-pair layer-split, L2 buck
+  input-cap ~6mm, L3 analog input 106mm) all independently RE-CONFIRMED and
+  dispositioned to ORDER_README + v1.1 work order. R1 (USB-C edge) refuted as
+  defect — J12 flush 0.23mm, J9 overhangs 0.9mm (correct edge-mount). jlc_twin
+  EXIT=0 (all adjudicated incl. C90 FETCH-FAILED transient + U1 EP artifact).
+  jlc_stock: 2 zero-stock lines — XU316 C6938291 (ADR-0013 consign) + 10k 0402
+  C25744 (jellybean, in-stock drop-in C25804 stock 6.97M). policy_audit EXIT=0
+  (0 FAIL; PASS=19 incl. E-INV/E-TOPO/E-ADR, WAIVED=3, HUMAN=6, N-A=5).
+- next: policy_audit.md report + contracts audit; ledger/archetype harvest;
+  ORDER_README; seal 07_releases/v1.0-2026-07-22/.

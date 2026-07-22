@@ -159,3 +159,15 @@
     SOT-89-5_L4.5-W2.5-P1.50 = ours (KiCad SOT-89-5; the PR-G=SOT-89-5
     suffix trap was caught in 02_parts/XC6227C331PR-G/part.yaml; pin map
     verified from Torex ETR03054-006 figure; tab = pin 2 = VSS on GND).
+- lcsc: C48970904
+  refs: [C90]
+  status: FETCH-FAILED
+  why: >
+    ADJUDICATED FETCH-FAILED (JLC API transient — code C48970904 was retried
+    3x this session, incl. JLC_TWIN_FETCH_ATTEMPTS=8, and never returned CAD;
+    this is a NETWORK error, NOT 'no CAD in the library'). Land verified from
+    the board itself: footprint Capacitor_SMD:CP_Elec_4x5.4 = the standard
+    KiCad 4.0mm-dia SMD aluminum-electrolytic land (2 pads 2.6x1.6mm on 3.60mm
+    centers), carrying the 100uF/5V bulk cap on the 5V rail. Generic
+    2-terminal electrolytic land + polarity-marked; JLC order-time preview
+    confirms geometry AND polarity. FLAG: verify C90 polarity at order preview.
