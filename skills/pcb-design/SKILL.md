@@ -392,6 +392,31 @@ jlc_stock run first (seconds, and twin consumes the BOM).
   render** (`03_tscircuit/build/schematic.pdf`), NOT a KiCad re-render (ADR-0002
   Phase A) — ship it as `pdf/schematic.pdf`.
 
+- **RED-TEAM RELEASE REVIEW (standard, 2026-07-21 — runs on EVERY
+  release).** After the pin/render reviews pass, launch TWO zero-context
+  ADVERSARIAL reviewer sub-agents in parallel, each given ONLY the release
+  archive + dev package (01_docs, 02_parts, 03_src) and told to hunt for
+  defects, not confirm correctness:
+  (a) **topology/protection/ratings lens** — trace protection chains from
+  the NETLIST (reverse-polarity behavior incl. TVS directionality), check
+  every clamp-vs-protected-part rating pair from part.yaml limits,
+  recompute thresholds at worst-case corners, diff design docs vs the
+  implemented BOM/netlist;
+  (b) **layout/thermal/power-integrity lens** — MEASURE the board with
+  pcbnew (hot-loop spans in mm, switch-node zone areas + layer adjacency
+  vs the stackup, gate-drive routing, thermal vias vs computed
+  dissipation).
+  Each returns P0/P1/P2 findings with cited evidence and an
+  ORDER / DO-NOT-ORDER verdict. The release report MUST include the
+  **findings table** (finding | severity | evidence | disposition) and
+  both verdicts. **A P0 finding blocks the release** — fix and re-gate, or
+  supersede; P1s land in ORDER_README + the next-rev work order; P2s are
+  recorded. Rationale: internal gates prove artifacts agree WITH EACH
+  OTHER; the D1 reverse-polarity TVS defect (usb-hub-3s v1.0, found by an
+  external review 2026-07-21) passed ERC, DRC, parity, twin, and pin
+  review because every artifact was consistently wrong together — only an
+  adversarial fresh-context read of intent-vs-netlist caught it.
+
 - POLICY AUDIT (final gate): `/usr/bin/python3
   <kicad-pcb skill>/scripts/policy_audit.py <project>` — zero FAIL; any
   WAIVED entry evidence-backed in `03_src/rules/policy_waivers.yaml`; the
