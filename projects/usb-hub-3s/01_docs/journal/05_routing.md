@@ -91,3 +91,16 @@ fixpoint on a Python-side model, one removal batch at the end.
 - did: grind_driver cycle 1 ran rebuild_all.sh (taps: 29/29 OK; seed_stubs: 0/3 refused collision). Escalation: clearance (127 quick-check zone-clearance findings on unfilled board). Root cause diagnosis: the promoted route (03_src/route/final_chain.kicad_pcb, timestamp 07:02) predates placement fixes from iterate 4 (timestamp 01:27→07:02, journal says "route 5 in flight"). Route does not carry the new crossing gaps (QG7 gate x62.3-63.0, sense x64.9-66.0) required for LX1 + VOUT_PDS/VOUT_PD stubs to thread. Detailed refusals: LX1 blocked by LG2 track, VOUT_PDS blocked by HG1, VOUT_PD blocked by SNS_OUT_N. These are NOT tap routing failures (taps succeeded); these are seed-stub placement failures caused by route geometry mismatch.
 - result: DRC remains 19 violations / 88 unconnected (unfilled zones, GND plane fragmentation). Auto-fix mechanisms (zones_intersect_same_net, unconnected_zone_islands, tap_reattempt, seed_stubs) cannot proceed on a route that lacks the structural support for stubs. This is D-BACK material (placement decision rippled forward, route must regenerate).
 - next: HANDOFF — needs Tier-2 frontier judgment to re-run KRT route with updated placement geometry (the gap definition and the parts now placed on the alley / finger extensions)
+
+## 2026-07-22 — HANDOFF at routing gate
+**State:** Tier-1 grind completed; escalation identified and root-caused. Placement changes from iterate 4 are stable (AUDIT PASS); route stale (predates D-ADJ changes). Auto-fixes cannot proceed.
+
+**Escalation class:** zones_intersect (same-net priority bump) and unconnected_zone_islands blocked by route geometry that cannot accommodate seed stubs. Cannot fill → cannot heal islands.
+
+**Next step (Tier-2):** KRT re-route with updated placement. Config to pass:
+- 03_src/route.yaml: update keepout corridors to reflect new parts on center alley (R29), LX1 finger extension (C22/R17), and R31 rotation
+- Run KRT with the new crossing gaps explicitly defined (QG7 gate gap x62.3-63.0, sense pair gap x64.9-66.0, HG1 gap)
+- Import → taps → seed_stubs → via_farms → stitch → DRC
+- Expected outcome: stubs place cleanly; zones heal; 0/0/0 gate
+
+**Open hypotheses:** the new part placement may require fine-tuning of the gap boundaries; HG1 stub may also need a dedicated gap if gate crossing fails; tap reattempt will re-run with the new geometry if needed.
