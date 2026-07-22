@@ -412,3 +412,126 @@ functions:
              solder limit ~2s per lead"
           - "3.9k bias from RC-filtered rail (100R+100u) — bias string on the
              FILTERED node, op-amp on the raw rail (PSRR covers it)"
+
+  # ---- mixed-signal-audio-hub harvest (crow-recorder-central v1.0, sealed
+  #      2026-07-22): USB-audio-recorder core. All escape blocks verified by
+  #      escape_check at the board's declared tier; pin maps verified by
+  #      fresh-context reviews; topology verified by the v1.0 red-team. ----
+
+  usb-audio-soc-xcore:
+    candidates:
+      - mpn: XU316-1024-TQ128-I24
+        maker: XMOS
+        lcsc: C6938291
+        package: TQFP-128, 14x14mm body, 0.40mm pitch, 4.7mm exposed GND paddle (pin 129)
+        escape: {style: leaded, pitch: 0.4, tier_required: jlc_6layer_smallvia}
+        status: shipped
+        provenance: crow-recorder-central v1.0
+        gotchas:
+          - "STOCK IS THE HARD PART: JLC assembly stock is chronically 0 — it
+             is a CONSIGNMENT / global-sourcing line (ADR-0013). Plan the
+             consign at commission, not at order (D-SPEC sourcing spike)."
+          - "0.4mm TQFP-128 does NOT close full routing at 4L — the escape
+             geometry alone hints 4L-advanced, but real DRC needed 6L +
+             SMALL-VIA (0.30/0.15) via-in-pad on the EP and inner rings
+             (ADR-0008 escalation, ADR-0009 small-via, D-TIER ADR-0012)."
+          - "EP (pin 129) = GND: vendored footprint carries the EP pad + a
+             4x4 (16) thermal-via grid per XMOS 14.4; the duplicate pad-129
+             numbering trips jlc_twin PAD-MISMATCH — adjudicate (artifact),
+             electrical coverage is the 129-pin fresh-context pin review."
+          - "Power domains: VDD core 0.9V (buck), VDDIO banks 3.3V, VDDIOB18
+             + USB_VDD18 on 1.8V. LV_x_N strap pins HIGH (3V3) select 3.3V IO
+             mode — must match the VDDIO rail or the bank mis-drives."
+          - "JTAG (TDI/TDO/TMS/TCK) sits on the 1.8V IOB bank (abs-max 1.98V)
+             — bring-up must use a 1.8V-level probe, not 3.3V."
+        layout_refs:
+          - "XMOS xcore.ai TQ128 datasheet Fig 22 (package) + §14.3/14.4
+             (EP + 16-via 4x4 grid); board escape re-derived, copper not imported"
+
+  audio-adc-8ch-tdm:
+    candidates:
+      - mpn: PCM1865DBTR
+        maker: Texas Instruments
+        lcsc: C181312
+        package: TSSOP-30 (DBT), 0.5mm pitch
+        escape: {style: leaded, pitch: 0.5, tier_required: jlc_4layer_advanced}
+        status: shipped
+        provenance: crow-recorder-central v1.0 (2 units, TDM daisy = ch1-4 / ch5-8)
+        gotchas:
+          - "CLOCK TRAP: drive MCLK into SCKI (pin 15, 3.3V) and TIE XI
+             (pin 10) TO GND — XI abs-max is 2.1V; feeding MCLK into XI
+             overstresses it (PCM1865 part.yaml)."
+          - "Two-chip TDM: share BCLK/LRCK/MCLK via SOURCE-SERIES 33R links
+             (one 33R per shared clock at the driver); I2C address strapped
+             by AD pin (GND/3V3 -> 0x4A/0x4B), MD0=GND selects I2C control."
+          - "Split supply: AVDD on the QUIET analog rail (own LDO, 3V3A),
+             DVDD/IOVDD on the digital 3V3; join only at GND. AVDD isolation
+             is only as good as its local bulk+HF decoupling."
+
+  buck-1a5-sot563:
+    candidates:
+      - mpn: AP61102Z6-7
+        maker: Diodes Inc
+        lcsc: C5224055
+        package: SOT-563, 6-lead, 0.5mm pitch
+        escape: {style: leaded, pitch: 0.5, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: crow-recorder-central v1.0 (5V->3V3 and 5V->0V9 core)
+        gotchas:
+          - "EN doubles as MODE: EN tied to VIN = PFM (light-load tones);
+             drive EN < VIN-200mV from logic for FORCED-PWM (lower ripple —
+             the audio-board choice). This board runs PFM (digital rails +
+             LDO-buffered analog make it tolerable) but forced-PWM is the
+             cleaner default for a mixed-signal board."
+          - "VIN abs-max 6.5V, internal OVP stops switching at 6.3V but does
+             NOT protect the VIN pin from over-voltage — the 5V rail needs
+             its own OVP if the input can exceed 6.3V."
+          - "Sequence a dependent rail with PG: 0V9 core EN <- 3V3 buck PG,
+             so the core comes up after its IO rail."
+          - "Keep the VIN input cap <2mm from VIN/GND — the hot loop is the
+             EMI/ripple driver (red-team L2: 6mm was flagged P1)."
+
+  clock-buffer-2ch-lvcmos:
+    candidates:
+      - mpn: NC7NZ34K8X
+        maker: onsemi (Fairchild)
+        lcsc: C232798
+        package: US8 (MO-187 CA), 0.5mm pitch
+        escape: {style: leaded, pitch: 0.5, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: crow-recorder-central v1.0 (MCLK fanout to 2 ADCs)
+        gotchas:
+          - "3-input triple buffer used as a 1->2 fanout: tie all inputs to
+             MCLK_SRC, take Y1/Y2 to the two loads, leave the unused output
+             open with its input still driven."
+
+  analog-ldo-quiet-3v3:
+    candidates:
+      - mpn: XC6227C331PR-G
+        maker: Torex
+        lcsc: C6035451
+        package: SOT-89-5
+        escape: {style: leaded, pitch: 1.5, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: crow-recorder-central v1.0 (5V->3V3A analog rail for 2x PCM1865 AVDD)
+        gotchas:
+          - "CE (pin 1) is active-high WITH internal pulldown (type C):
+             floating CE = OFF. Tie CE to VIN for always-on."
+          - "SOT-89-5 twin trap: JLC's fetched footprint numbers BOTH the
+             center lead and the tab '2' (dup pad) -> PAD-MISMATCH artifact,
+             adjudicate; tab = pin 2 = VSS on GND (Torex ETR03054-006)."
+          - "VIN abs-max 6.5V, no OVP — same 5V-rail OVP caveat as the bucks."
+
+  ldo-1v8-200ma:
+    candidates:
+      - mpn: TLV70018DDCR
+        maker: Texas Instruments
+        lcsc: C79924
+        package: SOT-23-5 (DDC / X2SON alt)
+        escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: crow-recorder-central v1.0 (3V3->1V8 for XU316 VDDIOB18/USB_VDD18)
+        gotchas:
+          - "On the BOM as the in-stock 1V8 LDO; the pin-compatible TCR2LF18
+             (Toshiba) is the exact-MPN fallback (ADR-0015). Fed from 3V3,
+             not 5V — comes up right after 3V3 so it is never the last rail."

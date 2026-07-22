@@ -15,6 +15,11 @@ belongs here.
 | `stackup.yaml` | layer count, what each layer is for, fab tier (optional) |
 | `twin_adjudications.yaml` | reviewed jlc_twin findings accepted WITH evidence (see jlcpcb-fab skill) |
 | `passives_lcsc.yaml` | passives BOM-comment -> LCSC seed map (bom_seed input; usb-hub-3s) |
+| `power_tree.yaml` | per-rail Vin/Vout envelope + converter (E-TOPO gate input, canon E-TOPO) |
+| `electrical_invariants.yaml` | netlist intent assertions (E-INV/E-ADR gate input, canon E-INV) |
+| `policy_waivers.yaml` | evidence-backed policy_audit waivers (canon M4) |
+| `policy_audit.json` | policy_audit HUMAN-grade verdict cache |
+| `silk_attribution_waivers.json` | refdes silk-attribution waivers (audit I10) |
 | `contracts.md` | this file |
 
 ## The rule that makes this folder worth existing

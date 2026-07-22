@@ -90,7 +90,52 @@ replicate the analog cell along the long axis before widening the board.
 
 ---
 
+## mixed-signal-audio-hub (port bank fan-IN → analog ADC spine → digital MCU + USB out)
+
+FOUNDED from the sealed crow-recorder-central v1.0 floorplan (6-layer JLC
+small-via, 176x122, F/In1-GND/In2/In3/In4-GND/B). The INVERSE of the
+analog-audio-pod: many cable ports fan IN to one board. The organizing
+principle is a THREE-BAND HORIZONTAL STRIPE with the quiet analog cell as a
+spine between the two noisy bands, so ADC copper never shares a band with
+either the switching supplies or the beeper-return currents:
+
+- **NORTH edge: the port bank** — the repeat pattern of cable jacks (8x
+  RJ45) with each port's ESD array HARD against its signal tails and its
+  per-port protection (audio/beep PTCs, low-side switched-return FET) in
+  the same north strip. The switched-return (beeper) current path lives
+  ENTIRELY in this north band — it never crosses south into the analog
+  band (a placement invariant, audit-enforced by net-separation).
+- **CENTER band: the analog ADC spine** — the ADC(s) (2x PCM1865) spread
+  left/right flanking the board centerline, the quiet analog LDO (XC6227
+  3V3A) between them, and every ADC's coupling/bias web within 2-5mm of its
+  pins. This band is the electrical firewall: it is fed by its OWN LDO rail
+  (3V3A) off the 5V input, NOT the digital buck rail, and is joined to the
+  digital domain only inside the ADC die and at GND.
+- **SOUTH: the digital cell** — the big MCU (XU316 TQFP-128) centered with
+  its flash, crystal, and clock buffer clustered on its hard-net side, and
+  the off-board data port (USB-C device) at the south edge, mating face to
+  the board edge (verified flush/overhung, not set back). The MCLK tree
+  (source → buffer → per-ADC 33R series links) runs north from the buffer
+  into the analog band on short, series-terminated legs.
+- **WEST/SW corner: the power cluster** — DC/barrel input + protection
+  chain (PTC → TVS → reverse-FET) in series-current order, then the
+  step-down converters (2x buck for the digital 3V3 + core 0V9, sequenced
+  by power-good) and the 1V8 LDO. Kept in one corner, off the analog spine.
+- **GND = In1 + In4 solid planes + F/B pours + heavy stitch** (this board:
+  95% plane fill, 414 stitch vias). Power is DRU-floored TRACKS on the
+  signal layers (no dedicated power plane on 6L); switch nodes are tight
+  track-only islands, no pour.
+
+Scaling notes: add ADC channels by widening the CENTER band along the long
+axis (keep the analog LDO central); add ports by extending the NORTH repeat.
+The failure mode to watch (measured on the sealed instance, dispositioned
+P1): the USB-HS pair and the long analog-input runs are the two hardest
+routes — reserve the USB pair a short F.Cu-only lane from the port to the
+MCU BEFORE placing the port bank, and keep balanced-audio input legs short
+and symmetric rather than letting one leg wander the 176mm board.
+
+---
+
 _No other class has shipped enough boards to earn an archetype yet.
 Candidates when they do: sensor-chain (cook-loadcell family),
-mixed-signal-audio-hub (crow-recorder-central, when it seals),
 mcu-hub (cook-hub). Found them from the sealed floorplans, not memory._
