@@ -11,7 +11,7 @@ SKILLS="$(cd "$(dirname "$0")/../../.." 2>/dev/null && pwd)/skills/kicad-pcb/scr
 [ -d "$SKILLS" ] || SKILLS="$HOME/.claude/skills/kicad-pcb/scripts"
 mkdir -p 06_build/netlists 06_build/drc 06_build/route
 python3 03_src/make_lib.py | tail -1
-python3 03_src/generate_schematic.py | tail -1
+POD_REV=v1.0 python3 03_src/generate_schematic.py | tail -1
 kicad-cli sch export netlist -o 06_build/netlists/crow_mic_pod.net 04_kicad/crow_mic_pod.kicad_sch >/dev/null
 # ERC gate: 0 violations at severity-all
 kicad-cli sch erc --severity-all --format json -o 06_build/drc/erc.json 04_kicad/crow_mic_pod.kicad_sch >/dev/null

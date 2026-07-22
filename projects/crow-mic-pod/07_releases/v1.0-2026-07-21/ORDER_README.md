@@ -33,6 +33,16 @@ recorder port) — see 01_docs/decisions/0004-rj45-termination.md.
 5. Qty > refs on small passives = attrition padding, normal.
 6. Layer count 2 in the order form.
 
+## Standalone DRC note (independent re-measure)
+
+The shipped `source/` folder includes the sidecar `.kicad_pro`/`.kicad_dru`/
+`fp-lib-table`: DRC of the board file WITHOUT them falls back to KiCad
+defaults (0.2mm clearance, no silk text floors) and reports ~130 phantom
+violations. Re-measure with the sidecars in place:
+`kicad-cli pcb drc --severity-all --refill-zones source/crow_mic_pod.kicad_pcb`
+-> 1 cosmetic lib_footprint_issues (project-lib path) / 0 unconnected.
+The gate evidence (0/0/0 with parity) is verification/drc.json.
+
 ## Hand-solder list (uncoded lines, Digi-Key order)
 
 | Ref | Part | Digi-Key | Note |

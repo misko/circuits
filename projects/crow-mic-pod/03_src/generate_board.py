@@ -132,6 +132,9 @@ SILK = [
     ("MIC PADS", 139.5, 66.2, 0.7), ("MIC+", 135.8, 70.5, 0.6),
     ("MIC-", 135.8, 73.04, 0.6),
     # TPs
+    # DNP provisions marked on silk (render review F4: D3 said DNP, L1/R15
+    # did not — an inspector reads unmarked empty pads as missing parts)
+    ("DNP", 97.4, 54.2, 0.6), ("DNP", 70.5, 54.7, 0.6),
     ("SHIELD", 65.5, 54.7, 0.6), ("AUD+", 75.0, 54.7, 0.6),
     ("AUD-", 80.5, 54.7, 0.6), ("2V5", 126.5, 87.6, 0.6),
     ("5V", 103.0, 90.6, 0.6), ("GND", 108.5, 90.6, 0.6),
@@ -428,6 +431,26 @@ def main():
         else:
             raise RuntimeError(f"no clear spot for {dref} cathode K mark")
 
+    # render-review F1/F2 fixes: preferred slots tried FIRST for refs whose
+    # de-collided label landed closer to a NEIGHBOR than to its own body
+    # (C3's text sat 5.5mm away past R3; J1's rotated text jammed into D2's
+    # K mark). Keep labels WEST of the U1 passive column; J1 upright.
+    # RED-FIXTURE HOOK (tests/README: a gate that cannot fail is worthless):
+    # POD_SILK_CHECK_POISON=<ref> forces that ref's label toward its south
+    # neighbor; the ambiguity check below MUST then raise. Red-verified
+    # 2026-07-21 (see journal/verify.md).
+    import os
+    _poison = os.environ.get("POD_SILK_CHECK_POISON")
+    PREF_OFF = {
+        "C3": [(-2.6, 0), (2.6, 0)],
+        "R3": [(-2.6, 0), (2.6, 0)],
+        "R7": [(2.6, 0), (-2.6, 0)],
+        "R9": [(2.6, 0), (-2.6, 0)],
+        "J1": [(0, -8.6), (0, -9.4), (-7.4, 5.0), (0, 8.6)],
+        "C7": [(2.6, 0), (3.2, 0), (0, -1.6)],
+    }
+    if _poison:
+        PREF_OFF[_poison] = [(0, 3.4), (0, 3.6), (0, 3.8)]
     OFF = [(0, o * s) for o in (1.0, 1.6, 2.2, 2.9, 3.6, 4.4, 5.2, 6.0) for s in (-1, 1)] + \
           [(o * s, 0) for o in (1.3, 2.0, 2.8, 3.6, 4.5, 5.4, 6.2) for s in (-1, 1)] + \
           [(dx, dy) for d in (1.4, 2.2, 3.0, 4.0, 5.0) for dx in (-d, d) for dy in (-d, d)] + \
@@ -455,9 +478,11 @@ def main():
             continue
         ref.SetLayer(pcbnew.F_SilkS)
         ref.SetVisible(True)
+        if r == "J1":
+            ref.SetTextAngleDegrees(0)   # F2: upright like every other refdes
         fx, fy = MM(fp.GetPosition().x), MM(fp.GetPosition().y)
         placed_ok = False
-        for dx, dy in OFF:
+        for dx, dy in PREF_OFF.get(r, []) + OFF:
             ref.SetPosition(pcbnew.VECTOR2I_MM(fx + dx, fy + dy))
             cand = box(ref.GetBoundingBox())
             if not (X0 + 0.2 < cand[0] and cand[2] < X1 - 0.2
@@ -473,6 +498,40 @@ def main():
         if not placed_ok:
             ref.SetVisible(False)
             waived.append(r)
+    # AMBIGUITY CHECK (render review F1, candidate-canon): a legally
+    # de-collided label can still land closer to a NEIGHBOR body than its
+    # own — flag every visible silk refdes whose text center is nearer
+    # another (non-H, same-class-size) footprint's body center.
+    def bbox_dist(tx, ty, f):
+        bb = f.GetBoundingBox(False, False)
+        x0, y0, x1, y1 = MM(bb.GetLeft()), MM(bb.GetTop()), MM(bb.GetRight()), MM(bb.GetBottom())
+        dx = max(x0 - tx, 0, tx - x1)
+        dy = max(y0 - ty, 0, ty - y1)
+        return (dx * dx + dy * dy) ** 0.5
+    fps = {f.GetReference(): f for f in board.GetFootprints()
+           if not f.GetReference().startswith("H")}
+    ambiguous = []
+    for r, f in fps.items():
+        if r in waived or not f.Reference().IsVisible():
+            continue
+        tx, ty = MM(f.Reference().GetPosition().x), MM(f.Reference().GetPosition().y)
+        own = bbox_dist(tx, ty, f)
+        def area(g):
+            bb = g.GetBoundingBox(False, False)
+            return max(MM(bb.GetWidth()) * MM(bb.GetHeight()), 1e-3)
+        for r2, f2 in fps.items():
+            if r2 == r:
+                continue
+            # confusion is a same-scale phenomenon: a big connector's bbox
+            # swallowing a testpoint label misleads nobody
+            if area(f2) > 4.0 * area(f):
+                continue
+            if bbox_dist(tx, ty, f2) < own - 0.05:
+                ambiguous.append((r, r2, round(own, 2)))
+                break
+    if ambiguous:
+        raise RuntimeError(f"ambiguous refdes placement (text nearer a neighbor "
+                           f"than its own body): {ambiguous}")
     (HERE.parent / "06_build").mkdir(exist_ok=True)
     (HERE.parent / "06_build" / "refdes_waiver.json").write_text(
         json.dumps(sorted(waived)))
