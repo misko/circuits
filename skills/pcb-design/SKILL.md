@@ -63,7 +63,7 @@ handoff loses nothing.
 - Pick a short kebab-case project name from the brief.
 - `mkdir -p ~/gits/circuits/projects/<name>` with the numbered stage
   folders `01_docs 02_parts 03_src 03_tscircuit 04_kicad 05_firmware
-  06_build 07_releases`. Copy each folder's `contracts.md` from the SKILL's
+  06_build 07_releases 08_reviews`. Copy each folder's `contracts.md` from the SKILL's
   OWN canonical set — `<pcb-design skill>/templates/contracts/<stage>/contracts.md`
   (and `templates/contracts/ROOT.contracts.md` → the project-root
   `contracts.md`). **The skill is project-independent: never copy contracts
@@ -407,7 +407,10 @@ jlc_stock run first (seconds, and twin consumes the BOM).
   vs the stackup, gate-drive routing, thermal vias vs computed
   dissipation).
   Each returns P0/P1/P2 findings with cited evidence and an
-  ORDER / DO-NOT-ORDER verdict. The release report MUST include the
+  ORDER / DO-NOT-ORDER verdict. Reviews are archived VERBATIM in
+  `08_reviews/` (see its contract: provenance header, DISPOSITIONS.md
+  ledger; external reviews received are archived there too) and copied
+  into the release `verification/`. The release report MUST include the
   **findings table** (finding | severity | evidence | disposition) and
   both verdicts. **A P0 finding blocks the release** — fix and re-gate, or
   supersede; P1s land in ORDER_README + the next-rev work order; P2s are

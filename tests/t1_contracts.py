@@ -132,7 +132,7 @@ def t_template_seed():
     tpl = ROOT / "skills" / "pcb-design" / "templates"
     d = tmpdir("seed_")
     stages = ["01_docs", "02_parts", "03_src", "03_tscircuit", "04_kicad",
-              "05_firmware", "06_build", "07_releases"]
+              "05_firmware", "06_build", "07_releases", "08_reviews"]
     for s in stages:
         (d / s).mkdir()
         shutil.copy(tpl / "contracts" / s / "contracts.md", d / s)

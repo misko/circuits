@@ -24,7 +24,7 @@ design source on 2026-07-20; the fix is that the skill carries its own canon.
 ## Commission a new board (what the SKILL does)
 
 ```
-for s in 01_docs 02_parts 03_src 03_tscircuit 04_kicad 05_firmware 06_build 07_releases; do
+for s in 01_docs 02_parts 03_src 03_tscircuit 04_kicad 05_firmware 06_build 07_releases 08_reviews; do
   cp <skill>/templates/contracts/$s/contracts.md  projects/<name>/$s/contracts.md
 done
 cp <skill>/templates/contracts/ROOT.contracts.md  projects/<name>/contracts.md
