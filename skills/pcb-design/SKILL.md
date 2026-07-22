@@ -87,8 +87,12 @@ handoff loses nothing.
 - If the brief is underspecified on something that changes the design
   (voltage/current envelope, port counts, protection expectations, size,
   budget/tier), ASK the user now — 2-4 questions max — and record Q#/A#.
-  If the user is absent, make the conservative choice, record it as D#
-  with reasoning, and flag it in the final report.
+  If the user is absent, make the conservative choice — which for an
+  ambiguous CAPABILITY means the SIMPLEST reading that satisfies the
+  stated requirement, NOT the most capable (a "5A USB-C" is 5V/5A until
+  told otherwise, not 5-20V/100W) — record it as D#, and flag it LOUDLY
+  in the report. The most-capable reading is where over-engineering hides
+  (usb-hub-3s 2026-07-22; see the SPEC-CHECK rule in D-BACK).
 - **D-SPEC, spec-tension check (a GATE, with D-ESC/D-TIER/D-ADJ).** Test
   every numeric requirement against (a) the governing standard and (b) the
   sourceable-part envelope BEFORE architecture. A brief can demand what no
@@ -164,6 +168,25 @@ until the spec itself):
 | package cannot escape | part selection | different package per escape_check |
 | no sourceable compliant part | architecture, then spec | topology change, or a D-SPEC tension ADR + user flag |
 | schematic/parity churn | parts (pin maps) | part.yaml re-verification vs the datasheet FIGURE |
+| **difficulty traces to an ARCHITECTURE forced by a spec reading** | **spec (ask/flag)** | **is this wall intrinsic to the spec, or to my INTERPRETATION of it?** |
+
+**SPEC-CHECK ON HARD WALLS (the cheapest backtrack of all — a question).**
+Before grinding through architecture-driven difficulty, ask whether the
+wall is intrinsic to the requirement or to how you READ it. Some hardness
+is a spec ambiguity a single clarification dissolves — not a design
+problem. When the causal edge points at the spec:
+- **User reachable** → ASK a targeted question before building the
+  complexity. ("USB-C: 5V-only, or full PD up to 20V? — that is buck vs
+  buck-boost.") A 30-second answer beats hours of grind.
+- **User absent (autonomous run)** → take the SIMPLEST reading that
+  satisfies the STATED requirement, never the most capable; record it as a
+  `D#` assumption AND surface it LOUDLY in the final report (a
+  cost-driving assumption buried in an ADR is one the user won't catch
+  until a respin). Incident (usb-hub-3s 2026-07-22): "USB-C PD" was read
+  as full 5-20V (buck-boost, 100W, 16A, a congested PD cell) when the spec
+  was 5V/5A (a simple buck, 55W, ~7A) — the most-complex reading, chosen
+  when the agent could not ask. E-TOPO now catches the topology
+  mechanically; this rule catches the interpretation before it is built.
 
 **3. The backtrack contract — what to carry.** Before leaving stage X:
 (a) commit the attempt (WIP checkpoint — the failed state is evidence,
