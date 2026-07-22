@@ -57,7 +57,8 @@ classes:
       Gate drives + bootstraps for the 7 power FETs (LM5116 HO/LO/HB;
       IP6559 HG/LG/BST pairs, path-FET gate). Amps of pulse current,
       short runs. 0.4mm floor.
-    nets: [HO_A, LO_A, BOOT_A, HG1, HG2, LG1, LG2, BST1, BST2, PATH_G]
+    nets: [HO_A, LO_A, BOOT_A, HG1, HG2, LG1, LG2, QG4, QG5, QG6, QG7,
+           BST1, BST2, PATH_G]
     current: "gate pulses (~2 A pk)"
     min_width: 0.3mm
     clearance: 0.09mm
@@ -148,7 +149,7 @@ scoped_floors:
       bootstrap return taps (U2.20 -> C18.2 -> pour) and the 5VA
       VOUT-sense run (pour -> R2.1/U2.10 FB divider), not the power path.
   - zone: pd_sense
-    nets: [HG1, HG2, LG1, LG2, BST1, BST2, PATH_G]
+    nets: [HG1, HG2, LG1, LG2, QG4, QG5, QG6, QG7, BST1, BST2, PATH_G]
     min_width: 0.19
     why: >
       KRT emits sub-nominal pad-attach tapers (0.1998mm x 0.14mm) at the

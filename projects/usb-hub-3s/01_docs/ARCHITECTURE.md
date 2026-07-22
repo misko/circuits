@@ -13,21 +13,31 @@ behavior is silicon + straps. Why: decisions/0001..0005.
 ```
 J1 XT60 (3S LiPo, 9.0–12.6 V, ≤15.5 A worst case)
   └─ F1 20 A MINI blade ─ VBAT_F
-       └─ Q1 P-FET reverse-polarity switch ─ VIN   (D1 SMBJ15A TVS + bulk)
+       └─ Q1 P-FET reverse-polarity switch ─ VIN   (D1 SMBJ15A TVS + bulk, ON VIN
+            │                                       behind Q1 — non-destructive on
+            │                                       reversal; ADR 0001 amendment)
             ├─ U2 LM5116 buck (Q2 HS / Q3 LS, L2 6.8 µH, Rs 10 mΩ) ─ 5VA  5 V / 7 A cont
             │    ├─ U3 TPS2557 (ILIM ≈3 A) ─ VBUSA1 → J2 USB-A   ─ 2 A cont / 2.5 A burst
-            │    ├─ U5 TPS2557 ─ VBUSA2 → J3 USB-A
-            │    ├─ U7 TPS2557 ─ VBUSA3 → J4 USB-A
+            │    ├─ U4 TPS2557 ─ VBUSA2 → J3 USB-A
+            │    ├─ U5 TPS2557 ─ VBUSA3 → J4 USB-A
             │    └─ D2 ─ VCONN5V (e-marker Vconn feed, tens of mA)
-            └─ U9 IP6559-C buck-boost (Q4 HG2/Q5 LG2/Q6 HG1/Q7 LG1, L1 10 µH)
+            └─ U1 IP6559-C buck-boost (Q4 HG2/Q5 LG2/Q6 HG1/Q7 LG1, L1 10 µH,
+                 R28–R31 gate-R slots 0 Ω)
                  ─ VOUT_PD (3.3–21 V) ─ Q8 path NFET ─ VBUSC → J5 USB-C
                     5 V/9 V/12 V @3 A, 20 V @5 A (e-marked), PPS 3.3–21 V ≤5 A
-UVLO: U10 TLV431 + Q13 sense VIN, gate U9 EN (GPIO18); U2 has its own UVLO
-divider at the same 8.8 V falling / ≥9.4 V rising thresholds (ADR 0001).
+UVLO (single mechanism, ADR 0001 as amended): U2's precision UVLO pin is the
+board's ONE undervoltage authority (divider R5/R6, 9.65 V rising / 8.84 V
+falling typ; worst-case band in DETAIL_DESIGN §2). U1's EN (pin 5) is gated
+from 5VA presence via R21/R22 — when the buck is UVLO'd, 5VA collapses and
+the PD stage disables too. There is NO TLV431/comparator on this board.
 ```
 
 Brown-out order: 5VA holds to VIN ≈ 5.5 V (buck dropout) but UVLO cuts both
 converters at 8.8 V falling first — the pack is protected before any rail sags.
+
+Naming note (review X11): this board is a CHARGING DISTRIBUTOR, not a USB
+data hub — the TPS2513A terminates D+/D− per port for DCP advertisement and
+there is no upstream USB data path.
 
 ## Net domains
 
@@ -59,7 +69,7 @@ State in every release ORDER_README.
 ## Ground strategy
 
 Single GND net. In1 solid and unbroken (a future router must not slice it).
-AGND pins of U9 (11/28/30) tie at the chip; sense-line pairs route
+AGND pins of U1 (11/28/30) tie at the chip; sense-line pairs route
 differentially to the 5 mΩ shunts. Stitch vias bond F/B pours to In1.
 
 ## Critical geometries
@@ -69,7 +79,7 @@ differentially to the 5 mΩ shunts. Stitch vias bond F/B pours to In1.
 - **Kelvin sense**: R_s5m input/output shunts — CSP/CSN taps leave from the
   pad ends, parallel pair, never sharing trunk copper (IP6559 DS §13.5).
 - **LX web**: L1 between Q4/Q6 LX nodes — wide, short; RC snubbers at each LX.
-- **Escape corridor**: U9 QFN-48 — advanced-tier fanout vias; B.Cu escape.
+- **Escape corridor**: U1 QFN-48 — advanced-tier fanout vias; B.Cu escape.
 - **Keep-outs**: mounting-hole screw heads; connector overhangs at board edge.
 
 ## Interfaces

@@ -69,10 +69,13 @@ export default () => (
       pinLabels={{ pin1: "K", pin2: "A" }}
       connections={{ pin1: "net.VIN", pin2: "net.RPP_G" }}
       footprint={<Pol2 w="0.9mm" h="1.2mm" dx="1.65mm" />} />
-    {/* D1 input TVS SMBJ15A on VBAT_F (before Q1, catches hot-plug spikes): cathode pad1 -> VBAT_F */}
+    {/* D1 input TVS SMBJ15A on VIN (AFTER Q1 — v1.1 fix, review X1/X29: on VBAT_F a
+        reversed pack forward-biased it into a crowbar through F1. On VIN, behind Q1's
+        blocking body diode, a reversal is non-destructive; hot-plug clamping is
+        equivalent through the enhanced Q1. ADR-0001 amendment; INV-D1-PLACEMENT. */}
     <chip name="D1" supplierPartNumbers={{ jlcpcb: ["C83846"] }}
       pinLabels={{ pin1: "K", pin2: "A" }}
-      connections={{ pin1: "net.VBAT_F", pin2: "net.GND" }}
+      connections={{ pin1: "net.VIN", pin2: "net.GND" }}
       footprint={<Pol2 w="2.1mm" h="2.4mm" dx="2.2mm" />} />
     {/* VIN bulk: 2x 100uF/35V polymer at entry (pad1 = POSITIVE) */}
     <chip name="C1" supplierPartNumbers={{ jlcpcb: ["C2982822"] }}
@@ -286,46 +289,69 @@ export default () => (
           <smtpad portHints={["49"]} pcbX="0mm" pcbY="0mm" width="5.45mm" height="5.45mm" shape="rect" />
         </footprint>
       } />
+    {/* v1.1 (X27): PD-stage local VIN capacitance AT the cell — C44 bulk polymer +
+        C3/C45 the DETAIL-promised 2x10uF (v1.0 built only one) + C4 100n */}
     <capacitor name="C3" capacitance="10uF" footprint="1210" supplierPartNumbers={{ jlcpcb: ["C77100"] }} connections={{ pin1: "net.VIN", pin2: "net.GND" }} />
     <capacitor name="C4" capacitance="100nF" footprint="0603" connections={{ pin1: "net.VIN", pin2: "net.GND" }} />
+    <capacitor name="C45" capacitance="10uF" footprint="1210" supplierPartNumbers={{ jlcpcb: ["C77100"] }} connections={{ pin1: "net.VIN", pin2: "net.GND" }} />
+    <chip name="C44" supplierPartNumbers={{ jlcpcb: ["C2982822"] }}
+      pinLabels={{ pin1: "POS", pin2: "NEG" }}
+      connections={{ pin1: "net.VIN", pin2: "net.GND" }}
+      footprint={<Pol2 w="1.6mm" h="3.2mm" dx="2.9mm" />} />
     {/* input sense: VIN -[RS2 5m]- VIN_S ; kelvin CSP2 (via 10R) / CSN2 ; PCIN at VIN_S */}
     <resistor name="RS2" resistance="0.005" footprint="2512" supplierPartNumbers={{ jlcpcb: ["C308572"] }}
       connections={{ pin1: "net.VIN", pin2: "net.VIN_S" }} />
     <resistor name="R14" resistance="10" footprint="0603" connections={{ pin1: "net.VIN", pin2: "net.SNS_IN_P" }} />
     <resistor name="R15" resistance="10" footprint="0603" connections={{ pin1: "net.VIN_S", pin2: "net.SNS_IN_N" }} />
     <capacitor name="C20" capacitance="1uF" footprint="0603" connections={{ pin1: "net.SNS_IN_P", pin2: "net.SNS_IN_N" }} />
-    {/* H-bridge: Q4 HS-in (D=VIN_S S=LX2 G=HG2), Q5 LS-in, Q6 HS-out (D=VOUT_PDS S=LX1 G=HG1), Q7 LS-out */}
-    <chip name="Q4" supplierPartNumbers={{ jlcpcb: ["C404363"] }}
+    {/* H-bridge: Q4 HS-in (D=VIN_S S=LX2 G=QG4), Q5 LS-in, Q6 HS-out (D=VOUT_PDS S=LX1 G=QG6), Q7 LS-out.
+        v1.1: gates driven THROUGH 0R 0603 slots R28-R31 (DS Fig.7 tuning slots — X4/X24;
+        INV-GATE-R); FET = ADR-0007 coordinated part (v1.0's 30V AON6354 replaced). */}
+    <chip name="Q4" supplierPartNumbers={{ jlcpcb: ["C431185"] }}
       pinLabels={{ pin1: "S1", pin2: "S2", pin3: "S3", pin4: "G", pin5: "D" }}
-      connections={{ pin1: "net.LX2", pin2: "net.LX2", pin3: "net.LX2", pin4: "net.HG2", pin5: "net.VIN_S" }}
+      connections={{ pin1: "net.LX2", pin2: "net.LX2", pin3: "net.LX2", pin4: "net.QG4", pin5: "net.VIN_S" }}
       footprint={<Dfn56 />} />
-    <chip name="Q5" supplierPartNumbers={{ jlcpcb: ["C404363"] }}
+    <chip name="Q5" supplierPartNumbers={{ jlcpcb: ["C431185"] }}
       pinLabels={{ pin1: "S1", pin2: "S2", pin3: "S3", pin4: "G", pin5: "D" }}
-      connections={{ pin1: "net.GND", pin2: "net.GND", pin3: "net.GND", pin4: "net.LG2", pin5: "net.LX2" }}
+      connections={{ pin1: "net.GND", pin2: "net.GND", pin3: "net.GND", pin4: "net.QG5", pin5: "net.LX2" }}
       footprint={<Dfn56 />} />
-    <chip name="Q6" supplierPartNumbers={{ jlcpcb: ["C404363"] }}
+    <chip name="Q6" supplierPartNumbers={{ jlcpcb: ["C431185"] }}
       pinLabels={{ pin1: "S1", pin2: "S2", pin3: "S3", pin4: "G", pin5: "D" }}
-      connections={{ pin1: "net.LX1", pin2: "net.LX1", pin3: "net.LX1", pin4: "net.HG1", pin5: "net.VOUT_PDS" }}
+      connections={{ pin1: "net.LX1", pin2: "net.LX1", pin3: "net.LX1", pin4: "net.QG6", pin5: "net.VOUT_PDS" }}
       footprint={<Dfn56 />} />
-    <chip name="Q7" supplierPartNumbers={{ jlcpcb: ["C404363"] }}
+    <chip name="Q7" supplierPartNumbers={{ jlcpcb: ["C431185"] }}
       pinLabels={{ pin1: "S1", pin2: "S2", pin3: "S3", pin4: "G", pin5: "D" }}
-      connections={{ pin1: "net.GND", pin2: "net.GND", pin3: "net.GND", pin4: "net.LG1", pin5: "net.LX1" }}
+      connections={{ pin1: "net.GND", pin2: "net.GND", pin3: "net.GND", pin4: "net.QG7", pin5: "net.LX1" }}
       footprint={<Dfn56 />} />
-    <inductor name="L1" inductance="10uH" supplierPartNumbers={{ jlcpcb: ["C5240401"] }}
+    {/* gate-R tuning slots, 0R populated, placed AT the gates (X4) */}
+    <resistor name="R28" resistance="0" footprint="0603" connections={{ pin1: "net.HG2", pin2: "net.QG4" }} />
+    <resistor name="R29" resistance="0" footprint="0603" connections={{ pin1: "net.LG2", pin2: "net.QG5" }} />
+    <resistor name="R30" resistance="0" footprint="0603" connections={{ pin1: "net.HG1", pin2: "net.QG6" }} />
+    <resistor name="R31" resistance="0" footprint="0603" connections={{ pin1: "net.LG1", pin2: "net.QG7" }} />
+    {/* v1.1 bridge-rail HF banks (X18: v1.0 had ZERO caps on VIN_S/VOUT_PDS; the hot
+        loops closed 44-63mm away through the shunts). Ceramics on BOTH sides of each
+        shunt keep RS2/RS3 out of the HF loop. INV-BRIDGE-RAIL-CAPS. */}
+    <capacitor name="C46" capacitance="10uF" footprint="1210" supplierPartNumbers={{ jlcpcb: ["C77100"] }} connections={{ pin1: "net.VIN_S", pin2: "net.GND" }} />
+    <capacitor name="C47" capacitance="10uF" footprint="1210" supplierPartNumbers={{ jlcpcb: ["C77100"] }} connections={{ pin1: "net.VIN_S", pin2: "net.GND" }} />
+    <capacitor name="C48" capacitance="100nF" footprint="0603" connections={{ pin1: "net.VIN_S", pin2: "net.GND" }} />
+    <capacitor name="C49" capacitance="10uF" footprint="1210" supplierPartNumbers={{ jlcpcb: ["C77100"] }} connections={{ pin1: "net.VOUT_PDS", pin2: "net.GND" }} />
+    <capacitor name="C50" capacitance="10uF" footprint="1210" supplierPartNumbers={{ jlcpcb: ["C77100"] }} connections={{ pin1: "net.VOUT_PDS", pin2: "net.GND" }} />
+    <capacitor name="C51" capacitance="100nF" footprint="0603" connections={{ pin1: "net.VOUT_PDS", pin2: "net.GND" }} />
+    <inductor name="L1" inductance="10uH" supplierPartNumbers={{ jlcpcb: ["C20613209"] }}
       connections={{ pin1: "net.LX2", pin2: "net.LX1" }}
-      footprint={<Pol2 w="4.6mm" h="15mm" dx="6.25mm" />} />
-    {/* boot caps + snubbers + LX TVS (DS Fig.8: T1/T2 = 30V TVS at the switch nodes) */}
+      footprint={<Pol2 w="3.8mm" h="13mm" dx="8.1mm" />} />
+    {/* boot caps + snubbers + LX TVS (v1.1 ADR-0007: per-node clamps - D6 SMAJ15A on LX2, D7 SMAJ24A on LX1; 60V AON6262E bridge) */}
     <capacitor name="C21" capacitance="100nF" footprint="0603" connections={{ pin1: "net.BST2", pin2: "net.LX2" }} />
     <capacitor name="C22" capacitance="100nF" footprint="0603" connections={{ pin1: "net.BST1", pin2: "net.LX1" }} />
     <resistor name="R16" resistance="2" footprint="0603" connections={{ pin1: "net.LX2", pin2: "net.SNB2" }} />
     <capacitor name="C23" capacitance="1nF" footprint="0603" connections={{ pin1: "net.SNB2", pin2: "net.GND" }} />
     <resistor name="R17" resistance="2" footprint="0603" connections={{ pin1: "net.LX1", pin2: "net.SNB1" }} />
     <capacitor name="C24" capacitance="1nF" footprint="0603" connections={{ pin1: "net.SNB1", pin2: "net.GND" }} />
-    <chip name="D6" supplierPartNumbers={{ jlcpcb: ["C148230"] }}
+    <chip name="D6" supplierPartNumbers={{ jlcpcb: ["C148216"] }}
       pinLabels={{ pin1: "K", pin2: "A" }}
       connections={{ pin1: "net.LX2", pin2: "net.GND" }}
       footprint={<Pol2 w="1.5mm" h="1.8mm" dx="2mm" />} />
-    <chip name="D7" supplierPartNumbers={{ jlcpcb: ["C148230"] }}
+    <chip name="D7" supplierPartNumbers={{ jlcpcb: ["C148222"] }}
       pinLabels={{ pin1: "K", pin2: "A" }}
       connections={{ pin1: "net.LX1", pin2: "net.GND" }}
       footprint={<Pol2 w="1.5mm" h="1.8mm" dx="2mm" />} />
@@ -341,7 +367,7 @@ export default () => (
       connections={{ pin1: "net.VOUT_PD", pin2: "net.GND" }}
       footprint={<Pol2 w="1.6mm" h="3.2mm" dx="2.9mm" />} />
     <capacitor name="C27" capacitance="100nF" footprint="0603" connections={{ pin1: "net.VOUT_PD", pin2: "net.GND" }} />
-    <chip name="Q8" supplierPartNumbers={{ jlcpcb: ["C404363"] }}
+    <chip name="Q8" supplierPartNumbers={{ jlcpcb: ["C431185"] }}
       pinLabels={{ pin1: "S1", pin2: "S2", pin3: "S3", pin4: "G", pin5: "D" }}
       connections={{ pin1: "net.VBUSC", pin2: "net.VBUSC", pin3: "net.VBUSC", pin4: "net.PATH_G", pin5: "net.VOUT_PD" }}
       footprint={<Dfn56 />} />

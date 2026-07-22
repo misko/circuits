@@ -1,9 +1,11 @@
 # usb-hub-3s floorplan — input for skills/kicad-pcb/scripts/generate_board_generic.py
-# 110x82 4-layer (In1=GND plane, In2=VIN plane). West: XT60 + protection chain.
-# North: LM5116 5VA buck. East: 3x USB-A (bodies x>110; electronics x 92-110).
-# South: IP6559 PD stage (U1 rot 0: power row faces SOUTH; chip-native order =
-# output west / input east; battery feeds RS2 via the In2 plane; VBUSC exits
-# west -> south strip -> J5 at the SE edge).
+# 110x90 4-layer (In1=GND plane, In2=VIN plane). West: XT60 + protection chain.
+# North: LM5116 5VA buck (UNCHANGED from v1.0). East: 3x USB-A (UNCHANGED).
+# South: IP6559 PD stage — RE-FLOORPLANNED in v1.1 (reviews X2/X18/X19/X20/
+# X22/X23): two tight half-bridges in one row (VOUT_PDS|Q6|LX1|Q7|GND ...
+# GND|Q5|LX2|Q4|VIN_S), L1 directly between the LX strips, HF ceramic banks
+# ON the bridge rails inside each hot loop, shunts outside the HF loop with
+# Kelvin stubs off their pad ends, LX copper F.Cu-ONLY minimum islands.
 
 project:
   name: usb_hub_3s
@@ -25,58 +27,90 @@ libraries: [/usr/share/kicad/footprints, 03_src/lib]
 placement:
   anchors:
     # ---- input west ----
-    J1: [28.0, 56.0, 90]        # XT60 mouth WEST; pad2 (+ / VBAT) at (28,48.8); mech pegs clear of edge
-    F1: [31.0, 75.0, 270]       # vertical: pad1 (31,75)=VBAT, pad2 (31,84.9)=VBAT_F (rot 270: rot 90 put pad2 NORTH - DRC caught it)
+    J1: [28.0, 56.0, 90]        # XT60 mouth WEST; pad2 (+ / VBAT) at (28,48.8)
+    F1: [31.0, 75.0, 270]       # vertical: pad1 (31,75)=VBAT, pad2 (31,84.9)=VBAT_F
     Q1: [39.0, 80.0, 180]       # P-FET: D west (38.3)=VBAT_F, S east (41.7)=VIN
-    # ---- 5VA buck north ----
+    C1: [39.0, 88.5, 0]         # VIN polymer bulk (moved to SW pool - v1.1 PD cell owns the old spot)
+    C2: [39.0, 94.5, 0]         # VIN polymer bulk
+    D1: [41.5, 101.5, 0]        # v1.1 X1 FIX: input TVS now on VIN (K pad 39.5,101.5 in the VIN pool AFTER Q1)
+    # ---- 5VA buck north (v1.0 positions, region verified working) ----
     U2: [56.0, 38.0, 0]
     Q2: [72.0, 28.0, 180]       # HS: D west (Cin side), S east (SW)
     Q3: [72.0, 36.0, 0]         # LS: S west (CS_A), D east (SW)
-    RS1: [68.0, 43.0, 270]     # pad1 (CS_A) NORTH into the CS_A patch
+    RS1: [68.0, 43.0, 270]      # pad1 (CS_A) NORTH into the CS_A patch
     L2: [84.0, 32.0, 0]
-    # ---- USB-A ports east ----
+    # ---- USB-A ports east (v1.0 positions) ----
     U3: [100.0, 33.0, 0]
     U4: [100.0, 51.0, 0]
     U5: [100.0, 69.0, 0]
-    J2: [118.2, 38.5, 90]   # KH-AF90DIP-112: pins col x118.2 (pin1 VBUS north), face ~130.5
+    J2: [118.2, 38.5, 90]
     J3: [118.2, 56.5, 90]
     J4: [118.2, 74.5, 90]
-    # ---- PD stage south ----
-    U1: [68.0, 64.0, 0]
-    Q6: [55.5, 74.0, 180]       # out HS: D west (52.8)=VOUT_PDS, S east (58.2)=LX1
-    Q7: [60.5, 84.0, 180]       # out LS: D west (59.8)=LX1, S east (GND)
-    Q4: [79.5, 74.0, 0]         # in HS: S west (76.8)=LX2, D east (80.2)=VIN_S
-    Q5: [68.6, 84.0, 0]         # in LS: S west (GND), D east (69.3)=LX2 - its D pad
-                                # catches U1 pin 21's straight-south drop lane
-    L1: [67.0, 97.0, 180]       # pads 3.5x12.8@±7.35: pad1 (74.35)=LX2, pad2 (59.65)=LX1
-    RS2: [86.0, 68.0, 270]      # pad1 (VIN) NORTH into the VIN patch, pad2 (VIN_S) south
-    RS3: [52.5, 88.0, 270]      # pad1 north (85.1)=VOUT_PDS, pad2 south (90.9)=VOUT_PD
-    Q8: [53.0, 96.0, 90]        # path: D north (95.3)=VOUT_PD, S south (98.7)=VBUSC
-    C1: [47.0, 72.5, 0]         # VIN polymer (pinned - legalizer strayed it)
-    C2: [47.5, 80.5, 0]         # VIN polymer
-    C26: [45.0, 90.0, 0]        # VOUT_PD polymer
-    R18: [66.25, 69.7, 270]     # PCON sense R hard against U1 pin 15 (pad1 north)
-    R19: [63.0, 66.6, 270]      # VOUT_PD sense R: pad1 (63.0,65.75) at the west-lane mouth
-    D1: [36.6, 85.2, 0]         # input TVS south of Q1: K pad (34.4,85.2) in the VBAT_F patch
-    D8: [116.8, 100.5, 0]       # DPC clamp: pad1 west (116.05) faces the J5 row
-    D9: [116.8, 98.0, 0]        # DMC clamp
-    Q11: [106.5, 99.5, 180]     # CC2 Vconn switch west-of-J5; D pad (106.5,100.6) on the tap
-                                # runway; Manhattan(Q11,U1) < Manhattan(J5,U1) so KRT's MST
-                                # includes the routable chip edge (2026-07-21 MST analysis)
-    C21: [74.65, 69.6, 90]      # BST2 cap: pad2 in the LX2 patch
-    C22: [57.7, 69.3, 0]        # BST1 cap: pad2 (58.55)=LX1 inside the LX1 patch
-    D6: [76.8, 79.5, 0]         # LX2 TVS: K pad (74.8,79.5) in the LX2 patch
-    D7: [58.5, 79.5, 0]         # LX1 TVS: K pad (56.5,79.5) in the LX1 patch
-    R16: [77.2, 70.0, 0]        # LX2 snubber R, pad1 (76.35) in the LX2 patch
-    R17: [60.9, 69.6, 0]        # LX1 snubber R (north band, out of LG1's corridor)
-    R15: [80.9, 68.2, 0]        # VIN_S filter R: pad1 (80.05) in the VIN_S pour
-    J5: [114.0, 107.0, 0]        # USB-C mouth SOUTH (rot 0: KRT is rotation-blind
-                                # on rect pad obstacles - rot-90 row was unroutable)
+    # ---- PD stage south: v1.1 compact reference cell ----
+    U1: [68.0, 64.0, 0]         # QFN-48, power row faces SOUTH (pins 13-24 at y 67.45)
+    # FET row y=73: [VOUT_PDS]Q6(180)[LX1]Q7(180)[GND] .. [GND]Q5(0)[LX2]Q4(0)[VIN_S]
+    Q6: [51.5, 73.0, 180]       # out HS: D tab west = VOUT_PDS, S pins east (54.17) = LX1
+    Q7: [60.0, 73.0, 180]       # out LS: D tab west (57.4-61.2) = LX1, S pins east (62.67) = GND
+    Q5: [71.0, 73.0, 0]         # in LS: S pins west (68.33) = GND, D tab east (69.8-73.6) = LX2
+    Q4: [78.5, 73.0, 0]         # in HS: S pins west (75.83) = LX2, D tab east = VIN_S
+    L1: [65.5, 85.6, 180]       # YSPI1770Y pads 3.8x13 @ ±8.1: pad1 (73.6)=LX2, pad2 (57.4)=LX1
+    # shunts OUTSIDE the HF loops, Kelvin stubs off the pad ends (X19)
+    RS2: [86.3, 73.5, 180]      # pad1 east (89.26)=VIN in the east pool, pad2 west (83.34)=VIN_S
+    RS3: [47.5, 79.5, 270]      # pad1 north (76.54)=VOUT_PDS, pad2 south (82.46)=VOUT_PD
+    R14: [89.3, 77.5, 90]       # kelvin: stub from RS2.1 pad END (89.26,75.17)
+    R15: [83.3, 78.4, 90]       # kelvin: stub from RS2.2 pad END (83.34,75.17)
+    R18: [44.0, 78.2, 90]       # kelvin: stub from RS3.1 pad END (47.5,74.9)
+    R19: [43.2, 85.5, 90]       # kelvin: stub from RS3.2 pad END (47.5,84.1)
+    C20: [75.5, 65.0, 90]       # CSP2/CSN2 filter near U1 east col
+    C25: [64.6, 69.9, 90]       # CSP1/CSN1 filter near U1 south-west pins
+    # bridge-rail HF banks (X18): ceramics ON VIN_S / VOUT_PDS hard at the FETs
+    C46: [78.8, 68.7, 90]       # 10u: south pad (70.175) in VIN_S zone, north pad GND
+    C47: [82.3, 68.7, 90]       # 10u
+    C48: [82.55, 64.9, 0]       # 100n: east pad in the VIN_S north finger, west pad GND
+    C49: [45.35, 71.1, 0]       # 10u: east pad (46.8) in VOUT_PDS zone, west pad GND
+    C50: [45.35, 74.7, 0]       # 10u
+    C51: [44.8, 68.6, 0]        # 100n
+    # PD-stage local VIN capacitance at the cell (X27)
+    C44: [89.5, 61.0, 90]       # 100uF/35V polymer bulk, east pool
+    C3:  [85.9, 68.3, 90]       # 10u
+    C45: [89.4, 68.3, 90]       # 10u (the DETAIL-promised second one)
+    C4:  [91.8, 68.5, 90]       # 100n
+    # gate-R slots AT the gates (X4)
+    R28: [80.2, 77.7, 0]        # HG2 -> Q4.G (75.83,75.905)
+    R29: [66.4, 77.8, 90]       # LG2 -> Q5.G (68.33,75.905)
+    R30: [56.3, 69.3, 0]        # HG1 -> Q6.G (54.17,71.1)
+    R31: [62.6, 68.7, 90]       # LG1 -> Q7.G (62.67,71.1)
+    # BST caps near the chip BST/LX pins
+    C21: [70.6, 69.2, 0]        # BST2: pad1 (69.775) under U1.22, pad2 (71.425) -> LX2 spur
+    C22: [67.3, 69.2, 0]        # BST1: pad1 (66.475) under U1.17, pad2 (68.125) -> LX1 spur
+    # snubbers + per-node TVS (ADR 0007) on the LX islands
+    R16: [77.0, 80.9, 90]       # LX2 snubber R: pad1 north (80.125) in the LX2 south rect
+    C23: [77.0, 84.6, 90]       # LX2 snubber C -> GND
+    D6:  [79.7, 84.0, 90]       # SMAJ15A: K pad north (82.0) in the LX2 south rect
+    R17: [59.6, 69.3, 180]      # LX1 snubber R: pad1 east (60.425) in the LX1 north finger
+    C24: [58.7, 66.9, 90]       # LX1 snubber C -> GND
+    D7:  [53.4, 83.4, 90]       # SMAJ24A: K pad north (81.4) in the LX1 west bridge
+    # output pool + path FET
+    C26: [46.5, 90.0, 0]        # VOUT_PD polymer
+    C27: [54.3, 88.6, 90]       # VOUT_PD 100n
+    Q8:  [52.5, 94.3, 90]       # path: D tab north = VOUT_PD, S pins south = VBUSC
+    R20: [48.0, 99.5, 0]        # VOUT2 sense 10R off VBUSC
+    # EN divider on the 5VA column
+    R21: [97.2, 70.0, 0]
+    R22: [97.2, 72.0, 0]
+    # Vconn feed on the 5VA column (D2.2 = 5VA sits IN the column now)
+    D2:  [97.0, 79.5, 0]        # K pad (95.0) = VCONN5V west, A pad (99.0) = 5VA in-column
+    C32: [93.5, 82.5, 0]
+    # USB-C corner (v1.0 positions, region verified working)
+    D8: [116.8, 100.5, 0]
+    D9: [116.8, 98.0, 0]
+    Q11: [106.5, 99.5, 180]
+    J5: [114.0, 107.0, 0]
   seeds:
     # input
-    D5: [52.0, 68.5]
+    D5: [46.0, 71.0]
     R13: [45.0, 76.0]
-    # buck hot loop + control
+    # buck hot loop + control (v1.0)
     C5: [58.0, 26.0]
     C6: [61.2, 26.0]
     C7: [64.4, 26.0]
@@ -102,7 +136,7 @@ placement:
     D4: [62.0, 34.7]
     C18: [62.0, 33.0]
     C19: [62.0, 38.0]
-    # ports (per port: ILIM, in cap, out caps, ESD, DCP)
+    # ports (v1.0)
     R10: [97.0, 37.0]
     C33: [97.0, 29.5]
     C36: [104.0, 31.0]
@@ -122,27 +156,14 @@ placement:
     C42: [96.0, 45.4]
     U7: [96.0, 61.0]
     C43: [96.0, 63.4]
-    # PD stage
-    C3: [90.0, 62.0]
-    C4: [90.0, 65.0]
-    R14: [76.0, 63.0]
-    C20: [78.5, 64.0]
-    C25: [62.0, 68.5]
-    C23: [80.9, 72.2]
-    C24: [60.5, 67.3]
-    C27: [52.5, 90.5]
-    R20: [47.0, 99.0]
+    # PD stage misc
+    C30: [74.0, 60.0]
+    C31: [74.0, 58.0]
+    R25: [72.0, 56.0]
     C28: [94.0, 103.0]
     C29: [97.5, 103.0]
     D3: [101.0, 103.0]
-    C30: [74.0, 60.0]
-    C31: [74.0, 58.0]
-    R21: [95.5, 70.0]
-    R22: [95.5, 72.0]
-    R25: [72.0, 56.0]
-    # Vconn cluster (between U1 and J5)
-    D2: [92.0, 84.0]
-    C32: [96.0, 84.0]
+    # Vconn cluster (between 5VA column and J5)
     Q9: [109.0, 96.0]
     Q10: [109.0, 93.0]
     R23: [106.0, 96.0]
@@ -158,7 +179,7 @@ design_rules:
   via_min_size: 0.25
   min_through_drill: 0.15
   via_min_annulus: 0.05
-  hole_clearance: 0.2   # JLC advanced hole-to-copper; verify at order (M6)
+  hole_clearance: 0.2
   hole_to_hole: 0.25
   copper_edge_clearance: 0.3
   solder_mask_min_width: 0.0
@@ -167,52 +188,70 @@ design_rules:
 zones:
   # planes
   - {net: GND, layers: [In1.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal}
-  - {net: VIN, layers: [In2.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal}
+  - {net: VIN, layers: [In2.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: full}   # v1.1 X22: solid connects on the trunk plane
   # outer GND pours
   - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: full}
   # F.Cu power patches (priority 2, tight)
   - {net: VBAT,   layers: [F.Cu], priority: 2, rect: [22.5, 46.0, 34.0, 76.5], connect: full}
   - {net: VBAT_F, layers: [F.Cu, B.Cu], priority: 2, rect: [24.0, 77.5, 40.5, 87.0], connect: full}
-  - {net: VIN,    layers: [F.Cu], priority: 2, rect: [41.0, 66.0, 50.5, 83.0], connect: full}
-  - {net: VIN,    layers: [F.Cu], priority: 2, rect: [56.0, 22.5, 71.0, 31.0], connect: full}
-  - {net: VIN,    layers: [F.Cu], priority: 2, rect: [83.0, 58.0, 92.3, 66.5], connect: full}
-  - {net: VOUT_PDS, layers: [F.Cu], priority: 2, rect: [66.3, 73.9, 66.9, 74.5], connect: full}  # rendezvous-via F landing (via_dangling fix)
-  # thermal-via landings (R-THERM): B.Cu copper under the FET drain paddles
+  # VIN pools: Q1-source strip -> south-west pool (bulk C1/C2 + D1), east PD-input pool
+  - {net: VIN,    layers: [F.Cu], priority: 2, rect: [41.0, 78.7, 44.5, 84.2], connect: full}   # Q1.S strip (gate pad excluded: y>78.6)
+  - {net: VIN,    layers: [F.Cu], priority: 2, rect: [35.0, 83.8, 43.0, 102.3], connect: full}  # SW pool: C1/C2/D1 + In2 farm
+  - {net: VIN,    layers: [F.Cu], priority: 2, rect: [84.6, 56.5, 93.5, 75.3], connect: full}   # east pool: C44/C3/C45/C4 + RS2.1 + In2 farm
+  - {net: VIN,    layers: [F.Cu], priority: 2, rect: [56.0, 22.5, 71.0, 31.0], connect: full}   # buck Cin (v1.0)
+  # PD bridge rails (v1.1)
+  - net: VIN_S
+    layers: [F.Cu]
+    priority: 2
+    connect: full
+    points: [[77.1, 69.9], [82.0, 69.9], [82.0, 63.5], [84.2, 63.5], [84.2, 76.3], [77.1, 76.3]]
+  - {net: VIN_S,  layers: [B.Cu], priority: 2, rect: [77.6, 70.5, 83.6, 76.5], connect: full}   # thermal spreader under Q4 tab (X23)
+  - {net: VOUT_PDS, layers: [F.Cu], priority: 2, rect: [45.5, 68.4, 53.2, 76.8], connect: full}
+  - {net: VOUT_PDS, layers: [B.Cu], priority: 2, rect: [47.5, 70.5, 53.5, 76.5], connect: full} # thermal spreader under Q6 tab (X23)
+  # LX islands — F.Cu ONLY, minimum size (X2/X20): FET pads + L1 pad + snubber/TVS/BST landings
+  - net: LX2
+    layers: [F.Cu]
+    priority: 2
+    connect: full
+    points: [[69.7, 70.9], [77.5, 70.9], [77.5, 75.3], [74.6, 75.3], [74.6, 79.0], [80.7, 79.0],
+             [80.7, 82.9], [73.3, 82.9], [73.3, 75.3], [69.7, 75.3]]
+  - {net: LX1, layers: [F.Cu], priority: 2, rect: [53.4, 71.9, 61.3, 75.3], connect: full}      # strip: Q6.S pins + Q7.D tab
+  - {net: LX1, layers: [F.Cu], priority: 2, rect: [57.4, 75.3, 59.3, 79.5], connect: full}      # drop to L1 pad2
+  - {net: LX1, layers: [F.Cu], priority: 2, rect: [59.9, 69.6, 61.3, 71.9], connect: full}      # R17 snubber finger
+  - {net: LX1, layers: [F.Cu], priority: 2, rect: [52.6, 80.4, 56.0, 82.4], connect: full}      # D7 TVS bridge (bonds L1 pad2 west edge)
+  # output pool
+  - net: VOUT_PD
+    layers: [F.Cu]
+    priority: 2
+    connect: full
+    points: [[45.3, 80.5], [49.7, 80.5], [49.7, 84.4], [56.2, 84.4], [56.2, 95.7],
+             [43.4, 95.7], [43.4, 84.4], [45.3, 84.4]]
+  - {net: VOUT_PD, layers: [B.Cu], priority: 2, rect: [49.0, 89.5, 56.0, 95.5], connect: full}  # thermal spreader under Q8 tab (X23)
+  # buck region (v1.0, verified working)
   - {net: SW_A,     layers: [B.Cu], priority: 2, rect: [71.5, 33.5, 75.5, 39.0], connect: full}
-  - {net: LX2,      layers: [B.Cu], priority: 3, rect: [67.5, 81.5, 74.6, 86.5], connect: full}
-  - {net: VOUT_PDS, layers: [B.Cu], priority: 3, rect: [54.5, 71.5, 56.9, 76.5], connect: full}
-  - {net: VIN_S,  layers: [F.Cu, B.Cu], priority: 2, rect: [80.0, 67.5, 90.0, 79.0], connect: full}
   - {net: SW_A,   layers: [F.Cu], priority: 2, rect: [72.5, 24.0, 80.5, 40.0], connect: full}
   - {net: CS_A,   layers: [F.Cu, B.Cu], priority: 2, rect: [62.0, 33.0, 71.5, 44.0], connect: full}
+  # 5VA: wide north trunk + narrowed east column (frees the PD input pool - v1.1)
   - net: 5VA
     layers: [F.Cu, B.Cu]
     priority: 2
     connect: full
-    points: [[86.0, 24.0], [99.0, 24.0], [99.0, 75.0], [86.0, 75.0],
-             [86.0, 67.0], [92.5, 67.0], [92.5, 57.5], [86.0, 57.5]]
+    points: [[86.0, 24.0], [99.0, 24.0], [99.0, 80.5], [95.0, 80.5], [95.0, 56.0], [86.0, 56.0]]
   - {net: VBUSA1, layers: [F.Cu, B.Cu], priority: 2, rect: [100.0, 29.0, 120.2, 42.5], connect: full}
   - {net: VBUSA2, layers: [F.Cu, B.Cu], priority: 2, rect: [100.0, 47.0, 120.2, 60.5], connect: full}
   - {net: VBUSA3, layers: [F.Cu, B.Cu], priority: 2, rect: [100.0, 65.0, 120.2, 78.5], connect: full}
-  - {net: LX2,    layers: [F.Cu, B.Cu], priority: 2, rect: [74.0, 68.5, 79.5, 104.0], connect: full}
-  - {net: LX1,    layers: [F.Cu, B.Cu], priority: 2, rect: [55.0, 68.5, 62.0, 104.0], connect: full}
-  # pin-18 finger + arm as separate higher-priority same-net zones (overlap
-  # with the rect at different priorities = a legal union; the reserved KRT
-  # lanes keep them track-free)
-  - {net: VOUT_PDS, layers: [F.Cu, B.Cu], priority: 2, rect: [51.0, 68.0, 54.6, 86.0], connect: full}
-  - {net: VOUT_PD,  layers: [F.Cu, B.Cu], priority: 2, rect: [42.0, 86.5, 58.0, 95.5], connect: full}
   - net: VBUSC
     layers: [F.Cu]
     priority: 2
     connect: full
-    points: [[42.0, 97.5], [124.0, 97.5], [124.0, 108.5], [42.0, 108.5]]
+    points: [[46.0, 97.5], [49.5, 97.5], [49.5, 96.2], [53.9, 96.2], [53.9, 97.5],
+             [124.0, 97.5], [124.0, 108.5], [46.0, 108.5]]
 
 keepouts:
-  # PERMISSIVE named areas (deny nothing) - anchors for scoped_floors
-  # relaxations (usb-power-3s SW_TAP precedent). Trunk current rides the
-  # pours; thin tracks inside these areas are sense/backstop copper.
-  - {name: pd_sense, deny: [], layers: [F.Cu, B.Cu], rect: [42.0, 56.0, 87.5, 104.0]}
+  # PERMISSIVE named areas (deny nothing) - anchors for scoped_floors relaxations.
+  - {name: pd_sense, deny: [], layers: [F.Cu, B.Cu], rect: [42.0, 56.0, 94.0, 104.0]}
   - {name: sw_sense, deny: [], layers: [F.Cu, B.Cu], rect: [44.0, 22.5, 87.0, 47.0]}
-  - {name: vconn_feed, deny: [], layers: [F.Cu, B.Cu], rect: [88.0, 64.0, 100.0, 88.0]}
+  - {name: vconn_feed, deny: [], layers: [F.Cu, B.Cu], rect: [92.0, 64.0, 101.0, 90.0]}
   - {name: port_bond, deny: [], layers: [F.Cu, B.Cu], rect: [100.0, 29.0, 116.0, 78.5]}
   - {name: j5_bond, deny: [], layers: [F.Cu, B.Cu], rect: [108.5, 100.5, 118.5, 108.0]}
   - {name: vbat_therm, deny: [], layers: [F.Cu, B.Cu], rect: [37.3, 78.9, 40.4, 81.1]}
@@ -221,37 +260,45 @@ silk:
   min_text_height: 0.6
   refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQL"}
   captions:
-    - ["3S LIPO 9-12.6V", 32.0, 50.0, 0.8]
-    - ["XT60 IN", 32.0, 52.0, 0.8]
+    - ["PROTECTED 3S PACK", 32.0, 48.5, 0.8]    # v1.1 X14: UVLO guards the pack AVERAGE only
+    - ["ONLY - 9-12.6V IN", 32.0, 50.5, 0.8]
+    - ["XT60 IN", 32.0, 52.5, 0.8]
     - ["FUSE 20A MINI", 37.0, 70.0, 0.8]
     - ["USB-A 2A", 115.5, 50.5, 0.7]
     - ["USB-A 2A", 115.5, 68.5, 0.7]
-    - {text: "USB-C PD 5A", at: [107.0, 106.0], size: 0.7, nudge: false}  # 7.1mm from J5 centroid, pad-free spot (west half visible beside the body)
+    - {text: "USB-C PD 5A", at: [107.0, 106.0], size: 0.7, nudge: false}
     - ["USB-A 5V 2A (2.5A BURST)", 108.0, 26.0, 0.8]
     - ["USB-C PD 5-20V 5A MAX", 100.0, 95.8, 0.8]
-    - ["usb-hub-3s v1.0", 34.0, 103.5, 0.8]
+    - ["usb-hub-3s v1.1", 30.0, 104.5, 0.8]
 
 asserts:
   pad_net:
     - {ref: J1, pad: 1, net: GND}          # XT60 pad1 IS '-' (part fact)
     - {ref: J1, pad: 2, net: VBAT}
     - {ref: Q1, pad: 5, net: VBAT_F}       # rev-pol P-FET drain = battery side
-    - {ref: D1, pad: 1, net: VBAT_F}       # TVS cathode
-    - {ref: D2, pad: 1, net: VCONN5V}      # schottky cathode
+    - {ref: D1, pad: 1, net: VIN}          # v1.1 X1: TVS cathode on VIN, AFTER Q1
+    - {ref: D2, pad: 1, net: VCONN5V}
     - {ref: D3, pad: 1, net: VBUSC}
-    - {ref: D4, pad: 1, net: BOOT_A}       # boot diode cathode at HB
-    - {ref: D5, pad: 1, net: VIN}          # zener cathode at source
-    - {ref: D6, pad: 1, net: LX2}
-    - {ref: D7, pad: 1, net: LX1}
-    - {ref: C1, pad: 1, net: VIN}          # polymer positive
+    - {ref: D4, pad: 1, net: BOOT_A}
+    - {ref: D5, pad: 1, net: VIN}
+    - {ref: D6, pad: 1, net: LX2}          # SMAJ15A (ADR 0007)
+    - {ref: D7, pad: 1, net: LX1}          # SMAJ24A (ADR 0007)
+    - {ref: C1, pad: 1, net: VIN}
     - {ref: C2, pad: 1, net: VIN}
+    - {ref: C44, pad: 1, net: VIN}         # v1.1 stage bulk polymer
     - {ref: C26, pad: 1, net: VOUT_PD}
     - {ref: U1, pad: 49, net: GND}
     - {ref: U2, pad: 21, net: GND}
     - {ref: Q8, pad: 5, net: VOUT_PD}      # path FET drain = converter side
+    - {ref: RS2, pad: 2, net: VIN_S}       # shunt orientation (kelvin stubs depend on it)
+    - {ref: RS3, pad: 1, net: VOUT_PDS}
+    - {ref: R28, pad: 2, net: QG4}         # gate-R slots present + oriented (X4)
+    - {ref: R29, pad: 2, net: QG5}
+    - {ref: R30, pad: 2, net: QG6}
+    - {ref: R31, pad: 2, net: QG7}
   body_offset:
     - {ref: J1, axis: x, sign: "-"}        # XT60 mouth faces WEST
-    - {ref: J2, axis: x, sign: "+"}        # USB-A mouths face EAST
+    - {ref: J2, axis: x, sign: "+"}
     - {ref: J3, axis: x, sign: "+"}
     - {ref: J4, axis: x, sign: "+"}
     - {ref: J5, axis: y, sign: "+"}        # USB-C mouth faces SOUTH

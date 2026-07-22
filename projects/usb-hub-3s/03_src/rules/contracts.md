@@ -14,6 +14,9 @@ belongs here.
 | `nets.yaml` | net classes: nets, current, intent, min_width, routing strategy, verify, scoped exemptions; `fab_tier` (capability floors for the generic backend); `scoped_floors` (insideArea width relaxations, `why` REQUIRED) |
 | `stackup.yaml` | layer count, what each layer is for, fab tier (optional) |
 | `twin_adjudications.yaml` | reviewed jlc_twin findings accepted WITH evidence (see jlcpcb-fab skill) |
+| `passives_lcsc.yaml` | (value, footprint) -> LCSC map for generic passives, verified against catalog descriptions (bom_seed input) |
+| `electrical_invariants.yaml` | netlist topology intent (ref.pad -> net) for the protection chain — born from v1.0 review X1 (D1 crowbar passed every gate); checker pending (candidate S-INV), red-team diff target until then |
+| `policy_waivers.yaml` | evidence-backed policy_audit waivers |
 | `contracts.md` | this file |
 
 ## The rule that makes this folder worth existing

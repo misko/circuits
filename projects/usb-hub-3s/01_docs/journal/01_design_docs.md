@@ -13,3 +13,8 @@
   amended: single-authority UVLO at LM5116, IP6559 EN gated by 5VA presence.
 - next: 02_parts — JLC codes + stock + datasheet cache + escape blocks per
   part; USB-A receptacle rating research (T1 tension).
+
+## 2026-07-22 (v1.1) — iterate
+- did: doc-sync pass (X10/X15): ARCHITECTURE refdes + TLV431 residue purged, DETAIL_DESIGN rewritten to as-built refdes (R25-DNP trap fixed), UVLO worst-case band (8.30-9.36V falling, 2.77V/cell floor), standby-drain corrected to 1.5-5mA (X12); ADR-0001 amended (D1->VIN + exact fuse 0297020.WXNV I2t coordination + incident); new ADRs 0007 (60V AON6262E + per-node SMAJ15A/24A clamps), 0008 (L1 -> YSPI1770Y 16A + thermal statement), 0009 (D3 surge-grade, Q8 backfeed accepted)
+- result: sourcing spike verified all four part swaps in stock (FET 3277, L1 213, fuse 4265, SMAJ15A 15445); TVS part.yamls now carry vbr/vclamp corners; electrical_invariants.yaml born (INV-D1/Q1/FUSE/GATE-R/BRIDGE-CAPS)
+- next: regenerate board from the re-floorplanned PD cell, fresh KRT route

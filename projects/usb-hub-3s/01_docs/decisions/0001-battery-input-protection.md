@@ -1,7 +1,7 @@
 ---
 id: 0001
 date: 2026-07-21
-status: accepted
+status: accepted (amended 2026-07-21 for v1.1 — see "Amendment v1.1")
 ---
 # 0001 — Battery/input protection: fuse + reverse-polarity P-FET + board UVLO + TVS
 
@@ -58,3 +58,62 @@ detector). Exact values derived in DETAIL_DESIGN.md.
 - ~0.3 mA post-UVLO standby documented; no hard cutoff in v1.
 - P-FET dissipates ≤ 1.2 W at 15.5 A worst case (5 mΩ) — needs copper pour +
   thermal vias at placement; verified at R-THERM.
+
+---
+
+## Amendment v1.1 (2026-07-21) — D1 position, exact fuse, standby-drain correction
+
+INCIDENT (recorded per canon — this is why the amendment exists): the v1.0
+NETLIST placed D1 (unidirectional SMBJ15A) on VBAT_F, cathode to the battery
+side of Q1, while this ADR's flow line said "→ VIN rail" and its options text
+said "after the fuse" — the ADR was internally self-contradictory and no gate
+owned the topology intent. A reversed pack forward-biases that D1 through F1:
+~250–600 A until the fuse melts, consuming F1 and likely D1 (which can fail
+short) on every reversal. The defect passed ERC, DRC, parity, twin and pin
+review — every artifact was consistently wrong together — and was caught only
+by external review (08_reviews X1) and red-team A (X29, which graded the
+as-built behavior a sacrificial-but-protective crowbar). Both readings agree
+the downstream was protected (Q1 blocks); they differ on whether reversal
+consumes parts.
+
+DECISION (explicit, citing both reviews): **non-destructive reversal.** D1
+moves to VIN, after Q1 (cathode → VIN, anode → GND). On reversal Q1's body
+diode blocks and nothing conducts, nothing is consumed. Hot-plug clamping is
+equivalent: the surge reaches VIN through the conducting/enhanced Q1 and D1
+clamps it there (≤24.4 V, inside every downstream rating). The
+coordinated-crowbar alternative (keep D1 on VBAT_F, document sacrificial
+F1+D1 per reversal) was REJECTED: it spends a hand-replaceable fuse AND a
+soldered TVS on a trivially probable user error, for no protection gain.
+The topology is now machine-stated in
+`03_src/rules/electrical_invariants.yaml` (INV-D1-PLACEMENT,
+INV-Q1-ORIENTATION, INV-FUSE-FIRST) — the checker is pending, the red-team
+diffs against it meanwhile.
+
+**Exact fuse (X1/X13 — v1.0 shipped "20 A MINI" with no MPN):
+Littelfuse 0297020.WXNV** (297 MINI series, 20 A, 32 VDC, IR 1000 A @32 VDC;
+LCSC C151096; alt Eaton BK/ATM-20). Coordination, quoted from the 297 DS
+(02_parts/0297020WXNV/):
+- I²t (melt) = 380 A²s; opening: 135% → 0.75–600 s; 200% → 0.15–5 s;
+  350% → 0.08–0.5 s; 600% → 0.03–0.1 s; 110% → no open.
+- vs load: worst continuous 15.6 A = 78% of rating — above the 75%
+  blade-practice line, ACCEPTED because both converters current-limit (the
+  IP6559 input-CC via RS2 and the LM5116 11 A peak limit cap the natural
+  draw ≈ 15.6 A); there is no natural 17–26 A operating point.
+- vs copper (16 A floors): a sustained 135% overload (27 A) could take
+  minutes to open — no natural source of that current exists on this board
+  (residual risk recorded, X13); true faults (shorted FET/rail ≈ hundreds
+  of amps, < 1000 A IR ✓) open in ≤ 10 ms (t ≈ 380/I²).
+- vs D1: a full SMBJ15A clamp event (≤24.6 A, ≤1 ms) is ~0.6 A²s ≪ 380 —
+  the fuse rides through clamp events; and with D1 on VIN, reversal is no
+  longer a fuse event at all.
+- vs Q1: reverse blocking means Q1 sees no fuse-coordination duty; forward
+  it is a 40 A-class part behind a 20 A fuse.
+- User harness: ≥ 12 AWG leads required (ORDER_README).
+
+**Standby-drain correction (X12, red-team A):** the v1.0 claim "~0.5 mA
+below UVLO" was wrong. R9 holds LM5116 EN high, so below UVLO the part is in
+STANDBY (VCC regulator running; the 10 µA shutdown spec requires EN low).
+Realistic drain is 1.5–5 mA (DETAIL_DESIGN §2 has the corrected budget).
+Consequences: "do not store the pack connected" is a HARD rule in
+ORDER_README, plus a measure-at-first-power step. v2 candidate: drive EN
+from the UVLO divider (true 10 µA shutdown) or a hard P-FET cutoff.
