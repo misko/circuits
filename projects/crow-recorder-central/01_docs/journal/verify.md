@@ -39,3 +39,24 @@
 - next: resume completes remaining verify items (twin, render review, red-team
   per new stage-7 standard, policy audit) then release. Full review texts:
   06_build/pin_review/ + orchestrator session record.
+
+## 2026-07-22 — resume (successor): E-TOPO + E-INV/E-ADR new gates GREEN
+- did: (item 1) re-ran full rebuild_all.sh chain twice -> DRC severity-all
+  --refill-zones --schematic-parity = 0 violations / 2 ADR-0010-waived GND
+  zone slivers / 0 parity, EXIT=0 (reproduces the adopted state). (item 2)
+  authored 03_src/rules/power_tree.yaml — the two SWITCHING rails (3V3 digital
+  @U10, 0V9 core @U11, both AP61102 bucks, Vin ~5V, Vout 3.32/0.9); LDO rails
+  (1V8 <-3V3 TCR2LF18/TLV70018, 3V3A <-5V XC6227) documented as LINEAR post-
+  regs (inherently step-down, outside the buck/boost derivation). (item 3)
+  authored 03_src/rules/electrical_invariants.yaml — 28 assertions: input
+  protection chain (0002), reverse-FET orientation Q9 D=5V_P/S=5V (0007),
+  beeper low-side+separate-return (0005), R40-R43 clock series links (0006),
+  ADC AVDD-on-3V3A / DVDD-on-3V3 domain split (0006), RJ45 J1 8-contact pinout
+  (pod ADR-0004 interop), USB-C R31/R32 5k1 CC Rd pulldowns.
+- result: MEASURED — E-TOPO OK 2/2 rails topology-correct (both BUCK, no
+  over-capable), EXIT=0. E-INV OK 28/28 hold, EXIT=0. E-ADR OK (0002/0005/0007
+  all cited), EXIT=0. Negative test: flipped Q9.3 drain->5V fixture -> E-INV
+  EXIT=1 (checker is load-bearing, catches the D1 class).
+- next: red-team release review (2 zero-context adversarial agents), then
+  bom_seed/jlc_stock/twin re-verify + render pair + missing_models, policy_audit,
+  harvest, seal v1.0.
