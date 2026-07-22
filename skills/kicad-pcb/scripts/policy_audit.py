@@ -452,6 +452,35 @@ def main():
                  "length-spread audit present in 03_src" if has_len
                  else "no timing-critical nets declared"))
 
+    # ---------------- electrical (the netlist must match INTENT) ----------
+    # E-INV/E-ADR: the D1 reverse-polarity defect (usb-hub-3s v1.0) passed ERC,
+    # DRC, parity, twin AND pin review — every artifact was consistently wrong
+    # TOGETHER; only intent-vs-netlist disagreed. electrical_invariants.py makes
+    # ADR intent executable against the exported netlist.
+    einv = Path(__file__).resolve().parent / "electrical_invariants.py"
+    invp = proj / "03_src" / "rules" / "electrical_invariants.yaml"
+    if not invp.exists():
+        rows.append(("E-INV", "N-A", "no 03_src/rules/electrical_invariants.yaml"))
+    else:
+        r = sh([sys.executable, str(einv), str(proj)])
+        detail = (r.stdout + r.stderr).strip().replace("\n", " ")[:200]
+        grade("E-INV", r.returncode == 0,
+              detail or "invariants hold against the netlist",
+              detail or "electrical_invariants check failed")
+    # E-ADR: every protection/topology ADR must be cited by an invariant
+    dec = proj / "01_docs" / "decisions"
+    if not dec.is_dir():
+        rows.append(("E-ADR", "N-A", "no 01_docs/decisions/"))
+    else:
+        r = sh([sys.executable, str(einv), str(proj), "--adr-coverage"])
+        detail = (r.stdout + r.stderr).strip().replace("\n", " ")[:200]
+        if "N-A" in detail:
+            rows.append(("E-ADR", "N-A", detail))
+        else:
+            grade("E-ADR", r.returncode == 0,
+                  detail or "protection ADRs all cited by an invariant",
+                  detail or "a protection/topology ADR emitted no invariant")
+
     # ---------------- meta ----------------
     reb = proj / "03_src" / "rebuild_all.sh"
     if reb.exists():

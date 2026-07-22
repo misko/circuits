@@ -1,0 +1,49 @@
+# SCHEMA EXAMPLE (skill-owned, project-independent). Copy into a new project's
+# 03_src/rules/ and replace the values — the KEYS are the contract.
+#
+# ELECTRICAL-INVARIANTS (canon E-INV, phase E1 = netlist-only). Design INTENT
+# made EXECUTABLE against the exported netlist. Every gate elsewhere proves
+# SELF-CONSISTENCY; this one proves the netlist matches what the ADRs decided.
+#
+# WHY: the D1 reverse-polarity defect (usb-hub-3s v1.0) passed ERC, DRC, parity,
+# jlc_twin AND pin review — symbol/footprint/netlist/board were consistently
+# WRONG together; only intent disagreed, and intent was not machine-checkable.
+#
+# Graded by: electrical_invariants.py PROJECT_DIR  (exit 1 names the assertion
+# + the actual net found). A protection/topology ADR that emits NO invariant is
+# flagged by E-ADR (electrical_invariants.py PROJECT_DIR --adr-coverage).
+#
+# Every invariant REQUIRES `adr:` (the ADR that emitted it) and `why:`.
+
+invariants:
+  # 1) pin_on_net — the named pin must be on the named net (the D1 class).
+  - assert: pin_on_net
+    pin: "D1.1"          # REF.PAD
+    net: VIN
+    adr: 0001
+    why: "D1 reverse-polarity clamp cathode feeds VIN, not the raw battery rail"
+
+  # 2) series_chain — consecutive elements share a net, in order. A 2-pad part
+  #    (F1) bridges the nets on its two pads (inferred). A >2-pad part names its
+  #    two bridging pins via `through:` (pin number, pinfunction, or a
+  #    pinfunction with its trailing _<n> stripped: D_5 -> D).
+  - assert: series_chain
+    chain: [VBAT, F1, VBAT_F, Q1, VIN]
+    through: {Q1: [D, S]}
+    adr: 0001
+    why: "battery -> fuse -> protected node -> reverse-polarity FET (D->S) -> VIN"
+
+  # 3) net_has_part — the net must carry >= min parts of a type (refdes prefix:
+  #    C=capacitor, R=resistor, L=inductor, D=diode, Q=transistor, F=fuse,
+  #    U=ic, J=connector, FB=ferrite, LED=led, Y/X=crystal, TP=testpoint).
+  #    The bridge-rail-decoupling class (red-team B).
+  - assert: net_has_part
+    net: VIN
+    part_type: capacitor
+    min: 1
+    adr: 0007
+    why: "the VIN rail must carry at least one decoupling capacitor"
+
+# DEFERRED to E2 (geometric — need footprint/geometry, not just the netlist):
+#   clamp_le_rating  — a clamp/TVS standoff <= the rail it protects
+#   kelvin_within    — a sense pair within N mm of the element it senses

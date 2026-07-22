@@ -282,6 +282,12 @@ one pass. The trigger existed in hindsight only — now it is a rule.)
      search technique per source, and the study-vs-copy rules:
      `kicad-pcb/references/layout-precedents.md`.
 3. `03_src/rules/nets.yaml` + `generate_rules.py` BEFORE any layout.
+4. `03_src/rules/electrical_invariants.yaml` — the INTENT gate (canon E-INV):
+   every protection/topology ADR emits netlist assertions (`pin_on_net`,
+   `series_chain`, `net_has_part`) so intent-vs-netlist is machine-checked, not
+   just self-consistency. This is the gate the D1 reverse-polarity defect
+   needed. `electrical_invariants.py --adr-coverage` (E-ADR) flags a protection
+   ADR that emits none.
 
 ## 4-6. Generate, place, route — all regenerable from 03_src
 
@@ -424,8 +430,11 @@ jlc_stock run first (seconds, and twin consumes the BOM).
   <kicad-pcb skill>/scripts/policy_audit.py <project>` — zero FAIL; any
   WAIVED entry evidence-backed in `03_src/rules/policy_waivers.yaml`; the
   HUMAN-graded items (schematic readability S6, decoupling S7, design-math
-  S5) carry verdicts from the fresh-context reviews. Ship
-  `06_build/policy_audit.md` in the release's verification/.
+  S5) carry verdicts from the fresh-context reviews. Includes E-INV and
+  E-ADR (canon E-INV): the netlist is graded against the intent assertions in
+  `03_src/rules/electrical_invariants.yaml`, and every protection/topology ADR
+  must emit at least one. Ship `06_build/policy_audit.md` in the release's
+  verification/.
 
 Before cutting the release, HARVEST the ledger: every part this board
 newly verified (shipped or fully twin/pin-verified) gets its entry in

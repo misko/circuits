@@ -50,6 +50,25 @@ agent per review protocol · [G] = existing pipeline gate it rides on.
 | R6 | Thermal: EPs and power pads get via arrays to the plane (>= N vias in/near pads above area threshold on power nets); reliefs on hand-solder, solid on power | [M] R-THERM | TPS2557 EPs and DPAK tab shipped with zero in-pad vias |
 | R7 | Gate: DRC 0 violations / 0 unconnected / 0 schematic-parity at `--severity-all --refill-zones` | [M] R-DRC | six parity findings slipped through a laxer severity bar |
 
+## Electrical — the netlist must match INTENT (the D1 class)
+
+Every gate above proves SELF-CONSISTENCY. None proves the netlist matches what
+the design DECIDED. The D1 reverse-polarity defect (usb-hub-3s v1.0, external +
+red-team reviews 2026-07-21) passed ERC, DRC, netlist parity, jlc_twin AND pin
+review because symbol, footprint, netlist and board were consistently WRONG
+together — D1's cathode sat on VBAT_F; only the ADR's intent (D1 is the
+reverse-polarity block feeding VIN) disagreed, and intent was not executable.
+This class closes the loop: a protection/topology ADR emits machine-checkable
+netlist assertions in `03_src/rules/electrical_invariants.yaml`, and the gate
+grades them against the netlist the board actually exports. Netlist-only kinds
+ship in E1 (`pin_on_net`, `series_chain`, `net_has_part`); geometric kinds
+(`clamp_le_rating`, `kelvin_within`) are DEFERRED to a future E2.
+
+| ID | Policy | Verified | Motivating incident |
+|---|---|---|---|
+| E-INV | Design intent is EXECUTABLE: `03_src/rules/electrical_invariants.yaml` lists assertions the netlist must satisfy — `pin_on_net` (a named pin is on a named net, the D1 class), `series_chain` (a topological order of parts/nets exists; 2-pad parts bridge their pads, >2-pad parts name bridging pins via `through:`), `net_has_part` (a net carries >= N parts of a type, the bridge-rail-decoupling class). Every invariant REQUIRES `adr:` (the ADR that emitted it) + `why:`. Graded by `electrical_invariants.py` against `06_build/netlists/*.net` (or `04_kicad/*.net`); a failure NAMES the assertion and the actual net found | [M] E-INV (`electrical_invariants.py PROJECT_DIR`) | D1 reverse-polarity (usb-hub-3s v1.0): cathode on VBAT_F not VIN — every artifact agreed, only intent-vs-netlist disagreed; pinned as the incident fixture in `t1_electrical_invariants.py` (reads the sealed v1.0 netlist) |
+| E-ADR | The loop must CLOSE: every `01_docs/decisions/*.md` whose title/tags mark it protection\|topology\|input-protection has >= 1 invariant citing its number. A protection ADR that emits NO invariant is flaggable — that is exactly how the D1 intent never became a machine check | [M] E-ADR (`electrical_invariants.py PROJECT_DIR --adr-coverage` — title/tag keyword match; deliberately conservative to avoid false positives, documented in the checker) | the ADR-0001 input-protection decision existed but emitted no executable assertion; the reverse-polarity intent lived only in prose |
+
 ## Meta — worth more than all of the above
 
 | ID | Policy | Verified | Motivating incident |
