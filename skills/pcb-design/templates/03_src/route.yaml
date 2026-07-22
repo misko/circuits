@@ -121,7 +121,7 @@ stitch:
   keepin: {inset: 0.8}
   passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
            split_t_junctions, reload, hole_to_hole, pad_rescue, stub_fallback, astar_fallback,
-           stitch_grid, fill, island_rescue, fill, gate]
+           stitch_grid, fill, island_rescue, fill, heal_islands, gate]
   dedupe_vias: {radius: 0.5, metric: box}
   normalize_vias: {below_width: 0.449, size: 0.6, drill: 0.3}
   drop_micro_fragments: {max_length: 0.12, require_free_end: true}
@@ -169,6 +169,20 @@ stitch:
     # OUT of the guarded analog rect — the bridge corner stays quiet
     avoid: [{x0: 20.0, y0: 26.0, x1: 44.0, y1: 58.0, margin: 1.0}]
   island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu], require: all}
+  # POUR-ISLAND AUTO-HEAL (after the last fill): a same-net zone that FILLS
+  # as >=2 disconnected islands is the DRC unconnected class "Zone [X] <->
+  # Zone [X]" — the v4 usb-hub-3s tail was 4/7 exactly this (LX1/LX2/VIN_S/
+  # VBUSA3 priority-2 F.Cu pours sliced by escape tracks, 2026-07-21), each
+  # bridged by hand before this pass existed. heal_islands groups each pour
+  # net's islands with pcbnew connectivity, bridges the narrowest
+  # collision-clear gap with a track at the NET-CLASS width (zone-min-width
+  # fallback) or a via through a shared same-net plane (every segment/via
+  # pcb_toolkit-verified, taps discipline), then REFILLS and RE-VERIFIES:
+  # a heal that does not reduce the island count is a hard error, a healed
+  # board re-runs as a no-op (idempotent), and different nets are never
+  # bridged. `layers` limits which copper layers are inspected (default:
+  # all); min_bbox skips slivers (those are isolated_copper -> escalate).
+  heal_islands: {min_bbox: 0.8}
   # EPILOGUE (recommended for 4-layer/plane boards): after the final fill,
   # prune vias THE STITCHER ITSELF emitted that ended up with same-net copper
   # on <2 layers — the `via_dangling` DRC class. Tests the FILLED polys

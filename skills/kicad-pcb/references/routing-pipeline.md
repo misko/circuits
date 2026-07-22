@@ -117,6 +117,20 @@ dense 4-layer board. Iterate routing against `quick`; run the full gate
 once quick is clean. quick is a loop tool — the severity-all 0/0/0 full
 DRC after stitch stays the only release gate.
 
+One stitch pass earns a special note here: **`heal_islands`** (after the
+last `fill`). A same-net pour that fills as two or more disconnected
+islands is the DRC unconnected class "Zone [X] <-> Zone [X]" — 4 of the v4
+usb-hub-3s canary's last 7 findings (LX1/LX2/VIN_S/VBUSA3, priority-2 F.Cu
+converter hot-loop pours sliced by escape tracks, 2026-07-21), previously
+bridged by hand at frontier-agent cost. The pass detects island groups
+with pcbnew's own connectivity on the filled board, bridges the narrowest
+collision-clear gap (net-class-width track, or a via through a shared
+same-net plane; every emitted segment/via pcb_toolkit-verified), then
+refills and re-verifies — a heal that does not reduce the island count is
+a hard error, a healed board re-runs as a no-op, and different nets are
+never bridged. The grind table's `unconnected_zone_islands` auto entry
+maps the DRC class to a stitch rerun with this pass.
+
 `scripts/grind_driver.py` mechanizes the loop between those two levels,
 with `references/grind_fixes.yaml` as the class table. It AUTO-applies
 only conservatively-safe generator reruns (the v4 batch classes:

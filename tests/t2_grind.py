@@ -102,6 +102,43 @@ def t_grind_auto_clean():
           "a clean run must not write an escalation report")
 
 
+@test("grind classifies same-net zone<->zone splits as the AUTO class "
+      "unconnected_zone_islands and rebuilds to clean")
+def t_grind_zone_islands_auto():
+    """The v4 usb-hub-3s tail (2026-07-21): 4 of the last 7 gate findings
+    were unconnected_items whose BOTH sides read 'Zone [X]' of the same net
+    (LX1/LX2/VIN_S/VBUSA3) — a pour filled as disconnected islands, which
+    the stitch `heal_islands` pass now fixes mechanically. classify_gate
+    must split this class out of the escalate-only `unconnected` so the
+    grind table's auto entry (fix: rerun stitch with heal_islands, via the
+    rebuild chain) fires instead of summoning the designer. A MIXED item
+    (pad<->zone, same net) must stay `unconnected`. RED-verified against
+    the pre-split classifier (git stash swap, 2026-07-21): everything lands
+    in `unconnected` there, the run exits 2 (table-escalate), and this test
+    fails on the exit code."""
+    def zone_split(net):
+        d2 = f"Zone [{net}] on F.Cu, priority 2"
+        return {"type": "unconnected_items", "severity": "error",
+                "items": [{"description": d2}, {"description": d2}]}
+    g0 = gate()
+    for net in ("LX1", "LX2", "VIN_S", "VBUSA3"):
+        g0["unconnected_items"].append(zone_split(net))
+    d = grind_scratch([g0, gate()])
+    r = must_pass(grind(d), "grind on an all-zone-island tail")
+    contains(r.out, "unconnected_zone_islands=4", "the split-out class")
+    eq(rebuilds_run(d), 1, "exactly one auto-fix rebuild")
+    contains(r.out, "0/0/0", "the clean verdict")
+    # mixed pad<->zone same net is NOT the heal class — must still escalate
+    g1 = gate()
+    g1["unconnected_items"].append(
+        {"type": "unconnected_items", "severity": "error",
+         "items": [{"description": "Pad 18 [LX1] of U1 on F.Cu"},
+                   {"description": "Zone [LX1] on F.Cu, priority 2"}]})
+    d = grind_scratch([g1])
+    r = grind(d)
+    eq(r.rc, 2, "pad<->zone must remain the escalate-only `unconnected`")
+
+
 @test("grind CANNOT loop forever: a never-improving board escalates D-BACK "
       "within 3 cycles", kind="known_bad")
 def t_kb_grind_dback():

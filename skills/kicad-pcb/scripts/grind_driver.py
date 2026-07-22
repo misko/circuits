@@ -106,9 +106,18 @@ def classify_gate(g, fab_floor=0.10):
             desc = f"[{tag}] {desc}"
         add(cls, desc)
     for u in g.get("unconnected_items", []):
-        add("unconnected",
-            " <-> ".join(i.get("description", "")
-                         for i in u.get("items", []))[:160])
+        descs = [i.get("description", "") for i in u.get("items", [])]
+        nets = {m.group(1) for d2 in descs
+                for m in [re.search(r"\[([^\]]+)\]", d2)] if m}
+        # zone<->zone SAME NET = a pour that filled as disconnected islands.
+        # Mechanical (stitch heal_islands owns it), so it gets its own class
+        # instead of riding the escalate-only `unconnected` (v4 usb-hub-3s
+        # tail: 4/7 findings were this, 2026-07-21).
+        cls = ("unconnected_zone_islands"
+               if len(descs) >= 2 and len(nets) == 1
+               and all(d2.startswith("Zone ") for d2 in descs)
+               else "unconnected")
+        add(cls, " <-> ".join(descs)[:160])
     for p in g.get("schematic_parity", []):
         add("schematic_parity", p.get("description", ""))
     return out

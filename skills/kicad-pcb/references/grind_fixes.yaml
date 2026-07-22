@@ -87,6 +87,29 @@ fixes:
       the esp32 v1.0 refdes incident (cfbc83b) — rerunning it is safe, it
       only moves text.
 
+  - class: unconnected_zone_islands
+    detect: >
+      unconnected_items where BOTH sides read "Zone [X]" of the SAME net —
+      a pour that FILLED as two or more disconnected islands (classify_gate
+      splits this out of `unconnected`, which stays escalate-only).
+    action: auto
+    fix: >
+      rerun stitch with the `heal_islands` pass (route_and_stitch_generic):
+      on the FILLED board it groups each pour net's islands with pcbnew
+      connectivity, bridges the narrowest collision-clear gap with a track
+      at the net-class width (zone-min-width fallback) or a via through a
+      shared same-net plane, then refills and RE-VERIFIES — a heal that
+      does not reduce the island count is a hard error. The rebuild chain
+      reruns stitch, which runs heal_islands wherever the project's
+      stitch.passes includes it (the template default; a project without it
+      re-presents the class and D-BACK surfaces the config gap in 3 cycles).
+    run: rebuild
+    provenance: >
+      v4 usb-hub-3s clean-room canary 2026-07-21: 4 of the last 7 gate
+      findings were this class (nets LX1, LX2, VIN_S, VBUSA3 — priority-2
+      F.Cu converter hot-loop pours sliced by escape tracks), each bridged
+      BY HAND by an expensive agent before heal_islands existed.
+
   # ------------------------------------------------------- ESCALATE -----
   # Real work. An auto-"fix" here would be the muted-gate failure mode
   # (spf 96785a0): the driver must hand these to a designer/agent with the

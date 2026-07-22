@@ -1168,6 +1168,240 @@ def t_kb_prune_before_fill():
     must_fail(stitch(p), "prune before fill", "AFTER `fill`")
 
 
+# ============================= POUR-ISLAND AUTO-HEAL (heal_islands) ======
+# The v4 usb-hub-3s clean-room canary's tail: 4 of its last 7 gate findings
+# were same-net zone splits (unconnected_items "Zone [X] <-> Zone [X]" on
+# LX1/LX2/VIN_S/VBUSA3 — priority-2 F.Cu pours sliced by escape tracks,
+# 2026-07-21), each bridged BY HAND by an expensive agent. These fixtures
+# reproduce the class on a tiny synthetic board: a dumbbell PWR pour on
+# F.Cu whose neck is cut by a foreign SIG track, so the fill produces two
+# islands. Modes:
+#   short_slice — the SIG wall covers only the neck: a same-layer track
+#                 bridge exists AROUND it (the next-narrowest-gap search)
+#   full_slice  — the SIG wall spans the whole board: every same-layer
+#                 path collides; only a via through a B.Cu plane can heal
+#   bplane      — adds a whole-board PWR plane on B.Cu (the shared plane)
+#   two_nets    — two adjacent single-island zones of DIFFERENT nets and
+#                 no split at all: the healer must emit NOTHING
+_MK_SPLIT = r'''
+import pcbnew, sys, json
+out = sys.argv[1]; cfg = json.loads(sys.argv[2])
+BX, BY = 30.0, 20.0
+b = pcbnew.BOARD()
+for (x1,y1),(x2,y2) in [((0,0),(BX,0)),((BX,0),(BX,BY)),((BX,BY),(0,BY)),((0,BY),(0,0))]:
+    s=pcbnew.PCB_SHAPE(b); s.SetShape(pcbnew.SHAPE_T_SEGMENT)
+    s.SetStart(pcbnew.VECTOR2I_MM(x1,y1)); s.SetEnd(pcbnew.VECTOR2I_MM(x2,y2))
+    s.SetLayer(pcbnew.Edge_Cuts); s.SetWidth(pcbnew.FromMM(0.1)); b.Add(s)
+def mknet(n): x=pcbnew.NETINFO_ITEM(b,n); b.Add(x); return x
+nets={"PWR":mknet("PWR"), "SIG":mknet("SIG")}
+def zone(net, layer, pts):
+    z=pcbnew.ZONE(b); z.SetNet(net)
+    ls=pcbnew.LSET(); (getattr(ls,"AddLayer",None) or getattr(ls,"addLayer"))(layer)
+    z.SetLayer(layer); z.SetLayerSet(ls)
+    z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL)
+    z.Outline().NewOutline()
+    for x,y in pts: z.Outline().Append(pcbnew.VECTOR2I_MM(float(x),float(y)))
+    b.Add(z)
+def pad(ref, net, x, y):
+    fp=pcbnew.FOOTPRINT(b); fp.SetReference(ref)
+    fp.SetPosition(pcbnew.VECTOR2I_MM(x,y))
+    p=pcbnew.PAD(fp); p.SetShape(pcbnew.PAD_SHAPE_RECT)
+    p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)
+    p.SetSize(pcbnew.VECTOR2I_MM(1.2,1.2)); p.SetLayerSet(pcbnew.PAD.SMDMask())
+    p.SetPosition(pcbnew.VECTOR2I_MM(x,y)); p.SetNumber("1"); p.SetNet(nets[net])
+    fp.Add(p); b.Add(fp)
+mode = cfg["mode"]
+if mode == "two_nets":
+    zone(nets["PWR"], pcbnew.F_Cu, [(1,2),(13,2),(13,18),(1,18)])
+    zone(nets["SIG"], pcbnew.F_Cu, [(17,2),(29,2),(29,18),(17,18)])
+    pad("U1","PWR",7.0,10.0); pad("U2","SIG",23.0,10.0)
+else:
+    # dumbbell PWR pour: two lobes joined by a neck (y 8..12)
+    zone(nets["PWR"], pcbnew.F_Cu,
+         [(1,2),(13,2),(13,8),(17,8),(17,2),(29,2),(29,18),(17,18),
+          (17,12),(13,12),(13,18),(1,18)])
+    y0, y1 = (7.0, 13.0) if mode == "short_slice" else (0.5, 19.5)
+    t=pcbnew.PCB_TRACK(b)
+    t.SetStart(pcbnew.VECTOR2I_MM(15.0,y0)); t.SetEnd(pcbnew.VECTOR2I_MM(15.0,y1))
+    t.SetWidth(pcbnew.FromMM(0.4)); t.SetLayer(pcbnew.F_Cu)
+    t.SetNet(nets["SIG"]); b.Add(t)
+    pad("U1","PWR",7.0,10.0); pad("U2","PWR",23.0,10.0)
+    if cfg.get("bplane"):
+        zone(nets["PWR"], pcbnew.B_Cu,
+             [(0.3,0.3),(BX-0.3,0.3),(BX-0.3,BY-0.3),(0.3,BY-0.3)])
+b.Save(out)
+'''
+
+
+def heal_scratch(mode, bplane=False, passes=("fill", "heal_islands", "gate"),
+                 pwr_class_width=0.5):
+    """A scratch project whose stitch runs `heal_islands` on the synthetic
+    split-pour board. rules/nets.yaml declares a PWR netclass floor so the
+    bridge width is measurable (the pass must use the net-class width)."""
+    import yaml
+    d = tmpdir("t2_heal_")
+    (d / "03_src").mkdir()
+    (d / "04_kicad").mkdir()
+    (d / "06_build").mkdir()
+    board = d / "04_kicad" / "split.kicad_pcb"
+    must_pass(run([KPY, "-c", _MK_SPLIT, board,
+                   json.dumps({"mode": mode, "bplane": bplane})]),
+              "build split-pour board")
+    if pwr_class_width:
+        (d / "03_src" / "rules").mkdir(parents=True, exist_ok=True)
+        (d / "03_src" / "rules" / "nets.yaml").write_text(
+            "classes:\n  PWR:\n    nets: [PWR]\n"
+            f"    min_width: {pwr_class_width}mm\n")
+    cfg = {"project": {"name": "split", "board": "04_kicad/split.kicad_pcb",
+                       "build_dir": "06_build"},
+           "stitch": {"clearance": 0.15,
+                      "via": {"size": 0.6, "drill": 0.3, "spacing": 0.62},
+                      "keepin": {"inset": 0.8}, "passes": list(passes),
+                      "heal_islands": {"min_bbox": 0.8}}}
+    p = d / "03_src" / "route.yaml"
+    p.write_text(yaml.safe_dump(cfg))
+    return d, p, board
+
+
+def copper_counts(board):
+    """(PCB_TRACK count by net, via count by net) — the healer's entire
+    observable output is new copper, so these are the no-op meters."""
+    code = ("import pcbnew,sys,json\nb=pcbnew.LoadBoard(sys.argv[1])\n"
+            "t={};v={}\n"
+            "for x in b.GetTracks():\n"
+            "  d = v if x.GetClass()=='PCB_VIA' else t\n"
+            "  n=x.GetNetname(); d[n]=d.get(n,0)+1\n"
+            "print('@@'+json.dumps([t,v]))\n")
+    r = must_pass(run([KPY, "-c", code, str(board)]), "copper_counts")
+    t, v = json.loads(r.out.split("@@", 1)[1].strip())
+    return t, v
+
+
+def bridge_widths(board, net):
+    code = ("import pcbnew,sys,json\nb=pcbnew.LoadBoard(sys.argv[1])\n"
+            "w=[t.GetWidth()/1e6 for t in b.GetTracks()"
+            " if t.GetClass()=='PCB_TRACK' and t.GetNetname()==sys.argv[2]]\n"
+            "print('@@'+json.dumps(w))\n")
+    r = must_pass(run([KPY, "-c", code, str(board), net]), "bridge_widths")
+    return json.loads(r.out.split("@@", 1)[1].strip())
+
+
+@test("heal_islands bridges a split same-net pour: 2 island groups -> 1, "
+      "connectivity restored, bridge at the net-class width")
+def t_heal_same_layer():
+    """The v4 tail class (LX1/LX2/VIN_S/VBUSA3, 2026-07-21) made mechanical:
+    a foreign track cuts the pour's neck, the narrowest gaps are all blocked
+    by that track, and the healer walks to the NEXT-narrowest gap that is
+    collision-clear and bridges there — with a track at the PWR net-class
+    width (0.5mm from rules/nets.yaml), never a guessed width. The DRC
+    re-check is kicad-cli (a different method than the healer's own
+    grouping, canon M1)."""
+    d, p, board = heal_scratch("short_slice")
+    r = must_pass(stitch(p), "stitch with heal_islands")
+    contains(r.out, "heal PWR: track bridge", "the same-layer strategy")
+    contains(r.out, "PWR (2->1)", "island group count 2 -> 1")
+    ws = bridge_widths(board, "PWR")
+    check(len(ws) >= 1, "no bridge track was emitted")
+    check(all(abs(w - 0.5) < 1e-6 for w in ws),
+          f"bridge not at the PWR net-class width 0.5: {ws}")
+    eq(via_nets(board).get("PWR", 0), 0,
+       "a same-layer heal must not spend vias")
+    counts = drc_counts(board)
+    eq(counts["unconnected"], 0,
+       f"DRC still sees the split after healing: {counts}")
+
+
+@test("heal_islands falls back to a via through a shared plane when every "
+      "same-layer gap is blocked")
+def t_heal_via_plane():
+    """The full-height slice leaves NO collision-clear same-layer path, so
+    the healer must hop: a via inside each F.Cu island where the whole-board
+    B.Cu PWR plane overlaps it (two group merges through the plane = the
+    via pair). Every via goes through try_via/via_site_ok."""
+    d, p, board = heal_scratch("full_slice", bplane=True)
+    r = must_pass(stitch(p), "stitch with heal_islands (walled)")
+    contains(r.out, "plane via", "the via strategy verdict")
+    check(via_nets(board).get("PWR", 0) >= 2,
+          f"expected a via pair, got {via_nets(board)}")
+    counts = drc_counts(board)
+    eq(counts["unconnected"], 0,
+       f"DRC still sees the split after via healing: {counts}")
+
+
+@test("heal_islands NEVER bridges zones of different nets (no-op on two "
+      "adjacent single-island pours)")
+def t_heal_no_cross_net():
+    """Safety rail (a). Two closest-proximity zones of DIFFERENT nets, no
+    split anywhere: the healer must emit NOTHING — a net-blind 'nearest
+    island' heal would short PWR to SIG here. RED-VERIFIED 2026-07-21 by
+    disabling the net guard (grouping collapsed to one pseudo-net + the
+    emit-path netcode die removed): the broken healer emitted 'heal PWR:
+    track bridge' INTO the SIG zone and this test failed (the run also
+    died at the re-verify, because a cross-net bridge cannot merge the
+    per-net groups — defense in depth observed working); guard restored,
+    test green."""
+    d, p, board = heal_scratch("two_nets")
+    r = must_pass(stitch(p), "stitch on two different-net pours")
+    contains(r.out, "nothing to heal", "the healer must be a no-op")
+    t, v = copper_counts(board)
+    check(not t and not v,
+          f"the healer emitted copper on a board with no same-net split: "
+          f"tracks={t} vias={v}")
+
+
+@test("heal_islands is IDEMPOTENT: a second run on a healed board emits "
+      "nothing")
+def t_heal_idempotent():
+    """Safety rail (c). After heal + refill the bridge track seats both
+    islands in one connectivity group, so a rerun must find nothing to do.
+    RED-VERIFIED 2026-07-21 by breaking the island-seating step (the
+    union(island, item) call removed): detection then re-reports the healed
+    pour as split forever, the run fails its own did-not-reduce check, and
+    this test caught it on the FIRST stitch exiting nonzero (a healer that
+    silently re-emitted instead would fail the copper-count comparison
+    below)."""
+    d, p, board = heal_scratch("short_slice")
+    must_pass(stitch(p), "first heal")
+    t1, v1 = copper_counts(board)
+    r = must_pass(stitch(p), "second run on the healed board")
+    contains(r.out, "nothing to heal", "second run must be a no-op")
+    t2, v2 = copper_counts(board)
+    check((t1, v1) == (t2, v2),
+          f"second run emitted copper: {t1}/{v1} -> {t2}/{v2}")
+
+
+@test("a heal path that would violate clearance is rejected, and a board "
+      "with NO legal bridge is a hard error", kind="known_bad")
+def t_kb_heal_unbridgeable():
+    """Safety rail (b). The full-height wall blocks every same-layer gap
+    (collides catches each candidate) and there is no shared plane, so no
+    legal bridge exists: the healer must ERROR OUT naming the net, never
+    emit a violating bridge or silently skip. RED-VERIFIED 2026-07-21 by
+    disabling the collision check (`collides(...) is not None: continue`
+    removed), 4/4 runs FAIL: the broken healer emitted a bridge straight
+    through the SIG wall and this test caught it — and the illegal overlap
+    additionally made KiCad's connectivity net-propagation rewire the
+    padless SIG wall onto PWR (measured: the wall reloaded as net PWR),
+    which is exactly the corruption the collision guard exists to prevent.
+    Check restored, test green."""
+    d, p, board = heal_scratch("full_slice", bplane=False)
+    r = must_fail(stitch(p), "heal with no legal bridge", "no LEGAL bridge")
+    contains(r.out, "PWR", "the failure must name the net")
+    t, v = copper_counts(board)
+    check(not t.get("PWR") and not v.get("PWR"),
+          f"a failed heal left PWR bridge copper on disk: {t}/{v}")
+
+
+@test("heal_islands REFUSES to run before fill", kind="known_bad")
+def t_kb_heal_before_fill():
+    """On an unfilled board there are no islands, so a pre-fill heal would
+    verify nothing and report success on a board whose pours may split at
+    the very next fill."""
+    d, p, board = heal_scratch("short_slice",
+                               passes=("heal_islands", "fill", "gate"))
+    must_fail(stitch(p), "heal before fill", "AFTER `fill`")
+
+
 def _fp_lib_scratch():
     """A scratch cook-loadcell whose netlist puts ONE part on a project-local
     footprint lib (03_src/lib/local.pretty), with project.fp_lib_table set."""

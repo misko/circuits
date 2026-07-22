@@ -15,7 +15,7 @@ showed the same pipeline every time, with different constants:
       -> taps (optional): collision-checked NAMED connections KRT cannot
          thread — pour-fed sense pins, boxed-in pads, plane drops
       -> stitch: clean KRT artifacts -> rescue pads -> stitch grid
-                 -> janitor -> FILL -> island rescue -> gate
+                 -> janitor -> FILL -> island rescue -> heal islands -> gate
       -> generate_rules LAST (pcbnew saves clobber .kicad_pro netclasses)
 
     /usr/bin/python3 route_and_stitch_generic.py prep    03_src/route.yaml
@@ -2127,6 +2127,364 @@ def p_island(ctx, c):
     print(f"island stitch vias: {added}")
 
 
+# ------------------------------------------------- pour-island healing ----
+def _island_holds(ctx, isl, item):
+    """Is this same-net track/via/pad geometrically seated on the island?
+    (endpoint/position inside the FILLED outline, layer-aware)."""
+    o, lay = isl["chain"], isl["layer"]
+    cls = item.GetClass()
+    if cls == "PCB_VIA":
+        return (item.GetLayerSet().Contains(lay)
+                and o.PointInside(item.GetPosition()))
+    if cls == "PCB_TRACK":
+        if item.GetLayer() != lay:
+            return False
+        s, e = item.GetStart(), item.GetEnd()
+        mid = ctx.pcbnew.VECTOR2I((s.x + e.x) // 2, (s.y + e.y) // 2)
+        return any(o.PointInside(p) for p in (s, e, mid))
+    if cls == "PAD":
+        if item.GetDrillSize().x <= 0 and not item.IsOnLayer(lay):
+            return False
+        return o.PointInside(item.GetPosition())
+    return False
+
+
+def _heal_groups(ctx, min_bb, lids=None):
+    """{netname: [island-group, ...]} on the FILLED board. One group = the
+    filled islands of ONE pcbnew-connectivity component: items (tracks/vias/
+    pads of the net) are clustered with GetConnectedItems — which is
+    island-aware after fill (two pads joined only through the same pour
+    island share a cluster; pads in different islands do not, verified on
+    KiCad 10.0.4) — and each island is seated in the cluster of the items
+    it geometrically holds. An island holding no item is its own group (a
+    bare plane is a legitimate via-bridge target). Only groups holding at
+    least one island >= min_bb in both bbox dims count: smaller slivers are
+    the isolated_copper class (grind table: escalate), not heal work."""
+    pcbnew = ctx.pcbnew
+    conn = ctx.board.GetConnectivity()
+    zones = [z for z in ctx.board.Zones()
+             if not z.GetIsRuleArea() and z.GetNetname() and z.IsFilled()]
+    out = {}
+    for netname in sorted({z.GetNetname() for z in zones}):
+        code = ctx.board.FindNet(netname).GetNetCode()
+        islands = []
+        for z in zones:
+            if z.GetNetname() != netname:
+                continue
+            for lay in z.GetLayerSet().Seq():
+                if not pcbnew.IsCopperLayer(lay) or (lids and lay not in lids):
+                    continue
+                polys = z.GetFilledPolysList(lay)
+                for i in range(polys.OutlineCount()):
+                    o = polys.Outline(i)
+                    bb = o.BBox()
+                    islands.append(
+                        {"zone": z, "layer": lay, "chain": o,
+                         "big": (bb.GetWidth() >= min_bb * 1e6
+                                 and bb.GetHeight() >= min_bb * 1e6)})
+        if not islands:
+            continue
+        items = {}
+        for t in ctx.board.GetTracks():
+            if t.GetNetCode() == code:
+                items[t.m_Uuid.AsString()] = t
+        for fp in ctx.board.GetFootprints():
+            for p in fp.Pads():
+                if p.GetNetCode() == code:
+                    items[p.m_Uuid.AsString()] = p
+
+        parent = {k: k for k in items}
+
+        def find(a):
+            r = a
+            while parent[r] != r:
+                r = parent[r]
+            while parent[a] != r:
+                parent[a], a = r, parent[a]
+            return r
+
+        def union(a, b):
+            ra, rb = find(a), find(b)
+            if ra != rb:
+                parent[ra] = rb
+
+        done = set()
+        for k, it in items.items():
+            if k in done:
+                continue
+            done.add(k)
+            for other in conn.GetConnectedItems(it):
+                ku = getattr(other, "m_Uuid", None)
+                ku = ku.AsString() if ku is not None else None
+                if ku in items:
+                    done.add(ku)
+                    union(k, ku)
+        for idx, isl in enumerate(islands):
+            key = f"~island{idx}"
+            parent[key] = key
+            for k, it in items.items():
+                if _island_holds(ctx, isl, it):
+                    union(key, k)
+        groups = {}
+        for idx, isl in enumerate(islands):
+            groups.setdefault(find(f"~island{idx}"), []).append(isl)
+        out[netname] = [g for g in groups.values()
+                        if any(i["big"] for i in g)]
+    return out
+
+
+def _bridge_width(ctx, netname):
+    """The zone's NET-CLASS width (rules/nets.yaml classes min_width — the
+    same source the .kicad_dru floors are generated from, so the bridge can
+    never itself be a track_width finding), falling back to the zone's own
+    min thickness."""
+    f = net_class_floors(ctx.cfg).get(netname)
+    if f:
+        return f[1]
+    zmw = [z.GetMinThickness() for z in ctx.board.Zones()
+           if z.GetNetname() == netname and not z.GetIsRuleArea()]
+    return max(zmw) / 1e6 if zmw else 0.25
+
+
+def _gap_candidates(ctx, ia, ib, step):
+    """Candidate (gap_mm, ia, ib, pA, pB) bridge sites between two island
+    outlines: sample points along A's outline, snap each to B's nearest
+    outline point, re-snap onto A — narrowest gaps first is the caller's
+    sort. NearestPoint is KiCad's own chain search (C++), so this stays
+    cheap on detailed filled outlines."""
+    A, B = ia["chain"], ib["chain"]
+    pts = []
+    n = A.PointCount()
+    for i in range(n):
+        p1, p2 = A.CPoint(i), A.CPoint((i + 1) % n)
+        seg = math.hypot((p2.x - p1.x) / 1e6, (p2.y - p1.y) / 1e6)
+        k = max(1, min(6, int(seg / step)))
+        for j in range(k):
+            f = j / k
+            pts.append(ctx.pcbnew.VECTOR2I(int(p1.x + (p2.x - p1.x) * f),
+                                           int(p1.y + (p2.y - p1.y) * f)))
+    if len(pts) > 240:
+        pts = pts[::len(pts) // 240 + 1]
+    out = []
+    for a in pts:
+        nb = B.NearestPoint(a)
+        na = A.NearestPoint(nb)
+        d = math.hypot((na.x - nb.x) / 1e6, (na.y - nb.y) / 1e6)
+        out.append((round(d, 3), ia, ib,
+                    (na.x / 1e6, na.y / 1e6), (nb.x / 1e6, nb.y / 1e6)))
+    return out
+
+
+def _inset_point(pcbnew, chain, p, toward_other, width):
+    """Pull a bridge endpoint slightly INTO its island (away from the other
+    island) so the track body overlaps filled copper and the refill merges
+    it; falls back to the outline point when the inset leaves the poly."""
+    d = math.hypot(p[0] - toward_other[0], p[1] - toward_other[1])
+    if d < 1e-9:
+        return (round(p[0], 3), round(p[1], 3))
+    u = ((p[0] - toward_other[0]) / d, (p[1] - toward_other[1]) / d)
+    ins = width / 2 + 0.05
+    q = (round(p[0] + u[0] * ins, 3), round(p[1] + u[1] * ins, 3))
+    if chain.PointInside(pcbnew.VECTOR2I_MM(q[0], q[1])):
+        return q
+    return (round(p[0], 3), round(p[1], 3))
+
+
+def _guard_same_net(net, ia, ib):
+    """THE net guard: a heal may only ever join copper of ONE net. The
+    grouping is already per-net, so tripping this means the grouping is
+    broken — die loudly rather than emit a short."""
+    code = net.GetNetCode()
+    if ia["zone"].GetNetCode() != code or ib["zone"].GetNetCode() != code:
+        die(f"heal_islands: NET GUARD — refusing to bridge zone "
+            f"[{ia['zone'].GetNetname()}] to zone [{ib['zone'].GetNetname()}]"
+            f" while healing {net.GetNetname()!r}: a heal must NEVER bridge "
+            f"different nets")
+
+
+def _via_overlap_site(ctx, net, ia, ib):
+    """A collision-checked through-via site inside BOTH islands (different
+    layers) — the shared-plane bridge. Every via goes through ctx.try_via
+    (via_site_ok + keepin/spacing/PTH guards), same discipline as taps."""
+    pcbnew = ctx.pcbnew
+    ba, bb = ia["chain"].BBox(), ib["chain"].BBox()
+    x0 = max(ba.GetLeft(), bb.GetLeft()) / 1e6
+    x1 = min(ba.GetRight(), bb.GetRight()) / 1e6
+    y0 = max(ba.GetTop(), bb.GetTop()) / 1e6
+    y1 = min(ba.GetBottom(), bb.GetBottom()) / 1e6
+    if x1 <= x0 or y1 <= y0:
+        return None
+    for fx in range(2, 19, 2):
+        for fy in range(2, 19, 2):
+            x = round(x0 + (x1 - x0) * fx / 20, 2)
+            y = round(y0 + (y1 - y0) * fy / 20, 2)
+            v = pcbnew.VECTOR2I_MM(x, y)
+            if not (ia["chain"].PointInside(v) and ib["chain"].PointInside(v)):
+                continue
+            if ctx.try_via(net, x, y):
+                return (x, y)
+    return None
+
+
+def _bridge_groups(ctx, c, net, ga, gb, width):
+    """One bridge between two island-groups of the SAME net, cheapest legal
+    strategy first. Returns a description of what was emitted, or None.
+      1. same-layer track at `width`, over the narrowest gap whose straight
+         path clears live copper (tk.collides, exact shapes) — a blocked
+         gap falls through to the NEXT-narrowest candidate;
+      2. a through-via where an island of one group overlaps an island of
+         the other on a DIFFERENT layer (the shared-plane hop; two group
+         merges through a plane = the via pair)."""
+    code = net.GetNetCode()
+    cands = []
+    for ia in ga:
+        if not ia["big"]:
+            continue
+        for ib in gb:
+            if not ib["big"] or ia["layer"] != ib["layer"]:
+                continue
+            cands += _gap_candidates(ctx, ia, ib,
+                                     float(c.get("sample_step", 1.5)))
+    cands.sort(key=lambda t: t[0])
+    taken = []
+    tries = int(c.get("max_gap_candidates", 24))
+    for d, ia, ib, pa, pb in cands:
+        if len(taken) >= tries:
+            break
+        if any(math.hypot(pa[0] - tx, pa[1] - ty) < 1.0 for tx, ty in taken):
+            continue
+        taken.append(pa)
+        _guard_same_net(net, ia, ib)
+        qa = _inset_point(ctx.pcbnew, ia["chain"], pa, pb, width)
+        qb = _inset_point(ctx.pcbnew, ib["chain"], pb, pa, width)
+        lay = ia["layer"]
+        if ctx.tk.collides(qa[0], qa[1], qb[0], qb[1], width, code,
+                           lay) is not None:
+            continue                     # blocked -> next-narrowest gap
+        ctx.tk.add_seg(qa[0], qa[1], qb[0], qb[1], net, lay, width)
+        return (f"track bridge ({qa[0]:.2f},{qa[1]:.2f})->"
+                f"({qb[0]:.2f},{qb[1]:.2f}) w={width} "
+                f"{ctx.board.GetLayerName(lay)} gap {d:.2f}mm")
+    for ia in ga:
+        if not ia["big"]:
+            continue
+        for ib in gb:
+            if not ib["big"] or ia["layer"] == ib["layer"]:
+                continue
+            _guard_same_net(net, ia, ib)
+            pt = _via_overlap_site(ctx, net, ia, ib)
+            if pt:
+                return (f"plane via ({pt[0]:.2f},{pt[1]:.2f}) "
+                        f"{ctx.board.GetLayerName(ia['layer'])}<->"
+                        f"{ctx.board.GetLayerName(ib['layer'])}")
+    return None
+
+
+def _heal_net(ctx, c, netname, groups):
+    """Merge every island-group of one net into the largest (by island
+    area), retrying the worklist so a bare plane can serve as the stepping
+    stone between two same-layer groups (A->plane via, then B->plane via =
+    the via PAIR). Unmergeable leftovers are a hard error."""
+    net = ctx.net(netname)
+    width = _bridge_width(ctx, netname)
+
+    def area(g):
+        return sum(i["chain"].Area() for i in g if i["big"])
+
+    ordered = sorted(groups, key=area, reverse=True)
+    main, rest = list(ordered[0]), [list(g) for g in ordered[1:]]
+    n = 0
+    progress = True
+    while rest and progress:
+        progress = False
+        for g in list(rest):
+            how = _bridge_groups(ctx, c, net, main, g, width)
+            if how:
+                print(f"  heal {netname}: {how}")
+                main.extend(g)
+                rest.remove(g)
+                n += 1
+                progress = True
+    if rest:
+        die(f"heal_islands: net {netname!r} — no LEGAL bridge exists for "
+            f"{len(rest)} of its {len(groups)} island group(s): every "
+            f"same-layer gap candidate collides with live copper and no "
+            f"shared same-net plane offers a clear via site. This split is "
+            f"design work (placement/route), not a mechanical heal")
+    return n
+
+
+@stitch_pass("heal_islands")
+def p_heal_islands(ctx, c):
+    """AUTO-HEAL same-net pour splits: a zone that FILLS as two or more
+    disconnected islands (the DRC unconnected_items class whose both sides
+    read `Zone [X] <-> Zone [X]`, same net). Provenance: 4 of the v4
+    usb-hub-3s clean-room canary's last 7 gate findings were exactly this
+    (nets LX1, LX2, VIN_S, VBUSA3 — priority-2 F.Cu converter hot-loop
+    pours sliced by escape tracks, 2026-07-21), each bridged BY HAND by an
+    expensive agent. This pass makes that mechanical.
+
+    Runs AFTER `fill` (islands only exist on the filled board). Detection:
+    pcbnew's own connectivity (GetConnectedItems is island-aware after
+    fill) groups the net's tracks/vias/pads; each filled island is seated
+    in its items' group; >= 2 groups = a split. Bridging: narrowest
+    collision-clear same-layer gap first (a track at the net-class width,
+    zone-min-width fallback), then a through-via where a same-net island
+    on another layer overlaps both sides (the shared-plane via pair).
+    EVERY emitted segment/via is verified against live copper via the
+    pcb_toolkit primitives (collides / try_via->via_site_ok), the same
+    discipline as `taps`; foreign-net ZONE FILLS are deliberately not
+    probed — the refill re-flows them around the new copper (the toolkit's
+    documented refill-after-edit contract). Then the zones are REFILLED
+    and the groups RECOMPUTED: a heal that does not reduce a net's island
+    group count — or that leaves ANY net split — is a hard error, never a
+    silent no-op. On an already-healed board the pass emits nothing
+    (idempotent), and it structurally cannot bridge nets: grouping is
+    per-net and the emit path dies on a zone netcode mismatch."""
+    pcbnew = ctx.pcbnew
+    min_bb = float(c.get("min_bbox", 0.8))
+    lids = ({_layer_id(pcbnew, n) for n in c["layers"]}
+            if c.get("layers") else None)
+    zones = [z for z in ctx.board.Zones()
+             if not z.GetIsRuleArea() and z.GetNetname()]
+    if zones and not any(z.IsFilled() for z in zones):
+        die("heal_islands must run AFTER `fill` — an unfilled pour has no "
+            "islands, so healing there would silently verify nothing")
+    ctx.board.BuildConnectivity()
+    groups = _heal_groups(ctx, min_bb, lids)
+    splits = {n: g for n, g in groups.items() if len(g) > 1}
+    if not splits:
+        ctx.bump("islands_healed", 0)
+        print("heal_islands: no same-net zone split — nothing to heal "
+              "(0 bridges)")
+        return
+    healed = {}
+    for netname in sorted(splits):
+        healed[netname] = (len(splits[netname]),
+                           _heal_net(ctx, c, netname, splits[netname]))
+    # refill, then RE-VERIFY on the refilled board
+    pcbnew.ZONE_FILLER(ctx.board).Fill(ctx.board.Zones())
+    ctx.board.BuildConnectivity()
+    after = _heal_groups(ctx, min_bb, lids)
+    for netname, (was, _n) in sorted(healed.items()):
+        now = len(after.get(netname, []))
+        if now >= was:
+            die(f"heal_islands: net {netname!r} still shows {now} "
+                f"disconnected island group(s) after healing (was {was}) — "
+                f"the bridge did not merge the pour; a heal that does not "
+                f"reduce the island count is an ERROR, not a no-op")
+    left = sorted(n for n, g in after.items() if len(g) > 1)
+    if left:
+        die(f"heal_islands: net(s) {left} split after heal+refill (a "
+            f"bridge for another net can re-slice a pour it crosses) — "
+            f"refusing to report a heal that left splits behind")
+    tot = sum(n for _w, n in healed.values())
+    ctx.bump("islands_healed", tot)
+    print(f"heal_islands: {len(healed)} net(s) healed with {tot} bridge(s): "
+          + ", ".join(f"{n} ({w}->1)"
+                      for n, (w, _x) in sorted(healed.items())))
+
+
 @stitch_pass("gate")
 def p_gate(ctx, c):
     """Flush accumulated failures. Boards gate once (before the final fill)
@@ -2142,7 +2500,7 @@ def p_gate(ctx, c):
 
 DEFAULT_PASSES = ["dedupe_vias", "drop_micro_fragments", "reload",
                   "pad_rescue", "stitch_grid", "via_janitor", "fill",
-                  "island_rescue", "gate"]
+                  "island_rescue", "heal_islands", "gate"]
 
 
 # stitch.via and friends spell the geometry size/drill, not via_size/via_drill
