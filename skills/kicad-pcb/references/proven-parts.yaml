@@ -55,15 +55,19 @@ functions:
         maker: Texas Instruments
         lcsc: C13755
         package: HTSSOP-20-EP P0.65
-        escape: {style: leaded, pitch: 0.65, tier_required: jlc_2layer_default}
+        escape: {style: leaded, pitch: 0.65, escapes_worst_side: 8,
+                 tier_required: jlc_4layer_standard,
+                 conditions: [escape-corridor]}
         status: designed-in
         provenance: usb-pwr-hub-3s (cleanroom v3, 2026-07-21) — ERC 0, placed, routed
         gotchas:
           - "ESCAPE BUDGET WALL (ADR-0008): ~8 escapes on one 0.65mm side;
              at standard tier NO via fits between adjacent pins
-             (0.65-0.3 drill = 0.35 < 0.5 hole-to-hole). Reserve an escape
-             corridor at placement or take the advanced tier. Standard-tier
-             closure is UNPROVEN as of 2026-07-21."
+             (0.65-0.3 drill = 0.35 < 0.5 hole-to-hole). escape_check v2
+             grades standard CONDITIONAL on `escape-corridor` — reserve
+             the lane at placement (floorplan `escape_corridors:`) or take
+             the advanced tier. Standard-tier closure is UNPROVEN as of
+             2026-07-21 (v3 stalled without the corridor)."
           - "No internal boot diode — external VCC->HB diode REQUIRED"
           - "VCCX: tie to 5V output for efficiency (gate drive drops to
              5V — check FET Rds(on) at Vgs=5V); GROUND if unused, never open"
@@ -80,7 +84,9 @@ functions:
         maker: Silergy
         lcsc: C125897
         package: QFN3x3-10 P0.45-0.5
-        escape: {style: qfn, pitch: 0.45, tier_required: jlc_4layer_advanced}
+        escape: {style: qfn, pitch: 0.45, escapes_worst_side: 6,
+                 tier_required: jlc_4layer_standard,
+                 conditions: [outward-only-local]}
         status: shipped
         provenance: >
           BOTH outcomes are paid-for ground truth: xt60-usb-supply-rerun
@@ -96,9 +102,12 @@ functions:
              (passive hard against the pin, D-ADJ), fine side facing open
              copper, no escape crossings/layer drops, PG-class pins NC'd if
              unused. If any escape must cross or via down, it is advanced
-             tier or a re-place. escape_check currently grades this part
-             'advanced always' — over-conservative vs the shipped board;
-             recalibration pending (Phase F)"
+             tier or a re-place. escape_check v2 (Phase F, 2026-07-21)
+             grades this: with escapes_worst_side declared, standard is
+             CONDITIONAL on `outward-only-local` (record the condition in
+             the part.yaml or P-ESC fails); without the declared budget it
+             stays UNCONDITIONAL advanced — both directions pinned in
+             tests/t4_regressions.py"
 
   usb-c-receptacle-high-current:
     candidates:
@@ -115,14 +124,169 @@ functions:
              part SILENTLY (S-COUNT incident 2026-07-21). Run tsx_preflight,
              map pads in parity_padmap.txt BEFORE the first tsci build"
 
+  # ------------------------------------------------------------------
+  # usb-hub-3s harvest (cleanroom v4, 2026-07-21) — 9 function entries
+  # from the released v1.0 board (DRC 0/0/0). Merged Phase F 2026-07-21;
+  # one transcription fix vs the v4 worktree copy: TPS2557 tier_required
+  # corrected to jlc_4layer_standard (qfn @ 0.65: 0.6 + 0.127 > 0.65 at
+  # 2-layer — the v4 board's own part.yaml already said standard).
+  # ------------------------------------------------------------------
+
   pd-source-5v5a:                 # compliant 5V/5A USB-C source
-    candidates: []
-    status: unresolved
-    note: >
-      No verified standalone PD source controller (fixed 5V/5A PDO +
-      e-marker read + 3A fallback) in the ledger yet. Known constraints
-      from the 2026-07-21 spec analysis: plain Rp tops out at 3A; >3A
-      REQUIRES PD + e-marker per spec; many candidate controllers live in
-      0.5mm QFN (advanced tier — check escape FIRST). The next board that
-      needs this function runs the D-SPEC sourcing spike and FOUNDS this
-      entry with its verified selection.
+    candidates:
+      - mpn: IP6559-C
+        maker: Injoinic
+        lcsc: C5140592
+        package: QFN-48 7x7 P0.5 EP5.4
+        escape: {style: qfn, pitch: 0.5, tier_required: jlc_4layer_advanced}
+        status: shipped
+        provenance: usb-hub-3s (cleanroom v4, 2026-07-21) — routed DRC
+          0/0/0, twin+pin-review verified, released v1.0; 100W buck-boost
+          PD3.0 source SoC with e-marker read (5A only via PD per spec)
+        layout_refs: ["IP6559 DS V1.4 Fig 8 (single-C reference)", "Fig 9 (Vconn e-marker drive)"]
+        gotchas:
+          - "PDO set is configured by ONE resistor on GPIO0 (DS note 1) whose
+             value table is APP-NOTE-ONLY — populate as DNP + first-power PD
+             analyzer check (ADR pattern), never guess the value"
+          - "0.5mm QFN-48: advanced tier REQUIRED (0.25/0.15 POFV) — a
+             48-pin 4-sided QFN has no outward-only conditional form"
+          - "chip does NOT carry coil current (external H-bridge) — LX1/LX2
+             chip pins are gate-return/sense class, thin taps are fine"
+          - "stock is VOLATILE (62 on 2026-07-21) — order-day recheck is
+             MANDATORY, alternates unverified"
+      - mpn: TYPE-C-31-M-12A
+        note: "see usb-c-receptacle-high-current for the matching receptacle"
+
+  power-nfet-30v:                 # logic-level switching NFET, 30V class
+    candidates:
+      - mpn: AON6354
+        maker: Alpha & Omega
+        lcsc: C404363
+        package: DFN 5x6-8L (PowerPAK SO-8 pattern)
+        escape: {style: qfn, pitch: 1.27, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: usb-hub-3s (cleanroom v4, 2026-07-21) x7 (buck +
+          buck-boost H-bridge + path switch), twin adjudicated, released
+        gotchas:
+          - "KiCad PowerPAK_SO-8_Single merges drain leads+paddle into ONE
+             pad '5' — jlc_twin reports PAD-MISMATCH best=none vs JLC's
+             5-8+EP9 split; adjudicate, the copper coincides"
+          - "escape style is 'qfn' in checker vocabulary (DFN/SON ring) even
+             though the body says DFN — declaring 'dfn' fails P-ESC"
+          - "rejected sibling NCEP40T15AGU: Vth 4V max with no 4.5V Rds spec
+             — not logic-level drivable from a 5V gate rail"
+
+  reverse-polarity-pfet-20v:
+    candidates:
+      - mpn: AON6403
+        maker: Alpha & Omega
+        lcsc: C2760089
+        package: DFN 5x6-8L (PowerPAK SO-8 pattern)
+        escape: {style: qfn, pitch: 1.27, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: usb-hub-3s (cleanroom v4, 2026-07-21) — 3S battery
+          reverse-polarity high-side switch, Vgs +-20V covers 12.6V direct
+        gotchas: ["same merged-pad-5 twin adjudication as AON6354"]
+
+  usb-power-dist-switch-2ch-class:   # per-port 5V current limit switch
+    candidates:
+      - mpn: TPS2557DRBR
+        maker: Texas Instruments
+        lcsc: C130056
+        package: VSON-8 DRB 3x3 EP
+        escape: {style: qfn, pitch: 0.65, tier_required: jlc_4layer_standard}
+        status: shipped
+        provenance: usb-hub-3s (cleanroom v4, 2026-07-21) x3 — RILIM 36.5k
+          -> 2.72-3.29A window derived from DS equations (DETAIL_DESIGN)
+        gotchas:
+          - "ILIM window is WIDE (DS min/typ/max equations) — derive BOTH
+             ends; the max must stay under the upstream rail budget"
+
+  usb-dcp-controller:
+    candidates:
+      - mpn: TPS2513ADBVR
+        maker: Texas Instruments
+        lcsc: C473910
+        package: SOT-23-6 DBV
+        escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: usb-hub-3s (cleanroom v4, 2026-07-21) — dual-channel
+          DCP auto-detect, one chip per two A-ports
+        gotchas:
+          - "the 2.7/2.7V 'Apple 2.4A' Divider3 mode is the A-VARIANT ONLY
+             (device-options table). The non-A TPS2513 tops out at ~2.1A
+             Apple modes — a fresh-context pin review caught the non-A on a
+             BOM claiming A behavior (2026-07-21). Order C473910, not C44770"
+
+  usb-a-receptacle:
+    candidates:
+      - mpn: KH-AF90DIP-112
+        maker: Shenzhen Kinghelm
+        lcsc: C503996
+        package: USB-A female right-angle THT
+        mates: receptacle
+        escape: {style: connector, pitch: 2.0, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: usb-hub-3s (cleanroom v4, 2026-07-21) — vendored
+          footprint from the vendor drawing (O1.0 pins 2.5/2.0/2.5, O3.0
+          shells 13.24); jlc_twin fit 0.00mm vs JLC's own model
+        gotchas:
+          - "USB-A contacts are a 1.5A-class system — there is no '2.5A
+             rated' classic A receptacle; 2A/2.4A DCP use is industry
+             practice, record the disposition (I2R ~0.19W at 2.5A), do not
+             silently pass it"
+      - mpn: 1001-011-01101
+        maker: CNC Tech
+        lcsc: null
+        mates: plug
+        status: incident
+        provenance: usb-hub-3s (cleanroom v4, 2026-07-21) — caught at
+          fresh-context pin review, NEVER ordered (ADR-0006)
+        gotchas:
+          - "this is a USB-A MALE PLUG ('USB 4P AM SMT' on its own drawing)
+             rated 1.5A, present in KiCad's official library alongside
+             receptacles. Every distributor listing that calls a USB-A part
+             a 'connector' must be gender-checked against the DRAWING TITLE
+             — footprint+netlist+silk can all be consistently wrong together.
+             Record `mates: plug|receptacle` in part.yaml; the release gate
+             pins the pin-review artifact per connector (t4_regressions)"
+
+  fuse-holder-mini-blade:
+    candidates:
+      - mpn: "3568"
+        maker: Keystone
+        lcsc: C5249699
+        package: MINI blade fuse clip (single)
+        escape: {style: connector, pitch: 3.4, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: usb-hub-3s (cleanroom v4, 2026-07-21)
+        gotchas:
+          - "C5249699 is ONE clip; the KiCad Fuseholder_Blade_Mini_Keystone_3568
+             footprint is the TWO-clip holder — order qty 2 per board, and
+             expect a twin PAD-MISMATCH (granularity, not geometry)"
+
+  buckboost-power-inductor-10uH:
+    candidates:
+      - mpn: MWSA1707S-100MT
+        maker: Sunlord
+        lcsc: C5240401
+        package: 17.2x17.2 shielded
+        escape: {style: connector, pitch: 12.0, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: usb-hub-3s (cleanroom v4, 2026-07-21) — 12.7A peak
+          derivation in DETAIL_DESIGN; rejected APH1265T100M (DCR 16.5mR,
+          Isat 12.5A < peak)
+        gotchas: ["17.2mm body: floorplan for it FIRST — it forced a board
+             growth 110x82 -> 110x90 when added late"]
+
+  usb2-esd-array:
+    candidates:
+      - mpn: USBLC6-2SC6
+        maker: ST
+        lcsc: C7519
+        package: SOT-23-6
+        escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: usb-hub-3s (cleanroom v4, 2026-07-21) x3 — pass-through
+          pairs 1-6/3-4 in-line with the port data nets
+        gotchas: []

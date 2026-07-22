@@ -13,6 +13,16 @@ policy_audit.py (git show 656bab3:...policy_audit.py swapped in): every
 P-ESC/P-TIER case failed with "report has no row for P-ESC/P-TIER" —
 the gate did not exist, so nothing could block the incident. Restored and
 re-run green 2026-07-21.
+
+v2 (Phase F, 2026-07-21): the CONDITIONAL escape-budget model. The
+calibration table below is paid-for ground truth in both directions —
+xt60-usb-supply-rerun SHIPPED the SY8368 x3 at STANDARD tier with
+outward-only escapes (a4ff7ed) while the v2 clean-room STALLED the same
+part, and usb-pwr-hub-3s ADR-0008 measured the dense-leaded LM5116 wall.
+The v2 known-bad cases were RED-VERIFIED against the pre-v2 escape_check
+(git show 656bab3 swap): the conditional-clean cases FAIL there (the model
+could only say 'advanced always') and the conditions-mismatch cases fail
+with the wrong reason — details per test.
 """
 import re
 import sys
@@ -69,6 +79,17 @@ def audit_rows(d):
     return rows
 
 
+LM5116_PART = """mpn: LM5116MHX
+manufacturer: Texas Instruments
+type: buck_controller
+package: HTSSOP-20-EP
+footprint: lib:HTSSOP-20-1EP_4.4x6.5mm_P0.65mm
+pins: {{1: VIN, 2: UVLO, 3: RT, 4: EN, 5: SS, 6: RAMP, 7: AGND, 8: FB, 9: COMP, 10: VOUT, 11: DEMB, 12: CSG, 13: CS, 14: LG, 15: PGND, 16: VCC, 17: VCCX, 18: BST, 19: HG, 20: SW, 21: EP}}
+verified: "pinout figure p.3"
+{escape}
+"""
+
+
 # ------------------------------------------------------------ clean cases
 @test("escape_check calibration matches every shipped ground truth")
 def t_calibration():
@@ -94,7 +115,200 @@ def t_clean_pass():
     check(rows.get("P-TIER", ("",))[0] == "PASS", f"P-TIER not PASS: {rows.get('P-TIER')}")
 
 
+@test("v2 CALIBRATION TABLE: conditional verdicts reproduce every paid-for "
+      "outcome (SY8368 both ways, LM5145, LM5116, IP6559, plain leaded)")
+def t_calibration_v2():
+    """Each row was PAID for (see module docstring). The model must
+    reproduce ALL of them or the model is wrong. RED-VERIFIED against the
+    pre-v2 escape_check (git show 656bab3 swap, 2026-07-21): rows 1 and 3
+    fail there — no --escapes-worst-side flag, no CONDITIONAL verdict."""
+    # 1. SY8368 shipped config: qfn 0.45, ~6 escapes one side, 10 pins ->
+    #    standard CONDITIONAL on outward-only-local (xt60-usb-supply-rerun
+    #    shipped x3); unconditional tier stays advanced.
+    r = must_pass(run([KPY, ESC, "--style", "qfn", "--pitch", "0.45",
+                       "--escapes-worst-side", "6", "--pins", "10"]),
+                  "SY8368 shipped config")
+    contains(r.out, "jlc_4layer_standard      CONDITIONAL on outward-only-local",
+             "SY8368: standard is conditional")
+    contains(r.out, "tier_required: jlc_4layer_advanced",
+             "SY8368: unconditional stays advanced")
+    # 2. the same part with NO declared escape budget = the v2 clean-room
+    #    stall configuration -> UNCONDITIONAL advanced, standard INFEASIBLE
+    r = must_pass(run([KPY, ESC, "--style", "qfn", "--pitch", "0.45"]),
+                  "SY8368 stranded config")
+    contains(r.out, "jlc_4layer_standard      INFEASIBLE",
+             "SY8368 stranded: no conditional rescue without the budget")
+    contains(r.out, "tier_required: jlc_4layer_advanced", "stranded verdict")
+    # 3. LM5145: qfn 0.5, 20 pins on 4 sides -> advanced UNCONDITIONAL
+    #    (3 shipped boards) — the outward-only rescue must NOT apply even
+    #    with a small per-side count declared.
+    r = must_pass(run([KPY, ESC, "--style", "qfn", "--pitch", "0.5",
+                       "--escapes-worst-side", "5", "--pins", "20"]),
+                  "LM5145 config")
+    contains(r.out, "jlc_4layer_standard      INFEASIBLE",
+             "LM5145: no conditional standard for a 4-sided VQFN-20")
+    contains(r.out, "tier_required: jlc_4layer_advanced", "LM5145 verdict")
+    # 4. LM5116: leaded 0.65, 8 escapes worst side -> standard CONDITIONAL
+    #    on escape-corridor (ADR-0008: 0.65 - 0.3 drill = 0.35 < 0.5
+    #    hole-to-hole); advanced (0.65 - 0.15 = 0.5 >= 0.25) unconditional.
+    r = must_pass(run([KPY, ESC, "--style", "leaded", "--pitch", "0.65",
+                       "--escapes-worst-side", "8"]), "LM5116 config")
+    contains(r.out, "jlc_4layer_standard      CONDITIONAL on escape-corridor",
+             "LM5116: standard needs the reserved corridor")
+    contains(r.out, "tier_required: jlc_4layer_advanced",
+             "LM5116: unconditional tier is advanced")
+    # 5. IP6559-C: qfn-48 0.5 7x7 EP -> advanced OK (v4 routed + released)
+    r = must_pass(run([KPY, ESC, "--style", "qfn", "--pitch", "0.5",
+                       "--pins", "48"]), "IP6559 config")
+    contains(r.out, "jlc_4layer_advanced      ok", "IP6559: advanced feasible")
+    contains(r.out, "tier_required: jlc_4layer_advanced", "IP6559 verdict")
+    # 6. plain leaded 0.65 with < 6 escapes/side -> cheapest tier,
+    #    unconditional (many shipped boards)
+    r = must_pass(run([KPY, ESC, "--style", "leaded", "--pitch", "0.65",
+                       "--escapes-worst-side", "5"]), "plain leaded config")
+    contains(r.out, "jlc_2layer_default       ok", "plain leaded: cheapest ok")
+    contains(r.out, "tier_required: jlc_2layer_default", "plain leaded verdict")
+
+
+@test("P-ESC + P-TIER PASS the SY8368 SHIPPED configuration: conditional "
+      "standard tier with the conditions RECORDED")
+def t_conditional_earned_pass():
+    """The xt60-usb-supply-rerun ground truth (a4ff7ed): the part carries
+    escapes_worst_side + the outward-only-local condition, the board
+    declares standard tier — this must PASS, or the checker is
+    over-conservative vs a board that shipped three times. RED-VERIFIED:
+    pre-v2 escape_check fails this part ('math says jlc_4layer_advanced'),
+    which is exactly the over-conservatism a4ff7ed queued for Phase F."""
+    esc = ("escape: {style: qfn, pitch: 0.5, escapes_worst_side: 6, "
+           "tier_required: jlc_4layer_standard, "
+           "conditions: [outward-only-local], checked: escape_check}")
+    d = scratch_project({"SY8368QNC": QFN_PART.format(escape=esc)},
+                        fab_tier="jlc_4layer_standard")
+    rows = audit_rows(d)
+    check(rows.get("P-ESC", ("",))[0] == "PASS",
+          f"P-ESC not PASS: {rows.get('P-ESC')}")
+    check(rows.get("P-TIER", ("",))[0] == "PASS",
+          f"P-TIER not PASS: {rows.get('P-TIER')}")
+
+
+@test("P-ESC PASSES the dense-leaded LM5116 at standard tier when the "
+      "escape-corridor condition is recorded")
+def t_corridor_earned_pass():
+    """ADR-0008 (usb-pwr-hub-3s, 2026-07-21): 8 escapes on one 0.65mm side
+    — standard tier is feasible only with a reserved escape corridor at
+    placement (floorplan `escape_corridors:`). Recording the condition is
+    what P-ESC accepts."""
+    esc = ("escape: {style: leaded, pitch: 0.65, escapes_worst_side: 8, "
+           "tier_required: jlc_4layer_standard, "
+           "conditions: [escape-corridor], checked: escape_check}")
+    d = scratch_project({"LM5116MHX": LM5116_PART.format(escape=esc)},
+                        fab_tier="jlc_4layer_standard")
+    rows = audit_rows(d)
+    check(rows.get("P-ESC", ("",))[0] == "PASS",
+          f"P-ESC not PASS: {rows.get('P-ESC')}")
+
+
 # -------------------------------------------------------- known-bad cases
+@test("P-ESC FAILS a conditional tier whose conditions are NOT recorded "
+      "in the part.yaml", kind="known_bad")
+def t_kb_conditional_unearned():
+    """The heart of the v2 contract: a conditional verdict must be EARNED.
+    A part claiming the SY8368's conditional standard tier without
+    recording the conditions is the copied-waiver disease — the next board
+    inherits the tier but not the discipline (the exact mechanism of the
+    v2 clean-room stall: same part, stranded passives). RED-VERIFIED: the
+    'conditions:' assertion below fails against pre-v2 escape_check
+    (which rejects for the unrelated reason 'math says advanced')."""
+    esc = ("escape: {style: qfn, pitch: 0.5, escapes_worst_side: 6, "
+           "tier_required: jlc_4layer_standard, checked: escape_check}")
+    d = scratch_project({"SY8368QNC": QFN_PART.format(escape=esc)},
+                        fab_tier="jlc_4layer_standard")
+    rows = audit_rows(d)
+    g, det = rows.get("P-ESC", ("MISSING", ""))
+    check(g == "FAIL", f"report has no FAIL row for P-ESC (got {g})")
+    contains(det, "CONDITIONAL", "P-ESC names the conditional verdict")
+    contains(det, "conditions:", "P-ESC says what must be recorded")
+
+
+@test("P-ESC FAILS recorded conditions that do not match the math",
+      kind="known_bad")
+def t_kb_conditions_mismatch():
+    """A QFN outward-only part carrying the LEADED corridor condition is a
+    copied block — the conditions must be the ones this geometry needs."""
+    esc = ("escape: {style: qfn, pitch: 0.5, escapes_worst_side: 6, "
+           "tier_required: jlc_4layer_standard, "
+           "conditions: [escape-corridor], checked: escape_check}")
+    d = scratch_project({"SY8368QNC": QFN_PART.format(escape=esc)},
+                        fab_tier="jlc_4layer_standard")
+    rows = audit_rows(d)
+    g, det = rows.get("P-ESC", ("MISSING", ""))
+    check(g == "FAIL", f"report has no FAIL row for P-ESC (got {g})")
+    contains(det, "do not match", "P-ESC names the mismatch")
+
+
+@test("P-ESC FAILS stale conditions on an unconditionally-feasible tier",
+      kind="known_bad")
+def t_kb_conditions_stale():
+    """Conditions riding on a tier that needs none are a copied block."""
+    esc = ("escape: {style: leaded, pitch: 0.65, escapes_worst_side: 5, "
+           "tier_required: jlc_2layer_default, "
+           "conditions: [escape-corridor], checked: escape_check}")
+    d = scratch_project({"FAKE-TSSOP16": TSSOP_PART.format(escape=esc)})
+    rows = audit_rows(d)
+    g, det = rows.get("P-ESC", ("MISSING", ""))
+    check(g == "FAIL", f"report has no FAIL row for P-ESC (got {g})")
+    contains(det, "UNCONDITIONAL", "P-ESC names the stale conditions")
+
+
+@test("P-ESC FAILS an unknown condition token (no invented vocabulary)",
+      kind="known_bad")
+def t_kb_condition_unknown():
+    esc = ("escape: {style: qfn, pitch: 0.5, escapes_worst_side: 6, "
+           "tier_required: jlc_4layer_standard, "
+           "conditions: [trust-me], checked: escape_check}")
+    d = scratch_project({"SY8368QNC": QFN_PART.format(escape=esc)},
+                        fab_tier="jlc_4layer_standard")
+    rows = audit_rows(d)
+    g, det = rows.get("P-ESC", ("MISSING", ""))
+    check(g == "FAIL", f"report has no FAIL row for P-ESC (got {g})")
+    contains(det, "unknown escape condition", "P-ESC names the token")
+
+
+@test("proven-parts ledger parses and every escape block is schema-valid")
+def t_proven_parts_schema():
+    """The v4 harvest added 9 function entries — the ledger must parse and
+    every candidate's escape block must use the checker's own vocabulary
+    (style/tier/condition names), or the next D-ESC consult starts from a
+    corrupt ledger."""
+    import yaml as _y
+    sys.path.insert(0, str(SCRIPTS))
+    import escape_check as ec
+    ledger = _y.safe_load(
+        (SCRIPTS.parent / "references" / "proven-parts.yaml").read_text())
+    tiers = ec.load_tiers()
+    statuses = {"shipped", "designed-in", "incident", "unresolved"}
+    n = 0
+    for fn, body in ledger["functions"].items():
+        for c in body.get("candidates") or []:
+            if set(c) == {"mpn", "note"}:      # cross-reference stub
+                continue
+            check(c.get("status") in statuses,
+                  f"{fn}/{c.get('mpn')}: bad status {c.get('status')!r}")
+            check(bool(c.get("provenance")),
+                  f"{fn}/{c.get('mpn')}: no provenance")
+            esc = c.get("escape")
+            if esc:
+                check(esc.get("style") in
+                      ec.OUTWARD_STYLES | ec.RING_STYLES | {"bga"},
+                      f"{fn}/{c['mpn']}: bad style {esc.get('style')!r}")
+                check(esc.get("tier_required") in tiers,
+                      f"{fn}/{c['mpn']}: bad tier {esc.get('tier_required')!r}")
+                bad = set(esc.get("conditions") or []) - ec.KNOWN_CONDITIONS
+                check(not bad, f"{fn}/{c['mpn']}: unknown conditions {bad}")
+            n += 1
+    check(n >= 14, f"ledger looks truncated: only {n} candidates")
+
+
 @test("P-TIER FAILS the incident: 0.5mm QFN vs a standard-tier board",
       kind="known_bad")
 def t_tier_bites():

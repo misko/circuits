@@ -67,6 +67,14 @@ datasheet:
   fetched: 2026-07-14
 package: VQFN-20 RGY 3.5x4.5
 footprint: power_board_v1:VQFN-20_3.5x4.5_P0.5_LM5145RGY
+# mates: receptacle        # CONNECTORS ONLY (plug|receptacle): the part's
+                            # GENDER, read off the drawing TITLE BLOCK
+                            # ("AM"/"AF"). A male plug served weeks as a
+                            # receptacle because footprint+netlist+silk were
+                            # consistently wrong TOGETHER (usb-hub-3s
+                            # ADR-0006, 2026-07-21). Role-vs-gender remains
+                            # a HUMAN pin-review call; the machine gate pins
+                            # the pin-review artifact per connector (M-REL)
 escape:                     # REQUIRED for every multi-pin part (D-ESC).
                             # Emitted by skills/kicad-pcb/scripts/
                             # escape_check.py --style qfn --pitch 0.5;
@@ -77,7 +85,21 @@ escape:                     # REQUIRED for every multi-pin part (D-ESC).
                             # cross-checks it against the footprint text.
   style: qfn                # qfn|dfn|leaded|bga|connector|module|passive
   pitch: 0.5                # mm, from the datasheet land pattern
+  escapes_worst_side: 5     # OPTIONAL: escape count on the worst single
+                            # side (nets leaving the package, not GND/EP).
+                            # Declaring it enables escape_check v2's
+                            # CONDITIONAL verdicts (escape-budget model)
   tier_required: jlc_4layer_advanced
+  # conditions: [outward-only-local]
+                            # REQUIRED iff tier_required is a CONDITIONAL
+                            # tier for this geometry — must match the
+                            # checker's computed conditions exactly, or
+                            # P-ESC fails. Vocabulary (escape_check.py):
+                            #   outward-only-local — every fine-pad net
+                            #     terminates in an adjacent local passive
+                            #     (D-ADJ); no crossings, no layer drops
+                            #   escape-corridor — a reserved routing lane
+                            #     at placement (floorplan escape_corridors:)
   checked: escape_check 2026-07-21
 pins:                       # PHYSICAL PADS, read from the pinout figure
   1: EN
