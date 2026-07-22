@@ -26,3 +26,19 @@
   declared fab_tier 'jlc_6layer_smallvia'"); full audit 0 FAIL
   (PASS=16, WAIVED=3, HUMAN=6, N-A=5).
 - next: tension ADRs T1-T3 with live JLC stock re-check.
+
+## 2026-07-21 22:35 — finish (tension ADRs T1-T3 resolved, live stock re-measured)
+- did: live JLC stock re-check on the 9 tension-relevant codes
+  (jlc_stock_check.py, evidence 06_build/cache/tension_stock_2026-07-21.csv);
+  wrote ADR-0013 (XU316 consign line, C-grade C6362698 stock=10 noted as
+  user-approval-only option), ADR-0014 (Y1 = X322524MOB4SI C70590 stock
+  104,480; FA-238 Digi-Key fallback), ADR-0015 (U12 = TLV70018DDCR C79924
+  stock 5,258; LP5907/ME6211/RT9013 ranked alternates all stocked;
+  exact-MPN Digi-Key fallback); BRIEF tension table + decision register
+  updated to RESOLVED.
+- result: MEASURED — C6938291=0, C2650433=0, C150173=0 (all three tensions
+  confirmed live); substitutes C70590=104480, C79924=5258 healthy; the
+  archive's D27 substitutions are already wired in 03_src/bom_seed.py, so
+  no board/BOM code change was needed — the ADRs formalize + re-evidence.
+- next: work-order item 3 (rev-string residue) + item 4 (silk-attribution
+  check port), then stage-7 verification fan-out.

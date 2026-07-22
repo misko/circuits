@@ -57,10 +57,10 @@ Live JLC stock check (scratch spike, jlc_stock_check.py, 2026-07-21):
 
 | # | Requirement | Standard / parts cap it exceeds | Resolution (ADR) | User flagged |
 |---|---|---|---|---|
-| T1 | XU316-1024-TQ128-I24 (C6938291) | JLC stock = **0** (expand lib listing exists) | plan: JLC global-sourcing/consign or Digi-Key + hand/consign assembly of the TQFP-128; archive shipped it as a designated consign line. Tension ADR due at recorder parts stage; NOT a late discovery | yes (final report) |
-| T2 | FA-238 24MHz (C2650433) | JLC stock = **0** (matches archive's 2026-07-17 finding) | Digi-Key fallback (28k stock @ $0.44 on 2026-07-17) or JLC global sourcing; hand-solder line | yes (final report) |
-| T3 | TCR2LF18 1.8V LDO (C150173) | JLC stock = **0** (was stocked 2026-07-17) | alternate-code / equivalent-LDO search at parts stage (SOT-25 1.8V 200mA class is dense); keep exact-MPN Digi-Key fallback | yes (final report) |
-| T4 | Fab tier: XU316 TQFP-128 0.4mm pitch escape | 4L standard-via could not close (archive ADR-0008/0009) | expect 6-layer + JLC small-via 0.30/0.15 (cost ceiling raised: D-TIER ADR due at parts stage); doc itself says "6 preferred" | yes (final report) |
+| T1 | XU316-1024-TQ128-I24 (C6938291) | JLC stock = **0** (re-measured 2026-07-21; C-grade alt C6362698 stock 10) | **RESOLVED: ADR-0013** — BOM line stays coded C6938291 as a designated JLC consignment/global-sourcing line (archive's shipped approach); Digi-Key+consign or hand-reflow ladder; C-grade swap needs user approval (temp envelope) | yes (final report) |
+| T2 | FA-238 24MHz (C2650433) | JLC stock = **0** (re-measured 2026-07-21) | **RESOLVED: ADR-0014** — BOM Y1 = X322524MOB4SI C70590 (stock 104,480; same land, SAME CL 12pF, tighter ppm); FA-238 kept as Digi-Key hand-solder fallback | yes (final report) |
+| T3 | TCR2LF18 1.8V LDO (C150173) | JLC stock = **0** (re-measured 2026-07-21) | **RESOLVED: ADR-0015** — BOM U12 = TLV70018DDCR C79924 (stock 5,258); ranked stocked alternates LP5907/ME6211/RT9013; exact-MPN Digi-Key fallback | yes (final report) |
+| T4 | Fab tier: XU316 TQFP-128 0.4mm pitch escape | 4L standard-via could not close (archive ADR-0008/0009) | **RESOLVED: ADR-0012 (D-TIER)** — fab_tier = jlc_6layer_smallvia (6L + JLC small-via 0.30/0.15, via-in-pad); order_readme line mandated | yes (final report) |
 
 Positively verified in the same spike (stock >= need): PCM1865DBTR (1674),
 USB4105-GF-A (3958), NC7NZ34K8X (1508), AP61102Z6-7 (455), XC6227C331PR-G
@@ -84,3 +84,8 @@ detail (same wording as pod A1). Escalate if the attached full text disagrees.
 |---|---|---|---|
 | D1 | ethernet connectors everywhere | user (P directive) | Log D1 |
 | 0000 | two projects, pod first | agent | decisions/0000-scope-two-boards.md |
+| 0011 | archive design adopted, every gate re-run | agent | decisions/0011-archive-precedent.md |
+| 0012 | D-TIER: fab_tier = jlc_6layer_smallvia (T4) | agent | decisions/0012-fab-tier-6layer-smallvia.md |
+| 0013 | XU316 = designated consign line (T1) | agent | decisions/0013-xu316-consignment-sourcing.md |
+| 0014 | Y1 = X322524MOB4SI, FA-238 Digi-Key fallback (T2) | agent | decisions/0014-fa238-crystal-substitute.md |
+| 0015 | U12 = TLV70018DDCR, TCR2LF18 fallback (T3) | agent | decisions/0015-tcr2lf18-ldo-substitute.md |
