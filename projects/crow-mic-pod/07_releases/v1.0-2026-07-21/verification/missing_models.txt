@@ -1,0 +1,4 @@
+# CPL refs with no attached 3D body in the modeled twin render.
+# Bodiless = missing model, never unpopulated - CPL is population ground truth.
+J1
+J2

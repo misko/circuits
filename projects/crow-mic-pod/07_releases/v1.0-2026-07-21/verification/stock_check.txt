@@ -1,0 +1,30 @@
+27 BOM lines: 25 with LCSC, 2 without
+
+  OK               C17477     x1   0R beep series                         base   stock=8188711
+  OK               C17477     x1   0R choke byp +                         base   stock=8188711
+  OK               C17477     x1   0R choke byp -                         base   stock=8188711
+  OK               C17408     x1   100R 5VF                               base   stock=7738799
+  OK               C149504    x1   100k bias                              base   stock=6185070
+  OK               C49678     x1   100n 5VF                               base   stock=23134657
+  OK               C49678     x1   100n U1                                base   stock=23134657
+  OK               C49678     x1   100n VMID                              base   stock=23134657
+  OK               C2887276   x1   100u 5VF                               expand stock=553519
+  OK               C17414     x1   10k div hi                             base   stock=14638450
+  OK               C17414     x1   10k div lo                             base   stock=14638450
+  OK               C17414     x1   10k fb A                               base   stock=14638450
+  OK               C15850     x1   10u 5V bulk                            base   stock=10359997
+  OK               C15850     x1   10u VMID                               base   stock=10359997
+  OK               C28323     x1   1u coupling                            base   stock=5812352
+  OK               C4328      x1   20k gain A                             base   stock=3221485
+  OK               C4328      x1   20k inv fb                             base   stock=3221485
+  OK               C4328      x1   20k inv in                             base   stock=3221485
+  OK               C17614     x1   3.9k mic bias                          base   stock=385466
+  OK               C17802     x1   68R iso +                              expand stock=92546
+  OK               C17802     x1   68R iso -                              expand stock=92546
+  OK               C22359707  x1   CMT-8504-100-SMT-TR                    expand stock=104
+  OK               C192421    x1   OPA1678IDR                             expand stock=5476
+  OK               C2480      x1   SS14 flyback                           base   stock=2144977
+  OK               C1972959   x1   TPD2E2U06DRLR                          expand stock=11579
+
+PASS: 0 coded lines with problems; 2 lines still uncoded
+stock_exit=0

@@ -1,0 +1,2924 @@
+(export
+	(version "E")
+	(design
+		(source "/home/mouse9911/gits/circuits/projects/crow-mic-pod/04_kicad/crow_mic_pod.kicad_sch")
+		(date "2026-07-21T21:20:02")
+		(tool "Eeschema 10.0.4-10.0.4~ubuntu24.04.1")
+		(sheet
+			(number "1")
+			(name "/")
+			(tstamps "/")
+			(title_block
+				(title "crow-mic-pod")
+				(company)
+				(rev "dev")
+				(date "2026-07-21")
+				(source "crow_mic_pod.kicad_sch")
+				(comment
+					(number "1")
+					(value "Remote mic pod: AOM-5024L + OPA1678 balanced driver + CMT-8504 beeper; crow-array commission")
+				)
+				(comment
+					(number "2")
+					(value "")
+				)
+				(comment
+					(number "3")
+					(value "")
+				)
+				(comment
+					(number "4")
+					(value "")
+				)
+				(comment
+					(number "5")
+					(value "")
+				)
+				(comment
+					(number "6")
+					(value "")
+				)
+				(comment
+					(number "7")
+					(value "")
+				)
+				(comment
+					(number "8")
+					(value "")
+				)
+				(comment
+					(number "9")
+					(value "")
+				)
+			)
+		)
+	)
+	(components
+		(comp
+			(ref "BZ1")
+			(value "CMT-8504-100-SMT-TR")
+			(footprint "pod:CMT-8504")
+			(fields
+				(field
+					(name "Footprint") "pod:CMT-8504")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "BUZZ")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "5d43b078-8a2b-4b48-a6d7-d9f800c21e38")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C1")
+			(value "100u 5VF")
+			(footprint "Capacitor_SMD:CP_Elec_6.3x5.4")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:CP_Elec_6.3x5.4")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "CAPP")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f8c3ca43-9d8f-433b-8265-b85de62e1e98")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C2")
+			(value "100n 5VF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "CAP")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "db0d6bce-883a-4d05-abda-ed071802f195")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C3")
+			(value "1u coupling")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "CAP")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f78282fd-dbad-48e3-bb5d-99afccc52797")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C4")
+			(value "10u VMID")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "CAP")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "5b43fad2-e655-4774-8951-81dba3c217de")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C5")
+			(value "100n VMID")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "CAP")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "ad4f1acf-b810-4c30-8850-00fbb4e4d89c")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C6")
+			(value "100n U1")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "CAP")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "4ef3d343-2869-4917-9b04-9833a62e8da0")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C7")
+			(value "10u 5V bulk")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "CAP")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "738278bd-eeaa-41ac-acbb-7b4f6b9e2795")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "D1")
+			(value "TPD2E2U06DRLR")
+			(footprint "Package_TO_SOT_SMD:SOT-553")
+			(fields
+				(field
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-553")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "ESD")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "72503c25-c839-45ba-bca0-b71341845c20")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "D2")
+			(value "SS14 flyback")
+			(footprint "Diode_SMD:D_SMA")
+			(fields
+				(field
+					(name "Footprint") "Diode_SMD:D_SMA")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "DSMA")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "40e8f17d-1fc5-486f-8c04-16cac685e747")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "D3")
+			(value "SMAJ6.0A TVS DNP")
+			(footprint "Diode_SMD:D_SMA")
+			(fields
+				(field
+					(name "Footprint") "Diode_SMD:D_SMA")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "DSMA")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "2943f165-1c77-4b52-a04b-0c8ca92a4079")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J1")
+			(value "RJHSE-5384")
+			(footprint "Connector_RJ:RJ45_Amphenol_RJHSE538X")
+			(fields
+				(field
+					(name "Footprint") "Connector_RJ:RJ45_Amphenol_RJHSE538X")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "RJ45")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0f698db5-fbb3-4405-85c7-53797283f979")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "9")
+						)
+						(pin
+							(num "10")
+						)
+						(pin
+							(num "11")
+						)
+						(pin
+							(num "12")
+						)
+						(pin
+							(num "SH")
+						)
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "7")
+						)
+						(pin
+							(num "8")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "J2")
+			(value "MIC PADS (AOM-5024L)")
+			(footprint "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical")
+			(fields
+				(field
+					(name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "HDR2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "fb180f8d-6fb7-484b-ba73-1f96a846ed7c")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "L1")
+			(value "CM choke DNP")
+			(footprint "Inductor_SMD:L_CommonMode_Wuerth_WE-SL2")
+			(fields
+				(field
+					(name "Footprint") "Inductor_SMD:L_CommonMode_Wuerth_WE-SL2")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "CMCHOKE")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "ce1d16c5-9bc0-442b-8df6-a8c0ae699c60")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "3")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R1")
+			(value "100R 5VF")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "RES")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "7588f60a-5c8b-4f83-8c33-26c746349099")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R2")
+			(value "3.9k mic bias")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "RES")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "b39f5126-884b-4be8-8799-2f1fa12e0993")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R3")
+			(value "100k bias")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "RES")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "1698ec94-b3bc-4fa5-9fd8-47f8bae6a813")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R4")
+			(value "10k div hi")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "RES")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "e777c9f2-1ac5-46bd-b7b7-84e6d56b5013")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R5")
+			(value "10k div lo")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "RES")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "683ac5bd-4870-4134-8036-e0981d701ccd")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R6")
+			(value "10k fb A")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "RES")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "a00a60aa-116b-4053-8734-44d150724d79")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R7")
+			(value "20k gain A")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "RES")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "89f6d2bc-a8c9-4533-8d7b-1e65a617a520")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R8")
+			(value "20k inv in")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "RES")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "8d151b79-9b58-48f5-8570-89efe6a92a60")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R9")
+			(value "20k inv fb")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "RES")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "24561389-53e7-4bc5-984d-25e19de39aef")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R10")
+			(value "68R iso +")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "RES")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "308650b4-9a89-4119-b786-47963d9358ad")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R11")
+			(value "68R iso -")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "RES")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "9eb543d1-5c5d-4c0d-9529-29b5dd4de60d")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R12")
+			(value "0R beep series")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "RES")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "31e13e07-5b5a-4d34-bcda-4bb95f7c847b")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R13")
+			(value "0R choke byp +")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "RES")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f0f7c5e1-6eba-488f-be91-d75c628b2161")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R14")
+			(value "0R choke byp -")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "RES")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "8cc69d2e-f702-462a-9ded-d0759892d0af")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R15")
+			(value "shield bond DNP")
+			(footprint "Resistor_SMD:R_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "RES")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0d8032a9-eb66-45b5-8fac-c81d267a26b0")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "TP1")
+			(value "TP AUDIO+")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
+			(fields
+				(field
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "TP")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "b9d3f8a0-0960-43c6-a397-4ad2161e5bc2")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "TP2")
+			(value "TP AUDIO-")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
+			(fields
+				(field
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "TP")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f8a21440-7f9a-429d-8bf5-6d7fffa67fb9")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "TP3")
+			(value "TP 2V5 MID")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
+			(fields
+				(field
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "TP")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "035afd25-ec30-4155-ace9-4edb0a2fdd05")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "TP4")
+			(value "TP 5V")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
+			(fields
+				(field
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "TP")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "b5aa0b6f-2dd4-4304-8666-eb6935623452")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "TP5")
+			(value "TP GND")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
+			(fields
+				(field
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "TP")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "171211c3-6356-4bb6-be30-21ab56ded30a")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "TP6")
+			(value "SHIELD BOND PAD")
+			(footprint "TestPoint:TestPoint_Pad_D2.5mm")
+			(fields
+				(field
+					(name "Footprint") "TestPoint:TestPoint_Pad_D2.5mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "TP")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f3fd26ad-8aa7-4c2b-ae94-9482a6fbbca3")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U1")
+			(value "OPA1678IDR")
+			(footprint "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm")
+			(fields
+				(field
+					(name "Footprint") "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "pod")
+				(part "OPAMP")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "crow_mic_pod")
+			)
+			(property
+				(name "Sheetfile")
+				(value "crow_mic_pod.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "8879a369-a07c-4def-8524-2b920cfc81d5")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "4")
+						)
+						(pin
+							(num "8")
+						)
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "7")
+						)
+					)
+				)
+			)
+		)
+	)
+	(groups)
+	(variants)
+	(libparts
+		(libpart
+			(lib "pod")
+			(part "BUZZ")
+			(fields
+				(field
+					(name "Reference") "BZ")
+				(field
+					(name "Value") "BUZZ")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "+")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "-")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "DMY")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "DMY")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "pod")
+			(part "CAP")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "CAP")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "pod")
+			(part "CAPP")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "CAPP")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "+")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "-")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "pod")
+			(part "CMCHOKE")
+			(fields
+				(field
+					(name "Reference") "L")
+				(field
+					(name "Value") "CMCHOKE")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "A_IN")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "B_IN")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "B_OUT")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "A_OUT")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "pod")
+			(part "DSMA")
+			(fields
+				(field
+					(name "Reference") "D")
+				(field
+					(name "Value") "DSMA")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "K")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "A")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "pod")
+			(part "ESD")
+			(fields
+				(field
+					(name "Reference") "D")
+				(field
+					(name "Value") "ESD")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "NC")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "NC")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "IO1")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "IO2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "pod")
+			(part "HDR2")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "HDR2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "MIC+")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "MIC-")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "pod")
+			(part "OPAMP")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "OPAMP")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "OUT_A")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "-IN_A")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "+IN_A")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "V-")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "+IN_B")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "-IN_B")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "OUT_B")
+					(type "passive")
+				)
+				(pin
+					(num "8")
+					(name "V+")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "pod")
+			(part "RES")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "RES")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "2")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "pod")
+			(part "RJ45")
+			(fields
+				(field
+					(name "Reference") "J")
+				(field
+					(name "Value") "RJ45")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "CT1")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "CT2")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "CT3")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "CT4")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "CT5")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "CT6")
+					(type "passive")
+				)
+				(pin
+					(num "7")
+					(name "CT7")
+					(type "passive")
+				)
+				(pin
+					(num "8")
+					(name "CT8")
+					(type "passive")
+				)
+				(pin
+					(num "9")
+					(name "LED1A")
+					(type "passive")
+				)
+				(pin
+					(num "10")
+					(name "LED1B")
+					(type "passive")
+				)
+				(pin
+					(num "11")
+					(name "LED2A")
+					(type "passive")
+				)
+				(pin
+					(num "12")
+					(name "LED2B")
+					(type "passive")
+				)
+				(pin
+					(num "SH")
+					(name "SHLD")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "pod")
+			(part "TP")
+			(fields
+				(field
+					(name "Reference") "TP")
+				(field
+					(name "Value") "TP")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "1")
+					(type "passive")
+				)
+			)
+		)
+	)
+	(libraries
+		(library
+			(logical "pod")
+			(uri "${KIPRJMOD}/../03_src/lib/pod.kicad_sym")
+		)
+	)
+	(nets
+		(net
+			(code "1")
+			(name "5V")
+			(class "PWR")
+			(node
+				(ref "C6")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C7")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J1")
+				(pin "4")
+				(pinfunction "CT4_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J1")
+				(pin "7")
+				(pinfunction "CT7_7")
+				(pintype "passive")
+			)
+			(node
+				(ref "R1")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP4")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "8")
+				(pinfunction "V+_8")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "2")
+			(name "5VF")
+			(class "PWR")
+			(node
+				(ref "C1")
+				(pin "1")
+				(pinfunction "+_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C2")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R1")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R2")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R4")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "3")
+			(name "AIN")
+			(class "Default")
+			(node
+				(ref "C3")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R3")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "3")
+				(pinfunction "+IN_A_3")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "4")
+			(name "AUDIO_N")
+			(class "AUDIO")
+			(node
+				(ref "D1")
+				(pin "5")
+				(pinfunction "IO2_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J1")
+				(pin "2")
+				(pinfunction "CT2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "L1")
+				(pin "3")
+				(pinfunction "B_OUT_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "R14")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP2")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "5")
+			(name "AUDIO_P")
+			(class "AUDIO")
+			(node
+				(ref "D1")
+				(pin "3")
+				(pinfunction "IO1_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "J1")
+				(pin "1")
+				(pinfunction "CT1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "L1")
+				(pin "4")
+				(pinfunction "A_OUT_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "R13")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP1")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "6")
+			(name "AUD_N_I")
+			(class "AUDIO")
+			(node
+				(ref "L1")
+				(pin "2")
+				(pinfunction "B_IN_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R11")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R14")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "7")
+			(name "AUD_P_I")
+			(class "AUDIO")
+			(node
+				(ref "L1")
+				(pin "1")
+				(pinfunction "A_IN_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R10")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R13")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "8")
+			(name "A_OUT")
+			(class "AUDIO")
+			(node
+				(ref "R10")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R6")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R8")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "1")
+				(pinfunction "OUT_A_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "9")
+			(name "BEEP_5V")
+			(class "BEEP")
+			(node
+				(ref "J1")
+				(pin "3")
+				(pinfunction "CT3_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "R12")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "10")
+			(name "BEEP_RET")
+			(class "BEEP")
+			(node
+				(ref "BZ1")
+				(pin "2")
+				(pinfunction "-_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "D2")
+				(pin "2")
+				(pinfunction "A_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "D3")
+				(pin "2")
+				(pinfunction "A_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J1")
+				(pin "6")
+				(pinfunction "CT6_6")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "11")
+			(name "BZ_P")
+			(class "BEEP")
+			(node
+				(ref "BZ1")
+				(pin "1")
+				(pinfunction "+_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "D2")
+				(pin "1")
+				(pinfunction "K_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "D3")
+				(pin "1")
+				(pinfunction "K_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R12")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "12")
+			(name "B_OUT")
+			(class "AUDIO")
+			(node
+				(ref "R11")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R9")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "7")
+				(pinfunction "OUT_B_7")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "13")
+			(name "FB_A")
+			(class "Default")
+			(node
+				(ref "R6")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R7")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "2")
+				(pinfunction "-IN_A_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "14")
+			(name "FB_B")
+			(class "Default")
+			(node
+				(ref "R8")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R9")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "6")
+				(pinfunction "-IN_B_6")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "15")
+			(name "GND")
+			(class "Default")
+			(node
+				(ref "C1")
+				(pin "2")
+				(pinfunction "-_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C2")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C4")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C5")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C6")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C7")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "D1")
+				(pin "4")
+				(pinfunction "GND_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "J1")
+				(pin "5")
+				(pinfunction "CT5_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J1")
+				(pin "8")
+				(pinfunction "CT8_8")
+				(pintype "passive")
+			)
+			(node
+				(ref "J2")
+				(pin "2")
+				(pinfunction "MIC-_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R15")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R5")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP5")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "4")
+				(pinfunction "V-_4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "16")
+			(name "MIC")
+			(class "Default")
+			(node
+				(ref "C3")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "J2")
+				(pin "1")
+				(pinfunction "MIC+_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R2")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "17")
+			(name "SHIELD")
+			(class "Default")
+			(node
+				(ref "J1")
+				(pin "SH")
+				(pinfunction "SHLD_SH")
+				(pintype "passive")
+			)
+			(node
+				(ref "R15")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP6")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "18")
+			(name "VMID")
+			(class "AUDIO")
+			(node
+				(ref "C4")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C5")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R3")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R4")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R5")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R7")
+				(pin "2")
+				(pinfunction "2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP3")
+				(pin "1")
+				(pinfunction "1_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U1")
+				(pin "5")
+				(pinfunction "+IN_B_5")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "19")
+			(name "unconnected-(BZ1-DMY-Pad3)")
+			(class "Default")
+			(node
+				(ref "BZ1")
+				(pin "3")
+				(pinfunction "DMY_3")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "20")
+			(name "unconnected-(BZ1-DMY-Pad4)")
+			(class "Default")
+			(node
+				(ref "BZ1")
+				(pin "4")
+				(pinfunction "DMY_4")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "21")
+			(name "unconnected-(D1-NC-Pad1)")
+			(class "Default")
+			(node
+				(ref "D1")
+				(pin "1")
+				(pinfunction "NC_1")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "22")
+			(name "unconnected-(D1-NC-Pad2)")
+			(class "Default")
+			(node
+				(ref "D1")
+				(pin "2")
+				(pinfunction "NC_2")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "23")
+			(name "unconnected-(J1-LED1A-Pad9)")
+			(class "Default")
+			(node
+				(ref "J1")
+				(pin "9")
+				(pinfunction "LED1A_9")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "24")
+			(name "unconnected-(J1-LED1B-Pad10)")
+			(class "Default")
+			(node
+				(ref "J1")
+				(pin "10")
+				(pinfunction "LED1B_10")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "25")
+			(name "unconnected-(J1-LED2A-Pad11)")
+			(class "Default")
+			(node
+				(ref "J1")
+				(pin "11")
+				(pinfunction "LED2A_11")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "26")
+			(name "unconnected-(J1-LED2B-Pad12)")
+			(class "Default")
+			(node
+				(ref "J1")
+				(pin "12")
+				(pinfunction "LED2B_12")
+				(pintype "passive+no_connect")
+			)
+		)
+	)
+)
