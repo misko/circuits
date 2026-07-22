@@ -22,3 +22,8 @@
   0005 (D-TIER advanced) written. Known tension: R7 PDO table app-note-only,
   DNP default + first-power PD-analyzer check recorded in 0004.
 - next: commit commission; write ARCHITECTURE.md + DETAIL_DESIGN.md; parts stage.
+
+## 2026-07-21 (v1.1 respin) — start
+- did: v1.1 respin commissioned from the external review of sealed v1.0 (08_reviews/DISPOSITIONS.md X1-X11); work order = P0 X1-X4, P1 X5-X8, doc sync X10-X11
+- result: v1.0 sealed/immutable; all fixes go to 03_src/03_tscircuit + docs, new release v1.1-<date>; 08_reviews stage adopted (commit e51f13c)
+- next: sourcing spike (60V/40V FET, >=15A 10uH inductor, exact 20A MINI fuse MPN, TVS vbr/vclamp data) in background; ADR amendments + doc sync in parallel
