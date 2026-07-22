@@ -1,0 +1,58 @@
+# MANIFEST — crow-mic-pod v1.0-2026-07-21
+
+board:        crow_mic_pod (2-layer, 94.5x44.5mm, Hammond 1551WY max PCB)
+git_sha:      c240a78
+git_dirty:    false   # projects/crow-mic-pod/** clean at c240a78 (MANIFEST added in the seal commit)
+kicad:        10.0.4
+authoring:    schwriter2 (03_src/generate_schematic.py; source/crow_mic_pod.tsx = NON-authoritative tscircuit study source)
+route_chain:  source/route_chain_r3.kicad_pcb = 03_src/route/r3.kicad_pcb (promoted, canon M3; fresh KRT chain THIS project — archive chain was stale, see learnings/routing.md)
+not_assembled: J1 (RJHSE-5384 RJ45, Digi-Key hand-solder), J2+mic (AOM-5024L-HD-R, hand-wire). DNP provisions: D3 (SMAJ6.0A), L1 (WE-SL2), R15 (shield bond) — all silk-marked DNP
+source_note:  source/ includes .kicad_pro/.kicad_dru/fp-lib-table — DRC without them uses KiCad defaults and reports phantom violations (ORDER_README note)
+
+gates (MEASURED this release):
+  ERC severity-all:                0 violations                       (verification/erc.json)
+  audit_board:                     PASS 0 fails / 0 warns (x2)        (verification/audit.txt)
+  DRC severity-all+refill+parity:  0 violations / 0 unconnected / 0 parity  (verification/drc.json)
+  KRT route:                       11/11 single + 43/43 multipoint pads, 0 failed
+  jlc_stock 2026-07-21 (min 10x):  PASS 25/25 coded lines; CMT-8504 THIN=104  (verification/stock_check.txt)
+  jlc_twin:                        exit 0; 24 OK/54; adjudicated: U1 PAD-GEOM (TI D0008A evidence), U1 ROT-DB 270, J1 NO-CAD (Amphenol figs); missing_models = J1, J2
+  pin review (fresh-context x2):   PASS, zero FAIL (RJ45 interop map independently re-derived)
+  render review (fresh-context):   FAIL -> fixes -> delta re-review PASS-WITH-NOTES  (verification/render_review.md)
+  policy_audit:                    0 FAIL / 6 HUMAN graded PASS via reviews  (verification/policy_audit.md)
+
+sha256:
+01ce1ddfdde0a288fcd5c3f8a8ac710e95ef23996be5d0b412b70c901d549c7a  ./3d/crow_mic_pod.step
+3c10a72bfa5e98e87a034ec5516bfa53e01ce28cdf0dc237d520d6b20d319d86  ./fab/bom.csv
+a49bcf1e55db645954a26e170f5ab6265a66c279d4e742057335501435491671  ./fab/cpl.csv
+9532513f4a8518389558aa8f61eb2a640355a7db15b32acfc688fb00c116787c  ./fab/crow_mic_pod_gerbers.zip
+334d5e15a60f59f775d4493f8e1058adcbadfe032daaa167d26178beb4981256  ./ORDER_README.md
+79799e659f75ca016eee87d2a42ca460a6dce59151b11a7918c9579e999558aa  ./pdf/assembly_top.pdf
+27b8d72d6c389d7014516f53895f3c1880b9f611933b32a6d8f462d4a7026372  ./pdf/pcb_layers.pdf
+3f35cc0b4d8d711e26d16a410d99c18450b04dbad4cfa19e6399df3f5a76098f  ./pdf/schematic.pdf
+e5729b14f34a14d5d90cad63420cdb9013154f76d09ea3b295337b0cb5fd1e74  ./source/crow_mic_pod.kicad_dru
+9f1fcc23dac30d74656e281796777e7853304925b1297ea0fcbe3123d3e0c59c  ./source/crow_mic_pod.kicad_pcb
+e0ea51d738e3c0ff530e2707e14dae7d6e00551bce0702d95652112fcdc2fbc4  ./source/crow_mic_pod.kicad_prl
+1522d1d6f050e354a47bfdf2053d7a7108bbbd6e5a76d4e520a4814fc996de78  ./source/crow_mic_pod.kicad_pro
+ea3c59746dc6400437e6f7525fe2099a086e1e01fb52fad343704701495ebce6  ./source/crow_mic_pod.kicad_sch
+1eb6209eb145cfb906a499dce10bc76b2b9af97f1082ed59f1303a0962cb680c  ./source/crow_mic_pod.net
+8d17697c4c4f9f220d5437396fef4b9001dfa01dfec222ccc487425bce478957  ./source/crow_mic_pod.tsx
+ef0857565f6519eb3575cabe7d3a97bcd7c5ffd5b15c1af5d2457964b01c1c87  ./source/fp-lib-table
+a0f3eeb44a65f8757111587fb23409914de163d4aeb4fdeef2b33a2f43dbf56b  ./source/route_chain_r3.kicad_pcb
+0ba14aee22b536bc4cd5b5aec3d41f394ca1919b65d3071aab6e0cb952cde295  ./verification/audit.txt
+7f98ac9edb845c57a7d32dee8910685e61844bc16ea7485e28e779d6eb77f148  ./verification/bare_bottom.png
+2d43ead3318658e0a3cca2b6bf76ccca2486498d041588835372df45d0bd1e21  ./verification/bare_top.png
+a248434901767fcc0a95021ec09fea187a6e0d2e0916e6093f2316dbbc2ec62f  ./verification/drc.json
+fd0416b895e8905244c0dbc6d4a83ddbd931810e4f253426df5df2028bd134ee  ./verification/erc.json
+a896a668a74e68e7386edf80eab0ed2237b4b4bff954a40230ff45e219bbd58a  ./verification/missing_models.txt
+aa4a6e81b8f0ab413bf5ed3cdfdd4e1004842061056785f14fa0f472d94b330b  ./verification/policy_audit.md
+16ddfe20f326ab1d11803c73618c11831855493e69b6cd381c6a3bf35439fb83  ./verification/render_review.md
+5a4bf56c6a37043a7aa56a8f24a5d6899999102e2c861ccc164c94ac76919727  ./verification/review_actives.md
+a332d152a91a00dfaf0eb4576845ab2e2feb6b53aa890cf191ca86846e2dace5  ./verification/review_connectors.md
+9445387489c0c50a1dc335ea6078818cb15190e5461a131d5e6888b71d3beb5a  ./verification/stock_check.txt
+83c3f0d458c455952ca3eb92a9a0eff69ddc2f155886ab3e3f63049ae96517e7  ./verification/twin_bottom.png
+ef41c337d061925f4ed20c7408cb958dc727285b0ce95461db4ba2c80f3352cf  ./verification/twin_edge_east.png
+8b6f64b00e3345a2f1aabc716ef548c91a145bf0786b1daea05de56d8e1a29fb  ./verification/twin_edge_west.png
+faee8153754fb994ea0f62a8c9f364c0bfeec51d0c7b183c4c1c6babea17b808  ./verification/twin_iso_nw.png
+bedbef2cd7c010b35c06774bc30fbadd9497f263f16f16e35accdd742425e885  ./verification/twin_iso_se.png
+c9d3433458632001087b622d06b5a5849d882e2df02b2a8de674900d52fdf0fd  ./verification/twin_report.csv
+fcf7780ef8ec13e73b9db61931bd817d3dac800a9f59f9ef915f465d00528a96  ./verification/twin_top.png
