@@ -93,3 +93,22 @@
   concentrated ENTIRELY in the TPS25740A/USB-C corner (the advanced-tier cell)
   and mechanical pour-bond/silk cleanup. v2's "no shared hot loop" win held —
   buck A, buck C, input, and all 3 USB-A ports routed without congestion.
+
+## 2026-07-22 — D-BACK decision + sourcing disposition (Opus-tier call)
+- SOURCING (human-escalation, user decided): proceed with TPS25740A (NRND,
+  single-source, alternates: []) FOR NOW. Risk ACCEPTED by user. Order-day
+  LCSC C544309 stock recheck stays MANDATORY; IP2726 is the backup-if-forced
+  (thin stock) — qualify only if TPS25740A goes unavailable at order time.
+- ROUTING WALL (geometry, machine-decided — NOT escalated to user): the
+  TPS25740A north-edge sense pins boxed. Root cause = D-ADJ placement, not a
+  router/via trick. Pins 19-23 are already in current-flow order
+  (ISNS-VPWR-VBUS-GDNG-GDNS); the cell was placed out of order and Q6 sits
+  across the PDSRC path. DECISION:
+  1. Re-place PD cell to PIN ORDER: Rs straddling pins 19/20 at the package
+     edge; FLIP/ROTATE Q6 so its SOURCE (PDSRC) faces pin 23 (drain toward
+     connector) — un-boxes U1.23 with no FET crossing; VBUS divider at pin 21;
+     fine-pin side faces the open escape corridor.
+  2. Via-in-pad ring escape for the north pins = the legitimate use of the
+     advanced tier (not a crutch for mis-placed parts).
+  3. THEN cheap-tier cleanup: tap-endpoint bonding, silk de-collision, U12 nudge.
+  Target: DRC 0/0/0 -> verification -> red-team -> seal.

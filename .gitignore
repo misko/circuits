@@ -3,3 +3,6 @@ __pycache__/
 .easyeda_cache/
 projects/*/.easyeda_cache/
 lipo3s_trace.md
+
+# local agent worktrees / session state
+.claude/
