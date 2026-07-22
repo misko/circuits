@@ -112,3 +112,67 @@
      advanced tier (not a crutch for mis-placed parts).
   3. THEN cheap-tier cleanup: tap-endpoint bonding, silk de-collision, U12 nudge.
   Target: DRC 0/0/0 -> verification -> red-team -> seal.
+
+## 2026-07-22 — routing grind (28/21 -> 1/4) + PD-escape wall (Opus-tier)
+- FIRST, restored REPRODUCIBILITY: the committed 28/21 board was NOT regenerable —
+  the promoted final_chain.kicad_pcb was a STALE KRT result that still contained
+  DPC/DMC/CC tracks the current route.yaml assigns to deterministic taps, so import
+  doubled them (DPC shorted to U12.2). Re-ran KRT config-consistent, re-promoted,
+  added `route.final` + `03_src/rebuild_fast.sh` (import promoted chain -> taps ->
+  stitch -> DRC, ~48s deterministic; no stochastic re-route unless a signal pin
+  moves). Fresh reproducible base = 33/20.
+- SYSTEMIC TAP BUG (root cause of most opens): a tap with `layer: B.Cu` FROM an
+  F.Cu pad -> joinpath strategy-1 drew a B.Cu track at the pad XY that NEVER
+  via-bonded the F.Cu pad (dangling free end + pad shows unconnected). FIX: the
+  stub `layer` MUST be the pad's own layer so via_hop drops a via-in-pad AT the
+  pad; `hop_layer` carries the run. Flipped RSNS/5VC(U1.20)/DPC/DMC-J5 taps ->
+  those pins bonded. Also: `joinpath` silently falls back to 0.2mm when the asked
+  width collides (SWITCH_NODE min 0.6) -> retargeted C7.2/C22.2 boot-SW taps to a
+  clear interior island point. Sense taps [90,40]/[90,74] landed INSIDE the SW_A/
+  SW_C islands (net-conflict dangling vias) -> moved to clean 5VA/5VC. Extended
+  5VA/5VC/CS_A/CS_C pours to swallow legalized pads; added TPS2557 OUT->VBUSAn
+  taps; bonded the C44/U1.20 5VC island; nudged U12 north 1.3mm (J5 courtyard);
+  relocated 2 captions off J1/F1 silk.
+- PD RE-PLACE (executed the D-BACK call, adapted): moved the FET row RS3/Q6/Q7
+  +3mm NORTH (y91->y88) to widen the U1-north escape channel 2mm->5mm; islands
+  followed; removed the dead B.Cu VBUSC bridge; re-routed KRT + re-promoted. This
+  cleanly fixed RSNS(19) + 5VC(20) (they escape WEST on B.Cu).
+- RESULT (MEASURED, reproducible via rebuild_fast.sh): **DRC 1/4/0**
+  (was 28/21/0). 1 violation = a B.Cu copper_sliver (severity warning). 4
+  unconnected, ALL in the TPS25740A north corner:
+    * U1.21 VBUSC (pad -> zone)   — boxed north pin, EAST-going
+    * U1.23 PDSRC (pad -> zone)   — boxed north pin, EAST-going
+    * VBUSC zone(107,103 J5-west) -> zone(122.3 J5-east)  — pour split
+    * PDSRC zone -> zone          — island split by the PDGATE F.Cu track
+- THE WALL (why U1.21/U1.23 still won't route, precisely): U1 (VQFN-24, 0.5mm
+  pitch) has SIX north-edge pins that all interface the FET row — 19 RSNS, 20 5VC,
+  21 VBUSC, 22 GDNG, 23 PDSRC, 24 DSCG_N. Their nets are cross-ordered vs the
+  FET-row copper: the FET-row chain (5VC-RS3-RSNS-Q6-PDSRC-Q7-VBUSC) is monotonic
+  W->E, but the package puts the EAST-going nets (VBUSC/PDSRC) on the WEST pins
+  (21@110.25, 23@109.25) and the WEST-going nets (RSNS/5VC) on the EAST pins
+  (19@111.25, 20@110.75). Two escapes must cross. Widening the channel let RSNS/
+  5VC out (B.Cu west) but NOT VBUSC/PDSRC because (a) KRT fills the F.Cu channel
+  with GDNG/DSCG_N/PDGATE (pins 22/24 + FET gate) BEFORE the taps run, leaving no
+  F.Cu lane east; (b) a via-in-pad at pin 21 or 23 COLLIDES with the adjacent
+  pin's via at 0.5mm pitch (0.25 via + 0.13 clr needs 0.38mm center gap; pitch is
+  0.50, but the neighbor via already occupies it). Verified: the tap router A*
+  FAILS both U1.21->VBUSC and U1.23->PDSRC on the widened board. This is NOT a tap
+  or pour tweak — it is intrinsic to routing 6 same-edge 0.5mm pins where 3 are
+  KRT-claimed and 2 are cross-ordered.
+- RECOMMENDED NEXT MOVE (for the successor, in preference order):
+  1. STAGGERED via-in-pad dogbone on the 6 north pins: drop each pin to B.Cu with
+     the via pushed alternately N/inward (2 rows) so adjacent vias clear 0.5mm
+     pitch, then fan on B.Cu with the FETs no longer overhead (they are at y88
+     now, so B.Cu y92-96 is clear). The tap `via_hop` cannot stagger; this needs a
+     dedicated dogbone-fanout emitter (promote to stitch.seed_stubs or a new
+     generic pass) — the "via-in-pad RING" the D-BACK note called for.
+  2. Force GDNG + DSCG_N onto B.Cu (or reroute their targets R25/R26) so the F.Cu
+     channel frees for straight-N F.Cu stubs from pins 21/23 into PDSRC/VBUSC
+     channel fingers (fingers were prototyped, see git history of floorplan.yaml).
+  3. Failing both, evaluate the IP2726 alternate (the sourcing backup) — a
+     different PD-controller pinout may not cross-order the FET-row pins.
+- Also still open (mechanical, not the wall): the copper_sliver (B.Cu), the VBUSC
+  J5 west/east pour split, and the PDGATE-split PDSRC island — all in the same PD
+  corner; a successor solving the pin escape will rework this copper anyway.
+- STATE: committed d648337 (1/4/0), fully reproducible from 03_src. NOT sealed —
+  verification/red-team/seal is a separate zero-context stage.
