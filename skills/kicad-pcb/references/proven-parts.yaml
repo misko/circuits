@@ -134,12 +134,49 @@ functions:
 
   pd-source-5v5a:                 # compliant 5V/5A USB-C source
     candidates:
+      # PREFER THIS for a 5V-ONLY port: a PURE PD-source PHY on an external 5V
+      # buck rail — NOT a buck-boost SoC. Refutes the IP6559 entry's implicit
+      # "you need a buck-boost" reading for fixed-5V ports (usb-hub-3s-v2
+      # 2026-07-22: E-TOPO showed a 5V-only USB-C rail is a plain buck; the PD
+      # part only does CC/BMC signalling + external-FET gate drive).
+      - mpn: TPS25740ARGER
+        maker: Texas Instruments
+        lcsc: C544309
+        package: VQFN-24 RGE 4x4 P0.5 (EP 2.7mm sq)
+        escape: {style: qfn, pitch: 0.5, tier_required: jlc_4layer_advanced}
+        status: designed-in
+        provenance: usb-hub-3s-v2 (2026-07-22) — schematic gate GREEN (ERC 0,
+          E-INV 15/15), NOT yet routed/ordered. Pure PD-source PHY + external
+          back-to-back N-FETs; sits on a separate 5V/5A buck rail.
+        layout_refs:
+          - "TI SLVSDG8B Fig 19 (back-to-back dual-FET receptacle) + Fig 36 (basic schematic BOM)"
+          - "SLVSDG8B Fig 63/66 (power-hub on external buck rail) + Sec 11 Fig 67 Kelvin ISNS"
+          - "SLVUAP7A EVM Table 3 strap jumper truth (H3 = 5V-only/5A)"
+        gotchas:
+          - "STRAP TRAP: EN9V is active-LOW for enable-9V — tie it HIGH (to DVDD)
+             for a 5V-ONLY contract. Low silently advertises 9V the buck can't supply."
+          - "HIPWR/PSEL are 4-STATE ADC pins: '100k Rsel to GND' != 'direct short
+             to GND'. 5V-only+5A needs HIPWR = 100k-to-GND (via-Rsel state), PSEL
+             100k-to-GND. GD must be tied HIGH (VAUX) — internal pulldown, floats off."
+          - "RECEPTACLE => BACK-TO-BACK dual FETs (Fig 19) + VBUS bulk >10uF; single
+             FET is captive-cable only. GDNG is a charge-pump high-side driver."
+          - "NRND lifecycle (all TPS2574x RGE, Jan-2026 addendum) — stock ~2974
+             2026-07-22, order-day recheck MANDATORY; TI successor TPS65987D is a
+             heavier config-tool part, NOT a pin-swap."
+          - "OVP/UVP window at 5V is TIGHT (~[3.9, 5.8]V) — the feeding buck's
+             transient overshoot/droop must stay inside it or the chip faults."
+          - "VQFN-24 0.5mm 4-sided => jlc_4layer_advanced (via-in-pad EP). This is
+             the ONLY advanced-forcing part on a 5V-only hub; a 3A plain-Rp port
+             (no PD chip) would keep the board STANDARD tier."
       - mpn: IP6559-C
         maker: Injoinic
         lcsc: C5140592
         package: QFN-48 7x7 P0.5 EP5.4
         escape: {style: qfn, pitch: 0.5, tier_required: jlc_4layer_advanced}
         status: shipped
+        note: "OVER-CAPABLE for a 5V-only port (buck-boost + 4 external FETs +
+          inductor + 16A trunk). Correct ONLY for a TRUE multi-voltage PD port
+          (5-20V). For fixed 5V, prefer TPS25740A above (usb-hub-3s-v2 finding)."
         provenance: usb-hub-3s (cleanroom v4, 2026-07-21) — routed DRC
           0/0/0, twin+pin-review verified, released v1.0; 100W buck-boost
           PD3.0 source SoC with e-marker read (5A only via PD per spec)
