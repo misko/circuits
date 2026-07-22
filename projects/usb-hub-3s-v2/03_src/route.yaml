@@ -85,18 +85,25 @@ taps:
     # the QFN pad; layer:B.Cu made strategy-1 draw a B.Cu track at the pad XY that
     # never bonded the F.Cu pad (dangling). hop_layer B.Cu carries the run.
     - {net: 5VC,   from: U1.20, to: C44.1, width: 0.4, layer: F.Cu, hop_layer: B.Cu}
+    - {net: 5VC,   from: C44.1, to: [101.0, 94.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu}  # C44 sits east of the 5VC pour foot (x103) -> bond it (and U1.20) into the pour
     - {net: RSNS,  from: U1.19, to: Q6.5,  width: 0.3, layer: F.Cu, hop_layer: B.Cu}
     # --- chip pins that sit outside their pour island -> bond to the island ---
     - {net: SW_A,  from: U2.20,  to: [79.0, 34.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}
     - {net: SW_A,  from: C7.2,   to: [81.0, 34.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}  # deeper in SW island, y34 clears Q2.5 VIN pads so 0.6 fits (was [79,31] -> joinpath fell back to 0.2 -> track_width)
     - {net: SW_C,  from: U11.20, to: [79.0, 74.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}
-    - {net: SW_C,  from: C22.2,  to: [79.0, 69.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}
+    - {net: SW_C,  from: C22.2,  to: [81.0, 72.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}  # deeper in SW_C island so 0.6 fits (mirror of C7.2 fix; [79,69] -> joinpath fell to 0.2)
     # PD QFN north-edge escapes: pins 21 VBUSC / 23 PDSRC are WEST pins whose nets
     # sit EAST (crossing the RSNS/5VC west escapes). Stub on the pad layer (F.Cu)
     # so via_hop drops a via-in-pad AT the QFN pad, then thread B.Cu east. Order:
     # PDSRC first (shorter, Q6-constrained), then VBUSC (longer run to bulk).
-    # (taps for U1.23 PDSRC / U1.21 VBUSC re-enabled below AFTER the FET-row-north
-    #  placement change gives them an escape corridor — see PD-north taps block)
+    # PD QFN north-edge EAST escapes (FET row moved to y88 -> clear F.Cu channel
+    # y91-96). 21 VBUSC / 23 PDSRC are west pins whose nets sit east; they escape
+    # EAST on F.Cu while 19 RSNS / 20 5VC go west on B.Cu -> no same-layer crossing.
+    # via_hop drops a via-in-pad at the QFN pad; F.Cu stub, F.Cu run through channel.
+    # STILL STUCK: KRT fills the widened channel with GDNG/DSCG_N/PDGATE (pins 22/24
+    # + FET gate) before taps run, and the 0.5mm-pitch via-in-pad sites collide.
+    # - {net: PDSRC, from: U1.23, to: [109.7, 92.3], width: 0.2, layer: F.Cu, hop_layer: B.Cu}
+    # - {net: VBUSC, from: U1.21, to: [110.6, 93.7], width: 0.2, layer: F.Cu, hop_layer: B.Cu}
     # --- TPS2557 OUT2(pin7) bond to OUT1(pin6) (pour can't thread 0.65mm gap) ---
     - {net: VBUSA1, from: U3.7, to: U3.6, width: 0.5, layer: F.Cu, hop_layer: B.Cu}
     - {net: VBUSA2, from: U4.7, to: U4.6, width: 0.5, layer: F.Cu, hop_layer: B.Cu}
@@ -146,7 +153,6 @@ stitch:
     nets:
       - {net: GND, layer: In1.Cu}
       - {net: VIN, layer: In2.Cu}
-      - {net: VBUSC, layer: B.Cu}   # drops the boxed-in U1.21 VBUS pin to the B.Cu bridge
     via_in_pad: true
     served_within: 1.6
     rings: [0.75, 0.95, 1.2, 1.6, 2.1, 2.7]
