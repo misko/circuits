@@ -378,7 +378,17 @@ jlc_stock run first (seconds, and twin consumes the BOM).
   PDFs with no design context; triage every finding (fix or ADR-documented
   disposition).
 - `export_pdfs.sh`: pcb_layers / assembly PDFs, visually verified via PNG
-  export. For tscircuit-authored boards the **schematic PDF = tscircuit's own
+  export. **RENDER PAIR + MISSING-MODEL MANIFEST (standard, 2026-07-21):**
+  every release ships BOTH views per side — `render_<side>_bare.png`
+  (kicad-cli svg export of Cu+Mask+SilkS+Edge, rasterized: the
+  no-components truth view) and the twin's modeled render — PLUS
+  `verification/missing_models.txt`: every CPL ref with no attached 3D
+  body in the modeled render. Incident: usb-hub-3s U1/Q5/Q6/Q7 rendered
+  bodiless (JLC models unattached) and were read as UNPOPULATED by
+  review — they were in the CPL all along. A bodiless footprint means
+  "no model", never "not placed": the CPL is population ground truth,
+  and the manifest converts the render comparison from eyeballing into
+  a list. For tscircuit-authored boards the **schematic PDF = tscircuit's own
   render** (`03_tscircuit/build/schematic.pdf`), NOT a KiCad re-render (ADR-0002
   Phase A) — ship it as `pdf/schematic.pdf`.
 
