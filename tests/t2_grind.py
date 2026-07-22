@@ -212,5 +212,35 @@ def t_kb_grind_max_cycles():
              "--max-cycles", "the report names the cap")
 
 
+
+def zone_split_gate(text_height, islands):
+    """total improves via text_height while zone-island unconnected stays flat."""
+    g = gate(text_height=text_height)
+    for i in range(islands):
+        g["unconnected_items"].append(
+            {"items": [{"description": f"Zone [LX{i}] on F.Cu, priority 2"},
+                       {"description": f"Zone [LX{i}] on F.Cu, priority 2"}]})
+    return g
+
+
+@test("SUBSET plateau: unconnected flat while total improves escalates "
+      "D-BACK (v4 measured: 7u flat across 3 checkpoints)", kind="known_bad")
+def t_kb_grind_subset_plateau():
+    """INCIDENT(2026-07-21 usb-hub-3s): the total kept dropping (cosmetic
+    classes) while the unconnected subset sat flat — a masked reachability
+    problem the total-stall trigger cannot see. The driver must escalate on
+    4 flat nonzero unconnected cycles even though best-total improves every
+    cycle. RED-verified 2026-07-21: against the pre-trigger driver (git
+    stash) this sequence runs to the max-cycles cap and the test fails on
+    the exit code."""
+    seq = [zone_split_gate(th, 2) for th in (10, 9, 8, 7, 6, 5, 4)]
+    d = grind_scratch(seq)
+    r = grind(d)
+    eq(r.rc, 4, "the distinct D-BACK exit code")
+    check(cycles_run(d) <= 5, f"subset plateau must bite by cycle 5, ran {cycles_run(d)}")
+    esc = (d / "06_build" / "grind_escalation.md").read_text()
+    contains(esc, "subset plateau", "the report names the subset condition")
+
+
 if __name__ == "__main__":
     sys.exit(main())

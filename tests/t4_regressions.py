@@ -982,5 +982,31 @@ def t_silently_unplaced_part_fails_parity():
     check("C6" in r.out, f"the missing refdes must be named:\n{r.out[-1200:]}")
 
 
+
+@test("INCIDENT(2026-07-21 usb-hub-3s ADR-0006): the male-plug class — "
+      "connector gender is a recorded part FACT and the calibration is "
+      "pinned BOTH directions")
+def t_male_plug_and_calibration():
+    """A USB-A male PLUG served weeks as a receptacle: footprint, netlist
+    and silk were consistently wrong TOGETHER, so every machine gate
+    passed; the fresh-context render review caught it. Machine teeth that
+    exist: (1) the 02_parts contract documents the connectors-only
+    `mates:` fact read from the drawing title block; (2) escape_check v2
+    is calibrated BOTH directions on the SY8368 (shipped-at-standard
+    a4ff7ed vs the v2 stall) so neither over- nor under-conservatism can
+    silently return."""
+    c = (ROOT / "skills/pcb-design/templates/contracts/02_parts/contracts.md").read_text()
+    check("mates:" in c and "title block" in c.lower(),
+          "02_parts contract lost the mates:/title-block gender fact")
+    esc = ROOT / "skills/kicad-pcb/scripts/escape_check.py"
+    r1 = run([KPY, esc, "--style", "qfn", "--pitch", "0.45",
+              "--escapes-worst-side", "6", "--pins", "10"])
+    check("CONDITIONAL" in r1.out and "jlc_4layer_standard" in r1.out,
+          "shipped SY8368 config lost its conditional-standard verdict")
+    r2 = run([KPY, esc, "--style", "qfn", "--pitch", "0.45"])
+    check("INFEASIBLE" in r2.out and "jlc_4layer_advanced" in r2.out,
+          "stranded SY8368 config lost its unconditional-advanced verdict")
+
+
 if __name__ == "__main__":
     sys.exit(main())

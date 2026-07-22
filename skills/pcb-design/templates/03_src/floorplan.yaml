@@ -113,3 +113,13 @@ asserts:
     - {ref: U1, pad: 7, net: S_MINUS}
     - {ref: J6, pad: 4, net: DAT}
     - {ref: J6, pad: 5, net: CLK}
+
+# ESCAPE CORRIDORS (Phase F 2026-07-21, from usb-pwr-hub-3s ADR-0008):
+# reserved routing lanes off a dense package's loaded side — satisfies
+# escape_check v2's `escape-corridor` condition (P-ESC). Expands to a named
+# rule area `esc_<ref>_<side>` denying footprints+pours (tracks/vias stay
+# allowed — that is the lane). Unknown ref / bad side = hard error.
+#
+# escape_corridors:
+#   - {ref: U1, side: E, depth_mm: 4.0}            # full-side lane
+#   - {ref: U2, side: N, depth_mm: 3.0, width_mm: 6.0, layers: [F.Cu]}

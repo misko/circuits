@@ -18,8 +18,13 @@
 | `cache/**` | **volatile market data**: stock, price, distributor attrs | hours |
 | `proof/**` | regenerated candidate boards for comparison against the sealed `04_kicad` (never written back) | regenerate |
 | `twin/**` | jlc_twin fetch/compare workspace | regenerate |
+| `tmp/**` | scratch workspace for in-flight stage work | regenerate |
+| `pin_review/**` | fresh-context pin-review dossiers + verdicts | regenerate |
+| `easyeda_cache/**` | easyeda2kicad model cache (tool drops it in CWD — keep it HERE, not project root; usb-hub-3s 2026-07-21) | regenerate |
 | `reads_outside_root.log` | clean-room runs: every out-of-root read, path + reason (toolchain-only at the end) | keep for the run's audit |
 | `rebuild.sh` `policy_audit.md` `policy_erc.json` `policy_drc.json` | orchestration + audit outputs at build root | regenerate |
+| `render/**` | render outputs (either spelling; boards have used both) | regenerate |
+| `*.log` `*.rpt` `*.csv` `*.json` `*.md` `*.net` `*.step` `*.png` `*.svg` `*.sh` | loose build-root artifacts — the tree is DISPOSABLE; structure lives in the subdirs above | regenerate |
 | `contracts.md` | this file (the only tracked file here) | |
 
 ## Why `cache/` matters

@@ -10,7 +10,7 @@ libraries.
 
 | Pattern | What |
 |---|---|
-| `<name>.pretty/` | KiCad footprint library owned by this project |
+| `<name>.pretty/**` | KiCad footprint library owned by this project (all .kicad_mod inside) |
 | `*.kicad_mod` | inside a `.pretty/` only |
 | `3dmodels/*.{step,wrl}` | 3D models for owned footprints |
 | `contracts.md` | this file |

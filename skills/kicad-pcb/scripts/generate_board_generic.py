@@ -913,6 +913,42 @@ class BoardBuilder:
         One ZONE spans all its layers via an LSET (not one zone per layer):
         that is how KiCad models a multi-layer rule area.
         """
+        # escape_corridors: [{ref, side: N|S|E|W, depth_mm, width_mm?}] —
+        # reserved routing lanes off a dense package's loaded side (Phase F,
+        # from usb-pwr-hub-3s ADR-0008: 8 escapes on one 0.65mm side need a
+        # corridor at STANDARD tier or the hole-to-hole floor walls them in).
+        # Sugar over keepouts: expands to a named rule area (esc_<ref>_<side>)
+        # denying footprints+pours — tracks and vias stay allowed, that is
+        # the point of the lane. escape_check v2's `escape-corridor`
+        # condition (P-ESC) is satisfied by exactly this reservation.
+        for ec in self.cfg.get("escape_corridors") or []:
+            ref, side = ec.get("ref"), str(ec.get("side", "")).upper()
+            fp = self.board.FindFootprintByReference(str(ref)) if ref else None
+            if not fp:
+                die(f"escape_corridor: unknown ref {ref!r}")
+            if side not in ("N", "S", "E", "W"):
+                die(f"escape_corridor {ref}: side must be N|S|E|W, got {ec.get('side')!r}")
+            depth = float(ec.get("depth_mm", 0))
+            if depth <= 0:
+                die(f"escape_corridor {ref}: depth_mm must be > 0")
+            bb = fp.GetBoundingBox(False, False)
+            x0, y0 = pcbnew.ToMM(bb.GetLeft()), pcbnew.ToMM(bb.GetTop())
+            x1, y1 = pcbnew.ToMM(bb.GetRight()), pcbnew.ToMM(bb.GetBottom())
+            if ec.get("width_mm"):
+                w = float(ec["width_mm"])
+                cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+                if side in ("N", "S"):
+                    x0, x1 = cx - w / 2, cx + w / 2
+                else:
+                    y0, y1 = cy - w / 2, cy + w / 2
+            rect = {"N": [x0, y0 - depth, x1, y0], "S": [x0, y1, x1, y1 + depth],
+                    "W": [x0 - depth, y0, x0, y1], "E": [x1, y0, x1 + depth, y1]}[side]
+            (self.cfg.setdefault("keepouts", []) or self.cfg["keepouts"]).append({
+                "rect": rect,
+                "layers": ec.get("layers") or ["F.Cu"],
+                "name": f"esc_{ref}_{side}",
+                "deny": ["footprints", "pours"],
+            })
         for k in self.cfg.get("keepouts") or []:
             pts = self.zone_points(k)
             deny = set(k.get("deny", ["tracks", "vias", "pours"]) or [])

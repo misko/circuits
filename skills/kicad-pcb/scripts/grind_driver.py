@@ -251,6 +251,7 @@ def main(argv=None):
         sys.exit("grind_driver: --max-cycles must be >= 1")
 
     best, stall, history = None, 0, []
+    u_prev, u_stall = None, 0
     for n in range(1, args.max_cycles + 1):
         mode, findings = measure(args, root, cfg_path, board)
         total = total_of(findings)
@@ -266,6 +267,18 @@ def main(argv=None):
             best, stall = total, 0
         else:
             stall += 1
+        # SUBSET plateau (Phase F, usb-hub-3s 2026-07-21): the total kept
+        # improving while the UNCONNECTED subset sat flat at 7 for three
+        # checkpoints — a stuck reachability problem masked by cosmetic
+        # progress. Track the unconnected count separately: flat for 4
+        # cycles while nonzero = escalate even though the total improves.
+        ucount = sum(e["count"] for k, e in findings.items()
+                     if "unconnected" in k)
+        if ucount and ucount == u_prev:
+            u_stall += 1
+        else:
+            u_stall = 0
+        u_prev = ucount
         print(f"cycle {n} [{mode}]: {total} findings — "
               + (", ".join(f"{k}={e['count']}"
                            for k, e in sorted(findings.items())) or "none"))
@@ -289,6 +302,15 @@ def main(argv=None):
             write_escalation(root, f"novel class(es) {novel} — no table "
                                    f"entry", findings, table, history)
             return EXIT_NOVEL
+        if u_stall >= 4:
+            journal(root, n, mode, findings, best, stall,
+                    "ESCALATE unconnected-subset plateau")
+            write_escalation(root, f"D-BACK subset plateau: unconnected flat "
+                                   f"at {ucount} for 4 cycles while total "
+                                   f"improved — a reachability problem "
+                                   f"masked by cosmetic progress",
+                             findings, table, history)
+            return EXIT_DBACK
         if stall >= 3:
             journal(root, n, mode, findings, best, stall,
                     "ESCALATE D-BACK stagnation")

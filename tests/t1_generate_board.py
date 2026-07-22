@@ -521,5 +521,35 @@ def t_kb_silk_below_tier():
     contains(r.out, "min_silk_text_height", "the failure must cite the floor")
 
 
+
+# --------------------------------------------- escape corridors (Phase F)
+@test("escape_corridors expands to a named footprint/pour rule area")
+def t_corridor_clean():
+    d, cfg = scratch_config(lambda c: c.update(
+        {"escape_corridors": [{"ref": "U1", "side": "N", "depth_mm": 3.0}]}))
+    out = d / "b.kicad_pcb"
+    gen(cfg, out)
+    txt = out.read_text()
+    check('esc_U1_N' in txt, "corridor rule area esc_U1_N not on the board")
+
+
+@test("escape_corridor with an unknown ref is a HARD generation error",
+      kind="known_bad")
+def t_corridor_bad_ref():
+    d, cfg = scratch_config(lambda c: c.update(
+        {"escape_corridors": [{"ref": "U99", "side": "N", "depth_mm": 3.0}]}))
+    r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
+    must_fail(r, "corridor on unknown ref", "unknown ref")
+
+
+@test("escape_corridor with a bad side is a HARD generation error",
+      kind="known_bad")
+def t_corridor_bad_side():
+    d, cfg = scratch_config(lambda c: c.update(
+        {"escape_corridors": [{"ref": "U1", "side": "Q", "depth_mm": 3.0}]}))
+    r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
+    must_fail(r, "corridor with bad side", "side must be")
+
+
 if __name__ == "__main__":
     sys.exit(main())

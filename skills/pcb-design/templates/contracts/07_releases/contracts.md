@@ -40,6 +40,19 @@ makes the failure impossible instead of detectable.
 
 ## Allowed — the complete archive (REQUIRED for new releases)
 
+Machine-readable patterns (contracts_audit; the tree below is the human view):
+
+| Pattern | What |
+|---|---|
+| `contracts.md` | this file |
+| `<version>-<date>/MANIFEST.txt` `<version>-<date>/ORDER_README.md` `<version>-<date>/SUPERSEDED.md` | release root documents |
+| `<version>-<date>/fab/**` | gerber zip, drill, bom.csv, cpl.csv |
+| `<version>-<date>/pdf/**` | schematic (tscircuit's own render), pcb_layers, assembly |
+| `<version>-<date>/source/**` | the EXACT source artifacts incl. fp-lib-table + vendored `.pretty` (V-REL-FPLIB, usb-hub-3s 2026-07-21: without them a standalone archive re-measure raises lib_footprint_issues — the archive must re-measure DRC clean) |
+| `<version>-<date>/3d/**` | STEP/GLTF |
+| `<version>-<date>/verification/**` | every gate's evidence |
+
+
 ```
 07_releases/
 └── <version>-<YYYY-MM-DD>/         e.g. v4.10-2026-07-14
