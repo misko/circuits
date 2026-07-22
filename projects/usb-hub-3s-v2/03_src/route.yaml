@@ -74,27 +74,38 @@ taps:
   connections:
     # --- 5VA / 5VC output-sense taps (FB divider top + VOUT sense pin) ---
     # PWR_RAIL floor is 0.6mm -> these pour-connection stubs must be 0.6 too.
-    - {net: 5VA, from: U2.10, to: [90.0, 40.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu}
+    - {net: 5VA, from: U2.10, to: [95.0, 42.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu}   # [90,40] was inside SW_A island -> via landed on SW copper (dangling); [95,42] is clean 5VA
     - {net: 5VA, from: R3.1,  to: [98.0, 46.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu}
-    - {net: 5VC, from: U11.10, to: [90.0, 74.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu}
+    - {net: 5VC, from: U11.10, to: [95.0, 76.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu}   # [90,74] was inside SW_C island -> dangling via; [95,76] is clean 5VC
     - {net: 5VC, from: R12.1,  to: [96.0, 80.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu}
     # --- PD power pins -> islands (short escapes off the QFN north edge) ---
     # U1.20(5VC)/U1.19(RSNS) tap to the shunt; U1.21(VBUSC monitor) is boxed in
     # -> dropped straight to the B.Cu VBUSC bridge by stitch.pad_rescue (below).
-    - {net: 5VC,   from: U1.20, to: C44.1, width: 0.4, layer: B.Cu, hop_layer: F.Cu}
-    - {net: RSNS,  from: U1.19, to: Q6.5,  width: 0.3, layer: B.Cu, hop_layer: F.Cu}
+    # STUB layer MUST be the pad's layer (F.Cu) so via_hop drops a via-in-pad AT
+    # the QFN pad; layer:B.Cu made strategy-1 draw a B.Cu track at the pad XY that
+    # never bonded the F.Cu pad (dangling). hop_layer B.Cu carries the run.
+    - {net: 5VC,   from: U1.20, to: C44.1, width: 0.4, layer: F.Cu, hop_layer: B.Cu}
+    - {net: RSNS,  from: U1.19, to: Q6.5,  width: 0.3, layer: F.Cu, hop_layer: B.Cu}
     # --- chip pins that sit outside their pour island -> bond to the island ---
     - {net: SW_A,  from: U2.20,  to: [79.0, 34.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}
-    - {net: SW_A,  from: C7.2,   to: [79.0, 31.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}
+    - {net: SW_A,  from: C7.2,   to: [81.0, 34.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}  # deeper in SW island, y34 clears Q2.5 VIN pads so 0.6 fits (was [79,31] -> joinpath fell back to 0.2 -> track_width)
     - {net: SW_C,  from: U11.20, to: [79.0, 74.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}
     - {net: SW_C,  from: C22.2,  to: [79.0, 69.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}
-    # PDSRC U1.23 is structurally boxed (west of Q6; the PDSRC island is east of
-    # Q6 -> can't cross the FET). Left for the PD-cell re-placement (handoff).
-    # - {net: PDSRC, from: U1.23,  to: [113.5, 92.5], width: 0.3, layer: B.Cu, hop_layer: F.Cu}
+    # PD QFN north-edge escapes: pins 21 VBUSC / 23 PDSRC are WEST pins whose nets
+    # sit EAST (crossing the RSNS/5VC west escapes). Stub on the pad layer (F.Cu)
+    # so via_hop drops a via-in-pad AT the QFN pad, then thread B.Cu east. Order:
+    # PDSRC first (shorter, Q6-constrained), then VBUSC (longer run to bulk).
+    # (taps for U1.23 PDSRC / U1.21 VBUSC re-enabled below AFTER the FET-row-north
+    #  placement change gives them an escape corridor — see PD-north taps block)
     # --- TPS2557 OUT2(pin7) bond to OUT1(pin6) (pour can't thread 0.65mm gap) ---
     - {net: VBUSA1, from: U3.7, to: U3.6, width: 0.5, layer: F.Cu, hop_layer: B.Cu}
     - {net: VBUSA2, from: U4.7, to: U4.6, width: 0.5, layer: F.Cu, hop_layer: B.Cu}
     - {net: VBUSA3, from: U5.7, to: U5.6, width: 0.5, layer: F.Cu, hop_layer: B.Cu}
+    # TPS2557 OUT (x~109) -> its VBUSAn pour (starts x118): the OUT pins sit WEST
+    # of the pour, so bond OUT1 across to a point inside the pour/connector rail.
+    - {net: VBUSA1, from: U3.6, to: [123.0, 34.0], width: 0.5, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VBUSA2, from: U4.6, to: [123.0, 56.0], width: 0.5, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VBUSA3, from: U5.6, to: [123.0, 78.0], width: 0.5, layer: F.Cu, hop_layer: B.Cu}
     # --- J5 USB-C CC + data escape (deterministic; KRT cannot thread these) ---
     # HARD in-chip pass-through joins FIRST (route the U12 3-4 / 1-6 south channel
     # while it is empty), then the J5-edge legs. CC1/CC2 split onto opposite layers.
@@ -108,10 +119,14 @@ taps:
     # U1.3->J5.B5 run is order-fragile; the midpoint pins the path).
     - {net: CC2, from: U1.3,   to: [116.0, 101.5], width: 0.15, layer: F.Cu, hop_layer: B.Cu}
     - {net: CC2, from: J5.B5,  to: [116.0, 101.5], width: 0.15, layer: F.Cu, hop_layer: B.Cu}
-    - {net: DPC, from: J5.A6, to: U12.6, width: 0.15, layer: B.Cu, hop_layer: F.Cu}
-    - {net: DPC, from: J5.B6, to: U12.6, width: 0.15, layer: B.Cu, hop_layer: F.Cu}
-    - {net: DMC, from: J5.B7, to: U12.4, width: 0.15, layer: B.Cu, hop_layer: F.Cu}
+    # J5 data legs: interleaved DPC/DMC at the edge (W->E: B7 DMC, A6 DPC, A7 DMC,
+    # B6 DPC) must split across two layers. STUB on the pad layer (F.Cu) so via_hop
+    # drops the bonding via; the A-pair claims F.Cu first, the crossing B-pair is
+    # forced onto the B.Cu hop by the collision checker.
+    - {net: DPC, from: J5.A6, to: U12.6, width: 0.15, layer: F.Cu, hop_layer: B.Cu}
     - {net: DMC, from: J5.A7, to: U12.4, width: 0.15, layer: F.Cu, hop_layer: B.Cu}
+    - {net: DPC, from: J5.B6, to: U12.6, width: 0.15, layer: F.Cu, hop_layer: B.Cu}
+    - {net: DMC, from: J5.B7, to: U12.4, width: 0.15, layer: F.Cu, hop_layer: B.Cu}
 
 stitch:
   clearance: 0.15

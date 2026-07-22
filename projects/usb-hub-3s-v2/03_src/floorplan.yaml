@@ -84,7 +84,7 @@ placement:
     Q7:  [120.0, 91.0, 0]     # path FET: S WEST=PDSRC, D-tab EAST=VBUSC
     U1:  [110.0, 98.0, 0]     # TPS25740A QFN-24; EP(25)=GND. North pins 19-21
                               # (ISNS/VPWR/VBUS) face the FET row; CC1/CC2 -> J5.
-    U12: [126.0, 103.0, 180]  # C-port data ESD (rot180: DMC pins 3/4 face N channel)
+    U12: [126.0, 101.7, 180]  # C-port data ESD (rot180: DMC pins 3/4 face N channel); y103->101.7 clears J5 courtyard (overlapped 1.06mm)
     J5:  [120.0, 109.0, 0]    # USB-C mouth SOUTH
 
   seeds:
@@ -205,19 +205,19 @@ zones:
   - {net: SW_A,   layers: [F.Cu, B.Cu], priority: 2, rect: [78.5, 27.0, 92.5, 41.0], connect: full}
   - {net: SW_C,   layers: [F.Cu, B.Cu], priority: 2, rect: [78.5, 65.0, 92.5, 79.0], connect: full}
   # ---- CS patches (cover LS-FET source + shunt + kelvin link) ----
-  - {net: CS_A,   layers: [F.Cu], priority: 2, rect: [68.0, 35.0, 78.0, 49.5], connect: full}
-  - {net: CS_C,   layers: [F.Cu], priority: 2, rect: [68.0, 73.0, 78.0, 87.5], connect: full}
+  - {net: CS_A,   layers: [F.Cu], priority: 2, rect: [66.0, 35.0, 78.0, 49.5], connect: full}   # west edge 68->66 covers R9.1 kelvin (67.28)
+  - {net: CS_C,   layers: [F.Cu], priority: 2, rect: [66.0, 73.0, 78.0, 87.5], connect: full}   # west edge 68->66 covers R18.1 (67.28)
   # ---- output rails: L-shape (buck out + column down the port/PD feed) ----
   - net: 5VA         # buck A out (x86-98) + column x98-114 feeding U3/U4/U5 IN + DCP
     layers: [F.Cu, B.Cu]
     priority: 2
     connect: full
-    points: [[86.0, 26.0], [114.0, 26.0], [114.0, 84.0], [98.0, 84.0], [98.0, 44.0], [86.0, 44.0]]
+    points: [[86.0, 24.8], [116.0, 24.8], [116.0, 84.0], [98.0, 84.0], [98.0, 44.0], [86.0, 44.0]]  # east 114->116 covers C34.1; top 26->24.8 covers C14/C15 (legalized to y25.4)
   - net: 5VC         # buck C out (x86-98) + reach east to RS3.1 / C48 / U1.20
     layers: [F.Cu, B.Cu]
     priority: 2
     connect: full
-    points: [[86.0, 62.0], [98.0, 62.0], [98.0, 88.0], [103.0, 88.0], [103.0, 96.5], [92.0, 96.5], [92.0, 78.0], [86.0, 78.0]]
+    points: [[86.0, 62.0], [98.0, 62.0], [98.0, 88.0], [103.0, 88.0], [103.0, 96.5], [92.0, 96.5], [92.0, 82.5], [86.0, 82.5]]  # left col y78->82.5 swallows C31.1 (80.6, legalized into notch)
   # ---- USB-A port rails ----
   - {net: VBUSA1, layers: [F.Cu, B.Cu], priority: 2, rect: [118.0, 29.0, 143.0, 44.0], connect: full}
   - {net: VBUSA2, layers: [F.Cu, B.Cu], priority: 2, rect: [118.0, 51.0, 143.0, 66.0], connect: full}
@@ -242,8 +242,8 @@ silk:
   min_text_height: 0.6
   refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQL"}
   captions:
-    - ["PROTECTED 3S PACK", 30.0, 36.0, 0.7]
-    - {text: "9-12.6V XT60 IN", at: [46.0, 40.0], size: 0.7, nudge: false}   # off J1 body/silk (was 30,38 -> silk_overlap)
+    - {text: "PROTECTED 3S PACK", at: [66.0, 54.0], size: 0.7, nudge: false}   # open board center, silk-clear (was 30,36 -> over J1)
+    - {text: "9-12.6V XT60 IN", at: [78.0, 54.0], size: 0.7, nudge: false}   # open board center, silk-clear (was 30,38 -> over J1/F1)
     - ["FUSE 10A MINI", 35.0, 50.0, 0.7]
     - ["USB-A 5V 2A", 130.0, 33.0, 0.7]
     - ["USB-A 5V 2A", 130.0, 55.0, 0.7]
