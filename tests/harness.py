@@ -114,6 +114,8 @@ def project_copy(project, dest, board=None, subdirs=("03_src", "02_parts")):
     scripts (audit_board.py, bom_seed.py) can run against a candidate board
     without touching the sealed 04_kicad."""
     src = ROOT / "projects" / project
+    if not src.is_dir():
+        src = ROOT / "archived_projects" / project
     dest.mkdir(parents=True, exist_ok=True)
     for sd in subdirs:
         if (src / sd).is_dir():

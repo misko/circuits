@@ -1,6 +1,6 @@
 # provenance
 
-Snapshot of `projects/cook-loadcell/03_tscircuit/placement_proof/`
+Snapshot of `archived_projects/cook-loadcell/03_tscircuit/placement_proof/`
 (`build_placement_proof.sh` + `NOTES.md`) as of commit `7e3742d`, extracted
 2026-07-21 so that skills reference `examples/`, never a live project.
 

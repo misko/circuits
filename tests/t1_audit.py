@@ -25,7 +25,7 @@ GEN = SCRIPTS / "generate_board_generic.py"
 AUDIT_T = SCRIPTS / "audit_template.py"
 POLICY = SCRIPTS / "policy_audit.py"
 PARITY = SCRIPTS / "board_netlist_parity.py"
-LC = ROOT / "projects" / "cook-loadcell"
+LC = ROOT / "archived_projects" / "cook-loadcell"
 SEALED_LC = LC / "04_kicad" / "cook_loadcell.kicad_pcb"
 
 AUDIT_CFG = {

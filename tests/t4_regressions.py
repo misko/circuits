@@ -68,7 +68,7 @@ CLASSIFIED = SCRIPTS / "classified_drc.py"
 WAIVER_PROV = SCRIPTS / "waiver_provenance.py"
 TWIN = FAB_SCRIPTS / "jlc_twin.py"
 
-LC = ROOT / "projects" / "cook-loadcell"
+LC = ROOT / "archived_projects" / "cook-loadcell"
 SEALED_LC = LC / "04_kicad" / "cook_loadcell.kicad_pcb"
 T0 = FIXTURES / "t0"
 PY = sys.executable or "python3"

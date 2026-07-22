@@ -112,8 +112,11 @@ def main():
 
     files = universe(root, args.walk)
     if not args.projects:
-        files = [f for f in files if not f.startswith("projects/")
-                 or f == "projects/contracts.md"]
+        files = [f for f in files
+                 if (not f.startswith("projects/")
+                     or f == "projects/contracts.md")
+                 and (not f.startswith("archived_projects/")
+                      or f == "archived_projects/contracts.md")]
 
     # contract cache: dir posix path -> list[regex] or None
     cache = {}

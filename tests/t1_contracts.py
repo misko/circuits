@@ -6,7 +6,7 @@ Motivating incidents (2026-07-21):
   unnoticed (the skill's 02_parts contract gained the escape-block schema;
   template/'s copy did not) — two homes, silent divergence.
 - skills/kicad-pcb cited a live project's proof artifact
-  (projects/cook-loadcell/03_tscircuit/backend_proof/...) — a path a
+  (archived_projects/cook-loadcell/03_tscircuit/backend_proof/...) — a path a
   clean-room worktree cannot resolve and a contamination vector.
 
 RED-VERIFIED (new-gate variant): contracts_audit.py did not exist before

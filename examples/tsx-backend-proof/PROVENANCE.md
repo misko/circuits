@@ -1,6 +1,6 @@
 # provenance
 
-Snapshot of `projects/cook-loadcell/03_tscircuit/backend_proof/`
+Snapshot of `archived_projects/cook-loadcell/03_tscircuit/backend_proof/`
 (`build_from_tsx.sh` + `NOTES.md`) as of commit `7e3742d`, extracted
 2026-07-21 so that skills reference `examples/`, never a live project.
 

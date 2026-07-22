@@ -31,6 +31,8 @@ BOARDS = [
 
 def _regen_and_check(project, stem, nparts):
     proj_dir = ROOT / "projects" / project
+    if not proj_dir.is_dir():
+        proj_dir = ROOT / "archived_projects" / project
     d = tmpdir(f"e2e_{stem}_")
     out = d / f"{stem}.kicad_pcb"
     r = must_pass(run([KPY, GEN, proj_dir / "03_src" / "floorplan.yaml", "-o", out],
@@ -92,7 +94,7 @@ def t_shitty_kitty_planes():
     """Parity is node-level, so it cannot see a zone at all: a board with
     every plane silently dropped would still report parity 0. This asserts
     the plane/isolation geometry itself, against the sealed board's."""
-    proj = ROOT / "projects" / "shitty-kitty"
+    proj = ROOT / "archived_projects" / "shitty-kitty"
     d = tmpdir("e2e_sk_zones_")
     out = d / "shitty_kitty.kicad_pcb"
     must_pass(run([KPY, GEN, proj / "03_src" / "floorplan.yaml", "-o", out],
@@ -137,7 +139,7 @@ def t_determinism():
     """Placement search and silk de-collision may reorder; connectivity may
     not. This is why the suite asserts properties, not file hashes."""
     from harness import board_nodes
-    proj_dir = ROOT / "projects" / "cook-loadcell"
+    proj_dir = ROOT / "archived_projects" / "cook-loadcell"
     d = tmpdir("e2e_det_")
     outs = []
     for i in (1, 2):

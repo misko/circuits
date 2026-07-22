@@ -35,7 +35,8 @@ via an explicit pattern (see the coverage rule below).
 | `examples/` | frozen evidence snapshots skills may cite (own contract) |
 | `scripts/` | repo-level tooling, e.g. this audit (own contract) |
 | `tests/` | the test suite (own contract) |
-| `projects/` | one folder per commissioned board (own contract) |
+| `projects/` | ACTIVE boards, one folder each (own contract) |
+| `archived_projects/` | completed/retired boards + frozen e2e regression fixtures (own contract) |
 | `tscircuit_modules/` | shared tscircuit module library (own contract) |
 
 ## Audit

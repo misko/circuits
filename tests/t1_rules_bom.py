@@ -16,7 +16,7 @@ from harness import (KPY, ROOT, SCRIPTS, check, contains, eq, main,  # noqa: E40
                      must_fail, must_pass, project_copy, run, test, tmpdir)
 
 RULES_AUDIT = SCRIPTS / "rules_audit.py"
-LC = ROOT / "projects" / "cook-loadcell"
+LC = ROOT / "archived_projects" / "cook-loadcell"
 PY = sys.executable or "python3"
 
 

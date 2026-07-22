@@ -32,7 +32,7 @@ from harness import (FAB_SCRIPTS, KPY, ROOT, SCRIPTS, check, contains, main,  # 
 
 TWIN = FAB_SCRIPTS / "jlc_twin.py"
 GEN = SCRIPTS / "generate_board_generic.py"
-LC = ROOT / "projects" / "cook-loadcell"
+LC = ROOT / "archived_projects" / "cook-loadcell"
 CODE = "C22775"          # a real code on cook-loadcell's BOM (R7, 100R 0603)
 
 

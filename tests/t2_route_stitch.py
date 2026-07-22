@@ -25,7 +25,7 @@ from harness import (KPY, ROOT, SCRIPTS, board_nodes, check, contains,  # noqa: 
 
 RS = SCRIPTS / "route_and_stitch_generic.py"
 GEN = SCRIPTS / "generate_board_generic.py"
-LC = ROOT / "projects" / "cook-loadcell"
+LC = ROOT / "archived_projects" / "cook-loadcell"
 STEM = "cook_loadcell"
 
 _BOARD_CACHE = []

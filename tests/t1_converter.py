@@ -194,7 +194,7 @@ def t_sch_parity_fails():
     """Parity between a converted sheet and a board must not be a rubber
     stamp: point it at a board that shares no refdes with the fixture."""
     d, sheet, r = convert("two_resistors")
-    board = ROOT / "projects" / "cook-loadcell" / "04_kicad" / "cook_loadcell.kicad_pcb"
+    board = ROOT / "archived_projects" / "cook-loadcell" / "04_kicad" / "cook_loadcell.kicad_pcb"
     rr = run(["/usr/bin/python3", SCRIPTS / "kicad_sch_parity.py", sheet, board])
     check(rr.rc != 0,
           f"kicad_sch_parity exited 0 comparing a 2-resistor sheet to a "
@@ -217,7 +217,7 @@ def t_empty_circuit():
         # exits 0. The GATE is that downstream parity sees 0 nodes, which
         # can never match a real board.
         rr = run(["/usr/bin/python3", SCRIPTS / "kicad_sch_parity.py", out,
-                  ROOT / "projects" / "cook-loadcell" / "04_kicad"
+                  ROOT / "archived_projects" / "cook-loadcell" / "04_kicad"
                   / "cook_loadcell.kicad_pcb"])
         check(rr.rc != 0, "an EMPTY sheet passed parity against a real board")
 

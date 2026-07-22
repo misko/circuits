@@ -11,7 +11,7 @@ bespoke generators (`generate_board.py`, `route_prep.py`, `route_waves.sh`,
 `generate_board_generic.py` + `route_and_stitch_generic.py`.
 
 Everything runs into a scratch tree under /tmp. The sealed
-`projects/cook-loadcell/04_kicad` board and `07_releases` are opened READ
+`archived_projects/cook-loadcell/04_kicad` board and `07_releases` are opened READ
 ONLY — the sealed board is the parity reference the pipeline did not
 produce, and nothing here is ever written back into the project.
 
@@ -56,7 +56,7 @@ WAIVER = SCRIPTS / "waiver_provenance.py"
 EXPORT = FAB_SCRIPTS / "export_jlc_package.py"
 STOCK = FAB_SCRIPTS / "jlc_stock_check.py"
 
-LC = ROOT / "projects" / "cook-loadcell"
+LC = ROOT / "archived_projects" / "cook-loadcell"
 STEM = "cook_loadcell"
 SEALED = LC / "04_kicad" / f"{STEM}.kicad_pcb"
 
@@ -247,7 +247,7 @@ def _run_pipeline():
     res["policy"] = {"rc": pa.rc, "out": pa.out}
     # waiver provenance is FLEET-WIDE by construction: grade cook-loadcell's
     # real waiver file against the actual projects/ corpus (read-only).
-    wp = run([KPY, WAIVER, "projects", "--project", "cook-loadcell"], cwd=ROOT)
+    wp = run([KPY, WAIVER, "archived_projects", "--project", "cook-loadcell"], cwd=ROOT)
     res["waiver"] = {"rc": wp.rc, "out": wp.out}
 
     # ---- assemble the proof release archive ----

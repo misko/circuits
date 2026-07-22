@@ -14,7 +14,7 @@ from harness import (KPY, ROOT, SCRIPTS, board_nodes, check, contains, eq,  # no
                      main, must_fail, must_pass, run, test, tmpdir)
 
 GEN = SCRIPTS / "generate_board_generic.py"
-LC = ROOT / "projects" / "cook-loadcell"
+LC = ROOT / "archived_projects" / "cook-loadcell"
 
 
 def gen(cfg, out, cwd=LC, expect_ok=True):
