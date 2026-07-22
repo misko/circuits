@@ -23,3 +23,19 @@
   re-attributed J labels on jack bodies).
 - next: join remaining pin groups + twin, then render review, then
   policy_audit + harvest + release.
+
+## 2026-07-21 — pin reviews landed post-pause (orphaned sub-agents, results preserved)
+- did: fresh-context pin reviews completed for digital core + connectors
+- result: MEASURED — U1 XU316 PASS (all 129 pins vs Table 4, winding verified,
+  no mirror); U4 flash PASS (quad-IO bit order matches port 4B); U5 clock
+  buffer PASS (channel pairing verified); J1-J8 RJ45 PASS (contact-for-contact
+  vs sealed pod ADR-0004, rotation-not-mirror proven by dimension chain);
+  J12 USB-C PASS (A/B symmetry, CC Rd 5k1 each to GND verified on the board).
+  U2/U3 PCM1865 were QUESTION on one point — the MCLK_A0->MCLK_A /
+  MCLK_B0->MCLK_B / LRCK_X->LRCK / BCLK_X->BCLK series links; orchestrator
+  re-measured the netlist: R40/R41/R43/R42 link each pair respectively ->
+  per the reviewers' own criterion U2/U3 are PASS. Zero FAILs across all
+  reviewed groups.
+- next: resume completes remaining verify items (twin, render review, red-team
+  per new stage-7 standard, policy audit) then release. Full review texts:
+  06_build/pin_review/ + orchestrator session record.
