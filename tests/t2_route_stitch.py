@@ -1458,6 +1458,8 @@ def _e2e(project, stem, waves):
     import -> stitch -> rules LAST -> DRC. Sealed 04_kicad is read only;
     everything is built in a scratch tree."""
     proj = ROOT / "projects" / project
+    if not proj.is_dir():
+        proj = ROOT / "archived_projects" / project
     d = tmpdir(f"e2e_rs_{stem}_")
     (d / "04_kicad").mkdir()
     (d / "06_build" / "netlists").mkdir(parents=True)
