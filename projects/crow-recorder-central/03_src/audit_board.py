@@ -88,8 +88,11 @@ for f in b.GetFootprints():
         continue
     ref = f.Reference()
     if ref.GetLayer() not in SILK or not ref.IsVisible():
-        if r in WAIVED and r[0] in "RC":
-            warns.append(f"I10 refdes {r} waived to Fab (passive, no silk room)")
+        if r in WAIVED and (r[0] in "RC" or r.startswith("TP")):
+            # TP class added 2026-07-21 (silk_reattribute): TP11 is ringed
+            # by 6 closer same-scale passives — no attribution-correct slot;
+            # its functional rail label ('TP 0V9', add_silk_fn) stays on silk
+            warns.append(f"I10 refdes {r} waived to Fab (no silk room)")
         else:
             fails.append(f"I10 refdes not on silk: {r}")
 

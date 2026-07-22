@@ -466,6 +466,12 @@ def main():
             ref.SetVisible(False)
             waived.append(r)
     (HERE.parent / "06_build").mkdir(exist_ok=True)
+    # merge the COMMITTED attribution waivers (silk_reattribute.py one-time
+    # fixup on the promoted route: labels with no attribution-correct slot,
+    # hidden to Fab) — audit I10 reads the union from 06_build
+    attr_wf = HERE / "rules" / "silk_attribution_waivers.json"
+    if attr_wf.exists():
+        waived = sorted(set(waived) | set(json.loads(attr_wf.read_text())))
     (HERE.parent / "06_build" / "refdes_waiver.json").write_text(json.dumps(sorted(waived)))
     print(f"refdes on silk: {placed - len(waived)}/{placed} placed, {len(waived)} waived")
     board.Save(str(PCB))

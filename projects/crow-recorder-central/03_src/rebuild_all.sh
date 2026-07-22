@@ -11,7 +11,7 @@ SKILLS="$(cd "$(dirname "$0")/../../.." 2>/dev/null && pwd)/skills/kicad-pcb/scr
 [ -d "$SKILLS" ] || SKILLS="$HOME/.claude/skills/kicad-pcb/scripts"
 mkdir -p 06_build/netlists 06_build/drc 06_build/route
 python3 03_src/make_lib.py | tail -1
-python3 03_src/generate_schematic.py | tail -1
+CRC_REV=v1.0 python3 03_src/generate_schematic.py | tail -1
 kicad-cli sch export netlist -o 06_build/netlists/crow_recorder_central.net 04_kicad/crow_recorder_central.kicad_sch >/dev/null
 # ERC gate: 0 violations at severity-all
 kicad-cli sch erc --severity-all --format json -o 06_build/drc/erc.json 04_kicad/crow_recorder_central.kicad_sch >/dev/null
@@ -61,6 +61,11 @@ $PY 03_src/trim_dangling.py 2>/dev/null | tail -20
 # add_silk_fn (D29): functional silkscreen labels for J/F/TP refs (canon
 # P5 / policy_audit P-SILK-FN) — collision-aware, DRC-guarded, idempotent.
 $PY 03_src/add_silk_fn.py 2>/dev/null | tail -3
+# silk-attribution gate (pod-ported, red-verified via CRC_SILK_CHECK_POISON):
+# every visible silk refdes must be nearest its OWN part among same-scale
+# neighbors. One-time fixup silk_reattribute.py is baked into the promoted
+# route; this CHECK guards regressions.
+$PY 03_src/check_silk_attribution.py 2>/dev/null | tail -2
 # audit again post-route (I8 AIN length needs tracks)
 $PY 03_src/audit_board.py 2>/dev/null | tail -2
 # rules LAST: pcbnew saves clobber .kicad_pro netclasses

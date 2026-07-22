@@ -37,7 +37,10 @@ schwriter2.PAPERS.setdefault("A0", (1189.0, 841.0))
 PROJECT = "crow_recorder_central"
 SMALL = {"RES", "CAP", "CAPP", "FBEAD", "IND", "FUSE", "TP", "DIODE2"}
 
-rev = Schematic.rev_from_git(HERE, "CAC_REV", "cac-v*").replace("cac-", "")
+# CRC_REV (renamed from the archive's CAC_REV, rename-residue check
+# 2026-07-21): rebuild_all.sh pins the release rev — the pod shipped a
+# title-block rev "dev" by relying on absent git tags
+rev = Schematic.rev_from_git(HERE, "CRC_REV", "crc-v*").replace("crc-", "")
 sch = Schematic(
     PROJECT, "crow-recorder-central", paper="A0",
     comment="XU316 + dual PCM1865 8ch USB audio recorder; 8x RJ45 NOT-ETHERNET pod ports; crow-array commission",
