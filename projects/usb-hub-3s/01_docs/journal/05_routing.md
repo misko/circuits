@@ -104,3 +104,19 @@ fixpoint on a Python-side model, one removal batch at the end.
 - Expected outcome: stubs place cleanly; zones heal; 0/0/0 gate
 
 **Open hypotheses:** the new part placement may require fine-tuning of the gap boundaries; HG1 stub may also need a dedicated gap if gate crossing fails; tap reattempt will re-run with the new geometry if needed.
+
+## 2026-07-22 — v1.1 SUPERSEDED BY SCOPE FINDING (stop routing)
+- finding: USB-C output is 5V ONLY (user-confirmed 2026-07-22). Battery is
+  9-12.6V, so Vout(5V) < Vin(min 9V) ALWAYS → step-down buck suffices. The
+  IP6559 BUCK-BOOST (+ Q4-Q7 + 30V-FET/TVS coordination + compact hot-loop
+  congestion + 16A input trunk) exists ONLY to support >5V PDOs (5-20V) that
+  the spec never required. The congested PD cell blocking this routing grind
+  is over-engineering, not a real constraint.
+- decision: STOP finishing v1.1's buck-boost PD cell. The correct board is a
+  5V-only v2.0: two step-down bucks (or one shared) + a simple 5V/5A PD source
+  controller (still needed for the 5A/e-marker advertisement, NOT a boost).
+  Input drops ~16A -> ~7A (55W total). Routes easily, cheaper, cooler.
+- root-cause / harvest: D-SPEC pinned current ("5A compliant") but not the
+  OUTPUT VOLTAGE RANGE; topology (buck vs buck-boost) was interpreted, not
+  DERIVED from Vin-vs-Vout. New E-TOPO gate + power_tree.yaml in flight to
+  make this a mechanical commission-stage check.
