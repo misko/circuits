@@ -1663,12 +1663,19 @@ def _rescue_one_net(ctx, c, netname, plane_layer, stub_boxes):
     skip = set(c.get("skip_refs", []) or [])
 
     def has_via(pad):
-        px, py = pad.GetPosition().x / 1e6, pad.GetPosition().y / 1e6
+        # A via SERVES a plane pad only if its barrel drops INSIDE the pad — a
+        # via-in-pad bonds pad->plane. A merely-NEARBY via (a neighbour pin's
+        # drop `serve_r` away, no copper between) does NOT connect this pad;
+        # counting proximity stranded 5 false-served plane pins that each had a
+        # clear via-in-pad site (cooksense 2026-07-23). `serve_r` still widens
+        # the match to a small ring so a barrel grazing the pad edge counts.
+        bb = pad.GetBoundingBox()
+        bb.Inflate(int(serve_r * 1e6 / 4))
         for t in ctx.board.GetTracks():
-            if t.GetClass() == "PCB_VIA" and t.GetNetCode() == pad.GetNetCode():
-                vx, vy = t.GetPosition().x / 1e6, t.GetPosition().y / 1e6
-                if (vx - px) ** 2 + (vy - py) ** 2 < serve_r * serve_r:
-                    return True
+            if (t.GetClass() == "PCB_VIA"
+                    and t.GetNetCode() == pad.GetNetCode()
+                    and bb.Contains(t.GetPosition())):
+                return True
         return False
 
     # BUILT-IN THERMAL VIA GRIDS: a footprint EP often carries its own
@@ -1849,66 +1856,73 @@ def _append_stub_dru(ctx, name, min_w, nets=None):
 @stitch_pass("stub_fallback")
 def p_stub_fallback(ctx, c):
     """Boxed-in pads: short stub to the nearest same-net copper (a via barrel
-    is a pour link; a track end is a direct join)."""
+    is a pour link; a track end is a direct join). `net` may be a single net
+    or a LIST of plane nets (GND + 3V3) — pad_rescue leaves BOTH in pending, so
+    a GND-only fallback stranded every unserved 3V3 pin (cooksense 2026-07-23)."""
     pcbnew = ctx.pcbnew
-    netname = c.get("net", "GND")
-    code = ctx.net(netname).GetNetCode()
+    nets = c.get("net", "GND")
+    if isinstance(nets, str):
+        nets = [nets]
     lo, hi = float(c.get("min_dist", 0.2)), float(c.get("max_dist", 8.0))
     w = float(c.get("width", 0.3))
-    pts = []
-    for t in ctx.board.GetTracks():
-        if t.GetNetCode() != code:
-            continue
-        if t.GetClass() == "PCB_VIA":
-            pts.append((t.GetPosition().x / 1e6, t.GetPosition().y / 1e6, None))
-        else:
-            for e in (t.GetStart(), t.GetEnd()):
-                pts.append((e.x / 1e6, e.y / 1e6, t.GetLayer()))
-    still, fixed = [], 0
-    for ref, p in ctx.pads(ctx.pending):
-        px, py = p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
-        lay = (p.GetLayer() if p.GetLayer() in (pcbnew.F_Cu, pcbnew.B_Cu)
-               else pcbnew.F_Cu)
-        cands = sorted(((math.hypot(px - x, py - y), x, y, tl)
-                        for (x, y, tl) in pts if tl is None or tl == lay),
-                       key=lambda t: t[0])
-        done = False
-        for d, tx, ty, _tl in cands:
-            if not (lo < d < hi):
+    pending = list(ctx.pending)
+    fixed = 0
+    for netname in nets:
+        code = ctx.net(netname).GetNetCode()
+        pts = []
+        for t in ctx.board.GetTracks():
+            if t.GetNetCode() != code:
                 continue
-            if ctx.tk.collides(px, py, round(tx, 2), round(ty, 2), w,
-                               code, lay) is not None:
+            if t.GetClass() == "PCB_VIA":
+                pts.append((t.GetPosition().x / 1e6, t.GetPosition().y / 1e6, None))
+            else:
+                for e in (t.GetStart(), t.GetEnd()):
+                    pts.append((e.x / 1e6, e.y / 1e6, t.GetLayer()))
+        still = []
+        for ref, p in ctx.pads(pending):
+            if p.GetNetCode() != code:
+                still.append((ref, p.GetNumber()))
                 continue
-            ctx.tk.add_seg(px, py, round(tx, 2), round(ty, 2), p.GetNet(), lay, w)
-            done = True
-            break
-        if done:
-            fixed += 1
-            print(f"  stub recovered {ref}.{p.GetNumber()}")
-        else:
-            still.append((ref, p.GetNumber()))
-    ctx.pending = still
+            px, py = p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
+            lay = (p.GetLayer() if p.GetLayer() in (pcbnew.F_Cu, pcbnew.B_Cu)
+                   else pcbnew.F_Cu)
+            cands = sorted(((math.hypot(px - x, py - y), x, y, tl)
+                            for (x, y, tl) in pts if tl is None or tl == lay),
+                           key=lambda t: t[0])
+            done = False
+            for d, tx, ty, _tl in cands:
+                if not (lo < d < hi):
+                    continue
+                if ctx.tk.collides(px, py, round(tx, 2), round(ty, 2), w,
+                                   code, lay) is not None:
+                    continue
+                ctx.tk.add_seg(px, py, round(tx, 2), round(ty, 2), p.GetNet(), lay, w)
+                done = True
+                break
+            if done:
+                fixed += 1
+                print(f"  stub recovered {ref}.{p.GetNumber()}")
+            else:
+                still.append((ref, p.GetNumber()))
+        pending = still
+    ctx.pending = pending
     ctx.bump("stub_fallback", fixed)
-    print(f"stub fallback: recovered {fixed}, {len(still)} left")
-
+    print(f"stub fallback: recovered {fixed}, {len(pending)} left")
 
 @stitch_pass("astar_fallback")
 def p_astar(ctx, c):
-    netname = c.get("net", "GND")
-    code = ctx.net(netname).GetNetCode()
+    nets = c.get("net", "GND")
+    if isinstance(nets, str):
+        nets = [nets]
     w = float(c.get("width", 0.25))
     window = float(c.get("window", 3.0))
     attempts = int(c.get("attempts", 3))
-    targets = [(t.GetPosition().x / 1e6, t.GetPosition().y / 1e6)
-               for t in ctx.board.GetTracks()
-               if t.GetClass() == "PCB_VIA" and t.GetNetCode() == code]
 
     # The toolkit's A* emits its own default 0.45/0.2 vias, which are BELOW
-    # a 2-layer standard-tier board's floors (crow-array-pod: 2x
-    # drill_out_of_range + 1x hole_to_hole from one rescue). Pinning the
-    # geometry is what the bespoke stitcher monkeypatched by hand; here it
-    # is config. `restore` is unconditional so an exception cannot leak the
-    # patched toolkit into later passes.
+    # a 2-layer standard-tier board's floors. Pinning the geometry is config;
+    # `restore` is unconditional so an exception cannot leak the patched
+    # toolkit into later passes. `net` may be a LIST (GND + 3V3): each plane
+    # net's own via targets, so an unserved 3V3 pin is A*-recovered too.
     pin = c.get("via")
     _orig = (ctx.tk.add_via, ctx.tk.via_site_ok)
     if pin:
@@ -1918,35 +1932,47 @@ def p_astar(ctx, c):
         ctx.tk.via_site_ok = (lambda x, y, nc, size=None, drill=None,
                               _f=_orig[1], **kw:
                               _f(x, y, nc, size=vs, drill=vd, **kw))
+
     def via_coords():
         return {(round(t.GetPosition().x / 1e6, 2),
                  round(t.GetPosition().y / 1e6, 2))
                 for t in ctx.board.GetTracks() if t.GetClass() == "PCB_VIA"}
 
     before = via_coords()      # A* adds vias inside the toolkit — diff them
-    still, fixed = [], 0
+    pending = list(ctx.pending)
+    fixed = 0
     try:
-        for ref, p in ctx.pads(ctx.pending):
-            px, py = p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
-            tgt = None
-            for tx, ty in sorted(targets,
-                                 key=lambda q: math.hypot(px - q[0], py - q[1])):
-                if 0.3 < math.hypot(px - tx, py - ty) < float(c.get("max_dist", 10.0)):
-                    tgt = (tx, ty)
-                    break
-            if tgt and ctx.tk.verified_astar(netname, (px, py), tgt, w,
-                                             window=window, attempts=attempts):
-                fixed += 1
-                print(f"  A* recovered {ref}.{p.GetNumber()}")
-            else:
-                still.append((ref, p.GetNumber()))
+        for netname in nets:
+            code = ctx.net(netname).GetNetCode()
+            targets = [(t.GetPosition().x / 1e6, t.GetPosition().y / 1e6)
+                       for t in ctx.board.GetTracks()
+                       if t.GetClass() == "PCB_VIA" and t.GetNetCode() == code]
+            still = []
+            for ref, p in ctx.pads(pending):
+                if p.GetNetCode() != code:
+                    still.append((ref, p.GetNumber()))
+                    continue
+                px, py = p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
+                tgt = None
+                for tx, ty in sorted(targets,
+                                     key=lambda q: math.hypot(px - q[0], py - q[1])):
+                    if 0.3 < math.hypot(px - tx, py - ty) < float(c.get("max_dist", 10.0)):
+                        tgt = (tx, ty)
+                        break
+                if tgt and ctx.tk.verified_astar(netname, (px, py), tgt, w,
+                                                 window=window, attempts=attempts):
+                    fixed += 1
+                    print(f"  A* recovered {ref}.{p.GetNumber()}")
+                else:
+                    still.append((ref, p.GetNumber()))
+            pending = still
     finally:
         ctx.tk.add_via, ctx.tk.via_site_ok = _orig
         ctx._used = None
         ctx.emitted.extend(sorted(via_coords() - before))
-    ctx.pending = still
+    ctx.pending = pending
     ctx.bump("astar_fallback", fixed)
-    print(f"A* fallback: recovered {fixed}, {len(still)} left")
+    print(f"A* fallback: recovered {fixed}, {len(pending)} left")
 
 
 def _in_poly(x, y, poly):
@@ -2506,11 +2532,15 @@ def _heal_net(ctx, c, netname, groups):
                 n += 1
                 progress = True
     if rest:
-        die(f"heal_islands: net {netname!r} — no LEGAL bridge exists for "
-            f"{len(rest)} of its {len(groups)} island group(s): every "
-            f"same-layer gap candidate collides with live copper and no "
-            f"shared same-net plane offers a clear via site. This split is "
-            f"design work (placement/route), not a mechanical heal")
+        # UNBRIDGEABLE leftovers are almost always orphan pour fragments held
+        # alive only by a dangling stitch via — a mode=ALWAYS zone drops them
+        # on the very next refill (verified: the kicad-cli --refill-zones DRC
+        # reports them GONE). Rather than DIE before the caller's refill can
+        # remove them, SKIP them here; the caller refills (mode=ALWAYS) and
+        # RE-VERIFIES (`after`), so a leftover that a refill does NOT dissolve
+        # (a genuine split holding real copper) still hard-errors there.
+        print(f"  heal {netname}: {len(rest)} unbridgeable orphan group(s) "
+              f"left to the mode=ALWAYS refill (removed if truly orphan)")
     return n
 
 

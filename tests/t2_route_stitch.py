@@ -1370,26 +1370,66 @@ def t_heal_idempotent():
           f"second run emitted copper: {t1}/{v1} -> {t2}/{v2}")
 
 
-@test("a heal path that would violate clearance is rejected, and a board "
-      "with NO legal bridge is a hard error", kind="known_bad")
+@test("a heal path that would violate clearance is rejected, and a genuine "
+      "unbridgeable split still hard-errors at the post-refill re-verify",
+      kind="known_bad")
 def t_kb_heal_unbridgeable():
     """Safety rail (b). The full-height wall blocks every same-layer gap
     (collides catches each candidate) and there is no shared plane, so no
-    legal bridge exists: the healer must ERROR OUT naming the net, never
-    emit a violating bridge or silently skip. RED-VERIFIED 2026-07-21 by
+    legal bridge exists. The healer must NEVER emit a violating bridge —
+    and it must NEVER let the split through. RED-VERIFIED 2026-07-21 by
     disabling the collision check (`collides(...) is not None: continue`
     removed), 4/4 runs FAIL: the broken healer emitted a bridge straight
     through the SIG wall and this test caught it — and the illegal overlap
     additionally made KiCad's connectivity net-propagation rewire the
     padless SIG wall onto PWR (measured: the wall reloaded as net PWR),
     which is exactly the corruption the collision guard exists to prevent.
-    Check restored, test green."""
+    Check restored, test green.
+
+    RELOCATED GATE (2026-07-23): `_heal_net` no longer DIEs eagerly on an
+    unbridgeable leftover — it DEFERS it to the mode=ALWAYS refill, because
+    the leftover is usually an orphan pour sliver a refill dissolves (the
+    cooksense 252mm win: deferring stopped spurious hard-errors on slivers
+    the refill removed). But a GENUINE split holding real copper on BOTH
+    sides (here each lobe carries a PWR pad) SURVIVES the refill, so the
+    post-refill re-verify inside p_heal_islands still HARD-ERRORS naming the
+    net. The gate did not vanish; it moved from `_heal_net` to the
+    heal+refill re-check — and it now bites only a split a refill could not
+    heal. RED-VERIFIED 2026-07-23: this fixture exits nonzero with the
+    re-verify message; a healer that returned success on the deferred
+    leftover (dropping the re-verify) would exit 0 and fail must_fail."""
     d, p, board = heal_scratch("full_slice", bplane=False)
-    r = must_fail(stitch(p), "heal with no legal bridge", "no LEGAL bridge")
+    r = must_fail(stitch(p), "unbridgeable split must still hard-error",
+                  "disconnected island group")
     contains(r.out, "PWR", "the failure must name the net")
+    contains(r.out, "unbridgeable orphan group",
+             "the leftover must be DEFERRED to the refill, not eagerly killed")
     t, v = copper_counts(board)
     check(not t.get("PWR") and not v.get("PWR"),
           f"a failed heal left PWR bridge copper on disk: {t}/{v}")
+
+
+@test("the DRC/unconnected gate CATCHES an unbridgeable island even with "
+      "heal_islands out of the pipeline (the relocated backstop lives)",
+      kind="known_bad")
+def t_kb_unbridgeable_island_caught_by_drc():
+    """Companion to the relocation in t_kb_heal_unbridgeable. `_heal_net` now
+    DEFERS an unbridgeable orphan to the refill, on the premise that any
+    residual open the refill does NOT dissolve is still caught downstream by
+    the release DRC gate (cooksense: 3 such opens caught by kicad-cli DRC,
+    2026-07-23). This proves that backstop is real and not merely asserted:
+    the SAME full-height-sliced, no-shared-plane PWR pour — an island the
+    healer cannot bridge — is FILLED with heal_islands removed from the pass
+    list, so nothing hard-errors at stitch time; the board saves. The
+    independent-method gate (kicad-cli DRC, --refill-zones) then reports the
+    two PWR lobes as UNCONNECTED. A disconnected island can never slip past
+    both the heal re-verify AND this DRC gate. RED sense: if the pour fused
+    or DRC went blind, unconnected would be 0 and this check would fail."""
+    d, p, board = heal_scratch("full_slice", bplane=False, passes=("fill",))
+    must_pass(stitch(p), "fill-only stitch (heal_islands omitted)")
+    counts = drc_counts(board)
+    check(counts["unconnected"] >= 1,
+          f"the DRC gate did not catch the unbridgeable PWR island: {counts}")
 
 
 @test("heal_islands REFUSES to run before fill", kind="known_bad")
