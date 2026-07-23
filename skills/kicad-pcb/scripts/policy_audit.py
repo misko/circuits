@@ -695,7 +695,11 @@ def main():
     # corruption. usb-hub-3s-v3 v1.1 shipped 25V input caps for 50V because the
     # exporter grouped by value+footprint and collapsed C77102 onto C77100.
     # The check RE-DERIVES from the source independently of how the BOM was made
-    # (canon M1), so it bites carry-over/hand-edit corruption too.
+    # (canon M1), so it bites carry-over/hand-edit corruption too. Leg C adds
+    # SEMANTIC value consistency: it decodes each R/C row's MPN (BOM column or
+    # vendored part.yaml dir name) and FAILS a value that disagrees with the
+    # label (usb-hub-3s-v3 v1.2 shipped C2933210=3.74k labeled 4.12k), flagging
+    # an unparseable MPN rather than passing it — all offline.
     jlc_scripts = Path(__file__).resolve().parent.parent.parent / "jlcpcb-fab" / "scripts"
     cjs = (glob.glob(str(proj / "03_tscircuit" / "build" / "circuit.json"))
            or glob.glob(str(proj / "03_tscircuit" / "dist" / "**" / "circuit.json"),

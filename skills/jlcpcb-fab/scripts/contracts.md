@@ -35,3 +35,10 @@ stock, twin).
   (canon M6 / policy_audit M-BOM) FAILS a merged/substituted/missing/
   dropped-vendored BOM (usb-hub-3s-v3 v1.1 shipped 25V caps for 50V,
   2026-07-23).
+- Code identity is not enough: `bom_source_check.py` also runs a SEMANTIC
+  value check (leg C) — for every R/C row it resolves the MPN (BOM MPN column,
+  else the vendored `02_parts/<MPN>/part.yaml` dir name) and decodes its
+  EIA/RKM value OFFLINE, FAILING a VALUE-MISMATCH and FLAGGING an unparseable
+  MPN as UNVERIFIABLE-VALUE (never a silent pass). usb-hub-3s-v3 v1.2 shipped
+  R12 = C2933210 (FRC0603F3741TS = 3.74k) labeled 4.12k, 2026-07-23. A catalog
+  fetch, when in-env, is a stronger add-on but the offline check stands alone.

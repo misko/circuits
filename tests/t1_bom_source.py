@@ -49,13 +49,18 @@ def circuit(codes):
 
 
 def write_case(d, refdes_codes, bom_rows):
-    """circuit.json + a fab bom.csv in dir d. bom_rows: [(comment, [refs], code)]."""
+    """circuit.json + a fab bom.csv in dir d. bom_rows entries are
+    (comment, [refs], code) or, to exercise leg C's value check,
+    (comment, [refs], code, mpn) / (comment, [refs], code, mpn, footprint)."""
     (d / "circuit.json").write_text(json.dumps(circuit(refdes_codes)))
     with open(d / "bom.csv", "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["Comment", "Designator", "Footprint", "MPN", "LCSC"])
-        for comment, refs, code in bom_rows:
-            w.writerow([comment, ",".join(refs), "C_1210_3225Metric", "", code])
+        for row in bom_rows:
+            comment, refs, code = row[0], row[1], row[2]
+            mpn = row[3] if len(row) > 3 else ""
+            fp = row[4] if len(row) > 4 else "C_1210_3225Metric"
+            w.writerow([comment, ",".join(refs), fp, mpn, code])
     return d
 
 
@@ -187,6 +192,115 @@ def t_kb_real_v1_1():
     must_fail(r, "gate on the sealed v1.1 defect", "MERGED")
     contains(r.out, "C77102", "50V input-cap code the row collapsed")
     contains(r.out, "SUBSTITUTED", "the 100uF output-cap substitution")
+
+
+# ------------------------------- leg C: SEMANTIC value consistency (v1.2 gap)
+# usb-hub-3s-v3 v1.2 (2026-07-23) shipped R12 = C2933210 (MPN FRC0603F3741TS =
+# 3.74k) while the row LABEL said "4.12kΩ" -> buck-C setpoint ~4.97V undervoltage.
+# Legs A/B check CODE IDENTITY (BOM code == source code) and PASSED — they are
+# blind to the LCSC's actual catalog value. Leg C parses the MPN's encoded value
+# OFFLINE and compares it to the label.
+
+@test("leg C parsers decode EIA/RKM resistor + ceramic-cap MPNs and passive "
+      "labels (the offline engine)")
+def t_legc_parsers():
+    """Unit-level proof of the value engine, independent of the gate wiring.
+    FRC0603F3741TS -> 374×10^1 = 3.74k (the v1.2 part); FRC0603F4121TS -> 4120
+    (the value it SHOULD have been). RKM and 4-digit EIA both covered; an MPN we
+    cannot confidently parse returns None (-> the gate FLAGs it, never passes)."""
+    eq(bsc.mpn_resistance("FRC0603F3741TS", "R_0603_1608Metric"), 3740.0,
+       "EIA 3741 -> 3.74k (the shipped v1.2 R12)")
+    eq(bsc.mpn_resistance("FRC0603F4121TS", "R_0603_1608Metric"), 4120.0,
+       "EIA 4121 -> 4.12k (the intended R12)")
+    eq(bsc.mpn_resistance("RC0603FR-074K12L", "R_0603_1608Metric"), 4120.0,
+       "Yageo RKM 4K12 -> 4.12k")
+    eq(bsc.mpn_resistance("RC1206FR-072R2L", "R_1206_3216Metric"), 2.2,
+       "RKM 2R2 -> 2.2Ω")
+    eq(bsc.mpn_resistance("MYSTERY-PART-XYZ", "R_0603"), None,
+       "an MPN with no decodable value must return None (-> FLAG, not pass)")
+    check(abs(bsc.mpn_capacitance("GRM188R71H104KA01", "C_0603_1608Metric") - 1e-7)
+          < 1e-12, "ceramic 104K -> 100nF")
+    eq(bsc.labeled_resistance("4.12kΩ"), 4120.0, "label 4.12kΩ")
+    eq(bsc.labeled_resistance("4k7"), 4700.0, "RKM label 4k7")
+    check(abs(bsc.labeled_capacitance("100nF") - 1e-7) < 1e-12, "label 100nF")
+
+
+@test("gate FAILS the v1.2 defect: R12 = C2933210 / MPN FRC0603F3741TS (3.74k) "
+      "labeled '4.12kΩ' — code identity PASSES, VALUE does not", kind="known_bad")
+def t_kb_value_mismatch():
+    """THE fixture the v1.2 SUPERSEDED.md describes. The BOM code EQUALS the
+    source code (leg A/B are satisfied), so the pre-leg-C gate PASSED. Leg C
+    parses the MPN (3.74k) against the label (4.12k) and FAILS.
+
+    RED-VERIFY (performed 2026-07-23): with leg C removed from `check()`
+    (delete the `findings.extend(value_findings(...))` line), this exact BOM
+    exits 0 — legs A/B see only that C2933210 == C2933210. Restore leg C and it
+    exits 1 with VALUE-MISMATCH naming 3.74kΩ vs 4.12kΩ. Confirmed at the CLI on
+    a scratch fixture before this test was written."""
+    d = write_case(tmpdir("bomval_"), {"R12": "C2933210"},
+                   [("4.12kΩ", ["R12"], "C2933210",
+                     "FRC0603F3741TS", "R_0603_1608Metric")])
+    r = run([KPY, GATE, d / "bom.csv", d / "circuit.json"])
+    must_fail(r, "gate on a value-mislabelled resistor", "VALUE-MISMATCH")
+    contains(r.out, "3.74kΩ", "must name the MPN-encoded catalog value")
+    contains(r.out, "4.12kΩ", "must name the labeled value")
+
+
+@test("gate PASSES the corrected part: MPN FRC0603F4121TS (4.12k) labeled "
+      "'4.12kΩ' — encoded value matches the label")
+def t_clean_value_match():
+    d = write_case(tmpdir("bomval_"), {"R12": "C4121TRUE"},
+                   [("4.12kΩ", ["R12"], "C4121TRUE",
+                     "FRC0603F4121TS", "R_0603_1608Metric")])
+    r = must_pass(run([KPY, GATE, d / "bom.csv", d / "circuit.json"]),
+                  "gate on a correctly-labelled resistor")
+    contains(r.out, "PASS", "verdict")
+
+
+@test("gate FLAGS an unparseable MPN on a passive row (does NOT silently pass "
+      "an unverifiable value)", kind="known_bad")
+def t_kb_value_unverifiable():
+    """The task's third disposition: an MPN whose value cannot be decoded is
+    UNVERIFIABLE, not a pass. RT0603BRD074K12L is a REAL 4.12k Yageo part, but
+    its non-hyphenated reel code ('...BRD07'+'4K12') is one this offline parser
+    does not confidently decode — so rather than trust the label it demands
+    manual catalog confirmation. Better a false alarm than a silent 3.74k."""
+    d = write_case(tmpdir("bomval_"), {"R12": "C728591"},
+                   [("4.12kΩ", ["R12"], "C728591",
+                     "RT0603BRD074K12L", "R_0603_1608Metric")])
+    r = run([KPY, GATE, d / "bom.csv", d / "circuit.json"])
+    must_fail(r, "gate on an unparseable passive MPN", "UNVERIFIABLE-VALUE")
+    contains(r.out, "RT0603BRD074K12L", "must name the MPN it could not parse")
+
+
+@test("leg C resolves the MPN from a vendored part.yaml dir name when the BOM "
+      "MPN column is blank, and still catches the value mismatch", kind="known_bad")
+def t_kb_value_mismatch_via_partyaml():
+    """The REAL BOMs ship a blank MPN column (v1.2's did). Leg C then resolves
+    LCSC -> MPN from the vendored 02_parts/<MPN>/part.yaml directory name (the
+    dir IS the MPN), so the offline value check bites even without a BOM MPN
+    column — no network needed."""
+    d = tmpdir("bomval_")
+    write_case(d, {"R12": "C2933210"},
+               [("4.12kΩ", ["R12"], "C2933210", "", "R_0603_1608Metric")])
+    part = d / "02_parts" / "FRC0603F3741TS"
+    part.mkdir(parents=True)
+    (part / "part.yaml").write_text("sourcing: {lcsc: C2933210}\n")
+    r = run([KPY, GATE, d / "bom.csv", d / "circuit.json", "--parts", d / "02_parts"])
+    must_fail(r, "gate resolving MPN from part.yaml dir name", "VALUE-MISMATCH")
+    contains(r.out, "3.74kΩ", "catalog value decoded from the part.yaml MPN")
+
+
+@test("leg C ignores non-passive and uncoded rows (no false positives)")
+def t_clean_value_scope():
+    """A connector row (J*, MPN is a part name, not an encoded value) and an
+    uncoded hand-solder row must not be value-checked — leg C is scoped to R/C
+    designators with a resolvable MPN."""
+    d = write_case(tmpdir("bomval_"), {"U1": "C192421", "J1": ""},
+                   [("USBLC6-2SC6", ["U1"], "C192421", "USBLC6-2SC6", "SOT-23-6"),
+                    ("USB-C", ["J1"], "", "", "USB_C_Receptacle")])
+    must_pass(run([KPY, GATE, d / "bom.csv", d / "circuit.json"]),
+              "gate must not value-check non-passive / uncoded rows")
 
 
 # ---------------------------------------------------- exporter round-trip (fix)
