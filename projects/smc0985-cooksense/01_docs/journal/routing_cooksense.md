@@ -131,3 +131,77 @@ must cross through ~2 sub-3mm lanes (capacity ~6).**
   (generate_rules_generic). Placement (.kicad_pcb footprints) untouched.
 - 06_build/route/ = disposable prep + experiment artifacts (r0, r_cross, cross.log).
 - NOT committed (main loop serializes).
+
+---
+
+# ROUTE (post-D-BACK redo, 2026-07-23) — 0-crossing topology, copper 0/0/0
+
+The placement REDO (single reed row, all-logic-south, 0 N/S crossings) routed
+as predicted: **every KRT wave closed with 0 routed-net unconnected**. The
+grind then moved from "can it route" to "can every plane pad reach its plane".
+
+## route.yaml rewritten for the north-keypad band (measured)
+- Isolation keepout MOVED from the stale center strip (y49.5–76.5) to the NORTH
+  keypad band: User.2 (logic) blocks y<36.0 (reed CONTACTS y≤30.94 + J_KEY +
+  U/D-sel buses); User.3 (keypad) blocks y>34.5 (south logic). Reed footprint
+  itself is the barrier: coil pads y37.06 − contacts y30.94 = **6.12mm > 6mm**.
+  Isolation held BY CONSTRUCTION — post-route measurement: **0 logic tracks north
+  of y40**; audit I-ISO 8.98mm.
+- `board_edge_clearance: 0.35` PER-WAVE on keypad+coil ONLY (the two waves that
+  cross the 11 milled inter-reed slots; 0 crossings ⇒ no other wave enters the
+  reed band). Fixed 76 copper_edge findings at the slots (min copper-to-slot now
+  0.35mm ≥ 0.30). Kept off `common` so the eFuse-carrying sig wave stays at 0.15.
+- Dedicated **efuse wave FIRST** (EF_DVDT/EF_OVLO/EF_ILM/PWR_GOOD_N): the WSON-8
+  0.5mm-pitch pin 7 (EF_ILM) is sandwiched; routing it before the pwr wave claims
+  its via-in-pad escape lane closed the last routed-net open (was 1/1/1).
+- Netclass clearances → 0.12mm (were an omitted-field default of 0.2mm vs KRT's
+  0.15mm routing — 499 phantom clearance findings); ANALOG_SENSE min_width 0.249
+  (absorbs KRT's 200nm unit-rounding); scoped_efuse_padentry floor 0.25 (eFuse
+  pad-entry neck; pin is the ampacity limit); Default clearance + min_resolved_spokes
+  1 patched post-generate_rules.
+
+## Stitcher gaps found + FIXED (shared skill; each proven on this board)
+- `board_edge_clearance` added to `_KRT_FLAGMAP` (was silently un-settable).
+- `stub_fallback`/`astar_fallback` made **multi-net** (`net: [GND, 3V3]`): were
+  GND-only, so every unserved 3V3 plane pin was stranded with no recovery. astar
+  then recovered the 4 boxed MCP23017/latch/decoder 3V3 pins.
+- `pad_rescue.has_via` changed from PROXIMITY (a via within served_within) to
+  VIA-IN-PAD (barrel inside the pad bbox): the proximity test FALSE-SERVED a pad
+  whenever a *neighbour's* via landed within 1.6mm (adjacent SOIC power pins,
+  decoupling-cap pairs) — 5 pins skipped though each had a clear via-in-pad site.
+- `heal_islands` DEFERS unbridgeable orphans to the mode=ALWAYS refill instead of
+  dying: the leftovers were orphan pour slivers held alive by a dangling stitch
+  via that the very next `--refill-zones` drops; the caller's re-verify still
+  hard-errors a genuine split. This is what let the stitch complete cleanly.
+- `island_rescue require: all → pads`; pad_rescue `stub_width 0.3 → 0.2` (scoped):
+  thinner scoped drops thread the tight ADC-cluster gaps (took the boxed-pad
+  count 4 → 2 in pad_rescue).
+
+## FINAL GATE (measured, `04_kicad/cooksense.kicad_pcb`, drc_s10.json)
+- `kicad-cli pcb drc --severity-all --refill-zones` = **0 violations**
+  (clearance 0, shorts 0, copper_edge 0, hole_clearance 0, hole_to_hole 0,
+  track_width 0, starved_thermal 0, via_dangling 0; cosmetic silk_over_copper/
+  silk_edge/silk_overlap/text_thickness set to `ignore` — documented policy,
+  fleet convention, fab silk-finalization).
+- **unconnected = 3** — all GND pads of ADC-front-end filter/vref caps
+  (C_ADCV.2 @48.8,70 ; two C_FLT*.2 @52.5,81 and 59.3,82.4). D-ADJ RESIDUAL:
+  the 8-channel ADC front-end (24 parts near U_ADC) is dense enough that ADC-
+  channel/SPI tracks route over the cap-GND via sites on BOTH F.Cu and B.Cu —
+  no gap fits even a 0.2mm GND drop (verified_astar exhausts a 4mm window). A
+  board-wide legalize-clearance spread (0.3→0.5) cleared the sites but the
+  re-route was whack-a-mole (boxed 4 OTHERS) AND regressed (items_not_allowed,
+  a GND zone-split, a TH_MOUNT_A track-gap) — reverted.
+- Isolation: 0 logic copper north of y40; audit I-ISO 8.98mm; keypad band has no
+  plane; no GND stitch via in the band; GND_ISO not bridged.
+- Chain promoted: `03_src/cooksense/route/final_chain.kicad_pcb` (0 routed-net
+  unconnected; the 3 opens are plane-pad/stitch, not routing).
+
+## OPEN (recommendations to the placement owner — D-ADJ)
+1. **ADC front-end re-layout** to close the last 3 GND opens: give the C_FLT*/
+   C_ADCV cap GND pads a clear plane-via direction (they must stay near U_ADC,
+   so the fix is orientation + local spacing, not a blunt board-wide spread), OR
+   add pre-route plane-pad via-site RESERVATION (fanout-style keepouts at cap
+   GND pads — the signal pad escapes the opposite end).
+2. **Thermal-via floors (R6)**: U_LDO.4 (AMS1117 tab=3V3, 7.6mm²) has 1 via
+   (needs ≥2); U_EFUSE EP (GND) needs ≥2. Add a thermal-via-array spec (floorplan
+   pad override or a stitch thermal pass) — reproducible, not a hand via.

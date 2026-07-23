@@ -115,7 +115,7 @@ stitch:
   keepin: {inset: 0.8}
   passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
            split_t_junctions, reload, hole_to_hole, pad_rescue, stub_fallback,
-           astar_fallback, stitch_grid, fill, island_rescue, fill,
+           astar_fallback, dedupe_vias, stitch_grid, fill, island_rescue, fill,
            unify_zone_priorities, heal_islands, prune_stitch_dangling, gate]
   dedupe_vias: {radius: 0.5, metric: box}
   drop_micro_fragments: {max_length: 0.12, require_free_end: true}
@@ -131,18 +131,20 @@ stitch:
       - {net: 3V3, layer: In2.Cu}
     via_in_pad: true
     served_within: 1.6
-    rings: [0.75, 0.95, 1.2, 1.6, 2.1, 2.7]
-    stub_width: 0.3
+    rings: [0.5, 0.7, 0.9, 1.1, 1.4, 1.8, 2.2, 2.7]
+    angle_step: 15
+    stub_width: 0.2
+    stub_scope: {min_track_width: 0.2}
     require: none
-  stub_fallback: {net: GND, min_dist: 0.2, max_dist: 8.0, width: 0.3}
-  astar_fallback: {net: GND, width: 0.25, window: 3.0, attempts: 3}
+  stub_fallback: {net: [GND, 3V3], min_dist: 0.2, max_dist: 8.0, width: 0.3}
+  astar_fallback: {net: [GND, 3V3], width: 0.3, window: 4.0, attempts: 3, max_dist: 8.0}
   stitch_grid:
     net: GND
     x: [20, 260, 8]     # span the SOUTH logic band (board x12..264)
     y: [44, 98, 8]      # inside the GND plane (y40..102), clear of the isolation edge
     # ISOLATION: no GND stitch vias in the keypad band (would bridge the barrier)
     avoid: [{x0: 12.0, y0: 9.0, x1: 264.0, y1: 40.0, margin: 1.0}]
-  island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu], require: all}
+  island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu], require: pads}
   unify_zone_priorities: {min_bbox: 0.8}
-  heal_islands: {min_bbox: 0.8}
+  heal_islands: {min_bbox: 1.5}
   prune_stitch_dangling: {tol: 0.05, min_layers: 2}
