@@ -15,7 +15,16 @@ stock, twin).
 ## Audit
 
 - Checkers: clean + known-bad tests in `tests/` (t1_jlc_twin.py,
-  t1_bom_source.py).
+  t1_bom_source.py, t1_release_freshness.py).
+- `release_freshness_check.py <release_dir>` gates a seal: it FAILS when a
+  generated fab/PDF artifact is sha256-identical to an earlier release of the
+  same board (stale/inherited output), when the shipped
+  `verification/policy_audit.md` result disagrees with the MANIFEST's claimed
+  result (audit FAIL vs manifest 0-FAIL/PASS), or when the shipped
+  `ORDER_README.md` still carries a draft/placeholder marker — the three
+  defects usb-hub-3s-v3 v1.2 shipped DO-NOT-ORDER past every other gate
+  (2026-07-23). Documented same-name-identical exceptions (with a reason) go
+  in `<release_dir>/verification/freshness_exceptions.txt`.
 - Fetch/stock classifiers must treat any UNRECOGNIZED failure as a blocking
   failure, never as an affirmative disposition (the NO-CAD incident,
   2026-07-20).
