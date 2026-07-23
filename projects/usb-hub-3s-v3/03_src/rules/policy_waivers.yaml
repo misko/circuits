@@ -14,3 +14,21 @@
     ThermalVias footprint swap) PLUS 11 GND vias within 5mm; controller-grade
     ~0.15-0.20W, thermally a non-issue. Next-rev work order: add a >=4x 0.3mm
     via array under BOTH LM5116 EPs. Not a copper defect.
+
+- id: R-POUR
+  why: >
+    SNUB_A / SNUB_C are FALSE POSITIVES by MECHANISM, independent of populate
+    state. They are the R-C junction mid-nodes of the two SW-node RC snubbers
+    (R34+C53 on buck-A, R35+C54 on buck-C). They sit in the SWITCH_NODE netclass
+    (>=0.5 mm min_width) only for dV/dt CLEARANCE association with the adjacent SW
+    pour island — NOT because they carry trunk current. A snubber mid-node carries
+    ONLY the HF damping current through the 1 nF cap (I = C*dV/dt, milliamp-scale),
+    NEVER the 7 A switch trunk; that trunk rides the SW pour (net SW_A / SW_C,
+    which IS poured). MEASURED span 2.55 mm each (R34.2<->C53.1 / R35.2<->C54.1):
+    a sub-3 mm local stub between two side-by-side passives on the SW island,
+    directly abutting the poured SW_A/SW_C F.Cu. A pour on a 2-pad R-C junction is
+    neither needed nor meaningful. Design intent is DNP/optional-populate (journal
+    03_schematic_v1.1 Fix 5; tsx + floorplan comments) — NB: that intent is not yet
+    encoded on the board (no doNotPopulate), a separate pre-order BOM finding; the
+    waiver holds either way because even fully populated the mid-node carries no
+    trunk current. The high-current SWITCH_NODE members SW_A / SW_C are poured.

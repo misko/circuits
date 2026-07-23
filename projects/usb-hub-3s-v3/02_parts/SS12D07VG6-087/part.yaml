@@ -23,11 +23,28 @@ gotchas:
      across EN-kill<->GND (jumper ON = disabled). Same net topology."
   - "MECHANICAL part: throw assignment (which slide direction = OFF) and exact pad
      numbering are a figure-verify at integration (LCSC drawing) - flagged in README."
-verified: "3-terminal 1P2T slide, center pin = common (standard SS-12D07
-  convention); pinout to be figure-confirmed from LCSC C2939728 drawing at
-  integration (mechanical part, README deviation) - 2026-07-23"
+verified: "3-terminal 1P2T (SPDT) slide from the SS-12D07 mechanical drawing
+  (LCSC C2939728): 3 in-line signal pins @2.5mm pitch + 2 mounting posts, CENTER
+  pin (2) = COM (pole/wiper), outer pins (1,3) = the two throws - the universal
+  SS-12D07/SK-12D07 drawing convention. Used SPST as the master-off: COM(2) ->
+  ENKILL, one throw -> GND (slide = OFF/kill), other throw -> NC. The single
+  critical electrical fact (COM = centre pin) is standard; the vendor drawing PDF
+  is un-fetchable in the sealed env, so WHICH physical slide direction maps to the
+  GND throw (OFF) is a silk-label + order-preview mechanical confirm - 2026-07-23"
 sourcing:
   lcsc: C2939728
   alternates: [C5149828, C16493667]
   note: "JLCPCB, stock 53076 on 2026-07-23 (~$0.042); qty 1/board. alts:
     C5149828 (HX SS12D07VG6, 3151), C16493667 (SS-12D07-6, 2111)."
+layout:
+  source: "SS-12D07 mechanical drawing (LCSC C2939728) + master-off net topology
+    (journal 03_schematic_v1.1 Fix 3); footprint Button_Switch_THT:SW_Slide_1P2T_CK-12D07"
+  adjacency:
+    - "SW1 on an accessible board face/edge (user-operated master switch); COM(2)
+       -> ENKILL kill-bus, T1(1) -> GND, T2(3) left open (EN floats up via R8||R17)"
+  notes:
+    - "THT slide switch: 3 signal pins @2.5mm in-line + 2 mounting posts; the
+       land pattern was cross-checked against the footprint geometry at pin-review"
+    - "mechanical actuation part - throw direction (which slide position = OFF) is
+       carried on silk + confirmed on the JLC order preview; COM=centre is the only
+       electrically load-bearing fact, and it is the SS-12D07 drawing standard"

@@ -11,6 +11,21 @@
 
 input_trunk_class: PWR_IN
 
+# --- E-OFF: de-energization + stored quiescent draw (canon E-OFF) ---
+# This is a self-contained energy source (3S-LiPo, net VBAT), so it must document
+# HOW it is switched off in storage and its bounded stored draw. v1.1 ADDED the
+# master-off switch SW1 that v1.0 lacked (the red-team miss the E-OFF gate harvested).
+source_type: "3S LiPo battery pack, 9.0-12.6 V, XT60 input"
+off_control: "EN-gating master switch SW1 (ENKILL bus) - slide to T1 grounds the
+  merged EN bus (U2.4 + U11.4), driving both LM5116 bucks to ~9 uA shutdown and
+  collapsing 5VC so the eFuse SHDN divider turns U13 off too (ADR-0001; journal
+  03_schematic_v1.1 Fix 3; E-INV #5 asserts ENKILL == {U2.4, U11.4, R8.2, R17.2, SW1.2})"
+quiescent_ua: 270   # OFF-state pack draw: ~252 uA switch sink (VIN 12.6 V through
+                    # R8||R17 = 50 k pull-ups into the grounded ENKILL bus) + ~18 uA
+                    # (2x LM5116 ~9 uA shutdown Iq). eFuse off (no input current).
+                    # No pack_capacity_mah (external pack) -> self-drain-days is
+                    # advisory-N-A, but the draw is BOUNDED and documented.
+
 rails:
   # USB-A rail: LM5116 buck -> 5VA -> 3x TPS2557 (2 A cont each) -> 3x USB-A.
   - name: USB-A
@@ -30,8 +45,20 @@ rails:
   - name: USB-C
     vin_min: 9.0
     vin_max: 12.6
-    vout_min: 5
-    vout_max: 5
+    # v1.1 Fix 2 (option a): buck-C FB senses VBUSC (post-eFuse), so the loop
+    # regulates the CONNECTOR to 1.215*(1+3.92/1.21) = 5.151 V load-independent
+    # (journal 03_schematic_v1.1). Modeled as the nominal setpoint (this file's
+    # convention), consistent with USB-A. Worst-low over Vref +-1.5% = 5.07 V.
+    vout_min: 5.151
+    vout_max: 5.151
     iout_max_A: 5
     converter: LM5116MHX-NOPB
     eff: 0.9
+    # E-MARGIN: the Raspberry Pi undervoltage supervisor trips ~4.63 V ("low
+    # voltage detected"). Connector 5.151 V - 4.63 V = 521 mV headroom = 104 mOhm
+    # IR budget at 5 A, which clears the 100 mOhm default board+connector+cable
+    # floor. Sense-at-connector regulates the board+eFuse+FET IR OUT of the loop,
+    # so only the USB-C cable remains downstream -> the 100 mOhm floor is
+    # conservative here. Even at Vref worst-low (5.07 V) the connector clears the
+    # 4.63 V Pi brownout by 440 mV. (Blocker-2 fix: v1.0 was 4.97 V.)
+    load_uv_threshold: 4.63

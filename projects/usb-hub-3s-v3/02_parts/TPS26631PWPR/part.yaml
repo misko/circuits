@@ -92,3 +92,21 @@ sourcing:
     5VC port only). LOW STOCK - confirm at order. Pin-compatible fallbacks if OOS:
     TPS26633PWPR (adds fixed 35V OV clamp + PLIM) or TPS26635PWPR (39V clamp);
     both same HTSSOP-20 PWP pinout except pin8 = PLIM not OVP."
+layout:
+  source: "TI SLVSE94G sec.11 Layout / Layout Example (Fig 11-1) + the reverse-
+    block topology (sec.8.3.5, Fig 8-7); EP thermal per sec.11.2"
+  adjacency:
+    - "C52 0.1uF IN bypass HARD against IN(1-3); the blocking FET Q6 (AON6354)
+       between IN_SYS(6)=5VC and IN(1-3)=EFINC, source->IN_SYS drain->IN"
+    - "R_ILIM (3.09k, ILIM pin 11), R_dVdT cap C_dVdT (10nF, dVdT pin 10),
+       R_OVP divider (R31/R32, OVP pin 8) and R_SHDN divider (R33/R36, SHDN pin
+       13) tight to their pins — trace length sets the set-point accuracy"
+    - "Q7 (BSS138) fast pulldown across DRV(5)/B_GATE(4) with a tiny gate loop"
+  keep_short:
+    - {net: EFINC, max_span_mm: 12, why: "eFuse IN node Q6.drain->U13.IN carries
+       the full 5A; keep the power via/trace short and wide (RON/thermal)"}
+  notes:
+    - "EP(21)->GND plane with a thermal via array (post_stitch_fixes adds the EP
+       vias); RON x 5A^2 ~= 0.9W into the PowerPAD — the EP is the only heatsink"
+    - "OUT(18-20)=VBUSC and IN(1-3)=EFINC are the 5A power edges; the FLT/PGOOD/
+       IMON logic pins (15-17,14) route away from the power path"

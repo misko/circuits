@@ -11,10 +11,10 @@
 #    a land-pattern disagreement. AOS recommended pattern IS the single drain
 #    paddle (AON6354/AON6403 datasheets, verified at parts stage). Ordered on
 #    usb-hub-3s v1.0-2026-07-21.
-- {lcsc: C404363, refs: [Q2, Q3, Q4, Q5], status: PAD-MISMATCH,
-   why: "AON6354: KiCad single-paddle pad 5 vs JLC 5-8+EP split; AOS DS recommended pattern is the single paddle. Same footprint ordered on usb-hub-3s v1.0."}
-- {lcsc: C404363, refs: [Q2, Q3, Q4, Q5], status: PAD-GEOM,
-   why: "AON6354: 1<->5 delta is merged-paddle centroid vs JLC corner-lead pin 5; copper regions coincide (5.39 vs 6.97mm family artifact, ordered on v1.0)."}
+- {lcsc: C404363, refs: [Q2, Q3, Q4, Q5, Q6], status: PAD-MISMATCH,
+   why: "AON6354: KiCad single-paddle pad 5 vs JLC 5-8+EP split; AOS DS recommended pattern is the single paddle. Same footprint ordered on usb-hub-3s v1.0. Q6 (v1.1 eFuse reverse-block FET) reuses the IDENTICAL PowerPAK_SO-8_Single footprint -> same adjudication."}
+- {lcsc: C404363, refs: [Q2, Q3, Q4, Q5, Q6], status: PAD-GEOM,
+   why: "AON6354: 1<->5 delta is merged-paddle centroid vs JLC corner-lead pin 5; copper regions coincide (5.39 vs 6.97mm family artifact, ordered on v1.0). Q6 (v1.1) is the same C404363 part/footprint -> reused verbatim."}
 - {lcsc: C2760089, refs: [Q1], status: PAD-MISMATCH,
    why: "AON6403: same merged-drain family as C404363; KiCad single-paddle pad 5 vs JLC 5-8+EP9; AOS single-paddle recommended pattern. Ordered on v1.0."}
 - {lcsc: C2760089, refs: [Q1], status: PAD-GEOM,
@@ -63,3 +63,22 @@
    why: "1N4148WS boot diodes: P-POL asserts K(pad1)=BOOT_A/C, A=VCC per part.yaml; machine-verified."}
 - {lcsc: C2982822, refs: [C1, C2], status: POLARITY-CHECK,
    why: "VIN bulk polymer caps: P-POL asserts pad1=VIN (+) per part.yaml polarity facts; machine-verified."}
+
+# -- SW1 (v1.1 master-off slide switch, C2939728 = SS12D07VG6-087). PAD-GEOM
+#    1<->3 ours 5.00mm (2.5mm signal pitch, pads at 63.5/66.0/68.5, mounting
+#    posts 8.66mm span) vs JLC 4.00mm (2.0mm pitch). DECISIVE CONTEXT: JLC's
+#    EasyEDA model file is named "SW-TH_SS12D07VG4" - the VG4 variant, NOT the
+#    ordered VG6-087 - a mislabeled wrong-variant substitution (EasyEDA does this
+#    on jellybean mechanical THT parts). Our 2.5mm is the standard SS-12D07 pitch
+#    and is geometrically consistent with the 8.7mm body + end mounting posts
+#    (LCSC body dims 8.7 x 4.4mm). The exact VG6-087 mechanical drawing was
+#    un-fetchable in the sealed build env (LCSC datasheet CDN served HTML/blocked
+#    to curl+WebFetch). NOT machine-critical: hand-solder THT master-OFF switch,
+#    compliant 1.0mm-drill leads, and a DOCUMENTED jumper fallback (2.54mm header
+#    + shunt across ENKILL<->GND, part.yaml). PRE-ORDER ACTION (MANDATORY, already
+#    the part.yaml integration plan): confirm the VG6-087 pin pitch on the JLC
+#    order preview / vendor drawing before paying; if 2.0mm, drop in the header
+#    fallback. Adjudicated as our-pattern-correct with a required confirm, not
+#    silently waived.
+- {lcsc: C2939728, refs: [SW1], status: PAD-GEOM,
+   why: "SS12D07VG6-087 master-off switch: ours 2.5mm signal pitch (span 5.00mm) = the standard SS-12D07 land (8.7mm body + 8.66mm-span mounting posts); JLC's model is the MISLABELED VG4 variant (2.0mm/4.00mm), not authoritative for VG6. Hand-solder THT, jumper fallback exists. VG6 drawing un-fetchable in-env -> order-preview pitch confirm is MANDATORY before order (part.yaml integration item)."}

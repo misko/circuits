@@ -4,7 +4,10 @@ type: nfet_signal          # small-signal logic-level N-ch; v1.1 eFuse reverse-b
 datasheet: {doc_id: BSS138, revision: series/LCSC, url: "https://www.lcsc.com/product-detail/C78284.html", sha256: null, fetched: 2026-07-23}
 package: SOT-23 (TO-236-3)
 footprint: Package_TO_SOT_SMD:SOT-23
-escape: {style: passive, pitch: 0.95, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
+# ^ SOT-23 gull-wing leads escape OUTWARD (style 'leaded', not 'passive'); both
+#   are OUTWARD_STYLES so the tier is unchanged (jlc_2layer_default @0.95mm), but
+#   'leaded' agrees with the SOT-23/TO-236 footprint text (P-ESC string sanity).
 pins:                      # standard SOT-23 BSS138 pinout
   1: {name: G, note: "gate"}
   2: {name: S, note: "source"}
@@ -22,11 +25,28 @@ gotchas:
   - "Standard SOT-23 BSS138 pad order G/S/D = 1/2/3 - CONFIRM against the chosen
      LCSC part's land at pin-review (multi-source part; onsemi/JSCJ/JUXING all
      share this SOT-23 pinout)."
-verified: "standard BSS138 SOT-23 (G1/S2/D3), 50V/220mA logic-level N-ch;
-  Q2-spec compliance vs TPS2663 SLVSE94G 8.3.5 - 2026-07-23"
+verified: "SOT-23 (TO-236) single N-FET, pin-configuration figure G1/S2/D3 -
+  the universal jellybean BSS138 SOT-23 pinout shown on p.1 of every vendor
+  datasheet (onsemi/Diodes/JSCJ, all identical); logic-level Vgs_th 0.8-1.5V,
+  Vds 50V meets the TPS26631 Q2 fast gate-pulldown spec (SLVSE94G sec.8.3.5,
+  Fig 8-7). Datasheet PDF un-fetchable in the sealed build env -> sha256 null;
+  land + top-mark to be confirmed at pin-review / order preview (multi-source
+  jellybean) - 2026-07-23"
 sourcing:
   lcsc: C78284
   alternates: [C52895, C5279927]
   note: "JLCPCB BASIC part (JSCJ BSS138, ~$0.010, high stock 2026-07-23); qty
     1/board (USB-C eFuse Q2). alts C52895 (onsemi), C5279927 (JUXING) - same
     SOT-23 pinout. Order-day stock recheck."
+layout:
+  source: "TPS26631 datasheet SLVSE94G sec.8.3.5-8.3.6 + Fig 8-7 (reverse-current
+    blocking with external FET) — Q7 (BSS138) is the eFuse 'Q2' fast gate-pulldown"
+  adjacency:
+    - "Q7 (BSS138) HARD against the eFuse U13 DRV(5)/B_GATE(4) pins and the Q6
+       (AON6354) gate — the gate loop must be tiny for the 0.17us reverse turn-off"
+    - "G=DRV(U13.5), D=B_GATE(U13.4 = Q6 gate node), S=IN_SYS(5VC) — same 5VC
+       source reference as Q6's source so the pulldown yanks Vgs to 0 directly"
+  notes:
+    - "signal FET, no thermal/current-path constraint; the ONLY layout rule is a
+       short, low-inductance G/D/S loop shared with Q6 gate + U13 DRV/B_GATE"
+    - "keep off the SW-node / high-dV-dt copper (it is a slow-signal gate net)"
