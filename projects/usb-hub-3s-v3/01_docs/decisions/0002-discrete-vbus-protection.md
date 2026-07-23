@@ -59,9 +59,28 @@ the on-BOM Q6/Q7 FETs (a **USER decision** — not an ideal-diode controller):
   bounded by the polyfuse, not instantaneously blocked. An always-on ideal-diode
   controller was explicitly declined as unnecessary for a Pi-dedicated sink.
 - **Over-current — F2 (PPTC polyfuse), resettable.** Also bounds sustained back-feed.
-- **Over-voltage — D5 (TVS to GND).** On a buck-fail-high (12.6V) D5 clamps and,
-  with F2 upstream, crowbars → the polyfuse trips → the Pi is protected (replaces
-  the eFuse OVP cutoff).
+- **Over-voltage — D5 (TVS to GND), SECONDARY / best-effort (HONEST LIMITATION).** On
+  a buck-fail-high (12.6V) D5 clamps at ~10.3V @Ipp and, with F2 upstream, draws
+  current that eventually trips the polyfuse (a **crowbar**, not a fast deterministic
+  cutoff). This is **NOT guaranteed protection against a sustained buck high-side
+  short**: D5's clamp (~10.3V) is above the Pi's VBUS ceiling, and the F2 trip has
+  finite time — during that window the Pi sees an over-voltage. **No claim is made
+  that the Pi is protected against fail-high.** The chain reliably handles the cases
+  it is designed for: short-circuit / overload (F2), reverse-feed in the OFF state
+  (Q6 body diode). D5 is over-voltage *mitigation*, replacing the eFuse's OVP cutoff
+  with a weaker, best-effort crowbar.
+
+### Over-voltage strategy: Option 2 — discrete secondary protection (v1.3, BRIEF A3/D3)
+
+The user DECIDED (Option 2) to KEEP this discrete chain as SECONDARY protection and
+NOT add an active OVP (SCR crowbar / OVP controller) for this revision. Rationale:
+the intended context is a **supervised prototype with a replaceable Pi** — the sink
+is inexpensive and an operator is present, so a best-effort crowbar plus the required
+bench-qualification (ORDER_README) is proportionate.
+
+**Escalation boundary (verbatim):** "add active OVP if the system becomes unattended,
+hard-access, carries valuable storage, or powers expensive SDR". If any of those
+becomes true, this ADR must be revisited and an active/deterministic OVP designed in.
 
 **Kept from v1.1:** buck-C FB on LOCAL 5VC (R12=4.12k → 5.352V; the runaway fix).
 **Reverted:** buck-C EN re-merged to ENKILL (the eFuse-era FLT→EN_C un-merge + D6
@@ -78,10 +97,15 @@ coupling diode are gone — there is no per-buck fault flag in the discrete desi
   JLC stock of C6165170 are per parts-research but UNVERIFIED in the sealed build
   env → an order-day jlc_stock recheck is MANDATORY.** Fallback: 6A 2920L600/16MR-A
   (C3762416, confirmed) — but it nuisance-trips at 5A @50 °C (degraded).
-- **D5 = SMBJ6.0A uni-directional TVS, SMB** (C140903, LRC — lower Vclamp).
+- **D5 = SMBJ6.0A UNI-directional TVS, SMB** (v1.3: **C113976**, JLC catalog-verified
+  UNIDIRECTIONAL DO-214AA/SMB, stock 74758). v1.2 used **C140903**, which JLC's live
+  catalog lists as **BIDIRECTIONAL** (LRC SMB-FL) — a bidirectional part has no
+  cathode, so the design's uni-directional cathode=VBUSC assumption was unverifiable
+  against it (external-review finding). C140903 is now on the do_not_use list.
   Vwm 6.0V clears the 5.43V no-load VBUSC max (SMBJ5.0A rejected: 5V standoff <
-  5.43V). Vclamp ~10.3V is above the Pi ceiling → protection relies on the F2
-  trip to end the exposure. Extended-tier → order-day recheck.
+  5.43V). Vclamp ~10.3V is above the Pi ceiling → this is SECONDARY protection, relying
+  on the F2 trip to end the exposure (see the honest limitation above). Extended-tier
+  → order-day recheck.
 
 ## Consequences
 

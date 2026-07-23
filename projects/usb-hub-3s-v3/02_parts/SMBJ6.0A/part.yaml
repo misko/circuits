@@ -16,14 +16,22 @@ gotchas:
      5.43V -> no nuisance leakage). On a buck-HS-short (12.6V) it clamps + draws
      current through F2 (upstream) -> F2 trips -> Pi protected (crowbar action)."
   - "CAVEAT (flagged): Vclamp ~10.3V @ full Ipp is above the Pi's ~6V VBUS ceiling;
-     protection relies on the F2 polyfuse tripping quickly to end the exposure. If
-     the parts-research finds a lower-clamp option that still clears 5.43V standoff,
-     prefer it. Reject SMBJ5.0A (5V standoff < 5.43V -> conducts in normal op)."
-verified: "2-pad polarized TVS; KiCad D_SMB pad1=cathode convention; SMBJ6.0A uni-dir - 2026-07-23"
+     this is SECONDARY protection - it does NOT guarantee the Pi against a buck
+     high-side short. Protection relies on the F2 polyfuse tripping to end the
+     exposure (crowbar). Reject SMBJ5.0A (5V standoff < 5.43V -> conducts in normal op)."
+  - "v1.3 DIRECTIONALITY FIX (external-review finding). v1.2 used C140903, which the
+     LIVE JLC catalog (checked 2026-07-23) describes as a BIDIRECTIONAL SMBJ6.0A (LRC,
+     SMB-FL) - a bidirectional device has NO cathode, so the design's uni-directional
+     assumption (cathode=pad1 on VBUSC, the D5.1=VBUSC E-INV assert + P-POL pad-1 gate)
+     was UNVERIFIABLE against it. Replaced with C113976 = SMBJ6.0A UNIDIRECTIONAL
+     (DO-214AA/SMB, Vwm 6.0V, Vbr(min) 7.37V, Vclamp 10.3V @Ipp, stock 74758) - REAL
+     JLC catalog verified uni-directional 2026-07-23. Baked in tsx D5 supplierPartNumbers."
+verified: "2-pad polarized uni-directional TVS; KiCad D_SMB pad1=cathode convention; JLC C113976 catalog-verified UNIDIRECTIONAL 2026-07-23"
 sourcing:
-  lcsc: C140903   # CONFIRMED (parts-research): LRC SMBJ6.0A, lower 10.3V clamp (preferred); Extended-tier
-  alternates: [C1973522]   # Bourns SMBJ6.0A alt
-  note: "CONFIRMED available (parts-research). C140903 = LRC SMBJ6.0A (preferred:
-    lower Vclamp); C1973522 = Bourns alt. Vwm 6.0V clears the 5.43V idle standoff
-    (SMBJ5.0A rejected). Extended-tier -> order-day jlc_stock recheck MANDATORY.
+  lcsc: C113976   # SMBJ6.0A UNIDIRECTIONAL, DO-214AA(SMB), Vclamp 10.3V; JLC-VERIFIED uni-dir 2026-07-23 stock 74758; Extended-tier
+  alternates: [C83270]   # SMBJ6.0A Unidirectional DO-214AA (alt uni-dir, stock ~4195)
+  do_not_use: [C140903]  # LRC SMBJ6.0A listed BIDIRECTIONAL (SMB-FL) - fails the uni-directional design assumption
+  note: "C113976 = SMBJ6.0A UNIDIRECTIONAL DO-214AA(SMB), JLC-verified 2026-07-23,
+    stock 74758. Vwm 6.0V clears the 5.43V idle standoff. DO NOT use C140903 (JLC lists
+    it Bidirectional). Extended-tier -> order-day jlc_stock recheck MANDATORY.
     qty 1/board (D5). proven-parts (SMB TVS) harvest at seal."

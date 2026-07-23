@@ -107,3 +107,32 @@ _none beyond the above — the buck rails are plain step-downs (see power_tree.y
     REAL LCSC before seal; NOT blocking the schematic gate.
   - *Schematic gate (Checkpoint A, MEASURED):* ERC **0**; parity **110 == 110 == 110**
     (circuit.json == kicad_sch == exported netlist == manifest); E-INV **24/24**.
+
+- **A3 / D3 (2026-07-23, v1.3 FIX PASS) — OVER-VOLTAGE STRATEGY: DISCRETE SECONDARY
+  PROTECTION (Option 2, USER-DECIDED).** v1.2 was sealed then found DO-NOT-ORDER by an
+  external review (07_releases/v1.2-2026-07-23/SUPERSEDED.md). v1.3 is a NEW release
+  fixing the confirmed blockers. The over-voltage architecture DECISION (Option 2):
+  - *KEEP the existing v1.2 discrete protection* (Q6 AON6403 enable-gated P-FET + Q7
+    BSS138 + F2 SMD2920-700 PPTC polyfuse + D5 SMBJ6.0A TVS) as **SECONDARY** protection.
+    Do NOT design an SCR crowbar / active OVP for this revision.
+  - *OV posture (HONEST):* the discrete chain protects against shorts, overload, and
+    reverse-feed in the OFF state. It is **NOT guaranteed against a buck high-side
+    short** (a sustained 12.6V fail-high): D5 clamps ~10.3V and F2 must trip to end the
+    exposure - a crowbar, not a fast deterministic cutoff. This is acceptable in the
+    intended context: a **supervised prototype with a replaceable Pi** (the sink is
+    cheap and the operator is present). No doc may claim "Pi-protected against fail-high".
+  - *ESCALATION BOUNDARY (verbatim):* "add active OVP if the system becomes unattended,
+    hard-access, carries valuable storage, or powers expensive SDR".
+  - *R12 fix (the confirmed order blocker):* assign the CATALOG-VERIFIED 4.12k 0.1%
+    R12 = **C2984354** (AR03BTCX4121, Viking; JLC live-catalog verified 2026-07-23:
+    4.12k +-0.1% +-25ppm 0603, stock 15353) - code now BAKED in the tsx so tscircuit
+    can no longer value-resolve it to C2933210 (3.74k, the v1.2 undervoltage bug).
+    Buck-C setpoint RE-DERIVED against the ACTUAL Q6+F2 path (Q6 ~4.3 mOhm + F2 R1max
+    18 mOhm catalog-verified, hot ~31 mOhm), NOT the removed eFuse 34-48 mOhm model:
+    5VC 5.352V nom / 5.27V @Vref-1.5%; E-MARGIN PASS (640mV headroom vs 528mV need).
+  - *D5 fix:* C140903 is listed BIDIRECTIONAL by JLC (fails the uni-directional design
+    assumption) -> replaced with **C113976** (SMBJ6.0A UNIDIRECTIONAL DO-214AA/SMB,
+    catalog-verified 2026-07-23, stock 74758).
+  - *SW1 (DECISION, implemented at artifact-regen):* move OFF automated assembly
+    (hand-solder / off-CPL) until the SS12D07 VG4-vs-VG6 pitch is physically confirmed,
+    or use the documented header+shunt fallback - see ORDER_README.

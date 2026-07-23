@@ -284,13 +284,14 @@ export default () => (
         EN is on ENKILL (the master-off bus), MERGED with buck-A again — the eFuse
         FLT->EN_C un-merge is reverted (the eFuse and its FLT are gone in the
         discrete-protection redesign; there is no per-buck fault flag to isolate). */}
-    {/* fbtopMpn intentionally OMITTED: the 4.12k 0.1% FB-top (R12) is a SPECIALTY
-        part documented in 02_parts/RT0603BRD074K12L/part.yaml. No LCSC is baked
-        into the schematic because JLC 0.1%-4.12k stock is unverifiable in the
-        sealed env; using the 3.92k code (C728591) here would silently order the
-        WRONG value and re-open the runaway blocker. Fab MUST source R12 from the
-        part.yaml MPN (RT0603BRD074K12L) — see the v1.2 pre-order flag. */}
-    <Buck s="C" vout="N5VC" fbtop="4.12k" en="ENKILL" ids={{
+    {/* v1.3 R12 FIX (was the v1.2 DO-NOT-ORDER blocker): the code is now BAKED
+        (fbtopMpn="C2984354" = AR03BTCX4121, Viking 4.12k 0.1% 25ppm 0603, JLC-catalog
+        VERIFIED 2026-07-23, stock 15353). v1.2 OMITTED the code so tscircuit
+        value-resolved "4.12k" to C2933210 (FRC0603F3741TS = 3.74k 1%!) -> 5VC 4.97V
+        undervoltage. NEVER leave R12 uncoded. DO-NOT-USE C2933210 (3.74k). Verified
+        alt: C861436 (RT0603BRD074K12L Yageo, same spec, stock 4927). See
+        02_parts/AR03BTCX4121/part.yaml. */}
+    <Buck s="C" vout="N5VC" fbtop="4.12k" fbtopMpn="C2984354" en="ENKILL" ids={{
       U: "U11", QH: "Q4", QL: "Q5", RS: "RS2", L: "L2", DB: "D4",
       RT: "R11", FBT: "R12", FBB: "R13", RCMP: "R14", UVT: "R15", UVB: "R16",
       REN: "R17", RCSK: "R18", RCSG: "R19",
@@ -449,12 +450,15 @@ export default () => (
         pinLabels={{ pin1: "1", pin2: "2" }}
         connections={{ pin1: "net.PMID", pin2: "net.VBUSC" }}
         footprint={<Pol2 w="1.8mm" h="5.1mm" dx="3.0mm" />} />
-      {/* D5 = TVS over-voltage clamp, VBUSC -> GND (uni-directional, cathode=pad1 at
-          VBUSC). Vwm ~6V clears the 5.43V no-load VBUSC max (no nuisance leakage);
-          clamps a buck-fail-high (12.6V) and, with F2, crowbars -> polyfuse trips ->
-          Pi protected. STOCK/LCSC UNVERIFIED -> FLAGGED for parts-research
-          (02_parts/SMBJ6.0A). */}
-      <chip name="D5" supplierPartNumbers={{ jlcpcb: ["C140903"] }}
+      {/* D5 = TVS over-voltage clamp, VBUSC -> GND. v1.3 DIRECTIONALITY FIX: code was
+          C140903, which JLC's catalog lists as a BIDIRECTIONAL SMBJ6.0A (LRC SMB-FL) —
+          it has no cathode, so the pad1=K / D5.1=VBUSC polarity assertion was
+          meaningless. Now C113976 = SMBJ6.0A UNIDIRECTIONAL (DO-214AA/SMB, Vwm 6.0V,
+          Vbr 7.37V, Vclamp 10.3V, JLC-VERIFIED 2026-07-23, stock 74758). Uni-dir,
+          cathode=pad1 at VBUSC. Vwm 6.0V clears the 5.43V no-load VBUSC max; on a
+          buck-fail-high it clamps + draws through F2 -> polyfuse trips (SECONDARY
+          protection; see ADR-0002). */}
+      <chip name="D5" supplierPartNumbers={{ jlcpcb: ["C113976"] }}
         pinLabels={{ pin1: "K", pin2: "A" }}
         connections={{ pin1: "net.VBUSC", pin2: "net.GND" }}
         footprint={<Pol2 w="2.1mm" h="2.4mm" dx="2.2mm" />} />

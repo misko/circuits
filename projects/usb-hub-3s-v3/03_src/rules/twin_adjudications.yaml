@@ -48,12 +48,14 @@
 - {lcsc: C83846, refs: [D1], status: POLARITY-CHECK,
    why: "TVS directionality verified by topology red-team (K=VIN/A=GND, after Q1) + P-POL pad-1 polarity gate; order-preview confirm."}
 
-# -- D5: SMBJ6.0A VBUS over-voltage TVS (SMB / DO-214AA), v1.2 discrete protection.
-#    Same land-extent + polarity class as D1's SMBJ15A. Directionality verified.
-- {lcsc: C140903, refs: [D5], status: PAD-GEOM,
+# -- D5: SMBJ6.0A VBUS over-voltage TVS (SMB / DO-214AA), v1.3 discrete protection.
+#    v1.3 DIRECTIONALITY FIX: was C140903 (JLC lists it BIDIRECTIONAL SMB-FL - fails
+#    the uni-directional design assumption); now C113976 = SMBJ6.0A UNIDIRECTIONAL
+#    DO-214AA(SMB), JLC catalog-verified uni-dir 2026-07-23 (stock 74758).
+- {lcsc: C113976, refs: [D5], status: PAD-GEOM,
    why: "SMBJ6.0A SMB (DO-214AA): 0.42mm 1<->2 land-extent preference (KiCad vs EasyEDA), same copper end-caps; identical class to the D1 SMBJ15A SMA artifact. Order-preview confirm."}
-- {lcsc: C140903, refs: [D5], status: POLARITY-CHECK,
-   why: "VBUS over-voltage TVS directionality verified: cathode(pad1)=VBUSC / anode(pad2)=GND (floorplan assert D5.1=VBUSC + P-POL pad-1 polarity gate + the fresh v1.2 red-team). Order-preview confirm."}
+- {lcsc: C113976, refs: [D5], status: POLARITY-CHECK,
+   why: "VBUS over-voltage TVS directionality verified UNIDIRECTIONAL against the JLC catalog (C113976 = SMBJ6.0A Unidirectional DO-214AA): cathode(pad1)=VBUSC / anode(pad2)=GND (floorplan assert D5.1=VBUSC + P-POL pad-1 polarity gate). Prior C140903 was catalog-BIDIRECTIONAL and is rejected. Order-preview confirm."}
 
 # -- F1 fuse holder PAD-GEOM (in addition to PAD-MISMATCH above) — same
 #    hand-solder THT holder, no JLC placement model; land per Keystone p.42.

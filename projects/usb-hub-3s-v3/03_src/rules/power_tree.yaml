@@ -40,34 +40,43 @@ rails:
     converter: LM5116MHX-NOPB
     eff: 0.9
 
-  # USB-C rail: LM5116 buck -> 5VC -> (v1.1) TPS26631 eFuse + reverse-block FET
-  # -> VBUSC -> USB-C VBUS. Fixed 5 V out => BUCK. The eFuse is a PROTECTION
-  # element (current limit / input-OV cutoff / soft-start / reverse-current
-  # block), NOT a converter, so the E-TOPO tree is unchanged (still all-buck).
-  # 5 A to the Pi via the firmware override (PSU_MAX_CURRENT=5000), not PD.
+  # USB-C rail: LM5116 buck -> 5VC -> Q6 (AON6403 reverse-block P-FET) -> PMID
+  # -> F2 (SMD2920-700 PPTC polyfuse) -> VBUSC -> USB-C VBUS. Fixed 5 V out => BUCK.
+  # v1.3 (ADR-0002): the v1.1 TPS26631 eFuse is REMOVED; the discrete Q6/F2/D5 chain
+  # is the protection. Q6/F2 are PROTECTION elements, NOT converters -> the E-TOPO
+  # tree is unchanged (still all-buck). 5 A to the Pi via the firmware override
+  # (PSU_MAX_CURRENT=5000), not PD.
   - name: USB-C
     vin_min: 9.0
     vin_max: 12.6
-    # v1.2 LOCAL-SENSE (journal 03_schematic_v1.2, fixes the post-eFuse RUNAWAY
-    # blocker): buck-C FB senses the LOCAL 5VC output, so the loop regulates 5VC
-    # (not the connector) to 1.215*(1+4.12/1.21) = 5.352 V. The connector is then
-    # 5VC minus the eFuse+FET IR (~34 mOhm typ / ~48 mOhm hot), i.e. it now VARIES
-    # with load: no-load 5.352 V (vout_max) down to ~5.18 V typ / ~5.11 V hot at
-    # 5 A (vout_min = the full-load delivered connector, the E-MARGIN value).
-    vout_min: 5.18
-    vout_max: 5.352
+    # v1.2 LOCAL-SENSE (kept): buck-C FB senses the LOCAL 5VC output, so the loop
+    # regulates 5VC (not the connector) to Vref*(1+R12/R13) = 1.215*(1+4.12/1.21) =
+    # 5.352 V nominal. Worst-case regulated 5VC = Vref-1.5% = 5.27 V (vout_min);
+    # no-load high = Vref+1.5% = 5.43 V (vout_max, also the D5 TVS Vwm-6.0V standoff
+    # check). R12 = C2984354 (AR03BTCX4121, 4.12k 0.1%), CATALOG-VERIFIED 2026-07-23
+    # and BAKED in the tsx (v1.2 undervoltage bug was R12 value-resolving to 3.74k).
+    vout_min: 5.27
+    vout_max: 5.43
     iout_max_A: 5
     converter: LM5116MHX-NOPB
     eff: 0.9
-    # E-MARGIN: Pi undervoltage supervisor trips ~4.63 V. Delivered connector
-    # 5.18 V - 4.63 V = 550 mV headroom = 110 mOhm cable IR budget at 5 A, which
-    # clears the 100 mOhm default board+connector+cable floor (better than v1.1's
-    # 104 mOhm). TRADE-OFF DOCUMENTED: unlike v1.1 connector-sense (which
-    # regulated the eFuse+FET IR OUT of the loop), local-sense leaves that ~34-48
-    # mOhm in the un-regulated delivery path; the 3.92k->4.12k setpoint bump
-    # (+201 mV) covers it. At the QUADRUPLE-worst corner (Vref -1.5% AND hot eFuse
-    # AND 5 A) the connector is ~5.03 V -> only ~80 mOhm cable budget: FLAGGED for
-    # the v1.2 red-team + bench-verify the real cable IR. Mitigation lever if the
-    # bench shows it marginal: R12 4.12k->4.22k (5VC 5.453 V, connector ~5.21 V @5A)
-    # at the cost of tightening the eFuse-OVP no-load margin (5.535 V vs 5.91 V).
+    # E-MARGIN (v1.3 re-derivation, against the ACTUAL Q6+F2 delivery path - the eFuse
+    # 34/48 mOhm model is GONE). vout_min = the true worst-case regulated 5VC node
+    # (Vref-1.5% = 5.27 V). ir_budget_mohm is the FULL delivery path 5VC->Pi:
+    #   Q6 AON6403 Rds_on   ~4.3 mOhm (max @Vgs=-4.5V; actual Vgs~5.3V -> lower)
+    #   F2 SMD2920-700      R1max 18 mOhm cold (JLC C6165170 catalog-VERIFIED),
+    #                       ~31 mOhm hot at 5 A steady (self-heat ~1.7x R1max)
+    #   board traces+pours  ~3 mOhm   (short wide 5VC/VBUSC pours)
+    #   USB-C connector     ~5 mOhm   (paralleled VBUS pins A4/B4/A9/B9)
+    #   short 5A USB-C cable ~45 mOhm  (0.3-0.5 m e-marked; REQUIRED per ORDER_README)
+    #   ------------------------------ TOTAL ~= 88 mOhm
+    # E-MARGIN then grades: headroom 5.27-4.63 = 640 mV vs 88 mOhm x 5 A x 1.2 =
+    # 528 mV -> PASS (112 mV / ~19 mOhm slack). The v1.2 3.74k bug gave 5VC 4.97 V
+    # nominal (4.90 V at Vref-1.5%) -> headroom 265 mV < 528 mV -> would FAIL here.
+    # FLAGGED (bench-verify, ORDER_README gate): the quadruple-worst corner
+    # (Vref-1.5% AND F2 fully hot AND a marginal/long cable) is thin - qualify the
+    # connector voltage at the END of the ACTUAL 5A cable. Mitigation lever if bench
+    # shows it marginal: R12 4.12k->4.22k (5VC 5.453 V) at the cost of the D5-Vwm /
+    # no-load-OV margin. F2 and D5 are SECONDARY protection (see ADR-0002 honesty).
+    ir_budget_mohm: 88
     load_uv_threshold: 4.63

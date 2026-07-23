@@ -53,7 +53,7 @@ invariants:
 
   # --- #4: over-voltage TVS clamp on the connector rail VBUSC ---
   - {assert: pin_on_net, pin: "D5.1", net: "VBUSC", adr: 0002,
-     why: "D5 TVS CATHODE (pad1) on VBUSC -> clamps a buck-fail-high; with F2 upstream, crowbars -> polyfuse trips -> Pi protected (replaces the eFuse OVP cutoff)"}
+     why: "D5 TVS CATHODE (pad1) on VBUSC -> clamps a buck-fail-high; with F2 upstream, crowbars -> polyfuse trips (SECONDARY/best-effort OV mitigation, NOT a guaranteed fail-high cutoff -- ADR-0002 honest limitation; replaces the eFuse OVP)"}
   - {assert: pin_on_net, pin: "D5.2", net: "GND", adr: 0002,
      why: "D5 TVS anode (pad2) on GND"}
   - {assert: net_has_part, net: "VBUSC", part_type: "diode", adr: 0002,
