@@ -160,6 +160,25 @@ this at the source, MANDATORY (`policy_audit` M-JRNL / M-LEARN):
   themselves — repo policy keeps distilled conclusions in the canon, and a
   harvest pass promotes them; raw evidence lives here, per board.
 
+- **`01_docs/STATUS.md` — the live beacon (canon M9, the coordinator's between-
+  gates eye).** The journal is append-only HISTORY; the beacon is its LIVE HEAD,
+  a tiny `key: value` file (schema in the 01_docs contract) you OVERWRITE — never
+  append — at every stage enter/finish, every iterate, and **IMMEDIATELY BEFORE
+  and AFTER every long blocking op** (record `op_pid` before, clear it + refresh
+  `measure` after). The poll-to-completion rebuild/grind loop **tees its last
+  line into `measure`** so the beacon stays current even mid-grind. Multi-board
+  projects carry one per board (`STATUS-<board>.md`, mirroring the per-board
+  journal suffix). Why it exists: agents used to signal only at coarse gate
+  boundaries, so between gates a coordinator was blind — "one tap from done" and
+  "stalled" looked identical without reading a multi-MB transcript (usb-hub-3s-v3
+  v1.2, 2026-07-23). **The split is load-bearing: routine progress → the BEACON
+  (the coordinator POLLS `pcb_status.py`, never interrupts a live `op_pid`); a
+  decision or a D-BACK wall → the agent STOPS and ESCALATES** (`state: blocked` +
+  a PUSH — a per-step push can't fire from inside a blocking route loop, which is
+  exactly why progress is polled and only walls are pushed). The coordinator's
+  monitor is `skills/kicad-pcb/scripts/pcb_status.py` (one line per board;
+  derives STALLED from a stale `working` beacon with no live op).
+
 ## Iteration & backtracking — the STUCK protocol (D-BACK)
 
 Getting stuck at stage X is normal; grinding stage X forever is the defect.

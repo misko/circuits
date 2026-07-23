@@ -17,6 +17,7 @@ one that is unrecoverable if lost.
 | `CHECKLIST.md` | the gate a revision must pass before release | |
 | `decisions/` | one file per decision | see `decisions/contracts.md` |
 | `renders/**` | TRACKED render pair per revision: `bare_<side>.png` (Cu+Mask+Silk fab view — the no-components truth) + the modeled twin renders. ALWAYS produced (SKILL stage 7); a bodiless modeled render means missing 3D model, never unpopulated — CPL is population ground truth (usb-hub-3s incident 2026-07-21) | committed |
+| `STATUS*.md` | the live STATUS beacon — the coordinator's between-gates progress signal, OVERWRITTEN at every transition | `STATUS.md` (single-board) or `STATUS-<board>.md` (multi-board, mirroring `journal/<stage>_<board>.md`); schema + audit below; read by `skills/kicad-pcb/scripts/pcb_status.py` |
 | `journal/` | per-stage diary: append an entry at every stage start/iteration/finish | see `journal/contracts.md`; enforced by policy_audit M-JRNL |
 | `learnings/` | per-stage harvest source, written at stage completion | see `learnings/contracts.md`; enforced by policy_audit M-LEARN at release |
 | `contracts.md` | this file | |
@@ -200,6 +201,55 @@ Released: no
 
 `Released:` is `no`, or the `07_releases/` dir name. It is the only link between
 a revision and a fab order.
+
+## Structure: `STATUS*.md` — the live beacon (coordinator progress signal)
+
+The between-gates progress signal (SKILL.md "Journal discipline"). Agents
+otherwise signal only at coarse GATE boundaries (schematic/routing/seal), so a
+coordinator could not tell "one tap from done" from "stalled" without reading a
+multi-MB transcript (usb-hub-3s-v3 v1.2 incident, 2026-07-23). The beacon is the
+LIVE HEAD of the journal: it is OVERWRITTEN at every transition, while
+`journal/` stays append-only history. `STATUS.md` for a single-board project;
+`STATUS-<board>.md` per board for a multi-board project (mirroring the per-board
+`journal/<stage>_<board>.md` suffix).
+
+Everything the reader consumes is `key: value`, one field per line (`#` lines
+and blanks ignored). Seven fields, all required:
+
+```
+stage:   routing            # commission|parts|schematic|placement|routing|verify|seal
+step:    "widen R12.1 escape; rebuildE running"   # the thing happening NOW
+measure: "route 0/0/0; 1 fragile tap (R12.1)"     # last MEASURED numbers
+state:   working            # working | blocked | done
+next:    "if R12.1 clears -> DRC gate"
+op_pid:  3588               # pid of the running long op, or empty when idle
+updated: 2026-07-23T11:59:24
+```
+
+`state` vocabulary: `working` (progressing — coordinator POLLS, never
+interrupts), `blocked` (a decision or D-BACK wall the agent PUSHED up — the
+coordinator acts), `done` (this stage's gate is green). `stage` vocabulary is
+the seven pipeline stages above. The reader
+(`skills/kicad-pcb/scripts/pcb_status.py`) DERIVES a STALLED verdict from
+`state: working` + `updated` older than its threshold + no live `op_pid`; a live
+`op_pid` overrides staleness (a long route legitimately runs while the beacon
+sits). The template seed is `skills/pcb-design/templates/01_docs/STATUS.md`.
+
+## Validate — STATUS*.md
+
+- exactly the seven fields present, one `key:` per line; `stage`/`state` values
+  are in the vocabularies above
+- `updated` parses as ISO-8601 (`YYYY-MM-DDTHH:MM:SS`); `op_pid` is empty or an
+  integer
+- runnable: `pcb_status.py --root <repo>` lists the board with a non-`?` stage
+  and a derived state column (a beacon it cannot parse shows `?`/STALLED, never
+  a false green)
+- the beacon is OVERWRITTEN, not appended (git history shows a single evolving
+  frame, not accumulating entries — the append-only record is `journal/`)
+- a beacon whose `measure:` is a claim with no gate output behind it is a defect
+  in review, same rule as a journal entry
+- there is no enforcing policy_audit gate yet (an optional STATUS gate is a
+  candidate follow-up); today the beacon is coordinator-facing and reader-checked
 
 ## Validate
 
