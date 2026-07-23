@@ -1,0 +1,34 @@
+# usb-hub-3s-v3 POWER-TREE TOPOLOGY (canon E-TOPO).
+#
+# Identical rails to v2: both USB-A and USB-C are 5 V outputs from a 9-12.6 V
+# battery, so both are step-DOWN bucks (Vout_max 5 < Vin_min 9 => BUCK).
+#
+# v3 change is DOWNSTREAM of the USB-C buck, not in the tree: v2 fed the 5VC
+# buck output into a TPS25740A PD source controller; v3 brings 5VC straight to
+# the USB-C VBUS (plain 5 V/5 A, Pi PSU_MAX_CURRENT=5000 override — ADR-0001).
+# The PD controller was never a converter, so the tree is unchanged and E-TOPO
+# still PASSes all-buck.
+
+input_trunk_class: PWR_IN
+
+rails:
+  # USB-A rail: LM5116 buck -> 5VA -> 3x TPS2557 (2 A cont each) -> 3x USB-A.
+  - name: USB-A
+    vin_min: 9.0
+    vin_max: 12.6
+    vout_min: 5
+    vout_max: 5
+    iout_max_A: 6
+    converter: LM5116MHX-NOPB
+    eff: 0.9
+
+  # USB-C rail: LM5116 buck -> 5VC -> USB-C VBUS DIRECT (no PD controller in v3).
+  # Fixed 5 V out => BUCK. 5 A to the Pi via the firmware override, not PD.
+  - name: USB-C
+    vin_min: 9.0
+    vin_max: 12.6
+    vout_min: 5
+    vout_max: 5
+    iout_max_A: 5
+    converter: LM5116MHX-NOPB
+    eff: 0.9

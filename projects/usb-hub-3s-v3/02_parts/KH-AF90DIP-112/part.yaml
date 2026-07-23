@@ -1,0 +1,24 @@
+mpn: KH-AF90DIP-112
+manufacturer: Shenzhen Kinghelm Elec
+type: usb_a_receptacle
+datasheet:
+  doc_id: KH-AF90DIP-112
+  revision: "A/1 (2015-frame vendor drawing via LCSC)"
+  url: https://datasheet.lcsc.com/datasheet/pdf/55f16cff0351d52ba5a9d18f4adacde9.pdf
+  sha256: dadff648597a216fd66af9b7fa09927b507b47ba089dc172f99c118e265c508e
+  fetched: 2026-07-21
+package: USB-A female receptacle, right-angle THT, body 14.05x14.28x6.6
+footprint: usb_hub_3s:KH-AF90DIP-112_Horizontal
+escape:
+  style: connector
+  pitch: 2.0
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-21 (THT connector, coarse pitch)
+pins:
+  1: VBUS
+  2: DM
+  3: DP
+  4: GND
+  SH: SHIELD
+sourcing: {lcsc: C503996, alternates: [], note: "stock 12862 on 2026-07-21; THT - JLC through-hole assembly or hand-solder"}
+verified: "REPLACEMENT for 1001-011-01101 after the fresh-context pin review proved that part is a USB-A MALE PLUG rated 1.5A (its drawing title 'USB 4P AM SMT', current spec p.1). KH-AF90DIP-112 vendor drawing p.1: female receptacle, PCB pattern O1.0 signal holes at 2.500/2.000/2.500 pitch, O3.0 shell holes 13.240 apart offset 2.600 forward - vendored footprint drawn to these numbers (Stewart SS-52100 template, same USB-standard contact order 1=VBUS 2=D- 3=D+ 4=GND). Contact rating not stated by vendor; USB-A contacts are 1.5A-class per the connector standard - 2A cont/2.5A burst DCP use is the industry-universal practice, disposition in ADR 0006."

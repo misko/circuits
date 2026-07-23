@@ -1,0 +1,55 @@
+mpn: LM5116MHX/NOPB
+manufacturer: Texas Instruments
+type: buck_controller
+note_dirname: "directory LM5116MHX-NOPB; '/' in MPN not usable in a path"
+datasheet:
+  doc_id: SNVS499
+  revision: SNVS499I
+  url: https://www.ti.com/lit/ds/symlink/lm5116.pdf
+  sha256: db7d7871e4634126634c2a2e10319a1d9c2de243557df3e05b3e51943575413f
+  fetched: 2026-07-21
+package: HTSSOP-20 PWP 4.4x6.5 P0.65 EP
+footprint: Package_SO:HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_Mask2.75x3.43mm_ThermalVias
+escape:
+  style: leaded
+  pitch: 0.65
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-21
+  loaded_side_escapes: "west side pins 1-10 = 10 escapes; ADR-0008 corridor
+    reserved at placement; board tier is ADVANCED (0.25 hole-to-hole) so
+    between-pin escape vias are legal"
+pins:
+  1: VIN
+  2: UVLO
+  3: RT_SYNC
+  4: EN
+  5: RAMP
+  6: AGND
+  7: SS
+  8: FB
+  9: COMP
+  10: VOUT
+  11: DEMB
+  12: CS
+  13: CSG
+  14: PGND
+  15: LO
+  16: VCC
+  17: VCCX
+  18: HB
+  19: HO
+  20: SW
+  21: {name: EP, tie: PGND, note: "exposed pad; AGND joins PGND here (DS pin table)"}
+limits: {vin_max: 100V, vcc: 7.4V internal, tj_max: 125C}
+gotchas:
+  - "NO internal boot diode - external VCC->HB diode REQUIRED (ledger)"
+  - "VCCX unused -> tie to GND, never open (DS + ledger)"
+  - "UVLO pin: 1.215V rising, 0.1V pin hysteresis + 5uA pull-up; divider
+     49.9k/6.98k = 9.65V rise / 8.84V fall (DETAIL_DESIGN sec.2)"
+  - "RT resistor and CRAMP must sit hard against RT/AGND and RAMP/AGND pins (DS)"
+  - "hiccup: UVLO pin internally pulled to 200mV after 256-cycle current fault"
+verified: "pin map read from Figure 4-1 (PWP top view), SNVS499I p.3 - 2026-07-21"
+sourcing: {lcsc: C13755, alternates: [C1519427], note: "C13755 stock 7902 on 2026-07-21"}
+layout_refs:
+  - "SNVS499I Figure 7-1 + Table 7-1 5V/7A worked design (pp.21-22) - adopted per M6"
+  - "SNVS499I sec.11 Layout: RT/CRAMP at pins, CS/CSG kelvin to Rs"
