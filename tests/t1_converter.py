@@ -159,7 +159,53 @@ def t_fpid_present():
           f"02_parts FPID override did not reach the sheet: {sorted(real)}")
 
 
+@test("converter: a 02_parts `tie:` EP pad absent from circuit.json reaches the netlist on its net")
+def t_thermal_ep_tie():
+    """The exposed thermal pad (EP) of a WSON/DFN eFuse is the sole heat path
+    and MUST tie GND, but tscircuit's pad-only footprint token can't express it,
+    so it never reaches circuit.json — the schematic omits it and the board pad
+    floats invisibly to parity. `thermal_ep` is that case: an 8-pad chip whose
+    part.yaml annotates pad 9 `tie: GND`. WITH the feature the exported netlist
+    carries (U1, 9) on GND, sharing the node with the in-circuit GND pad 8."""
+    d, sheet, r = convert("thermal_ep")
+    contains(r.out, "9 pins", "pin total (8 in-circuit + 1 tie EP)")
+    nodes = netlist_of(sheet)
+    eq(nodes.get(("U1", "9")), "GND", "EP pad 9 net (the `tie: GND` annotation)")
+    # the in-circuit thermal/GND path is untouched — both pads share GND
+    eq(nodes.get(("U1", "8")), "GND", "in-circuit GND pad 8 net (unchanged)")
+    e = erc_errors(sheet)
+    check(e == 0, f"thermal_ep: ERC reported {e} errors (want 0)")
+
+
 # --------------------------------------------------------- known-bad cases
+@test("the EP tie is load-bearing: strip `tie:` and pad 9 vanishes from the netlist",
+      kind="known_bad")
+def t_tie_is_load_bearing():
+    """The tie assertion is only meaningful if REMOVING the annotation drops the
+    pin. Rerun the same circuit.json against a part.yaml with the `tie:` line
+    stripped and confirm pad 9 is gone (the board pad would float) — proving the
+    feature fires on the annotation, not unconditionally, and that it does NOT
+    invent pins for a part.yaml that doesn't ask for one."""
+    src = T0 / "thermal_ep"
+    d = tmpdir("conv_")
+    parts = d / "02_parts" / "TPS_EFUSE_EP"
+    parts.mkdir(parents=True)
+    yaml = (src / "02_parts" / "TPS_EFUSE_EP" / "part.yaml").read_text()
+    stripped = "\n".join(l for l in yaml.splitlines() if "tie:" not in l) + "\n"
+    check(stripped != yaml, "fixture mutation did not change the part.yaml")
+    (parts / "part.yaml").write_text(stripped)
+    out = d / "stripped.kicad_sch"
+    must_pass(run([PY, CONV, src / "circuit.json", "-o", out, "--project",
+                   "thermal_ep", "--parts-dir", d / "02_parts"]),
+              "convert thermal_ep (tie stripped)")
+    nodes = netlist_of(out)
+    check(("U1", "9") not in nodes,
+          "EP pad 9 present WITHOUT a `tie:` annotation — the feature is blind "
+          "to whether the annotation exists (would invent phantom pins)")
+    eq(nodes.get(("U1", "8")), "GND", "in-circuit GND pad 8 still present")
+
+
+# --------------------------------------------------------- more known-bad cases
 @test("the pin-count assertion actually catches a 2-pin collapsed sheet",
       kind="known_bad")
 def t_pin_assertion_has_teeth():

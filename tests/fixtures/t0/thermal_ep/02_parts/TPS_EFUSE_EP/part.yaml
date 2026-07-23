@@ -1,0 +1,8 @@
+mpn: TPS-EFUSE-EP
+lcsc: C999EP
+footprint: Package_SON:Texas_DSG0008A_WSON-8-1EP_2x2mm_P0.5mm_EP0.9x1.6mm
+pins:
+  1: {name: dVdt, note: "inrush slew cap"}
+  3: {name: IN, note: "power input"}
+  8: GND
+  9: {name: EP, tie: GND, note: "exposed thermal pad = GND; the ONLY heat path"}

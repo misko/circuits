@@ -111,9 +111,20 @@ pins:                       # PHYSICAL PADS, read from the pinout figure
   1: EN
   20: VIN
   21: {name: EP, tie: GND, note: "thermal pad, must be grounded"}
+                            # `tie: <net>` is LOAD-BEARING (converter-consumed):
+                            # for a PHYSICAL pad ABSENT from circuit.json (an EP /
+                            # mechanical tab the authoring tool drops), the
+                            # converter (circuit_json_to_kicad_sch.py load_part_ties)
+                            # emits an extra symbol pin on <net> so the pad is tied
+                            # in the netlist in BOTH grid + layout modes — not
+                            # floated. Scoped to the pins: block so a stray `tie:`
+                            # elsewhere cannot fire; parts without it are byte-
+                            # identical. Board stage still owns the copper (thermal
+                            # vias into the EP); `tie:` only fixes the netlist blind
+                            # spot. (crow-recorder... TPS259573 EP floated pre-2026-07-23.)
 limits: {vin_max: 75V, tj_max: 125C}
 gotchas:
-  - "EP is pad 21, not implicit — a generator that omits it floats the pad"
+  - "EP is pad 21, not implicit — without the pins: entry + tie: it floats (the converter ties it only when tie: is declared)"
 verified: "pin map cross-checked against datasheet fig 6-1 — 2026-07-14"
 layout:                     # REQUIRED for ICs + power/sense parts (P-LAYOUT).
                             # The THIRD datasheet read, after verified: (pinout)

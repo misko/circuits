@@ -202,6 +202,60 @@ def load_part_overrides(parts_dir):
     return ov
 
 
+def load_part_ties(parts_dir):
+    """Per-board EXTRA-PIN map seeded from `02_parts/*/part.yaml` `pins:` blocks.
+
+    A pin annotated `tie: <net>` is one that tscircuit's footprint token CANNOT
+    express — the classic case is an exposed thermal pad (EP / pad 9 of a
+    WSON-8-1EP): the tsx authors the part on a pad-only token (`dfn8`), so the EP
+    never reaches circuit.json, the schematic symbol omits it, and the board pad
+    ends up floating — invisible to DRC/parity. When such a pad is absent from
+    circuit.json, `load_model` EMITS an additional symbol pin for it on `<net>`
+    so the exported netlist carries it and schematic-parity stays 0.
+
+    Returns {handle -> [(pad, func, net), ...]}, keyed by every handle
+    circuit.json might carry (LCSC/JLC code, MPN, part folder name) — mirroring
+    `load_part_overrides`. YAML-free line parse (no external deps), SCOPED to the
+    top-level `pins:` block so a `tie:`-lookalike elsewhere can never trigger it.
+    The part.yaml pin KEY is the KiCad pad name (e.g. `9` for the EP)."""
+    ties = {}
+    if not parts_dir or not os.path.isdir(parts_dir):
+        return ties
+    for name in sorted(os.listdir(parts_dir)):
+        p = os.path.join(parts_dir, name, "part.yaml")
+        if not os.path.isfile(p):
+            continue
+        txt = open(p).read()
+        # isolate the top-level `pins:` block (up to the next unindented key)
+        pm = re.search(r'^pins:[^\n]*\n(.*?)(?=^\S|\Z)', txt, re.M | re.S)
+        if not pm:
+            continue
+        entries = []
+        for line in pm.group(1).splitlines():
+            # a pin is `  <pad>: {name: X, tie: NET, ...}` (inline flow map);
+            # a bare `  8: GND` has no dict and thus no tie.
+            m = re.match(r'\s*([A-Za-z0-9_]+):\s*\{(.*)\}\s*(?:#.*)?$', line)
+            if not m:
+                continue
+            pad, bodytxt = m.group(1), m.group(2)
+            tm = re.search(r'\btie:\s*([A-Za-z0-9_]+)', bodytxt)
+            if not tm:
+                continue
+            fn = re.search(r'\bname:\s*([A-Za-z0-9_]+)', bodytxt)
+            entries.append((pad, fn.group(1) if fn else pad, tm.group(1)))
+        if not entries:
+            continue
+        keys = {name}
+        mm = re.search(r'^mpn:\s*(.+?)\s*(?:#.*)?$', txt, re.M)
+        if mm:
+            keys.add(mm.group(1).strip().strip("\"'"))
+        for code in re.findall(r'(?:lcsc|jlc|jlcpcb):\s*([A-Za-z0-9]+)', txt):
+            keys.add(code)
+        for k in keys:
+            ties.setdefault(k, entries)
+    return ties
+
+
 def resolve_fpid(token, codes, overrides):
     """FPID for one component: the per-board 02_parts override (specialty parts)
     wins over the baked-in commodity token map; empty string if neither knows it
@@ -237,7 +291,7 @@ def natkey(s):
 
 
 # ------------------------------------------------------------------ model
-def load_model(path, aliases=None, overrides=None, return_ports=False):
+def load_model(path, aliases=None, overrides=None, return_ports=False, ties=None):
     """Parse circuit.json -> per-component ordered (padname, portname, net) plus
     metadata. Returns (components, flag_host) where components is a list of dicts
     in refdes order. flag_host is (refdes, padname) of the GND pin to carry the
@@ -255,6 +309,7 @@ def load_model(path, aliases=None, overrides=None, return_ports=False):
     downstream adapter."""
     aliases = aliases or {}
     overrides = overrides or {}
+    ties = ties or {}
     d = json.load(open(path))
     comps = {e['source_component_id']: e for e in d
              if e.get('type') == 'source_component'}
@@ -327,6 +382,21 @@ def load_model(path, aliases=None, overrides=None, return_ports=False):
         is_tp = c.get('ftype') == 'simple_test_point' or refdes.startswith('TP')
         codes = [code for v in (c.get('supplier_part_numbers') or {}).values()
                  for code in (v or [])]
+        pin_tuples = [(pad, v["port"], v["net"]) for pad, v in ordered]
+        # EXTRA PINS from 02_parts `tie:` annotations. A tie pad tscircuit's
+        # footprint can't express (an exposed thermal pad) is ABSENT from
+        # circuit.json, so emit a symbol pin for it here on its canonical net —
+        # the ONLY way parity/DRC ever see it. Additive & idempotent: a tie pad
+        # that DID reach circuit.json (already in `pins`) is left untouched, so
+        # the in-circuit thermal-pad collapse path above is never disturbed.
+        tie_entries = next((ties[k] for k in codes + [refdes] if k in ties), None)
+        if tie_entries:
+            have = set(pins)
+            for tpad, tfunc, tnet in tie_entries:
+                if tpad in have:
+                    continue
+                pin_tuples.append((tpad, tfunc, canon_net(tnet, aliases)))
+                have.add(tpad)
         components.append({
             "refdes": refdes,
             # a test point's tscircuit default Value (`simple_test_point`, 18ch)
@@ -334,7 +404,7 @@ def load_model(path, aliases=None, overrides=None, return_ports=False):
             "value": "TP" if is_tp else comp_value(c),
             "is_tp": is_tp,
             "fpid": resolve_fpid(tok_by_comp.get(cid), codes, overrides),
-            "pins": [(pad, v["port"], v["net"]) for pad, v in ordered],
+            "pins": pin_tuples,
         })
     components.sort(key=lambda c: natkey(c["refdes"]))
 
@@ -503,8 +573,9 @@ def emit_component(comp, project, root_uuid, flag_host, pwr_counter):
     return body, labels
 
 
-def convert(circuit_json, project, title, rev, date, aliases=None, overrides=None):
-    components, flag_host = load_model(circuit_json, aliases, overrides)
+def convert(circuit_json, project, title, rev, date, aliases=None, overrides=None,
+            ties=None):
+    components, flag_host = load_model(circuit_json, aliases, overrides, ties=ties)
     placed, pw, ph = layout(components)
     root_uuid = _u()
 
@@ -639,14 +710,15 @@ def _on_segment(px, py, x1, y1, x2, y2, eps=1e-4):
     return L2 > eps and eps < dot < L2 - eps
 
 
-def convert_layout(circuit_json, project, title, rev, date, aliases=None, overrides=None):
+def convert_layout(circuit_json, project, title, rev, date, aliases=None, overrides=None,
+                   ties=None):
     """Layout-preserving emitter. Returns (content, components, stats). Raises
     LayoutFallback if geometry can't be imported without a cross-net short."""
     aliases = aliases or {}
     overrides = overrides or {}
     d = json.load(open(circuit_json))
     components, flag_host, portinfo = load_model(circuit_json, aliases, overrides,
-                                                 return_ports=True)
+                                                 return_ports=True, ties=ties)
     comp_by_ref = {c["refdes"]: c for c in components}
     scomp = [e for e in d if e.get('type') == 'schematic_component']
     sport = [e for e in d if e.get('type') == 'schematic_port']
@@ -756,6 +828,27 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
             tip_net.setdefault(key(tip), set()).add(net)
             for p in plist:
                 portid2tip[p['source_port_id']] = tip
+        # EXTRA PINS: a model pin with NO schematic_port geometry is a 02_parts
+        # `tie:` pad (an exposed thermal pad tscircuit's footprint can't express).
+        # load_model already added it to meta["pins"] on its net; give it a
+        # synthetic slot along the box's bottom edge so the symbol/instance emit
+        # the pin and its GND power symbol (or self-healing label) — carrying it
+        # into the netlist exactly like a geometric pin.
+        xtra = 0
+        for pad, func, net in meta["pins"]:
+            if str(pad) in tips:
+                continue
+            length = 2.54
+            lx = round(xtra * 2.54, 3)
+            lib_y = round(-(h_mm / 2 + length), 3)
+            tip = (round(inst[0] + lx, 3), round(inst[1] - lib_y, 3))
+            pname = re.sub(r'[\s"()]+', '_', str(func)) or str(pad)
+            pins_geo.append((str(pad), pname, lx, lib_y, 90, length))
+            pin_tip[(refdes, str(pad))] = tip
+            tips[str(pad)] = tip
+            pin_side[(refdes, str(pad))] = 'bottom'
+            tip_net.setdefault(key(tip), set()).add(net)
+            xtra += 1
         symname = "SYM_" + re.sub(r'[^A-Za-z0-9_]', '_', refdes)
         lib_syms[symname] = lib_symbol_geo(symname, w_mm, h_mm, pins_geo,
                                            ref=refdes[0], lib=LIB,
@@ -1040,6 +1133,7 @@ def main():
     parts_dir = a.parts_dir or _discover_up(a.circuit_json, ["02_parts"], True)
     alias_path = a.net_aliases or _discover_up(a.circuit_json, ["net_aliases.txt"], False)
     overrides = load_part_overrides(parts_dir)
+    ties = load_part_ties(parts_dir)
     aliases = load_aliases(alias_path)
 
     stats = None
@@ -1047,14 +1141,15 @@ def main():
     if mode == "layout":
         try:
             content, comps, stats = convert_layout(
-                a.circuit_json, project, title, a.rev, a.date, aliases, overrides)
+                a.circuit_json, project, title, a.rev, a.date, aliases, overrides,
+                ties)
         except LayoutFallback as e:
             print(f"LAYOUT FALLBACK -> grid for {os.path.basename(a.out)}: {e}",
                   file=sys.stderr)
             mode = "grid"
     if mode == "grid":
         content, comps = convert(a.circuit_json, project, title, a.rev, a.date,
-                                 aliases, overrides)
+                                 aliases, overrides, ties)
     with open(a.out, "w") as f:
         f.write(content + "\n")
     npins = sum(len(c["pins"]) for c in comps)
@@ -1069,7 +1164,8 @@ def main():
         print(f"wrote {a.out} [MODE=grid, label-glue fallback]: {len(comps)} "
               f"components ({nfp} with FPID), {npins} pins")
     print(f"  overrides: {len(overrides)} keys from {parts_dir or '(none)'}; "
-          f"aliases: {len(aliases)} from {alias_path or '(none)'}")
+          f"aliases: {len(aliases)} from {alias_path or '(none)'}; "
+          f"tie-parts: {len(ties)} keys")
 
 
 if __name__ == "__main__":
