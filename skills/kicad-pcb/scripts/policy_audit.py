@@ -696,10 +696,12 @@ def main():
     # exporter grouped by value+footprint and collapsed C77102 onto C77100.
     # The check RE-DERIVES from the source independently of how the BOM was made
     # (canon M1), so it bites carry-over/hand-edit corruption too. Leg C adds
-    # SEMANTIC value consistency: it decodes each R/C row's MPN (BOM column or
-    # vendored part.yaml dir name) and FAILS a value that disagrees with the
-    # label (usb-hub-3s-v3 v1.2 shipped C2933210=3.74k labeled 4.12k), flagging
-    # an unparseable MPN rather than passing it — all offline.
+    # SEMANTIC value consistency: each R/C row's catalog value is resolved
+    # (BOM MPN column -> vendored part.yaml dir name -> the vetted
+    # jlcpcb-fab/references/lcsc_passives_ledger.yaml, catalog-verified once
+    # per code) and FAILS a value that disagrees with the label (usb-hub-3s-v3
+    # v1.2 shipped C2933210=3.74k labeled 4.12k), flagging a row no source
+    # resolves rather than passing it — all offline.
     jlc_scripts = Path(__file__).resolve().parent.parent.parent / "jlcpcb-fab" / "scripts"
     cjs = (glob.glob(str(proj / "03_tscircuit" / "build" / "circuit.json"))
            or glob.glob(str(proj / "03_tscircuit" / "dist" / "**" / "circuit.json"),

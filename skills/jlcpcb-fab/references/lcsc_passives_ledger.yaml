@@ -1,0 +1,153 @@
+# Vetted LCSC -> MPN/value ledger for fleet passives (leg C of bom_source_check).
+#
+# WHY: the fab BOM ships a BLANK MPN column and basic-library passives carry no
+# 02_parts/<MPN>/part.yaml, so on a real board leg C's first two resolution
+# sources (BOM MPN column, vendored dir name) yield NOTHING — the sealed
+# usb-hub-3s-v3 v1.2 R12 defect (C2933210 = 3.74k labeled 4.12k) was invisible
+# to both (measured 2026-07-23). This ledger is the third source: pay the
+# catalog verification ONCE per code, ever; leg C then verifies offline forever.
+#
+# SCHEMA:  <LCSC>: {mpn: <catalog MPN>, value: <catalog value>, verified: <provenance>}
+#   value uses the same notation the BOM Comment column uses (parse shared with
+#   the gate's label parsers): resistors "3.74k" / "33" / "0.01" (ohms),
+#   caps "100nF" / "10uF". The value is the CATALOG's truth, never the label's:
+#   C2933210 says 3.74k here BECAUSE the catalog does, even though every BOM
+#   labeled it 4.12k — the ledger exists to catch exactly that.
+# RULES:
+#   - append-only per code; NEVER copy a value from a BOM label — only from the
+#     JLC/LCSC catalog record (verify once, cite the date+source in `verified`).
+#   - an R/C row whose code is in none of {BOM MPN, part.yaml, this ledger}
+#     FAILS the gate as UNVERIFIABLE-VALUE: verify + append, then it is quiet.
+#
+# Seeded 2026-07-23 from the JLC parts API (selectSmtComponentList, exact
+# componentCode match, describe field) for every R/C-designated LCSC code on
+# every projects/ + archived_projects/ fab BOM; cross-checked against the fleet
+# labels — exactly two mismatches found, both real defects (C2933210, C2933195).
+
+C1523: {mpn: 0402B102K500NT, value: "1nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C1525: {mpn: CL05B104KO5NNNC, value: "100nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C1538: {mpn: 0402B472K500NT, value: "4.7nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C1546: {mpn: 0402CG101J500NT, value: "100pF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C1549: {mpn: 0402CG180J500NT, value: "18pF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C1588: {mpn: CL10B102KB8NNNC, value: "1nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C1613: {mpn: CL10B332KB8NNNC, value: "3.3nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C1663: {mpn: CL10C330JB8NNNC, value: "33pF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C1664: {mpn: CL10C331JB8NNNC, value: "330pF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C1729: {mpn: CL21B223KBANNNC, value: "22nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C1779: {mpn: CL21A475KAQNNNE, value: "4.7uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C4184: {mpn: 0603WAF2002T5E, value: "20k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C4190: {mpn: 0603WAF2201T5E, value: "2.2k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C4328: {mpn: 0805W8F2002T5E, value: "20k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C11702: {mpn: 0402WGF1001TCE, value: "1k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C12530: {mpn: CL05A225MQ5NSNC, value: "2.2uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C12891: {mpn: CL31A226KAHNNNE, value: "22uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C14663: {mpn: CC0603KRX7R9BB104, value: "100nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C14858: {mpn: CL10C101JB8NNNC, value: "100pF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C15195: {mpn: CL05B103KB5NNNC, value: "10nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C15525: {mpn: CL05A106MQ5NUNC, value: "10uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C15785: {mpn: 0805W8F5603T5E, value: "560k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C15849: {mpn: CL10A105KB8NNNC, value: "1uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C15850: {mpn: CL21A106KAYNNNE, value: "10uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C17408: {mpn: 0805W8F1000T5E, value: "100", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C17414: {mpn: 0805W8F1002T5E, value: "10k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C17477: {mpn: 0805W8F0000T5E, value: "0", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C17513: {mpn: 0805W8F1001T5E, value: "1k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C17530: {mpn: 0805W8F2701T5E, value: "2.7k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C17604: {mpn: 0805W8F2001T5E, value: "2k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C17614: {mpn: 0805W8F3901T5E, value: "3.9k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C17633: {mpn: 0805W8F3302T5E, value: "33k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C17673: {mpn: 0805W8F4701T5E, value: "4.7k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C17802: {mpn: 0805W8F680JT5E, value: "68", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C17819: {mpn: 0805W8F7502T5E, value: "75k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C17888: {mpn: 1206W4F0000T5E, value: "0", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C19702: {mpn: CL10A106KP8NNNC, value: "10uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C21189: {mpn: 0603WAF0000T5E, value: "0", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C21190: {mpn: 0603WAF1001T5E, value: "1k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C22775: {mpn: 0603WAF1000T5E, value: "100", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C22807: {mpn: 0603WAF1503T5E, value: "150k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C22843: {mpn: 0603WAF1501T5E, value: "1.5k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C22859: {mpn: 0603WAF100JT5E, value: "10", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C22864: {mpn: 0603WAF1212T5E, value: "12.1k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C22865: {mpn: 0603WAF1242T5E, value: "12.4k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C22935: {mpn: 0603WAF1004T5E, value: "1M", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C22977: {mpn: 0603WAF200KT5E, value: "2", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C22978: {mpn: 0603WAF3301T5E, value: "3.3k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C22991: {mpn: 0603WAF3011T5E, value: "3.01k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C22992: {mpn: 0603WAF3091T5E, value: "3.09k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C23018: {mpn: 0603WAF3901T5E, value: "3.9k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C23029: {mpn: 0603WAF3652T5E, value: "36.5k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C23061: {mpn: 0603WAF4752T5E, value: "47.5k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C23138: {mpn: 0603WAF3300T5E, value: "330", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C23140: {mpn: 0603WAF330JT5E, value: "33", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C23150: {mpn: 0603WAF3903T5E, value: "390k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C23162: {mpn: 0603WAF4701T5E, value: "4.7k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C23184: {mpn: 0603WAF4992T5E, value: "49.9k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C23186: {mpn: 0603WAF5101T5E, value: "5.1k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C23215: {mpn: 0603WAF6981T5E, value: "6.98k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C23345: {mpn: 0603WAF220JT5E, value: "22", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C23630: {mpn: CL10A225KO8NNNC, value: "2.2uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C23733: {mpn: CL05A475MP5NRNC, value: "4.7uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25076: {mpn: 0402WGF1000TCE, value: "100", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25105: {mpn: 0402WGF330JTCE, value: "33", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25120: {mpn: 0402WGF499JTCE, value: "49.9", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25741: {mpn: 0402WGF1003TCE, value: "100k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25744: {mpn: 0402WGF1002TCE, value: "10k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25756: {mpn: 0402WGF1502TCE, value: "15k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25765: {mpn: 0402WGF2002TCE, value: "20k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25778: {mpn: 0402WGF3303TCE, value: "330k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25782: {mpn: 0402WGF3903TCE, value: "390k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25803: {mpn: 0603WAF1003T5E, value: "100k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25804: {mpn: 0603WAF1002T5E, value: "10k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25810: {mpn: 0603WAF1802T5E, value: "18k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25819: {mpn: 0603WAF4702T5E, value: "47k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25862: {mpn: 0402WGF1201TCE, value: "1.2k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25879: {mpn: 0402WGF2201TCE, value: "2.2k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25900: {mpn: 0402WGF4701TCE, value: "4.7k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25905: {mpn: 0402WGF5101TCE, value: "5.1k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25981: {mpn: 0603WAF8201T5E, value: "8.2k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C26083: {mpn: 0402WGF1004TCE, value: "1M", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C26982: {mpn: 0402WGF5232TCE, value: "52.3k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C27834: {mpn: 0805W8F5101T5E, value: "5.1k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C28323: {mpn: CL21B105KBFNNNE, value: "1uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C29277: {mpn: CL21A226MPQNNNE, value: "22uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C31850: {mpn: 0603WAF2202T5E, value: "22k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C37936: {mpn: 1206W4F150LT5E, value: "0.15", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C45783: {mpn: CL21A226MAQNNNE, value: "22uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C49066: {mpn: CL32A107MQVNNNE, value: "100uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C49678: {mpn: CC0805KRX7R9BB104, value: "100nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C52923: {mpn: CL05A105KA5NQNC, value: "1uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C57112: {mpn: 0603B103K500NT, value: "10nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C59461: {mpn: CL10A226MQ8NRNC, value: "22uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C60490: {mpn: RC0402FR-0710KL, value: "10k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C62774: {mpn: CC0805JRNPO9BN102, value: "1nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe) — NP0 102 code; MPN not decoder-anchorable — value entered from catalog describe"}
+C77100: {mpn: GRM32DR71E106KA12L, value: "10uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C77102: {mpn: GRM32ER71H106KA12L, value: "10uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C84455: {mpn: GRM32ER61A107ME20L, value: "100uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C86052: {mpn: GRM32ER71H475KA88L, value: "4.7uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C90143: {mpn: EMK325ABJ107MM-P, value: "100uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C98220: {mpn: RC0603FR-0710KL, value: "10k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C107029: {mpn: CC0402KRX7R9BB561, value: "560pF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C137327: {mpn: RC1206FR-072R2L, value: "2.2", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe) — usb-hub family 2.2R gate resistor"}
+C137779: {mpn: RC0603FR-071K21L, value: "1.21k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C137798: {mpn: RC0603FR-0712K4L, value: "12.4k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C137947: {mpn: RC0402FR-0768KL, value: "68k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C137948: {mpn: RC0402FR-07680RL, value: "680", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C138030: {mpn: RC0402FR-07220KL, value: "220k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C149504: {mpn: 0805W8F1003T5E, value: "100k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C276264: {mpn: RC0402FR-0724K3L, value: "24.3k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C304743: {mpn: RS-03K3741FT, value: "3.74k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C385994: {mpn: JDK105CBJ226MV-F, value: "22uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C409935: {mpn: ERJ2RKF8873X, value: "887k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C453769: {mpn: RC-02K8252FT, value: "82.5k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C728591: {mpn: RT0603BRD073K92L, value: "3.92k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe) — 3.92k 0.1% (RT0603BRD073K92L; reel-code MPN not decoder-anchorable) — value from part.yaml + catalog"}
+C2836443: {mpn: RVT100UF25V67RV0011, value: "100uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C2887276: {mpn: RVT100UF16V67RV0016, value: "100uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C2930095: {mpn: FRC0603F3652TS, value: "36.5k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C2933195: {mpn: FRC0603F3091TS, value: "3.09k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe) — catalog 3.09k but the usb-hub v1.2/current BOM LABELS it 100k (R30) — second latent defect FOUND BY this ledger cross-check, 2026-07-23"}
+C2933210: {mpn: FRC0603F3741TS, value: "3.74k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe) — the usb-hub-3s-v3 v1.2 R12 incident part — catalog 3.74k, was LABELED 4.12k (DO-NOT-ORDER, SUPERSEDED.md)"}
+C2982822: {mpn: KNM2100UF35V149EC0055, value: "100uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe) — electrolytic, value in MPN text (100uF 35V)"}
+C2984354: {mpn: AR03BTCX4121, value: "4.12k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe) — the v1.3 corrective 4.12k 0.1% for R12 (AR03BTCX4121 -> 4121 -> 4.12k)"}
+C5126242: {mpn: FRC0603F1211TS, value: "1.21k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C22356360: {mpn: RCA032R2FLF, value: "2.2", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C46550465: {mpn: MA25V100M6x6, value: "100uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe) — polymer electrolytic 100uF 25V"}
+C48970904: {mpn: RYVP6.3V100UF4*5, value: "100uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe) — electrolytic 100uF 6.3V"}

@@ -257,20 +257,22 @@ def t_clean_value_match():
     contains(r.out, "PASS", "verdict")
 
 
-@test("gate FLAGS an unparseable MPN on a passive row (does NOT silently pass "
-      "an unverifiable value)", kind="known_bad")
+@test("gate FLAGS an R/C code resolvable by NO source — unparseable MPN and "
+      "absent from the ledger (does NOT silently pass)", kind="known_bad")
 def t_kb_value_unverifiable():
-    """The task's third disposition: an MPN whose value cannot be decoded is
-    UNVERIFIABLE, not a pass. RT0603BRD074K12L is a REAL 4.12k Yageo part, but
-    its non-hyphenated reel code ('...BRD07'+'4K12') is one this offline parser
-    does not confidently decode — so rather than trust the label it demands
-    manual catalog confirmation. Better a false alarm than a silent 3.74k."""
-    d = write_case(tmpdir("bomval_"), {"R12": "C728591"},
-                   [("4.12kΩ", ["R12"], "C728591",
+    """The third disposition: a value no source can verify is UNVERIFIABLE,
+    not a pass. C9999999 is in no ledger and has no part.yaml; its BOM MPN
+    ('...BRD07'+'4K12', a non-hyphenated reel code) is one this offline parser
+    does not confidently decode — so rather than trust the label the gate
+    demands the one-time catalog verify + ledger append. Better a false alarm
+    than a silent 3.74k."""
+    d = write_case(tmpdir("bomval_"), {"R12": "C9999999"},
+                   [("4.12kΩ", ["R12"], "C9999999",
                      "RT0603BRD074K12L", "R_0603_1608Metric")])
     r = run([KPY, GATE, d / "bom.csv", d / "circuit.json"])
-    must_fail(r, "gate on an unparseable passive MPN", "UNVERIFIABLE-VALUE")
+    must_fail(r, "gate on an unverifiable passive row", "UNVERIFIABLE-VALUE")
     contains(r.out, "RT0603BRD074K12L", "must name the MPN it could not parse")
+    contains(r.out, "ledger", "must direct to the verify-once ledger append")
 
 
 @test("leg C resolves the MPN from a vendored part.yaml dir name when the BOM "
@@ -289,6 +291,72 @@ def t_kb_value_mismatch_via_partyaml():
     r = run([KPY, GATE, d / "bom.csv", d / "circuit.json", "--parts", d / "02_parts"])
     must_fail(r, "gate resolving MPN from part.yaml dir name", "VALUE-MISMATCH")
     contains(r.out, "3.74kΩ", "catalog value decoded from the part.yaml MPN")
+
+
+@test("leg C via the LEDGER catches the REAL sealed v1.2 artifact: blank MPN "
+      "column, no vendored mapping — R12/C2933210 named 3.74k vs 4.12k",
+      kind="known_bad")
+def t_kb_real_v1_2_ledger():
+    """THE acceptance fixture. The first leg-C cut resolved MPNs only from the
+    BOM column or the vendored dir name; the REAL v1.2 fab BOM ships R12 as
+    `4.12kΩ,R12,R_0603_1608Metric,,C2933210` — MPN BLANK — and the seal-era
+    part.yaml had lcsc:null, so BOTH sources resolve nothing and R12 stayed
+    SILENT on the actual artifact (measured 2026-07-23: pre-ledger gate exit 0
+    without --parts; with --parts only 2 UNVERIFIABLE flags on OTHER rows).
+    The vetted ledger (references/lcsc_passives_ledger.yaml) is the third
+    resolution source: C2933210 -> FRC0603F3741TS / 3.74k, catalog-verified
+    once — the sealed BOM now FAILS naming R12.
+
+    RED-VERIFY (performed 2026-07-23, both baselines):
+      1. pre-ledger code (git show be22bcb): this BOM exits 0 (no --parts) /
+         R12-silent (--parts) — this test's assertions cannot be met;
+      2. ledger lookup neutered (--ledger pointing at an empty {} yaml): R12
+         degrades to UNVERIFIABLE-VALUE, no VALUE-MISMATCH — the mismatch
+         assertions below fail. The in-process contrast is pinned in
+         t_ledger_is_the_load_bearing_source."""
+    bom = V3 / "07_releases" / "v1.2-2026-07-23" / "fab" / "bom.csv"
+    cj = V3 / "03_tscircuit" / "build" / "circuit.json"
+    if not bom.exists() or not cj.exists():
+        return  # project trimmed from this checkout; nothing to pin
+    r = run([KPY, GATE, bom, cj])
+    must_fail(r, "gate on the sealed v1.2 value defect", "VALUE-MISMATCH")
+    contains(r.out, "R12", "must name the defective refdes")
+    contains(r.out, "C2933210", "must name the shipped code")
+    contains(r.out, "3.74k", "must name the catalog value")
+    contains(r.out, "4.12k", "must name the labeled value")
+
+
+@test("the ledger is the LOAD-BEARING source on a blank-MPN BOM: empty ledger "
+      "-> no VALUE-MISMATCH possible; vetted ledger -> the defect surfaces",
+      kind="known_bad")
+def t_ledger_is_the_load_bearing_source():
+    """The executable RED contrast for the ledger path, on the v1.2-shaped row
+    (code present, MPN blank, nothing vendored). With ledger={} the row is
+    UNVERIFIABLE (flagged, not silent — the silent-skip is itself fixed); only
+    the vetted ledger can turn it into the specific VALUE-MISMATCH. Neutering
+    the ledger lookup in value_findings makes the second half fail."""
+    rows = [bsc.BomRow(["R12"], "C2933210", "4.12kΩ", "", "R_0603_1608Metric")]
+    bare = bsc.value_findings(rows, None, ledger={})
+    check(bare and "UNVERIFIABLE-VALUE" in bare[0],
+          f"empty-ledger baseline must FLAG (never silently skip): {bare}")
+    check(not any("VALUE-MISMATCH" in f for f in bare),
+          "empty ledger cannot know the catalog value — no mismatch possible")
+    vetted = bsc.value_findings(rows, None)          # default vetted ledger
+    check(any("VALUE-MISMATCH" in f and "3.74k" in f for f in vetted),
+          f"vetted ledger must resolve C2933210 to 3.74k and mismatch: {vetted}")
+
+
+@test("leg C PASSES the v1.3 corrective code C2984354 (ledger 4121 -> 4.12k "
+      "== label) on a blank-MPN row")
+def t_clean_v13_corrective_code():
+    """The other half of the acceptance bar: the fixed board must be QUIET.
+    C2984354 = AR03BTCX4121 (4.12k 0.1%), catalog-verified in the ledger; a
+    blank-MPN BOM row labeled 4.12kΩ resolves through the ledger and matches."""
+    d = write_case(tmpdir("bomval_"), {"R12": "C2984354"},
+                   [("4.12kΩ", ["R12"], "C2984354", "", "R_0603_1608Metric")])
+    r = must_pass(run([KPY, GATE, d / "bom.csv", d / "circuit.json"]),
+                  "gate on the ledger-vetted corrective part")
+    contains(r.out, "PASS", "verdict")
 
 
 @test("leg C ignores non-passive and uncoded rows (no false positives)")

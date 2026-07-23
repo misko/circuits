@@ -10,6 +10,7 @@ the jlc_twin geometry verification against JLC's own CAD.
 | `SKILL.md` | the skill manual + dated learnings (post-mortems) |
 | `contracts.md` | this file |
 | `scripts/` | export + verification tooling (own contract) |
+| `references/` | vetted data the scripts consume (own contract) |
 
 ## Audit
 

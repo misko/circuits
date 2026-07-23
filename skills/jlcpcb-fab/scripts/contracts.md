@@ -36,9 +36,13 @@ stock, twin).
   dropped-vendored BOM (usb-hub-3s-v3 v1.1 shipped 25V caps for 50V,
   2026-07-23).
 - Code identity is not enough: `bom_source_check.py` also runs a SEMANTIC
-  value check (leg C) — for every R/C row it resolves the MPN (BOM MPN column,
-  else the vendored `02_parts/<MPN>/part.yaml` dir name) and decodes its
-  EIA/RKM value OFFLINE, FAILING a VALUE-MISMATCH and FLAGGING an unparseable
-  MPN as UNVERIFIABLE-VALUE (never a silent pass). usb-hub-3s-v3 v1.2 shipped
-  R12 = C2933210 (FRC0603F3741TS = 3.74k) labeled 4.12k, 2026-07-23. A catalog
-  fetch, when in-env, is a stronger add-on but the offline check stands alone.
+  value check (leg C) — for every R/C row it resolves the catalog value in
+  order BOM MPN column -> vendored `02_parts/<MPN>/part.yaml` dir name ->
+  vetted `references/lcsc_passives_ledger.yaml` (catalog-verified ONCE per
+  code), decodes/compares OFFLINE, FAILING a VALUE-MISMATCH and FLAGGING a
+  row no source resolves as UNVERIFIABLE-VALUE (never a silent pass). The
+  ledger is load-bearing: real fab BOMs ship a BLANK MPN column and basic
+  passives have no part.yaml, so without it the sealed usb-hub-3s-v3 v1.2
+  R12 defect (C2933210 = 3.74k labeled 4.12k, 2026-07-23) is invisible —
+  measured. A live catalog fetch, when in-env, is a stronger add-on but the
+  offline check stands alone.

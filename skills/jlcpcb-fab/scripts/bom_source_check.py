@@ -51,12 +51,19 @@ wrong. This gate now also compares the MPN-ENCODED value to the LABELED value.
 
 Resistor/cap MPNs encode value as EIA 3-sig-fig + multiplier (FRC0603F3741TS ->
 "3741" -> 374 x 10^1 = 3.74 kOhm; a real 4.12k encodes "4121" -> 412 x 10^1 =
-4120) or as RKM notation ("4K12" = 4.12k, "2R2" = 2.2Ohm). We resolve every
-R/C row's MPN (from the BOM MPN column, else the vendored part.yaml directory
-name = the MPN), parse its encoded value OFFLINE, and FAIL on a mismatch. An MPN
-we cannot parse is FLAGGED for manual review — an unverifiable value is NOT a
-pass. This leg needs no network; a catalog fetch, if present, is a bonus not a
-dependency.
+4120) or as RKM notation ("4K12" = 4.12k, "2R2" = 2.2Ohm). Resolution order for
+every R/C row: the BOM's MPN column -> the vendored part.yaml directory name
+(the dir IS the MPN) -> the vetted LCSC ledger
+(references/lcsc_passives_ledger.yaml, {code: {mpn, value, verified}} — the
+proven-parts pattern: pay the catalog verification ONCE, ever). The first
+source that yields a value wins; the comparison is OFFLINE. An R/C row with an
+LCSC code that NONE of the three resolves is FLAGGED for manual review — an
+unverifiable value is NOT a pass; catalog-verify the code once and append it to
+the ledger, then it is quiet forever. The ledger matters because the REAL fab
+BOMs ship a BLANK MPN column and basic-library passives carry no part.yaml: on
+the sealed v1.2 artifact the first two sources resolve NOTHING, and without the
+ledger R12 stays silent (measured 2026-07-23). This leg needs no network; a
+catalog fetch, if present, is a bonus not a dependency.
 
 Exit 1 on any finding; the exit code IS the gate.
 """
@@ -243,47 +250,105 @@ def mpn_capacitance(mpn, footprint=""):
     return next(iter(cands)) if len(cands) == 1 else None
 
 
-def value_findings(bom_rows, vendored=None):
-    """Leg C: MPN-encoded value vs LABELED value for every R/C row.
+# The vetted LCSC->MPN/value ledger (the proven-parts pattern): each entry was
+# catalog-verified ONCE; leg C then works offline forever after.
+LEDGER_PATH = (Path(__file__).resolve().parent.parent
+               / "references" / "lcsc_passives_ledger.yaml")
 
-    MPN is resolved from the BOM's own MPN column, else the vendored part.yaml
-    directory name (== the MPN). A confidently-parsed value that disagrees with
-    the label is a VALUE-MISMATCH (the v1.2 defect). An MPN we cannot parse is
-    UNVERIFIABLE-VALUE — flagged for review, never a silent pass. A row with no
-    resolvable MPN is left to legs A/B (nothing to parse)."""
+
+def load_ledger(path=None):
+    """{lcsc: {mpn, value, verified}} from the vetted passives ledger.
+    Returns {} if the file or PyYAML is unavailable (leg C then degrades to
+    BOM-MPN/part.yaml resolution and FLAGS what those cannot resolve)."""
+    p = Path(path) if path else LEDGER_PATH
+    if not p.is_file():
+        return {}
+    try:
+        import yaml
+    except ImportError:
+        return {}
+    try:
+        data = yaml.safe_load(p.read_text()) or {}
+    except Exception:
+        return {}
+    return {str(k): v for k, v in data.items() if isinstance(v, dict)}
+
+
+def value_findings(bom_rows, vendored=None, ledger=None):
+    """Leg C: catalog value vs LABELED value for every R/C row.
+
+    Resolution order (first source that yields a value wins):
+      1. the BOM's own MPN column                  (decode the MPN)
+      2. the vendored part.yaml directory name     (the dir IS the MPN)
+      3. the vetted LCSC ledger                    (explicit catalog value,
+                                                    else decode its MPN)
+    An R/C row with an LCSC code (or an MPN) that NO source resolves is
+    UNVERIFIABLE-VALUE — flagged for review, never a silent pass; catalog-
+    verify the code once and append it to the ledger. The real fab BOMs ship a
+    blank MPN column and basic-library passives have no part.yaml, so on a real
+    board the ledger is usually the source that bites (the sealed v1.2 R12 was
+    invisible to sources 1 and 2 — measured 2026-07-23).
+
+    ledger=None loads the default references/lcsc_passives_ledger.yaml;
+    pass {} to disable (the RED baseline)."""
+    if ledger is None:
+        ledger = load_ledger()
     lcsc_to_mpn = {c: m for c, m in (vendored or {}).items()}
     out = []
     for row in bom_rows:
         refs = row.refs if isinstance(row, BomRow) else row[0]
         lcsc = row.lcsc if isinstance(row, BomRow) else row[1]
         comment = row.comment if isinstance(row, BomRow) else row[2]
-        mpn = (row.mpn if isinstance(row, BomRow) else "") or lcsc_to_mpn.get(lcsc, "")
+        bom_mpn = row.mpn if isinstance(row, BomRow) else ""
         footprint = row.footprint if isinstance(row, BomRow) else ""
         kind = row_kind(refs)
-        if not kind or not mpn:
+        if not kind:
             continue
-        tag = comment or (",".join(refs[:3]) + ("…" if len(refs) > 3 else ""))
-        if kind == "R":
-            labeled, derived, unit = labeled_resistance(comment), mpn_resistance(mpn, footprint), "Ω"
-        else:
-            labeled, derived, unit = labeled_capacitance(comment), mpn_capacitance(mpn, footprint), "F"
+        led = ledger.get(lcsc) if lcsc else None
+        if not (bom_mpn or lcsc_to_mpn.get(lcsc) or led or lcsc):
+            continue        # no code and no MPN anywhere: leg A's MISSING story
+        tag = (comment or ",".join(refs[:3])) + f" [{','.join(refs[:4])}" \
+              + ("…]" if len(refs) > 4 else "]")
+        parse_label = labeled_resistance if kind == "R" else labeled_capacitance
+        decode_mpn = mpn_resistance if kind == "R" else mpn_capacitance
+        unit = "Ω" if kind == "R" else "F"
+        labeled = parse_label(comment)
         if labeled is None:
-            continue                    # label is not a passive value (jumper text etc.)
+            continue                    # label is not a passive value (part-name text)
         if labeled == 0:
             continue                    # 0Ω jumper — no meaningful value to encode
+        # --- resolve, in trust order; remember what was tried for the flag ---
+        derived, via, tried = None, "", []
+        for src, mpn in (("BOM MPN", bom_mpn),
+                         ("part.yaml", lcsc_to_mpn.get(lcsc, ""))):
+            if mpn:
+                tried.append(f"{src} '{mpn}'")
+                v = decode_mpn(mpn, footprint)
+                if v is not None:
+                    derived, via = v, f"{src} '{mpn}'"
+                    break
+        if derived is None and led:
+            tried.append(f"ledger {lcsc}")
+            v = parse_label(str(led.get("value", ""))) if led.get("value") else None
+            if v is None and led.get("mpn"):
+                v = decode_mpn(str(led["mpn"]), footprint)
+            if v is not None:
+                derived = v
+                via = f"ledger {lcsc} = '{led.get('mpn', '?')}'"
         if derived is None:
             out.append(
-                f"UNVERIFIABLE-VALUE on row '{tag}' ({lcsc or 'no LCSC'}): MPN "
-                f"'{mpn}' cannot be parsed for its encoded value — labeled "
-                f"{_fmt(labeled, unit)}; resolve the catalog value MANUALLY "
-                f"(an unverifiable value is not a pass)")
+                f"UNVERIFIABLE-VALUE on row '{tag}' ({lcsc or 'no LCSC'}): "
+                f"labeled {_fmt(labeled, unit)} but no source yields the "
+                f"catalog value (tried: {'; '.join(tried) or 'nothing resolvable'}"
+                f") — catalog-verify the code ONCE and append it to "
+                f"{LEDGER_PATH.name} (an unverifiable value is not a pass)")
             continue
         # exact E96/EIA codes should match the label to well within 1% (rounding);
         # the v1.2 defect was a 9% error. A relative gap over 1.5% is a mismatch.
         if abs(derived - labeled) / labeled > 0.015:
             out.append(
-                f"VALUE-MISMATCH on row '{tag}' ({lcsc or 'no LCSC'}): MPN "
-                f"'{mpn}' encodes {_fmt(derived, unit)} but the label says "
+                f"VALUE-MISMATCH on row '{tag}' ({lcsc or 'no LCSC'}): "
+                f"{via} = {_fmt(derived, unit)} but the label says "
                 f"{_fmt(labeled, unit)} — the ordered part is NOT the labeled "
                 f"value")
     return out
@@ -301,15 +366,17 @@ def _fmt(v, unit):
     return f"{v:g}F"
 
 
-def check(bom_rows, refdes_code, vendored=None):
+def check(bom_rows, refdes_code, vendored=None, ledger=None):
     """Returns a list of finding strings; empty == PASS.
 
     refdes_code: {refdes: source_lcsc} (authoritative, per-refdes).
-    vendored:    {lcsc: MPN} of vendored primary codes, or None to skip legs B/C.
+    vendored:    {lcsc: MPN} of vendored primary codes, or None to skip leg B.
+    ledger:      {lcsc: {mpn, value, ...}}; None loads the default vetted
+                 ledger, {} disables leg C's ledger source.
 
     Leg A (per-refdes vs circuit.json) and leg B (per-vendored-code vs part.yaml)
-    check CODE IDENTITY; leg C (MPN-encoded value vs label) checks the catalog
-    VALUE the code resolves to."""
+    check CODE IDENTITY; leg C (catalog value vs label) checks the VALUE the
+    code resolves to."""
     findings = []
     bom_codes = {row[1] for row in bom_rows if row[1]}
     source_codes = {c for c in refdes_code.values() if c}
@@ -351,8 +418,8 @@ def check(bom_rows, refdes_code, vendored=None):
                     f"uses this vetted part but its code is NOWHERE on the BOM "
                     f"— substituted or merged away")
 
-    # ---- leg C: MPN-encoded value vs the LABELED value (semantic, offline) ----
-    findings.extend(value_findings(bom_rows, vendored))
+    # ---- leg C: catalog value vs the LABELED value (semantic, offline) ----
+    findings.extend(value_findings(bom_rows, vendored, ledger))
     return findings
 
 
@@ -375,6 +442,9 @@ def main():
     ap.add_argument("bom", help="fab BOM csv (Comment,Designator,Footprint,[MPN,]LCSC)")
     ap.add_argument("circuit_json", help="circuit.json (or a 03_tscircuit dir)")
     ap.add_argument("--parts", default="", help="02_parts dir for the per-code leg")
+    ap.add_argument("--ledger", default="",
+                    help="vetted LCSC passives ledger yaml (default: the skill's "
+                         "references/lcsc_passives_ledger.yaml)")
     args = ap.parse_args()
 
     cj = resolve_circuit_json(args.circuit_json)
@@ -382,12 +452,14 @@ def main():
         sys.exit(f"no circuit.json found at/under {args.circuit_json}")
     refdes_code = refdes_codes_from_circuit(cj)
     vendored = vendored_primary_codes(args.parts) if args.parts else None
-    findings = check(read_bom(args.bom), refdes_code, vendored)
+    ledger = load_ledger(args.ledger) if args.ledger else load_ledger()
+    findings = check(read_bom(args.bom), refdes_code, vendored, ledger)
 
     coded = sum(1 for v in refdes_code.values() if v)
     print(f"BOM-vs-source: {args.bom}")
     print(f"  source: {cj} ({coded} coded refdes)"
-          + (f"; vendored: {len(vendored)} part.yaml codes" if vendored else ""))
+          + (f"; vendored: {len(vendored)} part.yaml codes" if vendored else "")
+          + f"; ledger: {len(ledger)} vetted passive codes")
     if findings:
         print(f"BOM SOURCE CHECK: FAIL ({len(findings)})")
         for f in findings:
