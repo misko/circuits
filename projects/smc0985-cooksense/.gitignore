@@ -13,3 +13,6 @@ __pycache__/
 # tscircuit build cache + intermediate export (mirrors usb-hub-3s-v3; commit build/ kicad/ verification/ only)
 03_tscircuit/.tscircuit/
 03_tscircuit/dist/
+
+# failed routing-attempt artifacts
+*.failed

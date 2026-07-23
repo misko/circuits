@@ -312,6 +312,10 @@ keepouts:
   - {name: keypad_iso, deny: [pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [12.0, 10.0, 264.0, 40.0]}
   # eFuse via-in-pad escape lane (advanced tier), reserved south of U_EFUSE
   - {name: efuse_escape, deny: [], layers: [F.Cu, B.Cu], rect: [48.0, 49.0, 62.0, 58.0]}
+  # eFuse WSON-8 0.5mm-pitch pad-entry region: PWR_IN trunk necks to enter the
+  # tiny pads (pin is the ampacity limit). Scoped floor 0.25mm here (nets.yaml
+  # scoped_floors); marker only (deny nothing).
+  - {name: efuse_padentry, deny: [], layers: [F.Cu, B.Cu], rect: [57.0, 43.5, 63.0, 47.5]}
 
 escape_corridors:
   - {ref: U_EXP, side: S, depth_mm: 5.0, layers: [F.Cu, B.Cu]}     # MCP23017 SSOP-28 dense side

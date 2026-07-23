@@ -19,6 +19,7 @@ classes:
     nets: [5V_IN, 5V_FUSED, 5V_RPP, 5V_PROTECTED]
     current: "2A worst-case"
     min_width: 0.5mm
+    clearance: 0.12mm
     routing: KRT wide / pour-assisted
     verify: DRC floor + E-INV input-protection series_chain (ADR-0001)
 
@@ -30,6 +31,7 @@ classes:
     nets: [5V_KEY_RELAY]
     current: 0.15A
     min_width: 0.4mm
+    clearance: 0.12mm
     routing: KRT; sourced only via the gated FET
     verify: DRC floor + E-INV coil-rail-through-gate series_chain (ADR-0002)
 
@@ -38,6 +40,7 @@ classes:
     nets: [3V3, 3V3_ANALOG]
     current: 0.35A
     min_width: 0.3mm
+    clearance: 0.12mm
     routing: KRT
     verify: DRC floor
 
@@ -49,6 +52,7 @@ classes:
     nets: [3V3_SW_A, 3V3_SW_B, 3V3_SW_RHA, 3V3_SW_RHE]
     current: 0.1A
     min_width: 0.3mm
+    clearance: 0.12mm
     routing: KRT
     verify: DRC floor
 
@@ -65,6 +69,7 @@ classes:
            U_SEL_BUS, D_SEL_BUS, RKEY_MID, RSTOP_MID]
     current: "signal (~mA emulated keypress)"
     min_width: 0.3mm
+    clearance: 0.12mm
     routing: isolated keypad zone; no plane; >=6mm to logic; milled slots
     verify: audit isolation gap + no GND net inside the keypad zone (E-INV/audit)
 
@@ -76,7 +81,8 @@ classes:
     nets: [TH_CAM_A, TH_CAM_B, TH_MOUNT_A, TH_MOUNT_B, TH_PORT_A, TH_PORT_B,
            TH_ENCLOSURE, TH_SPARE, TC_POS, TC_NEG, TCAM_THRESH]
     current: "uA-level sense"
-    min_width: 0.25mm
+    min_width: 0.249mm   # 0.249 not 0.25: absorbs KRT's ~200nm unit-rounding (writes 0.25mm as 249800nm); a uA sense line, electrically identical
+    clearance: 0.12mm
     routing: short, guarded, off the coil rail
     verify: DRC floor + P-ADJ keep_short
 
@@ -86,3 +92,12 @@ classes:
 #   are placed at the board stage (parity_padmap.txt) — so it is not classed here.
 # Everything else (SPI/I2C/shift-reg/enable/readback signals) rides the tier default
 # min_track (jlc_4layer_advanced) — no >1A net is left unclassed (canon R1).
+
+# SCOPED FLOOR (canon R1): the TPS259573 eFuse is WSON-8 0.5mm-pitch. The PWR_IN
+# trunk (0.5mm) MUST neck to enter its ~0.25mm pads; the eFuse PIN is the ampacity
+# limit there, not the trace. Relax the 0.5mm floor to 0.25mm ONLY inside the
+# efuse_padentry rule-area (floorplan keepout) for the two nets that touch the pads.
+# Outside the area the 0.5mm trunk floor still applies (KiCad last-match precedence).
+scoped_floors:
+  - {zone: efuse_padentry, nets: [5V_RPP, 5V_PROTECTED], min_width: 0.25,
+     why: "TPS259573 WSON-8 0.5mm-pitch pad entry necks the PWR_IN trunk to ~0.35mm; the eFuse pin is the current bottleneck, not the trace. Trunk stays >=0.5mm outside this area."}

@@ -16,4 +16,10 @@
   (constraint track_width (min 0.3mm)))
 (rule "ANALOG_SENSE_width"
   (condition "A.NetClass == 'ANALOG_SENSE'")
+  (constraint track_width (min 0.249mm)))
+(rule "scoped_efuse_padentry"
+  (condition "A.insideArea('efuse_padentry') && (A.NetName == '5V_RPP' || A.NetName == '5V_PROTECTED')")
   (constraint track_width (min 0.25mm)))
+(rule pad_rescue_stubs
+  (condition "A.insideArea('pad_rescue_stubs') && (A.NetName == 'GND' || A.NetName == '3V3')")
+  (constraint track_width (min 0.300mm)))
