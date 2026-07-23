@@ -1,0 +1,42 @@
+mpn: RT0603BRD074K12L
+manufacturer: Yageo
+type: resistor_thinfilm_precision   # LM5116 buck-C FB-top (R12), v1.2 LOCAL-SENSE: 3.92k->4.12k @0.1%
+datasheet: {doc_id: RT_series, revision: series/LCSC, url: "https://www.lcsc.com/", sha256: null, fetched: 2026-07-23}
+package: "0603 (1608 metric)"
+footprint: Resistor_SMD:R_0603_1608Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
+pins: {1: A, 2: B}
+limits: {R: "4.12k ohm", tol: "B +-0.1%", tcr: "+-25ppm/C", power: "0.1W (0603)"}
+gotchas:
+  - "v1.2 LOCAL-SENSE fix (journal 03_schematic_v1.2): buck-C FB-top moved from
+     3.92k (which the v1.1 VBUSC connector-sense used for a 5.151V connector) to
+     4.12k, and the FB now senses the LOCAL 5VC node. LM5116 Vref = 1.215V,
+     FB-bot R13 = 1.21k (UNCHANGED). Vout = 1.215*(1+Rtop/1.21):
+       4.12k -> 5VC = 5.352V (local, regulated). Connector = 5VC - eFuse+FET IR
+       (~34mOhm typ) = ~5.18V typ / ~5.11V hot @5A (>=5.03V quadruple-worst)."
+  - "WHY 4.12k (not 4.06k nominal for exactly 5.30V): 4.06k is not an E96 0.1%
+     value. 4.02k (E96) -> 5.252V (below the 5.30-5.35V target); 4.12k (E96) ->
+     5.352V (in target). 4.12k chosen. Do NOT substitute the 3.92k FB (C728591):
+     that yields 5.151V local -> connector ~4.98V @5A and RE-OPENS the runaway/low-V
+     concern. buck-A R3 STAYS 3.92k (C728591): its 5VA output has no eFuse and a
+     tighter USB-A +5% ceiling (5.25V), so raising it would over-volt USB-A."
+  - "0.1% (not 1%) preserves connector worst-corner margin: at 1% the Vref-worst-low
+     + hot-eFuse connector corner is ~5.00V vs ~5.03V at 0.1%. Vref +-1.5% still
+     dominates absolute accuracy. qty 1/board (R12)."
+  - "The tsx sets NO EXPLICIT jlcpcb code for R12 (unlike buck-A R3=C728591)
+     because JLC 0.1%-4.12k-0603 stock is unverifiable in the sealed env and
+     baking the 3.92k code would silently order the wrong value. tscircuit then
+     VALUE-resolves R12 (4.12k / 0603) to JLC candidates (C2933210 / C23016 /
+     C860375 in circuit.json — all 4.12k, NOT 3.92k), so the BOM already gets the
+     correct VALUE. Those candidates are JLC 1% basic parts; FAB should confirm
+     whether to hold the 0.1% (this MPN, for the tighter connector corner) or
+     accept the auto-picked 1% — see the gotcha above (1% -> ~5.00V worst corner)."
+verified: "value part (4.12k 0.1% 25ppm 0603); 2-pad passive - 2026-07-23"
+sourcing:
+  lcsc: null   # UNVERIFIED IN SEALED ENV - confirm/assign at order (pre-order flag)
+  alternates: []
+  note: "JLC 0.1% 4.12k 0603 stock unverified in-env. RT0603BRD074K12L is the
+    authoritative MPN. If 0.1% is OOS at order, fall back to a 1% 4.12k 0603
+    (widely stocked, JLC BASIC) accepting the ~30mV-tighter connector corner
+    noted above; do NOT fall back to 3.92k. Confirm LCSC + stock at order (matches
+    the v1.1 divider-code confirm-at-order practice)."

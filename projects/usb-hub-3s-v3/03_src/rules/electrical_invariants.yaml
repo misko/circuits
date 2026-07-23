@@ -12,6 +12,15 @@
 # path, so a returning PD pass-FET/PHY (which would put a different net on the J5
 # VBUS pads, or drive CC actively instead of via a fixed Rp) still breaks them.
 #
+# v1.2 change (journal 03_schematic_v1.2) — a DO-NOT-ORDER red-team of v1.1 found
+# two ORDER-BLOCKERS; the invariants below add the fixes (kinds #5-#9, 29 total):
+#   - buck-C FB moved OFF post-eFuse VBUSC back to the LOCAL 5VC output (R12.1 on
+#     5VC) — kills the FB-integrator runaway (5VC can no longer wind toward VIN).
+#   - eFuse FLT -> buck-C EN_C (U13.15 on EN_C); buck-C EN un-merged from ENKILL
+#     (U11.4 on EN_C) with a D6 EN_C->ENKILL master-off coupling diode.
+#   - SHDN abs-max (5.5V) protection: divider + Zener CLAMP D5 on SHDNC.
+#   - 5VC ceiling clamp D7 on 5VC (protect the 10V output caps).
+#
 # NOTE on ADR-0001 invariant #1 ("no pd_source_controller part"): the E-INV
 # checker has no absence kind. The PD cell's ABSENCE is enforced POSITIVELY: the
 # J5 VBUS pads are the eFuse OUTPUT (VBUSC), the eFuse INPUT is the buck rail
@@ -51,8 +60,51 @@ invariants:
      why: "CC2 Rp pulls up to the protected 5V source rail (VBUSC)"}
   - {assert: net_has_part, net: "CC1", part_type: "resistor", adr: 0001,
      why: "CC1 carries a passive Rp resistor, not a PD-controller CC driver"}
-  # --- v1.1 #5: MASTER-OFF merges both LM5116 EN pins onto one kill bus (ENKILL) ---
+  # --- v1.2 #5: MASTER-OFF (ENKILL) + buck-C EN UN-MERGED to EN_C (fault-isolate) ---
+  # v1.2 (journal 03_schematic_v1.2): buck-C EN is un-merged from ENKILL onto its
+  # own net EN_C so the eFuse FLT flag can shut ONLY buck-C on a C-port fault. The
+  # master switch still reaches buck-C via the D6 EN_C->ENKILL coupling diode.
   - {assert: pin_on_net, pin: "U2.4", net: "ENKILL", adr: 0001,
-     why: "buck-A EN on the merged master-off bus (SW1 grounds it -> both bucks off)"}
-  - {assert: pin_on_net, pin: "U11.4", net: "ENKILL", adr: 0001,
-     why: "buck-C EN on the merged master-off bus ENKILL"}
+     why: "buck-A EN on the master-off bus ENKILL (SW1 grounds it -> buck-A off)"}
+  - {assert: pin_on_net, pin: "U11.4", net: "EN_C", adr: 0001,
+     why: "v1.2: buck-C EN on its OWN net EN_C (un-merged from ENKILL) so FLT shuts only buck-C"}
+  - {assert: pin_on_net, pin: "SW1.2", net: "ENKILL", adr: 0001,
+     why: "master switch COM on ENKILL — grounding it kills buck-A directly and buck-C via D6"}
+  - {assert: pin_on_net, pin: "D6.1", net: "ENKILL", adr: 0001,
+     why: "v1.2: D6 cathode (pad1) on ENKILL -> when ENKILL is grounded, D6 forward-pulls EN_C low (master-off reaches buck-C)"}
+  - {assert: pin_on_net, pin: "D6.2", net: "EN_C", adr: 0001,
+     why: "v1.2: D6 anode (pad2) on EN_C -> on an FLT fault (EN_C low, ENKILL high) D6 is REVERSE so buck-A/SHDN are unaffected"}
+
+  # --- v1.2 #6: buck-C FB senses LOCAL 5VC, NOT post-eFuse VBUSC (RUNAWAY fix) ---
+  - {assert: pin_on_net, pin: "R12.1", net: "5VC", adr: 0001,
+     why: "v1.2 LOCAL-SENSE: buck-C FB-top (R12) senses the LOCAL 5VC buck output, not VBUSC. The v1.1 VBUSC sense let the FB integrator wind 5VC toward VIN when the eFuse limited/opened; local sense makes 5VC unconditionally regulated. A return to connector-sense would put R12.1 back on VBUSC and break this."}
+
+  # --- v1.2 #7: eFuse FLT (open-drain, active-low) -> buck-C EN_C fault shutdown ---
+  - {assert: pin_on_net, pin: "U13.15", net: "EN_C", adr: 0001,
+     why: "v1.2 Fix 2: eFuse FLT (pin15, active-low) drives buck-C EN_C -> an eFuse fault (UV/OV/overload/reverse/ILIM-short/thermal) shuts buck-C so it cannot source 5VC into a faulted eFuse"}
+
+  # --- v1.2 #8: SHDN abs-max protection = 5VC divider + HARD Zener clamp D5 ---
+  # The v1.1 bare 0.6-ratio 5VC divider put SHDN = 7.56V on a 12.6V fault (> the
+  # 5.5V SHDN abs-max). v1.2 keeps a re-valued divider (enable level) and adds D5
+  # (Zener, cathode on SHDN) that CLAMPS SHDN <~3.7V under any 5VC over-voltage.
+  # (No NFET: an ENKILL-gated pulldown has wrong polarity — ENKILL is active-high
+  # when on — so it would disable the eFuse in normal operation; the clamp is the
+  # sanctioned fix and 5VC-collapse still provides master-off.)
+  - {assert: pin_on_net, pin: "R33.1", net: "5VC", adr: 0001,
+     why: "SHDN enable-bias divider top R33 on 5VC (ties eFuse-enable to buck-C presence; master-off 5VC collapse drops SHDN)"}
+  - {assert: pin_on_net, pin: "R33.2", net: "SHDNC", adr: 0001,
+     why: "SHDN divider mid-node on SHDNC (with R36 to GND -> 2.97V normal enable, >2V SHUTR)"}
+  - {assert: pin_on_net, pin: "D5.1", net: "SHDNC", adr: 0001,
+     why: "v1.2 Fix 3: D5 Zener CATHODE (pad1) on SHDN clamps SHDN <5.5V abs-max under a 12.6V 5VC fault (the actual blocker fix)"}
+  - {assert: pin_on_net, pin: "D5.2", net: "GND", adr: 0001,
+     why: "D5 anode (pad2) on GND — Zener clamp reference"}
+  - {assert: net_has_part, net: "SHDNC", part_type: "diode", adr: 0001,
+     why: "SHDN carries a clamp diode (D5) — asserts the abs-max ceiling clamp is present, not a bare divider"}
+
+  # --- v1.2 #9: LOCAL 5VC CEILING CLAMP D7 (protect the 10V output caps) ---
+  - {assert: pin_on_net, pin: "D7.1", net: "5VC", adr: 0001,
+     why: "v1.2 Fix 4: D7 Zener CATHODE (pad1) on 5VC caps the rail <~6.8V if the loop loses regulation, protecting the 100uF/10V output caps + eFuse IN_SYS/OVP"}
+  - {assert: pin_on_net, pin: "D7.2", net: "GND", adr: 0001,
+     why: "D7 anode (pad2) on GND — 5VC clamp reference"}
+  - {assert: net_has_part, net: "5VC", part_type: "diode", adr: 0001,
+     why: "5VC carries a ceiling-clamp diode (D7)"}

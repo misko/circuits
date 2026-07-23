@@ -3,9 +3,13 @@
 # PLUS 2 CC Rp pull-ups (R28, R29) = 100 (v1.0). v1.1 ADDS 15: eFuse cell (U13
 # TPS26631, Q6 AON6354 block-FET, Q7 BSS138 gate-pulldown, R30 ILIM, R31/R32 OVP
 # div, R33/R36 SHDN div, C51 dVdT, C52 IN-byp), SW1 master-off, 2x SW snubber
-# (R34/C53 buck-A, R35/C54 buck-C) = 115 components. tsci drops parts SILENTLY
-# (alphanumeric pads etc.) — this file is the only artifact that disagrees after a
-# silent drop.
+# (R34/C53 buck-A, R35/C54 buck-C) = 115 components.
+# v1.2 ADDS 3 (schematic revision, journal 03_schematic_v1.2): D5 (BZT52C3V9 SHDN
+# ceiling clamp), D6 (1N4148WS EN_C->ENKILL master-off coupling diode), D7
+# (BZT52C6V2 5VC ceiling clamp) = 118 components. (No new NFET; the runaway/SHDN
+# blocker fixes re-use existing R12/R33/R36 with new values + the FLT->EN_C net.)
+# tsci drops parts SILENTLY (alphanumeric pads etc.) — this file is the only
+# artifact that disagrees after a silent drop.
 components: [
   J1, J2, J3, J4, J5, F1,
   U2, U3, U4, U5, U6, U7, U8, U9, U10, U11, U12,
@@ -21,4 +25,5 @@ components: [
   U13, Q6, Q7, SW1,
   R30, R31, R32, R33, R34, R35, R36,
   C51, C52, C53, C54,
+  D5, D6, D7,
 ]
