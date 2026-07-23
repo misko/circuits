@@ -136,3 +136,103 @@ corner mounts (not the Pi HAT holes). Recorded in 2.54-2x20PPC104/part.yaml layo
 - Analog spine sits ~12mm S of the south reed coils (not a central firewall, since the
   2-row strip forces coils on both sides). Mitigations: ferrite-split 3V3_ANALOG rail,
   one-at-a-time reed firing, firmware sampling between key presses. Watch at review.
+
+---
+
+# REDO (D-BACK from routing, 2026-07-23)
+
+Routing D-BACK (`routing_cooksense.md`) proved the 2-row center-strip floorplan
+UNROUTABLE: two independent fatal defects. This redo fixes both **placement-only,
+NO schematic change**.
+
+## Defect 1 — J_PI off-board (was invisible to the audit)
+
+J_PI (2x20, 48mm body) at old anchor [102,111,0] laid its body along +Y with
+pads y111..159, but the board ended at y116 -> 34/40 pins 1..43mm OFF the south
+edge. `audit_board` PASSED it because I-EDGE only measures the connector MOUTH
+gap. **Added I-OUT** (pads-inside-outline, minus 0.15mm edge clr) to
+`audit_board.py`; **proved it RED** on a known-bad fixture (shoved J_MODE 11mm off
+the east edge -> `AUDIT FAIL, 7 pads OFF the board, exit 1`), then restored.
+J_PI now rot90 (body ALONG the south edge) @ [98,95,90]: **40/40 pads on-board**,
+body x98..146, south-edge gap 2.7mm.
+
+## Defect 2 — ~26 logic N/S crossings vs ~6 corridor  =>  CONSOLIDATE (0 crossings)
+
+Root cause: the CENTER keypad strip walled the logic into N & S; ~26 logic nets
+crossed 2 sub-3mm creepage lanes. FIX per spec: **eliminate the split** — put ALL
+SELV logic on ONE side. Reed geometry forces the choice: each DIP05 reed is 19.9mm
+on its long (barrier-perpendicular) axis, so a single coils-one-side row of 12 is
+~239mm wide; a 2-row band ALWAYS re-splits one domain (verified: contacts-inward
+=> coils split N/S; both-coils-south => the mid-band interleaves keypad/logic).
+The only zero-crossing topology is a **single reed row**, so the board is GROWN
+(spec: "GROW rather than re-split").
+
+New topology (**252 x 92 mm**, was 154 x 100):
+- **NORTH (y<34)** = keypad domain ONLY: J_KEY_MATRIX (W peninsula) + reed
+  CONTACTS + U/D-sel buses + RKEY/RSTOP. Isolated, GND_ISO only, no plane.
+- **REED BAND (y29..39)** = 12 reeds in ONE row @ **rot90** (empirically
+  coilS/contactN; verified K_D1 pad3 y30.2 contact / pad1 y37.8 coil), pitch 20mm,
+  x28..248. Order U1..U6,D1,D2 | D3,D4,PRESS,STOP so ULN_A (reeds 1-8) & ULN_B
+  (reeds 9-12) sit contiguous just south of the coils. 11 milled inter-reed slots.
+- **SOUTH (y>40)** = ALL logic: power (SW) -> drive chain 2x595->2x'238+1G123->
+  ULN_A/ULN_B -> coils (center) ; MCP23017 + TPS3823 + J_PI (center-S) ; HC14 +
+  AND-chain + fault-latch + Q_COIL (E, by the discrete inputs) ; analog spine
+  MCP3208/LM393/MAX31856 + switched rails A/B (SW) ; RH rails (SE).
+
+Both ULN_A and ULN_B are now SOUTH; every reed coil faces south; NO ULN channel
+reassignment -> **schematic UNCHANGED** (ULN_A still drives U1-6,D1,D2; ULN_B
+D3,D4,PRESS,STOP; netlist byte-identical).
+
+## Iterations (measured)
+
+1. New floorplan (single row, all-logic-south, 252x92). Generate FAILED: added
+   body_offset asserts on J_TC/J_LOADCELL/J_PI — SYMMETRIC parts (body centroid ==
+   pad centroid), offset +0.00 => always fail. Removed those 3 (kept the
+   asymmetric side-entry ones J_THERM_A/B, J_RH_A/E->y+, J_MODE/ESTOP/DOOR).
+   Re-gen: 189 placed, 33 asserts pass, 119 legalized.
+2. Audit: I-OUT caught **J_PWR.MP 3.0mm off the west edge** (Micro-Fit MP pad);
+   I-PROX **C_LDOOUT 11mm from U_LDO** (crowded corner). Fixed: J_PWR ->[22,48],
+   LDO locals -> `near U_LDO`.
+3. P-CRT = **12 courtyard findings**. Causes: (a) J_PI courtyard extends +50mm
+   EAST of its anchor -> overlapped J_LOADCELL; re-anchored J_PI 122->98. (b) the
+   B5B-XH THT J_LOADCELL had its D_LC*/R_LC* locals on its pads (8x pth_inside_
+   courtyard + shorts); moved J_LOADCELL ->182, reseeded locals clear north.
+   (c) anchored power parts too close (J_PWR/U_LDO, D_REVCLAMP/F1); respaced from
+   measured courtyards. => **P-CRT 12 -> 0**.
+4. 2x items_not_allowed: R_EXPRST & D_TVS sat in the U_EXP / U_EFUSE S escape
+   corridors. Moved R_EXPRST W of U_EXP, D_TVS S of the eFuse escape. => **0**.
+5. P-SILK-FN: F1 lost its functional caption (I'd moved "5V SELV IN" >8mm).
+   Repositioned caption to [39,42] (4.5mm from F1). => PASS.
+
+## FINAL GATE (measured, on 04_kicad/cooksense.kicad_pcb)
+
+- **audit_board.py: AUDIT PASS** — 18 polarity, 26 proximity, 13 edge, **I-OUT
+  all pads inside (tightest 0.35mm)**, **I-ISO 8.98mm (>=6)**, 0 strip intruders,
+  193 silk. (I-OUT proven RED on a known-bad fixture.)
+- **N/S isolation crossings: LOGIC = 0, KEYPAD = 0** (corridor cap ~6). 0 logic
+  pads north of the boundary, 0 keypad pads south, 0 GND pads in the keypad zone,
+  0 copper pours enter y<39 (isolation held by construction).
+- **policy_audit: P-LAYOUT PASS, P-ADJ WAIVED** (same board-wide-rail budget
+  waiver as v1: 3V3/5V_PROTECTED/TH_CAM spans geometrically unreachable),
+  **P-CRT PASS (0 courtyard), P-ESC/P-TIER/P-POL/P-KEEP/P-SILK-* PASS**.
+- kicad-cli DRC --severity-error = **0**; --severity-all = 104 (ALL silk
+  warnings: silk_over_copper 50 / silk_edge_clr 48 / overlap 4 / thick 2 —
+  cosmetic, resolved at fab silk-finalization) + 372 unconnected (unrouted).
+- J_PI **40/40 pads on-board**. Board 252 x 92 mm, 4-layer, 48 Edge.Cuts items
+  (outline + 11 isolation slots), 4 M2.5 holes.
+- PRESERVED: >=6mm creepage (8.98), 11 milled slots, keypad_iso deny-pours (no
+  plane in band), no GND_ISO<->GND bridge, MCP23017 (esc_U_EXP_S) + TPS259573
+  (esc_U_EFUSE_S) escape corridors, AMS1117 tab U_LDO.4=3V3 + eFuse EP U_EFUSE.8=GND.
+
+## Out-of-placement-scope FAILs (unchanged, other stages)
+
+S-VER (parts datasheet citations), R-DRC (unrouted: 372 unconnected + silk
+warnings), R-THERM (U_LDO.4 tab thermal vias — route/stitch), E-OFF (ADR-0006
+de-energization — schematic), M-REPRO (rebuild_all.sh — pipeline). None are
+placement defects.
+
+## Note for the shared-checker harvest
+
+I-OUT (pads-inside-outer-outline, minus edge clr, with a known-bad fixture) is the
+guard that would have caught this D-BACK. It checks the OUTER outline only; pad-in-
+milled-slot clearance is left to DRC copper_edge_clearance. Harvest-ready.

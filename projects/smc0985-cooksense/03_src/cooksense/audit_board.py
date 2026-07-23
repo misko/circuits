@@ -17,6 +17,8 @@ re-read from the LIVE board (catches a stale 04_kicad vs 03_src):
           coil<->contact 7.62mm gap is the rated 1.5kVDC barrier, so intra-
           footprint pairs are excluded), AND no logic/GND pad sits inside the
           keypad strip, AND the strip carries NO copper pour (no plane).
+  I-OUT   every footprint pad sits inside the board outline (minus a small
+          edge clearance) — the J_PI-off-board guard I-EDGE cannot see.
   I-SILK  every placed part has a visible refdes (F.SilkS, or F.Fab when the
           generator waived a crowded one — evidence in refdes_waiver.json).
 
@@ -34,8 +36,10 @@ KEYPAD_NETS = {"KP_U1","KP_U2","KP_U3","KP_U4","KP_U5","KP_U6",
                "KP_D1","KP_D2","KP_D3","KP_D4",
                "U_SEL_BUS","D_SEL_BUS","RKEY_MID","RSTOP_MID"}
 ISO_GAP_MM = 6.0                       # brief §4/§7 coil-side <-> keypad-copper creepage
-# keypad strip rectangle (x0,y0,x1,y1) — no logic/GND pad, no pour inside
-STRIP = (16.0, 50.0, 160.0, 76.0)
+# keypad strip rectangle (x0,y0,x1,y1) — the NORTH isolated band (contacts +
+# buses + J_KEY, y<35). Reed COIL pads (logic, y37.8) sit SOUTH of it. No
+# logic/GND pad, no pour inside. (REDO 2026-07-23: keypad moved N, logic S.)
+STRIP = (12.0, 10.0, 264.0, 35.0)
 
 # ---- I-POL: (ref -> (pad, expected net)) — pad numbers are PHYSICAL pads -----
 POLARIZED = {
@@ -78,9 +82,9 @@ PROX = [
 EDGE = [
     ("J_PWR","W",4.0), ("J_KEY_MATRIX","W",4.0),
     ("J_THERM_A","S",4.0), ("J_THERM_B","S",4.0), ("J_TC","S",4.0), ("J_PI","S",4.0),
+    ("J_LOADCELL","S",4.0), ("J_RH_AMBIENT","S",4.0), ("J_RH_EXHAUST","S",4.0),
     ("J_MODE","E",4.0), ("J_ESTOP","E",4.0), ("J_DOOR","E",4.0),
-    ("J_CONTACTOR","E",4.0), ("J_LOADCELL","E",4.0),
-    ("J_RH_AMBIENT","E",4.0), ("J_RH_EXHAUST","E",4.0),
+    ("J_CONTACTOR","E",4.0),
 ]
 
 
@@ -122,6 +126,32 @@ def main():
         gap = {"W": L-BX0, "E": BX1-R, "N": T-BY0, "S": BY1-Bo}[edge]
         if gap > tol:
             fails.append(f"I-EDGE {ref} body {gap:.1f}mm from {edge} edge (max {tol})")
+
+    # ---------- I-OUT : every pad inside the board outline (minus clearance) ----------
+    # Catches the J_PI-class defect the I-EDGE mouth-check is BLIND to: a
+    # footprint whose body/pads hang OFF the board edge. (Routing D-BACK
+    # 2026-07-23: J_PI 2x20 laid its 48mm body off the south edge, 34/40 pins
+    # 1..43mm off-board, yet audit PASSED because I-EDGE only measures the
+    # connector MOUTH gap, not whether the far pads are on copper.) Being
+    # harvested to the shared checker; kept here so the redo self-verifies.
+    OUT_CLR = 0.15                          # min pad-copper-to-outer-edge margin (mm)
+    owm, oarg = 1e9, None
+    for f in b.GetFootprints():
+        r = f.GetReference()
+        for p in f.Pads():
+            pb = p.GetBoundingBox()
+            L,T,R,Bo = MM(pb.GetLeft()),MM(pb.GetTop()),MM(pb.GetRight()),MM(pb.GetBottom())
+            m = min(L-BX0, BX1-R, T-BY0, BY1-Bo)     # signed margin to nearest board edge
+            if m < owm: owm, oarg = m, f"{r}.{p.GetNumber()}"
+            if m < 0.0 - 1e-6:
+                fails.append(f"I-OUT {r}.{p.GetNumber()} pad {(-m):.1f}mm OFF the board outline "
+                             f"(bbox L{L:.1f} T{T:.1f} R{R:.1f} B{Bo:.1f}; board "
+                             f"[{BX0:.0f},{BY0:.0f},{BX1:.0f},{BY1:.0f}])")
+    if oarg is not None:
+        if 0.0 <= owm < OUT_CLR:
+            fails.append(f"I-OUT tightest pad-to-edge {owm:.2f}mm ({oarg}) < {OUT_CLR}mm clearance")
+        else:
+            notes.append(f"I-OUT all pads inside outline; tightest margin {owm:.2f}mm ({oarg})")
 
     # ---------- I-ISO : the keypad-isolation guard ----------
     kp, lg = [], []
@@ -188,7 +218,8 @@ def main():
         for x in fails: print("  ", x)
         sys.exit(1)
     print(f"AUDIT PASS: {len(POLARIZED)+len(RELAY_CONTACT)} polarity, {len(PROX)} proximity, "
-          f"{len(EDGE)} edge, I-ISO gap {gmin:.2f}mm (>= {ISO_GAP_MM}), "
+          f"{len(EDGE)} edge, I-OUT tightest {owm:.2f}mm (>= {OUT_CLR}), "
+          f"I-ISO gap {gmin:.2f}mm (>= {ISO_GAP_MM}), "
           f"0 strip intruders, {len(fps)} silk")
 
 
