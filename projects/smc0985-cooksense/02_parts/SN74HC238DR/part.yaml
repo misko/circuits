@@ -69,17 +69,21 @@ layout_refs:
   - "TI SN74HC238 D2804 (mfr datasheet: pinout figure p.2-299 + function table p.2-301)"
   - "SN74HC138DR SCLS107G (the active-LOW sibling on this board's shared library -- identical land/placement)"
 sourcing:
-  lcsc: ""                            # SN74HC238DR IS JLC-stocked (verified 2026-07-22 via JLCPCB parts
-                                      # search: 2671 units @ ~$0.165 + a 452-unit listing), but the exact
-                                      # genuine-TI LCSC C-code could NOT be extracted here (LCSC/EasyEDA/
-                                      # JLC parts APIs unreachable in this sandbox 2026-07-22). Fill the
-                                      # C-code from jlcpcb.com/parts at order time -- this is a HAND/CONFIRM
-                                      # line until then, NOT a blocker to the schematic gate (FPID resolves
-                                      # from this part.yaml's footprint via the dir/MPN key).
-  alternates: [MC74HC238ADR2G]        # onsemi MC74HC238ADR2G: same-function active-HIGH 3-to-8 decoder,
-                                      # SOIC-16 drop-in (RS/Octopart listed) -- reputable 2nd source for the
-                                      # SAFETY one-hot decoder (keeps the reputable-silicon rule the '138/'139
-                                      # and ULN2803 followed; the ultra-cheap house clones are NOT for this chain).
+  lcsc: C5620                         # P1-C FILL (2026-07-23): genuine TI SN74HC238DR (SOIC-16 "DR") is NOT
+                                      # NOTE unquoted: load_part_overrides/ties key on `lcsc:\s*[A-Za-z0-9]+`,
+                                      # which a leading quote breaks -> C5620 would not resolve the FPID (189->187).
+                                      # verifiably JLC/LCSC-stocked (no LCSC product page / datasheet mirror;
+                                      # a "SN74HC238DR(LX)" lingxingic CLONE exists -- NOT for this SAFETY
+                                      # chain). C5620 = Nexperia 74HC238D,653: SOIC-16, ACTIVE-HIGH 3-to-8
+                                      # decoder, function/pin/land IDENTICAL to the '238, ~5385u in stock
+                                      # ~$0.10 -- a reputable-silicon 2nd source (Nexperia, keeps the "no clone
+                                      # houses on the safety one-hot" rule). MANUFACTURER SUBSTITUTION: the BOM
+                                      # ships Nexperia, not TI. onsemi SOIC-16 MC74HC238ADR2G had no verifiable
+                                      # C-code; its TSSOP MC74HC238ADTR2G=C904037 is the WRONG package.
+  mfr_substituted: "Nexperia 74HC238D,653 (C5620) -- genuine TI SN74HC238DR not JLC-stocked; pin/function/land drop-in"
+  alternates: [MC74HC238ADR2G, "74HC238D (Nexperia, C5620)"]  # onsemi MC74HC238ADR2G: same-function active-HIGH
+                                      # 3-to-8 decoder, SOIC-16 drop-in (RS/Octopart listed) -- reputable 2nd
+                                      # source; Nexperia 74HC238D = the actually-stocked one now in `lcsc`.
   note: "SN74HC238DR SOIC-16, genuine TI -- ACTIVE-HIGH 3-to-8 decoder, the pin-compatible replacement for the
     SN74HC138/'139 at the ULN2803 interface (decoder-fix ADR-0002, 2026-07-22). JLC-stocked (2671u ~$0.165,
     2026-07-22); confirm the LCSC C-code + Basic/Extended at order. Do NOT commit stock. Two placed:

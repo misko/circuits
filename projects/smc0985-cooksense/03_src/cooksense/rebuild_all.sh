@@ -55,6 +55,9 @@ fi
 echo "== 5/7 import chain into track-free board =="
 $PY "$S/route_and_stitch_generic.py" import "$RT" --root "$PROJ"
 
+echo "== 5a/8 tie U_EFUSE EP unnamed sub-pads -> GND (P1-A EP thermal path) =="
+$PY "$PROJ/03_src/cooksense/tie_efuse_ep.py" "$PROJ"
+
 echo "== 5b/8 unfill stale generate_board zone fills (pre-`fill` passes incl."
 echo "        seed_stubs must start from UNFILLED zones; `fill` refills at the end) =="
 $PY - "$PROJ/04_kicad/cooksense.kicad_pcb" <<'PYUNFILL'

@@ -181,8 +181,13 @@ grind then moved from "can it route" to "can every plane pad reach its plane".
 - `kicad-cli pcb drc --severity-all --refill-zones` = **0 violations**
   (clearance 0, shorts 0, copper_edge 0, hole_clearance 0, hole_to_hole 0,
   track_width 0, starved_thermal 0, via_dangling 0; cosmetic silk_over_copper/
-  silk_edge/silk_overlap/text_thickness set to `ignore` — documented policy,
-  fleet convention, fab silk-finalization).
+  silk_edge/silk_overlap/text_thickness set to `ignore`).
+  CORRECTION (2026-07-23, red-team): calling class-`ignore` "fleet convention"
+  was BACKWARDS. The fleet standard is silk DE-COLLISION + an EVIDENCED per-class
+  WAIVER (canon M4), NOT a silent global severity=ignore — a blanket ignore also
+  blinds the gate to a REAL silk-over-PAD (it swallowed the ANALOG SENSE label
+  clipping U_ADC pads 1&16, now relocated). See the finishing-pass entry + the
+  silk waivers in policy_waivers.yaml.
 - **unconnected = 3** — all GND pads of ADC-front-end filter/vref caps
   (C_ADCV.2 @48.8,70 ; two C_FLT*.2 @52.5,81 and 59.3,82.4). D-ADJ RESIDUAL:
   the 8-channel ADC front-end (24 parts near U_ADC) is dense enough that ADC-
@@ -296,3 +301,232 @@ grind then moved from "can it route" to "can every plane pad reach its plane".
   skills/references/proven-parts.yaml change in the tree is a concurrent
   usb-hub-3s-v3 polyfuse harvest by another session — NOT mine, left untouched.
 - STOP at routing gate. Hand to orchestrator for independent verify + commit.
+
+---
+
+## 2026-07-23 — RED-TEAM FIX PASS (P1-A/B/C + finishing) — progress + HANDOFF
+
+Scope: orchestrator's fresh red-team returned NO P0 but 3 gate-invisible P1s +
+a finishing checklist. All work projects/smc0985-cooksense/-scoped.
+
+### DONE + VALIDATED
+- **P1-A (U_EFUSE EP floating)** — RESOLVED via the landed converter feature
+  (`circuit_json_to_kicad_sch.py load_part_ties`, orchestrator's other agent,
+  commit 1feb4f2): the TPS259573 part.yaml `9: {tie: GND}` now emits an EP->GND
+  symbol pin. MEASURED: netlist now has `U_EFUSE pin 9 -> GND` (675->685 pins);
+  after the batched rebuild the board EP (pad 9 = GND) is CONNECTED (NOT in the
+  DRC unconnected list). `tie_efuse_ep.py` (new, board-side, wired into
+  rebuild_all.sh step 5a) GND-ties the 2 UNNAMED EP sub-pads (0 parity impact).
+  EP THERMAL VIAS: pad_rescue placed 1 via-in-pad in the EP; power_stitch's 2
+  sites [60,44.4],[60,45.6] were REFUSED (need FALLBACK — see OPEN #2).
+- **P1-B (keypad creepage 4.35mm < 6mm + checker blind spot)**:
+  * `audit_board.py` I-ISO is now TRACK/VIA-AWARE (`iso_min_creepage`, same-surface
+    copper-edge distance over tracks+vias+pads). It FAILS at 4.35mm on the pre-fix
+    board (matches red-team exactly) and has a `--selftest` KNOWN-BAD (injects a
+    barrier track -> 1.40mm). The K_D4 hotspot IS FIXED by the re-route (User.2
+    keepout y1 36->37.0, User.3 y0 34.5->31.0) -- the checker on the batched board
+    no longer flags K_D4.
+  * DRC-ENFORCEMENT (part c): floorplan `iso_barrier` deny-tracks/vias keepout
+    [12,31.05,264,36.95] -- a barrier intrusion now fails kicad DRC.
+- **P1-C**: genuine TI SN74HC238DR NOT JLC-stocked; filled `lcsc: C5620` =
+  Nexperia 74HC238D,653 (SOIC-16 active-HIGH drop-in), flagged mfr substitution.
+- Finishing: ANALOG SENSE silk relocated y65.0->64.0 (was clipping U_ADC pads
+  1&16); journal "fleet convention" claim corrected.
+
+### BATCHED RE-RUN (2026-07-23 ~14:22) — MEASURED, and what it surfaced
+Ran gen_tscircuit (netlist regen w/ converter) -> rebuild_all.sh --reroute.
+Route: race 3/3 CLEAN (0/0) EVEN WITH the tightened isolation keepouts + all 10
+ADC-cap reservations + the EP reservation. **DRC = 0 viol / 5 UNCONNECTED / 0
+parity.** The 5 opens split into TWO causes:
+
+1. **J_KEY_MATRIX.MP = GND (3 MP opens + 2 GND-zone opens) — CONVERTER-SIDE-EFFECT
+   ISOLATION REGRESSION, now ROOT-CAUSE FIXED.** The new converter tie-emission
+   ALSO emits the JST-GH `MP: {tie: GND}` annotations. For the ISOLATED keypad
+   connector (J_KEY_MATRIX = SM10B, the ONLY SM10B on the board), that bridges
+   SELV GND into the keypad zone -- MP=GND at y12.5 inside the strip, 0.43mm from
+   keypad copper (the fixed I-ISO caught it: "2 logic pad(s) inside keypad strip").
+   MEASURED: GND_ISO does NOT exist as a net (the matrix is a floating KP_*/SEL_BUS
+   domain), so MP MUST FLOAT. FIX APPLIED: `02_parts/SM10B-GHS-TB/part.yaml` MP
+   `tie: GND` REMOVED (MP floats; retention only). Restores pre-converter behaviour
+   for this connector. SM05B/SM08B MP=GND stay correct (SELV-side).
+2. **C_FLT5.2, C_FLT2.2 (GND), U_FAULTAND.6 (3V3) opens** — all THREE have CLEAR
+   via-in-pad sites now (via_site_ok OK), so they are stitch-level, not routing.
+   Suspect: via_janitor removed 25 single-layer vias (vs 6 pre-batched) BEFORE the
+   first fill, possibly pruning legit plane vias; OR the GND-net fragmentation from
+   J_KEY.MP=GND perturbed connectivity. Likely (partly) clears once #1 is fixed.
+
+### OPEN — runbook for the continuation (single batched re-run + verify)
+1. Re-run gen_tscircuit (netlist) -> confirm `J_KEY_MATRIX pin MP` is GONE from
+   GND (floats). Then rebuild_all.sh --reroute -> DRC.
+2. If C_FLT2/5 / U_FAULTAND.6 still open: they have clear sites -> try moving
+   `via_janitor` to AFTER the first `fill` in stitch.passes (so it sees filled
+   zones), or drop via_janitor and rely on prune_stitch_dangling. Re-stitch only
+   (reuse route) to iterate cheaply.
+3. EP thermal vias (FALLBACK ladder, orchestrator-approved): pad_rescue gives 1
+   via. If >=2 wanted, take fallback (a): confirm the EP reservation cleared the
+   5V_PROTECTED B.Cu trunk, then re-aim power_stitch sites at the cleared EP
+   top/bottom; else fallback (b): accept the 1 via + F.Cu GND-pour EP bond + a
+   thermal note. Document which.
+4. EVIDENCED WAIVERS (write against the FINAL board): P-PLANE (In1 GND heal-island
+   bridges = same-net pour bridges, not splits), R-POUR (5V_* 0.5mm PWR_IN tracks:
+   ~1.5A worst-case << 0.5mm/1oz ampacity ~1.8A@10C; eFuse Ilim caps fault), E-OFF
+   (FALSE POSITIVE -- NO battery/cell on this board; the only source is the external
+   5V SELV Micro-Fit; relay coils de-energise on power loss = fail-safe -> N-A),
+   P-ADJ +TH_CAM_A/B (38.5/34.2mm slow thermal sense w/ comparator hysteresis --
+   re-place shorter OR pickup-analysis waiver). S-VER: backstop with the pin review.
+5. SILK-SEVERITY MECHANISM (needs a decision): R-DRC counts len(violations) and
+   kicad --severity-all reports 'warning'-severity silk INTO violations, so removing
+   the .kicad_pro silk=ignore makes R-DRC FAIL, and policy_audit has NO per-class
+   DRC waiver (R-DRC is binary 0/0/0). Achievable-now: keep silk 'ignore' (required
+   for R-DRC 0/0/0) but make it TRANSPARENT -- evidenced per-class docs in
+   policy_waivers.yaml + render-review as the silk-over-pad backstop + the corrected
+   framing. FULLY removing ignore (the literal ask) needs a policy_audit
+   per-class-DRC-warning-waiver FEATURE (skills change) -- ORCHESTRATOR DECISION.
+6. P2: order-package callout of the 12+1 self-supplied parts (reed DIP05-1A72-12L
+   x12 + TC jack PCC-SMP-K, hand-solder, DO-NOT-SUBSTITUTE).
+7. Then fab package + jlc_twin, final gate, report.
+
+State: 04_kicad board = batched-run output (0/5/0), SM10B fix applied in source but
+NOT yet rebuilt. All other source staged. No git touched.
+
+---
+
+## 2026-07-23 — SUCCESSOR LEAD: runbook step 1 (netlist regen) — J_KEY.MP root-cause #2
+
+- did: ran gen_tscircuit (tsci build + converter, WIRED, 0 cross-net segs) then
+  `kicad-cli sch export netlist` -> 06_build/netlists/cooksense.net. FIRST regen
+  STILL showed J_KEY_MATRIX.MP on GND despite the predecessor's `tie:` KEY removal.
+- ROOT CAUSE (2nd-order of the same regression): the converter `load_part_ties`
+  matches `\btie:\s*([A-Za-z0-9_]+)` against the ENTIRE inline-map body of a pin,
+  INCLUDING the `note:` prose. The predecessor's corrected note still contained the
+  literal strings "a `tie: GND` bridges" and "(was `tie: GND`)" — the regex matched
+  the PROSE and re-emitted MP->GND. The converter docstring claims a `tie:`-lookalike
+  "elsewhere can never trigger it", but elsewhere = another PIN's block; a lookalike
+  in the SAME pin's own note DOES trigger. Converter is frozen (skills/), so the fix
+  is source-side.
+- fix (projects-scoped, 02_parts/SM10B-GHS-TB/part.yaml): reworded the MP note to
+  contain NO `tie:`+word literal anywhere (uses "tie annotation"/"GND binding" prose
+  + a maintainer warning about exactly this trap). Re-ran converter + netlist export.
+- result (MEASURED, 06_build/netlists/cooksense.net): J_KEY_MATRIX.MP now FLOATS
+  (not in any net; pins 685->684, tie-parts 11->10). Cross-checks all hold:
+  U_EFUSE.9 EP -> GND (P1-A intact); SELV MP tabs J_DOOR/J_ESTOP/J_MODE -> GND
+  (correct); J_KEY_MATRIX absent from the GND net block (isolation restored).
+  Copied converter sch -> 04_kicad/cooksense.kicad_sch (parity leg).
+- NOTE (verify-stage, not my regression): gen_tscircuit's parity subgate
+  kicad_sch_parity.py crashed (`tok.split("=")` on a padmap token) — a skills-side
+  parity-report tool bug, flag to orchestrator; does not affect the routing netlist.
+- next: rebuild_all.sh --reroute -> DRC; expect the 3 MP-caused opens gone, then
+  resolve the 3 residual stitch opens (C_FLT/U_FAULTAND) per runbook step 2.
+
+## 2026-07-23 — SUCCESSOR: reroute + stitch converge -> routing gate GREEN + REPRODUCIBLE
+
+- did: rebuild_all.sh --reroute with MP now floating. Route race 3/3 CLEAN even with
+  tightened isolation keepouts + all 10 ADC reservations + EP reservation. DRC after
+  MP fix = 0 viol / 1 unconn / 0 parity (the 4 MP-caused opens GONE; U_FAULTAND.6
+  also closed). Remaining open = C_FLT1.2 (GND), an ADC-cluster stitch open.
+- PROMOTED this reroute's converged chain (race/c0/r7) -> route/final_chain.kicad_pcb
+  (0 routed-net unconnected; the residual opens are plane-bond/stitch, not routing).
+  MEASURED: this realization has 0 5V_RPP vias (the stochastic dead-end via KRT
+  sometimes leaves did NOT occur here).
+- ROOT-CAUSED the ADC-cluster stitch opens (runbook step 2). Three findings, each
+  MEASURED, fixed DETERMINISTICALLY in SOURCE (route.yaml stitch), projects-scoped:
+  1. via_janitor (min_layers:2, ran BEFORE the first fill) credits a zone by its
+     OUTLINE and is fill-blind; it pruned legit GND plane-bond via-in-pads in the
+     dense MCP3208 cluster -> a DIFFERENT marginal cap opened per fill state
+     (C_FLT1 before fill / C_FLT6 after fill). Its one durable job (delete the
+     stochastic 5V_RPP dead-end KRT via) is MOOT here (0 such vias). => via_janitor
+     DROPPED; prune_stitch_dangling (final pass, tests FILLED polys, stitch-emitted
+     only) is the correct cleaner.
+  2. Even so, reuse rebuilds were NON-deterministic: C_FLT6 flipped open/closed
+     across two consecutive reuse builds (heal_islands + rescue-pass set-iteration
+     order varies across the SWIG re-exec). M-REPRO fail. => ROOT fix: a
+     DETERMINISTIC via-in-pad seed_stub at EACH of the 10 ADC-cluster cap GND pad
+     centres (C_ADCV/C_ADCV2/C_FLT0..7). seed_stubs runs FIRST (before fill AND
+     pad_rescue), via_site_ok-checked + pin-proof + idempotent; pad_rescue then sees
+     each cap SERVED (barrel-in-pad) and drops NO competing ring via -> zero churn.
+  3. (During diagnosis I briefly tried a power_stitch C_FLT1 site + pad_rescue
+     skip_refs — REVERTED: the site was blocked by a rescue ring via within the
+     0.85mm via-spacing, and skip_refs doesn't stop stub/astar_fallback. seed_stubs
+     is the right layer because it runs before every rescue pass.)
+- result (MEASURED): routing gate **DRC 0 viol / 0 unconn / 0 parity**
+  (06_build/route/drc_step5.json, --severity-all --refill-zones --schematic-parity).
+  DETERMINISM: **THREE consecutive --reuse-route rebuilds all 0/0/0** (drc_step5 +
+  drc_det_1 + drc_det_2). seed_stubs 11/11 served 0 refused; prune pruned 11
+  now-redundant rescue vias. M-REPRO holds.
+- next: EP thermal vias (step 3), policy_audit, evidenced waivers, silk, fab+twin.
+
+## 2026-07-23 — SUCCESSOR: EP thermal (step3), R-THERM, waivers (step4/5), E-OFF fix
+
+- EP THERMAL (step 3, fallback (a) SUCCEEDED): U_EFUSE EP (pad 9, 1.44mm2 GND) now
+  has 2 GND thermal via-in-pads @(60,44.6)+(60,45.6) — power_stitch sites [60,44.4],
+  [60,45.6] landed (the EP reservation keepout cleared the 5V_PROTECTED B.Cu trunk,
+  so the sites are no longer refused). No fallback (b) needed. R-THERM PASS for EP.
+- R-THERM new finding J_PWR.MP: the Molex Micro-Fit MECHANICAL RETENTION tabs (2x
+  5.66mm2 GND SMD, retention-only, carry no current) tripped R-THERM (>4mm2, 1 via).
+  FIXED not waived: deterministic 2 GND via-in-pads per tab (seed_stubs, center +
+  0.85mm east, In1-covered + clear) — also good shell EMI/mechanical grounding.
+  R-THERM now fully PASS.
+- E-OFF (step 4, FIXED not waived): declared `source_type: external_5v_selv` in
+  power_tree.yaml (AUTHORITATIVE per power_topology.classify_source). The board is
+  externally 5V-SELV powered (Micro-Fit) with NO battery/cell/pack — the E-OFF finding
+  was a false positive matching "discharge"/"cell" prose inside ADR-0006. E-OFF now N-A.
+- WAIVERS (step 4, evidenced, policy_waivers.yaml):
+  * P-PLANE: the 6 In1 tracks are ALL net=GND heal_islands island BRIDGES (w0.30,
+    len~0.66mm, x102-139) — same-net pour bridges that HEAL the plane, not signal
+    splits; 0 non-GND In1 tracks (MEASURED).
+  * R-POUR: 5V_* PWR_IN nets are 0.5mm tracks (5V_RPP necks to 0.25 only at the eFuse
+    WSON pad); 0.5mm@1oz ~1.4A@10C / ~1.9A@20C >> <1A continuous (interlock: <=1U+1D+
+    PRESS coils = 0.15A + logic 0.3A + sensors 0.05A); eFuse ILIM caps fault. Pour not
+    needed for this current/length.
+- SILK (step 5, OPTION a — evidenced transparency): silk severities stay `ignore` in
+  .kicad_pro (R-DRC 0/0/0) but each class now has an EVIDENCED doc entry in
+  policy_waivers.yaml (SILK-OVER-COPPER = reed DIP body-outline over its own THT pads;
+  SILK-EDGE-CLEARANCE = dense edge connectors on 252x92; SILK-OVERLAP = cosmetic dense-
+  region refdes; SILK-TEXT-THICKNESS = 0.15mm JLC floor). Render-review is the backstop;
+  real silk-over-PAD (ANALOG SENSE) already relocated. The proper per-class DRC-warning
+  waiver is fleet harvest #44 (skills feature, not my path).
+- FINAL routing-stage gate (MEASURED, 04_kicad/cooksense.kicad_pcb):
+  * DRC 0 viol / 0 unconn / 0 parity, REPRODUCIBLE (>=4 consecutive --reuse-route all
+    0/0/0: drc_step5, drc_det_1/2, drc_final_lock).
+  * audit_board PASS: 18 polarity, 26 proximity, 13 edge, I-OUT 0.35mm, **I-ISO 6.12mm
+    >= 6.0mm** (reed-footprint barrier), 0 strip intruders, 193 silk.
+  * policy_audit: FAIL=2 (S-VER, S-OCCL — both HUMAN-graded verify-stage, for the
+    orchestrator's fresh-context pin + render reviews), WAIVED=3, N-A=7, PASS=20.
+    R-DRC/R-THERM/M-REPRO/E-OFF/P-PLANE/R-POUR all resolved.
+- next: order callout for self-supplied parts (step 6) -> fab package + jlc_twin
+  (step 7) -> honest final gate -> report to orchestrator.
+
+## 2026-07-23 — SUCCESSOR: fab package (step 7) + '238 LCSC fix + honest final gate
+
+- FAB EXPORT (export_jlc_package.py, --layers 4): 13-file gerber zip, BOM 52 lines,
+  CPL 173 parts. First pass had 3 uncoded lines — the 3rd was U_DECU/U_DECD.
+- '238 LCSC ROOT FIX (canon M3): P1-C filled `lcsc: C5620` in the part.yaml, but
+  (a) the TSX still authored the '238 supplierPartNumbers as the MPN "SN74HC238DR"
+  (not a C-code) -> BOM uncoded; and (b) the part.yaml had `lcsc: "C5620"` QUOTED,
+  which load_part_overrides/ties regex `(?:lcsc):\s*[A-Za-z0-9]+` cannot match past
+  the quote -> C5620 never became an FPID key. FIXED BOTH IN SOURCE: TSX U_DECU/
+  U_DECD -> ["C5620"]; part.yaml lcsc UNQUOTED. Re-ran gen_tscircuit -> 189/189 FPID
+  (overrides 76->77 keys), MP still FLOATS, netlist parity holds; rebuild --reuse-route
+  -> DRC 0/0/0; re-export -> BOM now 2 uncoded = ONLY the 2 self-supplied parts.
+- GATES (MEASURED): bom_source_check **PASS** (every BOM LCSC == source per-refdes;
+  160 coded refdes + 35 vendored). jlc_stock_check **PASS** (all coded lines in
+  stock; C5620 '238 = 5704). Low-stock to re-check on order day: eFuse C2653844=160,
+  polyfuse C89650=244, Micro-Fit C587657=778, C16939=223 (all >>5x for qty1).
+- jlc_twin: CANNOT run in-sandbox — EasyEDA model fetch is CloudFront-403 blocked
+  (confirmed: easyeda.com -> HTTP 403; same limitation the schematic stage hit for
+  LCSC APIs). This is an ORCHESTRATOR verify-stage item (network-capable): run
+  jlc_twin + the fresh-context pin/render/red-team reviews there.
+- SELF-SUPPLIED / HAND-SOLDER parts (step 6 order callout — for ORDER_README
+  not_assembled at seal, DO-NOT-SUBSTITUTE):
+  * K_U1..6,K_D1..4,K_PRESS,K_STOP (12x) = Standex DIP05-1A72-12L reed relay
+    (fp Relay_StandexDIP_1A_pinout12); lcsc:"" (not JLC-cataloged) — hand-solder.
+  * J_TC = Omega PCC-SMP-K panel Type-K thermocouple jack (fp Omega_PCC-SMP-K_TypeK_PCpin);
+    lcsc:"" — hand-solder.
+- HONEST FINAL GATE (routing stage complete): DRC 0/0/0 reproducible; audit_board PASS
+  (I-ISO 6.12mm); policy_audit FAIL=2 (S-VER, S-OCCL — HUMAN/verify-stage), WAIVED=3,
+  PASS=21; bom_source PASS; stock PASS; twin deferred to orchestrator (network).
+- HANDOFF to orchestrator: independent verify (re-run I-ISO checker + fresh DRC +
+  confirm C5620 drop-in + jlc_twin + pin/render/red-team reviews for S-VER/S-OCCL)
+  -> then SEAL cooksense-v1.0. NOTE (teammate): at seal, release_freshness_check.py
+  must exit 0 (fresh policy_audit.md matching MANIFEST — regenerated 15:54; no DRAFT
+  markers in ORDER_README).

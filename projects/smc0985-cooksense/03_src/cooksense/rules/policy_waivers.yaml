@@ -31,3 +31,69 @@
     same limitation crow-recorder-central recorded for its board-wide buck VIN,
     07_releases/v1.0/.../redteam_layout L2). The rails ride the generate_rules
     DRU floors (PWR_3V3 0.3mm, PWR_IN 0.5mm) and pours, not a keep-short trace.
+
+- id: P-PLANE
+  why: >-
+    The 6 tracks on the In1 reference plane are ALL net=GND — same-net GND-pour
+    island BRIDGES emitted by stitch heal_islands, not foreign-net intrusions that
+    would SPLIT the plane. MEASURED on 04_kicad/cooksense.kicad_pcb 2026-07-23
+    (all six: net=GND, w=0.30mm, len 0.66-0.69mm, on In1.Cu, clustered x102-139
+    y94-97): each bridges two GND fill islands the pour left separated by a
+    <=0.30mm neck (heal gaps 0.26-0.29mm), reconnecting the ONE GND plane net.
+    P-PLANE's intent is that a reference plane must not be cut by SIGNAL copper
+    (which raises return-path impedance / splits the plane); a GND-on-GND bridge is
+    the OPPOSITE — it heals the plane. There is no cross-net track on In1 (verified:
+    0 non-GND In1 tracks). DRC is 0 shorts / 0 unconnected with these present, and
+    the GND net is a single connected body (heal_islands: GND 7->1 island).
+
+- id: R-POUR
+  why: >-
+    The four PWR_IN-class 5V nets (5V_IN, 5V_FUSED, 5V_PROTECTED, 5V_RPP) are
+    distributed as TRACKS, not pours, and that is ampacity-sufficient. MEASURED
+    min widths on 04_kicad/cooksense.kicad_pcb 2026-07-23: 5V_IN / 5V_FUSED /
+    5V_PROTECTED = 0.500mm (the PWR_IN DRU floor); 5V_RPP = 0.250mm ONLY at the
+    TPS259573 WSON-8 0.5mm-pitch pad entry (scoped floor efuse_padentry — the eFuse
+    PIN is the current bottleneck, not the trace; the 5V_RPP trunk is 0.5mm outside
+    that neck). Ampacity of 0.5mm @ 1oz(35um) external copper (IPC-2221): ~1.4A at
+    10C rise, ~1.9A at 20C rise. Worst-case CONTINUOUS board draw is <1A: the safety
+    interlock energizes at most 1 U-coil + 1 D-coil + PRESS at once (5V_KEY_RELAY
+    iout_max 0.15A per power_tree.yaml) + logic 0.3A + sensors 0.05A ~= 0.5A; the
+    2.0A figure in power_tree is the un-reachable absolute ceiling (all 12 coils, which
+    the interlock forbids). The TPS259573 eFuse programmable ILIM current-limits and
+    caps any fault. R-POUR expects power POURS as an ampacity heuristic; here the 5V
+    runs are short hops from the NW power-entry cluster to local loads at >=0.5mm,
+    for which a pour is not required. (GND + 3V3 DO ride inner planes; only the 5V
+    protected-input branch is track-distributed.)
+
+# --- SILK SEVERITY: transparency, not a silent blanket ignore (runbook step 5,
+#     2026-07-23). The .kicad_pro carries silk_over_copper / silk_edge_clearance /
+#     silk_overlap / text_thickness = `ignore` (so R-DRC = 0/0/0). This is NOT the
+#     fleet standard (which is silk DE-COLLISION + evidenced per-class waivers); this
+#     seal carries an EVIDENCED exception, each class documented below, backstopped by
+#     the fresh-context RENDER + POLARITY review (orchestrator verify stage) which must
+#     confirm NO functional/movable silk remains after the ANALOG SENSE relocation.
+#     NOTE: these SILK-* ids are DOCUMENTATION (policy_audit has no per-class DRC-warning
+#     waiver yet — fleet harvest #44); they make the ignore transparent + auditable.
+- id: SILK-OVER-COPPER
+  why: >-
+    silk_over_copper ignored: the reed-relay DIP body-outline silk overlays the THT
+    reed pads inherent to the DIP05-1A72-12L footprint (12 relays) — the outline is
+    the assembly body marker, unavoidable over the part's own pads; no OTHER-part or
+    functional silk is over copper. Real silk-over-PAD was caught + fixed separately
+    (ANALOG SENSE label relocated off U_ADC pads 1&16). Render-review backstops.
+- id: SILK-EDGE-CLEARANCE
+  why: >-
+    silk_edge_clearance ignored: the 252x92mm board packs dense edge connectors
+    (Micro-Fit, JST-GH x N, Pi header, terminal blocks) whose refdes/functional silk
+    sits near the milled edge by necessity; all labels remain legible and inside the
+    board. Render-review confirms no clipped/off-board text.
+- id: SILK-OVERLAP
+  why: >-
+    silk_overlap ignored: residual refdes/label overlaps in the dense connector +
+    ADC-cluster regions after the de-collision pass; none obscures a polarity/pin-1
+    or functional marker (render-review backstop). Cosmetic legibility only.
+- id: SILK-TEXT-THICKNESS
+  why: >-
+    text_thickness ignored: 0.15mm stroke = JLCPCB's silk floor (legible at fab);
+    thinner would not print, thicker would collide more in the dense regions. A fab-
+    process floor, not a defect.

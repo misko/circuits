@@ -330,6 +330,16 @@ keepouts:
   # KEYPAD ISOLATION BAND: no copper pour (no plane) north of the logic band,
   # covering the keypad domain + reed band. Keeps every plane south of y40.
   - {name: keypad_iso, deny: [pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [12.0, 10.0, 264.0, 40.0]}
+  # KEYPAD CREEPAGE BARRIER (P1-B, 2026-07-23): DRC-ENFORCED >=6mm isolation.
+  # The reed pads give a 6.12mm clear band (keypad contacts y<=30.94 / logic coils
+  # y>=37.06); this deny-tracks/vias keepout forbids ANY copper in the barrier so
+  # no track can collapse the creepage (the red-team found a 5V_KEY_RELAY rail at
+  # y36 -> 4.35mm). A track/via that intrudes now FAILS kicad DRC ("items not
+  # allowed"), machine-enforcing the brief's >=6mm on this SAFETY feature -- which
+  # the track-blind I-ISO checker never could (both are now fixed). Strictly inside
+  # the KRT User.2/User.3 route keepouts (y37.0 / y31.0), so a compliant route
+  # never touches it. No pad lies in 31.05..36.95.
+  - {name: iso_barrier, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [12.0, 31.05, 264.0, 36.95]}
   # eFuse via-in-pad escape lane (advanced tier), reserved south of U_EFUSE
   - {name: efuse_escape, deny: [], layers: [F.Cu, B.Cu], rect: [48.0, 49.0, 62.0, 58.0]}
   # eFuse WSON-8 0.5mm-pitch pad-entry region: PWR_IN trunk necks to enter the
@@ -348,7 +358,7 @@ silk:
     - {text: "cooksense  SMC0985KS  sidecar", at: [132.0, 13.0], size: 0.9, nudge: false}
     - {text: "KEYPAD ISOLATION ZONE   >=6mm creepage   GND_ISO ONLY   (contacts NORTH)", at: [132.0, 26.5], size: 0.8, nudge: false}
     - {text: "5V SELV IN", at: [39.0, 42.0], size: 0.7, nudge: false}
-    - {text: "ANALOG SENSE (3V3_ANALOG)", at: [46.0, 65.0], size: 0.7, nudge: false}
+    - {text: "ANALOG SENSE (3V3_ANALOG)", at: [46.0, 64.0], size: 0.7, nudge: false}   # y65.0->64.0 (P1-B/finishing 2026-07-23): the old y65.0 clipped U_ADC pads 1&16 (y65.56) -- a REAL silk-over-pad the silk-ignore was swallowing; moved N into open copper (x36-56, y59-64.3)
     - {text: "PI 40-PIN RIBBON (SIDECAR)", at: [122.0, 89.5], size: 0.7, nudge: false}
 
 asserts:

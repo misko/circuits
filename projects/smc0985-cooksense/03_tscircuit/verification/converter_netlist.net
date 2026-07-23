@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/home/mouse9911/gits/circuits/projects/smc0985-cooksense/03_tscircuit/kicad/cooksense.kicad_sch")
-		(date "2026-07-22T23:40:05")
+		(date "2026-07-23T15:38:57")
 		(tool "Eeschema 10.0.4-10.0.4~ubuntu24.04.1")
 		(sheet
 			(number "1")
@@ -12,7 +12,7 @@
 				(title "cooksense")
 				(company)
 				(rev "dev")
-				(date "2026-07-22")
+				(date "2026-07-23")
 				(source "cooksense.kicad_sch")
 				(comment
 					(number "1")
@@ -79,13 +79,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c2286e1d-9c12-46a5-a6d2-c4fa75c4d037")
+			(tstamps "5bb3ca53-da01-4568-b173-9b9b9ecc38d8")
 			(units
 				(unit
 					(name "A")
@@ -125,13 +125,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "aa3b32ec-4bb7-4b0a-8d6c-ec604cb97d7d")
+			(tstamps "42383d81-fc46-46e8-8efb-40e4a722d24e")
 			(units
 				(unit
 					(name "A")
@@ -171,13 +171,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6eef99c0-7d95-4af7-a55a-8997bdb186f5")
+			(tstamps "a9e652e6-c65b-4162-96ba-3c026f2e517a")
 			(units
 				(unit
 					(name "A")
@@ -217,13 +217,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "94b26c2f-30a7-47ab-8a55-f2ea7282bbff")
+			(tstamps "bd939474-b80e-4364-a3c3-59077c7b097c")
 			(units
 				(unit
 					(name "A")
@@ -263,13 +263,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6121f4b5-8040-4d65-abf9-35957ed743e0")
+			(tstamps "24ffce2a-f267-4605-825d-849400fb413e")
 			(units
 				(unit
 					(name "A")
@@ -309,13 +309,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "95e6258a-122f-408d-bacc-42d82e91bc82")
+			(tstamps "1cd06a15-6e0f-428a-9c2b-4f58ea4c6f19")
 			(units
 				(unit
 					(name "A")
@@ -355,13 +355,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "682b1ad9-1c0e-4892-b79a-a76f56c3b5d1")
+			(tstamps "5f0f7b08-232b-4d3c-9585-1f97c8ba66a6")
 			(units
 				(unit
 					(name "A")
@@ -401,13 +401,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4f79425a-243e-44ac-a0e7-85c96f01ba1d")
+			(tstamps "8851f60d-8740-4f88-93b7-63749eac8e53")
 			(units
 				(unit
 					(name "A")
@@ -447,13 +447,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6dc08746-d13b-4f23-be3b-918f3db74532")
+			(tstamps "2fad10a3-36ab-4f46-be07-2b6f11c70360")
 			(units
 				(unit
 					(name "A")
@@ -493,13 +493,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7d1e9cfc-e3bc-4754-a919-0a1aaecd34a1")
+			(tstamps "9a51d8d1-bc8b-4d21-8d07-0fadb8ab73b5")
 			(units
 				(unit
 					(name "A")
@@ -539,13 +539,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "47c96899-7b0e-4c96-98ce-21db4f842c20")
+			(tstamps "67deab20-03f2-4476-990b-1750b7f65949")
 			(units
 				(unit
 					(name "A")
@@ -585,13 +585,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8271a3f7-0c10-4796-b8b5-b77397a4e5f7")
+			(tstamps "aeb976a7-23df-4e87-8722-8566aaa61d6d")
 			(units
 				(unit
 					(name "A")
@@ -631,13 +631,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e5b94b07-1adf-4ccf-9294-6d2139de26ba")
+			(tstamps "93244dc9-cf8d-4a9d-9bc5-4b66296caf03")
 			(units
 				(unit
 					(name "A")
@@ -677,13 +677,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "23862ef0-a9f0-47ab-bd1f-f44c8e607132")
+			(tstamps "12c17281-ac84-4679-acb4-456d7ca6687e")
 			(units
 				(unit
 					(name "A")
@@ -723,13 +723,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bb307daa-68ae-4a2f-848f-b1819b4d9153")
+			(tstamps "8423da63-374c-420d-82e7-cd06a6ac8217")
 			(units
 				(unit
 					(name "A")
@@ -769,13 +769,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f830364c-4fe0-44b7-9048-853663f7176c")
+			(tstamps "72fd486e-8a98-4bbc-8b1c-47fe29b384e5")
 			(units
 				(unit
 					(name "A")
@@ -815,13 +815,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0f185836-52aa-4c7f-ab19-09cfe2a311d6")
+			(tstamps "8591f63d-ee97-49da-aedf-853c351b4470")
 			(units
 				(unit
 					(name "A")
@@ -861,13 +861,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "86177fe3-a55b-41dd-9258-b7e4943dd5be")
+			(tstamps "0fdc5958-33c6-449d-bb1d-554a0a0c9cd3")
 			(units
 				(unit
 					(name "A")
@@ -907,13 +907,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ba952b70-fcfd-42a6-aa8c-f41785fb12ec")
+			(tstamps "7c395857-b88b-4201-9029-a1acb59a3e27")
 			(units
 				(unit
 					(name "A")
@@ -953,13 +953,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d8f7f960-c77a-4999-949a-866732c6232e")
+			(tstamps "1903ac17-50e2-4244-bcc7-d480b38a7866")
 			(units
 				(unit
 					(name "A")
@@ -999,13 +999,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1f411262-cec7-4db6-aa03-5aa866f3d2c8")
+			(tstamps "24e42623-5233-40d1-9d40-67224e5783e6")
 			(units
 				(unit
 					(name "A")
@@ -1045,13 +1045,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "712c0451-d559-4e8d-a8b3-1167227475d9")
+			(tstamps "477fdb97-0622-44a7-8e64-028537bda0c2")
 			(units
 				(unit
 					(name "A")
@@ -1091,13 +1091,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7ceed236-8932-4ba4-b587-df9ef4a2fe2a")
+			(tstamps "c7aebb27-143c-4f6c-bb27-c6fb8caa1518")
 			(units
 				(unit
 					(name "A")
@@ -1137,13 +1137,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d785f420-8869-481b-8c52-298649ff448f")
+			(tstamps "cb8c6718-394a-4dfc-be9c-8b363158bdc0")
 			(units
 				(unit
 					(name "A")
@@ -1183,13 +1183,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a30e4c21-f8e3-493f-b42d-ebf0cd2272b3")
+			(tstamps "a037e76a-7792-4ccd-86db-dd6bd47b048e")
 			(units
 				(unit
 					(name "A")
@@ -1229,13 +1229,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d34c0901-4380-4f55-822d-db262ce6f5e7")
+			(tstamps "41bea9be-adae-4a3e-b7ab-76e389464a95")
 			(units
 				(unit
 					(name "A")
@@ -1275,13 +1275,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fc92049c-2afc-49d1-bd4c-ea944c4478f0")
+			(tstamps "2d17470c-28af-434f-b041-d5b0290386e3")
 			(units
 				(unit
 					(name "A")
@@ -1321,13 +1321,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "784b1887-ec78-4d25-8532-61bf21088bd9")
+			(tstamps "fe548ae6-d93b-42ad-8191-e90a00edb9a3")
 			(units
 				(unit
 					(name "A")
@@ -1367,13 +1367,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "15819a42-3805-44a5-9c4e-7dcfcf506b97")
+			(tstamps "8c9275f4-cb8b-4c09-baa8-f29a223a5ae0")
 			(units
 				(unit
 					(name "A")
@@ -1413,13 +1413,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fed75953-3b31-40cc-8867-8db06b6ba5b5")
+			(tstamps "edbef196-0000-4924-889a-b7b91a782c2f")
 			(units
 				(unit
 					(name "A")
@@ -1459,13 +1459,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "968d088d-8f38-4df8-818a-bdf71c47b0fc")
+			(tstamps "3acde498-f2cc-465b-a933-252a78f17c37")
 			(units
 				(unit
 					(name "A")
@@ -1505,13 +1505,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "678bb62d-da42-4a2e-8353-016002e910eb")
+			(tstamps "08447bc4-9d56-4ccd-ba4d-280c4067bf95")
 			(units
 				(unit
 					(name "A")
@@ -1551,13 +1551,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2d381a8a-f398-4e52-a392-80fcbd63563a")
+			(tstamps "c6f8492e-67c0-4f65-b8cf-6f7fea49bbc7")
 			(units
 				(unit
 					(name "A")
@@ -1597,13 +1597,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "eba3582c-b302-4d3c-b05b-0ef9bd116828")
+			(tstamps "4301cec0-8866-452b-9ba7-82975c6b3d8e")
 			(units
 				(unit
 					(name "A")
@@ -1643,13 +1643,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "aab34b34-b04f-4c67-85b9-0ee25fc158bc")
+			(tstamps "8fd65b8a-6ffb-4c27-b561-c6359edf37a0")
 			(units
 				(unit
 					(name "A")
@@ -1689,13 +1689,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "66f6041c-e217-45dd-9b0a-ce487cec43d1")
+			(tstamps "c5df87e6-1965-4a9f-8449-ee34e57f0490")
 			(units
 				(unit
 					(name "A")
@@ -1735,13 +1735,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "672ee774-dce2-4dae-865e-77c6f2b5395d")
+			(tstamps "7b476161-2f1d-41fc-bab7-22f093021718")
 			(units
 				(unit
 					(name "A")
@@ -1781,13 +1781,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "254d5b3c-8a16-4f13-a012-aa77c1806ff6")
+			(tstamps "1912b19e-cf8a-413b-b626-da9fc2d3af96")
 			(units
 				(unit
 					(name "A")
@@ -1827,13 +1827,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cff5647b-0914-4db9-b836-44782550caa7")
+			(tstamps "bd649c8c-a442-451f-807d-13308de7ea54")
 			(units
 				(unit
 					(name "A")
@@ -1873,13 +1873,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5e3d4ca7-f1a3-4347-bc35-cb72364c400c")
+			(tstamps "1be9fa5f-511a-4b4e-98c4-23178c77c153")
 			(units
 				(unit
 					(name "A")
@@ -1919,13 +1919,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d84e5c0e-80da-4512-a389-998f79c65008")
+			(tstamps "370aab64-ba81-42d8-a2aa-2d9417ed5c48")
 			(units
 				(unit
 					(name "A")
@@ -1965,13 +1965,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ad48135c-c045-480d-9906-7eed244dab10")
+			(tstamps "308e7857-a309-4a15-b8f9-94e678293569")
 			(units
 				(unit
 					(name "A")
@@ -2011,13 +2011,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8f2b20a3-a052-4f62-b6eb-1329145fe135")
+			(tstamps "0d2637ef-8038-40e0-bedb-97bd02c93f26")
 			(units
 				(unit
 					(name "A")
@@ -2057,13 +2057,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "91503837-e437-4324-85bc-0d6cf785308f")
+			(tstamps "51debccc-b168-4924-9e56-fde055dfbdac")
 			(units
 				(unit
 					(name "A")
@@ -2103,13 +2103,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0d61e50f-abb8-4eab-82c8-483a3589e1f9")
+			(tstamps "ed2ad4d7-f684-4beb-8928-8d51b8bd71de")
 			(units
 				(unit
 					(name "A")
@@ -2149,13 +2149,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "45911f5c-bd40-4f5f-8727-e96cde45a5ad")
+			(tstamps "e4cc7559-31e0-4a03-9d9c-3723712e5b58")
 			(units
 				(unit
 					(name "A")
@@ -2195,13 +2195,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b3243f41-b551-4ba9-aa07-224987567589")
+			(tstamps "685637bd-33b2-40d6-b6c5-3b2ae397feef")
 			(units
 				(unit
 					(name "A")
@@ -2241,13 +2241,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "91e17a38-a246-4362-9480-8bcd98e40b44")
+			(tstamps "6d763518-b89d-4d3e-80ec-361118263488")
 			(units
 				(unit
 					(name "A")
@@ -2287,13 +2287,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c42c50fc-2d6c-4a92-94cc-9a5563b1f32f")
+			(tstamps "87ae912f-45a1-4efa-bc65-908a33b28696")
 			(units
 				(unit
 					(name "A")
@@ -2333,13 +2333,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1bd52450-200d-4750-a57c-24aa0bd542f1")
+			(tstamps "47291d9b-53a7-43cf-bf5d-1e9295a1e184")
 			(units
 				(unit
 					(name "A")
@@ -2379,13 +2379,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bdb2c178-3f0c-4b25-9bbe-b1508855bcd6")
+			(tstamps "ae5e6de2-f0fe-461c-bf23-5ec46c210758")
 			(units
 				(unit
 					(name "A")
@@ -2425,13 +2425,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9c724b9d-bd30-48d0-91ad-7f377b65fddf")
+			(tstamps "c73fcb52-59a1-4c22-aacf-29267ad6789a")
 			(units
 				(unit
 					(name "A")
@@ -2471,13 +2471,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1c4b43d5-e435-4c93-89c5-e6f2ff0705ef")
+			(tstamps "2a3e8856-5749-409b-a445-9574694dcb68")
 			(units
 				(unit
 					(name "A")
@@ -2517,13 +2517,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c73c9e5c-5866-4512-bce1-d47668c15635")
+			(tstamps "ad28137b-74c7-4046-965e-5570eeb87259")
 			(units
 				(unit
 					(name "A")
@@ -2563,13 +2563,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8d7fb0f2-4b7d-47d7-8b9d-284c76f03895")
+			(tstamps "e3f74297-9dc1-454b-872e-cbfac9375513")
 			(units
 				(unit
 					(name "A")
@@ -2609,13 +2609,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "74a69096-3919-40c0-93a1-3aa4887f2a3a")
+			(tstamps "202b7a60-540b-432b-8e1c-76073418c8a0")
 			(units
 				(unit
 					(name "A")
@@ -2655,13 +2655,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "dfc8bb85-a273-4799-b427-8153268a6ba8")
+			(tstamps "2c4459e3-27b0-40d2-b8ca-041badc035b9")
 			(units
 				(unit
 					(name "A")
@@ -2701,13 +2701,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "33d1331c-22b3-4ac2-bf3b-d5456638e791")
+			(tstamps "9d26e32f-376f-4d8f-bb75-fbb1f31d788e")
 			(units
 				(unit
 					(name "A")
@@ -2725,10 +2725,10 @@
 		(comp
 			(ref "J_CONTACTOR")
 			(value "C474892")
-			(footprint "TerminalBlock:TerminalBlock_bornier-2_P5.08mm")
+			(footprint "cooksense:TerminalBlock_KF350_2P")
 			(fields
 				(field
-					(name "Footprint") "TerminalBlock:TerminalBlock_bornier-2_P5.08mm")
+					(name "Footprint") "cooksense:TerminalBlock_KF350_2P")
 				(field
 					(name "Datasheet")
 				)
@@ -2747,13 +2747,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "67ef857e-8b7e-48c7-bbd7-2383a870f73b")
+			(tstamps "acfc5361-4dfe-4080-8386-64b30e7fca82")
 			(units
 				(unit
 					(name "A")
@@ -2793,13 +2793,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "706697e8-9503-4da7-97b9-7800418e8a9c")
+			(tstamps "4cec3093-2bc0-4f14-bf2c-75a611cf999c")
 			(units
 				(unit
 					(name "A")
@@ -2812,6 +2812,9 @@
 						)
 						(pin
 							(num "3")
+						)
+						(pin
+							(num "MP")
 						)
 						(pin
 							(num "5")
@@ -2848,13 +2851,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "46878536-6f09-4a25-931b-82df2650f848")
+			(tstamps "5284628b-9050-4271-966b-6132ed70db2e")
 			(units
 				(unit
 					(name "A")
@@ -2867,6 +2870,9 @@
 						)
 						(pin
 							(num "3")
+						)
+						(pin
+							(num "MP")
 						)
 						(pin
 							(num "5")
@@ -2903,13 +2909,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "953213cc-0fa5-4cbd-adea-25d156159f3c")
+			(tstamps "c2f984a2-7619-43fc-b467-8edd14fba1f1")
 			(units
 				(unit
 					(name "A")
@@ -2973,13 +2979,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "530dad4a-16cd-4eb8-99b5-1db29e311b90")
+			(tstamps "e3604e05-947e-4cbf-bf7b-f9e9171db62c")
 			(units
 				(unit
 					(name "A")
@@ -3028,13 +3034,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fbcf51f1-3970-44c8-932f-9dc516f8b2a7")
+			(tstamps "d37ddef7-b8be-420d-b357-0eb8e2ad23ce")
 			(units
 				(unit
 					(name "A")
@@ -3047,6 +3053,9 @@
 						)
 						(pin
 							(num "3")
+						)
+						(pin
+							(num "MP")
 						)
 						(pin
 							(num "5")
@@ -3083,13 +3092,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7c146690-a176-4f89-8cc3-b19f586fffcd")
+			(tstamps "2ec4d3f4-2ad5-44f6-b42d-8e64cb792d28")
 			(units
 				(unit
 					(name "A")
@@ -3243,19 +3252,22 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8c6e3077-a588-4252-a0dd-5a7065ba9991")
+			(tstamps "51eb326e-8c80-4f83-8d66-4f74b820a760")
 			(units
 				(unit
 					(name "A")
 					(pins
 						(pin
 							(num "1")
+						)
+						(pin
+							(num "MP")
 						)
 						(pin
 							(num "2")
@@ -3289,13 +3301,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f302ce03-6d6d-4a9a-8c2a-0b28e0db9b4d")
+			(tstamps "c24ede78-c15b-4d4a-be01-d1be725c437b")
 			(units
 				(unit
 					(name "A")
@@ -3308,6 +3320,9 @@
 						)
 						(pin
 							(num "3")
+						)
+						(pin
+							(num "MP")
 						)
 						(pin
 							(num "5")
@@ -3344,13 +3359,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0f2d464c-2415-4e2b-b606-83f608f4c6e9")
+			(tstamps "d0cd3ebe-e167-4c49-80ac-7001f8d77dd5")
 			(units
 				(unit
 					(name "A")
@@ -3365,6 +3380,9 @@
 							(num "3")
 						)
 						(pin
+							(num "MP")
+						)
+						(pin
 							(num "5")
 						)
 						(pin
@@ -3377,10 +3395,10 @@
 		(comp
 			(ref "J_TC")
 			(value "PCC-SMP-K")
-			(footprint "cookhub:Omega_PCC-SMP-K_TypeK_PCpin")
+			(footprint "cooksense:Omega_PCC-SMP-K_TypeK_PCpin")
 			(fields
 				(field
-					(name "Footprint") "cookhub:Omega_PCC-SMP-K_TypeK_PCpin")
+					(name "Footprint") "cooksense:Omega_PCC-SMP-K_TypeK_PCpin")
 				(field
 					(name "Datasheet")
 				)
@@ -3399,13 +3417,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "975b4a3d-fdc0-4915-8f19-368f4a00bf12")
+			(tstamps "002c60c6-3029-4921-a118-1a4c733097a2")
 			(units
 				(unit
 					(name "A")
@@ -3445,13 +3463,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5853d590-29eb-4215-834b-3c21ac393df2")
+			(tstamps "4c683698-d53a-49f3-8ac5-f5e3ebedc857")
 			(units
 				(unit
 					(name "A")
@@ -3467,6 +3485,9 @@
 						)
 						(pin
 							(num "4")
+						)
+						(pin
+							(num "MP")
 						)
 						(pin
 							(num "8")
@@ -3509,13 +3530,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5389be9f-739c-48db-a0cb-946556fde06c")
+			(tstamps "da32d3c1-1bc8-4e66-a472-5133252b5906")
 			(units
 				(unit
 					(name "A")
@@ -3531,6 +3552,9 @@
 						)
 						(pin
 							(num "4")
+						)
+						(pin
+							(num "MP")
 						)
 						(pin
 							(num "8")
@@ -3551,10 +3575,10 @@
 		(comp
 			(ref "K_D1")
 			(value "DIP05-1A72-12L")
-			(footprint "cookhub:Relay_StandexDIP_1A_pinout12")
+			(footprint "cooksense:Relay_StandexDIP_1A_pinout12")
 			(fields
 				(field
-					(name "Footprint") "cookhub:Relay_StandexDIP_1A_pinout12")
+					(name "Footprint") "cooksense:Relay_StandexDIP_1A_pinout12")
 				(field
 					(name "Datasheet")
 				)
@@ -3573,13 +3597,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9b40e4f5-4a5a-4a21-a2cd-0411e2ccd1f4")
+			(tstamps "787cf31a-a7ca-49c7-88ae-34ac28cfdf07")
 			(units
 				(unit
 					(name "A")
@@ -3603,10 +3627,10 @@
 		(comp
 			(ref "K_D2")
 			(value "DIP05-1A72-12L")
-			(footprint "cookhub:Relay_StandexDIP_1A_pinout12")
+			(footprint "cooksense:Relay_StandexDIP_1A_pinout12")
 			(fields
 				(field
-					(name "Footprint") "cookhub:Relay_StandexDIP_1A_pinout12")
+					(name "Footprint") "cooksense:Relay_StandexDIP_1A_pinout12")
 				(field
 					(name "Datasheet")
 				)
@@ -3625,13 +3649,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "116050ee-43e2-4870-8cf7-2c3f052ac79f")
+			(tstamps "d3684074-cb82-4aeb-814e-5870a22b72ad")
 			(units
 				(unit
 					(name "A")
@@ -3655,10 +3679,10 @@
 		(comp
 			(ref "K_D3")
 			(value "DIP05-1A72-12L")
-			(footprint "cookhub:Relay_StandexDIP_1A_pinout12")
+			(footprint "cooksense:Relay_StandexDIP_1A_pinout12")
 			(fields
 				(field
-					(name "Footprint") "cookhub:Relay_StandexDIP_1A_pinout12")
+					(name "Footprint") "cooksense:Relay_StandexDIP_1A_pinout12")
 				(field
 					(name "Datasheet")
 				)
@@ -3677,13 +3701,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "85f9bab1-b803-408d-8c87-ce7c24f31e90")
+			(tstamps "343a667a-c781-42c9-bfef-2b1b923f3016")
 			(units
 				(unit
 					(name "A")
@@ -3707,10 +3731,10 @@
 		(comp
 			(ref "K_D4")
 			(value "DIP05-1A72-12L")
-			(footprint "cookhub:Relay_StandexDIP_1A_pinout12")
+			(footprint "cooksense:Relay_StandexDIP_1A_pinout12")
 			(fields
 				(field
-					(name "Footprint") "cookhub:Relay_StandexDIP_1A_pinout12")
+					(name "Footprint") "cooksense:Relay_StandexDIP_1A_pinout12")
 				(field
 					(name "Datasheet")
 				)
@@ -3729,13 +3753,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1fabf99b-1c33-43f1-a832-d2e394d458eb")
+			(tstamps "33468191-2e67-48a5-a88a-dd2c1e88f5c1")
 			(units
 				(unit
 					(name "A")
@@ -3759,10 +3783,10 @@
 		(comp
 			(ref "K_PRESS")
 			(value "DIP05-1A72-12L")
-			(footprint "cookhub:Relay_StandexDIP_1A_pinout12")
+			(footprint "cooksense:Relay_StandexDIP_1A_pinout12")
 			(fields
 				(field
-					(name "Footprint") "cookhub:Relay_StandexDIP_1A_pinout12")
+					(name "Footprint") "cooksense:Relay_StandexDIP_1A_pinout12")
 				(field
 					(name "Datasheet")
 				)
@@ -3781,13 +3805,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bf532858-c2cd-4a3a-881e-51a907cac980")
+			(tstamps "8177c950-c76a-44a9-bcba-995016c27b3b")
 			(units
 				(unit
 					(name "A")
@@ -3811,10 +3835,10 @@
 		(comp
 			(ref "K_STOP")
 			(value "DIP05-1A72-12L")
-			(footprint "cookhub:Relay_StandexDIP_1A_pinout12")
+			(footprint "cooksense:Relay_StandexDIP_1A_pinout12")
 			(fields
 				(field
-					(name "Footprint") "cookhub:Relay_StandexDIP_1A_pinout12")
+					(name "Footprint") "cooksense:Relay_StandexDIP_1A_pinout12")
 				(field
 					(name "Datasheet")
 				)
@@ -3833,13 +3857,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ef244501-960e-4b35-92e3-084717cb5db4")
+			(tstamps "31ad644d-e051-48aa-8eca-92302694e059")
 			(units
 				(unit
 					(name "A")
@@ -3863,10 +3887,10 @@
 		(comp
 			(ref "K_U1")
 			(value "DIP05-1A72-12L")
-			(footprint "cookhub:Relay_StandexDIP_1A_pinout12")
+			(footprint "cooksense:Relay_StandexDIP_1A_pinout12")
 			(fields
 				(field
-					(name "Footprint") "cookhub:Relay_StandexDIP_1A_pinout12")
+					(name "Footprint") "cooksense:Relay_StandexDIP_1A_pinout12")
 				(field
 					(name "Datasheet")
 				)
@@ -3885,13 +3909,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e9b561d6-08fa-4f4a-aa38-6fecbd132b8f")
+			(tstamps "6917a7f3-26a3-42b3-a481-37c9e10b9f55")
 			(units
 				(unit
 					(name "A")
@@ -3915,10 +3939,10 @@
 		(comp
 			(ref "K_U2")
 			(value "DIP05-1A72-12L")
-			(footprint "cookhub:Relay_StandexDIP_1A_pinout12")
+			(footprint "cooksense:Relay_StandexDIP_1A_pinout12")
 			(fields
 				(field
-					(name "Footprint") "cookhub:Relay_StandexDIP_1A_pinout12")
+					(name "Footprint") "cooksense:Relay_StandexDIP_1A_pinout12")
 				(field
 					(name "Datasheet")
 				)
@@ -3937,13 +3961,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5686a91f-2597-4ea7-ba63-708a579ecd51")
+			(tstamps "2c842bc8-8772-4788-a602-e9e35260a0ba")
 			(units
 				(unit
 					(name "A")
@@ -3967,10 +3991,10 @@
 		(comp
 			(ref "K_U3")
 			(value "DIP05-1A72-12L")
-			(footprint "cookhub:Relay_StandexDIP_1A_pinout12")
+			(footprint "cooksense:Relay_StandexDIP_1A_pinout12")
 			(fields
 				(field
-					(name "Footprint") "cookhub:Relay_StandexDIP_1A_pinout12")
+					(name "Footprint") "cooksense:Relay_StandexDIP_1A_pinout12")
 				(field
 					(name "Datasheet")
 				)
@@ -3989,13 +4013,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f3ec57fb-c879-4834-a054-5eaa07196b77")
+			(tstamps "41b9a88c-2228-49e8-b085-2a3209138e91")
 			(units
 				(unit
 					(name "A")
@@ -4019,10 +4043,10 @@
 		(comp
 			(ref "K_U4")
 			(value "DIP05-1A72-12L")
-			(footprint "cookhub:Relay_StandexDIP_1A_pinout12")
+			(footprint "cooksense:Relay_StandexDIP_1A_pinout12")
 			(fields
 				(field
-					(name "Footprint") "cookhub:Relay_StandexDIP_1A_pinout12")
+					(name "Footprint") "cooksense:Relay_StandexDIP_1A_pinout12")
 				(field
 					(name "Datasheet")
 				)
@@ -4041,13 +4065,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f76aa4ed-3c70-4c84-816d-082e58fcecd1")
+			(tstamps "62169b90-ebc9-466c-849f-ba6ce10bb16c")
 			(units
 				(unit
 					(name "A")
@@ -4071,10 +4095,10 @@
 		(comp
 			(ref "K_U5")
 			(value "DIP05-1A72-12L")
-			(footprint "cookhub:Relay_StandexDIP_1A_pinout12")
+			(footprint "cooksense:Relay_StandexDIP_1A_pinout12")
 			(fields
 				(field
-					(name "Footprint") "cookhub:Relay_StandexDIP_1A_pinout12")
+					(name "Footprint") "cooksense:Relay_StandexDIP_1A_pinout12")
 				(field
 					(name "Datasheet")
 				)
@@ -4093,13 +4117,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5e41151d-e034-49fb-9a84-612aa658db21")
+			(tstamps "041d4b8b-174f-4b62-bdb9-d21648341fa2")
 			(units
 				(unit
 					(name "A")
@@ -4123,10 +4147,10 @@
 		(comp
 			(ref "K_U6")
 			(value "DIP05-1A72-12L")
-			(footprint "cookhub:Relay_StandexDIP_1A_pinout12")
+			(footprint "cooksense:Relay_StandexDIP_1A_pinout12")
 			(fields
 				(field
-					(name "Footprint") "cookhub:Relay_StandexDIP_1A_pinout12")
+					(name "Footprint") "cooksense:Relay_StandexDIP_1A_pinout12")
 				(field
 					(name "Datasheet")
 				)
@@ -4145,13 +4169,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b13f7438-2d74-4b79-8538-9cca74b0b75c")
+			(tstamps "cb3555fb-5a8e-4fc8-853e-64246ae0b997")
 			(units
 				(unit
 					(name "A")
@@ -4197,13 +4221,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "929da148-0e8b-44d8-82ca-199d6f3d31de")
+			(tstamps "137a298d-e7e1-4157-886c-97522c15367b")
 			(units
 				(unit
 					(name "A")
@@ -4246,13 +4270,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "290a334c-1a15-4e4b-88bd-c8e29f57706a")
+			(tstamps "9406f95f-01a7-453b-b401-52fa16d3e403")
 			(units
 				(unit
 					(name "A")
@@ -4295,13 +4319,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "49d1116e-91e2-466c-bb9c-6e7e553286a1")
+			(tstamps "70fe2511-f19c-4546-a6e3-6c56942084a7")
 			(units
 				(unit
 					(name "A")
@@ -4344,13 +4368,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b7074bc3-1555-4921-99c8-b155a5fc5340")
+			(tstamps "893c2881-bb4c-4a56-a0a3-7ab5eba12ab6")
 			(units
 				(unit
 					(name "A")
@@ -4393,13 +4417,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "24a0abce-d221-4584-812f-ffc914c34018")
+			(tstamps "b4d2099d-1502-4786-8483-c6e6e75539c6")
 			(units
 				(unit
 					(name "A")
@@ -4442,13 +4466,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c4cbe9c2-4b1a-4b96-8897-dc92765e76d8")
+			(tstamps "6f0cc316-aa71-403f-a347-4945dd079a51")
 			(units
 				(unit
 					(name "A")
@@ -4491,13 +4515,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9a655552-f30b-4d49-9ace-432c542b14f7")
+			(tstamps "b0418bfe-9609-4413-8642-e62790e2daa4")
 			(units
 				(unit
 					(name "A")
@@ -4540,13 +4564,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "61c00901-4be2-4712-85e6-ce906819247c")
+			(tstamps "f01dd906-4f57-4e23-9dc0-45add819a002")
 			(units
 				(unit
 					(name "A")
@@ -4589,13 +4613,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7780aa6a-87a9-4c6b-8b3e-2e1b56afe5cd")
+			(tstamps "62c7997b-5efc-4994-bdad-0561b49d66dd")
 			(units
 				(unit
 					(name "A")
@@ -4638,13 +4662,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ec5faf84-9d60-489f-8acc-c6bb8927bd98")
+			(tstamps "a4ad1be5-8ec7-49af-acef-6d8467d22914")
 			(units
 				(unit
 					(name "A")
@@ -4687,13 +4711,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d1020ee4-3733-4656-9203-f53924086e34")
+			(tstamps "3fe982fa-57d5-4867-ad7c-94c2bb0fe313")
 			(units
 				(unit
 					(name "A")
@@ -4736,13 +4760,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "71b81221-5178-477c-af6b-cecd51ec3044")
+			(tstamps "d6eef22c-ed82-4886-8f8c-5e7ca6ae15cc")
 			(units
 				(unit
 					(name "A")
@@ -4782,13 +4806,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "69161377-d711-4b95-aac9-a6f5711ba828")
+			(tstamps "d88070ed-60d8-4af3-ab79-1004c69d074a")
 			(units
 				(unit
 					(name "A")
@@ -4828,13 +4852,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9db74e84-2a51-4254-99e5-3c344632272b")
+			(tstamps "956df4e8-6591-4700-a1ca-3cd822dbf826")
 			(units
 				(unit
 					(name "A")
@@ -4874,13 +4898,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5fa0f126-0bcc-4084-b07d-a0f0d2381e46")
+			(tstamps "d9d6f31c-9d67-4bf0-9857-44331bf804fb")
 			(units
 				(unit
 					(name "A")
@@ -4920,13 +4944,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0e2da0a1-d5dd-43c7-b86b-b3347b5148f2")
+			(tstamps "6926f2cd-9476-4b83-a656-f607949297c8")
 			(units
 				(unit
 					(name "A")
@@ -4966,13 +4990,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d674edd0-3347-443a-be51-bf90b59603cd")
+			(tstamps "9309362d-2e84-445b-87bd-6ed9d5102661")
 			(units
 				(unit
 					(name "A")
@@ -5012,13 +5036,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0c76ab2b-53db-4d95-b007-70954aa41af6")
+			(tstamps "8ad51023-a3e8-4e87-8bd6-f72d0811b0b6")
 			(units
 				(unit
 					(name "A")
@@ -5058,13 +5082,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8b6be574-8265-4ee6-8699-e303739ac5e8")
+			(tstamps "6622ccbb-c41e-4ca7-ac44-49c4015dbcff")
 			(units
 				(unit
 					(name "A")
@@ -5104,13 +5128,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cad392cd-66df-4425-be1a-05814b5b8f47")
+			(tstamps "2f590b07-35d1-49f5-b1da-bc02826c421f")
 			(units
 				(unit
 					(name "A")
@@ -5150,13 +5174,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c59a5793-2551-4678-8830-885ec078612f")
+			(tstamps "fc185ec9-7b02-43b4-abfd-efbacfe8d731")
 			(units
 				(unit
 					(name "A")
@@ -5196,13 +5220,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "03dafe96-66d5-4bea-8e27-313cfbe3b4d7")
+			(tstamps "dedb26dd-00dd-4443-bbed-aa220f2fb89b")
 			(units
 				(unit
 					(name "A")
@@ -5242,13 +5266,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d9cc4609-97a4-4d06-85ee-f572d7093c42")
+			(tstamps "2362cc2a-f489-42a5-950d-7da2c2898905")
 			(units
 				(unit
 					(name "A")
@@ -5288,13 +5312,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1a42e20a-f01d-4170-96b7-1dd664298a21")
+			(tstamps "e258e74d-669b-4f3b-a607-91ba6b976b23")
 			(units
 				(unit
 					(name "A")
@@ -5334,13 +5358,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e41f928b-d1b6-4767-b7e1-03837a4180ac")
+			(tstamps "5643b9cc-7c6d-4cb7-8397-5b6745ab153c")
 			(units
 				(unit
 					(name "A")
@@ -5380,13 +5404,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "83241907-eb0f-4627-904b-35b57a93ddea")
+			(tstamps "a19d0831-03ef-4b8d-9b6f-71a8b0bdb288")
 			(units
 				(unit
 					(name "A")
@@ -5426,13 +5450,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0f555b7b-3200-41b6-8155-704dc63e52ae")
+			(tstamps "5339037e-3c9c-455e-a988-7f9f3fbcce2c")
 			(units
 				(unit
 					(name "A")
@@ -5472,13 +5496,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "70162be1-a1c9-4d3a-b5b8-92274102c606")
+			(tstamps "474bf175-b703-43dd-b16f-f7f1b094c573")
 			(units
 				(unit
 					(name "A")
@@ -5518,13 +5542,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0d5bff9b-0560-41b6-b9b1-29cbc3eda40f")
+			(tstamps "c62c7b86-9557-474e-bdef-b1a3e79a8da5")
 			(units
 				(unit
 					(name "A")
@@ -5564,13 +5588,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9a83d1b9-ae98-45a8-b563-df8d25c0d94e")
+			(tstamps "3833a0a6-36b9-4f61-84af-358915c0740b")
 			(units
 				(unit
 					(name "A")
@@ -5610,13 +5634,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "849ddf5f-6eef-4ee9-bf01-c7f031be8612")
+			(tstamps "bd6b6277-269c-4a77-8299-03100c3c04fb")
 			(units
 				(unit
 					(name "A")
@@ -5656,13 +5680,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bba8d221-0930-4332-82c7-d92fff273cc7")
+			(tstamps "3bea4fe7-d7e7-4b35-976c-cb6cab74c6c5")
 			(units
 				(unit
 					(name "A")
@@ -5702,13 +5726,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7193bf7a-50fc-411d-9167-98e3abdcee02")
+			(tstamps "a95dedb3-ece5-484d-bc65-435f8de5658d")
 			(units
 				(unit
 					(name "A")
@@ -5748,13 +5772,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e6cf8d34-7214-465d-bdc8-2d26e1e02cf9")
+			(tstamps "d7e0e9ff-4542-477f-8867-e9ba1757ce7b")
 			(units
 				(unit
 					(name "A")
@@ -5794,13 +5818,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "569f824d-3ef1-46b0-a650-de10be47fe6d")
+			(tstamps "6259ff13-35d8-498a-bb68-8927a7ed761b")
 			(units
 				(unit
 					(name "A")
@@ -5840,13 +5864,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d244fc62-62da-47a7-be28-3d25d5e7dfd6")
+			(tstamps "4daef93c-c00f-43c7-a7f7-5913c7ceb978")
 			(units
 				(unit
 					(name "A")
@@ -5886,13 +5910,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "226110a7-73c5-445e-9357-1a9a41f78eda")
+			(tstamps "e8e17c3d-f153-4a58-bb5a-8f1da63dff98")
 			(units
 				(unit
 					(name "A")
@@ -5932,13 +5956,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e2e9e644-93ba-4b9d-b615-8a2cb2fd54c7")
+			(tstamps "f94dfa6f-9f33-4d94-ab3a-4ff2e53a96c6")
 			(units
 				(unit
 					(name "A")
@@ -5978,13 +6002,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fcc4b448-4b41-4ee3-9b51-1644c25c8f3b")
+			(tstamps "6c315a71-cc50-4ad5-baab-cd10f4812ed3")
 			(units
 				(unit
 					(name "A")
@@ -6024,13 +6048,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ae051817-29fe-4225-9518-88fa580b18be")
+			(tstamps "7028480b-c5d0-4df5-93b0-2e93cc801209")
 			(units
 				(unit
 					(name "A")
@@ -6070,13 +6094,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5a5f2e42-2866-4c07-a05d-40d3671860ae")
+			(tstamps "83145372-7376-41da-a95f-e9c790c23025")
 			(units
 				(unit
 					(name "A")
@@ -6116,13 +6140,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "560352ec-ef74-427e-9a6b-4523ee3bd561")
+			(tstamps "f53bad6b-9d1d-4af0-8f02-94071923a8a6")
 			(units
 				(unit
 					(name "A")
@@ -6162,13 +6186,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "14ffe4c6-1664-4c84-8c67-aa20396e5781")
+			(tstamps "4c9e2970-6be2-498d-bf81-dc356859bf99")
 			(units
 				(unit
 					(name "A")
@@ -6208,13 +6232,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5369a427-464a-48ff-9b10-f1265c3bb292")
+			(tstamps "115e4d16-7438-47be-abec-31d43aa8d3b9")
 			(units
 				(unit
 					(name "A")
@@ -6254,13 +6278,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a2828140-e981-4693-90e7-5f68775c47da")
+			(tstamps "e1f61cb2-a763-45c0-8f78-118481ad4c7d")
 			(units
 				(unit
 					(name "A")
@@ -6300,13 +6324,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4183c955-04ee-43cc-9fb3-e33a66567cb7")
+			(tstamps "9b350077-02f4-4a05-9674-5ec073b6d286")
 			(units
 				(unit
 					(name "A")
@@ -6346,13 +6370,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d02f1bd7-0a46-4d64-b89a-a279c23ccf5b")
+			(tstamps "d2ec23a3-6f86-4c24-8a43-6d83af594acb")
 			(units
 				(unit
 					(name "A")
@@ -6392,13 +6416,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "574e64db-1699-42f7-aa1c-2910f72ab2d0")
+			(tstamps "5a1d17c1-3e19-4e38-900b-280712dec399")
 			(units
 				(unit
 					(name "A")
@@ -6438,13 +6462,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7f85ef66-fbd3-4e71-9159-804f62c8bc6a")
+			(tstamps "1ba72493-d1e0-4917-9226-1d7b5745b368")
 			(units
 				(unit
 					(name "A")
@@ -6484,13 +6508,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "59013866-eb8f-4f64-b8c7-8203c23cc027")
+			(tstamps "5001615d-beef-49b6-856c-a60d15ebcc09")
 			(units
 				(unit
 					(name "A")
@@ -6530,13 +6554,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "78ef2ced-8bac-4c2e-88bd-ac850895a249")
+			(tstamps "f3446867-00d0-49ad-8368-c15e952d5869")
 			(units
 				(unit
 					(name "A")
@@ -6576,13 +6600,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0d117886-cda9-429b-98a6-54ffaff0aa85")
+			(tstamps "2e8a810e-ccd3-4f23-be59-728e9bd9ba50")
 			(units
 				(unit
 					(name "A")
@@ -6622,13 +6646,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "759eb749-347b-4ecc-8522-63071888787a")
+			(tstamps "c67afd1e-350d-456b-a7ed-4b8d1cc0d570")
 			(units
 				(unit
 					(name "A")
@@ -6668,13 +6692,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1f62ff4f-e27a-4234-8106-5d9365a0a2d2")
+			(tstamps "8d5ce532-6daa-425d-9a96-6419f9c393d0")
 			(units
 				(unit
 					(name "A")
@@ -6714,13 +6738,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "57daa8b7-8440-4a3b-9130-cd5bf1b581dc")
+			(tstamps "75cf751b-9c9c-4e2f-964a-01ba707e842a")
 			(units
 				(unit
 					(name "A")
@@ -6760,13 +6784,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "124f7920-ee23-43a8-964d-9792ec6521a5")
+			(tstamps "67bb8c0c-bf30-475a-86c1-41d2acc4b373")
 			(units
 				(unit
 					(name "A")
@@ -6806,13 +6830,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "aa588f9e-68f8-459c-8f3a-c13df607d084")
+			(tstamps "55f6735c-68d8-4d76-8c49-84527e635056")
 			(units
 				(unit
 					(name "A")
@@ -6852,13 +6876,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c212d155-6a8a-4f35-8252-6731dbd20891")
+			(tstamps "e5fecac9-dc6e-4306-81fc-05b7ffdf1957")
 			(units
 				(unit
 					(name "A")
@@ -6898,13 +6922,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f9b6b81a-e858-4e12-ae2c-47f76af36fd9")
+			(tstamps "be81f17f-232e-4a8a-a4f0-ab5734696021")
 			(units
 				(unit
 					(name "A")
@@ -6944,13 +6968,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1ee83fa8-a830-4736-81ed-12db26ddc53c")
+			(tstamps "b3107e05-1d4c-4854-845c-f1a8e172e13a")
 			(units
 				(unit
 					(name "A")
@@ -6990,13 +7014,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "dc38b1bf-f6b1-4866-84de-7b23701a9003")
+			(tstamps "20cc4d08-1224-46b4-8dbb-61b8d6e79864")
 			(units
 				(unit
 					(name "A")
@@ -7036,13 +7060,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a1be725c-7775-498d-9738-c9ad520d1cf8")
+			(tstamps "a91ed4c2-9e6b-4204-8598-77649651fd64")
 			(units
 				(unit
 					(name "A")
@@ -7082,13 +7106,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7adaf7b9-447c-4ab3-8e6d-07dddb55c07f")
+			(tstamps "05b0bd43-9a23-4ad6-b65d-190a58e42220")
 			(units
 				(unit
 					(name "A")
@@ -7128,13 +7152,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5343497b-cf2d-43fb-8f86-1f4ffa2dc980")
+			(tstamps "1de1dd6e-066b-4463-81ee-7313a4a9b832")
 			(units
 				(unit
 					(name "A")
@@ -7174,13 +7198,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7e0a198b-29a4-49f4-b5ba-ab1c49677714")
+			(tstamps "99f0c9d2-5570-45ec-9126-ddc0d8905489")
 			(units
 				(unit
 					(name "A")
@@ -7220,13 +7244,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "373dd182-57de-4e70-995a-8e77945935ab")
+			(tstamps "08436502-08af-4d82-a212-74d5f3873330")
 			(units
 				(unit
 					(name "A")
@@ -7266,13 +7290,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "49a9781e-dea8-45f1-8c4c-ecdcb4643e2f")
+			(tstamps "7d577ef4-1ef2-49db-8dc4-7c07d40b2c03")
 			(units
 				(unit
 					(name "A")
@@ -7312,7 +7336,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -7321,7 +7345,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2f17ee43-4dd6-41d7-b957-8d3b5e7781ab")
+			(tstamps "1cf79ce4-0bb6-4cf0-888c-e1ba2ecb96a8")
 			(units
 				(unit
 					(name "A")
@@ -7358,7 +7382,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -7367,7 +7391,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5f8d3b77-528f-4b89-9227-dc3955c88b38")
+			(tstamps "6665fce1-37b2-4e2b-b49f-0f0f2d3dfeb6")
 			(units
 				(unit
 					(name "A")
@@ -7404,7 +7428,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -7413,7 +7437,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b2489b67-fd50-4441-9f86-fefac537082b")
+			(tstamps "e5fb1ed1-4f44-4447-a7fd-5fc43d110060")
 			(units
 				(unit
 					(name "A")
@@ -7450,7 +7474,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -7459,7 +7483,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e9e2c34b-91f5-4515-b8aa-3c93176ba2da")
+			(tstamps "e699d54e-a7a3-4d00-a07c-a3f2e0fb1aab")
 			(units
 				(unit
 					(name "A")
@@ -7496,7 +7520,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -7505,7 +7529,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "76f959c0-9db3-4bfe-9c47-5eb7984264a1")
+			(tstamps "5a774f84-2d90-4c83-88f1-ba675a2a80e4")
 			(units
 				(unit
 					(name "A")
@@ -7542,7 +7566,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -7551,7 +7575,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "00416868-8283-4e19-837b-9cc5da6a89f2")
+			(tstamps "764c9ebd-5ef0-4606-892c-ce7d527cd26d")
 			(units
 				(unit
 					(name "A")
@@ -7588,7 +7612,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -7597,7 +7621,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4b70f3a0-dbb3-4e2a-a06c-a251594f910a")
+			(tstamps "242c8e3a-9a7d-43b2-87fe-e8e1f87d6cd4")
 			(units
 				(unit
 					(name "A")
@@ -7634,7 +7658,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -7643,7 +7667,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fee62b84-5029-495a-8439-a06f5b3685e3")
+			(tstamps "619fce90-81ad-4f08-b403-23e12a66b68f")
 			(units
 				(unit
 					(name "A")
@@ -7680,7 +7704,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -7689,7 +7713,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cd7e1058-7915-4aae-b214-beecc7e8e824")
+			(tstamps "2f2bc40e-4ec7-482d-be8a-0d4f192eff3a")
 			(units
 				(unit
 					(name "A")
@@ -7726,7 +7750,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -7735,7 +7759,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e9c38620-9f8d-4ccc-afd1-27458baf9b95")
+			(tstamps "54f99e91-0a7c-43e6-b8cb-9c938a09a201")
 			(units
 				(unit
 					(name "A")
@@ -7772,7 +7796,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -7781,7 +7805,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b8702ad0-093f-4d77-912c-e336200eea9d")
+			(tstamps "112fb92e-3cbb-4a9f-b58b-b7aef08901c3")
 			(units
 				(unit
 					(name "A")
@@ -7818,7 +7842,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -7827,7 +7851,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "52975b29-6174-4a33-a4c6-eb19695f68f4")
+			(tstamps "81e8b217-aed8-45f1-bc86-93bf20c48181")
 			(units
 				(unit
 					(name "A")
@@ -7864,7 +7888,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -7873,7 +7897,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "66953e81-892e-434c-93e6-4629805bea97")
+			(tstamps "dbc25d52-1603-4063-a757-d7a57801f4bc")
 			(units
 				(unit
 					(name "A")
@@ -7910,7 +7934,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -7919,7 +7943,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6641c63d-2e74-4b84-bf03-deedf398a19f")
+			(tstamps "a3a692cb-5719-45b7-ba32-1a4eff414154")
 			(units
 				(unit
 					(name "A")
@@ -7956,7 +7980,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -7965,7 +7989,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "50d75408-fd8c-42b4-9d45-f3ae8649583a")
+			(tstamps "4a17da9f-6a86-4bbd-bad5-dcac4e830d20")
 			(units
 				(unit
 					(name "A")
@@ -8002,7 +8026,7 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(property
 				(name "exclude_from_bom")
@@ -8011,7 +8035,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f9382fcf-c315-4b4f-92a6-b7585f7bef88")
+			(tstamps "f89a2c40-8ed8-4048-b473-4e172e3deb5d")
 			(units
 				(unit
 					(name "A")
@@ -8048,13 +8072,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d52bb258-ec0e-4f41-a335-35ca16e4a434")
+			(tstamps "96c5f77c-bfff-43ea-88e0-78520748d980")
 			(units
 				(unit
 					(name "A")
@@ -8136,13 +8160,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bd8e069e-d74a-4f9c-9039-718cc1efc59d")
+			(tstamps "c6f9c7dc-a151-40e1-b9a1-65fe7f6fd074")
 			(units
 				(unit
 					(name "A")
@@ -8194,13 +8218,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "219673bc-9d3d-4189-bb3e-62e0db904ac8")
+			(tstamps "fbcc8493-e868-4d27-9f83-394ff0b93639")
 			(units
 				(unit
 					(name "A")
@@ -8252,13 +8276,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a3a39518-1620-40c4-81bd-e81a6a15d295")
+			(tstamps "6c3a9d37-3054-4f78-bd98-d564876bfc58")
 			(units
 				(unit
 					(name "A")
@@ -8310,13 +8334,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d8484f91-f2ec-4a39-97d1-723afea02b6c")
+			(tstamps "a4f6accb-e1f3-4997-a971-06b0a18c30ee")
 			(units
 				(unit
 					(name "A")
@@ -8351,11 +8375,11 @@
 		)
 		(comp
 			(ref "U_DECD")
-			(value "SN74HC238DR")
-			(footprint "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm")
+			(value "C5620")
 			(fields
 				(field
-					(name "Footprint") "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm")
+					(name "Footprint")
+				)
 				(field
 					(name "Datasheet")
 				)
@@ -8374,13 +8398,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3c3e63f0-58b7-45f0-955b-19dcfdef0949")
+			(tstamps "b377d542-ed6b-4f54-9cd2-289440e7c6fd")
 			(units
 				(unit
 					(name "A")
@@ -8439,11 +8463,11 @@
 		)
 		(comp
 			(ref "U_DECU")
-			(value "SN74HC238DR")
-			(footprint "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm")
+			(value "C5620")
 			(fields
 				(field
-					(name "Footprint") "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm")
+					(name "Footprint")
+				)
 				(field
 					(name "Datasheet")
 				)
@@ -8462,13 +8486,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8ab7fe4e-f45b-4cc8-b501-f9d69e893b9f")
+			(tstamps "b89336d5-18ca-4d10-b290-9e42178b9aca")
 			(units
 				(unit
 					(name "A")
@@ -8550,13 +8574,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "31cd426f-e915-45a6-a5d5-9b4c7e6f199c")
+			(tstamps "05fcb535-3493-4ede-a64e-75b42c36c808")
 			(units
 				(unit
 					(name "A")
@@ -8572,6 +8596,9 @@
 						)
 						(pin
 							(num "4")
+						)
+						(pin
+							(num "9")
 						)
 						(pin
 							(num "8")
@@ -8614,13 +8641,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "eb6fad6b-7af9-43c2-ba1c-b05e3de41033")
+			(tstamps "327d9b8b-1872-4bea-b98a-33c40c9132eb")
 			(units
 				(unit
 					(name "A")
@@ -8738,13 +8765,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0cfaa4b6-6ae8-4cb5-b613-b17ddd521231")
+			(tstamps "f5f4a308-7ebe-48e0-8f07-a2d89a650c6b")
 			(units
 				(unit
 					(name "A")
@@ -8796,13 +8823,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d415e2ab-e140-4d1e-bc48-f059bdc1a890")
+			(tstamps "a9fc5449-ceaa-44d6-aa9a-af398979b530")
 			(units
 				(unit
 					(name "A")
@@ -8851,13 +8878,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "545d5cb3-435c-497c-958e-0b9b1d3a4817")
+			(tstamps "1a3d6dab-1c60-45a9-821d-31959fd8b55f")
 			(units
 				(unit
 					(name "A")
@@ -8884,10 +8911,10 @@
 		(comp
 			(ref "U_LDO")
 			(value "C6186")
-			(footprint "Package_TO_SOT_SMD:SOT-223-3_TabPin2")
+			(footprint "Package_TO_SOT_SMD:SOT-223")
 			(fields
 				(field
-					(name "Footprint") "Package_TO_SOT_SMD:SOT-223-3_TabPin2")
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-223")
 				(field
 					(name "Datasheet")
 				)
@@ -8906,13 +8933,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "60dfec9c-321c-4175-81fd-a307a955f15a")
+			(tstamps "f424f83e-29c2-4e9c-8142-e1a61c308f12")
 			(units
 				(unit
 					(name "A")
@@ -8958,13 +8985,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d14adf61-9bb5-489f-af46-796640ecfc33")
+			(tstamps "d013b90e-5057-4bd3-82e0-adb11b6faed5")
 			(units
 				(unit
 					(name "A")
@@ -9013,13 +9040,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1ea15dd4-755b-42ed-bc14-2ed501046788")
+			(tstamps "28d67271-08c4-4f9b-943b-a1cacb87306a")
 			(units
 				(unit
 					(name "A")
@@ -9077,13 +9104,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a10af0ca-1543-48cc-ac7d-b92422e9b293")
+			(tstamps "e53f3d08-a3ff-4344-b557-33b92b4778a7")
 			(units
 				(unit
 					(name "A")
@@ -9129,13 +9156,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0a25c276-28f1-434d-b03c-acf5ed0e432e")
+			(tstamps "8954e289-7e06-444a-be2d-731d56800c79")
 			(units
 				(unit
 					(name "A")
@@ -9211,13 +9238,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ffa376c6-bc32-4df0-bb58-6e438b59043c")
+			(tstamps "e7edc636-196d-4167-b65d-231761c1da03")
 			(units
 				(unit
 					(name "A")
@@ -9299,13 +9326,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ce9cbe93-a629-44b7-a95e-1848823cf202")
+			(tstamps "cc9e68d6-0631-414a-93ff-2dfc1ab5719d")
 			(units
 				(unit
 					(name "A")
@@ -9387,13 +9414,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "96ddf566-6a9d-4230-9984-a693e754232f")
+			(tstamps "ccf5e2a1-4942-49ea-9171-f7d47e698292")
 			(units
 				(unit
 					(name "A")
@@ -9469,13 +9496,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b58e9962-af45-4edd-90a5-c0e402591eed")
+			(tstamps "ff52c2a1-8c08-48f8-a554-7587a54291e4")
 			(units
 				(unit
 					(name "A")
@@ -9563,13 +9590,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4aedf5f6-442c-4cae-8ada-79a7d29c2d3d")
+			(tstamps "187a60ba-fa87-4943-a1cf-59e8ffa1cb48")
 			(units
 				(unit
 					(name "A")
@@ -9657,13 +9684,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/cooksense.kicad_sch")
+				(value "kicad/cooksense.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7db10c36-9c00-46a7-a0d0-ff126c47ded3")
+			(tstamps "55aef66f-fcbc-4959-86b3-b7267fbade7f")
 			(units
 				(unit
 					(name "A")
@@ -11564,6 +11591,11 @@
 					(name "")
 					(type "passive")
 				)
+				(pin
+					(num "MP")
+					(name "")
+					(type "passive")
+				)
 			)
 		)
 		(libpart
@@ -11607,6 +11639,11 @@
 				)
 				(pin
 					(num "5")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "MP")
 					(name "")
 					(type "passive")
 				)
@@ -11770,6 +11807,11 @@
 				)
 				(pin
 					(num "5")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "MP")
 					(name "")
 					(type "passive")
 				)
@@ -12025,6 +12067,11 @@
 					(name "RTN")
 					(type "passive")
 				)
+				(pin
+					(num "MP")
+					(name "")
+					(type "passive")
+				)
 			)
 		)
 		(libpart
@@ -12071,6 +12118,11 @@
 					(name "")
 					(type "passive")
 				)
+				(pin
+					(num "MP")
+					(name "")
+					(type "passive")
+				)
 			)
 		)
 		(libpart
@@ -12114,6 +12166,11 @@
 				)
 				(pin
 					(num "5")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "MP")
 					(name "")
 					(type "passive")
 				)
@@ -12209,6 +12266,11 @@
 					(name "")
 					(type "passive")
 				)
+				(pin
+					(num "MP")
+					(name "")
+					(type "passive")
+				)
 			)
 		)
 		(libpart
@@ -12267,6 +12329,11 @@
 				)
 				(pin
 					(num "8")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "MP")
 					(name "")
 					(type "passive")
 				)
@@ -15888,6 +15955,11 @@
 					(name "GND")
 					(type "passive")
 				)
+				(pin
+					(num "9")
+					(name "EP")
+					(type "passive")
+				)
 			)
 		)
 		(libpart
@@ -16230,7 +16302,7 @@
 				)
 				(pin
 					(num "4")
-					(name "")
+					(name "TAB")
 					(type "passive")
 				)
 			)
@@ -17310,6 +17382,12 @@
 				(ref "U_LDO")
 				(pin "2")
 				(pinfunction "VOUT_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_LDO")
+				(pin "4")
+				(pinfunction "TAB_4")
 				(pintype "passive")
 			)
 			(node
@@ -19117,8 +19195,18 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "J_DOOR")
+				(pin "MP")
+				(pintype "passive")
+			)
+			(node
 				(ref "J_ESTOP")
 				(pin "5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_ESTOP")
+				(pin "MP")
 				(pintype "passive")
 			)
 			(node
@@ -19129,6 +19217,11 @@
 			(node
 				(ref "J_MODE")
 				(pin "5")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_MODE")
+				(pin "MP")
 				(pintype "passive")
 			)
 			(node
@@ -19178,8 +19271,18 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "J_PWR")
+				(pin "MP")
+				(pintype "passive")
+			)
+			(node
 				(ref "J_RH_AMBIENT")
 				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_RH_AMBIENT")
+				(pin "MP")
 				(pintype "passive")
 			)
 			(node
@@ -19188,13 +19291,28 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "J_RH_EXHAUST")
+				(pin "MP")
+				(pintype "passive")
+			)
+			(node
 				(ref "J_THERM_A")
 				(pin "2")
 				(pintype "passive")
 			)
 			(node
+				(ref "J_THERM_A")
+				(pin "MP")
+				(pintype "passive")
+			)
+			(node
 				(ref "J_THERM_B")
 				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_THERM_B")
+				(pin "MP")
 				(pintype "passive")
 			)
 			(node
@@ -19355,6 +19473,12 @@
 				(ref "U_EFUSE")
 				(pin "8")
 				(pinfunction "GND_8")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_EFUSE")
+				(pin "9")
+				(pinfunction "EP_9")
 				(pintype "passive")
 			)
 			(node
@@ -21500,16 +21624,6 @@
 		)
 		(net
 			(code "171")
-			(name "unconnected-(U_LDO-Pad4)")
-			(class "Default")
-			(node
-				(ref "U_LDO")
-				(pin "4")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "172")
 			(name "unconnected-(U_SR2-QB-Pad1)")
 			(class "Default")
 			(node
@@ -21520,7 +21634,7 @@
 			)
 		)
 		(net
-			(code "173")
+			(code "172")
 			(name "unconnected-(U_SR2-QC-Pad2)")
 			(class "Default")
 			(node
@@ -21531,7 +21645,7 @@
 			)
 		)
 		(net
-			(code "174")
+			(code "173")
 			(name "unconnected-(U_SR2-QD-Pad3)")
 			(class "Default")
 			(node
@@ -21542,7 +21656,7 @@
 			)
 		)
 		(net
-			(code "175")
+			(code "174")
 			(name "unconnected-(U_SR2-QE-Pad4)")
 			(class "Default")
 			(node
@@ -21553,7 +21667,7 @@
 			)
 		)
 		(net
-			(code "176")
+			(code "175")
 			(name "unconnected-(U_SR2-QF-Pad5)")
 			(class "Default")
 			(node
@@ -21564,7 +21678,7 @@
 			)
 		)
 		(net
-			(code "177")
+			(code "176")
 			(name "unconnected-(U_SR2-QG-Pad6)")
 			(class "Default")
 			(node
@@ -21575,7 +21689,7 @@
 			)
 		)
 		(net
-			(code "178")
+			(code "177")
 			(name "unconnected-(U_SR2-QH-Pad7)")
 			(class "Default")
 			(node
@@ -21586,7 +21700,7 @@
 			)
 		)
 		(net
-			(code "179")
+			(code "178")
 			(name "unconnected-(U_TC-DNC-Pad6)")
 			(class "Default")
 			(node
@@ -21597,7 +21711,7 @@
 			)
 		)
 		(net
-			(code "180")
+			(code "179")
 			(name "unconnected-(U_ULNB-IN5-Pad5)")
 			(class "Default")
 			(node
@@ -21608,7 +21722,7 @@
 			)
 		)
 		(net
-			(code "181")
+			(code "180")
 			(name "unconnected-(U_ULNB-IN6-Pad6)")
 			(class "Default")
 			(node
@@ -21619,7 +21733,7 @@
 			)
 		)
 		(net
-			(code "182")
+			(code "181")
 			(name "unconnected-(U_ULNB-IN7-Pad7)")
 			(class "Default")
 			(node
@@ -21630,7 +21744,7 @@
 			)
 		)
 		(net
-			(code "183")
+			(code "182")
 			(name "unconnected-(U_ULNB-IN8-Pad8)")
 			(class "Default")
 			(node
@@ -21641,7 +21755,7 @@
 			)
 		)
 		(net
-			(code "184")
+			(code "183")
 			(name "unconnected-(U_ULNB-OUT5-Pad14)")
 			(class "Default")
 			(node
@@ -21652,7 +21766,7 @@
 			)
 		)
 		(net
-			(code "185")
+			(code "184")
 			(name "unconnected-(U_ULNB-OUT6-Pad13)")
 			(class "Default")
 			(node
@@ -21663,7 +21777,7 @@
 			)
 		)
 		(net
-			(code "186")
+			(code "185")
 			(name "unconnected-(U_ULNB-OUT7-Pad12)")
 			(class "Default")
 			(node
@@ -21674,7 +21788,7 @@
 			)
 		)
 		(net
-			(code "187")
+			(code "186")
 			(name "unconnected-(U_ULNB-OUT8-Pad11)")
 			(class "Default")
 			(node

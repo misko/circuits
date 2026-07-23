@@ -19,6 +19,19 @@
 # future rev adds a switching converter, MOVE that rail into `rails:` with its
 # vin/vout/iout/converter and the gate will grade it.
 
+# SOURCE TYPE (canon E-OFF, authoritative). cooksense is EXTERNALLY powered by a
+# 5V SELV supply through the Molex Micro-Fit J_PWR (polyfuse -> reverse-pol P-FET
+# -> TPS259573 eFuse). There is NO self-contained energy source: no battery, cell,
+# pack, supercap, or coin cell anywhere on the board. The only stored energy is the
+# bulk/decoupling caps (µJ, bleed in ms) and the reed-relay coil inductance, which
+# DE-ENERGIZES the instant input is removed (fail-safe: coils drop, contacts open).
+# So there is nothing to "turn off for storage" and no stored quiescent drain to
+# bound — E-OFF is satisfied by construction. (Before this declaration E-OFF matched
+# the word "discharge"/"cell" inside ADR-0006-relay-technology and mis-fired a
+# self-contained-source finding; `source_type:` is authoritative and overrides that
+# heuristic, per power_topology.py classify_source.)
+source_type: external_5v_selv
+
 rails: []          # no switching converter — E-TOPO N-A (all-linear), by design
 
 # Documentation-only (ignored by power_topology.py). Each linear rail's envelope:

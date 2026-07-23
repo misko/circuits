@@ -1035,6 +1035,7 @@ NET: N3V3
   - FB1 pin1
   - C_3V3 pin1 (+)
   - C_LDOOUT pin1 (+)
+  - U_LDO TAB
   - U_LDO VOUT
 
 NET: N5V_KEY_RELAY
@@ -1220,7 +1221,7 @@ U_LDO
 - pin1(GND): NETS(GND)
 - pin2(VOUT): NETS(N3V3)
 - pin3(VIN): NETS(N5V_PROTECTED)
-- pin4: NOT_CONNECTED
+- pin4(TAB): NETS(N3V3)
 
 C_LDOIN (10uF 0805)
 - pin1(pos, anode, left): NETS(N5V_PROTECTED)

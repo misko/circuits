@@ -88,6 +88,93 @@ EDGE = [
 ]
 
 
+# ---- I-ISO track/via-aware creepage (P1-B fix, 2026-07-23) -------------------
+# The original I-ISO measured PAD CENTRES only, so a logic TRACK dipping into the
+# reed barrier (5V_KEY_RELAY y36) vs a keypad bus (U_SEL_BUS y31.3) -> ~4.35mm was
+# INVISIBLE (a checker blind spot, canon M1). Creepage is a SAME-SURFACE path, so
+# per-layer copper is compared (F.Cu<->F.Cu, B.Cu<->B.Cu); a through-hole via/PTH
+# pad (layer=None) counts on EVERY copper layer. Straight-line copper-EDGE distance
+# (centre-line distance minus both half-widths) is a conservative lower bound on
+# the true, slot-lengthened creepage. Pours are NOT measured here — plane intrusion
+# is guard (c) (no pour inside the keypad strip); this guard is tracks+vias+pads.
+def _seg_pt(px, py, ax, ay, bx, by):
+    dx, dy = bx-ax, by-ay
+    L2 = dx*dx + dy*dy
+    t = 0.0 if L2 == 0 else max(0.0, min(1.0, ((px-ax)*dx+(py-ay)*dy)/L2))
+    return math.hypot(px-(ax+t*dx), py-(ay+t*dy))
+
+
+def _seg_seg(a, c):
+    ax,ay,bx,by = a; cx,cy,dx,dy = c
+    return min(_seg_pt(ax,ay,cx,cy,dx,dy), _seg_pt(bx,by,cx,cy,dx,dy),
+              _seg_pt(cx,cy,ax,ay,bx,by), _seg_pt(dx,dy,ax,ay,bx,by))
+
+
+def _iso_cu_elems(b, pred, ybound=42.0, extra=None):
+    """Copper elements (tracks, vias, pads) whose net matches pred, near the reed
+    barrier (min-y <= ybound). Each = (layer_or_None, (x1,y1,x2,y2), half_width).
+    `extra` = optional list of pre-built elements (used by --selftest injection)."""
+    E = list(extra or [])
+    for t in b.GetTracks():
+        if not pred(t.GetNetname()):
+            continue
+        if t.GetClass() == "PCB_VIA":
+            x, y = MM(t.GetPosition().x), MM(t.GetPosition().y)
+            if y > ybound:
+                continue
+            E.append((None, (x, y, x, y), MM(t.GetWidth())/2))
+        else:
+            s, e = t.GetStart(), t.GetEnd()
+            x1,y1,x2,y2 = MM(s.x), MM(s.y), MM(e.x), MM(e.y)
+            if min(y1, y2) > ybound:
+                continue
+            E.append((t.GetLayer(), (x1,y1,x2,y2), MM(t.GetWidth())/2))
+    for f in b.GetFootprints():
+        for p in f.Pads():
+            if not pred(p.GetNetname()):
+                continue
+            x, y = MM(p.GetPosition().x), MM(p.GetPosition().y)
+            if y > ybound:
+                continue
+            through = p.GetDrillSize().x > 0
+            lay = None if through else p.GetLayer()
+            E.append((lay, (x, y, x, y), max(MM(p.GetSizeX()), MM(p.GetSizeY()))/2))
+    return E
+
+
+def iso_min_creepage(b, ybound=42.0, extra_logic=None):
+    """Min same-surface copper-EDGE distance between keypad-domain copper and
+    SELV-logic copper (tracks+vias+pads), cross-domain. Returns (gmin_mm, descr)."""
+    kp = _iso_cu_elems(b, lambda n: n in KEYPAD_NETS, ybound)
+    lg = _iso_cu_elems(b, lambda n: bool(n) and n not in KEYPAD_NETS, ybound,
+                       extra=extra_logic)
+    gmin, arg = 1e9, None
+    for lk, gk, rk in kp:
+        for ll, gl, rl in lg:
+            if lk is not None and ll is not None and lk != ll:
+                continue                       # different surfaces: no creepage path
+            d = _seg_seg(gk, gl) - rk - rl
+            if d < gmin:
+                gmin, arg = d, (gk, gl)
+    return gmin, arg
+
+
+def selftest():
+    """KNOWN-BAD (canon: a gate that cannot fail is worthless). Inject a synthetic
+    SELV-logic track into the reed barrier (F.Cu, ~y33, near K_D4 x200) — ~2.8mm
+    from the keypad contact row (y30.19) — and confirm the FIXED, track-aware
+    I-ISO now measures < 6mm. The pre-fix pad-centre-only check could NOT see this
+    (no logic PAD there), so this proves the track-awareness. RED against the old code."""
+    b = pcbnew.LoadBoard(BOARD)
+    base, _ = iso_min_creepage(b)
+    intruder = [(pcbnew.F_Cu, (198.0, 33.0, 202.0, 33.0), 0.15)]   # a 0.3mm F.Cu logic track in the gap
+    bad, _ = iso_min_creepage(b, extra_logic=intruder)
+    ok = bad < ISO_GAP_MM
+    print(f"I-ISO selftest: baseline {base:.2f}mm ; with barrier-intruding track "
+          f"{bad:.2f}mm (< {ISO_GAP_MM} expected) -> {'PASS (checker CAN fail)' if ok else 'BROKEN (blind)'}")
+    sys.exit(0 if ok else 1)
+
+
 def main():
     b = pcbnew.LoadBoard(BOARD)
     fps = {f.GetReference(): f for f in b.GetFootprints()}
@@ -163,19 +250,21 @@ def main():
             elif n:              lg.append((r,n,x,y))   # netted SELV-logic pads only
     if not kp:
         fails.append("I-ISO no keypad-domain pads found (net map broken?)")
-    # (a) >= 6mm keypad-copper <-> logic-copper, cross-footprint (reed body = barrier)
-    gmin, garg = 1e9, None
-    for r1,n1,x1,y1 in kp:
-        for r2,n2,x2,y2 in lg:
-            if r1 == r2: continue                       # intra-reed coil/contact = rated 1.5kV
-            d = math.hypot(x1-x2, y1-y2)
-            if d < gmin: gmin, garg = d, (r1,n1,r2,n2)
+    # (a) >= 6mm keypad-copper <-> logic-copper, TRACK/VIA-AWARE (not pad centres).
+    # A logic track or keypad bus that bulges into the reed barrier is exactly what
+    # the old pad-centre-only measure missed. Measures same-surface copper EDGES
+    # (tracks + vias + pads), cross-domain (see iso_min_creepage).
+    gmin, garg = iso_min_creepage(b)
+    where = ""
+    if garg is not None:
+        (kx1,ky1,kx2,ky2), (lx1,ly1,lx2,ly2) = garg
+        where = (f" (keypad @({(kx1+kx2)/2:.1f},{(ky1+ky2)/2:.1f}) <-> "
+                 f"logic @({(lx1+lx2)/2:.1f},{(ly1+ly2)/2:.1f}))")
     if gmin < ISO_GAP_MM - 1e-6:
-        fails.append(f"I-ISO keypad<->logic gap {gmin:.2f}mm < {ISO_GAP_MM}mm "
-                     f"({garg[0]}.{garg[1]} <-> {garg[2]}.{garg[3]})")
+        fails.append(f"I-ISO keypad<->logic COPPER creepage {gmin:.2f}mm < "
+                     f"{ISO_GAP_MM}mm{where}")
     else:
-        notes.append(f"I-ISO min keypad<->logic gap {gmin:.2f}mm "
-                     f"({garg[0]}.{garg[1]} <-> {garg[2]}.{garg[3]})")
+        notes.append(f"I-ISO min keypad<->logic copper creepage {gmin:.2f}mm{where}")
     # (b) no SELV-logic / GND pad inside the keypad strip rectangle
     sx0,sy0,sx1,sy1 = STRIP
     intruders = [(r,n) for r,n,x,y in lg if sx0 <= x <= sx1 and sy0 <= y <= sy1]
@@ -224,4 +313,6 @@ def main():
 
 
 if __name__ == "__main__":
+    if "--selftest" in sys.argv[1:]:
+        selftest()          # known-bad: prove the track-aware I-ISO CAN fail
     main()

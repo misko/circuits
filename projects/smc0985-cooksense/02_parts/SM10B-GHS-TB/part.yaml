@@ -25,7 +25,7 @@ pins:                             # 1..10 signal + 2 mechanical tabs (KiCad pad 
   8: P8
   9: P9
   10: P10
-  MP: {name: MP, tie: GND, note: "two tin-plated reinforcement/solder tabs (footprint pad 'MP' x2 = one common node); carry no signal current — tie to the ISOLATED-side ground of the keypad domain (see layout)"}
+  MP: {name: MP, note: "two tin-plated reinforcement/solder tabs (footprint pad 'MP' x2 = one common node); carry no signal current. DELIBERATELY has NO tie annotation -- this is the ISOLATED keypad-matrix connector and NO GND_ISO net exists on this design (the matrix is a floating KP_*/SEL_BUS signal domain), so the MP tabs must FLOAT. Binding these tabs to GND bridges SELV GND into the isolated keypad zone (the converter tie-emission surfaced exactly this -> J_KEY_MATRIX.MP=GND at y12.5 inside the keypad strip, a 0.43mm creepage isolation break caught by the fixed I-ISO). Reflow the tabs for mechanical retention only. IMPORTANT for maintainers: the converter load_part_ties scans this whole inline map body with a regex for the literal tie annotation, so this note must NEVER contain that annotation as prose (colon form) or MP would be re-bridged to GND. Corrected 2026-07-23 (the GND binding was removed)."}
 limits: {current_per_contact: "1.0A AC/DC (AWG#26)", voltage: "50V AC/DC", temp_range: "-40..+105C incl. current rise", wire: "AWG #30-#26, insulation OD 0.76-1.0mm"}
 gotchas:
   - "SM = side-entry = KiCad Horizontal (right-angle) SMD; NOT top-entry (BM10B-GHS-TBT is a different footprint)"

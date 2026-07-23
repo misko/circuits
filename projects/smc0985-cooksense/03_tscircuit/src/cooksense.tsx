@@ -201,7 +201,7 @@ export default () => (
     {/* ---- 2x SN74HC238 ACTIVE-HIGH 3-to-8 decoders (one-hot BY CONSTRUCTION, ADR-0002) ---- */}
     {/* 238 pins: 1A 2B 3C 4/G2A 5/G2B 6G1 7Y7 8GND 9Y6 10Y5 11Y4 12Y3 13Y2 14Y1 15Y0 16VCC. Selected out = HIGH. */}
     {/* U-select: Y0..Y5 = U1..U6 -> ULN inputs. G1 enable from 595; /G2A=/G2B=GND; Y6/Y7 unused (NC). */}
-    <chip name="U_DECU" footprint="soic16" supplierPartNumbers={{ jlcpcb: ["SN74HC238DR"] }}
+    <chip name="U_DECU" footprint="soic16" supplierPartNumbers={{ jlcpcb: ["C5620"] }}
       pinLabels={{ pin1: "A", pin2: "B", pin3: "C", pin4: "G2A_N", pin5: "G2B_N", pin6: "G1", pin7: "Y7", pin8: "GND", pin9: "Y6", pin10: "Y5", pin11: "Y4", pin12: "Y3", pin13: "Y2", pin14: "Y1", pin15: "Y0", pin16: "VCC" }}
       connections={{
         pin1: "net.DECU_A", pin2: "net.DECU_B", pin3: "net.DECU_C", pin4: "net.GND", pin5: "net.GND", pin6: "net.DECU_G1",
@@ -209,7 +209,7 @@ export default () => (
         pin8: "net.GND", pin16: "net.N3V3",
       }} />
     {/* D-select: Y0..Y3 = D1..D4. Only A,B used (4 outputs) -> C(3) tied GND; Y4..Y7 unused (NC). */}
-    <chip name="U_DECD" footprint="soic16" supplierPartNumbers={{ jlcpcb: ["SN74HC238DR"] }}
+    <chip name="U_DECD" footprint="soic16" supplierPartNumbers={{ jlcpcb: ["C5620"] }}
       pinLabels={{ pin1: "A", pin2: "B", pin3: "C", pin4: "G2A_N", pin5: "G2B_N", pin6: "G1", pin7: "Y7", pin8: "GND", pin9: "Y6", pin10: "Y5", pin11: "Y4", pin12: "Y3", pin13: "Y2", pin14: "Y1", pin15: "Y0", pin16: "VCC" }}
       connections={{
         pin1: "net.DECD_A", pin2: "net.DECD_B", pin3: "net.GND", pin4: "net.GND", pin5: "net.GND", pin6: "net.DECD_G1",
