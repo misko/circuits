@@ -21,6 +21,30 @@ gotchas:
   - "coil is non-polar on -12L; keep pin 1 = +RELAY_5V so the -12D alternate (internal diode, cathode at pin 1 side per DS p.4 D(Q) figure) drops in"
   - "adjacent-relay magnetic coupling: DS p.3 handling note; 15.24mm super-column pitch + one-at-a-time firmware default"
 verified: "pin map read from DS p.3 Pin-Out figures (code 12) + p.4 option figures; coil/contact data p.1-2; dielectric p.3 Relay Data table - 2026-07-19"
+layout:                          # P-LAYOUT: reed relay (mains-switching stage, DO-NOT-SUBSTITUTE)
+  source: "Standex DIP-series datasheet (Version 03, 01 Aug 2025) p.3 'Handling &
+    Assembly Instructions' + p.3 Pin-Out (Top View, code 12) + p.4 Options figures.
+    Real rules: (a) external magnetic fields and ADJACENT relays in high-density
+    matrices influence the relay's electrical characteristics and must be taken into
+    consideration; (b) switching inductive/capacitive loads makes V/I peaks that
+    damage the relay - protective circuits required; (c) a coil suppression diode
+    reduces total switching cycles, worst at high voltage; (d) wave-solder max
+    260C/5s, aqueous rinse OK with proper drying (fully sealed)"
+  reviewed: "2026-07-22"
+  notes: |
+    Datasheet handling rules are MIN-SPACING / ISOLATION / process, not keep-short
+    spans, so no keep_short budget (honest):
+    (1) Magnetic coupling: space adjacent reed relays apart / alternate orientation.
+        This board already fixes the 15.24mm super-column pitch + one-at-a-time
+        firmware default (gotcha); a magnetic-shield option (-12M/Q/R/S, p.4) exists
+        if a tighter matrix is ever forced. Keep coils clear of other magnetics.
+    (2) Isolation boundary runs BETWEEN the rows: coil pins 1/7 vs contact pins 8/14,
+        1.5kVDC coil/contact (EN60255-27, ADR-0002) - hold creepage/clearance across
+        that gap, route NO net through it, pour reliefs respect the boundary.
+    (3) Fly-back: the coil is an inductive load - the ULN2803 COM clamp on RELAY_5V is
+        the protective circuit the datasheet demands; keep the coil->driver loop tight.
+    (4) Process: THT low-profile DIP on the DIP-14 corner grid; wave/hand-solder within
+        the 260C/5s limit, wash-and-dry compatible.
 sourcing:
   lcsc: ""
   note: "DO-NOT-SUBSTITUTE (spec 15.4). JLC catalog C1561362 stock 0 -> HAND-SOLDER line, global sourcing (DigiKey DIP05-1A72-12L ~$4.36/1, active). Approved alternate: DIP05-1A72-12D (same pinout, internal diode). Order 16 + 4 spares."

@@ -16,6 +16,24 @@ limits: {ctr: "50-600% (TA1 bin)", vceo: "35V", viso: "5kVrms"}
 gotchas:
   - "J10 output is the C/E pair (dry open-collector, spec 7.5); silk marks 30V/50mA max and polarity C/E"
 verified: "Lite-On LTV-817S series pinout (1=A 2=K 3=E 4=C, package top mark dot = pin 1); pin review re-checks - 2026-07-19"
+layout:                     # P-LAYOUT: optocoupler (multi-pin active). Governing rule = the
+                            # 5000Vrms input<->output ISOLATION barrier, NOT a power/thermal budget.
+  source: "Lite-On LTV-8X7S series datasheet Sec.1 FEATURES + Isolation-Voltage rating: Viso = 5,000Vrms
+    (AC 1 min, RH 40-60%), Isolation Resistance Riso 5x10^10-1x10^11 Ohm; Sec.7 Temperature Profile of
+    Soldering (IR reflow JEDEC-STD-020C, Tsol 260C, 'Do not solder more than three times', body must NOT
+    be immersed in solder paste); Sec.8 RECOMMENDED FOOT PRINT PATTERNS (4-pin mount pad)."
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: OPTO_LED, max_span_mm: 6, why: "series IF-limit R adjacent to the ANODE (pin1); drive IF ~5mA (CTR specced at IF=5mA), board-logic side"}
+  notes: >
+    The governing layout rule is the 5000Vrms input<->output isolation barrier: this opto isolates the
+    board logic (LED, pins 1 ANODE / 2 CATHODE) from the CONTACTOR/field side brought out on J10
+    (phototransistor C/E, pins 3 EMITTER / 4 COLLECTOR, dry open-collector). Keep INPUT copper (1/2) and
+    OUTPUT copper (3/4) on opposite package edges with NO ground pour or trace crossing beneath the body;
+    the wide-body SMDIP-4 (W9.53mm) land holds the two lead rows ~9.53mm apart - preserve that full
+    creepage/clearance across the barrier (mirrors AQY212GS and the board's >=6mm isolation discipline).
+    Local IF-limit R at pin1; the C/E output to J10 is low-current (silk 30V/50mA max). Not a
+    switching/thermal part - no current-path or theta_JA budget applies.
 sourcing:
   lcsc: C125121
   note: "genuine Lite-On, 8684 stock 2026-07-19."

@@ -31,6 +31,28 @@ gotchas:
   - "OUTn pairs with INn on the OPPOSITE corner (1<->18): straight-across netting is a classic bug - audit asserts IN1/OUT1 pairing"
   - "internal flyback diodes to COM; COM MUST tie to RELAY_5V (switched rail), not 5VP, so a gated-off rail still clamps coil kick"
 verified: "TI SLRS049 DW pin table (IN1-8 = 1-8, GND=9, COM=10, OUT8-1 = 11-18); pin review re-checks - 2026-07-19"
+layout:                          # P-LAYOUT: 8ch Darlington relay-coil driver (ADR-0003 safety chain)
+  source: "TI ULN2803A datasheet SLRS049G sec.11 Power Supply Recommendations (COM is
+    tied to the coil supply; the OUTn voltage must NOT heavily exceed COM or the
+    internal fly-back diodes forward-bias and dump large current into COM, damaging
+    on-chip metal / over-heating the part) + sec.12.1 Layout Guidelines (SEPARATE the
+    input channels as much as possible to kill cross-talk; thin input traces OK, THICK
+    output traces for the coil current; the common-emitter GND(9) return carries ALL
+    channel currents so make that trace VERY WIDE, some apps up to 2.5A) + sec.10.2.2.3
+    Power Dissipation (PD = SUM VOLi*ILi must keep TJ < 125C; theta_JA(DW) = 66.4 C/W)"
+  reviewed: "2026-07-22"
+  notes: |
+    The ULN Layout section is about TRACE WIDTH + CHANNEL SEPARATION, not keep-short
+    spans, so no keep_short budget (the honest form):
+    (1) COM(10) ties to RELAY_5V (the SWITCHED coil rail, per gotcha) - keep COM and
+        each OUTn->coil fly-back loop area SMALL so the internal clamp diode sees low
+        loop inductance; never let OUTn exceed COM (sec.11).
+    (2) GND(9) common-emitter return sinks all 8 channels (~2.5A aggregate worst case)
+        - give it a WIDE pour/trace straight to the plane at the pin (sec.12.1).
+    (3) Keep IN1-8 (from the 595 outputs) separated and short to limit cross-talk;
+        the OUTn to the relay coils get thick copper.
+    (4) Thermal: 8 coils energised together is the PD(MAX) case - honour sec.10.2.2.3
+        (TJ < 125C) with copper around the DW package. SOIC-18W 1.27mm - no escape wall.
 sourcing:
   lcsc: C9683
   note: "genuine TI DW reel, 2500 stock 2026-07-19, $6.22 - coil-driver stage kept genuine (ADR-0003); Mixic C181731 rejected for the safety chain."

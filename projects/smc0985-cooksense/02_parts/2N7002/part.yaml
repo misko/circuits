@@ -13,6 +13,21 @@ pins:
 gotchas:
   - "SOT-23 FET: 1=G 2=S 3=D"
 verified: "2/3-pad commodity; polarity/pad-1 asserted in board generator + audit I9"
+layout:                     # P-LAYOUT: small-signal N-FET (type matches 'fet'). HONEST case -
+                            # the datasheet has NO placement/routing section, only thermal.
+  source: "Diodes 2N7002 ds11303 Thermal Characteristics + Notes 6/7: theta_JA 348C/W on the
+    minimum-recommended-pad vs 241C/W on 1in^2 2oz-Cu FR-4; PD 370mW (min pad) / 540mW (1in^2 2oz);
+    Sec.'Suggested Pad Layout' is the land pattern ONLY - the datasheet gives no PCB placement or
+    routing guidance (small-signal switch)."
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: HS_GATE, max_span_mm: 6, why: "the Q2 pulldown FET sits local to the AO3401A high-side gate it drives (drain -> P-FET gate); a short drive node = clean turn-off, no coupling"}
+  notes: >
+    Genuinely layout-agnostic, like the logic-gate case: as the Q2 gate-pulldown driver its load is a
+    high-impedance MOSFET gate switched at sub-mA, so the copper-vs-theta_JA table is non-binding (no
+    self-heating). The only real rule is placement: sit the FET beside the AO3401A gate node it pulls
+    down (drain = P-FET gate, source = GND, gate = logic / AND-chain enable) with a local gate pulldown,
+    keeping the drive net short. No thermal copper array, no current-path span budget.
 sourcing:
   lcsc: C8545
   note: "BASIC, 266k stock. Q2 gate-pulldown driver."

@@ -13,6 +13,24 @@ pins:
 gotchas:
   - "SOT-23 FET: 1=G 2=S 3=D (AOS ds p.1); Vgs max +-12V, Vds -30V"
 verified: "2/3-pad commodity; polarity/pad-1 asserted in board generator + audit I9"
+layout:                     # P-LAYOUT: P-FET load switch (type matches 'fet'). Datasheet has NO
+                            # placement section - only thermal (theta_JA vs board copper area).
+  source: "AOS AO3401A Rev3.1 Thermal Characteristics + Note A: theta_JA 70C/W (t<=10s) / 100C/W
+    steady-state, MEASURED on a 1in^2 FR-4 / 2oz-Cu board in still air, TA=25C - 'the value in any given
+    application depends on the user's specific board design'; PD 1.4W (Note A, t<=10s @25C) / 0.9W
+    (Note B @70C); RDS(on) <60mOhm @Vgs=-4.5V. No dedicated PCB-layout section (general load switch)."
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: HS_GATE, max_span_mm: 6, why: "gate pull-up R (to SOURCE) + the 2N7002 pulldown placed local to the gate, keeping the high-side switching node compact"}
+  notes: >
+    High-side P-FET load switches (Q1 = coil rail / 5V_KEY_RELAY, plus per-sensor switched 3V3 highs)
+    and the Q3 reverse-polarity guard on the 5V input. Loads are small - the coil rail is ~120mA worst
+    (12 reed coils), sensor rails less - all far under the -4A rating, so with RDS(on)<60mOhm the
+    dissipation is <~15mW: the theta_JA-vs-copper table (Note A) is effectively non-binding and NO thermal
+    via array is needed (matches crow-recorder AO3401A). Keep the source<->drain switched path short with a
+    modest local drain pour; place the gate pull-up R and its 2N7002 pulldown adjacent to the gate (HS_GATE).
+    Source/drain-to-rail orientation differs by role (load-switch vs reverse-guard) - that is the
+    schematic / E-INV call, not a copper rule. All-linear board: no switching-node budget.
 sourcing:
   lcsc: C15127
   note: "BASIC, 455k stock. Q1 coil-rail high-side + Q3 reverse protection."

@@ -16,6 +16,23 @@ gotchas:
   - "needs >=22u-class output cap for stability; tab = VOUT (pour heatsink on 3V3)"
   - "JLC twin: pad_alias {'4':'2'} (KiCad TabPin2 vs JLC tab-as-4; jlcpcb-fab skill canonical case)"
 verified: "ds1117 p.1 pinout SOT-223 (1=GND 2=VOUT+tab 3=VIN) - carried from ble-bus-bar release v1.0 verification"
+layout:                     # P-LAYOUT: linear LDO (multi-pin power part). Real datasheet rules =
+                            # output-cap frequency compensation + SOT-223 tab heat-spread.
+  source: "AMS ds1117 APPLICATION HINTS - 'Stability': the output capacitor is part of the device
+    frequency compensation, 22uF solid tantalum on VOUT ensures stability for all operating conditions
+    (larger COUT further improves stability + transient response); + 'Thermal Considerations':
+    theta_JA can be as low as 45C/W given a reasonable copper area (>=1 Cu layer) to spread the heat
+    (Table 1 characterised on 1/16in FR-4, 1oz Cu); guaranteed max PD 1.2W for SOT-223 (Note 2)."
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: 3V3, max_span_mm: 5, why: "COUT (>=22uF-class) hard against VOUT (pin2 / tab) - it IS the LDO's frequency-compensation cap; loop stability depends on it (ds1117 Stability)"}
+    - {net: 5V_PROTECTED, max_span_mm: 8, why: "CIN local to VIN (pin3) for line/transient bypass"}
+  notes: >
+    SOT-223 TAB = VOUT (pin 2) and is the ONLY heat path: flood copper on the 3V3/VOUT net under and
+    around the tab to pull theta_JA toward the 45C/W floor (Thermal Considerations). That tab copper
+    sits at 3V3 - a GND pour touching the tab SHORTS the rail (existing gotcha). All-linear board
+    (no switching converter, E-TOPO N-A): no SW-node / loop-area budget applies - the governing demands
+    are the >=22uF output compensation cap at VOUT and the tab heat-spread.
 sourcing:
   lcsc: C6186
   note: "BASIC part, 1.48M stock 2026-07-19."

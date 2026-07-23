@@ -28,6 +28,28 @@ gotchas:
   - "open/short TC fault detection internal (spec 3.6f); DRDY_N/FAULT_N open-drain-ish -> test points only (no Pico pins left)"
   - "SPI mode 1/3, CS_N = GP17 (SPI0 CS0)"
 verified: "pin map from EasyEDA CAD (JLC C2653162); PENDING datasheet-figure confirmation in pin review - 2026-07-19"
+layout:                          # P-LAYOUT: precision thermocouple->digital converter = sense part, in scope
+  source: "Maxim/ADI MAX31856 datasheet (Rev 0; 2/15) Typical Application Circuit +
+    Applications Information: AVDD bypassed 0.1uF to AGND and DVDD bypassed 0.1uF to
+    DGND at the pins; a 0.1uF placed close to T+/T- to reduce noise; BIAS(2) sets the
+    T- common mode (~0.735V) so the differential TC input filter (100R/leg + 100nF
+    diff + 10nF/leg to AGND, per gotcha/typical circuit) must sit LOCAL to pins 2/3/4.
+    (analog.com PDF fetch blocked - same provenance caveat as the pinout; RECONFIRM
+    against the ADI datasheet figure at the pin review that already gates pins:)"
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: T_PLUS,  max_span_mm: 5, why: "biased high-impedance TC+ input into pin4; input RC + 0.1uF filter LOCAL at the pin to reject noise (Typical App Circuit)"}
+    - {net: T_MINUS, max_span_mm: 5, why: "biased TC- input pin3; keep the diff filter + BIAS node symmetric and short so common-mode rejection holds"}
+    - {net: BIAS,    max_span_mm: 5, why: "BIAS(2) sets the T- common mode (~0.735V) - keep this node local so it does not couple switching noise into the input"}
+  notes: |
+    Cold-junction is measured ON-DIE, so the package must sit ISOTHERMAL with the
+    thermocouple terminal and AWAY from self-heating parts (relays / regulators /
+    ULN2803) - a thermal gradient across the part reads directly as cold-junction
+    error. Split grounds: AGND(1) analog vs DGND(14) digital, joined at the star;
+    keep the TC input traces away from SCK/SDI/SDO and the switched relay rail.
+    AVDD/DVDD 0.1uF bypass hard against pins 5/8 (kept in notes, not keep_short:
+    shared 3V3 rails would blow a pad-span budget). DRDY_N/FAULT_N to test points
+    only (gotcha). TSSOP-14 0.65mm is coarse - no escape/fanout wall.
 sourcing:
   lcsc: C2653162
   note: "genuine ADI reel, 3577 stock 2026-07-19, $4.07."

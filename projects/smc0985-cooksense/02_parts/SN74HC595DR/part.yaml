@@ -28,6 +28,24 @@ limits: {vcc: "2-6V"}
 gotchas:
   - "OE_N high = outputs Hi-Z; ULN2803 inputs then held off by their internal base network (ADR-0003)"
 verified: "TI SCLS041 D-package pin table (industry-standard 595 pinout); pin review re-checks - 2026-07-19"
+layout:                          # P-LAYOUT: 8-bit shift register (relay/E-stop driver chain, ADR-0003) - layout-agnostic apart from VCC bypass + no-float inputs
+  source: "TI SN74HC595 datasheet SCLS041J sec.10 Power Supply Recommendations (each
+    VCC pin needs a good bypass cap - 0.1uF for a single-supply device - installed AS
+    CLOSE TO THE POWER PIN AS POSSIBLE; a 0.1uF||1uF pair is common) + sec.11.1 Layout
+    Guidelines (multi-bit logic inputs must NEVER float; unused inputs tied VCC/GND,
+    Fig 11-1) + sec.9.2.1 Design Requirements (avoid bus contention; high drive into
+    light loads makes fast edges, keep output routing short to prevent ringing) +
+    Fig 9-1 Typical Application (0.1uF at VCC pin16 / GND pin8)"
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: VCC, max_span_mm: 5, why: "0.1uF VCC(16)-GND(8) bypass hard against the package, as close to the power pin as possible (DS sec.10 / Fig 9-1)"}
+  notes: |
+    Honest: a jelly-bean 595, layout-agnostic apart from the VCC bypass. Hard wiring
+    rules the floorplan must honour: SRCLR_N(10) tied high to 3V3 and OE_N(13) pulled
+    up 10k (gotcha / ADR-0003) so no control input floats (sec.11.1). Daisy chain
+    U3->U4 via QH_S(9)->SER(14): keep that cascade hop short. Outputs are push-pull
+    digital into the ULN2803 inputs - route short to damp ringing (sec.9.2.1), no
+    keep_short budget needed there. Coarse 1.27mm SOIC-16 - no escape/fanout wall.
 sourcing:
   lcsc: C10092
   note: "genuine TI, 36406 stock 2026-07-19."
