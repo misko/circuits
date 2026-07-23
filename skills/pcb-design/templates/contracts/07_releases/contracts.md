@@ -89,6 +89,10 @@ Machine-readable patterns (contracts_audit; the tree below is the human view):
         ├── erc.json                ERC 0 errors
         ├── audit.txt               placement/pad invariant gate
         ├── stock_check.{txt,csv}
+        ├── bom_source_check.txt     fab/bom.csv LCSC == source per refdes
+        │                            (bom_source_check.py / policy_audit M-BOM):
+        │                            no merged/substituted/missing/dropped code —
+        │                            the v1.1 25V-for-50V-cap defect (canon M6)
         ├── twin_report.{csv,txt}   the JLC digital-twin verification (jlc_twin.py)
         ├── twin_{top,bottom,iso_nw,iso_se,edge_west,edge_east}.png
         │                            six renders of the board with JLC's part
@@ -247,7 +251,8 @@ checked shared a method.
 - `source/<board>.net` is node-for-node identical to the netlist the sealed
   `04_kicad` board produced at `git_sha`
 - `verification/` reports show passing gates: DRC 0/0/0, ERC 0 errors,
-  parity 0, audit PASS, policy_audit 0 FAIL, twin/pin/render reviews PASS
+  parity 0, audit PASS, policy_audit 0 FAIL (incl. M-BOM: fab BOM LCSC ==
+  source per refdes), twin/pin/render reviews PASS
 - red-team review present in `verification/`, both lenses'
   (topology/protection + layout/thermal) verdicts = ORDER, zero unresolved
   P0 (a P0 blocks the release); archived verbatim in `08_reviews/`

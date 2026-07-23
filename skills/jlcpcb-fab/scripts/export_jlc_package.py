@@ -9,14 +9,19 @@ Run only AFTER the audit gate and classified DRC pass (kicad-pcb skill).
   bom_jlc.csv / cpl_jlc.csv upload separately in the assembly step.
 - Parts whose Value contains "DNP" are excluded from BOM/CPL (still in
   gerbers). Reference prefix H* is skipped as mounting holes.
-- LCSC part numbers are carried over from an existing OUTDIR/bom_jlc.csv
-  keyed by (Comment, Footprint) so order-time fills survive regeneration.
+- LCSC part numbers come from the AUTHORITATIVE per-refdes source
+  (circuit.json `supplier_part_numbers`, auto-discovered or --lcsc-source),
+  and the BOM is grouped by (LCSC code, footprint) — so two distinct codes on
+  the same value+footprint stay on SEPARATE rows and a code can never be
+  substituted by a value-token match (the usb-hub-3s-v3 v1.1 defect). A prior
+  bom_jlc.csv is only a per-refdes FALLBACK for parts the source does not code.
 - Bottom-side CPL coordinates are NOT mirrored (JLC handles that), but
   bottom ROTATIONS are the classic failure — check the assembly preview.
 """
 import argparse
 import csv
 import re
+import sys
 import time
 import zipfile
 from pathlib import Path
@@ -52,6 +57,10 @@ ap = argparse.ArgumentParser()
 ap.add_argument("board")
 ap.add_argument("outdir")
 ap.add_argument("--layers", type=int, default=4, choices=(2, 4, 6))
+ap.add_argument("--lcsc-source", default="",
+                help="circuit.json (or a 03_tscircuit dir) — the AUTHORITATIVE "
+                     "per-refdes LCSC source. Auto-discovered from the board "
+                     "path when omitted.")
 args = ap.parse_args()
 
 board = pcbnew.LoadBoard(args.board)
@@ -92,25 +101,49 @@ ew.SetOptions(False, False, board.GetDesignSettings().GetAuxOrigin(), False)
 ew.SetFormat(True)
 ew.CreateDrillandMapFilesSet(str(out), True, False)
 
-old_lcsc = {}
+# AUTHORITATIVE per-refdes LCSC comes from the SOURCE (circuit.json), NOT from
+# the board (which carries only a Value string like "10uF") and NOT from a
+# value-token carry-over. Two parts that share a value+footprint but differ in
+# LCSC — 10uF/50V C77102 on the input rail vs 10uF/25V C77100 elsewhere — are
+# INDISTINGUISHABLE by value+footprint, and the old carry-over collapsed them
+# onto one row under a single code (usb-hub-3s-v3 v1.1 shipped 25V input caps;
+# the 100uF output cap was likewise substituted C84455->C90143). Keying the BOM
+# by the per-refdes source code keeps distinct codes on SEPARATE rows and makes
+# the code impossible to substitute — it is copied from the source, not matched.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from bom_source_check import refdes_codes_from_circuit, resolve_circuit_json
+
+src_hint = args.lcsc_source
+if not src_hint:
+    # walk up from the board to a sibling 03_tscircuit/{build,dist}/circuit.json
+    for parent in [Path(args.board).resolve(), *Path(args.board).resolve().parents]:
+        cand = parent / "03_tscircuit"
+        if cand.is_dir():
+            src_hint = str(cand)
+            break
+src_code = {}   # refdes -> authoritative LCSC
+cj = resolve_circuit_json(src_hint) if src_hint else None
+if cj:
+    src_code = refdes_codes_from_circuit(cj)
+    print(f"LCSC source: {cj} ({sum(1 for v in src_code.values() if v)} coded refdes)")
+else:
+    print("WARNING: no circuit.json found (pass --lcsc-source). LCSC codes will "
+          "fall back to any prior bom_jlc.csv (per-refdes) and otherwise be "
+          "BLANK — there is no authoritative source to key on. Fix the source "
+          "path; the bom_source_check gate has nothing to compare against here.")
+
+# Carry-over from a prior bom_jlc.csv: ONLY a fallback for refdes the source
+# does not code (hand-solder parts, or a non-tscircuit board). Keyed per-refdes
+# via the Designator column so it can never re-merge distinct codes.
+old_lcsc = {}       # refdes -> LCSC (from a prior export)
 bom_path = out / "bom_jlc.csv"
 if bom_path.exists():
     with open(bom_path) as f:
         for row in csv.DictReader(f):
             if row.get("LCSC"):
-                # merged lines join dissimilar comments with " / " — seed
-                # carry-over for each original comment AND its first token,
-                # so every pre-merge value string still resolves
-                for part in row["Comment"].split(" / "):
-                    old_lcsc.setdefault((part, row["Footprint"]), row["LCSC"])
-                    tok = part.split()[0] if part.split() else ""
-                    old_lcsc.setdefault((tok, row["Footprint"]), row["LCSC"])
-
-
-def lcsc_for(val, fpname):
-    tok = val.split()[0] if val.split() else ""
-    return (old_lcsc.get((val, fpname))
-            or old_lcsc.get((tok, fpname), ""))
+                for r in (row.get("Designator") or "").split(","):
+                    if r.strip():
+                        old_lcsc.setdefault(r.strip(), row["LCSC"])
 
 groups, cpl = {}, []
 for fp in board.GetFootprints():
@@ -124,7 +157,9 @@ for fp in board.GetFootprints():
         # test points / board-only artifacts: not assembled, not placed
         continue
     fpname = str(fp.GetFPID().GetLibItemName())
-    groups.setdefault((val, fpname), []).append(ref)
+    code = src_code.get(ref) or old_lcsc.get(ref, "")
+    # group by (CODE, val, footprint): distinct codes NEVER share a row
+    groups.setdefault((code, val, fpname), []).append(ref)
     pos = fp.GetPosition()
     jrot, off = jlc_rotation(fpname, fp.GetOrientationDegrees())
     if off:
@@ -135,13 +170,13 @@ for fp in board.GetFootprints():
                 "top" if fp.GetLayer() == pcbnew.F_Cu else "bottom",
                 jrot])
 
-# ONE BOM LINE PER PART: JLC's uploader warns "multiple lines matched to
-# same part" if two lines carry the same LCSC code — merge value-comment
-# groups that resolved to the same (code, footprint). Merged Comment is
-# the shared value token ("100n BST" + "100n LDO in" -> "100n").
+# ONE BOM LINE PER PART: JLC's uploader warns "multiple lines matched to same
+# part" if two lines carry the same LCSC code — so merge groups that share the
+# same NON-EMPTY (code, footprint) (same physical part, perhaps a different
+# value string). Groups with different codes are already distinct keys and can
+# NEVER merge. Merged Comment is the shared value token, else "a / b".
 lines = {}
-for (val, fpname), refs in sorted(groups.items()):
-    code = lcsc_for(val, fpname)
+for (code, val, fpname), refs in sorted(groups.items()):
     key = (code, fpname) if code else ("", val, fpname)
     if key in lines:
         line = lines[key]

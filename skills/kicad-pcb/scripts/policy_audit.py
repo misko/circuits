@@ -689,6 +689,39 @@ def main():
     else:
         rows.append(("M-REL", "N-A", "no releases yet"))
 
+    # M-BOM: the ORDERABLE BOM's per-refdes LCSC code must EQUAL the source's
+    # (circuit.json) — a merged row (2 refdes, 2 source codes, 1 line), a
+    # substituted code, or a blank code where the source has one is silent BOM
+    # corruption. usb-hub-3s-v3 v1.1 shipped 25V input caps for 50V because the
+    # exporter grouped by value+footprint and collapsed C77102 onto C77100.
+    # The check RE-DERIVES from the source independently of how the BOM was made
+    # (canon M1), so it bites carry-over/hand-edit corruption too.
+    jlc_scripts = Path(__file__).resolve().parent.parent.parent / "jlcpcb-fab" / "scripts"
+    cjs = (glob.glob(str(proj / "03_tscircuit" / "build" / "circuit.json"))
+           or glob.glob(str(proj / "03_tscircuit" / "dist" / "**" / "circuit.json"),
+                        recursive=True))
+    # the orderable artifact: prefer the latest sealed release, else the build
+    fab_bom = next((b for b in
+                    [str(latest / "fab" / "bom.csv") if rels else "",
+                     str(proj / "06_build" / "fab" / "bom.csv"),
+                     str(proj / "06_build" / "fab" / "bom_jlc.csv")]
+                    if b and Path(b).exists()), None)
+    if not cjs or not fab_bom:
+        rows.append(("M-BOM", "N-A", "no circuit.json source or no fab BOM"))
+    else:
+        try:
+            sys.path.insert(0, str(jlc_scripts))
+            import bom_source_check as _bsc
+            refdes_code = _bsc.refdes_codes_from_circuit(cjs[0])
+            vendored = _bsc.vendored_primary_codes(proj / "02_parts")
+            probs = _bsc.check(_bsc.read_bom(fab_bom), refdes_code, vendored)
+            grade("M-BOM", not probs,
+                  f"{Path(fab_bom).parent.parent.name}/fab/bom.csv: "
+                  f"every LCSC == source ({sum(1 for v in refdes_code.values() if v)} coded)",
+                  f"{len(probs)} BOM-vs-source defect(s): " + " || ".join(probs[:3]))
+        except Exception as e:
+            rows.append(("M-BOM", "FAIL", f"bom_source_check errored: {e}"))
+
     # M-JRNL / M-LEARN: per-stage diary + harvest sources (canon M9). Scoped
     # to commissioned projects (01_docs exists) — scratch/test trees exempt.
     docs = proj / "01_docs"
