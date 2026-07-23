@@ -1,0 +1,46 @@
+# MANIFEST — usb-hub-3s-v3 v1.2-2026-07-23
+
+board:        usb_hub_3s_v2  (internal board name; project directory usb-hub-3s-v3)
+version:      v1.2
+ordered:      2026-07-23
+generated:    2026-07-23
+git_sha:      3d7235c022154b18ebfc8bb7337286103a8395ad
+git_dirty:    false            # projects/usb-hub-3s-v3 source clean at that sha; the release dir is added in the seal commit
+kicad:        10.0.4
+tools:        export_jlc_package.py (pcbnew 10.0.4), kicad-cli 10.0.4, jlc_twin.py, bom_source_check.py, /usr/bin/python3
+authoring:    tscircuit (source/usb_hub_3s_v2.tsx) -- ADR-0002 tscircuit-native. Netlist source/usb_hub_3s_v2.net is the parity reference.
+supersedes:   v1.1-2026-07-23 (SUPERSEDED.md added there; v1.1 otherwise immutable). v1.2 = the DISCRETE-PROTECTION redesign (drop the eFuse; ADR-0002, BRIEF A2/D2 user decision).
+fab:          JLCPCB, 4 layer, tier jlc_4layer_standard -- uniform 0.45/0.30 mm vias; standard process (NO advanced small-via option). Board 130.1 x 92.1 mm. 110 components (fab/bom.csv 44 grouped lines, fab/cpl.csv 110 placements).
+schematic_pdf: pdf/schematic.pdf is tscircuit's OWN render (03_tscircuit/build/schematic.pdf), NOT a KiCad re-render (ADR-0002). pcb_layers/assembly PDFs are kicad-cli.
+source_note:  source/ ships fp-lib-table + vendored usb_hub_3s.pretty AND Button_Switch_THT.pretty (SW1 land); custom-lib uris rewritten to ${KIPRJMOD}/<lib>.pretty (co-located), system libs -> ${KICAD10_FOOTPRINT_DIR}. Standalone `kicad-cli pcb drc source/usb_hub_3s_v2.kicad_pcb --severity-all --refill-zones` re-measures 0 violations / 0 unconnected (V-REL-FPLIB verified this seal). No .kicad_prl (gitignored UI state).
+cpl_note:     fab/cpl.csv is the JLC-UPLOAD-format CPL (Designator,Val,Package,Mid X,Mid Y,Layer,Rotation; rotation-DB-corrected), from 06_build/fab/cpl_jlc.csv.
+3d:           3d/usb_hub_3s_v2.step present -- BOARD-BODY geometry only (kicad-cli export step; headless env has no 3D component-model package).
+not_assembled: (1) F1 fuse ELEMENT = 10 A MINI blade, hand-fit, OFF-CPL/OFF-BOM consumable; the F1 HOLDER (Keystone 3568, C5249699) IS on BOM/CPL. (2) SW-node RC snubbers R34/R35 (2.2 ohm, C137327) + C53/C54 (1 nF, C62774) are POPULATE-BY-DEFAULT (benign SW-ring damping) and remain on BOM/CPL; hand-DNP them if the bench shows no ring.
+
+DISCRETE VBUS PROTECTION (ADR-0002, this release): 5VC -> Q6 (AON6403 P-FET, D=5VC/S=PMID, ENKILL-gated reverse-block via Q7 BSS138 inverter + R30 gate pull-up) -> F2 (PPTC polyfuse 2920, 7A/16V) -> VBUSC -> J5; D5 (SMBJ6.0A TVS) over-voltage clamp. buck-C FB on LOCAL 5VC (R12 4.12k -> 5.352 V). eFuse (U13) + set-pins + D6/D7 REMOVED. 118 -> 110 parts.
+
+gates (MEASURED this release):
+  DRC severity-all + refill-zones + parity:  0 violations / 0 unconnected / 0 parity   (verification/drc.json)
+  source/ standalone re-measure (V-REL-FPLIB): 0 / 0                                     (kicad-cli pcb drc source/usb_hub_3s_v2.kicad_pcb)
+  ERC:                                       0 errors (severity-error)
+  count_parity:                              110 == board == circuit.json == kicad_sch == netlist == manifest
+  policy_audit:                              0 FAIL (PASS=27, WAIVED=2 [R-THERM + R-POUR ev-backed], HUMAN=6, N-A=2)   (verification/policy_audit.md)
+  M-BOM (bom_source_check):                  PASS -- every fab/bom.csv LCSC == source (circuit.json) per-refdes; no merged/substituted/dropped
+  E-INV / E-ADR / E-TOPO / E-MARGIN / E-OFF: PASS -- 24 invariants; ADR-0001+0002 cited; 2 rails BUCK; USB-C connector 5.18 V vs Pi 4.63 V (110 mOhm cable budget); off-control SW1 + 270 uA quiescent (both bucks + Q6 open)
+  P-LAYOUT / P-ADJ:                          PASS (in-scope parts carry datasheet layout blocks)
+  jlc_twin:                                  GREEN -- 88 OK / 232 checked; the v1.2 discrete parts fetched + fit (F2 C6165170 0.09mm, D5 C140903 0.21mm, Q6 C2760089 = merged-drain AON6403 adjudicated); all PAD-GEOM/PAD-MISMATCH/POLARITY-CHECK adjudicated (verification/twin_report.csv, twin_adjudications.yaml)
+  fresh zero-context RED-TEAM (v1.2):        ORDER -- architecture approved, NO design P0 (Q6 AON6403 carries 5A @ 0.11W; ENKILL-gated reverse-block CORRECT; OFF-state-only reverse-block is ADR-0002-accepted).   (verification/redteam_v1.2_protection.md; source copy 08_reviews/2026-07-23_v1.2_redteam_protection.md)
+  open items:                                (1) F2 (C6165170) + D5 (C140903) are Extended-tier -- MANDATORY order-day jlc_stock recheck (ORDER_README); F2 needs 7A-hold + >=16V confirmed (6A C3762416 = degraded fallback). (2) First-power OV caution: on a buck-HS-short D5 clamps ~8-10V above the Pi ceiling, relies on the slow PPTC F2 trip -- documented downgrade from v1.1's active eFuse cutoff (ADR-0002-accepted). (3) SW1 land pitch = JLC order-preview confirm (hand-solder). (4) RT-T3 LM5116 UVLO ~9.65V > 9.0V nominal = accepted P2. Zero unresolved P0.
+
+sha256:
+  3d/usb_hub_3s_v2.step  bee36ce801381c151ca0ae607d4f86ce4f98d4674e37cedbcc6a5dfe8df4cd3e
+  fab/bom.csv  6070124cfe3c1a49a640b02a0400b284947fefe5542848f78969de1a07b0a16d
+  fab/cpl.csv  93814f76e1e359fcf6a85427be34791f6c0d37428fa1c496d65bdfbbfb2b7f73
+  fab/usb_hub_3s_v2_gerbers.zip  1eabee38c2180e766f648d87ce7931b93c1afcc8136c55230d4b32229883ee6e
+  fab/usb_hub_3s_v2-NPTH.drl  9ba7f546e04a93898e7d58326a9295fa9579d77ce0ea74e9b1d881465f9f4a0f
+  fab/usb_hub_3s_v2-PTH.drl  e533c3d3994a9b572db689e317b4ba05af9aff88eb756a59183ae829b286ad74
+  ORDER_README.md  22aaf078e2a35c897bc4dc2804fd166f977b13d95dba1e7b0c0963581fc5cb05
+  pdf/assembly_back.pdf  e1440fc8060fde6be1dec48c1bdc2f5ba60e8876ef237128d638625425c7fd22
+  pdf/assembly_front.pdf  e3f3c2a8530b0356352fdb4651dbfef565c9ede7f83827d43108aa28a17de0a4
+  pdf/pcb_layers.pdf  85f97e2492cb52a0fa528ce777e0eecf20d2522369fcbf9f9ce84ac2ecd44e75
+  pdf/schematic.pdf  fe60124f67df0ba837fdde7861a60fbd660ce7883342d928fd87a5324ca6c989
