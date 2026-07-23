@@ -36,6 +36,31 @@ Severity | ID | Finding (lens) | Disposition
 - Vendored footprints (CMT-8504, AOM-5024) match datasheet land patterns; no silk-over-pad.
 - Silk legend + TP labels match actual nets; pad-1 rect marker; NPTH-post copper clearance ≥0.88mm; all placeable parts top-side; MK1/J1 hand-solder-reachable.
 
+## FIX-PASS RESOLUTION (2026-07-23) — all P0 closed, fresh red-team ORDER/SHIP 4/4
+
+The DO-NOT-ORDER verdict above is SUPERSEDED by the fix pass. Fresh independent
+4-lens red-team on the FIXED board: `redteam-fixpass-2026-07-23.md` — topology
+**ORDER**, layout **ORDER**, pin **7 PASS/0 FAIL**, render/twin **SHIP**, NO new
+P0/P1. Resolutions of the original findings:
+
+| ID | Original | Resolution |
+|---|---|---|
+| A/B | PoE injection destroys U1 / frets D1 | **ACCEPTED WAIVER — USER sign-off (BRIEF A1, ADR-0005).** Controlled deployment (never plugged into PoE infra); NOT-ETHERNET labeling + keying. ADR-0001 + ADR-0003 amended to cover power injection. No protection net, no re-pin. ORDER_README carries the warning. |
+| C | J1 footprint may be a contact MIRROR | **CERTIFIED CORRECT — not mirrored.** Row-parity + chirality analysis vs the datasheet COMPONENT-SIDE layout (pure 180° rotation, no reflection); the 2.79mm post dim is symmetric (non-discriminating). Documented in ADR-0003 + J1 part.yaml verified-note; INDEPENDENTLY re-confirmed by the fresh pin lens. Pad-1→contact-1 continuity kept as an ORDER_README defense-in-depth backstop (not a blocker). |
+| D | D3 DNP → BOM-without-CPL assembly defect | **D3 POPULATED** (BRIEF D5, ADR-0001 amended). Now in BOTH bom_jlc.csv + cpl_jlc.csv; twin-verified (fit 0.19mm). Redundant beep over-clamp, no conflict with D2. |
+| E | reverse-crimp not covered by keying | Folded into ADR-0005 (same accepted-deployment-constraint waiver; ADR-0001 dec. 5 amended to stop conflating it with "wrong device"). |
+| F | J1 GND tails 7,8 THERMAL not SOLID | **FIXED** — floorplan `pad_overrides {pads:[7,8], zone_connection: full}`; verified on board J1.7=J1.8=FULL. |
+| G | banner/legend not adjacent to J1 | **FIXED** — relocated into the clear strip over J1 (0 crowded captions); render + layout lenses confirm adjacent & legible. |
+| H | RJ45 mouth 1.05mm overhang, no enclosure CAD | **DOCUMENTED** — open mechanical dependency; ORDER_README order-day check. |
+| I | MK1 LCSC = MPN string | **FIXED** — refdes_codes_from_circuit + export carry-over blank non-`C\d+` codes (RED-verified test in tests/t1_bom_source.py); MK1 BOM LCSC now blank. |
+| J/K/L | audio-pair asym / beep loop / D1 stub | ACCEPT-WITH-EVIDENCE (unchanged; low-Z outputs, slow beep). |
+| M | IR-drop math | FIXED (round-trip). |
+| N | schematic N-prefix render | ACCEPT (cosmetic tscircuit artifact). |
+| — | (route reproducibility) | **FIXED** — rebuild_all.sh now reuses the promoted r3 chain (was re-racing stochastically; the boxed-in J1.1 escape dropped on some race candidates). DRC 0/0/0 now reproducible. |
+
+New P2s from the fresh pass (FP-1..FP-6) are in `redteam-fixpass-2026-07-23.md`;
+FP-1/2/3 fixed this pass, FP-4/5/6 accepted.
+
 ## Prioritized fix list (for the coordinator's path decision)
 1. **[P0-A/B, USER]** PoE-injection protection on 5V_AUDIO (clamp+fuse + re-layout) OR user risk-acceptance sign-off. — *directive decision, not auto-fixed.*
 2. **[P0-C]** J1 footprint-mirror: required physical-continuity check on a real RJHSE-5384 (pad1→contact1) before order; vendor a corrected footprint if mirrored.

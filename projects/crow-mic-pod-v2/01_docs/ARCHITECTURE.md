@@ -29,7 +29,13 @@ custom NON-ETHERNET pinout (T568-colour → net):
 | 5 | blue tip | 5V_AUDIO | IN (paralleled with pin 4) |
 | 7 | brown tip | GND_AUDIO | IN (analog ground / return) |
 | 8 | brown ring | GND_AUDIO | IN (paralleled with pin 7) |
-| shield / tabs | cable drain | GND_AUDIO | chassis bond at pod end (ADR-0001) |
+| shield / tabs | cable drain | (float at pod) | shield FLOATS at the pod; single-point bond at CENTRAL (ADR-0001) |
+
+**Net-name note:** `GND_AUDIO` is the CABLE-CONTRACT name for the analog
+ground/return pair (pins 7,8); on this pod it is implemented as the single
+board net **`GND`** (native KiCad ground) — the netlist, electrical
+invariants, and floorplan asserts all use `GND`. The two names are the same
+node (cable-side vs board-side aliases), not two nets.
 
 Blue pair (4,5) and brown pair (7,8) are each PARALLELED (two conductors
 per rail) to halve delivery IR over the 25 ft run. Silk MUST carry
@@ -97,7 +103,10 @@ brownout risk (5 mA over a paralleled pair). All recorded in
    driven (pod) end; POPULATED SMAJ6.0A (D3) redundant over-clamp (D5).
 3. **Beep-return isolation** — the switched pair never bonds to analog GND
    on the pod (G8).
-4. **Shield bond** — RJ45 shield → GND_AUDIO at the pod (single-point).
+4. **Shield bond** — RJ45 shield/tabs FLOAT at the pod; the cable shield is
+   single-point-ground bonded at the CENTRAL star ground (ADR-0001 dec. 4 —
+   both-end bonding on six 25 ft home-runs would form six ground loops). The
+   "SH" pads carry no net on this board.
 5. **No reverse-polarity FET AND no PoE-injection protection on pod power**
    (BRIEF D3/A1) — keyed RJ45 + mandatory NOT-ETHERNET labeling, ~5 mA load,
    controlled fixed install. The custom power pins 4,5/7,8 alias exactly onto
