@@ -1,0 +1,6 @@
+# CPL refs with no attached 3D body in the modeled/twin render
+# (bodiless = 'no 3D model', NEVER 'unpopulated' — the CPL is population truth)
+NONE — every CPL (machine-placed) part has an attached JLC 3D model.
+
+MK1 (electret) + J1 (RJHSE-5384) are HAND-SOLDER, off-CPL (not machine-placed);
+they render bodiless (NO-CAD) but are documented not_assembled parts, not omissions.

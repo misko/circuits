@@ -1,0 +1,3 @@
+BOM-vs-source: 06_build/fab/bom_jlc.csv
+  source: 03_tscircuit/build/circuit.json (27 coded refdes); vendored: 6 part.yaml codes
+BOM SOURCE CHECK: PASS (every BOM LCSC == source)

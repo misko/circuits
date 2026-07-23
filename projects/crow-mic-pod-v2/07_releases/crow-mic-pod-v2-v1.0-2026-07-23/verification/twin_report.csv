@@ -1,0 +1,61 @@
+LCSC,Ref,Status,Detail
+C25803,R3,OK,fit=0.08mm jlc_offset=0 db=0.0
+C14663,C10,OK,fit=0.07mm jlc_offset=0 db=0.0
+C14663,C7,OK,fit=0.07mm jlc_offset=0 db=0.0
+C49066,C1,OK,fit=0.04mm jlc_offset=0 db=0.0
+C22775,R1,OK,fit=0.08mm jlc_offset=0 db=0.0
+C22775,R10,OK,fit=0.08mm jlc_offset=0 db=0.0
+C22775,R11,OK,fit=0.08mm jlc_offset=0 db=0.0
+C25804,R6,OK,fit=0.08mm jlc_offset=0 db=0.0
+C25804,R8,OK,fit=0.08mm jlc_offset=0 db=0.0
+C25804,R9,OK,fit=0.08mm jlc_offset=0 db=0.0
+C15850,C3,OK,fit=0.05mm jlc_offset=0 db=0.0
+C15850,C4,OK,fit=0.05mm jlc_offset=0 db=0.0
+C15850,C5,OK,fit=0.05mm jlc_offset=0 db=0.0
+C15850,C6,OK,fit=0.05mm jlc_offset=0 db=0.0
+C15850,C8,OK,fit=0.05mm jlc_offset=0 db=0.0
+C15850,C9,OK,fit=0.05mm jlc_offset=0 db=0.0
+C15849,C2,OK,fit=0.08mm jlc_offset=0 db=0.0
+C4184,R7,OK,fit=0.08mm jlc_offset=0 db=0.0
+C31850,R4,OK,fit=0.08mm jlc_offset=0 db=0.0
+C31850,R5,OK,fit=0.08mm jlc_offset=0 db=0.0
+C23018,R2,OK,fit=0.08mm jlc_offset=0 db=0.0
+C192421,U1,PAD-GEOM,pad 1<->8 ours 4.95mm vs JLC 5.42mm (d0.47mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C192421,U1,ROT-DB-SUGGEST,"fit=0.24mm jlc_offset=90 db=270.0 -> add: SOIC-8_3.9x4.9mm_P1.27mm,90"
+C1972959,D1,OK,fit=0.02mm jlc_offset=0 db=0.0
+C22359707,LS1,PAD-GEOM,pad 1<->3 ours 7.00mm vs JLC 10.18mm (d3.18mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C22359707,LS1,PAD-MISMATCH,"best=(7.100704190430692, False, 0)"
+C2480,D2,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C2480,D2,OK,fit=0.04mm jlc_offset=0 db=0.0
+C559105,D3,PAD-GEOM,pad 1<->2 ours 4.00mm vs JLC 4.38mm (d0.38mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C559105,D3,POLARITY-CHECK,"2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model"
+C559105,D3,OK,fit=0.19mm jlc_offset=0 db=0.0
+C9900035627,J1,FETCH-FAILED,['[ERROR] Failed to fetch data from EasyEDA API for part C9900035627']
+C9900035627,J1,FETCH-FAILED,['[ERROR] Failed to fetch data from EasyEDA API for part C9900035627']
+AOM-5024L-HD-R,MK1,FETCH-FAILED,"[""[ERROR] lcsc_id 'AOM-5024L-HD-R' should start with C""]"
+C25803,R3,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C10,MODEL-REG-OK,body on courtyard (0.00mm)
+C14663,C7,MODEL-REG-OK,body on courtyard (0.00mm)
+C49066,C1,MODEL-REG-OK,body on courtyard (0.00mm)
+C22775,R1,MODEL-REG-OK,body on courtyard (0.00mm)
+C22775,R10,MODEL-REG-OK,body on courtyard (0.00mm)
+C22775,R11,MODEL-REG-OK,body on courtyard (0.00mm)
+C25804,R6,MODEL-REG-OK,body on courtyard (0.00mm)
+C25804,R8,MODEL-REG-OK,body on courtyard (0.00mm)
+C25804,R9,MODEL-REG-OK,body on courtyard (0.00mm)
+C15850,C3,MODEL-REG-OK,body on courtyard (0.00mm)
+C15850,C4,MODEL-REG-OK,body on courtyard (0.00mm)
+C15850,C5,MODEL-REG-OK,body on courtyard (0.00mm)
+C15850,C6,MODEL-REG-OK,body on courtyard (0.00mm)
+C15850,C8,MODEL-REG-OK,body on courtyard (0.00mm)
+C15850,C9,MODEL-REG-OK,body on courtyard (0.00mm)
+C15849,C2,MODEL-REG-OK,body on courtyard (0.00mm)
+C4184,R7,MODEL-REG-OK,body on courtyard (0.00mm)
+C31850,R4,MODEL-REG-OK,body on courtyard (0.00mm)
+C31850,R5,MODEL-REG-OK,body on courtyard (0.00mm)
+C23018,R2,MODEL-REG-OK,body on courtyard (0.00mm)
+C192421,U1,MODEL-REG-OK,body on courtyard (0.00mm)
+C1972959,D1,MODEL-REG-OK,body on courtyard (0.00mm)
+C22359707,LS1,MODEL-REG-OK,body on courtyard (0.00mm)
+C2480,D2,MODEL-REG-OK,body on courtyard (0.00mm)
+C559105,D3,MODEL-REG-OK,body on courtyard (0.00mm)

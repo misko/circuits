@@ -1,0 +1,76 @@
+# MANIFEST — crow-mic-pod-v2 v1.0-2026-07-23
+
+board:        crow_mic_pod_v2  (remote microphone POD, board a — CROW ACOUSTIC LOCALIZATION ARRAY)
+version:      v1.0
+date:         2026-07-23
+generated:    2026-07-23 (fix pass — resolves the 3-P0 DO-NOT-ORDER red-team)
+git_sha:      701e79a01fa0491d325645499ff13d9a4243790c   (pod-v2 fix-pass source, on main)
+git_dirty:    false            # pod-v2 source committed 701e79a; shared skills/kicad-pcb committed 60f0a13 — both on main. Source inputs clean at this sha; the 07_releases seal dir is added in the seal commit.
+kicad:        10.0.4
+tools:        export_jlc_package.py (pcbnew 10.0.4), kicad-cli 10.0.4, /usr/bin/python3
+authoring:    tscircuit (source/crow_mic_pod_v2.tsx) — ADR-0002 tscircuit-native. source/crow_mic_pod_v2.net is the parity reference.
+fab:          JLCPCB, 2 layer, tier jlc_2layer_default (0.6/0.3 vias, 0.127 floor; NO advanced small-via option). Board 80.1 x 45.1 mm.
+source_note:  source/ ships fp-lib-table + the vendored crow_mic_pod.pretty (uri rewritten to ${KIPRJMOD}/crow_mic_pod.pretty; system libs -> ${KICAD10_FOOTPRINT_DIR}). Standalone `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity source/crow_mic_pod_v2.kicad_pcb` re-measures 0/0/0 (V-REL-FPLIB verified this seal). *.kicad_prl (KiCad UI state) omitted — non-essential.
+3d:           3d/crow_mic_pod_v2.step present — BOARD-BODY geometry only (kicad-cli export; component 3D models not embedded in this headless env). Component heights / enclosure clearance are covered by verification/twin_edge_{east,west}.png.
+not_assembled: MK1 (AOM-5024L-HD-R electret, Digi-Key 668-1538-ND) + J1 (RJHSE-5384 RJ45, LCSC C9900035627 consign) are HAND-SOLDER — off-CPL, in BOM for reference. See ORDER_README section 3. D3 (SMAJ6.0A, C559105) is NOW POPULATED (machine-placed, was DNP).
+
+gates (MEASURED this release):
+  DRC severity-all + refill-zones + parity:  0 violations / 0 unconnected / 0 parity   (verification/drc.json)
+  source/ standalone re-measure:             0 / 0 / 0 (V-REL-FPLIB)                    (kicad-cli pcb drc source/)
+  ERC:                                       0 errors                                  (rebuild gate; 03_tscircuit)
+  count_parity:                              35/35 (circuit.json==kicad_sch==netlist==manifest)
+  policy_audit:                              0 FAIL (PASS=23 / WAIVED=1 S-OCCL ev-backed / HUMAN=7 / N-A=7)  (verification/policy_audit.md)
+  bom_source_check (M-BOM):                  PASS (every BOM LCSC == source)           (verification/bom_source_check.txt)
+  jlc_twin:                                  exit 0 — 24 OK / 60 checked; all criticals adjudicated  (verification/twin_report.csv, twin_adjudications.yaml)
+  missing_models:                            NONE (every CPL part has a JLC 3D body)   (verification/missing_models.txt)
+  FRESH red-team (fix-pass, 4 zero-context lenses on the FIXED board):
+    topology/protection:  ORDER (gain 3.0V/V, VMID 2.500V, E-MARGIN 4.997V, beep isolation; PoE=ADR-0005 accepted)
+    layout/thermal:       ORDER (DRC 0/0/0; J1.7/8 SOLID; NOT-ETHERNET banner adjacent; posts >=1.0mm; tier floors intact)
+    pin (datasheet):      7 PASS / 0 FAIL (J1 RJHSE-5384 footprint independently CERTIFIED NOT mirrored)
+    render/twin:          SHIP (D3 twin-verified; MK1 LCSC blank; banner legible)
+    -> consolidated verdict: ORDER/SHIP, no new P0/P1  (verification/redteam-fixpass-2026-07-23.md)
+  open items (order-day, non-blocking): PoE-injection accepted-waiver deployment constraint (ADR-0005);
+    J1 pad-1->contact-1 continuity backstop (footprint certified correct, defense-in-depth);
+    enclosure panel-cutout vs 1.05mm RJ45-mouth overhang (no enclosure CAD in repo); stock re-check. All in ORDER_README.
+
+sha256:
+  3d/crow_mic_pod_v2.step  f0e81e312e46fc3be737c85ef3e04f5e6044606a5b0edc3ed43445974d5fc9c6
+  ORDER_README.md  9cd746b2cd29bbf9d853021877e0779bde8c1390127e3627bc44332cfbe0ccbe
+  fab/bom.csv  615f8433f98a99484c3d355cbafe7ba76531b32ed991332edcdc290b99a07205
+  fab/cpl.csv  e84aad879a46aeab8104fb4e4a21023c7d29f2de8ec4cd2632bc67ac09b5349f
+  fab/crow_mic_pod_v2-NPTH.drl  28f3e13b3d2ef47af5f09038b170a20e2fbcafdf58606c3d5832df9b9dcc6a1e
+  fab/crow_mic_pod_v2-PTH.drl  59e1e2fd5b921636da54b89afa4ac1f4dcbb59eb9560920489978f9164d39a35
+  fab/crow_mic_pod_v2_gerbers.zip  e2c8bc9b14e4f52ae0a21c216120cf991e6a021775d01e9db32674e4d34bdf49
+  pdf/assembly_back.pdf  d3bf1e3a80f73a7557dbe3cfa630f0cca478978b4e06100bd5b7d42a0bb87c87
+  pdf/assembly_front.pdf  2415867173594f76790c268c71e24af35ee23364e9c06ec206336d25fbd34b96
+  pdf/pcb_layers.pdf  60c0e28344864cffad25a5e2f978bdce12944817c844f110e10e4f5b0597f2fb
+  pdf/schematic.pdf  03b5c9f24d5eadbb907c16087749c44a8588637a4bfa8886960c3a3c8884eb11
+  source/crow_mic_pod.pretty/AOM-5024L-HD-R.kicad_mod  6b7623762492ca268b12c525238c3866d5936ccfd0ba07b54f684dea29c362ff
+  source/crow_mic_pod.pretty/CMT-8504-100-SMT-TR.kicad_mod  4b73e0f5173cb41f85bedee088160599ce694eb19a76aa86480fbf5f2f705c61
+  source/crow_mic_pod_v2.kicad_dru  3a3302cfa1a862fa1ba8bca03f9b08ad7a07e37723429dcc3f8d9d0c91b5836a
+  source/crow_mic_pod_v2.kicad_pcb  2f936fd83be1bfddbf2dd6674742950f15cf8d232c68dc4889b8afe41907f3e0
+  source/crow_mic_pod_v2.kicad_pro  c82a014e04a86ff9dd0329ed60b1018c350a5074b6c77a3bb051533af285becd
+  source/crow_mic_pod_v2.kicad_sch  ba332f032406f960d1a7e25e88be8f3513b3da37a570da9543a173a24134ba4a
+  source/crow_mic_pod_v2.net  39ae63a850f695bd7562e152bd242ae4fa638e740b86339dae8bab42920ab020
+  source/crow_mic_pod_v2.tsx  458fd8160976098043940746fb9008568cf9339814cfb9a53da6ffc756f5ce4a
+  source/fp-lib-table  f1773df15ffeff25514faf9d90cf669939022f3a519c69e453e130c975323c3a
+  verification/DISPOSITIONS.md  a3fb2cf61a9250a98550b1daee29278865392a0ee1fa45d1a428256782c51812
+  verification/bare_bottom.png  72437708569c6dcdbf2667e750782b93c9a16ec204fab52cba9fb36563c9e36e
+  verification/bare_top.png  720bcbfcc0e32295b7f338929bb27c9f81c7ce8cd820c7cd1faf4096dd8e97eb
+  verification/bom_source_check.txt  30471e1fb94947ae8be2349eb503d8ece731f4bb90e39893d1729286d4f9aec1
+  verification/drc.json  80394fe8d456d760ff28c95dc079df92236c732465b654936950fc83470d7edb
+  verification/missing_models.txt  10fc1adfb97e602f4b9fe9ae9bcf39acb9b08a01ea1edd6ba747977132087d17
+  verification/pin-review.md  943ffe533e5f22650307ff41f4044fab1ce1fb7935552043b78e1d700333bca6
+  verification/policy_audit.md  0f710bd0601238028396cec6115b2e5f82bd07c473aa69bfaa3030ca3e9ac14e
+  verification/redteam-fixpass-2026-07-23.md  bae46c68344d686499bd1dad008889141597cf6e8fd11f7c60c8888c5945aaf7
+  verification/redteam-layout-thermal.md  4343d40dacaf47dcd3ca652dba4259a8a05afdd75fa6bd3e410c9d53280e8443
+  verification/redteam-topology-protection.md  2bf12524f92557a1a9c301231ad696b301f5f0a8d87cf554a06af027f675c13b
+  verification/render-twin-review.md  21e56b0e1a9285738863123f089cd45b8214aac66a010b520451377e4660cfdb
+  verification/twin_adjudications.yaml  b4b424f8cf22421433d2324a36f01c305ce4a6507f3377afbb95c4781499ea21
+  verification/twin_bottom.png  b6194e440f75214d4637ed71186ada903aa24c154899db41dccdb635deabd9cd
+  verification/twin_edge_east.png  467c511150e1ba864e7b3adc134ae2ffdcf1ef062576cc9d7afae169e6e888e1
+  verification/twin_edge_west.png  1aa1a7aef117e8351048c44fdc385535464c54b702248930d201b90cdee9558f
+  verification/twin_iso_nw.png  e15d31f4ef58a9b538955cadd872da717df51d3500da941950c68155ead5f65d
+  verification/twin_iso_se.png  4341de4420760c3ad8c0b97c406897b660ba72be16d9a51c774f66e8230c08cc
+  verification/twin_report.csv  6a0056da4e830db725431ad901617c7210809347184cf34722764b0ef294bb23
+  verification/twin_top.png  d8a1ffe014672232a018603942f8f2f245960bc5f53d452aab5b3808164205d1
