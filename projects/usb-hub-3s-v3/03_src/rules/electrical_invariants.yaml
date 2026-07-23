@@ -1,55 +1,69 @@
 # usb-hub-3s-v3 — electrical invariants (E-INV / E-ADR).
 #
 # Emitted by ADR-0001 (drop the PD cell -> plain 5V/5A USB-C + Pi override) and
-# extended for the v1.1 PROTECTED-VBUS revision (03_schematic_v1.1). Makes the
-# design intent machine-checkable against the exported netlist
+# re-derived for the v1.2 DISCRETE-PROTECTION redesign (BRIEF A2/D2, user
+# decision). Machine-checkable against the exported netlist
 # (06_build/netlists/usb_hub_3s_v2.net).
 #
-# v1.1 change: the USB-C VBUS is NO LONGER the 5VC buck rail directly. A TPS26631
-# eFuse (U13) + reverse-current-blocking FET pair (Q6 power FET, Q7 gate-pulldown)
-# now bridges the buck rail 5VC to a NEW protected connector net VBUSC. The
-# invariants below are re-anchored on VBUSC and positively assert the eFuse power
-# path, so a returning PD pass-FET/PHY (which would put a different net on the J5
-# VBUS pads, or drive CC actively instead of via a fixed Rp) still breaks them.
+# v1.2 DISCRETE redesign: the TPS26631 eFuse (U13) + its OVP/SHDN/dVdT/ILIM
+# control passives are DROPPED (over-built for a 5V/5A Pi rail; root cause of the
+# routing wall + v1.1's two blockers). The USB-C VBUS is now protected by a simple
+# discrete chain reusing the on-BOM FETs:
 #
-# v1.2 change (journal 03_schematic_v1.2) — a DO-NOT-ORDER red-team of v1.1 found
-# two ORDER-BLOCKERS; the invariants below add the fixes (kinds #5-#9, 29 total):
-#   - buck-C FB moved OFF post-eFuse VBUSC back to the LOCAL 5VC output (R12.1 on
-#     5VC) — kills the FB-integrator runaway (5VC can no longer wind toward VIN).
-#   - eFuse FLT -> buck-C EN_C (U13.15 on EN_C); buck-C EN un-merged from ENKILL
-#     (U11.4 on EN_C) with a D6 EN_C->ENKILL master-off coupling diode.
-#   - SHDN abs-max (5.5V) protection: divider + Zener CLAMP D5 on SHDNC.
-#   - 5VC ceiling clamp D7 on 5VC (protect the 10V output caps).
+#   5VC (buck-C out) -> Q6 (AON6403 P-FET, reverse-block, ENKILL-gated via Q7)
+#                    -> PMID -> F2 (PPTC polyfuse, over-current)
+#                    -> VBUSC (protected connector, D5 TVS over-voltage clamp) -> J5
 #
-# NOTE on ADR-0001 invariant #1 ("no pd_source_controller part"): the E-INV
-# checker has no absence kind. The PD cell's ABSENCE is enforced POSITIVELY: the
-# J5 VBUS pads are the eFuse OUTPUT (VBUSC), the eFuse INPUT is the buck rail
-# (5VC), and CC1/CC2 terminate on passive Rp pull-ups to VBUSC.
+# buck-C FB STAYS on LOCAL 5VC (v1.1 fix). buck-C EN is RE-MERGED to ENKILL (the
+# eFuse FLT->EN_C un-merge + D6 coupling diode are reverted). The invariants below
+# positively assert this chain, so a returning eFuse/PD-PHY (different net on J5
+# VBUS, active CC, or a broken reverse-block gate) still breaks them.
 
 invariants:
-  # --- v1.1 #1: J5 USB-C VBUS pads are the eFuse OUTPUT rail VBUSC (protected) ---
+  # --- #1: J5 USB-C VBUS pads are the PROTECTED connector rail VBUSC ---
   - {assert: pin_on_net, pin: "J5.A4", net: "VBUSC", adr: 0001,
-     why: "v1.1: USB-C VBUS pad A4 is the eFuse-protected rail, not 5VC direct nor a PD-gated node"}
+     why: "USB-C VBUS pad A4 is the discretely-protected rail (polyfuse OUT + TVS), not 5VC direct nor a PD-gated node"}
   - {assert: pin_on_net, pin: "J5.B4", net: "VBUSC", adr: 0001,
-     why: "v1.1: USB-C VBUS pad B4 is the eFuse-protected rail VBUSC"}
+     why: "USB-C VBUS pad B4 on the protected rail VBUSC"}
   - {assert: pin_on_net, pin: "J5.A9", net: "VBUSC", adr: 0001,
-     why: "v1.1: USB-C VBUS pad A9 is the eFuse-protected rail VBUSC"}
+     why: "USB-C VBUS pad A9 on the protected rail VBUSC"}
   - {assert: pin_on_net, pin: "J5.B9", net: "VBUSC", adr: 0001,
-     why: "v1.1: USB-C VBUS pad B9 is the eFuse-protected rail VBUSC"}
-  # --- v1.1 #2: the eFuse power path 5VC -> Q6(block FET) -> EFINC -> U13 -> VBUSC ---
-  - {assert: series_chain, chain: ["5VC", "Q6", "EFINC", "U13", "VBUSC"],
-     through: {Q6: ["1", "5"], U13: ["1", "18"]}, adr: 0001,
-     why: "v1.1 protected VBUS: buck rail 5VC -> AON6354 reverse-blocking FET Q6 (S=pad1 on 5VC, D=pad5 on EFINC) -> eFuse IN (EFINC) -> TPS26631 U13 (IN=pad1 on EFINC, OUT=pad18 on VBUSC) -> protected VBUS (VBUSC). A PD pass-FET would break this exact chain."}
-  - {assert: pin_on_net, pin: "U13.6", net: "5VC", adr: 0001,
-     why: "eFuse IN_SYS senses the buck-C output rail (5VC), the true system input"}
-  - {assert: pin_on_net, pin: "U13.18", net: "VBUSC", adr: 0001,
-     why: "eFuse OUT is the protected connector rail VBUSC"}
-  # --- v1.1 #3: reverse-current-block gate pair (Q6 power FET + Q7 fast pulldown) ---
-  - {assert: pin_on_net, pin: "Q6.4", net: "BGATEC", adr: 0001,
-     why: "blocking-FET Q6 gate driven by eFuse B_GATE (with Q7 fast pulldown) -> true reverse-current blocking"}
-  - {assert: pin_on_net, pin: "Q7.1", net: "DRVC", adr: 0001,
-     why: "gate-pulldown Q7 gate driven by eFuse DRV (SLVSE94G 8.3.5) -> 0.17us reverse turn-off"}
-  # --- v1.1 #4: CC1/CC2 each terminate on a passive Rp pull-up to the protected rail ---
+     why: "USB-C VBUS pad B9 on the protected rail VBUSC"}
+
+  # --- #2: the discrete protection power path 5VC -> Q6 -> PMID -> F2 -> VBUSC ---
+  - {assert: series_chain, chain: ["5VC", "Q6", "PMID", "F2", "VBUSC"],
+     through: {Q6: ["5", "1"], F2: ["1", "2"]}, adr: 0001,
+     why: "v1.2 discrete VBUS: buck rail 5VC -> AON6403 reverse-block P-FET Q6 (D=pad5 on 5VC, S=pad1 on PMID) -> PPTC polyfuse F2 (pad1 PMID -> pad2 VBUSC) -> protected connector VBUSC. A returning eFuse/PD pass-FET would break this exact chain."}
+  - {assert: pin_on_net, pin: "F2.2", net: "VBUSC", adr: 0001,
+     why: "polyfuse output is the protected connector rail VBUSC"}
+
+  # --- #3: Q6 reverse-block P-FET is ENABLE-GATED by Q7 off ENKILL ---
+  - {assert: pin_on_net, pin: "Q6.5", net: "5VC", adr: 0001,
+     why: "Q6 DRAIN (pad5) on 5VC; body diode anode=D=5VC / cathode=S=PMID BLOCKS PMID->5VC reverse back-feed when Q6 is off"}
+  - {assert: pin_on_net, pin: "Q6.4", net: "QG", adr: 0001,
+     why: "Q6 GATE (pad4) on the gate node QG"}
+  - {assert: pin_on_net, pin: "Q7.1", net: "ENKILL", adr: 0001,
+     why: "Q7 (BSS138) GATE on ENKILL -> inverter: board ON (ENKILL high) -> Q7 on -> QG low -> Q6 on (forward); master-off -> Q7 off -> Q6 off -> body diode blocks back-feed (RT-T4 OFF-state)"}
+  - {assert: pin_on_net, pin: "Q7.3", net: "QG", adr: 0001,
+     why: "Q7 DRAIN pulls the Q6 gate node QG to GND when ENKILL is high (enable)"}
+  - {assert: pin_on_net, pin: "R30.1", net: "PMID", adr: 0001,
+     why: "Q6 gate pull-up R30 to its SOURCE (PMID) -> holds Q6 OFF (Vgs~0) when Q7 is off, so a back-feed keeps the body diode blocking"}
+  - {assert: pin_on_net, pin: "R30.2", net: "QG", adr: 0001,
+     why: "R30 pulls the gate node QG toward the source (PMID) in the disabled state"}
+
+  # --- #4: over-voltage TVS clamp on the connector rail VBUSC ---
+  - {assert: pin_on_net, pin: "D5.1", net: "VBUSC", adr: 0001,
+     why: "D5 TVS CATHODE (pad1) on VBUSC -> clamps a buck-fail-high; with F2 upstream, crowbars -> polyfuse trips -> Pi protected (replaces the eFuse OVP cutoff)"}
+  - {assert: pin_on_net, pin: "D5.2", net: "GND", adr: 0001,
+     why: "D5 TVS anode (pad2) on GND"}
+  - {assert: net_has_part, net: "VBUSC", part_type: "diode", adr: 0001,
+     why: "VBUSC carries an over-voltage clamp diode (D5 TVS)"}
+
+  # --- #5: buck-C FB senses LOCAL 5VC, NOT a post-protection node (v1.1 fix, kept) ---
+  - {assert: pin_on_net, pin: "R12.1", net: "5VC", adr: 0001,
+     why: "buck-C FB-top (R12) senses the LOCAL 5VC buck output (v1.1 runaway fix) -> 5VC unconditionally regulated; a return to connector-sense would put R12.1 on VBUSC and break this"}
+
+  # --- #6: CC1/CC2 each terminate on a passive Rp pull-up to the protected rail ---
   - {assert: pin_on_net, pin: "R28.1", net: "CC1", adr: 0001,
      why: "CC1 Rp pull-up (source-present advertisement) lands on CC1"}
   - {assert: pin_on_net, pin: "R28.2", net: "VBUSC", adr: 0001,
@@ -60,51 +74,11 @@ invariants:
      why: "CC2 Rp pulls up to the protected 5V source rail (VBUSC)"}
   - {assert: net_has_part, net: "CC1", part_type: "resistor", adr: 0001,
      why: "CC1 carries a passive Rp resistor, not a PD-controller CC driver"}
-  # --- v1.2 #5: MASTER-OFF (ENKILL) + buck-C EN UN-MERGED to EN_C (fault-isolate) ---
-  # v1.2 (journal 03_schematic_v1.2): buck-C EN is un-merged from ENKILL onto its
-  # own net EN_C so the eFuse FLT flag can shut ONLY buck-C on a C-port fault. The
-  # master switch still reaches buck-C via the D6 EN_C->ENKILL coupling diode.
+
+  # --- #7: MASTER-OFF merges both LM5116 EN pins onto ENKILL (EN_C un-merge reverted) ---
   - {assert: pin_on_net, pin: "U2.4", net: "ENKILL", adr: 0001,
-     why: "buck-A EN on the master-off bus ENKILL (SW1 grounds it -> buck-A off)"}
-  - {assert: pin_on_net, pin: "U11.4", net: "EN_C", adr: 0001,
-     why: "v1.2: buck-C EN on its OWN net EN_C (un-merged from ENKILL) so FLT shuts only buck-C"}
+     why: "buck-A EN on the master-off bus (SW1 grounds it -> both bucks off + Q6 gate opens)"}
+  - {assert: pin_on_net, pin: "U11.4", net: "ENKILL", adr: 0001,
+     why: "buck-C EN re-merged onto ENKILL (the eFuse-era EN_C un-merge is reverted; no per-buck fault flag exists in the discrete design)"}
   - {assert: pin_on_net, pin: "SW1.2", net: "ENKILL", adr: 0001,
-     why: "master switch COM on ENKILL — grounding it kills buck-A directly and buck-C via D6"}
-  - {assert: pin_on_net, pin: "D6.1", net: "ENKILL", adr: 0001,
-     why: "v1.2: D6 cathode (pad1) on ENKILL -> when ENKILL is grounded, D6 forward-pulls EN_C low (master-off reaches buck-C)"}
-  - {assert: pin_on_net, pin: "D6.2", net: "EN_C", adr: 0001,
-     why: "v1.2: D6 anode (pad2) on EN_C -> on an FLT fault (EN_C low, ENKILL high) D6 is REVERSE so buck-A/SHDN are unaffected"}
-
-  # --- v1.2 #6: buck-C FB senses LOCAL 5VC, NOT post-eFuse VBUSC (RUNAWAY fix) ---
-  - {assert: pin_on_net, pin: "R12.1", net: "5VC", adr: 0001,
-     why: "v1.2 LOCAL-SENSE: buck-C FB-top (R12) senses the LOCAL 5VC buck output, not VBUSC. The v1.1 VBUSC sense let the FB integrator wind 5VC toward VIN when the eFuse limited/opened; local sense makes 5VC unconditionally regulated. A return to connector-sense would put R12.1 back on VBUSC and break this."}
-
-  # --- v1.2 #7: eFuse FLT (open-drain, active-low) -> buck-C EN_C fault shutdown ---
-  - {assert: pin_on_net, pin: "U13.15", net: "EN_C", adr: 0001,
-     why: "v1.2 Fix 2: eFuse FLT (pin15, active-low) drives buck-C EN_C -> an eFuse fault (UV/OV/overload/reverse/ILIM-short/thermal) shuts buck-C so it cannot source 5VC into a faulted eFuse"}
-
-  # --- v1.2 #8: SHDN abs-max protection = 5VC divider + HARD Zener clamp D5 ---
-  # The v1.1 bare 0.6-ratio 5VC divider put SHDN = 7.56V on a 12.6V fault (> the
-  # 5.5V SHDN abs-max). v1.2 keeps a re-valued divider (enable level) and adds D5
-  # (Zener, cathode on SHDN) that CLAMPS SHDN <~3.7V under any 5VC over-voltage.
-  # (No NFET: an ENKILL-gated pulldown has wrong polarity — ENKILL is active-high
-  # when on — so it would disable the eFuse in normal operation; the clamp is the
-  # sanctioned fix and 5VC-collapse still provides master-off.)
-  - {assert: pin_on_net, pin: "R33.1", net: "5VC", adr: 0001,
-     why: "SHDN enable-bias divider top R33 on 5VC (ties eFuse-enable to buck-C presence; master-off 5VC collapse drops SHDN)"}
-  - {assert: pin_on_net, pin: "R33.2", net: "SHDNC", adr: 0001,
-     why: "SHDN divider mid-node on SHDNC (with R36 to GND -> 2.97V normal enable, >2V SHUTR)"}
-  - {assert: pin_on_net, pin: "D5.1", net: "SHDNC", adr: 0001,
-     why: "v1.2 Fix 3: D5 Zener CATHODE (pad1) on SHDN clamps SHDN <5.5V abs-max under a 12.6V 5VC fault (the actual blocker fix)"}
-  - {assert: pin_on_net, pin: "D5.2", net: "GND", adr: 0001,
-     why: "D5 anode (pad2) on GND — Zener clamp reference"}
-  - {assert: net_has_part, net: "SHDNC", part_type: "diode", adr: 0001,
-     why: "SHDN carries a clamp diode (D5) — asserts the abs-max ceiling clamp is present, not a bare divider"}
-
-  # --- v1.2 #9: LOCAL 5VC CEILING CLAMP D7 (protect the 10V output caps) ---
-  - {assert: pin_on_net, pin: "D7.1", net: "5VC", adr: 0001,
-     why: "v1.2 Fix 4: D7 Zener CATHODE (pad1) on 5VC caps the rail <~6.8V if the loop loses regulation, protecting the 100uF/10V output caps + eFuse IN_SYS/OVP"}
-  - {assert: pin_on_net, pin: "D7.2", net: "GND", adr: 0001,
-     why: "D7 anode (pad2) on GND — 5VC clamp reference"}
-  - {assert: net_has_part, net: "5VC", part_type: "diode", adr: 0001,
-     why: "5VC carries a ceiling-clamp diode (D7)"}
+     why: "master switch COM on ENKILL -> grounding it shuts both bucks AND opens Q6 (Q7 off -> Q6 off -> VBUS isolated + back-feed blocked)"}

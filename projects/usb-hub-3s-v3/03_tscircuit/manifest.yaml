@@ -4,11 +4,13 @@
 # TPS26631, Q6 AON6354 block-FET, Q7 BSS138 gate-pulldown, R30 ILIM, R31/R32 OVP
 # div, R33/R36 SHDN div, C51 dVdT, C52 IN-byp), SW1 master-off, 2x SW snubber
 # (R34/C53 buck-A, R35/C54 buck-C) = 115 components.
-# v1.2 ADDS 3 (schematic revision, journal 03_schematic_v1.2): D5 (BZT52C3V9 SHDN
-# ceiling clamp), D6 (1N4148WS EN_C->ENKILL master-off coupling diode), D7
-# (BZT52C6V2 5VC ceiling clamp) = 118 components. (No new NFET; the runaway/SHDN
-# blocker fixes re-use existing R12/R33/R36 with new values + the FLT->EN_C net.)
-# tsci drops parts SILENTLY (alphanumeric pads etc.) — this file is the only
+# v1.2 (eFuse era) had 118. v1.2 DISCRETE-PROTECTION REDESIGN (BRIEF A2/D2, user
+# decision — drop the TPS26631 eFuse): REMOVES 9 (U13 eFuse, R31/R32 OVP div,
+# R33/R36 SHDN div, C51 dVdT, C52 IN-byp, D6 EN_C coupling, D7 5VC clamp) and ADDS
+# 1 (F2 PPTC polyfuse) = 110 components. RE-ROLED (same refdes, new MPN/net): Q6
+# AON6354->AON6403 (P-FET reverse-block), R30 ILIM->Q6 gate pull-up, D5 SHDN-Zener
+# ->VBUSC TVS; Q7 BSS138 re-roled to the ENKILL gate inverter. buck-C EN re-merged
+# to ENKILL (EN_C net + D6 gone). tsci drops parts SILENTLY — this file is the only
 # artifact that disagrees after a silent drop.
 components: [
   J1, J2, J3, J4, J5, F1,
@@ -22,8 +24,8 @@ components: [
   C16, C17, C18, C19, C20, C21, C22, C23, C24, C25, C26, C27, C28,
   C29, C30, C31, C32, C33, C34, C35, C36, C37, C38, C39, C40, C41,
   C42, C43, C49, C50,
-  U13, Q6, Q7, SW1,
-  R30, R31, R32, R33, R34, R35, R36,
-  C51, C52, C53, C54,
-  D5, D6, D7,
+  Q6, Q7, SW1, F2,
+  R30, R34, R35,
+  C53, C54,
+  D5,
 ]

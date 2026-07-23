@@ -65,3 +65,45 @@ _none beyond the above — the buck rails are plain step-downs (see power_tree.y
 - USB-C rail: LM5116 5V buck -> 5VC. (v3: 5VC now feeds VBUS directly, not a PD
   controller.)
 - Both bucks route cleanly (leaded HTSSOP). The ONLY thing removed is the PD cell.
+
+## Decision log (A# assumptions / D# decisions)
+
+- **D1 (2026-07-22, ADR-0001):** Drop the TPS25740A PD cell; deliver a plain
+  regulated 5V/5A USB-C rail, Pi skips PD via `PSU_MAX_CURRENT=5000`. (See T1-T3.)
+
+- **A2 / D2 (2026-07-23) — DROP THE eFUSE, DISCRETE VBUS PROTECTION (USER DECISION).**
+  - *Context:* v1.1 added a TPS26631 eFuse (U13) to protect the USB-C VBUS. It
+    proved OVER-BUILT for a 5V/5A Pi-dedicated rail and was the ROOT CAUSE of both
+    (a) the v1.2 board routing wall — its 20-pin HTSSOP IN_SYS pin is boxed mid-row
+    in the fine-pitch west escape field (2 pour-fed 5VC taps unroutable), and
+    (b) v1.1's two electrical ORDER-BLOCKERS — post-eFuse FB runaway (fixed by
+    local-sense) and the SHDN 5.5V-abs-max destruction (7.56V at a 12.6V fault).
+  - *Decision (user, relayed via the orchestrating session):* REMOVE the eFuse cell
+    (U13 + its OVP/SHDN/dVdT/ILIM control passives R31/R32/R33/R36/C51/C52 + the
+    control-pin clamps D6/D7) and replace it with a SIMPLE DISCRETE chain, reusing
+    the on-BOM FETs (NOT an ideal-diode controller):
+      `5VC -> Q6 (AON6403 P-FET, reverse-block, ENABLE-GATED via Q7 BSS138 off ENKILL)
+       -> PMID -> F2 (PPTC polyfuse ~6A hold, over-current)
+       -> VBUSC (protected connector; D5 TVS to GND, over-voltage) -> J5`
+  - *Reverse-current realization (user-decided):* enable-gated P-FET — Q6's body
+    diode (D=5VC / S=PMID) blocks VBUS->pack back-feed whenever Q6 is OFF; Q7
+    inverts ENKILL so Q6 is ON (low-drop forward) when the hub is on and OFF on
+    master-off. This covers the RT-T4 concern in the OFF state (a powered device on
+    a switched-off port). It does NOT block reverse current while the port is
+    actively ON (bounded by the polyfuse); an always-on ideal-diode controller was
+    explicitly declined as unnecessary for a Pi-dedicated sink.
+  - *Kept:* buck-C FB on LOCAL 5VC (v1.1 fix, R12=4.12k -> 5VC 5.352V). *Reverted:*
+    buck-C EN re-merged to ENKILL (the eFuse FLT->EN_C un-merge + D6 coupling gone).
+  - *Refdes delta:* REMOVE U13, R31, R32, R33, R36, C51, C52, D6, D7 (9). ADD F2 (1).
+    RE-ROLE (same refdes): Q6 AON6354->AON6403 (P-FET reverse-block), R30 ILIM->Q6
+    gate pull-up (100k), D5 SHDN-Zener->VBUSC TVS; Q7 BSS138 -> ENKILL gate inverter.
+    118 -> **110 components**.
+  - *E-INV:* re-derived (24 assertions) to the new chain
+    `5VC -> Q6(P-FET, ENKILL-gated via Q7) -> F2(polyfuse) -> VBUSC(w/ TVS) -> J5`,
+    buck-C FB on local 5VC, EN merged to ENKILL.
+  - *STOCK FLAG (2 parts unverified in the sealed env):* **F2** (PPTC ~6A-hold 1812,
+    MF-MSMF600 candidate — Vmax MUST be re-checked >=16V for the fault case) and
+    **D5** (SMBJ6.0A TVS candidate). Parts-research to confirm sourceability + assign
+    REAL LCSC before seal; NOT blocking the schematic gate.
+  - *Schematic gate (Checkpoint A, MEASURED):* ERC **0**; parity **110 == 110 == 110**
+    (circuit.json == kicad_sch == exported netlist == manifest); E-INV **24/24**.

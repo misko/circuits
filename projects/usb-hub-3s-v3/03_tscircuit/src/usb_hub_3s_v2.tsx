@@ -1,27 +1,22 @@
 // usb-hub-3s-v3 (rev v1.2) — PROPRIETARY 3S-LiPo POWER-DISTRIBUTION board.
 //
-// v1.2 REVISION — SCHEMATIC hardening of v1.1 after a DO-NOT-ORDER red-team found
-// two electrical ORDER-BLOCKERS in the sealed v1.1. All v1.1 protections below are
-// KEPT; v1.2 changes only the buck-C control / eFuse-enable topology:
-//  A. LOCAL-SENSE FB (fixes the post-eFuse RUNAWAY blocker): buck-C FB moved from
-//     VBUSC (post-eFuse) back to the LOCAL 5VC output; R12 3.92k->4.12k -> 5VC
-//     regulated at 5.352V (connector ~5.11-5.18V @5A after the eFuse drop). The
-//     v1.1 connector-sense let the FB integrator wind 5VC toward VIN whenever the
-//     eFuse limited/opened; local sense makes 5VC unconditionally regulated.
-//  B. FLT->EN fault shutdown (Fix 2): U13 FLT (open-drain, active-low) -> buck-C
-//     EN_C. buck-C EN un-merged from ENKILL (net EN_C, coupled back for master-off
-//     by diode D6) so an eFuse fault shuts ONLY buck-C, isolated from buck-A/SHDN.
-//  C. SHDN CLAMP (fixes the 7.56V SHDN-abs-max blocker): the bare 0.6-ratio 5VC
-//     divider (SHDN=0.6*5VC=7.56V on a 12.6V fault > 5.5V abs-max) is replaced by
-//     a 0.554 divider (R33 40.2k / R36 49.9k -> 2.97V normal) + Zener clamp D5
-//     (BZT52C3V9) holding SHDN <~3.7V under any 5VC over-voltage.
-//  D. 5VC CEILING CLAMP D7 (BZT52C6V2): caps 5VC <~6.8V if the loop loses
-//     regulation, protecting the 10V output caps.
-// (No discrete SHDN NFET: an ENKILL-gated pulldown has WRONG polarity — ENKILL is
-//  active-HIGH-when-on, so it would disable the eFuse in normal operation; the
-//  clamp is the sanctioned fix and master-off still drops SHDN via 5VC collapse.)
+// v1.2 REVISION — DISCRETE VBUS PROTECTION (BRIEF A2/D2, user decision). The v1.1
+// TPS26631 eFuse was over-built for a 5V/5A Pi rail and root-caused BOTH the board
+// routing wall (its 20-pin HTSSOP IN_SYS pin boxed in the fine-pitch west escape)
+// AND v1.1's two order-blockers. It is DROPPED and replaced by a simple discrete
+// chain (reusing the on-BOM Q6/Q7 FETs):
+//   5VC -> Q6 (AON6403 P-FET, reverse-block, ENABLE-GATED via Q7 BSS138 off ENKILL)
+//        -> PMID -> F2 (PPTC polyfuse ~6A, over-current)
+//        -> VBUSC (protected connector; D5 TVS to GND, over-voltage) -> J5
+//  - Reverse-current: Q6 body diode (D=5VC/S=PMID) blocks VBUS->pack back-feed when
+//    Q6 is OFF; Q7 inverts ENKILL so Q6 is ON (low-drop forward) when the hub is on
+//    and OFF on master-off (RT-T4, OFF-state). No gate Zener (Vgs<=5.4V << 20V max).
+//  - Over-current: F2 PPTC polyfuse (resettable). Over-voltage: D5 TVS crowbar +
+//    F2 trip on a buck-fail-high.
+//  - KEPT from v1.1: buck-C FB on LOCAL 5VC (R12=4.12k -> 5VC 5.352V; the runaway
+//    fix). REVERTED: buck-C EN re-merged to ENKILL (the eFuse FLT->EN_C un-merge +
+//    D6 coupling diode are gone). REMOVED: U13, R31/R32/R33/R36, C51/C52, D6, D7.
 //
-// NOT a USB hub, NOT USB-PD / USB-standards-compliant: it is a Pi-DEDICATED
 // NOT a USB hub, NOT USB-PD / USB-standards-compliant: it is a Pi-DEDICATED
 // power supply. 3x USB-A = dumb 5V CHARGING ports (2A cont / 2.5A burst,
 // TPS2557 + TPS2513A DCP advertisement, NO data). 1x USB-C = a proprietary
@@ -286,17 +281,16 @@ export default () => (
         5.352 - I*R_efuse = ~5.11-5.18V @5A (>=5.0V worst-corner). Because FB is
         local, an eFuse current-limit/open can no longer starve the loop -> 5VC
         cannot wind up toward VIN.
-        EN is now the buck-C-local EN_C net (en prop removed -> Buck defaults to
-        n("EN")="EN_C"), UN-MERGED from ENKILL so the eFuse FLT flag can shut down
-        ONLY buck-C on a C-port fault (Fix 2). Master-off still reaches buck-C via
-        the D6 EN_C->ENKILL coupling diode. */}
+        EN is on ENKILL (the master-off bus), MERGED with buck-A again — the eFuse
+        FLT->EN_C un-merge is reverted (the eFuse and its FLT are gone in the
+        discrete-protection redesign; there is no per-buck fault flag to isolate). */}
     {/* fbtopMpn intentionally OMITTED: the 4.12k 0.1% FB-top (R12) is a SPECIALTY
         part documented in 02_parts/RT0603BRD074K12L/part.yaml. No LCSC is baked
         into the schematic because JLC 0.1%-4.12k stock is unverifiable in the
         sealed env; using the 3.92k code (C728591) here would silently order the
         WRONG value and re-open the runaway blocker. Fab MUST source R12 from the
         part.yaml MPN (RT0603BRD074K12L) — see the v1.2 pre-order flag. */}
-    <Buck s="C" vout="N5VC" fbtop="4.12k" ids={{
+    <Buck s="C" vout="N5VC" fbtop="4.12k" en="ENKILL" ids={{
       U: "U11", QH: "Q4", QL: "Q5", RS: "RS2", L: "L2", DB: "D4",
       RT: "R11", FBT: "R12", FBB: "R13", RCMP: "R14", UVT: "R15", UVB: "R16",
       REN: "R17", RCSK: "R18", RCSG: "R19",
@@ -413,114 +407,56 @@ export default () => (
         source; the Pi draws 5A via PSU_MAX_CURRENT=5000. Kept from v2: J5, U12 data
         ESD, R27 DCP short. Removed: TPS25740A PHY, RS3, all PD-config passives. */}
     <group name="usbc">
-      {/* ---- PROTECTED VBUS: TPS26631 eFuse (U13) + reverse-blocking FET pair ----
-          Power path: 5VC -> Q6 (AON6354 blocking FET: S=IN_SYS/5VC, D=IN, G=B_GATE)
-          -> eFuse IN -> internal FET -> OUT -> VBUSC -> J5. Q7 (BSS138) is the fast
-          gate-PULLDOWN required by SLVSE94G 8.3.5 (G=DRV, D=B_GATE, S=IN_SYS): it
-          yanks Q6's gate down in 0.17us on reverse detection. (The part.yaml note
-          budgeted only Q6; Q7 added per datasheet - on-BOM BSS138 meets the Q2 spec
-          VDS>=15 / VGS+-20 / Ciss<=50pF / VGTH<=3V.) UVLO->GND (internal default),
-          MODE->GND (auto-retry), PGTH->GND (PGOOD unused); IMON/FLT/PGOOD left NC
-          per DS. IN_SYS=5VC senses the buck side; OUT=VBUSC is the protected rail. */}
-      <chip name="U13" supplierPartNumbers={{ jlcpcb: ["C2866319"] }}
-        pinLabels={{
-          pin1: "IN", pin2: "IN", pin3: "IN", pin4: "B_GATE", pin5: "DRV",
-          pin6: "IN_SYS", pin7: "UVLO", pin8: "OVP", pin9: "GND", pin10: "dVdT",
-          pin11: "ILIM", pin12: "MODE", pin13: "SHDN", pin14: "IMON", pin15: "FLT",
-          pin16: "PGTH", pin17: "PGOOD", pin18: "OUT", pin19: "OUT", pin20: "OUT",
-          pin21: "EP",
-        }}
-        connections={{
-          pin1: "net.EFINC", pin2: "net.EFINC", pin3: "net.EFINC",
-          pin4: "net.BGATEC", pin5: "net.DRVC", pin6: "net.N5VC",
-          pin7: "net.GND", pin8: "net.OVPC", pin9: "net.GND", pin10: "net.DVDTC",
-          pin11: "net.ILIMC", pin12: "net.GND", pin13: "net.SHDNC",
-          pin15: "net.EN_C",
-          pin16: "net.GND", pin18: "net.VBUSC", pin19: "net.VBUSC", pin20: "net.VBUSC",
-          pin21: "net.GND",
-        }}
-        footprint={<Lm5116Fp />} />
-      {/* v1.2 Fix 2 — FAULT SHUTDOWN: U13 FLT (pin15, open-drain ACTIVE-LOW,
-          abs-max 67V, sink <=10mA per SLVSE94G) -> buck-C EN_C. FLT asserts on
-          UV / OV / overload / power-limit / REVERSE-current / ILIM-short / thermal
-          (DS 8.3.10) -> pulls EN_C low -> buck-C shuts down, so the buck cannot
-          keep sourcing 5VC into a faulted/limited eFuse. Normal op: FLT hi-Z,
-          EN_C held to VIN by R17 (buck-C REN). FLT (not PGOOD) is used: PGOOD would
-          de-assert during every normal dVdT soft-start and stall the startup;
-          FLT only asserts on true faults (internal de-glitch, no external RC). */}
-      {/* Q6 = Q1 blocking N-FET (AON6354): S(1-3)=IN_SYS/5VC, G(4)=B_GATE, D(5)=IN */}
-      <chip name="Q6" supplierPartNumbers={{ jlcpcb: ["C404363"] }}
+      {/* ==== v1.2 DISCRETE VBUS PROTECTION — TPS26631 eFuse DROPPED (BRIEF A2/D2) ====
+          The eFuse (U13) + its OVP/SHDN/dVdT/ILIM control passives + control-pin
+          clamps are REMOVED: over-built for a 5V/5A Pi rail and the root cause of
+          the routing wall (its 20-pin HTSSOP IN_SYS pin boxed in the west escape
+          row) AND v1.1's two blockers (post-eFuse FB runaway + SHDN 5.5V abs-max).
+          USER DECISION: replace with a simple discrete chain reusing the on-BOM
+          Q6/Q7 FETs (enable-gated P-FET), NOT an ideal-diode controller:
+             5VC -> Q6 (AON6403 P-FET, reverse-block) -> PMID -> F2 (PPTC polyfuse,
+             over-current) -> VBUSC (protected connector) -> D5 (TVS, over-voltage) -> J5
+          buck-C FB STAYS on LOCAL 5VC (v1.1 fix, correct). buck-C EN RE-MERGES to
+          ENKILL (the eFuse FLT->EN_C un-merge + D6 coupling diode are reverted). */}
+      {/* Q6 = reverse-block P-FET (AON6403, PowerPAK SO-8): D(5)=5VC, S(1-3)=PMID,
+          G(4)=QG. Body diode anode=D=5VC / cathode=S=PMID BLOCKS PMID->5VC (reverse
+          back-feed) when Q6 is off. ENABLE-GATED: Q7 (BSS138) inverts ENKILL onto QG.
+          Board ON (ENKILL high) -> Q7 on -> QG=GND -> Vgs=-5V -> Q6 ON (low-drop
+          forward). Master-OFF (ENKILL low) -> Q7 off -> QG pulled to source (PMID)
+          by R30 -> Vgs=0 -> Q6 OFF -> body diode blocks a powered sink back-feeding
+          the pack (red-team RT-T4, OFF-state). Vgs |max| 20V, here <=5.4V -> no gate
+          Zener needed (unlike the 12.6V input Q1). */}
+      <chip name="Q6" supplierPartNumbers={{ jlcpcb: ["C2760089"] }}
         pinLabels={{ pin1: "S1", pin2: "S2", pin3: "S3", pin4: "G", pin5: "D" }}
-        connections={{ pin1: "net.N5VC", pin2: "net.N5VC", pin3: "net.N5VC", pin4: "net.BGATEC", pin5: "net.EFINC" }}
+        connections={{ pin1: "net.PMID", pin2: "net.PMID", pin3: "net.PMID", pin4: "net.QG", pin5: "net.N5VC" }}
         footprint={<Dfn56 />} />
-      {/* Q7 = Q2 fast gate-pulldown (BSS138 SOT-23): G(1)=DRV, S(2)=IN_SYS/5VC, D(3)=B_GATE */}
+      {/* Q7 = gate inverter (BSS138 SOT-23): G(1)=ENKILL, S(2)=GND, D(3)=QG.
+          ENKILL swings 0..VIN(12.6V); Vgs<=12.6V < 20V max. */}
       <chip name="Q7" supplierPartNumbers={{ jlcpcb: ["C78284"] }}
         pinLabels={{ pin1: "G", pin2: "S", pin3: "D" }}
-        connections={{ pin1: "net.DRVC", pin2: "net.N5VC", pin3: "net.BGATEC" }}
+        connections={{ pin1: "net.ENKILL", pin2: "net.GND", pin3: "net.QG" }}
         footprint="sot23" />
-      {/* R_ILIM 3.09k -> I_OL = 18000/3090 = 5.83A (min 5.42A > 5A load) */}
-      <resistor name="R30" resistance="3.09k" footprint="0603" connections={{ pin1: "net.ILIMC", pin2: "net.GND" }} />
-      {/* OVP divider from IN_SYS(5VC): trip = 1.2V x (47.5k+12.1k)/12.1k = 5.91V input-OV
-          cutoff. v1.2: with LOCAL FB sense 5VC is REGULATED flat at 5.352V (no-load
-          worst-high 5.432V over Vref +-1.5%) — it no longer floats up with load as
-          in v1.1 option-a, so the OVP margin is a clean 5.91 - 5.43 = 0.48V. Still
-          hard-trips the 12.6V buck-HS-short that threatens the Pi (OVP=2.56V>>1.2V).
-          The D7 5VC clamp (~6.8V) backs up the caps in that same fault. */}
-      <resistor name="R31" resistance="47.5k" footprint="0603" connections={{ pin1: "net.N5VC", pin2: "net.OVPC" }} />
-      <resistor name="R32" resistance="12.1k" footprint="0603" connections={{ pin1: "net.OVPC", pin2: "net.GND" }} />
-      {/* v1.2 Fix 3 — SHDN network (fixes the 7.56V SHDN-abs-max blocker).
-          SHDN abs-max is 5.5V (SLVSE94G). The v1.1 bare 0.6-ratio 5VC divider put
-          SHDN = 0.6*5VC = 7.56V on a 12.6V buck-HS-short -> DESTROYS the pin.
-          v1.2 REPLACES the bare divider with a divider + a HARD Zener CLAMP:
-          - R33 40.2k (5VC->SHDN) / R36 49.9k (SHDN->GND): ratio 0.554 -> normal
-            SHDN = 5.352*0.554 = 2.97V (>2V SHUTR enable, stiff/low-Z so the +-10uA
-            SHDN leakage is negligible). Divider left on 5VC so master-off (5VC
-            collapse) still drops SHDN -> eFuse off (no wrong-polarity NFET: an
-            NFET pulldown GATED BY ENKILL would be ON in normal op — ENKILL is
-            active-HIGH-when-on — and would DISABLE the eFuse; the clamp is the
-            sanctioned fix per the "clamp SHDN" option).
-          - D5 Zener BZT52C3V9 (SHDN->GND, cathode=SHDN): under a 12.6V 5VC fault
-            the divider would reach 6.98V, but D5 CLAMPS SHDN to ~3.7V (<<5.5V,
-            >1.8V margin). Off at the 2.97V normal level (knee ~3.7V). This is the
-            actual blocker fix; it also protects against an R36-open mis-stuff. */}
-      <resistor name="R33" resistance="40.2k" footprint="0603" connections={{ pin1: "net.N5VC", pin2: "net.SHDNC" }} />
-      <resistor name="R36" resistance="49.9k" footprint="0603" connections={{ pin1: "net.SHDNC", pin2: "net.GND" }} />
-      {/* D5 SHDN ceiling clamp (Zener, pad1=cathode at SHDN): caps SHDN <5.5V under
-          any 5VC over-voltage. MPN BZT52C3V9 (02_parts/BZT52C3V9). */}
-      {/* NO jlcpcb code baked in: BZT52C3V9 SOD-123 stock unverifiable in the
-          sealed env and a wrong-voltage code would defeat the clamp — fab sources
-          it from 02_parts/BZT52C3V9 (pre-order flag). */}
-      <chip name="D5"
+      {/* R30 = Q6 gate pull-up to its SOURCE (PMID): holds Q6 OFF when Q7 is off
+          (master-off) so a back-feed keeps Vgs~0 and the body diode blocks. 100k
+          (mirrors the input Q1 gate pulldown R1). */}
+      <resistor name="R30" resistance="100k" footprint="0603" connections={{ pin1: "net.PMID", pin2: "net.QG" }} />
+      {/* F2 = PPTC resettable polyfuse (OVER-CURRENT), PMID -> VBUSC. ~6A hold (5A
+          load with margin), Itrip ~10-12A; Vmax >= 16V (a buck-fail-high fault is
+          TVS-clamped ~10V, fuse then trips). STOCK/LCSC UNVERIFIED in the sealed env
+          -> FLAGGED for the parts-research stock check (part.yaml 02_parts/1812L600). */}
+      <chip name="F2" supplierPartNumbers={{ jlcpcb: ["C2828687"] }}
+        pinLabels={{ pin1: "1", pin2: "2" }}
+        connections={{ pin1: "net.PMID", pin2: "net.VBUSC" }}
+        footprint={<Pol2 w="1.6mm" h="3.2mm" dx="2.3mm" />} />
+      {/* D5 = TVS over-voltage clamp, VBUSC -> GND (uni-directional, cathode=pad1 at
+          VBUSC). Vwm ~6V clears the 5.43V no-load VBUSC max (no nuisance leakage);
+          clamps a buck-fail-high (12.6V) and, with F2, crowbars -> polyfuse trips ->
+          Pi protected. STOCK/LCSC UNVERIFIED -> FLAGGED for parts-research
+          (02_parts/SMBJ6.0A). */}
+      <chip name="D5" supplierPartNumbers={{ jlcpcb: ["C921382"] }}
         pinLabels={{ pin1: "K", pin2: "A" }}
-        connections={{ pin1: "net.SHDNC", pin2: "net.GND" }}
-        footprint={<Pol2 w="0.9mm" h="1.2mm" dx="1.65mm" />} />
-      {/* C_dVdT 10nF -> t = 20.8e3 x 5.15 x 10n ~= 1.1ms soft-start (inrush ~0.1A) */}
-      <capacitor name="C51" capacitance="10nF" footprint="0603" connections={{ pin1: "net.DVDTC", pin2: "net.GND" }} />
-      {/* eFuse IN local bypass (DS rec: 0.1uF on IN; IN sits behind Q6 from the 5VC bulk) */}
-      <capacitor name="C52" capacitance="100nF" footprint="0603" connections={{ pin1: "net.EFINC", pin2: "net.GND" }} />
-      {/* v1.2 Fix 2 (cont.) — MASTER-OFF COUPLING diode D6 (1N4148WS, on-BOM SOD-323,
-          pad1=cathode). Anode=EN_C, cathode=ENKILL. Buck-C EN is UN-MERGED to EN_C
-          so FLT can shut only buck-C; D6 re-couples the master switch: SW1 grounds
-          ENKILL -> D6 forward -> EN_C pulled to ~0.4V -> buck-C off (with buck-A,
-          which is on ENKILL directly). On an FLT fault EN_C is pulled low while
-          ENKILL stays high -> D6 REVERSE -> buck-A + the SHDN bias are unaffected
-          (fault isolated to buck-C). */}
-      <chip name="D6" supplierPartNumbers={{ jlcpcb: ["C2128"] }}
-        pinLabels={{ pin1: "K", pin2: "A" }}
-        connections={{ pin1: "net.ENKILL", pin2: "net.EN_C" }}
-        footprint={<Pol2 w="0.6mm" h="1mm" dx="1.25mm" />} />
-      {/* v1.2 Fix 4 — 5VC CEILING CLAMP D7 (Zener BZT52C6V2, SOD-123, pad1=cathode
-          at 5VC). Belt-and-suspenders: if the buck ever loses regulation (e.g. an
-          FB resistor opens) D7 caps 5VC below ~6.8V, protecting the 100uF/10V
-          output caps (C29-C32) and the eFuse IN_SYS/OVP divider. Vz(min) 5.8V >
-          5.43V normal-max (no nuisance conduction); a 5V6 part was rejected —
-          Vz(min) 5.2V would conduct at the 5.43V normal-high. MPN in 02_parts. */}
-      {/* NO jlcpcb code baked in (BZT52C6V2 stock unverifiable in-env) — fab
-          sources it from 02_parts/BZT52C6V2 (pre-order flag). */}
-      <chip name="D7"
-        pinLabels={{ pin1: "K", pin2: "A" }}
-        connections={{ pin1: "net.N5VC", pin2: "net.GND" }}
-        footprint={<Pol2 w="0.9mm" h="1.2mm" dx="1.65mm" />} />
+        connections={{ pin1: "net.VBUSC", pin2: "net.GND" }}
+        footprint={<Pol2 w="2.1mm" h="2.4mm" dx="2.2mm" />} />
       {/* C-port data ESD (USBLC6) + BC1.2 DCP short (D+ <-> D-) for charging */}
       <chip name="U12" supplierPartNumbers={{ jlcpcb: ["C7519"] }}
         pinLabels={{ pin1: "IO1", pin2: "GND", pin3: "IO2", pin4: "IO2B", pin5: "VBUS", pin6: "IO1B" }}

@@ -66,3 +66,34 @@
   array pass for the LM5116 EP). The DRC 0/0/0 routing gate — the deliverable of
   THIS stage — is met and committed. Recorded here per the Evidence principle
   (a partial result honestly reported > a passing claim).
+
+## 2026-07-23 — v1.2 board place+route: STUCK (2 5VC taps) -> D-BACK to placement
+
+### STUCK (measured plateau, D-BACK discipline)
+Two full rebuilds (fresh KRT race:6 each) both ABORT at the TAP pass on the SAME
+two pour-owned 5VC taps — a red gate repeating with no new signal, so re-rolling
+is a stall (the race winner is clean: c0 = 0 unconnected / 10 pre-stitch
+violations, 562 seg / 20 vias imported; the failure is the tap pass, which a
+re-roll does not touch):
+- **`5VC R12.1 -> [95,76]`** and **`5VC U13.6 -> [107.5,94.6]`** FAIL
+  ("unrouted taps after 1 bounded reattempt"). The aborted post-tap board shows
+  106 unconnected — that is the abort state, not a routing regression.
+- Root cause (v1.2 delta): local-sense made R12 a NEW 5VC pin (long W->E escape),
+  and D5/D7 + the eFuse set-pin cluster (R31/R32 OVP, C51 dVdT, Q7, R33/R36 SHDN)
+  crowd U13's WEST pin row. U13.6 (IN_SYS=5VC, pin6) is the lone power pin
+  sandwiched between DRVC(pin5) and GND(pin7); BGATEC/DRVC/OVPC/DVDTC all escape
+  that same west side (measured 21 signal segments within 3.5mm of the tap target),
+  so 5VC cannot thread out to its pour. MEASURED: 5VC pour does NOT cover U13.6
+  (x110.14 > patch east edge 108.8) nor R12.1 (x52, 34mm from the pour).
+- Also measured: R12.1's escape to **[95,80]** SUCCEEDED in rebuild-1; I regressed
+  it to [95,76] in rebuild-2 (a worse, cap-boxed target). Reverting the target fixes
+  R12.1 with no placement change.
+
+### D-BACK to PLACEMENT (per coordinator; not grinding rolls)
+1. route.yaml: R12.1 escape target [95,76] -> [95,80] (the proven point); keep the
+   U11.10->R12.1 local link (mirrors buck-A, avoids the roll-fragile 38mm cross-buck).
+2. floorplan: relieve U13's west escape corridor — extend the 5VC landing patch NE
+   to be ADJACENT to U13.6 (so the tap is a short hop, not a 3mm run through the
+   set-pin field) and move the dVdT cap C51 out from directly SW of U13.6.
+3. Backstop (if placement still can't reach after the attempt): promote U13.6 to a
+   deterministic stitch.seed_stubs through the (now-adjacent) patch.

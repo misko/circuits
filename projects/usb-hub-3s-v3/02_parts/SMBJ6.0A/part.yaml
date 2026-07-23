@@ -1,0 +1,28 @@
+mpn: SMBJ6.0A
+manufacturer: Littelfuse / multi-source
+type: tvs_diode_unidirectional   # over-voltage clamp on USB-C VBUS (D5), VBUSC->GND
+datasheet: {doc_id: SMBJ, revision: series/LCSC, url: "https://www.lcsc.com/", sha256: null, fetched: 2026-07-23}
+package: SMB (DO-214AA)
+footprint: Diode_SMD:D_SMB
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
+pins:
+  1: {name: K, note: "cathode = pad 1 (KiCad D_SMB marker/band side); D5 K at VBUSC, A at GND"}
+  2: {name: A}
+limits: {vwm: "6.0V standoff", vbr: "6.67-8.15V @1mA", vclamp: "10.3V @ Ipp", ppk: "600W (8/20us)"}
+gotchas:
+  - "v1.2 DISCRETE-PROTECTION redesign (BRIEF A2/D2): D5 = the over-voltage element
+     replacing the eFuse OVP cutoff. Uni-directional TVS, cathode(pad1) on VBUSC,
+     anode on GND. Vwm 6.0V clears the 5.43V no-load VBUSC max (Vbr(min) 6.67V >
+     5.43V -> no nuisance leakage). On a buck-HS-short (12.6V) it clamps + draws
+     current through F2 (upstream) -> F2 trips -> Pi protected (crowbar action)."
+  - "CAVEAT (flagged): Vclamp ~10.3V @ full Ipp is above the Pi's ~6V VBUS ceiling;
+     protection relies on the F2 polyfuse tripping quickly to end the exposure. If
+     the parts-research finds a lower-clamp option that still clears 5.43V standoff,
+     prefer it. Reject SMBJ5.0A (5V standoff < 5.43V -> conducts in normal op)."
+verified: "2-pad polarized TVS; KiCad D_SMB pad1=cathode convention; SMBJ6.0A uni-dir - 2026-07-23"
+sourcing:
+  lcsc: C921382   # CANDIDATE - UNVERIFIED in sealed env, parts-research to confirm/replace
+  alternates: []
+  note: "STOCK UNVERIFIED in sealed env. C921382 is a best-known SMBJ6.0A candidate
+    handle; parts-research to confirm sourceability + assign the REAL LCSC (and
+    consider a lower-Vclamp uni-dir TVS that still clears 5.43V standoff). qty 1/board (D5)."
