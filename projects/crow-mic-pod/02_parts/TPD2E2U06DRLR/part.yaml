@@ -31,3 +31,21 @@ gotchas:
 verified: "pin map read from datasheet Section 5 pin configuration figure (DRL Package 5-Pin SOT Top View) + Pin Functions table, page 3, SLLSEG9C — 2026-07-18"
 sourcing: {lcsc: C1972959, alternates: [C51886141], note: 'extended; exact MPN; 11609 stock 2026-07-18'}
 escape: {style: leaded, pitch: 0.5, tier_required: jlc_2layer_default, checked: escape_check}
+
+# Datasheet LAYOUT-section compliance (P-LAYOUT). Adopted-forward backfill 2026-07-22.
+layout:
+  source: "TI SLLSEG9C Sec.10 Layout / Sec.10.1 Layout Guidelines (p.11-12): the optimum
+    placement is AS CLOSE TO THE CONNECTOR AS POSSIBLE; route the protected traces
+    (between the TVS and the connector) as straight as possible with no sharp corners;
+    keep unprotected traces away from the protected traces to avoid ESD-event EMI
+    coupling; return the GND pin (4) to the plane with a short, low-inductance path so
+    strike current dumps at the entry."
+  reviewed: "2026-07-22 — Layout section read (agrees with the part.yaml 'place at the cable connector, not the op-amp' gotcha)"
+  adjacency:
+    - "D1 (TPD2E2U06) hard against J1 (RJHSE-5384) AUDIO_P/AUDIO_N contacts 1/2: 10.1 optimum placement as close to the connector as possible; the 68R isolation Rs sit BETWEEN this clamp and the amp so strike current dumps at entry"
+    - "D1.4 (GND) short, low-inductance return to the GND plane"
+  notes: "No keep_short net-span budget: the protected nets AUDIO_P/AUDIO_N are full-length
+    routed signals (choke reserve L1 + 68R Rs + amp downstream) — the constraint is ENTRY
+    ADJACENCY to the connector, not net span, so P-ADJ carries no budget for D1. On sealed
+    v1.0 D1 sits ~10mm from J1 (red-team L6, waived ADR-0004 b2: routing-corridor tradeoff,
+    still within-entry before the isolation Rs)."

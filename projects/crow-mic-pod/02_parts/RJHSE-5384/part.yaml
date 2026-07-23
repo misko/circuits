@@ -77,3 +77,20 @@ sourcing:
     FALLBACK if first-article lid fit fails: RJHSE-L384 low-profile (12.70mm tall,
     catalogue p.5) — VERIFY its hole pattern against RJHSE538X before substituting.
 escape: {style: connector, pitch: 1.02, tier_required: jlc_2layer_default, checked: escape_check}
+
+# Datasheet LAYOUT-section compliance (P-LAYOUT). Adopted-forward backfill 2026-07-22.
+layout:
+  source: "Amphenol Modular Jacks Catalogue (April 2015, RJHS series pp.3-6): provides the
+    RECOMMENDED PCB LAYOUT (hole/land pattern) + mechanical drawings only — a passive 8P8C
+    THT jack with no integrated magnetics has NO manufacturer PCB signal-layout guidelines.
+    Signal/mechanical layout for this connector is governed by the board's own ADR-0004
+    (edge placement + mating-face orientation, 1551WY lid-recess clearance, custom NOT-Ethernet
+    pinout silk, single-point SHIELD bond reserve R15)."
+  reviewed: "2026-07-22 — catalogue mechanical/layout pages reviewed; confirmed no electrical layout section exists for this jack"
+  adjacency:
+    - "D1 (entry ESD) and L1 (CM-choke reserve) placed hard against J1 signal contacts 1/2: cable-entry protection/filtering is local to the connector (see the D1 and L1 layout blocks + TPD2E2U06 10.1)"
+  notes: "No keep_short net-span budget from the connector itself — its layout-critical
+    PARTNERS are the entry ESD (D1) and CM choke (L1), whose blocks carry the adjacency rule.
+    SHIELD handling per ADR-0004 (J1.SH -> SHIELD net, R15 DNP single-point-bond reserve, never
+    a second hard GND bond). Top EMI tabs are the tallest feature -> lid-clearance is the
+    mechanical constraint (ADR-0004 first-article lid-close gate, red-team L5, still open)."
