@@ -50,6 +50,27 @@ prep:
       # north of y34.5 (their pads are all at y<=30.94) so no keypad track dips
       # toward the logic domain -- isolation symmetric, held by construction.
       - {x0: 12.0, y0: 34.5, x1: 264.0, y1: 102.1, layer: User.3}
+      # ADC-FRONT-END GND-VIA RESERVATIONS (D-ADJ, routing D-BACK 2026-07-23).
+      # The dense MCP3208 filter/vref cluster covers cap GND via sites with signal
+      # tracks on BOTH layers (astar exhausted a 4mm window -> stitch cannot drop a
+      # via-in-pad). WHICH cap opens is whack-a-mole across route/legalize seeds,
+      # so ALL 10 cluster caps are reserved: each rect fences OTHER-net tracks off
+      # the GND pad + its via site (User.2 blocks BOTH F.Cu and B.Cu); the caps are
+      # ANCHORED (floorplan) so these coords stay on-pad. GND (In1 plane) is
+      # KRT-excluded, so nothing legit routes to the pad; the signal pad (pad 1)
+      # escapes WEST, clear of each rect's west edge (>=0.2mm). rects = GND pad
+      # centre-biased east: [gx-0.48 .. gx+0.52] x [gy-0.65 .. gy+0.65] (small
+      # caps); C_ADCV/C_ADCV2 sized for their 0.90mm pad.
+      - {x0: 48.15, y0: 69.35, x1: 49.75, y1: 70.65, layer: User.2}   # C_ADCV  GND@48.77,70.00
+      - {x0: 37.00, y0: 69.35, x1: 38.00, y1: 70.65, layer: User.2}   # C_ADCV2 GND@37.48,70.00
+      - {x0: 56.20, y0: 82.55, x1: 57.20, y1: 83.85, layer: User.2}   # C_FLT0  GND@56.68,83.20
+      - {x0: 53.80, y0: 82.55, x1: 54.80, y1: 83.85, layer: User.2}   # C_FLT1  GND@54.28,83.20
+      - {x0: 53.80, y0: 78.15, x1: 54.80, y1: 79.45, layer: User.2}   # C_FLT2  GND@54.28,78.80
+      - {x0: 56.20, y0: 78.15, x1: 57.20, y1: 79.45, layer: User.2}   # C_FLT3  GND@56.68,78.80
+      - {x0: 58.00, y0: 80.35, x1: 59.00, y1: 81.65, layer: User.2}   # C_FLT4  GND@58.48,81.00
+      - {x0: 52.00, y0: 80.35, x1: 53.00, y1: 81.65, layer: User.2}   # C_FLT5  GND@52.48,81.00
+      - {x0: 58.80, y0: 81.75, x1: 59.80, y1: 83.05, layer: User.2}   # C_FLT6  GND@59.28,82.40
+      - {x0: 57.00, y0: 83.85, x1: 58.00, y1: 85.15, layer: User.2}   # C_FLT7  GND@57.48,84.50
   waves:
     exclude: ["GND", "3V3", "unconnected-*"]   # In1 GND plane + In2 3V3 plane own these
     groups:
@@ -104,7 +125,10 @@ route:
     - {name: pwr,  group: pwr,  max_iterations: 500000}
     - {name: sig, group: sig, track_width: 0.25, max_iterations: 800000,
        max_probe_iterations: 60000, max_ripup: 30}
-  # final: 03_src/cooksense/route/rN.kicad_pcb   # promote once converged (canon M3)
+  # Promoted converged chain (canon M3): 0 routed-net unconnected, 0-crossing
+  # topology. `import` uses this when there is no fresh 06_build FINAL marker, so
+  # `rebuild_all.sh --reuse-route` (and a fresh clone / CI) is DETERMINISTIC.
+  final: 03_src/cooksense/route/final_chain.kicad_pcb
 
 stitch:
   clearance: 0.15
@@ -114,9 +138,34 @@ stitch:
   normalize_vias: {size: 0.25, drill: 0.15}
   keepin: {inset: 0.8}
   passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
-           split_t_junctions, reload, hole_to_hole, pad_rescue, stub_fallback,
-           astar_fallback, dedupe_vias, stitch_grid, fill, island_rescue, fill,
-           unify_zone_priorities, heal_islands, prune_stitch_dangling, gate]
+           split_t_junctions, reload, hole_to_hole, seed_stubs, pad_rescue,
+           stub_fallback, astar_fallback, dedupe_vias, stitch_grid, power_stitch,
+           via_janitor, fill, island_rescue, fill, unify_zone_priorities,
+           heal_islands, prune_stitch_dangling, gate]
+  # TPS259573 has TWO adjacent 5V_RPP input pins (pad 3 @59.05,45.25 + pad 4
+  # @59.05,45.75, 0.5mm pitch). KRT routes the trunk to pad 3 (via-in-pad) but
+  # stochastically left pad 4 as a bare pad + a dead-end detour via -- KRT's own
+  # connectivity metric treats the net as served, so the race cannot select it
+  # out. A DETERMINISTIC 0.25mm F.Cu bridge pad4->pad3 closes it (canon M8);
+  # via_janitor then removes the orphan detour via (5V_RPP has no pour, so a via
+  # touching only 1 layer connects nothing). Both run BEFORE fill.
+  seed_stubs:
+    clearance: 0.13
+    stubs:
+      - {net: 5V_RPP, pin: U_EFUSE.4,
+         segments: [{layer: F.Cu, width: 0.25, pts: [[59.05, 45.75], [59.05, 45.25]]}]}
+  via_janitor: {min_layers: 2}
+  # THERMAL-VIA FLOOR (policy R6): the AMS1117-3.3 tab (U_LDO.4 = 3V3, 7.6mm2)
+  # gets its 1st via-in-pad from pad_rescue at the tab CENTER (25.15,58.00); its
+  # 2nd nearby 3V3 via sits 2.4mm out (past R-THERM's w/2+1.0=2.0mm window), so
+  # the pad counted only 1. power_stitch drops a 2nd via-in-pad 1.1mm north,
+  # inside the 3.8mm-tall tab and inside the counting window -> 2 vias. min:0 +
+  # overshoot:0 suppresses the plane-crossing auto-vias so ONLY the site is added.
+  # U_LDO is anchored [22,58,0] (pinned) so the tab stays at x25.15.
+  power_stitch:
+    overshoot: 0
+    jobs:
+      - {net: 3V3, min: 0, sites: [[25.15, 56.9]]}
   dedupe_vias: {radius: 0.5, metric: box}
   drop_micro_fragments: {max_length: 0.12, require_free_end: true}
   drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}

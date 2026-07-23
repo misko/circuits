@@ -9,6 +9,12 @@
 # (01_docs/journal/02_parts.md).
 fab_tier: jlc_4layer_advanced
 
+# Default netclass floor for the unnamed (signal) rail. KRT routes the signal
+# waves at 0.15mm clearance (advanced tier); the baked 0.2mm Default clearance
+# would flag ~500 phantom clearance findings (0.19 < 0.20). 0.12mm matches the
+# named-class clearances and clears them, while staying >= tier min_space 0.09.
+default_clearance: 0.12mm
+
 classes:
   PWR_IN:
     intent: >

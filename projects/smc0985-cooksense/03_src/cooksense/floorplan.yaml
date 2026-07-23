@@ -145,6 +145,26 @@ placement:
     # ================= ANALOG SENSE SPINE (SW, off the coil row) =================
     U_ADC:  [42.0, 70.0, 0]          # MCP3208 (SPI to Pi)
     U_TC:   [62.0, 71.0, 0]          # MAX31856 (SPI to Pi)
+    # ADC-front-end GND-via RESERVATION anchors (D-ADJ, routing D-BACK 2026-07-23).
+    # The dense MCP3208 filter/vref cluster routes signal tracks OVER the cap GND
+    # via sites on BOTH layers, so stitch cannot drop a via-in-pad -- and WHICH
+    # caps open is whack-a-mole across stochastic route/legalize realizations (the
+    # promoted chain opened C_ADCV/C_FLT5/C_FLT6; a re-legalized reuse opened
+    # C_FLT7). SYSTEMIC FIX: ANCHOR every cluster cap (pinned, immovable by the
+    # +-2mm legalizer) AND reserve its GND via site (route.yaml prep User.2 keepout
+    # just EAST of each GND pad -- the signal pad, pad 1, escapes WEST). GND is
+    # pad 2, EAST of the origin (+0.48mm small caps / +0.77mm C_ADCV). All 10 caps
+    # reserved => every GND pad keeps a clear via site in EVERY realization.
+    C_ADCV:  [48.0, 70.0, 0]         # GND@48.77,70.00 ; sig 3V3_ANALOG@47.23
+    C_ADCV2: [37.0, 70.0, 0]         # GND@37.48,70.00 ; sig 3V3_ANALOG@36.52
+    C_FLT0:  [56.2, 83.2, 0]         # GND@56.68,83.20 ; sig ADC_CH0@55.72
+    C_FLT1:  [53.8, 83.2, 0]         # GND@54.28,83.20 ; sig ADC_CH1@53.32
+    C_FLT2:  [53.8, 78.8, 0]         # GND@54.28,78.80 ; sig ADC_CH2@53.32
+    C_FLT3:  [56.2, 78.8, 0]         # GND@56.68,78.80 ; sig ADC_CH3@55.72
+    C_FLT4:  [58.0, 81.0, 0]         # GND@58.48,81.00 ; sig ADC_CH4@57.52
+    C_FLT5:  [52.0, 81.0, 0]         # GND@52.48,81.00 ; sig ADC_CH5@51.52
+    C_FLT6:  [58.8, 82.4, 0]         # GND@59.28,82.40 ; sig ADC_CH6@58.32
+    C_FLT7:  [57.0, 84.5, 0]         # GND@57.48,84.50 ; sig ADC_CH7@56.52
     U_COMP: [24.0, 80.0, 0]          # LM393 (TH_CAM_A/B -> TEMP_OK)
     Q_SWA:  [30.0, 88.0, 0]          # switched 3V3_SW_A -> J_THERM_A
     Q_SWB:  [52.0, 88.0, 0]          # switched 3V3_SW_B -> J_THERM_B
