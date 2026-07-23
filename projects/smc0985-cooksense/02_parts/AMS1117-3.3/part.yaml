@@ -7,6 +7,7 @@ datasheet:
   fetched: 2026-07-19 (same facts as projects/ble-bus-bar 02_parts entry, re-used)
 package: SOT-223
 footprint: Package_TO_SOT_SMD:SOT-223-3_TabPin2
+escape: {style: leaded, pitch: 2.3, tier_required: jlc_2layer_default, checked: escape_check 2026-07-22}
 pins:
   1: GND
   2: VOUT    # + tab

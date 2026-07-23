@@ -7,6 +7,7 @@ datasheet:
   fetched: 2026-07-19 (standard pinout; re-verified in pin review)
 package: SOIC-18 wide (DW)
 footprint: Package_SO:SOIC-18W_7.5x11.6mm_P1.27mm
+escape: {style: leaded, pitch: 1.27, tier_required: jlc_2layer_default, checked: escape_check 2026-07-22}
 pins:
   1: IN1
   2: IN2

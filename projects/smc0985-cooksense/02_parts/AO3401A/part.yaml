@@ -6,6 +6,7 @@ datasheet:
   fetched: 2026-07-19
 package: SOT-23
 footprint: Package_TO_SOT_SMD:SOT-23
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: escape_check 2026-07-22}
 pins:
   1: GATE
   2: SOURCE

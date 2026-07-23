@@ -7,6 +7,7 @@ datasheet:
   fetched: "2026-07-19 (analog.com PDF fetch blocked; pin map taken from JLC/EasyEDA CAD for C2653162 and MUST be re-verified against the ADI datasheet figure in the fresh pin review)"
 package: TSSOP-14 (MUD)
 footprint: Package_SO:TSSOP-14_4.4x5mm_P0.65mm
+escape: {style: leaded, pitch: 0.65, tier_required: jlc_2layer_default, checked: escape_check 2026-07-22}
 pins:                       # EasyEDA CAD C2653162 symbol (14 pins)
   1: AGND
   2: BIAS

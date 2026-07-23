@@ -7,6 +7,7 @@ datasheet:
   fetched: 2026-07-19
 package: XH 2.5mm 5P top-entry shrouded
 footprint: Connector_JST:JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical
+escape: {style: connector, pitch: 2.5, tier_required: jlc_2layer_default, checked: escape_check 2026-07-22}
 pins:
   1: P1
   2: P2

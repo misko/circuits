@@ -10,6 +10,7 @@ datasheet:
   local: sn74lvc1g11.pdf
 package: DBV SOT-23-6
 footprint: Package_TO_SOT_SMD:SOT-23-6
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: escape_check 2026-07-22}
 pins:                       # DS Figure 4-1 (DBV top view) p.3
   1: A
   2: GND

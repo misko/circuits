@@ -7,6 +7,7 @@ datasheet:
   fetched: 2026-07-19
 package: 2.54mm 2x16 shrouded/keyed IDC box header, THT vertical
 footprint: Connector_IDC:IDC-Header_2x16_P2.54mm_Vertical
+escape: {style: connector, pitch: 2.54, tier_required: jlc_2layer_default, checked: escape_check 2026-07-22}
 pins:
   1: P1
   2: P2

@@ -7,6 +7,7 @@ datasheet:
   fetched: 2026-07-19 (standard pinout; re-verified in pin review)
 package: SOIC-16 (D)
 footprint: Package_SO:SOIC-16_3.9x9.9mm_P1.27mm
+escape: {style: leaded, pitch: 1.27, tier_required: jlc_2layer_default, checked: escape_check 2026-07-22}
 pins:
   1: QB
   2: QC

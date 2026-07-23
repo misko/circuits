@@ -70,3 +70,107 @@
       in real P-LAYOUT scope (no datasheet layout section) — a scan false-positive.
 - next: parts is at a solid checkpoint; the board-stage gate (with 04_kicad)
   runs P-ESC/P-LAYOUT/P-ADJ properly. Schematic stage next (carry the 6 flags).
+
+## 2026-07-22 — provenance correction (cook-hub / cook-loadcell reuse is REAL, just archived)
+
+- did: audited the "cook-hub v1.0 / cook-loadcell v1.0 reuse" claim after noting
+  NEITHER project exists under projects/. TRUTH: both are real, SEALED boards that
+  live under **archived_projects/** (archived after sealing, not deleted) — cook-hub
+  v1.0 sealed 2026-07-19 (git d0ed295, 07_releases/v1.0-2026-07-19/, 4-layer
+  185x120mm) and cook-loadcell. The reuse is GENUINE, not "freshly researched then
+  mislabelled as reuse": byte-level diffs prove a real copy —
+  02_parts/B5B-XH-A/part.yaml is IDENTICAL to
+  archived_projects/cook-hub/02_parts/B5B-XH-A/part.yaml (empty diff); 2N7002 and
+  DIP05-1A72-12L match on every core fact (mpn / pins / footprint / verified), the
+  ONLY local additions being this session's layout: backfill. B5B-XH-A is also in
+  archived_projects/cook-loadcell/02_parts (the J6 loadcell link, cook-loadcell D6).
+- CORRECTION to the 2026-07-22 "BOM classified" + "finish" entries: the phrase
+  "copied 21 cook-hub v1.0 part.yaml (pinout+escape already verified)" OVERSTATED
+  the escape half. cook-hub carried **NO escape blocks — 0 of 31** cook-hub 02_parts
+  part.yamls have an `escape:` block (grep-verified). Pinouts WERE verified on
+  cook-hub and are legitimately reused; escape blocks were NEVER present and are
+  authored for the FIRST time in the finish entry below. So: pinout reuse = real &
+  verified; escape verification = net-new work here, not inherited.
+- verdict: the "reused from a shipped board" claim STANDS (true + evidenced), with
+  two fixes recorded — the path is archived_projects/ (not projects/), and the
+  "escape already verified" wording is retracted. No inherited-defect risk: the copy
+  is from a real sealed board, and the one thing cook-hub lacked (escape blocks) is
+  exactly what this increment supplies.
+
+## 2026-07-22 — finish (parts-gate close-out: 14 escapes + 2 hand-LCSC ratified + fab_tier rec)
+
+- did: closed the three REMAINING parts-gate gaps from the prior finish entry.
+- (1) ESCAPE BLOCKS — added `escape:` to all 14 reused multi-pin parts that lacked
+  one (the cook-hub copy carried none). Each block is exactly what escape_check.py
+  --style/--pitch emits, gate-verified in check-part mode (escape_check over all 36
+  part.yaml exits 0). ALL 14 = **jlc_2layer_default UNCONDITIONAL**:
+    * leaded: 2N7002 (0.95), AMS1117-3.3 (SOT-223 2.3), AO3401A (0.95),
+      DIP05-1A72-12L (DIP 2.54), LTV-817S-TA1 (SMD-4 1.27), MAX31856MUD+T
+      (TSSOP-14 0.65), SN74HC14DR (SOIC-14 1.27), SN74HC595DR (SOIC-16 1.27),
+      SN74LVC1G00DCKR (SC-70-5 0.65), SN74LVC1G11DBVR (SOT-23-6 0.95),
+      SN74LVC1G123DCTR (SSOP-8 0.65), ULN2803ADWR (SOIC-18W 1.27)
+    * connector: B5B-XH-A (XH 2.5), X9555WV-2x16-6TV01 (IDC 2.54)
+  MAX31856 (the only one flagged "may be conditional"): at 0.65mm the dense-leaded
+  wall (ADR-0008) ARMS only when a side declares >=6 escapes. escape_check
+  --style leaded --pitch 0.65 (package geometry, no escape-count) emits
+  jlc_2layer_default UNCONDITIONAL, so that is what is recorded — consistent with
+  the reused note "TSSOP-14 0.65mm is coarse, no escape wall" (digital side routes
+  <6 real escapes; analog side terminates in the local input filter). Declaring 7
+  escapes/side WOULD flip it to CONDITIONAL escape-corridor / jlc_4layer_advanced —
+  not this design; no editorializing added to the block.
+- (2) TWO HAND-LCSC PARTS ratified (fresh web research 2026-07-22; mirrors the
+  usb-hub-3s Keystone-3568 hand-solder precedent — `lcsc: ""`/null + note + real
+  alternate MPN):
+    * DIP05-1A72-12L (reed relay): GENUINELY UNCODED for JLC assembly — JLC catalog
+      entry C1561362 exists but stock 0. Live-stocked only at Western distributors:
+      DigiKey 1949339, Newark 96K8590, Arrow, TME, Bürklin. -> HAND-SOLDER line;
+      note stands; added structured `alternates: [DIP05-1A72-12D]` (internal-diode,
+      same pinout, ADR-0006). DO-NOT-SUBSTITUTE (spec 15.4).
+    * PCC-SMP-K (Type-K TC jack): GENUINELY UNCODED — LCSC/JLC library has no Type-K
+      thermocouple connector. Stocked at Newark (PCC-SMP-K-5 = 30AC8089,
+      PCC-SMP-K-5-R = 71AC1688), RS, SparkFun, SK Pang. -> HAND-SOLDER; note +
+      alternates [PCC-SMP-K-R, PCC-SMP-K-5] stand, with JLC-stocked fallback
+      KF350-3.5-2P (C474892, already J5) if the keyed alloy jack is dropped at
+      assembly. Neither part gets a C-number: hand-solder by evidence, not omission.
+- (3) FAB_TIER RECOMMENDATION for the cooksense board (RECORDED HERE ONLY —
+  03_src/rules/nets.yaml is owned by the concurrent schematic agent and still has no
+  fab_tier). Two parts hit the dense-escape wall: MCP23017 SSOP-28 0.65mm (~11
+  escapes/side: GPA0-7 + INTA + INTB + /RESET) and TPS259573 WSON-8 0.5mm.
+    RECOMMEND **jlc_4layer_advanced** (4-layer + via-in-pad / POFV), UNCONDITIONAL.
+    Reasoning:
+      - The BRIEF already mandates 4-layer for Board A (DELIVERABLES 15) and cook-hub
+        v1.0 shipped jlc_4layer_standard, so LAYER COUNT is settled — the only open
+        question is STANDARD vs ADVANCED (the paid via-in-pad option), NOT a layer
+        jump. via-in-pad is WITHIN the brief's 4-layer envelope -> no D-TIER ADR
+        needed for advanced (a 2-layer downgrade WOULD contradict the brief).
+      - jlc_4layer_STANDARD does NOT buy escape feasibility for these two: the binding
+        constraint is the 0.5mm hole-to-hole floor, identical at standard and 2-layer
+        (0.65 - 0.30 drill = 0.35 < 0.50), and via_in_pad is False at standard. So at
+        standard BOTH parts stay CONDITIONAL — MCP23017 owes a reserved
+        escape-corridor, TPS259573 owes outward-only-local. ONLY advanced (0.25
+        hole-to-hole + via_in_pad) makes them unconditional.
+      - MCP23017's 11-escape 0.65mm side IS the ADR-0008 dense-leaded wall that
+        stalled usb-pwr-hub-3s v3 across many routing iterations; via-in-pad retires
+        that risk outright instead of betting placement can reserve an 11-wide
+        surface fan-out corridor. Advanced also gives the WSON eFuse EP proper in-pad
+        thermal vias and the mixed-signal board (analog TC ~40uV/C + relay switching)
+        clean In1-GND / In2-power planes.
+    ALTERNATIVE (honest, cheaper): jlc_4layer_standard + HONOURED [MCP23017
+      escape-corridor, TPS259573 outward-only-local]. Viable IF the floorplan
+      reserves the corridor off the GPA side AND keeps every WSON fine pin local to
+      an adjacent passive. If placement cannot guarantee BOTH, the tier rises to
+      advanced mid-route anyway — committing up front avoids that stall. The two
+      part.yaml escape blocks already record these conditional forms, so EITHER board
+      tier passes P-TIER; the choice is a cost-vs-routing-risk call for the routing
+      stage.
+    Owner action: schematic/routing agent sets nets.yaml `fab_tier:
+      jlc_4layer_advanced` (recommended) or `jlc_4layer_standard` + the two placement
+      conditions. Do NOT downgrade to 2-layer (contradicts the brief).
+- result: parts-gate gaps CLOSED. Completeness re-scan (36 part.yaml):
+    ESCAPE gaps (multi-pin, no block):   0
+    LCSC gaps (uncoded, NO hand-note):   0
+    hand-solder (uncoded, note+alt MPN): 2 — DIP05-1A72-12L, PCC-SMP-K (intended)
+  escape_check.py over all 36 part.yaml exits 0. PARTS STAGE closed.
+- next: schematic stage — carry the 6 design flags + this fab_tier recommendation
+  (concurrent agent is swapping the U/D decoders to active-high SN74HC238; those two
+  part dirs left untouched here by design).

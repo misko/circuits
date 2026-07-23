@@ -10,6 +10,7 @@ datasheet:
   local: datasheet-reed-relay-series-dip.pdf
 package: DIP low profile 19.3 x 6.5 x 5.1mm, 4 leads 0.5x0.25mm on DIP-14 corner grid (pin span 15.24mm, row spacing 7.62mm)
 footprint: cookhub:Relay_StandexDIP_1A_pinout12
+escape: {style: leaded, pitch: 2.54, tier_required: jlc_2layer_default, checked: escape_check 2026-07-22}
 pins:                       # pin-out code 12, DS p.3 "Pin-Out (Top View)" fig 12
   1: COIL_A                 # bottom-left of top view; + terminal for -12D diode variant
   7: COIL_B                 # bottom-right
@@ -47,4 +48,5 @@ layout:                          # P-LAYOUT: reed relay (mains-switching stage, 
         the 260C/5s limit, wash-and-dry compatible.
 sourcing:
   lcsc: ""
+  alternates: [DIP05-1A72-12D]   # internal-diode variant, SAME pinout (approved, ADR-0006); global-source / hand-solder like the base part
   note: "DO-NOT-SUBSTITUTE (spec 15.4). JLC catalog C1561362 stock 0 -> HAND-SOLDER line, global sourcing (DigiKey DIP05-1A72-12L ~$4.36/1, active). Approved alternate: DIP05-1A72-12D (same pinout, internal diode). Order 16 + 4 spares."
