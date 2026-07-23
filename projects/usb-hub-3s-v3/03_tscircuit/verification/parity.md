@@ -3,4 +3,10 @@
 Compares the tscircuit render's netlist against the KiCad fab-of-record.
 Canon S-DSL: KiCad stays authoritative; this quantifies tscircuit fidelity.
 
-(no sealed KiCad board found under 04_kicad/ — parity N/A)
+KiCad board: `/home/mouse9911/gits/circuits/projects/usb-hub-3s-v3/04_kicad/usb_hub_3s_v2.kicad_pcb`
+- KiCad: 104 footprints, 55 named nets
+- tscircuit: ~115 components, ~64 nets
+
+NOTE: refdes/net-name conventions differ between the two front-ends; a
+node-for-node parity requires a name-normalization map (see notes.md). The
+count deltas above are the first-order fidelity signal.

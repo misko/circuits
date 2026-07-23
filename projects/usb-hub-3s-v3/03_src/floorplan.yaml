@@ -236,14 +236,15 @@ silk:
   min_text_height: 0.6
   refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQL"}
   captions:
-    - {text: "PROTECTED 3S PACK", at: [66.0, 54.0], size: 0.7, nudge: false}   # open board center, silk-clear (was 30,36 -> over J1)
+    - {text: "PROTECTED 3S + BAL-CHG ONLY", at: [66.0, 54.0], size: 0.7, nudge: false}   # open board center, silk-clear (was 30,36 -> over J1)
     - {text: "9-12.6V XT60 IN", at: [78.0, 54.0], size: 0.7, nudge: false}   # open board center, silk-clear (was 30,38 -> over J1/F1)
     - ["FUSE 10A MINI", 35.0, 50.0, 0.7]
-    - ["USB-A 5V 2A", 130.0, 33.0, 0.7]
-    - ["USB-A 5V 2A", 130.0, 55.0, 0.7]
-    - ["USB-A 5V 2A", 130.0, 77.0, 0.7]
-    - {text: "USB-C 5V/5A Pi", at: [132.0, 110.0], size: 0.7, nudge: false}   # SE 5VC pour, pad-free (v3: plain rail, Pi PSU_MAX_CURRENT=5000)
+    - ["USB-A 5V CHG no-data", 130.0, 33.0, 0.7]
+    - ["USB-A 5V CHG no-data", 130.0, 55.0, 0.7]
+    - ["USB-A 5V CHG no-data", 130.0, 77.0, 0.7]
+    - {text: "USB-C 5A Pi-ONLY  NOT USB-PD", at: [132.0, 110.0], size: 0.7, nudge: false}   # SE 5VC pour, pad-free (v3: plain rail, Pi PSU_MAX_CURRENT=5000)
     - ["usb-hub-3s-v3", 30.0, 100.0, 0.8]
+    - ["POWER-DIST BOARD - NOT A USB HUB", 30.0, 96.0, 0.55]   # v1.1 relabel (fix #6)
 
 asserts:
   pad_net:

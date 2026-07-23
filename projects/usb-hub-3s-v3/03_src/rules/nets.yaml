@@ -14,7 +14,7 @@ classes:
       The two buck switch nodes SW_A / SW_C (HS drain -> inductor). High dV/dt;
       trunk current rides the F.Cu pour islands, the floor is the backstop for
       any routed segment. Keep loop area minimal.
-    nets: [SW_A, SW_C]
+    nets: [SW_A, SW_C, SNUB_A, SNUB_C]   # v1.1: + optional RC-snubber mid-nodes
     current: "7 A pulsed"
     min_width: 0.6mm   # switch current rides the F.Cu SW pour island; the only
                        # routed SW track is the LM5116 SW-pin driver-return stub
@@ -39,7 +39,9 @@ classes:
     intent: >
       Buck output trunks: 5VA (6 A) and 5VC (5 A). Pour-fed (floorplan
       islands); floor is the backstop.
-    nets: [5VA, 5VC]   # authored net.N5VA/net.N5VC; converter strips the N guard
+    nets: [5VA, 5VC, VBUSC, EFINC]   # 5VA/5VC authored N5VA/N5VC (N-guard stripped).
+                                    # v1.1: VBUSC = eFuse-protected USB-C VBUS (5A);
+                                    # EFINC = eFuse IN node (Q6 drain->U13 IN, 5A short)
     current: "6 A / 5 A"
     min_width: 0.4mm   # POUR-carried power; the only routed 5VA/5VC tracks are
                        # Kelvin VOUT/FB sense stubs (no current) -> 0.4 backstop
@@ -50,7 +52,8 @@ classes:
   VBUS:
     intent: >
       Port power: three limited USB-A VBUS nets (2 A cont / 2.5 A burst limit
-      each). The USB-C VBUS is the 5VC rail itself (PWR_RAIL) in v3. Pour-fed.
+      each). The USB-C VBUS is VBUSC in v1.1 (the eFuse-PROTECTED 5A rail, in
+      PWR_RAIL), no longer 5VC direct. Pour-fed.
     nets: [VBUSA1, VBUSA2, VBUSA3]
     current: "2.5 A"
     min_width: 0.5mm
@@ -62,7 +65,8 @@ classes:
     intent: >
       Gate drives + bootstraps for the 4 buck FETs (LM5116 HO/LO/HB pairs, both
       bucks). Amps of pulse current, short runs.
-    nets: [HO_A, LO_A, BOOT_A, HO_C, LO_C, BOOT_C]
+    nets: [HO_A, LO_A, BOOT_A, HO_C, LO_C, BOOT_C, BGATEC, DRVC]   # v1.1: + eFuse
+           # reverse-block gates (BGATEC=Q6 gate/U13.B_GATE, DRVC=Q7 gate/U13.DRV)
     current: "gate pulses (~2 A pk)"
     min_width: 0.3mm
     clearance: 0.13mm  # >= STANDARD tier min_space 0.127
@@ -75,9 +79,11 @@ classes:
       FB/COMP/RAMP/RT/SS, UVLO/EN dividers. Route sense as pairs off the shunt
       ends; never share trunk copper.
     nets: [CS_A, CSF_A, CSGF_A, FB_A, COMP_A, CMZ_A, RAMP_A, RT_A, SS_A,
-           UVLO_A, EN_A, VCC_A,
+           UVLO_A, VCC_A,
            CS_C, CSF_C, CSGF_C, FB_C, COMP_C, CMZ_C, RAMP_C, RT_C, SS_C,
-           UVLO_C, EN_C, VCC_C]
+           UVLO_C, VCC_C,
+           ENKILL,                       # v1.1: merged master-off EN bus (was EN_A/EN_C)
+           OVPC, DVDTC, ILIMC, SHDNC]    # v1.1: eFuse set pins (OVP/dVdT/ILIM/SHDN divider mids)
     current: "<50 mA"
     min_width: 0.2mm
     clearance: 0.13mm  # >= STANDARD tier min_space 0.127

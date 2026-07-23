@@ -26,7 +26,7 @@ COMPONENTS:
  - C17: 100uF 1210 capacitor
  - R2: 12.4kΩ res0603 resistor
  - C3: 330pF 0603 capacitor
- - R3: 3.74kΩ res0603 resistor
+ - R3: 3.92kΩ res0603 resistor
  - R4: 1.21kΩ res0603 resistor
  - R5: 18kΩ res0603 resistor
  - C4: 3.3nF 0603 capacitor
@@ -37,6 +37,8 @@ COMPONENTS:
  - R8: 100kΩ res0603 resistor
  - R9: 0Ω res0603 resistor
  - R10: 0Ω res0603 resistor
+ - R34: 2.2Ω res1206 resistor
+ - C53: 1nF 0805 capacitor
  - U11: 
  - Q4: 
  - Q5: 
@@ -56,7 +58,7 @@ COMPONENTS:
  - C32: 100uF 1210 capacitor
  - R11: 12.4kΩ res0603 resistor
  - C18: 330pF 0603 capacitor
- - R12: 3.74kΩ res0603 resistor
+ - R12: 3.92kΩ res0603 resistor
  - R13: 1.21kΩ res0603 resistor
  - R14: 18kΩ res0603 resistor
  - C19: 3.3nF 0603 capacitor
@@ -67,6 +69,9 @@ COMPONENTS:
  - R17: 100kΩ res0603 resistor
  - R18: 0Ω res0603 resistor
  - R19: 0Ω res0603 resistor
+ - R35: 2.2Ω res1206 resistor
+ - C54: 1nF 0805 capacitor
+ - SW1: 
  - U6: sot23_6
  - U7: sot23_6
  - C33: 100nF 0603 capacitor
@@ -92,6 +97,16 @@ COMPONENTS:
  - C43: 100nF 0603 capacitor
  - U10: 
  - J4: 
+ - U13: 
+ - Q6: 
+ - Q7: sot23
+ - R30: 3.09kΩ res0603 resistor
+ - R31: 47.5kΩ res0603 resistor
+ - R32: 12.1kΩ res0603 resistor
+ - R33: 100kΩ res0603 resistor
+ - R36: 150kΩ res0603 resistor
+ - C51: 10nF 0603 capacitor
+ - C52: 100nF 0603 capacitor
  - U12: 
  - R27: 0Ω res0603 resistor
  - R28: 10kΩ res0402 resistor
@@ -125,15 +140,6 @@ NET: BOOT_A
   - C7 pin1 (+)
   - D3 K
   - U2 HB
-
-NET: SW_A
-  - C7 pin2 (-)
-  - L1 pin1 (+)
-  - Q3 D
-  - Q2 S3
-  - Q2 S2
-  - Q2 S1
-  - U2 SW
 
 NET: VCC_A
   - C8 pin1 (+)
@@ -173,10 +179,6 @@ NET: UVLO_A
   - R6 pin2
   - U2 UVLO
 
-NET: EN_A
-  - R8 pin2
-  - U2 EN
-
 NET: CS_A
   - R9 pin1
   - RS1 pin1
@@ -192,6 +194,20 @@ NET: CSGF_A
   - R10 pin2
   - U2 CSG
 
+NET: SW_A
+  - R34 pin1
+  - C7 pin2 (-)
+  - L1 pin1 (+)
+  - Q3 D
+  - Q2 S3
+  - Q2 S2
+  - Q2 S1
+  - U2 SW
+
+NET: SNUB_A
+  - C53 pin1 (+)
+  - R34 pin2
+
 NET: HO_C
   - Q4 G
   - U11 HO
@@ -204,15 +220,6 @@ NET: BOOT_C
   - C22 pin1 (+)
   - D4 K
   - U11 HB
-
-NET: SW_C
-  - C22 pin2 (-)
-  - L2 pin1 (+)
-  - Q5 D
-  - Q4 S3
-  - Q4 S2
-  - Q4 S1
-  - U11 SW
 
 NET: VCC_C
   - C23 pin1 (+)
@@ -279,10 +286,6 @@ NET: VIN
   - Q1 S2
   - Q1 S1
 
-NET: EN_C
-  - R17 pin2
-  - U11 EN
-
 NET: CS_C
   - R18 pin1
   - RS2 pin1
@@ -297,6 +300,27 @@ NET: CSF_C
 NET: CSGF_C
   - R19 pin2
   - U11 CSG
+
+NET: SW_C
+  - R35 pin1
+  - C22 pin2 (-)
+  - L2 pin1 (+)
+  - Q5 D
+  - Q4 S3
+  - Q4 S2
+  - Q4 S1
+  - U11 SW
+
+NET: SNUB_C
+  - C54 pin1 (+)
+  - R35 pin2
+
+NET: ENKILL
+  - SW1 COM
+  - R17 pin2
+  - U11 EN
+  - R8 pin2
+  - U2 EN
 
 NET: ILIM1
   - R20 pin1
@@ -395,6 +419,55 @@ NET: DP_A3
   - U10 IO1
   - U7 DP1
 
+NET: DRVC
+  - Q7 G
+  - U13 DRV
+
+NET: BGATEC
+  - Q7 D
+  - Q6 G
+  - U13 B_GATE
+
+NET: ILIMC
+  - R30 pin1
+  - U13 ILIM
+
+NET: OVPC
+  - R32 pin1
+  - R31 pin2
+  - U13 OVP
+
+NET: N5VC
+  - R33 pin1
+  - R31 pin1
+  - Q7 S
+  - Q6 S3
+  - Q6 S2
+  - Q6 S1
+  - U13 IN_SYS
+  - C32 pin1 (+)
+  - C31 pin1 (+)
+  - C30 pin1 (+)
+  - C29 pin1 (+)
+  - L2 pin2 (-)
+  - U11 VOUT
+
+NET: SHDNC
+  - R36 pin1
+  - R33 pin2
+  - U13 SHDN
+
+NET: DVDTC
+  - C51 pin1 (+)
+  - U13 dVdT
+
+NET: EFINC
+  - C52 pin1 (+)
+  - Q6 D
+  - U13 IN
+  - U13 IN
+  - U13 IN
+
 NET: CC1
   - J5 CC1
   - R28 pin1
@@ -417,7 +490,7 @@ NET: DMC
   - U12 IO2B
   - U12 IO2
 
-NET: N5VC
+NET: VBUSC
   - J5 VBUSB9
   - J5 VBUSB4
   - J5 VBUSA9
@@ -427,13 +500,10 @@ NET: N5VC
   - R29 pin2
   - R28 pin2
   - U12 VBUS
+  - U13 OUT
+  - U13 OUT
+  - U13 OUT
   - R12 pin1
-  - C32 pin1 (+)
-  - C31 pin1 (+)
-  - C30 pin1 (+)
-  - C29 pin1 (+)
-  - L2 pin2 (-)
-  - U11 VOUT
 
 NET: GND
   - J5 SHIELD
@@ -444,6 +514,16 @@ NET: GND
   - C50 pin2 (-)
   - C49 pin2 (-)
   - U12 GND
+  - C52 pin2 (-)
+  - C51 pin2 (-)
+  - R36 pin2
+  - R32 pin2
+  - R30 pin2
+  - U13 EP
+  - U13 PGTH
+  - U13 MODE
+  - U13 GND
+  - U13 UVLO
   - J4 SHIELD
   - J4 GND
   - U10 GND
@@ -475,6 +555,8 @@ NET: GND
   - C33 pin2 (-)
   - U7 GND
   - U6 GND
+  - SW1 T1
+  - C54 pin2 (-)
   - R19 pin1
   - R16 pin2
   - C21 pin2 (-)
@@ -497,6 +579,7 @@ NET: GND
   - U11 PGND
   - U11 DEMB
   - U11 AGND
+  - C53 pin2 (-)
   - R10 pin1
   - R7 pin2
   - C6 pin2 (-)
@@ -566,7 +649,7 @@ U2
 - pin1(VIN): NETS(VIN)
 - pin2(UVLO): NETS(UVLO_A)
 - pin3(RT): NETS(RT_A)
-- pin4(EN): NETS(EN_A)
+- pin4(EN): NETS(ENKILL)
 - pin5(RAMP): NETS(RAMP_A)
 - pin6(AGND): NETS(GND)
 - pin7(SS): NETS(SS_A)
@@ -663,7 +746,7 @@ C3 (330pF 0603)
 - pin1(pos, anode, left): NETS(RAMP_A)
 - pin2(neg, cathode, right): NETS(GND)
 
-R3 (3.74kΩ res0603)
+R3 (3.92kΩ res0603)
 - pin1(anode, pos, left): NETS(N5VA)
 - pin2(cathode, neg, right): NETS(FB_A)
 
@@ -697,7 +780,7 @@ R7 (6.98kΩ res0603)
 
 R8 (100kΩ res0603)
 - pin1(anode, pos, left): NETS(VIN)
-- pin2(cathode, neg, right): NETS(EN_A)
+- pin2(cathode, neg, right): NETS(ENKILL)
 
 R9 (0Ω res0603)
 - pin1(anode, pos, left): NETS(CS_A)
@@ -707,11 +790,19 @@ R10 (0Ω res0603)
 - pin1(anode, pos, left): NETS(GND)
 - pin2(cathode, neg, right): NETS(CSGF_A)
 
+R34 (2.2Ω res1206)
+- pin1(anode, pos, left): NETS(SW_A)
+- pin2(cathode, neg, right): NETS(SNUB_A)
+
+C53 (1nF 0805)
+- pin1(pos, anode, left): NETS(SNUB_A)
+- pin2(neg, cathode, right): NETS(GND)
+
 U11
 - pin1(VIN): NETS(VIN)
 - pin2(UVLO): NETS(UVLO_C)
 - pin3(RT): NETS(RT_C)
-- pin4(EN): NETS(EN_C)
+- pin4(EN): NETS(ENKILL)
 - pin5(RAMP): NETS(RAMP_C)
 - pin6(AGND): NETS(GND)
 - pin7(SS): NETS(SS_C)
@@ -808,8 +899,8 @@ C18 (330pF 0603)
 - pin1(pos, anode, left): NETS(RAMP_C)
 - pin2(neg, cathode, right): NETS(GND)
 
-R12 (3.74kΩ res0603)
-- pin1(anode, pos, left): NETS(N5VC)
+R12 (3.92kΩ res0603)
+- pin1(anode, pos, left): NETS(VBUSC)
 - pin2(cathode, neg, right): NETS(FB_C)
 
 R13 (1.21kΩ res0603)
@@ -842,7 +933,7 @@ R16 (6.98kΩ res0603)
 
 R17 (100kΩ res0603)
 - pin1(anode, pos, left): NETS(VIN)
-- pin2(cathode, neg, right): NETS(EN_C)
+- pin2(cathode, neg, right): NETS(ENKILL)
 
 R18 (0Ω res0603)
 - pin1(anode, pos, left): NETS(CS_C)
@@ -851,6 +942,19 @@ R18 (0Ω res0603)
 R19 (0Ω res0603)
 - pin1(anode, pos, left): NETS(GND)
 - pin2(cathode, neg, right): NETS(CSGF_C)
+
+R35 (2.2Ω res1206)
+- pin1(anode, pos, left): NETS(SW_C)
+- pin2(cathode, neg, right): NETS(SNUB_C)
+
+C54 (1nF 0805)
+- pin1(pos, anode, left): NETS(SNUB_C)
+- pin2(neg, cathode, right): NETS(GND)
+
+SW1
+- pin1(T1): NETS(GND)
+- pin2(COM): NETS(ENKILL)
+- pin3(T2): NOT_CONNECTED
 
 U6
 - pin1(DP1): NETS(DP_A1)
@@ -1002,12 +1106,75 @@ J4
 - pin4(GND): NETS(GND)
 - pin5(SHIELD, SH): NETS(GND)
 
+U13
+- pin1(IN): NETS(EFINC)
+- pin2(IN): NETS(EFINC)
+- pin3(IN): NETS(EFINC)
+- pin4(B_GATE): NETS(BGATEC)
+- pin5(DRV): NETS(DRVC)
+- pin6(IN_SYS): NETS(N5VC)
+- pin7(UVLO): NETS(GND)
+- pin8(OVP): NETS(OVPC)
+- pin9(GND): NETS(GND)
+- pin10(dVdT): NETS(DVDTC)
+- pin11(ILIM): NETS(ILIMC)
+- pin12(MODE): NETS(GND)
+- pin13(SHDN): NETS(SHDNC)
+- pin14(IMON): NOT_CONNECTED
+- pin15(FLT): NOT_CONNECTED
+- pin16(PGTH): NETS(GND)
+- pin17(PGOOD): NOT_CONNECTED
+- pin18(OUT): NETS(VBUSC)
+- pin19(OUT): NETS(VBUSC)
+- pin20(OUT): NETS(VBUSC)
+- pin21(EP): NETS(GND)
+
+Q6
+- pin1(S1): NETS(N5VC)
+- pin2(S2): NETS(N5VC)
+- pin3(S3): NETS(N5VC)
+- pin4(G): NETS(BGATEC)
+- pin5(D): NETS(EFINC)
+
+Q7
+- pin1(G): NETS(DRVC)
+- pin2(S): NETS(N5VC)
+- pin3(D): NETS(BGATEC)
+
+R30 (3.09kΩ res0603)
+- pin1(anode, pos, left): NETS(ILIMC)
+- pin2(cathode, neg, right): NETS(GND)
+
+R31 (47.5kΩ res0603)
+- pin1(anode, pos, left): NETS(N5VC)
+- pin2(cathode, neg, right): NETS(OVPC)
+
+R32 (12.1kΩ res0603)
+- pin1(anode, pos, left): NETS(OVPC)
+- pin2(cathode, neg, right): NETS(GND)
+
+R33 (100kΩ res0603)
+- pin1(anode, pos, left): NETS(N5VC)
+- pin2(cathode, neg, right): NETS(SHDNC)
+
+R36 (150kΩ res0603)
+- pin1(anode, pos, left): NETS(SHDNC)
+- pin2(cathode, neg, right): NETS(GND)
+
+C51 (10nF 0603)
+- pin1(pos, anode, left): NETS(DVDTC)
+- pin2(neg, cathode, right): NETS(GND)
+
+C52 (100nF 0603)
+- pin1(pos, anode, left): NETS(EFINC)
+- pin2(neg, cathode, right): NETS(GND)
+
 U12
 - pin1(IO1): NETS(DPC)
 - pin2(GND): NETS(GND)
 - pin3(IO2): NETS(DMC)
 - pin4(IO2B): NETS(DMC)
-- pin5(VBUS): NETS(N5VC)
+- pin5(VBUS): NETS(VBUSC)
 - pin6(IO1B): NETS(DPC)
 
 R27 (0Ω res0603)
@@ -1016,35 +1183,35 @@ R27 (0Ω res0603)
 
 R28 (10kΩ res0402)
 - pin1(anode, pos, left): NETS(CC1)
-- pin2(cathode, neg, right): NETS(N5VC)
+- pin2(cathode, neg, right): NETS(VBUSC)
 
 R29 (10kΩ res0402)
 - pin1(anode, pos, left): NETS(CC2)
-- pin2(cathode, neg, right): NETS(N5VC)
+- pin2(cathode, neg, right): NETS(VBUSC)
 
 C49 (10uF 1210)
-- pin1(pos, anode, left): NETS(N5VC)
+- pin1(pos, anode, left): NETS(VBUSC)
 - pin2(neg, cathode, right): NETS(GND)
 
 C50 (10uF 1210)
-- pin1(pos, anode, left): NETS(N5VC)
+- pin1(pos, anode, left): NETS(VBUSC)
 - pin2(neg, cathode, right): NETS(GND)
 
 J5
 - pin1(GNDA1, A1): NETS(GND)
-- pin2(VBUSA4, A4): NETS(N5VC)
+- pin2(VBUSA4, A4): NETS(VBUSC)
 - pin3(CC1, A5): NETS(CC1)
 - pin4(DPA6, A6): NETS(DPC)
 - pin5(DMA7, A7): NETS(DMC)
 - pin6(SBU1, A8): NOT_CONNECTED
-- pin7(VBUSA9, A9): NETS(N5VC)
+- pin7(VBUSA9, A9): NETS(VBUSC)
 - pin8(GNDA12, A12): NETS(GND)
 - pin9(GNDB1, B1): NETS(GND)
-- pin10(VBUSB4, B4): NETS(N5VC)
+- pin10(VBUSB4, B4): NETS(VBUSC)
 - pin11(CC2, B5): NETS(CC2)
 - pin12(DPB6, B6): NETS(DPC)
 - pin13(DMB7, B7): NETS(DMC)
 - pin14(SBU2, B8): NOT_CONNECTED
-- pin15(VBUSB9, B9): NETS(N5VC)
+- pin15(VBUSB9, B9): NETS(VBUSC)
 - pin16(GNDB12, B12): NETS(GND)
 - pin17(SHIELD, SH): NETS(GND)

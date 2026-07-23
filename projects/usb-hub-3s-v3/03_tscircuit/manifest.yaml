@@ -1,6 +1,9 @@
 # S-COUNT base: the AUTHOR'S declared part list (count_parity.py gates on this).
 # v3 = v2 (112) MINUS the PD cell (U1, Q6, Q7, RS3, R23-R26, C44-C48, C51 = 14)
-# PLUS 2 CC Rp pull-ups (R28, R29) = 100 components. tsci drops parts SILENTLY
+# PLUS 2 CC Rp pull-ups (R28, R29) = 100 (v1.0). v1.1 ADDS 15: eFuse cell (U13
+# TPS26631, Q6 AON6354 block-FET, Q7 BSS138 gate-pulldown, R30 ILIM, R31/R32 OVP
+# div, R33/R36 SHDN div, C51 dVdT, C52 IN-byp), SW1 master-off, 2x SW snubber
+# (R34/C53 buck-A, R35/C54 buck-C) = 115 components. tsci drops parts SILENTLY
 # (alphanumeric pads etc.) — this file is the only artifact that disagrees after a
 # silent drop.
 components: [
@@ -15,4 +18,7 @@ components: [
   C16, C17, C18, C19, C20, C21, C22, C23, C24, C25, C26, C27, C28,
   C29, C30, C31, C32, C33, C34, C35, C36, C37, C38, C39, C40, C41,
   C42, C43, C49, C50,
+  U13, Q6, Q7, SW1,
+  R30, R31, R32, R33, R34, R35, R36,
+  C51, C52, C53, C54,
 ]

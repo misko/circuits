@@ -1,0 +1,32 @@
+mpn: BSS138
+manufacturer: JSCJ (Jiangsu Changjing) / onsemi / multi-source (generic SOT-23 BSS138)
+type: nfet_signal          # small-signal logic-level N-ch; v1.1 eFuse reverse-block Q2 gate-pulldown
+datasheet: {doc_id: BSS138, revision: series/LCSC, url: "https://www.lcsc.com/product-detail/C78284.html", sha256: null, fetched: 2026-07-23}
+package: SOT-23 (TO-236-3)
+footprint: Package_TO_SOT_SMD:SOT-23
+escape: {style: passive, pitch: 0.95, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
+pins:                      # standard SOT-23 BSS138 pinout
+  1: {name: G, note: "gate"}
+  2: {name: S, note: "source"}
+  3: {name: D, note: "drain (body diode anode=S, cathode=D)"}
+limits: {vds: 50V, vgs: "±20V", id_25C: 0.22A, rds_on: "3.5ohm typ @ Vgs=10V", ciss: "~24pF (<50pF)", vgs_th: "0.8-1.5V (min 0.8, max 1.5)"}
+gotchas:
+  - "v1.1 ROLE = TPS26631 reverse-blocking Q2 (SLVSE94G 8.3.5): the FAST
+     gate-PULLDOWN switch for the AON6354 power blocking FET (Q6). Wired
+     G=DRV(U13.5), D=B_GATE(U13.4 = Q6 gate), S=IN_SYS(5VC). On reverse
+     detection the eFuse drives DRV -> Q7 on -> yanks Q6's gate to its source ->
+     Q6 off in ~0.17us. REQUIRED by the datasheet; the eFuse part.yaml note
+     budgeted only Q6 and must be read together with this."
+  - "Meets every TI Q2 requirement: VDS 50V >= 15V; VGS +-20V; Ciss ~24pF <=
+     50pF (fast turn-off); VGTH(min) 0.8V <= 3V. Logic-level."
+  - "Standard SOT-23 BSS138 pad order G/S/D = 1/2/3 - CONFIRM against the chosen
+     LCSC part's land at pin-review (multi-source part; onsemi/JSCJ/JUXING all
+     share this SOT-23 pinout)."
+verified: "standard BSS138 SOT-23 (G1/S2/D3), 50V/220mA logic-level N-ch;
+  Q2-spec compliance vs TPS2663 SLVSE94G 8.3.5 - 2026-07-23"
+sourcing:
+  lcsc: C78284
+  alternates: [C52895, C5279927]
+  note: "JLCPCB BASIC part (JSCJ BSS138, ~$0.010, high stock 2026-07-23); qty
+    1/board (USB-C eFuse Q2). alts C52895 (onsemi), C5279927 (JUXING) - same
+    SOT-23 pinout. Order-day stock recheck."

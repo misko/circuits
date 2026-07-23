@@ -1,16 +1,33 @@
-// usb-hub-3s-v3 — 3S LiPo (XT60) -> 3x USB-A (2A cont / 2.5A burst, TPS2557 +
-// TPS2513A DCP) + 1x USB-C PLAIN 5V/5A (no PD; the routing-hard TPS25740A QFN is
-// GONE — v3 = v2 MINUS the PD cell, ADR-0001).
+// usb-hub-3s-v3 (rev v1.1) — PROPRIETARY 3S-LiPo POWER-DISTRIBUTION board.
+// NOT a USB hub, NOT USB-PD / USB-standards-compliant: it is a Pi-DEDICATED
+// power supply. 3x USB-A = dumb 5V CHARGING ports (2A cont / 2.5A burst,
+// TPS2557 + TPS2513A DCP advertisement, NO data). 1x USB-C = a proprietary
+// PROTECTED 5V/5A rail for a Raspberry Pi 5 ONLY (Pi bootloader
+// PSU_MAX_CURRENT=5000; a plain USB-C sink would see only the 3A CC-Rp
+// advertisement). Powered from a PROTECTED 3S pack + balance charger ONLY.
 //
-// The USB-C port is now a plain regulated rail: the 5VC buck output feeds VBUS
-// DIRECTLY (net 5VC == VBUS). Two 10k CC Rp pull-ups advertise a source-present
-// (+ orientation); the Raspberry Pi draws its full 5A via PSU_MAX_CURRENT=5000
-// (bootloader EEPROM), skipping PD negotiation. Removed vs v2: U1 (TPS25740A),
-// Q6/Q7 pass FETs, RS3 5mR sense, and every PD-config passive.
+// v3 = v2 MINUS the routing-hard TPS25740A PD cell (ADR-0001): the USB-C rail
+// is a regulated buck output, not a PD-negotiated one. Removed vs v2: U1
+// (TPS25740A), the v2 PD pass FETs, RS3 5mR sense, and every PD-config passive.
 //
-// ALL-BUCK (E-TOPO green): both rails are step-down bucks — v1's IP6559 buck-boost
-// is GONE. Two proven LM5116 5V bucks (ADR-0010): buck A -> 5VA (USB-A, 6A), buck C
-// -> 5VC (USB-C VBUS, 5A). (Board name stays usb_hub_3s_v2 for source continuity.)
+// v1.1 REVISION (this file) — targeted hardening of the sealed v1.0:
+//  1. PROTECTED VBUS: a TPS26631 eFuse (U13) + reverse-current-blocking FET
+//     pair (Q6 AON6354 power FET + Q7 BSS138 fast gate-pulldown, per datasheet
+//     SLVSE94G 8.3.5/8.3.6) between the 5VC buck and J5 VBUS — adjustable
+//     current limit (R_ILIM 3.09k -> 5.83A), ~5.9V input-OV cutoff (OVP
+//     divider), 10nF dVdT soft-start, MODE->GND auto-retry, and reverse-current
+//     blocking (stops a powered sink back-feeding the pack, red-team RT-T4).
+//  2. FB-AT-CONNECTOR (option a): buck-C FB senses VBUSC (post-eFuse) so the
+//     loop holds the CONNECTOR at ~5.15V despite the eFuse drop (R12
+//     3.74k->3.92k). Buck-A R3 3.74k->3.92k too (open-loop offset for TPS2557).
+//  3. MASTER OFF: SS12D07 slide switch (SW1) grounds BOTH LM5116 EN nodes
+//     (merged net ENKILL) -> both bucks + eFuse off, kills the mA quiescent Iq.
+//  4. CAPS: buck input MLCC 25V->50V (C77102), buck output MLCC 6.3V->10V (C84455).
+//  5. SNUBBERS: optional-populate RC (2.2R + 1nF C0G) on each LM5116 SW node.
+//
+// ALL-BUCK (E-TOPO green): two proven LM5116 5V bucks (ADR-0010): buck A -> 5VA
+// (USB-A, 6A), buck C -> 5VC -> eFuse -> USB-C VBUS (5A). v1's IP6559 buck-boost
+// is GONE. (Board name stays usb_hub_3s_v2 for source continuity.)
 //
 // AUTHORING RULES honoured (03_tscircuit/contracts.md):
 //  - every pin bound with connections={{...}} to explicit net.NAME (parity by
@@ -73,17 +90,22 @@ const Tps2557Fp = () => (
 
 // LM5116 buck cell — one instance per rail. `s` = net suffix (A/C), `vout` = the
 // output net (N5VA/N5VC), `ids` = the refdes for every part in the cell.
-const Buck = ({ s, vout, ids }: {
-  s: string; vout: string;
+const Buck = ({ s, vout, ids, fbsense, en }: {
+  s: string; vout: string; fbsense?: string; en?: string;
   ids: {
     U: string; QH: string; QL: string; RS: string; L: string; DB: string;
     RT: string; FBT: string; FBB: string; RCMP: string; UVT: string; UVB: string;
     REN: string; RCSK: string; RCSG: string;
     CRAMP: string; CCMZ: string; CCMP: string; CSS: string; CBOOT: string; CVCC: string;
     CIN: string[]; CINH: string; COUT: string[];
+    RSNB: string; CSNB: string;
   };
 }) => {
   const n = (x: string) => `net.${x}_${s}`
+  // v1.1: FB top senses `fbsense` if given (buck-C -> VBUSC connector, option-a),
+  // else the buck output vout (buck-A). EN merges to `en` (ENKILL master-off bus).
+  const fbNet = fbsense ? `net.${fbsense}` : `net.${vout}`
+  const enNet = en ? `net.${en}` : n("EN")
   return (
     <group name={`buck${s}`}>
       <chip name={ids.U} supplierPartNumbers={{ jlcpcb: ["C13755"] }}
@@ -95,7 +117,7 @@ const Buck = ({ s, vout, ids }: {
           pin21: "EP",
         }}
         connections={{
-          pin1: "net.VIN", pin2: n("UVLO"), pin3: n("RT"), pin4: n("EN"),
+          pin1: "net.VIN", pin2: n("UVLO"), pin3: n("RT"), pin4: enNet,
           pin5: n("RAMP"), pin6: "net.GND", pin7: n("SS"), pin8: n("FB"),
           pin9: n("COMP"), pin10: `net.${vout}`, pin11: "net.GND", pin12: n("CSF"),
           pin13: n("CSGF"), pin14: "net.GND", pin15: n("LO"), pin16: n("VCC"),
@@ -124,19 +146,21 @@ const Buck = ({ s, vout, ids }: {
         footprint={<Pol2 w="0.6mm" h="1mm" dx="1.25mm" />} />
       <capacitor name={ids.CBOOT} capacitance="1uF" footprint="0603" connections={{ pin1: n("BOOT"), pin2: n("SW") }} />
       <capacitor name={ids.CVCC} capacitance="1uF" footprint="0603" connections={{ pin1: n("VCC"), pin2: "net.GND" }} />
-      {/* input caps 4x 10uF/25V 1210 + 100n */}
+      {/* input caps 4x 10uF/50V 1210 (v1.1: 25V->50V, GRM32ER71H106KA12L C77102) + 100n */}
       {ids.CIN.map((c) => (
-        <capacitor key={c} name={c} capacitance="10uF" footprint="1210" supplierPartNumbers={{ jlcpcb: ["C77100"] }} connections={{ pin1: "net.VIN", pin2: "net.GND" }} />
+        <capacitor key={c} name={c} capacitance="10uF" footprint="1210" supplierPartNumbers={{ jlcpcb: ["C77102"] }} connections={{ pin1: "net.VIN", pin2: "net.GND" }} />
       ))}
       <capacitor name={ids.CINH} capacitance="100nF" footprint="0603" connections={{ pin1: "net.VIN", pin2: "net.GND" }} />
-      {/* output caps 4x 100uF/6.3V 1210 */}
+      {/* output caps 4x 100uF/10V 1210 (v1.1: 6.3V->10V, GRM32ER61A107ME20L C84455) */}
       {ids.COUT.map((c) => (
-        <capacitor key={c} name={c} capacitance="100uF" footprint="1210" supplierPartNumbers={{ jlcpcb: ["C49066"] }} connections={{ pin1: `net.${vout}`, pin2: "net.GND" }} />
+        <capacitor key={c} name={c} capacitance="100uF" footprint="1210" supplierPartNumbers={{ jlcpcb: ["C84455"] }} connections={{ pin1: `net.${vout}`, pin2: "net.GND" }} />
       ))}
       {/* control small parts: RT, RAMP, FB divider, comp, SS, UVLO divider, EN, CS 0R pair */}
       <resistor name={ids.RT} resistance="12.4k" footprint="0603" connections={{ pin1: n("RT"), pin2: "net.GND" }} />
       <capacitor name={ids.CRAMP} capacitance="330pF" footprint="0603" connections={{ pin1: n("RAMP"), pin2: "net.GND" }} />
-      <resistor name={ids.FBT} resistance="3.74k" footprint="0603" connections={{ pin1: `net.${vout}`, pin2: n("FB") }} />
+      {/* v1.1: FB top 3.74k->3.92k (RT0603BRD073K92L 0.1%, C728591) -> 5.15V setpoint;
+          pin1 senses fbNet (buck-C: VBUSC connector, option-a; buck-A: 5VA output) */}
+      <resistor name={ids.FBT} resistance="3.92k" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C728591"] }} connections={{ pin1: fbNet, pin2: n("FB") }} />
       <resistor name={ids.FBB} resistance="1.21k" footprint="0603" connections={{ pin1: n("FB"), pin2: "net.GND" }} />
       <resistor name={ids.RCMP} resistance="18k" footprint="0603" connections={{ pin1: n("COMP"), pin2: n("CMZ") }} />
       <capacitor name={ids.CCMZ} capacitance="3.3nF" footprint="0603" connections={{ pin1: n("CMZ"), pin2: n("FB") }} />
@@ -144,10 +168,16 @@ const Buck = ({ s, vout, ids }: {
       <capacitor name={ids.CSS} capacitance="10nF" footprint="0603" connections={{ pin1: n("SS"), pin2: "net.GND" }} />
       <resistor name={ids.UVT} resistance="49.9k" footprint="0603" connections={{ pin1: "net.VIN", pin2: n("UVLO") }} />
       <resistor name={ids.UVB} resistance="6.98k" footprint="0603" connections={{ pin1: n("UVLO"), pin2: "net.GND" }} />
-      <resistor name={ids.REN} resistance="100k" footprint="0603" connections={{ pin1: "net.VIN", pin2: n("EN") }} />
+      {/* v1.1: EN pull-up 100k -> VIN lands on enNet (ENKILL merged master-off bus) */}
+      <resistor name={ids.REN} resistance="100k" footprint="0603" connections={{ pin1: "net.VIN", pin2: enNet }} />
       {/* CS kelvin 0R links: chip CS pin (CSF) -R- Rs top (CS); chip CSG pin (CSGF) -R- GND */}
       <resistor name={ids.RCSK} resistance="0" footprint="0603" connections={{ pin1: n("CS"), pin2: n("CSF") }} />
       <resistor name={ids.RCSG} resistance="0" footprint="0603" connections={{ pin1: "net.GND", pin2: n("CSGF") }} />
+      {/* v1.1 SW-node RC snubber (OPTIONAL-POPULATE / DNP by default): fit only if
+          bench shows SW ring. R 2.2R 1206 (C137327) in series with C 1nF C0G 0805
+          (C62774), SW -> GND. Tune R~=sqrt(Lpar/Cpar) on the bench. */}
+      <resistor name={ids.RSNB} resistance="2.2" footprint="1206" supplierPartNumbers={{ jlcpcb: ["C137327"] }} connections={{ pin1: n("SW"), pin2: n("SNUB") }} />
+      <capacitor name={ids.CSNB} capacitance="1nF" footprint="0805" supplierPartNumbers={{ jlcpcb: ["C62774"] }} connections={{ pin1: n("SNUB"), pin2: "net.GND" }} />
     </group>
   )
 }
@@ -203,22 +233,44 @@ export default () => (
       footprint={<Pol2 w="1.6mm" h="3.2mm" dx="2.9mm" />} />
 
     {/* ================= BUCK A — LM5116 5V/7A -> 5VA (USB-A rail, <=6A) ================= */}
-    <Buck s="A" vout="N5VA" ids={{
+    <Buck s="A" vout="N5VA" en="ENKILL" ids={{
       U: "U2", QH: "Q2", QL: "Q3", RS: "RS1", L: "L1", DB: "D3",
       RT: "R2", FBT: "R3", FBB: "R4", RCMP: "R5", UVT: "R6", UVB: "R7",
       REN: "R8", RCSK: "R9", RCSG: "R10",
       CRAMP: "C3", CCMZ: "C4", CCMP: "C5", CSS: "C6", CBOOT: "C7", CVCC: "C8",
       CIN: ["C9", "C10", "C11", "C12"], CINH: "C13", COUT: ["C14", "C15", "C16", "C17"],
+      RSNB: "R34", CSNB: "C53",
     }} />
 
     {/* ================= BUCK C — LM5116 5V/7A -> 5VC (USB-C rail, <=5A) ================= */}
-    <Buck s="C" vout="N5VC" ids={{
+    {/* v1.1 option-a: buck-C FB SENSES VBUSC (the eFuse OUTPUT / connector), so the
+        loop holds the CONNECTOR at ~5.15V regardless of the eFuse+FET series drop. */}
+    <Buck s="C" vout="N5VC" fbsense="VBUSC" en="ENKILL" ids={{
       U: "U11", QH: "Q4", QL: "Q5", RS: "RS2", L: "L2", DB: "D4",
       RT: "R11", FBT: "R12", FBB: "R13", RCMP: "R14", UVT: "R15", UVB: "R16",
       REN: "R17", RCSK: "R18", RCSG: "R19",
       CRAMP: "C18", CCMZ: "C19", CCMP: "C20", CSS: "C21", CBOOT: "C22", CVCC: "C23",
       CIN: ["C24", "C25", "C26", "C27"], CINH: "C28", COUT: ["C29", "C30", "C31", "C32"],
+      RSNB: "R35", CSNB: "C54",
     }} />
+
+    {/* ===== MASTER OFF — SS12D07 slide switch grounds BOTH LM5116 EN nodes =====
+        EN_A + EN_C are MERGED into net.ENKILL (both REN 100k pull-ups to VIN + both
+        LM5116 EN pins). COM(2)=ENKILL, T1(1)=GND: slide to T1 grounds ENKILL -> both
+        bucks shut down (~9uA each, kills the mA operating Iq) AND 5VC collapses ->
+        the eFuse SHDN divider drops -> eFuse off too. T2(3)=open (NC) -> ENKILL
+        floats up via the two 100k -> both bucks ON. Mounting posts are mechanical
+        (off the render footprint; the FPID land carries them). */}
+    <chip name="SW1" supplierPartNumbers={{ jlcpcb: ["C2939728"] }}
+      pinLabels={{ pin1: "T1", pin2: "COM", pin3: "T2" }}
+      connections={{ pin1: "net.GND", pin2: "net.ENKILL" }}
+      footprint={
+        <footprint>
+          <platedhole portHints={["1"]} pcbX="-2.5mm" pcbY="0mm" outerDiameter="1.7mm" holeDiameter="1.1mm" shape="circle" />
+          <platedhole portHints={["2"]} pcbX="0mm" pcbY="0mm" outerDiameter="1.7mm" holeDiameter="1.1mm" shape="circle" />
+          <platedhole portHints={["3"]} pcbX="2.5mm" pcbY="0mm" outerDiameter="1.7mm" holeDiameter="1.1mm" shape="circle" />
+        </footprint>
+      } />
 
     {/* ============ DCP advertisement — TPS2513A dual-channel: U6 ports 1+2, U7 port 3 ============ */}
     <chip name="U6" supplierPartNumbers={{ jlcpcb: ["C473910"] }}
@@ -296,19 +348,73 @@ export default () => (
       )
     })}
 
-    {/* ================= USB-C PORT (v3 — plain 5V/5A, NO PD; ADR-0001) ===============
-        The 5VC buck output feeds VBUS DIRECTLY (net 5VC == VBUS): J5's four VBUS
-        pads land on net.N5VC. Two 10k CC Rp pull-ups (R28/R29) to VBUS advertise a
-        source-present (+ orientation); the Pi draws 5A via PSU_MAX_CURRENT=5000, no
-        PD negotiation. Kept from v2: J5, U12 data ESD, R27 DCP short, C49/C50 VBUS
-        bulk. Removed: TPS25740A PHY, Q6/Q7 pass FETs, RS3, all PD-config passives.
-        Nets that vanished with them: RSNS, PDSRC, PDGATE, GDNG, DSCG_N, HIPWR, PSEL,
-        DVDD, VAUX, VTX, ISNS/VPWR, VBUSC (VBUS merged into 5VC). */}
+    {/* ============ USB-C PORT (v3 plain 5V/5A, NO PD; v1.1 PROTECTED via eFuse) ======
+        v1.1: the 5VC buck output no longer feeds VBUS directly. It feeds a TPS26631
+        eFuse (U13) whose OUTPUT net VBUSC is the protected USB-C VBUS: J5's four VBUS
+        pads, U12.VBUS, C49/C50 bulk, the two CC Rp pull-ups (R28/R29) and the buck-C
+        FB sense (option-a) all land on VBUSC. The eFuse adds current limit, input-OV
+        cutoff, soft-start and REVERSE-CURRENT BLOCKING (a powered sink can no longer
+        back-feed 5VC -> the pack; red-team RT-T4). Two 10k CC Rp advertise a 3A
+        source; the Pi draws 5A via PSU_MAX_CURRENT=5000. Kept from v2: J5, U12 data
+        ESD, R27 DCP short. Removed: TPS25740A PHY, RS3, all PD-config passives. */}
     <group name="usbc">
+      {/* ---- PROTECTED VBUS: TPS26631 eFuse (U13) + reverse-blocking FET pair ----
+          Power path: 5VC -> Q6 (AON6354 blocking FET: S=IN_SYS/5VC, D=IN, G=B_GATE)
+          -> eFuse IN -> internal FET -> OUT -> VBUSC -> J5. Q7 (BSS138) is the fast
+          gate-PULLDOWN required by SLVSE94G 8.3.5 (G=DRV, D=B_GATE, S=IN_SYS): it
+          yanks Q6's gate down in 0.17us on reverse detection. (The part.yaml note
+          budgeted only Q6; Q7 added per datasheet - on-BOM BSS138 meets the Q2 spec
+          VDS>=15 / VGS+-20 / Ciss<=50pF / VGTH<=3V.) UVLO->GND (internal default),
+          MODE->GND (auto-retry), PGTH->GND (PGOOD unused); IMON/FLT/PGOOD left NC
+          per DS. IN_SYS=5VC senses the buck side; OUT=VBUSC is the protected rail. */}
+      <chip name="U13" supplierPartNumbers={{ jlcpcb: ["C2866319"] }}
+        pinLabels={{
+          pin1: "IN", pin2: "IN", pin3: "IN", pin4: "B_GATE", pin5: "DRV",
+          pin6: "IN_SYS", pin7: "UVLO", pin8: "OVP", pin9: "GND", pin10: "dVdT",
+          pin11: "ILIM", pin12: "MODE", pin13: "SHDN", pin14: "IMON", pin15: "FLT",
+          pin16: "PGTH", pin17: "PGOOD", pin18: "OUT", pin19: "OUT", pin20: "OUT",
+          pin21: "EP",
+        }}
+        connections={{
+          pin1: "net.EFINC", pin2: "net.EFINC", pin3: "net.EFINC",
+          pin4: "net.BGATEC", pin5: "net.DRVC", pin6: "net.N5VC",
+          pin7: "net.GND", pin8: "net.OVPC", pin9: "net.GND", pin10: "net.DVDTC",
+          pin11: "net.ILIMC", pin12: "net.GND", pin13: "net.SHDNC",
+          pin16: "net.GND", pin18: "net.VBUSC", pin19: "net.VBUSC", pin20: "net.VBUSC",
+          pin21: "net.GND",
+        }}
+        footprint={<Lm5116Fp />} />
+      {/* Q6 = Q1 blocking N-FET (AON6354): S(1-3)=IN_SYS/5VC, G(4)=B_GATE, D(5)=IN */}
+      <chip name="Q6" supplierPartNumbers={{ jlcpcb: ["C404363"] }}
+        pinLabels={{ pin1: "S1", pin2: "S2", pin3: "S3", pin4: "G", pin5: "D" }}
+        connections={{ pin1: "net.N5VC", pin2: "net.N5VC", pin3: "net.N5VC", pin4: "net.BGATEC", pin5: "net.EFINC" }}
+        footprint={<Dfn56 />} />
+      {/* Q7 = Q2 fast gate-pulldown (BSS138 SOT-23): G(1)=DRV, S(2)=IN_SYS/5VC, D(3)=B_GATE */}
+      <chip name="Q7" supplierPartNumbers={{ jlcpcb: ["C78284"] }}
+        pinLabels={{ pin1: "G", pin2: "S", pin3: "D" }}
+        connections={{ pin1: "net.DRVC", pin2: "net.N5VC", pin3: "net.BGATEC" }}
+        footprint="sot23" />
+      {/* R_ILIM 3.09k -> I_OL = 18000/3090 = 5.83A (min 5.42A > 5A load) */}
+      <resistor name="R30" resistance="3.09k" footprint="0603" connections={{ pin1: "net.ILIMC", pin2: "net.GND" }} />
+      {/* OVP divider from IN_SYS(5VC): trip = 1.2V x (47.5k+12.1k)/12.1k = 5.91V input-OV
+          cutoff. Nudged up from the spike 5.8V because option-a lets 5VC float to
+          ~5.4V @5A (IN_SYS is the unregulated input side); still hard-trips the 12.6V
+          buck-HS-short that threatens the Pi. */}
+      <resistor name="R31" resistance="47.5k" footprint="0603" connections={{ pin1: "net.N5VC", pin2: "net.OVPC" }} />
+      <resistor name="R32" resistance="12.1k" footprint="0603" connections={{ pin1: "net.OVPC", pin2: "net.GND" }} />
+      {/* SHDN enable divider from 5VC: ~3.1V (>2V enable thr, <5.5V abs-max even when
+          5VC floats to ~5.6V). CANNOT tie SHDN straight to 5VC (abs-max 5.5V). Ties
+          the eFuse enable to buck-C presence: master-off drops 5VC -> SHDN low. */}
+      <resistor name="R33" resistance="100k" footprint="0603" connections={{ pin1: "net.N5VC", pin2: "net.SHDNC" }} />
+      <resistor name="R36" resistance="150k" footprint="0603" connections={{ pin1: "net.SHDNC", pin2: "net.GND" }} />
+      {/* C_dVdT 10nF -> t = 20.8e3 x 5.15 x 10n ~= 1.1ms soft-start (inrush ~0.1A) */}
+      <capacitor name="C51" capacitance="10nF" footprint="0603" connections={{ pin1: "net.DVDTC", pin2: "net.GND" }} />
+      {/* eFuse IN local bypass (DS rec: 0.1uF on IN; IN sits behind Q6 from the 5VC bulk) */}
+      <capacitor name="C52" capacitance="100nF" footprint="0603" connections={{ pin1: "net.EFINC", pin2: "net.GND" }} />
       {/* C-port data ESD (USBLC6) + BC1.2 DCP short (D+ <-> D-) for charging */}
       <chip name="U12" supplierPartNumbers={{ jlcpcb: ["C7519"] }}
         pinLabels={{ pin1: "IO1", pin2: "GND", pin3: "IO2", pin4: "IO2B", pin5: "VBUS", pin6: "IO1B" }}
-        connections={{ pin1: "net.DPC", pin2: "net.GND", pin3: "net.DMC", pin4: "net.DMC", pin5: "net.N5VC", pin6: "net.DPC" }}
+        connections={{ pin1: "net.DPC", pin2: "net.GND", pin3: "net.DMC", pin4: "net.DMC", pin5: "net.VBUSC", pin6: "net.DPC" }}
         footprint={
           <footprint>
             {Array.from({ length: 3 }, (_, i) => (
@@ -320,17 +426,17 @@ export default () => (
           </footprint>
         } />
       <resistor name="R27" resistance="0" footprint="0603" connections={{ pin1: "net.DPC", pin2: "net.DMC" }} />
-      {/* CC1/CC2 Rp pull-ups to VBUS(5VC): 10k advertises 3A source-present (ADR-0001).
+      {/* CC1/CC2 Rp pull-ups to VBUSC (protected VBUS): 10k advertises 3A source-present.
           Pi override draws the full 5A; a generic USB-C device would cap at 3A. */}
       <resistor name="R28" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25744"] }}
-        connections={{ pin1: "net.CC1", pin2: "net.N5VC" }} />
+        connections={{ pin1: "net.CC1", pin2: "net.VBUSC" }} />
       <resistor name="R29" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25744"] }}
-        connections={{ pin1: "net.CC2", pin2: "net.N5VC" }} />
-      {/* VBUS receptacle bulk decoupling near J5 (on the 5VC rail) */}
-      <capacitor name="C49" capacitance="10uF" footprint="1210" supplierPartNumbers={{ jlcpcb: ["C77100"] }} connections={{ pin1: "net.N5VC", pin2: "net.GND" }} />
-      <capacitor name="C50" capacitance="10uF" footprint="1210" supplierPartNumbers={{ jlcpcb: ["C77100"] }} connections={{ pin1: "net.N5VC", pin2: "net.GND" }} />
+        connections={{ pin1: "net.CC2", pin2: "net.VBUSC" }} />
+      {/* VBUS receptacle bulk decoupling near J5 (on VBUSC, the eFuse output = the eFuse OUT cap) */}
+      <capacitor name="C49" capacitance="10uF" footprint="1210" supplierPartNumbers={{ jlcpcb: ["C77100"] }} connections={{ pin1: "net.VBUSC", pin2: "net.GND" }} />
+      <capacitor name="C50" capacitance="10uF" footprint="1210" supplierPartNumbers={{ jlcpcb: ["C77100"] }} connections={{ pin1: "net.VBUSC", pin2: "net.GND" }} />
       {/* USB-C receptacle: 16 pads A1..B12 (numbered 1..16) + SH (17) — dual portHints.
-          VBUS pads (A4/A9/B4/B9) -> net.N5VC (the 5VC rail == VBUS). */}
+          VBUS pads (A4/A9/B4/B9) -> net.VBUSC (the eFuse-PROTECTED VBUS). */}
       <chip name="J5" supplierPartNumbers={{ jlcpcb: ["C5337088"] }}
         pinLabels={{
           pin1: "GNDA1", pin2: "VBUSA4", pin3: "CC1", pin4: "DPA6", pin5: "DMA7",
@@ -339,10 +445,10 @@ export default () => (
           pin16: "GNDB12", pin17: "SHIELD",
         }}
         connections={{
-          pin1: "net.GND", pin2: "net.N5VC", pin3: "net.CC1", pin4: "net.DPC",
-          pin5: "net.DMC", pin7: "net.N5VC", pin8: "net.GND", pin9: "net.GND",
-          pin10: "net.N5VC", pin11: "net.CC2", pin12: "net.DPC", pin13: "net.DMC",
-          pin15: "net.N5VC", pin16: "net.GND", pin17: "net.GND",
+          pin1: "net.GND", pin2: "net.VBUSC", pin3: "net.CC1", pin4: "net.DPC",
+          pin5: "net.DMC", pin7: "net.VBUSC", pin8: "net.GND", pin9: "net.GND",
+          pin10: "net.VBUSC", pin11: "net.CC2", pin12: "net.DPC", pin13: "net.DMC",
+          pin15: "net.VBUSC", pin16: "net.GND", pin17: "net.GND",
           // pin6 SBU1, pin14 SBU2 left unconnected (NC — sideband unused on a charger)
         }}
         footprint={

@@ -22,8 +22,11 @@ rails:
     converter: LM5116MHX-NOPB
     eff: 0.9
 
-  # USB-C rail: LM5116 buck -> 5VC -> USB-C VBUS DIRECT (no PD controller in v3).
-  # Fixed 5 V out => BUCK. 5 A to the Pi via the firmware override, not PD.
+  # USB-C rail: LM5116 buck -> 5VC -> (v1.1) TPS26631 eFuse + reverse-block FET
+  # -> VBUSC -> USB-C VBUS. Fixed 5 V out => BUCK. The eFuse is a PROTECTION
+  # element (current limit / input-OV cutoff / soft-start / reverse-current
+  # block), NOT a converter, so the E-TOPO tree is unchanged (still all-buck).
+  # 5 A to the Pi via the firmware override (PSU_MAX_CURRENT=5000), not PD.
   - name: USB-C
     vin_min: 9.0
     vin_max: 12.6

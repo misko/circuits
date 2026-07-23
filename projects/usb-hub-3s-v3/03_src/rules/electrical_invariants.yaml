@@ -1,37 +1,58 @@
 # usb-hub-3s-v3 — electrical invariants (E-INV / E-ADR).
 #
-# Emitted by ADR-0001 (drop the PD cell -> plain 5V/5A USB-C + Pi override).
-# RT-T6 fix 2026-07-22: the ADR claimed to emit these but the build agent
-# never wrote the file, so the E-ADR loop was open and the no-PD topology was
-# unenforced. This makes the intent machine-checkable against the exported
-# netlist (06_build/netlists/usb_hub_3s_v2.net).
+# Emitted by ADR-0001 (drop the PD cell -> plain 5V/5A USB-C + Pi override) and
+# extended for the v1.1 PROTECTED-VBUS revision (03_schematic_v1.1). Makes the
+# design intent machine-checkable against the exported netlist
+# (06_build/netlists/usb_hub_3s_v2.net).
+#
+# v1.1 change: the USB-C VBUS is NO LONGER the 5VC buck rail directly. A TPS26631
+# eFuse (U13) + reverse-current-blocking FET pair (Q6 power FET, Q7 gate-pulldown)
+# now bridges the buck rail 5VC to a NEW protected connector net VBUSC. The
+# invariants below are re-anchored on VBUSC and positively assert the eFuse power
+# path, so a returning PD pass-FET/PHY (which would put a different net on the J5
+# VBUS pads, or drive CC actively instead of via a fixed Rp) still breaks them.
 #
 # NOTE on ADR-0001 invariant #1 ("no pd_source_controller part"): the E-INV
-# checker has no net_has_no_part / absence kind (kinds: pin_on_net,
-# series_chain, net_has_part). The PD cell's ABSENCE is instead enforced
-# POSITIVELY below: VBUS IS the 5VC buck rail (a PD pass-FET node would put a
-# different net on those pads), and CC1/CC2 terminate on Rp pull-ups (a PD PHY
-# would drive CC actively, not through a fixed Rp). If the PD cell returned,
-# these would break.
+# checker has no absence kind. The PD cell's ABSENCE is enforced POSITIVELY: the
+# J5 VBUS pads are the eFuse OUTPUT (VBUSC), the eFuse INPUT is the buck rail
+# (5VC), and CC1/CC2 terminate on passive Rp pull-ups to VBUSC.
 
 invariants:
-  # --- ADR-0001 #2: USB-C VBUS is the 5VC buck output DIRECTLY (no PD pass-FET) ---
-  - {assert: pin_on_net, pin: "J5.A4", net: "5VC", adr: 0001,
-     why: "USB-C VBUS pad A4 is the 5VC buck rail, not a PD-gated node"}
-  - {assert: pin_on_net, pin: "J5.B4", net: "5VC", adr: 0001,
-     why: "USB-C VBUS pad B4 is the 5VC buck rail"}
-  - {assert: pin_on_net, pin: "J5.A9", net: "5VC", adr: 0001,
-     why: "USB-C VBUS pad A9 is the 5VC buck rail"}
-  - {assert: pin_on_net, pin: "J5.B9", net: "5VC", adr: 0001,
-     why: "USB-C VBUS pad B9 is the 5VC buck rail"}
-  # --- ADR-0001 #3: CC1/CC2 each terminate on an Rp pull-up to the 5V source rail ---
+  # --- v1.1 #1: J5 USB-C VBUS pads are the eFuse OUTPUT rail VBUSC (protected) ---
+  - {assert: pin_on_net, pin: "J5.A4", net: "VBUSC", adr: 0001,
+     why: "v1.1: USB-C VBUS pad A4 is the eFuse-protected rail, not 5VC direct nor a PD-gated node"}
+  - {assert: pin_on_net, pin: "J5.B4", net: "VBUSC", adr: 0001,
+     why: "v1.1: USB-C VBUS pad B4 is the eFuse-protected rail VBUSC"}
+  - {assert: pin_on_net, pin: "J5.A9", net: "VBUSC", adr: 0001,
+     why: "v1.1: USB-C VBUS pad A9 is the eFuse-protected rail VBUSC"}
+  - {assert: pin_on_net, pin: "J5.B9", net: "VBUSC", adr: 0001,
+     why: "v1.1: USB-C VBUS pad B9 is the eFuse-protected rail VBUSC"}
+  # --- v1.1 #2: the eFuse power path 5VC -> Q6(block FET) -> EFINC -> U13 -> VBUSC ---
+  - {assert: series_chain, chain: ["5VC", "Q6", "EFINC", "U13", "VBUSC"],
+     through: {Q6: ["1", "5"], U13: ["1", "18"]}, adr: 0001,
+     why: "v1.1 protected VBUS: buck rail 5VC -> AON6354 reverse-blocking FET Q6 (S=pad1 on 5VC, D=pad5 on EFINC) -> eFuse IN (EFINC) -> TPS26631 U13 (IN=pad1 on EFINC, OUT=pad18 on VBUSC) -> protected VBUS (VBUSC). A PD pass-FET would break this exact chain."}
+  - {assert: pin_on_net, pin: "U13.6", net: "5VC", adr: 0001,
+     why: "eFuse IN_SYS senses the buck-C output rail (5VC), the true system input"}
+  - {assert: pin_on_net, pin: "U13.18", net: "VBUSC", adr: 0001,
+     why: "eFuse OUT is the protected connector rail VBUSC"}
+  # --- v1.1 #3: reverse-current-block gate pair (Q6 power FET + Q7 fast pulldown) ---
+  - {assert: pin_on_net, pin: "Q6.4", net: "BGATEC", adr: 0001,
+     why: "blocking-FET Q6 gate driven by eFuse B_GATE (with Q7 fast pulldown) -> true reverse-current blocking"}
+  - {assert: pin_on_net, pin: "Q7.1", net: "DRVC", adr: 0001,
+     why: "gate-pulldown Q7 gate driven by eFuse DRV (SLVSE94G 8.3.5) -> 0.17us reverse turn-off"}
+  # --- v1.1 #4: CC1/CC2 each terminate on a passive Rp pull-up to the protected rail ---
   - {assert: pin_on_net, pin: "R28.1", net: "CC1", adr: 0001,
      why: "CC1 Rp pull-up (source-present advertisement) lands on CC1"}
-  - {assert: pin_on_net, pin: "R28.2", net: "5VC", adr: 0001,
-     why: "CC1 Rp pulls up to the 5V source rail (5VC)"}
+  - {assert: pin_on_net, pin: "R28.2", net: "VBUSC", adr: 0001,
+     why: "CC1 Rp pulls up to the protected 5V source rail (VBUSC)"}
   - {assert: pin_on_net, pin: "R29.1", net: "CC2", adr: 0001,
      why: "CC2 Rp pull-up lands on CC2"}
-  - {assert: pin_on_net, pin: "R29.2", net: "5VC", adr: 0001,
-     why: "CC2 Rp pulls up to the 5V source rail (5VC)"}
+  - {assert: pin_on_net, pin: "R29.2", net: "VBUSC", adr: 0001,
+     why: "CC2 Rp pulls up to the protected 5V source rail (VBUSC)"}
   - {assert: net_has_part, net: "CC1", part_type: "resistor", adr: 0001,
      why: "CC1 carries a passive Rp resistor, not a PD-controller CC driver"}
+  # --- v1.1 #5: MASTER-OFF merges both LM5116 EN pins onto one kill bus (ENKILL) ---
+  - {assert: pin_on_net, pin: "U2.4", net: "ENKILL", adr: 0001,
+     why: "buck-A EN on the merged master-off bus (SW1 grounds it -> both bucks off)"}
+  - {assert: pin_on_net, pin: "U11.4", net: "ENKILL", adr: 0001,
+     why: "buck-C EN on the merged master-off bus ENKILL"}
