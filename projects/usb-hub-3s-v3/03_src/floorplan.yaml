@@ -95,6 +95,19 @@ placement:
     F2:  [114.0, 90.0, 0]     # PPTC polyfuse 2920 (7.4x5.1mm, bigger): pad1=PMID(W ~x111), pad2=VBUSC(E ~x117)
     SW1: [66.0, 58.0, 0]      # SS12D07 master-off slide; COM(2)=ENKILL, T1(1)=GND, T2(3)=NC; open board center, accessible
 
+  # v1.3 (BRIEF A3/D3): SW1 OFF automated assembly (hand-solder) until the SS12D07
+  # VG4-vs-VG6 pin-pitch variant is physically confirmed against the received part
+  # (JLC C2939728's exact variant is unverified). Sets FP_EXCLUDE_FROM_POS_FILES ->
+  # export_jlc_package drops it from the CPL; it STAYS in the BOM for reference.
+  # Fallback if the pitch is wrong: 3-pin 2.54mm header + shunt (ORDER_README).
+  patterns:
+    - {match: SW1, attrs: [exclude_from_pos_files]}
+    # F1 (Keystone 3568 MINI-blade holder): documented hand-solder THT since v1.1
+    # (twin adjudication C5249699: "not in the CPL placement set"; ORDER_README
+    # hand-solder list) but v1.1/v1.2 CPLs still carried it — v1.3 makes the CPL
+    # match the documented status. Stays in the BOM (self-supplied, uncoded at JLC).
+    - {match: F1, attrs: [exclude_from_pos_files]}
+
   seeds:
     # -------- Buck A control cluster (LEFT/south of U2) --------
     R2: [53.0, 34.0]     # RT

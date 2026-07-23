@@ -2,6 +2,51 @@
 
 Board internal name `usb_hub_3s_v2`; project directory `usb-hub-3s-v3`.
 
+## v1.3 — 2026-07-23
+
+Released: `07_releases/v1.3-2026-07-23/`. **Supersedes v1.2-2026-07-23**
+(v1.2 was found **DO-NOT-ORDER** by an external human review after seal; it gains
+`SUPERSEDED.md`, otherwise immutable). v1.3 is the FIX PASS for the confirmed
+blockers — a BOM + docs + artifact-regen revision; the netlist topology and
+routing are unchanged (same promoted KRT chain).
+
+**R12 catalog-verified (THE order blocker).** v1.2's BOM resolved R12 to
+**C2933210 = 3.74 kΩ** (tscircuit value-resolution; the tsx left R12 uncoded),
+driving the buck-C setpoint to ~4.97 V undervoltage. v1.3 bakes the LIVE-catalog-
+verified **C2984354** (AR03BTCX4121, Viking **4.12 kΩ ±0.1 % ±25 ppm** 0603,
+stock 15 353 on 2026-07-23) into the tsx (`fbtopMpn`); verified alternate
+C861436 (Yageo RT0603BRD074K12L). The buck-C setpoint is RE-DERIVED against the
+ACTUAL Q6+F2 delivery path (Q6 AON6403 ~4.3 mΩ + F2 SMD2920-700 R1max 18 mΩ
+catalog-verified — NOT the removed eFuse 34-48 mΩ model): 5VC 5.352 V nom /
+5.27 V worst-case; **E-MARGIN PASS** (640 mV headroom vs 528 mV need at
+ir_budget 88 mΩ).
+
+**D5 directionality fixed.** v1.2's C140903 is listed **BIDIRECTIONAL** by the
+JLC catalog (LRC SMB-FL) — the design's uni-directional cathode-on-VBUSC
+assumption was unverifiable against it. v1.3 uses **C113976** (SMBJ6.0A
+**UNIDIRECTIONAL** DO-214AA/SMB, catalog-verified, stock 74 758).
+
+**OV honesty (BRIEF A3/D3, Option 2 — user decision).** The discrete Q6/Q7/F2/D5
+chain is kept as **SECONDARY** protection; no active OVP added. Docs now state
+plainly: protected against shorts / overload / reverse-feed-off; **NOT guaranteed
+against a buck high-side short** (D5+F2 = best-effort crowbar). Context:
+supervised prototype, replaceable Pi. Escalation boundary (verbatim): "add active
+OVP if the system becomes unattended, hard-access, carries valuable storage, or
+powers expensive SDR".
+
+**Assembly:** SW1 (SS12D07) moved **off automated assembly** (hand-solder;
+VG4-vs-VG6 pitch unconfirmed; header+shunt fallback documented). F1 holder's CPL
+status corrected to match its documented hand-solder plan (was erroneously
+machine-placed in v1.1/v1.2 CPLs). CPL 108 placements.
+
+**ORDER_README:** bench-qualification plan baked as a REQUIRED pre-Pi-connection
+deployment gate (Q1-Q5: assembled-R12 measurement, 8-24 h electronic-load soak,
+switch-node scoping at 12.6 V, thermal soak, end-of-cable VBUSC verification).
+
+All release artifacts regenerated fresh from v1.3 source and sha256-distinct from
+v1.2 (the v1.2 stale-artifact defect class is machine-checked by
+`release_freshness_check.py` this release).
+
 ## v1.2 — 2026-07-23
 
 Released: `07_releases/v1.2-2026-07-23/`. **Supersedes v1.1-2026-07-23**
