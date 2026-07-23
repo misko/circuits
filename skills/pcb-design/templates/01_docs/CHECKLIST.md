@@ -25,6 +25,12 @@ RELEASED must additionally pass the release gate at the bottom.
 - [ ] stock re-verified TODAY (not from cache)
 - [ ] `07_releases/<ver>-<date>/` written with MANIFEST + verification evidence
 - [ ] fab options in ORDER_README match the board (layers, via tier)
+- [ ] release freshness: `release_freshness_check.py 07_releases/<ver>-<date>` exits 0 —
+      no pdf/ or fab/ artifact sha256-identical to an earlier release (a changed board
+      must not ship a prior release's drawings), shipped policy_audit.md agrees with the
+      MANIFEST's claimed result, no draft/placeholder markers in ORDER_README
+      (usb-hub-3s-v3 v1.2 sealed with v1.1's PDFs + a FAIL audit under a 0-FAIL manifest,
+      2026-07-23 — caught by external review, not by any gate)
 
 - [ ] BRIEF.md: every acceptance criterion `met` (with evidence link) or `dropped` citing a user D#/Q# — never release with an `unmet` criterion
 - [ ] BRIEF.md prompt hash verifies (`sed -n "/prompt-verbatim-begin/,/prompt-verbatim-end/p" 01_docs/BRIEF.md | sed "1d;\$d" | sha256sum`)
