@@ -4,7 +4,7 @@ board:        usb_hub_3s_v2  (internal board name; project directory usb-hub-3s-
 version:      v1.3
 ordered:      2026-07-23
 generated:    2026-07-23
-git_sha:      ecd82c0        # gate-(i) checkpoint commit (R12/D5/power_tree fixes). ORCHESTRATOR: re-stamp to the gate-(ii)/seal commit at COMMIT 2 (v1.2-seal precedent), then re-run policy_audit --skip-drc to re-clear M-REL.
+git_sha:      52273a4        # gate-(ii) commit (board+artifact regen, SW1+F1 off-CPL), re-stamped by orchestrator.
 git_dirty:    false          # projects/usb-hub-3s-v3 source clean at the stamped sha; the release dir is added in the seal commit
 kicad:        10.0.4
 tools:        export_jlc_package.py (pcbnew 10.0.4), kicad-cli 10.0.4, jlc_twin.py, bom_source_check.py, release_freshness_check.py, /usr/bin/python3
