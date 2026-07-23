@@ -176,3 +176,43 @@
   corner; a successor solving the pin escape will rework this copper anyway.
 - STATE: committed d648337 (1/4/0), fully reproducible from 03_src. NOT sealed —
   verification/red-team/seal is a separate zero-context stage.
+
+## 2026-07-22 — re-place DONE, routing OPEN (parked after thrash) — honest handoff
+PLACEMENT: DONE + committed (1936291). PD stage re-placed HARD against U1's
+north edge per the TPS25740A layout: block — RS3 [99.6,91], Q6 [106.6,91,180]
+(source col x109.27 directly N of pin 23 PDSRC), Q7 [113.9,91], VBUS caps east.
+Electrically correct (traces 1-3.5mm, Kelvin sense, nothing crosses the escape
+channel). P-ADJ WAIVED with exhaustive-search evidence (policy_waivers.yaml):
+no legal Q6 pose meets the 5mm net-span budgets because the metric charges the
+whole 6.6mm FET package to the net. >>> ACTION ITEM: recalibrate P-ADJ to
+measure chip-pin -> NEAREST same-net pad, not whole-net max span; then the
+waiver likely drops. <<<
+
+ROUTING: OPEN. Committed board (1936291) is placement+pours only = 26 viol
+(1 courtyard_overlap + 25 isolated_copper) / ~160 unconn / 0 parity. NOT routed.
+
+FINDINGS this session (2 background agents FROZE on this tail; my own foreground
+attempts THRASHED 95->158->160 — this routing is genuinely finicky, approach
+fresh + patient, COMMIT every good roll immediately, never overwrite a good board):
+- KRT is STOCHASTIC per roll. iter3 rolled CLEAN (all signal waves routed, 496
+  segments imported) and only 2 taps failed. iter4/iter5 rolled BADLY (many
+  signals unrouted). "Found 66 unrouted nets in PCB for stub proximity" is a RED
+  HERRING = the pour nets KRT EXCLUDES by design (GND/VIN/5V*/VBUS*/SW*/RSNS/
+  PDSRC), NOT a bad roll. Judge roll quality by the WAVE summaries, not that line.
+- On a GOOD roll only TWO pour-pin taps fail, and BOTH route with corrected
+  targets (verified via pcb_toolkit.verified_astar on iter3's board):
+    RSNS  U1.19 -> [105.9, 91.0]  (Q6.5 drain-tab pad)  escape: true  (routes 6.7s)
+    5VC   U1.20 -> C44.1                                escape: true  (routes 9.1s)
+  The old route.yaml has RSNS->Q6.5 plain + 5VC->C44.1 plain (NO escape:) — both
+  too far for joinpath. RE-ADD escape:true + the coords above.
+- route.race: N is available (route_and_stitch cmd_route) to beat roll variance:
+  N concurrent KRT chains, best kept. Use race: 6 (machine has the cores).
+
+RECOMMENDED CLOSURE (fresh session, patient):
+  1. route.yaml: add `race: 6` under route:, retarget the 2 taps as above.
+  2. rebuild_all.sh; if the WAVE summaries show a clean roll, taps route -> stitch
+     -> DRC ~0. PROMOTE the winning chain to 03_src/route/final_chain.kicad_pcb
+     + COMMIT IMMEDIATELY (canon M3; a good roll is precious, don't lose it).
+  3. Then rebuild_fast.sh is deterministic against the promoted chain; grind the
+     residual (silk/courtyard) on the FAST loop. Clear U12/J5 courtyard if present.
+  4. Recalibrate P-ADJ (above) so the waiver can drop, then verification + seal.
