@@ -1,0 +1,37 @@
+# usb-hub-3s-v3 — electrical invariants (E-INV / E-ADR).
+#
+# Emitted by ADR-0001 (drop the PD cell -> plain 5V/5A USB-C + Pi override).
+# RT-T6 fix 2026-07-22: the ADR claimed to emit these but the build agent
+# never wrote the file, so the E-ADR loop was open and the no-PD topology was
+# unenforced. This makes the intent machine-checkable against the exported
+# netlist (06_build/netlists/usb_hub_3s_v2.net).
+#
+# NOTE on ADR-0001 invariant #1 ("no pd_source_controller part"): the E-INV
+# checker has no net_has_no_part / absence kind (kinds: pin_on_net,
+# series_chain, net_has_part). The PD cell's ABSENCE is instead enforced
+# POSITIVELY below: VBUS IS the 5VC buck rail (a PD pass-FET node would put a
+# different net on those pads), and CC1/CC2 terminate on Rp pull-ups (a PD PHY
+# would drive CC actively, not through a fixed Rp). If the PD cell returned,
+# these would break.
+
+invariants:
+  # --- ADR-0001 #2: USB-C VBUS is the 5VC buck output DIRECTLY (no PD pass-FET) ---
+  - {assert: pin_on_net, pin: "J5.A4", net: "5VC", adr: 0001,
+     why: "USB-C VBUS pad A4 is the 5VC buck rail, not a PD-gated node"}
+  - {assert: pin_on_net, pin: "J5.B4", net: "5VC", adr: 0001,
+     why: "USB-C VBUS pad B4 is the 5VC buck rail"}
+  - {assert: pin_on_net, pin: "J5.A9", net: "5VC", adr: 0001,
+     why: "USB-C VBUS pad A9 is the 5VC buck rail"}
+  - {assert: pin_on_net, pin: "J5.B9", net: "5VC", adr: 0001,
+     why: "USB-C VBUS pad B9 is the 5VC buck rail"}
+  # --- ADR-0001 #3: CC1/CC2 each terminate on an Rp pull-up to the 5V source rail ---
+  - {assert: pin_on_net, pin: "R28.1", net: "CC1", adr: 0001,
+     why: "CC1 Rp pull-up (source-present advertisement) lands on CC1"}
+  - {assert: pin_on_net, pin: "R28.2", net: "5VC", adr: 0001,
+     why: "CC1 Rp pulls up to the 5V source rail (5VC)"}
+  - {assert: pin_on_net, pin: "R29.1", net: "CC2", adr: 0001,
+     why: "CC2 Rp pull-up lands on CC2"}
+  - {assert: pin_on_net, pin: "R29.2", net: "5VC", adr: 0001,
+     why: "CC2 Rp pulls up to the 5V source rail (5VC)"}
+  - {assert: net_has_part, net: "CC1", part_type: "resistor", adr: 0001,
+     why: "CC1 carries a passive Rp resistor, not a PD-controller CC driver"}

@@ -1,0 +1,16 @@
+# usb-hub-3s-v3 policy_audit waivers — evidence-backed only.
+- id: R-THERM
+  why: >
+    The 4 R-THERM-flagged pads are FALSE POSITIVES, adjudicated by the
+    zero-context layout red-team (08_reviews/2026-07-22_v1.0_redteam_layout.md,
+    verdict ORDER). MEASURED: the 4-layer stack has only TWO internal-plane
+    nets (In1=GND, In2=VIN), so Q1.5/VBAT_F, Q3.5/SW_A, Q5.5/SW_C have NO plane
+    to via into — the heuristic (>=2 same-net PLANE vias) is unsatisfiable by
+    design, confirmed by control pads Q2.5/Q4.5 (VIN drains) which PASS with 3
+    In2 vias each. Datasheet-Rds dissipation <0.15W (Q1 0.14W, Q3 0.11W, Q5
+    0.08W) into 14.9mm^2 pads on 170-390mm^2 pours; DFN5x6 dTj ~6-9C. U11.21
+    (LM5116 buck-C GND EP) IS on the In1 GND plane with 1 direct via (vs 3 on
+    the sister EP U2.21 — stitch-grid luck from the STANDARD-tier non-
+    ThermalVias footprint swap) PLUS 11 GND vias within 5mm; controller-grade
+    ~0.15-0.20W, thermally a non-issue. Next-rev work order: add a >=4x 0.3mm
+    via array under BOTH LM5116 EPs. Not a copper defect.
