@@ -1,11 +1,12 @@
 06_build/*
 !06_build/contracts.md
-
 *.kicad_pcb-bak
 *.kicad_sch-bak
 *-backups/
 _autosave-*
 fp-info-cache
-
 __pycache__/
 *.kicad_prl
+# tscircuit build cache + intermediate export
+03_tscircuit/.tscircuit/
+03_tscircuit/dist/
