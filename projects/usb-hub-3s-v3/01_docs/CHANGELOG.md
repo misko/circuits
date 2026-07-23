@@ -2,6 +2,33 @@
 
 Board internal name `usb_hub_3s_v2`; project directory `usb-hub-3s-v3`.
 
+## v1.2 — 2026-07-23
+
+Released: `07_releases/v1.2-2026-07-23/`. **Supersedes v1.1-2026-07-23**
+(v1.1 gains `SUPERSEDED.md`, otherwise immutable).
+
+**Discrete VBUS protection — the eFuse is DROPPED (ADR-0002; BRIEF A2/D2 user
+decision).** The v1.1 TPS26631 eFuse was over-built for a 5 V/5 A Pi rail and was
+the root cause of BOTH the board routing wall (its 20-pin HTSSOP IN_SYS pin boxed
+in a fine-pitch escape) AND v1.1's two electrical order-blockers. −9 parts / +1 =
+**110 total**. New USB-C protection chain: `5VC → Q6 (AON6403 P-FET,
+ENKILL-gated reverse-block via Q7 BSS138) → F2 (PPTC polyfuse 2920, 7 A/16 V) →
+VBUSC → J5`, with **D5 (SMBJ6.0A TVS)** over-voltage clamp. buck-C FB stays on
+**LOCAL 5VC** (R12 4.12k → 5.352 V; the v1.1 runaway fix). buck-C EN re-merged to
+ENKILL. Removed: U13, R31/R32, R33/R36, C51/C52, D6, D7.
+
+Gates at seal (git_sha in `MANIFEST.txt`, `git_dirty: false`):
+- DRC **0/0/0** (severity-all, refill-zones, schematic-parity); source/ standalone
+  re-measure **0/0** (V-REL-FPLIB).
+- ERC 0; parity **110 ×5 sources**; E-INV **24/24**; E-ADR/E-TOPO/E-MARGIN/E-OFF PASS.
+- policy_audit **0 FAIL** (PASS=27, WAIVED=2: R-THERM + R-POUR); M-BOM (BOM==source) PASS.
+- jlc_twin **GREEN** — F2 (C6165170), D5 (C140903), Q6 (C2760089/AON6403) fetched +
+  fit; all PAD-GEOM/PAD-MISMATCH/POLARITY-CHECK adjudicated.
+- Fresh zero-context red-team: **ORDER** (architecture approved, no design P0; Q6
+  5 A / 0.11 W OK, reverse-block correct). Report in `verification/`.
+- 2 Extended-tier parts (F2, D5) carry a MANDATORY order-day `jlc_stock` recheck
+  (ORDER_README); first-power OV caution documented (ADR-0002 tradeoff).
+
 ## v1.1 — 2026-07-23
 
 Released: `07_releases/v1.1-2026-07-23/`. **Supersedes v1.0-2026-07-22**

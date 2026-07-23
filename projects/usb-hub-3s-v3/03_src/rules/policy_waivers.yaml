@@ -3,24 +3,25 @@
   why: >
     The R-THERM-flagged power-FET / EP pads are FALSE POSITIVES, adjudicated by
     the zero-context layout red-team (08_reviews/2026-07-22_v1.0_redteam_layout.md,
-    verdict ORDER); PROSE UPDATED for the v1.2 FET set (journal
-    03_schematic_v1.2). MEASURED: the 4-layer stack has only TWO internal-plane
-    nets (In1=GND, In2=VIN), so the power-FET pads on NON-plane nets have NO
-    plane to via into — the heuristic (>=2 same-net PLANE vias) is unsatisfiable
-    by design. Those pads: Q1.5/VBAT_F (RPP P-FET drain), Q3.5/SW_A (buck-A LS
-    drain), Q5.5/SW_C (buck-C LS drain), and — NEW in v1.1/v1.2 — Q6.5/EFINC and
-    Q6.1-3/5VC (the AON6354 eFuse reverse-blocking FET: drain on EFINC, source on
-    5VC, NEITHER a plane net). Confirmed by control pads Q2.5/Q4.5 (VIN drains)
-    which PASS with 3 In2 vias each. Datasheet-Rds dissipation <0.15W each
-    (Q1 0.14W, Q3 0.11W, Q5 0.08W, and Q6 3.3mOhm x 5A^2 = 0.083W) into 14.9mm^2
-    DFN5x6 pads on 170-390mm^2 pours; dTj ~6-9C. (Q7 = BSS138 SOT-23 signal FET,
-    no thermal path — not R-THERM-relevant.) U11.21 (LM5116 buck-C GND EP) IS on
+    verdict ORDER); PROSE UPDATED for the v1.2 DISCRETE-PROTECTION FET set
+    (ADR-0002; journal 04_board 2026-07-23 — the eFuse is GONE). MEASURED: the
+    4-layer stack has only TWO internal-plane nets (In1=GND, In2=VIN), so the
+    power-FET pads on NON-plane nets have NO plane to via into — the heuristic
+    (>=2 same-net PLANE vias) is unsatisfiable by design. Those pads: Q1.5/VBAT_F
+    (RPP P-FET drain), Q3.5/SW_A (buck-A LS drain), Q5.5/SW_C (buck-C LS drain),
+    and — the v1.2 discrete VBUS P-FET — Q6.5/5VC (AON6403 drain-tab) and
+    Q6.1-3/PMID (AON6403 source): 5VC and PMID are both pour-fed, NEITHER a plane
+    net. Confirmed by control pads Q2.5/Q4.5 (VIN drains) which PASS with 3 In2
+    vias each. Datasheet-Rds dissipation <0.15W each (Q1 0.14W, Q3 0.11W, Q5
+    0.08W, and Q6 AON6403 ~4.3mOhm x 5A^2 = 0.11W) into 14.9mm^2 DFN5x6 pads on
+    170-390mm^2 pours; dTj ~6-9C. (Q7 = BSS138 SOT-23 signal FET, no thermal path
+    — not R-THERM-relevant.) U11.21 (LM5116 buck-C GND EP) IS on
     the In1 GND plane with 1 direct via (vs 3 on the sister EP U2.21 — stitch-grid
     luck from the STANDARD-tier non-ThermalVias footprint swap) PLUS 11 GND vias
     within 5mm; controller-grade ~0.15-0.20W, thermally a non-issue. Next-rev work
     order: add a >=4x 0.3mm via array under BOTH LM5116 EPs. Not a copper defect.
-    NB the exact v1.2 flagged-pad list is re-derived at the board regen (this is a
-    schematic-stage prose fix; R-THERM is a copper/board-stage check).
+    NB VERIFIED on the v1.2 discrete board (DRC 0/0/0; policy_audit R-THERM WAIVED):
+    the flagged pads are the pour-carried FET drains/source above, all fab-legal.
 
 - id: R-POUR
   why: >

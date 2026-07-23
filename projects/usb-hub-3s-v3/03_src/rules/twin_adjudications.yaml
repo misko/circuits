@@ -11,14 +11,14 @@
 #    a land-pattern disagreement. AOS recommended pattern IS the single drain
 #    paddle (AON6354/AON6403 datasheets, verified at parts stage). Ordered on
 #    usb-hub-3s v1.0-2026-07-21.
-- {lcsc: C404363, refs: [Q2, Q3, Q4, Q5, Q6], status: PAD-MISMATCH,
-   why: "AON6354: KiCad single-paddle pad 5 vs JLC 5-8+EP split; AOS DS recommended pattern is the single paddle. Same footprint ordered on usb-hub-3s v1.0. Q6 (v1.1 eFuse reverse-block FET) reuses the IDENTICAL PowerPAK_SO-8_Single footprint -> same adjudication."}
-- {lcsc: C404363, refs: [Q2, Q3, Q4, Q5, Q6], status: PAD-GEOM,
-   why: "AON6354: 1<->5 delta is merged-paddle centroid vs JLC corner-lead pin 5; copper regions coincide (5.39 vs 6.97mm family artifact, ordered on v1.0). Q6 (v1.1) is the same C404363 part/footprint -> reused verbatim."}
-- {lcsc: C2760089, refs: [Q1], status: PAD-MISMATCH,
-   why: "AON6403: same merged-drain family as C404363; KiCad single-paddle pad 5 vs JLC 5-8+EP9; AOS single-paddle recommended pattern. Ordered on v1.0."}
-- {lcsc: C2760089, refs: [Q1], status: PAD-GEOM,
-   why: "AON6403: 1<->5 delta = merged-paddle centroid vs JLC corner lead pin 5; copper regions coincide (same artifact as C404363)."}
+- {lcsc: C404363, refs: [Q2, Q3, Q4, Q5], status: PAD-MISMATCH,
+   why: "AON6354: KiCad single-paddle pad 5 vs JLC 5-8+EP split; AOS DS recommended pattern is the single paddle. Same footprint ordered on usb-hub-3s v1.0. (v1.2: Q6 MOVED to C2760089/AON6403 — the eFuse cell is gone.)"}
+- {lcsc: C404363, refs: [Q2, Q3, Q4, Q5], status: PAD-GEOM,
+   why: "AON6354: 1<->5 delta is merged-paddle centroid vs JLC corner-lead pin 5; copper regions coincide (5.39 vs 6.97mm family artifact, ordered on v1.0)."}
+- {lcsc: C2760089, refs: [Q1, Q6], status: PAD-MISMATCH,
+   why: "AON6403: same merged-drain family as C404363; KiCad single-paddle pad 5 vs JLC 5-8+EP9; AOS single-paddle recommended pattern. Q1 ordered on v1.0; Q6 (v1.2 discrete VBUS reverse-block P-FET) is the SAME C2760089/PowerPAK_SO-8_Single -> same adjudication."}
+- {lcsc: C2760089, refs: [Q1, Q6], status: PAD-GEOM,
+   why: "AON6403: 1<->5 delta = merged-paddle centroid vs JLC corner lead pin 5; copper regions coincide (same artifact as C404363). Applies to both Q1 (input RPP) and Q6 (v1.2 VBUS reverse-block)."}
 
 # -- F1: MINI blade fuse HOLDER (Keystone 3568-class), a HAND-SOLDER line not
 #    in the JLC placement set. best=none = JLC has no placement model for the
@@ -47,6 +47,13 @@
    why: "SMBJ15A SMA: 0.42mm 1<->2 land-extent preference (KiCad vs EasyEDA), same copper; JEDEC DO-214AC body."}
 - {lcsc: C83846, refs: [D1], status: POLARITY-CHECK,
    why: "TVS directionality verified by topology red-team (K=VIN/A=GND, after Q1) + P-POL pad-1 polarity gate; order-preview confirm."}
+
+# -- D5: SMBJ6.0A VBUS over-voltage TVS (SMB / DO-214AA), v1.2 discrete protection.
+#    Same land-extent + polarity class as D1's SMBJ15A. Directionality verified.
+- {lcsc: C140903, refs: [D5], status: PAD-GEOM,
+   why: "SMBJ6.0A SMB (DO-214AA): 0.42mm 1<->2 land-extent preference (KiCad vs EasyEDA), same copper end-caps; identical class to the D1 SMBJ15A SMA artifact. Order-preview confirm."}
+- {lcsc: C140903, refs: [D5], status: POLARITY-CHECK,
+   why: "VBUS over-voltage TVS directionality verified: cathode(pad1)=VBUSC / anode(pad2)=GND (floorplan assert D5.1=VBUSC + P-POL pad-1 polarity gate + the fresh v1.2 red-team). Order-preview confirm."}
 
 # -- F1 fuse holder PAD-GEOM (in addition to PAD-MISMATCH above) — same
 #    hand-solder THT holder, no JLC placement model; land per Keystone p.42.

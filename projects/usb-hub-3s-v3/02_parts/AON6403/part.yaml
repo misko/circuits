@@ -22,12 +22,20 @@ pins:
   5: {name: D, note: "single merged drain paddle - KiCad PowerPAK_SO-8_Single names ALL drain pads '5' (verified from footprint file); symbol pin 5 = D"}
 limits: {vds: -30V, vgs: "±20V", id: -85A, rds_10V: 3.1mOhm_max, rds_4V5: 4.3mOhm_max}
 gotchas:
-  - "reverse-polarity orientation: DRAIN = battery side (VBAT_F), SOURCE = VIN;
-     body diode conducts battery->load on first contact, gate 100k to GND +
-     BZT52C12 S-G clamp (DETAIL_DESIGN sec.1)"
-  - "at 15.5A worst: ~0.75W - pour + thermal vias (R-THERM)"
+  - "Q1 ROLE = INPUT reverse-polarity pass element: DRAIN = battery side (VBAT_F),
+     SOURCE = VIN; body diode conducts battery->load on first contact, gate 100k
+     to GND + BZT52C12 S-G clamp (DETAIL_DESIGN sec.1)."
+  - "Q6 ROLE (v1.2, ADR-0002) = USB-C VBUS reverse-block P-FET: DRAIN(5)=5VC,
+     SOURCE(1-3)=PMID, GATE(4)=QG. Body diode (anode=D=5VC / cathode=S=PMID)
+     BLOCKS PMID->5VC back-feed when Q6 is off. ENABLE-GATED: Q7 (BSS138) inverts
+     ENKILL onto QG, R30 pulls QG to PMID -> Q6 off on master-off/reverse -> body
+     diode blocks a powered sink back-feeding the pack. Vgs <= 5.4V << 20V -> no
+     gate Zener (unlike Q1's 12.6V). Same PowerPAK_SO-8_Single land + merged-drain
+     twin adjudication as Q1 (twin_adjudications C2760089 refs [Q1,Q6])."
+  - "at 5A on Q6: ~4.3mOhm x 25 = 0.11W; at 15.5A on Q1: ~0.75W - pour + thermal
+     vias (R-THERM waiver)."
 verified: "pin map read from DFN5x6 top/bottom-view + schematic diagram figure, AON6403 DS p.1 - 2026-07-21"
-sourcing: {lcsc: C2760089, alternates: [], note: "stock 2409 on 2026-07-21"}
+sourcing: {lcsc: C2760089, alternates: [], note: "stock 2409 on 2026-07-21; v1.2 qty 2/board (Q1 input RPP + Q6 VBUS reverse-block). Order-day recheck."}
 layout:
   source: "AON6403 datasheet (PowerPAK SO-8, P-channel) — reverse-polarity pass element"
   adjacency:

@@ -1,10 +1,10 @@
 # STATUS beacon — usb-hub-3s-v3 (live head of the journal)
 
 <!-- reader parses from here down -->
-stage:   routing
-step:    "CHECKPOINT B GREEN: DRC 0/0/0 + M-BOM PASS (fresh v1.2 BOM==source) + route chain promoted. Reporting."
-measure: "DRC 0/0/0; parity 110x5 (incl board); audit PASS; M-BOM PASS; policy_audit 27PASS/2WAIVED (only pre-seal M-BOM-vs-v1.1-release FAILs)"
+stage:   seal
+step:    "Stray .kicad_prl removed; peer-method batch git check-ignore sweep TRULY EMPTY. Seal ready for orchestrator 2-commit."
+measure: "release 35 files, 0 gitignored strays; MANIFEST sha256 11/11; DRC 0/0/0; twin GREEN; E-INV 24/24"
 state:   done
-next:    "orchestrator verify/commit -> fresh zero-context red-team + seal (ADR-0003, proven-parts harvest, R-THERM waiver prose refresh)"
+next:    "orchestrator: full independent verify -> 2-commit seal (stamp git_sha) + push -> SEALED"
 op_pid:
-updated: 2026-07-23T12:48:00
+updated: 2026-07-23T13:40:00

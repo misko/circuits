@@ -535,3 +535,37 @@ functions:
           - "On the BOM as the in-stock 1V8 LDO; the pin-compatible TCR2LF18
              (Toshiba) is the exact-MPN fallback (ADR-0015). Fed from 3V3,
              not 5V — comes up right after 3V3 so it is never the last rail."
+
+  polyfuse-pptc-5a-vbus:
+    candidates:
+      - mpn: SMD2920-700/16N
+        maker: BORN (multi-source 2920 PPTC)
+        lcsc: C6165170
+        package: 2920 (7451 metric)
+        escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default}
+        status: designed-in
+        provenance: usb-hub-3s-v3 v1.2 (USB-C VBUS over-current, 5A continuous; ADR-0002)
+        gotchas:
+          - "For a 5A CONTINUOUS load pick 7A HOLD (derates ~5.6A @50C), NOT 6A
+             (~4.8A @50C -> nuisance-trips a 5A load). A 6A/16V hold does not exist
+             in 1812 -> use the 2920 package."
+          - "Vmax >= 16V for a 12.6V-input board (a buck-fail-high drives the fuse
+             input ~12.6V, TVS-clamped ~10V). ORDER-DAY jlc_stock recheck MANDATORY
+             (Extended-tier; C6165170 16V+stock unverified in the sealed env).
+             Fallback Littelfuse 2920L600/16MR-A (C3762416, 6A/16V confirmed) but it
+             nuisance-trips at 5A@50C (degraded)."
+  tvs-clamp-5v-vbus:
+    candidates:
+      - mpn: SMBJ6.0A
+        maker: LRC (multi-source)
+        lcsc: C140903
+        package: SMB (DO-214AA)
+        escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default}
+        status: designed-in
+        provenance: usb-hub-3s-v3 v1.2 (USB-C VBUS over-voltage clamp; ADR-0002)
+        gotchas:
+          - "Vwm 6.0V clears a 5.35-5.43V regulated 5V rail (no nuisance leakage);
+             SMBJ5.0A (5V standoff) is WRONG -> conducts in normal op."
+          - "Vclamp ~10.3V is above a 5V-load ceiling -> PAIR with an upstream
+             resettable fuse so the clamp current TRIPS the fuse (crowbar); the TVS
+             alone does not disconnect. Extended-tier -> order-day stock recheck."

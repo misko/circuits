@@ -1,6 +1,6 @@
 mpn: BSS138
 manufacturer: JSCJ (Jiangsu Changjing) / onsemi / multi-source (generic SOT-23 BSS138)
-type: nfet_signal          # small-signal logic-level N-ch; v1.1 eFuse reverse-block Q2 gate-pulldown
+type: nfet_signal          # small-signal logic-level N-ch; v1.2 Q7 = Q6-gate inverter (ENKILL -> QG)
 datasheet: {doc_id: BSS138, revision: series/LCSC, url: "https://www.lcsc.com/product-detail/C78284.html", sha256: null, fetched: 2026-07-23}
 package: SOT-23 (TO-236-3)
 footprint: Package_TO_SOT_SMD:SOT-23
@@ -14,39 +14,35 @@ pins:                      # standard SOT-23 BSS138 pinout
   3: {name: D, note: "drain (body diode anode=S, cathode=D)"}
 limits: {vds: 50V, vgs: "±20V", id_25C: 0.22A, rds_on: "3.5ohm typ @ Vgs=10V", ciss: "~24pF (<50pF)", vgs_th: "0.8-1.5V (min 0.8, max 1.5)"}
 gotchas:
-  - "v1.1 ROLE = TPS26631 reverse-blocking Q2 (SLVSE94G 8.3.5): the FAST
-     gate-PULLDOWN switch for the AON6354 power blocking FET (Q6). Wired
-     G=DRV(U13.5), D=B_GATE(U13.4 = Q6 gate), S=IN_SYS(5VC). On reverse
-     detection the eFuse drives DRV -> Q7 on -> yanks Q6's gate to its source ->
-     Q6 off in ~0.17us. REQUIRED by the datasheet; the eFuse part.yaml note
-     budgeted only Q6 and must be read together with this."
-  - "Meets every TI Q2 requirement: VDS 50V >= 15V; VGS +-20V; Ciss ~24pF <=
-     50pF (fast turn-off); VGTH(min) 0.8V <= 3V. Logic-level."
+  - "v1.2 ROLE (ADR-0002 discrete VBUS protection) = Q7, the GATE INVERTER for the
+     Q6 (AON6403) reverse-block P-FET. Wired G(1)=ENKILL, S(2)=GND, D(3)=QG (Q6
+     gate node, with R30 pull-up to Q6's source PMID). Hub ON (ENKILL high) -> Q7
+     on -> QG low -> Q6 on (forward). Master-off (ENKILL low) -> Q7 off -> QG
+     floats to PMID via R30 -> Q6 OFF -> body diode blocks VBUS->pack back-feed.
+     (Replaces the v1.1 eFuse Q2 fast-pulldown role; the eFuse is gone.)"
+  - "Logic-level, ample margin: VDS 50V, VGS +-20V (ENKILL swings 0..12.6V), Ciss
+     ~24pF, VGTH 0.8-1.5V (turns on well below ENKILL's high). Slow DC gate signal."
   - "Standard SOT-23 BSS138 pad order G/S/D = 1/2/3 - CONFIRM against the chosen
      LCSC part's land at pin-review (multi-source part; onsemi/JSCJ/JUXING all
      share this SOT-23 pinout)."
 verified: "SOT-23 (TO-236) single N-FET, pin-configuration figure G1/S2/D3 -
   the universal jellybean BSS138 SOT-23 pinout shown on p.1 of every vendor
   datasheet (onsemi/Diodes/JSCJ, all identical); logic-level Vgs_th 0.8-1.5V,
-  Vds 50V meets the TPS26631 Q2 fast gate-pulldown spec (SLVSE94G sec.8.3.5,
-  Fig 8-7). Datasheet PDF un-fetchable in the sealed build env -> sha256 null;
-  land + top-mark to be confirmed at pin-review / order preview (multi-source
-  jellybean) - 2026-07-23"
+  Vds 50V. v1.2 role = Q7 gate inverter (ENKILL->QG) for the Q6 reverse-block
+  P-FET (ADR-0002). Datasheet PDF un-fetchable in the sealed build env -> sha256
+  null; land + top-mark confirmed at the JLC twin (C78284) - 2026-07-23"
 sourcing:
   lcsc: C78284
   alternates: [C52895, C5279927]
   note: "JLCPCB BASIC part (JSCJ BSS138, ~$0.010, high stock 2026-07-23); qty
-    1/board (USB-C eFuse Q2). alts C52895 (onsemi), C5279927 (JUXING) - same
-    SOT-23 pinout. Order-day stock recheck."
+    1/board (Q7 = the USB-C Q6-gate inverter). alts C52895 (onsemi), C5279927
+    (JUXING) - same SOT-23 pinout. Order-day stock recheck."
 layout:
-  source: "TPS26631 datasheet SLVSE94G sec.8.3.5-8.3.6 + Fig 8-7 (reverse-current
-    blocking with external FET) — Q7 (BSS138) is the eFuse 'Q2' fast gate-pulldown"
+  source: "ADR-0002 discrete VBUS protection — Q7 (BSS138) inverts the master
+    enable ENKILL onto the Q6 reverse-block P-FET gate (QG)"
   adjacency:
-    - "Q7 (BSS138) HARD against the eFuse U13 DRV(5)/B_GATE(4) pins and the Q6
-       (AON6354) gate — the gate loop must be tiny for the 0.17us reverse turn-off"
-    - "G=DRV(U13.5), D=B_GATE(U13.4 = Q6 gate node), S=IN_SYS(5VC) — same 5VC
-       source reference as Q6's source so the pulldown yanks Vgs to 0 directly"
+    - "Q7 near Q6 (AON6403) gate + R30; G(1)=ENKILL, S(2)=GND, D(3)=QG. A short
+       gate loop is nice but not timing-critical (slow DC enable, not a fast pulse)"
   notes:
-    - "signal FET, no thermal/current-path constraint; the ONLY layout rule is a
-       short, low-inductance G/D/S loop shared with Q6 gate + U13 DRV/B_GATE"
-    - "keep off the SW-node / high-dV-dt copper (it is a slow-signal gate net)"
+    - "signal FET, no thermal/current-path constraint; slow-signal gate net"
+    - "keep off the buck SW-node / high-dV-dt copper"

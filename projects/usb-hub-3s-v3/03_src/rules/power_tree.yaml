@@ -17,17 +17,15 @@ input_trunk_class: PWR_IN
 # master-off switch SW1 that v1.0 lacked (the red-team miss the E-OFF gate harvested).
 source_type: "3S LiPo battery pack, 9.0-12.6 V, XT60 input"
 off_control: "EN-gating master switch SW1 (ENKILL bus) - slide to T1 grounds
-  ENKILL, driving buck-A (U2.4) to ~9 uA shutdown DIRECTLY and buck-C (U11.4, on
-  the un-merged EN_C net) via the D6 EN_C->ENKILL coupling diode; 5VC then
-  collapses so the eFuse SHDN divider turns U13 off too (ADR-0001; journal
-  03_schematic_v1.2 Fixes 2-3; E-INV asserts ENKILL == {U2.4, R8.2, SW1.2, D6.1}
-  and EN_C == {U11.4, R17.2, U13.15(FLT), D6.2})"
-quiescent_ua: 265   # OFF-state pack draw: ~126 uA (buck-A R8 100k pull-up to VIN
-                    # 12.6 V into grounded ENKILL) + ~121 uA (buck-C R17 100k
-                    # pull-up through D6 into ENKILL) + ~18 uA (2x LM5116 ~9 uA
-                    # shutdown Iq). eFuse off (SHDN low, no input current). v1.2
-                    # un-merged EN_C so the two 100k pull-ups now sink separately
-                    # (was ~252 uA through the merged 50 k in v1.1). No
+  ENKILL, driving BOTH LM5116 bucks (U2.4 + U11.4, re-merged onto ENKILL) to
+  ~9 uA shutdown AND opening the VBUS reverse-block P-FET Q6 (Q7 BSS138 gate
+  inverter: ENKILL low -> Q7 off -> Q6 gate floats to source -> Q6 OFF, VBUS
+  isolated + back-feed blocked). 5VC then collapses. (ADR-0002; discrete
+  redesign; E-INV asserts ENKILL == {U2.4, U11.4, SW1.2, Q7.1, R8.2, R17.2})"
+quiescent_ua: 270   # OFF-state pack draw: ~252 uA switch sink (VIN 12.6 V through
+                    # R8||R17 = 50 k pull-ups into the grounded ENKILL bus, both
+                    # bucks' EN re-merged) + ~18 uA (2x LM5116 ~9 uA shutdown Iq).
+                    # Q6 off (Q7 pulldown released), VBUS isolated, no eFuse. No
                     # pack_capacity_mah (external pack) -> self-drain-days is
                     # advisory-N-A, but the draw is BOUNDED and documented.
 

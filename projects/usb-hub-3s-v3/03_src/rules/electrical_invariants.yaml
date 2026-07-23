@@ -32,31 +32,31 @@ invariants:
 
   # --- #2: the discrete protection power path 5VC -> Q6 -> PMID -> F2 -> VBUSC ---
   - {assert: series_chain, chain: ["5VC", "Q6", "PMID", "F2", "VBUSC"],
-     through: {Q6: ["5", "1"], F2: ["1", "2"]}, adr: 0001,
+     through: {Q6: ["5", "1"], F2: ["1", "2"]}, adr: 0002,
      why: "v1.2 discrete VBUS: buck rail 5VC -> AON6403 reverse-block P-FET Q6 (D=pad5 on 5VC, S=pad1 on PMID) -> PPTC polyfuse F2 (pad1 PMID -> pad2 VBUSC) -> protected connector VBUSC. A returning eFuse/PD pass-FET would break this exact chain."}
-  - {assert: pin_on_net, pin: "F2.2", net: "VBUSC", adr: 0001,
+  - {assert: pin_on_net, pin: "F2.2", net: "VBUSC", adr: 0002,
      why: "polyfuse output is the protected connector rail VBUSC"}
 
   # --- #3: Q6 reverse-block P-FET is ENABLE-GATED by Q7 off ENKILL ---
-  - {assert: pin_on_net, pin: "Q6.5", net: "5VC", adr: 0001,
+  - {assert: pin_on_net, pin: "Q6.5", net: "5VC", adr: 0002,
      why: "Q6 DRAIN (pad5) on 5VC; body diode anode=D=5VC / cathode=S=PMID BLOCKS PMID->5VC reverse back-feed when Q6 is off"}
-  - {assert: pin_on_net, pin: "Q6.4", net: "QG", adr: 0001,
+  - {assert: pin_on_net, pin: "Q6.4", net: "QG", adr: 0002,
      why: "Q6 GATE (pad4) on the gate node QG"}
-  - {assert: pin_on_net, pin: "Q7.1", net: "ENKILL", adr: 0001,
+  - {assert: pin_on_net, pin: "Q7.1", net: "ENKILL", adr: 0002,
      why: "Q7 (BSS138) GATE on ENKILL -> inverter: board ON (ENKILL high) -> Q7 on -> QG low -> Q6 on (forward); master-off -> Q7 off -> Q6 off -> body diode blocks back-feed (RT-T4 OFF-state)"}
-  - {assert: pin_on_net, pin: "Q7.3", net: "QG", adr: 0001,
+  - {assert: pin_on_net, pin: "Q7.3", net: "QG", adr: 0002,
      why: "Q7 DRAIN pulls the Q6 gate node QG to GND when ENKILL is high (enable)"}
-  - {assert: pin_on_net, pin: "R30.1", net: "PMID", adr: 0001,
+  - {assert: pin_on_net, pin: "R30.1", net: "PMID", adr: 0002,
      why: "Q6 gate pull-up R30 to its SOURCE (PMID) -> holds Q6 OFF (Vgs~0) when Q7 is off, so a back-feed keeps the body diode blocking"}
-  - {assert: pin_on_net, pin: "R30.2", net: "QG", adr: 0001,
+  - {assert: pin_on_net, pin: "R30.2", net: "QG", adr: 0002,
      why: "R30 pulls the gate node QG toward the source (PMID) in the disabled state"}
 
   # --- #4: over-voltage TVS clamp on the connector rail VBUSC ---
-  - {assert: pin_on_net, pin: "D5.1", net: "VBUSC", adr: 0001,
+  - {assert: pin_on_net, pin: "D5.1", net: "VBUSC", adr: 0002,
      why: "D5 TVS CATHODE (pad1) on VBUSC -> clamps a buck-fail-high; with F2 upstream, crowbars -> polyfuse trips -> Pi protected (replaces the eFuse OVP cutoff)"}
-  - {assert: pin_on_net, pin: "D5.2", net: "GND", adr: 0001,
+  - {assert: pin_on_net, pin: "D5.2", net: "GND", adr: 0002,
      why: "D5 TVS anode (pad2) on GND"}
-  - {assert: net_has_part, net: "VBUSC", part_type: "diode", adr: 0001,
+  - {assert: net_has_part, net: "VBUSC", part_type: "diode", adr: 0002,
      why: "VBUSC carries an over-voltage clamp diode (D5 TVS)"}
 
   # --- #5: buck-C FB senses LOCAL 5VC, NOT a post-protection node (v1.1 fix, kept) ---
