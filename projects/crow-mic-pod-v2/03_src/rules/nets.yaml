@@ -1,0 +1,44 @@
+# crow-mic-pod-v2 net architecture — netclasses + DRU floors source.
+# fab_tier is the COST CEILING (D-TIER, ADR-0004) and the single source of
+# capability floors for the generic backend. 2-layer, cheapest tier.
+fab_tier: jlc_2layer_default   # 0.6/0.3 vias, 0.15 track floor, no advanced
+
+classes:
+  BEEP:
+    intent: >
+      The calibration-transducer drive pair, switched low-side AT CENTRAL:
+      5V_BEEP supply + BEEP_SWITCHED_RETURN. 150 mA coded bursts + inductive
+      flyback current (SS14). 0.5mm floor for the current AND to keep the
+      switched loop robust. Kept in the SW corner, isolated from GND_AUDIO
+      (ADR-0001 G8): this pair NEVER shares copper with the analog ground on
+      the pod.
+    nets: [5V_BEEP, BEEP_SWITCHED_RETURN]
+    current: "150 mA burst + flyback"
+    min_width: 0.5mm
+    routing: KRT (SW-corner loop, straight return to J1)
+    verify: DRC floor + net-separation from analog cell
+
+  PWR:
+    intent: >
+      Pod supply rail from central (5V_AUDIO). ~5 mA total load, but a 0.4mm
+      floor keeps IR/robustness margin. VMIC_F is the RC-filtered bias node
+      off it.
+    nets: [5V_AUDIO, VMIC_F]
+    current: "~5 mA"
+    min_width: 0.4mm
+    routing: KRT
+    verify: DRC floor
+
+  AUDIO:
+    intent: >
+      The balanced line-driver OUTPUT pair to the cable. Low current, but a
+      0.3mm floor + symmetric routing preserves the differential match /
+      CMRR the 25 ft outdoor run relies on. Guarded by GND pours.
+    nets: [AUDIO_P, AUDIO_N]
+    current: "line-level, <1 mA"
+    min_width: 0.3mm
+    routing: KRT (keep the two legs short + symmetric)
+    verify: DRC floor + audit separation from BEEP
+
+# Default 0.25mm: the internal analog nets MIC_OUT, VMID, INP, INA, OUTA,
+# INB, OUTB. GND = F.Cu + B.Cu pours + stitch ring (not routed).

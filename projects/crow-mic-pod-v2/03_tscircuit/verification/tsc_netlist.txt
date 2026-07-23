@@ -1,0 +1,298 @@
+COMPONENTS:
+ - J1: 
+ - R1: 100Ω res0603 resistor
+ - C1: 100uF 1210 capacitor
+ - R2: 3.9kΩ res0603 resistor
+ - MK1: 
+ - C2: 1uF 0603 capacitor
+ - R3: 100kΩ res0603 resistor
+ - R4: 22kΩ res0603 resistor
+ - R5: 22kΩ res0603 resistor
+ - C3: 10uF 0805 capacitor
+ - U1: soic8
+ - R6: 10kΩ res0603 resistor
+ - R7: 20kΩ res0603 resistor
+ - C4: 10uF 0805 capacitor
+ - R8: 10kΩ res0603 resistor
+ - R9: 10kΩ res0603 resistor
+ - R10: 100Ω res0603 resistor
+ - C5: 10uF 0805 capacitor
+ - R11: 100Ω res0603 resistor
+ - C6: 10uF 0805 capacitor
+ - C7: 100nF 0603 capacitor
+ - C8: 10uF 0805 capacitor
+ - C9: 10uF 0805 capacitor
+ - C10: 100nF 0603 capacitor
+ - D1: 
+ - LS1: 
+ - D2: 
+ - D3: 
+ - TP1: TP1, source_component
+ - TP2: TP2, source_component
+ - TP3: TP3, source_component
+ - TP4: TP4, source_component
+ - TP5: TP5, source_component
+ - TP6: TP6, source_component
+ - TP7: TP7, source_component
+
+NET: VMIC_F
+  - R2 pin1
+  - C1 pin1 (+)
+  - R1 pin2
+
+NET: MIC_OUT
+  - C2 pin1 (+)
+  - MK1 pin1
+  - R2 pin2
+
+NET: INP
+  - U1 pin3
+  - R3 pin1
+  - C2 pin2 (-)
+
+NET: INA
+  - R7 pin1
+  - R6 pin2
+  - U1 pin2
+
+NET: GLA
+  - C4 pin1 (+)
+  - R7 pin2
+
+NET: INB
+  - R9 pin2
+  - R8 pin2
+  - U1 pin6
+
+NET: OUTA
+  - R10 pin1
+  - R8 pin1
+  - R6 pin1
+  - U1 OUTA
+
+NET: OLA
+  - C5 pin1 (+)
+  - R10 pin2
+
+NET: OUTB
+  - R11 pin1
+  - R9 pin1
+  - U1 OUTB
+
+NET: OLB
+  - C6 pin1 (+)
+  - R11 pin2
+
+NET: N5V_AUDIO
+  - TP1 pin1
+  - C10 pin1 (+)
+  - C9 pin1 (+)
+  - C8 pin1 (+)
+  - C7 pin1 (+)
+  - U1 pin8
+  - R4 pin1
+  - R1 pin1
+  - J1 5V_AUD
+  - J1 5V_AUD
+
+NET: GND
+  - TP2 pin1
+  - D1 GND
+  - D1 NC
+  - D1 NC
+  - C10 pin2 (-)
+  - C9 pin2 (-)
+  - C8 pin2 (-)
+  - C7 pin2 (-)
+  - U1 pin4
+  - C3 pin2 (-)
+  - R5 pin2
+  - MK1 pin2
+  - C1 pin2 (-)
+  - J1 GND
+  - J1 GND
+
+NET: AUDIO_P
+  - TP3 pin1
+  - D1 IO1
+  - C5 pin2 (-)
+  - J1 pin1
+
+NET: AUDIO_N
+  - TP4 pin1
+  - D1 IO2
+  - C6 pin2 (-)
+  - J1 pin2
+
+NET: N5V_BEEP
+  - TP5 pin1
+  - D3 K
+  - D2 K
+  - LS1 pin1
+  - J1 5V_BEEP
+
+NET: BEEP_SWITCHED_RETURN
+  - TP6 pin1
+  - D3 A
+  - D2 A
+  - LS1 pin2
+  - J1 BEEP_RET
+
+NET: VMID
+  - TP7 pin1
+  - C4 pin2 (-)
+  - U1 pin5
+  - C3 pin1 (+)
+  - R5 pin1
+  - R4 pin2
+  - R3 pin2
+
+
+COMPONENT_PINS:
+J1
+- pin1: NETS(AUDIO_P)
+- pin2: NETS(AUDIO_N)
+- pin3(5V_BEEP): NETS(N5V_BEEP)
+- pin4(5V_AUD): NETS(N5V_AUDIO)
+- pin5(5V_AUD): NETS(N5V_AUDIO)
+- pin6(BEEP_RET): NETS(BEEP_SWITCHED_RETURN)
+- pin7(GND): NETS(GND)
+- pin8(GND): NETS(GND)
+
+R1 (100Ω res0603)
+- pin1(anode, pos, left): NETS(N5V_AUDIO)
+- pin2(cathode, neg, right): NETS(VMIC_F)
+
+C1 (100uF 1210)
+- pin1(pos, anode, left): NETS(VMIC_F)
+- pin2(neg, cathode, right): NETS(GND)
+
+R2 (3.9kΩ res0603)
+- pin1(anode, pos, left): NETS(VMIC_F)
+- pin2(cathode, neg, right): NETS(MIC_OUT)
+
+MK1
+- pin1: NETS(MIC_OUT)
+- pin2: NETS(GND)
+
+C2 (1uF 0603)
+- pin1(pos, anode, left): NETS(MIC_OUT)
+- pin2(neg, cathode, right): NETS(INP)
+
+R3 (100kΩ res0603)
+- pin1(anode, pos, left): NETS(INP)
+- pin2(cathode, neg, right): NETS(VMID)
+
+R4 (22kΩ res0603)
+- pin1(anode, pos, left): NETS(N5V_AUDIO)
+- pin2(cathode, neg, right): NETS(VMID)
+
+R5 (22kΩ res0603)
+- pin1(anode, pos, left): NETS(VMID)
+- pin2(cathode, neg, right): NETS(GND)
+
+C3 (10uF 0805)
+- pin1(pos, anode, left): NETS(VMID)
+- pin2(neg, cathode, right): NETS(GND)
+
+U1
+- pin1(OUTA): NETS(OUTA)
+- pin2: NETS(INA)
+- pin3: NETS(INP)
+- pin4: NETS(GND)
+- pin5: NETS(VMID)
+- pin6: NETS(INB)
+- pin7(OUTB): NETS(OUTB)
+- pin8: NETS(N5V_AUDIO)
+
+R6 (10kΩ res0603)
+- pin1(anode, pos, left): NETS(OUTA)
+- pin2(cathode, neg, right): NETS(INA)
+
+R7 (20kΩ res0603)
+- pin1(anode, pos, left): NETS(INA)
+- pin2(cathode, neg, right): NETS(GLA)
+
+C4 (10uF 0805)
+- pin1(pos, anode, left): NETS(GLA)
+- pin2(neg, cathode, right): NETS(VMID)
+
+R8 (10kΩ res0603)
+- pin1(anode, pos, left): NETS(OUTA)
+- pin2(cathode, neg, right): NETS(INB)
+
+R9 (10kΩ res0603)
+- pin1(anode, pos, left): NETS(OUTB)
+- pin2(cathode, neg, right): NETS(INB)
+
+R10 (100Ω res0603)
+- pin1(anode, pos, left): NETS(OUTA)
+- pin2(cathode, neg, right): NETS(OLA)
+
+C5 (10uF 0805)
+- pin1(pos, anode, left): NETS(OLA)
+- pin2(neg, cathode, right): NETS(AUDIO_P)
+
+R11 (100Ω res0603)
+- pin1(anode, pos, left): NETS(OUTB)
+- pin2(cathode, neg, right): NETS(OLB)
+
+C6 (10uF 0805)
+- pin1(pos, anode, left): NETS(OLB)
+- pin2(neg, cathode, right): NETS(AUDIO_N)
+
+C7 (100nF 0603)
+- pin1(pos, anode, left): NETS(N5V_AUDIO)
+- pin2(neg, cathode, right): NETS(GND)
+
+C8 (10uF 0805)
+- pin1(pos, anode, left): NETS(N5V_AUDIO)
+- pin2(neg, cathode, right): NETS(GND)
+
+C9 (10uF 0805)
+- pin1(pos, anode, left): NETS(N5V_AUDIO)
+- pin2(neg, cathode, right): NETS(GND)
+
+C10 (100nF 0603)
+- pin1(pos, anode, left): NETS(N5V_AUDIO)
+- pin2(neg, cathode, right): NETS(GND)
+
+D1
+- pin1(NC): NETS(GND)
+- pin2(NC): NETS(GND)
+- pin3(IO1): NETS(AUDIO_P)
+- pin4(GND): NETS(GND)
+- pin5(IO2): NETS(AUDIO_N)
+
+LS1
+- pin1: NETS(N5V_BEEP)
+- pin2: NETS(BEEP_SWITCHED_RETURN)
+
+D2
+- pin1(K): NETS(N5V_BEEP)
+- pin2(A): NETS(BEEP_SWITCHED_RETURN)
+
+D3
+- pin1(K): NETS(N5V_BEEP)
+- pin2(A): NETS(BEEP_SWITCHED_RETURN)
+
+TP1
+- pin1: NETS(N5V_AUDIO)
+
+TP2
+- pin1: NETS(GND)
+
+TP3
+- pin1: NETS(AUDIO_P)
+
+TP4
+- pin1: NETS(AUDIO_N)
+
+TP5
+- pin1: NETS(N5V_BEEP)
+
+TP6
+- pin1: NETS(BEEP_SWITCHED_RETURN)
+
+TP7
+- pin1: NETS(VMID)

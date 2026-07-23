@@ -1,0 +1,5 @@
+{
+  "name": "crow-mic-pod-v2",
+  "main": "src/crow_mic_pod_v2.tsx",
+  "dependencies": {}
+}

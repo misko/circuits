@@ -1,0 +1,50 @@
+mpn: OPA1678IDR
+manufacturer: Texas Instruments
+type: op-amp                 # dual, low-noise audio operational amplifier
+datasheet:
+  doc_id: SBOS855
+  revision: SBOS855E         # JANUARY 2017 - REVISED DECEMBER 2022
+  url: https://www.ti.com/lit/ds/symlink/opa1678.pdf
+  sha256: 4072daad4ebc4ec9a74ba6547d721b05db8d0cfc12924bda79e828271aeaec3b
+  fetched: 2026-07-23
+package: SOIC-8 3.9x4.9mm P1.27
+footprint: Package_SO:SOIC-8_3.9x4.9mm_P1.27mm
+escape:
+  style: leaded
+  pitch: 1.27
+  tier_required: jlc_2layer_default
+pins:                        # D (SOIC-8) package, standard dual op-amp pinout
+  1: OUTA
+  2: -INA
+  3: +INA
+  4: V-
+  5: +INB
+  6: -INB
+  7: OUTB
+  8: V+
+limits:
+  vs_max: 40V                 # Absolute Max: Supply voltage VS = (V+)-(V-)
+  vin_range: "(V-)-0.5V to (V+)+0.5V"
+  iin_max: 10mA                # input current, all pins except power-supply
+  ta_op: "-40C to 85C"         # OPA1678I grade (I-suffix)
+  tj_max: 150C
+  tstg: "-65C to 150C"
+  vs_recommended_dual: "+/-2.25V to +/-18V"
+  vs_recommended_single: "4.5V to 36V"
+gotchas:
+  - "twin PAD-GEOM ~0.47mm vs JLC CAD is the KiCad-IPC vs TI-datasheet SOIC-8 pad-length split — leads land on both pad shapes; adjudicate at twin, do not re-footprint"
+  - "rotation DB '^SOIC-',270 is assembly-zero truth; twin EDA-frame fit says 90 — keep 270, eyeball JLC preview pin-1 dot"
+  - "OPA1678 shares one datasheet (SBOS855) with OPA1677 (single, SOIC-8/SOT-23) and OPA1679 (quad, SOIC-14) — do not transcribe the wrong device's pin table; used Fig 5-3 / Pin Functions: OPA1678 table specifically"
+  - "IDR marking on top of die is OP1678 (per Package Option Addendum), not the full MPN — useful for bring-up visual ID"
+verified: "pin map cross-checked against datasheet SBOS855E Figure 5-3 'OPA1678: D Package, 8-Pin SOIC and DGK Package, 8-Pin VSSOP (Top View)' + the adjacent 'Pin Functions: OPA1678' table, both on page 4 — 2026-07-23. Package mechanical (D0008A SOIC outline, body 3.81-3.98mm x 4.81-5.00mm, 1.27mm pitch, JEDEC MS-012 variation AA) confirmed against Mechanical Data drawing on page 53."
+layout:
+  source: "datasheet SBOS855E Sec. 8.4.1 'Layout Guidelines' (p.25) + Sec 8.4.2 'Layout Example' Figure 8-8 'Operational Amplifier Board Layout for Noninverting Configuration' (p.26): bypass each supply pin (V+ pin 8, V- pin 4) to GND with a low-ESR 0.1uF ceramic placed as close to the device as possible; keep RF/RG feedback components close to the inverting input to minimize parasitic capacitance; keep input traces short and routed away from supply/output traces; use a ground plane on another layer."
+  reviewed: "2026-07-23"
+  keep_short:
+    - {net: "V+ decoupler (pin 8)", max_span_mm: 3, why: "datasheet: bypass cap placed as close to the device as possible on V+"}
+    - {net: "V- decoupler (pin 4)", max_span_mm: 3, why: "datasheet: bypass cap placed as close to the device as possible on V- (dual-supply bypass)"}
+    - {net: "-INA/feedback (pin 2)", max_span_mm: 5, why: "datasheet: keep RF/RG close to inverting input, channel A, to minimize parasitic capacitance"}
+    - {net: "-INB/feedback (pin 6)", max_span_mm: 5, why: "datasheet: keep RF/RG close to inverting input, channel B, to minimize parasitic capacitance"}
+layout_refs:
+  - "datasheet SBOS855E Figure 8-8, Sec. 8.4.2 Layout Example (p.26)"
+sourcing: {lcsc: C192421}

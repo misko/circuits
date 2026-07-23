@@ -1,0 +1,48 @@
+mpn: TPD2E2U06DRLR
+manufacturer: Texas Instruments
+type: esd_protection          # 2-channel bidirectional TVS diode ESD array
+datasheet:
+  doc_id: SLLSEG9
+  revision: SLLSEG9C          # JUNE 2013 - REVISED DECEMBER 2019
+  url: https://www.ti.com/lit/ds/symlink/tpd2e2u06.pdf
+  sha256: a133b86ea3d3c3d34667339b92d3b5e98d541d10e9775d63e7cdfa153794f4ed
+  fetched: 2026-07-23
+package: SOT-553 (5-lead, TI package code DRL)
+footprint: Package_TO_SOT_SMD:SOT-553
+escape:
+  style: leaded
+  pitch: 0.5
+  tier_required: jlc_2layer_default
+pins:                         # DRL (5-Pin SOT / SOT-553) package
+  1: {name: NC, note: "not connected internally — datasheet: left floating, grounded, or connected to VCC"}
+  2: {name: NC, note: "not connected internally — datasheet: left floating, grounded, or connected to VCC"}
+  3: {name: IO1, note: "protected I/O channel 1 — connect to the analog signal line, as close to the source connector as possible"}
+  4: {name: GND, tie: GND, note: "TVS return/reference — both channels clamp to this pin"}
+  5: {name: IO2, note: "protected I/O channel 2 — connect to the analog signal line, as close to the source connector as possible"}
+limits:
+  vrwm: 5.5V                   # reverse stand-off voltage, IIO < 10uA
+  vbr: "6.5V min / 8.5V max"   # breakdown voltage, IIO = 1mA
+  vclamp_io_to_gnd: "9.7V @ IPP=1A / 12.4V @ IPP=5A (TLP)"
+  vclamp_gnd_to_io: "1.9V @ IPP=1A / 4V @ IPP=5A (TLP)"
+  ipp_max: 5.5A                 # peak pulse current, tp = 8/20us
+  vio_recommended: "0V to 5.5V"
+  cl_typ: 1.5pF                 # line capacitance @ 1MHz, VBIAS=2.5V
+  cl_max: 1.9pF
+  esd_iec61000_4_2: "+/-25kV contact, +/-30kV air-gap"
+  ta_op: "-40C to 125C"
+  tstg: "-65C to 155C"
+gotchas:
+  - "alternate code C51886141 exists for the same MPN"
+  - "same MPN TPD2E2U06 is also sold in a 3-pin DCK/SC70 variant (2 pins per Fig, no separate NC pins) — TPD2E2U06DRLR specifically is the 5-pin DRL/SOT-553 variant; do not cross-read the DCK pin table (IO1=1, IO2=2, GND=3) onto this part"
+  - "pins 1 and 2 are NC, not a second GND or a VCC rail — do not tie them to ground by default; datasheet allows float/GND/VCC but gives no default, leaving them unconnected (floating) is the conservative choice absent a stated rail"
+verified: "pin map cross-checked against datasheet SLLSEG9C Sec. 5 'Pin Configuration and Functions', DRL Package 5-Pin SOT (Top View) figure + the 'Pin Functions' table, both on page 3 — 2026-07-23 (IO1=3, IO2=5, GND=4, NC=1,2). Package mechanical (DRL0005A, SOT-5X3, body 1.5-1.7mm x 1.1-1.3mm nominal 1.6x1.2mm, 0.5mm pitch, 0.6mm max height, JEDEC MO-293 variation UAAD-1) confirmed against Mechanical Data drawing on page 17."
+layout:
+  source: "datasheet SLLSEG9C Sec. 10.1 'Layout Guidelines' (p.11): place the device as close to the connector as possible (minimizes EMI coupling from the struck trace into other unprotected traces upstream of the TVS); route the protected traces (connector-to-TVS segment) as straight as possible with no sharp corners (large-radius rounds only, to avoid E-field buildup); keep unprotected traces away from the protected segment. Sec. 10.2 'Layout Example' Figure 12 'Routing with DRL Package' (p.12) shows a GND via placed immediately adjacent to the GND pin."
+  reviewed: "2026-07-23"
+  keep_short:
+    - {net: IO1, max_span_mm: 5, why: "datasheet: device placed as close to the connector as possible so the unprotected trace stub is minimized — no numeric mm given, 5mm is a conservative engineering budget for the connector-to-TVS segment"}
+    - {net: IO2, max_span_mm: 5, why: "same as IO1 — symmetric channel, same connector-proximity rule"}
+    - {net: GND, max_span_mm: 2, why: "Figure 12 shows a dedicated GND via immediately adjacent to the GND pad; short return path lowers clamp-loop inductance"}
+layout_refs:
+  - "datasheet SLLSEG9C Figure 12, Sec. 10.2 Layout Example (p.12)"
+sourcing: {lcsc: C1972959, alternates: [C51886141]}

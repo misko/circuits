@@ -1,0 +1,81 @@
+mpn: RJHSE-5384
+manufacturer: Amphenol Communications Solutions (Amphenol Canada Corp / Amphenol ICC)
+type: rj45_jack               # right-angle, shielded, 8P8C, 2-LED THT jack.
+                               # CUSTOM NON-ETHERNET PINOUT on this board — the
+                               # 8 contacts below are the jack's PHYSICAL contact
+                               # numbers, not T568A/B signal assignments. Nets
+                               # are assigned by this board's schematic, not by
+                               # this part.
+datasheet:
+  doc_id: P-RJHSE-538X          # Amphenol Canada Corp dwg no. (mechanical + PCB layout)
+  revision: RevK                 # REV K, "UPDATED TOLERANCES", APR03/14
+  url: https://www.amphenolcanada.com/ProductSearch/drawings/AC/RJHSE538X.pdf
+                                 # canonical URL (matches the KiCad footprint's own
+                                 # descr field) — direct fetch from amphenolcanada.com
+                                 # AND cdn.amphenol-cs.com both returned HTTP 403
+                                 # (bot-blocked); the byte-identical PDF was retrieved
+                                 # via SnapEDA's S3 mirror (sha256 below) instead
+  sha256: df002469d240a492e77a3aa0bb814bfe4a007c4d9ff8e2552aeb69f31e58aefa
+  fetched: 2026-07-23
+package: RJ45 8P8C right-angle THT jack, shielded, 2 LED positions, 12 signal/LED
+  pins + 2 shield tabs + 2 NPTH board-lock posts (Amphenol RJHSE-538X family)
+footprint: Connector_RJ:RJ45_Amphenol_RJHSE538X   # KiCad stock footprint —
+                                 # ledger-confirmed hole-for-hole match; independently
+                                 # re-confirmed this session against the datasheet's
+                                 # RECOMMENDED P.C.B. LAYOUT figure (same hole pitch/
+                                 # pattern/drill sizes; footprint is mirrored left-right
+                                 # vs. this particular datasheet view, which is
+                                 # irrelevant to pin identity — see verified: below)
+mates: receptacle                # jack = receptacle, per title block "MODULAR JACK"
+escape:
+  style: connector
+  pitch: 1.02
+  tier_required: jlc_2layer_default
+pins:                            # footprint pad NAME -> function. Pad names 1-8
+                                  # ARE the datasheet's own contact numbers (see
+                                  # verified: below) — use these numbers directly
+                                  # as schematic symbol pin numbers for netlist parity.
+  "1": {name: "1", note: "RJ45 contact 1 (physical) — net assigned by this board's schematic, NOT standard Ethernet T568A/B"}
+  "2": {name: "2", note: "RJ45 contact 2 (physical) — custom net"}
+  "3": {name: "3", note: "RJ45 contact 3 (physical) — custom net"}
+  "4": {name: "4", note: "RJ45 contact 4 (physical) — custom net"}
+  "5": {name: "5", note: "RJ45 contact 5 (physical) — custom net"}
+  "6": {name: "6", note: "RJ45 contact 6 (physical) — custom net"}
+  "7": {name: "7", note: "RJ45 contact 7 (physical) — custom net"}
+  "8": {name: "8", note: "RJ45 contact 8 (physical) — custom net"}
+  "9": {name: "9", note: "LED1 (RIGHT position, front view) lead — RJHSE-5384 = LED code '4' = single-color YELLOW at this position. Anode/cathode assignment between pads 9 and 10 is NOT resolved by the generic family drawing (see gotchas) — verify by continuity/Vf before trusting orientation"}
+  "10": {name: "10", note: "LED1 (RIGHT position) other lead — see pad 9 note"}
+  "11": {name: "11", note: "LED2 (LEFT position, front view) lead — RJHSE-5384 = LED code '4' = single-color GREEN at this position. Polarity vs pad 12 unresolved by the generic drawing — see gotchas"}
+  "12": {name: "12", note: "LED2 (LEFT position) other lead — see pad 11 note. LED pads 9-12 are UNUSED on this board (no PHY) — unconnected at the pod."}
+
+# Mechanical / shield pads — NOT electrical connections on this board, kept OUT of
+# `pins:` so the tsx authoring stays all-numeric (tsx_preflight TSX-PRE). The shield
+# floats at the pod (single-point ground at central, ADR-0001); the posts are NPTH.
+mechanical_pads:
+  SH: {kicad_pad_name: "SH", note: "TWO pads both named 'SH' (jumpered in KiCad) — chassis shield tabs, stainless w/ tin dip. UNCONNECTED at the pod (single-point ground at central). If ever bonded here, use SOLID zone connection (dense tail field starves 2-layer thermal spokes)."}
+  NPTH_L: {kicad_pad_name: "\"\" np_thru_hole", note: "board-lock post at footprint-local (-2.79,-2.54mm), Ø3.25mm, mechanical only — not in netlist, not plated. Fence with a keepout before routing (hole clearance 0.25 > copper clearance)."}
+  NPTH_R: {kicad_pad_name: "\"\" np_thru_hole", note: "board-lock post at footprint-local (9.91,-2.54mm), Ø3.25mm, mechanical only — same as NPTH_L."}
+limits:
+  led_vf_typ: 2.1V                # LED forward voltage, typical
+  led_vr_min: 5.0V                # LED reverse voltage, minimum
+  led_luminous_intensity_min: "0.5mCd @ If=2mA"
+  led_lead_solder_temp: "260C, 5 sec, 1/16in from case"
+  contact_material: "phosphor bronze, 50uin min gold on mating surfaces over 50uin min nickel underplate; 100uin min matte tin on contact tails"
+  shield_material: "stainless steel, tin dip on solder tail"
+  wave_solder_temp: "260C max, 5 sec max"
+  housing_material: "high-temp thermoplastic, UL94V-0, black"
+  # NOTE: this 2-page combined drawing (mechanical + LED options) carries NO
+  # contact current/voltage rating table — see gotchas.
+gotchas:
+  - "C99* code = consign-only placeholder, permanently stock 0, NO EasyEDA CAD — twin needs an evidence-backed NO-CAD adjudication; hand-solder line"
+  - "NPTH ~3.25mm board-lock posts: DRC hole clearance 0.25 > routed copper clearance — fence the posts with keepouts before routing or collect hole_clearance violations"
+  - "mating face is on the SNAP-POST side of the hole field; LED tails mark the REAR"
+  - "dense GND tail field starves thermal spokes on 2-layer pours — set zone connection SOLID for the jack GND tails"
+  - "LED pin polarity (anode vs cathode for pad pair 9/10 and pad pair 11/12) is NOT uniquely resolved by the generic family drawing (P-RJHSE-538X + P-RJHSE-LEDS) — its LED SCHEMATIC figure deliberately shows BOTH anti-parallel diode orientations at each pad pair as a placeholder covering all LED-code options, not the actual populated polarity. RJHSE-5384 = LED code '4': LED2(LEFT, pads 11/12)=GREEN, LED1(RIGHT, pads 9/10)=YELLOW, both single-color (not bi-color). Confirm actual anode/cathode by continuity or Vf test on a physical sample before relying on LED orientation in the schematic."
+  - "this combined 2-page PDF (dwg P-RJHSE-538X Rev K mechanical/PCB-layout + dwg P-RJHSE-LEDS Rev C color-code table) contains NO contact electrical rating table (current/voltage) — only mechanical dims, LED electricals, and materials. If contact current rating is needed, source a separate Amphenol electrical-specs sheet; do not assume a number here."
+  - "direct fetch of amphenolcanada.com and cdn.amphenol-cs.com PDF URLs both returned HTTP 403 (bot-blocked, even with a browser UA) — the identical document (verified by content) was retrieved via SnapEDA's S3 mirror at https://s3.amazonaws.com/snapeda/datasheet/RJHSE-5384_Amphenol_ICC.pdf; if amphenol's own CDN starts blocking a re-fetch during revision verification, try a distributor/SnapEDA mirror before concluding the doc is gone"
+verified: "pin map cross-checked against datasheet dwg P-RJHSE-538X Rev K (APR03/14), page 1 of the fetched PDF: RECOMMENDED P.C.B. LAYOUT figure (hole pattern/pitch: 8 contacts at 1.016mm x-pitch / 1.78mm row offset, 2x Ø3.25mm NPTH posts, 2x Ø1.57mm shield holes, 4x Ø0.89mm LED holes) + the LED SCHEMATIC inset (explicit '1'-'8' contact numbering in the same zig-zag layout, '9'-'12' LED numbering) — cross-checked pad-for-pad against the KiCad footprint /usr/share/kicad/footprints/Connector_RJ.pretty/RJ45_Amphenol_RJHSE538X.kicad_mod (pad names '1'..'8','9'..'12','SH'x2, 2x unnamed NPTH). Geometry matches (drill sizes, pitch, hole counts identical); the footprint's local coordinate frame is mirrored left-right versus this specific datasheet view (footprint: pad 1 at low-x/'left', ascending to pad 8 at high-x/'right'; datasheet drawing: contact 8/7 at left, descending to 2/1 at right) — this is a viewing-angle artifact (front-view vs. PCB-layout-view rotation), not a renumbering, and does not affect which physical contact each pad name refers to. LED code '4' (=RJHSE-5384 suffix) cross-checked against page 2 'LED OPTIONS FOR RJHSE' color-code table (dwg P-RJHSE-LEDS Rev C): LED2(Left)=GREEN, LED1(Right)=YELLOW — 2026-07-23."
+layout_refs:
+  - "Amphenol catalogue RECOMMENDED PCB LAYOUT p.4 RJHSE-548X + p.6 RJHSE-538X-04, April 2015 ed. (hole-for-hole match to the KiCad footprint)"
+  - "datasheet dwg P-RJHSE-538X Rev K (Apr 2014) RECOMMENDED P.C.B. LAYOUT + LED SCHEMATIC figures, page 1 of the fetched PDF — independently re-fetched and re-measured this session (2026-07-23); confirms identical hole pattern/pitch/drill sizes to the KiCad footprint (see verified: above for the mirroring note)"
+sourcing: {lcsc: C9900035627}

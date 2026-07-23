@@ -1,0 +1,52 @@
+mpn: SS14
+manufacturer: MDD (Microdiode Semiconductor)   # the specific die behind the JLC Basic LCSC part, C2480
+type: schottky_diode           # used here as an inductive-load FLYBACK diode across a magnetic transducer
+datasheet:
+  doc_id: "SS12-SS1200"        # datasheet is a shared family sheet, header "SS12 THRU SS1200"
+  revision: "2025A5"           # footer "http://www.microdiode.com  Rev:2025A5  Page :1"
+  url: https://www.lcsc.com/datasheet/C2480.pdf
+  sha256: 1c2e8ca38c0a1afef95e4e329afc215094264244d161999f40765f5ef79d5720
+  fetched: 2026-07-23
+package: SMA (DO-214AC)
+footprint: Diode_SMD:D_SMA
+escape:
+  style: passive               # 2-pad, big solderable tabs — no fine-pitch escape routing (OUTWARD_STYLES)
+  pitch: 4                     # mm, pad-center spacing on KiCad Diode_SMD:D_SMA (pads at x=-2/+2mm)
+  tier_required: jlc_2layer_default
+  checked: "escape_check.py OUTWARD_STYLES logic 2026-07-23 — style=passive is unconditionally 'ok' at any
+    pitch/tier (skills/kicad-pcb/scripts/escape_check.py grade_tier()); jlc_2layer_default suffices"
+pins:                          # KiCad Diode_SMD:D_SMA puts the cathode on pad 1 — verified below
+  1: {name: K, note: "cathode. Datasheet Mechanical Data, p.1: 'Polarity: Color band denotes cathode end'.
+    KiCad footprint /usr/share/kicad/footprints/Diode_SMD.pretty/D_SMA.kicad_mod places the polarity-band
+    silkscreen line at x=-3.51mm, immediately adjacent to pad 1 (x=-2mm) — confirms pad 1 = cathode band
+    side on this footprint."}
+  2: {name: A, note: "anode"}
+limits:
+  vrrm: 40V                    # maximum repetitive peak reverse voltage
+  vrms: 28V                    # maximum RMS voltage
+  vdc: 40V                     # maximum DC blocking voltage
+  if_av: 1.0A                  # maximum average forward rectified current
+  ifsm: "25A (8.3ms single half-sine surge, JEDEC method, superimposed on rated load)"
+  vf: "0.55V @ IF=1.0A, TA=25C"
+  ir: "0.3mA @ TA=25C / 10.0mA @ TA=100C, at rated VDC blocking voltage"
+  cj_typ: "110pF @ 1MHz, 4.0VDC reverse bias"
+  tj: "-55C to +150C"
+  tstg: "-55C to +150C"
+gotchas:
+  - "used here as a FLYBACK diode across an inductive/magnetic transducer, not a rectifier — orient the
+    cathode (pad 1 / banded end) toward the driven/switched node so the diode blocks during normal drive
+    and only conducts the inductive kickback; reversed, it looks netlist-correct but clamps the wrong
+    polarity and either does nothing or shorts the drive"
+  - "the MDD datasheet is a SHARED table for SS12 thru SS1200 on one page — VF/IR values are grouped by
+    column-span across several part numbers, not printed one-per-part, so misreading a column boundary is
+    easy. VF=0.55V/IR=0.3mA(@25C) for SS14 was cross-checked against the independent JLCPCB C2480
+    part-detail page (550mV@1A, 300uA@40V) — both sources agree exactly."
+  - "SS14 is a generic/JEDEC-style part number carried by many manufacturers (onsemi, MDD, Comchip, ...) at
+    slightly different VF/IR/IFSM. This part.yaml is pinned to the MDD (Microdiode Semiconductor) die behind
+    LCSC/JLC Basic C2480 — onsemi's SS14 (JLC C83852, Extended tier) specs VF=0.50V typ, a different number.
+    If BOM sourcing ever substitutes a different manufacturer's SS14, re-verify VF/IR against that
+    manufacturer's own datasheet before relying on these figures."
+verified: "pin/cathode polarity cross-checked against datasheet Rev:2025A5 Mechanical Data section, page 1
+  ('Polarity: Color band denotes cathode end') AND independently against the KiCad Diode_SMD:D_SMA
+  footprint's own cathode-band silkscreen geometry (band adjacent to pad 1) — 2026-07-23"
+sourcing: {lcsc: C2480, jlc_basic: true}

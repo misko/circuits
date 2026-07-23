@@ -1,0 +1,40 @@
+# Author's declared refdes SET — the S-COUNT / count_parity base. After a silent
+# tscircuit drop, every generated artifact still agrees; only this file disagrees.
+# Mounting holes (H1-H4) are added by the generic backend from floorplan.yaml and
+# are FP_BOARD_ONLY (not in the schematic/netlist) — excluded here by design.
+components:
+  - U1        # OPA1678IDR dual op-amp
+  - MK1       # AOM-5024L-HD-R electret
+  - LS1       # CMT-8504-100-SMT-TR transducer
+  - J1        # RJHSE-5384 RJ45 jack
+  - D1        # TPD2E2U06DRLR ESD array
+  - D2        # SS14 flyback
+  - D3        # SMAJ6.0A DNP TVS
+  - R1        # 100R mic-bias RC filter
+  - R2        # 3.9k mic bias
+  - R3        # 100k INP bias to VMID
+  - R4        # 22k VMID divider top
+  - R5        # 22k VMID divider bottom
+  - R6        # 10k U1A feedback
+  - R7        # 20k U1A gain leg
+  - R8        # 10k U1B input
+  - R9        # 10k U1B feedback
+  - R10       # 100R OUTA series
+  - R11       # 100R OUTB series
+  - C1        # 100uF mic-bias filter
+  - C2        # 1uF input coupling
+  - C3        # 10uF VMID bypass
+  - C4        # 10uF U1A gain-leg DC block
+  - C5        # 10uF OUTA coupling
+  - C6        # 10uF OUTB coupling
+  - C7        # 100nF U1 decouple
+  - C8        # 10uF U1 bulk
+  - C9        # 10uF rail bulk at J1
+  - C10       # 100nF rail HF at J1
+  - TP1       # 5V_AUDIO
+  - TP2       # GND
+  - TP3       # AUDIO_P
+  - TP4       # AUDIO_N
+  - TP5       # 5V_BEEP
+  - TP6       # BEEP_SWITCHED_RETURN
+  - TP7       # VMID

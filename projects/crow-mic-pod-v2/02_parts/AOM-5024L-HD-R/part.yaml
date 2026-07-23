@@ -1,0 +1,64 @@
+mpn: AOM-5024L-HD-R
+manufacturer: PUI Audio, Inc.
+type: electret_microphone     # 2-terminal JFET-buffered electret condenser capsule (HD Series)
+datasheet:
+  doc_id: AOM-5024L-HD-R      # PUI Audio does not assign a separate doc number — the MPN IS the doc title
+  revision: "2017-06-06"      # datasheet's own revision table (p.5) shows revision "-" ("Released from
+                               # Engineering") dated 6/6/2017 — no letter/number rev code exists, so the
+                               # release date is used as the revision string (also embedded in the PDF filename)
+  url: https://puiaudio.com/file/specs-AOM-5024L-HD-R.pdf
+  sha256: b1981ae73606fafde7ce27a54e71a2f6aa655e2dd83c9e268a45ab9cebe1969b
+  fetched: 2026-07-23
+package: >
+  9.7mm dia x 5mm H cylindrical electret capsule. Datasheet Dimensions figure (p.3) shows two D-shaped
+  solder-tab terminals on the can's bottom face (marked "+" and "-" directly in the drawing), NOT flying
+  wire leads. This is not a standard KiCad part — VENDOR a simple 2-pad THT footprint at 2.54mm pitch to
+  land these two tabs (footprint not yet authored under 03_src as of this record).
+footprint: crow_mic_pod:AOM-5024L-HD-R   # VENDORED 2-pad THT, 2.54mm pitch
+  # at 03_src/lib/crow_mic_pod.pretty/AOM-5024L-HD-R.kicad_mod. Pad 1=+ 2=-.
+escape:                        # per brief: {style: connector, pitch: 2.54, tier_required: jlc_2layer_default}
+  style: connector
+  pitch: 2.54
+  tier_required: jlc_2layer_default
+  checked: "escape_check.py OUTWARD_STYLES logic 2026-07-23 — style=connector is unconditionally 'ok' at
+    any pitch/tier (script: skills/kicad-pcb/scripts/escape_check.py grade_tier()); jlc_2layer_default is
+    the cheapest tier and suffices"
+pins:                           # 2-terminal device; vendored footprint pad names are NUMERIC 1/2.
+  "1": {name: "+", note: "output/drain terminal ('+' on the case). Internal JFET source-follower output —
+    the external bias resistor (R2=3.9k) pulls this node toward the filtered rail (VMIC_F) and the AC audio
+    output is coupled off the SAME node (C2). Datasheet Dimensions fig marks '+'; Recommended Drive Circuit
+    (p.3) shows RL from +Vs into this terminal, output through a series cap."}
+  "2": {name: "-", tie: GND, note: "ground/case return terminal ('-' on the case), tied to GND_AUDIO.
+    Datasheet Dimensions fig marks '-'; Recommended Drive Circuit ties it to Ground."}
+limits:
+  vdd_rated: 3V                 # "Rated Voltage"
+  vdd_range: "1~10 VDC"         # "Operating Voltage Range"
+  idd_typ: "500uA @ 3VDC, RL=2.2kOhm"   # "Current consumption"
+  sensitivity: "-24 +/-3 dB (0dB=1V/Pa, 1kHz @ 50cm)"
+  zout: "2.2 kOhm @ 1kHz"       # "Output Impedance"
+  snr: "80 dB (1kHz, 94 dB SPL input, A-weighted)"
+  decreasing_voltage_sensitivity: "-3 dB (3VS to 2VS)"
+  freq_range: "20 ~ 20,000 Hz"
+  max_spl: "110 dB (THD<3%)"
+  ta_op: "-30C ~ +70C"
+  tstg: "-40C ~ +85C"
+  weight: "<0.3 g"
+gotchas:
+  - "not in JLC catalog — hand-wire (Digi-Key 668-1538-ND); capsule solder limit ~2s per lead"
+  - "bias from an RC-filtered rail; op-amp runs on the raw rail (PSRR covers it)"
+  - "soldering iron power must be <90W, tip temp 360C +/-10C (680F +/-50F), and soldering duration per
+    terminal at/under 2 seconds — datasheet 'Microphone Handling Precautions' (p.4). Exceeding this can
+    damage the diaphragm/FET. Prefer a metal fixture as heatsink + alignment jig per the same section."
+  - "package has built-in 10pF/33pF GSM buzz-blocking capacitors across the internal FET per the
+    Recommended Drive Circuit figure (p.3) — this confirms it is a standard 2-terminal JFET-buffered
+    electret (bias + terminal through RL from Vdd, AC-coupled output off the same node, - terminal to
+    ground), not a bare unbuffered capsule. Do not add a second/duplicate RF bypass cap expecting the
+    internal ones to be absent."
+  - "ESD rating per datasheet (p.3): 6000V contact discharge into the output through a 330 ohm resistor,
+    8000V air discharge into the sound hole, IEC 61000 method — informs any board-level ESD budget for the
+    mic pod enclosure opening."
+verified: "terminal polarity + drive-circuit topology cross-checked against datasheet 'Dimensions' figure
+  (case bottom view marks the two terminals '+' and '-') and 'Recommended Drive Circuit' figure, both on
+  page 3 of PUI Audio 'Data Sheet AOM-5024L-HD-R' (revision table p.5: released from engineering 6/6/2017)
+  — 2026-07-23"
+sourcing: {lcsc: null, digikey: "668-1538-ND"}

@@ -1,0 +1,85 @@
+# crow-mic-pod-v2 ELECTRICAL-INVARIANTS (canon E-INV) — design INTENT made
+# executable against the exported netlist. Every protection/topology ADR emits
+# >=1 assertion (E-ADR). Graded by electrical_invariants.py.
+
+invariants:
+  # ---- ADR-0001 protection & grounding ----
+  - assert: pin_on_net
+    pin: "D2.1"
+    net: 5V_BEEP
+    adr: 0001
+    why: "SS14 flyback cathode (KiCad D_SMA pad 1 = band) sits on the 5V_BEEP rail so it blocks during normal drive and freewheels the inductive kick — reversed, it shorts the drive"
+
+  - assert: series_chain
+    chain: [5V_BEEP, LS1, BEEP_SWITCHED_RETURN]
+    adr: 0001
+    why: "the CMT-8504 transducer bridges the two beep nets — the drive loop exists as designed (LS1 + terminal to +5V_BEEP, - terminal to the switched return)"
+
+  - assert: net_has_part
+    net: AUDIO_P
+    part_type: diode
+    min: 1
+    adr: 0001
+    why: "the exposed hot output pin AUDIO_P carries the TPD2E2U06 ESD clamp (D1)"
+
+  - assert: net_has_part
+    net: 5V_AUDIO
+    part_type: capacitor
+    min: 1
+    adr: 0001
+    why: "the 5V_AUDIO rail carries decoupling/bulk capacitors"
+
+  # ---- ADR-0002 active-balanced driver ----
+  - assert: series_chain
+    chain: [OUTA, R8, INB]
+    adr: 0002
+    why: "stage B (inverter) is driven from stage A's hot output OUTA through R8 — the balance-generating path exists"
+
+  - assert: net_has_part
+    net: VMID
+    part_type: capacitor
+    min: 1
+    adr: 0002
+    why: "the 2.5V virtual-ground reference VMID is bypassed"
+
+  # ---- ADR-0003 RJ45 custom NON-ETHERNET pinout (the shared cable contract, pinned) ----
+  - assert: pin_on_net
+    pin: "J1.1"
+    net: AUDIO_P
+    adr: 0003
+    why: "orange tip (contact 1) = balanced hot output"
+  - assert: pin_on_net
+    pin: "J1.2"
+    net: AUDIO_N
+    adr: 0003
+    why: "orange ring (contact 2) = balanced cold output"
+  - assert: pin_on_net
+    pin: "J1.3"
+    net: 5V_BEEP
+    adr: 0003
+    why: "green tip (contact 3) = transducer supply from central"
+  - assert: pin_on_net
+    pin: "J1.6"
+    net: BEEP_SWITCHED_RETURN
+    adr: 0003
+    why: "green ring (contact 6) = transducer return, switched low-side at central"
+  - assert: pin_on_net
+    pin: "J1.4"
+    net: 5V_AUDIO
+    adr: 0003
+    why: "blue ring (contact 4) = pod supply (paralleled with contact 5)"
+  - assert: pin_on_net
+    pin: "J1.5"
+    net: 5V_AUDIO
+    adr: 0003
+    why: "blue tip (contact 5) = pod supply (paralleled with contact 4)"
+  - assert: pin_on_net
+    pin: "J1.7"
+    net: GND
+    adr: 0003
+    why: "brown tip (contact 7) = analog ground / return (paralleled with contact 8)"
+  - assert: pin_on_net
+    pin: "J1.8"
+    net: GND
+    adr: 0003
+    why: "brown ring (contact 8) = analog ground / return (paralleled with contact 7)"

@@ -1,0 +1,23 @@
+# crow-mic-pod-v2 power tree — read by power_topology.py (E-TOPO/E-MARGIN/E-OFF).
+#
+# This board has NO on-board energy source and NO converter. It is an
+# EXTERNALLY-POWERED node: 5V_AUDIO / GND_AUDIO and 5V_BEEP /
+# BEEP_SWITCHED_RETURN all arrive from the sibling CENTRAL recorder over one
+# Cat5e home-run (ADR-0001, BRIEF D2). Therefore:
+#   E-TOPO   — no converter rails to derive (rails: []).
+#   E-OFF    — N-A: an external supply is de-energized by unplugging the
+#              cable / powering down central. No battery/cell/pack present.
+#   E-MARGIN — no regulated on-board rail; the ~5 mA pod load over a
+#              paralleled Cat5e pair drops ~1.6 mV (ARCHITECTURE.md power
+#              table) — the op-amp works to 2.7V, so brownout is impossible.
+
+# External supply — marks E-OFF N-A (no battery/cell/pack, no VBAT/PACK net,
+# no battery ADR). "dc" / external keyword: unplugging de-energizes it.
+source_type: external dc supply (cable-fed 5V from central recorder)
+
+# No on-board converter — nothing for E-TOPO to derive.
+rails: []
+
+# Advisory load note (not a gated rail): pod draws ~2 mA typ / <5 mA max on
+# 5V_AUDIO; the calibration transducer sinks ~150 mA on 5V_BEEP in bursts,
+# sourced and switched entirely by central.

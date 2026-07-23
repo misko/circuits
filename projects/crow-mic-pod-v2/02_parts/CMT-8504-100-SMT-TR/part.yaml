@@ -1,0 +1,77 @@
+mpn: CMT-8504-100-SMT-TR
+manufacturer: CUI Devices (rebranded "Same Sky" as of datasheet rev 1.04, 2024-09-11)
+type: magnetic_transducer      # electromagnetic (voice-coil style) SMD buzzer,
+                                # EXTERNALLY DRIVEN — not a self-oscillating buzzer.
+                                # Needs an external ~4kHz square-wave drive
+                                # (see limits: and gotchas: below).
+datasheet:
+  doc_id: CMT-8504-100-SMT-TR   # Same Sky/CUI datasheets carry no separate doc
+                                 # number, just MPN + numeric rev
+  revision: "1.04"               # "1.04 CUI Devices rebranded to Same Sky, 2024-09-11"
+                                 # per REVISION HISTORY table, page 5
+  url: https://www.sameskydevices.com/product/resource/cmt-8504-100-smt-tr.pdf
+  sha256: fe81ed8828c2044f71ef26e28e1f37fb3a5c91a7d62e3f14fdc482e03af6506f
+  fetched: 2026-07-23
+package: SMD magnetic buzzer transducer, 8.5 x 8.5 x 4.0mm LCP body, 4 corner
+  solder pads (2 electrical + 2 mechanical/dummy), centered Ø2.0mm sound port
+footprint: crow_mic_pod:CMT-8504-100-SMT-TR   # VENDORED (no stock KiCad match)
+  # built at 03_src/lib/crow_mic_pod.pretty/CMT-8504-100-SMT-TR.kicad_mod from
+  # the datasheet land pattern below. Pad names: 1=+ 2=- 3/4=dummy(NC).
+escape:
+  style: connector
+  pitch: 3.0
+  tier_required: jlc_2layer_default
+pins:                           # 4 pads: 2 electrical (polarized) + 2 dummy(NC).
+                                 # Vendored-footprint pad names are NUMERIC (1..4)
+                                 # so the tscircuit port hints stay tsx-safe.
+  "1": {name: "+", note: "POSITIVE drive terminal (top-left in the datasheet PCB-layout top view; '+' laser mark on the part). Connects to 5V_BEEP."}
+  "2": {name: "-", note: "NEGATIVE/return drive terminal (bottom-left, same column as +). Connects to BEEP_SWITCHED_RETURN (switched low-side at central)."}
+  "3": {name: "NC-dummy", tie: NC, note: "TOP-RIGHT mechanical-only dummy pad — NOT internally connected to the coil (datasheet '2-DUMMY PAD' callout). Left unconnected; solder for joint strength only."}
+  "4": {name: "NC-dummy", tie: NC, note: "BOTTOM-RIGHT mechanical-only dummy pad — same as pad 3."}
+limits:
+  rated_voltage: "5.0 Vo-p"       # peak-to-peak drive voltage rating
+  operating_voltage: "1.0 to 6.0 Vo-p"
+  current_max: "150mA @ rated voltage, 4000Hz, 1/2 duty square wave"
+  rated_frequency: "4000Hz typ"    # nominal drive frequency
+  spl_min: "100dB @ 10cm, rated voltage, 4000Hz, 1/2 duty square wave"
+  coil_resistance: "12 min / 15 typ / 18 max Ohm"
+  operating_temp: "-40C to 85C"
+  storage_temp: "-40C to 85C"
+  reflow_max: "260C (see recommended reflow profile, page 1)"
+  weight: "0.6g"
+  material: "LCP body; brass SMD terminals"
+  drive_type: "externally driven (electromagnetic/inductive coil, NOT self-oscillating) — requires an external square-wave drive, nominal 4kHz per rated spec"
+gotchas:
+  - "JLC stock chronically THIN (was 182 on 2026-07-18, 104 on 2026-07-21) — order-day re-check mandatory; Digi-Key hand-solder fallback"
+  - "inductive load: needs flyback/TVS clamp at the driven end when switched"
+  - "datasheet's OWN reference 'APPLICATION CIRCUIT' (page 3 of 5) confirms the flyback-diode gotcha directly: transducer '+' to +VDC, '-' to an NPN driver transistor (e.g. 2SC1741AS or equiv., Vce<0.15V) collector, base driven via 180 Ohm from a 2.5V logic square wave, and a flyback diode wired in parallel across the transducer (cathode to +VDC, anode to the driven node) — replicate this clamp topology, do not drive the coil unprotected"
+  - "the 2 'DUMMY PAD' corners are NOT a second +/- pair and are NOT internally bonded to the coil — confirmed mechanical-only by the datasheet's own callout; a symmetric-looking 4-pad footprint invites an accidental 2nd power/ground connection here, don't make one without verifying against a real unit"
+  - "no official KiCad footprint exists in standard libraries (checked /usr/share/kicad/footprints) — must vendor a 4-pad land pattern from the numbers below (Recommended PCB Layout, datasheet page 2 of 5) before this part can be placed"
+  - "the component's OWN corner-pad metallization (on the physical part, 8.5x8.5mm body, pad centers at +/-2.75mm from body center) is SMALLER/different from the RECOMMENDED PCB LAND pattern (9.5x9.5mm span, pad centers at +/-3.5mm) — always footprint to the PCB-layout numbers below, not the component-body numbers, the land is intentionally oversized for solder-fillet visibility"
+verified: "pin count, polarity-pad location, and dummy-pad location cross-checked against datasheet rev 1.04 (Same Sky, formerly CUI Devices, fetched 2026-07-23) MECHANICAL DRAWING figure, page 2 of 5 — both the component-body view (front view + side view + isometric-corner detail, showing 'POLARITY PAD(+)' top-left, 'POLARITY PAD(-)' bottom-left, '2-DUMMY PAD' right column) and the 'Recommended PCB Layout / Top View' figure (same 4-corner arrangement, same +/- assignment) agree. Electricals cross-checked against the SPECIFICATIONS table, page 1 of 5."
+layout_refs:
+  - "datasheet rev 1.04, page 2 of 5, 'Recommended PCB Layout / Top View' figure — land pattern used directly for footprint vendoring (see land_pattern: below)"
+  - "datasheet rev 1.04, page 3 of 5, 'APPLICATION CIRCUIT' figure — NPN driver + flyback-diode reference topology"
+land_pattern:                    # extracted from datasheet page 2/5, "Recommended
+                                  # PCB Layout, Top View" figure, for vendoring the
+                                  # .kicad_mod. Origin = part/footprint center
+                                  # (= sound-port center = body center; layout is
+                                  # symmetric about both axes).
+  units: mm
+  tolerance: "+/-0.5mm stated on the mechanical drawing"
+  body_outline: {shape: "square, chamfered corners", width: 8.5, height: 8.5, thickness: 4.0}
+  sound_port: {shape: circle, diameter: 2.0, center: [0, 0]}
+  pad_count: 4
+  pad_shape: rect
+  pad_size: {w: 2.5, h: 2.5}      # derived: outer span 9.5mm, inner gap 4.5mm ->
+                                  # each pad = (9.5-4.5)/2 = 2.5mm per side
+  pads:
+    - {id: "+", center_mm: [-3.5, 3.5], note: "top-left, POLARITY PAD (+)"}
+    - {id: "-", center_mm: [-3.5, -3.5], note: "bottom-left, POLARITY PAD (-)"}
+    - {id: "NC1", center_mm: [3.5, 3.5], note: "top-right, 2-DUMMY PAD"}
+    - {id: "NC2", center_mm: [3.5, -3.5], note: "bottom-right, 2-DUMMY PAD"}
+  outer_span_mm: 9.5              # outer-edge-to-outer-edge, both axes (datasheet dim)
+  inner_gap_mm: 4.5                # inner-edge-to-inner-edge, both axes (datasheet dim)
+  courtyard_suggestion_mm: [10.0, 10.0]   # pad bbox (9.5x9.5) + 0.25mm/side std
+                                            # KiCad courtyard clearance; not datasheet-stated
+sourcing: {lcsc: C22359707}

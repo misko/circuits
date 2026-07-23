@@ -1,0 +1,61 @@
+mpn: SMAJ6.0A
+manufacturer: LRC              # specific die behind the JLC/LCSC part actually resolvable for this MPN, C559105
+type: tvs_diode                # unidirectional 400W TVS, DNP/optional clamp position across a beep transducer
+datasheet:
+  doc_id: "SMAJ-A-Series"      # datasheet header repeats "SMAJ***A Series" (voltage-code wildcard)
+  revision: "Rev6-2018-10-13"  # Chinese "Update Record" table, p.5: rev 6, "增加300V 350V 400V产品" (added
+                                # 300/350/400V parts), author 谭志伟, date 2018-10-13 — latest row = doc revision
+  url: https://www.lcsc.com/datasheet/C559105.pdf
+  sha256: d68e4d7afc445a40b2941e69140d4cc5afb8c6a6b6723c07c8ec342b4404ac7d
+  fetched: 2026-07-23
+package: SMA (DO-214AC)
+footprint: Diode_SMD:D_SMA
+escape:
+  style: passive                # 2-pad, big solderable tabs — no fine-pitch escape routing (OUTWARD_STYLES)
+  pitch: 4                      # mm, pad-center spacing on KiCad Diode_SMD:D_SMA (pads at x=-2/+2mm)
+  tier_required: jlc_2layer_default
+  checked: "escape_check.py OUTWARD_STYLES logic 2026-07-23 — style=passive is unconditionally 'ok' at any
+    pitch/tier (skills/kicad-pcb/scripts/escape_check.py grade_tier()); jlc_2layer_default suffices"
+pins:                           # KiCad Diode_SMD:D_SMA puts the cathode on pad 1 — verified below
+  1: {name: K, note: "cathode. Datasheet Mechanical Data, p.1: 'Polarity: Color band denoted cathode except
+    Bipolar' — SMAJ6.0A is the unidirectional 'A'-suffix part (not 'CA'), so it DOES carry the band. Device
+    marking code is 'AG' (electrical table row, p.1); the dimension/marking figure (p.4, section '3.
+    dimension:') shows marking 'AG' next to the label '负极色环' (cathode color-band). KiCad footprint
+    /usr/share/kicad/footprints/Diode_SMD.pretty/D_SMA.kicad_mod places the polarity-band silkscreen line at
+    x=-3.51mm, immediately adjacent to pad 1 (x=-2mm) — confirms pad 1 = cathode band side on this
+    footprint, same convention verified for SS14 (this project's flyback diode)."}
+  2: {name: A, note: "anode"}
+limits:
+  vwm: "6.00V"                  # reverse stand-off voltage
+  vbr_min: "6.67V @ It=10mA"    # breakdown voltage min
+  vbr_max: "7.37V @ It=10mA"    # breakdown voltage max
+  vc_clamp: "10.30V @ Ipp=38.8A"   # max clamping voltage at rated peak pulse current
+  ipp: "38.8A (10/1000us waveform)"
+  ir_at_vwm: "800uA @ VWM=6.00V"
+  pppm: "400W min (TP=1ms peak pulse, TA=25C)"
+  pm_av: "1.0W (steady state, TL=75C, 1.57in^2 copper pad)"
+  ifsm: "30A (8.3ms half-sine surge, JEDEC method)"
+  tj: "-55C to +150C"
+  tstg: "-55C to +150C"
+  device_marking: AG
+gotchas:
+  - "DNP / OPTIONAL alternate clamp position across a ~5V beep-line transducer, NOT populated by default"
+  - "6.0V standoff (Vwm) sits above the ~5V nominal beep-line — confirmed adequate headroom: it will not
+    conduct during normal 5V drive, and only clamps transients once the line exceeds Vbr_min=6.67V"
+  - "unidirectional ('A' suffix, not 'CA') — reversing it clamps the WRONG half-cycle. A DC continuity check
+    across the part looks identical either way, so polarity must be read off the datasheet/footprint, not
+    inferred from the netlist. Cathode (pad 1 / banded end, marking 'AG') goes to the higher-potential /
+    driven side of the beep line, anode to the return/ground side."
+  - "no JLC BASIC-tier SMAJ6.0A exists as of this search — the only JLC listing found (LRC, C559105) is
+    Extended tier, confirmed both on the JLCPCB part-detail page and against the community
+    JLCPCB-Basic-Parts CSV (no SMAJ* entries at all). Since this position is DNP by default, the Extended
+    fee only applies if a build later chooses to populate it."
+  - "SMAJ6.0A is a generic/JEDEC-style part number carried by many TVS manufacturers (Littelfuse, Bourns,
+    ST, LRC, ...) at slightly different Vbr/Vc. This part.yaml is pinned to the LRC datasheet behind
+    LCSC/JLC C559105; the numbers above (Vbr 6.67-7.37V, Vc 10.3V, Ipp 38.8A) are LRC's specific figures —
+    re-verify against the actual manufacturer's datasheet if sourcing substitutes a different vendor."
+verified: "pin polarity + ratings cross-checked against LRC 'SMAJ***A Series' datasheet Rev.6 (2018-10-13),
+  electrical characteristics table page 1 (row: SMAJ6.0A / marking AG / Vrwm 6.00 / Vbr 6.67-7.37 / It 10.00
+  / Vc 10.30 / Ipp 38.80 / Ir 800) + Mechanical Data polarity note page 1 + dimension/marking figure page 4
+  (section '3. dimension:', marking 'AG' next to '负极色环' cathode-band label) — 2026-07-23"
+sourcing: {lcsc: C559105, jlc_basic: false}
