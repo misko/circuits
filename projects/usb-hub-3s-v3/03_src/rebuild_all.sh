@@ -25,6 +25,8 @@ $PY "$S/route_and_stitch_generic.py" route  03_src/route.yaml
 $PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml
 $PY "$S/route_and_stitch_generic.py" taps   03_src/route.yaml
 $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
+# [7b] v1.1 post-stitch geometry fixes (EP thermal vias, VBAT_F F<->B stitch, drill/width floors, GND-island bond)
+$PY 03_src/post_stitch_fixes.py
 # [8] generate_rules LAST (pcbnew saves clobber .kicad_pro netclasses)  [SHARED]
 $PY "$S/generate_rules_generic.py" .
 # [8b] silk-height floor (pcbnew resets min_text_height to 0.8; advanced floor 0.45)

@@ -21,19 +21,21 @@ prep:
     edge_band: 0.7
 
   waves:
-    exclude: ["GND", "VBAT", "VBAT_F", "VIN", "5VA", "5VC",
+    exclude: ["GND", "VBAT", "VBAT_F", "VIN", "5VA", "5VC", "VBUSC", "EFINC",
               "VBUSA1", "VBUSA2", "VBUSA3",
-              "SW_A", "SW_C", "CS_A", "CS_C",
+              "SW_A", "SW_C", "CS_A", "CS_C", "SNUB_A", "SNUB_C",
               # J5 USB-C corner: CC + interleaved D+/D- edge pads defeat KRT
               # (v1 finding) -> deterministic taps own them (see taps:).
               "CC1", "CC2", "DPC", "DMC",
               "unconnected-*"]
     groups:
       # hardest first: FET gate drives + bootstraps (both bucks)
-      gate: [HO_A, LO_A, BOOT_A, HO_C, LO_C, BOOT_C]
+      gate: [HO_A, LO_A, BOOT_A, HO_C, LO_C, BOOT_C, BGATEC, DRVC]
       # buck control/sense (both bucks) + VCC local decouple
-      sense: [FB_A, COMP_A, CMZ_A, RAMP_A, RT_A, SS_A, UVLO_A, EN_A, CSF_A, CSGF_A, VCC_A,
-              FB_C, COMP_C, CMZ_C, RAMP_C, RT_C, SS_C, UVLO_C, EN_C, CSF_C, CSGF_C, VCC_C]
+      sense: [FB_A, COMP_A, CMZ_A, RAMP_A, RT_A, SS_A, UVLO_A, CSF_A, CSGF_A, VCC_A,
+              FB_C, COMP_C, CMZ_C, RAMP_C, RT_C, SS_C, UVLO_C, CSF_C, CSGF_C, VCC_C,
+              ENKILL,                          # v1.1 master-off bus (SW1.COM->both EN)
+              OVPC, DVDTC, ILIMC, SHDNC]       # v1.1 eFuse set-pin dividers
       # USB-A data + current-limit
       dataa: [DP_A1, DM_A1, DP_A2, DM_A2, DP_A3, DM_A3, ILIM1, ILIM2, ILIM3]
       sig: rest
@@ -73,10 +75,21 @@ taps:
   connections:
     # --- 5VA / 5VC output-sense taps (FB divider top + VOUT sense pin) ---
     # PWR_RAIL floor is 0.6mm -> these pour-connection stubs must be 0.6 too.
-    - {net: 5VA, from: U2.10, to: [95.0, 42.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu}   # [90,40] was inside SW_A island -> via landed on SW copper (dangling); [95,42] is clean 5VA
-    - {net: 5VA, from: R3.1,  to: [98.0, 46.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu}
+    - {net: 5VA, from: U2.10, to: R3.1, width: 0.4, layer: F.Cu, hop_layer: B.Cu}   # VOUT sense -> local FB-top (both 5VA, ~6mm); R3.1's own tap reaches the pour. Avoids the roll-fragile 38mm cross-buck run.
+    - {net: 5VA, from: R3.1, to: [98.0, 46.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu,
+       escape: true, escape_grid: 0.25, escape_window: 9.0, escape_viacost: 5, escape_attempts: 20}   # FB-top sense; escape A* keeps 0.15 clr (via_hop B.Cu run clipped a COMP_A via)
     - {net: 5VC, from: U11.10, to: [95.0, 76.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu}   # [90,74] was inside SW_C island -> dangling via; [95,76] is clean 5VC
-    - {net: 5VC, from: R12.1,  to: [96.0, 80.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu}
+    # v1.1 buck-C FB now senses VBUSC at the connector (post-eFuse). R12.1 is a
+    # long quiet Kelvin run to the SE VBUSC west-leg pour -> LAYER-escape A*.
+    - {net: VBUSC, from: R12.1, to: [113.0, 102.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu,
+       escape: true, escape_grid: 0.3, escape_window: 6.0, escape_viacost: 6, escape_attempts: 20}
+    # v1.1 eFuse IN_SYS sense pin (U13.6, fine-pitch W side) -> 5VC landing patch
+    - {net: 5VC, from: U13.6, to: [107.5, 94.6], width: 0.4, layer: F.Cu, hop_layer: B.Cu}
+    # v1.1 SW-node RC snubbers (DNP-populate): SW pour tap + SNUB link (SWITCH_NODE 0.6)
+    - {net: SW_A,   from: R34.1, to: [85.0, 40.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}
+    - {net: SNUB_A, from: R34.2, to: C53.1,        width: 0.6, layer: F.Cu, hop_layer: B.Cu}
+    - {net: SW_C,   from: R35.1, to: [85.0, 78.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}
+    - {net: SNUB_C, from: R35.2, to: C54.1,        width: 0.6, layer: F.Cu, hop_layer: B.Cu}
     # (v3: the PD power-pin taps — U1.20/U1.19/C44 — are gone with the PD cell.)
     # --- chip pins that sit outside their pour island -> bond to the island ---
     - {net: SW_A,  from: U2.20,  to: [79.0, 34.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}

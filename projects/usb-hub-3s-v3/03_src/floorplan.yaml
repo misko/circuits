@@ -31,7 +31,7 @@ board:
     footprint: MountingHole:MountingHole_3.2mm_M3
     at: [[26.0, 26.0], [26.0, 106.0], [106.0, 24.0], [144.0, 92.0]]
 
-libraries: [/usr/share/kicad/footprints, 03_src/lib]
+libraries: [03_src/lib, /usr/share/kicad/footprints]   # v1.1: project dir first so vendored SW1 fp maps correctly (fp-lib-table)
 
 placement:
   anchors:
@@ -83,7 +83,16 @@ placement:
     # pull-ups are seeded below. J5 VBUS pads A4/A9/B4/B9 on 5VC; CC1/CC2 (A5/B5)
     # and DPC/DMC (A6/A7/B6/B7) escape north through the clear x118.2-122.3 column.
     U12: [126.0, 101.7, 180]  # C-port data ESD (rot180: DMC pins 3/4 face N channel); clears J5 courtyard
-    J5:  [120.0, 109.0, 0]    # USB-C mouth SOUTH; VBUS pads (A4/A9/B4/B9) on 5VC
+    J5:  [120.0, 109.0, 0]    # USB-C mouth SOUTH; VBUS pads (A4/A9/B4/B9) on VBUSC (v1.1 eFuse OUT)
+
+    # ---------------- PROTECTED-VBUS eFuse cell (v1.1) — vacated SE 5VC bridge ----
+    # series 5VC -> Q6(block FET) -> EFINC -> U13(eFuse) -> VBUSC -> J5. Linear W->E:
+    # Q6 rot0 S(1-3)=5VC WEST / D-tab(5)=EFINC EAST; U13 (same HTSSOP-20 as the
+    # LM5116s) rot0 IN(1-3)=EFINC top-WEST / OUT(18-20)=VBUSC top-EAST.
+    Q6:  [104.5, 90.5, 0]     # AON6354 blocking FET: S=5VC(W), D-tab=EFINC(E), G=BGATEC
+    U13: [113.0, 92.0, 0]     # TPS26631 eFuse: IN(1-3)=EFINC(W-top), OUT(18-20)=VBUSC(E-top), EP=GND
+    Q7:  [105.5, 98.5, 0]     # BSS138 fast pulldown: G(1)=DRVC, S(2)=5VC, D(3)=BGATEC (S of U13)
+    SW1: [66.0, 58.0, 0]      # SS12D07 master-off slide; COM(2)=ENKILL, T1(1)=GND, T2(3)=NC; open board center, accessible
 
   seeds:
     # -------- Buck A control cluster (LEFT/south of U2) --------
@@ -158,8 +167,21 @@ placement:
     R27: [132.0, 106.0]   # DCP short DPC-DMC (east of U12, clear of its south channel)
     R28: [116.5, 105.0]   # CC1 Rp 10k: pin(CC1)->J5.A5; 5VC pin in west VBUS pour
     R29: [123.0, 105.0]   # CC2 Rp 10k: pin(CC2)->J5.B5; 5VC pin in east VBUS pour
-    C49: [120.3, 91.0]    # VBUS(5VC) bulk 10u (unchanged position; in 5VC pour)
-    C50: [125.2, 91.0]    # VBUS(5VC) bulk 10u (unchanged position; in 5VC pour)
+    C49: [120.3, 91.0]    # VBUS(VBUSC) bulk 10u (in VBUSC pour, U13 OUT side)
+    C50: [125.2, 91.0]    # VBUS(VBUSC) bulk 10u (in VBUSC pour, U13 OUT side)
+    # -------- eFuse set/bypass passives (v1.1); around U13 --------
+    C52: [108.5, 89.0]    # EFINC IN-bypass 100n (C52.1=EFINC, in EFINC pour gap)
+    C51: [110.0, 97.5]    # dVdT 10n (C51.1=DVDTC->U13.10 W-bottom)
+    R30: [116.5, 97.5]    # ILIM 3.09k (R30.1=ILIMC->U13.11 E-bottom, R30.2=GND)
+    R31: [103.5, 96.5]    # OVP top 47.5k (R31.1=5VC, R31.2=OVPC->U13.8 W)
+    R32: [105.5, 98.0]    # OVP bot 12.1k (R32.1=OVPC, R32.2=GND)
+    R33: [103.5, 98.5]    # SHDN top 100k (R33.1=5VC, R33.2=SHDNC->U13.13 E)
+    R36: [105.5, 99.5]    # SHDN bot 150k (R36.1=SHDNC, R36.2=GND)
+    # -------- SW-node RC snubbers (v1.1, DNP-populate); on each buck SW island --
+    R34: [86.0, 44.5]     # buck-A snub R 2.2ohm (R34.1=SW_A, R34.2=SNUB_A)
+    C53: [88.5, 44.5]     # buck-A snub C 1n  (C53.1=SNUB_A, C53.2=GND)
+    R35: [86.0, 82.5]     # buck-C snub R 2.2ohm (R35.1=SW_C, R35.2=SNUB_C)
+    C54: [88.5, 82.5]     # buck-C snub C 1n  (C54.1=SNUB_C, C54.2=GND)
 
   legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 80}
 
@@ -187,6 +209,9 @@ zones:
   - {net: VBAT,   layers: [F.Cu], priority: 2, rect: [23.0, 34.0, 38.0, 60.0], connect: full}
   - {net: VBAT_F, layers: [F.Cu], priority: 2, rect: [39.0, 54.0, 47.0, 62.0], connect: full}   # F1.2 east
   - {net: VBAT_F, layers: [F.Cu], priority: 3, rect: [30.0, 60.5, 47.0, 69.0], connect: full}   # Q1.5 south (P3: legal union)
+  # v1.1 thermal fix: mirror VBAT_F onto B.Cu (input-trunk ~7A copper doubling); F<->B stitch vias added post-fill.
+  - {net: VBAT_F, layers: [B.Cu], priority: 2, rect: [39.0, 54.0, 47.0, 62.0], connect: full}
+  - {net: VBAT_F, layers: [B.Cu], priority: 3, rect: [30.0, 60.5, 47.0, 69.0], connect: full}
   - {net: VIN,    layers: [F.Cu], priority: 2, rect: [23.0, 60.0, 47.0, 80.0], connect: full}   # input VIN pool: Q1.S + C1/C2 + D1
   # ---- buck A / buck C VIN Cin pools ----
   - {net: VIN,    layers: [F.Cu], priority: 2, rect: [58.0, 22.5, 82.0, 32.0], connect: full}   # buck A Cin
@@ -203,7 +228,7 @@ zones:
     priority: 2
     connect: full
     points: [[86.0, 24.8], [116.0, 24.8], [116.0, 84.0], [98.0, 84.0], [98.0, 44.0], [86.0, 44.0]]  # east 114->116 covers C34.1; top 26->24.8 covers C14/C15 (legalized to y25.4)
-  - net: 5VC         # buck C out (x86-98) + reach east to RS3.1 / C48 / U1.20
+  - net: 5VC         # buck C out (x86-98) + notch reaches Q6 source (5VC->eFuse in)
     layers: [F.Cu, B.Cu]
     priority: 2
     connect: full
@@ -212,19 +237,20 @@ zones:
   - {net: VBUSA1, layers: [F.Cu, B.Cu], priority: 2, rect: [118.0, 29.0, 143.0, 44.0], connect: full}
   - {net: VBUSA2, layers: [F.Cu, B.Cu], priority: 2, rect: [118.0, 51.0, 143.0, 66.0], connect: full}
   - {net: VBUSA3, layers: [F.Cu, B.Cu], priority: 2, rect: [118.0, 73.0, 143.0, 88.0], connect: full}
-  # ---- USB-C VBUS == 5VC (v3, no PD): pour the buck-C output straight to J5 ----
-  # The vacated PD-cell region is now a continuous 5VC pour bridging the buck-C
-  # output (reaches x92-103,y88-96.5) east + south to J5's VBUS pads and C49/C50.
-  # Kept CLEAR of J5's center CC/data column (x118.2-122.3, y>=102.5) so CC1/CC2
-  # (A5/B5) + DPC/DMC (A6/A7/B6/B7) escape north to R28/R29 / U12.
-  # NOTE: same-net zones that INTERSECT must carry DISTINCT priorities (KiCad
-  # zones_intersect rule). buck-C pour + east block are p2, J5 fans p3, the bridge
-  # (which overlaps buck-C, east block and J5-west) is p5 -> every overlapping pair
-  # differs. Same net, so the fills merge into one 5VC island regardless of order.
-  - {net: 5VC, layers: [F.Cu, B.Cu], priority: 5, rect: [98.0, 88.5, 122.0, 102.5], connect: full}   # bridge: overlaps buck-C notch (x98-103) -> C49 -> into east block (x121-122)
-  - {net: 5VC, layers: [F.Cu, B.Cu], priority: 2, rect: [121.0, 85.0, 143.0, 102.5], connect: full}   # C50 bulk + east block
-  - {net: 5VC, layers: [F.Cu, B.Cu], priority: 3, rect: [107.0, 100.0, 118.2, 108.0], connect: full}  # J5 west VBUS (A4/B4 @117.7) + R28; overlaps bridge y100-102.5
-  - {net: 5VC, layers: [F.Cu, B.Cu], priority: 3, rect: [122.3, 100.0, 143.0, 108.0], connect: full}  # J5 east VBUS (A9/B9 @122.2) + R29; overlaps east block y100-102.5
+  # ---- v1.1 PROTECTED-VBUS pours: 5VC -> Q6 -> EFINC -> U13 -> VBUSC -> J5 ----
+  # The old single 5VC-to-J5 bridge is SPLIT by the eFuse cell. 5VC now ends at
+  # Q6 source (the buck-C L-shape notch already reaches x92-103,y88-96.5 == Q6.S).
+  # A small 5VC landing patch feeds the set-pin divider tops (R31/R33), Q7 source
+  # and the U13.6 IN_SYS tap. EFINC (Q6 drain -> U13 IN, 5A) is a short pour.
+  # VBUSC (U13 OUT -> J5, the eFuse-protected connector rail) replaces the old J5
+  # pour. CC/data column x118.2-122.3 stays pour-free below y100 for CC1/CC2 +
+  # DPC/DMC escape. Different-net zones may overlap; same-net overlaps get distinct
+  # priorities (buck-C notch p2 vs landing patch p3; VBUSC main p2 vs J5 legs p3).
+  - {net: 5VC,   layers: [F.Cu, B.Cu], priority: 3, rect: [97.0, 93.5, 108.8, 99.8], connect: full}   # 5VC landing patch (set-pin dividers + Q7.S)
+  - {net: EFINC, layers: [F.Cu, B.Cu], priority: 2, rect: [103.6, 85.4, 111.4, 91.4], connect: full}  # Q6 D-tab -> U13 IN(1-3) + C52 (N ext catches C52)
+  - {net: VBUSC, layers: [F.Cu, B.Cu], priority: 2, rect: [114.3, 87.5, 128.5, 100.0], connect: full} # U13 OUT(18-20) + C49 + C50 + U12.5
+  - {net: VBUSC, layers: [F.Cu, B.Cu], priority: 3, rect: [110.5, 99.5, 118.2, 106.8], connect: full} # J5 west VBUS (A4/B4 @117.55) + R28.2
+  - {net: VBUSC, layers: [F.Cu, B.Cu], priority: 3, rect: [122.3, 99.5, 129.0, 106.8], connect: full} # J5 east VBUS (A9/B9 @122.45) + R29.2
 
 keepouts:
   # pd_escape corridor removed with the PD cell (v3). The buck sense areas remain
@@ -236,13 +262,13 @@ silk:
   min_text_height: 0.6
   refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQL"}
   captions:
-    - {text: "PROTECTED 3S + BAL-CHG ONLY", at: [66.0, 54.0], size: 0.7, nudge: false}   # open board center, silk-clear (was 30,36 -> over J1)
-    - {text: "9-12.6V XT60 IN", at: [78.0, 54.0], size: 0.7, nudge: false}   # open board center, silk-clear (was 30,38 -> over J1/F1)
+    - {text: "PROTECTED 3S + BAL-CHG ONLY", at: [72.0, 48.5], size: 0.7, nudge: true}   # N of SW1 (66,58); de-collide
+    - {text: "9-12.6V XT60 IN", at: [72.0, 50.5], size: 0.7, nudge: true}   # stacked below, de-collide
     - ["FUSE 10A MINI", 35.0, 50.0, 0.7]
     - ["USB-A 5V CHG no-data", 130.0, 33.0, 0.7]
     - ["USB-A 5V CHG no-data", 130.0, 55.0, 0.7]
     - ["USB-A 5V CHG no-data", 130.0, 77.0, 0.7]
-    - {text: "USB-C 5A Pi-ONLY  NOT USB-PD", at: [132.0, 110.0], size: 0.7, nudge: false}   # SE 5VC pour, pad-free (v3: plain rail, Pi PSU_MAX_CURRENT=5000)
+    - {text: "USB-C 5A Pi-ONLY  NOT USB-PD", at: [135.0, 108.0], size: 0.6, nudge: true}   # SE, off J5.SH pad; de-collide
     - ["usb-hub-3s-v3", 30.0, 100.0, 0.8]
     - ["POWER-DIST BOARD - NOT A USB HUB", 30.0, 96.0, 0.55]   # v1.1 relabel (fix #6)
 
@@ -265,8 +291,16 @@ asserts:
     - {ref: Q5, pad: 5, net: SW_C}
     - {ref: RS1, pad: 1, net: CS_A}
     - {ref: RS2, pad: 1, net: CS_C}
-    - {ref: J5, pad: A4, net: 5VC}         # USB-C VBUS == 5VC (v3, no PD)
-    - {ref: J5, pad: A9, net: 5VC}
+    - {ref: J5, pad: A4, net: VBUSC}       # USB-C VBUS == VBUSC (v1.1 eFuse OUT)
+    - {ref: J5, pad: A9, net: VBUSC}
+    # v1.1 eFuse-cell polarity/role asserts (series 5VC->Q6->EFINC->U13->VBUSC)
+    - {ref: Q6, pad: 1, net: 5VC}          # AON6354 source = IN_SYS (5VC), WEST
+    - {ref: Q6, pad: 5, net: EFINC}        # AON6354 drain-tab = eFuse IN, EAST
+    - {ref: Q7, pad: 3, net: BGATEC}       # BSS138 drain = B_GATE bus
+    - {ref: U13, pad: 1, net: EFINC}       # eFuse IN (pin1), WEST-top
+    - {ref: U13, pad: 18, net: VBUSC}      # eFuse OUT (pin18), EAST-top
+    - {ref: U13, pad: 21, net: GND}        # eFuse EP = GND
+    - {ref: SW1, pad: 2, net: ENKILL}      # slide COM = master-off bus
   body_offset:
     - {ref: J1, axis: x, sign: "-"}        # XT60 mouth WEST
     - {ref: J2, axis: x, sign: "+"}

@@ -19,6 +19,8 @@ $PY "$S/generate_rules_generic.py" .
 $PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml
 $PY "$S/route_and_stitch_generic.py" taps   03_src/route.yaml
 $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
+# [7b] v1.1 post-stitch geometry fixes (EP thermal vias, VBAT_F F<->B stitch, drill/width floors, GND-island bond)
+$PY 03_src/post_stitch_fixes.py
 $PY "$S/generate_rules_generic.py" .
 $PY - <<'PYEOF'
 import json

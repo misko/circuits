@@ -457,6 +457,14 @@
         "pattern": "SW_C"
       },
       {
+        "netclass": "SWITCH_NODE",
+        "pattern": "SNUB_A"
+      },
+      {
+        "netclass": "SWITCH_NODE",
+        "pattern": "SNUB_C"
+      },
+      {
         "netclass": "PWR_IN",
         "pattern": "VBAT"
       },
@@ -475,6 +483,14 @@
       {
         "netclass": "PWR_RAIL",
         "pattern": "5VC"
+      },
+      {
+        "netclass": "PWR_RAIL",
+        "pattern": "VBUSC"
+      },
+      {
+        "netclass": "PWR_RAIL",
+        "pattern": "EFINC"
       },
       {
         "netclass": "VBUS",
@@ -511,6 +527,14 @@
       {
         "netclass": "GATE",
         "pattern": "BOOT_C"
+      },
+      {
+        "netclass": "GATE",
+        "pattern": "BGATEC"
+      },
+      {
+        "netclass": "GATE",
+        "pattern": "DRVC"
       },
       {
         "netclass": "SENSE",
@@ -551,10 +575,6 @@
       {
         "netclass": "SENSE",
         "pattern": "UVLO_A"
-      },
-      {
-        "netclass": "SENSE",
-        "pattern": "EN_A"
       },
       {
         "netclass": "SENSE",
@@ -602,11 +622,27 @@
       },
       {
         "netclass": "SENSE",
-        "pattern": "EN_C"
+        "pattern": "VCC_C"
       },
       {
         "netclass": "SENSE",
-        "pattern": "VCC_C"
+        "pattern": "ENKILL"
+      },
+      {
+        "netclass": "SENSE",
+        "pattern": "OVPC"
+      },
+      {
+        "netclass": "SENSE",
+        "pattern": "DVDTC"
+      },
+      {
+        "netclass": "SENSE",
+        "pattern": "ILIMC"
+      },
+      {
+        "netclass": "SENSE",
+        "pattern": "SHDNC"
       },
       {
         "netclass": "USB_DATA",
