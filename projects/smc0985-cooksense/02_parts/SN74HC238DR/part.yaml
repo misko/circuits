@@ -1,0 +1,86 @@
+mpn: SN74HC238DR
+manufacturer: Texas Instruments
+type: decoder_3to8_active_high        # the CLASS: 3-to-8 line decoder/demux, ACTIVE-HIGH outputs.
+                                      # Replaces the SN74HC138 (active-LOW) at the ULN2803 interface: the
+                                      # ULN2803 coil driver has ACTIVE-HIGH inputs, so an active-LOW '138
+                                      # one-hot would energise 7-of-8 coils and leave the SELECTED one off
+                                      # (inverse of the one-hot safety intent). The '238 is the pin-compatible
+                                      # active-HIGH sibling: selected output HIGH -> ULN input HIGH -> selected
+                                      # coil energised. Two used: U-select (6 of 8) + D-select (4 of 8).
+                                      # (decoder-fix, ADR-0002 update 2026-07-22; supersedes the brief's '138/'139)
+datasheet:
+  doc_id: D2804                       # TI data-book sheet "SN54HC238, SN74HC238 3-LINE TO 8-LINE
+                                      # DECODERS/DEMULTIPLEXERS" (the modern symlink is SCLS048; the
+                                      # pinout figure + function table read here are from the D2804 sheet)
+  revision: D2804 (MARCH 1984 - REVISED JUNE 1989)
+  url: https://www.ti.com/lit/gpn/sn74hc238
+  sha256: 8e2a12547c2b1603c6a2dfe0a5bdcbcd290a212f60f2c90d2ebaf7b30cc2557d
+  fetched: 2026-07-22
+  local: SN74HC238_D2804.pdf
+package: SOIC-16 (D), 3.9x9.9mm, 1.27mm pitch
+footprint: Package_SO:SOIC-16_3.9x9.9mm_P1.27mm   # KiCad std lib; identical land to SN74HC138DR
+escape:                               # escape_check.py --style leaded --pitch 1.27 --pins 16 --escapes-worst-side 8
+  style: leaded
+  pitch: 1.27
+  escapes_worst_side: 8               # output side Y0..Y7 all leave to the ULN2803 inputs
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-22
+                                      # 1.27mm pitch: 1.27-0.30 = 0.97 > 0.50 hole-to-hole, so even a full
+                                      # output side (8 escapes) never hits the dense-leaded wall (ADR-0008)
+                                      # -- unconditional at the cheapest tier, like the '138 it replaces.
+pins:                                 # D/N package TOP VIEW figure, D2804 p.2-299; IDENTICAL pin positions to
+                                      # SN74HC138, ONLY the output polarity differs (active-HIGH here).
+  1: {name: A, note: "select input A (LSB)"}
+  2: B                                # select input B
+  3: {name: C, note: "select input C (MSB)"}
+  4: {name: G2A_N, note: "active-low enable A"}
+  5: {name: G2B_N, note: "active-low enable B"}
+  6: {name: G1, note: "active-HIGH enable"}
+  7: {name: Y7, note: "output 7 (MSB), ACTIVE-HIGH (selected = HIGH)"}
+  8: GND
+  9: Y6
+  10: Y5
+  11: Y4
+  12: Y3
+  13: Y2
+  14: Y1
+  15: {name: Y0, note: "output 0 (LSB), ACTIVE-HIGH"}
+  16: VCC
+limits: {vcc: "2-6V", iout: "±5.2mA @Vcc=4.5V (±25mA abs)", vin: "0..VCC", tt_max: "500ns @Vcc=4.5V"}
+gotchas:
+  - "outputs Y0-Y7 are ACTIVE-HIGH: the selected output goes HIGH, all others LOW (function table D2804 p.2-301). This is the WHOLE reason the '238 replaces the '138 here -- the ULN2803 coil driver needs an active-HIGH one-hot to energise the SELECTED coil (an active-LOW '138 would energise all-but-selected)."
+  - "THREE enables: G1(6) HIGH AND /G2A(4) LOW AND /G2B(5) LOW to enable; deassert ANY and ALL outputs go LOW (safe/off = all coils de-energised). Route the coil authorization through an enable pin, not the decode inputs."
+  - "at most ONE output is HIGH at any time -- two selectors closed is physically impossible (ADR-0002 one-hot; kills ghosting-by-bug, brief C3)."
+  - "unused select inputs must be tied to VCC or GND, never floated. On the D-select '238 only A/B are used (4 outputs Y0-Y3 = D1-D4); tie C(3) to GND and leave Y4-Y7 unconnected."
+  - "PIN-COMPATIBLE drop-in with SN74HC138DR (same SOIC-16 land, same pin numbers) -- only the internal output logic is non-inverting. Do NOT confuse the two silicon; the '238 is the active-HIGH part."
+verified: "pin map + active-HIGH output polarity read from the SN74HC238 D/N-package Pin Configuration figure (TOP VIEW, D2804 p.2-299: A=1,B=2,C=3,/G2A=4,/G2B=5,G1=6,Y7=7,GND=8,Y6=9,Y5=10,Y4=11,Y3=12,Y2=13,Y1=14,Y0=15,VCC=16) cross-checked against the FUNCTION TABLE (D2804 p.2-301: G1=H,/G2A=L,/G2B=L + select -> exactly one Yn HIGH) -- 2026-07-22"
+layout:                               # P-LAYOUT: logic decoder -- layout-agnostic apart from VCC bypass
+  source: "D2804 recommended operating conditions + 74HC-family layout practice (a 0.1uF bypass, optionally
+    ||1uF, as close to the VCC terminal as possible; constant-width Y-output traces, rounded corners to avoid
+    reflections into the light ULN2803 input load) -- same demands as the SN74HC138DR it replaces"
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: 3V3, max_span_mm: 5, why: "0.1uF VCC(16)-GND(8) bypass hard against the package"}
+  notes: "Honest: a logic gate whose only real layout demand is the local VCC bypass. Place 0.1uF at pins
+    16/8. Keep the Y-output runs to the ULN2803 coil-driver inputs short and constant-width (fast HC edges
+    ring into light loads). The 3 select + 3 enable inputs arrive from the 74HC595 shift-register side -- no
+    length matching or controlled impedance. VCC = the board 3V3 logic rail (drives the 3.3V ULN inputs fine)."
+layout_refs:
+  - "TI SN74HC238 D2804 (mfr datasheet: pinout figure p.2-299 + function table p.2-301)"
+  - "SN74HC138DR SCLS107G (the active-LOW sibling on this board's shared library -- identical land/placement)"
+sourcing:
+  lcsc: ""                            # SN74HC238DR IS JLC-stocked (verified 2026-07-22 via JLCPCB parts
+                                      # search: 2671 units @ ~$0.165 + a 452-unit listing), but the exact
+                                      # genuine-TI LCSC C-code could NOT be extracted here (LCSC/EasyEDA/
+                                      # JLC parts APIs unreachable in this sandbox 2026-07-22). Fill the
+                                      # C-code from jlcpcb.com/parts at order time -- this is a HAND/CONFIRM
+                                      # line until then, NOT a blocker to the schematic gate (FPID resolves
+                                      # from this part.yaml's footprint via the dir/MPN key).
+  alternates: [MC74HC238ADR2G]        # onsemi MC74HC238ADR2G: same-function active-HIGH 3-to-8 decoder,
+                                      # SOIC-16 drop-in (RS/Octopart listed) -- reputable 2nd source for the
+                                      # SAFETY one-hot decoder (keeps the reputable-silicon rule the '138/'139
+                                      # and ULN2803 followed; the ultra-cheap house clones are NOT for this chain).
+  note: "SN74HC238DR SOIC-16, genuine TI -- ACTIVE-HIGH 3-to-8 decoder, the pin-compatible replacement for the
+    SN74HC138/'139 at the ULN2803 interface (decoder-fix ADR-0002, 2026-07-22). JLC-stocked (2671u ~$0.165,
+    2026-07-22); confirm the LCSC C-code + Basic/Extended at order. Do NOT commit stock. Two placed:
+    U-select (6/8 outputs) + D-select (4/8 outputs). SAFETY chain -> genuine TI / onsemi only."

@@ -15,7 +15,8 @@ plus a passive coupon-gated keypad interposer. Full source: BRIEF.md
     │  KEYPAD ZONE (>=6mm isolation, milled slots, no planes, no shared GND)  │
     │    12x reed relay: 6 U-sel ── 4 D-sel ── K_PRESS(RKEY) ── K_STOP(RSTOP) │
     │  ── isolation boundary ────────────────────────────────────────────────  │
-    │  74HC595 x2 -> 74HC138/139 DECODERS (one-hot!) -> ULN2803A -> coils     │
+    │  74HC595 x2 -> 2x SN74HC238 DECODERS (one-hot, active-HIGH!) -> ULN2803A │
+    │       -> coils   (brief's '138/'139 were active-LOW; corrected ADR-0002) │
     │  coil RAIL gated by AND-chain: MODE_AUTO_HW·WD_OK·ESTOP_OK·TEMP_OK·     │
     │      MCU_RELAY_ENABLE·HOST_AUTH·FAULT_LATCH_CLEAR   (all discrete HW)   │
     │  74HC123 one-shot caps PRESS <=500ms · TPS3823 watchdog · HW fault latch │

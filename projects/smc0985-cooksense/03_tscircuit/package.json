@@ -1,0 +1,5 @@
+{
+  "name": "cooksense-tscircuit",
+  "main": "src/cooksense.tsx",
+  "dependencies": {}
+}

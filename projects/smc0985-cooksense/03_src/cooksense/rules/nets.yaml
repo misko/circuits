@@ -1,0 +1,88 @@
+# cooksense net architecture — netclasses + DRU floors source (canon R1).
+#
+# fab_tier = jlc_4layer_advanced (via-in-pad): the UNCONDITIONAL feasible tier for
+# this BOM. The MCP23017 SSOP-28 (~11 escapes/side @0.65mm) and TPS259573 WSON-8
+# @0.5mm both sit at the ADR-0008 dense-escape wall — the 0.5mm hole-to-hole floor
+# is identical at 2-layer and 4-layer-STANDARD, so both stay CONDITIONAL there;
+# only advanced's via-in-pad retires the wall unconditionally. Within the brief's
+# 4-layer envelope (no D-TIER ADR needed). Set at parts close-out 2026-07-22
+# (01_docs/journal/02_parts.md).
+fab_tier: jlc_4layer_advanced
+
+classes:
+  PWR_IN:
+    intent: >
+      5V SELV input path: Micro-Fit -> polyfuse F1 -> reverse-pol P-FET Q_REV ->
+      TPS259573 eFuse -> 5V_PROTECTED. Carries the WHOLE-BOARD current (~1-2A worst:
+      12 reed coils ~120mA + all logic + sensors). Backstop floor; the trunk rides
+      wide copper / pours, not the floor.
+    nets: [5V_IN, 5V_FUSED, 5V_RPP, 5V_PROTECTED]
+    current: "2A worst-case"
+    min_width: 0.5mm
+    routing: KRT wide / pour-assisted
+    verify: DRC floor + E-INV input-protection series_chain (ADR-0001)
+
+  COIL_RAIL:
+    intent: >
+      AND-chain-GATED 5V_KEY_RELAY reed-coil rail (ADR-0002). Energised ONLY through
+      the high-side switch Q_COIL whose gate is driven by the 7-input safety AND-chain.
+      ~120mA worst (only 1 U + 1 D + PRESS/STOP coil energised at a time).
+    nets: [5V_KEY_RELAY]
+    current: 0.15A
+    min_width: 0.4mm
+    routing: KRT; sourced only via the gated FET
+    verify: DRC floor + E-INV coil-rail-through-gate series_chain (ADR-0002)
+
+  PWR_3V3:
+    intent: AMS1117-3.3 linear 3V3 digital + ferrite-split 3V3_ANALOG (ADC ref / thermistor bias).
+    nets: [3V3, 3V3_ANALOG]
+    current: 0.35A
+    min_width: 0.3mm
+    routing: KRT
+    verify: DRC floor
+
+  PWR_SW:
+    intent: >
+      Per-sensor SWITCHED 3V3 high-side rails (ADR-0004): power-cycle a stuck sensor;
+      the I2C bus pullups are fed from these rails so they die with the rail (N1
+      phantom-power rule). Low current.
+    nets: [3V3_SW_A, 3V3_SW_B, 3V3_SW_RHA, 3V3_SW_RHE]
+    current: 0.1A
+    min_width: 0.3mm
+    routing: KRT
+    verify: DRC floor
+
+  KEYPAD_ISO:
+    intent: >
+      ISOLATED keypad domain (ADR-0001/0002, brief §4/§7): the 10 membrane lines
+      U1-U6/D1-D4, the U/D selection buses, and the RKEY/RSTOP nodes. This domain has
+      NO shared GND with the SELV-logic domain — >=6mm coil-to-keypad-copper creepage,
+      milled slots, NO planes/pours, separate connector (J_KEY_MATRIX). Signal-level
+      (emulated keypress ~mA). The class exists to carry the ISOLATION intent to the
+      router: keep these nets inside a dedicated keypad zone, no pour bridging the
+      barrier, no via to the logic domain.
+    nets: [KP_U1, KP_U2, KP_U3, KP_U4, KP_U5, KP_U6, KP_D1, KP_D2, KP_D3, KP_D4,
+           U_SEL_BUS, D_SEL_BUS, RKEY_MID, RSTOP_MID]
+    current: "signal (~mA emulated keypress)"
+    min_width: 0.3mm
+    routing: isolated keypad zone; no plane; >=6mm to logic; milled slots
+    verify: audit isolation gap + no GND net inside the keypad zone (E-INV/audit)
+
+  ANALOG_SENSE:
+    intent: >
+      High-impedance thermistor divider nodes + thermocouple mV inputs + comparator
+      threshold. Keep short and away from the switched relay rail / coil-driver noise
+      (P-ADJ keep_short is budgeted in the MCP3208 / MAX31856 / LM393 part.yaml).
+    nets: [TH_CAM_A, TH_CAM_B, TH_MOUNT_A, TH_MOUNT_B, TH_PORT_A, TH_PORT_B,
+           TH_ENCLOSURE, TH_SPARE, TC_POS, TC_NEG, TCAM_THRESH]
+    current: "uA-level sense"
+    min_width: 0.25mm
+    routing: short, guarded, off the coil rail
+    verify: DRC floor + P-ADJ keep_short
+
+# GND = logic-domain pours + stitching (poured, not a netclass width).
+# GND_ISO = the isolated keypad-domain reference (connector MP tabs only); it is a
+#   SEPARATE pour, never bonded to GND. It is not in the netlist until the MP tabs
+#   are placed at the board stage (parity_padmap.txt) — so it is not classed here.
+# Everything else (SPI/I2C/shift-reg/enable/readback signals) rides the tier default
+# min_track (jlc_4layer_advanced) — no >1A net is left unclassed (canon R1).

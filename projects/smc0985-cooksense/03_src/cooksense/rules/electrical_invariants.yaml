@@ -1,0 +1,95 @@
+# cooksense ELECTRICAL-INVARIANTS (canon E-INV, phase E1 = netlist-only).
+#
+# Design INTENT made EXECUTABLE against the exported netlist. Every other gate proves
+# self-consistency; THIS proves the netlist matches what the ADRs decided. Graded by
+# electrical_invariants.py against 06_build/netlists/cooksense.net. Net names are the
+# CANONICAL KiCad names (the TSX author-prefix N is stripped: N5V_* -> 5V_*). Pins are
+# REF.PAD (physical pad number). Each invariant cites the ADR that emitted it (E-ADR).
+#
+# Protection/topology ADRs that MUST be covered (E-ADR): 0001 (topology), 0002
+# (topology+protection), 0006 (protection). All three are cited below.
+
+invariants:
+
+  # ===== ADR-0001 — input protection topology + eFuse OVLO (power chain) =========
+  - assert: series_chain
+    chain: [5V_IN, F1, 5V_FUSED, Q_REV, 5V_RPP]
+    through: {Q_REV: [3, 2]}          # AO3401A pad3=DRAIN (input side) -> pad2=SOURCE (load side)
+    adr: 0001
+    why: "5V SELV input -> polyfuse F1 -> reverse-polarity P-FET Q_REV (DRAIN->SOURCE) -> reverse-protected input 5V_RPP"
+
+  - assert: pin_on_net
+    pin: "U_EFUSE.5"                   # TPS259573 pad5 = OUT
+    net: 5V_PROTECTED
+    adr: 0001
+    why: "the eFuse OUTput is the 5V_PROTECTED rail — the protection stage sits in the power path, not a stub"
+
+  - assert: net_has_part
+    net: EF_OVLO
+    part_type: resistor
+    min: 2
+    adr: 0001
+    why: "the TPS259573 programmable OVLO divider EXISTS on EN_OVLO_N (R_OVT + R_OVB) — this is the brief §3.5 over-voltage CUTOFF (flag 2)"
+
+  - assert: net_has_part
+    net: 5V_PROTECTED
+    part_type: capacitor
+    min: 1
+    adr: 0001
+    why: "the protected rail carries bulk + ceramic decoupling (CE1 220uF + C_IN1/C_IN2)"
+
+  # ===== ADR-0002 — safety AND-chain gates the coil rail (no-MCU HW enforcement) =
+  - assert: pin_on_net
+    pin: "U_AND3.4"                    # SN74LVC1G11 pad4 = Y (final AND output)
+    net: KEY_RELAY_ALLOWED
+    adr: 0002
+    why: "the 3rd cascaded 3-input AND (AND1·AND2·FAULT_LATCH_CLEAR) OUTPUT is KEY_RELAY_ALLOWED — the whole 7-condition chain terminates here"
+
+  - assert: series_chain
+    chain: [5V_PROTECTED, Q_COIL, 5V_KEY_RELAY]
+    through: {Q_COIL: [2, 3]}          # AO3401A pad2=SOURCE (5V_PROTECTED) -> pad3=DRAIN (coil rail)
+    adr: 0002
+    why: "the coil rail 5V_KEY_RELAY is reachable ONLY through the high-side switch Q_COIL (SOURCE->DRAIN); ANY AND-chain condition false turns Q_COIL off and the rail dies"
+
+  - assert: pin_on_net
+    pin: "Q_COILDRV.1"                 # 2N7002 pad1 = GATE
+    net: COIL_EN
+    adr: 0002
+    why: "the coil-rail switch driver Q_COILDRV is gated by COIL_EN = KEY_RELAY_ALLOWED THROUGH the Manual/Auto DPDT pole A (physical MANUAL rail cut, brief §3)"
+
+  - assert: pin_on_net
+    pin: "U_ONESHOT.5"                 # SN74LVC1G123 pad5 = Q
+    net: PRESS_TIMED
+    adr: 0002
+    why: "the retriggerable one-shot Q output is PRESS_TIMED — the hardware ~390ms (<=500ms) PRESS cap (flag 1), independent of the Pi"
+
+  - assert: pin_on_net
+    pin: "U_ULNB.3"                    # ULN2803 #B pad3 = IN3 (K_PRESS channel input)
+    net: PRESS_TIMED
+    adr: 0002
+    why: "the K_PRESS coil driver input is driven ONLY by the one-shot output PRESS_TIMED — a hung Pi cannot hold PRESS beyond the one-shot window"
+
+  - assert: pin_on_net
+    pin: "U_WD.1"                      # TPS3823 pad1 = RESET_N (push-pull, high=OK)
+    net: WD_OK
+    adr: 0002
+    why: "the external watchdog supervisor RESET_N is WD_OK — heartbeat loss / brown-out drops it (flag 1: TPS3823 is the coarse ~1.6s WD, not the fast PRESS timer)"
+
+  - assert: pin_on_net
+    pin: "U_AND1.3"                    # SN74LVC1G11 #1 pad3 = B
+    net: WD_OK
+    adr: 0002
+    why: "WD_OK is an input of the AND-chain (U_AND1.B) — the watchdog directly gates the coil rail"
+
+  - assert: pin_on_net
+    pin: "K_U1.4"                      # DIP05 reed relay tsx pad4 = CONTACT_A (keypad side)
+    net: U_SEL_BUS
+    adr: 0002
+    why: "the reed-relay CONTACT (keypad side) sits on the ISOLATED keypad net U_SEL_BUS, while its COIL (pad1) sits on the SELV-logic rail 5V_KEY_RELAY — the two domains meet ONLY across the relay's 1.5kV coil/contact barrier, no shared copper (brief §7, ADR-0001). Full >=6mm creepage + no-shared-GND is the geometric/audit half (E2)"
+
+  # ===== ADR-0006 — reed relay matrix: K_PRESS bridges U_SEL -> D_SEL via RKEY ====
+  - assert: series_chain
+    chain: [U_SEL_BUS, K_PRESS, RKEY_MID, R_KEY, D_SEL_BUS]
+    through: {K_PRESS: [4, 3]}         # DIP05 tsx pad4=CONTACT_A (U side) -> pad3=CONTACT_B (RKEY side)
+    adr: 0006
+    why: "K_PRESS bridges the selected U bus to the selected D bus THROUGH the RKEY solder-select resistor (0R default, field 0/22/47/100/220/470/1k) — the emulation-resistance path of the matrix selector (T1)"

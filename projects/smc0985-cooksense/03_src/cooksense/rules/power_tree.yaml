@@ -1,0 +1,70 @@
+# cooksense POWER TREE — canon E-TOPO.
+#
+# cooksense is ALL-LINEAR by design (ARCHITECTURE.md "Power"; commission journal
+# 01_commission E-TOPO N-A): a 5V SELV input, protection (polyfuse + reverse-pol
+# P-FET + TPS259573 eFuse with programmable OVLO cutoff + SMBJ5.0A TVS + bulk), an
+# AMS1117-3.3 LINEAR LDO for 3V3, a ferrite split to 3V3_ANALOG, and per-sensor
+# high-side P-FET LOAD SWITCHES (AO3401A) for the switched 3V3 sensor rails. There
+# is NO switching converter (no buck / boost / buck_boost) anywhere on the board.
+#
+# THEREFORE `rails:` is EMPTY: power_topology.py has nothing to derive (it grades
+# buck/boost/buck_boost topology against a converter part.yaml `type:`, and none
+# exists here) -> "E-TOPO N-A" exit 0, which is exactly the intended verdict: the
+# gate CONFIRMS no switching converter is expected. Listing the LDO/load-switches
+# as `rails:` would (correctly) raise a LoadError, because their part.yaml `type:`
+# (ldo_3v3_1a / pfet_30v_4a) does not classify as a switching topology.
+#
+# The per-rail Vin/Vout ENVELOPES are documented below under `linear_rails:` (a key
+# the checker ignores) so the intent is captured as data, not only prose. If any
+# future rev adds a switching converter, MOVE that rail into `rails:` with its
+# vin/vout/iout/converter and the gate will grade it.
+
+rails: []          # no switching converter — E-TOPO N-A (all-linear), by design
+
+# Documentation-only (ignored by power_topology.py). Each linear rail's envelope:
+linear_rails:
+  - name: 5V_PROTECTED
+    kind: protection_pass          # eFuse pass-through (no conversion)
+    vin_min: 4.5
+    vin_max: 5.5                    # nominal 5V SELV; eFuse OVLO cutoff set ~5.5-6V (R_OVT/R_OVB)
+    vout_min: 4.5
+    vout_max: 5.5
+    iout_max_A: 2.0                # whole-board worst: 12 reed coils ~120mA + logic + sensors
+    element: TPS259573DSGR         # eFuse (efuse_ovlo) — current-limit + OVLO cutoff, NOT a converter
+    note: "5V SELV in -> polyfuse F1 -> reverse-pol P-FET Q_REV -> eFuse -> 5V_PROTECTED"
+  - name: 5V_KEY_RELAY
+    kind: gated_load_switch         # AND-chain-gated high-side P-FET (AO3401A Q_COIL)
+    vin_min: 4.5
+    vin_max: 5.5
+    vout_min: 4.5
+    vout_max: 5.5
+    iout_max_A: 0.15               # reed coils ~120mA worst (only 1U+1D+PRESS energised at once)
+    element: AO3401A
+    note: "5V_PROTECTED -> Q_COIL (gated by the safety AND-chain) -> reed-coil rail"
+  - name: 3V3
+    kind: linear_ldo
+    vin_min: 4.5
+    vin_max: 5.5
+    vout_min: 3.234                 # AMS1117-3.3 nominal 3.3V +-2%
+    vout_max: 3.366
+    iout_max_A: 0.3                # logic (595/238/HC14/1G-family/MCP23017/watchdog/...)
+    element: AMS1117-3.3           # LINEAR LDO (Vout<Vin always; a buck would suffice but linearity is the design choice)
+    note: "5V_PROTECTED -> AMS1117-3.3 -> 3V3 digital"
+  - name: 3V3_ANALOG
+    kind: ferrite_filtered
+    vin_min: 3.234
+    vin_max: 3.366
+    vout_min: 3.2
+    vout_max: 3.366
+    iout_max_A: 0.05              # MCP3208 VDD/VREF + thermistor ref dividers + comparator threshold
+    element: GZ2012D601TF          # ferrite bead (600R@100MHz) split off 3V3
+    note: "3V3 -> ferrite FB1 -> 3V3_ANALOG (ADC ref + thermistor bias, kept off digital noise)"
+  - name: 3V3_SW_A / 3V3_SW_B / 3V3_SW_RHA / 3V3_SW_RHE
+    kind: switched_load_switch      # per-sensor high-side P-FET (AO3401A) for stuck-I2C power-cycling (ADR-0004)
+    vin_min: 3.234
+    vin_max: 3.366
+    vout_min: 3.2
+    vout_max: 3.366
+    iout_max_A: 0.1               # one MLX90640 camera or SHT45 + its bus pullups per rail
+    element: AO3401A
+    note: "3V3 -> Q_SW{A,B,RHA,RHE} (enabled by MCP23017) -> switched sensor rail; bus pullups die with the rail (ADR-0004 N1)"
