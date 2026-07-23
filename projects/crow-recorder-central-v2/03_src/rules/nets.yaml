@@ -4,6 +4,22 @@
 # this tier subsumes. Brief said "4-layer min, 6 preferred" — 6 it is.
 fab_tier: jlc_6layer_smallvia   # 0.30/0.15 vias, via-in-pad, 0.09 track/space
 
+# CLEARANCE (2026-07-23, D-BACK from routing). generate_rules_generic's
+# per-class `clearance` silently defaults to a hardcoded 0.2mm when a class
+# sets none (unlike track_width, which IS tier-derived) — every class below
+# was riding that unexamined 0.2mm default. 0.2mm is not manufacturable next
+# to the XU316's 0.4mm-pitch escape vias — this tier's own provenance
+# (fab_tiers.yaml ADR-0009) says as much: "0.30/0.15 via-in-pad on 0.4mm
+# pitch keeps 0.10mm copper gap", i.e. ~0.10mm IS the intended/expected
+# clearance at this escape, not a compromise. Measured empirically
+# (route.yaml race candidates, 2026-07-23): 0.2mm design clearance ->
+# violations at 158 sites (all U1/XU316 vias-vs-pads or the USB diff pair);
+# 0.15mm -> 53 sites, actual clearance measured down to 0.125mm there.
+# 0.10mm matches the tier's own stated expectation and clears tier_geometry's
+# floor check (> 0.09) with a small margin.
+default_clearance: 0.10mm
+default_track_width: 0.15mm
+
 classes:
   PWR_IN:
     intent: >
@@ -12,6 +28,7 @@ classes:
     nets: [5V]
     current: "~1.6A worst case (digital + analog + 6-pod beep peak)"
     min_width: 0.5mm
+    clearance: 0.10mm
     routing: KRT + pour patch
     verify: DRC floor
 
@@ -22,6 +39,7 @@ classes:
     nets: [3V3, 0V9, 1V8, 3V3A, PLUS5V_AUDIO, PLUS5V_BEEP]
     current: "0V9 ~0.8A, 3V3 ~0.6A, others < 0.15A"
     min_width: 0.4mm
+    clearance: 0.10mm
     routing: KRT
     verify: DRC floor
 
@@ -32,6 +50,7 @@ classes:
     nets: [SW1, SW2]
     current: "~1.5A pulsed"
     min_width: 0.35mm
+    clearance: 0.10mm
     routing: KRT (tight island)
     verify: DRC floor + hot-loop span audit
 
@@ -45,6 +64,7 @@ classes:
            AUDIO8P, AUDIO8M]
     current: "line-level audio, uA"
     min_width: 0.25mm
+    clearance: 0.10mm
     routing: KRT, symmetric leg pairs
     verify: audit separation + DRC floor
 
@@ -55,9 +75,49 @@ classes:
     nets: [MCLK, MCLK_A1, MCLK_A2, BCLK, LRCK]
     current: "clock, mA"
     min_width: 0.25mm
+    clearance: 0.10mm
     routing: KRT, short series-terminated
     verify: DRC floor
 
 # Default 0.15 (tier floor 0.09, use 0.15): USB_DP/USB_DM, SDA/SCL, QSPI_*,
 # ADC_DOUT*, BEEP_GATE, GPIO, JTAG, strap nets. GND = F/B pours + In1/In4
-# planes + stitch (NOT routed).
+# planes + stitch (NOT routed). default_clearance/default_track_width above
+# deliver this (2026-07-23 — previously documented but not wired in).
+
+# SCOPED FLOOR (canon M8 pattern: cook-hub u7_taps, usb-power-3s SW_TAP_A/B).
+# U3's 3V3 pin (pad 25) is a single decoupler-pin drop boxed in by the dense
+# ADC pin field (SCL/SDA/GND neighbors) — measured 2026-07-23: unroutable at
+# the PWR class's 0.4mm trunk floor even after ripping its immediate
+# blockers (SCL, SDA) and trying finer grid-step/more iterations. The floor
+# is an ampacity requirement for the TRUNK; this one lone pin-drop carries
+# no meaningful current. Scoped to the `u3_3v3_tap` rule area (floorplan.yaml
+# keepouts) so the relaxation cannot leak onto 3V3 copper anywhere else.
+scoped_floors:
+  - zone: u3_3v3_tap
+    nets: [3V3]
+    min_width: 0.15mm
+    why: >
+      U3 pad 25 (3V3, PCM1865 #2) unroutable at 0.4mm class floor: KRT
+      fails identically at --track-width 0.4 with SCL+SDA ripped, grid-step
+      0.05, and 1.5M iterations (2026-07-23). Single-pin decoupler drop,
+      not trunk current.
+  - zone: u1_0v9_pin5
+    nets: [0V9]
+    min_width: 0.15mm
+    why: >
+      U1 pad 5 (0V9, XU316) unroutable at 0.4mm class floor: KRT fails at
+      --track-width 0.4 even after ripping its immediate blocker
+      (QSPI_CLK) — 2026-07-23. This is the documented 0.4mm-pitch QFN
+      escape region (routing-pipeline.md known trap); the pin drop itself
+      carries no meaningful current, the 0V9 trunk elsewhere stays at
+      0.4mm.
+  - zone: u1_0v9_tap103
+    nets: [0V9]
+    min_width: 0.34mm
+    why: >
+      0V9 decoupler-pin tap to U1.103 (93.1-93.4, 94.3), routed 0.3498mm on
+      F.Cu in the promoted chain — deliberately thin to clear U1 pad 103.
+      Widening it to the 0.4mm PWR floor (blanket width_floor lift) clipped
+      that pad to 0.0745mm clearance (measured 2026-07-23). Single decoupler-
+      pin drop, no trunk current; scoping the min-width floor to 0.34mm here
+      passes track_width without moving the copper.

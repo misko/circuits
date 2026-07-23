@@ -8,7 +8,7 @@ datasheet:
   sha256: c615676c5b1ddc7b1e389eb7c93345f20e4a88dadc36ebe2eb93074559cbc614
   fetched: 2026-07-23
 package: DFN-4 1.5x1.5mm, 0.8mm pitch, open-cavity DFN with central die pad (die pad NOT bonded)
-footprint: crow-recorder-central-v2:Sensirion_DFN-4_1.5x1.5mm_P0.8mm   # propose: 4 pads 0.5x0.3mm on 0.8mm pitch, columns 1.4mm c-c; central die pad = no-connect, NO paste (see gotchas). Per datasheet Figure 17 land pattern.
+footprint: Sensor_Humidity:Sensirion_DFN-4_1.5x1.5mm_P0.8mm_SHT4x_NoCentralPad   # KiCad stock; no central pad (die pad not bonded)
 escape:
   style: qfn                 # canonical no-lead token: escape_check collapses DFN/SON/QFN -> qfn
                              # (physical package IS DFN-4; escape math is identical either way)

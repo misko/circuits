@@ -240,7 +240,7 @@ export default () => (
     <capacitor name="C_flash" capacitance="100nF" footprint="0402" connections={{ pin1: N("N3V3"), pin2: N("GND") }} />
 
     {/* ===================== SHT40 TEMP/HUMIDITY (U6) ===================== */}
-    <chip name="U6" supplierPartNumbers={{ jlcpcb: [LCSC.SHT40] }} footprint={fp([1, 2, 3, 4, 5])}
+    <chip name="U6" supplierPartNumbers={{ jlcpcb: [LCSC.SHT40] }} footprint={fp([1, 2, 3, 4])}
       connections={conn({ 1: "SDA", 2: "SCL", 3: "N3V3", 4: "GND" })} /* 5=EP -> NC (no paste) */ />
     <capacitor name="C_sht" capacitance="100nF" footprint="0402" connections={{ pin1: N("N3V3"), pin2: N("GND") }} />
 

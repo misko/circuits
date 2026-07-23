@@ -36,3 +36,31 @@
 - next: CHECKPOINT for commit. Then placement (mixed-signal-audio-hub archetype:
   ADC spine center, switchers+beeper in the north/SW away from ADCs; XU316 needs
   a project-local TQFP-128_EP footprint + 16-via thermal grid) -> routing -> DRC 0/0/0.
+
+## 2026-07-23 — placement stage (audit PASS)
+- did: created project-local footprints (TQFP-128_EP + 16-via thermal grid via
+  sub-agent; US8 for NC7NZ34) + vendored USB4105/RJHSE538X with numeric pads to
+  match the tscircuit netlist (alphanumeric pads -> 1..17 / SH->13); repointed 4
+  FPIDs (XU316 EP, PCM1865/SHT40 to KiCad stock) + regenerated schematic (ERC 0,
+  194/194 FPID held). Extended generate_board_generic LAYER_NAMES with In3/In4
+  (6-layer support — flagged to coordinator, test pending). Authored floorplan.yaml
+  (mixed-signal-audio-hub: 39 anchors + patterns snapping 155 passives to their
+  IC/region; In1+In4 GND planes). Converged the audit: RJ45 rot 0 opening-north +
+  y=18 overhang, 20mm pitch, mounting holes out of the port band, buck cluster
+  clear of the barrel jack.
+- result: generate_board OK (194 parts, 6 copper layers, 4 holes); audit_template
+  I1-I8 PASS (0 fails/0 warns). DRC baseline: clearance_real 0, hole_clearance_real
+  0, 333 unconnected (unrouted). Board at 06_build/proof/.
+- next: generate_rules (netclasses into board) -> route.yaml -> KRT -> stitch ->
+  DRC 0/0/0 (routing gate). Add the generate_board In3/In4 test + RED-verify.
+
+## 2026-07-23 — generate_board In3/In4 test (coordinator reproducibility ask)
+- did: added t1_generate_board.py::t_six_layer_inner_planes (GREEN: a 6-layer
+  board places GND planes on In3.Cu+In4.Cu) + t_in4_needs_six_layers (known-bad:
+  In4.Cu on a 4-layer board rejected). RED-verified: reverting the LAYER_NAMES/
+  INNER_LAYERS In3/In4 rows turns the positive test RED ("zone on unknown layer
+  In3.Cu"); restored -> 27 passed / 0 failed.
+- result: the generate_board_generic In3/In4 6-layer change is test-covered +
+  RED-verified. Ready for the coordinator to commit generate_board_generic.py WITH
+  the board files. Board regenerates from restored source (verified In3.Cu present).
+- next: routing stage — route.yaml + generate_rules -> KRT -> stitch -> DRC 0/0/0.

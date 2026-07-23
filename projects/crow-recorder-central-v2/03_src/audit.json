@@ -1,0 +1,15 @@
+{
+  "frame": [10.0, 10.0, 170.0, 120.0],
+  "edge_margin": 0.3,
+  "screw_head_r": 3.2,
+  "fab_floor": 0.09,
+  "mate": {
+    "J1": "W",
+    "J2": "S",
+    "J3": "N", "J4": "N", "J5": "N", "J6": "N",
+    "J7": "N", "J8": "N", "J9": "N", "J10": "N"
+  },
+  "ref_silk_ok": ["U1"],
+  "float_ok_numbers": ["MP", "S1", "SH", "13", "17"],
+  "baseline": "drc_baseline.json"
+}

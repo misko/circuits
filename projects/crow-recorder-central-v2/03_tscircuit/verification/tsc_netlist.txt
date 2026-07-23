@@ -1498,7 +1498,6 @@ U6
 - pin2: NETS(SCL)
 - pin3: NETS(N3V3)
 - pin4: NETS(GND)
-- pin5: NOT_CONNECTED
 
 C_sht (100nF 0402)
 - pin1(pos, anode, left): NETS(N3V3)

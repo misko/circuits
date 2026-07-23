@@ -8,7 +8,7 @@ datasheet:
   sha256: fb331fbabee8392ed2937ed757c1610cb0f174b84625147c0b580a18eea8c0e5
   fetched: 2026-07-23
 package: USB Type-C Receptacle, USB 2.0, 16-position, SMT top-mount horizontal (shell = 2x THT stakes)
-footprint: Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal
+footprint: crow_recorder_central_v2:USB4105_GCT_16P_TopMnt_num   # vendored: pads renamed A1..SH -> 1..17 (tscircuit numeric)
 mates: receptacle            # AF (receptacle) per drawing title block "USB Type C Receptacle"
 escape:
   style: connector

@@ -1,0 +1,360 @@
+** Drc report for crow_recorder_central_v2.kicad_pcb **
+** Created on 2026-07-23T13:16:03 **
+** Report includes: Errors, Warnings, Exclusions **
+
+** Found 79 DRC violations **
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(133.6800 mm, 60.1000 mm): Pad 2 [GND] of C_vref3b on F.Cu
+[starved_thermal]: Thermal relief connection to zone incomplete (layer B.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on B.Cu, priority 0
+    @(152.1120 mm, 19.7800 mm): PTH pad 8 [GND] of J9
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(29.0640 mm, 18.0000 mm): PTH pad 5 [GND] of J3
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(129.0640 mm, 18.0000 mm): PTH pad 5 [GND] of J8
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(69.0640 mm, 18.0000 mm): PTH pad 5 [GND] of J5
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(85.6800 mm, 122.8950 mm): PTH pad 17 [GND] of J2
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(94.3200 mm, 127.0750 mm): PTH pad 17 [GND] of J2
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(17.7125 mm, 18.5000 mm): Pad 4 [GND] of Dp1 on F.Cu
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(89.0640 mm, 18.0000 mm): PTH pad 5 [GND] of J6
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(63.4800 mm, 67.4000 mm): Pad 2 [GND] of C_dvdd2 on F.Cu
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(130.8625 mm, 60.5000 mm): Pad 26 [GND] of U3 on F.Cu
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(71.1000 mm, 114.8000 mm): Pad 2 [GND] of Y1 on F.Cu
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(17.4100 mm, 113.4000 mm): Pad 2 [GND] of R_fb1b on F.Cu
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(149.0640 mm, 18.0000 mm): PTH pad 5 [GND] of J9
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(172.1120 mm, 19.7800 mm): PTH pad 8 [GND] of J10
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(109.0640 mm, 18.0000 mm): PTH pad 5 [GND] of J7
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(19.2875 mm, 116.0000 mm): Pad 2 [GND] of U7 on F.Cu
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(82.3375 mm, 106.2000 mm): Pad 27 [GND] of U1 on F.Cu
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(82.3375 mm, 107.4000 mm): Pad 30 [GND] of U1 on F.Cu
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(37.2875 mm, 116.0000 mm): Pad 2 [GND] of U8 on F.Cu
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(92.6800 mm, 114.3000 mm): Pad 2 [GND] of C_d6 on F.Cu
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(64.8625 mm, 61.0000 mm): Pad 25 [GND] of U2 on F.Cu
+[starved_thermal]: Thermal relief connection to zone incomplete (layer F.Cu; zone min spoke count 2; actual 1)
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(49.0640 mm, 18.0000 mm): PTH pad 5 [GND] of J4
+[track_width]: Track width (rule 'PWR_IN_width' min width 0.5000 mm; actual 0.4998 mm)
+    Rule: PWR_IN_width; error
+    @(95.1000 mm, 62.9000 mm): Track [5V] on F.Cu, length 0.5000 mm
+[track_width]: Track width (rule 'PWR_width' min width 0.4000 mm; actual 0.3498 mm)
+    Rule: PWR_width; error
+    @(93.1000 mm, 94.3000 mm): Track [0V9] on F.Cu, length 0.3000 mm
+[clearance]: Clearance violation ( clearance 0.1000 mm; actual 0.0750 mm)
+    Local override; error
+    @(19.4000 mm, 116.6000 mm): Track [5V] on F.Cu, length 0.1414 mm
+    @(19.2875 mm, 116.0000 mm): Pad 2 [GND] of U7 on F.Cu
+[items_not_allowed]: Items not allowed
+    Local override; error
+    @(168.1000 mm, 59.0000 mm): Track [3V3] on F.Cu, length 0.8485 mm
+[items_not_allowed]: Items not allowed
+    Local override; error
+    @(167.7000 mm, 57.2000 mm): Track [SDA] on F.Cu, length 0.5657 mm
+[items_not_allowed]: Items not allowed
+    Local override; error
+    @(169.1000 mm, 57.2000 mm): Track [SDA] on F.Cu, length 1.4000 mm
+[items_not_allowed]: Items not allowed
+    Local override; error
+    @(166.2000 mm, 59.5000 mm): Track [SCL] on F.Cu, length 1.5556 mm
+[silk_overlap]: Silkscreen clearance
+    Rule: board setup constraints silk; warning
+    @(88.1922 mm, 112.1600 mm): Segment of C_c1 on F.Silkscreen
+    @(98.8000 mm, 111.8000 mm): PCB text 'crow-recorder-central-v2  8ch USB audio  C' on F.Silkscreen
+[silk_overlap]: Silkscreen clearance
+    Rule: board setup constraints silk; warning
+    @(98.8000 mm, 111.8000 mm): PCB text 'crow-recorder-central-v2  8ch USB audio  C' on F.Silkscreen
+    @(91.5387 mm, 111.5650 mm): Segment of C_b0v9 on F.Silkscreen
+[silk_overlap]: Silkscreen clearance
+    Rule: board setup constraints silk; warning
+    @(93.8000 mm, 125.8000 mm): PCB text 'USB-C (host)' on F.Silkscreen
+    @(94.6700 mm, 125.9000 mm): Segment of J2 on F.Silkscreen
+[silk_overlap]: Silkscreen clearance
+    Rule: board setup constraints silk; warning
+    @(98.8000 mm, 111.8000 mm): PCB text 'crow-recorder-central-v2  8ch USB audio  C' on F.Silkscreen
+    @(95.6922 mm, 111.6400 mm): Segment of C_c8 on F.Silkscreen
+[silk_overlap]: Silkscreen clearance
+    Rule: board setup constraints silk; warning
+    @(98.8000 mm, 111.8000 mm): PCB text 'crow-recorder-central-v2  8ch USB audio  C' on F.Silkscreen
+    @(109.2400 mm, 111.2400 mm): Segment of U5 on F.Silkscreen
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(33.8000 mm, 18.8000 mm): PCB text 'NOT ETHERNET - CUSTOM 5V AUDIO PINOUT' on F.Silkscreen
+    @(20.4300 mm, 18.8900 mm): PTH pad 13 [GND] of J3
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(33.8000 mm, 18.8000 mm): PCB text 'NOT ETHERNET - CUSTOM 5V AUDIO PINOUT' on F.Silkscreen
+    @(25.0000 mm, 18.0000 mm): PTH pad 1 [AUDIO1P] of J3
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(33.8000 mm, 18.8000 mm): PCB text 'NOT ETHERNET - CUSTOM 5V AUDIO PINOUT' on F.Silkscreen
+    @(26.0160 mm, 19.7800 mm): PTH pad 2 [AUDIO1M] of J3
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(33.8000 mm, 18.8000 mm): PCB text 'NOT ETHERNET - CUSTOM 5V AUDIO PINOUT' on F.Silkscreen
+    @(27.0320 mm, 18.0000 mm): PTH pad 3 [PLUS5V_BEEP] of J3
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(33.8000 mm, 18.8000 mm): PCB text 'NOT ETHERNET - CUSTOM 5V AUDIO PINOUT' on F.Silkscreen
+    @(28.0480 mm, 19.7800 mm): PTH pad 4 [P5VA_1] of J3
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(33.8000 mm, 18.8000 mm): PCB text 'NOT ETHERNET - CUSTOM 5V AUDIO PINOUT' on F.Silkscreen
+    @(29.0640 mm, 18.0000 mm): PTH pad 5 [GND] of J3
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(33.8000 mm, 18.8000 mm): PCB text 'NOT ETHERNET - CUSTOM 5V AUDIO PINOUT' on F.Silkscreen
+    @(31.0960 mm, 18.0000 mm): PTH pad 7 [P5VA_1] of J3
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(33.8000 mm, 18.8000 mm): PCB text 'NOT ETHERNET - CUSTOM 5V AUDIO PINOUT' on F.Silkscreen
+    @(32.1120 mm, 19.7800 mm): PTH pad 8 [GND] of J3
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(33.8000 mm, 18.8000 mm): PCB text 'NOT ETHERNET - CUSTOM 5V AUDIO PINOUT' on F.Silkscreen
+    @(36.6900 mm, 18.8900 mm): PTH pad 13 [GND] of J3
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(33.8000 mm, 18.8000 mm): PCB text 'NOT ETHERNET - CUSTOM 5V AUDIO PINOUT' on F.Silkscreen
+    @(40.4300 mm, 18.8900 mm): PTH pad 13 [GND] of J4
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(33.8000 mm, 18.8000 mm): PCB text 'NOT ETHERNET - CUSTOM 5V AUDIO PINOUT' on F.Silkscreen
+    @(45.0000 mm, 18.0000 mm): PTH pad 1 [AUDIO2P] of J4
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(33.8000 mm, 18.8000 mm): PCB text 'NOT ETHERNET - CUSTOM 5V AUDIO PINOUT' on F.Silkscreen
+    @(46.0160 mm, 19.7800 mm): PTH pad 2 [AUDIO2M] of J4
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(33.8000 mm, 18.8000 mm): PCB text 'NOT ETHERNET - CUSTOM 5V AUDIO PINOUT' on F.Silkscreen
+    @(47.0320 mm, 18.0000 mm): PTH pad 3 [PLUS5V_BEEP] of J4
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(33.8000 mm, 18.8000 mm): PCB text 'NOT ETHERNET - CUSTOM 5V AUDIO PINOUT' on F.Silkscreen
+    @(48.0480 mm, 19.7800 mm): PTH pad 4 [P5VA_2] of J4
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(33.8000 mm, 18.8000 mm): PCB text 'NOT ETHERNET - CUSTOM 5V AUDIO PINOUT' on F.Silkscreen
+    @(49.0640 mm, 18.0000 mm): PTH pad 5 [GND] of J4
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(98.8000 mm, 111.8000 mm): PCB text 'crow-recorder-central-v2  8ch USB audio  C' on F.Silkscreen
+    @(84.6800 mm, 112.0000 mm): Pad 2 [GND] of C_d2 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(98.8000 mm, 111.8000 mm): PCB text 'crow-recorder-central-v2  8ch USB audio  C' on F.Silkscreen
+    @(87.8200 mm, 111.8000 mm): Pad 1 [0V9] of C_c1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(98.8000 mm, 111.8000 mm): PCB text 'crow-recorder-central-v2  8ch USB audio  C' on F.Silkscreen
+    @(88.7800 mm, 111.8000 mm): Pad 2 [GND] of C_c1 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(98.8000 mm, 111.8000 mm): PCB text 'crow-recorder-central-v2  8ch USB audio  C' on F.Silkscreen
+    @(90.8500 mm, 112.3000 mm): Pad 1 [0V9] of C_b0v9 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(98.8000 mm, 111.8000 mm): PCB text 'crow-recorder-central-v2  8ch USB audio  C' on F.Silkscreen
+    @(92.7500 mm, 112.3000 mm): Pad 2 [GND] of C_b0v9 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(98.8000 mm, 111.8000 mm): PCB text 'crow-recorder-central-v2  8ch USB audio  C' on F.Silkscreen
+    @(95.3200 mm, 112.0000 mm): Pad 1 [0V9] of C_c8 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(93.8000 mm, 125.8000 mm): PCB text 'USB-C (host)' on F.Silkscreen
+    @(96.6150 mm, 126.0000 mm): Pad 3 [GND] of D_USB on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(93.8000 mm, 125.8000 mm): PCB text 'USB-C (host)' on F.Silkscreen
+    @(96.6150 mm, 125.5000 mm): Pad 2 [USB_DM] of D_USB on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(98.8000 mm, 111.8000 mm): PCB text 'crow-recorder-central-v2  8ch USB audio  C' on F.Silkscreen
+    @(96.2800 mm, 112.0000 mm): Pad 2 [GND] of C_c8 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(98.8000 mm, 111.8000 mm): PCB text 'crow-recorder-central-v2  8ch USB audio  C' on F.Silkscreen
+    @(108.4125 mm, 112.0950 mm): Pad 1 [QSPI_CS] of U5 on F.Cu
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(93.8000 mm, 125.8000 mm): PCB text 'USB-C (host)' on F.Silkscreen
+    @(94.3200 mm, 127.0750 mm): PTH pad 17 [GND] of J2
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; warning
+    @(93.8000 mm, 125.8000 mm): PCB text 'USB-C (host)' on F.Silkscreen
+    @(96.6150 mm, 126.5000 mm): Pad 4 [unconnected-(D_USB-Pad4)] of D_USB on F.Cu
+[hole_to_hole]: Drilled hole too close to other hole (board setup constraints min 0.1995 mm; actual 0.0000 mm)
+    Rule: board setup constraints; warning
+    @(20.7800 mm, 112.1900 mm): Via [GND] on F.Cu - B.Cu
+    @(20.8200 mm, 112.1900 mm): Via [GND] on F.Cu - B.Cu
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(10.0000 mm, 10.0000 mm): Segment on Edge.Cuts
+    @(20.1950 mm, 9.8900 mm): Segment of J3 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(10.0000 mm, 10.0000 mm): Segment on Edge.Cuts
+    @(36.9250 mm, 9.8900 mm): Segment of J3 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(10.0000 mm, 10.0000 mm): Segment on Edge.Cuts
+    @(120.1950 mm, 9.8900 mm): Segment of J8 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(10.0000 mm, 10.0000 mm): Segment on Edge.Cuts
+    @(136.9250 mm, 9.8900 mm): Segment of J8 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(10.0000 mm, 10.0000 mm): Segment on Edge.Cuts
+    @(60.1950 mm, 9.8900 mm): Segment of J5 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(10.0000 mm, 10.0000 mm): Segment on Edge.Cuts
+    @(76.9250 mm, 9.8900 mm): Segment of J5 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(10.0000 mm, 10.0000 mm): Segment on Edge.Cuts
+    @(80.1950 mm, 9.8900 mm): Segment of J6 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(10.0000 mm, 10.0000 mm): Segment on Edge.Cuts
+    @(96.9250 mm, 9.8900 mm): Segment of J6 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(10.0000 mm, 10.0000 mm): Segment on Edge.Cuts
+    @(140.1950 mm, 9.8900 mm): Segment of J9 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(10.0000 mm, 10.0000 mm): Segment on Edge.Cuts
+    @(156.9250 mm, 9.8900 mm): Segment of J9 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(10.0000 mm, 10.0000 mm): Segment on Edge.Cuts
+    @(160.1950 mm, 9.8900 mm): Segment of J10 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(10.0000 mm, 10.0000 mm): Segment on Edge.Cuts
+    @(176.9250 mm, 9.8900 mm): Segment of J10 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(10.0000 mm, 10.0000 mm): Segment on Edge.Cuts
+    @(100.1950 mm, 9.8900 mm): Segment of J7 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(10.0000 mm, 10.0000 mm): Segment on Edge.Cuts
+    @(116.9250 mm, 9.8900 mm): Segment of J7 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(10.0000 mm, 10.0000 mm): Segment on Edge.Cuts
+    @(40.1950 mm, 9.8900 mm): Segment of J4 on F.Silkscreen
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; warning
+    @(10.0000 mm, 10.0000 mm): Segment on Edge.Cuts
+    @(56.9250 mm, 9.8900 mm): Segment of J4 on F.Silkscreen
+
+** Found 8 unconnected pads **
+[unconnected_items]: Missing connection between items
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(35.4100 mm, 113.4000 mm): Pad 2 [GND] of R_fb2b on F.Cu
+[unconnected_items]: Missing connection between items
+    Local override; error
+    @(37.2875 mm, 116.0000 mm): Pad 2 [GND] of U8 on F.Cu
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+[unconnected_items]: Missing connection between items
+    Local override; error
+    @(57.2800 mm, 60.1000 mm): Pad 2 [GND] of C_micb2 on F.Cu
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+[unconnected_items]: Missing connection between items
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(87.4000 mm, 109.6625 mm): Pad 42 [GND] of U1 on F.Cu
+[unconnected_items]: Missing connection between items
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(88.4800 mm, 113.3000 mm): Pad 2 [GND] of C_d1 on F.Cu
+[unconnected_items]: Missing connection between items
+    Local override; error
+    @(92.1800 mm, 92.2000 mm): Pad 2 [GND] of C_c3 on F.Cu
+    @(92.4800 mm, 90.7000 mm): Pad 2 [GND] of C_d4 on F.Cu
+[unconnected_items]: Missing connection between items
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(92.4800 mm, 90.7000 mm): Pad 2 [GND] of C_d4 on F.Cu
+[unconnected_items]: Missing connection between items
+    Local override; error
+    @(10.0000 mm, 10.0000 mm): Zone [GND] on F.Cu, priority 0
+    @(130.8625 mm, 60.5000 mm): Pad 26 [GND] of U3 on F.Cu
+
+** Found 0 Footprint errors **
+
+** Ignored checks **
+    - Footprint has no courtyard defined
+    - Track endpoint not centered on via
+    - Tuning profile track geometries
+    - Footprint doesn't match symbol's footprint filters
+    - Footprint component type doesn't match footprint pads
+
+** End of Report **

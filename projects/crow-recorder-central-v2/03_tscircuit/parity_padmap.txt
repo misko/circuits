@@ -39,4 +39,3 @@ RJ45  pin13=SH   # stainless shield solder tails -> GND (both SH pads share the 
 
 # --- SHT40 (U6, DFN-4) : real pads 1..4 + EP (central die pad) ---
 # tsx portHints 1..4 map 1:1 to KiCad pads 1..4; the die pad is pin5->EP.
-U6  pin5=EP    # central die pad — NOT bonded, left no-connect (no paste)

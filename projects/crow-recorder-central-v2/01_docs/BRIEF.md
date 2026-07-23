@@ -1,6 +1,6 @@
 # brief: crow-recorder-central-v2
 
-status: schematic-gate-green
+status: routing-in-progress
 prompt_sha256: be9e677e3628dcf801affba573593bc836bfb9a71290dadde58d09e819590c39
 current_release: no
 

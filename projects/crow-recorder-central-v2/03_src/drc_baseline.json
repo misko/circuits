@@ -1,0 +1,9 @@
+{
+ "clearance_margin": 146,
+ "clearance_real": 0,
+ "hole_clearance_margin": 4,
+ "hole_clearance_real": 0,
+ "silk_overlap": 5,
+ "starved_thermal": 23,
+ "unconnected_items": 333
+}

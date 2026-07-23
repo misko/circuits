@@ -1,0 +1,339 @@
+# floorplan — crow-recorder-central-v2 (mixed-signal-audio-hub archetype)
+# THREE-BAND horizontal stripe: NORTH port bank -> CENTER analog ADC spine ->
+# SOUTH digital cell, with the power cluster in the SW corner. Beeper switched-
+# return stays in the NORTH band; ADC input RC lives in the CENTER band.
+# First cut: ~30 anchors (big parts, pinned) + patterns snapping passive groups
+# to their IC/region (legalizer walks them to the nearest clear spot).
+
+project:
+  name: crow_recorder_central_v2
+  netlist: 06_build/netlists/crow_recorder_central_v2.net
+  output: 04_kicad/crow_recorder_central_v2.kicad_pcb
+  parts_dir: 02_parts
+
+board:
+  outline: {x0: 10.0, y0: 10.0, x1: 180.0, y1: 130.0}   # 170 x 120 mm, 6-layer
+  edge_width: 0.1
+  layers: 6
+  mounting_holes:
+    # north corners occupied by the overhanging port bank -> side-mid + south corners
+    footprint: MountingHole:MountingHole_3.2mm_M3
+    at: [[14.0, 70.0], [176.0, 70.0], [20.0, 124.0], [170.0, 124.0]]
+
+libraries:
+  # VENDORED SHT4x (2026-07-23 FRESH-lead): rebinds the Sensor_Humidity lib to a
+  # project-local .pretty so U6's FPID (Sensor_Humidity:Sensirion_DFN-4...SHT4x)
+  # loads our variant, which flips the footprint's embedded picture-frame keepout
+  # from `tracks not_allowed` to `tracks allowed`. The stock keepout blocks the
+  # 4 pin-track approaches (3V3/SDA/SCL enter the frame to reach pads that sit at
+  # the frame edge) -> 4 items_not_allowed with no legal route. vias + copperpour
+  # stay not_allowed, so the manufacturer's keep-copper-pour-off-the-sensor intent
+  # is preserved; only the sensor's OWN pin tracks are permitted. Must precede the
+  # stock root so the rebind wins (candidates() is first-match).
+  - {lib: Sensor_Humidity, path: 03_src/lib/Sensor_Humidity.pretty}
+  - /usr/share/kicad/footprints
+  - 03_src/lib            # holds crow_recorder_central_v2.pretty (US8 + TQFP-128_EP)
+
+placement:
+  # regions: [x0,y0,x1,y1] — used by region-center patterns
+  regions:
+    PORTS_N:   [10.0, 12.0, 180.0, 44.0]
+    ANALOG_C:  [20.0, 47.0, 170.0, 80.0]
+    DIGITAL_S: [40.0, 82.0, 150.0, 128.0]
+    POWER_SW:  [10.0, 82.0, 48.0, 128.0]
+
+  anchors:
+    # --- NORTH: 8x RJ45 port bank, 20mm pitch (courtyard 19.6mm wide). rot 0 =
+    # opening NORTH (off-board; LED rear pads face south), y=18 so the body
+    # overhangs the north edge (opening at the enclosure wall) ---
+    J3:  [25.0, 18.0, 0]
+    J4:  [45.0, 18.0, 0]
+    J5:  [65.0, 18.0, 0]
+    J6:  [85.0, 18.0, 0]
+    J7:  [105.0, 18.0, 0]
+    J8:  [125.0, 18.0, 0]
+    J9:  [145.0, 18.0, 0]
+    J10: [165.0, 18.0, 0]
+    # beeper switch (north band, SE of the port bank; switched-return current confined here)
+    Q2:  [172.0, 46.0, 0]
+    # --- CENTER: analog ADC spine (U2 ch1-4 left, U3 ch5-8 right, 3V3A LDO between) ---
+    U2:  [62.0, 62.0, 0]
+    U10: [95.0, 60.0, 0]
+    U3:  [128.0, 62.0, 0]
+    JP_INJ: [95.0, 49.0, 0]
+    U6:  [168.0, 58.0, 0]     # SHT40 NE corner, away from regulators + SoC (self-heating)
+    # --- SOUTH: digital cell ---
+    U1:  [90.0, 102.0, 0]     # XU316 TQFP-128, centred; north side faces the ADC spine
+    U4:  [90.0, 84.0, 0]      # clock buffer between SoC and ADC spine
+    Y1:  [70.0, 114.0, 0]     # crystal hard against U1 XIN/XOUT side
+    U5:  [112.0, 114.0, 0]    # QSPI flash near U1 IOL boot pins
+    J2:  [90.0, 126.0, 0]     # USB-C, mating face to the south edge
+    J_DBG: [140.0, 118.0, 90] # JTAG 1x08 header, horizontal (rot 90), digital region interior
+    # --- SW corner: power cluster ---
+    J1:  [24.0, 102.0, 0]     # barrel jack, west edge (courtyard extends 6mm W of pos)
+    F_IN: [40.0, 90.0, 0]     # input fuse (east of the jack, clear of J1 courtyard)
+    D1:  [40.0, 96.0, 0]      # input TVS
+    Q1:  [40.0, 102.0, 0]     # RPP P-FET
+    U7:  [20.0, 116.0, 0]     # 3V3 buck (south of J1 courtyard)
+    U8:  [38.0, 116.0, 0]     # 0V9 core buck
+    U9:  [28.0, 125.0, 0]     # 1V8 LDO
+    # --- test points along south/east edges ---
+    TP1: [46.0, 126.0, 0]
+    TP2: [52.0, 126.0, 0]
+    TP3: [58.0, 126.0, 0]
+    TP4: [64.0, 126.0, 0]
+    TP5: [70.0, 126.0, 0]
+    TP6: [76.0, 126.0, 0]
+    TP7: [100.0, 90.0, 0]
+    TP8: [106.0, 90.0, 0]
+    TP9: [112.0, 90.0, 0]
+    TP10: [118.0, 90.0, 0]
+    TP11: [176.0, 52.0, 0]
+    TP12: [176.0, 57.0, 0]
+
+  # PATTERNS: glob(refdes) -> near <anchor> (start on it, legalize outward) or region.
+  # Order matters: first matching near/region wins. Specific groups first.
+  patterns:
+    # test points that carry exclude_from_bom mismatch — clear if needed
+    - {match: "TP*", clear_attrs: []}
+    # --- ADC U2 (ch1-4): input RC (Cc/Rs/Cd 1-4) + AVDD/DVDD/IOVDD/VREF/MICBIAS/LDO decouple ---
+    - {match: "Cc1?", near: U2}
+    - {match: "Cc2?", near: U2}
+    - {match: "Cc3?", near: U2}
+    - {match: "Cc4?", near: U2}
+    - {match: "Rs1?", near: U2}
+    - {match: "Rs2?", near: U2}
+    - {match: "Rs3?", near: U2}
+    - {match: "Rs4?", near: U2}
+    - {match: "Cd1", near: U2}
+    - {match: "Cd2", near: U2}
+    - {match: "Cd3", near: U2}
+    - {match: "Cd4", near: U2}
+    - {match: "C_avdd2*", near: U2}
+    - {match: "C_dvdd2", near: U2}
+    - {match: "C_iovdd2", near: U2}
+    - {match: "C_vref2*", near: U2}
+    - {match: "C_micb2", near: U2}
+    - {match: "C_ldo2", near: U2}
+    # --- ADC U3 (ch5-8) ---
+    - {match: "Cc5?", near: U3}
+    - {match: "Cc6?", near: U3}
+    - {match: "Cc7?", near: U3}
+    - {match: "Cc8?", near: U3}
+    - {match: "Rs5?", near: U3}
+    - {match: "Rs6?", near: U3}
+    - {match: "Rs7?", near: U3}
+    - {match: "Rs8?", near: U3}
+    - {match: "Cd5", near: U3}
+    - {match: "Cd6", near: U3}
+    - {match: "Cd7", near: U3}
+    - {match: "Cd8", near: U3}
+    - {match: "C_avdd3*", near: U3}
+    - {match: "C_dvdd3", near: U3}
+    - {match: "C_iovdd3", near: U3}
+    - {match: "C_vref3*", near: U3}
+    - {match: "C_micb3", near: U3}
+    - {match: "C_ldo3", near: U3}
+    # --- 3V3A quiet LDO U10 (center) ---
+    - {match: "Cin_U10", near: U10}
+    - {match: "Cout_U10", near: U10}
+    - {match: "Couth_U10", near: U10}
+    # --- injection header ---
+    - {match: "R_inj*", near: JP_INJ}
+    # --- XU316 U1 decoupling + PLL + USB analog + reset + I2C pullups ---
+    - {match: "C_c?", near: U1}
+    - {match: "C_d?", near: U1}
+    - {match: "C_e?", near: U1}
+    - {match: "C_b0v9", near: U1}
+    - {match: "C_b3v3", near: U1}
+    - {match: "C_b1v8", near: U1}
+    - {match: "C_pll*", near: U1}
+    - {match: "L_pll", near: U1}
+    - {match: "C_u33*", near: U1}
+    - {match: "C_u18*", near: U1}
+    - {match: "FB_u33", near: U1}
+    - {match: "FB_u18", near: U1}
+    - {match: "C_rst", near: U1}
+    - {match: "R_rst", near: U1}
+    - {match: "R_sda", near: U1}
+    - {match: "R_scl", near: U1}
+    # --- crystal group (hard against Y1 / U1 XIN-XOUT) ---
+    - {match: "CL1", near: Y1}
+    - {match: "CL2", near: Y1}
+    - {match: "Rf", near: Y1}
+    - {match: "Rd", near: Y1}
+    # --- clock buffer group ---
+    - {match: "C_u4", near: U4}
+    - {match: "R_mck*", near: U4}
+    - {match: "R_bck", near: U4}
+    - {match: "R_lrck", near: U4}
+    # --- flash group ---
+    - {match: "C_flash", near: U5}
+    - {match: "R_cs", near: U5}
+    # --- USB group ---
+    - {match: "D_USB", near: J2}
+    - {match: "R_cc*", near: J2}
+    - {match: "R_vb*", near: J2}
+    - {match: "R_vbld", near: J2}
+    - {match: "C_vb", near: J2}
+    # --- SHT40 ---
+    - {match: "C_sht", near: U6}
+    # --- beeper group (north) ---
+    - {match: "R_bg*", near: Q2}
+    - {match: "C_bg", near: Q2}
+    - {match: "FB_BEEP", near: Q2}
+    - {match: "C_BEEP", near: Q2}
+    # --- bucks + LDO (SW power corner) ---
+    - {match: "Cin_U7", near: U7}
+    - {match: "Cinh_U7", near: U7}
+    - {match: "Cout_U7", near: U7}
+    - {match: "Couth_U7", near: U7}
+    - {match: "R_fb1*", near: U7}
+    - {match: "R_pg", near: U7}
+    - {match: "L1", near: U7}
+    - {match: "Cin_U8", near: U8}
+    - {match: "Cinh_U8", near: U8}
+    - {match: "Cout_U8", near: U8}
+    - {match: "Couth_U8", near: U8}
+    - {match: "R_fb2*", near: U8}
+    - {match: "L2", near: U8}
+    - {match: "Cin_U9", near: U9}
+    - {match: "Cout_U9", near: U9}
+    # --- input protection passives (SW) ---
+    - {match: "C_5V*", near: Q1}
+    - {match: "C_VINR", near: Q1}
+    - {match: "RG1", near: Q1}
+    # --- per-port ESD + PTC near their RJ45 (north) ---
+    - {match: "Dp1", near: J3}
+    - {match: "Dp2", near: J4}
+    - {match: "Dp3", near: J5}
+    - {match: "Dp4", near: J6}
+    - {match: "Dp5", near: J7}
+    - {match: "Dp6", near: J8}
+    - {match: "Dp7", near: J9}
+    - {match: "Dp8", near: J10}
+    - {match: "F1", near: J3}
+    - {match: "F2", near: J4}
+    - {match: "F3", near: J5}
+    - {match: "F4", near: J6}
+    - {match: "F5", near: J7}
+    - {match: "F6", near: J8}
+    - {match: "F7", near: J9}
+    - {match: "F8", near: J10}
+    # STARVED_THERMAL fix (2026-07-23 FRESH-lead, golden rule 9): these parts each
+    # had a GND pad whose thermal-relief spokes were blocked by adjacent copper
+    # (<2 spokes = starved_thermal, authoritative headless on KiCad 10 with
+    # --refill-zones). A FULL solid pad-to-plane connection removes the spokes.
+    # Applied per-pad (on_net: GND) to ONLY the 23 starved pads' parts, NOT
+    # board-wide: keeps thermal relief (hand-solder aid) on every OTHER THT GND
+    # pad, and matches the crow-array-pod J1 / cook-hub SOLID-connection precedent
+    # for the connector GND tails here (J2-J10). U8 is DELIBERATELY EXCLUDED: its
+    # GND pad2 is fully isolated (the boxed buck-GND D-ADJ wall) so a full
+    # connection would flood the pour into an isolated pad-holding island that the
+    # stitch gate hard-fails on; it stays thermal (soft-unconnected) until the
+    # buck-corner In2 re-plan connects it, at which point add U8 here too.
+    # U7 added 2026-07-23: the 5V/U7 south-approach reroute (moving 5V off U7.2's
+    # north edge) changed U7.2's GND thermal spokes to <2 -> starved. U7.2 is
+    # pour-touching (not isolated), so full is safe (no island). U8 STILL excluded
+    # per the note above until its buck-GND via is confirmed by pad_rescue.
+    - {match: [C_c8, C_d6, C_dvdd2, C_ldo3, Dp1, J2, J3, J4, J5, J6, J7, J8, J9, J10,
+               U1, U2, U3, U7, Y1],
+       pad_overrides: [{on_net: GND, zone_connection: full}]}
+
+  # clearance 0.35 not 0.25 (2026-07-23, D-BACK from routing): at 0.25 the
+  # U7/U8 buck hot-loop passive clusters packed tight enough that the GND
+  # pour sliced off unstitchable fragments between the SW2/PG_3V3/0V9/5V/FB2
+  # trunk traces (measured: island_rescue's 81-point interior search AND an
+  # exhaustive 0.03mm pcb_toolkit scan both found ZERO legal 0.30mm via
+  # sites inside one such fragment). More breathing room between the
+  # passives gives the pour a path through.
+  legalize: {enable: true, clearance: 0.35, edge_margin: 1.0, hole_keepout: 3.2, ring_max: 60}
+
+# PERMISSIVE named rule area (deny: [] — denies nothing, exists only so
+# generate_rules_generic's nets.yaml `scoped_floors` can write a
+# `.kicad_dru` rule scoped to `insideArea('<name>')`; same pattern as
+# cook-hub u7_taps / usb-power-3s SW_TAP_A/B). U3 (PCM1865 #2) pad 25 (3V3)
+# sits in the dense ADC pin field (SCL/SDA/GND neighbors at TSSOP pitch);
+# measured 2026-07-23: KRT cannot route this ONE single-pin drop at the
+# PWR class's 0.4mm floor even after ripping SCL+SDA to clear the path
+# (--track-width 0.4, --clearance 0.10, finer grid, higher iterations —
+# all failed identically). The 0.4mm floor is an ampacity requirement for
+# the TRUNK; a lone decoupler-pin drop carries no meaningful current, so
+# nets.yaml scopes 3V3's floor down to 0.15mm inside this one small area.
+keepouts:
+  - {name: u3_3v3_tap, rect: [129.5, 60.0, 132.5, 63.0], layers: [F.Cu, In2.Cu, In3.Cu, B.Cu], deny: []}
+  # U1 (XU316) pad 5 (0V9) is a single-pin escape at the 0.4mm-pitch QFN
+  # (the documented hard escape region) — same reasoning as u3_3v3_tap:
+  # measured 2026-07-23, unroutable at the PWR class's 0.4mm trunk floor
+  # even after ripping its immediate blocker (QSPI_CLK).
+  - {name: u1_0v9_pin5, rect: [81.0, 96.0, 84.0, 99.0], layers: [F.Cu, In2.Cu, In3.Cu, B.Cu], deny: []}
+  # 0V9 decoupler-pin tap to U1.103 (north pin field): the promoted chain routes
+  # this drop at 0.3498mm on F.Cu at (93.1-93.4, 94.3) — deliberately thin to
+  # clear U1 pad 103 (a blanket width_floor lift to the 0.4 PWR floor clipped
+  # that pad to 0.0745mm, measured 2026-07-23). Same reasoning as u1_0v9_pin5:
+  # a single decoupler-pin drop carries no trunk current. nets.yaml scopes 0V9's
+  # min-width floor down to 0.34mm inside this small area so the thin tap passes
+  # track_width without being widened into the pad.
+  - {name: u1_0v9_tap103, rect: [92.7, 93.9, 93.7, 94.7], layers: [F.Cu, In2.Cu, In3.Cu, B.Cu], deny: []}
+
+design_rules:
+  track_min_width: 0.09
+  min_clearance: 0.09
+  via_min_annulus: 0.075
+  # 0.15 not 0.2 (2026-07-23, D-BACK from routing): board-wide hole
+  # clearance (m_HoleClearance) is a SEPARATE KiCad constraint from
+  # netclass copper clearance and generate_board_generic writes it
+  # straight from this value. At 0.2 it produced 41 hole_clearance
+  # findings post-import, all track-vs-neighbor-via at a consistent
+  # 0.175mm actual (5V/0V9 trunk crossing the dense power-cluster/XU316
+  # via field) — measured, kicad-cli DRC on the imported board. 0.15
+  # clears that with margin and stays well above the tier's 0.09 floor.
+  hole_clearance: 0.15
+  hole_to_hole: 0.2
+  copper_edge_clearance: 0.3
+  via_min_size: 0.30
+  min_through_drill: 0.15
+  solder_mask_min_width: 0.0
+  solder_mask_expansion: 0.0
+
+# connect: DEFERRED to `full` — the starved_thermal fix (golden rule 9: a FULL
+# solid pad-to-plane connection removes the spokes that were starving on 23
+# pads, and is electrically preferable for an 8ch mixed-signal AUDIO board;
+# matches the crow-array-pod J1 / cook-hub SOLID-connection precedent). BLOCKED
+# for now: with connect:full the GND pour floods toward the 2 still-unconnected
+# boxed pads (U8.2, C_micb2.2), forming isolated pad-holding islands that the
+# stitch `gate` pass hard-fails on (vs thermal's soft "unconnected"). Flip this
+# to `full` in the SAME change that connects both boxed pads (C_micb2.2: ADC2P
+# B.Cu detour, done; U8.2: buck-GND D-ADJ, pending). Until then thermal keeps
+# the gate passing and leaves the 23 as (real, headless-authoritative)
+# starved_thermal findings, tracked in journal/routing.md.
+zones:
+  - {net: GND, layers: [F.Cu, In1.Cu, In4.Cu, B.Cu], priority: 0, min_thickness: 0.2, clearance: 0.2, connect: thermal}
+
+silk:
+  min_text_height: 0.6
+  refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQ"}
+  labels:
+    - {match: "TP*", from: value, strip: "TP ", size: 0.6}
+  captions:
+    # (x,y) is the text CENTRE (PCB_TEXT centre-justified). These 3 were the
+    # "3 crowded captions" generate_board could not nudge clear of pads/silk at
+    # their old anchors (over J3 pads / decoupler silk / J2 pads). Relocated to
+    # verified-clear spots (bbox clears all F.Cu pads + F.SilkS, on-board), each
+    # kept near its subject: the NOT-ETHERNET warning centred below the port bank,
+    # the title in the clear south band, the USB label at J2. (2026-07-23.)
+    # NOT-ETHERNET custom pinout warning (required by the brief) — below the ports
+    - ["NOT ETHERNET - CUSTOM 5V AUDIO PINOUT", 95.0, 33.0, 0.9]
+    - ["1,2=AUDIO+/-  3,6=+5VBEEP/RTN  4,5&7,8=+5VAUD/GND", 30.0, 43.0, 0.6]
+    - ["crow-recorder-central-v2  8ch USB audio  C", 92.5, 116.5, 0.8]
+    - ["USB-C (host)", 90.0, 127.5, 0.6]
+    - ["JTAG 1V8", 132.0, 121.0, 0.55]
+    - ["5V IN (GST25A05)", 16.0, 108.0, 0.6]
+
+asserts:
+  pad_net:
+    - {ref: D1, pad: 1, net: VIN_RAW}     # TVS cathode (pad 1) to the protected raw input
+    - {ref: Q1, pad: 3, net: VIN_RAW}     # RPP P-FET drain to input
+    - {ref: Q1, pad: 2, net: 5V}          # RPP P-FET source to the 5V rail
+    - {ref: Q2, pad: 3, net: BEEP_RETURN} # beeper N-FET drain to the switched return
+    - {ref: Q2, pad: 2, net: GND}         # beeper N-FET source to GND

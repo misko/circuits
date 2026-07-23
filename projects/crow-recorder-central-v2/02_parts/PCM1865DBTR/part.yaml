@@ -10,7 +10,7 @@ datasheet:
   sha256: 4aadcbcaa50a77c61b81a8ab471def4031f5e6ae9398b5b4d068dd3d81ab3239
   fetched: 2026-07-23
 package: TSSOP-30 DBT 4.4x9.7mm (body 7.80 x 4.40 mm), 0.5mm pitch
-footprint: crow_recorder_central_v2:TSSOP-30_DBT_4.4x9.7mm_P0.5mm_PCM1865
+footprint: Package_SO:TSSOP-30_4.4x7.8mm_P0.5mm   # KiCad stock; DBT body 7.8x4.4mm, 0.5mm pitch
                           # derive from KiCad Package_SO:TSSOP-30_4.4x9.7mm_P0.5mm
 escape:                   # leaded 0.5mm. A plain leaded 0.5mm escapes at
                           # jlc_2layer_default, BUT the TSSOP-30 long sides are

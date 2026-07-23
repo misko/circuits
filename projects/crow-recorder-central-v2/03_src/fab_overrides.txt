@@ -1,0 +1,13 @@
+# KRT fab-floor override — PINS the via floor to this project's declared
+# fab tier (03_src/rules/nets.yaml: jlc_6layer_smallvia, 0.30/0.15 via-in-pad,
+# 0.20 hole-to-hole). Neither of KRT's own built-in presets matches: standard
+# is 0.45/0.20 (too loose), advanced is 0.25/0.15 (BELOW our floor — measured
+# 2026-07-23: routing with --fab-tier advanced alone let KRT auto-escalate 33
+# vias down to 0.25mm diameter in the XU316 escape field + tight power runs,
+# which is a real via_diameter DRC violation against our 0.30mm floor, not
+# just a margin item). Supplying this file disables that auto-escalation —
+# KRT either routes within 0.30/0.15, or fails the net loudly (caught by
+# `quick`'s unconnected count, not silently downgraded copper).
+via_diameter = 0.30
+via_drill    = 0.15
+hole_to_hole = 0.20

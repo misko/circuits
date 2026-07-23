@@ -8,7 +8,7 @@ datasheet:
   sha256: a2ce2dc835df06793a4e1aa6c5d226c6a01c25c979a63b09a2b57059c17321cf
   fetched: 2026-07-23
 package: "TQFP-128, 14x14mm body (16x16mm incl. leads), 0.40mm pitch, exposed GND paddle D2=E2=4.70mm nom (4.40-5.00), pin 129=EP=VSS. Lead L=0.58 nom, b=0.16 nom, A=1.20 max."
-footprint: "Package_QFP:TQFP-128_14x14mm_P0.4mm -- BUT the stock KiCad footprint has NO exposed pad; must be extended with a 4.70x4.70mm central EP (pad 129, net GND) + a 4x4 (16) thermal via grid (via-in-pad, 0.30/0.15, filled+capped) per datasheet 14.4/Fig.22. Use a project-local *_EP variant."
+footprint: crow_recorder_central_v2:TQFP-128_14x14mm_P0.4mm_EP_XU316   # project-local: stock TQFP-128 + 4.70mm EP(pad129,GND) + 4x4 via-in-pad thermal grid (0.30/0.15), per datasheet 14.4
 escape:
   style: leaded
   pitch: 0.4

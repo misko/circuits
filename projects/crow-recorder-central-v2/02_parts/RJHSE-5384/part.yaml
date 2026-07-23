@@ -9,7 +9,7 @@ datasheet:
   sha256: f48833efd01cc8a3ff80e84ec01980b3d5bc693dba77a82e00ef1eefdb027fc6
   fetched: 2026-07-23
 package: RJ45 8P8C right-angle THT, shielded (EMI finger), 2 LEDs, board-lock posts
-footprint: Connector_RJ:RJ45_Amphenol_RJHSE538X
+footprint: crow_recorder_central_v2:RJ45_RJHSE538X_num   # vendored: SH pad renamed -> 13 (tscircuit numeric)
 escape: {style: connector, pitch: 1.02, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
 pins:                           # physical contacts from Amphenol drawing rev C (FRONT VIEW + LED SCHEMATIC).
                                 # NOTE(board): this board uses a CUSTOM NON-ETHERNET net assignment on pins 1-8.

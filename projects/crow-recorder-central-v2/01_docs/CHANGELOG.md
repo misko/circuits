@@ -10,3 +10,7 @@ One entry per REVISION (a design state, git-tagged). Reverse-chronological.
   routing (03_src/rules/nets.yaml). Parts research fanned out (18 parts; 8 ledger
   hits). Schematic (tscircuit) authoring in progress.
 Released: no
+- Placement: mixed-signal-audio-hub floorplan (39 anchors + 155 pattern-placed
+  passives), 6-layer In1+In4 GND planes; audit_template I1-I8 PASS (0/0). Project-
+  local footprints: TQFP-128_EP (16-via grid), US8, vendored numeric-pad USB-C+RJ45.
+  generate_rules merged 5 netclasses into 04_kicad. Routing (KRT) in progress.
