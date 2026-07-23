@@ -11,6 +11,8 @@ one that is unrecoverable if lost.
 | File | What | Rule |
 |---|---|---|
 | `BRIEF.md` | the commission record: original prompt (verbatim), end goal + acceptance criteria, clarification/directive/assumption log, decision register | see structure below; user quotes immutable, log append-only |
+| `brief_source_condensed.md` | the CONDENSED commission source, used only when the full prompt was not transmitted verbatim — BRIEF.md's repair path quotes it and pins its whole-file sha256 | immutable source; referenced by BRIEF.md |
+| `*.pdf` | doc-level mechanical/enclosure reference datasheet with no `02_parts/<MPN>` home (e.g. the enclosure drawing cited by the board-outline ADR) | reference only; cite by filename in the ADR |
 | `ARCHITECTURE.md` | the high-level concepts: power tree, net domains, stackup, ground strategy, critical geometries | prose + diagrams; the "why". Machine-readable net facts belong in `03_src/rules/nets.yaml`, not here — link to it |
 | `DETAIL_DESIGN.md` | the math: ripple, compensation, ampacity, thermal, tolerance | every number that a component value depends on, with its equation |
 | `CHANGELOG.md` | one entry per revision | see structure below |

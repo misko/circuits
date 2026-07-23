@@ -12,9 +12,13 @@ belongs here.
 | File | What |
 |---|---|
 | `nets.yaml` | net classes: nets, current, intent, min_width, routing strategy, verify, scoped exemptions; `fab_tier` (capability floors for the generic backend); `scoped_floors` (insideArea width relaxations, `why` REQUIRED) |
+| `electrical_invariants.yaml` | design-INTENT assertions the netlist must satisfy (canon E-INV): `pin_on_net`, `series_chain`, `net_has_part`. Each REQUIRES `adr:` (the ADR that emitted it) + `why:`. Emitted by protection/topology ADRs; graded by `electrical_invariants.py` |
+| `power_tree.yaml` | per-rail voltage ENVELOPES + converter selection (canon E-TOPO): `{name, vin_min, vin_max, vout_min, vout_max, iout_max_A, converter, eff}`. Topology is DERIVED from Vin-vs-Vout (buck/boost/buck_boost) and asserted against the converter part.yaml `type:`; over-capable = over-engineering FAIL. Graded by `power_topology.py` |
 | `stackup.yaml` | layer count, what each layer is for, fab tier (optional) |
 | `twin_adjudications.yaml` | reviewed jlc_twin findings accepted WITH evidence (see jlcpcb-fab skill) |
 | `passives_lcsc.yaml` | passives BOM-comment -> LCSC seed map (bom_seed input; usb-hub-3s) |
+| `policy_waivers.yaml` | policy_audit waivers accepted WITH measurement evidence (canon M4/M-WAIV): a YAML list, each entry naming the WAIVED S-/P-/R-/M-/E- policy ID + `why:` + the measurement that justifies it; P-ADJ net-span over-budget dispositions land here with the measured span + why. An entry without evidence is itself a FAIL |
+| `policy_audit.json` | OPTIONAL `policy_audit.py` config (`--config 03_src/rules/policy_audit.json`, its default path): thresholds + HUMAN-item verdict pointers (S5/S6/S7) |
 | `contracts.md` | this file |
 
 ## The rule that makes this folder worth existing
@@ -56,6 +60,8 @@ floor's job is to make "silently thin" impossible, not to carry the amps.
 - regenerating produces byte-identical `.kicad_dru` + `.kicad_pro`
   netclasses (drift = someone hand-edited the output)
 - every `exemptions[].area` names a rule area that exists on the board
+- every `policy_waivers.yaml` entry parses, names a real policy ID, and carries
+  `why:` + measurement evidence (canon M-WAIV)
 - DRC width comparisons are EXACT NANOMETERS: a track at 249800nm prints as
   "0.25" and fails a 0.25mm floor. Round emitted values.
 
