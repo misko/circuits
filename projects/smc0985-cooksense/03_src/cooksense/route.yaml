@@ -1,0 +1,118 @@
+# cooksense route + stitch — input for skills/kicad-pcb/scripts/route_and_stitch_generic.py
+#
+# ADR-0007 NESTING: this config lives at 03_src/cooksense/route.yaml, so its
+# grandparent is 03_src (NOT the project root). ALL commands MUST pass
+# --root <project root>:
+#   /usr/bin/python3 $S/route_and_stitch_generic.py prep 03_src/cooksense/route.yaml \
+#       --root projects/smc0985-cooksense
+# The flat-path lookups (fab_tier_util.resolve, net_class_floors) read
+# <root>/03_src/rules/nets.yaml -> symlinked to cooksense/rules/nets.yaml
+# (mirrors the audit_board.py / policy_waivers.yaml symlink pattern). This is
+# the multi-board path gap the task flagged; a proper per-board resolver in
+# the shared backend is the real fix.
+#
+# ISOLATION (brief §4/§7, ADR-0001/0002): the keypad CONTACT strip is a
+# galvanically isolated domain. Logic waves get a User.2 keepout over the strip
+# 6mm-creepage envelope so NO logic track comes within 6mm of keypad copper
+# (which spans x18.6..156.6 via the U/D_SEL buses). Keypad-iso nets route on
+# User.3 (strip OPEN) so they can reach their in-strip pads. GND (In1) + 3V3
+# (In2) are PLANE-owned and excluded from KRT.
+
+project:
+  name: cooksense
+  board: 04_kicad/cooksense.kicad_pcb
+  build_dir: 06_build/route
+
+prep:
+  out: r0.kicad_pcb
+  keepouts:
+    layers: [User.2, User.3]        # U.2 = logic (strip blocked); U.3 = keypad (strip open)
+    mounting_holes: {radius: 3.0}
+    edge_band: 0.7
+    rects:
+      # KEYPAD ISOLATION STRIP: 6mm-creepage envelope around keypad copper.
+      # Keypad copper x18.6(J_KEY)..156.6(K_U6.4/K_STOP.3), y55.8..70.2.
+      # East edge x163 keeps logic >=6mm from x156.6. Logic-only (User.2).
+      - {x0: 15.0, y0: 49.5, x1: 163.0, y1: 76.5, layer: User.2}
+  waves:
+    exclude: ["GND", "3V3", "unconnected-*"]   # In1 GND plane + In2 3V3 plane own these
+    groups:
+      # HARDEST FIRST: the N-S crossing signals that must thread the isolation
+      # corridors (west ~x28-30, east ~x162.6). cross_safety = safety/relay
+      # crossers (no J_PI); cross_pi = Pi-interface crossers.
+      cross_safety: [TEMP_OK, WD_OK, ESTOP_OK, PWR_GOOD_N, FAULT, MODE_AUTO_HW,
+                     DOOR_OK, REARM_N, SEL_D3, SEL_D4, COIL_D1_N, COIL_D2_N,
+                     STOP_REQ, PRESS_TIMED, CONTACTOR_C, KEY_RELAY_ALLOWED]
+      cross_pi: [HOST_AUTH, WD_PET, MCU_RELAY_ENABLE, KEY_CLOCK, KEY_LATCH,
+                 KEY_RESET_N, KEY_DATA]
+      # keypad-iso domain: routes WITHIN the strip (User.3, strip open)
+      keypad: [KP_U1, KP_U2, KP_U3, KP_U4, KP_U5, KP_U6, KP_D1, KP_D2, KP_D3,
+               KP_D4, U_SEL_BUS, D_SEL_BUS, RKEY_MID, RSTOP_MID]
+      # coil selects/drives that stay on ONE side (local)
+      coil: [SEL_U1, SEL_U2, SEL_U3, SEL_U4, SEL_U5, SEL_U6, SEL_D1, SEL_D2,
+             COIL_U1_N, COIL_U2_N, COIL_U3_N, COIL_U4_N, COIL_U5_N, COIL_U6_N,
+             COIL_D3_N, COIL_D4_N, COIL_PRESS_N, COIL_STOP_N, 5V_KEY_RELAY]
+      pwr: [5V_PROTECTED, 5V_IN, 5V_FUSED, 5V_RPP, 3V3_ANALOG,
+            3V3_SW_A, 3V3_SW_B, 3V3_SW_RHA, 3V3_SW_RHE]
+      sig: rest
+
+route:
+  krt: ~/gits/KiCadRoutingTools
+  race: 3            # KRT is stochastic: 3 concurrent chains, quick-measured best wins
+  kicad_python: /usr/bin/python3
+  common:
+    layers: [F.Cu, B.Cu]
+    fab_tier: advanced          # via/clearance floors from nets.yaml fab_tier
+    no_stub_layer_swap: true
+    keepout: true
+    keepout_layer: User.2
+    clearance: 0.15
+  waves:
+    - {name: cross_safety, group: cross_safety, track_width: 0.2,
+       max_iterations: 600000, max_ripup: 40}
+    - {name: cross_pi, group: cross_pi, track_width: 0.2, max_iterations: 600000}
+    - {name: keypad, group: keypad, track_width: 0.3, keepout_layer: User.3,
+       max_iterations: 400000}
+    - {name: coil, group: coil, track_width: 0.4, max_iterations: 500000}
+    - {name: pwr,  group: pwr,  max_iterations: 500000}
+    - {name: sig, group: sig, track_width: 0.25, max_iterations: 800000,
+       max_probe_iterations: 60000, max_ripup: 30}
+  # final: 03_src/cooksense/route/rN.kicad_pcb   # promote once converged (canon M3)
+
+stitch:
+  clearance: 0.15
+  via: {spacing: 0.85, pth_margin: 0.3}    # size/drill tier-derived (advanced)
+  keepin: {inset: 0.8}
+  passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
+           split_t_junctions, reload, hole_to_hole, pad_rescue, stub_fallback,
+           astar_fallback, stitch_grid, fill, island_rescue, fill,
+           unify_zone_priorities, heal_islands, prune_stitch_dangling, gate]
+  dedupe_vias: {radius: 0.5, metric: box}
+  drop_micro_fragments: {max_length: 0.12, require_free_end: true}
+  drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
+  split_t_junctions: {tol: 0.05}
+  hole_to_hole: {min_gap: 0.5, mode: nudge, prefer_keep: [GND]}
+  # GND (In1) + 3V3 (In2) inner planes: rescue BOTH plane-nets' boxed pads.
+  # NOTE: stitch_grid + pad_rescue MUST avoid the keypad strip (isolation) —
+  # the stitch_grid `avoid` rect keeps GND vias out of the strip.
+  pad_rescue:
+    nets:
+      - {net: GND, layer: In1.Cu}
+      - {net: 3V3, layer: In2.Cu}
+    via_in_pad: true
+    served_within: 1.6
+    rings: [0.75, 0.95, 1.2, 1.6, 2.1, 2.7]
+    stub_width: 0.3
+    require: none
+  stub_fallback: {net: GND, min_dist: 0.2, max_dist: 8.0, width: 0.3}
+  astar_fallback: {net: GND, width: 0.25, window: 3.0, attempts: 3}
+  stitch_grid:
+    net: GND
+    x: [24, 160, 8]
+    y: [24, 112, 8]
+    # ISOLATION: no GND stitch vias in the keypad strip (would bridge the barrier)
+    avoid: [{x0: 15.0, y0: 49.0, x1: 163.0, y1: 77.0, margin: 1.0}]
+  island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu], require: all}
+  unify_zone_priorities: {min_bbox: 0.8}
+  heal_islands: {min_bbox: 0.8}
+  prune_stitch_dangling: {tol: 0.05, min_layers: 2}
