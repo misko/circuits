@@ -1,0 +1,70 @@
+mpn: XC6227C331PR-G
+manufacturer: Torex Semiconductor
+type: ldo                     # 700mA high-speed LDO, fixed 3.3V ("331").
+                              # Rail 3V3A: 5V -> 3.3V @ ~70mA, feeds 2x PCM1865 AVDD.
+datasheet:
+  doc_id: ETR03054            # Torex doc number, top-right of p.1
+  revision: ETR03054-006
+  url: https://product.torexsemi.com/system/files/series/xc6227.pdf
+  sha256: 03781c58b7e1bc8e98fdef0e5c735ce50aa597ac8947a66ed5345739ac378504
+  fetched: 2026-07-23
+package: SOT-89-5             # PR-G suffix = SOT-89-5, 1.5mm lead pitch, tab=VSS
+footprint: Package_TO_SOT_SMD:SOT-89-5
+escape:
+  style: leaded
+  pitch: 1.5
+  tier_required: jlc_2layer_default
+  checked: "escape_check 2026-07-23"   # leaded 1.5mm/5pin -> ok at all tiers
+pins:                         # PIN CONFIGURATION fig + table (p.3), SOT-89-5 column
+  1: CE                       # ON/OFF control, active-HIGH (type C, see gotchas)
+  2: {name: VSS, note: "ground; the large center die-attach TAB is also pin 2/VSS"}
+  3: NC                       # no connection
+  4: VIN                      # power input
+  5: VOUT                     # regulated 3.3V output
+  # tab: VSS (pin 2) - solder the SOT-89 heat tab to the GND/VSS plane
+limits:
+  vout: "3.30V fixed (+/-1%, Vout>2.0V)"    # 331 = 3.3, 4th digit 1 -> x.x0
+  iout_max: "700mA"
+  vin_op: "1.7 to 6.0V"
+  vin_abs_max: "6.5V (Vss-0.3 to 6.5); VOUT and VCE abs-max also 6.5V"
+  dropout: "120mV @ Iout=300mA (Vout=3.0V)"
+  psrr: "65dB @ 1kHz"
+  iq: "100uA typ (220uA max)"
+  vce_high_min: "1.2V"        # CE logic-high threshold
+  tsd: "150C detect / 125C release"
+gotchas:
+  - "CE (pin 1) is active-HIGH. This is the 'C' TYPE = built-in CE PULL-DOWN
+     resistor (Selection Guide p.2, Function Chart p.3): CE OPEN => Stand-by(OFF),
+     CE Low => OFF, CE High => Active. So a FLOATING CE = OFF. Tie CE to VIN for
+     always-on. (The 'A' type has no pulldown and is undefined when open.)"
+  - "SOT-89-5: the center lead AND the metal heat tab are BOTH pin 2 = VSS
+     (pin table p.3). A footprint that models the tab as a separate pad yields a
+     twin PAD-MISMATCH artifact vs a 5-electrical-pin symbol - adjudicate as a
+     known dup (tab tie:VSS), do not renumber."
+  - "VIN abs-max 6.5V, NO overvoltage protection on this LDO. Same shared-5V-rail
+     OVP caveat as the bucks: rely on the RPP FET + SMAJ5.0A TVS (ADR-0001)."
+  - "Quiet-analog part (feeds PCM1865 AVDD): reverse-current protection present
+     (blocks VOUT>VIN backfeed). Keep it away from the switchers/beeper (G10)."
+design: |
+  Fixed-output LDO - no external divider (internal R1/R2, Cff).
+  Caps (datasheet 'Input and Output Capacitors' p.9): Cin = 1.0uF ceramic between
+  VIN and VSS; CL (output, for phase compensation) = 2.2uF ceramic for the
+  2.5-5.0V output band (our 3.3V). Both must be low-ESR ceramic and close to the IC
+  (Notes on Use p.10). Loss of CL can break phase compensation.
+verified: "pin map from PIN CONFIGURATION figure + PIN NUMBER table (p.3, SOT-89-5
+  column: 1=CE,2=VSS/tab,3=NC,4=VIN,5=VOUT); CE active-high w/ pulldown from
+  Selection Guide (p.2) + Function Chart (p.3). ETR03054-006, 2026-07-23."
+layout:
+  source: "Torex ETR03054-006 Notes on Use (p.10) + Attention in Use: wire Cin and
+    CL as close to the IC as possible; keep VIN/VSS copper wide/low-impedance;
+    tab soldered to VSS plane for heat. Analog LDO -> route away from switchers."
+  reviewed: "2026-07-23"
+  keep_short:
+    - {net: 3V3A, max_span_mm: 4, why: "CL (2.2uF) hard to VOUT(5)/VSS(2), feeds PCM1865 AVDD"}
+    - {net: PLUS5V_AUDIO, max_span_mm: 4, why: "Cin (1uF) hard to VIN(4)/VSS(2)"}
+layout_refs:
+  - "datasheet ETR03054-006 Typical Application Circuit (p.1) + Notes on Use (p.10)"
+  - "OSHWLab by-LCSC C6035451 (JLC-fabbed XC6227 instances)"
+sourcing:
+  lcsc: C6035451
+  alternates: []              # fixed 3.3V SOT-89-5 quiet LDO; XC6206/XC6203 differ (no rev-current, higher noise)

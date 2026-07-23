@@ -1,0 +1,58 @@
+mpn: RJHSE-5384
+manufacturer: Amphenol Communications Solutions
+type: connector                 # single-port shielded RJ45 THT jack, 8P8C, with 2 LEDs + board lock. 8 used (6 populated).
+mates: receptacle
+datasheet:
+  doc_id: Amphenol-RJHSE-X38X
+  revision: revC                # Amphenol drawing P-RJHSE-X38X rev C (in PDF filename)
+  url: https://cdn.amphenol-cs.com/media/wysiwyg/files/drawing/rjhsex38x.pdf
+  sha256: f48833efd01cc8a3ff80e84ec01980b3d5bc693dba77a82e00ef1eefdb027fc6
+  fetched: 2026-07-23
+package: RJ45 8P8C right-angle THT, shielded (EMI finger), 2 LEDs, board-lock posts
+footprint: Connector_RJ:RJ45_Amphenol_RJHSE538X
+escape: {style: connector, pitch: 1.02, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
+pins:                           # physical contacts from Amphenol drawing rev C (FRONT VIEW + LED SCHEMATIC).
+                                # NOTE(board): this board uses a CUSTOM NON-ETHERNET net assignment on pins 1-8.
+  1: {name: C1, note: "RJ45 contact 1  -> board net AUDIO+"}
+  2: {name: C2, note: "RJ45 contact 2  -> board net AUDIO-"}
+  3: {name: C3, note: "RJ45 contact 3  -> board net +5V_BEEP"}
+  4: {name: C4, note: "RJ45 contact 4  -> board net +5V_AUDIO"}
+  5: {name: C5, note: "RJ45 contact 5  -> board net GND_AUDIO"}
+  6: {name: C6, note: "RJ45 contact 6  -> board net BEEP_SWITCHED_RETURN"}
+  7: {name: C7, note: "RJ45 contact 7  -> board net +5V_AUDIO"}
+  8: {name: C8, note: "RJ45 contact 8  -> board net GND_AUDIO"}
+  9:  {name: LED1_1, note: "LED1 lead (green). Confirm anode/cathode vs LED SCHEMATIC if LEDs are populated"}
+  10: {name: LED1_2, note: "LED1 lead"}
+  11: {name: LED2_1, note: "LED2 lead (yellow). Bi-colour option available"}
+  12: {name: LED2_2, note: "LED2 lead"}
+  SH: {name: SHIELD, tie: GND, note: "stainless shield solder tails (2 pads named SH); tie to chassis/GND"}
+limits:
+  contacts: 8P8C
+  contact_finish: "gold over nickel, 50 uin"
+  shield: "stainless steel, tin finish on solder tail"
+  housing_flammability: "UL 94V-0"
+  t_op: "-55..+85C"
+gotchas:
+  - "C99* code = consign-only placeholder, permanently stock 0, NO EasyEDA CAD — twin needs an evidence-backed NO-CAD adjudication; hand-solder line"
+  - "NPTH board-lock posts: DRC hole clearance 0.25 > routed copper clearance — fence the posts with keepouts before KRT"
+  - "mating face is on the SNAP-POST side; LED tails mark the REAR"
+  - "dense GND tail field starves thermal spokes — set zone connection SOLID for the jack GND tails"
+  - "CUSTOM pinout: contacts 1-8 do NOT carry Ethernet here (AUDIO+/-, +5V_BEEP/RETURN, +5V_AUDIO/GND_AUDIO). The magnetics-less analog use means the pair (1,2) needs the per-port TVS/ESD (TPD2E2U06DRLR)."
+verified: >-
+  8 signal contacts (1-8) + LED1 (pins 9,10) + LED2 (pins 11,12) + 2 shield tails
+  (SH) confirmed against the Amphenol P-RJHSE-X38X drawing rev C: FRONT VIEW,
+  LED SCHEMATIC, and RECOMMENDED PCB LAYOUT (.040 [1.02] TYP contact-row pitch,
+  two board-lock post holes). Cross-checked against KiCad footprint
+  RJ45_Amphenol_RJHSE538X (pads 1-12, SH, SH, 2 NPTH). 2026-07-23.
+layout_refs:
+  - "Amphenol catalogue RECOMMENDED PCB LAYOUT p.4 RJHSE-548X + p.6 RJHSE-538X-04"
+  - "Amphenol drawing P-RJHSE-X38X rev C RECOMMENDED PCB LAYOUT (component side)"
+  - "KiCad Connector_RJ:RJ45_Amphenol_RJHSE538X land pattern"
+sourcing:
+  lcsc: C9900035627
+  alternates: [C464587]
+
+layout:
+  source: "Amphenol RJHSE-538X recommended PCB layout (catalogue p.6) + proven-parts ledger: mating face on the SNAP-POST side; board-lock NPTH posts fenced with hole keepouts before routing; dense GND tail field set to SOLID zone connection (2-layer thermal starvation lesson carried to inner planes)."
+  reviewed: "2026-07-23"
+  notes: "8x port bank on the NORTH edge, mouths outward; per-port ESD (TPD2E2U06) + PTC (MINISMDC050) hard behind each jack; board-lock posts get hole keepouts; GND tails SOLID zone connection; NOT-ETHERNET custom pinout silk-labelled at each jack."

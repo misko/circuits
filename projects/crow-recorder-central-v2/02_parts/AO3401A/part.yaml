@@ -1,0 +1,65 @@
+mpn: AO3401A
+manufacturer: Alpha & Omega Semiconductor
+type: mosfet                  # P-channel. High-side reverse-polarity-protection FET
+                              # on the 5V input (refdes Q1, ADR-0001).
+datasheet:
+  doc_id: AO3401A
+  revision: Rev3.1            # "Rev 3.1: December 2023"
+  url: http://www.aosmd.com/pdfs/datasheet/AO3401A.pdf
+  sha256: 0d8e3261ae280e007b5837fff60c55142f2d92af71edc4d02aee6f7a760a785c
+  fetched: 2026-07-23
+package: SOT-23               # SOT-23 (SC-59), 3-lead, 0.95mm pitch
+footprint: Package_TO_SOT_SMD:SOT-23
+escape:
+  style: leaded
+  pitch: 0.95
+  tier_required: jlc_2layer_default
+  checked: "escape_check 2026-07-23"   # 3-pin leaded, escape trivial
+pins:                         # package drawing p.1 (SOT23 Top/Bottom View) + symbol
+  1: G                        # Gate  (bottom-left lead)
+  2: S                        # Source (bottom-right lead)
+  3: D                        # Drain (single top lead)
+limits:
+  vds: "-30V"
+  vgs: "+/-12V"               # abs-max; -5V drive on a 5V rail is well within
+  id_cont: "-4.0A (Ta=25C) / -3.2A (Ta=70C)"
+  id_pulsed: "-27A"
+  rdson: "41mohm typ (<50m) @Vgs=-10V; 47m @-4.5V; 60m @-2.5V"
+  vgs_th: "-0.5 min / -0.9 typ / -1.3 max V"
+  qg: "7nC typ @Vgs=-4.5V"
+  pd: "1.4W (Ta=25C)"
+  tj_max: "150C"
+gotchas:
+  - "SOT-23 P-ch pinout: pin1=Gate, pin2=Source, pin3=Drain (confirmed from the
+     package drawing + P-channel schematic symbol on p.1). Identical pin order to
+     the N-ch AO3400A - the CHANNEL polarity, not the pinout, is what differs."
+  - "High-side RPP (refdes Q1, ADR-0001 / electrical_invariants Q1): Source(2)->5V
+     rail, Drain(3)->VIN_RAW (barrel-jack +), Gate(1)->GND through a resistor.
+     Forward: current flows body-diode-first, source rises to ~5V, Vgs=-5V turns
+     the FET hard on (Rdson ~47m @-4.5V, so ~<0.2W at 1.6A). Reverse plug: source
+     is low, Vgs~0 -> FET stays OFF, blocking reverse current."
+  - "Vgs abs-max -12V; the RPP Vgs is only -5V at the 5V rail, comfortable. The
+     gate resistor + a clamp (or the TVS/SMAJ5.0A ahead of it, ADR-0001) keep Vgs
+     inside -12V during input transients."
+design: |
+  RPP gate network: gate pulled to GND via Rg (e.g. 100k) so Vgs = -(Vsource);
+  optional gate-source zener/clamp if the raw input can swing beyond -12V Vgs
+  (not needed for a regulated 5V brick + SMAJ5.0A TVS). Body diode conducts during
+  hot-plug inrush before the channel enhances - size for the brief 1.6A worst case.
+verified: "pin map (1=G,2=S,3=D) from SOT23 package drawing (Top/Bottom View) +
+  P-channel schematic symbol, AO3401A datasheet p.1; limits from Product Summary
+  (p.1) + Electrical Characteristics (p.2). Rev 3.1 (Dec 2023), 2026-07-23."
+layout:
+  source: "AOS AO3401A datasheet p.1 (SOT-23 pinout). Series high-side FET: keep
+    the source->5V-rail and drain->raw-input nodes short and wide (full 5V-trunk
+    current, ~1.6A worst case, nets.yaml PLUS5V); gate resistor local to gate."
+  reviewed: "2026-07-23"
+  keep_short:
+    - {net: PLUS5V,   max_span_mm: 6, why: "source(2) common node = the 5V rail, full trunk current"}
+    - {net: VIN_RAW,  max_span_mm: 6, why: "drain(3) = raw barrel-jack + ahead of the FET, short/wide"}
+layout_refs:
+  - "datasheet AO3401A Rev3.1 p.1 (mfr pinout/symbol)"
+  - "ADR-0001 input-protection topology (RPP P-FET + SMAJ5.0A TVS + fuse-on-fault)"
+sourcing:
+  lcsc: C15127
+  alternates: []             # standard 30V P-ch SOT-23; AO3407/DMP3098 similar if needed

@@ -1,0 +1,64 @@
+mpn: NC7NZ34K8X
+manufacturer: onsemi (Fairchild)
+type: logic_buffer        # TinyLogic UHS triple non-inverting buffer (3x 1-bit).
+                          # Used here as a 1->2 LVCMOS clock fanout for MCLK.
+datasheet:
+  doc_id: NC7NZ34/D
+  revision: NC7NZ34-D-Rev6   # April 2025, Rev. 6 (Publication Order Number NC7NZ34/D)
+  url: https://www.onsemi.com/pdf/datasheet/nc7nz34-d.pdf
+  sha256: 268bd450810e06b6c707746237c5d8bc7623400023f594056443417fa1bfe08c
+  fetched: 2026-07-23
+package: US8 (CASE 846AN, JEDEC MO-187 Variation CA, 3.1mm wide), 0.5mm pitch
+footprint: crow_recorder_central_v2:US8_MO-187CA_P0.5mm_NC7NZ34
+                          # US8/VSSOP-8-class, 0.5mm pitch, 0.30mm lead (p7 pkg dims)
+escape:                   # leaded 0.5mm, only 4 pins/side -> below the dense-
+                          # leaded wall (6). Cheapest tier jlc_2layer_default;
+                          # matches the ledger. board fab_tier jlc_6layer_smallvia
+                          # (rank 4) >= rank 0, fits trivially.
+  style: leaded
+  pitch: 0.5
+  escapes_worst_side: 4   # 4 pads per side; ~3-4 nets escape. < DENSE(6): no wall.
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-23
+pins:                     # 8 pads, read from Figure 2 'Connection Diagram
+                          # (Top View)' for the US8 package, page 2. (Figure 4 is
+                          # the MicroPak/UQFN8 L8X variant - NOT this K8X part.)
+  1: {name: 1A, note: "buffer 1 input (A1) - data input"}
+  2: {name: 3Y, note: "buffer 3 output (Y3)"}
+  3: {name: 2A, note: "buffer 2 input (A2) - data input"}
+  4: {name: GND, tie: GND, note: "ground"}
+  5: {name: 2Y, note: "buffer 2 output (Y2)"}
+  6: {name: 3A, note: "buffer 3 input (A3) - data input"}
+  7: {name: 1Y, note: "buffer 1 output (Y1)"}
+  8: {name: VCC, note: "supply 1.65-5.5V (3.3V here); local decoupling to GND"}
+# Function table (p2): non-inverting, Y = A (L->L, H->H).
+limits:
+  vcc: {min: 1.65V, max: 5.5V, abs_max: 6.5V, nom: 3.3V}
+  vin: {min: 0V, max: 5.5V, abs_max: 6.5V}   # inputs 5V-tolerant, independent of VCC
+  vout: {min: 0V, max: VCC, abs_max: 6.5V}
+  iout_max: "+/-50mA (abs max); +/-24mA drive at 3V"
+  icc_quiescent_max: 1.0mA   # at 25C, VIN=5.5V (p4)
+  tpd_3v3: "typ 2.3ns / max 4.0ns (CL=15pF, VCC=3.3V, p5)"
+  cin: 2.5pF
+  tj_max: 150C
+gotchas:
+  - "USED AS 1->2 CLOCK FANOUT: this is a 3-input TRIPLE buffer. Tie all three inputs A1/A2/A3 (pins 1, 3, 6) to MCLK_SRC; take Y1 (pin 7) and Y2 (pin 5) to the two ADC SCKI loads; leave the third output Y3 (pin 2) OPEN. Its input A3 (pin 6) is still driven because all inputs are commoned."
+  - "'Unused inputs must be held HIGH or LOW. They may not float.' (p3 note 1). Commoning A3 with the driven MCLK satisfies this for the unused buffer - do NOT leave A3/pin 6 floating even though Y3 is open."
+  - "Overvoltage-tolerant inputs: VIN abs-max 6.5V, recommended up to 5.5V independent of VCC (5V->3V translation). A 3.3V MCLK into a 3.3V-VCC part is well within range."
+  - "US8 (K8X) uses the Figure 2 pinout. Do NOT copy Figure 4 (MicroPak/UQFN8 L8X, 'Top Thru View') - its pad-to-net map differs and it is a different orderable part."
+  - "The plain NC7NZ34K8X is active; only the NC7NZ34K8X-L22236 variant is marked DISCONTINUED (p6). Order the plain part (LCSC C232798)."
+verified: "pin map read from 'Figure 2. Connection Diagram (Top View)' for the US8 package, page 2 (NC7NZ34/D Rev. 6), cross-checked to the PIN DESCRIPTIONS table (A1/A2/A3 inputs, Y1/Y2/Y3 outputs) and FUNCTION TABLE (Y=A) on the same page. Package pitch 0.50mm confirmed on PACKAGE DIMENSIONS US8 CASE 846AN, page 7. 2026-07-23"
+layout:
+  source: "onsemi NC7NZ34/D: TinyLogic UHS clock buffer - place a local decoupling cap hard against VCC (pin 8) to GND (pin 4), same layer; keep the two clock output legs Y1 (pin 7) and Y2 (pin 5) short and roughly matched to the two ADC SCKI inputs; keep the MCLK_SRC input stub to A1/A2/A3 short"
+  reviewed: "2026-07-23"
+  keep_short:
+    - {net: VCC,      max_span_mm: 3,  why: "VCC decap 0.1uF hard against pin 8 to GND pin 4 (fast-edge UHS buffer)"}
+    - {net: MCLK_SRC, max_span_mm: 6,  why: "common input stub to A1/A2/A3 (pins 1,3,6) - short to keep the shared clock clean"}
+    - {net: SCKI_1,   max_span_mm: 15, why: "Y1 (pin 7) clock leg to ADC1 SCKI - short, series-terminate at driver"}
+    - {net: SCKI_2,   max_span_mm: 15, why: "Y2 (pin 5) clock leg to ADC2 SCKI - short, series-terminate at driver"}
+layout_refs:
+  - "datasheet NC7NZ34/D Rev.6 (AC test circuit Fig 5, package dims p7)"   # simple leaded logic; no dense-escape/RF precedent search required
+sourcing:
+  lcsc: C232798
+  alternates: []          # NC7NZ34L8X is the MicroPak (different footprint), not
+                          # a drop-in; -L22236 is discontinued. Single-source.

@@ -1,0 +1,198 @@
+mpn: XU316-1024-TQ128-I24
+manufacturer: XMOS
+type: soc            # xcore.ai 16-core (2x8-tile) crossover SoC, 2400 MIPS, industrial -40..+85C
+datasheet:
+  doc_id: XM-014532-PC          # from PDF DOCNUM: XM-014532-PC2.0.0
+  revision: 2.0.0               # "2.0.0: Semantic versioning and HTML rendering", 2025-01-13
+  url: "https://www.xmos.com/download/XU316-1024-TQ128-xcore_ai-Datasheet(2_0_0).pdf/"
+  sha256: a2ce2dc835df06793a4e1aa6c5d226c6a01c25c979a63b09a2b57059c17321cf
+  fetched: 2026-07-23
+package: "TQFP-128, 14x14mm body (16x16mm incl. leads), 0.40mm pitch, exposed GND paddle D2=E2=4.70mm nom (4.40-5.00), pin 129=EP=VSS. Lead L=0.58 nom, b=0.16 nom, A=1.20 max."
+footprint: "Package_QFP:TQFP-128_14x14mm_P0.4mm -- BUT the stock KiCad footprint has NO exposed pad; must be extended with a 4.70x4.70mm central EP (pad 129, net GND) + a 4x4 (16) thermal via grid (via-in-pad, 0.30/0.15, filled+capped) per datasheet 14.4/Fig.22. Use a project-local *_EP variant."
+escape:
+  style: leaded
+  pitch: 0.4
+  escapes_worst_side: 27        # RIGHT side (pins 65-96): 27 signal + 5 power of 32
+  tier_required: jlc_4layer_advanced   # EXACT escape_check.py verdict; do not inflate (P-ESC recomputes)
+  checked: "escape_check 2026-07-23 -> tier_required: jlc_4layer_advanced; conditional jlc_2layer_default on escape-corridor. (BOARD is fabbed at jlc_6layer_smallvia per ADR-0002 for full routing closure -- see gotchas.)"
+pins:                # PHYSICAL PADS from datasheet Table 4 (Appendix E Signal List, sorted by pin no.) + Fig.2 for pin55
+  1: X0D06            # 4B2/8A4/16A4/32A24 | bank IOL
+  2: X0D01            # 1B0 | bank IOL   (QSPI boot: CS_N / SS)
+  3: X0D07            # 4B3/8A5/16A5/32A25 | bank IOL   (QSPI boot: D3/SPIO3)
+  4: X0D10            # 1C0 | bank IOL   (QSPI boot: SCLK)
+  5: VDD
+  6: X0D00            # 1A0 | bank IOL
+  7: X0D11            # 1D0 | bank IOL
+  8: X0D14            # 4C0/8B0/16A8/32A28 | bank IOL
+  9: X0D16            # 4D0/8B2/16A10 | bank IOL
+  10: VDDIOL
+  11: VDD
+  12: X1D36            # 1M0/8D0/16B8 | bank IOL
+  13: X1D37            # 1N0/8D1/16B9 | bank IOL
+  14: VDD
+  15: X1D38            # 1O0/8D2/16B10 | bank IOL
+  16: X1D39            # 1P0/8D3/16B11 | bank IOL
+  17: VDDIOL
+  18: VDD
+  19: X1D00            # 1A0 | bank IOL
+  20: X1D01            # 1B0 | bank IOL
+  21: X1D09            # 4A3/8A7/16A7/32A27 | bank IOL
+  22: X1D10            # 1C0 | bank IOL
+  23: X1D11            # 1D0 | bank IOL
+  24: MIPI_VDD18       # MIPI 1.8V analog (tie to GND if MIPI unused)
+  25: MIPI_DN2         # MIPI lane2 -
+  26: MIPI_DP2         # MIPI lane2 +
+  27: MIPI_VDD09       # MIPI 0.9V analog (tie to GND if MIPI unused)
+  28: MIPI_DN1         # MIPI lane1 -
+  29: MIPI_DP1         # MIPI lane1 +
+  30: VSS
+  31: MIPI_DN0         # MIPI lane0 -
+  32: MIPI_DP0         # MIPI lane0 +
+  33: XOUT             # 24MHz crystal out | bank IOB (1.8V)
+  34: XIN              # 24MHz crystal in / 1.8V ext clock in | bank IOB (1.8V)
+  35: VDDIOB18         # bottom I/O bank supply, ALWAYS 1.8V
+  36: TDI              # JTAG data in (PU) | bank IOB (1.8V)
+  37: TDO              # JTAG data out | bank IOB (1.8V)
+  38: RST_N            # global reset, active-low (ST, PU) | bank IOB (1.8V)
+  39: VDD
+  40: LV_L_N           # strap: LOW=1V8 / HIGH(or float)=3V3 for VDDIOL (PU) | bank IOB
+  41: PLL_AVDD         # PLL 0.9V analog (clean, LC-filtered)
+  42: PLL_AGND         # PLL analog ground
+  43: LV_T_N           # strap: LOW=1V8 / HIGH(or float)=3V3 for VDDIOT (PU) | bank IOB
+  44: TMS              # JTAG mode select (PU) | bank IOB (1.8V)
+  45: VDD
+  46: X0D12            # 1E0 | bank IOB
+  47: X0D13            # 1F0 | bank IOB
+  48: X0D22            # 1G0 | bank IOB
+  49: X0D23            # 1H0 | bank IOB
+  50: VDD
+  51: TCK              # JTAG clock (PD, ST) | bank IOB (1.8V)
+  52: LV_R_N           # strap: LOW=1V8 / HIGH(or float)=3V3 for VDDIOR (PU) | bank IOB
+  53: X1D12            # 1E0 | bank IOB
+  54: VDD
+  55: {name: NC, tie: none, note: "NO CONNECT -- datasheet Fig.2: any pin marked NC should not be connected to any net"}
+  56: VDDIOB18         # bottom I/O bank supply, ALWAYS 1.8V
+  57: X1D23            # 1H0 | bank IOB
+  58: USB_ID           # USB OTG identification input
+  59: USB_DM           # USB Data- (D-)
+  60: USB_DP           # USB Data+ (D+)
+  61: USB_VDD33        # USB PHY 3.3V analog (leave NC if USB unused)
+  62: USB_VDD18        # USB PHY 1.8V analog (leave NC if USB unused)
+  63: X1D14            # XL0in3/4C0/8B0/16A8/32A28 | bank IOR
+  64: X1D13            # XL0in4/1F0 | bank IOR
+  65: X1D15            # XL0in2/4C1/8B1/16A9/32A29 | bank IOR
+  66: X1D16            # XL0in1/4D0/8B2/16A10 | bank IOR
+  67: X1D17            # XL0in0/4D1/8B3/16A11 | bank IOR
+  68: VDD
+  69: X1D18            # XL0out0/4D2/8B4/16A12 | bank IOR
+  70: X1D19            # XL0out1/4D3/8B5/16A13 | bank IOR
+  71: X1D20            # XL0out2/4C2/8B6/16A14/32A30 | bank IOR
+  72: VDDIOR
+  73: X1D21            # XL0out3/4C3/8B7/16A15/32A31 | bank IOR
+  74: X1D22            # XL0out4/1G0 | bank IOR
+  75: X1D49            # XL1in4/32A0 | bank IOR
+  76: X1D50            # XL1in3/32A1 | bank IOR
+  77: X1D51            # XL1in2/32A2 | bank IOR
+  78: X1D52            # XL1in1/32A3 | bank IOR
+  79: X1D53            # XL1in0/32A4 | bank IOR
+  80: X1D54            # XL1out0/32A5 | bank IOR
+  81: X1D55            # XL1out1/32A6 | bank IOR
+  82: X1D56            # XL1out2/32A7 | bank IOR
+  83: X1D57            # XL1out3/32A8 | bank IOR
+  84: X1D58            # XL1out4/32A9 | bank IOR
+  85: VDD
+  86: X0D24            # XL3in4/1I0 | bank IOR
+  87: X0D25            # XL3in3/1J0 | bank IOR
+  88: X0D26            # XL3in2/4E0/8C0/16B0 | bank IOR
+  89: VDDIOR
+  90: X0D27            # XL3in1/4E1/8C1/16B1 | bank IOR
+  91: X0D28            # XL3in0/4F0/8C2/16B2 | bank IOR
+  92: X0D29            # XL3out0/4F1/8C3/16B3 | bank IOR
+  93: X0D35            # XL3out1/1L0 | bank IOR
+  94: X0D36            # XL3out2/1M0/8D0/16B8 | bank IOR
+  95: VDD
+  96: X0D37            # XL3out3/1N0/8D1/16B9 | bank IOR
+  97: X0D38            # XL3out4/1O0/8D2/16B10 | bank IOR
+  98: X0D40            # 8D4/16B12 | bank IOT
+  99: X0D39            # 1P0/8D3/16B11 | bank IOT
+  100: X0D42           # 8D6/16B14 | bank IOT
+  101: X0D41           # 8D5/16B13 | bank IOT
+  102: X1D43           # 8D7/16B15 | bank IOT
+  103: X0D43           # 8D7/16B15 | bank IOT
+  104: VDD
+  105: VDD
+  106: VDD
+  107: X1D24           # 1I0 | bank IOT
+  108: X1D25           # 1J0 | bank IOT
+  109: VDDIOT
+  110: X1D26           # 4E0/8C0/16B0 | bank IOT
+  111: X1D27           # 4E1/8C1/16B1 | bank IOT
+  112: X1D28           # 4F0/8C2/16B2 | bank IOT
+  113: VDD
+  114: X1D29           # 4F1/8C3/16B3 | bank IOT
+  115: X1D30           # 4F2/8C4/16B4 | bank IOT
+  116: X1D31           # 4F3/8C5/16B5 | bank IOT
+  117: X1D32           # 4E2/8C6/16B6 | bank IOT
+  118: X1D33           # 4E3/8C7/16B7 | bank IOT
+  119: X1D34           # 1K0 | bank IOT
+  120: X1D35           # 1L0 | bank IOT
+  121: VDDIOT
+  122: X0D30           # 4F2/8C4/16B4 | bank IOT
+  123: X0D32           # 4E2/8C6/16B6 | bank IOT
+  124: X0D31           # 4F3/8C5/16B5 | bank IOT
+  125: X0D34           # 1K0 | bank IOT
+  126: X0D33           # 4E3/8C7/16B7 | bank IOT
+  127: X0D04           # 4B0/8A2/16A2/32A22 | bank IOL (QSPI boot: D0/SPIO0 + boot-strap bit)
+  128: X0D05           # 4B1/8A3/16A3/32A23 | bank IOL (QSPI boot: D1/SPIO1 + boot-strap bit)
+  129: {name: EP, tie: GND, note: "exposed thermal paddle = VSS = pin 129 (datasheet Signal List). Must be grounded; 4.70mm nom pad + 4x4 (16) thermal-via grid per datasheet section 14.4 Ground and Thermal Vias."}
+# --- power-domain pin groups (for netclass / rail assignment) ---
+power_pins:
+  VDD_0V9_core: [5, 11, 14, 18, 39, 45, 50, 54, 68, 85, 95, 104, 105, 106, 113]   # 0.9V digital tile power (0.855-0.945)
+  VSS_gnd: [30, 129]              # 129 = exposed paddle
+  VDDIOL: [10, 17]               # left I/O bank (3V3 or 1V8 per LV_L_N pin40); QSPI+boot pins are on this bank
+  VDDIOR: [72, 89]               # right I/O bank (3V3 or 1V8 per LV_R_N pin52)
+  VDDIOT: [109, 121]             # top I/O bank (3V3 or 1V8 per LV_T_N pin43)
+  VDDIOB18: [35, 56]             # bottom I/O bank -- ALWAYS 1.8V (JTAG + crystal live here)
+  PLL_AVDD_0V9: [41]             # +PLL_AGND=42 ; clean 0.9V, LC-filtered
+  USB_VDD33: [61]                # 3.3V USB analog
+  USB_VDD18: [62]                # 1.8V USB analog
+  MIPI_VDD18: [24]               # 1.8V MIPI analog (GND if unused)
+  MIPI_VDD09: [27]               # 0.9V MIPI analog (GND if unused)
+limits:
+  vdd_core: "0.9V nominal (0.855 / 0.900 / 0.945 V) -- needs a buck; also feeds PLL_AVDD (0.9V) and MIPI_VDD09 (0.9V)"
+  vddio: "VDDIOL/R/T selectable 3.3V (2.97/3.30/3.63, AMR 3.63) or 1.8V (1.62/1.80/1.98, AMR 1.98); set by LV_L/T/R_N straps"
+  vddiob18: "1.8V FIXED (1.62/1.80/1.98, AMR 1.98) -- bottom bank; hosts JTAG + XIN/XOUT"
+  usb_vdd33: "3.30V (3.00/3.30/3.60)"
+  usb_vdd18: "1.80V (1.62/1.80/1.98)"
+  temp_grade: "-I24 = Industrial -40..+85C, 2400 MIPS (C24 = Commercial 0..70C)"
+  xi_note: "24 MHz crystal, +/-500 ppm or better, 12pF load, ESR<=60R. Circuit: Rf=1M across XIN/XOUT, Rd=680R series to XOUT, CL1=CL2=22pF (datasheet lists FA-238 exactly). Alt: drive 1.8V low-jitter clock into XIN (must run before reset released). For USB, clock must be 12 or 24 MHz."
+gotchas:
+  - "STOCK: JLC assembly stock chronically 0 -- CONSIGNMENT/global-sourcing line (ADR-0003)."
+  - "Escape GEOMETRY tier is jlc_4layer_advanced (escape_check, 27 escapes worst side); the BOARD is fabbed at jlc_6layer_smallvia (ADR-0002) because full 128-pin routing closure needs 6L + 0.30/0.15 via-in-pad on the EP + inner rings -- a routing-proven aggregate need, not the isolated escape geometry."
+  - "0.4mm TQFP-128 needs 6L + SMALL-VIA (0.30/0.15) via-in-pad on the EP + inner rings for closure."
+  - "EP (pin 129) = VSS/GND: stock KiCad TQFP-128_14x14mm_P0.4mm has NO exposed pad -- footprint must add a 4.70mm nom EP + a 4x4 (16) thermal-via grid, equally spaced, per datasheet 14.4. Keep other vias out from under/around the device for a solid ground plane (checklist I.1)."
+  - "Pin 55 = NC -- must NOT be connected to any net (datasheet Fig.2); it is absent from the Signal List for this reason."
+  - "Power domains: VDD core 0.9V (buck) also feeds PLL_AVDD(41)+MIPI_VDD09(27); VDDIOB18(35,56)=1.8V FIXED; VDDIOL/R/T selectable 3.3V vs 1.8V. LV_L_N(40)/LV_T_N(43)/LV_R_N(52) straps: tie HIGH(or float)=3V3 mode, tie LOW(to GND)=1V8 mode -- MUST match the VDDIOx rail you actually supply, or you damage the part / mis-drive I/O."
+  - "JTAG (TDI36/TDO37/TMS44/TCK51) + RST_N(38) + crystal XIN/XOUT(34/33) all sit on the bottom VDDIOB18 bank = 1.8V FIXED (abs-max 1.98V) -- bring-up/programming must use a 1.8V-level probe (xSYS2/XTAG), never a 3.3V JTAG dongle."
+  - "QSPI boot pins are HARDCODED in boot ROM (cannot change w/o OTP): CS_N=X0D01(pin2), D0=X0D04(127), D1=X0D05(128), D2=X0D06(1), D3=X0D07(3), SCLK=X0D10(4) -- all on VDDIOL, so the boot flash (W25Q16) Vcc must match the VDDIOL rail. Boot flash must be QSPI-ready within 300us of power-up (Quad-READ 0xEB, CPOL/CPHA=0) or hold RST_N until it settles; must NOT be left in QPI mode."
+  - "Boot-mode straps X0D06(1)/X0D05(128)/X0D04(127) sampled at reset: all-LOW (default) = QSPI-flash boot. These share the QSPI data lines; external pull-ups pick alternate boot sources. X0D04..X0D07 are output-only during/after reset (checklist H.7) -- do not fight them with strong external drivers."
+  - "No dedicated USB_VBUS pin on TQ128 -- VBUS is sensed via a spare GPIO through a divider (330K-to-gnd for a 3.3V IO domain, 100K for 1.8V) + 220K series + 1-10uF (2.2uF typ) VBUS cap + 47K bleeder (datasheet Fig.15). USB_ID(58) is the OTG ID pin."
+  - "PLL_AVDD(41) needs a dedicated LC filter close to the pin: 1uF MLCC + 600R@100MHz ferrite (DCR<1R, e.g. Taiyo Yuden BKH1005LM601-T), kept separate from noisy supplies (checklist I.3)."
+  - "Decoupling: multiple decouplers per supply spaced around the device with the GND side taking the shortest path back to the EP/centre ground; >=10uF bulk on VDD and on VDDIO (datasheet 14 / H.2). MIPI_VDD09/18 need 1uF close to pin (or tie to GND if MIPI unused)."
+  - "Power sequencing: VDDIOL/R/T must be VALID before RST_N is released (boot pins live on VDDIOL). Ramp VDD and VDDIO monotonically, within ~50ms of each other. For a 3.3V VDDIO system: while VDDIOB18 is off the 3.3V rail must not exceed 1.98V unless VDD is off -- simplest fix is to NOT power VDDIOB18 last. A single 1.8V VDDIO lets the on-chip POR handle sequencing on its own."
+verified: "128 of 128 pins + EP(pin129) mapped from datasheet Table 4 (Appendix E 'TQ128 signal list', sorted by pin number, pp.81-84) cross-checked against Fig.2 'TQ128 pin configuration' (Section 3, p.7). Pin 55 = NC confirmed from Fig.2 render (skipped in Table 4). Power-pin numbers (VDD/VDDIOx/VSS, marked 'mult' in Section 4) resolved by pin-number elimination and confirmed against Fig.2 (e.g. pins 49-64 read directly). EP=VSS=pin129 from Table 4 final row. Package dims (EP 4.70mm, 14x14 body, 0.40 pitch) from Fig.22 (Section 16, p.41). No pin conflicts; 0 gaps. -- 2026-07-23"
+layout:              # datasheet Section 14 (Integration) + Appendix H/I checklists
+  source: "XMOS XU316-1024-TQ128 datasheet (XM-014532-PC 2.0.0), Section 14 Integration (14.1 diff-pair routing, 14.4 ground/thermal vias), Section 7.3 Oscillator Circuit, Appendix H (design checklist) + Appendix I (PCB layout checklist)"
+  reviewed: "2026-07-23"
+  keep_short:
+    - {net: PLL_AVDD, max_span_mm: 5, why: "PLL needs a very clean supply; 1uF + 600R ferrite LC filter cap must sit right at pin 41, isolated from noisy rails (checklist I.3)"}
+    - {net: XIN, max_span_mm: 8, why: "24MHz crystal loop: keep XIN/XOUT(34/33), Rd=680R, CL=22pF, Rf=1M compact and close to the pins; guard from switching nets"}
+    - {net: XOUT, max_span_mm: 8, why: "crystal drive node -- short, low-stray-capacitance routing"}
+    - {net: VDD, max_span_mm: 3, why: "0.9V core decouplers close to each VDD pin, GND return shortest path to EP centre ground (14 / I.2)"}
+    - {net: USB_DP, max_span_mm: 30, why: "USB HS diff pair: DP/DM(60/59) tightly length-matched, controlled ~90R differential impedance, coupled+isolated (14.1)"}
+    - {net: USB_DM, max_span_mm: 30, why: "USB HS diff pair partner of USB_DP -- match length/impedance"}
+layout_refs:
+  - "XMOS XU316-1024-TQ128 xcore.ai Datasheet XM-014532-PC v2.0.0: Fig.2 pinout (p.7), Table 4 signal list (pp.81-84), Fig.22 package drawing (p.41), Section 14 Integration + Fig.9 oscillator + Fig.15 USB VBUS + 14.4 thermal vias"
+  - "XMOS Appendix I 'PCB Layout Design Checklist' + Appendix H 'PCB Design Checklist' (in-datasheet)"
+  - "Associated: AN02023 xcore.ai Power Consumption Estimation; XTC Tools (Flash/OTP programming)"
+sourcing: {lcsc: C6938291, alternates: []}

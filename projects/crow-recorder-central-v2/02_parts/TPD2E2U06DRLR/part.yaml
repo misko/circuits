@@ -1,0 +1,45 @@
+mpn: TPD2E2U06DRLR
+manufacturer: Texas Instruments
+type: esd_array                 # 2-channel bidirectional low-cap ESD/TVS on the AUDIO+/- pair (RJ45 pins 1,2)
+datasheet:
+  doc_id: SLLSEG9
+  revision: SLLSEG9C            # June 2013 - Revised December 2019 (rev C)
+  url: https://www.ti.com/lit/ds/symlink/tpd2e2u06.pdf
+  sha256: a133b86ea3d3c3d34667339b92d3b5e98d541d10e9775d63e7cdfa153794f4ed
+  fetched: 2026-07-23
+package: SOT-553 (DRL), 5-pin, 1.60x1.20 mm
+footprint: Package_TO_SOT_SMD:SOT-553
+escape: {style: leaded, pitch: 0.5, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
+pins:                           # DRL 5-pin SOT, Top View (datasheet Sec.5, p.3)
+  1: {name: NC, note: "not connected — float, ground, or tie to VCC"}
+  2: {name: NC, note: "not connected — float, ground, or tie to VCC"}
+  3: {name: IO1, note: "ESD-protected channel 1; place close to the connector data line (AUDIO+)"}
+  4: {name: GND, tie: GND, note: "ground"}
+  5: {name: IO2, note: "ESD-protected channel 2; place close to the connector data line (AUDIO-)"}
+limits:
+  channels: 2
+  io_capacitance: 1.5pF        # typ (low-cap, audio/USB2 class)
+  v_br_min: 6.5V               # DC breakdown min
+  esd_contact: "+/-25 kV (IEC 61000-4-2)"
+  esd_air: "+/-30 kV"
+  i_pp: 5.5A                   # peak pulse current 8/20 us, DRL
+  i_leak_max: 10nA             # @ working voltage
+  t_op: "-40..+125C"
+gotchas:
+  - "alternate code C51886141 for the same MPN."
+  - "Bidirectional per channel — no polarity on IO1/IO2; still place IO pins as close to the RJ45 contacts (AUDIO+/-) as possible, GND (pin 4) to a low-inductance ground."
+  - "Pins 1 & 2 are NC — the generator must not net them to a signal; float or tie to GND/VCC per datasheet."
+verified: >-
+  5-pin SOT-553 (DRL) map read from datasheet Sec.5 'Pin Configuration and
+  Functions', DRL 5-Pin SOT Top View + Pin Functions table, p.3
+  (1,2=NC; 3=IO1; 4=GND; 5=IO2). 2026-07-23.
+sourcing:
+  lcsc: C1972959
+  alternates: [C51886141]
+
+layout:
+  source: "TI TPD2E2U06 datasheet layout section: place the ESD array HARD against the connector's protected I/O tails (minimize stub inductance); GND pin to a solid ground; sits between the RJ45 AUDIO+/- pins and the input RC (connector side of the filter)."
+  reviewed: "2026-07-23"
+  notes: "instanced per port (D3..D10): each array hard against its own RJ45 AUDIO+/- tails, stub < 6mm, GND to the north-band ground pour."
+layout_refs:
+  - "TI TPD2E2U06 datasheet layout-guidelines section"

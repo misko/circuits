@@ -1,0 +1,8 @@
+{
+  "name": "crow-recorder-central-v2",
+  "version": "1.0.0",
+  "main": "src/crow_recorder_central_v2.tsx",
+  "dependencies": {
+    "tscircuit": "*"
+  }
+}

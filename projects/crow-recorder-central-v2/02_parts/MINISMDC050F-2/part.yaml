@@ -1,0 +1,32 @@
+mpn: MINISMDC050F-2
+manufacturer: Littelfuse       # PolySwitch miniSMD family. NOT Bourns (see gotcha). TE Connectivity is a 2nd source.
+type: resettable_fuse          # PPTC; 0.5 A hold, one per port on +5V_AUDIO to survive a shorted Cat5e feed
+datasheet:
+  doc_id: littelfuse-ptc-minismdc
+  revision: "2410121433"       # LCSC-hosted datasheet build id (in PDF filename)
+  url: https://lcsc.com/datasheet/lcsc_datasheet_2410121433_Littelfuse-MINISMDC050F-2_C2649901.pdf
+  sha256: 3c468fdf92610d2962870285b2e605e83d770200f54d1c2316f4d5d223cd2b89
+  fetched: 2026-07-23
+package: SMD 1812 (4532 metric)
+footprint: Fuse:Fuse_1812_4532Metric
+escape: {style: passive, pitch: 3.6, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
+pins:                          # 2-pad non-polar PTC (S3 figure-citation exempt)
+  1: {name: T1, note: "PTC terminal (non-polar)"}
+  2: {name: T2, note: "PTC terminal (non-polar)"}
+limits:
+  i_hold: 0.5A                 # 23 C hold current
+  i_trip: 1.0A
+  v_max: 24VDC
+  i_max: 100A                  # max fault current the device interrupts
+  r_min: 0.15ohm               # initial minimum resistance
+  r1_max: 1.0ohm               # max resistance 1 h after trip/reflow (aged/hot)
+  time_to_trip: "0.15 s at trip current"
+  t_op: "-40..+85C"
+gotchas:
+  - "MANUFACTURER IS LITTELFUSE (PolySwitch miniSMD), not Bourns as the brief stated; TE Connectivity is a second source. A true Bourns equivalent would be MF-MSMD050-2 (different land/resistance) — do not substitute silently."
+  - "Its series resistance sits IN the +5V_AUDIO pod power-delivery path: Rmin 0.15 ohm, R1max 1.0 ohm when aged/hot. Include the IR drop at the per-pod load current in the pod power budget (e.g. 0.5 A x 1.0 ohm = 0.5 V worst case)."
+  - "Resettable (latches high-resistance on a shorted feed, recovers after the fault clears and power is cycled) — it is NOT a one-shot fuse; pair with the VIN_RAW input fuse for the fuse-on-fault path."
+verified: "2-pad non-polar PPTC; ratings from Littelfuse miniSMDC datasheet electrical table + DigiKey/LCSC parametrics (C2649901). 2026-07-23."
+sourcing:
+  lcsc: C2649901
+  alternates: ["MF-MSMD050-2 (Bourns, verify land/R)", "0ZCJ0050FF2E (Bel Fuse, 1812 0.5 A)"]

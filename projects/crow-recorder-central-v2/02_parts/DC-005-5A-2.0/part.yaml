@@ -1,0 +1,42 @@
+mpn: DC-005-5A-2.0
+manufacturer: XKB Connection    # aka XKB Connectivity / HELOX
+type: dc_jack                   # 5 V input jack for the Mean Well GST25A05-P1J brick (P1J = 5.5x2.1 mm, centre-positive)
+mates: receptacle               # panel/PCB jack; the brick supplies the plug
+datasheet:
+  doc_id: XKB-DC-005-5A
+  revision: A1                  # drawing rev A1, 2025-04-22 (in PDF filename)
+  url: https://www.lcsc.com/product-detail/C381116.html
+  sha256: 5fb76bbf24545f2247b88ccc00c6619d89e5e52be9eda1c948ee4cb258bae637
+  fetched: 2026-07-23
+package: DC-005 right-angle THT barrel jack, 6.2 mm barrel OD, 2.00 mm centre pin
+footprint: Connector_BarrelJack:BarrelJack_Horizontal   # generic 3-pad DC jack — VERIFY land vs XKB drawing (see gotcha)
+escape: {style: connector, pitch: 2.5, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
+pins:                           # from CIRCUIT DIAGRAM, XKB drawing rev A1
+  1: {name: TIP, note: "centre/tip contact = VIN_RAW(+). CENTRE-POSITIVE."}
+  2: {name: SLEEVE, tie: GND, note: "outer sleeve/shell = GND"}
+  3: {name: SW, note: "switch contact; normally closed to SLEEVE (pin 2) with no plug, opens on insertion. Leave NC or use for plug-detect."}
+limits:
+  current: 5A
+  voltage: 24VDC               # jack rating; the GST25A05 brick delivers 5 V / up to 5 A
+  contact_r: "50 mOhm initial, 80 mOhm after 5000 cycles"
+  insulation_r: ">100 MOhm"
+  life: ">=5000 cycles"
+  centre_pin_dia: 2.00mm       # DIM A; mates the 5.5x2.1 mm (P1J) plug
+gotchas:
+  - "CENTRE-POSITIVE: TIP pad (pin 1) = VIN_RAW(+), SLEEVE (pin 2) = GND. First-power ritual: meter the jack polarity BEFORE applying the brick."
+  - "Chosen for the 5 A rating to match the GST25A05 brick (25 W / 5 A). The common 1 A DC-005 (e.g. LCSC C16214) is under-rated for this brick — do not substitute."
+  - "Footprint is the GENERIC KiCad BarrelJack_Horizontal (3 pads). Verify its land against the XKB drawing PCB layout (pin1<->pin3 span 7.70 mm; three 1.0x3.5 mm slots) before routing; make a custom footprint if pads do not line up."
+  - "Centre pin is 2.00 mm (DIM A). It mates the Mean Well P1J 5.5x2.1 mm plug; confirm plug/jack fit at bring-up."
+verified: "3-terminal DC jack; pin functions (tip / sleeve / switch) from the CIRCUIT DIAGRAM on XKB DC-005-5A-2.0 drawing rev A1, sheet 1/1. 2026-07-23."
+sourcing:
+  lcsc: C381116
+  alternates: ["C319134 (DC-005-5A-2.0-SMT)", "C381115 (DC-005-5A-2.5, 2.5 mm pin — WRONG plug)"]
+
+layout:
+  source: "XKB DC-005 drawing + standard DC-jack practice: mount at the board edge, barrel facing out; input protection (RPP FET Q1 + TVS D1 + fuse) hard against the jack terminals at the SW power corner."
+  reviewed: "2026-07-23"
+  keep_short:
+    - {net: VIN_RAW, max_span_mm: 14, why: "tip (+5V) to the RPP FET drain + TVS + fuse, short at the input corner"}
+layout_refs:
+  - "XKB DC-005-5A-2.0 drawing rev A1 (land pattern + circuit diagram)"
+  - "KiCad Connector_BarrelJack:BarrelJack_Horizontal land"

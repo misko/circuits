@@ -1,0 +1,48 @@
+# power tree — crow-recorder-central-v2
+# Gates: E-TOPO (converter topology from Vin-vs-Vout), E-MARGIN (setpoint vs
+# load brownout net of IR), E-OFF (de-energization + stored quiescent draw).
+# Read by power_topology.py.
+
+# ---- E-OFF: source is an EXTERNAL 5V brick (Mean Well GST25A05-P1J) ----
+# Not a battery/cell/pack -> E-OFF is N-A: unplugging the barrel jack (or the
+# brick from mains) de-energizes the board. No stored energy source on-board.
+source_type: dc_jack             # external DC supply, NOT battery
+off_control: "unplug barrel jack J_PWR / GST25A05 from mains (external supply)"
+quiescent_ua: 0                  # no on-board energy store to self-drain
+
+input_trunk_class: PWR_IN        # the 5V trunk netclass (nets.yaml)
+ir_floor_mohm: 100
+
+rails:
+  # 3V3 digital buck: Vout 3.3 < Vin_min 4.9 ALWAYS -> BUCK (AP61102 is a buck)
+  - name: 3V3_DIGITAL
+    vin_min: 4.9
+    vin_max: 5.1
+    vout_min: 3.3
+    vout_max: 3.3
+    iout_max_A: 0.6
+    converter: AP61102Z6-7
+    eff: 0.85
+
+  # 0V9 core buck: Vout 0.9 < Vin_min -> BUCK
+  - name: 0V9_CORE
+    vin_min: 4.9
+    vin_max: 5.1
+    vout_min: 0.9
+    vout_max: 0.9
+    iout_max_A: 0.8
+    converter: AP61102Z6-7
+    eff: 0.80
+
+# NOTE (pod 5V distribution is NOT a rail here). +5V_AUDIO / +5V_BEEP to the
+# pods are RAW 5V distributed through per-port PTCs + ~25ft Cat5e — a pass-through
+# DISTRIBUTION path, not a regulated converter output, so it is NOT an E-TOPO/
+# E-MARGIN rail (there is no converter and no on-board regulated setpoint). The
+# pod delivery margin is large and documented: 5V through MINISMDC050 (~0.6ohm
+# hold) + paralleled Cat5e pairs vs the pod OPA1678 min-supply 2.7V. The only
+# off-board delivery is this raw 5V; no on-board regulated rail feeds an
+# off-board brownout-sensitive load, so E-MARGIN is N-A for this board.
+#
+# NOTE: 1V8 (TCR2LF18) and 3V3A (XC6227) are LINEAR LDOs, not switching
+# converters — E-TOPO grades switching converters. Their part.yaml type: is ldo.
+# 1V8: 3V3 -> 1.8 (drop 1.5V @ ~50mA); 3V3A: 5V -> 3.3 (drop 1.7V @ ~70mA).

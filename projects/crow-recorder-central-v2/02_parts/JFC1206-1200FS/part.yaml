@@ -1,0 +1,31 @@
+mpn: JFC1206-1200FS
+manufacturer: Shenzhen JDT Fuse
+type: fuse                      # one-shot fast-acting series input fuse on VIN_RAW (ADR-0001 fuse-on-fault)
+datasheet:
+  doc_id: JDT-JFC1206FS
+  revision: "050720"            # datasheet "Revised 05/07/20" (in PDF filename)
+  url: https://www.lcsc.com/product-detail/C136345.html
+  sha256: 2d78c30f78df5149469976d3a53c502cee9187a333d33d160271cbb1f4abb844
+  fetched: 2026-07-23
+package: SMD 1206 (3216 metric)
+footprint: Fuse:Fuse_1206_3216Metric
+escape: {style: passive, pitch: 2.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
+pins:                           # 2-pad non-polar fuse (S3 figure-citation exempt)
+  1: {name: T1, note: "fuse terminal (non-polar)"}
+  2: {name: T2, note: "fuse terminal (non-polar)"}
+limits:
+  i_rated: 2.0A
+  v_rated: 63VDC
+  breaking_capacity: "50A @63Vdc / 150A @32Vdc / 300A @24Vdc"
+  cold_resistance_typ: 0.132ohm
+  voltage_drop_typ: 316mV
+  i2t_prearc_typ: "0.41 A^2s (at 10x In)"
+  marking: N
+gotchas:
+  - "One-shot (positive-disconnect) fuse — it does NOT reset; it is the fuse-on-fault element for VIN_RAW, complementing the per-port resettable PTCs (MINISMDC050F-2)."
+  - "Typical cold resistance 0.132 ohm sits in the VIN_RAW feed; its IR drop and self-heat are negligible at normal board current but include if total input current approaches ~2 A."
+  - "2 A rating is below the GST25A05 brick's 5 A ceiling by design (protects the board wiring, not the brick). Confirm 2 A clears expected inrush without nuisance blows; bump to JFC1206-1250FS (2.5 A) if it nuisance-trips."
+verified: "2-pad fast-acting SMD fuse; ratings from JFC1206FS Performance Specification table (row JFC1206-1200FS), p.2. 2026-07-23."
+sourcing:
+  lcsc: C136345
+  alternates: ["JB12F2001R (Yageo, 2 A 1206 — confirm LCSC stock)", "C136347 (JFC1206-1300FS, 3 A)"]

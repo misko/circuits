@@ -1,0 +1,36 @@
+mpn: SMAJ5.0A
+manufacturer: Littelfuse       # generic SMAJ series MPN; many second sources (see sourcing)
+type: tvs                      # unidirectional 400 W TVS, input surge crowbar on VIN_RAW (5 V), per ADR-0001
+datasheet:
+  doc_id: Littelfuse-SMAJ-series
+  revision: BA-102120          # datasheet "Revised BA-10/21/20" (in PDF filename)
+  url: https://www.littelfuse.com/assetdocs/tvs-diodes-smaj-datasheet
+  sha256: eb633408853777aa4574181ba08ba1e43e7b8a8aae7a7e17eb9b2c0f7d8806b4
+  fetched: 2026-07-23
+package: DO-214AC (SMA)
+footprint: Diode_SMD:D_SMA
+escape: {style: passive, pitch: 4.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
+pins:                          # 2-pad POLARIZED; KiCad diode pad 1 = cathode (banded end)
+  1: {name: K, note: "CATHODE — marked by the band on DO-214AC. Goes to VIN_RAW(+)."}
+  2: {name: A, note: "ANODE — goes to GND"}
+limits:
+  v_standoff: 5.0V             # V_RWM (reverse working / stand-off)
+  v_br_min: 6.40V              # breakdown min @ It=10 mA
+  v_br_max: 7.00V
+  v_clamp: 9.2V                # max clamping @ Ipp
+  i_pp: 43.5A                  # max peak pulse current (10/1000 us) at V_clamp
+  p_pk: 400W                   # 10/1000 us, single die
+  i_leak_max: 800uA            # @ V_RWM
+  t_op: "-65..+150C"
+gotchas:
+  - "UNIDIRECTIONAL: cathode (band) to VIN_RAW(+), anode to GND. Reversing it forward-biases the diode across the rail."
+  - "V_BR min 6.40 V is ABOVE the buck's 6.3 V OVP: this is a FAULT crowbar (works with the VIN_RAW input fuse), NOT a steady-state clamp. The 5 V brick output is regulated (ADR-0001, T2) so it never reaches V_BR in normal operation."
+  - "Standoff 5.0 V leaves only 0.4 V margin below the 6.3 V OVP window; do not swap for a 6.0 V/6.5 V standoff part without rechecking the OVP/clamp overlap."
+verified: >-
+  2-pad polarized TVS; V_R / V_BR / V_C / Ipp read from the SMAJ5.0A row
+  (uni marking 'AE') of the Littelfuse SMAJ-series Electrical Characteristics
+  table, p.2; polarity (cathode = band) from the Uni-directional functional
+  diagram p.1. 2026-07-23.
+sourcing:
+  lcsc: C87074                 # Diodes Inc SMAJ5.0A-13-F (well stocked)
+  alternates: [C908198, C140902, C492729]

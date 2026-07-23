@@ -1,0 +1,5 @@
+# TSNAME CANONICAL  (one per line) — only for names the N-guard convention
+# can't reach. All digit-leading rails here are handled automatically by the
+# converter's canon_net (N5V->5V, N3V3->3V3, N0V9->0V9, N1V8->1V8, N3V3A->3V3A),
+# so this file is intentionally empty. PLUS5V_AUDIO / PLUS5V_BEEP / VIN_RAW start
+# with a letter and pass through verbatim.

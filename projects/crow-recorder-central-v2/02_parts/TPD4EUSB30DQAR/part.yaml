@@ -1,0 +1,58 @@
+mpn: TPD4EUSB30DQAR
+manufacturer: Texas Instruments
+type: esd_array              # 4-channel USB 2.0/3.0 ESD protection (shunt clamps to GND)
+datasheet:
+  doc_id: SLVSAC2
+  revision: SLVSAC2G         # AUGUST 2010 - REVISED JUNE 2021
+  url: https://www.ti.com/lit/ds/symlink/tpd4eusb30.pdf
+  sha256: a2c0dd845043a5bbfe610f673879c29e38649544385dea51dbe0a4c49df39136
+  fetched: 2026-07-23
+package: USON-10 (DQA), 2.50mm x 1.00mm, 0.5mm pitch, no exposed pad
+footprint: Package_SON:USON-10_2.5x1.0mm_P0.5mm
+escape:
+  style: dfn                 # dual-row no-lead, 5 pads per long side
+  pitch: 0.5
+  tier_required: jlc_4layer_advanced   # 0.5mm no-lead escapes only at 4layer_advanced+ (board is 6layer_smallvia = OK)
+  checked: escape_check 2026-07-23
+pins:                        # flow-through: data enters one side, exits the opposite pad of the same net
+  1:  {name: D1+, note: "channel-1 line, ESD clamp to GND"}
+  2:  {name: D1-, note: "channel-1 line, ESD clamp to GND"}
+  3:  {name: GND, tie: GND}
+  4:  {name: D2+, note: "channel-2 line, ESD clamp to GND"}
+  5:  {name: D2-, note: "channel-2 line, ESD clamp to GND"}
+  6:  {name: NC, note: "not normally connected"}
+  7:  {name: NC, note: "not normally connected"}
+  8:  {name: GND, tie: GND}
+  9:  {name: NC, note: "not normally connected"}
+  10: {name: NC, note: "not normally connected"}
+limits:
+  vrwm: 5.5V                 # working (reverse standoff) voltage
+  vclamp: 8V @ 1A
+  esd_contact: "+/-8kV IEC 61000-4-2 contact"
+  esd_air: "+/-9kV IEC 61000-4-2 air-gap"
+  surge: "5A (8/20us) IEC 61000-4-5"
+  cap: 0.8pF typ per line
+gotchas:
+  - "Place HARD against the USB-C connector, in the D+/D- path BEFORE the XU316. This is a shunt
+     clamp, not a series part: each Dx line is one node clamped to GND; route the data trace across
+     the pad (flow-through) so the stub to the clamp is ~0."
+  - "USB2.0 has one pair: use channel 1 for D+/D- (D1+ = D+, D1- = D-). The second channel
+     (D2+/D2-) is spare on a USB2.0-only link (leave unconnected or use for a second signal)."
+  - "GND on BOTH pins 3 and 8 - ground both with short, low-inductance vias to the GND plane;
+     clamp effectiveness depends on the ground return."
+  - "NC pins 6,7,9,10 are not internally bonded - leave unconnected (do not rely on them for routing)."
+verified: "pin map read from Figure 5-2 'DQA Package 10-Pin USON Top View' + Table 5-1 Pin Functions,
+  page 3, SLVSAC2G - 2026-07-23"
+layout:
+  source: "TI SLVSAC2G layout/app section + USB ESD practice: clamp adjacent to the receptacle,
+    data flows through the pads, GND returns short"
+  reviewed: "2026-07-23"
+  keep_short:
+    - {net: "D+", max_span_mm: 10, why: "ESD stub to clamp must be minimal; part sits on the pair"}
+    - {net: "D-", max_span_mm: 10, why: "ESD stub to clamp must be minimal; part sits on the pair"}
+layout_refs:
+  - "datasheet SLVSAC2G layout figure / Power Supply & Layout section"
+  - "KiCad Package_SON USON-10_2.5x1.0mm_P0.5mm land pattern"
+sourcing:
+  lcsc: C90627
+  alternates: []

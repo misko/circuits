@@ -1,0 +1,65 @@
+mpn: TCR2LF18
+manufacturer: Toshiba
+type: ldo                     # 1.8V fixed CMOS LDO, ~200mA. Rail 1V8: 3V3 -> 1.8V,
+                              # feeds XU316 VDDIOB18 + USB_VDD18. Orderable: TCR2LF18,LM(CT.
+datasheet:
+  doc_id: TCR2LF-series       # Toshiba series datasheet (no per-part doc number on page)
+  revision: "2014-11-06"      # datasheet date, appears in filename
+  url: https://toshiba.semicon-storage.com/info/datasheet_en_20141106.pdf?did=28807
+  sha256: 453be8cde2d54520d51dfa1249ae474dcb801d4002317582afd0d2c88ee29c99
+  fetched: 2026-07-23
+package: SOT-25               # SMV(SOT-25)(SC-74A) = SOT-23-5, 2.8x2.9x1.1mm, 0.95mm pitch
+footprint: Package_TO_SOT_SMD:SOT-23-5
+escape:
+  style: leaded
+  pitch: 0.95
+  tier_required: jlc_2layer_default
+  checked: "escape_check 2026-07-23"   # leaded 0.95mm/5pin -> ok at all tiers
+pins:                         # Pin Assignment (top view) p.2, SMV(SOT-25)(SC-74A)
+  1: VIN                      # power input (from 3V3)
+  2: GND
+  3: CONTROL                  # active-high enable (CE); internal pulldown, see gotchas
+  4: NC                       # no connection (NOT a bypass pin on this part)
+  5: VOUT                     # regulated 1.8V output
+limits:
+  vout: "1.8V fixed (+/-1%, Vout>=1.8V)"
+  iout_max: "200mA"
+  vin_op: "1.5 to 5.5V"
+  vin_abs_max: "6.0V (control VCT abs-max 6.0V; VOUT abs-max Vin+0.3)"
+  dropout: "370mV typ @ Iout=150mA (Vout=1.8V)"
+  iq: "1.0uA typ (2.0uA max) - ultra-low quiescent"
+  vct_on_min: "1.0V"          # CONTROL logic-high threshold
+  tj_max: "150C"
+gotchas:
+  - "CONTROL (pin 3) = active-high enable with an INTERNAL PULL-DOWN between
+     CONTROL and GND (feature list p.1; App-Note table p.5: HIGH=ON, LOW=OFF,
+     OPEN=OFF). Floating = OFF. Tie CONTROL to VIN (3V3) for always-on. Has
+     auto-discharge on shutdown (RSD ~20ohm)."
+  - "pin 4 is NC, NOT a bypass/noise-reduction pin. Do not tie a cap to it."
+  - "VIN abs-max is 6.0V (lower than the bucks' 6.5V). Fed from the regulated
+     3V3 rail so there is ample margin; never source it from raw 5V."
+  - "Pin-compatible fallback: TLV70018DDCR (TI, SOT-23-5 DDC, fixed 1.8V/200mA,
+     LCSC C79924) if TCR2LF18 stock is thin (ADR-0006). TI DDC pinout matches:
+     1=IN,2=GND,3=EN,4=NC,5=OUT. Also fed from 3V3."
+design: |
+  Fixed-output LDO, no divider. Ceramic Cin = Cout = 0.1uF minimum (datasheet;
+  larger e.g. 1uF fine). Mount Cout close to the IC - long IC-to-Cout distance
+  degrades phase stability (Attention in Use p.6). Keep ESR < 10 ohm.
+verified: "pin map from Pin Assignment (top view) figure p.2, SMV(SOT-25)(SC-74A)
+  column: 1=VIN,2=GND,3=CONTROL,4=NC,5=VOUT; CONTROL active-high w/ internal
+  pulldown from Features (p.1) + App-Note table (p.5). Marking 1L8 (p.3).
+  TCR2LF series datasheet 2014-11-06, 2026-07-23."
+layout:
+  source: "Toshiba TCR2LF datasheet Attention in Use (p.6): mount output cap near
+    the IC (long trace impedance degrades phase assurance); make VIN and GND
+    copper wide with low wire impedance. Recommended app circuit p.5."
+  reviewed: "2026-07-23"
+  keep_short:
+    - {net: 1V8,  max_span_mm: 4, why: "Cout hard to VOUT(5)/GND(2) for phase stability"}
+    - {net: 3V3,  max_span_mm: 4, why: "Cin hard to VIN(1)/GND(2)"}
+layout_refs:
+  - "datasheet TCR2LF 2014-11-06 Recommended Application Circuit (p.5) + Attention in Use (p.6)"
+  - "TI TLV700 SBVS262 (pin-compatible fallback reference, ADR-0006)"
+sourcing:
+  lcsc: C150173               # TCR2LF18,LM(CT (SOT-25)
+  alternates: [C79924]        # TLV70018DDCR (TI) pin-compatible fallback, ADR-0006

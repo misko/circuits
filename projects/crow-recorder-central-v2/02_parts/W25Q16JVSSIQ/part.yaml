@@ -1,0 +1,56 @@
+mpn: W25Q16JVSSIQ
+manufacturer: Winbond
+type: flash                  # 16Mbit SPI/Dual/Quad NOR flash (XU316 boot device)
+datasheet:
+  doc_id: W25Q16JV
+  revision: RevG             # Revision G, publication 2018-03-22
+  url: https://www.winbond.com/resource-files/w25q16jv%20spi%20revg%2003222018%20plus.pdf
+  sha256: 6d23cdf57fd63fc2c2de517707e293beaf70f3f47b424bf58510666294c04d82
+  fetched: 2026-07-23
+package: SOIC-8 208-mil (Winbond package code SS)
+footprint: Package_SO:SOIC-8_5.3x5.3mm_P1.27mm   # JEITA 08-001-BBA, 208-mil wide body
+escape:
+  style: leaded
+  pitch: 1.27
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-23
+pins:                        # QSPI signal in {}: IO0=DI, IO1=DO, IO2=/WP, IO3=/HOLD
+  1: {name: "/CS", note: "chip select, active low"}
+  2: {name: "DO", note: "IO1 - data output (Dual/Quad IO1)"}
+  3: {name: "/WP", note: "IO2 - write protect in Std/Dual SPI; becomes IO2 in Quad SPI"}
+  4: {name: "GND", tie: GND}
+  5: {name: "DI", note: "IO0 - data input (Dual/Quad IO0)"}
+  6: {name: "CLK", note: "serial clock"}
+  7: {name: "/HOLD", note: "IO3 - /HOLD(or /RESET) in Std/Dual SPI; becomes IO3 in Quad SPI"}
+  8: {name: "VCC", note: "2.7-3.6V supply"}
+limits:
+  vcc: 2.7V..3.6V
+  fclk_max: 133MHz
+  density: 16Mbit
+  temp: -40C..+85C
+gotchas:
+  - "3.3V part - VCC must be the XU316 QSPI I/O rail (3.3V), not 1.8V/5V."
+  - "QSPI boot per XMOS xcore.ai: in Quad mode pins 3 (/WP=IO2) and 7 (/HOLD=IO3) carry data -
+     they MUST be routed to the XU316 QSPI IO2/IO3, NOT strapped low. Strapping them defeats Quad."
+  - "Pull-up ~10k on /CS (pin 1) to VCC so the flash is reliably deselected while the XU316 is in
+     reset / before the QSPI master drives /CS."
+  - "Decoupling: 100nF from VCC (pin 8) to GND (pin 4), placed at the part."
+  - "Hardware /RESET pin is NOT available on SOIC-8 (only on SOIC-16 / TFBGA) - reset is via /CS + command."
+verified: "pin map read from Figure 1a 'Pin Assignments, 8-pin SOIC150-mil/208-mil (Package Code SN, SS)',
+  page 5, Revision G; package code SS = SOIC 208-mil per section 11.3 - 2026-07-23"
+layout:
+  source: "Winbond W25Q16JV datasheet + XMOS xcore.ai QSPI boot practice: flash close to the XU316
+    QSPI pins, all six QSPI nets short and of similar length, VCC decoupling local"
+  reviewed: "2026-07-23"
+  keep_short:
+    - {net: "QSPI_CLK", max_span_mm: 25, why: "133MHz clock; keep short to XU316 QSPI"}
+    - {net: "QSPI_IO0", max_span_mm: 25, why: "Quad data line; short & length-similar"}
+    - {net: "QSPI_IO1", max_span_mm: 25, why: "Quad data line; short & length-similar"}
+    - {net: "QSPI_IO2", max_span_mm: 25, why: "Quad data line (/WP); short & length-similar"}
+    - {net: "QSPI_IO3", max_span_mm: 25, why: "Quad data line (/HOLD); short & length-similar"}
+layout_refs:
+  - "Winbond W25Q16JV Revision G datasheet (pin config + application)"
+  - "XMOS xcore.ai QSPI boot flash reference wiring"
+sourcing:
+  lcsc: C82317
+  alternates: []

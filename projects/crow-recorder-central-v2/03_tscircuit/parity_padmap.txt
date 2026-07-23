@@ -1,0 +1,42 @@
+# parity_padmap.txt — crow-recorder-central-v2
+#
+# Documented per-board footprint pad-name deltas. tscircuit's <chip>/<smtpad>
+# only accepts NUMERIC pin ids (portHints), so every footprint whose real KiCad
+# land pattern uses ALPHANUMERIC pad names is authored in the TSX with numeric
+# portHints "1".."N" and mapped back to its real KiCad pad here.
+#
+# Consumed by:
+#   - tsx_preflight.py : every non-numeric pad name in 02_parts/*/part.yaml must
+#                        appear here or tsci drops the part SILENTLY (S-COUNT).
+#   - kicad_sch_parity.py --padmap : node-for-node parity vs a sealed 04_kicad
+#                        board (N/A this stage — no sealed board yet).
+#
+# Format:  <refdes-or-part>  tsxPin=<realKiCadPad>   (one mapping per token)
+
+# --- USB-C receptacle J2 (USB4105-GF-A) : real pads A1,A4..A12,B1,B4..B12,SH ---
+# tsx portHints 1..17  ->  real KiCad pad
+J2  pin1=A1    # GND
+J2  pin2=A4    # VBUS
+J2  pin3=A5    # CC1
+J2  pin4=A6    # D+ (Dp1)
+J2  pin5=A7    # D- (Dn1)
+J2  pin6=A8    # SBU1  (NC on this board)
+J2  pin7=A9    # VBUS
+J2  pin8=A12   # GND
+J2  pin9=B1    # GND
+J2  pin10=B4   # VBUS
+J2  pin11=B5   # CC2
+J2  pin12=B6   # D+ (Dp2, tied to A6)
+J2  pin13=B7   # D- (Dn2, tied to A7)
+J2  pin14=B8   # SBU2  (NC on this board)
+J2  pin15=B9   # VBUS
+J2  pin16=B12  # GND
+J2  pin17=SH   # shield / mounting stakes -> GND
+
+# --- RJ45 jacks J3..J10 (RJHSE-5384) : real pads 1..12 + SH ---
+# tsx portHints 1..12 map 1:1 to KiCad pads 1..12; the shield tail is pin13->SH.
+RJ45  pin13=SH   # stainless shield solder tails -> GND (both SH pads share the net)
+
+# --- SHT40 (U6, DFN-4) : real pads 1..4 + EP (central die pad) ---
+# tsx portHints 1..4 map 1:1 to KiCad pads 1..4; the die pad is pin5->EP.
+U6  pin5=EP    # central die pad — NOT bonded, left no-connect (no paste)

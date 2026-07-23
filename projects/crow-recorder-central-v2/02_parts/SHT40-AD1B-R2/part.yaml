@@ -1,0 +1,57 @@
+mpn: SHT40-AD1B-R2
+manufacturer: Sensirion
+type: sensor                 # I2C temperature + relative-humidity sensor
+datasheet:
+  doc_id: SHT4x              # Sensirion SHT4x datasheet, doc family "D1"
+  revision: v6.4            # D1 Version 6.4 - November 2023
+  url: https://sensirion.com/media/documents/33FD6951/6555C40E/Sensirion_Datasheet_SHT4x.pdf
+  sha256: c615676c5b1ddc7b1e389eb7c93345f20e4a88dadc36ebe2eb93074559cbc614
+  fetched: 2026-07-23
+package: DFN-4 1.5x1.5mm, 0.8mm pitch, open-cavity DFN with central die pad (die pad NOT bonded)
+footprint: crow-recorder-central-v2:Sensirion_DFN-4_1.5x1.5mm_P0.8mm   # propose: 4 pads 0.5x0.3mm on 0.8mm pitch, columns 1.4mm c-c; central die pad = no-connect, NO paste (see gotchas). Per datasheet Figure 17 land pattern.
+escape:
+  style: qfn                 # canonical no-lead token: escape_check collapses DFN/SON/QFN -> qfn
+                             # (physical package IS DFN-4; escape math is identical either way)
+  pitch: 0.8
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-23
+pins:                        # Fig 18 top view: 1=top-left, 2=bottom-left, 3=bottom-right, 4=top-right
+  1: {name: SDA, note: "serial data, bidirectional (I2C)"}
+  2: {name: SCL, note: "serial clock, input (I2C)"}
+  3: {name: VDD, note: "supply 1.08-3.6V"}
+  4: {name: VSS, tie: GND}
+  EP: {name: DIE_PAD, note: "central die pad - NOT connected to any pin; do NOT solder (self-heating)"}
+i2c:
+  address: 0x44             # AD1B variant = 7-bit 0x44 (confirmed: datasheet examples use i2c_addr=0x44)
+limits:
+  vdd: 1.08V..3.6V (typ 3.3V)
+  rh_accuracy: "+/-1.8 %RH typ (AD1B, standard accuracy)"
+  t_accuracy: "+/-0.2 C typ"
+  t_max: 125C
+  msl: 1
+gotchas:
+  - "Decoupling: 100nF from VDD (pin 3) to VSS (pin 4), placed at the part."
+  - "SELF-HEATING: keep away from heat sources - do NOT place near regulators, the XU316, or
+     high-current copper. Thermal-isolation slots in the pour help. Leave the central die pad
+     UNSOLDERED (Sensirion recommendation) to cut heat conduction into the sensor."
+  - "I2C pull-ups (~10k) are SHARED with the ADC I2C bus. SHT40-AD1B is fixed at 0x44 - verify no
+     address clash with the PCM1865/ADC or any other device on the shared bus."
+  - "Central die pad is not bonded to any pin; if the footprint includes it, mark it no-connect and
+     remove solder paste (paste-only-off) so it is not reflowed."
+  - "Open-cavity humidity sensor: no board wash / no ultrasonic clean; follow Sensirion handling
+     (MSL1, process within ~1 year of delivery)."
+verified: "pin map read from Figure 18 'Pin assignment (transparent top view)' + Sec 5.4 pin table,
+  page 16; package/pitch from Figure 15 (1.5x1.5mm, pitch 0.8mm) and land pattern Figure 17,
+  pages 14-16; D1 Version 6.4 - 2026-07-23"
+layout:
+  source: "Sensirion SHT4x datasheet Sec.5 (package/land pattern) + design-in note: thermally
+    isolate from heat sources, die pad unsoldered, VDD decoupling local"
+  reviewed: "2026-07-23"
+  keep_short:
+    - {net: "VDD", max_span_mm: 5, why: "100nF decoupling cap adjacent to VDD/VSS"}
+layout_refs:
+  - "Sensirion SHT4x datasheet Version 6.4 (Figure 15/17 package + land pattern, Figure 18 pinout)"
+  - "Sensirion SHT4x design-in / assembly handling guideline"
+sourcing:
+  lcsc: C2909890
+  alternates: []

@@ -1,0 +1,99 @@
+mpn: AP61102Z6-7
+manufacturer: Diodes Incorporated
+type: buck                    # synchronous step-down converter. power_tree.yaml
+                              # E-TOPO: Vout(3.3/0.9) < Vin_min(4.9) ALWAYS -> buck.
+                              # Used x2: 3V3_DIGITAL and 0V9_CORE rails.
+datasheet:
+  doc_id: DS42004
+  revision: Rev6-2            # "Document number: DS42004 Rev. 6 - 2", Sept 2022
+  url: https://www.diodes.com/assets/Datasheets/AP61100-AP61102.pdf
+  sha256: f759bf71b09cf7cb0f65004b90f0c3c8b48b0d42dcea48beffb0ccf91e6b9895
+  fetched: 2026-07-23
+package: SOT563               # 6-lead, 0.5mm pitch, 1.6x1.6mm. Diodes "Z6".
+footprint: Package_TO_SOT_SMD:SOT-563
+escape:
+  style: leaded
+  pitch: 0.5
+  tier_required: jlc_2layer_default
+  checked: "escape_check 2026-07-23"   # leaded 0.5mm/6pin -> ok at all tiers
+pins:                         # Pin Assignments fig (p.1, Top View) + Pin
+                              # Descriptions table (p.3). AP61102 variant: pin6=PG.
+  1: FB                       # feedback sense; connect to Rtop/Rbot divider
+  2: GND                      # power ground
+  3: VIN                      # 2.3-5.5V supply to IC + power MOSFETs; hot-loop cap here
+  4: SW                       # switch node; LC filter to output
+  5: EN                       # enable AND mode program (PFM/PWM), see gotchas
+  6: PG                       # open-drain power-good (pull to VIN via internal 5Mohm)
+limits:
+  vin_op: "2.3 to 5.5V"
+  vin_abs_max: "6.5V (DC); 7.0V (400ms transient)"
+  vfb_ref: "0.600V (min 0.588 / max 0.612, +/-2%)"
+  iout_cont_max: "1.0A"       # DATASHEET RATING IS 1A, NOT 1.5A (see gotchas)
+  fsw: "2.2MHz typ (1.7 min / 2.7 max), COT control"
+  ovp_vin_rising: "6.3V typ (300mV hyst) - stops switching, does NOT clamp VIN"
+  uvlo_falling: "1.84V"
+  ilim_hs_peak: "2.5A typ (1.7A min)"
+  ilim_ls_valley: "1.9A typ"
+  tj_max: "125C op (160C TSD, 130C release)"
+  theta_ja: "141 C/W (SOT563, 2-layer 2oz)"
+gotchas:
+  - "RATING IS 1A CONTINUOUS, not 1.5A. Datasheet title/features = '1A output'.
+     The brief's '1.5A' is the ~pulsed peak SW/inductor current (nets.yaml),
+     NOT continuous Iout. Board loads (0V9 ~0.8A, 3V3 ~0.6A) are within the 1A
+     rating with headroom; derating curve (Fig.41) holds 1A to Ta=95C."
+  - "EN doubles as MODE. Datasheet App-Info sec.2/3: EN high AND > VIN-200mV =>
+     PFM (light-load efficiency); EN high AND < VIN-200mV => FORCED-PWM regardless
+     of load (constant 2.2MHz, lowest/most-predictable ripple = the audio-board
+     choice). So do NOT tie EN straight to VIN if you want PWM: drive it from a
+     logic level that sits below VIN-200mV (e.g. 3V3-level into a 5V VIN)."
+  - "VIN abs-max 6.5V(DC). Internal OVP stops switching at 6.3V but does NOT
+     protect/clamp the VIN pin. The shared 5V rail needs its own OVP (RPP FET +
+     SMAJ5.0A TVS per ADR-0001) if the input can exceed 6.3V."
+  - "Rail sequencing via PG: 0V9_CORE EN <- 3V3_DIGITAL PG. PG is open-drain,
+     asserts when 3V3 is within 5% (after 55us). Driving 0V9 EN from the 3V3-level
+     PG also lands it in FORCED-PWM (3.3V < 5V-200mV). (Board seq: 3V3->0V9->1V8.)"
+  - "Hot loop = VIN input cap + VIN/GND pads + internal HS/LS FETs. Keep the VIN
+     ceramic <2mm from VIN(pin3)/GND(pin2) - loop area is the EMI/ripple driver
+     (datasheet Layout rule 2, Fig.42/43)."
+  - "pin6 differs by variant: AP61102 = PG (power-good); AP61100 = OUT. We use
+     the -PG- variant AP61102 for sequencing. Do not swap silently."
+design: |
+  Feedback divider (Rtop = VOUT->FB, Rbot = FB->GND):
+    VFB = 0.600V.  VOUT = 0.6 * (1 + Rtop/Rbot)   =>   Rbot = 0.6*Rtop/(VOUT-0.6)
+    Datasheet Table 1 fixes Rtop(R1) = 200k and a feedforward cap C3 across Rtop.
+    3V3_DIGITAL: Rtop=200k, Rbot=44.2k (Table 1) -> Vout=0.6*(1+200/44.2)=3.315V.
+                 Cff(C3)=33pF across Rtop.
+    0V9_CORE   : not in Table 1. Rbot=0.6*200k/(0.9-0.6)=400k.
+                 Rtop=200k, Rbot=402k(E96) -> 0.898V (use 400k E192 for exact 0.9V);
+                 Cff(C3)=33pF. Core is noise-sensitive -> a lower-impedance
+                 100k/200k pair (same ratio, exact 0.9V, Cff~66pF) is an option.
+  Inductor (Eq.6): L = VOUT*(VIN-VOUT)/(VIN*dIL*fsw), dIL = 30-50% of 1A.
+    Datasheet recommends L = 1.0-1.5uH, Isat >= 1.35A (>=35% over 1A), DCR < 50mohm.
+    Pick L = 1uH (Table 1 default) both rails:
+      3V3 @ Vin5: dIL = 3.3*1.7/(5*1u*2.2M) = 0.51A (51%); Ipk ~= 0.8A+0.26 = ~1.06A..1.26A
+      0V9 @ Vin5: dIL = 0.9*4.1/(5*1u*2.2M) = 0.34A (34%); Ipk ~= 0.8A+0.17 = ~0.97A
+    -> 1uH, Isat >= 1.5A, DCR < 50mohm (matches nets.yaml "~1.5A pulsed").
+  Input cap: >=10uF ceramic, RMS rating > 0.5*Iload, low ESR, hard on VIN/GND.
+  Output cap (Eq.8/9): 10-22uF ceramic (X7R/X5R). C2=10uF (Table 1) gives
+    Vripple = dIL*(ESR + 1/(8*fsw*Cout)) ~= 0.5*(2m + 5.7m) ~= 4mV on 3V3. OK.
+verified: "pin map from Pin Assignments figure (p.1, Top View, AP61102 side) +
+  Pin Descriptions table (p.3); VFB=0.6V from Electrical Characteristics (p.6) and
+  Features (p.1). DS42004 Rev.6-2, 2026-07-23. Note pin6=PG is the AP61102 variant."
+layout:
+  source: "Diodes DS42004 Rev.6-2 'Layout' sec (p.19), Fig.42/43 recommended PCB
+    layout: (2) input cap hard across VIN/GND, (3) inductor as close to SW as
+    possible, (4) output cap close to GND, (5) FB components close to FB, (7/8)
+    thermal vias under GND and VIN. 1A load -> heat dissipation is a real concern,
+    2oz Cu both outer layers, inner GND flood."
+  reviewed: "2026-07-23"
+  keep_short:
+    - {net: PLUS5V, max_span_mm: 2, why: "VIN hot-loop input cap to VIN(3)/GND(2) pads"}
+    - {net: SW,     max_span_mm: 3, why: "SW node to inductor - small dv/dt antenna, no pour (nets.yaml SW class)"}
+    - {net: FB,     max_span_mm: 4, why: "FB divider + Cff hard to FB(1), away from SW"}
+layout_refs:
+  - "datasheet DS42004 Rev.6-2 Layout sec + Fig.42/43 (mfr routed reference)"
+  - "Diodes AP61102 product page / typical application (Fig.1/2)"
+  - "OSHWLab by-LCSC C5224055 (JLC-fabbed AP61102 instances, Cu viewable)"
+sourcing:
+  lcsc: C5224055
+  alternates: [C5224056]      # AP61100Z6-7 (OUT variant, no PG) - only if PG-seq dropped

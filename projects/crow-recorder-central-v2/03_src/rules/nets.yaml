@@ -1,0 +1,63 @@
+# net architecture — crow-recorder-central-v2
+# fab_tier is a COST CEILING (D-TIER, ADR-0002). The XU316 0.4mm TQFP-128
+# provably needs 6L small-via (via-in-pad); PCM1865 needs 4L-advanced, which
+# this tier subsumes. Brief said "4-layer min, 6 preferred" — 6 it is.
+fab_tier: jlc_6layer_smallvia   # 0.30/0.15 vias, via-in-pad, 0.09 track/space
+
+classes:
+  PWR_IN:
+    intent: >
+      5V input trunk from the barrel jack through the RPP FET to the two bucks
+      and the pod +5V distribution. ~1.6A worst case. Rides F.Cu track/pour.
+    nets: [5V]
+    current: "~1.6A worst case (digital + analog + 6-pod beep peak)"
+    min_width: 0.5mm
+    routing: KRT + pour patch
+    verify: DRC floor
+
+  PWR:
+    intent: >
+      Regulated rails + pod power distribution. 0.4mm floor. 0V9 core (~0.8A)
+      and 3V3 (~0.6A) are the highest-current; 1V8/3V3A/pod-5V are lighter.
+    nets: [3V3, 0V9, 1V8, 3V3A, PLUS5V_AUDIO, PLUS5V_BEEP]
+    current: "0V9 ~0.8A, 3V3 ~0.6A, others < 0.15A"
+    min_width: 0.4mm
+    routing: KRT
+    verify: DRC floor
+
+  SWITCH_NODE:
+    intent: >
+      AP61102 buck switch nodes — tight loops, kept short. ~1.5A pulsed.
+      Small SOT-563 buck; short SW copper, no pour.
+    nets: [SW1, SW2]
+    current: "~1.5A pulsed"
+    min_width: 0.35mm
+    routing: KRT (tight island)
+    verify: DRC floor + hot-loop span audit
+
+  ANALOG_IN:
+    intent: >
+      Balanced audio differential pairs from each RJ45 to its PCM1865 input.
+      Kept SHORT and SYMMETRIC (archetype failure mode: one leg wandering).
+      Guarded by GND pours, no clock crossings.
+    nets: [AUDIO1P, AUDIO1M, AUDIO2P, AUDIO2M, AUDIO3P, AUDIO3M, AUDIO4P,
+           AUDIO4M, AUDIO5P, AUDIO5M, AUDIO6P, AUDIO6M, AUDIO7P, AUDIO7M,
+           AUDIO8P, AUDIO8M]
+    current: "line-level audio, uA"
+    min_width: 0.25mm
+    routing: KRT, symmetric leg pairs
+    verify: audit separation + DRC floor
+
+  CLOCK:
+    intent: >
+      Shared sample clock tree: MCLK (+ buffered legs), BCLK, LRCK — short,
+      source-series 33R terminated. USB HS pair is its own controlled lane.
+    nets: [MCLK, MCLK_A1, MCLK_A2, BCLK, LRCK]
+    current: "clock, mA"
+    min_width: 0.25mm
+    routing: KRT, short series-terminated
+    verify: DRC floor
+
+# Default 0.15 (tier floor 0.09, use 0.15): USB_DP/USB_DM, SDA/SCL, QSPI_*,
+# ADC_DOUT*, BEEP_GATE, GPIO, JTAG, strap nets. GND = F/B pours + In1/In4
+# planes + stitch (NOT routed).

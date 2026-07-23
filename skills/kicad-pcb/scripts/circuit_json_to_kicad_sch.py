@@ -118,6 +118,9 @@ COMMODITY_FP = {
     "pinrow3": "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical",
     "pinrow4": "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical",
     "pinrow5": "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical",
+    "pinrow6": "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical",
+    "pinrow7": "Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical",
+    "pinrow8": "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical",
     "pinrow3_p2.5mm": "Connector_JST:JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical",
     "pinrow5_p2.5mm": "Connector_JST:JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical",
     # jumpers / test points

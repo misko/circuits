@@ -1,0 +1,61 @@
+mpn: AO3400A
+manufacturer: Alpha & Omega Semiconductor
+type: mosfet                  # N-channel. Low-side switch for the shared beeper
+                              # return (BEEP_SWITCHED_RETURN), driven with slow edges.
+datasheet:
+  doc_id: AO3400A
+  revision: Rev3.1            # "Rev 3.1: July 2023"
+  url: http://www.aosmd.com/pdfs/datasheet/AO3400A.pdf
+  sha256: 9c60d0b6c1ddc7609a4b788a91181468d8ffe6c3e9ba425c3d8ffc5ba88c5033
+  fetched: 2026-07-23
+package: SOT-23               # SOT-23 (SC-59), 3-lead, 0.95mm pitch
+footprint: Package_TO_SOT_SMD:SOT-23
+escape:
+  style: leaded
+  pitch: 0.95
+  tier_required: jlc_2layer_default
+  checked: "escape_check 2026-07-23"   # 3-pin leaded, escape trivial
+pins:                         # package drawing p.1 (SOT23 Top/Bottom View) + symbol
+  1: G                        # Gate  (bottom-left lead)
+  2: S                        # Source (bottom-right lead)
+  3: D                        # Drain (single top lead)
+limits:
+  vds: "30V"
+  vgs: "+/-12V"
+  id_cont: "5.7A (Ta=25C) / 4.7A (Ta=70C)"
+  id_pulsed: "30A"
+  rdson: "18mohm typ (<26.5m) @Vgs=10V; 19m @4.5V; 24m @2.5V"
+  vgs_th: "0.65 min / 1.05 typ / 1.45 max V"
+  qg: "6nC typ @Vgs=4.5V"
+  pd: "1.4W (Ta=25C)"
+  tj_max: "150C"
+gotchas:
+  - "SOT-23 N-ch pinout: pin1=Gate, pin2=Source, pin3=Drain (confirmed from the
+     package drawing + schematic symbol on p.1). Same pin order as the AO3401A
+     P-ch part - do NOT rely on that to skip the polarity check."
+  - "Beeper low-side switch: source(2)->GND, drain(3)->BEEP_SWITCHED_RETURN,
+     gate(1)<-BEEP_GATE. Use SLOW gate edges via a gate RC (series R into gate +
+     shunt C gate-to-source) to soften the ~4kHz burst -> cuts harmonics/EMI (G7).
+     Low Vgs(th) (0.65-1.45V) fully enhances at 3.3V logic (Rdson 19m @4.5V)."
+  - "Logic-level: Rdson specified down to Vgs=2.5V, so a 3.3V gate drive is fine."
+design: |
+  Gate-drive network (slow-edge beeper switch): series gate resistor Rg (e.g.
+  ~1k) + shunt Cgs (e.g. ~1-10nF) sets the rise/fall time constant to round the
+  4kHz square-wave edges. Qg~6nC is tiny; the RC (not the driver) dominates edge
+  rate by design. Verify beep amplitude/return current on the bench.
+verified: "pin map (1=G,2=S,3=D) from SOT23 package drawing (Top/Bottom View) +
+  N-channel schematic symbol, AO3400A datasheet p.1; limits from Product Summary
+  (p.1) + Electrical Characteristics (p.2). Rev 3.1 (July 2023), 2026-07-23."
+layout:
+  source: "AOS AO3400A datasheet p.1 (SOT-23 pinout). Low-side switch: keep the
+    gate-RC network adjacent to the gate; keep the drain->beeper-return and
+    source->GND loop compact so the switched-return current stays local."
+  reviewed: "2026-07-23"
+  keep_short:
+    - {net: BEEP_GATE, max_span_mm: 6, why: "gate-RC (Rg + Cgs) local to gate(1) so slow edge is defined at the pin"}
+    - {net: BEEP_SWITCHED_RETURN, max_span_mm: 8, why: "drain(3) switched-return node kept compact / off the analog area (G10)"}
+layout_refs:
+  - "datasheet AO3400A Rev3.1 p.1 (mfr pinout/symbol)"
+sourcing:
+  lcsc: C20917
+  alternates: [C5224194]     # AO3400A (ElecSuper 2nd-source, LCSC C5224194)

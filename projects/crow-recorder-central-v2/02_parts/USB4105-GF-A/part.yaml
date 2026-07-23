@@ -1,0 +1,71 @@
+mpn: USB4105-GF-A
+manufacturer: Global Connector Technology (GCT)
+type: usb_connector          # USB 2.0 Type-C receptacle (device/sink side, to host PC)
+datasheet:
+  doc_id: USB4105            # GCT mechanical drawing (pinout + land pattern live here)
+  revision: B4               # drawing Rev B4, 18/12/23. (Product spec is separate: Rev A3)
+  url: https://gct.co/files/drawings/usb4105.pdf
+  sha256: fb331fbabee8392ed2937ed757c1610cb0f174b84625147c0b580a18eea8c0e5
+  fetched: 2026-07-23
+package: USB Type-C Receptacle, USB 2.0, 16-position, SMT top-mount horizontal (shell = 2x THT stakes)
+footprint: Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal
+mates: receptacle            # AF (receptacle) per drawing title block "USB Type C Receptacle"
+escape:
+  style: connector
+  pitch: 0.5                 # signal-pad pitch, from Recommended PCB Layout on the drawing
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-23
+pins:                        # ALPHANUMERIC pads A1..B12 + shield SH (NOT 1..17) — see gotchas
+  A1:  GND
+  A4:  VBUS
+  A5:  CC1                   # device sink: needs Rd 5.1k pulldown to GND (do NOT bridge to CC2)
+  A6:  {name: D+, note: "Dp1 - USB2.0 D+; tie A6=B6 on board"}
+  A7:  {name: D-, note: "Dn1 - USB2.0 D-; tie A7=B7 on board"}
+  A8:  SBU1                  # sideband; unused on USB2.0-only link (leave/route to test point)
+  A9:  VBUS
+  A12: GND
+  B1:  GND
+  B4:  VBUS
+  B5:  {name: CC2, note: "CC2/VCONN position; device sink needs its own Rd 5.1k pulldown to GND"}
+  B6:  {name: D+, note: "Dp2 - duplicated D+ for cable flip; tie A6=B6"}
+  B7:  {name: D-, note: "Dn2 - duplicated D-; tie A7=B7"}
+  B8:  SBU2
+  B9:  VBUS
+  B12: GND
+  SH:  {name: SHIELD, tie: GND, note: "shell + THT mounting stakes; single net 'SH' in the footprint, tie to chassis/GND"}
+limits:
+  vbus_max: 48V DC
+  i_vbus: 5.0A collective (A4/A9/B4/B9)
+  i_gnd: 6.25A collective (A1/A12/B1/B12)
+  i_vconn: 1.25A (A5/B5)
+  i_other: 0.25A per pin
+  temp: -40C..+85C
+  durability: 20000 cycles
+gotchas:
+  - "ALPHANUMERIC-PAD TRAP: pads are A1..B12 + SH, not 1..17. These must be listed in
+     parity_padmap.txt or tscircuit<->KiCad schematic-parity will fail to match the connector."
+  - "USB2.0 Type-C duplicates the data pair for cable flip: A6(Dp1) and B6(Dp2) are the SAME
+     D+ net; A7(Dn1) and B7(Dn2) are the SAME D- net. Short A6=B6 and A7=B7 on the PCB."
+  - "Device/sink CC: fit Rd = 5.1k from CC1 (A5) to GND and Rd = 5.1k from CC2 (B5) to GND.
+     Do NOT tie CC1 and CC2 together (breaks orientation/attach detection)."
+  - "D+/D- go from this connector -> TPD4EUSB30DQAR ESD array -> XU316 USB pins. Keep the pair
+     short and length-matched; place the ESD array hard against the connector."
+  - "VBUS sense: divide VBUS down to an XU316 GPIO/ADC for VBUS-present detect (do not feed raw 5V)."
+  - "SH is the shell/mounting-stake net (chassis). Tie to GND (or GND via a bead/cap if a split
+     chassis ground is used)."
+verified: "pin map read from GCT drawing USB4105 Rev B4 sheet 1/2 pin-assignment table (top-right)
+  and Recommended PCB Layout; pad NAMES cross-checked against KiCad
+  Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal (A1..B12 + SH) - 2026-07-23"
+layout:
+  source: "GCT USB4105 drawing 'Recommended PCB Layout' + USB2.0 Type-C practice: ESD array hard
+    against the D+/D- pads, CC Rd pulldowns local, shield stakes to GND"
+  reviewed: "2026-07-23"
+  keep_short:
+    - {net: "D+", max_span_mm: 15, why: "USB2.0 HS pair; connector->ESD->XU316 short & matched"}
+    - {net: "D-", max_span_mm: 15, why: "USB2.0 HS pair; connector->ESD->XU316 short & matched"}
+layout_refs:
+  - "GCT USB4105 drawing Rev B4 sheet 1/2 (Recommended PCB Layout)"
+  - "KiCad Connector_USB USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal land pattern"
+sourcing:
+  lcsc: C3020560            # USB4105-GF-A (base, GF = gold flash standard, blank shell-stake)
+  alternates: [C3025063, C5184243]   # USB4105-GF-A-060 (0.60mm stake), USB4105-GF-A-120 (1.20mm stake)

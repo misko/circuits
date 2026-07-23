@@ -1,0 +1,114 @@
+mpn: PCM1865DBTR
+manufacturer: Texas Instruments
+type: audio_adc            # 4-channel (2 stereo-pair) 24-bit 192-kHz audio ADC,
+                          # differential front end + PGA, I2C/SPI control, TDM.
+datasheet:
+  doc_id: SLAS831
+  revision: SLAS831D      # PIN IT — MARCH 2014, REVISED MARCH 2018. The PDF
+                          # is the whole PCM186x family sheet (PCM1860..1865).
+  url: https://www.ti.com/lit/ds/symlink/pcm1865.pdf
+  sha256: 4aadcbcaa50a77c61b81a8ab471def4031f5e6ae9398b5b4d068dd3d81ab3239
+  fetched: 2026-07-23
+package: TSSOP-30 DBT 4.4x9.7mm (body 7.80 x 4.40 mm), 0.5mm pitch
+footprint: crow_recorder_central_v2:TSSOP-30_DBT_4.4x9.7mm_P0.5mm_PCM1865
+                          # derive from KiCad Package_SO:TSSOP-30_4.4x9.7mm_P0.5mm
+escape:                   # leaded 0.5mm. A plain leaded 0.5mm escapes at
+                          # jlc_2layer_default, BUT the TSSOP-30 long sides are
+                          # DENSE (>=6 nets/side): escape_check's dense-leaded
+                          # wall (pitch-min_via_drill < min_hole_to_hole) makes
+                          # the cheap tiers CONDITIONAL on an escape-corridor,
+                          # so the cheapest UNCONDITIONAL tier is 4L-advanced.
+                          # This is exactly the ledger value — reproduced, not
+                          # inherited. board fab_tier jlc_6layer_smallvia (rank
+                          # 4) >= rank 2, so it fits.
+  style: leaded
+  pitch: 0.5
+  escapes_worst_side: 12  # right side (pins 16-30): LRCK,BCK,DOUT,SDA,SCL,AD +
+                          # ~4 diff inputs + GPIO/INT ~= 12 nets leaving (no GND
+                          # on that side). >= DENSE_LEADED_ESCAPES(6) triggers
+                          # the wall. Left side ~9. Worst side = right.
+  tier_required: jlc_4layer_advanced
+  checked: escape_check 2026-07-23
+pins:                     # 30 pads, read from the DBT-package pinout FIGURE
+                          # (page 10) cross-checked to the Pin Functions table
+                          # (page 11). Dual names shown as datasheet prints them:
+                          # single-ended VINL/VINR  /  differential VINxP/VINxM.
+  1:  {name: VINL2/VIN1M, note: "analog in 2 L-ch OR differential M for input 1 (VIN1M). AC-coupled balanced mic ch1 (-)"}
+  2:  {name: VINR2/VIN2M, note: "analog in 2 R-ch OR differential M for input 2 (VIN2M). AC-coupled balanced mic ch2 (-)"}
+  3:  {name: VINL1/VIN1P, note: "analog in 1 L-ch OR differential P for input 1 (VIN1P). AC-coupled balanced mic ch1 (+)"}
+  4:  {name: VINR1/VIN2P, note: "analog in 1 R-ch OR differential P for input 2 (VIN2P). AC-coupled balanced mic ch2 (+)"}
+  5:  {name: MICBIAS,     note: "microphone bias output"}
+  6:  {name: VREF,        note: "reference decoupling ~0.5*AVDD (=VCM); 1uF to AGND"}
+  7:  {name: AGND, tie: AGND, note: "analog ground"}
+  8:  {name: AVDD,        note: "ANALOG 3.3V (quiet AVDD rail); 0.1uF + 10uF to AGND"}
+  9:  {name: XO,          note: "crystal oscillator output; leave OPEN when clock enters on SCKI"}
+  10: {name: XI, tie: DGND, note: "CLOCK TRAP — crystal osc input / 1.8V-CMOS clock input. ABS-MAX 2.1V (p12). NEVER feed the 3.3V MCLK here; that MCLK goes to SCKI(15). Unused here -> tie to DGND"}
+  11: {name: LDO,         note: "internal 1.8V core-LDO decoupling output (or external 1.8V bypass in); 0.1uF + 10uF to DGND"}
+  12: {name: DGND, tie: DGND, note: "digital ground"}
+  13: {name: DVDD,        note: "DIGITAL 3.3V (PLL/oscillator); 0.1uF + 10uF to DGND"}
+  14: {name: IOVDD,       note: "I/O supply 3.3V (also the source for the internal 1.8V LDO)"}
+  15: {name: SCKI,        note: "SYSTEM/MASTER CLOCK INPUT, CMOS 3.3V. MCLK LANDS HERE (abs-max IOVDD+0.3 ~ 3.6V)"}
+  16: {name: LRCK,        note: "audio word/frame clock (I2S/TDM). Schmitt, internal 50k pull-down. shared clock -> 33R source-series at driver"}
+  17: {name: BCK,         note: "audio bit clock. Schmitt, internal 50k pull-down. shared clock -> 33R source-series at driver"}
+  18: {name: DOUT,        note: "audio serial data output (TDM slot data; Hi-Z outside its slots). NB: Pin Functions table mislabels TYPE as 'Analog output' - it is the digital audio output"}
+  19: {name: GPIO3/INTC,  note: "GPIO3 or interrupt C"}
+  20: {name: GPIO2/INTB/DMCLK, note: "GPIO2 / interrupt B / digital-mic clock out"}
+  21: {name: GPIO1/INTA/DMIN,  note: "GPIO1 / interrupt A / digital-mic data in"}
+  22: {name: MISO/GPIO0/DMIN2, note: "I2C mode: GPIO0 (or DMIN2, PCM1864/65 only); SPI mode: MISO"}
+  23: {name: MOSI/SDA,    note: "I2C mode: SDA; SPI mode: MOSI"}
+  24: {name: MC/SCL,      note: "I2C mode: SCL; SPI mode: serial bit clock"}
+  25: {name: MS/AD,       note: "I2C ADDRESS STRAP (AD): tie AGND->0x4A, IOVDD->0x4B (7-bit; 8-bit write 0x94/0x96). SPI mode: CS#"}
+  26: {name: MD0, tie: DGND, note: "control-method select: I2C when tied LOW or NC, SPI when tied HIGH. Tie LOW/GND for I2C"}
+  27: {name: VINL4/VIN4M, note: "analog in 4 L-ch OR differential M for input 4 (VIN4M)"}
+  28: {name: VINR4/VIN3M, note: "analog in 4 R-ch OR differential M for input 3 (VIN3M)"}
+  29: {name: VINL3/VIN4P, note: "analog in 3 L-ch OR differential P for input 4 (VIN4P)"}
+  30: {name: VINR3/VIN3P, note: "analog in 3 R-ch OR differential P for input 3 (VIN3P)"}
+# Differential input pairs (P/M) for the 4 channels, from the p11 table text:
+#   CH1: VIN1P = pin 3,  VIN1M = pin 1
+#   CH2: VIN2P = pin 4,  VIN2M = pin 2
+#   CH3: VIN3P = pin 30, VIN3M = pin 28
+#   CH4: VIN4P = pin 29, VIN4M = pin 27
+limits:
+  avdd: {min: 3.0V, nom: 3.3V, max: 3.6V, abs_max: 3.9V}
+  dvdd: {min: 3.0V, nom: 3.3V, max: 3.6V, abs_max: 3.9V}
+  iovdd: {min_1v8: 1.62V, nom_1v8: 1.8V, min_3v3: 3.0V, nom_3v3: 3.3V, max: 3.6V, abs_max: 3.9V}
+  xi_input_abs_max: 2.1V     # p12 Absolute Maximum Ratings: XI to DGND -0.3..2.1V
+  digital_input_abs_max: "IOVDD + 0.3V"   # applies to SCKI and all digital pins except XI
+  analog_input_abs_max: "-1.7V .. 5.0V (VINxx to AGND)"
+  agnd_to_dgnd_abs_max: 0.3V # star-ground join constraint (p12)
+  scki_mclk_range: "1 MHz .. 50 MHz CMOS (p16 Timing Requirements: External Clock)"
+  tj_max: 150C
+  esd: {hbm: 2000V, cdm: 750V}
+gotchas:
+  - "CLOCK TRAP (safety-critical): the 3.3V system MCLK goes to SCKI (pin 15, abs-max IOVDD+0.3). It must NOT touch XI (pin 10), whose abs-max is 2.1V and which is a 1.8V crystal/clock input — a 3.3V MCLK there exceeds abs-max and damages the part. Verified p10 figure + p12 abs-max + p83 sec 10.1.3 ('3.3-V sources into SCKI ... 1.8V sources into XI')."
+  - "XI (pin 10) unused on this board (clock arrives on SCKI): tie XI to DGND, leave XO (pin 9) open."
+  - "Two-chip TDM daisy chain (ch1-4 + ch5-8) shares MCLK/SCKI, BCK, LRCK. Sec 10.1.4 / Fig 59: Device A = TDM master (owns the SCKI/crystal source), Device B = TDM slave transmitting on channels 5-8; DOUT is Hi-Z while a device is not in its slot, so the two DOUTs can share one data line. Drive the shared clock nets through a SOURCE-SERIES 33R at the single driver (SI practice for fan-out to 2 loads; ledger, not a datasheet number)."
+  - "SPLIT SUPPLY (ledger + p79 Fig 68 / Table 25): AVDD (pin 8) is the ANALOG 3.3V (quiet) rail; DVDD (pin 13, PLL/osc) and IOVDD (pin 14, I/O + internal-LDO source) are the DIGITAL 3.3V rail. AGND (7) and DGND (12) join only at the star ground (AGND-DGND abs-max 0.3V). LDO (pin 11) is the internal 1.8V core rail decoupling, NOT a board rail."
+  - "I2C only two addresses on the bus: AD (pin 25) selects 0x4A (AGND) vs 0x4B (IOVDD); max two PCM186x on one I2C bus (p37 Table 23). The two ADCs here take 0x4A and 0x4B."
+  - "MD0 (pin 26) selects control mode: LOW/NC = I2C, HIGH = SPI. Tie LOW for I2C on this board."
+  - "DMIN2 on pin 22 (MISO/GPIO0/DMIN2) exists ONLY on PCM1864 and PCM1865 (note under p10 figure) — fine here, part is PCM1865."
+verified: "pin map read from DBT-package pinout FIGURE 'DBT Package: PCM1862, PCM1863, PCM1864, and PCM1865 / 30-Pin TSSOP / Top View', page 10, cross-checked against 'Pin Functions: PCM1862, PCM1863, PCM1864, and PCM1865' table, page 11 (SLAS831D). Safety-critical: pin 15 = SCKI and pin 10 = XI confirmed EXPLICITLY on both figure (p10) and table (p11); XI abs-max 2.1V confirmed on Absolute Maximum Ratings, page 12. Differential P/M pin numbers confirmed from the p11 table descriptions. 2026-07-23"
+layout:                   # third read: p84 sec 12.1 Layout Guidelines + Fig 74
+                          # (pin partitioning) + Fig 75 Layout Example + p79 sec
+                          # 11 power distribution + Pin Functions decoupling notes.
+  source: "TI SLAS831D Sec 12.1 Layout Guidelines + Fig 74/75 + Sec 11 Power-Supply Recs (Table 25) + PCM1865EVM: single shared ground plane; analog pins (1-8, 27-30) partitioned to one side and digital pins (9-26) to the other; keep digital return currents away from the AGND pin and the input traces; decoupling caps as close as possible to their supply pin, same layer, NO vias between the cap and the pin; ground plane BETWEEN differential input traces for lowest crosstalk"
+  reviewed: "2026-07-23"
+  keep_short:
+    - {net: AVDD,    max_span_mm: 3,  why: "AVDD 0.1uF+10uF decap hard against pin 8, return to AGND; no via between cap and pin (p84)"}
+    - {net: VREF,    max_span_mm: 3,  why: "VREF/VCM 1uF against pin 6 to AGND; sets the input common-mode reference"}
+    - {net: LDO,     max_span_mm: 3,  why: "internal 1.8V core LDO 0.1uF+10uF against pin 11 to DGND"}
+    - {net: DVDD,    max_span_mm: 3,  why: "DVDD 0.1uF+10uF against pin 13 to DGND (PLL/oscillator rail cleanliness)"}
+    - {net: MICBIAS, max_span_mm: 4,  why: "mic-bias decap near pin 5"}
+    - {net: VIN1P,   max_span_mm: 12, why: "diff mic pair ch1 (pins 3/1) matched + short, ground between the P/M traces"}
+    - {net: VIN2P,   max_span_mm: 12, why: "diff mic pair ch2 (pins 4/2) matched + short, ground between the P/M traces"}
+    - {net: VIN3P,   max_span_mm: 12, why: "diff mic pair ch3 (pins 30/28) matched + short, ground between the P/M traces"}
+    - {net: VIN4P,   max_span_mm: 12, why: "diff mic pair ch4 (pins 29/27) matched + short, ground between the P/M traces"}
+    - {net: SCKI,    max_span_mm: 20, why: "master clock leg from the fanout buffer; keep short, series-terminated at the driver"}
+layout_refs:
+  - "datasheet SLAS831D Sec 12.1 (Fig 74 pin partitioning, Fig 75 Layout Example)"   # mfr's own routed guidance
+  - "TI PCM1865EVM (EVM user's guide: schematic, BOM, PCB layout — cited by Sec 12.1)"  # tested instance of the circuit
+sourcing:
+  lcsc: C181312
+  alternates: [PCM1864DBTR]   # footprint-compatible (TI states PCB-footprint
+                              # compatibility across the family); PCM1864 keeps
+                              # the DMIN2-on-22 option. Verify LCSC stock at order.
