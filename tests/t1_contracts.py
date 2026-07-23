@@ -201,14 +201,16 @@ def t_skill_contract_sync():
     #    not drift).
     corpus = canon + "\n" + audit + "\n" + skill
     FWD = re.compile(r'candidate|proposed|future|todo|planned', re.I)
-    cited = set()
+    cited = {}   # id -> True if EVERY citation is a forward-reference
     for c in (skills / "pcb-design/templates/contracts").rglob("contracts.md"):
-        for line in c.read_text().splitlines():
-            if FWD.search(line):
-                continue
-            cited |= set(re.findall(
-                r'(?<![\w-])([SPRMED]-[A-Z][A-Z0-9-]+)(?![\w-])', line))
-    orphan = sorted(i for i in cited if not in_(corpus, i))
+        txt = c.read_text()
+        for m in re.finditer(r'(?<![\w-])([SPRMED]-[A-Z][A-Z0-9-]+)(?![\w-])', txt):
+            # window BEFORE the citation catches a wrapped "candidate ... M-REV"
+            fwd = bool(FWD.search(txt[max(0, m.start() - 90):m.start()]))
+            iid = m.group(1)
+            cited[iid] = fwd and cited.get(iid, True)
+    orphan = sorted(i for i, all_fwd in cited.items()
+                    if not in_(corpus, i) and not all_fwd)
     check(not orphan, "contract templates cite check-IDs that exist nowhere in "
                       f"the skill (stale governance reference): {orphan}")
 

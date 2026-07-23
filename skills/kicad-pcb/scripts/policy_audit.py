@@ -364,7 +364,14 @@ def main():
     if board:
         SILKS = (pcbnew.F_SilkS, pcbnew.B_SilkS)
         missing = []
-        wv = proj / "06_build" / "refdes_waiver.json"
+        # Read the evidence-backed silk waiver from where generate_board WRITES
+        # it — the board's own dir (04_kicad, a non-regenerable artifact per the
+        # 04_kicad contract) — NOT the disposable 06_build tree. 06_build stays
+        # only as a legacy fallback (drift-review 2026-07-22: a load-bearing
+        # gate input must not live in a `rm -rf`-safe tree).
+        wv = Path(board_p).parent / "refdes_waiver.json"
+        if not wv.exists():
+            wv = proj / "06_build" / "refdes_waiver.json"
         waived_refs = set(json.loads(wv.read_text())) if wv.exists() else set()
         for f in board.GetFootprints():
             r = f.GetReference()

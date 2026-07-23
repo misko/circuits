@@ -24,7 +24,7 @@ per-board gate: `audit_board.py` (board-specific placement/pad invariants).
 |---|---|---|
 | `floorplan.yaml` | placement config: outline, mounting holes, named regions, anchors, `repeat:` banks, keepouts, zones, silk, orientation asserts | SHARED `generate_board_generic.py` |
 | `route.yaml` | routing + stitch config: KRT prep/route/import order, pours, thermal vias, pad-rescue, `taps:` (collision-checked named connections KRT cannot thread), and the stitch pass list — `dedupe_vias / normalize_vias / drop_micro_fragments / drop_dangling / split_t_junctions / reload / hole_to_hole / pad_rescue / stub_fallback / astar_fallback / stitch_grid / power_stitch / via_janitor / fill / island_rescue / heal_islands / prune_stitch_dangling / gate` (order is per-board config; `heal_islands` after the last `fill` auto-bridges same-net pour splits — the "Zone [X] <-> Zone [X]" DRC class) | SHARED `route_and_stitch_generic.py` (`prep`/`route`/`import`/`taps`/`stitch`) |
-| `rules/` | `nets.yaml` (netclasses + ampacity), `policy_waivers.yaml`, `twin_adjudications.yaml` — see `rules/contracts.md` | SHARED `generate_rules_generic.py`, policy_audit, jlc_twin |
+| `rules/` | `nets.yaml` (netclasses + ampacity), `electrical_invariants.yaml` (E-INV intent assertions), `power_tree.yaml` (E-TOPO per-rail voltage envelopes), `policy_waivers.yaml`, `twin_adjudications.yaml` — see `rules/contracts.md` | SHARED `generate_rules_generic.py`, policy_audit, jlc_twin |
 | `route/**` | the PROMOTED KRT chain (`*.kicad_pcb`) — a committed ARTIFACT, not code (canon M3); `import` replays it deterministically | SHARED `route_and_stitch_generic.py import` |
 | `audit_board.py` | the ONLY per-board emitter: the placement/pad invariant gate (polarity, proximity, plane-clean, refdes-on-silk, and any BOARD-SPECIFIC guard e.g. an analog-keepout distance). Everything else is config or shared. | — |
 | `bom_seed.py` | maps BOM comments → `02_parts/` MPN → LCSC; fails on unmapped/TBD lines | required before ordering |
@@ -130,12 +130,18 @@ agent runs it FIRST. `$S` = `skills/kicad-pcb/scripts` (resolved repo-relative,
 This folder answers: **S1/S4** (ERC gate at severity-all = 0 errors; no_connect
 flags for sanctioned floats emitted upstream), **S2** (no auto-named nets reach
 copper), **R1** (netclasses exist in the route-INPUT project file — R-RULES
-inspects it), **M3** (everything regenerable: the promoted route chain lives in
+inspects it), **E-INV/E-ADR** (the netlist graded against the intent assertions
+in `rules/electrical_invariants.yaml`; every protection/topology ADR must emit
+>= 1), **E-TOPO** (converter topology DERIVED from `rules/power_tree.yaml`
+voltage envelopes and asserted against the converter `part.yaml` `type:`),
+**M3** (everything regenerable: the promoted route chain lives in
 `03_src/route/` and is committed; `06_build` stays disposable), **M4**
 (waivers/adjudications in `rules/` each carry measurement evidence).
 
 - Audit: `policy_audit.py <project>` runs S-ERC, S-NC, S-NET, R-RULES, M-REPRO,
-  M-WAIV directly. Zero FAIL required at release.
+  M-WAIV directly, plus E-INV, E-ADR, E-TOPO via the intent checkers
+  `electrical_invariants.py` / `power_topology.py` it drives. Zero FAIL required
+  at release.
 - Waivers live in `rules/policy_waivers.yaml`:
   `{id: <CHECK-ID>, refs: [...], derived_from: <project?>, why: "<measurement
   evidence>"}` — an entry without evidence is itself a FAIL, and an inherited

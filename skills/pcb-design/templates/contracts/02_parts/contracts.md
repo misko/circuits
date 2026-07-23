@@ -59,6 +59,11 @@ type: buck_controller       # REQUIRED. The part CLASS, not its value.
                             # "10k NTC 3380K" on an R_0402 footprint is a
                             # THERMISTOR; it was coded as a plain 10k resistor
                             # and would have shipped as the temp sensor.
+                            # For a CONVERTER the class (buck|boost|buck_boost)
+                            # is machine-graded by E-TOPO against the topology
+                            # DERIVED from 03_src/rules/power_tree.yaml voltage
+                            # envelopes — an over- or under-capable class FAILS
+                            # (buck_boost where a buck suffices = FAIL).
 datasheet:
   doc_id: SNVSAI4
   revision: SNVSAI4F        # PIN IT — pinouts change between revisions
@@ -73,8 +78,9 @@ footprint: power_board_v1:VQFN-20_3.5x4.5_P0.5_LM5145RGY
                             # receptacle because footprint+netlist+silk were
                             # consistently wrong TOGETHER (usb-hub-3s
                             # ADR-0006, 2026-07-21). Role-vs-gender remains
-                            # a HUMAN pin-review call; the machine gate pins
-                            # the pin-review artifact per connector (M-REL)
+                            # a HUMAN pin-review call — no machine gate covers
+                            # connector gender/role at this stage (do not cite
+                            # one; M-REL is the release-immutability checker)
 escape:                     # REQUIRED for every multi-pin part (D-ESC).
                             # Emitted by skills/kicad-pcb/scripts/
                             # escape_check.py --style qfn --pitch 0.5;
@@ -124,6 +130,18 @@ layout:                     # REQUIRED for ICs + power/sense parts (P-LAYOUT).
     - {net: RSNS,  max_span_mm: 5, why: "Kelvin sense R adjacent to ISNS/VPWR"}
     - {net: PDSRC, max_span_mm: 5, why: "pass-FET source common node at chip"}
   # adjacency: [...]        # optional refdes-pair form; notes: free-text rules
+layout_refs:                # REQUIRED for every HARD part (dense escapes,
+                            # switching power, >0.5A analog, RF): the LAYOUT
+                            # PRECEDENT SEARCH record — the routed references
+                            # consulted before drawing the local layout, in
+                            # datasheet-first authority order. STUDY then
+                            # RE-DERIVE; never import copper (M3). Harvested into
+                            # proven-parts.yaml with the part, so the search is
+                            # paid once per part, ever.
+  - "datasheet SNVSAI4F Sec.11 layout figure"    # (1) mfr's own routed picture
+  - "TI EVM SLVUAP7A design files"               # (2) tested instance of circuit
+  - "OSHWLab by-LCSC C485912"                     # (3) JLC-fabbed board, Cu viewable
+  # - "GitHub kicad project <url>"               # (4) unvetted — weakest
 sourcing: {lcsc: C485912, alternates: [C2650259, C3188678]}
 ```
 
@@ -182,7 +200,10 @@ drawing, not just electricals.
 
 This folder also answers **P-LAYOUT / P-ADJ** — the datasheet LAYOUT section is
 read (not just the pin table) and encoded as a `layout:` block for every IC and
-power/sense part, and the board's placement HONOURS it:
+power/sense part (with the routed precedents behind that read catalogued in
+`layout_refs:` — datasheet figure, EVM/app-note, OSHWLab-by-LCSC, KiCad
+projects — harvested into `proven-parts.yaml` so the search is paid once), and
+the board's placement HONOURS it:
 
 - Audit: `policy_audit.py` **P-LAYOUT** fails an in-scope part (multi-pin active,
   or `type:` matching fet/mosfet/current_sense/shunt/crystal/oscillator/inductor)

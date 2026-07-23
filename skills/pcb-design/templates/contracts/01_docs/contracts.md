@@ -106,6 +106,24 @@ Escalate if: <condition that should turn this into a real question>
 decisions link their `decisions/NNNN-*.md`; commission-level ones link a log
 entry. The register is an index — rationale lives in the linked file/entry.
 
+### 6. `## Spec tensions` — requirements vs standards + sourceable parts (D-SPEC)
+
+Every numeric requirement tested at COMMISSION against (a) the governing
+standard and (b) the sourceable-part envelope; every power port/output pins
+its voltage ENVELOPE (min/max), not just current. The table reads
+`none found` ONLY after the D-SPEC check actually ran:
+
+```
+| id | requirement | standard/part cap | how honoured | ADR | user-flagged |
+|---|---|---|---|---|---|
+| T1 | USB-C 5A | Type-C 3A CC / PD 5V/5A | 5V/5A protection-ceiling reading | decisions/0005-... | yes |
+```
+
+Each tension links a spec-tension `decisions/NNNN-*.md` and is flagged to the
+user in the report — never silently built out-of-spec, never silently
+downgraded. Machine-readable rail envelopes go to `03_src/rules/power_tree.yaml`
+(the E-TOPO input), not here.
+
 ## Validate — BRIEF.md
 
 - `sha256sum` of the bytes between the prompt markers equals `prompt_sha256`
@@ -118,6 +136,9 @@ entry. The register is an index — rationale lives in the linked file/entry.
   `dropped` cites a D#/Q# (never an A#)
 - decision register ↔ `decisions/`: every ADR file appears in exactly one
   register row; every register row's depth link exists
+- `Spec tensions` table present; each row links an existing
+  `decisions/NNNN-*.md` and is flagged in the report; `none found` allowed
+  only after the D-SPEC check ran
 - release gate: cutting a `07_releases/` dir while any criterion is `unmet`
   is a contract violation — `CHECKLIST.md` must carry this line
 
@@ -135,8 +156,12 @@ entry. The register is an index — rationale lives in the linked file/entry.
 ## Structure: `ARCHITECTURE.md`
 
 Required sections:
-- `## Power tree` — every rail: source → conversion → load, with current.
-  Name the nets exactly as they appear in `03_src/rules/nets.yaml`.
+- `## Power tree` — every rail: source → conversion → load, with current AND
+  its voltage ENVELOPE (vin/vout min-max) — an unpinned output voltage range
+  lets converter topology be interpreted instead of derived. Name the nets
+  exactly as they appear in `03_src/rules/nets.yaml`. Machine-readable rail
+  envelopes (vin/vout min-max, iout, converter) belong in
+  `03_src/rules/power_tree.yaml` (the E-TOPO input), not here — link to it.
 - `## Net domains` — the classes and what makes each one special. Link each
   to its `nets.yaml` entry. Do not restate widths here; they drift.
 - `## Stackup` — layer count and what each layer is FOR.
@@ -193,10 +218,14 @@ a revision and a fab order.
 ## Compliance audit (design-policies.md IDs)
 
 This folder answers: **S5** (design math with margins in DETAIL_DESIGN.md),
-**M5-partial** (CHANGELOG entry naming every release directory), plus the
-ADR obligations referenced throughout (protection ADR mandatory; split
-planes, trunk-instead-of-pour, and any policy waiver each need a written
-decision).
+**S9** (spec tensions surfaced at commission — [H] BRIEF `Spec tensions`
+table filled + a spec-tension ADR per tension), **M5-partial** (CHANGELOG
+entry naming every release directory), plus the ADR obligations referenced
+throughout (protection ADR mandatory; split planes, trunk-instead-of-pour,
+and any policy waiver each need a written decision). A protection/topology
+ADR is not complete until it emits >= 1 assertion into
+`03_src/rules/electrical_invariants.yaml` (canon E-INV); **E-ADR** flags a
+protection ADR that emits none.
 
 - Audit: run `policy_audit.py <project>` — M-REL includes the CHANGELOG
   check; S5 is HUMAN-graded (a fresh reviewer re-derives two values from

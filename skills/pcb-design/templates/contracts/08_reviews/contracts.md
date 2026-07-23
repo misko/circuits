@@ -42,19 +42,31 @@ register):
 
     | id | review file | finding (one line) | severity | verification | disposition |
 
+- `severity`: `P0` / `P1` / `P2` (SKILL.md stage 7) — a P0 blocks the
+  release; a P1 lands in ORDER_README + the next-rev work order; a P2 is
+  recorded. There is no other severity vocabulary.
 - `verification`: findings are CLAIMS — each is independently verified
   against the artifacts (netlist/board/part.yaml) before disposition:
   `confirmed (evidence)` / `refuted (evidence)` / `unverifiable-here`.
-- `disposition`: `fixed — <release/commit link>` / `deferred — <ADR or
-  ORDER_README link>` / `waived — <evidence>` / `duplicate of <id>`.
+- `disposition`: `fixed — <release/commit link>` / `deferred — <ADR /
+  ORDER_README / next-rev work-order link>` (a P1 lands here) / `waived —
+  <evidence>` / `recorded — <note>` (a P2 lands here) / `duplicate of <id>`.
 
 ## Gates
 
 - **A release may not seal while any CONFIRMED P0 finding lacks a `fixed`
   disposition** (red-team stage, SKILL.md stage 7).
+- **Per sealed release, BOTH red-team lenses must be present with an ORDER
+  verdict** — a `redteam` topology/protection/ratings-lens review AND a
+  `redteam` layout/thermal/power-integrity-lens review file (reviewer:
+  `redteam-agent` with the named lens), each carrying `verdict: ORDER` in
+  its header block. A `DO-NOT-ORDER` verdict blocks the seal until re-gated
+  or superseded (SKILL.md stage 7).
 - The release's red-team reviews are written HERE first (the living
   tracked home) and COPIED into the release `verification/` as the sealed
   snapshot.
 - Audit: every `DISPOSITIONS.md` row links an existing review file; every
   review file has the header block; every P0/P1 row has a non-empty
-  disposition. (Candidate machine check: M-REV in policy_audit.)
+  disposition; both red-team lenses present with ORDER verdicts. (Candidate
+  machine check: M-REV in policy_audit — makes the two-lens coverage
+  enforceable, not prose-only, per canon M2.)

@@ -69,9 +69,12 @@ This folder answers the board-state policies: **P1** courtyards (P-CRT), **P2**
 polarized pad-1 nets (P-POL — a scripted check in `03_src/audit_board.py`),
 **P3** mate/keepout/antenna checks (P-KEEP), **P4** every refdes on visible silk
 (P-SILK-REF), **P5** functional silk near every terminal/fuse/TP (P-SILK-FN),
-**P6/R3** reference-plane integrity (P-PLANE / R-PLANE), **R2** power on pours
-(R-POUR), **R5** length gates (R-LEN), **R6** thermal vias (R-THERM), **R7** DRC
-0/0/0 at severity-all (R-DRC).
+**P6/R3** reference-plane integrity (P-PLANE / R-PLANE), **P8** layout-adjacency
+net-spans (P-ADJ — each board net's pad-span within its `keep_short.max_span_mm`
+budget; warn+waiver in `03_src/rules/policy_waivers.yaml` with the measured span
++ why; P8's other half P-LAYOUT — part.yaml carries a `layout:` block — stays a
+02_parts check), **R2** power on pours (R-POUR), **R5** length gates (R-LEN),
+**R6** thermal vias (R-THERM), **R7** DRC 0/0/0 at severity-all (R-DRC).
 
 - Audit: `policy_audit.py <project>` (full mode runs ERC+DRC itself; use
   `--skip-drc` only for fast re-grades).

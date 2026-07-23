@@ -94,8 +94,21 @@ Machine-readable patterns (contracts_audit; the tree below is the human view):
         │                            six renders of the board with JLC's part
         │                            bodies - top/bottom, two isometrics, two
         │                            edge profiles (component heights)
+        ├── render_{top,bottom}_bare.png
+        │                            the no-components truth view per side
+        │                            (kicad-cli Cu+Mask+SilkS+Edge, rasterized) —
+        │                            paired with the modeled twin renders above
+        ├── missing_models.txt       every CPL ref with no attached 3D body in the
+        │                            modeled render (a bodiless footprint means "no
+        │                            model", NEVER "not placed" — CPL is population truth)
         ├── pin_review.md            fresh-context pin review verdicts (pin-review-protocol)
         ├── render_review.md         fresh-eyes render review verdicts
+        ├── redteam_topology.md      RED-TEAM release review, topology/protection/
+        │                            ratings lens — ORDER verdict; verbatim copy of
+        │                            the 08_reviews/ archive (a P0 blocks the release)
+        ├── redteam_layout.md        RED-TEAM release review, layout/thermal/
+        │                            power-integrity lens — ORDER verdict; verbatim
+        │                            copy of the 08_reviews/ archive
         ├── policy_audit.md          zero FAIL, waivers evidence-backed
         └── parity.md                node-for-node netlist parity vs the source
 ```
@@ -129,7 +142,7 @@ fab:          JLCPCB, 4 layer, advanced small-via option (0.25/0.15 vias)
 quantity:     5
 gates:        DRC 0/0/0 · netlist parity 0 · audit PASS · ERC 0 err ·
               twin PASS · pin_review PASS · policy_audit 0 FAIL ·
-              stock 55/55 verified
+              redteam ORDER/ORDER, 0 open P0 · stock 55/55 verified
 3d:           step present, gltf absent (no exporter for this board)
 sha256:       # EVERY file in the release, not just the fab set
   fab/power_board_v1_gerbers.zip   f5d56393...
@@ -174,6 +187,8 @@ checked shared a method.
 - Releasing from a dirty working tree (`git_dirty: true`).
 - A release whose gates did not pass. `verification/` holds the evidence;
   an empty or failing `verification/` means it is not a release.
+- **A release carrying an unresolved P0 red-team finding.** A P0 blocks the
+  release — fix and re-gate, or supersede; it may not seal open.
 - **A release that outsources its own contents to git.** No `source/` means
   no release — "it's at that SHA" is not an archive. Likewise no symlinks
   into `04_kicad/` or `03_tscircuit/`; those folders keep moving.
@@ -201,6 +216,12 @@ checked shared a method.
   `04_kicad` board produced at `git_sha`
 - `verification/` reports show passing gates: DRC 0/0/0, ERC 0 errors,
   parity 0, audit PASS, policy_audit 0 FAIL, twin/pin/render reviews PASS
+- red-team review present in `verification/`, both lenses'
+  (topology/protection + layout/thermal) verdicts = ORDER, zero unresolved
+  P0 (a P0 blocks the release); archived verbatim in `08_reviews/`
+- the bare/modeled render pair for both sides (`render_{top,bottom}_bare.png`
+  beside the twin renders) and `missing_models.txt` are present in
+  `verification/`
 - `01_docs/CHANGELOG.md` has an entry whose `Released:` names this directory
 
 ## Repair

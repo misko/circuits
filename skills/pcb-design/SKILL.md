@@ -224,8 +224,11 @@ one pass. The trigger existed in hindsight only — now it is a rule.)
    stage forced the question.
 2. `02_parts/<MPN>/part.yaml` per part: pin map read from the datasheet
    FIGURE (not assumed), `verified:` note naming figure+page, LCSC code +
-   alternates + stock. The PDF set MUST include the package/land-pattern
-   drawing, not just electricals.
+   alternates. Stock is CHECKED at selection (jlc_stock_check) but NOT
+   committed — the volatile stock/price number lives in `06_build/cache/`
+   (TTL'd), never in `part.yaml`, per the 02_parts contract's three-tier
+   model. The PDF set MUST include the package/land-pattern drawing, not
+   just electricals.
    **FAN OUT the research (parts are independent):** ledger hits
    (`references/proven-parts.yaml`) need no research — copy the verified
    block. Partition the REMAINING multi-pin parts into groups of ~4 and
