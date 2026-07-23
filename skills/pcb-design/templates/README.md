@@ -18,6 +18,9 @@ design source on 2026-07-20; the fix is that the skill carries its own canon.
   docs (fill, never leave placeholder text in a committed project).
 - `project.gitignore` → the new project's `.gitignore` (ignores `06_build/`
   per the root contract).
+- `ORCHESTRATION_STATE.md` → the multi-board COORDINATOR's state-journal
+  skeleton — copied to the orchestration root per CAMPAIGN, not per project
+  (it is not part of the commission copy list below).
 - Sub-stage contracts nest under `contracts/` exactly as they land in the
   project (`contracts/01_docs/decisions/`, `contracts/03_src/{lib,rules}/`).
 

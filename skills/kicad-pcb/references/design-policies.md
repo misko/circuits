@@ -97,6 +97,19 @@ grew to gate them.
 
 | S-DSL | Circuit declarations COMPILE TO NATIVE KiCad artifacts; every gate runs on artifacts, never on a DSL's claims about them. Front-ends may vary (schwriter2 declarations, future adapters); .kicad_sch/.kicad_pcb + the gate stack are fixed | [G] structural | evaluated CircuitScript 2026-07-18: netlist-only KiCad export would break ERC/parity/S-OCCL at their strongest link |
 
+### Verification scoping (amendment 2026-07-23) — full breadth once per material state
+
+The fresh-context review battery (M1's independence engine: both red-team
+lenses, pin review, render review) runs at FULL breadth once per MATERIAL
+design state. A material change voids prior verdicts — that rule keeps its
+teeth — but post-fix re-verification is SCOPED: targeted confirmation of each
+changed item, plus ONE integrated fresh-context lens over the result. "Fresh"
+means fresh-CONTEXT (a reviewer with no stake in the fix — the independence M1
+actually buys), not a full-breadth re-run; re-running every lens after every
+one-line fix converts the strongest gate into the most expensive rubber stamp.
+Compute, like fab cost, is spent under a declared ceiling (the D-TIER
+symmetry): work-class tiers in `skills/pcb-design/references/compute-tiers.md`.
+
 ## Running the audit
 
 ```

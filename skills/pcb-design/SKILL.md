@@ -179,6 +179,37 @@ this at the source, MANDATORY (`policy_audit` M-JRNL / M-LEARN):
   monitor is `skills/kicad-pcb/scripts/pcb_status.py` (one line per board;
   derives STALLED from a stale `working` beacon with no live op).
 
+## Compute discipline — tokens under a declared ceiling (the D-TIER symmetry)
+
+Fab cost is governed by a tier DECLARED up front (D-TIER); compute is the same
+resource in tokens and gets the same treatment. Four rules:
+
+- **TIERS.** Every spawned agent declares its WORK CLASS in the spawn prompt —
+  mechanical (cheap model, low effort), authoring (default model), judgment
+  (default model, full effort) — table and rationale in
+  `references/compute-tiers.md`; escalating above the class tier requires a
+  stated reason there. The routing-grind ladder (Tier 0 script / Tier 1 cheap /
+  Tier 2 frontier, stages 4-6) is the proven instance.
+- **CONTEXT BUDGET.** An agent past ~300k tokens takes the NEXT gate boundary
+  as a PLANNED handoff (the planned-session-splits rule): commit, journal
+  `handoff`, refresh the beacon, and a FRESH successor resumes from the tree
+  alone (proven cheap). Repeatedly resuming a heavy agent — "resume-the-giant"
+  — is the named anti-pattern: every resume re-pays the giant's whole context
+  to buy one step a fresh agent takes for a fraction.
+- **COMMS PROTOCOL.** The STATUS beacon is the PULL channel: routine progress
+  goes there and the coordinator POLLS `pcb_status.py`. PUSH messages go up
+  ONLY at a gate, a decision, or a wall. Reports use a terse fixed shape —
+  measured numbers, changed files, next step; no narrative. Coordinators BATCH
+  relays rather than waking a heavy agent per event (each wake re-pays its
+  whole context).
+- **VERIFICATION SCOPING.** The full multi-lens review breadth (both red-team
+  lenses, pin, render) runs ONCE per MATERIAL design state. A material change
+  still voids prior verdicts — that rule keeps its teeth — but post-fix
+  re-verification is TARGETED: confirm the specific changed items, plus ONE
+  integrated fresh-CONTEXT lens over the fixed board. "Fresh" buys
+  INDEPENDENCE (canon M1: a reviewer with no stake in the fix), not repeated
+  breadth. Canon home: design-policies.md, "Verification scoping".
+
 ## Iteration & backtracking — the STUCK protocol (D-BACK)
 
 Getting stuck at stage X is normal; grinding stage X forever is the defect.

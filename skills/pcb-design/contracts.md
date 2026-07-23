@@ -12,7 +12,8 @@ why).
 |---|---|
 | `SKILL.md` | the orchestration manual, stage by stage, with the D-* gates |
 | `contracts.md` | this file |
-| `templates/**` | the seed set: `contracts/` (stage contracts, nested to match project layout), `03_src/` + `03_tscircuit/` schema examples, `01_docs/` starters, `project.gitignore`, `rebuild_all.sh`, `README.md` |
+| `templates/**` | the seed set: `contracts/` (stage contracts, nested to match project layout), `03_src/` + `03_tscircuit/` schema examples, `01_docs/` starters, `ORCHESTRATION_STATE.md` (the coordinator's state-journal skeleton, copied per campaign not per project), `project.gitignore`, `rebuild_all.sh`, `README.md` |
+| `references/**` | the skill's own reference data (e.g. `compute-tiers.md`, the work-class → model-tier table backing SKILL.md "Compute discipline") |
 
 ## Audit
 
