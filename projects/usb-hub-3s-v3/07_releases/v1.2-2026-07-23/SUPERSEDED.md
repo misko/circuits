@@ -15,6 +15,13 @@ artifact FRESHNESS — the systemic gaps are being fixed as gate tasks):
    tscircuit value-resolved to C2933210 *claiming* 4.12 kΩ, never catalog-verified.
    **M-BOM PASSED because it checks code IDENTITY (BOM code == circuit.json code),
    not the LCSC's actual catalog value.**
+   *Addendum (2026-07-23, semantic-gate ledger seeding):* the same class hit a
+   SECOND part — **R30** (Q6 gate pull-up, QG→PMID) ships **C2933195**
+   (MPN `FRC0603F3091TS` = **3.09 kΩ**), labeled **100 kΩ**. Functionally the
+   FET logic still works (Q7 overpowers it; OFF-state pull-to-source holds), but
+   it burns ~1.6 mA through Q7 when ON and is the wrong part. v1.2 therefore
+   carries BOTH R12 and R30 wrong-part defects; both are caught by the semantic
+   M-BOM gate (leg C + vetted LCSC ledger) that now gates every seal.
 
 2. **Stale / inconsistent release artifacts.** v1.2's
    `pdf/assembly_back.pdf`, `pdf/assembly_front.pdf`, and `pdf/pcb_layers.pdf`
