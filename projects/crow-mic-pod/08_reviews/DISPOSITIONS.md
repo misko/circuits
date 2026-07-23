@@ -29,3 +29,17 @@ re-audit of v1.0-2026-07-21 against the current pcb-design skill gates.
   finding blocks continuing to ship the sealed v1.0 release; none rises to a
   v1.1 TRIGGER (a genuine electrical/topology defect) under this project's
   own D-BACK/gate definitions — they are refinements, not defects.
+
+## 2026-07-22 v1.1 fresh red-team (post source-compliance; sealed board unchanged) — ORDER/ORDER
+
+Both lenses ORDER, no P0. Memos: `2026-07-22_v1.1_redteam_{topology,layout}.md`.
+
+| id | sev | finding | disposition |
+|----|-----|---------|-------------|
+| P1 | P1 | DNP beeper TVS D3 (SMAJ6.0A unidir) oriented cathode-to-supply = FORWARD-biased by coil kick (conducts ~0.9V), cannot do its documented clamp job; v1.0 memo wrongly called it 'Correct' | TO-VERIFY then disposition — DNP + benign (shipped D2 schottky correct; even swapped, 5.9V clamp < 6V op-max). Correct ADR-0002 premise if confirmed |
+| E1 | P2 | **the NEW v1.1 E-INV assertion codifies the WRONG TVS orientation as correct** (asserts D3.1=BZ_P 'so a swap cannot invert polarity') — the gate enforces the physically-wrong orientation | **TO-VERIFY (our gate) then fix** — if P1 confirms, the E-INV assertion is backwards; high-value catch |
+| T1 | P2 | ADR-0001 §3 claims reversal exposes 'only C1 via 100R' but U1/C6/C7 sit on raw 5V/GND | TO-FIX (source doc) — false boundary in a mandatory protection ADR |
+| T2 | P2 | only audio pair has entry clamp; 5V/beep pairs ride cable bypass on 30-35ft run | ACCEPTED deferred — ORDER_README risk line (carry-forward) |
+| C7 | P2 | **OPA1678 layout: block wrong/self-contradictory** — names 'C6,C7 0.1uF V+ bypass' but C7 is a 10uF BULK cap 10.84mm away (v1.1 correction-agent defect) | **TO-FIX (source, clear error)** — the layout block the mic-pod v1.1 pass just wrote is factually wrong |
+| L-fb | P2 | P-ADJ straight-line span understates routed FB node by ~90% (FB_B 29mm routed vs 15mm span) | SKILL HARVEST — P-ADJ measures pad-span, not routed length (conclusion still holds) |
+| L5 | P2 | ADR-0004(c) first-article lid-close gate still OPEN (no unit built) | OPEN — carry-forward |

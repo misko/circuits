@@ -35,3 +35,21 @@ Zero CONFIRMED P0. Both red-team verdicts ORDER; render PASS-WITH-NOTES. All
 four P1s (F1, L1, L2, L3) are user-error-dependent (F1) or SI/EMI-margin next-rev
 improvements (L1/L2/L3) on a DRC-clean, functionally-complete board — dispositioned
 to ORDER_README + the v1.1 work order, not seal-blockers. **Release v1.0 may seal.**
+
+## 2026-07-22 v1.1 fresh red-team (post source-compliance; sealed board unchanged) — ORDER/ORDER
+
+Both lenses returned ORDER, no P0. Findings (memos: `2026-07-22_v1.1_redteam_{topology,layout}.md`):
+
+| id | sev | finding | disposition |
+|----|-----|---------|-------------|
+| F1 | P1 | no OVP below 6.5V downstream abs-max (barrel miswire) | REAFFIRMED — deferred to board rev; ORDER_README 5V-ONLY note (carry-forward, accepted) |
+| N1 | P2 | main-PTC vs 16 branch-PTC coordination impossible at 60C (whole-array brownout on single-port fault) | ACCEPTED deferred — fault-isolation degraded; next-rev PTC re-sizing; note in ORDER_README |
+| N2 | P2 | ESD array covers only 2 of 6 used RJ45 contacts (5V/beep/GND unclamped on 35ft outdoor cable) | ACCEPTED deferred — extends v1.0 F5; next-rev connector-local clamps |
+| N3 | P2 | skew-injection R80 tap contaminates POPULATED ch4 (AIN_P4) — doc-vs-netlist drift v1.1 missed | TO-FIX (source doc): reconcile ARCHITECTURE 'spare-channel' claim vs netlist; the 96mm AIN_P4 span shares this root |
+| N4 | P2 | ADR-0002:32 still reads 'drain toward load' — contradicts corrected ADR-0007 + netlist (E-INV asserts correct) | TO-FIX (source doc, one line): v1.1 pass left the primary protection ADR contradicting its own netlist |
+| N5 | P2 | barrel jack DC-005C 3A vs 5A named supply + 4A PTC | ACCEPTED deferred — fault-only; constrains any N1 fix <3A |
+| L3 | P1 | AIN_P4/P8 analog antennas 96/64mm (2 of 8 channels degraded SNR) | P-ADJ-WAIVED, deferred to board rev (known) |
+| G1 | P2 | **P-ADJ waiver is CHECK-LEVEL blanket** — grade() keys on id 'P-ADJ' only; ANY future over-budget net silently absorbed | **SKILL HARVEST** — P-ADJ waivers should be per-NET, not per-check |
+| G2 | P2 | **P-ADJ coverage gap** — budgets already-short nets; board-spanning BCLK/MCLK/gate-drive/XOUT uninstrumented (green reads clean) | **SKILL HARVEST** — keep_short must cover the long nets that matter |
+| G3 | P2 | **P-ADJ span-model blind** to shared-rail hot-loop + HS-pair layer-continuity | SKILL HARVEST — known model limitation, now doubly-confirmed |
+| — | — | attestation-honesty + beeper-crosstalk scans PASSED (part.yaml spans match pcbnew ±0.1mm; no new adjacency) | NO DEFECT — recorded |
