@@ -437,6 +437,7 @@ def wave_nets(cfg, allnets):
 _KRT_FLAGMAP = {
     "layers": ("--layers", "list"),
     "clearance": ("--clearance", "val"),
+    "board_edge_clearance": ("--board-edge-clearance", "val"),
     "track_width": ("--track-width", "val"),
     "via_size": ("--via-size", "val"),
     "via_drill": ("--via-drill", "val"),
