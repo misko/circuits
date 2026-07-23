@@ -77,15 +77,18 @@ placement:
 
     # ---------------- PD cell (south-east) — FET power row y=91, U1 y98, J5 y109 --
     # power flows W->E along y=91: 5VC -> RS3 -> RSNS -> Q6 -> PDSRC -> Q7 -> VBUSC.
-    # U1 sits at y98 (north pins 19-21 reach the FET row; a ~4mm channel south of
-    # U1 lets CC1/CC2/DPC/DMC thread out to J5).
-    # FET row at y88 (was y91): +3mm north widens the U1(y96)-to-FET escape channel
-    # from 2mm to 5mm of clear F.Cu, so the cross-ordered north-edge pins split by
-    # LAYER — 19 RSNS / 20 5VC escape WEST on B.Cu, 21 VBUSC / 23 PDSRC escape EAST
-    # on F.Cu (the wide clear channel) — instead of all fighting one narrow lane.
-    RS3: [100.0, 88.0, 0]     # 5mR sense: pad1(W)=5VC, pad2(E)=RSNS
-    Q6:  [110.0, 88.0, 180]   # path FET: D-tab WEST=RSNS, S EAST=PDSRC
-    Q7:  [120.0, 88.0, 0]     # path FET: S WEST=PDSRC, D-tab EAST=VBUSC
+    # D-BACK re-place (journal 2026-07-22): row moved back TO y91 and re-ordered so
+    # the PD-cell copper matches the pin order of U1's north edge (19 RSNS x111.25,
+    # 20 5VC, 21 VBUSC, 22 GDNG, 23 PDSRC x109.25, 24 DSCG). Q6 (drain=RSNS) sits
+    # with its SOURCE column at x109.27 — directly north of pin 23 (PDSRC) — and
+    # Q7 tight east of it, drain (VBUSC) feeding east to C49/C50/J5. Courtyard row
+    # edge y93.8 leaves a ~1.5mm clear F.Cu channel to U1's courtyard (y95.33) for
+    # the six 0.5mm north-pin escapes.
+    RS3: [99.6, 91.0, 0]      # 5mR sense: pad1(W)=5VC, pad2(E x102.56)=RSNS
+    Q6:  [106.6, 91.0, 180]   # path FET: D-tab WEST=RSNS (from RS3.2), S col EAST
+                              # at x109.27 = pin-23 x (PDSRC), gate N (109.27,89.09)
+    Q7:  [113.9, 91.0, 0]     # path FET: S WEST x111.23 (PDSRC, faces Q6.S),
+                              # D-tab EAST=VBUSC -> C49/C50/J5; gate S (111.23,92.91)
     U1:  [110.0, 98.0, 0]     # TPS25740A QFN-24; EP(25)=GND. North pins 19-21
                               # (ISNS/VPWR/VBUS) face the FET row; CC1/CC2 -> J5.
     U12: [126.0, 101.7, 180]  # C-port data ESD (rot180: DMC pins 3/4 face N channel); y103->101.7 clears J5 courtyard (overlapped 1.06mm)
@@ -166,13 +169,13 @@ placement:
     R25: [114.0, 94.0]    # gate 10R GDNG->PDGATE (between U1.22 + FET gates)
     R26: [124.0, 98.0]    # discharge 120R VBUSC->DSCG_N
     R27: [132.0, 106.0]   # DCP short DPC-DMC (east of U12, clear of its south channel)
-    C44: [107.0, 95.0]    # 5VC/VPWR bypass at U1.20
+    C44: [105.0, 95.0]    # 5VC/VPWR bypass at U1.20 (via y94-95.5 channel; clear of Q6/U1 courtyards)
     C45: [112.0, 102.0]   # DVDD (U1.13 bottom)
     C46: [115.0, 99.0]    # VAUX (U1.14/15/16 east)
     C47: [106.0, 97.0]    # VTX (U1.1 west)
-    C48: [95.0, 89.0]     # C_PDIN 10u on 5VC
-    C49: [128.0, 95.0]    # VBUSC bulk 10u
-    C50: [133.0, 97.0]    # VBUSC bulk 10u
+    C48: [93.2, 88.8]     # C_PDIN 10u on 5VC (west of RS3, clear of its courtyard)
+    C49: [120.3, 91.0]    # VBUSC bulk 10u — at Q7 drain output
+    C50: [125.2, 91.0]    # VBUSC bulk 10u — Q7 output row, east of C49
     C51: [131.0, 102.0]   # VBUSC 100n
 
   legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 80}
@@ -226,17 +229,14 @@ zones:
   - {net: VBUSA1, layers: [F.Cu, B.Cu], priority: 2, rect: [118.0, 29.0, 143.0, 44.0], connect: full}
   - {net: VBUSA2, layers: [F.Cu, B.Cu], priority: 2, rect: [118.0, 51.0, 143.0, 66.0], connect: full}
   - {net: VBUSA3, layers: [F.Cu, B.Cu], priority: 2, rect: [118.0, 73.0, 143.0, 88.0], connect: full}
-  # ---- PD path islands (FET row now y88 -> islands y85-91) ----
-  - {net: RSNS,   layers: [F.Cu], priority: 3, rect: [102.5, 85.0, 108.5, 91.0], connect: full}   # RS3.2 + Q6.D-tab
-  - {net: PDSRC,  layers: [F.Cu], priority: 3, rect: [112.5, 85.0, 118.5, 92.5], connect: full}   # Q6.S + Q7.S common source (south edge 92.5 for pin23 F.Cu escape up)
-  # NOTE (handoff): PDSRC/VBUSC channel-finger scaffolding removed — it floats
-  # unless U1.21/U1.23 can tap into it, and the widened channel is saturated by
-  # KRT's GDNG/DSCG_N/PDGATE routing (pins 22/24 + FET gate) so those taps still
-  # fail. See journal 04_board.md for the precise wall + recommended next move.
+  # ---- PD path islands (D-BACK row y91: pin-order cell, see mains comment) ----
+  - {net: RSNS,   layers: [F.Cu], priority: 3, rect: [101.6, 88.7, 108.1, 93.3], connect: full}   # RS3.2 + Q6.D-tab/leads; pin19 taps in from SE corner
+  - {net: PDSRC,  layers: [F.Cu], priority: 3, rect: [108.4, 88.7, 112.1, 93.5], connect: full}   # Q6.S + Q7.S facing columns; pin23 taps straight N from (109.25,96.04)
   # VBUSC: FET-east + bulk, kept CLEAR of J5's center CC/data pad column
   # (x118.2-122.3) so CC1/CC2/DPC/DMC can escape north; the two J5 VBUS pad
   # groups (west A4/B9 @117.55, east A9/B4 @122.45) get their own rects.
-  - {net: VBUSC,  layers: [F.Cu, B.Cu], priority: 2, rect: [121.0, 85.0, 143.0, 102.5], connect: full}  # Q7.D-tab(y88) -> C49-51 bulk
+  - {net: VBUSC,  layers: [F.Cu, B.Cu], priority: 2, rect: [121.0, 85.0, 143.0, 102.5], connect: full}  # C50/C51 bulk + east block
+  - {net: VBUSC,  layers: [F.Cu, B.Cu], priority: 3, rect: [112.4, 88.6, 121.0, 102.5], connect: full}  # Q7.D-tab(y91) + C49 -> east block; pin21 taps in at the NW corner via the y94-95.5 channel
   - {net: VBUSC,  layers: [F.Cu, B.Cu], priority: 3, rect: [122.3, 102.5, 143.0, 108.0], connect: full} # J5 east VBUS (P3 union)
   - {net: VBUSC,  layers: [F.Cu, B.Cu], priority: 3, rect: [107.0, 103.0, 118.2, 108.0], connect: full} # J5 west VBUS (separate)
   # (old B.Cu bridge for U1.21 removed — VBUSC north-pin now escapes EAST on F.Cu

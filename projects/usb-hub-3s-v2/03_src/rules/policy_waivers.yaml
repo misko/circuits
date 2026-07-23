@@ -1,0 +1,29 @@
+# policy_audit waivers — each REQUIRES measured evidence in `why` (>=40 chars).
+# Schema: list of {id, why}. Read by skills/kicad-pcb/scripts/policy_audit.py.
+
+- id: P-ADJ
+  why: >-
+    TPS25740A keep_short budgets (RSNS<=5mm, PDSRC<=5mm net pad-span) are
+    GEOMETRICALLY unreachable with the chosen pass FETs and P-ADJ's max-pairwise
+    -pad-distance metric. Measured on the D-BACK pin-order re-place (row y91,
+    Q6 src column at pin-23 x109.27): RSNS 10.2mm (binding pair = Q6's own NW
+    drain lead (103.8,89.09) <-> U1.19 (111.25,96.04) — dy alone is 6.95mm),
+    PDSRC 7.2mm (Q7 src N lead (111.23,89.09) <-> U1.23). GDNG passes.
+    Unreachability proof: exhaustive placement search (scratch pd_search/
+    pd_q6_opt, 5-deg rotation steps, 0.2mm grid, courtyards allowed to touch)
+    over all Q6 poses satisfying courtyard separation from U1
+    (courtyard half-extents: PowerPAK SO-8 3.595x2.795mm, U1 VQFN-24 2.675mm,
+    U1 north pins 0.71mm INSIDE U1's own courtyard) found ZERO placements
+    meeting both budgets; the joint minimum is RSNS 5.8 / PDSRC 5.8mm
+    (Q6 rot0 @110.2,92.4 — which collapses the U1-north escape channel to a
+    0.13mm courtyard gap and inverts the 5VC->VBUSC flow, trading DRC
+    routability for 0.8mm of span that is package geometry, not trace length).
+    Root cause: Q6's source and drain pad columns are 5.47mm apart with 3.82mm
+    lead spread, while pins 19 (RSNS) and 23 (PDSRC) are 2.0mm apart on an edge
+    the FET body cannot approach closer than dy 5.42mm (courtyard). The
+    ELECTRICAL intent (TI SLVSDG8B Fig 67/68) is honoured by the placement:
+    sense/source links are 1-3.5mm TRACES (pin23 taps straight into the PDSRC
+    island 2.5mm north; pin19/pin20 Kelvin taps ride the clear y94-95.5
+    channel), the whole power stage mounts against the pin 19-24 edge, and
+    nothing crosses the escape channel. The span metric charges the far end of
+    each 6.6mm FET package to the net, which no legal placement can avoid.

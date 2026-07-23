@@ -16,6 +16,7 @@ belongs here.
 | `power_tree.yaml` | per-rail voltage ENVELOPES + converter selection (canon E-TOPO): `{name, vin_min, vin_max, vout_min, vout_max, iout_max_A, converter, eff}`. Topology is DERIVED from Vin-vs-Vout (buck/boost/buck_boost) and asserted against the converter part.yaml `type:`; over-capable = over-engineering FAIL. Graded by `power_topology.py` |
 | `stackup.yaml` | layer count, what each layer is for, fab tier (optional) |
 | `twin_adjudications.yaml` | reviewed jlc_twin findings accepted WITH evidence (see jlcpcb-fab skill) |
+| `policy_waivers.yaml` | policy_audit check waivers (path defined by `policy_audit.py`): list of `{id, why}`; `why` must carry MEASURED evidence (a waiver without evidence is itself a FAIL) |
 | `passives_lcsc.yaml` | passives BOM-comment -> LCSC seed map (bom_seed input; usb-hub-3s) |
 | `contracts.md` | this file |
 
