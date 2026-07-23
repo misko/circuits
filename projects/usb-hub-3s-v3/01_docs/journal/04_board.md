@@ -48,3 +48,21 @@
   full: PASS=22, only R-THERM flags 4 pour-carried power pads (U11.21 GND EP,
   Q1/Q3/Q5 FET drains on SW/VBAT_F pours) — addressed next.
 - KRT rolls: race 6, winner c0/r4 (promoted).
+
+## 2026-07-22 — R-THERM disposition (deferred to verification, per task STOP)
+- R-THERM flags 4 power pads and will NOT go fully green at this stage — it is a
+  STANDARD-tier + pour-carried-net characteristic, not a routing/DRC defect:
+  * U11.21 (LM5116 buck-C GND EP): 1 GND via, R-THERM wants >=2. Root cause is
+    the deliberate switch off the 0.2mm-via ThermalVias footprint (which failed
+    STANDARD drill). pad_rescue drops exactly ONE via-in-pad per pad (serves-then-
+    stops), so it can't reach 2; U2.21 got a 2nd via incidentally from the stitch
+    grid, U11.21 did not. A dedicated 0.3mm thermal-via array is the real fix.
+  * Q1.5 (VBAT_F), Q3.5 (SW_A), Q5.5 (SW_C) FET drains: these ride F.Cu (and B.Cu
+    for SW) POURS with NO internal plane to sink into — R-THERM's "2 same-net
+    plane vias" heuristic is a false positive for a surface power trunk. VBAT_F is
+    F.Cu-only (short XT60->fuse->Q1 path); SW is intentionally minimal-via (dV/dt).
+- DECISION: leave for the separately-orchestrated verification/seal stage to
+  adjudicate (waiver-with-evidence for the pour-carried drains + a thermal-via
+  array pass for the LM5116 EP). The DRC 0/0/0 routing gate — the deliverable of
+  THIS stage — is met and committed. Recorded here per the Evidence principle
+  (a partial result honestly reported > a passing claim).
