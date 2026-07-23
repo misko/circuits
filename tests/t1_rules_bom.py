@@ -207,6 +207,23 @@ def t_kb_width_below_tier_floor():
     contains(r.out, "min_track", "the failure must cite the tier floor")
 
 
+@test("default_clearance below the tier's min_space FAILS naming the tier",
+      kind="known_bad")
+def t_kb_default_clearance_below_tier_floor():
+    """`default_clearance:` (2026-07-23) lets a board route the whole surface at
+    the tier's real min_space (e.g. 0.15mm on JLC 2-layer, 6mil) instead of the
+    conservative 0.2mm baked Default-netclass clearance — crow-mic-pod-v2's RJ45
+    south-contact escape needed it. A value BELOW the tier's min_space is
+    unmanufacturable and must be a hard error naming the tier, not a silent
+    accept. RED-verified against the pre-fix emitter, which ignored the key
+    entirely and exited 0 — 2026-07-23."""
+    proj, r = generic_rules_project(
+        lambda s: s.update({"default_clearance": 0.05}))
+    must_fail(r, "generate_rules_generic on a sub-tier default_clearance",
+              "jlc_2layer_default")
+    contains(r.out, "min_space", "the failure must cite the tier's min_space floor")
+
+
 @test("a TYPO'd fab_tier is a hard error, not silently no-tier",
       kind="known_bad")
 def t_kb_tier_typo():

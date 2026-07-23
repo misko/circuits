@@ -131,6 +131,26 @@ def main(argv=None):
         "wire_width": 6, "bus_width": 12, "line_style": 0,
         "pcb_color": "rgba(0, 0, 0, 0.000)", "schematic_color": "rgba(0, 0, 0, 0.000)",
     })
+    # OPTIONAL nets.yaml top-level overrides for the Default class (2026-07-23):
+    # a board on a tighter fab tier may set `default_clearance:`/`default_track_width:`
+    # to route the whole board at the tier's real floor (e.g. 0.15mm on JLC 2-layer)
+    # instead of the conservative 0.2mm baked default. Absent -> unchanged, so no
+    # other board is affected. Must stay >= the tier floors (min_space / min_track).
+    default = dict(default)
+    if nets.get("default_clearance") is not None:
+        dc = float(nets["default_clearance"])
+        floor = float(tier["min_space"]) if tier else 0.0
+        if dc < floor:
+            sys.exit(f"generate_rules_generic: default_clearance {dc}mm < fab tier "
+                     f"'{tier['name']}' min_space {floor}mm")
+        default["clearance"] = dc
+    if nets.get("default_track_width") is not None:
+        dw = float(nets["default_track_width"])
+        floor = float(tier["min_track"]) if tier else 0.0
+        if dw < floor:
+            sys.exit(f"generate_rules_generic: default_track_width {dw}mm < fab tier "
+                     f"'{tier['name']}' min_track {floor}mm")
+        default["track_width"] = dw
 
     out_classes = [default]
     patterns = []
