@@ -1,0 +1,22 @@
+mpn: GRM32ER61A107ME20L
+manufacturer: Murata
+type: mlcc_x5r                 # 5V output/VBUS bulk MLCC (6.3V->10V rating upgrade)
+datasheet: {doc_id: GRM32ER61A107ME20L, revision: series/LCSC, url: "https://www.lcsc.com/product-detail/C84455.html", sha256: null, fetched: 2026-07-23}
+package: "1210 (3225 metric)"
+footprint: Capacitor_SMD:C_1210_3225Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
+pins: {1: A, 2: B}
+limits: {cap: "100uF", tol: "M +-20%", voltage: 10V, dielectric: X5R, tc: "+-15% -55..85C"}
+gotchas:
+  - "5VC / VBUS output bulk. Rating raised 6.3V -> 10V (5V on a 6.3V part = 79%
+     of Vr, poor reliability + severe bias loss; 5V on 10V = 50%, industry-standard
+     output derating)."
+  - "EFFECTIVE-C AT 5V DC BIAS ~= 45 uF (roughly -50..-55% from 100uF nominal;
+     high-density X5R 1210 at 50% of rated V loses about half). ESTIMATE - confirm
+     on Murata SimSurfing. This is the number that matters for eFuse dVdT inrush
+     (C_OUT) and loop stability, NOT the 100uF marking."
+  - "16V alternative if more bias margin wanted (5V=31% Vr): a 16V/47uF 1210 nets
+     ~35uF effective - MORE stable but LESS total C. For max VBUS bulk-C the 10V/
+     100uF part wins; chosen accordingly."
+verified: "series/value part (100uF 10V X5R 1210); 2-pad passive - 2026-07-23"
+sourcing: {lcsc: C84455, alternates: [C97170], note: "JLCPCB, stock 43452 on 2026-07-23 (~$0.45). alt C97170 = Samsung CL32A107MQVNNNE (100uF 10V) if Murata OOS."}

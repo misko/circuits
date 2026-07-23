@@ -1,0 +1,19 @@
+mpn: GRM32ER71H106KA12L
+manufacturer: Murata
+type: mlcc_x7r                 # VIN bulk/decoupling MLCC (25V->50V rating upgrade)
+datasheet: {doc_id: GRM32ER71H106KA12L, revision: series/LCSC, url: "https://www.lcsc.com/product-detail/C77102.html", sha256: null, fetched: 2026-07-23}
+package: "1210 (3225 metric)"
+footprint: Capacitor_SMD:C_1210_3225Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
+pins: {1: A, 2: B}
+limits: {cap: "10uF", tol: "K +-10%", voltage: 50V, dielectric: X7R, tc: "+-15% -55..125C"}
+gotchas:
+  - "VIN input cap on the 3S rail (Vin_max = 12.6V full charge). Rating raised
+     25V -> 50V for margin/reliability (12.6V = 25% of 50V; a 25V part sat at
+     50% Vr with poorer bias behaviour)."
+  - "EFFECTIVE-C AT 12.6V DC BIAS ~= 8 uF (roughly -15..-20% from 10uF nominal;
+     50V X7R 1210 has a gentle bias slope at 25% of rated V). ESTIMATE - confirm
+     on Murata SimSurfing for the exact lot curve. Size parallel count from the
+     DERATED value, not the 10uF marking."
+verified: "series/value part (10uF 50V X7R 1210); 2-pad passive - 2026-07-23"
+sourcing: {lcsc: C77102, alternates: [C13585], note: "JLCPCB, stock 232887 on 2026-07-23 (~$0.37). alt C13585 = Samsung CL32B106KBJNNNE (10uF 50V X7R 1210) if Murata OOS."}

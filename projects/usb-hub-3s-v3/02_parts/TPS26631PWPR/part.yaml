@@ -1,0 +1,94 @@
+mpn: TPS26631PWPR
+manufacturer: Texas Instruments
+type: efuse_reverse_blocking   # 60V/6A power-limiting eFuse + B-FET reverse-current-block driver
+datasheet:
+  doc_id: SLVSE94
+  revision: SLVSE94G
+  url: https://www.ti.com/lit/ds/symlink/tps26631.pdf
+  sha256: a685c2db86c007b98f59ca6b5d3f41b11ea9dbfdbd6e824ef03f4f66391e5457
+  fetched: 2026-07-23
+package: HTSSOP-20 PWP 6.5x4.4 P0.65 EP (PowerPAD)
+footprint: Package_SO:HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_Mask2.75x3.43mm
+# ^ SPIKE: reuses the LM5116 PWP20 footprint (same body 6.5x4.4, 0.65 pitch).
+#   VERIFY the EP land against SLVSE94G Section 12 mechanical drawing before layout.
+escape:
+  style: leaded
+  pitch: 0.65
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-23   # /usr/bin/python3 escape_check.py --style leaded --pitch 0.65 -> jlc_2layer_default ok
+  loaded_side_escapes: "HTSSOP-20: pins 1-10 one long side, 11-20 the other
+    (10/side) - same class as U2/U11 LM5116; corridor per placement, board tier ADVANCED"
+pins:                   # HTSSOP column of Table 5-1 (VQFN pins differ - do NOT use)
+  1: IN
+  2: IN
+  3: IN
+  4: B_GATE
+  5: DRV
+  6: IN_SYS
+  7: UVLO
+  8: OVP
+  9: GND
+  10: dVdT
+  11: ILIM
+  12: MODE
+  13: SHDN
+  14: IMON
+  15: FLT
+  16: PGTH
+  17: PGOOD
+  18: OUT
+  19: OUT
+  20: OUT
+  21: {name: EP, tie: GND, note: "PowerPAD - connect to GND plane for heatsink; NOT the sole GND connection (DS pin table)"}
+limits:
+  vin: "4.5-60V operating (67V abs max)"
+  ron: "31mOhm typ (30.44 typ / 34.5 max @25C; 45 max @85C), IN->OUT"
+  ilim_range: "0.6-6A adjustable; RILIM 3k-30k (>=3k required for IEC 62368-1 cert)"
+  tj_reg: "145C thermal regulation setpoint"
+  tsd: "165C thermal shutdown (11C hyst)"
+gotchas:
+  - "REQ(a) REVERSE-CURRENT BLOCKING NEEDS AN EXTERNAL N-FET. The eFuse only
+     DETECTS reverse (RCB comparator, 0.17us fast) and DRIVES a blocking FET via
+     B_GATE(4)/DRV(5); the internal FET body diode conducts OUT->IN otherwise.
+     Companion blocking FET = AON6354 (ALREADY on this BOM: N-ch PowerPAK SO-8,
+     30V, 3.3mOhm) placed between the 5V buck-C output and IN_SYS(6). Only short
+     IN_SYS->IN if reverse blocking is NOT wanted (here it IS). B_GATE clamps
+     ~10V above IN_SYS (Vgs<=14V, fine for the AON6354 +-20V gate)."
+  - "REQ(c) ILIM(11): I_OL[A] = 18000 / R_ILIM[ohm]  (DS Eq.8, p.30; verified vs
+     Electrical-table points 3k->6A, 4.02k->4.5A, 9k->2A, 30k->0.6A). For a
+     5.5-6A limit: R_ILIM=3.09k -> 5.83A typ (5.42-6.24A @+-7%, min 5.42A > 5A
+     load). Alt 3.16k->5.70A, 3.01k->5.98A. All >=3k. 1% resistor (device +-6/7%
+     dominates). Pulse overcurrent = 2x I_OL (TPS26631 supports pulse)."
+  - "REQ(b) OVP(8) = adjustable overvoltage CUTOFF (TPS26630/31 only). Trip =
+     1.2V x (Rtop+Rbot)/Rbot at the OVP pin (V_OVPR=1.2V). Set divider ~5.8V to
+     cut off the USB-C load if the buck runs high (>no-load 5.15V, margin 0.65V).
+     Keep V(OVP) > 210mV (V_SEL_OVP) in normal op or it reverts to the 33-35V
+     internal default. OVP->GND selects the internal default."
+  - "REQ(d) dVdT(10) = soft-start / inrush control. t_dVdT = 20.8e3 x Vin x
+     C_dVdT (Eq.2); I_INRUSH = C_OUT x Vin / t_dVdT (Eq.1). C_dVdT ~= 10nF ->
+     ~1ms 0->5V output ramp. Float dVdT = fastest 24V/500us slew."
+  - "REQ(e) thermal: closed-loop thermal REGULATION at Tj=145C during startup
+     (folds back inrush) AND hard thermal SHUTDOWN at 165C (11C hyst). Both present."
+  - "REQ(f) ENABLE = SHDN(13), ACTIVE-LOW: SHDN low -> low-power shutdown; cycling
+     SHDN resets a latched-off fault. Pull SHDN up (to a logic rail / IN via R) to
+     enable. NOTE polarity: active-low SHDN, not active-high EN."
+  - "MODE(12) fault response: OPEN = latch-off; SHORT-TO-GND = auto-retry. USB
+     port -> tie MODE to GND (auto-retry) so the port recovers after overload clears."
+  - "TPS26631 has NO output power limiting (PLIM) - that is the '...2/3/5/6/7'
+     variants; on those the pin-8 position is PLIM, here it is OVP. Current limit
+     + 2x pulse + thermal reg + TSD cover the 5V/5A port fault set without PLIM."
+  - "5V-rail feasibility: 4.5V min-operating < 5V rail OK. RON 31mOhm x 5A = 155mV
+     (225mV hot) + AON6354 ~17mV -> total ~190-280mV at 5A, so buck-C FB is
+     bumped to ~5.15V (R12 3.74k->3.92k) to hold VBUS >= 4.75V at full load."
+verified: "pin map read from Table 5-1 Pin Configuration and Functions, HTSSOP
+  column (Fig 5-2 TPS26631 PWP 20-pin, Top View), SLVSE94G p.3-4; feature split
+  (OVP-cutoff-adjustable / active-current-limit-w-pulse / no-PLIM) from Device
+  Comparison Table sec.4 p.2; RON/ILIM/OVP/RCB/TSD from Electrical Characteristics
+  p.10-13 + Eq.8 p.30 - 2026-07-23"
+sourcing:
+  lcsc: C2866319
+  alternates: []
+  note: "JLCPCB EXTENDED, stock 112 on 2026-07-23 (~$4.56); qty 1/board (USB-C
+    5VC port only). LOW STOCK - confirm at order. Pin-compatible fallbacks if OOS:
+    TPS26633PWPR (adds fixed 35V OV clamp + PLIM) or TPS26635PWPR (39V clamp);
+    both same HTSSOP-20 PWP pinout except pin8 = PLIM not OVP."

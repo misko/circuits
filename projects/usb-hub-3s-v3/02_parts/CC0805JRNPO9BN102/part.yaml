@@ -1,0 +1,20 @@
+mpn: CC0805JRNPO9BN102
+manufacturer: Yageo
+type: mlcc_c0g                 # SW-node RC snubber capacitor (buck A/C) - C0G/NP0
+datasheet: {doc_id: CC_series, revision: series/LCSC, url: "https://www.lcsc.com/product-detail/C62774.html", sha256: null, fetched: 2026-07-23}
+package: "0805 (2012 metric)"
+footprint: Capacitor_SMD:C_0805_2012Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
+pins: {1: A, 2: B}
+limits: {cap: "1nF (1000pF)", tol: "J +-5%", voltage: 50V, dielectric: "C0G/NP0", tc: "0+-30ppm"}
+gotchas:
+  - "SW-node snubber C (series with RC1206FR-072R2L 2.2ohm, SW-to-PGND). STARTING
+     VALUE 1nF - TUNE with the R on the bench (see the R part). MUST be C0G/NP0:
+     X7R would lose C with DC bias + dissipate/heat under the SW dV/dt and can
+     crack. C0G = zero voltage-coeff, low loss."
+  - "50V rating: SW node swings 0->Vin(12.6V) with ring overshoot to ~20V; 50V C0G
+     = >2x margin and C0G has NO voltage derating (effective-C = 1nF at bias).
+     Upgrade to 100V C0G only if extra margin wanted."
+  - "qty ~2/board (one per SW node)."
+verified: "value part (1nF 50V C0G/NP0 0805); 2-pad passive - 2026-07-23"
+sourcing: {lcsc: C62774, alternates: [C1550], note: "JLCPCB, stock 441830 on 2026-07-23 (~$0.014). C0G confirmed (NPO in MPN). alt C1550 = generic 1nF 50V C0G 0805."}

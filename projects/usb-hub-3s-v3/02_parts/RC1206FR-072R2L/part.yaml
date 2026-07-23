@@ -1,0 +1,20 @@
+mpn: RC1206FR-072R2L
+manufacturer: Yageo
+type: resistor_thickfilm       # SW-node RC snubber resistor (buck A/C)
+datasheet: {doc_id: RC_L_series, revision: series/LCSC, url: "https://www.lcsc.com/product-detail/C137327.html", sha256: null, fetched: 2026-07-23}
+package: "1206 (3216 metric)"
+footprint: Resistor_SMD:R_1206_3216Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
+pins: {1: A, 2: B}
+limits: {R: "2.2 ohm", tol: "F +-1%", power: "0.25W (1206)", vmax: 200V}
+gotchas:
+  - "SW-node snubber R (series with the snubber C, SW-to-PGND across each buck's
+     switch node). STARTING VALUE R=2.2ohm - TUNE ON BENCH: probe SW ringing with
+     no snubber, then set C to ~halve the ring freq and R ~= sqrt(Lpar/Cpar) (the
+     ring characteristic impedance, typ 1-4.7ohm). Pairs with CC0805JRNPO9BN102 (1nF)."
+  - "Dissipation P = C x Vin^2 x fsw ~= 1nF x 12.6^2 x 230kHz ~= 37mW << 0.25W
+     (1206). fsw ~230kHz per design boot-cap note. 1206 chosen for pulse-energy
+     headroom over 0805."
+  - "qty ~2/board: one snubber per SW node (SW_A buck-A, SW_C buck-C)."
+verified: "value part (2.2ohm 1% 1206); 2-pad passive - 2026-07-23"
+sourcing: {lcsc: C137327, alternates: [C137161], note: "JLCPCB, stock 23685 on 2026-07-23 (~$0.03). alt C137161 = RC1206JR-072R2L (5%) higher stock."}
