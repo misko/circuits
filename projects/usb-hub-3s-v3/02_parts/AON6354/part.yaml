@@ -32,3 +32,11 @@ verified: "pin map read from DFN5x6 top/bottom-view + schematic diagram figure, 
 sourcing: {lcsc: C404363, alternates: [C51908846], note: "stock 5445 on 2026-07-21; 7 pcs/board"}
 layout_refs:
   - "IP6559 V1.4 sec.13 hot-loop rules govern placement of the 4 H-bridge units"
+layout:
+  source: "AON6354 datasheet (PowerPAK SO-8) + LM5116 SNVS499I sec.11 SW-loop guidance"
+  adjacency:
+    - "HS FET drain (pad5) to the input caps (VIN); LS FET drain to the SW node / inductor"
+    - "LS FET source to the current-sense shunt Rs (CS node)"
+  notes:
+    - "minimize SW-node copper area between HS source / LS drain / inductor (radiated dV/dt)"
+    - "gate (pad4) trace short + direct to the LM5116 HO/LO driver pin (few-A gate pulses)"

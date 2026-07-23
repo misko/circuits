@@ -10,3 +10,9 @@ limits: {r: 10mOhm, tol: "1%", p: 1W}
 gotchas: ["LM5116 CS shunt RS1: 0.49W at 7A -> 1W rating ok; current-limit only (not regulation) so thick-film tempco acceptable"]
 verified: "2-pad non-polarized - 2026-07-21 (README deviation)"
 sourcing: {lcsc: C127692, alternates: [C105366], note: ""}
+layout:
+  source: "UNI-ROYAL 2512 1W series sheet + LM5116 SNVS499I sec.11 (Kelvin current sense)"
+  adjacency:
+    - "sits between the LS-FET source and PGND; CS(pad1)/CSG(pad2) tap at the pad body"
+  notes:
+    - "Kelvin sense: route CS/CSG from the resistor pads as a tight pair to the LM5116 CS/CSG pins, never off shared power copper"

@@ -32,3 +32,9 @@ gotchas:
   - "IN needs 0.1uF at pin (DS pin table)"
 verified: "pin map read from DBV package top-view figure + pin functions, SLVSBY8D p.4 - 2026-07-21"
 sourcing: {lcsc: C473910, alternates: [C44770], note: "TPS2513A stock 75 on 2026-07-21 (5x need=10 ok); alt C44770 is the non-A (no Apple 2.4A divider) - if substituted, Apple devices cap at ~2.1A"}
+layout:
+  source: "TI SLVSBY8D sec. Layout / Application"
+  adjacency:
+    - "place adjacent to the USB data path it advertises on; 0.1uF bypass (C33/C34) at IN(5)"
+  notes:
+    - "DP/DM lines routed as pairs to the receptacle data pins; short, symmetric stubs"

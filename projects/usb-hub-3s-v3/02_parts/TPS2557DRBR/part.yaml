@@ -33,3 +33,10 @@ gotchas:
   - "FAULT is open-drain; unused -> leave floating with no_connect flag"
 verified: "pin map read from DRB package pin functions table, SLVS931B p.3-4 - 2026-07-21"
 sourcing: {lcsc: C130056, alternates: [C2150199], note: "stock 7727 on 2026-07-21"}
+layout:
+  source: "TI SLVS931B sec. Layout / Layout Example"
+  adjacency:
+    - "Cin (0.1uF, C35-C37) hard against IN(2/3); Cout (22uF C38-C40 + 0.1uF C41-C43) at OUT(6/7)"
+    - "ILIM resistor (R20-R22) tight to ILIM(5) — trace length sets current-limit accuracy"
+  notes:
+    - "EP(9) to the GND plane with thermal vias; keep the FAULT/EN logic away from the power path"

@@ -22,3 +22,10 @@ pins:
   SH: SHIELD
 sourcing: {lcsc: C503996, alternates: [], note: "stock 12862 on 2026-07-21; THT - JLC through-hole assembly or hand-solder"}
 verified: "REPLACEMENT for 1001-011-01101 after the fresh-context pin review proved that part is a USB-A MALE PLUG rated 1.5A (its drawing title 'USB 4P AM SMT', current spec p.1). KH-AF90DIP-112 vendor drawing p.1: female receptacle, PCB pattern O1.0 signal holes at 2.500/2.000/2.500 pitch, O3.0 shell holes 13.240 apart offset 2.600 forward - vendored footprint drawn to these numbers (Stewart SS-52100 template, same USB-standard contact order 1=VBUS 2=D- 3=D+ 4=GND). Contact rating not stated by vendor; USB-A contacts are 1.5A-class per the connector standard - 2A cont/2.5A burst DCP use is the industry-universal practice, disposition in ADR 0006."
+layout:
+  source: "KH-AF90DIP-112 datasheet + USB-A host-port layout practice"
+  adjacency:
+    - "VBUS bulk (Cout 22uF) + HF (0.1uF) near the VBUS pin(1); ESD array (USBLC6) in-line on D-/D+ (pins 2/3)"
+    - "shell/shield to chassis GND"
+  notes:
+    - "per-port power switch (TPS2557) feeds VBUS; keep the data pair short from the switch/ESD to the receptacle"

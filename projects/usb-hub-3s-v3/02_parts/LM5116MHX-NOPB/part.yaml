@@ -53,3 +53,12 @@ sourcing: {lcsc: C13755, alternates: [C1519427], note: "C13755 stock 7902 on 202
 layout_refs:
   - "SNVS499I Figure 7-1 + Table 7-1 5V/7A worked design (pp.21-22) - adopted per M6"
   - "SNVS499I sec.11 Layout: RT/CRAMP at pins, CS/CSG kelvin to Rs"
+layout:
+  source: "SNVS499I sec.11 Layout Considerations + Fig 7-1/Table 7-1 (5V/7A worked design, pp.21-22)"
+  adjacency:
+    - "Cin (C13 HF + C9-C12 bulk) hard against the HS-FET drain (VIN) and PGND -> smallest possible high-di/dt input loop"
+    - "VCC cap (C8) at pin16; boot diode (D3) + boot cap (C7) between VCC and HB/SW"
+    - "RT and CRAMP sit hard against RT(3)/RAMP(5) pins to AGND"
+  notes:
+    - "CS(12)/CSG(13) are a Kelvin pair to the shunt Rs -> route as a tight differential pair, no shared trunk copper"
+    - "SW node (pin20) copper minimized (dV/dt); PGND(14)/EP(21) and AGND(6) join at a single point under the EP"

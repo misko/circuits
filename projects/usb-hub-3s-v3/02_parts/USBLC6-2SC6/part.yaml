@@ -25,3 +25,9 @@ gotchas:
      (DETAIL_DESIGN sec.5: C port uses LESD5D5.0 bidirectional diodes)"
 verified: "pin map read from SOT-23-6 pin config figure, USBLC6-2 DS p.1/p.3 - 2026-07-21"
 sourcing: {lcsc: C7519, alternates: [C2687116], note: "stock 32441 on 2026-07-21"}
+layout:
+  source: "ST USBLC6-2SC6 datasheet Application/Layout (place first in the data path)"
+  adjacency:
+    - "at the USB connector edge, in-line on the D+/D- pair before any branch; VBUS pin to the port rail"
+  notes:
+    - "short, symmetric stubs from the data pair to IO pins; GND(2) to the ground plane with a low-impedance path"

@@ -44,3 +44,10 @@ gotchas:
      (asymmetric mouth); JLC's own .kicad_mod rot is authoritative (jlc SKILL)"
 verified: "pad map per HRO TYPE-C-31-M-12 datasheet pinout table + package drawing p.1 (16P: A1..A12/B1..B12 dual-row, 4 shell tabs); KiCad footprint pad names (A1..B12,SH) cross-checked against the drawing - 2026-07-21; ledger designed-in usb-pwr-hub-3s"
 sourcing: {lcsc: C5337088, alternates: [], note: "stock 1355 on 2026-07-21"}
+layout:
+  source: "TYPE-C-31-M-12A datasheet + USB-C sink/source port layout practice"
+  adjacency:
+    - "VBUS bulk caps (C49/C50) at the VBUS pads (A4/A9/B4/B9); CC Rp pull-ups (R28/R29) near CC1/CC2 (A5/B5)"
+    - "ESD array (U12 USBLC6) in-line on the D+/D- pair (A6/A7,B6/B7); shield to GND"
+  notes:
+    - "v3: VBUS is the plain 5VC rail (no PD) — VBUS pads pour directly to 5VC; keep the center CC/data column clear for the north escape"

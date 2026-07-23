@@ -28,3 +28,10 @@ gotchas:
   - "at 15.5A worst: ~0.75W - pour + thermal vias (R-THERM)"
 verified: "pin map read from DFN5x6 top/bottom-view + schematic diagram figure, AON6403 DS p.1 - 2026-07-21"
 sourcing: {lcsc: C2760089, alternates: [], note: "stock 2409 on 2026-07-21"}
+layout:
+  source: "AON6403 datasheet (PowerPAK SO-8, P-channel) — reverse-polarity pass element"
+  adjacency:
+    - "drain (pad5) = battery side (VBAT_F); source (pads1-3) = VIN; body diode conducts on first contact"
+    - "Vgs zener (D2) + 100k gate pulldown (R1) hard against the gate (pad4)"
+  notes:
+    - "wide low-Rds copper on drain/source (full input current ~7A worst case)"
