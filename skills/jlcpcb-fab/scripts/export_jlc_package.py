@@ -160,6 +160,11 @@ for fp in board.GetFootprints():
     code = src_code.get(ref) or old_lcsc.get(ref, "")
     # group by (CODE, val, footprint): distinct codes NEVER share a row
     groups.setdefault((code, val, fpname), []).append(ref)
+    # exclude_from_pos: hand-solder / DNP-position parts stay in the BOM (for
+    # reference) but are dropped from the CPL — JLC does not machine-place them
+    # (matches KiCad's native POS export, which honours FP_EXCLUDE_FROM_POS_FILES).
+    if fp.GetAttributes() & pcbnew.FP_EXCLUDE_FROM_POS_FILES:
+        continue
     pos = fp.GetPosition()
     jrot, off = jlc_rotation(fpname, fp.GetOrientationDegrees())
     if off:

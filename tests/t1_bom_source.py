@@ -38,6 +38,7 @@ import bom_source_check as bsc  # noqa: E402
 GATE = FAB_SCRIPTS / "bom_source_check.py"
 EXPORT = FAB_SCRIPTS / "export_jlc_package.py"
 V3 = ROOT / "projects" / "usb-hub-3s-v3"
+POD = ROOT / "projects" / "crow-mic-pod-v2"
 
 
 def circuit(codes):
@@ -193,6 +194,40 @@ def t_exporter_splits_distinct_codes():
     eq(by_code["C84455"]["Comment"].split()[0], "100uF", "100uF row source code")
     check("C90143" not in by_code, "the substituted 16V code must NOT appear")
     check(all(r["LCSC"] for r in rows), "every exported line must carry an LCSC")
+
+
+@test("exporter drops FP_EXCLUDE_FROM_POS_FILES parts from the CPL but keeps "
+      "them in the BOM (hand-solder / DNP-position)", slow=True)
+def t_exporter_exclude_from_pos_cpl():
+    """The exclude_from_pos fix (2026-07-23). crow-mic-pod-v2 marks MK1 (electret,
+    hand-solder), J1 (RJHSE-5384 consign, hand-solder) and D3 (SMAJ6.0A DNP)
+    exclude_from_pos: they must be ABSENT from cpl_jlc.csv (JLC does not
+    machine-place them) yet PRESENT in bom_jlc.csv (documented parts, uncoded or
+    reference-coded). A normal SMT part (U1) must appear in BOTH. Matches KiCad's
+    native POS export, which honours FP_EXCLUDE_FROM_POS_FILES.
+
+    RED-VERIFY (manual, recorded here): neuter the
+    `if fp.GetAttributes() & pcbnew.FP_EXCLUDE_FROM_POS_FILES: continue` in
+    export_jlc_package.py (the CPL-build loop) and MK1/J1/D3 wrongly REAPPEAR in
+    cpl_jlc.csv — verified 2026-07-23. Restore to re-exclude."""
+    board = POD / "04_kicad" / "crow_mic_pod_v2.kicad_pcb"
+    cj = POD / "03_tscircuit" / "build" / "circuit.json"
+    if not board.exists() or not cj.exists():
+        return  # project trimmed from this checkout; nothing to pin
+    d = tmpdir("cplexcl_")
+    must_pass(run([KPY, EXPORT, board, d, "--layers", "2", "--lcsc-source", cj]),
+              "export_jlc_package (pod-v2)")
+    cpl_refs = {row["Designator"]
+                for row in csv.DictReader(open(d / "cpl_jlc.csv"))}
+    bom_refs = set()
+    for row in csv.DictReader(open(d / "bom_jlc.csv")):
+        bom_refs.update(x.strip() for x in row["Designator"].split(","))
+    for r in ("MK1", "J1", "D3"):
+        check(r not in cpl_refs,
+              f"{r} is exclude_from_pos but appears in the CPL: {sorted(cpl_refs)}")
+        check(r in bom_refs, f"{r} must stay in the BOM (documented part)")
+    check("U1" in cpl_refs and "U1" in bom_refs,
+          "a normal SMT part (U1) must appear in BOTH the CPL and the BOM")
 
 
 if __name__ == "__main__":
