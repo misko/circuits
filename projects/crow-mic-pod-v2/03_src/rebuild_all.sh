@@ -1,50 +1,35 @@
-#!/bin/bash
-# TEMPLATE rebuild_all.sh — the canonical generic pipeline (skill-owned).
-# Copy into a new board's 03_src/ and set BOARD + TSX below. ZERO board-specific
-# generation Python: board + route + rules all run on the SHARED skill scripts.
-# See 03_src/contracts.md for the authoritative step order.
+#!/usr/bin/env bash
+# rebuild_all.sh — regenerate crow-mic-pod-v2 from source to DRC 0/0/0.
+# Everything downstream of 03_tscircuit/ + 03_src/ is regenerable (canon M3).
 set -euo pipefail
-cd "$(dirname "$0")/.."                       # -> project root (03_src/..)
-
-# --- board-specific knobs (the ONLY things to edit) -------------------------
-BOARD=power3s                                  # <board> stem for 04_kicad/<board>.*
-TSX=power3s                                    # 03_tscircuit/src/<TSX>.tsx basename
-# ----------------------------------------------------------------------------
-
+export PATH="$HOME/.bun/bin:$PATH"
+cd "$(dirname "$0")/.."                 # project root
+SK=../../skills/kicad-pcb/scripts
 PY=/usr/bin/python3
-# resolve the shared skill scripts (repo-relative first, ~/.claude fallback)
-S="$(cd "$(git rev-parse --show-toplevel 2>/dev/null || echo ../../..)" && pwd)/skills/kicad-pcb/scripts"
-[ -f "$S/generate_board_generic.py" ] || S="$HOME/.claude/skills/kicad-pcb/scripts"
-export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:$HOME/.bun/bin:$PATH"
+KRTPY=~/gits/KiCadRoutingTools/.venv/bin/python
+RS=$SK/route_and_stitch_generic.py
 
-# [1] tscircuit TSX -> circuit.json -> converter .kicad_sch -> netlist
-( cd 03_tscircuit && tsci build "src/$TSX.tsx" )
-$PY "$S/circuit_json_to_kicad_sch.py" 03_tscircuit/build/circuit.json \
-    -o "04_kicad/$BOARD.kicad_sch" --parts 02_parts
-kicad-cli sch export netlist --output "06_build/netlists/$BOARD.net" "04_kicad/$BOARD.kicad_sch"
+echo "== schematic bridge (tscircuit -> converter kicad_sch, ERC + parity) =="
+$PY $SK/tsx_preflight.py .
+bash $SK/gen_tscircuit.sh .
+$PY $SK/count_parity.py .
+kicad-cli sch export netlist -o 06_build/netlists/crow_mic_pod_v2.net \
+    03_tscircuit/kicad/crow_mic_pod_v2.kicad_sch
 
-# [2] ERC gate (0 errors)
-kicad-cli sch erc --severity-all --exit-code-violations "04_kicad/$BOARD.kicad_sch" \
-    -o 06_build/erc.rpt || { echo "ERC FAILED"; exit 1; }
+echo "== board: place -> rules -> audit =="
+$PY $SK/generate_board_generic.py 03_src/floorplan.yaml
+$PY $SK/generate_rules_generic.py .          # netclasses BEFORE routing (R1)
+$PY 03_src/audit_board.py                     # polarity + mate/keepout (P-POL/P-KEEP)
 
-# [3] board (placement + zones) from floorplan.yaml  [SHARED]
-$PY "$S/generate_board_generic.py" 03_src/floorplan.yaml -o "04_kicad/$BOARD.kicad_pcb"
+echo "== route (reuse promoted chain) -> stitch -> cleanup -> rules LAST =="
+$PY    $RS prep   03_src/route.yaml
+$KRTPY $RS route  03_src/route.yaml            # reuses 03_src/route/r3.kicad_pcb
+$PY    $RS import 03_src/route.yaml
+$PY    $RS stitch 03_src/route.yaml
+$PY 03_src/cleanup_redundant_vias.py           # drop router vias on same-net THT pads
+$PY $SK/generate_rules_generic.py .            # generate_rules LAST (saves clobber netclasses)
 
-# [4] placement/pad invariants  [per-board gate]
-$PY 03_src/audit_board.py
-
-# [5] netclasses BEFORE route-prep (canon R1)  [SHARED]
-$PY "$S/generate_rules_generic.py" .
-
-# [6-8] route + stitch from route.yaml  [SHARED]
-$PY "$S/route_and_stitch_generic.py" prep   03_src/route.yaml
-$PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml   # replay promoted route/ chain (M3)
-$PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
-
-# [9] generate_rules LAST (pcbnew saves clobber .kicad_pro netclasses)  [SHARED]
-$PY "$S/generate_rules_generic.py" .
-
-# [10] DRC gate — must be 0 / 0 / 0 at full severity
+echo "== DRC gate =="
 kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
-    --format json -o 06_build/drc/gate.json "04_kicad/$BOARD.kicad_pcb"
-$PY -c "import json;g=json.load(open('06_build/drc/gate.json'));v,u,p=len(g['violations']),len(g['unconnected_items']),len(g.get('schematic_parity',[]));print(f'DRC {v}/{u}/{p}');exit(0 if v==u==p==0 else 1)"
+    -o 06_build/drc_final.json --format json 04_kicad/crow_mic_pod_v2.kicad_pcb
+echo "rebuild complete — check 06_build/drc_final.json = 0/0/0"

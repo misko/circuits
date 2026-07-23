@@ -25,7 +25,7 @@ footprint: Connector_RJ:RJ45_Amphenol_RJHSE538X   # KiCad stock footprint —
                                  # RECOMMENDED P.C.B. LAYOUT figure (same hole pitch/
                                  # pattern/drill sizes; footprint is mirrored left-right
                                  # vs. this particular datasheet view, which is
-                                 # irrelevant to pin identity — see verified: below)
+                                 # irrelevant to pin identity — see the verified note further down
 mates: receptacle                # jack = receptacle, per title block "MODULAR JACK"
 escape:
   style: connector
@@ -33,7 +33,7 @@ escape:
   tier_required: jlc_2layer_default
 pins:                            # footprint pad NAME -> function. Pad names 1-8
                                   # ARE the datasheet's own contact numbers (see
-                                  # verified: below) — use these numbers directly
+                                  # the verified note lower down) — use these directly
                                   # as schematic symbol pin numbers for netlist parity.
   "1": {name: "1", note: "RJ45 contact 1 (physical) — net assigned by this board's schematic, NOT standard Ethernet T568A/B"}
   "2": {name: "2", note: "RJ45 contact 2 (physical) — custom net"}
@@ -75,6 +75,26 @@ gotchas:
   - "this combined 2-page PDF (dwg P-RJHSE-538X Rev K mechanical/PCB-layout + dwg P-RJHSE-LEDS Rev C color-code table) contains NO contact electrical rating table (current/voltage) — only mechanical dims, LED electricals, and materials. If contact current rating is needed, source a separate Amphenol electrical-specs sheet; do not assume a number here."
   - "direct fetch of amphenolcanada.com and cdn.amphenol-cs.com PDF URLs both returned HTTP 403 (bot-blocked, even with a browser UA) — the identical document (verified by content) was retrieved via SnapEDA's S3 mirror at https://s3.amazonaws.com/snapeda/datasheet/RJHSE-5384_Amphenol_ICC.pdf; if amphenol's own CDN starts blocking a re-fetch during revision verification, try a distributor/SnapEDA mirror before concluding the doc is gone"
 verified: "pin map cross-checked against datasheet dwg P-RJHSE-538X Rev K (APR03/14), page 1 of the fetched PDF: RECOMMENDED P.C.B. LAYOUT figure (hole pattern/pitch: 8 contacts at 1.016mm x-pitch / 1.78mm row offset, 2x Ø3.25mm NPTH posts, 2x Ø1.57mm shield holes, 4x Ø0.89mm LED holes) + the LED SCHEMATIC inset (explicit '1'-'8' contact numbering in the same zig-zag layout, '9'-'12' LED numbering) — cross-checked pad-for-pad against the KiCad footprint /usr/share/kicad/footprints/Connector_RJ.pretty/RJ45_Amphenol_RJHSE538X.kicad_mod (pad names '1'..'8','9'..'12','SH'x2, 2x unnamed NPTH). Geometry matches (drill sizes, pitch, hole counts identical); the footprint's local coordinate frame is mirrored left-right versus this specific datasheet view (footprint: pad 1 at low-x/'left', ascending to pad 8 at high-x/'right'; datasheet drawing: contact 8/7 at left, descending to 2/1 at right) — this is a viewing-angle artifact (front-view vs. PCB-layout-view rotation), not a renumbering, and does not affect which physical contact each pad name refers to. LED code '4' (=RJHSE-5384 suffix) cross-checked against page 2 'LED OPTIONS FOR RJHSE' color-code table (dwg P-RJHSE-LEDS Rev C): LED2(Left)=GREEN, LED1(Right)=YELLOW — 2026-07-23."
+layout:
+  source: "Amphenol RECOMMENDED P.C.B. LAYOUT (dwg P-RJHSE-538X Rev K, p.1) + the
+    analog-audio-pod archetype (skills/kicad-pcb/references/floorplan-archetypes.md):
+    the cable port sits on the board edge with its mouth off the west edge; the ESD
+    array is placed HARD against the port's exposed audio contacts on the connector
+    side; the port's GND contact tails take SOLID zone connection (a dense THT GND
+    tail field starves 2-layer thermal spokes)."
+  reviewed: "2026-07-23"
+  notes: >
+    (net-span budgets not used: the audio/GND nets fan out to test points + the amp,
+    so their whole-net span is not a meaningful local metric — P-ADJ measures net-span
+    and would false-fail. The placement intent is captured as rules, verified by the
+    render + pin reviews.) 1) D1 (TPD2E2U06) as close to the RJ45 audio contacts
+    (pins 1,2) as the connector BODY allows — the THT contacts sit inside the shell,
+    so D1 lands just outside the body on the audio-exit side (the achievable ~13mm
+    stub is acceptable: the audio nets are driven op-amp OUTPUTS, not sensitive
+    inputs). 2) GND contact tails (pins 7,8) get SOLID zone connection. 3) the two
+    NPTH ~3.25mm board-lock posts are fenced with routing keepouts before KRT (hole
+    clearance 0.25 > routed copper clearance). 4) beep contacts (3,6) route straight
+    to the SW-corner beep block without crossing the analog cell.
 layout_refs:
   - "Amphenol catalogue RECOMMENDED PCB LAYOUT p.4 RJHSE-548X + p.6 RJHSE-538X-04, April 2015 ed. (hole-for-hole match to the KiCad footprint)"
   - "datasheet dwg P-RJHSE-538X Rev K (Apr 2014) RECOMMENDED P.C.B. LAYOUT + LED SCHEMATIC figures, page 1 of the fetched PDF — independently re-fetched and re-measured this session (2026-07-23); confirms identical hole pattern/pitch/drill sizes to the KiCad footprint (see verified: above for the mirroring note)"

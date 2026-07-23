@@ -105,6 +105,16 @@ No sourceable-part tension: all 7 specialty parts are ledger-verified and
 in-catalog except AOM-5024L-HD-R (hand-solder, not in JLC) and RJHSE-5384
 (consign/hand-solder) — both known, both hand-solder lines, neither blocks.
 
+## Status
+
+- 2026-07-23: schematic gate GREEN (ERC 0, parity 0, 35/35 FPID) — committed.
+- 2026-07-23: **routing gate GREEN — DRC 0/0/0** (--severity-all --refill-zones
+  --schematic-parity), policy_audit 0 FAIL / 19 PASS / 7 HUMAN, audit_board OK,
+  contracts 0. Board 80x45mm 2-layer. Next: verify -> release.
+- Open for order day: CMT-8504 (C22359707) + OPA1678/TPD2E2U06 stock re-check;
+  AOM-5024L-HD-R (hand-solder, Digi-Key 668-1538-ND) + RJHSE-5384 (C99 consign,
+  hand-solder) not JLC-assembled; D3 SMAJ6.0A is DNP.
+
 ## Log
 
 - D1 (2026-07-23, agent, user absent) — the doc's exact op-amp resistor

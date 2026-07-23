@@ -1,125 +1,156 @@
-# SCHEMA EXAMPLE (skill-owned, project-independent). Adopted from a proven
-# board as a reference for the generic backend's config format. Copy into a
-# new project's 03_src/ and replace the values — the KEYS are the contract.
-#
-# cook-loadcell floorplan — the whole per-board input to
-# skills/kicad-pcb/scripts/generate_board_generic.py, replacing the 373-line
-# hand-written 03_src/generate_board.py.
-#   /usr/bin/python3 ../../skills/kicad-pcb/scripts/generate_board_generic.py \
-#       03_src/floorplan.yaml -o 06_build/proof/cook_loadcell.kicad_pcb
-# 55x45 2-layer: sensors J1/J2 + J5 north, J3/J4 + J6 south, HX711 center-west
-# (analog corner W, digital SE).
+# crow-mic-pod-v2 floorplan — the whole per-board input to
+# generate_board_generic.py. Adapted from the analog-audio-pod archetype
+# (skills/kicad-pcb/references/floorplan-archetypes.md): WEST=cable port +
+# ESD hard against the audio tails; CENTER/EAST=quiet analog cell; FAR EAST=
+# mic; SOUTH=beep switched block + rail filter + test points; GND = both-layer
+# pours + stitch. 2-layer, jlc_2layer_default.
 
 project:
-  name: cook_loadcell
-  netlist: 06_build/netlists/cook_loadcell.net
-  output: 04_kicad/cook_loadcell.kicad_pcb
+  name: crow_mic_pod_v2
+  netlist: 06_build/netlists/crow_mic_pod_v2.net
+  output: 04_kicad/crow_mic_pod_v2.kicad_pcb
   parts_dir: 02_parts
 
 board:
-  outline: {x0: 20.0, y0: 20.0, x1: 75.0, y1: 65.0}
+  outline: {x0: 10.0, y0: 10.0, x1: 90.0, y1: 55.0}   # 80 x 45 mm
   edge_width: 0.1
   layers: 2
   mounting_holes:
     footprint: MountingHole:MountingHole_3.2mm_M3
-    at: [[23.5, 23.5], [71.5, 23.5], [23.5, 61.5], [71.5, 61.5]]
+    at: [[14.0, 14.0], [86.0, 14.0], [14.0, 51.0], [86.0, 51.0]]
 
-libraries: [/usr/share/kicad/footprints]
+libraries:
+  - /usr/share/kicad/footprints
+  - {lib: crow_mic_pod, path: 03_src/lib/crow_mic_pod.pretty}
 
 placement:
-  # anchors are PINNED — the legalizer never moves them
+  # anchors are PINNED (legalizer never moves them) — the structural parts
   anchors:
-    # XH footprints are pad-1-origin; pads run +x at rot 0. Pitch must be
-    # >= 11.1 (B3B-XH courtyard is 10.99 wide) or bodies overlap pairwise
-    # and J1/J3 pad 1 lands on the corner mounting holes.
-    J1: [30.2, 24.2, 0]
-    J2: [41.3, 24.2, 0]
-    J5: [52.5, 24.2, 0]
-    J3: [30.2, 60.8, 0]
-    J4: [41.3, 60.8, 0]
-    J6: [53.5, 60.8, 0]
-    U1: [38.0, 42.0, 0]
-    Q1: [28.5, 36.0, 0]
-    JP1: [63.0, 42.0, 270]
+    # RJ45 rot 90: mouth (snap-post side) faces WEST off the board edge (cable
+    # entry), pad row runs NORTH, LED/rear inboard (east). pin1 AUDIO_P at the
+    # anchor, ascending to pin8 GND north; audio pins sit at mid-height by the
+    # analog cell. (rot 270 put the mouth inward + LED pads off the west edge —
+    # audit_board caught it.)
+    # anchor x set so the connector BODY silk (extends ~8.5mm west of anchor)
+    # stays on-board (west edge x10): the mouth is enclosure-recessed, the
+    # horizontal RJ45 plug still clears the board edge above the board plane.
+    J1:  [19.5, 32.0, 90]
+    # ESD as close to J1's audio tails as the RJ45 BODY allows: the THT contacts
+    # sit inside the shell, so D1 lands just outside it on the audio-exit side
+    # (east of the LED/rear body). part.yaml layout: notes cover the ~12mm stub.
+    D1:  [31.0, 35.0, 0]
+    # quiet analog cell, east-of-center
+    U1:  [52.0, 28.0, 0]
+    # electret capsule, far east (max separation from port + beep)
+    MK1: [74.0, 26.0, 0]
+    # switched beep block, SOUTH — return runs straight to J1 pins 3,6 without
+    # crossing the analog cell (archetype SW corner)
+    LS1: [33.0, 46.0, 0]
+    D2:  [43.0, 47.0, 0]
+    D3:  [51.0, 47.0, 0]
   # seeds are starting points the legalizer may walk outward from
   seeds:
-    R1: [28.5, 39.5]
-    R2: [26.6, 42.6]     # moved: its GND pad kept landing on the S_PLUS B.Cu run
-    C1: [28.5, 44.5]
-    C2: [28.5, 47.0]
-    R7: [63.0, 27.5]
-    C7: [63.0, 30.0]
-    SJ1: [63.0, 32.5]
-    C3: [44.0, 38.0]
-    C4: [47.0, 38.0]
-    C5: [44.0, 46.0]
-    C6: [47.0, 46.0]
-    D1: [55.0, 55.0]
-    D2: [58.0, 55.0]
-    TP1: [24.0, 32.0]
-    TP2: [24.0, 40.0]
-    TP3: [24.0, 48.0]
-    TP4: [24.0, 55.0]
-    TP5: [52.0, 51.0]
-    TP6: [56.0, 51.0]
-    TP7: [60.0, 51.0]
+    # output coupling network (between U1 and J1 audio pins)
+    C5:  [37.0, 29.0]
+    C6:  [37.0, 32.0]
+    R10: [43.0, 29.0]
+    R11: [43.0, 32.0]
+    # U1 supply decoupling hard against pin 8 (V+) / pin 4 (V-)
+    C7:  [50.0, 24.0]
+    C8:  [55.0, 24.0]
+    # U1A gain network (feedback + gain leg), west side near -INA (pin 2)
+    R6:  [47.0, 30.0]
+    R7:  [47.0, 32.0]
+    C4:  [49.0, 33.0]
+    # U1B inverter (east side near -INB pin 6)
+    R8:  [57.0, 30.0]
+    R9:  [57.0, 32.0]
+    # INP bias (toward the mic side)
+    R3:  [59.0, 26.0]
+    # VMID reference beside the amp
+    R4:  [54.0, 33.0]
+    R5:  [54.0, 35.0]
+    C3:  [51.0, 34.0]
+    # mic coupling + bias, next to MK1 (short high-Z input)
+    C2:  [65.0, 26.0]
+    R2:  [70.0, 29.0]
+    # 5V_AUDIO RC bias filter (VMIC_F feeds R2 by the mic — placed SE, off the
+    # crowded west/beep zone)
+    R1:  [56.0, 44.0]
+    C1:  [60.0, 44.0]
+    # rail bulk near the J1 power pins (4,5) — east of the RJ45 courtyard
+    C9:  [31.0, 28.0]
+    C10: [33.0, 28.0]
+    # test points along the south edge
+    TP1: [30.0, 52.0]
+    TP2: [37.0, 52.0]
+    TP3: [44.0, 52.0]
+    TP4: [51.0, 52.0]
+    TP5: [58.0, 52.0]
+    TP6: [65.0, 52.0]
+    TP7: [72.0, 52.0]
   patterns:
-    # the KiCad SolderJumper footprint ships exclude_from_bom but the symbol
-    # is in_bom yes -> footprint_symbol_mismatch parity error. Clear it.
-    - match: "SJ*"
-      clear_attrs: [exclude_from_bom]
+    # D1 is a SOT-553 (0.5mm pitch): its inter-net AUDIO-vs-GND pad gaps are
+    # ~0.15mm by package geometry — below the 0.2mm default netclass clearance
+    # but ABOVE the jlc_2layer_default tier floor (0.127mm). Give D1's pads a
+    # local 0.13mm clearance so the DRC honours the package instead of
+    # false-flagging it (D-TIER: still >= the tier's manufacturable floor).
+    - match: "D1"
+      pad_overrides:
+        - {clearance: 0.13}
   legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 40}
 
 design_rules:
-  track_min_width: 0.15
+  track_min_width: 0.127
   min_clearance: 0.127
-  via_min_annulus: 0.13
+  via_min_annulus: 0.15
   hole_clearance: 0.25
   hole_to_hole: 0.5
   copper_edge_clearance: 0.3
-  via_min_size: 0.45
-  min_through_drill: 0.2
+  via_min_size: 0.6
+  min_through_drill: 0.3
   solder_mask_min_width: 0.0
   solder_mask_expansion: 0.0
 
 zones:
-  - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal}
+  - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.25, clearance: 0.3, connect: thermal}
 
 silk:
-  min_text_height: 0.6
+  min_text_height: 0.45
   refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQ"}
-  labels:
-    - {match: "TP*", from: value, strip: "TP ", size: 0.6}
+  # every caption >= 0.6mm: at 0.45mm the min 0.15mm stroke gives ratio 0.33
+  # which KiCad's text_thickness DRC flags as too bold (fab-illegible).
   captions:
-    - ["LOAD SENSOR 1  B R W", 30.5, 29.2, 0.7]
-    - ["SENSOR 2  B R W", 38.8, 31.0, 0.7]
-    - ["FULL BRIDGE ALT: E+ S+ S- E- SH", 52.0, 29.4, 0.65]
-    - ["SENSOR 3  B R W", 30.5, 57.2, 0.7]
-    - ["SENSOR 4  B R W", 39.5, 55.4, 0.7]
-    - ["TO COOK-HUB J6: 5V 3V3 G DAT CLK", 54.0, 57.2, 0.65]
-    - ["JP1 RATE: 1-2=10SPS 2-3=80SPS", 62.0, 37.8, 0.6]
-    - ["SJ1: SHIELD HARD BOND", 63.0, 34.6, 0.55]
-    # title block lives in the SE clearing (JP1 y<=44.5, TP row y=51)
-    - ["cook-loadcell v1.0  HX711 PCB C", 57.0, 47.0, 0.7]
-    - ["MODE = POPULATION: 4x HALF-BRIDGE OR J5", 57.0, 48.7, 0.6]
+    # THE mandatory safety banner (ADR-0003, G7) + full pinout — north clearing
+    - ["NOT ETHERNET - CUSTOM 5V AUDIO PINOUT", 44.0, 13.0, 0.85]
+    - ["J1:  1,2=AUD+/-   3,6=+5VBEEP/RET   4,5=+5V   7,8=GND", 44.0, 16.5, 0.6]
+    - ["crow-mic-pod-v2   MIC POD (board a)", 46.0, 20.0, 0.6]
+    # short warning at the connector (P-SILK-FN functional text near J1)
+    - ["J1 NOT ETHERNET", 20.0, 40.0, 0.6]
+    - ["MK1 ELECTRET (+ to R2)", 66.0, 34.0, 0.6]
+    # per-TP functional net labels (P-SILK-FN: text within 8mm of EACH TP)
+    - ["+5V", 30.0, 53.5, 0.6]
+    - ["GND", 37.0, 53.5, 0.6]
+    - ["A+", 44.0, 53.5, 0.6]
+    - ["A-", 51.0, 53.5, 0.6]
+    - ["5VBP", 58.0, 53.5, 0.6]
+    - ["RET", 65.0, 53.5, 0.6]
+    - ["VMID", 72.0, 53.5, 0.6]
 
 asserts:
   pad_net:
-    - {ref: D1, pad: 1, net: DAT}      # pad 1 = cathode
-    - {ref: D2, pad: 1, net: CLK}
-    - {ref: Q1, pad: 2, net: 5V}
-    - {ref: Q1, pad: 3, net: E_PLUS}
-    - {ref: U1, pad: 8, net: S_PLUS}
-    - {ref: U1, pad: 7, net: S_MINUS}
-    - {ref: J6, pad: 4, net: DAT}
-    - {ref: J6, pad: 5, net: CLK}
-
-# ESCAPE CORRIDORS (Phase F 2026-07-21, from usb-pwr-hub-3s ADR-0008):
-# reserved routing lanes off a dense package's loaded side — satisfies
-# escape_check v2's `escape-corridor` condition (P-ESC). Expands to a named
-# rule area `esc_<ref>_<side>` denying footprints+pours (tracks/vias stay
-# allowed — that is the lane). Unknown ref / bad side = hard error.
-#
-# escape_corridors:
-#   - {ref: U1, side: E, depth_mm: 4.0}            # full-side lane
-#   - {ref: U2, side: N, depth_mm: 3.0, width_mm: 6.0, layers: [F.Cu]}
+    # diode flyback polarity (KiCad D_SMA pad 1 = cathode -> the 5V_BEEP rail)
+    - {ref: D2, pad: 1, net: 5V_BEEP}
+    - {ref: D3, pad: 1, net: 5V_BEEP}
+    # ESD channels to the exposed audio pair
+    - {ref: D1, pad: 3, net: AUDIO_P}
+    - {ref: D1, pad: 5, net: AUDIO_N}
+    # op-amp supply orientation
+    - {ref: U1, pad: 8, net: 5V_AUDIO}
+    - {ref: U1, pad: 4, net: GND}
+    # RJ45 custom pinout key pins
+    - {ref: J1, pad: 1, net: AUDIO_P}
+    - {ref: J1, pad: 3, net: 5V_BEEP}
+    - {ref: J1, pad: 7, net: GND}
+    # mic output polarity
+    - {ref: MK1, pad: 1, net: MIC_OUT}

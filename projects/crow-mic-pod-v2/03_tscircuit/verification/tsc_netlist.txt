@@ -35,6 +35,10 @@ COMPONENTS:
  - TP6: TP6, source_component
  - TP7: TP7, source_component
 
+NET: D1_NC
+  - D1 NC
+  - D1 NC
+
 NET: VMIC_F
   - R2 pin1
   - C1 pin1 (+)
@@ -98,8 +102,6 @@ NET: N5V_AUDIO
 NET: GND
   - TP2 pin1
   - D1 GND
-  - D1 NC
-  - D1 NC
   - C10 pin2 (-)
   - C9 pin2 (-)
   - C8 pin2 (-)
@@ -258,8 +260,8 @@ C10 (100nF 0603)
 - pin2(neg, cathode, right): NETS(GND)
 
 D1
-- pin1(NC): NETS(GND)
-- pin2(NC): NETS(GND)
+- pin1(NC): NETS(D1_NC)
+- pin2(NC): NETS(D1_NC)
 - pin3(IO1): NETS(AUDIO_P)
 - pin4(GND): NETS(GND)
 - pin5(IO2): NETS(AUDIO_N)

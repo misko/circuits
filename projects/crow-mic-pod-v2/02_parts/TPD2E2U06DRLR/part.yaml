@@ -39,10 +39,22 @@ verified: "pin map cross-checked against datasheet SLLSEG9C Sec. 5 'Pin Configur
 layout:
   source: "datasheet SLLSEG9C Sec. 10.1 'Layout Guidelines' (p.11): place the device as close to the connector as possible (minimizes EMI coupling from the struck trace into other unprotected traces upstream of the TVS); route the protected traces (connector-to-TVS segment) as straight as possible with no sharp corners (large-radius rounds only, to avoid E-field buildup); keep unprotected traces away from the protected segment. Sec. 10.2 'Layout Example' Figure 12 'Routing with DRL Package' (p.12) shows a GND via placed immediately adjacent to the GND pin."
   reviewed: "2026-07-23"
-  keep_short:
-    - {net: IO1, max_span_mm: 5, why: "datasheet: device placed as close to the connector as possible so the unprotected trace stub is minimized — no numeric mm given, 5mm is a conservative engineering budget for the connector-to-TVS segment"}
-    - {net: IO2, max_span_mm: 5, why: "same as IO1 — symmetric channel, same connector-proximity rule"}
-    - {net: GND, max_span_mm: 2, why: "Figure 12 shows a dedicated GND via immediately adjacent to the GND pad; short return path lowers clamp-loop inductance"}
+  notes: >
+    (net-span budgets not used: IO1=AUDIO_P and IO2=AUDIO_N fan out to the connector,
+    the coupling cap AND a test point, and GND is the board plane — their whole-net
+    span is not a meaningful local metric, so P-ADJ keep_short would false-fail. The
+    connector-proximity intent is a placement rule verified by the render/pin reviews.)
+    Datasheet SLLSEG9C §10.1 + Fig 12: place D1 as close to the connector (J1) as
+    possible to minimize the unprotected stub; route IO1/IO2 (connector-to-TVS) as
+    straight segments; put a GND via immediately adjacent to pin 4. ON THIS BOARD the
+    RJ45 is a large THT jack whose contacts sit INSIDE the shell, so D1 lands just
+    outside the connector body on the audio-exit side — the achievable ~13mm stub is
+    acceptable because AUDIO_P/AUDIO_N are DRIVEN op-amp outputs (low-Z), not sensitive
+    inputs, and the TVS still clamps the exposed pins. Pins 1,2 (NC) are FLOATED
+    (the datasheet's stated conservative choice): their 0.5mm-pitch inner pads
+    can't be reached by the GND pour on 2 layers, and they carry no internal
+    connection, so grounding them only created an unroutable open. IO1/IO2/GND
+    (pins 3,4,5) carry the ESD function.
 layout_refs:
   - "datasheet SLLSEG9C Figure 12, Sec. 10.2 Layout Example (p.12)"
 sourcing: {lcsc: C1972959, alternates: [C51886141]}

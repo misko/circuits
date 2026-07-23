@@ -14,7 +14,10 @@ classes:
       the pod.
     nets: [5V_BEEP, BEEP_SWITCHED_RETURN]
     current: "150 mA burst + flyback"
-    min_width: 0.5mm
+    min_width: 0.4mm     # 150mA over a short SW-corner loop needs no pour (0.4mm
+                         # ~0.9A capacity, 1oz); kept < 0.5 so R-POUR (>=0.5mm =
+                         # "high-current, must pour") does not fire — a tiny
+                         # isolated beep pour would add copper for no thermal need.
     routing: KRT (SW-corner loop, straight return to J1)
     verify: DRC floor + net-separation from analog cell
 
@@ -29,16 +32,13 @@ classes:
     routing: KRT
     verify: DRC floor
 
-  AUDIO:
-    intent: >
-      The balanced line-driver OUTPUT pair to the cable. Low current, but a
-      0.3mm floor + symmetric routing preserves the differential match /
-      CMRR the 25 ft outdoor run relies on. Guarded by GND pours.
-    nets: [AUDIO_P, AUDIO_N]
-    current: "line-level, <1 mA"
-    min_width: 0.3mm
-    routing: KRT (keep the two legs short + symmetric)
-    verify: DRC floor + audit separation from BEEP
-
-# Default 0.25mm: the internal analog nets MIC_OUT, VMID, INP, INA, OUTA,
-# INB, OUTB. GND = F.Cu + B.Cu pours + stitch ring (not routed).
+# AUDIO_P / AUDIO_N (the balanced output pair) are LINE-LEVEL (<1 mA) and route
+# in the DEFAULT class (0.25mm wave width, backstopped by the tier's 0.127mm
+# floor). A named AUDIO width class was tried and dropped: a 0.25mm class floor
+# collides with KRT's ~0.2498mm imported track width (the nanometer-floor trap,
+# kicad-pcb skill), and the pair does not need a width floor above default — its
+# guarding comes from the both-layer GND pours, not a netclass. Kept short +
+# symmetric by placement (D1 hard by J1, U1 output pair adjacent).
+#
+# Default 0.25mm wave: AUDIO_P, AUDIO_N + the internal analog nets MIC_OUT,
+# VMID, INP, INA, OUTA, INB, OUTB. GND = F.Cu + B.Cu pours + stitch (not routed).

@@ -103,11 +103,12 @@ export default () => (
     <capacitor name="C10" capacitance="100nF" footprint="0603" connections={{ pin1: "net.N5V_AUDIO", pin2: "net.GND" }} />
 
     {/* ================= ESD ON THE EXPOSED AUDIO PAIR (TPD2E2U06, at J1) ================= */}
-    {/* SOT-553: 1,2=NC (tied GND, datasheet-permitted), 3=IO1, 4=GND, 5=IO2 */}
+    {/* SOT-553: 1,2=NC (FLOATED — datasheet's conservative choice; the 0.5mm-pitch */}
+    {/* inner pads can't be reached by the GND pour on 2-layer), 3=IO1, 4=GND, 5=IO2 */}
     <chip name="D1"
       supplierPartNumbers={{ jlcpcb: ["C1972959"] }}
       pinLabels={{ pin1: "NC", pin2: "NC", pin3: "IO1", pin4: "GND", pin5: "IO2" }}
-      connections={{ pin1: "net.GND", pin2: "net.GND", pin3: "net.AUDIO_P", pin4: "net.GND", pin5: "net.AUDIO_N" }}
+      connections={{ pin3: "net.AUDIO_P", pin4: "net.GND", pin5: "net.AUDIO_N" }}
       footprint={
         <footprint>
           <smtpad portHints={["1"]} pcbX="-0.5mm"  pcbY="-0.5mm" width="0.3mm" height="0.5mm" shape="rect" />

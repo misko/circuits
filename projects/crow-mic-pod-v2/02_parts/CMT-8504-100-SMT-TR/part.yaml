@@ -49,6 +49,22 @@ gotchas:
   - "no official KiCad footprint exists in standard libraries (checked /usr/share/kicad/footprints) — must vendor a 4-pad land pattern from the numbers below (Recommended PCB Layout, datasheet page 2 of 5) before this part can be placed"
   - "the component's OWN corner-pad metallization (on the physical part, 8.5x8.5mm body, pad centers at +/-2.75mm from body center) is SMALLER/different from the RECOMMENDED PCB LAND pattern (9.5x9.5mm span, pad centers at +/-3.5mm) — always footprint to the PCB-layout numbers below, not the component-body numbers, the land is intentionally oversized for solder-fillet visibility"
 verified: "pin count, polarity-pad location, and dummy-pad location cross-checked against datasheet rev 1.04 (Same Sky, formerly CUI Devices, fetched 2026-07-23) MECHANICAL DRAWING figure, page 2 of 5 — both the component-body view (front view + side view + isometric-corner detail, showing 'POLARITY PAD(+)' top-left, 'POLARITY PAD(-)' bottom-left, '2-DUMMY PAD' right column) and the 'Recommended PCB Layout / Top View' figure (same 4-corner arrangement, same +/- assignment) agree. Electricals cross-checked against the SPECIFICATIONS table, page 1 of 5."
+layout:
+  source: "datasheet rev 1.04 p.3 'APPLICATION CIRCUIT' (NPN driver + flyback diode
+    across the transducer, cathode to +VDC) + the analog-audio-pod archetype SW-corner
+    switched block. On THIS pod the transducer is driven FROM central (low-side switch
+    at central); the local rule is the FLYBACK clamp discipline."
+  reviewed: "2026-07-23"
+  notes: >
+    (net-span budgets not used: the beep nets fan out to the RJ45 + test points, so
+    their whole-net span is not a meaningful local metric — see RJHSE-5384 note.)
+    1) D2 (SS14 flyback) placed HARD against LS1 across the coil (cathode to +5V_BEEP)
+    so the freewheel loop LS1(-)->D2->+5V_BEEP is tight and low-inductance; D3
+    (SMAJ6.0A DNP over-clamp) beside it. 2) the whole beep block (LS1+D2+D3) lives in
+    the SW corner, GALVANICALLY ISOLATED from analog GND (the switched-return current
+    never shares copper with the analog ground). 3) the 2 mechanical dummy pads are
+    left unconnected. 4) the switched return runs straight to J1 pin 6 without
+    crossing the analog cell.
 layout_refs:
   - "datasheet rev 1.04, page 2 of 5, 'Recommended PCB Layout / Top View' figure — land pattern used directly for footprint vendoring (see land_pattern: below)"
   - "datasheet rev 1.04, page 3 of 5, 'APPLICATION CIRCUIT' figure — NPN driver + flyback-diode reference topology"

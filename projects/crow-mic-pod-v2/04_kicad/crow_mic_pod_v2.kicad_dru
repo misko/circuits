@@ -1,0 +1,10 @@
+(version 1)
+(rule "BEEP_width"
+  (condition "A.NetClass == 'BEEP'")
+  (constraint track_width (min 0.4mm)))
+(rule "PWR_width"
+  (condition "A.NetClass == 'PWR'")
+  (constraint track_width (min 0.4mm)))
+(rule "AUDIO_width"
+  (condition "A.NetClass == 'AUDIO'")
+  (constraint track_width (min 0.25mm)))
