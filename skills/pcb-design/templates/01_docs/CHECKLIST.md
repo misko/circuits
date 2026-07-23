@@ -20,7 +20,7 @@ RELEASED must additionally pass the release gate at the bottom.
 - [ ] anything surprising captured as an ADR in `01_docs/decisions/`
 
 ## Release gate (only when ordering)
-- [ ] working tree clean (`git_dirty: false`)
+- [ ] release inputs clean (`git_dirty: false`, scope `projects/<board>/ + skills/` via `release_git_dirty.py <board>` — a dirty sibling board does not block)
 - [ ] tagged
 - [ ] stock re-verified TODAY (not from cache)
 - [ ] `07_releases/<ver>-<date>/` written with MANIFEST + verification evidence

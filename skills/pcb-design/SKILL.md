@@ -569,7 +569,9 @@ gerbers. Six required parts:
   pin_review, render_review, policy_audit, parity
 - `ORDER_README.md` (JLC options, rotation-preview checklist, hand-solder
   list, first-power ritual) + `MANIFEST.txt` — sha256 of EVERY file above,
-  exact `git_sha`, `git_dirty: false` (CLEAN tree), gate summary
+  exact `git_sha`, `git_dirty: false` (inputs clean — scope
+  `projects/<board>/ + skills/`, computed by `release_git_dirty.py <board>`,
+  NOT the whole repo: a dirty sibling board does not block), gate summary
 
 Releases are immutable; fixes mean a new release, a fix-claim needs its
 falsifiable measurement in verification/, and superseded releases get a

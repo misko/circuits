@@ -135,7 +135,7 @@ board:        power_board_v1
 version:      v4.10
 ordered:      2026-07-14
 git_sha:      a5e7ca7                 # the EXACT commit these came from
-git_dirty:    false                   # MUST be false — never release from a dirty tree
+git_dirty:    false                   # scope: projects/<board>/ + skills/ — never seal with these inputs dirty
 kicad:        10.0.4
 tools:        KRT@<sha>, python 3.12
 fab:          JLCPCB, 4 layer, advanced small-via option (0.25/0.15 vias)
@@ -168,6 +168,34 @@ load-bearing pair for INTEGRITY: it says the archive still is what was sent.
 A release needs both — provenance without a complete archive is a promise you
 can only cash by rebuilding the past.
 
+### `git_dirty` — scoped to the release's INPUTS, not the whole repo
+
+`git_dirty` records whether the artifacts this release regenerates from were
+committed at `git_sha`. Those inputs are exactly the board's own project
+subtree and the shared skill backend — nothing else feeds the fab set:
+
+    the release is CLEAN  iff  `git status --porcelain -- projects/<board>/ skills/`  is empty
+
+A dirty SIBLING project (a concurrently-building board) has ZERO bearing on
+THIS release's reproducibility and MUST NOT block the seal. A dirty `skills/`
+backend, or a dirty / untracked file inside this board's own subtree, DOES
+block — those are the inputs the gerbers are reproducible from. (This replaced
+a repo-wide `git status --porcelain` that blocked a seal on unrelated sibling
+dirt, forcing pause-coordination between independent boards — 2026-07-23.) The
+board's own `07_releases/`, `06_build/`, `01_docs/` sit inside the in-scope
+subtree and are checked: the seal commits the board's own artifacts first, so
+at `git_sha` the whole subtree is committed-clean; only OTHER boards are exempt.
+
+The MANIFEST records the flag WITH its scope noted, so no reader mistakes it
+for a whole-repo claim:
+
+    git_dirty:    false                   # scope: projects/<board>/ + skills/
+
+**Helper (declared here):** `skills/kicad-pcb/scripts/release_git_dirty.py
+<board>` computes this scoped flag, prints the exact MANIFEST line above, and
+exits non-zero when dirty — the seal calls it and gates on the exit code
+rather than eyeballing `git status`.
+
 ## Fix-claim evidence rule
 
 A release whose MANIFEST claims a FIX or verification refresh relative to a
@@ -184,7 +212,10 @@ checked shared a method.
 - **Generators writing here.** They write `04_kicad/` and `06_build/` only.
 - Editing any file in a release directory after it is written. If something
   is wrong, cut a NEW release; the wrong one is a historical fact.
-- Releasing from a dirty working tree (`git_dirty: true`).
+- Releasing with dirty INPUTS (`git_dirty: true`) — a dirty `skills/` backend
+  or a dirty/untracked file in the board's own subtree. Scope is
+  `projects/<board>/ + skills/`, NOT the whole repo: a dirty SIBLING project
+  does not block (`release_git_dirty.py <board>` computes it).
 - A release whose gates did not pass. `verification/` holds the evidence;
   an empty or failing `verification/` means it is not a release.
 - **A release carrying an unresolved P0 red-team finding.** A P0 blocks the
@@ -203,7 +234,8 @@ checked shared a method.
   every sha256 matches** — both directions. A file not in the table is
   unaccounted-for; a table entry with no file is a missing artifact.
   (`MANIFEST.txt` itself is the one exclusion — it cannot hash itself.)
-- `git_dirty: false`
+- `git_dirty: false` — scope `projects/<board>/ + skills/` (a dirty sibling
+  project does not count); compute with `release_git_dirty.py <board>`
 - `git_sha` exists in this repo's history
 - **`fab/`, `pdf/`, `source/`, `verification/` all present and non-empty**
   (new releases); `3d/` present or its absence explained in the MANIFEST
@@ -246,7 +278,9 @@ checked shared a method.
 This folder answers **M5** (M-REL) and hosts the evidence for everything:
 
 - MANIFEST `git_sha` is an EXACT commit hash that exists; `git_dirty:
-  false`; every sha256 in the table verifies against the file beside it,
+  false` (scoped to `projects/<board>/ + skills/` via
+  `release_git_dirty.py`, NOT the whole repo — a dirty sibling project does
+  not block); every sha256 in the table verifies against the file beside it,
   and every file in the directory is in the table.
 - The archive is SELF-CONTAINED: `fab/`, `pdf/`, `source/`, `verification/`
   present; `source/` holds the exact `.kicad_sch` / `.kicad_pcb` / `.tsx` /
