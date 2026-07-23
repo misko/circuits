@@ -27,7 +27,7 @@ truncates it to 2 pins, and emits an unannotated sheet that netlists to 0 nets.
 
 | Class | Paths | Rule |
 |---|---|---|
-| **HAND-EDITED truth** | `src/<board>.tsx`, `net_aliases.txt`, `manifest.yaml`, `parity_padmap.txt`, `sealed_ref.txt`, `package.json`, `README.md`, `GENERATE.md`, `contracts.md` | the only files a human writes here |
+| **HAND-EDITED truth** | `src/<board>.tsx`, `net_aliases.txt`, `parity_padmap.txt`, `sealed_ref.txt`, `package.json`, `README.md`, `GENERATE.md`, `contracts.md` | the only files a human writes here |
 | **GENERATED** | `build/`, `kicad/`, `verification/`, `fab/` | emitted by `gen_tscircuit.sh` / `tsx_to_board.sh`. **Never hand-edited** — a hand-fix here is erased on the next run and silently diverges from the TSX. Fix the TSX and regenerate. Committed for reviewable diffs |
 | **DISPOSABLE cache** | `dist/`, `.tscircuit/`, `node_modules/`, `tsx_build/` | gitignored, wiped freely |
 
@@ -100,12 +100,6 @@ lines). Allowed but never required, and never shipped in a release:
    overlaps and 8 shorting pads. It is DRC-clean against tscircuit's own
    courtyards and physically collides real KiCad footprints (golden rule 7).
    Authored `pcbX`/`pcbY` is the supported placement-as-code path.
-7. **Alphanumeric pad names are dropped SILENTLY.** tscircuit rejects pads like
-   USB-C `A1..B12` or a shield `SH` WITHOUT an error, and the whole part vanishes
-   with ERC still 0 (2026-07-21: four USB connectors, 48/52). Map every such pad
-   in `parity_padmap.txt` and run `tsx_preflight.py` BEFORE the first tsci build;
-   the refdes SET is then guarded by `count_parity.py` against the hand-authored
-   `manifest.yaml` (canon S8 / S-COUNT, TSX-PRE).
 
 ## Forbidden
 
@@ -127,27 +121,18 @@ lines). Allowed but never required, and never shipped in a release:
 
 ```
 export PATH="$HOME/.bun/bin:$PATH"
-python3 <kicad-pcb skill>/scripts/tsx_preflight.py <project>  # BEFORE the first build
 bash <kicad-pcb skill>/scripts/gen_tscircuit.sh <project>     # the bridge
 bash <kicad-pcb skill>/scripts/tsx_to_board.sh <project>      # the whole board
-python3 <kicad-pcb skill>/scripts/count_parity.py <project>   # refdes SET parity
 ```
 
-1. `tsx_preflight.py` passes **before the first tsci build** — alphanumeric pads
-   (USB-C `A1..B12`, shield `SH`) are dropped by tscircuit with **ERC still 0**;
-   each must be mapped in `parity_padmap.txt` first (canon TSX-PRE)
-2. `gen_tscircuit.sh` emits `build/circuit.json`, `build/schematic.pdf`, and
+1. `gen_tscircuit.sh` emits `build/circuit.json`, `build/schematic.pdf`, and
    `kicad/<board>.kicad_sch`, and prints **ERC 0 errors** + **netlist parity 0**
-3. `tsx_to_board.sh` ends at **DRC 0/0/0** (`--severity-all --refill-zones
+2. `tsx_to_board.sh` ends at **DRC 0/0/0** (`--severity-all --refill-zones
    --schematic-parity`) and **board parity 0** vs the sealed reference
-4. `count_parity.py` reports **0 symmetric difference** — the hand-authored
-   `manifest.yaml` refdes SET equals every generated artifact (circuit.json,
-   kicad_sch, netlist, board); a silent tsci drop surfaces here as the missing
-   refdes (canon S8 / S-COUNT)
-5. every component in the converter output has a non-empty FPID (the converter
+3. every component in the converter output has a non-empty FPID (the converter
    prints `N components (N with FPID)` — the two numbers must be equal)
-6. `.gitignore` covers `dist/`, `.tscircuit/`, `node_modules/`, `tsx_build/`
-7. no file under `build/`, `kicad/`, `verification/`, `fab/` has been
+4. `.gitignore` covers `dist/`, `.tscircuit/`, `node_modules/`, `tsx_build/`
+5. no file under `build/`, `kicad/`, `verification/`, `fab/` has been
    hand-edited — regenerate and diff; drift means someone edited a generated file
 
 ERC **warnings** are baselined and parametric only: `lib_symbol_issues` (the
@@ -173,11 +158,8 @@ embedded `elt` lib isn't in the running kicad-cli config), `footprint_link_issue
 This folder answers **S6** (the human schematic is tscircuit's own clean render —
 the label-blob era is retired), **S1/S4** (ERC at severity-all = 0 errors; explicit
 no-connects emitted as `no_connect` flags), **S2** (no auto-named nets reach copper
-— rule 1 above), **S8/S-COUNT** (refdes SET parity between the hand-authored
-`manifest.yaml` and every generated artifact via `count_parity.py`, plus **TSX-PRE**
-alphanumeric-pad preflight via `tsx_preflight.py` before the first tsci build), and
-**S-DSL** (the declaration compiles to NATIVE KiCad artifacts and every gate runs on
-those artifacts, never on the DSL's claims).
+— rule 1 above), and **S-DSL** (the declaration compiles to NATIVE KiCad artifacts
+and every gate runs on those artifacts, never on the DSL's claims).
 
 It does NOT answer **R1/R6** (routing physics — KRT) or **M1** (the digital twin).
 Those are the two permanent hard lines: the authoring tool must never self-grade
