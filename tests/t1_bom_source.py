@@ -81,6 +81,31 @@ def t_clean_uncoded():
               "gate on an uncoded row")
 
 
+# ------------------------------------------ non-LCSC supplier handle blanking
+@test("refdes_codes_from_circuit blanks a non-C supplier HANDLE (an MPN) and "
+      "keeps a real C-code verbatim")
+def t_nonC_supplier_handle_blanked():
+    """The fix-pass change (crow-mic-pod-v2, 2026-07-23). A hand-solder part with
+    no JLC listing carries its MPN in supplier_part_numbers.jlcpcb as an
+    FPID-RESOLUTION HANDLE (MK1 = "AOM-5024L-HD-R", used by the converter to map
+    to the 02_parts footprint). That MPN is NOT an LCSC code and must never land
+    in a BOM LCSC column, so refdes_codes_from_circuit maps it to "" while keeping
+    a real C-code untouched. BOTH the M-BOM gate and export_jlc_package import
+    this fn, so the single guard fixes both consumers (and stops the gate
+    false-failing a MISSING-code on the hand-solder line).
+
+    RED-VERIFY (performed 2026-07-23): reverting the guarded return to the pre-fix
+    `out[name] = (jlc[0] if ...)` (no `re.fullmatch(r"C\\d+", code)`) makes this
+    test FAIL — MK1 comes back as "AOM-5024L-HD-R"; restoring the guard PASSES."""
+    cj = tmpdir("nonc_") / "circuit.json"
+    cj.write_text(json.dumps(circuit(
+        {"MK1": "AOM-5024L-HD-R", "D3": "C559105", "U1": "C192421"})))
+    codes = bsc.refdes_codes_from_circuit(cj)
+    eq(codes["MK1"], "", "an MPN handle must be blanked (it is not an LCSC)")
+    eq(codes["D3"], "C559105", "a real C-code must be kept verbatim")
+    eq(codes["U1"], "C192421", "a real C-code must be kept verbatim")
+
+
 # ------------------------------------------------------------ known-bad cases
 @test("gate FAILS a MERGED row: two source codes collapsed onto one line "
       "(the v1.1 defect)", kind="known_bad")
@@ -197,19 +222,24 @@ def t_exporter_splits_distinct_codes():
 
 
 @test("exporter drops FP_EXCLUDE_FROM_POS_FILES parts from the CPL but keeps "
-      "them in the BOM (hand-solder / DNP-position)", slow=True)
+      "them in the BOM (hand-solder); a populated part is in BOTH; a non-C "
+      "supplier handle is BLANK in the BOM LCSC and the carry-over cannot "
+      "resurrect it", slow=True)
 def t_exporter_exclude_from_pos_cpl():
-    """The exclude_from_pos fix (2026-07-23). crow-mic-pod-v2 marks MK1 (electret,
-    hand-solder), J1 (RJHSE-5384 consign, hand-solder) and D3 (SMAJ6.0A DNP)
-    exclude_from_pos: they must be ABSENT from cpl_jlc.csv (JLC does not
-    machine-place them) yet PRESENT in bom_jlc.csv (documented parts, uncoded or
-    reference-coded). A normal SMT part (U1) must appear in BOTH. Matches KiCad's
-    native POS export, which honours FP_EXCLUDE_FROM_POS_FILES.
+    """The exclude_from_pos fix (2026-07-23) + the non-C LCSC-blank fix (fix pass).
+    crow-mic-pod-v2 marks MK1 (electret, hand-solder) and J1 (RJHSE-5384 consign,
+    hand-solder) exclude_from_pos: ABSENT from cpl_jlc.csv yet PRESENT in
+    bom_jlc.csv. D3 (SMAJ6.0A) is POPULATED (ADR-0001 D5, the P0-D fix) — it must
+    be in BOTH the BOM and the CPL, like U1. MK1's supplier handle is an MPN
+    ("AOM-5024L-HD-R"), NOT an LCSC — its BOM LCSC column must be BLANK, and a
+    stale prior BOM must not resurrect it into the LCSC column on re-export.
 
-    RED-VERIFY (manual, recorded here): neuter the
-    `if fp.GetAttributes() & pcbnew.FP_EXCLUDE_FROM_POS_FILES: continue` in
-    export_jlc_package.py (the CPL-build loop) and MK1/J1/D3 wrongly REAPPEAR in
-    cpl_jlc.csv — verified 2026-07-23. Restore to re-exclude."""
+    RED-VERIFY (performed 2026-07-23): (1) neuter the
+    `if fp.GetAttributes() & pcbnew.FP_EXCLUDE_FROM_POS_FILES: continue` and
+    MK1/J1 wrongly REAPPEAR in the CPL. (2) drop the `re.fullmatch(r"C\\d+", code)`
+    guard in export_jlc_package's carry-over (and/or in refdes_codes_from_circuit)
+    and the injected MK1="AOM-5024L-HD-R" survives into the re-exported BOM LCSC
+    column. Restore to re-fix."""
     board = POD / "04_kicad" / "crow_mic_pod_v2.kicad_pcb"
     cj = POD / "03_tscircuit" / "build" / "circuit.json"
     if not board.exists() or not cj.exists():
@@ -219,15 +249,37 @@ def t_exporter_exclude_from_pos_cpl():
               "export_jlc_package (pod-v2)")
     cpl_refs = {row["Designator"]
                 for row in csv.DictReader(open(d / "cpl_jlc.csv"))}
-    bom_refs = set()
+    bom_by_ref = {}
     for row in csv.DictReader(open(d / "bom_jlc.csv")):
-        bom_refs.update(x.strip() for x in row["Designator"].split(","))
-    for r in ("MK1", "J1", "D3"):
+        for x in row["Designator"].split(","):
+            bom_by_ref[x.strip()] = row
+    for r in ("MK1", "J1"):
         check(r not in cpl_refs,
               f"{r} is exclude_from_pos but appears in the CPL: {sorted(cpl_refs)}")
-        check(r in bom_refs, f"{r} must stay in the BOM (documented part)")
-    check("U1" in cpl_refs and "U1" in bom_refs,
+        check(r in bom_by_ref, f"{r} must stay in the BOM (documented part)")
+    check("D3" in cpl_refs and "D3" in bom_by_ref,
+          "populated D3 (P0-D fix) must appear in BOTH the CPL and the BOM")
+    check("U1" in cpl_refs and "U1" in bom_by_ref,
           "a normal SMT part (U1) must appear in BOTH the CPL and the BOM")
+    # MK1's supplier handle is an MPN, not an LCSC -> BOM LCSC column blank
+    eq(bom_by_ref["MK1"]["LCSC"].strip(), "",
+       "MK1 hand-solder line must have a BLANK LCSC (an MPN is not an LCSC)")
+    # inject a STALE prior BOM carrying MK1's MPN in the LCSC column, re-export,
+    # and assert the carry-over guard refuses to resurrect it (the export fix).
+    rows = list(csv.DictReader(open(d / "bom_jlc.csv")))
+    with open(d / "bom_jlc.csv", "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=rows[0].keys())
+        w.writeheader()
+        for row in rows:
+            if "MK1" in [x.strip() for x in row["Designator"].split(",")]:
+                row["LCSC"] = "AOM-5024L-HD-R"
+            w.writerow(row)
+    must_pass(run([KPY, EXPORT, board, d, "--layers", "2", "--lcsc-source", cj]),
+              "re-export over a stale BOM (carry-over path)")
+    bom2 = {x.strip(): row for row in csv.DictReader(open(d / "bom_jlc.csv"))
+            for x in row["Designator"].split(",")}
+    eq(bom2["MK1"]["LCSC"].strip(), "",
+       "carry-over must NOT resurrect MK1's MPN into the LCSC column")
 
 
 if __name__ == "__main__":

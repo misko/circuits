@@ -57,12 +57,15 @@ per rail) to halve delivery IR over the 25 ft run. Silk MUST carry
     5V_BEEP (3) ──►┬─ LS1(+) ── LS1(−) ──►┬── BEEP_SWITCHED_RETURN (6)
                    │                        │        (low-side switched
                    └─ D2 SS14 (cathode↑)────┘         at CENTRAL)
-                   └─ D3 SMAJ6.0A (DNP alt clamp)
+                   └─ D3 SMAJ6.0A (populated over-clamp, cathode↑)
 
 CMT-8504 is an INDUCTIVE magnetic transducer driven from central in coded
 4 kHz bursts (5V, ~150 mA). D2 (SS14) freewheels the inductive kick back
 into 5V_BEEP each time central opens the low-side switch; D3 (SMAJ6.0A) is
-a DNP over-clamp position. The 5V_BEEP / BEEP_SWITCHED_RETURN pair is
+a POPULATED redundant over-clamp (same net orientation, cathode→5V_BEEP —
+populated in the 2026-07-23 fix pass, D5, to resolve the P0-D assembly
+defect; forward-conducts alongside D2 during flyback and clamps a >6 V
+surge on 5V_BEEP). The 5V_BEEP / BEEP_SWITCHED_RETURN pair is
 GALVANICALLY SEPARATE from 5V_AUDIO / GND_AUDIO on the pod — they meet only
 at the central — so beeper switching current never shares the analog ground
 (G8). This is the analog-audio-pod archetype's SW-corner switched block.
@@ -91,13 +94,18 @@ brownout risk (5 mA over a paralleled pair). All recorded in
    RJ45. The outdoor cable is the ESD/surge aperture; the op-amp outputs
    are the exposed nets.
 2. **Inductive flyback** — SS14 (D2) across the transducer, clamp AT the
-   driven (pod) end; DNP SMAJ6.0A (D3) over-clamp position.
+   driven (pod) end; POPULATED SMAJ6.0A (D3) redundant over-clamp (D5).
 3. **Beep-return isolation** — the switched pair never bonds to analog GND
    on the pod (G8).
 4. **Shield bond** — RJ45 shield → GND_AUDIO at the pod (single-point).
-5. **No reverse-polarity FET on pod power** (D3 in BRIEF) — keyed RJ45 +
-   mandatory NOT-ETHERNET labeling, ~5 mA load, controlled fixed install;
-   accepted and flagged.
+5. **No reverse-polarity FET AND no PoE-injection protection on pod power**
+   (BRIEF D3/A1) — keyed RJ45 + mandatory NOT-ETHERNET labeling, ~5 mA load,
+   controlled fixed install. The custom power pins 4,5/7,8 alias exactly onto
+   802.3af/at Alternative-B PoE (5V_AUDIO ties to U1 V+, abs-max 40 V, with
+   zero series impedance), so a PoE switch or a mis-crimped cable is
+   DESTRUCTIVE. This exposure is an ACCEPTED deployment-constraint waiver with
+   USER sign-off — the pod is never plugged into PoE infrastructure (ADR-0005,
+   ADR-0001 amended). No protection network, no re-pin, this rev.
 
 ## Fab / stackup
 

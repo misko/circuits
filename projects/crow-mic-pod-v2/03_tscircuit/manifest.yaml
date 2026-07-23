@@ -9,7 +9,7 @@ components:
   - J1        # RJHSE-5384 RJ45 jack
   - D1        # TPD2E2U06DRLR ESD array
   - D2        # SS14 flyback
-  - D3        # SMAJ6.0A DNP TVS
+  - D3        # SMAJ6.0A TVS over-clamp (POPULATED — D5, was DNP)
   - R1        # 100R mic-bias RC filter
   - R2        # 3.9k mic bias
   - R3        # 100k INP bias to VMID

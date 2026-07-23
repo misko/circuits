@@ -144,7 +144,9 @@ export default () => (
         </footprint>
       }
     />
-    {/* D3 SMAJ6.0A DNP over-clamp position (same net orientation as D2) */}
+    {/* D3 SMAJ6.0A POPULATED redundant over-clamp (same net orientation as D2;
+        cathode pad1 -> 5V_BEEP). Populated in the fix pass (D5) — CPL-inclusion
+        is set in 03_src/floorplan.yaml (no exclude_from_pos_files on D3). */}
     <chip name="D3"
       supplierPartNumbers={{ jlcpcb: ["C559105"] }}
       pinLabels={{ pin1: "K", pin2: "A" }}

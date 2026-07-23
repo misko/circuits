@@ -110,10 +110,17 @@ in-catalog except AOM-5024L-HD-R (hand-solder, not in JLC) and RJHSE-5384
 - 2026-07-23: schematic gate GREEN (ERC 0, parity 0, 35/35 FPID) — committed.
 - 2026-07-23: **routing gate GREEN — DRC 0/0/0** (--severity-all --refill-zones
   --schematic-parity), policy_audit 0 FAIL / 19 PASS / 7 HUMAN, audit_board OK,
-  contracts 0. Board 80x45mm 2-layer. Next: verify -> release.
+  contracts 0. Board 80x45mm 2-layer.
+- 2026-07-23: 4-lens red-team → **DO NOT ORDER (3 P0)** (08_reviews/DISPOSITIONS.md).
+- 2026-07-23: **FIX PASS** (this session). A1 PoE accept-signoff (below); P0-C J1
+  footprint CERTIFIED CORRECT (not mirrored, ADR-0003/part.yaml); D5 D3 populated;
+  J1 GND SOLID; silk banner relocated adjacent to J1; MK1 LCSC blanked. Re-gate →
+  fresh red-team → seal v1.0.
 - Open for order day: CMT-8504 (C22359707) + OPA1678/TPD2E2U06 stock re-check;
   AOM-5024L-HD-R (hand-solder, Digi-Key 668-1538-ND) + RJHSE-5384 (C99 consign,
-  hand-solder) not JLC-assembled; D3 SMAJ6.0A is DNP.
+  hand-solder) not JLC-assembled; D3 SMAJ6.0A NOW POPULATED (C559105, extended);
+  PoE-injection accepted-waiver deployment constraint (A1) + J1 pad-1→contact-1
+  continuity backstop must be honoured (ORDER_README).
 
 ## Log
 
@@ -138,6 +145,28 @@ in-catalog except AOM-5024L-HD-R (hand-solder, not in JLC) and RJHSE-5384
 - D4 (2026-07-23) — fab tier jlc_2layer_default (cheapest 2-layer, 0.6/0.3
   vias, no advanced option). Every part's ledger escape block declares
   tier_required = jlc_2layer_default. ADR-0004.
+- **A1 (2026-07-23, USER decision relayed by the coordinator — the PoE-injection
+  P0 sign-off).** The red-team P0-A/B: this board's custom RJ45 power pins
+  (4,5=5V_AUDIO / 7,8=GND) alias EXACTLY onto IEEE 802.3af/at "Alternative-B"
+  PoE with zero series impedance to U1 V+ (OPA1678 abs-max 40V); a PoE switch
+  drives 44-57V into V+ and forces D1 into sustained conduction. **The user
+  ACCEPTS this risk WITH DOCUMENTED SIGN-OFF**: the array is a CONTROLLED
+  DEPLOYMENT — the pod is NEVER plugged into Ethernet/PoE infrastructure; it
+  mates ONLY with the sibling CENTRAL recorder's non-PoE ports over the
+  custom-crimped cable. Mitigation = the NOT-ETHERNET labeling + connector/cable
+  keying discipline already in ADR-0003. **NO protection network, NO connector
+  re-pin.** This is a documented accepted waiver, not an unaddressed blocker.
+  Recorded in ADR-0005 (the hazard + the deployment constraint); ADR-0001 +
+  ADR-0003 amended to cover POWER INJECTION (they had analyzed only PHY-signal +
+  backfeed). The ORDER_README carries the exact PoE-warning line. Folds P0-A,
+  P0-B, and P1-E (reverse-crimp) under one accepted-deployment-constraint waiver.
+- D5 (2026-07-23) — **D3 (SMAJ6.0A) POPULATED** (was DNP). Resolves the P0-D
+  BOM-without-CPL assembly defect (a BOM line with a real code C559105 but no
+  CPL placement bounces JLC's validator; a parity-clean end-to-end DNP is not a
+  proven JLC path — the tscircuit converter can't emit symbol dnp). Populating
+  is parity-clean, +~$0.05 (extended tier), and electrically fine: SMAJ6.0A is a
+  redundant over-clamp in the beep loop alongside the SS14 flyback (same
+  polarity, cathode→5V_BEEP; no conflict). ADR-0001 amended.
 
 ## Decision register
 
@@ -147,3 +176,5 @@ in-catalog except AOM-5024L-HD-R (hand-solder, not in JLC) and RJHSE-5384
 | D2 | no converter / no energy source on pod — cable-powered | brief | structural |
 | D3 | no reverse-polarity FET on pod power rails | agent (user absent) | reversible |
 | D4 | fab_tier = jlc_2layer_default | agent | reversible |
+| A1 | PoE-injection P0 ACCEPTED with documented sign-off (controlled deployment, no protection/re-pin) | **USER** | accepted waiver (ADR-0005) |
+| D5 | D3 SMAJ6.0A POPULATED (was DNP) — resolves BOM-without-CPL defect | agent (fix pass) | reversible |

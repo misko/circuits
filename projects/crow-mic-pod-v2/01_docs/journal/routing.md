@@ -36,3 +36,26 @@
   Board 80x45mm, 39 fps, 234 segs, 72 vias, 2 GND zones.
 - next: CHECKPOINT for commit, then VERIFY (bom/stock, jlc_twin, pin + render
   reviews, red-team, policy audit) -> release.
+
+## 2026-07-23 (fix pass) — iterate (post-back) + finish
+- did: FIX PASS on the DO-NOT-ORDER red-team (3 P0). Source edits only (canon
+  M3): floorplan (D3 populate = drop exclude_from_pos; J1 pads 7,8 zone_connect
+  FULL; silk banner+legend relocated adjacent to J1), ADR-0005 (PoE accept-
+  waiver) + ADR-0001/0003 amended, J1 part.yaml verified-note (footprint mirror
+  CERTIFIED CORRECT via row-parity), bom_source_check + export_jlc_package
+  (blank non-C LCSC codes → MK1 hand-solder line). Re-ran rebuild_all.sh.
+- result: FIRST rebuild → DRC 0/0/0 VIOLATIONS but **1 UNCONNECTED** (AUDIO_P
+  J1.1↔D1.3). ROOT CAUSE (diagnosed, not my edits): rebuild_all.sh's `route`
+  step RE-RACES stochastically every run (route.race:5) and cmd_import prefers
+  the fresh race-winner in 06_build/route/FINAL over the PROMOTED r3 — the
+  boxed-in J1.1 AUDIO_P escape drops on some race candidates (r3=30 segs/95.7mm,
+  bad race=23 segs/36.7mm). This VIOLATES canon 3g (promoted chain must be
+  reused verbatim for reproducibility); the shipped 0/0/0 at HEAD was a lucky
+  race. FIX: rebuild_all.sh now pins FINAL→03_src/route/r3.kicad_pcb (reuse the
+  promoted chain), no re-race. Rebuilt → **DRC 0/0/0** reproducibly.
+- next: fresh 4-lens red-team on the fixed board, then seal v1.0.
+- candidate-canon: cmd_route ignores route.final and always re-races even when a
+  promoted chain exists — the reuse the route.yaml comment + canon 3g promise is
+  not implemented in the shared script. Per-board rebuild_all.sh works around it;
+  a shared fix (cmd_route: when route.final set + no --force-race, reuse it)
+  should be harvested. Flagged, not applied (shared script, sibling agent active).

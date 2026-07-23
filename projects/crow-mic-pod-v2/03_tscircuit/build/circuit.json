@@ -18647,7 +18647,7 @@
   },
   {
     "type": "source_part_not_found_warning",
-    "source_part_not_found_warning_id": "source_part_not_found_warning_WT9mXm376q",
+    "source_part_not_found_warning_id": "source_part_not_found_warning_Oxp2QGjqwV",
     "warning_type": "source_part_not_found_warning",
     "message": "Failed to fetch supplier footprint for <chip#0 name=\".J1\" /> (jlcpcb:C9900035627): Component not found",
     "source_component_id": "source_component_0",
@@ -18657,7 +18657,7 @@
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_Olxv5YScBC",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_upkggDVk6Q",
     "warning_type": "supplier_footprint_mismatch_warning",
     "message": "<chip#307 name=\".LS1\" /> footprint the provided footprint does not match supplier footprint jlcpcb:C22359707 (copper IoU 0.2577).",
     "source_component_id": "source_component_25",
@@ -18669,19 +18669,7 @@
   },
   {
     "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_JlUhoE1Hgd",
-    "warning_type": "supplier_footprint_mismatch_warning",
-    "message": "<chip#45 name=\".MK1\" /> footprint the provided footprint does not match supplier footprint jlcpcb:AOM-5024L-HD-R (copper IoU 0.5745).",
-    "source_component_id": "source_component_4",
-    "pcb_component_id": "pcb_component_4",
-    "subcircuit_id": "subcircuit_source_group_0",
-    "supplier_name": "jlcpcb",
-    "supplier_part_number": "AOM-5024L-HD-R",
-    "footprint_copper_intersection_over_union": 0.5745
-  },
-  {
-    "type": "supplier_footprint_mismatch_warning",
-    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_vwxJJ9fwQb",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_unRX383zGW",
     "warning_type": "supplier_footprint_mismatch_warning",
     "message": "<chip#109 name=\".U1\" /> footprint \"soic8\" does not match supplier footprint jlcpcb:C192421 (copper IoU 0.7163).",
     "source_component_id": "source_component_10",
@@ -18692,7 +18680,19 @@
     "footprint_copper_intersection_over_union": 0.7163
   },
   {
+    "type": "supplier_footprint_mismatch_warning",
+    "supplier_footprint_mismatch_warning_id": "supplier_footprint_mismatch_warning_WVx6Se35FN",
+    "warning_type": "supplier_footprint_mismatch_warning",
+    "message": "<chip#45 name=\".MK1\" /> footprint the provided footprint does not match supplier footprint jlcpcb:AOM-5024L-HD-R (copper IoU 0.5745).",
+    "source_component_id": "source_component_4",
+    "pcb_component_id": "pcb_component_4",
+    "subcircuit_id": "subcircuit_source_group_0",
+    "supplier_name": "jlcpcb",
+    "supplier_part_number": "AOM-5024L-HD-R",
+    "footprint_copper_intersection_over_union": 0.5745
+  },
+  {
     "type": "source_project_metadata",
-    "source_filesystem_md5_hash": "28c985e84cc109de7e82464eddf074a3"
+    "source_filesystem_md5_hash": "dbe4711286e57429b24f83c9193ed13e"
   }
 ]

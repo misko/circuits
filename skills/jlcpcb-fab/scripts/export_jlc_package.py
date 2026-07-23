@@ -140,10 +140,16 @@ bom_path = out / "bom_jlc.csv"
 if bom_path.exists():
     with open(bom_path) as f:
         for row in csv.DictReader(f):
-            if row.get("LCSC"):
+            # An LCSC code is C-prefixed digits. A carried-over MPN string (a
+            # hand-solder part's FPID handle, e.g. AOM-5024L-HD-R) is NOT an LCSC
+            # and must never be resurrected into the LCSC column from a stale BOM
+            # (crow-mic-pod-v2 MK1) — the source (refdes_codes_from_circuit)
+            # already blanks it; harden the carry-over to match.
+            code = (row.get("LCSC") or "").strip()
+            if code and re.fullmatch(r"C\d+", code):
                 for r in (row.get("Designator") or "").split(","):
                     if r.strip():
-                        old_lcsc.setdefault(r.strip(), row["LCSC"])
+                        old_lcsc.setdefault(r.strip(), code)
 
 groups, cpl = {}, []
 for fp in board.GetFootprints():

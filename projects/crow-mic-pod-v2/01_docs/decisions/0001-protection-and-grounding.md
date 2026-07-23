@@ -27,8 +27,19 @@ switch; (3) whether the switched beep return may share the analog ground;
    opening the low-side switch flies BEEP_SWITCHED_RETURN high and can punch
    the central FET / radiate). B: freewheel Schottky at the driven end
    (ACCEPTED — SS14 D2, cathode→5V_BEEP, anode→BEEP_SWITCHED_RETURN;
-   40V/1A ≫ 5V/150 mA; clamp AT the pod per the ledger gotcha). A DNP
-   SMAJ6.0A (D3) over-clamp position is provided for field surge margin.
+   40V/1A ≫ 5V/150 mA; clamp AT the pod per the ledger gotcha). A SMAJ6.0A
+   (D3) over-clamp is provided for field surge margin, same net orientation
+   (cathode→5V_BEEP). **AMENDED 2026-07-23 (fix pass, D5): D3 is now
+   POPULATED, not DNP.** It was DNP in the release-candidate; the 4-lens
+   red-team (P0-D) found the resulting BOM-with-code-but-no-CPL state is an
+   assembly-file defect (JLC's validator bounces a BOM line with no matching
+   placement, and a parity-clean end-to-end DNP is not a proven JLC path
+   because the tscircuit converter hardcodes symbol in_bom=yes/dnp=no).
+   Populating D3 is parity-clean, costs ~$0.05 (extended tier), and is
+   electrically fine: D3 is a redundant TVS over-clamp in parallel with the
+   SS14 flyback (both cathode→5V_BEEP), no conflict — during flyback D3
+   forward-conducts alongside D2, and it additionally clamps a >6 V positive
+   surge on 5V_BEEP. The DNP-alternate rationale is retired.
 3. **Beep-return isolation** — the 5V_BEEP / BEEP_SWITCHED_RETURN pair is
    NOT bonded to GND_AUDIO anywhere on the pod (they meet only at central).
    ACCEPTED — keeps the 150 mA switched burst current off the analog
@@ -43,19 +54,34 @@ switch; (3) whether the switched beep return may share the analog ground;
    (Secondary benefit: "SH" is exactly the alphanumeric pad tscircuit drops
    silently — not authoring it sidesteps that trap with no vendored
    footprint.)
-5. **Reverse polarity on pod power** — A: series P-FET / Schottky
-   (REJECTED — ~5 mA load makes a 0.3V Schottky drop or a FET pointless
-   cost/area; nothing to protect a ~$0.10 op-amp against in a keyed,
-   labeled, fixed install). B: rely on the keyed RJ45 + mandatory
-   "NOT ETHERNET" labeling + controlled install (ACCEPTED, D3 in BRIEF —
-   flagged to the user). The ESD arrays clamp reverse transients; a
-   sustained reverse-plug is prevented administratively, not electrically.
+5. **Reverse polarity AND power injection on pod power** — A: series P-FET /
+   Schottky (REJECTED — ~5 mA load makes a 0.3V Schottky drop or a FET
+   pointless cost/area; nothing to protect a ~$0.10 op-amp against in a
+   keyed, labeled, fixed install). B: rely on the keyed RJ45 + mandatory
+   "NOT ETHERNET" labeling + controlled install (ACCEPTED, BRIEF D3/A1 —
+   signed off by the user). The ESD arrays clamp reverse TRANSIENTS; a
+   sustained reverse-plug or power injection is prevented administratively,
+   not electrically.
+   **AMENDED 2026-07-23 (fix pass): this decision originally analysed only a
+   reversed-polarity plug and CONFLATED it with "wrong device plugged in."**
+   The 4-lens red-team (P0-A/B, P1-E) showed the real dominant hazard is
+   POWER INJECTION: the pod's 5V_AUDIO/GND on contacts 4,5/7,8 alias exactly
+   onto 802.3af/at Alternative-B PoE, so a PoE switch drives 44–57 V straight
+   into U1 V+ (abs-max 40 V) with ZERO series impedance, and Mode-A PoE forces
+   D1 into sustained ~13 W conduction. A hand-crimp swap of 4/5↔7/8 puts V+
+   below V−. NONE of these are covered by "keyed connector" (keying stops a
+   *different connector*, not a switch on the same RJ45 or a mis-crimped
+   cable). This exposure is ACCEPTED as a documented deployment-constraint
+   waiver — the hazard, the controlled-deployment mitigation, and the residual
+   risk are in **ADR-0005** (USER sign-off A1). No protection network, no
+   re-pin, this rev.
 
 ## Consequences
 - No on-board energy source ⇒ E-OFF is N-A (power_tree source_type =
   external). De-energized by unplugging the cable / powering down central.
-- D2 must be populated at build; D3 is a DNP alternate — both in the BOM,
-  D3 marked DNP.
+- D2 AND D3 are both populated at build (D5, 2026-07-23) — both in the BOM
+  and the CPL, both cathode→5V_BEEP. (D3 was DNP in the release-candidate;
+  populated in the fix pass to resolve the P0-D assembly-file defect.)
 - The beep-pair isolation is a PLACEMENT + ROUTING invariant, not just a
   net fact: keep the beep loop in the SW corner, return straight to J1.
 

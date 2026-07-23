@@ -47,6 +47,7 @@ import argparse
 import csv
 import glob
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -66,7 +67,15 @@ def refdes_codes_from_circuit(circuit_json):
             continue
         spn = e.get("supplier_part_numbers") or e.get("supplierPartNumbers") or {}
         jlc = spn.get("jlcpcb") if isinstance(spn, dict) else None
-        out[name] = (jlc[0] if isinstance(jlc, list) and jlc else (jlc or "")) or ""
+        code = (jlc[0] if isinstance(jlc, list) and jlc else (jlc or "")) or ""
+        # An LCSC code is C-prefixed digits (e.g. C559105). A supplier_part_numbers
+        # .jlcpcb value that is an MPN — a hand-solder part's FPID-RESOLUTION HANDLE,
+        # e.g. AOM-5024L-HD-R, used by the converter to map to its 02_parts footprint
+        # for a part JLC does not stock — is NOT an LCSC code. Treat it as uncoded so
+        # it never lands in the BOM's LCSC column (the export imports this same fn),
+        # and so this gate never false-fails a MISSING-code on a hand-solder line
+        # (crow-mic-pod-v2 MK1, render-review finding I, 2026-07-23).
+        out[name] = code if re.fullmatch(r"C\d+", code) else ""
     return out
 
 

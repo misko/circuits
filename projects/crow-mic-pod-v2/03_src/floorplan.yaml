@@ -99,15 +99,27 @@ placement:
       pad_overrides:
         - {clearance: 0.13}
     # FINAL POPULATION (CPL = SMT machine-assembly set only). MK1 (electret) +
-    # J1 (RJ45) are THT HAND-SOLDER; D3 (SMAJ6.0A) is a DNP over-clamp. Excluded
-    # from the CPL (JLC won't machine-place them) but kept in gerbers + BOM,
-    # documented in ORDER_README + MANIFEST not_assembled. Only exclude_from_pos
-    # is used (NOT dnp/exclude_from_bom): the tscircuit converter hardcodes symbol
-    # in_bom=yes/dnp=no, so those attrs would mismatch the symbol (--schematic-
-    # parity); pos_files is not parity-checked, keeping parity clean.
+    # J1 (RJ45) are THT HAND-SOLDER — excluded from the CPL (JLC won't machine-
+    # place them) but kept in gerbers + BOM, documented in ORDER_README +
+    # MANIFEST not_assembled. Only exclude_from_pos is used (NOT dnp/
+    # exclude_from_bom): the tscircuit converter hardcodes symbol in_bom=yes/
+    # dnp=no, so those attrs would mismatch the symbol (--schematic-parity);
+    # pos_files is not parity-checked, keeping parity clean.
+    # D3 (SMAJ6.0A) is POPULATED (D5, 2026-07-23) — it IS a machine-placeable
+    # SMA part and stays in BOTH the BOM and the CPL. It was DNP in the release-
+    # candidate; the 4-lens red-team (P0-D) showed BOM-with-code-but-no-CPL is
+    # an assembly-file defect (JLC bounces it) and a parity-clean end-to-end DNP
+    # is not a proven JLC path with this converter — so D3 is populated as a
+    # redundant beep-loop over-clamp (ADR-0001 amended). NO exclude attr on D3.
     - {match: "MK1", attrs: [exclude_from_pos_files]}
     - {match: "J1",  attrs: [exclude_from_pos_files]}
-    - {match: "D3",  attrs: [exclude_from_pos_files]}
+    # J1 GND tails (contacts 7,8) take SOLID zone connection: the dense 1.02mm-
+    # pitch THT tail field starves 2-layer thermal spokes (only 2-of-4 reach the
+    # pour), per the RJHSE-5384 part.yaml gotcha (red-team P1-F). Full connection
+    # bonds the tails straight into the GND pour.
+    - match: "J1"
+      pad_overrides:
+        - {pads: [7, 8], zone_connection: full}
   legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 40}
 
 design_rules:
@@ -131,10 +143,15 @@ silk:
   # every caption >= 0.6mm: at 0.45mm the min 0.15mm stroke gives ratio 0.33
   # which KiCad's text_thickness DRC flags as too bold (fab-illegible).
   captions:
-    # THE mandatory safety banner (ADR-0003, G7) + full pinout — north clearing
-    - ["NOT ETHERNET - CUSTOM 5V AUDIO PINOUT", 44.0, 13.0, 0.85]
-    - ["J1:  1,2=AUD+/-   3,6=+5VBEEP/RET   4,5=+5V   7,8=GND", 44.0, 16.5, 0.6]
-    - ["crow-mic-pod-v2   MIC POD (board a)", 46.0, 20.0, 0.6]
+    # THE mandatory safety banner (ADR-0003, G7) + full pinout, placed ADJACENT
+    # to J1 (red-team P1-G — was ~15-20mm east clustered with the title). J1 body
+    # bbox is x:11-30, y:18.6-42.6; this sits in the clear strip immediately NORTH
+    # of the connector (y10 board edge .. y18.6 connector top), centred over J1's
+    # x-span (x26 is the west-most a ~30mm 0.85mm banner can sit fully on-board).
+    # The caption de-collision lifts it clear of the M3 hole at (14,14).
+    - ["NOT ETHERNET - CUSTOM 5V AUDIO PINOUT", 26.0, 12.5, 0.85]
+    - ["J1:  1,2=AUD+/-   3,6=+5VBEEP/RET   4,5=+5V   7,8=GND", 26.0, 15.8, 0.6]
+    - ["crow-mic-pod-v2   MIC POD (board a)", 55.0, 13.0, 0.6]
     # short warning at the connector (P-SILK-FN functional text near J1)
     - ["J1 NOT ETHERNET", 20.0, 40.0, 0.6]
     - ["MK1 ELECTRET (+ to R2)", 66.0, 34.0, 0.6]

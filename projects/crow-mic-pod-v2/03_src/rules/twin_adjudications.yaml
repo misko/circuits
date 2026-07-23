@@ -20,9 +20,11 @@
     patterns, so it fails closed as FETCH-FAILED until adjudicated here.
     MK1 is correctly excluded from cpl_jlc.csv (exclude_from_pos_files) —
     it is a hand-solder electret capsule with no SMT footprint at JLC.
-    SEPARATE FINDING (reported, not fixed here): bom_jlc.csv's LCSC column
-    for MK1 should be blank, not the MPN string — a bom-export bug to fix
-    at the next BOM regeneration, not a twin-adjudication matter.
+    FIXED 2026-07-23 (was: MK1's BOM LCSC column carried the MPN string):
+    refdes_codes_from_circuit + the export carry-over now blank any non-C\d+
+    supplier code (an MPN is a converter FPID-resolution handle, never an
+    LCSC), so MK1's BOM LCSC column is now BLANK. This FETCH-FAILED->NO-CAD
+    adjudication still stands (the part is genuinely not in the JLC library).
 
 - lcsc: C9900035627
   refs: [J1]
@@ -126,6 +128,7 @@
     -negative-x numbering as their own footprint). JLC's land is simply
     ~0.19mm longer per side (extra solder-fillet margin, common vendor
     practice for DO-214AC); both patterns are valid for the same physical
-    SMA body. D3 remains DNP by design (not populated) — this
-    adjudication only unblocks the digital-twin check on the CAD fetched
-    via --also for review purposes.
+    SMA body. D3 is POPULATED (ADR-0001 D5, 2026-07-23 — the P0-D fix): it
+    is a normal machine-placed SMA part in BOTH the BOM and the CPL, fetched
+    as an ordinary BOM code (no longer via --also), and this adjudication
+    is the standard land-length PAD-GEOM acceptance for it.

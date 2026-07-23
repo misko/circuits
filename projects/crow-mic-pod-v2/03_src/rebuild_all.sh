@@ -21,9 +21,17 @@ $PY $SK/generate_board_generic.py 03_src/floorplan.yaml
 $PY $SK/generate_rules_generic.py .          # netclasses BEFORE routing (R1)
 $PY 03_src/audit_board.py                     # polarity + mate/keepout (P-POL/P-KEEP)
 
-echo "== route (reuse promoted chain) -> stitch -> cleanup -> rules LAST =="
+echo "== route: REUSE the PROMOTED chain r3 (canon M3) -> stitch -> cleanup -> rules LAST =="
 $PY    $RS prep   03_src/route.yaml
-$KRTPY $RS route  03_src/route.yaml            # reuses 03_src/route/r3.kicad_pcb
+# canon M3 / route.yaml `final:` — REUSE the promoted race-winner chain r3
+# verbatim for REPRODUCIBILITY. `cmd_route` re-races on every run (route.race:5)
+# even when route.final is set, and the boxed-in J1.1 AUDIO_P escape fails on
+# SOME stochastic race candidates (drops the escape -> 1 unconnected). Pin the
+# import at the promoted r3 via the FINAL marker so `import` consumes it, exactly
+# what canon 3g mandates. (To deliberately re-race from scratch, run
+# `$KRTPY $RS route 03_src/route.yaml` here instead — it overwrites FINAL.)
+mkdir -p 06_build/route
+echo "$PWD/03_src/route/r3.kicad_pcb" > 06_build/route/FINAL
 $PY    $RS import 03_src/route.yaml
 $PY    $RS stitch 03_src/route.yaml
 $PY 03_src/cleanup_redundant_vias.py           # drop router vias on same-net THT pads
