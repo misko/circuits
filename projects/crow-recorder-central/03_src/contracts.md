@@ -24,12 +24,13 @@ per-board gate: `audit_board.py` (board-specific placement/pad invariants).
 |---|---|---|
 | `floorplan.yaml` | placement config: outline, mounting holes, named regions, anchors, `repeat:` banks, keepouts, zones, silk, orientation asserts | SHARED `generate_board_generic.py` |
 | `route.yaml` | routing + stitch config: KRT prep/route/import order, pours, thermal vias, pad-rescue, `taps:` (collision-checked named connections KRT cannot thread), and the stitch pass list — `dedupe_vias / normalize_vias / drop_micro_fragments / drop_dangling / split_t_junctions / reload / hole_to_hole / pad_rescue / stub_fallback / astar_fallback / stitch_grid / power_stitch / via_janitor / fill / island_rescue / heal_islands / prune_stitch_dangling / gate` (order is per-board config; `heal_islands` after the last `fill` auto-bridges same-net pour splits — the "Zone [X] <-> Zone [X]" DRC class) | SHARED `route_and_stitch_generic.py` (`prep`/`route`/`import`/`taps`/`stitch`) |
-| `rules/` | `nets.yaml` (netclasses + ampacity), `policy_waivers.yaml`, `twin_adjudications.yaml` — see `rules/contracts.md` | SHARED `generate_rules_generic.py`, policy_audit, jlc_twin |
+| `rules/` | `nets.yaml` (netclasses + ampacity), `electrical_invariants.yaml` (E-INV intent assertions), `power_tree.yaml` (E-TOPO per-rail voltage envelopes), `policy_waivers.yaml`, `twin_adjudications.yaml` — see `rules/contracts.md` | SHARED `generate_rules_generic.py`, policy_audit, jlc_twin |
 | `route/**` | the PROMOTED KRT chain (`*.kicad_pcb`) — a committed ARTIFACT, not code (canon M3); `import` replays it deterministically | SHARED `route_and_stitch_generic.py import` |
 | `audit_board.py` | the ONLY per-board emitter: the placement/pad invariant gate (polarity, proximity, plane-clean, refdes-on-silk, and any BOARD-SPECIFIC guard e.g. an analog-keepout distance). Everything else is config or shared. | — |
 | `bom_seed.py` | maps BOM comments → `02_parts/` MPN → LCSC; fails on unmapped/TBD lines | required before ordering |
 | `rebuild_all.sh` | THE entry point: thin driver that calls the SHARED generics in canonical order, `set -euo pipefail` | REQUIRED |
 | `export_pdfs.sh` | release PDF set (pcb_layers, assembly) + PNG verification renders | |
+| `route_waves.sh` | **STOPGAP ONLY (canon M8)**: the KRT wave-routing driver for this board (staged fanout/route passes); a shell sibling of the `*.py` stopgaps, superseded once `route_and_stitch_generic.py` absorbs wave staging | routing |
 | `lib/` | project-local footprints tscircuit/KiCad can't yet express — see `lib/contracts.md` | |
 | `*.py` | **STOPGAP ONLY (canon M8)**: any script beyond `audit_board.py`/`bom_seed.py` is a declared backend gap — its docstring MUST name the gap and the config schema that would replace it. The SECOND board needing the same script triggers mandatory promotion into the shared backend | `rebuild_all.sh` |
 | `contracts.md` | this file | |

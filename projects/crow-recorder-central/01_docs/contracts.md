@@ -19,6 +19,9 @@ one that is unrecoverable if lost.
 | `renders/**` | TRACKED render pair per revision: `bare_<side>.png` (Cu+Mask+Silk fab view — the no-components truth) + the modeled twin renders. ALWAYS produced (SKILL stage 7); a bodiless modeled render means missing 3D model, never unpopulated — CPL is population ground truth (usb-hub-3s incident 2026-07-21) | committed |
 | `journal/` | per-stage diary: append an entry at every stage start/iteration/finish | see `journal/contracts.md`; enforced by policy_audit M-JRNL |
 | `learnings/` | per-stage harvest source, written at stage completion | see `learnings/contracts.md`; enforced by policy_audit M-LEARN at release |
+| `brief_source_condensed.md` | the condensed commission source that `BRIEF.md` hashes (`prompt_sha256`) and quotes | verbatim, hashed, immutable — the hashable source behind the verbatim prompt block |
+| `reference/**` | condensed engineering notes distilled from the vendor manuals (e.g. `xmos_mc_audio_notes.md`) | supporting reference; not a gate input |
+| `*.pdf` | vendor hardware manual(s) the commission depends on, held in-tree for provenance (e.g. `xmos_mc_audio_hw_manual_1V1.pdf`) | reference PDF; large binary, committed for reproducibility |
 | `contracts.md` | this file | |
 
 ## Forbidden

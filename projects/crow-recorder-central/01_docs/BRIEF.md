@@ -1,8 +1,8 @@
 # brief: crow-recorder-central
 
-status: in-progress (design adopted, board reproduces DRC-green at the routing boundary; planned handoff 2026-07-21 — see 01_docs/journal/routing.md for the successor work order)
+status: sealed (release v1.0-2026-07-22 — DRC 0 violations / 0 parity / 2 GND-sliver unconnected waived under ADR-0010; both zero-context red-team reviews returned ORDER; see 07_releases/v1.0-2026-07-22/ + CHANGELOG.md)
 prompt_sha256: be9e677e3628dcf801affba573593bc836bfb9a71290dadde58d09e819590c39
-current_release: no
+current_release: v1.0-2026-07-22
 
 ## Original prompt
 

@@ -12,6 +12,7 @@ libraries.
 |---|---|
 | `<name>.pretty/**` | KiCad footprint library owned by this project (all .kicad_mod inside) |
 | `*.kicad_mod` | inside a `.pretty/` only |
+| `*.kicad_sym` | project-local KiCad SYMBOL library owned by this project (symbols tscircuit/KiCad stock libs can't yet express) |
 | `3dmodels/*.{step,wrl}` | 3D models for owned footprints |
 | `contracts.md` | this file |
 
