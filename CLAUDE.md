@@ -72,6 +72,17 @@ post-mortems — `git log` is a primary source, not just history).
   cites lives in `examples/` (append-only snapshots with PROVENANCE.md);
   project templates live in `skills/pcb-design/templates/` — one home each,
   no drift. Enforced as C-ISO by the same audit.
+- **A skill change is not done until its contract catches up.** When you add
+  or change a gate/check-ID (`design-policies.md`, `policy_audit.py`), a
+  pipeline stage, or a source-file schema (`part.yaml`, `nets.yaml`,
+  `floorplan.yaml`, …), AUDIT the governing `contracts.md` template in
+  `skills/pcb-design/templates/contracts/` and update it in the SAME change —
+  a capability with no contract home drifts silently (the escape-block schema
+  drifted this way, 2026-07-21; P-LAYOUT/P-ADJ landed with its 02_parts
+  contract, 2026-07-22). The template is the source of truth; existing project
+  copies are seeded from it and re-synced on their next revision, not
+  retro-edited into sealed releases. Machine backstop: `t1_contracts.py`
+  `t_skill_contract_sync` cross-checks the two.
 
 ## Mechanics
 

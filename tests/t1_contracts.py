@@ -166,5 +166,57 @@ def t_template_seed():
     contains(r.out, "0 violations", "seeded project audits clean")
 
 
+@test("skill<->contract sync: every emitted check-ID is in canon; no contract "
+      "cites a check-ID that exists nowhere in the skill", kind="known_bad")
+def t_skill_contract_sync():
+    """A gate added to policy_audit but not to design-policies.md, or a
+    contract citing a retired ID, is silent skill<->governance drift — the
+    class that let the escape-block schema drift (2026-07-21) and that made
+    P-LAYOUT/P-ADJ land WITH its 02_parts contract (2026-07-22). This is the
+    machine backstop the CLAUDE.md 'a skill change is not done until its
+    contract catches up' rule points to.
+    RED-VERIFIED inline: a synthetic emitted ID absent from canon is caught."""
+    import re
+    skills = ROOT / "skills"
+    canon = (skills / "kicad-pcb/references/design-policies.md").read_text()
+    audit = (skills / "kicad-pcb/scripts/policy_audit.py").read_text()
+    skill = (skills / "pcb-design/SKILL.md").read_text()
+
+    def emitted(txt):
+        return set(re.findall(
+            r'(?:grade\(|rows\.append\(\()"([A-Z][A-Z0-9-]+)"', txt))
+
+    def in_(hay, i):
+        return re.search(rf'(?<![\w-]){re.escape(i)}(?![\w-])', hay) is not None
+
+    # 1. every check-ID the audit EMITS must be documented in the canon
+    missing = sorted(i for i in emitted(audit) if not in_(canon, i))
+    check(not missing, "check-IDs emitted by policy_audit but undocumented in "
+                       f"design-policies.md (add the canon row): {missing}")
+
+    # 2. no contract template may cite a check-ID that exists NOWHERE in the
+    #    skill (canon + audit + SKILL.md) — a stale/orphaned governance claim.
+    #    A contract may still PROPOSE a future gate: a citation on a line marked
+    #    candidate/proposed/future/TODO/planned is exempt (forward-reference,
+    #    not drift).
+    corpus = canon + "\n" + audit + "\n" + skill
+    FWD = re.compile(r'candidate|proposed|future|todo|planned', re.I)
+    cited = set()
+    for c in (skills / "pcb-design/templates/contracts").rglob("contracts.md"):
+        for line in c.read_text().splitlines():
+            if FWD.search(line):
+                continue
+            cited |= set(re.findall(
+                r'(?<![\w-])([SPRMED]-[A-Z][A-Z0-9-]+)(?![\w-])', line))
+    orphan = sorted(i for i in cited if not in_(corpus, i))
+    check(not orphan, "contract templates cite check-IDs that exist nowhere in "
+                      f"the skill (stale governance reference): {orphan}")
+
+    # 3. RED: the logic must catch a gate that skipped the canon
+    fake = emitted('    grade("Z-NOPE", ok, "", "")')
+    check("Z-NOPE" in fake and not in_(canon, "Z-NOPE"),
+          "sync logic failed to detect a synthetic un-canonized gate")
+
+
 if __name__ == "__main__":
     main()
