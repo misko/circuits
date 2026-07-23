@@ -759,6 +759,27 @@ def _route_one_tap(pcbnew, tk, t, i, vs, vd):
         tk.add_via(*p2, nobj, size=vs, drill=vd)
         return "plane_tap"
 
+    if t.get("escape"):
+        # BOXED FINE-PITCH PIN escape (design-policies R-ESC-LAYER). A pin whose
+        # net-target sits across a congested F.Cu channel escapes by LAYER, not
+        # by placement: a via-in-pad at the pad (advanced-tier via_in_pad) drops
+        # the net to the hop layer UNDER the channel, then a wide-window coarse-
+        # grid 2-layer A* reaches a point inside the net's (as-yet-unfilled)
+        # pour; `stitch` fills and bonds it. Placement/channel-widening does NOT
+        # rescue this: measured on usb-hub-3s-v2 TPS25740A, a 2.5mm part shift
+        # moved the haul only 7.0->6.2mm because the channel y-gap dominates and
+        # cannot shrink (the gate nets need it). `to` is a point inside the pour.
+        if not tk.via_site_ok(p1[0], p1[1], nc, size=vs, drill=vd):
+            print(f"       {what}: via-in-pad site blocked at {p1}")
+            return None
+        if tk.verified_astar(netname, p1, p2, w,
+                             grid=float(t.get("escape_grid", 0.25)),
+                             window=float(t.get("escape_window", 4.0)),
+                             viacost=int(t.get("escape_viacost", 8)),
+                             attempts=int(t.get("escape_attempts", 14))):
+            return "escape"
+        return None
+
     # strategy 1: same-layer join (direct / L / Z scan), no vias
     if tk.joinpath(netname, p1, p2, w, layer=lay) is not None:
         return "joinpath"
