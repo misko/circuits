@@ -55,6 +55,11 @@ that it was evaluated.**
 - Any deviation from the datasheet-recommended design.
 - Any deliberate tolerance of a flagged issue ("15mΩ ESR vs 25mΩ design —
   accepted because the ceramic bank dominates above 20kHz").
+- For a self-powered board: how it is DE-ENERGIZED (master disconnect /
+  load-switch / EN-gating, or an ADR-justified always-on) and its stored
+  quiescent draw — the mandatory input-protection ADR must settle this;
+  usb-hub-3s-v3 (2026-07-23) self-drained a LiPo pack via always-on EN pins
+  because no ADR asked. Emitted to `power_tree.yaml` for the E-OFF gate.
 - Any review finding dispositioned as "not a bug" — with the disproof.
 - Any structural decision a future agent might "helpfully" undo.
 

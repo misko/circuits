@@ -132,14 +132,16 @@ flags for sanctioned floats emitted upstream), **S2** (no auto-named nets reach
 copper), **R1** (netclasses exist in the route-INPUT project file — R-RULES
 inspects it), **E-INV/E-ADR** (the netlist graded against the intent assertions
 in `rules/electrical_invariants.yaml`; every protection/topology ADR must emit
->= 1), **E-TOPO** (converter topology DERIVED from `rules/power_tree.yaml`
-voltage envelopes and asserted against the converter `part.yaml` `type:`),
+>= 1), **E-TOPO/E-MARGIN/E-OFF** (all from `rules/power_tree.yaml`: converter
+topology DERIVED from the voltage envelopes and asserted against the converter
+`part.yaml` `type:`; the output-setpoint load margin vs the delivery IR drop at
+Imax; and a battery source's de-energization path + stored quiescent draw),
 **M3** (everything regenerable: the promoted route chain lives in
 `03_src/route/` and is committed; `06_build` stays disposable), **M4**
 (waivers/adjudications in `rules/` each carry measurement evidence).
 
 - Audit: `policy_audit.py <project>` runs S-ERC, S-NC, S-NET, R-RULES, M-REPRO,
-  M-WAIV directly, plus E-INV, E-ADR, E-TOPO via the intent checkers
+  M-WAIV directly, plus E-INV, E-ADR, E-TOPO, E-MARGIN, E-OFF via the intent checkers
   `electrical_invariants.py` / `power_topology.py` it drives. Zero FAIL required
   at release.
 - Waivers live in `rules/policy_waivers.yaml`:

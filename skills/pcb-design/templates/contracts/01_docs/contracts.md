@@ -161,7 +161,10 @@ Required sections:
   lets converter topology be interpreted instead of derived. Name the nets
   exactly as they appear in `03_src/rules/nets.yaml`. Machine-readable rail
   envelopes (vin/vout min-max, iout, converter) belong in
-  `03_src/rules/power_tree.yaml` (the E-TOPO input), not here — link to it.
+  `03_src/rules/power_tree.yaml` (the E-TOPO / E-MARGIN / E-OFF input — also
+  per-rail `load_uv_threshold`/`ir_budget_mohm` for a rail feeding a known
+  load, and top-level `source_type`/`off_control`/`quiescent_ua` for a battery
+  source), not here — link to it.
 - `## Net domains` — the classes and what makes each one special. Link each
   to its `nets.yaml` entry. Do not restate widths here; they drift.
 - `## Stackup` — layer count and what each layer is FOR.
@@ -225,7 +228,11 @@ throughout (protection ADR mandatory; split planes, trunk-instead-of-pour,
 and any policy waiver each need a written decision). A protection/topology
 ADR is not complete until it emits >= 1 assertion into
 `03_src/rules/electrical_invariants.yaml` (canon E-INV); **E-ADR** flags a
-protection ADR that emits none.
+protection ADR that emits none. For a self-powered board the protection ADR
+must also settle OFF-CONTROL (de-energization) + stored quiescent draw,
+emitted to `03_src/rules/power_tree.yaml` where **E-OFF** gates it; a regulated
+rail feeding a known load pins its `load_uv_threshold` + `ir_budget_mohm` there
+for **E-MARGIN**.
 
 - Audit: run `policy_audit.py <project>` — M-REL includes the CHANGELOG
   check; S5 is HUMAN-graded (a fresh reviewer re-derives two values from

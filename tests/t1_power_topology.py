@@ -18,6 +18,18 @@ the checker fails for the RIGHT reason (over-engineered vs cannot-meet vs a
 schema/envelope error vs an under-built trunk). THE INCIDENT itself (IP6559
 buck_boost on a 5V-only rail) is pinned as the primary known-bad, using the
 real part.yaml `type:` string (pd_source_buckboost_soc) as paid-for evidence.
+
+E-MARGIN + E-OFF (2026-07-23, usb-hub-3s-v3 external review) are power_tree.yaml
+siblings of E-TOPO added here. usb-hub-3s-v3 passed BOTH zero-context red-team
+reviews with two defects neither flagged: (A) a 4.97V rail feeding a Pi5
+(UV ~4.63V) at 5A left only ~68 mOhm for board+connector+cable IR drop
+(E-MARGIN); (B) a 3S-LiPo board tied both buck EN pins active with no master
+switch idle-drained the pack in storage (E-OFF). RED-VERIFIED (new-gate
+variant): the --margin / --off-control MODES did not exist before this change,
+so against pre-change power_topology.py the flag is an unrecognized argument
+(argparse exit 2) carrying NONE of the asserted failure text -- every E-MARGIN /
+E-OFF case below goes RED. Each known-bad is additionally a passing-TOPOLOGY
+board broken in exactly one margin/off dimension.
 """
 import sys
 from pathlib import Path
@@ -188,6 +200,180 @@ def t_type_unclassifiable():
                 parts={"SEPICPART": "sepic_controller"})
     r = must_fail(etopo(d), "E-TOPO on an unclassifiable type", "LOAD ERROR")
     contains(r.out, "does not classify", "explains the type must classify")
+
+
+# ============================ E-MARGIN =====================================
+# Output SETPOINT vs load brownout, net of the delivery IR drop. A rail feeding
+# a KNOWN load declares load_uv_threshold (ACTIVATES the check); the setpoint
+# headroom must buy more series resistance than the delivery path burns at Imax.
+def railx(name, vin_min, vin_max, vout_min, vout_max, iout, conv, **extra):
+    """rail() plus arbitrary OPTIONAL per-rail fields (load_uv_threshold,
+    ir_budget_mohm, margin) appended into the same mapping."""
+    s = rail(name, vin_min, vin_max, vout_min, vout_max, iout, conv)
+    for k, v in extra.items():
+        s += f"    {k}: {v}\n"
+    return s
+
+
+def margin(d):
+    return run([KPY, PTOP, d, "--margin"])
+
+
+def offctl(d):
+    return run([KPY, PTOP, d, "--off-control"])
+
+
+@test("E-MARGIN is N-A when no rail declares load_uv_threshold")
+def t_margin_na():
+    """Only a rail feeding a fixed-brownout load has a setpoint margin to
+    grade; a plain 5V hub rail is N-A, not a false FAIL."""
+    d = project(ptree(rail("USB-A", 9.0, 12.6, 5, 5, 7, "LM5116MHX-NOPB")),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_pass(margin(d), "E-MARGIN with no load_uv_threshold")
+    contains(r.out, "N-A", "N-A report")
+
+
+@test("E-MARGIN PASSES a healthy setpoint (5.1V into a Pi5, 60mOhm delivery)")
+def t_margin_pass():
+    """The corrected form of the incident: a 5.1V setpoint over an assumed
+    60mOhm path clears the Pi5 brownout with margin (headroom 470mV vs
+    60mOhm x 5A x 1.2 = 360mV)."""
+    d = project(ptree(railx("PI5", 9.0, 12.6, 5.1, 5.1, 5, "LM5116MHX-NOPB",
+                            load_uv_threshold=4.63, ir_budget_mohm=60)),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_pass(margin(d), "E-MARGIN on a healthy setpoint")
+    contains(r.out, "E-MARGIN OK", "clean report")
+
+
+@test("E-MARGIN FAILS THE INCIDENT (floor mode): 4.97V into a Pi5 at 5A = 68mOhm",
+      kind="known_bad")
+def t_margin_incident_floor():
+    """usb-hub-3s-v3 (2026-07-23, external review): a rail regulated to 4.97V
+    fed a Pi5 (UV ~4.63V) at 5A -- only (4.97-4.63)/5A = 68 mOhm TOTAL for
+    board+connector+cable, below the 100 mOhm floor a real 5A USB-C delivery
+    path exceeds. With only load_uv_threshold declared this is the
+    (Vout-UV)-below-a-margin-floor form. Both zero-context reviews computed
+    4.97V and neither flagged the margin."""
+    d = project(ptree(railx("PI5", 9.0, 12.6, 4.97, 4.97, 5, "LM5116MHX-NOPB",
+                            load_uv_threshold=4.63)),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_fail(margin(d), "E-MARGIN on the 4.97V incident", "68 mOhm")
+    contains(r.out, "floor", "names the floor it falls under")
+    contains(r.out, "raise the setpoint", "prescribes the fix")
+
+
+@test("E-MARGIN FAILS THE INCIDENT (precise mode): 4.97V, ir_budget 150mOhm",
+      kind="known_bad")
+def t_margin_incident_precise():
+    """Same 4.97V rail, now declaring the real delivery resistance
+    (ir_budget_mohm: 150 -- a 2m e-marked 5A USB-C cable + connectors): the IR
+    drop is 750mV but the setpoint only has 340mV of headroom, so the Pi browns
+    out under load. FAILS even at the default 1.2x margin."""
+    d = project(ptree(railx("PI5", 9.0, 12.6, 4.97, 4.97, 5, "LM5116MHX-NOPB",
+                            load_uv_threshold=4.63, ir_budget_mohm=150)),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_fail(margin(d), "E-MARGIN precise-mode incident", "browns out")
+    contains(r.out, "750 mV", "prints the IR drop at Imax")
+    contains(r.out, "68 mOhm", "still surfaces the 68mOhm budget")
+
+
+@test("E-MARGIN FAILS a setpoint already below the load brownout (dead on arrival)",
+      kind="known_bad")
+def t_margin_dead_on_arrival():
+    """The degenerate case: a 4.5V worst-case output is already under the
+    4.63V brownout before ANY IR drop -- headroom is negative."""
+    d = project(ptree(railx("PI5", 9.0, 12.6, 4.5, 4.5, 5, "LM5116MHX-NOPB",
+                            load_uv_threshold=4.63)),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_fail(margin(d), "E-MARGIN on a sub-brownout setpoint",
+                  "dead on arrival")
+
+
+# ============================== E-OFF ======================================
+# A self-contained energy source (battery/cell/pack) must document its
+# de-energization path (off_control) + stored quiescent draw (quiescent_ua).
+@test("E-OFF is N-A for an externally powered board (unplugging de-energizes)")
+def t_off_na_external():
+    """A USB-bus-powered board has no stored energy to drain -- N-A, not a
+    false FAIL demanding a switch."""
+    d = project(ptree(rail("OUT", 4.75, 5.25, 3.3, 3.3, 2, "LM5116MHX-NOPB"),
+                      top="source_type: usb-c bus power\n"),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_pass(offctl(d), "E-OFF on a USB-powered board")
+    contains(r.out, "N-A", "N-A report")
+
+
+@test("E-OFF PASSES a battery board with a master switch + declared quiescent draw")
+def t_off_pass():
+    """The corrected form: source_type is a battery, off_control names a master
+    disconnect, quiescent_ua is a number."""
+    top = ('source_type: 3S-LiPo pack\n'
+           'off_control: "SW1 master slide switch in series with VBAT"\n'
+           'quiescent_ua: 60\n')
+    d = project(ptree(rail("PI5", 9.0, 12.6, 5, 5, 5, "LM5116MHX-NOPB"), top=top),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_pass(offctl(d), "E-OFF on a switched battery board")
+    contains(r.out, "E-OFF OK", "clean report")
+
+
+@test("E-OFF FAILS THE INCIDENT: a battery board with no de-energization declared",
+      kind="known_bad")
+def t_off_incident():
+    """usb-hub-3s-v3 (2026-07-23, external review): a 3S-LiPo board tied both
+    buck EN pins active with no master switch -- the controllers idle-drain the
+    pack in storage. No review asked how it is de-energized. The board declares
+    a battery source but neither off_control nor quiescent_ua."""
+    d = project(ptree(rail("PI5", 9.0, 12.6, 5, 5, 5, "LM5116MHX-NOPB"),
+                      top="source_type: 3S-LiPo pack\n"),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_fail(offctl(d), "E-OFF on the 3S-LiPo incident", "no off_control")
+    contains(r.out, "idle-drain", "explains the pack self-drains")
+    contains(r.out, "no quiescent_ua", "also flags the undeclared stored draw")
+
+
+@test("E-OFF detects the battery via VBAT nets even with no source_type",
+      kind="known_bad")
+def t_off_incident_via_nets():
+    """The detector is not source_type-only: a nets.yaml class carrying VBAT is
+    enough to fire E-OFF, so a power_tree that omits source_type still can't
+    duck the check."""
+    d = project(ptree(rail("PI5", 9.0, 12.6, 5, 5, 5, "LM5116MHX-NOPB")),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE},
+                nets="classes:\n  PWR_IN:\n    nets: [VBAT, VBAT_F]\n"
+                     "    current: \"15 A\"\n")
+    r = must_fail(offctl(d), "E-OFF via VBAT nets", "no off_control")
+    contains(r.out, "VBAT", "names the battery net that triggered detection")
+
+
+@test("E-OFF FAILS an always-on off_control with no ADR reference",
+      kind="known_bad")
+def t_off_alwayson_no_adr():
+    """Always-on is allowed ONLY as an explicit ADR-justified decision; a bare
+    always-on (the pack self-drains, undocumented) is a FAIL even though
+    quiescent_ua is declared."""
+    top = ('source_type: 3S-LiPo pack\n'
+           'off_control: "always-on"\n'
+           'quiescent_ua: 1200\n')
+    d = project(ptree(rail("PI5", 9.0, 12.6, 5, 5, 5, "LM5116MHX-NOPB"), top=top),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_fail(offctl(d), "E-OFF on bare always-on", "no ADR reference")
+    contains(r.out, "always-on", "names the offending off_control")
+
+
+@test("E-OFF PASSES always-on WHEN an ADR justifies it (+ prints self-drain days)")
+def t_off_alwayson_with_adr():
+    """An always-on decision carrying an ADR reference passes; with
+    pack_capacity_mah declared the checker prints the advisory self-drain time
+    (5000mAh / 1200uA ~= 174 days)."""
+    top = ('source_type: 3S-LiPo pack\n'
+           'off_control: "always-on; storage self-drain accepted (ADR-0009)"\n'
+           'quiescent_ua: 1200\n'
+           'pack_capacity_mah: 5000\n')
+    d = project(ptree(rail("PI5", 9.0, 12.6, 5, 5, 5, "LM5116MHX-NOPB"), top=top),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_pass(offctl(d), "E-OFF on ADR-justified always-on")
+    contains(r.out, "E-OFF OK", "clean report")
+    contains(r.out, "self-drain", "prints the advisory self-drain time")
 
 
 if __name__ == "__main__":

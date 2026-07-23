@@ -114,6 +114,13 @@ handoff loses nothing.
   buck/boost/buck_boost from Vin-vs-Vout and asserts the chosen part matches —
   over-capable (buck_boost where buck suffices) fails as over-engineering
   unless an ADR justifies the extra capability.
+  For a regulated rail feeding a KNOWN load also pin its `load_uv_threshold`
+  (the load's brownout V) + `ir_budget_mohm` (delivery board+connector+cable
+  resistance) so **E-MARGIN** gates the setpoint headroom; for a self-powered
+  board pin `source_type` + `off_control` + `quiescent_ua` so **E-OFF** gates
+  de-energization + stored drain (usb-hub-3s-v3 2026-07-23: a 4.97V-into-Pi5
+  thin margin and a LiPo pack self-draining via always-on EN pins BOTH passed
+  two zero-context red-team reviews — neither was a number the gates checked).
   **SOURCING SPIKE (part of D-SPEC): scarcity is discovered at COMMISSION,
   never at parts stage.** For every SPEC-CRITICAL function (one a
   requirement/directive names explicitly — "5A compliant USB-C", "isolated
@@ -219,9 +226,18 @@ one pass. The trigger existed in hindsight only — now it is a rule.)
    one ADR per real decision in `01_docs/decisions/` — alternatives,
    rejection reasons, live stock data for part choices.
    **Mandatory ADR: battery/input protection** (reverse polarity, fuse,
-   UVLO/over-discharge, OV, TVS clamp vs downstream ratings) — a
-   clean-room run once shipped a LiPo board with zero UVLO because no
-   stage forced the question.
+   UVLO/over-discharge, OV, TVS clamp vs downstream ratings, AND — for a
+   self-powered board — OFF-CONTROL: how it is de-energized for storage
+   (a master disconnect / load-switch / EN-gating, or an ADR-justified
+   always-on) plus its STORED QUIESCENT DRAW) — a clean-room run once
+   shipped a LiPo board with zero UVLO because no stage forced the
+   question; usb-hub-3s-v3 (2026-07-23) tied both buck EN pins active with
+   no master switch and self-drained the pack in storage because no stage
+   asked how it turns OFF. Emit the off-control + quiescent-draw decision
+   into `03_src/rules/power_tree.yaml` (`source_type:` / `off_control:` /
+   `quiescent_ua:`) so the E-OFF gate checks it, and — for a regulated rail
+   feeding a known brownout-sensitive load — its `load_uv_threshold:` +
+   `ir_budget_mohm:` so E-MARGIN gates the output-setpoint headroom.
 2. `02_parts/<MPN>/part.yaml` per part: pin map read from the datasheet
    FIGURE (not assumed), `verified:` note naming figure+page, LCSC code +
    alternates. Stock is CHECKED at selection (jlc_stock_check) but NOT
@@ -478,7 +494,26 @@ jlc_stock run first (seconds, and twin consumes the BOM).
   the NETLIST (reverse-polarity behavior incl. TVS directionality), check
   every clamp-vs-protected-part rating pair from part.yaml limits,
   recompute thresholds at worst-case corners, diff design docs vs the
-  implemented BOM/netlist;
+  implemented BOM/netlist. TWO CHECKS THAT PASSED usb-hub-3s-v3 (2026-07-23)
+  ON BOTH ZERO-CONTEXT REVIEWS AND ARE NOW MANDATORY, BY CONSTRUCTION:
+    - **Setpoint-vs-load margin (E-MARGIN).** For every regulated rail
+      feeding a KNOWN load, take the load's brownout/undervoltage voltage and
+      compute (Vout_setpoint − Vbrownout); at Imax that difference is the TOTAL
+      IR budget (mΩ) for board + connector + cable. State the real cable +
+      connector + trace resistance and confirm it fits WITH margin — a thin
+      budget browns the load out under load. (v3: 4.97V into a Pi5 UV~4.63V at
+      5A = 68mΩ, less than a real 5A USB-C cable alone; both prior reviews
+      computed 4.97V and neither judged the margin.) Confirm `power_tree.yaml`
+      pins `load_uv_threshold` + `ir_budget_mohm` for such rails and E-MARGIN
+      passes.
+    - **De-energization / stored quiescent drain (E-OFF).** For any
+      self-powered (battery/cell/pack) board, ask: HOW is it de-energized for
+      storage/shipping — a master disconnect, or are converter EN pins tied
+      always-on? What is the stored quiescent draw and pack self-drain time?
+      Confirm the `off_control` declared in `power_tree.yaml` actually EXISTS
+      in the netlist (a switch genuinely in series / EN genuinely gated), not
+      merely asserted. (v3: both buck EN pins tied active, no switch — the pack
+      self-drained in storage; no review asked how it turns off.)
   (b) **layout/thermal/power-integrity lens** — MEASURE the board with
   pcbnew (hot-loop spans in mm, switch-node zone areas + layer adjacency
   vs the stackup, gate-drive routing, thermal vias vs computed
@@ -504,8 +539,11 @@ jlc_stock run first (seconds, and twin consumes the BOM).
   S5) carry verdicts from the fresh-context reviews. Includes E-INV and
   E-ADR (canon E-INV): the netlist is graded against the intent assertions in
   `03_src/rules/electrical_invariants.yaml`, and every protection/topology ADR
-  must emit at least one. Ship `06_build/policy_audit.md` in the release's
-  verification/.
+  must emit at least one. Also the power-tree gates E-TOPO / E-MARGIN / E-OFF
+  (converter topology, output-setpoint load margin, and a battery source's
+  de-energization + stored quiescent draw, all from
+  `03_src/rules/power_tree.yaml`). Ship `06_build/policy_audit.md` in the
+  release's verification/.
 
 Before cutting the release, HARVEST the ledger: every part this board
 newly verified (shipped or fully twin/pin-verified) gets its entry in

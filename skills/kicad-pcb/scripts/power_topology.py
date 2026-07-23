@@ -1,9 +1,19 @@
 #!/usr/bin/env python3
-"""POWER-TREE TOPOLOGY gate (E-TOPO) — make converter-topology selection a
-mechanical commission-stage check DERIVED from Vin-vs-Vout, not interpreted.
+"""POWER-TREE gate battery (E-TOPO / E-MARGIN / E-OFF) — three mechanical
+commission-stage checks DERIVED from 03_src/rules/power_tree.yaml, so
+converter topology, output-setpoint load margin, and de-energization are
+gated numbers, not things a reviewer has to remember to eyeball.
 
-WHY THIS EXISTS
----------------
+  E-TOPO  - converter topology DERIVED from Vin-vs-Vout (this file's original
+            job).                                        [default invocation]
+  E-MARGIN- a regulated rail feeding a KNOWN load must clear the load's
+            brownout with real IR headroom.                       [--margin]
+  E-OFF   - a self-contained energy source (battery/cell/pack) must document
+            its de-energization path + bounded stored quiescent draw.
+                                                             [--off-control]
+
+WHY E-TOPO EXISTS
+-----------------
 usb-hub-3s (2026-07-22) was built with an IP6559 BUCK-BOOST SoC for its USB-C
 port plus a 16 A input trunk — but the USB-C output is 5 V ONLY and the battery
 is 9-12.6 V, so Vout(5 V) < Vin_min(9 V) ALWAYS: a simple step-down BUCK
@@ -12,6 +22,31 @@ compact hot-loop congestion + a 16 A trunk) existed only to support >5 V PDOs
 the spec never required. Root cause: D-SPEC pinned the CURRENT ("5 A compliant")
 but never the OUTPUT VOLTAGE RANGE, and the converter TOPOLOGY was interpreted,
 not DERIVED from Vin vs Vout. This gate closes that loop.
+
+WHY E-MARGIN EXISTS
+-------------------
+usb-hub-3s-v3 (2026-07-23, external review): a rail regulated to 4.97 V fed a
+Raspberry Pi 5 (undervoltage detect ~4.63 V) at 5 A - leaving only
+(4.97-4.63)/5 A ~= 68 mOhm of TOTAL budget for board + connector + cable IR
+drop. A real e-marked 5 A USB-C cable + two connector pairs alone exceeds that,
+so the Pi browns out under load. BOTH zero-context red-team reviews COMPUTED the
+4.97 V setpoint and neither flagged the thin margin. E-MARGIN makes the headroom
+a number: for a rail that declares its load's undervoltage threshold, the
+setpoint headroom must buy more series resistance than the delivery path will
+burn at Imax (with margin). The cable/connector ASSUMPTION is a judgment call
+([H], red-team checklist); the arithmetic once assumed is [M] here.
+
+WHY E-OFF EXISTS
+----------------
+usb-hub-3s-v3 (2026-07-23, external review): a 3S-LiPo board tied both buck EN
+pins active with no master switch - so the controllers idle-drain the pack the
+whole time it sits in storage. No review asked "how is it de-energized / does it
+self-drain?". E-OFF makes a battery board DECLARE its de-energization path
+(off_control) and its stored quiescent draw (quiescent_ua); an always-on design
+must be an explicit ADR decision, never a silent default. Whether the declared
+mechanism actually exists in the netlist, and whether the drain is acceptable
+for the pack, are [H] (the mandatory input-protection ADR + the red-team
+checklist).
 
 THE PHYSICS (deterministic — this is the whole check)
 -----------------------------------------------------
@@ -38,9 +73,24 @@ FAIL. A trunk/fuse sized > 2x the derived need is OVER-built -> advisory FLAG
 USAGE
 -----
   power_topology.py PROJECT_DIR
-      Grade every rail in PROJECT_DIR/03_src/rules/power_tree.yaml.
+      E-TOPO: grade every rail's converter topology in
+      PROJECT_DIR/03_src/rules/power_tree.yaml.
       Exit 0 all-pass, 1 on any topology/under-built FAIL, 2 on a load/config
       error (bad schema, missing vout range). No power_tree.yaml -> N-A, exit 0.
+
+  power_topology.py PROJECT_DIR --margin
+      E-MARGIN: for every rail that declares load_uv_threshold, grade the
+      output-setpoint headroom against the delivery IR drop at Imax. A rail
+      declares its worst case with ir_budget_mohm (board+connector+cable series
+      resistance); a rail that omits it is graded against the ir_floor_mohm
+      floor (default 100 mOhm). Exit 0 pass/N-A, 1 on any FAIL, 2 on a load
+      error.
+
+  power_topology.py PROJECT_DIR --off-control
+      E-OFF: if a self-contained energy source (battery/cell/pack) is detected
+      (source_type:, or VBAT/BATT/PACK nets, or a battery ADR), require
+      off_control: + quiescent_ua: to be declared; an always-on off_control with
+      no ADR reference is a FAIL. Exit 0 pass/N-A, 1 on any FAIL.
 
   power_topology.py --derive VIN_MIN VIN_MAX VOUT_MIN VOUT_MAX
       Print the derived topology for an ad-hoc range and exit 0 (calibration).
@@ -147,6 +197,11 @@ def _num(v, field, name):
         raise LoadError(f"rail {name!r} field {field!r}={v!r} is not a number")
 
 
+def _num_opt(v, field, name):
+    """_num, but None passes through (an OPTIONAL numeric field)."""
+    return None if v is None else _num(v, field, name)
+
+
 def load_rails(path):
     """Parse + validate power_tree.yaml. Raises LoadError naming the offending
     rail on any schema problem (esp. a missing Vout ENVELOPE — the incident)."""
@@ -160,7 +215,14 @@ def load_rails(path):
     rails_raw = data.get("rails")
     if not isinstance(rails_raw, list):
         raise LoadError("'rails:' must be a list")
-    top = {"input_trunk_class": data.get("input_trunk_class")}
+    top = {"input_trunk_class": data.get("input_trunk_class"),
+           # E-OFF (de-energization + stored quiescent draw), all OPTIONAL:
+           "source_type": data.get("source_type"),
+           "off_control": data.get("off_control"),
+           "quiescent_ua": data.get("quiescent_ua"),
+           "pack_capacity_mah": data.get("pack_capacity_mah"),
+           # E-MARGIN floor used for a rail that declares no ir_budget_mohm:
+           "ir_floor_mohm": data.get("ir_floor_mohm")}
 
     rails = []
     for i, r in enumerate(rails_raw):
@@ -191,10 +253,16 @@ def load_rails(path):
             raise LoadError(f"rail {name!r}: eff {eff} must be in (0, 1]")
         if vin_min <= 0 or iout < 0:
             raise LoadError(f"rail {name!r}: vin_min and iout must be positive")
+        # OPTIONAL load-margin fields (E-MARGIN): load_uv_threshold ACTIVATES
+        # the check for this rail; ir_budget_mohm + margin refine it.
+        load_uv = _num_opt(r.get("load_uv_threshold"), "load_uv_threshold", name)
+        ir_budget = _num_opt(r.get("ir_budget_mohm"), "ir_budget_mohm", name)
+        rmargin = _num_opt(r.get("margin"), "margin", name)
         rails.append({
             "name": name, "vin_min": vin_min, "vin_max": vin_max,
             "vout_min": vout_min, "vout_max": vout_max, "iout": iout,
             "eff": eff, "converter": str(r["converter"]),
+            "load_uv": load_uv, "ir_budget_mohm": ir_budget, "margin": rmargin,
         })
     return rails, top
 
@@ -311,6 +379,195 @@ def find_trunk_declaration(proj, top, rails, nets_override=None):
 
 
 # --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+# E-MARGIN -- output SETPOINT vs load brownout, net of the delivery IR drop
+DEFAULT_IR_FLOOR_MOHM = 100.0    # a bare realistic board+connector+cable path
+DEFAULT_MARGIN = 0.20            # headroom must beat the IR drop by this much
+
+
+def grade_margin(rail, ir_floor_mohm):
+    """Grade ONE rail's output-setpoint load margin. Returns (verdict, msg);
+    verdict in PASS / FAIL / N-A. N-A unless the rail declares
+    load_uv_threshold (only a rail feeding a fixed-brownout load has a margin
+    to check). vout_min is the WORST-CASE regulated output (lowest the rail
+    sits under tolerance), which is what the load actually sees."""
+    uv = rail.get("load_uv")
+    if uv is None:
+        return "N-A", None
+    name, vout_min, iout = rail["name"], rail["vout_min"], rail["iout"]
+    if iout <= 0:
+        return "N-A", None
+    headroom = vout_min - uv                        # volts of setpoint margin
+    budget_mohm = headroom / iout * 1000.0          # series R the margin buys
+    hdr = (f"rail {name!r} (Vout_min {vout_min:g} V, load_UV {uv:g} V, "
+           f"Imax {iout:g} A): headroom {headroom * 1000:.0f} mV = "
+           f"{budget_mohm:.0f} mOhm total IR budget at {iout:g} A")
+    if headroom <= 0:
+        return "FAIL", (f"{hdr} -> FAIL: the regulated worst-case output "
+                        f"{vout_min:g} V is at/below the load brownout {uv:g} V "
+                        f"- dead on arrival, before any IR drop")
+    ir_budget = rail.get("ir_budget_mohm")
+    margin = rail.get("margin")
+    margin = DEFAULT_MARGIN if margin is None else margin
+    if ir_budget is not None:
+        drop_v = ir_budget / 1000.0 * iout          # volts burned in the path
+        need_v = drop_v * (1 + margin)
+        if headroom < need_v:
+            return "FAIL", (
+                f"{hdr} -> FAIL: setpoint headroom {headroom * 1000:.0f} mV < IR "
+                f"drop {drop_v * 1000:.0f} mV ({ir_budget:g} mOhm x {iout:g} A) x "
+                f"{1 + margin:.2f} margin = {need_v * 1000:.0f} mV - the load "
+                f"browns out under IR drop; raise the setpoint or cut delivery "
+                f"resistance")
+        return "PASS", (f"{hdr} -> PASS: clears IR drop {drop_v * 1000:.0f} mV "
+                        f"({ir_budget:g} mOhm x {iout:g} A) x {1 + margin:.2f} "
+                        f"margin")
+    # No declared IR budget: the budget must at least clear the floor (a bare
+    # realistic delivery path). This is the (Vout-UV)-below-a-margin-floor form.
+    if budget_mohm < ir_floor_mohm:
+        return "FAIL", (
+            f"{hdr} -> FAIL: only {budget_mohm:.0f} mOhm of IR budget < "
+            f"{ir_floor_mohm:g} mOhm floor - a real board+connector+cable "
+            f"delivery path exceeds this; raise the setpoint, or declare + "
+            f"justify ir_budget_mohm for this rail")
+    return "PASS", (f"{hdr} -> PASS: {budget_mohm:.0f} mOhm budget clears the "
+                    f"{ir_floor_mohm:g} mOhm floor")
+
+
+def run_margin_check(proj, ptp, nets_override=None):
+    """E-MARGIN. Returns (exit_code, lines). Pure - main() prints and exits."""
+    rails, top = load_rails(ptp)
+    if not rails:
+        return 0, ["E-MARGIN N-A: power_tree.yaml has no rails"]
+    ir_floor = top.get("ir_floor_mohm")
+    ir_floor = DEFAULT_IR_FLOOR_MOHM if ir_floor is None else float(ir_floor)
+    graded = [grade_margin(r, ir_floor) for r in rails]
+    checked = [(v, m) for (v, m) in graded if v != "N-A"]
+    if not checked:
+        return 0, ["E-MARGIN N-A: no rail declares load_uv_threshold - no "
+                   "regulated rail feeds a known fixed-brownout load"]
+    lines, fails = [], []
+    for v, m in checked:
+        lines.append(f"  {m}")
+        if v == "FAIL":
+            fails.append(m)
+    if fails:
+        lines.insert(0, f"E-MARGIN FAIL: {len(fails)}/{len(checked)} "
+                        f"load-margin issue(s):")
+        return 1, lines
+    lines.insert(0, f"E-MARGIN OK: {len(checked)} rail(s) clear the load "
+                    f"brownout with IR margin")
+    return 0, lines
+
+
+# --------------------------------------------------------------------------
+# E-OFF -- de-energization + stored quiescent draw for a self-powered board
+_BATT_RE = re.compile(
+    r"batt|cell|lipo|li[-_ ]?ion|liion|lifepo|li[-_ ]?po|pack|18650|nimh|"
+    r"nicd|coin|cr20\d\d|super[-_ ]?cap|\b[1-9]s\b", re.I)
+_EXT_RE = re.compile(
+    r"usb|dc[-_ ]?jack|barrel|adapter|mains|wall|external|bench|poe|vbus", re.I)
+_BATT_NET_RE = re.compile(r"^(vbat|batt|vcell|cell|pack|vpack|lipo|bms)", re.I)
+
+
+def detect_energy_source(proj, top, nets_override=None):
+    """(kind, reason). kind in 'battery' / 'external' / 'unknown'. source_type:
+    is authoritative; else VBAT/BATT/PACK nets in nets.yaml, else a battery ADR
+    title/filename. Deliberately conservative (like E-ADR): 'unknown' -> N-A and
+    the red-team checklist carries the question."""
+    st = str(top.get("source_type") or "")
+    if st:
+        if _BATT_RE.search(st):
+            return "battery", f"source_type: {st!r}"
+        if _EXT_RE.search(st):
+            return "external", f"source_type: {st!r} (externally powered)"
+    if nets_override:
+        netsy = Path(nets_override)
+    else:
+        netsy = Path(proj) / "03_src" / "rules" / "nets.yaml"
+    if netsy.exists() and yaml:
+        try:
+            ny = yaml.safe_load(netsy.read_text()) or {}
+            for cname, cbody in (ny.get("classes", {}) or {}).items():
+                for n in (cbody or {}).get("nets", []) or []:
+                    if _BATT_NET_RE.match(str(n)):
+                        return "battery", f"nets.yaml net {n!r}"
+        except Exception:
+            pass
+    for adr in sorted(glob.glob(str(Path(proj) / "01_docs" / "decisions" /
+                                    "*.md"))):
+        head = Path(adr).name + " " + Path(adr).read_text(errors="replace")[:400]
+        if re.search(r"batter|lipo|li[-_ ]?ion|\bcell\b|\bpack\b|discharge",
+                     head, re.I):
+            return "battery", f"ADR {Path(adr).name}"
+    return "unknown", "no source_type / battery nets / battery ADR"
+
+
+def grade_off_control(top):
+    """Grade the declared off_control + quiescent_ua (battery already detected).
+    Returns (fails, notes)."""
+    fails, notes = [], []
+    off = top.get("off_control")
+    q = top.get("quiescent_ua")
+    if off is None:
+        fails.append(
+            "no off_control declared - a battery board must document HOW it is "
+            "de-energized (master switch / load-switch / EN-gating), or declare "
+            "always-on WITH an ADR; else the converters idle-drain the pack in "
+            "storage (usb-hub-3s-v3: both buck EN pins tied active, no switch)")
+    else:
+        s = str(off)
+        alwayson = re.search(r"always[-_ ]?on|^none$|no[-_ ]?switch|"
+                             r"no[-_ ]?disconnect|self[-_ ]?drain", s, re.I)
+        has_adr = re.search(r"adr|decisions/|\b\d{4}\b", s, re.I)
+        if alwayson and not has_adr:
+            fails.append(
+                f"off_control {s!r} is always-on with no ADR reference - a "
+                f"self-draining storage state must be an explicit ADR-justified "
+                f"decision, not a default")
+        else:
+            notes.append(f"off_control: {s!r}")
+    if q is None:
+        fails.append(
+            "no quiescent_ua declared - the stored/shutdown draw must be a "
+            "NUMBER so pack self-drain time is computable")
+    else:
+        notes.append(f"quiescent_ua: {q}")
+    return fails, notes
+
+
+def run_off_check(proj, ptp, nets_override=None):
+    """E-OFF. Returns (exit_code, lines). Pure - main() prints and exits."""
+    rails, top = load_rails(ptp)
+    kind, reason = detect_energy_source(proj, top, nets_override)
+    if kind != "battery":
+        return 0, [f"E-OFF N-A: no self-contained energy source detected "
+                   f"({reason}) - de-energization is by unplugging the input"]
+    lines = [f"E-OFF: self-contained energy source detected ({reason})"]
+    fails, notes = grade_off_control(top)
+    for n in notes:
+        lines.append(f"  {n}")
+    q = top.get("quiescent_ua")
+    cap = top.get("pack_capacity_mah")
+    if q not in (None, 0) and cap:
+        try:
+            days = float(cap) / (float(q) / 1000.0) / 24.0
+            lines.append(f"  stored self-drain: {float(cap):g} mAh / {float(q):g}"
+                         f" uA ~= {days:.0f} days to flat (advisory - acceptable "
+                         f"for storage/shipping?)")
+        except (TypeError, ValueError, ZeroDivisionError):
+            pass
+    for f in fails:
+        lines.append(f"  -> FAIL: {f}")
+    if fails:
+        lines.insert(0, f"E-OFF FAIL: {len(fails)} de-energization issue(s):")
+        return 1, lines
+    lines.insert(0, "E-OFF OK: de-energization path (off_control) + stored draw "
+                    "(quiescent_ua) both declared")
+    return 0, lines
+
+
+# --------------------------------------------------------------------------
 def find_power_tree(proj, override=None):
     if override:
         return Path(override)
@@ -373,10 +630,15 @@ def run_check(proj, ptp, nets_override=None):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="POWER-TREE TOPOLOGY gate (E-TOPO)")
+    ap = argparse.ArgumentParser(
+        description="POWER-TREE gate (E-TOPO / E-MARGIN / E-OFF)")
     ap.add_argument("project", nargs="?")
     ap.add_argument("--power-tree", default="")
     ap.add_argument("--nets", default="")
+    ap.add_argument("--margin", action="store_true",
+                    help="grade E-MARGIN (output setpoint vs load brownout)")
+    ap.add_argument("--off-control", dest="off_control", action="store_true",
+                    help="grade E-OFF (de-energization + stored quiescent draw)")
     ap.add_argument("--derive", nargs=4, type=float,
                     metavar=("VIN_MIN", "VIN_MAX", "VOUT_MIN", "VOUT_MAX"),
                     help="print the derived topology for an ad-hoc range")
@@ -392,14 +654,21 @@ def main(argv=None):
         ap.error("PROJECT_DIR is required (or use --derive)")
     proj = Path(args.project)
     ptp = find_power_tree(proj, args.power_tree or None)
+    tag = ("E-MARGIN" if args.margin else
+           "E-OFF" if args.off_control else "E-TOPO")
     if not ptp.exists():
-        print(f"E-TOPO N-A: no {ptp} — the topology gate is optional")
+        print(f"{tag} N-A: no {ptp} — the power-tree gate is optional")
         return 0
 
     try:
-        rc, lines = run_check(proj, ptp, args.nets or None)
+        if args.margin:
+            rc, lines = run_margin_check(proj, ptp, args.nets or None)
+        elif args.off_control:
+            rc, lines = run_off_check(proj, ptp, args.nets or None)
+        else:
+            rc, lines = run_check(proj, ptp, args.nets or None)
     except LoadError as e:
-        print(f"E-TOPO LOAD ERROR: {e}")
+        print(f"{tag} LOAD ERROR: {e}")
         return 2
     for ln in lines:
         print(ln)

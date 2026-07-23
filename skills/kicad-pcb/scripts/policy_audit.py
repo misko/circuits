@@ -579,6 +579,42 @@ def main():
               detail or "a converter topology does not match the derived one "
               "(over-engineered or cannot-meet)")
 
+    # E-MARGIN: a regulated rail feeding a KNOWN load must clear the load's
+    # brownout with real IR headroom. usb-hub-3s-v3 (2026-07-23): a 4.97V rail
+    # fed a Pi5 (UV ~4.63V) at 5A -> only ~68 mOhm for board+connector+cable IR
+    # drop; both zero-context reviews COMPUTED 4.97V, neither flagged the margin.
+    if not ptp.exists():
+        rows.append(("E-MARGIN", "N-A", "no 03_src/rules/power_tree.yaml"))
+    else:
+        r = sh([sys.executable, str(ptop), str(proj), "--margin"])
+        detail = (r.stdout + r.stderr).strip().replace("\n", " ")[:200]
+        if "N-A" in detail:
+            rows.append(("E-MARGIN", "N-A", detail))
+        else:
+            grade("E-MARGIN", r.returncode == 0,
+                  detail or "every load-margin rail clears its brownout with IR "
+                  "margin",
+                  detail or "an output setpoint leaves too little headroom for "
+                  "the delivery IR drop at Imax")
+
+    # E-OFF: a self-contained energy source (battery/cell/pack) must document
+    # its de-energization path + bounded stored quiescent draw. usb-hub-3s-v3
+    # (2026-07-23): a 3S-LiPo board tied both buck EN pins active with no master
+    # switch -> the controllers idle-drain the pack in storage; no review asked.
+    if not ptp.exists():
+        rows.append(("E-OFF", "N-A", "no 03_src/rules/power_tree.yaml"))
+    else:
+        r = sh([sys.executable, str(ptop), str(proj), "--off-control"])
+        detail = (r.stdout + r.stderr).strip().replace("\n", " ")[:200]
+        if "N-A" in detail:
+            rows.append(("E-OFF", "N-A", detail))
+        else:
+            grade("E-OFF", r.returncode == 0,
+                  detail or "de-energization path + stored quiescent draw both "
+                  "declared for the battery source",
+                  detail or "a battery board declares no de-energization path / "
+                  "stored quiescent draw (idle self-drain)")
+
     # ---------------- meta ----------------
     reb = proj / "03_src" / "rebuild_all.sh"
     if reb.exists():
