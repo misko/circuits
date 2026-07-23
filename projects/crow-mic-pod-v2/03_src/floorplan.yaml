@@ -98,6 +98,16 @@ placement:
     - match: "D1"
       pad_overrides:
         - {clearance: 0.13}
+    # FINAL POPULATION (CPL = SMT machine-assembly set only). MK1 (electret) +
+    # J1 (RJ45) are THT HAND-SOLDER; D3 (SMAJ6.0A) is a DNP over-clamp. Excluded
+    # from the CPL (JLC won't machine-place them) but kept in gerbers + BOM,
+    # documented in ORDER_README + MANIFEST not_assembled. Only exclude_from_pos
+    # is used (NOT dnp/exclude_from_bom): the tscircuit converter hardcodes symbol
+    # in_bom=yes/dnp=no, so those attrs would mismatch the symbol (--schematic-
+    # parity); pos_files is not parity-checked, keeping parity clean.
+    - {match: "MK1", attrs: [exclude_from_pos_files]}
+    - {match: "J1",  attrs: [exclude_from_pos_files]}
+    - {match: "D3",  attrs: [exclude_from_pos_files]}
   legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 40}
 
 design_rules:

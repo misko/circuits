@@ -8,3 +8,6 @@
 (rule "AUDIO_width"
   (condition "A.NetClass == 'AUDIO'")
   (constraint track_width (min 0.25mm)))
+(rule pad_rescue_stubs
+  (condition "A.insideArea('pad_rescue_stubs') && (A.NetName == 'GND')")
+  (constraint track_width (min 0.300mm)))

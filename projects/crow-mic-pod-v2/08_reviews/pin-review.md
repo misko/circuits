@@ -1,0 +1,31 @@
+# pin-review — zero-context review (agent a0281ca7868424f2a, 2026-07-23)
+
+--- VERBATIM AGENT REPORT ---
+
+## Pin Review — crow-mic-pod-v2 (clean-room, independent of design session)
+
+**U1 OPA1678IDR (SOIC-8 dual op-amp) — PASS**
+Datasheet SBOS855E Fig. 5-3 / Pin Functions table (p.4): pin1=OUTA, 2=−INA, 3=+INA, 4=V−, 5=+INB, 6=−INB, 7=OUTB, 8=V+, winding CCW top-view. Dossier pad table matches this exactly (pad1 north-west …pad8 north-east, computed CCW). Netlist (`kicad-cli sch export netlist`) traced: V+ (pin8)=5V_AUDIO, V−(pin4)=GND (single-supply config, correct pairing). Channel A: +input(pin3/INP)=mic AC signal via C2, R3 bias to VMID; feedback R6(10k) OUTA→INA(pin2), AC-grounded via R7(20k)+C4 to VMID → non-inverting gain stage. Channel B: +input(pin5)=VMID (fixed reference, no AC signal); INB(pin6) summed from R8(OUTA→INB,10k) and R9(OUTB→INB,10k self-feedback) → unity-gain **inverting** stage, so OUTB mirrors OUTA around VMID. OUTA→R10/C5→AUDIO_P, OUTB→R11/C6→AUDIO_N. This is a textbook active-balanced (differential) driver from a single-ended mic source — correctly wired, supply correct on 8/4.
+
+**D1 TPD2E2U06DRLR (SOT-553 ESD array) — PASS**
+Datasheet SLLSEG9C §5 Pin Config (p.3), DRL package: 1,2=NC, 3=IO1, 4=GND, 5=IO2, winding CCW. Dossier: pad1/2 unconnected (NC, correctly floated per datasheet's stated conservative default), pad3(IO1)→AUDIO_P, pad4(GND)→GND, pad5(IO2)→AUDIO_N. Pad geometry (top-left→bottom-left→bottom-right→top-right) matches the datasheet figure exactly, no mirror. No channel swap.
+
+**J1 RJHSE-5384 (RJ45, custom pinout) — FAIL**
+The stock KiCad footprint `Connector_RJ:RJ45_Amphenol_RJHSE538X` pad numbering is **mirrored** relative to Amphenol dwg P-RJHSE-538X Rev K's own "RECOMMENDED P.C.B. LAYOUT (COMPONENT SIDE OF BOARD)" figure (p.1) — both are top/component-side views, so no view-angle transform should be needed between them, yet they disagree. Evidence: the datasheet dimensions the near NPTH-post-to-contact-8 spacing as `.110 [2.79]`; the board footprint places the NPTH post exactly 2.79 mm from pad **1** (not pad 8). Same reversal shows in the LED holes: datasheet places LED2 (11,12) on the same side as contact 8, LED1 (9,10) on the same side as contact 1; footprint's pads 9,10 sit on the LED2 side and 11,12 on the LED1 side. This is consistent with a full 1↔8, 2↔7 … 9↔12, 10↔11 mirror across the whole footprint (the hole pattern is itself 180°-rotationally symmetric about (3.56, 0.89) mm, which is exactly the geometric ambiguity that produces this class of bug). The existing part.yaml "verified" note dismisses this exact mismatch as a "front-view vs. PCB-layout-view rotation" artifact, but the comparison it's excusing is between two views that are *both* already component-side/top-view (footprint vs. the PCB-layout figure) — that rationale doesn't hold up under an independent re-check, and it is directly contradicted by a precise dimensional match (2.79 mm) in the opposite direction the note claims.
+If the mirror is real, physical contact 1 (mates with the field cable/plug) would carry GND, and physical contacts 7/8 would carry AUDIO_P/AUDIO_N and 5V_BEEP/5V_AUDIO would land on other reversed contacts — this is exactly the "swapped contact = field hazard" the task warned about. This is a 2D-drawing-only analysis; I could not physically inspect a sample or the 3D STEP model. **Recommend a physical continuity/pinout check against a real RJHSE-5384 part (same discipline the design already prescribes for the unresolved LED-polarity ambiguity) before ordering.** Blocks release pending that check.
+
+**D2 SS14 (D_SMA, flyback) — PASS**
+KiCad stock `Diode_SMD:D_SMA` footprint independently confirmed: F.SilkS polarity-band line at x=−3.51 mm, adjacent to pad 1 (x=−2 mm) → pad1=cathode (standard KiCad convention, self-checked from the raw .kicad_mod, not just the part.yaml claim). MDD "SS12 thru SS1200" datasheet Rev:2025A5 p.1, Mechanical Data: "Polarity: Color band denotes cathode end." Same Sky CMT-8504 datasheet rev 1.04 p.3 Application Circuit: flyback diode cathode → +VDC, anode → driven node. Dossier: D2 pad1→5V_BEEP (cathode to rail), pad2→BEEP_SWITCHED_RETURN. Correct flyback orientation.
+
+**D3 SMAJ6.0A (D_SMA, TVS clamp, DNP) — PASS**
+Same D_SMA pad1=cathode convention. LRC SMAJ***A datasheet Rev6 p.4: cathode marked by "负极色环" (cathode color band) next to marking "AG", banded end = pad1. Device is unidirectional ('A' suffix); cathode must sit at the higher-potential/driven side. Dossier: D3 pad1→5V_BEEP (rail), pad2→BEEP_SWITCHED_RETURN. Correct orientation, matches D2.
+
+**MK1 AOM-5024L-HD-R (electret capsule) — PASS**
+PUI Audio datasheet p.3 "Recommended Drive Circuit": "+" terminal → RL to +Vs, AC output taken off the same node; "−" → Ground. Vendored footprint `03_src/lib/crow_mic_pod.pretty/AOM-5024L-HD-R.kicad_mod`: pad1 explicitly silkscreened "+" at (−1.27,0), pad2 (unmarked, by elimination "−") at (+1.27,0). Dossier: pad1→MIC_OUT (bias/output node, matches netlist: R2 bias from VMIC_F, C2 AC-couples to op-amp), pad2→GND. Correct.
+
+**LS1 CMT-8504-100-SMT-TR (magnetic transducer) — PASS**
+Same Sky datasheet rev 1.04 p.2 "Recommended PCB Layout, Top View": POLARITY PAD(+) top-left, POLARITY PAD(-) bottom-left. Vendored footprint `03_src/lib/crow_mic_pod.pretty/CMT-8504-100-SMT-TR.kicad_mod`: pad1 silkscreened "+" at (−3.5,−3.5) [north-west in the board's top-view frame], pad2 at (−3.5,+3.5) [south-west] — matches the datasheet figure's left-column +/− arrangement exactly. Dossier: pad1→5V_BEEP, pad2→BEEP_SWITCHED_RETURN, matching the Application Circuit's "+" tied straight to +VDC and "−" tied to the switched-low-side driven node. Correct, and consistent with D2's cathode-to-5V_BEEP flyback orientation.
+
+---
+
+**Summary: 6 PASS, 1 FAIL (J1 RJHSE-5384).** The RJ45 finding blocks the order until resolved by physical continuity verification of the footprint against a real part (or authoritative confirmation of the KiCad stock footprint's pad-to-contact mapping) — everything downstream of J1 (D1 ESD array orientation, U1's AUDIO_P/AUDIO_N assignment) is internally consistent with the *documented* pinout, but that documented pinout itself may not match the physical connector if the footprint mirror is confirmed.

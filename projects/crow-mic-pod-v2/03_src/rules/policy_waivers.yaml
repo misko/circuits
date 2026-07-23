@@ -1,0 +1,16 @@
+# crow-mic-pod-v2 policy waivers — each evidence-backed (canon M4).
+- id: S-OCCL
+  refs: ["04_kicad/crow_mic_pod_v2.kicad_sch"]
+  why: >
+    The occlusions are net-label vs component-value/reference overlaps in the
+    tscircuit CONVERTER .kicad_sch (circuit_json_to_kicad_sch.py output). Per
+    the 03_tscircuit contract + ADR-0002, that file is the MACHINE artifact only
+    (it feeds ERC / netlist / --schematic-parity and "need not be pretty" —
+    "nobody opens it in a tscircuit-native flow"). The HUMAN schematic document
+    this board ships is tscircuit's OWN clean, collision-free native render
+    (03_tscircuit/build/schematic.pdf -> release pdf/schematic.pdf), which is
+    what satisfies S6 and is graded by the fresh-context render review. The
+    converter sheet is present in 04_kicad only so kicad-cli can run
+    --schematic-parity (0 parity). Waiving S-OCCL on the machine artifact does
+    not waive schematic readability — that is graded on the shipped tscircuit
+    render, not this file.

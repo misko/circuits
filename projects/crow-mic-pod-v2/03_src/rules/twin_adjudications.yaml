@@ -1,0 +1,131 @@
+# JLC digital-twin adjudication register — crow-mic-pod-v2
+#
+# Every entry here removes a finding from the twin's CRITICAL gate. Each is
+# backed by measurement/evidence recorded inline (canon: adjudications need
+# evidence, not rationale). Re-running jlc_twin.py with
+# `--adjudications 03_src/rules/twin_adjudications.yaml` must read these and
+# gate green (exit 0) with zero UNADJUDICATED criticals.
+
+- lcsc: AOM-5024L-HD-R
+  refs: [MK1]
+  status: NO-CAD
+  why: >
+    "AOM-5024L-HD-R" is not a valid LCSC id (doesn't start with "C") — it is
+    the part's MPN, carried into the BOM's LCSC column because the part has
+    NO JLC/LCSC listing at all (02_parts/AOM-5024L-HD-R/part.yaml
+    sourcing: {lcsc: null, digikey: "668-1538-ND"}; gotchas: "not in JLC
+    catalog — hand-wire (Digi-Key 668-1538-ND)"). Confirmed absent from the
+    library, not a transient fetch error: the fetcher's own message
+    ("should start with C") never matches the tool's NOCAD/transient
+    patterns, so it fails closed as FETCH-FAILED until adjudicated here.
+    MK1 is correctly excluded from cpl_jlc.csv (exclude_from_pos_files) —
+    it is a hand-solder electret capsule with no SMT footprint at JLC.
+    SEPARATE FINDING (reported, not fixed here): bom_jlc.csv's LCSC column
+    for MK1 should be blank, not the MPN string — a bom-export bug to fix
+    at the next BOM regeneration, not a twin-adjudication matter.
+
+- lcsc: C9900035627
+  refs: [J1]
+  status: NO-CAD
+  why: >
+    Consign-only placeholder code (C99* prefix) for RJHSE-5384 — per
+    02_parts/RJHSE-5384/part.yaml gotchas: "C99* code = consign-only
+    placeholder, permanently stock 0, NO EasyEDA CAD — twin needs an
+    evidence-backed NO-CAD adjudication; hand-solder line". Verified
+    genuinely absent (not transient) by 4 consecutive fetch attempts across
+    2 separate invocations (1 in-twin + 3 direct easyeda2kicad CLI retries,
+    2026-07-23) all failing identically with "[ERROR] Failed to fetch data
+    from EasyEDA API for part C9900035627", while every other BOM code in
+    the SAME twin run (25 parts) fetched successfully — ruling out a
+    systemic/network-wide block. J1 is correctly excluded from
+    cpl_jlc.csv (exclude_from_pos_files) and is a hand-solder connector;
+    flag for a manual land-pattern eyeball against the datasheet at JLC
+    order-time preview since no digital-twin render is possible for it.
+
+- lcsc: C22359707
+  refs: [LS1]
+  status: PAD-MISMATCH
+  why: &ls1_why >
+    NOT a land-pattern or polarity defect — a pad-NUMBERING-convention
+    mismatch between our vendored footprint and JLC's own EasyEDA footprint
+    for the same physical 4-pad SMD buzzer (Same Sky/CUI CMT-8504-100-SMT-TR).
+    Measured (2026-07-23): our footprint (crow_mic_pod:CMT-8504-100-SMT-TR,
+    from 02_parts/CMT-8504-100-SMT-TR/part.yaml land_pattern, datasheet
+    rev 1.04 p.2 "Recommended PCB Layout") numbers pads going
+    1=top-left(+) 2=bottom-left(-) 3=top-right(NC) 4=bottom-right(NC), pad
+    centers at (+/-3.5,+/-3.5)mm. JLC's fetched footprint
+    (jlc.pretty/BUZ-SMD_4P-L8.5-W8.5-P8.50-TL-A.kicad_mod) numbers the SAME
+    four physical corners 1=bottom-left(-3.6,-3.6) 2=top-left(-3.6,3.6)
+    3=top-right(3.6,3.6) 4=bottom-right(3.6,-3.6) — i.e. JLC's pads 1 and 2
+    are swapped vs ours (JLC 1 = our 2, JLC 2 = our 1); pads 3/4 already
+    agree. This is corroborated exactly by the raw PAD-GEOM number:
+    pad1<->3 "ours 7.00mm vs JLC 10.18mm (d3.18mm)" is the diagonal
+    distance you get comparing our top-left pad ("1") to JLC's top-right
+    pad ("3", unaliased) — sqrt(7.2^2+7.2^2)=10.18mm exactly — not a real
+    land-pattern disagreement. Recomputing all 6 pairwise pad-pair
+    distances with JLC's pads renumbered by physical position
+    (JLC-1->our-2, JLC-2->our-1, JLC-3->our-3, JLC-4->our-4) gives deltas
+    of 0.20-0.28mm vs our footprint on every pair — all within the 0.3mm
+    PAD_GEOM_TOL (JLC's pad span is 7.2mm vs our 7.0mm, a legitimate small
+    land-size difference). Physical polarity is unaffected: our
+    footprint's own pin1="+"/pin2="-" mapping (verified against the
+    datasheet's POLARITY PAD callout in part.yaml) is untouched by JLC's
+    internal numbering choice.
+    TOOL NOTE: attempted to encode this as a `pad_alias: {"1":"2","2":"1"}`
+    (the documented mechanism for exactly this class of finding) but the
+    alias implementation in jlc_twin.py does sequential pop/extend per
+    dict-entry, which corrupts a true 2-way swap (it merges pad "1" into
+    "2" first, then pops the now-merged "2" into "1", losing one pad
+    entirely) — confirmed live: applying it turned a clean PAD-GEOM
+    finding into PAD-MISMATCH best=none. Falling back to a direct status
+    adjudication with the hand-verified numbers above; the alias mechanism
+    needs a true-swap fix (e.g. resolve all renames from a copy of the
+    original dict) before it can be trusted for 2-way swaps.
+
+- lcsc: C22359707
+  refs: [LS1]
+  status: PAD-GEOM
+  why: *ls1_why
+
+- lcsc: C192421
+  refs: [U1]
+  status: PAD-GEOM
+  why: >
+    Land-pattern LENGTH difference (SOIC-8, 1.27mm pitch), not a pinout or
+    polarity defect. Already characterized in
+    02_parts/OPA1678IDR/part.yaml gotchas: "twin PAD-GEOM ~0.47mm vs JLC
+    CAD is the KiCad-IPC vs TI-datasheet SOIC-8 pad-length split — leads
+    land on both pad shapes; adjudicate at twin, do not re-footprint."
+    Measured pad1<->8 distance: ours 4.95mm vs JLC 5.42mm (d0.47mm),
+    consistent with that prior characterization. Package family, pad
+    count, and pin ordering match (KiCad Package_SO:SOIC-8_3.9x4.9mm
+    footprint is the IPC-nominal outline; JLC's own fetched footprint
+    (SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL) uses TI's datasheet-specific,
+    slightly longer land). Both shapes accept the part's leads; no
+    re-footprint warranted. ROT-DB-SUGGEST for this part (fit=0.24mm,
+    jlc_offset=90 vs db=270) is a separate, non-fatal finding — per the
+    same part.yaml note, KEEP the rotations-db value of 270 (assembly-zero
+    truth) and verify pin-1 in the JLC order preview rather than applying
+    the suggestion blindly.
+
+- lcsc: C559105
+  refs: [D3]
+  status: PAD-GEOM
+  why: >
+    Land-pattern LENGTH difference on a 2-pad SMA/DO-214AC diode (same
+    class of finding as U1 above: standard KiCad footprint vs JLC's
+    vendor-specific recommended land, not a pinout/polarity issue).
+    Measured (2026-07-23): our footprint (Diode_SMD:D_SMA, KiCad stock)
+    pad1/pad2 centers at (-2,0)/(2,0) mm -> 4.00mm span; JLC's fetched
+    footprint for C559105 (SMA_L4.4-W2.6-LS5.0-RD) pad1/pad2 centers at
+    (-2.19,0)/(2.19,0) mm -> 4.38mm span (matches the reported
+    "ours 4.00mm vs JLC 4.38mm (d0.38mm)" exactly). Polarity convention
+    agrees on both: pad 1 = negative-x = cathode in both our footprint
+    (part.yaml verified note: KiCad's D_SMA places the polarity-band
+    silkscreen at x=-3.51mm, adjacent to pad 1) and JLC's (same pad-1-at
+    -negative-x numbering as their own footprint). JLC's land is simply
+    ~0.19mm longer per side (extra solder-fillet margin, common vendor
+    practice for DO-214AC); both patterns are valid for the same physical
+    SMA body. D3 remains DNP by design (not populated) — this
+    adjudication only unblocks the digital-twin check on the CAD fetched
+    via --also for review purposes.

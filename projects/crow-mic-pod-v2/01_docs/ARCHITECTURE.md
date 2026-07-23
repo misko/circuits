@@ -69,12 +69,16 @@ at the central — so beeper switching current never shares the analog ground
 
 ## Power / budget (E-TOPO: no converter — externally powered)
 
-| Rail | Source | On-pod load | Delivery IR (25 ft Cat5e) | Margin |
+(24AWG solid Cat5e ≈ 0.084 Ω/m; 25 ft = 7.62 m. ROUND-TRIP resistance below —
+corrected 2026-07-23 per the topology red-team P2: the earlier table counted
+only one leg.)
+
+| Rail | Source | On-pod load | Delivery IR (25 ft Cat5e, round-trip) | Margin |
 |---|---|---|---|---|
-| 5V_AUDIO | central, pins 4+5 (paralleled) | ~2 mA typ, <5 mA max | ~0.32Ω → 1.6 mV @5 mA | op-amp works to 2.7V — vast |
+| 5V_AUDIO | central, pins 4+5 (paralleled) + return 7+8 (paralleled) | ~2 mA typ, <5 mA max | supply 0.32Ω + return 0.32Ω = **~0.64Ω → 3.2 mV @5 mA** | op-amp works to 2.7V — vast |
 | GND_AUDIO | central, pins 7+8 (paralleled) | return | — | — |
-| 5V_BEEP | central, pin 3 | 150 mA burst (transient) | ~0.64Ω → ~0.1V @150 mA | transducer tolerant |
-| BEEP_RET | central, pin 6 (switched) | 150 mA burst | ~0.64Ω | — |
+| 5V_BEEP | central, pin 3 (single conductor) + return pin 6 (single) | 150 mA burst (transient) | 0.64Ω + 0.64Ω = **~1.28Ω → ~0.19V @150 mA** | transducer 1.0–6.0V — tolerant |
+| BEEP_RET | central, pin 6 (switched) | 150 mA burst | (return leg of the 1.28Ω above) | — |
 
 No E-TOPO topology to derive (no converter). No E-OFF (external supply,
 de-energized by unplugging the cable / powering down central). No E-MARGIN
