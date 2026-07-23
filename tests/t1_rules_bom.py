@@ -224,6 +224,30 @@ def t_kb_default_clearance_below_tier_floor():
     contains(r.out, "min_space", "the failure must cite the tier's min_space floor")
 
 
+@test("default_clearance/default_track_width accept an 'mm'-suffixed STRING "
+      "(mm() unit-strip), not just a bare float")
+def t_default_overrides_mm_string():
+    """Every other width in nets.yaml is written as an 'mm'-suffixed string
+    (the classes[].min_width convention, which already flows through mm()).
+    The Default-class default_clearance/default_track_width overrides
+    (2026-07-23) went through float() directly, so a board that spelled them
+    the SAME '0.15mm' way crashed the emitter with a ValueError before it could
+    emit anything. mm() unit-strips them. GREEN: a legal '0.15mm' pair is parsed
+    to 0.15 and reaches the Default netclass in the .kicad_pro. RED-verified
+    against the pre-mm() emitter (HEAD), where float('0.15mm') raised and the
+    run exited nonzero — 2026-07-23."""
+    proj, r = generic_rules_project(
+        lambda s: s.update({"default_clearance": "0.15mm",
+                            "default_track_width": "0.15mm"}))
+    must_pass(r, "generate_rules_generic with mm-suffixed Default overrides")
+    pro = json.loads((proj / "04_kicad" / "cook_loadcell.kicad_pro").read_text())
+    dfl = [c for c in pro["net_settings"]["classes"] if c["name"] == "Default"][0]
+    check(abs(dfl.get("clearance", -1) - 0.15) < 1e-9,
+          f"default_clearance not parsed from '0.15mm': {dfl.get('clearance')}")
+    check(abs(dfl.get("track_width", -1) - 0.15) < 1e-9,
+          f"default_track_width not parsed from '0.15mm': {dfl.get('track_width')}")
+
+
 @test("a TYPO'd fab_tier is a hard error, not silently no-tier",
       kind="known_bad")
 def t_kb_tier_typo():

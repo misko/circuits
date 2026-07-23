@@ -138,14 +138,14 @@ def main(argv=None):
     # other board is affected. Must stay >= the tier floors (min_space / min_track).
     default = dict(default)
     if nets.get("default_clearance") is not None:
-        dc = float(nets["default_clearance"])
+        dc = mm(nets["default_clearance"])
         floor = float(tier["min_space"]) if tier else 0.0
         if dc < floor:
             sys.exit(f"generate_rules_generic: default_clearance {dc}mm < fab tier "
                      f"'{tier['name']}' min_space {floor}mm")
         default["clearance"] = dc
     if nets.get("default_track_width") is not None:
-        dw = float(nets["default_track_width"])
+        dw = mm(nets["default_track_width"])
         floor = float(tier["min_track"]) if tier else 0.0
         if dw < floor:
             sys.exit(f"generate_rules_generic: default_track_width {dw}mm < fab tier "

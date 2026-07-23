@@ -442,6 +442,7 @@ _KRT_FLAGMAP = {
     "via_size": ("--via-size", "val"),
     "via_drill": ("--via-drill", "val"),
     "fab_tier": ("--fab-tier", "val"),
+    "fab_overrides": ("--fab-overrides", "val"),
     "keepout_layer": ("--keepout-layer", "val"),
     "max_iterations": ("--max-iterations", "val"),
     "max_probe_iterations": ("--max-probe-iterations", "val"),
@@ -451,6 +452,7 @@ _KRT_FLAGMAP = {
     "power_nets": ("--power-nets", "list"),
     "power_nets_widths": ("--power-nets-widths", "list"),
     "no_stub_layer_swap": ("--no-stub-layer-swap", "flag"),
+    "no_power_tap_neckdown": ("--no-power-tap-neckdown", "flag"),
     "keepout": ("--keepout", "flag"),
 }
 

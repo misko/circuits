@@ -103,8 +103,23 @@ class Toolkit:
         return None
 
     def via_site_ok(self, x, y, netcode, size=0.45, drill=0.2,
-                    hole_to_copper=0.205, layers=(pcbnew.F_Cu, pcbnew.B_Cu)):
-        """Barrel clearance AND hole-to-copper on every layer."""
+                    hole_to_copper=0.205, layers=None):
+        """Barrel clearance AND hole-to-copper on every layer.
+
+        `layers` DEFAULTS to the board's FULL copper stack (via
+        board.GetEnabledLayers().CuStack()), not just F.Cu/B.Cu — a
+        standard through-hole via (the only kind add_via emits) physically
+        occupies EVERY copper layer between F.Cu and B.Cu, including
+        In*.Cu. The old hardcoded (F_Cu, B_Cu) default silently skipped
+        inner layers, so a via checked "ok" while landing inside 0.02mm of
+        a same-spot In2.Cu/In3.Cu track — 200 shorting_items + 501
+        clearance findings on a 6-layer board whose signal routing lives on
+        In2.Cu/In3.Cu (crow-recorder-central-v2, 2026-07-23), invisible to
+        this check and to `quick` (pre-fill) alike, only surfacing at the
+        full kicad-cli DRC gate. Pass an explicit `layers=` to override
+        (e.g. a blind/buried via that does NOT span the full stack)."""
+        if layers is None:
+            layers = tuple(self.board.GetEnabledLayers().CuStack())
         for lay in layers:
             if self.collides(x, y, x, y, size, netcode, lay):
                 return False

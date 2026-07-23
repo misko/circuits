@@ -840,8 +840,11 @@ class BoardBuilder:
 
     # ------------------------------------------------------------ zones
     LAYER_NAMES = {"F.Cu": pcbnew.F_Cu, "B.Cu": pcbnew.B_Cu,
-                   "In1.Cu": pcbnew.In1_Cu, "In2.Cu": pcbnew.In2_Cu}
-    INNER_LAYERS = {"In1.Cu": 3, "In2.Cu": 4}     # min copper count that has it
+                   "In1.Cu": pcbnew.In1_Cu, "In2.Cu": pcbnew.In2_Cu,
+                   "In3.Cu": pcbnew.In3_Cu, "In4.Cu": pcbnew.In4_Cu}
+    # min copper count that has each inner layer (6-layer boards need In3/In4 —
+    # the mixed-signal-audio-hub archetype's In1+In4 GND-plane stackup)
+    INNER_LAYERS = {"In1.Cu": 3, "In2.Cu": 4, "In3.Cu": 5, "In4.Cu": 6}
 
     def check_layer(self, lname, what):
         """A copper layer must be BOTH spelled correctly and present in the

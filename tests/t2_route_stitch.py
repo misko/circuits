@@ -336,6 +336,103 @@ def t_kb_missing_chain():
               "not found")
 
 
+@test("import_krt maps In3.Cu/In4.Cu segments (6-layer inner layers), not "
+      "just F/B/In1/In2")
+def t_import_in3_in4_layers():
+    """A 6-layer board routes signal on In3.Cu/In4.Cu. import_krt's LAY map
+    knew only F/B/In1/In2, so an In3.Cu segment tripped 'unknown layer' and
+    the whole import aborted rather than silently dumping it on F.Cu (a
+    deliberate hard-fail, per the module docstring). GREEN: a KRT chain
+    carrying one In3.Cu and one In4.Cu segment imports BOTH. RED-verified
+    against the pre-fix map (HEAD), where the first In3.Cu segment raised
+    SystemExit 'unknown layer' and the import exited nonzero — 2026-07-23."""
+    IMPORT = SCRIPTS / "import_krt.py"
+    d = tmpdir("t2_imp63_")
+    base = _cached_board()
+    krt = d / "chain.kicad_pcb"
+    krt.write_text(
+        '(kicad_pcb\n'
+        '  (net 0 "")\n'
+        '  (net 1 "GND")\n'
+        '  (segment (start 40.0 40.0) (end 41.0 40.0) (width 0.2) '
+        '(layer "In3.Cu") (net "GND"))\n'
+        '  (segment (start 42.0 40.0) (end 43.0 40.0) (width 0.2) '
+        '(layer "In4.Cu") (net "GND"))\n'
+        ')\n')
+    out = d / "out.kicad_pcb"
+    r = run([KPY, IMPORT, krt, base, out, "--no-fill"])
+    must_pass(r, "import_krt with In3.Cu/In4.Cu segments")
+    contains(r.out, "imported 2 segments",
+             "both inner-layer segments must import")
+
+
+@test("a fab_overrides route option reaches KRT as --fab-overrides on every "
+      "wave")
+def t_krt_fab_overrides():
+    """The KRT --fab-overrides pass (2026-07-23) is wired through
+    _KRT_FLAGMAP. GREEN: fab_overrides in the common route options emits
+    --fab-overrides <val> on every wave's KRT command line. RED-verified
+    against the pre-fix flagmap (HEAD), where the key was not recognized and
+    route hard-failed 'unknown KRT option' — the exact gate t_kb_unknown_krt_flag
+    proves bites — 2026-07-23."""
+    def mutate(cfg, d):
+        use_stub(cfg, d)
+        cfg["route"]["common"]["fab_overrides"] = "jlc_2layer_6mil"
+    d, p = scratch(mutate)
+    must_pass(prep(p), "prep")
+    must_pass(run([sys.executable, RS, "route", p]), "route (stub KRT)")
+    calls = krt_calls(d / "krt")
+    check(len(calls) >= 1, "no KRT waves were invoked")
+    for c in calls:
+        check("--fab-overrides" in c, f"wave missing --fab-overrides: {c}")
+        eq(c[c.index("--fab-overrides") + 1], "jlc_2layer_6mil",
+           "the fab_overrides value did not reach KRT")
+
+
+@test("via_site_ok checks the board's FULL copper stack by default, catching "
+      "an inner-layer conflict a F/B-only check misses")
+def t_via_site_full_custack():
+    """A standard through-hole via occupies EVERY copper layer between F.Cu
+    and B.Cu. via_site_ok's old hardcoded layers=(F_Cu, B_Cu) default silently
+    skipped In*.Cu, so a via checked 'ok' while landing inside clearance of a
+    same-spot In2.Cu track — 200 shorting_items + 501 clearance findings on a
+    6-layer board whose routing lives on the inner layers (central-v2,
+    2026-07-23), invisible to this check yet fatal at the kicad-cli DRC gate.
+    The default now derives from board.GetEnabledLayers().CuStack(). GREEN: a
+    via placed on top of an In2.Cu track of a DIFFERENT net is rejected.
+    RED-verified against the F/B-only default (HEAD), which returned ok=True
+    and this test's expected rejection failed — 2026-07-23."""
+    d = tmpdir("t2_vck_")
+    script = d / "probe.py"
+    script.write_text(
+        "import os, sys\n"
+        f"sys.path.insert(0, {str(SCRIPTS)!r})\n"
+        "import pcbnew\n"
+        "from pcb_toolkit import Toolkit\n"
+        "b = pcbnew.BOARD()\n"
+        "b.SetCopperLayerCount(6)\n"
+        "n1 = pcbnew.NETINFO_ITEM(b, 'SIG'); b.Add(n1)\n"
+        "n2 = pcbnew.NETINFO_ITEM(b, 'OTHER'); b.Add(n2)\n"
+        "t = pcbnew.PCB_TRACK(b)\n"
+        "t.SetStart(pcbnew.VECTOR2I_MM(50.0, 50.0))\n"
+        "t.SetEnd(pcbnew.VECTOR2I_MM(50.5, 50.0))\n"
+        "t.SetWidth(pcbnew.FromMM(0.2))\n"
+        "t.SetLayer(pcbnew.In2_Cu)\n"
+        "t.SetNet(n1)\n"
+        "b.Add(t)\n"
+        "tk = Toolkit(b, clearance_mm=0.11)\n"
+        "custack = tuple(b.GetEnabledLayers().CuStack())\n"
+        "print('CUSTACK_HAS_IN2', pcbnew.In2_Cu in custack)\n"
+        "print('VIA_OK', tk.via_site_ok(50.0, 50.0, n2.GetNetCode()))\n")
+    r = run([KPY, script])
+    must_pass(r, "via_site_ok CuStack probe")
+    contains(r.out, "CUSTACK_HAS_IN2 True",
+             "the 6-layer board's CuStack must include In2.Cu")
+    contains(r.out, "VIA_OK False",
+             "a via on top of an In2.Cu foreign-net track must be REJECTED — "
+             "an F/B-only default misses it")
+
+
 @test("an unknown stitch pass name is a hard error, not a skipped pass",
       kind="known_bad")
 def t_kb_unknown_pass():

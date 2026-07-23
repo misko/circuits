@@ -240,6 +240,48 @@ def t_zone_layer_not_in_stackup():
     must_fail(r, "generator with a plane off the stackup", "not in the stackup")
 
 
+@test("a 6-layer board places inner GND planes on In3.Cu and In4.Cu")
+def t_six_layer_inner_planes():
+    """The mixed-signal-audio-hub (crow-recorder-central-v2) needs a 6-layer
+    In1+In4 GND-plane stackup. generate_board_generic's LAYER_NAMES/INNER_LAYERS
+    must know In3.Cu/In4.Cu — before they did not, and a declared In4.Cu plane
+    failed 'zone on GND on unknown layer In4.Cu' (the error that surfaced
+    building central-v2). This is the GREEN half; reverting the In3/In4 rows in
+    LAYER_NAMES/INNER_LAYERS turns it RED (verified 2026-07-23)."""
+    def mutate(cfg):
+        cfg["board"]["layers"] = 6
+        cfg["zones"].append({"net": "GND", "layers": ["In3.Cu", "In4.Cu"],
+                             "priority": 0})
+    d, p = scratch_config(mutate)
+    out = d / "b.kicad_pcb"
+    gen(p, out)
+    code = ("import pcbnew,sys\nb=pcbnew.LoadBoard(sys.argv[1])\n"
+            "ls=set()\n"
+            "for z in b.Zones():\n"
+            "  if not z.GetIsRuleArea():\n"
+            "    ls|={b.GetLayerName(l) for l in z.GetLayerSet().Seq()}\n"
+            "print('@@'+','.join(sorted(ls)))\n")
+    r = must_pass(run([KPY, "-c", code, out]), "probe inner planes")
+    got = r.out.split("@@")[1].strip()
+    contains(got, "In3.Cu", "GND plane on In3.Cu")
+    contains(got, "In4.Cu", "GND plane on In4.Cu")
+
+
+@test("an In4.Cu plane on a 4-layer board is a hard error", kind="known_bad")
+def t_in4_needs_six_layers():
+    """In4.Cu is in LAYER_NAMES but INNER_LAYERS requires >=6 copper layers;
+    declaring it on a 4-layer board must be REJECTED by check_layer, not
+    silently dropped onto a layer the stackup lacks (the same failure class as
+    t_zone_layer_not_in_stackup, one layer up)."""
+    def mutate(cfg):
+        cfg["board"]["layers"] = 4
+        cfg["zones"].append({"net": "GND", "layers": ["In4.Cu"], "priority": 0})
+    d, p = scratch_config(mutate)
+    r = run([KPY, GEN, p, "-o", d / "b.kicad_pcb"], cwd=LC)
+    must_fail(r, "generator with an In4 plane on a 4-layer board",
+              "not in the stackup")
+
+
 @test("a bbox_override on a part the legalizer may move is a hard error",
       kind="known_bad")
 def t_bbox_override_unpinned():
