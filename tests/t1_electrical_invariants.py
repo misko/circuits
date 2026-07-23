@@ -209,5 +209,33 @@ def t_adr_uncited():
     contains(r.out, "loop is not closed", "explains the missing link")
 
 
+@test("E-ADR sees an uncited protection ADR headed '# ADR-NNNN' (the vacuous-"
+      "pass regex bug)", kind="known_bad")
+def t_adr_uncited_adr_prefix():
+    """The crow re-audits (2026-07-22) found E-ADR passing VACUOUSLY fleet-wide:
+    every board heads its ADRs '# ADR-0001 — ...', but _adr_title required
+    '# 0001 — ...', so protection_adrs() returned [] and the loop-closer graded
+    NOTHING. Same open loop as t_adr_uncited, but with the ADR- heading — this
+    MUST still FAIL. RED-VERIFIED: against the pre-fix regex (^#\\s*(\\d{4})...)
+    the heading is unrecognized, protection_adrs()==[], and --adr-coverage
+    exits 0 (a false PASS) — so must_fail sees exit 0 and this test goes RED."""
+    inv = (
+        "invariants:\n"
+        "  - assert: pin_on_net\n"
+        "    pin: \"D1.1\"\n"
+        "    net: VIN\n"
+        "    adr: 0009\n"
+        "    why: \"cites 0009, leaving protection ADR 0001 uncovered\"\n")
+    d = project(CLEAN_NETS, inv)
+    dec = d / "01_docs" / "decisions"
+    dec.mkdir(parents=True)
+    (dec / "0001-battery-input-protection.md").write_text(
+        "---\nid: 0001\nstatus: accepted\n---\n"
+        "# ADR-0001 — Battery/input protection: fuse + reverse-polarity FET\n")
+    r = must_fail(einv(d, "--adr-coverage"), "E-ADR loop open (ADR- heading)",
+                  "ADR 0001")
+    contains(r.out, "loop is not closed", "explains the missing link")
+
+
 if __name__ == "__main__":
     sys.exit(main())

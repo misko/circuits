@@ -229,7 +229,9 @@ def main():
             grade("P-LAYOUT", not (missing or bad),
                   f"{scoped} in-scope parts carry a datasheet layout: block",
                   f"read the Layout section + reference design and add a layout: "
-                  f"block — missing: {missing[:6]}; malformed: {bad[:3]}")
+                  f"block — missing ({len(missing)}): {missing[:6]}"
+                  f"{'...' if len(missing) > 6 else ''}; "
+                  f"malformed ({len(bad)}): {bad[:3]}")
         else:
             rows.append(("P-LAYOUT", "N-A", "no in-scope (IC / power-sense) parts"))
 

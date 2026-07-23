@@ -405,7 +405,11 @@ def check_invariants(nl, invs):
 # --------------------------------------------------------------------------
 # E-ADR: protection/topology ADRs must be cited by at least one invariant
 def _adr_title(text):
-    m = re.search(r"^#\s*(\d{4})\s*[—-]\s*(.+)$", text, re.M)
+    # accept BOTH heading conventions: "# 0002 — title" and "# ADR-0002 — title"
+    # (the crow boards + usb-hub-3s-v3 use the ADR- prefix; without this, the
+    # title was '' -> protection_adrs() found nothing -> E-ADR passed VACUOUSLY
+    # fleet-wide, asserting nothing — found by the crow re-audits 2026-07-22).
+    m = re.search(r"^#\s*(?:ADR[-\s]?)?(\d{4})\s*[—-]\s*(.+)$", text, re.M)
     return m.group(2).strip() if m else ""
 
 
