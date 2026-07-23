@@ -1,5 +1,37 @@
 # Journal — usb-hub-3s-v3 verify / release-seal
 
+## 2026-07-23 — finish (SEAL v1.1-2026-07-23, supersedes v1.0)
+- did: Verified the v1.1 protected-VBUS board and sealed
+  `07_releases/v1.1-2026-07-23/` (6-part self-contained archive). Closed the 5
+  residual policy_audit FAILs as source-metadata (BSS138 style leaded + figure
+  cite + layout; SS12D07 + TPS26631 layout blocks; power_tree off_control +
+  quiescent_ua + load_uv_threshold; R-POUR DNP-snubber waiver). Regenerated the
+  ENTIRE fab+verification package for v1.1 (the committed board was v1.1 but the
+  06_build artifacts were all stale v1.0/100-part): gerbers+drills+zip, BOM (coded
+  + stock-checked), CPL, twin, renders, pdf, STEP. Ran the JLC twin fresh (fetched
+  all new-part models), adjudicated Q6 (reused AON6354 merged-drain) + SW1 (new,
+  pitch-confirm-at-order). Wrote pin_review, render_review, and the v1.1
+  fix-confirmation review. Applied the coordinator's snubber-DNP fix via the
+  sanctioned fallback (dropped R34/R35/C53/C54 from fab/bom.csv + cpl.csv; pads
+  remain in the gerbers) rather than a risky re-route. Assembled source/ (COPIED,
+  incl. vendored usb_hub_3s.pretty + Button_Switch_THT.pretty + rewritten
+  fp-lib-table), pdf/ (schematic = tscircuit's own render), 3d/ STEP, verification/,
+  ORDER_README, MANIFEST. Added SUPERSEDED.md to v1.0.
+- result: MEASURED —
+  - **DRC 0/0/0** (severity-all + refill-zones + parity); **source/ standalone
+    re-measure 0/0/0** (V-REL-FPLIB, verified on the archived source).
+  - **policy_audit 0 FAIL** (PASS=27, WAIVED=2 R-THERM+R-POUR ev-backed, HUMAN=6,
+    N-A=2). **E-INV 16/16, E-MARGIN, E-OFF PASS**. **M-REL PASS** after the
+    CHANGELOG v1.1 entry. **contracts_audit 149 files, 0 violations.**
+  - **jlc_twin exit 0** (88 OK / 232; U13 fit 0.01mm, Q7 0.08mm). **pin PASS,
+    render PASS.** MANIFEST self-check PASS (50 files == 50 rows, 0 mismatch).
+  - git backstop: tree clean at git_sha (only untracked seal additions);
+    git_dirty false.
+- next: Board is ORDERABLE with 1 MANDATORY pre-order confirm (SW1 pitch on the
+  JLC preview) + the DNP-snubber note. Bench items: eFuse-in-loop Bode + OVP
+  no-false-trip @5A. Next-rev: encode snubber doNotPopulate in the tsx; RT-T3
+  UVLO note; LM5116 EP via-arrays. Release immutable — a fix = a NEW version.
+
 ## 2026-07-22 22:39 — finish (SEAL v1.0-2026-07-22)
 - did: Assembled the self-contained release archive
   `07_releases/v1.0-2026-07-22/` (6 parts). Regenerated gerbers+drill+zip from

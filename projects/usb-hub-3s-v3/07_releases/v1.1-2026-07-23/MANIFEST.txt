@@ -1,0 +1,84 @@
+# MANIFEST — usb-hub-3s-v3 v1.1-2026-07-23
+
+board:        usb_hub_3s_v2  (internal board name; project directory usb-hub-3s-v3)
+version:      v1.1
+ordered:      2026-07-23
+generated:    2026-07-23 07:19
+git_sha:      b1d57ae55c0c724bdcb450ba7ad40fbb44b75ba3
+git_dirty:    false            # projects/usb-hub-3s-v3 source clean at this sha; the release dir is added in the seal commit
+kicad:        10.0.4
+tools:        export_jlc_package.py (pcbnew 10.0.4), kicad-cli 10.0.4, jlc_twin.py, /usr/bin/python3
+authoring:    tscircuit (source/usb_hub_3s_v2.tsx) — ADR-0002 tscircuit-native. Netlist source/usb_hub_3s_v2.net is the parity reference.
+supersedes:   v1.0-2026-07-22 (SUPERSEDED.md added there; v1.0 otherwise immutable/unchanged). v1.1 = the review-driven revision.
+fab:          JLCPCB, 4 layer, tier jlc_4layer_standard — 240+ vias uniform 0.45/0.30 mm; standard process (NO advanced small-via option). Board 130.1 x 92.1 mm. 115 components designed; 111 assembled (fab/cpl.csv).
+schematic_pdf: pdf/schematic.pdf is tscircuit's OWN render (03_tscircuit/build/schematic.pdf), NOT a KiCad re-render (ADR-0002). pcb_layers/assembly PDFs are kicad-cli.
+source_note:  source/ ships fp-lib-table + vendored usb_hub_3s.pretty AND Button_Switch_THT.pretty (SW1 land) (custom-lib uris rewritten to ${KIPRJMOD}/<lib>.pretty; system libs -> /usr/share/kicad/footprints). Standalone `kicad-cli pcb drc source/usb_hub_3s_v2.kicad_pcb` re-measures 0 violations / 0 unconnected / 0 parity (V-REL-FPLIB verified this seal). No .kicad_prl (gitignored UI state).
+cpl_note:     fab/cpl.csv is the JLC-UPLOAD-format CPL (Designator,Val,Package,Mid X,Mid Y,Layer,Rotation; rotation-DB-corrected), from 06_build/fab/cpl_jlc.csv.
+3d:           3d/usb_hub_3s_v2.step present — BOARD-BODY geometry only (kicad-cli export step; headless env has no 3D component-model package). Component heights / enclosure clearance covered by verification/twin_edge_{east,west}.png.
+not_assembled: (1) F1 fuse ELEMENT = 10 A MINI blade (Littelfuse 0297010), hand-fit, OFF-CPL/OFF-BOM consumable; the F1 HOLDER (Keystone 3568, LCSC C5249699) IS on BOM/CPL. (2) SW-node snubbers R34/R35 (2.2 ohm, C137327) + C53/C54 (1 nF, C62774) = DNP-by-design bench-tune footprints, REMOVED from fab/bom.csv + fab/cpl.csv; their PADS remain in the gerbers (unpopulated) for optional hand-fit if SW ringing is seen. See ORDER_README section 2.
+
+gates (MEASURED this release):
+  DRC severity-all + refill-zones + parity:  0 violations / 0 unconnected / 0 parity   (verification/drc.json, drc_parity.json)
+  source/ standalone re-measure (V-REL-FPLIB): 0 / 0 / 0                                (kicad-cli pcb drc source/usb_hub_3s_v2.kicad_pcb)
+  ERC:                                       severity-all, evidence                    (verification/erc.json)
+  policy_audit:                              0 FAIL (PASS=27, WAIVED=2 [R-THERM + R-POUR ev-backed], HUMAN=6, N-A=2)   (verification/policy_audit.md)
+  E-INV / E-ADR / E-TOPO / E-MARGIN / E-OFF: PASS — 16 invariants; ADR coverage; 2 rails BUCK; USB-C 5.151 V vs Pi 4.63 V (521 mV = 104 mOhm margin); off-control SW1 + 270 uA quiescent
+  P-LAYOUT / P-ADJ:                          PASS (13 in-scope parts carry datasheet layout; span budgets honoured)
+  jlc_twin:                                  exit 0 — 88 OK / 232 checked; all PAD-GEOM/PAD-MISMATCH criticals adjudicated (U13 fit 0.01mm, Q7 0.08mm; Q6 = reused AON6354 merged-drain; SW1 = new, pitch-confirm-at-order)   (verification/twin_report.csv, twin_adjudications.yaml)
+  pin review (fresh-context):                PASS, 0 FAIL — delta (eFuse U13/Q6/Q7, FB-at-connector, SW1) verified vs datasheet   (verification/pin_review.md)
+  render review (fresh-context):             PASS — eFuse cell, honest silk relabels, connectors, no collisions   (verification/render_review.md)
+  fix-confirmation (v1.1):                   external-review findings RESOLVED — Blocker-2 (4.97->5.151 V, E-MARGIN PASS), RT-T4 (eFuse+reverse-block), RT-T2/T5 (50V/10V caps), RT-T6 (invariants); off-switch (E-OFF PASS)   (verification/2026-07-23_v1.1_fix_confirmation.md)
+  RED-TEAM topology / layout:                ORDER (carried from v1.0; topology re-confirmed by zero-context re-review)   (verification/redteam_topology*.md, redteam_layout.md, RT-T1_regate_note.md)
+  open items:                                SW1 footprint pitch = MANDATORY JLC order-preview confirm (our 2.5mm vs JLC VG4-model 2.0mm; jumper fallback). Snubbers DNP (off-BOM/CPL). RT-T3 LM5116 UVLO ~9.65V > 9.0V nominal = accepted P2 (LiPo deep-discharge protective). Zero unresolved P0.
+
+sha256:
+  3d/usb_hub_3s_v2.step  bee36ce801381c151ca0ae607d4f86ce4f98d4674e37cedbcc6a5dfe8df4cd3e
+  fab/bom.csv  cc6713239ae6fc61b4cdb3dfe2747ae783f2a21858128d2f8bea8c2dd4ea5119
+  fab/cpl.csv  9389ec765eb4e4c7b649248781cc859b0a2362ce2435f293fa5f0f409fe482a3
+  fab/usb_hub_3s_v2_gerbers.zip  d727d43bc39cc5714e440613eecdeb5f99291b4d3cf3c15b325f4158bc22d856
+  fab/usb_hub_3s_v2-NPTH.drl  9932625550ef58dd387aa464d146f8d466c20a7d142becfce7c05ba4c50f718a
+  fab/usb_hub_3s_v2-PTH.drl  a939446dc48abe9eaf5411e8340d470a3b01a6fea23159b6a365f09790af04ee
+  ORDER_README.md  04e2d973037e8007e05b53e8d297c15caff602fd33eae641996c2f255ed8330b
+  pdf/assembly_back.pdf  e1440fc8060fde6be1dec48c1bdc2f5ba60e8876ef237128d638625425c7fd22
+  pdf/assembly_front.pdf  e3f3c2a8530b0356352fdb4651dbfef565c9ede7f83827d43108aa28a17de0a4
+  pdf/pcb_layers.pdf  85f97e2492cb52a0fa528ce777e0eecf20d2522369fcbf9f9ce84ac2ecd44e75
+  pdf/schematic.pdf  1eed42f1ab90916f0f5d6c8ffd26a890e49806f71428a90b9f9ce9b1e98851e5
+  source/Button_Switch_THT.pretty/SW_Slide_1P2T_CK-12D07.kicad_mod  4fb72085bfef7740b599059cbb2d03d44e8c9bf26688150809c6f3965db52d0b
+  source/fp-lib-table  17ce6ea46b797fd469c3489509e0d7d6b2115f1709e6283f4624be597c404efc
+  source/usb_hub_3s.pretty/KH-AF90DIP-112_Horizontal.kicad_mod  9ec04bfc9cb3a6bd46b4a83fcb755df367c87c5a45c229f10228b0290742cf0e
+  source/usb_hub_3s.pretty/L_YJYCOIN_YSPI1770Y.kicad_mod  c4713b4feda0c78c326ea1eab79963c4189602f14052d5063644839de08c6761
+  source/usb_hub_3s.pretty/TYPE-C-31-M-12_EdgeTrim.kicad_mod  544d1589cf635e9c812c843e731f4d836c047f13cb982187d3ffc6edab444922
+  source/usb_hub_3s.pretty/XT60PW-M_EdgeTrim.kicad_mod  f4e2f40f3f169033ae880a684f82a162bce4d10ae47529c36edb3ca517a80103
+  source/usb_hub_3s_v2.kicad_dru  8d093512c797582c6c667063c64483df819da680ab98741a9e9fadcdcfa7789f
+  source/usb_hub_3s_v2.kicad_pcb  59493d63885e5e2e412af9e4ca44329f0267f7123a80e1ec41cf5a69149561bf
+  source/usb_hub_3s_v2.kicad_prl  33a2da5913ce590abfdfd76bfe24b293d78b9a518c9e816f8bb52aec2f35f954
+  source/usb_hub_3s_v2.kicad_pro  4f5abf1f71dc6449c2a3eae95a0c5060491cc0c4ded0c1355e454ce6f4ee2bc8
+  source/usb_hub_3s_v2.kicad_sch  c1ed50032ed6b023e5afb7ea838652a49252960e2e8ded930e99116387157a28
+  source/usb_hub_3s_v2.net  51a1d4cbc497b2db6a2206dd581f0e33f23d9c4992a9897f19d1544bf3dfddb7
+  source/usb_hub_3s_v2.tsx  695eab5940d0a1f379060310838389f5411637e56cd3e31ba610118eb08bfe2f
+  verification/2026-07-23_v1.1_fix_confirmation.md  0a4a42b05f2d914fc70b9103e082511567515540a95973b78979ec5187b51d02
+  verification/drc.json  f37deaa4f62059d2a5e01f452d27cb7ae9e18b379c4973daae585b701d840621
+  verification/drc_parity.json  c8f054b7742eb50ff84e25572bde6ba4f0dfffb52c76025bccd2f70c85417948
+  verification/erc.json  2c011c4c50935d77ee480401054bcded1ddc693627851656e0007350fc325ca5
+  verification/missing_models.txt  4a2be6fb70e49b449bfe965883bce80c47935b7e9a66fdc027591f4d46ac5168
+  verification/model_bottom.png  020786a3b075c27b94f7515d1ac51b19c884046069bd128ba665fa3f50f3dfa0
+  verification/model_top.png  b5790e8e91af30793f3bac76ded4a5018b1bd42149d2722a1b729bcbbd47a1b3
+  verification/parity.md  1d1a5d06260f7f7c1dabd10bbc60bf7a403f51a06335cbc2bf1fc51090c0d295
+  verification/pin_review.md  0d7e1d6aed601f7abefd9f23978951f63c62afa14a1a579646d2b7896f062f9f
+  verification/placement_audit.json  080c78023c8561fd9ddd930b9a7031f88e049f6298e8d17ea1ee0eef36575842
+  verification/policy_audit.md  2845d4fe5c898af9d7a051f6961284890b131cd709f1338dc8daef81bbf27ef3
+  verification/redteam_layout.md  4b2d5d18a45ddbf60ee5c2e1a68f28473dc80320471a72da771a37132ac12190
+  verification/redteam_topology.md  0b9d8837d7e63d236947aaf8cc4a8922c44d58432c8872983a1e5a8796a2277d
+  verification/redteam_topology_rereview.md  4b869a433becd94c62319dfdb76313db6e0dad94fa591ea96c37b4dc2c6ab3f8
+  verification/render_review.md  1080f92a7c2760308311a20245e76fd21f93b061039ca2ffa93220eb134817c9
+  verification/RT-T1_regate_note.md  6b10a8ccb58295ee99a7ec2a2db91a68601cb1d207cf6d390927839547726f95
+  verification/stock_check.csv  e2f866171fa4eaab551af693570578b5dbe36309dcaf910fcdce579df2663d06
+  verification/twin_adjudications.yaml  692ed26fee9cd27167c55e22a6247f31629deee328cb44cfdb241a7e37c6b11b
+  verification/twin_bottom.png  ab067375036630f9c35d30eef9287e3df32cd0def015e31014a8733abe24e7ba
+  verification/twin_edge_east.png  983ad9dc9c39264ba67298e83ec74535d81a5277ead3ad8af32b9f4a2b48b6b8
+  verification/twin_edge_west.png  b2d0499ffb2ad68d21abd9b1fc30c6c42cd0983b8fdec605d87f9b1051f8c744
+  verification/twin_iso_nw.png  826380146415fbf439d3fae0d08fcffddef7f8dfbe26d424199d37e023b03271
+  verification/twin_iso_se.png  24bbad0a9358126db996affed56351473938bdce0ef055dea44efb585f30e142
+  verification/twin_report.csv  386bfe8dea1d4fda645eefb853afe76b68346bfac0f3065c61b9105a637e848a
+  verification/twin_report.txt  c1ed7290bf011d4d0acdd3eb4aa4bf41431e68adf44dcd75f396d3948443b7c3
+  verification/twin_top.png  340b74c7d37796bab33a93e8b1ab305d86ad0204f6cac69ebe4f530b6f673dcd

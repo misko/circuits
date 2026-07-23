@@ -1,0 +1,58 @@
+44 BOM lines: 40 with LCSC, 4 without
+
+  OK               C21189     x5   0Ω                                     base   stock=9818669
+  OK               C137779    x2   1.21kΩ                                 expand stock=37306
+  OK               C25803     x4   100kΩ                                  base   stock=7579108
+  OK               C14663     x11  100nF                                  base   stock=92968327
+  OK               C14858     x2   100pF                                  base   stock=5047909
+  OK               C90143     x8   100uF                                  expand stock=74000
+  OK               C25744     x2   10kΩ                                   base   stock=352877
+  OK               C127692    x2   10mΩ                                   expand stock=149371
+  OK               C57112     x3   10nF                                   base   stock=6524801
+  OK               C77100     x10  10uF                                   expand stock=430331
+  OK               C137798    x2   12.4kΩ                                 expand stock=84658
+  OK               C25810     x2   18kΩ                                   base   stock=1390633
+  OK               C62774     x2   1nF                                    expand stock=441910
+  OK               C15849     x4   1uF                                    base   stock=10658897
+  OK               C137327    x2   2.2Ω                                   expand stock=23575
+  OK               C45783     x3   22uF                                   base   stock=2622824
+  OK               C1613      x2   3.3nF                                  base   stock=392681
+  OK               C728591    x2   3.92kΩ                                 expand stock=751
+  OK               C1664      x2   330pF                                  base   stock=951173
+  OK               C23029     x3   36.5kΩ                                 expand stock=167559
+  OK               C23184     x2   49.9kΩ                                 base   stock=512667
+  OK               C23215     x2   6.98kΩ                                 expand stock=42194
+  OK               C130056    x3   C130056                                expand stock=7719
+  OK               C13755     x2   C13755                                 expand stock=7667
+  OK               C173429    x1   C173429                                expand stock=423817
+  OK               C2128      x2   C2128                                  base   stock=986772
+  OK               C2760089   x1   C2760089                               expand stock=2409
+  OK               C2866319   x1   C2866319                               expand stock=112
+  OK               C2939728   x1   C2939728                               expand stock=53056
+  OK               C2982822   x2   C2982822                               expand stock=22880
+  OK               C404363    x5   C404363                                expand stock=5435
+  OK               C408523    x2   C408523                                expand stock=450
+  OK               C473910    x2   C473910                                expand stock=75
+  OK               C503996    x3   C503996                                expand stock=12832
+  OK               C5249699   x1   C5249699                               expand stock=1231
+  OK               C5337088   x1   C5337088                               expand stock=295
+  OK               C7519      x4   C7519                                  expand stock=32457
+  OK               C78284     x1   C78284                                 expand stock=105611
+  OK               C83846     x1   C83846                                 expand stock=40136
+  OK               C98732     x1   C98732                                 expand stock=3312
+
+-- proposals for uncoded lines (HUMAN MUST CONFIRM SPECS) --
+  PROPOSE C22864     x1   12.1kΩ                                 expand stock=103903 0603WAF1212T5E [0603]
+      alt C123417    expand stock=16623 RC0603FR-0712K1L [0603]
+      alt C227571    expand stock=9500 AC0603FR-0712K1L [0603]
+  PROPOSE C22807     x1   150kΩ                                  base   stock=1308555 0603WAF1503T5E [0603]
+      alt C114660    expand stock=639500 RC0603FR-07150KL [0603]
+      alt C118376    expand stock=14668 RS-03K154JT [0603]
+  PROPOSE C22992     x1   3.09kΩ                                 expand stock=18971 0603WAF3091T5E [0603]
+      alt C325683    expand stock=3951 RMC06033.09K1%N [0603]
+      alt C218004    expand stock=3131 ARG03FTC3091 [0603]
+  PROPOSE C23061     x1   47.5kΩ                                 expand stock=58994 0603WAF4752T5E [0603]
+      alt C137715    expand stock=34627 RC0603FR-0747K5L [0603]
+      alt C136962    expand stock=19831 RT0603BRD0747K5L [0603]
+
+PASS: 0 coded lines with problems; 4 lines still uncoded

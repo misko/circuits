@@ -1,0 +1,31 @@
+(version 1)
+(rule "SWITCH_NODE_width"
+  (condition "A.NetClass == 'SWITCH_NODE'")
+  (constraint track_width (min 0.6mm)))
+(rule "PWR_IN_width"
+  (condition "A.NetClass == 'PWR_IN'")
+  (constraint track_width (min 0.6mm)))
+(rule "PWR_RAIL_width"
+  (condition "A.NetClass == 'PWR_RAIL'")
+  (constraint track_width (min 0.4mm)))
+(rule "VBUS_width"
+  (condition "A.NetClass == 'VBUS'")
+  (constraint track_width (min 0.5mm)))
+(rule "GATE_width"
+  (condition "A.NetClass == 'GATE'")
+  (constraint track_width (min 0.3mm)))
+(rule "SENSE_width"
+  (condition "A.NetClass == 'SENSE'")
+  (constraint track_width (min 0.2mm)))
+(rule "USB_DATA_width"
+  (condition "A.NetClass == 'USB_DATA'")
+  (constraint track_width (min 0.15mm)))
+(rule "NC_PADS_width"
+  (condition "A.NetClass == 'NC_PADS'")
+  (constraint track_width (min 0.2mm)))
+(rule "GND_RET_width"
+  (condition "A.NetClass == 'GND_RET'")
+  (constraint track_width (min 0.25mm)))
+(rule pad_rescue_stubs
+  (condition "A.insideArea('pad_rescue_stubs') && (A.NetName == 'GND' || A.NetName == 'VIN')")
+  (constraint track_width (min 0.300mm)))
