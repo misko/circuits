@@ -1,0 +1,65 @@
+# usb-hub-3s-v3 jlc_twin adjudications. Every entry cites decisive evidence.
+# Statuses match the twin finding strings exactly. The AON PowerPAK/DFN5x6
+# merged-drain family entries are REUSED VERBATIM (evidence-identical) from
+# the SHIPPED usb-hub-3s v1.0-2026-07-21 board's adjudications — the same
+# footprint (KiCad Package_SO:PowerPAK_SO-8_Single) that was ORDERED there.
+
+# -- PowerPAK SO-8 / DFN5x6 merged-drain family: our footprint merges the
+#    drain leads + paddle into ONE pad '5'; JLC splits 5-8 + EP 9. Same
+#    copper region; the 1<->5 distance delta (twin: 5.39 vs 6.97) is the
+#    merged-pad CENTROID vs JLC's corner lead pin 5 — a merging artifact, not
+#    a land-pattern disagreement. AOS recommended pattern IS the single drain
+#    paddle (AON6354/AON6403 datasheets, verified at parts stage). Ordered on
+#    usb-hub-3s v1.0-2026-07-21.
+- {lcsc: C404363, refs: [Q2, Q3, Q4, Q5], status: PAD-MISMATCH,
+   why: "AON6354: KiCad single-paddle pad 5 vs JLC 5-8+EP split; AOS DS recommended pattern is the single paddle. Same footprint ordered on usb-hub-3s v1.0."}
+- {lcsc: C404363, refs: [Q2, Q3, Q4, Q5], status: PAD-GEOM,
+   why: "AON6354: 1<->5 delta is merged-paddle centroid vs JLC corner-lead pin 5; copper regions coincide (5.39 vs 6.97mm family artifact, ordered on v1.0)."}
+- {lcsc: C2760089, refs: [Q1], status: PAD-MISMATCH,
+   why: "AON6403: same merged-drain family as C404363; KiCad single-paddle pad 5 vs JLC 5-8+EP9; AOS single-paddle recommended pattern. Ordered on v1.0."}
+- {lcsc: C2760089, refs: [Q1], status: PAD-GEOM,
+   why: "AON6403: 1<->5 delta = merged-paddle centroid vs JLC corner lead pin 5; copper regions coincide (same artifact as C404363)."}
+
+# -- F1: MINI blade fuse HOLDER (Keystone 3568-class), a HAND-SOLDER line not
+#    in the JLC placement set. best=none = JLC has no placement model for the
+#    2-clip THT holder; nothing to twin-compare. Holder land = Keystone
+#    catalog p.42 (part.yaml verified:). Not machine-placed -> mitigated by
+#    the ORDER_README hand-solder + order-preview check.
+- {lcsc: C5249699, refs: [F1], status: PAD-MISMATCH,
+   why: "MINI fuse holder is a hand-solder THT part with no JLC placement model (best=none); land from Keystone catalog p.42; not in the CPL placement set."}
+
+# -- L1/L2: Sunlord MWSA1206S molded power inductor, named library footprint
+#    Inductor_SMD:L_Sunlord_MWSA1206S-6R8 (matches the exact MPN). The pad
+#    1<->2 delta (twin: ours 11.25 vs JLC 12.00mm, 0.75mm) is a KiCad-vs-
+#    EasyEDA land-EXTENT preference on a 12.5mm molded body — same class as
+#    the fillet-length family below; the two large end-cap pads overlap the
+#    same copper. Verify orientation on the JLC order preview.
+- {lcsc: C408523, refs: [L1, L2], status: PAD-GEOM,
+   why: "MWSA1206S: named library footprint for the exact MPN; 0.75mm 1<->2 delta is a land-extent preference on a 12.5mm molded inductor, same copper end-caps (order-preview confirm)."}
+
+# -- D1: SMBJ15A input TVS (SMA/DO-214AC). PAD-GEOM 0.42mm = same KiCad-vs-
+#    EasyEDA fillet-extent preference on a JEDEC SMA body; copper coincides.
+#    POLARITY-CHECK satisfied: the zero-context topology red-team explicitly
+#    verified TVS directionality (K=VIN, A=GND, after Q1 on VIN — the v1 D1
+#    defect class), and policy_audit P-POL asserts pad-1 net polarity. Confirm
+#    on the JLC order preview per ORDER_README.
+- {lcsc: C83846, refs: [D1], status: PAD-GEOM,
+   why: "SMBJ15A SMA: 0.42mm 1<->2 land-extent preference (KiCad vs EasyEDA), same copper; JEDEC DO-214AC body."}
+- {lcsc: C83846, refs: [D1], status: POLARITY-CHECK,
+   why: "TVS directionality verified by topology red-team (K=VIN/A=GND, after Q1) + P-POL pad-1 polarity gate; order-preview confirm."}
+
+# -- F1 fuse holder PAD-GEOM (in addition to PAD-MISMATCH above) — same
+#    hand-solder THT holder, no JLC placement model; land per Keystone p.42.
+- {lcsc: C5249699, refs: [F1], status: PAD-GEOM,
+   why: "MINI fuse holder hand-solder THT; land from Keystone catalog p.42; not machine-placed."}
+
+# -- POLARITY-CHECK on the polarized 2-pad parts: ALL satisfied by policy_audit
+#    P-POL (PASS) which asserts pad-1 net vs part.yaml polarity facts — the
+#    exact check POLARITY-CHECK requests — plus the render review + ORDER_README
+#    order-preview step. Machine-verified, not eyeballed.
+- {lcsc: C173429, refs: [D2], status: POLARITY-CHECK,
+   why: "BZT52C12 Vgs zener: P-POL asserts K(pad1)=VIN, A=RPP_G per part.yaml; machine-verified."}
+- {lcsc: C2128, refs: [D3, D4], status: POLARITY-CHECK,
+   why: "1N4148WS boot diodes: P-POL asserts K(pad1)=BOOT_A/C, A=VCC per part.yaml; machine-verified."}
+- {lcsc: C2982822, refs: [C1, C2], status: POLARITY-CHECK,
+   why: "VIN bulk polymer caps: P-POL asserts pad1=VIN (+) per part.yaml polarity facts; machine-verified."}
