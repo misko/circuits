@@ -39,13 +39,17 @@ classes:
     intent: >
       Buck output trunks: 5VA (6 A) and 5VC (5 A). Pour-fed (floorplan
       islands); floor is the backstop.
-    nets: [5VA, 5VC, VBUSC, EFINC]   # 5VA/5VC authored N5VA/N5VC (N-guard stripped).
-                                    # v1.1: VBUSC = eFuse-protected USB-C VBUS (5A);
-                                    # EFINC = eFuse IN node (Q6 drain->U13 IN, 5A short)
+    nets: [5VA, 5VC, VBUSC, PMID]   # 5VA/5VC authored N5VA/N5VC (N-guard stripped).
+                                    # v1.2 discrete: VBUSC = protected USB-C VBUS (5A,
+                                    # F2 out); PMID = Q6.S -> F2 node (5A short, pour-fed)
     current: "6 A / 5 A"
     min_width: 0.4mm   # POUR-carried power; the only routed 5VA/5VC tracks are
                        # Kelvin VOUT/FB sense stubs (no current) -> 0.4 backstop
-    clearance: 0.15mm
+    clearance: 0.13mm  # v1.2: was 0.15; the power TRUNKS ride pours, the only
+                       # ROUTED PWR_RAIL copper is quiet FB/VOUT sense stubs +
+                       # link vias -> 0.13 (= the signal classes, >= STANDARD
+                       # 0.127 fab floor) is correct & clears the fab-legal
+                       # sense-stub margin items (5V, no creepage concern)
     routing: pours
     verify: DRC floor
 
@@ -65,8 +69,8 @@ classes:
     intent: >
       Gate drives + bootstraps for the 4 buck FETs (LM5116 HO/LO/HB pairs, both
       bucks). Amps of pulse current, short runs.
-    nets: [HO_A, LO_A, BOOT_A, HO_C, LO_C, BOOT_C, BGATEC, DRVC]   # v1.1: + eFuse
-           # reverse-block gates (BGATEC=Q6 gate/U13.B_GATE, DRVC=Q7 gate/U13.DRV)
+    nets: [HO_A, LO_A, BOOT_A, HO_C, LO_C, BOOT_C]   # v1.2: eFuse reverse-block
+           # gate nets (BGATEC/DRVC) removed with the eFuse
     current: "gate pulses (~2 A pk)"
     min_width: 0.3mm
     clearance: 0.13mm  # >= STANDARD tier min_space 0.127
@@ -82,8 +86,8 @@ classes:
            UVLO_A, VCC_A,
            CS_C, CSF_C, CSGF_C, FB_C, COMP_C, CMZ_C, RAMP_C, RT_C, SS_C,
            UVLO_C, VCC_C,
-           ENKILL,                       # v1.1: merged master-off EN bus (was EN_A/EN_C)
-           OVPC, DVDTC, ILIMC, SHDNC]    # v1.1: eFuse set pins (OVP/dVdT/ILIM/SHDN divider mids)
+           ENKILL,                       # v1.2: master-off EN bus (SW1.COM -> both bucks' EN + Q7 gate)
+           QG]                           # v1.2: Q6 P-FET gate node (Q7.D + R30 pull-up); slow DC gate control
     current: "<50 mA"
     min_width: 0.2mm
     clearance: 0.13mm  # >= STANDARD tier min_space 0.127

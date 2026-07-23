@@ -19,9 +19,11 @@ prep:
     layers: [User.2]
     mounting_holes: {radius: 3.0}
     edge_band: 0.7
+    # v1.2 discrete redesign: the eFuse-era escape-lane keepouts are GONE (the QFN
+    # eFuse and its west-pin escape wall are removed).
 
   waves:
-    exclude: ["GND", "VBAT", "VBAT_F", "VIN", "5VA", "5VC", "VBUSC", "EFINC",
+    exclude: ["GND", "VBAT", "VBAT_F", "VIN", "5VA", "5VC", "VBUSC", "PMID",
               "VBUSA1", "VBUSA2", "VBUSA3",
               "SW_A", "SW_C", "CS_A", "CS_C", "SNUB_A", "SNUB_C",
               # J5 USB-C corner: CC + interleaved D+/D- edge pads defeat KRT
@@ -30,12 +32,12 @@ prep:
               "unconnected-*"]
     groups:
       # hardest first: FET gate drives + bootstraps (both bucks)
-      gate: [HO_A, LO_A, BOOT_A, HO_C, LO_C, BOOT_C, BGATEC, DRVC]
+      gate: [HO_A, LO_A, BOOT_A, HO_C, LO_C, BOOT_C]
       # buck control/sense (both bucks) + VCC local decouple
       sense: [FB_A, COMP_A, CMZ_A, RAMP_A, RT_A, SS_A, UVLO_A, CSF_A, CSGF_A, VCC_A,
               FB_C, COMP_C, CMZ_C, RAMP_C, RT_C, SS_C, UVLO_C, CSF_C, CSGF_C, VCC_C,
-              ENKILL,                          # v1.1 master-off bus (SW1.COM->both EN)
-              OVPC, DVDTC, ILIMC, SHDNC]       # v1.1 eFuse set-pin dividers
+              ENKILL,                          # v1.2 master-off bus (SW1.COM -> both bucks' EN + Q7 gate)
+              QG]                              # v1.2 Q6 P-FET gate node (Q7.D + R30 pull-up)
       # USB-A data + current-limit
       dataa: [DP_A1, DM_A1, DP_A2, DM_A2, DP_A3, DM_A3, ILIM1, ILIM2, ILIM3]
       sig: rest
@@ -78,13 +80,18 @@ taps:
     - {net: 5VA, from: U2.10, to: R3.1, width: 0.4, layer: F.Cu, hop_layer: B.Cu}   # VOUT sense -> local FB-top (both 5VA, ~6mm); R3.1's own tap reaches the pour. Avoids the roll-fragile 38mm cross-buck run.
     - {net: 5VA, from: R3.1, to: [98.0, 46.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu,
        escape: true, escape_grid: 0.25, escape_window: 9.0, escape_viacost: 5, escape_attempts: 20}   # FB-top sense; escape A* keeps 0.15 clr (via_hop B.Cu run clipped a COMP_A via)
-    - {net: 5VC, from: U11.10, to: [95.0, 76.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu}   # [90,74] was inside SW_C island -> dangling via; [95,76] is clean 5VC
-    # v1.1 buck-C FB now senses VBUSC at the connector (post-eFuse). R12.1 is a
-    # long quiet Kelvin run to the SE VBUSC west-leg pour -> LAYER-escape A*.
-    - {net: VBUSC, from: R12.1, to: [113.0, 102.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu,
-       escape: true, escape_grid: 0.3, escape_window: 6.0, escape_viacost: 6, escape_attempts: 20}
-    # v1.1 eFuse IN_SYS sense pin (U13.6, fine-pitch W side) -> 5VC landing patch
-    - {net: 5VC, from: U13.6, to: [107.5, 94.6], width: 0.4, layer: F.Cu, hop_layer: B.Cu}
+    # v1.2 buck-C output sense — MIRROR buck-A (U2.10->R3.1->pour). The v1.1 direct
+    # U11.10->[95,76] tap is a 38mm cross-buck run that is roll-fragile: buck-A hit
+    # this exact wall and was retargeted to its FB-top (journal routing_v1.1 item 2).
+    # v1.2 does the same on buck-C: U11.10 (VOUT) -> R12.1 (FB-top, both 5VC, ~9mm
+    # local link); R12.1 then escape-taps into the buck-C 5VC pour (single escape,
+    # not two competing ones). Also serves the LOCAL-SENSE FB (R12.1 on 5VC).
+    - {net: 5VC, from: U11.10, to: R12.1, width: 0.4, layer: F.Cu, hop_layer: B.Cu}
+    - {net: 5VC, from: R12.1, to: [96.0, 86.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu,
+       escape: true, escape_grid: 0.25, escape_window: 14.0, escape_viacost: 5, escape_attempts: 40}   # SOUTH route: [96,86] is F.Cu+B.Cu SOLID and BELOW the SW_C island (y65-79), so R12.1 no longer crosses the U11.20/C22.2 SW_C taps ([79,74]/[81,72]). ([95,80] was F.Cu-void; [95,72] boxed the SW_C tap.)
+    # v1.2 discrete cell: Q6/F2/D5 power pins pour-bond (5VC notch / PMID / VBUSC);
+    # QG (Q6.4, Q7.3, R30.2) + ENKILL route as KRT signals; GND pins (Q7.2, D5.2)
+    # pad_rescue. No eFuse IN_SYS/set-pin taps (the eFuse is gone).
     # v1.1 SW-node RC snubbers (DNP-populate): SW pour tap + SNUB link (SWITCH_NODE 0.6)
     - {net: SW_A,   from: R34.1, to: [85.0, 40.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}
     - {net: SNUB_A, from: R34.2, to: C53.1,        width: 0.6, layer: F.Cu, hop_layer: B.Cu}

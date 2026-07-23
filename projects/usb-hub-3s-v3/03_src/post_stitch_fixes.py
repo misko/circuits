@@ -44,8 +44,8 @@ GND=b.FindNet("GND"); VBATF=b.FindNet("VBAT_F")
 for z in b.Zones(): z.UnFill()   # via_site_ok sees pads/tracks only; pours void around new vias on refill
 hs=holes(b)
 
-# ---- 1. EP thermal via arrays ----
-for ref,cx,cy in [("U2",60,38),("U11",60,76),("U13",113,92)]:
+# ---- 1. EP thermal via arrays (v1.2: U13 eFuse GONE -> only the two LM5116 EPs) ----
+for ref,cx,cy in [("U2",60,38),("U11",60,76)]:
     n=0
     for dx in (-0.85,0.85):
         for dy in (-2.1,0.0,2.1):

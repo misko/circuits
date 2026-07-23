@@ -440,20 +440,21 @@ export default () => (
           (master-off) so a back-feed keeps Vgs~0 and the body diode blocks. 100k
           (mirrors the input Q1 gate pulldown R1). */}
       <resistor name="R30" resistance="100k" footprint="0603" connections={{ pin1: "net.PMID", pin2: "net.QG" }} />
-      {/* F2 = PPTC resettable polyfuse (OVER-CURRENT), PMID -> VBUSC. ~6A hold (5A
-          load with margin), Itrip ~10-12A; Vmax >= 16V (a buck-fail-high fault is
-          TVS-clamped ~10V, fuse then trips). STOCK/LCSC UNVERIFIED in the sealed env
-          -> FLAGGED for the parts-research stock check (part.yaml 02_parts/1812L600). */}
-      <chip name="F2" supplierPartNumbers={{ jlcpcb: ["C2828687"] }}
+      {/* F2 = PPTC resettable polyfuse (OVER-CURRENT), PMID -> VBUSC. 2920 (7.4x5.1mm)
+          — a 6A/16V hold does NOT exist in 1812, and a 6A part nuisance-trips at 5A
+          @50C (derates ~4.8A). 7A hold (SMD2920-700/16N, C6165170; ~5.6A @50C > 5A
+          load) + Vmax 16V (buck-fail-high). 16V/stock per parts-research, order-day
+          recheck MANDATORY (Extended). Fallback C3762416 6A (degraded). 02_parts/SMD2920-700. */}
+      <chip name="F2" supplierPartNumbers={{ jlcpcb: ["C6165170"] }}
         pinLabels={{ pin1: "1", pin2: "2" }}
         connections={{ pin1: "net.PMID", pin2: "net.VBUSC" }}
-        footprint={<Pol2 w="1.6mm" h="3.2mm" dx="2.3mm" />} />
+        footprint={<Pol2 w="1.8mm" h="5.1mm" dx="3.0mm" />} />
       {/* D5 = TVS over-voltage clamp, VBUSC -> GND (uni-directional, cathode=pad1 at
           VBUSC). Vwm ~6V clears the 5.43V no-load VBUSC max (no nuisance leakage);
           clamps a buck-fail-high (12.6V) and, with F2, crowbars -> polyfuse trips ->
           Pi protected. STOCK/LCSC UNVERIFIED -> FLAGGED for parts-research
           (02_parts/SMBJ6.0A). */}
-      <chip name="D5" supplierPartNumbers={{ jlcpcb: ["C921382"] }}
+      <chip name="D5" supplierPartNumbers={{ jlcpcb: ["C140903"] }}
         pinLabels={{ pin1: "K", pin2: "A" }}
         connections={{ pin1: "net.VBUSC", pin2: "net.GND" }}
         footprint={<Pol2 w="2.1mm" h="2.4mm" dx="2.2mm" />} />

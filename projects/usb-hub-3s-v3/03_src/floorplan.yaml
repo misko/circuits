@@ -85,13 +85,14 @@ placement:
     U12: [126.0, 101.7, 180]  # C-port data ESD (rot180: DMC pins 3/4 face N channel); clears J5 courtyard
     J5:  [120.0, 109.0, 0]    # USB-C mouth SOUTH; VBUS pads (A4/A9/B4/B9) on VBUSC (v1.1 eFuse OUT)
 
-    # ---------------- PROTECTED-VBUS eFuse cell (v1.1) — vacated SE 5VC bridge ----
-    # series 5VC -> Q6(block FET) -> EFINC -> U13(eFuse) -> VBUSC -> J5. Linear W->E:
-    # Q6 rot0 S(1-3)=5VC WEST / D-tab(5)=EFINC EAST; U13 (same HTSSOP-20 as the
-    # LM5116s) rot0 IN(1-3)=EFINC top-WEST / OUT(18-20)=VBUSC top-EAST.
-    Q6:  [104.5, 90.5, 0]     # AON6354 blocking FET: S=5VC(W), D-tab=EFINC(E), G=BGATEC
-    U13: [113.0, 92.0, 0]     # TPS26631 eFuse: IN(1-3)=EFINC(W-top), OUT(18-20)=VBUSC(E-top), EP=GND
-    Q7:  [105.5, 98.5, 0]     # BSS138 fast pulldown: G(1)=DRVC, S(2)=5VC, D(3)=BGATEC (S of U13)
+    # ---------------- v1.2 DISCRETE VBUS PROTECTION cell (BRIEF A2/D2) ----------
+    # eFuse DROPPED. Chain W->E: 5VC -> Q6(P-FET) -> PMID -> F2(polyfuse) -> VBUSC -> J5.
+    # Q6 AON6403 (PowerPAK SO-8) rot90: D-tab(5) WEST=5VC (in the buck-C notch),
+    # S(1-3)+G(4) EAST=PMID/QG. Q7 BSS138 gate inverter S of Q6. F2 1812 polyfuse
+    # in series PMID->VBUSC. (Coarse parts -> the QFN escape wall is gone.)
+    Q6:  [104.0, 90.0, 180]   # AON6403 P-FET (rot180, like the input Q1): D-tab(5)=5VC WEST (into the 5VC notch), S(1-3)=PMID EAST (into the PMID pour), G(4)=QG
+    Q7:  [104.0, 96.0, 0]     # BSS138 gate inverter: G(1)=ENKILL, S(2)=GND, D(3)=QG (S of Q6)
+    F2:  [114.0, 90.0, 0]     # PPTC polyfuse 2920 (7.4x5.1mm, bigger): pad1=PMID(W ~x111), pad2=VBUSC(E ~x117)
     SW1: [66.0, 58.0, 0]      # SS12D07 master-off slide; COM(2)=ENKILL, T1(1)=GND, T2(3)=NC; open board center, accessible
 
   seeds:
@@ -167,16 +168,11 @@ placement:
     R27: [132.0, 106.0]   # DCP short DPC-DMC (east of U12, clear of its south channel)
     R28: [116.5, 105.0]   # CC1 Rp 10k: pin(CC1)->J5.A5; 5VC pin in west VBUS pour
     R29: [123.0, 105.0]   # CC2 Rp 10k: pin(CC2)->J5.B5; 5VC pin in east VBUS pour
-    C49: [120.3, 91.0]    # VBUS(VBUSC) bulk 10u (in VBUSC pour, U13 OUT side)
-    C50: [125.2, 91.0]    # VBUS(VBUSC) bulk 10u (in VBUSC pour, U13 OUT side)
-    # -------- eFuse set/bypass passives (v1.1); around U13 --------
-    C52: [108.5, 89.0]    # EFINC IN-bypass 100n (C52.1=EFINC, in EFINC pour gap)
-    C51: [110.0, 97.5]    # dVdT 10n (C51.1=DVDTC->U13.10 W-bottom)
-    R30: [116.5, 97.5]    # ILIM 3.09k (R30.1=ILIMC->U13.11 E-bottom, R30.2=GND)
-    R31: [103.5, 96.5]    # OVP top 47.5k (R31.1=5VC, R31.2=OVPC->U13.8 W)
-    R32: [105.5, 98.0]    # OVP bot 12.1k (R32.1=OVPC, R32.2=GND)
-    R33: [103.5, 98.5]    # SHDN top 100k (R33.1=5VC, R33.2=SHDNC->U13.13 E)
-    R36: [105.5, 99.5]    # SHDN bot 150k (R36.1=SHDNC, R36.2=GND)
+    C49: [121.0, 91.0]    # VBUS(VBUSC) bulk 10u (in VBUSC pour, F2 OUT side)
+    C50: [125.5, 91.0]    # VBUS(VBUSC) bulk 10u (in VBUSC pour)
+    # -------- v1.2 discrete-protection passives (gate pull-up + TVS) --------
+    R30: [108.0, 93.0]    # Q6 gate pull-up 100k: R30.1=PMID, R30.2=QG (in PMID pour, W of F2)
+    D5:  [119.0, 96.0]    # VBUSC over-voltage TVS (SMBJ6.0A, SMB): K(pad1)=VBUSC, A(pad2)=GND (near J5)
     # -------- SW-node RC snubbers (v1.1, DNP-populate); on each buck SW island --
     R34: [86.0, 44.5]     # buck-A snub R 2.2ohm (R34.1=SW_A, R34.2=SNUB_A)
     C53: [88.5, 44.5]     # buck-A snub C 1n  (C53.1=SNUB_A, C53.2=GND)
@@ -228,27 +224,23 @@ zones:
     priority: 2
     connect: full
     points: [[86.0, 24.8], [116.0, 24.8], [116.0, 84.0], [98.0, 84.0], [98.0, 44.0], [86.0, 44.0]]  # east 114->116 covers C34.1; top 26->24.8 covers C14/C15 (legalized to y25.4)
-  - net: 5VC         # buck C out (x86-98) + notch reaches Q6 source (5VC->eFuse in)
+  - net: 5VC         # buck C out (x86-98) + notch reaches Q6.D-tab (5VC->P-FET)
     layers: [F.Cu, B.Cu]
     priority: 2
     connect: full
-    points: [[86.0, 62.0], [98.0, 62.0], [98.0, 88.0], [103.0, 88.0], [103.0, 96.5], [92.0, 96.5], [92.0, 82.5], [86.0, 82.5]]  # left col y78->82.5 swallows C31.1 (80.6, legalized into notch)
+    points: [[86.0, 62.0], [98.0, 62.0], [98.0, 88.0], [104.5, 88.0], [104.5, 96.5], [92.0, 96.5], [92.0, 82.5], [86.0, 82.5]]  # notch east 103->104.5 reaches Q6 D-tab (rot90, west)
   # ---- USB-A port rails ----
   - {net: VBUSA1, layers: [F.Cu, B.Cu], priority: 2, rect: [118.0, 29.0, 143.0, 44.0], connect: full}
   - {net: VBUSA2, layers: [F.Cu, B.Cu], priority: 2, rect: [118.0, 51.0, 143.0, 66.0], connect: full}
   - {net: VBUSA3, layers: [F.Cu, B.Cu], priority: 2, rect: [118.0, 73.0, 143.0, 88.0], connect: full}
-  # ---- v1.1 PROTECTED-VBUS pours: 5VC -> Q6 -> EFINC -> U13 -> VBUSC -> J5 ----
-  # The old single 5VC-to-J5 bridge is SPLIT by the eFuse cell. 5VC now ends at
-  # Q6 source (the buck-C L-shape notch already reaches x92-103,y88-96.5 == Q6.S).
-  # A small 5VC landing patch feeds the set-pin divider tops (R31/R33), Q7 source
-  # and the U13.6 IN_SYS tap. EFINC (Q6 drain -> U13 IN, 5A) is a short pour.
-  # VBUSC (U13 OUT -> J5, the eFuse-protected connector rail) replaces the old J5
-  # pour. CC/data column x118.2-122.3 stays pour-free below y100 for CC1/CC2 +
-  # DPC/DMC escape. Different-net zones may overlap; same-net overlaps get distinct
-  # priorities (buck-C notch p2 vs landing patch p3; VBUSC main p2 vs J5 legs p3).
-  - {net: 5VC,   layers: [F.Cu, B.Cu], priority: 3, rect: [97.0, 93.5, 108.8, 99.8], connect: full}   # 5VC landing patch (set-pin dividers + Q7.S)
-  - {net: EFINC, layers: [F.Cu, B.Cu], priority: 2, rect: [103.6, 85.4, 111.4, 91.4], connect: full}  # Q6 D-tab -> U13 IN(1-3) + C52 (N ext catches C52)
-  - {net: VBUSC, layers: [F.Cu, B.Cu], priority: 2, rect: [114.3, 87.5, 128.5, 100.0], connect: full} # U13 OUT(18-20) + C49 + C50 + U12.5
+  # ---- v1.2 DISCRETE VBUS pours: 5VC -> Q6 -> PMID -> F2 -> VBUSC -> J5 ----
+  # PMID (Q6.S -> F2.1 -> R30.1) is a short local pour east of the 5VC notch.
+  # VBUSC (F2.2 -> J5 VBUS + D5 TVS + C49/C50 + U12.5 + R28/R29 CC-Rp) is the
+  # protected connector rail: a main SE block + two J5 legs flanking the pour-free
+  # CC/data column (x118.2-122.3 below y100). Different-net zones may overlap; the
+  # 5VC notch (p2, ends x104.5) and PMID (p3, starts x105.5) have a 1mm gap.
+  - {net: PMID,  layers: [F.Cu, B.Cu], priority: 3, rect: [105.5, 87.5, 113.0, 94.5], connect: full}  # Q6.S(E) -> F2.1(W ~x111) + R30.1
+  - {net: VBUSC, layers: [F.Cu, B.Cu], priority: 2, rect: [114.3, 87.5, 128.5, 100.0], connect: full} # F2.2 (OUT) + C49 + C50 + U12.5 + D5 TVS
   - {net: VBUSC, layers: [F.Cu, B.Cu], priority: 3, rect: [110.5, 99.5, 118.2, 106.8], connect: full} # J5 west VBUS (A4/B4 @117.55) + R28.2
   - {net: VBUSC, layers: [F.Cu, B.Cu], priority: 3, rect: [122.3, 99.5, 129.0, 106.8], connect: full} # J5 east VBUS (A9/B9 @122.45) + R29.2
 
@@ -265,6 +257,7 @@ silk:
     - {text: "PROTECTED 3S + BAL-CHG ONLY", at: [72.0, 48.5], size: 0.7, nudge: true}   # N of SW1 (66,58); de-collide
     - {text: "9-12.6V XT60 IN", at: [72.0, 50.5], size: 0.7, nudge: true}   # stacked below, de-collide
     - ["FUSE 10A MINI", 35.0, 50.0, 0.7]
+    - {text: "F2 VBUS 5A POLYFUSE", at: [111.0, 86.0], size: 0.55, nudge: true}   # functional silk for F2 (P-SILK-FN); N of F2 (114,90)
     - ["USB-A 5V CHG no-data", 130.0, 33.0, 0.7]
     - ["USB-A 5V CHG no-data", 130.0, 55.0, 0.7]
     - ["USB-A 5V CHG no-data", 130.0, 77.0, 0.7]
@@ -291,16 +284,19 @@ asserts:
     - {ref: Q5, pad: 5, net: SW_C}
     - {ref: RS1, pad: 1, net: CS_A}
     - {ref: RS2, pad: 1, net: CS_C}
-    - {ref: J5, pad: A4, net: VBUSC}       # USB-C VBUS == VBUSC (v1.1 eFuse OUT)
+    - {ref: J5, pad: A4, net: VBUSC}       # USB-C VBUS == VBUSC (protected connector)
     - {ref: J5, pad: A9, net: VBUSC}
-    # v1.1 eFuse-cell polarity/role asserts (series 5VC->Q6->EFINC->U13->VBUSC)
-    - {ref: Q6, pad: 1, net: 5VC}          # AON6354 source = IN_SYS (5VC), WEST
-    - {ref: Q6, pad: 5, net: EFINC}        # AON6354 drain-tab = eFuse IN, EAST
-    - {ref: Q7, pad: 3, net: BGATEC}       # BSS138 drain = B_GATE bus
-    - {ref: U13, pad: 1, net: EFINC}       # eFuse IN (pin1), WEST-top
-    - {ref: U13, pad: 18, net: VBUSC}      # eFuse OUT (pin18), EAST-top
-    - {ref: U13, pad: 21, net: GND}        # eFuse EP = GND
+    # v1.2 DISCRETE-protection polarity/role asserts (5VC->Q6->PMID->F2->VBUSC)
+    - {ref: Q6, pad: 5, net: 5VC}          # AON6403 P-FET DRAIN-tab = 5VC (W); body diode blocks PMID->5VC reverse
+    - {ref: Q6, pad: 1, net: PMID}         # AON6403 SOURCE = PMID (E)
+    - {ref: Q6, pad: 4, net: QG}           # AON6403 GATE = QG
+    - {ref: Q7, pad: 1, net: ENKILL}       # BSS138 gate inverter: GATE = ENKILL
+    - {ref: Q7, pad: 3, net: QG}           # BSS138 DRAIN = QG (pulls Q6 gate low when ENKILL high)
+    - {ref: F2, pad: 2, net: VBUSC}        # polyfuse OUTPUT = protected VBUSC
+    - {ref: D5, pad: 1, net: VBUSC}        # TVS cathode(pad1) on VBUSC (over-voltage clamp)
+    - {ref: R30, pad: 1, net: PMID}        # Q6 gate pull-up to SOURCE (PMID)
     - {ref: SW1, pad: 2, net: ENKILL}      # slide COM = master-off bus
+    - {ref: R12, pad: 1, net: 5VC}         # buck-C FB-top senses LOCAL 5VC (v1.1 runaway fix, kept)
   body_offset:
     - {ref: J1, axis: x, sign: "-"}        # XT60 mouth WEST
     - {ref: J2, axis: x, sign: "+"}

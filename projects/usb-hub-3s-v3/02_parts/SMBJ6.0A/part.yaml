@@ -21,8 +21,9 @@ gotchas:
      prefer it. Reject SMBJ5.0A (5V standoff < 5.43V -> conducts in normal op)."
 verified: "2-pad polarized TVS; KiCad D_SMB pad1=cathode convention; SMBJ6.0A uni-dir - 2026-07-23"
 sourcing:
-  lcsc: C921382   # CANDIDATE - UNVERIFIED in sealed env, parts-research to confirm/replace
-  alternates: []
-  note: "STOCK UNVERIFIED in sealed env. C921382 is a best-known SMBJ6.0A candidate
-    handle; parts-research to confirm sourceability + assign the REAL LCSC (and
-    consider a lower-Vclamp uni-dir TVS that still clears 5.43V standoff). qty 1/board (D5)."
+  lcsc: C140903   # CONFIRMED (parts-research): LRC SMBJ6.0A, lower 10.3V clamp (preferred); Extended-tier
+  alternates: [C1973522]   # Bourns SMBJ6.0A alt
+  note: "CONFIRMED available (parts-research). C140903 = LRC SMBJ6.0A (preferred:
+    lower Vclamp); C1973522 = Bourns alt. Vwm 6.0V clears the 5.43V idle standoff
+    (SMBJ5.0A rejected). Extended-tier -> order-day jlc_stock recheck MANDATORY.
+    qty 1/board (D5). proven-parts (SMB TVS) harvest at seal."

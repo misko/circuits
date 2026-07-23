@@ -1,0 +1,30 @@
+mpn: SMD2920-700/16N
+manufacturer: BORN (multi-source 2920 PPTC)
+type: pptc_resettable_fuse   # over-current protection on USB-C VBUS (F2), PMID->VBUSC
+datasheet: {doc_id: SMD2920-700, revision: series/LCSC, url: "https://www.lcsc.com/", sha256: null, fetched: 2026-07-23}
+package: "2920 (7451 metric, 7.4 x 5.1mm)"
+footprint: Fuse:Fuse_2920_7451Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
+pins: {1: A, 2: B}
+limits: {ihold: "7.0A @25C (~5.6A @50C)", itrip: "~14A", vmax: "16V", imax: "40A", package: "2920"}
+gotchas:
+  - "v1.2 DISCRETE-PROTECTION (BRIEF A2/D2): F2 = the over-current element (was the
+     eFuse current limit). Series PMID->VBUSC. FOOTPRINT: 2920 (NOT 1812 — a 6A/16V
+     hold does not exist in 1812; 1812 tops out ~3A). Vmax 16V covers a buck-fail-
+     high (PMID up to 12.6V, D5 TVS clamps VBUSC ~10V, F2 then trips)."
+  - "MARGIN DECISION (F2 margin, reported at Checkpoint B): the load is 5A
+     CONTINUOUS. A 6A-hold PPTC derates to ~4.8A @50C < 5A -> NUISANCE-TRIP risk.
+     So a 7A-hold part (this one, ~5.6A @50C > 5A) is required. The buck-C current
+     limit (~7A via RS2=10mOhm) is ABOVE 5A, so it cannot gate the load below the
+     polyfuse hold either -> the 7A polyfuse is the correct choice, not the 6A."
+  - "16V rating + JLC stock of this 7A part (C6165170) are per the parts-research
+     but UNVERIFIED in the sealed build env -> M-BOM + order-day MUST confirm. If
+     unavailable, FALLBACK = Littelfuse 2920L600/16MR-A (C3762416, CONFIRMED 6A/16V/
+     in-stock) but it NUISANCE-TRIPS at 5A @50C (degraded) -> then a user decision."
+verified: "value part (PPTC 7A-hold 2920, 16V); 2-pad passive - 2026-07-23"
+sourcing:
+  lcsc: C6165170   # 7A/16V 2920 (parts-research); Extended-tier -> order-day stock recheck MANDATORY
+  alternates: [C3762416]   # Littelfuse 2920L600/16MR-A: CONFIRMED 6A/16V but nuisance-trips at 5A@50C (degraded fallback)
+  note: "Extended-tier: order-day jlc_stock recheck MANDATORY (can go OOS). 7A hold
+    chosen for 5A-continuous margin. qty 1/board (F2). ORDER_README + proven-parts
+    (2920 PPTC) harvest at seal."

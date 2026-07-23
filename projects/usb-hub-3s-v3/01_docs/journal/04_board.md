@@ -97,3 +97,53 @@ re-roll does not touch):
    set-pin field) and move the dVdT cap C51 out from directly SW of U13.6.
 3. Backstop (if placement still can't reach after the attempt): promote U13.6 to a
    deterministic stitch.seed_stubs through the (now-adjacent) patch.
+
+## 2026-07-23 — v1.2 DISCRETE-PROTECTION board: CHECKPOINT B GREEN (DRC 0/0/0)
+
+Board stage of the eFuse-drop redesign (BRIEF A2/D2). Ripped the eFuse-era SE
+cell (U13/set-pins/D6/D7/EFINC) out of floorplan/route/nets; re-derived the
+discrete cell from the committed 110-comp schematic.
+
+### GATE — MEASURED (reproducible via 03_src/rebuild_all.sh; deterministic
+    rebuild_fast.sh imports 03_src/route/final_chain.kicad_pcb)
+- **DRC 0/0/0** — kicad-cli pcb drc --severity-all --refill-zones --schematic-parity.
+- **count_parity: board == circuit.json == kicad_sch == netlist == manifest == 110**
+  (the board now agrees too — the eFuse routing wall is gone).
+- **audit_board PASS** (16 polarity, 19 proximity, 4 edge, 114 silk).
+- **M-BOM PASS** (bom_source_check on the fresh v1.2 06_build/fab/bom_jlc.csv vs
+  circuit.json: every BOM LCSC == source; no merged/substituted/dropped codes).
+- **policy_audit: 27 PASS / 2 WAIVED (R-THERM, R-POUR)**; the ONE FAIL is M-BOM
+  comparing the v1.1 SEALED-release BOM vs v1.2 circuit.json — a PRE-SEAL artifact
+  (v1.2 not sealed yet -> "latest release" is v1.1); resolves at seal.
+
+### DISCRETE PROTECTION cell (SE corner, replacing the eFuse)
+5VC -> Q6(AON6403 P-FET, rot180: D-tab=5VC W, S=PMID E, G=QG) -> PMID pour ->
+F2(SMD2920-700 PPTC 2920) -> VBUSC -> J5; D5(SMBJ6.0A TVS) on VBUSC->GND. Q6 gate
+QG driven by Q7(BSS138) inverting ENKILL + R30 pull-up to source(PMID). Coarse
+parts -> KRT rolled 0 unconnected / 0 violations on the FIRST try (vs the eFuse's
+failing 5VC taps at U13's QFN pin row).
+
+### ITERATIONS (bounded, each fixed at source)
+1. **Q6 rotation:** rot90 stranded the source (PMID) pads in the 5VC notch (opens).
+   Fixed to **rot180** (matching the input Q1 AON6403): D-tab=5VC WEST, S=PMID EAST.
+2. **R12.1 buck-C FB-sense escape** (the one roll-fragile pour tap, buck-A mirror):
+   [95,80] was F.Cu-VOID -> retargeted to **[96,86]** (F.Cu+B.Cu solid, SOUTH of the
+   SW_C island so it stops crossing the U11.20 SW_C tap). Widened window/attempts.
+3. **PWR_RAIL clearance 0.15 -> 0.13:** the 4 residual DRC items were fab-legal
+   (0.130-0.137mm > 0.127 STANDARD floor) sense-stub margins; the power TRUNKS ride
+   pours, only quiet FB/VOUT sense stubs are routed PWR_RAIL copper -> 0.13 (= the
+   signal classes) is correct and cleared them. -> DRC 0/0/0.
+4. **F2 functional silk** ("F2 VBUS 5A POLYFUSE") added -> P-SILK-FN PASS.
+5. post_stitch_fixes.py: dropped the U13 EP-via entry (eFuse gone).
+
+### F2 MARGIN DECISION (reported to orchestrator)
+5A CONTINUOUS load -> a 6A-hold PPTC derates to ~4.8A @50C (< 5A) -> nuisance-trip.
+Chose the **7A** part (SMD2920-700/16N, C6165170, ~5.6A @50C) over the confirmed 6A
+(C3762416). 16V rating + JLC stock are per parts-research but order-day recheck is
+MANDATORY (Extended-tier). D5 = SMBJ6.0A (C140903, LRC lower-clamp).
+
+### For SEAL (flagged, not Checkpoint-B blockers)
+- ADR for the discrete-protection decision (only BRIEF A2/D2 records it so far).
+- R-THERM waiver prose still says "Q6 (AON6354)"/EFINC — refresh to the P-FET set.
+- proven-parts.yaml: harvest the 2920 PPTC + SMB TVS functions.
+- Order-day jlc_stock recheck for F2 (C6165170) + D5 (C140903) (Extended-tier).

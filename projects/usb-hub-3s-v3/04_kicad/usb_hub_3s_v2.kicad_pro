@@ -324,7 +324,7 @@
       },
       {
         "name": "PWR_RAIL",
-        "clearance": 0.15,
+        "clearance": 0.13,
         "track_width": 0.4,
         "via_diameter": 0.6,
         "via_drill": 0.3,
@@ -490,7 +490,7 @@
       },
       {
         "netclass": "PWR_RAIL",
-        "pattern": "EFINC"
+        "pattern": "PMID"
       },
       {
         "netclass": "VBUS",
@@ -527,14 +527,6 @@
       {
         "netclass": "GATE",
         "pattern": "BOOT_C"
-      },
-      {
-        "netclass": "GATE",
-        "pattern": "BGATEC"
-      },
-      {
-        "netclass": "GATE",
-        "pattern": "DRVC"
       },
       {
         "netclass": "SENSE",
@@ -630,19 +622,7 @@
       },
       {
         "netclass": "SENSE",
-        "pattern": "OVPC"
-      },
-      {
-        "netclass": "SENSE",
-        "pattern": "DVDTC"
-      },
-      {
-        "netclass": "SENSE",
-        "pattern": "ILIMC"
-      },
-      {
-        "netclass": "SENSE",
-        "pattern": "SHDNC"
+        "pattern": "QG"
       },
       {
         "netclass": "USB_DATA",
