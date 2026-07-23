@@ -270,6 +270,22 @@ one pass. The trigger existed in hindsight only — now it is a rule.)
      wider-pitch part. (escape_check calibration for this class is pending
      the ADR-0008 board's measured outcome — do not trust "leaded: ok"
      alone for dense sides.)
+   - **D-LAYOUT, datasheet LAYOUT-section read at part selection — the THIRD
+     read after pinout and package.** For every IC + power/sense part, read
+     the datasheet's Layout/Application-Information section AND its reference
+     design / EVM / app note, and encode the placement rules the chip demands
+     into a `layout:` block: `source:` (the section/EVM cited), and a
+     `keep_short:` list of nets with `max_span_mm` budgets (the parts that must
+     hug the chip — sense R Kelvin-back, pass FET at the gate pins, decoupling
+     local, hot loops tight). The floorplan is then ADAPTED FROM the reference
+     layout, never authored against it. ENFORCED: `policy_audit` **P-LAYOUT**
+     fails an in-scope part with no block; **P-ADJ** measures each board net's
+     pad-span against its budget (warn+waiver). Motivating miss (usb-hub-3s-v2
+     TPS25740A, 2026-07-22): pinout (S-VER) + package (P-ESC) both passed, but
+     the Layout section (pass FET + sense R + VBUS caps HARD against the
+     power-stage pin edge) was never read; the FET row went 7mm off the edge
+     across a channel and four QFN escapes could not coexist — a wall found
+     only after ~8 routing rebuilds. P-ADJ catches it at placement.
    - **D-TIER, fab tier is a COST CEILING declared at commission.**
      `03_src/rules/nets.yaml` `fab_tier:` names a tier from
      `fab_tiers.yaml` and defaults to the CHEAPEST plausible tier;

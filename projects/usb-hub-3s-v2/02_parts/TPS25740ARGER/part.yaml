@@ -67,3 +67,22 @@ gotchas:
   - "OVP/UVP WINDOW IS TIGHT at 5V: fast-OVP 5.8-6.3V (typ 6.05), slow-UVP 3.5-3.9V. The external buck's transient overshoot/droop must stay inside ~[3.9, 5.8]V or the chip faults (hard-reset + VBUS discharge + 765ms retry). Verify buck transient response."
   - "VQFN-24 0.5mm 4-sided + 2.7mm sq EP => jlc_4layer_advanced (via-in-pad for EP thermal/GND vias). EP must be soldered (mech note 3)."
   - "ESD: CC1/CC2 have built-in +-8kV protection (no external TVS). VBUS/ISNS/DSCG do NOT — add the Fig 37 network if system-level ESD exposure."
+
+# Datasheet LAYOUT-section compliance (P-LAYOUT / P-ADJ). The THIRD dimension
+# after verified: (pinout) and escape: (package) — read the Layout section, not
+# just the pin table. This block would have FAILED v2's floorplan at placement.
+layout:
+  source: "TI SLVSDG8B Sec.11 Layout + EVM SLVUAP7A PCB-layout section: mount the
+    external pass FET + VBUS current-sense R + VBUS bulk caps HARD against the
+    power-stage pin edge (19-24); Kelvin-sense ISNS/VPWR back to the chip; short
+    DSCG trace on the VBUS copper. (Web-confirmed 2026-07-22.)"
+  reviewed: "2026-07-22 — supersedes the earlier pinout-only datasheet read"
+  power_stage_edge: "pins 19-24 (ISNS/VPWR/VBUS/GDNG/GDNS/DSCG): the whole
+    external power stage mounts against THIS edge, each link a 1-2mm short shot"
+  keep_short:                       # P-ADJ measures these net pad-spans on the board
+    - {net: RSNS,  max_span_mm: 5, why: "Kelvin sense R (RS3) adjacent to ISNS/VPWR"}
+    - {net: PDSRC, max_span_mm: 5, why: "pass-FET source common node at GDNS pin"}
+    - {net: GDNG,  max_span_mm: 5, why: "gate drive to the pass FET"}
+  notes: "Do NOT place the FET row across an escape channel. v2 D-BACK: FET row
+    7mm north -> four QFN escapes could not coexist (~8 rebuilds). Reference
+    design hugs the edge -> every link short, nothing crosses."

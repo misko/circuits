@@ -109,6 +109,21 @@ limits: {vin_max: 75V, tj_max: 125C}
 gotchas:
   - "EP is pad 21, not implicit — a generator that omits it floats the pad"
 verified: "pin map cross-checked against datasheet fig 6-1 — 2026-07-14"
+layout:                     # REQUIRED for ICs + power/sense parts (P-LAYOUT).
+                            # The THIRD datasheet read, after verified: (pinout)
+                            # and escape: (package): read the LAYOUT/APPLICATION
+                            # section + reference design/EVM/app note and encode
+                            # the placement rules the chip demands. Absent it, a
+                            # floorplan is authored from first principles and
+                            # fights the part (usb-hub-3s-v2 TPS25740A: FET row
+                            # placed 7mm off the power-stage edge -> unroutable).
+  source: "TI SLVSDG8B Sec.11 + EVM SLVUAP7A: pass FET + sense R + VBUS caps
+    HARD against the power-stage pin edge; Kelvin-sense back to the chip"
+  reviewed: "2026-07-14"
+  keep_short:               # nets whose pad-span P-ADJ measures on the board
+    - {net: RSNS,  max_span_mm: 5, why: "Kelvin sense R adjacent to ISNS/VPWR"}
+    - {net: PDSRC, max_span_mm: 5, why: "pass-FET source common node at chip"}
+  # adjacency: [...]        # optional refdes-pair form; notes: free-text rules
 sourcing: {lcsc: C485912, alternates: [C2650259, C3188678]}
 ```
 
@@ -164,3 +179,18 @@ drawing, not just electricals.
   actives (the independent half of S3).
 - A part that fails S-VER may not enter the BOM until its note cites the
   figure. "Same as <other part>" and "standard pinout" are not citations.
+
+This folder also answers **P-LAYOUT / P-ADJ** — the datasheet LAYOUT section is
+read (not just the pin table) and encoded as a `layout:` block for every IC and
+power/sense part, and the board's placement HONOURS it:
+
+- Audit: `policy_audit.py` **P-LAYOUT** fails an in-scope part (multi-pin active,
+  or `type:` matching fet/mosfet/current_sense/shunt/crystal/oscillator/inductor)
+  that has no `layout:` block with a `source:` citation + a keep_short/adjacency
+  budget. **P-ADJ** measures each `layout.keep_short` net's pad-span on the board
+  and flags any that exceeds its `max_span_mm` (the datasheet's "keep it local"
+  rule made mechanical) — warn+waiver: a real over-span must be re-placed or
+  dispositioned in `policy_waivers.yaml` with the measured span + why.
+- The Layout read is the independent human half: escape/pinout can be right while
+  the part is still placed wrong (usb-hub-3s-v2 TPS25740A). P-ADJ is the machine
+  half — it caught RSNS span 11.5mm > 5mm on that exact board.

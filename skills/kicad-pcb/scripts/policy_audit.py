@@ -193,6 +193,79 @@ def main():
         rows.append(("P-ESC", "N-A", "no 02_parts entries"))
         rows.append(("P-TIER", "N-A", "no 02_parts entries"))
 
+    # P-LAYOUT / P-ADJ: datasheet LAYOUT-section compliance — the THIRD part.yaml
+    # dimension, after verified: (pinout, S-VER) and escape: (package, P-ESC).
+    # Motivating incident (usb-hub-3s-v2 TPS25740A, 2026-07-22): pinout + escape
+    # were both verified, but the datasheet Layout section (TI SLVSDG8B §11 /
+    # EVM SLVUAP7A: place the pass FET + sense R + VBUS caps HARD against the
+    # power-stage pin edge, Kelvin-sensed) was never read. The floorplan put the
+    # FET row 7mm north across a channel, so four QFN escapes could not coexist —
+    # surfaced only after ~8 routing rebuilds. These gates move it to PARTS +
+    # PLACEMENT. P-LAYOUT: in-scope parts (multi-pin actives + power/sense
+    # discretes) must carry a layout: block citing the Layout section / reference
+    # design + a keep_short/adjacency/notes budget. P-ADJ: the board must honour
+    # each layout keep_short net-span budget (warn+waiver via grade()).
+    LAYOUT_SCOPE = re.compile(r'fet|mosfet|current_sense|shunt|crystal|'
+                              r'oscillator|inductor', re.I)
+    if part_yamls and yaml:
+        scoped, missing, bad = 0, [], []
+        for py in part_yamls:
+            y = yaml.safe_load(Path(py).read_text()) or {}
+            npins = len(y.get("pins") or {})
+            if not (npins > 2 or LAYOUT_SCOPE.search(str(y.get("type", "")))):
+                continue
+            scoped += 1
+            name = Path(py).parent.name
+            lay = y.get("layout")
+            if not lay:
+                missing.append(name)
+            elif not lay.get("source"):
+                bad.append(f"{name}: layout: has no source (cite the datasheet "
+                           f"Layout section / reference design / app note)")
+            elif not (lay.get("keep_short") or lay.get("adjacency")
+                      or lay.get("notes")):
+                bad.append(f"{name}: layout: declares no keep_short/adjacency/notes")
+        if scoped:
+            grade("P-LAYOUT", not (missing or bad),
+                  f"{scoped} in-scope parts carry a datasheet layout: block",
+                  f"read the Layout section + reference design and add a layout: "
+                  f"block — missing: {missing[:6]}; malformed: {bad[:3]}")
+        else:
+            rows.append(("P-LAYOUT", "N-A", "no in-scope (IC / power-sense) parts"))
+
+        # P-ADJ: board net-spans vs each layout keep_short budget
+        if board:
+            netpads = {}
+            for f in board.GetFootprints():
+                for p in f.Pads():
+                    n = p.GetNetname()
+                    if n:
+                        netpads.setdefault(n, []).append(
+                            (MM(p.GetPosition().x), MM(p.GetPosition().y)))
+            viol = []
+            for py in part_yamls:
+                y = yaml.safe_load(Path(py).read_text()) or {}
+                for ks in ((y.get("layout") or {}).get("keep_short") or []):
+                    net, mx = ks.get("net"), float(ks.get("max_span_mm", 6))
+                    pts = netpads.get(net) or []
+                    if len(pts) < 2:
+                        continue
+                    span = max(math.hypot(a[0] - b[0], a[1] - b[1])
+                               for a in pts for b in pts)
+                    if span > mx + 1e-6:
+                        viol.append(f"{net} span {span:.1f}mm > {mx}mm "
+                                    f"({ks.get('why', '')})")
+            grade("P-ADJ", not viol,
+                  "board honours every layout keep_short net-span budget",
+                  f"datasheet layout budgets exceeded: {viol[:5]} — re-place per "
+                  f"the part's layout: block (targets HARD against the chip), or "
+                  f"waive with the measured span + why (P-ADJ)")
+        else:
+            rows.append(("P-ADJ", "N-A", "no board"))
+    else:
+        rows.append(("P-LAYOUT", "N-A", "no 02_parts entries"))
+        rows.append(("P-ADJ", "N-A", "no 02_parts entries"))
+
     # S-OCCL: schematic text occlusions — global-label plates vs each other
     # and vs symbol Reference/Value property texts (approx bboxes; the same
     # ground-truth-geometry philosophy as the board silk de-collision).

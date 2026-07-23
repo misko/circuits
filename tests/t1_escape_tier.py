@@ -274,6 +274,38 @@ def t_kb_condition_unknown():
     contains(det, "unknown escape condition", "P-ESC names the token")
 
 
+@test("P-LAYOUT FAILS an IC part.yaml with no layout: block", kind="known_bad")
+def t_kb_layout_missing():
+    """The usb-hub-3s-v2 TPS25740A miss (2026-07-22): pinout + escape verified,
+    but the datasheet LAYOUT section never read, so no layout: block and the
+    floorplan fought the part. P-LAYOUT must FAIL an in-scope IC that has none.
+    RED-VERIFIED: before P-LAYOUT existed, the report had no P-LAYOUT row at
+    all — the gate could not fail because it did not exist."""
+    esc = ("escape: {style: qfn, pitch: 0.5, "
+           "tier_required: jlc_4layer_advanced, checked: escape_check}")
+    d = scratch_project({"SY8368QNC": QFN_PART.format(escape=esc)},
+                        fab_tier="jlc_4layer_advanced")
+    rows = audit_rows(d)
+    g, det = rows.get("P-LAYOUT", ("MISSING", ""))
+    check(g == "FAIL", f"report has no FAIL row for P-LAYOUT (got {g})")
+    contains(det, "SY8368QNC", "P-LAYOUT names the part missing the block")
+
+
+@test("P-LAYOUT PASSes an IC that carries a layout: block with source + budget")
+def t_layout_present():
+    esc = ("escape: {style: qfn, pitch: 0.5, "
+           "tier_required: jlc_4layer_advanced, checked: escape_check}")
+    part = (QFN_PART.format(escape=esc)
+            + '\nlayout:\n'
+              '  source: "datasheet Sec.11 Layout + EVM reference design"\n'
+              '  keep_short:\n'
+              '    - {net: LX, max_span_mm: 5, why: "switch-node hot loop"}\n')
+    d = scratch_project({"SY8368QNC": part}, fab_tier="jlc_4layer_advanced")
+    rows = audit_rows(d)
+    g, _ = rows.get("P-LAYOUT", ("MISSING", ""))
+    check(g == "PASS", f"P-LAYOUT not PASS with a valid layout block (got {g})")
+
+
 @test("proven-parts ledger parses and every escape block is schema-valid")
 def t_proven_parts_schema():
     """The v4 harvest added 9 function entries — the ledger must parse and
