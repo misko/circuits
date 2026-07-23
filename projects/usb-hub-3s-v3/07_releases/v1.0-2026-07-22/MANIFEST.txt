@@ -1,0 +1,78 @@
+# MANIFEST — usb-hub-3s-v3 v1.0-2026-07-22
+
+board:        usb_hub_3s_v2  (internal board name; project directory usb-hub-3s-v3)
+version:      v1.0
+ordered:      2026-07-22
+generated:    2026-07-22 22:41
+git_sha:      81faa99e5ac94216639f3392dfb89ffbd904fa18
+git_dirty:    false            # projects/usb-hub-3s-v3 source clean at this sha; the release dir is added in the seal commit
+kicad:        10.0.4
+tools:        export_jlc_package.py (pcbnew 10.0.4), kicad-cli 10.0.4, /usr/bin/python3
+authoring:    tscircuit (source/usb_hub_3s_v2.tsx) — ADR-0002 tscircuit-native. Netlist source/usb_hub_3s_v2.net is the parity reference.
+fab:          JLCPCB, 4 layer, tier jlc_4layer_standard — 240 vias uniform 0.45/0.30 mm; standard process (NO advanced small-via option). Board 130.1 x 92.1 mm.
+source_note:  source/ ships fp-lib-table + vendored usb_hub_3s.pretty (custom-lib uri rewritten to ${KIPRJMOD}/usb_hub_3s.pretty; system libs -> /usr/share/kicad/footprints). Standalone `kicad-cli pcb drc source/usb_hub_3s_v2.kicad_pcb` re-measures 0 violations / 0 unconnected / 0 parity (V-REL-FPLIB verified this seal). No .kicad_prl (KiCad local UI state; gitignored *.kicad_prl, non-essential to the archive).
+cpl_note:     fab/cpl.csv is the JLC-UPLOAD-format CPL (Designator,Val,Package,Mid X,Mid Y,Layer,Rotation; rotation-DB-corrected angles), sourced from 06_build/fab/cpl_jlc.csv — NOT the twin-format 06_build/verification/cpl.csv (Ref,...,Side; raw board rotations), which is not uploadable.
+3d:           3d/usb_hub_3s_v2.step present — BOARD-BODY geometry only (kicad-cli export step; the system 3D component-model package is not installed in this headless env, so 200 component bodies were not embedded). Component heights / enclosure clearance are covered by verification/twin_edge_east.png + twin_edge_west.png.
+not_assembled: F1 fuse ELEMENT = 10 A MINI blade (Littelfuse 0297010), hand-fit, OFF-CPL/OFF-BOM (consumable, not a JLC catalog line). The F1 HOLDER (Keystone 3568, LCSC C5249699) IS on BOM/CPL — JLC machine-places it (twin-verified). See ORDER_README section 3.
+
+gates (MEASURED this release):
+  DRC severity-all + refill-zones + parity:  0 violations / 0 unconnected / 0 parity   (verification/drc.json)
+  source/ standalone re-measure:             0 / 0 / 0 (V-REL-FPLIB)                    (kicad-cli pcb drc source/)
+  ERC:                                       severity-all, evidence                    (verification/erc.json)
+  policy_audit:                              0 FAIL (post-seal PASS=22, WAIVED=1 R-THERM ev-backed, HUMAN=6, N-A=6; incl. M-REL PASS + M-LEARN PASS)  (verification/policy_audit.md is the pre-seal gate snapshot: 0 FAIL, PASS=19/N-A=9)
+  E-INV / E-ADR / E-TOPO:                    PASS (9 invariants; ADR coverage; 2 rails BUCK LM5116)        (verification/policy_audit.md)
+  P-LAYOUT / P-ADJ:                          PASS (10 in-scope parts carry datasheet layout; span budgets honoured)
+  jlc_twin:                                  exit 0 — 80 OK / 209 checked; all criticals adjudicated       (verification/twin_report.csv, twin_adjudications.yaml)
+  pin review (fresh-context):                PASS, 0 FAIL                              (verification/pin_review.md)
+  render review (fresh-context):             PASS                                      (verification/render_review.md)
+  RED-TEAM topology:                         RE-CONFIRMED ORDER. Original memo's DO-NOT-ORDER was a pre-fix snapshot (sole P1 = RT-T1 fuse 20A->10A, fixed 071fe56, no P0); independent zero-context re-review returned ORDER + re-derived 10A = 1.47x the 6.8A trunk.  (verification/2026-07-22_v1.0_redteam_topology.md [orig], _topology_rereview.md [ORDER], RT-T1_regate_note.md)
+  RED-TEAM layout:                           ORDER, zero P0/P1 (all findings P2)       (verification/2026-07-22_v1.0_redteam_layout.md)
+  open items:                                F-2.1 (LM5116 UVLO ~9.65V > 9.0V nominal) accepted as documented P2 per user decision (LiPo deep-discharge protective). P2 next-rev work order in ORDER_README section 5. Zero unresolved P0.
+
+sha256:
+  3d/usb_hub_3s_v2.step  80380e3d3cd525ff4b97c5cc232b6813ee8c47367a21b4ce45e49e8ce358ea0f
+  ORDER_README.md  4bf90ff1c4a6560c27543d339b600516856f2165740317464270b4d60ed3a903
+  fab/bom.csv  af471d38577d3d4da69034061de952c43154fe197e44497185e5859b37ef1cd1
+  fab/cpl.csv  925abc33d6cd5d41c9637e76565a1f26f629708bd9c61c5d1cc3f8f9e028c1d8
+  fab/usb_hub_3s_v2-NPTH.drl  63794fc174f2f658a983ed5d174e1363908e64cdbd02f7537cdcd53a1b7c9bbb
+  fab/usb_hub_3s_v2-PTH.drl  8103184a13e3e6bd591d5e33897d638da02d309d07b7f00d3e9ede4fef010f1a
+  fab/usb_hub_3s_v2_gerbers.zip  8ebf5fb4bd7a84405b97bf65de4561623ff911b140e59b3cb3027fd1265eece0
+  pdf/assembly_back.pdf  ef323dd896531f9a31de04bc70f4ba72a99704f5406516902654b46558186bb8
+  pdf/assembly_front.pdf  b447676ee09e963b3ece19429b2fc0ebe473de61c74fcc066c5d775f406b7743
+  pdf/pcb_layers.pdf  a556999a278d136f2cc21b88e211f0c151041441bb6fd408b39a46247d0af11b
+  pdf/schematic.pdf  a8f6b8485af7bff6f52eb5f5550b19f02fdcf59527d1722825781c9fd9000766
+  source/fp-lib-table  a5ec8f46af93688d9f6454044d87aac42220b67c74777c9b0040dcef7743bfac
+  source/usb_hub_3s.pretty/KH-AF90DIP-112_Horizontal.kicad_mod  9ec04bfc9cb3a6bd46b4a83fcb755df367c87c5a45c229f10228b0290742cf0e
+  source/usb_hub_3s.pretty/L_YJYCOIN_YSPI1770Y.kicad_mod  c4713b4feda0c78c326ea1eab79963c4189602f14052d5063644839de08c6761
+  source/usb_hub_3s.pretty/TYPE-C-31-M-12_EdgeTrim.kicad_mod  544d1589cf635e9c812c843e731f4d836c047f13cb982187d3ffc6edab444922
+  source/usb_hub_3s.pretty/XT60PW-M_EdgeTrim.kicad_mod  f4e2f40f3f169033ae880a684f82a162bce4d10ae47529c36edb3ca517a80103
+  source/usb_hub_3s_v2.kicad_dru  8d093512c797582c6c667063c64483df819da680ab98741a9e9fadcdcfa7789f
+  source/usb_hub_3s_v2.kicad_pcb  71fdf67958d79224dac73bebda4ff152a53f2d884b011db74fa8612f35cb63c4
+  source/usb_hub_3s_v2.kicad_pro  abe814ac76af4cf6975146d76bd63f1e0497d3f76e5c67d8feb7290fc01b48ce
+  source/usb_hub_3s_v2.kicad_sch  295a71acfa4c746a2dc07b033cd070bab4e269ba3e4d4b391a2079dab106d8a2
+  source/usb_hub_3s_v2.net  ecc9ca36361e9f5b1cd3438bdfcb4cd779a7a866531c03bb1f9ed2d4079ed7ae
+  source/usb_hub_3s_v2.tsx  d3cbc7cdb793d38442270375c22bcaa9c3cd8cb0f8b3d4a7133a3afcff36ea68
+  verification/2026-07-22_v1.0_redteam_layout.md  4b2d5d18a45ddbf60ee5c2e1a68f28473dc80320471a72da771a37132ac12190
+  verification/2026-07-22_v1.0_redteam_topology.md  0b9d8837d7e63d236947aaf8cc4a8922c44d58432c8872983a1e5a8796a2277d
+  verification/2026-07-22_v1.0_redteam_topology_rereview.md  4b869a433becd94c62319dfdb76313db6e0dad94fa591ea96c37b4dc2c6ab3f8
+  verification/RT-T1_regate_note.md  6b10a8ccb58295ee99a7ec2a2db91a68601cb1d207cf6d390927839547726f95
+  verification/bare_bottom.png  3cf3a6ffbe3b7fe30350be53a7c5ac5fdd9736c4ccb787bf23af1a7edcabfec5
+  verification/bare_top.png  c46800d7c00f2e9ef102861c7d3743af427ed8b5c49abc6be5dbc28529fcce1f
+  verification/drc.json  71cc61081cb7c4571cc7e90d68ced6fac40a095d297155632b58e690f5434ae6
+  verification/drc_parity.json  c8f054b7742eb50ff84e25572bde6ba4f0dfffb52c76025bccd2f70c85417948
+  verification/erc.json  3d4349a7c7aecfd22557281801fbf85db53e1d9280383c0ca5f1e4feda975e1b
+  verification/missing_models.txt  4a2be6fb70e49b449bfe965883bce80c47935b7e9a66fdc027591f4d46ac5168
+  verification/model_bottom.png  698c9cce1c89345bdc38f2678b7a3128219d4a514e03442c60e85ecec841ba9c
+  verification/model_top.png  b953633a4477f052fa68aac41e86a59f6cbac22abe4bf5b3bc3f4cef8fa046dd
+  verification/pin_review.md  b5b0ac7928bab742a9a05fbefbaa4112b678401340839139c2d2a6bbe881b0f4
+  verification/placement_audit.json  080c78023c8561fd9ddd930b9a7031f88e049f6298e8d17ea1ee0eef36575842
+  verification/policy_audit.md  fe6aee2a56f25471e64cc00b6e3d9521241432387eea8215e34db103e1d9e221
+  verification/render_review.md  ca2b923653a93784aec5863e8821d9db893231be93b74678400a0711376c873b
+  verification/twin_adjudications.yaml  719f5c7724844354995d17d493db3dbba5af5c8702a04458f6e7edf58db2aae3
+  verification/twin_bottom.png  864929adc8cb2329ae9b6204cdf8bf557b54f8d01e8fe6e69265cce6799bb6ab
+  verification/twin_edge_east.png  7bdd4452b3766ab92c1fb82d60dce725d88fb825be40d398dc6bcc4c415c24e3
+  verification/twin_edge_west.png  f196a8153353939099726e28306313910f29b371ad4d8a5e06ef597967cd395d
+  verification/twin_iso_nw.png  06f97e23488f7da7e9b21df403f10a48a21603514c998f31b84cad6db4e56866
+  verification/twin_iso_se.png  5e93d6ce05975a766085c12ec3b2687bff3575152cbd0a046bde84d6d25b0163
+  verification/twin_report.csv  267455e9b2eaf66de73c506af0a7c81ed2928b7bbb57badb2a6bfb385241f7d0
+  verification/twin_top.png  f993bbe3e1d4ea254c8ab83d3470df368be5088627cec99c22092e258539521c
