@@ -13,7 +13,7 @@ datasheet:
   local: PCC-OST-SMP_spec.pdf
   fetched: 2026-07-22
 package: PCC-SMP miniature horizontal PCB connector, glass-filled nylon, 20.8 x 15.5 x 6.3mm (excl. clip)
-footprint: cookhub:Omega_PCC-SMP-K_TypeK_PCpin   # TO BE CREATED - no KiCad std
+footprint: cooksense:Omega_PCC-SMP-K_TypeK_PCpin   # cooksense-local (03_src/lib), created at board stage
                             # footprint. From Omega drawing p.2: 2 solder contacts
                             # at 7.9mm (0.31") pitch + 4x dia1.77mm (0.070") PC/
                             # bracket holes. (deviation - see 02_parts/README.md)

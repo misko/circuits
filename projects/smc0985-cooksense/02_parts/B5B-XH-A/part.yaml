@@ -18,3 +18,15 @@ verified: "positional 1..N shrouded header per JST XH drawing; KiCad JST_XH foot
 sourcing:
   lcsc: C157991
   note: "genuine JST (LF)(SN), stock 20444 2026-07-19."
+layout:                          # P-LAYOUT: HX711 load-cell link connector (interface)
+  source: "JST XH series datasheet (B5B-XH-A, 2.5mm THT) + cook-loadcell v1.0 reuse
+    (Board D link). The HX711 DAT/CLK dress rules live on the SIGNAL parts (R_LCDAT/
+    R_LCCLK series 33R + D_LCDAT/D_LCCLK ESD), not the connector."
+  reviewed: "2026-07-23"
+  notes: |
+    Interface connector, layout-agnostic apart from mating (honest: no keep_short).
+    Rules: (1) place J_LOADCELL at a board EDGE, mouth off-board; (2) pinout matches
+    cook-loadcell J6 (5V,3V3,GND,DAT,CLK) for a straight-through cable; (3) the series
+    33R + ESD-to-GND on DAT/CLK sit local to the connector tail (edge-entry protection),
+    already the board's R_LCDAT/R_LCCLK/D_LCDAT/D_LCCLK; (4) low-speed serial, no
+    impedance control.

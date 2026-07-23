@@ -9,7 +9,7 @@ datasheet:
   fetched: 2026-07-19
   local: datasheet-reed-relay-series-dip.pdf
 package: DIP low profile 19.3 x 6.5 x 5.1mm, 4 leads 0.5x0.25mm on DIP-14 corner grid (pin span 15.24mm, row spacing 7.62mm)
-footprint: cookhub:Relay_StandexDIP_1A_pinout12
+footprint: cooksense:Relay_StandexDIP_1A_pinout12
 escape: {style: leaded, pitch: 2.54, tier_required: jlc_2layer_default, checked: escape_check 2026-07-22}
 pins:                       # pin-out code 12, DS p.3 "Pin-Out (Top View)" fig 12
   1: COIL_A                 # bottom-left of top view; + terminal for -12D diode variant

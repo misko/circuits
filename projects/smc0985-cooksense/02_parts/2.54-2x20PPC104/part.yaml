@@ -118,3 +118,17 @@ sourcing:
     much higher stock + cheaper; use if HAT stack-through above the board is not required.
     ALT C50982 = BOOMELE 2.54-2*20PFemale (canonical short-tail female) — verified OUT OF STOCK
     at LCSC on 2026-07-22; kept for traceability, do not order until restocked.
+layout:                          # P-LAYOUT: 40-pin GPIO stacking header (interface, not timing-critical)
+  source: "Raspberry Pi 40-pin GPIO / HAT+ mechanical spec (2x20 @2.54mm, J8) +
+    ADR-0007 sidecar decision: this board is a 40-pin-ribbon SIDECAR, not a stacked
+    HAT (its 138x96 footprint would overhang the Pi 5 and block USB-C/HDMI/fan/
+    Ethernet, brief mechanical do-not-block list). Only placement demand is mating
+    geometry + the ribbon exit."
+  reviewed: "2026-07-23"
+  notes: |
+    Interface connector, layout-agnostic apart from mechanical mating (honest: no
+    keep_short span budget). Rules: (1) place J_PI at a board EDGE with the mouth
+    off-board so the 40-way ribbon exits cleanly to the Pi; (2) power pins 1/2/4/17
+    and HAT-ID 27/28 are NC/sense only (brief §3, no backfeed) - no wide-copper
+    demand; (3) signals run at <=few-MHz SPI/I2C/shift-reg, no controlled impedance
+    or length-matching; (4) GND pins (6,9,14,20,25,30,34,39) tie the plane locally.

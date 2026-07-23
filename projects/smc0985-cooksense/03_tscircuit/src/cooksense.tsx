@@ -84,8 +84,8 @@ export default () => (
 
     {/* ---- AMS1117-3.3 linear 3V3 + ferrite-split 3V3_ANALOG (E-TOPO all-linear) ---- */}
     <chip name="U_LDO" footprint="sot223" supplierPartNumbers={{ jlcpcb: ["C6186"] }}
-      pinLabels={{ pin1: "GND", pin2: "VOUT", pin3: "VIN" }}
-      connections={{ pin1: "net.GND", pin2: "net.N3V3", pin3: "net.N5V_PROTECTED" }} />
+      pinLabels={{ pin1: "GND", pin2: "VOUT", pin3: "VIN", pin4: "TAB" }}
+      connections={{ pin1: "net.GND", pin2: "net.N3V3", pin3: "net.N5V_PROTECTED", pin4: "net.N3V3" }} />
     <capacitor name="C_LDOIN" capacitance="10uF" footprint="0805" connections={{ pin1: "net.N5V_PROTECTED", pin2: "net.GND" }} />
     <capacitor name="C_LDOOUT" capacitance="22uF" footprint="0805" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
     <capacitor name="C_3V3" capacitance="100nF" footprint="0603" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />

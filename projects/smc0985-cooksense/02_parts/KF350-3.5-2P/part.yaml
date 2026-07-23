@@ -6,7 +6,7 @@ datasheet:
   url: https://www.lcsc.com/product-detail/C474892.html
   fetched: 2026-07-19
 package: 3.5mm pitch 2P screw terminal, THT
-footprint: TerminalBlock:TerminalBlock_bornier-2_P5.08mm
+footprint: cooksense:TerminalBlock_KF350_2P   # was TerminalBlock:...bornier-2_P5.08mm (nonexistent + wrong pitch); KF350 is 3.5mm, cook-hub geometry
 pins:
   1: P1
   2: P2

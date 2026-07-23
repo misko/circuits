@@ -45,3 +45,15 @@ verified: "standard 2.54 2x16 IDC grid (odd/even column pairs); keying notch per
 sourcing:
   lcsc: C692429
   note: "2678 stock 2026-07-19. J11: channel n on pins 2n-1/2n; IDC ribbon patch harness (spec 6.9, D14)."
+layout:                          # P-LAYOUT: 2x16 keyed box header (bulk I/O interface option)
+  source: "Generic 2.54mm 2x16 shrouded/keyed IDC box-header mechanical spec
+    (IDC ribbon). Interface connector - datasheet layout demand is mechanical
+    keying + ribbon strain-relief, not electrical dress."
+  reviewed: "2026-07-23"
+  notes: |
+    Interface/bulk-IO connector, layout-agnostic apart from mating (honest: no
+    keep_short span budget). Rules: (1) if populated, place at a board edge with the
+    key/notch oriented so the ribbon cannot be reversed and the cable exits off-board;
+    (2) 2.54mm THT, no controlled impedance; (3) GND/return pins tie the local plane.
+    Not in the cooksense netlist rev (kept in the parts library as the bulk-IO
+    breakout option); block present so P-LAYOUT grades the library part.

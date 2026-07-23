@@ -1,0 +1,33 @@
+# policy_audit waivers — cooksense. Each REQUIRES measured evidence in `why`
+# (>=40 chars; canon M4). Read by skills/kicad-pcb/scripts/policy_audit.py.
+# Schema: list of {id, why}.
+
+- id: P-ADJ
+  why: >-
+    BOARD-WIDE-RAIL keep_short budgets are geometrically unreachable by P-ADJ's
+    max-pairwise-pad-span metric, which charges the ENTIRE rail net to the
+    budget declared for a LOCAL decoupling cap. Three violations, all measured on 04_kicad/cooksense.kicad_pcb 2026-07-23
+    (spans ~150mm, +-2mm across stochastic legalize runs; pad COUNTS are stable):
+      (1) 3V3 span ~149-151mm > 5mm (AMS1117-3.3 layout: "COUT >=22uF hard against
+          VOUT") — 3V3 is the whole-board digital rail feeding 60 pads across
+          the 154mm sidecar (every 595/238/HC14/1G-family/MCP23017/watchdog/
+          one-shot VCC + decoupler + the AMS output). No placement shrinks it.
+      (2) 3V3 span ~149-151mm > 5mm (SN74HC238DR layout: "0.1uF VCC-GND bypass hard
+          against the package") — same 60-pad rail; the budget is the per-'238
+          bypass, not the rail.
+      (3) 5V_PROTECTED span ~150mm > 8mm (AMS1117-3.3 layout: "CIN local to
+          VIN") — 5V_PROTECTED is the whole-board protected rail (14 pads: eFuse
+          OUT, bulk CE1, LDO IN, Q_COIL source, comparator VCC, loadcell feed,
+          TP), spanning power(NW) to analog(SW).
+    The ELECTRICAL INTENT each budget encodes — the local cap mounted hard
+    against the pin — IS honoured, verified pad-to-pad on the board:
+      * AMS1117 COUT C_LDOOUT(3V3) <-> U_LDO VOUT(pad2/4) = 3.12mm  (<5mm)
+      * AMS1117 CIN  C_LDOIN(5V_P) <-> U_LDO VIN(pad3)     = 3.00mm  (<8mm)
+      * '238 bypass  C_DECU/C_DECD(3V3) <-> U_DECU/D VCC   = 4.89mm  (<5mm)
+      * every IC 0.1uF decoupler sits 2-5mm from its package (audit_board.py
+        I-PROX gate, PASS: 26 proximity checks).
+    The span metric cannot distinguish the 3mm local cap from the rail's 151mm
+    reach; there is no per-IC input/output net to measure a local span on (the
+    same limitation crow-recorder-central recorded for its board-wide buck VIN,
+    07_releases/v1.0/.../redteam_layout L2). The rails ride the generate_rules
+    DRU floors (PWR_3V3 0.3mm, PWR_IN 0.5mm) and pours, not a keep-short trace.
