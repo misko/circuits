@@ -35,3 +35,14 @@ sourcing: {lcsc: C232798, alternates: [], note: 'exact MPN; 1508 stock 2026-07-1
 
 # D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
 escape: {style: leaded, pitch: 0.5, escapes_worst_side: 4, tier_required: jlc_2layer_default, checked: escape_check}
+layout:
+  source: >-
+    onsemi NC7NZ34 datasheet DS500494 (Rev 2005-11). US8 triple UHS buffer — no
+    dedicated datasheet layout section; standard high-speed-logic practice:
+    0.1uF VCC bypass adjacent to the part, series-terminate outputs at source.
+  notes: >-
+    0.1uF bypass hard against the VCC pin. MCLK_A/MCLK_B outputs are series
+    source-terminated at the buffer by R40/R41 (33R, ADR-0006); the ~44-64mm
+    MCLK_A/MCLK_B spans to the two PCM1865 SCKI pins are INTENTIONAL matched,
+    source-terminated point-to-point clock routes (redteam V3 confirmed correct)
+    — NOT a proximity violation, so no keep_short span budget applies.

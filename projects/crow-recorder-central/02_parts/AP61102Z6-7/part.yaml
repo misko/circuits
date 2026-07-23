@@ -52,3 +52,20 @@ sourcing: {lcsc: C5224055, alternates: [C3193199], note: 'extended; exact MPN; C
 
 # D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
 escape: {style: leaded, pitch: 0.5, escapes_worst_side: 3, tier_required: jlc_2layer_default, checked: escape_check}
+layout:
+  source: >-
+    Diodes AP61102 datasheet DS42004 Rev.6-2 (2022-09) section 'Layout / PCB
+    Layout' rules 1-9 + 'Input Capacitor' section + Figure 42/43 layout example.
+  keep_short:
+    - {net: BK1_SW, max_span_mm: 8,  why: "rule 3 inductor L1 as close to SW as possible; SW is the dv/dt node, minimize copper area (measured 4.5mm)"}
+    - {net: BK2_SW, max_span_mm: 8,  why: "rule 3 second buck SW node kept minimal (measured 4.5mm)"}
+    - {net: FB1,    max_span_mm: 12, why: "rule 5 feedback divider as close to FB as possible, away from SW (measured 7.0mm)"}
+    - {net: FB2,    max_span_mm: 12, why: "rule 5 second buck FB kept short (measured 8.7mm)"}
+  notes: >-
+    rule 2 (place input caps as closely across VIN and GND as possible) is the
+    HOT-LOOP rule: on v1.0 the input cap sits VIN->Cin 5.57mm (U10) / 6.14mm
+    (U11) per redteam L2 (07_releases/v1.0-2026-07-22/verification/
+    2026-07-22_v1.0_redteam_layout.md); datasheet wants <~2mm. P-ADJ CANNOT gate
+    this: buck VIN is the board-wide shared 5V rail (span 165mm), so there is no
+    per-buck input net to measure a local span on. Dispositioned P1 next-rev by
+    redteam; deferred to a real v1.1 board revision (place C10/C13 hard on VIN/GND).

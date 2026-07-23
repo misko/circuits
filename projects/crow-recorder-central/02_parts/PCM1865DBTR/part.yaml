@@ -66,3 +66,36 @@ escape: {style: leaded, pitch: 0.5, escapes_worst_side: 15, tier_required: jlc_4
 # ^ TSSOP-30 dense side (15 pins used/side): 0.5 - 0.3 drill = 0.2 < 0.5 hole-to-hole
 #   at standard tiers (ADR-0008-class wall). Board carries it at jlc_6layer_smallvia
 #   (rank 4 >= required rank 2, ADR-0012).
+layout:
+  source: >-
+    TI PCM1865 datasheet SLAS831D (2018-03) section 12 'Layout' (12.1 Layout
+    Guidelines p.84 / 12.2 Layout Example p.85) + per-pin decoupling table:
+    VREF(pin6) 1uF; AVDD(pin8) 0.1uF+10uF; LDO(pin11) 0.1uF+10uF; DVDD(pin13)
+    0.1uF+10uF, all to the nearest ground.
+  keep_short:
+    - {net: AIN_P1, max_span_mm: 12, why: "analog ADC input kept local to the ADC (measured 3.4mm)"}
+    - {net: AIN_N1, max_span_mm: 12, why: "analog ADC input (measured 1.3mm)"}
+    - {net: AIN_P2, max_span_mm: 12, why: "measured 4.2mm"}
+    - {net: AIN_N2, max_span_mm: 12, why: "measured 7.2mm"}
+    - {net: AIN_P3, max_span_mm: 12, why: "measured 2.5mm"}
+    - {net: AIN_N3, max_span_mm: 12, why: "measured 1.5mm"}
+    - {net: AIN_P4, max_span_mm: 12, why: "measured 96.0mm — OVER budget: ch4 taps R80 far across the board (redteam L3); waived, deferred to v1.1 board"}
+    - {net: AIN_N4, max_span_mm: 12, why: "measured 1.5mm"}
+    - {net: AIN_P5, max_span_mm: 12, why: "measured 3.4mm"}
+    - {net: AIN_N5, max_span_mm: 12, why: "measured 1.3mm"}
+    - {net: AIN_P6, max_span_mm: 12, why: "measured 4.2mm"}
+    - {net: AIN_N6, max_span_mm: 12, why: "measured 7.2mm"}
+    - {net: AIN_P7, max_span_mm: 12, why: "measured 2.5mm"}
+    - {net: AIN_N7, max_span_mm: 12, why: "measured 1.5mm"}
+    - {net: AIN_P8, max_span_mm: 12, why: "measured 63.6mm — OVER budget: ch8 taps R81 far across the board (redteam L3); waived, deferred to v1.1 board"}
+    - {net: AIN_N8, max_span_mm: 12, why: "measured 1.4mm"}
+    - {net: VREF_A, max_span_mm: 16, why: "VREF(pin6) 1uF decoupler close to the pin (measured 13.9mm)"}
+    - {net: VREF_B, max_span_mm: 16, why: "second ADC VREF cap close (measured 13.9mm)"}
+    - {net: LDO_A,  max_span_mm: 16, why: "internal-LDO(pin11) 0.1+10uF decoupler close (measured 13.7mm)"}
+    - {net: LDO_B,  max_span_mm: 16, why: "second ADC LDO decoupler close (measured 13.7mm)"}
+  notes: >-
+    AVDD(pin8) on the quiet analog rail 3V3A (XC6227 LDO), DVDD(pin13) on the
+    3V3 digital buck rail (mixed-signal split, ADR-0006). Channels 4 and 8 tap
+    R80/R81 far across the 176mm board, so AIN_P4 (96mm) and AIN_P8 (63.6mm)
+    exceed the 12mm keep-short — the single-ended analog antenna redteam L3
+    flagged; fix (re-place R80/R81 local, or drop the tap) deferred to v1.1 board.

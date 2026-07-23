@@ -39,3 +39,13 @@ sourcing: {lcsc: C20917, alternates: [C344010], note: 'BASIC part, exact MPN, 1,
 
 # D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
 escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: escape_check}
+layout:
+  source: >-
+    AOS AO3400A datasheet Rev3.1 (2023-07). SOT-23 logic-level N-FET, low-side
+    beeper switch — small-signal, layout-agnostic. Edge-slow gate network per
+    ADR-0005 (R101 1k + 4n7/100k) kept local to the gate.
+  notes: >-
+    Gate-drive R/C network placed hard against the FET gate to keep the slowed
+    edge intact. DRAIN net BEEP_RETn is the per-port SWITCHED return, isolated
+    from audio GND (ADR-0005 crosstalk isolation). No exposed pad / thermal
+    array (0.35W SOT-23, beeper current only). No P-ADJ keep_short.

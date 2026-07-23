@@ -312,3 +312,22 @@ escape: {style: leaded, pitch: 0.4, escapes_worst_side: 32, tier_required: jlc_4
 #   ADR-0009 encodes the shipped escape: 0.30/0.15 VIA-IN-PAD (0.10mm copper gap
 #   at 0.4mm pitch) at the JLC small-via option; the board's declared fab_tier is
 #   jlc_6layer_smallvia (ADR-0008 layer escalation + ADR-0009 vias, D-TIER ADR-0012).
+layout:
+  source: >-
+    XMOS XU316-1024-TQ128 xcore.ai datasheet v2.0.0 section 'PCB Layout Design
+    Checklist' (p.94) + Power and Ground Pins decoupling guidance (>=12 x 100nF
+    low-inductance MLCC on core VDD close to the chip; one 100nF 0402 per VDDIO
+    pin; ground side of decouplers short to VSS; >=10uF bulk on VDD/VDDIO) +
+    Figure 9 crystal circuit (Rf 1M) + VBUS sense divider guidance.
+  adjacency: >-
+    Core VDD(0V9): at least 12 x 100nF low-inductance MLCCs placed hard against
+    the tile-supply pin ring, ground side short to the nearest VSS. VDDIO(3V3):
+    one 100nF 0402 per supply pin. Bulk >=10uF on VDD and each VDDIO. Exposed
+    pad: 4x4 PTH thermal-via array (16 vias 0.30mm) into In1/In4 GND planes
+    (datasheet 14.4; verified by P-THERM waiver + pin review).
+  notes: >-
+    VBUS sense divider is 220K + 330K + 47K-bleed per datasheet (XU316 IO is
+    3.3V domain): v1.0 fits R33=220K + R34=330K but OMITS the 47K bleed
+    (redteam F4) — VBUS_DET reads ~3.0V, functional; adding the 47K bleed is a
+    v1.1-board note. Crystal per Figure 9 (see Y1 X322524MOB4SI keep_short).
+    Keep switching-buck copper and beeper gate nets off the analog input corridor.

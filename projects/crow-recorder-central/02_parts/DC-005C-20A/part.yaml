@@ -30,3 +30,12 @@ sourcing: {lcsc: C84007}
 
 # D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
 escape: {style: connector, pitch: 4.7, tier_required: jlc_2layer_default, checked: escape_check}
+layout:
+  source: >-
+    Korean Hroparts DC-005C drawing Rev A (2013-11-11). THT 2.0mm barrel jack —
+    mechanical / board-edge placement; electrically layout-agnostic.
+  notes: >-
+    Board-edge, mate direction facing outward, 3 THT slots per the P.C.B LAYOUT
+    drawing. The jack feeds the protection chain J9 -> F1 PTC -> D9 TVS -> Q9
+    reverse-FET -> 5V; keep that entry cluster compact next to the jack so the
+    2A fault-limit / clamp path is short. No P-ADJ keep_short (5V_IN local).

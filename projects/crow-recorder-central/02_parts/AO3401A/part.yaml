@@ -29,3 +29,13 @@ sourcing: {lcsc: C15127, note: "JLC Basic part, verify stock at bom_seed; P-ch c
 
 # D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
 escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: escape_check}
+layout:
+  source: >-
+    AOS AO3401A datasheet Rev3.1 (2023-12). SOT-23 P-FET reverse-polarity guard
+    in the 5V input path (ADR-0007) — small-signal, layout-agnostic. Body diode
+    (DRAIN->SOURCE) conducts input->load at power-up, then the channel enhances.
+  notes: >-
+    Place Q9 in series in the 5V_P->5V input path, next to the entry protection
+    cluster (F1 PTC / D9 TVS). DRAIN=5V_P(input), SOURCE=5V(load) per ADR-0007
+    (E-INV asserts this); gate R90 to GND placed local. No thermal array needed
+    at the ~1.2A trunk (RDS(on) low, brief loss). No P-ADJ keep_short.

@@ -33,3 +33,14 @@ sourcing: {lcsc: C2650433, alternates: [C2650453], note: 'exact spec code; JLC s
 
 # D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
 escape: {style: passive, pitch: 2.2, tier_required: jlc_2layer_default, checked: escape_check}   # 3225 4-pad, 2.2mm pad-center grid
+layout:
+  source: >-
+    Epson FA-238 brief (fa-238_brief_en_2025.pdf) + oscillator layout per XMOS
+    XU316 datasheet v2.0.0 Figure 9. Digi-Key hand-solder FALLBACK for the BOM
+    crystal X322524MOB4SI (ADR-0014) — identical 3225 4-pad land + identical
+    XIN/XOUT keep-short constraint.
+  notes: >-
+    Same placement rule as X322524MOB4SI: crystal + 18pF load caps as a compact
+    ground-guarded island hard against the XU316 XIN(pin34)/XOUT(pin33) pins,
+    minimal loop, clear of switching nodes. See X322524MOB4SI keep_short (XIN
+    <=18mm measured 16.7, XTAL2 <=18mm measured 6.6) — same Y1 nets.

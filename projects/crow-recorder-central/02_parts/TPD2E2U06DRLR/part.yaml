@@ -33,3 +33,13 @@ sourcing: {lcsc: C1972959, alternates: [C51886141], note: 'extended; exact MPN; 
 
 # D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
 escape: {style: leaded, pitch: 0.5, tier_required: jlc_2layer_default, checked: escape_check}
+layout:
+  source: >-
+    TI TPD2E2U06 datasheet SLLSEG9C (2019-12) section 10 'Layout' (10.1 Layout
+    Guidelines p.11 / 10.2 Layout Example): place the protection device so the
+    protected data line is as close to the connector as possible (minimize stub).
+  notes: >-
+    Place each 2-channel ESD device right at the connector it guards, with the
+    shortest possible stub off the protected line (ESD energy takes the low-
+    inductance path). Low-cap part suits the audio/control lines. No P-ADJ
+    keep_short: the stub is a local pad-to-pad rule not isolable as a net span.

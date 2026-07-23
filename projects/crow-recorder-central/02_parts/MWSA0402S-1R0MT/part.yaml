@@ -31,3 +31,14 @@ sourcing: {lcsc: C408332, alternates: [], note: 'extended; exact MPN; 25440 stoc
 
 # D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
 escape: {style: passive, pitch: 3.4, tier_required: jlc_2layer_default, checked: escape_check}
+layout:
+  source: >-
+    Sunlord MWSA0402S catalog (2023-09). Molded shielded power inductor (1uH),
+    x2 for the 3.3V and 0.9V AP61102 bucks. Placement rule inherited from the
+    AP61102 datasheet DS42004 'PCB Layout' rule 3: place the inductor as close
+    to SW as possible.
+  notes: >-
+    Place hard against the buck SW pin — BK1_SW / BK2_SW measured 4.5mm both
+    (within the AP61102 SW keep_short 8mm budget). Closed magnetic circuit
+    (shielded) so radiated coupling is low, but SW-node copper is minimized.
+    keep_short lives on the AP61102 part (SW nets) to avoid a duplicate measure.

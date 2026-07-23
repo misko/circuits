@@ -42,3 +42,13 @@ sourcing: {lcsc: C6035451, alternates: [C216640], note: 'extended; exact MPN; 26
 
 # D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
 escape: {style: leaded, pitch: 1.5, tier_required: jlc_2layer_default, checked: escape_check}
+layout:
+  source: >-
+    Torex XC6227 datasheet ETR03054-006 'Low ESR Capacitor' + typical
+    application (CIN 1uF ceramic, CL 2.2uF ceramic). SOT-89-5.
+  notes: >-
+    CIN 1uF low-ESR ceramic hard against VIN; CL 2.2uF ceramic hard against
+    VOUT. This is the QUIET analog LDO: VOUT (3V3A) feeds both PCM1865 AVDD
+    pins — keep the 3V3A pour/track away from the digital-buck SW nodes and the
+    beeper gate corridor. No keep_short net-span budget: VIN(5V)/VOUT(3V3A) are
+    board-wide rails P-ADJ cannot isolate to the local decoupling loop.

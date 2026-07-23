@@ -42,3 +42,16 @@ verified: "pad map read from the 'Top View Crystal Connection' figure,
 
 # D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
 escape: {style: passive, pitch: 2.2, tier_required: jlc_2layer_default, checked: escape_check}   # same 3225 land as FA-238
+layout:
+  source: >-
+    3225 4-pad 24.000MHz crystal (Y1); shares the FA-238 3225 land (ADR-0014).
+    Oscillator layout per XMOS XU316 datasheet v2.0.0 Figure 9 (Rf 1M, load caps
+    at XIN/XOUT) + general MHz-crystal practice: minimize the XIN/XOUT loop,
+    guard-ground the crystal, keep it away from switching/high-di/dt nodes.
+  keep_short:
+    - {net: XIN,   max_span_mm: 18, why: "crystal-in + load cap C25 loop to XU316 pin34 kept tight (measured 16.7mm)"}
+    - {net: XTAL2, max_span_mm: 18, why: "crystal-out + load cap C26 loop to XU316 pin33 (measured 6.6mm)"}
+  notes: >-
+    Load caps 18pF (CL 12pF + ~3pF stray) — within USB +/-500ppm (redteam F7).
+    Crystal + both load caps placed as a compact island against the XIN/XOUT pins,
+    ground-guarded, clear of the buck SW nodes.

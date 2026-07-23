@@ -47,3 +47,12 @@ sourcing:
 
 # D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
 escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: escape_check}
+layout:
+  source: >-
+    Toshiba TCR2LF/TCR2LE datasheet (2014-11-06) recommended configuration:
+    insert CIN=0.1uF and COUT=0.1uF ceramic at the VIN/VOUT pins for stable
+    input/output operation. SOT-23-5. Digi-Key hand-solder FALLBACK for the BOM
+    LDO TLV70018DDCR (ADR-0015) — same SOT-23-5 land + config.
+  notes: >-
+    0.1uF Cin/Cout ceramics hard against VIN/VOUT pins; 1V8 output kept short
+    to the XU316 VDDIOB18 pins. No P-ADJ keep_short (VIN/VOUT are board rails).

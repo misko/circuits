@@ -35,3 +35,12 @@ sourcing:
 
 # D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
 escape: {style: connector, pitch: 0.5, tier_required: jlc_2layer_default, checked: escape_check}
+layout:
+  source: >-
+    GCT USB4105 receptacle drawing. USB-C (USB2.0) receptacle — mechanical /
+    board-edge; CC Rd + ESD placed local; electrically layout-agnostic.
+  notes: >-
+    Board-edge, mate outward. CC1/CC2 5.1k Rd (R31/R32) to GND placed local
+    (Type-C sink presentation, E-INV asserts). VBUS filter local; the HS pair
+    runs to the TPD4EUSB30 (D10) ESD then the XU316 PHY — that pair's layer
+    continuity is the D10/L1 concern (see TPD4EUSB30). No P-ADJ keep_short.

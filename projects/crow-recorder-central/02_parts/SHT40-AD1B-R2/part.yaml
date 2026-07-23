@@ -41,3 +41,15 @@ sourcing: {lcsc: C2909890, alternates: [], note: 'extended; exact MPN; 14517 sto
 escape: {style: qfn, pitch: 0.8, tier_required: jlc_2layer_default, checked: escape_check}
 # ^ DFN-4: escape_check style vocabulary folds DFN into 'qfn' (identical ring math);
 #   0.6 via + 0.127 space = 0.727 <= 0.8 pitch -> dogbone ring fits at the cheapest tier.
+layout:
+  source: >-
+    Sensirion SHT4x datasheet v6.4 (2023-11) section 5.5 'Thermal Information'
+    + Figure 1 typical application (100nF VDD-VSS close). SHT4x layout is a
+    THERMAL problem: thermally-induced mechanical stress and self-heating shift
+    the reading (p.17).
+  notes: >-
+    100nF VDD-VSS ceramic close to the sensor (already in decoupling). Place the
+    SHT40 AWAY from board heat sources (XU316, the two bucks, LDOs); a local
+    ground-plane cutout / slot around it improves humidity accuracy by thermally
+    isolating it. I2C SDA/SCL are low-speed — no high-speed constraint. No P-ADJ
+    keep_short (thermal isolation is a placement rule, not a net-span budget).

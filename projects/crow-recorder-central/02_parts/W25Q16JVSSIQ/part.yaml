@@ -33,3 +33,12 @@ sourcing: {lcsc: C131025, alternates: [C82317], note: 'exact MPN; C131025 102945
 
 # D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
 escape: {style: leaded, pitch: 1.27, tier_required: jlc_2layer_default, checked: escape_check}
+layout:
+  source: >-
+    Winbond W25Q16JV datasheet Rev H (2019-04). SOIC-8 208-mil; standard SPI-NOR
+    practice — 0.1uF VCC decoupling adjacent, keep the QSPI clock/IO group short.
+  notes: >-
+    0.1uF ceramic hard against VCC(pin8)/GND(pin4). Boot QSPI (CS/CLK/IO0-3)
+    kept as a short local group between the flash and the XU316 QSPI-boot pins
+    (X0D01/07/10/11); no analog or high-current constraint. Rails are board-wide
+    so no P-ADJ keep_short span budget.

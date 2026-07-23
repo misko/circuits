@@ -53,3 +53,14 @@ escape: {style: qfn, pitch: 0.5, escapes_worst_side: 5, tier_required: jlc_4laye
 #   0.5); the outward-only-local conditional does NOT apply honestly (USB nets are
 #   flow-through, not terminated in adjacent passives) -> unconditional tier declared.
 #   Board carries it at jlc_6layer_smallvia (rank 4 >= 2, ADR-0012).
+layout:
+  source: >-
+    TI TPD4EUSB30 datasheet SLVSAC2G (2021-06) section 10 'Layout' (10.1 Layout
+    Guidelines p.11): place the device close to the USB connector and keep the
+    stub off the high-speed pair as short as possible.
+  notes: >-
+    D10 sits between the USB-C receptacle J12 and the XU316 USB PHY, hard against
+    the connector, minimal stub. redteam L1 flags that the v1.0 USB_DP/DM HS pair
+    layer-hops F.Cu/B.Cu/In2 through vias (breaks the 90ohm intra-pair coupling
+    for ~10mm) — a LAYER-CONTINUITY defect P-ADJ's pad-span model does not see;
+    dispositioned P1 next-rev (re-route F.Cu-only, no vias), deferred to v1.1 board.

@@ -56,3 +56,15 @@ sourcing:
 
 # D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
 escape: {style: connector, pitch: 1.02, tier_required: jlc_2layer_default, checked: escape_check}
+layout:
+  source: >-
+    Amphenol RJHSE-5384 (Modular Jacks catalogue 2015-04). THT 8-contact modular
+    jack x8 (6 populated) — mechanical / board-edge; per-port protection cluster
+    placed local to each jack.
+  notes: >-
+    Board-edge row of 8 jacks. Per port: keep the differential audio pair
+    (AUD_Pn/AUD_Nn) routed as a pair from the jack to its AC-coupling/ESD
+    network; ESD Dn and per-port PTC placed at the jack; beeper low-side FET
+    return isolated. NOT-ETHERNET custom pinout (pod ADR-0004) — silk warns.
+    No P-ADJ keep_short: the jack-to-ADC audio span is inherent to the edge
+    placement (see PCM1865 AIN keep_short for the ADC-side node budget).

@@ -45,3 +45,12 @@ verified: "pin map read from the 'DDC Package 5-Pin SOT Top View' figure,
 
 # D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
 escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: escape_check}
+layout:
+  source: >-
+    TI TLV700 datasheet SBVS181 Application section (CIN 0.1uF, COUT 0.1uF
+    ceramic at VIN/VOUT for stable operation). SOT-23-5. SOURCING SUBSTITUTE for
+    TCR2LF18 (ADR-0015) — identical land + identical decoupling layout.
+  notes: >-
+    0.1uF Cin hard against VIN, 0.1uF Cout hard against VOUT. Output 1V8 feeds
+    XU316 VDDIOB18 — keep the rail short back to the chip. Rails are board-wide,
+    so no P-ADJ keep_short span budget (decoupling proximity is a placement rule).

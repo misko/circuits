@@ -38,3 +38,24 @@
     planes. Machine-checked every rebuild by audit_board I11 (>=2 EP PTH
     vias; currently 16) and independently confirmed by the fresh-context
     pin review (U1 EP finding: "16 vias in a 4x4 grid — MATCH").
+- id: P-ADJ
+  why: >
+    DEFERRED-TO-BOARD (canon P8 / red-team L3): two PCM1865 analog-input nets
+    exceed the 12mm keep-short budget declared in PCM1865DBTR/part.yaml layout:
+    AIN_P4 measured span 96.0mm > 12mm, and AIN_P8 measured span 63.6mm > 12mm.
+    Root cause: ADC channels 4 and 8 each tap a far resistor (R80 / R81) ~90mm
+    and ~60mm across the 176mm board, so the analog input runs as a long
+    single-ended antenna (partner nets AIN_N4/AIN_N8 are 1.5mm). Sibling
+    channels 1/2/3/5/6/7 honour the budget (AIN_P* 2.5-4.2mm, AIN_N* 1.3-7.2mm),
+    so this is a two-channel placement miss, not a systemic one. Evidence:
+    07_releases/v1.0-2026-07-22/verification/2026-07-22_v1.0_redteam_layout.md
+    finding L3 (measured routed length AIN_P4 106.3mm / AIN_P8 69.5mm),
+    dispositioned P1 next-rev under an ORDER verdict (no P0). The FIX is a BOARD
+    re-place (move R80/R81 local to the ADC, or drop the monitor tap) and CANNOT
+    be applied to the immutable sealed v1.0 board — it is deferred to a real v1.1
+    board revision. This waiver is the honest state of a sealed board that misses
+    a budget it was never graded against at seal time (P-ADJ post-dates v1.0).
+    NOTE: the buck VIN->Cin hot-loop (red-team L2, 5.57/6.14mm) is documented in
+    AP61102Z6-7/part.yaml layout.notes but is NOT gate-able by P-ADJ — buck VIN
+    is the board-wide shared 5V rail (span 165mm) with no per-buck input net to
+    measure a local span on; it too is deferred to the v1.1 board revision.
