@@ -36,8 +36,11 @@ r=d.setdefault("board",{}).setdefault("design_settings",{}).setdefault("rules",{
 r["min_text_height"]=0.45; r["min_text_thickness"]=0.1
 json.dump(d,open(p,"w"),indent=2); print("pro silk floors: min_text_height 0.45")
 PYEOF
-# [9] DRC gate — must be 0/0/0 at full severity
+# [9] DRC gate — must be 0/0/0 at full severity.
+# Place the authoritative converter sch beside the board so --schematic-parity
+# actually RUNS (else kicad-cli skips it and reports a hollow 0).
 mkdir -p 06_build/drc
+cp "03_tscircuit/kicad/$BOARD.kicad_sch" "04_kicad/$BOARD.kicad_sch" 2>/dev/null || true
 kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
     --format json -o 06_build/drc/gate.json "04_kicad/$BOARD.kicad_pcb"
 $PY -c "import json;g=json.load(open('06_build/drc/gate.json'));v,u,p=len(g['violations']),len(g['unconnected_items']),len(g.get('schematic_parity',[]));print(f'DRC {v}/{u}/{p}');exit(0 if v==u==p==0 else 1)"

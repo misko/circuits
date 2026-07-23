@@ -9,7 +9,7 @@ datasheet:
   sha256: db7d7871e4634126634c2a2e10319a1d9c2de243557df3e05b3e51943575413f
   fetched: 2026-07-21
 package: HTSSOP-20 PWP 4.4x6.5 P0.65 EP
-footprint: Package_SO:HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_Mask2.75x3.43mm_ThermalVias
+footprint: Package_SO:HTSSOP-20-1EP_4.4x6.5mm_P0.65mm_EP3.4x6.5mm_Mask2.75x3.43mm
 escape:
   style: leaded
   pitch: 0.65

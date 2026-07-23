@@ -8,7 +8,7 @@ datasheet:
   sha256: 5c6f52eb999d02c131f41f2b78370bbad94452a24a98873e9bb7c3dab7fe0b0c
   fetched: 2026-07-21
 package: SON-8 DRB 3x3 P0.65 EP
-footprint: Package_SON:VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm_ThermalVias
+footprint: Package_SON:VSON-8-1EP_3x3mm_P0.65mm_EP1.65x2.4mm
 escape:
   style: qfn  # checker vocabulary: SON/DFN no-lead ring escapes as 'qfn'
   pitch: 0.65

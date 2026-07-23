@@ -165,12 +165,12 @@ placement:
 
 design_rules:
   track_min_width: 0.127
-  min_clearance: 0.09       # advanced tier (TPS25740A 0.5mm QFN escape + J5 0.5mm row)
-  via_min_size: 0.25
-  min_through_drill: 0.15
-  via_min_annulus: 0.05
+  min_clearance: 0.127      # STANDARD tier (v3: QFN gone -> jlc_4layer_standard)
+  via_min_size: 0.45        # JLC no-fee multilayer via 0.45/0.3
+  min_through_drill: 0.3
+  via_min_annulus: 0.075
   hole_clearance: 0.2
-  hole_to_hole: 0.25
+  hole_to_hole: 0.5         # JLC published standard hole-to-hole floor
   copper_edge_clearance: 0.3
   solder_mask_min_width: 0.0
   solder_mask_expansion: 0.0
