@@ -1,0 +1,36 @@
+mpn: SM05B-GHS-TB
+manufacturer: JST
+type: connector_wire_to_board_header_1x5   # CLASS: 1.25mm GH SMD side-entry header
+datasheet:
+  doc_id: eGH                     # JST GH series drawing (no printed numeric revision)
+  revision: eGH                   # JST catalog sheet carries no rev code; token == filename
+  url: https://www.jst-mfg.com/product/pdf/eng/eGH.pdf
+  sha256: b1dcb317b6b9a4fbbedd2dbf42c64c95306a252d23de8933b85fcf161240b722
+  fetched: 2026-07-22
+package: JST GH 1.25mm 5-circuit SMD side-entry (right-angle) shrouded header, 2 solder tabs
+footprint: Connector_JST:JST_GH_SM05B-GHS-TB_1x05-1MP_P1.25mm_Horizontal
+escape:                           # escape_check.py --style connector --pitch 1.25
+  style: connector
+  pitch: 1.25
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-22
+pins:                             # 1..5 signal + 2 mechanical tabs (KiCad pad name "MP")
+  1: P1                           # No.1 circuit is the marked end of the row (eGH p.2/p.3)
+  2: P2
+  3: P3
+  4: P4
+  5: P5
+  MP: {name: MP, tie: GND, note: "two tin-plated reinforcement/solder tabs (footprint pad 'MP' x2 = one common node); carry no signal current — tie to GND for retention + shield return"}
+limits: {current_per_contact: "1.0A AC/DC (AWG#26)", voltage: "50V AC/DC", temp_range: "-40..+105C incl. current rise", wire: "AWG #30-#26, insulation OD 0.76-1.0mm"}
+gotchas:
+  - "SM = side-entry = KiCad Horizontal (right-angle) SMD; chosen over top-entry BM05B-GHS-TBT (C189891) for side-entry consistency with the 8/10-pin heads AND lower JLC unit cost + deeper stock"
+  - "mates with JST GHR-05V-S crimp housing + SSHL-002T-P0.2 contacts"
+verified: "pad map 1..5 + 2xMP from footprint Connector_JST:JST_GH_SM05B-GHS-TB_1x05-1MP_P1.25mm_Horizontal (pin1 x=-2.5, pin5 x=+2.5 -> 1.25mm pitch); ratings + pin-1 (No.1 circuit at row end, side-entry) from JST eGH.pdf p.1 (Specifications) and p.3 (Header table: SM05B-GHS-TB, side-entry, 5 circuits) - 2026-07-22"
+layout:                           # in P-LAYOUT scope (npins>2); honest layout-agnostic notes
+  source: "JST eGH SMD land pattern + solder-tab retention (mechanical). This header is the humidity-pod bus entry; bus signal integrity is governed by the pod bus master / sensor part, not by this connector."
+  reviewed: "2026-07-22"
+  notes: "Passive interconnect - layout-agnostic, no self net-span budget. Carries the humidity-pod bus (I2C/analog per schematic): keep bus lines short with pull-ups/termination at the bus master (not the connector); if the cable leaves the enclosure add series-R + ESD (TVS) at this connector entry. Tie both MP tabs to GND (retention + shield return)."
+sourcing:
+  lcsc: C189896
+  alternates: [C20089325, C189891]
+  note: "genuine JST, ordered as SM05B-GHS-TB(LF)(SN) = C189896 (JLC extended, deepest stock of the 5P options). C20089325 = plain SM05B-GHS-TB listing (same footprint). C189891 = BM05B-GHS-TBT top-entry sibling = DIFFERENT footprint (Vertical) — orientation swap only, not a drop-in. NO stock/price committed (volatile)."

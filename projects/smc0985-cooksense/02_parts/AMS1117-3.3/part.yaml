@@ -1,0 +1,21 @@
+mpn: AMS1117-3.3
+manufacturer: Advanced Monolithic Systems
+type: ldo_3v3_1a
+datasheet:
+  doc_id: ds1117
+  url: http://www.advanced-monolithic.com/pdf/ds1117.pdf
+  fetched: 2026-07-19 (same facts as projects/ble-bus-bar 02_parts entry, re-used)
+package: SOT-223
+footprint: Package_TO_SOT_SMD:SOT-223-3_TabPin2
+pins:
+  1: GND
+  2: VOUT    # + tab
+  3: VIN
+limits: {vin_max: 15V, iout: 1A, dropout: "1.1V typ @0.8A"}
+gotchas:
+  - "needs >=22u-class output cap for stability; tab = VOUT (pour heatsink on 3V3)"
+  - "JLC twin: pad_alias {'4':'2'} (KiCad TabPin2 vs JLC tab-as-4; jlcpcb-fab skill canonical case)"
+verified: "ds1117 p.1 pinout SOT-223 (1=GND 2=VOUT+tab 3=VIN) - carried from ble-bus-bar release v1.0 verification"
+sourcing:
+  lcsc: C6186
+  note: "BASIC part, 1.48M stock 2026-07-19."

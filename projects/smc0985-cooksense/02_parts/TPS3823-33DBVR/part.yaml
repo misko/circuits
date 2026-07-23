@@ -1,0 +1,49 @@
+mpn: TPS3823-33DBVR
+manufacturer: Texas Instruments
+type: voltage_supervisor_watchdog    # supervisor + fixed 200ms POR + manual reset + watchdog timer.
+                                     # Source of WD_OK / fault-latch reset in the brief safety chain
+                                     # (KEY_RELAY_ALLOWED = ... AND WD_OK AND ...); external hw watchdog per D1/ADR-0002.
+datasheet:
+  doc_id: SLVS165
+  revision: SLVS165O                 # April 1998 - Revised March 2025; pinout/function vary by device suffix - PIN IT
+  url: https://www.ti.com/lit/ds/symlink/tps3823.pdf
+  sha256: 226e6020f198fafdc5290321c154761d9c45301699a1a5a1b8498ebb22d79564
+  fetched: 2026-07-22
+  local: SLVS165O.pdf
+package: SOT-23-5 (DBV) 2.90x1.60mm
+footprint: Package_TO_SOT_SMD:SOT-23-5
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: escape_check 2026-07-22}
+pins:                                # DS Figure 5-1 (5-Pin SOT-23 DBV, Top View) + Table 5-1 Pin Functions, p.4
+  1: {name: RESET_N, note: "active-LOW reset output, PUSH-PULL; asserts on VDD<VIT-, WD time-out, or /MR low"}
+  2: GND
+  3: {name: MR_N, note: "manual-reset input, active-LOW; internal 90k pullup to VDD; leave open or tie VDD if unused"}
+  4: {name: WDI, note: "watchdog input; must see an edge within t_out or RESET asserts; if left floating the device self-pulses (WD effectively disabled)"}
+  5: {name: VDD, note: "supply AND the supervised node - for the '-33' option this is the 3.3V rail (VIT- = 2.93V typ); do NOT tie to 5V"}
+limits:
+  vdd_operating: "1.1-5.5V"
+  vdd_abs_max: "6V (DS Sec.6.1)"
+  vit_minus: "2.83 / 2.93 / 3.00 V (-33 negative-going threshold, Sec.6.6 p.7)"
+  vhys: "30mV typ"
+  t_watchdog: "0.9 / 1.6 / 2.5 s (FIXED WD time-out, TPS3823; Sec.6.8 p.8)"
+  t_reset_delay: "120 / 200 / 300 ms (td)"
+  wdi_pulse_min: "100ns"
+  idd: "15uA typ / 25uA max"
+  esd_hbm: "2kV"
+  ta: "-40 to 85C"
+gotchas:
+  - "'-33' = 3.3V supervisor: VIT- = 2.93V typ. VDD both powers the part AND is the monitored node -> connect VDD to the 3.3V logic rail being supervised, NOT to 5V (abs-max VDD is only 6V)."
+  - "WD time-out is FIXED 1.6s typ (0.9-2.5s) - far COARSER than the brief's 300-500ms heartbeat window. TPS3823 role here = POR + /MR manual reset + 3V3 supervision + a SLOW ~1.6s watchdog backstop; the fast 300-500ms retriggerable window is the SN74LVC1G123 one-shot (see 02_parts). Reconcile the watchdog architecture in pin/power review."
+  - "RESET is active-LOW PUSH-PULL (the open-drain family member is TPS3828). Drive the fault-latch / AND-chain input directly; do NOT wire-OR a push-pull output onto a shared node without isolation."
+  - "/MR has an internal 90k pullup; a momentary switch to GND = manual reset. Add series R + small cap (RC debounce) at pin 3 per app note to reject noise on the reset line."
+verified: "pin map from Figure 5-1 (5-Pin SOT-23 DBV, Top View) + Table 5-1 Pin Functions, p.4; -33 threshold + WD timing from Sec.6.6/6.8, p.7-8; abs-max VDD 6V from Sec.6.1 p.5, SLVS165O - 2026-07-22"
+layout:
+  source: "TI SLVS165O Sec.8.4 Layout Guidelines + Sec.8.3 Power Supply Recs + Sec.6.5/6.6 EC-table note: place a 0.1uF ceramic bypass close to VDD for threshold stability; keep the VDD supply node SHORT - Cvdd + supply-lead inductance form an LC tank that can ring above the 6V abs-max VDD."
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: 3V3_DIGITAL, max_span_mm: 4, why: "0.1uF VDD decoupling cap hard against pin 5 / GND pin 2 - threshold stability + prevents LC ring above 6V abs-max"}
+  notes: "Coarse 0.95mm SOT-23-5 - no escape/fanout wall. Real placement demands: (1) Cvdd 100nF adjacent VDD(5)/GND(2); (2) /MR debounce RC local to pin 3; (3) route the WDI heartbeat trace clear of the switched relay rail / coil driver. Logic-level part otherwise."
+sourcing:
+  lcsc: C7719
+  alternates: []                     # No clean drop-in second source at 2.93V(-33) + /MR + 1.6s WD + push-pull in SOT-23-5 DBV.
+                                     # SINGLE-SOURCE (TI) - flagged. Functional (non-drop-in) fallbacks: MAX6316/MAX6746 families (different pinout -> re-layout + ADR).
+  note: "Genuine TI required for the safety-chain supervisor (D1 / ADR-0002). SOT-23-5 DBV, active-low push-pull RESET."

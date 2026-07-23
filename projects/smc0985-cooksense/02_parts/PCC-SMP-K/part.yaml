@@ -1,0 +1,64 @@
+mpn: PCC-SMP-K
+manufacturer: Omega Engineering (Newport Electronics)
+type: thermocouple_connector_typeK_pcb   # Type-K miniature PCB jack (socket).
+                                         # CLASS, not value.
+mates: receptacle           # SOCKET/jack on the board; mates the SMPW-K miniature
+                            # MALE plug on the thermocouple lead (gender per Omega
+                            # drawing - the board part is the female receptacle)
+datasheet:
+  doc_id: Omega PCC-OST-SMP Series (Circuit Board Mountable Thermocouple Connectors)
+  revision: none-printed    # sheet marked "UNRESTRICTED", no rev number
+  url: https://assets.omega.com/spec/PCC-OST-SMP_spec.pdf
+  sha256: 5c6652ce7e1384a1d16ad6d653cc5f952ba90bc111c759eaaaa268eed6aa474e
+  local: PCC-OST-SMP_spec.pdf
+  fetched: 2026-07-22
+package: PCC-SMP miniature horizontal PCB connector, glass-filled nylon, 20.8 x 15.5 x 6.3mm (excl. clip)
+footprint: cookhub:Omega_PCC-SMP-K_TypeK_PCpin   # TO BE CREATED - no KiCad std
+                            # footprint. From Omega drawing p.2: 2 solder contacts
+                            # at 7.9mm (0.31") pitch + 4x dia1.77mm (0.070") PC/
+                            # bracket holes. (deviation - see 02_parts/README.md)
+escape:                     # escape_check.py --style connector --pitch 7.9
+                            # (2 electrical contacts -> checker exempts <=2 pins;
+                            # block kept to document the board tier)
+  style: connector
+  pitch: 7.9
+  escapes_worst_side: 1
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-22
+pins:                       # 2 ELECTRICAL contacts (Omega drawing p.2 + Type-K ANSI
+                            # color code). Mounting-bracket holes are mechanical (below).
+  1: {name: TC_POS, note: "chromel (+), Type-K; ANSI YELLOW = +. To MAX31856 T+/TC bias node. Thermocouple-grade ALLOY pin (not copper) - the cold/reference junction forms at THIS PCB pad, so CJC must sense here"}
+  2: {name: TC_NEG, note: "alumel (-), Type-K; ANSI RED = -. To MAX31856 T-"}
+limits: {calibration: "Type K", t_op: "-29..+180C (contacts to ~220C)", contacts: "K thermocouple-grade alloy (chromel+/alumel-)", shell: "glass-filled nylon"}
+gotchas:
+  - "POLARIZED / keyed: the two miniature blades are different widths so the SMPW-K male plug inserts ONE way only - cannot reverse. Shell is molded '+' / '-'."
+  - "Footprint = 2 contacts at 7.9mm (0.31') pitch + 4x dia1.77mm (0.070') holes for the PC pins / mounting bracket (Omega drawing p.2). The bracket holes are NON-NET (mechanical) - model as NPTH/mounting pads."
+  - "Cold-junction: alloy pins carry the K junction TO the PCB, so the reference junction is at pads 1/2. Keep the MAX31856 CJC (or the Omega optional TO-92 retainer-clip sensor) ISOTHERMAL with these pads (brief CJC requirement)."
+  - "NOT stocked at JLC/LCSC (no C-number) -> HAND-SOLDER BOM line, global sourcing. See sourcing.note for the JLC-stocked fallback."
+verified: "2 contacts + geometry read from Omega PCC-OST-SMP spec DRAWING p.2 (PCC-SMP miniature: 7.9mm contact pitch, 4x dia1.77mm holes, mates SMPW series); Type-K +/- polarity from ANSI color code - 2026-07-22"
+layout:                     # analog TC front-end (mV-level) - real placement rules
+  source: "brief 3 (TC jack at BOARD EDGE, away from relays/regulators; CJC; TC beside exhaust SHT45) + MAX31856 datasheet TC input filter + Omega TO-92 retainer-clip CJC note"
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: TC_POS, max_span_mm: 20, why: "T+ from jack to MAX31856 input filter kept short & paired with T- (mV differential)"}
+    - {net: TC_NEG, max_span_mm: 20, why: "T- routed as a tight pair with T+"}
+  notes: >
+    Place at the BOARD EDGE, away from relays / regulators / switchers (brief) - the
+    Type-K signal is ~40uV/C, EMI- and gradient-sensitive. Keep contact pads 1/2
+    isothermal (short, symmetric) and route T+/T- as a tight differential pair into
+    the MAX31856 input network (100R per leg + 100n differential + 10n each to AGND,
+    per MAX31856 typical). Locate the CJC reference sensor at these pads (the Omega
+    retainer clip accepts a TO-92 CJC transistor at the connector entrance).
+sourcing:
+  lcsc: ""                  # NOT stocked at JLC/LCSC (verified 2026-07-22)
+  alternates: [PCC-SMP-K-R, PCC-SMP-K-5, KF350-3.5-2P]
+  note: >
+    HAND-SOLDER, GLOBAL SOURCING - Omega/Newport, brief-referenced (PCC-SMP-K).
+    NOT in the JLC/LCSC library (LCSC thermocouple-connector search returned 0
+    Type-K parts 2026-07-22); order from DigiKey (PCC-SMP-K-5, DK 25639954) /
+    Newark-element14 (2292982) / SparkFun / SK Pang. Variants: -R (RoHS), -5/-50/
+    -100 (pack size), -V (vertical mount), -CE (closed-end). Mates SMPW-K plug.
+    JLC-STOCKED FALLBACK already on this board = KF350-3.5-2P screw terminal
+    (C474892, J5 TC YEL+/RED-): accepts bare TC wire, no hand-solder, but LOSES
+    the keyed alloy jack + the TO-92 CJC-mount - pick per assembly preference at
+    order time. DO NOT commit stock numbers.

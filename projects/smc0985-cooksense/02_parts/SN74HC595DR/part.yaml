@@ -1,0 +1,33 @@
+mpn: SN74HC595DR
+manufacturer: Texas Instruments
+type: shift_register_8bit
+datasheet:
+  doc_id: SCLS041
+  url: https://www.ti.com/lit/ds/symlink/sn74hc595.pdf
+  fetched: 2026-07-19 (standard pinout; re-verified in pin review)
+package: SOIC-16 (D)
+footprint: Package_SO:SOIC-16_3.9x9.9mm_P1.27mm
+pins:
+  1: QB
+  2: QC
+  3: QD
+  4: QE
+  5: QF
+  6: QG
+  7: QH
+  8: GND
+  9: QH_S     # serial cascade out
+  10: SRCLR_N # tied 3V3
+  11: SRCLK   # shift clock GP12
+  12: RCLK    # latch GP13
+  13: OE_N    # from NAND + 10k pullup
+  14: SER     # data GP11 (U3) / QH_S of U3 (U4)
+  15: QA
+  16: VCC
+limits: {vcc: "2-6V"}
+gotchas:
+  - "OE_N high = outputs Hi-Z; ULN2803 inputs then held off by their internal base network (ADR-0003)"
+verified: "TI SCLS041 D-package pin table (industry-standard 595 pinout); pin review re-checks - 2026-07-19"
+sourcing:
+  lcsc: C10092
+  note: "genuine TI, 36406 stock 2026-07-19."

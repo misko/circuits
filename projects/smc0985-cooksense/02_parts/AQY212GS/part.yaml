@@ -1,0 +1,54 @@
+mpn: AQY212GS
+manufacturer: Panasonic Industry
+type: photomos_ssr_1formA   # PhotoMOS solid-state relay, MOSFET output, SPST-NO.
+                            # CLASS, not value. (selector-relay ALTERNATE, ADR-0006)
+datasheet:
+  doc_id: Panasonic PhotoMOS GU (General Use) SOP 1-Channel Form A (AQY212GS)
+  revision: none-printed    # no doc-id/rev on the sheet face (file header "AQY212GS.fm")
+  url: https://datasheet.octopart.com/AQY212GS-Panasonic-datasheet-110099.pdf  # sha256 is of THIS file; also mirrored at jameco.com/.../991705.pdf
+  sha256: 52ffdda6c21c388b45c1af1bf10e8930ce52388191d0fe99feb4ffc0ae67da88
+  local: AQY212GS_Panasonic_GU-SOP.pdf
+  fetched: 2026-07-22
+package: SOP-4 (GU type, 4.4x4.3mm body, 2.54mm lead pitch, 2.1mm H)
+footprint: Package_SO:SOP-4_3.8x4.1mm_P2.54mm   # exists in KiCad std lib (CPC1017N land)
+escape:                     # escape_check.py --style leaded --pitch 2.54
+                            # --escapes-worst-side 2 --pins 4
+  style: leaded
+  pitch: 2.54
+  escapes_worst_side: 2
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-22
+pins:                       # datasheet p.1 FEATURES internal diagram + p.4 SCHEMATIC
+                            # AND WIRING (output config 1a). 1,2=input LED; 3,4=output
+  1: {name: LED_ANODE,   note: "input LED + ; drive via series R, IF 5-10mA recommended (50mA abs max)"}
+  2: {name: LED_CATHODE, note: "input LED -"}
+  3: {name: OUT1, note: "MOSFET output terminal (load) - output pair 3/4 is NON-POLAR (AC/DC)"}
+  4: {name: OUT2, note: "MOSFET output terminal (load)"}
+limits: {v_load: "60V peak (AC/DC)", i_load_cont: "1.0A", i_load_peak: "3.0A (100ms, VL=DC)",
+  ron: "0.7 ohm max (0.34 typ, IF=5mA)", i_leak_off: "1uA max",
+  if_max: "50mA", if_on: "3mA max (1.1 typ)", if_off: "0.3mA min", vf: "1.5V max (IF=5mA)",
+  v_iso: "1500 Vrms AC", r_iso: "1000 Mohm min @500VDC", t_on: "5ms max", t_off: "0.5ms max",
+  t_op: "-40..+85C"}
+gotchas:
+  - "1 Form A (SPST-NO): output 3-4 closes (~0.34 ohm) while the LED is driven; the few-ohm Ron is absorbed by RKEY on the selector path (ADR-0006)."
+  - "INPUT is polarized (1=anode, 2=cathode); OUTPUT 3/4 is non-polar AC/DC. Do not swap the LED pair."
+  - "Product SEAL marks only '212G' (AQY and S omitted per datasheet note); order-time part = AQY212GS(tube)/GSX(reel, picked 1/2 side)/GSZ(reel, picked 3/4 side)."
+  - "Maintain the 1500Vrms I/O isolation barrier: keep INPUT (1/2) copper and OUTPUT (3/4) copper apart; no pour/trace crossing under the body."
+verified: "pin map + output config 1a read from Panasonic AQY212GS datasheet p.1 FEATURES diagram + p.4 SCHEMATIC AND WIRING DIAGRAMS; ratings p.1, electrical p.2, land p.4 - 2026-07-22"
+layout:                     # P-LAYOUT: multi-pin active (SSR). Real rule = isolation
+                            # barrier; it is NOT a switching-power part (no I-budget).
+  source: "Panasonic AQY212GS datasheet RATING (Viso 1500Vrms) + DIMENSIONS p.4 recommended mounting pad + GU-series application (Form A dry switch)"
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: LED_DRIVE, max_span_mm: 6, why: "LED series current-limit R adjacent to pin1 anode; IF 5-10mA from the selector driver"}
+  notes: >
+    Signal-level 1 Form A selector switch (dry contact, Ron absorbed by RKEY) - no
+    high-current net-span budget applies. The governing layout rule is the 1500Vrms
+    I/O isolation barrier: place input pins 1/2 (LED, logic side) and output pins
+    3/4 (MOSFET, switched side) on opposite package edges with NO copper pour or
+    trace bridging beneath the body, preserving creepage across the barrier.
+    Recommended land: pads 1.2x0.8mm at 2.54mm pitch, ~6.0mm row span (datasheet p.4).
+sourcing:
+  lcsc: C719745            # AQY212GS (tube); JLCPCB BASIC part, "SOP-4-2.54mm"
+  alternates: [C415471, C129283]   # AQY212GSX (reel, picked 1/2-pin side); AQY212GSZ (reel, picked 3/4-pin side)
+  note: "SELECTOR-RELAY ALTERNATE (ADR-0006): default selector = DIP05-1A72-12L reed; PRESS & STOP stay reed regardless. AQY212GS is a Panasonic JLC BASIC part (C719745). For JLC SMT reel feed prefer the tape&reel AQY212GSX(C415471)/AQY212GSZ(C129283) over the tube AQY212GS. In stock 2026-07-22 (~$0.73 GS / ~$0.88 GSX; do NOT commit stock). Order-day stock check per ADR-0006."

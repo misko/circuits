@@ -1,0 +1,34 @@
+mpn: SN74LVC1G00DCKR
+manufacturer: Texas Instruments
+type: single_2input_nand
+datasheet:
+  doc_id: SCES214
+  url: https://www.ti.com/lit/ds/symlink/sn74lvc1g00.pdf
+  fetched: 2026-07-19 (pinout cross-checked vs 1G-family convention; 5-pin)
+package: DCK SC-70-5 (SOT-353)
+footprint: Package_TO_SOT_SMD:SOT-353_SC-70-5
+pins:                       # 5-pin single-gate standard (DS pin config)
+  1: A
+  2: B
+  3: GND
+  4: Y
+  5: VCC
+limits: {vcc: "1.65-5.5V"}
+gotchas:
+  - "drives /OE of both 74HC595 from (RLY_EN, WD_OK); /OE also has 10k pullup so unpowered/removed gate = disabled"
+verified: "5-pin DCK pin config per TI SCES214 pin table (industry-uniform 5-pin gate); re-verify in fresh pin review - 2026-07-19"
+layout:                          # P-LAYOUT: single 2-input NAND (drives both 595 /OE, ADR-0003) - layout-agnostic apart from VCC bypass
+  source: "TI SN74LVC1G00 datasheet SCES212AB sec.11 Power Supply Recommendations
+    (single-supply 0.1uF bypass, installed as close to the power pin as possible) +
+    sec.12.1 Layout Guidelines (inputs must never float - tie every unused input high or low)"
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: VCC, max_span_mm: 5, why: "0.1uF VCC(5)-GND(3) bypass hard against the package (DS sec.11)"}
+  notes: "Honest: a jelly-bean NAND, layout-agnostic apart from the local VCC bypass.
+    Place 0.1uF at pins 5/3. Both inputs are used here (A=1,B=2 = RLY_EN,WD_OK ->
+    Y=4 = /OE of both 74HC595, per gotcha), so no floating-input tie is needed; if
+    either were unused it would tie per sec.12.1. Keep the Y(4)->/OE run short. Coarse
+    0.65mm SC-70-5 - no escape wall, no length matching."
+sourcing:
+  lcsc: C8185
+  note: "genuine TI SOT-353, 20457 stock 2026-07-19."

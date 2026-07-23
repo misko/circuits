@@ -1,0 +1,120 @@
+mpn: 2.54-2*20PPC104          # LCSC house-brand descriptor IS the orderable MPN.
+                              # Dir name sanitised '*'->'x' (filesystem-safe):
+                              # 2.54-2x20PPC104. LCSC code C35165 is the stable handle.
+manufacturer: BOOMELE (Boom Precision Elec)   # LCSC house brand; OEM drawing: Zhejiang Bomu Precision Electronics
+type: header_2x20_female_stacking   # REQUIRED class: a 2.54mm 2x20 FEMALE socket with
+                              # extra-long PC104 stack-through tails. NOT a male pin
+                              # header, NOT a plain 40-pad grid. This is J_PI (Pi 5 GPIO).
+mates: receptacle             # female socket (receptacle) — receives the Raspberry Pi 5
+                              # J8 MALE GPIO posts from below. Long tails are the stack-
+                              # through feature, not the primary mate. Role-vs-gender is a
+                              # HUMAN pin-review call (no machine gate here).
+datasheet:
+  doc_id: PC104-2*N stacking female header (Zhejiang Bomu drawing, via LCSC C35165)
+  revision: C35165            # commodity house-brand drawing is undated; LCSC code is the
+                              # stable handle and appears in the committed PDF filename.
+  url: https://www.lcsc.com/product-detail/C35165.html
+  pdf: https://datasheet.lcsc.com/datasheet/pdf/85841ab83578e60f1e18a5a4af674ba7.pdf
+  sha256: a266c35dca3df8411f42ceb69a8b795ec1f21e75530a73f1410d0f6b8f6a3db6
+  fetched: 2026-07-22
+package: 2.54mm 2x20 (40-pos) dual-row FEMALE socket, THT vertical, PC104 stack-through —
+  socket body 8.5mm + 12.46mm long tails (23.5mm overall); brass/Au, 3A, 550VAC/min, -55..+105C
+footprint: Connector_PinSocket_2.54mm:PinSocket_2x20_P2.54mm_Vertical
+escape:                       # escape_check.py --style connector --pitch 2.54 --pins 40
+  style: connector
+  pitch: 2.54
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-22
+pins:                         # PHYSICAL positions 1..40 on the 2.54 x 2.54mm grid
+  1: P1                       # (generic/positional; Pi-GPIO net map is in notes: below)
+  2: P2
+  3: P3
+  4: P4
+  5: P5
+  6: P6
+  7: P7
+  8: P8
+  9: P9
+  10: P10
+  11: P11
+  12: P12
+  13: P13
+  14: P14
+  15: P15
+  16: P16
+  17: P17
+  18: P18
+  19: P19
+  20: P20
+  21: P21
+  22: P22
+  23: P23
+  24: P24
+  25: P25
+  26: P26
+  27: P27
+  28: P28
+  29: P29
+  30: P30
+  31: P31
+  32: P32
+  33: P33
+  34: P34
+  35: P35
+  36: P36
+  37: P37
+  38: P38
+  39: P39
+  40: P40
+gotchas:
+  - "STACKING part: 12.46mm long male tails pass UP through the PCB; the female socket sits
+    on the BOTTOM side and mates the Raspberry Pi 5 J8 male header BELOW the board. Assemble
+    socket-down / tails-up (THT, hand- or wave-solder — not SMT-placed)."
+  - "SIGNALS ONLY (brief item 11 master connector table: 'J_PI 2x20 stacking (signals only,
+    Pi power NC/sense)'): this board is powered from J_PWR (Micro-Fit 5V), NOT from the Pi.
+    Treat Pi power pins as NC or sense-only — 5V = pos 2,4; 3V3 = pos 1,17."
+  - "GND = positions 6,9,14,20,25,30,34,39 (8 grounds). HAT ID EEPROM reserved: pos 27=GPIO0/
+    ID_SD, pos 28=GPIO1/ID_SC — do not repurpose as GPIO."
+  - "Pin-1 orientation is board-critical: the footprint is 2-fold symmetric, so a 180deg flip
+    silently mis-maps EVERY net. Pin 1 is the 3V3 corner at the Pi board edge (SD-card/USB end)."
+verified: "physical 2x20 (40-pos) 2.54mm grid + pin-1 corner + 12.46mm stack tail read from the
+  Zhejiang Bomu drawing (LCSC C35165, page 1: front/side/PCB-layout views + 40-position A/B table)
+  — 2026-07-22. Female / 2-row / 40P confirmed on LCSC C35165 parametric."
+notes: |
+  Raspberry Pi 5 40-pin J8 GPIO map (standard, identical to Pi 2/3/4) — the NET assignment the
+  board author applies to physical positions 1..40 (this connector part is itself positional):
+     1  3V3          2  5V
+     3  GPIO2/SDA1    4  5V
+     5  GPIO3/SCL1    6  GND
+     7  GPIO4/GPCLK0  8  GPIO14/TXD0
+     9  GND          10  GPIO15/RXD0
+    11  GPIO17       12  GPIO18/PCM_CLK
+    13  GPIO27       14  GND
+    15  GPIO22       16  GPIO23
+    17  3V3          18  GPIO24
+    19  GPIO10/MOSI  20  GND
+    21  GPIO9/MISO   22  GPIO25
+    23  GPIO11/SCLK  24  GPIO8/CE0
+    25  GND          26  GPIO7/CE1
+    27  GPIO0/ID_SD  28  GPIO1/ID_SC
+    29  GPIO5        30  GND
+    31  GPIO6        32  GPIO12/PWM0
+    33  GPIO13/PWM1  34  GND
+    35  GPIO19       36  GPIO16
+    37  GPIO26       38  GPIO20
+    39  GND          40  GPIO21
+  No layout: block — a passive GPIO connector is out of P-LAYOUT scope (not an IC / power /
+  sense part). Placement rules that DO matter (board-edge alignment to the Pi mechanical
+  outline, pin-1 corner, keep-out under the socket) are Pi-HAT mechanical facts, not connector-
+  datasheet facts; they belong in the floorplan, and the pin-1 fact is captured in gotchas above.
+sourcing:
+  lcsc: C35165
+  alternates: [C2977589, C50982]
+  note: |
+    PRIMARY C35165 = BOOMELE 2.54-2*20PPC104 — 2x20 FEMALE STACKING (12.46mm stack-through
+    tails, gold, 3A). Directly matches brief "J_PI 2x20 stacking". In stock at LCSC/JLC
+    (Extended) 2026-07-22. THT / hand- or wave-solder.
+    ALT C2977589 = ZHOURI 2.54-2*20 — standard-height female (3.2mm tails, NOT stack-through),
+    much higher stock + cheaper; use if HAT stack-through above the board is not required.
+    ALT C50982 = BOOMELE 2.54-2*20PFemale (canonical short-tail female) — verified OUT OF STOCK
+    at LCSC on 2026-07-22; kept for traceability, do not order until restocked.

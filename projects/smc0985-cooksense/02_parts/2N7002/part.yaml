@@ -1,0 +1,18 @@
+mpn: 2N7002
+manufacturer: Jiangsu Changjing
+type: nfet_60v
+datasheet:
+  url: https://www.lcsc.com/product-detail/C8545.html
+  fetched: 2026-07-19
+package: SOT-23
+footprint: Package_TO_SOT_SMD:SOT-23
+pins:
+  1: GATE
+  2: SOURCE
+  3: DRAIN
+gotchas:
+  - "SOT-23 FET: 1=G 2=S 3=D"
+verified: "2/3-pad commodity; polarity/pad-1 asserted in board generator + audit I9"
+sourcing:
+  lcsc: C8545
+  note: "BASIC, 266k stock. Q2 gate-pulldown driver."

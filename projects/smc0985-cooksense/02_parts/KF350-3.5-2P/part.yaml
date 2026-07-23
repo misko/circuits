@@ -1,0 +1,16 @@
+mpn: KF350-3.5-2P
+manufacturer: Cixi Kefa
+type: screw_terminal_2p
+datasheet:
+  doc_id: KF350
+  url: https://www.lcsc.com/product-detail/C474892.html
+  fetched: 2026-07-19
+package: 3.5mm pitch 2P screw terminal, THT
+footprint: TerminalBlock:TerminalBlock_bornier-2_P5.08mm
+pins:
+  1: P1
+  2: P2
+verified: "2 positional screw poles at 3.5mm pitch - footprint CORRECTED to 3.5mm in project lib (cookhub:TerminalBlock_KF350_2P); twin verifies"
+sourcing:
+  lcsc: C474892
+  note: "11146 stock 2026-07-19. Used J5 (TC: YEL+/RED-) and J10 (contactor C/E)."

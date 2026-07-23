@@ -1,0 +1,50 @@
+mpn: SN74HC14DR
+manufacturer: Texas Instruments
+type: hex_schmitt_inverter
+datasheet:
+  doc_id: SCLS085
+  url: https://www.ti.com/lit/ds/symlink/sn74hc14.pdf
+  fetched: 2026-07-19 (standard pinout; re-verified in pin review)
+package: SOIC-14 (D)
+footprint: Package_SO:SOIC-14_3.9x8.7mm_P1.27mm
+pins:
+  1: 1A
+  2: 1Y
+  3: 2A
+  4: 2Y
+  5: 3A
+  6: 3Y
+  7: GND
+  8: 4Y
+  9: 4A
+  10: 5Y
+  11: 5A
+  12: 6A_Y   # placeholder - see gotcha
+  13: 6A
+  14: VCC
+limits: {vcc: "2-6V"}
+gotchas:
+  - "pin 12 = 6Y (output), pin 13 = 6A (input) - name key kept unique; symbol uses 12=6Y"
+  - "gates A/B: E-stop chain (raw->1A, 1Y->2A, 2Y=ESTOP_OK); unused inputs 3A/4A/5A/6A tied GND, outputs NC"
+verified: "TI SCLS085 D pin table (standard hex inverter); pin review re-checks - 2026-07-19"
+layout:                          # P-LAYOUT: hex Schmitt inverter (E-stop de-bounce chain, ADR-0003) - layout-agnostic apart from VCC bypass + UNUSED-INPUT ties
+  source: "TI SN74HC14 datasheet SCLS085L sec.8.2.2 Detailed Design Procedure #1
+    (decoupling cap VCC-GND placed physically close to the device and electrically
+    close to BOTH the VCC and GND pins) + #2 (keep output cap load <=70pF via short
+    traces) + sec.8.2.1.2 Input Considerations (unused inputs terminated to VCC/GND,
+    direct or via ~10k; Schmitt inputs have NO transition-rate requirement and reject
+    noise by hysteresis) + sec.8.3 PSR (0.1uF bypass as close to the power terminal as
+    possible, Fig 8-3) + sec.8.4.1 Layout Guidelines (multi-channel logic inputs must not float)"
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: VCC, max_span_mm: 5, why: "0.1uF VCC(14)-GND(7) bypass hard against the package, electrically close to BOTH pins (DS sec.8.2.2 #1 / sec.8.3)"}
+  notes: "Honest: a jelly-bean hex inverter, layout-agnostic apart from the VCC bypass
+    - BUT the unused-input tie is a hard wiring rule the floorplan must honour
+    (sec.8.2.1.2 / sec.8.4.1): the four unused inverters' inputs 3A/4A/5A/6A tie to
+    GND, outputs left NC (per gotcha). The Schmitt input is used for exactly its
+    hysteresis/slow-edge tolerance - the E-stop chain (raw->1A, 1Y->2A, 2Y=ESTOP_OK)
+    cleans a slow/noisy contact, so no input-slew concern. Keep each used output run
+    short (<=70pF load, sec.8.2.2 #2). Coarse 1.27mm SOIC-14 - no escape/fanout wall."
+sourcing:
+  lcsc: C6820
+  note: "genuine TI, 89125 stock 2026-07-19. ESTOP_OK path is hardware (ADR-0003)."

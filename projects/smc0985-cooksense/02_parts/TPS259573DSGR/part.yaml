@@ -1,0 +1,65 @@
+mpn: TPS259573DSGR
+manufacturer: Texas Instruments
+type: efuse_ovlo                     # eFuse (integrated hot-swap FET) with PROGRAMMABLE OVERVOLTAGE LOCKOUT + current limit
+                                     # + inrush control. Implements the brief 3.5 "OV cutoff/eFuse" on the 5V SELV input
+                                     # (-> 5V_PROTECTED rail); complements the polyfuse (MF-MSMF200L-2) + TVS (SMBJ5.0A).
+datasheet:
+  doc_id: SLVSE57
+  revision: SLVSE57C                 # June 2017 - Revised April 2018
+  url: https://www.ti.com/lit/ds/symlink/tps2595.pdf
+  sha256: c640231b3bf5a5d9ff577c068b57360e6df4eed0186664ab5a0aeeb6f66bb2c1
+  fetched: 2026-07-22
+  local: SLVSE57C.pdf
+package: WSON-8 (DSG) 2.0x2.0mm, exposed pad
+footprint: Package_SON:Texas_DSG0008A_WSON-8-1EP_2x2mm_P0.5mm_EP0.9x1.6mm
+escape: {style: dfn, pitch: 0.5, escapes_worst_side: 4, tier_required: jlc_2layer_default, conditions: [outward-only-local], checked: escape_check 2026-07-22}
+pins:                                # DS Sec.6 Pin Configuration, "TPS2595x3 DSG Package 8-Pin WSON Top View" + Pin Functions table, p.4
+  1: {name: dVdt, note: "cap to GND sets output turn-on slew (inrush limit); float = fastest. Size Cdvdt for the 5V_PROTECTED bulk"}
+  2: {name: EN_OVLO_N, note: "'x3' variant: ACTIVE-LOW enable WITH adjustable OVERVOLTAGE LOCKOUT. Resistor divider IN->pin2->GND sets the OV cutoff. Do NOT leave floating"}
+  3: {name: IN, note: "power input (5V SELV, downstream of polyfuse + reverse-protect FET)"}
+  4: {name: IN, note: "power input - same net as pin 3"}
+  5: {name: OUT, note: "protected power output -> 5V_PROTECTED rail"}
+  6: {name: FLT_N, note: "OPEN-DRAIN fault flag, pulled low on fault; needs external pullup (power-good/fault indication per brief 3.5)"}
+  7: {name: ILM, note: "resistor to GND sets the current limit (Rilm 487ohm=4.42A .. 5000ohm); also a load-current monitor. Do NOT leave floating"}
+  8: GND
+  9: {name: EP, tie: GND, note: "exposed thermal pad = GND; the ONLY heat path - MUST be soldered to the GND plane with thermal vias"}
+limits:
+  vin: "2.7-18V operating (x3); abs max 20V"
+  imax: "4A (Tj<=125C) / 5A (Tj<=105C) continuous IN->OUT"
+  ron: "34mohm typ"
+  ov_response: "5us typ (fast overvoltage)"
+  rilm: "487ohm (4.42A max) .. 5000ohm"
+  cdvdt: "<=3300pF"
+  ven_abs_max: "7V (EN/OVLO pin)"
+  tsd: "auto-retry on thermal shutdown (x3)"
+  tj: "-40 to 125C"
+gotchas:
+  - "'-73' is the PROGRAMMABLE-OVLO die (Device Comparison Table p.3): EN/OVLO (pin 2) is ACTIVE-LOW and the external divider sets a true OV CUTOFF - the FET turns OFF above threshold, it does NOT merely clamp. That is exactly the brief 3.5 'OV cutoff'. Do NOT substitute a 'x1' part (e.g. TPS259571 / C471038) - the x1 has NO OV clamp at all."
+  - "For a 5V nominal rail, set the OVLO divider for ~5.5-6V cutoff. Nominal VIN should be limited to the selected option per the EC table; verify divider math + inrush (Cdvdt) in power review."
+  - "Exposed pad = GND and is the ONLY thermal path. A generator that omits pad 9 floats the EP and the eFuse overheats at 2-3A load. EP MUST tie the GND plane with thermal vias."
+  - "TSD is AUTO-RETRY (hiccup), not latch-off. If a persistent SELV fault must LATCH off, this is the wrong response mode (the latch parts, e.g. TPS259570, have no OV clamp) -> confirm fault-response intent in review."
+  - "FLT is OPEN-DRAIN - external pullup required; this is the natural power-good/fault signal for the safety chain."
+verified: "pin map from Sec.6 Pin Configuration 'TPS2595x3 DSG Package 8-Pin WSON Top View' + Pin Functions table, p.4; '-73' = Programmable OVLO / active-low EN / auto-retry from Device Comparison Table p.3; EP=GND, abs-max/limits from Sec.7.1-7.3 p.5, SLVSE57C - 2026-07-22"
+layout:
+  source: "TI SLVSE57C Sec.11 Layout Guidelines + Fig.68 Layout Example + Sec.10 Power Supply Recs Fig.67: 0.01uF+ Cin between IN and GND with MINIMAL loop area at the IN/GND terminals; power path IN->OUT SHORT and sized >=2x full-load current; GND terminal to the plane AT the IC pin; Rilm, Cdvdt and the OVLO-divider resistors LOCAL to their pins with the shortest GND return and NO coupling to switching nodes; TVS/Schottky protection hard against OUT."
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: 5V_SELV,    max_span_mm: 3, why: "Cin 0.01-0.1uF IN->GND loop minimized at the terminals (Fig.68); controls the short-circuit interrupt transient (Eq.18)"}
+    - {net: EN_OVLO_N,  max_span_mm: 5, why: "OVLO divider (IN/pin2/GND) local to pin 2, short GND return, no switching coupling - this divider SETS the OV trip point"}
+    - {net: ILM,        max_span_mm: 5, why: "Rilm local to pin 7 / GND - trace resistance adds directly to current-limit error"}
+    - {net: dVdt,       max_span_mm: 5, why: "Cdvdt local to pin 1 / GND - sets the inrush slew"}
+  notes: >
+    OUTWARD-ONLY-LOCAL is the EARNED cheap-tier condition (escape.conditions): the IN/OUT power pins escape
+    outward as WIDE copper; every fine pin (dVdt, EN/OVLO, FLT, ILM) terminates in an ADJACENT local passive with
+    NO via between pads and NO layer drop (the SY8368-shipped pattern). EP(9)=GND flooded with thermal vias.
+    If the floorplan cannot honour outward-only-local for this WSON, RAISE escape.tier_required to
+    jlc_4layer_advanced (the unconditional feasible tier from escape_check) - do not silently break the condition.
+layout_refs:                         # HARD part (full input current + 0.5mm WSON escapes): precedent search, datasheet-first
+  - "datasheet SLVSE57C Fig.68 Layout Example (TI's own routed picture)"
+  - "TI TPS2595EVM (evaluation board) - tested instance of the protection circuit (Fig.67)"
+sourcing:
+  lcsc: C2653844
+  alternates: []                     # No drop-in code for the programmable-OVLO die. Nearest same-package fallback if C2653844
+                                     # is short: TPS259533DSGR (fixed 5.7V CLAMP, active-low, auto-retry) - but that CLAMPS
+                                     # rather than cuts off, changing OV behavior -> requires an ADR before swap. Verify stock.
+  note: "TI genuine, WSON-8 DSG. C2653844 = the '-73' PROGRAMMABLE-OVLO variant (true OV cutoff). Do not swap to a fixed-clamp or no-OV variant without an ADR - the OV behavior is the whole reason this part is on the board."

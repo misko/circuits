@@ -1,0 +1,12 @@
+mpn: GZ2012D601TF
+manufacturer: Sunlord
+type: ferrite_600r_0805
+datasheet:
+  url: https://www.lcsc.com/product-detail/C1017.html
+  fetched: 2026-07-19
+package: 0805
+footprint: Inductor_SMD:L_0805_2012Metric
+verified: "2/3-pad commodity; polarity/pad-1 asserted in board generator + audit I9"
+sourcing:
+  lcsc: C1017
+  note: "BASIC, 615k stock. FB1: 600R@100MHz, 3V3->3V3A."

@@ -1,0 +1,51 @@
+mpn: LM393DR
+manufacturer: Texas Instruments
+type: dual_comparator                # two independent differential comparators, OPEN-COLLECTOR outputs.
+                                     # Camera-overtemp TEMP_OK inhibit (brief 3.14): hardware forces TEMP_OK low
+                                     # on TH_CAM_A/B over-temp, independently of Pi/LLM.
+datasheet:
+  doc_id: SLCS005
+  revision: SLCS005AH                # Oct 1979 - Revised April 2025
+  url: https://www.ti.com/lit/ds/symlink/lm393.pdf
+  sha256: ae2b7355313f1e7ddf07b2c3db74610069f4f66556963bec02a5689dbcb56f88
+  fetched: 2026-07-22
+  local: SLCS005AH.pdf
+package: SOIC-8 (D) 4.90x3.91mm
+footprint: Package_SO:SOIC-8_3.9x4.9mm_P1.27mm
+escape: {style: leaded, pitch: 1.27, tier_required: jlc_2layer_default, checked: escape_check 2026-07-22}
+pins:                                # DS Figure 4-1 (D 8-Pin SOIC, Top View) + Table 4-1 Pin Functions, p.3
+  1: {name: 1OUT, note: "comparator-1 output - OPEN-COLLECTOR (needs external pullup)"}
+  2: 1IN_MINUS
+  3: 1IN_PLUS
+  4: GND
+  5: 2IN_PLUS
+  6: 2IN_MINUS
+  7: {name: 2OUT, note: "comparator-2 output - OPEN-COLLECTOR (needs external pullup)"}
+  8: VCC
+limits:
+  vcc: "2-30V recommended; abs max 36V (non-B)"
+  v_icr: "0 to (VCC-2V) common-mode input range (includes ground; upper bound VCC-2V, per Sec.5.2 / 7.2.2.1)"
+  vid: "+-36V differential"
+  iout_sink: "20mA abs max; design 1uA-4mA via pullup"
+  response: "1.3us typ"
+  offset: "+-5mV max"
+  esd_hbm: "2kV"
+gotchas:
+  - "Outputs are OPEN-COLLECTOR (open-drain NPN): each OUT needs a pullup to the logic rail. Tying outputs together = WIRED-AND - this IS the TEMP_OK mechanism: wire-AND 1OUT+2OUT (TH_CAM_A/B over-temp) with the other TEMP sources, pulled to 3V3_LOGIC; any comparator that trips pulls the shared TEMP_OK line low."
+  - "Common-mode input MUST stay <= VCC-2V. With VCC=5V, inputs must be < 3V -> a thermistor divider referenced to 3V3_ANALOG is safe; do NOT drive inputs near VCC or the comparison is invalid."
+  - "Comparator, NOT an op-amp: add HYSTERESIS (positive feedback R from OUT to IN+) or the slowly-moving thermistor input chatters/oscillates at the trip point. No internal phase compensation."
+  - "NTC-to-GND divider node voltage FALLS as temperature rises -> choose comparator polarity so 'hot' (low node V) drives OUT LOW = TEMP_OK low. Verify polarity in pin review against the actual thermistor topology and the camera trip point (<=70C stop / 75C hard)."
+verified: "pin map from Figure 4-1 (D/SOIC-8 Top View) + Table 4-1 Pin Functions, p.3; open-collector output + Vicr from Sec.6.3 Feature Description + Sec.7.2.2.1, SLCS005AH - 2026-07-22"
+layout:
+  source: "TI SLCS005AH Sec.6.3 Feature Description (open-drain output, wired-AND level-shift) + Sec.7 Application (single-ended/differential config Fig.7-1, 100mV overdrive, Rpullup, Vicr). LM393 has NO dedicated Layout section (TOC goes Application -> Device Support) - it is largely layout-agnostic; the REAL rules are local VCC decoupling, short high-impedance sense/threshold nodes, and local hysteresis feedback."
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: TH_CAM_A, max_span_mm: 8, why: "high-impedance thermistor sense into 1IN+; keep short + away from switched relay rail to avoid pickup that could false-trip / mask the over-temp inhibit"}
+    - {net: TH_CAM_B, max_span_mm: 8, why: "high-impedance thermistor sense into 2IN+; same"}
+  notes: "0.1uF VCC decoupling hard against pin 8 / GND pin 4. Threshold-divider + hysteresis feedback resistors LOCAL to each IN+ (short positive-feedback loop). Output pullups to 3V3_LOGIC near pins 1/7. RC input filter (brief 1k/100nF per thermistor channel) placed at the input pins. Coarse 1.27mm SOIC - no escape/fanout concern."
+sourcing:
+  lcsc: C67470
+  alternates: [C7955, C2829427]      # C7955 = onsemi LM393DR2G (drop-in SOIC-8 second source, widely JLC assembly-stocked);
+                                     # C2829427 = Jiangsu Changjing LM393 (cheapest clone) - acceptable for a non-safety use but
+                                     # PREFER genuine TI/onsemi for the safety over-temp inhibit. Verify Basic-vs-Extended at order time.
+  note: "TI LM393DR = C67470. For lower assembly cost the onsemi LM393DR2G (C7955) is a drop-in SOIC-8 alternate. Function is a SAFETY inhibit (TEMP_OK) -> prefer a genuine TI/onsemi reel over the ultra-cheap Changjing part."

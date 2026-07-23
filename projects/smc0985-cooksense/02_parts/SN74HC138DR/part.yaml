@@ -1,0 +1,66 @@
+mpn: SN74HC138DR
+manufacturer: Texas Instruments
+type: decoder_3to8               # the CLASS: 3-to-8 line decoder/demux, active-low outputs
+datasheet:
+  doc_id: SCLS107
+  revision: SCLS107G             # PIN IT — Dec 1982, revised Oct 2021
+  url: https://www.ti.com/lit/ds/symlink/sn74hc138.pdf
+  sha256: 85dae509d25ecad8c2a64e09ca83f1f22abb6455cc2acf1a916c0e42d42ef998
+  fetched: 2026-07-22
+package: SOIC-16 (D), 3.9x9.9mm, 1.27mm pitch
+footprint: Package_SO:SOIC-16_3.9x9.9mm_P1.27mm
+escape:                          # emitted by escape_check.py --style leaded --pitch 1.27
+  style: leaded
+  pitch: 1.27
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-22
+                                 # 1.27mm pitch: 1.27-0.30 = 0.97 > 0.50 hole-to-hole,
+                                 # so even a full output side (8 escapes) never hits the
+                                 # dense-leaded wall — unconditional at the cheapest tier.
+pins:                            # Pin Functions table (D/SOIC column), SCLS107G p.3
+  1: {name: A, note: "select input A (LSB)"}
+  2: B                           # select input B
+  3: {name: C, note: "select input C (MSB)"}
+  4: {name: G2A_N, note: "active-low enable A"}
+  5: {name: G2B_N, note: "active-low enable B"}
+  6: {name: G1, note: "active-high enable"}
+  7: {name: Y7, note: "output 7 (MSB), active low"}
+  8: GND
+  9: Y6
+  10: Y5
+  11: Y4
+  12: Y3
+  13: Y2
+  14: Y1
+  15: {name: Y0, note: "output 0 (LSB), active low"}
+  16: VCC
+limits: {vcc: "2-6V", iout: "±5.2mA @Vcc=4.5V", vin: "0..VCC"}
+gotchas:
+  - "outputs Y0-Y7 are ACTIVE-LOW: the selected output goes LOW, all others HIGH — one-hot-LOW by construction (ADR-0002 one-hot U-selector)"
+  - "THREE enables: G1(6) high AND /G2A(4) low AND /G2B(5) low to enable; deassert ANY and ALL outputs go high (safe/off). Route the coil-rail authorization through an enable pin, not through the decode inputs"
+  - "at most ONE output is low at any time — two U-selectors closed is physically impossible (ADR-0002, kills ghosting-by-bug, brief C3)"
+  - "unused select inputs must be tied to VCC or GND, never floated (SCLS107G sec.6.3 note; SCBA004)"
+  - "CMOS balanced drive with fast edges into light loads — watch output-run ringing (SCLS107G 9.2.1)"
+verified: "pin map read from Section 5 Pin Configuration and Functions + the Pin Functions table (D/SOIC column: A=1,B=2,C=3,/G2A=4,/G2B=5,G1=6,Y7=7,GND=8,Y6=9…Y0=15,VCC=16), SCLS107G p.3 — 2026-07-22"
+layout:                          # P-LAYOUT: logic decoder — layout-agnostic apart from VCC bypass
+  source: "SCLS107G sec.10 Power Supply Recommendations — a 0.1uF bypass (optionally
+    ||1uF) as close to the VCC terminal as possible; sec.9.1 single-column select;
+    sec.11 Layout — constant-width traces, rounded corners to avoid reflections"
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: VCC, max_span_mm: 5, why: "0.1uF VCC(16)-GND(8) bypass hard against the package (DS sec.10)"}
+  notes: "Honest: a logic gate whose only real layout demand is the local VCC bypass.
+    Place 0.1uF at pins 16/8. Keep the eight Y-output runs to the ULN2803 coil-driver
+    inputs short and of constant width (fast HC edges ring into light loads). The
+    3 select + 3 enable inputs arrive from the shift-register/Pi side — no length
+    matching or controlled impedance needed."
+layout_refs:
+  - "SCLS107G Figure 9-1 (LED-matrix column-select application) + sec.11 layout figure (TI datasheet)"
+sourcing:
+  lcsc: C6818
+  alternates: [C5602, C2913]
+  note: "SN74HC138DR SOIC-16 tape&reel, genuine TI — keeps the all-TI 74HC logic family
+    (595/HC14/LVC1G) for consistent Voh/Vol/timing. This is a SAFETY one-hot decoder
+    (ADR-0002), so reputable silicon only — mirrors the ULN2803 'Mixic rejected for
+    the safety chain' call. Alt C5602 = Nexperia 74HC138D,653 (reputable 2nd source,
+    same SOIC-16 drop-in); C2913 = SN74HC138N is DIP-16 THT (footprint change)."

@@ -1,0 +1,17 @@
+mpn: RVT220UF16V67RV0015
+manufacturer: KNSCHA
+type: alu_electrolytic_220u_16v
+datasheet:
+  url: https://www.lcsc.com/product-detail/C2887273.html
+  fetched: 2026-07-19
+package: SMD D6.3xL7.7
+footprint: Capacitor_SMD:CP_Elec_6.3x7.7
+pins:
+  1: POS
+  2: NEG
+gotchas:
+  - "KiCad CP_Elec pad 1 = POSITIVE; audit I9 asserts CE1 pad1 net=5VP. Twin: electrolytic polarity via can-base bevel (jlcpcb-fab 3c)"
+verified: "2/3-pad commodity; polarity/pad-1 asserted in board generator + audit I9"
+sourcing:
+  lcsc: C2887273
+  note: "224k stock. CE1 bulk on 5VP (ADR-0001)."

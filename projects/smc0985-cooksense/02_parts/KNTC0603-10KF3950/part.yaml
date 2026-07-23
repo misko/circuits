@@ -1,0 +1,69 @@
+mpn: KNTC0603/10KF3950        # exact orderable MPN (contains '/'). Dir name sanitised
+                              # '/'->'-': KNTC0603-10KF3950 (filesystem cannot hold '/').
+manufacturer: KUU (KUU Semiconductor)
+type: ntc_thermistor          # REQUIRED class: a 10k B3950 NTC TEMPERATURE SENSOR on an
+                              # 0603 (R_0603) body — NOT a plain 10k resistor. This is the
+                              # exact contract trap ("10k NTC on R_0402 is a THERMISTOR").
+datasheet:
+  doc_id: KNTC0603/10KF3950 (KUU 0603 chip-NTC series spec, 12 pp)
+  revision: C2892547          # undated commodity series sheet; LCSC code is the stable
+                              # handle and appears in the committed PDF filename.
+  url: https://www.lcsc.com/product-detail/C2892547.html
+  pdf: https://datasheet.lcsc.com/datasheet/pdf/c8d834f0a18ffa2ef2a28eb0833fbcb1.pdf
+  sha256: 9813adbd1996e26b3f1f86252ca55ad652ff2b59f455a2873e1991b4c3321702
+  fetched: 2026-07-22
+package: 0603 (1608 metric) chip NTC — L1.6 x W0.8 x T0.8mm, terminal a=0.3mm (datasheet Table 1)
+footprint: Resistor_SMD:R_0603_1608Metric
+# 2-pad passive: no escape: block (escape_check exempts npins<=2). Non-polar — either pad works.
+limits:
+  R25: 10k +/-1%              # datasheet p.1 electrical-characteristics table
+  B25_50: 3950K +/-1%        # datasheet p.1 — this is the "3950" in the MPN
+  B25_85: 3987K              # datasheet p.1 — same part, different temperature pair
+  rated_power_25C: 100mW
+  dissipation_factor: 1.0mW/degC
+  permissible_current_25C: 0.31mA   # current that self-heats the body <1C at 25C
+  thermal_time_constant: "<5s"
+  operating_temp: -40..+125C
+verified: "2-pad NTC, non-polar (datasheet Fig.1: symmetric end electrodes, either pad works).
+  R25=10k +/-1%, B(25/50)=3950K +/-1%, B(25/85)=3987K read from the datasheet p.1
+  electrical-characteristics table (KUU KNTC0603/10KF3950) — 2026-07-22"
+gotchas:
+  - "B-VALUE (resolved from the datasheet, do not trust the distributor UI): MPN '3950' is the
+    B25/50 constant (3950K +/-1%). The B25/85 constant is 3987K (datasheet p.1). LCSC/JLC
+    parametric mislabels BOTH B fields as 3987 — the datasheet table is authoritative. For the
+    oven's elevated-temp range use B25/85=3987, but the design already mandates per-channel
+    calibration + configurable beta (brief item 3), which supersedes any single nominal B."
+  - "SELF-HEATING: dissipation factor 1.0 mW/degC; permissible current 0.31 mA @25C for <1C
+    rise. Size the on-board 10k 0.1/1% ref divider (to 3V3_ANALOG) so NTC dissipation stays
+    well under this, or the measured temperature reads HIGH."
+  - "OFF-BOARD part: this NTC is the EXTERNAL sensor at the thermal head — NOT populated on the
+    Board A PCB. It terminates at J_THERM_A/B (JST-GH 8-pos) on the per-channel TH_* line. 8x
+    channels CH0..CH7 = TH_CAM_A/B, TH_MOUNT_A/B, TH_PORT_A/B, TH_ENCLOSURE, TH_SPARE. Present
+    here as a BOM/procurement line (footprint is its physical form if ever board-mounted)."
+layout:
+  source: "KUU KNTC0603/10KF3950 datasheet p.1 (dissipation factor 1.0 mW/degC; permissible
+    current 0.31 mA @25C for <1C self-heat) + Fig.2 reflow land pattern (A/B/C = 0.6-0.8mm);
+    brief item 3 (Board A thermistor channel) signal-conditioning chain"
+  reviewed: "2026-07-22"
+  notes: |
+    Genuinely layout-agnostic ON THIS PCB — so NO keep_short: budget (deliberate: the part is
+    OFF-BOARD, there is nothing on Board A copper to measure a pad-span against; a keep_short
+    net here would make P-ADJ chase a net that this refdes does not place).
+    The layout-critical node is the ON-BOARD per-channel front end, owned by OTHER refdes and
+    budgeted there: 10k 0.1/1% ref -> 3V3_ANALOG divider, 1k / 100nF RC, low-C ESD, and the
+    node into the MCP3208 SPI ADC input — keep THAT node short/guarded, not this NTC.
+    This NTC's own real constraints: (1) keep sense/bias current << 0.31 mA so I^2R self-heat
+    does not corrupt the reading; (2) keep the off-board 2-wire run short (twisted if long) and
+    filtered at the board edge (brief: ESD + open/short detection). If ever reflowed onto the
+    Board E thermal-head adapter, use the Fig.2 land pattern (A/B/C = 0.6-0.8mm).
+sourcing:
+  lcsc: C2892547
+  alternates: [C51597]
+  note: |
+    PRIMARY C2892547 = KUU KNTC0603/10KF3950 — 0603, 10k, B3950 (B25/50, +/-1%). Cheapest
+    in-stock 10k/B3950/0603 found; in stock at LCSC + JLC (Extended, SMT) 2026-07-22.
+    ALT C51597 = FH Guangdong Fenghua CMFB103F3950FANT — 10k B3950 (B25/50) +/-1%, but 0805
+    (2.0x1.25mm), NOT a 0603 drop-in: different land pattern. Well-known second source, high
+    stock. Use only if the 0805 footprint is provided.
+    Same-spec 0603 second sources (10k / B3950 / +/-1%) from other vendors are interchangeable
+    on the R_0603 land if C2892547 goes short. 8x needed (CH0..CH7), all external/off-board.

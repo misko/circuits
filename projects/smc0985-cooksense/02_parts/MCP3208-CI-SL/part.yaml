@@ -1,0 +1,70 @@
+mpn: MCP3208-CI-SL          # dir/mpn use LCSC's dash rendering of the Microchip
+                            # ordering code MCP3208-CI/SL ('/' cannot be a path
+                            # component; LCSC's own slug is MCP3208-CI-SL, C16939)
+manufacturer: Microchip Technology
+type: adc_12bit_8ch_spi     # 8-channel 12-bit SAR ADC, SPI. CLASS, not value.
+datasheet:
+  doc_id: DS21298
+  revision: DS21298E        # "DS21298E-page 1" printed on every page; (c)2008
+  url: https://ww1.microchip.com/downloads/en/DeviceDoc/21298e.pdf
+  sha256: 89bc1e17c35e2bb1c7b8fbf0b775b3729ce9fe4d27f7e9c052a774757afc0c20
+  local: DS21298E.pdf
+  fetched: 2026-07-22
+package: SOIC-16 narrow (150 mil, SL suffix)
+footprint: Package_SO:SOIC-16_3.9x9.9mm_P1.27mm   # exists in KiCad std lib
+escape:                     # emitted by escape_check.py --style leaded --pitch 1.27
+                            # --escapes-worst-side 8 --pins 16
+  style: leaded
+  pitch: 1.27
+  escapes_worst_side: 8     # left row CH0..CH7 all leave to their dividers
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-22
+pins:                       # DS21298E Fig "Package Types", p.1 (16-pin PDIP/SOIC)
+  1: CH0
+  2: CH1
+  3: CH2
+  4: CH3
+  5: CH4
+  6: CH5
+  7: CH6
+  8: CH7
+  9: DGND
+  10: {name: CS/SHDN, note: "SPI chip-select / shutdown, active-low (SPI0 CSn)"}
+  11: {name: DIN,  note: "SPI data in (MOSI)"}
+  12: {name: DOUT, note: "SPI data out (MISO)"}
+  13: {name: CLK,  note: "SPI clock (SCLK)"}
+  14: {name: AGND, note: "analog ground - SEPARATE pin from DGND"}
+  15: {name: VREF, note: "reference input; sets full-scale, code = 4096*Vin/VREF"}
+  16: {name: VDD,  note: "single supply 2.7-5.5V (=3V3_ANALOG on this board)"}
+limits: {vdd: "2.7-5.5V", resolution: "12-bit", channels: 8,
+  fsample: "100 ksps @5V / 50 ksps @2.7V", clk_min: "10 kHz effective @85C (else sample-cap bleed -> INL error, DS 6.2)",
+  i_active: "400uA max @5V", i_standby: "500nA typ", t_op: "-40..+85C (I grade)"}
+gotchas:
+  - "CS/SHDN is pin 10 (active-low). If powered up with CS low it must be taken HIGH then LOW to start a conversion (DS 5.0)."
+  - "AGND(14) and DGND(9) are separate pins joined only by the internal substrate (5-10 ohm, DS Fig 6-5). With a plane, tie BOTH to the ANALOG ground plane."
+  - "VREF (pin 15) sets full-scale directly - drive from a clean/bypassed 3V3_ANALOG reference; ratiometric code = 4096 * Vin/VREF."
+  - "SPI mode 0,0 or 1,1; 12-bit result is MSB-first after a null bit (DS 5.0, Fig 6-1/6-2)."
+  - "8-channel part: WebFetch text summary of the pinout was garbled (returned a 4-channel CH0-CH3 pattern); the p.1 Package-Types FIGURE is authoritative and was read directly."
+verified: "pin map read from DS21298E FIGURE 'Package Types' 16-pin PDIP/SOIC, p.1; specs p.1 + 5.0 + 6.2 - 2026-07-22"
+layout:                     # P-LAYOUT: precision ADC = sense part, in scope
+  source: "MCP3208 DS21298E 6.4 Layout Considerations + 6.5 Ground Pins + 6.3
+    Buffering/Filtering + Fig 4-1/4-2 Analog Input Model (p.18, p.22-24)"
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: VDD,  max_span_mm: 5, why: "bypass cap AT the VDD pin (1uF per 6.4; +0.1uF at VDD/AGND per Fig 6-5) - no trace under the device or the bypass cap"}
+    - {net: VREF, max_span_mm: 5, why: "reference bypass kept local at pin 15 (Fig 6-3 shows 1uF at VREF); VREF noise maps 1:1 into every code"}
+  notes: >
+    Per DS 6.3/Fig 4-2 each CHx must see a LOW source impedance: internal sample
+    cap 20pF charges through RS~1k with CPIN 7pF (Fig 4-1), so keep each channel's
+    100nF (brief 1k+100nF RC) ADJACENT to its input pin - the cap supplies the
+    sample-cap charge so the 1k source settles inside the sample window (<0.1 LSB
+    INL, Fig 4-2). Separate digital (CLK/DIN/DOUT) from analog (CHx/VREF), no
+    high-speed clock trace parallel to analog, VDD star-fed (Fig 6-4).
+layout_refs:
+  - "DS21298E Fig 6-3 (op-amp buffer + anti-alias filter), Fig 6-4 (VDD star), Fig 6-5 (AGND/DGND to analog plane)"
+  - "Microchip AN688 'Layout Tips for 12-Bit A/D Converter Applications' (named in DS 6.4)"
+  - "Microchip AN699 'Anti-Aliasing Analog Filters for Data Acquisition Systems' (named in DS 6.3)"
+sourcing:
+  lcsc: C16939             # MCP3208-CI/SL, SOIC-16; JLC-assemblable (Extended)
+  alternates: []          # keep the -CI/SL SOIC; DIP MCP3208-CI/P is THT-only (no)
+  note: "genuine Microchip SOIC-16 reel/tube, LCSC C16939 / JLCPCB C16939. In stock 2026-07-22 (~$3.3 qty1; do NOT commit stock). MCP3204-CI/SL (C32816) is the 4-ch cost-down but the brief needs 8 channels -> keep 3208."

@@ -1,0 +1,36 @@
+mpn: 43650-0224
+manufacturer: Molex
+type: connector_power_input_1x2            # CLASS: Micro-Fit 3.0 keyed 2-circuit power header
+datasheet:
+  doc_id: SD-436500224            # Molex sales drawing for 436500224
+  revision: "NOT captured — molex.com SD PDF + Mouser/DigiKey mirrors blocked in sandbox 2026-07-22; confirm rev against the Molex SD at bring-up"
+  url: https://www.molex.com/pdm_docs/sd/436500224_sd.pdf
+  product_page: https://www.molex.com/en-us/products/part-detail/436500224
+  fetched: "2026-07-22 — SD PDF unfetchable here; facts below taken from the KiCad Connector_Molex footprint (authoritative pad geometry) cross-checked with the Molex 436500224 product spec + RS/TME listings. Pin/rev MUST be re-verified against the Molex SD figure in the fresh pin review."
+package: Molex Micro-Fit 3.0, 3.00mm, 1x2 single-row VERTICAL SMD header, PCB polarizing peg + 2 solder tabs, glow-wire, tin
+footprint: Connector_Molex:Molex_Micro-Fit_3.0_43650-0224_1x02-1MP_P3.00mm_Vertical
+escape:                           # escape_check.py --style connector --pitch 3.0
+  style: connector
+  pitch: 3.0
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-22
+pins:                             # 2 signal + 2 mechanical tabs (KiCad pad name "MP")
+  1: {name: P1, note: "pin 1 marked on housing; the polarizing peg keys the mating plug (cannot mate reversed). Assign +5V vs RTN in the schematic and keep the silk polarity mark."}
+  2: P2
+  MP: {name: MP, tie: GND, note: "two SMD solder tabs (footprint pad 'MP' x2 = one common node), mechanical retention only, no current — reflow to GND copper"}
+limits: {current_per_contact: "5.0A (this SKU, UL); Micro-Fit 3.0 series up to 8.5A/circuit subject to wire gauge + circuit-count derating", voltage: "250V (UL) / 600V working per series spec", temp_range: "-40..+105C", reflow: "LCP housing, 265C IR-reflow capable"}
+gotchas:
+  - "SMD VERTICAL (footprint is (attr smd), all pads on F.Cu/F.Mask/F.Paste) — this dash-number is surface-mount, NOT through-hole; retained by 2 SMD solder tabs + a PCB polarizing peg"
+  - "keyed/polarized housing prevents reverse mating; pin 1 marked. Mates with a Micro-Fit 3.0 receptacle housing (e.g. 43645-0200) + 43030-series crimp terminals"
+  - "web/LCSC keyword search does NOT surface 436500224, but it IS in the JLC parts library as C587657 (verify at order); the 4-circuit -0424 is C122400"
+verified: "2-pad map (pin1 x=-1.5, pin2 x=+1.5 -> 3.0mm pitch) + 2xMP tabs from footprint Connector_Molex:Molex_Micro-Fit_3.0_43650-0224_1x02-1MP_P3.00mm_Vertical; vertical/SMD/2-circuit/5A/glow-wire/pin-1-marked from Molex 436500224 product spec + RS + TME listings. PENDING Molex SD-436500224 figure confirmation at bring-up (PDF fetch blocked) - 2026-07-22"
+layout:                           # power INPUT connector — real 5A copper + cap-proximity budget
+  source: "Molex Micro-Fit 3.0 product spec PS-43650-001 (5A/contact tin) — the governing rule is the input current path and bulk-cap proximity, not signal timing"
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: "+5V", max_span_mm: 10, why: "5A SELV input path — wide/short copper (>=1.5mm or pour) from the connector pins to the input fuse + bulk cap; indicative net name, retarget to the board's actual 5V-input net"}
+  notes: "5V SELV power INPUT, up to 5A/contact. Route BOTH pins on wide copper / pour to the input fuse + bulk capacitance, with the bulk cap placed within ~10mm of the connector. Housing is mechanically keyed/polarized (no reverse mate) and pin 1 is marked — set +5V/RTN in the schematic and carry a silk polarity mark. Reflow the two MP solder tabs for retention."
+sourcing:
+  lcsc: C587657
+  alternates: [C17447052]
+  note: "genuine Molex 436500224 (43650-0224), SMD vertical 2P = C587657 (JLC extended). C17447052 = same MPN, alternate JLC listing. FALLBACK if unavailable at order: Molex 43650-0215 (THT vertical 2P) = C293740 — closest genuine sibling BUT through-hole, so it CHANGES the footprint to ...43650-0215..._Vertical (Plugin); do not swap without updating footprint + CPL. NO stock/price committed (volatile)."

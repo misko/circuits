@@ -1,0 +1,65 @@
+mpn: SN74HC139DR
+manufacturer: Texas Instruments
+type: decoder_dual_2to4          # the CLASS: dual 2-to-4 line decoder/demux, active-low outputs
+datasheet:
+  doc_id: SCLS108
+  revision: SCLS108E             # PIN IT — Dec 1982, revised Feb 2022
+  url: https://www.ti.com/lit/ds/symlink/sn74hc139.pdf
+  sha256: 9babad2697aec03c4bd820d7132dc7546ddabcb8bbfa0fca30cddc790b736457
+  fetched: 2026-07-22
+package: SOIC-16 (D), 3.9x9.9mm, 1.27mm pitch
+footprint: Package_SO:SOIC-16_3.9x9.9mm_P1.27mm
+escape:                          # emitted by escape_check.py --style leaded --pitch 1.27
+  style: leaded
+  pitch: 1.27
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-22
+                                 # 1.27mm pitch: 1.27-0.30 = 0.97 > 0.50 hole-to-hole,
+                                 # so a full side (7 escapes/half) never hits the
+                                 # dense-leaded wall — unconditional at the cheapest tier.
+pins:                            # Section 4 Pin Configuration and Functions (D/SOIC column), SCLS108E p.3
+  1: {name: 1G_N, note: "decoder-1 active-low enable/strobe"}
+  2: {name: 1A, note: "decoder-1 select A (LSB)"}
+  3: {name: 1B, note: "decoder-1 select B (MSB)"}
+  4: 1Y0
+  5: 1Y1
+  6: 1Y2
+  7: 1Y3
+  8: GND
+  9: 2Y3
+  10: 2Y2
+  11: 2Y1
+  12: 2Y0
+  13: {name: 2B, note: "decoder-2 select B (MSB)"}
+  14: {name: 2A, note: "decoder-2 select A (LSB)"}
+  15: {name: 2G_N, note: "decoder-2 active-low enable/strobe"}
+  16: VCC
+limits: {vcc: "2-6V", iout: "±5.2mA @Vcc=4.5V", vin: "0..VCC"}
+gotchas:
+  - "TWO independent 2-to-4 decoders; outputs ACTIVE-LOW (selected = LOW, others HIGH) — one-hot-LOW per half by construction (ADR-0002 one-hot D-selector)"
+  - "/1G(1) and /2G(15) are active-low strobes: hold a half's strobe HIGH and its four outputs all go high (off). Gate the D-rail authorization through the strobe, not the select inputs"
+  - "at most one output per half is low — two D-selectors closed is physically impossible (ADR-0002)"
+  - "A is the LSB. Truth table SCLS108E sec.7.3: /G low + (B,A) selects exactly one of Y0-Y3 low"
+  - "if only ONE half is used, the UNUSED half MUST be tied: /G to VCC (disable) and A/B to GND — a floated multi-channel-logic input self-oscillates (SCLS108E sec.9.1)"
+verified: "pin map read from Section 4 Pin Configuration and Functions (D/SOIC column: /1G=1,1A=2,1B=3,1Y0=4…1Y3=7,GND=8,2Y3=9…2Y0=12,2B=13,2A=14,/2G=15,VCC=16), SCLS108E p.3 — 2026-07-22"
+layout:                          # P-LAYOUT: logic decoder — layout-agnostic apart from VCC bypass + unused-half tie
+  source: "SCLS108E sec.8 Power Supply Recommendations — a 0.1uF bypass (optionally
+    ||1uF) as close to the VCC terminal as possible; sec.9.1 Layout Guidelines —
+    unused inputs of multi-channel logic must be tied, never left floating"
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: VCC, max_span_mm: 5, why: "0.1uF VCC(16)-GND(8) bypass hard against the package (DS sec.8)"}
+  notes: "Honest: a dual logic gate, layout-agnostic apart from the VCC bypass. Place
+    0.1uF at pins 16/8; keep the 2x4 Y-output runs to their coil-driver inputs short.
+    CRITICAL non-copper placement rule (sec.9.1): any UNUSED decoder half must have
+    /G tied to VCC and A/B tied to GND — this is a hard tie the floorplan must honour,
+    not a routing preference. No length matching."
+layout_refs:
+  - "SCLS108E sec.7.2 Functional Block Diagram + sec.9.1 Layout Guidelines (TI datasheet)"
+sourcing:
+  lcsc: C132996
+  alternates: [C1547250, C5603]
+  note: "SN74HC139DR SOIC-16 tape&reel, genuine TI — keeps the all-TI 74HC logic family.
+    SAFETY one-hot decoder (ADR-0002): reputable silicon only (cf. ULN2803 Mixic
+    rejection). Alt C1547250 = SN74HC139D (same TI die, tube pack); C5603 = Nexperia
+    74HC139D,653 (reputable 2nd source, same SOIC-16 drop-in)."

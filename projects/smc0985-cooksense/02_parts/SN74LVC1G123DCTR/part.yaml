@@ -1,0 +1,49 @@
+mpn: SN74LVC1G123DCTR
+manufacturer: Texas Instruments
+type: retriggerable_monostable
+datasheet:
+  doc_id: SCES586
+  revision: SCES586E (Mar 2024)
+  url: https://www.ti.com/lit/ds/symlink/sn74lvc1g123.pdf
+  sha256: 7248ef0ff62af4d2da172bb2900f0f1f136a6ae90109a6485228e01269fa1c1d
+  fetched: 2026-07-19
+  local: sn74lvc1g123.pdf
+package: DCT SSOP-8 (SM-8) 0.65mm pitch
+footprint: Package_SO:SSOP-8_2.95x2.8mm_P0.65mm  # fixed 2026-07-19 (was 1.27mm-pitch SSOP-8: wrong pitch for DCT, twin-caught)
+pins:                       # DS Figure 4-1 DCT package p.3
+  1: A        # falling-edge trigger input (tie GND: unused direction)
+  2: B        # rising-edge trigger input = WD_PULSE
+  3: CLR_N    # active-low clear, tie 3V3
+  4: GND
+  5: Q        # = WD_OK
+  6: Cext
+  7: REXT_CEXT
+  8: VCC
+limits: {vcc: "1.65-5.5V", rext: "5k-1M", t_op: "-40..125C"}
+gotchas:
+  - "tw = K*Rext*Cext, K~1.0 at 3.3V (DS sec 8): 390k x 1uF -> ~390ms; band 316-472ms within spec 300-500ms (DETAIL_DESIGN #3)"
+  - "Q is LOW at power-up until the first B rising edge - relays locked out until firmware alive"
+  - "C123302 is the DCT reel; KiCad SSOP-8 3.9x5.05 P1.27 matches DCT (verify in twin; DCU VSSOP-8 0.5mm is a DIFFERENT body)"
+verified: "pin map from Figure 4-1/Table 4-1 (DCT 8-pin SSOP top view), p.3, SCES586E - 2026-07-19"
+layout:                          # P-LAYOUT: retriggerable one-shot (watchdog PRESS timer) - the RC timing node is the one real demand beyond VCC bypass
+  source: "TI SN74LVC1G123 datasheet SCES586E sec.8.2.2 + Table 8-1 note (a 0.1uF
+    decoupling cap from VCC to GND placed AS CLOSE AS POSSIBLE to the device) + sec.9
+    Power Supply Recs (0.1uF single-supply bypass installed as close to the power
+    terminal as possible) + sec.10 Layout Guidelines (90deg corners reflect, trace
+    widens to 1.414x; use constant-width/rounded traces, Fig 10-1) + sec.8.2 Typical
+    Application topology and note(2): Rext connects Rext/Cext(7) to VCC(8), Cext
+    connects Cext(6) to Rext/Cext(7), and Rext/Cext is an I/O that must NOT touch GND or VCC"
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: VCC, max_span_mm: 5, why: "0.1uF VCC(8)-GND(4) decoupling hard against the package - datasheet 'as close as possible to the device' (sec.8.2.2 / sec.9)"}
+    - {net: RCEXT, max_span_mm: 6, why: "one-shot RC: place Rext (7->VCC) and Cext (6->7) AT pins 6/7 so the Rext/Cext I/O node stays compact and off GND/VCC (note 2); indicative net name, retarget to the board's timing node"}
+  notes: "Honest: mostly a jelly-bean gate, but it IS a one-shot - the timing R+C
+    belong directly on pins 6/7 (Cext=6, Rext/Cext=7). This design uses ~390k x 1uF
+    (~390ms PRESS window), so a few pF of stray on the node is negligible for the
+    pulse width; locality is for a CLEAN compact timing node (Rext/Cext is a
+    sensitive I/O that must not be pulled to a rail). One hard datasheet rule: 0.1uF
+    VCC(8)/GND(4) decoupling tight to the package. Keep Q(5)=WD_OK and B(2)=WD_PULSE
+    runs short/constant-width per sec.10. Coarse 0.65mm SSOP-8 - no escape wall."
+sourcing:
+  lcsc: C123302
+  note: "genuine TI, 8687 stock 2026-07-19, $0.64. DO-NOT-SUBSTITUTE (watchdog, spec 15.4). 74HC123 clones rejected (ADR-0003)."

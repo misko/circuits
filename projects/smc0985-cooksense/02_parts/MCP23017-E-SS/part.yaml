@@ -1,0 +1,85 @@
+mpn: MCP23017-E/SS
+manufacturer: Microchip Technology
+type: gpio_expander_i2c_16bit    # the CLASS: I2C 16-bit bidirectional I/O expander
+note_dirname: "directory MCP23017-E-SS; '/' in MPN not usable in a path (cf. LM5116MHX/NOPB -> LM5116MHX-NOPB)"
+datasheet:
+  doc_id: DS20001952
+  revision: DS20001952C          # PIN IT — the C rev's Package-Types figure is the pinout source
+  url: https://ww1.microchip.com/downloads/en/DeviceDoc/20001952C.pdf
+  sha256: 14159c6f5655e943e93ed1e34947e46844f114ec893f305a889898828e4055cb
+  fetched: 2026-07-22
+package: SSOP-28 (SS), 5.30mm body, 0.65mm pitch
+footprint: Package_SO:SSOP-28_5.3x10.2mm_P0.65mm
+escape:
+  style: leaded
+  pitch: 0.65
+  escapes_worst_side: 11         # pin15-28 side: GPA0-7 (8) + INTA + INTB + /RESET
+  tier_required: jlc_2layer_default
+  conditions: [escape-corridor]  # 0.65mm dense-leaded wall (ADR-0008): >=6 escapes/side
+                                 # -> a via cannot fit between pins at 2L/4L-standard
+                                 # (0.65-0.30 = 0.35 < 0.50 hole-to-hole); reserve a
+                                 # surface fan-out lane, or the tier rises to
+                                 # jlc_4layer_advanced (unconditional). escape_check
+                                 # --style leaded --pitch 0.65 --escapes-worst-side 11
+                                 # --pins 28 emits exactly this conditional form.
+  checked: escape_check 2026-07-22
+pins:                            # SOIC/SPDIP/SSOP column of the Package Types figure, DS20001952C p.1
+  1: GPB0
+  2: GPB1
+  3: GPB2
+  4: GPB3
+  5: GPB4
+  6: GPB5
+  7: GPB6
+  8: GPB7
+  9: VDD
+  10: VSS
+  11: {name: NC, note: "NC on the MCP23017 (I2C); this pad is CS on the SPI MCP23S17 — leave unconnected"}
+  12: {name: SCL, note: "I2C serial clock. The Package figure AND the pin-function table label this pad 'SCK / Serial clock input' (shared MCP23S17 template); the block diagram + I2C AC table (RPU(SCL,SDA)=1k, CL=135pF) confirm it is SCL on the MCP23017"}
+  13: SDA
+  14: {name: NC, note: "NC on the MCP23017 (I2C); this pad is SO on the SPI MCP23S17 — leave unconnected"}
+  15: A0
+  16: A1
+  17: A2
+  18: {name: RESET_N, note: "active-low external reset; must be driven or pulled high — the part holds in reset while low, and there is no internal tie"}
+  19: INTB
+  20: INTA
+  21: GPA0
+  22: GPA1
+  23: GPA2
+  24: GPA3
+  25: GPA4
+  26: GPA5
+  27: GPA6
+  28: GPA7
+limits: {vdd: "1.8-5.5V", i_pin: "25mA sink/source per I/O", addr_in: "A0-A2 are TTL-threshold (not Schmitt)", esd_hbm: "4kV"}
+gotchas:
+  - "pin 12 is the I2C SCL clock, but the datasheet package figure AND pin-function table name it 'SCK' (shared SPI template) — do NOT rename the net to SCK"
+  - "pins 11 & 14 are NC on the MCP23017 (they are CS/SO on the SPI MCP23S17) — leave floating; wiring them is a variant-confusion bug"
+  - "A0/A1/A2 (pins 15-17) set the I2C address 0x20-0x27; strap each to VDD/VSS at the pin — they are TTL-threshold inputs, so drive them hard"
+  - "/RESET (pin 18) has no internal POR tie — pull high or drive it, or the expander stays held in reset"
+  - "INTA/INTB (pins 19/20) default to active-low push-pull; set IOCON.ODR for open-drain if wire-OR'ing interrupts (ADR-0003 folds TC /FAULT-class readbacks in here)"
+  - "0.65mm SSOP-28: the worst side carries ~11 escapes -> dense-leaded wall (ADR-0008). Fan-out is CONDITIONAL on a reserved escape-corridor at 2L/4L-standard; only jlc_4layer_advanced is unconditional. Reserve the corridor at placement or raise the tier"
+verified: "pin map read from the Package Types figure (SOIC/SPDIP/SSOP column), DS20001952C p.1, cross-checked against the descriptive pin-function table (GPB0=1 … VDD=9, VSS=10, SCL=12, SDA=13, /RESET=18, INTB=19, INTA=20, GPA0=21 … GPA7=28) — 2026-07-22"
+layout:                          # P-LAYOUT: slow-signal expander (ADR-0003), not timing-critical
+  source: "DS20001952C sec.1.0 Electrical / typical connection + I2C AC
+    Characteristics (RPU(SCL,SDA)=1k, CL(SCL,SDA)=135pF): local VDD-VSS bypass and
+    a pulled-up SCL/SDA bus are the only placement demands"
+  reviewed: "2026-07-22"
+  keep_short:
+    - {net: VDD, max_span_mm: 5, why: "0.1uF VDD(9)-VSS(10) bypass placed hard against the package"}
+  notes: "Layout-agnostic apart from the supply bypass and the I2C bus. Honest rules:
+    (1) one 0.1uF between VDD(9) and VSS(10) adjacent to the package; (2) keep
+    SCL(12)/SDA(13) short back to the Board-A-local Pi I2C header, one pull-up pair
+    per bus (not per device); (3) address straps A0-A2 tie at pins 15-17. No
+    length-matching, no controlled impedance — the bus runs at 100-400kHz here."
+layout_refs:
+  - "DS20001952C sec.1.0 Electrical Characteristics + typical connection (Microchip datasheet)"
+  - "Adafruit/SparkFun MCP23017 breakout reference layouts (I2C address straps + single 0.1uF VDD bypass) — JLC-fabbed, copper viewable"
+sourcing:
+  lcsc: C506653
+  alternates: [C47023]
+  note: "MCP23017-E/SS SSOP-28, Microchip — JLC Economic/Standard assembly. Alternate
+    C47023 = MCP23017-E/SO (SOIC-28W, 1.27mm pitch): same die and pinout but needs a
+    SOIC-28W footprint swap (and eases the 0.65mm escape wall). The SPI MCP23S17 is
+    NOT a substitute — pins 11-14 (CS/SCK/SI/SO) differ from the I2C part."
