@@ -65,6 +65,25 @@ the sealed v1.2 artifact the first two sources resolve NOTHING, and without the
 ledger R12 stays silent (measured 2026-07-23). This leg needs no network; a
 catalog fetch, if present, is a bonus not a dependency.
 
+--circuit-only — leg C at the AUTHORING stage (no fab BOM yet, 2026-07-23)
+--------------------------------------------------------------------------
+The R12/R30 class was AUTHORED in the tsx (a supplierPartNumbers code whose
+catalog value never matched the declared resistance) and first caught after
+seal #3, because leg C only ran once a fab BOM existed. `--circuit-only`
+runs the same decoded-MPN-value-vs-label comparison DIRECTLY on circuit.json
+the moment the tsx builds: for every R/C source_component that carries an
+LCSC code, the code's catalog value (via 02_parts part.yaml MPN dirs, then
+the vetted ledger) must match the component's own value prop (`resistance` /
+`capacitance` — the number the tsx declared). No BOM, no netlist, no network.
+
+    bom_source_check.py --circuit-only CIRCUIT_JSON [--parts 02_parts] [--ledger Y]
+
+Same semantics as leg C: a mismatch > 1.5% is VALUE-MISMATCH; a coded R/C
+that NO source resolves is UNVERIFIABLE-VALUE (an unverifiable value is not
+a pass — vet the code once, append it to the ledger, quiet forever). The
+NUMERIC prop is authoritative; the display string is only a fallback (display
+"10mΩ" would mis-read as MΩ under RKM rules, the numeric 0.01 cannot).
+
 Exit 1 on any finding; the exit code IS the gate.
 """
 import argparse
@@ -354,6 +373,90 @@ def value_findings(bom_rows, vendored=None, ledger=None):
     return out
 
 
+def circuit_value_findings(circuit_json, vendored=None, ledger=None):
+    """--circuit-only leg C: decoded catalog value vs the tsx VALUE PROP,
+    straight off circuit.json — runs the moment the tsx builds, before any
+    fab BOM exists (the R12/R30 class was authored here and caught 3 seals
+    later when leg C first ran on a BOM).
+
+    For every R/C source_component carrying an LCSC code
+    (supplier_part_numbers.jlcpcb[0], same primary-code rule as leg A):
+      labeled  = the component's own `resistance`/`capacitance` numeric prop
+                 (authoritative — it IS the tsx declaration; the display
+                 string is only a fallback because RKM parsing cannot tell
+                 display 'mΩ' milli from 'M' mega, the numeric can)
+      derived  = the code's catalog value via part.yaml MPN dir -> ledger
+                 (no BOM MPN column exists at this stage)
+    derived vs labeled > 1.5% -> VALUE-MISMATCH; nothing resolves the code ->
+    UNVERIFIABLE-VALUE (never a silent pass). Uncoded R/C components are out
+    of scope here (nothing sourced to verify).
+
+    ledger=None loads the default vetted ledger; pass {} to disable (RED)."""
+    if ledger is None:
+        ledger = load_ledger()
+    data = json.loads(Path(circuit_json).read_text())
+    if isinstance(data, dict):
+        data = data.get("elements") or data.get("soup") or []
+    lcsc_to_mpn = dict(vendored or {})
+    out = []
+    for e in data:
+        if not isinstance(e, dict) or e.get("type") != "source_component":
+            continue
+        name = e.get("name") or ""
+        kind = row_kind([name]) if name else None
+        if not kind:
+            continue
+        spn = e.get("supplier_part_numbers") or e.get("supplierPartNumbers") or {}
+        jlc = spn.get("jlcpcb") if isinstance(spn, dict) else None
+        codes = jlc if isinstance(jlc, list) else ([jlc] if jlc else [])
+        lcsc = next((str(c) for c in codes
+                     if re.fullmatch(r"C\d+", str(c or ""))), "")
+        if not lcsc:
+            continue                    # uncoded at authoring: nothing to verify
+        parse_label = labeled_resistance if kind == "R" else labeled_capacitance
+        decode_mpn = mpn_resistance if kind == "R" else mpn_capacitance
+        unit = "Ω" if kind == "R" else "F"
+        prop = e.get("resistance") if kind == "R" else e.get("capacitance")
+        if isinstance(prop, (int, float)):
+            labeled = float(prop)
+        else:
+            disp = e.get("display_resistance" if kind == "R"
+                         else "display_capacitance") or ""
+            labeled = parse_label(str(disp)) if disp else None
+        if not labeled:                 # no declared value, or 0Ω jumper
+            continue
+        derived, via, tried = None, "", []
+        mpn = lcsc_to_mpn.get(lcsc, "")
+        if mpn:
+            tried.append(f"part.yaml '{mpn}'")
+            v = decode_mpn(mpn)
+            if v is not None:
+                derived, via = v, f"part.yaml '{mpn}'"
+        led = ledger.get(lcsc)
+        if derived is None and led:
+            tried.append(f"ledger {lcsc}")
+            v = parse_label(str(led.get("value", ""))) if led.get("value") else None
+            if v is None and led.get("mpn"):
+                v = decode_mpn(str(led["mpn"]))
+            if v is not None:
+                derived = v
+                via = f"ledger {lcsc} = '{led.get('mpn', '?')}'"
+        if derived is None:
+            out.append(
+                f"UNVERIFIABLE-VALUE on {name} ({lcsc}): tsx declares "
+                f"{_fmt(labeled, unit)} but no source yields the catalog value "
+                f"(tried: {'; '.join(tried) or 'nothing resolvable'}) — "
+                f"catalog-verify the code ONCE and append it to "
+                f"{LEDGER_PATH.name} (an unverifiable value is not a pass)")
+        elif abs(derived - labeled) / labeled > 0.015:
+            out.append(
+                f"VALUE-MISMATCH on {name} ({lcsc}): {via} = "
+                f"{_fmt(derived, unit)} but the tsx value prop says "
+                f"{_fmt(labeled, unit)} — the coded part is NOT the declared "
+                f"value (the R12/R30 class, caught at authoring)")
+    return out
+
+
 def _fmt(v, unit):
     if unit == "Ω":
         for scale, suf in ((1e6, "M"), (1e3, "k"), (1, "")):
@@ -439,14 +542,44 @@ def resolve_circuit_json(hint):
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("bom", help="fab BOM csv (Comment,Designator,Footprint,[MPN,]LCSC)")
-    ap.add_argument("circuit_json", help="circuit.json (or a 03_tscircuit dir)")
+    ap.add_argument("bom", help="fab BOM csv (Comment,Designator,Footprint,"
+                                "[MPN,]LCSC); with --circuit-only this slot "
+                                "takes the circuit.json instead")
+    ap.add_argument("circuit_json", nargs="?", default="",
+                    help="circuit.json (or a 03_tscircuit dir); omitted in "
+                         "--circuit-only mode where the first positional is it")
     ap.add_argument("--parts", default="", help="02_parts dir for the per-code leg")
     ap.add_argument("--ledger", default="",
                     help="vetted LCSC passives ledger yaml (default: the skill's "
                          "references/lcsc_passives_ledger.yaml)")
+    ap.add_argument("--circuit-only", action="store_true",
+                    help="AUTHORING-stage leg C: no fab BOM — decoded catalog "
+                         "value vs the tsx value prop, straight off circuit.json"
+                         " (the R12/R30 class, the moment the tsx builds)")
     args = ap.parse_args()
 
+    if args.circuit_only:
+        cj = resolve_circuit_json(args.circuit_json or args.bom)
+        if not cj:
+            sys.exit(f"no circuit.json found at/under "
+                     f"{args.circuit_json or args.bom}")
+        vendored = vendored_primary_codes(args.parts) if args.parts else None
+        ledger = load_ledger(args.ledger) if args.ledger else load_ledger()
+        findings = circuit_value_findings(cj, vendored, ledger)
+        print(f"circuit-only value check: {cj}"
+              + (f"; vendored: {len(vendored)} part.yaml codes" if vendored else "")
+              + f"; ledger: {len(ledger)} vetted passive codes")
+        if findings:
+            print(f"CIRCUIT VALUE CHECK: FAIL ({len(findings)})")
+            for f in findings:
+                print("  " + f)
+            sys.exit(1)
+        print("CIRCUIT VALUE CHECK: PASS (every coded R/C catalog value == "
+              "its tsx value prop)")
+        sys.exit(0)
+
+    if not args.circuit_json:
+        ap.error("circuit_json is required (or pass --circuit-only)")
     cj = resolve_circuit_json(args.circuit_json)
     if not cj:
         sys.exit(f"no circuit.json found at/under {args.circuit_json}")

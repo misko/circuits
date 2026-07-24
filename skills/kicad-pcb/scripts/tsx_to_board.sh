@@ -8,7 +8,10 @@
 #   circuit_json_to_kicad_sch      circuit.json -> annotated, backend-ready .kicad_sch
 #   kicad-cli sch export netlist   the netlist the backend consumes
 #   kicad-cli sch erc              schematic gate (0 errors)
-#   [placement]                    generate_board.py (default)  OR  circuit_json_to_kicad_pcb.py (--placement tsx)
+#   [placement]                    generate_board.py (bespoke, if present)  OR  the SHARED
+#                                  generic backend (generate_board_generic.py + route_and_stitch_generic.py,
+#                                  ADR-0002 amendment 2026-07-23 — the DEFAULT when no generate_board.py)
+#                                  OR  circuit_json_to_kicad_pcb.py (--placement tsx)
 #   generate_rules.py              netclasses + dru floors ride into the router (canon R1)
 #   KRT route                      reuse the promoted 03_src/route/r*.kicad_pcb chain if present
 #   [route_taps.py]                project tap-router if present
@@ -45,21 +48,48 @@ PROJ="${ARGS[0]:?usage: tsx_to_board.sh <project_dir> [--placement generate_boar
 PROJ="$(cd "$PROJ" && pwd)"
 T="$PROJ/03_tscircuit"
 SRCDIR="$PROJ/03_src"
-[ -f "$SRCDIR/generate_board.py" ] || { echo "FATAL: no $SRCDIR/generate_board.py (backend not present)"; exit 2; }
-TSX=$(ls "$T"/src/*.tsx 2>/dev/null | head -1)
+
+# Backend selection (ADR-0002 amendment 2026-07-23): a bespoke
+# 03_src/generate_board.py is the LEGACY exception; the DEFAULT for current
+# boards is the SHARED GENERIC BACKEND driven by 03_src config
+# (floorplan.yaml + route.yaml + rules/). When generate_board.py is absent,
+# fall through to the generic chain instead of the old hard FATAL. When it
+# exists, behavior is unchanged (the bespoke path below is byte-for-byte the
+# pre-retrofit driver).
+if [ -f "$SRCDIR/generate_board.py" ]; then
+  BACKEND=bespoke
+elif [ -f "$SRCDIR/floorplan.yaml" ]; then
+  BACKEND=generic
+else
+  echo "FATAL: no $SRCDIR/generate_board.py (bespoke backend) and no $SRCDIR/floorplan.yaml (generic backend) — no backend present"; exit 2
+fi
+TSX=$(ls "$T"/src/*.tsx 2>/dev/null | head -1 || true)   # || true: under pipefail a
+# no-match ls used to kill the script SILENTLY here, making the FATAL below unreachable
 [ -n "$TSX" ] || { echo "FATAL: no $T/src/*.tsx"; exit 2; }
 TSCBASE=$(basename "$TSX" .tsx)
 
 # Internal board name = the netlist basename the backend expects (may differ from
 # the TSX name; e.g. lipo3s_tsc.tsx builds the usb_power_3s board).
-BOARD=$($PY - "$SRCDIR/generate_board.py" <<'PY'
+if [ "$BACKEND" = bespoke ]; then
+  BOARD=$($PY - "$SRCDIR/generate_board.py" <<'PY'
 import re,sys
 s=open(sys.argv[1]).read()
 m=re.search(r'"([A-Za-z0-9_]+)\.net"',s)
 print(m.group(1) if m else "")
 PY
 )
-[ -n "$BOARD" ] || { echo "FATAL: could not parse board name (.net) from generate_board.py"; exit 2; }
+  [ -n "$BOARD" ] || { echo "FATAL: could not parse board name (.net) from generate_board.py"; exit 2; }
+else
+  BOARD=$($PY - "$SRCDIR/floorplan.yaml" <<'PY'
+import os,sys,yaml
+c=yaml.safe_load(open(sys.argv[1])) or {}
+p=c.get("project") or {}
+out=p.get("output") or ""
+print(os.path.splitext(os.path.basename(out))[0] if out else (p.get("name") or ""))
+PY
+)
+  [ -n "$BOARD" ] || { echo "FATAL: could not parse board name (project.output/name) from floorplan.yaml"; exit 2; }
+fi
 
 # Sealed parity reference (overridable via 03_tscircuit/sealed_ref.txt).
 if [ -f "$T/sealed_ref.txt" ]; then
@@ -77,6 +107,7 @@ echo "=================================================================="
 echo " tsx_to_board.sh — $(basename "$PROJ")"
 echo "   TSX          : $TSX"
 echo "   board name   : $BOARD"
+echo "   backend      : $BACKEND"
 echo "   placement    : $PLACEMENT"
 echo "   build root   : $BUILD_ROOT   (isolated; sealed 04_kicad/ untouched)"
 echo "   sealed ref   : $SEALED"
@@ -89,6 +120,9 @@ rm -rf "$BUILD_ROOT"
 mkdir -p "$K" "$B/netlists" "$B/drc" "$B/route"
 ln -s "$SRCDIR" "$BUILD_ROOT/03_src"          # __file__.parent.parent -> BUILD_ROOT (reparent trick)
 RSRC="$BUILD_ROOT/03_src"                      # run backend scripts THROUGH the symlink
+# generic backend resolves parts_dir/fab-tier relative to the project root it is
+# handed (BUILD_ROOT) — link the read-only inputs it needs; bespoke path untouched
+[ "$BACKEND" = generic ] && [ -d "$PROJ/02_parts" ] && ln -s "$PROJ/02_parts" "$BUILD_ROOT/02_parts"
 cp "$PROJ/04_kicad/fp-lib-table" "$K/fp-lib-table" 2>/dev/null || true
 cat > "$K/$BOARD.kicad_pro" <<PRO
 {
@@ -139,6 +173,10 @@ if [ "$PLACEMENT" = "tsx" ]; then
   for LG in "$T/placement_proof/legalize_and_silk.py" "$SRCDIR/legalize_and_silk.py"; do
     [ -f "$LG" ] && { gate "    legalize_and_silk"; $PY "$LG" "$K/$BOARD.kicad_pcb" 2>/dev/null | tail -2 | sed 's/^/      /' || true; break; }
   done
+elif [ "$BACKEND" = generic ]; then
+  gate "[5] placement: generate_board_generic.py (SHARED backend, 03_src/floorplan.yaml)"
+  $PY "$SKILLDIR/generate_board_generic.py" "$RSRC/floorplan.yaml" \
+      --netlist "$B/netlists/$BOARD.net" -o "$K/$BOARD.kicad_pcb" | tail -3 | sed 's/^/      /'
 else
   gate "[5] placement: generate_board.py (UNCHANGED backend, hand-coded floorplan)"
   $PY "$RSRC/generate_board.py" 2>/dev/null | tail -2 | sed 's/^/      /'
@@ -151,6 +189,30 @@ if [ -f "$SRCDIR/audit_board.py" ]; then
   $PY "$RSRC/audit_board.py" 2>/dev/null | tail -2 | sed 's/^/      /' || true
 fi
 
+if [ "$BACKEND" = generic ]; then
+  # ---- [6-10] the SHARED generic chain, reparented into BUILD_ROOT ----
+  gate "[6] generate_rules_generic.py (netclasses + dru floors, pre-route)"
+  $PY "$SKILLDIR/generate_rules_generic.py" "$BUILD_ROOT" | tail -1 | sed 's/^/      /' \
+      || fail "generate_rules_generic (pre-route)"
+  CHAIN=$(ls "$SRCDIR"/route/*.kicad_pcb 2>/dev/null | sort -V | tail -1)
+  [ -n "$CHAIN" ] || { echo "  !! no promoted chain under 03_src/route/ — a fresh KRT route is required"; fail "no promoted route chain to reuse"; }
+  gate "[7] route_and_stitch_generic.py import (promoted chain: $(basename "$CHAIN"))"
+  $PY "$SKILLDIR/route_and_stitch_generic.py" import "$RSRC/route.yaml" \
+      --root "$BUILD_ROOT" | tail -2 | sed 's/^/      /' || fail "route import"
+  gate "[8] route_and_stitch_generic.py taps (no-op unless taps: configured)"
+  $PY "$SKILLDIR/route_and_stitch_generic.py" taps "$RSRC/route.yaml" \
+      --root "$BUILD_ROOT" | tail -1 | sed 's/^/      /' || fail "taps"
+  gate "[9] route_and_stitch_generic.py stitch (pours + thermal vias)"
+  $PY "$SKILLDIR/route_and_stitch_generic.py" stitch "$RSRC/route.yaml" \
+      --root "$BUILD_ROOT" | tail -3 | sed 's/^/      /' || fail "stitch"
+  if [ -f "$SRCDIR/audit_board.py" ]; then
+    gate "    audit_board.py (post-route)"
+    $PY "$RSRC/audit_board.py" 2>/dev/null | tail -2 | sed 's/^/      /' || true
+  fi
+  gate "[10] generate_rules_generic.py LAST (pcbnew saves clobber netclasses)"
+  $PY "$SKILLDIR/generate_rules_generic.py" "$BUILD_ROOT" | tail -1 | sed 's/^/      /' \
+      || fail "generate_rules_generic (LAST)"
+else
 # ---- [6] generate_rules BEFORE routing (canon R1: rules ride into the router) ----
 gate "[6] generate_rules.py (netclasses + dru floors, pre-route)"
 $PY "$RSRC/generate_rules.py" >/dev/null 2>&1 || true
@@ -187,6 +249,7 @@ fi
 # ---- [10] generate_rules LAST (pcbnew saves clobber netclasses) ----
 gate "[10] generate_rules.py LAST"
 $PY "$RSRC/generate_rules.py" 2>/dev/null | tail -1 | sed 's/^/      /' || true
+fi
 
 # ---- [11] DRC GATE: must be 0/0/0 ----
 gate "[11] DRC: --severity-all --refill-zones --schematic-parity"
