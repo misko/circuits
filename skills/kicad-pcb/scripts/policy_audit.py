@@ -647,7 +647,13 @@ def main():
     else:
         rows.append(("M-REPRO", "FAIL", "no rebuild_all.sh"))
 
-    rels = sorted(glob.glob(str(proj / "07_releases" / "v*")))
+    # Release dirs come in TWO shipped naming forms: plain "v1.0-<date>" and
+    # ADR-0007 per-board "<board>-v1.0-<date>" (cooksense-v1.0-2026-07-23).
+    # A bare "v*" glob silently skipped the per-board form and M-REL graded
+    # N-A on two real seals (2026-07-23) — discovery must match BOTH.
+    _reldir = proj / "07_releases"
+    rels = sorted(str(p) for p in _reldir.glob("*")
+                  if p.is_dir() and re.match(r"(?:.+-)?v\d", p.name))
     if rels:
         latest = Path(rels[-1])
         man = latest / "MANIFEST.txt"

@@ -241,6 +241,64 @@ def t_journal_missing():
     check("| M-JRNL | FAIL" in md, f"M-JRNL did not FAIL:\n{md}")
 
 
+# ------------------------------------------------- M-REL release discovery
+def _per_board_release(d, git_ok=True):
+    """A scratch git project whose ONLY release dir uses the ADR-0007
+    per-board name form '<board>-v1.0-<date>' (cooksense-v1.0-2026-07-23)."""
+    import subprocess
+    subprocess.run(["git", "init", "-q", str(d)], check=True)
+    (d / "seed.txt").write_text("x\n")
+    env_git = ["git", "-C", str(d), "-c", "user.email=t@t", "-c", "user.name=t"]
+    subprocess.run(env_git + ["add", "-A"], check=True)
+    subprocess.run(env_git + ["commit", "-qm", "seed"], check=True)
+    sha = subprocess.run(env_git[:3] + ["rev-parse", "HEAD"],
+                         capture_output=True, text=True).stdout.strip()
+    rel = d / "07_releases" / "scratchboard-v1.0-2026-07-23"
+    (rel / "verification").mkdir(parents=True)
+    (rel / "verification" / "drc.json").write_text("{}")
+    (rel / "MANIFEST.txt").write_text(
+        f"git_sha: {sha if git_ok else 'HEAD@release'}\ngit_dirty: false\n")
+    (d / "01_docs").mkdir(exist_ok=True)
+    (d / "01_docs" / "CHANGELOG.md").write_text(
+        "- scratchboard-v1.0-2026-07-23: first\n")
+    return rel
+
+
+@test("M-REL discovers + grades an ADR-0007 per-board-named release dir")
+def t_mrel_per_board_name():
+    """Release-dir discovery used a bare 'v*' glob that silently skipped the
+    ADR-0007 per-board form '<board>-v1.0-<date>' — M-REL graded N-A
+    ('no releases yet') on the cooksense-v1.0-2026-07-23 and
+    crow-recorder-central-v2-v1.0-2026-07-23 seals (both real, 2026-07-23).
+    RED-VERIFIED: with the pre-fix policy_audit.py swapped back in, this test
+    FAILS ('| M-REL | N-A | no releases yet'); restored, it passes."""
+    d = tmpdir("mrel_")
+    _per_board_release(d, git_ok=True)
+    run([KPY, POLICY, d, "--skip-drc"])
+    md = (d / "06_build" / "policy_audit.md").read_text()
+    row = [l for l in md.splitlines() if "M-REL" in l]
+    check(row and "no releases yet" not in row[0],
+          f"M-REL did not DISCOVER the per-board-named release dir: {row}")
+    check("| M-REL | PASS" in md and "scratchboard-v1.0-2026-07-23" in row[0],
+          f"M-REL should PASS a well-formed per-board release: {row}")
+
+
+@test("M-REL still FAILS a per-board-named release with a bad MANIFEST",
+      kind="known_bad")
+def t_mrel_per_board_bad_manifest():
+    """Discovery widened, teeth intact: the same per-board dir with the
+    'git_sha: HEAD@release' incident manifest must FAIL, not N-A."""
+    d = tmpdir("mrel_")
+    _per_board_release(d, git_ok=False)
+    run([KPY, POLICY, d, "--skip-drc"])
+    md = (d / "06_build" / "policy_audit.md").read_text()
+    row = [l for l in md.splitlines() if "M-REL" in l]
+    check(row and "| M-REL | FAIL" in md,
+          f"M-REL did not FAIL the bad manifest in a per-board dir: {row}")
+    check("git_sha not an exact commit" in row[0],
+          f"M-REL failure did not name the bad git_sha: {row}")
+
+
 @test("M-LEARN FAILS a release with no stage learnings", kind="known_bad")
 def t_learnings_missing():
     d = tmpdir("jrn_")
