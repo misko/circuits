@@ -546,3 +546,4 @@
   refill, schematic-parity). SURVIVAL MEASURED: USB pair 23.621/23.511mm
   (skew 0.110mm), all 0.125mm F.Cu, 0 vias; U1 EP 16x 0.3/0.15 GND vias
   (4x4 grid); LV straps 40/43/52 still unconnected.
+- SEALED v1.2 2026-07-24: seal 64764a7 (source S d66fd1e). 13x 100nF on 0V9 per ds §14 p.29 minimum 12; full INITIAL battery green; SUPERSEDED.md on v1.1.
