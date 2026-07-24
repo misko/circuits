@@ -1,0 +1,74 @@
+board:        crow_recorder_central_v2
+version:      v1.0
+ordered:      2026-07-23
+git_sha:      8d96583                 # the EXACT commit these came from
+git_dirty:    false                   # scope: projects/crow-recorder-central-v2/ + skills/
+kicad:        10.0.4
+tools:        rebuild_reuse.sh (deterministic promoted-chain import, no KRT re-run), /usr/bin/python3 pcbnew
+fab:          JLCPCB, 6 layer, jlc_6layer_smallvia — ADVANCED small-via option REQUIRED (0.30/0.15 via-in-pad)
+quantity:     5
+gates:        DRC 0/0/0 (--severity-all --refill-zones --schematic-parity) ·
+              check_port_nets 115/115 labels + 8/8 ports pin-for-pin ·
+              ERC 0 errors (1409 baselined warnings) · count_parity 194 x4 ·
+              audit_board 21 polarity + 11 keepout PASS (red-tested) ·
+              policy_audit 0 FAIL (3 evidence-backed waivers) · E-INV 7/7 ·
+              E-TOPO 2/2 · twin exit 0, zero unadjudicated criticals
+              (160 OK / 358 checked; register 03_src/rules/twin_adjudications.yaml) ·
+              bom_source_check PASS (48 lines, every LCSC == source) ·
+              stock verified except 2 ADR'd consignment lines ·
+              red-team: pre-fix integrated DO-NOT-ORDER (P0 fixed + re-gated,
+              dispositions ledger) + fresh zero-context integrated lens on
+              THIS staged archive: see verification/fresh_lens.md
+3d:           step present (kicad-cli --subst-models; sparse bodies — most
+              footprints ship no local 3D model; the modeled truth view is
+              verification/twin_*.png). gltf absent (no exporter path).
+not_assembled: J3-J10 RJHSE-5384 (consign/hand-solder, C99* placeholder) ·
+              JP_INJ 1x03 + J_DBG 1x08 headers (uncoded, hand-solder) ·
+              U1 XU316 consignment/global-sourcing (ADR-0003; in CPL for
+              placement when consigned)
+sha256:
+  3d/crow_recorder_central_v2.step             83e1a36425381e111052b22b13992fde8c4d6fd691eee4a0a5eeac811cb25d4d
+  ORDER_README.md                              ca81c1a8a3084d9fd3951b2fba964723699d370ea7e4147e696866d8ed1e03f4
+  fab/bom.csv                                  50682b4090f6fb8dbffb3df0e1a20e099bf54010a2ee9f4de30339c43f581ad7
+  fab/cpl.csv                                  7d9575ed9bdbe81bbf384f969331a21f2e2f9b9233caa5a6ffedacc4aca0add7
+  fab/crow_recorder_central_v2-NPTH.drl        318da264408a453a0823cf907c7cf591ea6e7d25fdbb516492904ad6d787fbf5
+  fab/crow_recorder_central_v2-PTH.drl         a21ea810679144566165d53b321dee4648c4099152e72d08233d4a466b80ea85
+  fab/crow_recorder_central_v2_gerbers.zip     2d9bb65c29ede71eeb5526f2f28398754930d95db1ab22c0074f1a4a36cc0f59
+  pdf/assembly.pdf                             97d45a2f5c62f2275a8c83f8bafdd6c3b623f6be7a36c034d4de80f1c48826fb
+  pdf/pcb_layers.pdf                           8d19e2d72bbf6a02f7d630275c4eefcd8dcd944f92d00d1204504a41a480ed45
+  pdf/schematic.pdf                            c5c28116cef516ceda1041b2e8a90060c06acdefcccda5580aafea3ba0f0153f
+  source/Sensor_Humidity.pretty/Sensirion_DFN-4_1.5x1.5mm_P0.8mm_SHT4x_NoCentralPad.kicad_mod 6eb0eecd94247336fb8bb895e442e5adfbab8e91beb344f0e996992e4370885d
+  source/crow_recorder_central_v2.kicad_dru    d8a1fd3a0d61a1b288bb28d18cf5aa820b870905964e1305fcd55ba21886b45a
+  source/crow_recorder_central_v2.kicad_pcb    c470df6587228afd64df0179dd19d75a7f198301a6b4a358ea5aa0ed946ccd3f
+  source/crow_recorder_central_v2.kicad_pro    dfeab593f7698d9b429e806b6e94475770576f06e25445862b2d55c984ff6b63
+  source/crow_recorder_central_v2.kicad_sch    3a9c61dda8d0ba6e183a8b1852c4fe99b39474b0827dc6d462dfdc0307f3b751
+  source/crow_recorder_central_v2.net          f58c1eedf2fd102a282eab2709c6f8c0dcccda70a8bb8054a557b2661186c106
+  source/crow_recorder_central_v2.pretty/RJ45_RJHSE538X_num.kicad_mod d3d35a79f52b9a2bee6a712a1cce5ede755e54b153a4cb56eed653f5152bfea2
+  source/crow_recorder_central_v2.pretty/TQFP-128_14x14mm_P0.4mm_EP_XU316.kicad_mod 9eb75b37795fffe03dfc60cc32d5898abca1d5bb3c5e707817ce11fad83538f3
+  source/crow_recorder_central_v2.pretty/US8_MO-187CA_P0.5mm_NC7NZ34.kicad_mod 21a72507199a09aff5c90d2d3ab287c156b393afde28526e20ffe6336dac6758
+  source/crow_recorder_central_v2.pretty/USB4105_GCT_16P_TopMnt_num.kicad_mod 9ff9294a2a8d041533ce0cb386f89a221a2c01eea13125f9ee60c80ad68b8880
+  source/crow_recorder_central_v2.tsx          eaea9f6e0905fc0fc3e2a0845cbf3800da1803461be4237fb4b2b14be32b3eb9
+  source/fp-lib-table                          4b13122d46cd28fe5d956997008510976f79115681c60f6ee014dae1af4c2f14
+  verification/audit.txt                       d4d4d2be9f571b36f374e04d2356cc722a9e6b3a992310ec51474dff2b9d69a6
+  verification/bom_source_check.txt            509e04e9be2b9fb2583231aa309b4c1fb8726477b411ad361231f7e3032a1503
+  verification/drc.json                        a84a46ef0807b8f98d947b434cedbb5ce43b2398605377aa2b7d747515533a61
+  verification/erc.json                        4a4b2fa4738a1f4365639d368e264035124248bce259599fc97fc487e3574d21
+  verification/fresh_lens.md                   568d776cb07182c344836c787f15ad6976b9a5a8e4c15696e16441bb87c227e6
+  verification/missing_models.txt              2f926dfbfca3240e63248086476eb72778ce47fb73f650c791d1036f2e29deb5
+  verification/parity.md                       8f0f4cd6ff8b728701c1c8916e4d1891363da1d4814d3c51cc3ce23dea862ef5
+  verification/pin_review.md                   0c7960ed83318dc7ca246648665346724c8fd32831f74fa9cfded6cc490476c2
+  verification/policy_audit.md                 eba9f159365d07056bd084916873654ade269b4c538d8f9607cb0401071c9ca2
+  verification/redteam_dispositions.md         2b5e74cac447d230e710731068dc3a63f96c1964e53967dc1b4d61e203a9277c
+  verification/redteam_prefix_integrated.md    7453e17bd775a938f2e3601f2dd530359172aa2c0197e6fbb1acdd6dcfbe1251
+  verification/render_bottom_bare.png          85064042b5ace7949e8a8e32388b3dd6c870f2bfbd7867804abcc144da9a60ca
+  verification/render_review.md                d6893616c2c64a2a463f4fad61c8ea166f28123a8eedef4f707df143b4b3f9fe
+  verification/render_top_bare.png             1d8eed12d807cb89a56f800d7cc0feda5d5f42b81644a268150debf884cb45cc
+  verification/stock_check.txt                 5b89e21dee33afdda1895a13980735b0586f40a6113f2ff9341ced1d900d1fba
+  verification/twin_bottom.png                 3fcf0fb36312f4d9e02a55f135aee669483b0cb1f67e8b1f0e54bd2877c76770
+  verification/twin_edge_east.png              647cf19ce3dedec1d1797e944df1a70b9adbbf9c09266d2dac4d2661e9181db7
+  verification/twin_edge_west.png              3f804582ae86cf012fd55818acf0fbfe76cbaafdd93373d4abc583b93af2ca76
+  verification/twin_iso_nw.png                 ec525c9a6087028096570b45e9a975d5b8d271238bab35ccef18e879fb033bf1
+  verification/twin_iso_se.png                 0483394e68970bc44d6e0420fc38c5edf9a93339457f433716b2fe0b42a42e52
+  verification/twin_report.csv                 f867a8f55619a7ac153ea85af0204397634e9f6e4aa1ffdfe25399220271b281
+  verification/twin_report.txt                 c80e1a0694571e5d454766c309defa4f23ebdff6281e5c4e5cb509d2b8a10a21
+  verification/twin_top.png                    a205fe4c31bd1c2eb08e36499b1d2080a7a822dee2cfb7746a4f07c31617f9fc
