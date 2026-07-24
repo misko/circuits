@@ -236,3 +236,28 @@ placement defects.
 I-OUT (pads-inside-outer-outline, minus edge clr, with a known-bad fixture) is the
 guard that would have caught this D-BACK. It checks the OUTER outline only; pad-in-
 milled-slot clearance is left to DRC copper_edge_clearance. Harvest-ready.
+
+## 2026-07-23 21:40 — start (v1.1 repack) + stuck (pre-build wall)
+- did: v1.1 shrink commission (D7): relay row pitch 20 -> 15.24mm, single-row
+  topology kept, outline 252x92 -> ~195x92. Before touching floorplan.yaml,
+  MEASURED the relay footprint (03_src/lib/cooksense.pretty/
+  Relay_StandexDIP_1A_pinout12.kicad_mod) against the proposed pitch.
+- result: INFEASIBLE, mechanically, pre-build. At rot90 (the orientation the
+  single-row barrier REQUIRES: contacts N y-3.81 / coils S y+3.81), the body
+  long axis lies ALONG the row: body 19.3mm, courtyard 19.90mm (fp_line CrtYd
+  +-9.95), pads x+-7.62. 15.24mm pitch => adjacent courtyards overlap 4.66mm,
+  bodies 4.06mm — parts collide. v1.0's 20mm pitch already leaves 0.10mm
+  courtyard gap (0.70mm body gap holding the 0.6mm milled iso slot): ZERO
+  pitch shrink available in this orientation at ANY legal pitch (~20mm min).
+  The part.yaml "15.24mm super-column pitch" is COUPLING evidence from the
+  old vertical-column layout (rot0, 6.5mm across the pitch axis) — it was
+  never a rot90 fit claim. rot0 relays at 15.24mm would fit but put both
+  contact pads on one vertical column (y+-7.62 per relay), destroying the
+  straight keypad barrier (I-ISO >=6.0mm) the scope mandates keeping.
+- next: STOP per the commission guardrail (not a routing wall — no rebuild
+  changes a courtyard). User decision required: (a) accept ~no shrink at
+  single-row (only edge-margin trims, ~252 -> ~246 x 92 best case), (b)
+  bench-measure the coupling (U+D+PRESS triple energize, physical v1.0
+  boards) to license the two-row repack, or (c) vertical-relay topology
+  redesign (new barrier concept). D7 records the escalation; no floorplan,
+  netlist, or 04_kicad change made; v1.0 release untouched and orderable.
