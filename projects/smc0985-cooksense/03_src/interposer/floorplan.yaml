@@ -1,0 +1,96 @@
+# interposer (Board C) floorplan — input for generate_board_generic.py
+# (ADR-0007 per-board config; ADR-0009 Path A rigid interposer).
+#
+# TOPOLOGY: two 10FDZ-BT ZIF rows with pin columns X-ALIGNED (pin k of both at
+# the same x), so the ten pass-through nets are straight N-S verticals; the
+# TP_M_* / TP_C_* probe rows sit ON those columns; the GH breakout hangs on
+# the WEST edge (mouth west, ribbon to the cooksense main board) and taps the
+# columns via a short E-W bus between the TP rows. The WHOLE board is one
+# floating keypad domain: no GND, no pours, no zones (BRIEF §5 isolation).
+#
+# 10FDZ footprint origin = pin1 pad; pins run +X (span 22.86); NPTH boss at
+# -2.54 colinear; housing x -5.3..+30.96, y -5.1..+2.6 (eFDZ p.3).
+
+project:
+  name: interposer
+  netlist: 06_build/netlists/interposer.net
+  output: 04_kicad/interposer.kicad_pcb
+  parts_dir: 02_parts
+  root: ../..
+
+board:
+  outline: {x0: 10.0, y0: 10.0, x1: 64.0, y1: 56.0}   # 54 x 46 mm, 2-layer
+  edge_width: 0.1
+  layers: 2
+  mounting_holes:
+    footprint: MountingHole:MountingHole_2.7mm_M2.5_ISO14580
+    at: [[14.0, 14.0], [60.0, 14.0], [14.0, 52.0], [60.0, 52.0]]
+
+libraries: [/usr/share/kicad/footprints, 03_src/lib]
+
+placement:
+  anchors:
+    # ZIF rows: pin1 x=25.0, pins to x=47.86; both rot0 -> pin k columns align.
+    J_MEMBRANE:   [25.0, 20.0, 0]     # north row — receives the OEM membrane tail
+    J_CN1_JUMPER: [25.0, 46.0, 0]     # south row — receives the flex jumper to CN1
+    # GH breakout on the WEST edge, mouth WEST (same part+rot idiom as the
+    # main board's J_KEY_MATRIX anchor [16,20,270] "mouth WEST").
+    J_KEY_MATRIX: [15.0, 33.0, 270]
+    # membrane-side TP row (y=28) and jumper-side TP row (y=38), on-column:
+    TP_M_U1: [25.00, 28.0, 0]
+    TP_M_U2: [27.54, 28.0, 0]
+    TP_M_U3: [30.08, 28.0, 0]
+    TP_M_U4: [32.62, 28.0, 0]
+    TP_M_U5: [35.16, 28.0, 0]
+    TP_M_U6: [37.70, 28.0, 0]
+    TP_M_D1: [40.24, 28.0, 0]
+    TP_M_D2: [42.78, 28.0, 0]
+    TP_M_D3: [45.32, 28.0, 0]
+    TP_M_D4: [47.86, 28.0, 0]
+    TP_C_U1: [25.00, 38.0, 0]
+    TP_C_U2: [27.54, 38.0, 0]
+    TP_C_U3: [30.08, 38.0, 0]
+    TP_C_U4: [32.62, 38.0, 0]
+    TP_C_U5: [35.16, 38.0, 0]
+    TP_C_U6: [37.70, 38.0, 0]
+    TP_C_D1: [40.24, 38.0, 0]
+    TP_C_D2: [42.78, 38.0, 0]
+    TP_C_D3: [45.32, 38.0, 0]
+    TP_C_D4: [47.86, 38.0, 0]
+  # all parts anchored (legalize has nothing to move); clearance 0.8 per
+  # tier_preflight PF-LEGALIZE (via drill 0.3 + 2*hole_clearance 0.25)
+  legalize: {enable: true, clearance: 0.8}
+
+# NO zones, NO pours: the board is a single floating isolated net set (BRIEF
+# §5 keypad-domain isolation — nothing to pour, and a pour tied to nothing is
+# an antenna). NO keepouts needed: one domain, no barrier to enforce.
+
+silk:
+  min_text_height: 0.6
+  refdes: {size: 0.7, min_size: 0.5, fab_copy: true, clearance: 0.16, priority_prefixes: "JT"}
+  captions:
+    - {text: "cooksense interposer (Board C) v1.0  SMC0985KS", at: [37.0, 12.5], size: 0.9, nudge: false}
+    - {text: "FLOATING KEYPAD DOMAIN - NO GND / NO CHASSIS BOND", at: [37.0, 54.3], size: 0.7, nudge: false}
+    - {text: "OEM MEMBRANE TAIL (top entry ZIF)", at: [37.0, 24.4], size: 0.7, nudge: false}
+    - {text: "FLEX JUMPER TO OEM CN1 (top entry ZIF)", at: [37.0, 50.6], size: 0.7, nudge: false}
+    - {text: "U1..U6 D1..D4 straight through  (D4: TP only, locked out downstream)", at: [37.0, 33.0], size: 0.6, nudge: false}
+
+asserts:
+  pad_net:
+    # positional map 1..10 = U1..U6,D1..D4 on ALL THREE connectors (ends + middle pinned)
+    - {ref: J_MEMBRANE, pad: 1, net: KP_U1}
+    - {ref: J_MEMBRANE, pad: 6, net: KP_U6}
+    - {ref: J_MEMBRANE, pad: 10, net: KP_D4}
+    - {ref: J_CN1_JUMPER, pad: 1, net: KP_U1}
+    - {ref: J_CN1_JUMPER, pad: 6, net: KP_U6}
+    - {ref: J_CN1_JUMPER, pad: 10, net: KP_D4}
+    - {ref: J_KEY_MATRIX, pad: 1, net: KP_U1}
+    - {ref: J_KEY_MATRIX, pad: 6, net: KP_U6}
+    - {ref: J_KEY_MATRIX, pad: 10, net: KP_D4}
+  pad_order:
+    # both ZIF rows count 1..10 WEST->EAST (straight-through columns align);
+    # a 180 flip of either row breaks this ordering assert.
+    - {ref: J_MEMBRANE, pads: [1, 5, 10], axis: x}
+    - {ref: J_CN1_JUMPER, pads: [1, 5, 10], axis: x}
+  body_offset:
+    - {ref: J_KEY_MATRIX, axis: x, sign: "-"}       # ribbon mouth WEST (off-board)

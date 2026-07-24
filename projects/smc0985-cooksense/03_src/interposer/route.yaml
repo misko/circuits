@@ -1,0 +1,60 @@
+# interposer (Board C) route — input for route_and_stitch_generic.py
+#
+# ADR-0007 NESTING + MULTI-BOARD: this config lives at 03_src/interposer/.
+# The flat-path lookups (fab_tier_util.resolve, net_class_floors) read
+# <root>/03_src/rules/nets.yaml, which in THIS project is the OTHER board's
+# symlink target — so ALL route_and_stitch commands for the interposer run
+# with --root pointed at the SHADOW ROOT built by
+# 03_src/interposer/rebuild_all.sh (06_build/interposer/shadow_root: a
+# single-board view whose 03_src/rules -> interposer rules and whose
+# 04_kicad/06_build resolve to the real tree). The sealed cooksense board
+# and its symlinks are never touched.
+#
+# ROUTING PICTURE: 10 nets, one wave. Each KP line is a straight N-S column
+# (J_MEMBRANE.k -> TP_M -> TP_C -> J_CN1_JUMPER.k, all x-aligned by
+# floorplan) plus a west tap to the GH breakout (J_KEY_MATRIX). The taps to
+# columns east of the first cross the other columns -> B.Cu bus, F.Cu
+# columns, vias at the joins. NO GND, NO pours, NO stitch (floating keypad
+# domain, BRIEF §5) — the stitch phase is SKIPPED by the rebuild driver.
+
+project:
+  name: interposer
+  board: 04_kicad/interposer.kicad_pcb
+  build_dir: 06_build/interposer/route
+
+prep:
+  out: r0.kicad_pcb
+  keepouts:
+    layers: [User.2]
+    # refdes_prefix H is LOAD-BEARING: without it the NPTH matcher also fences
+    # the two 10FDZ-BT polarization bosses (NPTH pads 2.54mm from pin 1) and
+    # the 3.0mm keepout squares swallow BOTH pin-1 pads — KRT then fails
+    # exactly J_MEMBRANE.1/J_CN1_JUMPER.1 (measured, 2026-07-24).
+    mounting_holes: {radius: 3.0, refdes_prefix: "H"}
+    edge_band: 0.7
+  waves:
+    exclude: ["unconnected-*"]
+    groups:
+      kp: [KP_U1, KP_U2, KP_U3, KP_U4, KP_U5, KP_U6, KP_D1, KP_D2, KP_D3, KP_D4]
+
+route:
+  krt: ~/gits/KiCadRoutingTools
+  common:
+    layers: [F.Cu, B.Cu]
+    # via/clearance floors DERIVE from nets.yaml fab_tier (jlc_2layer_default);
+    # explicit via 0.6/0.3 matches that tier's published floors.
+    via_size: 0.6
+    via_drill: 0.3
+    no_stub_layer_swap: true
+    keepout: true
+    keepout_layer: User.2
+    clearance: 0.5
+  waves:
+    # track_width derives from the KEYPAD_ISO class floor (0.5mm) — one wave,
+    # ten nets, a nearly-empty 54x46 board.
+    - {name: kp, group: kp, track_width: 0.508, max_iterations: 400000}   # 0.508 not 0.5: KRT grid-rounds 0.5 to 0.4998 -> KEYPAD_ISO_width DRC fail (measured)
+  # canon M3: the shipped board imports the PROMOTED chain file (committed at
+  # the routing gate). Delete to re-route from scratch.
+  final: 03_src/interposer/route/final_chain.kicad_pcb
+
+# NO taps, NO stitch config: zero pours/zones on this board by design.
