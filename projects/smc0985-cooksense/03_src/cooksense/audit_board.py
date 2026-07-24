@@ -36,10 +36,21 @@ KEYPAD_NETS = {"KP_U1","KP_U2","KP_U3","KP_U4","KP_U5","KP_U6",
                "KP_D1","KP_D2","KP_D3","KP_D4",
                "U_SEL_BUS","D_SEL_BUS","RKEY_MID","RSTOP_MID"}
 ISO_GAP_MM = 6.0                       # brief §4/§7 coil-side <-> keypad-copper creepage
-# keypad strip rectangle (x0,y0,x1,y1) — the NORTH isolated band (contacts +
-# buses + J_KEY, y<35). Reed COIL pads (logic, y37.8) sit SOUTH of it. No
-# logic/GND pad, no pour inside. (REDO 2026-07-23: keypad moved N, logic S.)
-STRIP = (12.0, 10.0, 264.0, 35.0)
+# ---- v1.1 ISOLATION COMB (D7 rot0 redesign, 2026-07-24) ----------------------
+# The isolated domain is no longer one strip: it is the NORTH BAND (y<=~23.2)
+# plus 7 KEYPAD POCKETS between/beside the paired vertical relays. Logic lives
+# in the SOUTH BAND (y>=53) plus 6 COIL GAPS (windows reaching the coil pads at
+# y30.38/45.62). Relay centers x = 26.00 + n*15.24, row y=38, board x 12..200.
+ROW_XC = [26.00 + i*15.24 for i in range(12)]
+# coil gaps: within pairs (r1r2, r3r4, ...) — logic-legal x-windows
+GAPS = [(ROW_XC[i]+3.0, ROW_XC[i+1]-3.0) for i in range(0, 12, 2)]
+# keypad pockets: between pairs + both ends — keypad-legal x-windows
+POCKETS = [(12.0, ROW_XC[0]-3.0)] + \
+          [(ROW_XC[i]+3.0, ROW_XC[i+1]-3.0) for i in range(1, 11, 2)] + \
+          [(ROW_XC[11]+3.0, 200.0)]
+COMB_Y0, COMB_Y1 = 23.2, 52.9          # comb band: between keypad band and planes
+# legacy STRIP retained for the pour check (c): the whole plane-free comb band.
+STRIP = (12.0, 10.0, 200.0, 52.9)
 
 # ---- I-POL: (ref -> (pad, expected net)) — pad numbers are PHYSICAL pads -----
 POLARIZED = {
@@ -113,7 +124,7 @@ def _seg_seg(a, c):
               _seg_pt(cx,cy,ax,ay,bx,by), _seg_pt(dx,dy,ax,ay,bx,by))
 
 
-def _iso_cu_elems(b, pred, ybound=42.0, extra=None):
+def _iso_cu_elems(b, pred, ybound=56.0, extra=None):
     """Copper elements (tracks, vias, pads) whose net matches pred, near the reed
     barrier (min-y <= ybound). Each = (layer_or_None, (x1,y1,x2,y2), half_width).
     `extra` = optional list of pre-built elements (used by --selftest injection)."""
@@ -145,7 +156,10 @@ def _iso_cu_elems(b, pred, ybound=42.0, extra=None):
     return E
 
 
-def iso_min_creepage(b, ybound=42.0, extra_logic=None):
+def iso_min_creepage(b, ybound=56.0, extra_logic=None):
+    # v1.1: ybound raised 42 -> 56 (comb): pocket keypad pads reach y45.62 and
+    # the binding logic partner is the y>=53 plane-band copper — the old 42
+    # bound EXCLUDED both (a checker blind spot on the new geometry).
     """Min same-surface copper-EDGE distance between keypad-domain copper and
     SELV-logic copper (tracks+vias+pads), cross-domain. Returns (gmin_mm, descr)."""
     kp = _iso_cu_elems(b, lambda n: n in KEYPAD_NETS, ybound)
@@ -164,13 +178,13 @@ def iso_min_creepage(b, ybound=42.0, extra_logic=None):
 
 def selftest():
     """KNOWN-BAD (canon: a gate that cannot fail is worthless). Inject a synthetic
-    SELV-logic track into the reed barrier (F.Cu, ~y33, near K_D4 x200) — ~2.8mm
-    from the keypad contact row (y30.19) — and confirm the FIXED, track-aware
-    I-ISO now measures < 6mm. The pre-fix pad-centre-only check could NOT see this
-    (no logic PAD there), so this proves the track-awareness. RED against the old code."""
+    SELV-logic track into keypad POCKET p1 (F.Cu, y44, x45..52) — ~1.5mm from
+    r2's south contact pad (45.05,45.62) — and confirm the track-aware I-ISO
+    measures < 6mm on the v1.1 comb. (v1.0 selftest used the rot90 barrier at
+    x198..202/y33; re-aimed at the comb 2026-07-24 and re-verified RED.)"""
     b = pcbnew.LoadBoard(BOARD)
     base, _ = iso_min_creepage(b)
-    intruder = [(pcbnew.F_Cu, (198.0, 33.0, 202.0, 33.0), 0.15)]   # a 0.3mm F.Cu logic track in the gap
+    intruder = [(pcbnew.F_Cu, (45.0, 44.0, 52.0, 44.0), 0.15)]   # a 0.3mm F.Cu logic track in pocket p1
     bad, _ = iso_min_creepage(b, extra_logic=intruder)
     ok = bad < ISO_GAP_MM
     print(f"I-ISO selftest: baseline {base:.2f}mm ; with barrier-intruding track "
@@ -268,13 +282,26 @@ def main():
                      f"{ISO_GAP_MM}mm{where}")
     else:
         notes.append(f"I-ISO min keypad<->logic copper creepage {gmin:.2f}mm{where}")
-    # (b) no SELV-logic / GND pad inside the keypad strip rectangle
+    # (b) comb domain-placement rules (v1.1):
+    #   b1 — a SELV-logic pad north of the plane band (y < COMB_Y1) is legal
+    #        ONLY inside a coil-gap x-window and only in the relay-row y-range
+    #        (the coil pads at y30.38/45.62); anywhere else it intrudes on the
+    #        keypad domain (north band or a pocket).
+    #   b2 — a KEYPAD pad is legal ONLY in the north band (y <= COMB_Y0) or
+    #        inside a pocket x-window (J_KEY_MATRIX lives in the west pocket).
+    in_win = lambda x, wins: any(w0 - 0.85 <= x <= w1 + 0.85 for w0, w1 in wins)
+    b1 = [(r,n) for r,n,x,y in lg
+          if y < COMB_Y1 and not (in_win(x, GAPS) and 29.0 <= y <= 47.0)]
+    if b1:
+        fails.append(f"I-ISO(b1) {len(b1)} logic pad(s) in the keypad domain "
+                     f"(north band / pocket / column): {sorted(set(b1))[:6]}")
+    b2 = [(r,n) for r,n,x,y in kp
+          if y > COMB_Y0 + 0.35 and not (in_win(x, POCKETS) and y <= 47.0)]
+    if b2:
+        fails.append(f"I-ISO(b2) {len(b2)} keypad pad(s) outside band/pockets: "
+                     f"{sorted(set(b2))[:6]}")
+    # (c) no copper pour (plane) inside the plane-free comb band on any layer
     sx0,sy0,sx1,sy1 = STRIP
-    intruders = [(r,n) for r,n,x,y in lg if sx0 <= x <= sx1 and sy0 <= y <= sy1]
-    if intruders:
-        fails.append(f"I-ISO {len(intruders)} logic pad(s) inside keypad strip {STRIP}: "
-                     f"{sorted(set(intruders))[:6]}")
-    # (c) no copper pour (plane) inside the keypad strip on any layer
     pour_in = 0
     for z in b.Zones():
         if z.GetIsRuleArea(): continue

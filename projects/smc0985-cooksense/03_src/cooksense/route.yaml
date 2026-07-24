@@ -186,7 +186,9 @@ stitch:
   via: {spacing: 0.85, pth_margin: 0.3}    # size/drill tier-derived (advanced)
   # KEEP advanced via-in-pad size (0.25/0.15). The pass default 0.6/0.3 shorts a
   # via-in-pad board (818 DRC finds when it fired at 0.6): KRT already emits 0.25/0.15.
-  normalize_vias: {size: 0.25, drill: 0.15}
+  # below_width per R-PREFLIGHT PF-NORM (2026-07-24): without it the pass
+  # default (0.449) would resize every correctly-sized 0.25 tier via.
+  normalize_vias: {size: 0.25, drill: 0.15, below_width: 0.24}
   keepin: {inset: 0.8}
   # via_janitor DROPPED (2026-07-23, successor lead; runbook step-2 option B).
   # via_janitor removes ANY via with same-net copper on <2 layers, crediting a
@@ -309,7 +311,9 @@ stitch:
     y: [58, 98, 8]      # inside the GND plane (y53..102), clear of the comb edge
     # ISOLATION: no GND stitch vias north of the plane band (would bridge the comb)
     avoid: [{x0: 12.0, y0: 9.0, x1: 200.0, y1: 54.0, margin: 1.0}]
-  island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu], require: pads}
+  # layers cover the declared planes per R-PREFLIGHT PF-LAYER (2026-07-24):
+  # islands on an unscanned In1/In2 plane are invisible to an F/B-only scan.
+  island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu, In1.Cu, In2.Cu], require: pads}
   unify_zone_priorities: {min_bbox: 0.8}
   heal_islands: {min_bbox: 1.5}
   prune_stitch_dangling: {tol: 0.05, min_layers: 2}

@@ -305,7 +305,10 @@ placement:
     analog:  [14.0, 64.0, 96.0, 100.0]
     swrails: [142.0, 84.0, 200.0, 100.0]
 
-  legalize: {enable: true, clearance: 0.3, edge_margin: 1.2, hole_keepout: 3.2, ring_max: 120}
+  # clearance 0.3 -> 0.35 (R-PREFLIGHT PF-LEGALIZE WARN, 2026-07-24: crow-rv2
+  # measured 0.35 helped rescue-via pockets; the full 0.55 bound is too
+  # disruptive on this density — WARN accepted, anchored clusters unaffected).
+  legalize: {enable: true, clearance: 0.35, edge_margin: 1.2, hole_keepout: 3.2, ring_max: 120}
 
 design_rules:
   track_min_width: 0.127
