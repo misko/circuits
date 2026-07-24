@@ -11,6 +11,12 @@
 (rule "ANALOG_IN_width"
   (condition "A.NetClass == 'ANALOG_IN'")
   (constraint track_width (min 0.25mm)))
+(rule "USB_DIFF_width"
+  (condition "A.NetClass == 'USB_DIFF'")
+  (constraint track_width (min 0.125mm)))
+(rule "USB_DIFF_diffpair"
+  (condition "A.NetClass == 'USB_DIFF'")
+  (constraint diff_pair_gap (min 0.145mm) (opt 0.15mm)))
 (rule "CLOCK_width"
   (condition "A.NetClass == 'CLOCK'")
   (constraint track_width (min 0.25mm)))

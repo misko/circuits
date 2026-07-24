@@ -69,7 +69,13 @@
           "thermal_relief_spoke_width": 0.5
         }
       },
-      "diff_pair_dimensions": [],
+      "diff_pair_dimensions": [
+        {
+          "gap": 0.15,
+          "via_gap": 0.15,
+          "width": 0.125
+        }
+      ],
       "drc_exclusions": [],
       "meta": {
         "version": 2
@@ -357,6 +363,23 @@
         "schematic_color": "rgba(0, 0, 0, 0.000)"
       },
       {
+        "name": "USB_DIFF",
+        "clearance": 0.1,
+        "track_width": 0.125,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.2,
+        "diff_pair_gap": 0.15,
+        "diff_pair_width": 0.125,
+        "diff_pair_via_gap": 0.15,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
         "name": "CLOCK",
         "clearance": 0.1,
         "track_width": 0.25,
@@ -507,6 +530,14 @@
       {
         "netclass": "ANALOG_IN",
         "pattern": "AUDIO8M"
+      },
+      {
+        "netclass": "USB_DIFF",
+        "pattern": "USB_DP"
+      },
+      {
+        "netclass": "USB_DIFF",
+        "pattern": "USB_DN"
       },
       {
         "netclass": "CLOCK",
