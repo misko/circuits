@@ -34,11 +34,29 @@ REUSE=1
 test -f "$PROJ/06_build/netlists/cooksense.net" \
   || { echo "MISSING netlist $PROJ/06_build/netlists/cooksense.net (run the schematic stage first)"; exit 2; }
 
+# MULTI-BOARD SHADOW for generate_rules (v1.2, 2026-07-24): since the interposer
+# design-seal, 04_kicad/ holds TWO .kicad_pro and generate_rules_generic aborts
+# (one-board contract). Mirror the interposer driver's fix: run it in a shadow
+# root holding ONLY the cooksense board files + this board's rules/, copy back.
+RULES_SHADOW="$PROJ/06_build/rules_shadow"
+run_generate_rules () {
+  rm -rf "$RULES_SHADOW"
+  mkdir -p "$RULES_SHADOW/04_kicad" "$RULES_SHADOW/03_src"
+  cp "$PROJ/04_kicad/cooksense.kicad_pcb" "$PROJ/04_kicad/cooksense.kicad_pro" "$RULES_SHADOW/04_kicad/"
+  [ -f "$PROJ/04_kicad/fp-lib-table" ] && cp "$PROJ/04_kicad/fp-lib-table" "$RULES_SHADOW/04_kicad/"
+  cp -r "$PROJ/03_src/cooksense/rules" "$RULES_SHADOW/03_src/rules"
+  $PY "$S/generate_rules_generic.py" "$RULES_SHADOW"
+  cp "$RULES_SHADOW/04_kicad/cooksense.kicad_pro" "$PROJ/04_kicad/cooksense.kicad_pro"
+  [ -f "$RULES_SHADOW/04_kicad/cooksense.kicad_dru" ] && cp "$RULES_SHADOW/04_kicad/cooksense.kicad_dru" "$PROJ/04_kicad/cooksense.kicad_dru"
+  # board file may gain embedded netclass assignments; copy it back too
+  cp "$RULES_SHADOW/04_kicad/cooksense.kicad_pcb" "$PROJ/04_kicad/cooksense.kicad_pcb"
+}
+
 echo "== 1/7 generate_board (placement, track-free) =="
 $PY "$S/generate_board_generic.py" "$FP"
 
-echo "== 2/7 generate_rules (netclasses BEFORE route -- canon R1) =="
-$PY "$S/generate_rules_generic.py" "$PROJ"
+echo "== 2/7 generate_rules (netclasses BEFORE route -- canon R1; shadow) =="
+run_generate_rules
 
 echo "== 3/7 prep (track-free r0 + keepouts incl. ADC GND-via reservations) =="
 $PY "$S/route_and_stitch_generic.py" prep "$RT" --root "$PROJ"
@@ -135,8 +153,8 @@ print(f"post-refill prune: removed {len(kill)} dangling GND via(s) "
 b.Save(sys.argv[1])
 PYPRUNE
 
-echo "== 7/8 generate_rules LAST (pcbnew save clobbers netclasses -- canon R1) =="
-$PY "$S/generate_rules_generic.py" "$PROJ"
+echo "== 7/8 generate_rules LAST (pcbnew save clobbers netclasses -- canon R1; shadow) =="
+run_generate_rules
 
 echo "== 8/8 apply_drc_policy (min_resolved_spokes + cosmetic-silk severities) =="
 $PY "$PROJ/03_src/cooksense/apply_drc_policy.py" "$PROJ"

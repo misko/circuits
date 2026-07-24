@@ -32,11 +32,11 @@ SILK_IGNORE = ["silk_over_copper", "silk_edge_clearance", "silk_overlap",
 def main(argv=None):
     argv = argv if argv is not None else sys.argv[1:]
     root = Path(argv[0]) if argv else Path(".")
-    pros = list((root / "04_kicad").glob("*.kicad_pro"))
-    if len(pros) != 1:
-        sys.exit(f"apply_drc_policy: expected exactly one 04_kicad/*.kicad_pro, "
-                 f"found {len(pros)}")
-    pro = pros[0]
+    # v1.2 (2026-07-24): 04_kicad holds TWO boards since the interposer design-
+    # seal (ADR-0007) — this is the COOKSENSE board script, target it by name.
+    pro = root / "04_kicad" / "cooksense.kicad_pro"
+    if not pro.exists():
+        sys.exit(f"apply_drc_policy: {pro} missing")
     d = json.loads(pro.read_text())
     ds = d.setdefault("board", {}).setdefault("design_settings", {})
     rules = ds.setdefault("rules", {})

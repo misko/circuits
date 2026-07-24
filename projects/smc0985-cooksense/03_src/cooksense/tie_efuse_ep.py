@@ -24,11 +24,11 @@ import pcbnew
 def main(argv=None):
     argv = argv if argv is not None else sys.argv[1:]
     root = Path(argv[0]) if argv else Path(".")
-    pcbs = list((root / "04_kicad").glob("*.kicad_pcb"))
-    pcbs = [p for p in pcbs if not p.name.endswith(".failed")]
-    if len(pcbs) != 1:
-        sys.exit(f"tie_efuse_ep: expected exactly one 04_kicad/*.kicad_pcb, found {len(pcbs)}")
-    board_p = pcbs[0]
+    # v1.2 (2026-07-24): 04_kicad now holds TWO boards (interposer design-seal,
+    # ADR-0007) — this is the COOKSENSE board script, target it by name.
+    board_p = root / "04_kicad" / "cooksense.kicad_pcb"
+    if not board_p.exists():
+        sys.exit(f"tie_efuse_ep: {board_p} missing")
     b = pcbnew.LoadBoard(str(board_p))
     fp = b.FindFootprintByReference("U_EFUSE")
     if fp is None:

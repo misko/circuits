@@ -35,8 +35,8 @@
 #    center 2.475 len 1.95 = [1.50..3.45]; JLC center 2.74 len 1.971 = [1.75..3.73];
 #    overlap 1.70mm/side. The 4.95-vs-5.48 pad1<->16 span = 2x the 0.265mm center
 #    delta; the SOIC gull-wing foot (lead span 6.0) lands inside both.
-- {lcsc: C10092, refs: [U_SR1, U_SR2], status: PAD-GEOM,
-   why: "SOIC-16 pad-length class: ours [1.50..3.45] vs JLC [1.75..3.73] per side, overlap 1.70mm; pitch 1.27 identical, fit non-mirrored. KiCad IPC nominal vs EasyEDA toe-extended."}
+- {lcsc: C10092, refs: [U_SR1], status: PAD-GEOM,
+   why: "SOIC-16 pad-length class: ours [1.50..3.45] vs JLC [1.75..3.73] per side, overlap 1.70mm; pitch 1.27 identical, fit non-mirrored. KiCad IPC nominal vs EasyEDA toe-extended. (v1.2: U_SR2 deleted, ADR-0011 §5.)"}
 - {lcsc: C16939, refs: [U_ADC], status: PAD-GEOM,
    why: "SOIC-16 pad-length class, same measurement as C10092: ours [1.50..3.45] vs JLC [1.75..3.73] per side, overlap 1.70mm; pitch identical, fit non-mirrored."}
 - {lcsc: C5620, refs: [U_DECU, U_DECD], status: PAD-GEOM,

@@ -280,3 +280,8 @@ milled-slot clearance is left to DRC copper_edge_clearance. Harvest-ready.
   bbox envelopes (pcbnew). Netlist/schematic untouched.
 - next: rebuild_all.sh --reroute race; tier_preflight + P-OUT/P-CAP; DRC
   0/0/0; I-ISO re-measure (hard gate >=6.0mm; STOP if the comb cannot make it).
+
+## 2026-07-24 14:30 — iterate (v1.2 electrical part-set repack)
+- did: v1.2 placement: U_SR2 deleted (spot reused for STOP-preemption gate cluster); U_ONESHOT footprint SSOP-8 -> SOIC-16 (CD74HC221) at the same anchor; +30 new parts seeded (7 gates + 7 caps, K_STOP rail cluster, 9 pulls, R_OS2, TP_TCTH); 4 RH pullups + C_SR2 removed. generate_board: 215 parts, 34 pad_net asserts PASS (incl. new K_STOP.1=5V_STOP, U_ONESHOT.13=PRESS_TIMED).
+- result: RACE ATTEMPT 1 all-chain HARD FAIL on 5V_STOP: the legalizer displaced the floating D_KSTOP seed (184.5,63.5 -> 180.2,50.7) INTO the comb column-r11 User.2 keepout — unroutable by construction. MEASURED lesson (extends the v1.1 C_WD/C_ULNB legalizer-ripple entries): a floating part adjacent to the comb can be legalized into a routing-keepout the legalizer does not model; parts whose nets must route in the logic domain but whose seeds sit near the comb must be ANCHORED. Fix: Q_STOPDRV [166,60,0] + D_KSTOP [162,60,0] anchored in the open pocket between U_ONESHOT and U_SCHM (74 anchored). Re-placed: asserts 34 PASS. Race attempt 2 launched (bh366nnzx).
+- next: race winner -> import -> stitch -> DRC. Watch TH_PORT_B (1 stubborn sig edge in attempt 1) and the new SDA_B topology (J_RH_EXHAUST joined the bus).
