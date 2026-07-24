@@ -1,3 +1,5 @@
+> **RESOLVED 2026-07-23 ~21:05** — this resume brief is COMPLETE: cooksense-v1.0-2026-07-23 SEALED (seal efb3cf3, source S 8940715). Live state: 01_docs/STATUS-cooksense.md + CHANGELOG.md. Only Board C (interposer) remains, still deferred.
+
 # RESUME — smc0985-cooksense (multi-board project; MAIN board = cooksense)
 
 **Stopped:** 2026-07-23 ~18:55, mid pre-seal batch, on the Fable-5 session quota (resets 8:10pm PT).
