@@ -16,9 +16,13 @@ python3 "$SKILL/tsx_preflight.py"  "$PROJ"
 bash    "$SKILL/gen_tscircuit.sh"  "$PROJ"
 python3 "$SKILL/count_parity.py"   "$PROJ"
 
-# --- whole board (placement + routing) — enabled once 03_src/generate_board.py
-#     + a promoted 03_src/route/ chain exist (placement/routing stages) ---
-if [ -f "$PROJ/03_src/generate_board.py" ]; then
-  bash "$SKILL/tsx_to_board.sh" "$PROJ"
-fi
+# --- whole board (placement + routing) ---
+# This board's KiCad backend is the GENERIC generator (generate_board_generic +
+# route_and_stitch_generic) driven by 03_src/{floorplan,route,rules}.yaml, not a
+# per-board 03_src/generate_board.py — so the deterministic board driver
+# rebuild_reuse.sh regenerates placement + imports the PROMOTED chain
+# (03_src/route/rv2_final.kicad_pcb) and runs the routing gate. The schematic gate
+# above just regenerated the netlist it consumes, so this whole script reproduces
+# the board 0/0/0 from committed source (03_tscircuit + 03_src). No stochastic KRT.
+bash "$PROJ/03_src/rebuild_reuse.sh"
 echo "rebuild_all: done"

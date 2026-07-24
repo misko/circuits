@@ -309,6 +309,21 @@ design_rules:
 # starved_thermal findings, tracked in journal/routing.md.
 zones:
   - {net: GND, layers: [F.Cu, In1.Cu, In4.Cu, B.Cu], priority: 0, min_thickness: 0.2, clearance: 0.2, connect: thermal}
+  # 5V TRUNK POURS (red-team P1#2, 2026-07-23): the original 5V trunk was 133 x
+  # 0.5mm serial tracks whose ONLY corner->port-bank link threaded THROUGH the
+  # ch2 analog RC cluster (and literally through Cc2P.2's pad while the MID2P
+  # merge was live) — ~0.5mm copper carrying a plausible 2-3A (8 pod-audio legs
+  # + 900mA beeper). Fleet repair pattern: priority-N F.Cu pour patches over the
+  # GND pour. Three rects (distinct priorities — they overlap each other, and
+  # same-net same-priority overlap is a DRC error; unify_zone_priorities also
+  # guards this): a WEST-EDGE spine (clear corridor, ~5mm wide => 5A+), a SOUTH
+  # ARM overlapping the power-corner C_5V cluster pads (the live-copper bond),
+  # and the PORT-BAND rect along the fuse row. Foreign pads/tracks inside are
+  # flowed around by the filler; the existing 0.5mm 5V tracks remain as
+  # parallel redundancy and keep any pour slices bonded.
+  - {net: 5V, layers: [F.Cu], priority: 1, rect: [12.5, 19.5, 17.5, 99.5], min_thickness: 0.2, clearance: 0.2, connect: full}
+  - {net: 5V, layers: [F.Cu], priority: 2, rect: [12.5, 95.0, 44.0, 99.5], min_thickness: 0.2, clearance: 0.2, connect: full}
+  - {net: 5V, layers: [F.Cu], priority: 3, rect: [12.0, 27.0, 174.0, 33.0], min_thickness: 0.2, clearance: 0.2, connect: full}
 
 silk:
   min_text_height: 0.6
@@ -324,6 +339,18 @@ silk:
     # the title in the clear south band, the USB label at J2. (2026-07-23.)
     # NOT-ETHERNET custom pinout warning (required by the brief) — below the ports
     - ["NOT ETHERNET - CUSTOM 5V AUDIO PINOUT", 95.0, 33.0, 0.9]
+    # PER-PORT warning (red-team P1#4, brief G14): the big banner alone left
+    # J3/J4/J5/J9 + the fuse row with no functional label within 8mm. One short
+    # warning under EACH port (y26.3 = ~6mm from the pin rows, ~2.5mm from the
+    # fuse row), caption-nudge finds the exact clear offset per port.
+    - ["NOT ETH 5V!", 25.0, 26.3, 0.55]
+    - ["NOT ETH 5V!", 45.0, 26.3, 0.55]
+    - ["NOT ETH 5V!", 65.0, 26.3, 0.55]
+    - ["NOT ETH 5V!", 85.0, 26.3, 0.55]
+    - ["NOT ETH 5V!", 105.0, 26.3, 0.55]
+    - ["NOT ETH 5V!", 125.0, 26.3, 0.55]
+    - ["NOT ETH 5V!", 145.0, 26.3, 0.55]
+    - ["NOT ETH 5V!", 165.0, 26.3, 0.55]
     - ["1,2=AUDIO+/-  3,6=+5VBEEP/RTN  4,5&7,8=+5VAUD/GND", 30.0, 43.0, 0.6]
     - ["crow-recorder-central-v2  8ch USB audio  C", 92.5, 116.5, 0.8]
     - ["USB-C (host)", 90.0, 127.5, 0.6]

@@ -1,0 +1,26 @@
+# FB_BEEP — power-line ferrite bead on the PLUS5V_BEEP feed (red-team P1#2
+# sub-finding 2026-07-23: the bead was authored generically, "600R 0805", with
+# no committed part/DCR — un-analyzable at 900mA beeper peak).
+mpn: BLM21PG600SN1D
+manufacturer: Murata
+lcsc: C18305
+function: >
+  600 ohm @100MHz power-line ferrite bead, 0805, isolating the beeper 5V feed
+  (PLUS5V_BEEP) from the shared 5V rail (beep switching-edge noise containment).
+package: "0805 (2012 metric)"
+ratings:
+  impedance_100mhz: "600 ohm +/-25%"
+  rated_current: "2.0 A"
+  dcr_max: "0.025 ohm"
+notes:
+  - "PG series = power-line grade: 2.0A rated vs the 200-300mA of signal-grade
+     BLM21 variants — at the 900mA beeper worst-case peak the bead runs at 45%
+     of rating; IR drop 0.9A x 25mohm = 23mV, negligible against the 5V beep
+     budget."
+  - "NO series PTC on the beeper legs (audio legs have F1-F8): a beeper-pin
+     short is cleared only by F_IN (2A input fuse) = whole-board outage. The
+     accepted-risk rationale + the v-next PTC work order live in ADR-0007."
+verified: >
+  Murata BLM21PG600SN1D datasheet (BLM21PG_ series table): 600ohm@100MHz,
+  rated current 2000mA, DCR 25mohm max, 0805. Value/footprint match the tsx
+  authoring (inductor FB_BEEP, '600R@100MHz ferrite bead', 0805). 2026-07-23.

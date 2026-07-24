@@ -34,3 +34,21 @@ AP61102 buck can gate a dependent rail via its PG output (ledger, buck-1a5).
 - Firmware/hardware bring-up order documented for first power.
 - No electrical invariant emitted here beyond the PG wiring net (topology, not
   protection); ADR-0001 carries the protection invariants.
+
+## Amendment 2026-07-23 (red-team P1#1 — U7 EN/mode contradiction)
+The original text claimed "the 3V3 buck uses forced-PWM for cleaner rails
+feeding the analog LDO input" while ALSO tying U7 EN "high through the input"
+(EN=VIN). Per the AP61102 datasheet (02_parts gotchas), EN > VIN-200mV selects
+PFM — the wiring contradicts the forced-PWM claim. The rationale was ALSO
+factually wrong: the analog LDO U10's input is 5V (this ADR's own U10 line),
+not 3V3 — U7's mode does not touch the analog supply path.
+
+CORRECTED POSITION (no netlist change): U7 (3V3 digital) EN stays tied to VIN
+=> PFM at light load, ACCEPTED because (a) 3V3 feeds DIGITAL loads only
+(XU316 IO, PCM1865 DVDD/IOVDD, ~0.5-0.6A typical — the buck sits at/near its
+PFM/PWM crossover under real load anyway); (b) the analog chain (AVDD=3V3A) is
+5V -> U10 LDO, independent of U7's mode; (c) U8 (0V9 core) is genuinely in
+forced-PWM (EN = PG_3V3 = 3.3V < VIN-200mV), which the datasheet gotcha
+documents as the intended sequencing+mode double-duty. If bench bring-up shows
+3V3 PFM ripple coupling into the ADC (not expected via the LDO path), the
+v-next fix is a 2-resistor EN divider (5V -> ~2.5V) putting U7 in forced-PWM.

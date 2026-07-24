@@ -255,3 +255,82 @@
   / the promoted chain 03_src/route/rv2_final.kicad_pcb). NO skills/ edits.
 - HANDOFF: coordinator to independently re-verify (fresh DRC + pcb_toolkit) and
   commit the board + config, then red-team + seal.
+
+## 2026-07-23 — rebuild driver promoted (M-REPRO) + reproduces 0/0/0
+- did: promoted the scratchpad reuse-script to a COMMITTED, canonical board
+  driver 03_src/rebuild_reuse.sh (fleet rebuild_fast pattern): regenerates the
+  board from committed 03_src (floorplan/rules/vendored footprints) + IMPORTS the
+  promoted chain 03_src/route/rv2_final.kicad_pcb (no stochastic KRT), stitch,
+  generate_rules LAST, then the full routing gate (kicad-cli --severity-all
+  --refill-zones --schematic-parity). Copies 03_tscircuit/kicad/<board>.kicad_sch
+  beside the board so --schematic-parity RUNS (was silently skipped before).
+  Wired 03_src/rebuild_all.sh's board stage to call it (schematic gate -> board).
+- parity fix: --schematic-parity surfaced 1 footprint_symbol_field_mismatch — the
+  vendored US8 (U4) footprint carried a `(property "Description" ...)` field the
+  converter symbol lacks. Removed that property (kept the library `(descr ...)`)
+  -> parity 0.
+- RESULT (MEASURED): `bash 03_src/rebuild_reuse.sh` -> ROUTING GATE 0 violations /
+  0 unconnected / 0 parity, from committed source. Reproducible.
+- FLAG for the coordinator (pre-seal, NOT routing, involves FROZEN skills): the
+  FULL 03_src/rebuild_all.sh (which first re-runs the tscircuit schematic gate)
+  does NOT cleanly reproduce — `tsci build` regenerates a DIVERGENT
+  03_tscircuit/kicad/<board>.kicad_sch (2904/2823-line churn, UUID/ordering
+  non-determinism; connectivity stable per count_parity but the file differs, and
+  a fresh sch then shows 9 --schematic-parity field diffs), and the schematic
+  gate's kicad_sch_parity.py crashes (ValueError unpacking, "vs sealed 04_kicad").
+  Both are schematic-stage / skills concerns pre-dating this session. The ROUTING
+  gate reproducer (rebuild_reuse.sh, against the COMMITTED sch) is clean 0/0/0. I
+  restored the committed 03_tscircuit files my one rebuild_all test overwrote.
+
+## 2026-07-23 — P0 FIX PASS (red-team DO-NOT-ORDER): net-merge class fixed at SOURCE
+- ROOT CAUSE (verified, upstream of board config): geometric net merges in the
+  GENERATED converter schematic — `kicad-cli sch export netlist` connects wires
+  whose ENDPOINT touches another wire (T-junction) or that overlap collinearly.
+  TWO instances found (red-team caught one; my new gate caught the other):
+  1. P5VA_4 -> AUDIO4M (the reported P0): the vertical P5VA_4 wire
+     (280.67,136.525)->(280.67,153.035) passed EXACTLY through (280.67,147.955),
+     the junction endpoint of the AUDIO4M wires. Merged net took the name
+     AUDIO4M -> port-4 +5V pins (J6.4/J6.7/F4.2) landed on ch4 audio-minus.
+  2. MID2P -> 5V (NEW, red-team MISSED it): the 5V tree's wire
+     (244.475,327.66)->(255.27,327.66) ran COLLINEAR-overlapping the MID2P wire
+     along y=327.66 -> ch2 positive RC mid-node DC-shorted to the 5V rail
+     (Cc2P.2/Rs2P.1 were in net 5V; the 5V trunk even ROUTED THROUGH Cc2P.2's
+     pad as a via point on the board).
+  Why every gate stayed green: ERC/DRC/count_parity are all SELF-consistent
+  with the merged netlist; nothing compared label intent vs exported nets.
+- FIXES:
+  * Schematic (03_tscircuit/kicad/*.kicad_sch, the committed pinned artifact —
+    tsci regeneration is non-deterministic, so repaired in place, minimal +
+    journaled): dogleg 1 — P5VA_4 vertical moved to x=281.94 (checked: no
+    foreign endpoint/label on the new segments; mid-wire crossings don't
+    connect). dogleg 2 — 5V approach jogged to y328.93/x245.745 clearing the
+    MID2P line. ERC 0 errors after both.
+  * NEW GATE (the can-never-pass-silently mechanism, wired into
+    03_src/rebuild_reuse.sh step 0): 03_src/check_port_nets.py — (a) LABEL
+    SURVIVAL: every schematic global_label name must exist as a netlist net
+    (catches ANY geometric merge/swallow, any net: this is the check that
+    found MID2P); (b) 8-port pin-for-pin map per the brief (J*.1/2=AUDIO±,
+    3=PLUS5V_BEEP, 6=BEEP_RETURN, 4/7=P5VA_n, 5/8=GND, 9-12 NC). The driver
+    now also exports the netlist from the COMMITTED sch (deterministic) before
+    generate_board. PASS = 115/115 labels, 8/8 ports.
+  * Chain surgery (03_src/route/rv2_final.kicad_pcb, every segment
+    pcb_toolkit-verified): PORT 4 — deleted the merged 30-item AUDIO4M tree;
+    re-added the audio branch with 2 A* dodges (old route passed THROUGH
+    F4.2's and J6.4's pads); added P5VA_4 as the P5VA_5 route shifted x-20
+    (ports are on a 20mm pitch) + A* leg; rebound F4.2/J6.4/J6.7. CH 2 —
+    deleted the 5V through-cluster path + redundant spur; rebound
+    Cc2P.2/Rs2P.1 to new net MID2P; routed MID2P pad->In3-window->via(70.60,
+    66.45)->In2 freed corridor->Rs2P.1's converted via (A* refused, manual
+    lane found: the cluster is walled by ADC3P/LRCK/3V3A/3V3-B.Cu). TRUNK —
+    the deletions severed the ONLY 5V link between the power corner and the
+    entire port-bank distribution (100-item island: F1-F8, U10, FB_BEEP —
+    the old trunk ran through Cc2P.2's pad, confirming red-team P1#2's
+    fragile-trunk finding); reconnected via verified A* (66.10,74.50)->
+    (79.10,62.80) at 0.50mm avoiding the cluster.
+  * route.yaml: P5VA_4 added to the pwr wave (was missing — same-bug symptom).
+- RESULT (MEASURED): rebuild_reuse.sh -> check_port_nets PASS + ROUTING GATE
+  0 violations / 0 unconnected / 0 parity, from committed source.
+- SKILL FLAG (frozen, for the coordinator): the converter
+  (circuit_json_to_kicad_sch.py) needs a wire-crossing invariant — never emit
+  a wire endpoint ON a foreign wire, nor collinear overlaps (the schwriter2
+  canon S2/T-junction hazards, now observed twice from the tscircuit path).

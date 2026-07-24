@@ -51,7 +51,7 @@ prep:
         ]
       pwr: [
           5V, VIN_RAW, JACK_IN, 3V3, 0V9, 1V8, 3V3A, PLUS5V_BEEP,
-          P5VA_1, P5VA_2, P5VA_3, P5VA_5, P5VA_6, P5VA_7, P5VA_8,
+          P5VA_1, P5VA_2, P5VA_3, P5VA_4, P5VA_5, P5VA_6, P5VA_7, P5VA_8,
           SW1, SW2, PG_3V3, BEEP_RETURN
         ]
       sig: rest
