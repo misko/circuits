@@ -730,3 +730,14 @@ NOT yet rebuilt. All other source staged. No git touched.
   (52 BOM lines vs circuit.json + vendored + ledger). jlc_twin EXIT 0:
   121 OK / 353 checked, MIRRORED/PAD-GEOM all adjudicated, POLARITY-CHECK
   -> order-preview checklist.
+
+## 2026-07-24 — finish (v1.1 verify + fresh lens)
+- did: staged cooksense-v1.1-2026-07-24; scoped re-verify (carried v1.0
+  pin/render reviews with provenance; netlist byte-identical proof); fresh
+  zero-context lens with explicit comb review.
+- result: LENS VERDICT ORDER — 0 P0 / 0 P1 / 6 P2 (all Accept-with-note,
+  dispositions closed). Independent creepage 6.120mm (K_D1 intra-relay,
+  converges with audit 6.12); keypad->fill 6.63mm; 12 slots verified; pitch
+  15.24 x11 exact, anti-parallel coils confirmed. Archived verbatim in
+  08_reviews/2026-07-24_v1.1_fresh_lens.md.
+- next: 2-commit seal.

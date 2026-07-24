@@ -1,9 +1,9 @@
 # STATUS beacon — cooksense MAIN board (live head; overwritten each transition)
 <!-- reader parses from here down -->
-stage:   v1.1-floorplan
-step:    "v1.1 iterate 3: race relaunched (C_SWB fenced in prior realization); C_ULNB stub + ripple pins committed"
-measure: "reuse rebuild in stitch (split_t_junctions); log 06_build/rebuild_reuse.log"
+stage:   SEALING
+step:    "v1.1 fresh lens ORDER (0 P0/0 P1/6 P2 dispositioned). Source commit S -> MANIFEST stamp -> seal."
+measure: "lens creepage 6.120mm independent; all gates green"
 state:   working
-op_pid:  1591634
+op_pid:  none
 next:    "rebuild_all.sh --reroute race -> tier_preflight/P-OUT/P-CAP -> DRC 0/0/0 -> I-ISO measure"
-updated: 2026-07-24T00:52:03
+updated: 2026-07-24T02:40:08

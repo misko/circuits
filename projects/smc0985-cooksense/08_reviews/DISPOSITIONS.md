@@ -27,3 +27,9 @@ for the unkeyed 5-pin GH family (#6, #7); KEY_RESET_N floats during Pi boot —
 R_OE holds 595 outputs disabled, low risk, bring-up note (pin review minor);
 self-supplied DO-NOT-SUBSTITUTE table (reed DIP05-1A72-12L ×12 + PCC-SMP-K);
 order-day stock rechecks (C2653844=160, C89650=244, C587657=778, C16939=223).
+| 12 | v1.1 fresh lens P2-1: comb creepage floor 6.120mm intra-relay (0.12mm over spec) | Accept-with-note — floor fixed by the DIP05 footprint (same as sealed v1.0); cannot erode (DRC deny comb). Future spec-tightening note. | 2026-07-24_v1.1_fresh_lens.md; v1.1 verification/dispositions.md #1 |
+| 13 | v1.1 fresh lens P2-2: east-end pocket lacks a south slot (asymmetry) | Accept-with-note — 6.63mm measured at the east mouth; slot skipped for edge-web integrity (<3mm to edge); lens: passes as-is | v1.1 verification/dispositions.md #2 |
+| 14 | v1.1 fresh lens P2-3: CPL carries 14 hand-solder rows -> JLC preview warning | ORDER_README Assembly row: expect and IGNORE; do not let JLC fix | v1.1 verification/dispositions.md #3 |
+| 15 | v1.1 fresh lens P2-4: ERC 1169 warnings / 0 errors (generated schematic) | Accept — compensating gates E-INV/count_parity/label-survival/netlist-identity | v1.1 verification/dispositions.md #4 |
+| 16 | v1.1 fresh lens P2-5: volatile stock (F1 244; C25744 fell 192k->12.6k/day) | ORDER_README §3 order-day recheck MANDATORY + 10k substitute class listed | v1.1 verification/dispositions.md #5 |
+| 17 | v1.1 fresh lens P2-6: netlist-identity claim documentation | Documented (semantic_battery.txt byte-diff + parity.md) — licenses the scoped re-verify | v1.1 verification/dispositions.md #6 |
