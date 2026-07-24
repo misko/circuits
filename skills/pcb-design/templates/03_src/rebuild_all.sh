@@ -30,8 +30,13 @@ kicad-cli sch erc --severity-all --exit-code-violations "04_kicad/$BOARD.kicad_s
 # [3] board (placement + zones) from floorplan.yaml  [SHARED]
 $PY "$S/generate_board_generic.py" 03_src/floorplan.yaml -o "04_kicad/$BOARD.kicad_pcb"
 
-# [4] placement/pad invariants  [per-board gate]
+# [4] placement/pad invariants  [per-board gate + SHARED placement gates]
 $PY 03_src/audit_board.py
+# P-OUT pads-inside-outline + P-CAP corridor crossing-demand vs capacity —
+# the two checks the cooksense routing D-BACK (2026-07-23, ~13h) proved were
+# missing statically. Config 03_src/placement_gates.json is OPTIONAL
+# (missing file = defaults); waivers live inside it, evidence required.
+$PY "$S/placement_gates.py" "04_kicad/$BOARD.kicad_pcb" --config 03_src/placement_gates.json
 
 # [5] netclasses BEFORE route-prep (canon R1)  [SHARED]
 $PY "$S/generate_rules_generic.py" .
