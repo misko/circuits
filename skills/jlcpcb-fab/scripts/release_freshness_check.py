@@ -23,6 +23,34 @@ Motivating incident (usb-hub-3s-v3 v1.2, 2026-07-23 — a redesigned board):
       ("> DRAFT for the v1.2 seal", "fold its verdict in before seal") — a
       pre-seal staging document, not the final order document.
 
+Second motivating incident (crow-recorder-central-v2 v1.0, 2026-07-23 —
+found 2026-07-24, AFTER sealing):
+
+  (d) MANIFEST SELF-INCONSISTENCY. The manifest's human-readable gate
+      summary disagreed with the machine evidence it SHIPS, three ways at
+      once, and no gate caught any of them:
+        - MANIFEST said "ERC 0 errors (1409 baselined warnings)" while the
+          bundled verification/policy_audit.md said "S-ERC PASS 0 errors
+          (1215 warnings)" (the bundled erc.json measures 1409 — the audit
+          row was the stale one);
+        - MANIFEST said "bom_source_check PASS (48 lines...)" while
+          fab/bom.csv actually carries 49 data rows;
+        - verification/bom_source_check.txt named
+          "07_releases/v1.0-2026-07-23/fab/bom.csv" — a directory that is
+          NOT this release's sealed name
+          (crow-recorder-central-v2-v1.0-2026-07-23): the evidence was
+          produced against a staging path and never re-pointed.
+      Check (b) compares only the policy_audit RESULT, and the stale check
+      compares only bytes across releases — prose counts and embedded paths
+      had no gate. Check (d) closes that: any COUNT the MANIFEST states
+      that is also present in shipped evidence must MATCH (ERC errors /
+      warnings across MANIFEST, policy_audit.md's S-ERC row, and erc.json;
+      bom_source_check's claimed line count vs fab/bom.csv's actual data
+      rows), and any 07_releases/<dir>/ path embedded in verification
+      evidence must name THIS release's directory (or an EXISTING sibling
+      release — diffing against a real predecessor is legitimate). A count
+      the MANIFEST does not state is not checked: absence != mismatch.
+
 Usage:
     release_freshness_check.py <release_dir> [--releases-root DIR]
                                [--allow-identical RELPATH ]...
@@ -310,6 +338,156 @@ def check_draft_readme(release_dir):
     return fails
 
 
+# --------------------------------------------------------------- check (d)
+def _erc_claim(text, near=r"\bERC\b"):
+    """(errors, warnings) stated in `text` near an ERC mention (`near` is a
+    regex); either may be None if not stated. Parses tolerantly: '0 errors
+    (1409 baselined warnings)', '0 errors (1215 warnings)', '0 errors / 12
+    warnings' — the warning count is the LAST number before 'warning', with
+    at most one qualifier word ('baselined') between."""
+    m = re.search(near + r"[^\n]{0,120}", text)
+    if not m:
+        return None, None
+    seg = m.group(0)
+    e = re.search(r"(\d+)\s+error", seg)
+    w = re.search(r"(\d+)(?:\s+[A-Za-z-]+)?\s+warning", seg)
+    return (int(e.group(1)) if e else None,
+            int(w.group(1)) if w else None)
+
+
+def _erc_measured(erc_json_path):
+    """(errors, warnings) actually recorded in the shipped erc.json, or None
+    per field when it is no evidence for that field — file absent/unreadable,
+    or the severity was NOT in the run's `included_severities` (an
+    errors-only erc.json measures nothing about warnings: cooksense v1.0
+    ships exactly that, and a 0 read off it would be a false mismatch)."""
+    if not erc_json_path.is_file():
+        return None, None
+    try:
+        import json
+        d = json.loads(erc_json_path.read_text())
+    except Exception:
+        return None, None
+    counts = {"error": 0, "warning": 0}
+    for sheet in d.get("sheets", []):
+        for v in sheet.get("violations", []):
+            sev = v.get("severity")
+            if sev in counts:
+                counts[sev] += 1
+    included = d.get("included_severities")
+    if included is not None:
+        for sev in list(counts):
+            if sev not in included:
+                counts[sev] = None
+    return counts["error"], counts["warning"]
+
+
+def _bom_data_rows(bom_csv_path):
+    """Actual data-row count of fab/bom.csv (rows minus the header), or None
+    if absent. csv-parsed so quoted multi-refdes cells count as ONE row."""
+    if not bom_csv_path.is_file():
+        return None
+    import csv
+    with bom_csv_path.open(newline="") as f:
+        rows = [r for r in csv.reader(f) if any(c.strip() for c in r)]
+    return max(len(rows) - 1, 0)
+
+
+def _manifest_bom_lines(manifest_text):
+    """Line count the MANIFEST's bom_source_check summary claims
+    ('bom_source_check PASS (48 lines, ...)'), or None if not stated."""
+    m = re.search(r"bom_source_check[^\n(]*\((\d+)\s+lines", manifest_text)
+    return int(m.group(1)) if m else None
+
+
+def _count_disagreement(label, stated):
+    """One FAIL line if the non-None values in `stated` (list of
+    (source, value)) disagree; else None. Absence is never a mismatch."""
+    have = [(src, v) for src, v in stated if v is not None]
+    if len({v for _, v in have}) <= 1:
+        return None
+    vals = ", ".join(f"{src}={v}" for src, v in have)
+    return (f"  MANIFEST/EVIDENCE MISMATCH: {label} disagrees across the "
+            f"bundle ({vals}) — the manifest's gate summary must match the "
+            f"machine evidence it ships")
+
+
+# 07_releases/<dir>/... references inside verification evidence. The dir
+# component must look version-ish (contain v<digit>) so prose like
+# '07_releases/.../source/x' or '07_releases/contracts.md' never matches.
+_RELPATH_RE = re.compile(
+    r"07_releases/((?=[^/\s`'\")\]]*v\d)[^/\s`'\")\]]+)/")
+
+
+def check_manifest_consistency(release_dir, releases_root):
+    """(d) the MANIFEST's human-readable gate summary must not disagree with
+    the machine evidence shipped alongside it, and evidence must not embed a
+    release path that is not this release."""
+    fails = []
+    manifest = release_dir / "MANIFEST.txt"
+    mt = manifest.read_text() if manifest.is_file() else ""
+
+    # -- ERC counts: MANIFEST vs policy_audit S-ERC row vs erc.json
+    stated_e, stated_w = [], []
+    if mt:
+        e, w = _erc_claim(mt)
+        stated_e.append(("MANIFEST", e))
+        stated_w.append(("MANIFEST", w))
+    audit = release_dir / "verification" / "policy_audit.md"
+    if audit.is_file():
+        row = re.search(r"^\s*\|\s*S-ERC\s*\|[^\n]*", audit.read_text(), re.M)
+        if row:
+            e, w = _erc_claim(row.group(0), near=r"^")
+            stated_e.append(("policy_audit.md S-ERC", e))
+            stated_w.append(("policy_audit.md S-ERC", w))
+    me, mw = _erc_measured(release_dir / "verification" / "erc.json")
+    stated_e.append(("erc.json", me))
+    stated_w.append(("erc.json", mw))
+    for label, stated in (("ERC error count", stated_e),
+                          ("ERC warning count", stated_w)):
+        f = _count_disagreement(label, stated)
+        if f:
+            fails.append(f)
+
+    # -- BOM line count: MANIFEST claim vs fab/bom.csv actual data rows
+    claimed = _manifest_bom_lines(mt)
+    actual = _bom_data_rows(release_dir / "fab" / "bom.csv")
+    if claimed is not None and actual is not None and claimed != actual:
+        fails.append(
+            f"  MANIFEST/EVIDENCE MISMATCH: MANIFEST claims bom_source_check "
+            f"checked {claimed} lines but fab/bom.csv carries {actual} data "
+            f"row(s) — the manifest's gate summary must match the BOM it "
+            f"ships")
+
+    # -- release paths embedded in verification evidence must name THIS
+    #    release's directory (or an existing sibling — diffing a real
+    #    predecessor is legitimate), never a staging/shortened path.
+    ver = release_dir / "verification"
+    if ver.is_dir():
+        for f in sorted(ver.glob("*")):
+            if f.suffix not in (".txt", ".md") or not f.is_file():
+                continue
+            try:
+                text = f.read_text()
+            except UnicodeDecodeError:
+                continue
+            seen = set()
+            for m in _RELPATH_RE.finditer(text):
+                name = m.group(1)
+                if name in seen or name == release_dir.name:
+                    continue
+                seen.add(name)
+                if (releases_root / name).is_dir():
+                    continue  # a real sibling release — legitimate reference
+                fails.append(
+                    f"  EVIDENCE PATH MISMATCH: verification/{f.name} names "
+                    f"'07_releases/{name}/' but this release's directory is "
+                    f"'{release_dir.name}' (and no such sibling release "
+                    f"exists) — the evidence was produced against a "
+                    f"staging/foreign path, not this sealed archive")
+    return fails
+
+
 # ------------------------------------------------------------------- main
 def main(argv=None):
     ap = argparse.ArgumentParser(description="release-artifact freshness gate")
@@ -333,6 +511,7 @@ def main(argv=None):
     ap.add_argument("--_disable-stale", action="store_true")
     ap.add_argument("--_disable-audit-manifest", action="store_true")
     ap.add_argument("--_disable-readme", action="store_true")
+    ap.add_argument("--_disable-manifest-consistency", action="store_true")
     args = ap.parse_args(argv)
 
     release_dir = Path(args.release_dir).resolve()
@@ -379,6 +558,8 @@ def main(argv=None):
         fails += check_audit_manifest(release_dir)
     if not args._disable_readme:
         fails += check_draft_readme(release_dir)
+    if not args._disable_manifest_consistency:
+        fails += check_manifest_consistency(release_dir, releases_root)
 
     for n in notes:
         print(n)
