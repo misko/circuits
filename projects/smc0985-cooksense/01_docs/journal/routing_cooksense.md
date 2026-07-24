@@ -720,3 +720,13 @@ NOT yet rebuilt. All other source staged. No git touched.
   = 0 violations / 0 unconnected / 0 parity (MEASURED, drc_v11i).
 - next: M-REPRO second deterministic rebuild; then semantic battery + twin +
   I-ISO measure + scoped verify.
+
+## 2026-07-24 — gate battery (v1.1)
+- M-REPRO: 2nd deterministic rebuild re-measured DRC 0/0/0. AUDIT PASS:
+  I-ISO 6.12mm track-aware (selftest RED-capable -0.10mm), I-OUT 0.35mm,
+  P-OUT 0.30mm, P-CAP 0.21. Semantic: E-INV 17/17, E-ADR OK, count_parity
+  191x4, net_label_survival 155/155, netlist byte-identical to the v1.0
+  release source (licenses the scoped re-verify). bom_source_check PASS
+  (52 BOM lines vs circuit.json + vendored + ledger). jlc_twin EXIT 0:
+  121 OK / 353 checked, MIRRORED/PAD-GEOM all adjudicated, POLARITY-CHECK
+  -> order-preview checklist.
