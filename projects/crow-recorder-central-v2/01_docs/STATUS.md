@@ -9,10 +9,10 @@ Read by `skills/kicad-pcb/scripts/pcb_status.py`. Everything below the fence is
 `key: value` (one per line); `#` lines and blanks are ignored by the reader.
 
 <!-- reader parses from here down -->
-stage:   routing
-step:    "ROUTING GATE GREEN + committed (coordinator 3bee9ec). M-REPRO done: promoted committed board driver 03_src/rebuild_reuse.sh (fleet rebuild_fast pattern; regenerates from committed 03_src + imports promoted chain rv2_final.kicad_pcb, no stochastic KRT), which REPRODUCES 0/0/0 from committed source. Fixed 1 --schematic-parity field mismatch (removed US8 footprint Description property)."
-measure: "rebuild_reuse.sh -> ROUTING GATE 0 violations / 0 unconnected / 0 parity, from committed source (kicad-cli --severity-all --refill-zones --schematic-parity). Full 79/8 -> 0/0 achieved earlier this session."
-state:   done
-next:    "M-REPRO reproducer delivered. FLAG for coordinator (pre-seal, NOT routing, frozen skills): full rebuild_all.sh does not cleanly reproduce — tsci regenerates a divergent .kicad_sch (UUID churn) + kicad_sch_parity.py crashes; schematic-stage concern. New/changed for commit: 03_src/rebuild_reuse.sh, 03_src/rebuild_all.sh, US8 footprint Description-property removal. All projects/-scoped, NO skills/ edits. git left to coordinator."
+stage:   verify
+step:    "P0 fix RE-VERIFIED from committed source + P1 set closed: check_port_nets 115/115 + 8/8, DRC 0/0/0, E-INV 7/7, count_parity 194x4, policy_audit 0 FAIL (3 evidence-backed waivers), audit_board P-POL/P-KEEP new gate red-tested, ADR-0007 finalized (pod waiver carried), 08_reviews archived."
+measure: "gate.json 2026-07-23T18:10 — 0/0/0; policy_audit PASS=21 WAIVED=3 HUMAN=6"
+state:   working
+next:    "Commit green state -> stage 07_releases/v1.0-2026-07-23 (fab package, twin, renders, PDFs) -> one zero-context fresh lens -> harvest ledger -> 2-commit seal."
 op_pid:
-updated: 2026-07-23T16:00:00
+updated: 2026-07-23T18:25:00

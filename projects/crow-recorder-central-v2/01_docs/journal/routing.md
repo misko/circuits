@@ -334,3 +334,46 @@
   (circuit_json_to_kicad_sch.py) needs a wire-crossing invariant — never emit
   a wire endpoint ON a foreign wire, nor collinear overlaps (the schwriter2
   canon S2/T-junction hazards, now observed twice from the tscircuit path).
+
+## 2026-07-23 — P0 FIX RE-VERIFIED from committed source + P1 set closed (pre-seal)
+- did: resumed from WIP 8017400 (killed mid-rebuild = untrustworthy). Kept the
+  uncommitted route.yaml change (unify_zone_priorities removed from the pass
+  list — verified against usb-hub-3s-v3's SEALED route.yaml, which runs the
+  same F.Cu-GND-board-wide + cross-net patch-pour pattern with that pass
+  absent) and re-ran 03_src/rebuild_reuse.sh clean.
+- RESULT (MEASURED): check_port_nets PASS — 115/115 labels survive to the
+  netlist, 8/8 ports pin-for-pin; ROUTING GATE 0 violations / 0 unconnected /
+  0 parity (gate.json 2026-07-23 18:10). Semantic battery: E-INV 7/7,
+  E-TOPO 2/2 rails PASS (trunk over-built advisory: declared 1.6A vs derived
+  0.7A — intentional, the raw pod-5V distribution rides the same trunk),
+  count_parity 194==194 x4 (board/circuit.json/kicad_sch/netlist vs manifest).
+- P1 closure (each measured):
+  * U7 PFM: ADR-0005 amendment (committed at 8017400) — honest correction,
+    no netlist change, v-next EN-divider recorded.
+  * 5V ampacity/netclass: 159 5V segments ALL 0.5mm + 3 F.Cu pour patches
+    (119+332+693=1144mm2); final 04_kicad .kicad_pro carries 6 netclasses
+    (PWR_IN 0.5 / PWR 0.4 / SWITCH_NODE 0.35 / ANALOG_IN 0.25 / CLOCK 0.25).
+    Beep-bus PTC: deferred per ADR-0007 v-next (FB_BEEP is a bead, not
+    protection — documented).
+  * Spans: P-ADJ's whole-net bbox conflates fan-out with local adjacency;
+    re-measured each budget's true subject (Rg->Q2 gate 5.0mm; Cout_U9->U9.5
+    4.7mm; Cin_U9->U9.1 4.2mm; VIN_RAW input section 16.9mm all-0.5mm;
+    QSPI_CLK 37.6mm ~0.24ns flight, timing-benign) -> evidence-backed
+    waivers in 03_src/rules/policy_waivers.yaml.
+  * NOT-ETH silk: 8x per-port "NOT ETH 5V!" + banner verified ON the rebuilt
+    board (pcbnew, F.Silkscreen, x=25..165).
+  * ADR-0007 finalized: USER waiver carried from pod-v2 ADR-0005 with an
+    explicit material-difference check (pod was P0 zero-impedance into an
+    op-amp; here P1 through per-port PTCs + 8x silk -> equal-or-lesser).
+- NEW GATE: 03_src/audit_board.py (P-POL/P-KEEP artifact, pod-v2 pattern) —
+  19 polarity facts (pins J1 center-positive, D1 band, Q1 D->S GUARD, Q2
+  low-side, both bucks, both LDOs) + 11 connector mate/keepout checks; PASS.
+  RED-TESTED: swapped D1 fact -> FAIL(1) printed, nonzero exit.
+- policy_audit: 0 FAIL (PASS=21, WAIVED=3 evidence-backed, HUMAN=6 -> graded
+  by the release reviews). R-THERM waiver: U1 EP is served by 16
+  footprint-embedded 0.3mm PTH thermal pads (4x4 grid, measured) — checker
+  counts only PCB_VIA objects; blind spot, not a missing heat path.
+- 08_reviews/ populated: reconstructed red-team review (provenance note —
+  verbatim text lost to the quota kill; findings from contemporaneous
+  records) + DISPOSITIONS.md ledger (2 P0 fixed, 5 P1 dispositioned, 1
+  refuted-GUARD).

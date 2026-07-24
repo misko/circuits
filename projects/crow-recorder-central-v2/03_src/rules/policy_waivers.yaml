@@ -1,0 +1,57 @@
+# crow-recorder-central-v2 policy waivers — each evidence-backed (canon M4).
+# Numbers below are MEASURED on the 2026-07-23 rebuilt board (rebuild_reuse.sh,
+# DRC 0/0/0), not inherited from any sibling.
+
+- id: S-OCCL
+  refs: ["03_tscircuit/kicad/crow_recorder_central_v2.kicad_sch"]
+  why: >
+    The 64 occlusions are net-label vs reference/value overlaps in the
+    tscircuit CONVERTER .kicad_sch (circuit_json_to_kicad_sch.py output). Per
+    the 03_tscircuit contract + ADR-0002 that file is the MACHINE artifact
+    only (ERC / netlist / --schematic-parity; "need not be pretty"). The HUMAN
+    schematic this board ships is tscircuit's own collision-free render
+    (03_tscircuit/build/schematic.pdf -> release pdf/schematic.pdf), graded by
+    the fresh-context review (S6). Same waiver class as sealed
+    crow-mic-pod-v2. Readability is NOT waived — it is graded on the shipped
+    render, not on the converter sheet.
+
+- id: P-ADJ
+  refs: ["03_src/floorplan.yaml", "04_kicad/crow_recorder_central_v2.kicad_pcb"]
+  why: >
+    P-ADJ grades the WHOLE-NET pad-span bbox; for rail/drive nets that span
+    conflates board-wide fan-out with the datasheet's LOCAL-adjacency intent.
+    Each flagged net re-measured (pcbnew, pad-centre to pad-centre,
+    2026-07-23) against what its layout: budget actually protects:
+    (1) BEEP_GATE 101.1mm — that is the U1.122 -> R_bg1 DRIVE line; the
+    budget's subject (Rg+Cgs local to the FET gate so the slow edge is
+    defined at the pin) IS met: R_bg1.2 -> Q2.1 = 5.0mm, RC at the gate.
+    A slow (audio-rate) beeper enable, not a switching gate drive.
+    (2) VIN_RAW 12.1mm — raw-input section J1 -> F_IN -> D1 -> Q1 measures
+    16.9mm end-to-end, routed entirely at 0.5mm (7 segments, measured);
+    D1 clamp sits 6.7mm from Q1.3. Short/wide intent met at input scale.
+    (3) 1V8 114.4mm — the net feeds U1 pins 35/56 + JTAG board-wide; the
+    budget's subject (Cout hard to U9 VOUT for LDO phase stability) is
+    Cout_U9.1 -> U9.5 = 4.7mm, within a cap-footprint of the 4.0mm target;
+    TCR2LF18 is stable with 1uF X5R over wide ESR (datasheet stability
+    graph), 0.7mm of extra trace ESL is immaterial at the LDO's bandwidth.
+    (4) 3V3 163.7mm — rail fan-out to 25+ decouplers; the budget's subject
+    (Cin hard to U9 VIN) is Cin_U9.1 -> U9.1 = 4.2mm. Each load pin keeps
+    its own local decoupler (S7 graded in review).
+    (5) QSPI_CLK 37.6mm > 25.0mm — point-to-point U1.4 -> U5.6, routed,
+    DRC-clean, CLOCK class. Flight time ~0.24ns (~6.35ps/mm); W25Q16JV
+    clock-to-output tV = 6ns max; at the XU316 QSPI flash clock (<=100MHz,
+    10ns period) round-trip 0.48ns + tV leaves >3ns of window. Over-budget
+    length is timing-benign; re-placing U5 against the routed 6-layer board
+    is not worth the re-route risk.
+
+- id: R-THERM
+  refs: ["04_kicad/crow_recorder_central_v2.kicad_pcb",
+         "03_src/lib (vendored XU316 footprint)"]
+  why: >
+    Flagged pad U1.129(0) is the XU316 4.7x4.7mm GND EP. The checker counts
+    only PCB_VIA track objects near the pad; this footprint instead carries
+    its thermal relief AS FOOTPRINT PADS — 16 co-numbered 0.3mm PTH pads in
+    a 4x4 grid (measured: x 88.35..91.65, y 100.35..103.65, all net GND,
+    attr PTH) inside the EP, tying it to the In1 GND plane. The pad is
+    served by 16 plated thermal holes; the "0 vias" is a checker blind spot
+    for footprint-embedded thermal holes, not a missing heat path.

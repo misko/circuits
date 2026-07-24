@@ -141,12 +141,24 @@ stitch:
   via: {spacing: 0.6, pth_margin: 0.3,
         tiers: [{size: 0.30, drill: 0.15, hole_to_copper: 0.155}]}
   keepin: {inset: 0.8}
+  # unify_zone_priorities REMOVED from the pass list (2026-07-23, P1#2 pours):
+  # that pass hard-refuses ANY cross-net zone-outline overlap as a suspected
+  # short, but this board now carries the DELIBERATE fleet pour-patch pattern —
+  # three 5V F.Cu trunk rects (floorplan.yaml, priorities 1/2/3) over the
+  # priority-0 board-wide F.Cu GND pour, which KiCad resolves legally by fill
+  # priority (higher fills first, GND flows around it at clearance). Precedent:
+  # usb-hub-3s-v3 SEALED with the same cross-net VBAT/VIN/SW-over-GND patches
+  # and the same pass absent from its list. Nothing is un-gated by the removal:
+  # the pass is an opt-in same-net-same-priority AUTO-FIXER (our 5V rects carry
+  # distinct priorities by construction, so its fix class is absent), and the
+  # kicad-cli DRC gate at --severity-all --refill-zones remains the authority
+  # on zones_intersect AND real copper shorts. Harvest note (skills, later):
+  # the pass wants an allow_cross_net config knob.
   passes: [seed_stubs, dedupe_vias, normalize_vias, drop_micro_fragments,
            drop_dangling, split_t_junctions, width_floor, reload, hole_to_hole,
            pad_rescue, stub_fallback, astar_fallback, stitch_grid, fill,
-           island_rescue, fill, unify_zone_priorities, heal_islands,
+           island_rescue, fill, heal_islands,
            prune_stitch_dangling, gate]
-  unify_zone_priorities: {min_bbox: 0.8}
   dedupe_vias: {radius: 0.5, metric: box}
   # size/drill EXPLICIT (this block is NOT tier-derived — derive=False in
   # _stitch_tier_geometry, it only validates explicit values against the

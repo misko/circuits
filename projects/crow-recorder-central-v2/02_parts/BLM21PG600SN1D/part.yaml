@@ -8,6 +8,9 @@ function: >
   600 ohm @100MHz power-line ferrite bead, 0805, isolating the beeper 5V feed
   (PLUS5V_BEEP) from the shared 5V rail (beep switching-edge noise containment).
 package: "0805 (2012 metric)"
+pins:  # 2-pad non-polar bead — no pinout to mirror (S-VER 2-pad class)
+  1: "terminal (5V side)"
+  2: "terminal (PLUS5V_BEEP side)"
 ratings:
   impedance_100mhz: "600 ohm +/-25%"
   rated_current: "2.0 A"

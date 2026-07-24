@@ -1,7 +1,19 @@
 ---
 id: 0007
 date: 2026-07-23
-status: accepted-risk
+status: accepted
+decided_by: >
+  USER waiver carried from the sibling: crow-mic-pod-v2 ADR-0005 (decided_by
+  USER, A1) accepted this exact hazard class — PoE Alt-B injection on RJ45
+  contacts 4/5(+)/7/8(-) of the pair's custom 5V pinout — for the SAME closed,
+  owner-cabled deployment. The RESUME/fix-pass directive orders the same
+  posture here. Material-difference check (2026-07-23): this board's exposure
+  is NOT worse than the pod's — the pod took 48V straight into an op-amp V+
+  with ZERO series impedance (rated P0); here the path runs through a per-port
+  PTC into the 5V rail (rated P1 by the same red-team), and this board adds
+  per-port "NOT ETH 5V!" silk at all 8 jacks + the banner, which the pod
+  could not fit. Same class, same deployment, equal-or-lesser severity ->
+  the pod waiver's scope covers it.
 ---
 # 0007 — PoE-injector backfeed + unfused beeper legs (accepted risk)
 

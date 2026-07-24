@@ -1,0 +1,15 @@
+# Dispositions ledger — crow-recorder-central-v2
+
+Review files in this folder; one row per finding. Severity per SKILL.md
+stage 7 (P0 blocks, P1 -> ORDER_README + next-rev, P2 recorded).
+
+| id | review file | finding (one line) | severity | verification | disposition |
+|---|---|---|---|---|---|
+| RT1-P0-1 | 2026-07-23_pre-v1.0_redteam_integrated.md | P5VA_4 merged into AUDIO4M at netlist export (port 4 loses +5V) | P0 | confirmed (netlist: J6.4/J6.7/F4.2 in AUDIO4M; wire through junction (280.67,147.955)) | fixed — schematic dogleg + chain surgery + check_port_nets gate (WIP 8017400; re-verified 2026-07-23: 115/115 labels, 8/8 ports, DRC 0/0/0) |
+| RT1-P0-1b | (found during fix, same class) | MID2P collinear-merged into 5V (ch2 RC mid-node DC-shorted to rail) | P0 | confirmed (check_port_nets LABEL-LOST: MID2P absent from netlist) | fixed — 5V approach jog + MID2P rebind/re-route; same gate proves it (label survival 115/115) |
+| RT1-P1-1 | 2026-07-23_pre-v1.0_redteam_integrated.md | U7 forced-PWM claim contradicted by EN-to-VIN wiring (auto PFM) | P1 | confirmed (AP61102 EN>=VIN-200mV => PFM; ADR text wrong) | fixed (docs) — ADR-0005 amendment: corrected position, PFM accepted with rationale (3V3 is digital-only; 3V3A comes from 5V via U10), v-next EN-divider option recorded |
+| RT1-P1-2 | 2026-07-23_pre-v1.0_redteam_integrated.md | 5V trunk fragile/ampacity + netclasses-in-chain + beeper legs unfused | P1 | confirmed (old trunk routed through Cc2P.2's pad; bead unanalyzed) | fixed/deferred — trunk re-routed (159 segs all 0.5mm measured + 3 F.Cu pour patches 1144mm2; worst-case 1.6A vs derived 0.7A); netclasses verified in final .kicad_pro (6 classes, PWR_IN 0.5mm); FB_BEEP pinned (BLM21PG600SN1D 2A/25mohm, 02_parts); per-port beep PTC deferred — ADR-0007 v-next work order |
+| RT1-P1-3 | 2026-07-23_pre-v1.0_redteam_integrated.md | layout spans vs part.yaml P-ADJ budgets unmeasured | P1 | confirmed (P-ADJ FAIL: 5 nets) | fixed (measured) — each re-measured against the budget's local subject (Rg->Q2.1 5.0mm; Cout_U9->U9.5 4.7mm; Cin_U9->U9.1 4.2mm; VIN_RAW section 16.9mm @0.5mm; QSPI_CLK 37.6mm timing-benign); waived with numbers in 03_src/rules/policy_waivers.yaml |
+| RT1-P1-4 | 2026-07-23_pre-v1.0_redteam_integrated.md | no per-port NOT-ETHERNET warning (banner only, brief G14) | P1 | confirmed | fixed — 8x "NOT ETH 5V!" F.Silkscreen, one under each jack (measured on rebuilt board: x=25..165 pitch 20mm) + banner at (95,33); silk DRC-clean |
+| RT1-P1-5 | 2026-07-23_pre-v1.0_redteam_integrated.md | PoE-injector backfeed onto P5VA/beep legs exceeds 5V-rail abs-max | P1 | confirmed (48V -> F_n -> 5V rail; AP61102 vin_abs_max 6.5V; D1 wrong side of Q1) | waived — ADR-0007 accepted (USER waiver carried from pod-v2 ADR-0005, same class/deployment, equal-or-lesser severity here); v-next: shared SMBJ5.0A on P5VA spine + F_BEEP PTC |
+| RT1-R1 | 2026-07-23_pre-v1.0_redteam_integrated.md | Q1 reverse-polarity protection alleged wrong | P1 | refuted (E-INV series-chain invariant D->S holds; audit_board pins Q1.3=VIN_RAW/Q1.2=5V) | refuted — GUARD: correct as-built; do not "fix" |
