@@ -14,6 +14,22 @@ past every existing gate:
       "policy_audit: 0 FAIL" / "M-BOM ... PASS".
   (c) DRAFT README — the shipped ORDER_README.md was a working draft.
 
+Second motivating incident (crow-recorder-central-v2 v1.0, sealed 2026-07-23,
+found 2026-07-24) — check (d) MANIFEST SELF-CONSISTENCY: the manifest's
+human-readable gate summary disagreed with the machine evidence it SHIPS and
+no gate caught it: MANIFEST "ERC 0 errors (1409 baselined warnings)" vs
+policy_audit.md "S-ERC PASS 0 errors (1215 warnings)" (erc.json measures
+1409); MANIFEST "bom_source_check PASS (48 lines...)" vs fab/bom.csv's 49
+actual data rows; and verification/bom_source_check.txt naming
+"07_releases/v1.0-2026-07-23/fab/bom.csv" — not the sealed directory name
+(crow-recorder-central-v2-v1.0-2026-07-23). The section-(d) fixtures below
+use those EXACT mismatches. RED-VERIFIED (git-swap, 2026-07-24): with git
+HEAD's pre-change release_freshness_check.py swapped back in, every
+known-bad case in section (d) FAILS (the old gate passes the broken
+releases, and `--_disable-manifest-consistency` is an unknown argument),
+then the fixed script restored and all pass — see the git-swap note at the
+section header.
+
 Fixtures are SELF-CONTAINED synthetic release trees built in a tmpdir (the
 sealed real releases are immutable and never written). Each known-bad fixture
 breaks exactly ONE of the three, so the test proves the gate reacts to THAT
@@ -384,6 +400,184 @@ def t_docs_only_draft_readme_still_bites():
                   "DRAFT README")
     not_contains(r.out, "DOCS-ONLY UNCHANGED",
                  "the draft README did change vs the prior — only (c) fires")
+
+
+# --------------------------- (d) MANIFEST SELF-CONSISTENCY
+# crow-recorder-central-v2 v1.0 (2026-07-23): the MANIFEST's prose gate
+# summary disagreed with its OWN shipped evidence three ways (ERC warning
+# count, BOM line count, embedded release path) and nothing caught it —
+# check (b) compares only the policy_audit RESULT and the stale check only
+# bytes. Each fixture below reproduces exactly ONE of the three, with the
+# incident's real numbers. RED-VERIFY is double: (i) per-case, the fixture
+# passes when ONLY the new check is neutered (--_disable-manifest-consistency)
+# — the finding comes from this check and nothing else; (ii) git-swap
+# (2026-07-24): with `git show HEAD:.../release_freshness_check.py` swapped
+# back in, t_mc_erc_mismatch / t_mc_bom_mismatch / t_mc_path_mismatch all
+# went RED (the old gate PASSES each broken release), then the fixed script
+# was restored and all pass.
+def consistency_release(root, *, dirname="demoboard-v1.0-2026-07-23",
+                        manifest_erc="ERC 0 errors (1409 baselined warnings)",
+                        audit_erc="0 errors (1409 warnings)",
+                        erc_json_warnings=1409,
+                        erc_included=("error", "warning", "exclusion"),
+                        manifest_bom_lines=49, bom_rows=49,
+                        bom_source_dir=None):
+    """One release tree shaped like the crow-rv2 v1.0 seal: a MANIFEST whose
+    gate summary states ERC + BOM counts, plus the machine evidence those
+    claims must match (policy_audit S-ERC row, erc.json, fab/bom.csv,
+    bom_source_check.txt with an embedded 07_releases/<dir>/ path). Defaults
+    are fully self-consistent; each knob breaks exactly one axis."""
+    import json
+    d = root / dirname
+    for sub in ("pdf", "fab", "verification"):
+        (d / sub).mkdir(parents=True, exist_ok=True)
+    (d / "pdf" / "assembly.pdf").write_bytes(_blob(f"asm-{dirname}"))
+    (d / "fab" / "demo_gerbers.zip").write_bytes(_blob(f"gerber-{dirname}"))
+    (d / "verification" / "policy_audit.md").write_text(
+        "# Policy audit — demo\n\n| ID | Grade | Detail |\n|---|---|---|\n"
+        f"| S-ERC | PASS | {audit_erc} |\n"
+        "| M-BOM | PASS | every BOM LCSC == source |\n\n"
+        "Summary: FAIL=0, PASS=30\n")
+    (d / "verification" / "erc.json").write_text(json.dumps({
+        "included_severities": list(erc_included),
+        "sheets": [{"violations":
+                    [{"severity": "warning"}] * erc_json_warnings}]}))
+    (d / "fab" / "bom.csv").write_text(
+        "Comment,Designator,Footprint,MPN,LCSC\n" +
+        "".join(f'100k,"R{i}a,R{i}b",R_0402,,C{25741+i}\n'
+                for i in range(bom_rows)))
+    (d / "verification" / "bom_source_check.txt").write_text(
+        f"BOM-vs-source: 07_releases/{bom_source_dir or dirname}/fab/bom.csv\n"
+        "BOM SOURCE CHECK: PASS (every BOM LCSC == source)\n")
+    (d / "MANIFEST.txt").write_text(
+        f"board: demo\nversion: v1.0\ngit_dirty: false\n"
+        f"gates:  DRC 0/0/0 · {manifest_erc} ·\n"
+        f"        policy_audit 0 FAIL ·\n"
+        f"        bom_source_check PASS ({manifest_bom_lines} lines, "
+        f"every LCSC == source)\n")
+    (d / "ORDER_README.md").write_text(_README_FINAL.format(ver="1.0"))
+    return d
+
+
+@test("manifest-consistency: a release whose MANIFEST counts MATCH its "
+      "shipped evidence (and whose evidence paths name its real dir) PASSES")
+def t_mc_clean():
+    d = consistency_release(tmpdir("relmc_clean_"))
+    r = must_pass(gate(d), "self-consistent manifest")
+    contains(r.out, "FRESHNESS: PASS", "verdict")
+    not_contains(r.out, "MISMATCH", "no consistency finding on a clean bundle")
+
+
+@test("manifest-consistency FAILS when the MANIFEST's ERC warning count "
+      "disagrees with the shipped policy_audit S-ERC row (crow-rv2 v1.0: "
+      "MANIFEST 1409 vs audit 1215)", kind="known_bad")
+def t_mc_erc_mismatch():
+    """The incident verbatim: MANIFEST says 1409 baselined warnings, the
+    bundled policy_audit.md says 1215, the bundled erc.json measures 1409.
+    The bundle disagrees with itself -> FAIL naming all three values."""
+    d = consistency_release(tmpdir("relmc_erc_"),
+                            audit_erc="0 errors (1215 warnings)")
+    r = must_fail(gate(d), "ERC count disagreement must block",
+                  "MANIFEST/EVIDENCE MISMATCH")
+    contains(r.out, "ERC warning count", "names the disagreeing field")
+    contains(r.out, "1409", "reports the MANIFEST/erc.json value")
+    contains(r.out, "1215", "reports the audit's value")
+    # RED-VERIFY (i): neuter ONLY the manifest-consistency check -> passes.
+    rr = gate(d, "--_disable-manifest-consistency")
+    check(rr.rc == 0,
+          f"red-verify: with manifest-consistency neutered the ERC-mismatch "
+          f"fixture must pass, got rc={rr.rc}\n{rr.out}")
+    not_contains(rr.out, "MISMATCH", "neutered run emits no finding")
+
+
+@test("manifest-consistency FAILS when the MANIFEST's bom_source_check line "
+      "count disagrees with fab/bom.csv's actual data rows (crow-rv2 v1.0: "
+      "claimed 48, shipped 49)", kind="known_bad")
+def t_mc_bom_mismatch():
+    """The incident verbatim: MANIFEST 'bom_source_check PASS (48 lines...)'
+    while the shipped fab/bom.csv carries 49 data rows (csv-parsed, so
+    quoted multi-refdes cells count as one row)."""
+    d = consistency_release(tmpdir("relmc_bom_"),
+                            manifest_bom_lines=48, bom_rows=49)
+    r = must_fail(gate(d), "BOM count disagreement must block",
+                  "MANIFEST/EVIDENCE MISMATCH")
+    contains(r.out, "48 lines", "reports the claim")
+    contains(r.out, "49 data row", "reports the measured rows")
+    rr = gate(d, "--_disable-manifest-consistency")
+    check(rr.rc == 0, f"red-verify: neutered BOM-mismatch fixture must pass, "
+                      f"got rc={rr.rc}\n{rr.out}")
+
+
+@test("manifest-consistency FAILS when verification evidence embeds a "
+      "07_releases/ path that is NOT this release's directory (crow-rv2 "
+      "v1.0: 'v1.0-2026-07-23' inside crow-recorder-central-v2-v1.0-...)",
+      kind="known_bad")
+def t_mc_path_mismatch():
+    """The incident verbatim: bom_source_check.txt names
+    07_releases/v1.0-2026-07-23/fab/bom.csv — a shortened/staging directory
+    name, not the sealed dir — proving the evidence was produced against a
+    path that is not this archive."""
+    d = consistency_release(tmpdir("relmc_path_"),
+                            dirname="demoboard-v1.0-2026-07-23",
+                            bom_source_dir="v1.0-2026-07-23")
+    r = must_fail(gate(d), "foreign evidence path must block",
+                  "EVIDENCE PATH MISMATCH")
+    contains(r.out, "bom_source_check.txt", "names the evidence file")
+    contains(r.out, "v1.0-2026-07-23", "names the wrong dir")
+    contains(r.out, "demoboard-v1.0-2026-07-23", "names the real dir")
+    rr = gate(d, "--_disable-manifest-consistency")
+    check(rr.rc == 0, f"red-verify: neutered path-mismatch fixture must "
+                      f"pass, got rc={rr.rc}\n{rr.out}")
+
+
+@test("manifest-consistency: a MANIFEST that states NO counts is not checked "
+      "against them — absence != mismatch")
+def t_mc_absence_not_mismatch():
+    """Robustness: evidence present (bom.csv, erc.json, audit) but the
+    MANIFEST prose states neither an ERC warning count nor a BOM line
+    count. Nothing to compare against the manifest -> no finding. (The
+    evidence itself stays self-consistent — audit 1409 == erc.json 1409 —
+    because evidence-vs-evidence disagreement is checked too, by design.)"""
+    d = consistency_release(tmpdir("relmc_absent_"),
+                            manifest_erc="ERC clean")
+    # strip the bom line-count claim too
+    mt = (d / "MANIFEST.txt").read_text().replace(
+        "bom_source_check PASS (49 lines, every LCSC == source)",
+        "bom_source_check PASS (every LCSC == source)")
+    (d / "MANIFEST.txt").write_text(mt)
+    r = must_pass(gate(d), "unstated counts are not checked")
+    not_contains(r.out, "MISMATCH", "no finding without a stated count")
+
+
+@test("manifest-consistency: an errors-only erc.json (included_severities "
+      "without 'warning') is NO evidence about warnings — cooksense-v1.0 "
+      "shape must not false-positive")
+def t_mc_errors_only_ercjson():
+    """cooksense v1.0 ships erc.json run with --severity-error: 0 recorded
+    warnings there is an artifact of the run scope, not a measurement. The
+    audit's 978-warning statement must not be 'contradicted' by it."""
+    d = consistency_release(tmpdir("relmc_erronly_"),
+                            manifest_erc="ERC 0 errors",
+                            audit_erc="0 errors (978 warnings)",
+                            erc_json_warnings=0, erc_included=("error",))
+    r = must_pass(gate(d), "errors-only erc.json is not warning evidence")
+    not_contains(r.out, "MISMATCH", "no false mismatch")
+
+
+@test("manifest-consistency: evidence referencing an EXISTING sibling "
+      "release (diff vs a real predecessor) is legitimate, not flagged")
+def t_mc_sibling_reference_ok():
+    """cooksense v1.1's semantic_battery diffs its netlist against the
+    sealed v1.0 by path. A reference to a release dir that EXISTS is a
+    legitimate cross-release measurement, not a staging-path defect."""
+    root = tmpdir("relmc_sib_")
+    (root / "demoboard-v0.9-2026-07-20").mkdir(parents=True)
+    d = consistency_release(root)
+    (d / "verification" / "semantic_battery.txt").write_text(
+        "netlist diff vs 07_releases/demoboard-v0.9-2026-07-20/source/"
+        "demo.net: IDENTICAL\n")
+    r = must_pass(gate(d), "existing-sibling reference is legitimate")
+    not_contains(r.out, "PATH MISMATCH", "no finding for a real sibling")
 
 
 if __name__ == "__main__":
