@@ -559,3 +559,60 @@ NOT yet rebuilt. All other source staged. No git touched.
 - next: orchestrator re-runs twin network-side with these adjudications; gate =
   exit 0 / zero unadjudicated CRITICALs. Then (after pin+render reviews) I
   finalize ORDER_README + seal build.
+
+## 2026-07-23 ~20:15 — start (board lead, pre-seal batch resume)
+- did: post-quota resume per RESUME.md. Verified all 3 batch changes staged in SOURCE:
+  (1) R_DECUPD/R_DECDPD 100k E3 pull-downs in tsx (lines 237-238) + floorplan near-
+  anchors + manifest + 2 E-INV net_has_part; (2) J_MODE re-pin 1=3V3/2=MODE_RAW/
+  3=KEY_RELAY_ALLOWED/4=COIL_EN/5=GND (old: 1=KRA/2=COIL_EN/3=3V3/4=MODE_RAW —
+  pins 1-4 permuted, net set identical); (3) J_TC footprint = 4x dia-1.77 (2 contact
+  PTH round drills replacing 1.70x0.90 slots + 2 NPTH bracket at +/-7.85,-6.8) per
+  Omega drawing p.2 + part.yaml. Plus EFUSE_FLT_N rename (tsx+route.yaml+E-INV) and
+  D_REVCLAMP pad1 5V_IN->5V_FUSED. Netlist 06_build 16:25 = current (EFUSE_FLT_N,
+  R_DEC*PD present).
+- result: import_krt binds copper by NET NAME and silently drops unknown nets ->
+  plain reuse-route would: drop all PWR_GOOD_N copper (EFUSE_FLT_N unrouted), land
+  4 stale J_MODE stubs + 1 D_REVCLAMP 5V_IN stub on re-pinned pads (shorts), leave
+  R_DEC*PD unrouted. Delta = 9 nets, everything else reuse-valid IF placement is
+  stable under the +2-part floorplan edit.
+- next: measure placement stability (regen board, diff positions vs chain-matched
+  04_kicad state); stable -> textual PWR_GOOD_N->EFUSE_FLT_N chain rename + scripted
+  delta repair (delete 5 stale stubs, route 9 short connections, exact-collide
+  green checks) -> promote new chain -> ONE standard rebuild -> DRC 0/0/0.
+  Unstable -> full --reroute race per driver.
+
+## 2026-07-23 ~20:35 — iterate (board lead session 2: rebuild decision)
+- did: re-verified all 3 batch changes + EFUSE_FLT_N rename + D_REVCLAMP->5V_FUSED in
+  SOURCE (tsx 237-238 pull-downs, tsx 369+ J_MODE re-pin, footprint 4x dia-1.77 + 2 NPTH,
+  floorplan near-anchors, manifest, E-INV). Netlist 16:25 current (EFUSE_FLT_N=1,
+  R_DECUPD=6 refs). DECIDED against scripted chain delta-repair: 9-net delta includes a
+  4-pin connector permutation (stale branches SHORT onto re-pinned pads) — surgical branch
+  trimming is error-prone; rebuild_all.sh's own doc names --reroute as the path when
+  placement/nets change, and the 0-crossing topology reconverges per driver.
+- result: launched `rebuild_all.sh --reroute` (race 3), log 06_build/rebuild_reroute.log.
+- next: DRC 0/0/0 -> promote FINAL to 03_src/cooksense/route/final_chain.kicad_pcb ->
+  one deterministic --reuse-route re-verify (M-REPRO) -> semantic battery -> twin -> seal.
+
+## 2026-07-23 ~20:15 — iterate (board lead session 3: reroute race complete, DRC 0/0/0)
+- did: relaunched rebuild_all.sh --reroute (prior race killed mid-run 18:11; lanes
+  self-clean, no stale state). Race: 3/3 candidates CLEAN pre-stitch (race_log.json,
+  winner c0). Full DRC on first rebuild: 2 findings, both root-caused MEASURED:
+  (1) 5V_RPP via_dangling @59.28,46.08 — the chain served U_EFUSE pad4 with a
+  via@59.0,45.8 + 0.07mm F.Cu micro-jog; hole_to_hole nudged the via 0.37mm
+  (0.55mm to pad3's via < 0.5 drill-edge floor) and the orphaned jog got dropped
+  -> dangling. FIX at the CHAIN (design-intent level, the class
+  prune_stitch_dangling explicitly declines): stripped via + 2 feed segs from the
+  c0/r7 winner (pad4 is served by the deterministic pad4->pad3 seed bridge);
+  promoted the cleaned chain to 03_src/cooksense/route/final_chain.kicad_pcb.
+  (2) 3V3 open U_EXP.9 (MCP23017 VDD, plane-fed In2, no KRT escape; pad_rescue
+  found no site) -> new deterministic seed stub in route.yaml: 0.30mm F.Cu feeder
+  pad-centre->+0.7mm east + via-in-pad @161.20,80.975 (site MEASURED: 0.80mm
+  drill-edge gap to pad10's GND via — centre placement would sit at the exact
+  0.50 floor; nearest foreign copper 0.325mm). First attempt lessons: vias-only
+  stub fails the pin-reach proof (needs a segment at pad centre); 0.25mm feeder
+  trips PWR_3V3_width 0.30 netclass floor.
+- result: rebuild (deterministic --reuse-route) DRC --severity-all --refill-zones
+  --schematic-parity = 0/0/0 (drc_seal_gate.json). M-REPRO: second identical reuse
+  rebuild re-measured 0/0/0 (drc_repro.json).
+- next: semantic battery (E-INV +26 / E-TOPO / S-COUNT) -> twin w/ adjudications ->
+  I-ISO re-check -> delta-scoped verify + one fresh lens -> ORDER_README -> 2-commit seal.

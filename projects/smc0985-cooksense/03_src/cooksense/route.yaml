@@ -207,6 +207,18 @@ stitch:
       # inside each 3.43mm-wide tab, >0.65mm hole gap.
       - {net: GND, vias: [[16.610, 47.720], [17.460, 47.720]]}
       - {net: GND, vias: [[27.390, 47.720], [28.240, 47.720]]}
+      # U_EXP.9 (MCP23017 VDD, 3V3) is PLANE-FED (In2 3V3) with no KRT escape;
+      # the pre-seal-batch reroute realization left pad_rescue unable to serve it
+      # (nearest 3V3 copper = a stitch via 6mm west across the I2C/TC_FAULT_N
+      # escape field) -> DRC "missing connection via<->pad9" (2026-07-23, session
+      # 3). DETERMINISTIC via-in-pad, offset +0.7mm east of pad centre along the
+      # 1.9mm pad to keep 0.80mm drill-edge gap to pad10's GND via-in-pad
+      # (centre-placed would sit at the exact 0.50 hole_to_hole floor). Site
+      # MEASURED clear: nearest foreign copper = U_EXP.8/10 pad edges 0.325mm.
+      # 0.25mm F.Cu feeder pad-centre -> via satisfies the pin-reach proof.
+      - {net: 3V3, pin: U_EXP.9,
+         segments: [{layer: F.Cu, width: 0.30, pts: [[160.500, 80.975], [161.200, 80.975]]}],
+         vias: [[161.200, 80.975]]}
   via_janitor: {min_layers: 2}
   # THERMAL-VIA FLOOR (policy R6): the AMS1117-3.3 tab (U_LDO.4 = 3V3, 7.6mm2)
   # gets its 1st via-in-pad from pad_rescue at the tab CENTER (25.15,58.00); its

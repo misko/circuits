@@ -104,7 +104,7 @@ placement:
     F1:          [40.0, 46.0, 0]     # polyfuse 1812
     Q_REV:       [49.0, 46.0, 180]   # revpol P-FET: D=input(west) S=load(east)
     U_EFUSE:     [60.0, 45.0, 0]     # TPS259573 WSON-8 (dense 0.5mm) -- escape corridor SOUTH
-    D_REVCLAMP:  [40.0, 52.0, 0]     # SS34 reverse crowbar (K=5V_IN)
+    D_REVCLAMP:  [40.0, 52.0, 0]     # SS34 reverse crowbar (K=5V_FUSED, downstream of F1)
     CE1:         [50.0, 54.0, 0]     # 220uF bulk (pad1=+)
     D_TVS:       [63.0, 56.0, 0]     # SMBJ5.0A on 5V_PROTECTED (K=pad1; S of eFuse escape)
     FB1:         [33.0, 58.0, 0]     # ferrite 3V3 -> 3V3_ANALOG (analog-corner boundary)
@@ -371,7 +371,7 @@ asserts:
     - {ref: Q_REV, pad: 3, net: 5V_FUSED}
     - {ref: Q_REV, pad: 2, net: 5V_RPP}
     - {ref: D_TVS, pad: 1, net: 5V_PROTECTED}
-    - {ref: D_REVCLAMP, pad: 1, net: 5V_IN}
+    - {ref: D_REVCLAMP, pad: 1, net: 5V_FUSED}   # moved downstream of F1 (pin review Q2 fix, 2026-07-23)
     - {ref: CE1, pad: 1, net: 5V_PROTECTED}
     - {ref: U_LDO, pad: 3, net: 5V_PROTECTED}
     - {ref: U_LDO, pad: 2, net: 3V3}
