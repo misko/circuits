@@ -24,6 +24,32 @@ invariants:
     adr: 0001
     why: "the eFuse OUTput is the 5V_PROTECTED rail — the protection stage sits in the power path, not a stub"
 
+  - assert: pin_on_net
+    pin: "D_REVCLAMP.1"                # SS34 pad1 = CATHODE
+    net: 5V_FUSED
+    adr: 0001
+    why: "reverse-crowbar cathode DOWNSTREAM of the polyfuse (pin review Q2, 2026-07-23): the reverse fault current path supply->J_PWR->F1->clamp->GND must pass THROUGH F1 so the polyfuse trips; on 5V_IN (upstream) the clamp current bypassed the fuse and was bounded only by the supply"
+
+  - assert: pin_on_net
+    pin: "U_EFUSE.6"                   # TPS259573 pad6 = FLT_N (open-drain, LOW=fault)
+    net: EFUSE_FLT_N
+    adr: 0001
+    why: "the eFuse fault flag rides the HONESTLY-NAMED net EFUSE_FLT_N (renamed from PWR_GOOD_N, pin review Q1 2026-07-23: FLT_N is LOW=fault i.e. HIGH=power-good, so a _N power-good name inverted the sense; consumers are software-read only — R_PG pullup, TP_PGOOD, expander GPA0)"
+
+  - assert: net_has_part
+    net: DECU_G1
+    part_type: resistor
+    min: 1
+    adr: 0006
+    why: "the U-decoder's active-HIGH E3 enable has a pull-DOWN (pin review Q4 2026-07-23): when SR_OE_N tri-states the 595s the enable would float — out-of-spec for 74HC238D inputs and a phantom-select hazard into the ULN; a pulled-low E3 disables all outputs regardless of floating addresses"
+
+  - assert: net_has_part
+    net: DECD_G1
+    part_type: resistor
+    min: 1
+    adr: 0006
+    why: "the D-decoder's active-HIGH E3 enable has a pull-DOWN — same phantom-select hazard closure as DECU_G1 (pin review Q4 2026-07-23)"
+
   - assert: net_has_part
     net: EF_OVLO
     part_type: resistor

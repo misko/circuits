@@ -101,6 +101,8 @@ components:
   - R_BID0
   - R_BID1
   - R_COILENPD
+  - R_DECUPD
+  - R_DECDPD
   - R_DOORPU
   - R_ESTOPPD
   - R_EXPRST

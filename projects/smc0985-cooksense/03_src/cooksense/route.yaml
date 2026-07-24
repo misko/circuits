@@ -89,7 +89,7 @@ prep:
       # eFuse WSON-8 (0.5mm pitch) dense escape -- routed FIRST so the sandwiched
       # signal pins (esp. EF_ILM, pin 7) claim their via-in-pad escape lanes
       # before the power pins (5V_RPP/5V_PROTECTED, pwr wave) box them in.
-      efuse: [EF_DVDT, EF_OVLO, EF_ILM, PWR_GOOD_N]
+      efuse: [EF_DVDT, EF_OVLO, EF_ILM, EFUSE_FLT_N]   # EFUSE_FLT_N renamed from PWR_GOOD_N (pin review Q1, 2026-07-23)
       safety: [TEMP_OK, WD_OK, ESTOP_OK, FAULT, MODE_AUTO_HW,
                DOOR_OK, REARM_N, STOP_REQ, PRESS_TIMED, CONTACTOR_C,
                KEY_RELAY_ALLOWED]

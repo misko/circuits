@@ -67,9 +67,19 @@ pins:                         # PHYSICAL positions 1..40 on the 2.54 x 2.54mm gr
   39: P39
   40: P40
 gotchas:
-  - "STACKING part: 12.46mm long male tails pass UP through the PCB; the female socket sits
-    on the BOTTOM side and mates the Raspberry Pi 5 J8 male header BELOW the board. Assemble
-    socket-down / tails-up (THT, hand- or wave-solder — not SMT-placed)."
+  - "AS USED ON COOKSENSE (pin review FAIL resolved 2026-07-23): the design is RIBBON SIDECAR
+    (per the layout block, ADR-0007, and the board silk 'PI 40-PIN RIBBON (SIDECAR)') — the
+    socket mounts TOP-side as a plain vertical THT socket and connects to the Pi 5 J8 via a
+    40-way ribbon whose board end is a MALE DIL IDC transition plug (standard Pi ribbons are
+    female-female and CANNOT mate this socket — the ribbon is an ORDER_README line item). The
+    prior text here ('socket-down, mates the Pi J8 BELOW' = direct stacking) was a stale
+    carry-over of the part's GENERIC stacking purpose, NOT this board's design — under direct
+    stacking the F.Cu footprint would be mirrored and mis-map every pair; under sidecar the
+    as-built footprint is CORRECT (pin map verified 40/40 vs Pi J8 by the fresh pin review).
+    Residuals: the 12.46mm stack-through tails still protrude ~12mm BELOW the board (trim, or
+    stand the board off — ORDER_README note), and the socket is UNSHROUDED so ribbon pin-1
+    keying is discipline-only (mark pin 1 on the harness; 180-degree insertion mis-maps every
+    net — ORDER_README first-use check)."
   - "SIGNALS ONLY (brief item 11 master connector table: 'J_PI 2x20 stacking (signals only,
     Pi power NC/sense)'): this board is powered from J_PWR (Micro-Fit 5V), NOT from the Pi.
     Treat Pi power pins as NC or sense-only — 5V = pos 2,4; 3V3 = pos 1,17."

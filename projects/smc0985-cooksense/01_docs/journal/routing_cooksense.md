@@ -530,3 +530,32 @@ NOT yet rebuilt. All other source staged. No git touched.
   -> then SEAL cooksense-v1.0. NOTE (teammate): at seal, release_freshness_check.py
   must exit 0 (fresh policy_audit.md matching MANIFEST — regenerated 15:54; no DRAFT
   markers in ORDER_README).
+
+## 2026-07-23 — SUCCESSOR: jlc_twin adjudications (23 CRITICALs, orchestrator's network run)
+
+- context: orchestrator committed the fix pass (9f5c385) after its own independent
+  verify (all green) and ran jlc_twin network-side: 119 OK / 349 checked, exit 1
+  with 23 unadjudicated CRITICALs. Artifacts at scratchpad cook_twin/ (report +
+  renders + fetched easyeda jlc.pretty footprints). Adjudication = analysis only.
+- did (MEASURED, per canon — no blanket adjudication): extracted OUR pad geometry
+  (board, footprint-local) vs JLC's (fetched .kicad_mod) for every CRITICAL ref;
+  computed heel..toe extents + shared landing-zone overlap per footprint class.
+  Wrote 03_src/cooksense/rules/twin_adjudications.yaml — 13 entries / 23 refs,
+  validated: exact CRITICAL set covered, statuses PAD-GEOM + MIRRORED.
+  * 22x PAD-GEOM across 12 classes = the precedented KiCad-IPC vs EasyEDA
+    fillet/pad-length style class (usb-hub-3s C83846/C148222; D_TVS SMB numbers
+    byte-identical 4.30 vs 4.72). Every class: identical pitch + topology,
+    non-mirrored fit, landing overlap 0.55-2.05mm/side (SOT-23 JLC near-subset of
+    ours; SOT-223 + SMDIP-4 ours subset of JLC's; SOD-323 overlap covers the full
+    lead-foot zone [0.85..1.25] of the LS2.5 span; 1812 covers the terminal band).
+  * 1x MIRRORED J_PI (C35165): measured pad maps show ours winds odd/even by
+    COLUMN (+y), JLC by ROW (+x) -> identical 2x20 2.54 hole grids (mirror fit
+    0.00mm), numbering-wind convention on a keyless symmetric THT socket with no
+    internal pin identity — not the VQFN mirror-die class. Hole-constrained;
+    pin-1 by our netlist+silk; ORDER_README preview check backstops.
+  * Render check (twin_top.png crops): all flagged bodies centered on pads;
+    U_OPTO pin-1 dot top-left = our pad 1; CE1 polarity crescent correct side;
+    audit_board's 18-check polarity gate (pad1=cathode vs marker) already PASS.
+- next: orchestrator re-runs twin network-side with these adjudications; gate =
+  exit 0 / zero unadjudicated CRITICALs. Then (after pin+render reviews) I
+  finalize ORDER_README + seal build.

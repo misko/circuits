@@ -10,8 +10,8 @@ pins:
   1: K
   2: A
 gotchas:
-  - "KiCad D_SMA pad 1 = CATHODE; D1 cathode faces VSYS"
-verified: "2/3-pad commodity; polarity/pad-1 asserted in board generator + audit I9"
+  - "KiCad D_SMA pad 1 = CATHODE. On cooksense this part is D_REVCLAMP, a reverse-polarity SHUNT crowbar: cathode (pad 1) on 5V_FUSED — DOWNSTREAM of polyfuse F1 so a reverse-hookup fault current passes THROUGH (and trips) F1 — anode (pad 2) to GND. It is NOT a series OR-ing diode on this board (that prose was a stale carry-over from another board's D1 5VP->VSYS role; corrected 2026-07-23, pin review Q2)."
+verified: "2/3-pad commodity; polarity/pad-1 asserted in board generator + audit I9 (pad1=cathode vs footprint marker, PASS)"
 sourcing:
   lcsc: C8678
-  note: "BASIC, 2.47M stock. D1 5VP->VSYS OR diode."
+  note: "BASIC, 2.47M stock. cooksense role: D_REVCLAMP reverse crowbar on 5V_FUSED."

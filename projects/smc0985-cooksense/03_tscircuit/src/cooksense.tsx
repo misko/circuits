@@ -55,22 +55,29 @@ export default () => (
     <chip name="Q_REV" footprint="sot23" supplierPartNumbers={{ jlcpcb: ["C15127"] }}
       pinLabels={{ pin1: "G", pin2: "S", pin3: "D" }}
       connections={{ pin1: "net.GND", pin2: "net.N5V_RPP", pin3: "net.N5V_FUSED" }} />
-    {/* SS34 reverse crowbar: cathode to the input rail, anode to GND -> reverse input conducts, trips F1 */}
+    {/* SS34 reverse crowbar: cathode on 5V_FUSED (DOWNSTREAM of F1), anode to GND. On reverse hookup
+        it conducts and the fault current path (supply -> J_PWR -> F1 -> clamp -> GND) passes THROUGH
+        the polyfuse, so F1 trips = the authored intent. Moved from 5V_IN 2026-07-23 (pin review Q2):
+        upstream of F1 the clamp current bypassed the fuse and was bounded only by the supply. */}
     <chip name="D_REVCLAMP" footprint="sma" supplierPartNumbers={{ jlcpcb: ["C8678"] }}
       pinLabels={{ pin1: "K", pin2: "A" }}
-      connections={{ pin1: "net.N5V_IN", pin2: "net.GND" }} />
-    {/* TPS259573 eFuse: programmable OVLO cutoff (EN_OVLO_N divider), Rilm, Cdvdt, open-drain FLT=PWR_GOOD */}
+      connections={{ pin1: "net.N5V_FUSED", pin2: "net.GND" }} />
+    {/* TPS259573 eFuse: programmable OVLO cutoff (EN_OVLO_N divider), Rilm, Cdvdt. FLT_N pin6 is
+        open-drain ACTIVE-LOW FAULT (LOW=fault, pulled HIGH=good by R_PG) -> net EFUSE_FLT_N, read by
+        the expander GPA0 (software: HIGH=power good). Renamed from PWR_GOOD_N 2026-07-23 (pin review
+        Q1): the _N name implied LOW=power-good, backwards from the actual sense; consumers are
+        software-read only (no hardware AND-chain input), so the RENAME is the honest fix. */}
     <chip name="U_EFUSE" footprint="dfn8" supplierPartNumbers={{ jlcpcb: ["C2653844"] }}
       pinLabels={{ pin1: "dVdt", pin2: "EN_OVLO_N", pin3: "IN", pin4: "IN", pin5: "OUT", pin6: "FLT_N", pin7: "ILM", pin8: "GND" }}
       connections={{
         pin1: "net.EF_DVDT", pin2: "net.EF_OVLO", pin3: "net.N5V_RPP", pin4: "net.N5V_RPP",
-        pin5: "net.N5V_PROTECTED", pin6: "net.PWR_GOOD_N", pin7: "net.EF_ILM", pin8: "net.GND",
+        pin5: "net.N5V_PROTECTED", pin6: "net.EFUSE_FLT_N", pin7: "net.EF_ILM", pin8: "net.GND",
       }} />
     <capacitor name="C_DVDT" capacitance="1nF" footprint="0402" connections={{ pin1: "net.EF_DVDT", pin2: "net.GND" }} />
     <resistor name="R_OVT" resistance="100k" footprint="0402" connections={{ pin1: "net.N5V_RPP", pin2: "net.EF_OVLO" }} />
     <resistor name="R_OVB" resistance="15k" footprint="0402" connections={{ pin1: "net.EF_OVLO", pin2: "net.GND" }} />
     <resistor name="R_ILM" resistance="1.2k" footprint="0402" connections={{ pin1: "net.EF_ILM", pin2: "net.GND" }} />
-    <resistor name="R_PG" resistance="100k" footprint="0402" connections={{ pin1: "net.PWR_GOOD_N", pin2: "net.N5V_PROTECTED" }} />
+    <resistor name="R_PG" resistance="100k" footprint="0402" connections={{ pin1: "net.EFUSE_FLT_N", pin2: "net.N5V_PROTECTED" }} />
     {/* SMBJ5.0A TVS: cathode to protected rail, anode GND (pad1=K per part.yaml) */}
     <diode name="D_TVS" footprint="smb" supplierPartNumbers={{ jlcpcb: ["C113974"] }}
       connections={{ pin1: "net.N5V_PROTECTED", pin2: "net.GND" }} />
@@ -218,6 +225,17 @@ export default () => (
       }} />
     <capacitor name="C_DECU" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
     <capacitor name="C_DECD" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
+    {/* '238 E3-enable PULL-DOWNS (pin review Q4, 2026-07-23): DECU_G1/DECD_G1 are driven ONLY by
+        595 outputs; when SR_OE_N tri-states the 595s (watchdog/interlock action, or Pi boot) the
+        active-HIGH E3 enables would FLOAT — formally out-of-spec for Nexperia 74HC238D inputs and
+        a phantom-select hazard (a floated-high E3 enables a random decoder output into the ULN).
+        A pulled-LOW E3 disables ALL eight outputs regardless of the (also floating) address pins,
+        so these two 100k close the hazard. (The coil rail ALSO dies in that state — COIL_EN is fed
+        from KEY_RELAY_ALLOWED via the J_MODE DPDT AUTO throw + R_COILENPD pull-down, so the
+        reviewer's rail-live premise does not hold — but floating CMOS inputs stay out-of-spec:
+        belt AND braces.) */}
+    <resistor name="R_DECUPD" resistance="100k" footprint="0402" connections={{ pin1: "net.DECU_G1", pin2: "net.GND" }} />
+    <resistor name="R_DECDPD" resistance="100k" footprint="0402" connections={{ pin1: "net.DECD_G1", pin2: "net.GND" }} />
 
     {/* ---- 2x ULN2803A coil drivers (16 ch, 12 used, 4 spare). COM -> gated 5V_KEY_RELAY (flyback clamp). ---- */}
     {/* ULN pins: 1-8 IN1-8, 9 GND, 10 COM, 11-18 OUT8-OUT1 (OUTn opposite corner from INn). */}
@@ -348,8 +366,17 @@ export default () => (
     <resistor name="R_ESTOPPD" resistance="10k" footprint="0402" connections={{ pin1: "net.ESTOP_RAW", pin2: "net.GND" }} />
     <diode name="D_ESTOP" footprint="sod323" supplierPartNumbers={{ jlcpcb: ["C5158048"] }} connections={{ pin1: "net.ESTOP_RAW", pin2: "net.GND" }} />
     {/* Mode DPDT: pole A (pins1-2) = physical coil-EN gate (MANUAL cuts the rail); pole B (pins3-4) = MODE_RAW logic */}
+    {/* J_MODE RE-PINNED to the sibling GH convention (pin review Q, 2026-07-23): 3V3 on pin 1,
+        GND on pin 5, signals in the middle — matching J_DOOR/J_ESTOP. Old pinout put 3V3 on pin 3
+        ADJACENT to COIL_EN on pin 2: a cross-plugged sibling harness could short COIL_EN to 3V3
+        through the external switch and energize the coil rail BYPASSING the AND-chain. New pinout:
+        pole B (mode sense) = pins 1-2 (3V3 -> MODE_RAW); pole A (coil gate) = pins 3-4
+        (KEY_RELAY_ALLOWED -> COIL_EN). COIL_EN's neighbours are now the AND-chain output (3) and
+        GND (5): any cross-plug bridge either applies the intended gating or holds the rail OFF.
+        (A J_DOOR-style harness bridging 2-3/4-5 gives MODE_RAW<->KEY_RELAY_ALLOWED contention -
+        benign - and COIL_EN->GND = safe-off.) */}
     <chip name="J_MODE" footprint="pinrow5" supplierPartNumbers={{ jlcpcb: ["C189896"] }}
-      connections={{ pin1: "net.KEY_RELAY_ALLOWED", pin2: "net.COIL_EN", pin3: "net.N3V3", pin4: "net.MODE_RAW", pin5: "net.GND" }} />
+      connections={{ pin1: "net.N3V3", pin2: "net.MODE_RAW", pin3: "net.KEY_RELAY_ALLOWED", pin4: "net.COIL_EN", pin5: "net.GND" }} />
     <resistor name="R_MODEPD" resistance="10k" footprint="0402" connections={{ pin1: "net.MODE_RAW", pin2: "net.GND" }} />
 
     {/* ---- optically-isolated external-contactor request (LTV-817S), <=30V/50mA dry (brief §3) ---- */}
@@ -367,7 +394,7 @@ export default () => (
     <chip name="U_EXP" footprint="ssop28" supplierPartNumbers={{ jlcpcb: ["C506653"] }}
       pinLabels={{ pin1: "GPB0", pin2: "GPB1", pin3: "GPB2", pin4: "GPB3", pin5: "GPB4", pin6: "GPB5", pin7: "GPB6", pin8: "GPB7", pin9: "VDD", pin10: "VSS", pin11: "NC", pin12: "SCL", pin13: "SDA", pin14: "NC", pin15: "A0", pin16: "A1", pin17: "A2", pin18: "RESET_N", pin19: "INTB", pin20: "INTA", pin21: "GPA0", pin22: "GPA1", pin23: "GPA2", pin24: "GPA3", pin25: "GPA4", pin26: "GPA5", pin27: "GPA6", pin28: "GPA7" }}
       connections={{
-        pin1: "net.PWR_GOOD_N", pin2: "net.MODE_AUTO_HW", pin3: "net.ESTOP_OK", pin4: "net.DOOR_OK",
+        pin1: "net.EFUSE_FLT_N", pin2: "net.MODE_AUTO_HW", pin3: "net.ESTOP_OK", pin4: "net.DOOR_OK",
         pin5: "net.TEMP_OK", pin6: "net.FAULT", pin7: "net.TC_FAULT_N", pin8: "net.WD_OK",
         pin9: "net.N3V3", pin10: "net.GND", pin12: "net.I2C_SCL", pin13: "net.I2C_SDA",
         pin15: "net.GND", pin16: "net.GND", pin17: "net.GND", pin18: "net.EXP_RST_N",
@@ -441,7 +468,7 @@ export default () => (
     <testpoint name="TP_TEMPOK" footprintVariant="pad" padShape="circle" padDiameter="1.5mm" connections={{ pin1: "net.TEMP_OK" }} />
     <testpoint name="TP_ESTOP" footprintVariant="pad" padShape="circle" padDiameter="1.5mm" connections={{ pin1: "net.ESTOP_OK" }} />
     <testpoint name="TP_FAULT" footprintVariant="pad" padShape="circle" padDiameter="1.5mm" connections={{ pin1: "net.FAULT" }} />
-    <testpoint name="TP_PGOOD" footprintVariant="pad" padShape="circle" padDiameter="1.5mm" connections={{ pin1: "net.PWR_GOOD_N" }} />
+    <testpoint name="TP_PGOOD" footprintVariant="pad" padShape="circle" padDiameter="1.5mm" connections={{ pin1: "net.EFUSE_FLT_N" }} />
     <testpoint name="TP_TCDRDY" footprintVariant="pad" padShape="circle" padDiameter="1.5mm" connections={{ pin1: "net.TC_DRDY_N" }} />
     <testpoint name="TP_TCFAULT" footprintVariant="pad" padShape="circle" padDiameter="1.5mm" connections={{ pin1: "net.TC_FAULT_N" }} />
     <testpoint name="TP_USEL" footprintVariant="pad" padShape="circle" padDiameter="1.5mm" connections={{ pin1: "net.U_SEL_BUS" }} />

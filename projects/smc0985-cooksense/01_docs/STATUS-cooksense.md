@@ -1,9 +1,9 @@
 # STATUS beacon — cooksense MAIN board (live head; overwritten each transition)
 <!-- reader parses from here down -->
 stage:   verify
-step:    "ALL runbook steps DONE. Routing gate GREEN+reproducible; red-team P1-A/B/C + J_KEY.MP root-fix; EP/MP thermal; waivers; fab package + '238 C5620 fix. HONEST FINAL GATE reached."
-measure: "DRC 0/0/0 reproducible (4x). audit_board PASS I-ISO 6.12mm. policy_audit FAIL=2 (S-VER/S-OCCL HUMAN verify-stage), WAIVED=3, PASS=21. bom_source PASS, stock PASS. jlc_twin BLOCKED in-sandbox (EasyEDA 403) -> orchestrator."
+step:    "twin adjudications DONE (orchestrator's 23 CRITICALs): 13 evidenced entries / 23 refs in twin_adjudications.yaml. Awaiting orchestrator twin re-run + pin/render reviews."
+measure: "22x PAD-GEOM = KiCad-IPC vs EasyEDA pad-length class, measured heel..toe overlap 0.55-2.05mm/side per class, non-mirrored fits; 1x MIRRORED J_PI = numbering-wind on symmetric THT grid (hole grids identical, mirror fit 0.00). All 23 refs validated covered."
 state:   blocked
-next:    "ORCHESTRATOR: independent verify (jlc_twin + pin/render/red-team for S-VER/S-OCCL + re-run I-ISO + fresh DRC + C5620 confirm) -> SEAL cooksense-v1.0. Self-supplied: DIP05-1A72-12L x12 + PCC-SMP-K, hand-solder DO-NOT-SUB."
+next:    "ORCHESTRATOR: re-run jlc_twin with 03_src/cooksense/rules/twin_adjudications.yaml (gate exit 0) + pin/render reviews -> then I finalize ORDER_README + seal build for your 2-commit seal."
 op_pid:
-updated: 2026-07-23T15:56:00
+updated: 2026-07-23T16:20:00

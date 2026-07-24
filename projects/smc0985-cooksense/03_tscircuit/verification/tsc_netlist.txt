@@ -59,6 +59,8 @@ COMPONENTS:
  - U_DECD: soic16
  - C_DECU: 100nF 0402 capacitor
  - C_DECD: 100nF 0402 capacitor
+ - R_DECUPD: 100kΩ res0402 resistor
+ - R_DECDPD: 100kΩ res0402 resistor
  - U_ULNA: soic18w
  - U_ULNB: soic18w
  - C_ULNA: 100nF 0603 capacitor
@@ -194,6 +196,7 @@ NET: U_EXP_NC
   - U_EXP NC
 
 NET: N5V_FUSED
+  - D_REVCLAMP K
   - Q_REV D
   - F1 pin2
 
@@ -218,7 +221,6 @@ NET: EF_ILM
 
 NET: N5V_IN
   - D_ESD_IN pin1 (+)
-  - D_REVCLAMP K
   - F1 pin1
   - J_PWR V5IN
 
@@ -296,10 +298,6 @@ NET: DECU_C
   - U_DECU C
   - U_SR1 QC
 
-NET: DECU_G1
-  - U_DECU G1
-  - U_SR1 QD
-
 NET: DECD_A
   - U_DECD A
   - U_SR1 QE
@@ -308,7 +306,13 @@ NET: DECD_B
   - U_DECD B
   - U_SR1 QF
 
+NET: DECU_G1
+  - R_DECUPD pin1
+  - U_DECU G1
+  - U_SR1 QD
+
 NET: DECD_G1
+  - R_DECDPD pin1
   - U_DECD G1
   - U_SR1 QG
 
@@ -563,13 +567,13 @@ NET: ESTOP_RAW
   - U_SCHM 1A
 
 NET: COIL_EN
-  - J_MODE pin2
+  - J_MODE pin4
   - R_COILENPD pin1
   - Q_COILDRV G
 
 NET: MODE_RAW
   - R_MODEPD pin1
-  - J_MODE pin4
+  - J_MODE pin2
   - U_SCHM 3A
 
 NET: CONTACTOR_C
@@ -899,6 +903,8 @@ NET: GND
   - C_ULNA pin2 (-)
   - U_ULNB GND
   - U_ULNA GND
+  - R_DECDPD pin2
+  - R_DECUPD pin2
   - C_DECD pin2 (-)
   - C_DECU pin2 (-)
   - U_DECD GND
@@ -990,7 +996,7 @@ NET: N3V3
   - R_EXPRST pin2
   - C_EXP pin1 (+)
   - U_EXP VDD
-  - J_MODE pin3
+  - J_MODE pin1
   - J_ESTOP pin1
   - R_DOORPU pin2
   - J_DOOR pin1
@@ -1061,7 +1067,7 @@ NET: N5V_KEY_RELAY
 
 NET: KEY_RELAY_ALLOWED
   - TP_ALLOW pin1
-  - J_MODE pin1
+  - J_MODE pin3
   - U_AND3 Y
 
 NET: WD_OK
@@ -1095,7 +1101,7 @@ NET: FAULT
   - U_LATCHB B
   - U_LATCHA Y
 
-NET: PWR_GOOD_N
+NET: EFUSE_FLT_N
   - TP_PGOOD pin1
   - U_EXP GPB0
   - R_PG pin1
@@ -1164,7 +1170,7 @@ Q_REV
 - pin3(D): NETS(N5V_FUSED)
 
 D_REVCLAMP
-- pin1(K): NETS(N5V_IN)
+- pin1(K): NETS(N5V_FUSED)
 - pin2(A): NETS(GND)
 
 U_EFUSE
@@ -1173,7 +1179,7 @@ U_EFUSE
 - pin3(IN): NETS(N5V_RPP)
 - pin4(IN): NETS(N5V_RPP)
 - pin5(OUT): NETS(N5V_PROTECTED)
-- pin6(FLT_N): NETS(PWR_GOOD_N)
+- pin6(FLT_N): NETS(EFUSE_FLT_N)
 - pin7(ILM): NETS(EF_ILM)
 - pin8(GND): NETS(GND)
 
@@ -1194,7 +1200,7 @@ R_ILM (1.2kΩ res0402)
 - pin2(cathode, neg, right): NETS(GND)
 
 R_PG (100kΩ res0402)
-- pin1(anode, pos, left): NETS(PWR_GOOD_N)
+- pin1(anode, pos, left): NETS(EFUSE_FLT_N)
 - pin2(cathode, neg, right): NETS(N5V_PROTECTED)
 
 D_TVS
@@ -1502,6 +1508,14 @@ C_DECU (100nF 0402)
 C_DECD (100nF 0402)
 - pin1(pos, anode, left): NETS(N3V3)
 - pin2(neg, cathode, right): NETS(GND)
+
+R_DECUPD (100kΩ res0402)
+- pin1(anode, pos, left): NETS(DECU_G1)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_DECDPD (100kΩ res0402)
+- pin1(anode, pos, left): NETS(DECD_G1)
+- pin2(cathode, neg, right): NETS(GND)
 
 U_ULNA
 - pin1(IN1): NETS(SEL_U1)
@@ -1901,10 +1915,10 @@ D_ESTOP
 - pin2(neg, cathode, right): NETS(GND)
 
 J_MODE
-- pin1: NETS(KEY_RELAY_ALLOWED)
-- pin2: NETS(COIL_EN)
-- pin3: NETS(N3V3)
-- pin4: NETS(MODE_RAW)
+- pin1: NETS(N3V3)
+- pin2: NETS(MODE_RAW)
+- pin3: NETS(KEY_RELAY_ALLOWED)
+- pin4: NETS(COIL_EN)
 - pin5: NETS(GND)
 
 R_MODEPD (10kΩ res0402)
@@ -1926,7 +1940,7 @@ J_CONTACTOR
 - pin2(E): NETS(CONTACTOR_E)
 
 U_EXP
-- pin1(GPB0): NETS(PWR_GOOD_N)
+- pin1(GPB0): NETS(EFUSE_FLT_N)
 - pin2(GPB1): NETS(MODE_AUTO_HW)
 - pin3(GPB2): NETS(ESTOP_OK)
 - pin4(GPB3): NETS(DOOR_OK)
@@ -2180,7 +2194,7 @@ TP_FAULT
 - pin1: NETS(FAULT)
 
 TP_PGOOD
-- pin1: NETS(PWR_GOOD_N)
+- pin1: NETS(EFUSE_FLT_N)
 
 TP_TCDRDY
 - pin1: NETS(TC_DRDY_N)

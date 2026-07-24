@@ -5,7 +5,7 @@ Canon S-DSL: KiCad stays authoritative; this quantifies tscircuit fidelity.
 
 KiCad board: `/home/mouse9911/gits/circuits/projects/smc0985-cooksense/04_kicad/cooksense.kicad_pcb`
 - KiCad: 193 footprints, 156 named nets
-- tscircuit: ~301 components, ~155 nets
+- tscircuit: ~303 components, ~155 nets
 
 NOTE: refdes/net-name conventions differ between the two front-ends; a
 node-for-node parity requires a name-normalization map (see notes.md). The

@@ -227,6 +227,8 @@ placement:
     - {match: "R_HSG", near: Q_COIL}
     - {match: "C_KR", near: Q_COIL}
     - {match: "R_COILENPD", near: Q_COILDRV}
+    - {match: "R_DECUPD", near: U_DECU}       # '238 E3 pull-down (pin review Q4)
+    - {match: "R_DECDPD", near: U_DECD}       # '238 E3 pull-down (pin review Q4)
     - {match: "R_OPTOLED", near: U_OPTO}
     # ---- power locals ----
     - {match: "C_IN*", region: pwr}
