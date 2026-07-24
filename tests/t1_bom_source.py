@@ -464,5 +464,109 @@ def t_exporter_exclude_from_pos_cpl():
        "carry-over must NOT resurrect MK1's MPN into the LCSC column")
 
 
+# --------------------------------------------------- --circuit-only (leg C at
+# authoring, 2026-07-23). The R12/R30 wrong-value class was AUTHORED in the tsx
+# (a supplierPartNumbers code whose catalog value never matched the declared
+# resistance) and first caught after seal #3 because leg C only ran once a fab
+# BOM existed. --circuit-only runs the decoded-value-vs-value-prop comparison
+# straight off circuit.json the moment the tsx builds.
+#
+# RED-VERIFIED against pre-fix code (git show 747f9d2:.../bom_source_check.py
+# swapped in, 2026-07-23): all four tests below FAIL against it — the old CLI
+# rejects --circuit-only with "unrecognized arguments" (exit 2, so the clean
+# tests' must_pass fails and the known-bad tests' expected finding strings
+# never appear). Restored the fixed file afterwards.
+
+def circuit_rc(components):
+    """circuit.json text from [(refdes, lcsc, prop_field, value), ...]."""
+    els = []
+    for ref, code, field, val in components:
+        e = {"type": "source_component", "name": ref,
+             "supplier_part_numbers": {"jlcpcb": [code] if code else []}}
+        if field:
+            e[field] = val
+        els.append(e)
+    return json.dumps(els)
+
+
+def ledger_yaml(d, entries):
+    p = d / "ledger.yaml"
+    p.write_text("".join(
+        f"{code}:\n  mpn: {mpn}\n  verified: 2026-07-23\n"
+        for code, mpn in entries.items()) or "{}\n")
+    return p
+
+
+@test("--circuit-only PASSES coded R/C whose catalog values match their props")
+def t_conly_clean():
+    d = tmpdir("bomconly_")
+    (d / "circuit.json").write_text(circuit_rc([
+        ("R12", "C100", "resistance", 4120),        # FRC0603F4121TS = 4.12k
+        ("C1", "C200", "capacitance", 100e-9),      # ...104K... = 100nF
+        ("R99", "", "resistance", 100000),          # uncoded: out of scope
+        ("U1", "C300", "", None)]))                 # not an R/C row
+    led = ledger_yaml(d, {"C100": "FRC0603F4121TS", "C200": "CL10B104KB8NNNC"})
+    r = must_pass(run([KPY, GATE, "--circuit-only", d / "circuit.json",
+                       "--ledger", led]), "--circuit-only on matching values")
+    contains(r.out, "CIRCUIT VALUE CHECK: PASS", "verdict")
+
+
+@test("--circuit-only FAILS a coded R whose decoded catalog value mismatches "
+      "its resistance prop (the R12/R30 class)", kind="known_bad")
+def t_conly_value_mismatch():
+    """The known-bad fixture the mission names: the clean case broken in ONE
+    way — R30 declares 100k but its LCSC code resolves (via the ledger MPN)
+    to 3.09k, the REAL v1.2 R30 defect (commit 688a8af). Must FAIL at the
+    circuit.json stage, no BOM anywhere."""
+    d = tmpdir("bomconly_")
+    (d / "circuit.json").write_text(circuit_rc([
+        ("R30", "C2933195", "resistance", 100000)]))
+    led = ledger_yaml(d, {"C2933195": "FRC0603F3091TS"})   # 3.09k
+    r = must_fail(run([KPY, GATE, "--circuit-only", d / "circuit.json",
+                       "--ledger", led]),
+                  "--circuit-only on the R30 wrong-value class",
+                  "VALUE-MISMATCH")
+    contains(r.out, "R30", "the finding names the refdes")
+
+
+@test("--circuit-only FAILS a coded R that NO source can resolve "
+      "(unverifiable is not a pass)", kind="known_bad")
+def t_conly_unverifiable():
+    d = tmpdir("bomconly_")
+    (d / "circuit.json").write_text(circuit_rc([
+        ("R5", "C999999", "resistance", 4700)]))
+    must_fail(run([KPY, GATE, "--circuit-only", d / "circuit.json",
+                   "--ledger", d / "no_such_ledger.yaml"]),
+              "--circuit-only on an unvetted code", "UNVERIFIABLE-VALUE")
+
+
+@test("--circuit-only resolves via a 02_parts part.yaml MPN dir when the "
+      "ledger is silent")
+def t_conly_partyaml_source():
+    d = tmpdir("bomconly_")
+    (d / "circuit.json").write_text(circuit_rc([
+        ("R7", "C123456", "resistance", 2.2)]))            # 2R2
+    pd = d / "02_parts" / "RC0603FR-072R2L"
+    pd.mkdir(parents=True)
+    (pd / "part.yaml").write_text(
+        "mpn: RC0603FR-072R2L\nsourcing:\n  lcsc: C123456\n")
+    must_pass(run([KPY, GATE, "--circuit-only", d / "circuit.json",
+                   "--parts", d / "02_parts",
+                   "--ledger", d / "no_such_ledger.yaml"]),
+              "--circuit-only via part.yaml MPN")
+
+
+@test("legacy two-positional CLI is unchanged by the --circuit-only addition")
+def t_conly_backward_compat():
+    d = write_case(tmpdir("bomsrc_"), SRC, [
+        ("10uF 50V", ["C9", "C10"], "C77102"),
+        ("10uF 25V", ["C49", "C50"], "C77100")])
+    must_pass(run([KPY, GATE, d / "bom.csv", d / "circuit.json"]),
+              "legacy invocation still passes a correct BOM")
+    # and omitting circuit_json without --circuit-only is still an error
+    r = run([KPY, GATE, d / "bom.csv"])
+    check(r.rc != 0, "bom-only invocation without --circuit-only must error")
+
+
 if __name__ == "__main__":
     sys.exit(main())

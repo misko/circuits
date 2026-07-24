@@ -43,7 +43,9 @@ agent runs it FIRST. `$S` = `skills/kicad-pcb/scripts` (resolved repo-relative,
 
 | Step | Command | Interpreter |
 |---|---|---|
+| 0 | `$S/tsx_preflight.py .` — S-COUNT PRE-gate: alphanumeric pads mapped in `03_tscircuit/parity_padmap.txt` BEFORE the first tsci build (tscircuit DROPS an unmapped part silently, ERC still 0) | any python3 |
 | 1 | `03_tscircuit` → netlist (tsci build → `$S/circuit_json_to_kicad_sch.py` → `kicad-cli sch export netlist`) | bun/tsci + `/usr/bin/python3` |
+| 1b | CHEAP SEMANTIC BATTERY, right after netlist export — seconds each, run at AUTHORING, never first at seal (R12/R30 shipped in 2 sealed BOMs; the P5VA_4 net-merge shipped a DO-NOT-ORDER board, 2026-07-23): `$S/net_label_survival.py .` (candidate S-NETMERGE — label intent vs exported nets), `$S/electrical_invariants.py .` (+ `--adr-coverage`) for E-INV/E-ADR, `$S/power_topology.py .` (+ `--margin`, `--off-control`) for E-TOPO/E-MARGIN/E-OFF, `$S/count_parity.py .` (S-COUNT), and `$FS/bom_source_check.py --circuit-only 03_tscircuit/build/circuit.json --parts 02_parts` (M-BOM leg C at authoring: decoded catalog value vs the tsx value prop; `$FS` = jlcpcb-fab scripts). Each failure aborts with a named `GATE FAILED [1b] <ID>` line | any python3 |
 | 2 | ERC gate `kicad-cli sch erc --severity-all` = 0 errors + netlist-parity gate | `kicad-cli` |
 | 3 | `$S/generate_board_generic.py 03_src/floorplan.yaml -o 04_kicad/<board>.kicad_pcb` (placement + zones) | `/usr/bin/python3` |
 | 4 | `03_src/audit_board.py` (placement/pad invariants) | `/usr/bin/python3` |
@@ -132,7 +134,10 @@ flags for sanctioned floats emitted upstream), **S2** (no auto-named nets reach
 copper), **R1** (netclasses exist in the route-INPUT project file — R-RULES
 inspects it), **E-INV/E-ADR** (the netlist graded against the intent assertions
 in `rules/electrical_invariants.yaml`; every protection/topology ADR must emit
->= 1), **E-TOPO/E-MARGIN/E-OFF** (all from `rules/power_tree.yaml`: converter
+>= 1), candidate **S-NETMERGE** (`net_label_survival.py`: every schematic
+global_label survives to the exported netlist + the optional `label_survival:`
+pin_map — the geometric net-merge class every self-consistent gate is blind
+to), **E-TOPO/E-MARGIN/E-OFF** (all from `rules/power_tree.yaml`: converter
 topology DERIVED from the voltage envelopes and asserted against the converter
 `part.yaml` `type:`; the output-setpoint load margin vs the delivery IR drop at
 Imax; and a battery source's de-energization path + stored quiescent draw),

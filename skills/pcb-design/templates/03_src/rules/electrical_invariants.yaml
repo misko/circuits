@@ -44,6 +44,37 @@ invariants:
     adr: 0007
     why: "the VIN rail must carry at least one decoupling capacitor"
 
+# ---------------------------------------------------------------------------
+# label_survival — the schematic NET-MERGE gate (candidate S-NETMERGE), graded
+# by net_label_survival.py PROJECT_DIR. WHY: `kicad-cli sch export netlist`
+# CONNECTS wires whose endpoint touches a foreign wire (T-junction) or that
+# overlap collinearly — a net label silently merges into another net and
+# every downstream gate stays green because all are self-consistent with the
+# merged netlist (crow-recorder-central-v2 P5VA_4->AUDIO4M + MID2P->5V, two
+# DO-NOT-ORDER defects on one board, 2026-07-23).
+#
+# The GENERIC check (every schematic global_label must exist as a netlist net)
+# is ALWAYS ON and needs no config — this block only carries the optional
+# extras. Keys:
+#   exempt:  labels allowed to be absent from the netlist; each entry REQUIRES
+#            `why:` evidence (canon M4 — an exemption without evidence is a
+#            defect).
+#   pin_map: board-specific pin-for-pin net assertions (the generalization of
+#            the crow-recorder 8-port RJ45 map): each entry checks every ref
+#            in `refs`; `{n}` in a net pattern expands to n_start + position;
+#            `unconnected` pins must carry no real net.
+label_survival: {}
+#label_survival:
+#  exempt:
+#    - {label: SPARE_NET, why: "test-point label, deliberately unloaded (ADR-000X)"}
+#  pin_map:
+#    - refs: [J3, J4, J5, J6, J7, J8, J9, J10]
+#      n_start: 1
+#      pins: {"1": "AUDIO{n}P", "2": "AUDIO{n}M", "3": PLUS5V_BEEP,
+#             "4": "P5VA_{n}", "5": GND, "6": BEEP_RETURN,
+#             "7": "P5VA_{n}", "8": GND}
+#      unconnected: ["9", "10", "11", "12"]
+
 # DEFERRED to E2 (geometric — need footprint/geometry, not just the netlist):
 #   clamp_le_rating  — a clamp/TVS standoff <= the rail it protects
 #   kelvin_within    — a sense pair within N mm of the element it senses
