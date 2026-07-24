@@ -247,6 +247,50 @@ def t_sch_parity_fails():
           f"33-part board:\n{rr.out[-2000:]}")
 
 
+@test("kicad_sch_parity survives a raw parity_padmap.txt as --padmap (cooksense/crow crash)")
+def t_sch_parity_padmap_file():
+    """2026-07-23 incident, BOTH active boards: gen_tscircuit.sh passes the
+    ENTIRE parity_padmap.txt file text as --padmap, but the script only parsed
+    the legacy inline 'U2:4=2,...' form — any comment line or tsx_preflight-only
+    token crashed it with `ValueError: not enough values to unpack` at
+    `tok.split("=")` (cooksense journal ~L416; crow-rv2 routing.md M-REPRO
+    entry). The gate must DEGRADE (skip undecodable tokens with a note), never
+    traceback. RED-verified test-first: this test was written against the
+    pre-fix script and FAILED with the exact ValueError traceback before the
+    tolerant parser landed (swap-back procedure per tests/README.md)."""
+    padmap = "\n".join([
+        "# parity_padmap.txt — comment line, no '=' anywhere",
+        "",
+        "J2  pin1=A1    # crow per-line form: <ref>  pin<N>=<realpad>",
+        "SM05B-GHS-TB MP GND   # cooksense tsx_preflight-only triple (no '=')",
+        "J5: A1 A4 A5          # usb-hub positional form (no '=')",
+    ])
+    board = ROOT / "archived_projects" / "cook-loadcell" / "04_kicad" / "cook_loadcell.kicad_pcb"
+    rr = run(["/usr/bin/python3", SCRIPTS / "kicad_sch_parity.py", "padmapfixture",
+              "/dev/null", board, "--padmap", padmap])
+    check("ValueError" not in rr.out and "Traceback" not in rr.out,
+          f"kicad_sch_parity CRASHED on real-world padmap file text:\n{rr.out[-1500:]}")
+    contains(rr.out, "REAL DISCREPANCIES", "parity report (must still run to a verdict)")
+
+
+@test("kicad_sch_parity padmap parser: legacy inline + per-line forms both apply")
+def t_sch_parity_padmap_parse():
+    """PROPERTY test on the parser itself (imported, no board needed): the
+    legacy 'U2:4=2,U9:5=3' inline form and the documented per-line
+    '<ref>  pin<N>=<pad>' file form must BOTH land in the mapping; 'pinN' is
+    aliased to bare 'N' because tsx portHints are numeric in the netlist."""
+    r = run(["/usr/bin/python3", "-c", (
+        "import sys; sys.path.insert(0, r'%s');\n"
+        "import kicad_sch_parity as m\n"
+        "pm = m.parse_padmap('U2:4=2,U9:5=3')\n"
+        "assert pm[('U2','4')]=='2' and pm[('U9','5')]=='3', pm\n"
+        "pm = m.parse_padmap('# hdr\\nJ2  pin1=A1  # GND\\nBADLINE NO EQUALS\\n')\n"
+        "assert pm[('J2','1')]=='A1' and pm[('J2','pin1')]=='A1', pm\n"
+        "print('PARSE-OK')\n") % SCRIPTS])
+    contains(rr_out := r.out, "PARSE-OK", "padmap parser check")
+    check(r.rc == 0, f"parser property check failed:\n{r.out[-1500:]}")
+
+
 @test("a circuit.json with no components is rejected, not silently empty",
       kind="known_bad")
 def t_empty_circuit():

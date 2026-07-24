@@ -117,6 +117,45 @@ def generic_rules_project(mutate=None):
     return proj, run([PY, GEN_RULES, proj])
 
 
+@test("generate_rules_generic PURGES kicad-cli droppings instead of aborting "
+      "(the bespoke rmstray, promoted)")
+def t_rules_purges_kicadcli_droppings():
+    """2026-07-23, crow-rv2: every `kicad-cli pcb drc` / stitch-gate run drops
+    a stray `<board>.kicad_pcb.kicad_pro` (+ `.kicad_prl`) beside the board,
+    and generate_rules' one-board-file contract then ABORTS the rebuild. The
+    board carried a bespoke `rmstray()` purge in its rebuild driver (M8
+    two-strike: every fleet driver would need it). Promoted: the shared
+    emitter now purges the unambiguous double-extension droppings itself.
+    RED-verified test-first: FAILED against the pre-fix emitter with
+    '>1 .kicad_pro in ...' before the purge landed."""
+    d = tmpdir("grstray_")
+    proj = project_copy("cook-loadcell", d / "proj")
+    shutil.copy(LC / "04_kicad" / "cook_loadcell.kicad_pro", proj / "04_kicad")
+    stray_pro = proj / "04_kicad" / "cook_loadcell.kicad_pcb.kicad_pro"
+    stray_prl = proj / "04_kicad" / "cook_loadcell.kicad_pcb.kicad_prl"
+    stray_pro.write_text("{}")
+    stray_prl.write_text("{}")
+    r = must_pass(run([PY, GEN_RULES, proj]),
+                  "generate_rules_generic with planted kicad-cli droppings")
+    check(not stray_pro.exists() and not stray_prl.exists(),
+          "the kicad-cli droppings survived the run")
+    contains(r.out, "stray", "purge notice")
+
+
+@test("generate_rules_generic still ABORTS on a genuine second .kicad_pro "
+      "(the purge must not blind the one-board-file contract)", kind="known_bad")
+def t_kb_rules_second_pro_still_aborts():
+    """The purge is scoped to the double-extension `*.kicad_pcb.kicad_pro`
+    droppings ONLY. A real second project file is still ambiguity the
+    contract must reject — a gate that cannot fail is worthless."""
+    d = tmpdir("grtwo_")
+    proj = project_copy("cook-loadcell", d / "proj")
+    shutil.copy(LC / "04_kicad" / "cook_loadcell.kicad_pro", proj / "04_kicad")
+    (proj / "04_kicad" / "other_board.kicad_pro").write_text("{}")
+    must_fail(run([PY, GEN_RULES, proj]),
+              "generate_rules_generic with two genuine .kicad_pro", ">1 .kicad_pro")
+
+
 @test("TIER-AWARE clamp: a declared fab_tier replaces the hardcoded 0.25mm "
       "floor with the tier's real min_track")
 def t_tier_clamp_uses_tier_floor():

@@ -43,6 +43,7 @@ SUITES=(
   t1_counting.py
   t1_escape_tier.py
   t1_rules_bom.py
+  t1_rebuild_templates.py
   t1_bom_source.py
   t1_electrical_invariants.py
   t1_power_topology.py
