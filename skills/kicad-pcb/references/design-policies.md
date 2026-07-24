@@ -110,6 +110,19 @@ one-line fix converts the strongest gate into the most expensive rubber stamp.
 Compute, like fab cost, is spent under a declared ceiling (the D-TIER
 symmetry): work-class tiers in `skills/pcb-design/references/compute-tiers.md`.
 
+Two corollaries (2026-07-23): **(1) Review precedes seal.** The battery runs
+against the PRE-SEAL staging archive; the seal is cut only after the verdicts
+are in (normative order: the 07_releases contract, "Seal procedure"). A
+finding pre-seal costs an edit; the same finding post-seal costs a superseded
+release — 3 of usb-hub-3s-v3's 4 seals died to post-ceremony reviews (mean
+seal lifetime 5.6h). **(2) Sealed means done reviewing.** A SEALED release is
+not re-reviewed absent a supersede trigger (a defect class proven elsewhere,
+or new external evidence); retro-checks against a newly minted gate are
+read-only and scoped to that gate. Measured cost of violating this: 8 of one
+family's ~16 lens runs targeted an already-immutable board, produced zero
+board changes, and the compliance backfill introduced 2 new defects
+(crow-mic-pod, 2026-07-22).
+
 ## Running the audit
 
 ```

@@ -56,7 +56,11 @@ stage: commit, append a `handoff` journal entry (state, next step, open
 hypotheses), refresh the BRIEF's status block, and END the session
 cleanly — a successor resumes from the tree alone (proven cheap). An
 emergency mid-stage handoff loses in-flight hypotheses; a boundary
-handoff loses nothing.
+handoff loses nothing. **A successor's INTAKE is scoped:** read
+`01_docs/STATUS.md` (the beacon), the TAIL of the current stage's journal
+(the last handoff/iterate entries), and the files the beacon names — never
+whole `journal/` or `learnings/` directories (they run 40-70KB per board;
+history beyond the live frame is pulled on demand, not preloaded).
 
 ## 0. Commission (before any engineering)
 
@@ -70,9 +74,12 @@ handoff loses nothing.
   or config from another project** — that coupling let a clean-room agent read
   a sibling board's design (2026-07-20). Read the contracts; they are binding.
 - Seed `03_src/` config from the skill's schema examples —
-  `<pcb-design skill>/templates/03_src/{floorplan.yaml,route.yaml,rules/nets.yaml}`
+  `<pcb-design skill>/templates/03_src/{floorplan.yaml,route.yaml,rebuild_all.sh,
+  rules/{nets.yaml,power_tree.yaml,electrical_invariants.yaml}}`
   — then replace the values for THIS board. The keys are the contract the
-  shared generic backend consumes; the values are yours to derive.
+  shared generic backend consumes; the values are yours to derive. (The two
+  `rules/` schema files were omitted from the copy list until 2026-07-23
+  although stages 1-3 mandate authoring both — seed them.)
 - **`03_tscircuit/` is the TSX authoring source** (renamed from bare
   `tscircuit/` 2026-07-20): it holds hand-written SOURCE, the same pipeline
   stage as `03_src/`, hence the same number. `03_src/` = the KiCad-side
@@ -93,6 +100,12 @@ handoff loses nothing.
   told otherwise, not 5-20V/100W) — record it as D#, and flag it LOUDLY
   in the report. The most-capable reading is where over-engineering hides
   (usb-hub-3s 2026-07-22; see the SPEC-CHECK rule in D-BACK).
+  Fill the BRIEF's **Commission fact-lock** table NOW (output-rail voltage
+  range + Imax, input envelope, protection posture, off-control, hard-cell
+  sourcing class) — every row user-confirmed (Q#/A#) or an explicit D#;
+  the two rows left unlocked on usb-hub-3s (output V range, protection
+  posture) cost that family two generation restarts (~27 of 53 commits,
+  2026-07-23).
 - **D-SPEC, spec-tension check (a GATE, with D-ESC/D-TIER/D-ADJ).** Test
   every numeric requirement against (a) the governing standard and (b) the
   sourceable-part envelope BEFORE architecture. A brief can demand what no
@@ -190,8 +203,9 @@ resource in tokens and gets the same treatment. Four rules:
   `references/compute-tiers.md`; escalating above the class tier requires a
   stated reason there. The routing-grind ladder (Tier 0 script / Tier 1 cheap /
   Tier 2 frontier, stages 4-6) is the proven instance.
-- **CONTEXT BUDGET.** An agent past ~300k tokens takes the NEXT gate boundary
-  as a PLANNED handoff (the planned-session-splits rule): commit, journal
+- **CONTEXT BUDGET.** An agent past ~70% of its context window (the SAME
+  threshold as the planned-session-splits rule — one number, not two) takes
+  the NEXT gate boundary as a PLANNED handoff: commit, journal
   `handoff`, refresh the beacon, and a FRESH successor resumes from the tree
   alone (proven cheap). Repeatedly resuming a heavy agent — "resume-the-giant"
   — is the named anti-pattern: every resume re-pays the giant's whole context
@@ -208,7 +222,12 @@ resource in tokens and gets the same treatment. Four rules:
   re-verification is TARGETED: confirm the specific changed items, plus ONE
   integrated fresh-CONTEXT lens over the fixed board. "Fresh" buys
   INDEPENDENCE (canon M1: a reviewer with no stake in the fix), not repeated
-  breadth. Canon home: design-policies.md, "Verification scoping".
+  breadth. Canon home: design-policies.md, "Verification scoping". Two
+  corollaries: verification runs against the PRE-SEAL staging archive (a
+  finding must cost an edit, not a supersede), and a SEALED release is never
+  re-reviewed absent a supersede trigger — retro-checks against a newly
+  minted gate are read-only and scoped to that gate (8 of 16 lens runs in
+  one family targeted an immutable board and changed nothing, 2026-07-23).
 
 ## Iteration & backtracking — the STUCK protocol (D-BACK)
 
@@ -412,12 +431,19 @@ one pass. The trigger existed in hindsight only — now it is a rule.)
 Build `03_src/` generators + `rebuild_all.sh` (set -euo pipefail) in the
 canonical order. **Schematic authoring — tscircuit/TSX is THE standard,
 schwriter2 is FALLBACK-ONLY (ADR-0002 Phases D+E, migration COMPLETE):**
-(1) the go-forward path is **tscircuit/TSX**. An ESTABLISHED project rebuilds with ONE
-command — `scripts/tsx_to_board.sh <project>` (Phase E). ⚠️ **It is a REBUILD driver: it
-hard-fails without a pre-existing `03_src/generate_board.py` (+ stitch_and_fill, audit_board,
-a promoted route chain) — it orchestrates a KiCad backend, it does not create one. For a NEW
-board that backend is still hand-written and is the BULK of the work; budget it explicitly**
-(clean-room finding 2026-07-20, ADR-0002 Phase E scope correction). The chain it runs: `tsci build` → converter
+(1) the go-forward path is **tscircuit/TSX driving the SHARED GENERIC BACKEND**
+(ADR-0002 amendment 2026-07-23): a board carries CONFIG, not a backend — the heavy
+generators are shared (`kicad-pcb/scripts/generate_board_generic.py`,
+`route_and_stitch_generic.py`, the converter; proven in
+`docs/generic-generator-proof.md`), and a NEW board writes **ZERO board-specific
+generation Python**: seed `templates/03_src/rebuild_all.sh` + the config files and
+fill the values. A bespoke `03_src/generate_board.py` is the EXCEPTION (a board the
+generic backend cannot express — write an ADR if you believe you need one).
+⚠️ `scripts/tsx_to_board.sh` predates the generic backend and hard-fails without a
+bespoke `generate_board.py` — on a generic-backend board (i.e. every current board)
+the rebuild driver is the project `rebuild_all.sh` (or its promoted-chain fast
+variant); treat tsx_to_board.sh as a legacy-board driver until retrofitted. The
+chain either driver runs: `tsci build` → converter
 `.kicad_sch` → placement → generate_rules → KRT (reuses the promoted route chain)
 → stitch_and_fill → generate_rules LAST → DRC 0/0/0. For schematic-only render
 use `gen_tscircuit.sh <project>` (default = the BRIDGE ONLY: circuit.json,
@@ -447,7 +473,15 @@ longer the co-standard. EITHER path feeds the SAME downstream: generate_schemati
 (or the converter) with no_connect flags for every sanctioned float; wire the
 story-critical paths per canon S6 →
 **ERC gate** (`kicad-cli sch erc --severity-all` = 0 errors) →
-netlist-parity gate → generate_board — placement is hand-coded OR
+netlist-parity gate → **CHEAP SEMANTIC BATTERY at the SCHEMATIC gate** —
+seconds each, run HERE and not first at seal (a defect authored at this
+stage and caught at seal costs a superseded release; R12/R30 shipped in
+2 sealed BOMs before the check ran, 2026-07-23): `electrical_invariants.py`
+(E-INV, + `--adr-coverage` E-ADR) + `power_topology.py` (E-TOPO/E-MARGIN/
+E-OFF) + `count_parity.py` (S-COUNT), and at the FIRST fab-BOM export
+(early, never seal-first) `bom_source_check.py` legs A+C — per-refdes LCSC
+identity vs circuit.json AND decoded-MPN-catalog-value vs the BOM label →
+generate_board — placement is hand-coded OR
 **placement-as-code** (`circuit_json_to_kicad_pcb.py` lands parts at the TSX
 `pcbX/pcbY`; ADR-0002 Phase B — authored coords only, NEVER tscircuit auto-place,
 then legalize) → audit gate (polarity,
@@ -495,17 +529,38 @@ assembly drawing.
 
 ## 7. Verify — independent eyes, then release
 
-Run ALL of these; each compares against a reference the design didn't
-produce (checker and checked must not share a method). **PARALLELIZE the
-independent ones:** jlc_twin (network fetches), the fresh-context PIN
-REVIEW, and the fresh-context RENDER REVIEW share no inputs or state —
-launch them as CONCURRENT sub-agents/background jobs and join before the
-policy audit (which consumes their verdicts). Serializing them roughly
-doubles the stage's wall-clock for no independence gain. bom_seed +
-jlc_stock run first (seconds, and twin consumes the BOM).
+**SCOPE THE BATTERY TO THE RELEASE TYPE (canon "Verification scoping"):**
+the full battery below runs ONCE per MATERIAL design state — the initial
+release, and again after any material change. A FIX-PASS release (targeted
+diffs on an already-fully-reviewed state — diff-verify the BOM/board delta
+first) still runs every MECHANICAL gate (they are seconds) but scopes the
+REVIEW lenses to targeted confirmation of each changed item + ONE
+integrated fresh-context lens — not the full multi-lens battery.
+**EVERYTHING here runs against the PRE-SEAL STAGING archive** — a finding
+must cost an edit, not a supersede (3 of one family's 4 seals were killed
+by post-ceremony reviews, mean seal lifetime 5.6h, 2026-07-23); the seal is
+cut only after the verdicts are in (07_releases contract, "Seal
+procedure"). Each check compares against a reference the design didn't
+produce (checker and checked must not share a method). **CHEAP MECHANICAL
+GATES FIRST, expensive lenses LAST** — the lenses hunt unknowns, never
+data defects a script catches (4 of 7 order-blockers on one board were
+script-checkable BOM/CPL/format defects first caught by the 4-lens fleet,
+2026-07-23). **PARALLELIZE the independent ones:** jlc_twin (network
+fetches), the fresh-context PIN REVIEW, and the fresh-context RENDER
+REVIEW share no inputs or state — launch them as CONCURRENT
+sub-agents/background jobs and join before the policy audit (which
+consumes their verdicts). Serializing them roughly doubles the stage's
+wall-clock for no independence gain.
 
-- `bom_seed.py`: 22/22-style unambiguous LCSC mapping; hand-solder THT
-  lines deliberately uncoded and listed.
+- `export_jlc_package.py` (jlcpcb-fab skill): produces `fab/bom.csv` +
+  `cpl.csv`; LCSC flows from the TSX `supplierPartNumbers` via
+  circuit.json — there is no per-board BOM-seeding script. Hand-solder THT
+  lines stay deliberately uncoded and are listed in ORDER_README.
+- `bom_source_check.py fab/bom.csv circuit.json --parts 02_parts`: legs
+  A+C — per-refdes LCSC == source, AND every R/C row's MPN-decoded catalog
+  value == its BOM label (the R12/R30 wrong-part class: 2 sealed escapes
+  before this gate existed, 2026-07-23). Re-run here even though it ran at
+  the first BOM export — it now grades the STAGED fab set.
 - `jlc_stock_check.py`: every coded line in stock >= 5x need.
 - `jlc_twin.py BOARD bom.csv 06_build/twin --adjudications
   03_src/rules/twin_adjudications.yaml --also <REF=LCSC,...>` (include
@@ -520,8 +575,10 @@ jlc_stock run first (seconds, and twin consumes the BOM).
 - Fresh-context RENDER REVIEW: a new agent reviews the twin renders +
   PDFs with no design context; triage every finding (fix or ADR-documented
   disposition).
-- `export_pdfs.sh`: pcb_layers / assembly PDFs, visually verified via PNG
-  export. **RENDER PAIR + MISSING-MODEL MANIFEST (standard, 2026-07-21):**
+- PDF set: `pcb_layers.pdf` / `assembly.pdf` via `kicad-cli pcb export pdf`
+  (no per-board export script — the release contract names the files),
+  visually verified via PNG export.
+  **RENDER PAIR + MISSING-MODEL MANIFEST (standard, 2026-07-21):**
   every release ships BOTH views per side — `render_<side>_bare.png`
   (kicad-cli svg export of Cu+Mask+SilkS+Edge, rasterized: the
   no-components truth view) and the twin's modeled render — PLUS
@@ -535,11 +592,18 @@ jlc_stock run first (seconds, and twin consumes the BOM).
   render** (`03_tscircuit/build/schematic.pdf`), NOT a KiCad re-render (ADR-0002
   Phase A) — ship it as `pdf/schematic.pdf`.
 
-- **RED-TEAM RELEASE REVIEW (standard, 2026-07-21 — runs on EVERY
-  release).** After the pin/render reviews pass, launch TWO zero-context
-  ADVERSARIAL reviewer sub-agents in parallel, each given ONLY the release
-  archive + dev package (01_docs, 02_parts, 03_src) and told to hunt for
-  defects, not confirm correctness:
+- **RED-TEAM RELEASE REVIEW (standard, 2026-07-21; scoped + moved pre-seal
+  2026-07-23).** Runs against the PRE-SEAL staging archive, breadth per the
+  release type: an INITIAL release of a material state gets BOTH lenses
+  below; a FIX-PASS release gets targeted fix-confirmation + ONE integrated
+  fresh-context lens (canon "Verification scoping"). Reviewer INPUT is
+  curated — for independence AND cost: the staging archive +
+  `01_docs/{BRIEF,ARCHITECTURE,DETAIL_DESIGN,decisions/}` + `02_parts/` +
+  `03_src/` config; **journals, learnings, STATUS, and 08_reviews are
+  EXCLUDED** (a reviewer fed the designers' own narrative is no longer
+  zero-context, and journal dirs run 40-70KB of token load per lens).
+  Launch the lenses as zero-context ADVERSARIAL reviewer sub-agents told to
+  hunt for defects, not confirm correctness:
   (a) **topology/protection/ratings lens** — trace protection chains from
   the NETLIST (reverse-polarity behavior incl. TVS directionality), check
   every clamp-vs-protected-part rating pair from part.yaml limits,
@@ -601,8 +665,14 @@ newly verified (shipped or fully twin/pin-verified) gets its entry in
 the gotchas you paid to learn, provenance = this board's name. A resolved
 `unresolved` function entry is the most valuable harvest of all.
 
-Then cut `07_releases/v1.0-<date>/` per the release contract. **A release is
-a COMPLETE, SELF-CONTAINED ARCHIVE — not a pointer to a git SHA.** Someone
+Then cut `07_releases/v1.0-<date>/` per the release contract, following its
+**"Seal procedure (normative — the 2-commit seal)"** section EXACTLY: stage
+the archive → run every gate + review against staging → source commit S →
+stamp MANIFEST (`git_sha: S`, `git_dirty: false`) + re-run M-REL/freshness →
+seal commit adds ONLY the release dir. That section is the ONE home for the
+seal dance (this file and ORCHESTRATION_STATE.md only point at it).
+**A release is a COMPLETE, SELF-CONTAINED ARCHIVE — not a pointer to a git
+SHA.** Someone
 holding only that directory must be able to open the board, read the
 schematic, check mechanical fit, see every gate's evidence, and re-plot the
 gerbers. Six required parts:

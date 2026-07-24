@@ -300,3 +300,30 @@ ADR-0001's boundary (native artifacts, gates run on artifacts, S-DSL) is UNCHANG
 still governs — this ADR just moves more of the FRONT-END into tscircuit while the gates
 stay put. Additive + reversible: every board keeps its KiCad generators until it migrates;
 schwriter2 remains the fallback; the hard lines (routing/twin) are permanent by design.
+
+## Amendment 2026-07-23 — the Phase E gap is CLOSED by the generic backend
+
+The 2026-07-20 scope correction above said "for a new board the backend is
+still hand-written work, and it is the bulk of the effort" and named closing
+that gap as the honest next piece of work. That work happened: the SHARED
+GENERIC BACKEND (`skills/kicad-pcb/scripts/generate_board_generic.py`,
+`route_and_stitch_generic.py`, the converter) builds a NEW board from config
+alone — `03_src/{floorplan.yaml,route.yaml,rules/*}` — with ZERO
+board-specific generation Python. Proof: `docs/generic-generator-proof.md`;
+the current fleet (smc0985-cooksense, usb-hub-3s-v3, crow-recorder-central-v2)
+carries no `generate_board.py` at all. The seeded driver is
+`skills/pcb-design/templates/03_src/rebuild_all.sh`.
+
+Consequences (SKILL.md stages 4-6 updated in the same change):
+
+- A NEW board's DEFAULT is the generic backend + per-board config. A bespoke
+  `03_src/generate_board.py` is the EXCEPTION — only for a board the generic
+  backend cannot express, and it requires an ADR saying why.
+- The "backend is the bulk of the work" warning describes HISTORY (the
+  bespoke era), not the pipeline. Budgeting a hand-written backend for a new
+  board is now an error in the expensive direction.
+- `scripts/tsx_to_board.sh` still hard-requires a bespoke `generate_board.py`
+  (its line-48 FATAL) — STALE for generic-backend boards, which rebuild via
+  the project `rebuild_all.sh` (or its promoted-chain fast variant). Until
+  tsx_to_board.sh detects the generic chain, it is a LEGACY-BOARD driver
+  only; retrofit tracked as open work.

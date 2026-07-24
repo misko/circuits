@@ -37,4 +37,12 @@ RELEASED must additionally pass the release gate at the bottom.
 
 - [ ] JLC twin gate: `jlc_twin.py` exits 0 with the project adjudications file — zero unadjudicated MIRRORED/PAD-MISMATCH findings; twin_report.csv copied into the release verification/
 
-- [ ] Fresh-context pin review: `pin_audit.py` dossiers generated; independent agents (no session context) reviewed every active part per `pin-review-protocol.md`; verdicts in the release verification/pin_review.md with ZERO unresolved FAILs
+- [ ] semantic M-BOM on the STAGED fab set: `bom_source_check.py fab/bom.csv circuit.json --parts 02_parts` exits 0 — per-refdes LCSC == source AND decoded MPN catalog value == BOM label (the R12/R30 wrong-part class, 2 sealed escapes 2026-07-23)
+
+- [ ] `policy_audit.py <project>` → zero FAIL; waivers evidence-backed; HUMAN items carry the fresh-context reviewers' verdicts
+
+- [ ] REVIEW LENSES scoped by release type (canon "Verification scoping"): INITIAL release of a material state = full battery (both red-team lenses + fresh pin review + render review); FIX-PASS release = diff-verified delta + targeted confirmation of each changed item + ONE integrated fresh-context lens — never the full battery on a fix-pass
+- [ ] all reviews ran against the PRE-SEAL staging dir (a finding costs an edit, not a supersede); red-team verdicts ORDER with ZERO open P0 BEFORE the seal commit
+- [ ] fresh-context pin review (per the scoping line above): `pin_audit.py` dossiers generated; independent agents (no session context) per `pin-review-protocol.md`; verdicts in verification/pin_review.md with ZERO unresolved FAILs
+
+- [ ] seal follows the 2-commit procedure — 07_releases contract "Seal procedure (normative)": gates+reviews on staging → source commit S → MANIFEST stamped `git_sha: S` / `git_dirty: false` + M-REL/freshness re-run → seal commit adds ONLY the release dir (+ CHANGELOG, + SUPERSEDED.md on the predecessor)

@@ -200,6 +200,49 @@ for a whole-repo claim:
 exits non-zero when dirty — the seal calls it and gates on the exit code
 rather than eyeballing `git status`.
 
+## Seal procedure (normative — the 2-commit seal)
+
+The ONE home for HOW a release is cut; SKILL.md stage 7, the revision
+CHECKLIST, and ORCHESTRATION_STATE.md all point HERE (single-homed
+2026-07-23 — before that the dance lived only in one board's journal and
+was re-derived per seal). The staging boundary carries the immutability
+rule: the release directory is MUTABLE STAGING until the seal commit
+lands; **immutability begins the moment the seal commit exists.**
+
+0. **Stage.** Write the complete archive into `07_releases/<ver>-<date>/`.
+   Run EVERY gate and review against this staging dir — DRC/ERC/parity,
+   twin, policy_audit, freshness, semantic M-BOM, and the review lenses
+   (breadth per canon "Verification scoping": initial release = full
+   battery; fix-pass = diff-verified delta + targeted confirms + ONE
+   integrated fresh-context lens). **A finding here costs an edit; the
+   same finding after the seal costs a supersede** (3 of one family's 4
+   seals died to post-ceremony reviews, mean seal lifetime 5.6h,
+   2026-07-23). Do not proceed with any open P0 or FAIL.
+1. **Source commit S.** Commit every INPUT: the board's own subtree and
+   any `skills/` changes. `release_git_dirty.py <board>` must report
+   clean apart from the staged release dir itself (the release dir is
+   OUTPUT — the seal commit will carry it; any OTHER dirt blocks). Strip
+   kicad-cli droppings LAST — any board-open regenerates gitignored
+   `*.kicad_prl` / stray `*.kicad_pcb.kicad_pro` files, so the
+   `git check-ignore` sweep is the FINAL pre-seal check (bit two boards,
+   2026-07-23).
+2. **Stamp.** Write `git_sha: S`, `git_dirty: false` into `MANIFEST.txt`
+   and (re)compute its sha256 table over every file (MANIFEST itself is
+   the one exclusion — it cannot hash itself). THEN re-run `policy_audit`
+   M-REL and `release_freshness_check.py` so the shipped audit grades the
+   REAL manifest (the v1.2 audit-vs-manifest disagreement class).
+3. **Seal commit.** A commit that adds ONLY the release directory, the
+   `01_docs/CHANGELOG.md` entry, and `SUPERSEDED.md` on the predecessor.
+   From this commit on the directory is IMMUTABLE.
+
+Deviations that force rework (both happened, 2026-07-23): regenerating ANY
+artifact after S makes S stale — return to step 1 with a new S. Committing
+the staged release INSIDE the source commit (usb-hub-3s-v3 v1.3 gate-ii)
+leaves MANIFEST pointing at an older sha and forces a follow-up re-stamp
+commit + `policy_audit --skip-drc` re-clear — legal but three commits
+instead of two; follow the order above. The orchestrator's INDEPENDENT
+re-measure after sealing is ORCHESTRATION_STATE.md "Seal-verify protocol".
+
 ## Fix-claim evidence rule
 
 A release whose MANIFEST claims a FIX or verification refresh relative to a

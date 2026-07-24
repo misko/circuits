@@ -20,11 +20,15 @@ YOU re-ran, not the agent's claim (reports are claims, artifacts are proof) -->
 |---|---|---|---|---|---|
 
 ## Seal-verify protocol (run per seal — the orchestrator RE-MEASURES)
+<!-- the normative seal ORDER (2-commit seal) lives in ONE home: the
+07_releases contract, "Seal procedure (normative)". This list is the
+INDEPENDENT re-measure that follows it — never trust the sealer's claims -->
 - [ ] DRC 0/0/0 — `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity`, re-run yourself
-- [ ] MANIFEST sha256 self-check — every listed hash re-computed and equal
-- [ ] `git check-ignore` sweep — no release/source input gitignored (canon M3/M-REPRO)
+- [ ] MANIFEST sha256 self-check — every listed hash re-computed and equal; `git_sha` = the source commit S
+- [ ] `git check-ignore` sweep — no release/source input gitignored (canon M3/M-REPRO); run LAST (kicad-cli regenerates `*.kicad_prl` droppings on any board-open)
 - [ ] freshness gate — `release_freshness_check.py 07_releases/<ver>` exits 0
-- [ ] semantic M-BOM — `bom_source_check.py FAB_BOM CIRCUIT_JSON`: per-refdes LCSC equals source (canon M6)
+- [ ] semantic M-BOM — `bom_source_check.py FAB_BOM CIRCUIT_JSON --parts 02_parts`: per-refdes LCSC equals source AND decoded MPN value equals label (canon M6)
+- [ ] red-team verdicts ORDER, zero open P0 — run pre-seal on staging, scoped by release type (canon "Verification scoping": initial = full battery; fix-pass = targeted + ONE fresh lens)
 
 ## Standing hazards / gotchas
 <!-- campaign-scoped traps already paid for — one line each, with the incident -->
@@ -36,4 +40,4 @@ YOU re-ran, not the agent's claim (reports are claims, artifacts are proof) -->
 <!-- the compute ceiling in force (SKILL.md "Compute discipline") -->
 - tiers: agents declare work class at spawn per `skills/pcb-design/references/compute-tiers.md`
 - comms: poll beacons via `pcb_status.py`; push only at gates/decisions/walls; BATCH relays to heavy agents
-- fresh-over-resume: agent past ~300k tokens → planned handoff at next gate, fresh successor from the tree (never resume-the-giant)
+- fresh-over-resume: agent past ~70% of its context window (the planned-session-splits threshold — one number, not two) → planned handoff at next gate, fresh successor from the tree (never resume-the-giant); successors read STATUS.md + the journal TAIL, not journal dirs

@@ -125,6 +125,18 @@ user in the report — never silently built out-of-spec, never silently
 downgraded. Machine-readable rail envelopes go to `03_src/rules/power_tree.yaml`
 (the E-TOPO input), not here.
 
+### 7. `## Commission fact-lock` — load-derived facts locked BEFORE architecture
+
+A table (template in `templates/01_docs/BRIEF.md`) pinning, per output rail:
+Vout min-max @ Imax, the input envelope + source type, the protection posture,
+the off-control/storage answer, and each spec-critical function's sourcing
+class. Every row cites its lock (`Q#/A#` user-confirmed, or `D#/A#` explicit
+conservative assumption) — a blank or silently-inferred row fails Validate.
+Added 2026-07-23: the two facts left unlocked on usb-hub-3s (output voltage
+range, protection posture) caused two generation restarts (~27/53 commits).
+The table mirrors `power_tree.yaml`; the yaml feeds the machine gates, the
+table is the user-facing commitment.
+
 ## Validate — BRIEF.md
 
 - `sha256sum` of the bytes between the prompt markers equals `prompt_sha256`
@@ -133,6 +145,9 @@ downgraded. Machine-readable rail envelopes go to `03_src/rules/power_tree.yaml`
   commit that introduced them (only appends and Status/Impact edits allowed)
 - every `Source`/`Authority` tag (P, D#, Q#, A#) resolves to an existing
   prompt/log entry; log ids are monotonic with no gaps or renumbering
+- the Commission fact-lock table exists with no blank `Locked by` cell —
+  every row resolves to a Q#/A#/D# entry (or names the ledger/sourcing-spike
+  evidence for the hard-cell row)
 - every acceptance criterion `Status` is one of the three forms; every
   `dropped` cites a D#/Q# (never an A#)
 - decision register ↔ `decisions/`: every ADR file appears in exactly one
