@@ -1,0 +1,19 @@
+# interposer (Board C) POWER TREE — canon E-TOPO / E-MARGIN / E-OFF.
+#
+# There is NO power on this board AT ALL — by design (BRIEF §5, ADR-0009, and
+# the interposer Commission fact-lock in BRIEF.md): a passive interposer whose
+# only copper is the 10 floating OEM keypad matrix scan lines. No rails, no
+# converters, no regulators, no protection elements, no stored energy — any
+# component on a matrix line would alter the scan the OEM controller sees
+# (T1's 20-100R pressed-resistance sensitivity).
+#
+# Therefore:
+#   - rails: []            -> E-TOPO N-A (nothing to derive) — the INTENDED verdict
+#   - E-MARGIN N-A          -> no regulated rail feeds any load
+#   - E-OFF                 -> satisfied by construction: no self-contained energy
+#                              source; the board is energized only by the OEM
+#                              controller's own scan pulses through the tail.
+# source_type is authoritative for classify_source (external, not battery).
+source_type: external_scan_signals_only_passive_board
+
+rails: []          # no converter, no rail — E-TOPO N-A (passive board), by design

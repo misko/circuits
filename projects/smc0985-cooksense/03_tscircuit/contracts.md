@@ -183,3 +183,17 @@ It does NOT answer **R1/R6** (routing physics — KRT) or **M1** (the digital tw
 Those are the two permanent hard lines: the authoring tool must never self-grade
 them. See `references/tscircuit-folder.md` and
 `docs/decisions/0002-tscircuit-native-pipeline.md`.
+
+## Multi-board addendum (ADR-0007, interposer activated 2026-07-24)
+
+This project carries TWO boards in one 03_tscircuit/ tree. cooksense (the
+first board) keeps the unprefixed generated names in the tables above. The
+second board scopes every generated artifact by its `<board>` basename —
+`src/interposer.tsx`, `manifest_interposer.yaml`,
+`build/interposer.circuit.json`, `build/interposer.schematic.{svg,pdf}`,
+`kicad/interposer.kicad_sch`, `verification/interposer.*` — so neither
+board's committed evidence clobbers the other's. `gen_tscircuit.sh` and
+`count_parity.py` are single-board readers (`head -1` / one manifest): the
+interposer chain runs the same steps manually with explicit paths, and
+S-COUNT runs in a single-board shadow tree (journal 03_schematic_interposer).
+SKILL-HARVEST candidate per ADR-0007's two-strike rule — not promoted here.

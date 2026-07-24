@@ -1,0 +1,30 @@
+# interposer — AUTHOR's declared component list (canon S-COUNT base).
+# Multi-board project (ADR-0007): cooksense keeps manifest.yaml; this is the
+# interposer board's manifest, consumed by the shadow-scoped count_parity run
+# (count_parity.py reads a single-board tree; see journal 03_schematic_interposer).
+# Holes (H1..H4) are non-electrical and excluded (count_parity SKIP ^H\d).
+# 23 components.
+components:
+  - J_MEMBRANE
+  - J_CN1_JUMPER
+  - J_KEY_MATRIX
+  - TP_M_U1
+  - TP_M_U2
+  - TP_M_U3
+  - TP_M_U4
+  - TP_M_U5
+  - TP_M_U6
+  - TP_M_D1
+  - TP_M_D2
+  - TP_M_D3
+  - TP_M_D4
+  - TP_C_U1
+  - TP_C_U2
+  - TP_C_U3
+  - TP_C_U4
+  - TP_C_U5
+  - TP_C_U6
+  - TP_C_D1
+  - TP_C_D2
+  - TP_C_D3
+  - TP_C_D4

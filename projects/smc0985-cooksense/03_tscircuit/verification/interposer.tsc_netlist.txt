@@ -1,0 +1,192 @@
+COMPONENTS:
+ - J_MEMBRANE: pinrow10
+ - J_CN1_JUMPER: pinrow10
+ - J_KEY_MATRIX: pinrow10
+ - TP_M_U1: TP_M_U1, source_component
+ - TP_M_U2: TP_M_U2, source_component
+ - TP_M_U3: TP_M_U3, source_component
+ - TP_M_U4: TP_M_U4, source_component
+ - TP_M_U5: TP_M_U5, source_component
+ - TP_M_U6: TP_M_U6, source_component
+ - TP_M_D1: TP_M_D1, source_component
+ - TP_M_D2: TP_M_D2, source_component
+ - TP_M_D3: TP_M_D3, source_component
+ - TP_M_D4: TP_M_D4, source_component
+ - TP_C_U1: TP_C_U1, source_component
+ - TP_C_U2: TP_C_U2, source_component
+ - TP_C_U3: TP_C_U3, source_component
+ - TP_C_U4: TP_C_U4, source_component
+ - TP_C_U5: TP_C_U5, source_component
+ - TP_C_U6: TP_C_U6, source_component
+ - TP_C_D1: TP_C_D1, source_component
+ - TP_C_D2: TP_C_D2, source_component
+ - TP_C_D3: TP_C_D3, source_component
+ - TP_C_D4: TP_C_D4, source_component
+
+NET: KP_U1
+  - TP_C_U1 pin1
+  - TP_M_U1 pin1
+  - J_KEY_MATRIX pin1
+  - J_CN1_JUMPER pin1
+  - J_MEMBRANE pin1
+
+NET: KP_U2
+  - TP_C_U2 pin1
+  - TP_M_U2 pin1
+  - J_KEY_MATRIX pin2
+  - J_CN1_JUMPER pin2
+  - J_MEMBRANE pin2
+
+NET: KP_U3
+  - TP_C_U3 pin1
+  - TP_M_U3 pin1
+  - J_KEY_MATRIX pin3
+  - J_CN1_JUMPER pin3
+  - J_MEMBRANE pin3
+
+NET: KP_U4
+  - TP_C_U4 pin1
+  - TP_M_U4 pin1
+  - J_KEY_MATRIX pin4
+  - J_CN1_JUMPER pin4
+  - J_MEMBRANE pin4
+
+NET: KP_U5
+  - TP_C_U5 pin1
+  - TP_M_U5 pin1
+  - J_KEY_MATRIX pin5
+  - J_CN1_JUMPER pin5
+  - J_MEMBRANE pin5
+
+NET: KP_U6
+  - TP_C_U6 pin1
+  - TP_M_U6 pin1
+  - J_KEY_MATRIX pin6
+  - J_CN1_JUMPER pin6
+  - J_MEMBRANE pin6
+
+NET: KP_D1
+  - TP_C_D1 pin1
+  - TP_M_D1 pin1
+  - J_KEY_MATRIX pin7
+  - J_CN1_JUMPER pin7
+  - J_MEMBRANE pin7
+
+NET: KP_D2
+  - TP_C_D2 pin1
+  - TP_M_D2 pin1
+  - J_KEY_MATRIX pin8
+  - J_CN1_JUMPER pin8
+  - J_MEMBRANE pin8
+
+NET: KP_D3
+  - TP_C_D3 pin1
+  - TP_M_D3 pin1
+  - J_KEY_MATRIX pin9
+  - J_CN1_JUMPER pin9
+  - J_MEMBRANE pin9
+
+NET: KP_D4
+  - TP_C_D4 pin1
+  - TP_M_D4 pin1
+  - J_KEY_MATRIX pin10
+  - J_CN1_JUMPER pin10
+  - J_MEMBRANE pin10
+
+
+COMPONENT_PINS:
+J_MEMBRANE
+- pin1: NETS(KP_U1)
+- pin2: NETS(KP_U2)
+- pin3: NETS(KP_U3)
+- pin4: NETS(KP_U4)
+- pin5: NETS(KP_U5)
+- pin6: NETS(KP_U6)
+- pin7: NETS(KP_D1)
+- pin8: NETS(KP_D2)
+- pin9: NETS(KP_D3)
+- pin10: NETS(KP_D4)
+
+J_CN1_JUMPER
+- pin1: NETS(KP_U1)
+- pin2: NETS(KP_U2)
+- pin3: NETS(KP_U3)
+- pin4: NETS(KP_U4)
+- pin5: NETS(KP_U5)
+- pin6: NETS(KP_U6)
+- pin7: NETS(KP_D1)
+- pin8: NETS(KP_D2)
+- pin9: NETS(KP_D3)
+- pin10: NETS(KP_D4)
+
+J_KEY_MATRIX
+- pin1: NETS(KP_U1)
+- pin2: NETS(KP_U2)
+- pin3: NETS(KP_U3)
+- pin4: NETS(KP_U4)
+- pin5: NETS(KP_U5)
+- pin6: NETS(KP_U6)
+- pin7: NETS(KP_D1)
+- pin8: NETS(KP_D2)
+- pin9: NETS(KP_D3)
+- pin10: NETS(KP_D4)
+
+TP_M_U1
+- pin1: NETS(KP_U1)
+
+TP_M_U2
+- pin1: NETS(KP_U2)
+
+TP_M_U3
+- pin1: NETS(KP_U3)
+
+TP_M_U4
+- pin1: NETS(KP_U4)
+
+TP_M_U5
+- pin1: NETS(KP_U5)
+
+TP_M_U6
+- pin1: NETS(KP_U6)
+
+TP_M_D1
+- pin1: NETS(KP_D1)
+
+TP_M_D2
+- pin1: NETS(KP_D2)
+
+TP_M_D3
+- pin1: NETS(KP_D3)
+
+TP_M_D4
+- pin1: NETS(KP_D4)
+
+TP_C_U1
+- pin1: NETS(KP_U1)
+
+TP_C_U2
+- pin1: NETS(KP_U2)
+
+TP_C_U3
+- pin1: NETS(KP_U3)
+
+TP_C_U4
+- pin1: NETS(KP_U4)
+
+TP_C_U5
+- pin1: NETS(KP_U5)
+
+TP_C_U6
+- pin1: NETS(KP_U6)
+
+TP_C_D1
+- pin1: NETS(KP_D1)
+
+TP_C_D2
+- pin1: NETS(KP_D2)
+
+TP_C_D3
+- pin1: NETS(KP_D3)
+
+TP_C_D4
+- pin1: NETS(KP_D4)

@@ -1,0 +1,32 @@
+# interposer (Board C) net architecture — netclasses + DRU floors source (canon R1).
+#
+# fab_tier = jlc_2layer_default: THE cheapest tier, unconditionally feasible —
+# the whole BOM is one 1.25mm SMD connector (escape ok at 2-layer, per
+# 02_parts/SM10B-GHS-TB) and 2.54mm THT (02_parts/10FDZ-BT escape block:
+# tier_required jlc_2layer_default). No D-TIER ADR needed (D-TIER default =
+# cheapest plausible; this board IS the cheapest plausible).
+fab_tier: jlc_2layer_default
+
+# The board is a SINGLE floating isolated domain (BRIEF §5 / ADR-0009): 10
+# keypad matrix lines, no GND, no power, no other nets. Generous floors — the
+# board is nearly empty, so width/clearance cost nothing and buy robustness:
+# 0.5mm tracks (hand-probe-friendly, >= any scan-current need by orders of
+# magnitude) and 0.5mm copper clearance everywhere.
+default_clearance: 0.5mm
+
+classes:
+  KEYPAD_ISO:
+    intent: >
+      The FLOATING keypad matrix domain: OEM controller scan lines U1-U6/D1-D4
+      passing straight through J_MEMBRANE <-> J_CN1_JUMPER and breaking out to
+      J_KEY_MATRIX. Signal class only (uA-mA scan pulses; FDZ contact rating
+      50mA bounds them). NO bond to logic ground or chassis exists on this
+      board — there is no other copper domain to keep distance from, but the
+      generous 0.5mm clearance keeps the lines well separated from each other
+      and from the board edge.
+    nets: [KP_U1, KP_U2, KP_U3, KP_U4, KP_U5, KP_U6, KP_D1, KP_D2, KP_D3, KP_D4]
+    current: "50mA abs max (FDZ contact rating; real scan currents are uA-mA)"
+    min_width: 0.5mm
+    clearance: 0.5mm
+    routing: KRT straight-through columns + breakout bus
+    verify: DRC floor + E-INV pass-through pin_on_net set (ADR-0009)
