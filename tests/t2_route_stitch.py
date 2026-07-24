@@ -557,6 +557,12 @@ def t_tier_derived_route_geometry():
     def mutate(cfg, d):
         use_stub(cfg, d)
         declare_tier(d)
+        # tier_preflight (2026-07-23): a tier-DERIVED route clearance
+        # (min_space 0.127) under the generate_rules 0.2 hardcode is
+        # exactly the crow-rv2 phantom-findings mismatch (PF-RULES-CLR),
+        # so the DRC side must be declared consistent for route to run.
+        (d / "03_src" / "rules" / "nets.yaml").write_text(
+            "fab_tier: jlc_4layer_standard\ndefault_clearance: 0.127mm\n")
         for k in ("via_size", "via_drill", "clearance"):
             cfg["route"]["common"].pop(k, None)
     d, p = scratch(mutate)
@@ -1957,10 +1963,19 @@ def t_kb_fp_lib_kiprjmod():
 
 
 # ============================================================== E2E =====
-def _e2e(project, stem, waves):
+def _e2e(project, stem, waves, skip_preflight=False):
     """The real validation gate: generate -> rules -> prep -> REAL KRT ->
     import -> stitch -> rules LAST -> DRC. Sealed 04_kicad is read only;
-    everything is built in a scratch tree."""
+    everything is built in a scratch tree.
+
+    `skip_preflight`: archived boards are FROZEN pre-gate fixtures
+    (archived_projects contracts.md: read-only). crow-array-pod carries a
+    genuine latent tier mismatch the new tier_preflight gate correctly
+    flags (route clearance 0.15 vs the hardcoded-0.2 netclass DRC default,
+    PF-RULES-CLR — it never bit only because the sparse 2-layer route never
+    packed to 0.2). The fixture cannot be edited, so its e2e run uses the
+    gate's own documented escape hatch; the standalone flag is pinned by
+    t2_tier_preflight.t_flags_archived_pod so the finding stays visible."""
     proj = ROOT / "projects" / project
     if not proj.is_dir():
         proj = ROOT / "archived_projects" / project
@@ -1985,7 +2000,9 @@ def _e2e(project, stem, waves):
     must_pass(run(["python3", "03_src/generate_rules.py"], cwd=d),
               f"{project}: rules BEFORE routing (canon R1)")
     must_pass(prep(cfg), f"{project}: prep")
-    rr = must_pass(run(["python3", RS, "route", cfg], cwd=d, timeout=1800),
+    route_cmd = ["python3", RS, "route", cfg] \
+        + (["--skip-preflight"] if skip_preflight else [])
+    rr = must_pass(run(route_cmd, cwd=d, timeout=1800),
                    f"{project}: KRT waves")
     check(rr.out.count("Single-ended:") == waves,
           f"{project}: expected {waves} waves, got "
@@ -2027,7 +2044,7 @@ def t_e2e_cook_loadcell():
 @test("E2E crow-array-pod: generic route+stitch from scratch -> DRC 0/0/0",
       slow=True)
 def t_e2e_crow_array_pod():
-    _e2e("crow-array-pod", "crow_array_pod", 3)
+    _e2e("crow-array-pod", "crow_array_pod", 3, skip_preflight=True)
 
 
 if __name__ == "__main__":

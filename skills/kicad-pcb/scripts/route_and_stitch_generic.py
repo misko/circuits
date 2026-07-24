@@ -576,7 +576,35 @@ def _race_candidate(cfg, py, krt, waves, tier, common, build, i, results):
         results[i] = {"error": str(e)}
 
 
-def cmd_route(cfg, race=None):
+def cmd_route(cfg, race=None, skip_preflight=False):
+    # TIER PREFLIGHT FIRST (refuse-to-route). Four measured crow-rv2 defects
+    # (2026-07-23) were tool defaults disagreeing with the declared fab tier
+    # — 500+158 phantom clearance findings, 200 shorting + 501 clearance
+    # inner-layer via findings, 323/323 vias resized, and a FALSE placement
+    # wall from hole_to_copper 0.205 vs the 0.15 board floor — together ~60%
+    # of that board's routing stage. No KRT cycle is spent until the config
+    # provably agrees with the tier. Escape hatch: --skip-preflight (loud).
+    if skip_preflight:
+        print("=" * 70 + "\nWARNING: --skip-preflight — routing WITHOUT the "
+              "tier-consistency gate.\nEvery config-vs-tier mismatch it would "
+              "have caught (phantom clearance\nwalls, via resizing, false "
+              "placement walls) will now surface only as\npost-stitch DRC "
+              "findings. Run tier_preflight.py standalone before\ntrusting "
+              "this route.\n" + "=" * 70)
+    else:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from tier_preflight import preflight_route_cfg
+        from fab_tier_util import FabTierError
+        try:
+            rc = preflight_route_cfg(cfg)
+        except FabTierError as e:
+            die(str(e))
+        if rc != 0:
+            die("tier preflight FAILED — the routing config disagrees with "
+                "the declared fab tier (fixes printed above; details: "
+                "tier_preflight.py <project> --explain). Refusing to spend "
+                "KRT cycles on a config the DRC gate already rejects. "
+                "Escape hatch: route --skip-preflight (loud, discouraged)")
     build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
     krt = Path(os.path.expanduser(get(cfg, "route.krt", "~/gits/KiCadRoutingTools")))
     py = get(cfg, "route.python") or str(krt / ".venv" / "bin" / "python")
@@ -3030,13 +3058,18 @@ def main(argv=None):
     ap.add_argument("--race", type=int, default=None,
                     help="route: run N concurrent wave-chains and keep the "
                          "quick-measured best (overrides route.race)")
+    ap.add_argument("--skip-preflight", action="store_true",
+                    help="route: skip the tier-consistency preflight gate "
+                         "(LOUD escape hatch — every mismatch it would have "
+                         "caught surfaces as post-stitch DRC findings)")
     a = ap.parse_args(argv)
     cfg = load_cfg(a.config, a.root)
     try:
         if a.command == "prep":
             return cmd_prep(cfg)
         if a.command == "route":
-            return cmd_route(cfg, race=a.race)
+            return cmd_route(cfg, race=a.race,
+                             skip_preflight=a.skip_preflight)
         if a.command == "import":
             return cmd_import(cfg)
         if a.command == "taps":
