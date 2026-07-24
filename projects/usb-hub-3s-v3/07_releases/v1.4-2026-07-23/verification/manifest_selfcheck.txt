@@ -1,0 +1,14 @@
+# MANIFEST self-check — v1.4-2026-07-23 (stamp step)
+
+git_sha: 764c7c7 (source commit S)
+files on disk (excl. MANIFEST.txt): 29
+entries in sha256 table:            29
+hash mismatches: 0 []
+on disk but not in table: []
+in table but not on disk: []
+
+NOTE: this file is itself added to the table in a final stamp pass AFTER it
+is written; its own entry is therefore verified by policy_audit M-REL (an
+independent re-hash of every table entry), not by this file.
+
+RESULT: PASS — table and directory agree bidirectionally, all hashes verify

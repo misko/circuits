@@ -1,0 +1,11 @@
+== release-freshness: v1.4-2026-07-23 ==
+  note: pdf/assembly_back.pdf identical to v1.3-2026-07-23/pdf/assembly_back.pdf — WAIVED (waived via --allow-identical)
+  note: pdf/assembly_front.pdf identical to v1.3-2026-07-23/pdf/assembly_front.pdf — WAIVED (waived via --allow-identical)
+  note: pdf/pcb_layers.pdf identical to v1.3-2026-07-23/pdf/pcb_layers.pdf — WAIVED (waived via --allow-identical)
+  note: pdf/schematic.pdf identical to v1.3-2026-07-23/pdf/schematic.pdf — WAIVED (waived via --allow-identical)
+  note: fab/bom.csv identical to v1.3-2026-07-23/fab/bom.csv — WAIVED (waived via --allow-identical)
+  note: fab/cpl.csv identical to v1.3-2026-07-23/fab/cpl.csv — WAIVED (waived via --allow-identical)
+  note: fab/usb_hub_3s_v2-NPTH.drl identical to v1.3-2026-07-23/fab/usb_hub_3s_v2-NPTH.drl — WAIVED (waived via --allow-identical)
+  note: fab/usb_hub_3s_v2-PTH.drl identical to v1.3-2026-07-23/fab/usb_hub_3s_v2-PTH.drl — WAIVED (waived via --allow-identical)
+  note: fab/usb_hub_3s_v2_gerbers.zip identical to v1.3-2026-07-23/fab/usb_hub_3s_v2_gerbers.zip — WAIVED (waived via --allow-identical)
+FRESHNESS: PASS

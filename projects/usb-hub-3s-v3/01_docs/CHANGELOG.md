@@ -2,6 +2,47 @@
 
 Board internal name `usb_hub_3s_v2`; project directory `usb-hub-3s-v3`.
 
+## v1.4 — 2026-07-23
+
+Released: `07_releases/v1.4-2026-07-23/`. **DOCS-ONLY supersede of
+v1.3-2026-07-23** (v1.3 gains `SUPERSEDED.md`, otherwise immutable — the one
+allowed addition). **Board, BOM, CPL, gerbers, source and PDFs are
+byte-identical to v1.3** (22/22 files sha256-verified; the freshness gate's
+9 identical-artifact findings are the release's declared purpose, waived with
+evidence in `verification/freshness_waiver.md`). v1.3's electrical state and
+verification battery stand unchanged. **Order from v1.4.**
+
+Driven by a post-seal user-supplied external review
+(`08_reviews/2026-07-23_v1.3_external-user_full.md`, dispositions EXT13-1..8):
+
+- **SW1 fallback-header shunt polarity was REVERSED in the v1.3 README.**
+  The tsx wires SW1 pin1=T1→GND, pin2=COM→ENKILL; grounding ENKILL shuts both
+  bucks down and opens Q6. Correct: **COM-T1 shunted = OFF; shunt removed =
+  ON.**
+- **F1 was misdescribed as "KH-AF90DIP-112"** (the USB-A connector family).
+  F1 = **Keystone 3568 MINI-blade fuse holder, C5249699** (BOM row 38).
+- **Tolerance-inclusive worst-case rail table** replaces the Vref-only
+  numbers: R13/R4 = C5126242 = FRC0603F1211TS **±1 %** (ledger row 150) was
+  omitted. 5VC static range **5.227-5.479 V** (was 5.272-5.432); low-corner
+  headroom **597 mV vs the 440 mV IR budget — E-MARGIN still PASS** (157 mV
+  slack); 5VA top corner 5.273 V slightly above the 5.25 V USB-A intent
+  (accepted, no-data charge ports; 0.1 % R13/R4 recorded as next-rev option).
+- **Packaging note:** F1 (C5249699) + SW1 (C2939728) are on `fab/bom.csv` but
+  intentionally off `fab/cpl.csv` (hand-solder) — JLC upload shows 2 unmatched
+  designators; README instructs marking both DNP + a hand-fit purchasing list
+  (incl. the off-BOM 10 A MINI blade fuse element).
+- **Bench qualification TIGHTENED** (Q0-Q7, adopted from the review): R12 AND
+  R30 ohmmeter pre-power; no-load rails with a **5.45 V firm ceiling**;
+  VBUSC@5A ≥5.00 V at the board; 5 A→0 A load-release overshoot capture;
+  cable-end hot ≥4.80-4.85 V; SW1/header continuity logic; `vcgencmd
+  get_throttled` through the Pi stress test. OV posture (Option 2) carried
+  VERBATIM.
+
+Verification scoping (canon): docs-only fix-pass — targeted source-evidence
+confirmations (`verification/2026-07-23_v1.4_docfix_confirmation.md`), M-BOM
+re-run PASS, policy_audit re-run 0 FAIL; no fresh review lens (no new
+electrical state).
+
 ## v1.3 — 2026-07-23
 
 Released: `07_releases/v1.3-2026-07-23/`. **Supersedes v1.2-2026-07-23**
