@@ -1,3 +1,33 @@
-# interposer (Board C) policy waivers — evidence-backed only (canon: a waiver
-# needs a measurement, not a rationale; never copy one from another board).
-waivers: []
+# policy_audit waivers — interposer (Board C). Schema: TOP-LEVEL list of
+# {id, why}; each why REQUIRES measured evidence (>=40 chars; canon M4).
+
+- id: S-VER
+  why: >
+    The 8 parts flagged for weak figure citations (2N7002, AO3401A,
+    GZ2012D601TF, LTV-817S-TA1, SN74HC14DR, SN74HC595DR, ULN2803ADWR,
+    X9555WV-2x16-6TV01) are the SHARED 02_parts library's cooksense-board
+    parts — NONE is on the interposer BOM (bom_jlc.csv = 10FDZ-BT + C2683602
+    only; both interposer parts carry full page/figure citations: eFDZ p.2/p.3
+    2026-07-24, eGH p.1/p.3 2026-07-22). Same disposition as the sealed
+    cooksense v1.1 S-VER waiver (03_src/cooksense/rules/policy_waivers.yaml).
+
+- id: E-ADR
+  why: >
+    E-ADR scans the SHARED 01_docs/decisions/ and flags the OTHER board's
+    protection ADRs (0001/0002/0006) against this board's invariants file —
+    an ADR-0007 multi-board scoping artifact. Measured project-wide proof
+    2026-07-24: electrical_invariants.py --adr-coverage on the MERGED
+    cooksense+interposer invariants = "E-ADR OK: every protection/topology
+    ADR is cited" (journal 03_schematic_interposer.md). ADR-0009 (this
+    board's) emits 50 invariants, all holding against interposer.net.
+
+- id: M-REPRO
+  why: >
+    Shadow-view scoping artifact: the audit runs against the single-board
+    shadow root (06_build/interposer/shadow_root — gitignored build cache),
+    where every 03_src path resolves through symlinks git does not track.
+    The REAL promoted chain IS tracked: `git ls-files
+    projects/smc0985-cooksense/03_src/interposer/route/` lists
+    final_chain.kicad_pcb (verified 2026-07-24), and the reproducibility
+    itself is measured: rebuild_all.sh from the tracked tree reproduces DRC
+    0/0/0 (06_build/interposer/drc_repro.json).

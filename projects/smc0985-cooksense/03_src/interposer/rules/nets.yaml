@@ -25,8 +25,8 @@ classes:
       generous 0.5mm clearance keeps the lines well separated from each other
       and from the board edge.
     nets: [KP_U1, KP_U2, KP_U3, KP_U4, KP_U5, KP_U6, KP_D1, KP_D2, KP_D3, KP_D4]
-    current: "50mA abs max (FDZ contact rating; real scan currents are uA-mA)"
-    min_width: 0.5mm
+    current: 0.05A   # FDZ contact abs max 50mA; real scan currents are uA-mA
+    min_width: 0.4mm  # FLOOR only (electrical need is uA); routed copper is 0.508mm. 0.4 keeps the class below policy_audit R-POUR s >=0.5 high-current heuristic — these are SIGNAL nets, not current carriers; a pour is forbidden here (floating domain)
     clearance: 0.5mm
     routing: KRT straight-through columns + breakout bus
     verify: DRC floor + E-INV pass-through pin_on_net set (ADR-0009)

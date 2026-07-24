@@ -48,8 +48,29 @@ ln -s ../../../../03_src/interposer/route.yaml "$SH/03_src/route.yaml"
 ln -s ../../../../03_src/interposer/floorplan.yaml "$SH/03_src/floorplan.yaml"
 ln -s ../../../../03_src/interposer            "$SH/03_src/interposer"
 ln -s ../../../../03_src/lib                   "$SH/03_src/lib"
-ln -s ../..                                    "$SH/06_build"
 ln -s ../../../02_parts                        "$SH/02_parts"
+# 06_build is a REAL dir exposing ONLY this board's artifacts: policy_audit /
+# electrical_invariants glob 06_build/netlists/*.net and grade the FIRST match
+# — with the whole 06_build symlinked they graded the OTHER board's
+# cooksense.net (E-INV 40/50 false-fails, measured 2026-07-24).
+mkdir -p "$SH/06_build/netlists" "$SH/06_build/interposer/route"
+ln -s ../../../../netlists/interposer.net      "$SH/06_build/netlists/interposer.net"
+# interposer/route is a REAL dir (prep/import mkdir into it — pathlib mkdir
+# chokes on a symlinked parent); the evidence dirs are symlinks to the real
+# tree so the audit view sees fab/twin/pdf/verification/pin_audit.
+for d in fab twin pdf verification pin_audit; do
+  ln -s ../../../$d "$SH/06_build/interposer/$d" 2>/dev/null || true
+done
+# audit-view extras (policy_audit runs against this shadow as its project):
+ln -s ../../../01_docs                         "$SH/01_docs"
+ln -s ../../../08_reviews                      "$SH/08_reviews"
+ln -s ../../../../03_src/interposer/audit_board.py "$SH/03_src/audit_board.py"
+ln -s ../../../../03_src/interposer/rebuild_all.sh "$SH/03_src/rebuild_all.sh"
+mkdir -p "$SH/03_tscircuit"
+for f in src build kicad verification package.json; do
+  ln -s ../../../../03_tscircuit/$f "$SH/03_tscircuit/$f" 2>/dev/null || true
+done
+cp "$ROOT/$PROJ/03_tscircuit/manifest_interposer.yaml" "$SH/03_tscircuit/manifest.yaml"
 
 echo "== 1/7 generate_board (placement, track-free) =="
 # SHARED-FILE GUARD (measured 2026-07-24): generate_board_generic rewrites
@@ -69,6 +90,7 @@ rm -rf "$TMPG"
 echo "== 2/7 generate_rules BEFORE route (canon R1; shadow) =="
 cp "$PROJ/04_kicad/interposer.kicad_pcb" "$PROJ/04_kicad/interposer.kicad_pro" "$SH/04_kicad/"
 [ -f "$PROJ/04_kicad/fp-lib-table" ] && cp "$PROJ/04_kicad/fp-lib-table" "$SH/04_kicad/"
+[ -f "$PROJ/04_kicad/interposer.kicad_sch" ] && cp "$PROJ/04_kicad/interposer.kicad_sch" "$SH/04_kicad/"
 $PY "$S/generate_rules_generic.py" "$SH"
 
 echo "== 2b/7 tier_preflight (R-PREFLIGHT; shadow) =="
@@ -79,9 +101,8 @@ $PY "$S/route_and_stitch_generic.py" prep "$RT" --root "$SH"
 
 if [ "$REUSE" = "1" ]; then
   echo "== 4/7 route SKIPPED: using promoted chain =="
-  mkdir -p "$PROJ/06_build/interposer/route"
-  cp "$PROJ/03_src/interposer/route/final_chain.kicad_pcb" "$PROJ/06_build/interposer/route/promote_chain.kicad_pcb"
-  echo "$ROOT/$PROJ/06_build/interposer/route/promote_chain.kicad_pcb" > "$PROJ/06_build/interposer/route/FINAL"
+  cp "$PROJ/03_src/interposer/route/final_chain.kicad_pcb" "$SH/06_build/interposer/route/promote_chain.kicad_pcb"
+  echo "$SH/06_build/interposer/route/promote_chain.kicad_pcb" > "$SH/06_build/interposer/route/FINAL"
 else
   echo "== 4/7 route (KRT race 3, stochastic) =="
   $PY "$S/route_and_stitch_generic.py" route "$RT" --root "$SH" --race 3
