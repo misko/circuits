@@ -9,10 +9,10 @@ Read by `skills/kicad-pcb/scripts/pcb_status.py`. Everything below the fence is
 `key: value` (one per line); `#` lines and blanks are ignored by the reader.
 
 <!-- reader parses from here down -->
-stage:   sealed
-step:    "v1.0 SEALED: 07_releases/crow-recorder-central-v2-v1.0-2026-07-23 (seal 496b4bb on source S 8d96583). Fresh-lens ORDER; both its P1s fixed pre-seal. The crow pair (pod-v2 + central-v2) is complete."
-measure: "DRC 0/0/0 (+ standalone archive re-measure 0/0/0); check_port_nets 115/115+8/8; twin exit 0; policy_audit 0 FAIL/3 waived; MANIFEST 45/45; freshness PASS"
-state:   done
-next:    "Order at JLCPCB per ORDER_README (6L ADVANCED small-via REQUIRED; same-day stock recheck; XU316 + RJ45 consign). v-next work order in ADR-0007 + ORDER_README sec 6."
+stage:   v1.1-respin
+step:    "DO-NOT-ORDER on v1.0 (external review 2026-07-24, orchestrator-verified vs sealed bytes; archived 08_reviews/2026-07-24_v1.0_external-llm_full.md). v1.1 respin in progress: F1 U1 EP thermal vias filled+capped, F2 USB 90ohm diff-pair rules+reroute, F4 clean re-seal with consistent evidence. ADR-0007 waiver carried unchanged."
+measure: "v1.0 gates historical; v1.1 gates pending rebuild"
+state:   in-work
+next:    "F1 footprint remodel -> F2 stackup+netclass -> full rebuild --reroute -> gates -> stage v1.1 -> battery + fresh lens -> 2-commit seal + SUPERSEDED.md on v1.0"
 op_pid:
-updated: 2026-07-23T20:15:00
+updated: 2026-07-24T00:00:00
