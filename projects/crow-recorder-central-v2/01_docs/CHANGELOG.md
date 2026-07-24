@@ -3,6 +3,27 @@
 One entry per REVISION (a design state, git-tagged). Reverse-chronological.
 `Released:` is `no`, or the name of the `07_releases/` directory that shipped it.
 
+## v1.2 — 2026-07-24
+- Respin closing the SECOND external review of v1.1 (HOLD; archived verbatim
+  08_reviews/2026-07-24_v1.1_external-llm2_full.md, EXT2-F1..F5 dispositioned).
+  EXT2-F1 (the driver): 0V9 core rail had 8x 100nF for 15 XU316 core-VDD pins
+  vs the vendor minimum — VERIFIED at the datasheet (XM-014532-PC-2.0.0 §14
+  "Integration" p.29: "at least 12" 100nF low-inductance MLCCs close to the
+  chip; §H.2 p.92). v1.2 ships 13x (C_c1..C_c13): C_c9 -> pins 11/14 (1.63mm),
+  C_c10 -> pin-5 pocket (0V9 pad on the existing 0.5mm feeder), C_c11/C_c13 ->
+  pins 50/54 (2.01/2.02mm, via the C_b0v9 bulk slot swap — bulk has no
+  pin-adjacency requirement per ds §14, moved 3.75mm south with a B.Cu feed),
+  C_c12 -> pin 95 (2.55mm). TDI F.Cu run rerouted to In3 to free the south
+  band; 32 U1-cluster floaters pinned at their exact v1.1 positions so only
+  the intended copper changed; netlist diff vs v1.1 = exactly the 5 caps
+  (verification/decoupling_fix.md). EXT2-F2: ORDER_README §4a rail-sequencing
+  scope gate strengthened (all startup corners + explicit 1V8-before-0V9 +
+  reset-held pass condition; interlock = v-next design item, never a delay
+  tweak). EXT2-F3 (D_USB stub) carried P2 + in-line-ESD pre-production v-next.
+  EXT2-F4 (RJ45/PoE + DC OVP) = ADR-0007 USER waiver carried UNCHANGED.
+  USB pair / U1 EP via grid / LV-strap floats re-measured intact.
+Released: crow-recorder-central-v2-v1.2-2026-07-24
+
 ## v1.1 — 2026-07-24
 - Respin closing the external DO-NOT-ORDER review of v1.0 (orchestrator-verified;
   08_reviews/2026-07-24_v1.0_external-llm_full.md, EXT-F1..F6 dispositioned).
