@@ -18,8 +18,13 @@ One entry per REVISION (a design state, git-tagged). Reverse-chronological.
   evidence regenerated against the staged archive itself (standalone-source DRC
   0/0/0; manifest counts == shipped evidence; bom_source/stock name the sealed
   dir). Promoted converter sch guarded in rebuild_all (dogleg surgery survives
-  regeneration). Sourcing: RG1/R_cs/R_rst -> C60490, R_scl/R_sda -> C105871
-  (basics stocked out). ADR-0007 RJ45/beeper USER waiver carried UNCHANGED.
+  regeneration). PR2-P0-1 (this release's own zero-context pin review): U1
+  LV_L_N/LV_T_N/LV_R_N straps (40/43/52) were 3V3-tied on the FIXED-1.8V IOB
+  bank (AMR VDDIO+0.5=2.3V, ds v2.0.0 §4.4/§4.8/§15.1) — fixed to the
+  datasheet float select; netlist diff vs v1.0 = exactly 7 node moves (4 USB
+  rename + these 3). Sourcing: RG1/R_cs/R_rst -> C60490, R_scl/R_sda ->
+  C105871 (basics stocked out). ADR-0007 RJ45/beeper USER waiver carried
+  UNCHANGED.
 Released: crow-recorder-central-v2-v1.1-2026-07-24
 
 ## v1.0 — 2026-07-23

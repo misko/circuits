@@ -732,9 +732,6 @@ NET: N3V3
   - U1 pin109
   - U1 pin89
   - U1 pin72
-  - U1 pin52
-  - U1 pin43
-  - U1 pin40
   - U1 pin17
   - U1 pin10
   - Cin_U9 pin1 (+)
@@ -1232,10 +1229,10 @@ U1
 - pin37: NETS(TDO)
 - pin38: NETS(RST_N)
 - pin39: NETS(N0V9)
-- pin40: NETS(N3V3)
+- pin40: NOT_CONNECTED
 - pin41: NETS(PLL_AVDD)
 - pin42: NETS(GND)
-- pin43: NETS(N3V3)
+- pin43: NOT_CONNECTED
 - pin44: NETS(TMS)
 - pin45: NETS(N0V9)
 - pin46: NOT_CONNECTED
@@ -1244,7 +1241,7 @@ U1
 - pin49: NOT_CONNECTED
 - pin50: NETS(N0V9)
 - pin51: NETS(TCK)
-- pin52: NETS(N3V3)
+- pin52: NOT_CONNECTED
 - pin53: NOT_CONNECTED
 - pin54: NETS(N0V9)
 - pin55: NOT_CONNECTED

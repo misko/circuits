@@ -55,10 +55,10 @@ pins:                # PHYSICAL PADS from datasheet Table 4 (Appendix E Signal L
   37: TDO              # JTAG data out | bank IOB (1.8V)
   38: RST_N            # global reset, active-low (ST, PU) | bank IOB (1.8V)
   39: VDD
-  40: LV_L_N           # strap: LOW=1V8 / HIGH(or float)=3V3 for VDDIOL (PU) | bank IOB
+  40: {name: LV_L_N, tie: none, note: "IO-voltage strap, Input PU IOB — DELIBERATELY FLOATING = 3V3 mode select (ds v2.0.0 §4.8: tie high OR LEAVE FLOATING; internal pull-up). NOT 3.3V-tolerant: IOB bank is fixed 1.8V, AMR V(Vin)=VDDIO+0.5=2.3V (§15.1) — the v1.0/early-v1.1 hard 3V3 tie was ~1V over abs-max (PR2-P0-1, fixed 2026-07-24). Tie to GND only to select 1V8 mode; a driven high must come from 1V8, never 3V3."}
   41: PLL_AVDD         # PLL 0.9V analog (clean, LC-filtered)
   42: PLL_AGND         # PLL analog ground
-  43: LV_T_N           # strap: LOW=1V8 / HIGH(or float)=3V3 for VDDIOT (PU) | bank IOB
+  43: {name: LV_T_N, tie: none, note: "IO-voltage strap, Input PU IOB — DELIBERATELY FLOATING = 3V3 mode select (ds v2.0.0 §4.8: tie high OR LEAVE FLOATING; internal pull-up). NOT 3.3V-tolerant: IOB bank is fixed 1.8V, AMR V(Vin)=VDDIO+0.5=2.3V (§15.1) — the v1.0/early-v1.1 hard 3V3 tie was ~1V over abs-max (PR2-P0-1, fixed 2026-07-24). Tie to GND only to select 1V8 mode; a driven high must come from 1V8, never 3V3."}
   44: TMS              # JTAG mode select (PU) | bank IOB (1.8V)
   45: VDD
   46: X0D12            # 1E0 | bank IOB
@@ -67,7 +67,7 @@ pins:                # PHYSICAL PADS from datasheet Table 4 (Appendix E Signal L
   49: X0D23            # 1H0 | bank IOB
   50: VDD
   51: TCK              # JTAG clock (PD, ST) | bank IOB (1.8V)
-  52: LV_R_N           # strap: LOW=1V8 / HIGH(or float)=3V3 for VDDIOR (PU) | bank IOB
+  52: {name: LV_R_N, tie: none, note: "IO-voltage strap, Input PU IOB — DELIBERATELY FLOATING = 3V3 mode select (ds v2.0.0 §4.8: tie high OR LEAVE FLOATING; internal pull-up). NOT 3.3V-tolerant: IOB bank is fixed 1.8V, AMR V(Vin)=VDDIO+0.5=2.3V (§15.1) — the v1.0/early-v1.1 hard 3V3 tie was ~1V over abs-max (PR2-P0-1, fixed 2026-07-24). Tie to GND only to select 1V8 mode; a driven high must come from 1V8, never 3V3."}
   53: X1D12            # 1E0 | bank IOB
   54: VDD
   55: {name: NC, tie: none, note: "NO CONNECT -- datasheet Fig.2: any pin marked NC should not be connected to any net"}
@@ -172,7 +172,7 @@ gotchas:
   - "0.4mm TQFP-128 needs 6L + SMALL-VIA (0.30/0.15) via-in-pad on the EP + inner rings for closure."
   - "EP (pin 129) = VSS/GND: stock KiCad TQFP-128_14x14mm_P0.4mm has NO exposed pad -- footprint must add a 4.70mm nom EP + a 4x4 (16) thermal-via grid, equally spaced, per datasheet 14.4. Keep other vias out from under/around the device for a solid ground plane (checklist I.1)."
   - "Pin 55 = NC -- must NOT be connected to any net (datasheet Fig.2); it is absent from the Signal List for this reason."
-  - "Power domains: VDD core 0.9V (buck) also feeds PLL_AVDD(41)+MIPI_VDD09(27); VDDIOB18(35,56)=1.8V FIXED; VDDIOL/R/T selectable 3.3V vs 1.8V. LV_L_N(40)/LV_T_N(43)/LV_R_N(52) straps: tie HIGH(or float)=3V3 mode, tie LOW(to GND)=1V8 mode -- MUST match the VDDIOx rail you actually supply, or you damage the part / mis-drive I/O."
+  - "Power domains: VDD core 0.9V (buck) also feeds PLL_AVDD(41)+MIPI_VDD09(27); VDDIOB18(35,56)=1.8V FIXED; VDDIOL/R/T selectable 3.3V vs 1.8V. LV_L_N(40)/LV_T_N(43)/LV_R_N(52) straps: FLOAT (or drive high AT 1V8)=3V3 mode, tie LOW(to GND)=1V8 mode -- MUST match the VDDIOx rail you actually supply. WARNING: 'high' here is the IOB bank level (1.8V, the bank is FIXED 1.8V) -- NEVER tie these to 3V3 (AMR VDDIO+0.5=2.3V; the misread of HIGH-as-3V3 shipped in v1.0, caught by the v1.1 pin review, PR2-P0-1)."
   - "JTAG (TDI36/TDO37/TMS44/TCK51) + RST_N(38) + crystal XIN/XOUT(34/33) all sit on the bottom VDDIOB18 bank = 1.8V FIXED (abs-max 1.98V) -- bring-up/programming must use a 1.8V-level probe (xSYS2/XTAG), never a 3.3V JTAG dongle."
   - "QSPI boot pins are HARDCODED in boot ROM (cannot change w/o OTP): CS_N=X0D01(pin2), D0=X0D04(127), D1=X0D05(128), D2=X0D06(1), D3=X0D07(3), SCLK=X0D10(4) -- all on VDDIOL, so the boot flash (W25Q16) Vcc must match the VDDIOL rail. Boot flash must be QSPI-ready within 300us of power-up (Quad-READ 0xEB, CPOL/CPHA=0) or hold RST_N until it settles; must NOT be left in QPI mode."
   - "Boot-mode straps X0D06(1)/X0D05(128)/X0D04(127) sampled at reset: all-LOW (default) = QSPI-flash boot. These share the QSPI data lines; external pull-ups pick alternate boot sources. X0D04..X0D07 are output-only during/after reset (checklist H.7) -- do not fight them with strong external drivers."

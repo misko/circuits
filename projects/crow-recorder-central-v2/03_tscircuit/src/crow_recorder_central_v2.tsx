@@ -85,8 +85,13 @@ const XU316_PINS: Record<number, string> = {
   30: "GND", 129: "GND", 42: "GND", 24: "GND", 27: "GND",
   // PLL analog + USB analog supplies (LC-filtered)
   41: "PLL_AVDD", 61: "USB_VDD33", 62: "USB_VDD18",
-  // IO-mode straps (3V3): LV_L_N 40, LV_T_N 43, LV_R_N 52
-  40: "N3V3", 43: "N3V3", 52: "N3V3",
+  // IO-mode straps LV_L_N 40 / LV_T_N 43 / LV_R_N 52: DELIBERATELY FLOATING
+  // (PR2-P0-1 fix, 2026-07-24). These are Input PU IOB pins — the bottom IO
+  // bank is ALWAYS 1.8V and AMR V(Vin) = VDDIO+0.5 = 2.3V (XU316-1024-TQ128
+  // ds v2.0.0 §4.4/§4.8/§15.1), so the previous hard 3V3 tie was ~1V over
+  // abs-max. §4.8: "tied high or left floating" selects 3.3V mode for
+  // VDDIOL/R/T — float IS the documented select (internal pull-up). Do NOT
+  // tie these to 3V3; if a driven level is ever needed, use the 1V8 rail.
   // crystal
   33: "XOUT", 34: "XIN",
   // JTAG (1.8V bank) + reset

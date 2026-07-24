@@ -111,12 +111,14 @@ PCM1865 datasheet's line-input application circuit at authoring.
   calc above carries the claim, and ORDER_README makes a USB-HS host/cable
   first-article matrix a REQUIRED bring-up gate.
 
-## XU316 LV_x_N IO-voltage straps — P0 OPEN (v1.1 seal BLOCKED, 2026-07-24)
+## XU316 LV_x_N IO-voltage straps — RESOLVED (PR2-P0-1, fixed pre-seal 2026-07-24)
 
-As-built (v1.0 AND the v1.1 staging): U1.40 (LV_L_N), U1.43 (LV_T_N),
-U1.52 (LV_R_N) are tied HARD to 3V3 (measured on the staged board; parity 0
-so the schematic agrees). Datasheet verdict — XU316-1024-TQ128 datasheet
-v2.0.0 (xmos.com, fetched 2026-07-24):
+v1.0 (and the first v1.1 staging) tied U1.40 (LV_L_N), U1.43 (LV_T_N),
+U1.52 (LV_R_N) HARD to 3V3 — a confirmed over-AMR P0, fixed in the sealed
+v1.1 by DELIBERATE FLOAT (no_connect-sanctioned; measured: netlist diff vs
+v1.0 shows exactly these 3 pins moving to unconnected — see the release
+verification/lv_strap_fix_diff.md). Datasheet basis — XU316-1024-TQ128
+datasheet v2.0.0 (xmos.com, fetched 2026-07-24):
 
 - §4.4 "Power Control Pins": LV_L_N(40)/LV_R_N(52)/LV_T_N(43) = "Select low
   voltage VDDIOL/R/T, active low — Input, PU, **IOB**". IOB = powered from
@@ -132,10 +134,9 @@ v2.0.0 (xmos.com, fetched 2026-07-24):
   pull-up, I(PU) −35µA max at 1V8). §14: "If you use 1.8V for any of the
   VDDIOL/T/R domains, strap the corresponding LV_x_N pins to GROUND."
 
-FIX (v-next, P0 board change — NOT in this staging): disconnect LV_L_N /
-LV_T_N / LV_R_N from 3V3 and either leave them floating (datasheet-documented
-3.3V select; PU holds them high) or tie to the 1V8 rail for a driven high.
-Root cause: the part.yaml gotcha said "tie HIGH(or float)=3V3 mode" and HIGH
+FIX (APPLIED, v1.1): LV_L_N / LV_T_N / LV_R_N disconnected from 3V3 and
+left floating — the datasheet-documented 3.3V select (internal PU holds them
+high); a driven high, if ever needed, must come from 1V8. Root cause: the part.yaml gotcha said "tie HIGH(or float)=3V3 mode" and HIGH
 was read as 3V3 — but HIGH for an IOB-domain pin means 1.8V. Caught by the
 v1.1 zero-context pin review; datasheet-confirmed before seal.
 

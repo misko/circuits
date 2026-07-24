@@ -485,3 +485,16 @@
   misread as 3V3). PR2-P0-1 OPEN in DISPOSITIONS; DETAIL_DESIGN carries the
   full cite. v1.1 staging dir left as mutable staging; machine gates all
   green; fix is a small tsx change + full rebuild/re-gate/re-review.
+- PR2-P0-1 FIX (coordinator-authorized, 2026-07-24): 3V3 tie removed from
+  U1.40/43/52 at source — tsx conn entries deleted (comment documents the
+  AMR basis), promoted-sch surgery excised the self-contained branch (BFS
+  proved it: 14 wires + one 3V3 label touching ONLY these 3 pins), 3
+  no_connect markers added. Chain surgery removed exactly 7 copper items
+  (the 3 in-pad 3V3 vias + 4 dead B.Cu/In2 segments). First prune attempt
+  over-deleted 9 unrelated zone/T-junction-anchored F.Cu segments (endpoint
+  graph is blind to T-joints and pours) — restored from git, redone as an
+  explicit 7-item removal. Rebuild GREEN: DRC 0/0/0, parity 0 (588 nodes =
+  591-3, no-connect 146 = 143+3), ERC 0 err/1201 warn (-14 = excised
+  branch), port nets 115/115+8/8, audit_board all green. v1.0-relative
+  netlist diff: exactly 7 node moves total (4x USB_DM->USB_DN + 3x LV to
+  unconnected) — 06_build/verify/lv_strap_fix_diff.md.

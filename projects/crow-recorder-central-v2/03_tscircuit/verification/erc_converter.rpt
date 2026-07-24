@@ -1,4 +1,4 @@
-ERC report (2026-07-24T09:59:42, Encoding UTF8)
+ERC report (2026-07-24T10:41:01, Encoding UTF8)
 Report includes: Errors, Warnings, Exclusions
 
 ***** Sheet /
@@ -1160,12 +1160,6 @@ Report includes: Errors, Warnings, Exclusions
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
     @(186.055 mm, 381.635 mm): Symbol #PWR112 [GND]
-[endpoint_off_grid]: Symbol pin or wire end off connection grid
-    ; warning
-    @(186.69 mm, 302.895 mm): Horizontal Wire, length 13.335 mm
-[endpoint_off_grid]: Symbol pin or wire end off connection grid
-    ; warning
-    @(186.69 mm, 310.515 mm): Vertical Wire, length 7.62 mm
 [footprint_link_issues]: The current configuration does not include the footprint library 'TestPoint'
     ; warning
     @(186.69 mm, 486.41 mm): Symbol TP6 [SYM_TP6]
@@ -1213,12 +1207,6 @@ Report includes: Errors, Warnings, Exclusions
     @(198.12 mm, 244.475 mm): Vertical Wire, length 17.78 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(198.12 mm, 310.515 mm): Horizontal Wire, length 1.905 mm
-[endpoint_off_grid]: Symbol pin or wire end off connection grid
-    ; warning
-    @(198.12 mm, 333.375 mm): Vertical Wire, length 22.86 mm
-[endpoint_off_grid]: Symbol pin or wire end off connection grid
-    ; warning
     @(198.755 mm, 142.24 mm): Symbol J8 Pin 1 [Passive, Line]
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
@@ -1244,18 +1232,6 @@ Report includes: Errors, Warnings, Exclusions
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
     @(200.025 mm, 244.475 mm): Horizontal Wire, length 1.905 mm
-[endpoint_off_grid]: Symbol pin or wire end off connection grid
-    ; warning
-    @(200.025 mm, 302.895 mm): Horizontal Wire, length 0.635 mm
-[endpoint_off_grid]: Symbol pin or wire end off connection grid
-    ; warning
-    @(200.025 mm, 310.515 mm): Horizontal Wire, length 13.335 mm
-[endpoint_off_grid]: Symbol pin or wire end off connection grid
-    ; warning
-    @(200.025 mm, 310.515 mm): Horizontal Wire, length 0.635 mm
-[endpoint_off_grid]: Symbol pin or wire end off connection grid
-    ; warning
-    @(200.025 mm, 333.375 mm): Horizontal Wire, length 1.905 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
     @(200.66 mm, 213.995 mm): Vertical Wire, length 15.24 mm
@@ -1285,15 +1261,6 @@ Report includes: Errors, Warnings, Exclusions
     @(200.66 mm, 300.355 mm): Horizontal Wire, length 1.27 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(200.66 mm, 302.895 mm): Horizontal Wire, length 1.27 mm
-[endpoint_off_grid]: Symbol pin or wire end off connection grid
-    ; warning
-    @(200.66 mm, 310.515 mm): Horizontal Wire, length 1.27 mm
-[endpoint_off_grid]: Symbol pin or wire end off connection grid
-    ; warning
-    @(200.66 mm, 310.515 mm): Horizontal Wire, length 0.635 mm
-[endpoint_off_grid]: Symbol pin or wire end off connection grid
-    ; warning
     @(200.66 mm, 315.595 mm): Horizontal Wire, length 1.27 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
@@ -1304,9 +1271,6 @@ Report includes: Errors, Warnings, Exclusions
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
     @(200.66 mm, 328.295 mm): Horizontal Wire, length 1.27 mm
-[endpoint_off_grid]: Symbol pin or wire end off connection grid
-    ; warning
-    @(200.66 mm, 333.375 mm): Horizontal Wire, length 0.635 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
     @(200.66 mm, 338.455 mm): Vertical Wire, length 10.16 mm
@@ -1354,16 +1318,10 @@ Report includes: Errors, Warnings, Exclusions
     @(201.93 mm, 307.975 mm): Symbol #PWR34 [GND]
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
-    @(201.93 mm, 310.515 mm): Horizontal Wire, length 1.27 mm
-[endpoint_off_grid]: Symbol pin or wire end off connection grid
-    ; warning
     @(201.93 mm, 315.595 mm): Horizontal Wire, length 1.27 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
     @(201.93 mm, 328.295 mm): Horizontal Wire, length 1.27 mm
-[endpoint_off_grid]: Symbol pin or wire end off connection grid
-    ; warning
-    @(201.93 mm, 333.375 mm): Horizontal Wire, length 1.27 mm
 [endpoint_off_grid]: Symbol pin or wire end off connection grid
     ; warning
     @(201.93 mm, 338.455 mm): Horizontal Wire, length 1.27 mm
@@ -4230,7 +4188,7 @@ Report includes: Errors, Warnings, Exclusions
     ; warning
     @(582.93 mm, 238.76 mm): Symbol TP5 [SYM_TP5]
 
- ** ERC messages: 1409  Errors 0  Warnings 1409
+ ** ERC messages: 1395  Errors 0  Warnings 1395
 
  ** Ignored checks:
     - Global label only appears once in the schematic
