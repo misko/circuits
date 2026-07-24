@@ -558,12 +558,20 @@ functions:
     candidates:
       - mpn: SMBJ6.0A
         maker: LRC (multi-source)
-        lcsc: C140903
+        lcsc: C113976
         package: SMB (DO-214AA)
         escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default}
-        status: designed-in
-        provenance: usb-hub-3s-v3 v1.2 (USB-C VBUS over-voltage clamp; ADR-0002)
+        status: shipped
+        provenance: usb-hub-3s-v3 v1.3-2026-07-23 (D5, USB-C VBUS secondary
+          over-voltage clamp; twin fetched, fit 0.21mm MODEL-REG-OK;
+          designed-in as C140903 at v1.2, corrected at the v1.3 fix pass)
         gotchas:
+          - "DIRECTIONALITY IS A CATALOG FACT: C140903 is catalog-BIDIRECTIONAL
+             despite the bare 'SMBJ6.0A' MPN reading as the uni-dir part —
+             C113976 is the catalog-verified UNIDIRECTIONAL one (JLC checked
+             2026-07-23). A bidirectional TVS on a DC rail never clamps
+             reverse; verify the direction column, not the MPN string.
+             Extended-tier -> order-day stock recheck."
           - "Vwm 6.0V clears a 5.35-5.43V regulated 5V rail (no nuisance leakage);
              SMBJ5.0A (5V standoff) is WRONG -> conducts in normal op."
           - "Vclamp ~10.3V is above a 5V-load ceiling -> PAIR with an upstream
@@ -625,3 +633,41 @@ functions:
              2026-07-23). This NDK part is the same 3225-4P land and the
              SAME CL 9pF as FA-238 ...MD50Y — a drop-in that keeps the load
              caps; match CL, not just frequency, when substituting."
+
+  pullup-100k-1pct-0603:
+    candidates:
+      - mpn: 0603WAF1003T5E
+        maker: UNI-ROYAL
+        lcsc: C25803
+        package: "0603"
+        escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: usb-hub-3s-v3 v1.3-2026-07-23 (R30 Q6 P-FET gate pull-up,
+          merged into the existing R1/R8/R17 row; JLC Basic tier; ledger
+          catalog-verified 100k 1%; twin fit 0.08mm MODEL-REG-OK)
+        gotchas:
+          - "E96 MPN DECODE, cross-checked before trusting: 1003 = 100x10^3 =
+             100k (family: 1002=10k, 1004=1M, 3091=3.09k). The incident this
+             entry exists for: R30 shipped in TWO sealed BOMs as C2933195 =
+             FRC0603F3091TS = catalog 3.09k while labeled 100k — a 1.7mA
+             pull-up leak and a 20x-weaker Q6 gate hold. Caught only by the
+             semantic M-BOM leg C (catalog value vs label), never by code
+             identity."
+
+  resistor-402k-e96-0402:
+    candidates:
+      - mpn: 0402WGF4023TCE
+        maker: UNI-ROYAL
+        lcsc: C25785
+        package: "0402"
+        escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default}
+        status: shipped
+        provenance: crow-recorder-central-v2 v1.0-2026-07-23 (R_fb2b, AP61102
+          0V9 core-buck feedback divider; documented at source in the tsx
+          LCSC map + 02_parts)
+        gotchas:
+          - "400k is NOT a stocked JLC value — 402k is the E96 neighbor and
+             the substitution is a DERIVED decision, not a shrug: -0.17%
+             setpoint shift on the 0V9 rail, inside the divider's own 1%
+             tolerance band. Record the computed rail delta when swapping to
+             an E96 neighbor; never silently relabel."
