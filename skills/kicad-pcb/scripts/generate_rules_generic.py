@@ -108,6 +108,18 @@ def main(argv=None):
     except FabTierError as e:
         sys.exit(f"generate_rules_generic: {e}")
 
+    # PURGE kicad-cli droppings first (promoted from crow-rv2's bespoke
+    # rmstray, 2026-07-23 / canon M8): every `kicad-cli pcb drc` and stitch
+    # gate drops a stray `<board>.kicad_pcb.kicad_pro` (+ `.kicad_prl`) beside
+    # the board, which then trips the one-board-file abort below and kills the
+    # rebuild. The DOUBLE extension makes them unambiguous tool droppings —
+    # only those are purged; a genuine second `.kicad_pro` still aborts
+    # (pinned by t1_rules_bom.py: t_rules_purges_kicadcli_droppings, RED-
+    # verified against this pre-purge code, + t_kb_rules_second_pro_still_aborts).
+    for stray in list(ki.glob("*.kicad_pcb.kicad_pro")) + list(ki.glob("*.kicad_pcb.kicad_prl")):
+        stray.unlink()
+        print(f"generate_rules_generic: purged stray kicad-cli dropping {stray.name}")
+
     pros = sorted(ki.glob("*.kicad_pro"))
     if not pros:
         sys.exit(f"generate_rules_generic: no .kicad_pro in {ki}")
