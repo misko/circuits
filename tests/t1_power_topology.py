@@ -289,6 +289,105 @@ def t_margin_dead_on_arrival():
                   "dead on arrival")
 
 
+# ==================== feedback: TOLERANCE WINDOW ===========================
+# usb-hub-3s-v3 (2026-07-23, external review): E-MARGIN/E-TOPO accepted
+# AUTHOR-DECLARED vout_min/vout_max, and the author computed them from ONLY the
+# regulator reference tolerance (Vref +/-1.5%) — omitting the divider
+# resistors'. The real USB-C window (R12 4.12k +/-0.1%, R13 1.21k +/-1%, Vref
+# 1.215V +/-1.5%) is 5.227-5.479V vs the declared 5.27-5.43V; the gate had no
+# way to catch it. The OPTIONAL per-rail feedback: block makes the corners
+# COMPUTED. RED-VERIFIED (git-swap, 2026-07-23): against pre-change
+# power_topology.py the feedback: key is an UNKNOWN rail field that load_rails
+# silently ignores, so the incident fixture PASSES E-TOPO/E-MARGIN — every
+# known-bad case below goes RED against the pre-fix gate (verified by swapping
+# git HEAD's power_topology.py back in; both t_feedback_understated_* failed,
+# then passed with the fixed gate restored).
+def fbblock(vref=1.215, vref_tol=1.5, rt=4120, rt_tol=0.1,
+            rb=1210, rb_tol=1.0, omit=None):
+    """The REAL usb-hub-3s-v3 USB-C divider (R12/R13) as a nested feedback:
+    block; `omit` drops one field for the partial-stack known-bad."""
+    fields = [("vref", vref), ("vref_tol_pct", vref_tol),
+              ("r_top_ohm", rt), ("r_top_tol_pct", rt_tol),
+              ("r_bottom_ohm", rb), ("r_bottom_tol_pct", rb_tol)]
+    body = "".join(f"      {k}: {v}\n" for k, v in fields if k != omit)
+    return "    feedback:\n" + body
+
+
+@test("E-TOPO/E-MARGIN PASS an HONEST declared window covering the computed "
+      "feedback corners (5.22-5.48 over computed 5.227-5.479)")
+def t_feedback_honest_pass():
+    """The corrected form of the incident: declared window 5.22-5.48V is WIDER
+    than the computed tolerance corners 5.227-5.479V -> both modes pass, and
+    E-MARGIN grades headroom from the COMPUTED worst-low (5.227V), not the
+    declared vout_min (5.22V)."""
+    d = project(ptree(railx("USB-C", 9.0, 12.6, 5.22, 5.48, 5,
+                            "LM5116MHX-NOPB",
+                            load_uv_threshold=4.63, ir_budget_mohm=88)
+                      + fbblock()),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_pass(etopo(d), "E-TOPO on an honest feedback window")
+    contains(r.out, "5.227-5.479", "prints the computed corner window")
+    contains(r.out, "E-TOPO OK", "clean report")
+    r = must_pass(margin(d), "E-MARGIN on an honest feedback window")
+    contains(r.out, "5.227", "headroom graded from the COMPUTED worst-low")
+    contains(r.out, "COMPUTED worst-low", "says the worst-low is computed")
+    contains(r.out, "E-MARGIN OK", "clean report")
+
+
+@test("E-TOPO FAILS THE INCIDENT: declared 5.27-5.43 NARROWER than the "
+      "computed feedback corners 5.227-5.479", kind="known_bad")
+def t_feedback_understated_topo():
+    """THE REAL CASE (usb-hub-3s-v3 USB-C rail, 2026-07-23): vout_min/vout_max
+    declared from Vref tolerance alone (5.27-5.43V) with the divider block
+    Vref 1.215 +/-1.5%, R12 4.12k +/-0.1%, R13 1.21k +/-1% -> computed
+    5.227-5.479V. The declared window under-states BOTH corners; E-TOPO must
+    FAIL naming both. RED against pre-fix code (feedback: silently ignored,
+    E-TOPO OK)."""
+    d = project(ptree(railx("USB-C", 9.0, 12.6, 5.27, 5.43, 5,
+                            "LM5116MHX-NOPB") + fbblock()),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_fail(etopo(d), "E-TOPO on the under-stated window",
+                  "under-stated tolerance corners")
+    contains(r.out, "5.227", "names the computed worst-case LOW corner")
+    contains(r.out, "5.479", "names the computed worst-case HIGH corner")
+    contains(r.out, "vout_min 5.27 V is ABOVE", "flags the low corner")
+    contains(r.out, "vout_max 5.43 V is BELOW", "flags the high corner")
+
+
+@test("E-MARGIN FAILS the same under-stated window (the headroom everyone "
+      "reasons from is fiction)", kind="known_bad")
+def t_feedback_understated_margin():
+    """Same real fixture via --margin: even though the COMPUTED worst-low
+    5.227V still clears the Pi5 brownout over 88 mOhm, the under-stated
+    declared window is itself an E-MARGIN FAIL — every downstream consumer of
+    the declared corners (TVS standoff, no-load OV) is reasoning from numbers
+    the board cannot hold. RED against pre-fix code (feedback: ignored,
+    E-MARGIN OK)."""
+    d = project(ptree(railx("USB-C", 9.0, 12.6, 5.27, 5.43, 5,
+                            "LM5116MHX-NOPB",
+                            load_uv_threshold=4.63, ir_budget_mohm=88)
+                      + fbblock()),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_fail(margin(d), "E-MARGIN on the under-stated window",
+                  "under-stated tolerance corners")
+    contains(r.out, "5.227", "names the computed low corner")
+    contains(r.out, "5.479", "names the computed high corner")
+
+
+@test("E-TOPO refuses a PARTIAL feedback block (missing tolerance field)",
+      kind="known_bad")
+def t_feedback_partial_block():
+    """A feedback block missing r_bottom_tol_pct is the incident in disguise
+    (a partial tolerance stack under-states the corners) — LOAD ERROR, exit 2,
+    never a silent narrower window."""
+    d = project(ptree(railx("USB-C", 9.0, 12.6, 5.27, 5.43, 5,
+                            "LM5116MHX-NOPB")
+                      + fbblock(omit="r_bottom_tol_pct")),
+                parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_fail(etopo(d), "E-TOPO on a partial feedback block", "LOAD ERROR")
+    contains(r.out, "r_bottom_tol_pct", "names the missing field")
+
+
 # ============================== E-OFF ======================================
 # A self-contained energy source (battery/cell/pack) must document its
 # de-energization path (off_control) + stored quiescent draw (quiescent_ua).
