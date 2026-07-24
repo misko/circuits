@@ -252,6 +252,14 @@ stitch:
       # inside each 3.43mm-wide tab, >0.65mm hole gap.
       - {net: GND, vias: [[16.610, 59.720], [17.460, 59.720]]}
       - {net: GND, vias: [[27.390, 59.720], [28.240, 59.720]]}
+      # C_DECU.1 (3V3) stranded in the race-4 realization (no 3V3 copper within
+      # 4mm; pad_rescue/astar exhausted). Measured stub (2026-07-24, on the
+      # PROMOTED race-4 chain — realization-coupled, re-derive on any re-race):
+      # 0.6mm feeder + via (78.72,66.2); path clear 0.40mm, hole gap 0.60mm;
+      # via bonds the In2 3V3 plane.
+      - {net: 3V3, pin: C_DECU.1,
+         segments: [{layer: F.Cu, width: 0.30, pts: [[79.02, 66.0], [79.02, 66.2], [78.72, 66.2]]}],
+         vias: [[78.72, 66.2]]}
       # C_ULNB.2 stub RETIRED (2026-07-24): two successive stub derivations
       # were realization-coupled traps (each re-race collided the last one).
       # PLACEMENT fix instead: C_ULNB is now SEEDED inside the plane band

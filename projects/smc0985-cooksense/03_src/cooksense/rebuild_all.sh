@@ -98,9 +98,16 @@ for v in [t for t in b.GetTracks() if t.GetClass() == "PCB_VIA"]:
     #   FILLED same-net zone containing the centre -> that layer.
     lays = set()
     for t in tracks:
-        if t.GetNetname() == net and (
-            (t.GetStart() - pos).EuclideanNorm() < vr + t.GetWidth()//2 + 1000 or
-            (t.GetEnd() - pos).EuclideanNorm() < vr + t.GetWidth()//2 + 1000):
+        if t.GetNetname() != net:
+            continue
+        # SEGMENT-true distance (endpoint-only testing deleted a legit
+        # 5V_KEY_RELAY layer-swap via sitting MID-track, 2026-07-24)
+        a, c = t.GetStart(), t.GetEnd()
+        dx, dy = c.x - a.x, c.y - a.y
+        L2 = dx*dx + dy*dy
+        tt = 0.0 if L2 == 0 else max(0.0, min(1.0, ((pos.x-a.x)*dx + (pos.y-a.y)*dy) / L2))
+        ddx, ddy = pos.x - (a.x + tt*dx), pos.y - (a.y + tt*dy)
+        if (ddx*ddx + ddy*ddy) ** 0.5 < vr + t.GetWidth()//2 + 1000:
             lays.add(int(t.GetLayer()))
     for p in pads:
         if p.GetNetname() != net:
