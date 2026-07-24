@@ -134,6 +134,9 @@ credits, or debugging time — check provenance notes before assuming staleness.
 | `scripts/import_krt.py` | Import KRT-dialect output into a pcbnew board |
 | `scripts/fab_tier_util.py` | Resolve a project's declared `fab_tier` into capability floors (`references/fab_tiers.yaml` is the single source) — the generators derive missing via/clearance/silk geometry from it and reject explicit sub-floor values |
 | `scripts/route_and_stitch_generic.py` | ONE parameterized route+stitch backend (prep/route/import/taps/quick/stitch) driven by `03_src/route.yaml` — replaces per-board route_prep.py + route_waves.sh + stitch_and_fill.py (+ bespoke tap scripts). `quick` = seconds-fast pre-stitch unconnected + clearance/track_width verdict (the loop tool). See `docs/generic-router-proof.md` |
+| `scripts/net_label_survival.py` | S-NETMERGE gate: every schematic global_label survives to the exported netlist (kicad-cli merges touching/collinear wires silently); config = `label_survival:` block of `03_src/rules/electrical_invariants.yaml` |
+| `scripts/placement_gates.py` | Shared placement gates P-OUT (pads inside the real Edge.Cuts polygon) + P-CAP (static corridor crossing-demand vs capacity) — post-placement, pre-routing |
+| `scripts/tier_preflight.py` | R-PREFLIGHT gate: every routing/stitch/rescue parameter with a DRC-floor twin proven consistent with the declared fab tier BEFORE any KRT cycle; wired refuse-to-route into `route_and_stitch_generic route`; `--explain` prints derivations + copy-paste fixes |
 | `scripts/grind_driver.py` | The BOUNDED mechanical DRC grind loop: classify findings, look each class up in `references/grind_fixes.yaml`, auto-apply only conservatively-safe reruns, escalate everything else (`06_build/grind_escalation.md`, distinct exit codes). Hard stops: 0/0/0, novel class, D-BACK 3-cycle stagnation, `--max-cycles`. Journals every cycle (canon M9) |
 
 Fab output + ordering (gerber zip, BOM/CPL, JLC stock checks) moved to the

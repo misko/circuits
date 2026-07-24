@@ -322,8 +322,13 @@ Consequences (SKILL.md stages 4-6 updated in the same change):
 - The "backend is the bulk of the work" warning describes HISTORY (the
   bespoke era), not the pipeline. Budgeting a hand-written backend for a new
   board is now an error in the expensive direction.
-- `scripts/tsx_to_board.sh` still hard-requires a bespoke `generate_board.py`
-  (its line-48 FATAL) — STALE for generic-backend boards, which rebuild via
-  the project `rebuild_all.sh` (or its promoted-chain fast variant). Until
-  tsx_to_board.sh detects the generic chain, it is a LEGACY-BOARD driver
-  only; retrofit tracked as open work.
+- `scripts/tsx_to_board.sh` retrofit DONE (2026-07-23, gate-builder branch
+  `worktree-wf_b6de1d37-a26-4` @ a778345, merged to main): with
+  `generate_board.py` absent and `floorplan.yaml` present it detects and runs
+  the generic chain (generate_board_generic / route_and_stitch_generic
+  import→taps→stitch / generate_rules_generic pre-route AND last) reparented
+  into its isolated build root; neither present → FATAL naming both. The
+  bespoke path is unchanged, and a latent pipefail bug that made the old
+  no-tsx FATAL unreachable (silent exit 2) was fixed in the same change.
+  Canonical per-project drivers remain `rebuild_all.sh` +
+  `rebuild_reuse.sh` (the template-owned promoted-chain fast variant).

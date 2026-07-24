@@ -439,10 +439,14 @@ generators are shared (`kicad-pcb/scripts/generate_board_generic.py`,
 generation Python**: seed `templates/03_src/rebuild_all.sh` + the config files and
 fill the values. A bespoke `03_src/generate_board.py` is the EXCEPTION (a board the
 generic backend cannot express — write an ADR if you believe you need one).
-⚠️ `scripts/tsx_to_board.sh` predates the generic backend and hard-fails without a
-bespoke `generate_board.py` — on a generic-backend board (i.e. every current board)
-the rebuild driver is the project `rebuild_all.sh` (or its promoted-chain fast
-variant); treat tsx_to_board.sh as a legacy-board driver until retrofitted. The
+`scripts/tsx_to_board.sh` is RETROFITTED for the generic backend (2026-07-23):
+`generate_board.py` absent + `floorplan.yaml` present → it runs the generic chain
+(generate_board_generic / route_and_stitch_generic / generate_rules_generic) in its
+isolated build root; bespoke boards keep the old path. The canonical per-project
+rebuild drivers remain `rebuild_all.sh` (full, from tsx) and `rebuild_reuse.sh`
+(promoted-chain fast variant — use it for per-iteration/verification rebuilds;
+`rebuild_all.sh` only when the schematic changed, because `tsci build` is
+non-deterministic and the committed `.kicad_sch` is the pinned canonical). The
 chain either driver runs: `tsci build` → converter
 `.kicad_sch` → placement → generate_rules → KRT (reuses the promoted route chain)
 → stitch_and_fill → generate_rules LAST → DRC 0/0/0. For schematic-only render
@@ -476,17 +480,30 @@ story-critical paths per canon S6 →
 netlist-parity gate → **CHEAP SEMANTIC BATTERY at the SCHEMATIC gate** —
 seconds each, run HERE and not first at seal (a defect authored at this
 stage and caught at seal costs a superseded release; R12/R30 shipped in
-2 sealed BOMs before the check ran, 2026-07-23): `electrical_invariants.py`
+2 sealed BOMs before the check ran, 2026-07-23): `net_label_survival.py`
+(S-NETMERGE — every schematic global_label survives to the exported netlist;
+the crow net-merge class) + `electrical_invariants.py`
 (E-INV, + `--adr-coverage` E-ADR) + `power_topology.py` (E-TOPO/E-MARGIN/
-E-OFF) + `count_parity.py` (S-COUNT), and at the FIRST fab-BOM export
-(early, never seal-first) `bom_source_check.py` legs A+C — per-refdes LCSC
+E-OFF) + `count_parity.py` (S-COUNT) + `bom_source_check.py --circuit-only`
+at the SCHEMATIC gate (no BOM needed — the R12/R30 class dies when the tsx
+builds), then legs A+C again at the FIRST fab-BOM export (early, never
+seal-first) — per-refdes LCSC
 identity vs circuit.json AND decoded-MPN-catalog-value vs the BOM label →
 generate_board — placement is hand-coded OR
 **placement-as-code** (`circuit_json_to_kicad_pcb.py` lands parts at the TSX
 `pcbX/pcbY`; ADR-0002 Phase B — authored coords only, NEVER tscircuit auto-place,
 then legalize) → audit gate (polarity,
-proximity, plane-clean, refdes-on-silk) → generate_rules BEFORE route-prep
-(the route-input .kicad_pro must carry the netclasses — canon R1) → KRT
+proximity, plane-clean, refdes-on-silk) + `placement_gates.py
+04_kicad/<board>.kicad_pcb --config 03_src/placement_gates.json` (SHARED:
+P-OUT pads-inside-outline-polygon, P-CAP corridor crossing-demand vs
+capacity — run BEFORE any routing attempt; a corridor FAIL is a
+placement/topology decision, not a router tuning problem) → generate_rules
+BEFORE route-prep
+(the route-input .kicad_pro must carry the netclasses — canon R1) →
+**tier_preflight (R-PREFLIGHT)**: route-stage entry runs `tier_preflight.py`
+automatically (`route` refuses on FAIL; `--skip-preflight` is loud and
+discouraged) — run `tier_preflight.py <project> --explain` when authoring
+route.yaml, the fix lines are copy-paste → KRT
 routing chain (fanout-first, track-free board, import once; promote the
 final chain file to 03_src/route/ and commit it — canon M3) →
 stitch_and_fill (pours + thermal vias) → **generate_rules LAST** (pcbnew
@@ -671,6 +688,12 @@ the archive → run every gate + review against staging → source commit S →
 stamp MANIFEST (`git_sha: S`, `git_dirty: false`) + re-run M-REL/freshness →
 seal commit adds ONLY the release dir. That section is the ONE home for the
 seal dance (this file and ORCHESTRATION_STATE.md only point at it).
+**Docs-only supersede:** when a new release changes ONLY documentation, seal
+it with `release_freshness_check.py <release_dir> --docs-only-supersede
+<prior-release-dir>` — fab/source/3d identity to the prior is ASSERTED (any
+deviation blocks: it is not docs-only), identical pdf/ allowed, ORDER_README
++ MANIFEST must differ, audit/manifest + draft-marker checks still gate.
+Never waive fab-identical files one-by-one for this case.
 **A release is a COMPLETE, SELF-CONTAINED ARCHIVE — not a pointer to a git
 SHA.** Someone
 holding only that directory must be able to open the board, read the

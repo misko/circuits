@@ -47,6 +47,14 @@ Both derive from the same `circuit.json`, so they cannot disagree on connectivit
 Do NOT re-render the KiCad rebuild for the human PDF — that was polishing the wrong
 artifact. Ship tscircuit's `schematic.pdf`.
 
+**`tsci build` is NON-DETERMINISTIC:** rerunning it rewrites the generated
+`kicad/<board>.kicad_sch` with ~2900 lines of UUID/ordering churn (measured
+crow-recorder-central-v2, 2026-07-23; connectivity stable per count_parity, but
+kicad-cli `--schematic-parity` then reports phantom field diffs). The COMMITTED
+`.kicad_sch` is the pinned canonical schematic — per-iteration rebuilds consume
+it via `03_src/rebuild_reuse.sh`; only rerun tsci when the TSX changed, then
+re-commit the sch as the new pin.
+
 ## Folder format
 
 ```

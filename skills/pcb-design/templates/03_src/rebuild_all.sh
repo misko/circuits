@@ -69,6 +69,12 @@ $PY "$S/placement_gates.py" "04_kicad/$BOARD.kicad_pcb" --config 03_src/placemen
 # [5] netclasses BEFORE route-prep (canon R1)  [SHARED]
 $PY "$S/generate_rules_generic.py" .
 
+# [5b] R-PREFLIGHT: tool config == declared fab tier — refuse before prep/import
+# (the template replays a promoted chain via `import`, which bypasses the
+#  route-command gate; run the preflight explicitly so rebuilds are gated too)
+$PY "$S/tier_preflight.py" . \
+    || { echo "GATE FAILED [5b] R-PREFLIGHT (tier_preflight.py): a routing/stitch parameter disagrees with the declared fab tier"; exit 1; }
+
 # [6-8] route + stitch from route.yaml  [SHARED]
 $PY "$S/route_and_stitch_generic.py" prep   03_src/route.yaml
 $PY "$S/route_and_stitch_generic.py" import 03_src/route.yaml   # replay promoted route/ chain (M3)

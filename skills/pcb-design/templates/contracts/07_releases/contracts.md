@@ -235,6 +235,17 @@ lands; **immutability begins the moment the seal commit exists.**
    `01_docs/CHANGELOG.md` entry, and `SUPERSEDED.md` on the predecessor.
    From this commit on the directory is IMMUTABLE.
 
+**Docs-only supersede mode.** When the new release changes ONLY
+documentation (dispositions, README, MANIFEST — no fab/source/3d delta),
+gate the staging with `release_freshness_check.py <release_dir>
+--docs-only-supersede <prior-release-dir>`: fab/, source/ and 3d/ must be
+BYTE-IDENTICAL to the prior release (any differing/missing/added file
+FAILS — it is not docs-only), identical pdf/ is allowed, and the order
+README + MANIFEST must byte-differ (otherwise the release supersedes
+nothing). The audit/manifest-agreement and draft-marker checks still run.
+Never waive fab-identical files one-by-one for this case — the mode
+asserts the identity instead of flagging it.
+
 Deviations that force rework (both happened, 2026-07-23): regenerating ANY
 artifact after S makes S stale — return to step 1 with a new S. Committing
 the staged release INSIDE the source commit (usb-hub-3s-v3 v1.3 gate-ii)
