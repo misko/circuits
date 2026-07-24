@@ -741,3 +741,14 @@ NOT yet rebuilt. All other source staged. No git touched.
   15.24 x11 exact, anti-parallel coils confirmed. Archived verbatim in
   08_reviews/2026-07-24_v1.1_fresh_lens.md.
 - next: 2-commit seal.
+
+## 2026-07-24 15:20 — iterate (v1.2 reroute convergence, races b-g)
+- did: full reroute race for the v1.2 netlist (+30/-6 parts). Convergence log:
+  (b) all-chain FAIL 5V_STOP — legalizer pushed floating D_KSTOP into comb col-r11 keepout → ANCHOR the STOP driver pair;
+  (c) anchors pinched (SMA bbox 7.1mm + U_SCHM pads x169.1) → measured 9x7 clear-window scan → [132.5/140.0, 58.5]; race then CLEAN 0-unc but DRC exposed: stale 04_kicad schematic (79 parity), 13x 0.2mm 3V3 rescue stubs under the 0.3 floor, SDA_B ON the south edge, STOP-pair pad gap 0.098mm, R_STOPPD legalized into esc_U_EXP_S;
+  (d) fixes: sync schematic from converter; pad_rescue stub_width 0.2→0.3 (stub_scope exemption dies at generate-rules-LAST); sig board_edge_clearance 0.35; respread pair; move R_STOPPD. New all-chain FAIL ESTOP_RAW (late-wave walled) → promote ESTOP/MODE/DOOR_RAW to safety wave;
+  (e) all-chain FAIL DECU_G1_RAW "preexisting_blockers" (U_SR1.3 escape walled) → promote DECU/DECD_G1_RAW to safety wave;
+  (f) race CLEAN 3/3 chains; stitch gate FAIL: 27.1x7.5mm B.Cu GND island under J_PI unservable → 2 measured power_stitch sites (112.4,90.3 / 129.4,89.5); DRC then 3v/5unc/0parity: SDA_B STILL on the south edge (the wave edge-clearance flag does NOT bind KRT) + 5 stranded plane pads (incl. C_DECU.1/C_OENAND.1 — the two whose v1.1 stubs were retired pre-race as realization-coupled);
+  (g) explicit User.2 edge deny bands (S/W/E, 0.8mm) — the mechanism KRT provably respects — full chain re-running; stranded-pad stubs to be re-derived ON the new promoted chain with the measured-site scanner (in-plane + clearance sweep).
+- result: measured; chain g in flight. Pattern harvested: EVERY stochastic-realization-coupled artifact (stubs, island sites) must be re-derived per promoted chain; wave PROMOTION (not iteration bumps) is the durable fix for walled late-wave pads.
+- next: chain g DRC → stubs → deterministic finish → M-REPRO.

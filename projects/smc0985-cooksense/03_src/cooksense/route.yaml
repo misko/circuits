@@ -42,6 +42,16 @@ prep:
     mounting_holes: {radius: 3.0}
     edge_band: 0.7
     rects:
+      # ---- EDGE BANDS (User.2, v1.2f MEASURED): the sig wave's
+      # board_edge_clearance flag did NOT stop SDA_B from routing ON the south
+      # edge (track+via at y101.9-102.0, DRC copper_edge x3, two consecutive
+      # realizations). Explicit deny rects are the mechanism KRT provably
+      # respects (the comb). 0.8mm bands, clear of every pad (checked: south
+      # connectors end y98.4, east connectors' pads x<=198). North band is
+      # already fully denied (y<29.4). ----
+      - {x0: 12.0,  y0: 101.2, x1: 200.0, y1: 102.1, layer: User.2}
+      - {x0: 12.0,  y0: 29.4,  x1: 12.8,  y1: 102.1, layer: User.2}
+      - {x0: 199.2, y0: 29.4,  x1: 200.0, y1: 102.1, layer: User.2}
       # ---- LOGIC keepout (User.2): the isolation-comb keypad domain ----
       # Full north band: no logic track above y29.4 anywhere (coil pads at
       # y30.38 are still reachable from the south).
@@ -133,9 +143,18 @@ prep:
       # signal pins (esp. EF_ILM, pin 7) claim their via-in-pad escape lanes
       # before the power pins (5V_RPP/5V_PROTECTED, pwr wave) box them in.
       efuse: [EF_DVDT, EF_OVLO, EF_ILM, EFUSE_FLT_N]   # EFUSE_FLT_N renamed from PWR_GOOD_N (pin review Q1, 2026-07-23)
+      # ESTOP_RAW/MODE_RAW/DOOR_RAW promoted from `rest` (v1.2d, 2026-07-24,
+      # MEASURED: with the new sig-wave edge clearance ESTOP_RAW lost its
+      # corridor into U_SCHM.1 in ALL 3 chains when routed last; the raw
+      # safety-contact nets belong with their cleaned outputs in the early wave)
+      # DECU_G1_RAW/DECD_G1_RAW also promoted (v1.2e, MEASURED: DECU_G1_RAW
+      # failed "preexisting_blockers" in all chains when routed in the last
+      # wave — U_SR1.3's escape walled in by earlier tracks; these are the
+      # decoder-enable REQUEST lines, safety-adjacent by function).
       safety: [TEMP_OK, WD_OK, ESTOP_OK, FAULT, MODE_AUTO_HW,
                DOOR_OK, REARM_N, STOP_REQ, PRESS_TIMED, CONTACTOR_C,
-               KEY_RELAY_ALLOWED]
+               KEY_RELAY_ALLOWED, ESTOP_RAW, MODE_RAW, DOOR_RAW,
+               DECU_G1_RAW, DECD_G1_RAW]
       pi: [HOST_AUTH, WD_PET, MCU_RELAY_ENABLE, KEY_CLOCK, KEY_LATCH,
            KEY_RESET_N, KEY_DATA]
       # keypad-iso domain: routes WITHIN the north band (User.3 keepout open north)
@@ -149,7 +168,7 @@ prep:
              COIL_U1_N, COIL_U2_N, COIL_U3_N, COIL_U4_N, COIL_U5_N, COIL_U6_N,
              COIL_D1_N, COIL_D2_N, COIL_D3_N, COIL_D4_N, COIL_PRESS_N,
              COIL_STOP_N, 5V_KEY_RELAY]
-      pwr: [5V_PROTECTED, 5V_IN, 5V_FUSED, 5V_RPP, 3V3_ANALOG,
+      pwr: [5V_PROTECTED, 5V_IN, 5V_FUSED, 5V_RPP, 5V_STOP, 3V3_ANALOG,
             3V3_SW_A, 3V3_SW_B, 3V3_SW_RHA, 3V3_SW_RHE]
       sig: rest
 
@@ -174,8 +193,11 @@ route:
        board_edge_clearance: 0.35, max_iterations: 400000}   # sel-bus rails cross the inter-reed slots (y30.5) -> keep 0.35mm
     - {name: coil, group: coil, track_width: 0.4, board_edge_clearance: 0.35, max_iterations: 500000}   # coil rail/drops pass the slots (y37.5) -> keep 0.35mm
     - {name: pwr,  group: pwr,  max_iterations: 500000}
-    - {name: sig, group: sig, track_width: 0.25, max_iterations: 800000,
-       max_probe_iterations: 60000, max_ripup: 30}
+    # board_edge_clearance added to sig (v1.2, 2026-07-24, MEASURED): SDA_B ran
+    # ON the south edge (y101.9 vs edge y102, 0.00mm DRC edge clearance x3) —
+    # the prep edge_band did not stop the sig wave.
+    - {name: sig, group: sig, track_width: 0.25, board_edge_clearance: 0.35,
+       max_iterations: 800000, max_probe_iterations: 60000, max_ripup: 30}
   # Promoted converged chain (canon M3): 0 routed-net unconnected, 0-crossing
   # topology. `import` uses this when there is no fresh 06_build FINAL marker, so
   # `rebuild_all.sh --reuse-route` (and a fresh clone / CI) is DETERMINISTIC.
@@ -252,29 +274,12 @@ stitch:
       # inside each 3.43mm-wide tab, >0.65mm hole gap.
       - {net: GND, vias: [[16.610, 59.720], [17.460, 59.720]]}
       - {net: GND, vias: [[27.390, 59.720], [28.240, 59.720]]}
-      # C_DECU.1 (3V3) stranded in the race-4 realization (no 3V3 copper within
-      # 4mm; pad_rescue/astar exhausted). Measured stub (2026-07-24, on the
-      # PROMOTED race-4 chain — realization-coupled, re-derive on any re-race):
-      # 0.6mm feeder + via (78.72,66.2); path clear 0.40mm, hole gap 0.60mm;
-      # via bonds the In2 3V3 plane.
-      - {net: 3V3, pin: C_DECU.1,
-         segments: [{layer: F.Cu, width: 0.30, pts: [[79.02, 66.0], [79.02, 66.2], [78.72, 66.2]]}],
-         vias: [[78.72, 66.2]]}
-      # U_EXP.9 (MCP23017 VDD, 3V3): the race-4 realization did NOT route it
-      # natively (unlike race 2) and RAIL_EN_B hugs the pad row (via-in-pad
-      # blocked at every x, ring gap 0.02mm). Measured stub (2026-07-24, on the
-      # PROMOTED race-4 chain): feeder WEST along the pad axis, exit + via at
-      # (135.2,83.47) — site + feeder verified with the pass's OWN primitives
-      # (tk.via_site_ok + tk.collides sweep; the first derivation at
-      # (135.3,83.17) used an approximate scanner and RAIL_EN_B B.Cu refused).
-      - {net: 3V3, pin: U_EXP.9,
-         segments: [{layer: F.Cu, width: 0.30, pts: [[136.5, 82.975], [135.2, 82.975], [135.2, 83.47]]}],
-         vias: [[135.2, 83.47]]}
-      # C_OENAND.1 (3V3) stranded in the race-4 realization. Measured stub:
-      # 0.5mm feeder + via (160.82,81.8); path clear 0.51mm, hole gap 0.72mm.
-      - {net: 3V3, pin: C_OENAND.1,
-         segments: [{layer: F.Cu, width: 0.30, pts: [[160.72, 82.2], [160.72, 81.8], [160.82, 81.8]]}],
-         vias: [[160.82, 81.8]]}
+      # v1.2 RE-RACE (2026-07-24): the three v1.1 realization-coupled 3V3 stubs
+      # (C_DECU.1, U_EXP.9, C_OENAND.1 — each explicitly marked "re-derive on any
+      # re-race") are RETIRED for the fresh race; if a realization strands one of
+      # those pads again, re-derive a measured stub ON THAT chain and restore it
+      # here with new coords. Keeping stale coords would either refuse (harmless)
+      # or trap the new realization (harmful) — the v1.1 C_ULNB lesson.
       # C_ULNB.2 stub RETIRED (2026-07-24): two successive stub derivations
       # were realization-coupled traps (each re-race collided the last one).
       # PLACEMENT fix instead: C_ULNB is now SEEDED inside the plane band
@@ -307,6 +312,13 @@ stitch:
       # sub-pads. If both sites refuse (dense escape), the fallback ladder is in
       # the routing journal (route 5V_PROTECTED south / F.Cu-pour EP bond).
       - {net: GND, min: 0, sites: [[60.0, 56.4], [60.0, 57.6]]}
+      # v1.2f B.Cu GND island under J_PI (MEASURED, 2026-07-24): the re-routed
+      # pi/sig field cuts a 27.1x7.5mm B.Cu GND island at (122.1,94.2) that
+      # island_rescue/heal_islands cannot serve (stitch gate FAIL). Two sites
+      # measured CLEAR on the promoted chain (B.Cu island + In1 plane coverage
+      # + 0.45mm radius track/hole clearance scan). Realization-coupled like
+      # the 3V3 stubs: re-derive on any re-race.
+      - {net: GND, min: 0, sites: [[112.4, 90.3], [129.4, 89.5]]}
   dedupe_vias: {radius: 0.5, metric: box}
   drop_micro_fragments: {max_length: 0.12, require_free_end: true}
   drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
@@ -323,8 +335,13 @@ stitch:
     served_within: 1.6
     rings: [0.5, 0.7, 0.9, 1.1, 1.4, 1.8, 2.2, 2.7]
     angle_step: 15
-    stub_width: 0.2
-    stub_scope: {min_track_width: 0.2}
+    # stub_width 0.2 -> 0.3 (v1.2, 2026-07-24, MEASURED): 13 pad_rescue 3V3
+    # stubs at 0.2 tripped the PWR_3V3 0.3 floor. The stub_scope exemption
+    # rule-areas do not survive the canon-R1 generate-rules-LAST step (the
+    # regenerated .kicad_dru drops appended rules), so emit stubs AT the floor
+    # instead of relaxing the floor around them.
+    stub_width: 0.3
+    stub_scope: {min_track_width: 0.3}
     require: none
   stub_fallback: {net: [GND, 3V3], min_dist: 0.2, max_dist: 8.0, width: 0.3}
   # window 4->6, attempts 3->5 (2026-07-24): C_ULNB.2/C_SWB.2 GND sit in

@@ -118,9 +118,10 @@ placement:
     U_ULNB: [184.0, 59.0, 0]         # ULN2803 B -> reeds 9-12 coils (gaps g5-g6; 186->184: H4 courtyard)
     U_DECU: [74.0, 66.0, 0]          # 238 -> SEL_U1..6 (ULN_A up-selects)
     U_DECD: [120.0, 66.0, 0]         # 238 -> SEL_D1/D2 (ULN_A) + SEL_D3/D4 (ULN_B)
-    U_ONESHOT: [150.0, 62.0, 0]      # 1G123 press one-shot -> PRESS_TIMED (ULN_B)
+    U_ONESHOT: [150.0, 62.0, 0]      # v1.2: CD74HC221 SOIC-16 (was 1G123 SSOP-8) -> PRESS_TIMED (ULN_B)
     U_SR1:  [95.0, 75.0, 0]          # 595 (feeds both decoders + one-shot + Pi serial)
-    U_SR2:  [128.0, 75.0, 0]         # 595 (cascade; STOP_REQ -> ULN_B)
+    # U_SR2 DELETED in v1.2 (ADR-0011 §5: STOP_REQ moved to direct Pi GPIO). Its
+    # old spot (128,75) hosts the new STOP-preemption gate cluster (seeds below).
 
     # ================= EXPANDER + WATCHDOG + Pi (CENTER-SOUTH) =================
     U_EXP:  [140.0, 82.0, 0]         # MCP23017 SSOP-28 (dense) -- escape corridor SOUTH; hub
@@ -139,6 +140,15 @@ placement:
     Q_COILDRV:  [170.0, 80.0, 0]     # 2N7002 low-side coil-enable
     Q_COIL:     [182.0, 80.0, 0]     # AO3401A HS -> 5V_KEY_RELAY (gated coil rail)
     U_OPTO:     [185.0, 90.0, 0]     # LTV-817S -> J_CONTACTOR
+    # v1.2 K_STOP dedicated driver + flyback (ADR-0011 §4): ANCHORED (a floating
+    # seed was legalizer-displaced into the comb keepout — measured hard fail;
+    # first anchor attempt (166/162,60) was PINCHED: SMA bbox 7.1mm wide +
+    # U_SCHM pads at x169.1 + C_SCHM float left no gate-pad approach — measured
+    # 9x7mm-clear-window scan places them in the open x130-140/y56-60 band).
+    # (spread 134/139 -> 132.5/140.0: at 5.0mm centers the SMA pad2-to-SOT23
+    # pad gap measured 0.098mm < 0.12 clearance + courtyard overlap, DRC 3x)
+    Q_STOPDRV:  [140.0, 58.5, 0]     # 2N7002 low-side driver
+    D_KSTOP:    [132.5, 58.5, 0]     # SS34 flyback (K=5V_STOP, A=COIL_STOP_N)
 
     # ================= DISCRETE SAFETY INPUTS (EAST EDGE) =================
     # y >= 60: keeps every connector pad >=6mm below the EAST end pocket's
@@ -223,11 +233,47 @@ placement:
     R_BID0:   [125.0, 84.0]
     R_BID1:   [122.0, 86.5]
     C_ULNB:   [186.0, 67.5]     # I-PROX to U_ULNB (184,59) = 8.7 <= 9.0
+    # ---- v1.2 STOP-preemption cluster (old U_SR2 spot + one-shot flank) ----
+    U_STOPINV: [126.0, 73.0]    # 1G00 inverter: STOP_REQ -> STOP_REQ_N
+    U_OSCLR:   [146.0, 68.0]    # 1G11: OS_CLR_N = DOOR_OK · STOP_REQ_N (near one-shot R1_N)
+    U_LATCHG:  [102.0, 71.0]    # 1G11: KEY_LATCH_G (near U_SR1 RCLK)
+    U_DECUEN:  [80.0, 63.0]     # 1G11: DECU_G1 gate (near U_DECU G1)
+    U_DECDEN:  [126.0, 68.5]    # 1G11: DECD_G1 gate (near U_DECD G1)
+    C_STOPINV: [128.5, 73.0]
+    C_OSCLR:   [148.5, 68.0]
+    C_LATCHG:  [104.5, 71.0]
+    C_DECUEN:  [82.5, 63.0]
+    C_DECDEN:  [128.5, 68.5]
+    R_OS2:     [147.0, 57.5]    # unused-half 2CXRX 10k -> VCC (at U_ONESHOT pin 7 side)
+    # ---- v1.2 contactor HW gate (safety band, between AND-chain and U_OPTO) ----
+    U_CAND1:   [176.0, 84.0]
+    U_CAND2:   [180.0, 87.0]
+    C_CAND1:   [173.5, 84.0]
+    C_CAND2:   [177.5, 89.0]
+    # ---- v1.2 K_STOP independent rail ----
+    R_STOPRAIL: [188.0, 74.0]   # 5V_PROTECTED (Q_COIL source copper nearby) -> 5V_STOP
+    C_STOPR:    [188.0, 71.5]
+    # Q_STOPDRV/D_KSTOP were floating seeds at (181.5/184.5, 63.5); the legalizer
+    # displaced D_KSTOP to (180.2,50.7) INSIDE the comb column-r11 keepout where
+    # 5V_STOP is unroutable by construction (race 2026-07-24 all-chain hard fail).
+    # Both are now ANCHORS (pinned) in the open pocket between U_ONESHOT and
+    # U_SCHM — see the anchors section.
+    # ---- v1.2 deterministic pulls ----
+    R_HOSTAUTHPD: [100.0, 88.0] # Pi-signal pulls in the piedge band
+    R_MCUENPD:    [103.0, 88.0]
+    R_KRSTPD:     [106.0, 88.0]
+    R_STOPPD:     [147.0, 92.0] # near J_PI east end (phys 37); 140,92 legalized
+                                # INTO the esc_U_EXP_S corridor (DRC items_not_allowed)
+    R_RAENAPD:    [125.0, 89.0] # expander-signal pulls, west pocket by R_BID*
+    R_RAENBPD:    [128.0, 89.0]
+    R_RAENRHAPD:  [125.0, 91.5]
+    R_RAENRHEPD:  [128.0, 91.5]
+    R_CTRREQPD:   [122.0, 89.0]
+    R_REARMPU:    [122.0, 91.5]
 
   patterns:
     # ---- decoupling: each cap hard against its IC ----
     - {match: "C_SR1", near: U_SR1}
-    - {match: "C_SR2", near: U_SR2}
     - {match: "C_DECU", near: U_DECU}
     - {match: "C_DECD", near: U_DECD}
     - {match: "C_ULNA", near: U_ULNA}
@@ -247,6 +293,7 @@ placement:
     - {match: "C_EXP", near: U_EXP}
     - {match: "R_BID*", near: U_EXP}
     - {match: "R_OS", near: U_ONESHOT}
+    - {match: "R_OS2", near: U_ONESHOT}
     - {match: "C_OS", near: U_ONESHOT}
     - {match: "C_OSV", near: U_ONESHOT}
     - {match: "R_HSG", near: Q_COIL}
@@ -287,13 +334,11 @@ placement:
     - {match: "Q_SWDRVRHA", near: Q_SWRHA}
     - {match: "R_SWPURHA", near: Q_SWRHA}
     - {match: "C_SWRHA", near: Q_SWRHA}
-    - {match: "R_SDARHA", near: J_RH_AMBIENT}
-    - {match: "R_SCLRHA", near: J_RH_AMBIENT}
     - {match: "Q_SWDRVRHE", near: Q_SWRHE}
     - {match: "R_SWPURHE", near: Q_SWRHE}
     - {match: "C_SWRHE", near: Q_SWRHE}
-    - {match: "R_SDARHE", near: J_RH_EXHAUST}
-    - {match: "R_SCLRHE", near: J_RH_EXHAUST}
+    # v1.2 (ADR-0010): R_SDARHA/R_SCLRHA/R_SDARHE/R_SCLRHE deleted — RH pods
+    # share the camera buses; the one 2.2k pair per bus stays at J_THERM_A/B.
     # ---- discrete input locals ----
     - {match: "R_DOORPU", near: J_DOOR}
     - {match: "D_DOOR", near: J_DOOR}
@@ -317,6 +362,7 @@ placement:
     - {match: "TP_SPARE", region: analog}
     - {match: "TP_TCDRDY", region: analog}
     - {match: "TP_TCFAULT", region: analog}
+    - {match: "TP_TCTH", region: analog}   # v1.2: threshold bring-up point (near U_COMP)
     - {match: "TP_*", region: piedge}
     # ---- catch-all ----
     - {match: "*", region: drive}
@@ -407,7 +453,7 @@ silk:
   min_text_height: 0.6
   refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJKQ"}
   captions:
-    - {text: "cooksense  SMC0985KS  sidecar v1.1", at: [106.0, 13.0], size: 0.9, nudge: false}
+    - {text: "cooksense  SMC0985KS  sidecar v1.2", at: [106.0, 13.0], size: 0.9, nudge: false}
     - {text: "KEYPAD ISOLATION COMB   >=6mm creepage   GND_ISO ONLY   (contact columns face pockets)", at: [106.0, 21.0], size: 0.8, nudge: false}
     - {text: "5V SELV IN", at: [39.0, 54.3], size: 0.7, nudge: false}
     - {text: "ANALOG SENSE (3V3_ANALOG)", at: [36.0, 84.0], size: 0.7, nudge: false}
@@ -431,7 +477,8 @@ asserts:
     - {ref: Q_COILDRV, pad: 1, net: COIL_EN}
     - {ref: U_AND3, pad: 4, net: KEY_RELAY_ALLOWED}
     - {ref: U_WD, pad: 1, net: WD_OK}
-    - {ref: U_ONESHOT, pad: 5, net: PRESS_TIMED}
+    - {ref: U_ONESHOT, pad: 13, net: PRESS_TIMED}   # v1.2: CD74HC221 1Q
+    - {ref: K_STOP, pad: 1, net: 5V_STOP}           # v1.2: STOP coil on the UNGATED rail (ADR-0011 §4)
     - {ref: K_U1, pad: 1, net: 5V_KEY_RELAY}        # reed coil (logic)
     - {ref: K_U1, pad: 4, net: U_SEL_BUS}           # reed contact (isolated keypad)
     - {ref: K_U1, pad: 3, net: KP_U1}

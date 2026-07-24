@@ -5,6 +5,9 @@
 (rule "COIL_RAIL_width"
   (condition "A.NetClass == 'COIL_RAIL'")
   (constraint track_width (min 0.4mm)))
+(rule "STOP_RAIL_width"
+  (condition "A.NetClass == 'STOP_RAIL'")
+  (constraint track_width (min 0.4mm)))
 (rule "PWR_3V3_width"
   (condition "A.NetClass == 'PWR_3V3'")
   (constraint track_width (min 0.3mm)))
@@ -22,4 +25,4 @@
   (constraint track_width (min 0.25mm)))
 (rule pad_rescue_stubs
   (condition "A.insideArea('pad_rescue_stubs') && (A.NetName == 'GND' || A.NetName == '3V3')")
-  (constraint track_width (min 0.200mm)))
+  (constraint track_width (min 0.300mm)))
