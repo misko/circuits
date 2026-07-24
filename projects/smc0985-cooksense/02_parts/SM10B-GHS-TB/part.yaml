@@ -34,7 +34,7 @@ verified: "pad map 1..10 + 2xMP from footprint Connector_JST:JST_GH_SM10B-GHS-TB
 layout:                           # in P-LAYOUT scope (npins>2); honest layout-agnostic notes
   source: "JST eGH SMD land pattern + solder-tab retention (mechanical). This header is the boundary of the ISOLATED keypad control domain; the governing rule is the isolation-barrier geometry, not a signal net-span budget."
   reviewed: "2026-07-22"
-  notes: "Passive interconnect - layout-agnostic for signal timing, but it sits ON the isolation boundary of the key-control domain: keep the creepage/clearance barrier under and around the footprint UNBROKEN (no copper pour, plane, or via bridging primary<->isolated), and route every isolated-domain return to the isolated ground only. Tie both MP mechanical tabs to the ISOLATED-side ground (never to primary/chassis GND) so the tabs do not short the barrier."
+  notes: "Passive interconnect - layout-agnostic for signal timing, but it sits ON the isolation boundary of the key-control domain: keep the creepage/clearance barrier under and around the footprint UNBROKEN (no copper pour, plane, or via bridging primary<->isolated), and route every isolated-domain return to the isolated ground only. The MP mechanical tabs FLOAT (see the pins.MP note, corrected 2026-07-23): no GND_ISO net exists on these designs — the keypad matrix is a floating signal domain, and bonding the tabs to ANY ground bridges the barrier. Reflow the tabs for retention only. (Stale tie-to-isolated-ground sentence removed 2026-07-24, interposer pin-review finding.)"
 sourcing:
   lcsc: C2683602
   alternates: [C265339]

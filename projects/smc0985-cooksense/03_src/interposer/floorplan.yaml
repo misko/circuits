@@ -71,8 +71,8 @@ silk:
   captions:
     - {text: "cooksense interposer (Board C) v1.0  SMC0985KS", at: [37.0, 12.5], size: 0.9, nudge: false}
     - {text: "FLOATING KEYPAD DOMAIN - NO GND / NO CHASSIS BOND", at: [37.0, 54.3], size: 0.7, nudge: false}
-    - {text: "OEM MEMBRANE TAIL (top entry ZIF)", at: [37.0, 24.4], size: 0.7, nudge: false}
-    - {text: "FLEX JUMPER TO OEM CN1 (top entry ZIF)", at: [37.0, 50.6], size: 0.7, nudge: false}
+    - {text: "OEM MEMBRANE TAIL", at: [36.0, 24.6], size: 0.7, nudge: false}
+    - {text: "FLEX JUMPER TO OEM CN1", at: [36.0, 50.8], size: 0.7, nudge: false}
     - {text: "U1..U6 D1..D4 straight through  (D4: TP only, locked out downstream)", at: [37.0, 33.0], size: 0.6, nudge: false}
 
 asserts:

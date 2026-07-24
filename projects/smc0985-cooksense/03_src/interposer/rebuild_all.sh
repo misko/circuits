@@ -52,7 +52,19 @@ ln -s ../..                                    "$SH/06_build"
 ln -s ../../../02_parts                        "$SH/02_parts"
 
 echo "== 1/7 generate_board (placement, track-free) =="
+# SHARED-FILE GUARD (measured 2026-07-24): generate_board_generic rewrites
+# 04_kicad/fp-lib-table (16 -> 4 libs) and 04_kicad/refdes_waiver.json ([] —
+# erasing cooksense's 5-refdes waiver) — both SHARED with the sealed cooksense
+# board; the clobber flipped the sealed board's policy audit to FAIL
+# (R-DRC 152 / P-SILK-REF 5). Snapshot + restore around the step: cooksense's
+# fp-lib-table is a superset of the 4 libs the interposer needs, and the
+# interposer waives no refdes, so the cooksense versions serve BOTH boards.
+TMPG=$(mktemp -d)
+cp "$PROJ/04_kicad/fp-lib-table" "$PROJ/04_kicad/refdes_waiver.json" "$TMPG/" 2>/dev/null || true
 $PY "$S/generate_board_generic.py" "$FP"
+[ -f "$TMPG/fp-lib-table" ] && cp "$TMPG/fp-lib-table" "$PROJ/04_kicad/fp-lib-table"
+[ -f "$TMPG/refdes_waiver.json" ] && cp "$TMPG/refdes_waiver.json" "$PROJ/04_kicad/refdes_waiver.json"
+rm -rf "$TMPG"
 
 echo "== 2/7 generate_rules BEFORE route (canon R1; shadow) =="
 cp "$PROJ/04_kicad/interposer.kicad_pcb" "$PROJ/04_kicad/interposer.kicad_pro" "$SH/04_kicad/"
