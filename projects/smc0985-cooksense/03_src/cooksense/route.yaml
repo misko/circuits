@@ -8,24 +8,27 @@
 # The flat-path lookups (fab_tier_util.resolve, net_class_floors) read
 # <root>/03_src/rules/nets.yaml -> symlinked to cooksense/rules/nets.yaml.
 #
-# ============================ TOPOLOGY REDO (2026-07-23) ======================
-# The placement was REDONE (D-BACK): the keypad is now a SINGLE north band, ALL
-# SELV logic is SOUTH, and there are ZERO logic N/S crossings. The isolation
-# keepout below therefore covers the NORTH keypad band, NOT the old center strip.
-#
-# MEASURED geometry (from 04_kicad/cooksense.kicad_pcb):
-#   - board outline           : x 11.95..264.05  y 9.95..102.05  (252 x 92 mm)
-#   - keypad copper (contacts + U/D_SEL buses + KP_* + RKEY/RSTOP + J_KEY):
-#       y 14.07 .. 30.94   (southernmost keypad copper = 30.94)
-#   - reed COIL pads (5V_KEY_RELAY / COIL_*_N)       : north edge y 37.06
-#   - all OTHER (non-reed) SELV-logic pads           : y >= 40.98
-#   => the reed footprint itself is the barrier: 37.06 - 30.94 = 6.12 mm > 6 mm.
-#      Isolation is held BY NET TOPOLOGY: no logic net has ANY pad in or north of
-#      the keypad zone, so no logic track has a reason to cross the barrier. The
-#      User.2 keepout below just forbids a stray KRT detour through the empty
-#      north band; the User.3 keepout keeps the keypad nets north of the logic.
-#   - GND (In1/F/B) + 3V3 (In2) planes are confined to y >= 40 (keypad band has
-#     NO plane -- keypad_iso deny-pour). Both plane nets are KRT-excluded.
+# ====================== v1.1 ISOLATION COMB (D7, 2026-07-23) ==================
+# v1.1 rot0 vertical-relay repack (188x92, pitch 15.24): each relay's coil and
+# contact COLUMNS are E-W separated (7.62mm c-c / 6.12mm pad-edge). Pairing
+# (rot180|rot0) makes 6 COIL GAPS (logic, within pairs) and 7 KEYPAD POCKETS
+# (isolated, between pairs + both board ends). Domain rule enforced here:
+#   - LOGIC (User.2 keepout): forbidden north of y29.4 everywhere, and forbidden
+#     y29.4..53.0 in every pocket + every intra-relay column. Logic reaches coil
+#     pads (y30.38/45.62) ONLY from inside the 6 coil-gap x-windows.
+#   - KEYPAD (User.3 keepout): forbidden south of y47.0 everywhere, and
+#     forbidden y23.2..47.0 in every coil gap + every intra-relay column.
+#     Keypad lives in the north band (copper <=23.2) + the 7 pocket channels.
+#   => creepage by construction: band 23.2 vs gap pads 29.63 (6.28mm); pocket
+#      pads 46.37 vs logic/planes 53.0 (6.63mm); intra-relay columns 6.12mm;
+#      pocket drops vs coil pads 7.62mm horizontal. I-ISO re-MEASURES this.
+#   - GND (In1/F/B) + 3V3 (In2) planes confined to y >= 53 (keypad_iso
+#     deny-pour covers y<53). Both plane nets are KRT-excluded.
+# Relay centers x = 26.00 + n*15.24 (n=0..11), row y=38. Column barriers at
+# xc+-3.0; coil gaps g1..g6 = [29.00,38.24] [59.48,68.72] [89.96,99.20]
+# [120.44,129.68] [150.92,160.16] [181.40,190.64]; pockets = west [12,23.00],
+# p1..p5 = [44.24,53.48] [74.72,83.96] [105.20,114.44] [135.68,144.92]
+# [166.16,175.40], east [196.64,200].
 
 project:
   name: cooksense
@@ -39,18 +42,56 @@ prep:
     mounting_holes: {radius: 3.0}
     edge_band: 0.7
     rects:
-      # LOGIC keepout (User.2): the NORTH keypad band. Blocks every logic wave
-      # from routing into the reed barrier. y1 TIGHTENED 36.0 -> 37.0 (P1-B,
-      # 2026-07-23): the old 36.0 let the 5V_KEY_RELAY coil rail run at y36.0,
-      # only 4.35mm from the D_SEL_BUS at y31.3 -- BELOW the brief's >=6mm keypad
-      # creepage (red-team P1-B). y1=37.0 keeps every logic track >=37.0; the coil
-      # pads at y37.06 are still reachable from the south.
-      - {x0: 12.0, y0: 9.9,  x1: 264.0, y1: 37.0,  layer: User.2}
-      # KEYPAD keepout (User.3): the SOUTH logic band. y0 TIGHTENED 34.5 -> 31.0
-      # (P1-B): keeps every keypad-iso track <=31.0 (contact pads at y<=30.94 are
-      # still reachable from the north). Logic >=37.0 and keypad <=31.0 => a >=6.0mm
-      # copper creepage by construction; the reed pads themselves give 6.12mm.
-      - {x0: 12.0, y0: 31.0, x1: 264.0, y1: 102.1, layer: User.3}
+      # ---- LOGIC keepout (User.2): the isolation-comb keypad domain ----
+      # Full north band: no logic track above y29.4 anywhere (coil pads at
+      # y30.38 are still reachable from the south).
+      - {x0: 12.0, y0: 9.9, x1: 200.0, y1: 29.4, layer: User.2}
+      # 7 keypad pockets: logic excluded down to the plane band (y53.0).
+      - {x0: 12.00,  y0: 29.4, x1: 23.00,  y1: 53.0, layer: User.2}   # west end
+      - {x0: 44.24,  y0: 29.4, x1: 53.48,  y1: 53.0, layer: User.2}   # p1 r2r3
+      - {x0: 74.72,  y0: 29.4, x1: 83.96,  y1: 53.0, layer: User.2}   # p2 r4r5
+      - {x0: 105.20, y0: 29.4, x1: 114.44, y1: 53.0, layer: User.2}   # p3 r6r7
+      - {x0: 135.68, y0: 29.4, x1: 144.92, y1: 53.0, layer: User.2}   # p4 r8r9
+      - {x0: 166.16, y0: 29.4, x1: 175.40, y1: 53.0, layer: User.2}   # p5 r10r11
+      - {x0: 196.64, y0: 29.4, x1: 200.0,  y1: 53.0, layer: User.2}   # east end
+      # 12 intra-relay column barriers (coil<->contact, 6.12mm pad-edge).
+      - {x0: 23.00,  y0: 29.4, x1: 29.00,  y1: 53.0, layer: User.2}   # r1
+      - {x0: 38.24,  y0: 29.4, x1: 44.24,  y1: 53.0, layer: User.2}   # r2
+      - {x0: 53.48,  y0: 29.4, x1: 59.48,  y1: 53.0, layer: User.2}   # r3
+      - {x0: 68.72,  y0: 29.4, x1: 74.72,  y1: 53.0, layer: User.2}   # r4
+      - {x0: 83.96,  y0: 29.4, x1: 89.96,  y1: 53.0, layer: User.2}   # r5
+      - {x0: 99.20,  y0: 29.4, x1: 105.20, y1: 53.0, layer: User.2}   # r6
+      - {x0: 114.44, y0: 29.4, x1: 120.44, y1: 53.0, layer: User.2}   # r7
+      - {x0: 129.68, y0: 29.4, x1: 135.68, y1: 53.0, layer: User.2}   # r8
+      - {x0: 144.92, y0: 29.4, x1: 150.92, y1: 53.0, layer: User.2}   # r9
+      - {x0: 160.16, y0: 29.4, x1: 166.16, y1: 53.0, layer: User.2}   # r10
+      - {x0: 175.40, y0: 29.4, x1: 181.40, y1: 53.0, layer: User.2}   # r11
+      - {x0: 190.64, y0: 29.4, x1: 196.64, y1: 53.0, layer: User.2}   # r12
+      # ---- KEYPAD keepout (User.3): the logic domain ----
+      # Full south band: no keypad track below y47.0 (pocket contact pads at
+      # y45.62 are still reachable from the north).
+      - {x0: 12.0, y0: 47.0, x1: 200.0, y1: 102.1, layer: User.3}
+      # 6 coil gaps: keypad excluded from the logic windows (band cap y23.2
+      # keeps keypad-band copper >=6.28mm from the gap coil pads at y29.63).
+      - {x0: 29.00,  y0: 23.2, x1: 38.24,  y1: 47.0, layer: User.3}   # g1
+      - {x0: 59.48,  y0: 23.2, x1: 68.72,  y1: 47.0, layer: User.3}   # g2
+      - {x0: 89.96,  y0: 23.2, x1: 99.20,  y1: 47.0, layer: User.3}   # g3
+      - {x0: 120.44, y0: 23.2, x1: 129.68, y1: 47.0, layer: User.3}   # g4
+      - {x0: 150.92, y0: 23.2, x1: 160.16, y1: 47.0, layer: User.3}   # g5
+      - {x0: 181.40, y0: 23.2, x1: 190.64, y1: 47.0, layer: User.3}   # g6
+      # 12 intra-relay column barriers (keypad side).
+      - {x0: 23.00,  y0: 23.2, x1: 29.00,  y1: 47.0, layer: User.3}   # r1
+      - {x0: 38.24,  y0: 23.2, x1: 44.24,  y1: 47.0, layer: User.3}   # r2
+      - {x0: 53.48,  y0: 23.2, x1: 59.48,  y1: 47.0, layer: User.3}   # r3
+      - {x0: 68.72,  y0: 23.2, x1: 74.72,  y1: 47.0, layer: User.3}   # r4
+      - {x0: 83.96,  y0: 23.2, x1: 89.96,  y1: 47.0, layer: User.3}   # r5
+      - {x0: 99.20,  y0: 23.2, x1: 105.20, y1: 47.0, layer: User.3}   # r6
+      - {x0: 114.44, y0: 23.2, x1: 120.44, y1: 47.0, layer: User.3}   # r7
+      - {x0: 129.68, y0: 23.2, x1: 135.68, y1: 47.0, layer: User.3}   # r8
+      - {x0: 144.92, y0: 23.2, x1: 150.92, y1: 47.0, layer: User.3}   # r9
+      - {x0: 160.16, y0: 23.2, x1: 166.16, y1: 47.0, layer: User.3}   # r10
+      - {x0: 175.40, y0: 23.2, x1: 181.40, y1: 47.0, layer: User.3}   # r11
+      - {x0: 190.64, y0: 23.2, x1: 196.64, y1: 47.0, layer: User.3}   # r12
       # ADC-FRONT-END GND-VIA RESERVATIONS (D-ADJ, routing D-BACK 2026-07-23).
       # The dense MCP3208 filter/vref cluster covers cap GND via sites with signal
       # tracks on BOTH layers (astar exhausted a 4mm window -> stitch cannot drop a
@@ -62,23 +103,25 @@ prep:
       # escapes WEST, clear of each rect's west edge (>=0.2mm). rects = GND pad
       # centre-biased east: [gx-0.48 .. gx+0.52] x [gy-0.65 .. gy+0.65] (small
       # caps); C_ADCV/C_ADCV2 sized for their 0.90mm pad.
-      - {x0: 48.15, y0: 69.35, x1: 49.75, y1: 70.65, layer: User.2}   # C_ADCV  GND@48.77,70.00
-      - {x0: 37.00, y0: 69.35, x1: 38.00, y1: 70.65, layer: User.2}   # C_ADCV2 GND@37.48,70.00
-      - {x0: 56.20, y0: 82.55, x1: 57.20, y1: 83.85, layer: User.2}   # C_FLT0  GND@56.68,83.20
-      - {x0: 53.80, y0: 82.55, x1: 54.80, y1: 83.85, layer: User.2}   # C_FLT1  GND@54.28,83.20
-      - {x0: 53.80, y0: 78.15, x1: 54.80, y1: 79.45, layer: User.2}   # C_FLT2  GND@54.28,78.80
-      - {x0: 56.20, y0: 78.15, x1: 57.20, y1: 79.45, layer: User.2}   # C_FLT3  GND@56.68,78.80
-      - {x0: 58.00, y0: 80.35, x1: 59.00, y1: 81.65, layer: User.2}   # C_FLT4  GND@58.48,81.00
-      - {x0: 52.00, y0: 80.35, x1: 53.00, y1: 81.65, layer: User.2}   # C_FLT5  GND@52.48,81.00
-      - {x0: 58.80, y0: 81.75, x1: 59.80, y1: 83.05, layer: User.2}   # C_FLT6  GND@59.28,82.40
-      - {x0: 57.00, y0: 83.85, x1: 58.00, y1: 85.15, layer: User.2}   # C_FLT7  GND@57.48,84.50
+      # (v1.1: ADC cluster translated RIGIDLY +6y with its floorplan anchors)
+      - {x0: 48.15, y0: 75.35, x1: 49.75, y1: 76.65, layer: User.2}   # C_ADCV  GND@48.77,76.00
+      - {x0: 37.00, y0: 75.35, x1: 38.00, y1: 76.65, layer: User.2}   # C_ADCV2 GND@37.48,76.00
+      - {x0: 56.20, y0: 88.55, x1: 57.20, y1: 89.85, layer: User.2}   # C_FLT0  GND@56.68,89.20
+      - {x0: 53.80, y0: 88.55, x1: 54.80, y1: 89.85, layer: User.2}   # C_FLT1  GND@54.28,89.20
+      - {x0: 53.80, y0: 84.15, x1: 54.80, y1: 85.45, layer: User.2}   # C_FLT2  GND@54.28,84.80
+      - {x0: 56.20, y0: 84.15, x1: 57.20, y1: 85.45, layer: User.2}   # C_FLT3  GND@56.68,84.80
+      - {x0: 58.00, y0: 86.35, x1: 59.00, y1: 87.65, layer: User.2}   # C_FLT4  GND@58.48,87.00
+      - {x0: 52.00, y0: 86.35, x1: 53.00, y1: 87.65, layer: User.2}   # C_FLT5  GND@52.48,87.00
+      - {x0: 58.80, y0: 87.75, x1: 59.80, y1: 89.05, layer: User.2}   # C_FLT6  GND@59.28,88.40
+      - {x0: 57.00, y0: 89.85, x1: 58.00, y1: 91.15, layer: User.2}   # C_FLT7  GND@57.48,90.50
       # U_EFUSE EP thermal-via RESERVATION (P1-A, 2026-07-23): a 5V_PROTECTED B.Cu
       # trunk was routing UNDER the EP (x59.9), blocking every GND thermal via. This
       # User.2 keepout fences non-GND routing off the EP so the EP keeps clear GND
       # via sites (GND is plane-owned/KRT-excluded, so it is not blocked). Signal
       # pins 1-8 sit at x<=59.05 and x>=60.95, OUTSIDE this rect, so their escapes
       # are untouched; 5V_PROTECTED (pad5) re-routes via the efuse_escape corridor.
-      - {x0: 59.35, y0: 44.0, x1: 60.65, y1: 46.0, layer: User.2}     # U_EFUSE EP @60,45
+      # (v1.1: power block translated RIGIDLY +12y; U_EFUSE now @60,57)
+      - {x0: 59.35, y0: 56.0, x1: 60.65, y1: 58.0, layer: User.2}     # U_EFUSE EP @60,57
   waves:
     exclude: ["GND", "3V3", "unconnected-*"]   # In1 GND plane + In2 3V3 plane own these
     groups:
@@ -172,7 +215,7 @@ stitch:
     clearance: 0.13
     stubs:
       - {net: 5V_RPP, pin: U_EFUSE.4,
-         segments: [{layer: F.Cu, width: 0.25, pts: [[59.05, 45.75], [59.05, 45.25]]}]}
+         segments: [{layer: F.Cu, width: 0.25, pts: [[59.05, 57.75], [59.05, 57.25]]}]}
       # ADC-CLUSTER GND PLANE-BOND via-in-pads (DETERMINISM fix, 2026-07-23,
       # successor lead). The dense MCP3208 filter/vref cluster is congested enough
       # that the pad_rescue -> stub_fallback -> astar_fallback stochastic rescue
@@ -186,16 +229,16 @@ stitch:
       # rescue pass -> no non-deterministic churn. via_site_ok-checked (refused-not-
       # -guessed) + `pin` proof (must reach the pad) + idempotent. Coords = exact
       # GND pad centres (anchored caps; measured from the board).
-      - {net: GND, pin: C_ADCV.2,  vias: [[48.775, 70.000]]}
-      - {net: GND, pin: C_ADCV2.2, vias: [[37.480, 70.000]]}
-      - {net: GND, pin: C_FLT0.2,  vias: [[56.680, 83.200]]}
-      - {net: GND, pin: C_FLT1.2,  vias: [[54.280, 83.200]]}
-      - {net: GND, pin: C_FLT2.2,  vias: [[54.280, 78.800]]}
-      - {net: GND, pin: C_FLT3.2,  vias: [[56.680, 78.800]]}
-      - {net: GND, pin: C_FLT4.2,  vias: [[58.480, 81.000]]}
-      - {net: GND, pin: C_FLT5.2,  vias: [[52.480, 81.000]]}
-      - {net: GND, pin: C_FLT6.2,  vias: [[59.280, 82.400]]}
-      - {net: GND, pin: C_FLT7.2,  vias: [[57.480, 84.500]]}
+      - {net: GND, pin: C_ADCV.2,  vias: [[48.775, 76.000]]}
+      - {net: GND, pin: C_ADCV2.2, vias: [[37.480, 76.000]]}
+      - {net: GND, pin: C_FLT0.2,  vias: [[56.680, 89.200]]}
+      - {net: GND, pin: C_FLT1.2,  vias: [[54.280, 89.200]]}
+      - {net: GND, pin: C_FLT2.2,  vias: [[54.280, 84.800]]}
+      - {net: GND, pin: C_FLT3.2,  vias: [[56.680, 84.800]]}
+      - {net: GND, pin: C_FLT4.2,  vias: [[58.480, 87.000]]}
+      - {net: GND, pin: C_FLT5.2,  vias: [[52.480, 87.000]]}
+      - {net: GND, pin: C_FLT6.2,  vias: [[59.280, 88.400]]}
+      - {net: GND, pin: C_FLT7.2,  vias: [[57.480, 90.500]]}
       # J_PWR Micro-Fit MECHANICAL RETENTION TABS (R-THERM, 2026-07-23). The two
       # 1MP shell tabs (5.66mm2 each, GND, SMD) trip R-THERM (>4mm2 GND pad, <2
       # vias) though they carry NO current (retention only; the real power path is
@@ -205,8 +248,8 @@ stitch:
       # share number "MP", so the proof is ambiguous — via_site_ok + In1-coverage
       # (both MEASURED clear/covered) are the guard. Sites: tab centre + 0.85mm east,
       # inside each 3.43mm-wide tab, >0.65mm hole gap.
-      - {net: GND, vias: [[16.610, 47.720], [17.460, 47.720]]}
-      - {net: GND, vias: [[27.390, 47.720], [28.240, 47.720]]}
+      - {net: GND, vias: [[16.610, 59.720], [17.460, 59.720]]}
+      - {net: GND, vias: [[27.390, 59.720], [28.240, 59.720]]}
       # U_EXP.9 (MCP23017 VDD, 3V3) is PLANE-FED (In2 3V3) with no KRT escape;
       # the pre-seal-batch reroute realization left pad_rescue unable to serve it
       # (nearest 3V3 copper = a stitch via 6mm west across the I2C/TC_FAULT_N
@@ -216,9 +259,10 @@ stitch:
       # (centre-placed would sit at the exact 0.50 hole_to_hole floor). Site
       # MEASURED clear: nearest foreign copper = U_EXP.8/10 pad edges 0.325mm.
       # 0.25mm F.Cu feeder pad-centre -> via satisfies the pin-reach proof.
+      # (v1.1: U_EXP moved (164,80) -> (140,82); stub rigid with the anchor)
       - {net: 3V3, pin: U_EXP.9,
-         segments: [{layer: F.Cu, width: 0.30, pts: [[160.500, 80.975], [161.200, 80.975]]}],
-         vias: [[161.200, 80.975]]}
+         segments: [{layer: F.Cu, width: 0.30, pts: [[136.500, 82.975], [137.200, 82.975]]}],
+         vias: [[137.200, 82.975]]}
   via_janitor: {min_layers: 2}
   # THERMAL-VIA FLOOR (policy R6): the AMS1117-3.3 tab (U_LDO.4 = 3V3, 7.6mm2)
   # gets its 1st via-in-pad from pad_rescue at the tab CENTER (25.15,58.00); its
@@ -230,14 +274,14 @@ stitch:
   power_stitch:
     overshoot: 0
     jobs:
-      - {net: 3V3, min: 0, sites: [[25.15, 56.9]]}
+      - {net: 3V3, min: 0, sites: [[25.15, 68.9]]}
       # U_EFUSE EP thermal vias (P1-A): 2 GND via-in-pad in the WSON EP outline
       # (0.9x1.6 @60,45), top+bottom, connecting the EP -> In1 GND plane (the heat
       # path). Needs the EP reservation keepout (prep) to have cleared the
       # 5V_PROTECTED B.Cu trunk + tie_efuse_ep.py to have GND-ed the unnamed EP
       # sub-pads. If both sites refuse (dense escape), the fallback ladder is in
       # the routing journal (route 5V_PROTECTED south / F.Cu-pour EP bond).
-      - {net: GND, min: 0, sites: [[60.0, 44.4], [60.0, 45.6]]}
+      - {net: GND, min: 0, sites: [[60.0, 56.4], [60.0, 57.6]]}
   dedupe_vias: {radius: 0.5, metric: box}
   drop_micro_fragments: {max_length: 0.12, require_free_end: true}
   drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
@@ -261,10 +305,10 @@ stitch:
   astar_fallback: {net: [GND, 3V3], width: 0.3, window: 4.0, attempts: 3, max_dist: 8.0}
   stitch_grid:
     net: GND
-    x: [20, 260, 8]     # span the SOUTH logic band (board x12..264)
-    y: [44, 98, 8]      # inside the GND plane (y40..102), clear of the isolation edge
-    # ISOLATION: no GND stitch vias in the keypad band (would bridge the barrier)
-    avoid: [{x0: 12.0, y0: 9.0, x1: 264.0, y1: 40.0, margin: 1.0}]
+    x: [20, 196, 8]     # span the SOUTH logic band (board x12..200)
+    y: [58, 98, 8]      # inside the GND plane (y53..102), clear of the comb edge
+    # ISOLATION: no GND stitch vias north of the plane band (would bridge the comb)
+    avoid: [{x0: 12.0, y0: 9.0, x1: 200.0, y1: 54.0, margin: 1.0}]
   island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu], require: pads}
   unify_zone_priorities: {min_bbox: 0.8}
   heal_islands: {min_bbox: 1.5}

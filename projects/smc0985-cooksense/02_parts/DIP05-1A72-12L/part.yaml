@@ -21,6 +21,8 @@ gotchas:
   - "pin-out 12 = coil on pins 1/7 row, contact on pins 8/14 row: the isolation boundary runs BETWEEN the rows (ADR-0002)"
   - "coil is non-polar on -12L; keep pin 1 = +RELAY_5V so the -12D alternate (internal diode, cathode at pin 1 side per DS p.4 D(Q) figure) drops in"
   - "adjacent-relay magnetic coupling: DS p.3 handling note; 15.24mm super-column pitch + one-at-a-time firmware default"
+  - "ROW-PITCH GEOMETRY (measured, cooksense v1.1 D7 2026-07-23): the 15.24mm coupling pitch is a rot0/VERTICAL-orientation figure (6.5mm body / 9.93mm bbox across the pitch axis). In a rot90 HORIZONTAL row (contacts N / coils S) the 19.3mm body / 19.90mm courtyard lies ALONG the row: minimum mechanical pitch ~20mm, and 15.24mm overlaps courtyards by 4.66mm — impossible. Do not commission a rot90 row below 20mm pitch."
+  - "rot0 ISOLATION COMB (cooksense v1.1): with vertical relays the coil/contact isolation boundary runs N-S BETWEEN the pin columns (7.62mm c-c / 6.12mm pad-edge). Alternate rot180/rot0 in PAIRS so contact columns of adjacent relays face each other: the isolated domain pockets between pairs (and at row ends) while coil-coil gaps carry logic — no logic net ever crosses a pocket; the DS p.3 alternate-orientation note doubles as the coupling mitigation for the anti-parallel adjacent coils."
 verified: "pin map read from DS p.3 Pin-Out figures (code 12) + p.4 option figures; coil/contact data p.1-2; dielectric p.3 Relay Data table - 2026-07-19"
 layout:                          # P-LAYOUT: reed relay (mains-switching stage, DO-NOT-SUBSTITUTE)
   source: "Standex DIP-series datasheet (Version 03, 01 Aug 2025) p.3 'Handling &

@@ -261,3 +261,22 @@ milled-slot clearance is left to DRC copper_edge_clearance. Harvest-ready.
   boards) to license the two-row repack, or (c) vertical-relay topology
   redesign (new barrier concept). D7 records the escalation; no floorplan,
   netlist, or 04_kicad change made; v1.0 release untouched and orderable.
+
+## 2026-07-24 06:55 — iterate 1 (post-escalation: rot0 redesign authored)
+- did: USER RESOLVED D7 -> "Vertical-relay redesign now". Authored the v1.1
+  rot0 floorplan: 12 relays vertical, pitch 15.24mm (the exact orientation the
+  part.yaml coupling figure was vetted in), alternating rot180/rot0 in PAIRS
+  (contact columns face shared pockets; anti-parallel adjacent coils = DS p.3
+  alternate-orientation mitigation). Isolation comb: 6 coil gaps (logic) + 7
+  keypad pockets (5 inter-pair + 2 ends); 12 milled 0.6mm slots at gap/pocket
+  mouths; DRC deny comb (12 column + 6 gapN + 7 pktS rects); route User.2/
+  User.3 rewritten to the comb. Board 252x92 -> 188x92 (x 12..200). South-band
+  clusters translated rigidly with their coordinate-coupled stubs/keepouts:
+  power +12y, ADC cluster +6y, U_EXP (164,80)->(140,82). part.yaml gotchas
+  updated (rot90 pitch floor + rot0 comb concept).
+- result: creepage by construction: intra-relay columns 6.12mm (the v1.0
+  measured floor), band->gap-pads 6.28mm, pocket-pads->planes 6.63mm, pocket
+  drops->coil pads 7.62mm. Placement collision-checked against MEASURED v1.0
+  bbox envelopes (pcbnew). Netlist/schematic untouched.
+- next: rebuild_all.sh --reroute race; tier_preflight + P-OUT/P-CAP; DRC
+  0/0/0; I-ISO re-measure (hard gate >=6.0mm; STOP if the comb cannot make it).

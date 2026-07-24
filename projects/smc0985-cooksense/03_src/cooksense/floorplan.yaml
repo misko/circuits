@@ -1,45 +1,40 @@
 # cooksense floorplan — input for skills/kicad-pcb/scripts/generate_board_generic.py
 #
-# REDO (D-BACK from routing, 2026-07-23). The prior 2-row center-strip floorplan
-# was UNROUTABLE: the keypad isolation strip walled the logic into NORTH and
-# SOUTH halves, forcing ~26 logic-to-logic nets through ~2 sub-3mm creepage
-# lanes (corridor capacity ~6). Root cause = TOPOLOGY, not router tuning.
-# Also J_PI (2x20) ran its 48mm body OFF the south edge (34/40 pins off-board).
+# v1.1 SHRINK (D7, 2026-07-23): 252x92 -> 188x92mm. The v1.0 single-row rot90
+# relay row (contacts N / coils S) was pitch-bound at 20mm: the DIP05-1A72-12L
+# long axis (body 19.3mm / courtyard 19.90mm) lay ALONG the row, leaving 0.10mm
+# courtyard gap — ZERO pitch shrink existed in that orientation (measured,
+# BRIEF D7). USER DECISION: rot0 vertical-relay redesign. Relays stand with the
+# long axis N-S (6.5mm body / 9.93mm bbox across the row), pitch 15.24mm — the
+# EXACT orientation+pitch the part.yaml "super-column pitch" coupling figure was
+# vetted in; relays additionally alternate rot180/rot0 in PAIRS (anti-parallel
+# adjacent coils = the datasheet's own alternate-orientation mitigation).
 #
-# FIX (placement-only, NO schematic change): CONSOLIDATE ALL Pi-driven logic on
-# ONE side. The 12 reeds now form a SINGLE horizontal isolation band with ALL
-# COILS facing the logic (SOUTH) and ALL CONTACTS facing the keypad (NORTH):
-#   - reeds rot90 => contact pads NORTH (y-3.81), coil pads SOUTH (y+3.81)
-#     (empirically verified in pcbnew: rot90 = coilS/contactN).
-#   - NORTH band = keypad domain ONLY: reed CONTACTS + U/D-sel buses +
-#     RKEY/RSTOP + J_KEY_MATRIX. Galvanically isolated, GND_ISO only, no plane.
-#   - SOUTH band = ALL SELV logic: power, 2x595 -> 2x'238 -> ULN_A/ULN_B (both
-#     south) -> reed coils, MCP23017 expander, TPS3823 watchdog, 1G123 one-shot,
-#     HC14 + AND-chain + fault-latch + coil-rail gate, analog sensing spine, and
-#     J_PI (2x20 sidecar, ON-BOARD, body ALONG the south edge).
-# Consequence: EVERY logic net stays SOUTH, every keypad net stays NORTH; the
-# ONLY isolation-boundary crossing is the intended reed barrier (coil->contact,
-# the rated 1.5kVDC gap). Logic-to-logic N/S crossings = 0.
-#
-# Geometry cost: 12 reeds each 19.9mm on their long axis => a single coils-south
-# row is ~239mm wide. Per the D-BACK spec ("GROW the board rather than re-split")
-# the board is grown to 252x92mm. No board-size constraint exists (brief/ADRs).
-#
-# Bands (north y-low -> south y-high):
-#   KEYPAD (N)  : J_KEY_MATRIX (W peninsula) + reed CONTACTS + U/D-sel buses +
-#                 RKEY/RSTOP. ISOLATED. y 10..30.
-#   REED BAND   : 12 reeds rot90 in one row, contacts N / coils S. y ~29..39.
-#                 11 milled Edge.Cuts slots in the inter-reed gaps.
-#   POWER (SW)  : Micro-Fit -> F1 -> revpol P-FET -> TPS259573 eFuse -> 5V_PROT
-#                 -> AMS1117 3V3 -> ferrite -> 3V3_ANALOG.
-#   DRIVE (Ctr) : 2x595 -> 2x'238 + 1G123 one-shot -> ULN_A (reeds 1-8) &
-#                 ULN_B (reeds 9-12), just south of the coil row.
-#   EXP/PI (Ctr): MCP23017 + TPS3823 watchdog + J_PI 40-pin ribbon (sidecar).
-#   SAFETY (E)  : HC14 + AND-chain + fault-latch + one-shot gate + Q_COIL beside
-#                 the east discrete-input connectors (Mode/E-stop/Door).
-#   ANALOG (SW) : MCP3208 + LM393 + MAX31856 + thermistor front-ends + switched
-#                 sensor rails A/B + J_THERM_A/B + J_TC on the 3V3_ANALOG rail.
-#   SW RAILS(SE): RH switched rails + J_RH_AMBIENT/EXHAUST.
+# THE ISOLATION COMB (replaces the v1.0 straight barrier). At rot0/rot180 each
+# relay's coil column and contact column are E-W separated (7.62mm c-c, 6.12mm
+# pad-edge — the SAME creepage floor v1.0 measured). Pairing (r1 rot180 contact
+# W | r2 rot0 contact E) makes:
+#   - COIL GAPS (6, within pairs, x-window 9.24mm): both flanking columns are
+#     coil (logic). 5V_KEY_RELAY + COIL_*_N route here, from the south band up
+#     to the pads (y30.38/45.62) — logic never crosses a pocket.
+#   - KEYPAD POCKETS (7 = 5 inter-pair + west end + east end): both flanking
+#     columns are contact (isolated keypad). KP_*/SEL-bus drops run N-S in the
+#     6.12mm clear channel between contact pads, joining the NORTH keypad band
+#     (copper <= y23.2). J_KEY_MATRIX lives in the WEST end pocket.
+#   - Creepage held by construction: keypad band y<=23.2 vs coil-gap pads
+#     y>=29.63 (6.28mm); pocket pads y<=46.37 vs logic/planes y>=53 (6.63mm);
+#     pocket drops vs coil pads 7.62mm horizontal; intra-relay columns 6.12mm.
+#     Milled 0.6mm slots reinforce each coil-gap mouth (y26.0-26.6) and each
+#     pocket mouth (y49.3-49.9), per the v1.0 slot pattern.
+#   - DRC-enforced comb (deny tracks/vias/pours): 12 intra-relay column rects +
+#     6 coil-gap north strips + 7 pocket south strips — a track that collapses
+#     the comb FAILS kicad DRC ("items not allowed"), like v1.0's iso_barrier.
+# Geometry: 12 relays, centers x=26.00..193.64 (pitch 15.24, span 167.64), row
+# center y=38 (bbox y28.0..48.0). Board 188x92 (x 12..200, y 10..102). The
+# south logic band (y53..102) absorbs the v1.0 south-band clusters: power block
+# translated rigidly +12y (eFuse stubs/keepouts follow in route.yaml), ADC
+# cluster rigidly +6y (GND-via reservations follow), U_EXP to (140,82) (3V3
+# stub follows). Schematic/netlist UNCHANGED from v1.0 — placement/outline only.
 
 project:
   name: cooksense
@@ -50,154 +45,159 @@ project:
   fp_lib_table: 04_kicad/fp-lib-table
 
 board:
-  outline: {x0: 12.0, y0: 10.0, x1: 264.0, y1: 102.0}   # 252 x 92 mm, 4-layer SIDECAR
+  outline: {x0: 12.0, y0: 10.0, x1: 200.0, y1: 102.0}   # 188 x 92 mm, 4-layer SIDECAR
   edge_width: 0.1
   layers: 4
   mounting_holes:
     footprint: MountingHole:MountingHole_2.7mm_M2.5_ISO14580
-    at: [[27.0, 15.0], [253.0, 15.0], [19.0, 97.0], [257.0, 97.0]]
-  # ISOLATION milled slots: reinforce the reed coil/contact barrier in the gaps
-  # between adjacent relays (bodies bridge). Single row, 12 reeds at x=28..248
-  # (pitch 20), slots at the 11 inter-reed midpoints, spanning the reed band.
+    at: [[24.0, 14.0], [194.0, 14.0], [17.0, 90.0], [193.0, 52.0]]
+  # ISOLATION milled slots (0.6mm), v1.1 comb pattern:
+  #   - 6 coil-gap NORTH slots (y26.0-26.6): lengthen the keypad-band ->
+  #     coil-gap-logic surface path across each gap mouth.
+  #   - 6 pocket SOUTH slots (y49.3-49.9): lengthen the pocket-keypad ->
+  #     south-logic-band surface path across each pocket mouth (east end
+  #     pocket skipped: <3mm to the board edge, web too fragile; its single
+  #     RSTOP_MID drop is covered by the 6.63mm construction gap).
   cutouts:
-    - {rect: [37.7, 30.5, 38.3, 37.5]}
-    - {rect: [57.7, 30.5, 58.3, 37.5]}
-    - {rect: [77.7, 30.5, 78.3, 37.5]}
-    - {rect: [97.7, 30.5, 98.3, 37.5]}
-    - {rect: [117.7, 30.5, 118.3, 37.5]}
-    - {rect: [137.7, 30.5, 138.3, 37.5]}
-    - {rect: [157.7, 30.5, 158.3, 37.5]}
-    - {rect: [177.7, 30.5, 178.3, 37.5]}
-    - {rect: [197.7, 30.5, 198.3, 37.5]}
-    - {rect: [217.7, 30.5, 218.3, 37.5]}
-    - {rect: [237.7, 30.5, 238.3, 37.5]}
+    - {rect: [29.40, 26.0, 37.84, 26.6]}    # coil gap r1r2
+    - {rect: [59.88, 26.0, 68.32, 26.6]}    # coil gap r3r4
+    - {rect: [90.36, 26.0, 98.80, 26.6]}    # coil gap r5r6
+    - {rect: [120.84, 26.0, 129.28, 26.6]}  # coil gap r7r8
+    - {rect: [151.32, 26.0, 159.76, 26.6]}  # coil gap r9r10
+    - {rect: [181.80, 26.0, 190.24, 26.6]}  # coil gap r11r12
+    - {rect: [13.00, 49.3, 22.60, 49.9]}    # west end pocket
+    - {rect: [44.64, 49.3, 53.08, 49.9]}    # pocket r2r3
+    - {rect: [75.12, 49.3, 83.56, 49.9]}    # pocket r4r5
+    - {rect: [105.60, 49.3, 114.04, 49.9]}  # pocket r6r7
+    - {rect: [136.08, 49.3, 144.52, 49.9]}  # pocket r8r9
+    - {rect: [166.56, 49.3, 175.00, 49.9]}  # pocket r10r11
 
 libraries: [/usr/share/kicad/footprints, 03_src/lib]
 
 placement:
   anchors:
-    # ================= KEYPAD ISOLATION BAND (NORTH) =================
-    # J_KEY_MATRIX = WEST keypad peninsula (mouth WEST, ribbon to Board C).
+    # ================= KEYPAD DOMAIN (NORTH BAND + POCKETS) =================
+    # J_KEY_MATRIX = WEST end pocket (mouth WEST, ribbon to Board C).
     J_KEY_MATRIX: [16.0, 20.0, 270]
-    # 12 reeds, single row, rot90 (coil SOUTH / contact NORTH), pitch 20mm.
-    # ULN_A drives reeds 1-8 (U1-6,D1,D2); ULN_B drives reeds 9-12 (D3,D4,PRESS,STOP).
-    K_U1:    [28.0, 34.0, 90]
-    K_U2:    [48.0, 34.0, 90]
-    K_U3:    [68.0, 34.0, 90]
-    K_U4:    [88.0, 34.0, 90]
-    K_U5:    [108.0, 34.0, 90]
-    K_U6:    [128.0, 34.0, 90]
-    K_D1:    [148.0, 34.0, 90]
-    K_D2:    [168.0, 34.0, 90]
-    K_D3:    [188.0, 34.0, 90]
-    K_D4:    [208.0, 34.0, 90]
-    K_PRESS: [228.0, 34.0, 90]
-    K_STOP:  [248.0, 34.0, 90]
-    # keypad solder-selects (isolated domain, north of their reeds' contacts)
-    R_KEY:   [224.0, 22.0, 0]        # RKEY_MID @ K_PRESS
-    R_STOP:  [250.0, 22.0, 0]        # RSTOP_MID @ K_STOP
+    # 12 reeds, single row, VERTICAL (long axis N-S), pitch 15.24mm, row y=38.
+    # rot180 = contact column WEST / coil EAST; rot0 = coil WEST / contact EAST.
+    # Pairs (r1,r2)(r3,r4)... put coil columns FACING within the pair (logic
+    # gap) and contact columns facing the pockets between pairs + board ends.
+    # ULN_A drives reeds 1-8 (U1-6,D1,D2); ULN_B drives reeds 9-12.
+    K_U1:    [26.00, 38.0, 180]
+    K_U2:    [41.24, 38.0, 0]
+    K_U3:    [56.48, 38.0, 180]
+    K_U4:    [71.72, 38.0, 0]
+    K_U5:    [86.96, 38.0, 180]
+    K_U6:    [102.20, 38.0, 0]
+    K_D1:    [117.44, 38.0, 180]
+    K_D2:    [132.68, 38.0, 0]
+    K_D3:    [147.92, 38.0, 180]
+    K_D4:    [163.16, 38.0, 0]
+    K_PRESS: [178.40, 38.0, 180]
+    K_STOP:  [193.64, 38.0, 0]
+    # keypad solder-selects (isolated domain, north band near their reeds)
+    R_KEY:   [170.0, 16.0, 0]        # RKEY_MID @ K_PRESS (pocket r10r11 -> band)
+    R_STOP:  [190.0, 16.0, 0]        # RSTOP_MID @ K_STOP (east end pocket -> band)
 
-    # ================= POWER + PROTECTION (SW, series-current order) =================
-    J_PWR:       [22.0, 48.0, 0]     # Micro-Fit vertical (mates top); W edge
-    U_LDO:       [22.0, 58.0, 0]     # AMS1117-3.3 4-pad (S of J_PWR)
-    D_ESD_IN:    [33.0, 43.0, 0]     # N strip, E of J_PWR body
-    F1:          [40.0, 46.0, 0]     # polyfuse 1812
-    Q_REV:       [49.0, 46.0, 180]   # revpol P-FET: D=input(west) S=load(east)
-    U_EFUSE:     [60.0, 45.0, 0]     # TPS259573 WSON-8 (dense 0.5mm) -- escape corridor SOUTH
-    D_REVCLAMP:  [40.0, 52.0, 0]     # SS34 reverse crowbar (K=5V_FUSED, downstream of F1)
-    CE1:         [50.0, 54.0, 0]     # 220uF bulk (pad1=+)
-    D_TVS:       [63.0, 56.0, 0]     # SMBJ5.0A on 5V_PROTECTED (K=pad1; S of eFuse escape)
-    FB1:         [33.0, 58.0, 0]     # ferrite 3V3 -> 3V3_ANALOG (analog-corner boundary)
+    # ============ POWER + PROTECTION (SW, series-current order; v1.0 +12y) ============
+    J_PWR:       [22.0, 60.0, 0]     # Micro-Fit vertical (mates top); W edge
+    U_LDO:       [22.0, 70.0, 0]     # AMS1117-3.3 4-pad (S of J_PWR)
+    D_ESD_IN:    [33.0, 55.0, 0]     # N strip, E of J_PWR body
+    F1:          [40.0, 58.0, 0]     # polyfuse 1812
+    Q_REV:       [49.0, 58.0, 180]   # revpol P-FET: D=input(west) S=load(east)
+    U_EFUSE:     [60.0, 57.0, 0]     # TPS259573 WSON-8 (dense 0.5mm) -- escape corridor SOUTH
+    D_REVCLAMP:  [40.0, 64.0, 0]     # SS34 reverse crowbar (K=5V_FUSED, downstream of F1)
+    CE1:         [50.0, 66.0, 0]     # 220uF bulk (pad1=+)
+    D_TVS:       [63.0, 68.0, 0]     # SMBJ5.0A on 5V_PROTECTED (K=pad1; S of eFuse escape)
+    FB1:         [33.0, 70.0, 0]     # ferrite 3V3 -> 3V3_ANALOG (analog-corner boundary)
 
-    # ================= DRIVE CHAIN (CENTER): 595 -> 238/one-shot -> ULN =================
-    U_ULNA: [98.0, 47.0, 0]          # ULN2803 A -> reeds 1-8 coils (x28..168)
-    U_ULNB: [216.0, 47.0, 0]         # ULN2803 B -> reeds 9-12 coils (x188..248)
-    U_DECU: [74.0, 60.0, 0]          # 238 -> SEL_U1..6 (ULN_A up-selects)
-    U_DECD: [140.0, 60.0, 0]         # 238 -> SEL_D1/D2 (ULN_A) + SEL_D3/D4 (ULN_B)
-    U_ONESHOT: [180.0, 61.0, 0]      # 1G123 press one-shot -> PRESS_TIMED (ULN_B)
-    U_SR1:  [100.0, 72.0, 0]         # 595 (feeds both decoders + one-shot + Pi serial)
-    U_SR2:  [142.0, 72.0, 0]         # 595 (cascade; STOP_REQ -> ULN_B)
+    # ============ DRIVE CHAIN: 595 -> 238/one-shot -> ULN (under coil gaps) ============
+    # ULNs sit under COIL gaps (logic x-windows) with all pads y>=53.
+    U_ULNA: [95.0, 59.0, 0]          # ULN2803 A -> reeds 1-8 coils (gaps g1-g4)
+    U_ULNB: [186.0, 59.0, 0]         # ULN2803 B -> reeds 9-12 coils (gaps g5-g6)
+    U_DECU: [74.0, 66.0, 0]          # 238 -> SEL_U1..6 (ULN_A up-selects)
+    U_DECD: [120.0, 66.0, 0]         # 238 -> SEL_D1/D2 (ULN_A) + SEL_D3/D4 (ULN_B)
+    U_ONESHOT: [150.0, 62.0, 0]      # 1G123 press one-shot -> PRESS_TIMED (ULN_B)
+    U_SR1:  [95.0, 75.0, 0]          # 595 (feeds both decoders + one-shot + Pi serial)
+    U_SR2:  [128.0, 75.0, 0]         # 595 (cascade; STOP_REQ -> ULN_B)
 
     # ================= EXPANDER + WATCHDOG + Pi (CENTER-SOUTH) =================
-    U_EXP:  [164.0, 80.0, 0]         # MCP23017 SSOP-28 (dense) -- escape corridor SOUTH; hub
-    U_WD:   [190.0, 78.0, 0]         # TPS3823 watchdog (WD_PET from Pi, WD_OK to safety)
-    J_PI:   [98.0, 95.0, 90]        # 2x20 Pi header (SIDECAR, body ALONG south edge, ON-BOARD)
+    U_EXP:  [140.0, 82.0, 0]         # MCP23017 SSOP-28 (dense) -- escape corridor SOUTH; hub
+    U_WD:   [152.0, 80.0, 0]         # TPS3823 watchdog (WD_PET from Pi, WD_OK to safety)
+    J_PI:   [94.0, 95.0, 90]         # 2x20 Pi header (SIDECAR, body ALONG south edge x92..144)
 
     # ================= SAFETY AND-CHAIN + COIL GATE (EAST) =================
-    U_SCHM:     [232.0, 48.0, 0]     # HC14 (E-stop/Mode/Door clean)
-    U_AND1:     [214.0, 57.0, 0]
-    U_AND2:     [228.0, 57.0, 0]
-    U_AND3:     [244.0, 57.0, 0]
-    U_FAULTAND: [214.0, 64.0, 0]
-    U_LATCHA:   [228.0, 64.0, 0]
-    U_LATCHB:   [244.0, 64.0, 0]
-    U_OENAND:   [214.0, 71.0, 0]
-    Q_COILDRV:  [228.0, 72.0, 0]     # 2N7002 low-side coil-enable
-    Q_COIL:     [240.0, 72.0, 0]     # AO3401A HS -> 5V_KEY_RELAY (gated coil rail)
-    U_OPTO:     [244.0, 82.0, 0]     # LTV-817S -> J_CONTACTOR
+    U_SCHM:     [174.0, 58.0, 0]     # HC14 (E-stop/Mode/Door clean)
+    U_AND1:     [158.0, 68.0, 0]
+    U_AND2:     [170.0, 68.0, 0]
+    U_AND3:     [182.0, 68.0, 0]
+    U_FAULTAND: [158.0, 74.0, 0]
+    U_LATCHA:   [170.0, 74.0, 0]
+    U_LATCHB:   [182.0, 74.0, 0]
+    U_OENAND:   [160.0, 80.0, 0]
+    Q_COILDRV:  [170.0, 80.0, 0]     # 2N7002 low-side coil-enable
+    Q_COIL:     [182.0, 80.0, 0]     # AO3401A HS -> 5V_KEY_RELAY (gated coil rail)
+    U_OPTO:     [185.0, 90.0, 0]     # LTV-817S -> J_CONTACTOR
 
     # ================= DISCRETE SAFETY INPUTS (EAST EDGE) =================
-    J_MODE:      [261.0, 50.0, 90]   # mouth EAST (by HC14/AND-chain)
-    J_ESTOP:     [261.0, 62.0, 90]
-    J_DOOR:      [261.0, 74.0, 90]
-    J_CONTACTOR: [261.0, 88.0, 90]   # KF350 terminal block
+    # y >= 60: keeps every connector pad >=6mm below the EAST end pocket's
+    # keypad copper (pocket pads end y46.37).
+    J_MODE:      [197.0, 60.0, 90]   # mouth EAST (by HC14/AND-chain)
+    J_ESTOP:     [197.0, 72.0, 90]
+    J_DOOR:      [197.0, 84.0, 90]
+    J_CONTACTOR: [197.0, 94.0, 90]   # KF350 terminal block
 
-    # ================= ANALOG SENSE SPINE (SW, off the coil row) =================
-    U_ADC:  [42.0, 70.0, 0]          # MCP3208 (SPI to Pi)
-    U_TC:   [62.0, 71.0, 0]          # MAX31856 (SPI to Pi)
-    # ADC-front-end GND-via RESERVATION anchors (D-ADJ, routing D-BACK 2026-07-23).
-    # The dense MCP3208 filter/vref cluster routes signal tracks OVER the cap GND
-    # via sites on BOTH layers, so stitch cannot drop a via-in-pad -- and WHICH
-    # caps open is whack-a-mole across stochastic route/legalize realizations (the
-    # promoted chain opened C_ADCV/C_FLT5/C_FLT6; a re-legalized reuse opened
-    # C_FLT7). SYSTEMIC FIX: ANCHOR every cluster cap (pinned, immovable by the
-    # +-2mm legalizer) AND reserve its GND via site (route.yaml prep User.2 keepout
-    # just EAST of each GND pad -- the signal pad, pad 1, escapes WEST). GND is
-    # pad 2, EAST of the origin (+0.48mm small caps / +0.77mm C_ADCV). All 10 caps
-    # reserved => every GND pad keeps a clear via site in EVERY realization.
-    C_ADCV:  [48.0, 70.0, 0]         # GND@48.77,70.00 ; sig 3V3_ANALOG@47.23
-    C_ADCV2: [37.0, 70.0, 0]         # GND@37.48,70.00 ; sig 3V3_ANALOG@36.52
-    C_FLT0:  [56.2, 83.2, 0]         # GND@56.68,83.20 ; sig ADC_CH0@55.72
-    C_FLT1:  [53.8, 83.2, 0]         # GND@54.28,83.20 ; sig ADC_CH1@53.32
-    C_FLT2:  [53.8, 78.8, 0]         # GND@54.28,78.80 ; sig ADC_CH2@53.32
-    C_FLT3:  [56.2, 78.8, 0]         # GND@56.68,78.80 ; sig ADC_CH3@55.72
-    C_FLT4:  [58.0, 81.0, 0]         # GND@58.48,81.00 ; sig ADC_CH4@57.52
-    C_FLT5:  [52.0, 81.0, 0]         # GND@52.48,81.00 ; sig ADC_CH5@51.52
-    C_FLT6:  [58.8, 82.4, 0]         # GND@59.28,82.40 ; sig ADC_CH6@58.32
-    C_FLT7:  [57.0, 84.5, 0]         # GND@57.48,84.50 ; sig ADC_CH7@56.52
+    # ============ ANALOG SENSE SPINE (SW; ADC cluster = v1.0 +6y rigid) ============
+    U_ADC:  [42.0, 76.0, 0]          # MCP3208 (SPI to Pi)
+    U_TC:   [63.0, 77.0, 0]          # MAX31856 (SPI to Pi)
+    # ADC-front-end GND-via RESERVATION anchors (D-ADJ, v1.0 routing D-BACK).
+    # Cluster translated RIGIDLY +6y from v1.0 so the route.yaml User.2
+    # reservations + stitch GND via-in-pads stay on-pad (all +6y in lockstep).
+    # GND is pad 2, EAST (+0.48mm small caps / +0.77mm C_ADCV).
+    C_ADCV:  [48.0, 76.0, 0]         # GND@48.77,76.00 ; sig 3V3_ANALOG@47.23
+    C_ADCV2: [37.0, 76.0, 0]         # GND@37.48,76.00 ; sig 3V3_ANALOG@36.52
+    C_FLT0:  [56.2, 89.2, 0]         # GND@56.68,89.20 ; sig ADC_CH0@55.72
+    C_FLT1:  [53.8, 89.2, 0]         # GND@54.28,89.20 ; sig ADC_CH1@53.32
+    C_FLT2:  [53.8, 84.8, 0]         # GND@54.28,84.80 ; sig ADC_CH2@53.32
+    C_FLT3:  [56.2, 84.8, 0]         # GND@56.68,84.80 ; sig ADC_CH3@55.72
+    C_FLT4:  [58.0, 87.0, 0]         # GND@58.48,87.00 ; sig ADC_CH4@57.52
+    C_FLT5:  [52.0, 87.0, 0]         # GND@52.48,87.00 ; sig ADC_CH5@51.52
+    C_FLT6:  [58.8, 88.4, 0]         # GND@59.28,88.40 ; sig ADC_CH6@58.32
+    C_FLT7:  [57.0, 90.5, 0]         # GND@57.48,90.50 ; sig ADC_CH7@56.52
     U_COMP: [24.0, 80.0, 0]          # LM393 (TH_CAM_A/B -> TEMP_OK)
     Q_SWA:  [30.0, 88.0, 0]          # switched 3V3_SW_A -> J_THERM_A
-    Q_SWB:  [52.0, 88.0, 0]          # switched 3V3_SW_B -> J_THERM_B
+    Q_SWB:  [46.0, 90.0, 0]          # switched 3V3_SW_B -> J_THERM_B
     J_THERM_A: [32.0, 97.0, 0]       # SM08B thermal head A (mouth SOUTH)
     J_THERM_B: [54.0, 97.0, 0]       # SM08B thermal head B (mouth SOUTH)
     J_TC:      [74.0, 96.0, 0]       # PCC-SMP-K thermocouple jack (mouth SOUTH)
 
     # ================= LOADCELL + RH SWITCHED RAILS (S / SE) =================
-    J_LOADCELL:   [182.0, 97.0, 0]   # B5B-XH (mouth SOUTH)
-    Q_SWRHA:      [206.0, 88.0, 0]   # switched 3V3_SW_RHA -> J_RH_AMBIENT
-    Q_SWRHE:      [230.0, 88.0, 0]   # switched 3V3_SW_RHE -> J_RH_EXHAUST
-    J_RH_AMBIENT: [206.0, 97.0, 0]   # mouth SOUTH
-    J_RH_EXHAUST: [232.0, 97.0, 0]   # mouth SOUTH
+    J_LOADCELL:   [148.0, 97.0, 0]   # B5B-XH (mouth SOUTH)
+    Q_SWRHA:      [164.0, 90.0, 0]   # switched 3V3_SW_RHA -> J_RH_AMBIENT
+    Q_SWRHE:      [176.0, 90.0, 0]   # switched 3V3_SW_RHE -> J_RH_EXHAUST
+    J_RH_AMBIENT: [168.0, 97.0, 0]   # mouth SOUTH
+    J_RH_EXHAUST: [186.0, 97.0, 0]   # mouth SOUTH
 
   seeds:
-    # eFuse fine-pin locals (outward-only-local, around U_EFUSE @60,45)
-    C_DVDT: [57.0, 48.0]
-    R_OVT:  [66.0, 46.0]
-    R_OVB:  [68.0, 44.0]
-    R_ILM:  [67.0, 49.0]
-    R_PG:   [64.0, 48.0]
-    C_IN1:  [56.0, 43.0]
-    C_IN2:  [53.0, 43.0]
-    # loadcell locals (clear seeds N of J_LOADCELL @182,97; body top y94)
-    R_LCCLK: [177.0, 90.0]
-    R_LCDAT: [181.0, 90.0]
-    D_LCCLK: [187.0, 90.0]
-    D_LCDAT: [191.0, 90.0]
+    # eFuse fine-pin locals (outward-only-local, around U_EFUSE @60,57; v1.0 +12y)
+    C_DVDT: [57.0, 60.0]
+    R_OVT:  [66.0, 58.0]
+    R_OVB:  [68.0, 56.0]
+    R_ILM:  [67.0, 61.0]
+    R_PG:   [64.0, 60.0]
+    C_IN1:  [56.0, 55.0]
+    C_IN2:  [53.0, 55.0]
+    # loadcell locals (clear seeds N of J_LOADCELL @148,97; body top y94)
+    R_LCCLK: [143.0, 91.0]
+    R_LCDAT: [147.0, 91.0]
+    D_LCCLK: [153.0, 91.0]
+    D_LCDAT: [157.0, 91.0]
     # analog 3V3 decouplers (post-ferrite)
-    C_3V3A1:  [40.0, 62.0]
-    C_3V3A2:  [44.0, 62.0]
+    C_3V3A1:  [40.0, 68.0]
+    C_3V3A2:  [44.0, 68.0]
     # expander reset R, WEST of U_EXP (keep clear of its SOUTH escape corridor)
-    R_EXPRST: [154.0, 82.0]
+    R_EXPRST: [130.0, 84.0]
 
   patterns:
     # ---- decoupling: each cap hard against its IC ----
@@ -297,13 +297,13 @@ placement:
     - {match: "*", region: drive}
 
   regions:
-    keypad:  [40.0, 14.0, 240.0, 28.0]
-    pwr:     [16.0, 42.0, 72.0, 62.0]
-    drive:   [64.0, 42.0, 178.0, 80.0]
-    piedge:  [96.0, 84.0, 178.0, 100.0]
-    safety:  [200.0, 44.0, 262.0, 82.0]
-    analog:  [14.0, 62.0, 96.0, 100.0]
-    swrails: [190.0, 84.0, 262.0, 100.0]
+    keypad:  [40.0, 12.0, 160.0, 21.0]
+    pwr:     [16.0, 54.0, 72.0, 74.0]
+    drive:   [64.0, 54.0, 160.0, 80.0]
+    piedge:  [92.0, 84.0, 146.0, 100.0]
+    safety:  [150.0, 54.0, 200.0, 92.0]
+    analog:  [14.0, 64.0, 96.0, 100.0]
+    swrails: [142.0, 84.0, 200.0, 100.0]
 
   legalize: {enable: true, clearance: 0.3, edge_margin: 1.2, hole_keepout: 3.2, ring_max: 120}
 
@@ -320,34 +320,56 @@ design_rules:
   solder_mask_expansion: 0.0
 
 zones:
-  # ALL planes confined to the SOUTH logic band (y >= 40). The KEYPAD band
-  # (y < 40) carries NO plane -> isolation held. One contiguous GND plane now
-  # (no N/S split needed -- logic is unified south).
-  - {net: GND, layers: [In1.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal, rect: [12.0, 40.0, 264.0, 102.0]}
-  - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal, rect: [12.0, 40.0, 264.0, 102.0]}
+  # ALL planes confined to the SOUTH logic band (y >= 53): 6.63mm below the
+  # deepest keypad pocket copper (pocket pads end y46.37). The keypad band,
+  # relay row, pockets and coil gaps carry NO plane.
+  - {net: GND, layers: [In1.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal, rect: [12.0, 53.0, 200.0, 102.0]}
+  - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal, rect: [12.0, 53.0, 200.0, 102.0]}
   # 3V3 logic-supply plane on In2 over the logic band (routing agent rec).
-  - {net: 3V3, layers: [In2.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: full, rect: [12.0, 40.0, 264.0, 102.0]}
+  - {net: 3V3, layers: [In2.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: full, rect: [12.0, 53.0, 200.0, 102.0]}
 
 keepouts:
-  # KEYPAD ISOLATION BAND: no copper pour (no plane) north of the logic band,
-  # covering the keypad domain + reed band. Keeps every plane south of y40.
-  - {name: keypad_iso, deny: [pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [12.0, 10.0, 264.0, 40.0]}
-  # KEYPAD CREEPAGE BARRIER (P1-B, 2026-07-23): DRC-ENFORCED >=6mm isolation.
-  # The reed pads give a 6.12mm clear band (keypad contacts y<=30.94 / logic coils
-  # y>=37.06); this deny-tracks/vias keepout forbids ANY copper in the barrier so
-  # no track can collapse the creepage (the red-team found a 5V_KEY_RELAY rail at
-  # y36 -> 4.35mm). A track/via that intrudes now FAILS kicad DRC ("items not
-  # allowed"), machine-enforcing the brief's >=6mm on this SAFETY feature -- which
-  # the track-blind I-ISO checker never could (both are now fixed). Strictly inside
-  # the KRT User.2/User.3 route keepouts (y37.0 / y31.0), so a compliant route
-  # never touches it. No pad lies in 31.05..36.95.
-  - {name: iso_barrier, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [12.0, 31.05, 264.0, 36.95]}
-  # eFuse via-in-pad escape lane (advanced tier), reserved south of U_EFUSE
-  - {name: efuse_escape, deny: [], layers: [F.Cu, B.Cu], rect: [48.0, 49.0, 62.0, 58.0]}
-  # eFuse WSON-8 0.5mm-pitch pad-entry region: PWR_IN trunk necks to enter the
-  # tiny pads (pin is the ampacity limit). Scoped floor 0.25mm here (nets.yaml
-  # scoped_floors); marker only (deny nothing).
-  - {name: efuse_padentry, deny: [], layers: [F.Cu, B.Cu], rect: [57.0, 43.5, 63.0, 47.5]}
+  # NO POURS north of the logic band: keypad band + relay row + pockets + coil
+  # gaps all plane-free (isolation held; coil nets are tracks only, as v1.0).
+  - {name: keypad_iso, deny: [pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [12.0, 10.0, 200.0, 53.0]}
+  # ===== THE ISOLATION COMB (DRC-ENFORCED, v1.1 successor of iso_barrier) =====
+  # Deny tracks/vias/pours in every no-man's zone of the comb; a track that
+  # collapses the >=6mm keypad creepage FAILS kicad DRC ("items not allowed").
+  # (a) 12 intra-relay column barriers: between each relay's coil column and
+  #     contact column (pads at xc+-3.81 stay reachable OUTSIDE the rect).
+  - {name: iso_col_r1,  deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [23.00, 23.2, 29.00, 52.9]}
+  - {name: iso_col_r2,  deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [38.24, 23.2, 44.24, 52.9]}
+  - {name: iso_col_r3,  deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [53.48, 23.2, 59.48, 52.9]}
+  - {name: iso_col_r4,  deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [68.72, 23.2, 74.72, 52.9]}
+  - {name: iso_col_r5,  deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [83.96, 23.2, 89.96, 52.9]}
+  - {name: iso_col_r6,  deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [99.20, 23.2, 105.20, 52.9]}
+  - {name: iso_col_r7,  deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [114.44, 23.2, 120.44, 52.9]}
+  - {name: iso_col_r8,  deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [129.68, 23.2, 135.68, 52.9]}
+  - {name: iso_col_r9,  deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [144.92, 23.2, 150.92, 52.9]}
+  - {name: iso_col_r10, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [160.16, 23.2, 166.16, 52.9]}
+  - {name: iso_col_r11, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [175.40, 23.2, 181.40, 52.9]}
+  - {name: iso_col_r12, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [190.64, 23.2, 196.64, 52.9]}
+  # (b) 6 coil-gap NORTH strips: no-man's zone between the keypad band
+  #     (copper <=23.2) and the coil-gap logic (pads reach y29.63).
+  - {name: iso_gapN_g1, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [29.00, 23.2, 38.24, 29.4]}
+  - {name: iso_gapN_g2, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [59.48, 23.2, 68.72, 29.4]}
+  - {name: iso_gapN_g3, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [89.96, 23.2, 99.20, 29.4]}
+  - {name: iso_gapN_g4, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [120.44, 23.2, 129.68, 29.4]}
+  - {name: iso_gapN_g5, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [150.92, 23.2, 160.16, 29.4]}
+  - {name: iso_gapN_g6, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [181.40, 23.2, 190.64, 29.4]}
+  # (c) 7 pocket SOUTH strips: no-man's zone between pocket keypad copper
+  #     (pads end y46.37) and the south logic band / planes (y>=53).
+  - {name: iso_pktS_w,  deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [12.00, 46.9, 23.00, 52.9]}
+  - {name: iso_pktS_p1, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [44.24, 46.9, 53.48, 52.9]}
+  - {name: iso_pktS_p2, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [74.72, 46.9, 83.96, 52.9]}
+  - {name: iso_pktS_p3, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [105.20, 46.9, 114.44, 52.9]}
+  - {name: iso_pktS_p4, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [135.68, 46.9, 144.92, 52.9]}
+  - {name: iso_pktS_p5, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [166.16, 46.9, 175.40, 52.9]}
+  - {name: iso_pktS_e,  deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [196.64, 46.9, 200.00, 52.9]}
+  # eFuse via-in-pad escape lane (advanced tier), reserved south of U_EFUSE (+12y)
+  - {name: efuse_escape, deny: [], layers: [F.Cu, B.Cu], rect: [48.0, 61.0, 62.0, 70.0]}
+  # eFuse WSON-8 0.5mm-pitch pad-entry region (scoped floor marker, +12y)
+  - {name: efuse_padentry, deny: [], layers: [F.Cu, B.Cu], rect: [57.0, 55.5, 63.0, 59.5]}
 
 escape_corridors:
   - {ref: U_EXP, side: S, depth_mm: 5.0, layers: [F.Cu, B.Cu]}     # MCP23017 SSOP-28 dense side
@@ -357,11 +379,11 @@ silk:
   min_text_height: 0.6
   refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJKQ"}
   captions:
-    - {text: "cooksense  SMC0985KS  sidecar", at: [132.0, 13.0], size: 0.9, nudge: false}
-    - {text: "KEYPAD ISOLATION ZONE   >=6mm creepage   GND_ISO ONLY   (contacts NORTH)", at: [132.0, 26.5], size: 0.8, nudge: false}
-    - {text: "5V SELV IN", at: [39.0, 42.0], size: 0.7, nudge: false}
-    - {text: "ANALOG SENSE (3V3_ANALOG)", at: [46.0, 64.0], size: 0.7, nudge: false}   # y65.0->64.0 (P1-B/finishing 2026-07-23): the old y65.0 clipped U_ADC pads 1&16 (y65.56) -- a REAL silk-over-pad the silk-ignore was swallowing; moved N into open copper (x36-56, y59-64.3)
-    - {text: "PI 40-PIN RIBBON (SIDECAR)", at: [122.0, 89.5], size: 0.7, nudge: false}
+    - {text: "cooksense  SMC0985KS  sidecar v1.1", at: [106.0, 13.0], size: 0.9, nudge: false}
+    - {text: "KEYPAD ISOLATION COMB   >=6mm creepage   GND_ISO ONLY   (contact columns face pockets)", at: [106.0, 21.0], size: 0.8, nudge: false}
+    - {text: "5V SELV IN", at: [39.0, 54.3], size: 0.7, nudge: false}
+    - {text: "ANALOG SENSE (3V3_ANALOG)", at: [36.0, 84.0], size: 0.7, nudge: false}
+    - {text: "PI 40-PIN RIBBON (SIDECAR)", at: [112.0, 90.0], size: 0.7, nudge: false}
 
 asserts:
   pad_net:
@@ -394,7 +416,7 @@ asserts:
     - {ref: J_KEY_MATRIX, axis: x, sign: "-"}       # keypad ribbon mouth WEST
     - {ref: J_THERM_A, axis: y, sign: "+"}          # mouth SOUTH
     - {ref: J_THERM_B, axis: y, sign: "+"}
-    - {ref: J_RH_AMBIENT, axis: y, sign: "+"}       # mouth SOUTH (moved from E edge)
+    - {ref: J_RH_AMBIENT, axis: y, sign: "+"}       # mouth SOUTH
     - {ref: J_RH_EXHAUST, axis: y, sign: "+"}
     - {ref: J_MODE, axis: x, sign: "+"}             # mouth EAST
     - {ref: J_ESTOP, axis: x, sign: "+"}
