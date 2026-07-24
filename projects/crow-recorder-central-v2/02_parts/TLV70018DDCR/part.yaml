@@ -1,0 +1,32 @@
+# U9 — 1V8 rail LDO AS ORDERED (ADR-0006 fallback promoted at v1.0 staging:
+# TCR2LF18 C150173 stock=0, this is the documented pin-compatible drop-in).
+mpn: TLV70018DDCR
+manufacturer: Texas Instruments
+lcsc: C79924
+function: "fixed 1.8V 200mA LDO, SOT-23-5, 3V3 -> 1V8 (XU316 VDDIOB18 + USB_VDD18, ~50mA)"
+package: SOT-23-5
+footprint: Package_TO_SOT_SMD:SOT-23-5
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: "same SOT-23-5 land as TCR2LF18 (escape_check 2026-07-23)"}
+layout:
+  source: "TI SBVS205 sec 10 (Layout Guidelines + fig 10-1 layout example):
+    input and output caps close to the device, low-impedance GND return.
+    Identical placement subject as the TCR2LF18 it replaces (same pads)."
+  reviewed: "2026-07-23"
+  keep_short:
+    - {net: 1V8,  max_span_mm: 4, why: "Cout hard to VOUT(5)/GND(2) — same budget as TCR2LF18; measured Cout_U9.1->U9.5 = 4.7mm, dispositioned in policy_waivers P-ADJ"}
+    - {net: 3V3,  max_span_mm: 4, why: "Cin hard to IN(1)/GND(2); measured Cin_U9.1->U9.1 = 4.2mm, dispositioned in policy_waivers P-ADJ"}
+pins:
+  1: {name: IN,  note: "3V3 in (same as TCR2LF18 pin 1)"}
+  2: {name: GND, note: "ground (same)"}
+  3: {name: EN,  note: "tied to IN on this board (TCR2LF18 pin3 = CE, same polarity active-high)"}
+  4: {name: NC,  note: "no connect (same)"}
+  5: {name: OUT, note: "1V8 out (same)"}
+ratings:
+  vin_max: "5.5 V"
+  iout: "200 mA"
+  dropout: "250 mV @200mA"
+verified: >
+  TI TLV700 datasheet SBVS205, pin functions table 5-1 + DDC package pinout
+  figure (p.3): 1=IN 2=GND 3=EN 4=NC 5=OUT — pin-for-pin the TCR2LF18 wiring
+  on this board (IN/EN from 3V3, OUT->1V8, pin4 floating). JLC C79924 catalog
+  row: 1.8V 200mA SOT-23-5, stock 5251. 2026-07-23.

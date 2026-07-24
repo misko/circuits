@@ -96,6 +96,21 @@ placement:
   patterns:
     # test points that carry exclude_from_bom mismatch — clear if needed
     - {match: "TP*", clear_attrs: []}
+    # THT HAND-SOLDER lines — excluded from the CPL (pod-v2 pattern, 2026-07-23):
+    # the 8 RJ45s (C9900035627 consign-only placeholder, no JLC placement) and
+    # the two uncoded pin headers. Only exclude_from_pos (NOT dnp/exclude_from
+    # _bom): keeps --schematic-parity + count_parity clean; BOM keeps the rows
+    # for reference; MANIFEST lists them under not_assembled.
+    - {match: "J3",  attrs: [exclude_from_pos_files]}
+    - {match: "J4",  attrs: [exclude_from_pos_files]}
+    - {match: "J5",  attrs: [exclude_from_pos_files]}
+    - {match: "J6",  attrs: [exclude_from_pos_files]}
+    - {match: "J7",  attrs: [exclude_from_pos_files]}
+    - {match: "J8",  attrs: [exclude_from_pos_files]}
+    - {match: "J9",  attrs: [exclude_from_pos_files]}
+    - {match: "J10", attrs: [exclude_from_pos_files]}
+    - {match: "JP_INJ", attrs: [exclude_from_pos_files]}
+    - {match: "J_DBG",  attrs: [exclude_from_pos_files]}
     # --- ADC U2 (ch1-4): input RC (Cc/Rs/Cd 1-4) + AVDD/DVDD/IOVDD/VREF/MICBIAS/LDO decouple ---
     - {match: "Cc1?", near: U2}
     - {match: "Cc2?", near: U2}

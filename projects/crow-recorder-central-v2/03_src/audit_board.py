@@ -43,7 +43,9 @@ POLARITY = [
     ("U8",  "4", "SW2",         "AP61102 0V9 buck switch node"),
     ("U9",  "1", "3V3",         "TCR2LF18 LDO VIN (3V3 -> 1V8)"),
     ("U9",  "5", "1V8",         "TCR2LF18 LDO VOUT"),
-    ("U10", "1", "5V",          "XC6227 analog LDO VIN (5V -> 3V3A)"),
+    ("U10", "1", "5V",          "XC6227 CE (active-high, tied to the 5V input)"),
+    ("U10", "4", "5V",          "XC6227 analog LDO VIN (5V -> 3V3A)"),
+    ("U10", "2", "GND",         "XC6227 VSS (pin 2 = tab)"),
     ("U10", "5", "3V3A",        "XC6227 analog LDO VOUT"),
 ]
 

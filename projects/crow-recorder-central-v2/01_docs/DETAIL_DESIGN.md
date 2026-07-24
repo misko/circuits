@@ -27,7 +27,7 @@ the 02_parts datasheet research (FB reference, crystal CL, PTC resistance).
 
 ### 3V3A quiet analog LDO (U10, XC6227C331PR-G)
 - Vin 5V, Vout 3.3V, ~70mA (2x PCM1865 AVDD). Drop 1.7V @ 70mA = 119mW (SOT-89
-  handles it). Cin 1µF + Cout 1µF X7R (datasheet stability). [PARTS confirm Cout]
+  handles it). Cin 1µF + Cout 2.2µF X5R 25V-rated (Torex ETR03054 'Input and Output Capacitors' p.9: CL=2.2µF for the 2.5-5.0V output band; 25V rating keeps DC-bias derating mild at 3.3V, ~1.9µF effective — fresh-lens P1 fix 2026-07-23; was authored 1µF with an unresolved [PARTS confirm] placeholder)
 - CE tied to VIN (always-on; floating CE = OFF per ledger).
 - Separate quiet rail: joins digital only at GND (star at ADC AVSS region).
 

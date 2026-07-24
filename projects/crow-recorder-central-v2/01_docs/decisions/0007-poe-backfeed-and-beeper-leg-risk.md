@@ -43,8 +43,10 @@ Accepted risk, honestly documented:
 1. PoE backfeed on P5VA/beep legs can damage the 5V rail. Mitigations: per-port
    silk warnings + banner; deployment is closed/owner-cabled. NOT protected
    electrically.
-2. Beeper legs unfused per-port; FB_BEEP (BLM21PG600SN1D, 2A/25mohm — see
-   02_parts) is a noise bead, not protection. A short = F_IN (2A) opens.
+2. Beeper legs unfused per-port; FB_BEEP (BLM21SP601SN1D, 600R/2.3A/60mohm —
+   see 02_parts; replaced the mislabeled BLM21PG600SN1D, which is a 60-ohm
+   part — Murata code 600 = 60R, caught at M-BOM staging 2026-07-23) is a
+   noise bead, not protection. A short = F_IN (2A) opens.
 
 ## v-next work order
 - Add F_BEEP PTC (~1.1A hold, e.g. MINISMDC110F) in series with FB_BEEP.

@@ -51,6 +51,10 @@ layout_refs:
 sourcing:
   lcsc: C9900035627
   alternates: [C464587]
+  # NOTE (twin probe 2026-07-23): C464587 is NOT a footprint drop-in for our
+  # RJHSE538X land — twin PAD-GEOM d8.07mm + MODEL-SELF vs our pads. Treat it
+  # as an electrical-function alternate requiring its OWN footprint review;
+  # do not substitute silently at order time.
 
 layout:
   source: "Amphenol RJHSE-538X recommended PCB layout (catalogue p.6) + proven-parts ledger: mating face on the SNAP-POST side; board-lock NPTH posts fenced with hole keepouts before routing; dense GND tail field set to SOLID zone connection (2-layer thermal starvation lesson carried to inner planes)."

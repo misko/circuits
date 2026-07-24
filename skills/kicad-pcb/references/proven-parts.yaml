@@ -381,7 +381,7 @@ functions:
         package: RJ45 right-angle shielded, LEDs, THT (KiCad RJ45_Amphenol_RJHSE538X)
         escape: {style: connector, pitch: 1.02, tier_required: jlc_2layer_default}
         status: shipped
-        provenance: crow-array-pod v1.1; crow-array-central v1.0 (x8); re-verified crow-mic-pod v1.0
+        provenance: crow-array-pod v1.1; crow-array-central v1.0 (x8); re-verified crow-mic-pod v1.0; crow-recorder-central-v2 v1.0-2026-07-23 (x8, consign NO-CAD adjudication re-proven at 8 fetch attempts)
         layout_refs:
           - "Amphenol catalogue RECOMMENDED PCB LAYOUT p.4 RJHSE-548X + p.6
              RJHSE-538X-04, April 2015 ed. (hole-for-hole match to the KiCad
@@ -530,7 +530,7 @@ functions:
         package: SOT-23-5 (DDC / X2SON alt)
         escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default}
         status: shipped
-        provenance: crow-recorder-central v1.0 (3V3->1V8 for XU316 VDDIOB18/USB_VDD18)
+        provenance: crow-recorder-central v1.0 (3V3->1V8 for XU316 VDDIOB18/USB_VDD18); crow-recorder-central-v2 v1.0-2026-07-23 (ORDERED as U9 — TCR2LF18 stock 0, ADR-0006 fallback promoted at staging; twin fit 0.20mm)
         gotchas:
           - "On the BOM as the in-stock 1V8 LDO; the pin-compatible TCR2LF18
              (Toshiba) is the exact-MPN fallback (ADR-0015). Fed from 3V3,
@@ -569,3 +569,59 @@ functions:
           - "Vclamp ~10.3V is above a 5V-load ceiling -> PAIR with an upstream
              resettable fuse so the clamp current TRIPS the fuse (crowbar); the TVS
              alone does not disconnect. Extended-tier -> order-day stock recheck."
+  ferrite-bead-600r-0805-power:
+    candidates:
+      - mpn: BLM21SP601SN1D
+        maker: Murata
+        lcsc: C3716677
+        package: 0805 (2012 metric)
+        escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default}
+        status: designed-in
+        provenance: crow-recorder-central-v2 v1.0-2026-07-23 (x4 — beeper 5V feed + XU316 USB PHY 3V3/1V8 + PLL_AVDD; twin fit 0.02mm)
+        gotchas:
+          - "MURATA IMPEDANCE CODE TRAP: the 3rd digit is a MULTIPLIER —
+             BLM21PG600SN1D is 60 ohm (60 x 10^0); the 600-ohm parts are
+             ...601... (60 x 10^1). A 600R part.yaml was authored on the 60R
+             MPN and survived until the M-BOM staging catalog check
+             (crow-recorder-central-v2, 2026-07-23). Decode against TWO
+             catalog rows before trusting any BLM value."
+          - "SP series = high-current power line: 2.3A / 60mR DCR — at a
+             0.9A peak leg that is 54mV IR; the PG 600-ohm part
+             (BLM21PG601SN1D) is only 1.4A/140mR and was near-zero stock."
+  buck-inductor-1210-dfe:
+    candidates:
+      - mpn: "1277AS-H-2R2M=P2"
+        maker: Murata (TOKO DFE322512 series)
+        lcsc: C882626
+        package: 1210 (3225 metric) molded, shielded
+        escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default}
+        status: designed-in
+        provenance: crow-recorder-central-v2 v1.0-2026-07-23 (AP61102 3V3 buck; 2.1A rated / 2.6A sat / 84mR; twin fit 0.05mm)
+        gotchas:
+          - "Search '2.2uH 1210' at JLC surfaces NLV32T (450mA signal
+             inductors) first — SATURATION current, not the value string,
+             qualifies a buck inductor. Stock was 665 at staging: order-day
+             recheck."
+      - mpn: "1277AS-H-1R0M=P2"
+        maker: Murata (TOKO DFE322512 series)
+        lcsc: C237284
+        package: 1210 (3225 metric) molded, shielded
+        escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default}
+        status: designed-in
+        provenance: crow-recorder-central-v2 v1.0-2026-07-23 (AP61102 0V9 core buck; 3.1A/3.7Asat/45mR; twin fit 0.04mm)
+        gotchas: []
+  crystal-24mhz-3225:
+    candidates:
+      - mpn: NX3225SA-24MHZ-EXS00A-CS08583
+        maker: NDK
+        lcsc: C2762192
+        package: SMD3225-4P (GND frame pads 2/4)
+        escape: {style: passive, pitch: 1.1, tier_required: jlc_2layer_default}
+        status: designed-in
+        provenance: crow-recorder-central-v2 v1.0-2026-07-23 (XU316 24MHz; CL 9pF +/-10ppm; twin fit 0.05mm)
+        gotchas:
+          - "The brief-named Epson FA-238 24MHz was stock 0 at JLC across
+             EVERY variant (MD50Y, MB-W, MD-B, MD-K, MB-C — all zero,
+             2026-07-23). This NDK part is the same 3225-4P land and the
+             SAME CL 9pF as FA-238 ...MD50Y — a drop-in that keeps the load
+             caps; match CL, not just frequency, when substituting."

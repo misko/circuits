@@ -159,3 +159,5 @@ C25895: {mpn: 0402WGF4422TCE, value: "44.2k", verified: "2026-07-23 JLC catalog 
 C25792: {mpn: 0402WGF4702TCE, value: "47k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C96123: {mpn: CL31A476MPHNNNE, value: "47uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe; 10V X5R 1206 — 2x the 5V beep rail)"}
 C25785: {mpn: 0402WGF4023TCE, value: "402k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe; picked FOR the label — 400k not stocked, -0.17% on the 0V9 FB divider)"}
+C1547: {mpn: 0402CG120J500NT, value: "12pF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe; C0G 50V)"}
+C72203: {mpn: GRM155R61E225ME15D, value: "2.2uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe; 25V X5R 0402 — picked over 6.3V basic for DC-bias headroom on 3V3A)"}

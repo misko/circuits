@@ -1,0 +1,21 @@
+# L1 — 3V3 buck (U7 AP61102) power inductor.
+mpn: "1277AS-H-2R2M=P2"
+manufacturer: Murata (TOKO DFE series)
+lcsc: C882626
+function: "2.2uH shielded power inductor, 1210 (3225), 3V3 buck output filter"
+package: "1210 (3225 metric)"
+pins:  # 2-pad non-polar
+  1: "terminal (SW1)"
+  2: "terminal (3V3)"
+ratings:
+  inductance: "2.2uH +/-20%"
+  i_rated: "2.1 A"
+  i_sat: "2.6 A"
+  dcr: "84 mohm"
+notes:
+  - "AP61102 3V3 rail: Iout 0.6A + ripple ~0.35App at 2.2MHz -> peak ~0.8A,
+     31% of Isat; ilim_ls_valley 1.9A typ stays below Isat 2.6A even at the
+     converter's current limit."
+verified: >
+  JLC catalog C882626 (1277AS-H-2R2M=P2): 2.2uH, 2.1A rated / 2.6A sat,
+  84mohm, 1210. 2026-07-23. Stock 665 at staging — re-check at order.

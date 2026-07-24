@@ -36,7 +36,11 @@ classes:
     intent: >
       Regulated rails + pod power distribution. 0.4mm floor. 0V9 core (~0.8A)
       and 3V3 (~0.6A) are the highest-current; 1V8/3V3A/pod-5V are lighter.
-    nets: [3V3, 0V9, 1V8, 3V3A, PLUS5V_AUDIO, PLUS5V_BEEP]
+    nets: [3V3, 0V9, 1V8, 3V3A, PLUS5V_BEEP,
+           P5VA_1, P5VA_2, P5VA_3, P5VA_4, P5VA_5, P5VA_6, P5VA_7, P5VA_8]
+    # (fresh-lens P2 2026-07-23: 'PLUS5V_AUDIO' never existed as a net —
+    #  the per-port legs are P5VA_1..8; enumerated so the 0.4mm floor is
+    #  DECLARED for what is actually routed at 0.5mm)
     current: "0V9 ~0.8A, 3V3 ~0.6A, others < 0.15A"
     min_width: 0.4mm
     clearance: 0.10mm

@@ -1,0 +1,20 @@
+# L2 — 0V9 core buck (U8 AP61102) power inductor.
+mpn: "1277AS-H-1R0M=P2"
+manufacturer: Murata (TOKO DFE series)
+lcsc: C237284
+function: "1uH shielded power inductor, 1210 (3225), 0V9 core buck output filter"
+package: "1210 (3225 metric)"
+pins:  # 2-pad non-polar
+  1: "terminal (SW2)"
+  2: "terminal (0V9)"
+ratings:
+  inductance: "1uH +/-20%"
+  i_rated: "3.1 A"
+  i_sat: "3.7 A"
+  dcr: "45 mohm"
+notes:
+  - "AP61102 0V9 rail: Iout 0.8A + ripple -> peak well under 3.1A; ilim
+     1.9A typ far below Isat 3.7A."
+verified: >
+  JLC catalog C237284 (1277AS-H-1R0M=P2): 1uH, 3.1A rated / 3.7A sat,
+  45mohm, 1210. 2026-07-23.

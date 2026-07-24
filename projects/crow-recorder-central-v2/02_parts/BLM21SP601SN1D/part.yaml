@@ -1,0 +1,33 @@
+# FB_BEEP + FB_u33 + FB_u18 + L_pll — the board's four 0805 noise beads.
+# WRONG-PART CATCH (2026-07-23, M-BOM leg-C at staging): the first pick,
+# BLM21PG600SN1D (C18305), is 60 ohm @100MHz — Murata's impedance code
+# "600" = 60 x 10^0 (601 = 600). Its part.yaml claimed 600R/2A/25mR; the
+# JLC catalog row (60R, 3.5A, 20mR) exposed the decode error before any
+# BOM carried it. This entry replaces it with the TRUE 600R power bead.
+mpn: BLM21SP601SN1D
+manufacturer: Murata
+lcsc: C3716677
+function: >
+  600 ohm @100MHz power-line ferrite bead, 0805. FB_BEEP isolates the beeper
+  5V feed (PLUS5V_BEEP) from the shared 5V rail; FB_u33/FB_u18 feed the XU316
+  USB PHY supplies; L_pll feeds PLL_AVDD from 0V9.
+package: "0805 (2012 metric)"
+pins:  # 2-pad non-polar bead — no pinout to mirror (S-VER 2-pad class)
+  1: "terminal"
+  2: "terminal"
+ratings:
+  impedance_100mhz: "600 ohm +/-25%"
+  rated_current: "2.3 A"
+  dcr_max: "0.060 ohm"
+notes:
+  - "SP series = high-current power line: at the 900mA beeper worst-case peak
+     the bead runs at 39% of rating; IR drop 0.9A x 60mohm = 54mV, acceptable
+     against the 5V beep budget (pods regulate nothing off this leg)."
+  - "NO series PTC on the beeper legs (audio legs have F1-F8) — accepted risk
+     + v-next PTC work order in ADR-0007."
+verified: >
+  JLC catalog C3716677 (BLM21SP601SN1D): 600ohm@100MHz +/-25%, 2.3A, DCR
+  60mohm max, 0805 — matches Murata BLM21SP601SN1 series table. Impedance
+  code decode cross-checked against BLM21PG600SN1D (C18305, 60R) and
+  BLM21PG601SN1D (C41556732, 600R 1.4A 140mR): "601"=600R confirmed by two
+  independent catalog rows. 2026-07-23.

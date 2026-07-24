@@ -63,3 +63,7 @@ layout_refs:
 sourcing:
   lcsc: C150173               # TCR2LF18,LM(CT (SOT-25)
   alternates: [C79924]        # TLV70018DDCR (TI) pin-compatible fallback, ADR-0006
+# SOURCING SWAP (v1.0 staging, 2026-07-23): C150173 stock=0 at JLC -> BOM
+# carries the ADR-0006 documented drop-in TLV70018DDCR (C79924, SOT-23-5,
+# fixed 1.8V/200mA, stock 5251). This entry stays as the brief's named primary;
+# see 02_parts/TLV70018DDCR.

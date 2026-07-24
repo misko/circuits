@@ -377,3 +377,64 @@
   verbatim text lost to the quota kill; findings from contemporaneous
   records) + DISPOSITIONS.md ledger (2 P0 fixed, 5 P1 dispositioned, 1
   refuted-GUARD).
+
+## 2026-07-23 — v1.0 STAGING: sourcing at source + M-BOM wrong-part catch
+- did: staged 07_releases/v1.0-2026-07-23. Fab export (13 gerber layers + 2
+  drills, zip 15 files; BOM 48 lines, CPL 182 parts). All BOM codes now flow
+  from the tsx (supplierPartNumbers) — the 7 code-less passives were closed:
+  L1=C882626 (1277AS-H-2R2M 2.1A/2.6Asat), L2=C237284 (1277AS-H-1R0M
+  3.1A/3.7Asat), beads x4 = C3716677, R_fb2b=C25785.
+- WRONG-PART CATCH (M-BOM leg C class): the vetted-in-WIP bead
+  BLM21PG600SN1D (C18305) is a 60-OHM part — Murata's impedance code 600 =
+  60 x 10^0 (601 = 600). Its part.yaml claimed 600R/2A/25mR; the JLC catalog
+  row (60R/3.5A/20mR) broke the tie, cross-checked against C41556732
+  (BLM21PG601SN1D, 600R/1.4A/140mR). Ordered part: BLM21SP601SN1D
+  (C3716677, 600R/2.3A/60mR, stock 11402). 02_parts entry replaced;
+  ADR-0007 + DISPOSITIONS updated.
+- SOURCING SWAPS (each ADR/part.yaml-documented): U9 TCR2LF18 C150173
+  stock=0 -> TLV70018DDCR C79924 (ADR-0006's documented drop-in; SBVS205
+  pin table verified 1=IN 2=GND 3=EN 4=NC 5=OUT, sch/tsx/part.yaml updated).
+  Y1 FA-238 24MHz: EVERY FA-238 variant stock=0 -> NX3225SA-24MHZ-EXS00A
+  C2762192 (same 3225-4P, SAME CL 9pF, +/-10ppm, stock 8142). R_fb2b 400k:
+  not in the JLC catalog at all -> 402k E96 C25785 (0V9 setpoint 0.8985V,
+  -0.17%, inside the 1% divider tolerance).
+- process note: tsci regen after each tsx edit; the PINNED converter
+  .kicad_sch restored from backup each time (the regenerated sch would
+  reintroduce the net-merge geometry), then hand-patched for the two value
+  fields (R_fb2b 402k, U9/Y1 code values) — ERC 0, check_port_nets 115/115
+  + 8/8, ROUTING GATE 0/0/0 re-measured AFTER the edits (rebuild3).
+- gates at staging: bom_source_check PASS (48 lines, every LCSC == source;
+  ledger +6 catalog-verified codes); stock verify: FAIL only on the 2
+  ADR-documented consignment lines (XU316 C6938291, RJ45 C9900035627) + 2
+  uncoded hand-solder headers — dispositioned in ORDER_README. ERC 0/1409w.
+  policy_audit: only M-REL open (MANIFEST — resolves at stamp).
+
+## 2026-07-23 — fresh-lens verdict ORDER; both P1s fixed PRE-SEAL; twin gate green
+- FRESH LENS (zero-context headless claude -p over the staged archive +
+  curated docs; journals/STATUS/08_reviews withheld): VERDICT ORDER, no P0,
+  "all previous P0 defects verified repaired". 2 P1 + 4 P2 findings —
+  archived verbatim in 08_reviews/2026-07-23_v1.0_fresh-lens_integrated.md,
+  dispositioned in DISPOSITIONS.md (FL-*).
+- P1 FIXES APPLIED AT SOURCE (a finding at staging costs an edit, not a
+  supersede): CL1/CL2 22pF -> 12pF C0G C1547 (crystal CL 9pF: 2*(9-3)=12pF;
+  authored 22pF was ~30-50ppm of pull); Cout_U10 1uF -> 2.2uF 25V X5R
+  C72203 (Torex phase-comp requirement; the DETAIL_DESIGN "[PARTS confirm
+  Cout]" placeholder had never been resolved — now it is). nets.yaml PWR
+  class: phantom PLUS5V_AUDIO replaced by the real P5VA_1..8 (measured: all
+  120 segments already 0.5mm).
+- RE-GATED after the fixes (rebuild5, from committed-shape source):
+  check_port_nets 115/115 + 8/8; ROUTING GATE 0/0/0; E-INV 7/7; E-TOPO 2/2;
+  count_parity 194 x4; audit_board 21+11 PASS; bom_source_check PASS (49
+  lines); twin exit 0 (160 OK / 358 checked; the one FETCH-FAILED is the
+  C99* consign RJ45, evidence-adjudicated; register
+  03_src/rules/twin_adjudications.yaml — 8 evidence-backed entries incl.
+  the C464587 alternate-not-a-drop-in probe); missing_models 0/172;
+  stock: only the 2 ADR'd consignment lines (XU316, RJ45).
+- TWIN ADJUDICATION MATCHER note: a code-level FETCH-FAILED reports ONE
+  combined-ref row ("J10,J3,..."), and the matcher tests that whole string
+  against refs entries — omit refs and key on lcsc+status for that class.
+- Staged archive complete: fab(zip+drills+bom+cpl) / pdf(schematic from
+  tscircuit render, layers, assembly) / source(sch+pcb+tsx+net) / 3d(step) /
+  verification(19 files incl. both red-team archives + fresh_lens).
+  policy_audit: ONLY M-REL open (MANIFEST — stamps at seal). Proceeding to
+  the 2-commit seal.

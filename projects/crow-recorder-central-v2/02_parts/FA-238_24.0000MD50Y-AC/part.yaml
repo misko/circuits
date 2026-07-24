@@ -67,3 +67,9 @@ layout_refs:
 sourcing:
   lcsc: C7190380
   alternates: ["Q22FA23800065 (FA-238 24 MHz, CL 12 pF)", "FA-238 24.0000MB-C3 (CL 18 pF)"]
+# SOURCING SWAP (v1.0 staging, 2026-07-23): C7190380 (and every FA-238 24MHz
+# variant) stock=0 at JLC -> BOM carries NX3225SA-24MHZ-EXS00A-CS08583
+# (C2762192, NDK, SMD3225-4P, 24MHz, CL 9pF ±10ppm, stock 8142) — same
+# package, same 4-pad GND-frame layout, SAME CL 9pF as the MD50Y variant, so
+# the CL1/CL2 22pF load network is unchanged. This entry stays as the brief's
+# named primary; the swap is BOM-only.

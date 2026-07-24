@@ -24,13 +24,13 @@ COMPONENTS:
  - Cout_U8: 22uF 0805 capacitor
  - Couth_U8: 100nF 0402 capacitor
  - R_fb2a: 200kΩ res0402 resistor
- - R_fb2b: 400kΩ res0402 resistor
+ - R_fb2b: 402kΩ res0402 resistor
  - U9: sot23_5
  - Cin_U9: 1uF 0402 capacitor
  - Cout_U9: 1uF 0402 capacitor
  - U10: 
  - Cin_U10: 1uF 0402 capacitor
- - Cout_U10: 1uF 0402 capacitor
+ - Cout_U10: 2.2uF 0402 capacitor
  - Couth_U10: 100nF 0402 capacitor
  - FB_BEEP: FB_BEEP, source_component
  - C_BEEP: 47uF 1206 capacitor
@@ -72,8 +72,8 @@ COMPONENTS:
  - Y1: 
  - Rf: 1MΩ res0402 resistor
  - Rd: 680Ω res0402 resistor
- - CL1: 22pF 0402 capacitor
- - CL2: 22pF 0402 capacitor
+ - CL1: 12pF 0402 capacitor
+ - CL2: 12pF 0402 capacitor
  - J_DBG: pinrow8
  - U5: soic8
  - R_cs: 10kΩ res0402 resistor
@@ -1129,7 +1129,7 @@ R_fb2a (200kΩ res0402)
 - pin1(anode, pos, left): NETS(N0V9)
 - pin2(cathode, neg, right): NETS(FB2)
 
-R_fb2b (400kΩ res0402)
+R_fb2b (402kΩ res0402)
 - pin1(anode, pos, left): NETS(FB2)
 - pin2(cathode, neg, right): NETS(GND)
 
@@ -1159,7 +1159,7 @@ Cin_U10 (1uF 0402)
 - pin1(pos, anode, left): NETS(N5V)
 - pin2(neg, cathode, right): NETS(GND)
 
-Cout_U10 (1uF 0402)
+Cout_U10 (2.2uF 0402)
 - pin1(pos, anode, left): NETS(N3V3A)
 - pin2(neg, cathode, right): NETS(GND)
 
@@ -1457,11 +1457,11 @@ Rd (680Ω res0402)
 - pin1(anode, pos, left): NETS(XOUT)
 - pin2(cathode, neg, right): NETS(XO_XTAL)
 
-CL1 (22pF 0402)
+CL1 (12pF 0402)
 - pin1(pos, anode, left): NETS(XIN)
 - pin2(neg, cathode, right): NETS(GND)
 
-CL2 (22pF 0402)
+CL2 (12pF 0402)
 - pin1(pos, anode, left): NETS(XO_XTAL)
 - pin2(neg, cathode, right): NETS(GND)
 

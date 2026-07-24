@@ -402,11 +402,39 @@
       },
       {
         "netclass": "PWR",
-        "pattern": "PLUS5V_AUDIO"
+        "pattern": "PLUS5V_BEEP"
       },
       {
         "netclass": "PWR",
-        "pattern": "PLUS5V_BEEP"
+        "pattern": "P5VA_1"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "P5VA_2"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "P5VA_3"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "P5VA_4"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "P5VA_5"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "P5VA_6"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "P5VA_7"
+      },
+      {
+        "netclass": "PWR",
+        "pattern": "P5VA_8"
       },
       {
         "netclass": "SWITCH_NODE",

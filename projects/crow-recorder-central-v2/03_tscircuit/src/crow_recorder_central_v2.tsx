@@ -49,7 +49,7 @@ const LCSC = {
   W25Q16: "C82317",
   SHT40: "C2909890",
   AP61102: "C5224055",
-  TCR2LF18: "C150173",
+  TLV70018: "C79924",   // TLV70018DDCR SOT-23-5 1.8V/200mA — ADR-0006 documented drop-in; TCR2LF18 C150173 stock=0 at v1.0 staging
   XC6227: "C6035451",
   BARREL: "C381116",
   USB4105: "C3020560",
@@ -59,9 +59,13 @@ const LCSC = {
   TPD2E: "C1972959",
   AO3401A: "C15127",
   AO3400A: "C20917",
-  FA238: "C7190380",
+  XTAL24: "C2762192",  // NX3225SA-24MHZ-EXS00A-CS08583 3225-4P 24MHz CL9pF ±10ppm — FA-238 MD50Y (C7190380, CL9pF) stock=0 at v1.0 staging
   FUSE: "C136345",
   PTC: "C2649901",
+  L_2R2: "C882626",   // 1277AS-H-2R2M=P2 1210 2.2uH 2.1A/2.6Asat 84mR (L1, 3V3 buck)
+  L_1R0: "C237284",   // 1277AS-H-1R0M=P2 1210 1uH 3.1A/3.7Asat 45mR (L2, 0V9 buck)
+  BEAD600: "C3716677", // BLM21SP601SN1D 0805 600R@100MHz 2.3A 60mR (all 4 beads)
+  R402K: "C25785",    // 0402WGF4023TCE 402k 1% (R_fb2b: 400k not stocked; -0.17% on 0V9)
 } as const
 
 // XU316-1024-TQ128 — full 128 pins + EP(129). Only the pins below are bound;
@@ -144,7 +148,7 @@ export default () => (
     {/* ===================== BUCK 3V3 (U7 AP61102) ===================== */}
     <chip name="U7" supplierPartNumbers={{ jlcpcb: [LCSC.AP61102] }} footprint={fp([1, 2, 3, 4, 5, 6])}
       connections={conn({ 1: "FB1", 2: "GND", 3: "N5V", 4: "SW1", 5: "N5V", 6: "PG_3V3" })} />
-    <inductor name="L1" inductance="2.2uH" footprint="1210" connections={{ pin1: N("SW1"), pin2: N("N3V3") }} />
+    <inductor name="L1" inductance="2.2uH" footprint="1210" supplierPartNumbers={{ jlcpcb: [LCSC.L_2R2] }} connections={{ pin1: N("SW1"), pin2: N("N3V3") }} />
     <capacitor name="Cin_U7" capacitance="10uF" footprint="0805" connections={{ pin1: N("N5V"), pin2: N("GND") }} />
     <capacitor name="Cinh_U7" capacitance="100nF" footprint="0402" connections={{ pin1: N("N5V"), pin2: N("GND") }} />
     <capacitor name="Cout_U7" capacitance="22uF" footprint="0805" connections={{ pin1: N("N3V3"), pin2: N("GND") }} />
@@ -156,16 +160,16 @@ export default () => (
     {/* ===================== BUCK 0V9 CORE (U8 AP61102) ===================== */}
     <chip name="U8" supplierPartNumbers={{ jlcpcb: [LCSC.AP61102] }} footprint={fp([1, 2, 3, 4, 5, 6])}
       connections={conn({ 1: "FB2", 2: "GND", 3: "N5V", 4: "SW2", 5: "PG_3V3" })} /* 6=NC */ />
-    <inductor name="L2" inductance="1uH" footprint="1210" connections={{ pin1: N("SW2"), pin2: N("N0V9") }} />
+    <inductor name="L2" inductance="1uH" footprint="1210" supplierPartNumbers={{ jlcpcb: [LCSC.L_1R0] }} connections={{ pin1: N("SW2"), pin2: N("N0V9") }} />
     <capacitor name="Cin_U8" capacitance="10uF" footprint="0805" connections={{ pin1: N("N5V"), pin2: N("GND") }} />
     <capacitor name="Cinh_U8" capacitance="100nF" footprint="0402" connections={{ pin1: N("N5V"), pin2: N("GND") }} />
     <capacitor name="Cout_U8" capacitance="22uF" footprint="0805" connections={{ pin1: N("N0V9"), pin2: N("GND") }} />
     <capacitor name="Couth_U8" capacitance="100nF" footprint="0402" connections={{ pin1: N("N0V9"), pin2: N("GND") }} />
     <resistor name="R_fb2a" resistance="200k" footprint="0402" connections={{ pin1: N("N0V9"), pin2: N("FB2") }} />
-    <resistor name="R_fb2b" resistance="400k" footprint="0402" connections={{ pin1: N("FB2"), pin2: N("GND") }} />
+    <resistor name="R_fb2b" resistance="402k" footprint="0402" supplierPartNumbers={{ jlcpcb: [LCSC.R402K] }} connections={{ pin1: N("FB2"), pin2: N("GND") }} />
 
     {/* ===================== LDO 1V8 (U9 TCR2LF18) ===================== */}
-    <chip name="U9" footprint="sot23_5" supplierPartNumbers={{ jlcpcb: [LCSC.TCR2LF18] }}
+    <chip name="U9" footprint="sot23_5" supplierPartNumbers={{ jlcpcb: [LCSC.TLV70018] }}
       connections={conn({ 1: "N3V3", 2: "GND", 3: "N3V3", 5: "N1V8" })} /* 4=NC */ />
     <capacitor name="Cin_U9" capacitance="1uF" footprint="0402" connections={{ pin1: N("N3V3"), pin2: N("GND") }} />
     <capacitor name="Cout_U9" capacitance="1uF" footprint="0402" connections={{ pin1: N("N1V8"), pin2: N("GND") }} />
@@ -174,11 +178,11 @@ export default () => (
     <chip name="U10" supplierPartNumbers={{ jlcpcb: [LCSC.XC6227] }} footprint={fp([1, 2, 3, 4, 5])}
       connections={conn({ 1: "N5V", 2: "GND", 4: "N5V", 5: "N3V3A" })} /* 3=NC */ />
     <capacitor name="Cin_U10" capacitance="1uF" footprint="0402" connections={{ pin1: N("N5V"), pin2: N("GND") }} />
-    <capacitor name="Cout_U10" capacitance="1uF" footprint="0402" connections={{ pin1: N("N3V3A"), pin2: N("GND") }} />
+    <capacitor name="Cout_U10" capacitance="2.2uF" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C72203"] }} connections={{ pin1: N("N3V3A"), pin2: N("GND") }} />
     <capacitor name="Couth_U10" capacitance="100nF" footprint="0402" connections={{ pin1: N("N3V3A"), pin2: N("GND") }} />
 
     {/* ===================== BEEP 5V BUS + LOW-SIDE SWITCH ===================== */}
-    <inductor name="FB_BEEP" inductance="600" footprint="0805" connections={{ pin1: N("N5V"), pin2: N("PLUS5V_BEEP") }} /* 600R@100MHz ferrite bead */ />
+    <inductor name="FB_BEEP" inductance="600" footprint="0805" supplierPartNumbers={{ jlcpcb: [LCSC.BEAD600] }} connections={{ pin1: N("N5V"), pin2: N("PLUS5V_BEEP") }} /* 600R@100MHz ferrite bead */ />
     <capacitor name="C_BEEP" capacitance="47uF" footprint="1206" connections={{ pin1: N("PLUS5V_BEEP"), pin2: N("GND") }} />
     <chip name="Q2" footprint="sot23" supplierPartNumbers={{ jlcpcb: [LCSC.AO3400A] }}
       connections={conn({ 1: "BEEP_G", 2: "GND", 3: "BEEP_RETURN" })} /* N-FET: G,S,D */ />
@@ -207,12 +211,12 @@ export default () => (
     <capacitor name="C_b3v3" capacitance="10uF" footprint="0805" connections={{ pin1: N("N3V3"), pin2: N("GND") }} />
     <capacitor name="C_b1v8" capacitance="10uF" footprint="0805" connections={{ pin1: N("N1V8"), pin2: N("GND") }} />
     {/* PLL LC filter */}
-    <inductor name="L_pll" inductance="600" footprint="0805" connections={{ pin1: N("N0V9"), pin2: N("PLL_AVDD") }} /* 600R ferrite */ />
+    <inductor name="L_pll" inductance="600" footprint="0805" supplierPartNumbers={{ jlcpcb: [LCSC.BEAD600] }} connections={{ pin1: N("N0V9"), pin2: N("PLL_AVDD") }} /* 600R ferrite */ />
     <capacitor name="C_pll1" capacitance="1uF" footprint="0402" connections={{ pin1: N("PLL_AVDD"), pin2: N("GND") }} />
     <capacitor name="C_pll2" capacitance="100nF" footprint="0402" connections={{ pin1: N("PLL_AVDD"), pin2: N("GND") }} />
     {/* USB analog supply filters */}
-    <inductor name="FB_u33" inductance="600" footprint="0805" connections={{ pin1: N("N3V3"), pin2: N("USB_VDD33") }} /* ferrite */ />
-    <inductor name="FB_u18" inductance="600" footprint="0805" connections={{ pin1: N("N1V8"), pin2: N("USB_VDD18") }} /* ferrite */ />
+    <inductor name="FB_u33" inductance="600" footprint="0805" supplierPartNumbers={{ jlcpcb: [LCSC.BEAD600] }} connections={{ pin1: N("N3V3"), pin2: N("USB_VDD33") }} /* ferrite */ />
+    <inductor name="FB_u18" inductance="600" footprint="0805" supplierPartNumbers={{ jlcpcb: [LCSC.BEAD600] }} connections={{ pin1: N("N1V8"), pin2: N("USB_VDD18") }} /* ferrite */ />
     <capacitor name="C_u33a" capacitance="1uF" footprint="0402" connections={{ pin1: N("USB_VDD33"), pin2: N("GND") }} />
     <capacitor name="C_u33b" capacitance="100nF" footprint="0402" connections={{ pin1: N("USB_VDD33"), pin2: N("GND") }} />
     <capacitor name="C_u18a" capacitance="1uF" footprint="0402" connections={{ pin1: N("USB_VDD18"), pin2: N("GND") }} />
@@ -222,12 +226,12 @@ export default () => (
     <capacitor name="C_rst" capacitance="100nF" footprint="0402" connections={{ pin1: N("RST_N"), pin2: N("GND") }} />
 
     {/* ===================== CRYSTAL (Y1 FA-238, 24 MHz) ===================== */}
-    <chip name="Y1" supplierPartNumbers={{ jlcpcb: [LCSC.FA238] }} footprint={fp([1, 2, 3, 4])}
+    <chip name="Y1" supplierPartNumbers={{ jlcpcb: [LCSC.XTAL24] }} footprint={fp([1, 2, 3, 4])}
       connections={conn({ 1: "XIN", 2: "GND", 3: "XO_XTAL", 4: "GND" })} />
     <resistor name="Rf" resistance="1M" footprint="0402" connections={{ pin1: N("XIN"), pin2: N("XOUT") }} />
     <resistor name="Rd" resistance="680" footprint="0402" connections={{ pin1: N("XOUT"), pin2: N("XO_XTAL") }} />
-    <capacitor name="CL1" capacitance="22pF" footprint="0402" connections={{ pin1: N("XIN"), pin2: N("GND") }} />
-    <capacitor name="CL2" capacitance="22pF" footprint="0402" connections={{ pin1: N("XO_XTAL"), pin2: N("GND") }} />
+    <capacitor name="CL1" capacitance="12pF" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C1547"] }} connections={{ pin1: N("XIN"), pin2: N("GND") }} /> {/* CL 9pF crystal: 2*(9-3pF stray)=12pF, fresh-lens P1 2026-07-23 */}
+    <capacitor name="CL2" capacitance="12pF" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C1547"] }} connections={{ pin1: N("XO_XTAL"), pin2: N("GND") }} />
 
     {/* ===================== JTAG/DEBUG HEADER (J_DBG, 1x08, 1.8V) ===================== */}
     <chip name="J_DBG" footprint="pinrow8"
