@@ -151,3 +151,11 @@ C5126242: {mpn: FRC0603F1211TS, value: "1.21k", verified: "2026-07-23 JLC catalo
 C22356360: {mpn: RCA032R2FLF, value: "2.2", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C46550465: {mpn: MA25V100M6x6, value: "100uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe) — polymer electrolytic 100uF 25V"}
 C48970904: {mpn: RYVP6.3V100UF4*5, value: "100uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe) — electrolytic 100uF 6.3V"}
+# crow-recorder-central-v2 v1.0 staging additions (2026-07-23, JLC parts API
+# selectSmtComponentList exact-code describe rows):
+C25764: {mpn: 0402WGF2003TCE, value: "200k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25767: {mpn: 0402WGF2203TCE, value: "220k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25895: {mpn: 0402WGF4422TCE, value: "44.2k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C25792: {mpn: 0402WGF4702TCE, value: "47k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C96123: {mpn: CL31A476MPHNNNE, value: "47uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe; 10V X5R 1206 — 2x the 5V beep rail)"}
+C25785: {mpn: 0402WGF4023TCE, value: "402k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe; picked FOR the label — 400k not stocked, -0.17% on the 0V9 FB divider)"}

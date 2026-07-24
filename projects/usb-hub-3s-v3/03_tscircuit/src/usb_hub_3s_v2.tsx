@@ -440,7 +440,16 @@ export default () => (
       {/* R30 = Q6 gate pull-up to its SOURCE (PMID): holds Q6 OFF when Q7 is off
           (master-off) so a back-feed keeps Vgs~0 and the body diode blocks. 100k
           (mirrors the input Q1 gate pulldown R1). */}
-      <resistor name="R30" resistance="100k" footprint="0603" connections={{ pin1: "net.PMID", pin2: "net.QG" }} />
+      {/* v1.3 R30 FIX (2nd wrong-part the semantic M-BOM gate caught, v1.2 addendum
+          688a8af): tscircuit value-resolved R30 to C2933195 = FRC0603F3091TS =
+          catalog 3.09k, NOT 100k (burned ~1.6mA through Q7 when ON). Code now BAKED:
+          C25803 = UNI-ROYAL 0603WAF1003T5E, ledger-verified 100k 1% 0603 (JLC basic)
+          — the SAME code R1/R8/R17 (the board's other 100k 0603s) already resolve to.
+          MPN decode: 1003 -> 100x10^3 = 100k. DO-NOT-USE C2933195 (3.09k).
+          Margins @100k: ON waste PMID->QG 5.35V/100k = 54uA (vs 1.7mA at 3.09k);
+          OFF back-feed Vgs = -(Q7 Idss + Q6 Igss)~1uA x 100k = -0.1V << AON6403
+          Vgs(th) — Q6 stays OFF, body diode blocks. */}
+      <resistor name="R30" resistance="100k" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C25803"] }} connections={{ pin1: "net.PMID", pin2: "net.QG" }} />
       {/* F2 = PPTC resettable polyfuse (OVER-CURRENT), PMID -> VBUSC. 2920 (7.4x5.1mm)
           — a 6A/16V hold does NOT exist in 1812, and a 6A part nuisance-trips at 5A
           @50C (derates ~4.8A). 7A hold (SMD2920-700/16N, C6165170; ~5.6A @50C > 5A
