@@ -87,33 +87,37 @@ tracks = [t for t in b.GetTracks() if t.GetClass() != "PCB_VIA"]
 pads = [p for f in b.GetFootprints() for p in f.Pads()]
 kill = []
 for v in [t for t in b.GetTracks() if t.GetClass() == "PCB_VIA"]:
-    if v.GetNetname() != "GND":
+    net = v.GetNetname()
+    if not net:
         continue
     pos = v.GetPosition(); vr = v.GetWidth()//2
-    # keep if any same-net TRACK touches the barrel
-    if any(t.GetNetname() == "GND" and
-           (t.GetStart() - pos).EuclideanNorm() < vr + t.GetWidth()//2 + 1000 or
-           t.GetNetname() == "GND" and
-           (t.GetEnd() - pos).EuclideanNorm() < vr + t.GetWidth()//2 + 1000
-           for t in tracks):
-        continue
-    # keep if a TRUE via-in-pad: barrel inside the pad COPPER (circular test —
-    # bbox containment kept 3 useless In1-only vias that sat inside big J_PI
-    # THT pad bboxes without touching the pad, 2026-07-24)
-    def _in_pad(p):
+    # DISTINCT layers with same-net copper at the barrel:
+    #   tracks touching -> their layer; TRUE via-in-pad (circular copper test,
+    #   NOT bbox — bbox containment kept 3 useless In1-only vias inside big
+    #   J_PI THT pad bboxes, 2026-07-24) -> all layers (through) / pad layer;
+    #   FILLED same-net zone containing the centre -> that layer.
+    lays = set()
+    for t in tracks:
+        if t.GetNetname() == net and (
+            (t.GetStart() - pos).EuclideanNorm() < vr + t.GetWidth()//2 + 1000 or
+            (t.GetEnd() - pos).EuclideanNorm() < vr + t.GetWidth()//2 + 1000):
+            lays.add(int(t.GetLayer()))
+    for p in pads:
+        if p.GetNetname() != net:
+            continue
         d = (p.GetPosition() - pos).EuclideanNorm()
-        return d + vr <= min(p.GetSizeX(), p.GetSizeY()) // 2 + 1000
-    if any(p.GetNetname() == "GND" and _in_pad(p) for p in pads):
-        continue
-    # count layers whose FILLED same-net zone contains the via centre
-    nlay = 0
+        if d + vr <= min(p.GetSizeX(), p.GetSizeY()) // 2 + 1000:
+            if p.GetDrillSize().x > 0:
+                lays.update(int(l) for l in CU)
+            else:
+                lays.add(int(p.GetLayer()))
     for z in b.Zones():
-        if z.GetIsRuleArea() or z.GetNetname() != "GND":
+        if z.GetIsRuleArea() or z.GetNetname() != net:
             continue
         for l in CU:
             if z.IsOnLayer(l) and z.GetFilledPolysList(l).Contains(pos):
-                nlay += 1
-    if nlay < 2:
+                lays.add(int(l))
+    if len(lays) < 2:
         kill.append(v)
 for v in kill:
     b.Remove(v)

@@ -213,9 +213,16 @@ placement:
     # expander reset R + I2C bus Rs, WEST of U_EXP (keep clear of its SOUTH
     # escape corridor x135.3..144.7 — the near-U_EXP pattern alone dropped
     # R_BID1 into the corridor, DRC items_not_allowed 2026-07-24)
-    R_EXPRST: [130.0, 84.0]
-    R_BID0:   [130.0, 86.0]
-    R_BID1:   [133.0, 86.0]
+    # (2026-07-24, D-BACK to placement after 3 races each stranding a plane-net
+    # passive: the x128-136/y82-92 strip is the J_PI-east + U_EXP-west escape
+    # funnel — R_BID1.2 3V3 was unreachable there by ANY F.Cu path <=5.5mm.
+    # All three move to the open drive-band pocket west of U_EXP / south of
+    # U_DECD; C_ULNB moves INSIDE the plane band (its old legalized spot y51.6
+    # was north of the planes, the one place GND cannot reach).
+    R_EXPRST: [122.0, 84.0]
+    R_BID0:   [125.0, 84.0]
+    R_BID1:   [122.0, 86.5]
+    C_ULNB:   [186.0, 67.5]     # I-PROX to U_ULNB (184,59) = 8.7 <= 9.0
 
   patterns:
     # ---- decoupling: each cap hard against its IC ----

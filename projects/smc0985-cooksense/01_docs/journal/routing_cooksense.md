@@ -694,3 +694,19 @@ NOT yet rebuilt. All other source staged. No git touched.
   deterministic; only routed copper re-rolls).
 - next: gate race 3; if C_SWB-class strandings persist across realizations,
   D-BACK to the analog-SW placement.
+
+## 2026-07-24 (post-race-3) — stuck -> D-BACK to placement (iterate 4)
+- did: race-3 realization measured 1V/2U: 5V_RPP dangling detour via (the
+  documented v1.0 stochastic KRT class — joins two B.Cu tracks that already
+  share its endpoint) + R_BID1.2 (3V3) stranded. EXHAUSTIVE measured search:
+  no legal via site (mcu>0.14, mh>0.5) reachable by any 1-bend path <=5.5mm
+  Manhattan, no 2-bend F.Cu path to the paired R_EXPRST.2 pad — the
+  x128-136/y82-92 strip is the J_PI-east/U_EXP-west escape funnel. THIRD race
+  with the same finding class (stranded plane-net passive) = D-BACK trigger.
+- result: PLACEMENT fixes (not more stub whack-a-mole): R_EXPRST/R_BID0/
+  R_BID1 seeds -> open drive pocket (122-125, 84-86.5); C_ULNB seeded INSIDE
+  the plane band (186,67.5; I-PROX 8.7<=9.0) and its realization-coupled stub
+  RETIRED (two derivations, two collisions — a trap, not determinism);
+  6b prune GENERALIZED to all nets by distinct-layer count (kills the 5V_RPP
+  detour class deterministically; circular via-in-pad test kept).
+- next: race 4 (seeds changed -> chain invalid); then the full gate battery.
