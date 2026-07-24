@@ -43,11 +43,13 @@ keypad-domain isolation — the board is a floating 10-net domain).
 
 ## Bounds carried forward (unchanged)
 
-- **Coupon gate G1/G2 still BLOCKS fabrication/ordering** of Board C: the
-  10FDZ-BT land pattern is authored from the JST eFDZ datasheet, not from a
-  measured part — a REAL-PART physical footprint confirm (hand-solder fit +
-  boss/hole check) is mandatory before any seal (same class as the v1.0
-  J_TC footprint lesson).
+- **Coupon gate G1/G2 still BLOCKS fabrication/ORDERING** of Board C. The
+  10FDZ-BT land pattern is authored from the JST eFDZ datasheet as CANONICAL
+  (user directive 2026-07-24: "go ahead assuming 10FDZ-BT" — the DESIGN
+  proceeds to a sealed release), but a REAL-PART physical footprint confirm
+  (drill pattern + polarization-peg position against a purchased connector)
+  is a mandatory ORDER_README bring-up ritual before any fab order (same
+  class as the v1.0 J_TC/J_PWR pin-1 rituals).
 - Flex jumper: vendor-assisted, >=100 insertion cycles on a sacrificial
   coupon, never first-fit on the OEM connector (T5).
 - D4: passes through unchanged, labeled TP, firmware-locked-out downstream

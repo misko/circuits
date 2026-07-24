@@ -174,3 +174,21 @@
 - next: schematic stage — carry the 6 design flags + this fab_tier recommendation
   (concurrent agent is swapping the U/D decoders to active-high SN74HC238; those two
   part dirs left untouched here by design).
+
+## 2026-07-24 — interposer parts (Board C)
+- did: authored 02_parts/10FDZ-BT (JST FDZ ZIF, self-supplied THT) from the
+  OFFICIAL eFDZ datasheet (jst-mfg.com, sha256 586ab321...): 10x phi0.9 PTH at
+  2.54 pitch (span 22.86), phi1.8 NPTH polarization boss COLINEAR with the row
+  2.54 outside pin1 (p.3 top-entry land pattern, verified on the rendered
+  drawing), housing 36.26x7.7. Hand-authored land pattern
+  cooksense:JST_10FDZ-BT_1x10_P2.54mm_Vertical_ZIF (pads 1.6/drill 0.9, NPTH
+  1.8). escape_check connector/2.54 -> tier_required jlc_2layer_default.
+- result: NEEDS-PHYSICAL-CONFIRM flag carried in part.yaml (drill pattern +
+  boss end/sense are reference-drawing reads; blocks fab ORDER via ORDER_README
+  ritual, NOT the seal — user directive 2026-07-24). Breakout connector =
+  existing verified SM10B-GHS-TB (C2683602); sealed main board J_KEY_MATRIX
+  read back read-only: pins 1..10 = KP_U1..U6,KP_D1..D4, MP floating — the
+  interposer mirrors it exactly (1:1 GHR-10V-S ribbon). TPs = tscircuit pad
+  testpoints (no part entries).
+- next: 03_tscircuit/src/interposer.tsx (10 floating nets, 3 connectors,
+  20 TPs) + schematic gate battery.

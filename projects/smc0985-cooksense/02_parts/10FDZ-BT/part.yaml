@@ -1,0 +1,70 @@
+mpn: 10FDZ-BT(S)(LF)(SN)
+manufacturer: JST
+type: connector_zif_membrane_1x10   # CLASS: 2.54mm ZIF for FPC/membrane-switch leads, TOP entry, THT
+datasheet:
+  doc_id: eFDZ                      # JST FDZ series catalog sheet (no printed numeric revision)
+  revision: eFDZ                    # token == filename, per the eGH precedent
+  url: https://www.jst-mfg.com/product/pdf/eng/eFDZ.pdf
+  sha256: 586ab3212d74168776fe00ea6689d506a7633a26a24554001bc7388943eea8b4
+  fetched: 2026-07-24
+package: >
+  JST FDZ 10-circuit TOP-entry (vertical) ZIF, THROUGH-HOLE. Housing B=36.26mm
+  wide x 7.7mm deep, installed height 10.2mm (12.7mm slider open). Clamps a
+  PLAIN membrane/FPC tail: 2.54mm pitch, 1.3mm conductor width, 0.125 +0.075/-0.05mm
+  thickness (eFDZ p.1-2). Applicable PCB thickness 1.6mm.
+footprint: cooksense:JST_10FDZ-BT_1x10_P2.54mm_Vertical_ZIF
+escape:                             # escape_check.py --style connector --pitch 2.54
+  style: connector
+  pitch: 2.54
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-24
+pins:                               # 1..10 signal contacts; NPTH boss carries no pad
+  1: P1                             # circuit 1 = the boss end of the row (land-pattern read, see verified)
+  2: P2
+  3: P3
+  4: P4
+  5: P5
+  6: P6
+  7: P7
+  8: P8
+  9: P9
+  10: P10
+limits: {current_per_contact: "50mA AC/DC", voltage: "250V AC/DC", temp_range: "-40..+85C incl. current rise", contact_resistance: "10R initial / 15R after test", withstanding: "1200VAC 1min", insulation: "1000Mohm min"}
+gotchas:
+  - "BT = TOP/vertical entry (correct for this design); 10FDZ-ST is SIDE entry with a DIFFERENT land pattern — do NOT substitute (ADR-0008 variant discipline)"
+  - "SELF-SUPPLIED HAND-SOLDER, DO-NOT-SUBSTITUTE: distributor-stocked (Mouser/RS/DigiKey), NOT confirmed on LCSC/JLC — no LCSC code, keep off the JLC-assembly BOM"
+  - "ZIF: slider must be OPEN before tail insertion; slider-open envelope is 12.7mm vs 10.2mm installed — leave overhead clearance"
+  - "datasheet note 4: PTH hole dims are REFERENCE ('differ depending on PCB and drilling method') — one more reason the real-part fit coupon (G2) is mandatory"
+  - "polarization boss on the housing BOTTOM is an NPTH, COLINEAR with the contact row, one 2.54 pitch OUTSIDE circuit 1 — it is the only anti-reverse feature; get its end right or the connector mounts mirrored"
+verified: >
+  Land pattern read from eFDZ p.3 'PC board layout and Assembly layout — Top
+  entry type' (drawing viewed FROM THE MOUNTING SURFACE, note 1): 10 holes
+  phi0.9+-0.05 in ONE row at 2.54+-0.05 pitch, row span A=22.86+-0.05 (p.2
+  table, 10 circuits); polarization boss NPTH phi1.8+-0.05 ON the row
+  centerline, 2.54+-0.05 outside the first contact hole; row is (2.6) from the
+  front housing edge, housing outline edge (5.3) from the first hole, B=36.26
+  total. Ratings from p.1 Specifications. 2026-07-24.
+  NEEDS-PHYSICAL-CONFIRM (blocks fab ORDER, not the seal — user directive
+  2026-07-24 'go ahead assuming 10FDZ-BT'): hole/boss fit, which housing end
+  carries circuit 1 vs the boss, and the (2.6) front/rear sense were taken from
+  the reference drawing only — verify drill pattern + polarization-peg position
+  against a purchased 10FDZ-BT before ordering (ORDER_README bring-up ritual,
+  v1.0 J_TC/J_PWR pin-1 class).
+layout:
+  source: "eFDZ p.3 PC-board layout (top entry) + p.2 outline drawings. Passive ZIF — no signal-timing constraints; the governing rules are mechanical."
+  reviewed: "2026-07-24"
+  notes: >
+    Keep the slider face and tail-entry top clear (tail drops in vertically;
+    slider needs finger access). Board C keypad-domain isolation: the whole
+    board is a floating net set — no plane, pour, or copper under/around this
+    footprint may tie to any SELV/logic/chassis net (BRIEF §5). Both 10FDZ-BT
+    on the interposer are placed with pin columns X-ALIGNED so the ten
+    pass-through nets route as straight parallel tracks (continuity map G6).
+sourcing:
+  lcsc: null
+  alternates: []
+  note: >
+    SELF-SUPPLIED (hand-solder THT): not confirmed on LCSC/JLC (ADR-0008).
+    Order MPN 10FDZ-BT(S)(LF)(SN) from Mouser/RS/DigiKey. DO-NOT-SUBSTITUTE;
+    never the ST side-entry variant. Qty/box 100 (eFDZ p.2). NO stock/price
+    committed (volatile).
