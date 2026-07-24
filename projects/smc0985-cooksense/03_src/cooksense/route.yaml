@@ -260,6 +260,19 @@ stitch:
       - {net: 3V3, pin: C_DECU.1,
          segments: [{layer: F.Cu, width: 0.30, pts: [[79.02, 66.0], [79.02, 66.2], [78.72, 66.2]]}],
          vias: [[78.72, 66.2]]}
+      # U_EXP.9 (MCP23017 VDD, 3V3): the race-4 realization did NOT route it
+      # natively (unlike race 2) and RAIL_EN_B hugs the pad row (via-in-pad
+      # blocked at every x, ring gap 0.02mm). Measured stub (2026-07-24, on the
+      # PROMOTED race-4 chain): feeder WEST along the pad axis, exit + via at
+      # (135.3,83.17); rect-true path clear 0.21mm, hole gap 1.13mm.
+      - {net: 3V3, pin: U_EXP.9,
+         segments: [{layer: F.Cu, width: 0.30, pts: [[136.5, 82.975], [135.3, 82.975], [135.3, 83.17]]}],
+         vias: [[135.3, 83.17]]}
+      # C_OENAND.1 (3V3) stranded in the race-4 realization. Measured stub:
+      # 0.5mm feeder + via (160.82,81.8); path clear 0.51mm, hole gap 0.72mm.
+      - {net: 3V3, pin: C_OENAND.1,
+         segments: [{layer: F.Cu, width: 0.30, pts: [[160.72, 82.2], [160.72, 81.8], [160.82, 81.8]]}],
+         vias: [[160.82, 81.8]]}
       # C_ULNB.2 stub RETIRED (2026-07-24): two successive stub derivations
       # were realization-coupled traps (each re-race collided the last one).
       # PLACEMENT fix instead: C_ULNB is now SEEDED inside the plane band
