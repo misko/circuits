@@ -1,0 +1,1568 @@
+{
+    "$schema": "https://schemas.kicad.org/erc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-07-24T09:02:18",
+    "ignored_checks": [
+        {
+            "description": "Global label only appears once in the schematic",
+            "key": "single_global_label"
+        },
+        {
+            "description": "Four connection points are joined together",
+            "key": "four_way_junction"
+        },
+        {
+            "description": "SPICE model issue",
+            "key": "simulation_model_issue"
+        },
+        {
+            "description": "Assigned footprint doesn't match footprint filters",
+            "key": "footprint_filter"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning",
+        "exclusion"
+    ],
+    "kicad_version": "10.0.4",
+    "sheets": [
+        {
+            "path": "/",
+            "uuid_path": "/b0514e9b-cfff-4708-a21b-1ebe85329132",
+            "violations": [
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_U1 [SYM_TP_C_U1]",
+                            "pos": {
+                                "x": 0.3048,
+                                "y": 0.6858
+                            },
+                            "uuid": "46f6e470-e517-45b5-9fee-b14820020294"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_U1 [SYM_TP_C_U1]",
+                            "pos": {
+                                "x": 0.3048,
+                                "y": 0.6858
+                            },
+                            "uuid": "46f6e470-e517-45b5-9fee-b14820020294"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_U3 [SYM_TP_C_U3]",
+                            "pos": {
+                                "x": 0.3683,
+                                "y": 0.508
+                            },
+                            "uuid": "bf54ca9e-5de0-4765-88b7-bb58bc0eb8e3"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_U3 [SYM_TP_C_U3]",
+                            "pos": {
+                                "x": 0.3683,
+                                "y": 0.508
+                            },
+                            "uuid": "bf54ca9e-5de0-4765-88b7-bb58bc0eb8e3"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0318 mm",
+                            "pos": {
+                                "x": 0.48895,
+                                "y": 0.8636
+                            },
+                            "uuid": "56bcf837-c5a0-429b-8c6f-d5a1473f4201"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_U2 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.48895,
+                                "y": 0.8636
+                            },
+                            "uuid": "cc7c6855-36da-4157-bb96-816c37b0bbcf"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_U1 [SYM_TP_M_U1]",
+                            "pos": {
+                                "x": 0.508,
+                                "y": 0.6858
+                            },
+                            "uuid": "519f9f1e-085c-4403-bc68-8a45caa40522"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_U1 [SYM_TP_M_U1]",
+                            "pos": {
+                                "x": 0.508,
+                                "y": 0.6858
+                            },
+                            "uuid": "519f9f1e-085c-4403-bc68-8a45caa40522"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_U2 [SYM_TP_C_U2]",
+                            "pos": {
+                                "x": 0.508,
+                                "y": 1.0414
+                            },
+                            "uuid": "1970e44a-0a75-43db-9494-efc0ec929db4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_U2 [SYM_TP_C_U2]",
+                            "pos": {
+                                "x": 0.508,
+                                "y": 1.0414
+                            },
+                            "uuid": "1970e44a-0a75-43db-9494-efc0ec929db4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.1968 mm",
+                            "pos": {
+                                "x": 0.51435,
+                                "y": 0.4826
+                            },
+                            "uuid": "27bf1234-4678-47de-9252-4a66c44abea3"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.0254 mm",
+                            "pos": {
+                                "x": 0.51435,
+                                "y": 0.508
+                            },
+                            "uuid": "019174f6-f791-4972-8ea7-841bb820592b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_U2 [SYM_TP_M_U2]",
+                            "pos": {
+                                "x": 0.51435,
+                                "y": 0.8636
+                            },
+                            "uuid": "2bc8aead-2995-46e3-8fca-f2b9519f7118"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_U2 [SYM_TP_M_U2]",
+                            "pos": {
+                                "x": 0.51435,
+                                "y": 0.8636
+                            },
+                            "uuid": "2bc8aead-2995-46e3-8fca-f2b9519f7118"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0254 mm",
+                            "pos": {
+                                "x": 0.53975,
+                                "y": 0.508
+                            },
+                            "uuid": "c220b40c-0dcb-4584-915d-5dce1daeb171"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_U3 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.53975,
+                                "y": 0.508
+                            },
+                            "uuid": "e8457054-55ce-422e-9f11-a5cc0bf1e0b9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_U3 [SYM_TP_M_U3]",
+                            "pos": {
+                                "x": 0.56515,
+                                "y": 0.508
+                            },
+                            "uuid": "31d3df9d-fa01-464a-8ebb-8b90b65c4197"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_U3 [SYM_TP_M_U3]",
+                            "pos": {
+                                "x": 0.56515,
+                                "y": 0.508
+                            },
+                            "uuid": "31d3df9d-fa01-464a-8ebb-8b90b65c4197"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0318 mm",
+                            "pos": {
+                                "x": 0.65405,
+                                "y": 1.0287
+                            },
+                            "uuid": "b36f1480-da77-4aed-8d03-1ca3ddb08a15"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.1778 mm",
+                            "pos": {
+                                "x": 0.65405,
+                                "y": 1.2065
+                            },
+                            "uuid": "c79076a0-800f-426c-b590-f7612346f8a1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_U5 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.67945,
+                                "y": 1.2065
+                            },
+                            "uuid": "5065323c-6c53-496a-ad56-833c3211ee22"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0254 mm",
+                            "pos": {
+                                "x": 0.67945,
+                                "y": 1.2065
+                            },
+                            "uuid": "dcf0d8c5-89db-47c4-9b3b-bbb6fe0e2790"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_U5 [SYM_TP_C_U5]",
+                            "pos": {
+                                "x": 0.70485,
+                                "y": 1.2065
+                            },
+                            "uuid": "6128afc5-3247-4d34-9f8e-ea19707607a6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_U5 [SYM_TP_C_U5]",
+                            "pos": {
+                                "x": 0.70485,
+                                "y": 1.2065
+                            },
+                            "uuid": "6128afc5-3247-4d34-9f8e-ea19707607a6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_U5 [SYM_TP_M_U5]",
+                            "pos": {
+                                "x": 0.7112,
+                                "y": 1.0287
+                            },
+                            "uuid": "315a3279-ede0-4631-b5a1-fe70848a0068"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_U5 [SYM_TP_M_U5]",
+                            "pos": {
+                                "x": 0.7112,
+                                "y": 1.0287
+                            },
+                            "uuid": "315a3279-ede0-4631-b5a1-fe70848a0068"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'cooksense'",
+                    "items": [
+                        {
+                            "description": "Symbol J_MEMBRANE [SYM_J_MEMBRANE]",
+                            "pos": {
+                                "x": 0.762,
+                                "y": 0.7366
+                            },
+                            "uuid": "66922dcd-65d3-4499-ad94-436f7846c10b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J_MEMBRANE [SYM_J_MEMBRANE]",
+                            "pos": {
+                                "x": 0.762,
+                                "y": 0.7366
+                            },
+                            "uuid": "66922dcd-65d3-4499-ad94-436f7846c10b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0825 mm",
+                            "pos": {
+                                "x": 0.97155,
+                                "y": 0.8128
+                            },
+                            "uuid": "3c9f01c4-4642-4ac0-ad36-aecf504a0eef"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0254 mm",
+                            "pos": {
+                                "x": 0.97155,
+                                "y": 1.0287
+                            },
+                            "uuid": "215de831-037f-4e48-b340-535fe4b25db0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.2159 mm",
+                            "pos": {
+                                "x": 0.97155,
+                                "y": 1.0287
+                            },
+                            "uuid": "b0dc20ed-520f-4fc9-a128-551b9548ac9a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.1778 mm",
+                            "pos": {
+                                "x": 0.97155,
+                                "y": 1.2065
+                            },
+                            "uuid": "88c1b8f5-4f1f-4f7d-aafb-c59d04079423"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol J_CN1_JUMPER Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.99695,
+                                "y": 0.6858
+                            },
+                            "uuid": "5811cf0c-e19b-4b46-b6ee-6c92cf71286c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.1080 mm",
+                            "pos": {
+                                "x": 0.889,
+                                "y": 0.762
+                            },
+                            "uuid": "b4c1dc01-8dfd-4ef6-a045-9cddca3e3d32"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_U4 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.99695,
+                                "y": 1.0287
+                            },
+                            "uuid": "11461354-4ca7-4d8a-99a7-09f2051adf1d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0254 mm",
+                            "pos": {
+                                "x": 0.99695,
+                                "y": 1.0287
+                            },
+                            "uuid": "f79e57d6-b48e-4e16-8e5a-23e030edd962"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_U4 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 0.99695,
+                                "y": 1.2065
+                            },
+                            "uuid": "72a7608c-a200-48c4-9dc6-d21e4d08e92d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0254 mm",
+                            "pos": {
+                                "x": 0.99695,
+                                "y": 1.2065
+                            },
+                            "uuid": "9707d653-d49c-4fd5-afb3-d4ecbe61aca1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_U4 [SYM_TP_M_U4]",
+                            "pos": {
+                                "x": 1.02235,
+                                "y": 1.0287
+                            },
+                            "uuid": "883b5921-1a80-4501-acc0-fdfef644da4f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_U4 [SYM_TP_M_U4]",
+                            "pos": {
+                                "x": 1.02235,
+                                "y": 1.0287
+                            },
+                            "uuid": "883b5921-1a80-4501-acc0-fdfef644da4f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_U4 [SYM_TP_C_U4]",
+                            "pos": {
+                                "x": 1.02235,
+                                "y": 1.2065
+                            },
+                            "uuid": "ca1dc533-7a4c-4637-a46d-e7601cbd59b7"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_U4 [SYM_TP_C_U4]",
+                            "pos": {
+                                "x": 1.02235,
+                                "y": 1.2065
+                            },
+                            "uuid": "ca1dc533-7a4c-4637-a46d-e7601cbd59b7"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'cooksense'",
+                    "items": [
+                        {
+                            "description": "Symbol J_CN1_JUMPER [SYM_J_CN1_JUMPER]",
+                            "pos": {
+                                "x": 1.07315,
+                                "y": 0.7366
+                            },
+                            "uuid": "99013dc6-6163-4cf1-8b8e-77ff5de33ba1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J_CN1_JUMPER [SYM_J_CN1_JUMPER]",
+                            "pos": {
+                                "x": 1.07315,
+                                "y": 0.7366
+                            },
+                            "uuid": "99013dc6-6163-4cf1-8b8e-77ff5de33ba1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.1778 mm",
+                            "pos": {
+                                "x": 1.12395,
+                                "y": 0.2667
+                            },
+                            "uuid": "c206e403-0331-423b-9757-3cd5e881862b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0254 mm",
+                            "pos": {
+                                "x": 1.12395,
+                                "y": 0.4445
+                            },
+                            "uuid": "d15783de-a215-40fa-8a06-0f2d8c95eb41"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_D3 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.14935,
+                                "y": 0.2667
+                            },
+                            "uuid": "7cf7522a-4b13-4c90-a8dd-f18e26786d16"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0254 mm",
+                            "pos": {
+                                "x": 1.14935,
+                                "y": 0.2667
+                            },
+                            "uuid": "e1fda039-1a19-47c1-bd61-887da7410e2c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.1588 mm",
+                            "pos": {
+                                "x": 1.14935,
+                                "y": 0.4445
+                            },
+                            "uuid": "704d1c2d-992d-4caf-8345-b26f894598ac"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_D3 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.14935,
+                                "y": 0.4445
+                            },
+                            "uuid": "f3f2747c-58e8-4be7-9ae0-5429057eb742"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_D3 [SYM_TP_C_D3]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 0.2667
+                            },
+                            "uuid": "90f36251-a346-4cb5-bef4-fb4ddc99d2b3"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_D3 [SYM_TP_C_D3]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 0.2667
+                            },
+                            "uuid": "90f36251-a346-4cb5-bef4-fb4ddc99d2b3"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_D3 [SYM_TP_M_D3]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 0.4445
+                            },
+                            "uuid": "ec7e828c-0c50-4da0-a1ce-750a3b5e9745"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_D3 [SYM_TP_M_D3]",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 0.4445
+                            },
+                            "uuid": "ec7e828c-0c50-4da0-a1ce-750a3b5e9745"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0254 mm",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 0.7112
+                            },
+                            "uuid": "da24e5df-9404-4651-bb69-a8c5efd0e625"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.1842 mm",
+                            "pos": {
+                                "x": 0.9906,
+                                "y": 0.8382
+                            },
+                            "uuid": "d14e6d0d-a0d2-4fe0-a714-64288ddc01f7"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.1270 mm",
+                            "pos": {
+                                "x": 1.17475,
+                                "y": 0.8382
+                            },
+                            "uuid": "ef14ef23-2eb5-4bda-a490-87f0db08cb1f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol J_KEY_MATRIX Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.30175,
+                                "y": 0.6858
+                            },
+                            "uuid": "8ab4c2b9-c381-41c9-b3b1-df8e5a339a9a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.1778 mm",
+                            "pos": {
+                                "x": 1.36525,
+                                "y": 0.2667
+                            },
+                            "uuid": "5a8c18a8-0af6-4b62-9a2a-4d21c9cec602"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0318 mm",
+                            "pos": {
+                                "x": 1.36525,
+                                "y": 0.4445
+                            },
+                            "uuid": "2e71ff94-aac8-4449-9e8d-121946647180"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.1968 mm",
+                            "pos": {
+                                "x": 1.3716,
+                                "y": 0.56515
+                            },
+                            "uuid": "180a4f7d-dcd6-4a08-a85a-8dd07c74ff99"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.1206 mm",
+                            "pos": {
+                                "x": 1.3716,
+                                "y": 0.4445
+                            },
+                            "uuid": "25febb2c-68b0-4a8e-a204-b32c09ae09cb"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'Connector_JST'",
+                    "items": [
+                        {
+                            "description": "Symbol J_KEY_MATRIX [SYM_J_KEY_MATRIX]",
+                            "pos": {
+                                "x": 1.37795,
+                                "y": 0.7366
+                            },
+                            "uuid": "6627b2fa-42bf-4af0-9a98-dc1272a6468d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J_KEY_MATRIX [SYM_J_KEY_MATRIX]",
+                            "pos": {
+                                "x": 1.37795,
+                                "y": 0.7366
+                            },
+                            "uuid": "6627b2fa-42bf-4af0-9a98-dc1272a6468d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_D4 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.39065,
+                                "y": 0.2667
+                            },
+                            "uuid": "6ec861e3-a41d-49a2-8f2a-efba04b0aab5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0254 mm",
+                            "pos": {
+                                "x": 1.39065,
+                                "y": 0.2667
+                            },
+                            "uuid": "d3aef6e2-f293-4c05-bd64-5df60ae02ead"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_D4 [SYM_TP_C_D4]",
+                            "pos": {
+                                "x": 1.41605,
+                                "y": 0.2667
+                            },
+                            "uuid": "6b331983-2973-4910-8971-f4fb1159fb3a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_D4 [SYM_TP_C_D4]",
+                            "pos": {
+                                "x": 1.41605,
+                                "y": 0.2667
+                            },
+                            "uuid": "6b331983-2973-4910-8971-f4fb1159fb3a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_D4 [SYM_TP_M_D4]",
+                            "pos": {
+                                "x": 1.4224,
+                                "y": 0.4445
+                            },
+                            "uuid": "ba59943f-bf0e-46e9-a2d3-53747a5ee0bf"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_D4 [SYM_TP_M_D4]",
+                            "pos": {
+                                "x": 1.4224,
+                                "y": 0.4445
+                            },
+                            "uuid": "ba59943f-bf0e-46e9-a2d3-53747a5ee0bf"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0445 mm",
+                            "pos": {
+                                "x": 1.4986,
+                                "y": 0.7874
+                            },
+                            "uuid": "d6771e1d-a989-4816-92eb-3850ae9d21e7"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0762 mm",
+                            "pos": {
+                                "x": 1.53035,
+                                "y": 0.762
+                            },
+                            "uuid": "7b0279f3-05c4-4864-b7d6-26fa1378b17f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.0127 mm",
+                            "pos": {
+                                "x": 1.53035,
+                                "y": 0.7747
+                            },
+                            "uuid": "ae74f5a7-3ebd-43db-a5d4-5bf2989dfc0d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.1778 mm",
+                            "pos": {
+                                "x": 1.56845,
+                                "y": 0.4191
+                            },
+                            "uuid": "ecf85531-de62-45ad-a892-5ed29bad1e85"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0063 mm",
+                            "pos": {
+                                "x": 1.56845,
+                                "y": 0.56515
+                            },
+                            "uuid": "8db28dca-2821-41df-a6bc-af579e33dcbf"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0318 mm",
+                            "pos": {
+                                "x": 1.56845,
+                                "y": 0.5969
+                            },
+                            "uuid": "70491996-efbe-47b0-942b-441fa3145b2a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0825 mm",
+                            "pos": {
+                                "x": 1.5748,
+                                "y": 0.56515
+                            },
+                            "uuid": "7510567a-d11b-42ed-bcdf-99b0b9c340d2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_U6 [SYM_TP_M_U6]",
+                            "pos": {
+                                "x": 1.5748,
+                                "y": 0.9525
+                            },
+                            "uuid": "99d57748-c3de-4bd0-a7cf-9a95e8038e1c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_U6 [SYM_TP_M_U6]",
+                            "pos": {
+                                "x": 1.5748,
+                                "y": 0.9525
+                            },
+                            "uuid": "99d57748-c3de-4bd0-a7cf-9a95e8038e1c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.1968 mm",
+                            "pos": {
+                                "x": 1.778,
+                                "y": 0.7493
+                            },
+                            "uuid": "59ddaceb-7235-476b-9d19-47f5f6985535"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.0254 mm",
+                            "pos": {
+                                "x": 1.58115,
+                                "y": 0.7493
+                            },
+                            "uuid": "fcb89a18-c219-4455-8ba9-014a17b82617"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0254 mm",
+                            "pos": {
+                                "x": 1.58115,
+                                "y": 0.7747
+                            },
+                            "uuid": "c210c2ba-231f-4b78-9217-55f7676469af"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_D2 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.59385,
+                                "y": 0.4191
+                            },
+                            "uuid": "116de61a-878c-48c7-87de-71bf49eaf1b8"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0254 mm",
+                            "pos": {
+                                "x": 1.59385,
+                                "y": 0.4191
+                            },
+                            "uuid": "aa400089-da3d-4b88-9462-707f8759627b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0762 mm",
+                            "pos": {
+                                "x": 1.60655,
+                                "y": 0.7747
+                            },
+                            "uuid": "9829236a-e271-4fcc-9c14-8309ca863f6f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_D1 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.60655,
+                                "y": 0.7747
+                            },
+                            "uuid": "c0bd79dd-b7d6-48e1-80f6-9b818f3ef54e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_D2 [SYM_TP_C_D2]",
+                            "pos": {
+                                "x": 1.61925,
+                                "y": 0.4191
+                            },
+                            "uuid": "7b9a691a-f334-4491-b533-c8089fdc5c9f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_D2 [SYM_TP_C_D2]",
+                            "pos": {
+                                "x": 1.61925,
+                                "y": 0.4191
+                            },
+                            "uuid": "7b9a691a-f334-4491-b533-c8089fdc5c9f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_D2 [SYM_TP_M_D2]",
+                            "pos": {
+                                "x": 1.6256,
+                                "y": 0.5969
+                            },
+                            "uuid": "72839402-6060-45d4-95c8-ac0af4e9747d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_D2 [SYM_TP_M_D2]",
+                            "pos": {
+                                "x": 1.6256,
+                                "y": 0.5969
+                            },
+                            "uuid": "72839402-6060-45d4-95c8-ac0af4e9747d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_D1 [SYM_TP_M_D1]",
+                            "pos": {
+                                "x": 1.63195,
+                                "y": 0.7747
+                            },
+                            "uuid": "0dadc976-25cb-4a93-a016-9c303298c311"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_M_D1 [SYM_TP_M_D1]",
+                            "pos": {
+                                "x": 1.63195,
+                                "y": 0.7747
+                            },
+                            "uuid": "0dadc976-25cb-4a93-a016-9c303298c311"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.1206 mm",
+                            "pos": {
+                                "x": 1.65735,
+                                "y": 0.56515
+                            },
+                            "uuid": "a6f21690-f630-4eb5-a8a5-e05ed20cc3a0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.2032 mm",
+                            "pos": {
+                                "x": 1.65735,
+                                "y": 0.6858
+                            },
+                            "uuid": "9175ee28-6561-4c6e-ac54-5c6132be4876"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.2223 mm",
+                            "pos": {
+                                "x": 1.72085,
+                                "y": 0.9271
+                            },
+                            "uuid": "35f313fb-b377-4dc8-bca4-0d3fd72080ac"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Vertical Wire, length 0.0254 mm",
+                            "pos": {
+                                "x": 1.72085,
+                                "y": 0.9525
+                            },
+                            "uuid": "dfa9c754-db06-4138-b3a1-05cc15ae31b5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_U6 Pin 1 [Passive, Line]",
+                            "pos": {
+                                "x": 1.74625,
+                                "y": 0.9525
+                            },
+                            "uuid": "97e5a1d6-2dc8-434c-9489-66d691a61db9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "Symbol pin or wire end off connection grid",
+                    "items": [
+                        {
+                            "description": "Horizontal Wire, length 0.0254 mm",
+                            "pos": {
+                                "x": 1.74625,
+                                "y": 0.9525
+                            },
+                            "uuid": "ef8c9c23-a928-47f0-9a48-db76fc253f3c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "endpoint_off_grid"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_U6 [SYM_TP_C_U6]",
+                            "pos": {
+                                "x": 1.77165,
+                                "y": 0.9525
+                            },
+                            "uuid": "263c0b3d-2819-4719-a728-da60f440515f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_U6 [SYM_TP_C_U6]",
+                            "pos": {
+                                "x": 1.77165,
+                                "y": 0.9525
+                            },
+                            "uuid": "263c0b3d-2819-4719-a728-da60f440515f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the footprint library 'TestPoint'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_D1 [SYM_TP_C_D1]",
+                            "pos": {
+                                "x": 1.8288,
+                                "y": 0.7747
+                            },
+                            "uuid": "5928d4a4-5d48-43d9-8ab6-fd61dcd69813"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "footprint_link_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol TP_C_D1 [SYM_TP_C_D1]",
+                            "pos": {
+                                "x": 1.8288,
+                                "y": 0.7747
+                            },
+                            "uuid": "5928d4a4-5d48-43d9-8ab6-fd61dcd69813"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                }
+            ]
+        }
+    ],
+    "source": "interposer.kicad_sch"
+}

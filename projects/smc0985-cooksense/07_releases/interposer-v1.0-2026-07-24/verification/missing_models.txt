@@ -1,0 +1,3 @@
+J_MEMBRANE  (10FDZ-BT self-supplied THT: no JLC 3D model attached — hand-solder line; CPL/BOM is population truth)
+J_CN1_JUMPER  (same)
+TP_* pads have no bodies by nature (bare test pads)

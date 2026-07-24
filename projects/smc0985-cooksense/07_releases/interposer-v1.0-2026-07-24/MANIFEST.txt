@@ -1,0 +1,76 @@
+board:        interposer (Board C, project smc0985-cooksense; ADR-0007 multi-board)
+version:      v1.0
+sealed:       2026-07-24 (DESIGN SEAL — fab NOT ordered; see order gates)
+git_sha:      3e37a02                 # the EXACT commit these came from
+git_dirty:    false                   # scope: projects/smc0985-cooksense/ + skills/ (only the staged release dir was pending, carried by the seal commit)
+kicad:        10.0.4
+tools:        03_src/interposer/rebuild_all.sh (deterministic promoted-chain import via the multi-board shadow root; chain 03_src/interposer/route/final_chain.kicad_pcb = race-3 winner c0/r1), /usr/bin/python3 pcbnew
+fab:          JLCPCB, 2 layer, jlc_2layer_default (NO advanced options); 54 x 46 mm, 1.6mm (10FDZ-BT requires 1.6mm)
+quantity:     5 suggested (1 build + G2 fit-trial spares) — NOT ORDERED
+order-gates:  USER-HELD: (1) physical 10FDZ-BT land-pattern/polarization-peg/circuit-1 confirm BEFORE fab order (footprint is eFDZ-datasheet-derived; ORDER_README §0); (2) flex-jumper G1/G2 coupon discipline (separate part)
+gates:        DRC 0/0/0 (--severity-all --refill-zones --schematic-parity) ·
+              M-REPRO rebuild_all.sh re-measured 0/0/0 (drc_repro.json) ·
+              tier_preflight 0 FAIL / 0 WARN · placement P-OUT tightest
+              2.30mm / P-CAP worst ratio 0.07 · ERC 0 errors (102 warnings,
+              converter-cosmetic baseline classes) · count_parity 23 x3 vs
+              manifest · net_label_survival 10/10 · E-INV 50/50 + E-ADR
+              covered (merged two-board view; waiver) · E-TOPO/E-MARGIN/
+              E-OFF N-A BY DESIGN (passive, rails:[]) · audit_board PASS
+              (polarity pad1-net x30, mate-direction, pin-order, isolation
+              = exactly 10 KP_* nets / 0 zones) · policy_audit 0 FAIL
+              (18 PASS / 3 evidence-backed WAIVED / 7 HUMAN via reviews /
+              10 N-A) · twin exit 0 (0 unadjudicated; ROT-DB-SUGGEST
+              informational, fit 0.01mm) · bom_source_check PASS · stock
+              C2683602 = 8587 · reviews: PIN 3xPASS, RENDER PASS (4 P2),
+              red-team lens-a ORDER (2 order-side P1 -> ORDER_README §0/§3),
+              lens-b ORDER (0 P0/P1) · dispositions I1-I9 closed
+              (verification/dispositions.md)
+isolation:    floating keypad domain BY DESIGN: copper nets == the ten
+              KP_U*/KP_D* exactly; 0 zones; no GND/power/chassis net exists
+              (BRIEF §5 / ADR-0009; measured, audit.txt)
+3d:           interposer.step (kicad-cli --subst-models; the two 10FDZ-BT
+              have no vendor model — bodiless, see verification/missing_models.txt)
+
+sha256 of every file (MANIFEST.txt itself excluded — it cannot hash itself):
+94e85ab710c2eb07a3a6836442410247be2752ed2ccd2379a18aa1e4ec19c35e  3d/interposer.step
+467801ebf57156cc9a584781f06d1a091bde8cd819d31d3be1a123357d032754  fab/bom.csv
+83692a1fc4e8822bd421a1aac78bedda0b0bbca28a115e13a6f707e7f392edad  fab/cpl.csv
+e7a9490429d67a3e252d34e26b3ea0bec2e7187c0fcecf8ec8d22a609943b21f  fab/interposer_gerbers.zip
+a99f61f5c10acb1b35969004260f9d2824026c9f898439af2555348d9d0d26b4  fab/interposer-NPTH.drl
+d60081c25ee470094b71e093c6937176064217017350bee2f3de9f9bf134c92b  fab/interposer-PTH.drl
+fcaf3a77eaa08063e4ac0ec64dbd83d77e16ea46ee03d85a078c36b5a13e2825  ORDER_README.md
+702623ae52a9dc6ab828a2e610d559b65c9a336d72ef244a25430d2f0b3cae80  pdf/assembly.pdf
+3778a2c1e766b034b43a34d8d4282f7f2805fc60b5fdeca04c190b0ba5881c13  pdf/pcb_layers.pdf
+207e07d5da4d2a0b890fcc5169d1b925646d9bd13a1757a3ea130fcd5acfc948  pdf/schematic.pdf
+9b555fb3b3aeb2bcef7a0e69cdf34e69859c121862d8d2df013c09f485b468d4  source/cooksense.pretty/JST_10FDZ-BT_1x10_P2.54mm_Vertical_ZIF.kicad_mod
+29b5bfaafc0d232359b05f5ea834ea58c210b895c8ea8f69a17e2580c88ff212  source/cooksense.pretty/Omega_PCC-SMP-K_TypeK_PCpin.kicad_mod
+fcce58d87d3888d66ee832ee2b512fab393bb5c4e56f0d07baf4ad40a3f6d69a  source/cooksense.pretty/Relay_StandexDIP_1A_pinout12.kicad_mod
+c91dcbc0d17eb85cc1058d9483be306d5e31945d7e359ebaea181820d2a601dc  source/cooksense.pretty/TerminalBlock_KF350_2P.kicad_mod
+1244877a14e4fc793d6da1f3e3ce1df66d78464f6225080b71bcc54e4e983e3f  source/fp-lib-table
+2e21eaf2a7f90831848f9bbc9e4cdf880cf6cd91d2038723dee57213a3aa8d14  source/interposer.kicad_pcb
+7e251759d8ddd77a4ab7d4c5e048ad6bbe1da11a9b853ce0b2ee92746d155d24  source/interposer.kicad_sch
+7ccd10c84fb252eae3207163b6741d7c83d85b08be13612b1d5db1e17f604d3a  source/interposer.net
+9836cfd35889977f88b012dcab7d96ad23a7cdab2245b34595e08c658b9de3a6  source/interposer.tsx
+ddd3e212ed306cf011ace0091bd337b123de7bdee7271040cc98e47394c28543  verification/audit.txt
+7abd2c0d260ad05200cc381e59a9afc95bd7283b1aab9ba5bfc7a86c5b0b4594  verification/bom_source_check.txt
+2896708f239afe79c74137b96120f3047eb1a9d3256b8131aa9c6c69bec7a6ba  verification/dispositions.md
+c719bf496cc0086220253d642ded747d60b65eb087a714f8873031b65fa1a82c  verification/drc.json
+4e6a5e362c374e736e26b707bf667720c9edff36d35d8b423532575ff63bc67b  verification/drc_repro.json
+be984417d7417d22f8d4963e1dd274c77c68c73d6d04e8231546ca69430549d4  verification/interposer.erc.json
+389ebe721a51167853a9451d3ac449c5195e3520d7fcb7397165f601c216ea82  verification/missing_models.txt
+3704e30a7f54987c2dfacb0a2f870dc43e7fbda6c1ae0d2319973c066de77477  verification/pin_review.md
+56b68d354f1f807d251c96e23db5da12724e708ba178b7f49c3f76970abe538a  verification/policy_audit.md
+43440adb702a48cb3bc05e442e9ea5ed1de2cfd69a293a9dd5cea8679b16a4ec  verification/redteam_layout.md
+470840400f1386b1f4155f5e36a6ef705e40f88cf6f4885a839668e035e938b0  verification/redteam_topology.md
+253c16670a12fb283b5c3384298d0a338348b4e477c07b975cd12acf2f3e3e85  verification/render_back_bare.png
+040a3c9a22e9ff25f556d7af0b5bccbecd8f8c10829c493e35a7b03ca334f437  verification/render_front_bare.png
+68cbfdd49177368f5ff70bada6ab272219510d3e5b1a11a333c209b975d6f3ca  verification/render_review.md
+2e1c32561a7e2ea08066b9b90f1197465a5c54a8854c9cb13e418e715d59dae7  verification/semantic_battery.txt
+d0d0a93ed1c202b721174fcb722e540d72e1cd343d3e17a43f83b4cfbf622aec  verification/stock_check.txt
+6068fc6f2248f40571c2e778a2a914cc850248de27d9d8fd4edac787f5d82829  verification/twin_bottom.png
+a174c681e3da7d848feaefc7d4a5cc42cf2fffb34b149aa76a222adb3bafcada  verification/twin_edge_east.png
+b14fb28a61b6dc6b07a442c30339a742e6e3331a11ebe9b340ad6cf78a2a130d  verification/twin_edge_west.png
+239965024230200bc9c27e523e7b64461d957252b19b5315351d249381074111  verification/twin_iso_nw.png
+bab15d85e013eb5459e0c6540abf24b273895200cc10211abf76f7f385a6162d  verification/twin_iso_se.png
+beb84198164897091c1524120f46d97f9a9e654816105a2e3b6e352de156bd54  verification/twin_report.csv
+0cc9d2efb22b172d4323f2a066ddf1f72901f462474a4a909103bdd8772b9e5c  verification/twin_top.png

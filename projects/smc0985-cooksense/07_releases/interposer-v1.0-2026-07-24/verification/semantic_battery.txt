@@ -1,0 +1,19 @@
+interposer v1.0 — schematic-gate semantic battery (measured 2026-07-24)
+ERC --severity-all:            0 errors / 102 warnings (classes identical to the
+                               sealed cooksense converter baseline: endpoint_off_grid 56,
+                               footprint_link_issues 23, lib_symbol_issues 23)
+S-NETMERGE net_label_survival: PASS — 10/10 labels survive to the netlist
+E-INV:                         OK — 50/50 invariants hold vs interposer.net
+E-ADR:                         interposer file cites ADR-0009; PROJECT-WIDE coverage
+                               proven on the merged cooksense+interposer invariants view:
+                               "E-ADR OK: every protection/topology ADR is cited"
+                               (per-board split = ADR-0007; waiver in policy_waivers.yaml)
+E-TOPO / E-MARGIN / E-OFF:     N-A BY DESIGN — rails: [] (passive board, no power;
+                               source_type external scan signals; BRIEF fact-lock)
+S-COUNT count_parity:          ok x3 — circuit.json == kicad_sch == netlist == manifest
+                               (23 components; single-board shadow tree run)
+converter-vs-tscircuit parity: 0 node diffs (scripted per-net member-set compare,
+                               10 nets x 5 nodes)
+bom_source_check --circuit-only: PASS
+netlist:                       10 nets (KP_U1..U6, KP_D1..D4) x 5 nodes = 50 nodes;
+                               J_KEY_MATRIX MP tabs in NO net (floating, by design)

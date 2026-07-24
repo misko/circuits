@@ -1,0 +1,5 @@
+2 BOM lines: 1 with LCSC, 1 without
+
+  OK               C2683602   x1   C2683602                               expand stock=8587
+
+PASS: 0 coded lines with problems; 1 lines still uncoded

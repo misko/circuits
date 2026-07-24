@@ -54,3 +54,13 @@ isolation-comb review — see verification/fresh_lens.md.
 NEW in ORDER_README: relay-coupling bench measurement (U+D+PRESS triple
 energize, adjacent-relay operate-voltage shift) — a clean result licenses a
 future <15.24mm-pitch or two-row revision.
+
+## interposer-v1.0-2026-07-24 (Board C DESIGN SEAL — fab NOT ordered)
+
+First release of the passive keypad interposer (ADR-0009 Path A: rigid board,
+two self-supplied JST 10FDZ-BT top-entry ZIFs, GH breakout 1:1 to the main
+board's J_KEY_MATRIX, 20 labeled TPs, floating keypad domain — no GND).
+54x46mm 2-layer jlc_2layer_default. All gates green (DRC 0/0/0 + M-REPRO,
+policy 0 FAIL, PIN/RENDER/2 red-team lenses: ORDER). USER-HELD order gates:
+physical 10FDZ-BT land-pattern confirm (datasheet-derived footprint) and the
+flex-jumper G1/G2 coupon (separate part). Source commit S = 3e37a02.

@@ -1,0 +1,3 @@
+BOM-vs-source: 06_build/interposer/fab/bom_jlc.csv
+  source: 03_tscircuit/build/interposer.circuit.json (1 coded refdes); vendored: 35 part.yaml codes; ledger: 135 vetted passive codes
+BOM SOURCE CHECK: PASS (every BOM LCSC == source)
