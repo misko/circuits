@@ -637,3 +637,18 @@ NOT yet rebuilt. All other source staged. No git touched.
   header). Final per its own rule: ORDER-OK-WITH-NOTES. Addendum in fresh_lens.md.
 - next: 2-commit seal (source S -> MANIFEST stamp + M-REL + freshness -> seal commit
   + CHANGELOG). git check-ignore sweep LAST.
+
+## 2026-07-23 ~21:05 — SEAL (board lead session 3)
+- did: 2-commit seal executed per the 07_releases contract. Source commit S=8940715
+  (release_git_dirty: clean apart from the staged dir). MANIFEST stamped git_sha=S,
+  git_dirty:false, sha256 x40 files. policy_audit --skip-drc re-clear exit 0
+  (M-REL N-A: known v* glob gap for ADR-0007 per-board names — same as sealed
+  crow-recorder-central-v2 v1.0; background task chip filed to fix the glob +
+  known-bad fixture). release_freshness_check PASS. git check-ignore sweep over
+  the archive: 0 ignored files (the 04_kicad *.kicad_prl/*.failed droppings are
+  ignored OUTSIDE the archive, as designed). Seal commit efb3cf3 adds ONLY the
+  release dir + new 01_docs/CHANGELOG.md. Post-seal re-measure: 40/40 MANIFEST
+  hashes verify, sealed drc.json 0/0/0.
+- result: cooksense-v1.0-2026-07-23 SEALED and IMMUTABLE.
+- open: INTERPOSER Board C deferred (coupon-gated); M-REL glob gap chip pending;
+  ORDER_README order-day stock recheck before upload.
