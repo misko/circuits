@@ -252,6 +252,14 @@ stitch:
       # inside each 3.43mm-wide tab, >0.65mm hole gap.
       - {net: GND, vias: [[16.610, 59.720], [17.460, 59.720]]}
       - {net: GND, vias: [[27.390, 59.720], [28.240, 59.720]]}
+      # C_ULNB.2 (GND) sits at y51.6 — NORTH of the plane band (y>=53), the one
+      # decoupler the comb geometry strands: no In1 under it, astar window-6
+      # exhausted (ULN pad columns fence the south path). Measured stub
+      # (2026-07-24): 0.3 F.Cu feeder due south + via at the plane-band edge
+      # (183.5,53.3) — path clearance 0.88mm, hole gap 2.75mm; via bonds In1.
+      - {net: GND, pin: C_ULNB.2,
+         segments: [{layer: F.Cu, width: 0.30, pts: [[183.475, 51.6], [183.5, 51.6], [183.5, 53.3]]}],
+         vias: [[183.5, 53.3]]}
       # U_EXP.9 (MCP23017 VDD, 3V3) stub RETIRED (v1.1, 2026-07-24). The v1.0
       # deterministic via-in-pad existed because the 252mm placement left
       # pad_rescue unable to serve the plane-fed pad (nearest 3V3 copper 6mm

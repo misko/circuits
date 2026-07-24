@@ -679,3 +679,18 @@ NOT yet rebuilt. All other source staged. No git touched.
   dangling-GND-via prune (runs on the final fill state, generic criteria:
   no touching track, not via-in-pad, <2 filled-zone layers).
 - next: reuse rebuild -> DRC gate; then M-REPRO.
+
+## 2026-07-24 09:50 — iterate 3 (v1.1)
+- did: iterate-2 measured 6V/3U: C_WD relocation SHORTED MCU_RELAY_ENABLE and
+  its vacated spot swallowed R_MR (legalizer RIPPLE — chain-vs-board footprint
+  diff showed exactly 3 movers). 6b prune removed 0: bbox-containment kept 3
+  useless In1-only vias inside J_PI THT pad bboxes. Fixes: C_WD -> measured
+  open copper (153.9,75.8; 1.8mm clear); R_MR PINNED at chain pos (151.5,77);
+  6b via-in-pad test made circular; C_ULNB.2 measured seed stub (feeder south,
+  via 183.5,53.3 at the plane-band edge, 0.88mm clear). C_SWB.2 is FULLY
+  FENCED on F.Cu in this realization (3-segment feeder search to 8 nearby GND
+  vias: NONE >0.03mm) — only a routing re-roll can open it.
+- result: config committed; --reroute race 3 relaunched (placement is
+  deterministic; only routed copper re-rolls).
+- next: gate race 3; if C_SWB-class strandings persist across realizations,
+  D-BACK to the analog-SW placement.

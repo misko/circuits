@@ -203,7 +203,13 @@ placement:
     # Both caps carry ONLY plane nets (3V3+GND), so moving them is promoted-
     # chain-safe. I-PROX still met: C_SR1-U_SR1 6.5<=7.0, C_WD-U_WD 4.0<=5.0.)
     C_SR1: [95.0, 81.5]
-    C_WD:  [152.5, 84.0]
+    # C_WD (152.5,84) shorted the routed MCU_RELAY_ENABLE track and its vacated
+    # spot swallowed R_MR (routed WD_MR_N) — the legalizer RIPPLES: any floating
+    # part's move can displace routed neighbours. Fix (measured, 2026-07-24):
+    # C_WD to grid-searched open copper (1.8mm clear, 4.65mm from U_WD <= 5.0
+    # I-PROX), R_MR PINNED at its promoted-chain position.
+    C_WD:  [153.9, 75.8]
+    R_MR:  [151.5, 77.0]
     # expander reset R + I2C bus Rs, WEST of U_EXP (keep clear of its SOUTH
     # escape corridor x135.3..144.7 — the near-U_EXP pattern alone dropped
     # R_BID1 into the corridor, DRC items_not_allowed 2026-07-24)

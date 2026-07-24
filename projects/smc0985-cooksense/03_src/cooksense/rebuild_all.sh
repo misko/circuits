@@ -97,8 +97,13 @@ for v in [t for t in b.GetTracks() if t.GetClass() == "PCB_VIA"]:
            (t.GetEnd() - pos).EuclideanNorm() < vr + t.GetWidth()//2 + 1000
            for t in tracks):
         continue
-    # keep if inside a same-net pad (via-in-pad)
-    if any(p.GetNetname() == "GND" and p.GetBoundingBox().Contains(pos) for p in pads):
+    # keep if a TRUE via-in-pad: barrel inside the pad COPPER (circular test —
+    # bbox containment kept 3 useless In1-only vias that sat inside big J_PI
+    # THT pad bboxes without touching the pad, 2026-07-24)
+    def _in_pad(p):
+        d = (p.GetPosition() - pos).EuclideanNorm()
+        return d + vr <= min(p.GetSizeX(), p.GetSizeY()) // 2 + 1000
+    if any(p.GetNetname() == "GND" and _in_pad(p) for p in pads):
         continue
     # count layers whose FILLED same-net zone contains the via centre
     nlay = 0
