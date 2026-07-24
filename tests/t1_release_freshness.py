@@ -402,6 +402,74 @@ def t_docs_only_draft_readme_still_bites():
                  "the draft README did change vs the prior — only (c) fires")
 
 
+# ----------------- board-prefixed release names (the _version_key silent skip)
+# Found 2026-07-24: _version_key matched only names STARTING with 'v', so
+# every board-prefixed release (cooksense-v1.1-…, crow-mic-pod-v2-v1.0-…,
+# crow-recorder-central-v2-v1.0-…, interposer-v1.0-…) had NO predecessors and
+# the stale-artifact check (a) silently never ran on it — the same
+# silent-skip class as the M-REL glob bug. RED-VERIFIED (pre-fix run,
+# 2026-07-24): against the pre-fix script, the t_prefixed_stale fixture
+# below (board-prefixed v1.1 shipping v1.0's exact pdf bytes) exited 0 /
+# "FRESHNESS: PASS"; after the _version_key fix it FAILS with the STALE
+# finding. A gate that cannot fail is worthless.
+def prefixed_release(root, name, *, pdf_tag, gerber_tag=None):
+    d = root / name
+    for sub in ("pdf", "fab", "verification"):
+        (d / sub).mkdir(parents=True, exist_ok=True)
+    (d / "pdf" / "assembly.pdf").write_bytes(_blob(pdf_tag))
+    (d / "fab" / "demo_gerbers.zip").write_bytes(
+        _blob(gerber_tag or f"gerber-{name}"))
+    (d / "verification" / "policy_audit.md").write_text(_AUDIT_PASS)
+    (d / "MANIFEST.txt").write_text(_MANIFEST_PASS.format(ver=name))
+    (d / "ORDER_README.md").write_text(_README_FINAL.format(ver=name))
+    return d
+
+
+@test("_version_key: a BOARD-PREFIXED release shipping a prior release's "
+      "exact pdf bytes now FAILS check (a) — pre-fix it silently passed "
+      "(dir names not starting with 'v' had no predecessors)",
+      kind="known_bad")
+def t_prefixed_stale():
+    root = tmpdir("relfresh_prefix_")
+    prefixed_release(root, "demoboard-v1.0-2026-07-23", pdf_tag="asm-1.0")
+    d2 = prefixed_release(root, "demoboard-v1.1-2026-07-24",
+                          pdf_tag="asm-1.0")   # STALE: v1.0's exact bytes
+    r = must_fail(gate(d2), "board-prefixed stale pdf must block", "STALE")
+    contains(r.out, "assembly.pdf", "names the stale file")
+    contains(r.out, "demoboard-v1.0-2026-07-23", "names the predecessor")
+    # RED-VERIFY (i): neuter only the stale check -> passes.
+    rr = gate(d2, "--_disable-stale")
+    check(rr.rc == 0,
+          f"red-verify: with the stale check neutered the prefixed-stale "
+          f"fixture must pass, got rc={rr.rc}\n{rr.out}")
+
+
+@test("_version_key: a board whose NAME ends in -v2 "
+      "(crow-recorder-central-v2-v1.0 shape) parses the LAST v-token as the "
+      "release version — its prefixed v1.1 still catches a stale artifact",
+      kind="known_bad")
+def t_prefixed_vN_board_name():
+    root = tmpdir("relfresh_v2name_")
+    prefixed_release(root, "demo-central-v2-v1.0-2026-07-23", pdf_tag="a")
+    d2 = prefixed_release(root, "demo-central-v2-v1.1-2026-07-24",
+                          pdf_tag="a")         # STALE
+    r = must_fail(gate(d2), "v2-suffixed board name must still compare",
+                  "STALE")
+    contains(r.out, "demo-central-v2-v1.0-2026-07-23", "right predecessor")
+
+
+@test("_version_key: two DIFFERENT boards sharing one 07_releases/ root "
+      "(cooksense-* + interposer-*) are never cross-compared — an "
+      "interposer file identical to a cooksense file is not stale")
+def t_prefixed_no_cross_board():
+    root = tmpdir("relfresh_xboard_")
+    prefixed_release(root, "cooksense-v1.0-2026-07-23", pdf_tag="shared")
+    d2 = prefixed_release(root, "interposer-v1.0-2026-07-24",
+                          pdf_tag="shared")    # same bytes, DIFFERENT board
+    r = must_pass(gate(d2), "different board prefix is not a predecessor")
+    not_contains(r.out, "STALE", "no cross-board stale finding")
+
+
 # --------------------------- (d) MANIFEST SELF-CONSISTENCY
 # crow-recorder-central-v2 v1.0 (2026-07-23): the MANIFEST's prose gate
 # summary disagreed with its OWN shipped evidence three ways (ERC warning
