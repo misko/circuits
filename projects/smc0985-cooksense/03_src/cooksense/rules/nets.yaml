@@ -41,6 +41,19 @@ classes:
     routing: KRT; sourced only via the gated FET
     verify: DRC floor + E-INV coil-rail-through-gate series_chain (ADR-0002)
 
+  STOP_RAIL:
+    intent: >
+      ALWAYS-AVAILABLE K_STOP coil rail (v1.2, ADR-0011 §4): 5V_PROTECTED ->
+      R_STOPRAIL 0R -> 5V_STOP -> K_STOP coil, dedicated 2N7002 low-side driver.
+      Deliberately NOT gated by the AND-chain — the STOP relay must survive the
+      very faults (WD/TEMP/latch) that kill 5V_KEY_RELAY. One coil, ~10mA.
+    nets: [5V_STOP]
+    current: 0.02A
+    min_width: 0.4mm
+    clearance: 0.12mm
+    routing: KRT
+    verify: DRC floor + E-INV K_STOP-coil-on-5V_STOP + series_chain (ADR-0011)
+
   PWR_3V3:
     intent: AMS1117-3.3 linear 3V3 digital + ferrite-split 3V3_ANALOG (ADC ref / thermistor bias).
     nets: [3V3, 3V3_ANALOG]

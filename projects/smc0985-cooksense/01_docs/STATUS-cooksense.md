@@ -1,9 +1,9 @@
 # STATUS beacon — cooksense MAIN board (live head; overwritten each transition)
 <!-- reader parses from here down -->
-stage:   SEALED
-step:    "cooksense-v1.1-2026-07-24 SEALED (seal b064f98, source S d41819a). 188x92 rot0 isolation comb; all gates green; fresh lens ORDER 0 P0/0 P1/6 P2. v1.0 carries SUPERSEDED.md. Release dir IMMUTABLE."
-measure: "MANIFEST 40 files both-directions OK; DRC 0/0/0 + M-REPRO; I-ISO 6.12mm (lens 6.120 independent); freshness PASS"
-state:   done
+stage:   v1.2-ELECTRICAL
+step:    "v1.2 electrical-correction release IN PROGRESS (external review priorities 1-7; v1.1 mechanical comb RETAINED). Pi/RP1 I2C map VERIFIED against RP1 datasheet + kernel overlay sources (GPIO4/5=I2C2 SDA/SCL, GPIO14/15=I2C3 SDA/SCL, GPIO2/3=I2C1). NTC = existing 02_parts KNTC0603/10KF3950. One-shot swap: CD74HC221M96 (TI SOIC-16, LCSC C133954, stock 2542, non-retriggerable per SCHS166F) — part.yaml written."
+measure: "RP1 DS fsel table rows extracted (GPIO4=I2C2_SDA GPIO5=I2C2_SCL GPIO14=I2C3_SDA GPIO15=I2C3_SCL); HC221 DS sha256 30c3cd71"
+state:   running
 op_pid:  none
-next:    "ORDER per 07_releases/cooksense-v1.1-2026-07-24/ORDER_README.md (order-day stock recheck + slot/via preview confirms + relay-coupling bench measurement on the built board). INTERPOSER Board C remains DEFERRED."
-updated: 2026-07-24T02:42:54
+next:    "author BRIEF D10 + ADR-0010/0011 + DETAIL_DESIGN + pin_map, then tsx edits + E-INV, then schematic gate"
+updated: 2026-07-24T13:30

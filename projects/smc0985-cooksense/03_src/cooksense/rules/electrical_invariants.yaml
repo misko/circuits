@@ -37,18 +37,18 @@ invariants:
     why: "the eFuse fault flag rides the HONESTLY-NAMED net EFUSE_FLT_N (renamed from PWR_GOOD_N, pin review Q1 2026-07-23: FLT_N is LOW=fault i.e. HIGH=power-good, so a _N power-good name inverted the sense; consumers are software-read only — R_PG pullup, TP_PGOOD, expander GPA0)"
 
   - assert: net_has_part
-    net: DECU_G1
+    net: DECU_G1_RAW
     part_type: resistor
     min: 1
     adr: 0006
-    why: "the U-decoder's active-HIGH E3 enable has a pull-DOWN (pin review Q4 2026-07-23): when SR_OE_N tri-states the 595s the enable would float — out-of-spec for 74HC238D inputs and a phantom-select hazard into the ULN; a pulled-low E3 disables all outputs regardless of floating addresses"
+    why: "the U-decoder's enable REQUEST line has a pull-DOWN (pin review Q4 2026-07-23; v1.2 moved it to the RAW net, ADR-0011 §5b): when SR_OE_N tri-states the 595s it is the RAW net that floats — out-of-spec for CMOS inputs and a phantom-select hazard; the gated DECU_G1 is driven push-pull by U_DECUEN and cannot float"
 
   - assert: net_has_part
-    net: DECD_G1
+    net: DECD_G1_RAW
     part_type: resistor
     min: 1
     adr: 0006
-    why: "the D-decoder's active-HIGH E3 enable has a pull-DOWN — same phantom-select hazard closure as DECU_G1 (pin review Q4 2026-07-23)"
+    why: "the D-decoder's enable REQUEST line has a pull-DOWN — same phantom-select hazard closure as DECU_G1_RAW (v1.2: moved to the RAW net, ADR-0011 §5b)"
 
   - assert: net_has_part
     net: EF_OVLO
@@ -84,10 +84,10 @@ invariants:
     why: "the coil-rail switch driver Q_COILDRV is gated by COIL_EN = KEY_RELAY_ALLOWED THROUGH the Manual/Auto DPDT pole A (physical MANUAL rail cut, brief §3)"
 
   - assert: pin_on_net
-    pin: "U_ONESHOT.5"                 # SN74LVC1G123 pad5 = Q
+    pin: "U_ONESHOT.13"                # CD74HC221 pad13 = 1Q (v1.2, ADR-0011 §6)
     net: PRESS_TIMED
     adr: 0002
-    why: "the retriggerable one-shot Q output is PRESS_TIMED — the hardware ~390ms (<=500ms) PRESS cap (flag 1), independent of the Pi"
+    why: "the one-shot Q output is PRESS_TIMED — the hardware <=436ms worst-case (<500ms) PRESS cap, independent of the Pi; v1.2 swapped the RETRIGGERABLE 1G123 for the NON-retriggerable CD74HC221 so the cap is a HARD bound"
 
   - assert: pin_on_net
     pin: "U_ULNB.3"                    # ULN2803 #B pad3 = IN3 (K_PRESS channel input)
@@ -119,3 +119,224 @@ invariants:
     through: {K_PRESS: [4, 3]}         # DIP05 tsx pad4=CONTACT_A (U side) -> pad3=CONTACT_B (RKEY side)
     adr: 0006
     why: "K_PRESS bridges the selected U bus to the selected D bus THROUGH the RKEY solder-select resistor (0R default, field 0/22/47/100/220/470/1k) — the emulation-resistance path of the matrix selector (T1)"
+
+  # ===== ADR-0010 — Pi 5 native-I2C pin map (v1.2, review F1) ====================
+  # Every I2C net pinned to its VERIFIED header pin (RP1 datasheet fsel table +
+  # kernel i2c*-pi5 overlays, 2026-07-24). A silent remap fails the schematic gate.
+  - assert: pin_on_net
+    pin: "J_PI.3"                      # phys 3 = GPIO2 = I2C1_SDA
+    net: I2C_SDA
+    adr: "0010"
+    why: "MCP23017 control bus on I2C1 SDA (GPIO2, the arm I2C default)"
+  - assert: pin_on_net
+    pin: "J_PI.5"                      # phys 5 = GPIO3 = I2C1_SCL
+    net: I2C_SCL
+    adr: "0010"
+    why: "MCP23017 control bus on I2C1 SCL (GPIO3)"
+  - assert: pin_on_net
+    pin: "J_PI.7"                      # phys 7 = GPIO4 = I2C2_SDA
+    net: SDA_A
+    adr: "0010"
+    why: "bus A (cam A 0x33 + ambient SHT45 0x44) SDA on the RP1 I2C2 SDA pin"
+  - assert: pin_on_net
+    pin: "J_PI.29"                     # phys 29 = GPIO5 = I2C2_SCL
+    net: SCL_A
+    adr: "0010"
+    why: "bus A SCL on the RP1 I2C2 SCL pin (this pin was KEY_DATA in <=v1.1)"
+  - assert: pin_on_net
+    pin: "J_PI.8"                      # phys 8 = GPIO14 = I2C3_SDA
+    net: SDA_B
+    adr: "0010"
+    why: "bus B (cam B 0x33 + exhaust SHT45 0x44) SDA on the RP1 I2C3 SDA pin (dtoverlay i2c3-pi5,pins_14_15; UART0 console disabled)"
+  - assert: pin_on_net
+    pin: "J_PI.10"                     # phys 10 = GPIO15 = I2C3_SCL
+    net: SCL_B
+    adr: "0010"
+    why: "bus B SCL on the RP1 I2C3 SCL pin"
+  - assert: pin_on_net
+    pin: "J_PI.36"                     # phys 36 = GPIO16 (no I2C/boot function)
+    net: KEY_DATA
+    adr: "0010"
+    why: "KEY_DATA re-homed off GPIO5/phys29 (now bus A SCL) onto a plain GPIO"
+  - assert: pin_on_net
+    pin: "J_PI.37"                     # phys 37 = GPIO26 (no I2C function)
+    net: STOP_REQ
+    adr: "0010"
+    why: "STOP_REQ is a DIRECT Pi GPIO (ADR-0011 §5): it must not sit behind the frozen KEY_LATCH or a tri-stated 595"
+  - assert: pin_on_net
+    pin: "J_RH_AMBIENT.3"
+    net: SDA_A
+    adr: "0010"
+    why: "the ambient SHT45 pod SHARES bus A with camera A (addresses 0x33/0x44 disjoint) — the RH nets SDA_RHA/SCL_RHA are deleted"
+  - assert: pin_on_net
+    pin: "J_RH_EXHAUST.3"
+    net: SDA_B
+    adr: "0010"
+    why: "the exhaust SHT45 pod SHARES bus B with camera B"
+
+  # ===== ADR-0011 — v1.2 safety-chain corrections (reviews F2/F3/F4/F5) ==========
+  - assert: pin_on_net
+    pin: "U_FAULTAND.6"                # 1G11 pad6 = C input
+    net: TEMP_OK
+    adr: "0011"
+    why: "TEMP_OK is IN the fault-latch SET condition (was tied N3V3 in <=v1.1): a thermal trip LATCHES until temps drop + manual re-arm, it cannot silently self-clear"
+  - assert: pin_on_net
+    pin: "U_CAND2.4"                   # 1G11 pad4 = Y
+    net: CONTACTOR_DRV
+    adr: "0011"
+    why: "the contactor opto LED is driven by the GATED CONTACTOR_DRV, not raw CONTACTOR_REQ"
+  - assert: pin_on_net
+    pin: "R_OPTOLED.1"
+    net: CONTACTOR_DRV
+    adr: "0011"
+    why: "the LED series resistor hangs off the gate output — CONTACTOR_REQ alone can no longer light the opto"
+  - assert: pin_on_net
+    pin: "U_CAND1.1"
+    net: WD_OK
+    adr: "0011"
+    why: "contactor permission requires WD_OK (hardware)"
+  - assert: pin_on_net
+    pin: "U_CAND1.3"
+    net: ESTOP_OK
+    adr: "0011"
+    why: "contactor permission requires ESTOP_OK (redundant with the physical contact-B loop break)"
+  - assert: pin_on_net
+    pin: "U_CAND1.6"
+    net: TEMP_OK
+    adr: "0011"
+    why: "contactor permission requires TEMP_OK — a thermal fault now drops the external contactor in hardware (review F3b's core demand)"
+  - assert: pin_on_net
+    pin: "U_CAND2.3"
+    net: FAULT_LATCH_CLEAR
+    adr: "0011"
+    why: "a LATCHED fault holds contactor permission off until manual re-arm"
+  - assert: pin_on_net
+    pin: "K_STOP.1"                    # DIP05 tsx pad1 = COIL_A (+)
+    net: 5V_STOP
+    adr: "0011"
+    why: "K_STOP's coil rides the ALWAYS-AVAILABLE 5V_STOP rail, NOT the fault-gated 5V_KEY_RELAY — the one relay that answers a fault must survive the fault (review F3c). Asserting the pin ON 5V_STOP also proves it is NOT on the key-relay rail"
+  - assert: series_chain
+    chain: [5V_PROTECTED, R_STOPRAIL, 5V_STOP]
+    adr: "0011"
+    why: "5V_STOP derives from 5V_PROTECTED through its own link — present whenever the board is powered, gated by nothing"
+  - assert: pin_on_net
+    pin: "Q_STOPDRV.1"                 # 2N7002 pad1 = GATE
+    net: STOP_REQ
+    adr: "0011"
+    why: "K_STOP has a DEDICATED driver from STOP_REQ (not a ULN channel whose COM/flyback sits on the switched key rail)"
+  - assert: pin_on_net
+    pin: "U_ONESHOT.3"                 # CD74HC221 pad3 = 1R_N (reset)
+    net: OS_CLR_N
+    adr: "0011"
+    why: "the PRESS one-shot clear is the GATED OS_CLR_N = DOOR_OK · STOP_REQ_N — STOP preemption clears an in-flight press (was DOOR_OK only in <=v1.1, review F4)"
+  - assert: pin_on_net
+    pin: "U_OSCLR.1"
+    net: DOOR_OK
+    adr: "0011"
+    why: "door-open still aborts the press (brief §3: open => abort, release PRESS)"
+  - assert: pin_on_net
+    pin: "U_OSCLR.3"
+    net: STOP_REQ_N
+    adr: "0011"
+    why: "STOP_REQ (inverted) is the second clear condition"
+  - assert: pin_on_net
+    pin: "U_DECUEN.4"
+    net: DECU_G1
+    adr: "0011"
+    why: "the U-decoder enable passes through the STOP gate: DECU_G1 = DECU_G1_RAW · STOP_REQ_N — STOP force-disables the U selector"
+  - assert: pin_on_net
+    pin: "U_DECDEN.4"
+    net: DECD_G1
+    adr: "0011"
+    why: "the D-decoder enable passes through the STOP gate — STOP force-disables the D selector"
+  - assert: pin_on_net
+    pin: "U_LATCHG.4"
+    net: KEY_LATCH_G
+    adr: "0011"
+    why: "the 595 RCLK is the FROZEN latch KEY_LATCH_G = KEY_LATCH · PRESS_TIMED_N: selector addresses cannot change while K_PRESS is closed (review F5b)"
+  - assert: pin_on_net
+    pin: "U_SR1.12"                    # 595 pad12 = RCLK
+    net: KEY_LATCH_G
+    adr: "0011"
+    why: "the register latches ONLY through the freeze gate"
+  - assert: pin_on_net
+    pin: "U_ONESHOT.4"                 # CD74HC221 pad4 = 1Q_N
+    net: PRESS_TIMED_N
+    adr: "0011"
+    why: "PRESS_TIMED_N comes from the one-shot's own Q-bar — the freeze window is exactly the press window by construction"
+  # --- §7 deterministic pulls, with DIRECTION proven by the resistor's far pin ---
+  - assert: pin_on_net
+    pin: "R_HOSTAUTHPD.2"
+    net: GND
+    adr: "0011"
+    why: "HOST_AUTH pulls DOWN (authorization false) while the Pi is un-driven"
+  - assert: pin_on_net
+    pin: "R_HOSTAUTHPD.1"
+    net: HOST_AUTH
+    adr: "0011"
+    why: "the pull-down actually sits on HOST_AUTH"
+  - assert: pin_on_net
+    pin: "R_MCUENPD.1"
+    net: MCU_RELAY_ENABLE
+    adr: "0011"
+    why: "MCU_RELAY_ENABLE pulled down — AND-chain false + SR_OE_N high at boot"
+  - assert: pin_on_net
+    pin: "R_MCUENPD.2"
+    net: GND
+    adr: "0011"
+    why: "direction: DOWN"
+  - assert: pin_on_net
+    pin: "R_KRSTPD.1"
+    net: KEY_RESET_N
+    adr: "0011"
+    why: "KEY_RESET_N pulled down = SRCLR asserted: registers held CLEARED during Pi boot (was noted as floating in the v1.1 order instructions)"
+  - assert: pin_on_net
+    pin: "R_KRSTPD.2"
+    net: GND
+    adr: "0011"
+    why: "direction: DOWN"
+  - assert: pin_on_net
+    pin: "R_RAENAPD.1"
+    net: RAIL_EN_A
+    adr: "0011"
+    why: "sensor rail A enable pulled down (rail off) while the expander is in reset"
+  - assert: pin_on_net
+    pin: "R_RAENBPD.1"
+    net: RAIL_EN_B
+    adr: "0011"
+    why: "sensor rail B enable pulled down"
+  - assert: pin_on_net
+    pin: "R_RAENRHAPD.1"
+    net: RAIL_EN_RHA
+    adr: "0011"
+    why: "RH-A rail enable pulled down"
+  - assert: pin_on_net
+    pin: "R_RAENRHEPD.1"
+    net: RAIL_EN_RHE
+    adr: "0011"
+    why: "RH-E rail enable pulled down"
+  - assert: pin_on_net
+    pin: "R_CTRREQPD.1"
+    net: CONTACTOR_REQ
+    adr: "0011"
+    why: "CONTACTOR_REQ pulled down — contactor request false while the expander is un-driven"
+  - assert: pin_on_net
+    pin: "R_CTRREQPD.2"
+    net: GND
+    adr: "0011"
+    why: "direction: DOWN"
+  - assert: pin_on_net
+    pin: "R_STOPPD.1"
+    net: STOP_REQ
+    adr: "0011"
+    why: "STOP_REQ pulled down — STOP relay open, decoders/one-shot ungated at boot"
+  - assert: pin_on_net
+    pin: "R_REARMPU.1"
+    net: REARM_N
+    adr: "0011"
+    why: "REARM_N pulled UP — a floating re-arm line must NOT clear the fault latch (REARM_N is active-low)"
+  - assert: pin_on_net
+    pin: "R_REARMPU.2"
+    net: 3V3
+    adr: "0011"
+    why: "direction: UP (to 3V3) — the one pull whose direction inverts the others'"

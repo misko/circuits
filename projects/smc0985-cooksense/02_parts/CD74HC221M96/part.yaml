@@ -1,0 +1,71 @@
+mpn: CD74HC221M96
+manufacturer: Texas Instruments
+type: monostable_multivibrator_nonretriggerable   # DUAL one-shot, NON-retriggerable —
+                              # the whole reason this part exists on v1.2: the SN74LVC1G123
+                              # it replaces is RETRIGGERABLE (TI: up to 100% duty), so the
+                              # claimed <=500ms PRESS bound was not a hard bound
+                              # (external review F5, v1.2 priority 6 / ADR-0011).
+datasheet:
+  doc_id: SCHS166
+  revision: SCHS166F
+  url: https://www.ti.com/lit/ds/symlink/cd74hc221.pdf
+  sha256: 30c3cd71497774eb41f5cfe83da9e24fe66ecbe0c2f072d78163e8e9633453ca
+  fetched: 2026-07-24
+  local: SCHS166F.pdf
+package: SOIC-16 (D, 3.9mm body)
+footprint: Package_SO:SOIC-16_3.9x9.9mm_P1.27mm   # same land as SN74HC595DR/SN74HC238DR
+escape: {style: leaded, pitch: 1.27, tier_required: jlc_2layer_default, checked: escape_check 2026-07-24}
+pins:                       # DS p.1 Pinout (PDIP/SOIC top view) — '221 standard pinout
+  1: 1A_N     # section 1 trailing-edge trigger (active-low). Tie GND: B-only triggering
+  2: 1B       # section 1 leading-edge trigger, SCHMITT input — PRESS_REQ
+  3: 1R_N     # section 1 reset (active-low): LOW terminates/blocks the pulse — OS_CLR_N
+  4: 1Q_N     # section 1 Q-bar — PRESS_TIMED_N (latch-freeze + lockout logic)
+  5: 2Q       # section 2 Q (unused)
+  6: 2CX      # section 2 Cext (unused — leave open)
+  7: 2CXRX    # section 2 Rext/Cext (unused — 10k to VCC, never hard-tie the RC node)
+  8: GND
+  9: 2A_N     # tie N3V3 (blocks section-2 trigger)
+  10: 2B      # tie GND
+  11: 2R_N    # tie GND (section 2 held in reset)
+  12: 2Q_N    # unused
+  13: 1Q      # section 1 Q — PRESS_TIMED
+  14: 1CX     # section 1 Cext
+  15: 1CXRX   # section 1 Rext/Cext (timing node: Rx to VCC, Cx between 14-15)
+  16: VCC
+limits: {vcc: "2-6V", t_op: "-55..125C", rx: "typ 1k-1M per DS curves"}
+gotchas:
+  - "NON-RETRIGGERABLE is the load-bearing property: DS p.1 'Once triggered, the outputs
+    are independent of further trigger inputs on A and B.' Repeated Pi edges on 1B during
+    a pulse CANNOT stretch PRESS_TIMED (unlike the '123/'1G123 class it replaces)."
+  - "tw = K*Rx*Cx; K = 0.7 at VCC=4.5V (DS p.1), Figure 6 shows K rising to ~0.75 toward
+    3V. Design: Rx=510k, Cx=1uF -> tw ~ 357-383ms nominal; worst-case high (K=0.77,
+    R+1%, C+10% X5R) ~ 436ms < 500ms hard bound. See DETAIL_DESIGN 'PRESS one-shot'."
+  - "RESET-AS-TRIGGER caveat (Truth Table Note 1/3): with A_N low and B high, a LOW->HIGH
+    transition on R_N TRIGGERS one bounded pulse. Consequence here: if the Pi holds
+    PRESS_REQ high while a STOP/door abort releases (OS_CLR_N rises), ONE bounded ~380ms
+    press can re-fire. Bounded and one-hot, accepted + documented (ADR-0011); software
+    must drop PRESS_REQ on abort."
+  - "Q is LOW at power-up until first valid trigger — relays locked out until the Pi
+    deliberately pulses PRESS_REQ (same safe-boot property the 1G123 had)."
+  - "Unused section 2: 2A_N=VCC, 2B=GND, 2R_N=GND (held reset), 2Q/2Q_N open, 2CX open,
+    2CXRX pulled to VCC via 10k (an RC I/O node — never hard-tie to a rail)."
+verified: "pin map from DS p.1 Pinout (CD74HC221 PDIP/SOIC top view) + Functional Diagram
+  pin numbers (1CX=14, 1CXRX=15, 1Q=13, 1Q_N=4); non-retriggerable statement + tw formula
+  from DS p.1; truth table + Note 1 (reset-triggering) from DS p.2 — SCHS166F, 2026-07-24"
+layout:
+  source: "SCHS166F Typical Application (Rx from CXRX to VCC, Cx between CX and CXRX);
+    generic HC bypass practice (100nF at VCC)"
+  reviewed: "2026-07-24"
+  keep_short:
+    - {net: OS_RC, max_span_mm: 8, why: "one-shot timing node 1CX(14)/1CXRX(15): Rx+Cx
+       directly at pins 14/15 — an RC I/O node that must not be pulled to a rail; large
+       510k impedance makes it noise-sensitive"}
+    - {net: N3V3, max_span_mm: 5, why: "100nF VCC(16)-GND(8) bypass tight to package"}
+  notes: "SOIC-16 1.27mm — no escape wall. Q(13)->ULN PRESS input and Q_N(4)->gating
+    logic are ordinary logic runs."
+sourcing:
+  lcsc: C133954
+  note: "genuine TI CD74HC221M96 (SOIC-16 tape/reel), JLC Extended, stock 2542 @
+    2026-07-24 (JLC parts API). Alternates C1522767/C2652763 (same die, other reels) and
+    Nexperia 74HC221D C5618 all ZERO stock 2026-07-24 — order-day recheck mandatory.
+    DO-NOT-SUBSTITUTE with any '123-class part: retriggerable parts void priority-6."

@@ -19,7 +19,10 @@ plus a passive coupon-gated keypad interposer. Full source: BRIEF.md
     │       -> coils   (brief's '138/'139 were active-LOW; corrected ADR-0002) │
     │  coil RAIL gated by AND-chain: MODE_AUTO_HW·WD_OK·ESTOP_OK·TEMP_OK·     │
     │      MCU_RELAY_ENABLE·HOST_AUTH·FAULT_LATCH_CLEAR   (all discrete HW)   │
-    │  74HC123 one-shot caps PRESS <=500ms · TPS3823 watchdog · HW fault latch │
+    │  CD74HC221 NON-retrig one-shot caps PRESS <=436ms worst (<500ms HARD) · │
+    │  TPS3823 watchdog · HW fault latch (WD·ESTOP·TEMP set) · STOP preempts  │
+    │  in HW (clears PRESS, disables both decoders, K_STOP on its own         │
+    │  always-available 5V_STOP rail) · contactor HW-gated (ADR-0011, v1.2)   │
     │  SENSING: MCP3208 8ch thermistor + LM393 comparators -> TEMP_OK          │
     │           MAX31856 K-TC · HX711 link (J_LOADCELL) · door/E-stop/mode     │
     │  MCP23017 expander: switched rails, readbacks, BOARD_ID (ADR-0003)      │
@@ -27,24 +30,35 @@ plus a passive coupon-gated keypad interposer. Full source: BRIEF.md
     └──────────────────────────────────────────────────────────────────────────┘
               ^ 40-pin (HAT or sidecar — keepout analysis decides)
     Raspberry Pi 5: RGB cams, OCR, LLM->validator, logging, UI
-      + MLX90640 x2 & SHT45 x2 on Pi-native I2C (4 buses, ADR-0004;
-        pullups on CookSense from SWITCHED rails — phantom-power rule N1)
+      + MLX90640 x2 & SHT45 x2 on Pi-native I2C — TWO shared sensor buses
+        per the brief §3 verbatim plan (bus A GPIO4/5 = cam A 0x33 + ambient
+        SHT45 0x44; bus B GPIO14/15 = cam B + exhaust SHT45) + I2C1 GPIO2/3
+        for the MCP23017; map VERIFIED against the RP1 datasheet and
+        published in 01_docs/pin_map.md (ADR-0010, v1.2; pullups on
+        CookSense from SWITCHED rails — phantom-power rule N1)
 
 ## Power
 5V SELV in (Micro-Fit, fuse + reverse-pol + OV/eFuse + TVS + bulk +
-power-good) -> 5V_PROTECTED -> gated 5V_KEY_RELAY rail (AND-chain);
+power-good) -> 5V_PROTECTED -> gated 5V_KEY_RELAY rail (AND-chain)
+AND (v1.2) -> 5V_STOP (0R link, UNGATED): K_STOP's always-available
+coil rail — the STOP relay survives the faults that kill the key rail
+(ADR-0011 §4; see power_tree.yaml);
 3V3 rails LINEAR (AMS1117-class + per-sensor switched high-side) —
 NO switching converter on the board => E-TOPO N-A (all-linear; total
 budget ~<1A: 12 reed coils ~120mA worst + logic + sensors). Pi header
 5V/3V3 are NC/sense only; no backfeed either direction (Ioff buffers).
 
-## Safety model (ADR-0002)
-All enforcement is hardware: decoder one-hot selection, one-shot press
-cap, external watchdog, E-stop dual-loop, Manual-mode physical rail cut,
-comparator TEMP_OK, discrete fault latch w/ manual re-arm. The Pi (and
-the LLM behind it) can at most press valid keys — the hazard class the
-OEM controller already survives. Executable invariants due at schematic
-gate (E-ADR holds ADR-0002/0006 open until then — intended).
+## Safety model (ADR-0002, hardened v1.2 by ADR-0011)
+All enforcement is hardware: decoder one-hot selection, NON-retriggerable
+one-shot press cap (CD74HC221), external watchdog, E-stop dual-loop,
+Manual-mode physical rail cut, comparator TEMP_OK (68k/10k threshold =
+74.9C hard stop, solder-select field), discrete fault latch (set by
+WD·ESTOP·TEMP) w/ manual re-arm, STOP hardware preemption (clears PRESS,
+disables both decoders, dedicated always-available K_STOP rail), and a
+hardware contactor gate (REQ·WD·ESTOP·TEMP·LATCH_CLEAR). The Pi (and the
+LLM behind it) can at most press valid keys — the hazard class the OEM
+controller already survives. Every ADR-0010/0011 claim is an executable
+E-INV assertion graded at the schematic gate.
 
 ## Proven reuse
 cook-hub v1.0: DIP05-1A72-12L relay cell + driver pattern, MAX31856,

@@ -2,7 +2,7 @@
 # The hand-authored intent count_parity.py checks every generated artifact
 # against; a silent tsci drop surfaces here as the missing refdes. Holes
 # (H1-H4) are non-electrical and excluded (count_parity SKIP ^H\d).
-# 189 components.
+# 215 components (v1.2: -6 removed / +30 added vs v1.1, ADR-0010/0011).
 components:
   - CE1
   - C_3V3
@@ -13,9 +13,13 @@ components:
   - C_AND1
   - C_AND2
   - C_AND3
+  - C_CAND1
+  - C_CAND2
   - C_COMP
   - C_DECD
+  - C_DECDEN
   - C_DECU
+  - C_DECUEN
   - C_DVDT
   - C_EXP
   - C_FAULTAND
@@ -32,15 +36,18 @@ components:
   - C_KR
   - C_LATCHA
   - C_LATCHB
+  - C_LATCHG
   - C_LDOIN
   - C_LDOOUT
   - C_MR
   - C_OENAND
   - C_OS
+  - C_OSCLR
   - C_OSV
   - C_SCHM
   - C_SR1
-  - C_SR2
+  - C_STOPINV
+  - C_STOPR
   - C_SWA
   - C_SWB
   - C_SWRHA
@@ -56,6 +63,7 @@ components:
   - D_DOOR
   - D_ESD_IN
   - D_ESTOP
+  - D_KSTOP
   - D_LCCLK
   - D_LCDAT
   - D_REVCLAMP
@@ -90,6 +98,7 @@ components:
   - Q_COIL
   - Q_COILDRV
   - Q_REV
+  - Q_STOPDRV
   - Q_SWA
   - Q_SWB
   - Q_SWDRVA
@@ -101,26 +110,36 @@ components:
   - R_BID0
   - R_BID1
   - R_COILENPD
-  - R_DECUPD
+  - R_CTRREQPD
   - R_DECDPD
+  - R_DECUPD
   - R_DOORPU
   - R_ESTOPPD
   - R_EXPRST
+  - R_HOSTAUTHPD
   - R_HSG
   - R_HYS1
   - R_HYS2
   - R_ILM
   - R_KEY
+  - R_KRSTPD
   - R_LCCLK
   - R_LCDAT
+  - R_MCUENPD
   - R_MODEPD
   - R_MR
   - R_OE
   - R_OPTOLED
   - R_OS
+  - R_OS2
   - R_OVB
   - R_OVT
   - R_PG
+  - R_RAENAPD
+  - R_RAENBPD
+  - R_RAENRHAPD
+  - R_RAENRHEPD
+  - R_REARMPU
   - R_REF0
   - R_REF1
   - R_REF2
@@ -131,12 +150,8 @@ components:
   - R_REF7
   - R_SCLA
   - R_SCLB
-  - R_SCLRHA
-  - R_SCLRHE
   - R_SDAA
   - R_SDAB
-  - R_SDARHA
-  - R_SDARHE
   - R_SER0
   - R_SER1
   - R_SER2
@@ -147,6 +162,8 @@ components:
   - R_SER7
   - R_SHIELD
   - R_STOP
+  - R_STOPPD
+  - R_STOPRAIL
   - R_SWPUA
   - R_SWPUB
   - R_SWPURHA
@@ -169,6 +186,7 @@ components:
   - TP_SPARE
   - TP_TCDRDY
   - TP_TCFAULT
+  - TP_TCTH
   - TP_TEMPOK
   - TP_USEL
   - TP_WDOK
@@ -176,21 +194,27 @@ components:
   - U_AND1
   - U_AND2
   - U_AND3
+  - U_CAND1
+  - U_CAND2
   - U_COMP
   - U_DECD
+  - U_DECDEN
   - U_DECU
+  - U_DECUEN
   - U_EFUSE
   - U_EXP
   - U_FAULTAND
   - U_LATCHA
   - U_LATCHB
+  - U_LATCHG
   - U_LDO
   - U_OENAND
   - U_ONESHOT
   - U_OPTO
+  - U_OSCLR
   - U_SCHM
   - U_SR1
-  - U_SR2
+  - U_STOPINV
   - U_TC
   - U_ULNA
   - U_ULNB

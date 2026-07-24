@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/home/mouse9911/gits/circuits/projects/smc0985-cooksense/03_tscircuit/kicad/cooksense.kicad_sch")
-		(date "2026-07-23T16:25:37")
+		(date "2026-07-24T13:38:57")
 		(tool "Eeschema 10.0.4-10.0.4~ubuntu24.04.1")
 		(sheet
 			(number "1")
@@ -12,7 +12,7 @@
 				(title "cooksense")
 				(company)
 				(rev "dev")
-				(date "2026-07-23")
+				(date "2026-07-24")
 				(source "cooksense.kicad_sch")
 				(comment
 					(number "1")
@@ -85,7 +85,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a5072a3c-5115-4897-a39d-f72a6e1aab47")
+			(tstamps "ccd4b534-d8a9-4724-b39c-284a76a36994")
 			(units
 				(unit
 					(name "A")
@@ -131,7 +131,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "be0b3d5f-f322-4af4-873a-71f2b6ca455d")
+			(tstamps "5810cfd3-f1b1-4b66-a62a-4e66c4d262d5")
 			(units
 				(unit
 					(name "A")
@@ -177,7 +177,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "93a140ad-ea45-4399-a429-7482894acdec")
+			(tstamps "20e9c9eb-f371-46f8-8b89-7a7aed2bd6bc")
 			(units
 				(unit
 					(name "A")
@@ -223,7 +223,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "643fec5c-d317-4c0a-858a-88efc8dfba08")
+			(tstamps "ef3d69a0-76a8-4484-9c8f-f969da0c2db6")
 			(units
 				(unit
 					(name "A")
@@ -269,7 +269,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a3c72fc9-f869-4ff9-bd0e-46c98984188a")
+			(tstamps "0e3750c0-fa2e-4d5f-9132-1832a7b727f2")
 			(units
 				(unit
 					(name "A")
@@ -315,7 +315,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cae088f0-06f4-4a77-9675-103759a12bc5")
+			(tstamps "cb04731f-d82f-40eb-9d50-fb689301f3a2")
 			(units
 				(unit
 					(name "A")
@@ -361,7 +361,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a08bd51e-e484-4214-855c-afce2f7287fc")
+			(tstamps "8cc47490-8c81-4a64-9a55-18c7db7d6e43")
 			(units
 				(unit
 					(name "A")
@@ -407,7 +407,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "871e233c-a130-4957-83d9-c85ad7753fcd")
+			(tstamps "de18c477-76ee-4758-90ab-244d10b1c5b4")
 			(units
 				(unit
 					(name "A")
@@ -453,7 +453,99 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0e16627c-cf86-437f-ba5c-beb58e28fdcf")
+			(tstamps "ff8f3f1f-8b4c-4ed0-b5af-7b1ad5ba336e")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_CAND1")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_CAND1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "ab2ecae4-50b1-4943-9502-811f2c808c82")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_CAND2")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_CAND2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "efa6690b-4994-4d47-adf7-deb1ae6d8f3b")
 			(units
 				(unit
 					(name "A")
@@ -499,7 +591,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e6c2e703-5708-48d9-97d2-7181b50e75a8")
+			(tstamps "2b4c0e8d-d684-4feb-a375-faf21094a08c")
 			(units
 				(unit
 					(name "A")
@@ -545,7 +637,53 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "28787f14-3235-4d47-abbc-4806a16b27c9")
+			(tstamps "19ffb9f4-7bd9-4b41-aebc-c1b7c1e6ad02")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_DECDEN")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_DECDEN")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "d39432eb-f45b-4906-af53-c6abc5396662")
 			(units
 				(unit
 					(name "A")
@@ -591,7 +729,53 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3e2e5f9e-1ca0-4bb2-ba9a-4d48ee410567")
+			(tstamps "133246e8-a2d8-4aec-a894-4abbabcedcef")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_DECUEN")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_DECUEN")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "2e903eaf-aa37-4994-a0fb-952faec5830b")
 			(units
 				(unit
 					(name "A")
@@ -637,7 +821,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "16adfb8a-c7fa-410c-a25f-dd04aa37dc6e")
+			(tstamps "af867068-eb97-46bd-9b67-c69f70e534d5")
 			(units
 				(unit
 					(name "A")
@@ -683,7 +867,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7d13e888-2202-4cf1-8f8e-e5ac884ac102")
+			(tstamps "bee0b049-9931-47ac-a274-8a954d2580af")
 			(units
 				(unit
 					(name "A")
@@ -729,7 +913,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "67dc1589-fd16-4713-9727-17430f90393b")
+			(tstamps "25c5d823-a05e-4dd4-9917-cf8bbb06bb52")
 			(units
 				(unit
 					(name "A")
@@ -775,7 +959,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "441fe87b-8fc9-4684-8622-c4ab2315f649")
+			(tstamps "4a5777fc-9da5-44bb-8f83-60230876ca3c")
 			(units
 				(unit
 					(name "A")
@@ -821,7 +1005,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "948b108f-fdb0-408e-a8ae-768bbe62ea65")
+			(tstamps "bb9fd179-d2ed-4a2a-8908-a9117f0276cf")
 			(units
 				(unit
 					(name "A")
@@ -867,7 +1051,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "444bcbc5-f866-49a7-ae1b-27e3dfff12a7")
+			(tstamps "b81c4f3d-4aed-4af4-b162-3b5c6baa0880")
 			(units
 				(unit
 					(name "A")
@@ -913,7 +1097,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b5b5812b-daba-4730-a1c9-86b4fd0c69ad")
+			(tstamps "1bd63c1f-99e1-46bb-a222-3529e5b151ba")
 			(units
 				(unit
 					(name "A")
@@ -959,7 +1143,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "637fb276-9467-418b-93f4-ea312c11d19d")
+			(tstamps "ba3b68c2-a498-4b24-a7c6-6bdc41674fd2")
 			(units
 				(unit
 					(name "A")
@@ -1005,7 +1189,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6b974f7c-f930-4091-8f73-6c4602edf48a")
+			(tstamps "cd9883bd-ef4c-4fd2-9e49-fe1d0710f1e7")
 			(units
 				(unit
 					(name "A")
@@ -1051,7 +1235,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e1d6a8ba-56d5-4fe1-b349-716e56777400")
+			(tstamps "9e09b69d-cfc4-4760-a16a-f72f02663573")
 			(units
 				(unit
 					(name "A")
@@ -1097,7 +1281,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ba1afaea-ceec-4817-897d-7066541657f4")
+			(tstamps "e83da8da-eef5-4c56-ad81-815f9ed573d9")
 			(units
 				(unit
 					(name "A")
@@ -1143,7 +1327,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "168a5573-1eb6-40a9-a5b9-3740227704f1")
+			(tstamps "57c97fd8-a4d6-46f2-941c-6c458cfea3c7")
 			(units
 				(unit
 					(name "A")
@@ -1189,7 +1373,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "26ddc95b-a4ec-4df2-b116-db8079e66f3a")
+			(tstamps "2abdb7bd-939c-4107-b77d-433b670c19ca")
 			(units
 				(unit
 					(name "A")
@@ -1235,7 +1419,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4083b935-e84c-4b28-952c-222348121b6a")
+			(tstamps "e3ce8e72-40fa-46d5-bf2d-1c8d542613cb")
 			(units
 				(unit
 					(name "A")
@@ -1281,7 +1465,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c5694693-2ffc-4ab5-b443-cbcd64431d51")
+			(tstamps "9859299c-03c5-4b3a-90dc-5f2b7b62e563")
 			(units
 				(unit
 					(name "A")
@@ -1327,7 +1511,53 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6adff853-aa35-495a-9cd3-af16608967ee")
+			(tstamps "b336ba00-2ef9-436e-86e6-6f55a05be4db")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_LATCHG")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_LATCHG")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0c995541-0542-4d42-ae3f-d483cb646752")
 			(units
 				(unit
 					(name "A")
@@ -1373,7 +1603,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0772e465-0f2f-456f-a945-db89c3bb9241")
+			(tstamps "4853aea3-bbf8-4f70-8e93-fd0684ffcd22")
 			(units
 				(unit
 					(name "A")
@@ -1419,7 +1649,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6ee7f19e-38db-48a8-9851-c5d8928dc251")
+			(tstamps "8ece4e36-bb8c-4e66-9f8a-3421b5d599e8")
 			(units
 				(unit
 					(name "A")
@@ -1465,7 +1695,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c3e865be-68bc-4f07-afe2-d1f454d581d9")
+			(tstamps "a505f657-e638-4309-9088-799d9b817980")
 			(units
 				(unit
 					(name "A")
@@ -1511,7 +1741,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1251cdac-402d-461d-a6ec-64be319c980d")
+			(tstamps "6dd6340e-46d7-4fa4-adad-87f9c5bdfa48")
 			(units
 				(unit
 					(name "A")
@@ -1557,7 +1787,53 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5854c352-8c16-467c-b934-09ef624c50f8")
+			(tstamps "326c160d-b31b-47f9-acb5-53942b5a5f2b")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_OSCLR")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_OSCLR")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "9d6f5a32-a52c-44fb-bb8b-10a3e9d84d72")
 			(units
 				(unit
 					(name "A")
@@ -1603,7 +1879,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "70c6939f-2aca-4131-8523-fb6a0ac8fbd6")
+			(tstamps "303bc8b9-d8dd-42ff-aa67-3ad86cea5924")
 			(units
 				(unit
 					(name "A")
@@ -1649,7 +1925,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "baeb2202-b1b5-4e43-ad02-bb3be950ad2f")
+			(tstamps "0458e0cc-f289-4b5d-afee-205cb70456e2")
 			(units
 				(unit
 					(name "A")
@@ -1695,7 +1971,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bf8b3977-0fb3-4a63-9e8a-665b8e51ab15")
+			(tstamps "7b201edd-d388-4b9e-b45c-ca8eb5e431a5")
 			(units
 				(unit
 					(name "A")
@@ -1711,7 +1987,7 @@
 			)
 		)
 		(comp
-			(ref "C_SR2")
+			(ref "C_STOPINV")
 			(value "100nF")
 			(footprint "Capacitor_SMD:C_0402_1005Metric")
 			(fields
@@ -1726,7 +2002,7 @@
 			)
 			(libsource
 				(lib "elt")
-				(part "SYM_C_SR2")
+				(part "SYM_C_STOPINV")
 				(description "")
 			)
 			(property
@@ -1741,7 +2017,53 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1c04f9d8-2bdf-42ce-8e0d-eef53ae1e9ed")
+			(tstamps "5e725b0a-cd56-40c3-96d2-25f4ba7bec93")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_STOPR")
+			(value "10uF")
+			(footprint "Capacitor_SMD:C_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_STOPR")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "c3ec45b6-4713-4f7b-b9e4-7bb0f06ebacf")
 			(units
 				(unit
 					(name "A")
@@ -1787,7 +2109,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f76579e8-9e0a-4fac-853d-b0395934fd2e")
+			(tstamps "4af21c48-d7d9-44fe-abd7-1390ab16d355")
 			(units
 				(unit
 					(name "A")
@@ -1833,7 +2155,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a566854f-792d-47ef-9f55-92edd4e94008")
+			(tstamps "27896d8f-b61f-4914-951f-eb4cd08e0410")
 			(units
 				(unit
 					(name "A")
@@ -1879,7 +2201,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b2dfc51a-5a5b-4103-bd1f-7e51d33c232b")
+			(tstamps "b96c461d-77f8-41f3-83f2-27c94938a8d2")
 			(units
 				(unit
 					(name "A")
@@ -1925,7 +2247,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "204f08bd-5a41-472d-8f9c-3d0a3cf5e4d4")
+			(tstamps "63c6405f-ea23-46d0-9ddd-c1e2caa2940a")
 			(units
 				(unit
 					(name "A")
@@ -1971,7 +2293,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b68bebd8-06d3-47c8-b0fd-69a7287736b6")
+			(tstamps "1c8c4369-ca35-456e-bb7a-1c55824d85b4")
 			(units
 				(unit
 					(name "A")
@@ -2017,7 +2339,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "95b8d6f3-46ed-4947-a949-12b062941909")
+			(tstamps "5cfff194-bb07-4922-9e2a-07a4c0a674dd")
 			(units
 				(unit
 					(name "A")
@@ -2063,7 +2385,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ec1b0bfb-1110-4bc4-8fc9-691604523526")
+			(tstamps "cae21f11-444e-448d-acd1-2542ef7b55c3")
 			(units
 				(unit
 					(name "A")
@@ -2109,7 +2431,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f250305f-eae0-45f6-bebc-276c028059da")
+			(tstamps "33e2ff4c-aa52-42ec-84b5-30405d077d49")
 			(units
 				(unit
 					(name "A")
@@ -2155,7 +2477,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3e835880-e35d-4176-bb44-8da42a9a52e4")
+			(tstamps "e687fc56-ac73-4944-97c4-c51552ea8085")
 			(units
 				(unit
 					(name "A")
@@ -2201,7 +2523,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7eebc99b-5ab1-42cc-a32a-00c8b16c794f")
+			(tstamps "aa0420e5-ae93-4a98-b135-8077f158a339")
 			(units
 				(unit
 					(name "A")
@@ -2247,7 +2569,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "28e97d11-b2a6-4568-9614-ca9526973ca9")
+			(tstamps "34e47a64-6b82-4073-be76-ca19ca7ce886")
 			(units
 				(unit
 					(name "A")
@@ -2293,7 +2615,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "657a535f-5337-481d-8950-685064a1478e")
+			(tstamps "1661d77b-109d-4ef6-aea4-4585b488b86e")
 			(units
 				(unit
 					(name "A")
@@ -2339,7 +2661,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ada8247c-3be2-480c-b8ea-e868f88c9f5c")
+			(tstamps "876e51da-f852-421e-9637-1c944046b462")
 			(units
 				(unit
 					(name "A")
@@ -2385,7 +2707,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ebff11bd-a031-4483-945f-f8bbf1929e20")
+			(tstamps "be4198ba-5c60-4258-9072-e0575d0d7bf6")
 			(units
 				(unit
 					(name "A")
@@ -2431,7 +2753,53 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "247869f2-e1ed-42eb-8058-f313abd0f366")
+			(tstamps "2da1f091-955b-4b11-b16f-00f9cccb92f0")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "D_KSTOP")
+			(value "C8678")
+			(footprint "Diode_SMD:D_SMA")
+			(fields
+				(field
+					(name "Footprint") "Diode_SMD:D_SMA")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_D_KSTOP")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "68ee78a8-cb55-4a89-8fe9-0a1c184e997e")
 			(units
 				(unit
 					(name "A")
@@ -2477,7 +2845,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f57f9625-08ab-41fa-acc3-33231c836e9b")
+			(tstamps "5b433511-85a0-45db-af41-a63a902d6353")
 			(units
 				(unit
 					(name "A")
@@ -2523,7 +2891,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0711d83c-0da0-4bca-8543-70a861ec3f70")
+			(tstamps "84044011-25fc-449e-838f-aa485c62365a")
 			(units
 				(unit
 					(name "A")
@@ -2569,7 +2937,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1797c0d6-f5de-4627-98c4-f4162e4d8daa")
+			(tstamps "1a56b972-adb8-4b27-8421-409f85c93065")
 			(units
 				(unit
 					(name "A")
@@ -2615,7 +2983,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "50f1d264-a727-4f0e-a093-b63338fbde20")
+			(tstamps "d7f28bd2-2df4-4682-a646-a4f0444549d3")
 			(units
 				(unit
 					(name "A")
@@ -2661,7 +3029,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8d14242c-9a86-474e-9388-ee06852bd49b")
+			(tstamps "f2fea41b-08c6-489f-bfaa-a7db4d7d1d7b")
 			(units
 				(unit
 					(name "A")
@@ -2707,7 +3075,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "893718ff-8827-436a-b076-6ab0066cd07f")
+			(tstamps "6297397c-6a84-4190-8d14-bbc294434989")
 			(units
 				(unit
 					(name "A")
@@ -2753,7 +3121,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fb1accbd-258f-4a25-a77b-be0a14c21d56")
+			(tstamps "87daa575-3585-4c76-b03b-cdb8677fd3a4")
 			(units
 				(unit
 					(name "A")
@@ -2799,7 +3167,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6d1246e5-f1a3-4592-a014-b19dc8392723")
+			(tstamps "f3b9402f-588e-4128-81ff-ade6a547d8b9")
 			(units
 				(unit
 					(name "A")
@@ -2857,7 +3225,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b214792e-8d0f-4043-a52a-b9f0a97b94e5")
+			(tstamps "d8225ef3-bbe9-469b-9d21-aba790613b25")
 			(units
 				(unit
 					(name "A")
@@ -2915,7 +3283,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "797e5f1d-28d9-4a50-89f0-c5a0a35b59a3")
+			(tstamps "cdfc5483-5f73-4c92-a57a-1dd249be1f5f")
 			(units
 				(unit
 					(name "A")
@@ -2985,7 +3353,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3d0de394-7b44-4dfe-a73f-b1fe01cb77eb")
+			(tstamps "8d19c880-b28d-4ca8-a3a9-ec6795c9093a")
 			(units
 				(unit
 					(name "A")
@@ -3040,7 +3408,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ade56c32-3529-40d9-8290-949b9b1455d1")
+			(tstamps "74605476-e070-4735-b34f-9fbdb70cc4f1")
 			(units
 				(unit
 					(name "A")
@@ -3098,7 +3466,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5b4bde7c-bc30-46f8-b7a7-650ca07fb3b8")
+			(tstamps "fe81d3a9-6136-4fee-812f-f8135b9fe108")
 			(units
 				(unit
 					(name "A")
@@ -3258,7 +3626,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "16757145-f3c5-4501-85c2-a6c7842eb031")
+			(tstamps "c0caf144-6e16-41c8-a144-60948ab31d14")
 			(units
 				(unit
 					(name "A")
@@ -3307,7 +3675,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "995d2ca7-002b-4026-b426-07a9a8c84ad9")
+			(tstamps "83f8f5a1-4b1b-4956-be22-3d4c05003352")
 			(units
 				(unit
 					(name "A")
@@ -3365,7 +3733,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4b33cb24-30da-4d2a-a6e1-44557997b225")
+			(tstamps "d33c4360-315a-4ab2-ac50-133ac7a34f6b")
 			(units
 				(unit
 					(name "A")
@@ -3423,7 +3791,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9030649c-7aea-433f-b8f3-27a963b983bd")
+			(tstamps "9652aae1-0974-4a7b-b3e1-9c014ef06e5e")
 			(units
 				(unit
 					(name "A")
@@ -3469,7 +3837,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3e36a433-626a-4586-9343-462091cefb78")
+			(tstamps "426a181c-202d-44a4-ac0c-a9a752ca8857")
 			(units
 				(unit
 					(name "A")
@@ -3536,7 +3904,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "54c34bba-bc6c-4cfc-970a-ad18a8ab6827")
+			(tstamps "75907169-b3cc-4870-8db1-f8e9d2984d2a")
 			(units
 				(unit
 					(name "A")
@@ -3603,7 +3971,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "45580d25-a174-438d-9b35-3e5245047aed")
+			(tstamps "56cbe1ce-5060-43d6-b73a-e64cbdc6b70b")
 			(units
 				(unit
 					(name "A")
@@ -3655,7 +4023,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ba985bda-7307-4405-8f81-4d9304a7e782")
+			(tstamps "efdd5c0d-c780-4e9c-a727-4be9d3001b56")
 			(units
 				(unit
 					(name "A")
@@ -3707,7 +4075,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0b2ee5ee-3f50-4a62-ba60-109fd8511314")
+			(tstamps "e630d844-eb15-415f-820f-01c598ac47ca")
 			(units
 				(unit
 					(name "A")
@@ -3759,7 +4127,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f3939dad-3593-47cc-a81c-c7361c2b41ca")
+			(tstamps "06d314cc-ec4e-4942-b21f-1faf1a5d91f9")
 			(units
 				(unit
 					(name "A")
@@ -3811,7 +4179,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cb0d4418-ce99-41ed-88fe-4332443b7493")
+			(tstamps "fd9df4fd-d0a1-4467-8ed4-653212f4509f")
 			(units
 				(unit
 					(name "A")
@@ -3863,7 +4231,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "24e7707b-6272-43b9-8e04-a0ed7cd711fb")
+			(tstamps "acecc275-a653-486f-addd-82bd63926c9a")
 			(units
 				(unit
 					(name "A")
@@ -3915,7 +4283,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9a760193-c589-4791-9e55-27de7f486e1e")
+			(tstamps "61cc5f02-cd55-4e7d-a93e-1a9e5f897945")
 			(units
 				(unit
 					(name "A")
@@ -3967,7 +4335,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "af1e1d34-ba14-497e-adab-485f27f3ba71")
+			(tstamps "bb4c7512-f580-4a19-aefb-e0a361462386")
 			(units
 				(unit
 					(name "A")
@@ -4019,7 +4387,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2abd7c9e-4eaa-4cee-92f1-cd6feb4fb5d4")
+			(tstamps "0e16aa1b-ff54-4d5b-b6d0-1d659596fffc")
 			(units
 				(unit
 					(name "A")
@@ -4071,7 +4439,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9460eca8-5007-4ea4-acec-fa74510bb726")
+			(tstamps "baefc599-25cb-40ab-938f-d33bd68a53c7")
 			(units
 				(unit
 					(name "A")
@@ -4123,7 +4491,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bb854b81-fc13-41ae-b66d-3d385105ee75")
+			(tstamps "b188b09b-a57c-4706-b018-7718163db094")
 			(units
 				(unit
 					(name "A")
@@ -4175,7 +4543,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e7e6f7ee-fb34-4c3f-a554-92ec3669e195")
+			(tstamps "7185c33d-a94a-4c75-8d2b-619501a2aba1")
 			(units
 				(unit
 					(name "A")
@@ -4227,7 +4595,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "15e66b80-7965-4f48-81aa-c73e3159f3fb")
+			(tstamps "d579c47d-5c8f-4b37-b92e-d5063980d6b5")
 			(units
 				(unit
 					(name "A")
@@ -4276,7 +4644,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "40267dab-fa2e-4a0f-a3ba-528b5aff12e2")
+			(tstamps "29825182-dbe8-419c-a1b0-e7fbf741efd1")
 			(units
 				(unit
 					(name "A")
@@ -4325,7 +4693,56 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bf862b15-951b-4f82-890e-145e21a0e4fc")
+			(tstamps "2a122200-5e35-43dd-8676-fbda936a1935")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "Q_STOPDRV")
+			(value "C8545")
+			(footprint "Package_TO_SOT_SMD:SOT-23")
+			(fields
+				(field
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_Q_STOPDRV")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "953b232f-1296-48e4-9018-feb2652d45cc")
 			(units
 				(unit
 					(name "A")
@@ -4374,7 +4791,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ce2d9630-0596-4761-b276-6f1f2f14242e")
+			(tstamps "08b3adc7-114b-4299-87fa-a12808885a81")
 			(units
 				(unit
 					(name "A")
@@ -4423,7 +4840,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "842d24c6-5e25-4fd6-a05d-c94f6c1562ba")
+			(tstamps "008e61bf-70d6-4aa2-9fe4-bf3c7d243b91")
 			(units
 				(unit
 					(name "A")
@@ -4472,7 +4889,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "19d750cf-ffcf-4f47-a4a9-9baea64b97b8")
+			(tstamps "05cd5ac4-1fad-47aa-8283-00ddc2633c61")
 			(units
 				(unit
 					(name "A")
@@ -4521,7 +4938,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b2f6f80d-26e4-45c9-8a24-3e8f0db1a041")
+			(tstamps "2af036d6-beef-4fb8-8008-221ef6d07690")
 			(units
 				(unit
 					(name "A")
@@ -4570,7 +4987,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "503252e5-af3c-4163-b7be-b53961ea5959")
+			(tstamps "b3c6db51-51c8-4685-84d7-3e2b213da55f")
 			(units
 				(unit
 					(name "A")
@@ -4619,7 +5036,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e6c0aea5-b3ae-409e-b826-ceee2fcf4328")
+			(tstamps "1c5d4b59-ac8d-46bd-8ab1-3163b6c69901")
 			(units
 				(unit
 					(name "A")
@@ -4668,7 +5085,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ad6661ff-3c4e-49b6-86c7-9b493952abec")
+			(tstamps "03b42034-0fa4-45b7-ad3c-bf7dab987ea7")
 			(units
 				(unit
 					(name "A")
@@ -4717,7 +5134,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "001b41b5-b22c-4b4c-a115-52739c704ba2")
+			(tstamps "9792b9c8-05d8-499b-8048-ed8b1ec71951")
 			(units
 				(unit
 					(name "A")
@@ -4766,7 +5183,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7908b0f5-d469-454f-875d-3dbbb265550b")
+			(tstamps "5c47ddcf-dbac-4b76-8818-fbebc67e2544")
 			(units
 				(unit
 					(name "A")
@@ -4812,7 +5229,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6db5c633-0944-4db1-a16b-b7343e76cede")
+			(tstamps "0b226a25-0caa-43d2-8d71-490b55788f7a")
 			(units
 				(unit
 					(name "A")
@@ -4858,7 +5275,53 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7a9734a6-f223-4264-85d3-16b075f733d6")
+			(tstamps "6c41530c-f024-470d-941d-56010db27608")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_CTRREQPD")
+			(value "100kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_CTRREQPD")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "7489dc0e-dfe9-46f4-82cb-bb550fb32f36")
 			(units
 				(unit
 					(name "A")
@@ -4904,7 +5367,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "71dbb0ca-5895-4945-a71a-0617370f9d43")
+			(tstamps "62e179a6-6887-4401-b5b9-c1496978b902")
 			(units
 				(unit
 					(name "A")
@@ -4950,7 +5413,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7be42029-7b9c-47f8-b932-b32ddcc56cbf")
+			(tstamps "4a96d9e6-f0cd-4629-9a7c-eee5ee0e47f2")
 			(units
 				(unit
 					(name "A")
@@ -4996,7 +5459,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "616a8a63-cb2e-415b-b83a-7cc12748f6a6")
+			(tstamps "e2305c56-26e9-4a18-aa64-15ba75d02b4e")
 			(units
 				(unit
 					(name "A")
@@ -5042,7 +5505,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "31dc1c26-477c-4e84-9596-3d1407b25c64")
+			(tstamps "07eca08f-8f20-47ad-accb-4eb5a2c3f0ca")
 			(units
 				(unit
 					(name "A")
@@ -5088,7 +5551,53 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e817a040-9691-427a-a60f-ecbf36395037")
+			(tstamps "68755eac-adaa-41ba-8bbd-0eedb7e3647e")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_HOSTAUTHPD")
+			(value "100kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_HOSTAUTHPD")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f74aee55-5da6-4d98-a569-a846df399a66")
 			(units
 				(unit
 					(name "A")
@@ -5134,7 +5643,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "682f5360-d87f-4b0a-930b-7dabb9de1f0f")
+			(tstamps "a12a7446-88e1-41b0-81b8-a0db8dce29e1")
 			(units
 				(unit
 					(name "A")
@@ -5180,7 +5689,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7bfa13f9-8357-441d-96bf-fa252270504f")
+			(tstamps "75292e3c-c3b4-42cd-93b0-6fe2747bb656")
 			(units
 				(unit
 					(name "A")
@@ -5226,7 +5735,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9536b207-84df-4b0c-9868-d9f6038c7014")
+			(tstamps "2bb5d30c-dec0-45bb-9741-9bbfa21cf883")
 			(units
 				(unit
 					(name "A")
@@ -5272,7 +5781,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a2e6ac29-535a-4522-9e7a-fc639ab0725a")
+			(tstamps "a503f4a4-a90e-4b3e-bf02-03045ad52245")
 			(units
 				(unit
 					(name "A")
@@ -5318,7 +5827,53 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "89b9929c-0271-406f-b707-b4a781270baa")
+			(tstamps "d8734858-d5ff-41e5-aebc-e346ba395b82")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_KRSTPD")
+			(value "100kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_KRSTPD")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "64297f9c-e782-43f5-a950-ef85e06a0690")
 			(units
 				(unit
 					(name "A")
@@ -5364,7 +5919,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5278edeb-a068-4444-b326-16c0a631da37")
+			(tstamps "496b43af-947d-46b5-bb7f-b79c422f16fc")
 			(units
 				(unit
 					(name "A")
@@ -5410,7 +5965,53 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d08c3b2f-d611-4be4-b7f7-789b28834ff9")
+			(tstamps "abd4e5c7-dd4a-4e24-82a8-365971395c37")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_MCUENPD")
+			(value "100kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_MCUENPD")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "57f7eae7-56b3-48cd-ac32-c42527999436")
 			(units
 				(unit
 					(name "A")
@@ -5456,7 +6057,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d945ba87-cb30-4d7c-9b3f-b29efca314f4")
+			(tstamps "b46dfeb1-5807-416d-8ff9-e616845d7d44")
 			(units
 				(unit
 					(name "A")
@@ -5502,7 +6103,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "51686a66-fea1-4d9d-a0ac-c65d2727c297")
+			(tstamps "6d2af8d0-1fed-4ed9-89fa-dc85d1bdd4bb")
 			(units
 				(unit
 					(name "A")
@@ -5548,7 +6149,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7a4e1338-1fd4-45f3-8764-8a13096944b1")
+			(tstamps "f0f76738-d492-44fa-ab53-b139d9529c65")
 			(units
 				(unit
 					(name "A")
@@ -5594,7 +6195,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fd60af6a-73d8-45f7-beff-0ce7f754da42")
+			(tstamps "e13b267d-0446-41cc-9e61-2a933d65e71a")
 			(units
 				(unit
 					(name "A")
@@ -5611,7 +6212,7 @@
 		)
 		(comp
 			(ref "R_OS")
-			(value "390kΩ")
+			(value "510kΩ")
 			(footprint "Resistor_SMD:R_0402_1005Metric")
 			(fields
 				(field
@@ -5640,7 +6241,53 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e4c5c27c-aad9-4db6-bb49-5584ee97ed3e")
+			(tstamps "81fa4b41-1649-4780-ac6b-eee3814966b0")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_OS2")
+			(value "10kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_OS2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "ce07ce17-73a3-4aac-9e49-f6d5c1343831")
 			(units
 				(unit
 					(name "A")
@@ -5686,7 +6333,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "963c7975-27b1-4658-929f-4ea73eb0b241")
+			(tstamps "ad1c4df0-800e-44ff-a28b-950129cf6f35")
 			(units
 				(unit
 					(name "A")
@@ -5732,7 +6379,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "aa1e06d4-2d49-4955-8b78-118ecfcbbe52")
+			(tstamps "bab1e538-b7fb-4548-9913-654f28ddf07d")
 			(units
 				(unit
 					(name "A")
@@ -5778,7 +6425,237 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "67d5e5bb-e9de-4e54-8fe9-cb436b84ffe6")
+			(tstamps "4c17a17d-c15b-4d19-ac48-e53021198505")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_RAENAPD")
+			(value "100kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_RAENAPD")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0ed91f17-34c9-4b6b-a766-bcfe420f7639")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_RAENBPD")
+			(value "100kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_RAENBPD")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "84d9775c-553c-40bc-ae33-491bff9686da")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_RAENRHAPD")
+			(value "100kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_RAENRHAPD")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "c19cab57-3cc6-4387-99f3-287c820fd692")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_RAENRHEPD")
+			(value "100kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_RAENRHEPD")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "8a8b7584-bbec-4266-be45-d78046771c91")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_REARMPU")
+			(value "100kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_REARMPU")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0e220727-324d-4498-a027-0d01db5aac53")
 			(units
 				(unit
 					(name "A")
@@ -5824,7 +6701,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0fde70b8-d620-4ec4-bc3c-1ee789fc58d2")
+			(tstamps "8f8790bf-b07e-46d5-82c9-21fc339c8274")
 			(units
 				(unit
 					(name "A")
@@ -5870,7 +6747,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ac67a802-cbb3-460f-81cd-ace5ef8a58fe")
+			(tstamps "383eeb40-8c8a-423d-90fe-8db82d7aa8b5")
 			(units
 				(unit
 					(name "A")
@@ -5916,7 +6793,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6e34517f-ea7e-4386-9965-992730ad852f")
+			(tstamps "8023842b-e679-44ad-a47a-880d2fee06ea")
 			(units
 				(unit
 					(name "A")
@@ -5962,7 +6839,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e0576fb5-b33d-45f1-aea5-563825db0988")
+			(tstamps "9ba9d96c-5a76-4af8-91b2-8cd0c75dc2bb")
 			(units
 				(unit
 					(name "A")
@@ -6008,7 +6885,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "795eb253-3744-435c-bfa3-42cc9bf5a7a2")
+			(tstamps "f752cac1-e67b-4017-8bb6-4be8c55c2f53")
 			(units
 				(unit
 					(name "A")
@@ -6054,7 +6931,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fd252e04-d4f0-45b7-a162-e4aedf0f168e")
+			(tstamps "3e9afbcc-6755-457f-bbfe-e1139d31cb9f")
 			(units
 				(unit
 					(name "A")
@@ -6100,7 +6977,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "28c705cc-f446-4106-997a-162192337622")
+			(tstamps "68614d25-3706-4ddd-aac2-f2abbd51fe08")
 			(units
 				(unit
 					(name "A")
@@ -6146,7 +7023,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cdb206b0-a2dd-4ee7-b52d-a5a73deb77c5")
+			(tstamps "5d16897e-393a-4ce3-80eb-2c3242b10f94")
 			(units
 				(unit
 					(name "A")
@@ -6192,7 +7069,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "234bcd5b-d7b2-41cd-b757-b9c0dd3c1ee4")
+			(tstamps "fe8b3e6a-6ea8-4da3-b30d-a9bb715437a6")
 			(units
 				(unit
 					(name "A")
@@ -6238,99 +7115,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a2042a99-278a-4cdd-ac44-197cdbd26e96")
-			(units
-				(unit
-					(name "A")
-					(pins
-						(pin
-							(num "1")
-						)
-						(pin
-							(num "2")
-						)
-					)
-				)
-			)
-		)
-		(comp
-			(ref "R_SCLRHA")
-			(value "2.2kΩ")
-			(footprint "Resistor_SMD:R_0402_1005Metric")
-			(fields
-				(field
-					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description")
-				)
-			)
-			(libsource
-				(lib "elt")
-				(part "SYM_R_SCLRHA")
-				(description "")
-			)
-			(property
-				(name "Sheetname")
-				(value "Root")
-			)
-			(property
-				(name "Sheetfile")
-				(value "kicad/cooksense.kicad_sch")
-			)
-			(sheetpath
-				(names "/")
-				(tstamps "/")
-			)
-			(tstamps "b1186075-d31e-4f45-999f-3fcafa8661d9")
-			(units
-				(unit
-					(name "A")
-					(pins
-						(pin
-							(num "1")
-						)
-						(pin
-							(num "2")
-						)
-					)
-				)
-			)
-		)
-		(comp
-			(ref "R_SCLRHE")
-			(value "2.2kΩ")
-			(footprint "Resistor_SMD:R_0402_1005Metric")
-			(fields
-				(field
-					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description")
-				)
-			)
-			(libsource
-				(lib "elt")
-				(part "SYM_R_SCLRHE")
-				(description "")
-			)
-			(property
-				(name "Sheetname")
-				(value "Root")
-			)
-			(property
-				(name "Sheetfile")
-				(value "kicad/cooksense.kicad_sch")
-			)
-			(sheetpath
-				(names "/")
-				(tstamps "/")
-			)
-			(tstamps "e1d86e0a-6163-49fe-b26c-907e9cad2f3c")
+			(tstamps "90bef3ff-0ae9-4baf-b2ba-59dc4b5f641a")
 			(units
 				(unit
 					(name "A")
@@ -6376,7 +7161,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "80024ac3-fff6-4a47-a1e0-815a22e91137")
+			(tstamps "08b5de2e-0c70-408e-b846-3abdc8e171d6")
 			(units
 				(unit
 					(name "A")
@@ -6422,99 +7207,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e1de49c3-15aa-494e-9102-0aedc1283f89")
-			(units
-				(unit
-					(name "A")
-					(pins
-						(pin
-							(num "1")
-						)
-						(pin
-							(num "2")
-						)
-					)
-				)
-			)
-		)
-		(comp
-			(ref "R_SDARHA")
-			(value "2.2kΩ")
-			(footprint "Resistor_SMD:R_0402_1005Metric")
-			(fields
-				(field
-					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description")
-				)
-			)
-			(libsource
-				(lib "elt")
-				(part "SYM_R_SDARHA")
-				(description "")
-			)
-			(property
-				(name "Sheetname")
-				(value "Root")
-			)
-			(property
-				(name "Sheetfile")
-				(value "kicad/cooksense.kicad_sch")
-			)
-			(sheetpath
-				(names "/")
-				(tstamps "/")
-			)
-			(tstamps "2c180336-daef-4e9f-8a47-7564278cb17f")
-			(units
-				(unit
-					(name "A")
-					(pins
-						(pin
-							(num "1")
-						)
-						(pin
-							(num "2")
-						)
-					)
-				)
-			)
-		)
-		(comp
-			(ref "R_SDARHE")
-			(value "2.2kΩ")
-			(footprint "Resistor_SMD:R_0402_1005Metric")
-			(fields
-				(field
-					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description")
-				)
-			)
-			(libsource
-				(lib "elt")
-				(part "SYM_R_SDARHE")
-				(description "")
-			)
-			(property
-				(name "Sheetname")
-				(value "Root")
-			)
-			(property
-				(name "Sheetfile")
-				(value "kicad/cooksense.kicad_sch")
-			)
-			(sheetpath
-				(names "/")
-				(tstamps "/")
-			)
-			(tstamps "0c7afd0d-f080-4e1b-bc24-35a12ae956d1")
+			(tstamps "14733caf-805c-431d-8983-a6cd93955020")
 			(units
 				(unit
 					(name "A")
@@ -6560,7 +7253,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "547d3fff-288f-4636-83d4-b808762b89cb")
+			(tstamps "aee24eeb-8471-45b8-8b77-1744c4c2112f")
 			(units
 				(unit
 					(name "A")
@@ -6606,7 +7299,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "73ebb5b3-5ab3-45f8-bd79-8180dd4da38b")
+			(tstamps "e120b5fa-94c2-4bce-8a98-ae798faea5c9")
 			(units
 				(unit
 					(name "A")
@@ -6652,7 +7345,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6fdead99-11d1-4530-a7fd-d99b0d88ba65")
+			(tstamps "a9b7d9d7-9dd9-4c82-9c63-d67ff63bf207")
 			(units
 				(unit
 					(name "A")
@@ -6698,7 +7391,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6218b8e6-17f9-42e0-85de-91aa15b7228f")
+			(tstamps "263d424c-caa3-4ee9-90b1-fc227c00e866")
 			(units
 				(unit
 					(name "A")
@@ -6744,7 +7437,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "96d796c6-e7d5-4079-b5d5-50bccef431ab")
+			(tstamps "ac718c52-dd3a-4a0b-b942-dc69a3b89a80")
 			(units
 				(unit
 					(name "A")
@@ -6790,7 +7483,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bb239f2f-232f-4420-b04f-e8763719e318")
+			(tstamps "af7f9649-00c7-4903-ad37-e026164b4c19")
 			(units
 				(unit
 					(name "A")
@@ -6836,7 +7529,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6093cd5b-c2f4-4a95-aee2-00723cf0cf55")
+			(tstamps "d240ab88-fc6d-4916-b8ea-ef3df028fcf4")
 			(units
 				(unit
 					(name "A")
@@ -6882,7 +7575,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2f7932b3-8270-418f-b639-c8d3628e2da9")
+			(tstamps "4ef0cbae-f4c3-4c30-a374-539727537755")
 			(units
 				(unit
 					(name "A")
@@ -6928,7 +7621,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "02d97e08-36e9-476b-b736-8061b8a41de4")
+			(tstamps "a77adc84-ec60-4f47-a950-fb121b4982ac")
 			(units
 				(unit
 					(name "A")
@@ -6974,7 +7667,99 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1cd514ce-7d53-43bd-bea1-cb354ad51efc")
+			(tstamps "fef9b6b4-ddee-419e-94aa-196dd734f471")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_STOPPD")
+			(value "100kΩ")
+			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_STOPPD")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "32453607-cd69-4a7a-ba15-1cd0f6e49931")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R_STOPRAIL")
+			(value "0Ω")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R_STOPRAIL")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "2b0bb705-a1fa-48f7-98bb-d2a0e8dbff35")
 			(units
 				(unit
 					(name "A")
@@ -7020,7 +7805,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "743ce0ba-6f86-4273-8759-215b2713e0df")
+			(tstamps "96b46af2-8a5d-47c9-b83d-6f099afb6c36")
 			(units
 				(unit
 					(name "A")
@@ -7066,7 +7851,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "88a6d343-79aa-49ce-a77d-c9d9a31b8cb0")
+			(tstamps "2351cba0-898c-4842-b341-ca73bba895f3")
 			(units
 				(unit
 					(name "A")
@@ -7112,7 +7897,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a938049d-93f1-44f2-93c7-8b1759a6cdac")
+			(tstamps "adbb85fe-c265-4a06-bfb0-6323aa983d70")
 			(units
 				(unit
 					(name "A")
@@ -7158,7 +7943,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1a81c9e2-5e6d-4ddc-93e4-36d76d946ac2")
+			(tstamps "c419357d-607d-49f8-b96d-e78cfbd75ebe")
 			(units
 				(unit
 					(name "A")
@@ -7204,7 +7989,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7d4d02ba-d66b-4cf0-aed6-3df8227cda9d")
+			(tstamps "f985554e-0de8-4c3e-95aa-23d5dfe4bd9c")
 			(units
 				(unit
 					(name "A")
@@ -7250,7 +8035,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "54caa344-9b37-4431-bb25-0fa47f47d8e7")
+			(tstamps "cbaed177-8d42-44f1-a10d-98c155f48b1f")
 			(units
 				(unit
 					(name "A")
@@ -7296,7 +8081,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c82e1348-d762-41fb-b5f5-04e753b98881")
+			(tstamps "528d5b04-84e9-484f-852f-af17bb94712b")
 			(units
 				(unit
 					(name "A")
@@ -7313,11 +8098,11 @@
 		)
 		(comp
 			(ref "R_TH1")
-			(value "10kΩ")
-			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(value "68kΩ")
+			(footprint "Resistor_SMD:R_1206_3216Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+					(name "Footprint") "Resistor_SMD:R_1206_3216Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -7342,7 +8127,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c17156c6-dfac-4d79-96aa-e7b5d56526e3")
+			(tstamps "c2e5a84d-ab7b-49a2-9be8-392cb83d47fd")
 			(units
 				(unit
 					(name "A")
@@ -7360,10 +8145,10 @@
 		(comp
 			(ref "R_TH2")
 			(value "10kΩ")
-			(footprint "Resistor_SMD:R_0402_1005Metric")
+			(footprint "Resistor_SMD:R_1206_3216Metric")
 			(fields
 				(field
-					(name "Footprint") "Resistor_SMD:R_0402_1005Metric")
+					(name "Footprint") "Resistor_SMD:R_1206_3216Metric")
 				(field
 					(name "Datasheet")
 				)
@@ -7388,7 +8173,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "27e8302e-62ac-47bd-92b5-7823c8353f82")
+			(tstamps "eaf2631c-ecfe-453a-92cc-82f8fb26b555")
 			(units
 				(unit
 					(name "A")
@@ -7437,7 +8222,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "96f8f573-5b5b-435a-a5fc-b1648bb71cc9")
+			(tstamps "e9d10a42-bb6c-43eb-96c9-abfbc327eaa2")
 			(units
 				(unit
 					(name "A")
@@ -7483,7 +8268,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "05d50d4c-1347-48fa-86ba-03854645aa0a")
+			(tstamps "58eb6b6d-052a-4513-acc2-c35364aaad45")
 			(units
 				(unit
 					(name "A")
@@ -7529,7 +8314,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8e5edbd7-f066-4ab6-ac67-cd27c275459b")
+			(tstamps "3ce3b966-02a9-402b-b70b-21abd8cace15")
 			(units
 				(unit
 					(name "A")
@@ -7575,7 +8360,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "abb008d0-bc21-4999-a214-49bbec427c37")
+			(tstamps "98728822-007a-4199-b282-d61b4270cb02")
 			(units
 				(unit
 					(name "A")
@@ -7621,7 +8406,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0a9f96da-da70-467b-a298-67aa5c5e41ff")
+			(tstamps "9468884f-542c-4b81-ada7-4b7ca7abb407")
 			(units
 				(unit
 					(name "A")
@@ -7667,7 +8452,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "258e4bb0-1e12-4296-9968-8045d163648c")
+			(tstamps "ea27d200-0ce9-43d8-99a1-19da815564fd")
 			(units
 				(unit
 					(name "A")
@@ -7713,7 +8498,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3a70f48b-27fd-43c0-ada3-88c43058703b")
+			(tstamps "defe01a4-a6a6-46d4-ba15-690230ffcdc7")
 			(units
 				(unit
 					(name "A")
@@ -7759,7 +8544,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fce91671-b8be-4e7d-9ab1-470314c6c357")
+			(tstamps "7cdc126f-f917-4d3c-a33a-6173dcd0753d")
 			(units
 				(unit
 					(name "A")
@@ -7805,7 +8590,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "24dbf542-aa19-4308-be05-4979e8e959df")
+			(tstamps "e00e1742-f28a-42b8-b6e4-0a72c281b82b")
 			(units
 				(unit
 					(name "A")
@@ -7851,7 +8636,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3b1088cd-cf53-4a04-9dbe-b1292577e5b7")
+			(tstamps "0601f904-56ce-450c-b5cb-14db8ef6141b")
 			(units
 				(unit
 					(name "A")
@@ -7897,7 +8682,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6f7da273-3565-4e89-95f1-a4e3e9c8ed39")
+			(tstamps "8b3b5439-a801-488c-8020-3f8f44a54642")
 			(units
 				(unit
 					(name "A")
@@ -7943,7 +8728,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fb615dfa-c079-43cb-9ec5-5b87514384a0")
+			(tstamps "b820f1ff-2b27-4a73-a62d-b275d25f512c")
 			(units
 				(unit
 					(name "A")
@@ -7989,7 +8774,53 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a5e2e04c-6a08-424b-ae44-e3f1c2240b9f")
+			(tstamps "fd392d34-c0cf-434b-812c-a58019202ce0")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "TP_TCTH")
+			(value "TP")
+			(footprint "TestPoint:TestPoint_Pad_D1.5mm")
+			(fields
+				(field
+					(name "Footprint") "TestPoint:TestPoint_Pad_D1.5mm")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_TP_TCTH")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(property
+				(name "exclude_from_bom")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "83d93468-d8c3-44f2-be8b-6e00d4c34b75")
 			(units
 				(unit
 					(name "A")
@@ -8035,7 +8866,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9efa877d-17bb-4dc0-bb99-c2d2ea3e5c52")
+			(tstamps "1e0b43dc-a5b9-405b-8dcc-da842734d678")
 			(units
 				(unit
 					(name "A")
@@ -8081,7 +8912,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f00e651d-4606-4f81-8e79-866c6b6456a7")
+			(tstamps "94ba86d4-a7cc-41d3-9c08-58f03fc82a46")
 			(units
 				(unit
 					(name "A")
@@ -8127,7 +8958,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e95a9a75-8450-4527-ab32-13f737cf0910")
+			(tstamps "39989662-e1e5-40fb-ab76-fcc2304ad9b5")
 			(units
 				(unit
 					(name "A")
@@ -8170,7 +9001,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2c8f6c6d-b7cf-4646-86d8-71e1031dd877")
+			(tstamps "31a7d3ce-86f5-4684-959f-2e21ff7cce5e")
 			(units
 				(unit
 					(name "A")
@@ -8258,7 +9089,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f6cfc82d-184b-43e4-90d9-c94d0cc84091")
+			(tstamps "73815cf5-ec31-4bc7-bb81-f236a318995f")
 			(units
 				(unit
 					(name "A")
@@ -8316,7 +9147,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a37e8d4c-1a64-4bd4-8502-7243dcc059b6")
+			(tstamps "25607dd0-b01a-464c-98f7-b1b6ee85175f")
 			(units
 				(unit
 					(name "A")
@@ -8374,7 +9205,123 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "72691e72-af19-434a-b09a-bef8a95559ca")
+			(tstamps "ac1cd7ab-0e33-4458-9985-cfaba5cca907")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_CAND1")
+			(value "C22046")
+			(footprint "Package_TO_SOT_SMD:SOT-23-6")
+			(fields
+				(field
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23-6")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_CAND1")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "9e6f8346-eaa8-4f80-85db-c1f23b05565a")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_CAND2")
+			(value "C22046")
+			(footprint "Package_TO_SOT_SMD:SOT-23-6")
+			(fields
+				(field
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23-6")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_CAND2")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "97ac7c47-145b-4d1b-8fd6-6464709a0250")
 			(units
 				(unit
 					(name "A")
@@ -8432,7 +9379,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "34f6c22a-c686-45be-9bda-b651f9284437")
+			(tstamps "41e6e258-1170-4258-88ea-83073c36c3a0")
 			(units
 				(unit
 					(name "A")
@@ -8496,7 +9443,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e30757c8-dd4e-4e47-b733-7f52ef9f42eb")
+			(tstamps "e6eace50-c31c-41bd-b416-36678e10d426")
 			(units
 				(unit
 					(name "A")
@@ -8548,6 +9495,64 @@
 						)
 						(pin
 							(num "9")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_DECDEN")
+			(value "C22046")
+			(footprint "Package_TO_SOT_SMD:SOT-23-6")
+			(fields
+				(field
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23-6")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_DECDEN")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "d8050c0f-562f-47d6-b96d-f7e9cbe11208")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
 						)
 					)
 				)
@@ -8584,7 +9589,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bc5b0c37-94b3-464d-bfa2-6610be4bd46b")
+			(tstamps "5ff119ab-c859-4d11-86c1-87c847cd2387")
 			(units
 				(unit
 					(name "A")
@@ -8642,6 +9647,64 @@
 			)
 		)
 		(comp
+			(ref "U_DECUEN")
+			(value "C22046")
+			(footprint "Package_TO_SOT_SMD:SOT-23-6")
+			(fields
+				(field
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23-6")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_DECUEN")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "c842db77-5f83-4e4c-87de-f83c9796c81a")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
 			(ref "U_EFUSE")
 			(value "C2653844")
 			(footprint "Package_SON:Texas_DSG0008A_WSON-8-1EP_2x2mm_P0.5mm_EP0.9x1.6mm")
@@ -8672,7 +9735,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f923af83-5774-4d0f-9117-943410452760")
+			(tstamps "aa52fff7-dae5-4046-a6b7-ad35d3d3d45a")
 			(units
 				(unit
 					(name "A")
@@ -8739,7 +9802,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "762720cc-f5ed-41d3-ad91-6e24abc20b18")
+			(tstamps "9c4a0dd6-ed1e-4f45-95f4-c226e4760dca")
 			(units
 				(unit
 					(name "A")
@@ -8863,7 +9926,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "643830b8-0420-432f-88f4-c1a7b90f289f")
+			(tstamps "30c2f68e-6f9e-4ced-9ffb-b8eb3b94f996")
 			(units
 				(unit
 					(name "A")
@@ -8921,7 +9984,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d637c9c2-61d4-4a79-b64e-af54bd4c2580")
+			(tstamps "2946d070-fd37-4f51-bbe7-9551cbcb163c")
 			(units
 				(unit
 					(name "A")
@@ -8976,7 +10039,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5bacc147-843e-4bf1-b548-6475d5d1209c")
+			(tstamps "4b052173-478e-4222-b1ca-577177f3b8e1")
 			(units
 				(unit
 					(name "A")
@@ -8989,6 +10052,64 @@
 						)
 						(pin
 							(num "3")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_LATCHG")
+			(value "C22046")
+			(footprint "Package_TO_SOT_SMD:SOT-23-6")
+			(fields
+				(field
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23-6")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_LATCHG")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "a4a938f7-ee93-45c3-b15e-46a6ec254623")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "6")
 						)
 						(pin
 							(num "5")
@@ -9031,7 +10152,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8713f82c-20a0-4e34-b5e0-936014a65031")
+			(tstamps "cdc1a202-0577-4ca0-8566-9e8f74cbdfeb")
 			(units
 				(unit
 					(name "A")
@@ -9083,7 +10204,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8ff80789-f623-4896-8d2b-fe29f6442020")
+			(tstamps "a58a523c-ca73-447f-890f-326027ac8395")
 			(units
 				(unit
 					(name "A")
@@ -9109,11 +10230,11 @@
 		)
 		(comp
 			(ref "U_ONESHOT")
-			(value "C123302")
-			(footprint "Package_SO:SSOP-8_2.95x2.8mm_P0.65mm")
+			(value "C133954")
+			(footprint "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm")
 			(fields
 				(field
-					(name "Footprint") "Package_SO:SSOP-8_2.95x2.8mm_P0.65mm")
+					(name "Footprint") "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm")
 				(field
 					(name "Datasheet")
 				)
@@ -9138,7 +10259,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "21109b1e-f529-4eba-bc8a-5772be1057ff")
+			(tstamps "12ffcd86-3641-483b-8f41-749acd227876")
 			(units
 				(unit
 					(name "A")
@@ -9156,16 +10277,40 @@
 							(num "4")
 						)
 						(pin
-							(num "8")
-						)
-						(pin
-							(num "7")
+							(num "5")
 						)
 						(pin
 							(num "6")
 						)
 						(pin
-							(num "5")
+							(num "7")
+						)
+						(pin
+							(num "8")
+						)
+						(pin
+							(num "16")
+						)
+						(pin
+							(num "15")
+						)
+						(pin
+							(num "14")
+						)
+						(pin
+							(num "13")
+						)
+						(pin
+							(num "12")
+						)
+						(pin
+							(num "11")
+						)
+						(pin
+							(num "10")
+						)
+						(pin
+							(num "9")
 						)
 					)
 				)
@@ -9202,7 +10347,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0b45c261-21c0-4340-b5fa-4f63d0a135ba")
+			(tstamps "a5233819-97d9-4353-ae32-57bfbc9baef2")
 			(units
 				(unit
 					(name "A")
@@ -9218,6 +10363,64 @@
 						)
 						(pin
 							(num "3")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "U_OSCLR")
+			(value "C22046")
+			(footprint "Package_TO_SOT_SMD:SOT-23-6")
+			(fields
+				(field
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23-6")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_U_OSCLR")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/cooksense.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "568bc6b1-88cd-478c-8430-a528bcf2c212")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+						(pin
+							(num "6")
+						)
+						(pin
+							(num "5")
+						)
+						(pin
+							(num "4")
 						)
 					)
 				)
@@ -9254,7 +10457,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a60afc4a-fb42-4d21-a85a-48e183e1ebb9")
+			(tstamps "37d7edf4-87ef-4426-8e4c-8ca5c186714f")
 			(units
 				(unit
 					(name "A")
@@ -9336,7 +10539,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c05fcba8-58e2-49a6-97fc-d5be24502560")
+			(tstamps "4fd0e60b-e79a-42b4-b773-7663bc9213ff")
 			(units
 				(unit
 					(name "A")
@@ -9394,12 +10597,12 @@
 			)
 		)
 		(comp
-			(ref "U_SR2")
-			(value "C10092")
-			(footprint "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm")
+			(ref "U_STOPINV")
+			(value "C8185")
+			(footprint "Package_TO_SOT_SMD:SOT-353_SC-70-5")
 			(fields
 				(field
-					(name "Footprint") "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm")
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-353_SC-70-5")
 				(field
 					(name "Datasheet")
 				)
@@ -9409,7 +10612,7 @@
 			)
 			(libsource
 				(lib "elt")
-				(part "SYM_U_SR2")
+				(part "SYM_U_STOPINV")
 				(description "")
 			)
 			(property
@@ -9424,7 +10627,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b1f6b2e8-7243-4d98-8ec5-42d928f21b9c")
+			(tstamps "053bd74b-63b4-4f69-adfc-41b5759636d3")
 			(units
 				(unit
 					(name "A")
@@ -9439,43 +10642,10 @@
 							(num "3")
 						)
 						(pin
-							(num "4")
-						)
-						(pin
 							(num "5")
 						)
 						(pin
-							(num "6")
-						)
-						(pin
-							(num "7")
-						)
-						(pin
-							(num "8")
-						)
-						(pin
-							(num "16")
-						)
-						(pin
-							(num "15")
-						)
-						(pin
-							(num "14")
-						)
-						(pin
-							(num "13")
-						)
-						(pin
-							(num "12")
-						)
-						(pin
-							(num "11")
-						)
-						(pin
-							(num "10")
-						)
-						(pin
-							(num "9")
+							(num "4")
 						)
 					)
 				)
@@ -9512,7 +10682,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1a363c12-7bd8-49d0-aad9-be7c37cb0341")
+			(tstamps "0f80223c-50b5-4e88-9285-21f077f1ab1f")
 			(units
 				(unit
 					(name "A")
@@ -9594,7 +10764,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ade6af72-815e-4cbe-b098-4cbbc48fa845")
+			(tstamps "42fc5336-6fd9-42f3-9fb8-841d09fb5339")
 			(units
 				(unit
 					(name "A")
@@ -9688,7 +10858,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b82c6f9f-266d-4d7d-bda0-b660a4c04dbd")
+			(tstamps "0f5ec022-7735-4a12-9ac5-f769e1217e17")
 			(units
 				(unit
 					(name "A")
@@ -9782,7 +10952,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c2e0b96e-258d-451c-9de5-47b33c1283cb")
+			(tstamps "f098d4d4-8bbc-4c95-94ed-ea6e71224557")
 			(units
 				(unit
 					(name "A")
@@ -10091,6 +11261,68 @@
 		)
 		(libpart
 			(lib "elt")
+			(part "SYM_C_CAND1")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_CAND1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_CAND2")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_CAND2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
 			(part "SYM_C_COMP")
 			(fields
 				(field
@@ -10153,12 +11385,74 @@
 		)
 		(libpart
 			(lib "elt")
+			(part "SYM_C_DECDEN")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_DECDEN")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
 			(part "SYM_C_DECU")
 			(fields
 				(field
 					(name "Reference") "C")
 				(field
 					(name "Value") "SYM_C_DECU")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_DECUEN")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_DECUEN")
 				(field
 					(name "Footprint")
 				)
@@ -10680,6 +11974,37 @@
 		)
 		(libpart
 			(lib "elt")
+			(part "SYM_C_LATCHG")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_LATCHG")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
 			(part "SYM_C_LDOIN")
 			(fields
 				(field
@@ -10835,6 +12160,37 @@
 		)
 		(libpart
 			(lib "elt")
+			(part "SYM_C_OSCLR")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_OSCLR")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
 			(part "SYM_C_OSV")
 			(fields
 				(field
@@ -10928,12 +12284,43 @@
 		)
 		(libpart
 			(lib "elt")
-			(part "SYM_C_SR2")
+			(part "SYM_C_STOPINV")
 			(fields
 				(field
 					(name "Reference") "C")
 				(field
-					(name "Value") "SYM_C_SR2")
+					(name "Value") "SYM_C_STOPINV")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_C_STOPR")
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "SYM_C_STOPR")
 				(field
 					(name "Footprint")
 				)
@@ -11418,6 +12805,37 @@
 				(pin
 					(num "2")
 					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_D_KSTOP")
+			(fields
+				(field
+					(name "Reference") "D")
+				(field
+					(name "Value") "SYM_D_KSTOP")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "K")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "A")
 					(type "passive")
 				)
 			)
@@ -13033,6 +14451,42 @@
 		)
 		(libpart
 			(lib "elt")
+			(part "SYM_Q_STOPDRV")
+			(fields
+				(field
+					(name "Reference") "Q")
+				(field
+					(name "Value") "SYM_Q_STOPDRV")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "G")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "S")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "D")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
 			(part "SYM_Q_SWA")
 			(fields
 				(field
@@ -13414,6 +14868,37 @@
 		)
 		(libpart
 			(lib "elt")
+			(part "SYM_R_CTRREQPD")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_CTRREQPD")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
 			(part "SYM_R_DECDPD")
 			(fields
 				(field
@@ -13544,6 +15029,37 @@
 					(name "Reference") "R")
 				(field
 					(name "Value") "SYM_R_EXPRST")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_HOSTAUTHPD")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_HOSTAUTHPD")
 				(field
 					(name "Footprint")
 				)
@@ -13724,6 +15240,37 @@
 		)
 		(libpart
 			(lib "elt")
+			(part "SYM_R_KRSTPD")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_KRSTPD")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
 			(part "SYM_R_LCCLK")
 			(fields
 				(field
@@ -13761,6 +15308,37 @@
 					(name "Reference") "R")
 				(field
 					(name "Value") "SYM_R_LCDAT")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_MCUENPD")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_MCUENPD")
 				(field
 					(name "Footprint")
 				)
@@ -13941,6 +15519,37 @@
 		)
 		(libpart
 			(lib "elt")
+			(part "SYM_R_OS2")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_OS2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
 			(part "SYM_R_OVB")
 			(fields
 				(field
@@ -14009,6 +15618,161 @@
 					(name "Reference") "R")
 				(field
 					(name "Value") "SYM_R_PG")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_RAENAPD")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_RAENAPD")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_RAENBPD")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_RAENBPD")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_RAENRHAPD")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_RAENRHAPD")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_RAENRHEPD")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_RAENRHEPD")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_REARMPU")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_REARMPU")
 				(field
 					(name "Footprint")
 				)
@@ -14344,68 +16108,6 @@
 		)
 		(libpart
 			(lib "elt")
-			(part "SYM_R_SCLRHA")
-			(fields
-				(field
-					(name "Reference") "R")
-				(field
-					(name "Value") "SYM_R_SCLRHA")
-				(field
-					(name "Footprint")
-				)
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description")
-				)
-			)
-			(pins
-				(pin
-					(num "1")
-					(name "")
-					(type "passive")
-				)
-				(pin
-					(num "2")
-					(name "")
-					(type "passive")
-				)
-			)
-		)
-		(libpart
-			(lib "elt")
-			(part "SYM_R_SCLRHE")
-			(fields
-				(field
-					(name "Reference") "R")
-				(field
-					(name "Value") "SYM_R_SCLRHE")
-				(field
-					(name "Footprint")
-				)
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description")
-				)
-			)
-			(pins
-				(pin
-					(num "1")
-					(name "")
-					(type "passive")
-				)
-				(pin
-					(num "2")
-					(name "")
-					(type "passive")
-				)
-			)
-		)
-		(libpart
-			(lib "elt")
 			(part "SYM_R_SDAA")
 			(fields
 				(field
@@ -14443,68 +16145,6 @@
 					(name "Reference") "R")
 				(field
 					(name "Value") "SYM_R_SDAB")
-				(field
-					(name "Footprint")
-				)
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description")
-				)
-			)
-			(pins
-				(pin
-					(num "1")
-					(name "")
-					(type "passive")
-				)
-				(pin
-					(num "2")
-					(name "")
-					(type "passive")
-				)
-			)
-		)
-		(libpart
-			(lib "elt")
-			(part "SYM_R_SDARHA")
-			(fields
-				(field
-					(name "Reference") "R")
-				(field
-					(name "Value") "SYM_R_SDARHA")
-				(field
-					(name "Footprint")
-				)
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description")
-				)
-			)
-			(pins
-				(pin
-					(num "1")
-					(name "")
-					(type "passive")
-				)
-				(pin
-					(num "2")
-					(name "")
-					(type "passive")
-				)
-			)
-		)
-		(libpart
-			(lib "elt")
-			(part "SYM_R_SDARHE")
-			(fields
-				(field
-					(name "Reference") "R")
-				(field
-					(name "Value") "SYM_R_SDARHE")
 				(field
 					(name "Footprint")
 				)
@@ -14815,6 +16455,68 @@
 					(name "Reference") "R")
 				(field
 					(name "Value") "SYM_R_STOP")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_STOPPD")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_STOPPD")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R_STOPRAIL")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R_STOPRAIL")
 				(field
 					(name "Footprint")
 				)
@@ -15457,6 +17159,32 @@
 		)
 		(libpart
 			(lib "elt")
+			(part "SYM_TP_TCTH")
+			(fields
+				(field
+					(name "Reference") "T")
+				(field
+					(name "Value") "SYM_TP_TCTH")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
 			(part "SYM_TP_TEMPOK")
 			(fields
 				(field
@@ -15789,6 +17517,108 @@
 		)
 		(libpart
 			(lib "elt")
+			(part "SYM_U_CAND1")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_CAND1")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "A")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "B")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "Y")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "VCC")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "C")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_CAND2")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_CAND2")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "A")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "B")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "Y")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "VCC")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "C")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
 			(part "SYM_U_COMP")
 			(fields
 				(field
@@ -15951,6 +17781,57 @@
 		)
 		(libpart
 			(lib "elt")
+			(part "SYM_U_DECDEN")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_DECDEN")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "A")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "B")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "Y")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "VCC")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "C")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
 			(part "SYM_U_DECU")
 			(fields
 				(field
@@ -16046,6 +17927,57 @@
 				(pin
 					(num "16")
 					(name "VCC")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_DECUEN")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_DECUEN")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "A")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "B")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "Y")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "VCC")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "C")
 					(type "passive")
 				)
 			)
@@ -16422,6 +18354,57 @@
 		)
 		(libpart
 			(lib "elt")
+			(part "SYM_U_LATCHG")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_LATCHG")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "A")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "B")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "Y")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "VCC")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "C")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
 			(part "SYM_U_LDO")
 			(fields
 				(field
@@ -16528,41 +18511,81 @@
 			(pins
 				(pin
 					(num "1")
-					(name "A")
+					(name "A1_N")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "B")
+					(name "B1")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "CLR_N")
+					(name "R1_N")
 					(type "passive")
 				)
 				(pin
 					(num "4")
-					(name "GND")
+					(name "Q1_N")
 					(type "passive")
 				)
 				(pin
 					(num "5")
-					(name "Q")
+					(name "Q2")
 					(type "passive")
 				)
 				(pin
 					(num "6")
-					(name "Cext")
+					(name "CX2")
 					(type "passive")
 				)
 				(pin
 					(num "7")
-					(name "REXT_CEXT")
+					(name "CXRX2")
 					(type "passive")
 				)
 				(pin
 					(num "8")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "9")
+					(name "A2_N")
+					(type "passive")
+				)
+				(pin
+					(num "10")
+					(name "B2")
+					(type "passive")
+				)
+				(pin
+					(num "11")
+					(name "R2_N")
+					(type "passive")
+				)
+				(pin
+					(num "12")
+					(name "Q2_N")
+					(type "passive")
+				)
+				(pin
+					(num "13")
+					(name "Q1")
+					(type "passive")
+				)
+				(pin
+					(num "14")
+					(name "CX1")
+					(type "passive")
+				)
+				(pin
+					(num "15")
+					(name "CXRX1")
+					(type "passive")
+				)
+				(pin
+					(num "16")
 					(name "VCC")
 					(type "passive")
 				)
@@ -16605,6 +18628,57 @@
 				(pin
 					(num "4")
 					(name "COLLECTOR")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_U_OSCLR")
+			(fields
+				(field
+					(name "Reference") "U")
+				(field
+					(name "Value") "SYM_U_OSCLR")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "A")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "GND")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "B")
+					(type "passive")
+				)
+				(pin
+					(num "4")
+					(name "Y")
+					(type "passive")
+				)
+				(pin
+					(num "5")
+					(name "VCC")
+					(type "passive")
+				)
+				(pin
+					(num "6")
+					(name "C")
 					(type "passive")
 				)
 			)
@@ -16803,12 +18877,12 @@
 		)
 		(libpart
 			(lib "elt")
-			(part "SYM_U_SR2")
+			(part "SYM_U_STOPINV")
 			(fields
 				(field
 					(name "Reference") "U")
 				(field
-					(name "Value") "SYM_U_SR2")
+					(name "Value") "SYM_U_STOPINV")
 				(field
 					(name "Footprint")
 				)
@@ -16822,81 +18896,26 @@
 			(pins
 				(pin
 					(num "1")
-					(name "QB")
+					(name "A")
 					(type "passive")
 				)
 				(pin
 					(num "2")
-					(name "QC")
+					(name "B")
 					(type "passive")
 				)
 				(pin
 					(num "3")
-					(name "QD")
-					(type "passive")
-				)
-				(pin
-					(num "4")
-					(name "QE")
-					(type "passive")
-				)
-				(pin
-					(num "5")
-					(name "QF")
-					(type "passive")
-				)
-				(pin
-					(num "6")
-					(name "QG")
-					(type "passive")
-				)
-				(pin
-					(num "7")
-					(name "QH")
-					(type "passive")
-				)
-				(pin
-					(num "8")
 					(name "GND")
 					(type "passive")
 				)
 				(pin
-					(num "9")
-					(name "QH_S")
+					(num "4")
+					(name "Y")
 					(type "passive")
 				)
 				(pin
-					(num "10")
-					(name "SRCLR_N")
-					(type "passive")
-				)
-				(pin
-					(num "11")
-					(name "SRCLK")
-					(type "passive")
-				)
-				(pin
-					(num "12")
-					(name "RCLK")
-					(type "passive")
-				)
-				(pin
-					(num "13")
-					(name "OE_N")
-					(type "passive")
-				)
-				(pin
-					(num "14")
-					(name "SER")
-					(type "passive")
-				)
-				(pin
-					(num "15")
-					(name "QA")
-					(type "passive")
-				)
-				(pin
-					(num "16")
+					(num "5")
 					(name "VCC")
 					(type "passive")
 				)
@@ -17289,12 +19308,32 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "C_CAND1")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_CAND2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
 				(ref "C_DECD")
 				(pin "1")
 				(pintype "passive")
 			)
 			(node
+				(ref "C_DECDEN")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
 				(ref "C_DECU")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_DECUEN")
 				(pin "1")
 				(pintype "passive")
 			)
@@ -17319,12 +19358,22 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "C_LATCHG")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
 				(ref "C_LDOOUT")
 				(pin "1")
 				(pintype "passive")
 			)
 			(node
 				(ref "C_OENAND")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_OSCLR")
 				(pin "1")
 				(pintype "passive")
 			)
@@ -17344,7 +19393,7 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "C_SR2")
+				(ref "C_STOPINV")
 				(pin "1")
 				(pintype "passive")
 			)
@@ -17443,6 +19492,16 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "R_OS2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_REARMPU")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
 				(ref "R_SWPUA")
 				(pin "2")
 				(pintype "passive")
@@ -17491,15 +19550,51 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "U_CAND1")
+				(pin "5")
+				(pinfunction "VCC_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_CAND2")
+				(pin "5")
+				(pinfunction "VCC_5")
+				(pintype "passive")
+			)
+			(node
 				(ref "U_DECD")
 				(pin "16")
 				(pinfunction "VCC_16")
 				(pintype "passive")
 			)
 			(node
+				(ref "U_DECDEN")
+				(pin "5")
+				(pinfunction "VCC_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_DECDEN")
+				(pin "6")
+				(pinfunction "C_6")
+				(pintype "passive")
+			)
+			(node
 				(ref "U_DECU")
 				(pin "16")
 				(pinfunction "VCC_16")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_DECUEN")
+				(pin "5")
+				(pinfunction "VCC_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_DECUEN")
+				(pin "6")
+				(pinfunction "C_6")
 				(pintype "passive")
 			)
 			(node
@@ -17515,12 +19610,6 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "U_FAULTAND")
-				(pin "6")
-				(pinfunction "C_6")
-				(pintype "passive")
-			)
-			(node
 				(ref "U_LATCHA")
 				(pin "5")
 				(pinfunction "VCC_5")
@@ -17530,6 +19619,18 @@
 				(ref "U_LATCHB")
 				(pin "5")
 				(pinfunction "VCC_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_LATCHG")
+				(pin "5")
+				(pinfunction "VCC_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_LATCHG")
+				(pin "6")
+				(pinfunction "C_6")
 				(pintype "passive")
 			)
 			(node
@@ -17552,8 +19653,26 @@
 			)
 			(node
 				(ref "U_ONESHOT")
-				(pin "8")
-				(pinfunction "VCC_8")
+				(pin "16")
+				(pinfunction "VCC_16")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_ONESHOT")
+				(pin "9")
+				(pinfunction "A2_N_9")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_OSCLR")
+				(pin "5")
+				(pinfunction "VCC_5")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_OSCLR")
+				(pin "6")
+				(pinfunction "C_6")
 				(pintype "passive")
 			)
 			(node
@@ -17569,9 +19688,9 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "U_SR2")
-				(pin "16")
-				(pinfunction "VCC_16")
+				(ref "U_STOPINV")
+				(pin "5")
+				(pinfunction "VCC_5")
 				(pintype "passive")
 			)
 			(node
@@ -17762,16 +19881,6 @@
 				(pinfunction "D_3")
 				(pintype "passive")
 			)
-			(node
-				(ref "R_SCLRHA")
-				(pin "2")
-				(pintype "passive")
-			)
-			(node
-				(ref "R_SDARHA")
-				(pin "2")
-				(pintype "passive")
-			)
 		)
 		(net
 			(code "6")
@@ -17791,16 +19900,6 @@
 				(ref "Q_SWRHE")
 				(pin "3")
 				(pinfunction "D_3")
-				(pintype "passive")
-			)
-			(node
-				(ref "R_SCLRHE")
-				(pin "2")
-				(pintype "passive")
-			)
-			(node
-				(ref "R_SDARHE")
-				(pin "2")
 				(pintype "passive")
 			)
 		)
@@ -17892,12 +19991,6 @@
 			)
 			(node
 				(ref "K_PRESS")
-				(pin "1")
-				(pinfunction "COIL_A_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "K_STOP")
 				(pin "1")
 				(pinfunction "COIL_A_1")
 				(pintype "passive")
@@ -18018,6 +20111,11 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "R_STOPRAIL")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
 				(ref "TP_5VP")
 				(pin "1")
 				(pintype "passive")
@@ -18071,6 +20169,33 @@
 		)
 		(net
 			(code "12")
+			(name "5V_STOP")
+			(class "Default")
+			(node
+				(ref "C_STOPR")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "D_KSTOP")
+				(pin "1")
+				(pinfunction "K_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "K_STOP")
+				(pin "1")
+				(pinfunction "COIL_A_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_STOPRAIL")
+				(pin "2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "13")
 			(name "ADC_CH0")
 			(class "Default")
 			(node
@@ -18091,7 +20216,7 @@
 			)
 		)
 		(net
-			(code "13")
+			(code "14")
 			(name "ADC_CH1")
 			(class "Default")
 			(node
@@ -18112,7 +20237,7 @@
 			)
 		)
 		(net
-			(code "14")
+			(code "15")
 			(name "ADC_CH2")
 			(class "Default")
 			(node
@@ -18133,7 +20258,7 @@
 			)
 		)
 		(net
-			(code "15")
+			(code "16")
 			(name "ADC_CH3")
 			(class "Default")
 			(node
@@ -18154,7 +20279,7 @@
 			)
 		)
 		(net
-			(code "16")
+			(code "17")
 			(name "ADC_CH4")
 			(class "Default")
 			(node
@@ -18175,7 +20300,7 @@
 			)
 		)
 		(net
-			(code "17")
+			(code "18")
 			(name "ADC_CH5")
 			(class "Default")
 			(node
@@ -18196,7 +20321,7 @@
 			)
 		)
 		(net
-			(code "18")
+			(code "19")
 			(name "ADC_CH6")
 			(class "Default")
 			(node
@@ -18217,7 +20342,7 @@
 			)
 		)
 		(net
-			(code "19")
+			(code "20")
 			(name "ADC_CH7")
 			(class "Default")
 			(node
@@ -18238,7 +20363,7 @@
 			)
 		)
 		(net
-			(code "20")
+			(code "21")
 			(name "ADC_CS_N")
 			(class "Default")
 			(node
@@ -18254,7 +20379,7 @@
 			)
 		)
 		(net
-			(code "21")
+			(code "22")
 			(name "AND1")
 			(class "Default")
 			(node
@@ -18271,7 +20396,7 @@
 			)
 		)
 		(net
-			(code "22")
+			(code "23")
 			(name "AND2")
 			(class "Default")
 			(node
@@ -18288,7 +20413,7 @@
 			)
 		)
 		(net
-			(code "23")
+			(code "24")
 			(name "BOARD_ID0")
 			(class "Default")
 			(node
@@ -18304,7 +20429,7 @@
 			)
 		)
 		(net
-			(code "24")
+			(code "25")
 			(name "BOARD_ID1")
 			(class "Default")
 			(node
@@ -18320,7 +20445,7 @@
 			)
 		)
 		(net
-			(code "25")
+			(code "26")
 			(name "COIL_D1_N")
 			(class "Default")
 			(node
@@ -18337,7 +20462,7 @@
 			)
 		)
 		(net
-			(code "26")
+			(code "27")
 			(name "COIL_D2_N")
 			(class "Default")
 			(node
@@ -18354,7 +20479,7 @@
 			)
 		)
 		(net
-			(code "27")
+			(code "28")
 			(name "COIL_D3_N")
 			(class "Default")
 			(node
@@ -18371,7 +20496,7 @@
 			)
 		)
 		(net
-			(code "28")
+			(code "29")
 			(name "COIL_D4_N")
 			(class "Default")
 			(node
@@ -18388,7 +20513,7 @@
 			)
 		)
 		(net
-			(code "29")
+			(code "30")
 			(name "COIL_EN")
 			(class "Default")
 			(node
@@ -18409,7 +20534,7 @@
 			)
 		)
 		(net
-			(code "30")
+			(code "31")
 			(name "COIL_PRESS_N")
 			(class "Default")
 			(node
@@ -18426,9 +20551,15 @@
 			)
 		)
 		(net
-			(code "31")
+			(code "32")
 			(name "COIL_STOP_N")
 			(class "Default")
+			(node
+				(ref "D_KSTOP")
+				(pin "2")
+				(pinfunction "A_2")
+				(pintype "passive")
+			)
 			(node
 				(ref "K_STOP")
 				(pin "2")
@@ -18436,14 +20567,14 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "U_ULNB")
-				(pin "15")
-				(pinfunction "OUT4_15")
+				(ref "Q_STOPDRV")
+				(pin "3")
+				(pinfunction "D_3")
 				(pintype "passive")
 			)
 		)
 		(net
-			(code "32")
+			(code "33")
 			(name "COIL_U1_N")
 			(class "Default")
 			(node
@@ -18460,7 +20591,7 @@
 			)
 		)
 		(net
-			(code "33")
+			(code "34")
 			(name "COIL_U2_N")
 			(class "Default")
 			(node
@@ -18477,7 +20608,7 @@
 			)
 		)
 		(net
-			(code "34")
+			(code "35")
 			(name "COIL_U3_N")
 			(class "Default")
 			(node
@@ -18494,7 +20625,7 @@
 			)
 		)
 		(net
-			(code "35")
+			(code "36")
 			(name "COIL_U4_N")
 			(class "Default")
 			(node
@@ -18511,7 +20642,7 @@
 			)
 		)
 		(net
-			(code "36")
+			(code "37")
 			(name "COIL_U5_N")
 			(class "Default")
 			(node
@@ -18528,7 +20659,7 @@
 			)
 		)
 		(net
-			(code "37")
+			(code "38")
 			(name "COIL_U6_N")
 			(class "Default")
 			(node
@@ -18545,7 +20676,7 @@
 			)
 		)
 		(net
-			(code "38")
+			(code "39")
 			(name "CONTACTOR_C")
 			(class "Default")
 			(node
@@ -18561,7 +20692,23 @@
 			)
 		)
 		(net
-			(code "39")
+			(code "40")
+			(name "CONTACTOR_DRV")
+			(class "Default")
+			(node
+				(ref "R_OPTOLED")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_CAND2")
+				(pin "4")
+				(pinfunction "Y_4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "41")
 			(name "CONTACTOR_E")
 			(class "Default")
 			(node
@@ -18578,7 +20725,7 @@
 			)
 		)
 		(net
-			(code "40")
+			(code "42")
 			(name "CONTACTOR_LOOP")
 			(class "Default")
 			(node
@@ -18594,12 +20741,18 @@
 			)
 		)
 		(net
-			(code "41")
+			(code "43")
 			(name "CONTACTOR_REQ")
 			(class "Default")
 			(node
-				(ref "R_OPTOLED")
+				(ref "R_CTRREQPD")
 				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_CAND2")
+				(pin "6")
+				(pinfunction "C_6")
 				(pintype "passive")
 			)
 			(node
@@ -18610,7 +20763,24 @@
 			)
 		)
 		(net
-			(code "42")
+			(code "44")
+			(name "CTR_SAFE")
+			(class "Default")
+			(node
+				(ref "U_CAND1")
+				(pin "4")
+				(pinfunction "Y_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_CAND2")
+				(pin "1")
+				(pinfunction "A_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "45")
 			(name "DECD_A")
 			(class "Default")
 			(node
@@ -18627,7 +20797,7 @@
 			)
 		)
 		(net
-			(code "43")
+			(code "46")
 			(name "DECD_B")
 			(class "Default")
 			(node
@@ -18644,8 +20814,25 @@
 			)
 		)
 		(net
-			(code "44")
+			(code "47")
 			(name "DECD_G1")
+			(class "Default")
+			(node
+				(ref "U_DECD")
+				(pin "6")
+				(pinfunction "G1_6")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_DECDEN")
+				(pin "4")
+				(pinfunction "Y_4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "48")
+			(name "DECD_G1_RAW")
 			(class "Default")
 			(node
 				(ref "R_DECDPD")
@@ -18653,9 +20840,9 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "U_DECD")
-				(pin "6")
-				(pinfunction "G1_6")
+				(ref "U_DECDEN")
+				(pin "1")
+				(pinfunction "A_1")
 				(pintype "passive")
 			)
 			(node
@@ -18666,7 +20853,7 @@
 			)
 		)
 		(net
-			(code "45")
+			(code "49")
 			(name "DECU_A")
 			(class "Default")
 			(node
@@ -18683,7 +20870,7 @@
 			)
 		)
 		(net
-			(code "46")
+			(code "50")
 			(name "DECU_B")
 			(class "Default")
 			(node
@@ -18700,7 +20887,7 @@
 			)
 		)
 		(net
-			(code "47")
+			(code "51")
 			(name "DECU_C")
 			(class "Default")
 			(node
@@ -18717,8 +20904,25 @@
 			)
 		)
 		(net
-			(code "48")
+			(code "52")
 			(name "DECU_G1")
+			(class "Default")
+			(node
+				(ref "U_DECU")
+				(pin "6")
+				(pinfunction "G1_6")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_DECUEN")
+				(pin "4")
+				(pinfunction "Y_4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "53")
+			(name "DECU_G1_RAW")
 			(class "Default")
 			(node
 				(ref "R_DECUPD")
@@ -18726,9 +20930,9 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "U_DECU")
-				(pin "6")
-				(pinfunction "G1_6")
+				(ref "U_DECUEN")
+				(pin "1")
+				(pinfunction "A_1")
 				(pintype "passive")
 			)
 			(node
@@ -18739,7 +20943,7 @@
 			)
 		)
 		(net
-			(code "49")
+			(code "54")
 			(name "DOOR_NI")
 			(class "Default")
 			(node
@@ -18756,7 +20960,7 @@
 			)
 		)
 		(net
-			(code "50")
+			(code "55")
 			(name "DOOR_OK")
 			(class "Default")
 			(node
@@ -18766,9 +20970,9 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "U_ONESHOT")
-				(pin "3")
-				(pinfunction "CLR_N_3")
+				(ref "U_OSCLR")
+				(pin "1")
+				(pinfunction "A_1")
 				(pintype "passive")
 			)
 			(node
@@ -18779,7 +20983,7 @@
 			)
 		)
 		(net
-			(code "51")
+			(code "56")
 			(name "DOOR_RAW")
 			(class "Default")
 			(node
@@ -18810,7 +21014,7 @@
 			)
 		)
 		(net
-			(code "52")
+			(code "57")
 			(name "D_SEL_BUS")
 			(class "Default")
 			(node
@@ -18849,7 +21053,7 @@
 			)
 		)
 		(net
-			(code "53")
+			(code "58")
 			(name "EFUSE_FLT_N")
 			(class "Default")
 			(node
@@ -18876,7 +21080,7 @@
 			)
 		)
 		(net
-			(code "54")
+			(code "59")
 			(name "EF_DVDT")
 			(class "Default")
 			(node
@@ -18892,7 +21096,7 @@
 			)
 		)
 		(net
-			(code "55")
+			(code "60")
 			(name "EF_ILM")
 			(class "Default")
 			(node
@@ -18908,7 +21112,7 @@
 			)
 		)
 		(net
-			(code "56")
+			(code "61")
 			(name "EF_OVLO")
 			(class "Default")
 			(node
@@ -18929,7 +21133,7 @@
 			)
 		)
 		(net
-			(code "57")
+			(code "62")
 			(name "ESTOP_NI")
 			(class "Default")
 			(node
@@ -18946,7 +21150,7 @@
 			)
 		)
 		(net
-			(code "58")
+			(code "63")
 			(name "ESTOP_OK")
 			(class "Default")
 			(node
@@ -18958,6 +21162,12 @@
 				(ref "U_AND1")
 				(pin "6")
 				(pinfunction "C_6")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_CAND1")
+				(pin "3")
+				(pinfunction "B_3")
 				(pintype "passive")
 			)
 			(node
@@ -18980,7 +21190,7 @@
 			)
 		)
 		(net
-			(code "59")
+			(code "64")
 			(name "ESTOP_RAW")
 			(class "Default")
 			(node
@@ -19006,7 +21216,7 @@
 			)
 		)
 		(net
-			(code "60")
+			(code "65")
 			(name "EXP_INTB")
 			(class "Default")
 			(node
@@ -19017,7 +21227,7 @@
 			)
 		)
 		(net
-			(code "61")
+			(code "66")
 			(name "EXP_RST_N")
 			(class "Default")
 			(node
@@ -19033,7 +21243,7 @@
 			)
 		)
 		(net
-			(code "62")
+			(code "67")
 			(name "FAULT")
 			(class "Default")
 			(node
@@ -19061,13 +21271,19 @@
 			)
 		)
 		(net
-			(code "63")
+			(code "68")
 			(name "FAULT_LATCH_CLEAR")
 			(class "Default")
 			(node
 				(ref "U_AND3")
 				(pin "6")
 				(pinfunction "C_6")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_CAND2")
+				(pin "3")
+				(pinfunction "B_3")
 				(pintype "passive")
 			)
 			(node
@@ -19084,7 +21300,7 @@
 			)
 		)
 		(net
-			(code "64")
+			(code "69")
 			(name "FAULT_SET_N")
 			(class "Default")
 			(node
@@ -19101,7 +21317,7 @@
 			)
 		)
 		(net
-			(code "65")
+			(code "70")
 			(name "GND")
 			(class "Default")
 			(node
@@ -19150,6 +21366,16 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "C_CAND1")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_CAND2")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
 				(ref "C_COMP")
 				(pin "2")
 				(pintype "passive")
@@ -19160,7 +21386,17 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "C_DECDEN")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
 				(ref "C_DECU")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_DECUEN")
 				(pin "2")
 				(pintype "passive")
 			)
@@ -19245,6 +21481,11 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "C_LATCHG")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
 				(ref "C_LDOIN")
 				(pin "2")
 				(pintype "passive")
@@ -19265,6 +21506,11 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "C_OSCLR")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
 				(ref "C_OSV")
 				(pin "2")
 				(pintype "passive")
@@ -19280,7 +21526,12 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "C_SR2")
+				(ref "C_STOPINV")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_STOPR")
 				(pin "2")
 				(pintype "passive")
 			)
@@ -19519,6 +21770,12 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "Q_STOPDRV")
+				(pin "2")
+				(pinfunction "S_2")
+				(pintype "passive")
+			)
+			(node
 				(ref "Q_SWDRVA")
 				(pin "2")
 				(pinfunction "S_2")
@@ -19553,6 +21810,11 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "R_CTRREQPD")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
 				(ref "R_DECDPD")
 				(pin "2")
 				(pintype "passive")
@@ -19568,7 +21830,22 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "R_HOSTAUTHPD")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
 				(ref "R_ILM")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_KRSTPD")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_MCUENPD")
 				(pin "2")
 				(pintype "passive")
 			)
@@ -19583,7 +21860,32 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "R_RAENAPD")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_RAENBPD")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_RAENRHAPD")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_RAENRHEPD")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
 				(ref "R_SHIELD")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_STOPPD")
 				(pin "2")
 				(pintype "passive")
 			)
@@ -19623,6 +21925,18 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "U_CAND1")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_CAND2")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
 				(ref "U_COMP")
 				(pin "4")
 				(pinfunction "GND_4")
@@ -19653,6 +21967,12 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "U_DECDEN")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
 				(ref "U_DECU")
 				(pin "4")
 				(pinfunction "G2A_N_4")
@@ -19668,6 +21988,12 @@
 				(ref "U_DECU")
 				(pin "8")
 				(pinfunction "GND_8")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_DECUEN")
+				(pin "2")
+				(pinfunction "GND_2")
 				(pintype "passive")
 			)
 			(node
@@ -19725,6 +22051,12 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "U_LATCHG")
+				(pin "2")
+				(pinfunction "GND_2")
+				(pintype "passive")
+			)
+			(node
 				(ref "U_LDO")
 				(pin "1")
 				(pinfunction "GND_1")
@@ -19739,19 +22071,37 @@
 			(node
 				(ref "U_ONESHOT")
 				(pin "1")
-				(pinfunction "A_1")
+				(pinfunction "A1_N_1")
 				(pintype "passive")
 			)
 			(node
 				(ref "U_ONESHOT")
-				(pin "4")
-				(pinfunction "GND_4")
+				(pin "10")
+				(pinfunction "B2_10")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_ONESHOT")
+				(pin "11")
+				(pinfunction "R2_N_11")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_ONESHOT")
+				(pin "8")
+				(pinfunction "GND_8")
 				(pintype "passive")
 			)
 			(node
 				(ref "U_OPTO")
 				(pin "2")
 				(pinfunction "CATHODE_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_OSCLR")
+				(pin "2")
+				(pinfunction "GND_2")
 				(pintype "passive")
 			)
 			(node
@@ -19767,9 +22117,9 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "U_SR2")
-				(pin "8")
-				(pinfunction "GND_8")
+				(ref "U_STOPINV")
+				(pin "3")
+				(pinfunction "GND_3")
 				(pintype "passive")
 			)
 			(node
@@ -19792,6 +22142,12 @@
 			)
 			(node
 				(ref "U_ULNB")
+				(pin "4")
+				(pinfunction "IN4_4")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_ULNB")
 				(pin "9")
 				(pinfunction "GND_9")
 				(pintype "passive")
@@ -19804,12 +22160,17 @@
 			)
 		)
 		(net
-			(code "66")
+			(code "71")
 			(name "HOST_AUTH")
 			(class "Default")
 			(node
 				(ref "J_PI")
 				(pin "15")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_HOSTAUTHPD")
+				(pin "1")
 				(pintype "passive")
 			)
 			(node
@@ -19820,7 +22181,7 @@
 			)
 		)
 		(net
-			(code "67")
+			(code "72")
 			(name "HS_GATE_COIL")
 			(class "Default")
 			(node
@@ -19842,7 +22203,7 @@
 			)
 		)
 		(net
-			(code "68")
+			(code "73")
 			(name "I2C_SCL")
 			(class "Default")
 			(node
@@ -19858,7 +22219,7 @@
 			)
 		)
 		(net
-			(code "69")
+			(code "74")
 			(name "I2C_SDA")
 			(class "Default")
 			(node
@@ -19874,7 +22235,7 @@
 			)
 		)
 		(net
-			(code "70")
+			(code "75")
 			(name "INT_ALERT")
 			(class "Default")
 			(node
@@ -19890,7 +22251,7 @@
 			)
 		)
 		(net
-			(code "71")
+			(code "76")
 			(name "KEY_CLOCK")
 			(class "Default")
 			(node
@@ -19904,20 +22265,14 @@
 				(pinfunction "SRCLK_11")
 				(pintype "passive")
 			)
-			(node
-				(ref "U_SR2")
-				(pin "11")
-				(pinfunction "SRCLK_11")
-				(pintype "passive")
-			)
 		)
 		(net
-			(code "72")
+			(code "77")
 			(name "KEY_DATA")
 			(class "Default")
 			(node
 				(ref "J_PI")
-				(pin "29")
+				(pin "36")
 				(pintype "passive")
 			)
 			(node
@@ -19928,7 +22283,7 @@
 			)
 		)
 		(net
-			(code "73")
+			(code "78")
 			(name "KEY_LATCH")
 			(class "Default")
 			(node
@@ -19937,20 +22292,31 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "U_SR1")
-				(pin "12")
-				(pinfunction "RCLK_12")
+				(ref "U_LATCHG")
+				(pin "1")
+				(pinfunction "A_1")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "79")
+			(name "KEY_LATCH_G")
+			(class "Default")
+			(node
+				(ref "U_LATCHG")
+				(pin "4")
+				(pinfunction "Y_4")
 				(pintype "passive")
 			)
 			(node
-				(ref "U_SR2")
+				(ref "U_SR1")
 				(pin "12")
 				(pinfunction "RCLK_12")
 				(pintype "passive")
 			)
 		)
 		(net
-			(code "74")
+			(code "80")
 			(name "KEY_RELAY_ALLOWED")
 			(class "Default")
 			(node
@@ -19971,7 +22337,7 @@
 			)
 		)
 		(net
-			(code "75")
+			(code "81")
 			(name "KEY_RESET_N")
 			(class "Default")
 			(node
@@ -19980,20 +22346,19 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "U_SR1")
-				(pin "10")
-				(pinfunction "SRCLR_N_10")
+				(ref "R_KRSTPD")
+				(pin "1")
 				(pintype "passive")
 			)
 			(node
-				(ref "U_SR2")
+				(ref "U_SR1")
 				(pin "10")
 				(pinfunction "SRCLR_N_10")
 				(pintype "passive")
 			)
 		)
 		(net
-			(code "76")
+			(code "82")
 			(name "KP_D1")
 			(class "Default")
 			(node
@@ -20014,7 +22379,7 @@
 			)
 		)
 		(net
-			(code "77")
+			(code "83")
 			(name "KP_D2")
 			(class "Default")
 			(node
@@ -20030,7 +22395,7 @@
 			)
 		)
 		(net
-			(code "78")
+			(code "84")
 			(name "KP_D3")
 			(class "Default")
 			(node
@@ -20046,7 +22411,7 @@
 			)
 		)
 		(net
-			(code "79")
+			(code "85")
 			(name "KP_D4")
 			(class "Default")
 			(node
@@ -20062,7 +22427,7 @@
 			)
 		)
 		(net
-			(code "80")
+			(code "86")
 			(name "KP_U1")
 			(class "Default")
 			(node
@@ -20078,7 +22443,7 @@
 			)
 		)
 		(net
-			(code "81")
+			(code "87")
 			(name "KP_U2")
 			(class "Default")
 			(node
@@ -20094,7 +22459,7 @@
 			)
 		)
 		(net
-			(code "82")
+			(code "88")
 			(name "KP_U3")
 			(class "Default")
 			(node
@@ -20110,7 +22475,7 @@
 			)
 		)
 		(net
-			(code "83")
+			(code "89")
 			(name "KP_U4")
 			(class "Default")
 			(node
@@ -20126,7 +22491,7 @@
 			)
 		)
 		(net
-			(code "84")
+			(code "90")
 			(name "KP_U5")
 			(class "Default")
 			(node
@@ -20142,7 +22507,7 @@
 			)
 		)
 		(net
-			(code "85")
+			(code "91")
 			(name "KP_U6")
 			(class "Default")
 			(node
@@ -20164,7 +22529,7 @@
 			)
 		)
 		(net
-			(code "86")
+			(code "92")
 			(name "LC_CLK")
 			(class "Default")
 			(node
@@ -20184,7 +22549,7 @@
 			)
 		)
 		(net
-			(code "87")
+			(code "93")
 			(name "LC_CLK_PI")
 			(class "Default")
 			(node
@@ -20199,7 +22564,7 @@
 			)
 		)
 		(net
-			(code "88")
+			(code "94")
 			(name "LC_DAT")
 			(class "Default")
 			(node
@@ -20219,7 +22584,7 @@
 			)
 		)
 		(net
-			(code "89")
+			(code "95")
 			(name "LC_DAT_PI")
 			(class "Default")
 			(node
@@ -20234,12 +22599,17 @@
 			)
 		)
 		(net
-			(code "90")
+			(code "96")
 			(name "MCU_RELAY_ENABLE")
 			(class "Default")
 			(node
 				(ref "J_PI")
 				(pin "16")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_MCUENPD")
+				(pin "1")
 				(pintype "passive")
 			)
 			(node
@@ -20256,7 +22626,7 @@
 			)
 		)
 		(net
-			(code "91")
+			(code "97")
 			(name "MODE_AUTO_HW")
 			(class "Default")
 			(node
@@ -20279,7 +22649,7 @@
 			)
 		)
 		(net
-			(code "92")
+			(code "98")
 			(name "MODE_NI")
 			(class "Default")
 			(node
@@ -20296,7 +22666,7 @@
 			)
 		)
 		(net
-			(code "93")
+			(code "99")
 			(name "MODE_RAW")
 			(class "Default")
 			(node
@@ -20317,7 +22687,7 @@
 			)
 		)
 		(net
-			(code "94")
+			(code "100")
 			(name "OPTO_LED_A")
 			(class "Default")
 			(node
@@ -20333,7 +22703,23 @@
 			)
 		)
 		(net
-			(code "95")
+			(code "101")
+			(name "OS2_RC")
+			(class "Default")
+			(node
+				(ref "R_OS2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_ONESHOT")
+				(pin "7")
+				(pinfunction "CXRX2_7")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "102")
 			(name "OS_C")
 			(class "Default")
 			(node
@@ -20343,13 +22729,30 @@
 			)
 			(node
 				(ref "U_ONESHOT")
-				(pin "6")
-				(pinfunction "Cext_6")
+				(pin "14")
+				(pinfunction "CX1_14")
 				(pintype "passive")
 			)
 		)
 		(net
-			(code "96")
+			(code "103")
+			(name "OS_CLR_N")
+			(class "Default")
+			(node
+				(ref "U_ONESHOT")
+				(pin "3")
+				(pinfunction "R1_N_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_OSCLR")
+				(pin "4")
+				(pinfunction "Y_4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "104")
 			(name "OS_RC")
 			(class "Default")
 			(node
@@ -20364,19 +22767,19 @@
 			)
 			(node
 				(ref "U_ONESHOT")
-				(pin "7")
-				(pinfunction "REXT_CEXT_7")
+				(pin "15")
+				(pinfunction "CXRX1_15")
 				(pintype "passive")
 			)
 		)
 		(net
-			(code "97")
+			(code "105")
 			(name "PRESS_REQ")
 			(class "Default")
 			(node
 				(ref "U_ONESHOT")
 				(pin "2")
-				(pinfunction "B_2")
+				(pinfunction "B1_2")
 				(pintype "passive")
 			)
 			(node
@@ -20387,13 +22790,13 @@
 			)
 		)
 		(net
-			(code "98")
+			(code "106")
 			(name "PRESS_TIMED")
 			(class "Default")
 			(node
 				(ref "U_ONESHOT")
-				(pin "5")
-				(pinfunction "Q_5")
+				(pin "13")
+				(pinfunction "Q1_13")
 				(pintype "passive")
 			)
 			(node
@@ -20404,13 +22807,35 @@
 			)
 		)
 		(net
-			(code "99")
+			(code "107")
+			(name "PRESS_TIMED_N")
+			(class "Default")
+			(node
+				(ref "U_LATCHG")
+				(pin "3")
+				(pinfunction "B_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_ONESHOT")
+				(pin "4")
+				(pinfunction "Q1_N_4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "108")
 			(name "RAIL_EN_A")
 			(class "Default")
 			(node
 				(ref "Q_SWDRVA")
 				(pin "1")
 				(pinfunction "G_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_RAENAPD")
+				(pin "1")
 				(pintype "passive")
 			)
 			(node
@@ -20421,13 +22846,18 @@
 			)
 		)
 		(net
-			(code "100")
+			(code "109")
 			(name "RAIL_EN_B")
 			(class "Default")
 			(node
 				(ref "Q_SWDRVB")
 				(pin "1")
 				(pinfunction "G_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_RAENBPD")
+				(pin "1")
 				(pintype "passive")
 			)
 			(node
@@ -20438,13 +22868,18 @@
 			)
 		)
 		(net
-			(code "101")
+			(code "110")
 			(name "RAIL_EN_RHA")
 			(class "Default")
 			(node
 				(ref "Q_SWDRVRHA")
 				(pin "1")
 				(pinfunction "G_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_RAENRHAPD")
+				(pin "1")
 				(pintype "passive")
 			)
 			(node
@@ -20455,13 +22890,18 @@
 			)
 		)
 		(net
-			(code "102")
+			(code "111")
 			(name "RAIL_EN_RHE")
 			(class "Default")
 			(node
 				(ref "Q_SWDRVRHE")
 				(pin "1")
 				(pinfunction "G_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_RAENRHEPD")
+				(pin "1")
 				(pintype "passive")
 			)
 			(node
@@ -20472,9 +22912,14 @@
 			)
 		)
 		(net
-			(code "103")
+			(code "112")
 			(name "REARM_N")
 			(class "Default")
+			(node
+				(ref "R_REARMPU")
+				(pin "1")
+				(pintype "passive")
+			)
 			(node
 				(ref "U_EXP")
 				(pin "26")
@@ -20489,7 +22934,7 @@
 			)
 		)
 		(net
-			(code "104")
+			(code "113")
 			(name "RKEY_MID")
 			(class "Default")
 			(node
@@ -20510,7 +22955,7 @@
 			)
 		)
 		(net
-			(code "105")
+			(code "114")
 			(name "RSTOP_MID")
 			(class "Default")
 			(node
@@ -20526,12 +22971,17 @@
 			)
 		)
 		(net
-			(code "106")
+			(code "115")
 			(name "SCL_A")
 			(class "Default")
 			(node
 				(ref "J_PI")
-				(pin "8")
+				(pin "29")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_RH_AMBIENT")
+				(pin "4")
 				(pintype "passive")
 			)
 			(node
@@ -20546,12 +22996,17 @@
 			)
 		)
 		(net
-			(code "107")
+			(code "116")
 			(name "SCL_B")
 			(class "Default")
 			(node
 				(ref "J_PI")
-				(pin "12")
+				(pin "10")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_RH_EXHAUST")
+				(pin "4")
 				(pintype "passive")
 			)
 			(node
@@ -20566,52 +23021,17 @@
 			)
 		)
 		(net
-			(code "108")
-			(name "SCL_RHA")
-			(class "Default")
-			(node
-				(ref "J_PI")
-				(pin "35")
-				(pintype "passive")
-			)
-			(node
-				(ref "J_RH_AMBIENT")
-				(pin "4")
-				(pintype "passive")
-			)
-			(node
-				(ref "R_SCLRHA")
-				(pin "1")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "109")
-			(name "SCL_RHE")
-			(class "Default")
-			(node
-				(ref "J_PI")
-				(pin "37")
-				(pintype "passive")
-			)
-			(node
-				(ref "J_RH_EXHAUST")
-				(pin "4")
-				(pintype "passive")
-			)
-			(node
-				(ref "R_SCLRHE")
-				(pin "1")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "110")
+			(code "117")
 			(name "SDA_A")
 			(class "Default")
 			(node
 				(ref "J_PI")
 				(pin "7")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_RH_AMBIENT")
+				(pin "3")
 				(pintype "passive")
 			)
 			(node
@@ -20626,12 +23046,17 @@
 			)
 		)
 		(net
-			(code "111")
+			(code "118")
 			(name "SDA_B")
 			(class "Default")
 			(node
 				(ref "J_PI")
-				(pin "10")
+				(pin "8")
+				(pintype "passive")
+			)
+			(node
+				(ref "J_RH_EXHAUST")
+				(pin "3")
 				(pintype "passive")
 			)
 			(node
@@ -20646,47 +23071,7 @@
 			)
 		)
 		(net
-			(code "112")
-			(name "SDA_RHA")
-			(class "Default")
-			(node
-				(ref "J_PI")
-				(pin "18")
-				(pintype "passive")
-			)
-			(node
-				(ref "J_RH_AMBIENT")
-				(pin "3")
-				(pintype "passive")
-			)
-			(node
-				(ref "R_SDARHA")
-				(pin "1")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "113")
-			(name "SDA_RHE")
-			(class "Default")
-			(node
-				(ref "J_PI")
-				(pin "36")
-				(pintype "passive")
-			)
-			(node
-				(ref "J_RH_EXHAUST")
-				(pin "3")
-				(pintype "passive")
-			)
-			(node
-				(ref "R_SDARHE")
-				(pin "1")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "114")
+			(code "119")
 			(name "SEL_D1")
 			(class "Default")
 			(node
@@ -20703,7 +23088,7 @@
 			)
 		)
 		(net
-			(code "115")
+			(code "120")
 			(name "SEL_D2")
 			(class "Default")
 			(node
@@ -20720,7 +23105,7 @@
 			)
 		)
 		(net
-			(code "116")
+			(code "121")
 			(name "SEL_D3")
 			(class "Default")
 			(node
@@ -20737,7 +23122,7 @@
 			)
 		)
 		(net
-			(code "117")
+			(code "122")
 			(name "SEL_D4")
 			(class "Default")
 			(node
@@ -20754,7 +23139,7 @@
 			)
 		)
 		(net
-			(code "118")
+			(code "123")
 			(name "SEL_U1")
 			(class "Default")
 			(node
@@ -20771,7 +23156,7 @@
 			)
 		)
 		(net
-			(code "119")
+			(code "124")
 			(name "SEL_U2")
 			(class "Default")
 			(node
@@ -20788,7 +23173,7 @@
 			)
 		)
 		(net
-			(code "120")
+			(code "125")
 			(name "SEL_U3")
 			(class "Default")
 			(node
@@ -20805,7 +23190,7 @@
 			)
 		)
 		(net
-			(code "121")
+			(code "126")
 			(name "SEL_U4")
 			(class "Default")
 			(node
@@ -20822,7 +23207,7 @@
 			)
 		)
 		(net
-			(code "122")
+			(code "127")
 			(name "SEL_U5")
 			(class "Default")
 			(node
@@ -20839,7 +23224,7 @@
 			)
 		)
 		(net
-			(code "123")
+			(code "128")
 			(name "SEL_U6")
 			(class "Default")
 			(node
@@ -20856,7 +23241,7 @@
 			)
 		)
 		(net
-			(code "124")
+			(code "129")
 			(name "SHIELD_DRAIN")
 			(class "Default")
 			(node
@@ -20886,7 +23271,7 @@
 			)
 		)
 		(net
-			(code "125")
+			(code "130")
 			(name "SPI_MISO")
 			(class "Default")
 			(node
@@ -20908,7 +23293,7 @@
 			)
 		)
 		(net
-			(code "126")
+			(code "131")
 			(name "SPI_MOSI")
 			(class "Default")
 			(node
@@ -20930,7 +23315,7 @@
 			)
 		)
 		(net
-			(code "127")
+			(code "132")
 			(name "SPI_SCLK")
 			(class "Default")
 			(node
@@ -20952,35 +23337,7 @@
 			)
 		)
 		(net
-			(code "128")
-			(name "SR2_CASCADE")
-			(class "Default")
-			(node
-				(ref "U_SR2")
-				(pin "9")
-				(pinfunction "QH_S_9")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "129")
-			(name "SR_CASCADE")
-			(class "Default")
-			(node
-				(ref "U_SR1")
-				(pin "9")
-				(pinfunction "QH_S_9")
-				(pintype "passive")
-			)
-			(node
-				(ref "U_SR2")
-				(pin "14")
-				(pinfunction "SER_14")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "130")
+			(code "133")
 			(name "SR_OE_N")
 			(class "Default")
 			(node
@@ -21000,32 +23357,71 @@
 				(pinfunction "OE_N_13")
 				(pintype "passive")
 			)
-			(node
-				(ref "U_SR2")
-				(pin "13")
-				(pinfunction "OE_N_13")
-				(pintype "passive")
-			)
 		)
 		(net
-			(code "131")
+			(code "134")
 			(name "STOP_REQ")
 			(class "Default")
 			(node
-				(ref "U_SR2")
-				(pin "15")
-				(pinfunction "QA_15")
+				(ref "J_PI")
+				(pin "37")
 				(pintype "passive")
 			)
 			(node
-				(ref "U_ULNB")
-				(pin "4")
-				(pinfunction "IN4_4")
+				(ref "Q_STOPDRV")
+				(pin "1")
+				(pinfunction "G_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R_STOPPD")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_STOPINV")
+				(pin "1")
+				(pinfunction "A_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_STOPINV")
+				(pin "2")
+				(pinfunction "B_2")
 				(pintype "passive")
 			)
 		)
 		(net
-			(code "132")
+			(code "135")
+			(name "STOP_REQ_N")
+			(class "Default")
+			(node
+				(ref "U_DECDEN")
+				(pin "3")
+				(pinfunction "B_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_DECUEN")
+				(pin "3")
+				(pinfunction "B_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_OSCLR")
+				(pin "3")
+				(pinfunction "B_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_STOPINV")
+				(pin "4")
+				(pinfunction "Y_4")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "136")
 			(name "SWG_A")
 			(class "Default")
 			(node
@@ -21047,7 +23443,7 @@
 			)
 		)
 		(net
-			(code "133")
+			(code "137")
 			(name "SWG_B")
 			(class "Default")
 			(node
@@ -21069,7 +23465,7 @@
 			)
 		)
 		(net
-			(code "134")
+			(code "138")
 			(name "SWG_RHA")
 			(class "Default")
 			(node
@@ -21091,7 +23487,7 @@
 			)
 		)
 		(net
-			(code "135")
+			(code "139")
 			(name "SWG_RHE")
 			(class "Default")
 			(node
@@ -21113,7 +23509,7 @@
 			)
 		)
 		(net
-			(code "136")
+			(code "140")
 			(name "TCAM_THRESH")
 			(class "Default")
 			(node
@@ -21123,6 +23519,11 @@
 			)
 			(node
 				(ref "R_TH2")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "TP_TCTH")
 				(pin "1")
 				(pintype "passive")
 			)
@@ -21140,7 +23541,7 @@
 			)
 		)
 		(net
-			(code "137")
+			(code "141")
 			(name "TC_CS_N")
 			(class "Default")
 			(node
@@ -21156,7 +23557,7 @@
 			)
 		)
 		(net
-			(code "138")
+			(code "142")
 			(name "TC_DRDY_N")
 			(class "Default")
 			(node
@@ -21177,7 +23578,7 @@
 			)
 		)
 		(net
-			(code "139")
+			(code "143")
 			(name "TC_FAULT_N")
 			(class "Default")
 			(node
@@ -21199,7 +23600,7 @@
 			)
 		)
 		(net
-			(code "140")
+			(code "144")
 			(name "TC_NEG")
 			(class "Default")
 			(node
@@ -21231,7 +23632,7 @@
 			)
 		)
 		(net
-			(code "141")
+			(code "145")
 			(name "TC_NEG_IN")
 			(class "Default")
 			(node
@@ -21247,7 +23648,7 @@
 			)
 		)
 		(net
-			(code "142")
+			(code "146")
 			(name "TC_POS")
 			(class "Default")
 			(node
@@ -21273,7 +23674,7 @@
 			)
 		)
 		(net
-			(code "143")
+			(code "147")
 			(name "TC_POS_IN")
 			(class "Default")
 			(node
@@ -21289,7 +23690,7 @@
 			)
 		)
 		(net
-			(code "144")
+			(code "148")
 			(name "TEMP_OK")
 			(class "Default")
 			(node
@@ -21319,6 +23720,12 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "U_CAND1")
+				(pin "6")
+				(pinfunction "C_6")
+				(pintype "passive")
+			)
+			(node
 				(ref "U_COMP")
 				(pin "1")
 				(pinfunction "1OUT_1")
@@ -21336,9 +23743,15 @@
 				(pinfunction "GPB4_5")
 				(pintype "passive")
 			)
+			(node
+				(ref "U_FAULTAND")
+				(pin "6")
+				(pinfunction "C_6")
+				(pintype "passive")
+			)
 		)
 		(net
-			(code "145")
+			(code "149")
 			(name "TH_CAM_A")
 			(class "Default")
 			(node
@@ -21369,7 +23782,7 @@
 			)
 		)
 		(net
-			(code "146")
+			(code "150")
 			(name "TH_CAM_B")
 			(class "Default")
 			(node
@@ -21400,7 +23813,7 @@
 			)
 		)
 		(net
-			(code "147")
+			(code "151")
 			(name "TH_ENCLOSURE")
 			(class "Default")
 			(node
@@ -21420,7 +23833,7 @@
 			)
 		)
 		(net
-			(code "148")
+			(code "152")
 			(name "TH_MOUNT_A")
 			(class "Default")
 			(node
@@ -21440,7 +23853,7 @@
 			)
 		)
 		(net
-			(code "149")
+			(code "153")
 			(name "TH_MOUNT_B")
 			(class "Default")
 			(node
@@ -21460,7 +23873,7 @@
 			)
 		)
 		(net
-			(code "150")
+			(code "154")
 			(name "TH_PORT_A")
 			(class "Default")
 			(node
@@ -21480,7 +23893,7 @@
 			)
 		)
 		(net
-			(code "151")
+			(code "155")
 			(name "TH_PORT_B")
 			(class "Default")
 			(node
@@ -21500,7 +23913,7 @@
 			)
 		)
 		(net
-			(code "152")
+			(code "156")
 			(name "TH_SPARE")
 			(class "Default")
 			(node
@@ -21520,7 +23933,7 @@
 			)
 		)
 		(net
-			(code "153")
+			(code "157")
 			(name "U_SEL_BUS")
 			(class "Default")
 			(node
@@ -21572,7 +23985,7 @@
 			)
 		)
 		(net
-			(code "154")
+			(code "158")
 			(name "WD_MR_N")
 			(class "Default")
 			(node
@@ -21593,7 +24006,7 @@
 			)
 		)
 		(net
-			(code "155")
+			(code "159")
 			(name "WD_OK")
 			(class "Default")
 			(node
@@ -21605,6 +24018,12 @@
 				(ref "U_AND1")
 				(pin "3")
 				(pinfunction "B_3")
+				(pintype "passive")
+			)
+			(node
+				(ref "U_CAND1")
+				(pin "1")
+				(pinfunction "A_1")
 				(pintype "passive")
 			)
 			(node
@@ -21633,7 +24052,7 @@
 			)
 		)
 		(net
-			(code "156")
+			(code "160")
 			(name "WD_PET")
 			(class "Default")
 			(node
@@ -21649,7 +24068,7 @@
 			)
 		)
 		(net
-			(code "157")
+			(code "161")
 			(name "unconnected-(J_PI-Pad1)")
 			(class "Default")
 			(node
@@ -21659,7 +24078,7 @@
 			)
 		)
 		(net
-			(code "158")
+			(code "162")
 			(name "unconnected-(J_PI-Pad2)")
 			(class "Default")
 			(node
@@ -21669,7 +24088,7 @@
 			)
 		)
 		(net
-			(code "159")
+			(code "163")
 			(name "unconnected-(J_PI-Pad4)")
 			(class "Default")
 			(node
@@ -21679,7 +24098,17 @@
 			)
 		)
 		(net
-			(code "160")
+			(code "164")
+			(name "unconnected-(J_PI-Pad12)")
+			(class "Default")
+			(node
+				(ref "J_PI")
+				(pin "12")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "165")
 			(name "unconnected-(J_PI-Pad17)")
 			(class "Default")
 			(node
@@ -21689,7 +24118,17 @@
 			)
 		)
 		(net
-			(code "161")
+			(code "166")
+			(name "unconnected-(J_PI-Pad18)")
+			(class "Default")
+			(node
+				(ref "J_PI")
+				(pin "18")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "167")
 			(name "unconnected-(J_PI-Pad27)")
 			(class "Default")
 			(node
@@ -21699,7 +24138,7 @@
 			)
 		)
 		(net
-			(code "162")
+			(code "168")
 			(name "unconnected-(J_PI-Pad28)")
 			(class "Default")
 			(node
@@ -21709,7 +24148,17 @@
 			)
 		)
 		(net
-			(code "163")
+			(code "169")
+			(name "unconnected-(J_PI-Pad35)")
+			(class "Default")
+			(node
+				(ref "J_PI")
+				(pin "35")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "170")
 			(name "unconnected-(U_DECD-Y4-Pad11)")
 			(class "Default")
 			(node
@@ -21720,7 +24169,7 @@
 			)
 		)
 		(net
-			(code "164")
+			(code "171")
 			(name "unconnected-(U_DECD-Y5-Pad10)")
 			(class "Default")
 			(node
@@ -21731,7 +24180,7 @@
 			)
 		)
 		(net
-			(code "165")
+			(code "172")
 			(name "unconnected-(U_DECD-Y6-Pad9)")
 			(class "Default")
 			(node
@@ -21742,7 +24191,7 @@
 			)
 		)
 		(net
-			(code "166")
+			(code "173")
 			(name "unconnected-(U_DECD-Y7-Pad7)")
 			(class "Default")
 			(node
@@ -21753,7 +24202,7 @@
 			)
 		)
 		(net
-			(code "167")
+			(code "174")
 			(name "unconnected-(U_DECU-Y6-Pad9)")
 			(class "Default")
 			(node
@@ -21764,7 +24213,7 @@
 			)
 		)
 		(net
-			(code "168")
+			(code "175")
 			(name "unconnected-(U_DECU-Y7-Pad7)")
 			(class "Default")
 			(node
@@ -21775,7 +24224,7 @@
 			)
 		)
 		(net
-			(code "169")
+			(code "176")
 			(name "unconnected-(U_EXP-NC-Pad11)")
 			(class "Default")
 			(node
@@ -21786,7 +24235,7 @@
 			)
 		)
 		(net
-			(code "170")
+			(code "177")
 			(name "unconnected-(U_EXP-NC-Pad14)")
 			(class "Default")
 			(node
@@ -21797,84 +24246,51 @@
 			)
 		)
 		(net
-			(code "171")
-			(name "unconnected-(U_SR2-QB-Pad1)")
-			(class "Default")
-			(node
-				(ref "U_SR2")
-				(pin "1")
-				(pinfunction "QB_1")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "172")
-			(name "unconnected-(U_SR2-QC-Pad2)")
-			(class "Default")
-			(node
-				(ref "U_SR2")
-				(pin "2")
-				(pinfunction "QC_2")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "173")
-			(name "unconnected-(U_SR2-QD-Pad3)")
-			(class "Default")
-			(node
-				(ref "U_SR2")
-				(pin "3")
-				(pinfunction "QD_3")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "174")
-			(name "unconnected-(U_SR2-QE-Pad4)")
-			(class "Default")
-			(node
-				(ref "U_SR2")
-				(pin "4")
-				(pinfunction "QE_4")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "175")
-			(name "unconnected-(U_SR2-QF-Pad5)")
-			(class "Default")
-			(node
-				(ref "U_SR2")
-				(pin "5")
-				(pinfunction "QF_5")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "176")
-			(name "unconnected-(U_SR2-QG-Pad6)")
-			(class "Default")
-			(node
-				(ref "U_SR2")
-				(pin "6")
-				(pinfunction "QG_6")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
-			(code "177")
-			(name "unconnected-(U_SR2-QH-Pad7)")
-			(class "Default")
-			(node
-				(ref "U_SR2")
-				(pin "7")
-				(pinfunction "QH_7")
-				(pintype "passive+no_connect")
-			)
-		)
-		(net
 			(code "178")
+			(name "unconnected-(U_ONESHOT-CX2-Pad6)")
+			(class "Default")
+			(node
+				(ref "U_ONESHOT")
+				(pin "6")
+				(pinfunction "CX2_6")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "179")
+			(name "unconnected-(U_ONESHOT-Q2-Pad5)")
+			(class "Default")
+			(node
+				(ref "U_ONESHOT")
+				(pin "5")
+				(pinfunction "Q2_5")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "180")
+			(name "unconnected-(U_ONESHOT-Q2_N-Pad12)")
+			(class "Default")
+			(node
+				(ref "U_ONESHOT")
+				(pin "12")
+				(pinfunction "Q2_N_12")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "181")
+			(name "unconnected-(U_SR1-QH_S-Pad9)")
+			(class "Default")
+			(node
+				(ref "U_SR1")
+				(pin "9")
+				(pinfunction "QH_S_9")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "182")
 			(name "unconnected-(U_TC-DNC-Pad6)")
 			(class "Default")
 			(node
@@ -21885,7 +24301,7 @@
 			)
 		)
 		(net
-			(code "179")
+			(code "183")
 			(name "unconnected-(U_ULNB-IN5-Pad5)")
 			(class "Default")
 			(node
@@ -21896,7 +24312,7 @@
 			)
 		)
 		(net
-			(code "180")
+			(code "184")
 			(name "unconnected-(U_ULNB-IN6-Pad6)")
 			(class "Default")
 			(node
@@ -21907,7 +24323,7 @@
 			)
 		)
 		(net
-			(code "181")
+			(code "185")
 			(name "unconnected-(U_ULNB-IN7-Pad7)")
 			(class "Default")
 			(node
@@ -21918,7 +24334,7 @@
 			)
 		)
 		(net
-			(code "182")
+			(code "186")
 			(name "unconnected-(U_ULNB-IN8-Pad8)")
 			(class "Default")
 			(node
@@ -21929,7 +24345,18 @@
 			)
 		)
 		(net
-			(code "183")
+			(code "187")
+			(name "unconnected-(U_ULNB-OUT4-Pad15)")
+			(class "Default")
+			(node
+				(ref "U_ULNB")
+				(pin "15")
+				(pinfunction "OUT4_15")
+				(pintype "passive+no_connect")
+			)
+		)
+		(net
+			(code "188")
 			(name "unconnected-(U_ULNB-OUT5-Pad14)")
 			(class "Default")
 			(node
@@ -21940,7 +24367,7 @@
 			)
 		)
 		(net
-			(code "184")
+			(code "189")
 			(name "unconnected-(U_ULNB-OUT6-Pad13)")
 			(class "Default")
 			(node
@@ -21951,7 +24378,7 @@
 			)
 		)
 		(net
-			(code "185")
+			(code "190")
 			(name "unconnected-(U_ULNB-OUT7-Pad12)")
 			(class "Default")
 			(node
@@ -21962,7 +24389,7 @@
 			)
 		)
 		(net
-			(code "186")
+			(code "191")
 			(name "unconnected-(U_ULNB-OUT8-Pad11)")
 			(class "Default")
 			(node

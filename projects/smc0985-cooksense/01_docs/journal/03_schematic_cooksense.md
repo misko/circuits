@@ -119,3 +119,13 @@
 - Pi 40-pin GPIO<->function pin-mux (incl. the 4 sensor-I2C dtoverlay assignments,
   ADR-0004) is assigned sensibly in the schematic but the exact dtoverlay feasibility
   is the Gate-4 pin-map artifact, not schematic-gate scope.
+
+## 2026-07-24 13:45 — start (v1.2 electrical correction)
+- did: v1.2 commissioned (BRIEF D10) from the external v1.1 review, user scope = priorities 1-7. Verified the Pi5/RP1 I2C function table MYSELF (RP1 DS RP-008370 fsel table + raspberrypi/linux i2c2/i2c3-pi5 overlay dts + rp1.dtsi): GPIO2/3=I2C1, GPIO4/5=I2C2 SDA/SCL, GPIO14/15=I2C3 SDA/SCL; GPIO16/18/19/24/26 have NO I2C alt. Reviewer's proposed map CONFIRMED valid. Authored ADR-0010 (pin map — RESTORES the brief §3 verbatim two-shared-bus plan; the sealed 4-bus wiring was an undocumented deviation), ADR-0011 (safety chain ×6 fixes), DETAIL_DESIGN.md (threshold + one-shot math), pin_map.md (maintained artifact + dtoverlay snippet), 02_parts/CD74HC221M96 (non-retriggerable one-shot, LCSC C133954, stock 2542, DS sha 30c3cd71). tsx edited: TEMP_OK into latch set; contactor HW gate (U_CAND1/2); K_STOP on new 5V_STOP rail + dedicated driver; STOP preemption (STOP_REQ direct GPIO26, STOP_REQ_N gates on decoder enables + one-shot clear); U_SR2 deleted; KEY_LATCH freeze gate; 68k/10k threshold (74.9C, solder-select field) + TP_TCTH; RH pods joined cam buses, 4 RH pullups deleted; 9 deterministic pulls. manifest 191→215. E-INV: +45 assertions citing 0010/0011.
+- result: docs + source authored; gates not yet run.
+- next: gen_tscircuit + ERC + parity + E-INV + count_parity.
+
+## 2026-07-24 13:45 — v-NEXT deviations journaled (coordinator directive, NOT in v1.2 scope)
+- did: recorded two brief-vs-implementation deviations surfaced while rewiring the buses.
+- result: (1) BRIEF §3 verbatim: "Per bus: selectable 2.2k/4.7k pullups (default OFF with Adafruit onboard 4.7k); 22-33R damping; low-C ESD" — the board has FIXED 2.2k pullups, no series damping, no ESD array on the sensor buses (reviewer items 9/10, user scoped OUT of v1.2; DNP-selectable pullups are NOT zero-cost in this pipeline — BOM/CPL/twin all key on populated parts — so not smuggled in). (2) BRIEF §3 "Watchdog 300-500ms" vs fitted TPS3823-33 ~1.6s (reviewer note): needs an explicit user decision — accept 1.6s formally or change part.
+- next: both need a D# disposition at the next commissioning touch; carried in ORDER_README as known deviations.

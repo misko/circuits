@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/home/mouse9911/gits/circuits/projects/crow-recorder-central-v2/03_tscircuit/kicad/crow_recorder_central_v2.kicad_sch")
-		(date "2026-07-24T12:33:02")
+		(date "2026-07-24T13:11:52")
 		(tool "Eeschema 10.0.4-10.0.4~ubuntu24.04.1")
 		(sheet
 			(number "1")

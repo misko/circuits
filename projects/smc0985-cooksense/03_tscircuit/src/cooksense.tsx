@@ -131,10 +131,12 @@ export default () => (
     <capacitor name="C_KR" capacitance="10uF" footprint="0805" connections={{ pin1: "net.N5V_KEY_RELAY", pin2: "net.GND" }} />
 
     {/* ---- fault-trigger AND + hardware fault latch (SR from 2x SN74LVC1G00 NAND) ---- */}
-    {/* FAULT_SET_N = WD_OK · ESTOP_OK (low = a WD-timeout or E-stop fault) */}
+    {/* FAULT_SET_N = WD_OK · ESTOP_OK · TEMP_OK (ADR-0011 §2, v1.2: TEMP_OK ADDED — the
+        third input was tied N3V3 in <=v1.1, so a thermal trip never LATCHED and silently
+        self-cleared when the NTC cooled; review F3a). */}
     <chip name="U_FAULTAND" footprint="sot23_6" supplierPartNumbers={{ jlcpcb: ["C22046"] }}
       pinLabels={{ pin1: "A", pin2: "GND", pin3: "B", pin4: "Y", pin5: "VCC", pin6: "C" }}
-      connections={{ pin1: "net.WD_OK", pin2: "net.GND", pin3: "net.ESTOP_OK", pin4: "net.FAULT_SET_N", pin5: "net.N3V3", pin6: "net.N3V3" }} />
+      connections={{ pin1: "net.WD_OK", pin2: "net.GND", pin3: "net.ESTOP_OK", pin4: "net.FAULT_SET_N", pin5: "net.N3V3", pin6: "net.TEMP_OK" }} />
     {/* /SR NAND latch: /S=FAULT_SET_N sets FAULT; /R=REARM_N (manual re-arm) clears. Q=FAULT, /Q=FAULT_LATCH_CLEAR. */}
     <chip name="U_LATCHA" footprint="sot23_5" supplierPartNumbers={{ jlcpcb: ["C8185"] }}
       pinLabels={{ pin1: "A", pin2: "B", pin3: "GND", pin4: "Y", pin5: "VCC" }}
@@ -176,34 +178,55 @@ export default () => (
     <capacitor name="C_MR" capacitance="100nF" footprint="0402" connections={{ pin1: "net.WD_MR_N", pin2: "net.GND" }} />
 
     {/* ================= BLOCK 3 — PRESS one-shot + RELAY MATRIX ============ */}
-    {/* SN74LVC1G123 retriggerable one-shot: B=PRESS_REQ edge -> Q=PRESS_TIMED high ~390ms (<500ms). */}
-    {/* CLR_N=DOOR_OK: door open aborts the press (releases K_PRESS). tw = K*Rext*Cext = 390k*1uF. */}
-    <chip name="U_ONESHOT" footprint="ssop8" supplierPartNumbers={{ jlcpcb: ["C123302"] }}
-      pinLabels={{ pin1: "A", pin2: "B", pin3: "CLR_N", pin4: "GND", pin5: "Q", pin6: "Cext", pin7: "REXT_CEXT", pin8: "VCC" }}
-      connections={{ pin1: "net.GND", pin2: "net.PRESS_REQ", pin3: "net.DOOR_OK", pin4: "net.GND", pin5: "net.PRESS_TIMED", pin6: "net.OS_C", pin7: "net.OS_RC", pin8: "net.N3V3" }} />
-    <resistor name="R_OS" resistance="390k" footprint="0402" connections={{ pin1: "net.OS_RC", pin2: "net.N3V3" }} />
+    {/* CD74HC221 NON-retriggerable one-shot (ADR-0011 §6, v1.2: replaces the RETRIGGERABLE
+        SN74LVC1G123 — TI DS: retriggerable up to 100% duty, so the <=500ms PRESS bound was
+        not hard; review F5). Section 1: 1A_N=GND, 1B=PRESS_REQ (Schmitt, rising), 1R_N=
+        OS_CLR_N = DOOR_OK·STOP_REQ_N (door abort OR STOP preemption clears the pulse),
+        1Q=PRESS_TIMED, 1Q_N=PRESS_TIMED_N (latch-freeze). tw = K*Rx*Cx, K~0.7-0.75 at 3V3:
+        510k*1uF -> 357-383ms typ, <=436ms worst < 500ms HARD (DETAIL_DESIGN #2).
+        Section 2 unused: 2A_N=N3V3, 2B=GND, 2R_N=GND (held reset), 2CXRX 10k to VCC. */}
+    <chip name="U_ONESHOT" footprint="soic16" supplierPartNumbers={{ jlcpcb: ["C133954"] }}
+      pinLabels={{ pin1: "A1_N", pin2: "B1", pin3: "R1_N", pin4: "Q1_N", pin5: "Q2", pin6: "CX2", pin7: "CXRX2", pin8: "GND", pin9: "A2_N", pin10: "B2", pin11: "R2_N", pin12: "Q2_N", pin13: "Q1", pin14: "CX1", pin15: "CXRX1", pin16: "VCC" }}
+      connections={{
+        pin1: "net.GND", pin2: "net.PRESS_REQ", pin3: "net.OS_CLR_N", pin4: "net.PRESS_TIMED_N",
+        pin7: "net.OS2_RC", pin8: "net.GND", pin9: "net.N3V3", pin10: "net.GND",
+        pin11: "net.GND", pin13: "net.PRESS_TIMED", pin14: "net.OS_C", pin15: "net.OS_RC", pin16: "net.N3V3",
+      }} />
+    <resistor name="R_OS" resistance="510k" footprint="0402" connections={{ pin1: "net.OS_RC", pin2: "net.N3V3" }} />
     <capacitor name="C_OS" capacitance="1uF" footprint="0603" connections={{ pin1: "net.OS_C", pin2: "net.OS_RC" }} />
+    <resistor name="R_OS2" resistance="10k" footprint="0402" connections={{ pin1: "net.OS2_RC", pin2: "net.N3V3" }} />
     <capacitor name="C_OSV" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
+    {/* STOP_REQ_N inverter (1G00 as inverter) + one-shot clear gate: OS_CLR_N = DOOR_OK · STOP_REQ_N */}
+    <chip name="U_STOPINV" footprint="sot23_5" supplierPartNumbers={{ jlcpcb: ["C8185"] }}
+      pinLabels={{ pin1: "A", pin2: "B", pin3: "GND", pin4: "Y", pin5: "VCC" }}
+      connections={{ pin1: "net.STOP_REQ", pin2: "net.STOP_REQ", pin3: "net.GND", pin4: "net.STOP_REQ_N", pin5: "net.N3V3" }} />
+    <chip name="U_OSCLR" footprint="sot23_6" supplierPartNumbers={{ jlcpcb: ["C22046"] }}
+      pinLabels={{ pin1: "A", pin2: "GND", pin3: "B", pin4: "Y", pin5: "VCC", pin6: "C" }}
+      connections={{ pin1: "net.DOOR_OK", pin2: "net.GND", pin3: "net.STOP_REQ_N", pin4: "net.OS_CLR_N", pin5: "net.N3V3", pin6: "net.N3V3" }} />
+    <capacitor name="C_STOPINV" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
+    <capacitor name="C_OSCLR" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
 
-    {/* ---- 2x SN74HC595 shift registers (Pi-driven DATA/CLOCK/LATCH), cascade QH_S->SER ---- */}
+    {/* ---- SN74HC595 shift register (Pi-driven DATA/CLOCK/LATCH) ---- */}
     {/* 595 pins: 1QB 2QC 3QD 4QE 5QF 6QG 7QH 8GND 9QH_S 10SRCLR_N 11SRCLK 12RCLK 13OE_N 14SER 15QA 16VCC */}
+    {/* v1.2 (ADR-0011 §5): U_SR2 DELETED — its only used bit was STOP_REQ, which moved to a
+        DIRECT Pi GPIO (phys 37): a registered STOP behind the frozen KEY_LATCH_G (below) or a
+        tri-stated 595 could not preempt a press. RCLK is now KEY_LATCH_G = KEY_LATCH ·
+        PRESS_TIMED_N (U_LATCHG): selector addresses cannot change while PRESS is closed.
+        Decoder enables leave the 595 as *_RAW and pass through STOP_REQ_N gates (ADR-0011 §5b). */}
     <chip name="U_SR1" footprint="soic16" supplierPartNumbers={{ jlcpcb: ["C10092"] }}
       pinLabels={{ pin1: "QB", pin2: "QC", pin3: "QD", pin4: "QE", pin5: "QF", pin6: "QG", pin7: "QH", pin8: "GND", pin9: "QH_S", pin10: "SRCLR_N", pin11: "SRCLK", pin12: "RCLK", pin13: "OE_N", pin14: "SER", pin15: "QA", pin16: "VCC" }}
       connections={{
-        pin15: "net.DECU_A", pin1: "net.DECU_B", pin2: "net.DECU_C", pin3: "net.DECU_G1",
-        pin4: "net.DECD_A", pin5: "net.DECD_B", pin6: "net.DECD_G1", pin7: "net.PRESS_REQ",
-        pin9: "net.SR_CASCADE", pin10: "net.KEY_RESET_N", pin11: "net.KEY_CLOCK", pin12: "net.KEY_LATCH",
+        pin15: "net.DECU_A", pin1: "net.DECU_B", pin2: "net.DECU_C", pin3: "net.DECU_G1_RAW",
+        pin4: "net.DECD_A", pin5: "net.DECD_B", pin6: "net.DECD_G1_RAW", pin7: "net.PRESS_REQ",
+        pin10: "net.KEY_RESET_N", pin11: "net.KEY_CLOCK", pin12: "net.KEY_LATCH_G",
         pin13: "net.SR_OE_N", pin14: "net.KEY_DATA", pin8: "net.GND", pin16: "net.N3V3",
       }} />
-    <chip name="U_SR2" footprint="soic16" supplierPartNumbers={{ jlcpcb: ["C10092"] }}
-      pinLabels={{ pin1: "QB", pin2: "QC", pin3: "QD", pin4: "QE", pin5: "QF", pin6: "QG", pin7: "QH", pin8: "GND", pin9: "QH_S", pin10: "SRCLR_N", pin11: "SRCLK", pin12: "RCLK", pin13: "OE_N", pin14: "SER", pin15: "QA", pin16: "VCC" }}
-      connections={{
-        pin15: "net.STOP_REQ", pin9: "net.SR2_CASCADE",
-        pin10: "net.KEY_RESET_N", pin11: "net.KEY_CLOCK", pin12: "net.KEY_LATCH",
-        pin13: "net.SR_OE_N", pin14: "net.SR_CASCADE", pin8: "net.GND", pin16: "net.N3V3",
-      }} />
     <capacitor name="C_SR1" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
-    <capacitor name="C_SR2" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
+    {/* KEY_LATCH freeze gate: RCLK = KEY_LATCH · PRESS_TIMED_N (ADR-0011 §6) */}
+    <chip name="U_LATCHG" footprint="sot23_6" supplierPartNumbers={{ jlcpcb: ["C22046"] }}
+      pinLabels={{ pin1: "A", pin2: "GND", pin3: "B", pin4: "Y", pin5: "VCC", pin6: "C" }}
+      connections={{ pin1: "net.KEY_LATCH", pin2: "net.GND", pin3: "net.PRESS_TIMED_N", pin4: "net.KEY_LATCH_G", pin5: "net.N3V3", pin6: "net.N3V3" }} />
+    <capacitor name="C_LATCHG" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
 
     {/* ---- 2x SN74HC238 ACTIVE-HIGH 3-to-8 decoders (one-hot BY CONSTRUCTION, ADR-0002) ---- */}
     {/* 238 pins: 1A 2B 3C 4/G2A 5/G2B 6G1 7Y7 8GND 9Y6 10Y5 11Y4 12Y3 13Y2 14Y1 15Y0 16VCC. Selected out = HIGH. */}
@@ -233,9 +256,20 @@ export default () => (
         so these two 100k close the hazard. (The coil rail ALSO dies in that state — COIL_EN is fed
         from KEY_RELAY_ALLOWED via the J_MODE DPDT AUTO throw + R_COILENPD pull-down, so the
         reviewer's rail-live premise does not hold — but floating CMOS inputs stay out-of-spec:
-        belt AND braces.) */}
-    <resistor name="R_DECUPD" resistance="100k" footprint="0402" connections={{ pin1: "net.DECU_G1", pin2: "net.GND" }} />
-    <resistor name="R_DECDPD" resistance="100k" footprint="0402" connections={{ pin1: "net.DECD_G1", pin2: "net.GND" }} />
+        belt AND braces.)
+        v1.2 (ADR-0011 §5b): the pull-downs sit on the *_RAW nets (the ones that float when
+        SR_OE_N tri-states the 595); the decoder G1 enables are now driven by STOP-preemption
+        gates: DECx_G1 = DECx_G1_RAW · STOP_REQ_N — STOP force-disables BOTH decoders. */}
+    <resistor name="R_DECUPD" resistance="100k" footprint="0402" connections={{ pin1: "net.DECU_G1_RAW", pin2: "net.GND" }} />
+    <resistor name="R_DECDPD" resistance="100k" footprint="0402" connections={{ pin1: "net.DECD_G1_RAW", pin2: "net.GND" }} />
+    <chip name="U_DECUEN" footprint="sot23_6" supplierPartNumbers={{ jlcpcb: ["C22046"] }}
+      pinLabels={{ pin1: "A", pin2: "GND", pin3: "B", pin4: "Y", pin5: "VCC", pin6: "C" }}
+      connections={{ pin1: "net.DECU_G1_RAW", pin2: "net.GND", pin3: "net.STOP_REQ_N", pin4: "net.DECU_G1", pin5: "net.N3V3", pin6: "net.N3V3" }} />
+    <chip name="U_DECDEN" footprint="sot23_6" supplierPartNumbers={{ jlcpcb: ["C22046"] }}
+      pinLabels={{ pin1: "A", pin2: "GND", pin3: "B", pin4: "Y", pin5: "VCC", pin6: "C" }}
+      connections={{ pin1: "net.DECD_G1_RAW", pin2: "net.GND", pin3: "net.STOP_REQ_N", pin4: "net.DECD_G1", pin5: "net.N3V3", pin6: "net.N3V3" }} />
+    <capacitor name="C_DECUEN" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
+    <capacitor name="C_DECDEN" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
 
     {/* ---- 2x ULN2803A coil drivers (16 ch, 12 used, 4 spare). COM -> gated 5V_KEY_RELAY (flyback clamp). ---- */}
     {/* ULN pins: 1-8 IN1-8, 9 GND, 10 COM, 11-18 OUT8-OUT1 (OUTn opposite corner from INn). */}
@@ -252,7 +286,7 @@ export default () => (
       pinLabels={{ pin1: "IN1", pin2: "IN2", pin3: "IN3", pin4: "IN4", pin5: "IN5", pin6: "IN6", pin7: "IN7", pin8: "IN8", pin9: "GND", pin10: "COM", pin11: "OUT8", pin12: "OUT7", pin13: "OUT6", pin14: "OUT5", pin15: "OUT4", pin16: "OUT3", pin17: "OUT2", pin18: "OUT1" }}
       connections={{
         pin1: "net.SEL_D3", pin18: "net.COIL_D3_N", pin2: "net.SEL_D4", pin17: "net.COIL_D4_N",
-        pin3: "net.PRESS_TIMED", pin16: "net.COIL_PRESS_N", pin4: "net.STOP_REQ", pin15: "net.COIL_STOP_N",
+        pin3: "net.PRESS_TIMED", pin16: "net.COIL_PRESS_N", pin4: "net.GND",
         pin9: "net.GND", pin10: "net.N5V_KEY_RELAY",
       }} />
     <capacitor name="C_ULNA" capacitance="100nF" footprint="0603" connections={{ pin1: "net.N5V_KEY_RELAY", pin2: "net.GND" }} />
@@ -274,10 +308,24 @@ export default () => (
     <chip name="K_PRESS" footprint="dip4" supplierPartNumbers={{ jlcpcb: ["DIP05-1A72-12L"] }}
       pinLabels={{ pin1: "COIL_A", pin2: "COIL_B", pin3: "CONTACT_B", pin4: "CONTACT_A" }}
       connections={{ pin1: "net.N5V_KEY_RELAY", pin2: "net.COIL_PRESS_N", pin3: "net.RKEY_MID", pin4: "net.U_SEL_BUS" }} />
-    {/* K_STOP: dedicated preempt path KP_U6 -> RSTOP -> KP_D1 (brief §4 U6-K_STOP-RSTOP-D1) */}
+    {/* K_STOP: dedicated preempt path KP_U6 -> RSTOP -> KP_D1 (brief §4 U6-K_STOP-RSTOP-D1).
+        v1.2 (ADR-0011 §4): coil moved OFF the fault-gated 5V_KEY_RELAY rail onto the
+        always-available 5V_STOP rail (5V_PROTECTED via R_STOPRAIL) with a DEDICATED driver
+        Q_STOPDRV + flyback D_KSTOP — a WD/TEMP/latch fault that kills the key rail can no
+        longer disable the STOP relay (review F3c: "the safety chain cannot stop a running
+        cook"). Deliberately NOT gated by KEY_RELAY_ALLOWED/ESTOP/DOOR/MODE — see the ADR. */}
     <chip name="K_STOP" footprint="dip4" supplierPartNumbers={{ jlcpcb: ["DIP05-1A72-12L"] }}
       pinLabels={{ pin1: "COIL_A", pin2: "COIL_B", pin3: "CONTACT_B", pin4: "CONTACT_A" }}
-      connections={{ pin1: "net.N5V_KEY_RELAY", pin2: "net.COIL_STOP_N", pin3: "net.RSTOP_MID", pin4: "net.KP_U6" }} />
+      connections={{ pin1: "net.N5V_STOP", pin2: "net.COIL_STOP_N", pin3: "net.RSTOP_MID", pin4: "net.KP_U6" }} />
+    <resistor name="R_STOPRAIL" resistance="0" footprint="0603" connections={{ pin1: "net.N5V_PROTECTED", pin2: "net.N5V_STOP" }} />
+    <capacitor name="C_STOPR" capacitance="10uF" footprint="0805" connections={{ pin1: "net.N5V_STOP", pin2: "net.GND" }} />
+    <chip name="Q_STOPDRV" footprint="sot23" supplierPartNumbers={{ jlcpcb: ["C8545"] }}
+      pinLabels={{ pin1: "G", pin2: "S", pin3: "D" }}
+      connections={{ pin1: "net.STOP_REQ", pin2: "net.GND", pin3: "net.COIL_STOP_N" }} />
+    <diode name="D_KSTOP" footprint="sma" supplierPartNumbers={{ jlcpcb: ["C8678"] }}
+      pinLabels={{ pin1: "K", pin2: "A" }}
+      connections={{ pin1: "net.N5V_STOP", pin2: "net.COIL_STOP_N" }} />
+    <resistor name="R_STOPPD" resistance="100k" footprint="0402" connections={{ pin1: "net.STOP_REQ", pin2: "net.GND" }} />
     {/* RKEY/RSTOP solder-select resistors (1206), 0R default (ADR-0006 T1), in the isolated keypad domain */}
     <resistor name="R_KEY" resistance="0" footprint="1206" connections={{ pin1: "net.RKEY_MID", pin2: "net.D_SEL_BUS" }} />
     <resistor name="R_STOP" resistance="0" footprint="1206" connections={{ pin1: "net.RSTOP_MID", pin2: "net.KP_D1" }} />
@@ -319,8 +367,14 @@ export default () => (
         pin1: "net.TEMP_OK", pin2: "net.TCAM_THRESH", pin3: "net.TH_CAM_A", pin4: "net.GND",
         pin5: "net.TH_CAM_B", pin6: "net.TCAM_THRESH", pin7: "net.TEMP_OK", pin8: "net.N5V_PROTECTED",
       }} />
-    <resistor name="R_TH1" resistance="10k" footprint="0402" connections={{ pin1: "net.N3V3_ANALOG", pin2: "net.TCAM_THRESH" }} />
-    <resistor name="R_TH2" resistance="10k" footprint="0402" connections={{ pin1: "net.TCAM_THRESH", pin2: "net.GND" }} />
+    {/* v1.2 threshold redesign (ADR-0011 §1, review F2): the <=v1.1 10k/10k divider put
+        TCAM_THRESH at 1.65V = the 10k-pullup/10k-NTC node at 25C — the 70-75C hard stop did
+        not exist. New: 68k/10k -> 0.4231V -> 74.9C with the committed KNTC0603/10KF3950
+        (B25/85=3987K). SOLDER-SELECT field like RKEY (1206 pads, hand-swappable): R_TH2 =
+        8.2k->81C · 10k->75C (default) · 12k->69C · 15k->63C (math: DETAIL_DESIGN #1).
+        TP_TCTH below is the bring-up measurement point (60/65/70/75C fixture gate). */}
+    <resistor name="R_TH1" resistance="68k" footprint="1206" connections={{ pin1: "net.N3V3_ANALOG", pin2: "net.TCAM_THRESH" }} />
+    <resistor name="R_TH2" resistance="10k" footprint="1206" connections={{ pin1: "net.TCAM_THRESH", pin2: "net.GND" }} />
     <resistor name="R_HYS1" resistance="1M" footprint="0402" connections={{ pin1: "net.TEMP_OK", pin2: "net.TH_CAM_A" }} />
     <resistor name="R_HYS2" resistance="1M" footprint="0402" connections={{ pin1: "net.TEMP_OK", pin2: "net.TH_CAM_B" }} />
     <resistor name="R_TEMPOK" resistance="10k" footprint="0402" connections={{ pin1: "net.TEMP_OK", pin2: "net.N3V3" }} />
@@ -380,10 +434,22 @@ export default () => (
     <resistor name="R_MODEPD" resistance="10k" footprint="0402" connections={{ pin1: "net.MODE_RAW", pin2: "net.GND" }} />
 
     {/* ---- optically-isolated external-contactor request (LTV-817S), <=30V/50mA dry (brief §3) ---- */}
+    {/* v1.2 HARDWARE contactor gate (ADR-0011 §3, review F3b): <=v1.1 drove the LED straight
+        from CONTACTOR_REQ — only the E-stop contact-B loop could interrupt the contactor.
+        Now CONTACTOR_DRV = CONTACTOR_REQ · WD_OK · ESTOP_OK · TEMP_OK · FAULT_LATCH_CLEAR:
+        a watchdog/thermal/E-stop/latched fault removes contactor permission IN HARDWARE. */}
+    <chip name="U_CAND1" footprint="sot23_6" supplierPartNumbers={{ jlcpcb: ["C22046"] }}
+      pinLabels={{ pin1: "A", pin2: "GND", pin3: "B", pin4: "Y", pin5: "VCC", pin6: "C" }}
+      connections={{ pin1: "net.WD_OK", pin2: "net.GND", pin3: "net.ESTOP_OK", pin4: "net.CTR_SAFE", pin5: "net.N3V3", pin6: "net.TEMP_OK" }} />
+    <chip name="U_CAND2" footprint="sot23_6" supplierPartNumbers={{ jlcpcb: ["C22046"] }}
+      pinLabels={{ pin1: "A", pin2: "GND", pin3: "B", pin4: "Y", pin5: "VCC", pin6: "C" }}
+      connections={{ pin1: "net.CTR_SAFE", pin2: "net.GND", pin3: "net.FAULT_LATCH_CLEAR", pin4: "net.CONTACTOR_DRV", pin5: "net.N3V3", pin6: "net.CONTACTOR_REQ" }} />
+    <capacitor name="C_CAND1" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
+    <capacitor name="C_CAND2" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
     <chip name="U_OPTO" footprint="dip4" supplierPartNumbers={{ jlcpcb: ["C125121"] }}
       pinLabels={{ pin1: "ANODE", pin2: "CATHODE", pin3: "EMITTER", pin4: "COLLECTOR" }}
       connections={{ pin1: "net.OPTO_LED_A", pin2: "net.GND", pin3: "net.CONTACTOR_E", pin4: "net.CONTACTOR_C" }} />
-    <resistor name="R_OPTOLED" resistance="330" footprint="0603" connections={{ pin1: "net.CONTACTOR_REQ", pin2: "net.OPTO_LED_A" }} />
+    <resistor name="R_OPTOLED" resistance="330" footprint="0603" connections={{ pin1: "net.CONTACTOR_DRV", pin2: "net.OPTO_LED_A" }} />
     <chip name="J_CONTACTOR" footprint="pinrow2" supplierPartNumbers={{ jlcpcb: ["C474892"] }}
       pinLabels={{ pin1: "C", pin2: "E" }}
       connections={{ pin1: "net.CONTACTOR_LOOP", pin2: "net.CONTACTOR_E" }} />
@@ -404,6 +470,18 @@ export default () => (
       }} />
     <capacitor name="C_EXP" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
     <resistor name="R_EXPRST" resistance="10k" footprint="0402" connections={{ pin1: "net.EXP_RST_N", pin2: "net.N3V3" }} />
+    {/* v1.2 DETERMINISTIC PULLS (ADR-0011 §7): hold the SAFE state while the Pi/expander are
+        un-driven (boot/reset — MCP23017 pins reset to INPUTS). Pull-DOWN every authorization/
+        enable; pull-UP on REARM_N (active-low re-arm: floating must NOT clear the fault latch). */}
+    <resistor name="R_RAENAPD" resistance="100k" footprint="0402" connections={{ pin1: "net.RAIL_EN_A", pin2: "net.GND" }} />
+    <resistor name="R_RAENBPD" resistance="100k" footprint="0402" connections={{ pin1: "net.RAIL_EN_B", pin2: "net.GND" }} />
+    <resistor name="R_RAENRHAPD" resistance="100k" footprint="0402" connections={{ pin1: "net.RAIL_EN_RHA", pin2: "net.GND" }} />
+    <resistor name="R_RAENRHEPD" resistance="100k" footprint="0402" connections={{ pin1: "net.RAIL_EN_RHE", pin2: "net.GND" }} />
+    <resistor name="R_CTRREQPD" resistance="100k" footprint="0402" connections={{ pin1: "net.CONTACTOR_REQ", pin2: "net.GND" }} />
+    <resistor name="R_REARMPU" resistance="100k" footprint="0402" connections={{ pin1: "net.REARM_N", pin2: "net.N3V3" }} />
+    <resistor name="R_HOSTAUTHPD" resistance="100k" footprint="0402" connections={{ pin1: "net.HOST_AUTH", pin2: "net.GND" }} />
+    <resistor name="R_MCUENPD" resistance="100k" footprint="0402" connections={{ pin1: "net.MCU_RELAY_ENABLE", pin2: "net.GND" }} />
+    <resistor name="R_KRSTPD" resistance="100k" footprint="0402" connections={{ pin1: "net.KEY_RESET_N", pin2: "net.GND" }} />
     <resistor name="R_BID0" resistance="10k" footprint="0402" connections={{ pin1: "net.BOARD_ID0", pin2: "net.GND" }} />
     <resistor name="R_BID1" resistance="10k" footprint="0402" connections={{ pin1: "net.BOARD_ID1", pin2: "net.N3V3" }} />
 
@@ -427,36 +505,47 @@ export default () => (
       connections={{ pin1: "net.N3V3_SW_A", pin2: "net.GND", pin3: "net.SDA_A", pin4: "net.SCL_A", pin5: "net.TH_CAM_A", pin6: "net.TH_MOUNT_A", pin7: "net.TH_PORT_A", pin8: "net.SHIELD_DRAIN" }} />
     <chip name="J_THERM_B" footprint="pinrow8" supplierPartNumbers={{ jlcpcb: ["C265111"] }}
       connections={{ pin1: "net.N3V3_SW_B", pin2: "net.GND", pin3: "net.SDA_B", pin4: "net.SCL_B", pin5: "net.TH_CAM_B", pin6: "net.TH_MOUNT_B", pin7: "net.TH_PORT_B", pin8: "net.SHIELD_DRAIN" }} />
+    {/* v1.2 (ADR-0010): the RH pods JOIN the camera buses (address-disjoint 0x33/0x44 —
+        brief §3.10's own pairing, now on REAL native pairs): ambient SHT45 -> bus A (I2C2),
+        exhaust SHT45 -> bus B (I2C3). Nets SDA_RHA/SCL_RHA/SDA_RHE/SCL_RHE deleted. */}
     <chip name="J_RH_AMBIENT" footprint="pinrow5" supplierPartNumbers={{ jlcpcb: ["C189896"] }}
-      connections={{ pin1: "net.N3V3_SW_RHA", pin2: "net.GND", pin3: "net.SDA_RHA", pin4: "net.SCL_RHA", pin5: "net.SHIELD_DRAIN" }} />
+      connections={{ pin1: "net.N3V3_SW_RHA", pin2: "net.GND", pin3: "net.SDA_A", pin4: "net.SCL_A", pin5: "net.SHIELD_DRAIN" }} />
     <chip name="J_RH_EXHAUST" footprint="pinrow5" supplierPartNumbers={{ jlcpcb: ["C189896"] }}
-      connections={{ pin1: "net.N3V3_SW_RHE", pin2: "net.GND", pin3: "net.SDA_RHE", pin4: "net.SCL_RHE", pin5: "net.SHIELD_DRAIN" }} />
-    {/* I2C pullups powered from the SWITCHED sensor rail (die with the rail — ADR-0004 N1) */}
+      connections={{ pin1: "net.N3V3_SW_RHE", pin2: "net.GND", pin3: "net.SDA_B", pin4: "net.SCL_B", pin5: "net.SHIELD_DRAIN" }} />
+    {/* ONE 2.2k pullup pair per bus, powered from the CAMERA's switched rail (ADR-0004 N1:
+        pullups die with the rail). The <=v1.1 RH-rail pullup pairs are DELETED — parallel
+        pullups from two switched rails would back-power the off rail's device. Phantom-power
+        residual (documented, ADR-0010): stuck-bus recovery must cycle BOTH rails of a bus. */}
     <resistor name="R_SDAA" resistance="2.2k" footprint="0402" connections={{ pin1: "net.SDA_A", pin2: "net.N3V3_SW_A" }} />
     <resistor name="R_SCLA" resistance="2.2k" footprint="0402" connections={{ pin1: "net.SCL_A", pin2: "net.N3V3_SW_A" }} />
     <resistor name="R_SDAB" resistance="2.2k" footprint="0402" connections={{ pin1: "net.SDA_B", pin2: "net.N3V3_SW_B" }} />
     <resistor name="R_SCLB" resistance="2.2k" footprint="0402" connections={{ pin1: "net.SCL_B", pin2: "net.N3V3_SW_B" }} />
-    <resistor name="R_SDARHA" resistance="2.2k" footprint="0402" connections={{ pin1: "net.SDA_RHA", pin2: "net.N3V3_SW_RHA" }} />
-    <resistor name="R_SCLRHA" resistance="2.2k" footprint="0402" connections={{ pin1: "net.SCL_RHA", pin2: "net.N3V3_SW_RHA" }} />
-    <resistor name="R_SDARHE" resistance="2.2k" footprint="0402" connections={{ pin1: "net.SDA_RHE", pin2: "net.N3V3_SW_RHE" }} />
-    <resistor name="R_SCLRHE" resistance="2.2k" footprint="0402" connections={{ pin1: "net.SCL_RHE", pin2: "net.N3V3_SW_RHE" }} />
     {/* shield drain: RC/0R option to GND at a single point (brief: NOT hard-bonded to signal ground) */}
     <resistor name="R_SHIELD" resistance="0" footprint="0603" connections={{ pin1: "net.SHIELD_DRAIN", pin2: "net.GND" }} />
 
     {/* ================= Raspberry Pi 5 40-pin header (signals only; power NC) ==== */}
     {/* GND = 6,9,14,20,25,30,34,39. Power (1,2,4,17) + HAT-ID (27,28) = NC (brief §3, no backfeed). */}
-    {/* Exact GPIO<->function pin-mux (incl. sensor-I2C dtoverlays) is the Gate-4 pin-map artifact. */}
+    {/* v1.2 NATIVE-I2C REPAIR (ADR-0010, review F1 — VERIFIED against the RP1 datasheet
+        function-select table + kernel i2c*-pi5 overlays, 2026-07-24):
+          I2C1 GPIO2/3  = phys 3/5   -> MCP23017 (unchanged, was already correct)
+          I2C2 GPIO4/5  = phys 7/29  -> bus A: MLX90640 A (0x33) + ambient SHT45 (0x44)
+          I2C3 GPIO14/15= phys 8/10  -> bus B: MLX90640 B (0x33) + exhaust SHT45 (0x44)
+        <=v1.1 had cam A on 7/8 (GPIO4+GPIO14 = two buses' SDA lines), cam B on 10/12,
+        SHT45s on 18/35 + 36/37 — GPIO16/18/19/24/26 have NO I2C alt function at all.
+        KEY_DATA re-homed phys29(GPIO5)->phys36(GPIO16); STOP_REQ = DIRECT GPIO26/phys37
+        (ADR-0011 §5). Freed: phys 12/18/35 = NC. The maintained map + dtoverlay snippet is
+        01_docs/pin_map.md; E-INV pins every one of these assignments. */}
     <chip name="J_PI" footprint="pinrow40" supplierPartNumbers={{ jlcpcb: ["C35165"] }}
       connections={{
         pin3: "net.I2C_SDA", pin5: "net.I2C_SCL", pin6: "net.GND",
-        pin7: "net.SDA_A", pin8: "net.SCL_A", pin9: "net.GND", pin10: "net.SDA_B",
-        pin11: "net.WD_PET", pin12: "net.SCL_B", pin13: "net.INT_ALERT", pin14: "net.GND",
-        pin15: "net.HOST_AUTH", pin16: "net.MCU_RELAY_ENABLE", pin18: "net.SDA_RHA",
+        pin7: "net.SDA_A", pin8: "net.SDA_B", pin9: "net.GND", pin10: "net.SCL_B",
+        pin11: "net.WD_PET", pin13: "net.INT_ALERT", pin14: "net.GND",
+        pin15: "net.HOST_AUTH", pin16: "net.MCU_RELAY_ENABLE",
         pin19: "net.SPI_MOSI", pin20: "net.GND", pin21: "net.SPI_MISO", pin22: "net.TC_DRDY_N",
         pin23: "net.SPI_SCLK", pin24: "net.ADC_CS_N", pin25: "net.GND", pin26: "net.TC_CS_N",
-        pin29: "net.KEY_DATA", pin30: "net.GND", pin31: "net.KEY_CLOCK", pin32: "net.KEY_LATCH",
-        pin33: "net.KEY_RESET_N", pin34: "net.GND", pin35: "net.SCL_RHA", pin36: "net.SDA_RHE",
-        pin37: "net.SCL_RHE", pin38: "net.LC_DAT_PI", pin39: "net.GND", pin40: "net.LC_CLK_PI",
+        pin29: "net.SCL_A", pin30: "net.GND", pin31: "net.KEY_CLOCK", pin32: "net.KEY_LATCH",
+        pin33: "net.KEY_RESET_N", pin34: "net.GND", pin36: "net.KEY_DATA",
+        pin37: "net.STOP_REQ", pin38: "net.LC_DAT_PI", pin39: "net.GND", pin40: "net.LC_CLK_PI",
       }} />
 
     {/* ================= test points (bench bring-up G4) ==================== */}
@@ -474,6 +563,7 @@ export default () => (
     <testpoint name="TP_USEL" footprintVariant="pad" padShape="circle" padDiameter="1.5mm" connections={{ pin1: "net.U_SEL_BUS" }} />
     <testpoint name="TP_DSEL" footprintVariant="pad" padShape="circle" padDiameter="1.5mm" connections={{ pin1: "net.D_SEL_BUS" }} />
     <testpoint name="TP_RKEY" footprintVariant="pad" padShape="circle" padDiameter="1.5mm" connections={{ pin1: "net.RKEY_MID" }} />
+    <testpoint name="TP_TCTH" footprintVariant="pad" padShape="circle" padDiameter="1.5mm" connections={{ pin1: "net.TCAM_THRESH" }} />
     <testpoint name="TP_ENCL" footprintVariant="pad" padShape="circle" padDiameter="1.5mm" connections={{ pin1: "net.TH_ENCLOSURE" }} />
     <testpoint name="TP_SPARE" footprintVariant="pad" padShape="circle" padDiameter="1.5mm" connections={{ pin1: "net.TH_SPARE" }} />
 

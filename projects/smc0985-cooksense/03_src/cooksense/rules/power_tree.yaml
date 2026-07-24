@@ -54,6 +54,18 @@ linear_rails:
     iout_max_A: 0.15               # reed coils ~120mA worst (only 1U+1D+PRESS energised at once)
     element: AO3401A
     note: "5V_PROTECTED -> Q_COIL (gated by the safety AND-chain) -> reed-coil rail"
+  - name: 5V_STOP
+    kind: always_available_link     # v1.2 (ADR-0011 §4): 0R link, deliberately UNGATED
+    vin_min: 4.5
+    vin_max: 5.5
+    vout_min: 4.5
+    vout_max: 5.5
+    iout_max_A: 0.02               # one DIP05 reed coil (~10mA) + margin
+    element: R_STOPRAIL (0R)
+    note: "5V_PROTECTED -> R_STOPRAIL -> 5V_STOP: K_STOP's coil rail, present whenever
+      the board is powered. NOT gated by the AND-chain/Manual pole — the STOP relay must
+      survive the faults that kill 5V_KEY_RELAY (review F3c). Driver = dedicated 2N7002
+      Q_STOPDRV from STOP_REQ (100k pull-down), flyback D_KSTOP across the coil."
   - name: 3V3
     kind: linear_ldo
     vin_min: 4.5
