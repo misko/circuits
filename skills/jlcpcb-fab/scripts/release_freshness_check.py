@@ -26,6 +26,22 @@ Motivating incident (usb-hub-3s-v3 v1.2, 2026-07-23 — a redesigned board):
 Usage:
     release_freshness_check.py <release_dir> [--releases-root DIR]
                                [--allow-identical RELPATH ]...
+    release_freshness_check.py <release_dir> --docs-only-supersede PRIOR_DIR
+
+DOCS-ONLY SUPERSEDE MODE (--docs-only-supersede <prior-release-dir>):
+a documentation-only supersede release (usb-hub-3s-v3 v1.4, 2026-07-23)
+INTENTIONALLY ships its fab outputs byte-identical to its predecessor — the
+board did not change, only the documentation did. The default stale check
+would flag exactly that identity as a defect. In this mode the declared
+identity is ASSERTED instead of flagged:
+
+  - fab/, source/, 3d/ MUST be byte-identical to the prior release (any
+    differing, missing, or added file is a FAIL — a "docs-only" release
+    that changes fab is lying about being docs-only);
+  - pdf/ identical to the prior release is ALLOWED (not flagged);
+  - the order README and MANIFEST MUST DIFFER from the prior release's (a
+    supersede that changes no document supersedes nothing);
+  - checks (b) audit==manifest and (c) no draft markers still run.
 
 `<release_dir>` is one sealed release directory,
 `07_releases/<version>-<date>/`. Earlier releases of the SAME board are its
@@ -145,6 +161,70 @@ def check_stale(release_dir, releases_root, allow):
     return fails, [f for f in findings if not f.lstrip().startswith("STALE:")]
 
 
+# ------------------------------------------ docs-only supersede identity
+# Subtrees a docs-only supersede must ship UNCHANGED. pdf/ is deliberately
+# absent: identical drawings are allowed (the board did not change), but they
+# are not required — a regenerated-but-equal-content PDF may differ in bytes
+# (timestamps), and neither direction makes the release less docs-only.
+_DOCS_ONLY_IDENTICAL_DIRS = ("fab", "source", "3d")
+
+
+def _tree_files(d: Path):
+    """{relpath-posix: Path} for every file under d ({} if d is absent)."""
+    if not d.is_dir():
+        return {}
+    return {p.relative_to(d).as_posix(): p
+            for p in sorted(d.rglob("*")) if p.is_file()}
+
+
+def check_docs_only(release_dir, prior_dir):
+    """Assert the docs-only-supersede contract against the DECLARED prior
+    release: fab/source/3d byte-identical (any deviation = FAIL), order
+    README + MANIFEST byte-DIFFERENT (identical docs supersede nothing)."""
+    fails, notes = [], []
+    for sub in _DOCS_ONLY_IDENTICAL_DIRS:
+        cur = _tree_files(release_dir / sub)
+        old = _tree_files(prior_dir / sub)
+        for rel in sorted(set(cur) - set(old)):
+            fails.append(
+                f"  DOCS-ONLY DEVIATION: {sub}/{rel} exists here but not in "
+                f"{prior_dir.name} — a docs-only supersede must not ADD "
+                f"{sub}/ content; cut a full release instead")
+        for rel in sorted(set(old) - set(cur)):
+            fails.append(
+                f"  DOCS-ONLY DEVIATION: {sub}/{rel} shipped in "
+                f"{prior_dir.name} is MISSING here — a docs-only supersede "
+                f"must carry the prior release's {sub}/ unchanged")
+        same = 0
+        for rel in sorted(set(cur) & set(old)):
+            if _sha256(cur[rel]) != _sha256(old[rel]):
+                fails.append(
+                    f"  DOCS-ONLY DEVIATION: {sub}/{rel} DIFFERS from "
+                    f"{prior_dir.name}/{sub}/{rel} — a 'docs-only' release "
+                    f"that changes {sub}/ is lying; cut a full release "
+                    f"instead")
+            else:
+                same += 1
+        if same:
+            notes.append(f"  note: {sub}/ byte-identical to {prior_dir.name} "
+                         f"({same} file(s)) — ASSERTED by docs-only mode")
+    # the documents themselves MUST change — that is the release's whole point
+    doc_pairs = [("order README", _find_readme(release_dir),
+                  _find_readme(prior_dir)),
+                 ("MANIFEST.txt", release_dir / "MANIFEST.txt",
+                  prior_dir / "MANIFEST.txt")]
+    for label, cp, op in doc_pairs:
+        if cp is None or not cp.is_file():
+            fails.append(f"  MISSING: {label} in {release_dir.name}")
+            continue
+        if op is not None and op.is_file() and _sha256(cp) == _sha256(op):
+            fails.append(
+                f"  DOCS-ONLY UNCHANGED: {label} is byte-identical to "
+                f"{prior_dir.name}'s — a docs-only supersede exists to CHANGE "
+                f"the documentation; an unchanged {label} supersedes nothing")
+    return fails, notes
+
+
 # --------------------------------------------------------------- check (b)
 def _audit_fail_count(audit_text):
     """FAIL count the shipped policy_audit.md actually reports. Prefer its
@@ -240,6 +320,14 @@ def main(argv=None):
                     metavar="RELPATH",
                     help="waive a same-named-identical artifact (edge case: "
                          "doc-only re-release)")
+    ap.add_argument("--docs-only-supersede", metavar="PRIOR_RELEASE_DIR",
+                    default=None,
+                    help="docs-only supersede mode: ASSERT fab/source/3d "
+                         "byte-identical to PRIOR_RELEASE_DIR (any deviation "
+                         "FAILs), allow identical pdf/, and REQUIRE the order "
+                         "README + MANIFEST to differ; the stale check is "
+                         "replaced by this identity assertion, checks (b)/(c) "
+                         "still run")
     # RED-VERIFY hooks: neuter one check so a known-bad fixture is shown to
     # pass when — and only when — that check is disabled. Tests only.
     ap.add_argument("--_disable-stale", action="store_true")
@@ -258,7 +346,17 @@ def main(argv=None):
     for rel in args.allow_identical:
         allow[rel] = "waived via --allow-identical"
 
-    print(f"== release-freshness: {release_dir.name} ==")
+    prior_dir = None
+    if args.docs_only_supersede:
+        prior_dir = Path(args.docs_only_supersede).resolve()
+        if not prior_dir.is_dir():
+            print(f"FATAL: --docs-only-supersede prior release is not a "
+                  f"directory: {prior_dir}", file=sys.stderr)
+            return 2
+
+    print(f"== release-freshness: {release_dir.name} =="
+          + (f" [docs-only supersede of {prior_dir.name}]" if prior_dir
+             else ""))
     fails, notes = [], []
 
     if bad_exceptions:
@@ -266,7 +364,14 @@ def main(argv=None):
                   f"with no reason — a waiver needs evidence"
                   for rel in bad_exceptions]
 
-    if not args._disable_stale:
+    if prior_dir is not None:
+        # docs-only mode REPLACES the stale check: identity with the declared
+        # prior release is asserted, not flagged.
+        if not args._disable_stale:
+            df, dn = check_docs_only(release_dir, prior_dir)
+            fails += df
+            notes += dn
+    elif not args._disable_stale:
         sf, sn = check_stale(release_dir, releases_root, allow)
         fails += sf
         notes += sn
