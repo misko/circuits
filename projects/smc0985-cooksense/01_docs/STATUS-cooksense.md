@@ -1,9 +1,9 @@
 # STATUS beacon — cooksense MAIN board (live head; overwritten each transition)
 <!-- reader parses from here down -->
-stage:   rebuild (pre-seal batch)
-step:    "board lead (session 3): reroute race DONE, chain cleaned+promoted, DRC 0/0/0 + M-REPRO green. Committing routing gate."
-measure: "drc_seal_gate.json + drc_repro.json = 0 violations / 0 unconnected / 0 parity"
+stage:   seal (2-commit)
+step:    "board lead (session 3): all gates green (DRC 0/0/0, E-INV 17/17, twin exit 0, audit PASS, policy 0 FAIL, lens ORDER-OK-WITH-NOTES). Cutting source commit S then seal."
+measure: "staged 07_releases/cooksense-v1.0-2026-07-23 complete archive"
 state:   working
 op_pid:  pending
-next:    "DRC 0/0/0 -> promote chain -> M-REPRO reuse re-verify -> semantic battery (E-INV/E-TOPO/S-COUNT) -> twin w/ adjudications -> I-ISO -> delta-scoped verify + 1 fresh lens -> ORDER_README -> 2-commit seal"
-updated: 2026-07-23T20:16:00
+next:    "MANIFEST stamp git_sha=S -> policy M-REL + freshness -> seal commit + CHANGELOG -> check-ignore sweep"
+updated: 2026-07-23T20:50:00

@@ -47,7 +47,10 @@ POLARIZED = {
     "U_EFUSE": ("5", "5V_PROTECTED"),   # eFuse OUT
     "Q_REV":   ("3", "5V_FUSED"),       # revpol P-FET DRAIN = input side
     "D_TVS":   ("1", "5V_PROTECTED"),   # SMBJ cathode on protected rail
-    "D_REVCLAMP": ("1", "5V_IN"),       # SS34 cathode on input rail
+    "D_REVCLAMP": ("1", "5V_FUSED"),    # SS34 cathode DOWNSTREAM of F1 (pin
+                                        # review Q2 fix, 2026-07-23: on 5V_IN the
+                                        # reverse-clamp fault path bypassed the
+                                        # polyfuse; disposition #2 + E-INV lock)
     "CE1":     ("1", "5V_PROTECTED"),   # bulk + on protected rail
     "U_LDO":   ("3", "5V_PROTECTED"),   # AMS1117 VIN
     "Q_COIL":  ("3", "5V_KEY_RELAY"),   # coil-gate P-FET DRAIN = gated rail

@@ -97,3 +97,42 @@
     text_thickness ignored: 0.15mm stroke = JLCPCB's silk floor (legible at fab);
     thinner would not print, thicker would collide more in the dense regions. A fab-
     process floor, not a defect.
+
+- id: S-OCCL
+  refs: ["03_tscircuit/kicad/cooksense.kicad_sch"]
+  why: >-
+    The 78 occlusions are label-vs-reference/label bbox overlaps in the tscircuit
+    CONVERTER .kicad_sch — per ADR-0002 + the 03_tscircuit contract that file is
+    the MACHINE artifact (ERC / netlist / --schematic-parity; "need not be
+    pretty"); the HUMAN schematic this board ships is tscircuit's own
+    collision-free render (03_tscircuit/build/schematic.pdf -> release
+    pdf/schematic.pdf). Same waiver class as sealed crow-recorder-central-v2 and
+    crow-mic-pod-v2. Evidence, not rationale: the fresh-context RENDER REVIEW
+    (06_build/verification/render_review.md, 2026-07-23) inspected ALL 77
+    pre-batch occlusion sites individually at 12 px/mm — zero dangerous
+    (wrong-wire-attachment) instances. The pre-seal batch re-layout shifted the
+    set 77 -> 78 (21 added / 20 removed, same three cosmetic classes on
+    unchanged circuitry); the only two pairs owned by NEW batch parts were
+    re-MEASURED with the audit's own bbox model: label DECU_G1 x Ref R_DECUPD
+    and label DECD_G1 x Ref R_DECDPD are both 4.17 x 0.04 mm edge-kisses — the
+    review's "pure noise" class (~28 of the 77 were identical 0.04 mm kisses).
+    Readability is NOT waived — it is graded on the shipped tscircuit render.
+
+- id: S-VER
+  refs: ["06_build/verification/pin_review.md"]
+  why: >-
+    The 8 flagged part.yaml entries carry verified: notes without a
+    figure/page citation string, but every one was INDEPENDENTLY re-verified by
+    the fresh-context PIN REVIEW (06_build/verification/pin_review.md,
+    2026-07-23, 5/5 groups, 0 confirmed pin-map defects) — a stronger check
+    than a citation: pinouts re-DERIVED against the named source per part:
+    SN74HC595DR (TI SCLS041J, SER/SRCLK/RCLK + QH' daisy chain), 2N7002
+    (Diodes DS11303 G/S/D, 5 instances), AO3401A (S/D/G re-derived, 6
+    instances incl. reverse-block orientation), ULN2803ADWR (IN/OUT
+    corner-pairing all 8ch, COM rail), SN74HC14DR (all 6 inverters traced),
+    LTV-817S-TA1 (817-family invariant pinout, vendor-invariant basis stated
+    in the review), X9555WV IDC (standard 2.54 2x16 odd/even grid + jlc_twin
+    pad-grid check vs JLC CAD), GZ2012D601TF (2-pad unpolarized ferrite;
+    polarity N-A, asserted by audit I9). The commodity 2/3-pad entries
+    (2N7002/AO3401A/GZ2012) additionally ride the board-generator + audit_board
+    I-POL polarity gate (18 checks PASS).

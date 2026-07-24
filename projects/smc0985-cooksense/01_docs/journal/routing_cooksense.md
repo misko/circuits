@@ -616,3 +616,24 @@ NOT yet rebuilt. All other source staged. No git touched.
   rebuild re-measured 0/0/0 (drc_repro.json).
 - next: semantic battery (E-INV +26 / E-TOPO / S-COUNT) -> twin w/ adjudications ->
   I-ISO re-check -> delta-scoped verify + one fresh lens -> ORDER_README -> 2-commit seal.
+
+## 2026-07-23 ~20:45 — iterate (board lead session 3: verify battery + staging + fresh lens)
+- did: semantic battery E-INV 17/17 + E-ADR OK; E-TOPO/E-MARGIN/E-OFF N-A-by-design
+  exit 0; S-COUNT 191 x4 parity. Fab re-export (BOM 52 / CPL 175); bom_source_check
+  PASS; stock PASS (thin lines C2653844=160 C89650=244 C587657=778 C16939=223).
+  jlc_twin network run WITH adjudications: exit 0, 121 OK / 353 checked, zero
+  unadjudicated CRITICALs. audit_board: fixed the STALE I-POL expectation
+  (D_REVCLAMP.1 5V_IN -> 5V_FUSED, tracking disposition #2) -> AUDIT PASS, I-ISO
+  6.12mm. policy_audit: S-OCCL 77->78 measured (21 added / 20 removed by the batch
+  re-layout; the only 2 NEW-part pairs DECU_G1/DECD_G1 x their pulldown refs
+  measured 4.17 x 0.04mm edge-kisses = the render review's pure-noise class) ->
+  S-OCCL + S-VER evidence waivers added -> policy_audit 0 FAIL / WAIVED 5 / exit 0.
+  Staged 07_releases/cooksense-v1.0-2026-07-23 (fab/pdf/source+pretty/3d/verification).
+  Fresh ZERO-CONTEXT lens (headless claude, curated inputs, journals/reviews
+  excluded) verdict: conditional DO-NOT-ORDER on 2 verify-items, both resolved
+  GREEN by its own recipe: (1) all 4x dia-1.77 J_TC holes present in drl (PTH
+  70.04/77.96 y96; NPTH 66.15/81.85 y89.2); (2) Edge.Cuts outline 252.00x92.00mm
+  (lens's 266.4 = ComputeBoundingBox incl. silk; its x=0 hit was the %FSLAX46Y46*%
+  header). Final per its own rule: ORDER-OK-WITH-NOTES. Addendum in fresh_lens.md.
+- next: 2-commit seal (source S -> MANIFEST stamp + M-REL + freshness -> seal commit
+  + CHANGELOG). git check-ignore sweep LAST.
