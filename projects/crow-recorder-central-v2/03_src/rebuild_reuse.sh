@@ -46,8 +46,17 @@ $PY "$S/generate_board_generic.py" 03_src/floorplan.yaml -o "04_kicad/$BOARD.kic
 rmstray; $PY "$S/generate_rules_generic.py" .
 # 3. import the promoted KRT chain ONCE into the track-free board
 $PY "$S/route_and_stitch_generic.py" import  03_src/route.yaml
+# 3.5 U1 (XU316) EP thermal grid as REAL VIA OBJECTS (F1, external review
+#     2026-07-24): 16x 0.30/0.15 GND vias on the 4x4 EP grid, so the drill
+#     file emits them under ViaDrill (not ComponentDrill) and JLC can fill+cap
+#     them. Before stitch, so every pass + the DRC gate see them.
+$PY 03_src/add_u1_thermal_vias.py "04_kicad/$BOARD.kicad_pcb"
 # 4. stitch: pours + stitch/thermal vias + island heal + gate
 $PY "$S/route_and_stitch_generic.py" stitch  03_src/route.yaml
+# 4.5 board setup via-protection -> (capping yes)(filling yes): the fab flags
+#     for the filled+capped via-in-pad process ORDER_README orders (F1). Text
+#     patch AFTER the last pcbnew save of the board.
+$PY 03_src/add_u1_thermal_vias.py --seal-fab-flags "04_kicad/$BOARD.kicad_pcb"
 # 5. generate_rules LAST (any pcbnew save in the chain clobbers netclasses)
 rmstray; $PY "$S/generate_rules_generic.py" .
 # 6. routing gate: classified DRC at full severity, zones refilled, sch-parity

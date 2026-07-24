@@ -72,6 +72,28 @@ classes:
     routing: KRT, symmetric leg pairs
     verify: audit separation + DRC floor
 
+  USB_DIFF:
+    intent: >
+      XU316 USB 2.0 High-Speed pair (U1.60 USB_DP / U1.59 USB_DN) through
+      D_USB ESD to the USB-C receptacle. 90ohm DIFFERENTIAL, controlled
+      geometry (external review F2 closure, 2026-07-24): solved for the
+      JLCPCB JLC06161H-3313 6-layer stackup this board orders — L1
+      microstrip over the In1 GND plane, prepreg 3313 h=0.0994mm Er=4.1,
+      1oz outer + soldermask — w=0.125mm / gap=0.15mm -> Zdiff 89.7-90.5
+      ohm (2D FD field solve, method + convergence in DETAIL_DESIGN "USB
+      90ohm"). Timing-critical: XU316 guide skew budget <=1mm, enforced by
+      audit_board.py length-spread measurement (R-LEN); pair stays on F.Cu
+      with zero vias so In1 is an uninterrupted reference. NB net renamed
+      USB_DM -> USB_DN (2026-07-24): KiCad pairs nets only by P/N suffix —
+      DP/DM never matched, so no diff-pair rule could ever fire.
+    nets: [USB_DP, USB_DN]
+    current: "USB HS signaling, mA"
+    min_width: 0.125mm
+    clearance: 0.10mm
+    diff_pair: {width: 0.125, gap: 0.15, via_gap: 0.15}
+    routing: KRT route_diff at the solved geometry, F.Cu only
+    verify: DRC diff_pair_gap rule + audit_board skew/width/layer measurement
+
   CLOCK:
     intent: >
       Shared sample clock tree: MCLK (+ buffered legs), BCLK, LRCK — short,
@@ -83,7 +105,7 @@ classes:
     routing: KRT, short series-terminated
     verify: DRC floor
 
-# Default 0.15 (tier floor 0.09, use 0.15): USB_DP/USB_DM, SDA/SCL, QSPI_*,
+# Default 0.15 (tier floor 0.09, use 0.15): SDA/SCL, QSPI_*,
 # ADC_DOUT*, BEEP_GATE, GPIO, JTAG, strap nets. GND = F/B pours + In1/In4
 # planes + stitch (NOT routed). default_clearance/default_track_width above
 # deliver this (2026-07-23 — previously documented but not wired in).

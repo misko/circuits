@@ -47,7 +47,7 @@ prep:
           MID1P, MID1M, MID3P, MID3M, MID4P, MID4M, MID5P, MID5M,
           MID6P, MID6M, MID7P, MID7M, MID8P, MID8M,
           MCLK, MCLK_A1, MCLK_A2, MCLK_B1, MCLK_B2, BCLK, BCLK_SRC, LRCK, LRCK_SRC,
-          USB_DP, USB_DM
+          USB_DP, USB_DN
         ]
       pwr: [
           5V, VIN_RAW, JACK_IN, 3V3, 0V9, 1V8, 3V3A, PLUS5V_BEEP,

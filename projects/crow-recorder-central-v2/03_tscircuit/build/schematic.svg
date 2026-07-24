@@ -915,25 +915,25 @@
   " fill="rgba(255, 255, 255, 0.6)" stroke="rgb(132, 0, 0)" stroke-width="0.310478654592px"/><text class="net-label-text sch-net-label-text" data-circuit-json-type="schematic_net_label" data-schematic-net-label-id="schematic_net_label_170" x="548.3068564035481" y="458.44760672686414" fill="rgb(132, 0, 0)" text-anchor="end" dominant-baseline="central" font-family="sans-serif" font-variant-numeric="tabular-nums" font-size="2.7943078913279997px" transform="">TCK</text><path class="net-label sch-net-label" data-circuit-json-type="schematic_net_label" data-schematic-net-label-id="schematic_net_label_171" d="
     M 471.77386804661995,409.70245795591995
     L 470.93557567922153,411.25485122887994
-    L 458.0072445020107,411.25485122887994
-    L 458.0072445020107,408.15006468295996
+    L 458.31772315660265,411.25485122887994
+    L 458.31772315660265,408.15006468295996
     L 470.93557567922153,408.15006468295996
     Z
-  " fill="rgba(255, 255, 255, 0.6)" stroke="rgb(132, 0, 0)" stroke-width="0.310478654592px"/><text class="net-label-text sch-net-label-text" data-circuit-json-type="schematic_net_label" data-schematic-net-label-id="schematic_net_label_171" x="470.37671410095595" y="409.70245795591995" fill="rgb(132, 0, 0)" text-anchor="end" dominant-baseline="central" font-family="sans-serif" font-variant-numeric="tabular-nums" font-size="2.7943078913279997px" transform="">USB_DM</text><path class="net-label sch-net-label" data-circuit-json-type="schematic_net_label" data-schematic-net-label-id="schematic_net_label_172" d="
+  " fill="rgba(255, 255, 255, 0.6)" stroke="rgb(132, 0, 0)" stroke-width="0.310478654592px"/><text class="net-label-text sch-net-label-text" data-circuit-json-type="schematic_net_label" data-schematic-net-label-id="schematic_net_label_171" x="470.37671410095595" y="409.70245795591995" fill="rgb(132, 0, 0)" text-anchor="end" dominant-baseline="central" font-family="sans-serif" font-variant-numeric="tabular-nums" font-size="2.7943078913279997px" transform="">USB_DN</text><path class="net-label sch-net-label" data-circuit-json-type="schematic_net_label" data-schematic-net-label-id="schematic_net_label_172" d="
     M 512.291332470876,464.6571798187041
     L 511.4530401034776,466.2095730916641
-    L 498.5247089262667,466.2095730916641
-    L 498.5247089262667,463.1047865457441
+    L 498.8351875808587,466.2095730916641
+    L 498.8351875808587,463.1047865457441
     L 511.4530401034776,463.1047865457441
     Z
-  " fill="rgba(255, 255, 255, 0.6)" stroke="rgb(132, 0, 0)" stroke-width="0.310478654592px"/><text class="net-label-text sch-net-label-text" data-circuit-json-type="schematic_net_label" data-schematic-net-label-id="schematic_net_label_172" x="510.894178525212" y="464.6571798187041" fill="rgb(132, 0, 0)" text-anchor="end" dominant-baseline="central" font-family="sans-serif" font-variant-numeric="tabular-nums" font-size="2.7943078913279997px" transform="">USB_DM</text><path class="net-label sch-net-label" data-circuit-json-type="schematic_net_label" data-schematic-net-label-id="schematic_net_label_173" d="
+  " fill="rgba(255, 255, 255, 0.6)" stroke="rgb(132, 0, 0)" stroke-width="0.310478654592px"/><text class="net-label-text sch-net-label-text" data-circuit-json-type="schematic_net_label" data-schematic-net-label-id="schematic_net_label_172" x="510.894178525212" y="464.6571798187041" fill="rgb(132, 0, 0)" text-anchor="end" dominant-baseline="central" font-family="sans-serif" font-variant-numeric="tabular-nums" font-size="2.7943078913279997px" transform="">USB_DN</text><path class="net-label sch-net-label" data-circuit-json-type="schematic_net_label" data-schematic-net-label-id="schematic_net_label_173" d="
     M 530.920051746396,466.2095730916641
     L 531.7583441137944,464.6571798187041
-    L 544.6866752910053,464.6571798187041
-    L 544.6866752910053,467.7619663646241
+    L 544.3761966364133,464.6571798187041
+    L 544.3761966364133,467.7619663646241
     L 531.7583441137944,467.7619663646241
     Z
-  " fill="rgba(255, 255, 255, 0.6)" stroke="rgb(132, 0, 0)" stroke-width="0.310478654592px"/><text class="net-label-text sch-net-label-text" data-circuit-json-type="schematic_net_label" data-schematic-net-label-id="schematic_net_label_173" x="532.3172056920599" y="466.2095730916641" fill="rgb(132, 0, 0)" text-anchor="start" dominant-baseline="central" font-family="sans-serif" font-variant-numeric="tabular-nums" font-size="2.7943078913279997px" transform="">USB_DM</text><path class="net-label sch-net-label" data-circuit-json-type="schematic_net_label" data-schematic-net-label-id="schematic_net_label_174" d="
+  " fill="rgba(255, 255, 255, 0.6)" stroke="rgb(132, 0, 0)" stroke-width="0.310478654592px"/><text class="net-label-text sch-net-label-text" data-circuit-json-type="schematic_net_label" data-schematic-net-label-id="schematic_net_label_173" x="532.3172056920599" y="466.2095730916641" fill="rgb(132, 0, 0)" text-anchor="start" dominant-baseline="central" font-family="sans-serif" font-variant-numeric="tabular-nums" font-size="2.7943078913279997px" transform="">USB_DN</text><path class="net-label sch-net-label" data-circuit-json-type="schematic_net_label" data-schematic-net-label-id="schematic_net_label_174" d="
     M 474.87865459254,412.80724450183993
     L 474.04036222514156,414.3596377747999
     L 461.5260025873867,414.3596377747999

@@ -56,6 +56,27 @@ EDGE_CLEARANCE_MM = 0.3
 MATE_CONNECTORS = ["J1", "J2", "J3", "J4", "J5", "J6", "J7", "J8", "J9",
                    "J10", "J_DBG"]
 
+# USB HS DIFF-PAIR length/spread + geometry gate (R-LEN; external review F2,
+# 2026-07-24). The pair is timing-critical: XMOS XU316 layout guide requires
+# 90ohm differential, coupled, max intra-pair skew 1mm. Geometry solved for
+# JLCPCB JLC06161H-3313 (L1 over In1 GND: prepreg 3313 h=0.0994mm Er=4.1,
+# 1oz + mask): w=0.125mm gap=0.15mm -> Zdiff ~90ohm (2D FD field solve, see
+# DETAIL_DESIGN "USB 90ohm"). Enforced here by MEASUREMENT of the routed
+# copper: length spread <= 1mm, every segment at the solved width, the whole
+# pair on F.Cu with ZERO vias (uninterrupted In1 reference plane).
+USB_PAIR = ("USB_DP", "USB_DN")
+USB_SKEW_MM = 1.0
+USB_WIDTH_MM = 0.125
+
+# U1 (XU316) EP thermal-via gate (external review F1, 2026-07-24): the 16
+# EP holes must be REAL VIA OBJECTS (ViaDrill in the drill file), net GND,
+# 0.30/0.15, inside the 4.7mm EP under U1 — not duplicate-numbered
+# thru-hole pads (those emitted as ComponentDrill and read as open plated
+# component holes under the pasted EP).
+U1_EP_VIAS = 16
+U1_EP_HALFSPAN_MM = 2.0   # via grid is +/-1.65mm around U1 centre
+U1_EP_DRILL_MM = 0.15
+
 
 def mm(v):
     return v / 1e6
@@ -101,13 +122,84 @@ def main():
                     fails.append(f"KEEPOUT {ref} pad {p.GetPadName()!r}: "
                                  f"({px:.1f},{py:.1f}) off-board / < {clr}mm to edge")
 
+    # ---- USB HS DIFF PAIR: length spread + width + reference integrity ----
+    usb_len = {n: 0.0 for n in USB_PAIR}
+    usb_bad = []
+    f_cu = board.GetLayerID("F.Cu")
+    for t in board.GetTracks():
+        net = t.GetNetname()
+        if net not in USB_PAIR:
+            continue
+        if t.GetClass() == "PCB_VIA":
+            usb_bad.append(f"USB {net}: via at "
+                           f"({mm(t.GetPosition().x):.2f},"
+                           f"{mm(t.GetPosition().y):.2f}) — pair must stay on "
+                           f"F.Cu over the In1 reference plane")
+            continue
+        usb_len[net] += mm(t.GetLength())
+        w = mm(t.GetWidth())
+        if abs(w - USB_WIDTH_MM) > 0.001:
+            usb_bad.append(f"USB {net}: segment width {w:.3f}mm != solved "
+                           f"{USB_WIDTH_MM}mm (90ohm geometry)")
+        if t.GetLayer() != f_cu:
+            usb_bad.append(f"USB {net}: segment on "
+                           f"{board.GetLayerName(t.GetLayer())} — pair must "
+                           f"stay on F.Cu over In1")
+    for n in USB_PAIR:
+        if usb_len[n] <= 0.0:
+            usb_bad.append(f"USB {n}: no routed copper found")
+    if not usb_bad:
+        spread = abs(usb_len[USB_PAIR[0]] - usb_len[USB_PAIR[1]])
+        if spread > USB_SKEW_MM:
+            usb_bad.append(
+                f"USB pair length spread {spread:.3f}mm > {USB_SKEW_MM}mm "
+                f"(XU316 skew budget): "
+                f"{USB_PAIR[0]}={usb_len[USB_PAIR[0]]:.2f}mm "
+                f"{USB_PAIR[1]}={usb_len[USB_PAIR[1]]:.2f}mm")
+        else:
+            print(f"USB pair: {USB_PAIR[0]}={usb_len[USB_PAIR[0]]:.2f}mm "
+                  f"{USB_PAIR[1]}={usb_len[USB_PAIR[1]]:.2f}mm "
+                  f"spread={spread:.3f}mm (<= {USB_SKEW_MM}mm), width "
+                  f"{USB_WIDTH_MM}mm, all F.Cu, 0 vias")
+    fails += usb_bad
+
+    # ---- U1 EP THERMAL VIAS: real via objects, GND, inside the EP ----
+    u1 = board.FindFootprintByReference("U1")
+    if u1 is None:
+        fails.append("U1-EP: U1 not on board")
+    else:
+        cx, cy = mm(u1.GetPosition().x), mm(u1.GetPosition().y)
+        got = 0
+        for t in board.GetTracks():
+            if t.GetClass() != "PCB_VIA":
+                continue
+            px, py = mm(t.GetPosition().x), mm(t.GetPosition().y)
+            if abs(px - cx) <= U1_EP_HALFSPAN_MM and \
+                    abs(py - cy) <= U1_EP_HALFSPAN_MM:
+                if t.GetNetname() != "GND":
+                    fails.append(f"U1-EP via ({px:.2f},{py:.2f}): net "
+                                 f"{t.GetNetname()!r} != GND")
+                elif abs(mm(t.GetDrillValue()) - U1_EP_DRILL_MM) > 0.001:
+                    fails.append(f"U1-EP via ({px:.2f},{py:.2f}): drill "
+                                 f"{mm(t.GetDrillValue()):.3f} != "
+                                 f"{U1_EP_DRILL_MM}")
+                else:
+                    got += 1
+        if got < U1_EP_VIAS:
+            fails.append(f"U1-EP: {got} GND thermal VIAS under the EP, "
+                         f"need {U1_EP_VIAS} (F1: pads are not vias — "
+                         f"ComponentDrill vs ViaDrill)")
+        else:
+            print(f"U1-EP: {got} GND 0.30/0.15 thermal vias inside the EP")
+
     if fails:
         print(f"audit_board FAIL ({len(fails)}):")
         for f in fails:
             print("  -", f)
         sys.exit(1)
     print(f"audit_board OK: {len(POLARITY)} polarity + "
-          f"{len(MATE_CONNECTORS)} connector mate/keepout checks pass")
+          f"{len(MATE_CONNECTORS)} connector mate/keepout checks + "
+          f"USB diff-pair length-spread + U1 EP thermal-via checks pass")
 
 
 if __name__ == "__main__":

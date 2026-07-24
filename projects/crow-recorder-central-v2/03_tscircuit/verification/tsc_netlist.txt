@@ -400,7 +400,7 @@ NET: USB_DP
   - J2 pin4
   - U1 pin60
 
-NET: USB_DM
+NET: USB_DN
   - D_USB pin2
   - J2 pin13
   - J2 pin5
@@ -1251,7 +1251,7 @@ U1
 - pin56: NETS(N1V8)
 - pin57: NOT_CONNECTED
 - pin58: NOT_CONNECTED
-- pin59: NETS(USB_DM)
+- pin59: NETS(USB_DN)
 - pin60: NETS(USB_DP)
 - pin61: NETS(USB_VDD33)
 - pin62: NETS(USB_VDD18)
@@ -1674,7 +1674,7 @@ J2
 - pin2: NETS(VBUS)
 - pin3: NETS(CC1)
 - pin4: NETS(USB_DP)
-- pin5: NETS(USB_DM)
+- pin5: NETS(USB_DN)
 - pin6: NOT_CONNECTED
 - pin7: NETS(VBUS)
 - pin8: NETS(GND)
@@ -1682,7 +1682,7 @@ J2
 - pin10: NETS(VBUS)
 - pin11: NETS(CC2)
 - pin12: NETS(USB_DP)
-- pin13: NETS(USB_DM)
+- pin13: NETS(USB_DN)
 - pin14: NOT_CONNECTED
 - pin15: NETS(VBUS)
 - pin16: NETS(GND)
@@ -1698,7 +1698,7 @@ R_cc2 (5.1kΩ res0402)
 
 D_USB
 - pin1: NETS(USB_DP)
-- pin2: NETS(USB_DM)
+- pin2: NETS(USB_DN)
 - pin3: NETS(GND)
 - pin4: NOT_CONNECTED
 - pin5: NOT_CONNECTED

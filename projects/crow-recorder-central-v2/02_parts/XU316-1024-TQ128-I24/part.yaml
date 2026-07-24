@@ -74,7 +74,7 @@ pins:                # PHYSICAL PADS from datasheet Table 4 (Appendix E Signal L
   56: VDDIOB18         # bottom I/O bank supply, ALWAYS 1.8V
   57: X1D23            # 1H0 | bank IOB
   58: USB_ID           # USB OTG identification input
-  59: USB_DM           # USB Data- (D-)
+  59: USB_DN           # USB Data- (D-)
   60: USB_DP           # USB Data+ (D+)
   61: USB_VDD33        # USB PHY 3.3V analog (leave NC if USB unused)
   62: USB_VDD18        # USB PHY 1.8V analog (leave NC if USB unused)
@@ -190,7 +190,7 @@ layout:              # datasheet Section 14 (Integration) + Appendix H/I checkli
     - {net: XOUT, max_span_mm: 8, why: "crystal drive node -- short, low-stray-capacitance routing"}
     - {net: VDD, max_span_mm: 3, why: "0.9V core decouplers close to each VDD pin, GND return shortest path to EP centre ground (14 / I.2)"}
     - {net: USB_DP, max_span_mm: 30, why: "USB HS diff pair: DP/DM(60/59) tightly length-matched, controlled ~90R differential impedance, coupled+isolated (14.1)"}
-    - {net: USB_DM, max_span_mm: 30, why: "USB HS diff pair partner of USB_DP -- match length/impedance"}
+    - {net: USB_DN, max_span_mm: 30, why: "USB HS diff pair partner of USB_DP -- match length/impedance"}
 layout_refs:
   - "XMOS XU316-1024-TQ128 xcore.ai Datasheet XM-014532-PC v2.0.0: Fig.2 pinout (p.7), Table 4 signal list (pp.81-84), Fig.22 package drawing (p.41), Section 14 Integration + Fig.9 oscillator + Fig.15 USB VBUS + 14.4 thermal vias"
   - "XMOS Appendix I 'PCB Layout Design Checklist' + Appendix H 'PCB Design Checklist' (in-datasheet)"

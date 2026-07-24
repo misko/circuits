@@ -92,7 +92,7 @@ const XU316_PINS: Record<number, string> = {
   // JTAG (1.8V bank) + reset
   36: "TDI", 37: "TDO", 44: "TMS", 51: "TCK", 38: "RST_N",
   // USB
-  59: "USB_DM", 60: "USB_DP",
+  59: "USB_DN", 60: "USB_DP",
   // audio/control GPIO (IOT bank, 3V3)
   107: "MCLK", 108: "BCLK_SRC", 119: "LRCK_SRC", 120: "ADC_DIN",
   125: "SDA", 126: "SCL", 122: "BEEP_GATE", 23: "VBUS_SENSE",
@@ -121,9 +121,9 @@ const PCM_U3: Record<number, string> = {
 
 // USB4105 USB-C — tsx pins 1..17 (see parity_padmap.txt for the A*/B*/SH map).
 const USB_C: Record<number, string> = {
-  1: "GND", 2: "VBUS", 3: "CC1", 4: "USB_DP", 5: "USB_DM",
+  1: "GND", 2: "VBUS", 3: "CC1", 4: "USB_DP", 5: "USB_DN",
   7: "VBUS", 8: "GND", 9: "GND", 10: "VBUS", 11: "CC2",
-  12: "USB_DP", 13: "USB_DM", 15: "VBUS", 16: "GND", 17: "GND",
+  12: "USB_DP", 13: "USB_DN", 15: "VBUS", 16: "GND", 17: "GND",
   // 6(A8/SBU1), 14(B8/SBU2) -> no_connect
 }
 
@@ -292,7 +292,7 @@ export default () => (
     <resistor name="R_cc2" resistance="5.1k" footprint="0402" connections={{ pin1: N("CC2"), pin2: N("GND") }} />
     <chip name="D_USB" supplierPartNumbers={{ jlcpcb: [LCSC.TPD4E] }}
       footprint={fp(Array.from({ length: 10 }, (_, i) => i + 1))}
-      connections={conn({ 1: "USB_DP", 2: "USB_DM", 3: "GND", 8: "GND" })} /* 4,5,6,7,9,10 -> NC */ />
+      connections={conn({ 1: "USB_DP", 2: "USB_DN", 3: "GND", 8: "GND" })} /* 4,5,6,7,9,10 -> NC */ />
     <resistor name="R_vb1" resistance="220k" footprint="0402" connections={{ pin1: N("VBUS"), pin2: N("VBUS_SENSE") }} />
     <resistor name="R_vb2" resistance="330k" footprint="0402" connections={{ pin1: N("VBUS_SENSE"), pin2: N("GND") }} />
     <capacitor name="C_vb" capacitance="2.2uF" footprint="0805" connections={{ pin1: N("VBUS"), pin2: N("GND") }} />
