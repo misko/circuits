@@ -710,3 +710,13 @@ NOT yet rebuilt. All other source staged. No git touched.
   6b prune GENERALIZED to all nets by distinct-layer count (kills the 5V_RPP
   detour class deterministically; circular via-in-pad test kept).
 - next: race 4 (seeds changed -> chain invalid); then the full gate battery.
+
+## 2026-07-24 — finish (v1.1 routing gate GREEN)
+- did: race-4 chain + measured stubs (C_DECU.1, C_OENAND.1, U_EXP.9 — the
+  last re-derived with tk.via_site_ok/tk.collides, the pass's own primitives,
+  after an approximate-scanner site was refused) + segment-true all-net 6b
+  prune + HitTest via-in-pad guard.
+- result: kicad-cli pcb drc --severity-all --refill-zones --schematic-parity
+  = 0 violations / 0 unconnected / 0 parity (MEASURED, drc_v11i).
+- next: M-REPRO second deterministic rebuild; then semantic battery + twin +
+  I-ISO measure + scoped verify.
