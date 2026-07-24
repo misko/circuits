@@ -197,6 +197,13 @@ placement:
     # analog 3V3 decouplers (post-ferrite)
     C_3V3A1:  [40.0, 68.0]
     C_3V3A2:  [44.0, 68.0]
+    # plane-net-only decouplers RELOCATED to open copper (2026-07-24, reuse
+    # iterate 2: near-pattern dropped them into rescue-hostile escape fields —
+    # C_SR1.2 GND and C_WD.1 3V3 unservable, every measured stub site <0.13mm.
+    # Both caps carry ONLY plane nets (3V3+GND), so moving them is promoted-
+    # chain-safe. I-PROX still met: C_SR1-U_SR1 6.5<=7.0, C_WD-U_WD 4.0<=5.0.)
+    C_SR1: [95.0, 81.5]
+    C_WD:  [152.5, 84.0]
     # expander reset R + I2C bus Rs, WEST of U_EXP (keep clear of its SOUTH
     # escape corridor x135.3..144.7 — the near-U_EXP pattern alone dropped
     # R_BID1 into the corridor, DRC items_not_allowed 2026-07-24)

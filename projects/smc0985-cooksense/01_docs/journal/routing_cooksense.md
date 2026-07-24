@@ -664,3 +664,18 @@ NOT yet rebuilt. All other source staged. No git touched.
   finding — the isolation topology routed clean on the first race.
 - next: floorplan fixes (ULN_B 186->184, R_STOP 190->186, loadcell seeds +3..+1
   east of corridor, explicit R_BID0/1 seeds west of corridor) -> race 2.
+
+## 2026-07-24 08:55 — iterate 2 (v1.1 reuse, post-race-2)
+- did: race 2 winner c0/r7 promoted (0U/0V quick). Deterministic reuse rebuild
+  measured DRC 3V/4U/0P: 3 GND via_dangling (J_PI THT field rescue vias that
+  evaded prune_stitch_dangling when the final refill shifted), 4 unserved
+  decoupler pads (C_SR1.2/C_SWB.2/C_ULNB.2 GND, C_WD.1 3V3). U_EXP.9 stub had
+  REFUSED (stale v1.0 coords; pad now routes natively) -> stub RETIRED.
+  Grind table: both classes escalate-only; every measured stub site for the 4
+  pads < 0.13mm clear (rescue-hostile escape fields).
+- result: fix set: (a) C_SR1/C_WD carry ONLY plane nets -> chain-safe seed
+  relocation to open copper; (b) astar_fallback window 4->6 attempts 3->5 for
+  chain-coupled C_ULNB/C_SWB; (c) new rebuild step 6b: post-refill fill-AWARE
+  dangling-GND-via prune (runs on the final fill state, generic criteria:
+  no touching track, not via-in-pad, <2 filled-zone layers).
+- next: reuse rebuild -> DRC gate; then M-REPRO.

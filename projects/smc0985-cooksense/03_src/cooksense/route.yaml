@@ -300,7 +300,10 @@ stitch:
     stub_scope: {min_track_width: 0.2}
     require: none
   stub_fallback: {net: [GND, 3V3], min_dist: 0.2, max_dist: 8.0, width: 0.3}
-  astar_fallback: {net: [GND, 3V3], width: 0.3, window: 4.0, attempts: 3, max_dist: 8.0}
+  # window 4->6, attempts 3->5 (2026-07-24): C_ULNB.2/C_SWB.2 GND sit in
+  # dense escape fields where the 4mm window exhausted (C_ULNB additionally
+  # north of the plane band, its only GND service a threaded path south).
+  astar_fallback: {net: [GND, 3V3], width: 0.3, window: 6.0, attempts: 5, max_dist: 8.0}
   stitch_grid:
     net: GND
     x: [20, 196, 8]     # span the SOUTH logic band (board x12..200)

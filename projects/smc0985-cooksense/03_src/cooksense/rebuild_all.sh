@@ -73,6 +73,50 @@ PYUNFILL
 echo "== 6/8 stitch (pours + thermal/plane vias) =="
 $PY "$S/route_and_stitch_generic.py" stitch "$RT" --root "$PROJ"
 
+echo "== 6b/8 post-refill dangling-GND-via prune (fill-AWARE, runs on the FINAL"
+echo "        fill state -- prune_stitch_dangling runs mid-chain and 3 J_PI-field"
+echo "        rescue vias evaded it when the final refill shifted, 2026-07-24) =="
+$PY - "$PROJ/04_kicad/cooksense.kicad_pcb" <<'PYPRUNE'
+import sys, pcbnew
+b = pcbnew.LoadBoard(sys.argv[1])
+filler = pcbnew.ZONE_FILLER(b)
+filler.Fill(b.Zones())
+MM = pcbnew.ToMM
+CU = [l for l in b.GetEnabledLayers().CuStack()]
+tracks = [t for t in b.GetTracks() if t.GetClass() != "PCB_VIA"]
+pads = [p for f in b.GetFootprints() for p in f.Pads()]
+kill = []
+for v in [t for t in b.GetTracks() if t.GetClass() == "PCB_VIA"]:
+    if v.GetNetname() != "GND":
+        continue
+    pos = v.GetPosition(); vr = v.GetWidth()//2
+    # keep if any same-net TRACK touches the barrel
+    if any(t.GetNetname() == "GND" and
+           (t.GetStart() - pos).EuclideanNorm() < vr + t.GetWidth()//2 + 1000 or
+           t.GetNetname() == "GND" and
+           (t.GetEnd() - pos).EuclideanNorm() < vr + t.GetWidth()//2 + 1000
+           for t in tracks):
+        continue
+    # keep if inside a same-net pad (via-in-pad)
+    if any(p.GetNetname() == "GND" and p.GetBoundingBox().Contains(pos) for p in pads):
+        continue
+    # count layers whose FILLED same-net zone contains the via centre
+    nlay = 0
+    for z in b.Zones():
+        if z.GetIsRuleArea() or z.GetNetname() != "GND":
+            continue
+        for l in CU:
+            if z.IsOnLayer(l) and z.GetFilledPolysList(l).Contains(pos):
+                nlay += 1
+    if nlay < 2:
+        kill.append(v)
+for v in kill:
+    b.Remove(v)
+print(f"post-refill prune: removed {len(kill)} dangling GND via(s) "
+      f"at {[ (round(MM(v.GetPosition().x),2), round(MM(v.GetPosition().y),2)) for v in kill ]}")
+b.Save(sys.argv[1])
+PYPRUNE
+
 echo "== 7/8 generate_rules LAST (pcbnew save clobbers netclasses -- canon R1) =="
 $PY "$S/generate_rules_generic.py" "$PROJ"
 
