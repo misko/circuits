@@ -1,0 +1,51 @@
+49 BOM lines: 47 with LCSC, 2 without
+
+  OK               C25741     x2   100kΩ                                  base   stock=34149
+  OK               C1525      x39  100nF                                  base   stock=47456539
+  OK               C25076     x16  100Ω                                   base   stock=1026375
+  OK               C60490     x3   10kΩ                                   expand stock=7869260
+  OK               C15850     x9   10uF                                   base   stock=10517597
+  OK               C1547      x2   12pF                                   base   stock=2604319
+  OK               C26083     x1   1MΩ                                    base   stock=921636
+  OK               C11702     x3   1kΩ                                    base   stock=253019
+  OK               C1523      x8   1nF                                    base   stock=5845833
+  OK               C52923     x10  1uF                                    base   stock=14471418
+  OK               C377773    x17  2.2uF                                  base   stock=378863
+  OK               C72203     x1   2.2uF                                  expand stock=21234
+  OK               C25764     x2   200kΩ                                  base   stock=1812959
+  OK               C25767     x1   220kΩ                                  expand stock=3489
+  OK               C45783     x3   22uF                                   base   stock=2884477
+  OK               C25778     x1   330kΩ                                  expand stock=93370
+  OK               C25105     x4   33Ω                                    base   stock=183081
+  OK               C105871    x2   4.7kΩ                                  expand stock=3974028
+  OK               C1538      x1   4.7nF                                  base   stock=803181
+  OK               C25785     x1   402kΩ                                  expand stock=54052
+  OK               C25895     x1   44.2kΩ                                 expand stock=106939
+  OK               C25792     x1   47kΩ                                   base   stock=1610301
+  OK               C96123     x1   47uF                                   base   stock=811701
+  OK               C25905     x2   5.1kΩ                                  base   stock=2050887
+  OK               C25130     x1   680Ω                                   expand stock=13486
+  OK               C136345    x1   C136345                                expand stock=9265
+  OK               C15127     x1   C15127                                 base   stock=357086
+  OK               C181312    x2   C181312                                expand stock=1654
+  OK               C1972959   x8   C1972959                               expand stock=11132
+  OK               C20917     x1   C20917                                 base   stock=1628584
+  OK               C232798    x1   C232798                                expand stock=1508
+  OK               C2649901   x8   C2649901                               expand stock=36163
+  OK               C2762192   x1   C2762192                               expand stock=8142
+  OK               C2909890   x1   C2909890                               expand stock=18706
+  OK               C3020560   x1   C3020560                               expand stock=3704
+  OK               C381116    x1   C381116                                expand stock=22426
+  OK               C5224055   x2   C5224055                               expand stock=384
+  OK               C6035451   x1   C6035451                               expand stock=1268
+  LOW_STOCK(0)     C6938291   x1   C6938291                               expand stock=0
+  OK               C79924     x1   C79924                                 expand stock=5231
+  OK               C82317     x1   C82317                                 expand stock=9786
+  OK               C87074     x1   C87074                                 expand stock=17598
+  OK               C90627     x1   C90627                                 expand stock=5240
+  LOW_STOCK(0)     C9900035627 x8   C9900035627                            expand stock=0
+  OK               C237284    x1   simple_inductor                        expand stock=16753
+  OK               C3716677   x4   simple_inductor                        expand stock=8957
+  OK               C882626    x1   simple_inductor                        expand stock=660
+
+FAIL: 2 coded lines with problems; 2 lines still uncoded

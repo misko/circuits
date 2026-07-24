@@ -1,0 +1,34 @@
+(version 1)
+(rule "PWR_IN_width"
+  (condition "A.NetClass == 'PWR_IN'")
+  (constraint track_width (min 0.5mm)))
+(rule "PWR_width"
+  (condition "A.NetClass == 'PWR'")
+  (constraint track_width (min 0.4mm)))
+(rule "SWITCH_NODE_width"
+  (condition "A.NetClass == 'SWITCH_NODE'")
+  (constraint track_width (min 0.35mm)))
+(rule "ANALOG_IN_width"
+  (condition "A.NetClass == 'ANALOG_IN'")
+  (constraint track_width (min 0.25mm)))
+(rule "USB_DIFF_width"
+  (condition "A.NetClass == 'USB_DIFF'")
+  (constraint track_width (min 0.125mm)))
+(rule "USB_DIFF_diffpair"
+  (condition "A.NetClass == 'USB_DIFF'")
+  (constraint diff_pair_gap (min 0.145mm) (opt 0.15mm)))
+(rule "CLOCK_width"
+  (condition "A.NetClass == 'CLOCK'")
+  (constraint track_width (min 0.25mm)))
+(rule "scoped_u3_3v3_tap"
+  (condition "A.insideArea('u3_3v3_tap') && (A.NetName == '3V3')")
+  (constraint track_width (min 0.15mm)))
+(rule "scoped_u1_0v9_pin5"
+  (condition "A.insideArea('u1_0v9_pin5') && (A.NetName == '0V9')")
+  (constraint track_width (min 0.15mm)))
+(rule "scoped_u1_0v9_tap103"
+  (condition "A.insideArea('u1_0v9_tap103') && (A.NetName == '0V9')")
+  (constraint track_width (min 0.34mm)))
+(rule pad_rescue_stubs
+  (condition "A.insideArea('pad_rescue_stubs') && (A.NetName == 'GND' || A.NetName == 'GND')")
+  (constraint track_width (min 0.300mm)))

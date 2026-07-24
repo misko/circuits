@@ -1,0 +1,89 @@
+board:        crow_recorder_central_v2
+version:      v1.1
+ordered:      2026-07-24 (design seal; fab order at user's discretion)
+git_sha:      b08f182
+git_dirty:    false
+kicad:        10.0.4
+tools:        KRT (route_diff USB pair), /usr/bin/python3 pcbnew, tsci (bun)
+fab:          JLCPCB 6 layer, stackup JLC06161H-3313 1.6mm, ADVANCED small-via
+              (0.30/0.15 via-in-pad), vias EPOXY-FILLED + CAPPED (board setup
+              capping/filling=yes; ORDER_README section 1a fab note)
+quantity:     per order day
+supersedes:   crow-recorder-central-v2-v1.0-2026-07-23 (external DO-NOT-ORDER
+              review: U1 EP via-in-pad undefined (ComponentDrill) + USB HS
+              90ohm undemonstrated + inconsistent manifest; PLUS the LV-strap
+              3V3 overstress PR2-P0-1 latent since v1.0 - v1.1 closes all four)
+gates:        DRC 0/0/0 on the archive's own source/ (--severity-all
+              --refill-zones --schematic-parity) . ERC 0 errors / 1201
+              baselined warnings . netlist parity 0 (588 connected nodes /
+              146 no-connects each side) . count_parity 194 x4 .
+              check_port_nets 115/115 labels + 8/8 ports . audit_board PASS
+              (21 polarity + 11 mate/keepout + USB diff-pair spread 0.110mm
+              <= 1mm + U1-EP 16 GND vias) . policy_audit 0 FAIL (2 evidence-
+              backed waivers; R-LEN PASS, M-REL PASS, M-REPRO PASS) . twin
+              exit 0 (160 OK / 359 checked; C9900035627 adjudicated consign
+              no-CAD) . BOM source check PASS (49 lines: 47 coded, 2 hand-
+              solder uncoded) . stock: U1 C6938291 + J3-J10 C9900035627
+              stock 0 BY DESIGN (consignment, ADR-0003) . pin review PASS .
+              render review PASS . fresh-lens integrated review of these
+              staged bytes: ORDER
+fix_claims:   F1: fab/*-PTH.drl has NO 0.15mm ComponentDrill tool; T1
+              ViaDrill 0.150 includes the 16 U1 EP holes at
+              (90,102)+/-{0.55,1.65}mm. F2: verification/usb90_solve.md
+              (stackup + FD solve 89.7-90.5 ohm at w0.125/gap0.15) + routed
+              measurement in verification/audit.txt. PR2-P0-1:
+              verification/lv_strap_fix_diff.md (v1.0-relative node diff:
+              exactly 7 moves = 4x USB_DM->USB_DN + 3x LV to unconnected).
+              fab/cpl.csv is byte-identical to v1.0 BY DESIGN (placement and
+              rotations untouched); every other fab/pdf artifact differs.
+3d:           step present; gltf absent (no exporter for this board)
+not_assembled: J3-J10 (RJHSE-5384 consign/hand-solder), U1 (XU316 consign),
+              JP_INJ + J_DBG (2.54mm headers, hand-solder)
+sha256:
+  3d/crow_recorder_central_v2.step  3c79423c62149432f6944d9fff488bb751eb0570f9dca2ffe6bf34c291768975
+  ORDER_README.md  6ed34e33119ccd8707d505880e9304435640af621b4ce8c27708a07d8ca01fa2
+  fab/bom.csv  55d09f16ed777119e6b7524594158782e12b382a9fac8e0d0f1091ab7bbfd774
+  fab/cpl.csv  7d9575ed9bdbe81bbf384f969331a21f2e2f9b9233caa5a6ffedacc4aca0add7
+  fab/crow_recorder_central_v2-NPTH.drl  7a83b49ab1daa41a9a341dc2148917945c365e6bd1f6f318c8670322ab5aa995
+  fab/crow_recorder_central_v2-PTH.drl  a9747633e830f71c32548d36833b14b35df49f721437631faab050df1a88faa0
+  fab/crow_recorder_central_v2_gerbers.zip  8cfe733e94d84d9cb5c07a4f1cee158ee21cd3214094635bd0e2f3dd3aaad319
+  pdf/assembly.pdf  b5cd45a973127f0370866bbf19474d2fb2ff41288bcca6d7934a4c33dddd2c47
+  pdf/pcb_layers.pdf  e80f830bf795f74795ee2d389990cf77e14c60240baa284cd1830af38d5a42c3
+  pdf/schematic.pdf  40a73dad67661ef1629c06c227c20a9ba3c868580c67d413b678be6c459ec5ce
+  source/Sensor_Humidity.pretty/Sensirion_DFN-4_1.5x1.5mm_P0.8mm_SHT4x_NoCentralPad.kicad_mod  6eb0eecd94247336fb8bb895e442e5adfbab8e91beb344f0e996992e4370885d
+  source/crow_recorder_central_v2.kicad_dru  a9be86f598a324dd8a51fdca8f68ef94bab9a760981f87a563e9e41986975c9e
+  source/crow_recorder_central_v2.kicad_pcb  b64d18ea02283b7ef900dc6a51664ec5652a3d410ecf003c49c6e04a74883a2a
+  source/crow_recorder_central_v2.kicad_pro  bb6b495e0f30445c8c2827834844a94ac6fc196345581dafd5a3a27d1e65a336
+  source/crow_recorder_central_v2.kicad_sch  9d24b81df8887d3f66fd602bd8fb44ff54df1388591627d1c667ab1f59af7525
+  source/crow_recorder_central_v2.net  cc48019f910e00ddb4090ba2aafcfa35172ea04d14ac337c4bfd8fd4cb611051
+  source/crow_recorder_central_v2.pretty/RJ45_RJHSE538X_num.kicad_mod  d3d35a79f52b9a2bee6a712a1cce5ede755e54b153a4cb56eed653f5152bfea2
+  source/crow_recorder_central_v2.pretty/TQFP-128_14x14mm_P0.4mm_EP_XU316.kicad_mod  ef4886687aca74024a820f20f7f7fee0043bd0f5e5eec9d88406a586e0ddf0c9
+  source/crow_recorder_central_v2.pretty/US8_MO-187CA_P0.5mm_NC7NZ34.kicad_mod  21a72507199a09aff5c90d2d3ab287c156b393afde28526e20ffe6336dac6758
+  source/crow_recorder_central_v2.pretty/USB4105_GCT_16P_TopMnt_num.kicad_mod  9ff9294a2a8d041533ce0cb386f89a221a2c01eea13125f9ee60c80ad68b8880
+  source/crow_recorder_central_v2.tsx  b752f6fff7374733a1e0e797ffd815b9281f1ac12b931446cdd1fdcd4a6372c6
+  source/fp-lib-table  4b13122d46cd28fe5d956997008510976f79115681c60f6ee014dae1af4c2f14
+  verification/audit.txt  8d94aa1b629793d1c2602139a23e68e652706d97fa3679565ddb0ad16f769e38
+  verification/bom_source_check.txt  88ec5bf6e11070f73286d06f05b8256f0522f2ab80fa89e53e99bc62edd59bc5
+  verification/drc.json  4f52177361cc6fddfd2e4f8598797d154c93b45ad3b85d6320355024a23b734f
+  verification/erc.json  56f5a31acdf2cd0d39ba3bbc4c70604bddb2d718fbc714380ca31a022aaf125e
+  verification/external_review_v1.0.md  9a00ca8958fb42aaedeee537a6b03bc6d54651812b75def3f42e190a772971fd
+  verification/fresh_lens.md  76b1fb2a2865be7258a614437bc84a4afb6ec453d66319b0b65ef7b258103381
+  verification/lv_strap_fix_diff.md  5706df16680576e9bf9b559bd1670942b5142b3b4c21ef4aa8d3763e48f94f36
+  verification/missing_models.txt  2f926dfbfca3240e63248086476eb72778ce47fb73f650c791d1036f2e29deb5
+  verification/parity.md  9b2a6aeb8168bf1c43a84208cb7c7ea7c57918ebc7b58dc0dc4838984805056b
+  verification/pin_review.md  905251aff62c3ee9d5dfc6880264b0fd360a56390a34c51a0a2527a9082f0c89
+  verification/policy_audit.md  b427f6750edc91682d9ab6e016956442fd4a2a8309ca2ba0b3305bf2c729ad2b
+  verification/render_bottom_bare.png  bb3043c64c77adffd4e5a2c161b524dca762b894dc983fe156dda2a99cb43a5f
+  verification/render_review.md  79b9b2f729603dd1e5c72e5f77d3d6a9a5d1a9ade39618b33895d1a2160b7a25
+  verification/render_top_bare.png  db93a40647e600dfb1fc2672b0b5c3d72b8f9d919deb6a9f85f4bb7eaace0828
+  verification/review_dispositions.md  558b22f3364378610abd71ee33e39bf01a146f86aaf8fbcc5c5f1bd965ba7e51
+  verification/stock_check.txt  21f38ae9bead71ec628bdf6377d1bbdbee1da2f999416d9902c7d229a4d8510e
+  verification/twin_bottom.png  a90c7496e4d9ac7926da3f10b29414f1c9d27594fc54734edf8f965562bce7ff
+  verification/twin_edge_east.png  aa5dadb9afb725fed50da8983757c5fef57f180c8abd724b3bf80718c163189f
+  verification/twin_edge_west.png  cd9333cf5205b2b91b92b59293cf4cb1471c107751240cdec7f7acdbfe6914da
+  verification/twin_iso_nw.png  d59f9759dd25948a0a70a28dfe50798f4fc4c77e4fa26e7b3efb478f3d7f7fcb
+  verification/twin_iso_se.png  881cfeec0d5cc2e8bd456eecd5cba1e29eb0c8a75e5abb39488e06c250d17bc2
+  verification/twin_report.csv  7329d8c0a26e9ca622c2645afe798b83f92c0c2798f7932d57fd9d5ac2f8f6eb
+  verification/twin_report.txt  9ad12ab01f72ad11eb811e898ac40e624b811144ee9a1392bdb5448a647b7e30
+  verification/twin_top.png  b70b5d23eb3eddcc79b7dfb3e5495841cb052934d2f5b5ce687099ccabcf5462
+  verification/usb90_solve.md  0a6ffb98ba06c9bb185af420ffa16fc543f5b40093fc3cb955b8a4a817ef2559
