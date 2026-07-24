@@ -12,7 +12,11 @@ the 02_parts datasheet research (FB reference, crystal CL, PTC resistance).
   digital rail).
 - Inductor + Cout per datasheet design table for 1.5A / ~1MHz. [PARTS]
 - Cin: 10µF X7R + 100nF, HARD against VIN/GND (<2mm hot loop, ledger gotcha).
-- EN: forced-PWM (EN < VIN-200mV from sequencing logic) for lower ripple.
+- EN: tied to VIN (U7.5 = 5V) = AUTO PFM at light load, as-built. Accepted per
+  the ADR-0005 amendment (red-team RT1-P1-1, 2026-07-23): 3V3 is digital-only
+  (3V3A comes from 5V via U10), so PFM ripple is benign; the forced-PWM
+  EN-divider stays a v-next option. (This line previously claimed forced-PWM
+  — stale-doc fix 2026-07-24, pin-review catch.)
 - PG output -> U8 (0V9 core) EN (ADR-0005 sequencing).
 
 ### 0V9 core buck (U8, AP61102Z6-7)
@@ -74,9 +78,66 @@ PCM1865 datasheet's line-input application circuit at authoring.
 ## USB (controlled short HS)
 - USB4105 USB-C device receptacle (J2). CC1/CC2 each -> 5.1k Rd to GND (sink/
   device advertisement). VBUS -> divider to an XU316 GPIO (VBUS present sense).
-- D+/D- -> TPD4EUSB30 ESD (close to J2) -> XU316 USB_DP/USB_DM. Short controlled
+- D+/D- -> TPD4EUSB30 ESD (close to J2) -> XU316 USB_DP/USB_DN. Short controlled
   pair, F.Cu-only lane from the south edge to the SoC (archetype: reserve first).
+  (Net renamed USB_DM -> USB_DN at v1.1: KiCad recognizes differential pairs
+  ONLY by name suffix P/N, +/-, _P/_N — with DP/DM no diff-pair rule could
+  ever bind, which is why v1.0's diff_pair_dimensions sat empty.)
 - USB series/termination per XMOS USB PHY guidance [PARTS from XU316 datasheet].
+
+### USB 90ohm — stackup + solved geometry (v1.1, external-review F2 closure)
+- Fab stackup (ORDER_README orders it EXPLICITLY): JLCPCB 6-layer
+  **JLC06161H-3313**, 1.6mm — L1 1oz (0.035mm finished) over prepreg 3313
+  **h = 0.0994mm, Er = 4.1**, then the In1.Cu solid GND plane (this pair's
+  reference). Source: jlcpcb.com/impedance, fetched 2026-07-24.
+- Solved geometry: **w = 0.125mm, edge gap = 0.15mm**, edge-coupled
+  microstrip L1-over-In1 with soldermask (~20um, Er~3.8) ->
+  **Zdiff = 89.7-90.5 ohm** (2D finite-difference Laplace field solve,
+  odd-mode capacitance method, Zodd = 1/(c*sqrt(Cd*Ca)); grid 4um and 3um
+  agree within 0.8 ohm; sanity anchor: the same solver gives 50.6 ohm
+  single-ended at w = 0.14mm on this stackup, matching JLC-family calculator
+  values). Within the 90 ohm +/-10% USB 2.0 HS window with margin even at
+  JLC's +/-10% process tolerance.
+- Enforcement (all three ACTIVE, not documentation): nets.yaml `USB_DIFF`
+  class `diff_pair {width 0.125, gap 0.15}` -> netclass dims + `.kicad_dru`
+  `USB_DIFF_diffpair` rule (`diff_pair_gap` min 0.145/opt 0.15) + board
+  `diff_pair_dimensions`. Proven able to FAIL: tightening min to 0.30mm
+  yields 10 diff_pair_gap_out_of_range findings on this exact pair.
+- Routed result (measured, audit_board R-LEN gate): USB_DP 23.62mm /
+  USB_DN 23.51mm, spread 0.110mm <= 1mm (XMOS XU316 skew budget), every
+  segment 0.125mm on F.Cu, ZERO vias -> In1 reference unbroken. The D_USB
+  ESD stub rides the J2 mirror-pad legs (placement unchanged from v1.0).
+- Order posture: controlled impedance NOT purchased; the stackup-specific
+  calc above carries the claim, and ORDER_README makes a USB-HS host/cable
+  first-article matrix a REQUIRED bring-up gate.
+
+## XU316 LV_x_N IO-voltage straps — P0 OPEN (v1.1 seal BLOCKED, 2026-07-24)
+
+As-built (v1.0 AND the v1.1 staging): U1.40 (LV_L_N), U1.43 (LV_T_N),
+U1.52 (LV_R_N) are tied HARD to 3V3 (measured on the staged board; parity 0
+so the schematic agrees). Datasheet verdict — XU316-1024-TQ128 datasheet
+v2.0.0 (xmos.com, fetched 2026-07-24):
+
+- §4.4 "Power Control Pins": LV_L_N(40)/LV_R_N(52)/LV_T_N(43) = "Select low
+  voltage VDDIOL/R/T, active low — Input, PU, **IOB**". IOB = powered from
+  VDDIOB18; §4.8: "the bottom IO domain, which includes JTAG and the crystal
+  oscillator, is **always at 1.8V**".
+- §15.1 Absolute Maximum Ratings: "V(Vin) — Voltage applied to any IO pin:
+  −0.5 … **VDDIO + 0.5 V**". For an IOB pin that is 1.8 + 0.5 = **2.3V max**.
+  A hard 3.3V tie is ~1.0V beyond AMR on three pins of the consigned SoC.
+  **The LV straps are NOT 3.3V-tolerant.**
+- Correct 3.3V-domain select (§4.8): pins "should be **tied high or left
+  floating** to specify the domain uses a 3.3V nominal supply" — "high" is
+  the IOB domain's 1.8V, and floating is the documented select (internal
+  pull-up, I(PU) −35µA max at 1V8). §14: "If you use 1.8V for any of the
+  VDDIOL/T/R domains, strap the corresponding LV_x_N pins to GROUND."
+
+FIX (v-next, P0 board change — NOT in this staging): disconnect LV_L_N /
+LV_T_N / LV_R_N from 3V3 and either leave them floating (datasheet-documented
+3.3V select; PU holds them high) or tie to the 1V8 rail for a driven high.
+Root cause: the part.yaml gotcha said "tie HIGH(or float)=3V3 mode" and HIGH
+was read as 3V3 — but HIGH for an IOB-domain pin means 1.8V. Caught by the
+v1.1 zero-context pin review; datasheet-confirmed before seal.
 
 ## SHT40 temp/humidity (U6)
 - I2C (shared bus with the two ADCs); address 0x44 [PARTS confirm]. 100nF

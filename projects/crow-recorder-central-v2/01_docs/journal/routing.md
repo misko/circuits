@@ -438,3 +438,50 @@
   verification(19 files incl. both red-team archives + fresh_lens).
   policy_audit: ONLY M-REL open (MANIFEST — stamps at seal). Proceeding to
   the 2-commit seal.
+
+## 2026-07-24 — v1.1 respin (external DO-NOT-ORDER on v1.0)
+
+- External file/evidence review of sealed v1.0 arrived post-seal; orchestrator
+  verified every claim against the sealed bytes. Archived verbatim
+  (08_reviews/2026-07-24_v1.0_external-llm_full.md), EXT-F1..F6 dispositioned.
+- F1: XU316 EP footprint's 16 dup-numbered 0.30/0.15 thru-hole pads REMOVED;
+  16 real GND vias seeded at rebuild step 3.5 (03_src/add_u1_thermal_vias.py,
+  stopgap w/ promotion schema); step 4.5 patches setup (capping yes)(filling
+  yes). MEASURED: PTH file has NO 0.15 ComponentDrill tool; T1 ViaDrill 0.150
+  carries all 639 vias incl. the 16 EP holes at (90,102)±{0.55,1.65}.
+- F2: KiCad only pairs nets by P/N//+/- suffix — USB_DP/USB_DM could never
+  bind a diff-pair rule; renamed USB_DM->USB_DN through tsx/sch/part.yaml.
+  90ohm solved for JLC06161H-3313 (3313 prepreg h=0.0994 Er=4.1) by 2D FD
+  field solve: w=0.125/gap=0.15 -> 89.7-90.5 ohm (sanity: 50.6 ohm SE at
+  w=0.14). generate_rules_generic grew per-class diff_pair (netclass + dru
+  rule + board diff_pair_dimensions; 3 tests RED-verified). KRT route_diff
+  reroute: spread 0.110mm, all 0.125 F.Cu, 0 vias; activation proof = dru min
+  0.30 produced 10 diff_pair_gap_out_of_range on a copy. audit_board grew the
+  R-LEN skew/width/layer gate + the U1-EP-16-vias gate.
+- PIPELINE TRAP FOUND: the v1.0 P0 dogleg surgery lived only in the COMMITTED
+  converter kicad_sch — gen_tscircuit regenerates that file, and a fresh
+  render measurably reintroduced the merge class (check_port_nets LABEL-LOST
+  P5VA_4 + MID2P). The sch is now a PROMOTED ARTIFACT: rebuild_all
+  saves/restores it around gen_tscircuit and refreshes ERC/netlist evidence
+  from the promoted copy; check_port_nets proves the promoted sch is the one
+  exported (115/115 + 8/8 re-verified after the reroute).
+- Sourcing drift at staging: basic C25744 (10k) + C25900 (4.7k) stock=0 at
+  JLC; pinned in-stock 1% equivalents at SOURCE (C60490, C105871), C105871
+  catalog-vetted into lcsc_passives_ledger.yaml.
+- F4 discipline: every verification artifact regenerated against the STAGED
+  v1.1 dir (standalone-source DRC 0/0/0 after archiving the fp-lib-table with
+  archive-relative .pretty paths; bom_source/stock/twin name the sealed dir).
+  Manual v1.0-vs-v1.1 hash diff: all fab/pdf DIFFER except cpl.csv
+  (IDENTICAL — placement/rotations untouched by design; freshness's
+  stale-artifact check silently skips board-prefixed dir names, so this was
+  checked BY HAND).
+- SEAL STOPPED (2026-07-24, pre-seal): the v1.1 zero-context pin review flagged
+  U1.40/43/52 (LV_L_N/LV_T_N/LV_R_N) hard-tied to 3V3. Datasheet-confirmed P0
+  (XU316-1024-TQ128 ds v2.0.0): the straps are Input PU **IOB** pins — the
+  bottom IO bank is ALWAYS 1.8V (§4.8) and AMR V(Vin) = VDDIO+0.5 = 2.3V
+  (§15.1) — a 3.3V tie is ~1V over AMR on the consigned SoC. Correct 3V3-mode
+  select is tie-high-to-1V8 OR FLOAT (internal PU). Latent since v1.0 (v1.0's
+  reviews missed it; root cause: part.yaml "tie HIGH(or float)=3V3" — HIGH
+  misread as 3V3). PR2-P0-1 OPEN in DISPOSITIONS; DETAIL_DESIGN carries the
+  full cite. v1.1 staging dir left as mutable staging; machine gates all
+  green; fix is a small tsx change + full rebuild/re-gate/re-review.

@@ -139,7 +139,7 @@ export default () => (
     <chip name="Q1" footprint="sot23" supplierPartNumbers={{ jlcpcb: [LCSC.AO3401A] }}
       pinLabels={{ pin1: "G", pin2: "S", pin3: "D" }} /* names the netlist pinfunction so the E-INV series_chain (Q1:[D,S]) resolves */
       connections={conn({ 1: "GATE_RPP", 2: "N5V", 3: "VIN_RAW" })} /* P-FET RPP: G,S,D */ />
-    <resistor name="RG1" resistance="10k" footprint="0402" connections={{ pin1: N("GATE_RPP"), pin2: N("GND") }} />
+    <resistor name="RG1" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: N("GATE_RPP"), pin2: N("GND") }} />
     <capacitor name="C_5V1" capacitance="22uF" footprint="0805" connections={{ pin1: N("N5V"), pin2: N("GND") }} />
     <capacitor name="C_5V2" capacitance="100nF" footprint="0402" connections={{ pin1: N("N5V"), pin2: N("GND") }} />
     <capacitor name="C_5V3" capacitance="100nF" footprint="0402" connections={{ pin1: N("N5V"), pin2: N("GND") }} />
@@ -222,7 +222,7 @@ export default () => (
     <capacitor name="C_u18a" capacitance="1uF" footprint="0402" connections={{ pin1: N("USB_VDD18"), pin2: N("GND") }} />
     <capacitor name="C_u18b" capacitance="100nF" footprint="0402" connections={{ pin1: N("USB_VDD18"), pin2: N("GND") }} />
     {/* reset */}
-    <resistor name="R_rst" resistance="10k" footprint="0402" connections={{ pin1: N("RST_N"), pin2: N("N1V8") }} />
+    <resistor name="R_rst" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: N("RST_N"), pin2: N("N1V8") }} />
     <capacitor name="C_rst" capacitance="100nF" footprint="0402" connections={{ pin1: N("RST_N"), pin2: N("GND") }} />
 
     {/* ===================== CRYSTAL (Y1 FA-238, 24 MHz) ===================== */}
@@ -240,7 +240,7 @@ export default () => (
     {/* ===================== QSPI FLASH (U5 W25Q16) ===================== */}
     <chip name="U5" footprint="soic8" supplierPartNumbers={{ jlcpcb: [LCSC.W25Q16] }}
       connections={conn({ 1: "QSPI_CS", 2: "QSPI_D1", 3: "QSPI_D2", 4: "GND", 5: "QSPI_D0", 6: "QSPI_CLK", 7: "QSPI_D3", 8: "N3V3" })} />
-    <resistor name="R_cs" resistance="10k" footprint="0402" connections={{ pin1: N("QSPI_CS"), pin2: N("N3V3") }} />
+    <resistor name="R_cs" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: N("QSPI_CS"), pin2: N("N3V3") }} />
     <capacitor name="C_flash" capacitance="100nF" footprint="0402" connections={{ pin1: N("N3V3"), pin2: N("GND") }} />
 
     {/* ===================== SHT40 TEMP/HUMIDITY (U6) ===================== */}
@@ -249,8 +249,8 @@ export default () => (
     <capacitor name="C_sht" capacitance="100nF" footprint="0402" connections={{ pin1: N("N3V3"), pin2: N("GND") }} />
 
     {/* ===================== I2C PULL-UPS ===================== */}
-    <resistor name="R_sda" resistance="4.7k" footprint="0402" connections={{ pin1: N("SDA"), pin2: N("N3V3") }} />
-    <resistor name="R_scl" resistance="4.7k" footprint="0402" connections={{ pin1: N("SCL"), pin2: N("N3V3") }} />
+    <resistor name="R_sda" resistance="4.7k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C105871"] }} connections={{ pin1: N("SDA"), pin2: N("N3V3") }} />
+    <resistor name="R_scl" resistance="4.7k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C105871"] }} connections={{ pin1: N("SCL"), pin2: N("N3V3") }} />
 
     {/* ===================== CLOCK BUFFER (U4 NC7NZ34, 1->2 MCLK fanout) ===================== */}
     <chip name="U4" supplierPartNumbers={{ jlcpcb: [LCSC.NC7NZ34] }} footprint={fp([1, 2, 3, 4, 5, 6, 7, 8])}

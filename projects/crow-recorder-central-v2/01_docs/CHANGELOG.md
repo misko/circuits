@@ -3,6 +3,25 @@
 One entry per REVISION (a design state, git-tagged). Reverse-chronological.
 `Released:` is `no`, or the name of the `07_releases/` directory that shipped it.
 
+## v1.1 — 2026-07-24
+- Respin closing the external DO-NOT-ORDER review of v1.0 (orchestrator-verified;
+  08_reviews/2026-07-24_v1.0_external-llm_full.md, EXT-F1..F6 dispositioned).
+  F1: U1 (XU316) EP thermal grid remodeled from 16 duplicate-numbered thru-hole
+  pads (emitted ComponentDrill) to 16 REAL GND vias (ViaDrill T1) seeded by
+  03_src/add_u1_thermal_vias.py at rebuild step 3.5; board setup capping/filling
+  = yes; filled+capped via-in-pad explicitly ordered (ORDER_README §1a) + X-ray
+  first-article gate. F2: USB_DM renamed USB_DN (KiCad pairs only P/N suffixes),
+  USB_DIFF netclass with diff_pair {0.125/0.15} solved for JLC06161H-3313 (2D FD
+  field solve 89.7-90.5 ohm, verification/usb90_solve.md), pair rerouted with KRT
+  route_diff: spread 0.110mm, all F.Cu, 0 vias; diff-pair DRC rule ACTIVE
+  (proven able to fail); R-LEN now graded via audit_board skew gate. F4: all
+  evidence regenerated against the staged archive itself (standalone-source DRC
+  0/0/0; manifest counts == shipped evidence; bom_source/stock name the sealed
+  dir). Promoted converter sch guarded in rebuild_all (dogleg surgery survives
+  regeneration). Sourcing: RG1/R_cs/R_rst -> C60490, R_scl/R_sda -> C105871
+  (basics stocked out). ADR-0007 RJ45/beeper USER waiver carried UNCHANGED.
+Released: crow-recorder-central-v2-v1.1-2026-07-24
+
 ## v1.0 — 2026-07-23
 - P0 fix pass sealed: two geometric net-merges (P5VA_4->AUDIO4M, MID2P->5V)
   fixed at source; check_port_nets gate added (115/115 labels, 8/8 ports).

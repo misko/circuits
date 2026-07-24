@@ -119,6 +119,7 @@ C52923: {mpn: CL05A105KA5NQNC, value: "1uF", verified: "2026-07-23 JLC catalog (
 C57112: {mpn: 0603B103K500NT, value: "10nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C59461: {mpn: CL10A226MQ8NRNC, value: "22uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C60490: {mpn: RC0402FR-0710KL, value: "10k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+C105871: {mpn: RC0402FR-074K7L, value: "4.7k", verified: "2026-07-24 JLC catalog (selectSmtComponentList: YAGEO 4.7kΩ 0402 ±1% 50V 62.5mW, stock 3.97M — pinned for crow-central v1.1 after basic C25900 stocked out)"}
 C62774: {mpn: CC0805JRNPO9BN102, value: "1nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe) — NP0 102 code; MPN not decoder-anchorable — value entered from catalog describe"}
 C77100: {mpn: GRM32DR71E106KA12L, value: "10uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C77102: {mpn: GRM32ER71H106KA12L, value: "10uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
