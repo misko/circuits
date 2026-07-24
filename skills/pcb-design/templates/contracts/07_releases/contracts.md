@@ -231,6 +231,17 @@ lands; **immutability begins the moment the seal commit exists.**
    the one exclusion — it cannot hash itself). THEN re-run `policy_audit`
    M-REL and `release_freshness_check.py` so the shipped audit grades the
    REAL manifest (the v1.2 audit-vs-manifest disagreement class).
+   `release_freshness_check.py` also gates MANIFEST SELF-CONSISTENCY
+   (M-CONS, check d): every count the MANIFEST's gate summary states must
+   match the shipped machine evidence (ERC errors/warnings vs the
+   policy_audit S-ERC row and erc.json; bom_source_check line count vs
+   fab/bom.csv data rows), and every `07_releases/<dir>/` path embedded in
+   verification evidence must name THIS release's directory (or an
+   existing sibling — diffing a real predecessor is legitimate). Re-run it
+   after the stamp — the crow-recorder-central-v2 v1.0 class (2026-07-23)
+   shipped prose counts and a staging path no gate compared. The gate's
+   version key covers board-prefixed release names (`<board>-v1.x-<date>`)
+   — before 2026-07-24 those silently skipped the stale-artifact check.
 3. **Seal commit.** A commit that adds ONLY the release directory, the
    `01_docs/CHANGELOG.md` entry, and `SUPERSEDED.md` on the predecessor.
    From this commit on the directory is IMMUTABLE.

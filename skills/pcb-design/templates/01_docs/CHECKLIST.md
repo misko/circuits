@@ -31,6 +31,14 @@ RELEASED must additionally pass the release gate at the bottom.
       MANIFEST's claimed result, no draft/placeholder markers in ORDER_README
       (usb-hub-3s-v3 v1.2 sealed with v1.1's PDFs + a FAIL audit under a 0-FAIL manifest,
       2026-07-23 — caught by external review, not by any gate)
+- [ ] manifest-consistency (M-CONS): `release_freshness_check.py` exit 0 on the staged
+      dir AFTER the MANIFEST stamp — every count the MANIFEST's gate summary states
+      matches the shipped evidence (ERC errors/warnings vs policy_audit S-ERC and
+      erc.json; bom_source_check line count vs fab/bom.csv rows), and evidence paths
+      name the sealed dir, not a staging path (crow-recorder-central-v2 v1.0 sealed
+      with three prose/evidence disagreements, 2026-07-23). The gate's version key
+      handles board-prefixed dir names (`<board>-v1.x-<date>`) — before 2026-07-24
+      those silently skipped the stale-artifact check
 
 - [ ] BRIEF.md: every acceptance criterion `met` (with evidence link) or `dropped` citing a user D#/Q# — never release with an `unmet` criterion
 - [ ] BRIEF.md prompt hash verifies (`sed -n "/prompt-verbatim-begin/,/prompt-verbatim-end/p" 01_docs/BRIEF.md | sed "1d;\$d" | sha256sum`)
