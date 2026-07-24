@@ -1,7 +1,15 @@
 # ADR-0005 — CN1 is LATCHED; replicate the tail geometry, don't chase the MPN
 
-status: accepted
+status: superseded-by-0008
 date: 2026-07-22
+
+> **SUPERSEDED 2026-07-24 by ADR-0008.** Clearer photos + an expert connector
+> review identify CN1 as a JST **10FDZ-BT top-entry ZIF** that clamps a PLAIN
+> 0.125 mm tail — the "two end latches + punched lock-slots" reading below was
+> a misread of the ZIF slider. The tail-geometry-replication strategy stands,
+> but the **lock-slots are dropped** and the membrane-side connector is now a
+> real 10FDZ-BT (not the TRIO-MATE candidate). The coupon gate (G1/G2) and the
+> flex-out-of-pipeline caution (T5) are unchanged. See ADR-0008.
 
 ## Finding (user photos + TE datasheet, 2026-07-22 — corrects brief §1.2)
 The OEM CN1 has TWO END LATCHES that lock the tail; the membrane tail
