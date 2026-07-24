@@ -1,0 +1,3 @@
+  note: I-OUT all pads inside outline; tightest margin 0.35mm (J_DOOR.MP)
+  note: I-ISO min keypad<->logic copper creepage 6.12mm (keypad @(144.1,30.4) <-> logic @(151.7,30.4))
+AUDIT PASS: 18 polarity, 26 proximity, 13 edge, I-OUT tightest 0.35mm (>= 0.15), I-ISO gap 6.12mm (>= 6.0), 0 strip intruders, 195 silk

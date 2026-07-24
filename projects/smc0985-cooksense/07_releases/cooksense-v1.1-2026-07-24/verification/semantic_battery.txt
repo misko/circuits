@@ -1,0 +1,9 @@
+# semantic battery — cooksense v1.1, 2026-07-24 (netlist byte-identical to v1.0 release source)
+E-INV OK: 17 invariants hold against cooksense.net
+E-ADR OK: every protection/topology ADR is cited by an invariant
+E-TOPO N-A: power_tree.yaml has no rails
+ok   circuit.json == manifest (191 components)
+ok   kicad_sch == manifest (191 components)
+ok   netlist == manifest (191 components)
+net_label_survival: PASS — 155 labels all survive to the netlist; no pin_map configured (survival only)
+netlist diff vs 07_releases/cooksense-v1.0-2026-07-23/source/cooksense.net: IDENTICAL

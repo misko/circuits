@@ -1,0 +1,85 @@
+board:        cooksense (MAIN board, project smc0985-cooksense; ADR-0007 multi-board)
+version:      v1.1
+ordered:      2026-07-24
+git_sha:      d41819a                 # the EXACT commit these came from
+git_dirty:    false                   # scope: projects/smc0985-cooksense/ + skills/
+kicad:        10.0.4
+tools:        rebuild_all.sh (deterministic promoted-chain import; chain 03_src/cooksense/route/final_chain.kicad_pcb = race-4 winner c0/r7), /usr/bin/python3 pcbnew
+fab:          JLCPCB, 4 layer, jlc_4layer_advanced — ADVANCED small-via option REQUIRED (0.25/0.15 via-in-pad); 188 x 92 mm, 12 milled 0.6mm isolation slots
+quantity:     1 (prototype bring-up)
+supersedes:   cooksense-v1.0-2026-07-23 (mechanical repack 252x92 -> 188x92:
+              rot0 vertical relays @ 15.24mm pitch, isolation COMB replaces
+              the straight barrier; schematic/netlist BYTE-IDENTICAL to v1.0
+              — verification/semantic_battery.txt; v1.0 remains electrically
+              valid)
+gates:        DRC 0/0/0 (--severity-all --refill-zones --schematic-parity) ·
+              M-REPRO second deterministic rebuild re-measured 0/0/0 ·
+              tier_preflight 0 FAIL (PF-LEGALIZE WARN accepted, documented) ·
+              placement gates P-OUT tightest 0.30mm / P-CAP worst 0.21 ·
+              ERC 0 errors · count_parity 191 x4 · audit_board PASS,
+              I-ISO comb creepage 6.12mm >= 6.0 track-aware (selftest
+              RED-capable) · policy_audit 0 FAIL (4 evidence-backed
+              waivers) · E-INV 17/17 + E-ADR full coverage · E-TOPO N-A-by-
+              design (externally powered) · net_label_survival 155/155 ·
+              twin exit 0, zero unadjudicated CRITICALs (121 OK / 353) ·
+              bom_source_check PASS (52 lines) · stock PASS (order-day
+              recheck lines in ORDER_README §3) · scoped re-verify per
+              canon: v1.0 PIN + RENDER reviews CARRIED verbatim (netlist +
+              parts untouched, byte-identity proven) + ONE fresh
+              ZERO-CONTEXT lens on THIS staged archive incl. independent
+              isolation-comb measurement (creepage 6.120mm converged):
+              verification/fresh_lens.md — VERDICT ORDER, 0 P0 / 0 P1 /
+              6 P2 all dispositioned (verification/dispositions.md)
+fix-claim:    the v1.1 shrink claim (252x92 -> 188x92, pitch 20 -> 15.24mm,
+              barrier -> comb at >= 6.0mm) is measured independently by the
+              fresh lens (outline bbox 188.10x92.10, pitch 15.24 x11 exact,
+              creepage 6.120mm) — checker and fixer share no method.
+3d:           step present (kicad-cli --subst-models; sparse bodies — the
+              modeled truth view is verification/twin_*.png). gltf absent.
+not_assembled: K_U1..6,K_D1..4,K_PRESS,K_STOP (12x Standex DIP05-1A72-12L
+              reed relay, NOT JLC-cataloged, DO-NOT-SUBSTITUTE, THT
+              hand-solder) · J_TC (Omega PCC-SMP-K, DO-NOT-SUBSTITUTE, THT
+              hand-solder) · 16 test points (bare pads)
+sha256:
+  3d/cooksense.step                                            327a6dbe036ad7ff136705ebd132fe857d87192992b9dcfbda9bb8b514eaa1f3
+  fab/bom.csv                                                  c58940cd686701203f6c797d31ab83a3897d56bd7b7a310f2250f8277794ae0d
+  fab/cooksense_gerbers.zip                                    f0773f259c0c00a9dad36b8ca475dfcdcc9b310757e3e0da324434cb2bdbd652
+  fab/cooksense-NPTH.drl                                       2534e94b9528d7586ccce77a08fc6572d7b4324f4307e02d00d5141638929711
+  fab/cooksense-PTH.drl                                        6cf5c6a2825aa626d0815ce16b5ec0b0c5f036fcaa2ece8522c81322700470d8
+  fab/cpl.csv                                                  470a58e1267c3737fd83077ada809601061d5b5a606022d743c49b8c042bf4b1
+  ORDER_README.md                                              a1d9065de2e95fc95ef845582f771a6bdc77445ed6cf79d672066406549688db
+  pdf/assembly.pdf                                             380d09d3d4ca79d95c3ce34844723e6b207903ef15b916fe759e2880028640af
+  pdf/pcb_layers.pdf                                           728b811ea6ce2d3fa8f7bad476a21f48fca1a44a00b9249dd04ef74667579413
+  pdf/schematic.pdf                                            f960afb8208acbecc7be38a3467e170632b79a05413b70d0522d2f8e418e3a02
+  source/cooksense.kicad_pcb                                   8fb61537d406570ec93c34205744ef5f465dac054819911c496685545a827ddf
+  source/cooksense.kicad_sch                                   7071a9912bfd68e7ebc99be3cf87c4141be737f22cb8f57d18ef3eebeec2d61e
+  source/cooksense.net                                         c0a3100db66c54b8e39e049391453e265e2be4fed2580a91400a4e97c4957951
+  source/cooksense.pretty/Omega_PCC-SMP-K_TypeK_PCpin.kicad_mod 29b5bfaafc0d232359b05f5ea834ea58c210b895c8ea8f69a17e2580c88ff212
+  source/cooksense.pretty/Relay_StandexDIP_1A_pinout12.kicad_mod fcce58d87d3888d66ee832ee2b512fab393bb5c4e56f0d07baf4ad40a3f6d69a
+  source/cooksense.pretty/TerminalBlock_KF350_2P.kicad_mod     c91dcbc0d17eb85cc1058d9483be306d5e31945d7e359ebaea181820d2a601dc
+  source/cooksense.tsx                                         cdb32f63bbbc710a84dcc2cbc96eb74ade03f37c0d7ebf969a52a33fd4e10f09
+  source/fp-lib-table                                          1244877a14e4fc793d6da1f3e3ce1df66d78464f6225080b71bcc54e4e983e3f
+  verification/audit.txt                                       11cfb8fb464b6785ab6328944d9f3156e6c982723f979735aae40d3543aee1db
+  verification/bom_source_check.txt                            fa07b52ebf7f0151aa36b6fbce0de22e9ae96f4b72241550c63b1bd257d86784
+  verification/dispositions.md                                 f3cd6bbd65c3b7e058a83582b805b42e40e17e7b6be31b0a2b45b7a6b5087d3a
+  verification/dispositions_v10_carried.md                     9d415ff100dd4677d215aa2b1e91f79edea3f6269f6394bf96a79452cdbdc764
+  verification/drc.json                                        c13269981c9b334fec11f58ab3adb537614aaa17f0413c771eb920bec9ec4d95
+  verification/erc.json                                        1efba201b549c757c0dec9b604b2eefb7c232ff095e566c23bbe2d05b88199f8
+  verification/fresh_lens.md                                   98b50df995199618cf9f94b77f2295f48ea2c7759ffc7173aedfd91bee7a90c0
+  verification/missing_models.txt                              18a1309ca6f6eab5605d849f9735aa6a17870eb53fa2ec20d018abf044004225
+  verification/parity.md                                       939255c15b54454b169782f4be170aac9da20ed1483fafe634665dc2b528a97e
+  verification/pin_review.md                                   824e8e0e9d0f155ee2639465cf6d693d9708c4d59688329d77f3615979772793
+  verification/policy_audit.md                                 3b1c7631e515b42d5040c362c3a4a47ca7aaf446b63a35558332954fdc48ff47
+  verification/render_bottom_bare.png                          5fafccfed5e4fa7f72606693a51401c854e9f312df4f7c85aaaa047c6ac891b0
+  verification/render_review.md                                01031ffba442721205fe9754a21f192f26bd5487f34172b1fbd2903d3452438e
+  verification/render_top_bare.png                             b8679781e6b041d4c3b74708713df11e6306fc4baf9131883377ac553206ef92
+  verification/semantic_battery.txt                            5ec6ded7f46c710871ccd8c1faf647fdc1cc88d49e759a927d0da3c48eb376b8
+  verification/stock_check.txt                                 5f8566cd992dec8ea547d647cba76c29ab26ec6dda8f75b464577432afc26b49
+  verification/twin_adjudications.yaml                         f57452eefcf3b4e431d08127bdecfd3b1c8d2d333251baedb2fcc84b3989d3dd
+  verification/twin_bottom.png                                 16945bee8d6c93f184aaad7ca35dbaee4733040176c8c5a30783a852a5a61c1b
+  verification/twin_edge_east.png                              2b51baa727eb6b263f4abf6ae68325237e97ff291c168624877eb58e070ef2ec
+  verification/twin_edge_west.png                              efca24f73d6a620f68f16b007a8d7b1ddd5aab9b3e47360d101c555aa58a213f
+  verification/twin_iso_nw.png                                 77a62aa4f2f1ba0251be2b1a1561054e756851a95d0750a252544d77beeefd23
+  verification/twin_iso_se.png                                 c2eb48b429ae26d3cbd01555171a8ef45beffb4ce89120995e734a6a8e6862e9
+  verification/twin_report.csv                                 5a6f220c76cd80828d24e25b8762b932c9ab2f9296269b3b6fd34d9133382e01
+  verification/twin_top.png                                    de1e12ae078a178219c099e202c08ec1a6168a5a546dd7f4289b0360d62e98bf

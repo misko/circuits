@@ -1,0 +1,2 @@
+# CPL refs with no attached 3D body in the modeled twin render (v1.1, 2026-07-24)
+# A bodiless footprint means 'no model', NEVER 'not placed' — CPL is population truth.
