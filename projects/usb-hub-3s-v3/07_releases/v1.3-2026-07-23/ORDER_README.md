@@ -12,6 +12,12 @@ fixes the externally-found blockers:
   undervoltage order-blocker).
 - **D5** now the catalog-confirmed **UNIDIRECTIONAL** SMBJ6.0A **C113976**
   (v1.2's C140903 is listed bidirectional by JLC).
+- **R30** (Q6 gate pull-up, QG→PMID) now the ledger-verified 100 kΩ 1 % **C25803**
+  (UNI-ROYAL 0603WAF1003T5E, JLC **Basic**) — the SAME code the board's other
+  100 k 0603s (R1/R8/R17) resolve to, so it merges into their BOM row (43 grouped
+  lines). v1.2's BOM resolved R30 to **C2933195 = FRC0603F3091TS = 3.09 kΩ**
+  (catalog-decoded; functional but burned ~1.7 mA through Q7 whenever the port
+  FET was ON — 100 k draws 54 µA). **NEVER C2933195.**
 - Buck-C setpoint re-derived against the real Q6+F2 delivery path (E-MARGIN PASS);
   all release artifacts regenerated fresh from v1.3 source.
 
@@ -59,7 +65,7 @@ All other LCSC codes are library-standard / previously-shipped and pass M-BOM.
 | Layers | **4** |
 | Dimensions | 130.1 x 92.1 mm |
 | Via tier | **`jlc_4layer_standard`** — 0.45 mm pad / 0.30 mm drill. Standard process is sufficient — do NOT select the advanced small-via option. |
-| Assembly | BOM `bom_jlc.csv` + CPL `cpl_jlc.csv` (per-refdes LCSC keyed off circuit.json). Hand-solder list below. |
+| Assembly | BOM `fab/bom.csv` + CPL `fab/cpl.csv` (JLC-upload format, per-refdes LCSC keyed off circuit.json; built from 06_build/fab/{bom_jlc,cpl_jlc}.csv). Hand-solder list below. |
 
 ## 2. Hand-solder / off-CPL list
 | Ref | Part | Why off-CPL |

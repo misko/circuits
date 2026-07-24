@@ -26,6 +26,18 @@ JLC catalog (LRC SMB-FL) — the design's uni-directional cathode-on-VBUSC
 assumption was unverifiable against it. v1.3 uses **C113976** (SMBJ6.0A
 **UNIDIRECTIONAL** DO-214AA/SMB, catalog-verified, stock 74 758).
 
+**R30 catalog-verified (2nd wrong-part, caught by the semantic M-BOM gate).**
+v1.2's BOM resolved R30 (Q6 gate pull-up, QG→PMID) to **C2933195 =
+FRC0603F3091TS = 3.09 kΩ** while labeled 100 kΩ (v1.2 SUPERSEDED addendum,
+`688a8af`) — functional but burning ~1.7 mA through Q7 whenever the port FET was
+ON. v1.3 bakes **C25803** (UNI-ROYAL 0603WAF1003T5E, **100 kΩ ±1 %** 0603, JLC
+Basic, ledger-verified; MPN E96 decode `1003` = 100×10³) — the same code the
+board's other 100 k 0603s (R1/R8/R17) resolve to, so the BOM row merges (43
+grouped lines). Q6 margins re-derived at 100 k from the AON6403 STATIC table:
+OFF/back-feed |Vgs| ≈ 60 mV (Q7 Idss 0.5 µA + Q6 IGSS 0.1 µA × 100 k), 20×
+below |Vgs(th)|min 1.2 V → blocks; ON Vgs = −5.35 V (fully enhanced); pull-up
+waste 54 µA vs ~1.7 mA at 3.09 k.
+
 **OV honesty (BRIEF A3/D3, Option 2 — user decision).** The discrete Q6/Q7/F2/D5
 chain is kept as **SECONDARY** protection; no active OVP added. Docs now state
 plainly: protected against shorts / overload / reverse-feed-off; **NOT guaranteed

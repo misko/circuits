@@ -37,14 +37,16 @@
 - {lcsc: C408523, refs: [L1, L2], status: PAD-GEOM,
    why: "MWSA1206S: named library footprint for the exact MPN; 0.75mm 1<->2 delta is a land-extent preference on a 12.5mm molded inductor, same copper end-caps (order-preview confirm)."}
 
-# -- D1: SMBJ15A input TVS (SMA/DO-214AC). PAD-GEOM 0.42mm = same KiCad-vs-
+# -- D1: SMBJ15A input TVS (SMB/DO-214AA; earlier label said SMA/DO-214AC in
+#    error — the footprint IS D_SMB and SMBJ15A is a DO-214AA part; fresh-lens
+#    v1.3 finding 6). PAD-GEOM 0.42mm = same KiCad-vs-
 #    EasyEDA fillet-extent preference on a JEDEC SMA body; copper coincides.
 #    POLARITY-CHECK satisfied: the zero-context topology red-team explicitly
 #    verified TVS directionality (K=VIN, A=GND, after Q1 on VIN — the v1 D1
 #    defect class), and policy_audit P-POL asserts pad-1 net polarity. Confirm
 #    on the JLC order preview per ORDER_README.
 - {lcsc: C83846, refs: [D1], status: PAD-GEOM,
-   why: "SMBJ15A SMA: 0.42mm 1<->2 land-extent preference (KiCad vs EasyEDA), same copper; JEDEC DO-214AC body."}
+   why: "SMBJ15A SMB (DO-214AA): 0.42mm 1<->2 land-extent preference (KiCad vs EasyEDA), same copper end-caps. (Label previously said SMA/DO-214AC in error; footprint is D_SMB — fresh-lens v1.3 finding 6.)"}
 - {lcsc: C83846, refs: [D1], status: POLARITY-CHECK,
    why: "TVS directionality verified by topology red-team (K=VIN/A=GND, after Q1) + P-POL pad-1 polarity gate; order-preview confirm."}
 

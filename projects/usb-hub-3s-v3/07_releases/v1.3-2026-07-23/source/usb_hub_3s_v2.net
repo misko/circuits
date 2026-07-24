@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/home/mouse9911/gits/circuits/projects/usb-hub-3s-v3/03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
-		(date "2026-07-23T15:54:21")
+		(date "2026-07-23T18:08:26")
 		(tool "Eeschema 10.0.4-10.0.4~ubuntu24.04.1")
 		(sheet
 			(number "1")
@@ -11,7 +11,7 @@
 			(title_block
 				(title "usb_hub_3s_v2")
 				(company)
-				(rev "v1.3")
+				(rev "dev")
 				(date "2026-07-23")
 				(source "usb_hub_3s_v2.kicad_sch")
 				(comment
@@ -79,13 +79,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8579acca-58cc-497c-9508-694920a9cf34")
+			(tstamps "aac9da63-77aa-423f-a5f1-bc3733a72a27")
 			(units
 				(unit
 					(name "A")
@@ -125,13 +125,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e7589373-4c29-4894-bfd2-be1b5af58cb5")
+			(tstamps "195fbb33-e690-45b4-b0ba-26a54e04cb4f")
 			(units
 				(unit
 					(name "A")
@@ -171,13 +171,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e812e820-5aad-4aa2-8743-001bcf6f1976")
+			(tstamps "e1b293f3-dca4-4964-b584-99346c9378f1")
 			(units
 				(unit
 					(name "A")
@@ -217,13 +217,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ba96be0c-39eb-4b2d-94b8-89f05c3be9de")
+			(tstamps "14fd21d3-6eff-4ace-a027-cb5a17509e9b")
 			(units
 				(unit
 					(name "A")
@@ -263,13 +263,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "20544af8-66d3-4aa6-8d06-fd2a29d5607f")
+			(tstamps "c36b74ed-309e-4aeb-9aed-de73a8f2a142")
 			(units
 				(unit
 					(name "A")
@@ -309,13 +309,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4bb2b7f0-6197-45d2-94cf-94bdd3de9eee")
+			(tstamps "9e0178f8-d069-4c62-9915-88c255606f50")
 			(units
 				(unit
 					(name "A")
@@ -355,13 +355,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "95f00c2e-352c-4fa1-9f6e-7795483e3371")
+			(tstamps "834d602f-214b-4a60-8dc3-b487baee3d38")
 			(units
 				(unit
 					(name "A")
@@ -401,13 +401,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "44cce836-04b7-46f5-bea6-af7cdc2d2c49")
+			(tstamps "07050cf0-4beb-4660-8332-e08921971182")
 			(units
 				(unit
 					(name "A")
@@ -447,13 +447,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5406779f-87e5-4dfb-89d9-9588b1893a61")
+			(tstamps "2e149e54-3e57-4dea-90e8-0839028aa760")
 			(units
 				(unit
 					(name "A")
@@ -493,13 +493,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6d5ebfea-0947-4b84-ab10-f84e1491b3ec")
+			(tstamps "5b3dd80e-fb8b-466d-baf1-e1914473b61c")
 			(units
 				(unit
 					(name "A")
@@ -539,13 +539,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6c7ac7ad-efaa-43f8-a508-c2b4316ff595")
+			(tstamps "97bd44a0-ee69-4334-9bf5-d8c21c9fc368")
 			(units
 				(unit
 					(name "A")
@@ -585,13 +585,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9067a3e8-ccdd-42e6-8ca5-1b1ddf18a708")
+			(tstamps "060e7c86-3b66-473c-85b4-f8f3648fcc1d")
 			(units
 				(unit
 					(name "A")
@@ -631,13 +631,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9e4118db-f6b4-42f2-a9d1-e1e15c747d60")
+			(tstamps "d8adb033-3418-4c70-a986-5a635302cdcd")
 			(units
 				(unit
 					(name "A")
@@ -677,13 +677,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d5324e86-2525-43e9-a6ef-086ef9d47d92")
+			(tstamps "cb0270ba-7bb0-4612-9c64-adc1a0177695")
 			(units
 				(unit
 					(name "A")
@@ -723,13 +723,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8f6c5daf-819b-429b-b3d5-f0d58782b2f1")
+			(tstamps "4e27ef43-4e4d-4b2d-95ab-157b786e4848")
 			(units
 				(unit
 					(name "A")
@@ -769,13 +769,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e2a7050a-d6ba-4828-8465-17e898890cdc")
+			(tstamps "01d04aea-958d-4df3-bcb0-6916cef84bae")
 			(units
 				(unit
 					(name "A")
@@ -815,13 +815,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ad2272f0-c021-4739-a508-a45fe626d24a")
+			(tstamps "8cab872f-b9b8-4092-9af2-41640c165118")
 			(units
 				(unit
 					(name "A")
@@ -861,13 +861,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8f656240-bd82-41ad-814b-f665e14d0c84")
+			(tstamps "34335fda-b702-4902-a5be-d45196ea549f")
 			(units
 				(unit
 					(name "A")
@@ -907,13 +907,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a97f127e-d515-4880-ba1f-81b0e88586f4")
+			(tstamps "2fe99c69-d641-45a8-9ba6-a75b349dfa9c")
 			(units
 				(unit
 					(name "A")
@@ -953,13 +953,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "09b44ae8-922d-4087-ab80-b7267d0d9482")
+			(tstamps "58222275-1cd0-4aa0-bda2-bedcbef2bbdc")
 			(units
 				(unit
 					(name "A")
@@ -999,13 +999,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f489788a-3397-417c-8410-6af63fdbe972")
+			(tstamps "539697f3-45b8-411a-8a64-2225343416d3")
 			(units
 				(unit
 					(name "A")
@@ -1045,13 +1045,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "81efc473-1234-49e6-8433-7db2702a9513")
+			(tstamps "ec2dd2dc-8fb6-4eae-a322-3c063f16840f")
 			(units
 				(unit
 					(name "A")
@@ -1091,13 +1091,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7b03a5bf-875e-4d93-84a3-7d0782f6df69")
+			(tstamps "fa5c11c9-36f1-4a8b-a348-708ec4df40d7")
 			(units
 				(unit
 					(name "A")
@@ -1137,13 +1137,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4edc6be2-9613-4f10-b435-807e312e8594")
+			(tstamps "8e051ea8-16e2-4925-98db-f042cb966138")
 			(units
 				(unit
 					(name "A")
@@ -1183,13 +1183,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ef6be396-830c-4e49-bad9-d1d9a3b17696")
+			(tstamps "0e3e2ff0-338e-487c-9572-d50fed9c1f00")
 			(units
 				(unit
 					(name "A")
@@ -1229,13 +1229,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f8f72a8b-ec95-49c6-bc5e-89fd1cb425ff")
+			(tstamps "19c73d93-6047-488d-8e6a-069cccd36fe8")
 			(units
 				(unit
 					(name "A")
@@ -1275,13 +1275,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7fc12f6b-49ce-439f-9265-b82113be757a")
+			(tstamps "94c89bee-aa79-4293-8808-5dc87856dac2")
 			(units
 				(unit
 					(name "A")
@@ -1321,13 +1321,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "47065397-db9e-49a2-8aec-e6c92d0fa138")
+			(tstamps "e87e0d83-1896-470b-a730-466684ad48db")
 			(units
 				(unit
 					(name "A")
@@ -1367,13 +1367,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5c19c77b-fa1c-425f-8dec-9ee59c6c513a")
+			(tstamps "5ac6c84f-db0b-4dda-865d-4a2ab104b0bf")
 			(units
 				(unit
 					(name "A")
@@ -1413,13 +1413,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8f2d4730-40e1-4aeb-8d48-b2d6724dc31f")
+			(tstamps "bca37e74-8939-4781-92b5-49727d041d71")
 			(units
 				(unit
 					(name "A")
@@ -1459,13 +1459,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d93ee859-07ed-4919-92e2-a7e88393ad90")
+			(tstamps "f8da8de6-ef6b-4bf8-a7df-22ceb0411060")
 			(units
 				(unit
 					(name "A")
@@ -1505,13 +1505,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b0ac7baa-108a-408e-81b3-d11c1add14df")
+			(tstamps "5ab4505c-d12a-44f1-8be3-068ad68f722b")
 			(units
 				(unit
 					(name "A")
@@ -1551,13 +1551,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ff0f0c94-0b49-4abb-8f4d-db0f670421b8")
+			(tstamps "662d89e3-847e-44b2-a3c1-75c2d66a2088")
 			(units
 				(unit
 					(name "A")
@@ -1597,13 +1597,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2995c071-4d61-4bfa-8739-364a61f3ca80")
+			(tstamps "e9f0f0a4-dcb5-40ae-afd8-056d58df73b1")
 			(units
 				(unit
 					(name "A")
@@ -1643,13 +1643,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5d762eed-2136-40ae-977d-8f185a19be3d")
+			(tstamps "91fcb372-ecd2-4be8-a3a9-8c62dd344e09")
 			(units
 				(unit
 					(name "A")
@@ -1689,13 +1689,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3829c40d-cb4f-4290-93e3-956fff8de098")
+			(tstamps "7368703c-a1a3-4e8a-98d0-1a53e5f0d084")
 			(units
 				(unit
 					(name "A")
@@ -1735,13 +1735,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e8a35264-6925-4cd3-8e6e-48e846771225")
+			(tstamps "f5e0d7fa-ea0d-4ee6-a71f-a8ce3997db76")
 			(units
 				(unit
 					(name "A")
@@ -1781,13 +1781,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6bd55855-a9a7-4c4f-bb0e-625de819c962")
+			(tstamps "c5775f8d-7fb9-4816-a90c-9309e3952bec")
 			(units
 				(unit
 					(name "A")
@@ -1827,13 +1827,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7fdf27ba-2289-414a-ad90-142264a48729")
+			(tstamps "535754cc-c927-47c4-a330-3f11d7eafc1b")
 			(units
 				(unit
 					(name "A")
@@ -1873,13 +1873,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "00eeec82-5921-4b13-a074-4e69afd52545")
+			(tstamps "4d88bf2d-c189-45f3-90c3-f105c01ba673")
 			(units
 				(unit
 					(name "A")
@@ -1919,13 +1919,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a88950e8-8904-4c43-bf38-07088b61aacf")
+			(tstamps "2d3ccf05-935f-4cce-adb3-6067f5513483")
 			(units
 				(unit
 					(name "A")
@@ -1965,13 +1965,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "21d38beb-a5b3-4256-bed1-0a717d8fc6f9")
+			(tstamps "d889b33f-5828-4872-8a36-c66127bdbe2a")
 			(units
 				(unit
 					(name "A")
@@ -2011,13 +2011,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "81a06df8-0e44-4b13-a90b-032defcaf920")
+			(tstamps "53288364-cac2-4363-8f6d-939756084766")
 			(units
 				(unit
 					(name "A")
@@ -2057,13 +2057,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4878ce92-0579-4643-be65-c3d83d8236bf")
+			(tstamps "a7d1ef28-4bf2-44e1-96fb-9843e92b9e73")
 			(units
 				(unit
 					(name "A")
@@ -2103,13 +2103,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d66f5152-3e23-401f-8e65-f6a060790a28")
+			(tstamps "e9e8e9b3-8f79-49b4-b3d1-e77d7d719548")
 			(units
 				(unit
 					(name "A")
@@ -2149,13 +2149,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1c57d9fb-9d8b-4a93-b796-89879661f38c")
+			(tstamps "2acd6933-a54c-4b0f-8caa-dbf9f605944a")
 			(units
 				(unit
 					(name "A")
@@ -2195,13 +2195,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f71692f0-5082-4094-9f7b-a4e8e35ccaca")
+			(tstamps "a1c2fcca-c553-4ac4-9b3d-224d8902e94e")
 			(units
 				(unit
 					(name "A")
@@ -2241,13 +2241,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e604ab6e-a729-4a71-918b-116fb323400b")
+			(tstamps "3c382891-0321-45b6-91f2-e8e967fd7d3b")
 			(units
 				(unit
 					(name "A")
@@ -2287,13 +2287,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a981decf-81e0-4acc-99a9-62036a605e8b")
+			(tstamps "d5f4ee24-d9d0-4bb0-9067-27e43ec91828")
 			(units
 				(unit
 					(name "A")
@@ -2333,13 +2333,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bbd1431a-5d28-4f1c-a641-36c40c6c0b43")
+			(tstamps "893d4405-406f-47f5-93fe-9d6bc94bb885")
 			(units
 				(unit
 					(name "A")
@@ -2379,13 +2379,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bd774362-66ab-4658-84aa-5583e091fd87")
+			(tstamps "1083fc9f-8878-4dfb-8e76-8e38c4484eef")
 			(units
 				(unit
 					(name "A")
@@ -2425,13 +2425,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9ab93eea-6f32-46ba-bc27-709680f709b5")
+			(tstamps "51c1a602-d875-4f37-bb0e-dce74954f8db")
 			(units
 				(unit
 					(name "A")
@@ -2471,13 +2471,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c8e450d0-8161-4ac2-ace1-e05c3b303dc2")
+			(tstamps "d502da57-c54c-4f96-8bb8-3f82e5f482c5")
 			(units
 				(unit
 					(name "A")
@@ -2517,13 +2517,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4a445c4d-a171-4efc-9c14-6cffd68e1db4")
+			(tstamps "7bd81beb-c0d0-4e4a-83dd-32903f117f35")
 			(units
 				(unit
 					(name "A")
@@ -2563,13 +2563,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "efa00fe1-2156-4546-9100-ffd89f7975f2")
+			(tstamps "9c27c2c8-da99-451e-9cd7-745e6a370df2")
 			(units
 				(unit
 					(name "A")
@@ -2609,13 +2609,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c050eced-ba29-4c04-beb0-30c867948fe0")
+			(tstamps "0e4952e8-3ab8-4db1-a376-b8a5d033b37a")
 			(units
 				(unit
 					(name "A")
@@ -2664,13 +2664,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "78518a7a-f52d-4fb4-8e54-10dd7a5eecb2")
+			(tstamps "a02f1185-4a66-4c54-8e22-6ed8e5afab84")
 			(units
 				(unit
 					(name "A")
@@ -2719,13 +2719,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a2f2a834-25a1-4797-b2db-065cbd703bda")
+			(tstamps "5ea136d3-3d0e-4d3f-af90-56afe1ad6455")
 			(units
 				(unit
 					(name "A")
@@ -2774,13 +2774,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a3eccbce-37b8-4bd9-8b55-51a709771305")
+			(tstamps "29828de2-e5fe-4f04-92fa-74c27c586e70")
 			(units
 				(unit
 					(name "A")
@@ -2865,13 +2865,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "63c725f1-ed68-42cd-ac87-aa20b5784621")
+			(tstamps "802b5661-e0df-424f-96b2-f5fd177a09ea")
 			(units
 				(unit
 					(name "A")
@@ -2911,13 +2911,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "df5fde57-b1b9-4593-8304-299f2097d822")
+			(tstamps "874f2ed9-644c-4828-82a5-cfb73a863445")
 			(units
 				(unit
 					(name "A")
@@ -2957,13 +2957,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3c6fdafc-a9a8-4f6d-a498-6c181d5df109")
+			(tstamps "7475f0c6-2bd2-41eb-b7a1-eaba32c6cd2a")
 			(units
 				(unit
 					(name "A")
@@ -3012,13 +3012,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c96479cc-0641-4da4-aa46-caac7a544310")
+			(tstamps "aabfe121-e8d7-4e38-ae60-f89af7e79baf")
 			(units
 				(unit
 					(name "A")
@@ -3067,13 +3067,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c48e79a8-5f80-4b39-969d-481d7d2891ac")
+			(tstamps "79e94939-4707-4333-8490-7fd9ec895131")
 			(units
 				(unit
 					(name "A")
@@ -3122,13 +3122,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8dc8deeb-adb4-48d7-b970-a4cca7d3f47f")
+			(tstamps "8ca497b1-c318-4006-988c-eb40614446ca")
 			(units
 				(unit
 					(name "A")
@@ -3177,13 +3177,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b5526088-ebb9-43df-a72d-458d0a6cca84")
+			(tstamps "acdd570b-d022-440e-822a-f1b2d77312df")
 			(units
 				(unit
 					(name "A")
@@ -3232,13 +3232,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c084c1e4-e89a-4ea7-8db7-b584e5d342d4")
+			(tstamps "6af1381c-8b3b-44f5-9900-eb2a30d1480d")
 			(units
 				(unit
 					(name "A")
@@ -3287,13 +3287,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "68d25f62-c15c-4f46-99e1-1efd33a9553f")
+			(tstamps "2ce780e5-6e77-4c82-9a0a-e66c0de6aaa8")
 			(units
 				(unit
 					(name "A")
@@ -3336,13 +3336,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "92451f93-25ad-4e75-bab8-d637b45f66de")
+			(tstamps "25f6b056-ab26-4949-aa10-5794a7b2468f")
 			(units
 				(unit
 					(name "A")
@@ -3382,13 +3382,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9c968af6-546b-444b-bd41-f965e9c69648")
+			(tstamps "83851708-fd8d-4484-af1a-69e7a9c794ca")
 			(units
 				(unit
 					(name "A")
@@ -3428,13 +3428,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "25930b01-97c4-47b7-8231-0c6b918981be")
+			(tstamps "0d69da24-0fc3-45d9-bd95-a84851199da5")
 			(units
 				(unit
 					(name "A")
@@ -3474,13 +3474,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "85961242-9ba5-41f0-8602-3226b8f014b8")
+			(tstamps "ed15eeb5-be0a-4b8e-b9aa-381a31a955f5")
 			(units
 				(unit
 					(name "A")
@@ -3520,13 +3520,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cbea4719-b9c1-4a59-a0b8-ac2ab590cab4")
+			(tstamps "e0eed4fa-2faa-4610-8648-ef368d23f2da")
 			(units
 				(unit
 					(name "A")
@@ -3566,13 +3566,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fa5d0de6-cab0-453a-bb9e-1e906123016d")
+			(tstamps "fbdcf4ca-21c5-4786-8f7d-8201a183b774")
 			(units
 				(unit
 					(name "A")
@@ -3612,13 +3612,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e412ea68-638f-47bb-a9cc-461d463219cc")
+			(tstamps "909d1ab8-92a9-477e-9d7b-5865031e5d93")
 			(units
 				(unit
 					(name "A")
@@ -3658,13 +3658,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bdf10864-95fa-453e-85c3-ed0b12bb3e6f")
+			(tstamps "6b2ec852-7e99-480d-8562-de6df6a51101")
 			(units
 				(unit
 					(name "A")
@@ -3704,13 +3704,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2167e257-d6c4-4ab2-b816-a5fef8728855")
+			(tstamps "bfbc06c4-5231-47bc-b851-c6ce750ecdad")
 			(units
 				(unit
 					(name "A")
@@ -3750,13 +3750,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ef9f9913-122a-4f6c-aa31-fb2698264ab7")
+			(tstamps "31c1b5e9-d11d-44a9-b932-a4453bfa6326")
 			(units
 				(unit
 					(name "A")
@@ -3796,13 +3796,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b84c376f-cd62-46f3-bb02-02412004acee")
+			(tstamps "076ce40d-f3a5-4456-bdc6-7ca445584477")
 			(units
 				(unit
 					(name "A")
@@ -3842,13 +3842,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "09e8de56-a14a-4563-b515-8f1743779098")
+			(tstamps "822a3d6d-4dc2-4467-a4c6-d3c8b979b36b")
 			(units
 				(unit
 					(name "A")
@@ -3888,13 +3888,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "56f0f9be-61a9-41f6-bd32-da23f8d8cf17")
+			(tstamps "2437ab67-8b3a-4523-913f-50c82724a110")
 			(units
 				(unit
 					(name "A")
@@ -3934,13 +3934,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bfd4f355-2ea2-4b35-bba9-c2704bdb11f8")
+			(tstamps "1ae909da-d00c-48f8-9a8e-11f5dc89f470")
 			(units
 				(unit
 					(name "A")
@@ -3980,13 +3980,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "20611553-8433-419d-ba75-338602d6cd56")
+			(tstamps "48bbcd9a-6df7-4afd-abde-e0aace5eb57c")
 			(units
 				(unit
 					(name "A")
@@ -4026,13 +4026,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a2a1ec2d-571f-424b-b010-fa72cf9c0043")
+			(tstamps "2fc1fbbe-13bd-4c9b-a0a1-0fbe2ec91fe7")
 			(units
 				(unit
 					(name "A")
@@ -4072,13 +4072,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2d84af12-a774-4be6-b726-1efec2264cc4")
+			(tstamps "fe6ce3aa-573b-4a38-b63d-2be34e6f7c7b")
 			(units
 				(unit
 					(name "A")
@@ -4118,13 +4118,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3a705e84-b084-48b5-a9a5-2908b36e727c")
+			(tstamps "13705d9d-8f81-4b94-bd16-7d1748b89c60")
 			(units
 				(unit
 					(name "A")
@@ -4164,13 +4164,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f5b5a2b4-6b8d-4a0c-8920-148df2c5ef95")
+			(tstamps "cde57c5a-2c85-49e4-ad21-573cd77abe39")
 			(units
 				(unit
 					(name "A")
@@ -4210,13 +4210,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c9f25295-9654-427b-8d3a-125d57253f0d")
+			(tstamps "76d657ca-4a2d-4901-9e66-5cf7de795ab2")
 			(units
 				(unit
 					(name "A")
@@ -4256,13 +4256,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0110d3ea-e0ba-426e-8427-fc06f3439728")
+			(tstamps "a8cd2f75-9f12-436e-adad-5fabecc89922")
 			(units
 				(unit
 					(name "A")
@@ -4302,13 +4302,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "afcf88f7-6cb7-4105-b004-dc32b9347bd5")
+			(tstamps "112f8bfe-496d-4e66-9635-43ae5b04765b")
 			(units
 				(unit
 					(name "A")
@@ -4348,13 +4348,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "36ade3d8-4113-4998-b47a-3515661b5719")
+			(tstamps "8b758156-c53a-4b5a-bda0-e879d505e7c2")
 			(units
 				(unit
 					(name "A")
@@ -4394,13 +4394,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7235b60b-9dec-4f70-a725-a5ceb6a110ec")
+			(tstamps "0697a5df-8a70-4461-86b9-53804067af70")
 			(units
 				(unit
 					(name "A")
@@ -4440,13 +4440,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "03e28377-6301-4213-a71d-fbe6dd091f49")
+			(tstamps "d19fc433-572e-4d1d-afe1-5663b83396f0")
 			(units
 				(unit
 					(name "A")
@@ -4486,13 +4486,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cb21612c-4b15-4044-b3ac-1434ae88f089")
+			(tstamps "31d159f4-cd5b-4910-bad0-7507b0b7e615")
 			(units
 				(unit
 					(name "A")
@@ -4532,13 +4532,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3f058e01-c0c4-4418-af93-6ecca222531f")
+			(tstamps "ed4e7e3d-21aa-47cf-bb0d-3f99d325a14d")
 			(units
 				(unit
 					(name "A")
@@ -4578,13 +4578,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "38d61edc-d14b-43e8-afc2-25926d8bc671")
+			(tstamps "0f676923-4ded-4447-952e-ea9d0e633f10")
 			(units
 				(unit
 					(name "A")
@@ -4624,13 +4624,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5da4e3c4-a7f8-4a8a-b264-ef8674d694c7")
+			(tstamps "2a136359-ea10-4d47-8d38-9ef979c501c4")
 			(units
 				(unit
 					(name "A")
@@ -4670,13 +4670,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c7b21324-e739-47eb-8cda-716e5e458aa4")
+			(tstamps "3ef29eec-be02-4b19-8711-a39a3cef2850")
 			(units
 				(unit
 					(name "A")
@@ -4716,13 +4716,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f5c3749d-4047-47b3-808c-785105ff23e9")
+			(tstamps "9ae3cc9f-6f7a-4115-82dd-0b5ab3d1719a")
 			(units
 				(unit
 					(name "A")
@@ -4765,13 +4765,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b3cc9132-a272-4d39-9f6f-0d1da78102ee")
+			(tstamps "48dd88f3-d517-4747-a6a6-8fa78067b35a")
 			(units
 				(unit
 					(name "A")
@@ -4868,13 +4868,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cc2e2ef9-026b-41ad-b436-38325a5dd14d")
+			(tstamps "dd17feb3-2a43-48c2-bf16-9a4f26042382")
 			(units
 				(unit
 					(name "A")
@@ -4935,13 +4935,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5f31ad7f-22d0-46d4-acb0-d72016585e69")
+			(tstamps "8b2fbebc-7773-43a7-ba09-770dd504a6b2")
 			(units
 				(unit
 					(name "A")
@@ -5002,13 +5002,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6791d89f-6ab6-4e64-9b59-e4f7ef0f2c82")
+			(tstamps "af9fb09a-d762-49f5-b1de-f85b203352df")
 			(units
 				(unit
 					(name "A")
@@ -5069,13 +5069,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "670dbc0e-b849-4a93-a84a-ada7bbb96d6a")
+			(tstamps "b0dbfbfc-c23a-44b2-92fd-feaee99bd8f0")
 			(units
 				(unit
 					(name "A")
@@ -5127,13 +5127,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d58e5325-2818-4596-9796-e710e2543a6e")
+			(tstamps "1776cada-e3d0-4dd1-9f9c-dcbafa902af6")
 			(units
 				(unit
 					(name "A")
@@ -5185,13 +5185,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5844b0ee-e9b7-407e-a440-a9e53e391943")
+			(tstamps "cf9a743b-8ca4-4324-82fd-872d40085ba4")
 			(units
 				(unit
 					(name "A")
@@ -5243,13 +5243,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9776d30f-c2af-4380-95cd-06bf641ef448")
+			(tstamps "8bb5491d-b260-498e-b6e1-b2881baff76f")
 			(units
 				(unit
 					(name "A")
@@ -5301,13 +5301,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "94b78faa-a8cf-478c-bdbf-c6fdc6e1d519")
+			(tstamps "7a675803-070e-4211-9acd-652dc1b606b0")
 			(units
 				(unit
 					(name "A")
@@ -5359,13 +5359,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "952f698f-4b43-48cf-9c01-6889eb1318aa")
+			(tstamps "04863db8-2df6-4cf7-9ed6-601f3042b525")
 			(units
 				(unit
 					(name "A")
@@ -5462,13 +5462,13 @@
 			)
 			(property
 				(name "Sheetfile")
-				(value "03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0d58c1aa-6702-4325-86f8-a90101c39435")
+			(tstamps "e11589b5-16cd-484c-84ff-aae49f1950b3")
 			(units
 				(unit
 					(name "A")

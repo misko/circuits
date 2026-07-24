@@ -4,13 +4,13 @@ board:        usb_hub_3s_v2  (internal board name; project directory usb-hub-3s-
 version:      v1.3
 ordered:      2026-07-23
 generated:    2026-07-23
-git_sha:      52273a4        # gate-(ii) commit (board+artifact regen, SW1+F1 off-CPL), re-stamped by orchestrator.
+git_sha:      01983b0        # source commit S (gate ii-b: R30 fix + full regen); stamped pre-seal per the 2-commit seal
 git_dirty:    false          # projects/usb-hub-3s-v3 source clean at the stamped sha; the release dir is added in the seal commit
 kicad:        10.0.4
 tools:        export_jlc_package.py (pcbnew 10.0.4), kicad-cli 10.0.4, jlc_twin.py, bom_source_check.py, release_freshness_check.py, /usr/bin/python3
 authoring:    tscircuit (source/usb_hub_3s_v2.tsx) -- ADR-0002 tscircuit-native. Netlist source/usb_hub_3s_v2.net is the parity reference.
-supersedes:   v1.2-2026-07-23 (found DO-NOT-ORDER by external review post-seal; SUPERSEDED.md added there; v1.2 otherwise immutable). v1.3 = the FIX PASS: R12 catalog-verified 4.12k (C2984354, was value-resolved to C2933210=3.74k undervoltage), D5 -> catalog-UNIDIRECTIONAL C113976 (C140903 is catalog-bidirectional), setpoint re-derived vs the actual Q6+F2 path, OV honesty (secondary protection, BRIEF A3/D3), SW1+F1 off-CPL, all artifacts regenerated fresh.
-fab:          JLCPCB, 4 layer, tier jlc_4layer_standard -- uniform 0.45/0.30 mm vias; standard process (NO advanced small-via option). Board 130.1 x 92.1 mm. 110 components (fab/bom.csv 44 grouped lines, fab/cpl.csv 108 placements -- SW1 + F1 hand-solder off-CPL).
+supersedes:   v1.2-2026-07-23 (found DO-NOT-ORDER by external review post-seal; SUPERSEDED.md added there; v1.2 otherwise immutable). v1.3 = the FIX PASS: R12 catalog-verified 4.12k (C2984354, was value-resolved to C2933210=3.74k undervoltage), D5 -> catalog-UNIDIRECTIONAL C113976 (C140903 is catalog-bidirectional), R30 (Q6 gate pull-up) -> ledger-verified 100k C25803 (v1.2's C2933195 = FRC0603F3091TS = catalog 3.09k, the 2nd wrong-part the semantic M-BOM gate caught; see v1.2 SUPERSEDED addendum 688a8af), setpoint re-derived vs the actual Q6+F2 path, OV honesty (secondary protection, BRIEF A3/D3), SW1+F1 off-CPL, all artifacts regenerated fresh.
+fab:          JLCPCB, 4 layer, tier jlc_4layer_standard -- uniform 0.45/0.30 mm vias; standard process (NO advanced small-via option). Board 130.1 x 92.1 mm. 110 components (fab/bom.csv 43 grouped lines -- R30 merged into the R1/R17/R8 C25803 row; fab/cpl.csv 108 placements -- SW1 + F1 hand-solder off-CPL).
 schematic_pdf: pdf/schematic.pdf is tscircuit's OWN render (03_tscircuit/build/schematic.pdf), NOT a KiCad re-render (ADR-0002). pcb_layers/assembly PDFs are kicad-cli, regenerated fresh from the v1.3 board.
 source_note:  source/ ships fp-lib-table + vendored usb_hub_3s.pretty AND Button_Switch_THT.pretty (SW1 land); custom-lib uris rewritten to ${KIPRJMOD}/<lib>.pretty (co-located), system libs -> ${KICAD10_FOOTPRINT_DIR}. No .kicad_prl (gitignored UI state).
 cpl_note:     fab/cpl.csv is the JLC-UPLOAD-format CPL (Designator,Val,Package,Mid X,Mid Y,Layer,Rotation; rotation-DB-corrected), from 06_build/fab/cpl_jlc.csv. v1.3: SW1 (SS12D07 pitch unconfirmed -- hand-solder, header+shunt fallback) and F1 holder (documented hand-solder since v1.1) EXCLUDED from placement (FP_EXCLUDE_FROM_POS_FILES at source, floorplan patterns).
@@ -25,46 +25,48 @@ gates (MEASURED this release):
   E-INV:                                     24/24 invariants hold vs source/usb_hub_3s_v2.net
   E-TOPO / E-MARGIN / E-OFF:                 PASS -- 2 rails BUCK; USB-C headroom 640 mV vs 528 mV need (ir_budget 88 mOhm = Q6 4.3 + F2 18 cold/31 hot + board 3 + conn 5 + cable 45); off-control SW1 + 270 uA quiescent
   policy_audit:                              0 FAIL (PASS=28, WAIVED=2 [R-THERM + R-POUR ev-backed], HUMAN=6, N-A=2)   (verification/policy_audit.md)
-  M-BOM (bom_source_check):                  PASS -- every fab/bom.csv LCSC == source (circuit.json) per-refdes (verification/bom_source_check.txt). BOM delta vs v1.2 = EXACTLY {R12: C2933210->C2984354, D5: C140903->C113976}, both LIVE-catalog semantically verified 2026-07-23 (4.12k 0.1% / SMBJ6.0A unidirectional).
-  jlc_twin:                                  GREEN -- 87 OK / 233 checked, exit 0, ZERO unadjudicated criticals; D5 C113976 fetched + fit 0.21mm MODEL-REG-OK; R12 C2984354 ADJUDICATED-FETCH-FAILED (EasyEDA 404 absent, evidence in twin_adjudications.yaml; standard 0603 land, same-spec alt C861436 has R0603 CAD)   (verification/twin_report.csv)
+  M-BOM (bom_source_check):                  PASS -- every fab/bom.csv LCSC == source (circuit.json) per-refdes, incl. the SEMANTIC value-vs-ledger leg (verification/bom_source_check.txt). BOM delta vs v1.2 = EXACTLY {R12: C2933210->C2984354, D5: C140903->C113976, R30: C2933195->C25803 (merges into the R1/R17/R8 row)}, all catalog/ledger semantically verified 2026-07-23 (4.12k 0.1% / SMBJ6.0A unidirectional / 100k 1%).
+  jlc_twin:                                  GREEN -- 88 OK / 235 checked, exit 0, ZERO unadjudicated criticals; R30 on C25803 fit 0.08mm MODEL-REG-OK; D5 C113976 fetched + fit 0.21mm MODEL-REG-OK; R12 C2984354 ADJUDICATED-FETCH-FAILED (EasyEDA 404 absent, evidence in twin_adjudications.yaml; standard 0603 land, same-spec alt C861436 has R0603 CAD)   (verification/twin_report.csv)
   release freshness:                         run pre-seal (release_freshness_check.py) -- every fab/pdf artifact sha256-DISTINCT from v1.1/v1.2; README FINAL; audit == manifest claim
-  fresh zero-context RED-TEAM (v1.3):        gate (iii) -- verdict + report added to verification/ before seal
-  open items:                                (1) THREE Extended-tier parts (R12 C2984354, F2 C6165170, D5 C113976) -- MANDATORY order-day jlc_stock recheck (ORDER_README table incl. do-not-use codes C2933210/C140903). (2) PRE-PI-CONNECTION bench-qualification Q1-Q5 is a REQUIRED deployment gate (ORDER_README): assembled-R12 measurement, 8-24h electronic-load soak, SW-node scoping @12.6V, thermal soak, end-of-cable VBUSC. (3) SW1 pitch physical confirm before hand-fit (header+shunt fallback). (4) RT-T3 LM5116 UVLO ~9.65V > 9.0V nominal = accepted P2.
+  fresh zero-context RED-TEAM (v1.3):        VERDICT: ORDER -- NO P0 / NO P1, 6 P2s (all pre-documented or corrected pre-seal). Scoped fix-pass battery per canon "Verification scoping": targeted delta confirmation (verification/2026-07-23_v1.3_fix_confirmation.md, PASS) + ONE integrated zero-context lens over the curated staging archive (verification/2026-07-23_v1.3_redteam_fresh-lens.md). Lens independently re-derived the protection chain from netlist+copper (D5 K=VBUSC/A=GND at pad level), Q6 gate margins (OFF -60mV vs Vgs(th)min -1.2V; ON -5.27..-5.43V), setpoint 5.352V (worst-low 5.272V, headroom 642mV vs 440mV drop / 528mV derated need), and the forbidden-code sweep (no C2933210/C140903/C2933195 anywhere).
+  open items:                                (1) THREE Extended-tier parts (R12 C2984354, F2 C6165170, D5 C113976) -- MANDATORY order-day jlc_stock recheck (ORDER_README table incl. do-not-use codes C2933210/C140903/C2933195). (2) PRE-PI-CONNECTION bench-qualification Q1-Q5 is a REQUIRED deployment gate (ORDER_README): assembled-R12 measurement, 8-24h electronic-load soak, SW-node scoping @12.6V, thermal soak, end-of-cable VBUSC. (3) SW1 pitch physical confirm before hand-fit (header+shunt fallback). (4) RT-T3 LM5116 UVLO ~9.65V > 9.0V nominal = accepted P2.
 
 sha256:
-  3d/usb_hub_3s_v2.step  405a9277d4e3967bd6591abe25cb6e7c9bc340210c80f991b20029be12142e7c
-  fab/bom.csv  b0ea07c42bad171efe827d36f365759cd4f3a5a4e6f2990c9a05debff6c2a73e
+  3d/usb_hub_3s_v2.step  460f524e0ceef07c4de55c9f02cafc77666600b20e9a6da71ced65ada1dc06aa
+  ORDER_README.md  df6d4c042a2af7454429a9d7faf6ddc3a4e34b42c13ca61ffb26cd8f394647cb
+  fab/bom.csv  20a16427f0b1006e7d399686b6b602b545675c83883d8550d5910ad9401d7b01
   fab/cpl.csv  95d03cadba96d2af2784380215d4cffd01e21c7f4c09398577d50cecadbafd0e
-  fab/usb_hub_3s_v2_gerbers.zip  147f16af8a3ad3aa83c98f7dad3ea890e892f951970569b20d7030cf917b1902
-  fab/usb_hub_3s_v2-NPTH.drl  7bc19d23414df6ccc20d0b088f20a460594daa3e4bb8fce843b4db412bf78b97
-  fab/usb_hub_3s_v2-PTH.drl  8950057fbcfc2232f82a26478cb671946f86a3494576fcfc9e96402b48fd88b8
-  ORDER_README.md  337a02afa6a676b3c0f35650c0facf80fe140444b754a79a7b0671458f4fbf40
-  pdf/assembly_back.pdf  b19f204bf0a7313134de3ea7796d33b92bc4106c6bd27ff303939816107171a3
-  pdf/assembly_front.pdf  cacb36dd1f81574b24cea106986d7f2d73694be17b8f909eb6599b379bd583e4
-  pdf/pcb_layers.pdf  f33d8f6fb02f62283092897c247c323f9c071fc17734fc91a8310fb2cd7b69c8
-  pdf/schematic.pdf  eb38e6d8c572ffd5ec113d0fee5106e2a5088238be2096856a7c90dc084ef619
+  fab/usb_hub_3s_v2-NPTH.drl  976841faeca24bc221bc20291727979ce1a9a31a19e1b5cce4427fc75161bf7f
+  fab/usb_hub_3s_v2-PTH.drl  03b93154865c75fa5da7d7293fcc5e26fd4a1f7f04db3e0ad9d917b8c1be0a00
+  fab/usb_hub_3s_v2_gerbers.zip  f51344e45ddd2d848b86a0653ddc2e7b734cb3d588c7d1fdbfa57125f6371009
+  pdf/assembly_back.pdf  86c72ddce9114c65f21d951566b57965116f89a0110a8db4f6fc0883df08667d
+  pdf/assembly_front.pdf  36337e5a9ae92bbbf6138f462f9b39db63ab176027e671792822c6445025afd7
+  pdf/pcb_layers.pdf  d93bcbb638c52cc45627aa0c156fea29401304656587130186d8dd5218de795e
+  pdf/schematic.pdf  25bc11180f722441887265d1067c12765fa9fcf3f8136426565275215ca237b9
   source/Button_Switch_THT.pretty/SW_Slide_1P2T_CK-12D07.kicad_mod  4fb72085bfef7740b599059cbb2d03d44e8c9bf26688150809c6f3965db52d0b
-  source/fp-lib-table  fba876ba1af0022b5b7ad0406acad146f06f03b181e07073aeab84acdde2ea11
+  source/fp-lib-table  17ad9dd8e393812b29a79de6e3e75d63086f719c9990b2bf35b1a6bbba4d968f
   source/usb_hub_3s.pretty/KH-AF90DIP-112_Horizontal.kicad_mod  9ec04bfc9cb3a6bd46b4a83fcb755df367c87c5a45c229f10228b0290742cf0e
   source/usb_hub_3s.pretty/L_YJYCOIN_YSPI1770Y.kicad_mod  c4713b4feda0c78c326ea1eab79963c4189602f14052d5063644839de08c6761
   source/usb_hub_3s.pretty/TYPE-C-31-M-12_EdgeTrim.kicad_mod  544d1589cf635e9c812c843e731f4d836c047f13cb982187d3ffc6edab444922
   source/usb_hub_3s.pretty/XT60PW-M_EdgeTrim.kicad_mod  f4e2f40f3f169033ae880a684f82a162bce4d10ae47529c36edb3ca517a80103
   source/usb_hub_3s_v2.kicad_dru  8d093512c797582c6c667063c64483df819da680ab98741a9e9fadcdcfa7789f
-  source/usb_hub_3s_v2.kicad_pcb  66b615e4fde01acfb9055a2cff659977e823ae36a6c50584f49272037fff0e87
+  source/usb_hub_3s_v2.kicad_pcb  e1be432c704fe44a721fa29d964258571cbaa5a8d167924e143b2f9bfd02aefa
   source/usb_hub_3s_v2.kicad_pro  0cdc372fb884f8b376ac0dc73a4fce7402b2af13f4899abc5113d95497bcb4d0
-  source/usb_hub_3s_v2.kicad_sch  a8a6c7b2ca3fc265392856f743eaa484bcbfcd6665016b9659e74c86b133c807
-  source/usb_hub_3s_v2.net  e2480ff6262d4f082e5d615965c851c16c89e7f2e6c2b78525700dabdcb75254
-  source/usb_hub_3s_v2.tsx  e85728d9704b389bb397591b27ce51a222fc54dee7227db9eb0da4b974c69d4e
-  verification/bom_source_check.txt  8f412ca6cc664c614bd5c37e4274e57157ef759d27df883baebdb5fcc423457b
-  verification/drc.json  dfa548ca6c9fc4a10681f94ee692afa48532ed471bca7904442829c91d307d55
-  verification/erc.json  82bc257adc6785cff4a9bb364ed5942395725eb1190b6c7a41da8ac17f4a46b2
+  source/usb_hub_3s_v2.kicad_sch  6fd6301fab318e85ef9dc00c0ba2ec39adc0d2a47d6ece887243cdfe2e9127bc
+  source/usb_hub_3s_v2.net  00ac54858255f8b49fb55be6a3d1d2b33fe78ba42167881a019266af9dbf623a
+  source/usb_hub_3s_v2.tsx  a734d57441f5fea3f1f4ccfc67fe2ea0400ee0949a0f641489c3beb7ba480f47
+  verification/2026-07-23_v1.3_fix_confirmation.md  d0b581c56177c1b86f250eaa44006de727e1b17c7ef55db032b83aeed19e4e06
+  verification/2026-07-23_v1.3_redteam_fresh-lens.md  857cb4224d8ce795cbac837a6cce8b0dbbe51fbe6d45dbb18ef33ef14bec26be
+  verification/bom_source_check.txt  397aae2778f9ed03746495b078532f07ddf6d2b7364816b0e4644fdf4bd31c23
+  verification/drc.json  2d070744c515ca3f97732d8d39235b49f90ea81059a85479dd5e2a29804fd258
+  verification/erc.json  14295fd2c5a14f1e66f9ed0bdc5bb2d9d3d665146c3140a3bcd2277eee91970d
   verification/parity.md  34ecae262874ac8fe4659217eb2eea1af64b0f63c074e9793da5447a9ec806b5
-  verification/policy_audit.md  9796b512951407a3cc88d0e20c947350d14a81fffbd2f2faabfa39db3930ef33
-  verification/twin_adjudications.yaml  7b476769c47909a750ed18fc43046b6be5926112e1a2e943b736bed2adc235f3
-  verification/twin_bottom.png  e5adaa19369c7c4357dc9646602174d947f06dfd238fc7fdd63944ea1b89b4db
-  verification/twin_edge_east.png  358499d1c3ed51281cc67c0cc645b6bc1f03ffe36691fe8409c91a6af6f2ef9a
-  verification/twin_edge_west.png  02c91a262a0358ef5848a64521ac8ce2a973d6797d42c39f87c339968bf1454f
-  verification/twin_iso_nw.png  286f86503e5705008682d1da0fdeab94b4840d1eff601380017ec05b88d95872
-  verification/twin_iso_se.png  3a371e94aacb8bb077a5c6006d2a24fdf308fb28591e951fae83316b21e7cdc2
-  verification/twin_report.csv  93caa8d773c0c63a1bce428a92d0f996a3f948c3aef27da79a515263e0b869bb
-  verification/twin_top.png  b681a52fe5e5e3d2cd45f7fe93eded68c50ed195b1c98ea58080f30e60e42757
+  verification/policy_audit.md  4e7cf8ae04ada866a1ab51e5ea284481c9ceef85e1d457ef794d683ecfd7ad64
+  verification/twin_adjudications.yaml  e778fc8492a03030aec682c64b8013a55f401bce0b9ddcbc7bba791b8b03dbd2
+  verification/twin_bottom.png  298a8ea1c8a2b4169f7513c73d5cae5cd5ac95a429cc8e582cc2714b9aa43c0f
+  verification/twin_edge_east.png  5ea31ea0c25fd3d503694e6d77ad2a627cf5e36e969d82e9fb7a70f4d8b5ed61
+  verification/twin_edge_west.png  b22829f70552610672c5ef51847268d1b803eef2aa0bb5fb8e57eee415c333e9
+  verification/twin_iso_nw.png  1480cdff3d54a6b5a6833e1b34ec1e0a636baf38327143a59c7834cdf616919e
+  verification/twin_iso_se.png  66ee2949f69238749e19714a44400335adccd420a2c157e47ff0461a6d603273
+  verification/twin_report.csv  49852caaf694f1c7e30c1cb93d71e4b437582a76857f8d037beacc40be369d76
+  verification/twin_top.png  b41d8f22724f8db10b76b6390a1c796febb4d48a66005758601667a7e7ad7672

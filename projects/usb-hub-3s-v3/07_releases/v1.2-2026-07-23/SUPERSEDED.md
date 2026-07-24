@@ -1,7 +1,7 @@
 # SUPERSEDED — DO NOT ORDER
 
 This release **v1.2-2026-07-23** is **DO NOT ORDER** and is superseded by the
-forthcoming **v1.3** fix pass.
+**v1.3** fix pass: `07_releases/v1.3-2026-07-23/` (sealed 2026-07-23; R12 C2984354, D5 C113976, R30 C25803 — all three wrong-part/directionality blockers fixed and re-verified).
 
 An external human review (2026-07-23), verified against this sealed archive,
 found real order-blockers that the automated gates + the fresh red-team missed
