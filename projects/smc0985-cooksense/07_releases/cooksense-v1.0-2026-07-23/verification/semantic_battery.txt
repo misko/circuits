@@ -1,0 +1,6 @@
+E-ADR OK: every protection/topology ADR is cited by an invariant
+E-MARGIN N-A: power_tree.yaml has no rails
+ok   board == manifest (191 components)
+ok   circuit.json == manifest (191 components)
+ok   kicad_sch == manifest (191 components)
+ok   netlist == manifest (191 components)

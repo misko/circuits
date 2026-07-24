@@ -1,0 +1,54 @@
+52 BOM lines: 50 with LCSC, 2 without
+
+  OK               C17888     x2   0Ω                                     base   stock=3055707
+  OK               C21189     x1   0Ω                                     base   stock=9708177
+  OK               C25862     x1   1.2kΩ                                  expand stock=25
+  OK               C25741     x11  100kΩ                                  base   stock=116214
+  OK               C14663     x5   100nF                                  base   stock=92802146
+  OK               C1525      x29  100nF                                  base   stock=47648359
+  OK               C25076     x2   100Ω                                   base   stock=1067301
+  OK               C25744     x18  10kΩ                                   base   stock=191964
+  OK               C15195     x2   10nF                                   base   stock=6612319
+  OK               C15850     x4   10uF                                   base   stock=10561046
+  OK               C25756     x1   15kΩ                                   base   stock=1466700
+  OK               C26083     x2   1MΩ                                    base   stock=937953
+  OK               C11702     x8   1kΩ                                    base   stock=370082
+  OK               C1523      x1   1nF                                    base   stock=3380694
+  OK               C15849     x6   1uF                                    base   stock=10582889
+  OK               C25879     x8   2.2kΩ                                  base   stock=1404180
+  OK               C2887273   x1   220uF                                  expand stock=197352
+  OK               C45783     x1   22uF                                   base   stock=2599077
+  OK               C23138     x1   330Ω                                   base   stock=2247439
+  OK               C25105     x2   33Ω                                    base   stock=206137
+  OK               C25782     x1   390kΩ                                  expand stock=14
+  OK               C10092     x2   C10092                                 expand stock=38116
+  OK               C1017      x1   C1017                                  base   stock=576224
+  OK               C113974    x1   C113974                                expand stock=241772
+  OK               C123302    x1   C123302                                expand stock=3231
+  OK               C125121    x1   C125121                                expand stock=5578
+  OK               C15127     x6   C15127                                 base   stock=367076
+  OK               C157991    x1   C157991                                expand stock=146306
+  OK               C16939     x1   C16939                                 expand stock=223
+  OK               C189896    x5   C189896                                expand stock=82170
+  OK               C22046     x4   C22046                                 expand stock=3412
+  OK               C265111    x2   C265111                                expand stock=10310
+  OK               C2653162   x1   C2653162                               expand stock=7716
+  OK               C2653844   x1   C2653844                               expand stock=160
+  OK               C2683602   x1   C2683602                               expand stock=8694
+  OK               C35165     x1   C35165                                 expand stock=5428
+  OK               C474892    x1   C474892                                expand stock=10122
+  OK               C506653    x1   C506653                                expand stock=1621
+  OK               C5158048   x5   C5158048                               expand stock=231504
+  OK               C5620      x2   C5620                                  expand stock=5704
+  OK               C587657    x1   C587657                                expand stock=778
+  OK               C6186      x1   C6186                                  base   stock=1380629
+  OK               C67470     x1   C67470                                 expand stock=205562
+  OK               C6820      x1   C6820                                  expand stock=87896
+  OK               C7719      x1   C7719                                  expand stock=57104
+  OK               C8185      x3   C8185                                  expand stock=18180
+  OK               C8545      x5   C8545                                  base   stock=194629
+  OK               C8678      x1   C8678                                  base   stock=2277721
+  OK               C89650     x1   C89650                                 expand stock=244
+  OK               C9683      x2   C9683                                  expand stock=2405
+
+PASS: 0 coded lines with problems; 2 lines still uncoded

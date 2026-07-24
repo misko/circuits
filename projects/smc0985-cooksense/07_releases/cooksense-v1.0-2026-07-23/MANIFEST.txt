@@ -1,0 +1,75 @@
+board:        cooksense (MAIN board, project smc0985-cooksense; ADR-0007 multi-board)
+version:      v1.0
+ordered:      2026-07-23
+git_sha:      8940715                 # the EXACT commit these came from
+git_dirty:    false                   # scope: projects/smc0985-cooksense/ + skills/
+kicad:        10.0.4
+tools:        rebuild_all.sh (deterministic promoted-chain import; chain 03_src/cooksense/route/final_chain.kicad_pcb), /usr/bin/python3 pcbnew
+fab:          JLCPCB, 4 layer, jlc_4layer_advanced — ADVANCED small-via option REQUIRED (0.25/0.15 via-in-pad)
+quantity:     1 (prototype bring-up)
+gates:        DRC 0/0/0 (--severity-all --refill-zones --schematic-parity), M-REPRO
+              second reuse rebuild re-measured 0/0/0 · ERC 0 errors ·
+              count_parity 191 x4 · audit_board 18 polarity + 26 proximity +
+              13 edge PASS, I-ISO keypad barrier 6.12mm >= 6.0 (red-tested
+              checker) · policy_audit 0 FAIL (5 evidence-backed waivers) ·
+              E-INV 17/17 + E-ADR full coverage · E-TOPO/E-OFF N-A-by-design
+              (all-linear power, externally powered; power_tree.yaml) ·
+              twin exit 0, zero unadjudicated CRITICALs (121 OK / 353;
+              register 03_src/cooksense/rules/twin_adjudications.yaml) ·
+              bom_source_check PASS (52 lines, every LCSC == source +
+              MPN-decoded value check) · stock PASS (thin lines in
+              ORDER_README order-day recheck) · reviews: fresh-context PIN
+              (5/5 groups, 0 defects) + RENDER (77 occlusions individually
+              cosmetic-OK) + dispositions ledger (10 findings closed) +
+              fresh ZERO-CONTEXT lens on THIS staged archive with both its
+              conditional P0s resolved green by measurement:
+              verification/fresh_lens.md — ORDER-OK-WITH-NOTES.
+3d:           step present (kicad-cli --subst-models; sparse bodies — the
+              modeled truth view is verification/twin_*.png). gltf absent.
+not_assembled: K_U1..6,K_D1..4,K_PRESS,K_STOP (12x Standex DIP05-1A72-12L
+              reed relay, NOT JLC-cataloged, DO-NOT-SUBSTITUTE, THT
+              hand-solder) · J_TC (Omega PCC-SMP-K Type-K jack, NOT
+              JLC-cataloged, DO-NOT-SUBSTITUTE, THT hand-solder). Both
+              uncoded in fab/bom.csv; first-power + first-use rituals in
+              ORDER_README.
+sha256:
+  3d/cooksense.step                            6773f3eea730c1f7e862dbb0d12e47fc812b4a6f22e2518614cc270739297a25
+  ORDER_README.md                              e93155af988db6786f51faa2dd71da97daead9ed01cf6bef6ce4b595dea5e696
+  fab/bom.csv                                  c58940cd686701203f6c797d31ab83a3897d56bd7b7a310f2250f8277794ae0d
+  fab/cooksense-NPTH.drl                       3a6f2bada0eda2e2071a85eba4614d14752378d6f269dfe3ce2b63468522ec0c
+  fab/cooksense-PTH.drl                        898f0518988c0db3b851fa9a4f0b0d331d36e31712d4a064a3db037cd053eadb
+  fab/cooksense_gerbers.zip                    4cf7eedca04aa4eeb500e013399c5f4dd48aba3deb67c77b98f49db33f8d1e1b
+  fab/cpl.csv                                  39c7b9a9881164ca32e73c19a4ccb79382c80fc1844a415d8f29795765228510
+  pdf/assembly.pdf                             7b7efd98ee61976ec913a2e356c1e313749ee661104dffb532cd7733731c20e5
+  pdf/pcb_layers.pdf                           67ff18674b950fdd981889f4818f665f231614ba94574e43f665fe13ca92d123
+  pdf/schematic.pdf                            f960afb8208acbecc7be38a3467e170632b79a05413b70d0522d2f8e418e3a02
+  source/cooksense.kicad_dru                   565d2689b129297ea095fe22f6bf1e1f020b5a513b8ffe1dbb0042b8a8c3cdb6
+  source/cooksense.kicad_pcb                   f76afb00ec5e23b1da7ff3e61fb5ef7fd327046c6c65cbd06114558e80334525
+  source/cooksense.kicad_pro                   608d62ce37a53f4e14b257cde84029d3ff398fe558840c6a382343e21dc1ae6d
+  source/cooksense.kicad_sch                   7071a9912bfd68e7ebc99be3cf87c4141be737f22cb8f57d18ef3eebeec2d61e
+  source/cooksense.net                         c0a3100db66c54b8e39e049391453e265e2be4fed2580a91400a4e97c4957951
+  source/cooksense.pretty/Omega_PCC-SMP-K_TypeK_PCpin.kicad_mod 29b5bfaafc0d232359b05f5ea834ea58c210b895c8ea8f69a17e2580c88ff212
+  source/cooksense.pretty/Relay_StandexDIP_1A_pinout12.kicad_mod fcce58d87d3888d66ee832ee2b512fab393bb5c4e56f0d07baf4ad40a3f6d69a
+  source/cooksense.pretty/TerminalBlock_KF350_2P.kicad_mod c91dcbc0d17eb85cc1058d9483be306d5e31945d7e359ebaea181820d2a601dc
+  source/cooksense.tsx                         cdb32f63bbbc710a84dcc2cbc96eb74ade03f37c0d7ebf969a52a33fd4e10f09
+  source/fp-lib-table                          f96f5b2653e171e7b8605c7bac0b5d5802c25e3581aa44f6409a778dbee0f400
+  verification/audit.txt                       e584d61fddba527ee04212b0b7ef16ff00d86805b2e7a59593ff9cc000c684c2
+  verification/bom_source_check.txt            bbbd5132a7540bd6b547d73141ac1136631e778a76097d08133733b08ee26378
+  verification/dispositions.md                 9d415ff100dd4677d215aa2b1e91f79edea3f6269f6394bf96a79452cdbdc764
+  verification/drc.json                        ad919afcaa7a4b724ce61840f3387fe7441be938311f93ccb46db8717b0d69cc
+  verification/erc.json                        531ed3b0d1c14fdfa3751f7f92fe1bfa25557a3c8bf0223a18a392941f2e3114
+  verification/fresh_lens.md                   1a1b63a5122716695c801bf02106664b820d8f67f4775828f9ce99d9e55ed51f
+  verification/pin_review.md                   17025254d45cdc0cdcf9cb3f8851aa172398b77b54d6abad555ab8fce5fe8a2a
+  verification/policy_audit.md                 9caae1b54eec3164dbaa7e7f1c87632a5d55823e194bd61731088f4b6c271751
+  verification/render_bottom_bare.png          0c7bba659d565b3dddc89e219681aca21bf628c85b469b4acb5e46e5635194d2
+  verification/render_review.md                55f44fd7d3c8d813031c6f65a59597611b02903a6b866204ed6977f9170a65cb
+  verification/render_top_bare.png             790f6e3c8f6b3a9a38216c2dbd00edb63e3d0d55cdaa8b7db67e312fa0a5e018
+  verification/semantic_battery.txt            7fdc3b72f22878a7f174d9aced568b19beeb8172912fb0ef1aef4d751d06947b
+  verification/stock_check.txt                 660d35ab17aa2dc36871fd0e8dccbe723c368eca354968cea1b6cd655bb41489
+  verification/twin_bottom.png                 7412b5599decc0bbefbb9b72611e3a3f39e022972c55c153e9a97986c7e99094
+  verification/twin_edge_east.png              f273a11b5b88a15f7b1287d84fee5180771dc38cb56bdedcbf478f57d0c3d0d8
+  verification/twin_edge_west.png              6b77498b6979adebedb15e3a10b048b73f3fcaa51129b9299be3bdee4598696c
+  verification/twin_iso_nw.png                 f2d79035241b556b73cd259707eb48c1497b3f25b9a66564db986853d95cac38
+  verification/twin_iso_se.png                 db69fa7ef6f56e0c23f1d8882b8e3a7f5c485df455dcac60bd7bcdbcc73237aa
+  verification/twin_report.csv                 1c8690dbfba81ced971ecf96333d1d780819cd702842612ad7e81a82048cab64
+  verification/twin_top.png                    6905eb1f4e608129d52fdb52ab8894d82c0d1b4a2f181794379eaf56963cdd97
