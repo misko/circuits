@@ -105,8 +105,10 @@ for v in [t for t in b.GetTracks() if t.GetClass() == "PCB_VIA"]:
     for p in pads:
         if p.GetNetname() != net:
             continue
-        d = (p.GetPosition() - pos).EuclideanNorm()
-        if d + vr <= min(p.GetSizeX(), p.GetSizeY()) // 2 + 1000:
+        # real copper-shape hit test (the circular min-dimension test
+        # false-negatived a via 1.1mm along the AMS1117 tab's LONG axis and
+        # the prune ate the R-THERM second thermal via, 2026-07-24)
+        if p.HitTest(pos):
             if p.GetDrillSize().x > 0:
                 lays.update(int(l) for l in CU)
             else:
