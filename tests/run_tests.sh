@@ -51,6 +51,7 @@ SUITES=(
   t1_status.py
   t1_jlc_twin.py
   t2_route_stitch.py
+  t2_tier_preflight.py
   t2_grind.py
   t4_regressions.py
 )
