@@ -38,6 +38,20 @@ or patterns), `min_width`, `routing` (pour vs track, and the strategy),
 `verify` (how to prove it). `current` where >1A. `exemptions` are scoped to
 NAMED RULE AREAS that exist on the board — never a blanket carve-out.
 
+Optional per-class `diff_pair:` `{width, gap, via_gap?, max_uncoupled?}` (mm)
+declares SOLVED controlled-impedance geometry for a differential-pair class
+(2026-07-24, crow-recorder-central-v2 v1.1 / external-review F2: USB-HS 90ohm
+was neither constrained nor demonstrated — `diff_pair_dimensions` sat `[]`).
+The emitter writes it three ways so it is ACTIVE, not documentation: netclass
+`diff_pair_width/gap/via_gap`, a `.kicad_dru` `<CLASS>_diffpair` rule
+(`diff_pair_gap` min/opt + optional `diff_pair_uncoupled` max), and the board
+`design_settings.diff_pair_dimensions` entry. `gap` is REQUIRED once the key
+exists; width/gap must clear the tier's `min_track`/`min_space`. NB: KiCad
+pairs nets only by name suffix (P/N, +/-, _P/_N) — a diff_pair class whose
+net names cannot pair silently gates NOTHING (rename the nets, e.g.
+USB_DM -> USB_DN). Cite the stackup + solve (which fab stackup, Er, h, the
+computed Zdiff) in the class `intent` or DETAIL_DESIGN.
+
 Top-level `scoped_floors:` (canon M8 promotion of the hand-appended
 insideArea rules) is the machine-enforced form of a scoped exemption:
 `{zone, nets, min_width, why}` — the generic emitter writes it as a

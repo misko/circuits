@@ -209,6 +209,53 @@ def t_scoped_floors_emitted():
        "scoped floor duplicated on rerun")
 
 
+DP = {"width": 0.2, "gap": 0.2, "max_uncoupled": 5}  # fixture tier jlc_2layer_default: min_track 0.127
+
+
+@test("a class `diff_pair:` emits netclass dims + an ACTIVE .kicad_dru "
+      "diff_pair_gap rule + board diff_pair_dimensions")
+def t_diff_pair_emitted():
+    """External review F2 (crow-recorder-central-v2 v1.0, 2026-07-24): USB-HS
+    90ohm was neither constrained nor demonstrated — diff_pair_dimensions sat
+    [] and no gap rule existed, so DRC gated nothing. The diff_pair key must
+    land in all three places or it is documentation, not a rule.
+    RED-verified against the pre-fix emitter (git stash 2026-07-24): old code
+    exits 0, emits diff_pair_gap 0.25 hardcode, no _diffpair rule, no
+    diff_pair_dimensions."""
+    proj, r = generic_rules_project(
+        lambda s: s["classes"]["PWR"].update({"diff_pair": dict(DP)}))
+    must_pass(r, "generate_rules_generic with a diff_pair class")
+    txt = (proj / "04_kicad" / "cook_loadcell.kicad_dru").read_text()
+    contains(txt, "PWR_diffpair", "diff-pair rule emitted")
+    contains(txt, "diff_pair_gap (min 0.195mm) (opt 0.2mm)", "gap constraint")
+    contains(txt, "diff_pair_uncoupled (max 5", "uncoupled cap")
+    pro = json.loads((proj / "04_kicad" / "cook_loadcell.kicad_pro").read_text())
+    dims = pro["board"]["design_settings"]["diff_pair_dimensions"]
+    eq(dims, [{"gap": 0.2, "via_gap": 0.2, "width": 0.2}],
+       "board diff_pair_dimensions")
+    cls = {c["name"]: c for c in pro["net_settings"]["classes"]}
+    eq(cls["PWR"]["diff_pair_gap"], 0.2, "netclass diff_pair_gap")
+    eq(cls["PWR"]["diff_pair_width"], 0.2, "netclass diff_pair_width")
+
+
+@test("a diff_pair with no `gap` is a generation error (an unenforced pair "
+      "gates nothing)", kind="known_bad")
+def t_kb_diff_pair_no_gap():
+    bad = {k: v for k, v in DP.items() if k != "gap"}
+    proj, r = generic_rules_project(
+        lambda s: s["classes"]["PWR"].update({"diff_pair": bad}))
+    must_fail(r, "diff_pair without gap", "gap")
+
+
+@test("a diff_pair gap below the tier's min_space FAILS naming the tier",
+      kind="known_bad")
+def t_kb_diff_pair_gap_below_tier():
+    proj, r = generic_rules_project(
+        lambda s: s["classes"]["PWR"].update(
+            {"diff_pair": dict(DP, gap=0.05)}))
+    must_fail(r, "diff_pair gap below tier min_space", "min_space")
+
+
 @test("a scoped_floors entry with no `why` is a generation error (canon M4)",
       kind="known_bad")
 def t_kb_scoped_floor_no_why():

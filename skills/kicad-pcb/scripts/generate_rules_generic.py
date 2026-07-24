@@ -166,6 +166,7 @@ def main(argv=None):
 
     out_classes = [default]
     patterns = []
+    diff_dims = []
     dru_rules = ['(version 1)']
     for name, c in classes.items():
         c = c or {}
@@ -191,11 +192,42 @@ def main(argv=None):
         clr = mm(c.get("clearance")) or 0.2
         via_d = mm(c.get("via_diameter")) or 0.6
         via_dr = mm(c.get("via_drill")) or 0.3
+        # OPTIONAL controlled-impedance diff-pair geometry (2026-07-24,
+        # crow-recorder-central-v2 v1.1 / external-review F2: USB HS 90ohm was
+        # neither constrained nor demonstrated — diff_pair_dimensions sat []).
+        #   diff_pair: {width: 0.125, gap: 0.15, via_gap: 0.15,
+        #               max_uncoupled: 5}   # mm; via_gap/max_uncoupled optional
+        # Emits: netclass diff_pair_width/gap/via_gap, a .kicad_dru
+        # diff_pair_gap (+ optional diff_pair_uncoupled) rule, and the board
+        # design_settings.diff_pair_dimensions entry — so the rule is ACTIVE
+        # in DRC, not just documented. NB KiCad only pairs nets by name suffix
+        # (P/N, +/-, _P/_N): a class declaring diff_pair whose nets cannot
+        # pair silently gates nothing — keep net names pairable.
+        dp = c.get("diff_pair") or {}
+        dp_w = mm(dp.get("width")) or w
+        dp_gap = mm(dp.get("gap"))
+        dp_via_gap = mm(dp.get("via_gap")) or dp_gap or 0.25
+        dp_unc = mm(dp.get("max_uncoupled"))
+        if dp and dp_gap is None:
+            sys.exit(f"generate_rules_generic: class {name} diff_pair has no "
+                     f"`gap` — a diff-pair class without its solved gap "
+                     f"enforces nothing")
+        if dp and tier is not None:
+            if dp_w < float(tier["min_track"]):
+                sys.exit(f"generate_rules_generic: class {name} diff_pair "
+                         f"width {dp_w}mm < fab tier '{tier['name']}' "
+                         f"min_track {tier['min_track']}mm")
+            if dp_gap < float(tier["min_space"]):
+                sys.exit(f"generate_rules_generic: class {name} diff_pair "
+                         f"gap {dp_gap}mm < fab tier '{tier['name']}' "
+                         f"min_space {tier['min_space']}mm")
         out_classes.append({
             "name": name, "clearance": clr, "track_width": w,
             "via_diameter": via_d, "via_drill": via_dr,
             "microvia_diameter": 0.3, "microvia_drill": 0.2,
-            "diff_pair_gap": 0.25, "diff_pair_width": w, "diff_pair_via_gap": 0.25,
+            "diff_pair_gap": dp_gap if dp else 0.25,
+            "diff_pair_width": dp_w,
+            "diff_pair_via_gap": dp_via_gap if dp else 0.25,
             "wire_width": 6, "bus_width": 12, "line_style": 0,
             "pcb_color": "rgba(0, 0, 0, 0.000)", "schematic_color": "rgba(0, 0, 0, 0.000)",
         })
@@ -205,10 +237,29 @@ def main(argv=None):
             f'(rule "{name}_width"\n'
             f'  (condition "A.NetClass == \'{name}\'")\n'
             f'  (constraint track_width (min {w}mm)))')
+        if dp:
+            gap_rule = (
+                f'(rule "{name}_diffpair"\n'
+                f'  (condition "A.NetClass == \'{name}\'")\n'
+                f'  (constraint diff_pair_gap (min {round(dp_gap-0.005,3)}mm) '
+                f'(opt {dp_gap}mm))')
+            if dp_unc is not None:
+                gap_rule += (f'\n  (constraint diff_pair_uncoupled '
+                             f'(max {dp_unc}mm))')
+            dru_rules.append(gap_rule + ')')
+            diff_dims.append({"gap": dp_gap, "via_gap": dp_via_gap,
+                              "width": dp_w})
 
     ns["classes"] = out_classes
     ns["netclass_patterns"] = patterns
     ns.setdefault("meta", {"version": 4})
+    if diff_dims:
+        # board design_settings.diff_pair_dimensions — the routing/tuning UI's
+        # diff-pair table AND the reviewable declaration that the geometry was
+        # SOLVED (external-review F2: [] here read as "impedance undemonstrated")
+        bds = proj.setdefault("board", {}).setdefault("design_settings", {})
+        bds["diff_pair_dimensions"] = sorted(
+            diff_dims, key=lambda d: (d["width"], d["gap"]))
 
     # SCOPED FLOORS (canon M8 two-strike promotion, 2026-07-21). Second board
     # needing a hand-appended insideArea width relaxation: cook-hub's u7_taps,
@@ -259,7 +310,9 @@ def main(argv=None):
 
     # PRESERVE foreign rules (e.g. stitch's pad_rescue_stubs sub-floor) so this
     # wholesale rewrite does not clobber them — emit them LAST for precedence.
-    generated_names = {f"{name}_width" for name in classes} | scoped_names
+    generated_names = ({f"{name}_width" for name in classes}
+                       | {f"{name}_diffpair" for name in classes}
+                       | scoped_names)
     foreign = foreign_dru_rules(dru, generated_names)
 
     pro.write_text(json.dumps(proj, indent=2) + "\n")
