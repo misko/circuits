@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/home/mouse9911/gits/circuits/projects/crow-recorder-central-v2/03_tscircuit/kicad/crow_recorder_central_v2.kicad_sch")
-		(date "2026-07-24T10:41:01")
+		(date "2026-07-24T12:33:02")
 		(tool "Eeschema 10.0.4-10.0.4~ubuntu24.04.1")
 		(sheet
 			(number "1")
@@ -2754,6 +2754,236 @@
 				(tstamps "/")
 			)
 			(tstamps "40149a30-e706-44af-a4fd-959c9208e0f7")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_c9")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_c8")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/crow-recorder-central-v2/03_tscircuit/kicad/crow_recorder_central_v2.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "f23b5fcd-98c6-4bc6-a5ae-b34937b631f9")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_c10")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_c8")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/crow-recorder-central-v2/03_tscircuit/kicad/crow_recorder_central_v2.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "954ed93a-2ca0-4a69-94a9-4577a472df95")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_c11")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_c8")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/crow-recorder-central-v2/03_tscircuit/kicad/crow_recorder_central_v2.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "cb68ccd2-eb3e-4481-af56-5f786b212f59")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_c12")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_c8")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/crow-recorder-central-v2/03_tscircuit/kicad/crow_recorder_central_v2.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "0cd4cebb-45b4-4a01-b4ae-9aee81a78404")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "C_c13")
+			(value "100nF")
+			(footprint "Capacitor_SMD:C_0402_1005Metric")
+			(fields
+				(field
+					(name "Footprint") "Capacitor_SMD:C_0402_1005Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_C_c8")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "projects/crow-recorder-central-v2/03_tscircuit/kicad/crow_recorder_central_v2.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "7cb6130d-c27e-4170-adb1-c20f16c3de3d")
 			(units
 				(unit
 					(name "A")
@@ -17818,6 +18048,26 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "C_c10")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_c11")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_c12")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_c13")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
 				(ref "C_c2")
 				(pin "1")
 				(pintype "passive")
@@ -17849,6 +18099,11 @@
 			)
 			(node
 				(ref "C_c8")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_c9")
 				(pin "1")
 				(pintype "passive")
 			)
@@ -19390,6 +19645,26 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "C_c10")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_c11")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_c12")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_c13")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
 				(ref "C_c2")
 				(pin "2")
 				(pintype "passive")
@@ -19421,6 +19696,11 @@
 			)
 			(node
 				(ref "C_c8")
+				(pin "2")
+				(pintype "passive")
+			)
+			(node
+				(ref "C_c9")
 				(pin "2")
 				(pintype "passive")
 			)

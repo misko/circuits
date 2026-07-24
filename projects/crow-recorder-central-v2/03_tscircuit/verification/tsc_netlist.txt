@@ -47,6 +47,11 @@ COMPONENTS:
  - C_c6: 100nF 0402 capacitor
  - C_c7: 100nF 0402 capacitor
  - C_c8: 100nF 0402 capacitor
+ - C_c9: 100nF 0402 capacitor
+ - C_c10: 100nF 0402 capacitor
+ - C_c11: 100nF 0402 capacitor
+ - C_c12: 100nF 0402 capacitor
+ - C_c13: 100nF 0402 capacitor
  - C_d1: 100nF 0402 capacitor
  - C_d2: 100nF 0402 capacitor
  - C_d3: 100nF 0402 capacitor
@@ -747,6 +752,11 @@ NET: N0V9
   - TP3 1
   - L_pll pin1 (+)
   - C_b0v9 pin1 (+)
+  - C_c13 pin1 (+)
+  - C_c12 pin1 (+)
+  - C_c11 pin1 (+)
+  - C_c10 pin1 (+)
+  - C_c9 pin1 (+)
   - C_c8 pin1 (+)
   - C_c7 pin1 (+)
   - C_c6 pin1 (+)
@@ -952,6 +962,11 @@ NET: GND
   - C_d3 pin2 (-)
   - C_d2 pin2 (-)
   - C_d1 pin2 (-)
+  - C_c13 pin2 (-)
+  - C_c12 pin2 (-)
+  - C_c11 pin2 (-)
+  - C_c10 pin2 (-)
+  - C_c9 pin2 (-)
   - C_c8 pin2 (-)
   - C_c7 pin2 (-)
   - C_c6 pin2 (-)
@@ -1349,6 +1364,26 @@ C_c7 (100nF 0402)
 - pin2(neg, cathode, right): NETS(GND)
 
 C_c8 (100nF 0402)
+- pin1(pos, anode, left): NETS(N0V9)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_c9 (100nF 0402)
+- pin1(pos, anode, left): NETS(N0V9)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_c10 (100nF 0402)
+- pin1(pos, anode, left): NETS(N0V9)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_c11 (100nF 0402)
+- pin1(pos, anode, left): NETS(N0V9)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_c12 (100nF 0402)
+- pin1(pos, anode, left): NETS(N0V9)
+- pin2(neg, cathode, right): NETS(GND)
+
+C_c13 (100nF 0402)
 - pin1(pos, anode, left): NETS(N0V9)
 - pin2(neg, cathode, right): NETS(GND)
 

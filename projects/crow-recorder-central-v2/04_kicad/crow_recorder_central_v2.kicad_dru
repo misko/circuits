@@ -29,6 +29,15 @@
 (rule "scoped_u1_0v9_tap103"
   (condition "A.insideArea('u1_0v9_tap103') && (A.NetName == '0V9')")
   (constraint track_width (min 0.34mm)))
+(rule "scoped_u1_0v9_west_tap"
+  (condition "A.insideArea('u1_0v9_west_tap') && (A.NetName == '0V9')")
+  (constraint track_width (min 0.29mm)))
+(rule "scoped_u1_0v9_south_taps"
+  (condition "A.insideArea('u1_0v9_south_taps') && (A.NetName == '0V9')")
+  (constraint track_width (min 0.29mm)))
+(rule "scoped_u1_0v9_east_tap"
+  (condition "A.insideArea('u1_0v9_east_tap') && (A.NetName == '0V9')")
+  (constraint track_width (min 0.29mm)))
 (rule pad_rescue_stubs
   (condition "A.insideArea('pad_rescue_stubs') && (A.NetName == 'GND' || A.NetName == 'GND')")
   (constraint track_width (min 0.300mm)))

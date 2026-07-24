@@ -199,8 +199,13 @@ export default () => (
     <chip name="U1" supplierPartNumbers={{ jlcpcb: [LCSC.XU316] }}
       footprint={fp(Array.from({ length: 129 }, (_, i) => i + 1))}
       connections={conn(XU316_PINS)} />
-    {/* --- XU316 decoupling --- */}
-    {Array.from({ length: 8 }, (_, i) => (
+    {/* --- XU316 decoupling ---
+        Core VDD (0V9): 13x 100nF — XU316-1024-TQ128 ds XM-014532-PC-2.0.0 §14
+        "Integration" p.29 requires "at least 12" 100nF low-inductance MLCCs
+        close to the chip on VDD. v1.1 shipped 8 (2nd external review F1,
+        2026-07-24); C_c9..C_c13 added for v1.2, anchored at the under-served
+        core-VDD pins (floorplan.yaml). */}
+    {Array.from({ length: 13 }, (_, i) => (
       <capacitor key={`Cc${i + 1}`} name={`C_c${i + 1}`} capacitance="100nF" footprint="0402"
         connections={{ pin1: N("N0V9"), pin2: N("GND") }} />
     ))}

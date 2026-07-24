@@ -498,3 +498,51 @@
   branch), port nets 115/115+8/8, audit_board all green. v1.0-relative
   netlist diff: exactly 7 node moves total (4x USB_DM->USB_DN + 3x LV to
   unconnected) — 06_build/verify/lv_strap_fix_diff.md.
+
+## v1.2 respin — XU316 core decoupling fill-in (2026-07-24, EXT2-F1)
+- DRIVER: 2nd external review (08_reviews/2026-07-24_v1.1_external-llm2_full.md):
+  8x 100nF on 0V9 vs the vendor minimum. VERIFIED at the source: XU316-1024-TQ128
+  ds XM-014532-PC-2.0.0 §14 "Integration" p.29 — "at least 12" 100nF low-inductance
+  MLCCs close to the chip on VDD (§H.2 p.92 checklist agrees). Target set to the
+  datasheet number; shipped 13 (C_c1..C_c13).
+- SCHEMATIC: promoted-sch IN-PLACE surgery (the LV-strap precedent — tsci
+  regeneration is non-deterministic and would drop the P5VA_4/MID2P doglegs):
+  5 instances (reuse lib_id elt:SYM_C_c8) + 0V9 glabels at pin1 + GND power
+  symbols (#PWR145..149) on a free canvas column x=609.6. tsx length 8->13,
+  manifest +5. Netlist diff vs v1.1 measured: EXACTLY {C_c9..C_c13} x {0V9,GND}.
+  check_port_nets 115/115 + 8/8.
+- PLACEMENT: the 5 new pinned anchors changed the legalizer packing walk and
+  relocated ALL 32 U1-adjacent floaters (measured) -> the 32 are now PINNED at
+  their exact v1.1 legalized positions (floorplan block "U1-cluster position
+  freeze") so no routed pad moves. Verified: positions identical for 198/198
+  v1.1 parts except the deliberate C_b0v9 move.
+- SPOTS (exhaustive F.Cu obstacle scan at DRC clearances; naive ring spots were
+  all on live copper, one on the USB pair):
+  C_c9 (80.34,100.40) -> pins 11/14, tap into pad 14 (1.63mm);
+  C_c10 (79.60,95.50) -> pin-5 pocket, 0.4mm tap onto the existing 0.5mm 0V9
+  F.Cu diagonal (zero pad-row threading);
+  C_c12 (100.49,97.18) -> pin 95 tap (2.55mm);
+  C_c11/C_c13: U1 courtyard (y110.695) vs C_c1/C_b0v9 row (y~111.28) leaves no
+  0402-height slot -> C_b0v9 (10uF BULK, no pin-adjacency requirement per ds
+  §14) moved 3.75mm south to (91.85,116.05); C_c11 (90.50,112.15) + C_c13
+  (92.40,112.15) take its slot: pins 50/54 now 2.01/2.02mm (were 3.5/3.9).
+- CHAIN SURGERY (in the promoted chain, every step DRC-iterated):
+  * TDI F.Cu run y=111.2 (x85.0-93.6) -> In3: new via (85.0,110.26) north of the
+    RST_N In3 corridor, In3 y=110.15 run, diag to (93.6,111.4); the old TDI via
+    there DELETED (would be one-layer dangling; the In3 join needs no via).
+  * 0V9 feeder rerouted around C_c11 pad2 at 0.4mm ((91.8,112.3)->(91.0,111.9)
+    ->(90.3,111.8), passes through C_c11 pad1 = same-net bond).
+  * 4x 0.30mm 0V9 taps into pads 14/50/54/95 (0.4mm approach into a 0.4mm-pitch
+    row violates neighbor-pad clearance by construction: 0.18mm pad-edge gap).
+    Scoped floors u1_0v9_west_tap / south_taps / east_tap at 0.29 (nets.yaml),
+    same pattern as u1_0v9_pin5/tap103.
+  * C_b0v9 feed: via-in-pad1 (90.90,116.05) -> 0.4mm B.Cu -> via (90.60,111.75)
+    landing inside C_c11 pad1 (same-net, ties bulk to the pin-50 tap junction).
+  * Title caption moved (92.5,116.5) -> (74.0,116.5) (C_b0v9's new home;
+    (103,118.5) first try clipped J2's north pads — measured).
+- C_c11 pad2 starved_thermal at the first full gate -> added to the floorplan
+  pad_overrides FULL-connection list (golden rule 9 pattern).
+- GATE: rebuild_reuse.sh from committed source = DRC 0/0/0 (severity-all,
+  refill, schematic-parity). SURVIVAL MEASURED: USB pair 23.621/23.511mm
+  (skew 0.110mm), all 0.125mm F.Cu, 0 vias; U1 EP 16x 0.3/0.15 GND vias
+  (4x4 grid); LV straps 40/43/52 still unconnected.

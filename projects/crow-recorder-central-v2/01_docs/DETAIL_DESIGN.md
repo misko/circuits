@@ -153,8 +153,23 @@ v1.1 zero-context pin review; datasheet-confirmed before seal.
   CS# pull-up 10k to 3V3. 100nF decoupler. 3V3 part.
 
 ## Decoupling strategy
-- XU316: per XMOS hardware checklist [PARTS] — bulk + per-supply-pin 100nF, PLL
+- XU316: per XMOS hardware checklist — bulk + per-supply-pin 100nF, PLL
   filter, USB_VDD decoupling. Distribute 100nF close to each VDD/VDDIO pin.
+- **XU316 core (0V9) VENDOR MINIMUM (verified v1.2, external review EXT2-F1)**:
+  XU316-1024-TQ128 datasheet XM-014532-PC-2.0.0, §14 "Integration" (p.29):
+  "The VDD supply should be well decoupled at high frequencies. Place many
+  (at least 12) 100 nF low inductance multi-layer ceramic capacitors close to
+  the chip between the supplies and GND." Also §14: VDDIO "several 100nF …
+  for example, one 100nF 0402 low inductance MLCC on each supply pin"; "The
+  ground side of the decoupling capacitors should have as short a path back
+  to the GND pins as possible. A bulk decoupling capacitor of at least 10 uF
+  should be placed on VDD and VDDIO supplies." Checklist §H.2 (p.92) repeats
+  multiple-per-supply + 10uF bulk. AS BUILT (v1.2): 13x 100nF 0402 (C1525)
+  on 0V9 (C_c1..C_c13; v1.1 had 8 for 15 core-VDD pins — below the stated
+  minimum, the v1.2 respin driver), each ≤3.22mm from its nearest core-VDD
+  pin (pins 50/54 = 2.01/2.02mm after the C_b0v9 slot swap), GND sides on
+  the F.Cu pour with In1/In4 plane vias; C_b0v9 10uF bulk retained (moved
+  3.75mm south, fed by 0.4mm B.Cu + 2 vias).
 - PCM1865 (x2): AVDD/DVDD/IOVDD each 100nF + bulk 10µF on AVDD; VREF/VCM caps
   per datasheet.
 - Every regulator: Cin/Cout per datasheet.

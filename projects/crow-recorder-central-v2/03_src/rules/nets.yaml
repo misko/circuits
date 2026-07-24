@@ -147,3 +147,26 @@ scoped_floors:
       that pad to 0.0745mm clearance (measured 2026-07-23). Single decoupler-
       pin drop, no trunk current; scoping the min-width floor to 0.34mm here
       passes track_width without moving the copper.
+  # --- v1.2 XU316 core-decoupling taps (external review F1 fix): C_c9/
+  # C_c11/C_c12/C_c13 pad-to-pin taps routed 0.30mm — a 0.4mm approach into
+  # a 0.4mm-pitch pad row violates neighbor-pad clearance by construction
+  # (0.18mm pad-edge gap; 0.4 track leaves 0.09 < 0.10). Same reasoning as
+  # u1_0v9_pin5/tap103: single decoupler-pin drops, no trunk current.
+  - zone: u1_0v9_west_tap
+    nets: [0V9]
+    min_width: 0.29mm
+    why: >
+      C_c9 -> U1.14 tap (v1.2 core decoupling fill-in), 0.30mm through the
+      0.4mm-pitch west pad row.
+  - zone: u1_0v9_south_taps
+    nets: [0V9]
+    min_width: 0.29mm
+    why: >
+      C_c11 -> U1.50 and C_c13 -> U1.54 taps (v1.2 core decoupling
+      fill-in), 0.30mm through the 0.4mm-pitch south pad row.
+  - zone: u1_0v9_east_tap
+    nets: [0V9]
+    min_width: 0.29mm
+    why: >
+      C_c12 -> U1.95 tap (v1.2 core decoupling fill-in), 0.30mm through the
+      0.4mm-pitch east pad row.

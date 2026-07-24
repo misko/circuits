@@ -1,4 +1,4 @@
-ERC report (2026-07-24T10:41:01, Encoding UTF8)
+ERC report (2026-07-24T12:33:01, Encoding UTF8)
 Report includes: Errors, Warnings, Exclusions
 
 ***** Sheet /
@@ -4187,8 +4187,53 @@ Report includes: Errors, Warnings, Exclusions
 [lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
     ; warning
     @(582.93 mm, 238.76 mm): Symbol TP5 [SYM_TP5]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(609.60 mm, 80.01 mm): Symbol C_c9 [SYM_C_c8]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(609.60 mm, 80.01 mm): Symbol C_c9 [SYM_C_c8]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(609.60 mm, 83.82 mm): Symbol #PWR145 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(609.60 mm, 100.33 mm): Symbol C_c10 [SYM_C_c8]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(609.60 mm, 100.33 mm): Symbol C_c10 [SYM_C_c8]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(609.60 mm, 104.14 mm): Symbol #PWR146 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(609.60 mm, 120.65 mm): Symbol C_c11 [SYM_C_c8]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(609.60 mm, 120.65 mm): Symbol C_c11 [SYM_C_c8]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(609.60 mm, 124.46 mm): Symbol #PWR147 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(609.60 mm, 140.97 mm): Symbol C_c12 [SYM_C_c8]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(609.60 mm, 140.97 mm): Symbol C_c12 [SYM_C_c8]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(609.60 mm, 144.78 mm): Symbol #PWR148 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(609.60 mm, 161.29 mm): Symbol C_c13 [SYM_C_c8]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(609.60 mm, 161.29 mm): Symbol C_c13 [SYM_C_c8]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(609.60 mm, 165.10 mm): Symbol #PWR149 [GND]
 
- ** ERC messages: 1395  Errors 0  Warnings 1395
+ ** ERC messages: 1410  Errors 0  Warnings 1410
 
  ** Ignored checks:
     - Global label only appears once in the schematic

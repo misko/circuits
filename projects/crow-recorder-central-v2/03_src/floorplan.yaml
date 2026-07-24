@@ -77,6 +77,72 @@ placement:
     U7:  [20.0, 116.0, 0]     # 3V3 buck (south of J1 courtyard)
     U8:  [38.0, 116.0, 0]     # 0V9 core buck
     U9:  [28.0, 125.0, 0]     # 1V8 LDO
+    # --- v1.2 XU316 core-decoupling fill-in (2nd external review F1,
+    # 2026-07-24): ds XM-014532-PC-2.0.0 §14 p.29 wants >=12x 100nF on VDD;
+    # v1.1 had 8 for 15 core-VDD pins. C_c9..C_c13 are ANCHORED (not
+    # pattern-legalized) at measured-free ring spots hard against the
+    # under-served pins (D-ADJ). Spots were found by an exhaustive F.Cu
+    # obstacle scan (courtyards + tracks + vias + pads at DRC clearances)
+    # nearest each target pin — the naive ring spots were all on live
+    # copper (one even on the USB pair). Final map: C_c9 west -> pins
+    # 11/14 (taps pad 14, ~1.7mm); C_c10 -> pin 5 pocket, its 0V9 pad
+    # lands DIRECTLY ON the existing 0.5mm 0V9 F.Cu diagonal (zero new
+    # routing, ~2.0mm from pin 5); C_c11 south -> pin 50 (~1.3mm tap);
+    # C_c13 south -> pin 54 (~1.2mm tap); C_c12 east -> pin 95 (~2.4mm
+    # tap). The south band needed ONE surgery: TDI's F.Cu run y=111.2
+    # moved to In3 (see route journal). Existing-courtyard-clear so the
+    # legalizer walk for all pre-existing floaters is unchanged (promoted
+    # chain stays valid). ---
+    # Measured constraint (2026-07-24): U1's courtyard reaches y=110.695 and
+    # the C_c1/C_b0v9 courtyard row starts at y~111.28 — no 0402 (1.01mm
+    # across) fits between, so the two caps for pins 50/54 take C_b0v9's
+    # slot instead: the 10uF BULK cap does not need pin adjacency (ds §14
+    # asks only that bulk be "placed on VDD") while the 100nF HF caps do.
+    # C_b0v9 moves 3.75mm south to a scan-verified legal spot (B.Cu feed
+    # via to the 0V9 junction at (90.6,111.75), see route journal).
+    C_c9:  [80.34, 100.40, 180]
+    C_c10: [79.60, 95.50, 270]
+    C_c11: [90.50, 112.15, 270]
+    C_c12: [100.49, 97.18, 0]
+    C_c13: [92.40, 112.15, 270]
+    # --- v1.2 U1-cluster position freeze: the 5 new pinned caps change the
+    # legalizer's packing walk, which relocated all 32 U1-adjacent floaters
+    # (measured 2026-07-24) and would invalidate the ENTIRE promoted route
+    # chain. These 32 are pinned at their exact v1.1 legalized positions
+    # (the routed, sealed, DRC-0/0/0 spots) so no routed pad moves and the
+    # chain stays valid; only C_c9..C_c13's taps are new copper. ---
+    C_u18b:  [92.300, 89.200, 0]
+    C_b0v9:  [91.850, 116.050, 0]   # v1.2: moved out of the pin-50/54 slot (see note above)
+    FB_u18:  [97.000, 114.100, 0]
+    C_c4:    [100.300, 105.800, 0]
+    C_d1:    [88.000, 113.300, 0]
+    C_e1:    [77.500, 102.000, 0]
+    C_d3:    [84.200, 92.000, 0]
+    C_c7:    [100.300, 98.200, 0]
+    C_b1v8:  [88.200, 91.700, 0]
+    FB_u33:  [83.000, 114.100, 0]
+    R_sda:   [96.800, 90.300, 0]
+    C_c1:    [88.300, 111.800, 0]
+    C_d6:    [92.200, 114.300, 0]
+    C_c8:    [95.800, 112.000, 0]
+    C_u18a:  [80.000, 93.600, 0]
+    L_pll:   [83.000, 89.900, 0]
+    C_u33b:  [102.700, 106.600, 0]
+    R_rst:   [77.300, 106.600, 0]
+    C_d2:    [84.200, 112.000, 0]
+    C_c6:    [79.700, 98.200, 0]
+    C_rst:   [80.000, 110.400, 0]
+    C_e2:    [87.800, 89.700, 0]
+    C_d5:    [95.800, 92.000, 0]
+    C_c2:    [80.000, 102.000, 0]
+    R_scl:   [77.300, 97.400, 0]
+    C_c5:    [79.700, 105.800, 0]
+    C_u33a:  [100.000, 93.600, 0]
+    C_c3:    [91.700, 92.200, 0]
+    C_pll2:  [87.700, 114.800, 0]
+    C_pll1:  [100.000, 110.400, 0]
+    C_d4:    [92.000, 90.700, 0]
+    C_b3v3:  [101.000, 102.000, 0]
     # --- test points along south/east edges ---
     TP1: [46.0, 126.0, 0]
     TP2: [52.0, 126.0, 0]
@@ -251,7 +317,9 @@ placement:
     # north edge) changed U7.2's GND thermal spokes to <2 -> starved. U7.2 is
     # pour-touching (not isolated), so full is safe (no island). U8 STILL excluded
     # per the note above until its buck-GND via is confirmed by pad_rescue.
-    - {match: [C_c8, C_d6, C_dvdd2, C_ldo3, Dp1, J2, J3, J4, J5, J6, J7, J8, J9, J10,
+    # C_c11 added 2026-07-24 (v1.2): its GND pad sits in the dense freed
+    # C_b0v9 slot — pour spokes blocked (<2), measured at the v1.2 gate.
+    - {match: [C_c8, C_c11, C_d6, C_dvdd2, C_ldo3, Dp1, J2, J3, J4, J5, J6, J7, J8, J9, J10,
                U1, U2, U3, U7, Y1],
        pad_overrides: [{on_net: GND, zone_connection: full}]}
 
@@ -290,6 +358,14 @@ keepouts:
   # min-width floor down to 0.34mm inside this small area so the thin tap passes
   # track_width without being widened into the pad.
   - {name: u1_0v9_tap103, rect: [92.7, 93.9, 93.7, 94.7], layers: [F.Cu, In2.Cu, In3.Cu, B.Cu], deny: []}
+  # v1.2 core-decoupling taps (C_c9/C_c11/C_c12/C_c13 -> U1 pads 14/50/54/95):
+  # same single-decoupler-pin-drop reasoning as u1_0v9_pin5/tap103 — 0.30mm
+  # taps thread the 0.4mm-pitch pad row (a 0.4mm approach would violate
+  # neighbor-pad clearance by construction: 0.18mm pad-edge gap at the row).
+  # nets.yaml scopes 0V9's floor to 0.29mm inside these three small rects.
+  - {name: u1_0v9_west_tap,  rect: [80.6, 100.1, 82.6, 101.3], layers: [F.Cu, In2.Cu, In3.Cu, B.Cu], deny: []}
+  - {name: u1_0v9_south_taps, rect: [90.2, 109.4, 92.6, 111.9], layers: [F.Cu, In2.Cu, In3.Cu, B.Cu], deny: []}
+  - {name: u1_0v9_east_tap,  rect: [98.2, 95.9, 100.2, 97.5], layers: [F.Cu, In2.Cu, In3.Cu, B.Cu], deny: []}
 
 design_rules:
   track_min_width: 0.09
@@ -367,7 +443,9 @@ silk:
     - ["NOT ETH 5V!", 145.0, 26.3, 0.55]
     - ["NOT ETH 5V!", 165.0, 26.3, 0.55]
     - ["1,2=AUDIO+/-  3,6=+5VBEEP/RTN  4,5&7,8=+5VAUD/GND", 30.0, 43.0, 0.6]
-    - ["crow-recorder-central-v2  8ch USB audio  C", 92.5, 116.5, 0.8]
+    # v1.2: title moved off (92.5,116.5) — C_b0v9's new home is there
+    # ((103,118.5) tried first: silk clipped J2's north pads — measured)
+    - ["crow-recorder-central-v2  8ch USB audio  C", 74.0, 116.5, 0.8]
     - ["USB-C (host)", 90.0, 127.5, 0.6]
     - ["JTAG 1V8", 132.0, 121.0, 0.55]
     - ["5V IN (GST25A05)", 16.0, 108.0, 0.6]

@@ -9,10 +9,10 @@ Read by `skills/kicad-pcb/scripts/pcb_status.py`. Everything below the fence is
 `key: value` (one per line); `#` lines and blanks are ignored by the reader.
 
 <!-- reader parses from here down -->
-stage:   sealed
-step:    "v1.1 SEALED: 07_releases/crow-recorder-central-v2-v1.1-2026-07-24 (seal d9d5ae1 on source S b08f182). Supersedes v1.0 (external DO-NOT-ORDER + LV-strap P0). Fresh lens ORDER on the final bytes."
-measure: "DRC 0/0/0 standalone; ERC 0/1201; parity 0; port nets 115/115+8/8; policy 0 FAIL (M-REL+R-LEN PASS); twin 0 (160/359); MANIFEST 47/47 both directions; freshness PASS; pin+render PASS; lens ORDER"
-state:   done
-next:    "Order per ORDER_README (JLC06161H-3313 stackup + ADVANCED small-via + FILLED+CAPPED vias REQUIRED; sec 1a U1 fab note; sec 3a assembly closure; sec 4a first-article gates incl. USB-HS matrix + U1 EP X-ray). v-next: ADR-0007 OVP/F_BEEP + D_USB in-path."
+stage:   respin-v1.2
+step:    "v1.2 fix LANDED at source: 13x 100nF on 0V9 (ds XM-014532-PC-2.0.0 §14 p.29 'at least 12'); C_c9..C_c13 anchored at under-served pins; C_b0v9 slot swap; TDI->In3 reroute; routing gate GREEN from committed source."
+measure: "DRC 0/0/0 (severity-all+refill+parity); port nets 115/115+8/8; netlist diff vs v1.1 = exactly 5 caps; USB pair 23.621/23.511 skew 0.110 0 vias; EP 16 vias; LV straps unconnected; worst pin-to-cap 3.22mm (50/54: 2.01/2.02)"
+state:   in-work
+next:    "rebuild_all parity -> semantic battery -> twin -> M-BOM -> ORDER_README F2 criteria -> stage v1.2 -> release gates + M-CONS -> INITIAL battery + fresh lens -> 2-commit seal + SUPERSEDED.md on v1.1"
 op_pid:
-updated: 2026-07-24T11:03:34
+updated: 2026-07-24T13:10:00
