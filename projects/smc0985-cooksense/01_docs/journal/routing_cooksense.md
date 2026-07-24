@@ -652,3 +652,15 @@ NOT yet rebuilt. All other source staged. No git touched.
 - result: cooksense-v1.0-2026-07-23 SEALED and IMMUTABLE.
 - open: INTERPOSER Board C deferred (coupon-gated); M-REL glob gap chip pending;
   ORDER_README order-day stock recheck before upload.
+
+## 2026-07-24 07:40 — iterate 1 (v1.1 comb, race 1)
+- did: first full --reroute race on the rot0 comb board (188x92).
+- result: DRC 4 violations / 5 unconnected / 0 parity. CLASSIFIED: 2
+  courtyards_overlap (U_ULNB<->H4 hole; R_STOP<->H2 hole — anchor vs
+  mounting-hole courtyard, placement config), 2 items_not_allowed (R_BID1 +
+  R_LCCLK legalized INTO esc_U_EXP_S corridor — near-pattern/seed blind to the
+  corridor), 5 unconnected all south-band logic (C_SR1 3V3 via gap, D_LCCLK
+  GND via gap, COIL_D3_N K_D3->ULN_B, DECU_G1 x2 R_DECUPD). No comb/keypad
+  finding — the isolation topology routed clean on the first race.
+- next: floorplan fixes (ULN_B 186->184, R_STOP 190->186, loadcell seeds +3..+1
+  east of corridor, explicit R_BID0/1 seeds west of corridor) -> race 2.

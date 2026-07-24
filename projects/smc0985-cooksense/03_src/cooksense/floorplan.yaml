@@ -98,7 +98,7 @@ placement:
     K_STOP:  [193.64, 38.0, 0]
     # keypad solder-selects (isolated domain, north band near their reeds)
     R_KEY:   [170.0, 16.0, 0]        # RKEY_MID @ K_PRESS (pocket r10r11 -> band)
-    R_STOP:  [190.0, 16.0, 0]        # RSTOP_MID @ K_STOP (east end pocket -> band)
+    R_STOP:  [186.0, 16.0, 0]        # RSTOP_MID @ K_STOP (east end pocket -> band; 190->186: H2 courtyard)
 
     # ============ POWER + PROTECTION (SW, series-current order; v1.0 +12y) ============
     J_PWR:       [22.0, 60.0, 0]     # Micro-Fit vertical (mates top); W edge
@@ -115,7 +115,7 @@ placement:
     # ============ DRIVE CHAIN: 595 -> 238/one-shot -> ULN (under coil gaps) ============
     # ULNs sit under COIL gaps (logic x-windows) with all pads y>=53.
     U_ULNA: [95.0, 59.0, 0]          # ULN2803 A -> reeds 1-8 coils (gaps g1-g4)
-    U_ULNB: [186.0, 59.0, 0]         # ULN2803 B -> reeds 9-12 coils (gaps g5-g6)
+    U_ULNB: [184.0, 59.0, 0]         # ULN2803 B -> reeds 9-12 coils (gaps g5-g6; 186->184: H4 courtyard)
     U_DECU: [74.0, 66.0, 0]          # 238 -> SEL_U1..6 (ULN_A up-selects)
     U_DECD: [120.0, 66.0, 0]         # 238 -> SEL_D1/D2 (ULN_A) + SEL_D3/D4 (ULN_B)
     U_ONESHOT: [150.0, 62.0, 0]      # 1G123 press one-shot -> PRESS_TIMED (ULN_B)
@@ -188,16 +188,21 @@ placement:
     R_PG:   [64.0, 60.0]
     C_IN1:  [56.0, 55.0]
     C_IN2:  [53.0, 55.0]
-    # loadcell locals (clear seeds N of J_LOADCELL @148,97; body top y94)
-    R_LCCLK: [143.0, 91.0]
-    R_LCDAT: [147.0, 91.0]
-    D_LCCLK: [153.0, 91.0]
-    D_LCDAT: [157.0, 91.0]
+    # loadcell locals (clear seeds N of J_LOADCELL @148,97; body top y94;
+    # x>=146: clear of the esc_U_EXP_S corridor x135.3..144.7)
+    R_LCCLK: [146.0, 91.0]
+    R_LCDAT: [150.0, 91.0]
+    D_LCCLK: [154.0, 91.0]
+    D_LCDAT: [158.0, 91.0]
     # analog 3V3 decouplers (post-ferrite)
     C_3V3A1:  [40.0, 68.0]
     C_3V3A2:  [44.0, 68.0]
-    # expander reset R, WEST of U_EXP (keep clear of its SOUTH escape corridor)
+    # expander reset R + I2C bus Rs, WEST of U_EXP (keep clear of its SOUTH
+    # escape corridor x135.3..144.7 — the near-U_EXP pattern alone dropped
+    # R_BID1 into the corridor, DRC items_not_allowed 2026-07-24)
     R_EXPRST: [130.0, 84.0]
+    R_BID0:   [130.0, 86.0]
+    R_BID1:   [133.0, 86.0]
 
   patterns:
     # ---- decoupling: each cap hard against its IC ----
