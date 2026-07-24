@@ -79,6 +79,38 @@ rails:
   #   ir_budget_mohm: 60        # worst-case board+connector+cable series R, mΩ
   #   margin: 0.2               # OPTIONAL headroom margin over the IR drop (default 0.2)
 
+  # OPTIONAL per-rail `feedback:` — the divider-tolerance window (2026-07-23,
+  # usb-hub-3s-v3 external review): the gates accepted AUTHOR-DECLARED
+  # vout_min/vout_max, and the author computed them from ONLY the regulator
+  # reference tolerance (Vref ±1.5%), omitting the divider resistors' — the
+  # real window (Vref 1.215V ±1.5%, Rtop 4.12k ±0.1%, Rbot 1.21k ±1%) is
+  # 5.227-5.479V vs the declared 5.27-5.43V, and nothing could catch it.
+  # With the block present the checker COMPUTES the worst-case corners of
+  #   vout = vref * (1 + r_top/r_bottom)
+  #   low  = vref_min * (1 + r_top_min / r_bottom_max)
+  #   high = vref_max * (1 + r_top_max / r_bottom_min)
+  # and (a) E-TOPO + E-MARGIN FAIL if the DECLARED window is NARROWER than the
+  # computed one (under-stated corners), (b) E-MARGIN grades headroom from the
+  # COMPUTED worst-low, not the declared vout_min. All six fields are REQUIRED
+  # when the block is present (a partial tolerance stack is the incident in
+  # disguise). Absent -> declared window taken at face value (back-compat).
+  # - name: USB-C
+  #   vin_min: 9.0
+  #   vin_max: 12.6
+  #   vout_min: 5.22            # must COVER the computed 5.227-5.479 corners
+  #   vout_max: 5.48
+  #   iout_max_A: 5
+  #   converter: LM5116MHX-NOPB
+  #   load_uv_threshold: 4.63
+  #   ir_budget_mohm: 88
+  #   feedback:
+  #     vref: 1.215             # regulator FB reference, V
+  #     vref_tol_pct: 1.5       # reference tolerance, %
+  #     r_top_ohm: 4120         # divider top (output -> FB), Ω
+  #     r_top_tol_pct: 0.1      # its tolerance, %
+  #     r_bottom_ohm: 1210      # divider bottom (FB -> GND), Ω
+  #     r_bottom_tol_pct: 1.0   # its tolerance, %
+
   # A full-PD rail (5-20V) legitimately overlaps Vin -> buck_boost is REQUIRED
   # and a buck_boost part PASSES (not over-engineering):
   # - name: USB-C-PD

@@ -278,5 +278,113 @@ def t_todo_readme():
     must_fail(gate(d2), "TODO placeholder must block", "DRAFT README")
 
 
+# ---------------------------------------- docs-only supersede mode
+# usb-hub-3s-v3 v1.4 (2026-07-23): a documentation-only supersede release
+# INTENTIONALLY ships fab/ byte-identical to its predecessor — the board did
+# not change, only the docs did. The default stale check flags exactly that
+# identity as a defect; `--docs-only-supersede <prior>` ASSERTS the declared
+# identity instead: fab/source/3d MUST match the prior byte-for-byte (any
+# deviation FAILs — a "docs-only" release that changes fab is lying),
+# identical pdf/ is allowed, and ORDER_README + MANIFEST MUST differ.
+# RED-VERIFIED (git-swap, 2026-07-23): against pre-change
+# release_freshness_check.py the flag is an unrecognized argument (argparse
+# exit 2 carrying none of the asserted findings), so every docs-only case
+# below goes RED — verified by swapping git HEAD's script back in (all four
+# docs-only tests failed), then restoring the fixed script (all pass). The
+# default mode is byte-for-byte untouched: t_stale_pdf / t_stale_fab above
+# still prove the normal-mode identical-artifact teeth.
+def docs_only_root():
+    """A prior v1.3 and a docs-only v1.4 whose fab/ + pdf/ are byte-identical
+    to it (docs differ automatically: MANIFEST/README embed the version)."""
+    root = tmpdir("relfresh_docsonly_")
+    tags = {"assembly_front.pdf": "front-v1.3",
+            "assembly_back.pdf": "back-v1.3"}
+    d1 = make_release(root, "1.3", pdf_tags=tags)
+    d2 = make_release(root, "1.4", pdf_tags=tags)
+    # fab must be byte-identical to the prior (make_release keys it by ver)
+    (d2 / "fab" / "demo_gerbers.zip").write_bytes(_blob("gerber-1.3"))
+    return root, d1, d2
+
+
+def dgate(d2, d1, *extra):
+    return gate(d2, "--docs-only-supersede", str(d1), *extra)
+
+
+@test("release_freshness --docs-only-supersede PASSES a true docs-only "
+      "release: identical fab+pdf ASSERTED, changed README+MANIFEST")
+def t_docs_only_pass():
+    """The v1.4 shape: fab/ and pdf/ byte-identical to v1.3, ORDER_README and
+    MANIFEST rewritten. The identity that the default mode would flag as
+    STALE is asserted, not flagged."""
+    _, d1, d2 = docs_only_root()
+    r = must_pass(dgate(d2, d1), "a true docs-only supersede")
+    contains(r.out, "byte-identical", "notes the asserted identity")
+    contains(r.out, "FRESHNESS: PASS", "verdict")
+    not_contains(r.out, "STALE", "identical artifacts are not flagged stale")
+    # and the SAME tree in DEFAULT mode still fails (its pdf+fab are
+    # identical to a lower-version sibling): the mode is opt-in, the
+    # default gate's teeth are intact.
+    rd = must_fail(gate(d2), "default mode still flags the identity", "STALE")
+    contains(rd.out, "FRESHNESS: FAIL", "default-mode verdict")
+
+
+@test("release_freshness --docs-only-supersede FAILS when ONE fab file "
+      "differs from the prior (a 'docs-only' release that changes fab is "
+      "lying)", kind="known_bad")
+def t_docs_only_fab_differs():
+    """Break the clean case in exactly one way: v1.4's gerber zip gets fresh
+    bytes. Docs-only mode must FAIL naming the file — a fab deviation means
+    this is NOT a docs-only release and needs a full seal."""
+    _, d1, d2 = docs_only_root()
+    (d2 / "fab" / "demo_gerbers.zip").write_bytes(_blob("gerber-1.4-tweak"))
+    r = must_fail(dgate(d2, d1), "a differing fab file must block",
+                  "DOCS-ONLY DEVIATION")
+    contains(r.out, "fab/demo_gerbers.zip", "names the deviating file")
+    contains(r.out, "lying", "says what a fab change means here")
+    contains(r.out, "FRESHNESS: FAIL", "verdict")
+
+
+@test("release_freshness --docs-only-supersede FAILS an UNCHANGED "
+      "ORDER_README (a supersede that changes no docs supersedes nothing)",
+      kind="known_bad")
+def t_docs_only_readme_unchanged():
+    """Break the clean case the other way: v1.4 ships v1.3's ORDER_README
+    byte-for-byte. The release's entire point is the changed documentation,
+    so an identical README is a FAIL."""
+    _, d1, d2 = docs_only_root()
+    (d2 / "ORDER_README.md").write_bytes(
+        (d1 / "ORDER_README.md").read_bytes())
+    r = must_fail(dgate(d2, d1), "an unchanged README must block",
+                  "DOCS-ONLY UNCHANGED")
+    contains(r.out, "order README", "names the unchanged document")
+    contains(r.out, "supersedes nothing", "explains why it blocks")
+
+
+@test("release_freshness --docs-only-supersede FAILS an unchanged MANIFEST "
+      "(the new release must re-state what it measured)", kind="known_bad")
+def t_docs_only_manifest_unchanged():
+    """Same axis, other document: an identical MANIFEST means the release
+    never re-declared its own identity/gates — FAIL."""
+    _, d1, d2 = docs_only_root()
+    (d2 / "MANIFEST.txt").write_bytes((d1 / "MANIFEST.txt").read_bytes())
+    r = must_fail(dgate(d2, d1), "an unchanged MANIFEST must block",
+                  "DOCS-ONLY UNCHANGED")
+    contains(r.out, "MANIFEST.txt", "names the unchanged document")
+
+
+@test("release_freshness --docs-only-supersede still runs the draft-README "
+      "check (b/c gates keep their teeth in this mode)", kind="known_bad")
+def t_docs_only_draft_readme_still_bites():
+    """Docs-only mode replaces ONLY the stale check. A draft-marker
+    ORDER_README (which also differs from the prior, so the changed-docs
+    assertion passes) must still block via check (c)."""
+    _, d1, d2 = docs_only_root()
+    (d2 / "ORDER_README.md").write_text(_README_DRAFT.format(ver="1.4"))
+    r = must_fail(dgate(d2, d1), "a draft README must still block",
+                  "DRAFT README")
+    not_contains(r.out, "DOCS-ONLY UNCHANGED",
+                 "the draft README did change vs the prior — only (c) fires")
+
+
 if __name__ == "__main__":
     main()

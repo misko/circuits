@@ -25,6 +25,15 @@ stock, twin).
   defects usb-hub-3s-v3 v1.2 shipped DO-NOT-ORDER past every other gate
   (2026-07-23). Documented same-name-identical exceptions (with a reason) go
   in `<release_dir>/verification/freshness_exceptions.txt`.
+- `release_freshness_check.py <release_dir> --docs-only-supersede <prior>`
+  is the mode for a DOCUMENTATION-ONLY supersede release (usb-hub-3s-v3
+  v1.4, 2026-07-23), which intentionally ships fab bytes identical to its
+  predecessor: declared identity is ASSERTED, not flagged — fab/, source/,
+  3d/ MUST be byte-identical to the prior release (any differing, missing,
+  or added file FAILS: a "docs-only" release that changes fab is lying),
+  identical pdf/ is allowed, the order README + MANIFEST MUST differ from
+  the prior's, and the audit==manifest + no-draft-marker checks still run.
+  Default mode is byte-for-byte unchanged.
 - Fetch/stock classifiers must treat any UNRECOGNIZED failure as a blocking
   failure, never as an affirmative disposition (the NO-CAD incident,
   2026-07-20).

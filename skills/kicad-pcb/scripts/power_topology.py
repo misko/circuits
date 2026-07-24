@@ -36,6 +36,28 @@ setpoint headroom must buy more series resistance than the delivery path will
 burn at Imax (with margin). The cable/connector ASSUMPTION is a judgment call
 ([H], red-team checklist); the arithmetic once assumed is [M] here.
 
+WHY THE feedback: TOLERANCE WINDOW EXISTS (E-TOPO + E-MARGIN)
+------------------------------------------------------------
+usb-hub-3s-v3 (2026-07-23, external review): the gate accepted AUTHOR-DECLARED
+vout_min/vout_max, and the author computed the window from ONLY the regulator
+reference tolerance (Vref +/-1.5%) — omitting the feedback DIVIDER resistors'
+tolerances. Real window for the USB-C rail (Vref 1.215 +/-1.5%, R12 4.12k
++/-0.1%, R13 1.21k +/-1%): 5.227-5.479 V; declared: 5.27-5.43 V. Every check
+downstream of the window (E-MARGIN headroom, the TVS-standoff comparison) was
+graded against corners the board cannot hold. The OPTIONAL per-rail
+`feedback:` block makes the corners COMPUTED, not declared:
+
+  feedback: {vref, vref_tol_pct, r_top_ohm, r_top_tol_pct,
+             r_bottom_ohm, r_bottom_tol_pct}
+  vout = vref * (1 + r_top/r_bottom)
+  computed low  = vref_min * (1 + r_top_min / r_bottom_max)
+  computed high = vref_max * (1 + r_top_max / r_bottom_min)
+
+When present: a DECLARED window NARROWER than the computed one is a FAIL in
+both E-TOPO and E-MARGIN (the author under-stated the corners), and E-MARGIN
+grades headroom from the COMPUTED worst-low, not the declared vout_min.
+Absent -> behavior unchanged (declared window taken at face value).
+
 WHY E-OFF EXISTS
 ----------------
 usb-hub-3s-v3 (2026-07-23, external review): a 3S-LiPo board tied both buck EN
@@ -202,6 +224,89 @@ def _num_opt(v, field, name):
     return None if v is None else _num(v, field, name)
 
 
+# OPTIONAL per-rail feedback-divider block: every field REQUIRED when the
+# block is present — a partial tolerance stack is the incident in disguise.
+FEEDBACK_FIELDS = ("vref", "vref_tol_pct", "r_top_ohm", "r_top_tol_pct",
+                   "r_bottom_ohm", "r_bottom_tol_pct")
+
+
+def _load_feedback(raw, name):
+    """Parse + validate a rail's `feedback:` block. None passes through."""
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        raise LoadError(f"rail {name!r} 'feedback:' must be a mapping with "
+                        f"fields {FEEDBACK_FIELDS}")
+    fb = {}
+    for f in FEEDBACK_FIELDS:
+        if f not in raw or raw[f] is None:
+            raise LoadError(
+                f"rail {name!r} feedback block is missing {f!r} — a "
+                f"divider-tolerance window needs ALL of {FEEDBACK_FIELDS}; a "
+                f"partial stack under-states the corners (the usb-hub-3s-v3 "
+                f"Vref-only window, 2026-07-23)")
+        fb[f] = _num(raw[f], f"feedback.{f}", name)
+    if fb["vref"] <= 0 or fb["r_top_ohm"] <= 0 or fb["r_bottom_ohm"] <= 0:
+        raise LoadError(f"rail {name!r} feedback: vref/r_top_ohm/r_bottom_ohm "
+                        f"must be positive")
+    for f in ("vref_tol_pct", "r_top_tol_pct", "r_bottom_tol_pct"):
+        if not (0 <= fb[f] < 100):
+            raise LoadError(f"rail {name!r} feedback: {f} {fb[f]:g} must be a "
+                            f"percentage in [0, 100)")
+    return fb
+
+
+def feedback_window(fb):
+    """Worst-case (vout_low, vout_high) from the divider tolerance corners.
+    vout = vref*(1 + r_top/r_bottom):
+      low  = vref_min * (1 + r_top_min / r_bottom_max)
+      high = vref_max * (1 + r_top_max / r_bottom_min)"""
+    vt = fb["vref_tol_pct"] / 100.0
+    tt = fb["r_top_tol_pct"] / 100.0
+    bt = fb["r_bottom_tol_pct"] / 100.0
+    lo = fb["vref"] * (1 - vt) * \
+        (1 + fb["r_top_ohm"] * (1 - tt) / (fb["r_bottom_ohm"] * (1 + bt)))
+    hi = fb["vref"] * (1 + vt) * \
+        (1 + fb["r_top_ohm"] * (1 + tt) / (fb["r_bottom_ohm"] * (1 - bt)))
+    return lo, hi
+
+
+# slack absorbing an honestly-ROUNDED declared corner (0.5 mV), never a
+# tolerance term someone actually omitted (those move the corner 10s of mV).
+_FB_ROUND_SLACK_V = 0.0005
+
+
+def grade_feedback_window(rail):
+    """(verdict, msg) for a rail's declared-vs-computed vout window. N-A when
+    the rail has no feedback block. FAIL when the DECLARED window is NARROWER
+    than the tolerance-corner window — the author under-stated the corners
+    (the usb-hub-3s-v3 Vref-only incident)."""
+    fb = rail.get("feedback")
+    if fb is None:
+        return "N-A", None
+    lo, hi = rail["fb_low"], rail["fb_high"]
+    hdr = (f"rail {rail['name']!r} feedback window: Vref {fb['vref']:g} V "
+           f"+/-{fb['vref_tol_pct']:g}%, Rtop {fb['r_top_ohm']:g} "
+           f"+/-{fb['r_top_tol_pct']:g}%, Rbot {fb['r_bottom_ohm']:g} "
+           f"+/-{fb['r_bottom_tol_pct']:g}% => computed worst-case "
+           f"{lo:.3f}-{hi:.3f} V vs declared {rail['vout_min']:g}-"
+           f"{rail['vout_max']:g} V")
+    probs = []
+    if rail["vout_min"] > lo + _FB_ROUND_SLACK_V:
+        probs.append(f"declared vout_min {rail['vout_min']:g} V is ABOVE the "
+                     f"computed worst-case low {lo:.3f} V")
+    if rail["vout_max"] < hi - _FB_ROUND_SLACK_V:
+        probs.append(f"declared vout_max {rail['vout_max']:g} V is BELOW the "
+                     f"computed worst-case high {hi:.3f} V")
+    if probs:
+        return "FAIL", (
+            f"{hdr} -> FAIL under-stated tolerance corners: "
+            + "; ".join(probs)
+            + " — the declared window omits reference/divider tolerance; "
+              "widen vout_min/vout_max to cover the computed corners")
+    return "PASS", f"{hdr} -> PASS: declared window covers the corners"
+
+
 def load_rails(path):
     """Parse + validate power_tree.yaml. Raises LoadError naming the offending
     rail on any schema problem (esp. a missing Vout ENVELOPE — the incident)."""
@@ -258,11 +363,16 @@ def load_rails(path):
         load_uv = _num_opt(r.get("load_uv_threshold"), "load_uv_threshold", name)
         ir_budget = _num_opt(r.get("ir_budget_mohm"), "ir_budget_mohm", name)
         rmargin = _num_opt(r.get("margin"), "margin", name)
+        fb = _load_feedback(r.get("feedback"), name)
+        fb_low = fb_high = None
+        if fb is not None:
+            fb_low, fb_high = feedback_window(fb)
         rails.append({
             "name": name, "vin_min": vin_min, "vin_max": vin_max,
             "vout_min": vout_min, "vout_max": vout_max, "iout": iout,
             "eff": eff, "converter": str(r["converter"]),
             "load_uv": load_uv, "ir_budget_mohm": ir_budget, "margin": rmargin,
+            "feedback": fb, "fb_low": fb_low, "fb_high": fb_high,
         })
     return rails, top
 
@@ -390,16 +500,25 @@ def grade_margin(rail, ir_floor_mohm):
     verdict in PASS / FAIL / N-A. N-A unless the rail declares
     load_uv_threshold (only a rail feeding a fixed-brownout load has a margin
     to check). vout_min is the WORST-CASE regulated output (lowest the rail
-    sits under tolerance), which is what the load actually sees."""
+    sits under tolerance), which is what the load actually sees. A rail with a
+    feedback: block is graded from the COMPUTED tolerance-corner worst-low
+    (fb_low), not the declared vout_min — the declared number is exactly what
+    the usb-hub-3s-v3 author got wrong (2026-07-23)."""
     uv = rail.get("load_uv")
     if uv is None:
         return "N-A", None
-    name, vout_min, iout = rail["name"], rail["vout_min"], rail["iout"]
+    name, iout = rail["name"], rail["iout"]
+    if rail.get("fb_low") is not None:
+        vout_min = rail["fb_low"]
+        src = " (COMPUTED worst-low from feedback tolerances)"
+    else:
+        vout_min = rail["vout_min"]
+        src = ""
     if iout <= 0:
         return "N-A", None
     headroom = vout_min - uv                        # volts of setpoint margin
     budget_mohm = headroom / iout * 1000.0          # series R the margin buys
-    hdr = (f"rail {name!r} (Vout_min {vout_min:g} V, load_UV {uv:g} V, "
+    hdr = (f"rail {name!r} (Vout_min {vout_min:.3f} V{src}, load_UV {uv:g} V, "
            f"Imax {iout:g} A): headroom {headroom * 1000:.0f} mV = "
            f"{budget_mohm:.0f} mOhm total IR budget at {iout:g} A")
     if headroom <= 0:
@@ -442,6 +561,9 @@ def run_margin_check(proj, ptp, nets_override=None):
     ir_floor = top.get("ir_floor_mohm")
     ir_floor = DEFAULT_IR_FLOOR_MOHM if ir_floor is None else float(ir_floor)
     graded = [grade_margin(r, ir_floor) for r in rails]
+    # a declared-vs-computed feedback window that under-states its corners is
+    # an E-MARGIN defect too: the headroom everyone reasons from is fiction.
+    graded += [grade_feedback_window(r) for r in rails]
     checked = [(v, m) for (v, m) in graded if v != "N-A"]
     if not checked:
         return 0, ["E-MARGIN N-A: no rail declares load_uv_threshold - no "
@@ -588,6 +710,12 @@ def run_check(proj, ptp, nets_override=None):
         lines.append(f"  {msg}")
         if verdict == "FAIL":
             fails.append(msg)
+        # declared-vs-computed feedback tolerance window (when declared)
+        fverdict, fmsg = grade_feedback_window(rail)
+        if fverdict != "N-A":
+            lines.append(f"  {fmsg}")
+            if fverdict == "FAIL":
+                fails.append(fmsg)
 
     # input-current worst case — always printed
     I, p_out, p_in, vin_min = worst_case_input_current(rails)
