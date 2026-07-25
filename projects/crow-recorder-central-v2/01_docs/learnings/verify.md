@@ -53,3 +53,58 @@ lesson, each with the measured incident. Fleet-worthy items are flagged
    hit v1.3 + pod retro-check): pinned-canonical schematic + count_parity +
    kicad-cli --schematic-parity carried the gate instead. Owned outside this
    board; do not fork-fix locally.
+
+## v1.4 (2026-07-25) — the CPL-correction release
+
+8. **A "fix" is a change of DIRECTION, and direction needs an INDEPENDENT
+   witness.** v1.3's evidence described its own change accurately — "exactly
+   these 10 rows, rotation column only" — and was still a DO-NOT-ORDER board,
+   because every number in it came from `jlc_twin.jlc_offset` and the table
+   that had been populated FROM `jlc_twin.jlc_offset`. Checker and checked
+   shared a method (canon M1), so the diff could be perfect and the sign
+   wrong. The missing artifact was cheap: ~110 lines re-deriving the angle
+   from the board plus JLC's cached model with an operator proven against
+   pcbnew, importing nothing from the tool under suspicion. Ship that
+   re-derivation with any release whose claim is "this value was wrong".
+
+9. **State the expected delta as a NUMBER before you look.** The v1.4 gate was
+   "exactly seven changed cells, zero rows added or removed, Q1/Q2/U9
+   unchanged — an eighth row means stop". That converts a review into an
+   assertion a machine can fail. Eyeballing a diff that is *mostly* what you
+   expected is how an off-by-one row ships.
+
+10. **A bug that is EXACTLY 180 degrees wrong leaves a fingerprint in WHICH
+    rows move.** The handedness negation is invisible at 0 and 180
+    (sign-invariant) and swaps 90 with 270. So the corrupted set is precisely
+    the 90/270-valued rows, and the 180-valued rows (Q1/Q2/U9 here) are proof
+    of the mechanism rather than an inconsistency. When a fleet-wide numeric
+    defect is suspected, partition the rows by the value the suspected
+    operator cannot move — the partition is the diagnosis.
+
+11. **"Hand-solder" was three different facts wearing one label.** v1.3's
+    paperwork listed J3-J10, U1, JP_INJ and J_DBG together under
+    hand-solder/consign. They are three different things: J3-J10 is a
+    MEASURED catalog wall (C99* consign-only codes at stock 0, no CAD, and the
+    one stocked near-match is not a land drop-in); U1 is CONSIGNED, which
+    means POPULATED — JLC places it and it stays on the CPL; JP_INJ/J_DBG are
+    DNP-by-design, and a catalog query proves there is no wall at all (JLC
+    stocks 2.54 mm headers by the tens of thousands). `assembly.yaml`'s closed
+    `reason:` vocabulary forces that separation; the prose sentence it
+    replaced could not.
+
+12. **`consigned:` needs `msl:`, and that means a datasheet read at PART
+    stage.** This project's XU316 part.yaml had no `msl:` row while the
+    sibling board's copy of the SAME part had one — which is exactly how
+    crow-recorder-central v1.0 shipped a consigned MSL-3 SoC with zero MSL
+    text in its order paperwork. Backfilled here from ds v2.0.0 s14.5 p33
+    (MSL 3, 168 h, bake per J-STD-033D). A consigned reel's moisture control
+    is OURS; the assembler cannot bake what nobody told them about.
+
+13. **Check the archive's self-containment on THIS board rather than
+    inheriting the neighbour's verdict.** usb-hub-3s-v3 ships an
+    `fp-lib-table` pointing out of the release; the honest test is one
+    command — copy `source/` alone somewhere else and run DRC. This board
+    passes (0/0/0, zero `lib_footprint_issues`; both vendored libraries
+    resolve via `${KIPRJMOD}` and ship inside `source/`). Ship the result as
+    evidence either way; "we don't have that defect" without the run is the
+    same class of inherited claim as a copied waiver.

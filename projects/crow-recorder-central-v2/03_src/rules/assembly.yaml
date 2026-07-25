@@ -1,0 +1,119 @@
+# assembly.yaml — crow-recorder-central-v2 ASSEMBLY INTENT (canon A-POP / A-STOCK)
+#
+# Seeded from skills/pcb-design/templates/03_src/rules/assembly.yaml (the KEYS
+# are the contract); every value below is measured for THIS board.
+#
+# This file is the ONE machine-readable home for "who gets placed, and why not".
+# The release MANIFEST's `not_assembled:` line is GENERATED from it — never
+# hand-written in two places. Read by:
+#   assembly_coverage.py <release_dir|project>      (A-POP)
+#   release_freshness_check.py <release_dir> (e)    (A-STOCK)
+#
+# WHY IT LANDS AT v1.4. Sealed v1.3 had NO assembly.yaml at all: A-POP measured
+# board=203 footprints / cpl=177 placements / unpopulated=26 / declared=0 and
+# reported UNDECLARED-UNPOPULATED on all 26, plus DECLARED-BUT-PLACED on U1 —
+# whose MANIFEST line said `U1 (XU316 consign)` under `not_assembled:` while U1
+# sits ON the CPL. Consigned means POPULATED: we ship the part, JLC PLACES it.
+# That conflation is the exact defect `consigned:` exists to prevent.
+
+# ---- SERVICE DECLARATION -----------------------------------------------------
+service: standard          # JLC assembly service tier as ORDERED. `standard` is
+                           # required, not preferred: this order carries a
+                           # CONSIGNED line (U1, see consigned: below) and a
+                           # 0.4mm-pitch TQFP-128 with a pasted exposed pad.
+                           # Declaration of INTENT — no fetched capability
+                           # numbers are asserted here.
+sides: [top]               # MEASURED from the shipped CPL 2026-07-25: placement
+                           # histogram top=177, bottom=0. Single-sided SMT; no
+                           # bottom-side process is ordered or paid for.
+fiducials: none            # DELIBERATE, and a recorded limitation, not silence.
+                           # No FID footprints exist on this board (0 refs match
+                           # ^FID/^MH on the sealed 04_kicad board, measured
+                           # 2026-07-25). JLC's own panel-rail fiducials carry
+                           # the order. LOCAL fiducials beside U1 (0.4mm pitch)
+                           # were NOT placed and cannot be added to a sealed
+                           # board — carried as a v-next layout item in
+                           # ORDER_README section 6, not silently omitted.
+build_quantity: 5          # boards in this order; A-STOCK grades stock >= qty x 5
+
+# ---- NOT ASSEMBLED (the population set) --------------------------------------
+# {board} - {CPL} = 26 refs. 16 are covered by exempt_prefixes: below (H*, TP*);
+# the 10 real decisions are declared here. Every ref listed carries
+# `exclude_from_pos_files` on the sealed board (verified 2026-07-25, all 26).
+not_assembled:
+  - refs: [J3, J4, J5, J6, J7, J8, J9, J10]
+    reason: not_in_catalog
+    evidence: "JLC parts-library query 2026-07-25, keyword 'RJHSE-5384' -> 3
+               hits: C9900035627 (the code on our BOM) stock 0, C9900056698
+               stock 0 — both C99* CONSIGN-ONLY PLACEHOLDERS with no EasyEDA
+               CAD, i.e. no assembly line JLC can run; and C3179625
+               (RJHSE-5384-02) which is a different variant. Broader query
+               'RJHSE' 2026-07-25 returns 8 stocked Amphenol jacks, of which
+               the closest is C464587 (RJHSE5384, stock 658) — MEASURED
+               2026-07-23 by jlc_twin as NOT a land drop-in for our
+               RJ45_RJHSE538X_num footprint (PAD-GEOM d8.07mm vs our pads,
+               MODEL-SELF), recorded in 02_parts/RJHSE-5384/part.yaml and
+               explicitly flagged do-not-substitute-silently. So the exact
+               land-compatible part is not orderable as a placed line: this is
+               a sourcing wall we HIT and measured, not a style preference."
+    disposition: "hand-soldered THT at integration; ORDER_README section 3
+                  lists them and section 3a requires confirming they are ABSENT
+                  from the JLC placement preview"
+  - refs: [JP_INJ, J_DBG]
+    reason: dnp_by_design
+    evidence: "NOT a sourcing wall — proven by query, and this correction
+               matters: v1.3's ORDER_README called both 'uncoded, hand-solder',
+               which reads as scarcity. JLC parts-library query 2026-07-25 for
+               2.54mm THT pin headers returns stocked parts (C2337 1x40
+               straight pin, stock 86244; C52016391 PH254-01-03-Z 1x03, stock
+               29861), so the catalog CAN supply these. They are deliberately
+               unstuffed instead: JP_INJ (1x03, beep-injector strap) and J_DBG
+               (1x08, 1V8 JTAG) are bring-up/debug-only aids on a single-sided
+               SMT order (sides: [top]) whose only other THT parts are already
+               off the CPL. Both carry a BLANK LCSC on fab/bom.csv and
+               `exclude_from_pos_files` on the board, so nothing on the order
+               form contradicts this."
+    disposition: "left unstuffed at assembly; hand-fit a 2.54mm header at the
+                  bench only if debug/injection is needed. ORDER_README
+                  section 3."
+
+# ---- CONSIGNED (we supply, JLC PLACES — these stay ON the CPL) ---------------
+consigned:
+  - refs: [U1]
+    lcsc: C6938291
+    msl: "MSL 3, 168h floor life below 30C / 60% RH; bake per J-STD-033D if
+          exceeded or if the humidity-indicator card reads high. Source: XMOS
+          XU316-1024-TQ128 xcore.ai datasheet XM-014532-PC v2.0.0 section 14.5
+          'Moisture Sensitivity' p.33, read from the archived PDF
+          02_parts/XU316-1024-TQ128-I24/ on 2026-07-25 (sha256 recorded in
+          part.yaml). Reflow profile per J-STD-020 (section 14.6)."
+    evidence: "JLC stock MEASURED 0 on 2026-07-25 (jlc_stock_check.py:
+               'LOW_STOCK(0) C6938291 x1 expand stock=0'), unchanged from
+               2026-07-24 — ADR-0003 records this line as chronically 0 and
+               therefore consignment/global-sourcing. U1 IS PLACED: it is on
+               fab/cpl.csv at 270.0 deg and stays there."
+    disposition: "ORDER_README section 2 (consignment line), section 3a
+                  (MANDATORY pin-1 preview gate), section 3b (MSL-3 handling:
+                  ship dry-packed with the order, HIC check at bag-open, log
+                  floor life, bake before reflow if the 168h window is blown).
+                  JLC places it."
+
+# ---- SOURCING PLAN (justifies a non-OK stock line at seal time) --------------
+sourcing_plan:
+  - lcsc: C6938291
+    measured_stock: 0
+    measured_on: 2026-07-25
+    plan: "CONSIGNED — JLC stock is IRRELEVANT for this line. We supply U1
+           (XU316-1024-TQ128-I24) from global distribution; JLC only places it.
+           Measured JLC stock on 2026-07-25 is 0 and has been 0 at every check
+           since 2026-07-23 (ADR-0003), which is exactly why the part is
+           consigned rather than sourced by the assembler. See consigned: U1
+           above for the MSL-3 handling that rides with the consignment."
+
+# ---- EXEMPT REFDES CLASSES ---------------------------------------------------
+# Prefixes whose CPL absence needs no per-ref entry. Both classes verified on
+# the sealed board 2026-07-25: H1-H4 are MountingHole_3.2mm_M3 footprints with
+# board_only + exclude_from_bom + exclude_from_pos_files and no pads on a net;
+# TP1-TP12 are TestPoint_Pad_D1.5mm bare probe pads with exclude_from_bom +
+# exclude_from_pos_files and no part. 16 refs total.
+exempt_prefixes: [H, TP]

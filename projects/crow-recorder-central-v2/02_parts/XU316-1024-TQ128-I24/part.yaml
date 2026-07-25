@@ -165,6 +165,7 @@ limits:
   usb_vdd33: "3.30V (3.00/3.30/3.60)"
   usb_vdd18: "1.80V (1.62/1.80/1.98)"
   temp_grade: "-I24 = Industrial -40..+85C, 2400 MIPS (C24 = Commercial 0..70C)"
+  msl: "MSL 3, 168h floor life below 30C / 60% RH; bake per J-STD-033D if exceeded or if the moisture-indicator card reads high; reflow per J-STD-020 (ds v2.0.0 s14.5 'Moisture Sensitivity' p33 + s14.6 'Reflow'). LOAD-BEARING for a CONSIGNED part: JLC cannot bake what they are not told is moisture-sensitive, and moisture control on a consigned reel is OURS, not the assembler's. Required by 03_src/rules/assembly.yaml consigned: msl:. Added 2026-07-25 (v1.4) — this row was MISSING here while the sibling crow-recorder-central board's copy carried it, which is how crow-recorder-central v1.0 shipped a consigned MSL-3 SoC with zero MSL text in its order paperwork."
   xi_note: "24 MHz crystal, +/-500 ppm or better, 12pF load, ESR<=60R. Circuit: Rf=1M across XIN/XOUT, Rd=680R series to XOUT, CL1=CL2=22pF (datasheet lists FA-238 exactly). Alt: drive 1.8V low-jitter clock into XIN (must run before reset released). For USB, clock must be 12 or 24 MHz."
 gotchas:
   - "STOCK: JLC assembly stock chronically 0 -- CONSIGNMENT/global-sourcing line (ADR-0003)."
