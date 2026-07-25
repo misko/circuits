@@ -752,3 +752,69 @@ NOT yet rebuilt. All other source staged. No git touched.
   (g) explicit User.2 edge deny bands (S/W/E, 0.8mm) — the mechanism KRT provably respects — full chain re-running; stranded-pad stubs to be re-derived ON the new promoted chain with the measured-site scanner (in-plane + clearance sweep).
 - result: measured; chain g in flight. Pattern harvested: EVERY stochastic-realization-coupled artifact (stubs, island sites) must be re-derived per promoted chain; wave PROMOTION (not iteration bumps) is the durable fix for walled late-wave pads.
 - next: chain g DRC → stubs → deterministic finish → M-REPRO.
+
+## 2026-07-25 00:45 — resume on Opus (task #21): stitch BLOCKED by a placement defect (D-BACK)
+- did: promoted the CLEAN converged race winner c0/r7 (0 routed-unc/0 viol,
+  quick CLEAN) into 03_src/.../route/final_chain.kicad_pcb (was the stale
+  v1.1-era 01:21 chain) — checkpoint f6ee6f0. Then drove the stitch across
+  successive <10min blocking calls (the os.execv SWIG barrier re-execs make one
+  invocation exceed the 10-min tool cap; TERM-then-KILL guard + pkill needed —
+  a bare `timeout` SIGTERM leaves the process alive inside a pcbnew C++ call and
+  the ORPHAN races the next chunk, corrupting state: that is the
+  "background-and-yield" hazard, here in disguise).
+- STITCH DIAGNOSIS (the prior "STITCH_EXIT=1"): TWO independent problems.
+  1. heal_islands died on a 1.6x1.6mm F.Cu GND fill patch at (123.8,87.5),
+     fenced by the NEW v1.2 pull cluster's F.Cu escapes (RAIL_EN_A/B, KEY_CLOCK).
+     GROUND TRUTH (kicad-cli DRC on the filled board): NO violation/unconnected
+     there — a GND via's copper overlaps the patch so KiCad connectivity ties it
+     to the plane; heal_islands is a FALSE POSITIVE (its _island_holds uses
+     via-CENTRE-in-poly, stricter than KiCad's copper-overlap). No via can be
+     added to satisfy heal (every in-patch point is <0.85mm from an existing GND
+     via = spacing + hole-to-hole conflict). skills/ is read-only so _island_holds
+     can't be fixed here. This alone is benign, but:
+  2. THE REAL BLOCKER — 5 NEW-v1.2 plane-bond pads strand after the full rescue
+     chain (pad_rescue rings->2.7mm/15deg + stub_fallback + astar all MAXED):
+       C_DVDT.2 (GND)     — bondable (1 legal via-in-pad site)
+       C_TCAV.2 (GND)     — TRAPPED: 5V_PROTECTED B.Cu trunk routed UNDER the pad;
+                            even a via-in-pad fails sublayer clearance
+       C_TCPA.2 (GND)     — TRAPPED: boxed by TC_POS/TC_NEG/TC_FAULT_N escapes
+       R_REARMPU.2 (3V3)  — TRAPPED: dense south pull cluster
+       C_AND3.1 (3V3)     — TRAPPED in c0; frees in c1/c2
+     plus an SDA_A F.Cu/B.Cu 0.14mm-fragment gap. MEASURED feasibility across
+     ALL THREE race realizations (c0/c1/c2 r7): C_TCAV.2 and C_TCPA.2 are
+     TRAPPED in EVERY realization. Placement is deterministic across the race
+     (only routing re-rolls), so no re-race of the CURRENT floorplan can free
+     them. => this is a PLACEMENT defect, not a stitch bug (CLAUDE.md: "a routing
+     failure is usually a PLACEMENT problem"). c0/r7's "convergence" was
+     0-ROUTED-unconnected only; the plane-pad bonds were never closed.
+- ROOT CAUSE: C_TCAV/C_TCPA are auto-placed `{match: "C_TC*", near: U_TC}` and
+  land inside U_TC's (MAX31856) SPI/TC escape field with the 5V_PROTECTED trunk
+  crossing under; R_REARMPU is auto-placed into the south pull cluster. Auto
+  placement is blind to plane-bond access.
+- THE FIX (known, documented mechanism — same class as the v1.1 ADC-cluster
+  GND-via reservations already in prep.keepouts): for each trapped plane pad add
+  a User.2 keepout rect over the pad + its via site (User.2 fences OTHER-net
+  tracks off BOTH F.Cu and B.Cu during KRT; the plane net is KRT-excluded so
+  nothing legit routes there), sized to leave the part's SIGNAL pad escape clear:
+    C_TCAV.2  GND  @64.18,80.9  (pad1 3V3 @63.22 ALSO plane — reserve BOTH or
+                                 re-orient; note 5V_PROTECTED must be pushed off
+                                 the B.Cu under-pad — may also need a sig deny
+                                 rect / a small floorplan nudge of C_TCAV east)
+    C_TCPA.2  GND  @68.98,77.0  (pad1 TC_POS signal @68.02 escapes WEST — reserve
+                                 east-biased, clear of x<68.3)
+    R_REARMPU.2 3V3 @122.51,91.5 (pad1 REARM_N signal @121.49 escapes WEST)
+  Then rebuild_all.sh --reroute (full KRT re-race) so signals route AROUND the
+  reservations, then the deterministic stitch drops via-in-pads. If C_TCAV's
+  5V_PROTECTED-under-pad cannot be cleared by a reservation alone, nudge C_TCAV
+  a few mm to open B.Cu under pad2 (placement is the real lever).
+- result: STOPPED per guardrail (stitch cannot reach a clean exit; a design/
+  placement fix round is required). Repo left CLEAN: c0/r7 promotion kept
+  (f6ee6f0); route.yaml/04_kicad reverted to HEAD; no half-stitched board
+  committed. Semantic gate (E-INV 60/60, net_label_survival 159) UNAFFECTED —
+  placement/routing changes do not touch the netlist, so those stay valid across
+  the re-route.
+- next: add the 3 via-reservation rects (+ any C_TCAV nudge) to
+  03_src/cooksense/route.yaml prep.keepouts and floorplan.yaml; rebuild_all.sh
+  --reroute; re-verify c0/r7 stitches to 0/0/0 (all 5 plane pads bond); then
+  the full v1.2 gate battery + INITIAL review + safety-chain truth-table + fresh
+  lens + seal. E-INV/net_label_survival carry forward (netlist unchanged).
