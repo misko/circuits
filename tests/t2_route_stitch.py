@@ -1545,6 +1545,106 @@ def t_kb_heal_before_fill():
     must_fail(stitch(p), "heal before fill", "AFTER `fill`")
 
 
+# --- island seating agrees with KiCad copper-touch, not via-CENTRE-in-poly ---
+# The seating predicate `_island_holds` decides which filled island belongs to
+# which same-net connectivity group. cooksense v1.2 (task#21, 2026-07-24) stalled
+# the stitch on a FALSE-positive orphan: a pinched-off GND fill patch whose only
+# same-net copper was a plane via whose ANNULAR RING overlapped it — but the via
+# CENTRE sat a hair OUTSIDE the patch outline. The old via-centre-in-poly seating
+# read the via as UNSEATED, so the patch became a phantom orphan group; no legal
+# NEW via could bridge it (every in-patch site is inside the existing via's
+# hole-to-hole spacing), so heal_islands declared it unbridgeable and the
+# post-refill re-verify HARD-ERRORED on copper `kicad-cli pcb drc --refill-zones`
+# reports as 0-unconnected. A `die()` there leaves the stitch resume-state behind,
+# so the babysitting driver re-execs and re-hits the same orphan forever. The fix
+# makes seating a COPPER-OVERLAP test (a disc of the via's ring radius reaching
+# the fill) — KiCad's own connectivity — WITHOUT weakening it: copper genuinely
+# out of reach is still UNSEATED, so a real orphan is still flagged.
+_PROBE_SEAT = r'''
+import sys, math
+sys.path.insert(0, "__SCRIPTS__")
+import pcbnew
+import route_and_stitch_generic as R
+MM = pcbnew.FromMM
+
+def sq(x0, y0, x1, y1):
+    c = pcbnew.SHAPE_LINE_CHAIN()
+    for x, y in [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]:
+        c.Append(pcbnew.VECTOR2I(MM(x), MM(y)))
+    c.SetClosed(True)
+    return c
+
+b = pcbnew.BOARD(); b.SetCopperLayerCount(2)
+gnd = pcbnew.NETINFO_ITEM(b, "GND"); b.Add(gnd)
+
+def via(x, y, w=0.6):
+    v = pcbnew.PCB_VIA(b); v.SetViaType(pcbnew.VIATYPE_THROUGH)
+    v.SetPosition(pcbnew.VECTOR2I(MM(x), MM(y)))
+    v.SetWidth(MM(w)); v.SetDrill(MM(0.3)); v.SetNet(gnd); b.Add(v); return v
+
+class Ctx: pcbnew = pcbnew
+ctx = Ctx()
+
+# A 3x3mm filled-island outline; a GND via whose ring (r=0.3mm) reaches its left
+# edge while the via CENTRE (x=9.85) is OUTSIDE the island (left edge x=10.0);
+# and a second GND via well out of reach.
+isl = {"chain": sq(10.0, 8.0, 13.0, 11.0), "layer": pcbnew.F_Cu}
+v_ring = via(9.85, 9.5)     # ring overlaps: 0.15mm outside, ring reaches 0.3mm
+v_far = via(5.0, 5.0)       # >5mm away, ring nowhere near
+
+# The pre-fix predicate, reproduced inline to prove the fixture is RED against it.
+def old_holds(o, item):
+    return o.PointInside(item.GetPosition())
+
+o = isl["chain"]
+print("OLD_RING_SEATED", old_holds(o, v_ring))     # the bug: False (missed)
+print("NEW_RING_SEATED", R._island_holds(ctx, isl, v_ring))   # fixed: True
+print("NEW_FAR_SEATED", R._island_holds(ctx, isl, v_far))     # still: False
+# _copper_reaches is exact at the boundary: ring radius == edge distance -> touch
+edge = o.NearestPoint(v_ring.GetPosition())
+d = math.hypot(edge.x - v_ring.GetPosition().x,
+               edge.y - v_ring.GetPosition().y) / 1e6
+print("RING_EDGE_MM %.4f" % d)
+'''
+
+
+@test("island seating uses copper-overlap (via ring), not via-centre-in-poly: "
+      "a ring-overlap island is SEATED, out-of-reach copper is NOT")
+def t_heal_island_ring_overlap_seated():
+    """The exact cooksense v1.2 false-positive, pinned at the predicate. A GND
+    via whose annular ring overlaps a pinched-off fill patch (centre just
+    outside the patch) is CONNECTED per KiCad, so `_island_holds` must SEAT it
+    — otherwise the patch is a phantom orphan that stalls heal_islands into a
+    resume-state loop. RED-VERIFIED INLINE: `OLD_RING_SEATED False` is the
+    pre-fix via-centre-in-poly verdict (the bug); the fixed copper-overlap
+    predicate returns `NEW_RING_SEATED True`. The fix does NOT weaken to
+    never-flag: a via >5mm away stays `NEW_FAR_SEATED False`, so a genuinely
+    isolated island is still its own group (still flaggable — the companion
+    integration guard is t_kb_heal_unbridgeable, which stays RED-capable)."""
+    d = tmpdir("t2_seat_")
+    probe = d / "probe.py"
+    probe.write_text(_PROBE_SEAT.replace("__SCRIPTS__", str(SCRIPTS)))
+    r = must_pass(run([KPY, probe]), "island-seating predicate probe")
+    contains(r.out, "OLD_RING_SEATED False",
+             "the pre-fix via-centre-in-poly test must MISS the ring overlap "
+             "(this is the fixture's RED baseline — if it seated the patch, "
+             "the fix would be untested)")
+    contains(r.out, "NEW_RING_SEATED True",
+             "the fixed copper-overlap seating must recognise the via ring "
+             "reaching the island as CONNECTED")
+    contains(r.out, "NEW_FAR_SEATED False",
+             "copper out of ring reach must stay UNSEATED — the fix must not "
+             "weaken orphan detection into never-flagging")
+    # the via CENTRE sits OUTSIDE the island (edge distance > 0, and
+    # OLD_RING_SEATED False confirms it), but by LESS than the 0.30mm ring
+    # radius, so the ring genuinely overlaps the fill — not an interior point
+    edge_mm = float([l for l in r.out.splitlines()
+                     if l.startswith("RING_EDGE_MM")][0].split()[1])
+    check(0.0 < edge_mm < 0.30,
+          f"fixture must have the via CENTRE outside the island but within the "
+          f"0.30mm ring radius, got edge distance {edge_mm}mm")
+
+
 # ==================== SAME-NET ZONE PRIORITY UNIFY (item 1, zones_intersect)
 # usb-hub-3s v1.0 hand-fixed same-net same-priority overlapping pours as the
 # "P3-union" (bump the smaller to a distinct priority); v1.1 re-learned it (3

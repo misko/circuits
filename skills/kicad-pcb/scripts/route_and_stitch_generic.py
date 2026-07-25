@@ -2284,21 +2284,61 @@ def p_island(ctx, c):
 
 
 # ------------------------------------------------- pour-island healing ----
+def _copper_reaches(o, center, radius):
+    """True if a disc of `radius` (IU) centred at `center` OVERLAPS the filled
+    outline `o` (a closed SHAPE_LINE_CHAIN): the centre is inside the fill,
+    OR the fill's nearest edge point is within `radius` of the centre.
+
+    This is KiCad's own copper-touch connectivity. A same-net via annular
+    ring, a track body, or a pad whose copper reaches a filled island is
+    CONNECTED to it — even when its geometric CENTRE sits just outside the
+    island. The old via-centre-in-poly test misses exactly this: a plane via
+    whose ring overlaps a pinched-off fill patch (the patch's own edge lies
+    across the ring, the via centre a hair outside it) reads as UNSEATED, so
+    the patch becomes a phantom orphan group that no legal via can bridge
+    (every in-patch site is inside the existing via's hole-to-hole spacing).
+    `heal_islands` then declares it unbridgeable and the post-refill re-verify
+    hard-errors on copper kicad-cli DRC reports as 0-unconnected — a FALSE
+    positive that stalls the stitch (cooksense v1.2, task#21, 2026-07-24)."""
+    if o.PointInside(center):
+        return True
+    if radius <= 0:
+        return False
+    np = o.NearestPoint(center)
+    dx, dy = np.x - center.x, np.y - center.y
+    return dx * dx + dy * dy <= radius * radius
+
+
 def _island_holds(ctx, isl, item):
-    """Is this same-net track/via/pad geometrically seated on the island?
-    (endpoint/position inside the FILLED outline, layer-aware)."""
+    """Is this same-net track/via/pad seated on the island — i.e. does its
+    COPPER overlap the FILLED outline (layer-aware)? Overlap, not centre-in-
+    poly: a via/track/pad connects to a pour the instant its copper touches
+    it, so the seating test must agree with KiCad's connectivity, or a fill
+    patch that overlaps a same-net via ring is mis-read as an orphan (see
+    _copper_reaches)."""
     o, lay = isl["chain"], isl["layer"]
     cls = item.GetClass()
     if cls == "PCB_VIA":
-        return (item.GetLayerSet().Contains(lay)
-                and o.PointInside(item.GetPosition()))
+        if not item.GetLayerSet().Contains(lay):
+            return False
+        try:                        # KiCad 10 vias carry a PER-LAYER annular
+            w = item.GetWidth(lay)  # ring; the layer-aware width is the ring
+        except TypeError:           # OD that actually overlaps this island
+            w = item.GetWidth()
+        return _copper_reaches(o, item.GetPosition(), w // 2)
     if cls == "PCB_TRACK":
         if item.GetLayer() != lay:
             return False
         s, e = item.GetStart(), item.GetEnd()
         mid = ctx.pcbnew.VECTOR2I((s.x + e.x) // 2, (s.y + e.y) // 2)
-        return any(o.PointInside(p) for p in (s, e, mid))
+        r = item.GetWidth() // 2
+        return any(_copper_reaches(o, p, r) for p in (s, e, mid))
     if cls == "PAD":
+        # A pad's centre-in-poly is kept deliberately strict: broadening it to
+        # the pad's circular bounding radius would over-reach a rect pad's real
+        # copper and risk merging a GENUINE orphan that merely sits near a pad
+        # (weakening the flag). The reported false-positive class is via-ring /
+        # track overlap, so only those two seating tests move to copper-touch.
         if item.GetDrillSize().x <= 0 and not item.IsOnLayer(lay):
             return False
         return o.PointInside(item.GetPosition())
