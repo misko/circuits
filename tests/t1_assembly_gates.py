@@ -1,0 +1,594 @@
+#!/usr/bin/env python3
+"""T1: the ASSEMBLY gates — A-POP (`assembly_coverage.py`) and A-STOCK
+(`release_freshness_check.py` check (e)).
+
+PCBA is the deliverable, but until 2026-07-25 nothing in `skills/`, `scripts/`
+or `tests/` had ever read a `cpl.csv` back. Of policy_audit's 32 check IDs
+exactly one touched a fab-order artifact and it graded only `bom.csv`. So both
+defect classes below reached a SEALED release and were found by a human
+reading bytes:
+
+  A-POP   cooksense v1.1 ships 13 CPL placement rows whose BOM line carries a
+          BLANK LCSC (J_TC + the twelve K_* Standex relays). Its MANIFEST
+          declares 12 of them not_assembled — JLC was told to PLACE parts the
+          order paperwork says are unassembled, and to source a 13th declared
+          nowhere. The interposer v1.0 ships the same class with no
+          `not_assembled:` line at all. crow-recorder-central-v2 v1.3 declares
+          its PLACED, consigned U1 "not_assembled".
+  A-STOCK five sealed releases ship stock evidence whose LAST LINE says FAIL.
+          crow-recorder-central-v2 v1.0-v1.3 each record their own CPU
+          (C6938291, the XU316 SoC) at LOW_STOCK(0). cooksense v1.1 ships a
+          raw `--out` CSV report with ZERO verdict lines, so the gate must not
+          be silenceable by simply omitting the verdict.
+
+RED-VERIFICATION, two kinds, both performed:
+
+ 1. NEW-GATE variant (A-POP). `assembly_coverage.py` did not exist before this
+    commit — at HEAD~ there is no such file, so every A-POP case below fails
+    with "no such file" and the gate could not exist. What that cannot prove is
+    that a finding comes from the check it names, so every A-POP known-bad ALSO
+    carries an INLINE red-verify: re-run with the `--_disable-<family>` hook and
+    assert the SAME fixture now passes. A finding that survives its own check
+    being neutered is a finding from somewhere else.
+ 2. GIT-SWAP variant (A-STOCK). check (e) is an addition to an existing gate,
+    so it was verified the documented way (tests/README step 3). MEASURED
+    2026-07-25: with `git show HEAD:.../release_freshness_check.py` swapped
+    back in, `--only=A-STOCK` reports **1 passed, 10 failed**; restored, 11
+    passed, 0 failed. The one that survives is `t_stock_sourcing_plan_clears`,
+    a clean case that asserts the ABSENCE of a finding — vacuously true when
+    the check does not exist, which is exactly why a clean case alone proves
+    nothing and every teeth-bearing case here is a known_bad.
+
+Sealed releases are IMMUTABLE and are opened READ-ONLY here. Every scratch
+tree is built by COPYING the minimal orderable subset out of them; nothing is
+ever written back. Assertions are PROPERTIES — exit codes, finding strings,
+named refdes sets — never file bytes: a re-export legitimately reorders CSV
+rows.
+"""
+import csv
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from harness import (FAB_SCRIPTS, KPY, ROOT, check, contains,  # noqa: E402
+                     eq, main, must_fail, must_pass, not_contains, run, test,
+                     tmpdir)
+
+COV = FAB_SCRIPTS / "assembly_coverage.py"
+FRESH = FAB_SCRIPTS / "release_freshness_check.py"
+RELS = ROOT / "projects"
+
+CROW13 = (RELS / "crow-recorder-central-v2" / "07_releases"
+          / "crow-recorder-central-v2-v1.3-2026-07-24")
+COOK11 = (RELS / "smc0985-cooksense" / "07_releases"
+          / "cooksense-v1.1-2026-07-24")
+INTERP = (RELS / "smc0985-cooksense" / "07_releases"
+          / "interposer-v1.0-2026-07-24")
+
+# A fully-declared assembly.yaml for the crow-rv2 board: J3-J10 are the
+# consign-only RJ45s (LCSC C9900035627, permanently stock 0), JP_INJ/J_DBG are
+# bring-up headers, H*/TP* are declared exempt.
+CLEAN_ASSEMBLY = """
+service: standard
+sides: [top]
+fiducials: none
+build_quantity: 5
+not_assembled:
+  - refs: [J3, J4, J5, J6, J7, J8, J9, J10]
+    reason: not_in_catalog
+    evidence: "LCSC C9900035627 is a consign-only placeholder, permanently
+               stock=0; 8-attempt fetch 2026-07-23 failed for all eight while
+               45 other codes in the same run fetched OK."
+    disposition: "hand-soldered at integration; ORDER_README section 3"
+  - refs: [JP_INJ, J_DBG]
+    reason: dnp_by_design
+    evidence: "bring-up headers, deliberately unstuffed on production builds
+               (board read 2026-07-24)"
+    disposition: "n/a"
+exempt_prefixes: [H, TP]
+"""
+
+CLEAN_MANIFEST = ("board: demo\nversion: v1.0\n"
+                  "not_assembled: J3-J10 (RJHSE-5384 consign/hand-solder), "
+                  "JP_INJ, J_DBG (bring-up headers)\n")
+
+
+def rel_tree(src, *, assembly=None, manifest=None, stock=None,
+             stock_name="stock_check.txt"):
+    """A scratch `projects/<b>/07_releases/<r>/` holding the MINIMAL orderable
+    subset copied out of a SEALED release (read-only source, never written).
+
+    Returns (release_dir, project_root)."""
+    d = tmpdir("asm_")
+    rel = d / "07_releases" / "demo-v1.0-2026-07-25"
+    (rel / "fab").mkdir(parents=True)
+    (rel / "source").mkdir()
+    (rel / "verification").mkdir()
+    shutil.copy(next(iter(sorted((src / "source").glob("*.kicad_pcb")))),
+                rel / "source")
+    for n in ("bom.csv", "cpl.csv"):
+        shutil.copy(src / "fab" / n, rel / "fab")
+    (rel / "MANIFEST.txt").write_text(
+        CLEAN_MANIFEST if manifest is None else manifest)
+    if assembly is not None:
+        (d / "03_src" / "rules").mkdir(parents=True)
+        (d / "03_src" / "rules" / "assembly.yaml").write_text(assembly)
+    if stock is not None:
+        (rel / "verification" / stock_name).write_text(stock)
+    return rel, d
+
+
+def board_of(rel):
+    return next(iter(sorted((rel / "source").glob("*.kicad_pcb"))))
+
+
+def set_attr(board, ref, flag="pcbnew.FP_EXCLUDE_FROM_POS_FILES"):
+    """Break a good board in EXACTLY ONE way: set one attribute on one part."""
+    code = (f"import pcbnew,sys\nb=pcbnew.LoadBoard(sys.argv[1])\n"
+            f"fp=b.FindFootprintByReference({ref!r})\n"
+            f"assert fp is not None, 'no such refdes {ref}'\n"
+            f"fp.SetAttributes(fp.GetAttributes() | {flag})\n"
+            f"b.Save(sys.argv[1])\n")
+    return must_pass(run([KPY, "-c", code, str(board)]), f"set_attr({ref})")
+
+
+# ============================================================ A-POP clean
+@test("assembly_coverage PASSES a release whose population set is fully "
+      "declared (every unpopulated ref has an evidenced entry or a declared "
+      "exempt prefix)")
+def t_pop_clean():
+    rel, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY)
+    r = must_pass(run([KPY, COV, rel]), "fully-declared release")
+    contains(r.out, "A-POP: PASS", "verdict")
+    contains(r.out, "placement histogram", "per-side histogram is printed")
+
+
+@test("assembly_coverage's board reader agrees with pcbnew on a real sealed "
+      "board — the independence claim (canon M1) is MEASURED, not asserted")
+def t_reader_matches_pcbnew():
+    """A-POP must not re-ask the exporter's own oracle, so it parses the
+    `.kicad_pcb` s-expression directly instead of importing pcbnew. That is
+    only safe if the independent parser is CORRECT — an independent-but-wrong
+    reader is worse than no gate. Cross-check every footprint on a sealed
+    board: refdes, footprint name, orientation, layer, pad-number count and
+    the exclude_* attribute flags must all agree, both directions."""
+    sys.path.insert(0, str(FAB_SCRIPTS))
+    from assembly_coverage import read_footprints
+    board = board_of(COOK11)
+    mine = {f["ref"]: (f["fp"], round(f["rot"], 3), f["layer"], len(f["pads"]),
+                       tuple(sorted(a for a in f["attrs"]
+                                    if a.startswith("exclude"))))
+            for f in read_footprints(board)}
+    probe = (
+        "import pcbnew,sys,json\n"
+        "b=pcbnew.LoadBoard(sys.argv[1]); o={}\n"
+        "for fp in b.GetFootprints():\n"
+        "  a=fp.GetAttributes(); fl=[]\n"
+        "  if a & pcbnew.FP_EXCLUDE_FROM_POS_FILES: fl.append('exclude_from_pos_files')\n"
+        "  if a & pcbnew.FP_EXCLUDE_FROM_BOM: fl.append('exclude_from_bom')\n"
+        "  pads={str(p.GetNumber()) for p in fp.Pads() if str(p.GetNumber())}\n"
+        "  o[fp.GetReference()]=[str(fp.GetFPID().GetLibItemName()),\n"
+        "    round(fp.GetOrientationDegrees(),3),\n"
+        "    'F.Cu' if fp.GetLayer()==pcbnew.F_Cu else 'B.Cu', len(pads),\n"
+        "    sorted(fl)]\n"
+        "print('@@'+json.dumps(o))\n")
+    import json
+    got = json.loads(must_pass(run([KPY, "-c", probe, str(board)]),
+                               "pcbnew probe").out.split("@@", 1)[1].strip())
+    theirs = {k: (v[0], v[1], v[2], v[3], tuple(v[4])) for k, v in got.items()}
+    check(len(mine) > 100, f"fixture too small to be evidence: {len(mine)}")
+    eq(set(mine), set(theirs), "refdes sets (text parse vs pcbnew)")
+    bad = sorted(k for k in mine if mine[k] != theirs[k])
+    check(not bad, f"{len(bad)} footprint(s) read differently by the "
+                   f"pcbnew-free parser: "
+                   + "; ".join(f"{k}: {mine[k]} vs {theirs[k]}"
+                               for k in bad[:5]))
+
+
+# ========================================================= A-POP known-bad
+@test("assembly_coverage FAILS cooksense v1.1: 13 blank-LCSC BOM refs are ON "
+      "the CPL (JLC told to place parts it has no code to source)",
+      kind="known_bad")
+def t_pop_cooksense_uncoded_on_cpl():
+    """THE INCIDENT (sealed 2026-07-24, found by a reviewer 2026-07-25). The
+    BOM's two blank-LCSC lines cover J_TC and the twelve K_* Standex reed
+    relays; all 13 appear on fab/cpl.csv. The MANIFEST separately declares 12
+    of them not_assembled, so the order package contradicts itself and the
+    machine instruction wins. Read-only against the SEALED release."""
+    r = must_fail(run([KPY, COV, COOK11]), "cooksense v1.1 A-POP",
+                  "UNCODED-ON-CPL")
+    for ref in ("J_TC", "K_D1", "K_D2", "K_D3", "K_D4", "K_PRESS", "K_STOP",
+                "K_U1", "K_U2", "K_U3", "K_U4", "K_U5", "K_U6"):
+        contains(r.out, ref, f"the finding names {ref}")
+    contains(r.out, "13 ref(s)", "all thirteen are counted")
+    # the second, independent half: the MANIFEST declares 12 of them unassembled
+    contains(r.out, "DECLARED-BUT-PLACED",
+             "the MANIFEST/CPL contradiction is reported separately")
+    # INLINE RED-VERIFY: neuter ONLY the uncoded check -> that finding vanishes.
+    rr = run([KPY, COV, COOK11, "--_disable-uncoded"])
+    not_contains(rr.out, "UNCODED-ON-CPL",
+                 "neutered run emits no uncoded finding")
+
+
+@test("assembly_coverage FAILS the cooksense interposer v1.0: uncoded refs on "
+      "the CPL, no assembly.yaml, and no MANIFEST not_assembled line",
+      kind="known_bad")
+def t_pop_interposer():
+    """Sealed 2026-07-24 with every gate green. Its blank-LCSC BOM row's refs
+    (J_CN1_JUMPER, J_MEMBRANE) are on the CPL, 24 board footprints are absent
+    from the CPL with nothing declaring them, and the disposition was PROSE in
+    the README telling a human to delete rows before uploading."""
+    r = must_fail(run([KPY, COV, INTERP]), "interposer v1.0 A-POP",
+                  "UNCODED-ON-CPL")
+    contains(r.out, "J_CN1_JUMPER", "names the uncoded placed ref")
+    contains(r.out, "J_MEMBRANE", "names the uncoded placed ref")
+    contains(r.out, "NO-ASSEMBLY-DECL", "no assembly.yaml is itself a finding")
+    contains(r.out, "MANIFEST-UNDECLARED",
+             "no MANIFEST not_assembled line is a finding")
+
+
+@test("assembly_coverage FAILS crow-recorder-central-v2 v1.3: its MANIFEST "
+      "declares the PLACED, consigned U1 'not_assembled' (consigned means "
+      "PLACED — a sourcing class, not a population class)", kind="known_bad")
+def t_pop_consigned_declared_unpopulated():
+    r = must_fail(run([KPY, COV, CROW13]), "crow-rv2 v1.3 A-POP",
+                  "DECLARED-BUT-PLACED")
+    contains(r.out, "U1", "names the consigned part the MANIFEST mis-declares")
+
+
+@test("assembly_coverage FAILS a board broken in EXACTLY ONE way: one extra "
+      "part marked exclude_from_pos_files while the shipped CPL still places "
+      "it — and names only that ref", kind="known_bad")
+def t_pop_synthetic_one_part():
+    """Built by breaking the PASSING fixture above in exactly one way
+    (harness `edit_board` idiom), so the finding provably reacts to THAT
+    defect and not to some unrelated malformation. This is the stale-CPL
+    class: the board changed, the CPL did not."""
+    rel, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY)
+    must_pass(run([KPY, COV, rel]), "the fixture passes BEFORE the break")
+    set_attr(board_of(rel), "U5")
+    r = must_fail(run([KPY, COV, rel]), "one extra excluded part",
+                  "POS-ATTR-VS-CPL")
+    contains(r.out, "U5", "names the broken ref")
+    contains(r.out, "1 ref(s)", "exactly one ref is accused")
+    for other in ("U1", "U2", "U7", "R1"):
+        not_contains(r.out.split("POS-ATTR-VS-CPL")[1], other,
+                     f"{other} must not be dragged into the finding")
+    # INLINE RED-VERIFY: neuter ONLY the set-identity family -> passes again.
+    rr = run([KPY, COV, rel, "--_disable-setid"])
+    check(rr.rc == 0, f"red-verify: with the set-identity checks neutered the "
+                      f"one-part fixture must pass, got rc={rr.rc}\n{rr.out}")
+    not_contains(rr.out, "POS-ATTR-VS-CPL", "neutered run emits no finding")
+
+
+@test("assembly_coverage FAILS a not_assembled entry with a reason but NO "
+      "evidence (a waiver needs the measurement, not the rationale)",
+      kind="known_bad")
+def t_pop_entry_needs_evidence():
+    """Mirrors t1_release_freshness `t_exception_needs_reason`: canon M4 is
+    the same rule wherever an exception is recorded. 'hand-solder' must be a
+    sourcing wall you PROVE you hit — the catalog query and its result."""
+    asm = CLEAN_ASSEMBLY.replace(
+        '''    evidence: "LCSC C9900035627 is a consign-only placeholder, permanently
+               stock=0; 8-attempt fetch 2026-07-23 failed for all eight while
+               45 other codes in the same run fetched OK."''',
+        '    evidence: ""')
+    rel, _ = rel_tree(CROW13, assembly=asm)
+    r = must_fail(run([KPY, COV, rel]), "evidence-less not_assembled entry",
+                  "NO-EVIDENCE")
+    contains(r.out, "J3", "names the entry's refs")
+
+
+@test("assembly_coverage FAILS a reason outside the closed vocabulary",
+      kind="known_bad")
+def t_pop_bad_reason():
+    rel, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY.replace(
+        "reason: dnp_by_design", "reason: too_expensive"))
+    r = must_fail(run([KPY, COV, rel]), "reason outside the vocabulary",
+                  "BAD-REASON")
+    contains(r.out, "too_expensive", "names the invented reason")
+
+
+@test("assembly_coverage FAILS a CONSIGNED part listed as not_assembled "
+      "(consigned parts are POPULATED and stay ON the CPL)", kind="known_bad")
+def t_pop_consign_as_unpopulated():
+    """The crow-recorder-central-v2 v1.3 class, reproduced in the schema: a
+    sourcing class written into the population set. Both spellings must
+    bite — `reason: consign`, and the same refs appearing in `consigned:`."""
+    rel, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY.replace(
+        "reason: not_in_catalog", "reason: consign"))
+    r = must_fail(run([KPY, COV, rel]), "reason: consign in not_assembled",
+                  "CONSIGN-AS-UNPOPULATED")
+    rel2, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY + """
+consigned:
+  - refs: [J3]
+    lcsc: C9900035627
+    msl: "MSL 1 (THT jack, not moisture sensitive)"
+    evidence: "supplied from stock on hand, 8 pcs, 2026-07-24"
+    disposition: "ship with the order; JLC places"
+""")
+    r2 = must_fail(run([KPY, COV, rel2]), "ref in BOTH consigned and "
+                                          "not_assembled",
+                   "CONSIGN-AS-UNPOPULATED")
+    contains(r2.out, "J3", "names the doubly-classed ref")
+
+
+@test("assembly_coverage FAILS a declared-unpopulated ref that does NOT carry "
+      "exclude_from_pos_files on the board (the next export puts it back)",
+      kind="known_bad")
+def t_pop_declared_not_excluded():
+    rel, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY.replace(
+        "exempt_prefixes: [H, TP]",
+        """  - refs: [U5]
+    reason: dnp_by_design
+    evidence: "declared unpopulated on 2026-07-25 for this fixture, but the
+               board footprint was never marked exclude_from_pos_files"
+    disposition: "n/a"
+exempt_prefixes: [H, TP]"""))
+    r = must_fail(run([KPY, COV, rel]), "declared but not excluded",
+                  "DECLARED-NOT-EXCLUDED")
+    contains(r.out, "U5", "names the ref")
+
+
+@test("assembly_coverage FAILS when the MANIFEST not_assembled set disagrees "
+      "with assembly.yaml (the MANIFEST line is GENERATED, never re-typed)",
+      kind="known_bad")
+def t_pop_manifest_drift():
+    """The cooksense v1.1 root cause: two hand-written homes for the same
+    fact, which drifted and shipped."""
+    rel, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY,
+                      manifest="board: demo\nnot_assembled: J3-J10 (RJ45)\n")
+    r = must_fail(run([KPY, COV, rel]), "MANIFEST/assembly.yaml drift",
+                  "MANIFEST-DRIFT")
+    contains(r.out, "JP_INJ", "names what the MANIFEST forgot")
+
+
+# ========================================================== A-STOCK cases
+PASS_STOCK = """49 BOM lines: 47 with LCSC, 2 without
+
+  OK               C6938291   x1   XU316-1024                     expand stock=900
+  OK               C9900035627 x8   RJHSE-5384                     expand stock=800
+
+PASS: 0 coded lines with problems; 2 lines still uncoded
+"""
+
+
+def stock_all_ok(rel_src, *, verdict="PASS", stock=99999):
+    """Synthesize evidence covering EVERY coded+placed line of a real release
+    so the A-STOCK clean cases isolate one axis at a time."""
+    placed = {r["Designator"].strip()
+              for r in csv.DictReader((rel_src / "fab" / "cpl.csv").open())}
+    lines = ["49 BOM lines: 47 with LCSC, 2 without", ""]
+    seen = set()
+    for row in csv.DictReader((rel_src / "fab" / "bom.csv").open()):
+        code = (row.get("LCSC") or "").strip()
+        if not code or code in seen:
+            continue
+        if not any(d.strip() in placed for d in row["Designator"].split(",")):
+            continue
+        seen.add(code)
+        lines.append(f"  OK               {code:10} x1   part "
+                     f"                          expand stock={stock}")
+    lines += ["", f"{verdict}: 0 coded lines with problems; 2 lines still "
+                  f"uncoded", ""]
+    return "\n".join(lines)
+
+
+@test("release_freshness A-STOCK: a release with no fab BOM/CPL says so out "
+      "loud rather than silently skipping")
+def t_stock_nothing_to_grade():
+    """A gate that quietly grades nothing is the NO-CAD bug again. The
+    synthetic releases in t1_release_freshness carry no BOM/CPL at all, and
+    that must be a VISIBLE note, not an invisible pass."""
+    d = tmpdir("stk_")
+    rel = d / "07_releases" / "v1.0-2026-07-25"
+    (rel / "fab").mkdir(parents=True)
+    (rel / "verification").mkdir()
+    (rel / "fab" / "demo_gerbers.zip").write_bytes(b"gerber")
+    (rel / "MANIFEST.txt").write_text("board: demo\n")
+    (rel / "ORDER_README.md").write_text("# ORDER README\n\nFinal.\n")
+    (rel / "verification" / "policy_audit.md").write_text(
+        "| ID | Grade |\n|---|---|\n| M-BOM | PASS |\n\nSummary: FAIL=0\n")
+    r = must_pass(run([KPY, FRESH, rel]), "release with nothing to source")
+    contains(r.out, "no coded, placed line to grade",
+             "the empty case is announced, not silent")
+
+
+@test("release_freshness A-STOCK PASSES stock evidence with a parseable PASS "
+      "verdict covering every coded, placed line")
+def t_stock_clean():
+    rel, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY,
+                      stock=stock_all_ok(CROW13))
+    (rel / "ORDER_README.md").write_text("# ORDER README\n\nFinal.\n")
+    (rel / "verification" / "policy_audit.md").write_text(
+        "| ID | Grade |\n|---|---|\n| M-BOM | PASS |\n\nSummary: FAIL=0\n")
+    r = run([KPY, FRESH, rel])
+    not_contains(r.out, "STOCK-", "clean stock evidence raises no finding")
+    contains(r.out, "verdict=PASS", "the verdict was actually parsed")
+
+
+@test("release_freshness A-STOCK: a sourcing_plan entry with the MEASURED "
+      "stock and its date clears an otherwise-blocking line")
+def t_stock_sourcing_plan_clears():
+    """The ONE legitimate way past a non-OK line — and it costs a number and
+    a date, not a sentence.
+
+    NB this is the single A-STOCK case that does NOT go red against the
+    pre-change gate: it asserts the ABSENCE of a finding, which is vacuously
+    true when the check does not exist. Its teeth live in
+    `t_stock_plan_incomplete` (a plan without the measurement FAILS) and
+    `t_stock_verdict_fail` (the same line with NO plan FAILS)."""
+    asm = CLEAN_ASSEMBLY + """
+sourcing_plan:
+  - lcsc: C6938291
+    measured_stock: 0
+    measured_on: 2026-07-24
+    plan: "consigned from stock on hand (5 pcs); JLC stock irrelevant here"
+"""
+    rel, _ = rel_tree(CROW13, assembly=asm,
+                      stock=stock_all_ok(CROW13, verdict="FAIL").replace(
+                          "  OK               C6938291   x1",
+                          "  LOW_STOCK(0)     C6938291   x1"))
+    (rel / "ORDER_README.md").write_text("# ORDER README\n\nFinal.\n")
+    (rel / "verification" / "policy_audit.md").write_text(
+        "| ID | Grade |\n|---|---|\n| M-BOM | PASS |\n\nSummary: FAIL=0\n")
+    r = run([KPY, FRESH, rel])
+    not_contains(r.out, "STOCK-VERDICT-FAIL",
+                 "a planned line does not accuse the release")
+    not_contains(r.out, "STOCK-INSUFFICIENT", "the plan covers the line")
+
+
+@test("release_freshness A-STOCK FAILS crow-recorder-central-v2 v1.3: its "
+      "shipped stock evidence ends in FAIL with the board's own CPU at "
+      "stock 0", kind="known_bad")
+def t_stock_verdict_fail():
+    """THE INCIDENT. verification/stock_check.txt's last line reads
+    'FAIL: 2 coded lines with problems' and line 41 reads
+    'LOW_STOCK(0) C6938291' — the XU316 SoC this board is built around, and
+    the part it cannot be assembled without. Four sealed releases of this
+    board ship that same evidence. Read-only against the SEALED release."""
+    r = must_fail(run([KPY, FRESH, CROW13]), "crow-rv2 v1.3 A-STOCK",
+                  "STOCK-VERDICT-FAIL")
+    contains(r.out, "C6938291", "names the board's own CPU")
+    contains(r.out, "STOCK-INSUFFICIENT",
+             "the per-line grade fires independently of the verdict line")
+    # RED-VERIFY: neuter ONLY check (e) -> this release passes freshness,
+    # proving the finding came from A-STOCK and from nothing else.
+    rr = run([KPY, FRESH, CROW13, "--_disable-stock"])
+    check(rr.rc == 0,
+          f"red-verify: with check (e) neutered crow-rv2 v1.3 must pass "
+          f"freshness, got rc={rr.rc}\n{rr.out[-1500:]}")
+    not_contains(rr.out, "STOCK-", "neutered run emits no stock finding")
+
+
+@test("release_freshness A-STOCK FAILS cooksense v1.1 with a DISTINCT "
+      "no-parseable-verdict finding (evidence with the verdict missing is "
+      "unverified sourcing, never a pass)", kind="known_bad")
+def t_stock_no_verdict():
+    """cooksense v1.1 ships jlc_stock_check's `--out` CSV REPORT as
+    verification/stock_check.txt: 50 graded rows and ZERO PASS:/FAIL: lines.
+    The finding must be its own class — if 'no verdict' collapsed into 'not
+    checked' or, worse, into silence, the gate could be silenced by deleting
+    one line."""
+    r = must_fail(run([KPY, FRESH, COOK11]), "cooksense v1.1 A-STOCK",
+                  "STOCK-NO-VERDICT")
+    not_contains(r.out, "STOCK-VERDICT-FAIL",
+                 "a missing verdict is NOT the same finding as a FAIL verdict")
+    rr = run([KPY, FRESH, COOK11, "--_disable-stock"])
+    not_contains(rr.out, "STOCK-", "neutered run emits no stock finding")
+
+
+@test("release_freshness A-STOCK: DELETING the verdict line from PASSING "
+      "evidence FAILS — the gate cannot be silenced by omission",
+      kind="known_bad")
+def t_stock_verdict_deleted_still_fails():
+    """The adversarial case, built by breaking the passing fixture in exactly
+    one way: take evidence the gate accepts and remove ONLY its verdict line.
+    'Missing verdict' must be a FAIL, not a skip — otherwise every gate above
+    is optional."""
+    ev = stock_all_ok(CROW13)
+    rel, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY, stock=ev)
+    (rel / "ORDER_README.md").write_text("# ORDER README\n\nFinal.\n")
+    (rel / "verification" / "policy_audit.md").write_text(
+        "| ID | Grade |\n|---|---|\n| M-BOM | PASS |\n\nSummary: FAIL=0\n")
+    must_pass(run([KPY, FRESH, rel]), "the fixture passes BEFORE the break")
+    stripped = "\n".join(l for l in ev.splitlines()
+                         if not l.startswith(("PASS:", "FAIL:")))
+    (rel / "verification" / "stock_check.txt").write_text(stripped)
+    r = must_fail(run([KPY, FRESH, rel]), "evidence with the verdict deleted",
+                  "STOCK-NO-VERDICT")
+    rr = run([KPY, FRESH, rel, "--_disable-stock"])
+    check(rr.rc == 0, f"red-verify: with check (e) neutered the "
+                      f"verdict-deleted fixture must pass, got rc={rr.rc}")
+
+
+@test("release_freshness A-STOCK FAILS a coded, PLACED line with no stock "
+      "evidence line at all (assumed, never sourced)", kind="known_bad")
+def t_stock_ungraded_line():
+    ev = "\n".join(l for l in stock_all_ok(CROW13).splitlines()
+                   if "C6938291" not in l)
+    rel, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY, stock=ev)
+    (rel / "ORDER_README.md").write_text("# ORDER README\n\nFinal.\n")
+    (rel / "verification" / "policy_audit.md").write_text(
+        "| ID | Grade |\n|---|---|\n| M-BOM | PASS |\n\nSummary: FAIL=0\n")
+    r = must_fail(run([KPY, FRESH, rel]), "coded placed line with no evidence",
+                  "STOCK-UNGRADED")
+    contains(r.out, "C6938291", "names the ungraded line")
+
+
+@test("release_freshness A-STOCK FAILS when a release ships NO stock evidence "
+      "file at all", kind="known_bad")
+def t_stock_no_evidence():
+    rel, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY)
+    (rel / "ORDER_README.md").write_text("# ORDER README\n\nFinal.\n")
+    (rel / "verification" / "policy_audit.md").write_text(
+        "| ID | Grade |\n|---|---|\n| M-BOM | PASS |\n\nSummary: FAIL=0\n")
+    must_fail(run([KPY, FRESH, rel]), "release with no stock evidence",
+              "STOCK-NO-EVIDENCE")
+
+
+@test("release_freshness A-STOCK reads the jlc_stock_check --json sidecar and "
+      "honours its EXPLICIT verdict field")
+def t_stock_json_sidecar():
+    """The fleet ships three incompatible text formats; `--json` is the one
+    shape with a verdict that never has to be inferred from the absence of a
+    FAIL line."""
+    import json
+    placed = {r["Designator"].strip()
+              for r in csv.DictReader((CROW13 / "fab" / "cpl.csv").open())}
+    lines, seen = [], set()
+    for row in csv.DictReader((CROW13 / "fab" / "bom.csv").open()):
+        code = (row.get("LCSC") or "").strip()
+        if code and code not in seen and any(
+                d.strip() in placed for d in row["Designator"].split(",")):
+            seen.add(code)
+            lines.append({"lcsc": code, "qty": 1, "status": "OK",
+                          "stock": 50000})
+    rel, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY)
+    (rel / "verification" / "stock_check.json").write_text(json.dumps(
+        {"verdict": "PASS", "failures": 0, "lines": lines}))
+    (rel / "ORDER_README.md").write_text("# ORDER README\n\nFinal.\n")
+    (rel / "verification" / "policy_audit.md").write_text(
+        "| ID | Grade |\n|---|---|\n| M-BOM | PASS |\n\nSummary: FAIL=0\n")
+    r = run([KPY, FRESH, rel])
+    contains(r.out, "stock_check.json", "the sidecar is preferred")
+    not_contains(r.out, "STOCK-", "a clean sidecar raises no finding")
+
+
+@test("release_freshness A-STOCK FAILS a --json sidecar whose verdict field "
+      "is absent (the sidecar gets no easier ride than the text)",
+      kind="known_bad")
+def t_stock_json_no_verdict():
+    import json
+    rel, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY)
+    (rel / "verification" / "stock_check.json").write_text(
+        json.dumps({"failures": 0, "lines": []}))
+    (rel / "ORDER_README.md").write_text("# ORDER README\n\nFinal.\n")
+    (rel / "verification" / "policy_audit.md").write_text(
+        "| ID | Grade |\n|---|---|\n| M-BOM | PASS |\n\nSummary: FAIL=0\n")
+    must_fail(run([KPY, FRESH, rel]), "verdict-less json sidecar",
+              "STOCK-NO-VERDICT")
+
+
+@test("release_freshness A-STOCK FAILS a sourcing_plan entry missing its "
+      "measured number or date (a plan without the measurement is a hope)",
+      kind="known_bad")
+def t_stock_plan_incomplete():
+    asm = CLEAN_ASSEMBLY + """
+sourcing_plan:
+  - lcsc: C6938291
+    plan: "we'll sort it out at order time"
+"""
+    rel, _ = rel_tree(CROW13, assembly=asm, stock=stock_all_ok(CROW13))
+    (rel / "ORDER_README.md").write_text("# ORDER README\n\nFinal.\n")
+    (rel / "verification" / "policy_audit.md").write_text(
+        "| ID | Grade |\n|---|---|\n| M-BOM | PASS |\n\nSummary: FAIL=0\n")
+    r = must_fail(run([KPY, FRESH, rel]), "incomplete sourcing plan",
+                  "STOCK-PLAN-INCOMPLETE")
+    contains(r.out, "C6938291", "names the incomplete entry")
+
+
+if __name__ == "__main__":
+    sys.exit(main())

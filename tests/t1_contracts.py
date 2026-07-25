@@ -202,9 +202,16 @@ def t_skill_contract_sync():
     corpus = canon + "\n" + audit + "\n" + skill
     FWD = re.compile(r'candidate|proposed|future|todo|planned', re.I)
     cited = {}   # id -> True if EVERY citation is a forward-reference
+    # The prefix class is the drift backstop's whole reach. It read `[SPRMED]-`
+    # until 2026-07-25, which would have SILENTLY EXEMPTED the entire new A-
+    # (assembly) family from exactly the check that exists to catch a gate
+    # landing without its canon row — the same silent-skip class as the M-REL
+    # glob bug and the `^v` release-name regex. Widen it whenever a new family
+    # is minted; case 4 below is the standing proof that it bites.
+    ID_RE = re.compile(r'(?<![\w-])([ASPRMED]-[A-Z][A-Z0-9-]+)(?![\w-])')
     for c in (skills / "pcb-design/templates/contracts").rglob("contracts.md"):
         txt = c.read_text()
-        for m in re.finditer(r'(?<![\w-])([SPRMED]-[A-Z][A-Z0-9-]+)(?![\w-])', txt):
+        for m in ID_RE.finditer(txt):
             # window BEFORE the citation catches a wrapped "candidate ... M-REV"
             fwd = bool(FWD.search(txt[max(0, m.start() - 90):m.start()]))
             iid = m.group(1)
@@ -218,6 +225,26 @@ def t_skill_contract_sync():
     fake = emitted('    grade("Z-NOPE", ok, "", "")')
     check("Z-NOPE" in fake and not in_(canon, "Z-NOPE"),
           "sync logic failed to detect a synthetic un-canonized gate")
+
+    # 4. RED: the ID regex must REACH the A- family. A fabricated `A-NOPE`
+    #    citation in a contract must be caught as an orphan — with the
+    #    pre-2026-07-25 `[SPRMED]-` class it is not even seen, so every A-
+    #    gate could have landed with no canon row and no contract row and this
+    #    backstop would have reported success. VERIFIED RED against the
+    #    un-widened class: `re.compile(r'(?<![\w-])([SPRMED]-...)')` finds
+    #    ZERO matches in the same text, so `orphan` comes back empty and the
+    #    assertion below fails.
+    fabricated = "| `x` | governed by A-NOPE and by A-POP |\n"
+    seen = {m.group(1) for m in ID_RE.finditer(fabricated)}
+    check("A-NOPE" in seen and "A-POP" in seen,
+          f"the check-ID regex does not reach the A- (assembly) family — a "
+          f"whole gate family would be exempt from this backstop; matched only "
+          f"{sorted(seen)}")
+    check(not in_(corpus, "A-NOPE"),
+          "A-NOPE unexpectedly exists in the skill — pick another fake ID")
+    check(in_(corpus, "A-POP"),
+          "A-POP is cited by a contract but exists nowhere in the skill — the "
+          "assembly family landed without its canon row")
 
 
 if __name__ == "__main__":

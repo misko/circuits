@@ -88,6 +88,18 @@ Machine-readable patterns (contracts_audit; the tree below is the human view):
         │                           --schematic-parity)
         ├── erc.json                ERC 0 errors
         ├── audit.txt               placement/pad invariant gate
+        ├── assembly_coverage.txt    REQUIRED — A-POP: {board} − {CPL} equals
+        │                            assembly.yaml's not_assembled set, plus
+        │                            the per-side placement histogram
+        │                            (`assembly_coverage.py`)
+        ├── stock_check.json         REQUIRED — A-STOCK: the MACHINE-READABLE
+        │                            stock evidence, with an EXPLICIT
+        │                            `verdict` (`jlc_stock_check.py --json`).
+        │                            The fleet shipped three incompatible
+        │                            text formats and one release with ZERO
+        │                            verdict lines; this is the one shape the
+        │                            gate grades. A missing/unparseable
+        │                            verdict is a FAIL, never a skip
         ├── stock_check.{txt,csv}
         ├── bom_source_check.txt     fab/bom.csv LCSC == source per refdes
         │                            (bom_source_check.py / policy_audit M-BOM):
@@ -163,8 +175,32 @@ sha256:       # EVERY file in the release, not just the fab set
   3d/power_board_v1.step           ee55...
   verification/drc.json            ff66...
   ... every remaining verification/ file
-not_assembled: J4,J5,J13 (THT USB-A, hand-solder) · F1 cartridge (user-supplied)
+assembly:     JLC standard, top side only, 5 boards, fiducials: none (JLC rail)
+consigned:    U1 C6938291 (XU316) — MSL 3, 168h floor life (ds v2.0.0 s.15.2)
+msl:          U1 MSL-3 (bake if floor life exceeded); no other exposed-pad part
+not_assembled: J4,J5,J13 (THT USB-A, not_in_catalog) · F1 element (user_supplied)
 ```
+
+### `not_assembled:` is a REQUIRED, GENERATED block
+
+**Required** whenever the board has any unpopulated non-exempt part, and
+**GENERATED from `03_src/rules/assembly.yaml`** — never hand-written. It was a
+prose sentence in two places and the two drifted: cooksense v1.1's MANIFEST
+declared 12 refs not_assembled while its own CPL told JLC to place all 12, and
+a 13th (J_TC) was declared nowhere. `assembly_coverage.py` (A-POP) FAILs both
+the absence and any disagreement with `assembly.yaml`.
+
+Each ref traces to an `assembly.yaml` entry whose `reason:` is the CLOSED
+vocabulary — `not_in_catalog` · `user_supplied` · `dnp_by_design` ·
+`mechanical` · `test_point` — with a DATED `evidence:` measurement (the
+catalog query and its result) and a `disposition:`. `consign` is NOT a
+population reason: a consigned part is POPULATED, stays ON the CPL, and
+belongs in the `consigned:` MANIFEST line above (crow-recorder-central-v2 v1.3
+declared its placed U1 "not_assembled" that way). The `msl:` line is REQUIRED
+for every consigned part and every exposed-pad package — JLC cannot bake what
+they are not told is moisture-sensitive (crow-recorder-central v1.0 shipped a
+consigned MSL-3 XU316 with zero MSL text while its own part.yaml recorded
+"MSL 3, 168h floor life").
 
 `git_sha` + `git_dirty: false` is the load-bearing pair for PROVENANCE: it says
 where the release came from. The sha256 table over **every** file is the
@@ -289,6 +325,16 @@ checked shared a method.
   an empty or failing `verification/` means it is not a release.
 - **A release carrying an unresolved P0 red-team finding.** A P0 blocks the
   release — fix and re-gate, or supersede; it may not seal open.
+- **A CPL row whose BOM line has a BLANK LCSC** (canon A-POP). JLC is being
+  told to place a part it has no code to source. An uncoded line is a FAILED
+  sourcing decision: it needs an `assembly.yaml` entry with a
+  closed-vocabulary `reason:` and dated `evidence:`, AND the part must leave
+  the CPL (`exclude_from_pos_files` on the board).
+- **Sealing against stock evidence that does not PASS** (canon A-STOCK), or
+  against evidence with no parseable verdict at all. Five sealed releases in
+  this fleet shipped a `FAIL:` last line, one with the board's own CPU at
+  stock 0. Fix the sourcing or record the `sourcing_plan:` entry with the
+  measured number and its date.
 - **A release that outsources its own contents to git.** No `source/` means
   no release — "it's at that SHA" is not an archive. Likewise no symlinks
   into `04_kicad/` or `03_tscircuit/`; those folders keep moving.
@@ -318,6 +364,15 @@ checked shared a method.
 - `verification/` reports show passing gates: DRC 0/0/0, ERC 0 errors,
   parity 0, audit PASS, policy_audit 0 FAIL (incl. M-BOM: fab BOM LCSC ==
   source per refdes), twin/pin/render reviews PASS
+- **the ASSEMBLY battery on THIS release's own bytes (canon A-POP/A-STOCK —
+  PCBA is the deliverable):**
+  - `assembly_coverage.py <release_dir>` exits 0 — `{board} − {CPL}` equals
+    `assembly.yaml`'s `not_assembled:` set, no blank-LCSC ref on the CPL, and
+    the MANIFEST `not_assembled:` line matches `assembly.yaml`
+  - `release_freshness_check.py <release_dir>` exits 0 including check (e):
+    the shipped stock evidence carries a PARSEABLE PASS verdict and every
+    coded, placed line clears `qty x build_quantity` or names a
+    `sourcing_plan:` entry with its measured stock and date
 - red-team review present in `verification/`, both lenses'
   (topology/protection + layout/thermal) verdicts = ORDER, zero unresolved
   P0 (a P0 blocks the release); archived verbatim in `08_reviews/`

@@ -40,6 +40,21 @@ RELEASED must additionally pass the release gate at the bottom.
       handles board-prefixed dir names (`<board>-v1.x-<date>`) — before 2026-07-24
       those silently skipped the stale-artifact check
 
+- [ ] A-POP (population set DECLARED): `assembly_coverage.py 07_releases/<ver>-<date>` exits 0 —
+      `{board footprints} − {CPL designators}` EQUALS `03_src/rules/assembly.yaml`'s
+      `not_assembled:` set (declared `exempt_prefixes:` honoured), no blank-LCSC BOM row
+      whose refs are on the CPL, every declared-unpopulated ref carries
+      `exclude_from_pos_files`, and the MANIFEST `not_assembled:` line agrees with
+      assembly.yaml (it is GENERATED from it). cooksense v1.1 sealed 13 blank-LCSC parts
+      onto its CPL while the MANIFEST declared 12 of them unassembled, 2026-07-24
+- [ ] A-STOCK (seal only against evidence that PASSES): `release_freshness_check.py 07_releases/<ver>-<date>`
+      exits 0 including check (e) — the shipped stock evidence carries a PARSEABLE PASS
+      verdict and every coded, placed line clears `qty x build_quantity` or names an
+      `assembly.yaml` `sourcing_plan:` entry with `measured_stock` + `measured_on`. Ship
+      `verification/stock_check.json` (`jlc_stock_check.py --json`): a missing or
+      unparseable verdict is a FAIL, not a skip (five sealed releases shipped a `FAIL:`
+      last line, one with the board's own CPU at stock 0)
+
 - [ ] BRIEF.md: every acceptance criterion `met` (with evidence link) or `dropped` citing a user D#/Q# — never release with an `unmet` criterion
 - [ ] BRIEF.md prompt hash verifies (`sed -n "/prompt-verbatim-begin/,/prompt-verbatim-end/p" 01_docs/BRIEF.md | sed "1d;\$d" | sha256sum`)
 

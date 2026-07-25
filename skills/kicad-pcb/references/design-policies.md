@@ -88,6 +88,40 @@ grew to gate them.
 | E-MARGIN | Output SETPOINT vs LOAD MARGIN: a regulated rail feeding a KNOWN load must clear the load's brownout with real IR headroom. A rail in `power_tree.yaml` that declares `load_uv_threshold` (the downstream load's undervoltage/brownout voltage) must have `vout_min − load_uv_threshold > 0` AND, at `iout_max_A`, leave more series-resistance budget than the delivery path burns: with a declared `ir_budget_mohm` (board+connector+cable) the headroom must exceed `ir_budget·iout·(1+margin)` (default margin 0.2); without one, the implied budget `(vout_min−UV)/iout` must clear the `ir_floor_mohm` floor (default 100mΩ — a bare realistic cable+connector+trace path). The cable/connector ASSUMPTION is judgment: the reviewer confirms `ir_budget_mohm` matches the real path. **Tolerance amendment (2026-07-23): a rail's vout window may not be author-asserted when its regulator is divider-programmed** — with a `feedback:` block (vref/divider values + tolerances, all six fields required) the corners are COMPUTED worst-case (`low = vref_min·(1+Rt_min/Rb_max)`, `high = vref_max·(1+Rt_max/Rb_min)`); a declared window NARROWER than computed is a FAIL in both E-TOPO and E-MARGIN naming both corners, and headroom is graded from the computed worst-low | [M] E-MARGIN (`power_topology.py PROJECT_DIR --margin`) + [H] the delivery-resistance assumption confirmed in the red-team topology/protection lens | usb-hub-3s-v3 (2026-07-23, external review): a rail regulated to 4.97V fed a Raspberry Pi 5 (undervoltage detect ~4.63V) at 5A — leaving only (4.97−4.63)/5A ⇒ ~68mΩ TOTAL for board+connector+cable IR drop, less than a real e-marked 5A USB-C cable + two connector pairs. BOTH zero-context red-team reviews COMPUTED the 4.97V setpoint and neither flagged the thin margin — the headroom was never made a number. Tolerance half: the same board declared 5.27–5.43 V from Vref tolerance alone; the divider tolerances put the true window at 5.227–5.479 V and no gate could object until the feedback block made the corners computed |
 | E-OFF | QUIESCENT DRAIN / OFF-CONTROL: a self-contained energy source (battery/cell/pack) must have a DOCUMENTED de-energization path and a BOUNDED stored quiescent draw. When a battery source is detected (`power_tree.yaml` `source_type:`, or VBAT/BATT/PACK nets, or a battery ADR), the power tree must declare `off_control:` (the mechanism — master switch / load-switch / EN-gating; or explicitly "always-on" WITH an ADR) and `quiescent_ua:` (the stored/shutdown draw). "Always-on" is a decision that must be ADR-justified, never a silent default. Whether the declared mechanism actually EXISTS in the netlist, and whether the drain is acceptable for the pack, are judgment: folded into the mandatory input-protection ADR's required-question list (SKILL.md) and confirmed by the red-team topology lens | [M] E-OFF (`power_topology.py PROJECT_DIR --off-control` — battery detected ⇒ off_control + quiescent_ua declared; a bare "always-on"/"none" with no ADR = FAIL) + [H] the input-protection ADR + red-team lens | usb-hub-3s-v3 (2026-07-23, external review): a 3S-LiPo board tied both buck EN pins active with no master switch — the controllers idle-drain the pack the whole time it sits in storage. No review asked "how is it de-energized / does it self-drain" |
 
+## Assembly — the deliverable is a POPULATED board (the PCBA class)
+
+Every gate above stops at copper. The pipeline gated the BOARD like a fab and
+the ASSEMBLY like a courtesy: of 32 check IDs exactly one touched a fab-order
+artifact, and nothing in `skills/`, `scripts/` or `tests/` had ever read a
+`cpl.csv` back. So the defects below all reached a SEALED release and were all
+found by a human reading bytes — never by a gate. PCBA is the deliverable
+(pcb-design/SKILL.md); these grade what the fab is actually told to place, and
+with what.
+
+**A third gate — A-ROT, every CPL rotation is MEASURED, never inherited — was
+written, measured against its fixtures, and then PULLED before landing
+(2026-07-25).** `jlc_twin.xform()`, the helper that computes the `jlc_offset`
+a rotation gate would treat as the measurement, uses the OPPOSITE handedness to
+`local_to_board()`. Verified against pcbnew itself over 72 pads on rotated
+footprints: `local_to_board`'s form is exact (max error 0.000000 mm),
+`xform`'s is off by up to 23.93 mm — it loses at every 90 and 270 deg part and
+agrees only at 0/180, where the form is sign-invariant. Every offset the twin
+reported was therefore NEGATED: invisible at 0/180, exactly 180 deg wrong at
+90/270. Six rows of `jlc_lcsc_rotations.csv` — the table such a gate would rank
+as AUTHORITY — had been populated from it and were all 180 deg wrong (corrected
+90 -> 270, 2026-07-25). **This is canon M1 collecting twice: the "authority" was
+populated FROM the checker, so every consumer inherited the same negation and
+even an external review that read the table was misled by it.** A gate built on
+that table would have frozen the defect and made it unfalsifiable. When A-ROT
+lands it must re-derive the angle from the BOARD plus JLC's cached model with an
+operator verified against pcbnew — never from `jlc_offset`, and never from a
+table populated by it.
+
+| ID | Policy | Verified | Motivating incident |
+|---|---|---|---|
+| A-POP | The population set is DECLARED, not emergent. `{board footprints} − {CPL designators}`, computed from the BOARD and the CPL directly (never from the exporter's filter logic), must EQUAL the `not_assembled:` set in `03_src/rules/assembly.yaml`, honouring declared `exempt_prefixes:` (DECLARED, never hardcoded — a hardcoded exemption is how the refdes-on-silk waiver became an inherited defect across three boards). FAILs: a blank-LCSC BOM row whose refs are on the CPL; a declared-unpopulated ref still ON the CPL, or without `exclude_from_pos_files` on the board; a board part carrying that attribute yet placed by the shipped CPL; an entry missing `reason:`/`evidence:`/`disposition:`; a `reason:` outside the closed vocabulary; a CONSIGNED part listed as not_assembled (consigned means PLACED — a sourcing class, not a population class); and a release MANIFEST `not_assembled:` line that is absent or disagrees with `assembly.yaml` (it is GENERATED from that file, never hand-written twice) | [M] A-POP (`assembly_coverage.py RELEASE_OR_PROJECT`; prints the per-side placement histogram) | cooksense v1.1 (sealed 2026-07-24) shipped 13 CPL placement rows whose BOM line carries a BLANK LCSC — JLC told to place 12 parts the MANIFEST declares not_assembled, and to source a 13th (J_TC) declared nowhere. The interposer v1.0 shipped the same class plus a disposition that is PROSE telling a human to delete rows before uploading. crow-recorder-central-v2 v1.3 declared its PLACED, consigned U1 "not_assembled" |
+| A-STOCK | A release seals only against stock evidence that PASSES. Every coded BOM line with a CPL row is graded offline against the evidence the release SHIPS: `stock >= qty x build_quantity`, or an `assembly.yaml` `sourcing_plan:` entry carrying `measured_stock` + `measured_on`. **A MISSING OR UNPARSEABLE VERDICT IS A FAIL, NOT A SKIP** — the fleet ships three incompatible evidence formats, so a parser that shrugs at an unfamiliar shape can be silenced by choosing a shape. The gate is OFFLINE (it grades EVIDENCE); live re-query stays in the opt-in `--net` tier, because a gate that needs the network is a gate that gets skipped. `jlc_stock_check.py --json OUT` writes the one machine-readable sidecar with an EXPLICIT verdict | [M] A-STOCK (`release_freshness_check.py` check (e), always on) | five sealed releases ship stock evidence whose LAST LINE says FAIL and nothing ever read it: crow-recorder-central-v2 v1.0-v1.3 each record their own CPU (C6938291, the XU316 SoC) at `LOW_STOCK(0)`, and crow-recorder-central v1.0 six failing lines. cooksense v1.1 ships a raw `--out` CSV report as `stock_check.txt` with ZERO verdict lines at all — the gate must not be silenceable by deleting the verdict |
+
 ## Meta — worth more than all of the above
 
 | ID | Policy | Verified | Motivating incident |

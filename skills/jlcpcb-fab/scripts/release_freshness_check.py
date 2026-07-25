@@ -51,8 +51,25 @@ found 2026-07-24, AFTER sealing):
       release — diffing against a real predecessor is legitimate). A count
       the MANIFEST does not state is not checked: absence != mismatch.
 
+Fifth check — A-STOCK, always on (2026-07-25, the PCBA-default posture):
+
+  (e) STOCK EVIDENCE THAT DOES NOT PASS. Five sealed releases in this fleet
+      ship `verification/stock_check.*` whose LAST LINE says FAIL —
+      crow-recorder-central-v2 v1.0-v1.3 record their own CPU (C6938291, the
+      XU316 SoC) at LOW_STOCK(0) — because nothing ever parsed the verdict.
+      Check (e) grades the shipped evidence for every coded BOM line that has
+      a CPL row: stock >= qty x `build_quantity`, or a matching
+      `03_src/rules/assembly.yaml` `sourcing_plan:` entry with
+      `measured_stock` + `measured_on`. A MISSING OR UNPARSEABLE VERDICT IS A
+      FAIL, NOT A SKIP: cooksense v1.1 ships a raw `--out` CSV report as
+      stock_check.txt with ZERO verdict lines, so a parser that shrugged at an
+      unfamiliar shape could be silenced by choosing a shape. The check is
+      OFFLINE — it grades EVIDENCE; live re-query stays in the opt-in --net
+      tier, because a gate that needs the network is a gate that gets skipped.
+
 Usage:
     release_freshness_check.py <release_dir> [--releases-root DIR]
+                               [--assembly 03_src/rules/assembly.yaml]
                                [--allow-identical RELPATH ]...
     release_freshness_check.py <release_dir> --docs-only-supersede PRIOR_DIR
 
@@ -505,6 +522,212 @@ def check_manifest_consistency(release_dir, releases_root):
     return fails
 
 
+# --------------------------------------------------------------- check (e)
+# A-STOCK — a release seals only against stock evidence that PASSES.
+#
+# Five sealed releases in this fleet ship stock evidence whose LAST LINE says
+# FAIL, including crow-recorder-central-v2 v1.0-v1.3 whose own CPU
+# (C6938291, the XU316 SoC) is recorded LOW_STOCK(0). Nothing ever read the
+# verdict, so "stock verified" in the MANIFEST meant only that the tool ran.
+# Worse, the fleet ships THREE incompatible evidence formats — stdout text, a
+# `--out` CSV report saved as stock_check.txt (cooksense v1.1, ZERO verdict
+# lines), and a stdout dump saved as .csv — so a parser that gives up on an
+# unfamiliar shape is a parser that can be silenced by choosing a shape.
+#
+# Therefore: a MISSING or UNPARSEABLE VERDICT IS A FAIL, NOT A SKIP. The one
+# legitimate way past a non-OK line is an assembly.yaml `sourcing_plan:` entry
+# carrying the MEASURED stock and the date it was measured.
+#
+# This check is OFFLINE: it grades the EVIDENCE the release ships. Live
+# re-query stays in the opt-in `--net` tier — a gate that needs the network
+# is a gate that gets skipped.
+_STOCK_EVIDENCE = ("stock_check.json", "stock_check.txt", "stock_check.csv")
+_STOCK_BAD = ("LOW_STOCK", "NOT_FOUND", "QUERY_FAILED", "NO_MATCH")
+_VERDICT_RE = re.compile(r"^\s*(PASS|FAIL)\s*:\s*(\d+)\s+coded", re.M)
+_LINE_RE = re.compile(
+    r"^\s{2,}(OK|LOW_STOCK\(\d+\)|NOT_FOUND|QUERY_FAILED)\s+(C\d+)\s+x(\d+)"
+    r".*?(?:stock=(\S+))?\s*$", re.M)
+
+
+def _placed_coded_lines(release_dir):
+    """{lcsc: qty} for every coded BOM line with at least one ref ON the CPL.
+    `qty` counts only the refs actually placed — an unpopulated ref consumes
+    no stock. Returns None when the release ships no BOM/CPL to grade."""
+    import csv as _csv
+    bom = release_dir / "fab" / "bom.csv"
+    cpl = release_dir / "fab" / "cpl.csv"
+    if not bom.is_file() or not cpl.is_file():
+        return None
+    with cpl.open(newline="") as f:
+        placed = {(r.get("Designator") or "").strip()
+                  for r in _csv.DictReader(f)}
+    out = {}
+    with bom.open(newline="") as f:
+        for r in _csv.DictReader(f):
+            code = (r.get("LCSC") or "").strip()
+            if not code:
+                continue
+            n = sum(1 for d in (r.get("Designator") or "").split(",")
+                    if d.strip() in placed)
+            if n:
+                out[code] = out.get(code, 0) + n
+    return out
+
+
+def _parse_stock_evidence(path):
+    """(verdict, {lcsc: (status, stock_or_None)}) from any of the shipped
+    formats. `verdict` is 'PASS' / 'FAIL' / None — None means the file states
+    no verdict, which is itself the finding."""
+    lines = {}
+    if path.suffix == ".json":
+        import json as _json
+        try:
+            d = _json.loads(path.read_text())
+        except Exception:
+            return None, lines
+        for e in d.get("lines", []):
+            code = str(e.get("lcsc") or "").strip()
+            if code:
+                st = str(e.get("status") or "")
+                try:
+                    stock = int(e.get("stock"))
+                except (TypeError, ValueError):
+                    stock = None
+                lines[code] = (st, stock)
+        v = str(d.get("verdict") or "").upper()
+        return (v if v in ("PASS", "FAIL") else None), lines
+    text = path.read_text(errors="ignore")
+    for m in _LINE_RE.finditer(text):
+        st, code, _qty, stock = m.groups()
+        try:
+            stock = int(stock)
+        except (TypeError, ValueError):
+            stock = None
+        lines[code] = (st, stock)
+    if not lines:                       # the `--out` CSV report shape
+        import csv as _csv
+        try:
+            rows = list(_csv.DictReader(path.open(newline="")))
+        except Exception:
+            rows = []
+        for r in rows:
+            code = (r.get("code") or r.get("LCSC") or "").strip()
+            if not code:
+                continue
+            try:
+                stock = int(r.get("stock"))
+            except (TypeError, ValueError):
+                stock = None
+            lines[code] = ((r.get("status") or ""), stock)
+    m = _VERDICT_RE.search(text)
+    return (m.group(1) if m else None), lines
+
+
+def check_stock(release_dir, assembly):
+    """(e) grade the SHIPPED stock evidence for every coded, placed BOM line."""
+    fails, notes = [], []
+    want = _placed_coded_lines(release_dir)
+    if want is None:
+        notes.append("  note: A-STOCK: this release ships no fab/bom.csv + "
+                     "fab/cpl.csv pair — no coded, placed line to grade")
+        return fails, notes
+    qty_mult = int(assembly.get("build_quantity") or 5)
+    if not assembly.get("build_quantity"):
+        notes.append("  note: A-STOCK: no assembly.yaml build_quantity — "
+                     "grading against the 5-board default")
+    plan = {}
+    for e in (assembly.get("sourcing_plan") or []):
+        code = str(e.get("lcsc") or "").strip()
+        if (code and e.get("measured_stock") is not None
+                and str(e.get("measured_on") or "").strip()):
+            plan[code] = e
+        elif code:
+            fails.append(
+                f"  STOCK-PLAN-INCOMPLETE: sourcing_plan entry for {code} is "
+                f"missing measured_stock and/or measured_on — a plan without "
+                f"the measured number and its date is a hope, not evidence")
+
+    ver = release_dir / "verification"
+    ev = next((ver / n for n in _STOCK_EVIDENCE if (ver / n).is_file()), None)
+    if ev is None:
+        fails.append(
+            f"  STOCK-NO-EVIDENCE: {len(want)} coded line(s) are on the CPL "
+            f"but verification/ ships no stock evidence "
+            f"({'/'.join(_STOCK_EVIDENCE)}) — a release with unverified "
+            f"sourcing is not orderable")
+        return fails, notes
+    verdict, lines = _parse_stock_evidence(ev)
+    notes.append(f"  note: A-STOCK: grading verification/{ev.name} "
+                 f"({len(lines)} graded line(s), verdict={verdict}) against "
+                 f"{len(want)} coded+placed BOM line(s) x {qty_mult} boards")
+    if verdict is None:
+        fails.append(
+            f"  STOCK-NO-VERDICT: verification/{ev.name} states no parseable "
+            f"PASS:/FAIL: verdict — the VERDICT LINE IS THE GATE, so evidence "
+            f"that omits it is unverified sourcing, never a pass (cooksense "
+            f"v1.1 shipped a raw CSV report with zero verdict lines)")
+    elif verdict == "FAIL":
+        problem = {c for c, (st, _s) in lines.items()
+                   if any(b in st for b in _STOCK_BAD)}
+        # Only a problem line that is actually PLACED and unplanned accuses
+        # this release: an unpopulated hand-solder/consign line legitimately
+        # reads LOW_STOCK(0) and is A-POP's business, not A-STOCK's.
+        bad = sorted((problem & set(want)) - set(plan))
+        if bad:
+            fails.append(
+                f"  STOCK-VERDICT-FAIL: verification/{ev.name} ends in a FAIL "
+                f"verdict; unplanned PLACED problem line(s): "
+                f"{', '.join(bad[:12])} — seal only against a PASS, or record "
+                f"each line in assembly.yaml `sourcing_plan:` with its "
+                f"measured stock + date")
+        elif problem:
+            notes.append(
+                f"  note: A-STOCK: verification/{ev.name} verdict is FAIL but "
+                f"every problem line ({', '.join(sorted(problem)[:8])}) is "
+                f"unplaced or covered by a sourcing_plan entry")
+        else:
+            fails.append(
+                f"  STOCK-VERDICT-FAIL: verification/{ev.name} ends in a FAIL "
+                f"verdict and no line-level status could be parsed from it — "
+                f"the release cannot show WHICH line failed")
+    for code, qty in sorted(want.items()):
+        if code in plan:
+            continue
+        if code not in lines:
+            fails.append(
+                f"  STOCK-UNGRADED: {code} (x{qty} placed) has no line in "
+                f"verification/{ev.name} — a placed part with no stock "
+                f"evidence was never sourced, only assumed")
+            continue
+        st, stock = lines[code]
+        need = qty * qty_mult
+        if stock is not None and stock < need:
+            fails.append(
+                f"  STOCK-INSUFFICIENT: {code} stock={stock} < {qty} x "
+                f"{qty_mult} boards = {need} (status {st}) and no "
+                f"assembly.yaml sourcing_plan entry names a measured "
+                f"alternative")
+        elif stock is None and any(b in st for b in _STOCK_BAD):
+            fails.append(
+                f"  STOCK-INSUFFICIENT: {code} graded {st} with no readable "
+                f"stock number and no sourcing_plan entry")
+    return fails, notes
+
+
+def _load_assembly(release_dir, override):
+    """assembly.yaml for this release: --assembly, else the project's
+    03_src/rules/assembly.yaml (a release is projects/<b>/07_releases/<r>/)."""
+    p = Path(override) if override else (release_dir.parent.parent
+                                         / "03_src" / "rules" / "assembly.yaml")
+    if not p.is_file():
+        return {}
+    try:
+        import yaml
+    except ImportError:
+        return {}
+    return yaml.safe_load(p.read_text()) or {}
+
+
 # ------------------------------------------------------------------- main
 def main(argv=None):
     ap = argparse.ArgumentParser(description="release-artifact freshness gate")
@@ -529,6 +752,11 @@ def main(argv=None):
     ap.add_argument("--_disable-audit-manifest", action="store_true")
     ap.add_argument("--_disable-readme", action="store_true")
     ap.add_argument("--_disable-manifest-consistency", action="store_true")
+    ap.add_argument("--_disable-stock", action="store_true")
+    ap.add_argument("--assembly", default="",
+                    help="03_src/rules/assembly.yaml (auto-discovered from "
+                         "the release path) — supplies build_quantity and the "
+                         "sourcing_plan the A-STOCK check grades against")
     args = ap.parse_args(argv)
 
     release_dir = Path(args.release_dir).resolve()
@@ -577,6 +805,11 @@ def main(argv=None):
         fails += check_draft_readme(release_dir)
     if not args._disable_manifest_consistency:
         fails += check_manifest_consistency(release_dir, releases_root)
+    if not args._disable_stock:
+        sf, sn = check_stock(release_dir, _load_assembly(release_dir,
+                                                         args.assembly))
+        fails += sf
+        notes += sn
 
     for n in notes:
         print(n)

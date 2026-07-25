@@ -1,9 +1,20 @@
 """Check a JLC-format BOM against the JLCPCB parts library.
 
     python3 jlc_stock_check.py bom_jlc.csv [--search-missing] [--min-stock 5]
-                               [--out report.csv] [--candidates 3]
+                               [--out report.csv] [--json report.json]
+                               [--candidates 3]
 
 Plain python3 (no pcbnew needed). BOM columns: Comment,Designator,Footprint,LCSC.
+
+THE VERDICT LINE IS THE GATE (canon A-STOCK). Five sealed releases in this
+fleet ship stock evidence whose last line says FAIL — one with the board's own
+CPU at stock 0 — because nothing ever parsed it, and the fleet ships THREE
+incompatible evidence formats (this script's stdout, its `--out` CSV report,
+and a `.csv` file that is really stdout). `--json OUT` writes the ONE
+machine-readable sidecar `release_freshness_check.py` grades: per-line
+`{lcsc, qty, status, stock}` plus an explicit `verdict`. Ship it in
+`07_releases/<rel>/verification/stock_check.json`; a MISSING or UNPARSEABLE
+verdict is a FAIL there, never a skip.
 
 - Lines WITH an LCSC code: exact lookup -> stock, basic/extended, price.
   Exit 1 if any coded line is not found or stock < min-stock * qty.
@@ -82,6 +93,10 @@ ap.add_argument("--min-stock", type=int, default=5,
                 help="fail if stock < this many x qty (default 5 boards)")
 ap.add_argument("--candidates", type=int, default=3)
 ap.add_argument("--out", default="")
+ap.add_argument("--json", default="",
+                help="machine-readable sidecar (per-line status/stock + an "
+                     "explicit verdict) — the format the A-STOCK release gate "
+                     "grades; ship it as verification/stock_check.json")
 args = ap.parse_args()
 
 rows = list(csv.DictReader(open(args.bom)))
@@ -145,6 +160,26 @@ if args.out:
         w.writeheader()
         w.writerows(report)
     print(f"\nreport -> {args.out}")
+
+if args.json:
+    # The ONE machine-readable form. `verdict` is written EXPLICITLY: a reader
+    # must never have to infer PASS from the absence of a FAIL line.
+    with open(args.json, "w") as f:
+        json.dump({"tool": "jlc_stock_check.py",
+                   "bom": str(args.bom),
+                   "min_stock_per_board": args.min_stock,
+                   "verdict": "FAIL" if failures else "PASS",
+                   "failures": failures,
+                   "uncoded_lines": len(uncoded),
+                   "lines": [{"lcsc": r.get("LCSC", "").strip(),
+                              "designators": r.get("Designator", ""),
+                              "qty": r.get("qty"),
+                              "status": r.get("status"),
+                              "stock": r.get("stock"),
+                              "type": r.get("type", ""),
+                              "mpn": r.get("mpn", "")}
+                             for r in report]}, f, indent=1)
+    print(f"json -> {args.json}")
 
 print(f"\n{'FAIL' if failures else 'PASS'}: {failures} coded lines with problems; "
       f"{len(uncoded)} lines still uncoded")

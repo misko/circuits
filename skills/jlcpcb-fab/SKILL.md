@@ -110,8 +110,25 @@ verified working without auth 2026-07. Returns per part: `componentCode`,
   "2u2" finds only zero-stock noise (the script normalizes 2u2/4k7/0R22
   automatically). `C99xxxxxx` codes are consigned-sourcing placeholders,
   permanently stock=0. THT connectors (USB-A, headers) are usually ONLY
-  consigned — zero-stock proposals there mean "hand-solder or consign",
-  not "search harder".
+  consigned — zero-stock proposals there ESCALATE the line: either CONSIGN
+  it (you ship the part, JLC PLACES it — it stays ON the CPL and needs an
+  `assembly.yaml` `consigned:` entry with `msl:`), or re-specify to a
+  placeable part. "Hand-solder" is the last resort, and it is a decision
+  with a record: an `assembly.yaml` `not_assembled:` entry whose `evidence:`
+  is the DATED catalog query and its result, plus
+  `exclude_from_pos_files` on the board so the part actually leaves the CPL.
+  An uncoded line left on the CPL is not a concession, it is a defect —
+  cooksense v1.1 sealed 13 of them (canon A-POP).
+- **The VERDICT LINE IS THE GATE.** Five sealed releases in this fleet ship
+  stock evidence whose last line says `FAIL:` — crow-recorder-central-v2
+  v1.0-v1.3 each record their own CPU (C6938291) at `LOW_STOCK(0)` —
+  because nothing ever parsed it, and one release (cooksense v1.1) ships a
+  raw `--out` CSV report with NO verdict line at all. Write the sidecar
+  (`--json verification/stock_check.json`) and let
+  `release_freshness_check.py` check (e) grade it: an unparseable verdict
+  is a FAIL, not a skip. The only way past a non-OK line is an
+  `assembly.yaml` `sourcing_plan:` entry with `measured_stock` +
+  `measured_on` (canon A-STOCK).
 - If the endpoint breaks (it's unofficial): fallback is the jlcparts
   mirror (github yaqwsx/jlcparts, daily-updated dump of the same library),
   or manual search at jlcpcb.com/parts.
@@ -210,9 +227,18 @@ AND update this file in the same change. Board-design empirics stay in
   live LCSC candidates (basic-first) well; still confirm V/tol/dielectric
   by eye before adopting, then create the real-MPN parts/ entry and delete
   the TBD placeholder.
-- Parts genuinely not in the JLC catalog (e.g. CNCTech USB-A jacks) stay
-  UNCODED in the BOM on purpose: an explicit hand-solder list in the seed
-  script + `not_assembled:` line in the release MANIFEST, not a fake code.
+- A part genuinely not in the JLC catalog (e.g. CNCTech USB-A jacks) is a
+  FAILED SOURCING DECISION, not a style. Escalate in this order: re-specify
+  to a placeable part → CONSIGN it (populated, stays ON the CPL, needs
+  `consigned:` with `msl:`) → and only then leave it unplaced, which costs a
+  `03_src/rules/assembly.yaml` `not_assembled:` entry with a
+  closed-vocabulary `reason:`, a DATED `evidence:` measurement (the catalog
+  query and its result — a sourcing wall you PROVE you hit), a
+  `disposition:`, AND `exclude_from_pos_files` on the board so it leaves the
+  CPL. The release MANIFEST `not_assembled:` line is GENERATED from that
+  file, never hand-written beside it: cooksense v1.1's two homes disagreed on
+  12 refs and shipped. Never a fake code. Graded by `assembly_coverage.py`
+  (canon A-POP).
 - Every release also ships `pdf/`: `kicad-cli sch export pdf` (schematic),
   `kicad-cli pcb export pdf --mode-multipage -l <coppers,silk,mask>
   --cl Edge.Cuts` (layer review), and a `--mode-single -l
@@ -232,10 +258,13 @@ python3(pcbnew) scripts/jlc_twin.py BOARD bom_jlc.csv OUTDIR \
     --also J1=C98732,J2=C53133490   # hand-solder parts with known codes
 ```
 
-Always pass `--also REF=LCSC` for hand-solder/uncoded parts whose LCSC code
-is known (they're in the MANIFEST's not_assembled list): otherwise their
-bodies never render and the connector-overhang/orientation class of check
-never runs for exactly the parts a human solders by eye.
+Pass `--assembly 03_src/rules/assembly.yaml`: it pulls the REF=LCSC pairs for
+coded-but-not-assembled and consigned parts out of the ONE declared home, so
+their bodies render and the connector-overhang/orientation class of check runs
+for exactly the parts a human solders by eye. This REPLACES hand-typing
+`--also REF=LCSC` — a hand-typed list is a second home for the population set
+and drifts from the first (cooksense v1.1's MANIFEST and CPL disagreed on 12
+refs for precisely that reason). `--also` still works for an ad-hoc probe.
 
 1. Fetches JLC's own footprint + 3D model per LCSC code (easyeda2kicad,
    cached per-code in OUTDIR/easyeda/; EasyEDA rate-limits bursts - the
@@ -383,5 +412,42 @@ never runs for exactly the parts a human solders by eye.
 
 Stock + selection gates recap (same stage): every assembled BOM line carries
 an explicit LCSC code (bom_seed fails on unmapped/TBD - never rely on JLC
-auto-match); stock re-checked at order time with min-stock >= qty x boards;
-parts not in the JLC catalog stay uncoded with a hand-solder plan.
+auto-match); stock re-checked at order time with min-stock >= qty x boards
+and the VERDICT PARSED, not just printed (`--json`, canon A-STOCK); a part
+not in the JLC catalog is ESCALATED (re-specify -> consign -> declared
+not_assembled with dated evidence + `exclude_from_pos_files`), never left
+uncoded on the CPL (canon A-POP).
+
+## Stage: the ASSEMBLY battery (PCBA is the deliverable)
+
+The board is not the deliverable; the POPULATED board is. Run both against the
+STAGED release directory, before the seal commit — a finding here costs an
+edit, the same finding after the seal costs a supersede:
+
+```
+python3 scripts/assembly_coverage.py   07_releases/<ver>-<date>   # A-POP
+python3 scripts/release_freshness_check.py 07_releases/<ver>-<date>   # incl. A-STOCK
+```
+
+`assembly_coverage.py` is plain python3 and re-derives `{board} − {CPL}` from
+the BOARD's own text and the CPL/BOM bytes — never from
+`export_jlc_package.py`'s filter logic (canon M1: do not verify the exporter
+with the exporter). It takes a sealed release dir or a project dir. Copy its
+output into `verification/assembly_coverage.txt` and ship
+`verification/stock_check.json` (`jlc_stock_check.py --json`) beside it.
+
+ROTATION IS RESOLVED PRE-SEAL, not audited after. Measure → add the per-LCSC
+ROW (`jlc_lcsc_rotations.csv`) → **re-export the CPL** → then seal. A row
+added after the seal fixes nothing that shipped: crow-recorder-central-v2
+needed a whole v1.3 release whose fab set differs from v1.2's in exactly one
+file (cpl.csv) to move one consigned TQFP-128's angle.
+
+**The A-ROT gate itself is HELD (2026-07-25).** `jlc_twin.xform()` uses the
+opposite handedness to `local_to_board()` — verified against pcbnew over 72
+pads: local_to_board exact to 0.000000 mm, xform off by up to 23.93 mm, wrong
+at every 90/270 part and sign-invariant (so invisible) at 0/180. Every
+`jlc_offset` was therefore NEGATED, and six `jlc_lcsc_rotations.csv` rows
+populated from it were all 180 deg wrong. Until the sign is fixed: do not
+populate a rotation row from `jlc_offset`, and do not build a gate that ranks
+that table as authority — derive the angle from the BOARD plus JLC's cached
+model with an operator verified against pcbnew itself.

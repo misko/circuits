@@ -734,6 +734,33 @@ def main():
         except Exception as e:
             rows.append(("M-BOM", "FAIL", f"bom_source_check errored: {e}"))
 
+    # A-POP: the population set is DECLARED, not emergent (canon A-POP; PCBA
+    # is the deliverable). Grades the ORDERABLE artifacts — the latest sealed
+    # release when there is one, else the staged 06_build/fab set — and
+    # re-derives {board} - {CPL} from the BOARD text and the CPL bytes, never
+    # from the exporter that produced them (canon M1). Until 2026-07-25
+    # nothing in this repo had ever read a cpl.csv back, and cooksense v1.1
+    # sealed 13 blank-LCSC parts onto its CPL past every gate.
+    _asm_target = str(latest) if rels else str(proj)
+    _fab_ready = (rels or (proj / "06_build" / "fab" / "cpl_jlc.csv").exists()
+                  or (proj / "06_build" / "fab" / "cpl.csv").exists())
+    if not _fab_ready:
+        rows.append(("A-POP", "N-A", "no CPL exported yet"))
+    else:
+        r = sh([sys.executable, str(jlc_scripts / "assembly_coverage.py"),
+                _asm_target])
+        head = [l for l in (r.stdout + r.stderr).splitlines()
+                if l.strip().startswith(("UNDECLARED", "DECLARED", "POS-ATTR",
+                                         "UNCODED", "CPL-NO", "BAD-REASON",
+                                         "NO-EVIDENCE", "CONSIGN",
+                                         "MANIFEST-", "NO-ASSEMBLY"))]
+        grade("A-POP", r.returncode == 0,
+              f"{Path(_asm_target).name}: "
+              + next((l.strip() for l in r.stdout.splitlines()
+                      if l.startswith("A-POP:")), "PASS"),
+              f"{len(head)} finding(s): " + " || ".join(h.strip()[:120]
+                                                        for h in head[:3]))
+
     # M-JRNL / M-LEARN: per-stage diary + harvest sources (canon M9). Scoped
     # to commissioned projects (01_docs exists) — scratch/test trees exempt.
     docs = proj / "01_docs"
