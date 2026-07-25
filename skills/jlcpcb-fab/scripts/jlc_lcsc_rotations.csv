@@ -1,0 +1,11 @@
+LCSC,rotation,evidence
+C6938291,90,"XU316-1024 128-lead SoC in TQFP-128_14x14mm_P0.4mm_EP_XU316; crow-recorder-central-v2 U1 twin exact pad-fit=0.00mm jlc_offset=90 (name-DB ^TQFP-=270 was 180deg off on the consigned part)"
+C181312,90,"PCM1865 ADC in TSSOP-30_4.4x7.8mm_P0.5mm; crow-recorder-central-v2 U2/U3 and crow-recorder-central v1.0 U2/U3 twin fit=0.00mm jlc_offset=90 (name-DB ^TSSOP-=270)"
+C82317,90,"W25Q flash in SOIC-8_5.3x5.3mm_P1.27mm; crow-recorder-central-v2 U5 twin fit=0.06mm jlc_offset=90 (name-DB ^SOIC-=270). Distinct footprint from the fleet's SOIC-8_3.9x4.9mm parts."
+C5224055,90,"AP61102-family buck in SOT-563; crow-recorder-central-v2 U7/U8 and crow-recorder-central v1.0 U10/U11 twin fit=0.07mm jlc_offset=90 (no name-DB rule matched SOT-563 -> was 0)"
+C90627,90,"USB ESD array in USON-10_2.5x1.0mm_P0.5mm; crow-recorder-central-v2 D_USB twin fit=0.01mm jlc_offset=90 (name-DB ^USON-10=270)"
+C15127,180,"AO3400A N-FET in SOT-23; crow-recorder-central-v2 Q1 twin fit=0.28mm jlc_offset=180. Fleet-cross-verified: cooksense (Q_COIL/Q_REV/Q_SW*) fit=0.28mm and crow-recorder-central v1.0 (Q9) both jlc_offset=180 (name-DB ^SOT-23=-90)"
+C20917,180,"AO3401A P-FET in SOT-23; crow-recorder-central-v2 Q2 twin fit=0.08mm jlc_offset=180. Fleet-cross-verified: crow-recorder-central v1.0 (Q1-Q8) jlc_offset=180 (name-DB ^SOT-23=-90)"
+C79924,180,"TLV70018 LDO in SOT-23-5; crow-recorder-central-v2 U9 and crow-recorder-central v1.0 U12 twin fit=0.20mm jlc_offset=180 (name-DB ^SOT-23=-90). NOTE: a DIFFERENT SOT-23-5 part, C7719, measures 90 -> proves per-LCSC is required, name key cannot hold both."
+C8545,180,"AO3400-family FET in SOT-23; NOT on crow-recorder-central-v2. Fleet SOT-23 root-cause fix: cooksense (Q_COILDRV/Q_SWDRV*) twin fit=0.08mm jlc_offset=180 (name-DB ^SOT-23=-90). Added with measured evidence per coordinator."
+C78284,180,"FET in SOT-23; NOT on crow-recorder-central-v2. Fleet SOT-23 root-cause fix: usb-hub-3s-v3 (Q7) twin fit=0.08mm jlc_offset=180 (name-DB ^SOT-23=-90). Added with measured evidence per coordinator."

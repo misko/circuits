@@ -21,14 +21,19 @@ the replay store: seed it and `fetch()` returns before ever invoking the
 fetcher. Live-network runs live in the opt-in `--net` tier, not here.
 """
 import os
+import re
 import shutil
 import stat
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from harness import (FAB_SCRIPTS, KPY, ROOT, SCRIPTS, check, contains, main,  # noqa: E402
+from harness import (FAB_SCRIPTS, KPY, ROOT, SCRIPTS, check, contains, eq, main,  # noqa: E402
                      must_fail, must_pass, run, test, tmpdir)
+
+sys.path.insert(0, str(FAB_SCRIPTS))
+from jlc_rotation_resolve import (load_lcsc_rotations,  # noqa: E402
+                                  resolve_rotation)
 
 TWIN = FAB_SCRIPTS / "jlc_twin.py"
 GEN = SCRIPTS / "generate_board_generic.py"
@@ -184,6 +189,79 @@ def t_empty_bom():
     check("0 checked" in r.out or "0 OK" in r.out,
           f"an empty BOM did not announce that it checked nothing:\n"
           f"{r.out[-1500:]}")
+
+
+# ------------------------------------------------ per-LCSC rotation override
+# JLC's CPL zero-orientation is a PER-PART fact: two parts sharing a KiCad
+# footprint NAME can need different offsets. Measured (2026-07-24): C79924 and
+# C7719 are both SOT-23-5 yet fit at 180 vs 90 — a footprint-name table cannot
+# hold both. jlc_rotation_resolve.resolve_rotation() checks the per-LCSC table
+# BEFORE the name DB. The exporter and the twin share this resolver, so these
+# unit tests pin the behaviour for BOTH.
+#
+# RED-VERIFY (performed 2026-07-24): deleting the `if lcsc and lcsc in
+# lcsc_table:` branch in resolve_rotation() (i.e. reverting to name-only, the
+# pre-fix code) makes t_lcsc_override_wins FAIL — it then returns 270 (name-DB
+# -90) instead of the fitted 180. Restored; the test now passes. That is the
+# whole bug: the name key served 270 to a part whose exact fit is 180.
+_SOT235 = [(re.compile("^SOT-23"), -90.0)]   # the generic name-DB rule (buggy for these parts)
+
+
+@test("per-LCSC override WINS over a matching footprint-name rule", kind="known_bad")
+def t_lcsc_override_wins():
+    """The defended behaviour. C79924 (SOT-23-5) fits at 180; the name DB says
+    -90 (=270). With the per-LCSC row present the resolver MUST return 180 —
+    if it returned the name-DB 270 the CPL ships the consigned/known-bad
+    generic rotation, which is exactly the crow-recorder-central-v2 blocker."""
+    cpl, off, src = resolve_rotation("SOT-23-5", 0, "C79924", _SOT235,
+                                     {"C79924": 180.0})
+    eq(cpl, 180.0, "C79924 SOT-23-5 CPL rotation")
+    eq(off, 180.0, "offset")
+    eq(src, "lcsc", "resolution source")
+    check(cpl != 270.0, "per-LCSC must NOT fall through to the name-DB 270")
+
+
+@test("a part with no per-LCSC row falls back to the name DB unchanged")
+def t_name_db_fallback():
+    """C7719 is also SOT-23-5 but needs 90, so it is NOT in the crow table.
+    It must keep the existing name-DB behaviour (-90 -> 270): the override is
+    strictly additive and never disturbs an un-listed part. This is what lets
+    C79924->180 land WITHOUT touching cooksense's C7719."""
+    cpl, off, src = resolve_rotation("SOT-23-5", 0, "C7719", _SOT235,
+                                     {"C79924": 180.0})
+    eq(cpl, 270.0, "C7719 SOT-23-5 CPL rotation (name-DB -90)")
+    eq(src, "name", "resolution source")
+
+
+@test("board orientation is added to the per-LCSC offset (non-zero rot)")
+def t_board_rotation_composes():
+    """CPL = (board_rot + offset) % 360. A part placed at 90 on the board with
+    a +180 per-LCSC offset ships at 270."""
+    cpl, off, src = resolve_rotation("SOT-23", 90, "C15127", _SOT235,
+                                     {"C15127": 180.0})
+    eq(cpl, 270.0, "C15127 at board-rot 90 + offset 180")
+    eq(src, "lcsc", "resolution source")
+
+
+@test("no per-LCSC row and no name-DB match returns the bare board rotation")
+def t_no_match_passthrough():
+    cpl, off, src = resolve_rotation("Some_Weird_FP", 45, "C0000", [], {})
+    eq(cpl, 45.0, "passthrough CPL rotation")
+    eq(off, 0.0, "passthrough offset")
+    eq(src, "none", "resolution source")
+
+
+@test("the shipped per-LCSC table loads and resolves crow-rv2's 10 rows")
+def t_shipped_table_resolves():
+    """Guards the real jlc_lcsc_rotations.csv: every crow-recorder-central-v2
+    ROT-DB-SUGGEST code must be present with its fitted offset, so a fresh
+    export/twin reports ZERO unresolved suggestions."""
+    tbl = load_lcsc_rotations()
+    want = {"C6938291": 90, "C181312": 90, "C82317": 90, "C5224055": 90,
+            "C90627": 90, "C15127": 180, "C20917": 180, "C79924": 180}
+    for code, rot in want.items():
+        check(code in tbl, f"{code} missing from jlc_lcsc_rotations.csv")
+        eq(tbl[code], float(rot), f"{code} rotation")
 
 
 if __name__ == "__main__":

@@ -35,6 +35,13 @@ run_start = time.time()
 # footprint-name regex -> CCW offset added to the CPL rotation. Fixes the
 # systematic preview/assembly rotation mismatch for SMD parts; the JLC
 # preview must STILL be eyeballed (per-part reel deviations exist).
+# A per-LCSC table (jlc_lcsc_rotations.csv) WINS over the name DB: JLC's
+# zero-orientation is a per-part fact, and two parts that share a footprint
+# NAME can need different offsets (measured: C79924 vs C7719, both SOT-23-5,
+# -> 180 vs 90). The name key alone cannot encode that.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from jlc_rotation_resolve import load_lcsc_rotations, resolve_rotation
+
 _ROT_DB = []
 _db_path = Path(__file__).parent / "jlc_rotations_db.csv"
 if _db_path.exists():
@@ -45,13 +52,12 @@ if _db_path.exists():
                     _ROT_DB.append((re.compile(_row[0]), float(_row[1])))
                 except re.error:
                     pass
+_LCSC_ROT = load_lcsc_rotations()
 
 
-def jlc_rotation(fpname, rot):
-    for pat, off in _ROT_DB:
-        if pat.search(fpname):
-            return round((rot + off) % 360, 1), off
-    return round(rot % 360, 1), 0
+def jlc_rotation(fpname, rot, lcsc=""):
+    cpl, off, _src = resolve_rotation(fpname, rot, lcsc, _ROT_DB, _LCSC_ROT)
+    return cpl, off
 
 ap = argparse.ArgumentParser()
 ap.add_argument("board")
@@ -172,10 +178,11 @@ for fp in board.GetFootprints():
     if fp.GetAttributes() & pcbnew.FP_EXCLUDE_FROM_POS_FILES:
         continue
     pos = fp.GetPosition()
-    jrot, off = jlc_rotation(fpname, fp.GetOrientationDegrees())
+    jrot, off = jlc_rotation(fpname, fp.GetOrientationDegrees(), code)
     if off:
+        src = "LCSC" if (code and code in _LCSC_ROT) else "name-DB"
         print(f"  rot-correct {ref}: {fp.GetOrientationDegrees():.0f} "
-              f"+ {off:.0f} -> {jrot:.0f} ({fpname[:40]})")
+              f"+ {off:.0f} -> {jrot:.0f} ({fpname[:40]}) [{src}]")
     cpl.append([ref, val, fpname,
                 round(pcbnew.ToMM(pos.x), 3), round(-pcbnew.ToMM(pos.y), 3),
                 "top" if fp.GetLayer() == pcbnew.F_Cu else "bottom",

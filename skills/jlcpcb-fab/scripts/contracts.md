@@ -9,7 +9,7 @@ stock, twin).
 |---|---|
 | `*.py` | tools — network access mocked in tests via `$EASYEDA2KICAD` seam |
 | `*.sh` | drivers |
-| `*.csv` | data tables (e.g. `jlc_rotations_db.csv` — JLC CPL rotation corrections) |
+| `*.csv` | data tables: `jlc_rotations_db.csv` (footprint-NAME CPL rotation corrections) and `jlc_lcsc_rotations.csv` (per-LCSC overrides, `LCSC,rotation,evidence`) |
 | `contracts.md` | this file |
 
 ## Audit
@@ -37,6 +37,17 @@ stock, twin).
 - Fetch/stock classifiers must treat any UNRECOGNIZED failure as a blocking
   failure, never as an affirmative disposition (the NO-CAD incident,
   2026-07-20).
+- CPL rotation is resolved by `jlc_rotation_resolve.py` (shared, no-pcbnew, so
+  unit-testable): a PER-LCSC override (`jlc_lcsc_rotations.csv`) WINS over the
+  footprint-NAME DB (`jlc_rotations_db.csv`). JLC's zero-orientation is a
+  per-part fact — two parts sharing a footprint NAME can need different offsets
+  (measured 2026-07-24: C79924 vs C7719, both `SOT-23-5`, need 180 vs 90; the
+  name key cannot hold both, and a broad `^SOT-23,180` name rule would mis-set
+  every OTHER part sharing that name). Populate the per-LCSC table ONLY with
+  twin-MEASURED exact-fits (cite the fit in the `evidence` column); a guessed
+  row silently overrides the name DB fleet-wide. `t1_jlc_twin.py` unit-tests
+  the resolver (per-LCSC-wins + name-DB fallback for un-listed parts + a
+  RED-verify that reverting to name-only returns the wrong rotation).
 - The fab BOM's LCSC code is the SOURCE's per-refdes code
   (`circuit.json supplier_part_numbers`), never a value+footprint match:
   `export_jlc_package.py` groups by (LCSC, footprint) so two distinct codes

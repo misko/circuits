@@ -48,6 +48,9 @@ from pathlib import Path
 
 import pcbnew
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from jlc_rotation_resolve import load_lcsc_rotations  # noqa: E402
+
 E2K_CANDIDATES = [os.environ.get("EASYEDA2KICAD", ""),
                   shutil.which("easyeda2kicad") or "",
                   os.path.expanduser("~/virtual-envs/spf/bin/easyeda2kicad"),
@@ -332,6 +335,9 @@ def main():
     ap.add_argument("outdir")
     ap.add_argument("--rotations-db",
                     default=str(Path(__file__).parent / "jlc_rotations_db.csv"))
+    ap.add_argument("--lcsc-rotations",
+                    default=str(Path(__file__).parent / "jlc_lcsc_rotations.csv"),
+                    help="per-LCSC rotation overrides (win over the name DB)")
     ap.add_argument("--no-render", action="store_true")
     ap.add_argument("--adjudications", default="",
                     help="YAML list of reviewed findings to accept: "
@@ -385,6 +391,7 @@ def main():
     board = pcbnew.LoadBoard(args.board)
     by_ref = {fp.GetReference(): fp for fp in board.GetFootprints()}
     db = rot_db(args.rotations_db)
+    lcsc_rot = load_lcsc_rotations(args.lcsc_rotations)
 
     lines = [r for r in csv.DictReader(open(args.bom)) if r.get("LCSC")]
     for pair in [p for p in args.also.split(",") if p.strip()]:
@@ -513,11 +520,25 @@ def main():
                                  "(if the model is unmarked, verify via the "
                                  "JLC order preview) - machine checks cannot "
                                  "see a 180-flipped symmetric model"))
-            db_off = next((off for _, pat, off in db if pat.search(fpname)), 0.0)
+            # The exporter resolves per-LCSC FIRST (jlc_lcsc_rotations.csv),
+            # then the footprint-name DB — mirror that here so the audit
+            # compares the fitted angle against the SAME offset the CPL will
+            # actually use. A per-LCSC override wins because JLC's zero-
+            # orientation is a per-part fact (two parts sharing a footprint
+            # NAME can need different offsets: C79924 vs C7719, both SOT-23-5).
+            if lcsc in lcsc_rot:
+                db_off, src = lcsc_rot[lcsc], "lcsc"
+            else:
+                db_off = next((off for _, pat, off in db if pat.search(fpname)), 0.0)
+                src = "name-DB"
             status = "OK" if (ang - db_off) % 360 == 0 else "ROT-DB-SUGGEST"
+            # Recommend the per-LCSC table (the name key is exactly the bug):
+            # a name-DB row would mis-set every OTHER part sharing this name.
+            hint = (f" -> add LCSC row {lcsc},{ang} to jlc_lcsc_rotations.csv"
+                    if status != "OK" else "")
             findings.append((lcsc, ref, status,
-                             f"fit={e:.2f}mm jlc_offset={ang} db={db_off}"
-                             + (f" -> add: {fpname},{ang}" if status != "OK" else "")))
+                             f"fit={e:.2f}mm jlc_offset={ang} db={db_off} src={src}"
+                             + hint))
             twin[ref] = (jfp, ang, oc, _jca, lcsc)
 
     # ---- twin render: JLC models mounted on OUR board
