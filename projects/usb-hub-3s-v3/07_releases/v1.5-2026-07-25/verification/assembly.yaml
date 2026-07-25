@@ -1,0 +1,154 @@
+# usb-hub-3s-v3 — ASSEMBLY INTENT (canon A-POP / A-STOCK).
+# Seeded 2026-07-25 from skills/pcb-design/templates/03_src/rules/assembly.yaml
+# for release v1.5-2026-07-25. The KEYS are the contract (03_src/rules/
+# contracts.md); the values below are THIS board's, every one measured.
+#
+# PCBA IS THE DELIVERABLE. This file is the ONE machine-readable home for
+# "who gets placed, and why not". The release MANIFEST `not_assembled:` line is
+# GENERATED from this file — never hand-written in two places.
+#
+# MEASURED POPULATION SET (2026-07-25, against 04_kicad/usb_hub_3s_v2.kicad_pcb
+# and 07_releases/v1.5-2026-07-25/fab/cpl.csv):
+#   114 board footprints
+#    -4 H1-H4 mounting holes (FP_EXCLUDE_FROM_BOM; exempt_prefixes below)
+#   ---
+#   110 BOM parts  =  108 CPL placements  +  2 declared not_assembled (F1, SW1)
+#   108/108 CPL rows are `top`; 0 bottom-side placements; 0 bottom footprints.
+
+# ---- SERVICE DECLARATION ---------------------------------------------------
+# THROUGH-HOLE IS PART OF THE ORDERED SERVICE, not an afterthought (user
+# decision 2026-07-25: order JLC THT assembly; J1-J4 STAY on the CPL).
+# MEASURED plated-hole census on the sealed board, 2026-07-25:
+#   MACHINE-ASSEMBLED THT (on the CPL, JLC solders):
+#     J1  AMASS XT60PW-M      4 PTH  (2x 2.7mm blade + 2x 0.6mm anchor)
+#     J2  KH-AF90DIP-112      6 PTH  (4x 1.0mm signal + 2x 3.0mm shell)
+#     J3  KH-AF90DIP-112      6 PTH
+#     J4  KH-AF90DIP-112      6 PTH
+#     ----------------------------------  4 refdes / 22 PTH  <- the THT line item
+#   HYBRID (on the CPL, counted as SMD): J5 TYPE-C-31-M-12A = 16 SMD contacts
+#     + 4x 0.6mm PTH shield legs + 2x 0.65mm NPTH alignment posts. The shield
+#     legs need soldering; declare J5 to the fab so the hybrid is not missed.
+#   NOT machine-assembled (see not_assembled: below): F1 4 PTH, SW1 3 PTH + 2 NPTH.
+# NOTE (recorded, not silently absorbed): this schema has no dedicated
+# through_hole: key, so the THT declaration lives here in `service` — the field
+# that states what was ORDERED. Raised as a skill/template change in
+# 08_reviews/2026-07-25_v1.5_pcba-audit.md (PCBA-9); not invented locally.
+service: "standard SMT (top side only) + THROUGH-HOLE assembly (4 refdes / 22 plated holes: J1, J2, J3, J4; plus J5's 4 SMD-hybrid shield legs)"
+
+# 108/108 CPL rows measured `top`; the board carries ZERO bottom-side
+# footprints (pcbnew census 2026-07-25: 114 top / 0 bottom). Single-sided
+# assembly — no second reflow pass, no bottom-side cost line.
+sides: [top]
+
+# DELIBERATE `none`. Two facts, both dated 2026-07-25:
+#  (a) FAB'S OWN PRACTICE: for SMT assembly orders JLCPCB panelizes the board
+#      onto its own rails and puts ITS fiducials on those rails; customer
+#      board fiducials are not required for a standard SMT order. Recorded as
+#      the fab's general stated practice at seal time, NOT a per-order
+#      confirmation — re-read it on the order page before paying.
+#  (b) LOCAL fiducials (ours to place, un-addable later) are the caller's job
+#      only beside <=0.4mm-pitch parts. MEASURED 2026-07-25, board-wide, over
+#      every pad pair with DIFFERENT pad numbers: the smallest non-zero
+#      centre-to-centre distance is 0.500 mm, at J5 (TYPE-C-31-M-12_EdgeTrim),
+#      pads A5<->B7 and A5<->B8 in the CC/SBU region. Next: 0.600 mm at
+#      U3/U4/U5 (VSON-8-1EP_3x3mm_P0.65mm); 0.650 mm is the finest LEADED
+#      pitch (VSON-8 + HTSSOP-20).
+#      NB some pairs measure 0.000 mm: those are ONE physical pad carrying two
+#      pin names (J5's A1/B12, A4/B9, A9/B4, A12/B1; the HTSSOP-20 exposed pad),
+#      not two pads, and they are excluded from the criterion.
+#      0.500 mm > 0.400 mm -> no local fiducial required. (CORRECTED from an
+#      earlier 0.600 mm figure that missed J5 — v1.5 fresh lens, P2-1. The
+#      conclusion is unchanged; the number was wrong.)
+# Silence would have been the defect; this is the judgement.
+fiducials: none
+
+# User decision 2026-07-25. Drives A-STOCK grading (stock >= 5 x per-board qty)
+# and the ORDER_README stock table's floor(stock/qty) ceilings.
+build_quantity: 5
+
+# ---- NOT ASSEMBLED (the population set) ------------------------------------
+# Both refs below carry FP_EXCLUDE_FROM_POS_FILES on the board (verified by
+# pcbnew attribute read 2026-07-25: excl_pos = {F1, H1, H2, H3, H4, SW1}), so
+# they are genuinely off fab/cpl.csv — the declaration and the machine
+# instruction agree.
+#
+# HONESTY NOTE on `reason:` (PCBA-9 in the v1.5 audit): the closed vocabulary
+# has no term for "in the catalog, on the BOM, but hand-fitted after delivery
+# because its LAND PATTERN or placement model is unconfirmed" — which is the
+# true reason for both entries. The nearest term is used and the exact reason
+# is stated in `evidence:`; the vocabulary gap is a deferred skill change, not
+# a local invention.
+not_assembled:
+  - refs: [F1]
+    reason: user_supplied
+    lcsc: C5249699
+    evidence: "Keystone 3568-class MINI-blade fuse HOLDER. jlc_twin measured
+               best=none for C5249699 on 2026-07-23 and again 2026-07-25 — JLC
+               has NO placement model for the 2-clip THT holder, so there is
+               nothing to verify a machine placement against; the land came
+               from the Keystone catalog p.42 (02_parts/3568/part.yaml
+               verified:). Board attribute FP_EXCLUDE_FROM_POS_FILES set since
+               v1.1. Separately, the 10 A MINI (ATM) blade fuse ELEMENT is a
+               consumable and is deliberately OFF the BOM entirely — bought
+               locally, fitted by hand. Stock check 2026-07-25: C5249699 = 1213
+               (holder ships with the order, it is only not PLACED)."
+    disposition: "Holder hand-soldered at integration; fuse element on the
+                  ORDER_README purchasing list. RE-EXAMINE NEXT REVISION: THT
+                  assembly is now being ORDERED (J1-J4), so the v1.1 rationale
+                  ('THT holder, no placement model') is weaker than it was.
+                  Moving F1 onto the CPL needs a board change (clearing
+                  FP_EXCLUDE_FROM_POS_FILES at source) and v1.5 is a
+                  NO-COPPER-CHANGE release — deferred, not forgotten
+                  (08_reviews DISPOSITIONS PCBA-6)."
+  - refs: [SW1]
+    reason: dnp_by_design
+    lcsc: C2939728
+    evidence: "SS12D07VG6-087 master-off slide switch. The land is a DUAL-OPTION
+               (alt-BOM) land and which part is fitted is decided by a
+               measurement on the received part: our land is the standard
+               SS-12D07 2.5 mm signal pitch (pad span 5.00 mm, mounting posts
+               8.66 mm), while JLC's own EasyEDA model file is named
+               'SW-TH_SS12D07VG4' — the VG4 variant at 2.0 mm pitch (span
+               4.00 mm), a mislabeled wrong-variant model. The VG6-087
+               mechanical drawing was UN-FETCHABLE in-env (LCSC datasheet CDN
+               served HTML / blocked to curl+WebFetch, retried 2026-07-23).
+               Machine-placing a 2.0 mm part on a 2.5 mm land is a placement
+               defect, so the part is left unstuffed and the documented
+               alternative for the SAME land is a 2.54 mm 3-pin header + shunt.
+               Stock check 2026-07-25: C2939728 = 53036 (part ships with the
+               order, it is only not PLACED)."
+    disposition: "Hand-fitted after physically confirming the received part's
+                  pitch against the land (ORDER_README section 2 + bench gate
+                  Q6 continuity check: COM-T1 shunted = OFF, removed = ON). If
+                  the pitch is 2.0 mm, fit the header+shunt instead. Resolve
+                  the variant at part selection on the next revision so the
+                  land is single-option and the switch can be machine-placed."
+
+# ---- CONSIGNED (you supply, JLC PLACES — these stay ON the CPL) -------------
+# NONE. Every one of the 43 BOM lines carries a JLC-catalogue LCSC code with
+# non-zero stock (jlc_stock_check 2026-07-25, 43/43 OK at min-stock 5 x qty),
+# so nothing needs consigning and no MSL declaration is owed for a consigned
+# part. No package on this board has an exposed pad that is also consigned.
+consigned: []
+
+# ---- SOURCING PLAN (justifies a non-OK stock line at seal time) -------------
+# EMPTY BY MEASUREMENT, not by omission: jlc_stock_check.py against
+# 07_releases/v1.5-2026-07-25/fab/bom.csv on 2026-07-25 returned
+# "PASS: 0 coded lines with problems; 0 lines still uncoded" at --min-stock 5
+# (i.e. stock >= 5 boards x per-board qty on every line). There is no non-OK
+# line to plan around. Evidence: verification/stock_check.txt + .json.
+#
+# TIGHTEST THREE CEILINGS (floor(stock / per-board qty) = boards buildable),
+# measured 2026-07-25 — these are the order-day recheck targets, listed in the
+# ORDER_README stock table with a named alternate each:
+#   C473910  TPS2513ADBVR   stock    75, qty 2  ->    37 boards  (tightest)
+#   C5337088 TYPE-C-31-M-12A stock   90, qty 1  ->    90 boards
+#   C408523  MWSA1206S-6R8MT stock  450, qty 2  ->   225 boards
+# All three clear build_quantity 5 by >=7x. Stock moves: re-run on order day.
+sourcing_plan: []
+
+# ---- EXEMPT REFDES CLASSES -------------------------------------------------
+# H* only is live on this board (H1-H4 = M3 mounting holes, FP_EXCLUDE_FROM_BOM,
+# no netted pads — pcbnew census 2026-07-25). TP/FID/MH are carried from the
+# skill template's default set; this board places none of them.
+exempt_prefixes: [H, TP, FID, MH]

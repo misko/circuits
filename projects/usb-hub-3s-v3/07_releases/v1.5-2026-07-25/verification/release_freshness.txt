@@ -1,0 +1,17 @@
+== release-freshness: v1.5-2026-07-25 ==
+  note: pdf/assembly_back.pdf identical to v1.3-2026-07-23/pdf/assembly_back.pdf — WAIVED (waived via --allow-identical)
+  note: pdf/assembly_back.pdf identical to v1.4-2026-07-23/pdf/assembly_back.pdf — WAIVED (waived via --allow-identical)
+  note: pdf/assembly_front.pdf identical to v1.3-2026-07-23/pdf/assembly_front.pdf — WAIVED (waived via --allow-identical)
+  note: pdf/assembly_front.pdf identical to v1.4-2026-07-23/pdf/assembly_front.pdf — WAIVED (waived via --allow-identical)
+  note: pdf/pcb_layers.pdf identical to v1.3-2026-07-23/pdf/pcb_layers.pdf — WAIVED (waived via --allow-identical)
+  note: pdf/pcb_layers.pdf identical to v1.4-2026-07-23/pdf/pcb_layers.pdf — WAIVED (waived via --allow-identical)
+  note: pdf/schematic.pdf identical to v1.3-2026-07-23/pdf/schematic.pdf — WAIVED (waived via --allow-identical)
+  note: pdf/schematic.pdf identical to v1.4-2026-07-23/pdf/schematic.pdf — WAIVED (waived via --allow-identical)
+  note: fab/usb_hub_3s_v2-NPTH.drl identical to v1.3-2026-07-23/fab/usb_hub_3s_v2-NPTH.drl — WAIVED (waived via --allow-identical)
+  note: fab/usb_hub_3s_v2-NPTH.drl identical to v1.4-2026-07-23/fab/usb_hub_3s_v2-NPTH.drl — WAIVED (waived via --allow-identical)
+  note: fab/usb_hub_3s_v2-PTH.drl identical to v1.3-2026-07-23/fab/usb_hub_3s_v2-PTH.drl — WAIVED (waived via --allow-identical)
+  note: fab/usb_hub_3s_v2-PTH.drl identical to v1.4-2026-07-23/fab/usb_hub_3s_v2-PTH.drl — WAIVED (waived via --allow-identical)
+  note: fab/usb_hub_3s_v2_gerbers.zip identical to v1.3-2026-07-23/fab/usb_hub_3s_v2_gerbers.zip — WAIVED (waived via --allow-identical)
+  note: fab/usb_hub_3s_v2_gerbers.zip identical to v1.4-2026-07-23/fab/usb_hub_3s_v2_gerbers.zip — WAIVED (waived via --allow-identical)
+  note: A-STOCK: grading verification/stock_check.json (43 graded line(s), verdict=PASS) against 41 coded+placed BOM line(s) x 5 boards
+FRESHNESS: PASS

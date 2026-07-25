@@ -1,0 +1,114 @@
+# usb-hub-3s-v3 POWER-TREE TOPOLOGY (canon E-TOPO).
+#
+# Identical rails to v2: both USB-A and USB-C are 5 V outputs from a 9-12.6 V
+# battery, so both are step-DOWN bucks (Vout_max 5 < Vin_min 9 => BUCK).
+#
+# v3 change is DOWNSTREAM of the USB-C buck, not in the tree: v2 fed the 5VC
+# buck output into a TPS25740A PD source controller; v3 brings 5VC straight to
+# the USB-C VBUS (plain 5 V/5 A, Pi PSU_MAX_CURRENT=5000 override — ADR-0001).
+# The PD controller was never a converter, so the tree is unchanged and E-TOPO
+# still PASSes all-buck.
+
+input_trunk_class: PWR_IN
+
+# --- E-OFF: de-energization + stored quiescent draw (canon E-OFF) ---
+# This is a self-contained energy source (3S-LiPo, net VBAT), so it must document
+# HOW it is switched off in storage and its bounded stored draw. v1.1 ADDED the
+# master-off switch SW1 that v1.0 lacked (the red-team miss the E-OFF gate harvested).
+source_type: "3S LiPo battery pack, 9.0-12.6 V, XT60 input"
+off_control: "EN-gating master switch SW1 (ENKILL bus) - slide to T1 grounds
+  ENKILL, driving BOTH LM5116 bucks (U2.4 + U11.4, re-merged onto ENKILL) to
+  ~9 uA shutdown AND opening the VBUS reverse-block P-FET Q6 (Q7 BSS138 gate
+  inverter: ENKILL low -> Q7 off -> Q6 gate floats to source -> Q6 OFF, VBUS
+  isolated + back-feed blocked). 5VC then collapses. (ADR-0002; discrete
+  redesign; E-INV asserts ENKILL == {U2.4, U11.4, SW1.2, Q7.1, R8.2, R17.2})"
+quiescent_ua: 270   # OFF-state pack draw: ~252 uA switch sink (VIN 12.6 V through
+                    # R8||R17 = 50 k pull-ups into the grounded ENKILL bus, both
+                    # bucks' EN re-merged) + ~18 uA (2x LM5116 ~9 uA shutdown Iq).
+                    # Q6 off (Q7 pulldown released), VBUS isolated, no eFuse. No
+                    # pack_capacity_mah (external pack) -> self-drain-days is
+                    # advisory-N-A, but the draw is BOUNDED and documented.
+
+rails:
+  # USB-A rail: LM5116 buck -> 5VA -> 3x TPS2557 (2 A cont each) -> 3x USB-A.
+  - name: USB-A
+    vin_min: 9.0
+    vin_max: 12.6
+    vout_min: 5
+    vout_max: 5
+    iout_max_A: 6
+    converter: LM5116MHX-NOPB
+    eff: 0.9
+
+  # USB-C rail: LM5116 buck -> 5VC -> Q6 (AON6403 reverse-block P-FET) -> PMID
+  # -> F2 (SMD2920-700 PPTC polyfuse) -> VBUSC -> USB-C VBUS. Fixed 5 V out => BUCK.
+  # v1.3 (ADR-0002): the v1.1 TPS26631 eFuse is REMOVED; the discrete Q6/F2/D5 chain
+  # is the protection. Q6/F2 are PROTECTION elements, NOT converters -> the E-TOPO
+  # tree is unchanged (still all-buck). 5 A to the Pi via the firmware override
+  # (PSU_MAX_CURRENT=5000), not PD.
+  - name: USB-C
+    vin_min: 9.0
+    vin_max: 12.6
+    # v1.2 LOCAL-SENSE (kept): buck-C FB senses the LOCAL 5VC output, so the loop
+    # regulates 5VC (not the connector) to Vref*(1+R12/R13) = 1.215*(1+4.12/1.21) =
+    # 5.352 V nominal. SUPERSEDED BY THE SYNC BELOW: this used to read
+    # "worst-case regulated 5VC = Vref-1.5% = 5.27 V; no-load high = Vref+1.5% =
+    # 5.43 V", which is the Vref-ONLY window. The tolerance-inclusive window is
+    # 5.227-5.479 V; the D5 TVS Vwm-6.0V standoff is checked against 5.479 V
+    # (521 mV of standoff margin), not 5.43 V. R12 = C2984354 (AR03BTCX4121, 4.12k 0.1%), CATALOG-VERIFIED 2026-07-23
+    # and BAKED in the tsx (v1.2 undervoltage bug was R12 value-resolving to 3.74k).
+    # v1.5 (2026-07-25) TOLERANCE-INCLUSIVE SYNC. These were 5.27/5.43 = the
+    # Vref-ONLY corners, which UNDER-STATE the window: R13/R4 = C5126242 =
+    # FRC0603F1211TS is 1.21k +-1%, and that tolerance belongs in the corners
+    # (external review EXT13-3, fixed in the v1.4 paperwork but never synced
+    # back into this file — the harvest item v1.4's STATUS carried, closed here
+    # after the v1.5 fresh lens re-raised it as P2-2).
+    #   min = 1.215*0.985 * (1 + 4.12*0.999 / 1.21*1.01) = 5.227 V
+    #   max = 1.215*1.015 * (1 + 4.12*1.001 / 1.21*0.99) = 5.479 V
+    # E-MARGIN with the HONEST corner: headroom 5.227 - 4.63 = 597 mV vs the
+    # DERATED budget 88 mOhm x 5 A x 1.2 = 528 mV -> PASS, but the slack is
+    # 69 mV, NOT the 157 mV that comparing against the un-derated 440 mV gives.
+    # 69 mV is the number the bench gates Q2/Q5 exist to replace with a
+    # measurement (ORDER_README; DETAIL_DESIGN sec.4).
+    vout_min: 5.227
+    vout_max: 5.479
+    iout_max_A: 5
+    converter: LM5116MHX-NOPB
+    eff: 0.9
+    # E-MARGIN (v1.3 re-derivation, against the ACTUAL Q6+F2 delivery path - the eFuse
+    # 34/48 mOhm model is GONE). vout_min = the true worst-case regulated 5VC node
+    # (now the TOLERANCE-INCLUSIVE 5.227 V, not the Vref-only 5.27 V).
+    # ir_budget_mohm is the FULL delivery path 5VC->Pi:
+    #   Q6 AON6403 Rds_on   ~4.3 mOhm (max @Vgs=-4.5V; actual Vgs~5.3V -> lower)
+    #   F2 SMD2920-700      R1max 18 mOhm cold (JLC C6165170 catalog-VERIFIED),
+    #                       ~31 mOhm hot at 5 A steady (self-heat ~1.7x R1max)
+    #   board traces+pours  ~12 mOhm  MEASURED 2026-07-25 by the v1.5 layout
+    #                       red-team lens (RL-2), NOT the ~3 mOhm this line
+    #                       carried since v1.3. Numerical mesh solve (SOR, 0.3mm
+    #                       cells, F.Cu+B.Cu+vias, solver validated against
+    #                       analytic bars and found to read 10-20% LOW):
+    #                         5VC  L2.2 -> Q6 tab    2.198 mOhm
+    #                         PMID Q6.S -> F2.1      4.914 mOhm
+    #                         VBUSC F2.2 -> J5       2.209 mOhm
+    #                                       total >= 9.32 mOhm, true ~10.4-11.6
+    #                       Taken CONSERVATIVELY as 12 mOhm here.
+    #   USB-C connector     ~5 mOhm   (paralleled VBUS pins A4/B4/A9/B9)
+    #   short 5A USB-C cable ~45 mOhm  (0.3-0.5 m e-marked; REQUIRED per ORDER_README)
+    #   ------------------------------ TOTAL ~= 97 mOhm (was 88 before RL-2)
+    # E-MARGIN then grades: headroom 5.227-4.63 = 597 mV vs 97 mOhm x 5 A x 1.2 =
+    # 582 mV -> PASS, slack 15 mV. THIS IS THE HONEST NUMBER and it is thin.
+    # History of this figure, all on the SAME rail: 112 mV (Vref-only corner,
+    # 88 mOhm) -> 69 mV (tolerance-inclusive corner, 88 mOhm) -> 15 mV
+    # (tolerance-inclusive corner + the MEASURED 12 mOhm board copper, RL-2).
+    # Each step removed an optimistic assumption; none changed the hardware.
+    # The gate still PASSES, but 15 mV of paper slack is not a margin you ship
+    # on -- ORDER_README gates Q2/Q5 MEASURE the delivered cable-end voltage and
+    # that measurement, not this line, is what qualifies the board. The v1.2 3.74k bug gave 5VC 4.97 V
+    # nominal (4.90 V at Vref-1.5%) -> headroom 265 mV < 528 mV -> would FAIL here.
+    # FLAGGED (bench-verify, ORDER_README gate): the quadruple-worst corner
+    # (Vref-1.5% AND F2 fully hot AND a marginal/long cable) is thin - qualify the
+    # connector voltage at the END of the ACTUAL 5A cable. Mitigation lever if bench
+    # shows it marginal: R12 4.12k->4.22k (5VC 5.453 V) at the cost of the D5-Vwm /
+    # no-load-OV margin. F2 and D5 are SECONDARY protection (see ADR-0002 honesty).
+    ir_budget_mohm: 97   # RL-2 measured board copper (was 88 with a ~3 mOhm guess)
+    load_uv_threshold: 4.63

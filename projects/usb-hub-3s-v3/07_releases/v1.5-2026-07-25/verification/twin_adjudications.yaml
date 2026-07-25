@@ -1,0 +1,131 @@
+# usb-hub-3s-v3 jlc_twin adjudications. Every entry cites decisive evidence.
+# Statuses match the twin finding strings exactly. The AON PowerPAK/DFN5x6
+# merged-drain family entries are REUSED VERBATIM (evidence-identical) from
+# the SHIPPED usb-hub-3s v1.0-2026-07-21 board's adjudications — the same
+# footprint (KiCad Package_SO:PowerPAK_SO-8_Single) that was ORDERED there.
+
+# -- PowerPAK SO-8 / DFN5x6 merged-drain family: our footprint merges the
+#    drain leads + paddle into ONE pad '5'; JLC splits 5-8 + EP 9. Same
+#    copper region; the 1<->5 distance delta (twin: 5.39 vs 6.97) is the
+#    merged-pad CENTROID vs JLC's corner lead pin 5 — a merging artifact, not
+#    a land-pattern disagreement. AOS recommended pattern IS the single drain
+#    paddle (AON6354/AON6403 datasheets, verified at parts stage). Ordered on
+#    usb-hub-3s v1.0-2026-07-21.
+- {lcsc: C404363, refs: [Q2, Q3, Q4, Q5], status: PAD-MISMATCH,
+   why: "AON6354: KiCad single-paddle pad 5 vs JLC 5-8+EP split; AOS DS recommended pattern is the single paddle. Same footprint ordered on usb-hub-3s v1.0. (v1.2: Q6 MOVED to C2760089/AON6403 — the eFuse cell is gone.)"}
+- {lcsc: C404363, refs: [Q2, Q3, Q4, Q5], status: PAD-GEOM,
+   why: "AON6354: 1<->5 delta is merged-paddle centroid vs JLC corner-lead pin 5; copper regions coincide (5.39 vs 6.97mm family artifact, ordered on v1.0)."}
+- {lcsc: C2760089, refs: [Q1, Q6], status: PAD-MISMATCH,
+   why: "AON6403: same merged-drain family as C404363; KiCad single-paddle pad 5 vs JLC 5-8+EP9; AOS single-paddle recommended pattern. Q1 ordered on v1.0; Q6 (v1.2 discrete VBUS reverse-block P-FET) is the SAME C2760089/PowerPAK_SO-8_Single -> same adjudication."}
+- {lcsc: C2760089, refs: [Q1, Q6], status: PAD-GEOM,
+   why: "AON6403: 1<->5 delta = merged-paddle centroid vs JLC corner lead pin 5; copper regions coincide (same artifact as C404363). Applies to both Q1 (input RPP) and Q6 (v1.2 VBUS reverse-block)."}
+
+# -- F1: MINI blade fuse HOLDER (Keystone 3568-class), a HAND-SOLDER line not
+#    in the JLC placement set. best=none = JLC has no placement model for the
+#    2-clip THT holder; nothing to twin-compare. Holder land = Keystone
+#    catalog p.42 (part.yaml verified:). Not machine-placed -> mitigated by
+#    the ORDER_README hand-solder + order-preview check.
+- {lcsc: C5249699, refs: [F1], status: PAD-MISMATCH,
+   why: "MINI fuse holder is a hand-solder THT part with no JLC placement model (best=none); land from Keystone catalog p.42; not in the CPL placement set."}
+
+# -- L1/L2: Sunlord MWSA1206S molded power inductor, named library footprint
+#    Inductor_SMD:L_Sunlord_MWSA1206S-6R8 (matches the exact MPN). The pad
+#    1<->2 delta (twin: ours 11.25 vs JLC 12.00mm, 0.75mm) is a KiCad-vs-
+#    EasyEDA land-EXTENT preference on a 12.5mm molded body — same class as
+#    the fillet-length family below; the two large end-cap pads overlap the
+#    same copper. Verify orientation on the JLC order preview.
+- {lcsc: C408523, refs: [L1, L2], status: PAD-GEOM,
+   why: "MWSA1206S: named library footprint for the exact MPN; 0.75mm 1<->2 delta is a land-extent preference on a 12.5mm molded inductor, same copper end-caps (order-preview confirm)."}
+
+# -- D1: SMBJ15A input TVS (SMB/DO-214AA; earlier label said SMA/DO-214AC in
+#    error — the footprint IS D_SMB and SMBJ15A is a DO-214AA part; fresh-lens
+#    v1.3 finding 6). PAD-GEOM 0.42mm = same KiCad-vs-
+#    EasyEDA fillet-extent preference on a JEDEC SMA body; copper coincides.
+#    POLARITY-CHECK satisfied: the zero-context topology red-team explicitly
+#    verified TVS directionality (K=VIN, A=GND, after Q1 on VIN — the v1 D1
+#    defect class), and policy_audit P-POL asserts pad-1 net polarity. Confirm
+#    on the JLC order preview per ORDER_README.
+- {lcsc: C83846, refs: [D1], status: PAD-GEOM,
+   why: "SMBJ15A SMB (DO-214AA): 0.42mm 1<->2 land-extent preference (KiCad vs EasyEDA), same copper end-caps. (Label previously said SMA/DO-214AC in error; footprint is D_SMB — fresh-lens v1.3 finding 6.)"}
+- {lcsc: C83846, refs: [D1], status: POLARITY-CHECK,
+   why: "TVS directionality verified by topology red-team (K=VIN/A=GND, after Q1) + P-POL pad-1 polarity gate; order-preview confirm."}
+
+# -- D5: SMBJ6.0A VBUS over-voltage TVS (SMB / DO-214AA), v1.3 discrete protection.
+#    v1.3 DIRECTIONALITY FIX: was C140903 (JLC lists it BIDIRECTIONAL SMB-FL - fails
+#    the uni-directional design assumption); now C113976 = SMBJ6.0A UNIDIRECTIONAL
+#    DO-214AA(SMB), JLC catalog-verified uni-dir 2026-07-23 (stock 74758).
+- {lcsc: C113976, refs: [D5], status: PAD-GEOM,
+   why: "SMBJ6.0A SMB (DO-214AA): 0.42mm 1<->2 land-extent preference (KiCad vs EasyEDA), same copper end-caps; identical class to the D1 SMBJ15A SMA artifact. Order-preview confirm."}
+- {lcsc: C113976, refs: [D5], status: POLARITY-CHECK,
+   why: "VBUS over-voltage TVS directionality verified UNIDIRECTIONAL against the JLC catalog (C113976 = SMBJ6.0A Unidirectional DO-214AA): cathode(pad1)=VBUSC / anode(pad2)=GND (floorplan assert D5.1=VBUSC + P-POL pad-1 polarity gate). Prior C140903 was catalog-BIDIRECTIONAL and is rejected. Order-preview confirm."}
+
+# -- F1 fuse holder PAD-GEOM (in addition to PAD-MISMATCH above) — same
+#    hand-solder THT holder, no JLC placement model; land per Keystone p.42.
+- {lcsc: C5249699, refs: [F1], status: PAD-GEOM,
+   why: "MINI fuse holder hand-solder THT; land from Keystone catalog p.42; not machine-placed."}
+
+# -- POLARITY-CHECK on the polarized 2-pad parts: ALL satisfied by policy_audit
+#    P-POL (PASS) which asserts pad-1 net vs part.yaml polarity facts — the
+#    exact check POLARITY-CHECK requests — plus the render review + ORDER_README
+#    order-preview step. Machine-verified, not eyeballed.
+- {lcsc: C173429, refs: [D2], status: POLARITY-CHECK,
+   why: "BZT52C12 Vgs zener: P-POL asserts K(pad1)=VIN, A=RPP_G per part.yaml; machine-verified."}
+- {lcsc: C2128, refs: [D3, D4], status: POLARITY-CHECK,
+   why: "1N4148WS boot diodes: P-POL asserts K(pad1)=BOOT_A/C, A=VCC per part.yaml; machine-verified."}
+- {lcsc: C2982822, refs: [C1, C2], status: POLARITY-CHECK,
+   why: "VIN bulk polymer caps: P-POL asserts pad1=VIN (+) per part.yaml polarity facts; machine-verified."}
+
+# -- SW1 (v1.1 master-off slide switch, C2939728 = SS12D07VG6-087). PAD-GEOM
+#    1<->3 ours 5.00mm (2.5mm signal pitch, pads at 63.5/66.0/68.5, mounting
+#    posts 8.66mm span) vs JLC 4.00mm (2.0mm pitch). DECISIVE CONTEXT: JLC's
+#    EasyEDA model file is named "SW-TH_SS12D07VG4" - the VG4 variant, NOT the
+#    ordered VG6-087 - a mislabeled wrong-variant substitution (EasyEDA does this
+#    on jellybean mechanical THT parts). Our 2.5mm is the standard SS-12D07 pitch
+#    and is geometrically consistent with the 8.7mm body + end mounting posts
+#    (LCSC body dims 8.7 x 4.4mm). The exact VG6-087 mechanical drawing was
+#    un-fetchable in the sealed build env (LCSC datasheet CDN served HTML/blocked
+#    to curl+WebFetch). NOT machine-critical: hand-solder THT master-OFF switch,
+#    compliant 1.0mm-drill leads, and a DOCUMENTED jumper fallback (2.54mm header
+#    + shunt across ENKILL<->GND, part.yaml). PRE-ORDER ACTION (MANDATORY, already
+#    the part.yaml integration plan): confirm the VG6-087 pin pitch on the JLC
+#    order preview / vendor drawing before paying; if 2.0mm, drop in the header
+#    fallback. Adjudicated as our-pattern-correct with a required confirm, not
+#    silently waived.
+- {lcsc: C2939728, refs: [SW1], status: PAD-GEOM,
+   why: "SS12D07VG6-087 master-off switch: ours 2.5mm signal pitch (span 5.00mm) = the standard SS-12D07 land (8.7mm body + 8.66mm-span mounting posts); JLC's model is the MISLABELED VG4 variant (2.0mm/4.00mm), not authoritative for VG6. Hand-solder THT, jumper fallback exists. VG6 drawing un-fetchable in-env -> order-preview pitch confirm is MANDATORY before order (part.yaml integration item)."}
+
+# -- R12: AR03BTCX4121 4.12k 0.1% 0603 (v1.3 catalog-verified fix, C2984354).
+#    FETCH-FAILED adjudicated as GENUINELY ABSENT from the EasyEDA library:
+#    direct API probe 2026-07-23 (easyeda.com/api/products/C2984354/components)
+#    returns 404 "Component not found" — not a transient error. Land-pattern
+#    evidence: R12 is a generic 0603 chip resistor on the standard KiCad
+#    R_0603_1608Metric land; the verified same-spec alternate C861436 (Yageo
+#    RT0603BRD074K12L 4.12k 0.1% 0603) HAS EasyEDA CAD with the standard R0603
+#    package — identical land class. Flag: confirm R12 orientation-free 0603
+#    placement in the JLC order preview (chip resistor, no polarity).
+- {lcsc: C2984354, refs: [R12], status: FETCH-FAILED,
+   why: "EasyEDA API 404 'Component not found' (probed directly 2026-07-23) - part absent from library, not transient. Generic 0603 chip resistor on standard R_0603_1608Metric land; same-spec alt C861436 has standard R0603 CAD. Order-preview confirm."}
+
+# -- J1 MODEL-REG (v1.5, 2026-07-25). NON-BLOCKING by construction (the twin's
+#    critical set is MIRRORED/PAD-MISMATCH/PAD-GEOM/NO-CAD/FETCH-FAILED only), so
+#    this entry does NOT change the exit code and is NOT a gate waiver — it is the
+#    machine-readable home for a JUDGEMENT that was otherwise only in prose.
+#    The tool itself says "DO NOT blind-flip ... VERIFY leads sit on pads visually;
+#    if correct, adjudicate as a false alarm with NO rotation override". That is
+#    what was done, twice, independently.
+- {lcsc: C98732, refs: [J1], status: MODEL-REG,
+   why: "FALSE ALARM, verified as the tool instructs, NO rotation override. The
+     metric is bbox-centre-vs-courtyard and is meaningless for this part: the XT60
+     housing extends BACK from the blade face, so the WRL body's own bbox centre
+     sits 4.10mm from its model origin (bbox x -13.15..+4.95mm in mm) — the tool
+     reports that asymmetry itself. Leads-on-pads checked directly 2026-07-25:
+     twin_top.png calibrated against the four M3 mounting holes, J1's four pad
+     centres overlaid — all four land on the model's own features (2 blade bores on
+     pads 1/2, 2 housing posts on the anchor pads). Rotation independently
+     re-derived from JLC's own kicad_mod with the pcbnew-verified operator: 4-pad
+     fit rms 0.0000mm @270 offset, 12.0mm out at 90, so the anchors break the
+     90-vs-270 symmetry GEOMETRICALLY without relying on pad numbering. Confirmed a
+     second time by the v1.5 fresh zero-context lens (rms 0.0000mm). CPL 0.0 stands.
+     J1 remains a MANDATORY order-preview polarity item (P2) because geometry
+     cannot tell which blade is '+': part.yaml records 'PAD 1 IS NEGATIVE' and the
+     fleet ledger records a reversed XT60 shipping once."}

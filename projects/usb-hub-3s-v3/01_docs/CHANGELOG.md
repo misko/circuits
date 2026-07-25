@@ -2,6 +2,105 @@
 
 Board internal name `usb_hub_3s_v2`; project directory `usb-hub-3s-v3`.
 
+## v1.5 — 2026-07-25
+
+Released: `07_releases/v1.5-2026-07-25/`. **CPL-CORRECTION supersede of
+v1.4-2026-07-23** (v1.4 gains `SUPERSEDED.md`, otherwise immutable).
+**v1.4 and every earlier release are DO-NOT-ORDER. Order from v1.5.**
+
+**Why: a P0 in the CPL, not in the copper.** Sealed v1.4 places **C1 and C2 —
+100 uF / 35 V POLARIZED polymer electrolytics — at CPL 270.0 where the measured
+correct value is 90.0**: 180 degrees reversed, directly across the 9.0-12.6 V 3S
+LiPo input behind a 10 A fuse. A reverse-biased polymer electrolytic on a
+near-zero-impedance pack heats, gasses and **vents**, at first power-up, before
+any bench gate can run. Found by a pre-order PCBA audit
+(`08_reviews/2026-07-25_v1.4_pcba-audit_assembly.md`, 15 findings, dispositions
+PCBA-1..15) — the earlier reviews had audited the board, not what the machine
+would build.
+
+- **fab/cpl.csv — EXACTLY FOUR changed cells, and nothing else:**
+  `C1 270.0->90.0`, `C2 270.0->90.0`, `Q7 270.0->180.0`, `J1 90.0->0.0`.
+  108 placements both sides, 0 rows added or removed.
+  - **C1/C2** (PCBA-1, P0): no per-LCSC rotation row existed for C2982822, so the
+    exporter fell through to the footprint-NAME DB, which a per-part fact cannot
+    live in. Polarity re-verified independently of the pad fit: JLC's own library
+    silk draws a crossed **"+" over its pad 1** and a bar **"-" over pad 2**, and
+    our pad 1 is on VIN.
+  - **J1** (PCBA-2, P1): the name-DB pattern `^AMASS_XT60PW-M` is START-ANCHORED
+    and this board uses a vendored `XT60PW-M_EdgeTrim`, so **no rule fired at
+    all** and the offset silently defaulted to 0. Four-pad fit (2 blades + 2
+    anchors) gives rms **0.0000 mm @270**, 12.0 mm out at 90.
+  - **Q7** (PCBA-3, P1): `^SOT-23` = -90 is wrong for C78284. 3-pad asymmetric
+    fit, rms 0.062 mm @180 vs 1.95 mm @270. Would have left Q6 un-gated — a dead
+    or silently unprotected Pi rail.
+  - Root cause behind all three, fixed at source before this release: a
+    **handedness bug in `jlc_twin.xform()`** that NEGATED every rotation offset
+    the tool ever reported (repo `e0d735c`, `9078ad9`, `95a8180`, `1b69760`).
+- **NO COPPER CHANGE.** Gerbers, both drill files, `source/`, `3d/` and `pdf/`
+  are **sha256-IDENTICAL to v1.4** — 20 files. Proven by RE-EXPORT from the
+  unchanged board: 13/13 zip members identical once the plot's own timestamp
+  comments are stripped (`verification/cpl_acceptance_gate.md`).
+- **fab/bom.csv**: identical to v1.4 row-for-row except the **MPN column is now
+  populated on all 43 lines** (was 0/43). Cross-checked against the
+  independently datasheet-authored `02_parts/` directory names: **26/26 hard-part
+  MPNs matched, 0 directories unaccounted for** (PCBA-10).
+- **NEW `03_src/rules/assembly.yaml`** (PCBA-5) — the population set finally has a
+  machine-readable home: `service` (incl. **THROUGH-HOLE assembly**, 4 refdes /
+  22 plated holes, J1-J4), `sides: [top]` (measured 108/108), `fiducials: none`
+  (deliberate: the smallest centre-to-centre distance between two distinct
+  pads is a measured **0.500 mm** at J5, > 0.4 mm),
+  `build_quantity: 5`, and F1/SW1 as the only `not_assembled` refdes with dated
+  evidence. The MANIFEST `not_assembled:` line is GENERATED from it.
+- **NEW `01_docs/DETAIL_DESIGN.md`** (PCBA-7) — it did not exist, although three
+  sealed `part.yaml` files have cited sec.1/2/5 as authority since 2026-07-21.
+  Derivations from the datasheets directly (LM5116 SNVS499I eq. 7-24; USBLC6-2
+  Doc ID 11265 Rev 5). The sec.5 citation was wrong three ways and is corrected.
+- **ORDER-PREVIEW HUMAN GATE** in ORDER_README (PCBA-8). v1.4 mentioned the JLC
+  preview **zero times** while **12** twin findings are waived on exactly that
+  gate — **C1/C2 among them**. P1-P7 now say what to look for and what rejects.
+- **U12 over-voltage: ACCEPTED + MEASURED** (user decision; MANIFEST waiver
+  **W-U12**). 5.352 V nominal / 5.479 V worst corner vs the 5.25 V at which ST
+  characterizes leakage — but ST's absolute-ratings table carries **no V_BUS
+  limit** and V_BR is **6.0 V minimum**, cleared by 521 mV. R12 deliberately NOT
+  changed. Bench gate Q1 now RECORDS measured VBUSC/VBUSA.
+- **Stock, at build_quantity 5:** PASS, 43/43 lines OK, 0 uncoded. Split **12
+  Basic / 31 Extended** (~31 feeder setups, priced before the order). Tightest
+  ceilings: C473910 = **37 boards**, C5337088 = 90, C408523 = 225. Table rebuilt
+  sorted by tightness with a named alternate per row (PCBA-13/14).
+- **Panel-rail policy, measured:** three of the four edges cannot take a rail —
+  J1 (-6.82 mm), J2-J4 (-4.29 mm) and J5 (-2.90 mm) physically OVERHANG the
+  outline. Only the edge opposite the USB-C connector is usable (+1.43 mm).
+- **TWO fresh review lenses, both ORDER**, both archived in `verification/`:
+  a zero-context lens over the STAGED release (0 P0 / 3 P1 / 9 P2 — it
+  re-derived the four CPL cells five ways and got **107/107 parts agreeing with
+  the shipped CPL to <1°**, and it found real defects in this release's own
+  paperwork, all fixed), and the **FIRST layout/thermal/power-integrity lens
+  ever run against THIS copper** (0 P0 / 5 P1 / 7 P2). The prior layout lens was
+  written against the **v1.0** board; 10 footprints were added afterwards
+  (C53, C54, D5, F2, Q6, Q7, R30, R34, R35, SW1; tracks 642→1061), so the whole
+  discrete VBUS protection chain had never been layout-reviewed — v1.3 and v1.4
+  both sealed carrying that claim.
+- **Build note that changes what you do (RL-3):** H3's mounting hole has **5VA
+  and GND copper both starting at r = 1.80 mm, on BOTH outer layers**. A metal
+  M3 screw head bridges the 6 A USB-A rail to GND through solder mask alone.
+  **Fit a nylon screw, or leave H3 unfitted.** ORDER_README section 3a, B1.
+- **The Pi-rail margin is thinner than any previous release said.** The board
+  copper on the 5 A path was a **~3 mΩ estimate** carried since v1.3; the layout
+  lens MEASURED it at **≥9.32 mΩ** (mesh solve; true ≈10.4-11.6). Three figures
+  have now been published for this one margin — **157 mV → 69 mV → 15 mV** —
+  each step removing an optimistic assumption without the hardware changing.
+  `power_tree.yaml` synced (`vout_min` 5.27→5.227, `vout_max` 5.43→5.479,
+  `ir_budget_mohm` 88→97); E-MARGIN re-run **PASS**. 15 mV of paper slack is not
+  a margin to ship on — bench gates Q2/Q5 measure the delivered voltage.
+- **The archive is self-contained for the first time (PCBA-16).** `source/
+  fp-lib-table` pointed at `${KIPRJMOD}/../03_src/lib/` — OUT of the release —
+  so a standalone re-measure of v1.3/v1.4 raises **6 `lib_footprint_issues`**
+  despite the vendored `.pretty` folders being shipped, and their MANIFESTs
+  claim the path they do not have. v1.5 points it at the vendored copies:
+  standalone `kicad-cli pcb drc` from inside the archive now reads **0
+  violations / 0 unconnected**. Cost: `fp-lib-table` is the ONE payload file not
+  byte-identical to v1.4 (19, not 20) — a library-path line, not copper.
+
 ## v1.4 — 2026-07-23
 
 Released: `07_releases/v1.4-2026-07-23/`. **DOCS-ONLY supersede of

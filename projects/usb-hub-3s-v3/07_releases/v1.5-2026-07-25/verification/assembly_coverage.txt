@@ -1,0 +1,4 @@
+== A-POP assembly_coverage: v1.5-2026-07-25 ==
+  board=114 footprints, cpl=108 placements, unpopulated=6 (declared=2, consigned=0, exempt_prefixes=['H', 'TP', 'FID', 'MH'])
+  placement histogram: top=108
+A-POP: PASS (every unpopulated part is declared with evidence)

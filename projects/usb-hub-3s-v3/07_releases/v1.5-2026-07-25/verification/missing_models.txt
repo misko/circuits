@@ -1,0 +1,32 @@
+# missing_models.txt — v1.5-2026-07-25
+#
+# For every CPL designator: does the MODELED twin render show JLC's OWN 3D
+# body for that LCSC code? (renders archived beside this file:
+#  twin_top.png / twin_bottom.png / twin_iso_{nw,se}.png / twin_edge_{west,east}.png,
+#  paired with the no-components truth views render_{top,bottom}_bare.png)
+#
+# READ THIS THE RIGHT WAY (usb-hub-3s incident, 2026-07-21): a bodiless or
+# fallback-bodied footprint means 'JLC has no 3D model for that code'. It
+# NEVER means 'not placed'. fab/cpl.csv is the population ground truth and
+# every designator below IS on it and WILL be machine-placed.
+#
+CPL designators total .............................. 108
+  JLC's own 3D body mounted ........................ 101
+  KiCad-library body (JLC model unavailable) ....... 7
+  NO body at all ................................... 0
+
+KiCad-library fallback (JLC has no CAD for the code — land pattern still
+verified against the datasheet, orientation confirmed at the order preview):
+  Q1     C2760089       PowerPAK_SO-8_Single
+  Q2     C404363        PowerPAK_SO-8_Single
+  Q3     C404363        PowerPAK_SO-8_Single
+  Q4     C404363        PowerPAK_SO-8_Single
+  Q5     C404363        PowerPAK_SO-8_Single
+  Q6     C2760089       PowerPAK_SO-8_Single
+  R12    4.12kΩ         R_0603_1608Metric
+
+No CPL designator is bodiless.
+
+Not in scope (not on the CPL, so JLC places nothing):
+  F1, SW1 — declared not_assembled in 03_src/rules/assembly.yaml
+  H1-H4   — mounting holes, exempt_prefixes
