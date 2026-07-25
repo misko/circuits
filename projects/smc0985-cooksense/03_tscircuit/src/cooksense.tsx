@@ -176,6 +176,14 @@ export default () => (
     <capacitor name="C_WD" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
     <resistor name="R_MR" resistance="100k" footprint="0402" connections={{ pin1: "net.WD_MR_N", pin2: "net.N3V3" }} />
     <capacitor name="C_MR" capacitance="100nF" footprint="0402" connections={{ pin1: "net.WD_MR_N", pin2: "net.GND" }} />
+    {/* v1.2 P0 FIX (ADR-0011 section 8, safety truth-table review 2026-07-25): WDI MUST NOT
+        FLOAT. TPS3823 part.yaml pin 4: "if left floating the device self-pulses (WD effectively
+        disabled)" — so with J_PI unplugged or the Pi off, WD_OK would stay HIGH forever, the
+        expander's CONTACTOR_REQ latch would hold its last value, and U_CAND1/U_CAND2 would keep
+        the external cooking contactor ENERGISED. 100k to GND holds WDI at a defined LOW: no
+        edge within t_out (0.9/1.6/2.5 s) => RESET_N asserts => WD_OK LOW => contactor drops.
+        100k loads the Pi GPIO with 33uA and is the same value as every other section-7 pull. */}
+    <resistor name="R_WDPETPD" resistance="100k" footprint="0402" connections={{ pin1: "net.WD_PET", pin2: "net.GND" }} />
 
     {/* ================= BLOCK 3 — PRESS one-shot + RELAY MATRIX ============ */}
     {/* CD74HC221 NON-retriggerable one-shot (ADR-0011 §6, v1.2: replaces the RETRIGGERABLE

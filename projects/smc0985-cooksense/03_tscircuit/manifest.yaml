@@ -2,7 +2,9 @@
 # The hand-authored intent count_parity.py checks every generated artifact
 # against; a silent tsci drop surfaces here as the missing refdes. Holes
 # (H1-H4) are non-electrical and excluded (count_parity SKIP ^H\d).
-# 215 components (v1.2: -6 removed / +30 added vs v1.1, ADR-0010/0011).
+# 216 components (v1.2: -6 removed / +31 added vs v1.1, ADR-0010/0011; the +1
+# over the 2026-07-24 count is R_WDPETPD, the WD_PET pull-down that ADR-0011
+# section 8 adds after the safety truth-table review found the P0).
 components:
   - CE1
   - C_3V3
@@ -173,6 +175,7 @@ components:
   - R_TEMPOK
   - R_TH1
   - R_TH2
+  - R_WDPETPD
   - TP_3V3
   - TP_5VKR
   - TP_5VP

@@ -1,0 +1,96 @@
+# cooksense (MAIN board) — ASSEMBLY intent. Canon A-POP + A-STOCK.
+# Seeded from skills/pcb-design/templates/03_src/rules/assembly.yaml (2026-07-25).
+#
+# THE INCIDENT THIS FILE CLOSES IS THIS BOARD'S OWN. cooksense v1.0 AND v1.1
+# both sealed with 13 CPL placement rows whose BOM line carries a BLANK LCSC
+# (J_TC + the twelve K_* Standex reed relays): JLC was told to machine-place 13
+# parts it cannot source, while the v1.1 MANIFEST declared 12 of the 13
+# `not_assembled` and J_TC nowhere at all. The machine instruction and the
+# paperwork contradicted each other and every gate was green, because until
+# A-POP landed nothing compared them. v1.2 fixes it in SOURCE: the 13 refs
+# carry `exclude_from_pos_files` (floorplan.yaml placement pattern), they are
+# declared here with a DATED catalog measurement, and the release MANIFEST's
+# `not_assembled:` line is GENERATED from this file as a bare refdes list.
+
+# ---- SERVICE DECLARATION ----------------------------------------------------
+service: standard          # JLC standard SMT assembly, as ordered for v1.0/v1.1.
+sides: [top]               # MEASURED on the v1.2 board: 220 footprints, 0 on
+                           # B.Cu (placement histogram, assembly_coverage.py).
+                           # Single-sided assembly is a deliberate cost choice;
+                           # the isolation comb and the plane band both assume
+                           # a clear bottom side.
+fiducials: none            # DELIBERATE, not silence. JLC adds panel fiducials on
+                           # their own rails for SMT orders. No LOCAL fiducials
+                           # are placed because the finest pitch on this board is
+                           # 0.5 mm (TPS259573 WSON-8) / 0.65 mm (MCP23017 SSOP-28)
+                           # — both well above the <=0.4 mm pitch at which local
+                           # fiducials stop being optional. Nothing on the board
+                           # is a fine-pitch BGA/QFN of that class.
+build_quantity: 5          # JLCPCB's minimum PCB fabrication quantity for this
+                           # 188x92 mm 4-layer board. A-STOCK grades every coded,
+                           # placed line at stock >= qty x 5. v1.0/v1.1 declared
+                           # "quantity: 1 (prototype bring-up)"; grading at 5 is
+                           # the strictly more conservative bar and matches what
+                           # the fab actually produces.
+
+# ---- NOT ASSEMBLED (the population set) ------------------------------------
+not_assembled:
+  - refs: [K_U1, K_U2, K_U3, K_U4, K_U5, K_U6,
+           K_D1, K_D2, K_D3, K_D4, K_PRESS, K_STOP]
+    reason: not_in_catalog
+    evidence: "JLCPCB parts-library query 2026-07-25 (jlcpcb.com
+               selectSmtComponentList, the same endpoint jlc_stock_check.py
+               uses): keyword 'DIP05-1A72-12L' -> 1 hit, C1561362
+               STANDEXMEDER DIP05-1A72-12L, stockCount 0. Keyword
+               'DIP05-1A72' -> 5 hits (C1524803 -11D, C1524847 -11L,
+               C1524853 -13L, C1561362 -12L, C1561371 -12D), stockCount 0 on
+               EVERY ONE. Control queries the same minute returned live stock
+               (C5620 = 5602, C25741 = 288617), so the zeros are the library's
+               answer, not a dead field. JLC cannot source this part for this
+               order. Independently, the package is THT (Relay_StandexDIP_1A_
+               pinout12, 0.9 mm PTH) and standard SMT assembly does not place
+               through-hole."
+    disposition: "hand-soldered at integration. DO-NOT-SUBSTITUTE: the reed
+                  contact rating and the coil/contact column pinout ARE the
+                  safety argument (ADR-0006, brief section 7) and the
+                  isolation-comb creepage (6.12 mm track-aware, measured) is
+                  designed around this exact body. Approved alternate:
+                  DIP05-1A72-12D (identical pinout, internal coil diode).
+                  Order 16 (12 + 4 spares). ORDER_README section 2."
+
+  - refs: [J_TC]
+    reason: not_in_catalog
+    evidence: "JLCPCB parts-library query 2026-07-25: keyword 'PCC-SMP-K' -> 7
+               hits, stockCount 0 on every one — C7509548 (OMEGA Engineering
+               PCC-SMP-K-100), C22399598 (OMEGA PCC-SMP-K-5-R), C41862680, and
+               three JLCPCB-Assembly library placeholders C9900005665 /
+               C9900040586 / C9900215544. Keyword 'PCC-SMP' -> 8 hits, all 0.
+               No orderable line exists. Package is a panel jack on 1.77 mm PC
+               pins with 2 NPTH bracket holes — THT, not SMT-placeable."
+    disposition: "hand-soldered at integration. DO-NOT-SUBSTITUTE: the
+                  chromel/alumel jack contacts ARE the cold-junction interface
+                  the MAX31856 measures against; a brass-contact lookalike
+                  injects a parasitic junction into the thermocouple loop.
+                  ORDER_README section 2."
+
+# ---- CONSIGNED (you supply, JLC PLACES — these stay ON the CPL) -------------
+# None. Nothing on this board is consigned: the two unplaceable classes above
+# are THT parts JLC's standard service would not place even if supplied, so
+# they are a POPULATION decision (not_assembled), not a sourcing one.
+consigned: []
+
+# ---- SOURCING PLAN (justifies a non-OK stock line at seal time) -------------
+# Populated at seal time from verification/stock_check.json. An empty list here
+# means EVERY coded, placed line cleared stock >= qty x build_quantity on its
+# own; any line that did not MUST appear here with a measured number and a date.
+sourcing_plan: []
+
+# ---- EXEMPT REFDES CLASSES -------------------------------------------------
+# H  = M3 mounting holes (generate_board_generic sets FP_BOARD_ONLY +
+#      FP_EXCLUDE_FROM_BOM; no pads, no part). MEASURED: H1..H4.
+# TP = bare probe pads, no part. MEASURED: 17 (TP_3V3 TP_5VKR TP_5VP TP_ALLOW
+#      TP_DSEL TP_ENCL TP_ESTOP TP_FAULT TP_PGOOD TP_RKEY TP_SPARE TP_TCDRDY
+#      TP_TCFAULT TP_TCTH TP_TEMPOK TP_USEL TP_WDOK).
+# Nothing else is exempt: FID/MH classes do not exist on this board, so listing
+# them would be an inherited exemption rather than a judgement.
+exempt_prefixes: [H, TP]

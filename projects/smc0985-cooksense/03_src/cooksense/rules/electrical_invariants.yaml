@@ -340,3 +340,30 @@ invariants:
     net: 3V3
     adr: "0011"
     why: "direction: UP (to 3V3) — the one pull whose direction inverts the others'"
+
+  # --- §8 THE WATCHDOG MUST BITE WHEN THE PI IS ABSENT (P0, 2026-07-25) --------
+  # This is the invariant whose ABSENCE was the P0. The de-energization intent
+  # ("Pi crash (WD) -> contactor DROPPED", ADR-0011 truth table) lived only in ADR
+  # prose; no gate could see it, so a WD_PET net with exactly two nodes (J_PI.11
+  # and U_WD.4) passed every check while the board held the cooking contactor
+  # energised forever with the Pi unplugged. An ADR that emits no invariant is the
+  # E-ADR failure the canon names — so the intent is pinned here THREE ways: the
+  # net carries a resistor at all, and both of that resistor's pins are named, so
+  # the DIRECTION (down, not up) is proven and a future edit cannot quietly make
+  # it a pull-UP (which would restore the fault exactly).
+  - assert: net_has_part
+    net: WD_PET
+    part_type: resistor
+    min: 1
+    adr: "0011"
+    why: "WD_PET (the TPS3823 WDI heartbeat) MUST carry a pull resistor. TPS3823-33DBVR part.yaml pin 4: 'if left floating the device self-pulses (WD effectively disabled)'. With J_PI unplugged or the Pi off, a bare WD_PET floats -> the supervisor never times out -> WD_OK stays HIGH -> U_CAND1(WD_OK,ESTOP_OK,TEMP_OK) and U_CAND2(...,CONTACTOR_REQ) both hold, the MCP23017 CONTACTOR_REQ latch retains its last written value (EXP_RST_N has no driver), and the EXTERNAL COOKING CONTACTOR STAYS ENERGISED INDEFINITELY. That falsifies ADR-0011 §3 and BRIEF C10 on a cooking-safety interlock"
+  - assert: pin_on_net
+    pin: "R_WDPETPD.1"
+    net: WD_PET
+    adr: "0011"
+    why: "the pull actually sits on WD_PET — the WDI node, not a neighbouring watchdog net (WD_MR_N already has its own R_MR pull-UP, so a mis-wired pull here would be invisible to a net-name-only check)"
+  - assert: pin_on_net
+    pin: "R_WDPETPD.2"
+    net: GND
+    adr: "0011"
+    why: "direction: DOWN, and the rail is asserted rather than merely the resistor's presence. WDI held at a defined LOW produces NO edge, so the fixed 0.9/1.6/2.5 s watchdog EXPIRES and RESET_N asserts — that is the whole safety argument. DOWN specifically (not UP, which would also be edge-free and would also bite): WD_PET terminates on J_PI.11, a Pi GPIO. A pull-UP to this board's 3V3 would source current into an UNPOWERED Pi through its GPIO ESD clamp — partially back-feeding the very host whose absence this invariant covers. DOWN is quiet in exactly the case that matters, and matches every other §7 authorization pull"

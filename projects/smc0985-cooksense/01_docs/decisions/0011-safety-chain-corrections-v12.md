@@ -111,6 +111,48 @@ cannot re-address U/D mid-press (review F5b). STOP is unaffected
 pull-UP on REARM_N (a floating re-arm must NOT clear the fault latch —
 REARM_N is active-low). Existing pulls unchanged.
 
+## 8. WD_PET floated — the watchdog never bit with the Pi absent (P0, 2026-07-25)
+
+Found by the seal-time SAFETY-CHAIN TRUTH-TABLE review, against the v1.2
+netlist at 1e47c01. §7 pulled down every *authorization* line but left the
+one line the whole de-energization argument rests on floating:
+
+    WD_PET  =  { J_PI.11, U_WD.4 }      — two nodes, no pull
+
+`02_parts/TPS3823-33DBVR/part.yaml` pin 4: *"watchdog input; must see an
+edge within t_out or RESET asserts; **if left floating the device
+self-pulses (WD effectively disabled)**"*. So with J_PI unplugged, the
+ribbon off, or the Pi simply powered down:
+
+1. WDI self-pulses → the supervisor never times out → WD_OK stays HIGH.
+2. The MCP23017 keeps its output latches: `CONTACTOR_REQ` retains whatever
+   was last written, and `EXP_RST_N` is a 10k pull-UP to 3V3 with **no
+   driver on the board** — nothing resets the expander when the host goes.
+   (R_CTRREQPD is a 100k pull-down, so it loses to a driven MCP23017 output.)
+3. U_CAND1 = WD_OK·ESTOP_OK·TEMP_OK holds, U_CAND2 = CTR_SAFE·
+   FAULT_LATCH_CLEAR·CONTACTOR_REQ holds → CONTACTOR_DRV stays asserted →
+
+**the external cooking contactor stays ENERGISED indefinitely.**
+
+That is the exact inverse of the truth table's `Pi crash (WD)` row below,
+and of BRIEF C10. On a cooking-safety interlock it is a burn/fire hazard,
+not a nicety.
+
+FIX: `R_WDPETPD`, 100k 0402, WD_PET → GND. WDI held at a defined LOW is
+edge-free, so the fixed 0.9/1.6/2.5 s timer expires and RESET_N asserts,
+which is what every downstream gate already reads. DOWN rather than UP:
+both are edge-free and both bite, but a pull-UP to this board's 3V3 would
+source current into an unpowered Pi through its GPIO ESD clamp — partly
+back-feeding the very host whose absence this covers.
+
+WHY IT SURVIVED FOUR GATES. It was not a missed check, it was an
+UNEXPRESSED one: the de-energization intent lived in §3 and in the truth
+table as PROSE, and no `electrical_invariants.yaml` assertion pinned it,
+so DRC/ERC/parity/audit all agreed with each other about a board that was
+wrong. The counter-measure is the §8 invariant triple below, and the
+general rule it restates: **an ADR that emits no invariant is not
+enforced** (canon E-ADR).
+
 ## Fault × actuator truth table (the review's core demand)
 
 Post-fault steady state, AUTO mode, appliance mid-cycle:
