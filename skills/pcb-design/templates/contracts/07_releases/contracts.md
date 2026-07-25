@@ -183,8 +183,13 @@ not_assembled: J4,J5,J13 (THT USB-A, not_in_catalog) · F1 element (user_supplie
 
 ### `not_assembled:` is a REQUIRED, GENERATED block
 
-**Required** whenever the board has any unpopulated non-exempt part, and
-**GENERATED from `03_src/rules/assembly.yaml`** — never hand-written. It was a
+**Required** whenever the board has any unpopulated non-exempt part,
+**GENERATED from `03_src/rules/assembly.yaml`** — never hand-written — and a
+BARE REFDES LIST, never prose. Reasons belong in `assembly.yaml`; a line
+carrying free text is reported as UNGRADEABLE and cross-checked against
+nothing, because scraping refdes out of prose accuses the wrong parts
+(usb-hub-3s-v3 v1.4: 50 tokens, 44 of them English words, and its four real
+refdes sit in a clause saying they *are* populated). It was a
 prose sentence in two places and the two drifted: cooksense v1.1's MANIFEST
 declared 12 refs not_assembled while its own CPL told JLC to place all 12, and
 a 13th (J_TC) was declared nowhere. `assembly_coverage.py` (A-POP) FAILs both

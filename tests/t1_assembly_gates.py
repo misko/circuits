@@ -203,9 +203,12 @@ def t_pop_cooksense_uncoded_on_cpl():
                 "K_U1", "K_U2", "K_U3", "K_U4", "K_U5", "K_U6"):
         contains(r.out, ref, f"the finding names {ref}")
     contains(r.out, "13 ref(s)", "all thirteen are counted")
-    # the second, independent half: the MANIFEST declares 12 of them unassembled
-    contains(r.out, "DECLARED-BUT-PLACED",
-             "the MANIFEST/CPL contradiction is reported separately")
+    # The MANIFEST separately "declares" 12 of them not_assembled — but its
+    # line is PROSE ("... · 16 test points (bare pads)"), so it is reported as
+    # ungradeable rather than cross-checked. Accusing specific refs out of
+    # prose is a false-positive generator; see t_pop_manifest_prose.
+    contains(r.out, "MANIFEST-PROSE",
+             "the ungradeable MANIFEST line is its own finding")
     # INLINE RED-VERIFY: neuter ONLY the uncoded check -> that finding vanishes.
     rr = run([KPY, COV, COOK11, "--_disable-uncoded"])
     not_contains(rr.out, "UNCODED-ON-CPL",
@@ -236,6 +239,75 @@ def t_pop_consigned_declared_unpopulated():
     r = must_fail(run([KPY, COV, CROW13]), "crow-rv2 v1.3 A-POP",
                   "DECLARED-BUT-PLACED")
     contains(r.out, "U1", "names the consigned part the MANIFEST mis-declares")
+
+
+@test("assembly_coverage reports a PROSE not_assembled: line as ungradeable "
+      "and accuses NO ref from it — prose is a false-positive generator",
+      kind="known_bad")
+def t_pop_manifest_prose():
+    """MEASURED REGRESSION (found 2026-07-25 on usb-hub-3s-v3 v1.4, against
+    the FIRST cut of this checker, before it shipped in anger).
+
+    That release's `not_assembled:` line is three numbered prose clauses. A
+    naive refdes scrape yields 50 whitespace tokens of which 44 are English
+    words ('must', 'be', 'the', 'blade'), and its four REAL refdes —
+    C53/C54/R34/R35 — sit in clause (3), which says the OPPOSITE of
+    unpopulated: 'remain POPULATE-BY-DEFAULT on BOM/CPL'. The first cut
+    accused all four, i.e. the gate would have blocked an in-flight release
+    with a finding that was exactly backwards.
+
+    The fix is structural, not another prose heuristic: a GENERATED line
+    contains ONLY refdes, so a line carrying any non-refdes token is reported
+    as ungradeable and cross-checked against nothing. That is why the contract
+    now REQUIRES the line to be generated from assembly.yaml.
+
+    RED-VERIFIED inline below: the four wrongly-accused refs must NOT appear,
+    and a machine-readable line on the same board's sibling release still
+    produces its DECLARED-BUT-PLACED finding (t_pop_consigned_declared_
+    unpopulated), so this did not simply switch the check off."""
+    usb = RELS / "usb-hub-3s-v3" / "07_releases" / "v1.4-2026-07-23"
+    r = must_fail(run([KPY, COV, usb]), "prose MANIFEST line", "MANIFEST-PROSE")
+    not_contains(r.out, "DECLARED-BUT-PLACED",
+                 "no ref may be accused from a prose line")
+    for ref in ("C53", "C54", "R34", "R35"):
+        not_contains(r.out, ref,
+                     f"{ref} is POPULATE-BY-DEFAULT per the same line — "
+                     f"accusing it is exactly backwards")
+    # the genuinely-unpopulated refs are still caught, by the board-vs-CPL
+    # set identity, which needs no prose at all
+    contains(r.out, "F1", "the real unpopulated refs are still named")
+    contains(r.out, "SW1", "the real unpopulated refs are still named")
+
+
+@test("assembly_coverage FAILS a declared-but-placed ref from a STRUCTURED "
+      "assembly.yaml (the machine-readable path keeps full teeth)",
+      kind="known_bad")
+def t_pop_declared_but_placed_structured():
+    """The MANIFEST path only grades a line that is pure refdes, so the
+    structured path is where this class must be pinned unconditionally:
+    assembly.yaml declares a ref not_assembled while the CPL places it."""
+    rel, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY.replace(
+        "  - refs: [JP_INJ, J_DBG]",
+        "  - refs: [JP_INJ, J_DBG, U5]"),
+        manifest="board: demo\nnot_assembled: J3 J4 J5 J6 J7 J8 J9 J10 "
+                 "JP_INJ J_DBG U5\n")
+    r = must_fail(run([KPY, COV, rel]), "declared not_assembled but on CPL",
+                  "DECLARED-BUT-PLACED")
+    contains(r.out, "U5", "names the placed-yet-declared ref")
+
+
+@test("assembly_coverage reads a WRAPPED MANIFEST not_assembled: value, so a "
+      "continuation line is not silently under-read")
+def t_pop_manifest_continuation():
+    """crow-recorder-central-v2 v1.3 wraps its value: `JP_INJ + J_DBG` sits on
+    the second line. Reading only the first line under-reads the declaration
+    and surfaces as a bogus MANIFEST-DRIFT against a correct assembly.yaml."""
+    sys.path.insert(0, str(FAB_SCRIPTS))
+    from assembly_coverage import manifest_not_assembled
+    refs, _raw = manifest_not_assembled(CROW13 / "MANIFEST.txt")
+    for ref in ("J3", "J10", "U1", "JP_INJ", "J_DBG"):
+        check(ref in refs, f"{ref} missing from the parsed MANIFEST value "
+                           f"(continuation line dropped?): {sorted(refs)}")
 
 
 @test("assembly_coverage FAILS a board broken in EXACTLY ONE way: one extra "
@@ -555,6 +627,40 @@ def t_stock_json_sidecar():
     r = run([KPY, FRESH, rel])
     contains(r.out, "stock_check.json", "the sidecar is preferred")
     not_contains(r.out, "STOCK-", "a clean sidecar raises no finding")
+
+
+@test("jlc_stock_check --json WRITES a sidecar that release_freshness READS: "
+      "the writer and the reader agree on the shape")
+def t_stock_json_roundtrip():
+    """The reader tests above hand-build the sidecar, which would keep passing
+    if the WRITER emitted a different shape — checker and checked sharing a
+    method by accident (canon M1). Round-trip it through the real writer.
+
+    Hermetic: a BOM whose lines are all UNCODED makes zero `query()` calls, so
+    the network is never touched (`--search-missing` is deliberately off)."""
+    import json
+    d = tmpdir("stkw_")
+    bom = d / "bom_jlc.csv"
+    bom.write_text("Comment,Designator,Footprint,MPN,LCSC\n"
+                   "10k,R1,R_0402_1005Metric,,\n")
+    out = d / "stock_check.json"
+    r = must_pass(run([KPY, FAB_SCRIPTS / "jlc_stock_check.py", bom,
+                       "--json", out]), "jlc_stock_check --json (uncoded BOM)")
+    contains(r.out, "PASS:", "the writer still prints its verdict line")
+    doc = json.loads(out.read_text())
+    check(doc.get("verdict") == "PASS",
+          f"the sidecar must carry an EXPLICIT verdict, got {doc.get('verdict')!r}")
+    check("lines" in doc, "the sidecar must carry a per-line list")
+    # and the READER must accept exactly what the WRITER produced
+    rel, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY)
+    shutil.copy(out, rel / "verification" / "stock_check.json")
+    (rel / "ORDER_README.md").write_text("# ORDER README\n\nFinal.\n")
+    (rel / "verification" / "policy_audit.md").write_text(
+        "| ID | Grade |\n|---|---|\n| M-BOM | PASS |\n\nSummary: FAIL=0\n")
+    rr = run([KPY, FRESH, rel])
+    not_contains(rr.out, "STOCK-NO-VERDICT",
+                 "the reader rejected the real writer's own verdict field — "
+                 "writer and reader disagree on the sidecar shape")
 
 
 @test("release_freshness A-STOCK FAILS a --json sidecar whose verdict field "

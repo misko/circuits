@@ -273,16 +273,31 @@ def expand_refs(text):
 
 
 def manifest_not_assembled(path):
-    """(declared_refs, raw_line) from a release MANIFEST, or (None, '') when
-    the MANIFEST states nothing — absence is a DIFFERENT finding than drift."""
+    """(tokens, raw_value) from a release MANIFEST `not_assembled:` line, or
+    (None, '') when the MANIFEST states nothing — absence is a DIFFERENT
+    finding than drift.
+
+    Continuation lines are consumed: the fleet wraps this value across
+    indented lines (crow-recorder-central-v2 v1.3 puts `JP_INJ + J_DBG` on
+    the second line), and reading only the first line silently under-reads
+    the declaration — which would then surface as a bogus MANIFEST-DRIFT."""
     if not path or not Path(path).is_file():
         return None, ""
-    for line in Path(path).read_text().splitlines():
-        if re.match(r"\s*not_assembled\s*:", line):
-            body = line.split(":", 1)[1]
-            # strip parenthetical prose ("(12x Standex DIP05-1A72-12L")
-            body = re.sub(r"\([^)]*\)?", " ", body)
-            return expand_refs(body), line.strip()
+    lines = Path(path).read_text().splitlines()
+    for i, line in enumerate(lines):
+        if not re.match(r"\s*not_assembled\s*:", line):
+            continue
+        body = line.split(":", 1)[1]
+        for cont in lines[i + 1:]:
+            # an indented line that does not start a new `key:` continues it
+            if not cont[:1].isspace() or not cont.strip():
+                break
+            if re.match(r"\s*[A-Za-z_][\w ]*:", cont):
+                break
+            body += " " + cont
+        raw = body.strip()
+        # strip parenthetical prose ("(12x Standex DIP05-1A72-12L")
+        return expand_refs(re.sub(r"\([^)]*\)?", " ", body)), raw
     return None, ""
 
 
@@ -407,6 +422,25 @@ def check(fps, cpl_rows, bom_rows, asm, manifest_refs, have_assembly):
                 "`not_assembled:` line while the board has unpopulated parts "
                 "— the population decision must be visible in the order "
                 "paperwork")
+    elif manifest_refs - board_refs:
+        # PROSE, not a declaration. A GENERATED not_assembled: line contains
+        # ONLY refdes; this one carries free text, so every token in it is a
+        # guess and accusing a specific ref from it is a FALSE POSITIVE
+        # WAITING TO HAPPEN. Measured on usb-hub-3s-v3 v1.4 (2026-07-25): the
+        # line yields 50 tokens of which 44 are English words ("must", "be",
+        # "the", "blade"), and its four REAL refdes — C53/C54/R34/R35 — sit in
+        # a clause that says the OPPOSITE ("remain POPULATE-BY-DEFAULT on
+        # BOM/CPL"). An earlier cut of this checker accused all four. Prose is
+        # not machine-readable; that is precisely why the line must be
+        # GENERATED. So: report the ungradeable line, name NO refs.
+        junk = sorted(manifest_refs - board_refs)
+        fails.append(
+            f"  MANIFEST-PROSE: the MANIFEST's not_assembled: line is free "
+            f"prose, not a declaration — {len(manifest_refs)} whitespace "
+            f"tokens of which {len(junk)} are not refdes on this board "
+            f"(e.g. {', '.join(repr(j) for j in junk[:5])}). No gate can "
+            f"grade it and it is not cross-checked here: GENERATE it from "
+            f"03_src/rules/assembly.yaml (a bare refdes list) so it can be")
     else:
         stray = sorted(manifest_refs & cpl_refs)
         if stray:
