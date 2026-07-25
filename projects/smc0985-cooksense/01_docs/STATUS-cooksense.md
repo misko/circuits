@@ -1,9 +1,9 @@
 # STATUS beacon — cooksense MAIN board (live head; overwritten each transition)
 <!-- reader parses from here down -->
-stage:   v1.2-STITCH
-step:    "heal_islands via-ring FALSE-POSITIVE fixed (bb2af90) cleared the F.Cu (123.8,87.5) phantom. That EXPOSED a genuine residual: a 2.28x3.35mm padless B.Cu GND island at (122.25-124.53,91.53-94.87) in the south pull cluster (R_REARMPU/R_RAENRHAPD) that island_rescue (require:pads) skips and the existing power_stitch sites don't reach. MEASURED: In1.Cu GND main runs under it + a legal via @123.84,94.36 drops GND groups 2->1 -> BONDABLE (not a placement trap). Added that power_stitch GND site to route.yaml. Deterministic stitch re-running (astar-heavy, ~min)."
-measure: "GND was 2 groups at heal time (main + 1 B.Cu orphan); via @123.84,94.36 via_site_ok=True + heal_groups 2->1 VERIFIED; only GND split remaining. route.yaml +1 power_stitch site."
+stage:   v1.2-DBACK-RERACE
+step:    "D-BACK on 3v/6unc: the frozen chain TRAPPED C_DECU.1 + R_RAENRHEPD.2 (no via site within 2mm) and baked COIL_U4_N's iso_col_r4 clip in — a reuse-route can't fix either, so ran rebuild --reroute with 5 via-site reservations + seed_stubs + TC_FAULT_N promoted to the safety wave. Race converged 0-routed-unc, 0 copper-viol; COIL_U4_N now routes CLEAN around iso_col_r4 (drop at x67.90). Stitch bonded 4/5 pads. RESIDUALS on the re-race chain (54v/3unc): R_RAENRHEPD.2 seed REFUSED (RAIL_EN_RHA B.Cu hugs the reservation south edge, 0.275=floor); 90 tiny 3V3 B.Cu segs = astar_fallback THREADING U_SCHM.14 (176.47,54.19, near comb edge) + U_TC.5 (60.14,77.65) plane-bonds through iso_col_r11 (real connected paths, not debris -> items_not_allowed); + race artifacts (thin TH_CAM_B 0.17<0.249, one I2C_SDA/KEY_CLOCK 0mm crossing); + 3 new stranded GND (R_SHIELD.2/R_DECUPD.2/R_STOPPD.2 islands)."
+measure: "RESOLVED (6/9): COIL_U4_N clip GONE (drop x67.90, via 68.30 barrel 68.42<68.72); C_DECU.1/R_BID1.2/R_REARMPU.2/U_LATCHB.5 3V3 via-in-pads bonded. STUCK: R_RAENRHEPD.2 GND (placement-tight in pull cluster) + astar junk-path 3V3 bonds (U_SCHM.14/U_TC.5) + 3 GND islands + 2 race artifacts. Re-race chain viol 3->54 (mostly 3V3-in-keepout threads), unc 6->3."
 state:   working
-op_pid:  "bflcib8hx (raw stitch, background, re-execing pass N/21)"
-next:    "stitch clean exit -> post (prune + generate_rules LAST + policy) -> DRC 0/0/0 -> COMMIT -> M-REPRO -> gate battery + INITIAL review + safety truth-table + fresh lens + seal"
-updated: 2026-07-24T21:52
+op_pid:  "foreground drive_stitch chunks; race done (c0/r8 promoted)"
+next:    "checkpoint (route.yaml+final_chain+journal, WIP not-green) -> seed_stub U_SCHM.14/U_TC.5 to kill astar junk -> fix R_RAENRHEPD.2 (reservation reshape or R_RAENRHEPD placement nudge) -> re-stitch -> surgical/re-race the 2 KRT artifacts -> island ties -> DRC 0/0/0 -> COMMIT"
+updated: 2026-07-24T22:58

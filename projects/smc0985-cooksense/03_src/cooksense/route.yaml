@@ -158,6 +158,19 @@ prep:
       - {x0: 122.16, y0: 91.15, x1: 122.86, y1: 91.85, layer: User.2} # R_REARMPU 3V3@122.51 via site (REARM_N@121.49 W)
       - {x0: 57.13, y0: 59.65, x1: 57.83, y1: 60.35, layer: User.2}   # C_DVDT  GND@57.48 via site (EF_DVDT@56.52 W)
       - {x0: 182.67, y0: 70.25, x1: 184.33, y1: 70.95, layer: User.2} # C_AND3  3V3@183.02 + GND@183.98 (both plane; tight y)
+      # NEW-v1.2 TRAPPED plane-bond via RESERVATIONS (D-BACK, task#21, 2026-07-24).
+      # The aa6659a frozen chain stranded 5 more plane pads: C_DECU.1 + R_RAENRHEPD.2
+      # are TRAPPED in the realization (no clear via site within 2mm — buried in the
+      # SEL decoder fan / RAIL_EN+ADC+KEY pull cluster), so a re-race with these
+      # User.2 reservations (KRT routes the offenders AROUND both F.Cu+B.Cu; plane
+      # nets are KRT-excluded) is the ONLY deterministic fix — same class as C_TCAV/
+      # C_TCPA above. R_BID1/U_LATCHB/R_REARMPU reserved too so their seed_stub sites
+      # stay clear on ANY realization. TIGHT boxes (keep routing channels open).
+      # Coords = MEASURED pad centres.
+      - {x0: 78.62,  y0: 65.60, x1: 79.42,  y1: 66.40, layer: User.2}  # C_DECU.1  3V3@79.02 (both C_DECU pads plane; box W of C_DECU.2 GND@79.98)
+      - {x0: 122.16, y0: 86.10, x1: 122.86, y1: 86.90, layer: User.2}  # R_BID1.2  3V3@122.51 (BOARD_ID1 signal pad1@121.49 W; E-biased)
+      - {x0: 182.44, y0: 73.00, x1: 183.24, y1: 73.70, layer: User.2}  # U_LATCHB.5 3V3@182.84 (top-R corner pin; pin4 GND-domain@74.65 S)
+      - {x0: 128.16, y0: 91.10, x1: 128.86, y1: 91.90, layer: User.2}  # R_RAENRHEPD.2 GND@128.51 (RAIL_EN_RHE signal pad1@127.49 W; E-biased)
   waves:
     exclude: ["GND", "3V3", "unconnected-*"]   # In1 GND plane + In2 3V3 plane own these
     groups:
@@ -184,7 +197,16 @@ prep:
       # early safety wave and the _NI intermediates left for the last sig wave, the
       # _NI escape channel was already taken -> DOOR_NI stranded DETERMINISTICALLY
       # in every chain. Routing the whole conditioning chain in ONE wave frees it.
-      safety: [TEMP_OK, WD_OK, ESTOP_OK, FAULT, MODE_AUTO_HW,
+      # TC_FAULT_N promoted from `sig` (task#21 D-BACK, 2026-07-25, MEASURED): with
+      # the 4 new trapped-pad reservations the sig field re-congested and TC_FAULT_N
+      # (U_TC MAX31856 fault -> U_EXP.7) walled DETERMINISTICALLY in ALL 3 race
+      # candidates — its long U_TC->U_EXP span lost every channel and U_EXP.7's escape
+      # was boxed by FAULT (N) + BOARD_ID0/WD_OK (S). It routes to U_EXP alongside
+      # FAULT (pin6) / WD_OK (pin8), so grouping it in the early safety wave lets KRT
+      # order all three expander-fault escapes together, BEFORE the sig-wave BOARD_ID0
+      # walls pin7. SAFETY-relevant: TC over-temp fault flag. (wave PROMOTION is the
+      # journal's durable fix for walled late-wave pads.)
+      safety: [TEMP_OK, WD_OK, ESTOP_OK, FAULT, TC_FAULT_N, MODE_AUTO_HW,
                DOOR_OK, REARM_N, STOP_REQ, PRESS_TIMED, CONTACTOR_C,
                KEY_RELAY_ALLOWED, ESTOP_RAW, MODE_RAW, DOOR_RAW,
                DECU_G1_RAW, DECD_G1_RAW, ESTOP_NI, MODE_NI, DOOR_NI]
@@ -346,11 +368,17 @@ stitch:
       - {net: 3V3, pin: C_TCAV.1,    vias: [[63.220, 80.900]]}
       - {net: GND, pin: C_TCAV.2,    vias: [[64.180, 80.900]]}
       - {net: GND, pin: C_TCPA.2,    vias: [[70.980, 84.000]]}
-      # R_REARMPU.2 (3V3): seed_stub REMOVED for a diagnostic — let pad_rescue/
-      # astar bond it on THIS chain (the journal's "trapped" verdict was the OLD
-      # chain). If it strands, DRC will show it and a placement nudge follows.
       - {net: GND, pin: C_DVDT.2,    vias: [[57.480, 60.000]]}
       - {net: 3V3, pin: C_AND3.1,    vias: [[183.020, 70.600]]}
+      # NEW-v1.2 TRAPPED plane-bond via-in-pads (D-BACK, task#21, 2026-07-24). Paired
+      # with the User.2 reservation rects above; re-race keeps the sites clear, then
+      # these bond the pad to its plane (3V3=In2 / GND=In1). R_REARMPU.2 stub RESTORED
+      # (the diagnostic proved it strands trapped). All via-in-pad at MEASURED centres.
+      - {net: 3V3, pin: C_DECU.1,     vias: [[79.020, 66.000]]}
+      - {net: 3V3, pin: R_BID1.2,     vias: [[122.510, 86.500]]}
+      - {net: 3V3, pin: R_REARMPU.2,  vias: [[122.510, 91.500]]}
+      - {net: 3V3, pin: U_LATCHB.5,   vias: [[182.838, 73.350]]}
+      - {net: GND, pin: R_RAENRHEPD.2, vias: [[128.510, 91.500]]}
       # J_PWR Micro-Fit MECHANICAL RETENTION TABS (R-THERM, 2026-07-23). The two
       # 1MP shell tabs (5.66mm2 each, GND, SMD) trip R-THERM (>4mm2 GND pad, <2
       # vias) though they carry NO current (retention only; the real power path is

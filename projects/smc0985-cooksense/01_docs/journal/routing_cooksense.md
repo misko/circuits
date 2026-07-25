@@ -858,3 +858,31 @@ NOT yet rebuilt. All other source staged. No git touched.
   contracts_audit green.
 - next: drive the stitch (drive_stitch.sh pre/stitch/post) on the converged
   c0/r7 route -> DRC 0/0/0 -> COMMIT -> M-REPRO -> full v1.2 gate battery.
+
+## 2026-07-24 22:33 PDT — D-BACK (task#21, Opus): 3v/6unc residuals diagnosed → reservation + re-race
+- did: measured the orchestrator's 3v/6unc frozen-chain state (HEAD 9a76a21).
+- COIL_U4_N (3 viol): the coil drop from K_U4.2 (67.91,45.62 — 0.81mm W of iso_col_r4
+  edge x68.72) hugs the column and its via@(68.70,52.70) barrel clips iso_col_r4 by
+  ~0.11mm; the F.Cu/B.Cu ends clip too. Legal neighbours (COIL_U3/U5/U6) drop clean
+  inside their gap windows. Fix: reroute the drop clear (surgical drop-extension past
+  the keepout south edge y52.9, OR fresh race routes it clean since coil wave honours
+  User.2 iso_col_r4). Re-check post-race.
+- 6 unconnected = 5 plane-bond pads + 1 GND zone island. MEASURED via-site scan on the
+  frozen chain:
+    R_BID1.2 (3V3)     — offset site (122.91,87.19) clear (BOARD_ID1 B.Cu over centre)
+    R_REARMPU.2 (3V3)  — centre site clear @0.275 (ADC_CS_N B.Cu at exactly the floor)
+    U_LATCHB.5 (3V3)   — centre clear of signal copper; only a post-route GND via @(182.82,73.86)
+                         conflicts (hole-hole 0.36<0.5) → early seed_stub claims the site first
+    C_DECU.1 (3V3)     — TRAPPED: buried in the SEL_U1-6 decoder escape fan (SEL_U5/U4 B.Cu
+                         overlap the pad centre); NO clear via site within 2.0mm
+    R_RAENRHEPD.2 (GND)— TRAPPED: buried in the RAIL_EN_RHE/RHA/B + ADC_CS_N + KEY_* pull
+                         cluster; NO clear via site within 2.0mm
+- decision: C_DECU.1 + R_RAENRHEPD.2 are the journal's "trapped in the frozen realization"
+  class (same as C_TCAV/C_TCPA freed earlier) — surgical B.Cu nudges would be marginal
+  hand-geometry in dense fans. Canonical fix = User.2 via-site reservation rects (KRT routes
+  the offenders AROUND) + deterministic seed_stub via-in-pads + full KRT re-race. Fold all 5
+  pads into ONE clean re-race. Realization-coupled GND island ties (power_stitch J_PI/pull-
+  cluster/13 south-edge sliver) will be RE-DERIVED on the new promoted chain (bb2af90's
+  heal_islands fix should reduce the count).
+- next: route.yaml reservations+seed_stubs → rebuild --reroute → promote → stitch → re-derive
+  island ties → DRC 0/0/0 → commit → M-REPRO → finish battery.
