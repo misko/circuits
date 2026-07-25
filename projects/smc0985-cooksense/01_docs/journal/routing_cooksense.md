@@ -818,3 +818,14 @@ NOT yet rebuilt. All other source staged. No git touched.
   --reroute; re-verify c0/r7 stitches to 0/0/0 (all 5 plane pads bond); then
   the full v1.2 gate battery + INITIAL review + safety-chain truth-table + fresh
   lens + seal. E-INV/net_label_survival carry forward (netlist unchanged).
+
+## 2026-07-24 20:26 PDT — resume (task#21, Opus): stitch the CONVERGED route
+- did: resumed from CLEAN committed baseline (faaefd3). route.yaml carries the
+  stitch fixes (C_TCAV.1/.2 + C_TCPA.2 + C_DVDT.2 + C_AND3.1 via-in-pads via
+  User.2 reservations; R_REARMPU.2 seed_stub REMOVED as an OPEN diagnostic — must
+  VERIFY it bonds after stitch; 13 south-edge In1 GND sliver ties for heal_islands;
+  J_PWR tabs; eFuse EP). final_chain = promoted converged race winner (aa6659a).
+  Scratchpad was cleaned on restart — reconstructed drive_stitch.sh (TERM+KILL+pkill
+  guard across <10min blocking calls).
+- next: pre phase (regen board from frozen chain) -> drive stitch to clean exit ->
+  6b prune -> generate_rules LAST -> DRC 0/0/0 -> COMMIT immediately.
