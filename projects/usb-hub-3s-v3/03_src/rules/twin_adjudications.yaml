@@ -105,3 +105,27 @@
 #    placement in the JLC order preview (chip resistor, no polarity).
 - {lcsc: C2984354, refs: [R12], status: FETCH-FAILED,
    why: "EasyEDA API 404 'Component not found' (probed directly 2026-07-23) - part absent from library, not transient. Generic 0603 chip resistor on standard R_0603_1608Metric land; same-spec alt C861436 has standard R0603 CAD. Order-preview confirm."}
+
+# -- J1 MODEL-REG (v1.5, 2026-07-25). NON-BLOCKING by construction (the twin's
+#    critical set is MIRRORED/PAD-MISMATCH/PAD-GEOM/NO-CAD/FETCH-FAILED only), so
+#    this entry does NOT change the exit code and is NOT a gate waiver — it is the
+#    machine-readable home for a JUDGEMENT that was otherwise only in prose.
+#    The tool itself says "DO NOT blind-flip ... VERIFY leads sit on pads visually;
+#    if correct, adjudicate as a false alarm with NO rotation override". That is
+#    what was done, twice, independently.
+- {lcsc: C98732, refs: [J1], status: MODEL-REG,
+   why: "FALSE ALARM, verified as the tool instructs, NO rotation override. The
+     metric is bbox-centre-vs-courtyard and is meaningless for this part: the XT60
+     housing extends BACK from the blade face, so the WRL body's own bbox centre
+     sits 4.10mm from its model origin (bbox x -13.15..+4.95mm in mm) — the tool
+     reports that asymmetry itself. Leads-on-pads checked directly 2026-07-25:
+     twin_top.png calibrated against the four M3 mounting holes, J1's four pad
+     centres overlaid — all four land on the model's own features (2 blade bores on
+     pads 1/2, 2 housing posts on the anchor pads). Rotation independently
+     re-derived from JLC's own kicad_mod with the pcbnew-verified operator: 4-pad
+     fit rms 0.0000mm @270 offset, 12.0mm out at 90, so the anchors break the
+     90-vs-270 symmetry GEOMETRICALLY without relying on pad numbering. Confirmed a
+     second time by the v1.5 fresh zero-context lens (rms 0.0000mm). CPL 0.0 stands.
+     J1 remains a MANDATORY order-preview polarity item (P2) because geometry
+     cannot tell which blade is '+': part.yaml records 'PAD 1 IS NEGATIVE' and the
+     fleet ledger records a reversed XT60 shipping once."}

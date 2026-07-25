@@ -1,7 +1,7 @@
 # brief: usb-hub-3s-v3
 
 status: active
-current_release: no
+current_release: 07_releases/v1.5-2026-07-25
 
 ## Original prompt / decision
 
@@ -136,3 +136,42 @@ _none beyond the above — the buck rails are plain step-downs (see power_tree.y
   - *SW1 (DECISION, implemented at artifact-regen):* move OFF automated assembly
     (hand-solder / off-CPL) until the SS12D07 VG4-vs-VG6 pitch is physically confirmed,
     or use the documented header+shunt fallback - see ORDER_README.
+
+- **A4 / D4 (2026-07-25, v1.5 PCBA FIX PASS) — THE ASSEMBLY BOUNDARY.** Sealed v1.4
+  was audited for PCBA correctness (not electrical correctness, which had already been
+  red-teamed twice) and found **DO-NOT-ORDER**:
+  `08_reviews/2026-07-25_v1.4_pcba-audit_assembly.md`, 15 findings, dispositions
+  PCBA-1..15. v1.5 is a NEW release; v1.4 is immutable and gains only `SUPERSEDED.md`.
+  - *P0 (PCBA-1):* **C1 and C2** — 100 uF/35 V POLARIZED polymer electrolytics across
+    the 9.0-12.6 V pack — were on the CPL at **270.0** where the measured value is
+    **90.0**: 180 deg REVERSED. They vent at first power-up, before any bench gate.
+    Root cause: no per-LCSC rotation row for C2982822, so the exporter fell through to
+    the footprint-NAME DB (a name cannot carry a per-part fact). Fixed at source
+    (repo commits `9078ad9`, and `e0d735c` which corrected the handedness bug that had
+    NEGATED every rotation the twin ever reported).
+  - *Also corrected, same mechanism:* **J1** XT60 90.0 -> 0.0 (the name-DB pattern is
+    start-anchored and never matched our vendored `XT60PW-M_EdgeTrim`), **Q7** BSS138
+    270.0 -> 180.0 (`^SOT-23` = -90 is wrong for this part).
+  - *ACCEPTANCE GATE (met):* v1.5's CPL differs from v1.4's in **EXACTLY FOUR CELLS**
+    and nothing else; gerbers, drills, source, 3d and pdf are **sha256-IDENTICAL** to
+    v1.4 (20 files). **No copper respin** is justified by anything found.
+  - **USER DECISION 1 (U12 over-voltage): ACCEPT + MEASURE.** The USBLC6-2SC6 V_BUS pin
+    on the C rail runs 5.352 V nominal / 5.479 V worst corner against the 5.25 V at
+    which ST characterizes its leakage. Read from the datasheet directly: Table 1
+    "Absolute ratings" carries NO V_BUS limit; 5.25 V is the I_RM test condition and
+    V_BR is 6.0 V MINIMUM, which the worst corner clears by 521 mV. The mode is
+    elevated leakage, not breakdown. **R12 is NOT changed** (lowering 5VC would spend
+    the Pi undervoltage slack, which is only 69 mV once the E-MARGIN gate's own 1.2x
+    derate is applied). Bench gate Q1 now RECORDS measured VBUSC and
+    VBUSA; the derating ships as an evidence-backed MANIFEST waiver (canon M4).
+    U8/U9/U10 on 5VA are in the same class at +23 mV worst corner (DETAIL_DESIGN sec.5.3).
+  - **USER DECISION 2 (through-hole): ORDER JLC THT ASSEMBLY.** J1-J4 (4 refdes /
+    22 plated holes) STAY on the CPL and are machine-assembled. Declared in
+    `03_src/rules/assembly.yaml` and ORDER_README section 1a. F1 and SW1 remain the
+    only two `not_assembled` refdes, each with dated evidence.
+  - **USER DECISION 3 (build quantity): 5 boards.** Stock graded at 5 x per-board qty:
+    **43/43 lines OK**, tightest ceiling C473910 = 37 boards, C5337088 = 90.
+    Basic/Extended split **12 / 31**.
+  - *Documents that did not exist and now do:* `01_docs/DETAIL_DESIGN.md` (three sealed
+    part.yaml files had cited sec.1/2/5 as authority since 2026-07-21) and
+    `03_src/rules/assembly.yaml` (the population set had no machine-readable home).
