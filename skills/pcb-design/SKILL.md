@@ -623,16 +623,30 @@ wall-clock for no independence gain.
 - `jlc_twin.py BOARD bom.csv 06_build/twin --adjudications
   03_src/rules/twin_adjudications.yaml --assembly 03_src/rules/assembly.yaml`
   (coded not-assembled parts are checked too). Gate: exit 0 — zero
-  unadjudicated MIRRORED / PAD-MISMATCH / PAD-GEOM **or ROT-DB-SUGGEST**; act
-  on MODEL-SELF and POLARITY-CHECK findings; adjudications are evidence-backed
-  per the jlcpcb-fab skill (pixel measurements, board_dx/board_dy nudges,
-  NUDGE echo verified).
-  **A ROT-DB-SUGGEST is a FAILURE, not a hint** — it means the CPL angle
-  disagrees with JLC's own CAD model for that LCSC. Resolve it by MEASURING
-  and adding a row to `jlcpcb-fab/scripts/jlc_lcsc_rotations.csv` (never prose
-  in a neighbouring row's evidence — that is exactly how U_WD shipped 180 deg
-  off, twice). The footprint-NAME table cannot express this: C79924 and C7719
-  are both SOT-23-5 and need 180 vs 90.
+  unadjudicated MIRRORED / PAD-MISMATCH / PAD-GEOM; act on MODEL-SELF and
+  POLARITY-CHECK findings; adjudications are evidence-backed per the
+  jlcpcb-fab skill (pixel measurements, board_dx/board_dy nudges, NUDGE echo
+  verified).
+  **A ROT-DB-SUGGEST is a HUMAN BLOCKER you must clear before sealing** — it
+  means the CPL angle disagrees with JLC's own CAD model for that LCSC.
+  Resolve it by MEASURING (fit the board footprint against JLC's cached model,
+  pads matched by NUMBER) and adding a row to
+  `jlcpcb-fab/scripts/jlc_lcsc_rotations.csv` with the fit in the evidence
+  column — never prose in a neighbouring row's evidence, which does not reach
+  the resolver. The footprint-NAME table cannot express a per-part fact:
+  C79924 and C7719 are both SOT-23-5 and need 180 vs 270.
+  It is deliberately NOT yet an automatic exit-1 (canon A-ROT is HELD): the
+  finding's own arithmetic was wrong until 2026-07-25, so promoting it would
+  have certified a DO-NOT-ORDER release. `jlc_twin.xform()` used the opposite
+  handedness to KiCad's real operator, negating every offset — invisible at
+  0/180 (sign-invariant), exactly 180 deg wrong at 90/270. Because the
+  per-LCSC table had been POPULATED FROM that finding, six of eleven rows were
+  180 deg wrong, each overriding a correct name-DB entry; an external reviewer
+  was misled by it, and crow-recorder-central-v2 v1.2 (correct) was "fixed"
+  into v1.3 (DO-NOT-ORDER). The operator is fixed and pinned against pcbnew by
+  test; A-ROT lands only once the whole table is re-derived independently.
+  **The rule this bought: a gate must never derive its expectation from the
+  artifact it is grading, nor from a table built by it (canon M1).**
 - Fresh-context PIN REVIEW: `pin_audit.py` dossiers -> new agents per
   part group following `kicad-pcb/references/pin-review-protocol.md`.
   Zero FAILs to proceed.
