@@ -44,6 +44,16 @@ tree is built by COPYING the minimal orderable subset out of them; nothing is
 ever written back. Assertions are PROPERTIES — exit codes, finding strings,
 named refdes sets — never file bytes: a re-export legitimately reorders CSV
 rows.
+
+HERMETICITY, learned the hard way the same day (2026-07-25): a sealed release
+is immutable, but `discover()` walks OUT of it to
+`projects/<b>/03_src/rules/assembly.yaml`, which is LIVE. Within an hour of
+this suite landing, the usb-hub-3s-v3 v1.5 agent authored that project's
+assembly.yaml and `t_pop_manifest_prose` flipped from pass to fail with no
+code change on either side. Reading immutable bytes is not enough — every
+input the checker RESOLVES must be pinned. Tests whose premise is "this
+release sealed with no assembly.yaml" now pass `no_asm()`, making that
+historical fact explicit instead of inheriting today's working tree.
 """
 import csv
 import shutil
@@ -124,6 +134,21 @@ def board_of(rel):
     return next(iter(sorted((rel / "source").glob("*.kicad_pcb"))))
 
 
+# Sealed releases are immutable, but `discover()` walks OUT of the release to
+# projects/<b>/03_src/rules/assembly.yaml — which is LIVE, mutable, and being
+# authored right now by the agents adopting this schema. A test that reads a
+# sealed release but resolves its assembly.yaml from the working tree is NOT
+# hermetic, and it broke exactly that way within an hour of landing: the
+# usb-hub-3s-v3 v1.5 agent created that project's assembly.yaml (2026-07-25
+# 10:50) and t_pop_manifest_prose flipped from pass to fail with no code
+# change. Every test whose PREMISE is "this release sealed with no
+# assembly.yaml" — a historical fact about the seal — must pin that fact
+# explicitly instead of inheriting today's working tree.
+def no_asm():
+    """`--assembly <absent path>`: pins the AS-SEALED condition."""
+    return ["--assembly", str(tmpdir("noasm_") / "absent.yaml")]
+
+
 def set_attr(board, ref, flag="pcbnew.FP_EXCLUDE_FROM_POS_FILES"):
     """Break a good board in EXACTLY ONE way: set one attribute on one part."""
     code = (f"import pcbnew,sys\nb=pcbnew.LoadBoard(sys.argv[1])\n"
@@ -197,7 +222,7 @@ def t_pop_cooksense_uncoded_on_cpl():
     relays; all 13 appear on fab/cpl.csv. The MANIFEST separately declares 12
     of them not_assembled, so the order package contradicts itself and the
     machine instruction wins. Read-only against the SEALED release."""
-    r = must_fail(run([KPY, COV, COOK11]), "cooksense v1.1 A-POP",
+    r = must_fail(run([KPY, COV, COOK11, *no_asm()]), "cooksense v1.1 A-POP",
                   "UNCODED-ON-CPL")
     for ref in ("J_TC", "K_D1", "K_D2", "K_D3", "K_D4", "K_PRESS", "K_STOP",
                 "K_U1", "K_U2", "K_U3", "K_U4", "K_U5", "K_U6"):
@@ -210,7 +235,7 @@ def t_pop_cooksense_uncoded_on_cpl():
     contains(r.out, "MANIFEST-PROSE",
              "the ungradeable MANIFEST line is its own finding")
     # INLINE RED-VERIFY: neuter ONLY the uncoded check -> that finding vanishes.
-    rr = run([KPY, COV, COOK11, "--_disable-uncoded"])
+    rr = run([KPY, COV, COOK11, *no_asm(), "--_disable-uncoded"])
     not_contains(rr.out, "UNCODED-ON-CPL",
                  "neutered run emits no uncoded finding")
 
@@ -223,7 +248,7 @@ def t_pop_interposer():
     (J_CN1_JUMPER, J_MEMBRANE) are on the CPL, 24 board footprints are absent
     from the CPL with nothing declaring them, and the disposition was PROSE in
     the README telling a human to delete rows before uploading."""
-    r = must_fail(run([KPY, COV, INTERP]), "interposer v1.0 A-POP",
+    r = must_fail(run([KPY, COV, INTERP, *no_asm()]), "interposer v1.0 A-POP",
                   "UNCODED-ON-CPL")
     contains(r.out, "J_CN1_JUMPER", "names the uncoded placed ref")
     contains(r.out, "J_MEMBRANE", "names the uncoded placed ref")
@@ -236,7 +261,7 @@ def t_pop_interposer():
       "declares the PLACED, consigned U1 'not_assembled' (consigned means "
       "PLACED — a sourcing class, not a population class)", kind="known_bad")
 def t_pop_consigned_declared_unpopulated():
-    r = must_fail(run([KPY, COV, CROW13]), "crow-rv2 v1.3 A-POP",
+    r = must_fail(run([KPY, COV, CROW13, *no_asm()]), "crow-rv2 v1.3 A-POP",
                   "DECLARED-BUT-PLACED")
     contains(r.out, "U1", "names the consigned part the MANIFEST mis-declares")
 
@@ -266,7 +291,7 @@ def t_pop_manifest_prose():
     produces its DECLARED-BUT-PLACED finding (t_pop_consigned_declared_
     unpopulated), so this did not simply switch the check off."""
     usb = RELS / "usb-hub-3s-v3" / "07_releases" / "v1.4-2026-07-23"
-    r = must_fail(run([KPY, COV, usb]), "prose MANIFEST line", "MANIFEST-PROSE")
+    r = must_fail(run([KPY, COV, usb, *no_asm()]), "prose MANIFEST line", "MANIFEST-PROSE")
     not_contains(r.out, "DECLARED-BUT-PLACED",
                  "no ref may be accused from a prose line")
     for ref in ("C53", "C54", "R34", "R35"):
@@ -521,14 +546,14 @@ def t_stock_verdict_fail():
     'LOW_STOCK(0) C6938291' — the XU316 SoC this board is built around, and
     the part it cannot be assembled without. Four sealed releases of this
     board ship that same evidence. Read-only against the SEALED release."""
-    r = must_fail(run([KPY, FRESH, CROW13]), "crow-rv2 v1.3 A-STOCK",
+    r = must_fail(run([KPY, FRESH, CROW13, *no_asm()]), "crow-rv2 v1.3 A-STOCK",
                   "STOCK-VERDICT-FAIL")
     contains(r.out, "C6938291", "names the board's own CPU")
     contains(r.out, "STOCK-INSUFFICIENT",
              "the per-line grade fires independently of the verdict line")
     # RED-VERIFY: neuter ONLY check (e) -> this release passes freshness,
     # proving the finding came from A-STOCK and from nothing else.
-    rr = run([KPY, FRESH, CROW13, "--_disable-stock"])
+    rr = run([KPY, FRESH, CROW13, *no_asm(), "--_disable-stock"])
     check(rr.rc == 0,
           f"red-verify: with check (e) neutered crow-rv2 v1.3 must pass "
           f"freshness, got rc={rr.rc}\n{rr.out[-1500:]}")
@@ -544,11 +569,11 @@ def t_stock_no_verdict():
     The finding must be its own class — if 'no verdict' collapsed into 'not
     checked' or, worse, into silence, the gate could be silenced by deleting
     one line."""
-    r = must_fail(run([KPY, FRESH, COOK11]), "cooksense v1.1 A-STOCK",
+    r = must_fail(run([KPY, FRESH, COOK11, *no_asm()]), "cooksense v1.1 A-STOCK",
                   "STOCK-NO-VERDICT")
     not_contains(r.out, "STOCK-VERDICT-FAIL",
                  "a missing verdict is NOT the same finding as a FAIL verdict")
-    rr = run([KPY, FRESH, COOK11, "--_disable-stock"])
+    rr = run([KPY, FRESH, COOK11, *no_asm(), "--_disable-stock"])
     not_contains(rr.out, "STOCK-", "neutered run emits no stock finding")
 
 
