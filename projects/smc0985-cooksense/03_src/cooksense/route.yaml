@@ -346,7 +346,9 @@ stitch:
       - {net: 3V3, pin: C_TCAV.1,    vias: [[63.220, 80.900]]}
       - {net: GND, pin: C_TCAV.2,    vias: [[64.180, 80.900]]}
       - {net: GND, pin: C_TCPA.2,    vias: [[70.980, 84.000]]}
-      - {net: 3V3, pin: R_REARMPU.2, vias: [[122.510, 91.500]]}
+      # R_REARMPU.2 (3V3): seed_stub REMOVED for a diagnostic — let pad_rescue/
+      # astar bond it on THIS chain (the journal's "trapped" verdict was the OLD
+      # chain). If it strands, DRC will show it and a placement nudge follows.
       - {net: GND, pin: C_DVDT.2,    vias: [[57.480, 60.000]]}
       - {net: 3V3, pin: C_AND3.1,    vias: [[183.020, 70.600]]}
       # J_PWR Micro-Fit MECHANICAL RETENTION TABS (R-THERM, 2026-07-23). The two
@@ -405,6 +407,18 @@ stitch:
       # + 0.45mm radius track/hole clearance scan). Realization-coupled like
       # the 3V3 stubs: re-derive on any re-race.
       - {net: GND, min: 0, sites: [[112.4, 90.3], [129.4, 89.5]]}
+      # SOUTH-EDGE In1 GND SLIVER TIES (task#21, 2026-07-25, MEASURED): the
+      # horizontal I2C bus (SDA_A/SCL_A/SDA_B/SCL_B/SHIELD_DRAIN, y92-95) + its via
+      # drops slice the In1 GND plane into a comb of ~5mm2 fingers along y95-97
+      # (x97-141). B.Cu GND main (9126mm2) covers the whole strip, so ONE via per
+      # finger ties it In1<->B.Cu and heal_islands no longer sees an unbridgeable
+      # orphan group (it ERRORed, crashing the stitch). Realization-coupled to the
+      # promoted chain (frozen) — re-derive if the sig/bus routing changes. Coords =
+      # measured finger centres (y96.3).
+      - {net: GND, min: 0, sites: [[97.8, 96.3], [102.9, 96.3], [105.4, 96.3],
+          [108.0, 96.3], [110.5, 96.3], [118.1, 96.3], [123.2, 96.3],
+          [125.7, 96.3], [128.3, 96.3], [130.8, 96.3], [133.4, 96.3],
+          [135.9, 96.3], [141.0, 96.3]]}
   dedupe_vias: {radius: 0.5, metric: box}
   drop_micro_fragments: {max_length: 0.12, require_free_end: true}
   drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
