@@ -1,0 +1,3 @@
+USB pair: USB_DP=23.62mm USB_DN=23.51mm spread=0.110mm (<= 1.0mm), width 0.125mm, all F.Cu, 0 vias
+U1-EP: 16 GND 0.30/0.15 thermal vias inside the EP
+audit_board OK: 21 polarity + 11 connector mate/keepout checks + USB diff-pair length-spread + U1 EP thermal-via checks pass

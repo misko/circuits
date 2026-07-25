@@ -1,0 +1,14 @@
+# v1.3 is a docs+CPL supersede of v1.2: the CPL rotation fix (fab/cpl.csv) is
+# assembly data ONLY — copper, schematic, routing, drills, gerbers, and BOM are
+# UNCHANGED. The following generated artifacts are therefore INTENTIONALLY
+# byte-identical to crow-recorder-central-v2-v1.2-2026-07-24. Declared identity
+# (canon: a changed board must not ship stale output; this board did NOT change
+# in copper/geometry, only the CPL rotation column, which IS different from v1.2
+# and is correctly NOT waived here). Format: <relpath>  <reason>.
+fab/bom.csv  UNCHANGED: same parts/LCSC/footprints; BOM did not change, only cpl.csv rotations
+fab/crow_recorder_central_v2_gerbers.zip  UNCHANGED: copper/silk/mask/paste/edge geometry identical to v1.2 (no board change)
+fab/crow_recorder_central_v2-NPTH.drl  UNCHANGED: drill geometry identical to v1.2 (no board change)
+fab/crow_recorder_central_v2-PTH.drl  UNCHANGED: drill geometry identical to v1.2 (no board change)
+pdf/assembly.pdf  UNCHANGED: assembly drawing is a function of the unchanged board geometry
+pdf/pcb_layers.pdf  UNCHANGED: layer plot is a function of the unchanged board geometry
+pdf/schematic.pdf  UNCHANGED: tscircuit schematic render; schematic did not change

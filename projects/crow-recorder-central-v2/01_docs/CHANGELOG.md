@@ -3,6 +3,20 @@
 One entry per REVISION (a design state, git-tagged). Reverse-chronological.
 `Released:` is `no`, or the name of the `07_releases/` directory that shipped it.
 
+## v1.3 — 2026-07-24
+- CPL/evidence-only supersede closing the THIRD external review of v1.2 (HOLD-
+  for-PCBA; archived 08_reviews/2026-07-24_v1.2_external-llm_full.md). Root cause:
+  jlc_rotations_db.csv keyed by FOOTPRINT NAME while JLC orients per LCSC PART —
+  the sealed v1.2 CPL shipped U1 (consigned XU316) at 270 deg vs its exact pad-fit
+  90 deg (180 deg off), plus 9 more ROT-DB-SUGGEST rows. Fixed at the source: new
+  per-LCSC rotation table skills/jlcpcb-fab/scripts/jlc_lcsc_rotations.csv checked
+  BEFORE the name-DB (RED-verified, fleet-wide fix). CPL regenerated -> twin 0
+  ROT-DB-SUGGEST (was 10). missing_models corrected 172->177; ORDER_README gains
+  U1 rotation-closure + JLC-preview pin-1 human gate + 8-beeper aggregate-load
+  (~1.2A vs 2A fuse) + MSL-3 consigned-U1 handling. Copper/gerbers/drill/BOM/source
+  byte-identical to v1.2 (documented in freshness_exceptions.txt). Fresh-lens ORDER.
+Released: crow-recorder-central-v2-v1.3-2026-07-24
+
 ## v1.2 — 2026-07-24
 - Respin closing the SECOND external review of v1.1 (HOLD; archived verbatim
   08_reviews/2026-07-24_v1.1_external-llm2_full.md, EXT2-F1..F5 dispositioned).
