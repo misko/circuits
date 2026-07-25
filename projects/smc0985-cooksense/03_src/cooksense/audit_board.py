@@ -66,15 +66,29 @@ POLARIZED = {
     "U_LDO":   ("3", "5V_PROTECTED"),   # AMS1117 VIN
     "Q_COIL":  ("3", "5V_KEY_RELAY"),   # coil-gate P-FET DRAIN = gated rail
     "U_WD":    ("1", "WD_OK"),          # TPS3823 RESET_N
-    "U_ONESHOT": ("5", "PRESS_TIMED"),  # one-shot Q
+    # v1.2 (task#21, 2026-07-25): pad 5 -> 13. The v1.1 part was an SN74LVC1G123
+    # SSOP-8; v1.2 replaced it with the CD74HC221 SOIC-16, whose 1Q is pin 13
+    # (02_parts/CD74HC221M96/part.yaml, datasheet pinout table). Pad 5 on the '221
+    # is 2Q (the UNUSED half) and carries `unconnected-(U_ONESHOT-Q2-Pad5)` — the
+    # stale entry made I-POL fail on a CORRECT board, the worst kind of gate noise.
+    "U_ONESHOT": ("13", "PRESS_TIMED"), # one-shot 1Q (CD74HC221)
     "U_AND3":  ("4", "KEY_RELAY_ALLOWED"),
     "K_U1":    ("1", "5V_KEY_RELAY"),   # reed COIL (logic)
-    "K_STOP":  ("1", "5V_KEY_RELAY"),
+    # v1.2 (task#21): K_STOP coil moved to the UNGATED 5V_STOP rail (ADR-0011 §4 —
+    # the STOP relay must survive the very faults that kill 5V_KEY_RELAY).
+    "K_STOP":  ("1", "5V_STOP"),
     "U_ADC":   ("16", "3V3_ANALOG"),
 }
 # extra: reed CONTACT pads must sit on the isolated bus (not the coil rail)
 RELAY_CONTACT = {"K_U1": ("4", "U_SEL_BUS"), "K_D1": ("4", "D_SEL_BUS"),
                  "K_PRESS": ("3", "RKEY_MID"), "K_STOP": ("3", "RSTOP_MID")}
+# I-POL runs over this FLAT list, not `{**POLARIZED, **RELAY_CONTACT}` (task#21,
+# 2026-07-25). The dict merge silently DROPPED every ref present in both maps —
+# K_STOP's coil-rail check (pad 1) was shadowed by its contact check (pad 3) and
+# had never run since the maps were written. A gate that cannot fire is worthless
+# (canon M1); a merge that eats a check is exactly that, invisibly.
+POL_CHECKS = ([(r, p, w) for r, (p, w) in POLARIZED.items()]
+              + [(r, p, w) for r, (p, w) in RELAY_CONTACT.items()])
 
 # ---- I-PROX: (passive, anchor, max center-center mm) — D-ADJ -----------------
 PROX = [
@@ -85,7 +99,10 @@ PROX = [
     ("C_WD","U_WD",5.0), ("R_MR","U_WD",7.0),
     ("C_ULNA","U_ULNA",9.0), ("C_ULNB","U_ULNB",9.0),
     ("C_ADCV","U_ADC",8.0), ("C_EXP","U_EXP",8.0),
-    ("C_SR1","U_SR1",7.0), ("C_SR2","U_SR2",7.0),
+    # C_SR2/U_SR2 row DELETED (task#21, 2026-07-25): v1.2 removed the second '595
+    # entirely (ADR-0011 §5 — STOP_REQ moved to a direct Pi GPIO), so its decoupler
+    # went with it. The stale row made I-PROX report "missing C_SR2" forever.
+    ("C_SR1","U_SR1",7.0),
     ("C_DECU","U_DECU",7.0), ("C_DECD","U_DECD",7.0),
     ("R_HSG","Q_COIL",5.0), ("C_KR","Q_COIL",6.0), ("R_COILENPD","Q_COILDRV",6.0),
     ("R_OS","U_ONESHOT",6.0), ("C_OS","U_ONESHOT",6.0),
@@ -207,7 +224,7 @@ def main():
         return None
 
     # ---------- I-POL ----------
-    for ref,(pad,want) in {**POLARIZED, **RELAY_CONTACT}.items():
+    for ref,pad,want in POL_CHECKS:
         got = padnet(ref,pad)
         if got != want:
             fails.append(f"I-POL {ref}.{pad}: net {got!r} != {want!r}")

@@ -117,6 +117,18 @@ placement:
     U_ULNA: [95.0, 59.0, 0]          # ULN2803 A -> reeds 1-8 coils (gaps g1-g4)
     U_ULNB: [184.0, 59.0, 0]         # ULN2803 B -> reeds 9-12 coils (gaps g5-g6; 186->184: H4 courtyard)
     U_DECU: [74.0, 66.0, 0]          # 238 -> SEL_U1..6 (ULN_A up-selects)
+    # R_DECUPD PROMOTED from `near: U_DECU` to an explicit anchor (PLACEMENT D-BACK,
+    # task#21, 2026-07-25, MEASURED). The near-rule put it at (79.20,67.90), hard
+    # against U_DECU's EAST pad column — inside the SEL_U1..U6 output fan, where
+    # SEL_U6 B.Cu crosses its GND pad (best on-pad via gap -0.014 = OVERLAP).
+    # The adjacency was mis-derived: R_DECUPD pulls DOWN *DECU_G1_RAW*, whose
+    # consumer is U_DECUEN.1 @(79.362,59.050) (the STOP-preemption AND gate), NOT a
+    # U_DECU pin — the '238's own G1 sees the GATED net DECU_G1. A pull-down belongs
+    # at the DRIVEN end so the input is held low when U_SR1 tri-states on a watchdog
+    # trip (this resistor IS the ADR-0011 safety fix). rot180 faces the signal pad
+    # east, toward that partner. MEASURED: span to U_DECUEN.1 8.88 -> 3.47mm; GND
+    # pad2 -> (75.240,57.500) cu-cu +1.475 / h2h +2.818 (open plane-band copper).
+    R_DECUPD: [75.75, 57.50, 180]    # pad1 DECU_G1_RAW@76.26 (E, ->U_DECUEN.1) ; pad2 GND@75.24,57.50
     U_DECD: [120.0, 66.0, 0]         # 238 -> SEL_D1/D2 (ULN_A) + SEL_D3/D4 (ULN_B)
     U_ONESHOT: [150.0, 62.0, 0]      # v1.2: CD74HC221 SOIC-16 (was 1G123 SSOP-8) -> PRESS_TIMED (ULN_B)
     U_SR1:  [95.0, 75.0, 0]          # 595 (feeds both decoders + one-shot + Pi serial)
@@ -129,7 +141,26 @@ placement:
     J_PI:   [94.0, 95.0, 90]         # 2x20 Pi header (SIDECAR, body ALONG south edge x92..144)
 
     # ================= SAFETY AND-CHAIN + COIL GATE (EAST) =================
-    U_SCHM:     [174.0, 58.0, 0]     # HC14 (E-stop/Mode/Door clean)
+    # U_SCHM 58.0 -> 60.0 (PLACEMENT D-BACK, task#21, 2026-07-25, MEASURED).
+    # At y58 the SOIC-14's NORTH pad row sat at y54.19 — INSIDE the coil-wave's
+    # structural E-W distribution lane. That lane is not a routing accident: the
+    # coil nets leave U_ULNA/U_ULNB (y59) and must run east-west hugging the north
+    # edge of the plane band (y53.0) to reach the coil-gap mouths, so the band
+    # y53.2..54.8 carries a 0.4mm-wide B.Cu ladder (MEASURED on the promoted chain:
+    # COIL_D4_N y53.30, SEL_D3 y53.90, COIL_D3_N y54.80). Pin 14 (VCC, 3V3 = In2
+    # plane) was sandwiched between SEL_D3 and COIL_D3_N with a 0.50mm free window
+    # — 0.05mm SHORT of the 0.55mm a 0.25 via needs (2*0.125 barrel + 2*0.15 floor).
+    # Result: no via site existed on ANY realization; pad_rescue instead built a
+    # ~4mm B.Cu surface detour fragmented into 57 segments THROUGH the keypad
+    # isolation-comb keepout = ALL 51 items_not_allowed DRC violations.
+    # A through-via cannot dodge copper that crosses the whole pad, so this is a
+    # placement defect, not a routing one (canon: "a routing failure is usually a
+    # PLACEMENT problem"). +2.0y lifts pin14 to y56.19, clear of the coil lane, and
+    # SHORTENS every safety-chain span (ESTOP_OK->U_AND1.6 15.34->14.25mm,
+    # ESTOP_RAW->J_ESTOP 30.35->28.6mm, DOOR_OK->U_OSCLR 34.03->32.1mm). Courtyard
+    # y[55.38,64.62]: 1.63mm clear of U_AND2/U_AND3 (y66.25), x unchanged (U_ULNB's
+    # courtyard at x178.03 is the east wall, same 0.28mm gap as before).
+    U_SCHM:     [174.0, 60.0, 0]     # HC14 (E-stop/Mode/Door clean)
     U_AND1:     [158.0, 68.0, 0]
     U_AND2:     [170.0, 68.0, 0]
     U_AND3:     [182.0, 68.0, 0]
@@ -183,6 +214,18 @@ placement:
     C_FLT5:  [52.0, 87.0, 0]         # GND@52.48,87.00 ; sig ADC_CH5@51.52
     C_FLT6:  [58.8, 88.4, 0]         # GND@59.28,88.40 ; sig ADC_CH6@58.32
     C_FLT7:  [57.0, 90.5, 0]         # GND@57.48,90.50 ; sig ADC_CH7@56.52
+    # R_SHIELD PROMOTED from `near: J_THERM_B` to an explicit anchor (PLACEMENT
+    # D-BACK, task#21, 2026-07-25, MEASURED). The near-rule landed it at (59.40,
+    # 92.50), i.e. INSIDE the ADC filter/comparator field, where TH_CAM_B + ADC_CH6
+    # B.Cu cross its GND pad DIAGONALLY (best on-pad via gap -0.056 = OVERLAP; no
+    # site anywhere on the pad) — one of the 3 hard-unconnected plane pads. Its only
+    # signal partner is J_THERM_B.8 2.66mm away, so it never needed to be in that
+    # field at all. Anchor MEASURED on the promoted chain: GND pad2 -> (62.075,
+    # 92.500), cu-cu +0.722 / h2h +2.271 (vs -0.056 before); SHIELD_DRAIN span
+    # 2.66 -> 3.35mm (still the shortest reach to the J_THERM_B shield pin).
+    # Backed by a User.2 reservation + a deterministic seed_stub (route.yaml) so
+    # the site survives ANY re-race realization.
+    R_SHIELD: [61.25, 92.50, 0]      # pad1 SHIELD_DRAIN@60.425 ; pad2 GND@62.075,92.50
     U_COMP: [24.0, 80.0, 0]          # LM393 (TH_CAM_A/B -> TEMP_OK)
     Q_SWA:  [30.0, 88.0, 0]          # switched 3V3_SW_A -> J_THERM_A
     Q_SWB:  [46.0, 90.0, 0]          # switched 3V3_SW_B -> J_THERM_B
@@ -307,6 +350,9 @@ placement:
     - {match: "R_HSG", near: Q_COIL}
     - {match: "C_KR", near: Q_COIL}
     - {match: "R_COILENPD", near: Q_COILDRV}
+    # SUPERSEDED by the explicit R_DECUPD anchor above (task#21): the near-rule's
+    # site was inside U_DECU's SEL output fan and the real consumer is U_DECUEN.1.
+    # Kept as documentation of the pin-review-Q4 intent; the anchor wins (pinned).
     - {match: "R_DECUPD", near: U_DECU}       # '238 E3 pull-down (pin review Q4)
     - {match: "R_DECDPD", near: U_DECD}       # '238 E3 pull-down (pin review Q4)
     - {match: "R_OPTOLED", near: U_OPTO}
@@ -338,6 +384,8 @@ placement:
     - {match: "C_SWB", near: Q_SWB}
     - {match: "R_SDAB", near: J_THERM_B}
     - {match: "R_SCLB", near: J_THERM_B}
+    # SUPERSEDED by the explicit R_SHIELD anchor above (task#21): the near-rule
+    # landed it inside the ADC filter field. The anchor wins (pinned).
     - {match: "R_SHIELD", near: J_THERM_B}
     - {match: "Q_SWDRVRHA", near: Q_SWRHA}
     - {match: "R_SWPURHA", near: Q_SWRHA}
@@ -405,10 +453,27 @@ zones:
   # ALL planes confined to the SOUTH logic band (y >= 53): 6.63mm below the
   # deepest keypad pocket copper (pocket pads end y46.37). The keypad band,
   # relay row, pockets and coil gaps carry NO plane.
-  - {net: GND, layers: [In1.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal, rect: [12.0, 53.0, 200.0, 102.0]}
-  - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal, rect: [12.0, 53.0, 200.0, 102.0]}
+  #
+  # ZONE CLEARANCE 0.3 -> 0.2 (task#21, 2026-07-25, MEASURED — a ROOT-CAUSE fix
+  # for the J_PI plane-shredding class). J_PI is a 2x40 THT header on 2.54mm
+  # pitch with 1.70mm round pads. At clearance 0.30 each antipad radius is
+  # 0.85+0.30 = 1.15mm, so the copper NECK between two adjacent antipads is
+  # 2.54-2*1.15 = 0.24mm — BELOW min_thickness 0.30, so the filler deletes every
+  # neck and the plane under the header disintegrates into ~19 isolated
+  # 2.27x2.27mm squares per layer. That is why route.yaml had grown 16 hand-
+  # measured "sliver tie" via sites, each one realization-COUPLED (re-derived
+  # after every re-race, and the stitch hard-errored on them when this v1.2
+  # re-race moved the tracks). At clearance 0.20 the antipad radius is 1.05mm
+  # and the neck is 2.54-2.10 = 0.44mm > 0.30 — the plane stays CONTINUOUS and
+  # the whole class disappears. MEASURED on the stitched board: GND island
+  # groups 22 -> 6 (all 13 In1 J_PI squares gone) with no other change.
+  # 0.20mm is comfortably above every clearance the DRU enforces (netclasses
+  # 0.12mm, tier min_space 0.09mm), so nothing gets tighter than the rules
+  # already allow — the pours simply stop being cut by their own antipads.
+  - {net: GND, layers: [In1.Cu], priority: 0, min_thickness: 0.3, clearance: 0.2, connect: thermal, rect: [12.0, 53.0, 200.0, 102.0]}
+  - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.3, clearance: 0.2, connect: thermal, rect: [12.0, 53.0, 200.0, 102.0]}
   # 3V3 logic-supply plane on In2 over the logic band (routing agent rec).
-  - {net: 3V3, layers: [In2.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: full, rect: [12.0, 53.0, 200.0, 102.0]}
+  - {net: 3V3, layers: [In2.Cu], priority: 0, min_thickness: 0.3, clearance: 0.2, connect: full, rect: [12.0, 53.0, 200.0, 102.0]}
 
 keepouts:
   # NO POURS north of the logic band: keypad band + relay row + pockets + coil

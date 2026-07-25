@@ -56,27 +56,38 @@ prep:
       # Full north band: no logic track above y29.4 anywhere (coil pads at
       # y30.38 are still reachable from the south).
       - {x0: 12.0, y0: 9.9, x1: 200.0, y1: 29.4, layer: User.2}
-      # 7 keypad pockets: logic excluded down to the plane band (y53.0).
-      - {x0: 12.00,  y0: 29.4, x1: 23.00,  y1: 53.0, layer: User.2}   # west end
-      - {x0: 44.24,  y0: 29.4, x1: 53.48,  y1: 53.0, layer: User.2}   # p1 r2r3
-      - {x0: 74.72,  y0: 29.4, x1: 83.96,  y1: 53.0, layer: User.2}   # p2 r4r5
-      - {x0: 105.20, y0: 29.4, x1: 114.44, y1: 53.0, layer: User.2}   # p3 r6r7
-      - {x0: 135.68, y0: 29.4, x1: 144.92, y1: 53.0, layer: User.2}   # p4 r8r9
-      - {x0: 166.16, y0: 29.4, x1: 175.40, y1: 53.0, layer: User.2}   # p5 r10r11
-      - {x0: 196.64, y0: 29.4, x1: 200.0,  y1: 53.0, layer: User.2}   # east end
+      # 7 keypad pockets + 12 intra-relay columns: logic excluded down to y53.45.
+      # SOUTH EDGE 53.0 -> 53.45 (task#21, 2026-07-25, MEASURED). KRT honours these
+      # User.2 rects on the track CENTRELINE, but the DRC rule areas that actually
+      # enforce the isolation comb (floorplan.yaml iso_col_*/iso_pktS_*) end at
+      # y52.9 and are tested against COPPER. A 0.40mm coil track whose centreline
+      # sat at y53.05 therefore put its edge (and its 0.2mm round end-cap) at y52.85
+      # — 0.05mm INSIDE the rule area: COIL_D3_N tripped items_not_allowed on both
+      # layers at the full gate while KRT considered itself compliant. 53.45 keeps a
+      # centreline-compliant 0.4mm track's copper at y>=53.25, i.e. 0.35mm clear of
+      # the 52.9 rule-area edge. (The physical creepage was never breached — 52.85
+      # vs the pocket pads at 46.37 is still 6.48mm > 6.0mm — but the machine-checked
+      # barrier is the gate, and a safety barrier is not a thing to run at 0.05mm.)
+      - {x0: 12.00,  y0: 29.4, x1: 23.00,  y1: 53.45, layer: User.2}   # west end
+      - {x0: 44.24,  y0: 29.4, x1: 53.48,  y1: 53.45, layer: User.2}   # p1 r2r3
+      - {x0: 74.72,  y0: 29.4, x1: 83.96,  y1: 53.45, layer: User.2}   # p2 r4r5
+      - {x0: 105.20, y0: 29.4, x1: 114.44, y1: 53.45, layer: User.2}   # p3 r6r7
+      - {x0: 135.68, y0: 29.4, x1: 144.92, y1: 53.45, layer: User.2}   # p4 r8r9
+      - {x0: 166.16, y0: 29.4, x1: 175.40, y1: 53.45, layer: User.2}   # p5 r10r11
+      - {x0: 196.64, y0: 29.4, x1: 200.0,  y1: 53.45, layer: User.2}   # east end
       # 12 intra-relay column barriers (coil<->contact, 6.12mm pad-edge).
-      - {x0: 23.00,  y0: 29.4, x1: 29.00,  y1: 53.0, layer: User.2}   # r1
-      - {x0: 38.24,  y0: 29.4, x1: 44.24,  y1: 53.0, layer: User.2}   # r2
-      - {x0: 53.48,  y0: 29.4, x1: 59.48,  y1: 53.0, layer: User.2}   # r3
-      - {x0: 68.72,  y0: 29.4, x1: 74.72,  y1: 53.0, layer: User.2}   # r4
-      - {x0: 83.96,  y0: 29.4, x1: 89.96,  y1: 53.0, layer: User.2}   # r5
-      - {x0: 99.20,  y0: 29.4, x1: 105.20, y1: 53.0, layer: User.2}   # r6
-      - {x0: 114.44, y0: 29.4, x1: 120.44, y1: 53.0, layer: User.2}   # r7
-      - {x0: 129.68, y0: 29.4, x1: 135.68, y1: 53.0, layer: User.2}   # r8
-      - {x0: 144.92, y0: 29.4, x1: 150.92, y1: 53.0, layer: User.2}   # r9
-      - {x0: 160.16, y0: 29.4, x1: 166.16, y1: 53.0, layer: User.2}   # r10
-      - {x0: 175.40, y0: 29.4, x1: 181.40, y1: 53.0, layer: User.2}   # r11
-      - {x0: 190.64, y0: 29.4, x1: 196.64, y1: 53.0, layer: User.2}   # r12
+      - {x0: 23.00,  y0: 29.4, x1: 29.00,  y1: 53.45, layer: User.2}   # r1
+      - {x0: 38.24,  y0: 29.4, x1: 44.24,  y1: 53.45, layer: User.2}   # r2
+      - {x0: 53.48,  y0: 29.4, x1: 59.48,  y1: 53.45, layer: User.2}   # r3
+      - {x0: 68.72,  y0: 29.4, x1: 74.72,  y1: 53.45, layer: User.2}   # r4
+      - {x0: 83.96,  y0: 29.4, x1: 89.96,  y1: 53.45, layer: User.2}   # r5
+      - {x0: 99.20,  y0: 29.4, x1: 105.20, y1: 53.45, layer: User.2}   # r6
+      - {x0: 114.44, y0: 29.4, x1: 120.44, y1: 53.45, layer: User.2}   # r7
+      - {x0: 129.68, y0: 29.4, x1: 135.68, y1: 53.45, layer: User.2}   # r8
+      - {x0: 144.92, y0: 29.4, x1: 150.92, y1: 53.45, layer: User.2}   # r9
+      - {x0: 160.16, y0: 29.4, x1: 166.16, y1: 53.45, layer: User.2}   # r10
+      - {x0: 175.40, y0: 29.4, x1: 181.40, y1: 53.45, layer: User.2}   # r11
+      - {x0: 190.64, y0: 29.4, x1: 196.64, y1: 53.45, layer: User.2}   # r12
       # ---- KEYPAD keepout (User.3): the logic domain ----
       # Full south band: no keypad track below y47.0 (pocket contact pads at
       # y45.62 are still reachable from the north).
@@ -172,6 +183,67 @@ prep:
       - {x0: 122.16, y0: 86.10, x1: 122.86, y1: 86.90, layer: User.2}  # R_BID1.2  3V3@122.51 (BOARD_ID1 signal pad1@121.49 W; E-biased)
       - {x0: 182.44, y0: 73.00, x1: 183.24, y1: 73.70, layer: User.2}  # U_LATCHB.5 3V3@182.84 (top-R corner pin; pin4 GND-domain@74.65 S)
       - {x0: 128.16, y0: 91.10, x1: 128.86, y1: 91.90, layer: User.2}  # R_RAENRHEPD.2 GND@128.51 (RAIL_EN_RHE signal pad1@127.49 W; E-biased)
+      # PLACEMENT-FIX plane-bond via RESERVATIONS (D-BACK, task#21, 2026-07-25).
+      # The 3cd2ac7 reuse-stitch left exactly 3 hard-unconnected plane pads + 1
+      # illegally-served one; ALL FOUR were PLACEMENT-trapped, not stitch noise
+      # (measured on-pad best via gaps, via r0.125 / cu-cu floor 0.150):
+      #   R_SHIELD.2 GND  -0.056 (ADC_CH5/TH_CAM_B B.Cu crossing the pad)
+      #   R_DECUPD.2 GND  -0.014 (SEL_U6 B.Cu)
+      #   U_SCHM.14  3V3  -0.035 (SEL_D3 B.Cu; pad_rescue's 4mm detour through the
+      #                           isolation-comb keepout = all 51 items_not_allowed)
+      #   R_STOPPD.2 GND  +0.325 (CLEAR — needs only a deterministic bond)
+      # The first three are FIXED UPSTREAM in floorplan.yaml (R_SHIELD + R_DECUPD
+      # promoted to measured-clear anchors, U_SCHM moved +2.0y out of the coil-wave
+      # distribution lane). These rects are the belt-and-suspenders half: a
+      # placement chosen against TODAY's copper does not survive a re-race, a
+      # RESERVATION does. TIGHT ~0.7mm via-site boxes (the C_TCAV lesson: 1.3mm
+      # boxes cut the horizontal routing channels and stranded TH_CAM_A/B).
+      # Coords = via sites DERIVED from the new anchors (verified after rebuild).
+      - {x0: 61.725, y0: 92.15, x1: 62.425, y1: 92.95, layer: User.2}   # R_SHIELD.2  GND@62.075,92.50 (SHIELD_DRAIN pad1@60.425 W, 0.90mm clear)
+      - {x0: 74.890, y0: 57.15, x1: 75.590, y1: 57.85, layer: User.2}   # R_DECUPD.2  GND@75.240,57.50 (DECU_G1_RAW pad1@76.26 E, 0.40mm clear)
+      - {x0: 176.125, y0: 55.84, x1: 176.825, y1: 56.54, layer: User.2} # U_SCHM.14   3V3@176.475,56.19 (pad13 DOOR_NI y57.16 S, 0.62mm clear)
+      - {x0: 171.175, y0: 63.46, x1: 171.875, y1: 64.16, layer: User.2} # U_SCHM.7    GND@171.525,63.81 (pad6 MODE_NI y62.84 N, 0.62mm clear)
+      - {x0: 147.160, y0: 91.65, x1: 147.860, y1: 92.35, layer: User.2} # R_STOPPD.2  GND@147.510,92.00 (STOP_REQ pad1@146.49 W, 0.40mm clear)
+      # SECOND-WAVE trapped plane pads (task#21 D-BACK iterate 3, 2026-07-25).
+      # The v1.2 re-race + 0.20mm-clearance stitch cleared all four originals but
+      # stranded four NEW plane pads (the pad_rescue whack-a-mole class: WHICH pad
+      # opens is realization-dependent, so the durable answer is a reservation, not
+      # another rescue ring). MEASURED unconnected at the full gate: R_SWPUB.2 +
+      # Q_SWB.2 (3V3, switched-rail cluster SW), R_CTRREQPD.2 + R_RAENAPD.2 (GND,
+      # expander pull cluster). Boxes are +-0.45mm (0.9mm) rather than the +-0.35mm
+      # used above: at +-0.35 a legal 0.4mm coil track hugging the box edge leaves a
+      # via only 0.165mm (MEASURED at U_SCHM.14) — +-0.45 keeps >=0.30mm against a
+      # 0.25mm signal track, which is what these fields actually carry.
+      - {x0: 47.560,  y0: 92.15, x1: 48.460,  y1: 93.05, layer: User.2} # R_SWPUB.2   3V3@48.010,92.60 (SWG_B pad1@46.99 W, 0.30mm clear)
+      - {x0: 44.612,  y0: 90.50, x1: 45.512,  y1: 91.40, layer: User.2} # Q_SWB.2     3V3@45.062,90.95 (SOT-23 pad2; pad1 y89.05 N / pad3 x46.938 E both clear)
+      - {x0: 122.060, y0: 88.55, x1: 122.960, y1: 89.45, layer: User.2} # R_CTRREQPD.2 GND@122.510,89.00 (CONTACTOR_REQ pad1@121.49 W, 0.30mm clear)
+      - {x0: 125.060, y0: 88.55, x1: 125.960, y1: 89.45, layer: User.2} # R_RAENAPD.2  GND@125.510,89.00 (RAIL_EN_A pad1@124.49 W, 0.30mm clear)
+      # THIRD-WAVE + PREEMPTIVE plane-pad reservations (task#21 D-BACK iterate 4,
+      # 2026-07-25). Iterate 3 cleared its own four and stranded four MORE
+      # (R_EXPRST.2, R_RAENBPD.2, U_EXP.9, U_OENAND.5) — proof that closing these
+      # one victim at a time is a LOOP, not a fix: every reservation redirects the
+      # copper onto the next unreserved plane pad in the same cluster. So this pass
+      # closes the CLUSTER, not the symptom. R_RAENBPD.2 is the clearest case:
+      # RAIL_EN_B B.Cu (y88.70) and RAIL_EN_A B.Cu (y89.50) sandwich the pad with a
+      # 0.55mm free band, and a 0.25 via needs 0.56mm (2*(0.125 barrel + 0.155)) —
+      # trapped by 0.01mm, unreachable by ANY rescue, only a reservation frees it.
+      # BOX SIZING: +-0.45mm. KRT enforces these rects on the track CENTRELINE
+      # (MEASURED — that is how COIL_D3_N put copper 0.05mm inside a rule area), so
+      # the half-box must cover via_r 0.125 + gap 0.155 + track_half 0.125 = 0.405.
+      # The two fine-pitch IC pins get what their neighbours allow instead, and are
+      # biased onto the free end of the pad.
+      - {x0: 122.060, y0: 83.55, x1: 122.960, y1: 84.45, layer: User.2} # R_EXPRST.2   3V3@122.510,84.00 (EXP_RST_N pad1@121.49 W)
+      - {x0: 128.060, y0: 88.55, x1: 128.960, y1: 89.45, layer: User.2} # R_RAENBPD.2  GND@128.510,89.00 (RAIL_EN_B pad1@127.49 W)
+      - {x0: 135.550, y0: 82.70, x1: 136.450, y1: 83.25, layer: User.2} # U_EXP.9      3V3@136.500,82.975 SSOP-28 0.65 pitch: y box is pad-height+0.15 to pins 8/10; via biased to the pad's WEST end (135.900)
+      - {x0: 160.300, y0: 79.10, x1: 161.000, y1: 79.60, layer: User.2} # U_OENAND.5   3V3@160.838,79.35 SOT-353: pad4 SR_OE_N is 0.95mm S; via at 160.650
+      # PREEMPTIVE — the rest of the Pi-edge / expander pull-down cluster. Same
+      # footprint, same field, same failure mode; each has opened at least once
+      # across the v1.2 races. Reserving them together is what ends the whack-a-mole.
+      - {x0: 100.060, y0: 87.55, x1: 100.960, y1: 88.45, layer: User.2} # R_HOSTAUTHPD.2 GND@100.510,88.00
+      - {x0: 103.060, y0: 87.55, x1: 103.960, y1: 88.45, layer: User.2} # R_MCUENPD.2    GND@103.510,88.00
+      - {x0: 106.060, y0: 87.55, x1: 106.960, y1: 88.45, layer: User.2} # R_KRSTPD.2     GND@106.510,88.00
+      - {x0: 125.060, y0: 91.05, x1: 125.960, y1: 91.95, layer: User.2} # R_RAENRHAPD.2  GND@125.510,91.50
+      - {x0: 125.060, y0: 83.55, x1: 125.960, y1: 84.45, layer: User.2} # R_BID0.2       GND@125.510,84.00
   waves:
     exclude: ["GND", "3V3", "unconnected-*"]   # In1 GND plane + In2 3V3 plane own these
     groups:
@@ -254,9 +326,39 @@ prep:
       # channel filters) as ONE early wave, leaving `sig` for the digital nets — a
       # clean analog/digital split that gives every analog net priority in its own
       # congested cluster.
+      # ADC SPI BUS promoted from `sig` (task#21 D-BACK iterate 1, 2026-07-25,
+      # MEASURED). The MCP3208 is a WALL by construction: its 8 analog inputs
+      # (pads 1-8) face WEST while their C_FLT filter caps sit EAST/SE at x52-59,
+      # and its SPI port (pads 10-13) faces EAST toward J_PI — so BOTH pad columns
+      # need east-bound corridors and the ADC_CH nets must wrap the package. With
+      # ADC_CH0-7 in the analog wave and the SPI nets left for the last `sig` wave,
+      # the analog wave laid ADC_CH3 B.Cu straight across y76.000 (x40->47.5) and
+      # ADC_CH4 B.Cu across y76.600 (x40.5->45.8) — sealing pads 10/11/12. Result:
+      # ADC_CS_N + SPI_MISO + SPI_MOSI failed in ALL 6 race chains (deterministic,
+      # not stochastic; the aa6659a race cleared them only by luck of layout).
+      # Routing the SPI bus IN THE SAME WAVE lets KRT's rip-up optimizer negotiate
+      # the two demands against each other instead of freezing ADC_CH first — the
+      # journal's harvested rule ("wave PROMOTION is the durable fix for walled
+      # late-wave pads"), applied to the pad column rather than a single net.
+      # SPI_SCLK joins them: it shares the same escape column, and leaving it in
+      # `sig` would just move the wall to pad 13.
+      # MAX31856 status/select + cold-junction inputs promoted too (task#21 D-BACK
+      # iterate 2, 2026-07-25, MEASURED). Promoting the ADC SPI bus fixed U_ADC
+      # (3 fails -> 0) and the wall moved ONE package east: TC_DRDY_N failed
+      # "preexisting_blockers" at U_TC.7 in all 6 chains, because the SPI bus now
+      # claims U_TC's escape lanes in the analog wave while TC_DRDY_N was still
+      # waiting in `sig`. Chasing it net-by-net is the whack-a-mole this file has
+      # already paid for twice, so close the group by RULE instead of by symptom:
+      # EVERY signal net on U_ADC or U_TC routes in the analog wave. That is what
+      # the paragraph above always intended ("route the WHOLE analog front-end as
+      # ONE early wave, leaving `sig` for the digital nets") — TC_CS_N/TC_DRDY_N/
+      # TC_NEG/TC_NEG_IN were simply never moved. (TC_FAULT_N stays in `safety`:
+      # it is an over-temp fault flag and was promoted there for U_EXP's escape.)
       analog: [TH_CAM_A, TH_CAM_B, TCAM_THRESH, TH_MOUNT_A, TH_MOUNT_B,
                TH_PORT_A, TH_PORT_B, TH_ENCLOSURE, TH_SPARE, TC_POS_IN, TC_POS,
-               ADC_CH0, ADC_CH1, ADC_CH2, ADC_CH3, ADC_CH4, ADC_CH5, ADC_CH6, ADC_CH7]
+               TC_NEG_IN, TC_NEG,
+               ADC_CH0, ADC_CH1, ADC_CH2, ADC_CH3, ADC_CH4, ADC_CH5, ADC_CH6, ADC_CH7,
+               ADC_CS_N, SPI_MISO, SPI_MOSI, SPI_SCLK, TC_CS_N, TC_DRDY_N]
       sig: rest
 
 route:
@@ -283,8 +385,10 @@ route:
     # analog comparator nets FIRST-served among the sensor field (task#21): route
     # before the sig wave so TH_CAM_A/B/TCAM_THRESH claim channels through the
     # dense SW cluster before SDA/SCL/ADC/TC fill it. track 0.25 (sig class).
+    # ripup 120 -> 160 (task#21): the wave grew 19 -> 27 nets when the ADC/TC SPI
+    # bus joined it, and it now carries the two hardest escape fields on the board.
     - {name: analog, group: analog, track_width: 0.25, board_edge_clearance: 0.35,
-       max_iterations: 1500000, max_probe_iterations: 100000, max_ripup: 120}
+       max_iterations: 1500000, max_probe_iterations: 100000, max_ripup: 160}
     # board_edge_clearance added to sig (v1.2, 2026-07-24, MEASURED): SDA_B ran
     # ON the south edge (y101.9 vs edge y102, 0.00mm DRC edge clearance x3) —
     # the prep edge_band did not stop the sig wave.
@@ -321,7 +425,7 @@ stitch:
   # filled In1 GND counts In1 -> 2 layers -> KEPT), and only touches THIS run's
   # stitch-emitted vias. Verified: DRC 0 via_dangling.
   passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
-           split_t_junctions, reload, hole_to_hole, seed_stubs, pad_rescue,
+           split_t_junctions, width_floor, reload, hole_to_hole, seed_stubs, pad_rescue,
            stub_fallback, astar_fallback, dedupe_vias, stitch_grid, power_stitch,
            fill, island_rescue, fill, unify_zone_priorities,
            heal_islands, prune_stitch_dangling, gate]
@@ -355,7 +459,14 @@ stitch:
       - {net: GND, pin: C_FLT0.2,  vias: [[56.680, 89.200]]}
       - {net: GND, pin: C_FLT1.2,  vias: [[54.280, 89.200]]}
       - {net: GND, pin: C_FLT2.2,  vias: [[54.280, 84.800]]}
-      - {net: GND, pin: C_FLT3.2,  vias: [[56.680, 84.800]]}
+      # C_FLT3.2 nudged (56.680,84.800) -> (56.560,84.700) (task#21, 2026-07-25,
+      # MEASURED). At the pad CENTRE the site clears ADC_CH4 B.Cu by only 0.055mm
+      # (< the 0.13 seed_stubs floor) and the stub was REFUSED. NOTE the trap this
+      # exposed: the raw promoted chain measures +0.270 there — `hole_to_hole`
+      # (mode: nudge) runs BEFORE seed_stubs and DRAGS the attached track ends, so a
+      # via site must be validated on the POST-NUDGE board, not on the raw chain.
+      # The new site is 0.185mm off ADC_CH4 and still inside the 0402 pad.
+      - {net: GND, pin: C_FLT3.2,  vias: [[56.560, 84.700]]}
       - {net: GND, pin: C_FLT4.2,  vias: [[58.480, 87.000]]}
       - {net: GND, pin: C_FLT5.2,  vias: [[52.480, 87.000]]}
       - {net: GND, pin: C_FLT6.2,  vias: [[59.280, 88.400]]}
@@ -370,13 +481,18 @@ stitch:
       - {net: GND, pin: C_TCAV.2,    vias: [[64.180, 80.900]]}
       - {net: GND, pin: C_TCPA.2,    vias: [[70.980, 84.000]]}
       - {net: GND, pin: C_DVDT.2,    vias: [[57.480, 60.000]]}
-      - {net: 3V3, pin: C_AND3.1,    vias: [[183.020, 70.600]]}
+      - {net: 3V3, pin: C_AND3.1,    vias: [[183.020, 70.450]]}   # y70.600 -> y70.450 (task#21, 2026-07-25, MEASURED): the 0.50mm-wide 5V_STOP B.Cu trunk re-routed to y71.100, leaving the pad centre 0.125mm off it (a WIDE track costs twice a signal track's margin) and the stub REFUSED. y70.450 is on-pad (0402 y[70.28,70.92]), inside the existing whole-cap rect, gap 0.275mm.
       # NEW-v1.2 TRAPPED plane-bond via-in-pads (D-BACK, task#21, 2026-07-24). Paired
       # with the User.2 reservation rects above; re-race keeps the sites clear, then
       # these bond the pad to its plane (3V3=In2 / GND=In1). R_REARMPU.2 stub RESTORED
       # (the diagnostic proved it strands trapped). All via-in-pad at MEASURED centres.
       - {net: 3V3, pin: C_DECU.1,     vias: [[79.020, 66.000]]}
-      - {net: 3V3, pin: R_BID1.2,     vias: [[122.510, 86.500]]}
+      # R_BID1.2 nudged y86.500 -> y86.420 (task#21, 2026-07-25, MEASURED): the pad
+      # centre sits 0.150mm off SDA_B B.Cu (y86.900) — dead on the cu-cu floor, the
+      # same class that refused R_RAENRHEPD. Moving 0.08mm north (still on-pad,
+      # y[86.19,86.81]) opens SDA_B to 0.230 while keeping I2C_SDA F.Cu (y85.800)
+      # at 0.370 — centred in the only free window, y[86.18,86.52].
+      - {net: 3V3, pin: R_BID1.2,     vias: [[122.510, 86.420]]}
       - {net: 3V3, pin: R_REARMPU.2,  vias: [[122.510, 91.500]]}
       - {net: 3V3, pin: U_LATCHB.5,   vias: [[182.838, 73.350]]}
       - {net: GND, pin: R_RAENRHEPD.2, vias: [[128.510, 91.350]]}   # y nudged -0.15 to pad-north (still on pad y[91.18-91.82]); centres the via between I2C_SDA F.Cu (N,y90.80) & RAIL_EN_RHA B.Cu (S,y91.90) -> edge-gap 0.30mm both, vs 0.150 (floor, gate-refused) at pad-centre. Reuse-build MEASURED (task#21, 2026-07-24).
@@ -387,6 +503,37 @@ stitch:
       # Paired with the C_OENAND whole-cap User.2 rect above (C_AND3 precedent). C_OENAND.2
       # (GND) needs no stub — served by pad_rescue on the In1 plane, exactly like C_AND3.2.
       - {net: 3V3, pin: C_OENAND.1,   vias: [[160.720, 82.200]]}
+      # PLACEMENT-FIX plane-bond via-in-pads (D-BACK, task#21, 2026-07-25). One per
+      # reservation rect above. R_SHIELD/R_DECUPD/U_SCHM sites are the pad centres
+      # implied by their NEW floorplan anchors; R_STOPPD keeps its old (already
+      # clear) pad. `pin` proves the via lands on the pad — a stale coord REFUSES
+      # rather than guessing (the v1.1 C_ULNB lesson). U_SCHM.7 (GND) measured
+      # clear (+0.882) on the old chain and was served by pad_rescue, but it moves
+      # with the chip, so it gets the same deterministic treatment: one bond per
+      # plane pin, no whack-a-mole across realizations (M-REPRO).
+      - {net: GND, pin: R_SHIELD.2,   vias: [[62.075, 92.800]]}   # y92.500 -> y92.800 (task#21, 2026-07-25, MEASURED): SDA_B B.Cu settled at y92.100, putting the pad CENTRE at exactly 0.150mm — the refusal threshold is 0.155 (drill edge 0.075 + hole_to_copper 0.205 = 0.280 from centre), which binds BEFORE the 0.13 barrel clearance. y92.800 is still well inside the 0603 pad (y[92.025,92.975]) and opens SDA_B to 0.450mm.
+      - {net: GND, pin: R_DECUPD.2,   vias: [[75.240, 57.500]]}
+      - {net: 3V3, pin: U_SCHM.14,    vias: [[176.475, 56.190]]}
+      - {net: GND, pin: U_SCHM.7,     vias: [[171.525, 63.810]]}
+      - {net: GND, pin: R_STOPPD.2,   vias: [[147.510, 92.000]]}
+      # SECOND-WAVE deterministic bonds (task#21 D-BACK iterate 3, 2026-07-25) —
+      # one per reservation rect above, at the MEASURED pad centre.
+      - {net: 3V3, pin: R_SWPUB.2,    vias: [[48.010, 92.600]]}
+      - {net: 3V3, pin: Q_SWB.2,      vias: [[45.062, 90.950]]}
+      - {net: GND, pin: R_CTRREQPD.2, vias: [[122.510, 89.000]]}
+      - {net: GND, pin: R_RAENAPD.2,  vias: [[125.510, 89.000]]}
+      # THIRD-WAVE + PREEMPTIVE bonds (task#21 D-BACK iterate 4, 2026-07-25) — one
+      # per reservation rect above, at the pad centre except where the box is
+      # end-biased (U_EXP.9 / U_OENAND.5, both fine-pitch).
+      - {net: 3V3, pin: R_EXPRST.2,     vias: [[122.510, 84.000]]}
+      - {net: GND, pin: R_RAENBPD.2,    vias: [[128.510, 89.000]]}
+      - {net: 3V3, pin: U_EXP.9,        vias: [[135.900, 82.975]]}
+      - {net: 3V3, pin: U_OENAND.5,     vias: [[160.650, 79.350]]}
+      - {net: GND, pin: R_HOSTAUTHPD.2, vias: [[100.510, 88.000]]}
+      - {net: GND, pin: R_MCUENPD.2,    vias: [[103.510, 88.000]]}
+      - {net: GND, pin: R_KRSTPD.2,     vias: [[106.510, 88.000]]}
+      - {net: GND, pin: R_RAENRHAPD.2,  vias: [[125.510, 91.500]]}
+      - {net: GND, pin: R_BID0.2,       vias: [[125.510, 84.000]]}
       # J_PWR Micro-Fit MECHANICAL RETENTION TABS (R-THERM, 2026-07-23). The two
       # 1MP shell tabs (5.66mm2 each, GND, SMD) trip R-THERM (>4mm2 GND pad, <2
       # vias) though they carry NO current (retention only; the real power path is
@@ -437,36 +584,29 @@ stitch:
       # sub-pads. If both sites refuse (dense escape), the fallback ladder is in
       # the routing journal (route 5V_PROTECTED south / F.Cu-pour EP bond).
       - {net: GND, min: 0, sites: [[60.0, 56.4], [60.0, 57.6]]}
-      # v1.2f B.Cu GND island under J_PI (MEASURED, 2026-07-24): the re-routed
-      # pi/sig field cuts a 27.1x7.5mm B.Cu GND island at (122.1,94.2) that
-      # island_rescue/heal_islands cannot serve (stitch gate FAIL). Two sites
-      # measured CLEAR on the promoted chain (B.Cu island + In1 plane coverage
-      # + 0.45mm radius track/hole clearance scan). Realization-coupled like
-      # the 3V3 stubs: re-derive on any re-race.
-      - {net: GND, min: 0, sites: [[112.4, 90.3], [129.4, 89.5]]}
-      # RESIDUAL B.Cu GND island tie (task#21, 2026-07-24, MEASURED on the
-      # promoted chain, AFTER the heal_islands via-ring false-positive fix
-      # bb2af90 cleared the F.Cu (123.8,87.5) phantom). The south pull cluster
-      # (R_REARMPU/R_RAENRHAPD, y91.5) pinches a 2.28x3.35mm B.Cu GND island at
-      # (122.25-124.53, 91.53-94.87) that the two sites above do NOT reach and
-      # that is padless (island_rescue require:pads skips it) — the ONLY GND
-      # orphan left at heal time (2 groups). In1.Cu GND main runs directly under
-      # it, so ONE through-via inside the island ties B.Cu<->In1 and drops the
-      # split 2->1 (VERIFIED: via_site_ok True + heal_groups 2->1 @123.84,94.36).
-      # Realization-coupled to the frozen chain — re-derive on any re-race.
-      - {net: GND, min: 0, sites: [[123.84, 94.36]]}
-      # SOUTH-EDGE In1 GND SLIVER TIES (task#21, 2026-07-25, MEASURED): the
-      # horizontal I2C bus (SDA_A/SCL_A/SDA_B/SCL_B/SHIELD_DRAIN, y92-95) + its via
-      # drops slice the In1 GND plane into a comb of ~5mm2 fingers along y95-97
-      # (x97-141). B.Cu GND main (9126mm2) covers the whole strip, so ONE via per
-      # finger ties it In1<->B.Cu and heal_islands no longer sees an unbridgeable
-      # orphan group (it ERRORed, crashing the stitch). Realization-coupled to the
-      # promoted chain (frozen) — re-derive if the sig/bus routing changes. Coords =
-      # measured finger centres (y96.3).
-      - {net: GND, min: 0, sites: [[97.8, 96.3], [102.9, 96.3], [105.4, 96.3],
-          [108.0, 96.3], [110.5, 96.3], [118.1, 96.3], [123.2, 96.3],
-          [125.7, 96.3], [128.3, 96.3], [130.8, 96.3], [133.4, 96.3],
-          [135.9, 96.3], [141.0, 96.3]]}
+      # ---- J_PI-FIELD GND ISLAND TIES (task#21 re-derived, 2026-07-25) ----
+      # THE 16 REALIZATION-COUPLED SITES THAT USED TO LIVE HERE ARE DELETED. They
+      # were treating a symptom: the In1/B.Cu planes were being shredded into
+      # ~2.3mm squares by J_PI's own 2.54mm-pitch antipads at the old 0.30mm zone
+      # clearance (neck 0.24mm < min_thickness 0.30). floorplan.yaml now pours at
+      # 0.20mm clearance (neck 0.44mm) and the plane stays CONTINUOUS — MEASURED:
+      # GND island groups 22 -> 6. Every coordinate below is re-derived against
+      # THIS v1.2 promoted chain, and there are far fewer of them because the
+      # structural cause is gone. Still realization-coupled by nature (they tie
+      # pockets that ROUTED TRACKS carve) — re-derive on any re-race.
+  # ANALOG_SENSE width floor (task#21, 2026-07-25, MEASURED). KRT necked ONE
+  # segment of TH_CAM_B to 0.1709mm at a pad entry (1 of 3661 tracks on the
+  # promoted chain; every other analog segment is 0.25) -> DRC track_width vs the
+  # ANALOG_SENSE_width 0.249 floor. Routers have no netclass concept, so the
+  # declarative fix is the width_floor pass, exactly as its docstring intends:
+  # lift KRT's thin-pass output to the floor so the gate passes for the RIGHT
+  # reason (rather than relaxing an ampacity floor to accommodate a router
+  # artifact). Covers the whole ANALOG_SENSE class so any realization's neck is
+  # lifted; a race that emits no neck makes this a no-op ("lifted 0 segments").
+  width_floor:
+    nets: {TH_CAM_A: 0.249, TH_CAM_B: 0.249, TH_MOUNT_A: 0.249, TH_MOUNT_B: 0.249,
+           TH_PORT_A: 0.249, TH_PORT_B: 0.249, TH_ENCLOSURE: 0.249, TH_SPARE: 0.249,
+           TC_POS: 0.249, TC_NEG: 0.249, TCAM_THRESH: 0.249}
   dedupe_vias: {radius: 0.5, metric: box}
   drop_micro_fragments: {max_length: 0.12, require_free_end: true}
   drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}

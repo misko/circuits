@@ -1286,7 +1286,7 @@ def p_micro(ctx, c):
     ends served disconnects the net, so the default requires a free end."""
     lim = float(c.get("max_length", 0.12))
     need_free = bool(c.get("require_free_end", True))
-    segs = [t for t in ctx.board.GetTracks() if t.GetClass() == "PCB_TRACK"]
+    segs, vias, pads = _track_context(ctx)
     endpts = {}
     for t in segs:
         for e in _ends_mm(t):
@@ -1297,8 +1297,17 @@ def p_micro(ctx, c):
         (ax, ay), (bx, by) = _ends_mm(t)
         if math.hypot(ax - bx, ay - by) >= lim:
             continue
+        # "FREE" MUST MEAN FREE OF EVERYTHING, not just of other TRACKS
+        # (cooksense v1.2, 2026-07-25). The old test counted only track
+        # endpoints, so a whisker whose end sat ON A PAD read as free and was
+        # deleted — taking the net's only pad entry with it. Incident:
+        # DOOR_RAW entered U_SCHM.11 through a 0.100mm segment landing exactly
+        # on the pad's south edge; drop_micro_fragments ate it and the full
+        # DRC gate reported 1 unconnected + 1 track_dangling on a chain that
+        # raced 0/0. `_end_anchored` is the same served-test drop_dangling and
+        # split_t_junctions already use: other track ends, vias, AND pads.
         if need_free and not any(
-                endpts.get((round(e[0], 2), round(e[1], 2)), 0) < 2
+                not _end_anchored(ctx, t, e[0], e[1], segs, vias, pads, 0.05)
                 for e in _ends_mm(t)):
             continue
         dead.append(t)
@@ -1385,11 +1394,21 @@ def p_split_t(ctx, c):
         (ox, oy), (px, py) = _ends_mm(o)
         chain = [(0.0, ox, oy)] + sorted(pts) + [(1.0, px, py)]
         for a, b in zip(chain, chain[1:]):
-            if math.hypot(a[1] - b[1], a[2] - b[2]) < 1e-6:
+            # DEGENERACY IS DECIDED AFTER THE WRITE-ROUNDING, not before
+            # (cooksense v1.2, 2026-07-25). The old guard tested the RAW
+            # separation against 1e-6 mm, but the endpoints are written
+            # rounded to 1e-4 mm; a junction point 5e-5 mm from the segment
+            # end passed the guard and then collapsed on write, emitting a
+            # ZERO-LENGTH track. KiCad's crossing test degenerates on a
+            # zero-length segment and reported a phantom `tracks_crossing`
+            # against an unrelated net 0.7 mm away (I2C_SDA vs KEY_CLOCK).
+            ax, ay = round(a[1], 4), round(a[2], 4)
+            bx, by = round(b[1], 4), round(b[2], 4)
+            if ax == bx and ay == by:
                 continue
             s = pcbnew.PCB_TRACK(ctx.board)
-            s.SetStart(pcbnew.VECTOR2I_MM(round(a[1], 4), round(a[2], 4)))
-            s.SetEnd(pcbnew.VECTOR2I_MM(round(b[1], 4), round(b[2], 4)))
+            s.SetStart(pcbnew.VECTOR2I_MM(ax, ay))
+            s.SetEnd(pcbnew.VECTOR2I_MM(bx, by))
             s.SetWidth(o.GetWidth())
             s.SetLayer(o.GetLayer())
             s.SetNetCode(o.GetNetCode())
@@ -1536,6 +1555,34 @@ def p_hole_to_hole(ctx, c):
     def vxy(v):
         return (v.GetPosition().x / 1e6, v.GetPosition().y / 1e6)
 
+    def pinned_midtrack(v):
+        """Does a same-net track cross this via MID-SEGMENT (no endpoint on
+        it)? Such a via is an UNDRAGGABLE anchor: the nudge below only
+        rewrites track ENDPOINTS, so moving it silently strands the crossing
+        segment and BREAKS the net — with no error, because the stitch gate
+        and `quick` both look at the pre-nudge board. Incident (cooksense
+        v1.2, 2026-07-25): ADC_CH7's layer-change via sat mid-way along its
+        own B.Cu run; a 0.5mm h2h conflict with a TH_CAM_B via nudged it
+        0.72mm away, leaving the B.Cu chain floating -> 1 unconnected + 1
+        track_dangling at the FULL DRC gate, on a chain that raced 0/0."""
+        vx, vy = vxy(v)
+        r = v.GetWidth() / 2e6
+        for t in ctx.board.GetTracks():
+            if (t.GetClass() != "PCB_TRACK" or t.GetNetCode() != v.GetNetCode()):
+                continue
+            (ax, ay), (bx, by) = _ends_mm(t)
+            if (abs(ax - vx) < 0.05 and abs(ay - vy) < 0.05) or \
+               (abs(bx - vx) < 0.05 and abs(by - vy) < 0.05):
+                continue                      # endpoint-anchored: draggable
+            dx, dy = bx - ax, by - ay
+            L2 = dx * dx + dy * dy
+            if L2 == 0:
+                continue
+            u = max(0.0, min(1.0, ((vx - ax) * dx + (vy - ay) * dy) / L2))
+            if math.hypot(vx - (ax + u * dx), vy - (ay + u * dy)) <= r + t.GetWidth() / 2e6:
+                return True
+        return False
+
     moved = 0
     for i in range(len(vlist)):
         for j in range(i + 1, len(vlist)):
@@ -1546,6 +1593,11 @@ def p_hole_to_hole(ctx, c):
             if math.hypot(x1 - x2, y1 - y2) - (d1 + d2) / 2 >= floor:
                 continue
             vm = v1 if (v2.GetNetname() in keep and v1.GetNetname() not in keep) else v2
+            if mode != "shrink" and pinned_midtrack(vm):
+                other = v2 if vm is v1 else v1
+                if pinned_midtrack(other):
+                    continue          # both undraggable: leave the pair alone
+                vm = other
             if mode == "shrink":
                 s = c.get("shrink_to", {"size": 0.48, "drill": 0.2})
                 vm.SetWidth(int(float(s["size"]) * 1e6))
@@ -2712,19 +2764,38 @@ def _same_via_exists(ctx, x, y, code, tol=0.05):
     return False
 
 
-def _pin_touched(ctx, px, py, code, tol=0.16):
-    """Is the pin pad (px,py) touched by same-net track copper or a via —
-    i.e. did the seed stub actually reach it?"""
+def _pin_touched(ctx, px, py, code, tol=0.16, pad=None):
+    """Is the pin pad touched by same-net track copper or a via — i.e. did
+    the seed stub actually reach it?
+
+    THE PROOF IS THE PAD SHAPE, not a radius around the pad ORIGIN
+    (cooksense v1.2, 2026-07-25). The old test only accepted copper within
+    `tol` of (px,py). That is fine for an 0402 (0.54x0.64) but WRONG for
+    anything larger: a via-in-pad landing legitimately on the far end of an
+    0603 GND pad — the only site with clearance, MEASURED — was declared
+    "connects nothing" and hard-errored the stitch, while the same via
+    0.15mm from the origin passed. A via-in-pad is proven by LANDING ON THE
+    PAD'S COPPER; the radius stays as the fallback when the caller has no
+    pad handle (and for THT pads, whose plated barrel bonds anywhere)."""
+    def hits(x, y):
+        if math.hypot(x - px, y - py) <= tol:
+            return True
+        if pad is None:
+            return False
+        try:
+            pt = ctx.pcbnew.VECTOR2I_MM(round(x, 4), round(y, 4))
+            return pad.GetEffectiveShape(pad.GetLayer()).Collide(pt)
+        except Exception:
+            return False
     for t in ctx.board.GetTracks():
         if t.GetNetCode() != code:
             continue
         if t.GetClass() == "PCB_VIA":
-            vx, vy = t.GetPosition().x / 1e6, t.GetPosition().y / 1e6
-            if math.hypot(vx - px, vy - py) <= tol:
+            if hits(t.GetPosition().x / 1e6, t.GetPosition().y / 1e6):
                 return True
         else:
             for e in _ends_mm(t):
-                if math.hypot(e[0] - px, e[1] - py) <= tol:
+                if hits(e[0], e[1]):
                     return True
     return False
 
@@ -2845,7 +2916,7 @@ def p_seed_stubs(ctx, c):
         if pinpad is not None:
             px, py = (pinpad.GetPosition().x / 1e6,
                       pinpad.GetPosition().y / 1e6)
-            if not _pin_touched(ctx, px, py, code):
+            if not _pin_touched(ctx, px, py, code, pad=pinpad):
                 die(f"seed_stubs.stubs[{i}]: the stub placed for {pin} does "
                     f"not reach the pin pad — it connects nothing (check the "
                     f"first segment starts at the pad)")
