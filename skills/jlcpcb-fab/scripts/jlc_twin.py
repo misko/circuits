@@ -14,6 +14,33 @@ For every BOM line with an LCSC code, fetch JLC's OWN footprint + 3D model
 usage: jlc_twin.py board.kicad_pcb bom_jlc.csv outdir
 Exit 1 on any MIRRORED, PAD-MISMATCH, or PAD-GEOM finding.
 
+HANDEDNESS INCIDENT (2026-07-25) — `xform()` was WRONG and every `jlc_offset`
+this tool reported before that date is NEGATED. `xform()` used the opposite
+handedness to `local_to_board()`. Measured against pcbnew itself over 72 pads
+on rotated footprints (`pad.GetFPRelativePosition()` vs `pad.GetPosition()`):
+local_to_board's form is EXACT (max error 0.000000 mm on all 72); the old
+xform form was off by up to 23.926763 mm, losing every 90 deg sample (26) and
+every 270 deg sample (4) and tying at 180 (42), where the two forms are
+mathematically identical. That tie is why it hid for so long: 0/180 are
+sign-invariant, 90/270 negate into each other, so the error was invisible on
+more than half the fleet and exactly 180 deg wrong on the rest.
+
+Consequences, all paid: six rows of `jlc_lcsc_rotations.csv` had been
+populated FROM this function and were all 180 deg wrong; a SEALED release that
+was correct (crow-recorder-central-v2 v1.2) was "fixed" into a wrong one
+(v1.3) on that evidence; and an external reviewer reading the table was misled
+by it. Canon M1, twice over — the authority table WAS the checker's output, so
+every consumer inherited the same negation and nothing independent could
+object.
+
+STILL HELD as a consequence: promoting ROT-DB-SUGGEST to blocking, and the
+A-ROT release gate. Neither may rank this table as AUTHORITY. A rotation gate
+must re-derive the angle from the BOARD plus JLC's cached model with an
+operator VERIFIED against pcbnew — never from `jlc_offset`, and never from a
+table populated by it. The fix is pinned by `t1_jlc_twin.py`
+(`t_xform_matches_pcbnew`, `t_fit_offset_handedness`), both RED-verified
+against the pre-fix form.
+
 Checks beyond the fit itself:
   - PAD-GEOM: pairwise pad-center distances (rotation/translation-invariant,
     so no best-fit can smear them) must agree between our footprint and
@@ -27,6 +54,13 @@ Checks beyond the fit itself:
     where 0 and 180 fit the pads equally - the pad fit cannot orient the
     model, so its polarity marking in the render is unverified and must be
     checked against our silk + the JLC order preview.
+  - --assembly 03_src/rules/assembly.yaml: pull the ref->LCSC pairs for
+    parts that are CODED but NOT ASSEMBLED (and for consigned parts) out of
+    the ONE declared home, so those bodies render and their land patterns are
+    checked too. This REPLACES hand-typing `--also REF=LCSC`: a hand-typed
+    list is a second home for the population set and drifts from the first
+    (cooksense v1.1's MANIFEST and CPL disagreed on 12 refs for exactly that
+    reason). `--also` still works for an ad-hoc probe.
   - --also REF=LCSC[,REF=LCSC..]: include hand-solder/uncoded parts with
     known LCSC codes so their bodies render too (connector overhang and
     orientation checks otherwise never run for exactly the parts a human
@@ -151,11 +185,37 @@ def centered(d):
 
 
 def xform(d, ang, mir):
+    """Rotate a pad set by `ang` in KiCad's OWN sense (y-down screen frame,
+    CCW), optionally mirrored in x.
+
+    HANDEDNESS FIXED 2026-07-25. This used to be `(x*c - y*s, x*s + y*c)` —
+    the OPPOSITE handedness to `local_to_board()` below, which is the operator
+    KiCad actually applies to a rotated footprint's pads. Measured against
+    pcbnew itself over 72 pads on rotated footprints
+    (`pad.GetFPRelativePosition()` vs `pad.GetPosition()`): the form used here
+    now is EXACT (max error 0.000000 mm on all 72); the old form was off by
+    up to 23.926763 mm — it lost every 90 deg sample (26 pads) and every 270
+    deg sample (4 pads), and TIED at 180 (42 pads), where the two forms are
+    mathematically identical.
+
+    That tie is why the bug survived: 0 and 180 are sign-invariant under this
+    negation, so every offset the twin ever reported was correct at 0/180 and
+    exactly 180 deg wrong at 90/270. Six rows of `jlc_lcsc_rotations.csv` had
+    been populated FROM this function and were all 180 deg wrong; one sealed
+    release that was RIGHT (crow-recorder-central-v2 v1.2) was "fixed" into a
+    wrong one (v1.3) on its evidence. Canon M1: the authority table WAS the
+    checker's output, so every consumer inherited the same error and a review
+    that read the table was misled by it.
+
+    Pinned by `t1_jlc_twin.t_xform_matches_pcbnew` (the operator vs pcbnew,
+    both handednesses) and `t_fit_offset_handedness` (the fitted offset), both
+    RED-verified against the pre-fix form.
+    """
     c, s = math.cos(math.radians(ang)), math.sin(math.radians(ang))
     out = {}
     for k, v in d.items():
         pts = [(-x if mir else x, y) for x, y in v]
-        out[k] = sorted((round(x * c - y * s, 3), round(x * s + y * c, 3))
+        out[k] = sorted((round(x * c + y * s, 3), round(-x * s + y * c, 3))
                         for x, y in pts)
     return out
 
@@ -345,6 +405,11 @@ def main():
     ap.add_argument("--also", default="",
                     help="REF=LCSC[,REF=LCSC..]: mount+check hand-solder/"
                          "uncoded parts with known codes (e.g. J1=C98732)")
+    ap.add_argument("--assembly", default="",
+                    help="03_src/rules/assembly.yaml — REF=LCSC pairs for "
+                         "coded-but-not-assembled and consigned parts, read "
+                         "from the ONE declared home instead of hand-typed "
+                         "--also (canon A-POP)")
     args = ap.parse_args()
     adjudicated = []
     if args.adjudications and os.path.exists(args.adjudications):
@@ -394,11 +459,27 @@ def main():
     lcsc_rot = load_lcsc_rotations(args.lcsc_rotations)
 
     lines = [r for r in csv.DictReader(open(args.bom)) if r.get("LCSC")]
+    extra = []          # (ref, lcsc) pairs from --assembly / --also
+    if args.assembly and os.path.exists(args.assembly):
+        import yaml as _yaml
+        _asm = _yaml.safe_load(open(args.assembly)) or {}
+        for _key in ("not_assembled", "consigned"):
+            for _e in (_asm.get(_key) or []):
+                _code = str(_e.get("lcsc") or "").strip()
+                for _r in (_e.get("refs") or []):
+                    if _code:
+                        extra.append((str(_r).strip(), _code))
+        print(f"assembly: {len(extra)} coded not-assembled/consigned ref(s) "
+              f"from {args.assembly}")
     for pair in [p for p in args.also.split(",") if p.strip()]:
         ref, _, code = pair.partition("=")
         if not code:
             sys.exit(f"--also expects REF=LCSC, got: {pair}")
-        lines.append({"Designator": ref.strip(), "LCSC": code.strip()})
+        extra.append((ref.strip(), code.strip()))
+    on_bom = {d.strip() for r in lines for d in r["Designator"].split(",")}
+    for ref, code in extra:
+        if ref not in on_bom:       # never double-check a ref already on the BOM
+            lines.append({"Designator": ref, "LCSC": code})
     findings, criticals, twin, padgeom = [], [], {}, {}
     fetch_failed = set()
     for r in lines:
@@ -539,6 +620,10 @@ def main():
             findings.append((lcsc, ref, status,
                              f"fit={e:.2f}mm jlc_offset={ang} db={db_off} src={src}"
                              + hint))
+            # ROT-DB-SUGGEST stays NON-blocking pending the xform() handedness
+            # fix (see the module docstring): `ang` is currently negated at
+            # 90/270, so blocking on it would manufacture adjudications that
+            # bake the defect in as evidence.
             twin[ref] = (jfp, ang, oc, _jca, lcsc)
 
     # ---- twin render: JLC models mounted on OUR board
