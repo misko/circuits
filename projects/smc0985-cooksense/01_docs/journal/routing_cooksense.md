@@ -886,3 +886,21 @@ NOT yet rebuilt. All other source staged. No git touched.
   heal_islands fix should reduce the count).
 - next: route.yaml reservations+seed_stubs → rebuild --reroute → promote → stitch → re-derive
   island ties → DRC 0/0/0 → commit → M-REPRO → finish battery.
+
+## 2026-07-25 — finish (v1.2 routing gate, task#21 Opus)
+- did: PLACEMENT D-BACK. Moved U_SCHM +2.0y out of the coil-wave distribution
+  lane, promoted R_SHIELD + R_DECUPD from `near:` patterns to measured anchors,
+  added 22 User.2 via-site reservations + 24 seed_stubs, dropped the zone
+  clearance 0.3->0.2 (root cause of the J_PI plane shredding), extended the 19
+  isolation prep rects to y53.45, promoted the whole U_ADC/U_TC signal set into
+  the analog wave. Fixed 5 tool defects in route_and_stitch_generic.py
+  (split_t zero-length, drop_micro_fragments pad-blind free-end test,
+  hole_to_hole mid-track anchor + board-order non-determinism, seed_stubs
+  pin proof using a radius instead of the pad shape) and 3 in audit_board.py
+  (stale U_ONESHOT pad, stale K_STOP net, dict-merge that ate a check).
+- result: MEASURED. DRC 54 viol/3 unconn -> 0/0/0. Race 6/6 chains CLEAN.
+  M-REPRO two rebuilds IDENTICAL. Audit PASS (18 polarity checks, was 17 —
+  one had never run). Isolation comb: 0 intrusions into 25 rule areas.
+  5 race cycles + 8 stitch cycles; every fix measured before and after.
+- next: BLOCKED on P0 WD_PET (see STATUS-cooksense.md). The routing gate is
+  a declared handoff boundary; a successor resumes from the beacon.

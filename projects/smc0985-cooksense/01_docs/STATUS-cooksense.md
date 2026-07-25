@@ -1,9 +1,9 @@
-# STATUS beacon — cooksense MAIN board (live head; overwritten each transition)
-<!-- reader parses from here down -->
-stage:   v1.2-DBACK-RERACE
-step:    "D-BACK on 3v/6unc: the frozen chain TRAPPED C_DECU.1 + R_RAENRHEPD.2 (no via site within 2mm) and baked COIL_U4_N's iso_col_r4 clip in — a reuse-route can't fix either, so ran rebuild --reroute with 5 via-site reservations + seed_stubs + TC_FAULT_N promoted to the safety wave. Race converged 0-routed-unc, 0 copper-viol; COIL_U4_N now routes CLEAN around iso_col_r4 (drop at x67.90). Stitch bonded 4/5 pads. RESIDUALS on the re-race chain (54v/3unc): R_RAENRHEPD.2 seed REFUSED (RAIL_EN_RHA B.Cu hugs the reservation south edge, 0.275=floor); 90 tiny 3V3 B.Cu segs = astar_fallback THREADING U_SCHM.14 (176.47,54.19, near comb edge) + U_TC.5 (60.14,77.65) plane-bonds through iso_col_r11 (real connected paths, not debris -> items_not_allowed); + race artifacts (thin TH_CAM_B 0.17<0.249, one I2C_SDA/KEY_CLOCK 0mm crossing); + 3 new stranded GND (R_SHIELD.2/R_DECUPD.2/R_STOPPD.2 islands)."
-measure: "RESOLVED (6/9): COIL_U4_N clip GONE (drop x67.90, via 68.30 barrel 68.42<68.72); C_DECU.1/R_BID1.2/R_REARMPU.2/U_LATCHB.5 3V3 via-in-pads bonded. STUCK: R_RAENRHEPD.2 GND (placement-tight in pull cluster) + astar junk-path 3V3 bonds (U_SCHM.14/U_TC.5) + 3 GND islands + 2 race artifacts. Re-race chain viol 3->54 (mostly 3V3-in-keepout threads), unc 6->3."
-state:   working
-op_pid:  "foreground drive_stitch chunks; race done (c0/r8 promoted)"
-next:    "checkpoint (route.yaml+final_chain+journal, WIP not-green) -> seed_stub U_SCHM.14/U_TC.5 to kill astar junk -> fix R_RAENRHEPD.2 (reservation reshape or R_RAENRHEPD placement nudge) -> re-stitch -> surgical/re-race the 2 KRT artifacts -> island ties -> DRC 0/0/0 -> COMMIT"
-updated: 2026-07-24T22:58
+board: cooksense
+stage: v1.2 routing gate GREEN — BLOCKED at verify by one P0
+state: blocked
+git_sha: 4cf235d
+measure: DRC 0 viol / 0 unconn / 0 parity; M-REPRO IDENTICAL (17f0d754f9da2f19, 4622 items, 1016 vias); audit PASS 18/25/13; stitch gate clean, 48/48 seed stubs, 0 refused; race 6/6 chains 0-unc/0-viol
+op_pid:
+blocker: P0 WD_PET has NO pull-down. J_PI unplugged or Pi off -> TPS3823 self-pulses (part.yaml:20) -> WD_OK stuck HIGH; MCP23017 CONTACTOR_REQ latch retains its value and EXP_RST_N has no driver -> U_CAND1/U_CAND2 both true -> external cooking contactor STAYS ENERGISED. Falsifies ADR-0011 s3 + BRIEF C10. Fix = one 100k 0402 pull-down (R_WDPETPD) in 03_tscircuit -> netlist -> re-race -> re-stitch -> re-verify.
+next: 1) land R_WDPETPD + E-INV assert; 2) P1 sweep (see 08_reviews truth-table lens); 3) fab export + CPL exclusions; 4) jlc_twin/pin/render; 5) policy audit; 6) 2-commit seal
+do_not: seal before the P0 lands; write any U_WD rotation CHANGELOG entry (coordinator RESOLVED: U_WD is 270.0 and always was); act on any 90/270 ROT-DB-SUGGEST (jlc_twin xform() sign bug, 0/180 suggestions are trustworthy)
