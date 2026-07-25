@@ -138,6 +138,18 @@ placement:
     # ================= EXPANDER + WATCHDOG + Pi (CENTER-SOUTH) =================
     U_EXP:  [140.0, 82.0, 0]         # MCP23017 SSOP-28 (dense) -- escape corridor SOUTH; hub
     U_WD:   [152.0, 80.0, 0]         # TPS3823 watchdog (WD_PET from Pi, WD_OK to safety)
+    # v1.2 P0 FIX (ADR-0011 §8, safety truth-table review 2026-07-25). ANCHORED,
+    # not `near:` — this resistor is the de-energization path, so its plane-bond
+    # access is a safety property and must not be re-derived by the legalizer each
+    # build (the R_DECUPD lesson, 8667452). MEASURED free window: a 2.0x1.2mm box
+    # scan over the courtyards of every part in x[148,166] y[76,90] returns
+    # (155.1,81.0) as the nearest free centre to U_WD pad4 (WDI @153.14,80.95);
+    # (155.6,80.95) keeps 0.55mm to U_WD's courtyard (right edge 154.09) and
+    # 1.26mm to R_OE (left edge 157.82). pad1 (WD_PET) lands WEST at 155.09 —
+    # 1.95mm from the WDI pad it holds low. pad2 (GND) at 156.11 sits over the
+    # In1 GND plane (zone-collide MEASURED F.Cu/B.Cu/In1 all GND), so the
+    # deterministic via-in-pad seed_stub in route.yaml reaches the plane.
+    R_WDPETPD: [155.6, 80.95, 0]     # 100k WD_PET -> GND: WDI must not float
     J_PI:   [94.0, 95.0, 90]         # 2x20 Pi header (SIDECAR, body ALONG south edge x92..144)
 
     # ================= SAFETY AND-CHAIN + COIL GATE (EAST) =================
@@ -420,6 +432,22 @@ placement:
     - {match: "TP_TCFAULT", region: analog}
     - {match: "TP_TCTH", region: analog}   # v1.2: threshold bring-up point (near U_COMP)
     - {match: "TP_*", region: piedge}
+    # ---- NOT ASSEMBLED (canon A-POP; declared in 03_src/rules/assembly.yaml) --
+    # These 13 refs have NO LCSC code — they are not in JLC's catalog — yet
+    # cooksense v1.0 and v1.1 both SHIPPED them on the CPL, i.e. JLC was told to
+    # machine-place 13 parts it cannot source, while the v1.1 MANIFEST declared
+    # 12 of the 13 `not_assembled` (J_TC was declared nowhere at all). The two
+    # artifacts contradicted each other and every gate was green.
+    # `exclude_from_pos_files` is the SOURCE half of the fix: it takes them off
+    # the CPL at export. assembly.yaml is the declaration half (reason +
+    # DATED evidence + disposition), and the release MANIFEST's not_assembled:
+    # line is GENERATED from that file. Placement is UNAFFECTED — all 13 are
+    # anchors, and initial_pose() resolves anchors before patterns.
+    # DO-NOT-SUBSTITUTE both classes: the reed contact rating IS the safety
+    # argument (ADR-0006), and J_TC's Type-K alloy pins are the measurement.
+    - {match: ["K_U1", "K_U2", "K_U3", "K_U4", "K_U5", "K_U6",
+               "K_D1", "K_D2", "K_D3", "K_D4", "K_PRESS", "K_STOP", "J_TC"],
+       attrs: [exclude_from_pos_files]}
     # ---- catch-all ----
     - {match: "*", region: drive}
 
