@@ -1550,7 +1550,20 @@ def p_hole_to_hole(ctx, c):
     floor = float(c.get("min_gap", 0.5))
     mode = c.get("mode", "nudge")
     keep = list(c.get("prefer_keep", ["GND"]))
-    vlist = [t for t in ctx.board.GetTracks() if t.GetClass() == "PCB_VIA"]
+    # CANONICAL ORDER, not board order (cooksense v1.2, 2026-07-25). This pass
+    # walks pairs and moves the SECOND via of each conflicting pair, so its
+    # output depends entirely on iteration order — and board order is NOT
+    # stable across the SWIG re-exec barrier (split_t_junctions deletes and
+    # re-adds segments with fresh random UUIDs, and the save/reload round-trip
+    # does not preserve the pre-barrier sequence). Two identical rebuilds from
+    # the same frozen chain therefore nudged a different SET of vias (27 vs 28),
+    # which moved copper, which changed what pad_rescue could reach: one build
+    # bonded C_FAULTAND.1 to the 3V3 plane and the other did not -> M-REPRO
+    # FAIL with 1 unconnected on a byte-identical input. Sorting by position
+    # makes the pass a pure function of the geometry.
+    vlist = sorted((t for t in ctx.board.GetTracks() if t.GetClass() == "PCB_VIA"),
+                   key=lambda v: (v.GetPosition().x, v.GetPosition().y,
+                                  v.GetDrill(), v.GetNetname()))
 
     def vxy(v):
         return (v.GetPosition().x / 1e6, v.GetPosition().y / 1e6)

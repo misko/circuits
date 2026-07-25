@@ -534,6 +534,38 @@ stitch:
       - {net: GND, pin: R_KRSTPD.2,     vias: [[106.510, 88.000]]}
       - {net: GND, pin: R_RAENRHAPD.2,  vias: [[125.510, 91.500]]}
       - {net: GND, pin: R_BID0.2,       vias: [[125.510, 84.000]]}
+      # C_FAULTAND deterministic bonds (task#21 M-REPRO fix, 2026-07-25). Both
+      # pads are plane nets and BOTH were left to pad_rescue; on two identical
+      # rebuilds of the same frozen chain, one bonded C_FAULTAND.1 and the other
+      # did not -> M-REPRO FAIL (1 unconnected: U_FAULTAND.5 <-> C_FAULTAND.1).
+      # The upstream cause (non-deterministic hole_to_hole iteration order) is
+      # fixed in route_and_stitch_generic.py; these stubs are the belt to that
+      # brace, and they follow the C_ADCV/C_TCAV precedent — every plane pad
+      # this board has ever seen flip gets a DETERMINISTIC via-in-pad rather
+      # than a rescue ring. Sites MEASURED on the promoted chain: pad 1 cu-cu
+      # +0.611 / h2h +1.325, pad 2 cu-cu +0.625 / h2h +1.926 (both vs ESTOP_OK
+      # F.Cu) — no reservation needed, so no re-race.
+      - {net: 3V3, pin: C_FAULTAND.1, vias: [[159.020, 76.600]]}
+      - {net: GND, pin: C_FAULTAND.2, vias: [[159.980, 76.600]]}
+      # M-REPRO CLOSURE: the last four pads still served by the STOCHASTIC rescue
+      # ladder (task#21, 2026-07-25). pad_rescue left 3 GND + 3 3V3 SMD pads and
+      # stub_fallback/astar_fallback picked them up — and A* is exactly where the
+      # remaining non-determinism lived: two identical rebuilds routed C_TCNA.2's
+      # rescue by DIFFERENT paths (15 vs 14 items around x64.7-66.2, y73-75), so
+      # the boards were both DRC-clean yet not identical. A deterministic
+      # via-in-pad removes each of these from the ladder entirely. Sites MEASURED
+      # on the promoted chain (cu-cu / h2h):
+      #   C_TCNA.2     +0.266 / +0.612   (vs TC_NEG F.Cu)
+      #   R_OE.2       +0.325 / +0.576   (vs HOST_AUTH F.Cu)
+      #   U_FAULTAND.5 +0.612 / +0.993   (vs WD_OK F.Cu)
+      #   R_OS.2       +0.240 / +1.118   (vs OS_CLR_N B.Cu)
+      # U_EFUSE.8 (GND) is deliberately NOT stubbed: its best on-pad site is
+      # -0.025 (5V_RPP B.Cu crosses the 0.25mm-tall WSON pad), so no via-in-pad
+      # exists — it stays on the rescue ladder, which reaches it via the EP.
+      - {net: GND, pin: C_TCNA.2,     vias: [[65.580, 73.250]]}
+      - {net: 3V3, pin: R_OE.2,       vias: [[159.410, 82.350]]}
+      - {net: 3V3, pin: U_FAULTAND.5, vias: [[158.737, 73.950]]}
+      - {net: 3V3, pin: R_OS.2,       vias: [[145.210, 63.750]]}
       # J_PWR Micro-Fit MECHANICAL RETENTION TABS (R-THERM, 2026-07-23). The two
       # 1MP shell tabs (5.66mm2 each, GND, SMD) trip R-THERM (>4mm2 GND pad, <2
       # vias) though they carry NO current (retention only; the real power path is
