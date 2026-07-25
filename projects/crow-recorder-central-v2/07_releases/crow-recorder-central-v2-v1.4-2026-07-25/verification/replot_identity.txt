@@ -1,0 +1,31 @@
+# NO COPPER CHANGE — proven by RE-PLOT from the unchanged 04_kicad board
+# 2026-07-25: export_jlc_package.py re-plotted the whole fab set into
+# 06_build/fab_v14/, then every zip member was compared to sealed v1.3's.
+# members: v1.3=15  v1.4-replot=15  same names=True
+  MATCH  3b85b5e7921243cc9f86c77053b5d905d9ebec3f2a4e873305d28c3fac5677ab  crow_recorder_central_v2-B_Cu.gbl
+  MATCH  6128b7776a0c060051dc94da00d11e7e0cefad4cb4f7cd225a0e09665eb1374b  crow_recorder_central_v2-B_Mask.gbs
+  MATCH  65cd60ba270bb472ecb8ab1a2eb6e8127051c0a55c782459a20829e26b4bc602  crow_recorder_central_v2-B_Paste.gbp
+  MATCH  d5c62145446bf60776642acd76542c084eef74eb38665b412b19346256a498a3  crow_recorder_central_v2-B_Silkscreen.gbo
+  MATCH  7524062b18f330720b52b2994f46cd46e724ab224c54d898a08d18ede3d95a40  crow_recorder_central_v2-Edge_Cuts.gm1
+  MATCH  1bf390f9c890d5ee2e9c2837260b9c79fffdefdd29c5780092ae9a8cbb65fa42  crow_recorder_central_v2-F_Cu.gtl
+  MATCH  b7fe0a12cde6bea960efae247d11d735286329eb6a9cc2b6a5ca9ae4cae552f4  crow_recorder_central_v2-F_Mask.gts
+  MATCH  784b40e96e660a5f06c3b990a020a35a79541f255ddfcf3ed3b1404b4ace14bc  crow_recorder_central_v2-F_Paste.gtp
+  MATCH  389bd977e9223c12c4bac7ee8887db4fb01254393fe1509db91b4e245729e679  crow_recorder_central_v2-F_Silkscreen.gto
+  MATCH  e0fe34629a97fda14039a110ded9cd77156e0db06fc086aeb04f68e5a73fa912  crow_recorder_central_v2-In1_Cu.g1
+  MATCH  e7b3decfc0115906b646bdeffbe14ea0e687af0d73356f813760b700b10f6bb5  crow_recorder_central_v2-In2_Cu.g2
+  MATCH  288b019c410f2d976d8c60ef0db506c9f848a0d50c9dcf561ded600db8e80db2  crow_recorder_central_v2-In3_Cu.g3
+  MATCH  a39d9a2fc7ae09c9d14aa3284aadac86d12b0874ffea0ae7a959fcb3112d11a9  crow_recorder_central_v2-In4_Cu.g4
+  MATCH  8f25b56f0d4e5fb3eee44a0cf8ad7a31087177fa059a621fe6a1e32d9e444fa0  crow_recorder_central_v2-NPTH.drl
+  MATCH  922a701f941fb28ee51f0da804e9b31f70595b67a5d8668ad76f06fba51638c8  crow_recorder_central_v2-PTH.drl
+
+raw byte-identical members ........ 0/15  (every member carries its own plot timestamp)
+timestamp-stripped identical ...... 15/15
+mismatched after stripping ........ 0  []
+
+Stripped comment lines (the ONLY difference, on every member):
+  %TF.CreationDate / G04 Created by KiCad ... date   (gerbers)
+  ; DRILL file KiCad ... date / ; #@! TF.CreationDate (drills)
+Per-member diff, v1.3 vs re-plot, is exactly 4 lines (2 removed + 2 added).
+Because the plot is byte-stable apart from its own timestamp, v1.4 SHIPS
+v1.3's gerber zip and drill files VERBATIM — so the sha256 identity in the
+MANIFEST is literal and checkable (see payload_identity.txt).

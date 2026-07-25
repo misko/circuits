@@ -1,0 +1,4 @@
+# CPL refs with NO attached 3D body in the modeled twin render.
+# A bodiless footprint means 'no model', NEVER 'not placed' — the CPL is population truth.
+# Measured 2026-07-25 from 06_build/twin_v14/twin.kicad_pcb (jlc_twin --assembly) vs fab/cpl.csv.
+# CPL rows: 177; modeled: 177; missing bodies: 0

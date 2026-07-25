@@ -1,0 +1,18 @@
+== release-freshness: crow-recorder-central-v2-v1.4-2026-07-25 ==
+  note: pdf/assembly.pdf identical to crow-recorder-central-v2-v1.2-2026-07-24/pdf/assembly.pdf — WAIVED (UNCHANGED: assembly drawing is a function of the unchanged board geometry)
+  note: pdf/assembly.pdf identical to crow-recorder-central-v2-v1.3-2026-07-24/pdf/assembly.pdf — WAIVED (UNCHANGED: assembly drawing is a function of the unchanged board geometry)
+  note: pdf/pcb_layers.pdf identical to crow-recorder-central-v2-v1.2-2026-07-24/pdf/pcb_layers.pdf — WAIVED (UNCHANGED: layer plot is a function of the unchanged board geometry)
+  note: pdf/pcb_layers.pdf identical to crow-recorder-central-v2-v1.3-2026-07-24/pdf/pcb_layers.pdf — WAIVED (UNCHANGED: layer plot is a function of the unchanged board geometry)
+  note: pdf/schematic.pdf identical to crow-recorder-central-v2-v1.2-2026-07-24/pdf/schematic.pdf — WAIVED (UNCHANGED: tscircuit's own schematic render (ADR-0002); schematic did not change)
+  note: pdf/schematic.pdf identical to crow-recorder-central-v2-v1.3-2026-07-24/pdf/schematic.pdf — WAIVED (UNCHANGED: tscircuit's own schematic render (ADR-0002); schematic did not change)
+  note: fab/bom.csv identical to crow-recorder-central-v2-v1.2-2026-07-24/fab/bom.csv — WAIVED (UNCHANGED: same parts/LCSC/footprints/quantities; only cpl.csv rotations changed)
+  note: fab/bom.csv identical to crow-recorder-central-v2-v1.3-2026-07-24/fab/bom.csv — WAIVED (UNCHANGED: same parts/LCSC/footprints/quantities; only cpl.csv rotations changed)
+  note: fab/crow_recorder_central_v2-NPTH.drl identical to crow-recorder-central-v2-v1.2-2026-07-24/fab/crow_recorder_central_v2-NPTH.drl — WAIVED (UNCHANGED: drill geometry identical to v1.3; re-plot differs only in its 2 timestamp comment lines)
+  note: fab/crow_recorder_central_v2-NPTH.drl identical to crow-recorder-central-v2-v1.3-2026-07-24/fab/crow_recorder_central_v2-NPTH.drl — WAIVED (UNCHANGED: drill geometry identical to v1.3; re-plot differs only in its 2 timestamp comment lines)
+  note: fab/crow_recorder_central_v2-PTH.drl identical to crow-recorder-central-v2-v1.2-2026-07-24/fab/crow_recorder_central_v2-PTH.drl — WAIVED (UNCHANGED: drill geometry identical to v1.3; re-plot differs only in its 2 timestamp comment lines)
+  note: fab/crow_recorder_central_v2-PTH.drl identical to crow-recorder-central-v2-v1.3-2026-07-24/fab/crow_recorder_central_v2-PTH.drl — WAIVED (UNCHANGED: drill geometry identical to v1.3; re-plot differs only in its 2 timestamp comment lines)
+  note: fab/crow_recorder_central_v2_gerbers.zip identical to crow-recorder-central-v2-v1.2-2026-07-24/fab/crow_recorder_central_v2_gerbers.zip — WAIVED (UNCHANGED: copper/silk/mask/paste/edge geometry identical to v1.3; re-plot proof in verification/replot_identity.txt (15/15 members match with timestamps stripped))
+  note: fab/crow_recorder_central_v2_gerbers.zip identical to crow-recorder-central-v2-v1.3-2026-07-24/fab/crow_recorder_central_v2_gerbers.zip — WAIVED (UNCHANGED: copper/silk/mask/paste/edge geometry identical to v1.3; re-plot proof in verification/replot_identity.txt (15/15 members match with timestamps stripped))
+  note: A-STOCK: grading verification/stock_check.json (47 graded line(s), verdict=FAIL) against 46 coded+placed BOM line(s) x 5 boards
+  note: A-STOCK: verification/stock_check.json verdict is FAIL but every problem line (C6938291, C9900035627) is unplaced or covered by a sourcing_plan entry
+FRESHNESS: PASS

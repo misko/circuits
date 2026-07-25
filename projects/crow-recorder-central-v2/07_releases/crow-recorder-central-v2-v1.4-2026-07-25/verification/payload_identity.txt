@@ -1,0 +1,25 @@
+# PAYLOAD sha256 IDENTITY — v1.4 vs sealed v1.3 (every non-CPL payload file)
+# Measured 2026-07-25 with sha256sum over both sealed/staged trees.
+  IDENTICAL  0f42ba9ade563776284d48e5c1f9e31fce06e5130d6a9d9c663a3dfb0f1eb7b8  fab/crow_recorder_central_v2_gerbers.zip
+  IDENTICAL  b21b1ed2929d81a0c75e3c4fb6a561d84308e0a2135acc9b7795571926081b87  fab/crow_recorder_central_v2-PTH.drl
+  IDENTICAL  74f826c6876bc125242a24f5291e66a8c02b920a1cf4b15f97b131ffe5fc0e18  fab/crow_recorder_central_v2-NPTH.drl
+  IDENTICAL  5610ed90611be7f12002d8cae292af36943a95b78edebe47958e0f43d19dbc51  fab/bom.csv
+  IDENTICAL  2baf8c7603d1a061caac436c69a67e33089512be5cf3365d2546ef6590abffbb  pdf/assembly.pdf
+  IDENTICAL  d218d8c1edb43315bb9f72dfacfca2fee050bf0fb932ae3d378a7562303562e7  pdf/pcb_layers.pdf
+  IDENTICAL  b1db6c443632ffffd35956abf5e4022bf4bd74c08705c285f437d96cc28e083f  pdf/schematic.pdf
+  IDENTICAL  c7b03d95b418e457fd5f0dc7bdda0f8b725ec7758d36e1e884e74d6673b1dea2  3d/crow_recorder_central_v2.step
+  IDENTICAL  30d003fc8855161d279473b89c383b38a79a52d8062603c6ba84c558bd66ae60  source/crow_recorder_central_v2.kicad_dru
+  IDENTICAL  756b2935a0f1fae3f7d9111874ce20daa6d3661eea712a317d09dfce5c129402  source/crow_recorder_central_v2.kicad_pcb
+  IDENTICAL  bb6b495e0f30445c8c2827834844a94ac6fc196345581dafd5a3a27d1e65a336  source/crow_recorder_central_v2.kicad_pro
+  IDENTICAL  636aa321489faa8f86d60bce6ca8233f57d7058bf416ce878fc979795d56eaee  source/crow_recorder_central_v2.kicad_sch
+  IDENTICAL  7012636b0918ce37c01fee7f6ecd9a71c63bcfe18130ef6a2fa6e342d68f2afa  source/crow_recorder_central_v2.net
+  IDENTICAL  d3d35a79f52b9a2bee6a712a1cce5ede755e54b153a4cb56eed653f5152bfea2  source/crow_recorder_central_v2.pretty/RJ45_RJHSE538X_num.kicad_mod
+  IDENTICAL  ef4886687aca74024a820f20f7f7fee0043bd0f5e5eec9d88406a586e0ddf0c9  source/crow_recorder_central_v2.pretty/TQFP-128_14x14mm_P0.4mm_EP_XU316.kicad_mod
+  IDENTICAL  21a72507199a09aff5c90d2d3ab287c156b393afde28526e20ffe6336dac6758  source/crow_recorder_central_v2.pretty/US8_MO-187CA_P0.5mm_NC7NZ34.kicad_mod
+  IDENTICAL  9ff9294a2a8d041533ce0cb386f89a221a2c01eea13125f9ee60c80ad68b8880  source/crow_recorder_central_v2.pretty/USB4105_GCT_16P_TopMnt_num.kicad_mod
+  IDENTICAL  386c9f54b2f2b371216d8e6fc02b3b7184dc8cb4120e705b8f3ad0230831b4a1  source/crow_recorder_central_v2.tsx
+  IDENTICAL  4b13122d46cd28fe5d956997008510976f79115681c60f6ee014dae1af4c2f14  source/fp-lib-table
+  IDENTICAL  6eb0eecd94247336fb8bb895e442e5adfbab8e91beb344f0e996992e4370885d  source/Sensor_Humidity.pretty/Sensirion_DFN-4_1.5x1.5mm_P0.8mm_SHT4x_NoCentralPad.kicad_mod
+
+payload files sha256-identical to sealed v1.3: 20
+the ONE file that differs by design: fab/cpl.csv (7 Rotation cells, see cpl_acceptance_gate.md)

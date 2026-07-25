@@ -3,6 +3,53 @@
 One entry per REVISION (a design state, git-tagged). Reverse-chronological.
 `Released:` is `no`, or the name of the `07_releases/` directory that shipped it.
 
+## v1.4 — 2026-07-25
+- **CPL-CORRECTION supersede: v1.3 is DO-NOT-ORDER for PCBA.** v1.3 shipped SEVEN
+  CPL rows 180 deg off — U1 (C6938291, the CONSIGNED XU316 TQFP-128, 0.4mm pitch),
+  U2+U3 (C181312 PCM1865 TSSOP-30), U5 (C82317 SOIC-8), U7+U8 (C5224055 SOT-563)
+  and D_USB (C90627 USON-10), i.e. every fine-pitch part on the board — all at
+  90.0 where the measured value is 270.0. v1.0/v1.1/v1.2 shipped these SEVEN
+  correctly at 270; v1.3 "fixed" a non-defect. ROOT CAUSE (fixed at source before
+  this release): jlc_twin.xform() used the OPPOSITE handedness to the operator
+  KiCad applies to a rotated footprint's pads, negating every jlc_offset —
+  invisible at 0/180 (sign-invariant), exactly 180 deg wrong at 90/270 (1b69760,
+  pinned by two RED-verified tests against pcbnew). jlc_lcsc_rotations.csv had
+  been POPULATED FROM that function, so six rows inherited the negation and an
+  external reviewer reading the table was misled (canon M1); corrected in e0d735c.
+  Q1/Q2/U9 are UNCHANGED because their values are 180, which the negation cannot
+  move — that asymmetry is the root cause's fingerprint.
+- ACCEPTANCE GATE (stated as a number BEFORE looking): the v1.4-vs-v1.3 CPL diff
+  is EXACTLY SEVEN changed CELLS, all Rotation, all 90.0 -> 270.0; 0 rows added or
+  removed; Q1/Q2/U9 byte-identical. Measured cell-by-cell. The seven angles were
+  then RE-DERIVED by a method sharing no code with the twin/resolver/exporter
+  (pcbnew for our pads, a text parse of JLC's own cached footprint for theirs,
+  operator proven against pcbnew first): all seven fit at 270 with residual
+  <= 0.0725mm against a runner-up 15x-4811x worse, 0 mismatches vs the shipped
+  CPL. verification/cpl_acceptance_gate.md + rotation_remeasure.txt.
+- NO COPPER CHANGE, proven by RE-PLOT rather than by copying: all 15 gerber/drill
+  zip members hash identically once the plot's own timestamp comments are stripped;
+  20 payload files are sha256-identical to sealed v1.3 and fab/cpl.csv is the only
+  file that differs (verification/replot_identity.txt + payload_identity.txt).
+- **PCBA gates land on this board.** 03_src/rules/assembly.yaml is authored (A-POP
+  PASS: board 203 / cpl 177 / unpopulated 26 = 10 declared + 16 exempt H,TP), with
+  U1 moved from v1.3's `not_assembled` prose into `consigned:` — a consigned part
+  is POPULATED — carrying the REQUIRED msl: (MSL 3, 168h floor life, XU316 ds
+  v2.0.0 s14.5 p33; also backfilled into the part.yaml limits: block, which was
+  missing it). J3-J10 declared not_in_catalog with the dated catalog query;
+  JP_INJ/J_DBG re-classified dnp_by_design after proving JLC DOES stock 2.54mm
+  headers — "hand-solder" is a wall you prove you hit, not a style. A-STOCK PASS
+  at build_quantity 5 with verification/stock_check.json and a sourcing_plan entry
+  for C6938291 (JLC stock MEASURED 0; consigned, so JLC stock is irrelevant) —
+  v1.0-v1.3 all shipped a stock report ending in FAIL that nothing ever parsed.
+- Archive self-containment CHECKED, not assumed: a standalone DRC on a copy of
+  source/ alone is 0/0/0 with zero lib_footprint_issues (this board's fp-lib-table
+  resolves both vendored libraries via ${KIPRJMOD} and they ship inside source/),
+  so it does NOT have the usb-hub-3s-v3 v1.3/v1.4 out-of-archive-pointer defect.
+- Project contracts.md copies re-synced from skills/pcb-design/templates/contracts/
+  (01_docs, 02_parts, 03_src, 03_src/rules, 07_releases) — this revision is when
+  they catch up, per CLAUDE.md.
+Released: crow-recorder-central-v2-v1.4-2026-07-25
+
 ## v1.3 — 2026-07-24
 - CPL/evidence-only supersede closing the THIRD external review of v1.2 (HOLD-
   for-PCBA; archived 08_reviews/2026-07-24_v1.2_external-llm_full.md). Root cause:

@@ -1,0 +1,6 @@
+# count_parity.py — S-COUNT: the component count agrees across all four artifacts.
+# Re-run 2026-07-25 for the v1.4 seal; the MANIFEST states '199 x4' from this output.
+ok   board == manifest (199 components)
+ok   circuit.json == manifest (199 components)
+ok   kicad_sch == manifest (199 components)
+ok   netlist == manifest (199 components)

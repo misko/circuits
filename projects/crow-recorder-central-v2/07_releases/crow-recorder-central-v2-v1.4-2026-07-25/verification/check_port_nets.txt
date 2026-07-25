@@ -1,0 +1,4 @@
+# check_port_nets.py — the net-merge gate (S-NETMERGE class, red-team 2026-07-23).
+# Run against THIS release's own source/<board>.net + the pinned converter schematic.
+# The MANIFEST states '115/115 labels + 8/8 ports' from this output.
+check_port_nets: PASS — 115 labels all survive to the netlist; 8 ports pin-for-pin per the brief

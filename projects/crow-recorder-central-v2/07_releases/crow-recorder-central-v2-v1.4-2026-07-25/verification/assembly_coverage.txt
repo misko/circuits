@@ -1,0 +1,4 @@
+== A-POP assembly_coverage: crow-recorder-central-v2-v1.4-2026-07-25 ==
+  board=203 footprints, cpl=177 placements, unpopulated=26 (declared=10, consigned=1, exempt_prefixes=['H', 'TP'])
+  placement histogram: top=177
+A-POP: PASS (every unpopulated part is declared with evidence)

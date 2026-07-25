@@ -1,0 +1,16 @@
+# v1.4 is a CPL-CORRECTION supersede of v1.3: fab/cpl.csv is assembly data ONLY —
+# copper, schematic, routing, drills, gerbers and BOM are UNCHANGED, and their
+# identity to v1.3 is the POINT of this release, not an oversight (proven by
+# RE-PLOT, not by copying: verification/replot_identity.txt shows all 15 zip
+# members hash identically once the plot's own timestamp comments are stripped;
+# verification/payload_identity.txt lists the 20 sha256-identical payload files).
+# fab/cpl.csv itself is correctly NOT waived here — it DID change, by exactly the
+# 7 Rotation cells in verification/cpl_acceptance_gate.md.
+# Format: <relpath>  <reason>.
+fab/bom.csv  UNCHANGED: same parts/LCSC/footprints/quantities; only cpl.csv rotations changed
+fab/crow_recorder_central_v2_gerbers.zip  UNCHANGED: copper/silk/mask/paste/edge geometry identical to v1.3; re-plot proof in verification/replot_identity.txt (15/15 members match with timestamps stripped)
+fab/crow_recorder_central_v2-NPTH.drl  UNCHANGED: drill geometry identical to v1.3; re-plot differs only in its 2 timestamp comment lines
+fab/crow_recorder_central_v2-PTH.drl  UNCHANGED: drill geometry identical to v1.3; re-plot differs only in its 2 timestamp comment lines
+pdf/assembly.pdf  UNCHANGED: assembly drawing is a function of the unchanged board geometry
+pdf/pcb_layers.pdf  UNCHANGED: layer plot is a function of the unchanged board geometry
+pdf/schematic.pdf  UNCHANGED: tscircuit's own schematic render (ADR-0002); schematic did not change
