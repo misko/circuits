@@ -829,3 +829,32 @@ NOT yet rebuilt. All other source staged. No git touched.
   guard across <10min blocking calls).
 - next: pre phase (regen board from frozen chain) -> drive stitch to clean exit ->
   6b prune -> generate_rules LAST -> DRC 0/0/0 -> COMMIT immediately.
+
+## 2026-07-24 21:18 PDT — resume (task#21, Opus): heal_islands FALSE-POSITIVE fixed at skills level
+- ROOT CAUSE confirmed + fixed. heal_islands `_island_holds` decided island
+  seating by via-CENTRE-in-poly (o.PointInside(via.GetPosition())). That
+  disagrees with KiCad connectivity, which ties copper the instant it TOUCHES.
+  The cooksense GND patch's only same-net copper was a plane via whose ANNULAR
+  RING overlapped it while the via CENTRE sat 0.15mm OUTSIDE the patch outline ->
+  read UNSEATED -> phantom orphan group -> no legal NEW via fits (in-patch sites
+  inside the existing via's hole-to-hole spacing) -> `_heal_net` deferred it to
+  the mode=ALWAYS refill -> refill (correctly) kept genuinely-connected copper ->
+  post-refill re-verify `now >= was` -> die(). A stitch die() leaves the resume
+  state on disk, so the babysitting driver re-execs and re-hits the same orphan
+  EVERY chunk = the infinite loop that blocked the seal.
+- FIX (bb2af90, skills/kicad-pcb/scripts/route_and_stitch_generic.py): seating is
+  now a COPPER-OVERLAP test `_copper_reaches` (centre inside OR fill's nearest
+  edge within the item's copper radius). Via uses the layer-aware GetWidth(lay)
+  annular ring; track uses width/2 at start/end/mid. Pad stays strict
+  centre-in-poly (a rect pad's circular bounding radius would over-reach and risk
+  MASKING a real orphan). Does NOT weaken to never-flag: copper out of reach is
+  still UNSEATED, so a truly isolated island is still its own group + still
+  flagged. Fleet-wide: every board's heal_islands now agrees with the DRC gate.
+- TEST (tests/t2_route_stitch.py): t_heal_island_ring_overlap_seated pins the
+  exact predicate (ring-overlap via SEATED; out-of-reach via NOT). RED-VERIFIED
+  by swapping the pre-fix via-centre branch back in -> test fails at
+  NEW_RING_SEATED. Genuine-split known-bad t_kb_heal_unbridgeable stays GREEN.
+  Full fast suite 368 passed / 0 failed / 205 known-bad fixtures bit;
+  contracts_audit green.
+- next: drive the stitch (drive_stitch.sh pre/stitch/post) on the converged
+  c0/r7 route -> DRC 0/0/0 -> COMMIT -> M-REPRO -> full v1.2 gate battery.

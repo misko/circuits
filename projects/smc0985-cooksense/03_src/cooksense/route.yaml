@@ -407,6 +407,17 @@ stitch:
       # + 0.45mm radius track/hole clearance scan). Realization-coupled like
       # the 3V3 stubs: re-derive on any re-race.
       - {net: GND, min: 0, sites: [[112.4, 90.3], [129.4, 89.5]]}
+      # RESIDUAL B.Cu GND island tie (task#21, 2026-07-24, MEASURED on the
+      # promoted chain, AFTER the heal_islands via-ring false-positive fix
+      # bb2af90 cleared the F.Cu (123.8,87.5) phantom). The south pull cluster
+      # (R_REARMPU/R_RAENRHAPD, y91.5) pinches a 2.28x3.35mm B.Cu GND island at
+      # (122.25-124.53, 91.53-94.87) that the two sites above do NOT reach and
+      # that is padless (island_rescue require:pads skips it) — the ONLY GND
+      # orphan left at heal time (2 groups). In1.Cu GND main runs directly under
+      # it, so ONE through-via inside the island ties B.Cu<->In1 and drops the
+      # split 2->1 (VERIFIED: via_site_ok True + heal_groups 2->1 @123.84,94.36).
+      # Realization-coupled to the frozen chain — re-derive on any re-race.
+      - {net: GND, min: 0, sites: [[123.84, 94.36]]}
       # SOUTH-EDGE In1 GND SLIVER TIES (task#21, 2026-07-25, MEASURED): the
       # horizontal I2C bus (SDA_A/SCL_A/SDA_B/SCL_B/SHIELD_DRAIN, y92-95) + its via
       # drops slice the In1 GND plane into a comb of ~5mm2 fingers along y95-97
