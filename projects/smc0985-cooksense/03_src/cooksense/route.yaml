@@ -132,6 +132,32 @@ prep:
       # are untouched; 5V_PROTECTED (pad5) re-routes via the efuse_escape corridor.
       # (v1.1: power block translated RIGIDLY +12y; U_EFUSE now @60,57)
       - {x0: 59.35, y0: 56.0, x1: 60.65, y1: 58.0, layer: User.2}     # U_EFUSE EP @60,57
+      # TC-AREA + PULL-CLUSTER PLANE-BOND via RESERVATIONS (D-BACK, Opus task#21,
+      # 2026-07-25). The c0/r7 stitch stranded 5 NEW-v1.2 plane pads: C_TCAV.2/
+      # C_TCPA.2 were TRAPPED in EVERY race realization (placement-deterministic —
+      # re-racing alone can't free them). Same mechanism as the ADC cluster above:
+      # a User.2 rect fences OTHER-net tracks off BOTH F.Cu and B.Cu at the plane
+      # pad + its via site (plane nets are KRT-excluded, so nothing legit routes
+      # there); the deterministic seed_stubs via-in-pad (below) then bonds the pad
+      # to its plane. Coords = MEASURED pad centres on the placed board.
+      #  - C_TCAV: BOTH pads plane (pad1 3V3@63.22, pad2 GND@64.18) — no signal
+      #    escape, so reserve the WHOLE cap; this also pushes the 5V_PROTECTED B.Cu
+      #    trunk off the under-pad (the trap the journal flagged), no nudge needed.
+      #  - C_AND3: BOTH pads plane (pad1 3V3@183.02, pad2 GND@183.98) — reserve whole.
+      #  - C_TCPA/R_REARMPU/C_DVDT: pad1 is a SIGNAL escaping WEST — reserve
+      #    east-biased, clear of the signal pad's east edge.
+      # RECT SIZING (task#21, MEASURED): the first pass used whole-pad+0.5 rects;
+      # the sig wave then FAILED TH_CAM_A/B (1-unc all 3 chains) — the 1.3mm-tall
+      # windows at C_TCAV/C_TCPA cut the horizontal B.Cu/F.Cu channels the dense SW
+      # analog field (SDA/SCL/TC/TH_CAM) routes through. Shrunk to TIGHT via-site
+      # boxes (~0.8mm y) — just enough to keep the seed_stub via site clear of
+      # other-net copper (and push 5V_PROTECTED off C_TCAV's B.Cu under-pad),
+      # leaving the routing channels open.
+      - {x0: 62.87, y0: 80.50, x1: 64.53, y1: 81.30, layer: User.2}   # C_TCAV  3V3@63.22 + GND@64.18 (both plane; tight y)
+      - {x0: 68.63, y0: 76.65, x1: 69.33, y1: 77.35, layer: User.2}   # C_TCPA  GND@68.98 via site (TC_POS@68.02 escapes W)
+      - {x0: 122.16, y0: 91.15, x1: 122.86, y1: 91.85, layer: User.2} # R_REARMPU 3V3@122.51 via site (REARM_N@121.49 W)
+      - {x0: 57.13, y0: 59.65, x1: 57.83, y1: 60.35, layer: User.2}   # C_DVDT  GND@57.48 via site (EF_DVDT@56.52 W)
+      - {x0: 182.67, y0: 70.25, x1: 184.33, y1: 70.95, layer: User.2} # C_AND3  3V3@183.02 + GND@183.98 (both plane; tight y)
   waves:
     exclude: ["GND", "3V3", "unconnected-*"]   # In1 GND plane + In2 3V3 plane own these
     groups:
@@ -151,10 +177,17 @@ prep:
       # failed "preexisting_blockers" in all chains when routed in the last
       # wave — U_SR1.3's escape walled in by earlier tracks; these are the
       # decoder-enable REQUEST lines, safety-adjacent by function).
+      # ESTOP_NI/MODE_NI/DOOR_NI promoted from `sig` (task#21, 2026-07-25, MEASURED):
+      # these are the 74HC14 (U_SCHM) Schmitt-conditioned intermediates of the raw
+      # safety contacts. DOOR_NI links U_SCHM.10<->.13, an intra-package net that
+      # must route PAST pins 11/12 (DOOR_RAW/DOOR_OK). With those raw nets in the
+      # early safety wave and the _NI intermediates left for the last sig wave, the
+      # _NI escape channel was already taken -> DOOR_NI stranded DETERMINISTICALLY
+      # in every chain. Routing the whole conditioning chain in ONE wave frees it.
       safety: [TEMP_OK, WD_OK, ESTOP_OK, FAULT, MODE_AUTO_HW,
                DOOR_OK, REARM_N, STOP_REQ, PRESS_TIMED, CONTACTOR_C,
                KEY_RELAY_ALLOWED, ESTOP_RAW, MODE_RAW, DOOR_RAW,
-               DECU_G1_RAW, DECD_G1_RAW]
+               DECU_G1_RAW, DECD_G1_RAW, ESTOP_NI, MODE_NI, DOOR_NI]
       pi: [HOST_AUTH, WD_PET, MCU_RELAY_ENABLE, KEY_CLOCK, KEY_LATCH,
            KEY_RESET_N, KEY_DATA]
       # keypad-iso domain: routes WITHIN the north band (User.3 keepout open north)
@@ -170,6 +203,26 @@ prep:
              COIL_STOP_N, 5V_KEY_RELAY]
       pwr: [5V_PROTECTED, 5V_IN, 5V_FUSED, 5V_RPP, 5V_STOP, 3V3_ANALOG,
             3V3_SW_A, 3V3_SW_B, 3V3_SW_RHA, 3V3_SW_RHE]
+      # analog COMPARATOR nets promoted out of `sig` (task#21, 2026-07-25, MEASURED):
+      # TH_CAM_B routed as part of the 84-net `sig` wave in the promoted-era chain,
+      # but under current KRT it DETERMINISTICALLY strands (8/8 race chains, both
+      # with and without the plane reservations — a pre-existing marginality the
+      # earlier lucky race masked). The over-temp comparator nets span the whole
+      # dense SW analog field (U_COMP x21 -> R_SER0/R_REF3 x58 -> J_THERM y95) and
+      # lose their channels to SDA_A/SCL_A/ADC/TC when routed last. Promoting them
+      # to a dedicated wave (routes BEFORE the sensor-I2C nets congest the field)
+      # is the durable fix the journal harvested ("wave PROMOTION is the durable
+      # fix for walled late-wave pads"). SAFETY-relevant: these are the camera
+      # hard-stop sense lines (reviewer fix #2).
+      # The thermistor-connector nets all DROP vertically from the SW analog
+      # cluster (x21-60) to J_THERM_A/B/J_TC at y95-97, while SDA/SCL/SHIELD_DRAIN
+      # run HORIZONTALLY at y92-95 straight across those drops — a structural
+      # crossing conflict. Routing the vertical drops FIRST (analog wave) lets the
+      # horizontal buses find the free layer around them (whack-a-mole confirmed:
+      # promoting only TH_CAM shifted the fail to TH_MOUNT_A). Promote the whole
+      # thermistor/comparator reach-group.
+      analog: [TH_CAM_A, TH_CAM_B, TCAM_THRESH, TH_MOUNT_A, TH_MOUNT_B,
+               TH_PORT_A, TH_PORT_B, TH_ENCLOSURE, TH_SPARE, TC_POS_IN]
       sig: rest
 
 route:
@@ -193,11 +246,21 @@ route:
        board_edge_clearance: 0.35, max_iterations: 400000}   # sel-bus rails cross the inter-reed slots (y30.5) -> keep 0.35mm
     - {name: coil, group: coil, track_width: 0.4, board_edge_clearance: 0.35, max_iterations: 500000}   # coil rail/drops pass the slots (y37.5) -> keep 0.35mm
     - {name: pwr,  group: pwr,  max_iterations: 500000}
+    # analog comparator nets FIRST-served among the sensor field (task#21): route
+    # before the sig wave so TH_CAM_A/B/TCAM_THRESH claim channels through the
+    # dense SW cluster before SDA/SCL/ADC/TC fill it. track 0.25 (sig class).
+    - {name: analog, group: analog, track_width: 0.25, board_edge_clearance: 0.35,
+       max_iterations: 800000, max_probe_iterations: 60000, max_ripup: 40}
     # board_edge_clearance added to sig (v1.2, 2026-07-24, MEASURED): SDA_B ran
     # ON the south edge (y101.9 vs edge y102, 0.00mm DRC edge clearance x3) —
     # the prep edge_band did not stop the sig wave.
+    # sig effort RAISED (task#21, MEASURED): after the analog-wave promotion the
+    # 74-net sig wave still left exactly 1 net stranded per chain (a DIFFERENT net
+    # each race — RAIL_EN_RHA/SR_OE_N/... — i.e. KRT ran out of ripup budget on the
+    # last net, not a hard block; ~24 chains never reached 0). More ripup +
+    # iterations lets it clear the final net.
     - {name: sig, group: sig, track_width: 0.25, board_edge_clearance: 0.35,
-       max_iterations: 800000, max_probe_iterations: 60000, max_ripup: 30}
+       max_iterations: 1500000, max_probe_iterations: 100000, max_ripup: 120}
   # Promoted converged chain (canon M3): 0 routed-net unconnected, 0-crossing
   # topology. `import` uses this when there is no fresh 06_build FINAL marker, so
   # `rebuild_all.sh --reuse-route` (and a fresh clone / CI) is DETERMINISTIC.
@@ -263,6 +326,18 @@ stitch:
       - {net: GND, pin: C_FLT5.2,  vias: [[52.480, 87.000]]}
       - {net: GND, pin: C_FLT6.2,  vias: [[59.280, 88.400]]}
       - {net: GND, pin: C_FLT7.2,  vias: [[57.480, 90.500]]}
+      # TC-AREA + PULL-CLUSTER PLANE-BOND via-in-pads (D-BACK, task#21, 2026-07-25).
+      # Deterministic bonds for the 5 pads the c0/r7 stitch stranded (2 TRAPPED in
+      # every realization). Paired with the User.2 reservation rects above so the
+      # site is clear on ANY realization -> single-pass, M-REPRO-stable (no
+      # pad_rescue whack-a-mole). `pin` proves the via lands on the pad; the plane
+      # (GND=In1 / 3V3=In2) auto-clears an antipad around the barrel so no short.
+      - {net: 3V3, pin: C_TCAV.1,    vias: [[63.220, 80.900]]}
+      - {net: GND, pin: C_TCAV.2,    vias: [[64.180, 80.900]]}
+      - {net: GND, pin: C_TCPA.2,    vias: [[68.980, 77.000]]}
+      - {net: 3V3, pin: R_REARMPU.2, vias: [[122.510, 91.500]]}
+      - {net: GND, pin: C_DVDT.2,    vias: [[57.480, 60.000]]}
+      - {net: 3V3, pin: C_AND3.1,    vias: [[183.020, 70.600]]}
       # J_PWR Micro-Fit MECHANICAL RETENTION TABS (R-THERM, 2026-07-23). The two
       # 1MP shell tabs (5.66mm2 each, GND, SMD) trip R-THERM (>4mm2 GND pad, <2
       # vias) though they carry NO current (retention only; the real power path is
