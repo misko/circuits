@@ -1,9 +1,9 @@
 # STATUS beacon — cooksense MAIN board (live head; overwritten each transition)
 <!-- reader parses from here down -->
-stage:   v1.2-ELECTRICAL
-step:    "routing convergence loop: race c (0 unc / 2 DIRTY violations) exposed 4 defect classes at DRC (20v/3unc/79parity): stale 04_kicad schematic (parity 79 -> synced from converter), 13x 0.2mm 3V3 rescue stubs under the 0.3 class floor (stub_width -> 0.3; the stub_scope exemption dies at generate-rules-LAST), SDA_B ON the south edge (sig wave board_edge_clearance 0.35 added), Q_STOPDRV/D_KSTOP pad gap 0.098mm (respread 132.5/140) + R_STOPPD legalized into esc_U_EXP_S (seed moved). Race d then failed ESTOP_RAW in ALL chains (late-wave congestion after the edge-clearance change) -> ESTOP/MODE/DOOR_RAW promoted to the safety wave. Full chain e RUNNING (bz58dh4gl)."
-measure: "race c winner had sig 89/89 routed; net_label_survival PASS 159; E-INV 60/60; infra commit f638370"
+stage:   v1.2-STITCH
+step:    "resume on Opus (task #21): race CONVERGED (c0/r7 = 0 routed-unc / 0 viol, quick CLEAN). Promoted c0/r7 -> 03_src/cooksense/route/final_chain.kicad_pcb (was stale v1.1-era 01:21 chain). Prior stitch v12j exited 1: heal_islands could not merge a GND B.Cu island (stale power_stitch island sites from the f-chain do not fit the g-chain r7 realization). Cleaning up: removed dangling stitch_state.json, restored suspect 04_kicad board to HEAD. Next: re-stitch from r7, re-derive GND island power_stitch site on the r7 realization, drive stitch across successive <10min calls."
+measure: "r7 quick CLEAN 0/0; net_label_survival PASS 159; E-INV 60/60; infra commit f638370"
 state:   running
-op_pid:  bz58dh4gl
-next:    "chain e -> DRC 0/0/0 -> M-REPRO + parity + audits + twin + I-ISO -> reviews -> seal"
-updated: 2026-07-24T15:40
+op_pid:  none
+next:    "clean stitch exit 0 -> generate_rules LAST -> DRC 0/0/0 + M-REPRO -> gate battery -> INITIAL review + safety-chain truth table -> seal v1.2"
+updated: 2026-07-25T00:45
