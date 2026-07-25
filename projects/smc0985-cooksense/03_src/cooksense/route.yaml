@@ -154,7 +154,7 @@ prep:
       # other-net copper (and push 5V_PROTECTED off C_TCAV's B.Cu under-pad),
       # leaving the routing channels open.
       - {x0: 62.87, y0: 80.50, x1: 64.53, y1: 81.30, layer: User.2}   # C_TCAV  3V3@63.22 + GND@64.18 (both plane; tight y)
-      - {x0: 68.63, y0: 76.65, x1: 69.33, y1: 77.35, layer: User.2}   # C_TCPA  GND@68.98 via site (TC_POS@68.02 escapes W)
+      - {x0: 70.63, y0: 83.65, x1: 71.33, y1: 84.35, layer: User.2}   # C_TCPA  GND@70.98,84.0 via site (E of SPI fan, clear corridor; TC_POS@70.02 W)
       - {x0: 122.16, y0: 91.15, x1: 122.86, y1: 91.85, layer: User.2} # R_REARMPU 3V3@122.51 via site (REARM_N@121.49 W)
       - {x0: 57.13, y0: 59.65, x1: 57.83, y1: 60.35, layer: User.2}   # C_DVDT  GND@57.48 via site (EF_DVDT@56.52 W)
       - {x0: 182.67, y0: 70.25, x1: 184.33, y1: 70.95, layer: User.2} # C_AND3  3V3@183.02 + GND@183.98 (both plane; tight y)
@@ -221,8 +221,19 @@ prep:
       # horizontal buses find the free layer around them (whack-a-mole confirmed:
       # promoting only TH_CAM shifted the fail to TH_MOUNT_A). Promote the whole
       # thermistor/comparator reach-group.
+      # TC_POS promoted too (task#21): C_TCPA nudged S of U_TC's SPI fan into the
+      # thermistor-drop field; its TC_POS pad is reachable only if TC_POS routes
+      # WITH the analog wave (in `sig` it was walled off by the already-placed
+      # analog drops). TC_POS is a thermocouple analog net — belongs here anyway.
+      # ADC_CH0-7 promoted too (task#21): the failure kept landing on the single
+      # "loser" net in the fully-utilised SW analog region (ADC_CH4->C_FLT4). Route
+      # the WHOLE analog front-end (thermistors + TC + comparator + the 8 ADC
+      # channel filters) as ONE early wave, leaving `sig` for the digital nets — a
+      # clean analog/digital split that gives every analog net priority in its own
+      # congested cluster.
       analog: [TH_CAM_A, TH_CAM_B, TCAM_THRESH, TH_MOUNT_A, TH_MOUNT_B,
-               TH_PORT_A, TH_PORT_B, TH_ENCLOSURE, TH_SPARE, TC_POS_IN]
+               TH_PORT_A, TH_PORT_B, TH_ENCLOSURE, TH_SPARE, TC_POS_IN, TC_POS,
+               ADC_CH0, ADC_CH1, ADC_CH2, ADC_CH3, ADC_CH4, ADC_CH5, ADC_CH6, ADC_CH7]
       sig: rest
 
 route:
@@ -250,7 +261,7 @@ route:
     # before the sig wave so TH_CAM_A/B/TCAM_THRESH claim channels through the
     # dense SW cluster before SDA/SCL/ADC/TC fill it. track 0.25 (sig class).
     - {name: analog, group: analog, track_width: 0.25, board_edge_clearance: 0.35,
-       max_iterations: 800000, max_probe_iterations: 60000, max_ripup: 40}
+       max_iterations: 1500000, max_probe_iterations: 100000, max_ripup: 120}
     # board_edge_clearance added to sig (v1.2, 2026-07-24, MEASURED): SDA_B ran
     # ON the south edge (y101.9 vs edge y102, 0.00mm DRC edge clearance x3) —
     # the prep edge_band did not stop the sig wave.
@@ -334,7 +345,7 @@ stitch:
       # (GND=In1 / 3V3=In2) auto-clears an antipad around the barrel so no short.
       - {net: 3V3, pin: C_TCAV.1,    vias: [[63.220, 80.900]]}
       - {net: GND, pin: C_TCAV.2,    vias: [[64.180, 80.900]]}
-      - {net: GND, pin: C_TCPA.2,    vias: [[68.980, 77.000]]}
+      - {net: GND, pin: C_TCPA.2,    vias: [[70.980, 84.000]]}
       - {net: 3V3, pin: R_REARMPU.2, vias: [[122.510, 91.500]]}
       - {net: GND, pin: C_DVDT.2,    vias: [[57.480, 60.000]]}
       - {net: 3V3, pin: C_AND3.1,    vias: [[183.020, 70.600]]}

@@ -161,6 +161,14 @@ placement:
     # ============ ANALOG SENSE SPINE (SW; ADC cluster = v1.0 +6y rigid) ============
     U_ADC:  [42.0, 76.0, 0]          # MCP3208 (SPI to Pi)
     U_TC:   [63.0, 77.0, 0]          # MAX31856 (SPI to Pi)
+    # C_TCPA nudged OUT of U_TC's east SPI escape fan (task#21, 2026-07-25). The
+    # `C_TC*` near-rule landed it at (68.5,77) INSIDE the dense SPI_MISO/MOSI/CS_N
+    # B.Cu escape field, so its GND plane-bond via-in-pad site collided foreign
+    # copper in EVERY realization (stitch seed_stub REFUSED). Pinned here in open
+    # GND-plane space south of the fan (density-0 scan; TP_TCTH 2.6mm N is the
+    # only neighbour). TC_POS (pad1@64.52) routes down from U_TC.4; GND pad2@65.48
+    # gets a clear via site. Explicit anchor overrides the near-rule (pinned).
+    C_TCPA: [70.5, 84.0, 0]          # pad1 TC_POS@70.02 ; pad2 GND@70.98,84.0
     # ADC-front-end GND-via RESERVATION anchors (D-ADJ, v1.0 routing D-BACK).
     # Cluster translated RIGIDLY +6y from v1.0 so the route.yaml User.2
     # reservations + stitch GND via-in-pads stay on-pad (all +6y in lockstep).
