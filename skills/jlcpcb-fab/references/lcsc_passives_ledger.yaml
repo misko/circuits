@@ -162,3 +162,11 @@ C96123: {mpn: CL31A476MPHNNNE, value: "47uF", verified: "2026-07-23 JLC catalog 
 C25785: {mpn: 0402WGF4023TCE, value: "402k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe; picked FOR the label — 400k not stocked, -0.17% on the 0V9 FB divider)"}
 C1547: {mpn: 0402CG120J500NT, value: "12pF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe; C0G 50V)"}
 C72203: {mpn: GRM155R61E225ME15D, value: "2.2uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe; 25V X5R 0402 — picked over 6.3V basic for DC-bias headroom on 3V3A)"}
+# cooksense v1.2 additions (2026-07-25, JLC parts API selectSmtComponentList
+# exact-code describe rows). C137961 replaces tscircuit's auto-picked C25782 for
+# R_OS: the auto-picker offered THREE codes for "510k" and all three were 390k,
+# which would have cut the PRESS one-shot from 357ms to 273ms — below the brief's
+# 300-500ms window. Pinned in the tsx; recorded here so leg C can verify it.
+C137961: {mpn: RC0402FR-07510KL, value: "510k", verified: "2026-07-25 JLC catalog (selectSmtComponentList describe; 510kΩ ±1% 0402 50V 62.5mW, stock 554618)"}
+C25834: {mpn: 1206W4F6802T5E, value: "68k", verified: "2026-07-25 JLC catalog (selectSmtComponentList describe; 68kΩ ±1% 1206 200V 250mW — cooksense R_TH1, the TCAM_THRESH divider top)"}
+C17902: {mpn: 1206W4F1002T5E, value: "10k", verified: "2026-07-25 JLC catalog (selectSmtComponentList describe; 10kΩ ±1% 1206 200V 250mW — cooksense R_TH2, the TCAM_THRESH divider bottom)"}

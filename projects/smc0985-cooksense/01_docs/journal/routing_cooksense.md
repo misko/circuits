@@ -985,3 +985,73 @@ declares them with DATED catalog measurements taken against jlcpcb.com's own
 library — 'DIP05-1A72-12L' -> C1561362 stock 0 (all 5 DIP05-1A72 variants 0);
 'PCC-SMP-K' -> 7 hits, all 0. Controls the same minute: C5620 = 5602,
 C25741 = 288617, so the zeros are the library's answer, not a dead field.
+
+## 2026-07-25 — task#21 (Opus): CONVERGED. DRC 0/0/0, and the sizing rule that did it
+
+- The five-race grind ended when I stopped fixing pads and fixed the RULE.
+  MEASURED root cause: KRT enforces User.2 rects on the track CENTRELINE, so a
+  rect half-box must cover `hole_to_copper 0.28 + half the widest track that can
+  run there`. For the 0.5mm PWR_IN class that is 0.53mm. The board's boxes were
+  +-0.35 and +-0.45 — protecting the site against a 0.14mm and a 0.34mm track
+  respectively, i.e. against nothing this board routes. GROUND TRUTH from race 4:
+  the 0.5mm 5V_STOP B.Cu track sat with its centreline exactly ON the R_OS2.2
+  rect edge (y55.900 vs rect y1 55.900), putting 0.25mm of copper inside the box
+  and leaving that pad ZERO legal via sites on its whole 0.54x0.64mm face.
+- FIX: one rule over all 46 rects — every pin-proved seed_stub site gets >=0.55mm
+  margin in BOTH axes, clipped 0.10mm off any pad it does not own. Verified
+  51/51 sites clear (was 25 of 46 BELOW 0.405mm) and 0 rects overlap a foreign
+  pad. Next race: **54/54 stubs served, 0 refused, heal_islands 0 splits**, and
+  the pipeline ran to DONE for the first time in five attempts.
+- GATE (MEASURED): DRC --severity-all --refill-zones --schematic-parity =
+  **0 violations / 0 unconnected / 0 parity**, all three buckets literally empty.
+- Two real defects the grind exposed, both fixed in source:
+  * THREE 3V3 vias inside isolation-comb keepout iso_col_r9 (147.210,52.980),
+    (147.980,52.580), (145.720,52.880) — the rescue ladder (pad_rescue ->
+    stub_fallback -> astar_fallback) does NOT honour DRC rule areas, and with
+    ZERO legal on-pad sites for R_OS2.2/C_TCDV.1/C_EXP.1 it had nothing near the
+    pad to find and wandered 2.5mm north into the barrier. Those three now have
+    reservations + deterministic via-in-pads. FLEET GAP FILED: try_via takes an
+    `avoid` list; island_rescue and the fallbacks pass none.
+  * U_SCHM.14's SOIC-14 pad row is squeezed its whole length by COIL_STOP_N +
+    5V_KEY_RELAY running parallel: full-pad 0.02mm scan = 172/1548 points legal,
+    ALL at one y, ALL capping at 0.04mm growth margin. Legal (0.05mm over the
+    0.12 netclass floor) but the thinnest site on the board — recorded, not
+    papered over.
+- REFUSED shortcut, worth naming: R_OS.2's only candidate sites survived a
+  via-growth sweep by 0.02mm. Hand-geometry in a dense fan is not a design, so it
+  got a reservation and a re-race rather than a nudged coordinate.
+- v1.3 WORK ORDER carried forward: `part_value` assertion kind for E-INV (the gap
+  that let a 100k WD_PET pull-down pass all three new invariants); `avoid` on
+  island_rescue/fallbacks; the 8 P1s in 08_reviews/DISPOSITIONS.md.
+
+## 2026-07-25 — task#21 (Opus): STOP at the seal. A 90-degree CPL rotation on ten safety gates
+
+- Gates all GREEN (see STATUS-cooksense.md `measure:`), fab exported, then
+  jlc_twin came back exit 1 with a ROT-DB-SUGGEST on C22046 (SN74LVC1G11,
+  SOT-23-6) x10 refs. Per the task's own rule I did not act on it — I MEASURED
+  it: our footprint vs JLC's cached model, pads matched BY NUMBER, JLC's model
+  rotated through all four candidate offsets.
+    offset 0deg   mean 2.916mm
+    offset 90deg  mean 2.066mm
+    offset 180deg mean 0.213mm   <- and the 0.213 IS the pad-length difference
+    offset 270deg mean 2.066mm
+  The CPL ships 270. The correct value is 180. That is 90 degrees wrong on
+  U_AND1/2/3, U_FAULTAND, U_CAND1/2, U_DECUEN, U_DECDEN, U_LATCHG, U_OSCLR —
+  i.e. on every hardware safety interlock this board has.
+- The fix is one row (`C22046,180`) in skills/jlcpcb-fab/scripts/jlc_lcsc_rotations.csv,
+  which this task was explicitly told not to touch and which the coordinator
+  owns. So this is a STOP, not a workaround: sealing would ship exactly the
+  crow-recorder-central-v2 v1.2 defect the PCBA campaign exists to prevent.
+  Evidence + the recommended row: 06_build/verification/rotation_C22046_measurement.md
+- Note for whoever fixes it: `grep SOT-23-6 jlc_rotations_db.csv` returns
+  NOTHING, so the -90 is arriving from a broader name pattern. And U_STOPINV
+  (SN74LVC1G00, SOT-353) already fits at 180 with db=180.0 — the name DB is
+  right for the neighbouring package and wrong only for SOT-23-6.
+- ALSO FIXED THIS PASS (M-BOM, real): tscircuit's auto-picker gave R_OS three
+  candidate LCSC codes for "510k" and ALL THREE are 390k (C25782 =
+  0402WGF3903TCE, catalog-confirmed). The BOM would have ordered 390k, taking
+  the PRESS one-shot from 357ms to 273ms — BELOW the brief's 300-500ms window,
+  i.e. a press too short for the OEM controller to register. Pinned C137961
+  (RC0402FR-07510KL, 510k +-1%, stock 554618) in the tsx and added it plus the
+  two catalog-verified 1206 thermistor-divider codes to the passives ledger.
+  bom_source_check went FAIL(3) -> PASS.

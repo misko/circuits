@@ -206,7 +206,16 @@ export default () => (
         pin7: "net.OS2_RC", pin8: "net.GND", pin9: "net.N3V3", pin10: "net.GND",
         pin11: "net.GND", pin13: "net.PRESS_TIMED", pin14: "net.OS_C", pin15: "net.OS_RC", pin16: "net.N3V3",
       }} />
-    <resistor name="R_OS" resistance="510k" footprint="0402" connections={{ pin1: "net.OS_RC", pin2: "net.N3V3" }} />
+    {/* LCSC code PINNED (task#21, 2026-07-25). tscircuit's own auto-selection returned
+        C25782 / C163467 / C2906936 for this "510k" — and JLC's catalog says ALL THREE are
+        390kOhm (C25782 = 0402WGF3903TCE, "390kΩ 50V 62.5mW ±1%"). The BOM would have ordered
+        390k for a part labelled 510k, taking the PRESS one-shot from t_w = 0.7*510k*1uF =
+        357ms down to 273ms — BELOW the brief's 300-500ms window, i.e. a press too short for
+        the OEM controller to register. Caught by bom_source_check leg C (VALUE-MISMATCH) and
+        confirmed against the live catalog. C137961 = RC0402FR-07510KL, 510kOhm ±1% 0402,
+        stock 554618 on 2026-07-25. This is why the timing resistor gets an explicit code and
+        does not inherit whatever the auto-picker likes. */}
+    <resistor name="R_OS" resistance="510k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C137961"] }} connections={{ pin1: "net.OS_RC", pin2: "net.N3V3" }} />
     <capacitor name="C_OS" capacitance="1uF" footprint="0603" connections={{ pin1: "net.OS_C", pin2: "net.OS_RC" }} />
     <resistor name="R_OS2" resistance="10k" footprint="0402" connections={{ pin1: "net.OS2_RC", pin2: "net.N3V3" }} />
     <capacitor name="C_OSV" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
