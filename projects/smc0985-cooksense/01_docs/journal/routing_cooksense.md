@@ -1055,3 +1055,50 @@ C25741 = 288617, so the zeros are the library's answer, not a dead field.
   (RC0402FR-07510KL, 510k +-1%, stock 554618) in the tsx and added it plus the
   two catalog-verified 1206 thermistor-divider codes to the passives ledger.
   bom_source_check went FAIL(3) -> PASS.
+
+## 2026-07-25 — task#21 (Opus): rotation UNBLOCKED, twin exit 0 — then STOPPED again on two P0 ISOLATION defects
+
+- Coordinator landed `C22046,180` (95317d5) after re-measuring all ten refs
+  independently (rms 0.2125 vs 2.0784, 9.8x, 10/10). Re-export CPL diff vs the
+  pre-fix export: **exactly 10 changed cells, all in the Rotation column, all
+  270.0 -> 180.0, 0 rows added/removed**, BOM byte-identical. Third distinct
+  failure mode of name-keyed rotation: no SOT-23-6 rule exists at all, so -90
+  arrived from the broader ^SOT-23 prefix — right for the 3-pin part, wrong for
+  the 6-pin one.
+- 12 OTHER ROT-DB-SUGGEST rows remain (7 codes). MEASURED all of them, ACTED ON
+  NONE, and the reason is worth recording: **my operator and the twin DISAGREE
+  on three of the seven** (C125121, C189896, C2683602). On C22046 all three
+  measurements agreed — but 0 and 180 are sign-invariant, so that agreement
+  never tested handedness. Two operators that disagree mean you have no
+  measurement yet, not two candidates. Two more (C157991 at 1.4x, C587657 at
+  2.9x) do not separate at all. Reported to the coordinator; CE1 (a POLARIZED
+  220uF electrolytic, my fit says 0 at 126.6x where the name DB says 180) goes
+  on the order-preview human gate by name regardless. Evidence:
+  06_build/verification/rotation_C22046_measurement.md
+- Adjudicated the 4 remaining PAD-GEOM classes with RE-MEASURED extents
+  (C133954 SOIC-16 new row; C22046/C8678/C5158048 gained the v1.2-new refs,
+  numbers identical to the v1.0 measurement as they must be for one footprint).
+  **jlc_twin EXIT 0**, 173 OK / 410. The C22046 entry carries an explicit note
+  that a pad-geometry adjudication must NEVER be read as blessing a rotation.
+- THEN the layout/thermal lens came back **DO-NOT-ORDER on two P0s**. I
+  re-measured both before accepting; both reproduce exactly:
+  1. **H4 keypad->screw->SELV = 5.879mm**, under the board's own 6.000mm, with
+     NO HARDWARE FITTED (hole wall 5.679mm from RSTOP_MID, 0.200mm from the GND
+     pour on all four layers). H1/H2 keypad-side, H3/H4 SELV-side: a chassis
+     plate is a galvanic short. DRC cannot see it — an NPTH is a hole, not a
+     conductor.
+  2. **Min isolated-to-SELV copper gap 0.175mm** (CONTACTOR_C track <-> DOOR_RAW
+     via), with all four planes filled under the U_OPTO body plus 5 GND vias and
+     four SELV signal tracks. The LTV-817S part.yaml forbids exactly this, in
+     its own words.
+- STOPPED. Staged release directory REMOVED (the 07_releases contract forbids a
+  directory carrying an unresolved P0). Not sealed.
+- THE PATTERN THIS BOARD KEEPS TEACHING: every P0 found today was invisible to
+  the machine gates and visible to a lens that read a part dossier. WD_PET (the
+  datasheet names the resistor VALUE), C22046 (the rotation table's key is the
+  wrong shape), H4 (an NPTH is not copper so DRC ignores it), U_OPTO (the
+  part.yaml states the layout rule and nothing checks it). Four for four. The
+  v1.3 gate work is: E-INV `part_value`; an isolation-domain DRC rule with real
+  clearance (P1-3 — `KEYPAD_ISO` is currently 0.12mm, the same as Default, so
+  the 6mm is held by footprint pitch alone at 2% margin and NO gate can fail);
+  and a mounting-hardware/creepage check that models the screw, not the hole.

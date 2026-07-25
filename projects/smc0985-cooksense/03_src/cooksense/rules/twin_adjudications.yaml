@@ -27,8 +27,9 @@
 
 # -- SOT-23-6 (KiCad SOT-23-6 vs JLC SOT-23-6_L2.9-W1.6-P0.95-LS2.8). 0.95mm
 #    pitch identical. Per side: ours [0.48..1.80]; JLC [0.80..1.90]; overlap 1.00mm.
-- {lcsc: C22046, refs: [U_AND1, U_AND2, U_AND3, U_FAULTAND], status: PAD-GEOM,
-   why: "SOT-23-6 pad-length class: ours [0.48..1.80] vs JLC [0.80..1.90] per side, overlap 1.00mm; pitch 0.95 identical, 6-pad topology matches, fit non-mirrored."}
+- {lcsc: C22046, refs: [U_AND1, U_AND2, U_AND3, U_FAULTAND, U_CAND1, U_CAND2,
+          U_DECUEN, U_DECDEN, U_LATCHG, U_OSCLR], status: PAD-GEOM,
+   why: "SOT-23-6 pad-length class: ours [0.475..1.800] vs JLC [0.800..1.900] per side, overlap 1.000mm; pitch 0.95 identical, 6-pad topology matches, fit non-mirrored. v1.2 adds the six NEW 1G11 gates (contactor gate, decoder-enable gates, latch-freeze, one-shot clear) — RE-MEASURED on the v1.2 board, numbers identical to the v1.0 measurement for the original four, as they must be for the same footprint. SEPARATELY: this LCSC's CPL ROTATION was 90deg wrong until 2026-07-25 (name-DB ^SOT-23 gave -90; measured 180, rms 0.213 vs 2.078 next best, 9.8x, 10/10 refs) — fixed by the C22046,180 row in jlc_lcsc_rotations.csv, NOT by this adjudication. A pad-geometry adjudication must never be read as blessing a rotation."}
 
 # -- SOIC-16 3.9x9.9 (KiCad official vs JLC SOIC-16_L9.9-W3.9-P1.27-LS6.0).
 #    1.27mm pitch identical, 16-pad topology matches. Across-body per side: ours
@@ -63,18 +64,29 @@
 - {lcsc: C113974, refs: [D_TVS], status: PAD-GEOM,
    why: "D_SMB fillet-length class (== usb-hub-3s C83846, 4.30 vs 4.72): ours [0.90..3.40] vs JLC [1.34..3.38] per side, overlap 2.05mm; leads land on both; polarity gate PASS."}
 
+# -- SOIC-16 3.9x9.9, CD74HC221 (v1.2 NEW part, ADR-0011 s6 non-retriggerable
+#    one-shot; KiCad official vs JLC SOIC-16_L9.9-W3.9-P1.27-LS6.0-BL). Same
+#    footprint CLASS as C10092/U_SR1 above but a DIFFERENT LCSC, so it needs its
+#    own row. 1.27mm pitch identical, 16-pad topology matches, fit non-mirrored.
+#    MEASURED on the v1.2 board: ours per side [1.500..4.745]; JLC
+#    [1.755..4.751]; overlap 2.990mm. The gull-wing foot (lead span 6.0) lands
+#    inside both. Twin reports the pad1<->16 span as 4.95 vs 5.48 = 2x the
+#    0.265mm centre delta, i.e. pad LENGTH, not pitch.
+- {lcsc: C133954, refs: [U_ONESHOT], status: PAD-GEOM,
+   why: "SOIC-16 pad-length class (same class as C10092/U_SR1, different LCSC so its own row): ours [1.500..4.745] vs JLC [1.755..4.751] per side, overlap 2.990mm; pitch 1.27 identical, 16-pad topology matches, fit non-mirrored. KiCad IPC nominal vs EasyEDA toe-extended; the gull-wing foot (LS6.0) lands on copper in both."}
+
 # -- DO-214AC / SMA (KiCad D_SMA vs JLC SMA_L4.3-W2.6-LS5.2). Per side: ours
 #    [0.75..3.25]; JLC [1.20..3.20]; overlap 2.00mm. Same class as usb-hub-3s
 #    C148222 (+0.42mm fillet; here +0.40).
-- {lcsc: C8678, refs: [D_REVCLAMP], status: PAD-GEOM,
-   why: "D_SMA fillet-length class (== usb-hub-3s C148222): ours [0.75..3.25] vs JLC [1.20..3.20] per side, overlap 2.00mm; polarity gate PASS (pad1=cathode vs footprint marker)."}
+- {lcsc: C8678, refs: [D_REVCLAMP, D_KSTOP], status: PAD-GEOM,
+   why: "D_SMA fillet-length class (== usb-hub-3s C148222): ours [0.750..3.250] vs JLC [1.200..3.200] per side, overlap 2.000mm; polarity gate PASS (pad1=cathode vs footprint marker). v1.2 adds D_KSTOP (the K_STOP coil flyback, SS34 in the same D_SMA land) — RE-MEASURED on the v1.2 board, byte-identical extents to D_REVCLAMP."}
 
 # -- SOD-323 (KiCad D_SOD-323 vs JLC SOD-323_L1.7-W1.3-LS2.5). Per side: ours
 #    center 1.05 len 0.6 = [0.75..1.35]; JLC center 1.2 len 0.8 = [0.80..1.60];
 #    overlap 0.55mm. Lead span 2.5 -> the lead foot occupies ~[0.85..1.25], fully
 #    inside BOTH patterns' copper.
-- {lcsc: C5158048, refs: [D_ESD_IN], status: PAD-GEOM,
-   why: "SOD-323 pad-length class: ours [0.75..1.35] vs JLC [0.80..1.60] per side, overlap 0.55mm covering the full lead-foot zone [0.85..1.25] (LS2.5); polarity gate PASS."}
+- {lcsc: C5158048, refs: [D_ESD_IN, D_ESTOP], status: PAD-GEOM,
+   why: "SOD-323 pad-length class: ours [0.750..1.350] vs JLC [0.800..1.600] per side, overlap 0.550mm covering the full lead-foot zone [0.85..1.25] (LS2.5); polarity gate PASS. v1.2 adds D_ESTOP (the E-stop input clamp, same PESD5V0S1BA land) — RE-MEASURED on the v1.2 board, extents identical to D_ESD_IN."}
 
 # -- 1812 chip polyfuse (KiCad Fuse_1812 vs JLC F1812). Ours center 2.138 len
 #    1.12 = [1.58..2.70] (toe-fillet biased); JLC center 1.85 len 1.407 =
