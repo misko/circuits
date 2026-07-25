@@ -1,9 +1,39 @@
 ---
 name: pcb-design
-description: "Full PCB design pipeline entry point: takes a design brief and drives it from commission to an orderable, verified JLCPCB release (/pcb-design <the board I would like to design...>). Use when the user wants a new circuit board designed end-to-end."
+description: "Full PCB design pipeline entry point: takes a design brief and drives it from commission to a verified, ORDERABLE-AND-ASSEMBLED JLCPCB PCBA release (/pcb-design <the board I would like to design...>). Use when the user wants a new circuit board designed end-to-end."
 ---
 
-# /pcb-design — brief to orderable release
+# /pcb-design — brief to an ASSEMBLED board
+
+## PCBA is the deliverable
+
+**Every board is designed to arrive ASSEMBLED.** Gerbers are an intermediate,
+not the goal. Operationally: every footprint is machine-placed unless a
+recorded decision says otherwise; every BOM line carries an LCSC code unless
+`03_src/rules/assembly.yaml` justifies its absence with a dated measurement;
+and the CPL is gated the way copper is — classified, never counted. An
+unpopulated part is a DEFECT WITH A DECISION RECORD, never a free outcome, and
+"hand-solder" is a sourcing wall you must PROVE you hit, not a style.
+
+This is paid-for, and all three incidents below were found by REVIEWERS, not by
+any gate:
+
+- **cooksense v1.1** ships 13 CPL placement rows whose BOM line has a BLANK
+  LCSC, and its own MANIFEST declares 12 of them `not_assembled` — the machine
+  and the manifest were handed contradictory instructions (J_TC is blank on the
+  CPL and declared nowhere). Every gate was green.
+- **crow-recorder-central-v2 v1.2** sealed with U1 (consigned 0.4mm-pitch
+  TQFP-128) at CPL 270 when its own shipped twin measured 90: **180 degrees
+  off**. Cost a superseding release whose fab set differs from v1.2 in exactly
+  one file.
+- **cooksense v1.0 + v1.1** ship U_WD at 270 where this repo's own rotation
+  table already held the measurement that says 90 — written into a NEIGHBOURING
+  row's evidence prose instead of a row of its own, so the resolver never saw
+  it (fixed 2026-07-25; the rule now lives in the table header).
+
+Assembly correctness is not polish applied at order time. It is earned at PART
+SELECTION and gated BEFORE the seal, because after the seal the only remedy is
+a new release.
 
 The argument is the user's design brief, VERBATIM. You will drive the full
 pipeline in `~/gits/circuits/projects/<name>/`. Load the `kicad-pcb` and
@@ -571,21 +601,38 @@ wall-clock for no independence gain.
 
 - `export_jlc_package.py` (jlcpcb-fab skill): produces `fab/bom.csv` +
   `cpl.csv`; LCSC flows from the TSX `supplierPartNumbers` via
-  circuit.json — there is no per-board BOM-seeding script. Hand-solder THT
-  lines stay deliberately uncoded and are listed in ORDER_README.
+  circuit.json — there is no per-board BOM-seeding script. An UNCODED line is
+  a FAILED sourcing decision, not a style choice: it needs an
+  `03_src/rules/assembly.yaml` entry with a closed-vocabulary `reason:`
+  (`not_in_catalog`|`consign`|`user_supplied`|`dnp_by_design`|`mechanical`|
+  `test_point`) and dated `evidence:` (the catalog query and its result).
+  `consign` means PLACED — it is a sourcing class, not a population class.
+  A part that is not populated must ALSO leave the CPL
+  (`FP_EXCLUDE_FROM_POS_FILES`): a blank-LCSC CPL row tells JLC to place a
+  part it cannot source (cooksense v1.1 shipped 13 of them).
 - `bom_source_check.py fab/bom.csv circuit.json --parts 02_parts`: legs
   A+C — per-refdes LCSC == source, AND every R/C row's MPN-decoded catalog
   value == its BOM label (the R12/R30 wrong-part class: 2 sealed escapes
   before this gate existed, 2026-07-23). Re-run here even though it ran at
   the first BOM export — it now grades the STAGED fab set.
-- `jlc_stock_check.py`: every coded line in stock >= 5x need.
+- `jlc_stock_check.py`: every coded line in stock >= 5x need. The VERDICT
+  line is the gate — read it. Five sealed releases across this fleet ship
+  stock evidence whose last line says `FAIL` (one with the board's own CPU at
+  stock 0) because nothing ever parsed it. A missing or unparseable verdict is
+  a FAIL, not a skip.
 - `jlc_twin.py BOARD bom.csv 06_build/twin --adjudications
-  03_src/rules/twin_adjudications.yaml --also <REF=LCSC,...>` (include
-  hand-solder parts with known codes). Gate: exit 0 — zero unadjudicated
-  MIRRORED / PAD-MISMATCH / PAD-GEOM; act on MODEL-SELF and
-  POLARITY-CHECK findings; adjudications are evidence-backed per the
-  jlcpcb-fab skill (pixel measurements, board_dx/board_dy nudges, NUDGE
-  echo verified).
+  03_src/rules/twin_adjudications.yaml --assembly 03_src/rules/assembly.yaml`
+  (coded not-assembled parts are checked too). Gate: exit 0 — zero
+  unadjudicated MIRRORED / PAD-MISMATCH / PAD-GEOM **or ROT-DB-SUGGEST**; act
+  on MODEL-SELF and POLARITY-CHECK findings; adjudications are evidence-backed
+  per the jlcpcb-fab skill (pixel measurements, board_dx/board_dy nudges,
+  NUDGE echo verified).
+  **A ROT-DB-SUGGEST is a FAILURE, not a hint** — it means the CPL angle
+  disagrees with JLC's own CAD model for that LCSC. Resolve it by MEASURING
+  and adding a row to `jlcpcb-fab/scripts/jlc_lcsc_rotations.csv` (never prose
+  in a neighbouring row's evidence — that is exactly how U_WD shipped 180 deg
+  off, twice). The footprint-NAME table cannot express this: C79924 and C7719
+  are both SOT-23-5 and need 180 vs 90.
 - Fresh-context PIN REVIEW: `pin_audit.py` dossiers -> new agents per
   part group following `kicad-pcb/references/pin-review-protocol.md`.
   Zero FAILs to proceed.

@@ -1,0 +1,124 @@
+# SCHEMA EXAMPLE (skill-owned, project-independent). Copy into a new project's
+# 03_src/rules/ and replace the values — the KEYS are the contract.
+#
+# PCBA IS THE DELIVERABLE (see pcb-design/SKILL.md). This file is the ONE
+# machine-readable home for "who gets placed, and why not". The ASSEMBLY gate
+# battery reads it:
+#   A-POP   — the population set is DECLARED, not emergent:
+#             {board footprints} − {CPL designators} MUST equal `not_assembled`
+#             (`assembly_coverage.py <proj>`)
+#   A-ROT   — every CPL rotation is MEASURED, never inherited
+#             (`cpl_rotation_check.py <proj>`; this file supplies the
+#             not-assembled set so coded-but-unplaced parts are still checked)
+#   A-STOCK — a release seals only against stock evidence that PASSES, or a
+#             `sourcing_plan:` entry naming the measured stock and its date
+#
+# WHY THIS FILE EXISTS. Before it, "not assembled" was a SENTENCE in the release
+# MANIFEST that no code read, and the two artifacts disagreed in the field:
+#   - cooksense v1.1 sealed with 13 CPL placement rows whose BOM line has a
+#     BLANK LCSC. Its MANIFEST declares 12 of them not_assembled (the 13th,
+#     J_TC, is declared nowhere) — so JLC was told to PLACE 12 parts the
+#     manifest says are not assembled, and to source a part with no code.
+#   - the cooksense interposer v1.0 sealed with a blank-LCSC BOM row whose refs
+#     are ALSO on the CPL, no not_assembled line at all, and a disposition that
+#     is PROSE telling a human to delete rows before uploading. Every gate green.
+# An unpopulated part is a DEFECT WITH A DECISION RECORD, never a free outcome.
+#
+# THE MANIFEST `not_assembled:` LINE IS GENERATED FROM THIS FILE. Never hand-write
+# it in two places — that is how the two drifted apart in the first place.
+
+# ---- SERVICE DECLARATION (required; declaration-only until the capability
+# reference is fetched — do NOT gate on numbers written from memory) ----------
+service: standard          # JLC assembly service tier, as ORDERED
+sides: [top]               # sides that carry placed parts. Adding `bottom` is a
+                           # COST and process decision, not a layout convenience.
+fiducials: none            # `none` + the fab's own statement, or a count/type.
+                           # JLC adds fiducials for SMT orders on their rails;
+                           # LOCAL fiducials beside <=0.4mm-pitch parts are YOUR
+                           # job and cannot be added later. Silence is not allowed:
+                           # state `none` deliberately or declare what you placed.
+build_quantity: 5          # boards in the order — A-STOCK grades stock >= qty x this
+
+# ---- NOT ASSEMBLED (the population set) ------------------------------------
+# Every ref here MUST also carry FP_EXCLUDE_FROM_POS_FILES on the board, so it
+# leaves the CPL. Declaring it here but leaving it on the CPL is a FAIL: the
+# declaration and the machine instruction must agree.
+#
+# `reason:` is a CLOSED VOCABULARY — if none fits, the honest answer is that the
+# part should be re-specified to a placeable one:
+#   not_in_catalog  JLC does not carry it. `evidence:` = the catalog query + result.
+#   consign         YOU ship the part, JLC PLACES it. NOTE: consigned parts are
+#                   POPULATED — they stay ON the CPL and belong in `consigned:`
+#                   below, NOT here. Listing a consigned part as not_assembled
+#                   conflates a sourcing class with a population class.
+#   user_supplied   fitted by the end user after delivery (fuse element, jumper).
+#   dnp_by_design   footprint deliberately unstuffed (option strap, alt-BOM).
+#   mechanical      no electrical function (standoff, shield can pad).
+#   test_point      probe pad with no part.
+#
+# `evidence:` must be a DATED MEASUREMENT, not a rationale. "hand-solder" is a
+# sourcing wall you PROVE you hit — a searched-and-absent catalog result — not a
+# style preference.
+not_assembled:
+  # - refs: [K_U1, K_U2, K_U3]
+  #   reason: not_in_catalog
+  #   evidence: "LCSC search 'DIP05-1A72-12L' 2026-07-24 -> 0 results; Standex
+  #              reed relay, DO-NOT-SUBSTITUTE per part.yaml (contact rating is
+  #              the safety argument). JLC parts library queried same day."
+  #   disposition: "hand-soldered at integration; ORDER_README section 3 lists them"
+  # - refs: [F1]
+  #   reason: user_supplied
+  #   evidence: "10A MINI blade fuse ELEMENT is user-fitted; the HOLDER (C5249699)
+  #              IS assembled. Checked 2026-07-23."
+  #   disposition: "purchasing list ships the element loose"
+  # - refs: [H1, H2, H3, H4]
+  #   reason: mechanical
+  #   evidence: "M3 mounting holes, no footprint pads with nets (board 2026-07-24)"
+  #   disposition: "n/a"
+  # - refs: [TP1, TP2]
+  #   reason: test_point
+  #   evidence: "bare probe pads, no part (board 2026-07-24)"
+  #   disposition: "n/a"
+
+# ---- CONSIGNED (you supply, JLC PLACES — these stay ON the CPL) -------------
+# A consigned part is ASSEMBLED. It needs the same rotation rigor as any other
+# placed part — more, in fact: crow-recorder-central-v2 v1.2 shipped its
+# CONSIGNED 0.4mm-pitch TQFP-128 at CPL 270 when the twin measured 90 (180 deg
+# off), and consigned parts are the ones you cannot cheaply replace.
+#
+# `msl:` is REQUIRED for consigned parts and for any part with an exposed pad:
+# JLC cannot bake what they do not know is moisture-sensitive. Read it from the
+# datasheet (a fourth datasheet read, budgeted at part selection) and cite it.
+# crow-recorder-central v1.0 shipped a consigned MSL-3 XU316 with zero MSL text
+# in the order paperwork while its own part.yaml recorded "MSL 3, 168h floor life".
+consigned:
+  # - refs: [U1]
+  #   lcsc: C6938291
+  #   msl: "MSL 3, 168h floor life (XMOS XU316 ds v2.0.0 sec.15.2, read 2026-07-23)"
+  #   evidence: "supplied from stock on hand, 5 pcs, 2026-07-24"
+  #   disposition: "ORDER_README section 1b: ship with the order, bake if floor
+  #                 life exceeded; JLC places"
+
+# ---- SOURCING PLAN (justifies a non-OK stock line at seal time) -------------
+# A-STOCK fails on any coded, placed line whose stock evidence is not OK unless
+# it appears here with a MEASURED number and a date. Five sealed releases in this
+# fleet shipped stock evidence whose last line says FAIL — including one with the
+# board's own CPU at stock 0 — because nothing ever read the verdict.
+sourcing_plan:
+  # - lcsc: C6938291
+  #   measured_stock: 0
+  #   measured_on: 2026-07-24
+  #   plan: "consigned from stock on hand (see consigned: U1); JLC stock
+  #          irrelevant for this line"
+  # - lcsc: C2939728
+  #   measured_stock: 120
+  #   measured_on: 2026-07-24
+  #   plan: "120 >= 5 boards x 1; single-source, no alternate qualified — accept
+  #          for this build, qualify an alternate before any volume order"
+
+# ---- EXEMPT REFDES CLASSES -------------------------------------------------
+# Refdes prefixes whose absence from the CPL is expected and needs no per-ref
+# entry above. DECLARED, never hardcoded in the checker: hardcoding an exemption
+# is how the refdes-on-silk waiver became an inherited defect across three boards.
+# Keep this list SHORT and justify additions in the project's assembly ADR.
+exempt_prefixes: [H, TP, FID, MH]
