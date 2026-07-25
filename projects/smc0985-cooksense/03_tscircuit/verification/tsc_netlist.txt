@@ -47,7 +47,7 @@ COMPONENTS:
  - C_WD: 100nF 0402 capacitor
  - R_MR: 100kΩ res0402 resistor
  - C_MR: 100nF 0402 capacitor
- - R_WDPETPD: 100kΩ res0402 resistor
+ - R_WDPETPD: 1kΩ res0402 resistor
  - U_ONESHOT: soic16
  - R_OS: 510kΩ res0402 resistor
  - C_OS: 1uF 0603 capacitor
@@ -1504,7 +1504,7 @@ C_MR (100nF 0402)
 - pin1(pos, anode, left): NETS(WD_MR_N)
 - pin2(neg, cathode, right): NETS(GND)
 
-R_WDPETPD (100kΩ res0402)
+R_WDPETPD (1kΩ res0402)
 - pin1(anode, pos, left): NETS(WD_PET)
 - pin2(cathode, neg, right): NETS(GND)
 

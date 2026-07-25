@@ -904,3 +904,84 @@ NOT yet rebuilt. All other source staged. No git touched.
   5 race cycles + 8 stitch cycles; every fix measured before and after.
 - next: BLOCKED on P0 WD_PET (see STATUS-cooksense.md). The routing gate is
   a declared handoff boundary; a successor resumes from the beacon.
+
+## 2026-07-25 — task#21 (Opus): the P0 fix, and the P0 INSIDE the P0 fix
+
+### The assigned P0, landed in source
+WD_PET = {J_PI.11, U_WD.4} — two nodes, no pull. `R_WDPETPD` added in
+03_tscircuit (canon M3), floorplan ANCHOR at [155.6,80.95] (MEASURED: nearest
+free 2.0x1.2mm courtyard window to U_WD pad4, 0.55mm to U_WD / 1.26mm to R_OE;
+pad2 sits over the In1 GND plane), plus a User.2 via-site reservation and a
+deterministic seed_stub via-in-pad. Three E-INV assertions pin it (net_has_part
++ both pin_on_net, so DIRECTION is asserted, not just presence).
+**RED-VERIFIED**: against the pre-fix netlist (saved byte-for-byte before the
+regen, md5 88d52eee...) electrical_invariants.py reports exactly those 3 as
+violated, 60/63 hold. Post-fix: 63/63. Evidence in
+06_build/verification/einv_red_verification.md.
+
+### THE VALUE WAS WRONG — and only a fresh lens caught it
+The prescription (and my first implementation) was **100k**, to match every
+other §7 pull. A zero-context safety truth-table lens over the new netlist
+returned **DO-NOT-ORDER** on exactly that resistor. Verified independently
+against the committed PDF (SLVS165O §7.3.4, verbatim):
+
+  "If the WDI pin detects a high-impedance state, the TPS3820, TPS3823,
+   TPS3824, or TPS3828 generates internal WDI pulse to make sure that RESET
+   does not assert. If this behavior is not desired, place a 1kOhm resistor
+   from WDI to ground."
+
+and §6.5: I_IL at WDI = **140 typ / 190 max uA**. The pin SOURCES that. Holding
+WDI at 0.3V through 100k would need 19V; the node instead sits ~2.4-2.6V at
+VDD 3.3V, above VIH = 0.7*VDD = 2.31V, so the transition detector keeps seeing
+the internal oscillator and **the supervisor pets itself**. The 100k fix was
+cosmetic: WD_OK would still never fall, TP_WDOK would still read healthy, and
+the contactor would still stay closed. 1k sinks 190uA at 0.19V << VIL 0.99V.
+Landed as 1k; the arithmetic is now in the part.yaml gotcha and ADR-0011 §8.
+
+LESSON (the reason this journal exists): **an invariant that pins a component's
+EXISTENCE does not pin its VALUE.** All three new E-INV assertions PASS on a
+100k board. E-INV phase E1 has no `part_value` kind — that is the gap, and it
+is the same shape as the gap that caused the P0 in the first place (intent that
+no gate can see). Until it lands, the guard is prose + a mandatory bring-up
+bench check: set GPIO17 to input, TP_WDOK must fall within 2.5s.
+
+### Route convergence (3 races, all 3/3 CLEAN — the grind was the STITCH)
+Adding one 0402 re-rolled every stochastic seed_stub site. Race 1 refused 4
+(R_REARMPU.2 / C_FAULTAND.1 / C_TCNA.2 / R_OE.2 — MEASURED: 0 legal on-pad via
+sites for three of them, i.e. copper crossing the WHOLE pad, so no rescue could
+ever have bonded them). Reserved all four -> race 2 fixed those and refused a
+FIFTH (R_OS.2) that had never had a rect. Rather than chase it, AUDITED the
+config: every seed_stub via site vs every User.2 rect. Exactly two pin-proved
+sites were unreserved (R_OS.2, U_FAULTAND.5). Reserved both -> race 3 refused
+two DIFFERENT ones, and the audit showed why:
+
+  **25 of 46 pin-proved seed_stub sites sit closer than 0.405mm to their own
+  reservation rect edge.** KRT enforces rects on the track CENTRELINE, so the
+  half-box must cover via_r 0.125 + gap 0.155 + track_half 0.125 = 0.405 — and
+  with a 0.4/0.5mm coil or power track it must cover more. The +-0.35 boxes
+  (C_TCAV, C_TCPA, R_DECUPD, U_SCHM.14, R_STOPPD, R_RAENRHEPD@+-0.25 ...) do
+  not, so a legal track can still reach the site. THAT is the root cause of the
+  "whack-a-mole", not luck. The +-0.45 boxes never refused, in any race.
+  => v1.3 WORK ORDER: widen the 25 undersized rects before any re-race.
+
+Closed it the way the journal already prescribes for a frozen chain: promoted
+the race-3 winner (c0/r8, 3/3 CLEAN) and RE-DERIVED the two refused sites
+against it with the pass's own primitive (pcb_toolkit.via_site_ok, 0.02mm grid,
+plus a via-growth sweep to rank margin):
+  R_RAENRHEPD.2 -> (128.365,91.605)  225/300 on-pad points legal, 0.22mm margin
+  U_SCHM.14     -> (176.475,56.295)  172/1548 legal, ALL at y56.295 and ALL
+                   capping at 0.04mm — the SOIC-14 pad row is squeezed its whole
+                   length by COIL_STOP_N + 5V_KEY_RELAY. Legal (0.05mm over the
+                   0.12 netclass floor) but the thinnest site on the board.
+I REFUSED the same treatment for R_OS.2 earlier in the grind: its only candidate
+sites survived the growth sweep by **0.02mm**, which is hand-geometry, not a
+design — that one got a reservation and a re-race instead.
+
+### Assembly (canon A-POP) — this board's own incident, closed
+cooksense v1.0 AND v1.1 shipped 13 CPL rows with a BLANK LCSC while the v1.1
+MANIFEST declared 12 of them not_assembled and J_TC nowhere. Now: floorplan
+pattern gives all 13 `exclude_from_pos_files`, and 03_src/rules/assembly.yaml
+declares them with DATED catalog measurements taken against jlcpcb.com's own
+library — 'DIP05-1A72-12L' -> C1561362 stock 0 (all 5 DIP05-1A72 variants 0);
+'PCC-SMP-K' -> 7 hits, all 0. Controls the same minute: C5620 = 5602,
+C25741 = 288617, so the zeros are the library's answer, not a dead field.

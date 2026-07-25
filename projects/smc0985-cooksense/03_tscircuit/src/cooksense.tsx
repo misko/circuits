@@ -176,14 +176,20 @@ export default () => (
     <capacitor name="C_WD" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
     <resistor name="R_MR" resistance="100k" footprint="0402" connections={{ pin1: "net.WD_MR_N", pin2: "net.N3V3" }} />
     <capacitor name="C_MR" capacitance="100nF" footprint="0402" connections={{ pin1: "net.WD_MR_N", pin2: "net.GND" }} />
-    {/* v1.2 P0 FIX (ADR-0011 section 8, safety truth-table review 2026-07-25): WDI MUST NOT
-        FLOAT. TPS3823 part.yaml pin 4: "if left floating the device self-pulses (WD effectively
-        disabled)" — so with J_PI unplugged or the Pi off, WD_OK would stay HIGH forever, the
-        expander's CONTACTOR_REQ latch would hold its last value, and U_CAND1/U_CAND2 would keep
-        the external cooking contactor ENERGISED. 100k to GND holds WDI at a defined LOW: no
-        edge within t_out (0.9/1.6/2.5 s) => RESET_N asserts => WD_OK LOW => contactor drops.
-        100k loads the Pi GPIO with 33uA and is the same value as every other section-7 pull. */}
-    <resistor name="R_WDPETPD" resistance="100k" footprint="0402" connections={{ pin1: "net.WD_PET", pin2: "net.GND" }} />
+    {/* v1.2 P0 FIX (ADR-0011 section 8, safety truth-table review 2026-07-25): WDI MUST NOT be
+        left high-impedance. TPS3823 datasheet SLVS165O sec.7.3.4, VERBATIM: "If the WDI pin
+        detects a high-impedance state, the TPS3820, TPS3823, TPS3824, or TPS3828 generates
+        internal WDI pulse to make sure that RESET does not assert. If this behavior is not
+        desired, place a 1kOhm resistor from WDI to ground." Without it, a Pi that dies and
+        releases GPIO17 back to input leaves WD_OK HIGH forever, the MCP23017 keeps its
+        CONTACTOR_REQ latch, and U_CAND1/U_CAND2 hold the external cooking contactor ENERGISED.
+        THE VALUE IS THE FIX, not the presence of a resistor. SLVS165O sec.6.5: I_IL at WDI =
+        140 typ / 190 max uA (WDI = 0.3V) — the pin SOURCES that much, so a 100k pull-down
+        would need 19V to hold it low and the detector would still see the internal pulses.
+        1k sinks 190uA at 0.19V, far under V_IL = 0.3*VDD = 0.99V. Cost: 3.3mA of Pi GPIO
+        drive while the heartbeat is high, 10.9mW in an 0402 (62.5mW rated). This is the one
+        pull on the board that is NOT 100k, and the datasheet is why. */}
+    <resistor name="R_WDPETPD" resistance="1k" footprint="0402" connections={{ pin1: "net.WD_PET", pin2: "net.GND" }} />
 
     {/* ================= BLOCK 3 — PRESS one-shot + RELAY MATRIX ============ */}
     {/* CD74HC221 NON-retriggerable one-shot (ADR-0011 §6, v1.2: replaces the RETRIGGERABLE

@@ -138,12 +138,42 @@ That is the exact inverse of the truth table's `Pi crash (WD)` row below,
 and of BRIEF C10. On a cooking-safety interlock it is a burn/fire hazard,
 not a nicety.
 
-FIX: `R_WDPETPD`, 100k 0402, WD_PET → GND. WDI held at a defined LOW is
+FIX: `R_WDPETPD`, **1 kΩ** 0402, WD_PET → GND. WDI held at a defined LOW is
 edge-free, so the fixed 0.9/1.6/2.5 s timer expires and RESET_N asserts,
 which is what every downstream gate already reads. DOWN rather than UP:
 both are edge-free and both bite, but a pull-UP to this board's 3V3 would
 source current into an unpowered Pi through its GPIO ESD clamp — partly
 back-feeding the very host whose absence this covers.
+
+**THE VALUE IS THE FIX.** The first cut of this section prescribed 100 kΩ,
+to match every other §7 pull. That would have been a resistor that looked
+like a fix and was not, and the seal-time truth-table lens caught it
+(2026-07-25). SLVS165O §7.3.4, verbatim:
+
+> The watchdog timer can be disabled by disconnecting the WDI pin from the
+> system. If the WDI pin detects a high-impedance state, the TPS3820,
+> TPS3823, TPS3824, or TPS3828 generates internal WDI pulse to make sure
+> that RESET does not assert. **If this behavior is not desired, place a
+> 1kΩ resistor from WDI to ground.** This resistor makes sure that the
+> TPS3820, TPS3823, TPS3824, or TPS3828 detects that WDI is not in a
+> high-impedance state.
+
+and §6.5 gives the reason in numbers: I_IL at WDI = **140 typ / 190 max µA**
+(measured at WDI = 0.3 V). The pin SOURCES that current. Holding it at
+0.3 V through 100 kΩ would need 19 V; the node instead sits at roughly
+3.3 × 100/(100+29…39 k) ≈ 2.4–2.6 V, above V_IH = 0.7·VDD = 2.31 V, so the
+transition detector keeps seeing the internal oscillator and the supervisor
+pets itself. 1 kΩ sinks 190 µA at 0.19 V, far under V_IL = 0.3·VDD = 0.99 V.
+Cost: 3.3 mA of Pi GPIO drive while the heartbeat is high; 10.9 mW in an
+0402 rated 62.5 mW.
+
+This is the one pull on the board that is deliberately NOT 100 kΩ. A future
+"consistency" edit that normalises it back to 100 kΩ silently restores the
+P0 — the E-INV assertions below pin the resistor and its direction, but NOT
+yet its value (E-INV phase E1 has no `part_value` kind). Until that lands,
+this paragraph and the tsx comment are the guard. **Bench proof, mandatory
+at bring-up:** set GPIO17 to input and scope TP_WDOK — it must go LOW within
+2.5 s. If it does not, this resistor is wrong.
 
 WHY IT SURVIVED FOUR GATES. It was not a missed check, it was an
 UNEXPRESSED one: the de-energization intent lived in §3 and in the truth
