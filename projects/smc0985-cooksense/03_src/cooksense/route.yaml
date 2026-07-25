@@ -158,6 +158,7 @@ prep:
       - {x0: 122.16, y0: 91.15, x1: 122.86, y1: 91.85, layer: User.2} # R_REARMPU 3V3@122.51 via site (REARM_N@121.49 W)
       - {x0: 57.13, y0: 59.65, x1: 57.83, y1: 60.35, layer: User.2}   # C_DVDT  GND@57.48 via site (EF_DVDT@56.52 W)
       - {x0: 182.67, y0: 70.25, x1: 184.33, y1: 70.95, layer: User.2} # C_AND3  3V3@183.02 + GND@183.98 (both plane; tight y)
+      - {x0: 160.39, y0: 81.80, x1: 162.01, y1: 82.60, layer: User.2} # C_OENAND 3V3@160.72 + GND@161.68 (both plane; whole-cap; re-race future-proof; rect interior clear — SR_OE_N y81.3 N + HOST_AUTH y82.9 S channels open)
       # NEW-v1.2 TRAPPED plane-bond via RESERVATIONS (D-BACK, task#21, 2026-07-24).
       # The aa6659a frozen chain stranded 5 more plane pads: C_DECU.1 + R_RAENRHEPD.2
       # are TRAPPED in the realization (no clear via site within 2mm — buried in the
@@ -378,7 +379,14 @@ stitch:
       - {net: 3V3, pin: R_BID1.2,     vias: [[122.510, 86.500]]}
       - {net: 3V3, pin: R_REARMPU.2,  vias: [[122.510, 91.500]]}
       - {net: 3V3, pin: U_LATCHB.5,   vias: [[182.838, 73.350]]}
-      - {net: GND, pin: R_RAENRHEPD.2, vias: [[128.510, 91.500]]}
+      - {net: GND, pin: R_RAENRHEPD.2, vias: [[128.510, 91.350]]}   # y nudged -0.15 to pad-north (still on pad y[91.18-91.82]); centres the via between I2C_SDA F.Cu (N,y90.80) & RAIL_EN_RHA B.Cu (S,y91.90) -> edge-gap 0.30mm both, vs 0.150 (floor, gate-refused) at pad-centre. Reuse-build MEASURED (task#21, 2026-07-24).
+      # C_OENAND.1 (3V3) stub RE-DERIVED + RESTORED (task#21 adjudication, 2026-07-24).
+      # The v1.2 re-race left this the ONE genuine source gap of the 6 DRC residuals:
+      # the site is clear on the promoted final_chain (cu-cu 0.475 / h2h 3.538, MEASURED)
+      # but nothing deterministically bonds it and pad_rescue historically fails on it.
+      # Paired with the C_OENAND whole-cap User.2 rect above (C_AND3 precedent). C_OENAND.2
+      # (GND) needs no stub — served by pad_rescue on the In1 plane, exactly like C_AND3.2.
+      - {net: 3V3, pin: C_OENAND.1,   vias: [[160.720, 82.200]]}
       # J_PWR Micro-Fit MECHANICAL RETENTION TABS (R-THERM, 2026-07-23). The two
       # 1MP shell tabs (5.66mm2 each, GND, SMD) trip R-THERM (>4mm2 GND pad, <2
       # vias) though they carry NO current (retention only; the real power path is
@@ -390,12 +398,13 @@ stitch:
       # inside each 3.43mm-wide tab, >0.65mm hole gap.
       - {net: GND, vias: [[16.610, 59.720], [17.460, 59.720]]}
       - {net: GND, vias: [[27.390, 59.720], [28.240, 59.720]]}
-      # v1.2 RE-RACE (2026-07-24): the three v1.1 realization-coupled 3V3 stubs
-      # (C_DECU.1, U_EXP.9, C_OENAND.1 — each explicitly marked "re-derive on any
-      # re-race") are RETIRED for the fresh race; if a realization strands one of
-      # those pads again, re-derive a measured stub ON THAT chain and restore it
-      # here with new coords. Keeping stale coords would either refuse (harmless)
-      # or trap the new realization (harmful) — the v1.1 C_ULNB lesson.
+      # v1.2 RE-RACE (2026-07-24): three v1.1 realization-coupled 3V3 stubs were
+      # retired for the fresh race, each marked "re-derive on any re-race". OUTCOME:
+      # C_DECU.1 + C_OENAND.1 both stranded again on the re-race -> re-derived at
+      # MEASURED final_chain pad centres and RESTORED above (C_DECU.1 in the NEW-v1.2
+      # block; C_OENAND.1 after R_RAENRHEPD.2). U_EXP.9 stays RETIRED — the rot0 race
+      # routes it natively (see below). Keeping stale coords would either refuse
+      # (harmless) or trap the new realization (harmful) — the v1.1 C_ULNB lesson.
       # C_ULNB.2 stub RETIRED (2026-07-24): two successive stub derivations
       # were realization-coupled traps (each re-race collided the last one).
       # PLACEMENT fix instead: C_ULNB is now SEEDED inside the plane band
