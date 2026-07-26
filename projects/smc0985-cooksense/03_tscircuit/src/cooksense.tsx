@@ -189,7 +189,26 @@ export default () => (
         1k sinks 190uA at 0.19V, far under V_IL = 0.3*VDD = 0.99V. Cost: 3.3mA of Pi GPIO
         drive while the heartbeat is high, 10.9mW in an 0402 (62.5mW rated). This is the one
         pull on the board that is NOT 100k, and the datasheet is why. */}
-    <resistor name="R_WDPETPD" resistance="1k" footprint="0402" connections={{ pin1: "net.WD_PET", pin2: "net.GND" }} />
+    {/* CODE PINNED (P0, 2026-07-26). This resistor is the reason the whole
+        "pin the code, not just the value" rule exists, and it was still unpinned
+        after R_OPENT was fixed. The auto-picker grouped it onto C25741 =
+        0402WGF1003TCE = 100k, i.e. the EXACT substitution ADR-0011 and the
+        ORDER_README bring-up ritual both forbid in writing: "do NOT normalise
+        R_WDPETPD to 100k, a 100k hold lets the supervisor pet ITSELF and
+        silently disables the watchdog". C11702 = 0402WGF1001TCE = 1k, already on
+        this BOM for R_SER0-7, catalog-verified in lcsc_passives_ledger.yaml.
+        WHY EVERY GATE STAYED GREEN, because this is the transferable part:
+          - E-INV `part_value` asserts R_WDPETPD == 1k and PASSES — it grades the
+            NETLIST value, which was always 1k. The netlist was never wrong.
+          - M-BOM leg C PASSES because the BOM Comment for the merged line reads
+            "100kΩ / 1kΩ" and the label parser takes the FIRST token, 100k, which
+            matches C25741. An aggregated Comment defeats the decade check.
+          - jlc_twin, DRC, A-ROT, A-POS all pass: nothing about geometry changed.
+        The one checker that sees it is `bom_source_check.py --circuit-only`,
+        which compares the tsx VALUE PROP against the ledger value of the CODE,
+        and it was not part of the seal battery. It is now, and its output ships
+        as verification/circuit_value_check.txt. */}
+    <resistor name="R_WDPETPD" resistance="1k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C11702"] }} connections={{ pin1: "net.WD_PET", pin2: "net.GND" }} />
 
     {/* ================= BLOCK 3 — PRESS one-shot + RELAY MATRIX ============ */}
     {/* CD74HC221 NON-retriggerable one-shot (ADR-0011 §6, v1.2: replaces the RETRIGGERABLE
