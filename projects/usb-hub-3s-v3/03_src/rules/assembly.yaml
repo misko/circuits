@@ -23,8 +23,11 @@
 #                               fiducial on the CPL is a placement instruction
 #                               for a part that does not exist)
 #   ---
-#   118 BOM parts  =  116 CPL placements  +  2 declared not_assembled (F1, SW1)
-#   116/116 CPL rows `top`; still 0 bottom-side placements.
+#   122 BOM parts  =  119 CPL placements  +  3 declared not_assembled
+#                                              (F1, SW1, and v1.6's R42 strap)
+#   119/119 CPL rows `top`; still 0 bottom-side placements.
+#   VERIFIED against the fresh v1.6 export 2026-07-25: "BOM: 46 lines (0 without
+#   LCSC); CPL: 119 parts" and "A-ROT OK: all 119 CPL rotations are sourced".
 #
 #   DELTA +11 placements, ALL from the status-LED cell (task#30 D2/D3/D4):
 #     D8            C2296  amber PACK indicator          NEW BOM LINE
@@ -57,6 +60,33 @@
 # 08_reviews/2026-07-25_v1.5_pcba-audit.md (PCBA-9); not invented locally.
 service: "standard SMT (top side only) + THROUGH-HOLE assembly (4 refdes / 22 plated holes: J1, J2, J3, J4; plus J5's 4 SMD-hybrid shield legs)"
 
+# ---- THE BOUGHT THROUGH-HOLE PROCESS (v1.6) --------------------------------
+# CLOSES the gap this file recorded in prose since v1.5 ("this schema has no
+# dedicated through_hole: key ... raised as a skill/template change, PCBA-9").
+# A-POP's CPL-NOT-SMT-PLACEABLE check now READS this block instead of only
+# interpolating `service:` into its message, so "we paid for the THT line" is a
+# checkable declaration rather than a sentence. All three keys are required and
+# every exempted ref must be NAMED: silence, an empty refs list, or a ref left
+# off the list all still FAIL. That keeps the case this check exists for — the
+# crow-recorder-central-v2 v1.4 barrel jack on a top-side-SMT-only CPL, with an
+# assembly.yaml asserting in prose that THT parts were off the CPL — failing.
+through_hole:
+  process: "JLCPCB through-hole assembly, ORDERED (user decision 2026-07-25:
+    buy the THT line; J1-J4 STAY on the CPL rather than being hand-soldered)"
+  refs: [J1, J2, J3, J4, J5]
+  evidence: "MEASURED plated-hole census on the v1.6 board 2026-07-26 (pcbnew pad
+    read, drill size > 0, F.Paste coverage per pad): J1 AMASS XT60PW-M 4 PTH
+    (2x 2.7mm blade + 2x 0.6mm anchor), J2/J3/J4 KH-AF90DIP-112 6 PTH each
+    (4x 1.0mm signal + 2x 3.0mm shell) = 4 refdes / 22 plated holes, and NONE of
+    those 22 carries F.Paste, so none can reflow — which is exactly why the
+    selective/wave line is bought rather than assumed. J5 is the HYBRID: 16 SMD
+    contacts that DO reflow plus 4x 0.6mm plated shield legs that do not, so it is
+    named here too; its 2x 0.65mm alignment posts are NPTH and solder nothing.
+    Cross-check that this is a purchase and not a hope: the same 4-refdes/22-hole
+    figure is in `service:` above and in the ORDER_README order-form section, and
+    F1/SW1 — the two THT parts that are NOT bought — are in not_assembled: below
+    with their own evidence."
+
 # 108/108 CPL rows measured `top`; the board carries ZERO bottom-side
 # footprints (pcbnew census 2026-07-25: 114 top / 0 bottom). Single-sided
 # assembly — no second reflow pass, no bottom-side cost line.
@@ -82,7 +112,21 @@ sides: [top]
 #      earlier 0.600 mm figure that missed J5 — v1.5 fresh lens, P2-1. The
 #      conclusion is unchanged; the number was wrong.)
 # Silence would have been the defect; this is the judgement.
-fiducials: none
+# v1.6: WAS `none`, and that is no longer true — THREE global fiducials (FID1-FID3)
+# are now on the board. Reasoning (b) below still holds on its own terms: the
+# smallest machine-placed pitch measures 0.500 mm > 0.400 mm, so local fiducials
+# beside a fine-pitch part are NOT required. What that argument never covered is
+# GLOBAL registration: without any fiducial the placer registers against the ROUTED
+# BOARD EDGE, and JLC's edge tolerance is +-0.2 mm — 40% of J5's 0.500 mm pitch
+# spent before the machine moves. Reasoning (a) is a statement about JLC's PANEL
+# rails, not about our board, and it was doing more work in this declaration than it
+# could bear. Three fiducials cost one copper dot each and are IMPOSSIBLE to add
+# after the panel exists, so v1.6 places them: FID1 (33,29) NW, FID2 (140,25) NE,
+# FID3 (145,105) SE — non-collinear (triangle area 1943 mm^2), each in open GND pour
+# and >=5 mm from the routed edge. All three are FP_BOARD_ONLY |
+# FP_EXCLUDE_FROM_BOM | FP_EXCLUDE_FROM_POS_FILES: a fiducial on the CPL is a
+# placement instruction for a part that does not exist.
+fiducials: 3
 
 # User decision 2026-07-25. Drives A-STOCK grading (stock >= 5 x per-board qty)
 # and the ORDER_README stock table's floor(stock/qty) ceilings.
@@ -136,17 +180,25 @@ not_assembled:
                if the bench gate says U12's leakage at 5.352 V is unacceptable
                over temperature. Cost if fitted, at the Pi 4's 3 A: vout_min
                5.227 -> 5.125 V, minus 349 mV of IR = 4.776 V, still +146 mV above
-               the 4.63 V undervoltage threshold. Deliberately UNCODED (no LCSC):
-               a dnp_by_design option strap must not be sourced or placed."
-    disposition: "NOTHING IS FITTED AT ASSEMBLY AND NOTHING IS SHIPPED LOOSE. The
-                  land stays bare copper. If bench gate Q8 (ORDER_README) finds
-                  U12's leakage unacceptable at the nominal 5.352 V rail, hand-fit
-                  ONE 160k 0402 at integration -- any 0402 160k 1% will do, the
-                  value is what matters and it is pinned by an E-INV part_value
-                  assert. If Q8 passes, the strap is never fitted and that PASS is
-                  recorded with its numbers. Either way the outcome is written
-                  down: an unpopulated part is a decision record, not a free
-                  outcome."
+               the 4.63 V undervoltage threshold. Code BAKED as C25757 (UNI-ROYAL
+               0402WGF1603TCE, 160k +-1% 0402 62.5mW, MPN decode 1603 -> 160x10^3,
+               LCSC-verified 2026-07-25, stock 455,100) AFTER the first export
+               value-RESOLVED it unaided — the same mechanism that shipped R12 at
+               3.74k when the design said 4.12k and R30 at 3.09k when it said 100k.
+               It happened to resolve correctly; that is luck, not a process."
+    disposition: "NOT PLACED at assembly — the land ships as bare copper. It DOES
+                  stay on the BOM: `not_assembled` here drops a ref from the CPL and
+                  KEEPS the BOM row by design (identical treatment to SW1 and F1 on
+                  this board), so JLC supplies one 160k 0402 LOOSE with the order.
+                  That is the useful outcome for a bench-decidable strap — whoever
+                  runs the gate already has the part in the bag and nobody has to
+                  source an 0402 to answer a question the board asked. If bench gate
+                  Q8 (ORDER_README) finds U12's leakage unacceptable at the nominal
+                  5.352 V rail, hand-fit the supplied part at integration; the value
+                  is pinned by an E-INV part_value assert. If Q8 passes, the strap is
+                  never fitted and that PASS is recorded WITH ITS NUMBERS. Either way
+                  the outcome is written down: an unpopulated part is a decision
+                  record, not a free outcome."
   - refs: [SW1]
     reason: dnp_by_design
     lcsc: C2939728

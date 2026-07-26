@@ -345,10 +345,22 @@ export default () => (
         THE LOAD IS A PI 4 AT 3 A; at the mistaken 5 A it would have eaten the
         entire margin and then some.
 
-        NOT coded to an LCSC part ON PURPOSE: it is dnp_by_design, so JLC must
-        neither source nor place it. Its value is pinned by an E-INV part_value
-        assert so nobody "helpfully" populates something else. */}
+        THE CODE IS BAKED, and it was NOT baked at first -- the first export
+        value-resolved it to C25757 on its own, which is EXACTLY the mechanism that
+        shipped R12 as 3.74k (design said 4.12k) and R30 as 3.09k (design said
+        100k). Verified before baking: C25757 = UNI-ROYAL 0402WGF1603TCE, 160k
+        +-1% 0402 62.5mW, MPN decode 1603 -> 160x10^3, LCSC stock 455,100 on
+        2026-07-25. The resolver happened to be RIGHT this time; that is luck, not
+        a process, so the code is now explicit. Value additionally pinned by an
+        E-INV part_value assert.
+
+        BEING HONEST ABOUT WHERE IT ENDS UP: `not_assembled` in assembly.yaml
+        drops a ref from the CPL but KEEPS it on the BOM by design (same as SW1
+        and F1 on this board). So JLC SOURCES one 160k 0402 and does NOT place
+        it -- it arrives loose with the order, which is the useful outcome for a
+        bench-decidable strap: whoever runs gate Q8 already has the part. */}
     <resistor name="R42" resistance="160k" footprint="0402"
+      supplierPartNumbers={{ jlcpcb: ["C25757"] }}
       connections={{ pin1: "net.N5VC", pin2: "net.FB_C" }} />
 
     {/* ===== MASTER OFF — SS12D07 slide switch grounds the ENKILL bus =====

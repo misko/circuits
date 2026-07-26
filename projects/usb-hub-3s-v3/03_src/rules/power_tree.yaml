@@ -123,6 +123,24 @@ rails:
     # 5 A number sitting beside a 3 A load is never read as an unresolved
     # contradiction by the next person -- or by a gate.
     iout_max_A: 3
+    # ---- DECLARED NON-GOAL, not an assumption -------------------------------
+    # A RASPBERRY PI 5 AT 5 A IS OUT OF SCOPE FOR THIS BOARD AS SPECIFIED. Stated
+    # as a non-goal rather than left implicit because THE +247.8 mV MARGIN IS
+    # CONTINGENT ON THE LOAD, NOT ON THE HARDWARE: the copper below is bit-identical
+    # to the copper that measured +15.0 mV of slack while the target was believed to
+    # be a Pi 5. Nothing was strengthened. The load got smaller.
+    # So anyone who later retargets a Pi 5 (or any 5 A sink) must find the 5 A
+    # arithmetic waiting for them instead of rediscovering it:
+    #     5 A: 98 mOhm x 5 A x 1.2 = 588.0 mV -> 4.639 V ->  +9.0 mV slack  (thin)
+    #     3 A: 98 mOhm x 3 A x 1.2 = 352.8 mV -> 4.874 V -> +244.2 mV slack (shipped)
+    # Retargeting a 5 A load therefore does NOT need a copper change to be legal --
+    # E-MARGIN still PASSES at 5 A -- but it puts the board back on 15 mV of paper
+    # slack, which is the posture v1.5's ORDER_README correctly refused to ship on.
+    # The lever, if it is ever wanted, is the CABLE (see ir_budget_mohm below): ~45
+    # of the 97 mOhm is cable, so a shorter/heavier cable buys far more than copper.
+    # A Pi 5 also brings its OWN over-voltage story: it browns out nearer 4.25 V
+    # (more headroom) but this file's 4.63 V threshold and ADR-0003's 6.00 V
+    # absolute-maximum chain are PI 4 FIGURES and would both need re-deriving.
     converter: LM5116MHX-NOPB
     eff: 0.9
     # E-MARGIN (v1.3 re-derivation, against the ACTUAL Q6+F2 delivery path - the eFuse
@@ -142,14 +160,38 @@ rails:
     #                         VBUSC F2.2 -> J5       2.209 mOhm
     #                                       total >= 9.32 mOhm, true ~10.4-11.6
     #                       Taken CONSERVATIVELY as 12 mOhm here.
+    #                       v1.6 COMPLETENESS FIX: those three segments are all
+    #                       FORWARD PATH (high side). The GND RETURN from J5 back to
+    #                       the buck was ABSENT from this budget -- not measured and
+    #                       judged negligible, simply missing, which in a budget
+    #                       looks exactly like zero. At 5 A even 2 mOhm is 12 mV, so
+    #                       "small" and "uncounted" must not be indistinguishable.
+    #                       SOLVED 2026-07-26 on the v1.6 board, same method as the
+    #                       forward path (SOR relaxation on FILLED copper, 0.8mm
+    #                       cells, F.Cu + In1.Cu + In2.Cu + B.Cu, 178 GND vias
+    #                       coupling the layers at ~0.5 mOhm each, source = J5's GND
+    #                       pads, sink = U11's EP + RS2's GND end, converged on the
+    #                       one-port resistance itself over 10350 sweeps):
+    #   GND return J5 -> buck-C     0.956 mOhm   MEASURED (not asserted)
+    #                       Cell occupancy confirms why it is small: In1.Cu carries
+    #                       17520 of 18908 GND cells (a near-solid plane), B.Cu
+    #                       12105 and F.Cu 9438 in parallel with it. 2.87 mV at 3 A;
+    #                       4.78 mV at 5 A -- which is exactly why it had to be
+    #                       counted rather than called negligible: at 5 A it is a
+    #                       third of the old 15 mV slack.
+    #   GND RETURN          0.956 mOhm  MEASURED 2026-07-26 (was ABSENT -- see the
+    #                       board-copper note above. A term that is missing from a
+    #                       budget is indistinguishable from a term that is zero,
+    #                       and this one is neither.)
     #   USB-C connector     ~5 mOhm   (paralleled VBUS pins A4/B4/A9/B9)
     #   short 5A USB-C cable ~45 mOhm  (0.3-0.5 m e-marked; REQUIRED per ORDER_README)
-    #   ------------------------------ TOTAL ~= 97 mOhm (was 88 before RL-2)
+    #   ------------------------------ TOTAL ~= 98 mOhm (97 + the 0.956 return,
+    #                       rounded UP; was 88 before RL-2's board-copper measurement)
     # ------------------------------------------------------------------
     # v1.6 RE-GRADE AT THE PI 4's 3 A. THE MARGIN IMPROVES 16.5x.
     #   headroom = vout_min - load_uv_threshold = 5.227 - 4.63 = 597.0 mV
-    #   derated budget = 97 mOhm x 3 A x 1.2 = 349.2 mV
-    #   SLACK = 597.0 - 349.2 = +247.8 mV   (was +15.0 mV at 5 A)
+    #   derated budget = 98 mOhm x 3 A x 1.2 = 352.8 mV
+    #   SLACK = 597.0 - 352.8 = +244.2 mV   (was +15.0 mV at the mistaken 5 A)
     # The delivered connector voltage goes 4.645 V -> 4.878 V at the worst
     # corner. NOTHING IN THE HARDWARE CHANGED -- the load did, because we now
     # know what it is. This is the single biggest change to this board's risk
@@ -177,7 +219,13 @@ rails:
     # connector voltage at the END of the ACTUAL 5A cable. Mitigation lever if bench
     # shows it marginal: R12 4.12k->4.22k (5VC 5.453 V) at the cost of the D5-Vwm /
     # no-load-OV margin. F2 and D5 are SECONDARY protection (see ADR-0002 honesty).
-    ir_budget_mohm: 97   # RL-2 measured board copper (was 88 with a ~3 mOhm guess)
+    ir_budget_mohm: 98   # RL-2's measured board copper + the v1.6 GND-return solve.
+                         # History, each step removing an optimistic assumption and
+                         # none changing the hardware: 88 (guessed ~3 mOhm copper)
+                         # -> 97 (RL-2 measured 12 mOhm FORWARD path) -> 98 (v1.6
+                         # measured the 0.956 mOhm RETURN the forward-only solve had
+                         # silently omitted). At the Pi 4's 3 A: 98 x 3 x 1.2 =
+                         # 352.8 mV against 597 mV of headroom -> slack +244.2 mV.
     # 4.63 V is and always was the RASPBERRY PI 4 undervoltage-detect threshold,
     # so it is LEFT UNCHANGED by the Pi 5 -> Pi 4 correction -- but it is recorded
     # here that it is a Pi 4 figure now that we know which board it is. It was

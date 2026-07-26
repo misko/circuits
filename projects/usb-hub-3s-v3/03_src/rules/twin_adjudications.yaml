@@ -158,3 +158,117 @@
      J1 remains a MANDATORY order-preview polarity item (P2) because geometry
      cannot tell which blade is '+': part.yaml records 'PAD 1 IS NEGATIVE' and the
      fleet ledger records a reversed XT60 shipping once."}
+
+# ---- v1.6 STATUS-LED CELL: the POLARITY-FIT alarm is CORRECT, and it agrees ----
+# THE TWIN IS RIGHT AND THE PAD FIT IS WRONG. jlc_twin reports, independently of
+# anything I measured: "the pad-number fit says offset 180, but the MARKING channel
+# disagrees by 180deg: our polarity marking sits at pad 1 (margin 0.69mm) while
+# JLC's sits at pad 2 (margin 0.23mm) — the two libraries NUMBER this part's
+# terminals oppositely, so the pad fit is 180deg wrong PHYSICALLY". That is the same
+# conclusion reached by jlc_rotation_measure's polarity channel and by a hand
+# cathode-to-cathode read, via THREE different implementations (canon M1). The
+# shipped CPL rotation is 0, taken from the MEASURED per-LCSC row, and all five
+# indicators export at 0.0 — verified in the fresh cpl_jlc.csv.
+#
+# ROT-DB-SUGGEST is the one finding here that is WRONG, and it is a TOOL
+# INCONSISTENCY worth naming rather than silently waiving: it proposes
+# "add LCSC row C2296,180" from the pad fit alone, contradicting the POLARITY-FIT
+# finding printed two lines above it in the same report. Reported upstream. It does
+# not touch the export, which resolves from the measured row (src=lcsc, offset 0).
+- {lcsc: C2296, refs: [D8], status: POLARITY-FIT,
+   why: "CORRECT ALARM, ADJUDICATED TO 0 (not 180). JLC's LED0805-R-RD numbers pad
+     1 = ANODE at x=+1.05; KiCad's LED_0805_2012Metric numbers pad 1 = CATHODE at
+     x=-0.9375 (Device:LED pin 1 = K, read from /usr/share/kicad/symbols/
+     Device.kicad_sym). MEASURED numbering-free channels, both saying 0: (1) the
+     unlabelled size-matched PAD CLOUD is 0.1125mm at BOTH 0 and 180 and 1.4076mm
+     at 90/270 — it admits {0,180} and refutes {90,270} at 12.5x; (2) POLARITY
+     MARKS matched cathode-to-cathode, reading no pad number and no pin-1 marker —
+     OURS draws the cathode WEST (F.SilkS full-height band at x=-1.685, F.Fab
+     chamfer removed-corner at (-1.000,-0.600)), JLC draws it WEST too (silk
+     diode-glyph base x=+0.200 with APEX x=-0.300 — a diode triangle points at its
+     cathode — plus the silk body outline chamfered at the WEST end, mean
+     x=-2.025, square at the EAST). 0 is the ONLY angle at which both cathode
+     marks land on the same side. A 180 row would ship every indicator DARK, which
+     on a bench is indistinguishable from a dry joint."}
+- {lcsc: C2297, refs: [D9, D10, D11, D12], status: POLARITY-FIT,
+   why: "Same adjudication as C2296 above, and it is the SAME MEASUREMENT: the two
+     JLC footprints are byte-identical apart from the LCSC property and the model
+     path (diffed 2026-07-25), so one polarity read covers both codes. Offset 0."}
+- {lcsc: C2296, refs: [D8], status: POLARITY-CHECK,
+   why: "Discharged by MEASUREMENT of both libraries' cathode markings rather than
+     by eye: see the POLARITY-FIT entry above. ADDITIONALLY on the human gate —
+     both LED codes are listed in rotation_human_gate.txt for the JLC
+     order-preview check, because no render can prove which physical terminal is
+     the cathode on a part whose two libraries number them oppositely."}
+- {lcsc: C2297, refs: [D9, D10, D11, D12], status: POLARITY-CHECK,
+   why: "As C2296: discharged by the measured cathode-to-cathode channel, and on
+     the order-preview human gate."}
+- {lcsc: C2296, refs: [D8], status: ROT-DB-SUGGEST,
+   why: "REJECTED, not accepted. The tool suggests adding a 180 row from its
+     pad-number fit while its OWN POLARITY-FIT finding in the same report says
+     that fit is 180deg wrong physically. The landed per-LCSC row is 0 (commit
+     95d79de), independently re-derived by the table maintainer from the raw
+     .kicad_mod geometry. Following this suggestion would ship five dark LEDs."}
+- {lcsc: C2297, refs: [D9, D10, D11, D12], status: ROT-DB-SUGGEST,
+   why: "REJECTED for the same reason as C2296; the landed row is 0."}
+
+# ---- F1: the two findings Stage 0's hardening newly made BLOCKING ------------
+# F1 is the Keystone 3568-class MINI blade fuse HOLDER: declared not_assembled
+# (assembly.yaml, reason user_supplied), FP_EXCLUDE_FROM_POS_FILES on the board,
+# and absent from the CPL — so NO MACHINE EVER PLACES IT and neither finding can
+# reach a placement. Both are new criticals only because v1.6's Stage 0 promoted
+# MODEL-REG to blocking and added PAD-MULTIPLICITY; the geometry is unchanged from
+# v1.1 and was adjudicated then as PAD-MISMATCH + PAD-GEOM (above).
+- {lcsc: C5249699, refs: [F1], status: PAD-MULTIPLICITY,
+   why: "NAMING, not geometry, and the tool says so itself: ours has pad numbers
+     {1:2, 2:2} against JLC's {1:1, 2:1} because our land models each fuse CLIP as
+     a PAIR of plated holes (the Keystone catalog p.42 pattern: two barrels per
+     clip) while JLC's model carries one pad per terminal. The tool fits these by
+     CENTROID, which is the correct handling. Nothing is waived about the land."}
+- {lcsc: C5249699, refs: [F1], status: MODEL-REG,
+   why: "UNREACHABLE BY CONSTRUCTION, and the number is explained. The report gives
+     'body center 5.0mm off courtyard, area ratio 0.89, incl. pad_geom_delta=
+     6.52mm' — i.e. most of the offset IS the 6.52mm land disagreement already
+     adjudicated as PAD-GEOM: JLC's model is a 3.40mm-pitch 2-pad part, our land is
+     the real 9.92mm-pitch Keystone MINI holder, so registering one on the other
+     cannot come out at zero and the metric is meaningless here rather than
+     alarming. The tool's own text says 'DO NOT blind-flip: JLC's footprint mounts
+     this model at rot_z=0 (authoritative)'. Decisively: F1 is NOT on the CPL (it
+     is not_assembled/user_supplied, FP_EXCLUDE_FROM_POS_FILES verified on the
+     v1.6 board), so there is no placement for a mis-registered model to corrupt —
+     the holder is hand-soldered at integration against the Keystone drawing, and
+     the ORDER_README hand-solder list carries it. Re-examine if F1 ever moves
+     onto the CPL (already flagged in assembly.yaml's F1 disposition)."}
+
+# ---- C2984354 (R12, the buck-C FB top): a GENUINE NO-CAD, evidenced ----------
+# jlc_twin fails CLOSED on any fetch it cannot complete, which is correct and is
+# why 11 unverified parts once slipped through on an HTTP 403. This one is NOT a
+# network flake and it is not being waived on impatience:
+#   EasyEDA's own API answers, for this code specifically,
+#     {"success":false,"code":404,"message":"Component not found"}
+#   (queried directly 2026-07-26, outside easyeda2kicad, after 8 retry attempts).
+# A 404 "Component not found" is the library affirmatively saying it has no model,
+# not a transport error. So the obligation shifts to verifying the LAND some other
+# way, which the rule requires and which is possible here:
+#   OURS: Resistor_SMD:R_0603_1608Metric, pad 1 (-0.8250,0) / pad 2 (+0.8250,0),
+#         0.8 x 0.95 mm -> 1.6500 mm pitch. This is the IPC-7351 nominal 0603.
+#   JLC'S OWN 0603: taken from THREE codes on this same board that DID fetch
+#         (C23215, C25803, C137779 — all three models byte-identical R0603):
+#         pad 1 (-0.75,0) / pad 2 (+0.75,0), 0.806 x 0.864 -> 1.5000 mm pitch.
+#   DELTA 0.1500 mm of pitch, ours the more generous, which is the ordinary
+#   land-vs-model allowance this board already adjudicates on other families —
+#   not a land disagreement.
+# R12 is a standard 0603 thin-film chip resistor (AR03BTCX4121) sharing its exact
+# footprint with FIFTEEN other refs on this board, so the land is cross-checked
+# against JLC's own geometry rather than assumed. Order-time preview still carries
+# it. Verified alternate with CAD if it ever matters: C861436
+# (RT0603BRD074K12L, same 4.12k 0.1% spec, same 0603 land).
+- {lcsc: C2984354, refs: [R12], status: FETCH-FAILED,
+   why: "EasyEDA API returns 404 'Component not found' for this code (queried
+     directly 2026-07-26 after 8 attempts) — an AFFIRMATIVE no-CAD, not a
+     transport failure. Land verified against JLC's OWN R0603 model via three
+     codes on this board that fetched (C23215/C25803/C137779, byte-identical):
+     1.5000 mm JLC pitch vs our IPC-7351 1.6500 mm, ours more generous, the usual
+     land-vs-model allowance. Standard 0603 chip resistor sharing its footprint
+     with 15 other refs here. Flagged for the JLC order-preview check; alternate
+     with CAD is C861436 (same spec, same land) if it is ever wanted."}

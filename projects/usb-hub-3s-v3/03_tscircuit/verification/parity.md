@@ -4,7 +4,7 @@ Compares the tscircuit render's netlist against the KiCad fab-of-record.
 Canon S-DSL: KiCad stays authoritative; this quantifies tscircuit fidelity.
 
 KiCad board: `/home/mouse9911/gits/circuits/projects/usb-hub-3s-v3/04_kicad/usb_hub_3s_v2.kicad_pcb`
-- KiCad: 128 footprints, 65 named nets
+- KiCad: 129 footprints, 65 named nets
 - tscircuit: ~122 components, ~65 nets
 
 NOTE: refdes/net-name conventions differ between the two front-ends; a

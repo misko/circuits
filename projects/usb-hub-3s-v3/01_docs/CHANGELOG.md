@@ -198,6 +198,28 @@ part.yaml (VBR window was `6.67-8.15 V @1mA`; it is **6.67-7.37 V @ 10 mA**, and
 Ppk is 10/1000us not 8/20us), and names the escalation as an ACTIVE OVP rather
 than a better TVS. Lowering 5VC is refused: it would spend the 15 mV margin.
 
+### Two budget corrections, neither of them a hardware change
+
+**The GND return was ABSENT, not negligible.** RL-2's 12 mOhm board-copper figure
+named three segments — 5VC L2.2→Q6 tab 2.198, PMID Q6.S→F2.1 4.914, VBUSC F2.2→J5
+2.209 — and all three are FORWARD path. The return from J5 back to the buck was
+simply missing, and in a budget a missing term looks exactly like a zero one. Solved
+2026-07-26 by the same method as the forward path (SOR on filled copper, 0.8 mm
+cells, all four layers, 178 GND vias coupling them, converged on the one-port
+resistance over 10350 sweeps): **0.956 mOhm**. It is small for the reason you would
+hope — In1.Cu carries 17520 of 18908 GND cells, with B.Cu (12105) and F.Cu (9438) in
+parallel — but at 5 A it is 4.78 mV, a third of the old 15 mV slack, so it had to be
+counted rather than called negligible. `ir_budget_mohm: 97 → 98`; slack at 3 A
++247.8 → **+244.2 mV**.
+
+**A Pi 5 at 5 A is now a DECLARED NON-GOAL**, not an implicit one, because the
+margin is contingent on the load and not on the hardware — the copper is
+bit-identical to the copper that measured +15.0 mV. The 5 A arithmetic is preserved
+in `power_tree.yaml` so anyone retargeting finds it waiting: at 5 A the board still
+PASSES E-MARGIN (588.0 mV vs 597 mV headroom = +9.0 mV) but is back on paper-thin
+slack, and both the 4.63 V undervoltage threshold and ADR-0003's 6.00 V
+absolute-maximum chain are **Pi 4 figures** that would need re-deriving.
+
 ### Gates and bench
 
 - New bench gate (user decision D7): LEDs fitted, SW1 OFF, **measure pack current
