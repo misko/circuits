@@ -31,7 +31,9 @@ NOT read another project's config). Top-level keys:
 
   project:    name, netlist, output, parts_dir
   board:      outline (x0/y0/x1/y1 or x0/y0/w/h), corner_cut, edge_width,
-              layers, mounting_holes {footprint, refdes_prefix, at[]}
+              layers, mounting_holes {footprint, refdes_prefix, at[]},
+              fiducials {footprint, refdes_prefix, at[]} — board-only
+                optical alignment targets; BOM- and CPL-excluded
   libraries:  list of ".pretty" search roots; a bare dir is treated as a
               KiCad-style root holding "<lib>.pretty", a {lib,path} entry
               binds one library name to one explicit .pretty dir
@@ -357,6 +359,7 @@ class BoardBuilder:
         self.expand_repeats()
         self.add_outline()
         self.add_mounting_holes()
+        self.add_fiducials()
         placed = self.place_parts()
         self.check_pads_present()
         self.run_asserts()
@@ -528,6 +531,57 @@ class BoardBuilder:
             fp.SetPosition(pcbnew.VECTOR2I_MM(float(hx), float(hy)))
             self.board.Add(fp)
             self.holes.append((float(hx), float(hy)))
+
+    def add_fiducials(self):
+        """Global optical fiducials — `board.fiducials {footprint, refdes_prefix,
+        at[]}`, same shape as mounting_holes.
+
+        WHY THIS IS A GENERATOR FEATURE AND NOT A PART. A fiducial is a bare
+        copper dot with a mask opening and NO net, NO BOM line and NO placement
+        row. Authoring it as a netlist part means inventing an unconnected net,
+        an FPID override and two exclusion attrs to undo the three things being a
+        part implies — and it still would not be reproducible from a floorplan.
+        Adding it here also puts it in the ONE place where it is still cheap:
+        BEFORE zones and rule areas, so the pour clears it and DRC grades it.
+        Bolted on after routing it is a netless copper island in the middle of a
+        filled plane.
+
+        A fiducial is nearly free during a spin and IMPOSSIBLE to add afterwards,
+        which is why a board with 0.5 mm-pitch machine-placed parts and no
+        fiducial is a recurring finding rather than a one-off.
+
+        Attributes mirror mounting holes (BOARD_ONLY | EXCLUDE_FROM_BOM) plus
+        EXCLUDE_FROM_POS_FILES: a fiducial on the CPL is a placement instruction
+        for a part that does not exist.
+        """
+        fd = self.board_cfg.get("fiducials")
+        if not fd:
+            return
+        fpid = fd.get("footprint", "Fiducial:Fiducial_1mm_Mask2mm")
+        prefix = fd.get("refdes_prefix", "FID")
+        at = fd.get("at") or []
+        if at and len(at) < 3:
+            die(f"board.fiducials: {len(at)} given — an optical alignment set "
+                f"needs at least 3 non-collinear targets to fix rotation as "
+                f"well as translation")
+        pts = [(float(x), float(y)) for x, y in at]
+        if len(pts) >= 3:
+            (ax, ay), (bx, by), (cx, cy) = pts[0], pts[1], pts[2]
+            area2 = abs((bx - ax) * (cy - ay) - (cx - ax) * (by - ay))
+            if area2 < 1.0:
+                die(f"board.fiducials: the first three targets are collinear "
+                    f"(|cross| = {area2:.3f} mm^2) — a collinear set cannot fix "
+                    f"board rotation")
+        for i, (fx, fy) in enumerate(pts, 1):
+            ref = f"{prefix}{i}"
+            fp = self.res.load(ref, fpid)
+            fp.SetReference(ref)
+            fp.SetAttributes(fp.GetAttributes()
+                             | pcbnew.FP_BOARD_ONLY | pcbnew.FP_EXCLUDE_FROM_BOM
+                             | pcbnew.FP_EXCLUDE_FROM_POS_FILES)
+            fp.SetPosition(pcbnew.VECTOR2I_MM(fx, fy))
+            self.board.Add(fp)
+        self.say(f"fiducials: {len(pts)} placed ({fpid})")
 
     # -------------------------------------------------------- placement
     ATTR_FLAGS = {
