@@ -256,6 +256,25 @@ SELV logic.
 > Use a **DIN 125 A2.7 washer (OD 6.000 mm)** or smaller. Nothing larger.
 > **Do not substitute a shakeproof/star washer (typically 6.5 mm), a DIN 9021
 > body washer (8.0 mm), or a hex standoff (6 mm A/F = 6.93 mm across corners).**
+>
+> **THE MECHANISM, because "max 6.0 mm" invites someone to wonder why and the
+> answer is what stops them:** H4's isolation is **creepage that goes AROUND the
+> edge notch** — that detour is the whole barrier.
+>
+> **Mind which edge.** H4's centre (y52.000) is **2.200 mm from the notch's NEAR
+> (south) bank at y49.800, and 3.200 mm from its FAR (north) bank at y48.800.**
+> **The governing distance is 3.200 mm to the FAR bank**, because bridging
+> requires the washer to REACH THE FAR SIDE. A washer whose radius exceeds
+> 2.200 mm merely overhangs the notch — the specified DIN 125 A2.7 (r 3.000)
+> does exactly that, and is fine, because the notch is still open beneath it.
+> **A washer of radius 3.200 mm or more (OD 6.400 mm) lands on solid board on
+> BOTH SIDES — so the FASTENER ITSELF BRIDGES THE NOTCH.** The detour vanishes,
+> creepage runs directly from the washer's landing on the far bank to the pad,
+> and the barrier drops from **6.3815 mm to 4.7195 mm** — a FAIL — with nothing
+> visible to show it.
+> **The notch and the washer are one mechanism, not two parts.** This section
+> already tells you not to shrink the notch and not to grow keypad copper;
+> **growing the washer is the same defect, and it is only 0.4 mm away.****
 
 **WHY (2) EXISTS — it is a CLIFF, not a slope, and it is 0.4 mm wide.** H4's
 6.5984 mm figure is CREEPAGE around the edge notch, and the fastener is modelled
@@ -264,16 +283,30 @@ as a conductive disc. As the disc grows it eventually touches the board on
 notch**, the creepage path stops going around, and the barrier collapses to the
 straight line. Measured:
 
-| conductive OD | example | creepage | verdict |
-|---|---|---|---|
-| 5.4 mm | small washer | 6.9515 mm | PASS |
-| **6.0 mm** | **DIN 125 A2.7 — SPECIFIED** | **6.5984 mm** | **PASS** |
-| 6.3 mm | | 6.4265 mm | PASS — hard limit |
-| 6.38 mm | | 6.3811 mm | PASS — last passing value |
-| **6.4 mm** | | **3.8286 mm** | **FAIL — the disc reaches the notch's north bank and bridges it** |
-| 6.5 mm | shakeproof washer | 3.7786 mm | FAIL |
-| 6.93 mm | 6 mm A/F hex standoff, across corners | 3.5686 mm | FAIL |
-| 8.0 mm | DIN 9021 body washer | 3.0286 mm | FAIL |
+**Every figure in this table is CREEPAGE — the surface path — computed the same
+way on both sides of the cliff.** (An earlier revision printed the post-collapse
+rows as straight-line CLEARANCE, which silently switched metric mid-column; the
+verdicts were unaffected but ADR-0015 Decision 2 makes stating the method
+binding.) The straight-line clearance is given alongside for comparison only.
+
+| conductive OD | example | **CREEPAGE** (surface path) | clearance (straight line) | verdict |
+|---|---|---|---|---|
+| 5.4 mm | small washer | 6.9515 mm | 4.3286 mm | PASS |
+| **6.0 mm** | **DIN 125 A2.7 — SPECIFIED** | **6.5984 mm** | 4.0286 mm | **PASS** |
+| 6.2 mm | | 6.4837 mm | 3.9286 mm | PASS |
+| 6.3 mm | | 6.4265 mm | 3.8786 mm | PASS — hard limit |
+| 6.38 mm | | 6.3815 mm | 3.8386 mm | PASS — last passing value |
+| **6.4 mm** | | **4.7195 mm** | 3.8286 mm | **FAIL — the washer reaches the FAR bank and bridges the notch** |
+| 6.5 mm | shakeproof washer | 4.2683 mm | 3.7786 mm | FAIL |
+| 6.93 mm | 6 mm A/F hex standoff, across corners | 3.7061 mm | 3.5636 mm | FAIL |
+| 8.0 mm | DIN 9021 body washer | 3.0286 mm | 3.0286 mm | FAIL |
+
+**The cliff is a genuine discontinuity, not a steep slope:** 6.38 mm → 6.3815 mm
+creepage, 6.40 mm → 4.7195 mm. **1.66 mm of barrier lost to 0.02 mm of
+diameter**, because at that point the path stops going around the notch and
+starts going straight from the washer's far-bank landing. (The two metrics
+converge only above OD ~7.8 mm, where the washer's landing is far enough north
+that the direct line no longer clips the notch at all.)
 
 The transition is at **OD 6.400 mm** (disc radius 3.200 = the 3.200 mm from H4's
 centre y52.000 to the notch's north edge y48.800). **There is 0.400 mm of
@@ -281,6 +314,13 @@ diameter between the specified washer and barrier collapse, and a 0.5 mm larger
 washer is an unremarkable substitution on a bench.** §1 already tells the
 integrator not to shrink the notch and not to grow keypad copper; growing the
 washer is the same defect and was previously unstated.
+
+**CLAUSE (2) IS NOT ON THE SILKSCREEN.** The board's silk carries the
+nylon/no-bonding-plate rule (clause 1) and the ADR-0012 captions; it has **no
+maximum-washer marking**, and there was no room for one. A 0.4 mm-wide cliff with
+no board-level evidence is exactly the kind of thing a service replacement years
+from now will not know about. **This document is the only record — keep it with
+the unit.**
 
 Sign both clauses off at integration; they are safety properties, not
 preferences.
@@ -1205,7 +1245,29 @@ place where silk quality actually gets checked.
    - Moving the part north far enough also puts `K_STOP.1` inside `route.yaml`'s
      full north band (User.2, y[9.9, 29.4]), where logic copper is forbidden, so
      `5V_STOP` cannot be routed to it at all — reproduced twice, not stochastic.
-17. **M-REPRO is green by metric, not by bytes.** Three from-source rebuilds are
+17. **THE KEYPAD BARRIER'S WORKING VOLTAGE, POLLUTION DEGREE AND MATERIAL GROUP
+   ARE NOT IN THIS ARCHIVE — AND THE FIGURE PREVIOUSLY QUOTED FOR THEM BELONGED
+   TO A DIFFERENT DOMAIN.** `keypad_isolation_6mm` is the rule that requires the
+   6.000 mm; it cites only *"brief section 4/7 + ADR-0001"* and states **no
+   working voltage, no pollution degree and no material group**. Neither
+   `BRIEF.md` nor ADR-0001 ships here. Earlier revisions filled the gap with
+   *"30 V working, PD3, material group IIIa"* — **that string is the comment on
+   `opto_isolation_2mm`, whose condition is `A.NetClass == 'ISO_CONTACTOR'`: the
+   CONTACTOR LOOP, a different domain.** It was reached for because it was
+   adjacent and plausible, which is the same error class as §13 item 15's
+   measuring-the-wrong-quantity.
+
+   **What this costs a reader:** you cannot tell whether 6.000 mm is a ~3x design
+   margin over an IEC minimum at low voltage, or is itself the minimum at a
+   mains-referenced potential. That is exactly what decides how much the notch
+   credit matters, and how much of a safety factor the 6.5984 mm represents. The
+   4.0286 mm clearance is therefore reported in §1 as a **measurement**, not as a
+   pass against a requirement this archive can show you.
+
+   **v1.4 DEBT, named: ship the keypad domain's working voltage, pollution degree
+   and material group — or the brief section that sets them — and cite them in
+   the `keypad_isolation_6mm` rule comment where the requirement lives.**
+18. **M-REPRO is green by metric, not by bytes.** Three from-source rebuilds are
    geometrically identical, but the files differ because the generator mints
    fresh UUIDs and KiCad serialises footprints in UUID order. A fleet-level fix
    is owned elsewhere; on this board the nondeterminism never reaches a via

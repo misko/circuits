@@ -267,7 +267,7 @@ was understood to be.** Recorded in full in **ADR-0015**.
 |---|---|
 | ruled | H4 FAILS: 4.0286 mm vs 6.000 mm, the 1.000 mm notch being below the PD3 X-dimension of 1.5 mm |
 | reversed | **H4 PASSES: 6.5984 mm CREEPAGE.** The X rule governs a **groove — a channel with material at the bottom** — where the question is whether contamination bridges across. This is a **through-notch reaching the east board edge**, so there is no surface across it and it drains at the open end. Creepage goes around it. |
-| the two numbers | **6.5984 mm is the CREEPAGE** (surface path) — the quantity `keypad_isolation_6mm` names in as many words. **4.0286 mm is the CLEARANCE** (straight line), whose requirement at 30 V / PD3 / material group IIIa is well under 1 mm. They answer different questions and were never in conflict. |
+| the two numbers | **6.5984 mm is the CREEPAGE** (surface path) — the quantity `keypad_isolation_6mm` names in as many words. **4.0286 mm is the CLEARANCE** (straight line), whose requirement this archive does NOT state — `keypad_isolation_6mm` gives no working voltage, pollution degree or material group (§13 item 17). The 4.0286 mm is reported as a measurement, not as a pass. They answer different questions and were never in conflict. |
 | verified, not accepted | Re-derived independently before restoring the PASS: disc boundary at x=191.500, y = 52 − √(3² − 1.5²) = 49.4019, up the notch's west edge to the NW corner (**0.6019 mm**), then NW corner → `K_STOP.3` pad edge (**5.9965 mm**) = **6.5984 mm**, matching the `I-HW` gate's 6.598 mm to 0.0004 mm by a different construction. The path is not the naive one: the 3.000 mm disc overhangs the notch (2.6627 mm < 3.000), so a straight run at the NW corner would cross the void. |
 | ADR-0012 vindicated | Its method note — *"a straight-line metric cannot see the notch; it measures the pre-notch and notched boards identically at 4.031 mm"* — is **correct, and correct for the reason it was dismissed**: a straight line measures clearance, and the clearance genuinely is the same on both boards. The notch changes the creepage, which is what the rule requires. |
 | kept from the reversed period | Every **method label** added while the ruling stood. That work was right and is what makes the two numbers legible. Plus two permanent findings from the three re-races: **K_STOP is load-bearing geometry** (its north pad edge y29.630 IS the primary barrier's constant; north travel capped at 0.430 mm) and **a corridor is a routing resource, not margin** (the 1.800 mm east gap is where RSTOP_MID and KP_U6 climb). Both in ADR-0015. |
@@ -309,3 +309,32 @@ finding is the most substantive of the whole review series after the two P0s.
 | L9-7 | §2b: the 0–85 °C band's upper end printed 34 057 Ω and the voltage endpoint 1.8876 V | **VALID — FIXED to 34 004.6 Ω and 1.8872 V**, which is what §2b's own error-table row 1 already printed. Second arithmetic slip found in this block; conservative direction both times. |
 | L9-8 | INDEX flags the greppable FAIL strings in `stock_check.json` and `parity.md` but not `mrepro.md`'s "M-REPRO: RED" | **VALID — FIXED.** Now flagged with its explanation (green by metric, red by bytes — UUID churn). |
 | L9-9 | `fresh_lens.md` still said the archive carries 79 digests | **VALID — FIXED to 80** (this file plus ADR-0015). Same class as L7-12, re-opened by the fix that closed L7-3. |
+
+## TENTH LENS (2026-07-26) — SCOPED TO THE DELTA ONLY. 5 FINDINGS, ALL FIXED.
+
+The ninth lens's washer-diameter clause was written **after** the review that
+found it, so it was unreviewed. Rather than a tenth full read of 81 files, a
+fresh reviewer was given **only that delta** — §1 clause (2), the withdrawn
+clearance citation, ADR-0015 and the MANIFEST assembly line — and asked two
+questions: *does it say what it needs to, and does it say anything false.*
+**It said something false, and the falsehood inverted the reader's own check.**
+
+| # | finding | disposition |
+|---|---|---|
+| **L10-1** | **"H4's centre sits 3.200 mm from the notch's NEAR edge" — it is the FAR edge, and the error inverts the mechanism** | **VALID — FIXED, and this was the worst kind of error to make in this clause.** Measured: centre y52.000 → **near (south) bank y49.800 = 2.200 mm; far (north) bank y48.800 = 3.200 mm.** 3.200 is the right threshold because **bridging requires reaching the FAR bank** — but I labelled it the near one. **An integrator checking the mechanism with a caliper measures 2.2 mm to the nearest edge, applies my own stated rule (radius ≥ that distance ⇒ bridges), and concludes the SPECIFIED DIN 125 A2.7 washer (r 3.000) already bridges the notch.** The clause written to prevent a substitution would instead have condemned the part it specifies. Both distances are now stated with which one governs and why. |
+| **L10-2** | The withdrawn "sub-1 mm at 30 V / PD3 / material group IIIa" attribution survived in **five** places, including the MANIFEST I-HW line — the fast path a reader stops at | **VALID — FIXED in all five** (MANIFEST, §1's own table 24 lines above its retraction, §13's summary row, ADR-0015, dispositions). **Same defect class the delta was written to close**, in the delta itself. |
+| L10-3 | The 6.93 mm row printed 3.5686; recomputed 3.5636 (that value is r 3.460, not 3.465) | **VALID — FIXED**, and superseded by L10-4 which replaced the whole column. |
+| **L10-4** | **The cliff table's post-collapse column is labelled "creepage" but the figures are straight-line CLEARANCE** | **VALID — FIXED, and my numbers were wrong as creepage.** Recomputed as true surface paths on both sides of the cliff: OD 6.40 → **4.7195 mm** (not 3.8286), 6.50 → **4.2683**, 6.93 → **3.7061**. All verdicts unchanged (still FAIL) and the error was in the conservative direction, but **ADR-0015 Decision 2 makes stating the method binding for this board and I broke my own rule inside the clause that cites it.** The table now gives creepage AND clearance in separate labelled columns. The real cliff is sharper than first published: **6.3815 → 4.7195 mm, i.e. 1.66 mm of barrier lost to 0.02 mm of diameter.** |
+| L10-5 | Clause (2) exists only on paper — the silkscreen carries clause (1) but no maximum-washer marking, and the delta never said so | **VALID — DISCLOSED.** §1 now states plainly that clause (2) is **not on the silkscreen**, that there was no room, and that a service replacement years from now will have no board-level evidence of a 0.4 mm cliff — **so this document must stay with the unit.** |
+
+**Verified TRUE by the scoped lens, independently from the board:** H4 centre
+(193.000, 52.000); notch x[191.500, 200.000] y[48.800, 49.800], **1.000 mm wide
+and genuinely reaching the east board edge** (the east outline is split at
+y48.800 and y49.800); disc overhang 0.800 mm with 4.000 mm of notch left open;
+|centre → notch SW corner| = 2.662705 < 3.000 so the west-skirt path really is
+forced; the geodesic legs **0.601924 + 5.996473 = 6.598397**; `K_STOP.3` is the
+governing KEYPAD_ISO pad (next nearest 19.48 mm centre-to-centre, and
+around-notch paths to the nearest RSTOP_MID tracks are 7.03/7.16 mm); the
+transition at **OD 6.400** exactly; and the DRU attribution claim — that
+"30 V / PD3 / IIIa" belongs to `opto_isolation_2mm` (`ISO_CONTACTOR`) and that
+`keypad_isolation_6mm` states no voltage, pollution degree or material group.

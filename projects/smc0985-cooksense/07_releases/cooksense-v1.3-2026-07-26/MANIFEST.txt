@@ -1,8 +1,12 @@
 cooksense v1.3 — smc0985-cooksense MAIN board
 sealed: 2026-07-26
-READ BEFORE ASSEMBLY: H4's isolation depends on FASTENER DIAMETER. Max conductive OD 6.0 mm
-                     (DIN 125 A2.7); hard limit 6.3 mm. At 6.4 mm the fastener BRIDGES the notch and
-                     creepage collapses 6.5984 -> 3.8286 mm = FAIL. ORDER_README section 1, clause (2).
+READ BEFORE ASSEMBLY: H4's isolation is CREEPAGE AROUND AN EDGE NOTCH, and the notch and the
+                     washer are ONE MECHANISM. H4's centre is 3.200 mm from the notch's near edge, so a
+                     washer of radius >= 3.200 (OD >= 6.400 mm) lands on board BOTH SIDES and the FASTENER
+                     ITSELF BRIDGES THE NOTCH: creepage collapses 6.5984 -> 3.8286 mm = FAIL, invisibly.
+                     MAX CONDUCTIVE OD AT H4 = 6.0 mm (DIN 125 A2.7); HARD LIMIT 6.3 mm. Do not substitute
+                     a shakeproof washer (6.5), DIN 9021 (8.0) or a hex standoff (6mm A/F = 6.93 across
+                     corners). ORDER_README section 1, REQUIRED FASTENER SPEC clause (2).
 supersedes: cooksense-v1.1-2026-07-24 (and v1.0-2026-07-23) — BOTH DO-NOT-ORDER
 
 board: 188 x 92 mm, 4 layer, 222 components + 4 mounting holes; 3925 tracks / 1047 vias
@@ -34,8 +38,11 @@ GATES — every number measured on the artifacts in THIS archive
   P-FACT                                                 4/41 dossiers declare asserts; 3 graded, 1 deferred
   I-HW   mounting-hardware creepage                      PASS. H4 tightest at 6.5984 mm CREEPAGE (surface path around the
                                                          outline notch) vs 6.000 required. METHOD MATTERS: its straight-line
-                                                         CLEARANCE is 4.0286 mm, against a sub-1mm clearance requirement at
-                                                         30V / PD3 / material group IIIa — a different question, not a conflict.
+                                                         CLEARANCE is 4.0286 mm, reported as a MEASUREMENT, not as a pass:
+                                                         keypad_isolation_6mm states NO working voltage, NO pollution degree and
+                                                         NO material group, and the documents it cites do not ship. See section 13
+                                                         item 17. (The "30V / PD3 / IIIa" an earlier revision quoted here is the
+                                                         comment on opto_isolation_2mm -- the CONTACTOR loop, a different domain.) — a different question, not a conflict.
                                                          H1 13.6299 / H2 13.000 cross no void (H3's line crosses a slot; conservative), so for those three
                                                          creepage and clearance coincide. See ADR-0015.
   audit_board                                            PASS (I-ISO 6.12 mm)
@@ -75,7 +82,7 @@ MANDATORY BEFORE ORDERING — see ORDER_README.md
 FILE DIGEST — sha256, every file in this archive
   3d/cooksense.gltf                                               9b7e60622f23c64f9940e06f1977be4e7f81a591eac6d1494e034aa199f9a1c4
   3d/cooksense.step                                               e115e9d19c37ca66905c42b1737dd404842ee9b77296ed171098005f026af4b4
-  ORDER_README.md                                                 a7605880fc4361f972d835ed5234c99e7681ff7a8eae972f1b62962be7d1c9dc
+  ORDER_README.md                                                 0d9fdedf9ba577b64eeeb54f35f00933166a6b787fdc5f9388bc0cfd678b037f
   fab/bom.csv                                                     f81b31d6321bd9aba4cadaf4a547062cd259e99a7f86762d63d26ed8eb7fe79e
   fab/bom_jlc.csv                                                 f81b31d6321bd9aba4cadaf4a547062cd259e99a7f86762d63d26ed8eb7fe79e
   fab/cooksense-B_Cu.gbl                                          6879c71dc016001705fdfb499f9df2d89c9aa6a6c05fbb0c02e3def190d2c580
@@ -109,16 +116,16 @@ FILE DIGEST — sha256, every file in this archive
   source/cooksense.tsx                                            a6b67dbb2d862152efdd78f7b73cd4a78c8d01be8e50a80ec6eace6378b885ca
   source/fp-lib-table                                             f96f5b2653e171e7b8605c7bac0b5d5802c25e3581aa44f6409a778dbee0f400
   source/parity_padmap.txt                                        43f87a91d9c1afe200f0cdbfb52e1e1e1b13c3f0dbbf8b4406dec013dd3e3aeb
-  verification/ADR-0015-creepage-is-not-clearance.md              2111361c20e2955faf52217009871245eed0af1390cb9271d2004729eef07845
+  verification/ADR-0015-creepage-is-not-clearance.md              d8a1b3bdfa29c563464a58fcc15c745a628590d8c4a37cb62745ff2c6d54f0c0
   verification/INDEX.md                                           3b42c2ea7b599dba59e65b7d7b6e7d4a914c197e9ccb5bed1f049e188a790ecd
-  verification/ORDER_README.md                                    a7605880fc4361f972d835ed5234c99e7681ff7a8eae972f1b62962be7d1c9dc
+  verification/ORDER_README.md                                    0d9fdedf9ba577b64eeeb54f35f00933166a6b787fdc5f9388bc0cfd678b037f
   verification/assembly_coverage.json                             b8d02708d9d43ef2d9d2eb5c4ae10e897bccd50c9c942340d6af25d51e9c556d
   verification/assembly_coverage.txt                              cf8db91c27421686747ee76d0724f1a97df07e9fbcc8649ddcdca569407352f4
   verification/audit.txt                                          9fe5abe175afc719c9dcf6071996c3fb61ea6e746102559ef70942c151e58cbd
   verification/bom_source_check.txt                               0a8279b27c3a7bbc47b44f2442fd213f7231ee669de1b5f8283b53066771fc45
   verification/build_gates.md                                     4fd4452cde28230369808b7c8d1804a6a04f61287fdc1e9f3dc78c4951349a13
   verification/circuit_value_check.txt                            0618b6f479fa2e159bfc7d0b682fe7598b9ba08c834b7f5b3836a49d91b082a5
-  verification/dispositions.md                                    ad77d2573814d004583da30b2e280964272683f432e4f7a37d34fd8fac4e82a1
+  verification/dispositions.md                                    14e8c41888048b1b354b44ea59a5e96e69da61c12712fba2d985df6e1fd2014b
   verification/dispositions_v10_carried.md                        74c7b0afbfd3853df8fb9ffbc91e917f14f24874bf2f9e8c428699eb573868f5
   verification/drc.json                                           48845899798b59f23247e60ec65443f4b858d3b85f95114f40cb447c456a691b
   verification/einv.txt                                           bc755960bc256523bd2a0f940ace373935829f54145c5c229c923f685541b1eb

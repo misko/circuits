@@ -60,9 +60,18 @@ Applying the groove rule to it was the error. The two figures are:
 | figure | method | question | requirement | verdict |
 |---|---|---|---|---|
 | **6.5984 mm** | **creepage** — surface path around the notch | how far along a surface? | **>= 6.000 mm** | **PASS** |
-| 4.0286 mm | clearance — straight line | how far through air? | << 1 mm at 30 V, PD3, mat. group IIIa | PASS wide |
+| 4.0286 mm | clearance — straight line | how far through air? | **NOT STATED BY THE RULE** — `keypad_isolation_6mm` gives no working voltage, pollution degree or material group, and the documents it cites (`BRIEF.md`, ADR-0001) do not ship in the release archive | reported as a MEASUREMENT, not as a pass |
 
 They were never in conflict.
+
+**A trap this ADR exists partly to close:** the clearance requirement for the
+KEYPAD domain is not in the archive, and an earlier revision filled the gap with
+"30 V working, PD3, material group IIIa" — **the comment on
+`opto_isolation_2mm`, condition `A.NetClass == 'ISO_CONTACTOR'`: the contactor
+loop, a DIFFERENT domain.** It was reached for because it was adjacent and
+plausible. **Do not fill it from the adjacent rule.** v1.4 owes the keypad
+domain's working voltage, pollution degree and material group — see ORDER_README
+§13 item 17.
 
 ### The geodesic, re-derived independently (canon M1)
 
@@ -131,7 +140,12 @@ currently travels through it.**
 
 ## Consequences
 
-- H4 **passes** at 6.5984 mm creepage. v1.3 is orderable and no copper changed.
+- H4 **passes** at 6.5984 mm creepage **with the specified DIN 125 A2.7 washer
+  (OD 6.000 mm)**. The barrier is a function of fastener diameter: at **OD
+  6.400 mm** the washer reaches the notch's FAR bank (H4 centre y52.000 → far
+  bank y48.800 = 3.200 mm), bridges it, and creepage collapses **6.3815 →
+  4.7195 mm = FAIL**. Maximum conductive OD 6.0 mm, hard limit 6.3 mm — see
+  ORDER_README §1 REQUIRED FASTENER SPEC clause (2). v1.3 is orderable and no copper changed.
 - The H4 notch stays. It is load-bearing after all — it is what makes the
   creepage path 6.5984 mm instead of the pre-notch 4.031 mm.
 - Any future attempt to reclaim space around K_STOP or its east corridor must
