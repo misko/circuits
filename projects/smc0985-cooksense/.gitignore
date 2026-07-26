@@ -16,3 +16,8 @@ __pycache__/
 
 # failed routing-attempt artifacts
 *.failed
+# transient stitch scratch: route_and_stitch carries counters across its SWIG
+# re-exec barrier in <board>.kicad_pcb.stitch_state.json and deletes it on a
+# clean finish. A tracked copy only ever means a run was killed mid-stitch
+# (one was, at pass 5/22, and it got committed along with a .failed board).
+*.stitch_state.json
