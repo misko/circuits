@@ -1,3 +1,19 @@
+# ⚠️ HISTORICAL — cooksense **v1.0** findings ledger, carried for provenance only
+
+> **DO NOT WIRE ANYTHING FROM THIS FILE.** It is the v1.0 ledger, kept in the
+> v1.3 archive so the chain of findings is traceable. It describes a board
+> that no longer exists.
+>
+> **Concretely superseded below:** row 7 routes the isolated contactor loop
+> through **`J_ESTOP.3` and `J_ESTOP.4`**, and names a connector
+> `J_CONTACTOR`. On the v1.3 board **`J_ESTOP` pins 3, 4 and 5 are all GND**,
+> `J_CONTACTOR` and `J_ESTOPLOOP` do not exist, and the entire isolated loop
+> is on **`J_ISOLOOP`**. Landing a field loop on J_ESTOP.3/.4 would bond the
+> isolated domain to SELV ground. **`ORDER_README.md` §11 is the only
+> authority for field wiring.**
+
+---
+
 # DISPOSITIONS — cooksense MAIN board findings ledger
 
 Living ledger tracing every review finding to its outcome (08_reviews contract).

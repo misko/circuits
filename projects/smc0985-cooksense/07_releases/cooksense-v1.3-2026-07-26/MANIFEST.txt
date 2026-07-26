@@ -1,5 +1,5 @@
 cooksense v1.3 — smc0985-cooksense MAIN board
-sealed: 2026-07-26
+STAGED, NOT SEALED: 2026-07-26 — blocked on the H4 creepage escalation (ORDER_README section 1)
 supersedes: cooksense-v1.1-2026-07-24 (and v1.0-2026-07-23) — BOTH DO-NOT-ORDER
 
 board: 188 x 92 mm, 4 layer, 222 components + 4 mounting holes; 3925 tracks / 1047 vias
@@ -14,9 +14,15 @@ GATES — every number measured on the artifacts in THIS archive
   ERC --severity-all (in-place, with fp-lib-table)       0 errors, 1303 warnings
   P-COLLIDE placement                                    0 pad shorts, 0 courtyard overlaps
   E-INV                                                  83 / 83
-  A-ROT                                                  189 / 189 from measured rows (table: 61 rows OK)
+  A-ROT                                                  189 / 189 from authority-table rows (table: 61 rows OK, no --allow-unsourced)
+                                                         NOTE: the 61-row table is NOT in this archive. 15 measured rows ship
+                                                         (rotation_measurements_v13.txt) covering 26 of 189 CPL rows. See ORDER_README §6 + §13 item 10.
   A-POS  pad-centre-bbox datum                           189 / 189, worst 0.00000 mm
-  A-POL  single-channel                                  10 codes / 13 refs -> verification/rotation_human_gate.txt
+  A-POL  single-channel                                  10 codes / 13 refs GENERATED -> verification/rotation_human_gate.txt
+                                                         TRUE population 12 codes / 16 refs: D_KSTOP, D_REVCLAMP (C8678) and
+                                                         D_TVS (C113974) are POLARITY-FIT-BLIND in twin_report.csv — the twin
+                                                         could not fit them at all, so they never reached the generated list.
+                                                         ORDER_README §6 item 15 is their only defence.
   A-POP  population                                      226 board, 189 CPL, 37 unpopulated (16 declared + 21 exempt)
   A-STOCK                                                every coded+placed line OK; C42400616 unplaced
   A-EVID  release_required_check                         see below
@@ -27,7 +33,9 @@ GATES — every number measured on the artifacts in THIS archive
   audit_board                                            PASS (I-ISO 6.12 mm)
   M-REPRO                                                3 rebuilds, 1047 vias each; fp/track/via hashes identical AND
                                                          matching the shipped board. See verification/mrepro.md
-  stranded pour islands                                  136 / 136 bonded, 0 stranded
+  stranded pour islands                                  121 / 121 bonded, 0 stranded  (shipped fill: GND F.Cu 106, GND B.Cu 13,
+                                                         GND In1.Cu 1, 3V3 In2.Cu 1. Earlier revisions printed 136 from a
+                                                         refill-in-memory; same conclusion, wrong population.)
   jlc_twin                                               186 refs checked, 185 bodies mounted, all findings adjudicated
                                                          (verification/twin_adjudications.yaml)
   contracts_audit                                        189 files, 0 violations
@@ -50,7 +58,7 @@ MANDATORY BEFORE ORDERING — see ORDER_README.md
                "closed" and is undetectable. You commissioned NC reed + EOL;
                this board is NO with no EOL. Decision required before commissioning.
   section 5    order-day stock recheck
-  section 6    ORDER-PREVIEW HUMAN GATE (18 rows)
+  section 6    ORDER-PREVIEW HUMAN GATE (17 rows)
   section 12   R_OPENT must read C37825 (62 kOhm). If the BOM says C25915, STOP.
   section 1    NON-CONDUCTIVE ENCLOSURE is a load-bearing assumption (ADR-0012)
   section 11   J_ISOLOOP pole legend — hand-wired, and the legend IS the gate
@@ -59,7 +67,7 @@ MANDATORY BEFORE ORDERING — see ORDER_README.md
 FILE DIGEST — sha256, every file in this archive
   3d/cooksense.gltf                                               9b7e60622f23c64f9940e06f1977be4e7f81a591eac6d1494e034aa199f9a1c4
   3d/cooksense.step                                               e115e9d19c37ca66905c42b1737dd404842ee9b77296ed171098005f026af4b4
-  ORDER_README.md                                                 2230cb204f67f3f7d07ca4c7106b73d1617b6be4773ef536af27d5c03ba6881c
+  ORDER_README.md                                                 174e92d32e182a7033e8837227cdaa22491a54cd5b24ffdda29546b60de82df8
   fab/bom.csv                                                     f81b31d6321bd9aba4cadaf4a547062cd259e99a7f86762d63d26ed8eb7fe79e
   fab/bom_jlc.csv                                                 f81b31d6321bd9aba4cadaf4a547062cd259e99a7f86762d63d26ed8eb7fe79e
   fab/cooksense-B_Cu.gbl                                          6879c71dc016001705fdfb499f9df2d89c9aa6a6c05fbb0c02e3def190d2c580
@@ -90,35 +98,36 @@ FILE DIGEST — sha256, every file in this archive
   source/cooksense.pretty/Omega_PCC-SMP-K_TypeK_PCpin.kicad_mod   29b5bfaafc0d232359b05f5ea834ea58c210b895c8ea8f69a17e2580c88ff212
   source/cooksense.pretty/Relay_StandexDIP_1A_pinout12.kicad_mod  fcce58d87d3888d66ee832ee2b512fab393bb5c4e56f0d07baf4ad40a3f6d69a
   source/cooksense.pretty/TerminalBlock_KF350_4P.kicad_mod        a266d5017edb8d0fde5a2d1e11151d5dfcb7376fe29b13999ef89036660bdd2a
-  source/cooksense.tsx                                            b300fc46afa811549f7c0354392e837735899c55b894f264f6da331a1137e031
+  source/cooksense.tsx                                            a6b67dbb2d862152efdd78f7b73cd4a78c8d01be8e50a80ec6eace6378b885ca
   source/fp-lib-table                                             f96f5b2653e171e7b8605c7bac0b5d5802c25e3581aa44f6409a778dbee0f400
   source/parity_padmap.txt                                        43f87a91d9c1afe200f0cdbfb52e1e1e1b13c3f0dbbf8b4406dec013dd3e3aeb
-  verification/INDEX.md                                           7db7b19e4a71a46a3b63715d899590fecd15cba6184dec1d17299dff748078a3
-  verification/ORDER_README.md                                    2230cb204f67f3f7d07ca4c7106b73d1617b6be4773ef536af27d5c03ba6881c
+  verification/INDEX.md                                           a36acd981e265207689ed5e7e4dc3ae684b9ab2d9a5a4adae417470b4ccfce16
+  verification/ORDER_README.md                                    174e92d32e182a7033e8837227cdaa22491a54cd5b24ffdda29546b60de82df8
   verification/assembly_coverage.json                             b8d02708d9d43ef2d9d2eb5c4ae10e897bccd50c9c942340d6af25d51e9c556d
   verification/assembly_coverage.txt                              cf8db91c27421686747ee76d0724f1a97df07e9fbcc8649ddcdca569407352f4
   verification/audit.txt                                          9fe5abe175afc719c9dcf6071996c3fb61ea6e746102559ef70942c151e58cbd
   verification/bom_source_check.txt                               0a8279b27c3a7bbc47b44f2442fd213f7231ee669de1b5f8283b53066771fc45
   verification/build_gates.md                                     4fd4452cde28230369808b7c8d1804a6a04f61287fdc1e9f3dc78c4951349a13
   verification/circuit_value_check.txt                            0618b6f479fa2e159bfc7d0b682fe7598b9ba08c834b7f5b3836a49d91b082a5
-  verification/dispositions.md                                    d3a224ed364b74ebccae2d45210ad5c9049611a8f45b2499df004458f2c9fc05
-  verification/dispositions_v10_carried.md                        9d415ff100dd4677d215aa2b1e91f79edea3f6269f6394bf96a79452cdbdc764
+  verification/dispositions.md                                    8240c865cf51fb8eed0670e20783bb58b280fb855d606f198052825673b16f3b
+  verification/dispositions_v10_carried.md                        74c7b0afbfd3853df8fb9ffbc91e917f14f24874bf2f9e8c428699eb573868f5
   verification/drc.json                                           48845899798b59f23247e60ec65443f4b858d3b85f95114f40cb447c456a691b
   verification/einv.txt                                           bc755960bc256523bd2a0f940ace373935829f54145c5c229c923f685541b1eb
   verification/einv_red_verification.md                           82b6c24822203b2dbdd8ee8f522bae1346b4d9c5f0d5698726fbbdfb3b083272
   verification/erc.json                                           150ab15e04c971a82b2b4ca451b5867673df773d13a3d67bf725001b268031dc
+  verification/fresh_lens.md                                      df23a619349029e8fb876b0ce0d4699b07b5a05b4fcc837f9f0e7b4f263d01ed
   verification/missing_models.txt                                 bee2b135e8d5c24ab8f78336c337a9f7ad0a8f34f50a143b3fd0a2594fc28030
   verification/mrepro.md                                          56c43041fd27832e9951660b362d37cea7ba26daa9b2951a43ff6ab9068b2134
   verification/parity.md                                          7d60ddc7f148231f8c4caa964b13982b6db451a962b9694ac1ca237a354788eb
   verification/part_facts.txt                                     673577319ff782fcf80926efa5739a146b668449040f008633971fb289e12acc
   verification/pin_review.md                                      5a99fbe0788034a0ca6bce2ed03ddd304e9f6e4a34d087b1975367c91bf85c4f
-  verification/policy_audit.md                                    a423674bef2bb2079b5694b78a86715d03a2d074dc1eb7d8304eadd55b81063e
+  verification/policy_audit.md                                    d03c4df05c5f2eb2e34b7a3794562f95337652ddd4e0484e1b3f499a303d68f9
   verification/redteam_layout.md                                  fc5a0fcbc1a4a390c2d3519248cd3ece5cb8bafa1319ce6c4745ec9b5b05b158
-  verification/redteam_topology.md                                4c118e44f5095fe2ec579e08a261a9e4dd786ab47e6d999fde3ec210b99c388a
+  verification/redteam_topology.md                                8185eefaf6a2a628b784a315f44071778352a6b5a7c0b68807ce5ab0a1524d84
   verification/render_bottom_bare.png                             59cd795b225cc4744a0c592214baf48be4d30dca2b5ea5b89622a17f37a076f4
   verification/render_review.md                                   1b1a51c8630a8b5a107338b539c7ad6ee056fb3aa3cea25c89b4ac078094ab46
   verification/render_top_bare.png                                00f4f33c921bd1866c5518bde1c70eb7fd1a4e9d11c2905c30f10b9a53dce514
-  verification/rotation_C22046_measurement.md                     d2a84f64a81ea53db8921adbc5c92122f4c12e9117701f1bf519276f51a21810
+  verification/rotation_C22046_measurement.md                     ec03a6896343a5ca51544320cd0dd69b882af1e3d866ff1ad1f96e59b92db74c
   verification/rotation_audit.txt                                 d846e021093a593e1f37007f8e4c99be2b6943229c2f6e04a4db6c2f0733512c
   verification/rotation_human_gate.txt                            9d075ab4b7c62bb5bec14e8b129207d9622c7f78334c151dde6cd9f32b6243b2
   verification/rotation_measurements_v13.txt                      26d861ee6b201d81855d68ce402a7e1acf7adfa3d0c4170aa20a9b738f3ca38a
@@ -126,7 +135,7 @@ FILE DIGEST — sha256, every file in this archive
   verification/stock_check.csv                                    3a4fa8535f770dbf25a2739caed6073d3ed9709e9d0a436243010148eea87632
   verification/stock_check.json                                   21145a4df2d72d76a506128bc7e86ce4d3f7ccf20663a49068dbdcf928364324
   verification/stock_check.txt                                    3a4fa8535f770dbf25a2739caed6073d3ed9709e9d0a436243010148eea87632
-  verification/stranded_islands.md                                a2351e3cc636d78633386af3952eef628a6239e83a4a63fca949fb096f8be54b
+  verification/stranded_islands.md                                d01fa836a2177fb7e822783e414e1bae3eb95d4d1306fd123e1b10cc9d8f26b4
   verification/twin_adjudications.yaml                            7525c3c19be12194a01c345e3ba8ddf4d630fcff75ea4d173beea5e1b6e734e0
   verification/twin_bottom.png                                    46a4e3e3072247dcf5c02b2254369906edfb980840a1c94faa0811a1ae3595d4
   verification/twin_edge_east.png                                 a241e3834d8c4c62ca62350c09c068203526e25f84a49551d8613d0d52396e14
@@ -136,4 +145,4 @@ FILE DIGEST — sha256, every file in this archive
   verification/twin_report.csv                                    da039247c184b793a50e0a99b6e7ca363f0580ff918a33981480d2aa34d79acd
   verification/twin_top.png                                       07f63ca1d6cf8ba1c648fb912e5292fc0f072c5b3dc8f97569ed258b2f7dcb9b
 
-  78 files
+  79 files

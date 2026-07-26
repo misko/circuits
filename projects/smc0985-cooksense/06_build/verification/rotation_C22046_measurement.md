@@ -1,3 +1,15 @@
+> ## ⚠️ READ THE CORRECTION AT THE END OF THIS FILE FIRST
+>
+> This file is **MIXED**. The body below is the historical C22046 record —
+> including the line "Status: BLOCKS THE v1.2 SEAL", which is history, and
+> a "12 remaining rows" table that is **WRONG on three of its seven codes**.
+> The `CORRECTION, 2026-07-26` block at the END of this file is a **CURRENT
+> v1.3 measurement** and is what ORDER_README §6 and §13 item 10 rely on.
+> It resolves the disagreement, operator-free, in the authority table's
+> favour on all seven codes.
+
+---
+
 # MEASURED: C22046 (SN74LVC1G11DBVR, SOT-23-6) CPL rotation is 90 degrees WRONG
 
 **Status: BLOCKS THE v1.2 SEAL. Reported to the coordinator, NOT acted on** —
@@ -173,3 +185,69 @@ incident (C1/C2). It ships in this release at the name-DB value, unchanged from
 v1.0/v1.1, so it is not a v1.2 regression; but it is on the ORDER_README §3
 human-gate list by name, because a reversed electrolytic is visible in the JLC
 order preview and that is the last line of defence.
+
+---
+
+# CORRECTION, 2026-07-26 — THE SECOND OPERATOR IN THIS FILE HAD A FRAME ERROR
+
+Everything above this line is preserved as written. **The "12 remaining
+ROT-DB-SUGGEST rows" table is WRONG on three of its seven codes, and the reason
+is a defect in my operator, not in the authority table.**
+
+## What was wrong
+
+My operator recovered each footprint's local pad coordinates by de-rotating the
+board-absolute positions with a **standard counter-clockwise rotation matrix**.
+KiCad's Y axis points **DOWN**. Applying a CCW matrix to a Y-down coordinate
+system produces the **mirror image** of the intended rotation, which swaps 0 with
+180 and 90 with 270. Every 0/180 code it reported was a coin flip; every 90/270
+code was inverted.
+
+Determined empirically, not assumed — `J_KEY_MATRIX` sits at orientation −90°
+and its library pad 1 is at (−5.625, −1.850):
+
+| | pad-1 delta from anchor |
+|---|---|
+| what pcbnew actually reports | **(+1.850, −5.625)** |
+| standard CCW matrix | (−1.850, +5.625) — **wrong** |
+| Y-down matrix `[[cos, sin], [−sin, cos]]` | **(+1.850, −5.625)** — matches |
+
+## The re-measurement, with no operator at all
+
+The cleanest possible method, and the one that should have been used first:
+**compare the two `.kicad_mod` files directly.** Our footprint and JLC's model
+are both stored in footprint-local coordinates in the same file format, so no
+board frame, no orientation, and no de-rotation is involved — only a centroid
+alignment and four candidate rotations.
+
+| LCSC | ref(s) | rms 0 / 90 / 180 / 270 | best | sep | landed row | verdict |
+|---|---|---|---|---|---|---|
+| C189896 | J_DOOR J_ESTOP J_MODE J_RH_AMBIENT J_RH_EXHAUST | 0.0000 / 2.5000 / 3.5355 / 2.5000 | **0** | exact | 0 | AGREE |
+| C265111 | J_THERM_A J_THERM_B | 0.0050 / 4.0520 / 5.7304 / 4.0520 | **0** | 810x | 0 | AGREE |
+| C2683602 | J_KEY_MATRIX | 0.0049 / 5.0792 / 7.1831 / 5.0792 | **0** | 1037x | 0 | AGREE |
+| C157991 | J_LOADCELL | 7.1276 / 5.0402 / 0.0566 / 5.0402 | **180** | 89x | 180 | AGREE |
+| C587657 | J_PWR | 2.7500 / 1.9526 / 0.2500 / 1.9526 | **180** | 8x | 180 | AGREE |
+| C125121 | U_OPTO | 7.1366 / 10.0899 / 7.1366 / 0.2350 | **270** | 30x | 270 | AGREE |
+| C2887273 | CE1 | 0.0300 / 3.7972 / 5.3700 / 3.7972 | **0** | 127x | 0 | AGREE |
+
+**Seven of seven agree with the authority table**, including the two safety-
+critical ones — **C125121 (U_OPTO, the isolation barrier) at 270** and
+**C2887273 (CE1, the polarized electrolytic) at 0**. The rms figures also
+reproduce the landed rows' recorded numbers (0.0000/2.5000, 0.0050/4.0520,
+0.0049/5.0792, 0.0566, 0.2350, 0.0300) — same fit, and now the same label.
+
+**No CPL row changes. No table row changes.** The shipped CPL was already
+correct on all seven codes; verified independently by walking the board and the
+CPL together, `CPL == (board_rot + landed_offset) mod 360` on every ref.
+
+## What this file got RIGHT, and should be read for
+
+The refusal on line 163 — *"Two operators that disagree mean you have no
+measurement yet, not two candidates"* — was the correct call and it held the
+line. It stopped seven wrong rows from being proposed into a fleet-wide table on
+the strength of a broken operator. **The lesson is not "trust the table"; it is
+that the tie-break must be a THIRD method that shares no code with either
+side** (canon M1). Here that method was reading two files.
+
+**Cross-reference fix:** line 174 above sends the reader to "ORDER_README §3
+human-gate list". The human gate is **§6**, not §3.

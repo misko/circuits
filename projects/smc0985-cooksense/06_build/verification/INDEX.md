@@ -25,11 +25,11 @@ This index exists so that question is answerable without opening each file.
 | `assembly_coverage.txt` / `.json` | A-POP population + A-POS datum | v1.3 |
 | `stock_check.txt` / `.csv` / `.json` | A-STOCK, one snapshot, all three from the same run | v1.3 |
 | `rotation_audit.txt` | A-ROT table state (61 rows) | v1.3 |
-| `rotation_human_gate.txt` | **A-POL: the 10 codes / 13 refs needing the preview gate** (GENERATED — it wins over any prose) | v1.3 |
+| `rotation_human_gate.txt` | **A-POL: 10 codes / 13 refs** (GENERATED). **It does NOT win over prose here, and this is the one exception in this table:** three further refs (D_KSTOP, D_REVCLAMP, D_TVS — codes C8678, C113974) are `POLARITY-FIT-BLIND` in `twin_report.csv`, i.e. the twin could not fit them at all, so they never reached the generated list. True single-channel population **12 codes / 16 refs**. See ORDER_README §6 item 15 | v1.3 |
 | `rotation_measurements_v13.txt` | raw two-channel measurements behind the rotation rows | v1.3 |
 | `part_facts.txt` | P-FACT; CE1's pad1_net_polarity EXECUTES against this archive | v1.3 |
 | `policy_audit.md` | the policy table **plus a ship-time annotation**: 3 of its 4 FAILs grade the INTERPOSER, not cooksense | v1.3 + annotation |
-| `stranded_islands.md` | 136/136 pour islands bonded, 0 stranded; + the sibling-context trap | v1.3 |
+| `stranded_islands.md` | **121/121** pour islands bonded, 0 stranded (F.Cu 106 + B.Cu 13 + In1 1 + In2 1); + the sibling-context trap. The 136 an earlier revision of THIS LINE carried came from a refill-in-memory, not the shipped fill | v1.3 |
 | `twin_adjudications.yaml` | every jlc_twin finding class, adjudicated | v1.3 |
 | `twin_report.csv`, `missing_models.txt`, `twin_*.png` | jlc_twin output and renders | v1.3 |
 | `render_top_bare.png`, `render_bottom_bare.png` | board renders | v1.3 |
@@ -39,12 +39,19 @@ This index exists so that question is answerable without opening each file.
 | `render_review.md` | renders regenerated for v1.3; **narrative review NOT re-run** — limits stated in the file | renders v1.3, narrative NOT run |
 | `fresh_lens.md` | zero-context review of this frozen archive | **added at seal** — see note below |
 | `dispositions_v10_carried.md` | **HISTORICAL** — v1.0 dispositions, kept for provenance | v1.0, historical |
-| `rotation_C22046_measurement.md` | **HISTORICAL** — the C22046 rotation measurement record | historical |
+| `rotation_C22046_measurement.md` | **MIXED — historical body, CURRENT correction block.** The original C22046 record is historical; the appended `CORRECTION, 2026-07-26` section is a **v1.3 result** and is the in-archive evidence behind ORDER_README §6's resolved-disagreement table and §13 item 10 (7 of 51 CPL codes re-measured operator-free, incl. C125121/U_OPTO and C2887273/CE1). **Do not discard it as historical.** | body historical, correction v1.3 |
 
-## Two files are deliberately NOT v1.3 results
+## One file is deliberately NOT a v1.3 result, and one is MIXED
 
-`dispositions_v10_carried.md` and `rotation_C22046_measurement.md` are
-historical records, labelled as such in this table and in their own headers.
+`dispositions_v10_carried.md` is a historical record, labelled as such in this
+table and by a banner in its own header.
+
+`rotation_C22046_measurement.md` is **mixed**: its body is the historical
+C22046 record (and still carries the line "Status: BLOCKS THE v1.2 SEAL", which
+is historical too), but the `CORRECTION, 2026-07-26` block appended at the end
+is a **current v1.3 measurement** that ORDER_README §6 and §13 item 10 both rely
+on. Read the correction block; treat the body as history.
+
 Everything else describes the board in `source/` and `fab/`.
 
 ## Two files describe work that was NOT done

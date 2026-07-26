@@ -1,3 +1,13 @@
+> **CORRECTION, 2026-07-26 — the island POPULATION in this file was measured
+> on a refill-in-memory, not on the fill that ships.** Every `136` below has
+> been changed to **121**, which is what the stored fill in
+> `source/cooksense.kicad_pcb` actually contains: GND/F.Cu **106**, GND/B.Cu
+> **13**, GND/In1.Cu **1**, 3V3/In2.Cu **1**. `verification/mrepro.md`
+> independently reported 106/13/1/1 and was right; this file and the summary
+> tables that copied it were wrong. **The CONCLUSION is unchanged and was
+> re-run against the shipped fill: 121 islands, 121 bonded, 0 stranded.**
+> A conservative population is not automatically a correct one.
+
 # Stranded-island check — cooksense v1.3, 2026-07-26
 
 Board: `04_kicad/cooksense.kicad_pcb`, loaded IN PLACE (the sibling
@@ -9,7 +19,7 @@ landing in it is floating copper, but it is not "unconnected" in the netlist
 sense, so `--severity-all` passes over it. The board's 0/0/0 is unaffected either
 way — which is exactly why the check is worth running separately.
 
-## Result: 136 islands, 136 bonded, **0 stranded**
+## Result: 121 islands, 121 bonded, **0 stranded**
 
 The coordinator's independent run reported **7 stranded, 3.0719 mm2**. I
 reproduce those figures EXACTLY with the method as described, and they are an
@@ -18,7 +28,7 @@ artifact of the containment test rather than a property of the board.
 | method | bonded | stranded | area |
 |---|---|---|---|
 | (a) same-net item POSITION `Contains()` inside the island | 129 | **7** | 3.0719 mm2 |
-| (b) same-net copper SHAPE `Collide()` with the island | **136** | **0** | 0.0000 mm2 |
+| (b) same-net copper SHAPE `Collide()` with the island | **121** | **0** | 0.0000 mm2 |
 
 Method (a) asks whether a pad/via/track *centre* falls inside the island. Method
 (b) asks whether its *copper* touches the island. These seven islands are the

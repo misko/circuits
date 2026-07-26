@@ -439,9 +439,12 @@ export default () => (
         the bottom rail; adding any bleed resistor only moves where "infinitely cold"
         lands, and cold and open stay on the SAME side of any single threshold. The
         information is not in the node — so the fix is a SECOND threshold, i.e. a window.
-        THIS IS THAT WINDOW. U_COMP2 trips when TH_CAM rises ABOVE 3.107V, which no
-        connected thermistor can reach (10k/B3987 at -25C gives ~3.0V, and the appliance
-        never sees that). Open/unplugged/broken-wire => TEMP_OK LOW => fault latch SET and
+        THIS IS THAT WINDOW. U_COMP2 trips when TH_CAM rises above the open-detect
+        threshold, which no connected thermistor can reach. *** THAT THRESHOLD IS 2.0370V,
+        NOT the 3.107V this paragraph originally gave — 3.107V was the FIRST CUT and it was
+        ABOVE the LMV393 common-mode ceiling, i.e. inert. See the RESCALE block immediately
+        below, which is the authority for every number in this window. ***
+        Open/unplugged/broken-wire => TEMP_OK LOW => fault latch SET and
         contactor permission removed, exactly like an over-temperature. A SHORTED sensor
         already tripped the over-temp half, so both cable failure modes are now covered.
         TEMP_OK becomes a 4-way wired-AND: hot(A) . hot(B) . open(A) . open(B). */}

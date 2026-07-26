@@ -15,7 +15,7 @@
 > | **P1-2** door NO + no EOL | **DEFERRED to v1.4, DECLARED** — ORDER_README section 2-0, prominently | coordinator decision |
 > | **P1-3** TH_CAM span 93.62/87.75 mm vs an 8 mm budget | **DEFERRED to v1.4, DECLARED** — ORDER_README section 13 | coordinator decision |
 > | **P1-4** R_HYS negative feedback on U_COMP2 | **DEFERRED to v1.4, DECLARED** — dispositions.md D-2, with the reason it can wait | coordinator decision |
-> | **P1-5** CH0/CH3 transfer function undocumented | **OPEN** — dispositions.md; host-side, not a board change | — |
+> | **P1-5** CH0/CH3 transfer function undocumented | **CLOSED 2026-07-26** — derived in ORDER_README section 2b (`R_ntc = 1/(1/R_par - 1/22000)`), with an 8-point error table and recomputed thresholds; no bench step. dispositions.md carries the closure | closed |
 >
 > Everything this review verified as CORRECT still stands and was not re-run —
 > in particular the cross-layer isolation scan, which is RED-verified against the

@@ -101,7 +101,10 @@
 - id: S-OCCL
   refs: ["03_tscircuit/kicad/cooksense.kicad_sch"]
   why: >-
-    The 78 occlusions are label-vs-reference/label bbox overlaps in the tscircuit
+    The occlusions (count varies run-to-run — 77/78/79 observed, because the
+    converter mints fresh UUIDs and label bboxes shift; it is NOT a stable
+    figure and should not be quoted as one) are label-vs-reference/label bbox
+    overlaps in the tscircuit
     CONVERTER .kicad_sch — per ADR-0002 + the 03_tscircuit contract that file is
     the MACHINE artifact (ERC / netlist / --schematic-parity; "need not be
     pretty"); the HUMAN schematic this board ships is tscircuit's own
