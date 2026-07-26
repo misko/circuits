@@ -21,7 +21,7 @@ not_assembled:  F1, R42, SW1   (GENERATED from 03_src/rules/assembly.yaml)
 through_hole:   ORDERED — J1, J2, J3, J4, J5 (4 refdes / 22 plated holes + J5 hybrid)
 fiducials:      3 (FID1-FID3, board-only, BOM- and CPL-excluded)
 
-git_sha:        be6e7501106ff56c83608f3319b5dc10c0eb4b6f
+git_sha:        2860cf0e24d62073121814ca07d22af91c97f427
 git_dirty:      false
 
 REPRODUCIBILITY — a DECLARED, MEASURED LIMITATION
@@ -64,7 +64,7 @@ M3 honoured in its durable form rather than pretended.
 files: 38
 
 aa371008e0ab525663b68da62a07cea36a1f3e1789810286bbe00a0208aac084  3d/usb_hub_3s_v2.step
-af3ad2a612912f19d181b9c2f24f9796cc4fdffcab4ee5c318169cee31b49530  ORDER_README.md
+8e1a0ed5f192fb484429f253b55ddbe3e113dd0c9c42d1030ad3a5e12083b798  ORDER_README.md
 6d717b7b46b0ab9613b1cb76d7bd5daf4c2f566f264d1dcfd888eafabc0a4796  fab/bom.csv
 68ac8441f79276b66c04edd552711dcd2c971ae40e0d585427cbe598ba296d50  fab/cpl.csv
 c64daaa06ac743eb32c0cd6b0854728a6a868ef7d7025714398e61851f6d6e00  fab/usb_hub_3s_v2-NPTH.drl
