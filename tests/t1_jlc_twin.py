@@ -30,6 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harness import (FAB_SCRIPTS, KPY, ROOT, SCRIPTS, check, contains, eq, main,  # noqa: E402
+                     not_contains,
                      must_fail, must_pass, run, test, tmpdir)
 
 sys.path.insert(0, str(FAB_SCRIPTS))
@@ -478,6 +479,550 @@ def t_shipped_table_resolves():
         check(code in tbl, f"{code} missing from jlc_lcsc_rotations.csv")
         eq(tbl[code], float(rot), f"{code} rotation")
 
+
+# ================================================================ MOUNT
+# THE SECOND HALF OF THE HANDEDNESS INCIDENT (2026-07-25). Fixing `xform()`
+# left FOUR more hand-inlined copies of the wrong rotation form — the render
+# mount's OFFSET, its Z-ROTATION, and the model-frame rotation in BOTH
+# `reg_check()` and `model_self_check()`. Because MODEL-REG used the same
+# wrong form as the mount it graded the mount with the mount's OWN method
+# (canon M1), so a TRUE 14.37 mm mis-mount on a shipped XT60 was waived as a
+# false alarm and usb-hub-3s-v3 v1.5 sealed with every 90/270 part rendering
+# 180 deg out.
+#
+# The single-function tests that existed here could not have caught that:
+# they graded ONE site. What follows is an INVARIANT test — it mounts a
+# deliberately asymmetric model through the WHOLE pipeline at each of
+# 0/90/180/270 and asserts the mounted pose is JLC's pose turned by exactly
+# the fitted angle. It goes RED if `xform`, `reg_check`, the mount offset or
+# the mount z drifts at ANY site, because all four are on the path it walks.
+#
+# EVERY rotation fixture here includes 90 AND 270 and asserts it can tell the
+# two candidate forms apart. A fixture that only sampled 0/180 would have
+# passed all five copies of the bug: the two forms are mathematically
+# IDENTICAL there, which is exactly why five copies survived review.
+
+BAR = (0.0, -1.0, 8.0, 1.0)      # model-frame bbox: long +x, short +/-y
+
+
+def bar_wrl(path):
+    """An ASYMMETRIC body: 8 mm along +x from the origin, 2 mm across.
+    KiCad VRML convention, 1 unit = 2.54 mm. Asymmetry is the whole point —
+    a symmetric body's bbox is invariant under the very rotations under test.
+    """
+    u = 2.54
+    pts = [(x / u, y / u, z / u)
+           for z in (0.0, 2.0)
+           for (x, y) in ((BAR[0], BAR[1]), (BAR[2], BAR[1]),
+                          (BAR[2], BAR[3]), (BAR[0], BAR[3]))]
+    faces = [(0, 1, 2, 3), (4, 5, 6, 7), (0, 1, 5, 4),
+             (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)]
+    path.write_text(
+        "#VRML V2.0 utf8\nShape {\n"
+        " appearance Appearance { material Material "
+        "{ diffuseColor 0.9 0.1 0.1 } }\n"
+        " geometry IndexedFaceSet {\n  coord Coordinate { point [\n"
+        + ",\n".join("   %.6f %.6f %.6f" % p for p in pts)
+        + "\n  ] }\n  coordIndex [\n"
+        + ",\n".join("   " + ", ".join(str(i) for i in f) + ", -1"
+                     for f in faces)
+        + "\n  ]\n }\n}\n")
+
+
+def render_pose(bbox, off, rot_z, scale=(1.0, 1.0)):
+    """The plan-view corners a renderer draws for one FP_3DMODEL, in the
+    footprint's y-DOWN frame. The test's OWN implementation on purpose — if it
+    imported jlc_twin's, a sign flip there would cancel on both sides of the
+    invariant and the test would grade nothing. Its own sign is pinned
+    separately, against the RENDERER, by t_model_rot_matches_render."""
+    th = math.radians(rot_z)
+    c, s = math.cos(th), math.sin(th)
+    out = []
+    for mx in (bbox[0], bbox[2]):
+        for my in (bbox[1], bbox[3]):
+            rx, ry = mx * c + my * s, -mx * s + my * c
+            out.append((rx * scale[0] + off[0], -(ry * scale[1] + off[1])))
+    return out
+
+
+def bbox_of(pts):
+    return (min(p[0] for p in pts), min(p[1] for p in pts),
+            max(p[0] for p in pts), max(p[1] for p in pts))
+
+
+def form_a(pts, ang):
+    c, s = math.cos(math.radians(ang)), math.sin(math.radians(ang))
+    return [(x * c + y * s, -x * s + y * c) for x, y in pts]
+
+
+def form_b(pts, ang):
+    c, s = math.cos(math.radians(ang)), math.sin(math.radians(ang))
+    return [(x * c - y * s, x * s + y * c) for x, y in pts]
+
+
+# A scalene, non-mirror-symmetric pad triangle: no rotation OR mirror of it
+# coincides with another, so the fit angle is unique and a MIRRORED verdict
+# is impossible by construction.
+JPADS = {"1": (-2.0, -1.0), "2": (2.0, -1.0), "3": (2.0, 1.6)}
+JMODEL_ROT_Z = 90.0          # non-zero on purpose: exercises model_rot too
+JMODEL_OFF = (1.5, 0.75)     # non-zero on purpose: offset and rotation
+#                              compose, and a sign error in either alone is
+#                              invisible when the other is zero
+
+
+def jlc_mod(d, code, model_path, pads=None, rot_z=JMODEL_ROT_Z,
+            off=JMODEL_OFF, extra_pads=(), out="twin"):
+    """Seed the per-code replay cache with a synthetic 'JLC' footprint."""
+    pads = pads or JPADS
+    cache = d / out / "easyeda" / code / "jlc.pretty"
+    cache.mkdir(parents=True, exist_ok=True)
+    rows = [(n, xy) for n, xy in pads.items()] + list(extra_pads)
+    padtxt = "\n".join(
+        '  (pad "%s" smd rect (at %s %s) (size 0.8 0.8) '
+        '(layers "F.Cu" "F.Paste" "F.Mask"))' % (n, xy[0], xy[1])
+        for n, xy in rows)
+    (cache / "synth.kicad_mod").write_text(
+        '(footprint "SYNTH" (version 20240108) (generator "test")\n'
+        '  (layer "F.Cu")\n' + padtxt + "\n"
+        '  (model "%s"\n' % model_path
+        + '    (offset (xyz %s %s 0))\n' % (off[0], off[1])
+        + '    (scale (xyz 1 1 1))\n'
+        + '    (rotate (xyz 0 0 %s))\n' % rot_z
+        + '  )\n)\n')
+    return cache / "synth.kicad_mod"
+
+
+_MKBOARD = (
+    "import json, sys\n"
+    "import pcbnew\n"
+    "out, ang = sys.argv[1], float(sys.argv[2])\n"
+    "pads = json.loads(sys.argv[3]); ct = json.loads(sys.argv[4])\n"
+    "b = pcbnew.NewBoard(out)\n"
+    "for (x1, y1), (x2, y2) in (((0,0),(60,0)), ((60,0),(60,60)),\n"
+    "                           ((60,60),(0,60)), ((0,60),(0,0))):\n"
+    "    s = pcbnew.PCB_SHAPE(b); s.SetShape(pcbnew.SHAPE_T_SEGMENT)\n"
+    "    s.SetStart(pcbnew.VECTOR2I(int(x1*1e6), int(y1*1e6)))\n"
+    "    s.SetEnd(pcbnew.VECTOR2I(int(x2*1e6), int(y2*1e6)))\n"
+    "    s.SetLayer(pcbnew.Edge_Cuts); s.SetWidth(100000); b.Add(s)\n"
+    "def mkpad(owner, n, x, y):\n"
+    "    p = pcbnew.PAD(owner); p.SetNumber(n)\n"
+    "    p.SetShape(pcbnew.PAD_SHAPE_RECT)\n"
+    "    p.SetSize(pcbnew.VECTOR2I(int(0.8e6), int(0.8e6)))\n"
+    "    p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)\n"
+    "    p.SetLayerSet(p.SMDMask())\n"
+    "    p.SetPosition(pcbnew.VECTOR2I(int(x*1e6), int(y*1e6)))\n"
+    "    owner.Add(p)\n"
+    "# STEP 1: let PCBNEW rotate the pad set.  The fixture's rotation must\n"
+    "# not come from this repo's own operator, or the test would grade\n"
+    "# self-consistency instead of KiCad's actual geometry.\n"
+    "scratch = pcbnew.FOOTPRINT(b)\n"
+    "scratch.SetPosition(pcbnew.VECTOR2I(0, 0))\n"
+    "for n, xy in pads.items():\n"
+    "    mkpad(scratch, n, xy[0], xy[1])\n"
+    "scratch.SetOrientationDegrees(ang)\n"
+    "rot = {}\n"
+    "for p in scratch.Pads():\n"
+    "    rot.setdefault(p.GetNumber(), []).append(\n"
+    "        (p.GetPosition().x/1e6, p.GetPosition().y/1e6))\n"
+    "# STEP 2: bake those as the LOCAL pads of a footprint placed at 0 deg.\n"
+    "POS = (30.0, 25.0)\n"
+    "fp = pcbnew.FOOTPRINT(b)\n"
+    "fp.SetReference('U9')\n"
+    "fp.SetPosition(pcbnew.VECTOR2I(int(POS[0]*1e6), int(POS[1]*1e6)))\n"
+    "for n, pts in rot.items():\n"
+    "    for (x, y) in pts:\n"
+    "        mkpad(fp, n, POS[0]+x, POS[1]+y)\n"
+    "if ct:\n"
+    "    r = pcbnew.PCB_SHAPE(fp); r.SetShape(pcbnew.SHAPE_T_RECT)\n"
+    "    r.SetStart(pcbnew.VECTOR2I(int((POS[0]+ct[0])*1e6),\n"
+    "                               int((POS[1]+ct[1])*1e6)))\n"
+    "    r.SetEnd(pcbnew.VECTOR2I(int((POS[0]+ct[2])*1e6),\n"
+    "                             int((POS[1]+ct[3])*1e6)))\n"
+    "    r.SetLayer(pcbnew.F_CrtYd); r.SetWidth(50000); fp.Add(r)\n"
+    "b.Add(fp)\n"
+    "b.Save(out)\n"
+    "flat = {n: pts[0] for n, pts in rot.items()}\n"
+    "print('@@' + json.dumps({'rotated': flat, 'pos': POS}))\n")
+
+
+def synth_board(d, ang, pads=None, courtyard=None, name="synth.kicad_pcb"):
+    import json
+    pads = pads or JPADS
+    board = d / name
+    r = must_pass(run([KPY, "-c", _MKBOARD, str(board), str(ang),
+                       json.dumps(pads), json.dumps(courtyard or [])]),
+                  "build synthetic board at %s deg" % ang)
+    return board, json.loads(r.out.split("@@", 1)[1])
+
+
+def expected_local(ang, rotated, jm_off=JMODEL_OFF, jm_rot=JMODEL_ROT_Z,
+                   pads=None):
+    """The mounted body's plan bbox in OUR footprint-local frame, derived from
+    the INVARIANT alone: our footprint is JLC's turned by `ang`, so the body
+    must be JLC's body turned by `ang` about the pad centroid. Returns
+    (formA_expectation, formB_expectation) so a fixture can prove it
+    discriminates the two."""
+    pads = pads or JPADS
+    jc = (sum(p[0] for p in pads.values()) / len(pads),
+          sum(p[1] for p in pads.values()) / len(pads))
+    oc = (sum(p[0] for p in rotated.values()) / len(rotated),
+          sum(p[1] for p in rotated.values()) / len(rotated))
+    rel = [(x - jc[0], y - jc[1])
+           for x, y in render_pose(BAR, jm_off, jm_rot)]
+    return (bbox_of([(x + oc[0], y + oc[1]) for x, y in form_a(rel, ang)]),
+            bbox_of([(x + oc[0], y + oc[1]) for x, y in form_b(rel, ang)]))
+
+
+_READ_MOUNT = (
+    "import json, sys\n"
+    "import pcbnew\n"
+    "b = pcbnew.LoadBoard(sys.argv[1])\n"
+    "fp = b.FindFootprintByReference(sys.argv[2])\n"
+    "print('@@' + json.dumps([{'f': m.m_Filename, 'rz': m.m_Rotation.z,\n"
+    "                          'ox': m.m_Offset.x, 'oy': m.m_Offset.y,\n"
+    "                          'sx': m.m_Scale.x, 'sy': m.m_Scale.y}\n"
+    "                         for m in fp.Models()]))\n")
+
+
+def read_mount(board, ref="U9"):
+    import json
+    return json.loads(
+        must_pass(run([KPY, "-c", _READ_MOUNT, str(board), ref]),
+                  "read mounted model").out.split("@@", 1)[1])
+
+
+@test("INVARIANT: a mounted body's pose is JLC's pose turned by the fitted "
+      "angle — at 0/90/180/270, covering xform, the mount offset, the mount "
+      "z-rotation and reg_check in one assertion", kind="known_bad")
+def t_mount_pose_invariant():
+    """ONE test for all four rotation sites. For each fit angle it:
+
+      1. builds a synthetic JLC footprint (scalene pad triangle, asymmetric
+         body, NON-ZERO model offset AND model rotation — a sign error in
+         either alone is invisible when the other is zero),
+      2. builds OUR board footprint by letting PCBNEW rotate that pad set,
+      3. draws the courtyard where the invariant says the body must land,
+      4. runs the real jlc_twin,
+      5. asserts the fitted offset == the angle pcbnew applied,
+      6. asserts the MOUNTED model's pose == formA(ang) of JLC's pose, and
+      7. asserts MODEL-REG-OK — reg_check, computed by a different route
+         (courtyard-vs-bbox), agreeing.
+
+    Step 7 is why this replaces a per-function test: before 2026-07-25
+    reg_check shared the mount's wrong form, so steps 6 and 7 were consistent
+    with each other AND both wrong. They now come from different operators
+    over different inputs.
+
+    RED-VERIFIED 2026-07-25 by restoring each pre-fix line in the live file,
+    running `--only=INVARIANT`, and restoring. Verbatim failures:
+      - mount OFFSET `(x*c - y*sn, x*sn + y*c)`:
+        "mounted body bbox at 90 deg: got (0.483, -0.833, 8.483, 1.167),
+         want (-0.75, -2.5, 7.25, -0.5) (max delta 1.667 mm)"
+      - mount Z `+ ang` instead of `- ang`:
+        "... got (-8.75, -2.5, -0.75, -0.5) ... (max delta 8.000 mm)"
+      - reg_check MODEL-FRAME `(mx*cm - my*sm, ...)` (i.e. model_rot):
+        "reg_check produced no verdict at 0 deg (statuses ['MODEL-REG',
+         'MODEL-SELF', 'OK'])" — the body is graded OFF its courtyard
+      - reg_check FIT-TRANSFORM `(x*c - y*sn, ...)`:
+        "reg_check produced no verdict at 90 deg (statuses ['MODEL-REG',
+         'MODEL-SELF', 'ROT-DB-SUGGEST'])"
+    Four sites, four red lights. The offset revert passes at 0/180 and fails
+    only at 90/270 — the exact signature that let it ship.
+    """
+    for ang in (0, 90, 180, 270):
+        d = tmpdir("twinmount%s_" % ang)
+        wrl = d / "bar.wrl"
+        bar_wrl(wrl)
+        code = "C900001"
+        jlc_mod(d, code, str(wrl))
+        # the courtyard is where the INVARIANT says the body goes; it is
+        # derived from JLC's pose + formA, never from the mount's output.
+        _, meta = synth_board(d, ang, name="probe%s.kicad_pcb" % ang)
+        want, wrong = expected_local(ang, meta["rotated"])
+        board, meta = synth_board(d, ang, courtyard=list(want),
+                                  name="synth%s.kicad_pcb" % ang)
+        bom = d / "bom.csv"
+        bom.write_text("Comment,Designator,Footprint,MPN,LCSC\n"
+                       "synthetic,U9,SYNTH,,%s\n" % code)
+        e2k = stub_e2k(d, stderr="NETWORK WAS CALLED - replay is broken\n",
+                       rc=1)
+        r = run([KPY, TWIN, board, bom, d / "twin", "--no-render"],
+                cwd=d, env={"EASYEDA2KICAD": str(e2k),
+                            "JLC_TWIN_FETCH_ATTEMPTS": "1"})
+        check("NETWORK WAS CALLED" not in r.out,
+              "replay broken: the fetcher was invoked")
+
+        # 5. the fit recovered the angle PCBNEW applied
+        contains(r.out, "jlc_offset=%d " % ang,
+                 "fitted offset at %s deg" % ang)
+
+        # 6. the mounted pose IS formA(ang) of JLC's pose
+        ms = read_mount(d / "twin" / "twin.kicad_pcb")
+        check(len(ms) == 1,
+              "expected exactly one mounted model, got %d" % len(ms))
+        m = ms[0]
+        got = bbox_of(render_pose(BAR, (m["ox"], m["oy"]), m["rz"],
+                                  (m["sx"], m["sy"])))
+        err = max(abs(g - w) for g, w in zip(got, want))
+        werr = max(abs(g - w) for g, w in zip(got, wrong))
+        check(err < 0.02,
+              "mounted body bbox at %s deg: got %s, want %s (max delta "
+              "%.3f mm) — the mount offset and/or the mount z-rotation is "
+              "not formA(%s) of JLC's pose"
+              % (ang, tuple(round(v, 3) for v in got),
+                 tuple(round(v, 3) for v in want), err, ang))
+        # DISCRIMINATION: the fixture must be able to tell the two forms
+        # apart at 90/270 — otherwise the assertion above proves nothing.
+        if ang in (90, 270):
+            check(werr > 1.0,
+                  "at %s deg this fixture cannot distinguish formA from "
+                  "formB (they differ by only %.3f mm) — it would have "
+                  "passed the shipped bug; make the body more asymmetric"
+                  % (ang, werr))
+
+        # 7. reg_check agrees, by a different route, and does not block
+        import csv as _csv
+        rows = list(_csv.DictReader(
+            open(str(d / "twin" / "twin_report.csv"))))
+        stat = {row["Status"] for row in rows if row["Ref"] == "U9"}
+        check("MODEL-REG-OK" in stat,
+              "reg_check produced no verdict at %s deg (statuses %s)"
+              % (ang, sorted(stat)))
+        check("MODEL-REG" not in stat,
+              "reg_check reported the body OFF the courtyard at %s deg, "
+              "where the mount agrees with the invariant — reg_check's own "
+              "frame math has drifted:\n%s"
+              % (ang, [row for row in rows if row["Status"] == "MODEL-REG"]))
+        check(r.rc == 0,
+              "clean synthetic mount at %s deg should exit 0:\n%s"
+              % (ang, r.out[-2000:]))
+
+
+def _red_bbox(png):
+    from PIL import Image
+    im = Image.open(png).convert("RGB")
+    w, h = im.size
+    px = im.load()
+    xs, ys = [], []
+    for y in range(h):
+        for x in range(w):
+            r, g, b = px[x, y]
+            if r > 110 and r - g > 50 and r - b > 50:
+                xs.append(x)
+                ys.append(y)
+    return (min(xs), min(ys), max(xs), max(ys)) if xs else None
+
+
+@test("model_rot() reproduces what kicad-cli ACTUALLY renders for an "
+      "m_Rotation.z, and the opposite sign provably does not",
+      kind="known_bad")
+def t_model_rot_matches_render():
+    """The model-frame operator cannot be pinned by the invariant above — it
+    appears on both sides there and cancels. So it is pinned against the only
+    authority that cannot be wrong about what KiCad draws: KiCad's renderer.
+
+    MEASURED (2026-07-25): an asymmetric bar (model frame x 0..8 mm,
+    y -1..+1 mm) at board (20,20), rendered `--side top` at 19.25 px/mm.
+    rot_z 90 puts the long axis SOUTH and 270 puts it NORTH, each within
+    0.014 mm of this form; the pre-fix form predicts the exact opposite at
+    both (8.000 mm out), and the two agree at 0/180 — the same
+    sign-invariance that hid four other copies of this bug.
+
+    RED-VERIFIED: restoring `(mx*c - my*s, mx*s + my*c)` in
+    jlc_twin.model_rot() makes this FAIL at the live probe — "model_rot((1,0),
+    90) = [0.0, 1.0]; the renderer puts it at (0,-1)"."""
+    d = tmpdir("modelrot_")
+    wrl = d / "bar.wrl"
+    bar_wrl(wrl)
+    seen = {}
+    for rz in (0, 90, 180, 270):
+        board, _ = synth_board(d, 0, name="mr%s.kicad_pcb" % rz)
+        must_pass(run([KPY, "-c",
+                       "import pcbnew,sys\n"
+                       "b=pcbnew.LoadBoard(sys.argv[1])\n"
+                       "fp=b.FindFootprintByReference('U9')\n"
+                       "m=pcbnew.FP_3DMODEL()\n"
+                       "m.m_Filename=sys.argv[2]\n"
+                       "m.m_Scale=pcbnew.VECTOR3D(1,1,1)\n"
+                       "m.m_Offset=pcbnew.VECTOR3D(0,0,0)\n"
+                       "m.m_Rotation=pcbnew.VECTOR3D(0,0,float(sys.argv[3]))\n"
+                       "fp.Models().push_back(m)\n"
+                       "b.Save(sys.argv[1])\n",
+                       str(board), str(wrl), str(rz)]),
+                  "attach model at rot_z=%s" % rz)
+        png = d / ("mr%s.png" % rz)
+        run(["kicad-cli", "pcb", "render", "--width", "800", "--height", "800",
+             "--side", "top", "--zoom", "1.0", "-o", str(png), str(board)])
+        check(png.exists(), "kicad-cli produced no render for rot_z=%s" % rz)
+        seen[rz] = _red_bbox(png)
+        check(seen[rz] is not None,
+              "no red body pixels in the rot_z=%s render — the fixture model "
+              "did not load, so this test proves nothing" % rz)
+
+    def is_vertical(bb):
+        return (bb[3] - bb[1]) > (bb[2] - bb[0])
+
+    for rz in (90, 270):
+        check(is_vertical(seen[rz]),
+              "rot_z=%s did not turn the bar at all (bbox %s) — the render is "
+              "not exercising m_Rotation.z" % (rz, seen[rz]))
+    ox = seen[0][0]                        # x of the bar's origin end
+    oy = (seen[0][1] + seen[0][3]) / 2.0   # y of the model origin
+    check(seen[90][3] > oy + 20 and seen[90][1] > oy - 20,
+          "rot_z 90: the rendered long axis does not point SOUTH "
+          "(origin y=%.0f, bar y %s..%s) — model_rot's sign disagrees with "
+          "the renderer" % (oy, seen[90][1], seen[90][3]))
+    check(seen[270][1] < oy - 20 and seen[270][3] < oy + 20,
+          "rot_z 270: the rendered long axis does not point NORTH "
+          "(origin y=%.0f, bar y %s..%s)"
+          % (oy, seen[270][1], seen[270][3]))
+    check(seen[180][2] < ox + 20,
+          "rot_z 180 did not mirror rot_z 0 about the model origin")
+    # and the LIVE function must BE that form, not merely agree in spirit
+    import json as _json
+    probe = ("import sys,json\n"
+             "sys.path.insert(0, %r)\n"
+             "import jlc_twin\n"
+             "print('@@'+json.dumps([jlc_twin.model_rot(1.0,0.0,90.0),\n"
+             "                       jlc_twin.model_rot(1.0,0.0,270.0)]))\n"
+             % str(FAB_SCRIPTS))
+    a, b = _json.loads(must_pass(run([KPY, "-c", probe]),
+                                 "live model_rot probe")
+                       .out.split("@@", 1)[1])
+    check(abs(a[0]) < 1e-9 and abs(a[1] + 1.0) < 1e-9,
+          "model_rot((1,0), 90) = %s; the renderer puts it at (0,-1) in the "
+          "model's y-up frame (= SOUTH once flipped to the board frame)" % a)
+    check(abs(b[0]) < 1e-9 and abs(b[1] - 1.0) < 1e-9,
+          "model_rot((1,0), 270) = %s; want (0,+1)" % b)
+
+
+# ================================================================ NO-BODY
+@test("a CPL designator whose 3D model path does not resolve is NO-BODY and "
+      "BLOCKS — and a PAD-MISMATCH waiver cannot discharge it",
+      kind="known_bad")
+def t_no_body_blocks():
+    """usb-hub-3s-v3 v1.5 shipped 7 of 108 placements with no rendered body
+    while its own `missing_models.txt` said the gap was zero, because ONE
+    PAD-MISMATCH adjudication drained the criticals list and nothing anywhere
+    asked "did a body actually render?". Three things are pinned here: the
+    question is now ASKED, the answer is GENERATED rather than hand-authored,
+    and it has its OWN adjudication key."""
+    d = tmpdir("nobody_")
+    code = "C900002"
+    for sub in ("twin", "twin2", "twin3"):
+        jlc_mod(d, code, "${KICAD_NO_SUCH_VAR_AT_ALL}/nope.step", out=sub)
+    board, _ = synth_board(d, 0)
+    bom = d / "bom.csv"
+    bom.write_text("Comment,Designator,Footprint,MPN,LCSC\n"
+                   "synthetic,U9,SYNTH,,%s\n" % code)
+    cpl = d / "cpl.csv"
+    cpl.write_text("Designator,Val,Package,Mid X,Mid Y,Layer,Rotation\n"
+                   "U9,synthetic,SYNTH,30.0,-25.0,top,0.0\n")
+    e2k = stub_e2k(d, stderr="NETWORK WAS CALLED\n", rc=1)
+    r = run([KPY, TWIN, board, bom, d / "twin", "--no-render",
+             "--cpl", str(cpl)],
+            cwd=d, env={"EASYEDA2KICAD": str(e2k),
+                        "JLC_TWIN_FETCH_ATTEMPTS": "1"})
+    must_fail(r, "jlc_twin on an unresolvable model path", "NO-BODY")
+    contains(r.out, "bodies mounted: 0/1", "the headline coverage counter")
+    mm = d / "twin" / "missing_models.txt"
+    check(mm.exists(), "missing_models.txt was not generated")
+    contains(mm.read_text(), "U9", "generated missing_models.txt")
+    contains(mm.read_text(), "GENERATED", "missing_models.txt provenance")
+
+    # the waiver-cannot-discharge half: a PAD-MISMATCH adjudication for the
+    # SAME part must leave NO-BODY blocking.
+    adj = d / "adj.yaml"
+    adj.write_text("- {lcsc: %s, refs: [U9], status: PAD-MISMATCH,\n"
+                   "   why: \"a waiver about the land pattern\"}\n" % code)
+    r2 = run([KPY, TWIN, board, bom, d / "twin2", "--no-render",
+              "--cpl", str(cpl), "--adjudications", str(adj)],
+             cwd=d, env={"EASYEDA2KICAD": str(e2k),
+                         "JLC_TWIN_FETCH_ATTEMPTS": "1"})
+    must_fail(r2, "a PAD-MISMATCH waiver must NOT discharge NO-BODY",
+              "NO-BODY")
+
+    # ...and its OWN key does discharge it (the escape hatch still exists)
+    adj2 = d / "adj2.yaml"
+    adj2.write_text("- {lcsc: %s, refs: [U9], status: NO-BODY,\n"
+                    "   why: \"measured: bench-verified, model absent "
+                    "upstream\"}\n" % code)
+    r3 = run([KPY, TWIN, board, bom, d / "twin3", "--no-render",
+              "--cpl", str(cpl), "--adjudications", str(adj2)],
+             cwd=d, env={"EASYEDA2KICAD": str(e2k),
+                         "JLC_TWIN_FETCH_ATTEMPTS": "1"})
+    check(r3.rc == 0,
+          "an explicit NO-BODY adjudication should clear it:\n%s"
+          % r3.out[-1500:])
+
+
+@test("MODEL-REG is BLOCKING: a body mounted off its own courtyard fails the "
+      "run instead of printing a comment", kind="known_bad")
+def t_model_reg_blocks():
+    """MODEL-REG was emitted at one site and never appended to `criticals`,
+    so it could not fail a run: usb-hub-3s-v3 v1.5 sealed with a TRUE 14.37 mm
+    finding on J1 sitting beside a green verdict. Here the courtyard is
+    deliberately drawn 6 mm off where the body really lands — the ONE thing
+    broken about an otherwise clean fixture."""
+    d = tmpdir("modelreg_")
+    wrl = d / "bar.wrl"
+    bar_wrl(wrl)
+    code = "C900003"
+    jlc_mod(d, code, str(wrl))
+    _, meta = synth_board(d, 0, name="probe.kicad_pcb")
+    want, _ = expected_local(0, meta["rotated"])
+    off = [want[0] + 6.0, want[1], want[2] + 6.0, want[3]]   # 6 mm east
+    board, _ = synth_board(d, 0, courtyard=off, name="bad.kicad_pcb")
+    bom = d / "bom.csv"
+    bom.write_text("Comment,Designator,Footprint,MPN,LCSC\n"
+                   "synthetic,U9,SYNTH,,%s\n" % code)
+    e2k = stub_e2k(d, stderr="NETWORK WAS CALLED\n", rc=1)
+    r = run([KPY, TWIN, board, bom, d / "twin", "--no-render"],
+            cwd=d, env={"EASYEDA2KICAD": str(e2k),
+                        "JLC_TWIN_FETCH_ATTEMPTS": "1"})
+    must_fail(r, "jlc_twin on a body mounted off its courtyard", "MODEL-REG")
+
+
+@test("a pad number with different MULTIPLICITY on the two footprints still "
+      "fits (by centroid) instead of discarding the whole part",
+      kind="known_bad")
+def t_pad_multiplicity_fits():
+    """KiCad's PowerPAK_SO-8_Single names FIVE entities '5' (merged paddle +
+    four drain fingers) where JLC's DFN-8 names one corner lead '5'. `fit_err`
+    used to `return None` on that, so best_fit came back empty, the part fell
+    out through PAD-MISMATCH, and its mount, rotation audit and MODEL-REG ALL
+    silently skipped — six power MOSFETs shipped unverified that way on
+    usb-hub-3s-v3 v1.5. The multiplicity is a NAMING convention; it must not
+    cost the audit. Fixture at 90 deg on purpose: the angle the handedness
+    bug lands on."""
+    d = tmpdir("padmult_")
+    wrl = d / "bar.wrl"
+    bar_wrl(wrl)
+    code = "C900004"
+    # JLC names pad '3' TWICE, straddling our single pad-3 position, so the
+    # two centroids coincide and only the multiplicity differs.
+    # Position matters: jlc_twin anchors the fit on the UNWEIGHTED point
+    # centroid, so an extra point biases the anchor by (P - mean)/n. Placing
+    # pad 3's pair around (0.6, -0.4) keeps that bias at 0.14 mm — small
+    # enough that the fit must succeed on its merits, not on slack.
+    OURS = {"1": (-2.0, -1.0), "2": (2.0, -1.0), "3": (0.6, -0.4)}
+    jlc_mod(d, code, str(wrl),
+            pads={"1": (-2.0, -1.0), "2": (2.0, -1.0), "3": (0.2, -0.4)},
+            extra_pads=[("3", (1.0, -0.4))])
+    board, _ = synth_board(d, 90, pads=OURS)
+    bom = d / "bom.csv"
+    bom.write_text("Comment,Designator,Footprint,MPN,LCSC\n"
+                   "synthetic,U9,SYNTH,,%s\n" % code)
+    e2k = stub_e2k(d, stderr="NETWORK WAS CALLED\n", rc=1)
+    r = run([KPY, TWIN, board, bom, d / "twin", "--no-render"],
+            cwd=d, env={"EASYEDA2KICAD": str(e2k),
+                        "JLC_TWIN_FETCH_ATTEMPTS": "1"})
+    contains(r.out, "PAD-MULTIPLICITY", "the multiplicity is REPORTED")
+    contains(r.out, "jlc_offset=90",
+             "the rotation audit ran despite the multiplicity (pre-fix this "
+             "was PAD-MISMATCH best=none and the audit silently skipped)")
+    not_contains(r.out, "best=none",
+                 "fit_err still discards the part on a multiplicity mismatch")
 
 if __name__ == "__main__":
     sys.exit(main())

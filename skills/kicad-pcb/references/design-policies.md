@@ -117,9 +117,40 @@ lands it must re-derive the angle from the BOARD plus JLC's cached model with an
 operator verified against pcbnew — never from `jlc_offset`, and never from a
 table populated by it.
 
+**The same defect had FIVE copies, and fixing one was mistaken for fixing it
+(2026-07-25, second half).** `xform()` was one site; the render mount's OFFSET,
+the mount's Z-ROTATION, and the model-frame rotation in BOTH `reg_check()` and
+`model_self_check()` were four more. Because MODEL-REG used the same wrong form
+as the mount it GRADED THE MOUNT WITH THE MOUNT'S OWN METHOD — canon M1 for the
+third time in one file — so a TRUE 14.37 mm mis-mount on a shipped XT60 was
+adjudicated away as a false alarm and usb-hub-3s-v3 v1.5 sealed with every
+90/270 part rendering 180 deg out. Three things generalise:
+
+- **`formB(a) == formA(-a)` IDENTICALLY, and both are the identity's own
+  reflection at 0/180.** Any fixture that does not sample 90 or 270 passes the
+  bug. Every rotation fixture in this repo must include a 90/270 case AND
+  assert it can DISCRIMINATE the two forms — an assertion that both forms
+  satisfy is not evidence. (`t1_jlc_twin.t_mount_pose_invariant`.)
+- **Match on the FRAMES a site maps between, never on the expression.**
+  `board_to_local()`'s literal text is identical to the bug and is a
+  LEGITIMATE inverse; "fix everything that looks like this" would have broken
+  it. Deriving the sign from the frames is what makes each site auditable.
+- **A false comment defends the bug against the next reader.** Three of the
+  five sites carried comments asserting the wrong form was "verified" — one
+  claimed a pixel measurement the shipped build did not exhibit, against a
+  figure (9 mm) matching neither the F.Fab (6.35 mm) nor the courtyard
+  (6.845 mm) overhang. Delete the claim and write the MEASUREMENT, with the
+  method and the residual.
+
+The operators now live one-each (`xform` / `local_to_board` / `model_rot`) and
+each is pinned against an authority OUTSIDE the file: pcbnew for pad geometry,
+`kicad-cli pcb render` for the model frame (an asymmetric bar at rot_z 90
+renders SOUTH, 270 NORTH — 0.014 mm residual vs 8.000 mm for the other form).
+
 | ID | Policy | Verified | Motivating incident |
 |---|---|---|---|
 | A-POP | The population set is DECLARED, not emergent. `{board footprints} − {CPL designators}`, computed from the BOARD and the CPL directly (never from the exporter's filter logic), must EQUAL the `not_assembled:` set in `03_src/rules/assembly.yaml`, honouring declared `exempt_prefixes:` (DECLARED, never hardcoded — a hardcoded exemption is how the refdes-on-silk waiver became an inherited defect across three boards). FAILs: a blank-LCSC BOM row whose refs are on the CPL; a declared-unpopulated ref still ON the CPL, or without `exclude_from_pos_files` on the board; a board part carrying that attribute yet placed by the shipped CPL; an entry missing `reason:`/`evidence:`/`disposition:`; a `reason:` outside the closed vocabulary; a CONSIGNED part listed as not_assembled (consigned means PLACED — a sourcing class, not a population class); and a release MANIFEST `not_assembled:` line that is absent, is free PROSE rather than a bare refdes list, or disagrees with `assembly.yaml` (it is GENERATED from that file, never hand-written twice). A prose line is reported as UNGRADEABLE and cross-checked against nothing — never scraped for refdes: usb-hub-3s-v3 v1.4's line yields 50 tokens of which 44 are English words, and its four real refdes sit in a clause asserting the OPPOSITE ("remain POPULATE-BY-DEFAULT on BOM/CPL"), so a scrape accuses exactly backwards | [M] A-POP (`assembly_coverage.py RELEASE_OR_PROJECT`; prints the per-side placement histogram) | cooksense v1.1 (sealed 2026-07-24) shipped 13 CPL placement rows whose BOM line carries a BLANK LCSC — JLC told to place 12 parts the MANIFEST declares not_assembled, and to source a 13th (J_TC) declared nowhere. The interposer v1.0 shipped the same class plus a disposition that is PROSE telling a human to delete rows before uploading. crow-recorder-central-v2 v1.3 declared its PLACED, consigned U1 "not_assembled" |
+| A-BODY | Every CPL designator must end up with a 3D body a renderer can actually load. After the twin mounts models, each `fab/cpl.csv` designator is walked, its model path expanded through KiCad's OWN `${VAR}` table, and required to be a file with size > 0; the headline is `bodies mounted: N/M` and `verification/missing_models.txt` is GENERATED from that pass, never hand-authored. The check is deliberately INDEPENDENT of the fit path (canon M1) — it asks the filesystem, not the fitter — and carries its OWN adjudication key: a PAD-MISMATCH or FETCH-FAILED waiver CANNOT discharge it. Corollary, same class: quote COVERAGE against a population denominator, never a check count | [M] A-BODY (`jlc_twin.py --cpl fab/cpl.csv`; BLOCKING) | usb-hub-3s-v3 v1.5 (sealed 2026-07-25) shipped 7 of 108 placements — Q1-Q6 and R12 — rendering NO body at all, beside a hand-written `missing_models.txt` stating the gap was zero and a release line quoting "0 ROT-DB-SUGGEST over 231 checks" (231 = finding ROWS; real coverage 101/108, and the 7 uncovered were exactly the parts at CPL 90/270). ONE PAD-MISMATCH adjudication drained the criticals list and closed two unrelated obligations; the only file probe in the tool ran solely on refs that already HAD a model. Two of four review lenses read the FETs' bare copper paddles as moulded packages — the user's naked eye beat the tooling |
 | A-STOCK | A release seals only against stock evidence that PASSES. Every coded BOM line with a CPL row is graded offline against the evidence the release SHIPS: `stock >= qty x build_quantity`, or an `assembly.yaml` `sourcing_plan:` entry carrying `measured_stock` + `measured_on`. **A MISSING OR UNPARSEABLE VERDICT IS A FAIL, NOT A SKIP** — the fleet ships three incompatible evidence formats, so a parser that shrugs at an unfamiliar shape can be silenced by choosing a shape. The gate is OFFLINE (it grades EVIDENCE); live re-query stays in the opt-in `--net` tier, because a gate that needs the network is a gate that gets skipped. `jlc_stock_check.py --json OUT` writes the one machine-readable sidecar with an EXPLICIT verdict | [M] A-STOCK (`release_freshness_check.py` check (e), always on) | five sealed releases ship stock evidence whose LAST LINE says FAIL and nothing ever read it: crow-recorder-central-v2 v1.0-v1.3 each record their own CPU (C6938291, the XU316 SoC) at `LOW_STOCK(0)`, and crow-recorder-central v1.0 six failing lines. cooksense v1.1 ships a raw `--out` CSV report as `stock_check.txt` with ZERO verdict lines at all — the gate must not be silenceable by deleting the verdict |
 
 ## Meta — worth more than all of the above

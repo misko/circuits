@@ -371,12 +371,25 @@ refs for precisely that reason). `--also` still works for an ad-hoc probe.
    3D frame is y-UP while board coords are y-down; and the fit/mount must
    center on the COMMON pad set only - own-set centroids slide the model
    along the part axis whenever one side names extra pads (an XT60 rendered
-   7mm off its holes, nose not overhanging the board edge). Model z-rotation
-   is +fit-angle (verified by pixel-measuring the render against both
-   courtyards; -angle flips asymmetric parts 180deg, and the ORIGINAL
-   registration check agreed with the wrong render because checker and
-   checked shared the sign bug - only the independent pixel measurement
-   broke the tie).
+   7mm off its holes, nose not overhanging the board edge).
+   **Model z-rotation is `jlc_rot_z - fit_angle`, and the mount offset goes
+   through `xform()` — one change, never one or the other (CORRECTED
+   2026-07-25; the paragraph here used to assert `+fit-angle` "verified by
+   pixel-measuring the render", and the shipped build did not exhibit the
+   outcome that comment described).** The handedness incident had FIVE
+   copies: `xform()` (fixed 1b69760), the mount offset, the mount z, and the
+   model-frame rotation in BOTH `reg_check()` and `model_self_check()`.
+   `formB(a) == formA(-a)` identically, so all five agreed at 0/180 and were
+   exactly 180deg out at 90/270 — which is why five copies survived review
+   and why a rotation fixture that omits 90/270 proves nothing. All five now
+   route through ONE named operator each (`xform` / `local_to_board` /
+   `model_rot`), and each operator is pinned against an authority OUTSIDE the
+   file: pcbnew for pad geometry, `kicad-cli pcb render` for the model frame
+   (measured 2026-07-25: an asymmetric bar at rot_z 90 renders SOUTH and at
+   270 NORTH, 0.014mm residual, vs 8.000mm for the other form).
+   `board_to_local()` is a LEGITIMATE inverse whose literal text is identical
+   to the bug — **match on the FRAMES a site maps between, never on the
+   expression.**
 
 6. MODEL-REG invariant (automated, every part with CAD): parse the WRL plan
    bbox, push it through the mount transform, and require the mounted body
@@ -386,10 +399,14 @@ refs for precisely that reason). `--also` still works for an ad-hoc probe.
    ({lcsc, model_rot_z: 180}). The detector is CALIBRATED: a deliberately
    mis-rotated model must flag ~8mm - keep that as the regression test when
    touching any transform code.
-   MODEL-REG is NON-FATAL (twin exits 0 with it), so it does NOT block a
-   release on its own - the render/pin review MUST disposition every
-   MODEL-REG (adjudicate with model_rot_z / model_dx-dy + evidence, or
-   record why it's cosmetic). A USB-C (HRO TYPE-C-31-M-12) shipped in a
+   **MODEL-REG is BLOCKING (2026-07-25).** It used to be emitted and never
+   appended to `criticals`, so it could not fail a run at all: usb-hub-3s-v3
+   v1.5 sealed with a TRUE 14.37mm finding on its XT60 sitting beside a green
+   verdict, closed by an adjudication that asserted the four pads landed on
+   model features when they were measurably 4.3mm outside the housing. A
+   finding that cannot block is a comment. It still needs a disposition —
+   adjudicate with model_rot_z / model_dx-dy + evidence, or record why it is
+   cosmetic — but now the run stops until you do. A USB-C (HRO TYPE-C-31-M-12) shipped in a
    v1.0 with its 3D model 180deg-flipped because the MODEL-REG line was
    left un-acted through review; pads were perfect (0.00mm) so only the
    render lied. Gate the release on: zero unadjudicated MODEL-REG, not
@@ -404,6 +421,30 @@ refs for precisely that reason). `--also` still works for an ad-hoc probe.
    deviates from JLC's own model rotation unless the RENDER shows leads
    off the pads. Verify leads-on-pads visually + read JLC's .kicad_mod
    rotation; do not chase the metric.
+
+6b. NO-BODY gate (automated, BLOCKING, own adjudication key; 2026-07-25).
+   After mounting, EVERY CPL designator (`--cpl fab/cpl.csv`) is walked, its
+   3D model path expanded through KiCad's own `${VAR}` table, and required to
+   be a file with size > 0. Headline `bodies mounted: N/M`; `verification/
+   missing_models.txt` is GENERATED from this pass and must never be
+   hand-authored again. Deliberately independent of the fit path (canon M1):
+   it asks the FILESYSTEM, not the fitter, so a skipped part, a failed fetch
+   and an uninstalled KiCad 3D library all land in the same place.
+   Incident: usb-hub-3s-v3 v1.5 shipped 7 of 108 placements (Q1-Q6, R12) with
+   NO rendered body while its hand-written `missing_models.txt` stated the
+   gap was zero, and the release quoted "0 ROT-DB-SUGGEST over 231 checks" —
+   231 being the number of finding ROWS, not a coverage count. The real
+   coverage was 101 of 108, and the uncovered 7 were exactly the parts at CPL
+   90/270. **A PAD-MISMATCH or FETCH-FAILED waiver cannot discharge NO-BODY**
+   — one waiver used to close two unrelated obligations. Quote COVERAGE with
+   a population denominator, never a check count.
+   Two enabling fixes ship with it: `fit_err` falls back to per-pad-number
+   CENTROIDS instead of `return None` on a multiplicity mismatch (a NAMING
+   convention was discarding the whole audit — KiCad's
+   PowerPAK_SO-8_Single names five entities "5"), reported as the non-fatal
+   PAD-MULTIPLICITY; and the KiCad 3D library must actually be INSTALLED
+   (`${KICAD10_3DMODEL_DIR}` unset + `/usr/share/kicad/3dmodels` absent means
+   every KiCad-path fallback renders nothing, silently, on that machine).
 
 7. SWIG trap: iterating fp.Models() and assigning m_Rotation.z on the
    yielded items silently does nothing (the write lands on a temporary).

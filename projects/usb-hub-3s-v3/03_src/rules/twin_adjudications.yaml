@@ -11,6 +11,20 @@
 #    a land-pattern disagreement. AOS recommended pattern IS the single drain
 #    paddle (AON6354/AON6403 datasheets, verified at parts stage). Ordered on
 #    usb-hub-3s v1.0-2026-07-21.
+# pad_alias REGISTERS the naming convention instead of adjudicating around it
+# (v1.6, 2026-07-25). JLC names the four drain leads 5-8 (+EP 9); our KiCad
+# footprint merges all of them into one pad "5". Until now that multiplicity
+# made `fit_err` return None at EVERY angle, so best_fit was empty, the model
+# was never mounted, and the rotation audit + MODEL-REG silently skipped for
+# all six FETs — v1.5 sealed with Q1-Q6 rendering NO BODY and its own
+# missing-model list claiming the gap was zero. With the alias the fit is
+# exact and the parts are audited like everything else. NOT 5->5: an identity
+# alias is a no-op the tool now refuses (it used to self-extend the list).
+- {lcsc: C404363, refs: [Q2, Q3, Q4, Q5],
+   pad_alias: {6: 5, 7: 5, 8: 5, 9: 5}}
+- {lcsc: C2760089, refs: [Q1, Q6],
+   pad_alias: {6: 5, 7: 5, 8: 5, 9: 5}}
+
 - {lcsc: C404363, refs: [Q2, Q3, Q4, Q5], status: PAD-MISMATCH,
    why: "AON6354: KiCad single-paddle pad 5 vs JLC 5-8+EP split; AOS DS recommended pattern is the single paddle. Same footprint ordered on usb-hub-3s v1.0. (v1.2: Q6 MOVED to C2760089/AON6403 — the eFuse cell is gone.)"}
 - {lcsc: C404363, refs: [Q2, Q3, Q4, Q5], status: PAD-GEOM,

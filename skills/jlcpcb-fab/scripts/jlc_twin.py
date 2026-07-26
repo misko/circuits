@@ -11,8 +11,22 @@ For every BOM line with an LCSC code, fetch JLC's OWN footprint + 3D model
   3. twin render: mount JLC's 3D models on OUR board at the fitted transform
      and render top/bottom - a local preview of what JLC's viewer will show.
 
-usage: jlc_twin.py board.kicad_pcb bom_jlc.csv outdir
-Exit 1 on any MIRRORED, PAD-MISMATCH, or PAD-GEOM finding.
+usage: jlc_twin.py board.kicad_pcb bom_jlc.csv outdir [--cpl fab/cpl.csv]
+Exit 1 on any MIRRORED, PAD-MISMATCH, PAD-GEOM, MODEL-REG or NO-BODY finding.
+
+MOUNT HANDEDNESS INCIDENT (2026-07-25) — the SECOND half of the bug below.
+Fixing `xform()` in 1b69760 left FOUR more hand-inlined copies of the wrong
+form: the render mount's offset, its z-rotation, and the model-frame rotation
+in BOTH `reg_check()` and `model_self_check()`. Because MODEL-REG used the
+same wrong form as the mount, it graded the mount with the mount's own method
+(canon M1, again) — so a TRUE 14.37 mm finding on a shipped XT60 was waived as
+a false alarm and usb-hub-3s-v3 v1.5 sealed with every 90/270 part rendered
+180 deg out. All five sites now route through ONE operator each
+(`xform` / `local_to_board` / `model_rot`), each pinned against an authority
+outside this file: pcbnew for pad geometry, `kicad-cli pcb render` for the
+model frame. `board_to_local()` is a LEGITIMATE inverse whose literal text
+matches the bug — match on the FRAMES a site maps between, never on the
+expression.
 
 HANDEDNESS INCIDENT (2026-07-25) — `xform()` was WRONG and every `jlc_offset`
 this tool reported before that date is NEGATED. `xform()` used the opposite
@@ -50,6 +64,15 @@ Checks beyond the fit itself:
     datasheet (adjudicate with evidence). Found via a DPAK whose tab-to-lead
     distance differed 0.65mm; the fit split it into an unexplained 0.43mm
     residual (2026-07-16).
+  - NO-BODY (BLOCKING, own adjudication key): after mounting, every CPL
+    designator is walked, its 3D model path expanded through KiCad's OWN
+    ${VAR} table, and required to be a file with size > 0. Deliberately
+    independent of the fit path — it asks the filesystem, not the fitter.
+    Headline `bodies mounted: N/M`, and `missing_models.txt` is GENERATED
+    from this pass. A PAD-MISMATCH / FETCH-FAILED waiver CANNOT discharge it.
+  - PAD-MULTIPLICITY (non-fatal): a pad number named a different number of
+    times on the two footprints. Those numbers are fitted by CENTROID instead
+    of discarding the whole part (which is what used to happen).
   - POLARITY-CHECK: 2-pad polarized parts (electrolytics, diodes, LEDs)
     where 0 and 180 fit the pads equally - the pad fit cannot orient the
     model, so its polarity marking in the render is unverified and must be
@@ -248,14 +271,36 @@ def pad_geom_diff(ours, jlc, common):
     return worst, detail
 
 
+def pad_multiplicity(a, b):
+    """Pad numbers the two footprints name a DIFFERENT NUMBER OF TIMES."""
+    return sorted(k for k in (set(a) & set(b)) if len(a[k]) != len(b[k]))
+
+
 def fit_err(a, b):
+    """Max per-pad residual, or None when there is nothing in common.
+
+    MULTIPLICITY FALLBACK (2026-07-25). This used to `return None` the moment
+    one pad number appeared a different number of times on the two sides — a
+    NAMING CONVENTION, not a geometric disagreement — which made every angle
+    unfittable, `best_fit()` empty, and the whole part fall out through
+    PAD-MISMATCH: no mount, no body, no rotation audit, no MODEL-REG. Six
+    power MOSFETs shipped that way on usb-hub-3s-v3 v1.5 (KiCad's
+    PowerPAK_SO-8_Single names five entities "5" — merged paddle + four drain
+    fingers — where JLC's DFN-8 names one corner lead "5"), and their absence
+    was invisible because the release's own missing-model list was
+    hand-authored and said zero. Discarding the rotation audit over a
+    numbering convention is strictly worse than measuring the pad-number
+    CENTROIDS, which is what the mount is anchored on anyway."""
     common = set(a) & set(b)
     if not common:
         return None
     errs = []
     for k in common:
         if len(a[k]) != len(b[k]):
-            return None
+            (ax, ay), (bx, by) = (pad_centroids({k: a[k]})[k],
+                                  pad_centroids({k: b[k]})[k])
+            errs.append(math.hypot(ax - bx, ay - by))
+            continue
         for (x1, y1), (x2, y2) in zip(sorted(a[k]), sorted(b[k])):
             errs.append(math.hypot(x1 - x2, y1 - y2))
     return max(errs)
@@ -288,6 +333,41 @@ def local_to_board(ldx, ldy, rot_deg):
             -ldx * math.sin(th) + ldy * math.cos(th))
 
 
+def model_rot(mx, my, rot_z_deg):
+    """Rotate a point in the 3D MODEL frame (y-UP mm) by a `m_Rotation.z`
+    entry, in the sense KiCad's renderer actually applies.
+
+    HANDEDNESS FIXED 2026-07-25 (the same defect as `xform()`, two more
+    copies of it: here and in `reg_check`). This used to be
+    `(x*cos - y*sin, x*sin + y*cos)` — the mirror of the operator below, and
+    therefore exactly 180 deg wrong at rot_z 90/270 and identical at 0/180.
+    48 of 400 cached JLC footprints (12%) carry rot_z 90 or 270.
+
+    MEASURED, not derived (canon M1 — the authority is KiCad's renderer, not
+    this file). A synthetic asymmetric bar (model frame x 0..8 mm,
+    y -1..+1 mm) was mounted at board (20,20) on a 40x40 board and rendered
+    with `kicad-cli pcb render --side top` at 19.25 px/mm:
+
+        rot_z  this form predicts  the old form predicts  RENDERED
+          0    east                east                   east   (x 20.0->28.0)
+         90    SOUTH               north                  SOUTH  (y 20.0->28.0)
+        180    west                west                   west   (x 12.0->20.0)
+        270    NORTH               south                  NORTH  (y 12.0->20.0)
+
+    Residual against this form <= 0.014 mm (half a pixel) at every angle;
+    against the old form 8.000 mm at both 90 and 270. 0 and 180 tie, which is
+    why this survived beside three other copies of the same sign error.
+
+    Note the frame: this is `local_to_board`'s operator applied with a
+    POSITIVE angle in the y-UP model frame, which is identically the same as
+    applying it with a NEGATIVE angle after the flip to the y-down board
+    frame. Pinned by `t1_jlc_twin.t_model_rot_matches_render`.
+    """
+    th = math.radians(rot_z_deg)
+    return (mx * math.cos(th) + my * math.sin(th),
+            -mx * math.sin(th) + my * math.cos(th))
+
+
 def model_self_check(jfp, jca):
     """MODEL-SELF: does JLC's 3D model sit on JLC's OWN footprint pads?
     Computed entirely in THEIR frame - no mount math, no land-pattern
@@ -302,13 +382,10 @@ def model_self_check(jfp, jca):
     if not mb:
         return None
     jm = jmodels[0]
-    mrot = math.radians(jm.m_Rotation.z)
-    cm, sm = math.cos(mrot), math.sin(mrot)
     xs, ys = [], []
     for mx in (mb[0], mb[2]):
         for my in (mb[1], mb[3]):
-            rx = mx * cm - my * sm
-            ry = mx * sm + my * cm
+            rx, ry = model_rot(mx, my, jm.m_Rotation.z)
             xs.append(rx * jm.m_Scale.x + jm.m_Offset.x)
             ys.append(-(ry * jm.m_Scale.y + jm.m_Offset.y))
     return ((min(xs) + max(xs)) / 2 - jca[0],
@@ -346,25 +423,25 @@ def reg_check(model_bbox, jm, ang, jc, oc, fp):
     cb = cc.BBox()
     rot = fp.GetOrientationDegrees()
     fpos = fp.GetPosition()
-    # model frame (y-up) -> JLC footprint frame (y-down), incl. entry offset/rot
-    mrot = math.radians(jm.m_Rotation.z)
-    cm, sm = math.cos(mrot), math.sin(mrot)
+    # THREE frame hops, each through the ONE shared, pcbnew/render-verified
+    # operator — never a hand-inlined copy. Until 2026-07-25 the first two
+    # hops here were hand-inlined with the OPPOSITE handedness, so MODEL-REG
+    # graded the mount using the mount's own error: the check and the checked
+    # shared a method (canon M1) and a 14.37 mm real defect was adjudicated
+    # away as a false alarm.
     corners = []
     for mx in (model_bbox[0], model_bbox[2]):
         for my in (model_bbox[1], model_bbox[3]):
-            rx = mx * cm - my * sm            # R(+theta) y-up CCW - the sense
-            ry = mx * sm + my * cm            # KiCad actually renders (verified)
+            # 1. model frame (y-up) -> JLC footprint frame (y-down)
+            rx, ry = model_rot(mx, my, jm.m_Rotation.z)
             jx = rx * jm.m_Scale.x + jm.m_Offset.x
             jy = -(ry * jm.m_Scale.y + jm.m_Offset.y)   # to y-down
-            # JLC frame -> our footprint local frame (fit transform)
-            c, sn = math.cos(math.radians(ang)), math.sin(math.radians(ang))
-            lx = (jx - jc[0]) * c - (jy - jc[1]) * sn + oc[0]
-            ly = (jx - jc[0]) * sn + (jy - jc[1]) * c + oc[1]
-            # our local -> board (KiCad footprint rotation th: (x,y)->R(-th))
-            th = math.radians(rot)
-            bx = lx * math.cos(th) + ly * math.sin(th) + fpos.x / 1e6
-            by = -lx * math.sin(th) + ly * math.cos(th) + fpos.y / 1e6
-            corners.append((bx, by))
+            # 2. JLC frame -> our footprint local frame (the pad-fit angle)
+            lxy = xform({"p": [(jx - jc[0], jy - jc[1])]}, ang, False)["p"][0]
+            lx, ly = lxy[0] + oc[0], lxy[1] + oc[1]
+            # 3. our local -> board (the footprint's own rotation)
+            bx, by = local_to_board(lx, ly, rot)
+            corners.append((bx + fpos.x / 1e6, by + fpos.y / 1e6))
     mnx = min(c[0] for c in corners); mxx = max(c[0] for c in corners)
     mny = min(c[1] for c in corners); mxy = max(c[1] for c in corners)
     mcx, mcy = (mnx + mxx) / 2, (mny + mxy) / 2
@@ -373,6 +450,90 @@ def reg_check(model_bbox, jm, ang, jc, oc, fp):
     area_m = max(1e-6, (mxx - mnx) * (mxy - mny))
     area_c = max(1e-6, cb.GetWidth() / 1e6 * cb.GetHeight() / 1e6)
     return delta, area_m / area_c, (ccx, ccy)
+
+
+def kicad_env(board_path):
+    """The ${VAR} substitution table KiCad ITSELF would use to resolve a 3D
+    model path: its own config's `environment.vars`, then any KICAD* in the
+    process environment, then the documented defaults, then KIPRJMOD."""
+    import json
+    env = {}
+    for ver in ("10.0", "9.0", "8.0", "7.0"):
+        p = Path.home() / ".config" / "kicad" / ver / "kicad_common.json"
+        if p.exists():
+            try:
+                v = (json.load(open(p)).get("environment") or {}).get("vars")
+                env.update({str(k): str(x) for k, x in (v or {}).items()})
+            except Exception:
+                pass
+    env.update({k: v for k, v in os.environ.items() if k.startswith("KICAD")})
+    for var, dflt in (("KICAD10_3DMODEL_DIR", "/usr/share/kicad/3dmodels"),
+                      ("KICAD9_3DMODEL_DIR", "/usr/share/kicad/3dmodels"),
+                      ("KICAD8_3DMODEL_DIR", "/usr/share/kicad/3dmodels"),
+                      ("KISYS3DMOD", "/usr/share/kicad/3dmodels")):
+        env.setdefault(var, dflt)
+    env["KIPRJMOD"] = str(Path(board_path).resolve().parent)
+    return env
+
+
+def resolve_model(filename, env, base):
+    """Expand ${VARS} and return the on-disk path, or None. `None` means the
+    render shows NOTHING for this model — an unset variable, a default that
+    does not exist on this machine, or a file that was never installed."""
+    s = str(filename)
+    for _ in range(4):
+        prev = s
+        for k, v in env.items():
+            s = s.replace("${%s}" % k, v).replace("$(%s)" % k, v)
+        if s == prev:
+            break
+    if "${" in s or "$(" in s:
+        return None
+    p = Path(os.path.expanduser(s))
+    for cand in ([p] if p.is_absolute() else [Path(base) / p, p]):
+        try:
+            if cand.is_file() and cand.stat().st_size > 0:
+                return str(cand)
+        except OSError:
+            pass
+    return None
+
+
+def no_body_pass(tb, refs, board_path):
+    """TERMINAL gate: after mounting, does every CPL designator actually end
+    up with a 3D body a renderer can load?
+
+    Deliberately INDEPENDENT of the fit path (canon M1). It asks the
+    filesystem, not the fitter — so a part the fitter skipped, a part whose
+    fetch failed, and a part whose KiCad model path points at a library that
+    is not installed all land in the same place. Nothing in this tool asked
+    that question before 2026-07-25: `wrl_bbox` ran only on refs that already
+    HAD a JLC model, so the one file probe in the file could not see an
+    unmounted part. usb-hub-3s-v3 v1.5 shipped 7 of 108 placements with no
+    body at all (Q1-Q6 + R12) beside a hand-authored `missing_models.txt`
+    stating the gap was zero.
+
+    Returns (mounted, missing) where missing is [(ref, reason), ...]."""
+    env = kicad_env(board_path)
+    base = Path(board_path).resolve().parent
+    mounted, missing = [], []
+    for ref in sorted(refs):
+        fp = tb.FindFootprintByReference(ref)
+        if fp is None:
+            missing.append((ref, "no footprint on the board"))
+            continue
+        models = list(fp.Models())
+        if not models:
+            missing.append((ref, "footprint carries no 3D model entry"))
+            continue
+        hits = [(m.m_Filename, resolve_model(m.m_Filename, env, base))
+                for m in models]
+        if any(h[1] for h in hits):
+            mounted.append(ref)
+        else:
+            missing.append((ref, "; ".join(
+                f"unresolved model path {f!r}" for f, _ in hits)))
+    return mounted, missing
 
 
 def rot_db(path):
@@ -405,6 +566,11 @@ def main():
     ap.add_argument("--also", default="",
                     help="REF=LCSC[,REF=LCSC..]: mount+check hand-solder/"
                          "uncoded parts with known codes (e.g. J1=C98732)")
+    ap.add_argument("--cpl", default="",
+                    help="fab/cpl.csv — the POPULATION ground truth. The "
+                         "NO-BODY gate walks its Designator column, so the "
+                         "coverage denominator is the placement count JLC "
+                         "will actually run, not the BOM row count.")
     ap.add_argument("--assembly", default="",
                     help="03_src/rules/assembly.yaml — REF=LCSC pairs for "
                          "coded-but-not-assembled and consigned parts, read "
@@ -481,6 +647,12 @@ def main():
         if ref not in on_bom:       # never double-check a ref already on the BOM
             lines.append({"Designator": ref, "LCSC": code})
     findings, criticals, twin, padgeom = [], [], {}, {}
+    bodies_line = ("bodies mounted: SKIPPED (nothing fitted, so "
+                   "nothing was mounted)")
+    ref_lcsc = {}          # ref -> LCSC, for NO-BODY rows
+    for _r in lines:
+        for _d in _r["Designator"].split(","):
+            ref_lcsc.setdefault(_d.strip(), _r["LCSC"])
     fetch_failed = set()
     for r in lines:
         lcsc = r["LCSC"]
@@ -512,7 +684,11 @@ def main():
             # rendered 7mm off its holes before this (2026-07-16)
             jraw = pads_of(jfp)
             for src, dst in pad_alias.get(lcsc, {}).items():
-                if src in jraw:
+                # `src != dst` guard: an IDENTITY alias (5->5) would otherwise
+                # `setdefault(dst)` the very list `pop(src)` then removes and
+                # extend it WITH ITSELF, doubling that pad's entries and
+                # breaking the multiplicity count it was meant to fix.
+                if src in jraw and src != dst:
                     jraw.setdefault(dst, []).extend(jraw.pop(src))
                     jraw[dst] = sorted(jraw[dst])
             common = set(opads_raw) & set(jraw)
@@ -520,6 +696,19 @@ def main():
                 findings.append((lcsc, ref, "PAD-MISMATCH", "no common pad numbers"))
                 criticals.append(ref)
                 continue
+            mult = pad_multiplicity(opads_raw, jraw)
+            if mult:
+                findings.append((lcsc, ref, "PAD-MULTIPLICITY",
+                                 f"pad number(s) {','.join(mult)} appear "
+                                 f"a different number of times on the two "
+                                 f"footprints (ours "
+                                 f"{ {k: len(opads_raw[k]) for k in mult} } vs "
+                                 f"JLC { {k: len(jraw[k]) for k in mult} }) — "
+                                 "a NAMING convention, not a geometry defect; "
+                                 "those numbers are fitted by CENTROID. "
+                                 "Non-fatal, but PAD-GEOM readings on the "
+                                 "affected numbers compare a merged centroid "
+                                 "against a single lead"))
             # land-pattern geometry gate: pairwise distances can't be smeared
             # by the fit the way the residual can
             gd, gdet = pad_geom_diff(opads_raw, jraw, common)
@@ -620,14 +809,19 @@ def main():
             findings.append((lcsc, ref, status,
                              f"fit={e:.2f}mm jlc_offset={ang} db={db_off} src={src}"
                              + hint))
-            # ROT-DB-SUGGEST stays NON-blocking pending the xform() handedness
-            # fix (see the module docstring): `ang` is currently negated at
-            # 90/270, so blocking on it would manufacture adjudications that
-            # bake the defect in as evidence.
+            # ROT-DB-SUGGEST stays NON-blocking, but NOT for the reason the
+            # comment here used to give. That comment said the block was
+            # "pending the xform() handedness fix" — which had ALREADY landed
+            # in 1b69760 when it was written, so it read as a live caveat
+            # while defending nothing. `ang` is now measured with the
+            # pcbnew-verified operator. What still holds is canon A-ROT: the
+            # per-LCSC table was POPULATED from this finding, so promoting the
+            # finding to blocking would let the table certify itself (canon
+            # M1). It lands when the table is re-derived independently.
             twin[ref] = (jfp, ang, oc, _jca, lcsc)
 
     # ---- twin render: JLC models mounted on OUR board
-    if not args.no_render and twin:
+    if twin:
         tb = pcbnew.LoadBoard(args.board)
         mrotz = {}
         for ref, (jfp, ang, oc, jc_common, lcsc) in twin.items():
@@ -700,12 +894,17 @@ def main():
                     findings.append((lcsc, ref, "MODEL-REG",
                                      f"body center {rc[0]:.1f}mm off courtyard, "
                                      f"area ratio {rc[1]:.2f}{pgnote}{hint}"))
+                    # BLOCKING since 2026-07-25. MODEL-REG was emitted here and
+                    # never appended to `criticals`, so it could not fail a run:
+                    # usb-hub-3s-v3 v1.5 sealed with a TRUE 14.3 mm finding on
+                    # J1 sitting beside a green verdict, waived by prose. A
+                    # finding that cannot block is a comment.
+                    criticals.append(ref)
                 elif rc:
                     findings.append((lcsc, ref, "MODEL-REG-OK",
                                      f"body on courtyard ({rc[0]:.2f}mm)"))
                 jm0.m_Rotation.z = saved
             fp.Models().clear()
-            c, sn = math.cos(math.radians(ang)), math.sin(math.radians(ang))
             for jm in jmodels:
                 m = pcbnew.FP_3DMODEL()
                 m.m_Filename = jm.m_Filename
@@ -714,19 +913,67 @@ def main():
                 # frames: our footprint = JLC footprint rotated by `ang` (the
                 # pad-fit angle, board y-down convention) with JLC's pad
                 # centroid mapped onto ours. Model offsets are y-UP mm.
+                #
+                # HANDEDNESS FIXED 2026-07-25. The OFFSET and the Z-ROTATION
+                # are one operator and were fixed as ONE change; each is
+                # meaningless alone, which is exactly what the deleted comment
+                # here had observed and then mis-attributed. The offset was a
+                # fourth hand-inlined copy of the mirrored form and now goes
+                # through xform(); the z sign follows from it by composition,
+                # not by taste:
+                #   JLC mounts the body at pose formA(-jm.m_Rotation.z) in the
+                #   board frame (see model_rot); our footprint is JLC's turned
+                #   by formA(+ang); so the mounted pose must be
+                #   formA(ang - jm.m_Rotation.z), and KiCad renders rotation R
+                #   as formA(-R), hence R = jm.m_Rotation.z - ang.
+                # ACCEPTANCE, measured on this board: J1 (XT60, fit offset 270)
+                # renders 6.35 mm overhung past the west edge, matching its
+                # F.Fab outline. The pre-fix build rendered it -8.37 mm, i.e.
+                # 14.47 mm east of its own pads, and a MODEL-REG finding that
+                # correctly reported 14.3 mm was waived as a false alarm.
                 mjx, mjy = jm.m_Offset.x, -jm.m_Offset.y        # -> board frame
-                bx = (mjx - jc[0]) * c - (mjy - jc[1]) * sn + oc[0]
-                by = (mjx - jc[0]) * sn + (mjy - jc[1]) * c + oc[1]
-                m.m_Offset.x = bx
-                m.m_Offset.y = -by                              # -> back to y-up
+                bx, by = xform({"p": [(mjx - jc[0], mjy - jc[1])]},
+                               ang, False)["p"][0]
+                m.m_Offset.x = bx + oc[0]
+                m.m_Offset.y = -(by + oc[1])                    # -> back to y-up
                 m.m_Offset.z = jm.m_Offset.z
-                # z-rotation is +ang, NOT -ang: verified by pixel-measuring the
-                # rendered XT60 against both courtyards (-ang flipped the body
-                # 180deg: flush with the edge instead of 9mm overhung). The
-                # per-part adjudication override composes on top.
-                m.m_Rotation.z = (jm.m_Rotation.z + ang
+                m.m_Rotation.z = (jm.m_Rotation.z - ang
                                   + mrotz.get(ref, 0.0)) % 360
                 fp.Models().push_back(m)
+
+        # ---- NO-BODY: the terminal, fit-independent population gate
+        cpl_refs = []
+        if args.cpl and os.path.exists(args.cpl):
+            with open(args.cpl) as f:
+                for row in csv.DictReader(f):
+                    d = (row.get("Designator") or "").strip()
+                    if d:
+                        cpl_refs.append(d)
+            src_desc = f"{len(cpl_refs)} CPL placements ({args.cpl})"
+        else:
+            cpl_refs = sorted({d.strip() for r in lines
+                               for d in r["Designator"].split(",")
+                               if d.strip() in by_ref})
+            src_desc = (f"{len(cpl_refs)} checked refs (no --cpl given; pass "
+                        f"fab/cpl.csv for the population denominator)")
+        mounted, missing = no_body_pass(tb, cpl_refs, args.board)
+        bodies_line = f"bodies mounted: {len(mounted)}/{len(cpl_refs)}"
+        for ref, why in missing:
+            findings.append((ref_lcsc.get(ref, ""), ref, "NO-BODY", why))
+            criticals.append(ref)
+        # missing_models.txt is GENERATED from this pass, never hand-authored.
+        # v1.5's copy was written by hand and said the gap was zero while
+        # seven placements rendered no body — a counter nobody could falsify.
+        with open(out / "missing_models.txt", "w") as f:
+            f.write("# GENERATED by jlc_twin.py NO-BODY pass — do not edit.\n"
+                    f"# source of the population set: {src_desc}\n"
+                    f"# {bodies_line}\n")
+            if not missing:
+                f.write("\n(none — every CPL designator resolves a 3D body)\n")
+            for ref, why in missing:
+                f.write(f"{ref}\t{ref_lcsc.get(ref, '')}\t{why}\n")
+        print(f"\n{bodies_line}  ->  {out / 'missing_models.txt'}")
+
         tb.Save(str(out / "twin.kicad_pcb"))
         VIEWS = [  # (name, extra kicad-cli render args)
             ("top",      ["--side", "top"]),
@@ -738,7 +985,7 @@ def main():
             ("edge_west", ["--side", "left", "--perspective", "--zoom", "0.9"]),
             ("edge_east", ["--side", "right", "--perspective", "--zoom", "0.9"]),
         ]
-        for name, extra in VIEWS:
+        for name, extra in ([] if args.no_render else VIEWS):
             subprocess.run(["kicad-cli", "pcb", "render",
                             "--width", "1600", "--height", "1000",
                             "-o", str(out / f"twin_{name}.png"),
@@ -758,7 +1005,15 @@ def main():
         # Honour those entries (they carry the datasheet-verified land pattern).
         if not why and status == "FETCH-FAILED":
             why = adjudicate(lcsc, ref, "NO-CAD")
-        if why and status in ("MIRRORED", "PAD-MISMATCH", "PAD-GEOM", "NO-CAD", "FETCH-FAILED"):
+        # NO-BODY and MODEL-REG carry their OWN adjudication keys. This is
+        # load-bearing: `adjudicate()` matches on the status STRING, so a
+        # PAD-MISMATCH or FETCH-FAILED waiver can no longer discharge the
+        # question "did a body actually render?". One waiver used to close
+        # two unrelated obligations — the land-pattern question and the
+        # never-stated visual-verification question (v1.5, 7 refs).
+        if why and status in ("MIRRORED", "PAD-MISMATCH", "PAD-GEOM",
+                              "NO-CAD", "FETCH-FAILED", "NO-BODY",
+                              "MODEL-REG"):
             for r in str(ref).split(","):
                 if r.strip() in criticals:
                     criticals.remove(r.strip())
@@ -766,13 +1021,25 @@ def main():
         else:
             out_f.append((lcsc, ref, status, detail))
     findings = out_f
-    order = {"FETCH-FAILED": -1, "MIRRORED": 0, "PAD-MISMATCH": 1, "PAD-GEOM": 2, "MODEL-SELF": 3, "MODEL-REG": 3,
-             "POLARITY-CHECK": 4, "ROT-DB-SUGGEST": 5, "NO-CAD": 6,
+    order = {"FETCH-FAILED": -1, "NO-BODY": -1, "MIRRORED": 0,
+             "PAD-MISMATCH": 1, "PAD-GEOM": 2, "MODEL-SELF": 3,
+             "MODEL-REG": 3, "PAD-MULTIPLICITY": 4, "POLARITY-CHECK": 4,
+             "ROT-DB-SUGGEST": 5, "NO-CAD": 6,
              "NOT-ON-BOARD": 7, "MODEL-REG-OK": 8, "OK": 9}
     for f in sorted(findings, key=lambda x: order.get(x[2], 9)):
         print("  ".join(str(x) for x in f))
     n_ok = sum(1 for f in findings if f[2] == "OK")
-    print(f"\n{n_ok} OK / {len(findings)} checked; report + renders -> {out}")
+    # COVERAGE, not check count. The release line "0 ROT-DB-SUGGEST over 231
+    # checks" quoted the number of finding ROWS and read as blanket assurance;
+    # the real coverage was 101 of 108 placements, and the 7 uncovered were
+    # exactly the ones at CPL 90/270 (usb-hub-3s-v3 v1.5). Always print the
+    # denominator that is a POPULATION.
+    n_fit = len({f[1] for f in findings
+                 if f[2] in ("OK", "ROT-DB-SUGGEST")})
+    print(f"\n{n_ok} OK / {len(findings)} finding rows; "
+          f"rotation-fitted refs: {n_fit}")
+    print(bodies_line)
+    print(f"report + renders -> {out}")
     if fetch_failed:
         print(f"\nTRANSIENT FETCH FAILURES ({len(fetch_failed)}): {sorted(fetch_failed)}")
         print("  These are NETWORK/API errors, NOT 'no CAD' — these parts were never checked,")
