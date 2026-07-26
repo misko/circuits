@@ -9,7 +9,7 @@ stock, twin).
 |---|---|
 | `*.py` | tools — network access mocked in tests via `$EASYEDA2KICAD` seam |
 | `*.sh` | drivers |
-| `*.csv` | data tables: `jlc_rotations_db.csv` (footprint-NAME CPL rotation corrections) and `jlc_lcsc_rotations.csv` (per-LCSC overrides, `LCSC,rotation,evidence`) |
+| `*.csv` | data tables: `jlc_lcsc_rotations.csv` — the ONLY rotation AUTHORITY, `LCSC,rotation,evidence,polarity` (canon A-ROT); and `jlc_rotations_db.csv` — the footprint-NAME DB, kept loaded as an ADVISORY cross-check and never obeyed |
 | `contracts.md` | this file |
 
 ## Audit
@@ -40,16 +40,33 @@ stock, twin).
   - `jlc_twin.py --assembly 03_src/rules/assembly.yaml` reads the coded
     not-assembled/consigned REF=LCSC pairs from the ONE declared home
     (`--also` still works for an ad-hoc probe).
-- **A-ROT (every CPL rotation is MEASURED) is HELD, not shipped
-  (2026-07-25).** `jlc_twin.xform()` — the helper that computes `jlc_offset`
-  — uses the opposite handedness to `local_to_board()`, verified against
-  pcbnew over 72 pads (local_to_board exact to 0.000000 mm; xform off by up
-  to 23.93 mm, wrong at every 90/270 part, sign-invariant and therefore
-  invisible at 0/180). Six `jlc_lcsc_rotations.csv` rows had been populated
-  from it and were all 180 deg wrong. A rotation gate ranking that table as
-  AUTHORITY would have frozen the negation. Rebuild it against the BOARD +
-  JLC's cached model with a pcbnew-verified operator, never from
-  `jlc_offset` (canon M1).
+- **A-ROT / A-POL / M-PROV (rotation authority) — LANDED 2026-07-25, blocking
+  BY DEFAULT.** A footprint-NAME match can no longer decide a CPL cell; the
+  per-LCSC MEASURED table is the only authority and silence is a FAIL.
+  - `jlc_rotation_resolve.py` (shared, no-pcbnew, unit-testable) returns
+    source `lcsc` or `unsourced`. There is no `name` source any more.
+    `cross_check()` reports an advisory-name-DB disagreement and NAMES an
+    EXACTLY-180 gap as what it is — a negated rotation operator or an
+    opposite pad-1 convention, never "the DB is stale".
+  - `export_jlc_package.py` BLOCKS (exit 2) on any unsourced placement,
+    writes `rotations_unsourced.csv` as the worklist, and REMOVES a stale
+    `bom_jlc.csv`/`cpl_jlc.csv` so a blocked run leaves nothing uploadable.
+    `--allow-unsourced-rotations` is the loud, discouraged escape hatch.
+  - The ONE exemption is MEASURED, not named: `jlc_footprint_symmetry.py`
+    exempts a footprint that is its own 180-degree reflection in BOTH pads
+    and graphics (2 pads only). Measured on usb-hub-3s-v3: chip R/C/L/fuse
+    exempt at 0.000 mm; `CP_Elec_6.3x7.7` NOT (pads 0.000 mm, graphics
+    1.812 mm) — the polarized cap that shipped REVERSED on two boards is
+    caught by the graphics channel alone.
+  - `jlc_rotation_audit.py --table` grades the authority itself: **M-PROV**
+    (a dated measurement with a residual, and no provenance naming this
+    pipeline's own output — the six rows populated FROM `jlc_twin.xform()`
+    are the incident) and **A-POL** (the `polarity` column declares
+    `n/a | two-channel | single-channel`; a numbering-free channel must be
+    RECORDED in the row, or the JLC order-preview human gate named).
+    `--fleet` prints the per-board UNSOURCED migration worklist.
+  - Pinned by `tests/t1_rotation_authority.py` (one known-bad per mechanism,
+    red-verified against the restored pre-fix resolver: 8 tests go RED).
 - `release_freshness_check.py <release_dir>` gates a seal: it FAILS when a
   generated fab/PDF artifact is sha256-identical to an earlier release of the
   same board (stale/inherited output), when the shipped
@@ -83,17 +100,16 @@ stock, twin).
 - Fetch/stock classifiers must treat any UNRECOGNIZED failure as a blocking
   failure, never as an affirmative disposition (the NO-CAD incident,
   2026-07-20).
-- CPL rotation is resolved by `jlc_rotation_resolve.py` (shared, no-pcbnew, so
-  unit-testable): a PER-LCSC override (`jlc_lcsc_rotations.csv`) WINS over the
-  footprint-NAME DB (`jlc_rotations_db.csv`). JLC's zero-orientation is a
-  per-part fact — two parts sharing a footprint NAME can need different offsets
-  (measured 2026-07-24: C79924 vs C7719, both `SOT-23-5`, need 180 vs 90; the
-  name key cannot hold both, and a broad `^SOT-23,180` name rule would mis-set
-  every OTHER part sharing that name). Populate the per-LCSC table ONLY with
-  twin-MEASURED exact-fits (cite the fit in the `evidence` column); a guessed
-  row silently overrides the name DB fleet-wide. `t1_jlc_twin.py` unit-tests
-  the resolver (per-LCSC-wins + name-DB fallback for un-listed parts + a
-  RED-verify that reverting to name-only returns the wrong rotation).
+- Populate `jlc_lcsc_rotations.csv` ONLY from a fit of the BOARD footprint
+  against JLC's cached model with an operator VERIFIED AGAINST PCBNEW ITSELF
+  (RULE 2 in the table header) — never from `jlc_twin`'s `jlc_offset`, which
+  is this pipeline's own output (canon M1; six rows were populated that way
+  and were all 180 deg wrong). Record residual + next-best separation + date;
+  a measurement that is not its own ROW does not exist (RULE 1). For a
+  polarized or 2-pad collinear part the row ALSO needs a numbering-free
+  channel (RULE 3 / canon A-POL) — a pad-NUMBER fit structurally cannot see a
+  library that numbers the terminals the other way round, and a HIGH FIT
+  MARGIN IS NOT CONFIDENCE (C2296/C2297: fit 180 at 17.7x, true offset 0).
 - The fab BOM's LCSC code is the SOURCE's per-refdes code
   (`circuit.json supplier_part_numbers`), never a value+footprint match:
   `export_jlc_package.py` groups by (LCSC, footprint) so two distinct codes

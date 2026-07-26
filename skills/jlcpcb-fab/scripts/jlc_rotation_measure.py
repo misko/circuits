@@ -1,0 +1,373 @@
+#!/usr/bin/env python3
+"""MEASURE a per-LCSC rotation offset — the tool the A-ROT block tells you to run.
+
+    jlc_rotation_measure.py BOARD.kicad_pcb REF=LCSC [REF=LCSC ...] \
+        [--cache DIR ...] [--row]
+
+A-ROT blocks an export until every placement resolves from a MEASURED row.
+This is how a row is made, and it exists so the measurement is not re-invented
+(and re-broken) once per board. It reports TWO SEPARATE CHANNELS and never
+merges them:
+
+  PAD-NUMBER channel   fit our pads against JLC's cached model matching by pad
+                       NUMBER. Fast, usually decisive — and structurally unable
+                       to see a model whose own numbering differs from ours.
+                       On usb-hub-3s-v3's LEDs it returns 180 at a 17.7x margin
+                       and is WRONG (canon A-POL). On crow-rv2's USB-C it
+                       returns 90 falsely, because JLC numbers the four SHELL
+                       POSTS 1-4 while our pads 1-4 are signal contacts.
+                       A HIGH FIT MARGIN IS NOT CONFIDENCE.
+
+  NUMBERING-FREE       decide the same question WITHOUT reading a pad number:
+  channel                * PIN-1 BODY MARKINGS — our F.Fab chamfer / silk
+                           pin-1 dot vs JLC's, matched mark-to-mark;
+                         * LANDMARK SIZE CLASS — group pads by SIZE only and
+                           require every class to demand the SAME translation;
+                           a wrong angle makes the classes contradict.
+                       This is the channel canon A-POL requires to be RECORDED
+                       in the row.
+
+The operator is `local_to_board`'s handedness — the one VERIFIED AGAINST PCBNEW
+ITSELF (pad.GetFPRelativePosition() vs pad.GetPosition(), exact to 0.000000 mm
+over 72 pads) — and NOT `jlc_twin.xform()`'s pre-fix form, which was negated:
+invisible at 0/180 and exactly 180 wrong at 90/270, and which populated six
+table rows that were all 180 deg out (canon M1 / M-PROV, e0d735c + 1b69760).
+
+`--row` prints a paste-ready `jlc_lcsc_rotations.csv` line with the polarity
+column already proposed. READ IT before pasting: where the two channels
+DISAGREE, or where the numbering-free channel is DEGENERATE, the tool refuses
+to propose `two-channel` and proposes `single-channel` instead — which obliges
+the JLC order-preview human gate.
+"""
+import argparse
+import glob
+import math
+import os
+import re
+import sys
+from pathlib import Path
+
+import pcbnew
+
+TOL = 0.02
+
+
+def rot(x, y, deg):
+    """KiCad's OWN rotation of a footprint-local point (y-down, CCW), the form
+    verified against pcbnew over 72 pads. NEVER the negated `xform` form."""
+    a = math.radians(deg)
+    c, s = math.cos(a), math.sin(a)
+    return (x * c + y * s, -x * s + y * c)
+
+
+# --------------------------------------------------------------- JLC model
+def parse_mod(path):
+    """(pads, marks) from a cached EasyEDA/JLC .kicad_mod.
+
+    pads : [{"num","x","y","w","h","shape"}]
+    marks: [(x, y, layer)] pin-1 marker CIRCLES only — a small circle outside
+           the body is every vendor's pin-1 dot. Lines are body outline and
+           carry no orientation on their own.
+    """
+    t = Path(path).read_text()
+    pads = []
+    for m in re.finditer(
+            r'\(pad\s+("?[^\s")]+"?)\s+(\S+)\s+(\S+)[^)]*?\(at ([-\d.]+) '
+            r'([-\d.]+)(?: ([-\d.]+))?\)\s*\(size ([-\d.]+) ([-\d.]+)\)', t):
+        pads.append({"num": m.group(1).strip('"'), "shape": m.group(3),
+                     "x": float(m.group(4)), "y": float(m.group(5)),
+                     "w": float(m.group(7)), "h": float(m.group(8))})
+    marks = []
+    for m in re.finditer(r'\(fp_circle \(center ([-\d.]+) ([-\d.]+)\)'
+                         r'[^)]*\)[^)]*\(layer ([^)]+)\)', t):
+        marks.append((float(m.group(1)), float(m.group(2)),
+                      m.group(3).strip('" ')))
+    return pads, marks
+
+
+def find_model(lcsc, roots):
+    for r in roots:
+        hits = sorted(glob.glob(os.path.join(r, "**", "easyeda", lcsc,
+                                             "**", "*.kicad_mod"),
+                                recursive=True))
+        if hits:
+            return hits[0]
+    return None
+
+
+# ------------------------------------------------------------- our footprint
+def our_pads(fp):
+    out = []
+    for p in fp.Pads():
+        r = p.GetFPRelativePosition()
+        s = p.GetSize()
+        out.append({"num": p.GetNumber(), "x": r.x / 1e6, "y": r.y / 1e6,
+                    "w": s.x / 1e6, "h": s.y / 1e6})
+    return out
+
+
+def our_marks(fp):
+    """Our pin-1 markings, SHAPES only. KiCad's F.Fab outline is CHAMFERED at
+    pin 1; the chamfer's own corner is the marker. A refdes is placed for
+    legibility, not orientation, so text is never counted."""
+    c = fp.GetPosition()
+    segs = []
+    for d in fp.GraphicalItems():
+        if not isinstance(d, pcbnew.PCB_SHAPE):
+            continue
+        if d.GetLayerName() not in ("F.Fab", "B.Fab"):
+            continue
+        s, e = d.GetStart(), d.GetEnd()
+        segs.append((((s.x - c.x) / 1e6, (s.y - c.y) / 1e6),
+                     ((e.x - c.x) / 1e6, (e.y - c.y) / 1e6)))
+    if not segs:
+        return []
+    # the chamfer is the ONE segment that is neither horizontal nor vertical
+    out = []
+    for (a, b) in segs:
+        if abs(a[0] - b[0]) > 0.01 and abs(a[1] - b[1]) > 0.01:
+            # the removed corner: (x of one end, y of the other), whichever is
+            # further from the centroid
+            for corner in ((a[0], b[1]), (b[0], a[1])):
+                out.append(corner)
+    if out:
+        out.sort(key=lambda p: -(p[0] ** 2 + p[1] ** 2))
+        return [(out[0][0], out[0][1], "F.Fab chamfer corner")]
+    return []
+
+
+# ------------------------------------------------------------------- fits
+def fit_by_number(ours, jlc):
+    """{angle: (rms, n)} matching pads by NUMBER, centroid-aligned."""
+    on = {p["num"]: p for p in ours}
+    jn = {}
+    for p in jlc:
+        jn.setdefault(p["num"], p)      # first shape wins for split tabs
+    common = sorted(set(on) & set(jn))
+    if len(common) < 2:
+        return {}, common
+    res = {}
+    for ang in (0, 90, 180, 270):
+        jr = {n: rot(jn[n]["x"], jn[n]["y"], ang) for n in common}
+        dx = sum(on[n]["x"] - jr[n][0] for n in common) / len(common)
+        dy = sum(on[n]["y"] - jr[n][1] for n in common) / len(common)
+        res[ang] = (math.sqrt(sum((on[n]["x"] - jr[n][0] - dx) ** 2 +
+                                  (on[n]["y"] - jr[n][1] - dy) ** 2
+                                  for n in common) / len(common)), len(common))
+    return res, common
+
+
+def fit_by_size_class(ours, jlc):
+    """{angle: spread_mm} — group pads by SIZE ONLY (no numbers) and require
+    every class to demand the SAME translation. A wrong angle makes the
+    classes CONTRADICT each other; the spread IS the contradiction."""
+    def classes(ps):
+        # keyed on the LONG dimension only, to 0.1mm. Land patterns differ in
+        # the short dimension by design (our 1.0mm-wide shell post vs JLC's
+        # 1.1mm is a land-vs-model allowance, not a different feature), so a
+        # two-dimension key silently loses the channel. The long dimension is
+        # what separates the FEATURE FAMILIES (2.1mm post vs 1.8mm post vs
+        # 1.15mm contact) and it is read from geometry, never from a number.
+        d = {}
+        for p in ps:
+            d.setdefault(round(max(p["w"], p["h"]), 1), []).append(p)
+        return d
+    oc, jc = classes(ours), classes(jlc)
+    shared = [k for k in oc if k in jc and len(oc[k]) == len(jc[k])]
+    if not shared:
+        return {}, 0
+    res = {}
+    for ang in (0, 90, 180, 270):
+        deltas = []
+        for k in shared:
+            ox = sum(p["x"] for p in oc[k]) / len(oc[k])
+            oy = sum(p["y"] for p in oc[k]) / len(oc[k])
+            jr = [rot(p["x"], p["y"], ang) for p in jc[k]]
+            jx = sum(p[0] for p in jr) / len(jr)
+            jy = sum(p[1] for p in jr) / len(jr)
+            deltas.append((ox - jx, oy - jy))
+        cx = sum(d[0] for d in deltas) / len(deltas)
+        cy = sum(d[1] for d in deltas) / len(deltas)
+        res[ang] = max(math.hypot(d[0] - cx, d[1] - cy) for d in deltas)
+    return res, len(shared)
+
+
+def fit_by_pad_cloud(ours, jlc):
+    """{angle: rms_mm} matching pads as an UNLABELLED POINT CLOUD.
+
+    Every pad is matched to the NEAREST JLC pad of the same size class after
+    centroid alignment — no pad number is ever read. This is the general
+    numbering-free channel: it decides any land whose pad ARRANGEMENT is not
+    its own reflection (a 3+2 SOT-553, an L-shaped QFN corner, an offset tab),
+    and it goes DEGENERATE — equal at every angle — exactly when the land
+    genuinely carries no orientation, which is the honest answer there.
+    """
+    if len(ours) < 2 or len(jlc) < 2:
+        return {}
+    def cls(p):
+        return (round(min(p["w"], p["h"]), 1), round(max(p["w"], p["h"]), 1))
+    ocx = sum(p["x"] for p in ours) / len(ours)
+    ocy = sum(p["y"] for p in ours) / len(ours)
+    res = {}
+    for ang in (0, 90, 180, 270):
+        jr = [(rot(p["x"], p["y"], ang), cls(p)) for p in jlc]
+        jcx = sum(q[0][0] for q in jr) / len(jr)
+        jcy = sum(q[0][1] for q in jr) / len(jr)
+        tot, n = 0.0, 0
+        for p in ours:
+            cands = [q for q in jr if q[1] == cls(p)]
+            if not cands:
+                cands = jr                      # size class absent: shape-blind
+            d = min(math.hypot(q[0][0] - jcx - (p["x"] - ocx),
+                               q[0][1] - jcy - (p["y"] - ocy)) for q in cands)
+            tot += d * d
+            n += 1
+        res[ang] = math.sqrt(tot / n)
+    return res
+
+
+def fit_by_pin1_mark(omarks, jmarks):
+    """{angle: distance_mm} matching our pin-1 MARKING to JLC's, mark to mark.
+    Reads no pad numbers at all."""
+    if not omarks or not jmarks:
+        return {}, 0
+    ox, oy = omarks[0][0], omarks[0][1]
+    res = {}
+    for ang in (0, 90, 180, 270):
+        best = min(math.hypot(rot(m[0], m[1], ang)[0] - ox,
+                              rot(m[0], m[1], ang)[1] - oy) for m in jmarks)
+        res[ang] = best
+    return res, len(jmarks)
+
+
+def best2(res):
+    if not res:
+        return None, None, None, None
+    order = sorted(res.items(), key=lambda kv: kv[1])
+    return order[0][0], order[0][1], order[1][0], order[1][1]
+
+
+# --------------------------------------------------------------------------
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("board")
+    ap.add_argument("pairs", nargs="+", help="REF=LCSC")
+    ap.add_argument("--cache", action="append", default=[],
+                    help="extra dir to search for easyeda/<LCSC>/**.kicad_mod")
+    ap.add_argument("--row", action="store_true",
+                    help="print a paste-ready jlc_lcsc_rotations.csv line")
+    args = ap.parse_args(argv)
+
+    roots = list(args.cache) + [
+        str(Path(args.board).resolve().parents[1] / "06_build"),
+        str(Path(__file__).resolve().parents[3] / "projects"),
+        str(Path(__file__).resolve().parents[3] / "archived_projects"),
+        os.path.expanduser("~/.cache/easyeda2kicad"), "/tmp"]
+
+    board = pcbnew.LoadBoard(args.board)
+    fps = {fp.GetReference(): fp for fp in board.GetFootprints()}
+    rc = 0
+    for pair in args.pairs:
+        ref, _, lcsc = pair.partition("=")
+        fp = fps.get(ref)
+        if fp is None:
+            print(f"{ref}: not on the board")
+            rc = 2
+            continue
+        model = find_model(lcsc, roots)
+        if model is None:
+            print(f"{ref} {lcsc}: NO cached JLC model found — fetch it with "
+                  f"jlc_twin first; a row cannot be made without one")
+            rc = 2
+            continue
+        jpads, jmarks = parse_mod(model)
+        opads, omarks = our_pads(fp), our_marks(fp)
+        fpname = str(fp.GetFPID().GetLibItemName())
+        brot = fp.GetOrientationDegrees()
+
+        num, common = fit_by_number(opads, jpads)
+        cls, nshared = fit_by_size_class(opads, jpads)
+        cloud = fit_by_pad_cloud(opads, jpads)
+        mk, nmk = fit_by_pin1_mark(omarks, jmarks)
+
+        print(f"\n=== {ref}  {lcsc}  {fpname}  board_rot {brot:g}")
+        print(f"    model: {model}")
+        for label, res, unit in (("PAD-NUMBER  rms", num, "mm"),
+                                 ("SIZE-CLASS  spread", cls, "mm"),
+                                 ("PAD-CLOUD   rms", cloud, "mm"),
+                                 ("PIN-1-MARK  dist", mk, "mm")):
+            if not res:
+                print(f"    {label:<22} (no channel)")
+                continue
+            vals = " ".join(f"{a}:{(v[0] if isinstance(v, tuple) else v):8.4f}"
+                            for a, v in sorted(res.items()))
+            print(f"    {label:<22} {vals}")
+
+        numflat = {a: (v[0] if isinstance(v, tuple) else v)
+                   for a, v in num.items()}
+        nb, nv, n2, n2v = best2(numflat)
+        cb, cv, c2, c2v = best2(cls)
+        mb, mv, m2, m2v = best2(mk)
+        db, dv, d2, d2v = best2(cloud)
+
+        # ---- the A-POL judgement, stated rather than merged
+        free = []
+        if cls and c2v > 0 and cv <= TOL and c2v / max(cv, 1e-4) > 3:
+            free.append(("size class", cb, cv, c2v))
+        # A mark-to-mark match must be CLOSE in absolute terms: the residual
+        # is a drawing-style difference (where each library puts its dot),
+        # ~1mm, not 2mm+. Without the absolute bar a footprint with any
+        # diagonal F.Fab segment — a USB-C shell corner, say — produces a
+        # confident and meaningless "pin-1" channel. Ratio alone is not enough.
+        if cloud and d2v / max(dv, 1e-4) > 3:
+            free.append(("pad cloud", db, dv, d2v))
+        if mk and m2v / max(mv, 1e-4) > 2 and mv < 1.5:
+            free.append(("pin-1 marking", mb, mv, m2v))
+        if not free:
+            pol = "single-channel"
+            verdict = (f"NO usable numbering-free channel (size-class "
+                       f"{'degenerate' if cls else 'absent'}, pad cloud "
+                       f"{'degenerate' if cloud else 'absent'}, pin-1 marking "
+                       f"{'inconclusive' if mk else 'absent'}). A-POL: this "
+                       f"row is SINGLE-CHANNEL and MUST name the JLC "
+                       f"ORDER-PREVIEW human gate.")
+            angle = nb
+        elif all(a == free[0][1] for _n, a, _v, _s in free) and \
+                free[0][1] == nb:
+            pol = "two-channel"
+            angle = nb
+            verdict = ("both channels agree: " +
+                       "; ".join(f"{n} -> {a} ({v:.4f}mm vs {s:.4f}mm next)"
+                                 for n, a, v, s in free))
+        else:
+            # A numbering-free channel EXISTS and is decisive, so the row is
+            # two-channel — but it DISAGREES with the pad-number fit, which is
+            # the A-POL alarm itself. The row keeps the numbering-free answer
+            # and is obliged to name the human gate as well.
+            pol = "two-channel"
+            angle = free[0][1]
+            verdict = (f"CHANNELS DISAGREE — pad-NUMBER fit says {nb}, "
+                       + "; ".join(f"{n} says {a} ({v:.4f}mm vs {s:.4f}mm "
+                                   f"next)" for n, a, v, s in free) +
+                       ". A pad-number fit CANNOT see a library that numbers "
+                       "the terminals the other way round: BELIEVE THE "
+                       "NUMBERING-FREE CHANNEL, resolve against the datasheet "
+                       "terminal drawing, and put this code on the JLC "
+                       "ORDER-PREVIEW human gate before the first order.")
+            rc = 1
+        print(f"    ==> offset {angle}  polarity={pol}")
+        print(f"        {verdict}")
+        print(f"        CPL for {ref} = ({brot:g} + {angle}) % 360 = "
+              f"{(brot + angle) % 360:g}")
+        if args.row:
+            ev = (f"{fpname}; measured {__import__('datetime').date.today()} "
+                  f"against {Path(model).name} with the pcbnew-verified "
+                  f"operator. PAD-NUMBER fit: offset {nb}, rms {nv:.4f}mm vs "
+                  f"{n2v:.4f}mm next best over {len(common)} pads. "
+                  f"NUMBERING-FREE: {verdict}")
+            print(f'    ROW: {lcsc},{angle},"{ev}",{pol}')
+    return rc
+
+
+if __name__ == "__main__":
+    sys.exit(main())

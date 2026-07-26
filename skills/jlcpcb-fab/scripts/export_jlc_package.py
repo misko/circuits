@@ -30,46 +30,144 @@ import pcbnew
 
 run_start = time.time()
 
-# JLC library zero-orientation differs from KiCad per package family — the
-# community rotation DB (matthewlai/JLCKicadTools + local additions) maps
-# footprint-name regex -> CCW offset added to the CPL rotation. Fixes the
-# systematic preview/assembly rotation mismatch for SMD parts; the JLC
-# preview must STILL be eyeballed (per-part reel deviations exist).
-# A per-LCSC table (jlc_lcsc_rotations.csv) WINS over the name DB: JLC's
-# zero-orientation is a per-part fact, and two parts that share a footprint
-# NAME can need different offsets (measured: C79924 vs C7719, both SOT-23-5,
-# -> 180 vs 90). The name key alone cannot encode that.
+# CANON A-ROT (2026-07-25). JLC's zero-orientation is a PER-PART fact, and the
+# ONLY authority for it is the per-LCSC MEASURED table (jlc_lcsc_rotations.csv).
+# The community footprint-NAME DB (jlc_rotations_db.csv) is still loaded — and
+# is now ADVISORY: it is reported and cross-checked, never obeyed. Authority
+# inherited by pattern-matching a footprint NAME produced P0s on FIVE boards in
+# one day through five distinct mechanisms (wrong key / negated offset / no
+# rule fired / partial prefix / unevidenced rule); the post-mortem is the module
+# docstring of jlc_rotation_resolve.py. A placement with no measured row is
+# UNSOURCED and BLOCKS the assembly half of this export — unless its footprint
+# MEASURES as its own 180-degree reflection (jlc_footprint_symmetry), the one
+# exemption, which reads no names and no tables.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from jlc_rotation_resolve import load_lcsc_rotations, resolve_rotation
+from jlc_footprint_symmetry import symmetry
+from jlc_rotation_resolve import (SRC_UNSOURCED, load_lcsc_rows,  # noqa: E402
+                                  load_name_db, resolve)
 
-_ROT_DB = []
-_db_path = Path(__file__).parent / "jlc_rotations_db.csv"
-if _db_path.exists():
-    with open(_db_path) as _f:
-        for _row in csv.reader(_f):
-            # Skip the header, COMMENT rows, and any row whose offset column is
-            # not a number. The table documents refuted rules by DISABLING THEM
-            # IN PLACE — a `#`-prefixed key plus prose continuation lines that
-            # carry the measurement (2026-07-25, ^JST_GH_SM). Those continuation
-            # rows parse as [text, ""], and `float("")` raises ValueError, which
-            # this loader did not catch: it caught re.error only. Result was a
-            # hard crash of the FAB EXPORT for EVERY board the moment a rule was
-            # annotated. The sibling loader in jlc_rotation_resolve.py already
-            # skips `#` and catches ValueError; this one now matches it, and
-            # jlc_twin's rot_db catches Exception. A comment in a data file must
-            # never be able to stop a board shipping.
-            if len(_row) < 2 or _row[0].startswith(("Footprint", "#")):
-                continue
+# ONE loader, shared with jlc_rotation_audit.py, so the exporter and the
+# auditor cannot disagree about what the files say. (It also catches ValueError
+# on the refutation continuation rows: a `#`-annotated rule once HARD-CRASHED
+# the fab export for every board — a comment in a data file must never be able
+# to stop a board shipping.)
+_ROT_DB = load_name_db()
+_LCSC_ROWS = load_lcsc_rows()
+_LCSC_ROT = {c: r["offset"] for c, r in _LCSC_ROWS.items()}
+
+#: A-ROT/A-POL accumulators, drained into the blocking report below.
+_UNSOURCED = {}      # lcsc -> {"refs": [...], "fp": str, "why": str}
+_XCHECK = []         # (finding_id, text) — advisory name-DB disagreements
+_HUMAN_GATE = {}     # lcsc -> [refs] for rows declared A-POL single-channel
+
+
+def jlc_rotation(fp, fpname, rot, lcsc=""):
+    """(cpl_rotation, offset) for one placement, recording A-ROT/A-POL state.
+
+    `fp` is the pcbnew FOOTPRINT — needed for the MEASURED symmetry exemption.
+    """
+    r = resolve(fpname, rot, lcsc, _ROT_DB, _LCSC_ROT)
+    _XCHECK.extend(r.findings if r.source != SRC_UNSOURCED else [])
+    if r.source == SRC_UNSOURCED:
+        sym = symmetry(fp)
+        if not sym["exempt"]:
+            e = _UNSOURCED.setdefault(lcsc, {"refs": [], "fp": fpname,
+                                             "why": sym["why"],
+                                             "advice": r.advice,
+                                             "advice_pat": r.advice_pattern})
+            e["refs"].append(fp.GetReference())
+    else:
+        pol = (_LCSC_ROWS.get(lcsc, {}).get("polarity") or "").lower()
+        if pol == "single-channel":
+            _HUMAN_GATE.setdefault(lcsc, []).append(fp.GetReference())
+    return r.cpl, r.offset
+
+
+def placement_datum(fp):
+    """JLC's placement datum for a footprint, in BOARD coordinates.
+
+    JLC places a part so that ITS OWN part origin lands on the CPL's Mid X/Y.
+    That origin is NOT KiCad's footprint anchor — it is the CENTRE OF THE
+    BOUNDING BOX OF THE PAD CENTRES.
+
+    MEASURED, not assumed (2026-07-25, crow-recorder-central-v2 v1.5). Over
+    228 cached EasyEDA/JLC-native footprints across six boards of this fleet,
+    the model origin sits on its own pad-centre bbox centre to <=0.01mm in
+    227 cases (99.6%). The single outlier, C464587, is a part already recorded
+    as NOT a land drop-in. Two weaker hypotheses were tested on the same 228
+    and REFUTED: bbox of pad OUTLINES 213/228 (93.4%) and CENTROID of pad
+    centres 198/228 (86.8%). Both fail on exactly the connectors that matter,
+    because a connector's pads differ in size and count between rows.
+
+    The anchor is a KiCad authoring convenience with no fab meaning, and on
+    this fleet it differs from the datum on 12/203, 12/227, 12/114, 14/238,
+    2/40 and 1/39 footprints per board — up to 24.16mm. It was emitted here
+    for the fleet's whole history. The defect that found it: crow-recorder-
+    central-v2 v1.4 shipped its only USB-C (J2) 1.3025mm off, against 1.150mm
+    contacts -> 0.000mm pad overlap and four shell posts that miss their
+    holes, i.e. a connector that cannot physically seat.
+
+    CROSS-CHECKED against JLC's own models by a numbering-free landmark fit
+    (pad names never read) on the two affected refs of that board:
+      J1 C381116  our pad lattice maps onto JLC's exactly, rms 0.0000mm ->
+                  datum at local (-3.000, +2.350); this function returns the
+                  same point to 0.0000mm.
+      J2 C3020560 three independent landmark families agree: shell posts
+                  -1.295, NPTH pegs -1.275, SMD contact row -1.310; this
+                  function returns -1.3025, inside that 0.035mm spread.
+
+    Copper pads only, which is JLC's own convention: their models carry the
+    plastic-peg holes as copper-layer pads too, and including them is what
+    reproduces 227/228. Falls back to the anchor for a footprint with no
+    copper pads (mounting holes, fiducials) — those are never on the CPL.
+    """
+    xs, ys = [], []
+    for p in fp.Pads():
+        if p.GetLayerSet().Contains(pcbnew.F_Cu) or \
+           p.GetLayerSet().Contains(pcbnew.B_Cu) or \
+           p.GetLayerSet().Contains(pcbnew.In1_Cu):
+            pos = p.GetPosition()
+            xs.append(pos.x)
+            ys.append(pos.y)
+    if not xs:
+        return fp.GetPosition()
+    return pcbnew.VECTOR2I(int(round((min(xs) + max(xs)) / 2)),
+                           int(round((min(ys) + max(ys)) / 2)))
+
+
+def declared_unpopulated(board_path):
+    """The `not_assembled:` refdes set from 03_src/rules/assembly.yaml.
+
+    assembly.yaml calls itself "the ONE machine-readable home for who gets
+    placed, and why not" — but until 2026-07-25 NOTHING read it at export
+    time. The only real mechanism was `exclude_from_pos_files` on the board,
+    so a population decision could only be expressed by touching COPPER-era
+    bytes: on a board whose gerbers are already sealed and correct, "do not
+    place R_inj1" was unsayable without invalidating the whole release.
+
+    Reading the declaration here makes the CPL follow the decision record.
+    It cannot resurrect a row (it only ever REMOVES), so a board whose
+    attributes already agree with its declaration — every other board in the
+    fleet — exports byte-identically.
+
+    A-POP still grades board attribute vs declaration; this is the second
+    mechanism, not a replacement for the first.
+    """
+    p = Path(board_path).resolve()
+    for anc in list(p.parents)[:4]:
+        cand = anc / "03_src" / "rules" / "assembly.yaml"
+        if cand.is_file():
             try:
-                _ROT_DB.append((re.compile(_row[0]), float(_row[1])))
-            except (re.error, ValueError):
-                pass
-_LCSC_ROT = load_lcsc_rotations()
-
-
-def jlc_rotation(fpname, rot, lcsc=""):
-    cpl, off, _src = resolve_rotation(fpname, rot, lcsc, _ROT_DB, _LCSC_ROT)
-    return cpl, off
+                import yaml
+            except ImportError:
+                print(f"  WARNING: {cand} exists but PyYAML is missing — the "
+                      f"not_assembled: declaration is NOT being honoured")
+                return set(), None
+            data = yaml.safe_load(cand.read_text()) or {}
+            refs = {str(r) for e in (data.get("not_assembled") or [])
+                    for r in (e.get("refs") or [])}
+            return refs, cand
+    return set(), None
 
 ap = argparse.ArgumentParser()
 ap.add_argument("board")
@@ -79,6 +177,13 @@ ap.add_argument("--lcsc-source", default="",
                 help="circuit.json (or a 03_tscircuit dir) — the AUTHORITATIVE "
                      "per-refdes LCSC source. Auto-discovered from the board "
                      "path when omitted.")
+ap.add_argument("--allow-unsourced-rotations", action="store_true",
+                help="LOUD, DISCOURAGED ESCAPE HATCH (canon A-ROT): write the "
+                     "BOM/CPL even though some placements have NO measured "
+                     "per-LCSC rotation row. Every unsourced code is printed "
+                     "and written to rotations_unsourced.csv either way. Use "
+                     "it to produce the measurement worklist — never to place "
+                     "an order.")
 args = ap.parse_args()
 
 board = pcbnew.LoadBoard(args.board)
@@ -170,6 +275,11 @@ if bom_path.exists():
                         old_lcsc.setdefault(r.strip(), code)
 
 groups, cpl = {}, []
+_declared_np, _asm_path = declared_unpopulated(args.board)
+if _asm_path:
+    print(f"  assembly.yaml: {len(_declared_np)} ref(s) declared "
+          f"not_assembled -> dropped from the CPL ({_asm_path})")
+_dropped_by_decl = []
 for fp in board.GetFootprints():
     ref = fp.GetReference()
     if ref.startswith("H"):
@@ -189,12 +299,25 @@ for fp in board.GetFootprints():
     # (matches KiCad's native POS export, which honours FP_EXCLUDE_FROM_POS_FILES).
     if fp.GetAttributes() & pcbnew.FP_EXCLUDE_FROM_POS_FILES:
         continue
-    pos = fp.GetPosition()
-    jrot, off = jlc_rotation(fpname, fp.GetOrientationDegrees(), code)
+    # ...or declared not_assembled in 03_src/rules/assembly.yaml. Same
+    # outcome, second mechanism: the population DECISION is now able to
+    # reach the CPL without touching the board (see declared_unpopulated).
+    if ref in _declared_np:
+        _dropped_by_decl.append(ref)
+        continue
+    # JLC's datum is the PAD-ARRAY CENTRE, not KiCad's anchor (measured
+    # 227/228 on JLC's own models; see placement_datum). Emitting the anchor
+    # put crow-recorder-central-v2 v1.4's USB-C 1.3025mm off its own pads.
+    pos = placement_datum(fp)
+    d_mm = pcbnew.ToMM(int(round(((pos.x - fp.GetPosition().x) ** 2
+                                  + (pos.y - fp.GetPosition().y) ** 2) ** 0.5)))
+    if d_mm > 0.01:
+        print(f"  datum {ref}: anchor -> pad-array centre, shifted "
+              f"{d_mm:.4f}mm ({fpname[:40]})")
+    jrot, off = jlc_rotation(fp, fpname, fp.GetOrientationDegrees(), code)
     if off:
-        src = "LCSC" if (code and code in _LCSC_ROT) else "name-DB"
         print(f"  rot-correct {ref}: {fp.GetOrientationDegrees():.0f} "
-              f"+ {off:.0f} -> {jrot:.0f} ({fpname[:40]}) [{src}]")
+              f"+ {off:.0f} -> {jrot:.0f} ({fpname[:40]}) [MEASURED lcsc row]")
     cpl.append([ref, val, fpname,
                 round(pcbnew.ToMM(pos.x), 3), round(-pcbnew.ToMM(pos.y), 3),
                 "top" if fp.GetLayer() == pcbnew.F_Cu else "bottom",
@@ -228,6 +351,86 @@ if mpn_path.exists():
             if row.get("LCSC") and row.get("MPN"):
                 mpn_map[row["LCSC"]] = row["MPN"]
 
+# ===================================================== canon A-ROT / A-POL ===
+# THE ASSEMBLY HALF OF THIS EXPORT IS BLOCKED unless every CPL rotation is
+# SOURCED — either from a MEASURED per-LCSC row, or by the footprint measuring
+# as its own 180-degree reflection (which means there is no orientation to get
+# wrong). Silence used to resolve to 0.0; silence is now a FAIL.
+#
+# The worklist is written EITHER WAY, so a blocked run still tells you exactly
+# what to measure. The BOM/CPL are not written on a block, and any stale ones
+# are REMOVED: a blocked run that leaves a plausible-looking cpl_jlc.csv behind
+# is worse than no gate, because the next person uploads the stale file.
+uns_path = out / "rotations_unsourced.csv"
+if _UNSOURCED:
+    with open(uns_path, "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["LCSC", "footprint", "refs", "why_not_exempt",
+                    "advisory_name_db_guess", "advisory_rule"])
+        for code, e in sorted(_UNSOURCED.items()):
+            w.writerow([code, e["fp"], ",".join(sorted(e["refs"])), e["why"],
+                        "" if e["advice"] is None else f"{e['advice']:g}",
+                        e["advice_pat"] or ""])
+elif uns_path.exists():
+    uns_path.unlink()
+
+for _fid, _text in dict.fromkeys(_XCHECK):    # one line per distinct finding
+    print(f"  {_fid}: {_text}")
+if _HUMAN_GATE:
+    gate_path = out / "rotation_human_gate.txt"
+    with open(gate_path, "w") as f:
+        f.write("A-POL SINGLE-CHANNEL — these placements have NO numbering-free\n"
+                "channel corroborating their rotation. The pad-NUMBER fit is\n"
+                "the only evidence, and a pad-number fit structurally cannot\n"
+                "see a model whose own numbering differs from ours (C2296/\n"
+                "C2297: fit 180 at a 17.7x margin, true offset 0). EACH MUST\n"
+                "PASS THE JLC ORDER-PREVIEW HUMAN GATE BEFORE THE FIRST ORDER.\n\n")
+        for code, refs in sorted(_HUMAN_GATE.items()):
+            f.write(f"{code}: {','.join(sorted(refs))}\n")
+    print(f"  A-POL SINGLE-CHANNEL ({len(_HUMAN_GATE)} code(s)) — JLC "
+          f"order-preview human gate REQUIRED before first order: "
+          f"{ {c: sorted(r) for c, r in _HUMAN_GATE.items()} } "
+          f"-> {gate_path.name}")
+
+if _UNSOURCED and not args.allow_unsourced_rotations:
+    n_refs = sum(len(e["refs"]) for e in _UNSOURCED.values())
+    print(f"\nA-ROT BLOCKED: {n_refs} placement(s) over {len(_UNSOURCED)} LCSC "
+          f"code(s) have NO MEASURED rotation row, and their footprints are "
+          f"NOT 180-symmetric:")
+    for code, e in sorted(_UNSOURCED.items()):
+        adv = ("advisory name-DB rule %r would have guessed %g — a HINT, not "
+               "an answer" % (e["advice_pat"], e["advice"])
+               if e["advice"] is not None else
+               "NO name-DB rule matched either: the old resolver shipped 0.0 "
+               "in silence (the C98732 XT60 / C125121 opto class)")
+        print(f"  {code or '(NO LCSC)'} {e['fp']}: "
+              f"{','.join(sorted(e['refs']))}")
+        print(f"      {e['why']}")
+        print(f"      {adv}")
+    print(f"\n  worklist written: {uns_path}")
+    print("  FIX each: fit the board footprint against JLC's cached model with "
+          "an operator VERIFIED AGAINST PCBNEW ITSELF (never jlc_twin's "
+          "jlc_offset — canon M1, e0d735c), then add a row to "
+          "jlc_lcsc_rotations.csv with residual + next-best separation + date "
+          "+ the polarity column. For a polarized or 2-pad collinear part the "
+          "row ALSO needs a NUMBERING-FREE channel (canon A-POL).")
+    print("  ESCAPE HATCH (worklist only, NEVER for an order): "
+          "--allow-unsourced-rotations")
+    for _stale in (bom_path, out / "cpl_jlc.csv"):
+        if _stale.exists():
+            _stale.unlink()
+            print(f"  removed stale {_stale.name} (a blocked run must not "
+                  f"leave an uploadable package behind)")
+    sys.exit(2)
+elif _UNSOURCED:
+    n_refs = sum(len(e["refs"]) for e in _UNSOURCED.values())
+    print(f"\n  A-ROT OVERRIDDEN by --allow-unsourced-rotations: {n_refs} "
+          f"placement(s) over {len(_UNSOURCED)} code(s) carry an UNSOURCED "
+          f"rotation. THIS PACKAGE MUST NOT BE ORDERED. Worklist: {uns_path}")
+else:
+    print(f"  A-ROT OK: all {len(cpl)} CPL rotations are sourced (measured "
+          f"per-LCSC row, or a footprint measured 180-symmetric)")
+
 with open(bom_path, "w", newline="") as f:
     w = csv.writer(f)
     w.writerow(["Comment", "Designator", "Footprint", "MPN", "LCSC"])
@@ -240,6 +443,10 @@ with open(out / "cpl_jlc.csv", "w", newline="") as f:
                 "Rotation"])
     for row in sorted(cpl):
         w.writerow(row)
+if _dropped_by_decl:
+    print(f"  CPL: {len(_dropped_by_decl)} row(s) dropped by the "
+          f"assembly.yaml not_assembled: declaration: "
+          f"{', '.join(sorted(_dropped_by_decl))}")
 
 # Upload zip: gerbers + drills (+ job file when present) — no BOM/CPL inside.
 # Inner-layer Protel extensions are VERSION-DEPENDENT: KiCad 7 wrote

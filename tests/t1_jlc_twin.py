@@ -223,16 +223,24 @@ def t_lcsc_override_wins():
     check(cpl != 270.0, "per-LCSC must NOT fall through to the name-DB 270")
 
 
-@test("a part with no per-LCSC row falls back to the name DB unchanged")
+@test("a part with no per-LCSC row is UNSOURCED — the name DB cannot decide",
+      kind="known_bad")
 def t_name_db_fallback():
-    """C7719 is also SOT-23-5 but needs 90, so it is NOT in the crow table.
-    It must keep the existing name-DB behaviour (-90 -> 270): the override is
-    strictly additive and never disturbs an un-listed part. This is what lets
-    C79924->180 land WITHOUT touching cooksense's C7719."""
+    """AMENDED 2026-07-25 (canon A-ROT). This test used to assert the OPPOSITE:
+    that an un-listed part "falls back to the name DB unchanged" (-90 -> 270).
+    That fallback WAS the defect. It shipped 22 wrong CPL rotations on
+    smc0985-cooksense alone, through four separate mechanisms — a partial
+    prefix (`^SOT-23` swallowing SOT-23-6, ten safety-chain gates 90 out), an
+    unevidenced rule (`^JST_GH_SM,180`, eight connectors 180 out), a wrong key
+    (C79924 vs C7719, one name two answers) and no rule at all (silently 0.0).
+    A footprint NAME is not a part, so the name DB is now ADVISORY: a part with
+    no MEASURED per-LCSC row resolves `unsourced` and BLOCKS.
+    Full coverage of all five mechanisms, with the red-verification, lives in
+    tests/t1_rotation_authority.py."""
     cpl, off, src = resolve_rotation("SOT-23-5", 0, "C7719", _SOT235,
                                      {"C79924": 180.0})
-    eq(cpl, 270.0, "C7719 SOT-23-5 CPL rotation (name-DB -90)")
-    eq(src, "name", "resolution source")
+    eq(src, "unsourced", "resolution source for an unmeasured part")
+    check(cpl != 270.0, "the name-DB's 270 still reaches the CPL")
 
 
 @test("board orientation is added to the per-LCSC offset (non-zero rot)")
@@ -245,12 +253,18 @@ def t_board_rotation_composes():
     eq(src, "lcsc", "resolution source")
 
 
-@test("no per-LCSC row and no name-DB match returns the bare board rotation")
+@test("no per-LCSC row and no name-DB match is UNSOURCED, not a silent 0.0",
+      kind="known_bad")
 def t_no_match_passthrough():
+    """AMENDED 2026-07-25 (canon A-ROT). The old assertion — `src == "none"`,
+    offset 0.0, non-blocking — is the quietest of the five mechanisms and the
+    hardest to notice: C98732 (the XT60, on a VENDORED footprint name that the
+    start-anchored `^AMASS_XT60PW-M` rule never matched) and C125121 (the
+    cooksense SAFETY-ISOLATION opto) both matched nothing and shipped at 0."""
     cpl, off, src = resolve_rotation("Some_Weird_FP", 45, "C0000", [], {})
-    eq(cpl, 45.0, "passthrough CPL rotation")
-    eq(off, 0.0, "passthrough offset")
-    eq(src, "none", "resolution source")
+    eq(cpl, 45.0, "the bare board rotation is still what would be emitted")
+    eq(off, 0.0, "no offset to apply")
+    eq(src, "unsourced", "resolution source — silence must BLOCK, not default")
 
 
 # ------------------------------------------ xform() handedness (2026-07-25)
@@ -1210,6 +1224,86 @@ def t_polarity_fit_blind():
     contains(r.out, "POLARITY-FIT-BLIND", "the blind verdict")
     contains(r.out, "ONLY the human order-preview gate",
              "the blind verdict must name what is carrying the risk")
+
+# ------------------------------------------------- pad_alias permutation
+def _twin_fn(name):
+    """Import ONE pure helper out of jlc_twin without importing pcbnew."""
+    src = (FAB_SCRIPTS / "jlc_twin.py").read_text()
+    s = src.index("def apply_pad_alias(")
+    e = src.index("def centroid(")
+    ns = {}
+    exec(src[s:e], ns)
+    return ns[name]
+
+
+def _old_apply_pad_alias(jraw, alias):
+    """The PRE-FIX implementation, verbatim — kept so the tests below can be
+    shown to go RED against it (tests/README: verify the fix against the
+    pre-fix code and say so)."""
+    jraw = {k: list(v) for k, v in jraw.items()}
+    for src, dst in alias.items():
+        if src in jraw and src != dst:
+            jraw.setdefault(dst, []).extend(jraw.pop(src))
+            jraw[dst] = sorted(jraw[dst])
+    return jraw
+
+
+# LS1 (C22359707) on crow-mic-pod-v2, measured 2026-07-25: read in ONE
+# convention, our pads 1/2 COINCIDE with JLC's and 3/4 (both NC dummies) are
+# transposed. The true correspondence is therefore a 2-way 3<->4 swap.
+LS1_JLC = {"1": [(-3.6, -3.6)], "2": [(-3.6, 3.6)],
+           "3": [(3.6, 3.6)], "4": [(3.6, -3.6)]}
+
+
+@test("pad_alias applies a 2-WAY SWAP as one simultaneous permutation",
+      kind="known_bad")
+def t_pad_alias_two_way_swap():
+    """THE BUG. The old loop mutated `jraw` while iterating the alias, so each
+    rename saw the previous one's result. For {3:4, 4:3}: step one moved pad
+    3 onto key 4 (now holding both), step two moved key 4 — BOTH entries —
+    onto key 3. Pad 4 vanished and pad 3 doubled, so a 2-way swap could not
+    be written down at all.
+
+    That is why crow-mic-pod-v2 v1.0's LS1 waiver asserts a 1<->2 swap: the
+    only correspondence the file format could express. It fits the geometry
+    at NO rotation (rms 7.1007mm at all four angles) while the true 3<->4
+    swap fits at 0.1414mm."""
+    apply_pad_alias = _twin_fn("apply_pad_alias")
+    swap = {"3": "4", "4": "3"}
+
+    got = apply_pad_alias(LS1_JLC, swap)
+    eq(sorted(got), ["1", "2", "3", "4"], "a 2-way swap must keep all 4 pads")
+    eq(got["3"], [(3.6, -3.6)], "JLC pad 4's coords must land on key 3")
+    eq(got["4"], [(3.6, 3.6)], "JLC pad 3's coords must land on key 4")
+    check(all(len(v) == 1 for v in got.values()),
+          f"no pad may be doubled: { {k: len(v) for k, v in got.items()} }")
+
+    # RED-VERIFY against the pre-fix code
+    bad = _old_apply_pad_alias(LS1_JLC, swap)
+    check(sorted(bad) != ["1", "2", "3", "4"] or
+          any(len(v) != 1 for v in bad.values()),
+          "the pre-fix implementation must FAIL this test — if it passes, "
+          "the test is not pinning the bug")
+    eq(sorted(bad), ["1", "2", "3"],
+       "pre-fix behaviour, pinned: pad 4 is lost and pad 3 doubled")
+
+
+@test("pad_alias leaves an identity alias and a real tab-merge unchanged")
+def t_pad_alias_identity_and_merge():
+    """Regression guard on the case pad_alias was BUILT for: the SOT-223 tab
+    (KiCad merges tab+lead as '2', JLC names the tab '4') must still merge,
+    and an identity alias must still be a no-op — the old `src != dst` guard
+    existed only to stop the in-place loop doubling a pad, and the
+    snapshot-based permutation makes it unnecessary rather than missing."""
+    apply_pad_alias = _twin_fn("apply_pad_alias")
+    sot = {"1": [(0.0, 0.0)], "2": [(1.0, 0.0)], "3": [(2.0, 0.0)],
+           "4": [(1.0, 2.0)]}
+    merged = apply_pad_alias(sot, {"4": "2"})
+    eq(sorted(merged), ["1", "2", "3"], "the tab must merge into pad 2")
+    eq(len(merged["2"]), 2, "pad 2 must carry both the lead and the tab")
+    eq(apply_pad_alias(sot, {"2": "2"}), sot, "an identity alias is a no-op")
+    eq(apply_pad_alias(sot, {}), sot, "an empty alias is a no-op")
+
 
 if __name__ == "__main__":
     sys.exit(main())
