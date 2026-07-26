@@ -2080,6 +2080,13 @@ def t_kb_fp_lib_kiprjmod():
 #   * The stitch's `hole_to_hole` REPAIR pass was the only thing covering it,
 #     and it could give up silently (both vias undraggable, or no legal nudge
 #     site) — a shipped violation with a "gate: clean" log line.
+#
+# MEASURED AFTER THE FIX (full rebuild_fast.sh replay in a scratch tree,
+# 2026-07-25): DRC 0/0/0, 893 tracks / 273 vias, 314 drilled holes, and the
+# board's TIGHTEST hole pair is now 0.5247mm (SW_C vs HO_C) against the
+# 0.4995mm floor. The 5VA escape via that used to land at (52.675,44.25)
+# now takes (52.925,43.5) — 0.601mm from its pad via instead of 0.259mm.
+# The site check refused the old site; it did not need the repair pass.
 _PROBE_H2H = r'''
 import sys, math
 sys.path.insert(0, "__SCRIPTS__")
@@ -2138,8 +2145,12 @@ def t_kb_via_site_hole_to_hole():
     via_site_ok built only from collides(), which exempts same-net items and
     checks copper clearance, not drill spacing. It approved a site 0.259mm
     from a same-net via and 0.350mm from a different-net one, both against a
-    0.5mm floor. Also RED-VERIFIED against the real pre-fix file by swapping
-    HEAD's pcb_toolkit.py back in: this test fails at NEW_SAMENET_OK.
+    0.5mm floor. Also RED-VERIFIED against the real pre-fix file (2026-07-25,
+    HEAD=de94df7): swap HEAD's pcb_toolkit.py back in and this test FAILS at
+    the probe itself — the pre-fix Toolkit has no `h2h` at all, which is the
+    defect stated as plainly as it can be. The `OLD_*` lines above are the
+    same predicate reproduced INLINE so the RED baseline survives in the
+    fixture after the pre-fix file is gone from HEAD.
 
     The fix must not be a blunt instrument, so three more properties are
     pinned: a site one floor away is still legal (NEW_LEGAL_OK True), the
