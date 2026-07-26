@@ -1,0 +1,63 @@
+# twin_report.txt — human-readable rendering of twin_report.csv (same run,
+# jlc_twin.py 2026-07-26, --cpl fab/cpl.csv; exit 0)
+# summary: 26 OK / 58 finding rows; rotation-fitted refs: 26; bodies mounted: 26/26
+
+LCSC       Ref  Status              Detail
+C25803     R3   OK                  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C14663     C10  OK                  fit=0.07mm jlc_offset=0 db=0.0 src=name-DB
+C14663     C7   OK                  fit=0.07mm jlc_offset=0 db=0.0 src=name-DB
+C49066     C1   OK                  fit=0.04mm jlc_offset=0 db=0.0 src=name-DB
+C22775     R1   OK                  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C22775     R10  OK                  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C22775     R11  OK                  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25804     R6   OK                  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25804     R8   OK                  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C25804     R9   OK                  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C15850     C3   OK                  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C15850     C4   OK                  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C15850     C5   OK                  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C15850     C6   OK                  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C15850     C8   OK                  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C15850     C9   OK                  fit=0.05mm jlc_offset=0 db=0.0 src=name-DB
+C15849     C2   OK                  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C4184      R7   OK                  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C31850     R4   OK                  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C31850     R5   OK                  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C23018     R2   OK                  fit=0.08mm jlc_offset=0 db=0.0 src=name-DB
+C192421    U1   PAD-GEOM            pad 1<->8 ours 4.95mm vs JLC 5.42mm (d0.47mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C192421    U1   OK                  fit=0.24mm jlc_offset=270 db=270.0 src=lcsc
+C1972959   D1   OK                  fit=0.02mm jlc_offset=0 db=0.0 src=lcsc
+C22359707  LS1  OK                  fit=0.14mm jlc_offset=0 db=0.0 src=lcsc
+C2480      D2   POLARITY-CHECK      2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C2480      D2   POLARITY-FIT-OK     marking channel agrees with the pad fit (both at pad 1; margins 1.21/0.53mm)
+C2480      D2   OK                  fit=0.04mm jlc_offset=0 db=0.0 src=lcsc
+C559105    D3   PAD-GEOM            pad 1<->2 ours 4.00mm vs JLC 4.38mm (d0.38mm) - land patterns disagree; adjudicate against the part datasheet's recommended pattern
+C559105    D3   POLARITY-CHECK      2-pad polarized part: verify the model's polarity marking vs our silk in the render (if the model is unmarked, verify via the JLC order preview) - machine checks cannot see a 180-flipped symmetric model
+C559105    D3   POLARITY-FIT-BLIND  no usable polarity marking on JLC's footprint — the numbering-free channel cannot run, so ONLY the human order-preview gate stands between this part and a 180deg reversal
+C559105    D3   OK                  fit=0.19mm jlc_offset=0 db=0.0 src=lcsc
+C25803     R3   MODEL-REG-OK        body on courtyard (0.00mm)
+C14663     C10  MODEL-REG-OK        body on courtyard (0.00mm)
+C14663     C7   MODEL-REG-OK        body on courtyard (0.00mm)
+C49066     C1   MODEL-REG-OK        body on courtyard (0.00mm)
+C22775     R1   MODEL-REG-OK        body on courtyard (0.00mm)
+C22775     R10  MODEL-REG-OK        body on courtyard (0.00mm)
+C22775     R11  MODEL-REG-OK        body on courtyard (0.00mm)
+C25804     R6   MODEL-REG-OK        body on courtyard (0.00mm)
+C25804     R8   MODEL-REG-OK        body on courtyard (0.00mm)
+C25804     R9   MODEL-REG-OK        body on courtyard (0.00mm)
+C15850     C3   MODEL-REG-OK        body on courtyard (0.00mm)
+C15850     C4   MODEL-REG-OK        body on courtyard (0.00mm)
+C15850     C5   MODEL-REG-OK        body on courtyard (0.00mm)
+C15850     C6   MODEL-REG-OK        body on courtyard (0.00mm)
+C15850     C8   MODEL-REG-OK        body on courtyard (0.00mm)
+C15850     C9   MODEL-REG-OK        body on courtyard (0.00mm)
+C15849     C2   MODEL-REG-OK        body on courtyard (0.00mm)
+C4184      R7   MODEL-REG-OK        body on courtyard (0.00mm)
+C31850     R4   MODEL-REG-OK        body on courtyard (0.00mm)
+C31850     R5   MODEL-REG-OK        body on courtyard (0.00mm)
+C23018     R2   MODEL-REG-OK        body on courtyard (0.00mm)
+C192421    U1   MODEL-REG-OK        body on courtyard (0.00mm)
+C1972959   D1   MODEL-REG-OK        body on courtyard (0.00mm)
+C22359707  LS1  MODEL-REG-OK        body on courtyard (0.00mm)
+C2480      D2   MODEL-REG-OK        body on courtyard (0.00mm)
+C559105    D3   MODEL-REG-OK        body on courtyard (0.00mm)

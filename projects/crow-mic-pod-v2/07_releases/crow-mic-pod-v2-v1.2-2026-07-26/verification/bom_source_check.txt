@@ -1,0 +1,3 @@
+BOM-vs-source: projects/crow-mic-pod-v2/07_releases/crow-mic-pod-v2-v1.1-2026-07-25/fab/bom.csv
+  source: projects/crow-mic-pod-v2/03_tscircuit/build/circuit.json (27 coded refdes); vendored: 6 part.yaml codes; ledger: 142 vetted passive codes; not_assembled: 13 declared refdes (H1, H2, H3, H4...)
+BOM SOURCE CHECK: PASS (every BOM LCSC == source)

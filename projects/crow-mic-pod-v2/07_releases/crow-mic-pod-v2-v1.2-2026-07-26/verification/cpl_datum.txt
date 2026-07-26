@@ -1,0 +1,61 @@
+A-POS — is the shipped CPL on JLC's PLACEMENT DATUM?  Measured 2026-07-25.
+
+THE RULE (landed 2026-07-25, after this board's v1.0 seal): JLC's CPL
+Mid X/Y is the bbox centre of PAD CENTRES, not the footprint anchor
+(fp.GetPosition()). Over 228 cached JLC-native footprints on six boards:
+  pad-CENTRE bbox   matches the model origin to <=0.01mm on 227/228 (99.6%)
+  pad-OUTLINE bbox  213/228        centroid  198/228
+It is not theoretical: crow-recorder-central-v2 v1.4 places its only
+USB-C 1.3025mm off against 1.150mm contacts = 0.000mm pad overlap, and
+usb-hub-3s-v3 v1.5 has 11 of 108 rows off, ALL FIVE connectors among them.
+
+METHOD (canon M1): assembly_coverage.py's A-POS parses the board TEXT.
+This re-derivation uses pcbnew instead — a different reader — and
+reports BOTH candidate datums per row so the two cannot be confused.
+
+ref    CPL Mid X  CPL Mid Y             padctr             anchor  d_datum d_anchor
+C1       60.5000   -44.0000   60.500,  -44.000   60.500,  -44.000  0.00000  0.00000
+C10      34.5000   -26.7000   34.500,  -26.700   34.500,  -26.700  0.00000  0.00000
+C2       65.0000   -26.0000   65.000,  -26.000   65.000,  -26.000  0.00000  0.00000
+C3       50.2000   -35.3000   50.200,  -35.300   50.200,  -35.300  0.00000  0.00000
+C4       50.5000   -33.0000   50.500,  -33.000   50.500,  -33.000  0.00000  0.00000
+C5       37.0000   -29.0000   37.000,  -29.000   37.000,  -29.000  0.00000  0.00000
+C6       37.0000   -32.0000   37.000,  -32.000   37.000,  -32.000  0.00000  0.00000
+C7       50.0000   -24.0000   50.000,  -24.000   50.000,  -24.000  0.00000  0.00000
+C8       54.5000   -23.8000   54.500,  -23.800   54.500,  -23.800  0.00000  0.00000
+C9       31.0000   -28.0000   31.000,  -28.000   31.000,  -28.000  0.00000  0.00000
+D1       31.0000   -35.0000   31.000,  -35.000   31.000,  -35.000  0.00000  0.00000
+D2       43.0000   -47.0000   43.000,  -47.000   43.000,  -47.000  0.00000  0.00000
+D3       51.0000   -47.0000   51.000,  -47.000   51.000,  -47.000  0.00000  0.00000
+LS1      33.0000   -46.0000   33.000,  -46.000   33.000,  -46.000  0.00000  0.00000
+R1       56.0000   -44.0000   56.000,  -44.000   56.000,  -44.000  0.00000  0.00000
+R10      43.0000   -29.0000   43.000,  -29.000   43.000,  -29.000  0.00000  0.00000
+R11      43.0000   -32.0000   43.000,  -32.000   43.000,  -32.000  0.00000  0.00000
+R2       67.0000   -29.0000   67.000,  -29.000   67.000,  -29.000  0.00000  0.00000
+R3       59.0000   -26.0000   59.000,  -26.000   59.000,  -26.000  0.00000  0.00000
+R4       57.3000   -34.2000   57.300,  -34.200   57.300,  -34.200  0.00000  0.00000
+R5       54.0000   -35.0000   54.000,  -35.000   54.000,  -35.000  0.00000  0.00000
+R6       46.5000   -30.2000   46.500,  -30.200   46.500,  -30.200  0.00000  0.00000
+R7       47.0000   -32.0000   47.000,  -32.000   47.000,  -32.000  0.00000  0.00000
+R8       57.5000   -30.0000   57.500,  -30.000   57.500,  -30.000  0.00000  0.00000
+R9       57.0000   -32.0000   57.000,  -32.000   57.000,  -32.000  0.00000  0.00000
+U1       52.0000   -28.0000   52.000,  -28.000   52.000,  -28.000  0.00000  0.00000
+
+  WORST |CPL - pad-centre datum| = 0.00000 mm   over 26 rows
+  WORST |CPL - footprint anchor| = 0.00000 mm
+
+RESULT: the shipped CPL is ALREADY on the pad-centre datum, exactly.
+Re-exporting cannot change a single coordinate, so fab/cpl.csv stays
+BYTE-IDENTICAL to v1.0 and the paperwork-only framing holds.
+
+WHY THIS BOARD HAS ZERO EXPOSURE TO THE CLASS. On all 26 placements the
+pad-centre datum and the footprint anchor COINCIDE to 0.00000mm, so the
+two definitions cannot disagree here. The class bites footprints whose
+ANCHOR is offset from the pad array — characteristically CONNECTORS,
+with shield tabs, mounting lugs or body-referenced origins (all five of
+usb-hub-3s-v3's offenders are connectors; crow-recorder-central-v2's is
+a USB-C). This board's 26 machine-placed parts are all symmetric chip
+(0603/0805/1210), SOIC-8, SOT-553 and a 4-pad symmetric transducer —
+anchor-at-pad-centre by construction. Its only two connector-class
+parts, J1 (RJ45) and MK1 (electret), are hand-solder and are NOT ON THE
+CPL AT ALL. The exposure is structurally absent, not merely absent today.

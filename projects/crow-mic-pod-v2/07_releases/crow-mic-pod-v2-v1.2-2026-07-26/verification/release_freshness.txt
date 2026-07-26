@@ -1,0 +1,7 @@
+== release-freshness: crow-mic-pod-v2-v1.1-2026-07-25 == [bom-only supersede of crow-mic-pod-v2-v1.0-2026-07-23]
+  note: fab/ byte-identical to crow-mic-pod-v2-v1.0-2026-07-23 (4 file(s)) — ASSERTED by bom-only mode
+  note: source/ byte-identical to crow-mic-pod-v2-v1.0-2026-07-23 (9 file(s)) — ASSERTED by bom-only mode
+  note: 3d/ byte-identical to crow-mic-pod-v2-v1.0-2026-07-23 (1 file(s)) — ASSERTED by bom-only mode
+  note: fab/bom.csv delta is 2 whole row(s) REMOVED (J1, MK1), 0 added, 0 edited; none of the removed designators is on the CPL — ASSERTED by bom-only mode
+  note: A-STOCK: grading verification/stock_check.json (15 graded line(s), verdict=PASS) against 15 coded+placed BOM line(s) x 8 boards
+FRESHNESS: PASS
