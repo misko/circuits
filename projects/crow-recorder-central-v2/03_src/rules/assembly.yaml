@@ -24,8 +24,10 @@ service: standard          # JLC assembly service tier as ORDERED. `standard` is
                            # Declaration of INTENT — no fetched capability
                            # numbers are asserted here.
 sides: [top]               # MEASURED from the shipped CPL 2026-07-25: placement
-                           # histogram top=177, bottom=0. Single-sided SMT; no
-                           # bottom-side process is ordered or paid for.
+                           # histogram top=174, bottom=0 (was 177 at v1.4; J1,
+                           # R_inj1 and R_inj2 left the CPL at v1.5). Single-
+                           # sided SMT; no bottom-side process is ordered or
+                           # paid for.
 fiducials: none            # DELIBERATE, and a recorded limitation, not silence.
                            # No FID footprints exist on this board (0 refs match
                            # ^FID/^MH on the sealed 04_kicad board, measured
