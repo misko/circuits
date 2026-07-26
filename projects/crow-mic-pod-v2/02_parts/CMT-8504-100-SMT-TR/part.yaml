@@ -105,3 +105,34 @@ land_pattern:                    # extracted from datasheet page 2/5, "Recommend
   courtyard_suggestion_mm: [10.0, 10.0]   # pad bbox (9.5x9.5) + 0.25mm/side std
                                             # KiCad courtyard clearance; not datasheet-stated
 sourcing: {lcsc: C22359707}
+
+# ---- EXECUTABLE FACTS (canon P-FACT). Each of these was already written down
+# above in prose; `asserts:` is what makes a gate able to READ it. The MSL one
+# is the reason this block exists on THIS part: v1.0 shipped LS1 machine-placed
+# with ZERO moisture text anywhere in the order paperwork, while the datasheet
+# obligation sat correctly recorded in `limits:` where nothing could reach it.
+asserts:
+  - assert: msl
+    level: 3
+    floor_life_h: 48
+    why: >
+      Datasheet rev 1.04 SOLDERABILITY Note 2 — "reflow solder within 48 hours
+      from opening vacuum packaging at a temperature <30C & relative humidity
+      <60%" — and Note 3 drying conditions "bake at 40C for 24 hours" when out
+      of packaging longer. LS1 IS MACHINE-PLACED (fab/cpl.csv), so this is the
+      ASSEMBLER's obligation and it cannot be inferred from the reel; it has to
+      be stated in the order paperwork. Unbounded floor time risks popcorning /
+      delamination of a coil transducer inside a sealed outdoor pod — a latent
+      field failure, not a test-time one. Level 3 is the conservative J-STD-020
+      classification consistent with a 48h vacuum-pack floor life; the
+      datasheet states the obligation, not a numeric MSL level.
+  - assert: pad1_net_polarity
+    pad: 1
+    polarity: positive
+    why: >
+      Datasheet rev 1.04 p.2 mechanical drawing labels the top-left terminal
+      "POLARITY PAD(+)" and the bottom-left "POLARITY PAD(-)"; our vendored
+      land pattern numbers that + terminal as pad 1. Pad 1 must therefore sit
+      on the DRIVE rail (5V_BEEP), never on the switched return. Graded from
+      the exported netlist here; canon P-POL grades the same fact from the
+      board — two artifacts, one fact (canon M1).

@@ -101,3 +101,15 @@ layout_refs:
   - "Amphenol catalogue RECOMMENDED PCB LAYOUT p.4 RJHSE-548X + p.6 RJHSE-538X-04, April 2015 ed. (hole-for-hole match to the KiCad footprint)"
   - "datasheet dwg P-RJHSE-538X Rev K (Apr 2014) RECOMMENDED P.C.B. LAYOUT + LED SCHEMATIC figures, page 1 of the fetched PDF — independently re-fetched and re-measured this session (2026-07-23); confirms identical hole pattern/pitch/drill sizes to the KiCad footprint (see verified: above for the mirroring note)"
 sourcing: {lcsc: C9900035627}
+
+# ---- EXECUTABLE FACTS (canon P-FACT) ----
+asserts:
+  - assert: not_on_assembly_bom
+    why: >
+      J1 is hand-soldered and must NOT reach JLC's assembly BOM or CPL.
+      Measured 2026-07-25: C9900035627 and its duplicate listing C9900056698
+      are BOTH stock 0 consign-only placeholder codes priced at $0.0392 — they
+      were never orderable stock; the nearest in-stock relative C3179625
+      (RJHSE-5384-02) is a right-angle variant and not a drop-in. Through-hole
+      on an SMT-only order. v1.0 shipped this row on the assembly BOM with no
+      CPL row, which is half of the reason v1.1 exists.

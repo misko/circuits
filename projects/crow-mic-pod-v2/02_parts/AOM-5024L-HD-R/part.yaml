@@ -63,3 +63,18 @@ verified: "terminal polarity + drive-circuit topology cross-checked against data
   page 3 of PUI Audio 'Data Sheet AOM-5024L-HD-R' (revision table p.5: released from engineering 6/6/2017)
   — 2026-07-23"
 sourcing: {lcsc: null, digikey: "668-1538-ND"}
+
+# ---- EXECUTABLE FACTS (canon P-FACT) ----
+asserts:
+  - assert: not_on_assembly_bom
+    why: >
+      MK1 is hand-wired at pod integration and must NOT reach JLC's assembly
+      BOM or CPL. Two independent walls, both measured 2026-07-25 against the
+      JLC parts library: the exact MPN IS catalogued (C3273706, Extended) but
+      at STOCK 0, as are both siblings C3273730 and C20107634; and the
+      footprint is through_hole while pod orders are SMT-only. THIS ASSERTION
+      IS THE POINT OF THE v1.1 RELEASE: v1.0's fab/bom.csv shipped an MK1 row
+      whose MPN column AND LCSC column were BOTH EMPTY, with no CPL row — JLC
+      was told to source a part it has no code for, and the upload stalls at
+      the BOM/CPL matcher. Declared in 03_src/rules/assembly.yaml as
+      reason: user_supplied.
