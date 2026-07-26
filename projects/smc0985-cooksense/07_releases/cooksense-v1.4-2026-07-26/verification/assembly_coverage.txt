@@ -1,0 +1,5 @@
+== A-POP assembly_coverage: cooksense-v1.3-2026-07-26 ==
+  board=226 footprints, cpl=189 placements, unpopulated=37 (declared=16, consigned=0, exempt_prefixes=['H', 'TP'])
+  placement histogram: top=189
+  A-POS datum: 189 CPL row(s) graded against the pad-array centre, worst = 0.00000mm (R_DECDPD), tolerance 0.05mm
+A-POP: PASS (every unpopulated part is declared with evidence)

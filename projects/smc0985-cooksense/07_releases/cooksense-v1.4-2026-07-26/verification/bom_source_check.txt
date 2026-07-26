@@ -1,0 +1,4 @@
+# M-BOM graded against the SHIPPED archive artifact fab/bom_jlc.csv (not 06_build).
+BOM-vs-source: projects/smc0985-cooksense/07_releases/cooksense-v1.3-2026-07-26/fab/bom_jlc.csv
+  source: projects/smc0985-cooksense/03_tscircuit/build/circuit.json (191 coded refdes); vendored: 38 part.yaml codes; ledger: 142 vetted passive codes; not_assembled: 16 declared refdes (J_ISOLOOP, J_LOADCELL, J_PI, J_TC...)
+BOM SOURCE CHECK: PASS (every BOM LCSC == source)
