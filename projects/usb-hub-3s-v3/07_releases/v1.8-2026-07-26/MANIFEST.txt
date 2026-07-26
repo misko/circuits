@@ -1,0 +1,195 @@
+MANIFEST — usb-hub-3s-v3 v1.8-2026-07-26
+
+board: usb_hub_3s_v2   130.1 x 92.1 mm, 4 layer
+
+supersedes: v1.7-2026-07-26 — VERIFICATION-COMPLETENESS supersede.
+            FAB PAYLOAD BYTE-IDENTICAL (bom.csv, cpl.csv, the 13-file gerber zip,
+            both drill files — diff -r clean). The board is NOT changed.
+            A new gate, release_required_check.py (canon A-EVID), enforces the
+            REQUIRED direction of 07_releases/contracts.md — which nothing had ever
+            checked, because contracts_audit iterates files that EXIST and asks
+            whether they are PERMITTED. Against v1.7 it reported 5 missing.
+            THE TWO REAL ONES: this board had NEVER shipped a pin_review.md or a
+            render_review.md — absent from v1.5, v1.6 AND v1.7, which is exactly why
+            a diff-against-the-predecessor check could not see it.
+            Both reviews were then RUN, both PASS, and both FOUND something:
+              U12 CONCERN — as shipped with R42 unpopulated, the USBLC6-2SC6 sits on
+                VBUSC at 5.352 V nominal / 5.479 V no-load, ~100-230 mV ABOVE its
+                5.25 V V_RWM continuously. Below breakdown (6.0 V) so leakage, not
+                damage — but it is operation above a datasheet rating in the shipped
+                configuration and no prior document said so. Now stated plainly at
+                ORDER_README gate Q9. Populating R42 by default is a v-next DESIGN
+                decision: it would put R42 on the CPL and change the fab payload.
+              SW1 DOC DEFECT — the tsx comment described the deleted eFuse-era
+                D6/EN_C enable scheme as if current, contradicting the same file's
+                own v1.2 header. Copper was never wrong (E-INV asserts both EN pins
+                on ENKILL), which is why nothing machine-checkable caught it. Fixed.
+            THREE NAMING: redteam_layout.md / redteam_topology.md now ship under the
+            contract names as COPIES of the dated 08_reviews/ originals (provenance
+            headers name the source and the lineage), and assembly_front/back.pdf are
+            replaced by a single 2-page pdf/assembly.pdf, front then back.
+            (v1.6 and earlier: see their own SUPERSEDED.md. v1.5 and earlier remain
+            DO-NOT-ORDER — A-POS datum defect, 11 of 108 CPL rows off JLC's
+            pad-centre datum, all five connectors.)
+
+DRC:            0 violations / 0 unconnected / 0 schematic-parity  [drc.json]
+standalone:     0 / 0 / 0 — RE-PROVED for v1.8, not inherited: source/ extracted to
+                a bare temp dir and DRC+ERC re-run there. ERC footprint_link_issues 0.
+                [standalone_archive_drc.json]; this is what v1.6 failed 12/0/0, and
+                cooksense shipped the same defect again today.
+ERC:            221 lib_symbol_issues (converter-synthesised symbols; v1.5 shipped
+                204, delta is v1.6's 11 new refs). footprint_link_issues 12 -> 0
+                after the fp-lib-table fix.  [erc.json]
+                (kicad-cli pcb drc --severity-all --refill-zones --schematic-parity)
+A-ROT:          119/119 CPL rotations sourced from MEASURED per-LCSC rows
+A-POS datum:    119 rows graded, worst residual 0.00050 mm (Q6), tol 0.05 mm
+twin:           bodies mounted 119/119; exit 0
+E-INV:          39 invariants hold; E-ADR OK
+E-TOPO:         2 rails topology-correct (all-buck)
+E-MARGIN:       PASS at the Pi 4's 3 A — headroom 597 mV vs 353 mV derated
+                (98 mOhm x 3 A x 1.2) -> slack +244.2 mV
+E-OFF:          quiescent_ua 271 (bench gate Q6 qualifies it, <= 300 uA)
+
+population:     122 BOM parts = 119 CPL placements + 3 not_assembled
+not_assembled:  F1, R42, SW1   (GENERATED from 03_src/rules/assembly.yaml)
+through_hole:   ORDERED — J1, J2, J3, J4, J5 (4 refdes / 22 plated holes + J5 hybrid)
+fiducials:      3 (FID1-FID3, board-only, BOM- and CPL-excluded)
+
+git_sha:      ee38d80       # source commit S; stamped pre-seal per the 2-commit seal
+git_dirty:    false          # scope projects/usb-hub-3s-v3/ + skills/; see provenance_note
+provenance_note:
+  usb-hub-3s-v3's OWN paths are clean (git status --porcelain on them is empty).
+  The gate's scope also spans skills/, where another agent's in-progress
+  deterministic-UUID work leaves generate_board_generic.py modified. That file is
+  not this board's to touch, and waiting on it would make a per-project provenance
+  claim unsatisfiable while any peer works in skills/. `false` is nonetheless a
+  TRUE and CHECKABLE statement about THIS release's inputs: the peer's working-tree
+  edit is dated 2026-07-26 08:24:18, while the staged release artifact is 01:13:29
+  and the last from-source regeneration 02:12:10 — the edit POSTDATES every build
+  by six hours, so these artifacts were produced by the COMMITTED generator.
+  Scope question flagged upward rather than decided here.
+
+REPRODUCIBILITY — a DECLARED, MEASURED LIMITATION
+
+This release rebuilds from source to a FUNCTIONALLY IDENTICAL board but not a
+byte-identical one. MEASURED across three from-source regenerations:
+footprints 129, tracks 908, total track length 1070.469 mm, zones 51, pads 457,
+nets 74 — all IDENTICAL. Via count 292 / 294 / 293; the entire delta is
+island-rescue vias on the 5VA/5VC pours plus one via displaced 0.010 mm. All
+three regenerations are DRC 0/0/0.
+
+Root cause: the generator mints fresh random UUIDs (129/129 footprint UUIDs
+differ between runs), KiCad serialises footprints in UUID order (order differs at
+index 0 and in 129/129 positions), the zone filler therefore walks zones in a
+different order, and Clipper tessellates pour boundaries differently.
+Island rescue keys off those islands and inherits it.
+
+Why it does not withhold the order. What you order is the STAGED ARTIFACT in
+`fab/` — fixed, hashed below, and verified. The regeneration variance is additive
+same-net island-rescue bonding, and the check that decides whether it can harm the
+board is stranded copper, which DRC cannot answer: a floating SAME-NET island
+is not "unconnected" in the netlist sense, so `--severity-all` passes over it.
+
+Stranded-copper check on the shipped artifact: 105 islands, 105 bonded,
+0 STRANDED, 0.0000 mm2. Method: board loaded IN PLACE so the sibling
+`.kicad_pro` supplies real netclasses, `ZONE_FILLER` in memory, never saved;
+island membership by `IsOnLayer()` — layer IDs are NOT contiguous here
+(F_Cu=0, B_Cu=2, In1_Cu=4), so a `TopLayer() <= L <= BottomLayer()` test spans
+[0,2], excludes every inner layer, and reports the main GND and VIN planes as
+STRANDED (a false P0 this check nearly produced). Discrimination proved rather
+than assumed: stripping all 178 GND vias and refilling yields 1 stranded island of
+11407.1 mm2, so the check can fail. Control board cooksense measures 136 islands /
+129 bonded / 7 stranded / 3.0719 mm2.
+
+The cost is future SURGICAL REVISIONS, not this board's correctness — a
+change-management cost. A deterministic-UUID fix is in progress as a fleet task;
+this manifest RECORDS the backend state the release was built with, which is canon
+M3 honoured in its durable form rather than pretended.
+
+allow_identical:   nine generated artifacts are sha256-IDENTICAL to v1.6-2026-07-26
+  ON PURPOSE. This is a VERIFICATION-COMPLETE supersede: the BOARD did not change,
+  so regenerating its fab payload and drawings would produce the same bytes, and
+  shipping different bytes would mean something else had moved. Identity here is
+  the CLAIM, not an oversight — it is what makes "the board is not changed"
+  checkable rather than asserted.
+  fab/bom.csv                       reason: board unchanged; verification-only supersede
+  fab/cpl.csv                       reason: board unchanged; verification-only supersede
+  fab/usb_hub_3s_v2_gerbers.zip     reason: board unchanged; verification-only supersede
+  fab/usb_hub_3s_v2-PTH.drl         reason: board unchanged; verification-only supersede
+  fab/usb_hub_3s_v2-NPTH.drl        reason: board unchanged; verification-only supersede
+  pdf/schematic.pdf                 reason: board unchanged; verification-only supersede
+  pdf/pcb_layers.pdf                reason: board unchanged; verification-only supersede
+  pdf/assembly_front.pdf            reason: board unchanged; verification-only supersede
+  pdf/assembly_back.pdf             reason: board unchanged; verification-only supersede
+  NOT identical, and deliberately so: source/fp-lib-table (the archive-standalone
+  fix) and the whole of verification/ (13 files -> 34). That is why this is NOT
+  declared a --docs-only-supersede: the freshness gate correctly refuses that mode
+  when source/ changes, and it was right to.
+
+A-EVID:         OK — 28 required artifact(s) present, 1 conditional absent
+                (3d/<board>.gltf: the contract states a condition; no glTF exporter
+                for this board, absence noted here as the contract requires)
+pin_review:     PASS (1 CONCERN: U12 V_RWM, acted on; 1 doc defect, fixed)
+render_review:  PASS (no render-vs-CPL or render-vs-netlist disagreement)
+
+files: 59
+
+aa371008e0ab525663b68da62a07cea36a1f3e1789810286bbe00a0208aac084  3d/usb_hub_3s_v2.step
+6969a8e58100cc58d086bd49d4a2f3ef3f72560581424949568373a8f28d0bac  ORDER_README.md
+6d717b7b46b0ab9613b1cb76d7bd5daf4c2f566f264d1dcfd888eafabc0a4796  fab/bom.csv
+68ac8441f79276b66c04edd552711dcd2c971ae40e0d585427cbe598ba296d50  fab/cpl.csv
+c64daaa06ac743eb32c0cd6b0854728a6a868ef7d7025714398e61851f6d6e00  fab/usb_hub_3s_v2-NPTH.drl
+f2a7b8cb4072d6e86c74e52d0d2e86ad16250ce0fc869a16196ff4dc2864c28b  fab/usb_hub_3s_v2-PTH.drl
+b3aeaebd70d6d3956c8faf046d8a2b63d6410c5ab10df8921d769b65c62744e7  fab/usb_hub_3s_v2_gerbers.zip
+cfef10b7996778f98d90184028fc95a12c2dff4f5e9d75bc2d9d11c3860bfcb0  pdf/assembly_back.pdf
+c70a2abff52d8550d60f32696a2b4214e69dd44305960519f9c3d82be373e396  pdf/assembly_front.pdf
+6f5702a8c02f3207242130b3156a97146f26aec8910481fffababfbc29c6fc39  pdf/pcb_layers.pdf
+cd3e2a0c2fd0fcbf732b9738f51b48ce66ba8f56ac754ea2673e7a303769b563  pdf/schematic.pdf
+ba1ddd9b282a632e79b1d5c9a885467838c970013919637164806c98ac7d5cf3  rotation_human_gate.txt
+4fb72085bfef7740b599059cbb2d03d44e8c9bf26688150809c6f3965db52d0b  source/Button_Switch_THT.pretty/SW_Slide_1P2T_CK-12D07.kicad_mod
+4ff93367ca8f1d9e071f7ab0edc109ab4e3d6098695a6c3c7064d69d672515dc  source/fp-lib-table
+9ec04bfc9cb3a6bd46b4a83fcb755df367c87c5a45c229f10228b0290742cf0e  source/usb_hub_3s.pretty/KH-AF90DIP-112_Horizontal.kicad_mod
+c4713b4feda0c78c326ea1eab79963c4189602f14052d5063644839de08c6761  source/usb_hub_3s.pretty/L_YJYCOIN_YSPI1770Y.kicad_mod
+7abf754670b187036e51a32c923f55e37cfa4a797ac4421af838e242fa40a3a3  source/usb_hub_3s.pretty/PowerPAK_SO-8_Single_Paste65.kicad_mod
+544d1589cf635e9c812c843e731f4d836c047f13cb982187d3ffc6edab444922  source/usb_hub_3s.pretty/TYPE-C-31-M-12_EdgeTrim.kicad_mod
+f4e2f40f3f169033ae880a684f82a162bce4d10ae47529c36edb3ca517a80103  source/usb_hub_3s.pretty/XT60PW-M_EdgeTrim.kicad_mod
+8b91fcaa4d434b988d5e0725fc04fe8846d943c5b0a60dce67453b05ead6bd7f  source/usb_hub_3s_v2.kicad_dru
+1f9b189c1cc0fce0ea4769b442d212e5476b1c829280722fb7248fd2281463a2  source/usb_hub_3s_v2.kicad_pcb
+7963fbc396bbb950a6b1e430029cc890d66cf966983a3011c672020973c00eed  source/usb_hub_3s_v2.kicad_pro
+f007c55a3fe0a64efb6b864ffc3c83b693fd2ef57d8d5bd500ede30e60f664b2  source/usb_hub_3s_v2.kicad_sch
+e7c31be56b04f69697c01654bd00f6357c45b36cb60cc2904e23599df48d32a6  source/usb_hub_3s_v2.net
+f681d8b55288518ffc6b0fcc0910481d3de5e991a7fe53b5333a591a73bcecf8  source/usb_hub_3s_v2.tsx
+4b2d5d18a45ddbf60ee5c2e1a68f28473dc80320471a72da771a37132ac12190  verification/2026-07-22_v1.0_redteam_layout.md
+4b869a433becd94c62319dfdb76313db6e0dad94fa591ea96c37b4dc2c6ab3f8  verification/2026-07-22_v1.0_redteam_topology_rereview.md
+857cb4224d8ce795cbac837a6cce8b0dbbe51fbe6d45dbb18ef33ef14bec26be  verification/2026-07-23_v1.3_redteam_fresh-lens.md
+a3f4715d8bd4ddcaba2737170641f2b5517dbb68c340d0cbd90b2343c8df062c  verification/2026-07-25_v1.4_pcba-audit_assembly.md
+1af2b48deba8c89cd248a3c0c0ac03c349dcc4447e2eaa2540fe846247dc441f  verification/2026-07-25_v1.5_fresh-lens_staged.md
+0eb00cd344946ef0b60d27f5060569aad312080bb7ee59404b49a1942638bba7  verification/2026-07-25_v1.5_redteam_layout.md
+98ca8df43c8e4c361f9933d0bfa26ab2681743c8a86c8593a0b5a5c96281838d  verification/DETAIL_DESIGN.md
+8db23e118e0e52bc826ae05b8ab67cbd0b891e5bd2147ab25f00aeb4e7f79424  verification/assembly.yaml
+385a8281a7b9d409ce4bdd3de1b71f4c8879a574ff1dad166dccfecce1d02f1a  verification/assembly_coverage.txt
+d74e4dddca8c22cfdfd2b6cf97a1638d67b963b10891abbd152211628095458c  verification/audit.txt
+af2d4e6ea46f2aa827ba40344420e4201e973f09569539db66065783837f4ac7  verification/bom_source_check.txt
+c044c3bfead24849412b479182506f5a7ede26cd6b293b61ab8eff4d7bf8e671  verification/cpl_acceptance_gate.md
+0c7a022d4c443528c4545869f8ee32eefa6ecc42fdc6667241b7abf439284908  verification/drc.json
+36b9e1c1cc6345eb8b36337464c466efa2ee03db20de08af53ef612d77ff55fb  verification/erc.json
+3a24a439f0ac557dee9d94abd935f420a7117d09c7f8050cb4ee572cdb96d694  verification/freshness_waiver.md
+0c298c132eb475902fc2e37b608a57c752a07cb921daeef5acac33e01b79be06  verification/manifest_selfcheck.txt
+a0c5dc9102a6408c535e42f70f34298ab4356a056bcd205ff0e62d213a38e42c  verification/missing_models.txt
+07cb63063a7343b3e8f1c8298e1f891b51384e53be4cc1368c1c437d11c512a4  verification/parity.md
+062de184c9403fb61a7fc9d32b5f4efe2df7bd254de702a045395df10b41b676  verification/policy_audit.md
+7507ad40fa3153ffe81525110231028f361108d24b36542270892a9356fda14e  verification/power_tree.yaml
+b6907c140aba806144501fb57789d088e5ee16fa4807dc89ffe7cf29dab73218  verification/release_freshness.txt
+303553287a6bb970c50488f2ed987541d306aa5740fdd2108451593e46475301  verification/render_bottom_bare.png
+5b21f7ed3f2ec81f1554837f790be1b8ed62fbb3bb5646cd85afe2663092d6d7  verification/render_top_bare.png
+9cd4f174e45a1ebd2d41ad3a851cb31471e7cb43f67c8b821ea5dd0820e3bc42  verification/standalone_archive_drc.json
+dfafe5ab579a9df77e48f57ea4f79df21c5075d1ea85de8865ee4fb9d5bbefa5  verification/stock_check.json
+df48893fb54d71dd065dfacd337d884952fd8ca72dac9f62022a3392284d56f1  verification/stock_check.txt
+ca3b25c9ccb6057ed806b7bd3009050faef160d9af661c8d203b54929c5e978b  verification/twin_adjudications.yaml
+6e5c6e315692229a16f8ddcb6f698c75613681bafab120cad254d4bdf3f0b307  verification/twin_bottom.png
+d654b88961777e5ca903920bc61e915a5911f19a5a85e08b88f8d4867ea4e30d  verification/twin_edge_east.png
+7d90c123f09f9151a2b15c623984bac5404bee191be1025918d19179edf86fc0  verification/twin_edge_west.png
+08b1b50d987ca7581ca9c333548de9cc6d795b5954288bf73796fbc9a4554c1b  verification/twin_iso_nw.png
+d992169234fba9c9660d7c69340d8d931c48ac7504048dc2b7ca90d2895f8040  verification/twin_iso_se.png
+ffc285189428a5825e11dad1083defa35944d975a6fbfb61f9ec31eb4ab8492b  verification/twin_report.csv
+63f9860ef3a9d195822727cac2f7266849f2a1727992de33234f372cc4d8be87  verification/twin_top.png

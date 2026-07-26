@@ -2,6 +2,75 @@
 
 Board internal name `usb_hub_3s_v2`; project directory `usb-hub-3s-v3`.
 
+## v1.8 — 2026-07-26
+
+Released: `07_releases/v1.8-2026-07-26/`. **VERIFICATION-COMPLETENESS supersede of
+v1.7-2026-07-26.** v1.7 gains `SUPERSEDED.md`; it is otherwise immutable.
+**Fab payload BYTE-IDENTICAL to v1.7** (`diff -r` clean) — the board is not changed.
+
+### Why: a new gate found what no tool had ever checked
+
+`release_required_check.py` (canon **A-EVID**) enforces the **REQUIRED** direction of
+`07_releases/contracts.md`. Nothing ever did: `contracts_audit` iterates files that
+EXIST and asks whether they are permitted, which cannot see an absence. Run against
+v1.7 it reported **5 missing**. Two were real evidence gaps, three were naming.
+
+**usb-hub had never shipped a `pin_review.md` or a `render_review.md`** — absent from
+v1.5, v1.6 *and* v1.7. A predecessor-diff check could not see it, because the
+predecessor was missing them too.
+
+### The two reviews, and what they found
+
+Both **PASS**. Both found something.
+
+**Pin review** (122 components, 73 nets, all 372 connected pins walked; board pads
+cross-checked pad-by-pad against the netlist, 0 mismatches):
+
+* **CONCERN — U12.** As shipped, with R42 unpopulated, the USBLC6-2SC6 sits on VBUSC
+  at 5.352 V nominal / 5.479 V no-load — **~100-230 mV above its 5.25 V V_RWM,
+  continuously**. Below breakdown (6.0 V), so leakage not damage. Every earlier
+  document framed R42 as landing *on* 5.25 V **if fitted** and never wrote down the
+  corollary. **Now stated plainly in ORDER_README at gate Q9.** The reviewer's
+  recommendation — populate R42 by default, or a 6 V-V_RWM array — is a **v-next
+  design decision**: populating R42 puts it on the CPL and changes the fab payload,
+  which this supersede must not do.
+* **DOC DEFECT — SW1.** The tsx comment described the deleted eFuse-era **D6 / EN_C**
+  enable scheme as if current, contradicting the same file's own v1.2 header. The
+  copper was never wrong (E-INV asserts both EN pins on ENKILL), which is exactly why
+  nothing machine-checkable caught it. **Fixed**, and the v1.1 revision note marked
+  SUPERSEDED.
+
+**Render review** — no blocking defect, no render-vs-CPL or render-vs-netlist
+disagreement. It did the **bare-vs-twin discrimination on Q1-Q6 explicitly**, the test
+an earlier review generation failed when two of four lenses read the bare copper drain
+paddle as a moulded package: bare shows the paddle, twin shows solid bodies with pin-1
+dots in the netlist-correct corners. It recomputed the **CPL datum** from pad geometry
+and matched all five connectors, each 1.5-4.7 mm off the KiCad anchor — the v1.6 fix
+holds. It states plainly that the LED and C1/C2 3D models are polarity-symmetric so a
+render **cannot** decide physical orientation; both stay on the order-preview gate.
+One cosmetic nit carried to v-next: refdes "D1" runs into the "LEDS DARK = SWITCH OFF"
+legend (silk is copper — not touched here).
+
+### Also
+
+* **Red-team naming** (crow-mic-pod's pattern): dated history stays in `08_reviews/`;
+  the release ships the current review under the contract name. `redteam_layout.md`
+  (from `2026-07-25_v1.5_redteam_layout.md`) and `redteam_topology.md` (from
+  `2026-07-22_v1.0_redteam_topology_rereview.md`) are **copies**, with provenance
+  headers naming the source and the lineage. The v1.2 protection red-team is a
+  different document, not this one's successor — said explicitly, because
+  "re-review" is otherwise ambiguous.
+* **Assembly PDF** — the stricter option: the board moves to the contract, not the
+  contract to the board. `assembly_front.pdf` + `assembly_back.pdf` are replaced by a
+  single **2-page `pdf/assembly.pdf`**, front then back.
+  *Correction to the brief for the record:* the named exemplar
+  (crow-recorder-central-v2 v1.5) is **1 page**, not 2 — its 254137 bytes match but its
+  page count does not. The genuine 2-page exemplar is **crow-mic-pod-v2 v1.2**
+  (2 pages, 73472 B). v1.8 ships the 2-page form the user chose.
+* **Archive still stands alone** — re-proved, not assumed: `source/` extracted to a
+  bare temp dir, DRC **0/0/0** and ERC `footprint_link_issues` **0**. That is v1.6's
+  defect, which cost a release; cooksense shipped the same one today.
+
 ## v1.7 — 2026-07-26
 
 Released: `07_releases/v1.7-2026-07-26/`. **VERIFICATION-COMPLETE supersede of

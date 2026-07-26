@@ -1,0 +1,424 @@
+{
+ "tool": "jlc_stock_check.py",
+ "bom": "07_releases/v1.8-2026-07-26/fab/bom.csv",
+ "min_stock_per_board": 5,
+ "verdict": "PASS",
+ "failures": 0,
+ "uncoded_lines": 0,
+ "lines": [
+  {
+   "lcsc": "C21189",
+   "designators": "R10,R18,R19,R27,R9",
+   "qty": 5,
+   "status": "OK",
+   "stock": 9541592,
+   "type": "base",
+   "mpn": "0603WAF0000T5E"
+  },
+  {
+   "lcsc": "C5126242",
+   "designators": "R13,R4",
+   "qty": 2,
+   "status": "OK",
+   "stock": 52223,
+   "type": "expand",
+   "mpn": "FRC0603F1211TS"
+  },
+  {
+   "lcsc": "C25803",
+   "designators": "R1,R17,R30,R8",
+   "qty": 4,
+   "status": "OK",
+   "stock": 7928629,
+   "type": "base",
+   "mpn": "0603WAF1003T5E"
+  },
+  {
+   "lcsc": "C14663",
+   "designators": "C13,C28,C33,C34,C35,C36,C37,C41,C42,C43",
+   "qty": 10,
+   "status": "OK",
+   "stock": 101909193,
+   "type": "base",
+   "mpn": "CC0603KRX7R9BB104"
+  },
+  {
+   "lcsc": "C14858",
+   "designators": "C20,C5",
+   "qty": 2,
+   "status": "OK",
+   "stock": 5679100,
+   "type": "base",
+   "mpn": "CL10C101JB8NNNC"
+  },
+  {
+   "lcsc": "C84455",
+   "designators": "C14,C15,C16,C17,C29,C30,C31,C32",
+   "qty": 8,
+   "status": "OK",
+   "stock": 51849,
+   "type": "expand",
+   "mpn": "GRM32ER61A107ME20L"
+  },
+  {
+   "lcsc": "C25744",
+   "designators": "R28,R29",
+   "qty": 2,
+   "status": "OK",
+   "stock": 230946,
+   "type": "base",
+   "mpn": "0402WGF1002TCE"
+  },
+  {
+   "lcsc": "C127692",
+   "designators": "RS1,RS2",
+   "qty": 2,
+   "status": "OK",
+   "stock": 149167,
+   "type": "expand",
+   "mpn": "25121WF100MT4E"
+  },
+  {
+   "lcsc": "C57112",
+   "designators": "C21,C6",
+   "qty": 2,
+   "status": "OK",
+   "stock": 12367649,
+   "type": "base",
+   "mpn": "0603B103K500NT"
+  },
+  {
+   "lcsc": "C77100",
+   "designators": "C49,C50",
+   "qty": 2,
+   "status": "OK",
+   "stock": 429454,
+   "type": "expand",
+   "mpn": "GRM32DR71E106KA12L"
+  },
+  {
+   "lcsc": "C77102",
+   "designators": "C10,C11,C12,C24,C25,C26,C27,C9",
+   "qty": 8,
+   "status": "OK",
+   "stock": 234749,
+   "type": "expand",
+   "mpn": "GRM32ER71H106KA12L"
+  },
+  {
+   "lcsc": "C22865",
+   "designators": "R11,R2",
+   "qty": 2,
+   "status": "OK",
+   "stock": 1309,
+   "type": "expand",
+   "mpn": "0603WAF1242T5E"
+  },
+  {
+   "lcsc": "C25757",
+   "designators": "R42",
+   "qty": 1,
+   "status": "OK",
+   "stock": 510986,
+   "type": "expand",
+   "mpn": "0402WGF1603TCE"
+  },
+  {
+   "lcsc": "C25810",
+   "designators": "R14,R5",
+   "qty": 2,
+   "status": "OK",
+   "stock": 1395030,
+   "type": "base",
+   "mpn": "0603WAF1802T5E"
+  },
+  {
+   "lcsc": "C62774",
+   "designators": "C53,C54",
+   "qty": 2,
+   "status": "OK",
+   "stock": 424824,
+   "type": "expand",
+   "mpn": "CC0805JRNPO9BN102"
+  },
+  {
+   "lcsc": "C15849",
+   "designators": "C22,C23,C7,C8",
+   "qty": 4,
+   "status": "OK",
+   "stock": 15268485,
+   "type": "base",
+   "mpn": "CL10A105KB8NNNC"
+  },
+  {
+   "lcsc": "C137327",
+   "designators": "R34,R35",
+   "qty": 2,
+   "status": "OK",
+   "stock": 22925,
+   "type": "expand",
+   "mpn": "RC1206FR-072R2L"
+  },
+  {
+   "lcsc": "C29277",
+   "designators": "C38,C39,C40",
+   "qty": 3,
+   "status": "OK",
+   "stock": 638211,
+   "type": "expand",
+   "mpn": "CL21A226MPQNNNE"
+  },
+  {
+   "lcsc": "C1613",
+   "designators": "C19,C4",
+   "qty": 2,
+   "status": "OK",
+   "stock": 389493,
+   "type": "base",
+   "mpn": "CL10B332KB8NNNC"
+  },
+  {
+   "lcsc": "C728591",
+   "designators": "R3",
+   "qty": 1,
+   "status": "OK",
+   "stock": 711,
+   "type": "expand",
+   "mpn": "RT0603BRD073K92L"
+  },
+  {
+   "lcsc": "C1664",
+   "designators": "C18,C3",
+   "qty": 2,
+   "status": "OK",
+   "stock": 922670,
+   "type": "base",
+   "mpn": "CL10C331JB8NNNC"
+  },
+  {
+   "lcsc": "C2930095",
+   "designators": "R20,R21,R22",
+   "qty": 3,
+   "status": "OK",
+   "stock": 125428,
+   "type": "expand",
+   "mpn": "FRC0603F3652TS"
+  },
+  {
+   "lcsc": "C2984354",
+   "designators": "R12",
+   "qty": 1,
+   "status": "OK",
+   "stock": 15245,
+   "type": "expand",
+   "mpn": "AR03BTCX4121"
+  },
+  {
+   "lcsc": "C23184",
+   "designators": "R15,R6",
+   "qty": 2,
+   "status": "OK",
+   "stock": 527412,
+   "type": "base",
+   "mpn": "0603WAF4992T5E"
+  },
+  {
+   "lcsc": "C23215",
+   "designators": "R16,R37,R38,R39,R40,R41,R7",
+   "qty": 7,
+   "status": "OK",
+   "stock": 41954,
+   "type": "expand",
+   "mpn": "0603WAF6981T5E"
+  },
+  {
+   "lcsc": "C113976",
+   "designators": "D5",
+   "qty": 1,
+   "status": "OK",
+   "stock": 74562,
+   "type": "expand",
+   "mpn": "SMBJ6.0A"
+  },
+  {
+   "lcsc": "C130056",
+   "designators": "U3,U4,U5",
+   "qty": 3,
+   "status": "OK",
+   "stock": 7339,
+   "type": "expand",
+   "mpn": "TPS2557DRBR"
+  },
+  {
+   "lcsc": "C13755",
+   "designators": "U11,U2",
+   "qty": 2,
+   "status": "OK",
+   "stock": 7865,
+   "type": "expand",
+   "mpn": "LM5116MHX/NOPB"
+  },
+  {
+   "lcsc": "C173429",
+   "designators": "D2",
+   "qty": 1,
+   "status": "OK",
+   "stock": 421094,
+   "type": "expand",
+   "mpn": "BZT52C12"
+  },
+  {
+   "lcsc": "C2128",
+   "designators": "D3,D4",
+   "qty": 2,
+   "status": "OK",
+   "stock": 1004506,
+   "type": "base",
+   "mpn": "1N4148WS"
+  },
+  {
+   "lcsc": "C2296",
+   "designators": "D8",
+   "qty": 1,
+   "status": "OK",
+   "stock": 915594,
+   "type": "base",
+   "mpn": "KT-0805Y"
+  },
+  {
+   "lcsc": "C2297",
+   "designators": "D10,D11,D12,D9",
+   "qty": 4,
+   "status": "OK",
+   "stock": 3012159,
+   "type": "base",
+   "mpn": "KT-0805G"
+  },
+  {
+   "lcsc": "C2760089",
+   "designators": "Q1,Q6",
+   "qty": 2,
+   "status": "OK",
+   "stock": 2409,
+   "type": "expand",
+   "mpn": "AON6403"
+  },
+  {
+   "lcsc": "C2939728",
+   "designators": "SW1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 53036,
+   "type": "expand",
+   "mpn": "SS12D07VG6 087"
+  },
+  {
+   "lcsc": "C2982822",
+   "designators": "C1,C2",
+   "qty": 2,
+   "status": "OK",
+   "stock": 21654,
+   "type": "expand",
+   "mpn": "KNM2100UF35V149EC0055"
+  },
+  {
+   "lcsc": "C404363",
+   "designators": "Q2,Q3,Q4,Q5",
+   "qty": 4,
+   "status": "OK",
+   "stock": 4815,
+   "type": "expand",
+   "mpn": "AON6354"
+  },
+  {
+   "lcsc": "C408523",
+   "designators": "L1,L2",
+   "qty": 2,
+   "status": "OK",
+   "stock": 450,
+   "type": "expand",
+   "mpn": "MWSA1206S-6R8MT"
+  },
+  {
+   "lcsc": "C473910",
+   "designators": "U6,U7",
+   "qty": 2,
+   "status": "OK",
+   "stock": 75,
+   "type": "expand",
+   "mpn": "TPS2513ADBVR"
+  },
+  {
+   "lcsc": "C503996",
+   "designators": "J2,J3,J4",
+   "qty": 3,
+   "status": "OK",
+   "stock": 12612,
+   "type": "expand",
+   "mpn": "KH-AF90DIP-112"
+  },
+  {
+   "lcsc": "C5249699",
+   "designators": "F1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1078,
+   "type": "expand",
+   "mpn": "3568"
+  },
+  {
+   "lcsc": "C5337088",
+   "designators": "J5",
+   "qty": 1,
+   "status": "OK",
+   "stock": 325,
+   "type": "expand",
+   "mpn": "TYPE-C-31-M-12A"
+  },
+  {
+   "lcsc": "C6165170",
+   "designators": "F2",
+   "qty": 1,
+   "status": "OK",
+   "stock": 3319,
+   "type": "expand",
+   "mpn": "SMD2920-700/16N"
+  },
+  {
+   "lcsc": "C7519",
+   "designators": "U10,U12,U8,U9",
+   "qty": 4,
+   "status": "OK",
+   "stock": 33972,
+   "type": "expand",
+   "mpn": "USBLC6-2SC6"
+  },
+  {
+   "lcsc": "C78284",
+   "designators": "Q7,Q8",
+   "qty": 2,
+   "status": "OK",
+   "stock": 105793,
+   "type": "expand",
+   "mpn": "BSS138"
+  },
+  {
+   "lcsc": "C83846",
+   "designators": "D1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 38040,
+   "type": "expand",
+   "mpn": "SMBJ15A"
+  },
+  {
+   "lcsc": "C98732",
+   "designators": "J1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 12129,
+   "type": "expand",
+   "mpn": "XT60PW-M"
+  }
+ ]
+}

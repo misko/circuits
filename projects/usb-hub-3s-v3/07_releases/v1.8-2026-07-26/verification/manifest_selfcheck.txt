@@ -1,0 +1,7 @@
+MANIFEST self-check — v1.7-2026-07-26
+  files on disk (excluding MANIFEST.txt) : 59
+  entries in the sha256 table            : 59
+  table entries with no file             : 0 []
+  files with no table entry              : 0 []
+  hash mismatches                        : 0 []
+  RESULT: PASS — bidirectional, 59/59 verified
