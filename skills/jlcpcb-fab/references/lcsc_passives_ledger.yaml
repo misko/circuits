@@ -192,3 +192,8 @@ C25768: {mpn: 0402WGF2202TCE, value: "22k", verified: "2026-07-26 JLC catalog (s
 # labeled 4.12k): the ledger records the CATALOG's truth so leg C fails loudly
 # instead of shrugging.
 C25915: {mpn: 0402WGF6201TCE, value: "6.2k", verified: "2026-07-26 JLC catalog (selectSmtComponentList describe; 6.2kΩ ±1% 0402 50V 62.5mW, stock 65919) AND LCSC product page C25915 (MPN 0402WGF6201TCE, resistance 6.2kΩ, 0402, ±1%). CATALOG TRUTH — cooksense v1.3 labels this row 62kΩ on R_OPENT and that label is WRONG; the 62k part is C37825."}
+# The 62k that C25915 was NOT. cooksense R_OPENT is pinned to this code in the tsx
+# (2026-07-26 P0): tscircuit's auto-picker offered THREE candidates for "62k" and
+# ALL THREE were 6.2k (C25915, C137946 RC0402FR-076K2L, C2909371 FRC0402F6201TS),
+# apparently reading "62k" as RKM "6k2".
+C37825: {mpn: 0402WGF6202TCE, value: "62k", verified: "2026-07-26 JLC catalog (selectSmtComponentList describe; 62kΩ ±1% 0402 50V 62.5mW, stock 127526) — cooksense R_OPENT, the open-thermistor detect threshold; replaces C25915 which is 6.2k"}

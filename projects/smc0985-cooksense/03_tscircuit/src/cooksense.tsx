@@ -452,14 +452,39 @@ export default () => (
         open included — the out-of-CM case table is a backstop, not the mechanism.
         Inputs are DELIBERATELY swapped vs U_COMP: IN- = TH_CAM, IN+ = threshold, so the output
         goes LOW when the node rises ABOVE the threshold. */}
-    <resistor name="R_OPENT" resistance="62k" footprint="0402" connections={{ pin1: "net.N3V3_ANALOG", pin2: "net.TCAM_OPEN" }} />
-    <resistor name="R_OPENB" resistance="100k" footprint="0402" connections={{ pin1: "net.TCAM_OPEN", pin2: "net.GND" }} />
+    {/* ---- THESE FOUR CODES ARE PINNED, AND R_OPENT IS WHY (P0, 2026-07-26) ------------
+        The divider above was authored by VALUE and left to tscircuit's auto-picker to code.
+        For "62k" the picker offered THREE candidates and ALL THREE ARE 6.2k:
+            C25915   0402WGF6201TCE    6.2kΩ   <- the one the exporter took
+            C137946  RC0402FR-076K2L   6.2kΩ
+            C2909371 FRC0402F6201TS    6.2kΩ
+        It appears to read "62k" as RKM "6k2". The board therefore ORDERED 6.2k for the
+        open-thermistor detect threshold, one decade low, and the consequence is the exact
+        defect the comment block above documents FIXING: TCAM_OPEN back at 3.3*100/106.2 =
+        3.1073V, above the LMV393's 2.500V common-mode ceiling, so the comparator never
+        compares against it and an OPEN, BROKEN OR UNPLUGGED HEAD READS FINE instead of
+        OVER-TEMP. Verified twice before changing anything, and not by decoding a part
+        number: JLC selectSmtComponentList C25915 -> describe "6.2kΩ"; LCSC product page
+        C25915 -> MPN 0402WGF6201TCE, resistance "6.2kΩ".
+        CORRECT PART C37825 (0402WGF6202TCE, 62kΩ +-1%, same UNI-ROYAL family, stock 127526).
+        This is the R_OS precedent (see its pin above and the ledger note): the picker offered
+        three codes for "510k" and all three were 390k. A value-authored passive on a SAFETY
+        divider must carry its code explicitly. R_OPENB and R_CLMPA/B happened to be right,
+        by candidate ORDERING rather than by anything checked, so they are pinned too — every
+        code below is catalog-verified and in skills/jlcpcb-fab/references/lcsc_passives_ledger.yaml
+        so leg C of bom_source_check can re-verify all four offline, forever. */}
+    <resistor name="R_OPENT" resistance="62k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C37825"] }} connections={{ pin1: "net.N3V3_ANALOG", pin2: "net.TCAM_OPEN" }} />
+    <resistor name="R_OPENB" resistance="100k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25741"] }} connections={{ pin1: "net.TCAM_OPEN", pin2: "net.GND" }} />
     {/* The bleed. These are what keep an OPEN thermistor inside the comparator's specified
         input range; without them the open reading is the bare 3.3V rail and neither comparator
         is operating to spec. They also bound the ADC input, so the host's conversion for
         CH0/CH3 differs from the other six thermistor channels — see DETAIL_DESIGN. */}
-    <resistor name="R_CLMPA" resistance="22k" footprint="0402" connections={{ pin1: "net.TH_CAM_A", pin2: "net.GND" }} />
-    <resistor name="R_CLMPB" resistance="22k" footprint="0402" connections={{ pin1: "net.TH_CAM_B", pin2: "net.GND" }} />
+    {/* Codes PINNED with R_OPENT/R_OPENB above (P0, 2026-07-26): these two ARE the bleed that
+        keeps an open head inside the comparator's common-mode range, so they belong to the same
+        safety divider and must not be left to the auto-picker that got "62k" wrong.
+        C25768 = 0402WGF2202TCE = 22kΩ, catalog-verified 2026-07-26 (base library, stock 1.5M). */}
+    <resistor name="R_CLMPA" resistance="22k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25768"] }} connections={{ pin1: "net.TH_CAM_A", pin2: "net.GND" }} />
+    <resistor name="R_CLMPB" resistance="22k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25768"] }} connections={{ pin1: "net.TH_CAM_B", pin2: "net.GND" }} />
     {/* v1.2 threshold redesign (ADR-0011 §1, review F2): the <=v1.1 10k/10k divider put
         TCAM_THRESH at 1.65V = the 10k-pullup/10k-NTC node at 25C — the 70-75C hard stop did
         not exist. New: 68k/10k -> 0.4231V -> 74.9C with the committed KNTC0603/10KF3950
