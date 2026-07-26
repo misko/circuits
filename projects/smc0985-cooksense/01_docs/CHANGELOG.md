@@ -64,3 +64,38 @@ board's J_KEY_MATRIX, 20 labeled TPs, floating keypad domain — no GND).
 policy 0 FAIL, PIN/RENDER/2 red-team lenses: ORDER). USER-HELD order gates:
 physical 10FDZ-BT land-pattern confirm (datasheet-derived footprint) and the
 flex-jumper G1/G2 coupon (separate part). Source commit S = 3e37a02.
+
+## cooksense-v1.3-2026-07-26 (SEAL)
+
+Third electrical revision and the safety-chain revision. Supersedes v1.1 and
+v1.0, **both now DO-NOT-ORDER** — see their SUPERSEDED.md for the seven defects
+they carry, of which four are missing or inverted safety behaviour.
+
+**Board:** 188 x 92 mm, 4 layer, 222 components + 4 holes, 3925 tracks /
+1047 vias. DRC 0/0/0. E-INV 83/83. A-ROT 189/189 from measured rows. A-POS
+189/189 on datum, worst 0.00000 mm.
+
+**Safety changes.** The opto-isolated 30 V contactor loop left the SELV JST-GH
+housing (0.650 mm from ESTOP_RAW in one harness) and now lands on ONE 4-pole
+isolated block, `J_ISOLOOP`, with a 2.0 mm moat enforced as pour geometry
+(measured 2.0000 mm over all copper on all layers). The door interlock became
+fail-restrictive (`R_DOORPU` -> `R_DOORPD`). A hardware open-thermistor detect
+was added so a broken or unplugged head reads OVER-TEMP. `R_WDPETPD` gives the
+watchdog a real hold-down. `R_TEMPOK` moved to `3V3_ANALOG` so the temperature
+verdict is powered by the rail whose health it reports. H4 gained an isolation
+notch for mounting-hardware creepage.
+
+**Three P0s were caught inside this cycle and none shipped:** `J_ESTOPLOOP`
+placed inside `J_DOOR`; `R_OPENT` ordered at 6.2k where the design needs 62k;
+`R_WDPETPD` ordered at 100k where it needs 1k. The last two were the same root
+cause — a value-authored passive with no pinned LCSC, resolved by a picker that
+returned a wrong decade. All four resistors of the open-detect divider and
+R_WDPETPD are now pinned and ledger-verified.
+
+**Deferred to v1.4, declared in the release:** door EOL supervision (a shorted
+cable still reads "closed"); R_HYS negative feedback on the open-detect
+comparator; TH_CAM sense-net span vs its declared 8 mm budget; the SOD-323
+cathode band drawn on a bidirectional part.
+
+Source commit S = 595d197.
+

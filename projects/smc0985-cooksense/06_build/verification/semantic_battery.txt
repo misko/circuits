@@ -1,0 +1,45 @@
+# Semantic battery — cooksense **v1.3**, 2026-07-26
+netlist: 06_build/netlists/cooksense.net (222 components) | board: 226 footprints (222 parts + 4 holes)
+
+## E-INV / E-ADR
+E-INV OK: 83 invariants hold against cooksense.net
+RED-verified: verification/einv_red_verification.md (2 of 4 assert kinds proved can-fail)
+
+## S-COUNT (refdes SET parity, 4 representations)
+Run in a SINGLE-BOARD SHADOW. count_parity.py globs 04_kicad/*.kicad_pcb,
+03_tscircuit/kicad/*.kicad_sch and 06_build/netlists/*.net, so on this
+ADR-0007 multi-board project it unions the cooksense AND interposer
+artifacts and reports the interposer's refdes as 'extra'. Same known glob
+gap as M-REL/policy_audit. The shadow holds only cooksense's five artifacts:
+ok   board == manifest (222 components)
+ok   circuit.json == manifest (222 components)
+ok   kicad_sch == manifest (222 components)
+ok   netlist == manifest (222 components)
+
+## S-NETMERGE (net_label_survival)
+net_label_survival: PASS — 160 labels all survive to the netlist; no pin_map configured (survival only)
+
+## S-PARITY (converter kicad_sch vs the shipped board, node-for-node)
+converter nets=161  kicad nets=161
+  NO-CONNECT DIFF: only_converter=[] only_kicad=[('J_KEY_MATRIX', 'MP')]
+connected nodes: converter=748 kicad=748   no-connects: converter=31 kicad=32
+REAL DISCREPANCIES: 1  ->  FAIL
+
+The single discrepancy is J_KEY_MATRIX pad MP, the SM10B shell tab
+deliberately left untied so GND_ISO stays out of the keypad zone.
+parity_padmap.txt carries it as a non-parity token. The AUTHORITATIVE
+parity leg is kicad-cli --schematic-parity, which is 0 (see drc.json).
+
+## A-ROT / A-POL
+ROTATION-TABLE OK: 61 rows, each an independently MEASURED authority (M-PROV) with its polarity channel declared (A-POL)
+A-POL single-channel: 10 codes / 13 refs -> verification/rotation_human_gate.txt
+
+## M-BOM (leg C, against THIS archive's fab/bom_jlc.csv)
+BOM SOURCE CHECK: PASS (every BOM LCSC == source)
+## circuit-only value check (tsx value prop vs the ordered code's catalog value)
+CIRCUIT VALUE CHECK: PASS (every coded R/C catalog value == its tsx value prop)
+
+## A-POP / A-POS
+  board=226 footprints, cpl=189 placements, unpopulated=37 (declared=16, consigned=0, exempt_prefixes=['H', 'TP'])
+  A-POS datum: 189 CPL row(s) graded against the pad-array centre, worst = 0.00000mm (R_DECDPD), tolerance 0.05mm
+A-POP: PASS (every unpopulated part is declared with evidence)

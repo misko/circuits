@@ -1,0 +1,31 @@
+# parity_padmap — documented tscircuit-pad -> real-KiCad-pad deltas (canon TSX-PRE).
+# Consumed by tsx_preflight.py (covers alphanumeric part.yaml pads so tsci does not
+# silently DROP the part) and, once a sealed board exists, by kicad_sch_parity.py.
+#
+# ---- JST-GH / Micro-Fit mechanical solder tabs (pad name "MP") ----------------
+# The JST-GH and Micro-Fit KiCad footprints carry two mechanical solder tabs on a
+# single pad node named "MP". The tscircuit pinrow tokens model only the numbered
+# signal pads, so "MP" is NOT authored in cooksense.tsx. At the BOARD stage the MP
+# tabs are reflowed to GND (SELV-logic connectors) or GND_ISO (the isolated keypad
+# connector J_KEY_MATRIX). Listed here so TSX-PRE treats the alphanumeric MP pad as
+# covered. format: <part-dir> <tsx-pad-or-MP> <real-pad / board-stage bond>
+SM05B-GHS-TB MP GND
+SM08B-GHS-TB MP GND
+SM10B-GHS-TB MP GND_ISO
+43650-0224 MP GND
+#
+# ---- DIP05-1A72-12L reed relay: contiguous 'dip4' pads -> real DIP pads --------
+# The relay is authored on the 'dip4' token (pads 1,2,3,4 — tscircuit rejects the
+# non-contiguous 1,7,8,14 via a <footprint> child, creating phantom ports). The
+# real footprint cookhub:Relay_StandexDIP_1A_pinout12 uses pads 1,7,8,14. The net
+# topology is preserved (pin functions carried via pinLabels); only the pad LABELS
+# remap at the board stage:
+DIP05-1A72-12L 1 1    # COIL_A (+coil, gated 5V_KEY_RELAY)
+DIP05-1A72-12L 2 7    # COIL_B (-coil, ULN2803 sink)
+DIP05-1A72-12L 3 8    # CONTACT_B (isolated keypad side)
+DIP05-1A72-12L 4 14   # CONTACT_A (isolated keypad side)
+#
+# ---- TPS259573 eFuse exposed pad ----------------------------------------------
+# Authored on 'dfn8' (pads 1..8). The real WSON-8 footprint also has EP (pad 9) =
+# GND (the sole thermal path). EP is tied to the GND pour at the board stage.
+TPS259573DSGR EP 9

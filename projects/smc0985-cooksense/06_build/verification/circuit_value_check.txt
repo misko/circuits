@@ -1,0 +1,2 @@
+circuit-only value check: projects/smc0985-cooksense/03_tscircuit/build/circuit.json; vendored: 38 part.yaml codes; ledger: 142 vetted passive codes
+CIRCUIT VALUE CHECK: PASS (every coded R/C catalog value == its tsx value prop)
