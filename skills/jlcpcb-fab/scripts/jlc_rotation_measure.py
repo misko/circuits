@@ -144,6 +144,42 @@ def our_marks(fp):
                      ((e.x - c.x) / 1e6, (e.y - c.y) / 1e6)))
     if not segs:
         return []
+    # ---- SYMMETRY GUARD (2026-07-25, crow-mic-pod-v2 LS1) -------------------
+    # A shape that maps onto ITSELF under rotation carries NO orientation
+    # information, so it cannot be a pin-1 channel. Without this guard the
+    # chamfer search below still returns the furthest corner of a symmetric
+    # outline — an ARBITRARY corner — and the caller then reports an exact
+    # 0.0000mm match and labels the row `two-channel`, claiming corroboration
+    # that does not exist. That is strictly worse than reporting no channel:
+    # a wrong answer that LOOKS confirmed. Measured on crow-mic-pod-v2's LS1
+    # (CMT-8504 transducer), whose vendored F.Fab is a plain unchamfered
+    # square: the tool advised "believe the numbering-free channel: 90", which
+    # would have mapped JLC's + drive terminal onto our NC dummy pad and
+    # shipped the part soldered and electrically dead. The real channel is the
+    # '+' silk mark both libraries carry, and the correct offset is 0.
+    pts = []
+    for (a, b) in segs:
+        pts.extend((a, b))
+    if pts:
+        cx = sum(p[0] for p in pts) / len(pts)
+        cy = sum(p[1] for p in pts) / len(pts)
+        rel = [(p[0] - cx, p[1] - cy) for p in pts]
+
+        def _maps_onto_self(deg):
+            th = math.radians(deg)
+            co, si = math.cos(th), math.sin(th)
+            for (x, y) in rel:
+                rx, ry = x * co + y * si, -x * si + y * co
+                if not any(abs(rx - u) <= 0.05 and abs(ry - v) <= 0.05
+                           for (u, v) in rel):
+                    return False
+            return True
+
+        for deg in (180, 90):
+            if _maps_onto_self(deg):
+                # symmetric under `deg` -> cannot distinguish rotations that
+                # differ by it. Report NO channel rather than a false one.
+                return []
     # the chamfer is the ONE segment that is neither horizontal nor vertical
     out = []
     for (a, b) in segs:
