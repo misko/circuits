@@ -303,6 +303,23 @@ nothing). The audit/manifest-agreement and draft-marker checks still run.
 Never waive fab-identical files one-by-one for this case — the mode
 asserts the identity instead of flagging it.
 
+**BOM-only supersede mode.** The one case docs-only mode correctly refuses:
+the copper is untouched but the ASSEMBLY BOM must lose rows, because canon
+A-POP requires an unplaced part to LEAVE the BOM rather than sit on it
+uncoded. Gate it with `--bom-only-supersede <prior-release-dir>`, which is
+docs-only PLUS an exemption for exactly one file, `fab/bom.csv` — and only
+because the mode then asserts something STRONGER about that file than
+identity: the delta must be **whole rows REMOVED, for designators that are
+NOT on the CPL**. A row ADDED, a row EDITED (a changed value/footprint/LCSC
+is a different board), or a removal for a designator still on the CPL all
+FAIL. Everything else in `fab/`, and all of `source/` and `3d/`, must still
+be byte-identical. Motivating case: crow-mic-pod-v2 v1.0 (2026-07-25) shipped
+MK1 with its MPN *and* LCSC columns both empty and J1 at stock 0, neither on
+the CPL — the upload stalls at JLC's BOM/CPL matcher, and fixing it changes
+`fab/`, so a plain docs-only claim would have been a lie. Do NOT reach for
+`--allow-identical` waivers here; the point is to assert the shape of the
+change, not to excuse it.
+
 Deviations that force rework (both happened, 2026-07-23): regenerating ANY
 artifact after S makes S stale — return to step 1 with a new S. Committing
 the staged release INSIDE the source commit (usb-hub-3s-v3 v1.3 gate-ii)

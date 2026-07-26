@@ -37,6 +37,7 @@ defect. RED-VERIFY: every known-bad case is re-run with that one check
 neutered (`--_disable-*`) and shown to PASS — proving the finding comes from
 the check under test and nothing else. A gate that cannot fail is worthless.
 """
+import json
 import sys
 from pathlib import Path
 
@@ -400,6 +401,128 @@ def t_docs_only_draft_readme_still_bites():
                   "DRAFT README")
     not_contains(r.out, "DOCS-ONLY UNCHANGED",
                  "the draft README did change vs the prior — only (c) fires")
+
+
+# ------------------------------------------- BOM-only supersede mode
+# The case docs-only mode CORRECTLY refuses, and which therefore had nowhere
+# to go: crow-mic-pod-v2 v1.1 (2026-07-25). v1.0's fab/bom.csv carried MK1
+# with its MPN *and* LCSC columns both EMPTY and J1 at live stock 0, neither
+# designator on the CPL — so the upload stalls at JLC's BOM/CPL matcher.
+# Removing those rows changes fab/, so `--docs-only-supersede` fails it ("a
+# docs-only release that changes fab is lying" — correctly). But no copper
+# moved. `--bom-only-supersede` asserts something STRONGER than identity for
+# that one file: the delta must be whole rows REMOVED for designators that
+# are NOT on the CPL (canon A-POP: an unplaced part must leave the BOM).
+_BOM_HDR = "Comment,Designator,Footprint,MPN,LCSC\n"
+_BOM_PRIOR = (_BOM_HDR + "100nF,\"C1,C2\",C_0603,,C14663\n"
+              "10k,R1,R_0603,,C25804\n"
+              "electret,MK1,MIC_THT,,\n"
+              "rj45,J1,RJ45_THT,,C9900035627\n")
+_BOM_FIXED = (_BOM_HDR + "100nF,\"C1,C2\",C_0603,,C14663\n"
+              "10k,R1,R_0603,,C25804\n")
+_CPL = ("Designator,Val,Package,Mid X,Mid Y,Layer,Rotation\n"
+        "C1,100nF,C_0603,10,-10,top,0.0\n"
+        "C2,100nF,C_0603,12,-10,top,0.0\n"
+        "R1,10k,R_0603,14,-10,top,0.0\n")
+
+
+def bom_only_root():
+    """A prior release whose BOM carries two rows that are NOT on the CPL,
+    and a successor that removed exactly those rows. Everything else in fab/
+    is byte-identical."""
+    root, d1, d2 = docs_only_root()
+    (d1 / "fab" / "bom.csv").write_text(_BOM_PRIOR)
+    (d2 / "fab" / "bom.csv").write_text(_BOM_FIXED)
+    for d in (d1, d2):
+        (d / "fab" / "cpl.csv").write_text(_CPL)
+        # a CPL activates A-STOCK, which is a DIFFERENT check with its own
+        # teeth (t_stock_* below). Satisfy it here so these fixtures isolate
+        # the bom-delta assertion and nothing else.
+        (d / "verification" / "stock_check.json").write_text(json.dumps({
+            "tool": "jlc_stock_check.py", "bom": "fab/bom.csv",
+            "min_stock_per_board": 5, "verdict": "PASS",
+            "failures": [], "uncoded_lines": [],
+            "lines": [{"lcsc": "C14663", "designators": "C1,C2", "qty": 2,
+                       "status": "OK", "stock": 101938374},
+                      {"lcsc": "C25804", "designators": "R1", "qty": 1,
+                       "status": "OK", "stock": 5672413}]}))
+    return root, d1, d2
+
+
+def bgate(d2, d1, *extra):
+    return gate(d2, "--bom-only-supersede", str(d1), *extra)
+
+
+@test("release_freshness --bom-only-supersede PASSES removing BOM rows for "
+      "designators that are not on the CPL")
+def t_bom_only_pass():
+    """The crow-mic-pod-v2 v1.1 shape. Everything but bom.csv is asserted
+    byte-identical; bom.csv's delta is asserted to be removals only, and only
+    of unplaced designators."""
+    _, d1, d2 = bom_only_root()
+    r = must_pass(bgate(d2, d1), "a true bom-only supersede")
+    contains(r.out, "bom-only supersede", "the mode should be announced")
+    contains(r.out, "2 whole row(s) REMOVED", "the delta should be stated")
+    contains(r.out, "0 added", "the delta shape should be explicit")
+    contains(r.out, "FRESHNESS: PASS", "verdict")
+    # the SAME tree under docs-only must still FAIL — the modes are distinct
+    # and the stricter one keeps its teeth
+    rd = must_fail(dgate(d2, d1), "docs-only must still refuse a fab change",
+                   "DOCS-ONLY DEVIATION")
+    contains(rd.out, "fab/bom.csv", "names the file docs-only refuses")
+
+
+@test("release_freshness --bom-only-supersede FAILS a removal for a "
+      "designator that is STILL ON THE CPL", kind="known_bad")
+def t_kb_bom_only_removed_but_placed():
+    """The dangerous inversion: dropping a BOM line for a part JLC is still
+    told to place leaves the machine sourcing nothing for a populated
+    position. Break the clean case in exactly one way — put R1 on the CPL and
+    remove its BOM row."""
+    _, d1, d2 = bom_only_root()
+    (d2 / "fab" / "bom.csv").write_text(
+        _BOM_HDR + "100nF,\"C1,C2\",C_0603,,C14663\n")   # R1 row gone
+    r = must_fail(bgate(d2, d1), "removing a placed part's BOM row must block",
+                  "BOM-ONLY DEVIATION")
+    contains(r.out, "STILL ON THE CPL", "must say why it is dangerous")
+    contains(r.out, "R1", "must name the designator")
+
+
+@test("release_freshness --bom-only-supersede FAILS an EDITED BOM row (a "
+      "changed LCSC is a different board, not paperwork)", kind="known_bad")
+def t_kb_bom_only_edited_row():
+    """The mode permits removals, not substitutions. Swapping a code past a
+    'bom-only' claim is exactly the usb-hub-3s-v3 v1.1 corruption class."""
+    _, d1, d2 = bom_only_root()
+    (d2 / "fab" / "bom.csv").write_text(
+        _BOM_HDR + "100nF,\"C1,C2\",C_0603,,C14663\n"
+        "10k,R1,R_0603,,C99999999\n")                     # code substituted
+    r = must_fail(bgate(d2, d1), "an edited BOM row must block",
+                  "BOM-ONLY DEVIATION")
+    contains(r.out, "EDITED", "must say the row was edited")
+
+
+@test("release_freshness --bom-only-supersede FAILS an ADDED BOM row",
+      kind="known_bad")
+def t_kb_bom_only_added_row():
+    _, d1, d2 = bom_only_root()
+    (d2 / "fab" / "bom.csv").write_text(
+        _BOM_FIXED + "1uF,C9,C_0603,,C15849\n")
+    r = must_fail(bgate(d2, d1), "an added BOM row must block",
+                  "BOM-ONLY DEVIATION")
+    contains(r.out, "ADDED", "must say the row was added")
+
+
+@test("release_freshness --bom-only-supersede still refuses a NON-BOM fab "
+      "change (the exemption is exactly one file)", kind="known_bad")
+def t_kb_bom_only_other_fab_file():
+    """The relaxation must not become a blanket fab waiver: bom-only exempts
+    fab/bom.csv and nothing else. A changed gerber zip is still a respin."""
+    _, d1, d2 = bom_only_root()
+    (d2 / "fab" / "demo_gerbers.zip").write_bytes(_blob("gerber-tweaked"))
+    r = must_fail(bgate(d2, d1), "a changed gerber must block even here",
+                  "DOCS-ONLY DEVIATION")
+    contains(r.out, "demo_gerbers.zip", "names the deviating file")
 
 
 # ----------------- board-prefixed release names (the _version_key silent skip)

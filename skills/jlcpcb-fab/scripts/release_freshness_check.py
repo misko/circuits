@@ -239,11 +239,83 @@ def _tree_files(d: Path):
             for p in sorted(d.rglob("*")) if p.is_file()}
 
 
-def check_docs_only(release_dir, prior_dir):
+def check_bom_delta(release_dir, prior_dir):
+    """BOM-ONLY mode's EXTRA assertion: the one permitted fab/ change is the
+    REMOVAL of whole BOM rows for designators that were never on the CPL.
+
+    This is strictly STRONGER than "the file differs", which is all a plain
+    diff could say. It pins the exact shape of the fix that canon A-POP
+    prescribes — an unplaced part must LEAVE the assembly BOM — and it fails
+    on the two things that would make a "BOM-only" claim a lie: a row that
+    was ADDED or EDITED (a value/code change is a different board), and the
+    removal of a row for a designator JLC is still told to place.
+
+    Motivating case (crow-mic-pod-v2 v1.1, 2026-07-25): v1.0's bom.csv
+    carried MK1 with its MPN *and* LCSC columns both empty and J1 at stock 0,
+    neither on the CPL. Removing them changes fab/ — so docs-only mode
+    correctly refuses — while changing no copper whatsoever."""
+    fails, notes = [], []
+    cur_p, old_p = release_dir / "fab" / "bom.csv", prior_dir / "fab" / "bom.csv"
+    if not (cur_p.is_file() and old_p.is_file()):
+        fails.append("  BOM-ONLY: fab/bom.csv missing on one side — cannot "
+                     "establish the delta")
+        return fails, notes
+
+    def rows(p):
+        import csv as _csv
+        out = {}
+        for r in _csv.DictReader(p.read_text().splitlines()):
+            refs = tuple(sorted(d.strip() for d in
+                                (r.get("Designator") or "").split(",") if d.strip()))
+            if refs:
+                out[refs] = tuple((k, (v or "").strip()) for k, v in sorted(r.items()))
+        return out
+
+    cur, old = rows(cur_p), rows(old_p)
+    cpl = release_dir / "fab" / "cpl.csv"
+    placed = set()
+    if cpl.is_file():
+        import csv as _csv
+        placed = {(r.get("Designator") or "").strip()
+                  for r in _csv.DictReader(cpl.read_text().splitlines())
+                  if (r.get("Designator") or "").strip()}
+    added = sorted(set(cur) - set(old))
+    removed = sorted(set(old) - set(cur))
+    changed = sorted(k for k in set(cur) & set(old) if cur[k] != old[k])
+    for k in added:
+        fails.append(f"  BOM-ONLY DEVIATION: row {list(k)} was ADDED — a "
+                     f"BOM-only supersede may only REMOVE rows for parts that "
+                     f"are not placed; adding one is a sourcing change")
+    for k in changed:
+        fails.append(f"  BOM-ONLY DEVIATION: row {list(k)} was EDITED — a "
+                     f"changed value/footprint/LCSC is a different board, not "
+                     f"a paperwork fix")
+    for k in removed:
+        still = sorted(set(k) & placed)
+        if still:
+            fails.append(
+                f"  BOM-ONLY DEVIATION: row {list(k)} was removed but "
+                f"{still} are STILL ON THE CPL — JLC is told to place a part "
+                f"with no BOM line at all")
+    if not fails:
+        notes.append(
+            f"  note: fab/bom.csv delta is {len(removed)} whole row(s) REMOVED "
+            f"({', '.join(','.join(k) for k in removed) or 'none'}), 0 added, "
+            f"0 edited; none of the removed designators is on the CPL — "
+            f"ASSERTED by bom-only mode")
+    return fails, notes
+
+
+def check_docs_only(release_dir, prior_dir, bom_only=False):
     """Assert the docs-only-supersede contract against the DECLARED prior
     release: fab/source/3d byte-identical (any deviation = FAIL), order
-    README + MANIFEST byte-DIFFERENT (identical docs supersede nothing)."""
+    README + MANIFEST byte-DIFFERENT (identical docs supersede nothing).
+
+    `bom_only=True` relaxes EXACTLY ONE file — fab/bom.csv — and only because
+    check_bom_delta() then asserts something stronger about it than identity.
+    Nothing else in fab/, and nothing at all in source/ or 3d/, may move."""
     fails, notes = [], []
+    exempt = {("fab", "bom.csv")} if bom_only else set()
     for sub in _DOCS_ONLY_IDENTICAL_DIRS:
         cur = _tree_files(release_dir / sub)
         old = _tree_files(prior_dir / sub)
@@ -259,6 +331,8 @@ def check_docs_only(release_dir, prior_dir):
                 f"must carry the prior release's {sub}/ unchanged")
         same = 0
         for rel in sorted(set(cur) & set(old)):
+            if (sub, rel) in exempt:
+                continue                      # asserted by check_bom_delta()
             if _sha256(cur[rel]) != _sha256(old[rel]):
                 fails.append(
                     f"  DOCS-ONLY DEVIATION: {sub}/{rel} DIFFERS from "
@@ -269,7 +343,8 @@ def check_docs_only(release_dir, prior_dir):
                 same += 1
         if same:
             notes.append(f"  note: {sub}/ byte-identical to {prior_dir.name} "
-                         f"({same} file(s)) — ASSERTED by docs-only mode")
+                         f"({same} file(s)) — ASSERTED by "
+                         f"{'bom-only' if bom_only else 'docs-only'} mode")
     # the documents themselves MUST change — that is the release's whole point
     doc_pairs = [("order README", _find_readme(release_dir),
                   _find_readme(prior_dir)),
@@ -746,6 +821,16 @@ def main(argv=None):
                          "README + MANIFEST to differ; the stale check is "
                          "replaced by this identity assertion, checks (b)/(c) "
                          "still run")
+    ap.add_argument("--bom-only-supersede", metavar="PRIOR_RELEASE_DIR",
+                    default=None,
+                    help="BOM-only supersede mode: docs-only, PLUS the one "
+                         "permitted fab/ change — fab/bom.csv losing whole "
+                         "rows for designators that are NOT on the CPL "
+                         "(canon A-POP: an unplaced part must leave the "
+                         "assembly BOM). Everything else in fab/, and all of "
+                         "source/ and 3d/, must still be byte-identical. Rows "
+                         "ADDED or EDITED, or a removal for a still-placed "
+                         "designator, FAIL")
     # RED-VERIFY hooks: neuter one check so a known-bad fixture is shown to
     # pass when — and only when — that check is disabled. Tests only.
     ap.add_argument("--_disable-stale", action="store_true")
@@ -771,16 +856,23 @@ def main(argv=None):
         allow[rel] = "waived via --allow-identical"
 
     prior_dir = None
-    if args.docs_only_supersede:
-        prior_dir = Path(args.docs_only_supersede).resolve()
+    bom_only = bool(args.bom_only_supersede)
+    if args.docs_only_supersede and args.bom_only_supersede:
+        print("FATAL: pass --docs-only-supersede OR --bom-only-supersede, "
+              "not both", file=sys.stderr)
+        return 2
+    if args.docs_only_supersede or args.bom_only_supersede:
+        prior_dir = Path(args.docs_only_supersede
+                         or args.bom_only_supersede).resolve()
         if not prior_dir.is_dir():
-            print(f"FATAL: --docs-only-supersede prior release is not a "
-                  f"directory: {prior_dir}", file=sys.stderr)
+            print(f"FATAL: --{'bom' if bom_only else 'docs'}-only-supersede "
+                  f"prior release is not a directory: {prior_dir}",
+                  file=sys.stderr)
             return 2
 
     print(f"== release-freshness: {release_dir.name} =="
-          + (f" [docs-only supersede of {prior_dir.name}]" if prior_dir
-             else ""))
+          + (f" [{'bom' if bom_only else 'docs'}-only supersede of "
+             f"{prior_dir.name}]" if prior_dir else ""))
     fails, notes = [], []
 
     if bad_exceptions:
@@ -792,9 +884,13 @@ def main(argv=None):
         # docs-only mode REPLACES the stale check: identity with the declared
         # prior release is asserted, not flagged.
         if not args._disable_stale:
-            df, dn = check_docs_only(release_dir, prior_dir)
+            df, dn = check_docs_only(release_dir, prior_dir, bom_only=bom_only)
             fails += df
             notes += dn
+            if bom_only:
+                bf, bn = check_bom_delta(release_dir, prior_dir)
+                fails += bf
+                notes += bn
     elif not args._disable_stale:
         sf, sn = check_stale(release_dir, releases_root, allow)
         fails += sf
