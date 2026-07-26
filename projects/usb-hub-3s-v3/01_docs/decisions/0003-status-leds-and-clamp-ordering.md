@@ -3,7 +3,9 @@
 status: accepted
 date: 2026-07-25
 relates: ADR-0002 (discrete USB-C VBUS protection — this ADR reports on it and
-  records the residual it leaves open)
+  records the residual it leaves open); ADR-0004 (the load is a Pi 4 — its
+  documented +6.0 V absolute maximum is what the clamp order below is argued
+  against, and the D5 section was REWRITTEN on 2026-07-25 once that was known)
 decision-log: task#30 user decisions D2 (colours), D3 (brightness), D4 (per-port),
   D5 (protection ordering), D7 (bench gate)
 
@@ -59,8 +61,11 @@ the small array — not the TVS — is the de facto clamp for the whole port.
 
 ### Clamp ordering
 
-- **Reselect D5 to break down below U12.** This was the user decision (D5), and
-  it **cannot be implemented — the part does not exist.** See below.
+- **Reselect D5 to break down below U12.** This was the user decision (D5). It
+  **cannot be implemented — the part does not exist** — AND, once the target was
+  confirmed as a Pi 4 with a documented 6.00 V absolute maximum, it turned out not
+  to be the right goal either: D5 cannot protect the Pi at ANY breakdown voltage
+  that also clears a 5.479 V operating rail. See below.
 - **Lower 5VC so a lower-standoff TVS fits.** REJECTED in the decision itself:
   it spends the 15 mV E-MARGIN slack (`power_tree.yaml`), which is the one number
   on this board that has no room.
@@ -82,45 +87,71 @@ part closes it.** D5 keeps its 6.0 V standoff / 6.67-7.37 V breakdown window.
 
 ## Consequences
 
-### The clamp-order arithmetic, so nobody re-opens this on a hunch
+### The clamp-order arithmetic — RE-ARGUED 2026-07-25 against the REAL target
 
-ST's USBLC6-2SC6 datasheet (**doc ID 11265 rev 5, Table 2, p.2/14**) specifies
-`V_BR`, breakdown between VBUS and GND, as **MIN 6 V at I_R = 1 mA** — with **no
-typ and no max published**. Section 2.1's surge example assumes 6.1 V, which is an
-illustrative figure, not a spec. So the honest statement is not "U12 breaks down
-at 6.00 V"; it is **"ST guarantees only that U12 will not conduct below 6.00 V"**.
+**This section was written while the target was believed to be a Pi 5. The user
+then confirmed a Pi 4 (ADR-0004), which gives the rail a DOCUMENTED absolute
+maximum instead of an inferred one — and that changes the conclusion from "an
+uncomfortable inverted hierarchy we accept" to "a non-issue, for a reason worth
+stating plainly."**
 
-D5's breakdown MINIMUM is 6.67 V (Littelfuse SMBJ series, rev 06/03/20 — which
-also corrects this project's own part.yaml, which carried `6.67-8.15 V @1mA`; both
-the upper bound and the test current were wrong, it is **6.67-7.37 V @ 10 mA**).
+Line the whole rail up, in ascending order, every number from a datasheet:
 
-A replacement would have to satisfy **Vwm >= 5.479 V** (the tolerance-inclusive
-no-load VBUSC maximum in `power_tree.yaml`) **and Vbr(max) < 6.00 V**
-simultaneously. That window is empty, and not narrowly:
+| V | what it is | source |
+|---|---|---|
+| **5.479 V** | worst-case operating VBUSC (tolerance-inclusive, no load) | `power_tree.yaml` |
+| **6.00 V** | **Raspberry Pi 4 ABSOLUTE MAXIMUM input** — "a stress rating only" | Pi 4 datasheet p.8, Absolute Maximum Ratings |
+| **6.00 V** | U12 USBLC6-2SC6 guaranteed non-conduction floor (V_BR **min**, no typ, no max published) | ST doc ID 11265 rev 5, Table 2, p.2/14 |
+| **6.67 V** | D5 SMBJ6.0A breakdown **minimum** | Littelfuse SMBJ series, rev 06/03/20 |
 
-- the SMBJ family has no standard step between Vwm 5.0 V and Vwm 6.0 V, and
-  6.0 V's breakdown floor is already 6.67 V;
-- the tightest SMB-footprint part found at any qualifying standoff is Vishay/ST
-  **SM6T6V8A** (Vwm 5.80 V, Vbr 6.45-7.14 V @ 10 mA, doc 88385 rev 09-Jan-2024
-  p.2) — its **minimum** breakdown is still 450 mV above U12's floor, and
-  jlcpcb.com returns zero hits for the unidirectional part anyway (only the
-  bidirectional SM6T6V8CA is stocked, and a bidirectional device has no cathode,
-  which fails this board's pad-1 polarity fact);
-- the generic TVS relation (Vbr ~ 1.11 x Vwm, +-10%) says why: at Vwm = 5.479 V
-  the NOMINAL breakdown is already 6.08 V, so there is no tolerance budget left
-  to fit a maximum under 6.00 V.
+Read that table once and the real conclusion falls out:
 
-**What is accepted.** On a buck-fail-high, U12 conducts before D5. U12 has **no
-rating for sustained conduction** — its only clamping figures (12 V @ 1 A,
-17 V @ 5 A) are 8/20 us ESD pulses, not the milliseconds-to-seconds until F2
-trips — so U12 may simply fail, after which the 600 W D5 is the clamp for the
-remainder of the event. This is degradation of a SECONDARY element on a rail
-whose PRIMARY over-current protection is F2, and ADR-0002 already states this
-chain is best-effort rather than a guaranteed fail-high cutoff.
+**D5 CANNOT PROTECT THE PI.** By the time the TVS begins to conduct, the rail is
+already **670 mV above the Pi's absolute maximum**. That is not a marginal call —
+D5 was never the Pi's guardian and could not have been at any breakdown voltage
+that also clears a 5.479 V operating rail. D5 protects the **BOARD** against
+**transients**, which is what a TVS is for.
 
-**Escalation trigger (unchanged from ADR-0002, now with a number).** If an
-unattended or production context is wanted, the answer is an **ACTIVE OVP**, not
-a better TVS in this footprint — because no better TVS in this footprint exists.
+So the "inverted hierarchy" that ADR-0003 originally worried about — U12 breaking
+down before D5 — **is a non-issue for the Pi**, and the empty TVS window (below)
+does not matter. U12 is in fact the only device on this rail that starts
+conducting anywhere near the Pi's limit, which makes it the *most* useful thing
+there, not a liability.
+
+**STATE IT PLAINLY: NOTHING ON THIS BOARD PROTECTS THE PI FROM A SUSTAINED
+OVER-VOLTAGE.** A TVS clamps transients, not a stuck regulator. If buck-C fails
+high, the sequence is: U12 conducts (with no rating for sustained conduction — its
+only clamping figures, 12 V @ 1 A and 17 V @ 5 A, are 8/20 us ESD pulses), D5
+follows above 6.67 V, and F2 trips on the resulting current. The Pi sees an
+over-voltage throughout. **This is exactly the fail-high posture the BRIEF already
+accepts as best-effort for a supervised prototype** (ADR-0002, BRIEF A3/D3), and
+it is now stated with numbers instead of being implied.
+
+**The empty-window finding, retained because it is still true and still saves
+someone a day.** A replacement D5 would need Vwm >= 5.479 V **and** Vbr(max)
+< 6.00 V simultaneously. That window is empty, and not narrowly: the SMBJ family
+has no standard step between Vwm 5.0 V and 6.0 V; 6.0 V's breakdown floor is
+already 6.67 V; the tightest SMB-footprint part found at any qualifying standoff
+is Vishay/ST **SM6T6V8A** (Vwm 5.80 V, Vbr 6.45-7.14 V @ 10 mA, doc 88385 rev
+09-Jan-2024 p.2), whose **minimum** breakdown is still 450 mV above U12's floor
+and which returns zero hits on jlcpcb.com for the unidirectional part (only the
+bidirectional SM6T6V8CA is stocked, and a bidirectional device has no cathode,
+failing this board's pad-1 polarity fact). The generic TVS relation
+(Vbr ~ 1.11 x Vwm, +-10%) says why: at Vwm 5.479 V the nominal breakdown is
+already 6.08 V, so there is no tolerance budget left to fit a maximum under
+6.00 V. **DO NOT RESELECT D5.** It is not a sourcing failure, it is arithmetic.
+
+**ESCALATION, and what KIND of part it is.** If sustained over-voltage protection
+is ever actually required — an unattended or production context — the answer is an
+**ACTIVE OVP tripping at ~5.6-5.7 V**, i.e. a **disconnect or crowbar**, sitting
+between the worst-case 5.479 V operating rail and the 6.00 V Pi limit. **It is not
+a different TVS**, and no TVS exists that would do it. That is a v-next hardware
+addition, not a BOM substitution.
+
+**A cheaper partial lever exists and ships unpopulated:** R42, the DNP setpoint
+trim (ADR-0004), drops the rail 5.352 -> 5.249 V if the bench says U12's leakage
+at the nominal setpoint is unacceptable. It reduces U12's steady-state stress; it
+does nothing about a fail-high, and must not be mistaken for OVP.
 
 ### Bench gate (user decision D7)
 

@@ -3,6 +3,15 @@
 status: accepted
 date: 2026-07-22
 supersedes: usb-hub-3s-v2 ADR-0011 (PD source controller architecture)
+superseded-by: 0004 (REASONING ONLY, 2026-07-25). The DECISION below — drop the
+  PD cell, deliver a plain regulated 5 V rail — still stands. Its stated
+  JUSTIFICATION does not: `PSU_MAX_CURRENT=5000` / `usb_max_current_enable=1` are
+  RASPBERRY PI 5 bootloader-EEPROM settings and DO NOT EXIST ON A PI 4, which is
+  the confirmed load. A Pi 4 does not negotiate PD for its power input at all, so
+  there was never anything to override; a plain 5 V rail is its NATIVE interface,
+  not a workaround. The rail is also 3 A (15 W), not 5 A. Read ADR-0004 for the
+  correct argument and the re-graded margin; everything below is retained as the
+  historical record of what was believed on 2026-07-22.
 
 ## Context
 

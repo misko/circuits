@@ -4,6 +4,89 @@ Board internal name `usb_hub_3s_v2`; project directory `usb-hub-3s-v3`.
 
 ## v1.6 — 2026-07-25
 
+### THE TARGET IS A RASPBERRY PI 4, NOT A PI 5 (ADR-0004)
+
+Every power document on this board rested on one sentence recorded at
+commission: that the Pi can be told to skip PD negotiation and assume a 5 A
+supply via `PSU_MAX_CURRENT=5000`. **That is a Pi 5 bootloader-EEPROM feature.
+The user has confirmed the load is a Pi 4, which has no such setting.**
+
+The conclusion — no PD source controller — survives. The reason does not, and
+the difference is not cosmetic. A Pi 5 *is* a PD sink and the old story was
+"talk it out of negotiating". A **Pi 4 does not negotiate PD for its power input
+at all**: its USB-C input is a plain 5 V sink with CC pull-downs, officially
+**5 V / 3 A (15 W)**. A plain regulated rail is not a workaround for a Pi 4, it
+is the only interface it has. ADR-0001 is marked `superseded-by: 0004`
+(reasoning only); the BRIEF keeps the old paragraph struck, not deleted.
+
+**The margin improves 16.5x.** Same hardware, same 97 mOhm budget, same 1.2
+derating, same 5.227 V worst-case rail, same 4.63 V threshold — only the load
+changed, because we now know what it is:
+
+| | IR drop | delivered | slack |
+|---|---|---|---|
+| Pi 5 premise @ 5 A | 582.0 mV | 4.645 V | **+15.0 mV** |
+| Pi 4 actual @ 3 A | 349.2 mV | 4.878 V | **+247.8 mV** |
+
+E-MARGIN re-graded PASS at 3 A. *"15 mV of paper slack is not a margin you ship
+on"* was a true statement about the wrong load, and it is retired. The bench
+gates are not — Q2/Q5 are now judged against the 3 A number.
+
+`load_uv_threshold: 4.63` is unchanged: it was always the **Pi 4** figure, until
+now applied to a Pi 5 by inference. And one number is upgraded from inference to
+specification — the **Pi 4 absolute maximum input is +6.0 V** (Pi 4 datasheet
+p.8, Absolute Maximum Ratings, *"a stress rating only"*).
+
+`power_tree.yaml` USB-C `iout_max_A: 5 -> 3`. **The board stays provisioned for
+5 A** — buck-C, the F2 7 A polyfuse, the VBUSC via count and the delivery-corner
+pours — and that is now stated as deliberate over-provisioning rather than left
+as an unexplained mismatch.
+
+### D5 / U12 — RESOLVED by the Pi 4 numbers; do not reselect
+
+| V | what | source |
+|---|---|---|
+| 5.479 | worst-case operating VBUSC | power_tree.yaml |
+| 6.00 | **Pi 4 ABSOLUTE MAXIMUM input** | Pi 4 datasheet p.8 |
+| 6.00 | U12 guaranteed non-conduction floor (V_BR min; no typ, no max) | ST 11265 rev 5 Table 2 |
+| 6.67 | D5 breakdown **minimum** | Littelfuse SMBJ rev 06/03/20 |
+
+**D5 cannot protect the Pi** — by the time it conducts, the rail is already
+670 mV above the Pi's absolute maximum. It never could have, at any breakdown
+that also clears a 5.479 V operating rail. The TVS protects the **board** against
+**transients**. So the "inverted hierarchy" is a non-issue for the Pi and the
+empty TVS window does not matter. **Stated plainly: nothing on this board
+protects the Pi from a SUSTAINED over-voltage** — a TVS clamps transients, not a
+stuck regulator — which is the fail-high posture the BRIEF already accepts as
+best-effort for a supervised prototype. Escalation, if that ever changes, is an
+**active OVP at ~5.6-5.7 V (a disconnect/crowbar), NOT a different TVS**.
+
+### R42 — a DNP setpoint-trim strap, and the series-resistor trap
+
+The user asked for an optional way to drop the rail if the bench says U12 is
+stressed; the instinct was a **series resistor in the 5 V line**. Recorded as
+rejected because it is genuinely attractive and wrong: over-voltage is a
+**light-load** phenomenon and IR drop is a **heavy-load** one, so they are
+anti-correlated. At 0 A a series part drops 0 mV — nothing in the exact case it
+was added for; at full load it removes voltage when the rail is already lowest.
+It costs 72 mV and 0.18 W at 3 A, and does nothing about a fail-high
+(20 mOhm x 3 A = 60 mV of a multi-volt excursion).
+
+Instead **trim the setpoint**: `R42 = 160k, 0402, DNP, in PARALLEL with R12`
+(the buck-C FB top). Rtop 4.12k -> 4.12k||160k = 4.017k, rail **5.352 -> 5.249 V**,
+landing on U12's 5.25 V V_RWM — load-independent, zero heat, zero delivery cost.
+Fitted, worst-case vout_min 5.227 -> 5.125 V, minus 349 mV = 4.776 V, still
+**+146 mV**. *The trim is only affordable because the load is a Pi 4;* at 5 A it
+would have eaten the whole margin. Ships **unpopulated**, declared
+`dnp_by_design` with dated evidence, deliberately uncoded, and its value pinned
+by an E-INV `part_value` assert — the parallel combination is nonlinear in the
+strap, so a 16k slip gives 4.500 V and a board that browns out at no load.
+
+New bench gate: measure VBUSC at no load and at 3 A, and U12 leakage at the
+measured voltage over temperature. **PASS = fit nothing if U12 leakage is
+acceptable at 5.352 V; fit R42 if not.** Record the numbers either way.
+
+
 **COPPER revision.** `07_releases/v1.6-2026-07-25/`. **v1.5 and every earlier
 release are DO-NOT-ORDER.** v1.5 gains `SUPERSEDED.md`; it is otherwise
 immutable.
@@ -97,7 +180,11 @@ Five indicators, **+11 placements and exactly +2 BOM lines**:
   align. A 180 row would ship every indicator dark — indistinguishable from a
   dry joint. See the release notes for the two numbering-free channels.
 
-### D5 / U12 protection ordering (user decision D5) — DECIDED, not deferred
+### D5 / U12 protection ordering — the sourcing half of the story
+
+*(Superseded in framing by "D5 / U12 — RESOLVED by the Pi 4 numbers" above, which
+is the conclusion. This subsection is retained because the SOURCING result stands
+on its own and saves the next person a day of catalog searching.)*
 
 The finding is real and **the requested fix cannot be bought.** ST's USBLC6-2SC6
 (U12) specifies VBUS-GND breakdown as **MIN 6.0 V @ 1 mA with no typ and no max**

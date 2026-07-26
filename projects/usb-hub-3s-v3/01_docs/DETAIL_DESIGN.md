@@ -383,6 +383,20 @@ the Vref-only 5.27/5.43 pair until v1.5 and now declares 5.227/5.479.
     0.3-0.5 m 5 A cable      ~45 mOhm  (REQUIRED, ORDER_README section 5)
     -------------------------------------
     total                    ~97 mOhm  ->  IR at 5 A = 485 mV
+                                       ->  IR at 3 A = 291 mV   <== THE REAL LOAD
+
+    v1.6 CORRECTION (ADR-0004): THE LOAD IS A RASPBERRY PI 4 AT 3 A, NOT A PI 5 AT
+    5 A. The 5 A figure came from a Pi-5 premise (`PSU_MAX_CURRENT=5000`, a Pi 5
+    bootloader-EEPROM setting with no Pi 4 equivalent). A Pi 4's USB-C input does
+    not negotiate PD for power at all: it is a plain 5 V sink officially rated
+    5 V / 3 A. Re-grading E-MARGIN with EVERY OTHER NUMBER UNCHANGED:
+        5 A: 97 mOhm x 5 A x 1.2 = 582.0 mV -> 4.645 V ->  +15.0 mV slack
+        3 A: 97 mOhm x 3 A x 1.2 = 349.2 mV -> 4.878 V -> +247.8 mV slack
+    The board is DELIBERATELY LEFT PROVISIONED FOR 5 A (buck-C, F2's 7 A hold, the
+    VBUSC via count, the delivery-corner pours) -- over-provisioning, not a
+    contradiction. The 45 mOhm cable term still dominates the budget; at 3 A it
+    costs 135 mV rather than 225 mV, so a short well-made cable remains the
+    highest-leverage thing the user controls. Gates Q2/Q5 are re-based to 3 A.
 
     headroom      = V_5VC(min) − V_UV(Pi) = 5.227 − 4.63       = 597 mV
     raw IR drop   = 97 mOhm x 5 A                              = 485 mV
@@ -419,7 +433,10 @@ honest slack is **69 mV**.
 Worst-case cable-end estimate `5.227 − 0.485 =` **4.74 V**, above the Pi's
 4.63 V ±5 % undervoltage trip by ~110 mV. **This is thin, and the paper margin is not the
 gate** — ORDER_README Q2/Q5 measure VBUSC at the board and at the far end of
-the actual cable, hot, at 5 A. Note that Q5's acceptance floor (≥4.80-4.85 V)
+the actual cable, hot, at **3 A** (v1.6: re-based from 5 A — ADR-0004; the
+un-derated paper corner at 3 A is 5.227 − 291 mV = **4.936 V**, so Q5's floor
+becomes **≥ 4.90 V**, still deliberately above the arithmetic).
+HISTORICAL: at the mistaken 5 A load, Q5's acceptance floor (≥4.80-4.85 V)
 sits *above* this 4.74 V paper estimate **deliberately**: the estimate is the
 quadruple-worst corner (Vref low AND R13 high AND F2 fully hot AND a marginal
 cable), while Q5 is a REQUIREMENT ON THE DELIVERED SYSTEM — if the measurement
@@ -467,7 +484,9 @@ ports, **U12 on the USB-C port**. Pass-through pairs 1-6 (D+) and 3-4 (D−),
 GND on pin 2, and the V_BUS transil on pin 5 tied to that port's VBUS rail.
 `R27` (0 Ω) shorts DPC to DMC as the BC1.2 DCP advertisement on the C port;
 R28/R29 (10 kΩ) are the CC1/CC2 Rp pull-ups to VBUSC, advertising a 3 A source
-(the Pi takes 5 A via `PSU_MAX_CURRENT=5000`, not via PD — ADR-0001).
+(the Pi 4 takes its 3 A from a plain 5 V rail — no PD, and no EEPROM override
+either; `PSU_MAX_CURRENT` is a Pi 5 setting that does not exist here — ADR-0004
+correcting ADR-0001).
 
 ### 5.3 **DEVIATION — U12 on the C rail runs above the USBLC6's characterized standoff**
 

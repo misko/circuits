@@ -30,9 +30,13 @@
 // NOT a USB hub, NOT USB-PD / USB-standards-compliant: it is a Pi-DEDICATED
 // power supply. 3x USB-A = dumb 5V CHARGING ports (2A cont / 2.5A burst,
 // TPS2557 + TPS2513A DCP advertisement, NO data). 1x USB-C = a proprietary
-// PROTECTED 5V/5A rail for a Raspberry Pi 5 ONLY (Pi bootloader
-// PSU_MAX_CURRENT=5000; a plain USB-C sink would see only the 3A CC-Rp
-// advertisement). Powered from a PROTECTED 3S pack + balance charger ONLY.
+// PROTECTED 5V rail for a RASPBERRY PI 4 ONLY, at the Pi 4's official 5V/3A
+// (15W). v1.6 CORRECTION (ADR-0004): this read 'Pi 5 ... PSU_MAX_CURRENT=5000'.
+// That is a Pi 5 bootloader-EEPROM setting and DOES NOT EXIST ON A PI 4 -- a Pi 4
+// does not negotiate PD for its power input at all, so a plain regulated 5V rail
+// is its NATIVE interface, not an override. The board stays PROVISIONED for 5A
+// (buck, F2, VBUSC vias) -- deliberate over-provisioning, not a contradiction.
+// Powered from a PROTECTED 3S pack + balance charger ONLY.
 //
 // v3 = v2 MINUS the routing-hard TPS25740A PD cell (ADR-0001): the USB-C rail
 // is a regulated buck output, not a PD-negotiated one. Removed vs v2: U1
@@ -310,6 +314,43 @@ export default () => (
       RSNB: "R35", CSNB: "C54",
     }} />
 
+    {/* ===== v1.6 R42 — DNP 5VC SETPOINT-TRIM STRAP (user request) =====
+        BENCH-DECIDABLE INSURANCE, SHIPPED UNPOPULATED. If the bench says U12 is
+        too stressed at the nominal 5.352 V rail, fit R42 and the rail drops to
+        ~5.25 V, landing exactly on U12's 5.25 V V_RWM.
+
+        WHY IT IS IN PARALLEL WITH THE FB TOP AND NOT IN SERIES WITH THE RAIL.
+        The first instinct is a series resistor in the 5 V line. It has the WRONG
+        TRANSFER FUNCTION, and the reason is worth writing down because it is a
+        genuinely attractive trap:
+          - over-voltage is a LIGHT-load phenomenon; IR drop is a HEAVY-load one.
+            They are ANTI-CORRELATED. At 0 A a series resistor drops 0 mV, so it
+            does nothing at all in the exact condition you added it for; at full
+            load it removes voltage precisely when the rail is already lowest.
+          - the cost is real: 20 mOhm at the Pi 4's 3 A is 72 mV and 0.18 W
+            (at 5 A it would be 100 mV and 0.5 W). That is delivery margin spent
+            to fix a no-load problem.
+          - and it does nothing about the case that actually endangers anything:
+            against a fail-high buck, 20 mOhm x 3 A = 60 mV of a multi-volt
+            excursion.
+        Trimming the SETPOINT moves the regulation target itself: load-independent,
+        zero heat, zero delivery-path cost.
+
+        ARITHMETIC. Vout = Vref x (1 + Rtop/Rbot), Vref 1.215 V, Rbot = R13 1.21k,
+        Rtop = R12 4.12k -> 5.352 V. R42 160k in PARALLEL with R12 gives
+        Rtop = 4.12k || 160k = 4.017k -> 1.215 x (1 + 4.017/1.21) = 5.249 V.
+        The worst-case corner scales the same way: vout_min 5.227 -> 5.125 V, and
+        at the Pi 4's 3 A that is 5.125 - 349 mV = 4.776 V, still +146 mV above
+        the 4.63 V undervoltage threshold. THE TRIM IS ONLY AFFORDABLE BECAUSE
+        THE LOAD IS A PI 4 AT 3 A; at the mistaken 5 A it would have eaten the
+        entire margin and then some.
+
+        NOT coded to an LCSC part ON PURPOSE: it is dnp_by_design, so JLC must
+        neither source nor place it. Its value is pinned by an E-INV part_value
+        assert so nobody "helpfully" populates something else. */}
+    <resistor name="R42" resistance="160k" footprint="0402"
+      connections={{ pin1: "net.N5VC", pin2: "net.FB_C" }} />
+
     {/* ===== MASTER OFF — SS12D07 slide switch grounds the ENKILL bus =====
         v1.2: buck-A EN (U2.4) + its REN pull-up R8 are on net.ENKILL. buck-C EN is
         now the SEPARATE net.EN_C (un-merged for the Fix 2 fault-isolation), pulled
@@ -485,7 +526,9 @@ export default () => (
         FB sense (option-a) all land on VBUSC. The eFuse adds current limit, input-OV
         cutoff, soft-start and REVERSE-CURRENT BLOCKING (a powered sink can no longer
         back-feed 5VC -> the pack; red-team RT-T4). Two 10k CC Rp advertise a 3A
-        source; the Pi draws 5A via PSU_MAX_CURRENT=5000. Kept from v2: J5, U12 data
+        source, which is all a Pi 4 ever asks for (it draws its 3A without negotiating;
+          the PSU_MAX_CURRENT=5000 story here was a Pi 5 feature -- ADR-0004).
+          Kept from v2: J5, U12 data
         ESD, R27 DCP short. Removed: TPS25740A PHY, RS3, all PD-config passives. */}
     <group name="usbc">
       {/* ==== v1.2 DISCRETE VBUS PROTECTION — TPS26631 eFuse DROPPED (BRIEF A2/D2) ====

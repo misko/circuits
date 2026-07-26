@@ -130,6 +130,27 @@ invariants:
   - {assert: pin_on_net, pin: "R39.1", net: "VBUSA2", adr: 0003, why: "see R38.1"}
   - {assert: pin_on_net, pin: "R40.1", net: "VBUSA3", adr: 0003, why: "see R38.1"}
 
+  # --- #6c: v1.6 DNP setpoint-trim strap R42 — PIN THE VALUE ---
+  - {assert: part_value, part: R42, equals: 160k, tolerance_pct: 5, adr: 0004,
+     why: "R42 is a DNP strap in PARALLEL with R12 (the buck-C FB top, 4.12k). Its
+       VALUE is the entire specification -- it does nothing until someone fits it,
+       and then it sets the rail. 160k gives Rtop 4.017k -> 5.249 V, landing on
+       U12's 5.25 V V_RWM. A 'helpful' substitution is a rail error, and the error
+       is NOT gentle because the parallel combination is nonlinear in the strap:
+       16k would give Rtop 3.271k -> 4.500 V, straight through the Pi 4's 4.63 V
+       undervoltage threshold and into a board that browns out at no load. Pinned
+       here so the number survives the next person's tidy-up."}
+  - {assert: pin_on_net, pin: "R42.1", net: "5VC", adr: 0004,
+     why: "the trim must sit ACROSS THE FB TOP (5VC to FB_C), never in series with
+       the rail. A series resistor has the wrong transfer function: over-voltage is
+       a light-load phenomenon and IR drop is a heavy-load one, so a series part
+       does nothing at 0 A -- the exact case it would be added for -- and removes
+       voltage at full load when the rail is already lowest. This assert is what
+       stops the idea coming back as copper."}
+  - {assert: pin_on_net, pin: "R42.2", net: "FB_C", adr: 0004,
+     why: "the strap's low side lands on the buck-C feedback node, in parallel with
+       R12; that is what makes the trim load-INDEPENDENT and free of dissipation."}
+
   # --- #7: MASTER-OFF merges both LM5116 EN pins onto ENKILL (EN_C un-merge reverted) ---
   - {assert: pin_on_net, pin: "U2.4", net: "ENKILL", adr: 0001,
      why: "buck-A EN on the master-off bus (SW1 grounds it -> both bucks off + Q6 gate opens)"}

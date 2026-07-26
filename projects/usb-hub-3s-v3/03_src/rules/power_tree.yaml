@@ -5,7 +5,8 @@
 #
 # v3 change is DOWNSTREAM of the USB-C buck, not in the tree: v2 fed the 5VC
 # buck output into a TPS25740A PD source controller; v3 brings 5VC straight to
-# the USB-C VBUS (plain 5 V/5 A, Pi PSU_MAX_CURRENT=5000 override — ADR-0001).
+# the USB-C VBUS (plain 5 V; load is a Pi 4 at 3 A — ADR-0004 corrects ADR-0001's
+# Pi-5 `PSU_MAX_CURRENT=5000` premise, which does not exist on a Pi 4).
 # The PD controller was never a converter, so the tree is unchanged and E-TOPO
 # still PASSes all-buck.
 
@@ -78,7 +79,7 @@ rails:
   # v1.3 (ADR-0002): the v1.1 TPS26631 eFuse is REMOVED; the discrete Q6/F2/D5 chain
   # is the protection. Q6/F2 are PROTECTION elements, NOT converters -> the E-TOPO
   # tree is unchanged (still all-buck). 5 A to the Pi via the firmware override
-  # (PSU_MAX_CURRENT=5000), not PD.
+  # v1.6: 3 A to a Pi 4, which needs neither PD nor an EEPROM override (ADR-0004).
   - name: USB-C
     vin_min: 9.0
     vin_max: 12.6
@@ -105,7 +106,23 @@ rails:
     # measurement (ORDER_README; DETAIL_DESIGN sec.4).
     vout_min: 5.227
     vout_max: 5.479
-    iout_max_A: 5
+    # v1.6 CORRECTION, 5 -> 3. THE LOAD IS A RASPBERRY PI 4, NOT A PI 5
+    # (user-confirmed 2026-07-25). The 5 A figure came from a Pi-5 premise: that
+    # the Pi could be told to skip PD negotiation and draw 5 A via the bootloader
+    # EEPROM setting PSU_MAX_CURRENT=5000. THAT SETTING IS A PI 5 FEATURE AND HAS
+    # NO EQUIVALENT ON A PI 4. A Pi 4's USB-C input does not negotiate PD for
+    # power at all -- it is a plain 5 V sink with CC pull-downs, officially rated
+    # 5 V / 3 A (15 W). So 3 A is not a de-rating of the requirement, it IS the
+    # requirement, and always was.
+    #
+    # THE BOARD STAYS PROVISIONED FOR 5 A AND THAT IS DELIBERATE. buck-C, the F2
+    # SMD2920-700 polyfuse (7 A hold), the VBUSC via count and every pour width in
+    # the delivery corner were sized for 5 A and are NOT being reduced. This is
+    # over-provisioning: it is safe, the copper is already spent, and unwinding it
+    # would be a re-route for no gain. It is stated here in as many words so that a
+    # 5 A number sitting beside a 3 A load is never read as an unresolved
+    # contradiction by the next person -- or by a gate.
+    iout_max_A: 3
     converter: LM5116MHX-NOPB
     eff: 0.9
     # E-MARGIN (v1.3 re-derivation, against the ACTUAL Q6+F2 delivery path - the eFuse
@@ -128,8 +145,25 @@ rails:
     #   USB-C connector     ~5 mOhm   (paralleled VBUS pins A4/B4/A9/B9)
     #   short 5A USB-C cable ~45 mOhm  (0.3-0.5 m e-marked; REQUIRED per ORDER_README)
     #   ------------------------------ TOTAL ~= 97 mOhm (was 88 before RL-2)
-    # E-MARGIN then grades: headroom 5.227-4.63 = 597 mV vs 97 mOhm x 5 A x 1.2 =
-    # 582 mV -> PASS, slack 15 mV. THIS IS THE HONEST NUMBER and it is thin.
+    # ------------------------------------------------------------------
+    # v1.6 RE-GRADE AT THE PI 4's 3 A. THE MARGIN IMPROVES 16.5x.
+    #   headroom = vout_min - load_uv_threshold = 5.227 - 4.63 = 597.0 mV
+    #   derated budget = 97 mOhm x 3 A x 1.2 = 349.2 mV
+    #   SLACK = 597.0 - 349.2 = +247.8 mV   (was +15.0 mV at 5 A)
+    # The delivered connector voltage goes 4.645 V -> 4.878 V at the worst
+    # corner. NOTHING IN THE HARDWARE CHANGED -- the load did, because we now
+    # know what it is. This is the single biggest change to this board's risk
+    # posture in v1.6, and it retires the caveat that has followed the release
+    # since v1.5: "15 mV of paper slack is not a margin you ship on" was true and
+    # is no longer the situation. The bench gates below still MEASURE it (a
+    # computed margin is still a computed margin), but they are now judged
+    # against the 3 A number, not the 5 A one.
+    # NOTE the cable term dominates: ~45 of the 97 mOhm is the USB-C cable, so at
+    # 3 A it costs 135 mV rather than 225 mV. A short, well-made cable is still
+    # the single highest-leverage thing the user controls.
+    # ------------------------------------------------------------------
+    # SUPERSEDED (kept for the record): at the mistaken 5 A Pi-5 load, E-MARGIN
+    # graded headroom 597 mV vs 97 mOhm x 5 A x 1.2 = 582 mV -> PASS, slack 15 mV.
     # History of this figure, all on the SAME rail: 112 mV (Vref-only corner,
     # 88 mOhm) -> 69 mV (tolerance-inclusive corner, 88 mOhm) -> 15 mV
     # (tolerance-inclusive corner + the MEASURED 12 mOhm board copper, RL-2).
@@ -144,4 +178,15 @@ rails:
     # shows it marginal: R12 4.12k->4.22k (5VC 5.453 V) at the cost of the D5-Vwm /
     # no-load-OV margin. F2 and D5 are SECONDARY protection (see ADR-0002 honesty).
     ir_budget_mohm: 97   # RL-2 measured board copper (was 88 with a ~3 mOhm guess)
+    # 4.63 V is and always was the RASPBERRY PI 4 undervoltage-detect threshold,
+    # so it is LEFT UNCHANGED by the Pi 5 -> Pi 4 correction -- but it is recorded
+    # here that it is a Pi 4 figure now that we know which board it is. It was
+    # previously a Pi-4 number being applied to a Pi 5 by inference, which happened
+    # to be conservative (a Pi 5 browns out nearer 4.25 V).
+    # Pi 4 ABSOLUTE MAXIMUM INPUT: +6.0 V (Raspberry Pi 4 datasheet p.8, Absolute
+    # Maximum Ratings, stated in terms to be "a stress rating only"). This is a
+    # DOCUMENTED SPEC for the actual target, not an inference. See ADR-0003 for
+    # what it means for the D5/U12 clamp order: worst-case operating VBUSC 5.479 V,
+    # Pi absolute max 6.00 V, U12 guaranteed non-conduction floor 6.00 V, D5
+    # breakdown minimum 6.67 V -> D5 CANNOT protect the Pi.
     load_uv_threshold: 4.63

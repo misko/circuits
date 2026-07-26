@@ -122,6 +122,31 @@ not_assembled:
                   FP_EXCLUDE_FROM_POS_FILES at source) and v1.5 is a
                   NO-COPPER-CHANGE release — deferred, not forgotten
                   (08_reviews DISPOSITIONS PCBA-6)."
+  - refs: [R42]
+    reason: dnp_by_design
+    evidence: "v1.6 5VC SETPOINT-TRIM STRAP, added 2026-07-25 at user request and
+               shipped UNPOPULATED BY DESIGN. It is a 160k 0402 in PARALLEL with
+               R12 (the buck-C FB top): fitted, Rtop becomes 4.12k||160k = 4.017k
+               and the rail moves 5.352 V -> 5.249 V, landing on U12's 5.25 V
+               V_RWM. MEASURED basis for leaving it OFF: at the nominal setpoint
+               the worst-case operating rail is 5.479 V, which is BELOW both the
+               Pi 4's documented +6.0 V absolute maximum (Pi 4 datasheet p.8) and
+               U12's 6.0 V guaranteed non-conduction floor -- so there is no
+               measurement in hand that says the trim is needed. It is fitted only
+               if the bench gate says U12's leakage at 5.352 V is unacceptable
+               over temperature. Cost if fitted, at the Pi 4's 3 A: vout_min
+               5.227 -> 5.125 V, minus 349 mV of IR = 4.776 V, still +146 mV above
+               the 4.63 V undervoltage threshold. Deliberately UNCODED (no LCSC):
+               a dnp_by_design option strap must not be sourced or placed."
+    disposition: "NOTHING IS FITTED AT ASSEMBLY AND NOTHING IS SHIPPED LOOSE. The
+                  land stays bare copper. If bench gate Q8 (ORDER_README) finds
+                  U12's leakage unacceptable at the nominal 5.352 V rail, hand-fit
+                  ONE 160k 0402 at integration -- any 0402 160k 1% will do, the
+                  value is what matters and it is pinned by an E-INV part_value
+                  assert. If Q8 passes, the strap is never fitted and that PASS is
+                  recorded with its numbers. Either way the outcome is written
+                  down: an unpopulated part is a decision record, not a free
+                  outcome."
   - refs: [SW1]
     reason: dnp_by_design
     lcsc: C2939728

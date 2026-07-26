@@ -149,6 +149,21 @@ placement:
     # hand-solder list) but v1.1/v1.2 CPLs still carried it — v1.3 makes the CPL
     # match the documented status. Stays in the BOM (self-supplied, uncoded at JLC).
     - {match: F1, attrs: [exclude_from_pos_files]}
+    # v1.6 R42: the 5VC setpoint-trim strap ships UNPOPULATED (dnp_by_design).
+    # DNP keeps it on the BOM as a documented option and off the CPL, so JLC
+    # neither sources nor places it; the bench decides whether it is ever fitted.
+    # v1.6 R42 ships UNPOPULATED. attrs are `exclude_from_pos_files` ONLY -- the
+    # SAME idiom SW1 and F1 already use on this board -- and deliberately NOT the
+    # KiCad `dnp` footprint flag. Setting dnp on the FOOTPRINT while the generated
+    # symbol does not carry it is a genuine artifact disagreement, and
+    # --schematic-parity says so: DRC went 0/0/1 with
+    # "footprint_symbol_mismatch: 'Do not populate' settings differ". The board is
+    # not the place that fact lives. `03_src/rules/assembly.yaml` not_assembled ->
+    # dnp_by_design is this repo's ONE machine-readable home for "who gets placed
+    # and why not", it carries the dated evidence, and A-POP grades it. R42 is also
+    # deliberately UNCODED, so its BOM row has no LCSC and JLC cannot source it
+    # either. Off the CPL + off the sourcing list + declared = unpopulated.
+    - {match: R42, attrs: [exclude_from_pos_files]}
 
   seeds:
     # -------- Buck A control cluster (LEFT/south of U2) --------
@@ -186,6 +201,15 @@ placement:
     C18: [55.0, 82.0]
     C21: [57.0, 82.0]
     R12: [53.0, 82.0]
+    # v1.6 DNP setpoint-trim strap, electrically PARALLEL with R12 (5VC<->FB_C).
+    # MOVED 82.0 -> 87.0 after the first fresh route: seeded immediately beside R12
+    # it crowded the buck-C feedback escape and the taps stage failed with
+    # 'via-in-pad site blocked at (52.675, 82.0)' -- R12.1's own pad, the anchor the
+    # 5VC sense escape has to drop its via into. That escape is already the roll-
+    # fragile one on this board (route.yaml records buck-A hitting the same wall).
+    # A DNP strap must not be allowed to destabilise a feedback path it is not even
+    # fitted on, so it sits clear of the cluster and is fed by an explicit tap.
+    R42: [50.5, 87.0]
     R13: [53.0, 84.0]
     R14: [55.0, 84.0]
     C19: [57.0, 84.0]

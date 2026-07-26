@@ -71,6 +71,7 @@ COMPONENTS:
  - R19: 0Ω res0603 resistor
  - R35: 2.2Ω res1206 resistor
  - C54: 1nF 0805 capacitor
+ - R42: 160kΩ res0402 resistor
  - SW1: 
  - Q8: sot23
  - R37: 6.98kΩ res0603 resistor
@@ -249,13 +250,6 @@ NET: COMP_C
   - R14 pin1
   - U11 COMP
 
-NET: FB_C
-  - C20 pin2 (-)
-  - C19 pin2 (-)
-  - R13 pin1
-  - R12 pin2
-  - U11 FB
-
 NET: SS_C
   - C21 pin1 (+)
   - U11 SS
@@ -293,6 +287,14 @@ NET: SW_C
 NET: SNUB_C
   - C54 pin1 (+)
   - R35 pin2
+
+NET: FB_C
+  - R42 pin2
+  - C20 pin2 (-)
+  - C19 pin2 (-)
+  - R13 pin1
+  - R12 pin2
+  - U11 FB
 
 NET: VIN
   - R37 pin1
@@ -448,6 +450,7 @@ NET: DP_A3
 
 NET: N5VC
   - Q6 D
+  - R42 pin1
   - R12 pin1
   - C32 pin1 (+)
   - C31 pin1 (+)
@@ -955,6 +958,10 @@ R35 (2.2Ω res1206)
 C54 (1nF 0805)
 - pin1(pos, anode, left): NETS(SNUB_C)
 - pin2(neg, cathode, right): NETS(GND)
+
+R42 (160kΩ res0402)
+- pin1(anode, pos, left): NETS(N5VC)
+- pin2(cathode, neg, right): NETS(FB_C)
 
 SW1
 - pin1(T1): NETS(GND)

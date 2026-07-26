@@ -14,12 +14,39 @@ current_release: 07_releases/v1.5-2026-07-25
 > USB-C port to a Raspberry Pi, which normally requires USB-PD negotiation of
 > the 5A profile.
 >
-> THE FINDING (user + web-confirmed 2026-07-22): the Raspberry Pi 5 can be told
-> to SKIP PD negotiation and assume a 5A supply via the bootloader EEPROM
+> **CORRECTED 2026-07-25 (v1.6) — THE TARGET IS A RASPBERRY PI 4, NOT A PI 5,
+> AND THE ORIGINAL JUSTIFICATION WAS A PI 5 FEATURE THAT DOES NOT EXIST ON A
+> PI 4.** The paragraph below is kept verbatim as the historical record of what
+> was believed; it is WRONG and must not be relied on.
+>
+> ~~THE FINDING (user + web-confirmed 2026-07-22): the Raspberry Pi 5 can be
+> told to SKIP PD negotiation and assume a 5A supply via the bootloader EEPROM
 > setting `PSU_MAX_CURRENT=5000` (or `usb_max_current_enable=1`). With that set,
 > the Pi draws its full 5A from a plain 5V source that physically delivers it —
-> no PD controller required on the supply side. Since this board is a DEDICATED
-> Pi power supply, the PD PHY is unnecessary complexity.
+> no PD controller required on the supply side.~~
+>
+> **THE CORRECT FINDING (user-confirmed 2026-07-25).** The load is a **Pi 4**.
+> `PSU_MAX_CURRENT` / `usb_max_current_enable` are **Raspberry Pi 5 bootloader
+> EEPROM settings and have no equivalent on the Pi 4** — there is nothing to
+> "override" because there is nothing to skip.
+>
+> The CONCLUSION is unchanged — **no PD PHY is needed** — but the reason is
+> completely different, and the difference matters:
+>
+> * A **Pi 5** is a PD sink. It *negotiates* for 5 A and, absent negotiation,
+>   self-limits. The Pi-5 story was "let us talk it out of negotiating".
+> * A **Pi 4** does not negotiate PD for its power input **at all**. Its USB-C
+>   input is a plain 5 V sink with CC pull-downs, officially specified at
+>   **5 V / 3 A (15 W)**. There is no profile to request and no override to set.
+>   A plain regulated 5 V rail is not a workaround for a Pi 4 — it is the
+>   NATIVE and ONLY interface it has.
+>
+> AN ADR WHOSE STATED REASON IS FALSE IS WORSE THAN NO ADR: it looks decided.
+> We proved that twice on this fleet today (the LMV393 "rail-to-rail" claim, and
+> this). So the digit is not merely swapped — the reasoning is replaced.
+>
+> Since this board is a DEDICATED Pi power supply, the PD PHY is unnecessary
+> complexity either way, and v3's copper is unaffected.
 >
 > v3 = v2 MINUS the PD cell. Drop the TPS25740A + its two pass FETs + PD-config
 > passives. The USB-C port becomes: the 5VC buck rail brought directly to VBUS,
@@ -41,8 +68,16 @@ current_release: 07_releases/v1.5-2026-07-25
 
 A 3S-LiPo (9-12.6V) powered supply delivering:
 - 3x USB-A @ 5V/2A (2.5A burst) — via 2x LM5116 buck? no: the USB-A rail buck.
-- 1x USB-C @ 5V/**5A** to a Raspberry Pi, delivered as a plain regulated 5V rail
-  (no PD negotiation); the Pi is configured `PSU_MAX_CURRENT=5000`.
+- 1x USB-C @ 5V to a **Raspberry Pi 4**, delivered as a plain regulated 5V rail
+  (no PD negotiation — a Pi 4 has none to negotiate). **LOAD = 3 A (15 W)**, the
+  Pi 4's official supply rating. No `PSU_MAX_CURRENT` setting is involved; that
+  is a Pi 5 EEPROM feature and does not exist here (corrected v1.6).
+  **THE BOARD REMAINS PROVISIONED FOR 5 A** — buck-C, the F2 SMD2920-700
+  polyfuse (7 A hold), the VBUSC via count and the pour widths were all sized
+  for 5 A and are DELIBERATELY LEFT THAT WAY. That is over-provisioning: it is
+  safe, it costs nothing already spent, and it needs no copper change. It is
+  recorded here explicitly so a 5 A number sitting next to a 3 A load is never
+  read as an unresolved contradiction.
 Orderable, DRC 0/0/0, verified JLCPCB release. Target fab tier: STANDARD (the
 advanced-tier driver — the TPS25740A QFN — is gone).
 
@@ -52,9 +87,11 @@ Surfaced at commission; each real tension links a decisions/NNNN ADR.
 
 | id | requirement | tension / cap | how honoured | ADR | user-flagged |
 |----|-------------|---------------|--------------|-----|--------------|
-| T1 | USB-C delivers 5V/**5A** to the Pi | USB-C 5A normally REQUIRES PD negotiation (a PD source controller = the routing-hard QFN that stalled v2) | Provide a plain 5V/5A rail; the Pi skips PD via `PSU_MAX_CURRENT=5000` EEPROM override. Drop the PD PHY. Port is Pi-DEDICATED (a generic USB-C device would see a non-PD source, cap at 3A). | ADR-0001 | YES — user chose the override path over PD |
-| T2 | 5A over USB-C wants an e-marked cable | Without PD, the cable e-marker is not enforced | Ship a doc note: use a short, 5A-rated USB-C cable. Board cannot enforce this. | ADR-0001 | noted |
-| T3 | full Pi USB-peripheral current needs the override set | If the user forgets `PSU_MAX_CURRENT=5000`, the Pi caps downstream USB at 600mA (still boots/runs) | Document the required Pi setting in the release README + silk hint. | ADR-0001 | noted |
+| T1 | USB-C delivers 5V to a **Pi 4** at its official **3A** rating | **RESOLVED, AND THE TENSION WAS NEVER REAL (corrected v1.6).** It was recorded as "5A over USB-C requires PD negotiation", which is true of a Pi 5 and irrelevant to a Pi 4: a Pi 4's USB-C input does not negotiate PD for power at all, it is a plain 5V sink at 5V/3A. There is no profile to request, so there is nothing for a PD source controller to do. | Provide a plain regulated 5V rail. Drop the PD PHY — not as a clever override, but because the load has no PD interface to talk to. Board stays over-provisioned to 5A. | ADR-0001 | YES — user confirmed the load is a Pi 4 (2026-07-25) |
+| T2 | the USB-C cable is in the delivery path | No PD means no e-marker enforcement, and the cable is ~45 of the 97 mOhm budget — the single largest term. At the Pi 4's 3A this is 135mV, not 225mV. | Ship a doc note: use a SHORT, well-made USB-C cable. Board cannot enforce this. Relaxed but NOT removed by the 3A correction — the cable is still the dominant resistance. | ADR-0001 | noted |
+| T3 | ~~full Pi USB-peripheral current needs the override set~~ | **VOID (corrected v1.6): this tension does not exist on a Pi 4.** `PSU_MAX_CURRENT` is a Pi 5 EEPROM setting; a Pi 4 has no such option and no such downstream-USB throttle tied to it. Nothing for the user to forget. | Remove the setting from the release README and the silk hint; say PI 4, 5V/3A instead. | ADR-0001 | noted |
+
+| T4 | the Pi 4's over-voltage limit is now a REAL SPEC, not an inference | Raspberry Pi 4 datasheet p.8, Absolute Maximum Ratings, gives an input absolute maximum of **+6.0 V**, and says in terms that it is "a stress rating only". Until 2026-07-25 this board was applying a Pi-4 figure to a Pi 5 by inference; it is now the documented limit of the actual target. | Line the rail up against it: worst-case operating VBUSC **5.479 V**, Pi 4 absolute max **6.00 V**, U12 guaranteed non-conduction floor **6.00 V**, D5 breakdown minimum **6.67 V**. See ADR-0003 — **D5 cannot protect the Pi**, and nothing on this board protects it from a SUSTAINED over-voltage. Accepted best-effort for a supervised prototype. | ADR-0003 | YES — user confirmed the Pi 4 target |
 
 _none beyond the above — the buck rails are plain step-downs (see power_tree.yaml, E-TOPO PASS)._
 

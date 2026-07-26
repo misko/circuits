@@ -3,8 +3,12 @@
 **What this board IS:** a PROPRIETARY 3S-LiPo POWER-DISTRIBUTION board - NOT a
 USB hub, NOT USB-PD / USB-standards-compliant. It fans a protected 3S pack out
 to 3x USB-A **charging** ports (5V, dumb DCP advertisement, NO data hub) and 1x
-USB-C **power** port that is a proprietary Pi-dedicated 5V/5A rail (Raspberry Pi
-5 with `PSU_MAX_CURRENT=5000`; a standards sink sees only the 3A CC-Rp offer).
+USB-C **power** port that is a proprietary Pi-dedicated 5V rail, loaded at the
+Pi 4's official **5V/3A (15W)** while the copper stays PROVISIONED for 5A
+(deliberate over-provisioning — ADR-0004). (Raspberry Pi
+4 at its official 5V/3A; a Pi 4 does not negotiate PD for power, so the 3A CC-Rp
+offer is simply what a standards sink would also see. v1.6 CORRECTION (ADR-0004):
+this said 'Pi 5 with PSU_MAX_CURRENT=5000', a Pi 5 EEPROM feature absent on a Pi 4.)
 Input is a PROTECTED 3S pack + balance charger ONLY.
 
 v3 = v2 with the USB-C PD cell removed (ADR-0001). v1.2 replaced the v1.1 TPS26631
@@ -34,11 +38,12 @@ unattended, hard-access, carries valuable storage, or powers expensive SDR".
         |       -> 3x [TPS2557 switch + USBLC6 ESD] -> 3x USB-A receptacle (5V/2A)
         |       -> 2x TPS2513A DCP (data-line charging advertisement)
         |
-        +--> BUCK C (LM5116 + Q4/Q5 + L + shunt) --> 5VC rail (<=5A)
+        +--> BUCK C (LM5116 + Q4/Q5 + L + shunt) --> 5VC rail (built for <=5A;
+        |                                                 Pi 4 load is 3A — ADR-0004)
                 -> Q6 (AON6403 enable-gated P-FET, reverse-block) -> PMID
                 -> F2 (SMD2920-700 PPTC polyfuse, 7A hold, over-current) -> VBUSC
                      -> D5 (SMBJ6.0A uni-dir TVS to GND, SECONDARY over-voltage)
-                     -> USB-C VBUS (5V/5A, PLAIN)
+                     -> USB-C VBUS (5V PLAIN; Pi 4 load 3A, path built for 5A)
                 -> buck-C FB SENSES LOCAL 5VC (5.352V; connector = 5VC - Q6+F2 IR)
                 -> CC1/CC2 Rp pull-ups (source-present advertisement)
                 -> VBUS bulk caps + ESD
@@ -62,8 +67,11 @@ worst-case input 7.1A @ 9V (57.15W out / 0.9 eff = 63.5W in).
   ~31 mOhm hot). E-MARGIN PASS (see power_tree.yaml). R12 = 4.12k 0.1% (C2984354,
   CATALOG-VERIFIED); buck-A R3 stays 3.92k (C728591, no series delivery drop).
 - CC1/CC2: Rp pull-up resistors so the Pi detects an attached source +
-  orientation. The Pi is configured `PSU_MAX_CURRENT=5000` (bootloader EEPROM)
-  to skip PD negotiation and draw its full 5A — see ADR-0001.
+  orientation. NO Pi configuration is required (ADR-0004: `PSU_MAX_CURRENT` is a Pi 5
+  setting; the Pi 4 target draws its 3 A from a plain 5 V rail with no negotiation)
+  a Pi 4 does not negotiate PD for power AT ALL, so a plain 5V rail is its native
+  interface and it draws its 3A without any configuration — see ADR-0004, which
+  supersedes ADR-0001's Pi-5 `PSU_MAX_CURRENT` reasoning.
 - This port is Pi-DEDICATED and NON-standards-compliant by design; a generic
   USB-C device would see a non-PD source (cap at 3A). Silk + README say so.
 
