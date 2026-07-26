@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harness import (FIXTURES, KPY, ROOT, SCRIPTS, check, contains,  # noqa: E402
-                     edit_board, main, must_fail, must_pass, project_copy,
+                     edit_board, eq, main, must_fail, must_pass, project_copy,
                      run, test, tmpdir)
 
 GEN = SCRIPTS / "generate_board_generic.py"
@@ -162,6 +162,102 @@ def t_parity_missing_part():
     edit_board(b, "b.Remove(b.FindFootprintByReference('C6'))")
     r = run([KPY, PARITY, b, SEALED_LC])
     must_fail(r, "parity with a deleted part", "ONLY in sealed")
+
+
+# ------------------------------------------- I-HW mounting-hardware isolation
+# cooksense's per-board gate: the metal fastener stack (M2.5 pan head + DIN125
+# washer + nut) in each mounting hole is a floating 3.0mm-radius conductive
+# disc; its creepage approaches to keypad copper (a) and SELV copper (s) —
+# pads + FILLED pours, path measured AROUND outline cutouts — must satisfy
+# a+s >= 6.0mm per hole (bonded collapse: the free approach alone).
+# TEETH PROVEN 2026-07-25: with the pre-I-HW audit_board.py (git HEAD of that
+# day) swapped back in, all three tests below FAIL (--ihw is unknown to the old
+# script, which then audits the live board and exits 0); restored, all pass.
+CS = ROOT / "projects" / "smc0985-cooksense"
+CS_AUDIT = CS / "03_src" / "cooksense" / "audit_board.py"
+# The historical defect board: cooksense v1.3 generator output at 3f781da,
+# BEFORE the H4 isolation notch landed (95db1d2). Same placement, no notch —
+# extracted READ-ONLY from git history so this fixture cannot drift.
+PRENOTCH_COMMIT = "3f781da"
+PRENOTCH_PATH = "projects/smc0985-cooksense/04_kicad/cooksense.kicad_pcb"
+
+
+def prenotch_board():
+    import subprocess
+    d = tmpdir("ihw_hist_")
+    out = d / "cooksense_prenotch.kicad_pcb"
+    cp = subprocess.run(["git", "show", f"{PRENOTCH_COMMIT}:{PRENOTCH_PATH}"],
+                        cwd=ROOT, capture_output=True)
+    check(cp.returncode == 0 and len(cp.stdout) > 100000,
+          f"git show of the pre-notch board failed: {cp.stderr[:200]}")
+    out.write_bytes(cp.stdout)
+    return d, out
+
+
+@test("I-HW (cooksense) PASSes the live board, reporting per-hole margins")
+def t_ihw_clean():
+    """The live board carries the H4 notch (95db1d2): H4's straight-line
+    keypad approach is only 4.031mm, but the surface path around the
+    edge-reaching cutout measures 6.598mm — the PASS depends on the checker
+    walking AROUND outline voids, so this also pins the geodesic. Measured at
+    time of writing: H1 a=2.305 s=13.631; H2 a=3.129 s=13.000; H3 a=40.933
+    s=-1.450 (GND-bonded); H4 a=6.598 s=-1.450 (GND-bonded)."""
+    r = must_pass(run([KPY, CS_AUDIT, "--ihw"]), "I-HW on the live board")
+    contains(r.out, "I-HW PASS", "I-HW verdict")
+    for h in ("H1", "H2", "H3", "H4"):
+        contains(r.out, f"I-HW {h} a=", f"per-hole margin line for {h}")
+    # H4 must pass VIA the notch: its measured approach sits between the
+    # straight-line 4.031 (blind checker) and 8.5 — assert the property,
+    # not the byte-exact figure
+    import re
+    m = re.search(r"I-HW H4 a=([\d.]+)mm", r.out)
+    check(m and 6.0 <= float(m.group(1)) <= 8.5,
+          f"H4 keypad approach should be the ~6.6mm around-the-notch path: "
+          f"{m.group(0) if m else r.out[-800:]}")
+
+
+@test("I-HW FAILS the pre-notch board (3f781da) at H4", kind="known_bad")
+def t_ihw_prenotch():
+    """RED-VERIFIED against the real defect: the board at 3f781da is the SAME
+    placement as the sealed v1.3 state but WITHOUT the H4 isolation notch.
+    H4's hardware disc sits in the GND pour (s=-1.400, SELV-bonded), so its
+    keypad approach alone must make 6.0mm — measured 4.031mm to K_STOP.3
+    (RSTOP_MID), FAIL. The other three holes pass (H1 15.936, H2 16.129,
+    H3 40.933) — the checker reacts to exactly the defect the notch fixed,
+    not to some unrelated malformation."""
+    d, b = prenotch_board()
+    r = run([KPY, CS_AUDIT, "--ihw", b])
+    must_fail(r, "I-HW on the pre-notch board", "I-HW H4")
+    contains(r.out, "I-HW FAIL", "I-HW verdict")
+    import re
+    m = re.search(r"I-HW H4 a=([\d.]+)mm.*FAIL", r.out)
+    check(m and float(m.group(1)) < 6.0,
+          f"H4 should fail on a sub-6mm keypad approach: {r.out[-800:]}")
+
+
+@test("I-HW pairing branch FAILS the live board when the enclosure bonds "
+      "the holes", kind="known_bad")
+def t_ihw_pairing_bonded_enclosure():
+    """ENCLOSURE_BONDS_HOLES=False (non-conductive enclosure, user decision
+    2026-07-25) is the ONLY thing standing between this board and a FAIL: a
+    conductive chassis plate joins all fasteners into one conductor, so the
+    worst approaches across DIFFERENT holes pair up — min_a (H1, 2.305mm) with
+    min_s (H3/H4 GND-bonded, <0) collapses to 2.305mm < 6.0mm. Flip the
+    constant in-process and the measured rows of the LIVE board must fail.
+    RED-VERIFIED 2026-07-25: measured pairing figure 2.305mm (min_a=2.305,
+    min_s=-1.450)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("cs_audit", CS_AUDIT)
+    ab = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ab)
+    import pcbnew
+    rows = ab.ihw_measure(pcbnew.LoadBoard(str(CS / "04_kicad" / "cooksense.kicad_pcb")))
+    f0, _ = ab.ihw_verdicts(rows)
+    check(not f0, f"per-hole branch should pass the live board first: {f0}")
+    ab.ENCLOSURE_BONDS_HOLES = True
+    fails, _ = ab.ihw_verdicts(rows)
+    check(any("PAIRING" in x and "FAIL" in x for x in fails),
+          f"bonded-enclosure pairing rule did not FAIL the live board: {fails}")
 
 
 # ------------------------------------------------------------ policy_audit
@@ -309,6 +405,122 @@ def t_learnings_missing():
     run([KPY, POLICY, d, "--skip-drc"])
     md = (d / "06_build" / "policy_audit.md").read_text()
     check("| M-LEARN | FAIL" in md, f"M-LEARN did not FAIL:\n{md}")
+
+
+# --------------------------------- policy_audit REPORT INTEGRITY (M-CONS)
+# crow-mic-pod-v2 v1.0 sealed a policy_audit.md whose own Summary could not be
+# derived from its own table: a 51-byte splice at offset 387 replaced the
+# P-TIER row's middle with the run's stdout summary line and orphaned its tail
+# on the next line. Measured grades in the table PASS=22; the file's Summary
+# and the release MANIFEST both said PASS=23. The MANIFEST hash VERIFIED — the
+# file was generated corrupt and then faithfully hashed, so every integrity
+# check downstream of generation certified the corruption.
+#
+# Mechanism (measured 2026-07-25): the report path was also the process's
+# redirected stdout. `import pcbnew` writes to that fd at C level, advancing
+# the SHARED offset to 387; write_text() wrote the report from offset 0
+# through its own fd; at interpreter exit Python's buffered stdout flushed its
+# summary line at 387, into the finished file.
+def _policy_fns():
+    """The pure report helpers, without importing pcbnew."""
+    src = POLICY.read_text()
+    ns = {"re": __import__("re")}
+    exec(src[src.index("def cell("):src.index("def main()")], ns)
+    return ns
+
+
+CORRUPT = (ROOT / "projects/crow-mic-pod-v2/07_releases"
+           / "crow-mic-pod-v2-v1.0-2026-07-23/verification/policy_audit.md")
+
+
+@test("policy_audit's report check re-derives grades FROM THE WRITTEN TABLE, "
+      "and goes RED on the sealed crow-mic-pod-v2 v1.0 corruption",
+      kind="known_bad")
+def t_kb_policy_report_corrupt():
+    """The known-bad fixture is a real sealed artifact, read-only. This is the
+    strongest form available: the bytes that shipped GREEN must now go RED.
+
+    It also pins the numbers, so a future 'fix' that merely silences the
+    check has to change them: 37 rows recoverable, PASS=22 from the table
+    against the PASS=23 the run believed it had graded."""
+    fns = _policy_fns()
+    check(CORRUPT.is_file(), f"sealed fixture missing: {CORRUPT}")
+    text = CORRUPT.read_text()
+    rows, stated = fns["parse_report"](text)
+    got = {}
+    for _cid, g in rows:
+        got[g] = got.get(g, 0) + 1
+    check(len(rows) == 37, f"expected 37 recoverable rows, got {len(rows)}")
+    check(got.get("PASS") == 22, f"expected PASS=22 in the table, got {got}")
+    check(stated.get("PASS") == 23,
+          f"expected the file's own Summary to claim PASS=23, got {stated}")
+    # what the run that wrote it believed it had graded
+    claimed = {"HUMAN": 7, "N-A": 7, "PASS": 23, "WAIVED": 1}
+    bad = fns["report_inconsistencies"](text, 38, claimed)
+    check(bad, "report_inconsistencies MISSED the sealed corruption — the "
+               "gate cannot fail and is worthless")
+    check(any("37" in b and "38" in b for b in bad),
+          f"the finding should name the row shortfall: {bad}")
+    check(any("22" in b for b in bad),
+          f"the finding should name the grades counted from the table: {bad}")
+
+
+@test("policy_audit's report check PASSES a well-formed report")
+def t_policy_report_clean():
+    fns = _policy_fns()
+    rows = [("S-ERC", "PASS"), ("R-DRC", "PASS"), ("M1", "HUMAN"),
+            ("S-OCCL", "WAIVED"), ("R-LEN", "N-A")]
+    counts = {}
+    for _c, g in rows:
+        counts[g] = counts.get(g, 0) + 1
+    body = ["| ID | Grade | Detail |", "|---|---|---|"]
+    body += [f"| {c} | {g} | detail |" for c, g in rows]
+    body += ["", "Summary: " + ", ".join(f"{k}={v}"
+                                         for k, v in sorted(counts.items()))]
+    eq(fns["report_inconsistencies"]("\n".join(body) + "\n", len(rows), counts),
+       [], "a well-formed report must produce no findings")
+
+
+@test("policy_audit's report check FAILS when the Summary disagrees with the "
+      "table it sits under", kind="known_bad")
+def t_kb_policy_summary_drift():
+    """The independent half: even an UNCORRUPTED table whose headline was
+    computed from something other than the rows must be caught. The old
+    writer derived the Summary from the same in-memory counter that produced
+    the rows, so it could only ever agree with itself."""
+    fns = _policy_fns()
+    text = ("| ID | Grade | Detail |\n|---|---|---|\n"
+            "| S-ERC | PASS | ok |\n| R-DRC | PASS | ok |\n"
+            "\nSummary: PASS=3\n")
+    bad = fns["report_inconsistencies"](text, 2, {"PASS": 2})
+    check(bad, "a Summary claiming PASS=3 over a 2-row PASS table must FAIL")
+    check(any("Summary" in b for b in bad), f"finding should name it: {bad}")
+
+
+@test("a detail string containing a newline or a pipe cannot reshape the "
+      "table it is reported in", kind="known_bad")
+def t_kb_policy_cell_escaping():
+    """The corruption arrived by a different route, but the same file format
+    has a second way to lose a row: an unescaped '|' invents a column and a
+    newline splits the row. `cell()` neutralises both, and the read-back
+    proves it — a checker whose own output format can be broken by the text
+    it reports is not a checker."""
+    fns = _policy_fns()
+    nasty = "widths differ | 0.25mm vs\n0.2498mm"
+    rows = [("A-FIRE", "FAIL", nasty), ("R-DRC", "PASS", "0/0/0")]
+    counts = {"FAIL": 1, "PASS": 1}
+    lines = ["| ID | Grade | Detail |", "|---|---|---|"]
+    lines += [f"| {c} | {g} | {fns['cell'](d)} |" for c, g, d in rows]
+    lines += ["", "Summary: FAIL=1, PASS=1"]
+    eq(fns["report_inconsistencies"]("\n".join(lines) + "\n", 2, counts), [],
+       "escaped cells must round-trip")
+    # RED-VERIFY: without cell(), the same details lose a row
+    raw = ["| ID | Grade | Detail |", "|---|---|---|"]
+    raw += [f"| {c} | {g} | {d} |" for c, g, d in rows]
+    raw += ["", "Summary: FAIL=1, PASS=1"]
+    check(fns["report_inconsistencies"]("\n".join(raw) + "\n", 2, counts),
+          "unescaped, the newline must break the table and be CAUGHT — if "
+          "this passes, cell() is not what is doing the work")
 
 
 if __name__ == "__main__":

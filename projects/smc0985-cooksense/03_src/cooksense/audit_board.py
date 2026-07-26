@@ -21,10 +21,18 @@ re-read from the LIVE board (catches a stale 04_kicad vs 03_src):
           edge clearance) — the J_PI-off-board guard I-EDGE cannot see.
   I-SILK  every placed part has a visible refdes (F.SilkS, or F.Fab when the
           generator waived a crowded one — evidence in refdes_waiver.json).
+  I-HW    MOUNTING-HARDWARE isolation: the metal fastener stack in each
+          mounting hole is a floating 3.0mm-radius conductive disc; its
+          creepage approaches to keypad copper (a) and SELV copper (s) —
+          pads + FILLED pours, path measured AROUND outline cutouts — must
+          satisfy a+s >= 6.0mm per hole (bonded collapse: the free approach
+          alone). ENCLOSURE_BONDS_HOLES selects the conductive-chassis
+          pairing rule instead; see the constant's comment.
 
 Exit 1 on any FAIL. Run: /usr/bin/python3 03_src/cooksense/audit_board.py
+       (I-HW alone vs any board: ... audit_board.py --ihw [path])
 """
-import os, sys, math, json
+import os, sys, math, json, heapq
 import pcbnew
 
 _PROJ = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -193,6 +201,344 @@ def iso_min_creepage(b, ybound=56.0, extra_logic=None):
     return gmin, arg
 
 
+# ---- I-HW MOUNTING-HARDWARE ISOLATION (brief §4/§7 + ADR-0001, 2026-07-25) ---
+# A metal fastener in a mounting hole (M2.5 pan head + DIN125 washer + nut) is a
+# FLOATING CONDUCTOR, modelled as a conductive disc of radius HW_DISC_R_MM
+# centred on the hole. Per hole i:
+#   a_i = surface distance, hardware-disc edge -> nearest KEYPAD-domain copper
+#   s_i = surface distance, hardware-disc edge -> nearest SELV copper
+# where copper = pads + FILLED zone copper (+ tracks/vias). Zones are FILLED IN
+# MEMORY before measuring — a pads-only scan hides the pour and nearly produced
+# a false all-clear (predecessor session, 2026-07-25). The board is never saved.
+# Distances are CREEPAGE-AWARE: the path must stay on the board surface, so an
+# outline cutout (the H4 notch, commit 95db1d2) lengthens it. A straight-line
+# measure is BLIND to the notch — it reads the pre-notch and post-notch boards
+# identically (measured: H4 a=4.031mm on both) and would fail a board the notch
+# fixes, so the shortest path is computed around outline voids (visibility-graph
+# Dijkstra over outline vertices; a track candidate falls back to straight-line,
+# which is conservative — never longer than the true path).
+#
+# The fastener conducts across itself, so the series path keypad->disc->SELV
+# must satisfy a_i + s_i >= HW_GAP_MM. If the disc OVERLAPS one domain (a_i<0 or
+# s_i<0) the fastener is BONDED to it and the OTHER approach alone must be
+# >= HW_GAP_MM (both negative = a hard 0mm bridge).
+#
+# *** ENCLOSURE ASSUMPTION — READ BEFORE MOUNTING THIS BOARD IN ANYTHING ***
+# ENCLOSURE_BONDS_HOLES = False encodes the user decision (2026-07-25) that the
+# enclosure is NON-CONDUCTIVE and NO conductive plate, bracket or rail bonds two
+# or more mounting holes together. Under that assumption each fastener is an
+# isolated island and the PER-HOLE rule above applies.
+# Bolting this board into a METAL bracket / conductive chassis — anything that
+# electrically joins two or more mounting holes — is EXACTLY what invalidates
+# that assumption: flip this constant to True. The bonded plate joins all
+# fasteners into ONE conductor, so the worst keypad approach and the worst SELV
+# approach ACROSS DIFFERENT HOLES become the path, and the check becomes
+#   min_i(a_i) + min_j(s_j) >= HW_GAP_MM
+# which this board FAILS (H3/H4 hardware sits in the GND pour, s<0, while H1's
+# keypad approach is ~2.3mm). That FAIL is the correct verdict for a conductive
+# enclosure — do not waive it; re-place the holes or isolate the plate instead.
+ENCLOSURE_BONDS_HOLES = False   # user decision 2026-07-25: non-conductive enclosure
+HW_DISC_R_MM = 3.0              # fastener disc: M2.5 pan head + DIN125 washer
+HW_GAP_MM = ISO_GAP_MM          # 6.000mm — same brief §4/§7 figure as I-ISO
+HW_FPID = "MountingHole"        # FPID substring that identifies the holes (H1..H4)
+
+
+def _rings(poly):
+    """All vertex rings of a SHAPE_POLY_SET (outlines + holes), in mm."""
+    R = []
+    for i in range(poly.OutlineCount()):
+        chains = [poly.COutline(i)] + [poly.CHole(i, j)
+                                       for j in range(poly.HoleCount(i))]
+        for ch in chains:
+            R.append([(MM(ch.CPoint(k).x), MM(ch.CPoint(k).y))
+                      for k in range(ch.PointCount())])
+    return R
+
+
+def _ring_edges(rings):
+    return [(r[i], r[(i + 1) % len(r)]) for r in rings for i in range(len(r))]
+
+
+def _pt_edges(p, edges):
+    """(min distance, witness point) from point p to a list of edges, in mm."""
+    px, py = p
+    best, w = 1e18, None
+    for (ax, ay), (bx, by) in edges:
+        dx, dy = bx - ax, by - ay
+        L2 = dx * dx + dy * dy
+        t = 0.0 if L2 == 0 else max(0.0, min(1.0, ((px-ax)*dx + (py-ay)*dy) / L2))
+        qx, qy = ax + t*dx, ay + t*dy
+        d = math.hypot(px - qx, py - qy)
+        if d < best:
+            best, w = d, (qx, qy)
+    return best, w
+
+
+def _proper_x(p1, p2, p3, p4):
+    """True only for a STRICT interior crossing (touching/collinear allowed —
+    creepage legally travels ALONG an outline face; void passage is caught by
+    the containment samples in _free)."""
+    x = lambda o, a, b: (a[0]-o[0])*(b[1]-o[1]) - (a[1]-o[1])*(b[0]-o[0])
+    d1, d2, d3, d4 = x(p3, p4, p1), x(p3, p4, p2), x(p1, p2, p3), x(p1, p2, p4)
+    return (0 not in (d1, d2, d3, d4)) and ((d1 > 0) != (d2 > 0)) and ((d3 > 0) != (d4 > 0))
+
+
+def _outline_ctx(b):
+    """(edges, verts, contains) of the board outline incl. cutout voids."""
+    outl = pcbnew.SHAPE_POLY_SET()
+    if not b.GetBoardPolygonOutlines(outl, False):
+        return None
+    rings = _rings(outl)
+    edges = _ring_edges(rings)
+    verts = [v for r in rings for v in r]
+
+    def contains(x, y):
+        if outl.Contains(pcbnew.VECTOR2I(int(round(x*1e6)), int(round(y*1e6)))):
+            return True
+        return _pt_edges((x, y), edges)[0] <= 0.005   # ON the outline = surface
+    return edges, verts, contains
+
+
+def _free(p, q, ctx):
+    """Segment p->q stays on the board surface (no strict outline crossing and
+    every ~0.4mm sample point is on board / on the outline itself)."""
+    edges, _, contains = ctx
+    for a, bb in edges:
+        if _proper_x(p, q, a, bb):
+            return False
+    L = math.hypot(q[0]-p[0], q[1]-p[1])
+    n = max(3, int(L / 0.4))
+    for k in range(1, n):
+        t = k / n
+        if not contains(p[0] + t*(q[0]-p[0]), p[1] + t*(q[1]-p[1])):
+            return False
+    return True
+
+
+def _toward(c, w, r):
+    """The point of circle (c, r) nearest to w."""
+    d = math.hypot(w[0]-c[0], w[1]-c[1])
+    if d < 1e-9:
+        return c
+    return (c[0] + (w[0]-c[0]) * r/d, c[1] + (w[1]-c[1]) * r/d)
+
+
+def _circle_hits(c, r, edges):
+    """Intersections of circle (c, r) with outline edges: where the hardware
+    disc rim meets the board outline — legal creepage START points (cost 0)."""
+    out = []
+    cx, cy = c
+    for (ax, ay), (bx, by) in edges:
+        dx, dy = bx-ax, by-ay
+        fx, fy = ax-cx, ay-cy
+        A = dx*dx + dy*dy
+        if A == 0:
+            continue
+        B, C = 2*(fx*dx + fy*dy), fx*fx + fy*fy - r*r
+        disc = B*B - 4*A*C
+        if disc < 0:
+            continue
+        sq = math.sqrt(disc)
+        for t in ((-B-sq)/(2*A), (-B+sq)/(2*A)):
+            if 0.0 <= t <= 1.0:
+                out.append((ax + t*dx, ay + t*dy))
+    return out
+
+
+def _hw_creepage(c, r, tgt_edges, ctx):
+    """Shortest surface path (mm) from the rim of disc (c, r) to the target
+    copper polygon, around outline voids. Caller pre-handles the bonded case
+    (centre-to-copper <= r)."""
+    dc, w = _pt_edges(c, tgt_edges)
+    if dc <= r:
+        return dc - r
+    if _free(_toward(c, w, r), w, ctx):
+        return dc - r                       # straight path is on-surface
+    edges, verts, _ = ctx
+    # visibility-graph nodes: outline vertices near the hole + disc-rim/outline
+    # intersection points (where the metal meets the surface: start cost 0)
+    nodes, cost = [], []
+    for v in verts + _circle_hits(c, r, edges):
+        dv = math.hypot(v[0]-c[0], v[1]-c[1])
+        if dv > 30.0:
+            continue                        # can't beat any plausible best
+        if dv <= r + 1e-9:
+            nodes.append(v); cost.append(0.0)   # under the disc: bonded start
+        elif _free(_toward(c, v, r), v, ctx):
+            nodes.append(v); cost.append(dv - r)
+        else:
+            nodes.append(v); cost.append(math.inf)
+    best = math.inf
+    h = [(cst, i) for i, cst in enumerate(cost) if cst < math.inf]
+    heapq.heapify(h)
+    done = set()
+    while h:
+        cst, i = heapq.heappop(h)
+        if i in done or cst >= best:
+            continue
+        done.add(i)
+        vi = nodes[i]
+        dt, wt = _pt_edges(vi, tgt_edges)
+        if cst + dt < best and _free(vi, wt, ctx):
+            best = cst + dt
+        for j, nj in enumerate(nodes):
+            if j in done:
+                continue
+            wgt = math.hypot(nj[0]-vi[0], nj[1]-vi[1])
+            if cst + wgt < cost[j] and cst + wgt < best and _free(vi, nj, ctx):
+                cost[j] = cst + wgt
+                heapq.heappush(h, (cost[j], j))
+    return best if best < math.inf else dc - r   # never below the straight bound
+
+
+def ihw_measure(b):
+    """FILL zones on the in-memory board (never saved), then per mounting hole
+    measure a (keypad approach) and s (SELV approach) from the hardware-disc
+    edge. Returns [(ref, a_mm, s_mm, a_label, s_label), ...] sorted by ref."""
+    pcbnew.ZONE_FILLER(b).Fill(b.Zones())
+    ctx = _outline_ctx(b)
+    holes = sorted((f for f in b.GetFootprints()
+                    if HW_FPID in str(f.GetFPID().GetUniStringLibId())),
+                   key=lambda f: f.GetReference())
+    dom_of = lambda n: "kp" if n in KEYPAD_NETS else ("selv" if n else None)
+    # copper inventory: (domain, label, polyset-or-None, seg+halfwidth-or-None)
+    items = []
+    for f in b.GetFootprints():
+        for p in f.Pads():
+            d = dom_of(p.GetNetname())
+            if d:
+                items.append((d, f"pad {f.GetReference()}.{p.GetNumber()} "
+                                 f"{p.GetNetname()}",
+                              p.GetEffectivePolygon(p.GetLayer()), None))
+    for t in b.GetTracks():
+        d = dom_of(t.GetNetname())
+        if not d:
+            continue
+        if t.GetClass() == "PCB_VIA":
+            x, y = MM(t.GetPosition().x), MM(t.GetPosition().y)
+            seg = (x, y, x, y)
+        else:
+            s, e = t.GetStart(), t.GetEnd()
+            seg = (MM(s.x), MM(s.y), MM(e.x), MM(e.y))
+        items.append((d, f"track {t.GetNetname()}", None,
+                      (seg, MM(t.GetWidth()) / 2)))
+    for z in b.Zones():
+        if z.GetIsRuleArea():
+            continue
+        d = dom_of(z.GetNetname())
+        if not d:
+            continue
+        for lay in z.GetLayerSet().Seq():
+            if not pcbnew.IsCopperLayer(lay):
+                continue
+            poly = z.GetFilledPolysList(lay)
+            if poly.OutlineCount():
+                items.append((d, f"zone {z.GetNetname()} "
+                                 f"{pcbnew.BOARD.GetStandardLayerName(lay)}",
+                              poly, None))
+    rows = []
+    for hf in holes:
+        pt = hf.GetPosition()
+        c = (MM(pt.x), MM(pt.y))
+        res = {}
+        for dom in ("kp", "selv"):
+            # straight-line disc-edge distances first (a LOWER bound on the
+            # surface path), then geodesics in ascending order with early exit
+            cands = []
+            for d, label, poly, segw in items:
+                if d != dom:
+                    continue
+                if poly is not None:
+                    if poly.Contains(pt):
+                        ds = -HW_DISC_R_MM
+                    else:
+                        ds = math.sqrt(poly.SquaredDistance(pt)) / 1e6 - HW_DISC_R_MM
+                else:
+                    (x1, y1, x2, y2), hw = segw
+                    ds = _seg_pt(c[0], c[1], x1, y1, x2, y2) - hw - HW_DISC_R_MM
+                cands.append((ds, label, poly))
+            cands.sort(key=lambda t: t[0])
+            best, blab = 1e9, "no copper in domain"
+            for ds, label, poly in cands:
+                if ds >= best:
+                    break                    # straight bound can't improve
+                if ds <= 0 or poly is None or ctx is None:
+                    g = ds  # bonded / track (straight fallback, conservative)
+                else:
+                    g = _hw_creepage(c, HW_DISC_R_MM,
+                                     _ring_edges(_rings(poly)), ctx)
+                if g < best:
+                    best, blab = g, label
+            res[dom] = (best, blab)
+        rows.append((hf.GetReference(), res["kp"][0], res["selv"][0],
+                     res["kp"][1], res["selv"][1]))
+    return rows
+
+
+def ihw_verdicts(rows):
+    """Apply the ENCLOSURE_BONDS_HOLES-selected rule. Returns (fails, notes) —
+    measured a/s per hole is reported in BOTH (margins, not green ticks)."""
+    fails, notes = [], []
+    if not rows:
+        fails.append(f"I-HW no '{HW_FPID}' footprints found (FPID scan broken?)")
+        return fails, notes
+    for ref, a, s, la, ls in rows:
+        if a < 0 and s < 0:
+            ok, req = False, "BONDED to BOTH domains (0mm bridge)"
+        elif s < 0:
+            ok, req = a >= HW_GAP_MM - 1e-6, f"SELV-bonded -> a alone {a:.3f}"
+        elif a < 0:
+            ok, req = s >= HW_GAP_MM - 1e-6, f"keypad-bonded -> s alone {s:.3f}"
+        else:
+            ok, req = a + s >= HW_GAP_MM - 1e-6, f"a+s {a+s:.3f}"
+        line = (f"I-HW {ref} a={a:.3f}mm ({la}) s={s:.3f}mm ({ls}) -> {req} "
+                f"{'>=' if ok else '<'} {HW_GAP_MM:.3f} {'PASS' if ok else 'FAIL'}")
+        (notes if ok else fails).append(line)
+    mina = min(r[1] for r in rows)
+    mins = min(r[2] for r in rows)
+    if mina < 0 and mins < 0:
+        peff, pok = 0.0, False
+    elif mins < 0:
+        peff, pok = mina, mina >= HW_GAP_MM - 1e-6
+    elif mina < 0:
+        peff, pok = mins, mins >= HW_GAP_MM - 1e-6
+    else:
+        peff, pok = mina + mins, mina + mins >= HW_GAP_MM - 1e-6
+    if ENCLOSURE_BONDS_HOLES:
+        line = (f"I-HW PAIRING (ENCLOSURE_BONDS_HOLES=True): min_a={mina:.3f} "
+                f"min_s={mins:.3f} -> {peff:.3f}mm vs {HW_GAP_MM:.3f} "
+                f"{'PASS' if pok else 'FAIL'}")
+        if pok:
+            notes.append(line)
+        else:
+            fails.append(line + " — a conductive bracket/chassis bonds the "
+                         "fasteners into one conductor; this board does NOT "
+                         "meet 6mm through bonded hardware. Do not waive: "
+                         "isolate the plate or re-place the holes.")
+    else:
+        notes.append(f"I-HW pairing branch INACTIVE (non-conductive enclosure "
+                     f"assumption); a bonded chassis would measure min_a "
+                     f"{mina:.3f} + min_s {mins:.3f} -> {peff:.3f}mm "
+                     f"({'PASS' if pok else 'FAIL'}) — flip "
+                     f"ENCLOSURE_BONDS_HOLES if that assumption dies")
+    return fails, notes
+
+
+def ihw_run(path):
+    """I-HW alone against an arbitrary board (tests / red-verify). Exit 1 on FAIL."""
+    b = pcbnew.LoadBoard(path)
+    fails, notes = ihw_verdicts(ihw_measure(b))
+    for n in notes:
+        print("  note:", n)
+    if fails:
+        print("I-HW FAIL")
+        for x in fails:
+            print("  ", x)
+        sys.exit(1)
+    print("I-HW PASS")
+    sys.exit(0)
+
+
 def selftest():
     """KNOWN-BAD (canon: a gate that cannot fail is worthless). Inject a synthetic
     SELV-logic track into keypad POCKET p1 (F.Cu, y44, x45..52) — ~1.5mm from
@@ -347,6 +693,14 @@ def main():
     if no_silk:
         fails.append(f"I-SILK refdes not visible on F.SilkS/F.Fab: {sorted(no_silk)[:8]}")
 
+    # ---------- I-HW : mounting-hardware isolation ----------
+    # LAST because ihw_measure FILLS the zones on the in-memory board (never
+    # saved) — earlier checks must see the board exactly as loaded.
+    hw_rows = ihw_measure(b)
+    hf, hn = ihw_verdicts(hw_rows)
+    fails += hf
+    notes += hn
+
     # ---------- report ----------
     for n in notes: print("  note:", n)
     if fails:
@@ -356,10 +710,14 @@ def main():
     print(f"AUDIT PASS: {len(POLARIZED)+len(RELAY_CONTACT)} polarity, {len(PROX)} proximity, "
           f"{len(EDGE)} edge, I-OUT tightest {owm:.2f}mm (>= {OUT_CLR}), "
           f"I-ISO gap {gmin:.2f}mm (>= {ISO_GAP_MM}), "
-          f"0 strip intruders, {len(fps)} silk")
+          f"0 strip intruders, {len(hw_rows)} hw holes, {len(fps)} silk")
 
 
 if __name__ == "__main__":
-    if "--selftest" in sys.argv[1:]:
+    argv = sys.argv[1:]
+    if "--selftest" in argv:
         selftest()          # known-bad: prove the track-aware I-ISO CAN fail
+    if "--ihw" in argv:     # I-HW alone vs an arbitrary board (tests/red-verify)
+        i = argv.index("--ihw")
+        ihw_run(argv[i + 1] if len(argv) > i + 1 else BOARD)
     main()

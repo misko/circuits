@@ -52,14 +52,31 @@ minimum, no JLC internal-cutout surcharge. (An internal slot is not even
 manufacturable there: the corridor between H4's hardware edge at x196.0 and
 K_STOP.3's pad edge at x196.55 is 0.55 mm, narrower than any router bit.)
 
-MEASURED on filled copper after the notch, hardware r = 3.0 mm:
+MEASURED on filled copper after the notch, hardware r = 3.0 mm, by `I-HW`
+(`audit_board.py --ihw`, 2026-07-25):
 
 | hole | a (keypad) | s (SELV) | governing figure | verdict |
 |---|---|---|---|---|
-| H1 | 2.301 (J_KEY_MATRIX.1) | 13.429 (K_U1.2) | a+s = 15.729 | PASS |
-| H2 | 3.080 (R_STOP.2) | 13.000 (K_STOP.1) | a+s = 16.080 | PASS |
-| H3 | 40.855 (K_U1.4) | -1.450 (GND pour) | a = 40.855 | PASS |
-| H4 | 8.500 (around the notch) | -1.450 (GND pour) | a = 8.500 | PASS |
+| H1 | 2.305 (J_KEY_MATRIX.1, KP_U1) | 13.631 (K_U1.2) | a+s = 15.936 | PASS |
+| H2 | 3.129 (R_STOP.2, KP_D1) | 13.000 (K_STOP.1) | a+s = 16.129 | PASS |
+| H3 | 40.933 (K_U1.4) | -1.450 (GND pour) | a = 40.933 | PASS |
+| H4 | **6.598** (K_STOP.3, RSTOP_MID; around the notch) | -1.450 (GND pour) | a = 6.598 | PASS |
+
+**H4's real margin is 0.598 mm, not the 2.5 mm previously recorded.** The
+figure of 8.500 mm in commit 95db1d2 does not reproduce and no geometry
+recovers it; the shortest legal surface path around the notch's west face,
+allowing the fastener disc to overhang the notch end, is 6.598 mm (hand check:
+0.602 + 6.004 − 0.008 ≈ 6.6). The verdict direction is unchanged — H4 PASSES —
+but anything that grows keypad copper near H4, or shrinks the notch, has
+0.598 mm of room, not 2.5 mm. Treat H4 as the tight hole.
+
+A second method note, learned the same day: **a straight-line distance metric
+cannot see the notch at all.** It measures the pre-notch and notched boards
+identically (H4 a = 4.031 mm on both) — so it would fail the very board the
+notch fixes, and it would have "passed" the pre-notch board on any threshold
+loose enough to pass this one. I-HW therefore measures the SURFACE PATH around
+outline cutouts (visibility-graph shortest path over outline vertices and
+disc-rim/outline intersections), which is what creepage actually is.
 
 **No pour pullback was added at H3/H4 and none is wanted.** At both holes the
 fastener is SELV-bonded, so the requirement is `a` alone; pulling the plane back

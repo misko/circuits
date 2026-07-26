@@ -720,13 +720,29 @@ class BoardBuilder:
         downstream and nothing forced it to run; this makes the placement stage
         refuse to hand on a board that is already electrically dead.
 
-        Two findings, both hard:
-          * SHORT      — copper of two pads on DIFFERENT nets overlaps.
-          * PINNED-LAP — two ANCHORED footprints' courtyards overlap. The
-                         legalizer cannot resolve this one, so it is a source
-                         defect in floorplan.yaml, not a density accident.
-        Floating-vs-anything courtyard overlap is NOT reported: resolving that
-        is the legalizer's job and it is allowed to leave tight packing."""
+        Two findings, DELIBERATELY graded differently:
+          * SHORT (FATAL)   — copper of two pads on DIFFERENT nets overlaps.
+                              There is no such thing as an acceptable short, so
+                              there is no waiver and no threshold.
+          * PINNED-LAP (WARN) — two ANCHORED footprints' courtyards overlap.
+                              The legalizer cannot resolve this one, so it is a
+                              source defect in floorplan.yaml rather than a
+                              density accident, and naming the two ANCHORS is
+                              diagnosis that DRC's `courtyards_overlap` does not
+                              give you. It is a warning and not a build failure
+                              because canon P1/P-CRT ALREADY owns courtyard
+                              overlap at full-severity DRC, which every board
+                              must pass — and because MEASURED against the fleet
+                              on 2026-07-25 two existing boards carry anchored
+                              courtyard overlap with NO pad short: usb-hub-3s-v2
+                              RS3<->Q6 (0.470 x 3.950 mm) and the cooksense
+                              interposer's deliberately-packed test-point array
+                              (18 pairs at 0.053 x 2.592 mm). Making it fatal
+                              here would retro-break two boards to duplicate a
+                              gate that already exists. The capability no gate
+                              had is the SHORT.
+        Floating-vs-anything courtyard overlap is NOT reported at all: resolving
+        that is the legalizer's job and it is allowed to leave tight packing."""
         pads = []
         for f in self.board.GetFootprints():
             for p in f.Pads():
@@ -771,7 +787,12 @@ class BoardBuilder:
                                          - max(ba.GetLeft(), bb.GetLeft())),
                              pcbnew.ToMM(min(ba.GetBottom(), bb.GetBottom())
                                          - max(ba.GetTop(), bb.GetTop()))))
-        if shorts or laps:
+        for a, b, ox, oy in sorted(laps):
+            print(f"WARN P-COLLIDE PINNED-LAP {a} <-> {b}: courtyards overlap "
+                  f"by {ox:.3f} x {oy:.3f} mm — both are ANCHORED, so the "
+                  f"legalizer cannot fix it; fix placement.anchors "
+                  f"(full-severity DRC will fail this as courtyards_overlap)")
+        if shorts:
             msg = ["P-COLLIDE: this placement is electrically dead."]
             for r1, pn1, n1, r2, pn2, n2, ox, oy in sorted(shorts):
                 msg.append(f"  SHORT      {r1}.{pn1} [{n1}] <-> {r2}.{pn2} "
@@ -782,8 +803,9 @@ class BoardBuilder:
                            f"{ox:.3f} x {oy:.3f} mm — both are ANCHORED, so the "
                            f"legalizer cannot fix it: fix placement.anchors")
             die("\n".join(msg))
-        self.say(f"P-COLLIDE: 0 pad shorts, 0 anchored courtyard overlaps "
-                 f"({len(pads)} copper pads, {len(pin)} anchored parts)")
+        self.say(f"P-COLLIDE: 0 pad shorts, {len(laps)} anchored courtyard "
+                 f"overlap(s) ({len(pads)} copper pads, {len(pin)} anchored "
+                 f"parts)")
 
     def check_pads_present(self):
         board_pads = {(f.GetReference(), p.GetNumber())

@@ -606,7 +606,7 @@ def t_corridor_bad_side():
 def t_collide_clean():
     d = tmpdir("gbg_")
     r = gen(LC / "03_src" / "floorplan.yaml", d / "b.kicad_pcb")
-    contains(r.out, "P-COLLIDE: 0 pad shorts, 0 anchored courtyard overlaps",
+    contains(r.out, "P-COLLIDE: 0 pad shorts, 0 anchored courtyard overlap",
              "generator stdout")
 
 
@@ -634,6 +634,28 @@ def t_collide_names_the_nets():
     txt = r.out
     for want in ("J1", "J2"):
         contains(txt, want, "P-COLLIDE names the colliding refs")
+
+
+@test("P-COLLIDE WARNS on an anchored courtyard overlap with no pad short, "
+      "and still builds")
+def t_collide_pinned_lap_warns():
+    """Calibration lock. Courtyard overlap is canon P1/P-CRT's, enforced at
+    full-severity DRC on every board; duplicating it as a generator FAILURE
+    would retro-break boards that legitimately pack anchored parts tight
+    (MEASURED 2026-07-25: usb-hub-3s-v2 RS3<->Q6 0.470 x 3.950 mm, and the
+    cooksense interposer's test-point array, 18 pairs at 0.053 x 2.592 mm —
+    neither has a pad short). The FATAL half is the SHORT."""
+    # slide J2 into J1's courtyard, but not far enough for pads to touch:
+    # B3B-XH courtyard is 10.99 wide on an 11.1mm pitch, pads at 2.5mm pitch.
+    def mutate(c):
+        a = c["placement"]["anchors"]
+        a["J2"] = [a["J1"][0] + 10.6, a["J1"][1], a["J1"][2]]
+    d, cfg = scratch_config(mutate)
+    r = gen(cfg, d / "b.kicad_pcb")            # must SUCCEED
+    contains(r.out, "WARN P-COLLIDE PINNED-LAP", "generator stdout")
+    contains(r.out, "0 pad shorts", "generator stdout")
+    check("electrically dead" not in r.out,
+          f"a courtyard overlap with no short must not be fatal: {r.out}")
 
 
 # ------------------------------------------------------- edge-reaching notch
