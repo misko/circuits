@@ -1,0 +1,6 @@
+== A-POP assembly_coverage:  ==
+  board=129 footprints, cpl=119 placements, unpopulated=10 (declared=3, consigned=0, exempt_prefixes=['H', 'TP', 'FID', 'MH'])
+  placement histogram: top=119
+  A-POS datum: 119 CPL row(s) graded against the pad-array centre, worst = 0.00050mm (Q6), tolerance 0.05mm
+  MANIFEST-UNDECLARED: the release MANIFEST carries no `not_assembled:` line while the board has unpopulated parts — the population decision must be visible in the order paperwork
+A-POP: FAIL (1 finding(s))

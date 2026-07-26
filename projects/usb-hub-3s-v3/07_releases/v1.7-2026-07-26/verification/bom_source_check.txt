@@ -1,0 +1,3 @@
+BOM-vs-source: 07_releases/v1.7-2026-07-26/fab/bom.csv
+  source: 03_tscircuit/build/circuit.json (122 coded refdes); vendored: 29 part.yaml codes; ledger: 142 vetted passive codes; not_assembled: 3 declared refdes (F1, R42, SW1...)
+BOM SOURCE CHECK: PASS (every BOM LCSC == source)

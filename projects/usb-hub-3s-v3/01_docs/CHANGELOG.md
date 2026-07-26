@@ -2,6 +2,60 @@
 
 Board internal name `usb_hub_3s_v2`; project directory `usb-hub-3s-v3`.
 
+## v1.7 — 2026-07-26
+
+Released: `07_releases/v1.7-2026-07-26/`. **VERIFICATION-COMPLETE supersede of
+v1.6-2026-07-26.** v1.6 gains `SUPERSEDED.md`; it is otherwise immutable.
+
+**THE FAB PAYLOAD IS BYTE-IDENTICAL to v1.6** — `fab/bom.csv`, `fab/cpl.csv`, the
+13-file gerber zip and both drill files are the same bytes, verified by `diff -r`.
+**The board is not changed and v1.6's board was not wrong.** This is an
+evidence-completeness supersede, not a fab defect.
+
+### What was wrong
+
+v1.6 shipped **13** verification files where v1.5 shipped **34**. The MANIFEST
+asserted DRC 0/0/0, twin 119/119, passives 26/26, A-STOCK and freshness — while
+the release carried no `drc.json`, no `erc.json`, no `bom_source_check.txt`, no
+stock check, and no **`manifest_selfcheck.txt`**, the artifact whose entire job is
+proving the manifest's PROSE matches its MACHINE EVIDENCE. The release asserted
+its own gate results with the evidence stripped out.
+
+**Two distinct causes, diagnosed rather than papered over:**
+
+1. **Generated, never staged.** All six `twin_*.png` existed in `06_build/twin/`
+   dated 01:02 the same day. The staging step did not carry them. A copy miss.
+2. **Never produced at all.** `render_top_bare.png` / `render_bottom_bare.png`
+   existed nowhere outside v1.5 — a **skipped stage**. And the nine machine-
+   evidence files (`drc.json`, `erc.json`, `audit.txt`, `bom_source_check.txt`,
+   `stock_check.{json,txt}`, `release_freshness.txt`, `manifest_selfcheck.txt`,
+   `standalone_archive_drc.json`) existed nowhere under `06_build`: the gates ran
+   and their output went to **stdout**, never to an artifact. A number in a chat
+   message is not evidence.
+
+### And the missing evidence hid a real defect
+
+v1.6's `source/fp-lib-table` was copied raw from `04_kicad/` and points at
+`${KIPRJMOD}/../03_src/lib/...`, which **does not exist inside the archive**.
+Extracted on its own, v1.6's archive yields **12 `lib_footprint_issues`** (DRC)
+and **12 `footprint_link_issues`** (ERC). v1.5 rewrote that table to
+`${KIPRJMOD}/`; v1.6 did not. The gate that catches exactly this is
+`standalone_archive_drc.json` — **one of the 21 files v1.6 was missing**. v1.7
+fixes the table and ships the proof: standalone archive DRC **0/0/0**, extracted
+to a bare directory with no project around it.
+
+### Why no gate caught it
+
+**M-REL requires only that `verification/` exist and be non-empty.** Thirteen
+files satisfied it. A directory-presence check cannot see a missing artifact —
+the same shape as `jlc_twin` exiting 0 on 11 parts it never verified. A
+required-artifact-list check is proposed (not landed) in the seal commit.
+
+### v1.7 verification set
+
+34 files, matching v1.5's list exactly (`comm -23` empty), plus the gates re-run
+against the **shipped artifact** rather than the working tree.
+
 ## v1.6 — 2026-07-26
 
 ### THE TARGET IS A RASPBERRY PI 4, NOT A PI 5 (ADR-0004)

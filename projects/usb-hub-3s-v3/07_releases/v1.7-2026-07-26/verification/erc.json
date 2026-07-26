@@ -1,0 +1,3353 @@
+{
+    "$schema": "https://schemas.kicad.org/erc.v1.json",
+    "coordinate_units": "mm",
+    "date": "2026-07-26T09:05:55",
+    "ignored_checks": [
+        {
+            "description": "Global label only appears once in the schematic",
+            "key": "single_global_label"
+        },
+        {
+            "description": "Four connection points are joined together",
+            "key": "four_way_junction"
+        },
+        {
+            "description": "SPICE model issue",
+            "key": "simulation_model_issue"
+        },
+        {
+            "description": "Assigned footprint doesn't match footprint filters",
+            "key": "footprint_filter"
+        }
+    ],
+    "included_severities": [
+        "error",
+        "warning",
+        "exclusion"
+    ],
+    "kicad_version": "10.0.4",
+    "sheets": [
+        {
+            "path": "/",
+            "uuid_path": "/fbf61638-c175-44f4-91bd-0798543b9f71",
+            "violations": [
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR47 [GND]",
+                            "pos": {
+                                "x": 0.2921,
+                                "y": 1.0795
+                            },
+                            "uuid": "a2f29a40-2570-408f-8c54-73f1cb38fc7e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR70 [GND]",
+                            "pos": {
+                                "x": 0.3048,
+                                "y": 1.8288
+                            },
+                            "uuid": "1d03f7b8-4527-4b5d-844d-1a8b99b0578b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR76 [GND]",
+                            "pos": {
+                                "x": 0.3048,
+                                "y": 2.0955
+                            },
+                            "uuid": "5421a713-5b60-42a5-bb94-6613cce91e0a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C1 [SYM_C1]",
+                            "pos": {
+                                "x": 0.3683,
+                                "y": 0.2667
+                            },
+                            "uuid": "731c59a6-eb39-461b-9abf-c7c6fbb2983b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol D12 [SYM_D12]",
+                            "pos": {
+                                "x": 0.381,
+                                "y": 1.0795
+                            },
+                            "uuid": "b4c5cc8e-fa95-41a4-b4a7-47684732129f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R1 [SYM_R1]",
+                            "pos": {
+                                "x": 0.381,
+                                "y": 1.5494
+                            },
+                            "uuid": "1620a188-6f3b-4f1b-a716-16d198f3108d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C20 [SYM_C20]",
+                            "pos": {
+                                "x": 0.3937,
+                                "y": 0.5334
+                            },
+                            "uuid": "da59eefc-ccb9-4089-a1b6-8ca03aa2f8f7"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C39 [SYM_C39]",
+                            "pos": {
+                                "x": 0.3937,
+                                "y": 0.8128
+                            },
+                            "uuid": "a57b305d-8d34-410d-8861-40a83b4126b9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R19 [SYM_R19]",
+                            "pos": {
+                                "x": 0.3937,
+                                "y": 1.8288
+                            },
+                            "uuid": "9ab36980-d2de-42e2-8abb-ce877f5ad1d1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol SW1 [SYM_SW1]",
+                            "pos": {
+                                "x": 0.4064,
+                                "y": 2.1082
+                            },
+                            "uuid": "fd206f81-08a5-4bad-9f7b-71311c76c6b8"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR01 [GND]",
+                            "pos": {
+                                "x": 0.4699,
+                                "y": 0.2667
+                            },
+                            "uuid": "83dfa575-526a-4e20-a76c-970402bca80a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #FLG01 [PWR_FLAG]",
+                            "pos": {
+                                "x": 0.4699,
+                                "y": 0.2667
+                            },
+                            "uuid": "e8c3f4dc-1dbd-44df-86e1-590960da344b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR62 [GND]",
+                            "pos": {
+                                "x": 0.4699,
+                                "y": 1.5494
+                            },
+                            "uuid": "e19f1909-11ce-4175-9ba2-7ec40909a864"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR33 [GND]",
+                            "pos": {
+                                "x": 0.4826,
+                                "y": 0.8128
+                            },
+                            "uuid": "025ad8ab-da84-48ab-8d6d-80e402ae6f45"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C2 [SYM_C2]",
+                            "pos": {
+                                "x": 0.8382,
+                                "y": 0.2667
+                            },
+                            "uuid": "912f33a6-453b-4012-a514-995d664b1610"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR77 [GND]",
+                            "pos": {
+                                "x": 0.8382,
+                                "y": 2.2225
+                            },
+                            "uuid": "cf1b6e34-bc2c-4dbf-babe-c817393736d1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR78 [GND]",
+                            "pos": {
+                                "x": 0.8382,
+                                "y": 2.3495
+                            },
+                            "uuid": "e73d426b-31b6-41c1-9b47-5ae97c311dc2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R2 [SYM_R2]",
+                            "pos": {
+                                "x": 0.8509,
+                                "y": 1.5494
+                            },
+                            "uuid": "1787165a-1bff-400a-9770-9f1e56990fac"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C21 [SYM_C21]",
+                            "pos": {
+                                "x": 0.8763,
+                                "y": 0.5334
+                            },
+                            "uuid": "bb831483-89ed-410d-a325-1d0f076c0059"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol F1 [SYM_F1]",
+                            "pos": {
+                                "x": 0.889,
+                                "y": 1.0795
+                            },
+                            "uuid": "53014051-7048-4462-9333-a28c1e582b65"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R20 [SYM_R20]",
+                            "pos": {
+                                "x": 0.889,
+                                "y": 1.8288
+                            },
+                            "uuid": "4eebf895-b698-4296-8a89-fcfbd3c1489a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C40 [SYM_C40]",
+                            "pos": {
+                                "x": 0.9017,
+                                "y": 0.8128
+                            },
+                            "uuid": "3246fbf2-ea72-4ed5-a713-eb9a78135649"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U2 [SYM_U2]",
+                            "pos": {
+                                "x": 0.9271,
+                                "y": 2.2225
+                            },
+                            "uuid": "3416c64e-b9ad-4783-b231-b069025d0066"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR02 [GND]",
+                            "pos": {
+                                "x": 0.9398,
+                                "y": 0.2667
+                            },
+                            "uuid": "f9ced5c6-dde4-4c32-b72e-a9dc45357308"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR63 [GND]",
+                            "pos": {
+                                "x": 0.9398,
+                                "y": 1.5494
+                            },
+                            "uuid": "0380cfe3-af49-4c0c-8431-15143aa2cf74"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR16 [GND]",
+                            "pos": {
+                                "x": 0.9652,
+                                "y": 0.5334
+                            },
+                            "uuid": "23fd76eb-4570-4fd6-bbc5-2eeb1421e949"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR71 [GND]",
+                            "pos": {
+                                "x": 0.9779,
+                                "y": 1.8288
+                            },
+                            "uuid": "cbf6076c-eb43-4a88-9503-f2f230c83344"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR34 [GND]",
+                            "pos": {
+                                "x": 0.9906,
+                                "y": 0.8128
+                            },
+                            "uuid": "bd409ac3-5c3c-40ca-a626-d72c398699d0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR79 [GND]",
+                            "pos": {
+                                "x": 1.016,
+                                "y": 2.1463
+                            },
+                            "uuid": "f7fb0a07-3a45-4745-b61e-a31e1cf37f8c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR80 [GND]",
+                            "pos": {
+                                "x": 1.016,
+                                "y": 2.2225
+                            },
+                            "uuid": "95df74ac-fd92-462e-8978-622e621b88dc"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR81 [GND]",
+                            "pos": {
+                                "x": 1.016,
+                                "y": 2.3241
+                            },
+                            "uuid": "d6b6edc6-89aa-4130-b6b9-dd9810228dc3"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R3 [SYM_R3]",
+                            "pos": {
+                                "x": 1.3208,
+                                "y": 1.5494
+                            },
+                            "uuid": "8c880018-62fc-48a5-bee5-0e38621d5d96"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C3 [SYM_C3]",
+                            "pos": {
+                                "x": 1.3335,
+                                "y": 0.2667
+                            },
+                            "uuid": "ca225f95-7ae0-4b35-8aa2-7be8894b4d4d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR82 [GND]",
+                            "pos": {
+                                "x": 1.3462,
+                                "y": 2.0955
+                            },
+                            "uuid": "89057152-613a-403e-b2e3-b76c552c8b71"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C22 [SYM_C22]",
+                            "pos": {
+                                "x": 1.3589,
+                                "y": 0.5334
+                            },
+                            "uuid": "a1a55c32-7562-4bde-87f4-de53bfa8e59d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R21 [SYM_R21]",
+                            "pos": {
+                                "x": 1.3716,
+                                "y": 1.8288
+                            },
+                            "uuid": "77a95753-501b-45f1-9e2c-cba7d8442447"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C41 [SYM_C41]",
+                            "pos": {
+                                "x": 1.4097,
+                                "y": 0.8128
+                            },
+                            "uuid": "787cc297-2a9f-4ff7-be54-9f5f4f1ff564"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol F2 [SYM_F2]",
+                            "pos": {
+                                "x": 1.4097,
+                                "y": 1.0795
+                            },
+                            "uuid": "14518181-05f1-4e62-b43a-06b79422ab94"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR03 [GND]",
+                            "pos": {
+                                "x": 1.4224,
+                                "y": 0.2667
+                            },
+                            "uuid": "3fc8b670-af94-4d3e-bda4-e61d16b64b93"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U3 [SYM_U3]",
+                            "pos": {
+                                "x": 1.4351,
+                                "y": 2.1463
+                            },
+                            "uuid": "0501a59c-149e-421c-9719-1b288127e3cd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR72 [GND]",
+                            "pos": {
+                                "x": 1.4605,
+                                "y": 1.8288
+                            },
+                            "uuid": "10c7cb28-47fa-438e-8520-5015b29d364b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR35 [GND]",
+                            "pos": {
+                                "x": 1.4986,
+                                "y": 0.8128
+                            },
+                            "uuid": "03d5e6e2-e4c5-4d9f-b441-8a4ce6922e35"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR83 [GND]",
+                            "pos": {
+                                "x": 1.524,
+                                "y": 2.1717
+                            },
+                            "uuid": "f881c414-5132-47b8-8b2c-f52d74bb4344"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R4 [SYM_R4]",
+                            "pos": {
+                                "x": 1.778,
+                                "y": 1.5494
+                            },
+                            "uuid": "1ee16ce8-f337-4f8e-93c0-e92470e5df72"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR48 [GND]",
+                            "pos": {
+                                "x": 1.8034,
+                                "y": 1.0795
+                            },
+                            "uuid": "189dc011-e1dd-4472-af2c-a8ae69785854"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C4 [SYM_C4]",
+                            "pos": {
+                                "x": 1.8288,
+                                "y": 0.2667
+                            },
+                            "uuid": "a61758be-a311-4885-a009-ea7565ec3350"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR84 [GND]",
+                            "pos": {
+                                "x": 1.8415,
+                                "y": 2.0955
+                            },
+                            "uuid": "2063ef16-e8cb-4e86-be67-b183d24bf7b7"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C23 [SYM_C23]",
+                            "pos": {
+                                "x": 1.8542,
+                                "y": 0.5334
+                            },
+                            "uuid": "f28095aa-0317-4b81-92a3-499f365e2b7d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R22 [SYM_R22]",
+                            "pos": {
+                                "x": 1.8542,
+                                "y": 1.8288
+                            },
+                            "uuid": "977129d1-2c7e-4fed-9c3e-e688a4ecea30"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR64 [GND]",
+                            "pos": {
+                                "x": 1.8669,
+                                "y": 1.5494
+                            },
+                            "uuid": "761020b3-e25d-4dc4-9458-bce9b18f57c9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J1 [SYM_J1]",
+                            "pos": {
+                                "x": 1.8923,
+                                "y": 1.0795
+                            },
+                            "uuid": "343a3650-99d3-4065-a996-c9bae8416e11"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C42 [SYM_C42]",
+                            "pos": {
+                                "x": 1.905,
+                                "y": 0.8128
+                            },
+                            "uuid": "d16b8b2c-c14b-4df3-afad-c92c5debaabd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U4 [SYM_U4]",
+                            "pos": {
+                                "x": 1.9304,
+                                "y": 2.1463
+                            },
+                            "uuid": "d97cefd0-abd2-4ee3-bc38-863a66d390a6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR17 [GND]",
+                            "pos": {
+                                "x": 1.9431,
+                                "y": 0.5334
+                            },
+                            "uuid": "eed72233-f8ba-43d9-851f-50093357105b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR73 [GND]",
+                            "pos": {
+                                "x": 1.9431,
+                                "y": 1.8288
+                            },
+                            "uuid": "67f2c665-c6ae-4152-97ce-97899fc9752a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR36 [GND]",
+                            "pos": {
+                                "x": 1.9939,
+                                "y": 0.8128
+                            },
+                            "uuid": "82ec1df7-57e3-4705-a6ff-291d2601d403"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR85 [GND]",
+                            "pos": {
+                                "x": 2.0193,
+                                "y": 2.1717
+                            },
+                            "uuid": "e2038c79-9894-42a9-b44b-9a09ce114a78"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R5 [SYM_R5]",
+                            "pos": {
+                                "x": 2.2733,
+                                "y": 1.5494
+                            },
+                            "uuid": "3570ff15-5892-405a-8228-fedfe12ca49f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C5 [SYM_C5]",
+                            "pos": {
+                                "x": 2.3241,
+                                "y": 0.2667
+                            },
+                            "uuid": "fe887794-b078-47a2-8e08-1e9ed3d27a58"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C24 [SYM_C24]",
+                            "pos": {
+                                "x": 2.3241,
+                                "y": 0.5334
+                            },
+                            "uuid": "1a137c1a-9bf4-45a1-80fd-16dda52da4e2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R27 [SYM_R27]",
+                            "pos": {
+                                "x": 2.3241,
+                                "y": 1.8288
+                            },
+                            "uuid": "f3fdea38-12e7-4c95-b79e-c4d201c23d97"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR86 [GND]",
+                            "pos": {
+                                "x": 2.3495,
+                                "y": 2.0955
+                            },
+                            "uuid": "af10b986-7f92-4f95-bd35-dedddaa74774"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J2 [SYM_J2]",
+                            "pos": {
+                                "x": 2.3876,
+                                "y": 1.1049
+                            },
+                            "uuid": "d505787d-513d-4c28-81b6-f0afdfe0148c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR18 [GND]",
+                            "pos": {
+                                "x": 2.413,
+                                "y": 0.5334
+                            },
+                            "uuid": "256f8311-0a0c-442a-bd9f-ecbda98e4c61"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C43 [SYM_C43]",
+                            "pos": {
+                                "x": 2.413,
+                                "y": 0.8128
+                            },
+                            "uuid": "1a9ef181-c072-412c-84fc-93e5d0505abb"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U5 [SYM_U5]",
+                            "pos": {
+                                "x": 2.4384,
+                                "y": 2.1463
+                            },
+                            "uuid": "75910f84-e63b-4cfa-8881-ad2fbcfc969e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR49 [GND]",
+                            "pos": {
+                                "x": 2.4765,
+                                "y": 1.0795
+                            },
+                            "uuid": "f117008b-40ee-4775-ab58-d0988715c758"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR50 [GND]",
+                            "pos": {
+                                "x": 2.4765,
+                                "y": 1.1049
+                            },
+                            "uuid": "eeefd904-ff69-423d-97a3-abbb2ae71a9e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR37 [GND]",
+                            "pos": {
+                                "x": 2.5019,
+                                "y": 0.8128
+                            },
+                            "uuid": "3159b2ff-1955-4ca4-b5f5-c9ddfffebb55"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR87 [GND]",
+                            "pos": {
+                                "x": 2.5273,
+                                "y": 2.1717
+                            },
+                            "uuid": "ac58a52c-e7b8-4311-b904-2db7a8bedfec"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C25 [SYM_C25]",
+                            "pos": {
+                                "x": 2.7686,
+                                "y": 0.5334
+                            },
+                            "uuid": "6709c0ca-f07a-4f7e-ab4a-d1e220272ec4"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R6 [SYM_R6]",
+                            "pos": {
+                                "x": 2.7686,
+                                "y": 1.5494
+                            },
+                            "uuid": "0c169ee2-24da-448d-815e-80fcd0d6f91e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R28 [SYM_R28]",
+                            "pos": {
+                                "x": 2.7813,
+                                "y": 1.8288
+                            },
+                            "uuid": "b947595d-c9ec-470a-a5cd-161e04c1bbf8"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C6 [SYM_C6]",
+                            "pos": {
+                                "x": 2.8067,
+                                "y": 0.2667
+                            },
+                            "uuid": "28b055a0-c936-4280-86a0-6dc7cbdec8c1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR88 [GND]",
+                            "pos": {
+                                "x": 2.8448,
+                                "y": 2.1209
+                            },
+                            "uuid": "977145ff-a79c-4329-8e92-dbcc1758f76b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR19 [GND]",
+                            "pos": {
+                                "x": 2.8575,
+                                "y": 0.5334
+                            },
+                            "uuid": "01da4b39-b806-4e02-9151-697ac530f69b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J3 [SYM_J3]",
+                            "pos": {
+                                "x": 2.8829,
+                                "y": 1.1049
+                            },
+                            "uuid": "253f264c-9c4f-4d7c-9860-f981ff838a7c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR04 [GND]",
+                            "pos": {
+                                "x": 2.8956,
+                                "y": 0.2667
+                            },
+                            "uuid": "bec7b394-69f6-474e-923c-7fb6d830c7f0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C49 [SYM_C49]",
+                            "pos": {
+                                "x": 2.9083,
+                                "y": 0.8128
+                            },
+                            "uuid": "0800483a-9c70-47dc-8372-41dbaf5f763e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U6 [SYM_U6]",
+                            "pos": {
+                                "x": 2.9337,
+                                "y": 2.1209
+                            },
+                            "uuid": "0e210758-cb07-4b44-ba41-f3a2dc7cd37f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR51 [GND]",
+                            "pos": {
+                                "x": 2.9718,
+                                "y": 1.0795
+                            },
+                            "uuid": "fca19173-82ea-4bd4-ac4d-5e891bbd5897"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR52 [GND]",
+                            "pos": {
+                                "x": 2.9718,
+                                "y": 1.1049
+                            },
+                            "uuid": "12b88db4-dc88-41fa-bbef-6ea37ee16d55"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR38 [GND]",
+                            "pos": {
+                                "x": 2.9972,
+                                "y": 0.8128
+                            },
+                            "uuid": "8739c74c-b719-49d9-9609-63767c83aada"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C26 [SYM_C26]",
+                            "pos": {
+                                "x": 3.2131,
+                                "y": 0.5334
+                            },
+                            "uuid": "f1d49e77-c541-4816-949f-aee4a20d49ed"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R29 [SYM_R29]",
+                            "pos": {
+                                "x": 3.2639,
+                                "y": 1.8288
+                            },
+                            "uuid": "9e61963c-5775-4fa6-a449-d2dc68332cbc"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R7 [SYM_R7]",
+                            "pos": {
+                                "x": 3.2766,
+                                "y": 1.5494
+                            },
+                            "uuid": "9e1a9bff-7a3f-4f10-904c-c1824dc790d3"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C7 [SYM_C7]",
+                            "pos": {
+                                "x": 3.2893,
+                                "y": 0.2667
+                            },
+                            "uuid": "139a8bec-96bb-4258-a924-b568f8d74c8c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR20 [GND]",
+                            "pos": {
+                                "x": 3.302,
+                                "y": 0.5334
+                            },
+                            "uuid": "ad3783ff-fed4-4bcf-b083-5ddf02cf10fc"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR89 [GND]",
+                            "pos": {
+                                "x": 3.3274,
+                                "y": 2.1209
+                            },
+                            "uuid": "a77bcf35-cb17-4ef2-b48b-6ef28e232284"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR65 [GND]",
+                            "pos": {
+                                "x": 3.3655,
+                                "y": 1.5494
+                            },
+                            "uuid": "11365c40-d36c-45ea-b8f2-7ca38df18e5b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C50 [SYM_C50]",
+                            "pos": {
+                                "x": 3.3909,
+                                "y": 0.8128
+                            },
+                            "uuid": "b1dbc2cc-0b26-4a6d-b005-64e1f2ecfb1d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J4 [SYM_J4]",
+                            "pos": {
+                                "x": 3.3909,
+                                "y": 1.1049
+                            },
+                            "uuid": "29dc25f7-9d2f-4fc1-837b-680324957ff2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U7 [SYM_U7]",
+                            "pos": {
+                                "x": 3.4163,
+                                "y": 2.1209
+                            },
+                            "uuid": "e18fd7b4-e262-48c5-bf75-f31af89337da"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR39 [GND]",
+                            "pos": {
+                                "x": 3.4798,
+                                "y": 0.8128
+                            },
+                            "uuid": "56124df6-2759-4520-ace8-fec3c74f3650"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR53 [GND]",
+                            "pos": {
+                                "x": 3.4798,
+                                "y": 1.0795
+                            },
+                            "uuid": "b43ffea7-384e-4f8f-81b9-0062c638830d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR54 [GND]",
+                            "pos": {
+                                "x": 3.4798,
+                                "y": 1.1049
+                            },
+                            "uuid": "2990cde4-ab1f-4a37-8f9e-552db6d752c9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C27 [SYM_C27]",
+                            "pos": {
+                                "x": 3.6449,
+                                "y": 0.5334
+                            },
+                            "uuid": "6f2084bb-2e8e-48b1-a4f8-436a87c9f354"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR21 [GND]",
+                            "pos": {
+                                "x": 3.7338,
+                                "y": 0.5334
+                            },
+                            "uuid": "a0710897-d87e-4720-93ee-7d119ae385fd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R30 [SYM_R30]",
+                            "pos": {
+                                "x": 3.7465,
+                                "y": 1.8288
+                            },
+                            "uuid": "e0112e03-5a61-409a-abd2-9d5893ba63bd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C8 [SYM_C8]",
+                            "pos": {
+                                "x": 3.7846,
+                                "y": 0.2667
+                            },
+                            "uuid": "fe6bc8eb-1128-419a-8a01-04f7cb4992d5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R8 [SYM_R8]",
+                            "pos": {
+                                "x": 3.7846,
+                                "y": 1.5494
+                            },
+                            "uuid": "5cd3fd73-8535-4b8b-983c-7c5f8cf47ac1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR55 [GND]",
+                            "pos": {
+                                "x": 3.7973,
+                                "y": 1.0795
+                            },
+                            "uuid": "73074b35-6622-4c87-a6a0-0f0f62716891"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR56 [GND]",
+                            "pos": {
+                                "x": 3.7973,
+                                "y": 1.2573
+                            },
+                            "uuid": "3775e938-e7d3-4c0e-805b-d9d9bc42b77b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR57 [GND]",
+                            "pos": {
+                                "x": 3.7973,
+                                "y": 1.2827
+                            },
+                            "uuid": "58244c28-6238-486d-a5fc-2907df847405"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR90 [GND]",
+                            "pos": {
+                                "x": 3.8227,
+                                "y": 2.1209
+                            },
+                            "uuid": "02dc505e-3e7d-48b5-a17d-03663d495106"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR05 [GND]",
+                            "pos": {
+                                "x": 3.8735,
+                                "y": 0.2667
+                            },
+                            "uuid": "8f040abc-b056-434c-b68c-6ef012cc5774"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C53 [SYM_C53]",
+                            "pos": {
+                                "x": 3.8862,
+                                "y": 0.8128
+                            },
+                            "uuid": "6f3009e6-1951-4745-853b-139d45ef45cf"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol J5 [SYM_J5]",
+                            "pos": {
+                                "x": 3.8989,
+                                "y": 1.1811
+                            },
+                            "uuid": "ab1f6365-e705-4373-a24b-159453e943fc"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U8 [SYM_U8]",
+                            "pos": {
+                                "x": 3.9116,
+                                "y": 2.1209
+                            },
+                            "uuid": "238f5df8-cd35-478d-a02b-ace8b88ea01f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR40 [GND]",
+                            "pos": {
+                                "x": 3.9751,
+                                "y": 0.8128
+                            },
+                            "uuid": "294ea3e1-b39e-4dec-985f-bef3a1e94a46"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR58 [GND]",
+                            "pos": {
+                                "x": 4.0005,
+                                "y": 1.2319
+                            },
+                            "uuid": "35ce8cd8-72e3-4ab8-94a9-0837d6aa00bd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR59 [GND]",
+                            "pos": {
+                                "x": 4.0005,
+                                "y": 1.2573
+                            },
+                            "uuid": "eb31f1ac-1e34-4638-9f76-482794fbcb9a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C28 [SYM_C28]",
+                            "pos": {
+                                "x": 4.0894,
+                                "y": 0.5334
+                            },
+                            "uuid": "7b81f280-91ff-4558-9689-1ad9c16d0347"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR22 [GND]",
+                            "pos": {
+                                "x": 4.1783,
+                                "y": 0.5334
+                            },
+                            "uuid": "623c213c-d497-465f-be5d-7b28716c49e6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R34 [SYM_R34]",
+                            "pos": {
+                                "x": 4.2291,
+                                "y": 1.8288
+                            },
+                            "uuid": "7acb0a64-bdf0-4729-9932-b6d1b5bcdc1d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C9 [SYM_C9]",
+                            "pos": {
+                                "x": 4.2545,
+                                "y": 0.2667
+                            },
+                            "uuid": "aac5874f-20e2-4f60-aeea-7240f72d6f9d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R9 [SYM_R9]",
+                            "pos": {
+                                "x": 4.2799,
+                                "y": 1.5494
+                            },
+                            "uuid": "35ac05a2-6c88-495b-bdef-6b4d22e99dc1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR91 [GND]",
+                            "pos": {
+                                "x": 4.3307,
+                                "y": 2.1209
+                            },
+                            "uuid": "ef3ab090-1537-40cc-83a3-7c87efd801fa"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR06 [GND]",
+                            "pos": {
+                                "x": 4.3434,
+                                "y": 0.2667
+                            },
+                            "uuid": "42aa8906-1e73-4016-81c7-74567338b05d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C54 [SYM_C54]",
+                            "pos": {
+                                "x": 4.3942,
+                                "y": 0.8128
+                            },
+                            "uuid": "2e6c0a64-7550-4a4f-a38a-6b095b80eee2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol L1 [SYM_L1]",
+                            "pos": {
+                                "x": 4.3942,
+                                "y": 1.0795
+                            },
+                            "uuid": "6fcf0849-a332-4901-9afd-4971152da89f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U9 [SYM_U9]",
+                            "pos": {
+                                "x": 4.4196,
+                                "y": 2.1209
+                            },
+                            "uuid": "bd07d78a-1746-46de-85dc-db30c4fd2496"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR41 [GND]",
+                            "pos": {
+                                "x": 4.4831,
+                                "y": 0.8128
+                            },
+                            "uuid": "e24e38df-673d-40e0-af80-5439e71490df"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C29 [SYM_C29]",
+                            "pos": {
+                                "x": 4.5339,
+                                "y": 0.5334
+                            },
+                            "uuid": "16ea5e02-c4a4-4300-82bc-e0c8e05498e0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR23 [GND]",
+                            "pos": {
+                                "x": 4.6228,
+                                "y": 0.5334
+                            },
+                            "uuid": "b0f41a41-a2e5-4909-99d5-b9ac7d4c055a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C10 [SYM_C10]",
+                            "pos": {
+                                "x": 4.6863,
+                                "y": 0.2667
+                            },
+                            "uuid": "84b7000c-d56c-46d4-b029-ae92adb0fd2b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR66 [GND]",
+                            "pos": {
+                                "x": 4.6863,
+                                "y": 1.5494
+                            },
+                            "uuid": "39556dcc-2faa-4ed8-8f76-7fed030d59ef"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R35 [SYM_R35]",
+                            "pos": {
+                                "x": 4.7371,
+                                "y": 1.8288
+                            },
+                            "uuid": "70137b0b-2880-445e-b035-e9452415c93a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR07 [GND]",
+                            "pos": {
+                                "x": 4.7752,
+                                "y": 0.2667
+                            },
+                            "uuid": "b3c8adf9-e006-479a-929c-c5d988c6838c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R10 [SYM_R10]",
+                            "pos": {
+                                "x": 4.7752,
+                                "y": 1.5494
+                            },
+                            "uuid": "dde48972-4f73-4108-9753-8924ee858665"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR92 [GND]",
+                            "pos": {
+                                "x": 4.8387,
+                                "y": 2.1209
+                            },
+                            "uuid": "ef96108b-b889-414f-8979-a2a6085e5039"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol L2 [SYM_L2]",
+                            "pos": {
+                                "x": 4.8514,
+                                "y": 1.0795
+                            },
+                            "uuid": "0b51a2aa-b857-462d-99c0-56f40ed6e129"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol D1 [SYM_D1]",
+                            "pos": {
+                                "x": 4.8768,
+                                "y": 0.8128
+                            },
+                            "uuid": "689e8d51-d2c7-483e-b78e-6d79d04aec50"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U10 [SYM_U10]",
+                            "pos": {
+                                "x": 4.9276,
+                                "y": 2.1209
+                            },
+                            "uuid": "0cb2474a-5014-485c-8480-e1ae73accbcd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR42 [GND]",
+                            "pos": {
+                                "x": 4.9657,
+                                "y": 0.8128
+                            },
+                            "uuid": "b9a0e015-2623-4aa9-994f-7d7e37180474"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C30 [SYM_C30]",
+                            "pos": {
+                                "x": 4.9784,
+                                "y": 0.5334
+                            },
+                            "uuid": "68901ce8-4fac-4970-ba0f-f7ba5422c9c6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR24 [GND]",
+                            "pos": {
+                                "x": 5.0673,
+                                "y": 0.5334
+                            },
+                            "uuid": "6b055563-719f-45fb-ada0-5909addf8f81"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C11 [SYM_C11]",
+                            "pos": {
+                                "x": 5.1308,
+                                "y": 0.2667
+                            },
+                            "uuid": "eb1c39cc-6bd4-4fb2-8051-6bdf31967b0c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR08 [GND]",
+                            "pos": {
+                                "x": 5.2197,
+                                "y": 0.2667
+                            },
+                            "uuid": "87e85f6d-07d3-458b-be92-c7e118b1fb39"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R37 [SYM_R37]",
+                            "pos": {
+                                "x": 5.2324,
+                                "y": 1.8288
+                            },
+                            "uuid": "eb427845-6ff0-4b81-b183-9ec708407644"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R11 [SYM_R11]",
+                            "pos": {
+                                "x": 5.2578,
+                                "y": 1.5494
+                            },
+                            "uuid": "a7315575-600a-44a9-bfc6-87c6ef9676bc"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol D2 [SYM_D2]",
+                            "pos": {
+                                "x": 5.334,
+                                "y": 0.8128
+                            },
+                            "uuid": "9c7ad156-52fe-425e-9ce9-eea4cb025d88"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol Q1 [SYM_Q1]",
+                            "pos": {
+                                "x": 5.3467,
+                                "y": 1.1049
+                            },
+                            "uuid": "83154f18-4436-4348-83eb-e8e04680734b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR67 [GND]",
+                            "pos": {
+                                "x": 5.3467,
+                                "y": 1.5494
+                            },
+                            "uuid": "da128ee8-79dc-4602-b318-df504dbba514"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR93 [GND]",
+                            "pos": {
+                                "x": 5.3467,
+                                "y": 2.2225
+                            },
+                            "uuid": "c89c1441-6951-49fe-9e0c-5622e12aedf2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR94 [GND]",
+                            "pos": {
+                                "x": 5.3467,
+                                "y": 2.3495
+                            },
+                            "uuid": "f31e8577-995f-4623-90d7-801b2a7c71c5"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C31 [SYM_C31]",
+                            "pos": {
+                                "x": 5.4229,
+                                "y": 0.5334
+                            },
+                            "uuid": "81151e7d-84f2-47e4-bf36-22aa1b5f3f7d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U11 [SYM_U11]",
+                            "pos": {
+                                "x": 5.4356,
+                                "y": 2.2225
+                            },
+                            "uuid": "0050d549-f21d-4d18-8bd0-d9e0313d4b12"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR25 [GND]",
+                            "pos": {
+                                "x": 5.5118,
+                                "y": 0.5334
+                            },
+                            "uuid": "878466f7-e0cc-4754-81f1-42ce177eb752"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR95 [GND]",
+                            "pos": {
+                                "x": 5.5245,
+                                "y": 2.1463
+                            },
+                            "uuid": "58b13ace-d0b2-48a1-a1c8-15db9aeed5b0"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR96 [GND]",
+                            "pos": {
+                                "x": 5.5245,
+                                "y": 2.2225
+                            },
+                            "uuid": "5f1c06bc-e31a-4141-aa73-f1266af8a74c"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR97 [GND]",
+                            "pos": {
+                                "x": 5.5245,
+                                "y": 2.3241
+                            },
+                            "uuid": "730549a7-7690-43b9-a48d-f183fe85779b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C12 [SYM_C12]",
+                            "pos": {
+                                "x": 5.5753,
+                                "y": 0.2667
+                            },
+                            "uuid": "8b0f6c2e-d857-4613-8eaf-056478d7c9f2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR09 [GND]",
+                            "pos": {
+                                "x": 5.6642,
+                                "y": 0.2667
+                            },
+                            "uuid": "22a9be48-764b-4ea1-a6f5-8b1bad392501"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R12 [SYM_R12]",
+                            "pos": {
+                                "x": 5.7277,
+                                "y": 1.5494
+                            },
+                            "uuid": "c5e942ce-d384-4fa8-b384-741ef897f267"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R38 [SYM_R38]",
+                            "pos": {
+                                "x": 5.7277,
+                                "y": 1.8288
+                            },
+                            "uuid": "91e55236-4726-4e05-8ee8-8f3d2599d071"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol D3 [SYM_D3]",
+                            "pos": {
+                                "x": 5.8293,
+                                "y": 0.8128
+                            },
+                            "uuid": "ddb5de3e-31d6-4d67-b0fa-8de9fe7ebc3b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol Q2 [SYM_Q2]",
+                            "pos": {
+                                "x": 5.842,
+                                "y": 1.1049
+                            },
+                            "uuid": "94c53c1e-b689-45ff-a1f0-58e8a271c566"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR98 [GND]",
+                            "pos": {
+                                "x": 5.842,
+                                "y": 2.1209
+                            },
+                            "uuid": "9ee2f53c-4209-4925-a69c-f7f1e501c514"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C32 [SYM_C32]",
+                            "pos": {
+                                "x": 5.8674,
+                                "y": 0.5334
+                            },
+                            "uuid": "4469c2be-57d0-47ba-8bf4-099892fb3c70"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol U12 [SYM_U12]",
+                            "pos": {
+                                "x": 5.9309,
+                                "y": 2.1209
+                            },
+                            "uuid": "1cca303e-f643-4fb2-8da4-6703fc1e2b7e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR26 [GND]",
+                            "pos": {
+                                "x": 5.9563,
+                                "y": 0.5334
+                            },
+                            "uuid": "eb1ac2b7-4440-480c-a1f2-c2029aa494bf"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C13 [SYM_C13]",
+                            "pos": {
+                                "x": 6.0198,
+                                "y": 0.2667
+                            },
+                            "uuid": "8ee340fa-bc18-4b81-b0ab-1fbb7a089055"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR10 [GND]",
+                            "pos": {
+                                "x": 6.1087,
+                                "y": 0.2667
+                            },
+                            "uuid": "1d85c000-818c-4da9-a8a8-f8bee5a36b22"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R13 [SYM_R13]",
+                            "pos": {
+                                "x": 6.1849,
+                                "y": 1.5494
+                            },
+                            "uuid": "5e8d8573-2afe-4bec-8a8b-0408a0533178"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R39 [SYM_R39]",
+                            "pos": {
+                                "x": 6.2357,
+                                "y": 1.8288
+                            },
+                            "uuid": "a38297c1-ac48-4db7-a128-9f6cf6e7f4b9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR68 [GND]",
+                            "pos": {
+                                "x": 6.2738,
+                                "y": 1.5494
+                            },
+                            "uuid": "8f940a29-6aed-4f98-a570-985c8e2ef2b3"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C33 [SYM_C33]",
+                            "pos": {
+                                "x": 6.3119,
+                                "y": 0.5334
+                            },
+                            "uuid": "3593573d-b8ba-4857-9ef3-f10d9b519c50"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol Q3 [SYM_Q3]",
+                            "pos": {
+                                "x": 6.3119,
+                                "y": 1.1049
+                            },
+                            "uuid": "0c5f4885-c807-4489-80b4-014885eddc95"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol D4 [SYM_D4]",
+                            "pos": {
+                                "x": 6.3373,
+                                "y": 0.8128
+                            },
+                            "uuid": "2a2d0087-d94c-44b8-945a-b57c21dc4859"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR27 [GND]",
+                            "pos": {
+                                "x": 6.4008,
+                                "y": 0.5334
+                            },
+                            "uuid": "058ad4d4-4229-4f42-b846-01abb98152a8"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C14 [SYM_C14]",
+                            "pos": {
+                                "x": 6.4643,
+                                "y": 0.2667
+                            },
+                            "uuid": "4ed330ad-2faf-4857-b177-badcce49d635"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR11 [GND]",
+                            "pos": {
+                                "x": 6.5532,
+                                "y": 0.2667
+                            },
+                            "uuid": "52dc0d2c-b877-4fa3-a35b-7584c07ae003"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R14 [SYM_R14]",
+                            "pos": {
+                                "x": 6.6802,
+                                "y": 1.5494
+                            },
+                            "uuid": "ca00593a-f72b-4b5d-9183-3ce5795af6cb"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R40 [SYM_R40]",
+                            "pos": {
+                                "x": 6.731,
+                                "y": 1.8288
+                            },
+                            "uuid": "ab093ec0-ca00-4c9b-8160-7632f4eadcd2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C34 [SYM_C34]",
+                            "pos": {
+                                "x": 6.7437,
+                                "y": 0.5334
+                            },
+                            "uuid": "a8e33ca1-046d-4787-9943-06e745f77fac"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol Q4 [SYM_Q4]",
+                            "pos": {
+                                "x": 6.7818,
+                                "y": 1.1049
+                            },
+                            "uuid": "bd8c49d7-c1dd-4e62-8955-d6220c93fb54"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR28 [GND]",
+                            "pos": {
+                                "x": 6.8326,
+                                "y": 0.5334
+                            },
+                            "uuid": "76af0d06-860e-48c0-9b83-1f2abf2a2de2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol D5 [SYM_D5]",
+                            "pos": {
+                                "x": 6.8326,
+                                "y": 0.8128
+                            },
+                            "uuid": "9522136e-bf8c-472f-a5b7-16c1fddda1c1"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C15 [SYM_C15]",
+                            "pos": {
+                                "x": 6.9088,
+                                "y": 0.2667
+                            },
+                            "uuid": "fd89549b-1411-4c9a-8f77-596673cf4929"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR43 [GND]",
+                            "pos": {
+                                "x": 6.9215,
+                                "y": 0.8128
+                            },
+                            "uuid": "4fea0b4f-e3a4-4a2b-a9a5-53a694a598c9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR12 [GND]",
+                            "pos": {
+                                "x": 6.9977,
+                                "y": 0.2667
+                            },
+                            "uuid": "ad547b44-d3a5-42cc-9b8f-0b7a1bf48eb2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R15 [SYM_R15]",
+                            "pos": {
+                                "x": 7.1755,
+                                "y": 1.5494
+                            },
+                            "uuid": "84ccd69e-0461-405d-b29f-acb5cc228d99"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C35 [SYM_C35]",
+                            "pos": {
+                                "x": 7.1882,
+                                "y": 0.5334
+                            },
+                            "uuid": "53111db2-7526-4108-a8be-08980b32a3fd"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R41 [SYM_R41]",
+                            "pos": {
+                                "x": 7.2263,
+                                "y": 1.8288
+                            },
+                            "uuid": "a1f67379-a39b-4d91-9ea9-7226afe02269"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol Q5 [SYM_Q5]",
+                            "pos": {
+                                "x": 7.239,
+                                "y": 1.1049
+                            },
+                            "uuid": "3c5c4719-314c-4e43-b070-8808559eefa2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR29 [GND]",
+                            "pos": {
+                                "x": 7.2771,
+                                "y": 0.5334
+                            },
+                            "uuid": "1d67819e-f208-4803-83a2-43d6cbece0a9"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol D8 [SYM_D8]",
+                            "pos": {
+                                "x": 7.3279,
+                                "y": 0.8128
+                            },
+                            "uuid": "9d55025b-4195-4b04-af5d-f7b6c43b70a2"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C16 [SYM_C16]",
+                            "pos": {
+                                "x": 7.3533,
+                                "y": 0.2667
+                            },
+                            "uuid": "6508cd46-dcbe-4681-b1c4-6819801e1924"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR13 [GND]",
+                            "pos": {
+                                "x": 7.4422,
+                                "y": 0.2667
+                            },
+                            "uuid": "c687059a-efe3-43fa-84f0-b051d7b0e69b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C36 [SYM_C36]",
+                            "pos": {
+                                "x": 7.6327,
+                                "y": 0.5334
+                            },
+                            "uuid": "c175ab6c-bcec-45c2-ac2c-d62cdd1bde98"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R16 [SYM_R16]",
+                            "pos": {
+                                "x": 7.6835,
+                                "y": 1.5494
+                            },
+                            "uuid": "8edbf8f8-bdf3-4fb1-bbb0-3015ee76df04"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R42 [SYM_R42]",
+                            "pos": {
+                                "x": 7.7089,
+                                "y": 1.8288
+                            },
+                            "uuid": "78163177-20f0-4bdf-89bc-62cfa242aa49"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR30 [GND]",
+                            "pos": {
+                                "x": 7.7216,
+                                "y": 0.5334
+                            },
+                            "uuid": "3849d0b6-b170-47e9-a5ba-4c31f6b56d23"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol Q6 [SYM_Q6]",
+                            "pos": {
+                                "x": 7.7216,
+                                "y": 1.1049
+                            },
+                            "uuid": "661f2323-10d4-4fe6-bfdd-cca16079ec68"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR44 [GND]",
+                            "pos": {
+                                "x": 7.747,
+                                "y": 0.8128
+                            },
+                            "uuid": "bf1bf8ab-1ac1-49e1-8500-a29d1070bb77"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR69 [GND]",
+                            "pos": {
+                                "x": 7.7724,
+                                "y": 1.5494
+                            },
+                            "uuid": "60fd2069-0e59-4fcb-ae2a-19e8c7d0d400"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C17 [SYM_C17]",
+                            "pos": {
+                                "x": 7.7851,
+                                "y": 0.2667
+                            },
+                            "uuid": "5622e88e-d7f7-484f-9844-5f66e7153c2e"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol D9 [SYM_D9]",
+                            "pos": {
+                                "x": 7.8359,
+                                "y": 0.8128
+                            },
+                            "uuid": "2c87185b-a8e4-4bd5-bc8f-08b174176db8"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR14 [GND]",
+                            "pos": {
+                                "x": 7.874,
+                                "y": 0.2667
+                            },
+                            "uuid": "e7070e16-40cd-4d9a-957e-64a3e4df526a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C37 [SYM_C37]",
+                            "pos": {
+                                "x": 8.0772,
+                                "y": 0.5334
+                            },
+                            "uuid": "889d12c5-aab1-474e-bf06-c30f9fb84273"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR60 [GND]",
+                            "pos": {
+                                "x": 8.128,
+                                "y": 1.1049
+                            },
+                            "uuid": "e9d5cab4-4b92-4ec5-9ed0-5822a39306bf"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR31 [GND]",
+                            "pos": {
+                                "x": 8.1661,
+                                "y": 0.5334
+                            },
+                            "uuid": "0ab4f89f-7c15-482f-8713-04c02682fc0a"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol RS1 [SYM_RS1]",
+                            "pos": {
+                                "x": 8.1661,
+                                "y": 1.8288
+                            },
+                            "uuid": "be80156a-7340-407f-a1f4-c8f4907a2a81"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R17 [SYM_R17]",
+                            "pos": {
+                                "x": 8.1915,
+                                "y": 1.5494
+                            },
+                            "uuid": "fde11079-53af-43da-85da-cc3d729e7798"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol Q7 [SYM_Q7]",
+                            "pos": {
+                                "x": 8.2169,
+                                "y": 1.0922
+                            },
+                            "uuid": "1763d21e-9f32-4c1e-b759-88e6258f8346"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR45 [GND]",
+                            "pos": {
+                                "x": 8.255,
+                                "y": 0.8128
+                            },
+                            "uuid": "c81997d3-aa9b-4a9b-b6af-19158c92faae"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR74 [GND]",
+                            "pos": {
+                                "x": 8.255,
+                                "y": 1.8288
+                            },
+                            "uuid": "06bcbf54-00e2-4633-afc0-f9fa0d656ea6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C18 [SYM_C18]",
+                            "pos": {
+                                "x": 8.2677,
+                                "y": 0.2667
+                            },
+                            "uuid": "c71bd705-c9af-4050-a624-c32c0252447b"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol D10 [SYM_D10]",
+                            "pos": {
+                                "x": 8.3439,
+                                "y": 0.8128
+                            },
+                            "uuid": "134218ba-517c-42b7-9dcd-ebbcd276aecb"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR15 [GND]",
+                            "pos": {
+                                "x": 8.3566,
+                                "y": 0.2667
+                            },
+                            "uuid": "46361067-849c-495a-8edb-04e373149e6d"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C38 [SYM_C38]",
+                            "pos": {
+                                "x": 8.5471,
+                                "y": 0.5334
+                            },
+                            "uuid": "c298a0a5-5ce5-4ad6-a5c7-b0f365c22f05"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR32 [GND]",
+                            "pos": {
+                                "x": 8.636,
+                                "y": 0.5334
+                            },
+                            "uuid": "47d7be54-b851-4aff-bfef-d617bbf840f6"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR61 [GND]",
+                            "pos": {
+                                "x": 8.636,
+                                "y": 1.1049
+                            },
+                            "uuid": "5f39c3bc-b3ca-4c4a-832b-a33fd32be812"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol RS2 [SYM_RS2]",
+                            "pos": {
+                                "x": 8.636,
+                                "y": 1.8288
+                            },
+                            "uuid": "49c7d0d6-6ce4-4cae-a05e-47acd599b6fc"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol R18 [SYM_R18]",
+                            "pos": {
+                                "x": 8.6868,
+                                "y": 1.5494
+                            },
+                            "uuid": "94ea3124-b06c-4b7e-a54f-2449be48d901"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol Q8 [SYM_Q8]",
+                            "pos": {
+                                "x": 8.7249,
+                                "y": 1.0922
+                            },
+                            "uuid": "f447bac8-d6d2-4898-bc9b-3ed3ca627886"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR75 [GND]",
+                            "pos": {
+                                "x": 8.7249,
+                                "y": 1.8288
+                            },
+                            "uuid": "6ed2ec6a-74d9-489f-9d50-5fcacb09ce24"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol #PWR46 [GND]",
+                            "pos": {
+                                "x": 8.7503,
+                                "y": 0.8128
+                            },
+                            "uuid": "d2e7c940-ef2c-46b7-a816-596df4bb11fc"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol C19 [SYM_C19]",
+                            "pos": {
+                                "x": 8.763,
+                                "y": 0.2667
+                            },
+                            "uuid": "fea19952-beaf-454d-9db9-8969c4d3d21f"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                },
+                {
+                    "description": "The current configuration does not include the symbol library 'elt'",
+                    "items": [
+                        {
+                            "description": "Symbol D11 [SYM_D11]",
+                            "pos": {
+                                "x": 8.8392,
+                                "y": 0.8128
+                            },
+                            "uuid": "3b1aa795-6c4a-4f8c-953f-7300cb34cd82"
+                        }
+                    ],
+                    "severity": "warning",
+                    "type": "lib_symbol_issues"
+                }
+            ]
+        }
+    ],
+    "source": "usb_hub_3s_v2.kicad_sch"
+}
