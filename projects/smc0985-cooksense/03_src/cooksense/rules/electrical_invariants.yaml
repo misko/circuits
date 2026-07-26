@@ -388,12 +388,12 @@ invariants:
     part_type: resistor
     min: 2
     adr: "0011"
-    why: "the OPEN-THERMISTOR detect threshold divider (R_OPENT 6.2k / R_OPENB 100k -> 3.107V) must exist. An open, broken or unplugged camera thermistor pulls its sense node to 3.3V, which the over-temp comparator reads as COLD — so one unplugged JST-GH cable removed the only firmware-independent over-temperature protection, from BOTH the fault-latch SET term and the contactor gate. A bias resistor provably cannot fix this: in a 2-terminal divider an open sensor IS an infinitely cold sensor, so cold and open sit on the SAME side of any single threshold. The fix is a SECOND threshold, and this net is it"
+    why: "the OPEN-THERMISTOR detect threshold divider (R_OPENT 62k / R_OPENB 100k -> 2.0370V) must exist. VALUES CORRECTED 2026-07-26: this said '6.2k -> 3.107V', which is the DEFECT, written into the file whose job is preventing it — 3.107V is above the LMV393's 2.500V common-mode ceiling, which is exactly why the second design pass rejected it. An assert describing the bug it was meant to catch reads as coverage and is worse than no assert. An open, broken or unplugged camera thermistor pulls its sense node to 3.3V, which the over-temp comparator reads as COLD — so one unplugged JST-GH cable removed the only firmware-independent over-temperature protection, from BOTH the fault-latch SET term and the contactor gate. A bias resistor provably cannot fix this: in a 2-terminal divider an open sensor IS an infinitely cold sensor, so cold and open sit on the SAME side of any single threshold. The fix is a SECOND threshold, and this net is it"
   - assert: pin_on_net
     pin: "U_COMP2.2"
     net: TH_CAM_A
     adr: "0011"
-    why: "open-detect channel 1 watches camera A's sense node. NOTE the inputs are deliberately swapped vs U_COMP: IN- is the SENSE node and IN+ is the threshold, so the output goes LOW when the node rises ABOVE 3.107V"
+    why: "open-detect channel 1 watches camera A's sense node. NOTE the inputs are deliberately swapped vs U_COMP: IN- is the SENSE node and IN+ is the threshold, so the output goes LOW when the node rises ABOVE 2.0370V (was written 3.107V — the pre-fix value; corrected 2026-07-26)"
   - assert: pin_on_net
     pin: "U_COMP2.6"
     net: TH_CAM_B

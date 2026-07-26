@@ -560,6 +560,7 @@ NET: TCAM_OPEN
 
 NET: N3V3_ANALOG
   - C_COMP pin1 (+)
+  - R_TEMPOK pin2
   - R_TH1 pin1
   - R_OPENT pin1
   - C_COMP2 pin1 (+)
@@ -1114,7 +1115,6 @@ NET: N3V3
   - C_TCAV pin1 (+)
   - U_TC DVDD
   - U_TC AVDD
-  - R_TEMPOK pin2
   - C_DECDEN pin1 (+)
   - C_DECUEN pin1 (+)
   - U_DECDEN C
@@ -2044,7 +2044,7 @@ R_HYS2 (1MΩ res0402)
 
 R_TEMPOK (10kΩ res0402)
 - pin1(anode, pos, left): NETS(TEMP_OK)
-- pin2(cathode, neg, right): NETS(N3V3)
+- pin2(cathode, neg, right): NETS(N3V3_ANALOG)
 
 C_COMP (100nF 0402)
 - pin1(pos, anode, left): NETS(N3V3_ANALOG)

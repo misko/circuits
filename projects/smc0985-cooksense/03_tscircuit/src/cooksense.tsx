@@ -514,7 +514,23 @@ export default () => (
     <resistor name="R_TH2" resistance="10k" footprint="1206" connections={{ pin1: "net.TCAM_THRESH", pin2: "net.GND" }} />
     <resistor name="R_HYS1" resistance="1M" footprint="0402" connections={{ pin1: "net.TEMP_OK", pin2: "net.TH_CAM_A" }} />
     <resistor name="R_HYS2" resistance="1M" footprint="0402" connections={{ pin1: "net.TEMP_OK", pin2: "net.TH_CAM_B" }} />
-    <resistor name="R_TEMPOK" resistance="10k" footprint="0402" connections={{ pin1: "net.TEMP_OK", pin2: "net.N3V3" }} />
+    {/* P1-1 FIX (red-team lens A, 2026-07-26): pin2 was net.N3V3 — THE DIGITAL RAIL —
+        while BOTH comparators whose verdict this net carries are powered from
+        3V3_ANALOG, whose ONLY source is the ferrite FB1 (every other node on that net
+        is a load). A HEALTH REPORT MUST BE POWERED BY THE THING WHOSE HEALTH IT
+        REPORTS. With FB1 open the four open-drain outputs cannot pull down and a still
+        live 3V3 drove TEMP_OK through this 10k against R_HYS1||R_HYS2 (500k) to
+        3.3*500/510 = 3.235V = HIGH = "temperature fine" = PERMISSIVE. One open passive
+        removed the over-temp AND the open-thermistor interlocks at once, reported
+        healthy, and killed the MCP3208's VDD/VREF in the same instant so the host
+        cross-check the ORDER_README makes MANDATORY died with it. Every backstop
+        failing together, silently, on one component.
+        On 3V3_ANALOG the same failure gives 0.000V = LOW = RESTRICTIVE, because the
+        TH_CAM nodes sit at 0V through R_CLMPA/B and R_HYS pulls TEMP_OK down with them.
+        CONTEXT WORTH KEEPING: TEMP_OK was the ONLY permission in the safety chain
+        actively pulled toward permissive. The other twelve are pulled restrictive, and
+        REARM_N is correctly pulled up. */}
+    <resistor name="R_TEMPOK" resistance="10k" footprint="0402" connections={{ pin1: "net.TEMP_OK", pin2: "net.N3V3_ANALOG" }} />
     {/* v1.3: follows U_COMP.8 from 5V_PROTECTED to 3V3_ANALOG — it was still authored on the
         old rail and so no longer bypassed the part it exists for. This 100nF is a SAFETY
         component on this board, not hygiene: SLCS136V sec.8 p.12 notes supply variation
@@ -549,7 +565,16 @@ export default () => (
     <diode name="D_LCDAT" footprint="sod323" supplierPartNumbers={{ jlcpcb: ["C5158048"] }} connections={{ pin1: "net.LC_DAT", pin2: "net.GND" }} />
     <diode name="D_LCCLK" footprint="sod323" supplierPartNumbers={{ jlcpcb: ["C5158048"] }} connections={{ pin1: "net.LC_CLK", pin2: "net.GND" }} />
 
-    {/* ---- discrete safety inputs: DOOR (NC reed+EOL), E-STOP (2x NC), MODE (DPDT) ---- */}
+    {/* ---- discrete safety inputs: DOOR, E-STOP (2x NC), MODE (DPDT) ----
+        HEADER CORRECTED 2026-07-26: this said "DOOR (NC reed+EOL)", which BRIEF.md:92
+        commissions but this board does NOT implement. As built the door is a Form-A
+        (NO) contact from J_DOOR.1 (3V3) to J_DOOR.2/4 (DOOR_RAW) with R_DOORPD holding
+        low, read by a DIGITAL Schmitt input (U_SCHM.11). That closes v1.1's
+        fail-permissive defect — a broken wire now reads OPEN — but it is NOT
+        SUPERVISED: a short between J_DOOR.1 and .2 reads "door closed" undetectably.
+        Full EOL supervision needs three distinguishable levels, i.e. an ANALOG read,
+        and all 8 MCP3208 channels and all 4 comparator channels are already used.
+        Cost is in 01_docs/STATUS-cooksense.md; deferred pending a decision. */}
     {/* SM05B-GHS 5-pin used for each (the brief's 4-pin locking role; 5th pin = GND/shield). */}
     <chip name="J_DOOR" footprint="pinrow5" supplierPartNumbers={{ jlcpcb: ["C189896"] }}
       connections={{ pin1: "net.N3V3", pin2: "net.DOOR_RAW", pin3: "net.GND", pin4: "net.DOOR_RAW", pin5: "net.GND" }} />
