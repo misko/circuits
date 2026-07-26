@@ -441,7 +441,19 @@ def main():
         waived_refs = set(json.loads(wv.read_text())) if wv.exists() else set()
         for f in board.GetFootprints():
             r = f.GetReference()
-            if r.startswith("H") or r in waived_refs:
+            # EXEMPT BY ATTRIBUTE, NOT BY REFDES PREFIX. This read
+            # `r.startswith("H")`, i.e. it decided "does this part need a silk
+            # refdes?" from the first letter of a name — so it exempted every H*
+            # part (a HEADER would have walked straight through) and exempted
+            # nothing else. It fired on usb-hub-3s-v3's FID1-FID3 the moment
+            # fiducials became expressible, and a fiducial has no silk refdes ON
+            # PURPOSE: silk beside the dot destroys the optical contrast the
+            # fiducial exists to provide. FP_BOARD_ONLY is the attribute that
+            # actually says "board feature, not a placed part", and mounting
+            # holes already carry it — so this is strictly wider AND stricter.
+            # Same root as canon A-ROT's name-DB post-mortem: A NAME IS NOT A
+            # PART FACT.
+            if (f.GetAttributes() & pcbnew.FP_BOARD_ONLY) or r in waived_refs:
                 continue
             ref = f.Reference()
             if ref.GetLayer() not in SILKS or not ref.IsVisible():
