@@ -1,0 +1,24 @@
+# Rd — 680R series resistor. Added 2026-07-26: bom_source_check leg C reported
+# UNVERIFIABLE-VALUE on the v1.5 BOM row '680R' C25130 (the cooksense R_OPENT
+# decade-misparse class — an unverifiable value is not a pass). Catalog-verified
+# once, recorded here.
+mpn: 0402WGF6800TCE
+manufacturer: UNI-ROYAL (Uniroyal Elec)
+type: resistor_chip
+value: "680R"
+package: "0402 (1005 metric)"
+pins:  # 2-pad non-polar chip resistor — no pinout to mirror (S-VER 2-pad class)
+  1: "terminal"
+  2: "terminal"
+ratings:
+  resistance: "680 ohm +/-1%"
+  power: "62.5mW"
+  voltage: "50V"
+sourcing:
+  lcsc: C25130
+verified: >
+  JLC parts API (selectSmtComponentList, exact componentCode C25130), queried
+  2026-07-26: componentModelEn 0402WGF6800TCE, describe "-55C~+155C 50V 62.5mW
+  680R Thick Film Resistor +/-1% +/-100ppm/C 0402". MPN code 6800 = 680 x 10^0
+  = 680 ohm — MATCHES the BOM label and the tsx resistance prop (680).
+  Series-sheet passive: no PDF committed (see README deviations register).

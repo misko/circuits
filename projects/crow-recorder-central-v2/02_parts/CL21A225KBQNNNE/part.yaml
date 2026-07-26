@@ -1,0 +1,24 @@
+# C_vb, Cc1M/P..Cc8M/P — 2.2uF mic-bias / AC-coupling caps (17 refdes).
+# Added 2026-07-26: bom_source_check leg C reported UNVERIFIABLE-VALUE on the
+# v1.5 BOM row '2.2uF' C377773 (the cooksense R_OPENT decade-misparse class —
+# an unverifiable value is not a pass). Catalog-verified once, recorded here.
+mpn: CL21A225KBQNNNE
+manufacturer: Samsung Electro-Mechanics
+type: capacitor_mlcc
+value: "2.2uF"
+package: "0805 (2012 metric)"
+pins:  # 2-pad non-polar MLCC — no pinout to mirror (S-VER 2-pad class)
+  1: "terminal"
+  2: "terminal"
+ratings:
+  capacitance: "2.2uF +/-10%"
+  voltage: "50V"
+  dielectric: "X5R"
+sourcing:
+  lcsc: C377773
+verified: >
+  JLC parts API (selectSmtComponentList, exact componentCode C377773), queried
+  2026-07-26: componentModelEn CL21A225KBQNNNE, describe "2.2uF 50V X5R +/-10%
+  0805 Multilayer Ceramic Capacitors MLCC - SMD/SMT". MPN code 225 = 22 x 10^5
+  pF = 2.2uF — MATCHES the BOM label and the tsx capacitance prop (2.2uF).
+  Series-sheet passive: no PDF committed (see README deviations register).
