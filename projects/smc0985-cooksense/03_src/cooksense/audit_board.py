@@ -391,6 +391,47 @@ def _hw_creepage(c, r, tgt_edges, ctx):
     return best if best < math.inf else dc - r   # never below the straight bound
 
 
+def _lazy_poly(item):
+    """Deferred SHAPE_POLY_SET for a track/via, built only if the geodesic is
+    actually going to run on it.
+
+    WHY THIS EXISTS (task#21, 2026-07-26, MEASURED). I-HW originally handed
+    TRACK copper to the measurement as a bare segment with `None` for its
+    polygon, and the candidate loop treated `poly is None` as "straight-line
+    fallback, conservative". That is precisely the metric this check was built
+    to reject: the commit that landed I-HW records that a straight-line distance
+    measures the pre-notch and notched boards IDENTICALLY at H4 (4.031mm on
+    both) and "cannot see the notch at all, and would have failed the very board
+    the notch fixes". Pads got the visibility-graph geodesic; tracks did not,
+    so the first fully ROUTED v1.3 board failed its own gate:
+
+        I-HW H4 a=4.617mm (track RSTOP_MID) -> 4.617 < 6.000 FAIL
+
+    MEASURED on that same board, same track (F.Cu (198.600,44.400) ->
+    (197.400,45.600), the K_STOP.3 escape), same disc:
+        straight-line disc-edge gap      4.617 mm
+        SURFACE PATH around the notch    7.165 mm   PASS
+    The straight line from H4's disc to that track crosses the H4 isolation
+    notch (y[48.80,49.80], x[191.50,200.10]) at x194.51 and x195.20 — i.e. it
+    runs through a through-cut in the board — so it was never a creepage path.
+    A DISTANCE IS NOT A CREEPAGE, in the track branch as much as the pad branch.
+
+    Lazy because the polygon costs real work and the candidate loop early-exits
+    on the straight-line lower bound: on this board only a handful of the
+    thousands of keypad/SELV tracks are ever close enough to be evaluated."""
+    cache = {}
+
+    def build():
+        if "p" not in cache:
+            poly = pcbnew.SHAPE_POLY_SET()
+            item.TransformShapeToPolygon(poly, item.GetLayer(), 0,
+                                         pcbnew.FromMM(0.005),
+                                         pcbnew.ERROR_INSIDE)
+            cache["p"] = poly if poly.OutlineCount() else None
+        return cache["p"]
+    return build
+
+
 def ihw_measure(b):
     """FILL zones on the in-memory board (never saved), then per mounting hole
     measure a (keypad approach) and s (SELV approach) from the hardware-disc
@@ -420,7 +461,11 @@ def ihw_measure(b):
         else:
             s, e = t.GetStart(), t.GetEnd()
             seg = (MM(s.x), MM(s.y), MM(e.x), MM(e.y))
-        items.append((d, f"track {t.GetNetname()}", None,
+        # BOTH representations, and the third element is a LAZY polygon builder.
+        # A track used to carry `None` for its polygon, which sent it down the
+        # "straight fallback" branch below and made I-HW blind to exactly the
+        # geometry it exists to measure — see the comment there.
+        items.append((d, f"track {t.GetNetname()}", _lazy_poly(t),
                       (seg, MM(t.GetWidth()) / 2)))
     for z in b.Zones():
         if z.GetIsRuleArea():
@@ -448,25 +493,30 @@ def ihw_measure(b):
             for d, label, poly, segw in items:
                 if d != dom:
                     continue
-                if poly is not None:
-                    if poly.Contains(pt):
-                        ds = -HW_DISC_R_MM
-                    else:
-                        ds = math.sqrt(poly.SquaredDistance(pt)) / 1e6 - HW_DISC_R_MM
-                else:
+                # cheap straight-line LOWER BOUND on the surface path: a
+                # segment when we have one (tracks/vias), else the polygon.
+                if segw is not None:
                     (x1, y1, x2, y2), hw = segw
                     ds = _seg_pt(c[0], c[1], x1, y1, x2, y2) - hw - HW_DISC_R_MM
+                elif poly.Contains(pt):
+                    ds = -HW_DISC_R_MM
+                else:
+                    ds = math.sqrt(poly.SquaredDistance(pt)) / 1e6 - HW_DISC_R_MM
                 cands.append((ds, label, poly))
             cands.sort(key=lambda t: t[0])
             best, blab = 1e9, "no copper in domain"
             for ds, label, poly in cands:
                 if ds >= best:
                     break                    # straight bound can't improve
-                if ds <= 0 or poly is None or ctx is None:
-                    g = ds  # bonded / track (straight fallback, conservative)
+                shape = poly() if callable(poly) else poly
+                if ds <= 0 or shape is None or ctx is None:
+                    # ds <= 0 means copper is under the disc: the fastener is
+                    # BONDED to this domain and there is no path to measure.
+                    # Anything else falling here has no polygon at all.
+                    g = ds
                 else:
                     g = _hw_creepage(c, HW_DISC_R_MM,
-                                     _ring_edges(_rings(poly)), ctx)
+                                     _ring_edges(_rings(shape)), ctx)
                 if g < best:
                     best, blab = g, label
             res[dom] = (best, blab)

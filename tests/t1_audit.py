@@ -216,6 +216,56 @@ def t_ihw_clean():
           f"{m.group(0) if m else r.out[-800:]}")
 
 
+@test("I-HW measures TRACK copper around outline voids, not straight through "
+      "them")
+def t_ihw_track_geodesic():
+    """RED-VERIFIED against a real false-FAIL on the first fully ROUTED v1.3
+    board (task#21, 2026-07-26).
+
+    I-HW handed PAD copper to the visibility-graph geodesic and TRACK copper to
+    a straight-line distance, commented "straight fallback, conservative". It is
+    not conservative, it is the exact metric this check was built to reject: the
+    commit that landed I-HW records that a straight line measures the pre-notch
+    and notched boards IDENTICALLY at H4 and therefore "cannot see the notch at
+    all, and would have failed the very board the notch fixes". The board was
+    track-free when the pad path was written, so nothing exercised the track
+    path until the route landed. Then:
+
+        I-HW H4 a=4.617mm (track RSTOP_MID) -> 4.617 < 6.000 FAIL
+
+    MEASURED on that board, same track (F.Cu (198.600,44.400) ->
+    (197.400,45.600), the K_STOP.3 escape), same 3.0mm disc:
+        straight-line disc-edge gap      4.617 mm
+        SURFACE PATH around the notch    7.165 mm
+    The straight line crosses the H4 isolation notch (y[48.80,49.80],
+    x[191.50,200.10]) at x194.51 and x195.20 — it runs through a through-cut, so
+    it was never a creepage path. With the geodesic applied to tracks the
+    binding item at H4 goes back to being the PAD at 6.598mm, which is the
+    figure ADR-0012 records — an independent confirmation, on routed copper, of
+    a number that was measured on a track-free board.
+
+    RED VERIFICATION: with the pre-fix `ihw_measure` (track polygon = None ->
+    straight fallback) this test FAILS on the live board, reporting
+    `I-HW FAIL` / `H4 a=4.617mm (track RSTOP_MID)`. Restored, it passes.
+    t_ihw_prenotch still FAILS at 4.031mm, so the fix did not make the gate
+    unfailable — it made it measure the right thing."""
+    r = must_pass(run([KPY, CS_AUDIT, "--ihw"]), "I-HW on the live routed board")
+    contains(r.out, "I-HW PASS", "I-HW verdict")
+    import re
+    m = re.search(r"I-HW H4 a=([\d.]+)mm \(([^)]+)\)", r.out)
+    check(m, f"H4 line with its binding item: {r.out[-800:]}")
+    a, who = float(m.group(1)), m.group(2)
+    # the DEFECT signature, named so it cannot come back quietly
+    check(abs(a - 4.617) > 0.05,
+          f"H4 reported {a}mm — that is the straight-line-through-the-notch "
+          f"reading the track branch used to emit; the geodesic must be used "
+          f"for tracks too")
+    check(a >= 6.0, f"H4 keypad approach must clear 6.000mm: {m.group(0)}")
+    # and the binding item is the PAD again, at the ADR-0012 figure
+    check("pad K_STOP.3" in who and 6.4 <= a <= 6.8,
+          f"expected the K_STOP.3 pad at ~6.598mm to bind H4, got {m.group(0)}")
+
+
 @test("I-HW FAILS the pre-notch board (3f781da) at H4", kind="known_bad")
 def t_ihw_prenotch():
     """RED-VERIFIED against the real defect: the board at 3f781da is the SAME
