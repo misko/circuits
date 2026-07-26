@@ -105,7 +105,35 @@ def git_dirty(board, repo_root_override=None):
     if r.returncode != 0:
         _die(f"git status failed: {r.stderr.strip()}")
     porcelain = r.stdout.rstrip("\n")
+
+    # The flag means "were this release's INPUTS committed at the recorded sha".
+    # A release directory being added, its CHANGELOG entry and the SUPERSEDED.md
+    # going onto the predecessor are the seal's OWN OUTPUT — they are untracked
+    # at stamp time BY CONSTRUCTION, because the 2-commit seal stamps the
+    # MANIFEST before the commit that adds them. Counting them made `false`
+    # unreachable for every seal, which is worse than useless: it forced a
+    # judgement call, and on usb-hub-3s-v3 v1.6 (2026-07-26) that call was
+    # resolved by hand-writing `git_dirty: false` into the manifest while this
+    # tool said `true`. M-REL greps the manifest's own text, so it passed, and
+    # the release shipped a mechanical claim its own tool contradicted.
+    #
+    # Only UNTRACKED ('??') seal output is excused. A MODIFIED (' M') file under
+    # 07_releases/ is an edit to a sealed release — the immutability violation
+    # this must never hide — and still counts as dirty.
+    def _is_seal_output(line):
+        st, _, path = line[:2], line[2:3], line[3:].strip().strip('"')
+        if st != "??":
+            return False
+        return (path.startswith(rel + "07_releases/")
+                or path == rel + "01_docs/CHANGELOG.md")
+
+    kept, excused = [], []
+    for line in porcelain.splitlines():
+        (excused if _is_seal_output(line) else kept).append(line)
+    porcelain = "\n".join(kept)
     scope = f"{rel} + {SKILLS_DIR}/"
+    if excused:
+        scope += f" (excused {len(excused)} untracked seal-output path(s))"
     return bool(porcelain.strip()), porcelain, scope
 
 

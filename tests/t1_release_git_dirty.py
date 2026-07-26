@@ -147,5 +147,63 @@ def t_own_untracked():
               "git_dirty:    true")
 
 
+@test("release_git_dirty: the seal's OWN untracked output does not make its "
+      "inputs dirty")
+def t_seal_output_excused():
+    """RED-VERIFIED against the pre-fix helper: without the exclusion this
+    returns true, because the 2-commit seal stamps the MANIFEST *before* the
+    commit that adds the release directory, so the release being sealed is
+    untracked AT STAMP TIME BY CONSTRUCTION.
+
+    That made `false` unreachable for every seal. It did not stop seals — it
+    forced a judgement call, and on usb-hub-3s-v3 v1.6 (2026-07-26) that call
+    was resolved by hand-writing `git_dirty: false` into the MANIFEST while
+    this tool said `true`. M-REL greps the manifest's own text, so it passed,
+    and the release shipped a mechanical claim its own tool contradicted. A
+    gate that cannot be satisfied honestly teaches people to satisfy it
+    dishonestly."""
+    d = fixture_repo()
+    rel = d / "projects/board-a/07_releases/v1.0-2026-01-01"
+    rel.mkdir(parents=True)
+    (rel / "MANIFEST.txt").write_text("m\n")
+    # 01_docs must ALREADY be tracked, or git collapses the whole directory to
+    # a single "?? .../01_docs/" entry and the CHANGELOG never appears by name.
+    # That collapse is real and the exclusion deliberately does NOT cover it: an
+    # entirely-untracked 01_docs/ means the board's documented inputs are
+    # uncommitted, which is a genuine dirty input, not seal output.
+    docs = d / "projects/board-a/01_docs"
+    docs.mkdir(parents=True, exist_ok=True)
+    (docs / "ARCHITECTURE.md").write_text("arch\n")
+    _git(d, "add", "-A")
+    _git(d, "commit", "-q", "-m", "docs")
+    (docs / "CHANGELOG.md").write_text("c\n")
+    r = must_pass(helper(d, "board-a"), "untracked seal output is excused")
+    contains(r.out, "git_dirty:    false", "inputs are clean, so false")
+    contains(r.out, "excused", "the scope line SAYS what it excused")
+
+
+@test("release_git_dirty: a MODIFIED file in a SEALED release still blocks",
+      kind="known_bad")
+def t_modified_sealed_release_still_blocks():
+    """The exclusion is UNTRACKED-ONLY, and this is the reason. An untracked
+    release directory is the seal's own output; a MODIFIED file inside an
+    already-sealed release is an edit to an immutable artifact — the exact
+    thing CLAUDE.md forbids ('Sealed 04_kicad/ and 07_releases/ are IMMUTABLE
+    ... a fix means a NEW release plus SUPERSEDED.md on the old one, never an
+    edit'). If the exclusion were status-blind it would hide precisely the
+    violation the flag exists to catch, and it would hide it during the one
+    operation — sealing — where someone is most likely to commit it."""
+    d = fixture_repo()
+    rel = d / "projects/board-a/07_releases/v1.0-2026-01-01"
+    rel.mkdir(parents=True)
+    (rel / "MANIFEST.txt").write_text("sealed\n")
+    _git(d, "add", "-A")
+    _git(d, "commit", "-q", "-m", "seal v1.0")
+    (rel / "MANIFEST.txt").write_text("TAMPERED\n")     # edit a sealed file
+    r = must_fail(helper(d, "board-a"), "modified sealed release blocks",
+                  "git_dirty:    true")
+    contains(r.out, "MANIFEST.txt", "names the sealed file that was edited")
+
+
 if __name__ == "__main__":
     main()
