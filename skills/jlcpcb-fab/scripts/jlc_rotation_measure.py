@@ -117,8 +117,30 @@ def our_marks(fp):
             continue
         if d.GetLayerName() not in ("F.Fab", "B.Fab"):
             continue
-        s, e = d.GetStart(), d.GetEnd()
-        segs.append((((s.x - c.x) / 1e6, (s.y - c.y) / 1e6),
+        # KiCad authors an F.Fab body outline EITHER as separate line segments
+        # OR as a single closed POLYGON — every SOIC/TSSOP/SSOP land in this
+        # fleet uses the polygon form. Reading only GetStart/GetEnd finds
+        # nothing there and the channel silently reports "absent", which then
+        # reads as "this part HAS no numbering-free channel". A tool gap that
+        # looks like a part fact is the worst kind: it would populate the
+        # authority table with false SINGLE-CHANNEL declarations.
+        pts = []
+        try:
+            poly = d.GetPolyShape()
+            if poly and poly.OutlineCount():
+                o = poly.Outline(0)
+                pts = [(o.CPoint(i).x, o.CPoint(i).y)
+                       for i in range(o.PointCount())]
+        except Exception:
+            pts = []
+        if len(pts) >= 3:
+            for i in range(len(pts)):
+                a, b = pts[i], pts[(i + 1) % len(pts)]
+                segs.append((((a[0] - c.x) / 1e6, (a[1] - c.y) / 1e6),
+                             ((b[0] - c.x) / 1e6, (b[1] - c.y) / 1e6)))
+            continue
+        sp, e = d.GetStart(), d.GetEnd()
+        segs.append((((sp.x - c.x) / 1e6, (sp.y - c.y) / 1e6),
                      ((e.x - c.x) / 1e6, (e.y - c.y) / 1e6)))
     if not segs:
         return []
