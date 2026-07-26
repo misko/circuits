@@ -7,6 +7,37 @@ datasheet:
   fetched: 2026-07-25
 package: 3.5mm pitch 4P screw terminal, THT
 footprint: cooksense:TerminalBlock_KF350_4P
+escape: {style: connector, pitch: 3.5, tier_required: jlc_2layer_default, checked: escape_check 2026-07-26}
+layout:                          # P-LAYOUT: the ONE isolated terminal block (ADR-0013)
+  source: "KF350/350-series 3.5mm terminal-block datasheet (C42400616) + the
+    already-fab-proven KF350-3.5-2P on cooksense v1.0/v1.1. The isolation rules
+    are NOT the connector's own — they are the ISO_CONTACTOR netclass, the
+    `opto_isolation_2mm` DRU rule (IEC 60664-1 basic insulation, 30V working,
+    pollution degree 3, material group IIIa) and the LTV-817S dossier."
+  reviewed: "2026-07-26"
+  notes: |
+    Field-wiring interface, but NOT layout-agnostic — it is the only connector on
+    this board whose every pole sits on the far side of the opto barrier, so its
+    placement IS the isolation argument. Rules, all MEASURED on v1.3:
+    (1) place at a board EDGE, poles off-board, and keep the 14.0 x 7.0mm body
+        INSIDE the outline (south face flush at y102.000, not proud — the
+        enclosure wall is the board edge);
+    (2) hold >= 2.000mm of copper from EVERY non-ISO_CONTACTOR net. The binding
+        neighbour is not another connector's signal pads but J_DOOR's east GND
+        SHELL TAB (pad MP): measured 2.126mm, and the block sits 1.70mm WEST of
+        the SELV column so the 2-D moat buys that back diagonally;
+    (3) the 2.0mm moat against the GND/3V3 PLANES is POUR GEOMETRY, not a rule a
+        router can honour — `iso_moat_block` / `iso_moat_opto` in floorplan.yaml,
+        with the matching User.2 (SELV out) and User.4 (ISO in) rects in
+        route.yaml. A pour fills to its own 0.200mm clearance otherwise: v1.2
+        measured 82 violations, worst 0.199mm;
+    (4) poles 2 and 3 are ONE board net on TWO screws deliberately — on a safety
+        interlock a single loosening screw must not drop both the E-stop return
+        and the contactor feed (asserted in electrical_invariants.yaml);
+    (5) THT on an SMT-only order: `not_assembled` / hand-soldered, and off the
+        CPL via `exclude_from_pos_files`.
+    Escape is trivial (4 poles at 3.5mm pitch, 1.20mm drills, single row, all on
+    one netclass at 0.3mm min width) — the constraint is the moat, not the fanout.
 pins:
   1: LOOP_OUT      # CONTACTOR_C   — opto collector out to E-stop pole B
   2: LOOP_RET      # CONTACTOR_LOOP — E-stop pole B return
