@@ -43,6 +43,28 @@ pins:
   2: LOOP_RET      # CONTACTOR_LOOP — E-stop pole B return
   3: CTR_A         # CONTACTOR_LOOP — same board net as pin 2; contactor circuit
   4: CTR_B         # CONTACTOR_E   — opto emitter, contactor circuit return
+# NO `asserts:` BLOCK, AND THE REASON IS A MEASURED GAP RATHER THAN AN OVERSIGHT.
+# I declared `not_on_assembly_bom` here first and P-FACT correctly FAILED it: the
+# assert means "no ref of this part may carry a non-blank LCSC on the BOM OR sit on
+# the CPL", and J_ISOLOOP legitimately does the first. This project runs THREE
+# treatments for its 16 not_assembled refs and they are all deliberate:
+#   blank LCSC on the BOM   the 12 Standex reeds + J_TC — their part.yaml carries
+#                           `lcsc: ""` because NOTHING orderable exists (every
+#                           catalog candidate is stock 0 and none is canonical)
+#   coded on the BOM,       J_ISOLOOP (this part), J_LOADCELL, J_PI — a real
+#   off the CPL             catalog identity exists, so the order sheet should say
+#                           what to buy; they are simply not machine-placement
+#                           instructions (exclude_from_pos_files)
+# P-FACT HAS NO KIND THAT EXPRESSES THE SECOND ROW. `not_on_assembly_bom` conflates
+# "not placed" with "not purchased", and this part is not-placed-but-purchased.
+# Asserting it would either fail forever or pressure the BOM into dropping a code a
+# human needs. RECORDED as the open half of P-FACT alongside `keepout_region`.
+# What IS gated here: A-POP (assembly_coverage) owns the population set and passes;
+# `exclude_from_pos_files` keeps the ref off the CPL; and the ORDER_README names it
+# in the self-supplied list. The v1.3 authoring change that came out of this — the
+# tsx now names J_ISOLOOP by MPN rather than by LCSC, matching the reeds and J_TC —
+# is kept, because the BOM Comment column now reads `KF350-3.5-4P` instead of a bare
+# code, which is what a person reading the order sheet needs.
 verified: >
   4 positional screw poles at 3.5mm pitch. The KF350 body is MODULAR at
   3.5mm/pole, so the 4P body is exactly 2x the already-fab-proven 2P

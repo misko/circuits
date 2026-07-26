@@ -621,7 +621,18 @@ export default () => (
         3.5mm pitch holds the connector-level creepage on the isolated side at 3.5mm
         nominal (it was 0.650mm when this loop shared J_ESTOP's 1.25mm-pitch GH housing).
         THT + `service: standard` = self-supplied/hand-soldered; see assembly.yaml. */}
-    <chip name="J_ISOLOOP" footprint="pinrow4" supplierPartNumbers={{ jlcpcb: ["C42400616"] }}
+    {/* AUTHORED BY MPN, NOT BY LCSC CODE, and P-FACT is why (2026-07-26). The code
+        C42400616 has stockCount 0 on every KF350 4-pole line and JLC has no CAD for it,
+        so naming it on a JLC ASSEMBLY BOM asks the fab to source a part it does not
+        carry — the same shape as the v1.0/v1.1 defect where 13 hand-solder parts sat on
+        the CPL. The other thirteen not_in_catalog refs (the twelve Standex reeds and
+        J_TC) are already authored this way and emit a BLANK LCSC; J_ISOLOOP was the odd
+        one out INSIDE its own assembly.yaml category. The MPN still resolves the FPID
+        via 02_parts/KF350-3.5-4P (load_part_overrides keys on dir name and mpn as well
+        as on LCSC codes), so the footprint binding is unchanged. The code itself is not
+        lost: it stays in the part.yaml `sourcing.lcsc` and in the ORDER_README buy-list,
+        which is where a self-supplied part belongs. */}
+    <chip name="J_ISOLOOP" footprint="pinrow4" supplierPartNumbers={{ jlcpcb: ["KF350-3.5-4P"] }}
       pinLabels={{ pin1: "LOOP_OUT", pin2: "LOOP_RET", pin3: "CTR_A", pin4: "CTR_B" }}
       connections={{ pin1: "net.CONTACTOR_C", pin2: "net.CONTACTOR_LOOP",
                      pin3: "net.CONTACTOR_LOOP", pin4: "net.CONTACTOR_E" }} />

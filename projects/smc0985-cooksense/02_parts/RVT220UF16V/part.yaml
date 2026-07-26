@@ -11,6 +11,23 @@ pins:
   2: NEG
 gotchas:
   - "KiCad CP_Elec pad 1 = POSITIVE; audit I9 asserts CE1 pad1 net=5VP. Twin: electrolytic polarity via can-base bevel (jlcpcb-fab 3c)"
+asserts:
+  - {assert: pad1_net_polarity, pad: 1, polarity: positive,
+     why: "Pad 1 is the '+' terminal (pins: 1 POS / 2 NEG) and must sit on a positive
+       rail; MEASURED on the v1.3 netlist CE1.1 -> 5V_PROTECTED, CE1.2 -> GND.
+       BE PRECISE ABOUT WHAT THIS DOES AND DOES NOT CATCH, because the neighbouring
+       defect is famous on this board: sealed cooksense v1.0 AND v1.1 both shipped CE1
+       at CPL rotation 180.0 = REVERSED on a live 5V rail. THIS ASSERT WOULD NOT HAVE
+       CAUGHT THAT — run against the v1.1 release it PASSES, because v1.1's netlist
+       polarity was always right and the defect was in the CPL ROTATION, which came
+       from the advisory name-DB rule '^CP_Elec_6.3x7.7' encoding a different vendor's
+       pad-1 convention. The rotation is caught by the MEASURED C2887273 row
+       (offset 0, two-channel, cross-checked against JLC's silk chamfer) plus the
+       order-preview human gate. What this assert pins is the FACT THE ROW DEPENDS ON:
+       that our pad 1 is the positive terminal. If someone re-pins CE1 so pad 1 lands
+       on GND, the measured rotation row silently becomes wrong and nothing else on the
+       netlist side would object. Graded from the NETLIST; canon P2/P-POL grades the
+       same fact from the BOARD — two artifacts, one fact (canon M1)."}
 verified: "2/3-pad commodity; polarity/pad-1 asserted in board generator + audit I9"
 sourcing:
   lcsc: C2887273

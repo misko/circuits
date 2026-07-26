@@ -35,6 +35,13 @@ gotchas:
   - "Footprint = 2 contacts at 7.9mm (0.31') pitch + 4x dia1.77mm (0.070') holes for the PC pins / mounting bracket (Omega drawing p.2). The bracket holes are NON-NET (mechanical) - model as NPTH/mounting pads."
   - "Cold-junction: alloy pins carry the K junction TO the PCB, so the reference junction is at pads 1/2. Keep the MAX31856 CJC (or the Omega optional TO-92 retainer-clip sensor) ISOTHERMAL with these pads (brief CJC requirement)."
   - "NOT stocked at JLC/LCSC (no C-number) -> HAND-SOLDER BOM line, global sourcing. See sourcing.note for the JLC-stocked fallback."
+asserts:
+  - {assert: not_on_assembly_bom,
+     why: "Same A-POP defect class as the twelve reeds, and J_TC was the WORSE half: the
+       v1.1 MANIFEST declared 12 of the 13 unpopulated parts and left J_TC out
+       altogether, so the paperwork and the machine instruction disagreed with each
+       other AND with the board. All 7 PCC-SMP-K catalog hits are stock 0 (2026-07-25)
+       and the part is a panel jack on 1.77mm PC pins — THT, not SMT-placeable."}
 verified: "2 contacts + geometry read from Omega PCC-OST-SMP spec DRAWING p.2 (PCC-SMP miniature: 7.9mm contact pitch, 4x dia1.77mm holes, mates SMPW series); Type-K +/- polarity from ANSI color code - 2026-07-22"
 layout:                     # analog TC front-end (mV-level) - real placement rules
   source: "brief 3 (TC jack at BOARD EDGE, away from relays/regulators; CJC; TC beside exhaust SHT45) + MAX31856 datasheet TC input filter + Omega TO-92 retainer-clip CJC note"

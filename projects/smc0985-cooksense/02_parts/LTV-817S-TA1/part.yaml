@@ -16,6 +16,19 @@ pins:
 limits: {ctr: "50-600% (TA1 bin)", vceo: "35V", viso: "5kVrms"}
 gotchas:
   - "J10 output is the C/E pair (dry open-collector, spec 7.5); silk marks 30V/50mA max and polarity C/E"
+asserts:
+  - {assert: keepout_region, layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], region: under_body,
+     why: "THE 5000Vrms INPUT<->OUTPUT BARRIER, and the gotcha saying so was already in
+       this file when v1.2 shipped 0.175mm of copper across it. Nothing read the prose.
+       Held today by THREE mechanisms, none of which is this assert: the floorplan
+       `opto_barrier` keepout [181.4,85.8,188.6,94.2] denying tracks/vias/pours on all
+       four layers, the `opto_isolation_2mm` DRU rule (IEC 60664-1 basic insulation, 30V
+       working, pollution degree 3), and the land itself — MEASURED clear strip between
+       the lead rows 7.530mm on ours vs 7.000mm on JLC's, so ours is the conservative
+       pattern (twin_adjudications.yaml, C125121). DECLARED KNOWING P-FACT CANNOT YET
+       GRADE IT: `keepout_region` is the deferred half of P-FACT (it needs board
+       geometry). Declaring it makes the obligation machine-visible and names the gap
+       instead of leaving the barrier resting on prose again."}
 verified: "Lite-On LTV-817S series pinout (1=A 2=K 3=E 4=C, package top mark dot = pin 1); pin review re-checks - 2026-07-19"
 layout:                     # P-LAYOUT: optocoupler (multi-pin active). Governing rule = the
                             # 5000Vrms input<->output ISOLATION barrier, NOT a power/thermal budget.

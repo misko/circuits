@@ -23,6 +23,15 @@ gotchas:
   - "adjacent-relay magnetic coupling: DS p.3 handling note; 15.24mm super-column pitch + one-at-a-time firmware default"
   - "ROW-PITCH GEOMETRY (measured, cooksense v1.1 D7 2026-07-23): the 15.24mm coupling pitch is a rot0/VERTICAL-orientation figure (6.5mm body / 9.93mm bbox across the pitch axis). In a rot90 HORIZONTAL row (contacts N / coils S) the 19.3mm body / 19.90mm courtyard lies ALONG the row: minimum mechanical pitch ~20mm, and 15.24mm overlaps courtyards by 4.66mm — impossible. Do not commission a rot90 row below 20mm pitch."
   - "rot0 ISOLATION COMB (cooksense v1.1): with vertical relays the coil/contact isolation boundary runs N-S BETWEEN the pin columns (7.62mm c-c / 6.12mm pad-edge). Alternate rot180/rot0 in PAIRS so contact columns of adjacent relays face each other: the isolated domain pockets between pairs (and at row ends) while coil-coil gaps carry logic — no logic net ever crosses a pocket; the DS p.3 alternate-orientation note doubles as the coupling mitigation for the anti-parallel adjacent coils."
+asserts:
+  - {assert: not_on_assembly_bom,
+     why: "The twelve K_* reeds are the ORIGINAL A-POP defect on this board: cooksense
+       v1.0 AND v1.1 both sealed with these as CPL placement rows carrying a BLANK LCSC,
+       i.e. JLC was instructed to machine-place a part it cannot source. JLC catalog
+       stock is 0 on every DIP05-1A72 variant (measured 2026-07-25) and the package is
+       THT on an SMT-only order. Declared not_assembled (not_in_catalog) with
+       exclude_from_pos_files; this assert makes the BOM/CPL absence gradeable rather
+       than trusting the placement pattern to have been applied."}
 verified: "pin map read from DS p.3 Pin-Out figures (code 12) + p.4 option figures; coil/contact data p.1-2; dielectric p.3 Relay Data table - 2026-07-19"
 layout:                          # P-LAYOUT: reed relay (mains-switching stage, DO-NOT-SUBSTITUTE)
   source: "Standex DIP-series datasheet (Version 03, 01 Aug 2025) p.3 'Handling &
