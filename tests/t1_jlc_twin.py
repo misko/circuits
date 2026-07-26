@@ -1024,5 +1024,192 @@ def t_pad_multiplicity_fits():
     not_contains(r.out, "best=none",
                  "fit_err still discards the part on a multiplicity mismatch")
 
+# ============================================================ POLARITY-FIT
+# A 2-pad collinear polarized part is the ONE case where a perfect pad fit is
+# not evidence: the two pads are symmetric, so a library that numbers the
+# CATHODE "2" where we number it "1" fits exactly at 180 and ships the part
+# REVERSED. This class produced P0s on three boards.
+#
+# MEASURED (2026-07-25) on the real parts this fixture is modelled from —
+# C2296 (KT-0805Y amber) and C2297 (KT-0805G green):
+#   pad-number fit through the verified operator: offset 180, residual
+#     0.1125 mm, next non-mirrored candidate 1.9875 mm (17.7x margin) —
+#     confidently and PRECISELY wrong.
+#   numbering-free: JLC's F.SilkS diode glyph points its apex WEST and its
+#     silk body is chamfered WEST (two channels agreeing) => JLC pad 1 =
+#     ANODE. KiCad's Device:LED symbol is pin1=K/pin2=A and
+#     LED_0805_2012Metric chamfers F.Fab at pin 1 => our pad 1 = CATHODE.
+#   Both libraries draw the cathode at the WEST end, so the PHYSICAL parts
+#   already align and the correct CPL offset is 0, not the fitted 180.
+
+_POL_BOARD = (
+    "import json, sys\n"
+    "import pcbnew\n"
+    "out = sys.argv[1]; mark_pad = sys.argv[2]\n"
+    "b = pcbnew.NewBoard(out)\n"
+    "for (x1,y1),(x2,y2) in (((0,0),(40,0)),((40,0),(40,40)),\n"
+    "                        ((40,40),(0,40)),((0,40),(0,0))):\n"
+    "    s = pcbnew.PCB_SHAPE(b); s.SetShape(pcbnew.SHAPE_T_SEGMENT)\n"
+    "    s.SetStart(pcbnew.VECTOR2I(int(x1*1e6), int(y1*1e6)))\n"
+    "    s.SetEnd(pcbnew.VECTOR2I(int(x2*1e6), int(y2*1e6)))\n"
+    "    s.SetLayer(pcbnew.Edge_Cuts); s.SetWidth(100000); b.Add(s)\n"
+    "POS = (20.0, 20.0)\n"
+    "fp = pcbnew.FOOTPRINT(b)\n"
+    "fp.SetReference('D8')\n"
+    "fp.SetFPID(pcbnew.LIB_ID('synth', 'LED_SYNTH_2012Metric'))\n"
+    "fp.SetPosition(pcbnew.VECTOR2I(int(POS[0]*1e6), int(POS[1]*1e6)))\n"
+    "for n, x in (('1', -0.9375), ('2', 0.9375)):\n"
+    "    p = pcbnew.PAD(fp); p.SetNumber(n)\n"
+    "    p.SetShape(pcbnew.PAD_SHAPE_RECT)\n"
+    "    p.SetSize(pcbnew.VECTOR2I(int(0.975e6), int(1.4e6)))\n"
+    "    p.SetAttribute(pcbnew.PAD_ATTRIB_SMD)\n"
+    "    p.SetLayerSet(p.SMDMask())\n"
+    "    p.SetPosition(pcbnew.VECTOR2I(int((POS[0]+x)*1e6), int(POS[1]*1e6)))\n"
+    "    fp.Add(p)\n"
+    "# the polarity MARKING: an F.Fab outline that overhangs one end\n"
+    "ov = -1.7 if mark_pad == '1' else 1.7\n"
+    "sh = pcbnew.PCB_SHAPE(fp); sh.SetShape(pcbnew.SHAPE_T_SEGMENT)\n"
+    "sh.SetStart(pcbnew.VECTOR2I(int((POS[0]+ov)*1e6), int((POS[1]-0.9)*1e6)))\n"
+    "sh.SetEnd(pcbnew.VECTOR2I(int((POS[0]+ov)*1e6), int((POS[1]+0.9)*1e6)))\n"
+    "sh.SetLayer(pcbnew.F_Fab); sh.SetWidth(120000); fp.Add(sh)\n"
+    "b.Add(fp); b.Save(out)\n"
+    "print('@@ok')\n")
+
+
+def pol_board(d, mark_pad, name="pol.kicad_pcb"):
+    """OUR footprint: pad 1 WEST, pad 2 EAST, marking overhanging `mark_pad`."""
+    board = d / name
+    must_pass(run([KPY, "-c", _POL_BOARD, str(board), mark_pad]),
+              "build polarized fixture (mark at pad %s)" % mark_pad)
+    return board
+
+
+def pol_jlc(d, code, mark_pad, out="twin"):
+    """JLC's footprint: pad 1 EAST, pad 2 WEST (the numbering this fixture is
+    about), with its silk marking overhanging whichever pad is named."""
+    cache = d / out / "easyeda" / code / "jlc.pretty"
+    cache.mkdir(parents=True, exist_ok=True)
+    ov = -2.2 if mark_pad == "2" else 2.2      # pad 2 is WEST on JLC's side
+    wrl = d / "bar.wrl"
+    if not wrl.exists():
+        bar_wrl(wrl)
+    (cache / "synth.kicad_mod").write_text(
+        '(footprint "LED0805-SYNTH" (version 20240108) (generator "test")\n'
+        '  (layer "F.Cu")\n'
+        '  (pad "1" smd rect (at 1.05 0) (size 1.0 1.4) '
+        '(layers "F.Cu" "F.Paste" "F.Mask"))\n'
+        '  (pad "2" smd rect (at -1.05 0) (size 1.0 1.4) '
+        '(layers "F.Cu" "F.Paste" "F.Mask"))\n'
+        '  (fp_line (start %s -0.9) (end %s 0.9) (layer F.SilkS) '
+        '(width 0.12))\n'
+        # A refdes TEXT deliberately placed at the OPPOSITE end from the
+        # marking, and FURTHER out. Text is placed for legibility, never to
+        # mark polarity — if marker_side ever counts it again, it will read
+        # this fixture's polarity backwards and both POLARITY-FIT tests go
+        # RED. Without this the "shapes only" rule was unpinned.
+        '  (fp_text user "REF**" (at %s 0) (layer F.SilkS) '
+        '(effects (font (size 1 1) (thickness 0.15))))\n'
+        '  (model "%s"\n    (offset (xyz 0 0 0))\n'
+        '    (scale (xyz 1 1 1))\n    (rotate (xyz 0 0 0))\n  )\n)\n'
+        % (ov, ov, -ov * 1.6, wrl))
+    return cache / "synth.kicad_mod"
+
+
+def pol_run(d, board, code, outdir="twin", adj=None):
+    bom = d / "bom.csv"
+    bom.write_text("Comment,Designator,Footprint,MPN,LCSC\n"
+                   "synthetic LED,D8,LED_SYNTH_2012Metric,,%s\n" % code)
+    e2k = stub_e2k(d, stderr="NETWORK WAS CALLED\n", rc=1)
+    args = [KPY, TWIN, board, bom, d / outdir, "--no-render"]
+    if adj:
+        args += ["--adjudications", str(adj)]
+    return run(args, cwd=d, env={"EASYEDA2KICAD": str(e2k),
+                                 "JLC_TWIN_FETCH_ATTEMPTS": "1"})
+
+
+@test("a 2-pad polarized part whose libraries NUMBER the terminals oppositely "
+      "is POLARITY-FIT and BLOCKS, even though the pad fit is perfect",
+      kind="known_bad")
+def t_polarity_fit_blocks():
+    """The fixture is the C2296/C2297 situation exactly: our marking sits at
+    pad 1, JLC's at pad 2, and the pad-number fit is EXACT at 180. Before this
+    check the run went green, a ROT-DB-SUGGEST row of 180 would have been
+    written into the per-LCSC table on the strength of that fit, and every LED
+    would have shipped reversed — dark, and indistinguishable from a bad
+    joint on the bench.
+
+    RED-VERIFIED 2026-07-25: deleting the `criticals.append(ref)` under the
+    POLARITY-FIT branch makes this FAIL (the finding still prints but the run
+    exits 0); deleting the whole branch makes it FAIL on the missing string.
+    """
+    d = tmpdir("polfit_")
+    code = "C900010"
+    pol_jlc(d, code, mark_pad="2")          # JLC marks its pad 2 (west)
+    board = pol_board(d, mark_pad="1")      # we mark our pad 1 (west)
+    r = pol_run(d, board, code)
+    must_fail(r, "jlc_twin on opposite terminal numbering", "POLARITY-FIT")
+    contains(r.out, "jlc_offset=180",
+             "the pad fit still reports its (physically wrong) 180")
+    contains(r.out, "offset 0 is what places the part correctly",
+             "the finding must name the PHYSICALLY correct offset")
+
+    # a PAD-GEOM waiver must NOT discharge it — own key, like NO-BODY
+    adj = d / "adj.yaml"
+    adj.write_text("- {lcsc: %s, refs: [D8], status: PAD-GEOM,\n"
+                   "   why: \"a waiver about the land pattern\"}\n" % code)
+    r2 = pol_run(d, board, code, outdir="twin2", adj=adj)
+    pol_jlc(d, code, mark_pad="2", out="twin2")
+    r2 = pol_run(d, board, code, outdir="twin2", adj=adj)
+    must_fail(r2, "a PAD-GEOM waiver must not discharge POLARITY-FIT",
+              "POLARITY-FIT")
+
+
+@test("when both libraries mark the SAME pad, POLARITY-FIT confirms the fit "
+      "instead of crying wolf")
+def t_polarity_fit_agrees():
+    """The check must not fire on every polarized part — a gate that always
+    fires is a gate that gets waived by habit. Here JLC marks its pad 1 (east,
+    which the 180 fit maps onto our pad 1), so the marking channel and the pad
+    channel agree and the run is clean."""
+    d = tmpdir("polok_")
+    code = "C900011"
+    pol_jlc(d, code, mark_pad="1")          # JLC marks its pad 1 (east)
+    board = pol_board(d, mark_pad="1")
+    r = pol_run(d, board, code)
+    contains(r.out, "POLARITY-FIT-OK", "the agreeing verdict")
+    check("POLARITY-FIT " not in r.out.replace("POLARITY-FIT-OK", "PFOK"),
+          "POLARITY-FIT cried wolf on an agreeing part:\n%s" % r.out[-1500:])
+    check(r.rc == 0, "an agreeing polarized part should exit 0:\n%s"
+                     % r.out[-1500:])
+
+
+@test("a polarized part with NO usable marking is reported BLIND, never "
+      "silently passed")
+def t_polarity_fit_blind():
+    """Silence is the failure mode this whole file exists to kill. If the
+    numbering-free channel cannot run, the run must SAY so — the human
+    order-preview gate is then the only thing standing between the part and a
+    180deg reversal, and nobody can know that from a green log."""
+    d = tmpdir("polblind_")
+    code = "C900012"
+    cache = d / "twin" / "easyeda" / code / "jlc.pretty"
+    cache.mkdir(parents=True, exist_ok=True)
+    wrl = d / "bar.wrl"
+    bar_wrl(wrl)
+    (cache / "synth.kicad_mod").write_text(
+        '(footprint "LED0805-BARE" (version 20240108) (generator "test")\n'
+        '  (layer "F.Cu")\n'
+        '  (pad "1" smd rect (at 1.05 0) (size 1.0 1.4) '
+        '(layers "F.Cu" "F.Paste" "F.Mask"))\n'
+        '  (pad "2" smd rect (at -1.05 0) (size 1.0 1.4) '
+        '(layers "F.Cu" "F.Paste" "F.Mask"))\n'
+        '  (model "%s"\n    (offset (xyz 0 0 0))\n'
+        '    (scale (xyz 1 1 1))\n    (rotate (xyz 0 0 0))\n  )\n)\n' % wrl)
+    board = pol_board(d, mark_pad="1")
+    r = pol_run(d, board, code)
+    contains(r.out, "POLARITY-FIT-BLIND", "the blind verdict")
+    contains(r.out, "ONLY the human order-preview gate",
+             "the blind verdict must name what is carrying the risk")
+
 if __name__ == "__main__":
     sys.exit(main())

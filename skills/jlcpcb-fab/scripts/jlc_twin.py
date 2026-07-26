@@ -12,7 +12,8 @@ For every BOM line with an LCSC code, fetch JLC's OWN footprint + 3D model
      and render top/bottom - a local preview of what JLC's viewer will show.
 
 usage: jlc_twin.py board.kicad_pcb bom_jlc.csv outdir [--cpl fab/cpl.csv]
-Exit 1 on any MIRRORED, PAD-MISMATCH, PAD-GEOM, MODEL-REG or NO-BODY finding.
+Exit 1 on any MIRRORED, PAD-MISMATCH, PAD-GEOM, MODEL-REG, NO-BODY or
+POLARITY-FIT finding.
 
 MOUNT HANDEDNESS INCIDENT (2026-07-25) — the SECOND half of the bug below.
 Fixing `xform()` in 1b69760 left FOUR more hand-inlined copies of the wrong
@@ -536,6 +537,51 @@ def no_body_pass(tb, refs, board_path):
     return mounted, missing
 
 
+def marker_side(fp, pads, layers=None):
+    """Which pad does this footprint's POLARITY MARKING sit nearest?
+
+    Numbering-free channel for a 2-pad polarized part. Both libraries draw an
+    asymmetric silk/fab feature at the polarized end (KiCad chamfers the F.Fab
+    outline at pin 1 and its LED_SMD/Diode convention puts the CATHODE there;
+    EasyEDA draws a diode glyph and chamfers the silk body at the cathode).
+    Project the graphics' extreme point onto the pad1->pad2 axis and report
+    which pad it leans toward, plus how decisively.
+
+    Returns (pad_number, margin_mm) or None when the graphics are symmetric
+    enough that the answer would be a coin flip."""
+    if layers is None:
+        layers = (pcbnew.F_SilkS, pcbnew.F_Fab, pcbnew.B_SilkS, pcbnew.B_Fab)
+    ks = sorted(pads)
+    if len(ks) != 2:
+        return None
+    (ax, ay), (bx, by) = (pads[ks[0]][0], pads[ks[1]][0])
+    ux, uy = bx - ax, by - ay
+    L = math.hypot(ux, uy)
+    if L < 1e-6:
+        return None
+    ux, uy = ux / L, uy / L
+    mid = ((ax + bx) / 2, (ay + by) / 2)
+    proj = []
+    for g in fp.GraphicalItems():
+        # SHAPES only: reference/value TEXT is placed for legibility, not to
+        # mark polarity, and including it would let a refdes position decide
+        # which end is the cathode.
+        if g.GetLayer() not in layers or not isinstance(g, pcbnew.PCB_SHAPE):
+            continue
+        for pt in (g.GetStart(), g.GetEnd()):
+            px, py = pt.x / 1e6, pt.y / 1e6
+            proj.append((px - mid[0]) * ux + (py - mid[1]) * uy)
+    if not proj:
+        return None
+    # the marking is the graphics' OVERHANG: whichever end the outline runs
+    # further past the pad. A symmetric outline overhangs both ends equally.
+    over_b, over_a = max(proj) - L / 2, -min(proj) - L / 2
+    margin = abs(over_b - over_a)
+    if margin < 0.15:            # 0.15 mm: below silk line width, not a signal
+        return None
+    return (ks[1] if over_b > over_a else ks[0]), margin
+
+
 def rot_db(path):
     import re
     db = []
@@ -790,6 +836,55 @@ def main():
                                  "(if the model is unmarked, verify via the "
                                  "JLC order preview) - machine checks cannot "
                                  "see a 180-flipped symmetric model"))
+                # POLARITY-FIT (2026-07-25, BLOCKING, own adjudication key).
+                # The pad-NUMBER fit above cannot see a polarity swap: for a
+                # 2-pad collinear part the pads are symmetric, so a library
+                # that numbers the CATHODE "2" where we number it "1" fits
+                # perfectly at 180 and ships the part REVERSED. This compares
+                # the numbering-free MARKING channel instead.
+                # MEASURED on C2296/C2297 (KT-0805 LEDs) 2026-07-25: the
+                # pad-number fit says 180 at 0.1125mm residual with the next
+                # candidate 1.9875mm away (17.7x margin) — confidently and
+                # precisely WRONG. JLC numbers pad 1 = ANODE (their F.SilkS
+                # diode glyph points its apex WEST, and the silk body is
+                # chamfered WEST — two independent channels agreeing), while
+                # KiCad's Device:LED symbol is pin1=K/pin2=A and
+                # LED_0805_2012Metric chamfers its F.Fab at pin 1. Both draw
+                # the cathode at the WEST end, so the PHYSICAL parts already
+                # align: the correct CPL offset is 0, not 180.
+                ours_mark = marker_side(fp, opads_raw)
+                jlc_mark = marker_side(jfp, jraw)
+                if ours_mark and jlc_mark:
+                    if ours_mark[0] != jlc_mark[0]:
+                        findings.append((lcsc, ref, "POLARITY-FIT",
+                            f"the pad-number fit says offset {ang}, but the "
+                            f"MARKING channel disagrees by 180deg: our "
+                            f"polarity marking sits at pad {ours_mark[0]} "
+                            f"(margin {ours_mark[1]:.2f}mm) while JLC's sits "
+                            f"at pad {jlc_mark[0]} (margin {jlc_mark[1]:.2f}mm)"
+                            f" — the two libraries NUMBER this part's "
+                            f"terminals oppositely, so the pad fit is 180deg "
+                            f"wrong PHYSICALLY and offset "
+                            f"{(ang + 180) % 360} is what places the part "
+                            f"correctly. A pad fit cannot see this: 2 "
+                            f"collinear pads are symmetric. RESOLVE against "
+                            f"the DATASHEET terminal drawing, put this LCSC "
+                            f"on the order-preview human gate, and never let "
+                            f"the fitted angle populate the rotation table "
+                            f"unchallenged"))
+                        criticals.append(ref)
+                    else:
+                        findings.append((lcsc, ref, "POLARITY-FIT-OK",
+                            f"marking channel agrees with the pad fit "
+                            f"(both at pad {ours_mark[0]}; margins "
+                            f"{ours_mark[1]:.2f}/{jlc_mark[1]:.2f}mm)"))
+                else:
+                    findings.append((lcsc, ref, "POLARITY-FIT-BLIND",
+                        "no usable polarity marking on "
+                        + ("our" if not ours_mark else "JLC's")
+                        + " footprint — the numbering-free channel cannot "
+                          "run, so ONLY the human order-preview gate stands "
+                          "between this part and a 180deg reversal"))
             # The exporter resolves per-LCSC FIRST (jlc_lcsc_rotations.csv),
             # then the footprint-name DB — mirror that here so the audit
             # compares the fitted angle against the SAME offset the CPL will
@@ -1013,7 +1108,7 @@ def main():
         # never-stated visual-verification question (v1.5, 7 refs).
         if why and status in ("MIRRORED", "PAD-MISMATCH", "PAD-GEOM",
                               "NO-CAD", "FETCH-FAILED", "NO-BODY",
-                              "MODEL-REG"):
+                              "MODEL-REG", "POLARITY-FIT"):
             for r in str(ref).split(","):
                 if r.strip() in criticals:
                     criticals.remove(r.strip())
@@ -1023,7 +1118,9 @@ def main():
     findings = out_f
     order = {"FETCH-FAILED": -1, "NO-BODY": -1, "MIRRORED": 0,
              "PAD-MISMATCH": 1, "PAD-GEOM": 2, "MODEL-SELF": 3,
-             "MODEL-REG": 3, "PAD-MULTIPLICITY": 4, "POLARITY-CHECK": 4,
+             "MODEL-REG": 3, "POLARITY-FIT": 1, "PAD-MULTIPLICITY": 4,
+             "POLARITY-CHECK": 4, "POLARITY-FIT-BLIND": 4,
+             "POLARITY-FIT-OK": 8,
              "ROT-DB-SUGGEST": 5, "NO-CAD": 6,
              "NOT-ON-BOARD": 7, "MODEL-REG-OK": 8, "OK": 9}
     for f in sorted(findings, key=lambda x: order.get(x[2], 9)):

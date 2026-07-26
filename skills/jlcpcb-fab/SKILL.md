@@ -446,6 +446,21 @@ refs for precisely that reason). `--also` still works for an ad-hoc probe.
    (`${KICAD10_3DMODEL_DIR}` unset + `/usr/share/kicad/3dmodels` absent means
    every KiCad-path fallback renders nothing, silently, on that machine).
 
+6c. POLARITY-FIT (automated, BLOCKING, own adjudication key; canon A-POL,
+   2026-07-25). For a 2-pad COLLINEAR polarized part the pad-number fit
+   cannot see a polarity swap — the pads are symmetric. The twin now also
+   measures the NUMBERING-FREE channel: which pad each footprint's polarity
+   MARKING sits nearest, from SHAPES only (text is placed for legibility, not
+   polarity — counting a refdes would let its position decide which end is the
+   cathode). Disagreement BLOCKS and names the physically correct offset; no
+   usable marking is reported POLARITY-FIT-BLIND rather than passed silently.
+   MEASURED on C2296/C2297 (KT-0805 LEDs): the pad fit says 180 at 0.1125mm
+   with the next candidate 1.9875mm away (17.7x margin) — precisely wrong,
+   because JLC numbers pad 1 = ANODE while KiCad's Device:LED is pin1=K. Both
+   draw the cathode WEST, so the correct CPL offset is 0. Resolve against the
+   DATASHEET terminal drawing, put the LCSC on the order-preview human gate,
+   and never let a fitted angle populate jlc_lcsc_rotations.csv unchallenged.
+
 7. SWIG trap: iterating fp.Models() and assigning m_Rotation.z on the
    yielded items silently does nothing (the write lands on a temporary).
    Build a NEW FP_3DMODEL and push_back it; verify the saved file text when
