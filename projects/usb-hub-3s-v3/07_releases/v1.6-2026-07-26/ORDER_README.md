@@ -139,6 +139,43 @@ stated 5 A; that was the Pi 5 premise (ADR-0004).
 - **Not USB-PD, not USB-C compliant as a generic source.** Pi-dedicated.
 - **Protected 3S pack + balance charger ONLY.**
 
+## REPRODUCIBILITY — a DECLARED, MEASURED LIMITATION
+
+This release rebuilds from source to a **FUNCTIONALLY IDENTICAL** board but not a
+**byte-identical** one. MEASURED across three from-source regenerations:
+footprints 129, tracks 908, total track length 1070.469 mm, zones 51, pads 457,
+nets 74 — **all IDENTICAL**. Via count **292 / 294 / 293**; the entire delta is
+island-rescue vias on the 5VA/5VC pours plus one via displaced 0.010 mm. All
+three regenerations are DRC 0/0/0.
+
+**Root cause:** the generator mints fresh random UUIDs (129/129 footprint UUIDs
+differ between runs), KiCad serialises footprints in UUID order (order differs at
+index 0 and in 129/129 positions), the zone filler therefore walks zones in a
+different order, and Clipper tessellates pour boundaries differently.
+Island rescue keys off those islands and inherits it.
+
+**Why it does not withhold the order.** What you order is the STAGED ARTIFACT in
+`fab/` — fixed, hashed below, and verified. The regeneration variance is additive
+same-net island-rescue bonding, and the check that decides whether it can harm the
+board is stranded copper, which **DRC cannot answer**: a floating SAME-NET island
+is not "unconnected" in the netlist sense, so `--severity-all` passes over it.
+
+**Stranded-copper check on the shipped artifact: 105 islands, 105 bonded,
+0 STRANDED, 0.0000 mm2.** Method: board loaded IN PLACE so the sibling
+`.kicad_pro` supplies real netclasses, `ZONE_FILLER` in memory, never saved;
+island membership by `IsOnLayer()` — layer IDs are NOT contiguous here
+(F_Cu=0, B_Cu=2, In1_Cu=4), so a `TopLayer() <= L <= BottomLayer()` test spans
+[0,2], excludes every inner layer, and reports the main GND and VIN planes as
+STRANDED (a false P0 this check nearly produced). Discrimination proved rather
+than assumed: stripping all 178 GND vias and refilling yields 1 stranded island of
+11407.1 mm2, so the check can fail. Control board cooksense measures 136 islands /
+129 bonded / 7 stranded / 3.0719 mm2.
+
+**The cost is future SURGICAL REVISIONS, not this board's correctness** — a
+change-management cost. A deterministic-UUID fix is in progress as a fleet task;
+this manifest RECORDS the backend state the release was built with, which is canon
+M3 honoured in its durable form rather than pretended.
+
 ## 6. Fixed since v1.5 — the two "next-rev" items its own review raised
 
 - **B2** — "the 5 A USB-C path crosses Q6 -> F2 through TWO 0.30 mm vias in

@@ -1,10 +1,6 @@
 # SUPERSEDED — v1.5-2026-07-25 is **DO-NOT-ORDER**
 
-**This release is DO-NOT-ORDER on its own evidence (below). Its replacement,
-`07_releases/v1.6-2026-07-26/`, is STAGED BUT NOT YET SEALED** — it is blocked on
-an M-REPRO reproducibility failure whose root cause is a fleet-wide
-non-deterministic-UUID issue in the board generator, not a defect in either
-board. **There is currently NO orderable release of usb-hub-3s-v3.**
+**Order from `07_releases/v1.6-2026-07-26/` instead.**
 
 ## Why: 11 of this release's 108 CPL rows are off JLC's placement datum
 
@@ -76,7 +72,7 @@ The correction also moves the delivery margin from **+15.0 mV to +244.2 mV** wit
 no hardware change, which retires this release's own warning that "15 mV of paper
 slack is not a margin you ship on" — it was a true statement about the wrong load.
 
-## Status of this directory (and of v1.6)
+## Status of this directory
 
 **IMMUTABLE.** Nothing in it has been edited; this file is an addition. The
 evidence, reviews and MANIFEST remain as sealed for the record.

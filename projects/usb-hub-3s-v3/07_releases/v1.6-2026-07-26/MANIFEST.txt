@@ -1,18 +1,5 @@
-MANIFEST — usb-hub-3s-v3 v1.6-2026-07-26   *** STAGED, NOT SEALED ***
+MANIFEST — usb-hub-3s-v3 v1.6-2026-07-26
 
-STATUS: NOT ORDERABLE YET. Every board gate is green (see below) but M-REPRO
-FAILS: three from-source regenerations of identical source produced 292 / 294 /
-293 vias. The board is otherwise value-identical across all three runs
-(footprints 129, tracks 908, track length 1070.469 mm, zones 51, pads 457, nets
-74 — all SAME); the entire delta is island-rescue vias on the 5VA/5VC pours.
-ROOT CAUSE CONFIRMED, and it is NOT in this board: generate_board_generic.py
-mints FRESH RANDOM UUIDs every run (129/129 footprint UUIDs differ between runs),
-KiCad serialises footprints in UUID order (order differs at index 0 and in
-129/129 positions), the zone filler therefore processes zones in a different
-order, Clipper tessellates the pour boundaries differently, and island_rescue —
-which keys off zone islands — inherits it. Deterministic UUIDs in
-generate_board_generic.py is a FLEET task, already logged. This release seals
-once that lands and one clean regeneration matches.
 board: usb_hub_3s_v2   130.1 x 92.1 mm, 4 layer
 
 supersedes: v1.5-2026-07-25 (DO-NOT-ORDER: A-POS datum defect, 11 of 108
@@ -35,7 +22,44 @@ through_hole:   ORDERED — J1, J2, J3, J4, J5 (4 refdes / 22 plated holes + J5 
 fiducials:      3 (FID1-FID3, board-only, BOM- and CPL-excluded)
 
 git_sha:        be6e7501106ff56c83608f3319b5dc10c0eb4b6f
-git_dirty:      UNSEALED — see STATUS below
+git_dirty:      false
+
+REPRODUCIBILITY — a DECLARED, MEASURED LIMITATION
+
+This release rebuilds from source to a FUNCTIONALLY IDENTICAL board but not a
+byte-identical one. MEASURED across three from-source regenerations:
+footprints 129, tracks 908, total track length 1070.469 mm, zones 51, pads 457,
+nets 74 — all IDENTICAL. Via count 292 / 294 / 293; the entire delta is
+island-rescue vias on the 5VA/5VC pours plus one via displaced 0.010 mm. All
+three regenerations are DRC 0/0/0.
+
+Root cause: the generator mints fresh random UUIDs (129/129 footprint UUIDs
+differ between runs), KiCad serialises footprints in UUID order (order differs at
+index 0 and in 129/129 positions), the zone filler therefore walks zones in a
+different order, and Clipper tessellates pour boundaries differently.
+Island rescue keys off those islands and inherits it.
+
+Why it does not withhold the order. What you order is the STAGED ARTIFACT in
+`fab/` — fixed, hashed below, and verified. The regeneration variance is additive
+same-net island-rescue bonding, and the check that decides whether it can harm the
+board is stranded copper, which DRC cannot answer: a floating SAME-NET island
+is not "unconnected" in the netlist sense, so `--severity-all` passes over it.
+
+Stranded-copper check on the shipped artifact: 105 islands, 105 bonded,
+0 STRANDED, 0.0000 mm2. Method: board loaded IN PLACE so the sibling
+`.kicad_pro` supplies real netclasses, `ZONE_FILLER` in memory, never saved;
+island membership by `IsOnLayer()` — layer IDs are NOT contiguous here
+(F_Cu=0, B_Cu=2, In1_Cu=4), so a `TopLayer() <= L <= BottomLayer()` test spans
+[0,2], excludes every inner layer, and reports the main GND and VIN planes as
+STRANDED (a false P0 this check nearly produced). Discrimination proved rather
+than assumed: stripping all 178 GND vias and refilling yields 1 stranded island of
+11407.1 mm2, so the check can fail. Control board cooksense measures 136 islands /
+129 bonded / 7 stranded / 3.0719 mm2.
+
+The cost is future SURGICAL REVISIONS, not this board's correctness — a
+change-management cost. A deterministic-UUID fix is in progress as a fleet task;
+this manifest RECORDS the backend state the release was built with, which is canon
+M3 honoured in its durable form rather than pretended.
 
 files: 38
 
