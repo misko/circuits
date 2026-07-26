@@ -60,12 +60,27 @@ No pcbnew dependency: the exporter (`export_jlc_package.py`), the twin
 it is unit-testable with plain python3.
 """
 import csv
+import os
 import re
 from collections import namedtuple
 from pathlib import Path
 
 HERE = Path(__file__).parent
-LCSC_ROT_PATH = HERE / "jlc_lcsc_rotations.csv"
+
+#: the MEASURED authority table. Overridable by env so a TEST can construct its
+#: own unsourced state instead of borrowing a real project's defect.
+#:
+#: WHY THIS EXISTS (2026-07-26). Two known-bad fixtures asserted that A-ROT
+#: BLOCKS the usb-hub-3s-v3 export, and both EXPIRED the moment the board's 14
+#: missing rows were measured and landed: the export now reports "A-ROT OK: all
+#: 119 CPL rotations are sourced", so the gate could no longer be made to fail
+#: and the fixtures failed instead. A known-bad fixture that depends on a LIVE
+#: PROJECT being broken has an expiry date, and it expires exactly when someone
+#: does the right thing — which is the worst possible moment to lose the proof
+#: that a gate can fail. Point this at a deliberately-reduced table and the
+#: unsourced state is synthetic, permanent, and owned by the test.
+LCSC_ROT_PATH = Path(os.environ.get("JLC_LCSC_ROTATIONS",
+                                    HERE / "jlc_lcsc_rotations.csv"))
 NAME_DB_PATH = HERE / "jlc_rotations_db.csv"
 
 # resolution sources. There is no "name" source any more — that is the point.

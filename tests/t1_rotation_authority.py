@@ -397,28 +397,50 @@ def t_symmetry_discriminates():
 
 
 # ======================================================= the exporter gate ==
-@test("A-ROT BLOCKS the fab export on a real board with unsourced rotations, "
-      "and leaves NO uploadable package behind", kind="known_bad")
+# The unsourced state these fixtures need is SYNTHETIC: a header-only rotation
+# table injected via $JLC_LCSC_ROTATIONS (harness.run merges env into
+# os.environ). The first version of these tests instead relied on the REAL
+# usb-hub-3s-v3 board having 14 unmeasured codes, and they EXPIRED the moment
+# those rows were measured and landed (2026-07-26): the export went "A-ROT OK:
+# all 119 CPL rotations are sourced", the gate could no longer be made to
+# fail, and the suite lost its proof at exactly the moment someone did the
+# right thing. A known-bad fixture must OWN its brokenness — never borrow a
+# live project's.
+def empty_rotation_env():
+    """Env pointing the resolver at a header-only per-LCSC table, so every
+    non-180-symmetric placement on the board under test is UNSOURCED."""
+    return {"JLC_LCSC_ROTATIONS": str(scratch_table([]))}
+
+
+@test("A-ROT BLOCKS the fab export when rotations are unsourced, and leaves "
+      "NO uploadable package behind", kind="known_bad")
 def t_export_blocks():
     """The default must be BLOCKING, not opt-in: 'silence becomes a FAIL
     instead of a default' is the entire point. Run against the real
-    usb-hub-3s-v3 board, whose v1.4 shipped C1/C2 180 deg reversed and J1
-    90 deg off.
+    usb-hub-3s-v3 board (whose v1.4 shipped C1/C2 180 deg reversed and J1
+    90 deg off) with the fixture's OWN empty rotation table, so the unsourced
+    state cannot expire when the real table gains rows.
 
     Two properties, both of which the pre-A-ROT exporter fails:
       1. exit != 0 and the block NAMES the codes;
       2. NO cpl_jlc.csv is left in the outdir — including a STALE one from an
          earlier run. A blocked run that leaves a plausible-looking CPL behind
          is worse than no gate, because the next person uploads it.
-    RED-VERIFIED (new-gate variant): the pre-A-ROT exporter has no A-ROT path
-    at all — it exits 0 and writes a complete package for this exact board,
-    with the unsourced parts silently at the name-DB guess or 0.0."""
+    The worklist-size assertion is COMPLETENESS the fixture owns — every code
+    the block reports appears in the worklist — not the old `>= 10`, which was
+    only true while the real board happened to be missing that many rows.
+    RED-VERIFIED twice: (new-gate variant) the pre-A-ROT exporter has no A-ROT
+    path at all — it exits 0 and writes a complete package; (env variant,
+    2026-07-26) with the pre-override resolver restored the injected table is
+    ignored, the real (now fully measured) table wins, the export prints
+    'A-ROT OK' and this test FAILS at must_fail. Confirmed, then restored."""
     if not USB_BOARD.exists():
         raise AssertionError(f"missing real board fixture: {USB_BOARD}")
     d = tmpdir("exp_")
     stale = d / "cpl_jlc.csv"
     stale.write_text("Designator,Val\nSTALE,1\n")     # a leftover from before
-    r = run([KPY, EXPORT, USB_BOARD, d, "--layers", "4"])
+    r = run([KPY, EXPORT, USB_BOARD, d, "--layers", "4"],
+            env=empty_rotation_env())
     must_fail(r, "fab export with unsourced rotations", "A-ROT BLOCKED")
     contains(r.out, "C473910", "the block names an unsourced code (SOT-23-6)")
     contains(r.out, "D_SOD-123", "the block names an unsourced diode")
@@ -430,9 +452,19 @@ def t_export_blocks():
     check(worklist.exists(), "no worklist written — a block with no worklist "
                              "is a wall, not a gate")
     rows = list(csv.DictReader(open(worklist)))
-    check(len(rows) >= 10, f"worklist has only {len(rows)} codes")
+    m = __import__("re").search(r"over (\d+) LCSC\s+code", r.out)
+    check(m, f"the block line does not report a code count:\n{r.out[-1500:]}")
+    n_blocked = int(m.group(1))
+    check(n_blocked > 0, "the block reports zero unsourced codes")
+    eq(len(rows), n_blocked,
+       "worklist completeness: every blocked code gets a worklist row")
     check(all(r_["why_not_exempt"] for r_ in rows),
           "a worklist row does not say WHY its footprint is not exempt")
+    # the 180-symmetry exemption is MEASURED, not table-driven: chip passives
+    # stay exempt even with the table empty, so they never pollute the worklist
+    fps = {r_["footprint"] for r_ in rows}
+    check(not any(f.startswith("R_0603") for f in fps),
+          f"an exempt chip resistor reached the worklist: {sorted(fps)}")
 
 
 @test("the escape hatch writes the package, shouts, and still emits the "
@@ -441,10 +473,14 @@ def t_export_escape_hatch():
     """An UNSOURCED-is-blocking change fails existing boards by design, so the
     transition needs a way to PRODUCE the worklist. It is loud, it names the
     count, and it says the package must not be ordered — a quiet escape hatch
-    is just the old default with extra steps."""
+    is just the old default with extra steps.
+    Uses the same synthetic empty-table env as t_export_blocks (and for the
+    same reason: the real board is now fully measured, so only a table the
+    fixture OWNS can put the exporter into the overridden state)."""
     d = tmpdir("exp_")
     r = must_pass(run([KPY, EXPORT, USB_BOARD, d, "--layers", "4",
-                       "--allow-unsourced-rotations"]),
+                       "--allow-unsourced-rotations"],
+                      env=empty_rotation_env()),
                   "fab export with the escape hatch")
     contains(r.out, "A-ROT OVERRIDDEN", "the override is loud")
     contains(r.out, "MUST NOT BE ORDERED", "and says what it costs")
@@ -495,6 +531,71 @@ def t_fleet_report():
     contains(r.out, "refs:", "per-code refdes lists")
     check("EXEMPT" not in r.out.upper() or "exempt" in r.out,
           "the report must say the symmetry exemption was applied")
+
+
+@test("A-POL lets a DATASHEET-BACKED n/a through — the keyword check cannot "
+      "see a negation")
+def t_apol_na_discharged_by_datasheet():
+    """RED-VERIFIED against the pre-fix checker: with `elif pol == POL_NA and
+    POLARIZED_RE.search(ev)` restored (no UNPOLARIZED_RE/DATASHEET_RE
+    discharge), this row FAILS A-POL, because its evidence contains the words
+    'POLARIZED', 'cathode' and 'diode' — all of them inside statements that the
+    part is NOT polarized. Confirmed failing, then the fix restored.
+
+    THE INCIDENT (2026-07-26, smc0985-cooksense D_DOOR + 4 refs). C5158048 is
+    a PESD5V0S1BA, and its manufacturer datasheet section 5 Table 2 gives
+    pin 1 = K1 'cathode (diode 1)' and pin 2 = K2 'cathode (diode 2)', symbol
+    sym045 = back-to-back zeners with NO ANODE PIN BROUGHT OUT. BOTH PINS ARE
+    CATHODES, so 180 is electrically identical and there is nothing for a human
+    gate to confirm. The honest declaration is n/a — but writing WHY it is n/a
+    necessarily uses the vocabulary of polarity, and a substring match cannot
+    tell 'the part is NOT polarized' from 'the part is polarized'.
+
+    This is the SECOND time the same limitation fired on a true statement: the
+    M-PROV rationale check matched 'assumed' inside C7719's 'confirmed by
+    diffing the two cached footprint files, not assumed'. The first time it was
+    worded around. Wording around it twice would train the table to avoid true
+    words, so the check was reshaped to ACCEPT-ON-EVIDENCE: 'does this prose
+    contain a negation' is not decidable by regex, but 'does this row cite a
+    datasheet' is."""
+    ok = ["C5158048", "0",
+          "PESD5V0S1BA in SOD-323. DECLARED n/a — THE PART IS NOT POLARIZED, "
+          "manufacturer-confirmed. Datasheet archived at "
+          "02_parts/PESD5V0S1BA/PESD5V0S1BA_2024-04-26.pdf, section 5 Table 2: "
+          "pin 1 = K1 'cathode (diode 1)', pin 2 = K2 'cathode (diode 2)', "
+          "sym045 back-to-back zeners, no anode pin brought out. Both pins are "
+          "cathodes, so a 180 rotation is electrically identical. Measured "
+          "2026-07-26: pads 180-symmetric to 0.0000mm at x=-1.20/+1.20.",
+          "n/a"]
+    r = must_pass(run([KPY, AUDIT, "--table", scratch_table([ok])]),
+                  "A-POL n/a discharged by an archived datasheet")
+    contains(r.out, "OK", "the table grades clean")
+
+
+@test("A-POL still FAILS an n/a that CLAIMS unpolarized but cites no "
+      "datasheet — the discharge has a price", kind="known_bad")
+def t_apol_na_claim_without_datasheet():
+    """The discharge must not become a magic phrase. An unpolarized CLAIM with
+    no manufacturer document behind it is the same unevidenced assertion as
+    `^JST_GH_SM,180`, the name-DB rule that placed EIGHT cooksense safety
+    connectors 180 out through two sealed releases because nobody had ever
+    measured it.
+
+    The bar is a DATASHEET rather than a measurement on purpose: symmetry is
+    the one polarity question geometry CANNOT settle. A part whose pads and
+    marks are symmetric looks identical whether both terminals really are
+    cathodes or the die is merely centred, so no fit, cloud or mark-matching
+    channel can distinguish them — only the manufacturer can."""
+    bad = ["C5158048", "0",
+           "PESD5V0S1BA in SOD-323. DECLARED n/a — the part is not polarized. "
+           "Measured 2026-07-26: pads 180-symmetric to 0.0000mm at "
+           "x=-1.20/+1.20, and the JLC land name ends _BI so it is "
+           "bidirectional. No cathode band asymmetry that matters.",
+           "n/a"]
+    r = must_fail(run([KPY, AUDIT, "--table", scratch_table([bad])]),
+                  "A-POL n/a claimed without a datasheet", "A-POL")
+    contains(r.out, "manufacturer document",
+             "names exactly what is missing, not just that it failed")
 
 
 if __name__ == "__main__":

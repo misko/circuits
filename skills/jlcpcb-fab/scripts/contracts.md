@@ -64,7 +64,22 @@ stock, twin).
     are the incident) and **A-POL** (the `polarity` column declares
     `n/a | two-channel | single-channel`; a numbering-free channel must be
     RECORDED in the row, or the JLC order-preview human gate named).
+    A-POL's `n/a` grading is ACCEPT-ON-EVIDENCE, not reject-on-keyword
+    (2026-07-26): the polarity-vocabulary regex is a substring match that
+    cannot see a negation and fired twice on TRUE statements ("confirmed
+    ..., not assumed"; "THE PART IS NOT POLARIZED"). An `n/a` row may use
+    polarity vocabulary freely PROVIDED it makes a positive unpolarized
+    claim AND cites the manufacturer document (section/table ref or
+    archived .pdf) — BOTH required; the bar is a datasheet because symmetry
+    is the one polarity question geometry cannot settle.
     `--fleet` prints the per-board UNSOURCED migration worklist.
+  - `jlc_rotation_resolve.py` reads the authority table path from
+    `$JLC_LCSC_ROTATIONS` (fallback: the shipped `jlc_lcsc_rotations.csv`).
+    This is a TEST SEAM, never a production override: it exists because two
+    known-bad export fixtures borrowed the real usb-hub-3s-v3 board's
+    unsourced state and EXPIRED the moment its rows were measured
+    (2026-07-26) — a known-bad fixture must own its brokenness, so the
+    tests inject a header-only table instead.
   - Pinned by `tests/t1_rotation_authority.py` (one known-bad per mechanism,
     red-verified against the restored pre-fix resolver: 8 tests go RED).
 - `release_freshness_check.py <release_dir>` gates a seal: it FAILS when a

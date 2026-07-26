@@ -72,6 +72,42 @@ POLARIZED_RE = re.compile(
     r"POLARIZED|polarity|polarised|electrolytic|\bLED\b|\bdiode\b|\bTVS\b|"
     r"cathode|anode|2-pad|two-pad|collinear|keyed|opto", re.I)
 
+#: DISCHARGE for `n/a`. POLARIZED_RE is a substring match and CANNOT SEE A
+#: NEGATION, so it fired twice on rows whose evidence said the opposite of what
+#: it matched: C7719's "confirmed ..., not assumed" tripped the M-PROV rationale
+#: word, and C5158048's "THE PART IS NOT POLARIZED" tripped this one. Wording
+#: around it a second time would have taught the table to avoid true words.
+#:
+#: The fix is shaped as ACCEPT-ON-EVIDENCE rather than reject-on-keyword,
+#: because "does this prose contain a negation" is not decidable by regex but
+#: "does this row cite a datasheet" is. An `n/a` row may therefore discuss
+#: polarity freely -- to record why the part has none, or which tool got it
+#: wrong -- PROVIDED it makes a positive unpolarized claim AND cites the
+#: manufacturer document that backs it. Both are required: the claim alone is
+#: the same unevidenced assertion as `^JST_GH_SM,180`, and the citation alone
+#: does not say what the datasheet established.
+#:
+#: The bar is deliberately a DATASHEET and not a measurement. Symmetry is the
+#: one polarity question geometry CANNOT settle -- a part whose pads and marks
+#: are symmetric looks identical whether both terminals are cathodes or the die
+#: is simply centred (PESD5V0S1BA: pin 1 = K1, pin 2 = K2, sym045 back-to-back
+#: zeners, no anode pin brought out -- section 5 Table 2, and NOT the same
+#: datasheet's shared SOD323 outline note "the marking bar indicates the
+#: cathode", which is boilerplate that cannot distinguish an orientation on a
+#: part where BOTH pins are the cathode).
+UNPOLARIZED_RE = re.compile(
+    r"NOT POLARIZED|not polarized|not polarised|unpolarized|unpolarised|"
+    r"both pins are cathodes|both terminals are cathodes|no anode pin|"
+    r"electrically (identical|symmetric|symmetrical)|"
+    r"bidirectional|symmetric part", re.I)
+
+#: the manufacturer document an `n/a` discharge must cite. A section/table
+#: reference or an archived filename -- not the bare word "datasheet", which is
+#: a gesture at evidence rather than evidence.
+DATASHEET_RE = re.compile(
+    r"\.pdf\b|section\s+\d|table\s+\d|datasheet\s+(archived|section|table)|"
+    r"sha256-cached", re.I)
+
 #: the human gate a SINGLE-CHANNEL row must name.
 HUMAN_GATE_RE = re.compile(r"order[- ]preview", re.I)
 
@@ -162,14 +198,23 @@ def grade_table(path=None):
                 f"A-POL {where}: polarity column is {row['polarity']!r} — "
                 f"must be one of {list(POL_VOCAB)}. Silence is not a "
                 f"declaration"))
-        elif pol == POL_NA and POLARIZED_RE.search(ev):
+        elif pol == POL_NA and POLARIZED_RE.search(ev) \
+                and not (UNPOLARIZED_RE.search(ev) and DATASHEET_RE.search(ev)):
             m = POLARIZED_RE.search(ev)
+            has_claim = UNPOLARIZED_RE.search(ev)
+            missing = ("cites no manufacturer document (a section/table "
+                       "reference or an archived .pdf) for that claim"
+                       if has_claim else
+                       "makes no positive unpolarized claim at all")
             out.append(Finding(
                 f"A-POL {where}: declared {POL_NA!r} but its own evidence says "
-                f"{m.group(0)!r}. A pad-NUMBER fit cannot see a library that "
-                f"numbers the terminals the other way round (C2296/C2297: fit "
-                f"180 at a 17.7x margin, true offset 0) — declare "
-                f"{POL_TWO!r} or {POL_ONE!r}"))
+                f"{m.group(0)!r}, and {missing}. A pad-NUMBER fit cannot see a "
+                f"library that numbers the terminals the other way round "
+                f"(C2296/C2297: fit 180 at a 17.7x margin, true offset 0) — "
+                f"declare {POL_TWO!r} or {POL_ONE!r}, or discharge {POL_NA!r} "
+                f"with BOTH an explicit unpolarized statement AND the datasheet "
+                f"that establishes it (symmetry is the one polarity question "
+                f"geometry cannot settle)"))
         elif pol == POL_TWO and not CHANNEL_RE.search(ev):
             out.append(Finding(
                 f"A-POL {where}: declared {POL_TWO!r} but the evidence names "
