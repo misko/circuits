@@ -1,0 +1,161 @@
+mpn: LMV393IDR
+manufacturer: Texas Instruments
+type: dual_comparator                # two independent differential comparators, OPEN-DRAIN (NPN) outputs.
+                                     # Low-voltage (2.7-5.5V) sibling of the LM393/LM339 family.
+                                     # v1.3 replacement for LM393DR on the camera over-temp inhibit
+                                     # (U_COMP) AND on the new open-thermistor window detect (U_COMP2);
+                                     # both run from 3V3_ANALOG so TEMP_OK is a single-rail 3V3
+                                     # wired-AND: hot(A).hot(B).open(A).open(B).
+datasheet:
+  doc_id: SLCS136
+  revision: SLCS136V                 # Aug 1999 - Revised May 2025. PIN IT: Rev V's ONLY technical change
+                                     # is "Corrected incorrect Feature Description text about input
+                                     # voltage conditions for output sinking" (Sec.14 Revision History,
+                                     # p.14) - i.e. the out-of-common-mode output table this board's
+                                     # safety argument now leans on was WRONG before Rev V.
+  url: https://www.ti.com/lit/ds/symlink/lmv393.pdf
+  sha256: 174a310f6a5803a6d39e4b31c7b400c12841d6fd72b7cfb2786ca2579572ba9f
+  fetched: 2026-07-25
+  local: SLCS136V.pdf
+package: SOIC-8 (D) 3.91x4.90mm      # D0008A drawing, p.24-26: body .150-.157 [3.81-3.98] x
+                                     # .189-.197 [4.81-5.00] mm, lead span 5.80-6.19mm, 1.75mm max height
+footprint: Package_SO:SOIC-8_3.9x4.9mm_P1.27mm
+escape: {style: leaded, pitch: 1.27, tier_required: jlc_2layer_default, checked: escape_check 2026-07-25}
+pins:                                # DS Sec.4 "LMV393 . . . D, DDU, DGK OR PW PACKAGE (TOP VIEW)"
+                                     # figure + Table 4-1 Pin Functions, p.3 (READ, not inherited)
+  1: {name: 1OUT, note: "comparator-1 output - OPEN-DRAIN NPN, needs external pullup (Table 4-1 TYPE=O)"}
+  2: {name: 1IN_MINUS, note: "comparator-1 negative input"}
+  3: {name: 1IN_PLUS, note: "comparator-1 positive input"}
+  4: GND
+  5: {name: 2IN_PLUS, note: "comparator-2 positive input"}
+  6: {name: 2IN_MINUS, note: "comparator-2 negative input"}
+  7: {name: 2OUT, note: "comparator-2 output - OPEN-DRAIN NPN, needs external pullup"}
+  8: {name: VCC_PLUS, note: "supply pin (Table 4-1 name is VCC+)"}
+limits:
+  vcc: "2.7-5.5V recommended (Sec.5.3 p.4); ABS MAX 5.5V (Sec.5.1 p.4) - NOT the LM393's 36V"
+  v_icr_2v7: "-0.1 to 2.0 V at VCC=2.7V, 25C (Sec.5.5 p.5) = VCC-0.7"
+  v_icr_5v0: "-0.1 to 4.2 V at VCC=5V, 25C (Sec.5.7 p.6) = VCC-0.8"
+  v_icr_3v3: "NOT SPECIFIED - no EC table at 3.3V. Sec.7.2.2.1 p.11 bounds it: 'the VICR can range
+    from 0V to VCC-0.7V ... Operation outside of this range can yield incorrect comparisons.'
+    => ceiling 2.50-2.60V at VCC=3.3V. SEE GOTCHAS - this board drives inputs ABOVE it on purpose."
+  vi_abs_max: "0 to VCC+ (Sec.5.1 p.4) - inputs may not exceed the supply rail"
+  vid: "+-5.5V differential abs max (Sec.5.1 p.4) - NOT the LM393's +-36V"
+  offset: "VIO +-7mV max at 25C, +-9mV max over -40..125C, +0.5mV typ (Sec.5.7 p.6)"
+  iib: "input bias 0.005nA typ / 250nA max 25C / 400nA max over temp (Sec.5.7 p.6); PNP inputs SOURCE current"
+  iout_sink: "10mA min / 84mA typ at VO<=1.5V, VCC=5V (Sec.5.7 p.6). Design here ~0.33mA via the 10k pullup"
+  vsat: "150mV typ / 400mV max 25C / 700mV max over temp at IO<=4mA (Sec.5.7 p.6)"
+  ileak_out: "0.003uA typ / 1uA max over temp (Sec.5.7 p.6) - 4 wired-AND outputs = 4uA = 40mV droop on a 10k pullup"
+  icc: "50uA typ / 200uA max (both comparators) at VCC=5V (Sec.5.7 p.6)"
+  response: "tPHL 200ns typ at 100mV overdrive / 600ns at 10mV (VCC=5V, Sec.5.8 p.6);
+    tPLH 300ns / 450ns. At VCC=2.7V: tPHL 350ns/1000ns, tPLH 400ns/500ns (Sec.5.6 p.5).
+    tPLH in-circuit is really Rpullup*CL (Sec.7.2.2.4 p.11) - 10k x ~20pF = ~200ns."
+  esd_hbm: "2kV (Sec.5.2 p.4)"
+  esd_cdm: "1kV (Sec.5.2 p.4)"
+  ta: "-40 to 125C (Sec.5.3 p.4); TJ 150C max"
+  msl: "MSL-1, 260C peak reflow, unlimited floor life (orderable addendum p.16, 'Level-1-260C-UNLIM')"
+gotchas:
+  - "THE LMV393 IS **NOT** RAIL-TO-RAIL ON THE INPUT. The v1.3 swap rationale in cooksense.tsx and in
+    03_src/rules/electrical_invariants.yaml (U_COMP2.8 assertion) says 'the LMV393 is rail-to-rail on
+    the input (0..V+), so on 3V3_ANALOG the whole 0-3.3V sense range is in spec'. THE DATASHEET SAYS
+    OTHERWISE. Sec.6.3 p.9: 'PNP input, whose Vbe creates a limit on the input common mode voltage
+    capability, allowing LMV33x to accurately function from ground to VCC-Vbe (about 700mV)'. The EC
+    tables give VICR = -0.1 to 2.0V at VCC=2.7V and -0.1 to 4.2V at VCC=5V. At VCC=3.3V the ceiling is
+    2.50-2.60V, NOT 3.3V. A 3.0-3.3V cold/open sense node is therefore STILL ABOVE the specified
+    common-mode range - the swap did NOT put the broken-sensor case inside VICR. What it DID buy is
+    stated below, and it is a real and sufficient win, but the stated reason is wrong and must be
+    corrected in the tsx comment + the invariant `why:` before seal."
+  - "WHAT THE SWAP ACTUALLY BUYS (and why it is still the right part): Sec.7.2.2.1 'Input Voltage
+    Range', p.11 SPECIFIES the out-of-common-mode output state, deterministically, for all four cases -
+    (1) both inputs in range: normal compare; (2) IN- above CM, IN+ in range: output LOW/sinking;
+    (3) IN+ above CM, IN- in range: output HIGH-IMPEDANCE; (4) both above CM: output LOW/sinking.
+    The LM393 datasheet (SLCS005AH) specifies NO such behaviour above VCC-2V, so on 5V its output for a
+    3.0-3.3V sense node was simply undefined. The LMV393 turns an UNDEFINED safety response into a
+    DOCUMENTED one. That - not input range - is the load-bearing property. It is only guaranteed from
+    Rev V of this datasheet (Sec.14 p.14 records the Rev U->V correction to exactly this text)."
+  - "CONSEQUENCE FOR U_COMP (over-temp, 1IN+/2IN+ = TH_CAM, IN- = TCAM_THRESH 0.4231V): SAFE.
+    Hot => TH_CAM falls well inside VICR => normal compare => OUT LOW => TEMP_OK low. Cold/open =>
+    IN+ above CM with IN- in range => Sec.7.2.2.1 case 3 => HIGH-Z => 'not over-temp', which is the
+    correct answer. The dangerous direction (hot reported as fine) is never out of range."
+  - "CONSEQUENCE FOR U_COMP2 (open-detect, IN- = TH_CAM, IN+ = TCAM_OPEN 3.107V): THE 3.107V DIVIDER IS
+    NOT THE TRIP POINT. TCAM_OPEN 3.107V is ABOVE the 2.50-2.60V common-mode ceiling AT ALL TIMES, so
+    the part never compares against it. The output state is decided by IN- alone via Sec.7.2.2.1:
+    TH_CAM in range => case 3 => HIGH-Z (no fault); TH_CAM also above CM => case 4 => LOW (fault).
+    EFFECTIVE trip point = the CM ceiling, 2.50-2.60V, NOT 3.107V. With the 10k/3V3_ANALOG divider and
+    the committed KNTC0603-10KF3950 (B25/85=3987K) that is Rntc = 31.2-37.2k, i.e. a head temperature
+    of about +1.6C (worst case) to -1.6C (typ). Below that, a HEALTHY connected thermistor reads as
+    OPEN and TEMP_OK goes low. DIRECTION IS FAIL-SAFE (spurious de-energize, never a missed open), and
+    an actual open at 3.3V is always detected - but the designed 3.0V-cold vs 3.3V-open discrimination
+    does not exist, and a below-freezing cold start WILL nuisance-trip the interlock. R_OPENT/R_OPENB
+    (6.2k/100k) only need to keep TCAM_OPEN above the ceiling; their exact value is inert.
+    Disposition this in an ADR or move the open-detect to a rail-to-rail-input comparator
+    (e.g. TLV3201/TLV7011 class) before seal."
+  - "ABS MAX VCC IS 5.5V, not 36V. This part MUST stay on 3V3_ANALOG. Wiring it to 5V_PROTECTED (4.93V)
+    leaves only 0.57V of headroom and any 12V/24V touch destroys it instantly - the LM393 it replaces
+    survived 36V. Differential input abs max also collapses from +-36V to +-5.5V (Sec.5.1 p.4), and
+    VI abs max is 0..VCC+ so an input may never be driven above its own supply: if 3V3_ANALOG browns
+    out while a thermistor node is held up from elsewhere, the input diode conducts."
+  - "Outputs are OPEN-DRAIN NPN (Sec.6.3 p.9: 'The open-drain output allows the user to configure the
+    output's logic low voltage (VOL) and can be utilized to enable the comparator to be used in AND
+    functionality'). Each OUT needs an external pullup - here ONE shared 10k (R_TEMPOK) to 3V3 for the
+    4-way wired-AND across U_COMP.1/.7 and U_COMP2.1/.7. VOL is resistive and scales with IOUT
+    (Figure 5-3, p.7); at 0.33mA it is far below the 150mV typ / 700mV over-temp max quoted at 4mA, but
+    the datasheet only SPECIFIES VOL at IO<=4mA - budget 700mV worst case against the receiving VIL."
+  - "Comparator, NOT an op-amp: no internal hysteresis and no phase compensation. The 1M R_HYS1/R_HYS2
+    positive feedback from TEMP_OK into TH_CAM_A/B is mandatory or the slowly-moving thermistor node
+    chatters at the trip point. Sec.9.1 p.12 makes the same point from the supply side: 'For accurate
+    comparator applications without hysteresis, a stable power supply is necessary'."
+  - "Supply noise moves the COMMON-MODE CEILING, not just the threshold. Sec.8 p.12: supply variation
+    'cause temporary fluctuations in the comparator's input common mode range and create an inaccurate
+    comparison'. Because U_COMP2 deliberately sits at the ceiling (previous gotcha), 3V3_ANALOG ripple
+    directly modulates its effective trip point - the 100nF at pin 8 is a SAFETY component here."
+  - "VIO is +-7mV max at 25C and +-9mV over temperature - worse than the LM393's +-5mV. Against
+    TCAM_THRESH = 0.4231V on the 68k/10k divider this is a small trip-point shift, but it is the
+    error term to quote in the 60/65/70/75C fixture gate, not 0."
+  - "Pinout is identical to the LM393DR it replaces (1OUT,1IN-,1IN+,GND,2IN+,2IN-,2OUT,VCC), and this
+    was READ from Sec.4 p.3, not assumed. Same SOIC-8 D land, so no layout change - but the
+    footprint IoU warning tscircuit emits for `soic8` vs jlcpcb C7984 (0.7163) is the generic
+    footprinter token, not this land pattern; the KiCad FPID above is authoritative."
+verified: "pin map read from DS Sec.4 Pin Configuration and Functions, figure 'LMV393 . . . D, DDU, DGK
+  OR PW PACKAGE (TOP VIEW)', page 3, and independently cross-checked against Table 4-1 Pin Functions
+  (LMV393 D/DGK/PW column) on the same page 3: 1IN-/2IN- = 2,6; 1IN+/2IN+ = 3,5; GND = 4;
+  1OUT/2OUT = 1,7; VCC+ = 8. Open-drain output + the VCC-Vbe (~700mV) common-mode ceiling from
+  Sec.6.3 Feature Description p.9; VICR numbers from Sec.5.5 p.5 and Sec.5.7 p.6; out-of-common-mode
+  output states from Sec.7.2.2.1 Input Voltage Range p.11; abs max from Sec.5.1 p.4; MSL-1 from the
+  orderable addendum p.16; package D0008A drawing p.24-26 - SLCS136V, 2026-07-25"
+layout:
+  source: "TI SLCS136V Sec.9 Layout (9.1 Layout Guidelines + Figure 9-1 Layout Example, p.12) and
+    Sec.8 Power Supply Recommendations (p.12): 'add a bypass capacitor between the supply voltage and
+    ground' directly at VCC, because supply noise 'cause temporary fluctuations in the comparator's
+    input common mode range'. Figure 9-1 draws the 0.1uF hard against VCC/GND. Sec.9.1 also warns:
+    with a single supply, do NOT put a capacitor between the IC GND pin and system ground.
+    Sec.7.2 Figure 7-1 fixes the topology (Rpullup from OUT to VLOGIC, CL at the output node)."
+  reviewed: "2026-07-25"
+  keep_short:
+    - {net: TH_CAM_A, max_span_mm: 8, why: "high-impedance thermistor sense feeding U_COMP.3 (IN+) AND
+       U_COMP2.2 (IN-); keep short and away from the switched relay rail - pickup here can false-trip
+       the open-detect or mask the over-temp inhibit"}
+    - {net: TH_CAM_B, max_span_mm: 8, why: "same, into U_COMP.5 (IN+) and U_COMP2.6 (IN-)"}
+    - {net: TCAM_OPEN, max_span_mm: 8, why: "the open-detect reference into U_COMP2.3/.5, driven from a
+       6.2k/100k divider; it sits at/above the common-mode ceiling so any noise on it is directly a
+       trip-point error - divider resistors local to the pins"}
+  notes: "0.1uF from VCC (pin 8) to GND (pin 4) hard against EACH package (C_COMP for U_COMP, C_COMP2
+    for U_COMP2) per Figure 9-1 - on this board that cap is a safety component, see gotchas.
+    Do NOT insert a capacitor between pin 4 and system ground (Sec.9.1). Threshold divider
+    (R_TH1/R_TH2) and the 1M hysteresis resistors LOCAL to each IN pin so the positive-feedback loop
+    stays short. Shared 10k pullup (R_TEMPOK) on the 4-way wired-AND TEMP_OK node, near the outputs.
+    RC input filter (1k + 100nF per thermistor channel) at the input pins. Coarse 1.27mm SOIC-8 -
+    no escape or fanout concern. NOTE C_COMP is still authored on 5V_PROTECTED in cooksense.tsx while
+    U_COMP.8 moved to 3V3_ANALOG - that decoupling cap no longer bypasses this part's supply."
+sourcing:
+  lcsc: C7984
+  alternates: [C283325, C2868604, C2870800]
+  note: "C7984 = genuine TI LMV393IDR, SOIC-8, JLC Extended, stock 15899 @ USD 0.424 checked
+    2026-07-25 (JLC parts API selectSmtComponentList). Alternates, same check:
+    C283325 = ST LMV393IDT SO-8, stock 764 @ 0.4272 - drop-in pinout second source, but ST's own
+    datasheet must be re-read for VICR before substituting (this dossier's numbers are TI's);
+    C2868604 = TI LMV393IDRG4 (same die, green reel) stock 1 - effectively unavailable;
+    C2870800 = TI LMV393IPWR is TSSOP-8, NOT a drop-in for this SOIC-8 land.
+    Clone reels exist and are 4x cheaper (XBLW C49056096 4137, TECH PUBLIC C41431782 1666,
+    lingxingic C48533484 2605) - DO NOT USE: this part is the hardware over-temperature and
+    open-sensor interlock on a cooking appliance and the safety argument rests on TI's Sec.7.2.2.1
+    out-of-common-mode table, which a clone datasheet does not carry. Recheck stock at order time."

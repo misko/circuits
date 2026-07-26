@@ -1,3 +1,9 @@
+# SUPERSEDED on cooksense v1.3 by 02_parts/LMV393IDR (TI LMV393IDR, LCSC C7984).
+# U_COMP and the new U_COMP2 both moved to the LMV393 on 3V3_ANALOG. Reason is in
+# gotchas[0] below and in full in LMV393IDR/part.yaml. This directory is retained
+# only because the SEALED v1.2 board and 03_src/rules/twin_adjudications.yaml still
+# reference C67470; per 02_parts/contracts.md "Repair", DELETE it (and log the swap
+# in 01_docs/CHANGELOG.md) once v1.3 is the board of record.
 mpn: LM393DR
 manufacturer: Texas Instruments
 type: dual_comparator                # two independent differential comparators, OPEN-COLLECTOR outputs.
@@ -31,6 +37,14 @@ limits:
   offset: "+-5mV max"
   esd_hbm: "2kV"
 gotchas:
+  - "SUPERSEDED v1.3 -> LMV393IDR (LCSC C7984), see 02_parts/LMV393IDR/part.yaml. WHY: this part's
+    common-mode input ceiling is VCC-2V = 2.93V at VCC=4.93V, but a COLD or OPEN camera thermistor
+    puts TH_CAM at 3.0-3.3V - so the LM393 was operated OUTSIDE its specified common-mode range
+    exactly in the broken-sensor case, and SLCS005AH specifies NO output behaviour there. The
+    LMV393 on 3V3_ANALOG does not fix the common-mode ceiling (it is VCC-0.7 = ~2.6V at 3.3V, also
+    below 3.0-3.3V) but SLCS136V Sec.7.2.2.1 p.11 SPECIFIES the out-of-range output state for all
+    four input cases, converting an undefined safety response into a documented one. Do not
+    re-fit an LM393 here."
   - "Outputs are OPEN-COLLECTOR (open-drain NPN): each OUT needs a pullup to the logic rail. Tying outputs together = WIRED-AND - this IS the TEMP_OK mechanism: wire-AND 1OUT+2OUT (TH_CAM_A/B over-temp) with the other TEMP sources, pulled to 3V3_LOGIC; any comparator that trips pulls the shared TEMP_OK line low."
   - "Common-mode input MUST stay <= VCC-2V. With VCC=5V, inputs must be < 3V -> a thermistor divider referenced to 3V3_ANALOG is safe; do NOT drive inputs near VCC or the comparison is invalid."
   - "Comparator, NOT an op-amp: add HYSTERESIS (positive feedback R from OUT to IN+) or the slowly-moving thermistor input chatters/oscillates at the trip point. No internal phase compensation."
