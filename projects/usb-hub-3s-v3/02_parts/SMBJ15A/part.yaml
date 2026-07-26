@@ -9,5 +9,10 @@ pins:
   1: {name: K, note: "unidirectional TVS: v1.1 cathode(1) -> VIN (AFTER Q1 - moved from VBAT_F per X1/X29, ADR 0001 amendment; on VBAT_F a reversed pack forward-biased it into a crowbar), anode(2) -> GND"}
   2: {name: A}
 limits: {standoff: 15V, vbr_min: 16.7V, vbr_max: 18.5V, vclamp_max: 24.4V, ipp: 24.6A, power: 600W_10_1000us}
+asserts:
+  # P-FACT. D1 is the input TVS on VIN, behind Q1's reverse-block body diode.
+  - {assert: pad1_net_polarity, pad: 1, polarity: positive,
+     why: "pad 1 is the CATHODE (KiCad D_SMB band side) and sits on VIN. Reversed,
+       this part is a forward diode from GND to a 12.6 V pack through a 10 A fuse."}
 verified: "2-pad polarized; KiCad pad1=cathode - 2026-07-21 (README deviation). Littelfuse SMBJ table row: VR 15.0 / VBR 16.70-18.50 @1mA / VC 24.4 @ Ipp 24.6A - quoted by the 2026-07-21 sourcing spike (v1.1 clamp-corner record)"
 sourcing: {lcsc: C83846, alternates: [C188412, C113988], note: ""}

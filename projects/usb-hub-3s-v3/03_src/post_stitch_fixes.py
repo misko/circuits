@@ -8,6 +8,8 @@ pads), so it never stacks on a connector pad or another via.
   3. via-drill floor 0.3mm (escape-A* toolkit default is 0.2 -> STANDARD fail).
   4. track-width nm-rounding floor (KRT emits 0.1998 for a 0.2 rule).
   5. GND fill-island bonding — only islands NOT already bonded by a same-net via or PTH pad.
+  6. v1.6 USB-C delivery-corner via density (F2 pads, PMID pour, J5 VBUS pairs).
+  (7. PowerPAK EP paste window-pane moved to a VENDORED footprint — see the note below.)
 """
 import sys, math
 sys.path.insert(0, '/home/mouse9911/gits/circuits/skills/kicad-pcb/scripts')
@@ -122,4 +124,113 @@ for z in b.Zones():
                 if done: break
 print(f"  GND island bonds: +{gnd_added}")
 b.Save(BOARD)
+
+# ---- 6. v1.6 USB-C DELIVERY-CORNER via density ----------------------------
+# MEASURED on sealed v1.5: PMID carried the whole 5 A with TWO vias between its
+# F.Cu and B.Cu pours; F2 (0.775 W at 5 A) had ZERO vias on either pad (nearest
+# 1.830 / 0.955 mm away); and no J5 VBUS contact pair had a same-net via nearer
+# than 1.429 mm. None of that is a hard ampacity failure -- Q6.S -> F2.1 -> J5 is
+# a continuous F.Cu path, so the vias only carry B.Cu's PARALLEL share -- but it
+# means the second copper layer under this corner was decorative, and it is why
+# the RL-2 mesh solve read 4.914 mOhm across PMID alone.
+# Sites are DERIVED FROM PAD GEOMETRY on the live board, not hardcoded: a
+# hardcoded list silently stops being in the pad the first time placement moves.
+b, tk = load()
+for z in b.Zones():
+    z.UnFill()
+hs = holes(b)
+
+def pad_of(ref, num):
+    fp = b.FindFootprintByReference(ref)
+    if not fp:
+        return None
+    for p in fp.Pads():
+        if p.GetNumber() == num:
+            return p
+    return None
+
+def in_zone_both(x, y, net):
+    """Is (x,y) inside a same-net zone OUTLINE on BOTH F.Cu and B.Cu?
+
+    THIS GUARD IS NOT OPTIONAL. via_site_ok checks CLEARANCE -- it answers "may a
+    via go here", not "is there anything here to connect to" -- and the board is
+    deliberately UNFILLED at this point so that pours void around the new vias on
+    refill. Without this, three VBUSC vias landed in the pour-free CC/data column
+    at x118.2-122.3 and came back as 3 via_dangling + 3 unconnected: vias bonding
+    nothing to nothing. Same test fix 2 already applies to VBAT_F."""
+    pt = pcbnew.VECTOR2I(int(x * 1e6), int(y * 1e6))
+    layers = set()
+    for z in b.Zones():
+        if z.GetNetCode() != net.GetNetCode():
+            continue
+        if z.Outline().Collide(pt):
+            for l in z.GetLayerSet().Seq():
+                layers.add(b.GetLayerName(l))
+    return ("F.Cu" in layers) and ("B.Cu" in layers)
+
+def place(net, sites, want, label, require_pour=True):
+    n = 0
+    for x, y in sites:
+        if n >= want:
+            break
+        x, y = round(x, 3), round(y, 3)
+        if not h2h_ok(x, y, hs):
+            continue
+        if require_pour and not in_zone_both(x, y, net):
+            continue
+        if tk.via_site_ok(x, y, net.GetNetCode(), size=VS, drill=VD):
+            tk.add_via(x, y, net, size=VS, drill=VD)
+            hs.append((x, y, NEWR))
+            n += 1
+    print(f"  {label}: +{n} via(s) (wanted {want})")
+    return n
+
+PMIDN, VBUSCN = b.FindNet("PMID"), b.FindNet("VBUSC")
+
+# (a) F2 pad thermal/current vias — a column inside each pad, inset from its edge
+for num, net, lbl in (("1", PMIDN, "F2.1 (PMID)"), ("2", VBUSCN, "F2.2 (VBUSC)")):
+    p = pad_of("F2", num)
+    if p is None:
+        print(f"  F2.{num}: pad not found — SKIPPED")
+        continue
+    px, py = p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
+    ph = p.GetSize().y / 1e6
+    span = ph / 2.0 - (VS / 2.0 + 0.30)          # keep the annulus off the pad edge
+    place(net, [(px, py + f * span) for f in (-1.0, -0.34, 0.34, 1.0)], 4, lbl,
+          require_pour=False)   # inside the pad itself: the pad IS the copper
+
+# (b) PMID pour F<->B bonding — a grid over the PMID island, skipping pad sites
+place(PMIDN, [(x, y) for x in (106.6, 108.0, 109.4, 110.8)
+              for y in (88.6, 90.0, 91.4, 92.8)], 6, "PMID pour F<->B")
+
+# (c) J5 VBUS contact pairs — march north from each B-row VBUS pad into the pour
+for a_pad, b_pad, lbl in (("A4", "B4", "J5 west VBUS pair"),
+                          ("A9", "B9", "J5 east VBUS pair")):
+    p = pad_of("J5", b_pad) or pad_of("J5", a_pad)
+    if p is None:
+        print(f"  {lbl}: pad not found — SKIPPED")
+        continue
+    px, py = p.GetPosition().x / 1e6, p.GetPosition().y / 1e6
+    sites = [(px + dx, py - dy) for dy in (1.6, 2.2, 2.8, 3.4, 4.0, 4.6, 5.2, 5.8, 6.4)
+             for dx in (0.0, -0.9, 0.9, -1.8, 1.8, -2.7, 2.7)]
+    place(VBUSCN, sites, 3, lbl)
+b.Save(BOARD)
+
+# ---- 7. PowerPAK EP paste window-pane -> MOVED OUT OF THIS FILE ------------
+# It was implemented here first, per-instance, so each aperture could be shrunk
+# around whatever vias actually landed in that FET's drain pad. That produced
+# valid geometry (50.7-65.0% across the six) and SIX lib_footprint_mismatch DRC
+# violations, because a per-instance footprint edit is by definition a board that
+# no longer matches its library.
+# It now lives where it belongs: a VENDORED footprint,
+# 03_src/lib/Package_SO.pretty/PowerPAK_SO-8_Single.kicad_mod, carrying a fixed
+# 2x2 array at 65% AREA. Board and library then agree, the geometry is identical
+# on all six devices, and it is regenerable from 03_src like everything else.
+# The via question resolves itself: the in-pad vias on Q2/Q4 are VIN pad_rescue
+# drops to the In2 plane -- i.e. they are how the drain reaches its plane, not
+# strays -- and every one of them is TENTED on both faces (measured), so paste
+# sits on mask, not on an open barrel. The 65% ratio is not invented here: it is
+# exactly what KiCad's own HTSSOP-20-1EP_4.4x6.5mm_..._Mask2.75x3.43mm uses for
+# this same package family (4 x 1.11 x 1.38 = 6.127 mm2 over 2.75 x 3.43 =
+# 9.4325 mm2 = 65.0%), which is an authority outside this repo (canon M1).
 print("post_stitch_fixes: done")

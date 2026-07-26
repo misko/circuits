@@ -10,7 +10,10 @@
   (constraint track_width (min 0.4mm)))
 (rule "VBUS_width"
   (condition "A.NetClass == 'VBUS'")
-  (constraint track_width (min 0.5mm)))
+  (constraint track_width (min 0.8mm)))
+(rule "INDICATOR_width"
+  (condition "A.NetClass == 'INDICATOR'")
+  (constraint track_width (min 0.2mm)))
 (rule "GATE_width"
   (condition "A.NetClass == 'GATE'")
   (constraint track_width (min 0.3mm)))
@@ -26,6 +29,9 @@
 (rule "GND_RET_width"
   (condition "A.NetClass == 'GND_RET'")
   (constraint track_width (min 0.25mm)))
+(rule "scoped_usba_out_bond"
+  (condition "A.insideArea('usba_out_bond') && (A.NetName == 'VBUSA1' || A.NetName == 'VBUSA2' || A.NetName == 'VBUSA3')")
+  (constraint track_width (min 0.5mm)))
 (rule pad_rescue_stubs
   (condition "A.insideArea('pad_rescue_stubs') && (A.NetName == 'GND' || A.NetName == 'VIN')")
   (constraint track_width (min 0.300mm)))

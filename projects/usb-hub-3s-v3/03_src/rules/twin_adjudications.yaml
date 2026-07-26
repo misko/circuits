@@ -21,9 +21,24 @@
 # exact and the parts are audited like everything else. NOT 5->5: an identity
 # alias is a no-op the tool now refuses (it used to self-extend the list).
 - {lcsc: C404363, refs: [Q2, Q3, Q4, Q5],
-   pad_alias: {6: 5, 7: 5, 8: 5, 9: 5}}
+   pad_alias: {6: 5, 7: 5, 8: 5, 9: 5},
+   why: "NOT A WAIVER — a NUMBERING TRANSLATION, and the evidence is geometric.
+     JLC's model numbers the drain as five separate entities 5,6,7,8,9 (one
+     exposed paddle plus four peripheral drain leads); the AOS-recommended land
+     this board uses merges them into ONE copper region carrying number 5 five
+     times over. MEASURED on the sealed board: 9 pad objects per footprint, of
+     which exactly 5 report GetNumber()=='5' and 0 report an empty number, and
+     the merged paddle is 3.810 x 3.910 mm. Without this alias the two pad sets
+     have different lengths, fit_err returns None at EVERY angle, and the
+     rotation audit + MODEL-REG are SILENTLY SKIPPED for the part rather than
+     failed — which is exactly how v1.5 shipped with six of its power FETs never
+     rotation-checked and a 'bodies mounted' line that said zero were missing.
+     The alias makes the two sets comparable; it asserts nothing about polarity."}
 - {lcsc: C2760089, refs: [Q1, Q6],
-   pad_alias: {6: 5, 7: 5, 8: 5, 9: 5}}
+   pad_alias: {6: 5, 7: 5, 8: 5, 9: 5},
+   why: "Same merged-drain family and the same measured geometry as C404363
+     above (AON6403 vs AON6354; identical PowerPAK SO-8 land, 9 pad objects, 5
+     numbered '5', 0 empty). Translation only — no fact is waived."}
 
 - {lcsc: C404363, refs: [Q2, Q3, Q4, Q5], status: PAD-MISMATCH,
    why: "AON6354: KiCad single-paddle pad 5 vs JLC 5-8+EP split; AOS DS recommended pattern is the single paddle. Same footprint ordered on usb-hub-3s v1.0. (v1.2: Q6 MOVED to C2760089/AON6403 — the eFuse cell is gone.)"}

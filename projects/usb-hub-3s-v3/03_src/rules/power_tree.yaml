@@ -22,12 +22,45 @@ off_control: "EN-gating master switch SW1 (ENKILL bus) - slide to T1 grounds
   inverter: ENKILL low -> Q7 off -> Q6 gate floats to source -> Q6 OFF, VBUS
   isolated + back-feed blocked). 5VC then collapses. (ADR-0002; discrete
   redesign; E-INV asserts ENKILL == {U2.4, U11.4, SW1.2, Q7.1, R8.2, R17.2})"
-quiescent_ua: 270   # OFF-state pack draw: ~252 uA switch sink (VIN 12.6 V through
+quiescent_ua: 271   # OFF-state pack draw: ~252 uA switch sink (VIN 12.6 V through
                     # R8||R17 = 50 k pull-ups into the grounded ENKILL bus, both
-                    # bucks' EN re-merged) + ~18 uA (2x LM5116 ~9 uA shutdown Iq).
-                    # Q6 off (Q7 pulldown released), VBUS isolated, no eFuse. No
-                    # pack_capacity_mah (external pack) -> self-drain-days is
-                    # advisory-N-A, but the draw is BOUNDED and documented.
+                    # bucks' EN re-merged) + ~18 uA (2x LM5116 ~9 uA shutdown Iq)
+                    # + <=1 uA (v1.6 pack-LED gate Q8, below). Q6 off (Q7 pulldown
+                    # released), VBUS isolated, no eFuse. No pack_capacity_mah
+                    # (external pack) -> self-drain-days is advisory-N-A, but the
+                    # draw is BOUNDED and documented.
+                    #
+                    # v1.6 STATUS-LED DERIVATION (270 -> 271), and why the +1 uA is
+                    # the WHOLE story rather than +1504 uA:
+                    #   Five indicators are added. The FOUR RAIL LEDs (D9/D10/D11 on
+                    #   VBUSA1/2/3, D12 on VBUSC) contribute EXACTLY ZERO to this
+                    #   number: with SW1 at T1 the ENKILL bus is grounded, both
+                    #   LM5116s are in shutdown and Q6 is open, so 5VA, 5VC, VBUSA*
+                    #   and VBUSC are all collapsed. They are dark by construction,
+                    #   not by budget.
+                    #   The PACK LED D8 is the one that could have killed the pack.
+                    #   It sits on VIN, which is HOT whenever the XT60 is mated --
+                    #   SW1 switches ENABLE (pad1=GND, pad2=ENKILL, pad3=NC), not
+                    #   power, and neither VBAT nor VBAT_F reaches any switch pole.
+                    #   UNGATED it would draw (12.6 - 2.1)/6980 = 1.504 mA typ
+                    #   (0.946-1.547 mA over VIN 9.0-12.6 V x Vf 1.8-2.4 V), taking
+                    #   the OFF-state to 1.775 mA = 6.6x this budget and flattening a
+                    #   3S 5000 mAh pack in ~117 days (~94 days to the 20% LiPo floor).
+                    #   GATED by Q8 (BSS138, gate on ENKILL, source GND, drain on the
+                    #   D8 cathode LEDPKK) the adder is Q8's off-state drain leakage
+                    #   only: BSS138 I_DSS 0.5 uA max at V_DS 50 V / 25 C, and here
+                    #   V_DS <= 10.5 V, so <= 0.5 uA. Q8's gate loads the ENKILL bus
+                    #   by I_GSS <= 100 nA -> <= 5 mV droop on the 50 k pull-up bus,
+                    #   which does not approach either LM5116's EN threshold.
+                    #   Rounded UP to a whole 1 uA: 270 + 1 = 271 uA.
+                    # THE DATASHEET IS NOT THE QUALIFICATION. 0.5 uA is a 25 C
+                    # maximum and MOSFET leakage climbs roughly an order of magnitude
+                    # per 40-50 C. Nothing on this board has ever MEASURED the
+                    # OFF-state draw. v1.6 therefore adds bench gate Q7 in
+                    # ORDER_README (user decision D7): LEDs fitted, SW1 OFF, measure
+                    # pack current with a uA meter and record it WITH the ambient.
+                    # PASS <= 300 uA. That measurement, not this line, qualifies the
+                    # number.
 
 rails:
   # USB-A rail: LM5116 buck -> 5VA -> 3x TPS2557 (2 A cont each) -> 3x USB-A.

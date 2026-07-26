@@ -1,4 +1,14 @@
-// usb-hub-3s-v3 (rev v1.2) — PROPRIETARY 3S-LiPo POWER-DISTRIBUTION board.
+// usb-hub-3s-v3 (rev v1.6) — PROPRIETARY 3S-LiPo POWER-DISTRIBUTION board.
+//
+// v1.6 REVISION — STATUS LEDs (the only schematic change; everything else in v1.6
+// is copper, footprint or paperwork). Five indicators, +11 placements, +2 BOM
+// lines: D8 amber = PACK LIVE (FET-gated by Q8 off ENKILL, because SW1 switches
+// ENABLE and there is no switched power node to tap); D9/D10/D11 green = PER-PORT
+// USB-A, tapped on VBUSA1/2/3 POST the TPS2557 switches so a latched-off port
+// reads dark; D12 green = USB-C, tapped on VBUSC POST Q6+F2 so a dark C LED means
+// the ADR-0002 protection chain opened. Ballasts are 6.98k C23215 and the gate FET
+// is C78284 — both already on this BOM (R7/R16 and Q7), so five new placements
+// cost ZERO new feeders. See the block below the buck cells.
 //
 // v1.2 REVISION — DISCRETE VBUS PROTECTION (BRIEF A2/D2, user decision). The v1.1
 // TPS26631 eFuse was over-built for a 5V/5A Pi rail and root-caused BOTH the board
@@ -321,6 +331,76 @@ export default () => (
           <platedhole portHints={["3"]} pcbX="2.5mm" pcbY="0mm" outerDiameter="1.7mm" holeDiameter="1.1mm" shape="circle" />
         </footprint>
       } />
+
+    {/* ================= v1.6 STATUS LEDs — one PACK + four RAIL indicators =================
+        USER DECISION (task#30 D2/D3/D4): amber = PACK LIVE, green = RAIL GOOD, and
+        the USB-A indication is PER PORT (three LEDs, not one) because with a single
+        5VA LED a current-limited port is indistinguishable from a working one.
+
+        THE PACK LED MUST BE FET-GATED. There is NO switched power node on this board
+        to tap: SW1's pads are pad1=GND, pad2=ENKILL, pad3=NC — it switches ENABLE, not
+        power. Net VBAT touches only J1 and F1; VBAT_F only F1 and Q1. So an "LED after
+        the master switch" cannot be built by wiring to any net; it needs an active gate.
+        MEASURED consequence of NOT gating it: (12.6-2.0)/6980 = 1.519 mA, which on top
+        of the declared 270 uA OFF-state budget is 6.6x over, and flattens a 3S 5000 mAh
+        pack in ~117 days. Q8 (BSS138, the SAME line as Q7 -> +0 feeder) is a low-side
+        gate on the pack LED's cathode with its gate on ENKILL: master-off opens it and
+        the adder falls to Q8's Idss, <=0.5 uA (270 -> 271 uA, see power_tree.yaml:25).
+
+        The four rail LEDs need no gate: 5VA/5VC collapse when the bucks are disabled and
+        Q6 opens, so every rail LED is dark in the OFF state by construction.
+
+        THE C-PORT LED TAPS VBUSC, NOT 5VC — deliberately POST-protection (Q6 -> F2 ->
+        VBUSC). A dark C LED with the A LEDs lit then means the ADR-0002 protection chain
+        OPENED, which is the single most useful thing an indicator on this board can say.
+        Cost to the thin Pi margin: 0.358 mA x 42.4 mOhm = 15.2 uV = 0.0152 mV, i.e. 0.10%
+        of the 15 mV slack in power_tree.yaml — E-MARGIN arithmetic does not move.
+
+        Ballasts are 6.98k C23215, ALREADY on this BOM as R7/R16 (the two LM5116 UVLO
+        bottoms) -> five new feeders cost ZERO new BOM lines. The LCSC code is BAKED, not
+        value-resolved: R12 (C2933210 = 3.74k, not 4.12k) and R30 (C2933195 = 3.09k, not
+        100k) both shipped wrong because a bare value string was resolved by the toolchain.
+        Net BOM delta for this whole cell is exactly TWO lines (C2296 + C2297).
+
+        POLARITY: authored as <chip> pad 1 = CATHODE, matching KiCad Device:LED (pin 1 = K,
+        verified in /usr/share/kicad/symbols/Device.kicad_sym) and LED_0805_2012Metric
+        (pad 1 west, F.Fab chamfer west, F.SilkS cathode band at x=-1.685). JLC's own
+        LED0805-R-RD model numbers pad 1 = ANODE, so the CPL rotation offset MUST come
+        from a numbering-free channel — see the A-ROT rows for C2296/C2297. */}
+    <chip name="Q8" supplierPartNumbers={{ jlcpcb: ["C78284"] }}
+      pinLabels={{ pin1: "G", pin2: "S", pin3: "D" }}
+      connections={{ pin1: "net.ENKILL", pin2: "net.GND", pin3: "net.LEDPKK" }}
+      footprint="sot23" />
+    <resistor name="R37" resistance="6.98k" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C23215"] }}
+      connections={{ pin1: "net.VIN", pin2: "net.LEDPK" }} />
+    {/* D8 amber PACK LED: A(pad2)=LEDPK (ballasted from VIN), K(pad1)=LEDPKK -> Q8 drain */}
+    <chip name="D8" supplierPartNumbers={{ jlcpcb: ["C2296"] }}
+      pinLabels={{ pin1: "K", pin2: "A" }}
+      connections={{ pin1: "net.LEDPKK", pin2: "net.LEDPK" }}
+      footprint={<Pol2 w="0.975mm" h="1.4mm" dx="0.9375mm" />} />
+    {/* three PER-PORT USB-A rail LEDs, tapped on the TPS2557 OUTPUT (VBUSAk), so a
+        latched-off port reads as a dark LED rather than as a lit 5VA */}
+    {[1, 2, 3].map((k) => {
+      const rl = ["R38", "R39", "R40"][k - 1]
+      const dl = ["D9", "D10", "D11"][k - 1]
+      return (
+        <group key={`ledva${k}`} name={`ledva${k}`}>
+          <resistor name={rl} resistance="6.98k" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C23215"] }}
+            connections={{ pin1: `net.VBUSA${k}`, pin2: `net.LEDVA${k}` }} />
+          <chip name={dl} supplierPartNumbers={{ jlcpcb: ["C2297"] }}
+            pinLabels={{ pin1: "K", pin2: "A" }}
+            connections={{ pin1: "net.GND", pin2: `net.LEDVA${k}` }}
+            footprint={<Pol2 w="0.975mm" h="1.4mm" dx="0.9375mm" />} />
+        </group>
+      )
+    })}
+    {/* USB-C rail LED on VBUSC (POST Q6 + F2) — dark == the protection chain opened */}
+    <resistor name="R41" resistance="6.98k" footprint="0603" supplierPartNumbers={{ jlcpcb: ["C23215"] }}
+      connections={{ pin1: "net.VBUSC", pin2: "net.LEDVC" }} />
+    <chip name="D12" supplierPartNumbers={{ jlcpcb: ["C2297"] }}
+      pinLabels={{ pin1: "K", pin2: "A" }}
+      connections={{ pin1: "net.GND", pin2: "net.LEDVC" }}
+      footprint={<Pol2 w="0.975mm" h="1.4mm" dx="0.9375mm" />} />
 
     {/* ============ DCP advertisement — TPS2513A dual-channel: U6 ports 1+2, U7 port 3 ============ */}
     <chip name="U6" supplierPartNumbers={{ jlcpcb: ["C473910"] }}

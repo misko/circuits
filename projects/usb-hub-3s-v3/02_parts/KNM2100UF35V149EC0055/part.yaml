@@ -20,4 +20,15 @@ gotchas:
   - "used 3x on VIN bulk (entry + IP6559 C1); 35V >= 2.5x margin over 12.6V"
   - "polarity: pad1 -> VIN, pad2 -> GND, asserted in floorplan pad_net"
 verified: "2-pad polarized; polarity from CP_Elec footprint convention + series sheet - 2026-07-21"
+asserts:
+  # P-FACT. C1/C2 are 100 uF POLYMER ELECTROLYTICS across the 9-12.6 V pack input.
+  # This is the fact class that produced the v1.4 DO-NOT-ORDER on this very board:
+  # the CPL shipped 270.0 instead of 90.0 and both caps would have been REVERSED
+  # across the pack -- and a reversed polymer electrolytic does not fail quietly,
+  # it vents. It was written down in this file and nothing read it (canon P-FACT).
+  - {assert: pad1_net_polarity, pad: 1, polarity: positive,
+     why: "pad 1 is the POSITIVE terminal (KiCad CP_Elec_6.3x7.7 marks '+' on the
+       -x/pad-1 end, and JLC's own CAP-SMD_BD6.3 model chamfers its silk on that
+       same end -- two libraries, one physical convention, cross-checked
+       2026-07-25). C1.1 and C2.1 are on VIN."}
 sourcing: {lcsc: C2982822, alternates: [], note: "stock 23305 on 2026-07-21"}

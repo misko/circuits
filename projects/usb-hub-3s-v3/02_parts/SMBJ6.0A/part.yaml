@@ -1,14 +1,23 @@
 mpn: SMBJ6.0A
 manufacturer: Littelfuse / multi-source
 type: tvs_diode_unidirectional   # over-voltage clamp on USB-C VBUS (D5), VBUSC->GND
-datasheet: {doc_id: SMBJ, revision: series/LCSC, url: "https://www.lcsc.com/", sha256: null, fetched: 2026-07-23}
+datasheet: {doc_id: SMBJ-Series, revision: "Littelfuse, Revised 06/03/20", url: "https://www.littelfuse.com/products/tvs-diodes/surface-mount/smbj", sha256: null, fetched: 2026-07-25}
 package: SMB (DO-214AA)
 footprint: Diode_SMD:D_SMB
 escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-23}
 pins:
   1: {name: K, note: "cathode = pad 1 (KiCad D_SMB marker/band side); D5 K at VBUSC, A at GND"}
   2: {name: A}
-limits: {vwm: "6.0V standoff", vbr: "6.67-8.15V @1mA", vclamp: "10.3V @ Ipp", ppk: "600W (8/20us)"}
+limits:
+  vwm: "6.0V standoff (Vrwm)"
+  # v1.6 CORRECTION. This line read "6.67-8.15V @1mA" and BOTH halves were wrong:
+  # the upper bound and the test current. Read from the PRIMARY Littelfuse
+  # SMBJ-series datasheet (Revised 06/03/20), Electrical Characteristics table,
+  # SMBJ6.0A row. The 6.67 and the 7.37 that different LCSC listings quote are not
+  # two different parts disagreeing -- they are the MIN and the MAX of one window.
+  vbr: "6.67-7.37V @ IT=10mA (Littelfuse SMBJ series, rev 06/03/20)"
+  vclamp: "10.3V @ Ipp 58.3A"
+  ppk: "600W (10/1000us waveform)"   # was labelled 8/20us; the table rates 10/1000us
 gotchas:
   - "v1.2 DISCRETE-PROTECTION redesign (BRIEF A2/D2): D5 = the over-voltage element
      replacing the eFuse OVP cutoff. Uni-directional TVS, cathode(pad1) on VBUSC,
@@ -19,6 +28,39 @@ gotchas:
      this is SECONDARY protection - it does NOT guarantee the Pi against a buck
      high-side short. Protection relies on the F2 polyfuse tripping to end the
      exposure (crowbar). Reject SMBJ5.0A (5V standoff < 5.43V -> conducts in normal op)."
+  - "v1.6 CLAMP-ORDER DECISION (task#30 D5; the fourth time this was raised, and it
+     is DECIDED here rather than deferred again). THE FINDING IS REAL: ST's
+     USBLC6-2SC6 (U12, on the same VBUSC rail) specifies VBUS-to-GND breakdown as
+     MIN 6.0V at IR=1mA -- doc ID 11265 rev 5, Table 2, p.2/14 -- with NO typ and
+     NO max published; ST's own surge example in sec 2.1 assumes 6.1V. D5's
+     datasheet-verified breakdown MINIMUM is 6.67V. So the small SOT-23-6 ESD
+     array, not the 600W SMB TVS, is the first thing to conduct on this rail.
+     THE REQUESTED FIX CANNOT BE BOUGHT. A replacement would need Vwm >= 5.479V
+     (power_tree.yaml's tolerance-inclusive no-load VBUSC max) AND Vbr(max) <
+     6.00V simultaneously. That window is EMPTY, and not marginally: the SMBJ
+     family has no standard step between Vwm 5.0V and 6.0V, and 6.0V's breakdown
+     floor is already 6.67V. The tightest SMB-footprint part found at any Vwm >=
+     5.479V is Vishay/ST SM6T6V8A (Vwm 5.80V, Vbr 6.45-7.14V @10mA, doc 88385 rev
+     09-Jan-2024 p.2) -- its MINIMUM breakdown is still 450mV above U12's floor,
+     and jlcpcb.com returns 0 hits for the unidirectional part anyway (only the
+     bidirectional SM6T6V8CA is stocked, which has no cathode and fails the
+     pad-1 polarity fact). A 6.2V Zener (LGE 1SMB5920B, C713628, Vz 5.89-6.51V)
+     is the only part whose LOW end undercuts 6.00V, but at ~1.5W it would be
+     destroyed by the fault D5 exists to survive -- trading a clamp-order problem
+     for a destroyed clamp.
+     WHAT IS ACCEPTED, EXPLICITLY: on a buck-fail-high, U12 conducts first. U12
+     has NO rating for sustained conduction -- its clamping figures (12V @1A,
+     17V @5A) are 8/20us ESD pulses, not the milliseconds-to-seconds until F2
+     trips -- so U12 may simply fail, after which the 600W D5 is the clamp for the
+     rest of the event. That is a degradation of a SECONDARY protection element,
+     on a rail whose PRIMARY over-current protection is F2, and ADR-0002 already
+     states this chain is best-effort rather than a guaranteed fail-high cutoff.
+     ESCALATION TRIGGER (unchanged from ADR-0002, now with a number attached): if
+     an unattended/production context is wanted, the answer is an ACTIVE OVP, not
+     a better TVS in this footprint -- because no better TVS in this footprint
+     exists. Bench gate Q8 in ORDER_README measures what actually happens.
+     REJECTED, and why, so this is not re-litigated: lowering 5VC would spend the
+     15mV E-MARGIN slack (power_tree.yaml:99) and is refused."
   - "v1.3 DIRECTIONALITY FIX (external-review finding). v1.2 used C140903, which the
      LIVE JLC catalog (checked 2026-07-23) describes as a BIDIRECTIONAL SMBJ6.0A (LRC,
      SMB-FL) - a bidirectional device has NO cathode, so the design's uni-directional
@@ -26,6 +68,16 @@ gotchas:
      was UNVERIFIABLE against it. Replaced with C113976 = SMBJ6.0A UNIDIRECTIONAL
      (DO-214AA/SMB, Vwm 6.0V, Vbr(min) 7.37V, Vclamp 10.3V @Ipp, stock 74758) - REAL
      JLC catalog verified uni-directional 2026-07-23. Baked in tsx D5 supplierPartNumbers."
+asserts:
+  # P-FACT. D5 is the USB-C over-voltage clamp; pad 1 must be the CATHODE, on
+  # VBUSC. Reversed, a unidirectional TVS is a forward diode across the 5 A rail:
+  # it conducts at ~0.9 V, holds VBUSC down and dumps the buck's whole output into
+  # F2 until the polyfuse trips. The port would simply never work, and the visible
+  # symptom (dead USB-C) points at everything except the diode.
+  - {assert: pad1_net_polarity, pad: 1, polarity: positive,
+     why: "pad 1 is the CATHODE (KiCad D_SMB band/marker side; Littelfuse SMBJ
+       series datasheet p.1 functional diagram) and it goes to VBUSC, a positive
+       rail; the anode (pad 2) is the GND side."}
 verified: "2-pad polarized uni-directional TVS; KiCad D_SMB pad1=cathode convention; JLC C113976 catalog-verified UNIDIRECTIONAL 2026-07-23"
 sourcing:
   lcsc: C113976   # SMBJ6.0A UNIDIRECTIONAL, DO-214AA(SMB), Vclamp 10.3V; JLC-VERIFIED uni-dir 2026-07-23 stock 74758; Extended-tier

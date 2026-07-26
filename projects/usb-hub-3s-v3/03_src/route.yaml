@@ -17,7 +17,12 @@ prep:
   out: r0.kicad_pcb
   keepouts:
     layers: [User.2]
-    mounting_holes: {radius: 3.0}
+    # v1.6: 3.0 -> 4.2. The floorplan now states a board rule -- within r <= 4.00 mm
+    # of any mounting hole, ALL outer copper is ONE net and that net is GND -- and a
+    # zone notch only enforces it for POURS. A KRT signal wave could still lay a
+    # 0.2 mm track 3.5 mm from a hole and quietly re-create the H3 defect on a
+    # different net. 4.2 gives the rule 0.2 mm of routing margin.
+    mounting_holes: {radius: 4.2}
     edge_band: 0.7
     # v1.2 discrete redesign: the eFuse-era escape-lane keepouts are GONE (the QFN
     # eFuse and its west-pin escape wall are removed).
@@ -121,9 +126,9 @@ taps:
     - {net: VBUSA3, from: U5.7, to: U5.6, width: 0.5, layer: F.Cu, hop_layer: B.Cu}
     # TPS2557 OUT (x~109) -> its VBUSAn pour (starts x118): the OUT pins sit WEST
     # of the pour, so bond OUT1 across to a point inside the pour/connector rail.
-    - {net: VBUSA1, from: U3.6, to: [123.0, 34.0], width: 0.5, layer: F.Cu, hop_layer: B.Cu}
-    - {net: VBUSA2, from: U4.6, to: [123.0, 56.0], width: 0.5, layer: F.Cu, hop_layer: B.Cu}
-    - {net: VBUSA3, from: U5.6, to: [123.0, 78.0], width: 0.5, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VBUSA1, from: U3.6, to: [123.0, 34.0], width: 0.8, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VBUSA2, from: U4.6, to: [123.0, 56.0], width: 0.8, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VBUSA3, from: U5.6, to: [123.0, 78.0], width: 0.8, layer: F.Cu, hop_layer: B.Cu}
     # --- J5 USB-C CC + data escape (deterministic; KRT cannot thread these) ---
     # HARD in-chip pass-through joins FIRST (route the U12 3-4 / 1-6 south channel
     # while it is empty), then the J5-edge legs. CC1/CC2 split onto opposite layers.
@@ -177,5 +182,11 @@ stitch:
     # so grid vias there only dangle on In1 (pad_rescue bonds the connector GND pins).
     x: [26, 116, 8]
     y: [26, 108, 8]
-  island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu], require: all}
+  # v1.6, from tier-preflight PF-LAYER: this scanned only the OUTER layers on a
+  # board that declares TWO INNER PLANES (In1 GND, In2 VIN). An orphaned fill
+  # island on In1 or In2 was structurally invisible to the rescue pass -- the same
+  # F/B-only blindness that cost crow-recorder-central-v2 200 shorting + 501
+  # clearance findings on 2026-07-23. A plane is exactly where an unbonded island
+  # is most likely AND least likely to be noticed by eye.
+  island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu, In1.Cu, In2.Cu], require: all}
   prune_stitch_dangling: {tol: 0.05, min_layers: 2}

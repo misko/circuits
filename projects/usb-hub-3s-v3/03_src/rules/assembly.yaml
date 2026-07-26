@@ -14,6 +14,28 @@
 #   ---
 #   110 BOM parts  =  108 CPL placements  +  2 declared not_assembled (F1, SW1)
 #   108/108 CPL rows are `top`; 0 bottom-side placements; 0 bottom footprints.
+#
+# v1.6 CENSUS (re-measured 2026-07-25 against the regenerated board):
+#   125 board footprints
+#    -4 H1-H4 mounting holes   (FP_BOARD_ONLY | FP_EXCLUDE_FROM_BOM)
+#    -3 FID1-FID3 fiducials    (FP_BOARD_ONLY | FP_EXCLUDE_FROM_BOM |
+#                               FP_EXCLUDE_FROM_POS_FILES — NEW in v1.6; a
+#                               fiducial on the CPL is a placement instruction
+#                               for a part that does not exist)
+#   ---
+#   118 BOM parts  =  116 CPL placements  +  2 declared not_assembled (F1, SW1)
+#   116/116 CPL rows `top`; still 0 bottom-side placements.
+#
+#   DELTA +11 placements, ALL from the status-LED cell (task#30 D2/D3/D4):
+#     D8            C2296  amber PACK indicator          NEW BOM LINE
+#     D9  D10  D11  C2297  green per-port USB-A          NEW BOM LINE
+#     D12           C2297  green USB-C (post-protection)  (same line as above)
+#     R37 R38 R39 R40 R41  C23215 6.98k ballasts   -> already on the BOM (R7/R16)
+#     Q8            C78284 BSS138 pack-LED gate    -> already on the BOM (Q7)
+#   BOM-LINE DELTA IS EXACTLY +2 (C2296, C2297). Five feeders, five new
+#   placements, zero new feeders -- that is why the ballast is 6.98k and the
+#   gate FET is a BSS138: both were chosen to reuse a line that is already
+#   loaded, because a JLC feeder costs more than the parts on it.
 
 # ---- SERVICE DECLARATION ---------------------------------------------------
 # THROUGH-HOLE IS PART OF THE ORDERED SERVICE, not an afterthought (user

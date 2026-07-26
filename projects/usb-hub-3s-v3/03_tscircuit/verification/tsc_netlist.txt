@@ -72,6 +72,17 @@ COMPONENTS:
  - R35: 2.2Ω res1206 resistor
  - C54: 1nF 0805 capacitor
  - SW1: 
+ - Q8: sot23
+ - R37: 6.98kΩ res0603 resistor
+ - D8: 
+ - R38: 6.98kΩ res0603 resistor
+ - D9: 
+ - R39: 6.98kΩ res0603 resistor
+ - D10: 
+ - R40: 6.98kΩ res0603 resistor
+ - D11: 
+ - R41: 6.98kΩ res0603 resistor
+ - D12: 
  - U6: sot23_6
  - U7: sot23_6
  - C33: 100nF 0603 capacitor
@@ -254,33 +265,6 @@ NET: UVLO_C
   - R15 pin2
   - U11 UVLO
 
-NET: VIN
-  - R17 pin1
-  - R15 pin1
-  - C28 pin1 (+)
-  - C27 pin1 (+)
-  - C26 pin1 (+)
-  - C25 pin1 (+)
-  - C24 pin1 (+)
-  - Q4 D
-  - U11 VIN
-  - R8 pin1
-  - R6 pin1
-  - C13 pin1 (+)
-  - C12 pin1 (+)
-  - C11 pin1 (+)
-  - C10 pin1 (+)
-  - C9 pin1 (+)
-  - Q2 D
-  - U2 VIN
-  - C2 POS (+)
-  - C1 POS (+)
-  - D1 K
-  - D2 K
-  - Q1 S3
-  - Q1 S2
-  - Q1 S1
-
 NET: CS_C
   - R18 pin1
   - RS2 pin1
@@ -310,6 +294,58 @@ NET: SNUB_C
   - C54 pin1 (+)
   - R35 pin2
 
+NET: VIN
+  - R37 pin1
+  - R17 pin1
+  - R15 pin1
+  - C28 pin1 (+)
+  - C27 pin1 (+)
+  - C26 pin1 (+)
+  - C25 pin1 (+)
+  - C24 pin1 (+)
+  - Q4 D
+  - U11 VIN
+  - R8 pin1
+  - R6 pin1
+  - C13 pin1 (+)
+  - C12 pin1 (+)
+  - C11 pin1 (+)
+  - C10 pin1 (+)
+  - C9 pin1 (+)
+  - Q2 D
+  - U2 VIN
+  - C2 POS (+)
+  - C1 POS (+)
+  - D1 K
+  - D2 K
+  - Q1 S3
+  - Q1 S2
+  - Q1 S1
+
+NET: LEDPKK
+  - D8 K
+  - Q8 D
+
+NET: LEDPK
+  - D8 A
+  - R37 pin2
+
+NET: LEDVA1
+  - D9 A
+  - R38 pin2
+
+NET: LEDVA2
+  - D10 A
+  - R39 pin2
+
+NET: LEDVA3
+  - D11 A
+  - R40 pin2
+
+NET: LEDVC
+  - D12 A
+  - R41 pin2
+
 NET: ILIM1
   - R20 pin1
   - U3 ILIM
@@ -321,6 +357,7 @@ NET: VBUSA1
   - C38 pin1 (+)
   - U3 OUT2
   - U3 OUT1
+  - R38 pin1
 
 NET: DM_A1
   - J2 DM
@@ -345,6 +382,7 @@ NET: VBUSA2
   - C39 pin1 (+)
   - U4 OUT2
   - U4 OUT1
+  - R39 pin1
 
 NET: DM_A2
   - J3 DM
@@ -394,6 +432,7 @@ NET: VBUSA3
   - C40 pin1 (+)
   - U5 OUT2
   - U5 OUT1
+  - R40 pin1
 
 NET: DM_A3
   - J4 DM
@@ -419,6 +458,7 @@ NET: N5VC
 
 NET: ENKILL
   - Q7 G
+  - Q8 G
   - SW1 COM
   - R17 pin2
   - U11 EN
@@ -471,6 +511,7 @@ NET: VBUSC
   - U12 VBUS
   - D5 K
   - F2 2
+  - R41 pin1
 
 NET: GND
   - J5 SHIELD
@@ -514,6 +555,11 @@ NET: GND
   - C33 pin2 (-)
   - U7 GND
   - U6 GND
+  - D12 K
+  - D11 K
+  - D10 K
+  - D9 K
+  - Q8 S
   - SW1 T1
   - C54 pin2 (-)
   - R19 pin1
@@ -914,6 +960,51 @@ SW1
 - pin1(T1): NETS(GND)
 - pin2(COM): NETS(ENKILL)
 - pin3(T2): NOT_CONNECTED
+
+Q8
+- pin1(G): NETS(ENKILL)
+- pin2(S): NETS(GND)
+- pin3(D): NETS(LEDPKK)
+
+R37 (6.98kΩ res0603)
+- pin1(anode, pos, left): NETS(VIN)
+- pin2(cathode, neg, right): NETS(LEDPK)
+
+D8
+- pin1(K): NETS(LEDPKK)
+- pin2(A): NETS(LEDPK)
+
+R38 (6.98kΩ res0603)
+- pin1(anode, pos, left): NETS(VBUSA1)
+- pin2(cathode, neg, right): NETS(LEDVA1)
+
+D9
+- pin1(K): NETS(GND)
+- pin2(A): NETS(LEDVA1)
+
+R39 (6.98kΩ res0603)
+- pin1(anode, pos, left): NETS(VBUSA2)
+- pin2(cathode, neg, right): NETS(LEDVA2)
+
+D10
+- pin1(K): NETS(GND)
+- pin2(A): NETS(LEDVA2)
+
+R40 (6.98kΩ res0603)
+- pin1(anode, pos, left): NETS(VBUSA3)
+- pin2(cathode, neg, right): NETS(LEDVA3)
+
+D11
+- pin1(K): NETS(GND)
+- pin2(A): NETS(LEDVA3)
+
+R41 (6.98kΩ res0603)
+- pin1(anode, pos, left): NETS(VBUSC)
+- pin2(cathode, neg, right): NETS(LEDVC)
+
+D12
+- pin1(K): NETS(GND)
+- pin2(A): NETS(LEDVC)
 
 U6
 - pin1(DP1): NETS(DP_A1)

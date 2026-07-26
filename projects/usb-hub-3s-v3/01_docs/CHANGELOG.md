@@ -2,6 +2,130 @@
 
 Board internal name `usb_hub_3s_v2`; project directory `usb-hub-3s-v3`.
 
+## v1.6 — 2026-07-25
+
+**COPPER revision.** `07_releases/v1.6-2026-07-25/`. **v1.5 and every earlier
+release are DO-NOT-ORDER.** v1.5 gains `SUPERSEDED.md`; it is otherwise
+immutable.
+
+### Why v1.5 became DO-NOT-ORDER: a datum defect in the CPL exporter
+
+A new **A-POS** gate measured every CPL row against JLC's own convention and
+found **11 of v1.5's 108 rows off-datum**. JLC positions a part from the
+bounding box of its **PAD CENTRES**; the exporter had been emitting
+`fp.GetPosition()`, the footprint **anchor**, which is only the same point when
+the land happens to be symmetric about it. Measured error, per ref:
+
+| ref | offset from JLC's datum |
+|---|---|
+| J1 (XT60, the pack inlet) | **4.6861 mm** |
+| J2 / J3 / J4 (USB-A) | **3.7346 mm** each |
+| J5 (USB-C, 0.5 mm pitch) | **1.4975 mm** |
+| Q4 / Q5 / Q6 | 0.0625 mm each |
+
+Every external connector on the board, and the worst of them by nearly 5 mm.
+This is not a rotation question and no render would ever have shown it. The
+exporter fix is in the tree; v1.6 re-exports from scratch and every row lands
+on-datum.
+
+### What changed in the copper
+
+- **H3 mounting hole — a short of the 6 A rail to GND through a screw.**
+  MEASURED on sealed v1.5, on FILLED copper: H3 (106.0, 24.0) is a 1.600 mm-radius
+  NPTH carrying **`5VA` at 1.850 mm AND `GND` at 1.850 mm on BOTH outer layers** —
+  0.250 mm of bare laminate and ~20 um of solder mask between them. Every M3
+  fastener bridges it, including the smallest cap head (r 2.75). v1.5's only
+  mitigation was a sentence in `ORDER_README` about nylon standoffs. v1.6 states
+  a rule instead — **within r <= 4.00 mm of any mounting hole all outer copper is
+  one net and that net is GND** — and enforces it by notching the 5VA pour (5VA
+  now stops 4.50 mm from H3) and by raising the router's hole keepout 3.0 -> 4.2 mm
+  so a signal wave cannot re-create it on a different net.
+- **H4** — `VBUSA3` reached 4.152 mm, inside a DIN 9021 washer (r 4.50). The pour's
+  SE corner is chamfered; it now stops at 5.00 mm.
+- **In2 VIN plane vs every mounting drill** — the 9-12.6 V plane sat 1.850 mm from
+  a 1.600 mm drill on all four holes (0.250 mm, against a +-0.13 mm NPTH position
+  tolerance). A 12-gon rule area per hole pushes VIN to >= 2.077 mm. In1 GND is
+  deliberately left alone: a grounded fastener touching GND is the benign case.
+- **VBUS ampacity 0.5 -> 0.8 mm.** "Pour-fed" was true of the connector end and
+  false of the feed: each of VBUSA1/2/3 ran **13.554 mm of 0.500 mm B.Cu at
+  exactly the class floor** carrying ~2 A. One 0.650 mm segment per port cannot be
+  widened (TPS2557 VSON-8 is a 0.650 mm pitch and an 0.8 mm track is wider than
+  the pitch), so it takes a `scoped_floors` relaxation pinned to three 2x3 mm rule
+  areas over those pin pairs, with the measured geometry as its evidence.
+- **PowerPAK EP paste, all six power FETs.** Each carried **ONE 100%-area aperture
+  over a 3.810 x 3.910 mm exposed pad = 14.897 mm2**; IPC-7093 asks 50-80% as an
+  array. A vendored footprint (`03_src/lib/usb_hub_3s.pretty/
+  PowerPAK_SO-8_Single_Paste65`) replaces it with a 2x2 window-pane at **65.0%**
+  (4 x 1.5359 x 1.5762 = 9.683 mm2), webs 0.369/0.379 mm. The ratio is not
+  invented: KiCad's own HTSSOP-20-1EP_...\_Mask2.75x3.43mm uses 4 x 1.11 x 1.38
+  over 2.75 x 3.43 = **65.0%** for this same package family. Copper and mask are
+  unchanged.
+- **USB-C delivery corner.** PMID crossed F.Cu<->B.Cu on 2 vias and F2 had ZERO
+  vias on either pad at 0.775 W. Now 4 per F2 pad, 6 across the PMID pour, and 3
+  per J5 VBUS contact pair, all sites derived from live pad geometry.
+- **Three fiducials (FID1-3).** v1.0-v1.5 shipped with none, on a board whose
+  smallest machine-placed pitch is 0.500 mm (J5, which IS on the CPL). Nearly
+  free during a spin, impossible afterwards.
+
+### Status LEDs (user decisions D2/D3/D4)
+
+Five indicators, **+11 placements and exactly +2 BOM lines**:
+
+| ref | part | taps | current |
+|---|---|---|---|
+| D8 | C2296 amber | VIN via R37, returned through **Q8** | 1.504 mA typ (0.946-1.547) |
+| D9/D10/D11 | C2297 green | **VBUSA1/2/3** — per port | 0.282-0.377 mA |
+| D12 | C2297 green | **VBUSC** — post Q6 + F2 | 0.275-0.405 mA |
+
+- **The pack LED had to be FET-gated.** There is no switched power node on this
+  board: SW1's pads are GND / ENKILL / NC, and neither `VBAT` nor `VBAT_F` reaches
+  a switch pole — it switches ENABLE. Ungated, D8 would add **1.504 mA to a
+  271 uA OFF-state budget (6.6x) and flatten a 3S 5000 mAh pack in ~117 days**.
+  Q8 (BSS138, the same feeder as Q7) gates it off ENKILL; the adder is Q8's
+  I_DSS, <= 0.5 uA. `power_tree.yaml` quiescent 270 -> **271 uA**.
+- **Per-port, not one rail LED**: with a single 5VA indicator a port that had
+  latched off into current limit looks identical to a working one.
+- **The C indicator taps VBUSC, not 5VC**, so a dark C LED with the A LEDs lit
+  means the ADR-0002 protection chain opened. Cost to the 15 mV E-MARGIN slack:
+  0.346 mA x 42.4 mOhm = **14.7 uV = 0.098%**.
+- Silk: `PACK ON`, `USB-A1/2/3 5V`, `USB-C 5V OK`, and — because the pack LED is
+  enable-gated and the XT60 stays hot — `LEDS DARK = SWITCH OFF` /
+  `PACK STILL LIVE AT XT60`.
+- **CPL rotation for C2296/C2297 is 0, NOT 180.** The pad-NUMBER fit returns 180
+  at a 17.7x margin and is wrong: JLC numbers pad 1 = ANODE, KiCad's `Device:LED`
+  is pin 1 = K, and both libraries draw the cathode WEST, so the parts already
+  align. A 180 row would ship every indicator dark — indistinguishable from a
+  dry joint. See the release notes for the two numbering-free channels.
+
+### D5 / U12 protection ordering (user decision D5) — DECIDED, not deferred
+
+The finding is real and **the requested fix cannot be bought.** ST's USBLC6-2SC6
+(U12) specifies VBUS-GND breakdown as **MIN 6.0 V @ 1 mA with no typ and no max**
+(doc ID 11265 rev 5, Table 2); D5's breakdown MINIMUM is 6.67 V, so the small ESD
+array conducts first. A replacement would need Vwm >= 5.479 V **and** Vbr(max)
+< 6.00 V at once; that window is **empty** — the SMBJ family has no step between
+Vwm 5.0 V and 6.0 V, and the tightest SMB part found at any qualifying Vwm
+(SM6T6V8A) still breaks down 450 mV above U12's floor and is not JLC-stocked.
+v1.6 therefore **records the accepted residual** with its numbers, corrects the
+part.yaml (VBR window was `6.67-8.15 V @1mA`; it is **6.67-7.37 V @ 10 mA**, and
+Ppk is 10/1000us not 8/20us), and names the escalation as an ACTIVE OVP rather
+than a better TVS. Lowering 5VC is refused: it would spend the 15 mV margin.
+
+### Gates and bench
+
+- New bench gate (user decision D7): LEDs fitted, SW1 OFF, **measure pack current
+  with a uA meter and record it with the ambient. PASS <= 300 uA.** That
+  measurement, not the BSS138 datasheet's 25 C maximum, is what qualifies
+  `quiescent_ua`.
+- P-FACT `pad1_net_polarity` declared for both LEDs and for every polarized 2-pad
+  part on the board (C1/C2 polymer, D1, D2, D3/D4, D5) — coverage was zero.
+- E-INV gains `part_value` on all five 6.98 k ballasts plus the LED-cell topology
+  asserts: 36 invariants, all holding.
+- Two tier-preflight FAILs that predate v1.6 and were invisible when it sealed:
+  the Default netclass rode a hardcoded 0.2 mm clearance while the router used
+  0.18, and `island_rescue` scanned only the outer layers on a board with two
+  inner planes.
+
 ## v1.5 — 2026-07-25
 
 Released: `07_releases/v1.5-2026-07-25/`. **CPL-CORRECTION supersede of

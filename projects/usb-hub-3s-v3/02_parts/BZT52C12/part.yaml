@@ -8,5 +8,11 @@ escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked:
 pins:
   1: {name: K, note: "cathode = pad 1; 12V zener clamps Q1 Vgs: K at VIN(source), A at gate"}
   2: {name: A}
+asserts:
+  # P-FACT. D2 is the Vgs clamp for the reverse-polarity P-FET Q1.
+  - {assert: pad1_net_polarity, pad: 1, polarity: positive,
+     why: "pad 1 is the CATHODE and sits at Q1's SOURCE (VIN); the anode is on the
+       gate node RPP_G. Reversed, the zener clamps nothing and Q1's Vgs is free to
+       exceed its rating on a pack hot-plug."}
 verified: "2-pad polarized; KiCad pad1=cathode - 2026-07-21 (README deviation)"
 sourcing: {lcsc: C173429, alternates: [C124196], note: ""}

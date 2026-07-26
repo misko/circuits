@@ -75,6 +75,61 @@ invariants:
   - {assert: net_has_part, net: "CC1", part_type: "resistor", adr: 0001,
      why: "CC1 carries a passive Rp resistor, not a PD-controller CC driver"}
 
+  # --- #6b: v1.6 STATUS-LED cell — the parts, the tap points, AND THE VALUES ---
+  # An invariant that pins EXISTENCE does not pin VALUE (cooksense, 2026-07-25:
+  # a watchdog pull-down existed, passed three E-INV assertions, and was 100k
+  # instead of 1k, which silently disabled the watchdog). This board has already
+  # been bitten twice by the same class through a different door -- R12 shipped
+  # as 3.74k when the design said 4.12k, R30 as 3.09k when the design said 100k --
+  # both times because a bare value string was resolved by the toolchain and
+  # nobody asserted the number. So the ballasts are asserted, not just placed.
+  - {assert: part_value, part: R37, equals: 6.98k, tolerance_pct: 2, adr: 0003,
+     why: "pack-LED ballast. Sets the ONLY current this board draws while switched
+       OFF that is not a leakage: (VIN - Vf)/R37, 0.946-1.547 mA over VIN 9.0-12.6 V
+       x Vf 1.8-2.4 V. Drop it to 698R by accident and the pack LED pulls 15 mA,
+       which is 55x the entire declared 271 uA OFF-state budget and flattens a 3S
+       5000 mAh pack in under 12 days. 6.98k also keeps R37 at 15.8 mW = 16% of the
+       0603 0.1 W rating at the 12.6 V corner."}
+  - {assert: part_value, part: R38, equals: 6.98k, tolerance_pct: 2, adr: 0003,
+     why: "USB-A port 1 indicator ballast: 0.282-0.377 mA from VBUSA1, negligible
+       against the port's 2 A budget. A wrong value here either kills the indicator
+       or loads the port rail."}
+  - {assert: part_value, part: R39, equals: 6.98k, tolerance_pct: 2, adr: 0003,
+     why: "USB-A port 2 indicator ballast; see R38."}
+  - {assert: part_value, part: R40, equals: 6.98k, tolerance_pct: 2, adr: 0003,
+     why: "USB-A port 3 indicator ballast; see R38."}
+  - {assert: part_value, part: R41, equals: 6.98k, tolerance_pct: 2, adr: 0003,
+     why: "USB-C indicator ballast on VBUSC. This one is on the 15 mV E-MARGIN rail,
+       so its value is also a margin statement: at 6.98k the LED costs
+       0.346 mA x 42.4 mOhm = 14.7 uV = 0.098% of the slack. At 698R it would cost
+       147 uV and at 69.8R 1.47 mV -- still small, but the whole point of asserting
+       it is that nobody has to re-derive that to know it is safe."}
+  - {assert: pin_on_net, pin: "Q8.1", net: "ENKILL", adr: 0003,
+     why: "the pack LED is FET-GATED, and this pin is the entire reason it is safe.
+       SW1 switches ENABLE, not power (SW1 pads are GND / ENKILL / NC; neither VBAT
+       nor VBAT_F reaches a switch pole), so there is NO switched node to tap and an
+       ungated pack LED sits across a permanently hot VIN. Q8's gate on ENKILL is
+       what makes master-off actually dark: 1.504 mA -> <=0.5 uA."}
+  - {assert: pin_on_net, pin: "Q8.2", net: "GND", adr: 0003,
+     why: "Q8 is LOW-SIDE (source to GND). A high-side arrangement would need a
+       P-FET referenced to VIN and would not turn fully off from a 0-12.6 V ENKILL."}
+  - {assert: pin_on_net, pin: "D8.1", net: "LEDPKK", adr: 0003,
+     why: "pack-LED CATHODE (pad 1) on the Q8 drain. Asserted because a reversed
+       indicator LED never lights and is indistinguishable from a dry joint -- and
+       JLC numbers this part's pad 1 as the ANODE, the opposite of KiCad, so the
+       reversal is one silent table row away."}
+  - {assert: pin_on_net, pin: "R41.1", net: "VBUSC", adr: 0003,
+     why: "the USB-C indicator taps the PROTECTED rail (post Q6, post F2), NOT 5VC.
+       This is the difference between an LED that says 'the buck is running' and one
+       that says 'the ADR-0002 protection chain is intact'. If this pin ever moves to
+       5VC the indicator stops being able to report the fault it exists to report."}
+  - {assert: pin_on_net, pin: "R38.1", net: "VBUSA1", adr: 0003,
+     why: "PER-PORT indication is tapped POST-TPS2557. On 5VA instead, a port that
+       had latched off into current limit would look identical to a working one --
+       which is the whole reason there are three of these and not one."}
+  - {assert: pin_on_net, pin: "R39.1", net: "VBUSA2", adr: 0003, why: "see R38.1"}
+  - {assert: pin_on_net, pin: "R40.1", net: "VBUSA3", adr: 0003, why: "see R38.1"}
+
   # --- #7: MASTER-OFF merges both LM5116 EN pins onto ENKILL (EN_C un-merge reverted) ---
   - {assert: pin_on_net, pin: "U2.4", net: "ENKILL", adr: 0001,
      why: "buck-A EN on the master-off bus (SW1 grounds it -> both bucks off + Q6 gate opens)"}

@@ -30,6 +30,22 @@ board:
     # holes go to clear board: north gap (x100-113) and south of J4.
     footprint: MountingHole:MountingHole_3.2mm_M3
     at: [[26.0, 26.0], [26.0, 106.0], [106.0, 24.0], [144.0, 92.0]]
+  # v1.6: THREE GLOBAL FIDUCIALS. v1.0-v1.5 shipped with NONE, on a board whose
+  # minimum machine-placed pad pitch is 0.500 mm (J5, the USB-C receptacle -- and
+  # J5 IS on the CPL, so it IS machine-placed). Without fiducials the placer has
+  # only the board edge to register against, and JLC's routed-edge tolerance is
+  # +-0.2 mm; on a 0.5 mm pitch that is 40% of the pitch spent before the machine
+  # has done anything. A fiducial costs one copper dot and is IMPOSSIBLE to add
+  # after the panel is made, which is why it must land in this spin.
+  # Placed non-collinear and asymmetric, one per board region, each in open GND
+  # pour and >= 5 mm from the routed edge:
+  #   FID1 NW (33,29)   -- near the input cell / H1
+  #   FID2 NE (140,25)  -- above the USB-A column, north of the VBUSA1 pour (y29)
+  #   FID3 SE (145,105) -- the corner nearest J5, the part that actually needs it
+  # Triangle area = 0.5*|cross| = 1943 mm^2, i.e. emphatically not collinear.
+  fiducials:
+    footprint: Fiducial:Fiducial_1mm_Mask2mm
+    at: [[33.0, 29.0], [140.0, 25.0], [145.0, 105.0]]
 
 libraries: [03_src/lib, /usr/share/kicad/footprints]   # v1.1: project dir first so vendored SW1 fp maps correctly (fp-lib-table)
 
@@ -94,6 +110,32 @@ placement:
     Q7:  [104.0, 96.0, 0]     # BSS138 gate inverter: G(1)=ENKILL, S(2)=GND, D(3)=QG (S of Q6)
     F2:  [114.0, 90.0, 0]     # PPTC polyfuse 2920 (7.4x5.1mm, bigger): pad1=PMID(W ~x111), pad2=VBUSC(E ~x117)
     SW1: [66.0, 58.0, 0]      # SS12D07 master-off slide; COM(2)=ENKILL, T1(1)=GND, T2(3)=NC; open board center, accessible
+
+    # ---------------- v1.6 STATUS-LED cell (5 indicators) ----------------
+    # ANCHORED, not seeded: an indicator whose position is legalized is an
+    # indicator that can end up next to the wrong connector. Each LED is placed
+    # to be READ, and each ballast is placed INSIDE the pour it senses so the
+    # sense end needs no routed feeder at all.
+    # PACK trio sits immediately WEST of SW1 [66,58], in the clear band between
+    # the buckA_sense keepout (ends y50) and buckC_sense (starts y60) -- the
+    # strongest possible physical association between "the switch" and "the lamp
+    # that says what the switch did". All three at rot 0 -> LED cathode WEST.
+    R37: [49.5, 53.0, 0]      # pack ballast 6.98k: pin1=VIN (In2 plane via pad_rescue), pin2=LEDPK
+    D8:  [53.5, 53.0, 0]      # amber PACK LED: K(pad1,W)=LEDPKK, A(pad2,E)=LEDPK
+    Q8:  [57.8, 53.0, 0]      # BSS138 pack-LED gate: G(1)=ENKILL, S(2)=GND, D(3)=LEDPKK
+    # Per-port USB-A indicators: ballast INSIDE its own VBUSAk pour (north edge),
+    # LED ~4.5mm NORTH of the pour in GND copper. Same offset on all three so the
+    # silk reads as a column and a mis-association is visible at a glance.
+    R38: [124.0, 30.5, 0]     # in VBUSA1 pour [118,29,143,44]; pin1=VBUSA1, pin2=LEDVA1
+    D9:  [124.0, 26.5, 0]     # green port-1 LED, north of the VBUSA1 pour (GND)
+    R39: [124.0, 52.5, 0]     # in VBUSA2 pour [118,51,143,66]
+    D10: [124.0, 48.0, 0]     # green port-2 LED, in the y44-51 inter-pour GND gap
+    R40: [124.0, 74.5, 0]     # in VBUSA3 pour [118,73,143,88]
+    D11: [124.0, 70.0, 0]     # green port-3 LED, in the y66-73 inter-pour GND gap
+    # USB-C indicator: POST-protection. R41 sits in the VBUSC west J5 leg so the
+    # LED reports the CONNECTOR rail, not the buck -- dark means Q6 or F2 opened.
+    R41: [112.5, 102.0, 0]    # in VBUSC leg [110.5,99.5,118.2,106.8]; pin1=VBUSC, pin2=LEDVC
+    D12: [107.0, 102.0, 0]    # green USB-C LED, west of the VBUSC leg (GND)
 
   # v1.3 (BRIEF A3/D3): SW1 OFF automated assembly (hand-solder) until the SS12D07
   # VG4-vs-VG6 pin-pitch variant is physically confirmed against the received part
@@ -236,7 +278,27 @@ zones:
     layers: [F.Cu, B.Cu]
     priority: 2
     connect: full
-    points: [[86.0, 24.8], [116.0, 24.8], [116.0, 84.0], [98.0, 84.0], [98.0, 44.0], [86.0, 44.0]]  # east 114->116 covers C34.1; top 26->24.8 covers C14/C15 (legalized to y25.4)
+    # v1.6 H3 NOTCH — the top copper item of this revision.
+    # MEASURED on the sealed v1.5 board (filled zones, pcbnew polygon distance):
+    # H3 is an NPTH M3 at (106.0, 24.0), drill 3.2 => hole radius 1.600 mm. Both
+    # OUTER layers carry TWO DIFFERENT NETS at the same radius:
+    #     F.Cu  GND 1.850 mm   and  5VA 1.850 mm
+    #     B.Cu  5VA 1.850 mm   and  GND 1.851 mm
+    # i.e. 0.250 mm of bare laminate and ~20 um of solder mask are the only things
+    # between the 6 A USB-A rail and GND, on BOTH faces. EVERY listed fastener
+    # spans both nets -- not just a big washer, the smallest M3 cap head (r 2.75)
+    # already bridges. That is a dead short of the pack across a screw.
+    # v1.5 shipped a SENTENCE about nylon standoffs in ORDER_README as the only
+    # mitigation. A build note survives exactly as long as the person who read it.
+    # THE RULE THIS ENCODES: within r <= 4.00 mm of any mounting hole, all OUTER
+    # copper is ONE net and that net is GND. 4.00 mm covers cap head (2.75), M3
+    # nut across-corners (3.18) and a DIN 125A washer (3.50) with margin.
+    # The notch below puts the 5VA boundary at 4.50 mm from H3 (closest point
+    # (106.0, 28.5)); GND then pours the gap, so a metal screw sees GND only.
+    # Cost: 10 x 3.7 mm of pour in a region that carries no part and no pad
+    # (nearest are C35 [104,30] at y>=29.6 and R20 [112,30], both outside).
+    points: [[86.0, 24.8], [101.0, 24.8], [101.0, 28.5], [111.0, 28.5], [111.0, 24.8],
+             [116.0, 24.8], [116.0, 84.0], [98.0, 84.0], [98.0, 44.0], [86.0, 44.0]]  # east 114->116 covers C34.1; top 26->24.8 covers C14/C15 (legalized to y25.4)
   - net: 5VC         # buck C out (x86-98) + notch reaches Q6.D-tab (5VC->P-FET)
     layers: [F.Cu, B.Cu]
     priority: 2
@@ -245,7 +307,14 @@ zones:
   # ---- USB-A port rails ----
   - {net: VBUSA1, layers: [F.Cu, B.Cu], priority: 2, rect: [118.0, 29.0, 143.0, 44.0], connect: full}
   - {net: VBUSA2, layers: [F.Cu, B.Cu], priority: 2, rect: [118.0, 51.0, 143.0, 66.0], connect: full}
-  - {net: VBUSA3, layers: [F.Cu, B.Cu], priority: 2, rect: [118.0, 73.0, 143.0, 88.0], connect: full}
+  # v1.6 H4 CHAMFER. MEASURED: VBUSA3 reaches r = 4.152 mm of H4 (144.0, 92.0) on
+  # BOTH outer layers. That clears cap head / nut / DIN 125A, but a DIN 9021 large
+  # washer (r 4.50) -- the one someone reaches for when a hole is oversized -- lands
+  # on VBUSA3 and GND at once and shorts a 2 A port rail. Cutting the SE corner puts
+  # the boundary at 5.00 mm. J4's shield hole (~141.6, 88.6) is GND and is unaffected;
+  # J4's VBUSA3 contact (~139, 85.5) and C40/C43/R40 all stay inside the pour.
+  - {net: VBUSA3, layers: [F.Cu, B.Cu], priority: 2, connect: full,
+     points: [[118.0, 73.0], [143.0, 73.0], [143.0, 86.0], [141.0, 88.0], [118.0, 88.0]]}
   # ---- v1.2 DISCRETE VBUS pours: 5VC -> Q6 -> PMID -> F2 -> VBUSC -> J5 ----
   # PMID (Q6.S -> F2.1 -> R30.1) is a short local pour east of the 5VC notch.
   # VBUSC (F2.2 -> J5 VBUS + D5 TVS + C49/C50 + U12.5 + R28/R29 CC-Rp) is the
@@ -263,6 +332,43 @@ keepouts:
   - {name: buckA_sense, deny: [], layers: [F.Cu, B.Cu], rect: [50.0, 22.0, 92.0, 50.0]}
   - {name: buckC_sense, deny: [], layers: [F.Cu, B.Cu], rect: [50.0, 60.0, 92.0, 88.0]}
 
+  # ---- v1.6: keep the 9-12.6 V In2 VIN PLANE off every mounting drill ----
+  # MEASURED on sealed v1.5: In2.Cu VIN reaches r = 1.850 mm at ALL FOUR holes
+  # (H3 1.851, faceting noise) against a 1.600 mm drill = 0.250 mm of laminate.
+  # JLC's NPTH position tolerance is +-0.13 mm and the drill itself wanders; a
+  # 0.250 mm standoff to a 12.6 V plane, buried where no inspection will ever see
+  # it, is a screw-shank short waiting for a slightly deep hole. GND on In1 at the
+  # same radius is deliberately LEFT ALONE: a grounded fastener touching GND is
+  # the benign case, and thinning the return plane would cost more than it buys.
+  # 12-gon, circumradius 2.150 -> inradius 2.077 mm, so VIN copper stops at
+  # >= 2.077 mm (0.477 mm of laminate, 1.9x the old figure) for a ~14 mm^2 bite
+  # out of an 11310 mm^2 plane per hole.
+  - {name: hole_vin_H1, deny: [pours], layers: [In2.Cu],
+     points: [[28.150, 26.000], [27.862, 27.075], [27.075, 27.862], [26.000, 28.150],
+              [24.925, 27.862], [24.138, 27.075], [23.850, 26.000], [24.138, 24.925],
+              [24.925, 24.138], [26.000, 23.850], [27.075, 24.138], [27.862, 24.925]]}
+  - {name: hole_vin_H2, deny: [pours], layers: [In2.Cu],
+     points: [[28.150, 106.000], [27.862, 107.075], [27.075, 107.862], [26.000, 108.150],
+              [24.925, 107.862], [24.138, 107.075], [23.850, 106.000], [24.138, 104.925],
+              [24.925, 104.138], [26.000, 103.850], [27.075, 104.138], [27.862, 104.925]]}
+  - {name: hole_vin_H3, deny: [pours], layers: [In2.Cu],
+     points: [[108.150, 24.000], [107.862, 25.075], [107.075, 25.862], [106.000, 26.150],
+              [104.925, 25.862], [104.138, 25.075], [103.850, 24.000], [104.138, 22.925],
+              [104.925, 22.138], [106.000, 21.850], [107.075, 22.138], [107.862, 22.925]]}
+  - {name: hole_vin_H4, deny: [pours], layers: [In2.Cu],
+     points: [[146.150, 92.000], [145.862, 93.075], [145.075, 93.862], [144.000, 94.150],
+              [142.925, 93.862], [142.138, 93.075], [141.850, 92.000], [142.138, 90.925],
+              [142.925, 90.138], [144.000, 89.850], [145.075, 90.138], [145.862, 90.925]]}
+
+  # ---- v1.6: permissive DRU anchors for the VBUS 0.8 mm floor relaxation ----
+  # deny: [] -> these forbid NOTHING. They exist only so nets.yaml scoped_floors
+  # can write a `track_width` rule scoped to insideArea('usba_out_bond'). See the
+  # scoped_floors `why` for the measured geometry that makes the relaxation
+  # unavoidable rather than convenient.
+  - {name: usba_out_bond, deny: [], layers: [F.Cu], rect: [108.5, 32.5, 110.5, 35.5]}   # U3 OUT1/OUT2
+  - {name: usba_out_bond, deny: [], layers: [F.Cu], rect: [108.5, 54.5, 110.5, 57.5]}   # U4
+  - {name: usba_out_bond, deny: [], layers: [F.Cu], rect: [108.5, 76.5, 110.5, 79.5]}   # U5
+
 silk:
   min_text_height: 0.6
   refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQL"}
@@ -277,6 +383,20 @@ silk:
     - {text: "USB-C 5A Pi-ONLY  NOT USB-PD", at: [135.0, 108.0], size: 0.6, nudge: true}   # SE, off J5.SH pad; de-collide
     - ["usb-hub-3s-v3", 30.0, 100.0, 0.8]
     - ["POWER-DIST BOARD - NOT A USB HUB", 30.0, 96.0, 0.55]   # v1.1 relabel (fix #6)
+    # ---- v1.6 status-LED legends (canon P5: plain words, no colour codes) ----
+    # An indicator with no legend is a light whose meaning lives in a PDF.
+    - {text: "PACK ON", at: [53.5, 56.5], size: 0.6, nudge: true}            # under D8 [53.5,53]
+    - {text: "USB-A1 5V", at: [130.0, 26.5], size: 0.55, nudge: true}        # beside D9
+    - {text: "USB-A2 5V", at: [130.0, 48.0], size: 0.55, nudge: true}        # beside D10
+    - {text: "USB-A3 5V", at: [130.0, 70.0], size: 0.55, nudge: true}        # beside D11
+    - {text: "USB-C 5V OK", at: [104.0, 105.5], size: 0.55, nudge: true}     # S of D12 [107,102]
+    # THE SAFETY LINE. Every other legend says what a lit LED means; this one
+    # says what a DARK board means, because the pack LED is ENABLE-gated (Q8 off
+    # ENKILL) and the XT60 stays hot with SW1 off. Without it, "all lights out"
+    # reads as "de-energized" -- which is exactly wrong, and is the state someone
+    # will be in when they put a screwdriver near the 6 A rail.
+    - {text: "LEDS DARK = SWITCH OFF", at: [51.0, 62.8], size: 0.55, nudge: true}
+    - {text: "PACK STILL LIVE AT XT60", at: [51.0, 64.4], size: 0.55, nudge: true}
 
 asserts:
   pad_net:
@@ -310,6 +430,26 @@ asserts:
     - {ref: R30, pad: 1, net: PMID}        # Q6 gate pull-up to SOURCE (PMID)
     - {ref: SW1, pad: 2, net: ENKILL}      # slide COM = master-off bus
     - {ref: R12, pad: 1, net: 5VC}         # buck-C FB-top senses LOCAL 5VC (v1.1 runaway fix, kept)
+    # ---- v1.6 status-LED polarity + tap-point asserts ----
+    # Every LED's pad 1 is its CATHODE (KiCad Device:LED pin1=K; LED_0805_2012Metric
+    # pad 1 is the F.Fab-chamfered / silk-banded WEST end). Asserting the cathode NET
+    # is what makes a reversed indicator a BUILD failure instead of a bench mystery:
+    # a backwards LED never lights and is indistinguishable from a dry joint.
+    - {ref: D8,  pad: 1, net: LEDPKK}      # pack LED cathode -> Q8 drain (the gate)
+    - {ref: D8,  pad: 2, net: LEDPK}       # pack LED anode <- R37 <- VIN
+    - {ref: Q8,  pad: 1, net: ENKILL}      # pack-LED gate FET: GATE on the master-off bus
+    - {ref: Q8,  pad: 2, net: GND}         # BSS138 source
+    - {ref: Q8,  pad: 3, net: LEDPKK}      # BSS138 drain = the LED's low side
+    - {ref: R37, pad: 1, net: VIN}         # pack ballast feeds from VIN (always hot)
+    - {ref: D9,  pad: 1, net: GND}
+    - {ref: D10, pad: 1, net: GND}
+    - {ref: D11, pad: 1, net: GND}
+    - {ref: D12, pad: 1, net: GND}
+    - {ref: R38, pad: 1, net: VBUSA1}      # PER-PORT tap: post-TPS2557, so a latched
+    - {ref: R39, pad: 1, net: VBUSA2}      # port reads DARK. Tapping 5VA instead would
+    - {ref: R40, pad: 1, net: VBUSA3}      # make a dead port look identical to a live one.
+    - {ref: R41, pad: 1, net: VBUSC}       # C-port tap is POST Q6+F2 (NOT 5VC): dark == the
+                                           # ADR-0002 protection chain opened
   body_offset:
     - {ref: J1, axis: x, sign: "-"}        # XT60 mouth WEST
     - {ref: J2, axis: x, sign: "+"}

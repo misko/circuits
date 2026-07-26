@@ -8,6 +8,48 @@
 # port is a plain 5V/5A rail (J5 VBUS poured on 5VC) — no fine-pitch escape.
 fab_tier: jlc_4layer_standard
 
+# v1.6, from the tier-preflight gate PF-RULES-CLR (a gate that did not exist when
+# v1.5 sealed). Without this line the Default netclass silently rode
+# generate_rules' HARDCODED 0.2 mm clearance while route.yaml routes at 0.18 mm --
+# i.e. the router was free to lay copper under a DRC floor nobody had declared,
+# and the only reason v1.5 got away with it is that every net on this board
+# happens to be in an explicit class. Declared at 0.18 mm to MATCH the router
+# (>= the STANDARD tier min_space of 0.127 mm) so the two can no longer disagree.
+default_clearance: 0.18mm
+
+# ---- SCOPED FLOOR: the one place the v1.6 VBUS 0.8 mm floor cannot be met ----
+# MEASURED on sealed v1.5, per port: VBUSA{1,2,3} each carry EXACTLY TWO routed
+# segments and nothing else --
+#     13.554 mm of 0.500 mm on B.Cu  (TPS2557 OUT -> the port pour: the ampacity
+#                                     case, and the reason the floor goes to 0.8)
+#      0.650 mm of 0.500 mm on F.Cu  (the intra-chip OUT1<->OUT2 bond)
+# The second one CANNOT be widened. U3/U4/U5 are TPS2557 VSON-8 on a 0.650 mm
+# pitch; OUT1 (pin 6) and OUT2 (pin 7) are 0.650 mm apart with ILIM (pin 5) and
+# FAULT (pin 8) flanking them at the same pitch. An 0.8 mm track between pins 6
+# and 7 has round caps reaching y +-0.725 mm from centre, against pin 5's pad
+# edge at 0.800 mm -- a 0.075 mm gap versus the VBUS class clearance of 0.150 mm.
+# The geometry is not tight, it is IMPOSSIBLE: the track is wider than the pitch.
+# So the floor is relaxed to 0.500 mm ONLY inside three 2.0 x 3.0 mm rule areas
+# pinned to those three pin pairs, and ONLY for the three VBUSA nets. Ampacity
+# consequence, stated rather than waved past: 2 A through 0.500 mm of 1 oz outer
+# copper over a 0.650 mm span between two 0.8 x 0.35 mm copper pads, which are
+# themselves the heat sink. IPC-2152's ~22 C figure is a STEADY-STATE, long-trace
+# number; it does not apply to a 0.65 mm segment terminated on copper at both
+# ends. The 13.554 mm run, where it DOES apply, is what goes to 0.8 mm.
+scoped_floors:
+  - zone: usba_out_bond
+    nets: [VBUSA1, VBUSA2, VBUSA3]
+    min_width: 0.5mm
+    why: >
+      MEASURED 2026-07-25 on the sealed v1.5 board. TPS2557 VSON-8 pitch is
+      0.650 mm; an 0.8 mm track from OUT1 (pin 6) to OUT2 (pin 7) leaves 0.075 mm
+      to the flanking ILIM (pin 5) and FAULT (pin 8) pads against a 0.150 mm class
+      clearance, so the width the class demands cannot physically exist there.
+      Scope is three 2.0 x 3.0 mm F.Cu rule areas over exactly those pin pairs and
+      only the three VBUSA nets; the 13.554 mm B.Cu port feed -- the segment the
+      0.8 mm floor exists for -- is entirely OUTSIDE the relaxation and carries
+      the full new width.
+
 classes:
   SWITCH_NODE:
     intent: >
@@ -60,9 +102,37 @@ classes:
       PWR_RAIL), no longer 5VC direct. Pour-fed.
     nets: [VBUSA1, VBUSA2, VBUSA3]
     current: "2.5 A"
-    min_width: 0.5mm
+    # v1.6 AMPACITY FIX 0.5 -> 0.8 mm. "pours" above was true of the CONNECTOR
+    # end and false of the feed: MEASURED on the sealed v1.5 board, each of
+    # VBUSA1/2/3 runs a ROUTED track from its TPS2557 OUT pin east to the port
+    # pour, and every one of those tracks sits at EXACTLY the old 0.5 mm class
+    # floor -- i.e. the floor was not a backstop here, it was the design.
+    # 2 A continuous through 0.5 mm of 1 oz OUTER copper is ~22 C rise
+    # (IPC-2152 external, 0.0331 mm^2); 0.8 mm halves the current density and
+    # brings it to ~11 C. The port limit is 2 A continuous / 2.5 A burst set by
+    # R20/R21/R22 = 36.5 k on the TPS2557 ILIM pin, so 2 A is not a peak, it is
+    # the steady state a charging phone actually draws.
+    min_width: 0.8mm
     clearance: 0.15mm
-    routing: pours
+    routing: pours + a routed OUT-pin feed per port (see scoped_floors)
+    verify: DRC floor
+
+  INDICATOR:
+    intent: >
+      v1.6 status-LED cell: the four ballast->LED links (LEDVA1/2/3, LEDVC) and
+      the ENKILL-gated pack-LED return pair (LEDPK, LEDPKK). Sub-milliamp DC,
+      no dV/dt, no analog reference, no Kelvin obligation.
+      DELIBERATELY NOT FOLDED INTO SENSE. SENSE's stated intent is Kelvin
+      current-sense and buck control analog ("never share trunk copper"); an
+      indicator net has none of those duties and inheriting them would make the
+      class intent a lie for six nets. Keeping them separate also means the LED
+      copper shows up as its own population in the DRC classification instead of
+      hiding inside the 22-net SENSE group.
+    nets: [LEDPK, LEDPKK, LEDVA1, LEDVA2, LEDVA3, LEDVC]
+    current: "<1.6 mA (pack LED 0.946-1.547 mA; rail LEDs 0.275-0.405 mA)"
+    min_width: 0.2mm
+    clearance: 0.13mm  # >= STANDARD tier min_space 0.127
+    routing: KRT
     verify: DRC floor
 
   GATE:

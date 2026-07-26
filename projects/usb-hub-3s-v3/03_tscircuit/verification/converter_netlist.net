@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/home/mouse9911/gits/circuits/projects/usb-hub-3s-v3/03_tscircuit/kicad/usb_hub_3s_v2.kicad_sch")
-		(date "2026-07-23T18:08:15")
+		(date "2026-07-25T21:33:10")
 		(tool "Eeschema 10.0.4-10.0.4~ubuntu24.04.1")
 		(sheet
 			(number "1")
@@ -12,7 +12,7 @@
 				(title "usb_hub_3s_v2")
 				(company)
 				(rev "dev")
-				(date "2026-07-23")
+				(date "2026-07-25")
 				(source "usb_hub_3s_v2.kicad_sch")
 				(comment
 					(number "1")
@@ -85,7 +85,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9c508883-05e2-4044-93d0-68673954ed4e")
+			(tstamps "e94ac83a-8b28-4faf-a15d-64e2b4cee159")
 			(units
 				(unit
 					(name "A")
@@ -131,7 +131,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e2bfa746-cf6d-4442-ada5-e3ccea6dd6b1")
+			(tstamps "538a0a21-c72f-454d-a7ce-d32338b56109")
 			(units
 				(unit
 					(name "A")
@@ -177,7 +177,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "12e72a11-c67f-4e00-b4a4-e30cf9a93549")
+			(tstamps "8231d7e6-000c-43f9-9e35-d4fcbfa8af75")
 			(units
 				(unit
 					(name "A")
@@ -223,7 +223,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9860ab57-b093-4d59-9f08-4a3bb45b1216")
+			(tstamps "5d6edeb2-55bb-43cc-9a63-c52259cc0cf1")
 			(units
 				(unit
 					(name "A")
@@ -269,7 +269,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2543d1df-b69a-4819-bd09-94a7102ab057")
+			(tstamps "bb53aba2-c537-428e-94a9-21b70f2f5c86")
 			(units
 				(unit
 					(name "A")
@@ -315,7 +315,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8c225db6-84bf-4676-b619-489df3cbe66a")
+			(tstamps "00ae1119-6e08-4e6a-9647-f402609731e1")
 			(units
 				(unit
 					(name "A")
@@ -361,7 +361,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ab0f4299-7ab4-4d16-a035-948e74402455")
+			(tstamps "c78a9ee1-7922-45b2-b555-dbcada831751")
 			(units
 				(unit
 					(name "A")
@@ -407,7 +407,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fa5f26a1-d684-44db-a4a3-feb7586940ab")
+			(tstamps "6dc80126-2c67-4b1f-aafa-c247839635b7")
 			(units
 				(unit
 					(name "A")
@@ -453,7 +453,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "10be1c46-6c4d-43e8-bbf9-0a75c35fac2b")
+			(tstamps "22f26332-0716-4f22-97f4-fc02762d7071")
 			(units
 				(unit
 					(name "A")
@@ -499,7 +499,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "05460183-73c3-4ece-abc7-63df50d39476")
+			(tstamps "2717546c-b030-4efc-ba97-8922c7058499")
 			(units
 				(unit
 					(name "A")
@@ -545,7 +545,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cde9a367-c51f-47e3-9134-38faa8736004")
+			(tstamps "40088a13-0ad5-4338-b3bd-52becd4ad0b3")
 			(units
 				(unit
 					(name "A")
@@ -591,7 +591,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "26d8da9e-3513-4ec0-8085-fbd695b2014c")
+			(tstamps "63b98c28-80a2-4f95-93e2-77a451c8121d")
 			(units
 				(unit
 					(name "A")
@@ -637,7 +637,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6b35ae13-b74f-4648-abf2-561c6a42d0a4")
+			(tstamps "c6f8d90c-359b-495a-aa8b-32df5e442823")
 			(units
 				(unit
 					(name "A")
@@ -683,7 +683,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ddc73195-8635-43ce-9335-2b74a68c0075")
+			(tstamps "1c80f4fd-bd6d-411b-9b81-87b7026f7c96")
 			(units
 				(unit
 					(name "A")
@@ -729,7 +729,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8106724a-becc-4fdf-81c6-7763a01ed19a")
+			(tstamps "452604c7-5b19-4b11-a9f6-ef206e7b5629")
 			(units
 				(unit
 					(name "A")
@@ -775,7 +775,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "07cb0db8-68e8-4e71-b6de-b22886df0f12")
+			(tstamps "3afc6d3f-c5ad-4184-a078-d1a7937e646d")
 			(units
 				(unit
 					(name "A")
@@ -821,7 +821,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ba1a7f4d-9dde-4249-a290-08a81d562c60")
+			(tstamps "3d1ad0e7-e3ad-4dcb-85c6-5cee6a9c2633")
 			(units
 				(unit
 					(name "A")
@@ -867,7 +867,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "98dbfac3-fa0e-4a74-822d-627af9f2d833")
+			(tstamps "56180376-ba6f-427f-b4b4-dc3ec3fc526b")
 			(units
 				(unit
 					(name "A")
@@ -913,7 +913,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3406eaa8-6592-486f-aaf4-3b849770509c")
+			(tstamps "807267f5-2e0a-4ae0-b9d0-569291ac38b9")
 			(units
 				(unit
 					(name "A")
@@ -959,7 +959,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fcdfd6fb-9875-4e50-b50c-6327e205ca19")
+			(tstamps "3cee63fe-25ae-450d-841d-82eb58e9ccd2")
 			(units
 				(unit
 					(name "A")
@@ -1005,7 +1005,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b976dc7d-7afc-4031-87cb-a17c93273930")
+			(tstamps "b8afebe8-5348-4120-8704-e42d7ae91836")
 			(units
 				(unit
 					(name "A")
@@ -1051,7 +1051,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5e5439e6-3577-444a-9f3a-2e43b809d31c")
+			(tstamps "45284768-3a36-4783-aba9-abe6c3bf4905")
 			(units
 				(unit
 					(name "A")
@@ -1097,7 +1097,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6a951146-505b-438e-bfa5-33772ed64117")
+			(tstamps "80c3268e-c507-4ad8-8c2d-f023c143969a")
 			(units
 				(unit
 					(name "A")
@@ -1143,7 +1143,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0c5565c8-4dd1-4262-a438-0d030015555d")
+			(tstamps "8fd937f7-ea5b-4281-b041-58f97411d51b")
 			(units
 				(unit
 					(name "A")
@@ -1189,7 +1189,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "81f2c849-b425-41fc-be79-6a7eabd08736")
+			(tstamps "3eaff9f4-5532-45a2-a784-e1c020ad93bc")
 			(units
 				(unit
 					(name "A")
@@ -1235,7 +1235,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "67f8ef6f-cb1d-4b78-959a-3ad5bd098b38")
+			(tstamps "f90bcbe9-4330-49e0-b32e-29e4ef540644")
 			(units
 				(unit
 					(name "A")
@@ -1281,7 +1281,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "76d955dc-8ec4-4b92-b5c1-3676e71cca72")
+			(tstamps "f096b2b9-b12a-446e-9110-77cd5647c238")
 			(units
 				(unit
 					(name "A")
@@ -1327,7 +1327,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "035b83f7-7d24-4008-b3d9-1643addf08e7")
+			(tstamps "d32c9edb-2e33-4492-976b-4a1e76171235")
 			(units
 				(unit
 					(name "A")
@@ -1373,7 +1373,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "903d78b0-a8ee-4609-8112-b69b03d54944")
+			(tstamps "795996d4-c5ec-435d-9408-65706bb1489e")
 			(units
 				(unit
 					(name "A")
@@ -1419,7 +1419,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ebed2490-bb6a-4158-9e13-a9cf6579c1d3")
+			(tstamps "1f45bda0-d25e-44e2-894e-19e5f1e03611")
 			(units
 				(unit
 					(name "A")
@@ -1465,7 +1465,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "147ecd51-98b4-4676-804e-efc56c6fb9f7")
+			(tstamps "22721016-fee2-4b25-bba5-a09da2ac131d")
 			(units
 				(unit
 					(name "A")
@@ -1511,7 +1511,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cf2468c8-c4b0-452b-98f8-5dd946033912")
+			(tstamps "6cc4c5e5-5932-485b-92b4-b8d09d07f408")
 			(units
 				(unit
 					(name "A")
@@ -1557,7 +1557,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "afe905dc-b253-4fb8-9861-e6fa63c886f5")
+			(tstamps "18fb1134-c0a7-4585-8091-b45a3e25a6aa")
 			(units
 				(unit
 					(name "A")
@@ -1603,7 +1603,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "51d83bb8-3e5b-473f-89f6-77412b4d76c1")
+			(tstamps "1c463727-fe5e-4137-bf11-47df774f26c0")
 			(units
 				(unit
 					(name "A")
@@ -1649,7 +1649,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e22b59f0-1571-4a8f-a3c1-7f6dc59a79ce")
+			(tstamps "fb3b3afd-e914-4d9c-9c5c-1ca7e3f9ed5d")
 			(units
 				(unit
 					(name "A")
@@ -1695,7 +1695,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "ebd229fe-e130-45e8-9268-79785c01b868")
+			(tstamps "4d32f382-e351-4f37-bb72-f25b47864e08")
 			(units
 				(unit
 					(name "A")
@@ -1741,7 +1741,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f5819967-05dd-4102-98fe-27cbc2176eaa")
+			(tstamps "a3fe82a9-5c61-447e-bca7-b4a480f82dc5")
 			(units
 				(unit
 					(name "A")
@@ -1787,7 +1787,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "96370307-461a-46b4-924f-3655351630de")
+			(tstamps "cffab444-62ba-41aa-bb93-f894d9ca1fd5")
 			(units
 				(unit
 					(name "A")
@@ -1833,7 +1833,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "69a7a373-269e-4125-abd3-a9c133cdab13")
+			(tstamps "cbd617ae-243c-4a22-9a0f-f1f3f51a0dde")
 			(units
 				(unit
 					(name "A")
@@ -1879,7 +1879,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "db39673b-d853-44fb-9219-48b09a76f272")
+			(tstamps "060bf6d7-3337-4ae1-a0f7-2258011bd133")
 			(units
 				(unit
 					(name "A")
@@ -1925,7 +1925,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "286d3fc1-30d8-42da-a511-dd96feeb4c7e")
+			(tstamps "d4c09dff-c09a-472e-9248-4785f1cbe100")
 			(units
 				(unit
 					(name "A")
@@ -1971,7 +1971,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4c8af818-1ae6-48b2-b415-48e70614fc94")
+			(tstamps "3372ee90-449c-4c8a-adfc-219cf96fe121")
 			(units
 				(unit
 					(name "A")
@@ -2017,7 +2017,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "1c1d23d0-aa97-4a33-b1cf-54d7b199aec9")
+			(tstamps "607b6419-7fff-401e-8230-c48b6471c84c")
 			(units
 				(unit
 					(name "A")
@@ -2063,7 +2063,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fff677fa-ca72-4b8d-b352-a272e2437aee")
+			(tstamps "b9b00ca1-517a-4433-bd3e-dfe5b2d3bf15")
 			(units
 				(unit
 					(name "A")
@@ -2109,7 +2109,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "14d1aab3-54ed-49df-ae1e-9f17533c56e2")
+			(tstamps "74f23ad9-d716-441c-a5e4-6900423603d3")
 			(units
 				(unit
 					(name "A")
@@ -2155,7 +2155,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b4e666a9-03dd-4be9-8be4-6fc32f4e3d7a")
+			(tstamps "a4ed54d5-2e3b-4d98-b69b-7b0387161700")
 			(units
 				(unit
 					(name "A")
@@ -2201,7 +2201,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "56d1dbd0-f5b4-4775-a970-76dbfad2b28c")
+			(tstamps "9e3cd60b-f982-46df-ba10-f2148e5278b4")
 			(units
 				(unit
 					(name "A")
@@ -2247,7 +2247,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cc853757-042e-4967-8461-01557d0099fb")
+			(tstamps "109c097e-7a53-4ff8-b37d-814052fbdd19")
 			(units
 				(unit
 					(name "A")
@@ -2293,7 +2293,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "df288afd-2581-4b55-a84e-caf037e1005c")
+			(tstamps "4b08bfa9-083d-4c5e-9902-4a482dc2f174")
 			(units
 				(unit
 					(name "A")
@@ -2339,7 +2339,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b22fee4f-714b-4e7e-91a0-a5b0ea4f09e3")
+			(tstamps "607ffca0-3e82-499a-b80c-2ffe5d83fba1")
 			(units
 				(unit
 					(name "A")
@@ -2385,7 +2385,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "27193e01-937a-4d71-b02a-c80de7c761c3")
+			(tstamps "2b972cba-f0f6-4334-8460-78d46c7af0ba")
 			(units
 				(unit
 					(name "A")
@@ -2431,7 +2431,237 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "37bfb7b7-5d0d-4748-9ca6-f63857ba27d5")
+			(tstamps "6becbcc4-0e9b-4efc-9b8d-9259a004f3a3")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "D8")
+			(value "C2296")
+			(footprint "LED_SMD:LED_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "LED_SMD:LED_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_D8")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "ec10d6c5-2ceb-44cf-bd24-b15dfb8bd8a8")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "D9")
+			(value "C2297")
+			(footprint "LED_SMD:LED_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "LED_SMD:LED_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_D9")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "206761f3-beed-41ed-9c9f-92274f6674a4")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "D10")
+			(value "C2297")
+			(footprint "LED_SMD:LED_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "LED_SMD:LED_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_D10")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "36c3798c-1520-4e50-acc4-9162fa197aaf")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "D11")
+			(value "C2297")
+			(footprint "LED_SMD:LED_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "LED_SMD:LED_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_D11")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "c2f2f29c-4f4d-40ad-882d-1450de90de1d")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "D12")
+			(value "C2297")
+			(footprint "LED_SMD:LED_0805_2012Metric")
+			(fields
+				(field
+					(name "Footprint") "LED_SMD:LED_0805_2012Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_D12")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "ffb0a8b9-89c7-4c05-8303-b6a62f2766aa")
 			(units
 				(unit
 					(name "A")
@@ -2477,7 +2707,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4dd3a5bf-ee16-4372-b57b-8c2bfd9df1c5")
+			(tstamps "9ec3e90e-e05a-46de-955a-fb75ab5fb712")
 			(units
 				(unit
 					(name "A")
@@ -2523,7 +2753,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "85417a3e-081a-4a12-9ba7-5a6bcfdc3a6a")
+			(tstamps "e17bcc4f-116e-4ef0-9ae9-c5266d4849de")
 			(units
 				(unit
 					(name "A")
@@ -2569,7 +2799,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d8c6153d-bed8-459e-aef9-bd416cdadbe5")
+			(tstamps "0b344c30-3bbe-4e08-8726-00429fb3fed7")
 			(units
 				(unit
 					(name "A")
@@ -2615,7 +2845,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d2c877bf-188d-4158-9891-9bb0cc74b6ae")
+			(tstamps "ee312bfb-b0bd-4ae8-8e64-4486b6d865fc")
 			(units
 				(unit
 					(name "A")
@@ -2670,7 +2900,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a4036052-4236-495e-aaaa-1e8ede6158d8")
+			(tstamps "70a928bc-7c90-4862-86a8-ddf76bd3284c")
 			(units
 				(unit
 					(name "A")
@@ -2725,7 +2955,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "061f7a51-80eb-43e8-8b35-82ac92577324")
+			(tstamps "0836fc46-49d9-4b90-9668-70a4605b2913")
 			(units
 				(unit
 					(name "A")
@@ -2780,7 +3010,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d0a85cae-218e-4184-b862-c4e2bebb6b34")
+			(tstamps "60862ce5-ec18-4080-acb0-1a5f7c72d0fb")
 			(units
 				(unit
 					(name "A")
@@ -2871,7 +3101,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "73669ced-b618-45d3-bb2f-ccaac6039716")
+			(tstamps "79873305-281b-4660-9c43-35e9196f9949")
 			(units
 				(unit
 					(name "A")
@@ -2917,7 +3147,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c586f3b7-25d6-4bec-ba16-95c0a194013d")
+			(tstamps "c7c018de-48b3-4679-bb8a-febc141eaa0f")
 			(units
 				(unit
 					(name "A")
@@ -2963,7 +3193,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3d56c45e-5f15-4a2a-bab5-481216864873")
+			(tstamps "9a790652-4d76-4907-9036-eb29c3729868")
 			(units
 				(unit
 					(name "A")
@@ -3018,7 +3248,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "82de24c1-0eda-4ed1-bcf4-2eb07d5a7e3a")
+			(tstamps "9ad2dc2b-da2c-4677-ab05-8f6cb0378b64")
 			(units
 				(unit
 					(name "A")
@@ -3073,7 +3303,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "bfe1cd5d-c312-43ed-97af-ce0bbe639edc")
+			(tstamps "cee226cc-91a2-41b6-aa00-38e3693522b9")
 			(units
 				(unit
 					(name "A")
@@ -3128,7 +3358,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e9290d70-2de2-4d47-b6e7-46f65b7c5634")
+			(tstamps "9af841e8-0fe6-4ca1-a970-8892a018abd1")
 			(units
 				(unit
 					(name "A")
@@ -3183,7 +3413,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2f885315-bdba-4990-b37f-e478eb208946")
+			(tstamps "8b84be2e-d7eb-40d5-aca4-40d512e8a285")
 			(units
 				(unit
 					(name "A")
@@ -3238,7 +3468,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6c1d1048-e014-4d92-9a17-9a34b8a34f20")
+			(tstamps "e92c1ae2-c3f8-4232-b9dc-22787a463aa2")
 			(units
 				(unit
 					(name "A")
@@ -3293,7 +3523,56 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "e5197bc6-b72b-4adb-b62e-579623399fb1")
+			(tstamps "2cd77fd8-c63d-4f73-9b1d-c30c22a3f15a")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+						(pin
+							(num "3")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "Q8")
+			(value "C78284")
+			(footprint "Package_TO_SOT_SMD:SOT-23")
+			(fields
+				(field
+					(name "Footprint") "Package_TO_SOT_SMD:SOT-23")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_Q8")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "eec3e297-7af0-412a-8358-39ac29380336")
 			(units
 				(unit
 					(name "A")
@@ -3342,7 +3621,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d80ea0c2-8e64-4766-9d52-caab400febf9")
+			(tstamps "54b02b73-b362-4b8b-b30c-afa531c6fd36")
 			(units
 				(unit
 					(name "A")
@@ -3388,7 +3667,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "6221de56-a03e-44be-9886-e13ef85c680b")
+			(tstamps "05c49edb-2809-4c01-b408-c981b403c40e")
 			(units
 				(unit
 					(name "A")
@@ -3434,7 +3713,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "3245edac-8f19-4e20-bf14-064ef254a119")
+			(tstamps "14e56850-5366-4662-b4ae-05c7c5a35fd9")
 			(units
 				(unit
 					(name "A")
@@ -3480,7 +3759,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7ecdc174-498d-4af1-b17d-fe7178a3abc4")
+			(tstamps "c1ec2094-84ee-4ccc-92bf-0c51b3e36bab")
 			(units
 				(unit
 					(name "A")
@@ -3526,7 +3805,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c2aecc85-57a1-4ede-aa61-214e0e15a61b")
+			(tstamps "0e90190c-2ddc-4680-91c8-fbaa80cce1c4")
 			(units
 				(unit
 					(name "A")
@@ -3572,7 +3851,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "96ac97a6-b261-4c38-aca7-cd695f98fc0b")
+			(tstamps "c3335d80-3aff-49de-966b-b0721370a190")
 			(units
 				(unit
 					(name "A")
@@ -3618,7 +3897,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c94776d7-5de0-4083-90c6-00a4beb7d0a7")
+			(tstamps "19b4de6f-9b7e-43fa-90b5-e8087f8a025d")
 			(units
 				(unit
 					(name "A")
@@ -3664,7 +3943,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "54f540fb-b567-4c3b-8d24-2bb46b0b26eb")
+			(tstamps "5771363d-c15a-41c9-9d95-5005c3894d06")
 			(units
 				(unit
 					(name "A")
@@ -3710,7 +3989,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5fc0b7c3-7ba2-471f-b329-48aaf5048390")
+			(tstamps "f3ee47b2-87f1-4801-be17-321c39b223a2")
 			(units
 				(unit
 					(name "A")
@@ -3756,7 +4035,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "f2bc26d7-5b88-4618-af30-acbd0337fdb8")
+			(tstamps "1c3b01c6-416b-442f-b879-2f48e5af62ba")
 			(units
 				(unit
 					(name "A")
@@ -3802,7 +4081,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "024086f4-eb6e-4480-9838-d6c13f43dbed")
+			(tstamps "50e9f16e-5e62-496d-86f0-112cf4c462c7")
 			(units
 				(unit
 					(name "A")
@@ -3848,7 +4127,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c85d9771-fa0b-4a1b-a36b-def1b6a7cd9a")
+			(tstamps "b9d36771-2c4e-4e6e-a8f4-45eb735affd9")
 			(units
 				(unit
 					(name "A")
@@ -3894,7 +4173,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5b70c3a9-1a1c-488f-beb2-59b3fb4d3c26")
+			(tstamps "e0a481a3-0692-44fe-912b-41351f1e648b")
 			(units
 				(unit
 					(name "A")
@@ -3940,7 +4219,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a2d197fd-9475-4125-b7ed-5493e80b1ef3")
+			(tstamps "7d1f2052-fff3-49cd-935c-77b651755861")
 			(units
 				(unit
 					(name "A")
@@ -3986,7 +4265,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "cb6ba368-15b6-43e8-bd0a-5a948c23486b")
+			(tstamps "cdc15452-a9b5-4cc0-baac-6ad2e1eef2f5")
 			(units
 				(unit
 					(name "A")
@@ -4032,7 +4311,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "c5378ac2-cc85-4ba8-9042-11a5b4136afb")
+			(tstamps "756349b1-3a56-4f14-9de0-00a30fa1d1b6")
 			(units
 				(unit
 					(name "A")
@@ -4078,7 +4357,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "5f073592-565e-4e68-ba15-2c296b9e1c74")
+			(tstamps "5c0b5bde-8137-42d0-9239-3fbd84796f45")
 			(units
 				(unit
 					(name "A")
@@ -4124,7 +4403,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "232d5785-192c-4e71-9bff-0a21939a80d2")
+			(tstamps "f0324792-e9de-4dcd-869e-5dbb777fba35")
 			(units
 				(unit
 					(name "A")
@@ -4170,7 +4449,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d67fd375-6c99-4bd7-a225-3fcfa6238abc")
+			(tstamps "d87ed661-f30c-416d-b203-4842aa88f067")
 			(units
 				(unit
 					(name "A")
@@ -4216,7 +4495,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9b886e23-9909-47bc-9c5e-d0038821386b")
+			(tstamps "6bb9596e-0fa7-4415-83b3-1403243ecf14")
 			(units
 				(unit
 					(name "A")
@@ -4262,7 +4541,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fca67c5b-ad4c-448a-a216-7eb07dbb141f")
+			(tstamps "a1548681-d940-4b45-8771-f3c5918d8c29")
 			(units
 				(unit
 					(name "A")
@@ -4308,7 +4587,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fcef4da4-9c85-40c5-883b-bd5b04784882")
+			(tstamps "59cf922a-fc28-4e21-871f-720f6d834397")
 			(units
 				(unit
 					(name "A")
@@ -4354,7 +4633,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "8065fb35-2235-4d55-8d4c-ee38679eb2a4")
+			(tstamps "d8d68450-cece-4358-b030-4441e7e17337")
 			(units
 				(unit
 					(name "A")
@@ -4400,7 +4679,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "2e5069e8-c62d-4197-84c4-41edbd410fbe")
+			(tstamps "1a4dfbab-177e-40eb-9e57-7f47b4a4ed5f")
 			(units
 				(unit
 					(name "A")
@@ -4446,7 +4725,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "351b74e1-6f8a-4791-8ed8-3a9fb283f5ac")
+			(tstamps "a72791a2-3b1b-40b8-a38a-624aadef5d14")
 			(units
 				(unit
 					(name "A")
@@ -4492,7 +4771,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "a4e9cd99-d042-4182-a791-6f07276fd46e")
+			(tstamps "aab6576d-84a9-492d-8ed6-f8d626403822")
 			(units
 				(unit
 					(name "A")
@@ -4538,7 +4817,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4b5047cb-2f26-4cd6-a98a-8cd50bb0500f")
+			(tstamps "9437a236-6c0a-4ad3-b181-9cf7c5c0e035")
 			(units
 				(unit
 					(name "A")
@@ -4584,7 +4863,237 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0c5e7298-826b-4e05-a8bc-6e58da1f6504")
+			(tstamps "3a8a91c8-7ddb-4ecc-a671-5bc2ce43497f")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R37")
+			(value "6.98kΩ")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R37")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "5e612696-1b04-42d8-a646-bc625fd5d463")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R38")
+			(value "6.98kΩ")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R38")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "92e0df19-02db-4c02-8ebb-acddf5760987")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R39")
+			(value "6.98kΩ")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R39")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "b408a7a5-44b6-4ca8-b5e1-89281adf35c7")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R40")
+			(value "6.98kΩ")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R40")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "fd567499-5337-4490-a166-4c56ac1f06bd")
+			(units
+				(unit
+					(name "A")
+					(pins
+						(pin
+							(num "1")
+						)
+						(pin
+							(num "2")
+						)
+					)
+				)
+			)
+		)
+		(comp
+			(ref "R41")
+			(value "6.98kΩ")
+			(footprint "Resistor_SMD:R_0603_1608Metric")
+			(fields
+				(field
+					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(libsource
+				(lib "elt")
+				(part "SYM_R41")
+				(description "")
+			)
+			(property
+				(name "Sheetname")
+				(value "Root")
+			)
+			(property
+				(name "Sheetfile")
+				(value "kicad/usb_hub_3s_v2.kicad_sch")
+			)
+			(sheetpath
+				(names "/")
+				(tstamps "/")
+			)
+			(tstamps "e26779e2-6c3a-405e-9a1a-422f6d769d6e")
 			(units
 				(unit
 					(name "A")
@@ -4630,7 +5139,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "588e829a-3ca8-4afd-a876-c0f48009ff2b")
+			(tstamps "c2785e1e-4b59-423d-8806-f48375b8366e")
 			(units
 				(unit
 					(name "A")
@@ -4676,7 +5185,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "fd222ba4-7f05-4bf9-843e-80656d262e2c")
+			(tstamps "f596e69d-203a-4ada-9927-ee40ee05ad80")
 			(units
 				(unit
 					(name "A")
@@ -4722,7 +5231,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0a7f1726-b911-4627-a999-b0c16b3d5a39")
+			(tstamps "c416985d-5f0a-4e66-8ced-430b6439f243")
 			(units
 				(unit
 					(name "A")
@@ -4771,7 +5280,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "b8d15d6e-26f2-4d46-901f-ef01e81a2286")
+			(tstamps "89b2d995-8fe8-421f-8763-258633c27670")
 			(units
 				(unit
 					(name "A")
@@ -4874,7 +5383,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "d30d2fbe-04b2-4cfd-bf40-61052b116310")
+			(tstamps "b7b42366-a77d-4e7c-9603-2598fa8b98d8")
 			(units
 				(unit
 					(name "A")
@@ -4941,7 +5450,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "7a9ffe60-e0cd-4f5c-bb20-a429c8035d60")
+			(tstamps "e6951377-4f9c-44a2-8121-45ac8156dd60")
 			(units
 				(unit
 					(name "A")
@@ -5008,7 +5517,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "9608d5e1-a614-44f4-a62d-5f3218f9a8d7")
+			(tstamps "6ab2e0c5-708d-4897-a231-5ab0386f2924")
 			(units
 				(unit
 					(name "A")
@@ -5075,7 +5584,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4954f912-d9f3-47cf-bf34-7d4dcad84c1e")
+			(tstamps "271b3ee2-35cf-4ad3-8d1e-173d3265958e")
 			(units
 				(unit
 					(name "A")
@@ -5133,7 +5642,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "0abb93ec-bde5-4d60-8122-b596714baafd")
+			(tstamps "1a5625df-8f13-45ec-9fb9-8dcc6eedc2af")
 			(units
 				(unit
 					(name "A")
@@ -5191,7 +5700,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "4073c19e-a1a9-4c66-9bf3-fd8efadb4ed0")
+			(tstamps "3b0668c9-7ca3-4210-805f-996ebec64305")
 			(units
 				(unit
 					(name "A")
@@ -5249,7 +5758,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "81481e3e-3293-477a-9737-792aab96a9af")
+			(tstamps "92b7419c-dedc-434d-aa53-51be0db771b7")
 			(units
 				(unit
 					(name "A")
@@ -5307,7 +5816,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "018c5070-cf7f-4900-831e-b40584ec9758")
+			(tstamps "05114dbe-a7f3-4c43-9bbf-6e47e37c8411")
 			(units
 				(unit
 					(name "A")
@@ -5365,7 +5874,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "07e3caba-c92f-49af-bc5b-30a75f9a458f")
+			(tstamps "d8008cd8-91c7-42be-859a-2c45afa23084")
 			(units
 				(unit
 					(name "A")
@@ -5468,7 +5977,7 @@
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "31f722e9-77a5-4660-bb9c-59ce95e770fc")
+			(tstamps "a921bb07-afb9-4660-b21b-8ac92785fd45")
 			(units
 				(unit
 					(name "A")
@@ -6989,6 +7498,99 @@
 		)
 		(libpart
 			(lib "elt")
+			(part "SYM_D10")
+			(fields
+				(field
+					(name "Reference") "D")
+				(field
+					(name "Value") "SYM_D10")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "K")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "A")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_D11")
+			(fields
+				(field
+					(name "Reference") "D")
+				(field
+					(name "Value") "SYM_D11")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "K")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "A")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_D12")
+			(fields
+				(field
+					(name "Reference") "D")
+				(field
+					(name "Value") "SYM_D12")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "K")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "A")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
 			(part "SYM_D2")
 			(fields
 				(field
@@ -7088,6 +7690,68 @@
 					(name "Reference") "D")
 				(field
 					(name "Value") "SYM_D5")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "K")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "A")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_D8")
+			(fields
+				(field
+					(name "Reference") "D")
+				(field
+					(name "Value") "SYM_D8")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "K")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "A")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_D9")
+			(fields
+				(field
+					(name "Reference") "D")
+				(field
+					(name "Value") "SYM_D9")
 				(field
 					(name "Footprint")
 				)
@@ -7824,6 +8488,42 @@
 		)
 		(libpart
 			(lib "elt")
+			(part "SYM_Q8")
+			(fields
+				(field
+					(name "Reference") "Q")
+				(field
+					(name "Value") "SYM_Q8")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "G")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "S")
+					(type "passive")
+				)
+				(pin
+					(num "3")
+					(name "D")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
 			(part "SYM_R1")
 			(fields
 				(field
@@ -8506,12 +9206,167 @@
 		)
 		(libpart
 			(lib "elt")
+			(part "SYM_R37")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R37")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R38")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R38")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R39")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R39")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
 			(part "SYM_R4")
 			(fields
 				(field
 					(name "Reference") "R")
 				(field
 					(name "Value") "SYM_R4")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R40")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R40")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description")
+				)
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "elt")
+			(part "SYM_R41")
+			(fields
+				(field
+					(name "Reference") "R")
+				(field
+					(name "Value") "SYM_R41")
 				(field
 					(name "Footprint")
 				)
@@ -9775,26 +10630,9 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "C23")
-				(pin "1")
-				(pintype "passive")
-			)
-			(node
 				(ref "D4")
 				(pin "1")
 				(pinfunction "K_1")
-				(pintype "passive")
-			)
-			(node
-				(ref "D4")
-				(pin "2")
-				(pinfunction "A_2")
-				(pintype "passive")
-			)
-			(node
-				(ref "U11")
-				(pin "16")
-				(pinfunction "VCC_16")
 				(pintype "passive")
 			)
 			(node
@@ -10291,6 +11129,12 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "Q8")
+				(pin "1")
+				(pinfunction "G_1")
+				(pintype "passive")
+			)
+			(node
 				(ref "R17")
 				(pin "2")
 				(pintype "passive")
@@ -10599,9 +11443,33 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "D10")
+				(pin "1")
+				(pinfunction "K_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "D11")
+				(pin "1")
+				(pinfunction "K_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "D12")
+				(pin "1")
+				(pinfunction "K_1")
+				(pintype "passive")
+			)
+			(node
 				(ref "D5")
 				(pin "2")
 				(pinfunction "A_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "D9")
+				(pin "1")
+				(pinfunction "K_1")
 				(pintype "passive")
 			)
 			(node
@@ -10678,6 +11546,12 @@
 			)
 			(node
 				(ref "Q7")
+				(pin "2")
+				(pinfunction "S_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "Q8")
 				(pin "2")
 				(pinfunction "S_2")
 				(pintype "passive")
@@ -10975,6 +11849,103 @@
 		)
 		(net
 			(code "34")
+			(name "LEDPK")
+			(class "Default")
+			(node
+				(ref "D8")
+				(pin "2")
+				(pinfunction "A_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R37")
+				(pin "2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "35")
+			(name "LEDPKK")
+			(class "Default")
+			(node
+				(ref "D8")
+				(pin "1")
+				(pinfunction "K_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "Q8")
+				(pin "3")
+				(pinfunction "D_3")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "36")
+			(name "LEDVA1")
+			(class "Default")
+			(node
+				(ref "D9")
+				(pin "2")
+				(pinfunction "A_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R38")
+				(pin "2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "37")
+			(name "LEDVA2")
+			(class "Default")
+			(node
+				(ref "D10")
+				(pin "2")
+				(pinfunction "A_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R39")
+				(pin "2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "38")
+			(name "LEDVA3")
+			(class "Default")
+			(node
+				(ref "D11")
+				(pin "2")
+				(pinfunction "A_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R40")
+				(pin "2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "39")
+			(name "LEDVC")
+			(class "Default")
+			(node
+				(ref "D12")
+				(pin "2")
+				(pinfunction "A_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "R41")
+				(pin "2")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "40")
 			(name "LO_A")
 			(class "Default")
 			(node
@@ -10991,7 +11962,7 @@
 			)
 		)
 		(net
-			(code "35")
+			(code "41")
 			(name "LO_C")
 			(class "Default")
 			(node
@@ -11008,7 +11979,7 @@
 			)
 		)
 		(net
-			(code "36")
+			(code "42")
 			(name "PMID")
 			(class "Default")
 			(node
@@ -11041,7 +12012,7 @@
 			)
 		)
 		(net
-			(code "37")
+			(code "43")
 			(name "QG")
 			(class "Default")
 			(node
@@ -11063,7 +12034,7 @@
 			)
 		)
 		(net
-			(code "38")
+			(code "44")
 			(name "RAMP_A")
 			(class "Default")
 			(node
@@ -11079,7 +12050,7 @@
 			)
 		)
 		(net
-			(code "39")
+			(code "45")
 			(name "RAMP_C")
 			(class "Default")
 			(node
@@ -11095,7 +12066,7 @@
 			)
 		)
 		(net
-			(code "40")
+			(code "46")
 			(name "RPP_G")
 			(class "Default")
 			(node
@@ -11117,7 +12088,7 @@
 			)
 		)
 		(net
-			(code "41")
+			(code "47")
 			(name "RT_A")
 			(class "Default")
 			(node
@@ -11133,7 +12104,7 @@
 			)
 		)
 		(net
-			(code "42")
+			(code "48")
 			(name "RT_C")
 			(class "Default")
 			(node
@@ -11149,7 +12120,7 @@
 			)
 		)
 		(net
-			(code "43")
+			(code "49")
 			(name "SNUB_A")
 			(class "Default")
 			(node
@@ -11164,7 +12135,7 @@
 			)
 		)
 		(net
-			(code "44")
+			(code "50")
 			(name "SNUB_C")
 			(class "Default")
 			(node
@@ -11179,7 +12150,7 @@
 			)
 		)
 		(net
-			(code "45")
+			(code "51")
 			(name "SS_A")
 			(class "Default")
 			(node
@@ -11195,7 +12166,7 @@
 			)
 		)
 		(net
-			(code "46")
+			(code "52")
 			(name "SS_C")
 			(class "Default")
 			(node
@@ -11211,7 +12182,7 @@
 			)
 		)
 		(net
-			(code "47")
+			(code "53")
 			(name "SW_A")
 			(class "Default")
 			(node
@@ -11261,7 +12232,7 @@
 			)
 		)
 		(net
-			(code "48")
+			(code "54")
 			(name "SW_C")
 			(class "Default")
 			(node
@@ -11311,7 +12282,7 @@
 			)
 		)
 		(net
-			(code "49")
+			(code "55")
 			(name "UVLO_A")
 			(class "Default")
 			(node
@@ -11332,7 +12303,7 @@
 			)
 		)
 		(net
-			(code "50")
+			(code "56")
 			(name "UVLO_C")
 			(class "Default")
 			(node
@@ -11353,7 +12324,7 @@
 			)
 		)
 		(net
-			(code "51")
+			(code "57")
 			(name "VBAT")
 			(class "Default")
 			(node
@@ -11370,7 +12341,7 @@
 			)
 		)
 		(net
-			(code "52")
+			(code "58")
 			(name "VBAT_F")
 			(class "Default")
 			(node
@@ -11387,7 +12358,7 @@
 			)
 		)
 		(net
-			(code "53")
+			(code "59")
 			(name "VBUSA1")
 			(class "Default")
 			(node
@@ -11404,6 +12375,11 @@
 				(ref "J2")
 				(pin "1")
 				(pinfunction "VBUS_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R38")
+				(pin "1")
 				(pintype "passive")
 			)
 			(node
@@ -11426,7 +12402,7 @@
 			)
 		)
 		(net
-			(code "54")
+			(code "60")
 			(name "VBUSA2")
 			(class "Default")
 			(node
@@ -11443,6 +12419,11 @@
 				(ref "J3")
 				(pin "1")
 				(pinfunction "VBUS_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R39")
+				(pin "1")
 				(pintype "passive")
 			)
 			(node
@@ -11465,7 +12446,7 @@
 			)
 		)
 		(net
-			(code "55")
+			(code "61")
 			(name "VBUSA3")
 			(class "Default")
 			(node
@@ -11482,6 +12463,11 @@
 				(ref "J4")
 				(pin "1")
 				(pinfunction "VBUS_1")
+				(pintype "passive")
+			)
+			(node
+				(ref "R40")
+				(pin "1")
 				(pintype "passive")
 			)
 			(node
@@ -11504,7 +12490,7 @@
 			)
 		)
 		(net
-			(code "56")
+			(code "62")
 			(name "VBUSC")
 			(class "Default")
 			(node
@@ -11563,6 +12549,11 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "R41")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
 				(ref "U12")
 				(pin "5")
 				(pinfunction "VBUS_5")
@@ -11570,7 +12561,29 @@
 			)
 		)
 		(net
-			(code "57")
+			(code "63")
+			(name "VCC_C")
+			(class "Default")
+			(node
+				(ref "C23")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
+				(ref "D4")
+				(pin "2")
+				(pinfunction "A_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "U11")
+				(pin "16")
+				(pinfunction "VCC_16")
+				(pintype "passive")
+			)
+		)
+		(net
+			(code "64")
 			(name "VIN")
 			(class "Default")
 			(node
@@ -11688,6 +12701,11 @@
 				(pintype "passive")
 			)
 			(node
+				(ref "R37")
+				(pin "1")
+				(pintype "passive")
+			)
+			(node
 				(ref "R6")
 				(pin "1")
 				(pintype "passive")
@@ -11711,7 +12729,7 @@
 			)
 		)
 		(net
-			(code "58")
+			(code "65")
 			(name "unconnected-(J5-SBU1-PadA8)")
 			(class "Default")
 			(node
@@ -11722,7 +12740,7 @@
 			)
 		)
 		(net
-			(code "59")
+			(code "66")
 			(name "unconnected-(J5-SBU2-PadB8)")
 			(class "Default")
 			(node
@@ -11733,7 +12751,7 @@
 			)
 		)
 		(net
-			(code "60")
+			(code "67")
 			(name "unconnected-(SW1-T2-Pad3)")
 			(class "Default")
 			(node
@@ -11744,7 +12762,7 @@
 			)
 		)
 		(net
-			(code "61")
+			(code "68")
 			(name "unconnected-(U3-FAULT-Pad8)")
 			(class "Default")
 			(node
@@ -11755,7 +12773,7 @@
 			)
 		)
 		(net
-			(code "62")
+			(code "69")
 			(name "unconnected-(U4-FAULT-Pad8)")
 			(class "Default")
 			(node
@@ -11766,7 +12784,7 @@
 			)
 		)
 		(net
-			(code "63")
+			(code "70")
 			(name "unconnected-(U5-FAULT-Pad8)")
 			(class "Default")
 			(node
@@ -11777,7 +12795,7 @@
 			)
 		)
 		(net
-			(code "64")
+			(code "71")
 			(name "unconnected-(U7-DM2-Pad4)")
 			(class "Default")
 			(node
@@ -11788,7 +12806,7 @@
 			)
 		)
 		(net
-			(code "65")
+			(code "72")
 			(name "unconnected-(U7-DP2-Pad3)")
 			(class "Default")
 			(node

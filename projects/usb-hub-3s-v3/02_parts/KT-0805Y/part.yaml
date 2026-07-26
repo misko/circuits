@@ -1,0 +1,89 @@
+mpn: KT-0805Y
+manufacturer: Hubei KENTO Elec
+type: led_indicator          # v1.6 D8 = the PACK-LIVE indicator (amber), FET-gated
+datasheet: {doc_id: KT-0805 series, revision: series/LCSC, url: "https://www.lcsc.com/product-detail/C2296.html", sha256: null, fetched: 2026-07-25}
+package: "0805 (2012 metric), 2.0 x 1.25 x 0.85 mm, water-clear lens, 120 deg"
+footprint: LED_SMD:LED_0805_2012Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-25}
+pins:
+  1: {name: K, note: "CATHODE. KiCad's Device:LED symbol is pin 1 = K (read from
+      /usr/share/kicad/symbols/Device.kicad_sym: pin number=1 name='K'), and
+      LED_SMD:LED_0805_2012Metric puts pad 1 at x=-0.9375 (WEST) with BOTH of its
+      polarity marks at that same end -- the F.Fab body outline is chamfered at the
+      -x/-y corner (removed corner (-1.000,-0.600)) and the F.SilkS cathode band is
+      the full-height segment at x=-1.685. D8.1 = LEDPKK (the Q8 drain)."}
+  2: {name: A, note: "anode; D8.2 = LEDPK, fed from VIN through R37 6.98k"}
+limits:
+  colour: "yellow/amber, 584-594 nm (peak 596 nm)"
+  vf: "1.8-2.4 V"
+  iv: "175 mcd"
+  if_design: "1.504 mA typ (0.946-1.547 mA over VIN 9.0-12.6 V x Vf 1.8-2.4 V)"
+asserts:
+  # P-FACT. The polarity below is the fact that a reversed indicator destroys, and
+  # it is exactly the class that has shipped wrong on this fleet three times
+  # (C1/C2 polymer caps, cooksense CE1, the XT60). A dark LED is indistinguishable
+  # from a dry joint on the bench, so nothing downstream would ever find it.
+  - {assert: pad1_net_polarity, pad: 1, polarity: negative,
+     why: "pad 1 is the CATHODE (KiCad Device:LED pin 1 = K, verified in
+       Device.kicad_sym; LED_0805_2012Metric marks pad 1 with BOTH the F.Fab
+       chamfer and the F.SilkS cathode band). D8's cathode goes to LEDPKK, the
+       Q8 drain, i.e. the GND-referenced low side of the gated pack indicator."}
+gotchas:
+  - "CPL ROTATION IS THE TRAP ON THIS PART, and a high fit margin is NOT confidence.
+     JLC's own cached model (LED0805-R-RD.kicad_mod for C2296) numbers pad 1 =
+     ANODE at x=+1.05 and pad 2 = CATHODE at x=-1.05 -- the OPPOSITE convention to
+     KiCad's. So a pad-NUMBER fit reports offset 180 at a 17.7x margin
+     (rms 0.1125 mm vs 1.9875 mm) and is WRONG. Measured 2026-07-25 with two
+     NUMBERING-FREE channels, which agree on 0:
+       (a) PAD CLOUD, unlabelled and size-matched: 0.1125 mm at BOTH 0 and 180,
+           1.4076 mm at 90 and 270. This ADMITS only {0,180} -- and REFUTES 90 at
+           12.5x, which matters because jlc_rotation_measure.py --row currently
+           PROPOSES 90 for this code (see the tooling note below).
+       (b) POLARITY MARKS, cathode-to-cathode, reading no pad number and no pin-1
+           marker on either side: OURS puts the cathode WEST (F.SilkS band at
+           x=-1.685, F.Fab chamfer corner at (-1.000,-0.600)); JLC puts the cathode
+           WEST too (silk diode-glyph triangle with its base at x=+0.200 and its
+           APEX at x=-0.300 -- a diode triangle points at its cathode -- and the
+           silk body outline chamfered at the WEST end, mean x=-2.025, square at the
+           EAST end). 0 is the ONLY angle at which both cathode marks land on the
+           same side. Combined verdict: offset 0, polarity two-channel.
+     A 180 row would ship EVERY indicator on this board dark."
+  - "TOOLING NOTE (found while measuring this part, 2026-07-25):
+     jlc_rotation_measure.py's PIN-1-MARK channel matches OUR F.Fab pin-1 chamfer
+     against JLC's fp_circle pin-1 dot. Both of those marks are DEFINED BY PAD
+     NUMBER, so on a part where the two libraries number opposite terminals the
+     'numbering-free' channel inherits the very disagreement it exists to detect.
+     Here it returns 90 (0.5449 mm vs 1.2300 mm next = 2.26x, inside its 1.5 mm
+     absolute bar), becomes the only entry in `free`, and OVERRIDES the pad-number
+     fit -- so `--row` prints 90 for both C2296 and C2297. 90 is refuted by the
+     tool's OWN pad-cloud channel at 12.5x and is physically impossible on a 2-pad
+     chip land. Do not paste that row. The fix is to match POLARITY marks
+     (cathode-to-cathode) rather than pin-1 marks, and to let a degenerate pad
+     cloud VETO an angle even when it cannot PROPOSE one."
+  - "Vf 1.8-2.4 V is a RANGE with no test current published on the LCSC page; the
+     ballast is sized so the whole range is harmless (0.946-1.547 mA). R37 = 6.98k
+     dissipates 15.8 mW = 16% of the 0603 0.1 W rating at the 12.6 V corner."
+  - "qty 1/board (D8). Same 0805 land as C2297 (the green rail indicators) -- the
+     two JLC footprints are byte-identical apart from the LCSC property and the
+     model path, so ONE rotation answer covers both codes."
+verified: "0805 chip LED, 2-pad polarized. Pad-1 = cathode established from KiCad's
+  Device.kicad_sym (pin 1 = K) and the LED_0805_2012Metric F.Fab chamfer + F.SilkS
+  cathode band, both read as GEOMETRY. JLC land + silk cross-checked against the
+  fetched EasyEDA model LED0805-R-RD.kicad_mod - 2026-07-25"
+sourcing:
+  lcsc: C2296
+  alternates: []
+  note: "JLCPCB/LCSC stock 661,750 on 2026-07-25. NEW BOM LINE in v1.6 (one of
+    exactly two the whole status-LED cell costs). Order-day stock recheck."
+layout:
+  source: "v1.6 status-LED cell (task#30 user decisions D2/D3/D4)"
+  adjacency:
+    - "D8 sits between R37 (ballast from VIN) and Q8 (BSS138 low-side gate), in a
+       row immediately WEST of SW1 -- the master switch -- so the lamp and the
+       control that governs it are read together."
+  notes:
+    - "must be VISIBLE: keep silk legend 'PACK ON' adjacent and do not place under
+       a connector overhang"
+    - "the pack LED is ENABLE-gated, not power-switched: dark does NOT mean
+       de-energized. The board carries the legend
+       'LEDS DARK = SWITCH OFF - PACK STILL LIVE' for exactly this reason."

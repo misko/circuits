@@ -8,7 +8,7 @@ datasheet:
   sha256: d5310d3cec501617c9ae40263f06d3cd70a5acdaf542eae31e641663782d43aa
   fetched: 2026-07-21
 package: DFN 5x6-8L
-footprint: Package_SO:PowerPAK_SO-8_Single
+footprint: usb_hub_3s:PowerPAK_SO-8_Single_Paste65   # v1.6: project-vendored, EP paste window-paned to 65% (IPC-7093); copper/mask identical to the stock Package_SO land
 escape:
   style: qfn  # checker vocabulary: DFN/SON no-lead ring escapes as 'qfn'
   pitch: 1.27

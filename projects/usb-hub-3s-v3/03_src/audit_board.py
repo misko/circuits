@@ -33,6 +33,17 @@ POLARIZED = {  # ref -> (pad, expected net)
     "Q4": ("5", "VIN"), "Q5": ("5", "SW_C"),     # buck C
     "RS1": ("1", "CS_A"), "RS2": ("1", "CS_C"),
     "U2": ("21", "GND"), "U11": ("21", "GND"),   # LM5116 EP
+    # v1.6 status LEDs. Pad 1 is the CATHODE on all five (KiCad Device:LED pin 1 =
+    # K; LED_0805_2012Metric marks pad 1 with both the F.Fab chamfer and the
+    # F.SilkS band). Checked HERE against the live board as well as in
+    # floorplan asserts, because those two read different artifacts: the floorplan
+    # assert grades the netlist->board mapping at generation time, this grades the
+    # SAVED board after route + stitch + fill (canon M1, and it is what catches a
+    # stale 04_kicad). A reversed indicator never lights and looks exactly like a
+    # dry joint, so nothing downstream would ever find it.
+    "D8": ("1", "LEDPKK"),                        # pack LED cathode -> Q8 drain
+    "D9": ("1", "GND"), "D10": ("1", "GND"),      # USB-A port indicators
+    "D11": ("1", "GND"), "D12": ("1", "GND"),     # USB-A port 3 + USB-C indicator
 }
 
 # (passive, its anchor ref, max center distance mm) - D-ADJ gate
@@ -100,7 +111,17 @@ def main():
 
     no_silk = []
     for ref, f in fps.items():
-        if ref.startswith("H") or ref.startswith("REF"):
+        # SKIP BY ATTRIBUTE, NOT BY NAME PREFIX. This used to read
+        # `ref.startswith("H")`, i.e. it decided "is this an assembled part?"
+        # from the first letter of a refdes -- which exempted every H* part
+        # (a header would have slipped through) and exempted nothing else.
+        # v1.6 added FID1-FID3 and the check failed them: a fiducial has no
+        # silk refdes ON PURPOSE, because silk beside a fiducial destroys the
+        # optical contrast the fiducial exists to provide. FP_BOARD_ONLY is the
+        # attribute that actually means "board feature, not a placed part", and
+        # it is what mounting holes and fiducials both already carry. Same class
+        # of bug as the rotation name-DB: a NAME IS NOT A PART FACT.
+        if f.GetAttributes() & pcbnew.FP_BOARD_ONLY or ref.startswith("REF"):
             continue
         r = f.Reference()
         if not (r.IsVisible() and r.GetLayer() == pcbnew.F_SilkS):
