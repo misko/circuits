@@ -2,7 +2,7 @@
 
 Board internal name `usb_hub_3s_v2`; project directory `usb-hub-3s-v3`.
 
-## v1.6 — 2026-07-25
+## v1.6 — 2026-07-26
 
 ### THE TARGET IS A RASPBERRY PI 4, NOT A PI 5 (ADR-0004)
 
@@ -87,7 +87,7 @@ measured voltage over temperature. **PASS = fit nothing if U12 leakage is
 acceptable at 5.352 V; fit R42 if not.** Record the numbers either way.
 
 
-**COPPER revision.** `07_releases/v1.6-2026-07-25/`. **v1.5 and every earlier
+**COPPER revision.** `07_releases/v1.6-2026-07-26/`. **v1.5 and every earlier
 release are DO-NOT-ORDER.** v1.5 gains `SUPERSEDED.md`; it is otherwise
 immutable.
 

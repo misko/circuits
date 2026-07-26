@@ -1,0 +1,79 @@
+MANIFEST — usb-hub-3s-v3 v1.6-2026-07-26   *** STAGED, NOT SEALED ***
+
+STATUS: NOT ORDERABLE YET. Every board gate is green (see below) but M-REPRO
+FAILS: three from-source regenerations of identical source produced 292 / 294 /
+293 vias. The board is otherwise value-identical across all three runs
+(footprints 129, tracks 908, track length 1070.469 mm, zones 51, pads 457, nets
+74 — all SAME); the entire delta is island-rescue vias on the 5VA/5VC pours.
+ROOT CAUSE CONFIRMED, and it is NOT in this board: generate_board_generic.py
+mints FRESH RANDOM UUIDs every run (129/129 footprint UUIDs differ between runs),
+KiCad serialises footprints in UUID order (order differs at index 0 and in
+129/129 positions), the zone filler therefore processes zones in a different
+order, Clipper tessellates the pour boundaries differently, and island_rescue —
+which keys off zone islands — inherits it. Deterministic UUIDs in
+generate_board_generic.py is a FLEET task, already logged. This release seals
+once that lands and one clean regeneration matches.
+board: usb_hub_3s_v2   130.1 x 92.1 mm, 4 layer
+
+supersedes: v1.5-2026-07-25 (DO-NOT-ORDER: A-POS datum defect, 11 of 108
+            CPL rows off JLC's pad-centre datum, all five connectors)
+
+DRC:            0 violations / 0 unconnected / 0 schematic-parity
+                (kicad-cli pcb drc --severity-all --refill-zones --schematic-parity)
+A-ROT:          119/119 CPL rotations sourced from MEASURED per-LCSC rows
+A-POS datum:    119 rows graded, worst residual 0.00050 mm (Q6), tol 0.05 mm
+twin:           bodies mounted 119/119; exit 0
+E-INV:          39 invariants hold; E-ADR OK
+E-TOPO:         2 rails topology-correct (all-buck)
+E-MARGIN:       PASS at the Pi 4's 3 A — headroom 597 mV vs 353 mV derated
+                (98 mOhm x 3 A x 1.2) -> slack +244.2 mV
+E-OFF:          quiescent_ua 271 (bench gate Q6 qualifies it, <= 300 uA)
+
+population:     122 BOM parts = 119 CPL placements + 3 not_assembled
+not_assembled:  F1, R42, SW1   (GENERATED from 03_src/rules/assembly.yaml)
+through_hole:   ORDERED — J1, J2, J3, J4, J5 (4 refdes / 22 plated holes + J5 hybrid)
+fiducials:      3 (FID1-FID3, board-only, BOM- and CPL-excluded)
+
+git_sha:        be6e7501106ff56c83608f3319b5dc10c0eb4b6f
+git_dirty:      UNSEALED — see STATUS below
+
+files: 38
+
+aa371008e0ab525663b68da62a07cea36a1f3e1789810286bbe00a0208aac084  3d/usb_hub_3s_v2.step
+af3ad2a612912f19d181b9c2f24f9796cc4fdffcab4ee5c318169cee31b49530  ORDER_README.md
+6d717b7b46b0ab9613b1cb76d7bd5daf4c2f566f264d1dcfd888eafabc0a4796  fab/bom.csv
+68ac8441f79276b66c04edd552711dcd2c971ae40e0d585427cbe598ba296d50  fab/cpl.csv
+c64daaa06ac743eb32c0cd6b0854728a6a868ef7d7025714398e61851f6d6e00  fab/usb_hub_3s_v2-NPTH.drl
+f2a7b8cb4072d6e86c74e52d0d2e86ad16250ce0fc869a16196ff4dc2864c28b  fab/usb_hub_3s_v2-PTH.drl
+b3aeaebd70d6d3956c8faf046d8a2b63d6410c5ab10df8921d769b65c62744e7  fab/usb_hub_3s_v2_gerbers.zip
+cfef10b7996778f98d90184028fc95a12c2dff4f5e9d75bc2d9d11c3860bfcb0  pdf/assembly_back.pdf
+c70a2abff52d8550d60f32696a2b4214e69dd44305960519f9c3d82be373e396  pdf/assembly_front.pdf
+6f5702a8c02f3207242130b3156a97146f26aec8910481fffababfbc29c6fc39  pdf/pcb_layers.pdf
+cd3e2a0c2fd0fcbf732b9738f51b48ce66ba8f56ac754ea2673e7a303769b563  pdf/schematic.pdf
+ba1ddd9b282a632e79b1d5c9a885467838c970013919637164806c98ac7d5cf3  rotation_human_gate.txt
+4fb72085bfef7740b599059cbb2d03d44e8c9bf26688150809c6f3965db52d0b  source/Button_Switch_THT.pretty/SW_Slide_1P2T_CK-12D07.kicad_mod
+3a7aeba03ad1a2aa84ab5a49f94117e0ee2f1cb4a28c308e7fa5e6e77f3129c9  source/fp-lib-table
+9ec04bfc9cb3a6bd46b4a83fcb755df367c87c5a45c229f10228b0290742cf0e  source/usb_hub_3s.pretty/KH-AF90DIP-112_Horizontal.kicad_mod
+c4713b4feda0c78c326ea1eab79963c4189602f14052d5063644839de08c6761  source/usb_hub_3s.pretty/L_YJYCOIN_YSPI1770Y.kicad_mod
+7abf754670b187036e51a32c923f55e37cfa4a797ac4421af838e242fa40a3a3  source/usb_hub_3s.pretty/PowerPAK_SO-8_Single_Paste65.kicad_mod
+544d1589cf635e9c812c843e731f4d836c047f13cb982187d3ffc6edab444922  source/usb_hub_3s.pretty/TYPE-C-31-M-12_EdgeTrim.kicad_mod
+f4e2f40f3f169033ae880a684f82a162bce4d10ae47529c36edb3ca517a80103  source/usb_hub_3s.pretty/XT60PW-M_EdgeTrim.kicad_mod
+8b91fcaa4d434b988d5e0725fc04fe8846d943c5b0a60dce67453b05ead6bd7f  source/usb_hub_3s_v2.kicad_dru
+1f9b189c1cc0fce0ea4769b442d212e5476b1c829280722fb7248fd2281463a2  source/usb_hub_3s_v2.kicad_pcb
+7963fbc396bbb950a6b1e430029cc890d66cf966983a3011c672020973c00eed  source/usb_hub_3s_v2.kicad_pro
+f007c55a3fe0a64efb6b864ffc3c83b693fd2ef57d8d5bd500ede30e60f664b2  source/usb_hub_3s_v2.kicad_sch
+e7c31be56b04f69697c01654bd00f6357c45b36cb60cc2904e23599df48d32a6  source/usb_hub_3s_v2.net
+f681d8b55288518ffc6b0fcc0910481d3de5e991a7fe53b5333a591a73bcecf8  source/usb_hub_3s_v2.tsx
+4b2d5d18a45ddbf60ee5c2e1a68f28473dc80320471a72da771a37132ac12190  verification/2026-07-22_v1.0_redteam_layout.md
+4b869a433becd94c62319dfdb76313db6e0dad94fa591ea96c37b4dc2c6ab3f8  verification/2026-07-22_v1.0_redteam_topology_rereview.md
+857cb4224d8ce795cbac837a6cce8b0dbbe51fbe6d45dbb18ef33ef14bec26be  verification/2026-07-23_v1.3_redteam_fresh-lens.md
+a3f4715d8bd4ddcaba2737170641f2b5517dbb68c340d0cbd90b2343c8df062c  verification/2026-07-25_v1.4_pcba-audit_assembly.md
+1af2b48deba8c89cd248a3c0c0ac03c349dcc4447e2eaa2540fe846247dc441f  verification/2026-07-25_v1.5_fresh-lens_staged.md
+0eb00cd344946ef0b60d27f5060569aad312080bb7ee59404b49a1942638bba7  verification/2026-07-25_v1.5_redteam_layout.md
+98ca8df43c8e4c361f9933d0bfa26ab2681743c8a86c8593a0b5a5c96281838d  verification/DETAIL_DESIGN.md
+c044c3bfead24849412b479182506f5a7ede26cd6b293b61ab8eff4d7bf8e671  verification/cpl_acceptance_gate.md
+3a24a439f0ac557dee9d94abd935f420a7117d09c7f8050cb4ee572cdb96d694  verification/freshness_waiver.md
+a0c5dc9102a6408c535e42f70f34298ab4356a056bcd205ff0e62d213a38e42c  verification/missing_models.txt
+07cb63063a7343b3e8f1c8298e1f891b51384e53be4cc1368c1c437d11c512a4  verification/parity.md
+2c216442aa331b45662f942ad4b3b7de34d05d0c5241156d75d7d60eeabb85f9  verification/policy_audit.md
+ffc285189428a5825e11dad1083defa35944d975a6fbfb61f9ec31eb4ab8492b  verification/twin_report.csv

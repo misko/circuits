@@ -1,0 +1,68 @@
+mpn: 0402WGF1603TCE
+manufacturer: UNI-ROYAL (Uniroyal Elec)
+type: resistor_thickfilm   # v1.6 R42 = the DNP 5VC setpoint-trim strap (ADR-0004)
+datasheet: {doc_id: 0402WGF-series, revision: series/LCSC, url: "https://www.lcsc.com/product-detail/C25757.html", sha256: null, fetched: 2026-07-25}
+package: "0402 (1005 metric)"
+footprint: Resistor_SMD:R_0402_1005Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-26}
+pins: {1: A, 2: B}
+limits: {R: "160k ohm", tol: "F +-1%", tcr: "+-100ppm/C", power: "62.5mW (0402)", vmax: "50V"}
+asserts:
+  - {assert: value, equals: 160k, tolerance_pct: 1,
+     why: "R42 does nothing until someone fits it, and then it SETS THE RAIL — so the
+       value IS the specification. In parallel with R12 (4.12k, the buck-C FB top) it
+       gives Rtop 4.017k -> 1.215 x (1 + 4.017/1.21) = 5.249 V, landing on U12's
+       5.25 V V_RWM. The parallel combination is NONLINEAR in the strap, so a
+       substitution is not gently wrong: 16k would give Rtop 3.271k -> 4.500 V,
+       straight through the Pi 4's 4.63 V undervoltage threshold and into a board
+       that browns out at no load."}
+gotchas:
+  - "THIS ENTRY EXISTS BECAUSE THE CODE WAS NOT BAKED AND THE TOOLCHAIN PICKED IT.
+     R42 was authored as a bare `resistance=\"160k\" footprint=\"0402\"` and the first
+     v1.6 fab export value-RESOLVED it to C25757 unaided — the identical mechanism
+     that shipped R12 as C2933210 (catalog 3.74k, design said 4.12k) and R30 as
+     C2933195 (catalog 3.09k, design said 100k). VERIFIED before baking: MPN decode
+     1603 -> 160 x 10^3 = 160k, LCSC lists 160kOhm +-1% 0402 62.5mW 50V
+     +-100ppm/C, stock 455,100 on 2026-07-25. The resolver happened to be RIGHT
+     this time. That is luck, not a process — the code is now explicit in the tsx
+     and the value is pinned by an E-INV part_value assert as well as by the
+     `value` assert above."
+  - "DNP BY DESIGN. Declared not_assembled/dnp_by_design in
+     03_src/rules/assembly.yaml with a dated disposition. It STAYS on the BOM (that
+     is what `not_assembled` does here — drops the CPL row, keeps the BOM row, same
+     as SW1 and F1), so JLC supplies one loose with the order and whoever runs bench
+     gate Q9 already has the part. NOT placed."
+  - "WHY A PARALLEL STRAP AND NOT A SERIES RESISTOR IN THE 5 V LINE: over-voltage is
+     a LIGHT-load phenomenon and IR drop is a HEAVY-load one, so they are
+     ANTI-CORRELATED. A series part drops 0 mV at 0 A — nothing in the exact case it
+     would be added for — and removes voltage at full load when the rail is already
+     lowest. It also costs 72 mV and 0.18 W at 3 A and does essentially nothing
+     against a fail-high buck (20 mOhm x 3 A = 60 mV of a multi-volt excursion).
+     Trimming the SETPOINT is load-independent, dissipates nothing, and costs no
+     delivery margin. Full reasoning in ADR-0004."
+  - "qty 1/board (R42), unpopulated. 0402 is deliberate: it fits beside R12 without
+     disturbing the buck-C feedback cluster, which is already the roll-fragile
+     escape on this board."
+verified: "2-pad passive, non-polarized, standard IPC-7351 0402 land. Value
+  confirmed from the LCSC catalog page AND from the MPN decode (1603 = 160k), two
+  independent readings, 2026-07-25. Land cross-checked against JLC's own R0402
+  geometry via the other 0402 on this board (C25744, R28/R29)."
+sourcing:
+  lcsc: C25757
+  alternates: []
+  note: "JLCPCB/LCSC stock 455,100 on 2026-07-25. On the BOM but NOT on the CPL
+    (dnp_by_design). Order-day stock recheck is nice-to-have rather than blocking:
+    if it is out of stock the board ships exactly as intended, unpopulated."
+layout:
+  source: "ADR-0004 — the DNP 5VC setpoint-trim strap"
+  adjacency:
+    - "in PARALLEL with R12 across the buck-C FB top (5VC <-> FB_C). Seeded at
+       [50.5, 87.0], clear of the R12/R13 divider cluster: seeded adjacent at
+       [50.5, 82.0] it crowded R12.1's pad and the taps stage FAILED with
+       'via-in-pad site blocked at (52.675, 82.0)' — R12.1 is the anchor the 5VC
+       sense escape must drop its via into. A DNP strap must not be able to
+       destabilise a feedback path it is not even fitted on."
+  notes:
+    - "R42.1 sits on 5VC, a POUR net that KRT excludes from its waves, so it is fed
+       by an EXPLICIT tap (route.yaml: R42.1 -> R12.1). Without that it would have
+       had no path at all."
