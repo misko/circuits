@@ -1,0 +1,8 @@
+== release-freshness: crow-recorder-central-v2-v1.5-2026-07-25 == [cpl-only supersede of crow-recorder-central-v2-v1.4-2026-07-25]
+  note: fab/ byte-identical to crow-recorder-central-v2-v1.4-2026-07-25 (4 file(s)) — ASSERTED by cpl-only mode
+  note: source/ byte-identical to crow-recorder-central-v2-v1.4-2026-07-25 (12 file(s)) — ASSERTED by cpl-only mode
+  note: 3d/ byte-identical to crow-recorder-central-v2-v1.4-2026-07-25 (1 file(s)) — ASSERTED by cpl-only mode
+  note: fab/cpl.csv delta is 1 coordinate move(s) [J2 (90.0,-126.0) -> (90.0,-124.698)] and 3 row(s) REMOVED [J1, R_inj1, R_inj2]; 173 row(s) unchanged; 0 added, 0 rotation/layer/identity changes — ASSERTED by cpl-only mode
+  note: A-STOCK: grading verification/stock_check.json (47 graded line(s), verdict=FAIL) against 45 coded+placed BOM line(s) x 5 boards
+  note: A-STOCK: verification/stock_check.json verdict is FAIL but every problem line (C6938291, C9900035627) is unplaced or covered by a sourcing_plan entry
+FRESHNESS: PASS

@@ -1,0 +1,4 @@
+ok   board == manifest (199 components)
+ok   circuit.json == manifest (199 components)
+ok   kicad_sch == manifest (199 components)
+ok   netlist == manifest (199 components)

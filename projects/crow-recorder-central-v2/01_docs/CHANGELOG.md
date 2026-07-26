@@ -3,6 +3,51 @@
 One entry per REVISION (a design state, git-tagged). Reverse-chronological.
 `Released:` is `no`, or the name of the `07_releases/` directory that shipped it.
 
+## v1.5 — 2026-07-25
+- **CPL-CORRECTION supersede: v1.4 is DO-NOT-ORDER for PCBA.** v1.4 places J2,
+  the board's ONLY USB-C connector, **1.3025 mm off its own pads**. Its contacts
+  are 1.150 mm long, so pad overlap is **0.000 mm** — not a marginal joint, no
+  joint at all — and the four shell posts miss their holes, so the part cannot
+  physically seat. A v1.4 board has no USB power and no USB data.
+- **ROOT CAUSE: the CPL emitted the wrong DATUM.** JLC places a part so that
+  *its own* origin lands on `Mid X/Y`, and that origin is the **centre of the
+  bounding box of the pad centres**. `export_jlc_package.py` emitted KiCad's
+  **footprint anchor** — an authoring convenience with no fab meaning — for the
+  fleet's entire history. The two coincide for most parts (which is why this was
+  never seen) and diverge on CONNECTORS, where the anchor sits on pin 1 or a
+  mounting feature. MEASURED over **228 cached JLC-native footprints across six
+  boards**: origin == pad-centre bbox to ≤0.01 mm in **227 (99.6 %)**. Two weaker
+  readings were tested on the same 228 and REFUTED — bbox of pad *outlines*
+  213/228, *centroid* 198/228; the outline reading would have left J2 0.1625 mm
+  out. Fixed at source in `placement_datum()`; the class is fleet-wide (anchor ≠
+  datum on 12/203 here, 12/227, 12/114, 14/238, 2/40, 1/39 on the others, up to
+  24.16 mm).
+- **New gate A-POS** (`assembly_coverage.py`): `CPL-DATUM-OFF` grades every
+  placed row's coordinate against the pad-array centre (tol 0.05 mm), and
+  `CPL-NOT-SMT-PLACEABLE` fails a ref with plated drilled pads and F.Paste on
+  none of them on an SMT-only order. Pin-in-paste is exempt BY MEASUREMENT, not
+  by the `through_hole` attribute. Known-bad fixture: the sealed v1.4 bytes.
+- **J1 off the CPL** (`process_incompatible`, a new closed-vocabulary reason): a
+  true THT barrel jack — 3 plated pads, F.Paste on none — on a `sides: [top]`
+  order, and the board's ONLY power inlet. `assembly.yaml`'s contradicting clause
+  ("the only other THT parts are already off the CPL") is corrected.
+- **R_inj1/R_inj2 off the CPL** (`dnp_by_design`): 1 kΩ + 1 kΩ tying ADC ch1 to
+  ch5 through a floating INJ net (JP_INJ is unstuffed), i.e. **−26.5 dB**
+  crosstalk against a 110 dB spec, on a board whose product IS isolation.
+- **BLOCKING REWORK, all boards:** 2× 33 pF 0402 piggybacked across R_fb1a and
+  R_fb2a — the AP61102 C3 feedforward caps, absent on both rails. Datasheet
+  DS42004 Rev6-2 Table 1 gives 33 pF at EVERY Vout in the AP61102 column, and
+  pin 6 is PG (not OUT), so the part is permanently in the Figure-2 case. 3V3
+  loses **5.52×** of its FB ripple without it; 0V9 only 1.50×. No copper needed.
+- Rotations UNCHANGED from v1.4. Payload identity PROVEN BY RE-PLOT: 15/15
+  gerber/drill members byte-identical after timestamp strip; `fab/cpl.csv` is the
+  only file in the whole release that differs. Asserted mechanically by the new
+  `release_freshness_check.py --cpl-only-supersede` mode, which also FAILs any
+  rotation/layer/identity change or added row.
+- U1's MSL-3 / 168 h floor life is now an EXECUTABLE part fact (canon P-FACT)
+  rather than prose; 4 AP61102 divider values pinned via canon E-INV part_value.
+- Released: `07_releases/crow-recorder-central-v2-v1.5-2026-07-25`
+
 ## v1.4 — 2026-07-25
 - **CPL-CORRECTION supersede: v1.3 is DO-NOT-ORDER for PCBA.** v1.3 shipped SEVEN
   CPL rows 180 deg off — U1 (C6938291, the CONSIGNED XU316 TQFP-128, 0.4mm pitch),

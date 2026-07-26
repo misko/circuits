@@ -1,0 +1,22 @@
+{
+ "target": "07_releases/crow-recorder-central-v2-v1.5-2026-07-25",
+ "summary": {
+  "board": 203,
+  "cpl": 174,
+  "datum_max_mm": 0.0005,
+  "datum_max_ref": "J2",
+  "datum_graded": 174,
+  "unpopulated": 29,
+  "declared": 13,
+  "consigned": 1,
+  "exempt_prefixes": [
+   "H",
+   "TP"
+  ],
+  "sides": {
+   "top": 174
+  },
+  "unexplained": []
+ },
+ "fails": []
+}

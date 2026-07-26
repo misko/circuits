@@ -1,0 +1,52 @@
+PAYLOAD IDENTITY - v1.5 vs v1.4 (canon: a fix-claim needs the measurement)
+=========================================================================
+
+CLAIM: v1.5 changes fab/cpl.csv and NOTHING else. Copper is untouched.
+
+METHOD (falsifiable, not a copy-check): the gerbers+drills were RE-PLOTTED from
+the v1.5 source board with export_jlc_package.py --layers 6 (this is a SIX-layer
+board: F.Cu, In1-In4, B.Cu) into a scratch dir, then compared to the members of
+v1.4's sealed gerber zip after stripping ONLY the plot's own timestamp comments
+(TF.CreationDate, 'Created by', and the .drl 'DRILL file KiCad ... date' line).
+A copy would prove nothing; a RE-PLOT proves the BOARD still generates these
+bytes.
+
+RESULT: 15/15 gerber+drill zip members byte-identical after timestamp strip.
+
+Below: sha256 over EVERY payload file (fab/, pdf/, source/, 3d/) present in
+both releases - 21 files, including the 5 vendored .kicad_mod under
+source/*.pretty/. verification/ is deliberately EXCLUDED: it is this release's
+own fresh evidence and is expected to differ.
+
+  IDENTICAL  3d/crow_recorder_central_v2.step                           c7b03d95b418e457
+  IDENTICAL  fab/bom.csv                                                5610ed90611be7f1
+  CHANGED    fab/cpl.csv                                                eb2cdf7c6bc0f21c -> af3892cd67d244b2
+  IDENTICAL  fab/crow_recorder_central_v2-NPTH.drl                      74f826c6876bc125
+  IDENTICAL  fab/crow_recorder_central_v2-PTH.drl                       b21b1ed2929d81a0
+  IDENTICAL  fab/crow_recorder_central_v2_gerbers.zip                   0f42ba9ade563776
+  IDENTICAL  pdf/assembly.pdf                                           2baf8c7603d1a061
+  IDENTICAL  pdf/pcb_layers.pdf                                         d218d8c1edb43315
+  IDENTICAL  pdf/schematic.pdf                                          b1db6c443632ffff
+  IDENTICAL  source/Sensor_Humidity.pretty/Sensirion_DFN-4_1.5x1.5mm_P0.8mm_SHT4x_NoCentralPad.kicad_mod 6eb0eecd94247336
+  IDENTICAL  source/crow_recorder_central_v2.kicad_dru                  30d003fc8855161d
+  IDENTICAL  source/crow_recorder_central_v2.kicad_pcb                  756b2935a0f1fae3
+  IDENTICAL  source/crow_recorder_central_v2.kicad_pro                  bb6b495e0f30445c
+  IDENTICAL  source/crow_recorder_central_v2.kicad_sch                  636aa321489faa8f
+  IDENTICAL  source/crow_recorder_central_v2.net                        7012636b0918ce37
+  IDENTICAL  source/crow_recorder_central_v2.pretty/RJ45_RJHSE538X_num.kicad_mod d3d35a79f52b9a2b
+  IDENTICAL  source/crow_recorder_central_v2.pretty/TQFP-128_14x14mm_P0.4mm_EP_XU316.kicad_mod ef4886687aca7402
+  IDENTICAL  source/crow_recorder_central_v2.pretty/US8_MO-187CA_P0.5mm_NC7NZ34.kicad_mod 21a72507199a09af
+  IDENTICAL  source/crow_recorder_central_v2.pretty/USB4105_GCT_16P_TopMnt_num.kicad_mod 9ff9294a2a8d0415
+  IDENTICAL  source/crow_recorder_central_v2.tsx                        386c9f54b2f2b371
+  IDENTICAL  source/fp-lib-table                                        4b13122d46cd28fe
+
+  files identical : 20
+  files changed   : 1
+  added to payload: none
+  missing vs v1.4 : none
+
+Exactly ONE payload file differs: fab/cpl.csv. That identity is asserted
+MECHANICALLY, not by reading this file, via
+  release_freshness_check.py <rel> --cpl-only-supersede <v1.4>
+which additionally FAILs on any Rotation/Layer/Val/Package change and on any
+ADDED CPL row - see verification/release_freshness.txt.

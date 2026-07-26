@@ -1,0 +1,2 @@
+P-FACT: 1/24 part.yaml declare an `asserts:` block; 1 assertion(s) graded against 07_releases/crow-recorder-central-v2-v1.5-2026-07-25
+P-FACT OK
