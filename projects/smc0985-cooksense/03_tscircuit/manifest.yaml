@@ -2,7 +2,7 @@
 # The hand-authored intent count_parity.py checks every generated artifact
 # against; a silent tsci drop surfaces here as the missing refdes. Holes
 # (H1-H4) are non-electrical and excluded (count_parity SKIP ^H\d).
-# 221 components (v1.3: +U_COMP2 +C_COMP2 +R_OPENT +R_OPENB for hardware
+# 223 components (v1.3: +U_COMP2 +C_COMP2 +R_OPENT +R_OPENB for hardware
 # open-thermistor detect, and R_DOORPU renamed R_DOORPD because it now pulls DOWN.
 # (v1.2: -6 removed / +31 added vs v1.1, ADR-0010/0011; the +1
 # over the 2026-07-24 count is R_WDPETPD, the WD_PET pull-down that ADR-0011
@@ -115,6 +115,8 @@ components:
   - Q_SWRHE
   - R_BID0
   - R_BID1
+  - R_CLMPA
+  - R_CLMPB
   - R_COILENPD
   - R_CTRREQPD
   - R_DECDPD

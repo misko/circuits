@@ -413,7 +413,7 @@ invariants:
     pin: "U_COMP2.8"
     net: 3V3_ANALOG
     adr: "0011"
-    why: "both comparators run from 3V3_ANALOG, not 5V_PROTECTED. The LM393's input common-mode ceiling is VCC-2V = 2.93V, but a cold or OPEN thermistor puts the sense node at 3.0-3.3V — the old part was operated OUTSIDE its specified range exactly in the broken-sensor case. The LMV393 is rail-to-rail on the input, so on 3V3 the whole sense range is in spec"
+    why: "both comparators run from 3V3_ANALOG, not 5V_PROTECTED. CORRECTION (2026-07-25): an earlier version of this why: claimed 'the LMV393 is rail-to-rail on the input'. IT IS NOT, and asserting something the datasheet denies is worse than asserting nothing — SLCS136V sec.6.3/7.2.2.1 put the common-mode ceiling at VCC-0.7, i.e. 2.50-2.60V at VCC 3.3V. What the swap actually buys is that sec.7.2.2.1 SPECIFIES the output state for all four out-of-common-mode cases where the LM393 specifies none above VCC-2V: an UNDEFINED broken-sensor response becomes a DOCUMENTED one. The 22k bleed (R_CLMPA/R_CLMPB) then keeps every reading INCLUDING open below 2.2829V worst-case, inside VICR with 217mV to spare, so the case table is a backstop rather than the mechanism. ABS MAX VCC is 5.5V, not the LM393's 36V — this part must never be re-fitted to a 5V rail"
   - assert: pin_on_net
     pin: "U_COMP.8"
     net: 3V3_ANALOG
@@ -430,4 +430,29 @@ invariants:
     net: CONTACTOR_LOOP
     adr: "0011"
     why: "loop return; J_ESTOP pins 3/4 are now GND so that housing is SELV-ONLY"
+  - assert: pin_on_net
+    pin: "R_CLMPA.2"
+    net: GND
+    adr: "0011"
+    why: "the camera-A sense-node BLEED. Without it an open thermistor reads the bare 3.3V rail, which is ABOVE the LMV393's 2.50-2.60V common-mode ceiling, so the open-detect comparator never actually compares against its threshold and the effective trip point collapses to the ceiling (~+1.6C of head temperature — a cold kitchen nuisance-trips the interlock). 22k bounds the open reading to 2.2687V, inside VICR. This resistor is what makes the open-detect real; deleting it as 'an unnecessary load on a sensor node' silently restores the defect"
+  - assert: pin_on_net
+    pin: "R_CLMPA.1"
+    net: TH_CAM_A
+    adr: "0011"
+    why: "the bleed is on the sense node itself, not on the threshold"
+  - assert: pin_on_net
+    pin: "R_CLMPB.2"
+    net: GND
+    adr: "0011"
+    why: "camera-B sense-node bleed, same argument"
+  - assert: pin_on_net
+    pin: "R_CLMPB.1"
+    net: TH_CAM_B
+    adr: "0011"
+    why: "the bleed is on the sense node itself"
+  - assert: pin_on_net
+    pin: "C_COMP.1"
+    net: 3V3_ANALOG
+    adr: "0011"
+    why: "U_COMP's bypass must sit on the rail U_COMP actually runs from. It was left on 5V_PROTECTED when the part moved, so it bypassed nothing. SLCS136V sec.8 p.12: supply variation 'cause temporary fluctuations in the comparator's input common mode range' — and the open-detect threshold is referenced to this same rail, so this 100nF is a safety component, not hygiene"
 

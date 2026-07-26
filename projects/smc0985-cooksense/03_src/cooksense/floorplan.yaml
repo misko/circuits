@@ -393,6 +393,10 @@ placement:
     - {match: "C_COMP2", near: U_COMP2}
     - {match: "R_OPENT", near: U_COMP2}
     - {match: "R_OPENB", near: U_COMP2}
+    # The two bleed resistors sit on the TH_CAM sense nodes at the COMPARATOR end,
+    # with R_HYS1/R_HYS2, so the high-impedance node stays short and local.
+    - {match: "R_CLMPA", near: U_COMP}
+    - {match: "R_CLMPB", near: U_COMP}
     - {match: "C_FLT*", region: analog}
     - {match: "R_TCP", near: U_TC}
     - {match: "R_TCN", near: U_TC}

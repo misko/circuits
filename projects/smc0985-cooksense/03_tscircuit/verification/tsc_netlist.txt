@@ -125,8 +125,10 @@ COMPONENTS:
  - U_COMP: soic8
  - U_COMP2: soic8
  - C_COMP2: 100nF 0402 capacitor
- - R_OPENT: 6.2kΩ res0402 resistor
+ - R_OPENT: 62kΩ res0402 resistor
  - R_OPENB: 100kΩ res0402 resistor
+ - R_CLMPA: 22kΩ res0402 resistor
+ - R_CLMPB: 22kΩ res0402 resistor
  - R_TH1: 68kΩ res1206 resistor
  - R_TH2: 10kΩ res1206 resistor
  - R_HYS1: 1MΩ res0402 resistor
@@ -558,6 +560,7 @@ NET: TCAM_OPEN
   - U_COMP2 1IN_P
 
 NET: N3V3_ANALOG
+  - C_COMP pin1 (+)
   - R_TH1 pin1
   - R_OPENT pin1
   - C_COMP2 pin1 (+)
@@ -738,6 +741,7 @@ NET: SWG_RHE
 NET: TH_CAM_A
   - J_THERM_A pin5
   - R_HYS1 pin2
+  - R_CLMPA pin1
   - U_COMP2 1IN_N
   - U_COMP 1IN_P
   - R_SER0 pin1
@@ -756,6 +760,7 @@ NET: TH_PORT_A
 NET: TH_CAM_B
   - J_THERM_B pin5
   - R_HYS2 pin2
+  - R_CLMPB pin1
   - U_COMP2 2IN_N
   - U_COMP 2IN_P
   - R_SER3 pin1
@@ -968,6 +973,8 @@ NET: GND
   - U_TC AGND
   - C_COMP pin2 (-)
   - R_TH2 pin2
+  - R_CLMPB pin2
+  - R_CLMPA pin2
   - R_OPENB pin2
   - C_COMP2 pin2 (-)
   - U_COMP2 GND
@@ -1069,7 +1076,6 @@ NET: LC_CLK_PI
 NET: N5V_PROTECTED
   - TP_5VP pin1
   - J_LOADCELL pin1
-  - C_COMP pin1 (+)
   - R_STOPRAIL pin1
   - R_HSG pin2
   - Q_COIL S
@@ -2005,12 +2011,20 @@ C_COMP2 (100nF 0402)
 - pin1(pos, anode, left): NETS(N3V3_ANALOG)
 - pin2(neg, cathode, right): NETS(GND)
 
-R_OPENT (6.2kΩ res0402)
+R_OPENT (62kΩ res0402)
 - pin1(anode, pos, left): NETS(N3V3_ANALOG)
 - pin2(cathode, neg, right): NETS(TCAM_OPEN)
 
 R_OPENB (100kΩ res0402)
 - pin1(anode, pos, left): NETS(TCAM_OPEN)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_CLMPA (22kΩ res0402)
+- pin1(anode, pos, left): NETS(TH_CAM_A)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_CLMPB (22kΩ res0402)
+- pin1(anode, pos, left): NETS(TH_CAM_B)
 - pin2(cathode, neg, right): NETS(GND)
 
 R_TH1 (68kΩ res1206)
@@ -2034,7 +2048,7 @@ R_TEMPOK (10kΩ res0402)
 - pin2(cathode, neg, right): NETS(N3V3)
 
 C_COMP (100nF 0402)
-- pin1(pos, anode, left): NETS(N5V_PROTECTED)
+- pin1(pos, anode, left): NETS(N3V3_ANALOG)
 - pin2(neg, cathode, right): NETS(GND)
 
 U_TC

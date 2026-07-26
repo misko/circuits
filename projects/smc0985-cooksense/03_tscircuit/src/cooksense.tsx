@@ -389,9 +389,19 @@ export default () => (
         VCC-2V = 2.93V at VCC 4.93V, but a COLD or OPEN thermistor puts TH_CAM at 3.0-3.3V
         — i.e. the old part was operated OUTSIDE its specified range exactly in the
         broken-sensor case, so its output there was unspecified. The LMV393 is
-        rail-to-rail on the input (0..V+), so on 3V3_ANALOG the whole 0-3.3V sense range
-        is in spec. Same SOIC-8 pinout, same open-drain output, so TEMP_OK stays a
-        wired-AND — and it is now a single-rail 3V3 node instead of mixing 5V and 3V3. */}
+        NOT rail-to-rail on the input — an earlier draft of this comment claimed it was, and
+        the datasheet denies it (SLCS136V sec.6.3 p.9: PNP inputs "allowing LMV33x to accurately
+        function from ground to VCC-Vbe (about 700mV)"; sec.7.2.2.1 p.11: "VICR can range from 0V
+        to VCC-0.7V"). At VCC 3.3V the ceiling is 2.50-2.60V. WHAT THE SWAP ACTUALLY BUYS, and it
+        is the load-bearing property: sec.7.2.2.1 SPECIFIES the output state for all four
+        out-of-common-mode cases, where the LM393's SLCS005AH specifies NOTHING above VCC-2V — so
+        a broken-sensor node that used to produce an UNDEFINED safety response now produces a
+        DOCUMENTED one. (Only from Rev V: sec.14 p.14 records that this exact text was corrected.)
+        Separately, the divider rescale below now keeps EVERY reading, open included, inside
+        VICR — so the case table is a backstop here, not the mechanism. Same SOIC-8 pinout, same
+        open-drain output, so TEMP_OK stays a wired-AND, now single-rail 3V3.
+        ABS MAX VCC IS 5.5V (was 36V on the LM393) — this part must never be re-fitted to a 5V
+        rail without re-checking; VID abs max also collapses to +-5.5V. */}
     <chip name="U_COMP" footprint="soic8" supplierPartNumbers={{ jlcpcb: ["C7984"] }}
       pinLabels={{ pin1: "1OUT", pin2: "1IN_N", pin3: "1IN_P", pin4: "GND", pin5: "2IN_P", pin6: "2IN_N", pin7: "2OUT", pin8: "VCC" }}
       connections={{
@@ -423,12 +433,33 @@ export default () => (
         pin5: "net.TCAM_OPEN", pin6: "net.TH_CAM_B", pin7: "net.TEMP_OK", pin8: "net.N3V3_ANALOG",
       }} />
     <capacitor name="C_COMP2" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3_ANALOG", pin2: "net.GND" }} />
-    {/* TCAM_OPEN = 3.3 * 100/(6.2+100) = 3.107V. Above the coldest reading any CONNECTED
-        10k/B3987 NTC can produce (-25C ~ 3.00V) and below the open-circuit rail (3.3V).
-        Note the inputs are DELIBERATELY swapped vs U_COMP: here IN- = TH_CAM and
-        IN+ = threshold, so the output goes LOW when TH_CAM is ABOVE the threshold. */}
-    <resistor name="R_OPENT" resistance="6.2k" footprint="0402" connections={{ pin1: "net.N3V3_ANALOG", pin2: "net.TCAM_OPEN" }} />
+    {/* ---- THE RESCALE THAT MAKES THE OPEN-DETECT REAL (v1.3, second pass) --------------
+        The first cut put TCAM_OPEN at 3.107V. That is ABOVE the LMV393's common-mode ceiling
+        (2.50-2.60V at VCC 3.3V), so the part never compared against it: the effective trip was
+        the ceiling itself, about +1.6C to -1.6C of head temperature, and R_OPENT/R_OPENB were
+        inert. Direction was still fail-safe, but a cold kitchen would nuisance-trip the
+        interlock and the designed cold-vs-open discrimination did not exist.
+        FIX: bound the sense node with a 22k bleed (R_CLMPA/R_CLMPB below) so the OPEN-CIRCUIT
+        reading is 3.3*22/32 = 2.2687V instead of the 3.3V rail — inside VICR with 217mV of
+        worst-case margin — and drop the threshold to 3.3*100/162 = 2.0370V.
+        MEASURED (KNTC0603-10KF3950, B25/85=3987, all resistors +-1%, VIO +-9mV):
+          open-circuit node      2.2687 V  (worst-high 2.2829 vs the 2.500 ceiling = +217mV)
+          threshold              2.0370 V  (worst separation to open = 193mV, vs VIO 9mV)
+          nuisance-trip below   -10.4 C typ / -7.4 C worst corner   (was +1.6 C)
+          over-temp trip         72.80 C   with the EXISTING 68k/10k, still inside the
+                                           brief's 70-75C window, so R_TH1/R_TH2 do not move
+        Every reading the comparators ever see is now inside the specified common-mode range,
+        open included — the out-of-CM case table is a backstop, not the mechanism.
+        Inputs are DELIBERATELY swapped vs U_COMP: IN- = TH_CAM, IN+ = threshold, so the output
+        goes LOW when the node rises ABOVE the threshold. */}
+    <resistor name="R_OPENT" resistance="62k" footprint="0402" connections={{ pin1: "net.N3V3_ANALOG", pin2: "net.TCAM_OPEN" }} />
     <resistor name="R_OPENB" resistance="100k" footprint="0402" connections={{ pin1: "net.TCAM_OPEN", pin2: "net.GND" }} />
+    {/* The bleed. These are what keep an OPEN thermistor inside the comparator's specified
+        input range; without them the open reading is the bare 3.3V rail and neither comparator
+        is operating to spec. They also bound the ADC input, so the host's conversion for
+        CH0/CH3 differs from the other six thermistor channels — see DETAIL_DESIGN. */}
+    <resistor name="R_CLMPA" resistance="22k" footprint="0402" connections={{ pin1: "net.TH_CAM_A", pin2: "net.GND" }} />
+    <resistor name="R_CLMPB" resistance="22k" footprint="0402" connections={{ pin1: "net.TH_CAM_B", pin2: "net.GND" }} />
     {/* v1.2 threshold redesign (ADR-0011 §1, review F2): the <=v1.1 10k/10k divider put
         TCAM_THRESH at 1.65V = the 10k-pullup/10k-NTC node at 25C — the 70-75C hard stop did
         not exist. New: 68k/10k -> 0.4231V -> 74.9C with the committed KNTC0603/10KF3950
@@ -440,7 +471,12 @@ export default () => (
     <resistor name="R_HYS1" resistance="1M" footprint="0402" connections={{ pin1: "net.TEMP_OK", pin2: "net.TH_CAM_A" }} />
     <resistor name="R_HYS2" resistance="1M" footprint="0402" connections={{ pin1: "net.TEMP_OK", pin2: "net.TH_CAM_B" }} />
     <resistor name="R_TEMPOK" resistance="10k" footprint="0402" connections={{ pin1: "net.TEMP_OK", pin2: "net.N3V3" }} />
-    <capacitor name="C_COMP" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N5V_PROTECTED", pin2: "net.GND" }} />
+    {/* v1.3: follows U_COMP.8 from 5V_PROTECTED to 3V3_ANALOG — it was still authored on the
+        old rail and so no longer bypassed the part it exists for. This 100nF is a SAFETY
+        component on this board, not hygiene: SLCS136V sec.8 p.12 notes supply variation
+        "cause temporary fluctuations in the comparator's input common mode range", and the
+        open-detect threshold is referenced to the same rail. */}
+    <capacitor name="C_COMP" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3_ANALOG", pin2: "net.GND" }} />
 
     {/* MAX31856 K-type thermocouple -> SPI. PCC-SMP-K jack at board edge; input RC + BIAS per datasheet. */}
     <chip name="U_TC" footprint="tssop14" supplierPartNumbers={{ jlcpcb: ["C2653162"] }}
