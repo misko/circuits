@@ -2,7 +2,9 @@
 # The hand-authored intent count_parity.py checks every generated artifact
 # against; a silent tsci drop surfaces here as the missing refdes. Holes
 # (H1-H4) are non-electrical and excluded (count_parity SKIP ^H\d).
-# 216 components (v1.2: -6 removed / +31 added vs v1.1, ADR-0010/0011; the +1
+# 221 components (v1.3: +U_COMP2 +C_COMP2 +R_OPENT +R_OPENB for hardware
+# open-thermistor detect, and R_DOORPU renamed R_DOORPD because it now pulls DOWN.
+# (v1.2: -6 removed / +31 added vs v1.1, ADR-0010/0011; the +1
 # over the 2026-07-24 count is R_WDPETPD, the WD_PET pull-down that ADR-0011
 # section 8 adds after the safety truth-table review found the P0).
 components:
@@ -18,6 +20,7 @@ components:
   - C_CAND1
   - C_CAND2
   - C_COMP
+  - C_COMP2
   - C_DECD
   - C_DECDEN
   - C_DECU
@@ -75,6 +78,7 @@ components:
   - J_CONTACTOR
   - J_DOOR
   - J_ESTOP
+  - J_ESTOPLOOP
   - J_KEY_MATRIX
   - J_LOADCELL
   - J_MODE
@@ -115,7 +119,7 @@ components:
   - R_CTRREQPD
   - R_DECDPD
   - R_DECUPD
-  - R_DOORPU
+  - R_DOORPD
   - R_ESTOPPD
   - R_EXPRST
   - R_HOSTAUTHPD
@@ -131,6 +135,8 @@ components:
   - R_MODEPD
   - R_MR
   - R_OE
+  - R_OPENB
+  - R_OPENT
   - R_OPTOLED
   - R_OS
   - R_OS2
@@ -200,6 +206,7 @@ components:
   - U_CAND1
   - U_CAND2
   - U_COMP
+  - U_COMP2
   - U_DECD
   - U_DECDEN
   - U_DECU

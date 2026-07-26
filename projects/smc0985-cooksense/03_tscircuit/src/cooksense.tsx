@@ -384,12 +384,51 @@ export default () => (
 
     {/* LM393 dual comparator: HARDWARE over-temp inhibit on TH_CAM_A/B -> wired-AND TEMP_OK (brief §3.14) */}
     {/* IN+ = TH_CAM node (falls when hot); IN- = threshold; hot -> OUT low -> TEMP_OK low. Open-collector. */}
-    <chip name="U_COMP" footprint="soic8" supplierPartNumbers={{ jlcpcb: ["C67470"] }}
+    {/* v1.3 (layout lens P1-3 + topology lens P1-3): LM393 -> LMV393IDR (C7984) and VCC
+        moves from 5V_PROTECTED to 3V3_ANALOG. The LM393's input common-mode ceiling is
+        VCC-2V = 2.93V at VCC 4.93V, but a COLD or OPEN thermistor puts TH_CAM at 3.0-3.3V
+        — i.e. the old part was operated OUTSIDE its specified range exactly in the
+        broken-sensor case, so its output there was unspecified. The LMV393 is
+        rail-to-rail on the input (0..V+), so on 3V3_ANALOG the whole 0-3.3V sense range
+        is in spec. Same SOIC-8 pinout, same open-drain output, so TEMP_OK stays a
+        wired-AND — and it is now a single-rail 3V3 node instead of mixing 5V and 3V3. */}
+    <chip name="U_COMP" footprint="soic8" supplierPartNumbers={{ jlcpcb: ["C7984"] }}
       pinLabels={{ pin1: "1OUT", pin2: "1IN_N", pin3: "1IN_P", pin4: "GND", pin5: "2IN_P", pin6: "2IN_N", pin7: "2OUT", pin8: "VCC" }}
       connections={{
         pin1: "net.TEMP_OK", pin2: "net.TCAM_THRESH", pin3: "net.TH_CAM_A", pin4: "net.GND",
-        pin5: "net.TH_CAM_B", pin6: "net.TCAM_THRESH", pin7: "net.TEMP_OK", pin8: "net.N5V_PROTECTED",
+        pin5: "net.TH_CAM_B", pin6: "net.TCAM_THRESH", pin7: "net.TEMP_OK", pin8: "net.N3V3_ANALOG",
       }} />
+    {/* ============ v1.3: OPEN-THERMISTOR DETECT, IN HARDWARE ============================
+        The finding: an open, broken or UNPLUGGED camera thermistor pulls its sense node to
+        3.3V — far above the 0.4231V over-temp threshold — so TEMP_OK stayed HIGH = "temp
+        fine". One unplugged JST-GH cable silently removed the only firmware-independent
+        over-temperature protection, from BOTH the fault-latch SET term and the contactor
+        gate.
+        WHY A BIAS RESISTOR CANNOT FIX IT (proved before choosing this): in a 2-terminal
+        divider an open sensor IS an infinitely cold sensor. With the NTC at the bottom an
+        open pulls the node to the top rail; with the NTC at the top an open pulls it to
+        the bottom rail; adding any bleed resistor only moves where "infinitely cold"
+        lands, and cold and open stay on the SAME side of any single threshold. The
+        information is not in the node — so the fix is a SECOND threshold, i.e. a window.
+        THIS IS THAT WINDOW. U_COMP2 trips when TH_CAM rises ABOVE 3.107V, which no
+        connected thermistor can reach (10k/B3987 at -25C gives ~3.0V, and the appliance
+        never sees that). Open/unplugged/broken-wire => TEMP_OK LOW => fault latch SET and
+        contactor permission removed, exactly like an over-temperature. A SHORTED sensor
+        already tripped the over-temp half, so both cable failure modes are now covered.
+        TEMP_OK becomes a 4-way wired-AND: hot(A) . hot(B) . open(A) . open(B). */}
+    <chip name="U_COMP2" footprint="soic8" supplierPartNumbers={{ jlcpcb: ["C7984"] }}
+      pinLabels={{ pin1: "1OUT", pin2: "1IN_N", pin3: "1IN_P", pin4: "GND", pin5: "2IN_P", pin6: "2IN_N", pin7: "2OUT", pin8: "VCC" }}
+      connections={{
+        pin1: "net.TEMP_OK", pin2: "net.TH_CAM_A", pin3: "net.TCAM_OPEN", pin4: "net.GND",
+        pin5: "net.TCAM_OPEN", pin6: "net.TH_CAM_B", pin7: "net.TEMP_OK", pin8: "net.N3V3_ANALOG",
+      }} />
+    <capacitor name="C_COMP2" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3_ANALOG", pin2: "net.GND" }} />
+    {/* TCAM_OPEN = 3.3 * 100/(6.2+100) = 3.107V. Above the coldest reading any CONNECTED
+        10k/B3987 NTC can produce (-25C ~ 3.00V) and below the open-circuit rail (3.3V).
+        Note the inputs are DELIBERATELY swapped vs U_COMP: here IN- = TH_CAM and
+        IN+ = threshold, so the output goes LOW when TH_CAM is ABOVE the threshold. */}
+    <resistor name="R_OPENT" resistance="6.2k" footprint="0402" connections={{ pin1: "net.N3V3_ANALOG", pin2: "net.TCAM_OPEN" }} />
+    <resistor name="R_OPENB" resistance="100k" footprint="0402" connections={{ pin1: "net.TCAM_OPEN", pin2: "net.GND" }} />
     {/* v1.2 threshold redesign (ADR-0011 §1, review F2): the <=v1.1 10k/10k divider put
         TCAM_THRESH at 1.65V = the 10k-pullup/10k-NTC node at 25C — the 70-75C hard stop did
         not exist. New: 68k/10k -> 0.4231V -> 74.9C with the committed KNTC0603/10KF3950
@@ -434,12 +473,40 @@ export default () => (
     {/* SM05B-GHS 5-pin used for each (the brief's 4-pin locking role; 5th pin = GND/shield). */}
     <chip name="J_DOOR" footprint="pinrow5" supplierPartNumbers={{ jlcpcb: ["C189896"] }}
       connections={{ pin1: "net.N3V3", pin2: "net.DOOR_RAW", pin3: "net.GND", pin4: "net.DOOR_RAW", pin5: "net.GND" }} />
-    <resistor name="R_DOORPU" resistance="10k" footprint="0402" connections={{ pin1: "net.DOOR_RAW", pin2: "net.N3V3" }} />
+    {/* v1.3 P0-CLASS FIX (layout+topology lens P1-2, 2026-07-25): this was R_DOORPU, a
+        10k pull-UP to 3V3 — the ONLY external safety input on the board pulled to the
+        PERMISSIVE rail. A broken or unplugged door cable read DOOR-CLOSED, so the door
+        abort silently never happened; and with the pull-up-consistent harness a normal
+        magnet-CLOSES reed made DOOR_OK=0 whenever the door was SHUT, holding OS_CLR_N low
+        so K_PRESS could never fire at all. Now a pull-DOWN to GND, identical to
+        R_ESTOPPD/R_MODEPD: OPEN CIRCUIT => DOOR_RAW low => DOOR_OK=0 => door treated as
+        OPEN => press aborted. HARNESS (now the same convention as J_ESTOP): 3V3 on
+        J_DOOR.1 -> Form-A reed (magnet CLOSES it with the door shut) -> J_DOOR.2. This
+        moves the door interlock from a load-bearing documentation dependency to a
+        hardware property. */}
+    <resistor name="R_DOORPD" resistance="10k" footprint="0402" connections={{ pin1: "net.DOOR_RAW", pin2: "net.GND" }} />
     <diode name="D_DOOR" footprint="sod323" supplierPartNumbers={{ jlcpcb: ["C5158048"] }} connections={{ pin1: "net.DOOR_RAW", pin2: "net.GND" }} />
     {/* E-stop: contact A monitored (ESTOP_RAW, high=OK); contact B (pins3-4) in series with the ISOLATED */}
     {/* contactor loop (opto C -> ESTOP_B_IN, ESTOP_B_OUT -> J_CONTACTOR): E-stop physically breaks it. */}
+    {/* v1.3 P0-2 FIX (layout lens): the OPTO-ISOLATED contactor loop is OFF this connector.
+        Until v1.2 J_ESTOP carried ESTOP_RAW (SELV) on pin 2 and CONTACTOR_C (isolated
+        secondary) on pin 3 — ADJACENT pads on a 1.25mm-pitch JST-GH, a 0.650mm pad gap,
+        in ONE field harness. That reduced the LTV-817S's 5kVrms barrier to 0.65mm at the
+        connector and made a single contaminated or damaged harness a common-cause failure
+        across the isolation boundary. Pins 3/4 are now GND, so this housing is
+        SELV-ONLY and every pin on it belongs to one domain. The loop moves to its own
+        J_ESTOPLOOP terminal block below. */}
     <chip name="J_ESTOP" footprint="pinrow5" supplierPartNumbers={{ jlcpcb: ["C189896"] }}
-      connections={{ pin1: "net.N3V3", pin2: "net.ESTOP_RAW", pin3: "net.CONTACTOR_C", pin4: "net.CONTACTOR_LOOP", pin5: "net.GND" }} />
+      connections={{ pin1: "net.N3V3", pin2: "net.ESTOP_RAW", pin3: "net.GND", pin4: "net.GND", pin5: "net.GND" }} />
+    {/* The E-stop's second (dry, isolated) pole now lands on its own 3.5mm-pitch screw
+        terminal, the same KF350 family as J_CONTACTOR and physically separated from every
+        SELV connector. External wiring is unchanged in FUNCTION: contactor loop out of
+        U_OPTO collector -> J_ESTOPLOOP.1 -> E-stop pole B -> J_ESTOPLOOP.2 -> J_CONTACTOR.1.
+        3.5mm pitch also raises the connector-level creepage on the isolated side from
+        0.65mm to 3.5mm nominal. */}
+    <chip name="J_ESTOPLOOP" footprint="pinrow2" supplierPartNumbers={{ jlcpcb: ["C474892"] }}
+      pinLabels={{ pin1: "LOOP_IN", pin2: "LOOP_OUT" }}
+      connections={{ pin1: "net.CONTACTOR_C", pin2: "net.CONTACTOR_LOOP" }} />
     <resistor name="R_ESTOPPD" resistance="10k" footprint="0402" connections={{ pin1: "net.ESTOP_RAW", pin2: "net.GND" }} />
     <diode name="D_ESTOP" footprint="sod323" supplierPartNumbers={{ jlcpcb: ["C5158048"] }} connections={{ pin1: "net.ESTOP_RAW", pin2: "net.GND" }} />
     {/* Mode DPDT: pole A (pins1-2) = physical coil-EN gate (MANUAL cuts the rail); pole B (pins3-4) = MODE_RAW logic */}

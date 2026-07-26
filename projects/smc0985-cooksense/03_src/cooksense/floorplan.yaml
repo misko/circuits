@@ -238,7 +238,16 @@ placement:
     # Backed by a User.2 reservation + a deterministic seed_stub (route.yaml) so
     # the site survives ANY re-race realization.
     R_SHIELD: [61.25, 92.50, 0]      # pad1 SHIELD_DRAIN@60.425 ; pad2 GND@62.075,92.50
-    U_COMP: [24.0, 80.0, 0]          # LM393 (TH_CAM_A/B -> TEMP_OK)
+    U_COMP: [24.0, 80.0, 0]          # LMV393 (TH_CAM_A/B over-temp -> TEMP_OK); v1.3 VCC=3V3_ANALOG
+    # v1.3 open-thermistor detect (layout+topology lens P1-3). Second LMV393 whose
+    # two channels trip when TH_CAM_A/B rise ABOVE 3.107V — a level no CONNECTED
+    # NTC can reach — so an open, broken or unplugged head reads OVER-TEMP instead
+    # of "fine". Placed beside U_COMP so both comparators share the same short
+    # TH_CAM_A/B sense runs and the same 3V3_ANALOG decoupling neighbourhood.
+    U_COMP2: [30.0, 88.0, 0]
+    J_ESTOPLOOP: [196.0, 84.0, 90]   # v1.3 P0-2: the isolated loop gets its OWN
+                                     # KF350 3.5mm terminal block, between J_ESTOP
+                                     # (SELV, y72) and J_CONTACTOR (isolated, y94)
     Q_SWA:  [30.0, 88.0, 0]          # switched 3V3_SW_A -> J_THERM_A
     Q_SWB:  [46.0, 90.0, 0]          # switched 3V3_SW_B -> J_THERM_B
     J_THERM_A: [32.0, 97.0, 0]       # SM08B thermal head A (mouth SOUTH)
@@ -381,6 +390,9 @@ placement:
     - {match: "R_HYS*", near: U_COMP}
     - {match: "R_TEMPOK", near: U_COMP}
     - {match: "C_COMP", near: U_COMP}
+    - {match: "C_COMP2", near: U_COMP2}
+    - {match: "R_OPENT", near: U_COMP2}
+    - {match: "R_OPENB", near: U_COMP2}
     - {match: "C_FLT*", region: analog}
     - {match: "R_TCP", near: U_TC}
     - {match: "R_TCN", near: U_TC}
@@ -408,7 +420,7 @@ placement:
     # v1.2 (ADR-0010): R_SDARHA/R_SCLRHA/R_SDARHE/R_SCLRHE deleted — RH pods
     # share the camera buses; the one 2.2k pair per bus stays at J_THERM_A/B.
     # ---- discrete input locals ----
-    - {match: "R_DOORPU", near: J_DOOR}
+    - {match: "R_DOORPD", near: J_DOOR}   # v1.3: pulls DOWN now (P1-2 fail-permissive fix)
     - {match: "D_DOOR", near: J_DOOR}
     - {match: "R_ESTOPPD", near: J_ESTOP}
     - {match: "D_ESTOP", near: J_ESTOP}
@@ -504,6 +516,21 @@ zones:
   - {net: 3V3, layers: [In2.Cu], priority: 0, min_thickness: 0.3, clearance: 0.2, connect: full, rect: [12.0, 53.0, 200.0, 102.0]}
 
 keepouts:
+  # ===== v1.3 P0-2: THE OPTO ISOLATION BARRIER (layout lens) ==================
+  # U_OPTO (LTV-817S) is anchored at [185,90,0]: LED-side pads (OPTO_LED_A, GND)
+  # at x180.235, isolated-side pads (CONTACTOR_E, CONTACTOR_C) at x189.765, both
+  # 2.00x1.78mm, so the clear strip between the pad columns is x[181.235,188.765].
+  # v1.2 filled that strip with GND on F.Cu/In1/B.Cu, 3V3 on In2, FIVE GND vias
+  # and the SDA_B / SCL_B / SHIELD_DRAIN / 3V3_SW_RHE tracks — i.e. the entire
+  # 5kVrms barrier was shorted out by the pour, and the closest isolated-to-SELV
+  # copper measured 0.175mm. The part's own dossier forbids exactly this:
+  # 02_parts/LTV-817S-TA1/part.yaml — "Keep INPUT copper (1/2) and OUTPUT copper
+  # (3/4) on opposite package edges with NO ground pour or trace crossing beneath
+  # the body". This rect denies EVERYTHING on ALL FOUR layers across the full
+  # package height, so the barrier is empty by construction. The clearance either
+  # side of it is held separately by the ISO_CONTACTOR netclass DRU rule (2.0mm),
+  # which is what makes the property machine-checkable rather than incidental.
+  - {name: opto_barrier, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [181.4, 85.8, 188.6, 94.2]}
   # NO POURS north of the logic band: keypad band + relay row + pockets + coil
   # gaps all plane-free (isolation held; coil nets are tracks only, as v1.0).
   - {name: keypad_iso, deny: [pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [12.0, 10.0, 200.0, 53.0]}

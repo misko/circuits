@@ -367,3 +367,67 @@ invariants:
     net: GND
     adr: "0011"
     why: "direction: DOWN, and the rail is asserted rather than merely the resistor's presence. WDI held at a defined LOW produces NO edge, so the fixed 0.9/1.6/2.5 s watchdog EXPIRES and RESET_N asserts — that is the whole safety argument. DOWN specifically (not UP, which would also be edge-free and would also bite): WD_PET terminates on J_PI.11, a Pi GPIO. A pull-UP to this board's 3V3 would source current into an UNPOWERED Pi through its GPIO ESD clamp — partially back-feeding the very host whose absence this invariant covers. DOWN is quiet in exactly the case that matters, and matches every other §7 authorization pull"
+
+  # ===== v1.3 — the two FAIL-PERMISSIVE safety defects, made executable ========
+  # Both were found by red-team lenses on v1.2 and both had the same shape as the
+  # WD_PET P0: a safety input that reads SAFE when its wire is broken. Pinning
+  # them here is the whole point — the fix is a DIRECTION and a PRESENCE, and
+  # neither is visible to DRC, ERC or parity.
+  - assert: pin_on_net
+    pin: "R_DOORPD.1"
+    net: DOOR_RAW
+    adr: "0011"
+    why: "the door pull sits on DOOR_RAW (v1.3: this resistor was R_DOORPU and pulled UP)"
+  - assert: pin_on_net
+    pin: "R_DOORPD.2"
+    net: GND
+    adr: "0011"
+    why: "DIRECTION: DOWN, and this is the entire v1.3 P1-2 fix. Until now DOOR_RAW was the ONLY external safety input pulled to the PERMISSIVE rail — a broken or unplugged door cable read DOOR-CLOSED, so the door abort silently never happened; and with the pull-up-consistent harness a normal magnet-closes reed made DOOR_OK=0 whenever the door was SHUT, so K_PRESS could never fire at all. Pulled DOWN it matches R_ESTOPPD/R_MODEPD: open circuit => DOOR_OK=0 => door treated as OPEN. If this ever reverts to 3V3 the interlock silently becomes documentation again"
+  - assert: net_has_part
+    net: TCAM_OPEN
+    part_type: resistor
+    min: 2
+    adr: "0011"
+    why: "the OPEN-THERMISTOR detect threshold divider (R_OPENT 6.2k / R_OPENB 100k -> 3.107V) must exist. An open, broken or unplugged camera thermistor pulls its sense node to 3.3V, which the over-temp comparator reads as COLD — so one unplugged JST-GH cable removed the only firmware-independent over-temperature protection, from BOTH the fault-latch SET term and the contactor gate. A bias resistor provably cannot fix this: in a 2-terminal divider an open sensor IS an infinitely cold sensor, so cold and open sit on the SAME side of any single threshold. The fix is a SECOND threshold, and this net is it"
+  - assert: pin_on_net
+    pin: "U_COMP2.2"
+    net: TH_CAM_A
+    adr: "0011"
+    why: "open-detect channel 1 watches camera A's sense node. NOTE the inputs are deliberately swapped vs U_COMP: IN- is the SENSE node and IN+ is the threshold, so the output goes LOW when the node rises ABOVE 3.107V"
+  - assert: pin_on_net
+    pin: "U_COMP2.6"
+    net: TH_CAM_B
+    adr: "0011"
+    why: "open-detect channel 2 watches camera B's sense node"
+  - assert: pin_on_net
+    pin: "U_COMP2.1"
+    net: TEMP_OK
+    adr: "0011"
+    why: "the open-detect outputs join the SAME wired-AND as the over-temp outputs, so TEMP_OK is now hot(A).hot(B).open(A).open(B) — an open head de-energizes exactly like an over-temperature"
+  - assert: pin_on_net
+    pin: "U_COMP2.7"
+    net: TEMP_OK
+    adr: "0011"
+    why: "channel 2's output on the same wired-AND"
+  - assert: pin_on_net
+    pin: "U_COMP2.8"
+    net: 3V3_ANALOG
+    adr: "0011"
+    why: "both comparators run from 3V3_ANALOG, not 5V_PROTECTED. The LM393's input common-mode ceiling is VCC-2V = 2.93V, but a cold or OPEN thermistor puts the sense node at 3.0-3.3V — the old part was operated OUTSIDE its specified range exactly in the broken-sensor case. The LMV393 is rail-to-rail on the input, so on 3V3 the whole sense range is in spec"
+  - assert: pin_on_net
+    pin: "U_COMP.8"
+    net: 3V3_ANALOG
+    adr: "0011"
+    why: "the over-temp comparator moves to the same rail for the same reason; TEMP_OK is now a single-rail 3V3 node instead of mixing 5V and 3V3"
+  # ===== v1.3 — the isolated contactor loop leaves the SELV connector ==========
+  - assert: pin_on_net
+    pin: "J_ESTOPLOOP.1"
+    net: CONTACTOR_C
+    adr: "0011"
+    why: "the opto-isolated loop now lands on its OWN 3.5mm KF350 terminal block. Until v1.3 J_ESTOP carried ESTOP_RAW (SELV) on pin 2 and CONTACTOR_C (isolated secondary) on pin 3 — ADJACENT pads on a 1.25mm-pitch JST-GH, 0.650mm apart, in ONE field harness, which made a single damaged or contaminated harness a common-cause failure ACROSS the isolation boundary"
+  - assert: pin_on_net
+    pin: "J_ESTOPLOOP.2"
+    net: CONTACTOR_LOOP
+    adr: "0011"
+    why: "loop return; J_ESTOP pins 3/4 are now GND so that housing is SELV-ONLY"
+

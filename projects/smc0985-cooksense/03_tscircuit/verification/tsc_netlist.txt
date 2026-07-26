@@ -123,6 +123,10 @@ COMPONENTS:
  - R_SER7: 1kΩ res0402 resistor
  - C_FLT7: 100nF 0402 capacitor
  - U_COMP: soic8
+ - U_COMP2: soic8
+ - C_COMP2: 100nF 0402 capacitor
+ - R_OPENT: 6.2kΩ res0402 resistor
+ - R_OPENB: 100kΩ res0402 resistor
  - R_TH1: 68kΩ res1206 resistor
  - R_TH2: 10kΩ res1206 resistor
  - R_HYS1: 1MΩ res0402 resistor
@@ -144,9 +148,10 @@ COMPONENTS:
  - D_LCDAT: D_LCDAT, source_component
  - D_LCCLK: D_LCCLK, source_component
  - J_DOOR: pinrow5
- - R_DOORPU: 10kΩ res0402 resistor
+ - R_DOORPD: 10kΩ res0402 resistor
  - D_DOOR: D_DOOR, source_component
  - J_ESTOP: pinrow5
+ - J_ESTOPLOOP: pinrow2
  - R_ESTOPPD: 10kΩ res0402 resistor
  - D_ESTOP: D_ESTOP, source_component
  - J_MODE: pinrow5
@@ -546,8 +551,18 @@ NET: ADC_CH7
   - R_SER7 pin2
   - U_ADC CH7
 
+NET: TCAM_OPEN
+  - R_OPENB pin1
+  - R_OPENT pin2
+  - U_COMP2 2IN_P
+  - U_COMP2 1IN_P
+
 NET: N3V3_ANALOG
   - R_TH1 pin1
+  - R_OPENT pin1
+  - C_COMP2 pin1 (+)
+  - U_COMP2 VCC
+  - U_COMP VCC
   - R_REF7 pin1
   - R_REF6 pin1
   - R_REF5 pin1
@@ -597,7 +612,7 @@ NET: LC_CLK
 
 NET: DOOR_RAW
   - D_DOOR pin1 (+)
-  - R_DOORPU pin1
+  - R_DOORPD pin1
   - J_DOOR pin4
   - J_DOOR pin2
   - U_SCHM 5A
@@ -630,7 +645,7 @@ NET: FAULT_LATCH_CLEAR
 
 NET: CONTACTOR_C
   - U_OPTO COLLECTOR
-  - J_ESTOP pin3
+  - J_ESTOPLOOP LOOP_IN
 
 NET: CONTACTOR_DRV
   - R_OPTOLED pin1
@@ -642,7 +657,7 @@ NET: OPTO_LED_A
 
 NET: CONTACTOR_LOOP
   - J_CONTACTOR C
-  - J_ESTOP pin4
+  - J_ESTOPLOOP LOOP_OUT
 
 NET: CONTACTOR_E
   - J_CONTACTOR E
@@ -723,6 +738,7 @@ NET: SWG_RHE
 NET: TH_CAM_A
   - J_THERM_A pin5
   - R_HYS1 pin2
+  - U_COMP2 1IN_N
   - U_COMP 1IN_P
   - R_SER0 pin1
   - R_REF0 pin2
@@ -740,6 +756,7 @@ NET: TH_PORT_A
 NET: TH_CAM_B
   - J_THERM_B pin5
   - R_HYS2 pin2
+  - U_COMP2 2IN_N
   - U_COMP 2IN_P
   - R_SER3 pin1
   - R_REF3 pin2
@@ -934,7 +951,10 @@ NET: GND
   - D_ESTOP pin2 (-)
   - R_ESTOPPD pin2
   - J_ESTOP pin5
+  - J_ESTOP pin4
+  - J_ESTOP pin3
   - D_DOOR pin2 (-)
+  - R_DOORPD pin2
   - J_DOOR pin5
   - J_DOOR pin3
   - D_LCCLK pin2 (-)
@@ -948,6 +968,9 @@ NET: GND
   - U_TC AGND
   - C_COMP pin2 (-)
   - R_TH2 pin2
+  - R_OPENB pin2
+  - C_COMP2 pin2 (-)
+  - U_COMP2 GND
   - U_COMP GND
   - C_FLT7 pin2 (-)
   - C_FLT6 pin2 (-)
@@ -1047,7 +1070,6 @@ NET: N5V_PROTECTED
   - TP_5VP pin1
   - J_LOADCELL pin1
   - C_COMP pin1 (+)
-  - U_COMP VCC
   - R_STOPRAIL pin1
   - R_HSG pin2
   - Q_COIL S
@@ -1081,7 +1103,6 @@ NET: N3V3
   - U_CAND1 VCC
   - J_MODE pin1
   - J_ESTOP pin1
-  - R_DOORPU pin2
   - J_DOOR pin1
   - J_LOADCELL pin2
   - C_TCDV pin1 (+)
@@ -1181,6 +1202,8 @@ NET: TEMP_OK
   - R_TEMPOK pin1
   - R_HYS2 pin1
   - R_HYS1 pin1
+  - U_COMP2 2OUT
+  - U_COMP2 1OUT
   - U_COMP 2OUT
   - U_COMP 1OUT
   - U_FAULTAND C
@@ -1966,7 +1989,29 @@ U_COMP
 - pin5(2IN_P): NETS(TH_CAM_B)
 - pin6(2IN_N): NETS(TCAM_THRESH)
 - pin7(2OUT): NETS(TEMP_OK)
-- pin8(VCC): NETS(N5V_PROTECTED)
+- pin8(VCC): NETS(N3V3_ANALOG)
+
+U_COMP2
+- pin1(1OUT): NETS(TEMP_OK)
+- pin2(1IN_N): NETS(TH_CAM_A)
+- pin3(1IN_P): NETS(TCAM_OPEN)
+- pin4(GND): NETS(GND)
+- pin5(2IN_P): NETS(TCAM_OPEN)
+- pin6(2IN_N): NETS(TH_CAM_B)
+- pin7(2OUT): NETS(TEMP_OK)
+- pin8(VCC): NETS(N3V3_ANALOG)
+
+C_COMP2 (100nF 0402)
+- pin1(pos, anode, left): NETS(N3V3_ANALOG)
+- pin2(neg, cathode, right): NETS(GND)
+
+R_OPENT (6.2kΩ res0402)
+- pin1(anode, pos, left): NETS(N3V3_ANALOG)
+- pin2(cathode, neg, right): NETS(TCAM_OPEN)
+
+R_OPENB (100kΩ res0402)
+- pin1(anode, pos, left): NETS(TCAM_OPEN)
+- pin2(cathode, neg, right): NETS(GND)
 
 R_TH1 (68kΩ res1206)
 - pin1(anode, pos, left): NETS(N3V3_ANALOG)
@@ -2070,9 +2115,9 @@ J_DOOR
 - pin4: NETS(DOOR_RAW)
 - pin5: NETS(GND)
 
-R_DOORPU (10kΩ res0402)
+R_DOORPD (10kΩ res0402)
 - pin1(anode, pos, left): NETS(DOOR_RAW)
-- pin2(cathode, neg, right): NETS(N3V3)
+- pin2(cathode, neg, right): NETS(GND)
 
 D_DOOR
 - pin1(pos, anode, left): NETS(DOOR_RAW)
@@ -2081,9 +2126,13 @@ D_DOOR
 J_ESTOP
 - pin1: NETS(N3V3)
 - pin2: NETS(ESTOP_RAW)
-- pin3: NETS(CONTACTOR_C)
-- pin4: NETS(CONTACTOR_LOOP)
+- pin3: NETS(GND)
+- pin4: NETS(GND)
 - pin5: NETS(GND)
+
+J_ESTOPLOOP
+- pin1(LOOP_IN): NETS(CONTACTOR_C)
+- pin2(LOOP_OUT): NETS(CONTACTOR_LOOP)
 
 R_ESTOPPD (10kΩ res0402)
 - pin1(anode, pos, left): NETS(ESTOP_RAW)

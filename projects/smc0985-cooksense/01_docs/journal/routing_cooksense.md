@@ -1102,3 +1102,81 @@ C25741 = 288617, so the zeros are the library's answer, not a dead field.
   clearance (P1-3 — `KEYPAD_ISO` is currently 0.12mm, the same as Default, so
   the 6mm is held by footprint pitch alone at 2% margin and NO gate can fail);
   and a mounting-hardware/creepage check that models the screw, not the hole.
+
+## 2026-07-25 — v1.3 COPPER RESPIN: electrical design landed, build blocked on a part dossier
+
+User decision: v1.3 fixes the two layout P0s PLUS the two fail-permissive safety
+P1s (items 3-4 were deferred from v1.2 only because a re-race was expensive;
+copper is open anyway, so the marginal cost is ~zero and it removes the
+conditionality from the ORDER verdict).
+
+### P1-2 DOOR — fixed in hardware
+`R_DOORPU` (10k to 3V3) -> `R_DOORPD` (10k to GND). DOOR_RAW was the ONLY
+external safety input pulled to the PERMISSIVE rail. Now open circuit = door
+OPEN, matching R_ESTOPPD/R_MODEPD. Harness: 3V3 -> Form-A reed -> J_DOOR.2.
+
+### P1-3 open thermistor — fixed in hardware, after proving the obvious fix cannot work
+The coordinator's brief said "bias so an open reads OVER-temp". **A bias
+resistor provably cannot do it**, and it is worth writing down why: in a
+2-terminal divider an OPEN sensor IS an infinitely cold sensor. NTC at the
+bottom -> open pulls to the top rail; NTC at the top -> open pulls to the bottom
+rail; any bleed resistor only moves where "infinitely cold" lands. Cold and open
+stay on the SAME side of any single threshold — the information is not in the
+node. So the fix is a SECOND threshold:
+  * `U_COMP2` (2nd LMV393): IN- = TH_CAM_x, IN+ = TCAM_OPEN = 3.107V
+    (R_OPENT 6.2k / R_OPENB 100k). Output LOW when the node rises ABOVE 3.107V —
+    a level no CONNECTED 10k/B3987 NTC can reach (-25C gives ~3.00V).
+  * TEMP_OK becomes a 4-way wired-AND: hot(A).hot(B).open(A).open(B).
+  * A SHORTED sensor already tripped the over-temp half, so both cable failure
+    modes are now covered.
+  * `U_COMP` ALSO moves LM393@5V_PROTECTED -> LMV393@3V3_ANALOG: the LM393's
+    input CM ceiling is VCC-2 = 2.93V, and cold/open readings are 3.0-3.3V, so
+    the old part was operated OUT OF SPEC exactly in the broken-sensor case.
+    LMV393 is rail-to-rail on the input. TEMP_OK is now single-rail 3V3.
+
+### P0-2 opto barrier — fixed in copper + connector
+  * `J_ESTOPLOOP` (KF350 3.5mm) takes CONTACTOR_C/CONTACTOR_LOOP; J_ESTOP pins
+    3/4 become GND so that housing is SELV-ONLY. Was ESTOP_RAW adjacent to
+    CONTACTOR_C at 0.650mm on 1.25mm pitch in one field harness.
+  * `opto_barrier` keepout denies tracks/vias/pours on ALL FOUR layers across
+    x[181.4,188.6] y[85.8,94.2] — the strip between U_OPTO's LED-side pads
+    (x180.235) and isolated-side pads (x189.765).
+
+### The isolation is now a RULE, and I RED-verified it
+New `ISO_CONTACTOR` netclass + two CONDITIONAL DRU clearance rules emitted by
+apply_drc_policy.py (which runs AFTER generate_rules, so they survive):
+    keypad_isolation_6mm   KEYPAD_ISO    <-> everything netted, min 6.0mm
+    opto_isolation_2mm     ISO_CONTACTOR <-> everything netted, min 2.0mm
+A netclass clearance could NOT express this — it would force 6mm between keypad
+nets and EACH OTHER, which the comb cannot survive. Run against the v1.2 copper:
+    opto_isolation_2mm    82 violations, worst 0.199mm   <- P0-2, now visible
+    keypad_isolation_6mm   0 violations                  <- the 6mm IS held
+**A correction I nearly shipped:** the first version of the rule (no
+`B.NetName != ''`) reported 71 keypad violations at 0.572mm worst, and I briefly
+read that as "the real creepage is 3.9mm, not 6.12mm". It is not. ALL 71 were
+KP_* copper against J_KEY_MATRIX's OWN floating shell tabs — metal INSIDE the
+keypad domain, deliberately un-tied so SELV GND stays out of the zone. Zero were
+against a real netted conductor. audit_board's 6.12mm was right; my alarm came
+from reading unsorted output. Excluding no-net items makes the rule say the true
+thing, and the pair now DISCRIMINATES: green where the design is sound, red
+where it is not.
+
+### BLOCKED, twice, both needing a decision above my lane
+1. **Part dossier.** U_COMP/U_COMP2 are now C7984 = LMV393IDR, which has no
+   `02_parts/` entry, so the converter cannot resolve their FPID (221 components,
+   219 with FPID) and generate_board cannot run. It needs a real dossier:
+   datasheet fetched + sha256, pin table READ off the pinout figure (it is
+   LM393-pin-compatible, but on a safety board that gets verified, not assumed),
+   CM range, limits, gotchas.
+2. **P0-1 cannot be fixed with copper.** MEASURED: a 14x14mm square centred on
+   H4 (193,52) contains BOTH K_STOP.3 [RSTOP_MID, keypad] AND J_MODE.4/.5 +
+   U_ULNB.14-18 [SELV] pads. No keepout can create a 6mm keypad->hardware->SELV
+   path there — H4 sits between the keypad relay column and the SELV drive band.
+   With hardware modelled as a 3.0mm-radius conductive disc (M2.5 head + DIN125
+   washer + nut), min_i(a_i) + min_j(s_j) >= 6.000mm requires keypad copper
+   >= 9.0mm from EVERY hole centre; today H1 = 5.311mm, H2 = 5.962mm,
+   H4 = 7.029mm. The holes must MOVE, which changes the enclosure interface.
+
+E-INV: **74/74** on the v1.3 netlist — 11 new assertions pin the door direction,
+the open-detect divider and both comparator rails, and the isolated-loop move.
+Every one of them would have been invisible to DRC, ERC and parity.
