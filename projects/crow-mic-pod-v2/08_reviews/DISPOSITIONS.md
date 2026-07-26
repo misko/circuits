@@ -1,7 +1,7 @@
 # crow-mic-pod-v2 — consolidated red-team / review dispositions (2026-07-23)
 
-Four zero-context lenses (verbatim archives alongside): `redteam-topology-protection.md`,
-`redteam-layout-thermal.md`, `pin-review.md`, `render-twin-review.md`.
+Four zero-context lenses (verbatim archives alongside): `2026-07-23_v1.0_redteam_topology.md`,
+`2026-07-23_v1.0_redteam_layout.md`, `2026-07-23_v1.0_pin-review_full.md`, `2026-07-23_v1.0_render-review_twin.md`.
 
 **CONSOLIDATED VERDICT: DO NOT ORDER — 3 P0 blockers.**
 Lens verdicts: topology **DO NOT ORDER**; layout **DO NOT ORDER** (assembly); pin **FAIL (J1)**;
@@ -39,7 +39,7 @@ Severity | ID | Finding (lens) | Disposition
 ## FIX-PASS RESOLUTION (2026-07-23) — all P0 closed, fresh red-team ORDER/SHIP 4/4
 
 The DO-NOT-ORDER verdict above is SUPERSEDED by the fix pass. Fresh independent
-4-lens red-team on the FIXED board: `redteam-fixpass-2026-07-23.md` — topology
+4-lens red-team on the FIXED board: `2026-07-23_v1.0_redteam_fixpass.md` — topology
 **ORDER**, layout **ORDER**, pin **7 PASS/0 FAIL**, render/twin **SHIP**, NO new
 P0/P1. Resolutions of the original findings:
 
@@ -58,7 +58,7 @@ P0/P1. Resolutions of the original findings:
 | N | schematic N-prefix render | ACCEPT (cosmetic tscircuit artifact). |
 | — | (route reproducibility) | **FIXED** — rebuild_all.sh now reuses the promoted r3 chain (was re-racing stochastically; the boxed-in J1.1 escape dropped on some race candidates). DRC 0/0/0 now reproducible. |
 
-New P2s from the fresh pass (FP-1..FP-6) are in `redteam-fixpass-2026-07-23.md`;
+New P2s from the fresh pass (FP-1..FP-6) are in `2026-07-23_v1.0_redteam_fixpass.md`;
 FP-1/2/3 fixed this pass, FP-4/5/6 accepted.
 
 ## Prioritized fix list (for the coordinator's path decision)
@@ -70,3 +70,13 @@ FP-1/2/3 fixed this pass, FP-4/5/6 accepted.
 6. **[P1-G]** Move the NOT-ETHERNET banner + full pinout legend adjacent to J1.
 7. **[P1-H]** Confirm RJ45 mouth vs enclosure panel cutout (open mechanical dependency).
 8. **[P2]** (M fixed) — J re-match audio pair, K annotate flyback loop, N note the schematic N-prefix.
+
+## Independent audit 2026-07-26 (`2026-07-26_independent-audit.md`, target: v1.1 staging)
+
+| id | review file | finding (one line) | severity | verification | disposition |
+|---|---|---|---|---|---|
+| IA-1 | 2026-07-26_independent-audit.md | A-POL human-gate documents contradict: MANIFEST + rotation_human_gate.txt named D2/D3 single-channel where the landed f9eee3f rows say U1 | P1 | confirmed (three-document table in the review; §3b's stale closing paragraph re-verified on disk) | fixed — pre-seal: gate file is the exporter's generated output (names C192421/U1 only), MANIFEST A-ROT/A-POL rewritten to the f9eee3f classification, §3b stale paragraph replaced; all three now agree |
+| IA-2 | 2026-07-26_independent-audit.md | verification/ missing or mis-naming 9 items REQUIRED by 07_releases/contracts.md (parity.md, twin_report.txt, stock_check.{txt,csv} absent; six mis-named) | P1 | confirmed (hand-run REQUIRED pass reproduced all 9) | fixed — pre-seal: parity.md generated (board_netlist_parity 78/78 nodes PASS + DRC parity 0), twin_report.txt rendered from the same run's csv, stock_check.txt written, six files renamed to contract names; assembly_coverage.txt added per the re-synced contract; hand-run REQUIRED pass now finds 0 missing |
+| IA-3 | 2026-07-26_independent-audit.md | board contracts are a stale template revision (rules contract predates assembly.yaml; C-ALLOW fails own files; root strays RESUME.md + drc.rpt) | P2 | confirmed (contracts_audit --projects reproduced every listed violation) | fixed — pre-seal: 5 contracts re-synced from skills/pcb-design/templates/contracts, root strays removed, five 08_reviews files renamed to the contract pattern; contracts_audit --projects: 0 violations for this board |
+| IA-4 | 2026-07-26_independent-audit.md | MANIFEST cites "37/38 byte-identical" where payload_identity.txt states 19/18/1 | P2 | confirmed | fixed — pre-seal: MANIFEST now quotes the artifact (19 payload files: 18 identical, 1 differs = fab/bom.csv) |
+| IA-5 | 2026-07-26_independent-audit.md | NOTE: missing_models.txt ran without --cpl (denominator = check count, not population) | P2 | confirmed | fixed — twin re-run 2026-07-26 with --cpl fab/cpl.csv; header now names the 26 CPL placements as the population; bodies 26/26 |

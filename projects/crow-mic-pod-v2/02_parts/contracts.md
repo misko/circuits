@@ -111,9 +111,20 @@ pins:                       # PHYSICAL PADS, read from the pinout figure
   1: EN
   20: VIN
   21: {name: EP, tie: GND, note: "thermal pad, must be grounded"}
+                            # `tie: <net>` is LOAD-BEARING (converter-consumed):
+                            # for a PHYSICAL pad ABSENT from circuit.json (an EP /
+                            # mechanical tab the authoring tool drops), the
+                            # converter (circuit_json_to_kicad_sch.py load_part_ties)
+                            # emits an extra symbol pin on <net> so the pad is tied
+                            # in the netlist in BOTH grid + layout modes — not
+                            # floated. Scoped to the pins: block so a stray `tie:`
+                            # elsewhere cannot fire; parts without it are byte-
+                            # identical. Board stage still owns the copper (thermal
+                            # vias into the EP); `tie:` only fixes the netlist blind
+                            # spot. (crow-recorder... TPS259573 EP floated pre-2026-07-23.)
 limits: {vin_max: 75V, tj_max: 125C}
 gotchas:
-  - "EP is pad 21, not implicit — a generator that omits it floats the pad"
+  - "EP is pad 21, not implicit — without the pins: entry + tie: it floats (the converter ties it only when tie: is declared)"
 verified: "pin map cross-checked against datasheet fig 6-1 — 2026-07-14"
 layout:                     # REQUIRED for ICs + power/sense parts (P-LAYOUT).
                             # The THIRD datasheet read, after verified: (pinout)
@@ -143,6 +154,53 @@ layout_refs:                # REQUIRED for every HARD part (dense escapes,
   - "OSHWLab by-LCSC C485912"                     # (3) JLC-fabbed board, Cu viewable
   # - "GitHub kicad project <url>"               # (4) unvetted — weakest
 sourcing: {lcsc: C485912, alternates: [C2650259, C3188678]}
+asserts:                    # OPTIONAL, canon P-FACT. The part's own facts,
+                            # made EXECUTABLE. Everything above this line that
+                            # a machine does not read lands in `gotchas:` as
+                            # free prose — and FOUR such facts were written
+                            # down correctly and became defects anyway:
+                            #   "PAD 1 IS NEGATIVE - polarity is a PART FACT"
+                            #      -> the XT60 shipped REVERSED
+                            #   "keep off the JLC-assembly BOM"
+                            #      -> the code reached the BOM
+                            #   "no copper under the opto"
+                            #      -> the LTV-817S 5kV barrier shipped with
+                            #         0.175mm of copper under it
+                            #   "MSL 3, 168h floor life"
+                            #      -> the consigned XU316 shipped with ZERO
+                            #         MSL text in the order paperwork
+                            # A fact written down and never read is
+                            # indistinguishable from a fact nobody knew.
+                            # EVERY entry REQUIRES `why:` (canon M4 — a part
+                            # fact without its reason IS the prose gotcha this
+                            # block replaces). Graded by
+                            # `jlcpcb-fab/scripts/part_facts_check.py`.
+  - assert: pad1_net_polarity      # pad 1's NET must carry this polarity.
+    pad: 1                         # Read from the exported NETLIST — a
+    polarity: negative             # DIFFERENT artifact from the BOARD that
+    why: "AMASS drawing fig 2: pad 1 is the '-' blade. A reversed XT60 already
+      shipped once and the netlist is self-consistent either way, so no ERC,
+      DRC or parity check can see it"
+  - assert: value                  # the fab BOM's Comment for every ref of
+    equals: 1k                     # this part must DECODE to this value.
+    tolerance_pct: 5               # SI-aware: 1k / 1kOhm / 1kΩ / 4k7 / 0R1
+    why: "I_IL(max) 190uA x R < V_IL 0.99V => R <= 5.2k; TI SLVS165O 7.3.4
+      names 1k explicitly"         # NB m is MILLI and M is MEGA
+  - assert: not_on_assembly_bom    # no ref of this part may carry an LCSC on
+    why: "THT on an SMT-only order and stock 0 on all three siblings (live
+      query 2026-07-25) — hand-wire from Digi-Key"   # the BOM, or sit on CPL
+  - assert: msl                    # the release's ORDER paperwork must STATE
+    level: 3                       # the level + floor life. An assembler
+    floor_life_h: 168              # cannot INFER a moisture obligation, and a
+    why: "consigned; J-STD-033D bake if the bag has been open >168h below
+      30C/60% RH"                  # popcorned 0.4mm TQFP is unrecoverable
+  # - assert: keepout_region       # DECLARED BUT NOT YET GRADED: needs board
+  #   layers: [F.Cu, In1.Cu, In2.Cu, B.Cu]      # geometry. The checker names
+  #   region: under_body                        # it DEFERRED and FAILs it
+  #   why: "5kV isolation barrier ..."          # under --strict rather than
+                                                # going quiet — a deferred
+                                                # kind that silently returns
+                                                # clean is worse than none.
 ```
 
 `part.yaml` must be complete enough that **the PDF is never opened again for
@@ -152,7 +210,10 @@ context-cheap: 40 lines of YAML instead of 60 pages.
 **Record polarity as a part fact wherever the part has one.** `pins: {1: {name: "-", note: "negative blade"}}`
 on an XT60 is exactly the fact whose absence shipped a reversed battery
 connector — a bug no electrical check can see, because the netlist is
-self-consistent either way.
+self-consistent either way. **And record it in `asserts:` as well, not only in
+prose:** that same XT60's part.yaml already said "PAD 1 IS NEGATIVE - polarity
+is a PART FACT" in `gotchas:` and the connector shipped reversed anyway,
+because nothing machine-readable ever consulted it (canon P-FACT).
 
 ## Forbidden
 
@@ -215,3 +276,20 @@ the board's placement HONOURS it:
 - The Layout read is the independent human half: escape/pinout can be right while
   the part is still placed wrong (usb-hub-3s-v2 TPS25740A). P-ADJ is the machine
   half — it caught RSNS span 11.5mm > 5mm on that exact board.
+
+And it answers **P-FACT** — the part's own facts are graded against the board
+and the release, not merely written down:
+
+- Audit: `jlcpcb-fab/scripts/part_facts_check.py PROJECT_OR_RELEASE [--strict]`
+  (offline; no pcbnew, no network). It grades `pad1_net_polarity` against the
+  exported NETLIST, `value` against the fab BOM, `not_on_assembly_bom` against
+  BOM+CPL, and `msl` against the release's ORDER paperwork.
+- `keepout_region` is DECLARED but NOT YET GRADED (it needs board geometry).
+  The checker names it DEFERRED and FAILs it under `--strict`; it never
+  reports clean. That is the LTV-817S isolation-barrier class and it is the
+  open half of P-FACT.
+- An assertion that reaches NO board ref is reported UNREACHED, never passed.
+  A gate that grades zero things and prints OK is the `jlc_twin` exit-0 class.
+- Adoption is opt-in per part and the coverage line prints
+  `N/M part.yaml declare an asserts: block`, so "we check part facts" can
+  never be true-sounding and empty.
