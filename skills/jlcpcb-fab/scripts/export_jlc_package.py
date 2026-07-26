@@ -47,11 +47,23 @@ _db_path = Path(__file__).parent / "jlc_rotations_db.csv"
 if _db_path.exists():
     with open(_db_path) as _f:
         for _row in csv.reader(_f):
-            if len(_row) >= 2 and not _row[0].startswith("Footprint"):
-                try:
-                    _ROT_DB.append((re.compile(_row[0]), float(_row[1])))
-                except re.error:
-                    pass
+            # Skip the header, COMMENT rows, and any row whose offset column is
+            # not a number. The table documents refuted rules by DISABLING THEM
+            # IN PLACE — a `#`-prefixed key plus prose continuation lines that
+            # carry the measurement (2026-07-25, ^JST_GH_SM). Those continuation
+            # rows parse as [text, ""], and `float("")` raises ValueError, which
+            # this loader did not catch: it caught re.error only. Result was a
+            # hard crash of the FAB EXPORT for EVERY board the moment a rule was
+            # annotated. The sibling loader in jlc_rotation_resolve.py already
+            # skips `#` and catches ValueError; this one now matches it, and
+            # jlc_twin's rot_db catches Exception. A comment in a data file must
+            # never be able to stop a board shipping.
+            if len(_row) < 2 or _row[0].startswith(("Footprint", "#")):
+                continue
+            try:
+                _ROT_DB.append((re.compile(_row[0]), float(_row[1])))
+            except (re.error, ValueError):
+                pass
 _LCSC_ROT = load_lcsc_rotations()
 
 
