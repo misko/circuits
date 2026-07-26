@@ -1,5 +1,5 @@
 cooksense v1.3 — smc0985-cooksense MAIN board
-STAGED, NOT SEALED: 2026-07-26 — blocked on the H4 creepage escalation (ORDER_README section 1)
+HELD, NOT SEALED: 2026-07-26 — H4 keypad-to-SELV creepage is 4.0286 mm against 6.000 mm required and FAILS (ruled 2026-07-26: the 1.000 mm notch is below the PD3 X-dimension of 1.5 mm and is not creditable). NOT ORDERABLE. See ORDER_README section 1.
 supersedes: cooksense-v1.1-2026-07-24 (and v1.0-2026-07-23) — BOTH DO-NOT-ORDER
 
 board: 188 x 92 mm, 4 layer, 222 components + 4 mounting holes; 3925 tracks / 1047 vias
@@ -29,7 +29,12 @@ GATES — every number measured on the artifacts in THIS archive
   M-BOM  bom_source_check                                PASS
   circuit-only value check                               PASS (all 90 unpinned passives swept)
   P-FACT                                                 4/41 dossiers declare asserts; 3 graded, 1 deferred
-  I-HW   mounting-hardware creepage                      PASS (H4 tight at 6.598 mm around the notch)
+  I-HW   mounting-hardware creepage                      *** FAIL *** H4 = 4.0286 mm vs 6.000 required.
+                                                         METHOD: straight line, notch NOT credited (1.000 mm slot is
+                                                         below the PD3 X-dimension of 1.5 mm). The 6.598 mm this line
+                                                         used to print was a GEODESIC around the notch and is retracted.
+                                                         H1 13.6299 / H2 13.1525 / H3 40.9324 PASS — all straight-line,
+                                                         none crossing a void. Exactly one hole is affected.
   audit_board                                            PASS (I-ISO 6.12 mm)
   M-REPRO                                                3 rebuilds, 1047 vias each; fp/track/via hashes identical AND
                                                          matching the shipped board. See verification/mrepro.md
@@ -67,7 +72,7 @@ MANDATORY BEFORE ORDERING — see ORDER_README.md
 FILE DIGEST — sha256, every file in this archive
   3d/cooksense.gltf                                               9b7e60622f23c64f9940e06f1977be4e7f81a591eac6d1494e034aa199f9a1c4
   3d/cooksense.step                                               e115e9d19c37ca66905c42b1737dd404842ee9b77296ed171098005f026af4b4
-  ORDER_README.md                                                 174e92d32e182a7033e8837227cdaa22491a54cd5b24ffdda29546b60de82df8
+  ORDER_README.md                                                 946d844ac4d9568c9ab304be02330274201d7eb128ffa577bc82b8fc3fde26ab
   fab/bom.csv                                                     f81b31d6321bd9aba4cadaf4a547062cd259e99a7f86762d63d26ed8eb7fe79e
   fab/bom_jlc.csv                                                 f81b31d6321bd9aba4cadaf4a547062cd259e99a7f86762d63d26ed8eb7fe79e
   fab/cooksense-B_Cu.gbl                                          6879c71dc016001705fdfb499f9df2d89c9aa6a6c05fbb0c02e3def190d2c580
@@ -101,15 +106,15 @@ FILE DIGEST — sha256, every file in this archive
   source/cooksense.tsx                                            a6b67dbb2d862152efdd78f7b73cd4a78c8d01be8e50a80ec6eace6378b885ca
   source/fp-lib-table                                             f96f5b2653e171e7b8605c7bac0b5d5802c25e3581aa44f6409a778dbee0f400
   source/parity_padmap.txt                                        43f87a91d9c1afe200f0cdbfb52e1e1e1b13c3f0dbbf8b4406dec013dd3e3aeb
-  verification/INDEX.md                                           a36acd981e265207689ed5e7e4dc3ae684b9ab2d9a5a4adae417470b4ccfce16
-  verification/ORDER_README.md                                    174e92d32e182a7033e8837227cdaa22491a54cd5b24ffdda29546b60de82df8
+  verification/INDEX.md                                           1cb7e68d16310be7bfa28a5c507fb55e469d679e732b69b1bb69e5a61b51ccec
+  verification/ORDER_README.md                                    946d844ac4d9568c9ab304be02330274201d7eb128ffa577bc82b8fc3fde26ab
   verification/assembly_coverage.json                             b8d02708d9d43ef2d9d2eb5c4ae10e897bccd50c9c942340d6af25d51e9c556d
   verification/assembly_coverage.txt                              cf8db91c27421686747ee76d0724f1a97df07e9fbcc8649ddcdca569407352f4
   verification/audit.txt                                          9fe5abe175afc719c9dcf6071996c3fb61ea6e746102559ef70942c151e58cbd
   verification/bom_source_check.txt                               0a8279b27c3a7bbc47b44f2442fd213f7231ee669de1b5f8283b53066771fc45
   verification/build_gates.md                                     4fd4452cde28230369808b7c8d1804a6a04f61287fdc1e9f3dc78c4951349a13
   verification/circuit_value_check.txt                            0618b6f479fa2e159bfc7d0b682fe7598b9ba08c834b7f5b3836a49d91b082a5
-  verification/dispositions.md                                    8240c865cf51fb8eed0670e20783bb58b280fb855d606f198052825673b16f3b
+  verification/dispositions.md                                    9e266afc0249eb3ef46060bf244adcceafe1bb0145ff71fe86ebdc4161afd73a
   verification/dispositions_v10_carried.md                        74c7b0afbfd3853df8fb9ffbc91e917f14f24874bf2f9e8c428699eb573868f5
   verification/drc.json                                           48845899798b59f23247e60ec65443f4b858d3b85f95114f40cb447c456a691b
   verification/einv.txt                                           bc755960bc256523bd2a0f940ace373935829f54145c5c229c923f685541b1eb

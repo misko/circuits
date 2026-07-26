@@ -13,7 +13,7 @@ This index exists so that question is answerable without opening each file.
 | `dispositions.md` | every finding this revision raised and what was done | v1.3 |
 | `drc.json` | DRC --severity-all --refill-zones --schematic-parity = 0/0/0 | v1.3 |
 | `erc.json` | ERC --severity-all = 0 errors / 1303 warnings (run IN PLACE, with fp-lib-table) | v1.3 |
-| `audit.txt` | audit_board: I-POL/I-PROX/I-EDGE/I-OUT/I-ISO/I-HW | v1.3 |
+| `audit.txt` | audit_board: I-POL/I-PROX/I-EDGE/I-OUT/I-ISO/I-HW | v1.3 **⚠️ ITS FOUR `I-HW` LINES ARE SUPERSEDED.** Line 1196 reads `I-HW H4 a=6.598mm ... PASS`; that figure is a **geodesic around the notch** and the notch is not creditable at pollution degree 3 (ruling 2026-07-26). The governing figure is **4.0286 mm and H4 FAILS**. The generated text is left unedited because it is the honest record of what the gate computed — and what it computed was the wrong physics. See ORDER_README §1 and §13 item 15 |
 | `einv.txt` | E-INV 83/83 | v1.3 |
 | `einv_red_verification.md` | proof the E-INV checker CAN fail, against the 83 this release ships | v1.3 |
 | `semantic_battery.txt` | E-INV, S-COUNT, S-NETMERGE, S-PARITY, A-ROT/A-POL, M-BOM, A-POP/A-POS | v1.3 |

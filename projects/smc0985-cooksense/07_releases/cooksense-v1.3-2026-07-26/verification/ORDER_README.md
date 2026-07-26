@@ -2,16 +2,26 @@
 
 ---
 
-## 🛑 NOT SEALED — ONE OPEN SAFETY QUESTION (H4 creepage, §1)
+## 🛑 NOT SEALED — H4 FAILS ITS ISOLATION REQUIREMENT (RULED 2026-07-26)
 
-**The fab package is complete and reproduces; the release is NOT sealed.** §1
-carries an ESCALATED, UNRESOLVED question: H4's 6.598 mm keypad-to-SELV figure
-is a geodesic around a **1.000 mm** through-slot, and at the declared
-**pollution degree 3** the IEC 60664-1 X-dimension is **1.5 mm**, below which a
-gap is BRIDGED. Read that way the governing figure is **4.0286 mm against
-6.000 mm required.** The 3.000 mm modelled washer also overhangs the slot by
-0.800 mm. **Do not order against this archive until that question is ruled on.**
-Everything below is accurate and every other gate is green.
+**The fab package is complete and reproduces. The board has a barrier that does
+not meet its own rule, and this release is NOT sealed and NOT orderable.**
+
+**H4's keypad-to-SELV creepage is 4.0286 mm against a 6.000 mm requirement — a
+shortfall of 1.9714 mm.** The 6.598 mm this document used to print is a geodesic
+around a **1.000 mm** through-slot. **Ruled: the notch does not count.** At the
+declared pollution degree 3 the IEC 60664-1 minimum groove width X is **1.5 mm**,
+and a gap narrower than X is measured **straight across**; the one exemption
+applies only where the associated clearance is below 3 mm, and this one is 6 mm.
+The 3.000 mm modelled washer also **roofs** 0.800 mm of the slot, turning it from
+a drainable gap into a capillary trap in a steam environment. **Full ruling,
+scope and measurements: §1.**
+
+**Exactly one hole is affected** — H1, H2 and H3 pass on figures that cross no
+void (13.6299, 13.1525, 40.9324 mm).
+
+**DO NOT ORDER AGAINST THIS ARCHIVE.** Everything else below is accurate and
+every other gate is green.
 
 ## Gate state — all green except the escalation above
 
@@ -107,14 +117,21 @@ s < 0) and the requirement collapses to `a` alone.
 
 MEASURED on filled copper by the `I-HW` gate, **re-measured 2026-07-26 on the
 ROUTED board** (the earlier table was taken on track-free copper and both its
-H1 and H2 rows are superseded), all against 6.000 mm:
+H1 and H2 rows are superseded), all against 6.000 mm.
 
-| Hole | a (keypad approach) | s (SELV approach) | governing figure | verdict |
-|---|---|---|---|---|
-| H1 | **−0.050** (track KP_D1) | 13.631 (pad K_U1.2) | keypad-BONDED -> s alone = 13.631 | PASS |
-| H2 | **−0.050** (track KP_U6) | 13.000 (pad K_STOP.1) | keypad-BONDED -> s alone = 13.000 | PASS |
-| H3 | 40.933 (pad K_U1.4) | −1.450 (GND pour) | SELV-bonded -> a alone = 40.933 | PASS |
-| H4 | **6.598** (pad K_STOP.3, RSTOP_MID; around the notch) | −1.450 (GND pour) | SELV-bonded -> a alone = 6.598 | PASS |
+**EVERY FIGURE BELOW NOW STATES THE METHOD THAT PRODUCED IT**, because this
+board has now shipped three numbers whose metric was left implicit (the ISO pair
+— bbox vs true-polygon vs all-copper; this I-HW table; and the H4 geodesic that
+the ruling below overturned). A creepage number without its method is not a
+measurement.
+
+| Hole | a (keypad approach) | s (SELV approach) | governing figure | method | verdict |
+|---|---|---|---|---|---|
+| H1 | **−0.050** (track KP_D1) | 13.631 (pad K_U1.2) | keypad-BONDED -> s alone = 13.631 | **straight line, crosses no void** | PASS |
+| H2 | **−0.050** (track KP_U6) | 13.153 (pad K_STOP.1) | keypad-BONDED -> s alone = 13.153 | **straight line, crosses no void** | PASS |
+| H3 | 40.933 (pad K_U1.4) | −1.450 (GND pour) | SELV-bonded -> a alone = 40.933 | **straight line; crosses a void but irrelevant at 40.9 mm** | PASS |
+| ~~H4~~ | ~~6.598~~ (pad K_STOP.3, RSTOP_MID) | −1.450 (GND pour) | ~~SELV-bonded -> a alone = 6.598~~ | ~~**GEODESIC around the notch**~~ | **SUPERSEDED — see the ruling below** |
+| **H4** | **4.0286** (pad K_STOP.3, RSTOP_MID) | −1.4493 (GND pour) | SELV-bonded -> a alone = **4.0286** | **straight line, notch NOT credited (PD3, X = 1.5 mm)** | **FAIL vs 6.000** |
 
 **H1 and H2 changed sign when the board was routed, and the verdict logic is why
 that is still a PASS.** On track-free copper the nearest keypad copper to those
@@ -125,60 +142,81 @@ each fastener is now KEYPAD-BONDED and the requirement becomes the SELV approach
 `a + s >= 6.000` with a negative approach meaning "bonded to that domain, so
 measure the other side alone". Nothing got worse; the binding item changed.
 
-**H4 is the tight hole at 6.598 mm** (the surface path around the isolation
-notch, not a straight line). **The two figures are to DIFFERENT copper, and
-saying so matters:** 6.598 mm is the around-the-notch geodesic to **pad
-K_STOP.3**; the **4.617 mm** straight line is to the nearest **RSTOP_MID
-TRACK**, (197.400, 45.600)→(197.000, 45.200), and it runs through a through-cut.
-(Straight-line to pad K_STOP.3 alone is 4.029 mm.) An earlier revision
-attributed both numbers to the pad. All three are north of the notch, so the
-PASS is unchanged. The previously reported 8.500 mm does not reproduce. Do not let
+**H4 IS THE FAILING HOLE. Its governing figure is 4.0286 mm against 6.000 mm
+required** — straight line, disc edge to **pad K_STOP.3** edge, with the notch
+NOT credited. **The 6.598 mm this paragraph used to headline was the geodesic
+around the notch and is RETRACTED** by the 2026-07-26 ruling below. **State the
+method with every figure — that omission is what let this pass seven reviews:**
+
+| figure | to what | method | status |
+|---|---|---|---|
+| **4.0286 mm** | pad `K_STOP.3` (RSTOP_MID) | **straight line, notch not credited** | **GOVERNING — FAILS 6.000** |
+| 4.6166 mm | nearest `RSTOP_MID` **TRACK**, (197.400, 45.600)→(197.000, 45.200) | straight line, crosses the through-cut | informational |
+| ~~6.598 mm~~ | pad `K_STOP.3` | ~~geodesic around the notch~~ | **RETRACTED — the notch is not creditable at PD3** |
+| ~~8.500 mm~~ | — | — | does not reproduce |
+
+An earlier revision attributed both the 6.598 and the 4.617 to the same pad;
+they are to different copper, which is exactly why each now names its target and
+its method. All are north of the notch. Do not let
 a rework shrink the notch or grow keypad copper near it.
 
-> ## 🛑 H4's PASS DEPENDS ON AN UNDISCLOSED STANDARDS INTERPRETATION — ESCALATED, NOT RESOLVED
+> ## 🛑 RULED 2026-07-26 — THE NOTCH DOES NOT COUNT. **H4 IS A 4.0286 mm BARRIER AGAINST A 6.000 mm REQUIREMENT, AND IT FAILS.**
 >
-> **This is the one open safety question in this release and it is NOT closed.
-> Do not read the H4 row above as settled.**
+> **The H4 row in the table below is WRONG. Read this box instead.** The 6.598 mm
+> it prints is a **GEODESIC around the isolation notch**, and the notch is not
+> creditable.
 >
-> H4's 6.598 mm is a **geodesic that goes AROUND the isolation notch**. Measured
-> on the shipped board:
+> **The ruling.** IEC 60664-1 sets a minimum groove width **X** below which a
+> groove contributes nothing to creepage — the path is measured **straight
+> across**. **At pollution degree 3, X = 1.5 mm.** This notch is **1.000 mm**.
+> The one exemption does not apply: X may be reduced to one third of the
+> associated clearance only where that clearance is **below 3 mm**, and this
+> requirement is 6 mm, so X stays 1.5 mm.
 >
-> | quantity | measured |
-> |---|---|
-> | notch | x[191.500, 200.000] y[48.800, 49.800] → **width 1.000 mm** |
-> | H4 centre | (193.000, 52.000) |
-> | H4 centre to nearest notch edge | **2.200 mm** |
-> | modelled fastener disc radius (M2.5 pan head + DIN125) | 3.000 mm |
-> | **disc overhang past the notch edge** | **0.800 mm — the washer physically spans 80 % of the slot** |
-> | nearest keypad copper | pad K_STOP.3 (RSTOP_MID) at (197.450, 45.620), r 0.750 |
-> | centre-to-centre | 7.7786 mm |
-> | **straight-line disc-edge to pad-edge** | **4.0286 mm** |
-> | around-the-notch geodesic (the figure in the table above) | 6.598 mm |
-> | requirement | **6.000 mm** |
+> | quantity | measured | method |
+> |---|---|---|
+> | notch | x[191.500, 200.000] y[48.800, 49.800] | Edge.Cuts vertices, **width 1.000 mm** |
+> | H4 centre | (193.000, 52.000) | footprint anchor |
+> | H4 centre → nearest notch edge | 2.200 mm | straight line |
+> | modelled fastener disc (M2.5 pan head + DIN125) | r = 3.000 mm | assumption, §1 |
+> | **disc overhang past the notch edge** | **0.800 mm** | the washer **ROOFS 80 % of the slot** |
+> | nearest keypad copper | pad `K_STOP.3` (RSTOP_MID) at (197.450, 45.620), r 0.750 | filled copper |
+> | centre-to-centre | 7.7786 mm | straight line |
+> | **GOVERNING FIGURE** | **4.0286 mm** | **straight-line disc-edge to pad-edge, notch NOT credited** |
+> | figure previously printed | 6.598 mm | geodesic around the notch — **not creditable** |
+> | requirement | 6.000 mm | brief §4/§7, ADR-0001 |
+> | **shortfall** | **1.9714 mm** | |
 >
-> **Two facts the archive previously did not state:**
+> **Three things reinforce the ruling and all point the same way.**
+> 1. **The environment IS the pollution degree.** PD3 is declared because this is
+>    steam and grease. A 1.000 mm slot in that environment fills with
+>    condensate — which is the physical reason the X rule exists. This is not a
+>    paper technicality applied to a clean board.
+> 2. **The washer makes it worse, not better.** Overhanging the slot by 0.800 mm
+>    it **roofs** it. An open slot drains and dries; a roofed 1 mm slot is a
+>    **capillary trap** holding condensate against the barrier. The overhang was
+>    treated as incidental geometry; it is an aggravating factor.
+> 3. **The archive's own RED test already said so.** `t_ihw_prenotch` puts the
+>    pre-notch board at **4.031 mm = FAIL**, so the notch converts FAIL to PASS on
+>    0.5 mm of geometry the governing document says to ignore. **When a gate flips
+>    verdict on something the standard says to disregard, the gate is measuring
+>    the wrong thing.**
 >
-> 1. The declared environment is **pollution degree 3** (see the
->    `opto_isolation_2mm` rule and §2-0). Under IEC 60664-1 the X-dimension at
->    PD3 is **1.5 mm**, and a groove or gap **narrower than X is BRIDGED** —
->    measured straight across, not around. **The notch is 1.000 mm.** Read that
->    way, the governing figure is **4.0286 mm against 6.000 mm required, and H4
->    does not pass.**
-> 2. The 3.000 mm modelled disc **overhangs the notch by 0.800 mm**. A washer
->    lying across the void is not travelling a surface path that goes around it.
+> **SCOPE — exactly one hole.** Re-measured all four with the bridged metric and
+> the archive's own per-hole model (`a` = keypad approach, `s` = SELV approach, a
+> negative approach meaning "bonded to that domain, measure the other side
+> alone"):
 >
-> The archive's own RED test records the pre-notch board at 4.031 mm = FAIL, so
-> **the notch alone is what converts FAIL to PASS** — which is precisely why the
-> interpretation cannot be left implicit.
+> | hole | a | s | governing | straight line crosses a void? | verdict |
+> |---|---|---|---|---|---|
+> | H1 | −0.0500 | 13.6299 | keypad-BONDED → s alone | no | 13.6299 PASS |
+> | H2 | −0.0500 | 13.1525 | keypad-BONDED → s alone | no | 13.1525 PASS |
+> | H3 | 40.9324 | −1.4495 | SELV-BONDED → a alone | yes, but irrelevant at 40.9 mm | 40.9324 PASS |
+> | **H4** | **4.0286** | −1.4493 | SELV-BONDED → a alone | **YES — bridged applies** | **4.0286 FAIL** |
 >
-> **STATUS: escalated to the project owner, unresolved at the time this archive
-> was staged.** It is a judgement about how IEC 60664-1 applies to a through-slot
-> under a spanning washer on a keypad-to-SELV barrier, and it is not the release
-> agent's call. **Until it is ruled on, treat H4 as a per-hole clearance of
-> 4.0286 mm and do not rely on the 6.598 mm figure.** The ADR-0012 assumption
-> (non-conductive enclosure, no conductive plate or bracket bonding two mounting
-> holes) is load-bearing here in a way §1 already states — but that assumption
-> governs the PAIRING form of the rule, not this per-hole figure.
+> **STATUS: NOT SEALED, HELD.** The remaining choice is a schedule-versus-margin
+> trade on the owner's own appliance. Until it is decided, **treat H4 as a
+> 4.0286 mm barrier and do not rely on the 6.598 mm figure.**
 
 **This table is generated from `verification/audit.txt` in this archive — if the
 two ever disagree, audit.txt is the evidence and this table is stale.**
@@ -773,7 +811,8 @@ Do not repurpose this loop to switch a contactor coil directly. The
 nets carry the ISO_CONTACTOR netclass and the `opto_isolation_2mm` DRU rule
 (IEC 60664-1 basic insulation, 30 V working, pollution degree 3, material group
 IIIa), which is **GREEN on v1.3 routed copper**. Minimum over ALL copper on ALL
-layers (pads, tracks and filled pours) is **2.0000 mm**, at CONTACTOR_C on
+layers (pads, tracks and filled pours) is **2.0000 mm** — **method: true-polygon
+copper clearance, all four layers, filled pours included** — at CONTACTOR_C on
 `J_ISOLOOP.1` against the **GND zone edge**, and it is 2.0000 mm on each of
 F.Cu / In1.Cu / In2.Cu / B.Cu independently — margin 0.000 mm by
 construction, because the pour keepout IS the 2.0 mm offset. Pad-to-pad only,
@@ -850,7 +889,7 @@ counted is a finding; a gap nobody counted is how things drift.
 | A-ROT | 189 / 189 CPL rotations from measured rows |
 | A-POS | 189 / 189 CPL rows on the pad-centre datum, worst 0.0000 mm |
 | A-POL | **10 codes / 13 refs GENERATED; TRUE population 12 codes / 16 refs** -> §6 human gate item 15. The three extra refs (D_KSTOP, D_REVCLAMP on C8678; D_TVS on C113974) are `POLARITY-FIT-BLIND` in `twin_report.csv` — the twin could not fit them at all, so they never reached the generated list |
-| I-HW (mounting-hardware creepage) | PASS, H4 the tight hole at 6.598 mm |
+| I-HW (mounting-hardware creepage) | **FAIL at H4: 4.0286 mm vs 6.000 required** (straight line, notch not credited — see the §1 ruling). H1 13.6299 / H2 13.1525 / H3 40.9324 all PASS, all straight-line and crossing no void |
 | ISO barrier (`opto_isolation_2mm`) | **2.0000 mm**, all copper all layers incl. filled pours (GND zone edge at J_ISOLOOP.1). Pad-to-pad true polygon: 2.1709 mm. Margin 0.000 by construction — the moat keepout IS the 2.0 mm offset. |
 | M-REPRO | 3 from-source rebuilds, **1047** vias each, identical fp/track/via hashes, matching the shipped board |
 | Stranded pour islands | **121 islands** on the fill THAT SHIPS (GND F.Cu 106, GND B.Cu 13, GND In1.Cu 1, 3V3 In2.Cu 1), **121 bonded, 0 stranded**. The 136 printed in earlier revisions came from a refill-in-memory, not from the stored fill — same conclusion, wrong population. |
@@ -984,10 +1023,12 @@ place where silk quality actually gets checked.
 
    | path | measured | requirement |
    |---|---|---|
-   | KEYPAD_ISO → all other netted copper (the rule as written) | **6.1200 mm** | >= 6.000 |
-   | floating MP → KEYPAD_ISO copper | 0.5810 mm | — |
-   | floating MP → all other netted copper | **13.3151 mm** | — |
-   | **two-hop KEYPAD_ISO → floating MP → other** | **13.8960 mm** | >= 6.000 |
+   | path | measured | method | requirement |
+   |---|---|---|---|
+   | KEYPAD_ISO → all other netted copper (the rule as written) | **6.1200 mm** | true polygon, copper clearance, all four layers incl. filled pours; **not creepage — see the blind-spot note below** | >= 6.000 |
+   | floating MP → KEYPAD_ISO copper | 0.5810 mm | true polygon, copper clearance | — |
+   | floating MP → all other netted copper | **13.3151 mm** | true polygon, copper clearance | — |
+   | **two-hop KEYPAD_ISO → floating MP → other** | **13.8960 mm** | sum of the two hops above | >= 6.000 |
 
    A floating conductor inside a barrier is only dangerous when it *splits* the
    gap; this one sits **0.581 mm** from the keypad domain and **13.315 mm** from
@@ -1055,7 +1096,30 @@ place where silk quality actually gets checked.
    earlier releases. Individually minor; **collectively, several load-bearing
    safety numbers cannot be re-checked from inside this archive.** v1.4 should
    ship the cited ADRs and part.yaml files.
-15. **M-REPRO is green by metric, not by bytes.** Three from-source rebuilds are
+15. **THE DRC GATE CANNOT SEE CREEPAGE AT ALL, AND THAT IS WHY H4 SHIPPED GREEN
+   THROUGH SEVEN REVIEWS.** `keypad_isolation_6mm` is a **DRU rule measuring
+   copper-to-copper CLEARANCE**. Creepage is a **surface path**, and whether a
+   slot interrupts that path is a question about board outline and pollution
+   degree that a clearance rule has no way to express. So DRC returned
+   **0 violations** on a board whose keypad-to-SELV creepage at H4 is
+   **4.0286 mm against 6.000 mm required** — and the 0/0/0 was never evidence
+   about this property. The `I-HW` gate, which does model the fastener, computed
+   a **geodesic around the notch** and so encoded the wrong physics rather than
+   no physics.
+
+   **This is the same family as the two blind spots already recorded in this
+   release:** `A-EVID` could not see a required artifact that was absent because
+   the check was keyed to what was present, and the `row_kind` blind spot graded
+   a field the generator never populated. **The pattern is a gate whose
+   measurement is not the property.** A gate that cannot fail on a property is
+   not evidence about that property, however green it reads.
+
+   **v1.4 gate work, independent of the geometry fix:** teach `I-HW` the
+   pollution-degree X-dimension so a groove narrower than X is bridged rather
+   than walked around, and make it report **both** figures with their methods
+   named. Until then, no creepage number on this board should be read without
+   the method beside it.
+16. **M-REPRO is green by metric, not by bytes.** Three from-source rebuilds are
    geometrically identical, but the files differ because the generator mints
    fresh UUIDs and KiCad serialises footprints in UUID order. A fleet-level fix
    is owned elsewhere; on this board the nondeterminism never reaches a via

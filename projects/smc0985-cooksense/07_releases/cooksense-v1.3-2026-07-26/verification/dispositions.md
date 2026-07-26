@@ -158,3 +158,86 @@ MANDATORY. **This is the round that stopped the seal.**
 | L7-11 | The shipped gerbers were plotted with drill marks; a default re-export does not match | **VALID — DISCLOSED (§13 item 13).** Every mark verified concentric inside an existing pad or hole, so inert — but lens 6's "matched flash-for-flash" is only reproducible with drill marks enabled, and a reviewer should be told. |
 | L7-12 | §6's provenance qualifier claims 15 measured rows / 26 CPL rows, but **13 of the 15 are `ROW: (WITHHELD — single-channel)`** | **VALID — FIXED.** In-archive LANDED provenance is **2 codes / 5 CPL rows** (C6186, C8185), not 15/26. All 13 withheld codes are covered by the A-POL human gate or the bidirectional exclusion, so nothing is unguarded — but a withheld measurement is not a landed one, and the qualifier claimed more than it had. |
 | L7-13 | Cited-but-absent documents (ADR-0001/6/12/13, BRIEF, pin_map, LTV-817S part.yaml, electrical_invariants.yaml, floorplan.yaml, SUPERSEDED.md) | **VALID — DISCLOSED (§13 item 14).** Individually minor; collectively several load-bearing safety numbers cannot be re-checked from inside. v1.4 ships the cited ADRs and part.yaml files. |
+
+## RULING ON L7-3 (2026-07-26) — THE NOTCH DOES NOT COUNT. H4 FAILS.
+
+**Coordinator ruling, verified against the standard rather than recalled.**
+IEC 60664-1 sets a minimum groove width **X** below which a groove contributes
+nothing to creepage — the path is measured **straight across**. **At pollution
+degree 3, X = 1.5 mm.** This notch is **1.000 mm**. The one exemption (X reduced
+to one third of the associated clearance) applies only where that clearance is
+**below 3 mm**; this requirement is 6 mm, so X stays 1.5 mm.
+
+**H4's governing figure is 4.0286 mm against 6.000 mm required — short by
+1.9714 mm. It FAILS.** The release is **HELD, NOT SEALED**.
+
+Three reinforcing points, all pointing the same way:
+
+1. **The environment IS the pollution degree.** PD3 is declared because this is
+   steam and grease. A 1.000 mm slot in that environment fills with condensate —
+   the physical reason the X rule exists. Not a paper technicality on a clean
+   board.
+2. **The washer makes it worse.** Overhanging by 0.800 mm it **ROOFS** the slot.
+   An open slot drains and dries; a roofed 1 mm slot is a **capillary trap**
+   holding condensate against the barrier. The overhang had been treated as
+   incidental geometry; it is an aggravating factor.
+3. **The RED test already said so.** `t_ihw_prenotch` puts the pre-notch board at
+   **4.031 mm = FAIL**. The notch converts FAIL to PASS on 0.5 mm of geometry the
+   governing document says to disregard. **When a gate flips verdict on something
+   the standard says to ignore, the gate is measuring the wrong thing.**
+
+### Scope — exactly one hole
+
+Re-measured all four with the bridged metric under the archive's own per-hole
+model. **My first pass wrongly flagged H1 and H2 as failing at 1.0950 mm; that
+was an endpoint-only approximation of track distance on my part.** Measuring to
+the nearest point on each track segment gives the correct figures:
+
+| hole | a (keypad) | s (SELV) | governing | crosses a void? | verdict |
+|---|---|---|---|---|---|
+| H1 | −0.0500 | 13.6299 | keypad-BONDED → s alone | no | 13.6299 PASS |
+| H2 | −0.0500 | 13.1525 | keypad-BONDED → s alone | no | 13.1525 PASS |
+| H3 | 40.9324 | −1.4495 | SELV-BONDED → a alone | yes, irrelevant at 40.9 mm | 40.9324 PASS |
+| **H4** | **4.0286** | −1.4493 | SELV-BONDED → a alone | **YES** | **4.0286 FAIL** |
+
+### The fix is unusually cheap — measured, for the schedule-vs-margin decision
+
+Only **three** items of keypad copper sit below 6.000 mm from H4's disc, and all
+three are the **same net (`RSTOP_MID`) in the same corner**:
+
+| # | item | straight-line from H4 disc |
+|---|---|---|
+| 1 | pad `K_STOP.3` (197.450, 45.620) | **4.0286 mm** |
+| 2 | track `RSTOP_MID` (197.400, 45.600) | 4.6166 mm |
+| 3 | track `RSTOP_MID` (197.000, 45.200) | 4.7392 mm |
+| 4 | pad `K_PRESS.4` — **the next one back** | **15.7342 mm** |
+
+**Clearing those three exposes nothing: the next item is 15.73 mm away, so the
+fix buys 11.7 mm of headroom rather than moving the problem one part along.** It
+is one relay's pad and its stub, in one corner.
+
+For the notch route, the geometry is tighter than it looks: the slot must reach
+**>= 1.500 mm** to be creditable **and** its south edge must move north of
+**y = 49.000** to stop the fastener roofing it (it is at 49.800 now), while
+`K_STOP.3`'s pad edge at **y = 46.370** limits how far north it can grow.
+
+### Recorded as a gate blind spot (§13 item 15)
+
+`keypad_isolation_6mm` is a DRU rule measuring **copper clearance**; creepage is
+a **surface path**, and whether a slot interrupts it is a question about outline
+and pollution degree a clearance rule cannot express. **DRC read 0/0/0 through
+all seven reviews and was never evidence about this property.** `I-HW`, which
+does model the fastener, walked a geodesic around the notch — encoding the wrong
+physics rather than none. Same family as the `A-EVID` and `row_kind` blind
+spots: **a gate whose measurement is not the property.**
+
+### The disclosure defect is its own finding
+
+The shipped 6.598 mm was a **geodesic that was never labelled as one**; a reader
+seeing "H4 6.598 vs 6.000 required" could not tell the straight-line figure was
+4.0286. That is the **third** number this board has shipped without the metric
+that produced it, after the ISO pair (bbox vs true-polygon vs all-copper) and the
+I-HW table. **Standing rule now applied throughout this release: every isolation
+figure states its method beside it.** Done — §1's I-HW table, the §11 ISO
+sentence, the KEYPAD_ISO/floating-tab table and the gate-summary row all now
+carry a method column or clause.
