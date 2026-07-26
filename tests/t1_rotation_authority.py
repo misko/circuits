@@ -598,5 +598,55 @@ def t_apol_na_claim_without_datasheet():
              "names exactly what is missing, not just that it failed")
 
 
+@test("M-PROV still FAILS a row that cites jlc_offset as its SOURCE — the "
+      "refutation discharge is narrow", kind="known_bad")
+def t_mprov_jlc_offset_still_blocks():
+    """The discharge added for REFUTED twin offsets must not become a way to
+    launder a sourced one. THE ORIGINAL INCIDENT (e0d735c, 1b69760): the table
+    was POPULATED FROM jlc_twin, so it inherited that function's negated
+    handedness and each wrong row OVERRODE a correct name-DB entry — strictly
+    worse than having no table. This row cites the twin as its source and
+    carries no refutation, so M-PROV must still reject it."""
+    bad = ["C9999998", "90",
+           "SOT-23-6 part. Measured 2026-07-25: took the value from jlc_twin's "
+           "jlc_offset for this ref, which reports 90 across the board.", "n/a"]
+    r = must_fail(run([KPY, AUDIT, "--table", scratch_table([bad])]),
+                  "M-PROV on a row sourced from jlc_offset", "M-PROV")
+    contains(r.out, "jlc_offset", "names the forbidden provenance it matched")
+
+
+@test("M-PROV lets a row NAME jlc_offset in order to REFUTE it")
+def t_mprov_jlc_offset_refutation_allowed():
+    """RED-VERIFIED against the pre-fix checker: with the discharge removed,
+    this row FAILS M-PROV, because the pattern matches the token regardless of
+    what the sentence does with it. Confirmed failing, then the fix restored.
+
+    THE ROW THIS EXISTS FOR (crow-mic-pod-v2 U1, C192421). jlc_twin's fitted
+    offset says 90; the pad fit says 270. Those are EXACTLY 180 apart, which is
+    the signature of the handedness bug that negated every twin offset
+    (formB(a) == formA(-a): invisible at 0/180, exactly 180 wrong at 90/270).
+    Recording that conflict is the single most valuable thing the row does —
+    it is the warning, not a citation. A grep that cannot tell 'this number came
+    from jlc_offset' from 'jlc_offset is wrong and here is why' would force the
+    warning out of the evidence exactly where it matters most.
+
+    This is the THIRD occurrence of that blindness in this file: the rationale
+    check fired on 'assumed' inside "confirmed ..., not assumed", and A-POL on
+    'POLARIZED' inside "THE PART IS NOT POLARIZED". Each was reshaped rather
+    than worded around."""
+    ok = ["C9999997", "270",
+          "SOIC-8 part. Measured 2026-07-26 against JLC's cached model with "
+          "the pcbnew-verified operator: offset 270, rms 0.235mm vs 4.18mm next "
+          "best (17.8x). RECORDED CONFLICT, resolved: jlc_twin's fitted "
+          "jlc_offset reports 90, which is EXACTLY 180 from this measurement — "
+          "the handedness-bug signature — and 90 is excluded, sitting 4.18mm "
+          "away in the fit. The twin is the outlier and 270 stands. Per RULE 3 "
+          "this row MUST pass the JLC ORDER-PREVIEW HUMAN GATE.",
+          "single-channel"]
+    r = must_pass(run([KPY, AUDIT, "--table", scratch_table([ok])]),
+                  "M-PROV refutation discharge")
+    contains(r.out, "OK", "the table grades clean")
+
+
 if __name__ == "__main__":
     sys.exit(main())

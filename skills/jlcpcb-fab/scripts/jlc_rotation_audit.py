@@ -130,6 +130,29 @@ MEASURE_RE = re.compile(
 #: phrasing of the incident: "THE TABLE WAS POPULATED FROM THE BROKEN CHECKER,
 #: so it inherited the negation and each wrong row OVERRODE a correct name-DB
 #: entry — strictly worse than no table" (e0d735c).
+#: DISCHARGE for the jlc_offset provenance pattern, and ONLY that one.
+#: THIRD instance of the same blindness in this file: a substring match cannot
+#: tell "this number CAME FROM jlc_offset" from "jlc_offset says 90 and it is
+#: WRONG". The M-PROV rationale check already fired on 'assumed' inside
+#: "confirmed ..., not assumed", and A-POL fired on 'POLARIZED' inside "THE PART
+#: IS NOT POLARIZED". Both were reshaped ACCEPT-ON-EVIDENCE rather than worded
+#: around, because wording around it teaches the table to avoid true words.
+#:
+#: A row recording a REFUTED twin offset is the most valuable kind there is —
+#: C192421 (crow-mic-pod-v2 U1) is where jlc_twin says 90 and the pad fit says
+#: 270, EXACTLY 180 apart, which is the signature of the handedness bug that
+#: negated every twin offset and put six rows of this table 180 out. Forcing
+#: that conflict out of the evidence to satisfy a grep would delete the warning
+#: precisely where it is most needed.
+#:
+#: The discharge is deliberately NARROW: it applies to jlc_offset alone and
+#: requires an explicit refutation marker. "populated from", "copied from",
+#: "as suggested" and the name-DB patterns stay unconditional, because those
+#: are unambiguous SOURCING claims with no legitimate refuting use.
+REFUTES_RE = re.compile(
+    r"\bREFUTED\b|\brefutes?\b|is WRONG|is the outlier|CONFLICT, resolved|"
+    r"CHANNELS DISAGREE|does not agree|must not be read as|excluded\b", re.I)
+
 FORBIDDEN_PROV = [
     (re.compile(r"jlc_offset", re.I),
      "cites jlc_twin's own jlc_offset — the table may not be populated from "
@@ -185,6 +208,11 @@ def grade_table(path=None):
                     f"figure — 'measured' without a number is a claim"))
             for pat, why in FORBIDDEN_PROV:
                 m = pat.search(ev)
+                # narrow discharge: a row may NAME jlc_twin's offset in order to
+                # REFUTE it, provided it says so explicitly (see REFUTES_RE).
+                if m and m.group(0).lower() == "jlc_offset" \
+                        and REFUTES_RE.search(ev):
+                    continue
                 if m:
                     out.append(Finding(
                         f"M-PROV {where}: evidence {why} (matched "
