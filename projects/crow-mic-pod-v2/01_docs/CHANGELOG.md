@@ -156,3 +156,13 @@ First sealed, orderable release. Went from a 4-lens red-team **DO-NOT-ORDER
 user sign-off); J1 RJHSE-5384 footprint certified NOT mirrored by row-parity +
 chirality analysis; D3 (SMAJ6.0A) populated, resolving the BOM-without-CPL
 assembly-file defect. DRC 0/0/0, ERC 0 errors, count parity 35/35, twin exit 0.
+
+## v1.2 — PACKAGING ONLY, no board change
+Released: `07_releases/crow-mic-pod-v2-v1.2-2026-07-26/`
+
+One change: `pdf/assembly_front.pdf` + `pdf/assembly_back.pdf` merged into the
+single 2-page `pdf/assembly.pdf` the 07_releases contract requires (canon
+A-EVID, `release_required_check.py`, landed after the v1.1 seal; the user chose
+to keep the contract as written and converge the boards on it). `fab/`,
+`source/`, `3d/` and every `verification/` artifact byte-identical to v1.1 —
+v1.1 gerbers remain orderable; v1.2 is the contract-conformant archive.
