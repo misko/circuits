@@ -71,3 +71,45 @@ equivalent.
 Each is pinned by a known-bad fixture in `tests/t1_generate_board.py`; the
 `SetLayer` ordering fix was verified to have teeth by reverting it and
 watching the new gate fail.
+
+## Determinism (M-REPRO), 2026-07-26
+
+The generator is BYTE-DETERMINISTIC: two runs from identical source produce
+byte-identical `.kicad_pcb` files. This was not always true — the values were
+always deterministic (identical footprint hashes across isolated runs), but
+UUIDs were minted fresh and random each run. KiCad serialises footprints in
+UUID order, so the zone filler walked zones in a different order per run,
+Clipper tessellated pour boundaries differently, and `island_rescue` inherited
+all of it: three regenerations of identical usb-hub-3s-v3 source gave
+292/294/293 vias with every value identical, and the v1.6 release could not
+prove M-REPRO.
+
+Fix: `seed_uuids()` calls `pcbnew.KIID.SeedGenerator(crc32(board_name))`
+before any board object exists — KiCad's own QA hook, mt19937-backed, so the
+UUID stream is a function of the seed alone (stable across runs AND machines;
+no PID, clock, or platform input). Creation order was already deterministic,
+so every object gets the same UUID every run. Measured 2026-07-26:
+
+- generate stage: usb-hub 2x byte-identical (1966 objects, 1966 unique
+  UUIDs); cooksense 3x byte-identical (3682/3682). Geometry unchanged vs the
+  pre-fix generator (457 pads, identical sorted pad-position sha).
+- full usb-hub `rebuild_fast.sh` pipeline, 3 isolated runs: vias
+  **293/293/293** (was 292/294/293), DRC 0/0/0 each, and the order-independent
+  VALUE-SET hashes are identical across runs — footprints 49546f42f9d7e62c,
+  vias a852c9c9653e7fb7, tracks 0e6f06a9e36674be (129 fps, 908 tracks,
+  1070.469 mm, 457 pads). The incident class (island-rescue via drift) is
+  gone because zone/footprint UUIDs now fix the filler's walk order.
+- KNOWN RESIDUAL: the full-pipeline `.kicad_pcb` files are NOT yet
+  byte-identical — they differ only in the serialisation ORDER of the
+  `(segment ...)` section and in track/via UUIDs, because the downstream
+  stages (`route_and_stitch_generic.py` import/taps/stitch, and per-project
+  post-stitch scripts) run as separate processes that still mint random
+  KIIDs. Full-pipeline byte-identity needs the same `KIID.SeedGenerator`
+  call at the top of each of those stages; that is a follow-up, and it must
+  be coordinated because live board agents invoke those scripts.
+
+Pinned by
+`tests/t1_generate_board.py t_uuid_determinism` (known-bad, RED-verified
+against the pre-fix generator). NOTE: the seed derives from the OUTPUT BOARD
+NAME, so "identical source" includes the output filename — renaming the board
+legitimately reshuffles UUIDs without changing any geometry.

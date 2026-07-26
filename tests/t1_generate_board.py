@@ -732,5 +732,63 @@ def t_kb_severing_cutout():
     must_fail(r, "board-severing cutout", "not a notch")
 
 
+@test("M-REPRO: two runs from identical source are BYTE-IDENTICAL, and no "
+      "two objects share a UUID", kind="known_bad")
+def t_uuid_determinism():
+    """THE INCIDENT (2026-07-26, usb-hub-3s-v3 v1.6 STAGED-NOT-SEALED).
+    Three from-source regenerations of identical source gave 292/294/293
+    vias. The generator was deterministic in every VALUE (identical
+    footprint hashes across isolated runs) but minted FRESH RANDOM UUIDs
+    each run; KiCad serialises footprints in UUID order, so the zone filler
+    walked zones in a different order, Clipper tessellated pour boundaries
+    differently, and island_rescue inherited all of it. Fixed by seeding
+    KiCad's own KIID generator (KIID::SeedGenerator, mt19937 — stable
+    across runs AND machines) from the output board name before any object
+    is created.
+
+    On byte comparison: tests/README bans GOLDEN files because KRT routing
+    is stochastic. This test stores no golden — it compares two FRESH runs
+    of the same (KRT-free) generate stage to each other, and byte-identity
+    of that pair IS the property under test (canon M-REPRO).
+
+    The uniqueness half is the collision proof the fix's comment promises:
+    a deterministic UUID scheme must never assign two objects one identity,
+    so |uuid set| must equal |object count| on a real generated board.
+
+    RED-VERIFIED 2026-07-26: with the pre-fix generator (seed_uuids()
+    removed) restored, the two runs differ at the first footprint uuid and
+    the byte-identity assertion FAILS; confirmed, then the fix restored."""
+    d = tmpdir("gbg_")
+    # SAME board name in two dirs: the UUID seed is derived from the output
+    # board name (identical source => identical name => identical stream),
+    # so a differing name is a differing source, not a repro of this run.
+    (d / "r1").mkdir(); (d / "r2").mkdir()
+    a, b = d / "r1" / "b.kicad_pcb", d / "r2" / "b.kicad_pcb"
+    gen(LC / "03_src" / "floorplan.yaml", a)
+    gen(LC / "03_src" / "floorplan.yaml", b)
+    ba, bb = a.read_bytes(), b.read_bytes()
+    check(ba == bb,
+          "two generate runs from identical source differ — UUID minting is "
+          "nondeterministic again, and every downstream fill/tessellation/"
+          "island decision inherits it (the 292/294/293-via class)")
+    code = (
+        "import pcbnew,sys\n"
+        "b=pcbnew.LoadBoard(sys.argv[1])\n"
+        "items=[]\n"
+        "for f in b.GetFootprints():\n"
+        "  items.append(f.m_Uuid.AsString())\n"
+        "  items+=[p.m_Uuid.AsString() for p in f.Pads()]\n"
+        "  items+=[g.m_Uuid.AsString() for g in f.GraphicalItems()]\n"
+        "items+=[t.m_Uuid.AsString() for t in b.GetTracks()]\n"
+        "items+=[z.m_Uuid.AsString() for z in b.Zones()]\n"
+        "items+=[dr.m_Uuid.AsString() for dr in b.GetDrawings()]\n"
+        "print('@@%d,%d' % (len(items), len(set(items))))\n")
+    r = must_pass(run([KPY, "-c", code, a]), "uuid uniqueness probe")
+    n, uniq = [int(v) for v in r.out.split("@@")[1].strip().split(",")]
+    check(n > 100, f"probe saw only {n} objects — the board did not build")
+    eq(uniq, n, "UUID set size vs object count (a collision means two "
+                "objects share one identity)")
+
+
 if __name__ == "__main__":
     sys.exit(main())

@@ -67,6 +67,7 @@ import math
 import os
 import re
 import sys
+import zlib
 from pathlib import Path
 
 import pcbnew
@@ -344,10 +345,46 @@ class BoardBuilder:
         self.log.append(msg)
         print(msg)
 
+    # ------------------------------------------- deterministic identity
+    def seed_uuids(self):
+        """Make every UUID this run mints a deterministic function of the
+        SOURCE, so identical source produces byte-identical boards.
+
+        WHY (2026-07-26, usb-hub-3s-v3 v1.6 M-REPRO). The generator was
+        already deterministic in every VALUE (identical footprint hashes
+        across isolated runs) but minted FRESH RANDOM UUIDs each run. KiCad
+        serialises footprints in UUID order, so the zone filler walked zones
+        in a different order per run, Clipper tessellated the pour boundaries
+        differently, and island_rescue — keyed off zone islands — inherited
+        all of it: three regenerations of identical source gave 292/294/293
+        vias. The staged release could not prove M-REPRO.
+
+        HOW. `KIID::SeedGenerator()` is KiCad's own QA hook: it reseeds the
+        library's mt19937-backed UUID generator, after which UUIDs are drawn
+        from a fixed pseudo-random stream. Object CREATION ORDER is already
+        deterministic (that is what the identical value-hashes measured), so
+        the stream assigns every object the same UUID on every run. mt19937
+        is fully specified by its seed — no PID, no clock, no platform
+        dependence — so this holds across machines, and the stream's period
+        makes collisions no more likely than random UUIDs (the caller must
+        still assert |uuid set| == |objects| on the result; see
+        tests/t1_generate_board.py t_uuid_determinism).
+
+        The seed itself is derived from the OUTPUT BOARD NAME, not a
+        constant, so two different boards do not share a UUID stream while
+        one board's stream never depends on anything but its source.
+        """
+        seed = zlib.crc32(self.out.stem.encode())
+        pcbnew.KIID.SeedGenerator(seed)
+        self.say(f"UUID generator seeded: crc32({self.out.stem!r}) = {seed} "
+                 f"(M-REPRO: identical source now yields byte-identical "
+                 f"output)")
+
     # ------------------------------------------------------------- run
     def build(self):
         comps, pad_net, nets = parse_netlist(self.netlist)
         self.comps, self.pad_net = comps, pad_net
+        self.seed_uuids()
         self.board = pcbnew.BOARD()
         self.board.SetCopperLayerCount(int(self.board_cfg.get("layers", 2)))
         self.netmap = {}
