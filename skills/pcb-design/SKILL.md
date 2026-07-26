@@ -615,6 +615,21 @@ wall-clock for no independence gain.
   value == its BOM label (the R12/R30 wrong-part class: 2 sealed escapes
   before this gate existed, 2026-07-23). Re-run here even though it ran at
   the first BOM export — it now grades the STAGED fab set.
+- **A-ROT is enforced by the exporter itself and cannot be skipped**: it exits
+  2 unless every CPL rotation resolves from a MEASURED per-LCSC row (or a
+  footprint that MEASURES as its own 180-degree reflection). Clear a block with
+  `jlc_rotation_measure.py BOARD REF=LCSC --row`, never with the footprint-NAME
+  DB, and never from `jlc_twin`'s `jlc_offset` (canon M1/M-PROV). Then
+  `jlc_rotation_audit.py --table` must be green. Any ref the export names in
+  `rotation_human_gate.txt` goes on the JLC order-preview human gate before the
+  first order (canon A-POL).
+- `part_facts_check.py <staging_dir> --parts 02_parts` (canon **P-FACT**): the
+  release graded against every part's OWN declared `asserts:` facts —
+  pad-1 net polarity vs the netlist, BOM value, must-not-be-on-the-BOM, and
+  the MSL statement in the order paperwork. `keepout_region` is DECLARED but
+  DEFERRED (needs board geometry) and is named rather than silently passed.
+  Adoption is opt-in per part; the coverage line prints how many part.yaml
+  actually declare anything, so "we check part facts" cannot be empty.
 - `jlc_stock_check.py`: every coded line in stock >= 5x need. The VERDICT
   line is the gate — read it. Five sealed releases across this fleet ship
   stock evidence whose last line says `FAIL` (one with the board's own CPU at

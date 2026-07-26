@@ -44,6 +44,40 @@ invariants:
     adr: 0007
     why: "the VIN rail must carry at least one decoupling capacitor"
 
+  # 4) part_value — the PARAMETER kind. The three kinds above pin TOPOLOGY:
+  #    which parts exist and what they connect to. AN INVARIANT THAT PINS A
+  #    COMPONENT'S EXISTENCE DOES NOT PIN ITS VALUE.
+  #
+  #    THE INCIDENT (smc0985-cooksense, 2026-07-25, ab94de3 -> 929b089). A
+  #    safety P0 was found: WD_PET, the TPS3823 watchdog heartbeat, had no
+  #    pull-down, so with the host unplugged the supervisor self-pulsed, WD_OK
+  #    never fell, and the external COOKING CONTACTOR stayed energised
+  #    indefinitely. The fix added the pull-down AT 100k. TI SLVS165O S6.5
+  #    gives I_IL at WDI = 190 uA MAX and the pin SOURCES it, so the hold
+  #    resistor is bounded by I_IL x R < V_IL:
+  #        R_max = (0.3 x 3.3 V) / 190 uA = 0.99 V / 190 uA ~= 5.2k
+  #        1k    -> 0.19 V, 81% margin (TI's own recommended value)
+  #        100k  -> node sits at ~VDD; THE WATCHDOG IS SILENTLY DISABLED
+  #    The 100k board looked exactly like the fixed board. All THREE
+  #    invariants that landed with that fix — one net_has_part and two
+  #    pin_on_net, the ones written above this comment in spirit — PASS on the
+  #    100k netlist, because a resistor DOES exist on WD_PET with its pads on
+  #    the right nets. They would have certified the broken board, and did.
+  #
+  #    Bounds: min: / max: / equals: (+ optional tolerance_pct with equals).
+  #    At least ONE is required — an assertion naming a part and bounding
+  #    nothing is the exact gap this kind closes. Values come from the
+  #    netlist's own (comp (value ...)) and are decoded as SI, so 1k / 1kOhm /
+  #    1kΩ / 4k7 / 0R1 are one number. NOTE m is MILLI and M is MEGA. A value
+  #    the gate cannot decode is a FAILURE, never a skip.
+  - assert: part_value
+    part: R_WDPETPD
+    max: 5.2k
+    adr: 0011
+    why: "I_IL(max) 190uA x R < V_IL 0.99V => R <= 5.2k; TI SLVS165O S7.3.4
+      names 1k explicitly. Above this the WDI node sits at ~VDD and the
+      supervisor never times out — the interlock fails PERMISSIVE"
+
 # ---------------------------------------------------------------------------
 # label_survival — the schematic NET-MERGE gate (candidate S-NETMERGE), graded
 # by net_label_survival.py PROJECT_DIR. WHY: `kicad-cli sch export netlist`

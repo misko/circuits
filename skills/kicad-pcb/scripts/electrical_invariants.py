@@ -29,8 +29,39 @@ THREE NETLIST-CHECKABLE ASSERTION KINDS (E1)
                  min: 1, adr: 0007, why: ...}
                 the net must carry >= min parts of that type (by refdes
                 prefix). The bridge-rail-decoupling class red-team B found.
+  part_value    {assert: part_value, part: R_WDPETPD, max: 5.2k,
+                 adr: 0011, why: ...}
+                the part's VALUE must satisfy min/max/equals (+ tolerance_pct
+                on equals). See below — this kind exists because EVERY P0 this
+                pipeline found on 2026-07-25 was in a PARAMETER, and the three
+                kinds above pin TOPOLOGY.
 
 Every invariant REQUIRES `adr:` (the ADR that emitted it) and `why:`.
+
+WHY `part_value` EXISTS — AN INVARIANT THAT PINS EXISTENCE DOES NOT PIN VALUE
+----------------------------------------------------------------------------
+smc0985-cooksense, 2026-07-25 (commits ab94de3 then 929b089). A safety P0 was
+found: WD_PET, the TPS3823 watchdog heartbeat, had no pull-down, so with the
+Pi unplugged the supervisor self-pulsed, WD_OK never fell, and the external
+COOKING CONTACTOR stayed energised indefinitely. The fix added a pull-down —
+AT 100k. TI SLVS165O S6.5 gives I_IL at WDI = 190 uA MAX and the pin SOURCES
+it, so the hold resistor is bounded by I_IL x R < V_IL:
+
+    R_max = V_IL / I_IL(max) = (0.3 x 3.3 V) / 190 uA = 0.99 V / 190 uA ~= 5.2k
+    1k    -> 0.19 V, 81% margin (TI's own recommended value)
+    100k  -> the node sits at ~VDD; THE WATCHDOG IS SILENTLY DISABLED
+
+So the 100k board looked exactly like the fixed board and was not fixed. And
+ALL THREE E-INV assertions that landed with that fix — one `net_has_part` plus
+two `pin_on_net` — PASS on the 100k netlist. They had to: they assert that a
+resistor EXISTS on WD_PET and that its pads are on the right nets, and all of
+that is true of the wrong resistor. The commit body states the lesson in one
+line: "An invariant that pins a component's EXISTENCE does not pin its VALUE."
+
+`part_value` closes it. Values are read from the netlist's own
+`(comp (ref ...) (value ...))` block — the same artifact every other E-INV kind
+is graded against — and compared numerically after SI decoding, so `1kOhm`,
+`1k`, `1kΩ`, `1K` and `0.001M` are one number and `100k` fails a `max: 5.2k`.
 
 Geometric assertion kinds (clamp_le_rating, kelvin_within, ...) are DEFERRED
 to a future E2 — they need footprint/geometry, not just the netlist.
@@ -90,6 +121,59 @@ PROT_RE = re.compile(r"(protection|topology|input[- ]protection|"
 
 class LoadError(Exception):
     """A schema/config problem — distinct from an assertion failure."""
+
+
+# --------------------------------------------------------------------------
+# SI value decoding, for `part_value`.
+#
+# Case matters and is the whole trap: `m` is MILLI and `M` is MEGA, so a
+# case-folding parser turns a 4.7M feedback resistor into 4.7 milliohms and
+# reports a comfortable pass. Everything else about the notation is noise we
+# must absorb, because a fleet netlist really does carry "1kOhm", "1k", "1kΩ",
+# "4k7", "0R1", "100nF" and "10uF 25V" for values a human calls the same thing.
+_SI = {"p": 1e-12, "n": 1e-9, "u": 1e-6, "µ": 1e-6, "μ": 1e-6, "m": 1e-3,
+       "R": 1.0, "r": 1.0, "k": 1e3, "K": 1e3, "M": 1e6, "G": 1e9}
+_UNIT_RE = re.compile(r"(ohms?|ohm|Ω|Ω|F|H|V|A|W|%)$", re.I)
+
+
+def parse_si(text):
+    """'100k' -> 100000.0, '4k7' -> 4700.0, '1kOhm' -> 1000.0, '10uF' -> 1e-5.
+
+    Returns None when the string carries no decodable number — which the
+    grader reports as a FAILURE, never as a pass. A value it cannot read is
+    a value it cannot vouch for.
+    """
+    if text is None:
+        return None
+    s = str(text).strip()
+    if not s:
+        return None
+    s = s.split()[0]                      # "10uF 25V" -> "10uF"
+    s = s.replace(",", "")
+    s = _UNIT_RE.sub("", s)               # strip a trailing unit, keep the SI
+    # infix form: 4k7, 0R1, 1M2 — the decimal point IS the multiplier letter
+    m = re.fullmatch(r"([0-9]*)([pnuµμmRrkKMG])([0-9]+)", s)
+    if m:
+        try:
+            return float(f"{m.group(1) or '0'}.{m.group(3)}") * _SI[m.group(2)]
+        except (ValueError, KeyError):
+            return None
+    m = re.fullmatch(r"([-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)"
+                     r"([pnuµμmRrkKMG]?)", s)
+    if not m:
+        return None
+    try:
+        return float(m.group(1)) * (_SI[m.group(2)] if m.group(2) else 1.0)
+    except (ValueError, KeyError):
+        return None
+
+
+def fmt_si(v):
+    for suf, mul in (("G", 1e9), ("M", 1e6), ("k", 1e3), ("", 1.0),
+                     ("m", 1e-3), ("u", 1e-6), ("n", 1e-9), ("p", 1e-12)):
+        if abs(v) >= mul:
+            return f"{v / mul:g}{suf}"
+    return f"{v:g}"
 
 
 # --------------------------------------------------------------------------
@@ -178,18 +262,31 @@ class Netlist:
         self.net_of_pin = {}          # (ref, pin) -> netname
         self.pins_of_net = {}         # netname -> [(ref, pin, func)]
         self.part_pins = {}           # ref -> {pin: {"net":.., "func":..}}
+        self.part_value = {}          # ref -> value string (the `part_value`
+                                      # kind; the SAME artifact every other
+                                      # E-INV kind is graded against)
 
         def walk(node):
             if not isinstance(node, list):
                 return
             if _head(node) == "net":
                 self._add_net(node)
+            elif _head(node) == "comp":
+                self._add_comp(node)
             for c in node:
                 if isinstance(c, list):
                     walk(c)
 
         for top in tree:
             walk(top)
+
+    def _add_comp(self, node):
+        ref = _first_atom(node, "ref")
+        if ref is None:
+            return
+        val = _first_atom(node, "value")
+        if val is not None:
+            self.part_value[ref] = val
 
     def _add_net(self, node):
         name = _first_atom(node, "name")
@@ -264,7 +361,7 @@ def load_invariants(path):
     if not isinstance(invs, list):
         raise LoadError("'invariants:' must be a list")
 
-    kinds = {"pin_on_net", "series_chain", "net_has_part"}
+    kinds = {"pin_on_net", "series_chain", "net_has_part", "part_value"}
     for i, inv in enumerate(invs):
         if not isinstance(inv, dict):
             raise LoadError(f"invariant #{i} is not a mapping")
@@ -297,6 +394,25 @@ def load_invariants(path):
                 raise LoadError(f"invariant #{i} net_has_part unknown "
                                 f"part_type {pt!r} (known: "
                                 f"{sorted(TYPE_PREFIX)})")
+        elif kind == "part_value":
+            if not inv.get("part"):
+                raise LoadError(f"invariant #{i} part_value missing 'part:'")
+            bounds = [k for k in ("min", "max", "equals") if k in inv]
+            if not bounds:
+                raise LoadError(
+                    f"invariant #{i} part_value on {inv['part']!r} declares no "
+                    f"bound — needs at least one of min:/max:/equals:. An "
+                    f"invariant that names a part and asserts NOTHING about "
+                    f"its value is the exact gap this kind was added to close")
+            for k in bounds:
+                if parse_si(inv[k]) is None:
+                    raise LoadError(
+                        f"invariant #{i} part_value {k}: {inv[k]!r} is not a "
+                        f"decodable value (SI notation: 5.2k, 4k7, 100nF, "
+                        f"0R1; note m=milli and M=mega are DIFFERENT)")
+            if "tolerance_pct" in inv and "equals" not in inv:
+                raise LoadError(f"invariant #{i} part_value: tolerance_pct is "
+                                f"only meaningful with equals:")
     return invs
 
 
@@ -385,10 +501,54 @@ def _grade_net_has_part(inv, nl):
     return None
 
 
+def _grade_part_value(inv, nl):
+    """THE PARAMETER CLASS. Every other kind here pins TOPOLOGY: which parts
+    exist and what they connect to. cooksense proved that is not enough — its
+    watchdog pull-down was present, on the right two nets, and 100k where the
+    datasheet bounds it at 5.2k, and all three topology invariants PASSED on
+    that board."""
+    ref = str(inv["part"])
+    adr = inv["_adr"]
+    raw = nl.part_value.get(ref)
+    if raw is None:
+        if ref not in nl.part_pins:
+            return (f"part_value (ADR {adr}): part {ref!r} is not in the "
+                    f"netlist at all")
+        return (f"part_value (ADR {adr}): {ref} has no value field in the "
+                f"netlist — an unreadable value is not a pass")
+    got = parse_si(raw)
+    if got is None:
+        return (f"part_value (ADR {adr}): {ref} value {raw!r} cannot be "
+                f"decoded as a number — a value the gate cannot read is a "
+                f"value it cannot vouch for")
+    why = str(inv.get("why", ""))[:100]
+    if "equals" in inv:
+        want = parse_si(inv["equals"])
+        tol = float(inv.get("tolerance_pct", 0)) / 100.0
+        if abs(got - want) > abs(want) * tol + 1e-12:
+            band = f" +/-{inv['tolerance_pct']}%" if tol else ""
+            return (f"part_value (ADR {adr}): {ref} is {raw} ({fmt_si(got)}), "
+                    f"invariant requires {inv['equals']}{band} — {why}")
+    if "max" in inv:
+        want = parse_si(inv["max"])
+        if got > want + 1e-12:
+            return (f"part_value (ADR {adr}): {ref} is {raw} ({fmt_si(got)}), "
+                    f"invariant requires <= {inv['max']} ({fmt_si(want)}) — "
+                    f"{why}")
+    if "min" in inv:
+        want = parse_si(inv["min"])
+        if got < want - 1e-12:
+            return (f"part_value (ADR {adr}): {ref} is {raw} ({fmt_si(got)}), "
+                    f"invariant requires >= {inv['min']} ({fmt_si(want)}) — "
+                    f"{why}")
+    return None
+
+
 _GRADERS = {
     "pin_on_net": _grade_pin_on_net,
     "series_chain": _grade_series_chain,
     "net_has_part": _grade_net_has_part,
+    "part_value": _grade_part_value,
 }
 
 

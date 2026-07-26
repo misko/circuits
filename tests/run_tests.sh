@@ -56,6 +56,8 @@ SUITES=(
   t1_status.py
   t1_jlc_twin.py
   t1_rotation_authority.py
+  t1_rotation_fixtures.py
+  t1_part_facts.py
   t2_route_stitch.py
   t2_tier_preflight.py
   t2_grind.py

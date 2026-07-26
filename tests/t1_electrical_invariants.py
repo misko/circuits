@@ -20,8 +20,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from harness import (KPY, ROOT, SCRIPTS, contains, main, must_fail,  # noqa: E402
-                     must_pass, run, test, tmpdir)
+from harness import (KPY, ROOT, SCRIPTS, check, contains, main,  # noqa: E402
+                     must_fail, must_pass, run, test, tmpdir)
 
 EINV = SCRIPTS / "electrical_invariants.py"
 
@@ -235,6 +235,192 @@ def t_adr_uncited_adr_prefix():
     r = must_fail(einv(d, "--adr-coverage"), "E-ADR loop open (ADR- heading)",
                   "ADR 0001")
     contains(r.out, "loop is not closed", "explains the missing link")
+
+
+# ============================================ part_value (E-INV, 2026-07-25)
+# THE INCIDENT (smc0985-cooksense, ab94de3 then 929b089). A safety P0 was found
+# — WD_PET, the TPS3823 watchdog heartbeat, had no pull-down, so with the Pi
+# unplugged the supervisor self-pulsed, WD_OK never fell and the external
+# COOKING CONTACTOR stayed energised indefinitely. The fix landed the pull-down
+# AT 100k. TI SLVS165O S6.5 gives I_IL at WDI = 190 uA MAX and the pin SOURCES
+# it, so the hold resistor is bounded by I_IL x R < V_IL:
+#     R_max = (0.3 x 3.3 V) / 190 uA = 0.99 V / 190 uA ~= 5.2k
+#     100k -> the node sits at ~VDD; THE WATCHDOG IS SILENTLY DISABLED
+# and ALL THREE E-INV assertions that landed with the fix — one net_has_part
+# plus two pin_on_net — PASS on the 100k netlist, because a resistor DOES exist
+# on WD_PET with its pads on the right nets. The commit body: "An invariant
+# that pins a component's EXISTENCE does not pin its VALUE."
+#
+# The fixture is the REAL cooksense netlist, broken in exactly one way: the
+# value string of R_WDPETPD alone is put back to 100k. Everything else — every
+# net, every node, every other component — is the shipped board.
+COOK_NET = (ROOT / "projects" / "smc0985-cooksense" / "06_build" /
+            "netlists" / "cooksense.net")
+
+# the three assertions that shipped WITH the defective fix, verbatim in shape
+WD_TOPOLOGY_INV = """\
+invariants:
+  - assert: net_has_part
+    net: WD_PET
+    part_type: resistor
+    min: 1
+    adr: 0011
+    why: "WD_PET must carry a pull resistor or the supervisor self-pulses"
+  - assert: pin_on_net
+    pin: "R_WDPETPD.1"
+    net: WD_PET
+    adr: 0011
+    why: "the pull sits on the WDI node, not a neighbouring watchdog net"
+  - assert: pin_on_net
+    pin: "R_WDPETPD.2"
+    net: GND
+    adr: 0011
+    why: "direction DOWN: a defined LOW produces no edge, so the WD expires"
+"""
+
+WD_VALUE_INV = """\
+invariants:
+  - assert: part_value
+    part: R_WDPETPD
+    max: 5.2k
+    adr: 0011
+    why: "I_IL(max) 190uA x R < V_IL 0.99V => R <= 5.2k (TI SLVS165O 6.5/7.3.4)"
+"""
+
+
+def cook_netlist(value=None):
+    """The real cooksense netlist, optionally with R_WDPETPD's VALUE (and
+    nothing else) rewritten — a good input broken in exactly one way."""
+    if not COOK_NET.exists():
+        raise AssertionError(f"missing real netlist fixture: {COOK_NET}")
+    text = COOK_NET.read_text()
+    if value is None:
+        return text
+    i = text.index('(ref "R_WDPETPD")')
+    j = text.index("(value ", i)
+    k = text.index(")", j)
+    return text[:j] + f'(value "{value}"' + text[k:]
+
+
+@test("E-INV part_value passes the cooksense watchdog pull-down as SHIPPED (1k)")
+def t_part_value_clean():
+    """The board that is actually correct: R_WDPETPD = 1k, TI's own recommended
+    value, 0.19V at I_IL(max) — 81% margin under the 0.99V V_IL bound."""
+    d = project(inv_text=WD_VALUE_INV, net_text=cook_netlist())
+    r = must_pass(einv(d), "part_value on the shipped 1k")
+    contains(r.out, "1 invariants hold", "clean part_value report")
+
+
+@test("E-INV part_value FAILS THE INCIDENT: the watchdog pull-down at 100k",
+      kind="known_bad")
+def t_part_value_incident():
+    """cooksense's WD_PET fix landed a 100k pull-down where the datasheet
+    demands <= 5.2k, and the board looked fixed. RED-VERIFIED (new-kind
+    variant): before this change `part_value` was not in the checker's `kinds`
+    set, so this exact invariants file raised LOAD ERROR "unknown or missing
+    assert kind 'part_value'" — the assertion could not be written at all,
+    which is precisely why the 100k board certified clean."""
+    d = project(inv_text=WD_VALUE_INV, net_text=cook_netlist("100kΩ"))
+    r = must_fail(einv(d), "part_value on the 100k watchdog resistor",
+                  "part_value")
+    contains(r.out, "R_WDPETPD", "names the part")
+    contains(r.out, "100k", "names the ACTUAL value found")
+    contains(r.out, "5.2k", "names the REQUIRED bound")
+
+
+@test("the THREE topology invariants that shipped with the fix PASS on the "
+      "100k board — existence is not value", kind="known_bad")
+def t_topology_invariants_cannot_see_value():
+    """THE POINT OF THE WHOLE KIND, asserted rather than asserted-about. The
+    net_has_part + two pin_on_net assertions added with the WD_PET fix all hold
+    on the DEFECTIVE netlist: the resistor exists, on WD_PET, to GND. They
+    would have certified the broken board — and did. This test FAILS if
+    anyone ever "fixes" a topology kind to peek at values, because then the
+    demonstration that a separate kind is needed would be false."""
+    d = project(inv_text=WD_TOPOLOGY_INV, net_text=cook_netlist("100kΩ"))
+    r = must_pass(einv(d), "the topology invariants on the 100k board")
+    contains(r.out, "3 invariants hold",
+             "all three topology assertions still pass the defective board")
+    # ...and the SAME netlist fails the value assertion. Same input, two
+    # verdicts: that difference IS the gap part_value closes.
+    d2 = project(inv_text=WD_VALUE_INV, net_text=cook_netlist("100kΩ"))
+    must_fail(einv(d2), "part_value on the same netlist", "part_value")
+
+
+@test("part_value decodes SI notation, and m/M are NOT the same multiplier")
+def t_part_value_si():
+    """`m` is MILLI and `M` is MEGA. A case-folding parser turns a 4.7M
+    feedback resistor into 4.7 milliohms and reports a comfortable pass — the
+    quiet way a value gate becomes decoration. Also pins the infix form (4k7)
+    and unit suffixes (1kOhm / 1kΩ), because a real fleet netlist carries all
+    of them for values a human calls the same thing."""
+    sys.path.insert(0, str(SCRIPTS))
+    from electrical_invariants import parse_si            # noqa: E402
+    for text, want in [("100k", 1e5), ("1kOhm", 1e3), ("1kΩ", 1e3),
+                       ("4k7", 4700.0), ("0R1", 0.1), ("5.2k", 5200.0),
+                       ("1K", 1e3), ("10uF 25V", 1e-5), ("100nF", 1e-7)]:
+        got = parse_si(text)
+        check(got is not None and abs(got - want) <= abs(want) * 1e-9,
+              f"parse_si({text!r}) = {got}, want {want}")
+    check(parse_si("1M") == 1e6 and parse_si("1m") == 1e-3,
+          f"m/M collapsed: 1M={parse_si('1M')} 1m={parse_si('1m')} — a "
+          f"case-folding parser reads a 4.7M resistor as 4.7 milliohms")
+    check(parse_si("DNP") is None and parse_si("") is None,
+          "an undecodable value must be None (reported as a FAILURE, never "
+          "silently passed)")
+
+
+@test("part_value FAILS a value the netlist carries but the gate cannot decode",
+      kind="known_bad")
+def t_part_value_undecodable():
+    """A value the gate cannot read is a value it cannot vouch for. Silently
+    skipping it is the NO-CAD class: an unrecognised input treated as an
+    affirmative disposition."""
+    d = project(inv_text=WD_VALUE_INV, net_text=cook_netlist("DNP"))
+    r = must_fail(einv(d), "part_value on an undecodable value", "part_value")
+    contains(r.out, "cannot be decoded", "says why it failed")
+
+
+@test("part_value refuses to load an assertion that declares NO bound",
+      kind="known_bad")
+def t_part_value_no_bound():
+    """An invariant naming a part and asserting nothing about it is exactly
+    the gap this kind closes — it must be a schema error, not a vacuous pass."""
+    inv = ("invariants:\n"
+           "  - assert: part_value\n"
+           "    part: R_WDPETPD\n"
+           "    adr: 0011\n"
+           "    why: \"names the part but bounds nothing\"\n")
+    d = project(inv_text=inv, net_text=cook_netlist())
+    r = must_fail(einv(d), "part_value with no bound", "no bound")
+    contains(r.out, "LOAD ERROR", "a schema error, not an assertion result")
+
+
+@test("part_value FAILS a min bound and an equals-with-tolerance", kind="known_bad")
+def t_part_value_min_and_equals():
+    """The other two bound forms, each broken in one way. `equals` without a
+    tolerance is exact; `tolerance_pct` widens it symmetrically."""
+    mn = ("invariants:\n"
+          "  - assert: part_value\n"
+          "    part: R_WDPETPD\n"
+          "    min: 470\n"
+          "    adr: 0011\n"
+          "    why: \"below 470R the WDI pull burns needless quiescent current\"\n")
+    d = project(inv_text=mn, net_text=cook_netlist("100R"))
+    r = must_fail(einv(d), "part_value min bound", ">= 470")
+    eqv = ("invariants:\n"
+           "  - assert: part_value\n"
+           "    part: R_WDPETPD\n"
+           "    equals: 1k\n"
+           "    tolerance_pct: 5\n"
+           "    adr: 0011\n"
+           "    why: \"TI names 1k explicitly in SLVS165O 7.3.4\"\n")
+    d2 = project(inv_text=eqv, net_text=cook_netlist("1.2kΩ"))
+    must_fail(einv(d2), "part_value equals +/-5%", "part_value")
+    # ...and 1.04k IS inside the +/-5% band, so the tolerance is real, not
+    # decorative (a band that rejects everything is the same as no band)
+    d3 = project(inv_text=eqv, net_text=cook_netlist("1.04kΩ"))
+    must_pass(einv(d3), "part_value equals +/-5% on an in-band value")
 
 
 if __name__ == "__main__":

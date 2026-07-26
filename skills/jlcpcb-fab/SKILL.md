@@ -173,15 +173,30 @@ footprint's own marker) on every 2-pad polarized part BEFORE ordering.
 
 ## Order-time human checklist (JLC preview, before paying)
 
-1. **Rotations** — the classic CPL failure. JLC's rotation zero differs
-   from KiCad's per package family; the exporter auto-corrects via
-   `scripts/jlc_rotations_db.csv` (community DB + local rules — extend it
-   when a new package family shows up rotated). STILL eyeball the preview:
-   diode/LED reel orientations vary per part (not in the DB), THT
-   connectors are hole-constrained but their orientation instructs the
-   operator, and bottom-side parts need their own check. Missing 3D models
-   (e.g. Sunlord inductors) render as empty space — that's cosmetic, the
-   part still mounts.
+1. **Rotations** — the classic CPL failure, and since 2026-07-25 a BLOCKING
+   gate rather than a checklist item (canon **A-ROT**). JLC's zero-orientation
+   is a PER-PART fact: the per-LCSC MEASURED table `scripts/jlc_lcsc_
+   rotations.csv` is the ONLY authority, and the footprint-NAME DB
+   `scripts/jlc_rotations_db.csv` is now ADVISORY — loaded, cross-checked,
+   never obeyed. Authority inherited by pattern-matching a NAME produced P0s
+   on five boards in one day (wrong key / negated offset / no rule fired /
+   partial prefix / unevidenced rule). **`export_jlc_package.py` exits 2** on
+   any placement with no measured row, writes `rotations_unsourced.csv` as the
+   worklist, and deletes any stale BOM/CPL. The one exemption is MEASURED, not
+   named: a footprint that is its own 180-degree reflection in BOTH pads and
+   graphics has no orientation to source.
+   - to clear a block: `jlc_rotation_measure.py BOARD REF=LCSC ... --row`
+     reports the PAD-NUMBER fit and the NUMBERING-FREE channels SEPARATELY and
+     proposes the row. `jlc_rotation_audit.py --table` grades the authority
+     (M-PROV + A-POL); `--fleet` prints the per-board migration worklist.
+   - **NEVER populate a row from `jlc_twin`'s `jlc_offset`** — that is the
+     checker's own output and it was negated for the fleet's whole history
+     (canon M1 / M-PROV).
+   STILL eyeball the preview, and MANDATORILY for every ref the export names
+   in `rotation_human_gate.txt` (canon A-POL single-channel: no numbering-free
+   channel exists, or the two channels disagreed). THT connectors are
+   hole-constrained but their orientation instructs the operator, and
+   bottom-side parts need their own check.
 2. **Small-via option** — if the board has vias < 0.45/0.2 mm, the
    "advanced" PCB option must be selected or JLC rejects/holes drift.
 3. **Stock re-check on order day** — stock moves; re-run verify mode the
