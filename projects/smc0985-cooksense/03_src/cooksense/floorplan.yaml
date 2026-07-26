@@ -59,6 +59,27 @@ board:
   #     pocket skipped: <3mm to the board edge, web too fragile; its single
   #     RSTOP_MID drop is covered by the 6.63mm construction gap).
   cutouts:
+    # ===== v1.3 P0-1: THE H4 ISOLATION NOTCH (user decision, 2026-07-25) =======
+    # H4 (193,52) sits INSIDE isolation column iso_col_r12 and its fitted hardware
+    # is 3.737mm from K_STOP.3 [RSTOP_MID, keypad domain] while the GND pour comes
+    # within 0.200mm of the hole wall — so a metal fastener is SELV-bonded and the
+    # keypad->hardware path is 3.737mm against a 6.000mm requirement. A through-cut
+    # BREAKS that surface path; the fastener and the enclosure interface stay put.
+    # It reaches the EAST BOARD EDGE, so it is OUTLINE geometry, not an internal
+    # slot: no router-bit minimum and no JLC internal-cutout surcharge.
+    # MEASURED to cross NOTHING (v1.3 placement):
+    #   COIL_STOP_N -> K_STOP.2 (189.83,45.62) and 5V_STOP -> K_STOP.1 (189.83,30.38)
+    #     both route WEST of x191.5;
+    #   RSTOP_MID -> K_STOP.3 and KP_U6 -> K_STOP.4 (both x197.45) route NORTH into
+    #     the keypad domain, never south across y49;
+    #   the GND/3V3 pours start at y53.0, entirely SOUTH of the cut — no plane severed.
+    # Surface path K_STOP.3 (197.45,45.62) around the notch's WEST end (191.5,49.3)
+    # to H4's hardware edge = ~8.5mm >= 6.000mm.
+    # NOTE the direct corridor between H4's hardware edge (x196.0) and K_STOP.3's
+    # pad edge (x196.55) is only 0.55mm — narrower than any router bit — so an
+    # INTERNAL slot there is not manufacturable. The edge notch is the only form
+    # that works, which is why the geometry is not "a slot near the hole".
+    - {rect: [191.50, 48.8, 200.10, 49.8]}   # H4 keypad-isolation notch (edge-reaching)
     - {rect: [29.40, 26.0, 37.84, 26.6]}    # coil gap r1r2
     - {rect: [59.88, 26.0, 68.32, 26.6]}    # coil gap r3r4
     - {rect: [90.36, 26.0, 98.80, 26.6]}    # coil gap r5r6
