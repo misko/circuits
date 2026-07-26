@@ -1,0 +1,145 @@
+{
+ "tool": "jlc_stock_check.py",
+ "bom": "projects/crow-mic-pod-v2/07_releases/crow-mic-pod-v2-v1.1-2026-07-25/fab/bom.csv",
+ "min_stock_per_board": 5,
+ "verdict": "PASS",
+ "failures": 0,
+ "uncoded_lines": 0,
+ "lines": [
+  {
+   "lcsc": "C25803",
+   "designators": "R3",
+   "qty": 1,
+   "status": "OK",
+   "stock": 7925574,
+   "type": "base",
+   "mpn": "0603WAF1003T5E"
+  },
+  {
+   "lcsc": "C14663",
+   "designators": "C10,C7",
+   "qty": 2,
+   "status": "OK",
+   "stock": 101901614,
+   "type": "base",
+   "mpn": "CC0603KRX7R9BB104"
+  },
+  {
+   "lcsc": "C49066",
+   "designators": "C1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 60041,
+   "type": "expand",
+   "mpn": "CL32A107MQVNNNE"
+  },
+  {
+   "lcsc": "C22775",
+   "designators": "R1,R10,R11",
+   "qty": 3,
+   "status": "OK",
+   "stock": 4446343,
+   "type": "base",
+   "mpn": "0603WAF1000T5E"
+  },
+  {
+   "lcsc": "C25804",
+   "designators": "R6,R8,R9",
+   "qty": 3,
+   "status": "OK",
+   "stock": 5634057,
+   "type": "base",
+   "mpn": "0603WAF1002T5E"
+  },
+  {
+   "lcsc": "C15850",
+   "designators": "C3,C4,C5,C6,C8,C9",
+   "qty": 6,
+   "status": "OK",
+   "stock": 11071970,
+   "type": "base",
+   "mpn": "CL21A106KAYNNNE"
+  },
+  {
+   "lcsc": "C15849",
+   "designators": "C2",
+   "qty": 1,
+   "status": "OK",
+   "stock": 15268212,
+   "type": "base",
+   "mpn": "CL10A105KB8NNNC"
+  },
+  {
+   "lcsc": "C4184",
+   "designators": "R7",
+   "qty": 1,
+   "status": "OK",
+   "stock": 2397636,
+   "type": "base",
+   "mpn": "0603WAF2002T5E"
+  },
+  {
+   "lcsc": "C31850",
+   "designators": "R4,R5",
+   "qty": 2,
+   "status": "OK",
+   "stock": 1680263,
+   "type": "base",
+   "mpn": "0603WAF2202T5E"
+  },
+  {
+   "lcsc": "C23018",
+   "designators": "R2",
+   "qty": 1,
+   "status": "OK",
+   "stock": 1153389,
+   "type": "base",
+   "mpn": "0603WAF3901T5E"
+  },
+  {
+   "lcsc": "C192421",
+   "designators": "U1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 4875,
+   "type": "expand",
+   "mpn": "OPA1678IDR"
+  },
+  {
+   "lcsc": "C1972959",
+   "designators": "D1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 11132,
+   "type": "expand",
+   "mpn": "TPD2E2U06DRLR"
+  },
+  {
+   "lcsc": "C22359707",
+   "designators": "LS1",
+   "qty": 1,
+   "status": "OK",
+   "stock": 69,
+   "type": "expand",
+   "mpn": "CMT-8504-100-SMT-TR"
+  },
+  {
+   "lcsc": "C2480",
+   "designators": "D2",
+   "qty": 1,
+   "status": "OK",
+   "stock": 2056763,
+   "type": "base",
+   "mpn": "SS14"
+  },
+  {
+   "lcsc": "C559105",
+   "designators": "D3",
+   "qty": 1,
+   "status": "OK",
+   "stock": 6546,
+   "type": "expand",
+   "mpn": "SMAJ6.0A"
+  }
+ ]
+}

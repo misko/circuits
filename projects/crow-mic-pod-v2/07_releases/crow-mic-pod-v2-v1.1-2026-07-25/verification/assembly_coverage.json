@@ -1,0 +1,19 @@
+{
+ "target": "projects/crow-mic-pod-v2/07_releases/crow-mic-pod-v2-v1.1-2026-07-25",
+ "summary": {
+  "board": 39,
+  "cpl": 26,
+  "datum_max_mm": 0.0,
+  "datum_max_ref": "U1",
+  "datum_graded": 26,
+  "unpopulated": 13,
+  "declared": 13,
+  "consigned": 0,
+  "exempt_prefixes": [],
+  "sides": {
+   "top": 26
+  },
+  "unexplained": []
+ },
+ "fails": []
+}

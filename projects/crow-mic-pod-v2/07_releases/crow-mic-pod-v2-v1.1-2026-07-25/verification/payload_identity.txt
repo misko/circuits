@@ -1,0 +1,59 @@
+PAYLOAD IDENTITY — v1.1 vs v1.0.  Measured 2026-07-25.
+The claim under test: v1.1 changes NO copper. Same order set except one BOM
+row removal. Three independent measurements below.
+
+========================================================================
+(1) FILE-FOR-FILE sha256 over fab/ pdf/ source/ 3d/
+========================================================================
+  v1.0's payload is taken AS COMMITTED (`git ls-files`), not as it sits on
+  disk: its working tree accumulated an untracked, gitignored
+  source/*.kicad_prl kicad-cli dropping that v1.0's own MANIFEST declares
+  OMITTED and does not hash. That file is not archive content, and v1.1
+  omits it too.
+
+  fab/bom.csv                                    DIFFERS
+      v1.0 615f8433f98a99484c3d355cbafe7ba76531b32ed991332edcdc290b99a07205
+      v1.1 c2eeb1a6d5b6b9ec57e4bd92ec8febe852b18e0718a6cbada96d7de8c4001c22
+
+  v1.0 payload files (as committed): 19
+  v1.1 payload files               : 19
+  byte-IDENTICAL                   : 18
+  DIFFER                           : 1   (18 + 1 = 19)
+
+  The single difference is fab/bom.csv — the MK1 and J1 rows removed.
+  Gerbers, drills, the gerber ZIP, the CPL, all four PDFs, all nine source/
+  artifacts and the STEP are bit-for-bit unchanged.
+
+========================================================================
+(2) STRUCTURAL DELTA — what KIND of change bom.csv underwent
+========================================================================
+  `release_freshness_check.py --bom-only-supersede` asserts more than
+  'it differs': the delta must be WHOLE ROWS REMOVED, for designators NOT
+  on the CPL. A row added, a row edited, or a removal for a still-placed
+  designator all FAIL. Measured this release:
+      2 whole row(s) REMOVED (J1, MK1), 0 added, 0 edited;
+      neither removed designator is on the CPL.          -> PASS
+
+========================================================================
+(3) RE-PLOT IDENTITY — regenerate the gerbers FROM the staged source/
+========================================================================
+  Method (canon M1 — not a re-hash of the shipped bytes):
+    export_jlc_package.py <staged source/*.kicad_pcb> <scratch> --layers 2
+  then compare to the SHIPPED zip's members. kicad-cli stamps a generation
+  timestamp into every file, so those lines — and ONLY those — are stripped
+  before hashing. Apertures, coordinates, polarity, tool tables and drill
+  hits are compared verbatim.
+      RESULT: 11/11 members identical.
+  The only textual differences anywhere were the two timestamp lines per
+  drill file:
+      ; DRILL file KiCad 10.0.4 date 2026-07-23T11:21:58   (shipped)
+      ; DRILL file KiCad 10.0.4 date 2026-07-25T20:33:04   (re-plot)
+  i.e. the staged source/ still plots the gerbers that shipped.
+
+========================================================================
+CONCLUSION
+========================================================================
+  v1.1 changes NO copper, NO gerber, NO drill, NO CPL, NO PDF, NO 3D and NO
+  source artifact. The board that comes back from this release is the board
+  v1.0 described. The one order-set change is the removal of two BOM rows
+  for parts JLC was being asked to source but never to place.

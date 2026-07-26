@@ -1,0 +1,19 @@
+15 BOM lines: 15 with LCSC, 0 without
+
+  OK               C25803     x1   100kΩ                                  base   stock=7928085
+  OK               C14663     x2   100nF                                  base   stock=101905016
+  OK               C49066     x1   100uF                                  expand stock=60041
+  OK               C22775     x3   100Ω                                   base   stock=4446393
+  OK               C25804     x3   10kΩ                                   base   stock=5641399
+  OK               C15850     x6   10uF                                   base   stock=11072753
+  OK               C15849     x1   1uF                                    base   stock=15270679
+  OK               C4184      x1   20kΩ                                   base   stock=2397686
+  OK               C31850     x2   22kΩ                                   base   stock=1680283
+  OK               C23018     x1   3.9kΩ                                  base   stock=1153379
+  OK               C192421    x1   C192421                                expand stock=4875
+  OK               C1972959   x1   C1972959                               expand stock=11132
+  OK               C22359707  x1   C22359707                              expand stock=69
+  OK               C2480      x1   C2480                                  base   stock=2056801
+  OK               C559105    x1   C559105                                expand stock=6546
+
+PASS: 0 coded lines with problems; 0 lines still uncoded
