@@ -64,6 +64,53 @@ verified: >
   raises pole-to-pole copper gap from 0.90 to 1.30mm, which on a 30V
   isolated block is the right direction. Full budget in
   03_src/cooksense/floorplan.yaml, EAST COLUMN block.
+orientation:
+  # PRESERVED HERE BECAUSE IT CANNOT LIVE IN jlc_lcsc_rotations.csv (coordinator
+  # decision 2026-07-26). C42400616 gets NO rotation row: it is off the CPL
+  # (exclude_from_pos_files + not_assembled) and it has no MEASURABLE offset,
+  # because JLC has no CAD for it at all. A row asserting an offset nobody can
+  # measure is an unevidenced authority entry — the `^JST_GH_SM,180` mistake
+  # that put eight cooksense connectors 180 deg out through two sealed releases.
+  cad_available: false
+  cad_probe: >
+    MEASURED 2026-07-26, and the CONTROL is what makes it a part fact rather
+    than a tool gap. easyeda2kicad against the EasyEDA/JLC API, same minute,
+    same tool, same network:
+      C474892     KF350-3.5-2P (stocked 9987)  -> FETCHED, 3D model
+                                                  CONN-TH_P3.50_KF350-3.5-2P
+      C9900026363 KF350 4P alternate           -> [ERROR] Failed to fetch data
+                                                  from EasyEDA API
+      C42400616   KF350-3.5-4P (this part)     -> [ERROR] Failed to fetch data
+                                                  from EasyEDA API
+    The API answered for the 2-pole part of the SAME family and refused BOTH
+    4-pole codes, which is consistent with stockCount 0 on all three 4P lines.
+    So this is genuine library absence, not a transient fetch failure, and
+    jlc_twin's FETCH-FAILED on it is adjudicated on that basis. Without the
+    control the same evidence reads as "the tool was silent", which is the
+    misdiagnosis this fleet has now made five times.
+  pole_1_marker: >
+    Read as a SHAPE, on both sides, since no model fit is possible:
+      OURS 4P   pad 1 is RECT at local (-5.250, 0.000); poles 2/3/4 are circles
+                at -1.750 / +1.750 / +5.250. The rect IS the pole-1 marker.
+      OURS 2P   pad 1 is RECT at local (-1.750, 0.000), pad 2 circle at +1.750
+                — the fab-proven geometry shipped on v1.0 and v1.1. The 4P is
+                that convention extended pole-for-pole, same -x end.
+      JLC 2P    (C474892, the only KF350 land JLC will serve) pad 1 at
+                (-1.75, 0.00), pad 2 at (+1.75, 0.00) — JLC's pole 1 is ALSO at
+                -x, so the family agrees with ours at offset 0.
+    Inference for the 4P is therefore offset 0 by family convention, but it is
+    an INFERENCE and is deliberately not written into the rotation table.
+  as_placed: >
+    J_ISOLOOP at (195.300, 95.000) rot 90 puts pole 1 SOUTH-most; board
+    coordinates measured off 04_kicad/cooksense.kicad_pcb:
+      pole 1  CONTACTOR_C     (195.300, 100.250)   opto collector -> E-stop B in
+      pole 2  CONTACTOR_LOOP  (195.300,  96.750)   E-stop B return
+      pole 3  CONTACTOR_LOOP  (195.300,  93.250)   -> contactor circuit
+      pole 4  CONTACTOR_E     (195.300,  89.750)   contactor return -> opto E
+    Field wiring runs SOUTH to NORTH. Since the part is hand-soldered and off
+    the CPL there is no machine rotation to get wrong: THE WHOLE RISK IS A
+    HUMAN LANDING FOUR WIRES, so the ORDER_README pole legend is the gate, not
+    a preview tick.
 sourcing:
   lcsc: C42400616
   note: >

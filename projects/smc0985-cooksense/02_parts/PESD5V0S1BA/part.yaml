@@ -2,16 +2,63 @@ mpn: PESD5V0S1BA
 manufacturer: UMW
 type: tvs_bidir_5v_sod323
 datasheet:
-  url: https://www.lcsc.com/product-detail/C5158048.html
-  fetched: 2026-07-19
+  doc_id: PESD5V0S1BA
+  revision: "2024-04-26"          # Nexperia "Product data sheet", 26 April 2024
+  url: https://assets.nexperia.com/documents/data-sheet/PESD5V0S1BA.pdf
+  local: PESD5V0S1BA_2024-04-26.pdf
+  fetched: 2026-07-26
+  note: >
+    The part fitted is UMW's clone (LCSC C5158048); Nexperia's document defines
+    the TYPE and is the authority for the pinning below. The v1.0-v1.3 dossier
+    cited only the LCSC product PAGE, which is a listing, not a datasheet — so
+    the bidirectional claim below rested on a part-number suffix until now.
 package: SOD-323
 footprint: Diode_SMD:D_SOD-323
 pins:
-  1: K
-  2: A
+  # CORRECTED 2026-07-26 from the datasheet. The dossier previously said
+  # `1: K, 2: A`, which asserts a polarity this device does not have.
+  1: K1                           # datasheet Table 2: "cathode (diode 1)"
+  2: K2                           # datasheet Table 2: "cathode (diode 2)"
 gotchas:
-  - "bidirectional - orientation electrically moot, keep pad1 to signal for CPL uniformity"
-verified: "2/3-pad commodity; polarity/pad-1 asserted in board generator + audit I9"
+  - >
+    ELECTRICALLY SYMMETRIC - BOTH PINS ARE CATHODES, and that is the
+    manufacturer's own wording rather than a decode of the "BA" suffix.
+    Datasheet section 5, Table 2 (Pinning information), verbatim:
+        Pin 1  Symbol K1  Description "cathode (diode 1)"
+        Pin 2  Symbol K2  Description "cathode (diode 2)"
+    graphic symbol sym045 = two cathodes facing each other (back-to-back
+    zeners, common anode internal, no anode pin brought out). Section 10
+    (Application information): "The device is designed for the protection of
+    one bidirectional data line from surge pulses and ESD damage. The device is
+    suitable on lines where the signal polarities are both positive and
+    negative with respect to ground."
+    CONSEQUENCE: pins 1 and 2 are functionally interchangeable, a 180 deg
+    rotation is electrically identical, and the part therefore has NO
+    orientation for a CPL rotation or a human preview gate to get wrong.
+  - >
+    THE PACKAGE-OUTLINE NOTE IS A TRAP. The SOD323 outline drawing in the same
+    datasheet carries "Note 1. The marking bar indicates the cathode" - that
+    note is boilerplate for the shared SOD323 outline and CANNOT distinguish an
+    orientation on this device, because both pins ARE cathodes. Do not read it
+    as evidence of polarity. (Marking code, section 7: "E6" - a type code, not
+    a polarity bar.)
+  - >
+    OUR LAND IS UNIDIRECTIONAL-LOOKING, AND THAT IS A LOGGED COSMETIC DEFECT,
+    NOT AN ASSEMBLY RISK. `Diode_SMD:D_SOD-323` carries a cathode band on
+    F.SilkS and a directional diode glyph on F.Fab (cathode bar at x=-0.649,
+    triangle apex at x=-0.649 against a base at x=+0.501), on all five refs
+    that use it: D_DOOR, D_ESD_IN, D_ESTOP, D_LCCLK, D_LCDAT. JLC assembles
+    from the CPL, not from our silk, so nothing is placed wrongly. The risk is
+    a REVIEWER: a person hand-checking the board sees a cathode mark, believes
+    the part is polarized, and "corrects" a placement that was already right.
+    NOT fixed in v1.3 - swapping five footprints after the DRC gate was
+    measured is not worth invalidating that gate for a cosmetic assertion.
+    Carried as a v1.4 item.
+verified: >
+  Pinning read from the ARCHIVED Nexperia datasheet (section 5, Table 2) on
+  2026-07-26: both pins are cathodes, the device is bidirectional, orientation
+  is electrically moot. Land geometry is adjudicated separately under twin
+  PAD-GEOM (03_src/cooksense/rules/twin_adjudications.yaml, C5158048).
 sourcing:
   lcsc: C5158048
   note: "119k stock; commodity clone accepted for signal ESD (D13). D3-D7."

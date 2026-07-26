@@ -170,3 +170,25 @@ C72203: {mpn: GRM155R61E225ME15D, value: "2.2uF", verified: "2026-07-23 JLC cata
 C137961: {mpn: RC0402FR-07510KL, value: "510k", verified: "2026-07-25 JLC catalog (selectSmtComponentList describe; 510kΩ ±1% 0402 50V 62.5mW, stock 554618)"}
 C25834: {mpn: 1206W4F6802T5E, value: "68k", verified: "2026-07-25 JLC catalog (selectSmtComponentList describe; 68kΩ ±1% 1206 200V 250mW — cooksense R_TH1, the TCAM_THRESH divider top)"}
 C17902: {mpn: 1206W4F1002T5E, value: "10k", verified: "2026-07-25 JLC catalog (selectSmtComponentList describe; 10kΩ ±1% 1206 200V 250mW — cooksense R_TH2, the TCAM_THRESH divider bottom)"}
+
+# cooksense v1.3 (2026-07-26). Both codes were UNVERIFIABLE-VALUE on leg C — the
+# fab BOM ships a blank MPN column and neither code had a part.yaml — so the gate
+# could only say "I do not know". Pinning them here turns one into a pass and the
+# other into the hard failure it always was.
+C25768: {mpn: 0402WGF2202TCE, value: "22k", verified: "2026-07-26 JLC catalog (selectSmtComponentList describe; 22kΩ ±1% 0402 50V 62.5mW, stock 1506726) + LCSC C25768 — cooksense R_CLMPA/R_CLMPB, the thermistor sense clamp/bleed pair. Label and catalog AGREE."}
+# !! C25915 IS NOT 62k. This row exists to make that visible, not to bless it. !!
+# cooksense v1.3 authors R_OPENT resistance="62k" (the open-thermistor detect
+# threshold, 03_tscircuit/src/cooksense.tsx) and the BOM Comment says 62kΩ, but
+# the CODE ordered is 6.2kΩ — one decade low. Verified twice, independently:
+#   JLC selectSmtComponentList C25915 -> 0402WGF6201TCE, describe "6.2kΩ"
+#   LCSC product page C25915          -> MPN 0402WGF6201TCE, resistance "6.2kΩ"
+# The 0402WGF convention is 3 significant digits + 1 multiplier digit, validated
+# against 21 already-verified rows in this file (1003->100k, 1002->10k,
+# 2201->2.2k, 5232->52.3k ...), so 6201 = 620 x 10^1 = 6.2k and 62k is 6202.
+# CORRECT CODE: C37825 (0402WGF6202TCE, "62kΩ", ±1%, same UNI-ROYAL family,
+# stock 127526, library expand) — reported to the coordinator 2026-07-26, NOT
+# changed unilaterally because it is an electrical/BOM change on a safety
+# function. This is the usb-hub-3s-v3 R12 pattern exactly (C2933210 = 3.74k
+# labeled 4.12k): the ledger records the CATALOG's truth so leg C fails loudly
+# instead of shrugging.
+C25915: {mpn: 0402WGF6201TCE, value: "6.2k", verified: "2026-07-26 JLC catalog (selectSmtComponentList describe; 6.2kΩ ±1% 0402 50V 62.5mW, stock 65919) AND LCSC product page C25915 (MPN 0402WGF6201TCE, resistance 6.2kΩ, 0402, ±1%). CATALOG TRUTH — cooksense v1.3 labels this row 62kΩ on R_OPENT and that label is WRONG; the 62k part is C37825."}
