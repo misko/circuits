@@ -16,7 +16,10 @@ Usage (KiCad-bundled python):
 
 KNOWN GAPS (deliberate — cover them with the process): collides() checks
 tracks, vias, flashed pads, and drilled-pad HOLES, but NOT zone fills,
-board edges, or rule areas. Zones are handled by refill-after-edit; edge
+board edges, or rule areas. collides() also exempts SAME-NET items by
+design; the one constraint that must not be exempted that way is
+hole-to-hole, which therefore lives in its own net-independent check
+(hole_to_hole_ok, applied by via_site_ok). Zones are handled by refill-after-edit; edge
 and everything else by the classified-DRC green check that is MANDATORY
 after every edit, including your own fixes. verified_astar treats both
 endpoints as F.Cu — pass B.Cu-side points through a via first. Save/reload
@@ -35,9 +38,20 @@ def _vec(x, y):
 
 
 class Toolkit:
-    def __init__(self, board, clearance_mm=0.11):
+    def __init__(self, board, clearance_mm=0.11, hole_to_hole_mm=None):
         self.board = board
         self.clr = pcbnew.FromMM(clearance_mm)
+        # HOLE-TO-HOLE floor, in mm. Default: the BOARD'S OWN design setting
+        # (m_HoleToHoleMin), which `generate_rules_generic` writes from the
+        # declared fab tier BEFORE routing (canon R1) and which is the exact
+        # number `kicad-cli pcb drc` judges against — so the site check and
+        # the gate cannot drift apart. Pass an explicit value to override.
+        # (A board opened with no .kicad_pro beside it falls back to KiCad's
+        # own 0.25mm default, which is the tier floor for advanced-option
+        # boards and a floor, never a ceiling, for standard ones.)
+        if hole_to_hole_mm is None:
+            hole_to_hole_mm = MM(board.GetDesignSettings().m_HoleToHoleMin)
+        self.h2h = float(hole_to_hole_mm)
         self._index = None
         self._index_sig = None
 
@@ -102,9 +116,64 @@ class Toolkit:
                     return item
         return None
 
+    def hole_sites(self, skip=()):
+        """(x_mm, y_mm, drill_radius_mm) for every DRILLED hole on the board —
+        vias and drilled (THT/NPTH) pads. `skip` is an iterable of items to
+        ignore, for the caller that is about to MOVE one of them.
+
+        Positions are read LIVE off the items; the bbox index is used only as
+        the item list (its cached boxes go stale when a via is nudged, and a
+        stale box must not decide a spacing question)."""
+        dead = {i.m_Uuid.AsString() for i in skip}
+        out = []
+        for _bb, item, is_track in self._get_index():
+            if is_track:
+                if type(item).__name__ != "PCB_VIA":
+                    continue
+                d = item.GetDrillValue()
+            else:
+                d = item.GetDrillSizeX()
+            if d <= 0 or item.m_Uuid.AsString() in dead:
+                continue
+            p = item.GetPosition()
+            out.append((MM(p.x), MM(p.y), MM(d) / 2.0))
+        return out
+
+    def hole_to_hole_ok(self, x, y, drill, floor=None, skip=()):
+        """Is a new `drill`-mm hole at (x, y) clear of every OTHER drilled
+        hole on the board, drill EDGE to drill EDGE, by at least `floor` mm?
+
+        NET-INDEPENDENT ON PURPOSE — and that is why it could not live inside
+        `collides()`. Every other test in this toolkit exempts same-net items,
+        because same-net COPPER is allowed to touch. Two DRILLS are not: the
+        floor is MECHANICAL (adjacent barrels break out into each other on the
+        drill), and KiCad's `hole_to_hole` DRC rule applies it across nets and
+        within one net alike. Skipping same-net holes here is exactly how two
+        5VA tap vias landed 0.259mm apart on a 0.4995mm floor and shipped a
+        DRC violation nothing in the stitch objected to (usb-hub-3s-v3,
+        2026-07-25 — see hole_to_hole in via_site_ok).
+
+        A hole COINCIDENT with the probe (within 1um) is the probe, not a
+        neighbour: re-checking a site that already holds a via must answer
+        "yes, a via fits here". Stacked same-net vias are `dedupe_vias`'
+        business; a coincident DIFFERENT-net via is already a hard refusal in
+        `collides()` (zero-distance copper)."""
+        f = self.h2h if floor is None else float(floor)
+        if f <= 0 or drill <= 0:
+            return True
+        r = drill / 2.0
+        for hx, hy, hr in self.hole_sites(skip):
+            d = math.hypot(x - hx, y - hy)
+            if d <= 1e-3:                      # the probe IS this hole
+                continue
+            if d - (r + hr) < f - 1e-9:
+                return False
+        return True
+
     def via_site_ok(self, x, y, netcode, size=0.45, drill=0.2,
-                    hole_to_copper=0.205, layers=None):
-        """Barrel clearance AND hole-to-copper on every layer.
+                    hole_to_copper=0.205, layers=None,
+                    hole_to_hole=None, skip=()):
+        """Barrel clearance, hole-to-copper on every layer, AND hole-to-hole.
 
         `layers` DEFAULTS to the board's FULL copper stack (via
         board.GetEnabledLayers().CuStack()), not just F.Cu/B.Cu — a
@@ -117,7 +186,11 @@ class Toolkit:
         In2.Cu/In3.Cu (crow-recorder-central-v2, 2026-07-23), invisible to
         this check and to `quick` (pre-fill) alike, only surfacing at the
         full kicad-cli DRC gate. Pass an explicit `layers=` to override
-        (e.g. a blind/buried via that does NOT span the full stack)."""
+        (e.g. a blind/buried via that does NOT span the full stack).
+
+        HOLE-TO-HOLE is checked LAST and is the only test here that does not
+        exempt same-net items — see `hole_to_hole_ok`. `skip` names holes to
+        ignore (the via a caller is about to move out of the way)."""
         if layers is None:
             layers = tuple(self.board.GetEnabledLayers().CuStack())
         for lay in layers:
@@ -126,7 +199,7 @@ class Toolkit:
             if self.collides(x, y, x, y, drill, netcode, lay,
                              clr=hole_to_copper):
                 return False
-        return True
+        return self.hole_to_hole_ok(x, y, drill, floor=hole_to_hole, skip=skip)
 
     def all_blockers(self, x1, y1, x2, y2, width, netcode, layer):
         """Distinct blocking items on a path — feed the rip-single-blocker
@@ -189,11 +262,22 @@ class Toolkit:
         return None
 
     def verified_astar(self, netname, p1, p2, width, grid=0.1, viacost=25,
-                       window=4.0, attempts=8, exempt_r=0.3):
+                       window=4.0, attempts=8, exempt_r=0.3,
+                       via_size=0.45, via_drill=0.2):
         """Two-layer grid A* whose EMITTED path is re-verified segment by
         segment (exact shapes); failing nodes are blocked and the search
         retries. Endpoint exemption is for the search only — verification
-        has no exemptions, which is the entire point."""
+        has no exemptions, which is the entire point.
+
+        `via_size`/`via_drill` are the geometry of the LAYER-CHANGE vias this
+        emits — CHECKED and PLACED with the same numbers. They default to the
+        historic 0.45/0.2, which is below a standard-tier floor: callers that
+        know their tier must pass it, or the site is cleared for a hole the
+        board never gets. usb-hub-3s-v3 (2026-07-25) shipped exactly that —
+        the escape tap's A* cleared a site at drill 0.2 (hole gap 0.500 vs a
+        0.4995 floor, PASS), emitted the via, and a post-stitch drill floor
+        then opened it to 0.3, closing the gap to 0.450: a hole_to_hole
+        violation created by a check that was run against the wrong drill."""
         F, Bc = pcbnew.F_Cu, pcbnew.B_Cu
         net = self.board.FindNet(netname)
         nc = net.GetNetCode()
@@ -273,14 +357,16 @@ class Toolkit:
             for i in range(1, len(path)):
                 if path[i][2] != path[i - 1][2]:
                     vx, vy = xy(path[i])
-                    if not self.via_site_ok(vx, vy, nc):
+                    if not self.via_site_ok(vx, vy, nc, size=via_size,
+                                            drill=via_drill):
                         bad.append(path[i])
             if bad:
                 extra.update(bad)
                 continue
             for i in range(1, len(path)):
                 if path[i][2] != path[i - 1][2]:
-                    self.add_via(*xy(path[i]), net)
+                    self.add_via(*xy(path[i]), net,
+                                 size=via_size, drill=via_drill)
             for i in range(len(pts) - 1):
                 a, b = pts[i], pts[i + 1]
                 if abs(a[0] - b[0]) < 1e-9 and abs(a[1] - b[1]) < 1e-9:

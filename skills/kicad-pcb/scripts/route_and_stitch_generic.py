@@ -749,10 +749,30 @@ def _tap_point(board, spec, netname, what):
 
 def _tap_via_near(tk, p, nc, stub_w, layer, vs, vd):
     """A collision-checked via site near p, reachable from p by a clear stub
-    on `layer` (the escape-from-a-dense-pin-row move)."""
+    on `layer` (the escape-from-a-dense-pin-row move).
+
+    HOLE-TO-HOLE IS DEFERRED HERE, and ONLY here (`hole_to_hole=0`). This is
+    the one via emitter whose site set is a short fixed LADDER around a pad
+    that cannot move, and whose only possible conflict partner is chain
+    copper that a later pass can still move: `stitch.hole_to_hole` nudges
+    whichever via of the pair is draggable, and it now FAILS LOUDLY when it
+    cannot (p_hole_to_hole). Every free-choice emitter — verified_astar's
+    layer changes, Ctx.try_via's stitch/grid/rescue vias — has a whole board
+    of alternatives and must NOT create a conflict in the first place.
+
+    MEASURED, usb-hub-3s-v3 2026-07-25: enforcing the floor here instead
+    costs the board. The SW_A tap out of U2.20 sits 0.35mm from an imported
+    HO_A via, so the pad site (offset 0,0 — no stub at all) is refused and
+    the ladder falls to a 0.8mm stub that grazes that same via at 0.125mm
+    against a 0.15mm netclass clearance. Sealed v1.5 took the pad site and
+    the stitch moved the HO_A via 0.6mm east; that is the right answer, and
+    it needs a repair pass, not a stricter placer. Every OTHER constraint
+    (copper clearance, hole-to-copper, the stub's own path) stays hard —
+    nothing downstream repairs those."""
     for dx, dy in TAP_OFFS:
         v = (round(p[0] + dx, 3), round(p[1] + dy, 3))
-        if not tk.via_site_ok(v[0], v[1], nc, size=vs, drill=vd):
+        if not tk.via_site_ok(v[0], v[1], nc, size=vs, drill=vd,
+                              hole_to_hole=0):
             continue
         if (dx == 0 and dy == 0) or \
                 tk.collides(p[0], p[1], v[0], v[1], stub_w, nc, layer) is None:
@@ -803,11 +823,16 @@ def _route_one_tap(pcbnew, tk, t, i, vs, vd):
         if not tk.via_site_ok(p1[0], p1[1], nc, size=vs, drill=vd):
             print(f"       {what}: via-in-pad site blocked at {p1}")
             return None
+        # vs/vd, NOT the toolkit's 0.45/0.2 default: the escape's layer-change
+        # vias are TAP vias and must be checked and emitted at the tap tier's
+        # geometry (usb-hub-3s-v3, 2026-07-25 — a 0.2-drill check cleared a
+        # site the 0.3-drill via then violated).
         if tk.verified_astar(netname, p1, p2, w,
                              grid=float(t.get("escape_grid", 0.25)),
                              window=float(t.get("escape_window", 4.0)),
                              viacost=int(t.get("escape_viacost", 8)),
-                             attempts=int(t.get("escape_attempts", 14))):
+                             attempts=int(t.get("escape_attempts", 14)),
+                             via_size=vs, via_drill=vd):
             return "escape"
         return None
 
@@ -1542,10 +1567,19 @@ def p_reload(ctx, c):
     die("internal: 'reload' must be intercepted by cmd_stitch")
 
 
+# Prefix on every failure this pass records, so a LATER hole_to_hole pass can
+# clear an EARLIER one's findings without touching anyone else's failures.
+_H2H_TAG = "hole_to_hole: "
+
+
 @stitch_pass("hole_to_hole")
 def p_hole_to_hole(ctx, c):
     """Fab floor is a DRILL-EDGE gap (0.5mm at JLC). Two modes, both shipped:
-    nudge the offending via (carrying its track endpoints), or shrink it."""
+    nudge the offending via (carrying its track endpoints), or shrink it.
+
+    This is a REPAIR pass, and it is the LAST line — `via_site_ok` refuses a
+    site inside the floor in the first place. What it cannot repair it
+    REPORTS (ctx.failures): a silent give-up here is a shipped violation."""
     pcbnew = ctx.pcbnew
     floor = float(c.get("min_gap", 0.5))
     mode = c.get("mode", "nudge")
@@ -1597,19 +1631,37 @@ def p_hole_to_hole(ctx, c):
         return False
 
     moved = 0
+    unfixed = []
+
+    def give_up(v1, v2, gap, why):
+        (x1, y1), (x2, y2) = vxy(v1), vxy(v2)
+        unfixed.append(
+            f"{_H2H_TAG}{v1.GetNetname()} via ({x1:.3f},{y1:.3f}) vs "
+            f"{v2.GetNetname()} via ({x2:.3f},{y2:.3f}): hole gap "
+            f"{gap:.3f}mm < floor {floor}mm and {why}")
+
     for i in range(len(vlist)):
         for j in range(i + 1, len(vlist)):
             v1, v2 = vlist[i], vlist[j]
             x1, y1 = vxy(v1)
             x2, y2 = vxy(v2)
             d1, d2 = v1.GetDrill() / 1e6, v2.GetDrill() / 1e6
-            if math.hypot(x1 - x2, y1 - y2) - (d1 + d2) / 2 >= floor:
+            gap = math.hypot(x1 - x2, y1 - y2) - (d1 + d2) / 2
+            if gap >= floor:
                 continue
             vm = v1 if (v2.GetNetname() in keep and v1.GetNetname() not in keep) else v2
             if mode != "shrink" and pinned_midtrack(vm):
                 other = v2 if vm is v1 else v1
                 if pinned_midtrack(other):
-                    continue          # both undraggable: leave the pair alone
+                    # BOTH undraggable. Leaving the pair alone is the only SAFE
+                    # move (nudging either one breaks its net), but silence here
+                    # SHIPS A DRC VIOLATION: usb-hub-3s-v3 v1.5 rebuilt to
+                    # hole_to_hole 0.259mm vs 0.4995mm with a clean stitch log
+                    # (2026-07-25). An unrepairable pair is a FAILURE, not a
+                    # no-op — the placer upstream has to stop making it.
+                    give_up(v1, v2, gap, "both vias are pinned mid-track "
+                                         "(nudging either one breaks its net)")
+                    continue
                 vm = other
             if mode == "shrink":
                 s = c.get("shrink_to", {"size": 0.48, "drill": 0.2})
@@ -1632,9 +1684,13 @@ def p_hole_to_hole(ctx, c):
                            for ov in vlist if ov is not vm
                            for ox, oy in [vxy(ov)]):
                         continue
+                    # skip=[vm]: vm's own hole is about to VACATE (mx,my), and
+                    # the first ring is 0.25mm — well inside the h2h floor, so
+                    # without the skip a via could never step off its own site.
                     if not ctx.tk.via_site_ok(nx, ny, vm.GetNetCode(),
                                               size=vm.GetWidth() / 1e6,
-                                              drill=vm.GetDrill() / 1e6):
+                                              drill=vm.GetDrill() / 1e6,
+                                              skip=[vm]):
                         continue
                     bad = False
                     for t in ends:
@@ -1665,9 +1721,21 @@ def p_hole_to_hole(ctx, c):
                     break
                 if done:
                     break
+            if not done:
+                give_up(v1, v2, gap, "no legal site on any nudge ring "
+                                     f"({c.get('rings', [0.25, 0.4, 0.6, 0.85, 1.1])})")
     ctx._used = None
     ctx.bump("h2h_fixed", moved)
-    print(f"hole-to-hole repair ({mode}): {moved} vias")
+    # THE LAST hole_to_hole PASS OWNS THE VERDICT. Boards run this pass twice
+    # (repair, then re-check after the via-adding passes), so a later run
+    # CLEARS what an earlier one could not fix — but whatever is still
+    # unrepairable when the last run ends reaches `gate` as a failure instead
+    # of reaching the fab as a DRC violation.
+    ctx.failures[:] = [f for f in ctx.failures if not f.startswith(_H2H_TAG)]
+    ctx.failures.extend(unfixed)
+    ctx.counts["h2h_unrepairable"] = len(unfixed)
+    print(f"hole-to-hole repair ({mode}): {moved} vias"
+          + (f", {len(unfixed)} UNREPAIRABLE" if unfixed else ""))
 
 
 @stitch_pass("stitch_grid")

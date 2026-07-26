@@ -2062,6 +2062,198 @@ def t_kb_fp_lib_kiprjmod():
           f"fp-lib-table carries an absolute path for a project-local lib: {line}")
 
 
+# =================================== HOLE-TO-HOLE AT THE VIA SITE ==========
+# usb-hub-3s-v3 v1.5 stopped reproducing from its own rebuild_fast.sh on
+# 2026-07-25: DETERMINISTIC DRC 1 violation / 0 unconnected / 0 parity —
+# hole_to_hole, two 5VA vias 0.259mm apart against a 0.4995mm floor, at
+# (52.175,44.0) and (52.675,44.25). Bisected to 8667452's pinned_midtrack
+# guard, but the guard only UNMASKED the hole: nothing ever refused the site.
+#
+#   * `collides()` exempts SAME-NET items (correct: same-net copper may
+#     touch), and `via_site_ok` was built entirely out of collides() — so it
+#     had NO hole-to-hole term at all. A drill floor is MECHANICAL and applies
+#     across nets AND within one net; exempting same-net holes made the two
+#     5VA tap vias invisible to the only check that ran before they were
+#     placed. Even ACROSS nets it under-checked: at standard tier, copper
+#     clearance is satisfied at 0.60mm centre-to-centre (hole gap 0.30) while
+#     the hole-to-hole floor needs 0.80mm.
+#   * The stitch's `hole_to_hole` REPAIR pass was the only thing covering it,
+#     and it could give up silently (both vias undraggable, or no legal nudge
+#     site) — a shipped violation with a "gate: clean" log line.
+_PROBE_H2H = r'''
+import sys, math
+sys.path.insert(0, "__SCRIPTS__")
+import pcbnew
+from pcb_toolkit import Toolkit
+MM = pcbnew.FromMM
+
+b = pcbnew.BOARD(); b.SetCopperLayerCount(2)
+b.GetDesignSettings().m_HoleToHoleMin = MM(0.5)   # the STANDARD-tier floor
+net = pcbnew.NETINFO_ITEM(b, "5VA"); b.Add(net)
+gnd = pcbnew.NETINFO_ITEM(b, "GND"); b.Add(gnd)
+
+def via(x, y, size=0.45, drill=0.3):
+    v = pcbnew.PCB_VIA(b); v.SetViaType(pcbnew.VIATYPE_THROUGH)
+    v.SetPosition(pcbnew.VECTOR2I(MM(x), MM(y)))
+    v.SetWidth(MM(size)); v.SetDrill(MM(drill)); v.SetNet(net); b.Add(v)
+    return v
+
+# THE INCIDENT GEOMETRY, exactly: the 5VA tap via-in-pad at R3.1 and the
+# escape A*'s first layer change, 0.559mm apart -> 0.259mm hole gap.
+via(52.175, 44.0)
+tk = Toolkit(b, 0.15)
+print("FLOOR_MM %.4f" % tk.h2h)
+nc, oc = net.GetNetCode(), gnd.GetNetCode()
+
+# The PRE-FIX predicate, reproduced inline: barrel clearance + hole-to-copper
+# on every layer and nothing else. collides() skips same-net items, so the
+# same-net probe is vacuously clear; the cross-net probe is clear on copper.
+def old_site_ok(x, y, code, size, drill):
+    for lay in tuple(b.GetEnabledLayers().CuStack()):
+        if tk.collides(x, y, x, y, size, code, lay):
+            return False
+        if tk.collides(x, y, x, y, drill, code, lay, clr=0.205):
+            return False
+    return True
+
+print("OLD_SAMENET_OK", old_site_ok(52.675, 44.25, nc, 0.45, 0.3))
+print("NEW_SAMENET_OK", tk.via_site_ok(52.675, 44.25, nc, size=0.45, drill=0.3))
+print("SAMENET_GAP_MM %.4f" % (math.hypot(0.5, 0.25) - 0.3))
+print("OLD_XNET_OK", old_site_ok(52.825, 44.0, oc, 0.45, 0.3))
+print("NEW_XNET_OK", tk.via_site_ok(52.825, 44.0, oc, size=0.45, drill=0.3))
+print("XNET_GAP_MM %.4f" % (0.65 - 0.3))
+print("NEW_LEGAL_OK", tk.via_site_ok(52.175, 44.9, nc, size=0.45, drill=0.3))
+print("NEW_COINCIDENT_OK", tk.via_site_ok(52.175, 44.0, nc, size=0.45, drill=0.3))
+'''
+
+
+@test("via_site_ok REFUSES a site inside the hole-to-hole floor — same net "
+      "included — and reads the floor from the board's own design settings",
+      kind="known_bad")
+def t_kb_via_site_hole_to_hole():
+    """The usb-hub-3s-v3 v1.5 rebuild regression, pinned at the predicate.
+
+    RED-VERIFIED INLINE: `OLD_SAMENET_OK True` / `OLD_XNET_OK True` are the
+    pre-fix verdicts of the exact code that shipped the violation — a
+    via_site_ok built only from collides(), which exempts same-net items and
+    checks copper clearance, not drill spacing. It approved a site 0.259mm
+    from a same-net via and 0.350mm from a different-net one, both against a
+    0.5mm floor. Also RED-VERIFIED against the real pre-fix file by swapping
+    HEAD's pcb_toolkit.py back in: this test fails at NEW_SAMENET_OK.
+
+    The fix must not be a blunt instrument, so three more properties are
+    pinned: a site one floor away is still legal (NEW_LEGAL_OK True), the
+    verdict does NOT depend on the net (NEW_XNET_OK False — hole-to-hole is
+    mechanical), and re-checking a site a via already occupies still answers
+    yes (NEW_COINCIDENT_OK True; stacked vias are dedupe_vias' business, and
+    the tap ladder re-probes its own pad site)."""
+    d = tmpdir("t2_h2h_")
+    probe = d / "probe.py"
+    probe.write_text(_PROBE_H2H.replace("__SCRIPTS__", str(SCRIPTS)))
+    r = must_pass(run([KPY, probe]), "hole-to-hole site predicate probe")
+    floor = float([l for l in r.out.splitlines()
+                   if l.startswith("FLOOR_MM")][0].split()[1])
+    eq(floor, 0.5, "the toolkit must take its hole-to-hole floor from the "
+                   "BOARD's design settings (what kicad-cli DRC judges "
+                   "against), not from a constant of its own")
+    contains(r.out, "OLD_SAMENET_OK True",
+             "the pre-fix copper-only predicate must APPROVE the incident "
+             "site — that is this fixture's RED baseline")
+    contains(r.out, "NEW_SAMENET_OK False",
+             "a via 0.259mm from a SAME-NET via's drill is a hole_to_hole "
+             "violation and the site must be refused")
+    contains(r.out, "OLD_XNET_OK True",
+             "the pre-fix predicate also approved a cross-net site 0.35mm "
+             "away: copper clearance is not drill spacing")
+    contains(r.out, "NEW_XNET_OK False",
+             "the floor is MECHANICAL — the refusal must not depend on nets")
+    contains(r.out, "NEW_LEGAL_OK True",
+             "a site clear of the floor must still be accepted — the check "
+             "must not degenerate into refusing everything")
+    contains(r.out, "NEW_COINCIDENT_OK True",
+             "re-probing the site a via already occupies must answer yes")
+
+
+_PLANT_H2H = """
+n = b.FindNet('GND')
+def via(x, y):
+    v = pcbnew.PCB_VIA(b)
+    v.SetViaType(pcbnew.VIATYPE_THROUGH)
+    v.SetPosition(pcbnew.VECTOR2I_MM(x, y))
+    v.SetWidth(pcbnew.FromMM(0.45)); v.SetDrill(pcbnew.FromMM(0.3))
+    v.SetNet(n); b.Add(v)
+def cross(x, y):
+    t = pcbnew.PCB_TRACK(b)
+    t.SetStart(pcbnew.VECTOR2I_MM(x - 2.0, y))
+    t.SetEnd(pcbnew.VECTOR2I_MM(x + 2.0, y))
+    t.SetWidth(pcbnew.FromMM(0.25)); t.SetLayer(pcbnew.F_Cu)
+    t.SetNet(n); b.Add(t)
+# the incident pair: 0.559mm apart -> 0.259mm hole gap against a 0.5 floor,
+# each via crossed MID-SEGMENT by its own same-net track so the nudge cannot
+# drag either one without stranding the crossing segment.
+via(30.0, 30.0);   cross(30.0, 30.0)
+via(30.5, 30.25);  cross(30.5, 30.25)
+"""
+
+
+@test("an UNREPAIRABLE hole_to_hole pair fails the stitch gate instead of "
+      "being silently left on the board", kind="known_bad")
+def t_kb_h2h_unrepairable_fails():
+    """usb-hub-3s-v3 v1.5, 2026-07-25. 8667452 taught p_hole_to_hole to leave
+    a pair alone when BOTH vias are pinned mid-track — correct in itself
+    (nudging either one strands the crossing segment and breaks the net), but
+    it took the `continue` path in SILENCE. The stitch printed
+    'hole-to-hole repair (nudge): 3 vias' and 'gate: clean', and the board
+    shipped a 0.259mm hole gap that only the full kicad-cli DRC saw.
+
+    RED-VERIFIED against the pre-fix pass: restore the bare
+    `if pinned_midtrack(other): continue` (no give_up call, no ctx.failures
+    write) and this test fails — the stitch exits 0 with 'gate: clean'.
+
+    The pair here is deliberately UNFIXABLE: two same-net vias 0.559mm apart,
+    each crossed mid-segment by its own track. The pass must report it, not
+    repair it — an unrepairable drill conflict is an upstream placement fact
+    the gate has to surface."""
+    def mutate(cfg, d):
+        cfg["stitch"]["passes"] = ["hole_to_hole", "fill", "gate"]
+        cfg["stitch"]["hole_to_hole"] = {"min_gap": 0.5, "mode": "nudge",
+                                         "prefer_keep": ["GND"]}
+    d, p = scratch(mutate)
+    edit_board(d / "04_kicad" / f"{STEM}.kicad_pcb", _PLANT_H2H)
+    r = must_fail(stitch(p), "stitch with an unrepairable hole_to_hole pair",
+                  "hole_to_hole:")
+    contains(r.out, "pinned mid-track",
+             "the failure must name WHY the pair could not be repaired")
+    contains(r.out, "UNREPAIRABLE",
+             "the pass's own summary line must say it gave up, not just the "
+             "gate — a clean-looking pass log is how this shipped")
+
+
+@test("a hole_to_hole pair the pass CAN repair leaves no failure behind")
+def t_h2h_repairable_is_clean():
+    """The companion clean case: the same too-close pair, but with nothing
+    pinning either via, must be nudged apart and reach a clean gate. Without
+    this, 'report what you cannot fix' could rot into 'report everything'."""
+    def mutate(cfg, d):
+        cfg["stitch"]["passes"] = ["hole_to_hole", "fill", "gate"]
+        cfg["stitch"]["hole_to_hole"] = {"min_gap": 0.5, "mode": "nudge",
+                                         "prefer_keep": ["GND"]}
+    d, p = scratch(mutate)
+    edit_board(d / "04_kicad" / f"{STEM}.kicad_pcb", """
+n = b.FindNet('GND')
+for x, y in ((30.0, 30.0), (30.5, 30.25)):
+    v = pcbnew.PCB_VIA(b)
+    v.SetViaType(pcbnew.VIATYPE_THROUGH)
+    v.SetPosition(pcbnew.VECTOR2I_MM(x, y))
+    v.SetWidth(pcbnew.FromMM(0.45)); v.SetDrill(pcbnew.FromMM(0.3))
+    v.SetNet(n); b.Add(v)
+""")
+    r = must_pass(stitch(p), "stitch with a repairable hole_to_hole pair")
+    contains(r.out, "gate: clean", "a repairable pair must not fail the gate")
+    check("UNREPAIRABLE" not in r.out,
+          f"a repairable pair must not be reported as unrepairable:\n{r.out}")
+
+
 # ============================================================== E2E =====
 def _e2e(project, stem, waves, skip_preflight=False):
     """The real validation gate: generate -> rules -> prep -> REAL KRT ->

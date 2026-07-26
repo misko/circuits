@@ -175,6 +175,74 @@ renders SOUTH, 270 NORTH — 0.014 mm residual vs 8.000 mm for the other form).
 
 | S-DSL | Circuit declarations COMPILE TO NATIVE KiCad artifacts; every gate runs on artifacts, never on a DSL's claims about them. Front-ends may vary (schwriter2 declarations, future adapters); .kicad_sch/.kicad_pcb + the gate stack are fixed | [G] structural | evaluated CircuitScript 2026-07-18: netlist-only KiCad export would break ERC/parity/S-OCCL at their strongest link |
 
+### CANDIDATE canon (NOT yet a gate) — M-BACKEND: a release must pin the BACKEND it was built with
+
+**M-REPRO is currently TIME-DEPENDENT, and nothing measures it.** M3/M-REPRO
+says everything is regenerable from source and grades that every rebuild input
+is git-tracked. But "from source" silently means "with `skills/` as it was at
+seal time", and a MANIFEST records only `git_sha` — the SOURCE commit for the
+board's own subtree. `skills/` is SHARED and moves under every sealed board:
+a release can stop reproducing through no change of its own, and no gate says
+so. Every sealed release in this repo may already be in that position; there
+is currently no way to tell, because the datum was never recorded.
+
+**THE PROPERTY WORTH HAVING IS NOT "the old board still matches today's
+backend".** That is archaeology, and it is GUARANTEED to fail eventually: the
+backend legitimately improves, and a board rebuilt on a better router is
+supposed to come out different. Demanding byte- or geometry-equality forever
+would make every genuine fix a regression. The durable property is:
+
+> a release can be rebuilt from ITS OWN source with THE BACKEND STATE ITS
+> MANIFEST RECORDS — and when you are running a different backend, the tooling
+> SAYS SO instead of silently handing you a different board.
+
+Reproduction is then a statement with a stated frame, not a promise that
+decays. Note the corollary: once the final gate is ABSOLUTE (the shipped board
+must be DRC 0/0/0 on its own merits), a reproduction baseline is not needed to
+ATTRIBUTE a finding to backend drift versus a copper change — it is needed to
+know WHICH backend a sealed artifact's evidence describes.
+
+**MOTIVATING INCIDENT (2026-07-25, usb-hub-3s-v3 v1.5).** The board bytes were
+produced at `01983b0`. Two later backend fixes landed in
+`route_and_stitch_generic.py` (`bb2af90`, `8667452`) before the v1.5 seal
+commit — which was a CPL correction and did not rebuild the board. BOTH were
+genuine fixes and neither is reverted. Replaying the board's own
+`rebuild_fast.sh` then produced, deterministically, a board with a
+`hole_to_hole` DRC violation (0.259 mm against a 0.4995 mm floor) that the
+sealed board does not have. MEASURED across backend snapshots, same board,
+same promoted chain:
+
+| backend | tracks | DRC |
+|---|---|---|
+| `01983b0` (the state the board was built at) | 791 | 0/0/0 |
+| `0ae0eb6` (pre-suspects) | 791 | 0/0/0 |
+| `bb2af90` (heal_islands overlap fix) | 791 | 0/0/0 |
+| `8667452` (three stitch-tool fixes) | 892 | **4 violations** |
+| `HEAD` | 892 | **1 violation** |
+
+The release's own provenance block is identical in every one of those rows.
+
+**PROPOSED MINIMUM.** (a) The MANIFEST records the backend state next to
+`git_sha` — a `backend_digest:` over the files that can change a board
+(`skills/*/scripts/**`, plus the references the scripts READ, e.g.
+`kicad-pcb/references/fab_tiers.yaml`), computed from CONTENT so it is correct
+in a dirty tree, plus the informational commit that last touched `skills/`.
+(b) A check (`M-BACKEND`, alongside M-REL in `policy_audit.py`) compares the
+recorded digest with the running one and states the fact plainly — "this
+release was built with backend X, you are running Y" — instead of silently
+producing a different board. (c) Existing sealed releases grade **N-A**: they
+are immutable and cannot be retro-filled, so the field is adopted FORWARD, the
+same way `contracts_audit --projects` grades adopted-forward boards.
+
+**WHY IT IS NOT LANDED HERE.** The recording half is small; the gate half is
+not. It needs a check-ID with an adoption path across ~20 sealed releases, the
+`MANIFEST` seal-procedure template and its `07_releases` contract updated in
+the same change (CLAUDE.md: a skill change is not done until its contract
+catches up), and a judgement on digest SCOPE — too broad and a SKILL.md typo
+reads as a backend change, too narrow and it misses the reference data a
+script loads. That is a change to the seal ceremony itself and belongs in its
+own commit, not appended to a router fix.
+
 ### Verification scoping (amendment 2026-07-23) — full breadth once per material state
 
 The fresh-context review battery (M1's independence engine: both red-team
