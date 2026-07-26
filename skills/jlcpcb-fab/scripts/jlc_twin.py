@@ -197,6 +197,34 @@ def pads_of(fp):
     return d
 
 
+def apply_pad_alias(jraw, alias):
+    """Rename JLC pad NUMBERS by {jlc_pad: our_pad}, as ONE SIMULTANEOUS
+    permutation.
+
+    It must be simultaneous. The previous implementation mutated `jraw` in
+    place while iterating the alias, so each rename saw the results of the
+    ones before it — which makes a 2-WAY SWAP impossible to express. For
+    {'3':'4','4':'3'}: step one moved pad 3's coords onto key 4 (now holding
+    BOTH), step two moved key 4 — both entries — onto key 3, leaving pad 4
+    gone and pad 3 doubled. Measured on crow-mic-pod-v2's LS1 (C22359707),
+    whose true correspondence to JLC's BUZ-SMD_4P footprint IS a 3<->4 swap
+    of the two NC dummy pads; the swap could not be written down, so the
+    sealed waiver asserted a 1<->2 swap instead — a mapping that fits the
+    geometry at NO rotation (rms 7.1007mm at all four angles, vs 0.1414mm
+    for the true one).
+
+    A dict comprehension over a SNAPSHOT also makes the identity alias
+    (5->5) harmless without a special case, so the old `src != dst` guard
+    is gone with the bug it was guarding.
+    """
+    if not alias:
+        return jraw
+    out = {}
+    for num, coords in jraw.items():
+        out.setdefault(alias.get(num, num), []).extend(coords)
+    return {k: sorted(v) for k, v in out.items()}
+
+
 def centroid(d):
     xs = [x for v in d.values() for x, _ in v]
     ys = [y for v in d.values() for _, y in v]
@@ -729,14 +757,7 @@ def main():
             # names extra pads (XT60 pegs, FET drain fingers) - the XT60 model
             # rendered 7mm off its holes before this (2026-07-16)
             jraw = pads_of(jfp)
-            for src, dst in pad_alias.get(lcsc, {}).items():
-                # `src != dst` guard: an IDENTITY alias (5->5) would otherwise
-                # `setdefault(dst)` the very list `pop(src)` then removes and
-                # extend it WITH ITSELF, doubling that pad's entries and
-                # breaking the multiplicity count it was meant to fix.
-                if src in jraw and src != dst:
-                    jraw.setdefault(dst, []).extend(jraw.pop(src))
-                    jraw[dst] = sorted(jraw[dst])
+            jraw = apply_pad_alias(jraw, pad_alias.get(lcsc, {}))
             common = set(opads_raw) & set(jraw)
             if not common:
                 findings.append((lcsc, ref, "PAD-MISMATCH", "no common pad numbers"))

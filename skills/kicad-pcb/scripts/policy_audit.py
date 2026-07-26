@@ -43,6 +43,70 @@ def sh(cmd, **kw):
     return subprocess.run(cmd, capture_output=True, text=True, **kw)
 
 
+def cell(text):
+    """One markdown table cell. A newline would split the row across lines and
+    an unescaped '|' would invent a column, so a detail string containing
+    either silently changes the SHAPE of the table it is reported in."""
+    return str(text).replace("\r", " ").replace("\n", " ").replace("|", "\\|")
+
+
+GRADES = ("PASS", "FAIL", "WAIVED", "HUMAN", "N-A")
+
+
+def parse_report(text):
+    """(rows, stated_summary) read back out of a rendered policy_audit.md.
+
+    The INDEPENDENT reading of the report (canon M1): it re-derives the grade
+    counts from the published table instead of trusting the counter that
+    wrote the headline. Only rows whose Grade cell is exactly one of GRADES
+    are counted, so a spliced or wrapped line is a MISSING row rather than a
+    silently miscounted one."""
+    rows, stated = [], None
+    for line in text.splitlines():
+        s = line.strip()
+        m = re.match(r"^Summary:\s*(.*)$", s)
+        if m:
+            stated = {}
+            for part in m.group(1).split(","):
+                k, _, v = part.partition("=")
+                if v.strip().isdigit():
+                    stated[k.strip()] = int(v.strip())
+            continue
+        # a row must be a COMPLETE markdown row: both delimiters present. The
+        # sealed corruption left a head fragment ending mid-detail and an
+        # orphan tail starting mid-line; accepting either would have counted
+        # the wreckage as a row and hidden the shortfall.
+        if not (s.startswith("|") and s.endswith("|")) or set(s) <= set("|- "):
+            continue
+        cols = [c.strip() for c in s.strip("|").split("|")]
+        if len(cols) >= 3 and cols[1] in GRADES:
+            rows.append((cols[0], cols[1]))
+    return rows, stated
+
+
+def report_inconsistencies(text, n_rows, counts):
+    """Everything that must hold between a written report and the grading run
+    that produced it. Empty list = the file on disk says what we graded."""
+    bad = []
+    got_rows, stated = parse_report(text)
+    if len(got_rows) != n_rows:
+        bad.append(f"table has {len(got_rows)} gradeable row(s) but "
+                   f"{n_rows} check(s) were graded — {n_rows - len(got_rows)} "
+                   f"row(s) are missing or malformed on disk")
+    got = {}
+    for _cid, g in got_rows:
+        got[g] = got.get(g, 0) + 1
+    if got != counts:
+        bad.append(f"grades counted FROM THE TABLE {got} != grades graded "
+                   f"{counts}")
+    if stated is None:
+        bad.append("no `Summary:` line in the written report")
+    elif stated != counts:
+        bad.append(f"the report's own `Summary:` line says {stated} but the "
+                   f"run graded {counts}")
+    return bad
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("project")
@@ -524,7 +588,36 @@ def main():
             names = [cl.get("name") for cl in classes]
             ok = len(classes) > 1
             det = f"{Path(c).name}: classes={names}"
-        grade("R-RULES", ok, det, f"route-input has only Default class ({det})")
+        # ...AND every rule in the shipped .kicad_dru must be ABLE to fire.
+        # A rule conditioning on a netclass the project does not define, or on
+        # a rule area not on the board, enforces NOTHING while reading as
+        # enforcement — and DRC still reports 0, so the green number is partly
+        # vacuous for exactly the nets that rule names. Measured on
+        # crow-mic-pod-v2 v1.0: 2 of its 4 rules dead, and the board carries 3
+        # tracks 0.0002mm under the floor the dead rule was written to enforce.
+        # Same ID rather than a new one: "the generated rules are the rules
+        # that are actually in force" is what R-RULES already means.
+        try:
+            import rules_audit as _ra
+            _dru = next(iter(sorted((proj / "04_kicad").glob("*.kicad_dru"))), None)
+            _pro = next(iter(sorted((proj / "04_kicad").glob("*.kicad_pro"))), None)
+            _pcb = next(iter(sorted((proj / "04_kicad").glob("*.kicad_pcb"))), None)
+            if _dru and _pro:
+                _cls = {c.get("name") for c in
+                        (json.loads(_pro.read_text()).get("net_settings") or {})
+                        .get("classes") or []}
+                _fire = _ra.unfireable_rules(
+                    _dru.read_text(), _cls,
+                    _pcb.read_text() if _pcb else "",
+                    _pcb.name if _pcb else "the board")
+                if _fire:
+                    ok = False
+                    det = f"{len(_fire)} rule(s) CANNOT FIRE: " + \
+                          "; ".join(f[:150] for f in _fire[:2])
+        except Exception as e:                       # never mask the base check
+            det += f" (A-FIRE sub-check unavailable: {e})"
+        grade("R-RULES", ok, det, det if "CANNOT FIRE" in det else
+              f"route-input has only Default class ({det})")
     else:
         rows.append(("R-RULES", "N-A", "no route-input .kicad_pro found"))
     rows.append(("R4", "HUMAN", "escape-first routing order — design review "
@@ -726,7 +819,13 @@ def main():
             import bom_source_check as _bsc
             refdes_code = _bsc.refdes_codes_from_circuit(cjs[0])
             vendored = _bsc.vendored_primary_codes(proj / "02_parts")
-            probs = _bsc.check(_bsc.read_bom(fab_bom), refdes_code, vendored)
+            # refdes DECLARED not_assembled are EXPECTED off the assembly BOM
+            # (canon A-POP) — without this, leg B reports DROPPED on exactly
+            # the rows a correct assembly.yaml says to remove, which pressures
+            # the operator into putting an unsourceable row back on the BOM.
+            unpop = _bsc.load_not_assembled(proj / "03_src/rules/assembly.yaml")
+            probs = _bsc.check(_bsc.read_bom(fab_bom), refdes_code, vendored,
+                               None, unpop)
             grade("M-BOM", not probs,
                   f"{Path(fab_bom).parent.parent.name}/fab/bom.csv: "
                   f"every LCSC == source ({sum(1 for v in refdes_code.values() if v)} coded)",
@@ -839,14 +938,52 @@ def main():
     counts = {}
     for _, g, _ in rows:
         counts[g] = counts.get(g, 0) + 1
+    summary = ", ".join(f"{k}={v}" for k, v in sorted(counts.items()))
     lines = [f"# Policy audit — {proj.name}", "",
              f"Generated by policy_audit.py; canon: design-policies.md", "",
              "| ID | Grade | Detail |", "|---|---|---|"]
     for cid, g, det in rows:
-        lines.append(f"| {cid} | {g} | {det} |")
-    lines += ["", "Summary: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items()))]
-    (build / "policy_audit.md").write_text("\n".join(lines) + "\n")
-    print(f"{proj.name}: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
+        lines.append(f"| {cid} | {g} | {cell(det)} |")
+    lines += ["", "Summary: " + summary]
+    text = "\n".join(lines) + "\n"
+
+    # WRITE ATOMICALLY, AND ONLY AFTER stdout IS FLUSHED. Both halves are
+    # load-bearing — crow-mic-pod-v2 v1.0 sealed a policy_audit.md with a
+    # 51-byte splice at offset 387 that DELETED the P-TIER row and left its
+    # tail orphaned on the next line, so the file's own Summary (PASS=23)
+    # could not be reconstructed from its own table (PASS=22). The MANIFEST
+    # hash verified: it was GENERATED corrupt, then faithfully hashed.
+    #
+    # MECHANISM (measured 2026-07-25): the report is written to a path that
+    # was ALSO this process's redirected stdout. `import pcbnew` writes to
+    # that fd at C level, advancing the SHARED file offset to 387; write_text
+    # then wrote the whole report from offset 0 through its own fd; and at
+    # interpreter exit Python's block-buffered stdout flushed its 51-byte
+    # summary line at offset 387 — INTO the finished report.
+    #
+    # A read-back placed here would NOT have caught it: the splice happens at
+    # process exit, after any check we could run. So the fix is structural.
+    # os.replace() installs a NEW inode, so a stale fd still pointing at the
+    # old one cannot reach the published file no matter when it flushes.
+    sys.stdout.flush()
+    sys.stderr.flush()
+    dest = build / "policy_audit.md"
+    tmp = dest.with_suffix(".md.tmp")
+    tmp.write_text(text)
+    os.replace(tmp, dest)
+
+    # SELF-CONSISTENCY: the Summary must be reconstructable FROM THE TABLE AS
+    # WRITTEN, re-read off disk — not from the in-memory counts that produced
+    # it. A summary computed from `rows` can only ever agree with itself; that
+    # is what let the corrupt file ship with a headline nobody could derive.
+    bad = report_inconsistencies(dest.read_text(), len(rows), counts)
+    if bad:
+        print(f"policy_audit: REPORT CORRUPT — {dest}", file=sys.stderr)
+        for b in bad:
+            print(f"  {b}", file=sys.stderr)
+        sys.exit(2)
+
+    print(f"{proj.name}: " + summary)
     for cid, g, det in rows:
         if g == "FAIL":
             print(f"  FAIL {cid}: {det[:110]}")

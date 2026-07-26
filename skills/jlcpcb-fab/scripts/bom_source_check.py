@@ -469,20 +469,38 @@ def _fmt(v, unit):
     return f"{v:g}F"
 
 
-def check(bom_rows, refdes_code, vendored=None, ledger=None):
+def check(bom_rows, refdes_code, vendored=None, ledger=None,
+          not_assembled=()):
     """Returns a list of finding strings; empty == PASS.
 
-    refdes_code: {refdes: source_lcsc} (authoritative, per-refdes).
-    vendored:    {lcsc: MPN} of vendored primary codes, or None to skip leg B.
-    ledger:      {lcsc: {mpn, value, ...}}; None loads the default vetted
-                 ledger, {} disables leg C's ledger source.
+    refdes_code:   {refdes: source_lcsc} (authoritative, per-refdes).
+    vendored:      {lcsc: MPN} of vendored primary codes, or None to skip leg B.
+    ledger:        {lcsc: {mpn, value, ...}}; None loads the default vetted
+                   ledger, {} disables leg C's ledger source.
+    not_assembled: refdes DECLARED unpopulated in 03_src/rules/assembly.yaml.
+                   Their codes are EXPECTED to be absent from the assembly BOM
+                   — that is the fix, not the defect (canon A-POP: a CPL row
+                   whose BOM line has a blank LCSC is forbidden, so an
+                   unplaced part must leave the BOM rather than sit on it
+                   uncoded). Without this, leg B fires DROPPED on exactly the
+                   rows a correct assembly.yaml tells you to remove, which
+                   pushes the operator to put an unsourceable row back.
 
     Leg A (per-refdes vs circuit.json) and leg B (per-vendored-code vs part.yaml)
     check CODE IDENTITY; leg C (catalog value vs label) checks the VALUE the
     code resolves to."""
     findings = []
     bom_codes = {row[1] for row in bom_rows if row[1]}
-    source_codes = {c for c in refdes_code.values() if c}
+    unpop = set(not_assembled or ())
+    # a code is "expected absent" only when EVERY refdes the source assigns it
+    # to is declared unpopulated — a code shared with a placed part must still
+    # appear, so this can never excuse a real substitution
+    excused = set()
+    for code in {c for c in refdes_code.values() if c}:
+        refs = {r for r, c in refdes_code.items() if c == code}
+        if refs and refs <= unpop:
+            excused.add(code)
+    source_codes = {c for c in refdes_code.values() if c} - excused
 
     # ---- leg A: per-refdes vs the source of truth (circuit.json) ----
     for row in bom_rows:
@@ -539,6 +557,24 @@ def resolve_circuit_json(hint):
     return None
 
 
+def load_not_assembled(path):
+    """Refdes declared not_assembled in 03_src/rules/assembly.yaml.
+
+    Read from the ONE declared home (canon A-POP), never re-listed here — a
+    second hand-maintained copy of "who is not placed" is the drift this
+    whole family of gates exists to stop."""
+    try:
+        import yaml
+    except ImportError:
+        return ()
+    p = Path(path)
+    if not p.is_file():
+        return ()
+    asm = yaml.safe_load(p.read_text()) or {}
+    return {str(r) for e in (asm.get("not_assembled") or [])
+            for r in (e.get("refs") or [])}
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -552,6 +588,11 @@ def main():
     ap.add_argument("--ledger", default="",
                     help="vetted LCSC passives ledger yaml (default: the skill's "
                          "references/lcsc_passives_ledger.yaml)")
+    ap.add_argument("--assembly", default="",
+                    help="03_src/rules/assembly.yaml — refdes declared "
+                         "not_assembled there are EXPECTED to be off the "
+                         "assembly BOM, so leg B does not report their codes "
+                         "as DROPPED (canon A-POP)")
     ap.add_argument("--circuit-only", action="store_true",
                     help="AUTHORING-stage leg C: no fab BOM — decoded catalog "
                          "value vs the tsx value prop, straight off circuit.json"
@@ -586,13 +627,16 @@ def main():
     refdes_code = refdes_codes_from_circuit(cj)
     vendored = vendored_primary_codes(args.parts) if args.parts else None
     ledger = load_ledger(args.ledger) if args.ledger else load_ledger()
-    findings = check(read_bom(args.bom), refdes_code, vendored, ledger)
+    unpop = load_not_assembled(args.assembly) if args.assembly else ()
+    findings = check(read_bom(args.bom), refdes_code, vendored, ledger, unpop)
 
     coded = sum(1 for v in refdes_code.values() if v)
     print(f"BOM-vs-source: {args.bom}")
     print(f"  source: {cj} ({coded} coded refdes)"
           + (f"; vendored: {len(vendored)} part.yaml codes" if vendored else "")
-          + f"; ledger: {len(ledger)} vetted passive codes")
+          + f"; ledger: {len(ledger)} vetted passive codes"
+          + (f"; not_assembled: {len(unpop)} declared refdes "
+             f"({', '.join(sorted(unpop)[:4])}...)" if unpop else ""))
     if findings:
         print(f"BOM SOURCE CHECK: FAIL ({len(findings)})")
         for f in findings:

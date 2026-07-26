@@ -11,20 +11,24 @@
   status: NO-CAD
   why: >
     "AOM-5024L-HD-R" is not a valid LCSC id (doesn't start with "C") — it is
-    the part's MPN, carried into the BOM's LCSC column because the part has
-    NO JLC/LCSC listing at all (02_parts/AOM-5024L-HD-R/part.yaml
-    sourcing: {lcsc: null, digikey: "668-1538-ND"}; gotchas: "not in JLC
-    catalog — hand-wire (Digi-Key 668-1538-ND)"). Confirmed absent from the
-    library, not a transient fetch error: the fetcher's own message
-    ("should start with C") never matches the tool's NOCAD/transient
-    patterns, so it fails closed as FETCH-FAILED until adjudicated here.
-    MK1 is correctly excluded from cpl_jlc.csv (exclude_from_pos_files) —
-    it is a hand-solder electret capsule with no SMT footprint at JLC.
-    FIXED 2026-07-23 (was: MK1's BOM LCSC column carried the MPN string):
-    refdes_codes_from_circuit + the export carry-over now blank any non-C\d+
-    supplier code (an MPN is a converter FPID-resolution handle, never an
-    LCSC), so MK1's BOM LCSC column is now BLANK. This FETCH-FAILED->NO-CAD
-    adjudication still stands (the part is genuinely not in the JLC library).
+    the part's MPN, carried into the BOM's LCSC column by the v1.0 export.
+    Fails closed as FETCH-FAILED (the fetcher's "should start with C" never
+    matches the NOCAD/transient patterns) until adjudicated here.
+
+    CORRECTED 2026-07-25 — the old justification was FALSE. This entry, the
+    part.yaml gotcha and ORDER_README section 3 all asserted the capsule is
+    "not in the JLC catalog". A live parts-library query that day returns
+    the EXACT MPN as C3273706 (Extended tier), plus siblings C3273730 and
+    C20107634. What is true is that all three are at STOCK 0, and that the
+    footprint is through_hole while this order is SMT-only. "Searched and
+    absent" and "catalogued and unbuyable" are different facts with
+    different expiry dates, and only the second one is ours. The measured
+    version now lives in 03_src/rules/assembly.yaml (MK1, reason
+    user_supplied), which is the one machine-readable home for it.
+
+    RESOLVED IN v1.1, NOT ADJUDICATED AWAY: MK1 no longer appears in
+    fab/bom.csv at all, so nothing asks the twin to fetch it. This entry is
+    retained as the record of a corrected claim.
 
 - lcsc: C9900035627
   refs: [J1]
@@ -46,48 +50,69 @@
 
 - lcsc: C22359707
   refs: [LS1]
-  status: PAD-MISMATCH
-  why: &ls1_why >
-    NOT a land-pattern or polarity defect — a pad-NUMBERING-convention
-    mismatch between our vendored footprint and JLC's own EasyEDA footprint
-    for the same physical 4-pad SMD buzzer (Same Sky/CUI CMT-8504-100-SMT-TR).
-    Measured (2026-07-23): our footprint (crow_mic_pod:CMT-8504-100-SMT-TR,
-    from 02_parts/CMT-8504-100-SMT-TR/part.yaml land_pattern, datasheet
-    rev 1.04 p.2 "Recommended PCB Layout") numbers pads going
-    1=top-left(+) 2=bottom-left(-) 3=top-right(NC) 4=bottom-right(NC), pad
-    centers at (+/-3.5,+/-3.5)mm. JLC's fetched footprint
-    (jlc.pretty/BUZ-SMD_4P-L8.5-W8.5-P8.50-TL-A.kicad_mod) numbers the SAME
-    four physical corners 1=bottom-left(-3.6,-3.6) 2=top-left(-3.6,3.6)
-    3=top-right(3.6,3.6) 4=bottom-right(3.6,-3.6) — i.e. JLC's pads 1 and 2
-    are swapped vs ours (JLC 1 = our 2, JLC 2 = our 1); pads 3/4 already
-    agree. This is corroborated exactly by the raw PAD-GEOM number:
-    pad1<->3 "ours 7.00mm vs JLC 10.18mm (d3.18mm)" is the diagonal
-    distance you get comparing our top-left pad ("1") to JLC's top-right
-    pad ("3", unaliased) — sqrt(7.2^2+7.2^2)=10.18mm exactly — not a real
-    land-pattern disagreement. Recomputing all 6 pairwise pad-pair
-    distances with JLC's pads renumbered by physical position
-    (JLC-1->our-2, JLC-2->our-1, JLC-3->our-3, JLC-4->our-4) gives deltas
-    of 0.20-0.28mm vs our footprint on every pair — all within the 0.3mm
-    PAD_GEOM_TOL (JLC's pad span is 7.2mm vs our 7.0mm, a legitimate small
-    land-size difference). Physical polarity is unaffected: our
-    footprint's own pin1="+"/pin2="-" mapping (verified against the
-    datasheet's POLARITY PAD callout in part.yaml) is untouched by JLC's
-    internal numbering choice.
-    TOOL NOTE: attempted to encode this as a `pad_alias: {"1":"2","2":"1"}`
-    (the documented mechanism for exactly this class of finding) but the
-    alias implementation in jlc_twin.py does sequential pop/extend per
-    dict-entry, which corrupts a true 2-way swap (it merges pad "1" into
-    "2" first, then pops the now-merged "2" into "1", losing one pad
-    entirely) — confirmed live: applying it turned a clean PAD-GEOM
-    finding into PAD-MISMATCH best=none. Falling back to a direct status
-    adjudication with the hand-verified numbers above; the alias mechanism
-    needs a true-swap fix (e.g. resolve all renames from a copy of the
-    original dict) before it can be trusted for 2-way swaps.
-
-- lcsc: C22359707
-  refs: [LS1]
   status: PAD-GEOM
-  why: *ls1_why
+  pad_alias: {"3": "4", "4": "3"}
+  why: &ls1_why >
+    RESTATED 2026-07-25. The v1.0 text asserted a correspondence that is
+    GEOMETRICALLY IMPOSSIBLE, and its validation method could not have
+    detected that. Both errors are corrected here; the shipped CPL value
+    (offset 0) was and remains correct, so no copper or CPL change follows.
+
+    WHAT v1.0 GOT WRONG — A MIXED FRAME. Our .kicad_mod and JLC's are the
+    SAME file format, both y-down. v1.0 read ours y-down (so -3.5 = "top")
+    but JLC's y-UP (so -3.6 = "bottom"), and concluded "JLC 1 = our 2, JLC
+    2 = our 1; pads 3/4 already agree". Read in ONE convention, the raw
+    file coordinates are:
+      ours: 1=(-3.5,-3.5) 2=(-3.5,+3.5) 3=(+3.5,-3.5) 4=(+3.5,+3.5)
+      JLC : 1=(-3.6,-3.6) 2=(-3.6,+3.6) 3=(+3.6,+3.6) 4=(+3.6,-3.6)
+    Pads 1 and 2 COINCIDE. It is pads 3 and 4 — both NC dummies — that are
+    transposed. The true correspondence is a 3<->4 swap.
+
+    ORIENTED FIT (rms mm, JLC pads rotated by theta onto ours, pad-for-pad,
+    measured 2026-07-25):
+                                        0        90       180       270
+      identity   (JLC n = our n)   5.0220    7.1007    8.6960    7.1007
+      TRUE       (JLC 3<->4)       0.1414    7.1007   10.0409    7.1007
+      v1.0 claim (JLC 1 = our 2)   7.1007    7.1007    7.1007    7.1007
+    The true mapping fits at 0 deg with a 50.2x separation from its next
+    candidate. The v1.0 mapping fits NOWHERE — 7.1007mm at all four angles.
+    The residual 0.1414mm is JLC's 7.2mm pad span vs our 7.0mm, a legitimate
+    land-size difference well inside the 0.3mm PAD_GEOM_TOL.
+
+    WHY THE v1.0 METHOD COULD NOT CATCH IT — THE REAL LESSON. v1.0 validated
+    by recomputing the 6 PAIRWISE PAD-PAIR DISTANCES and observing deltas of
+    0.20-0.28mm. Re-run 2026-07-25 under BOTH mappings, the distance sets are
+    IDENTICAL: [0.2, 0.2, 0.2, 0.2, 0.2828, 0.2828] for the true mapping AND
+    for the impossible one. Pairwise distances are invariant under rigid
+    motion AND UNDER REFLECTION, and these two mappings differ by exactly a
+    reflection — so the metric is structurally blind to the error it was
+    being used to rule out. A distance set can confirm that two point sets
+    are CONGRUENT; it can never establish WHICH point maps to which.
+    RULE, now general: a pad correspondence is established by an ORIENTED
+    fit (formA evaluated at all four rotations, pads matched by NUMBER),
+    never by a distance set. Report the winning rms AND its separation from
+    the runner-up, so "fits nowhere" is visible as a small separation
+    instead of hiding behind a plausible-looking absolute number.
+
+    WHY IT DOES NOT MATTER PHYSICALLY, AND WHY IT WOULD HAVE. Pads 3/4 are
+    both NC dummies, so transposing them is electrically nil, and pads 1/2
+    — the driven pair — coincide. Polarity is independently confirmed on a
+    NUMBERING-FREE channel: JLC's own footprint carries an fp_text "+" at
+    (-2.50,-1.00) on F.SilkS, on the -x side beside pad 1, and our
+    part.yaml declares pad 1 = POLARITY PAD(+) from the datasheet rev 1.04
+    callout. Electrical pair {1,2} alone fits rms 0.1000 @0 vs 5.0210 next.
+    Had the v1.0 claim been TRUE, it would have been a 1<->2 swap on a
+    POLARIZED part — a 180 deg assembly reversal, not "a numbering
+    convention". That is why the wrong reasoning was worth correcting even
+    though the shipped number was right.
+
+    TOOL FIX. v1.0 could not encode this: `pad_alias` applied renames
+    sequentially in place, so a 2-way swap merged both pads onto one key and
+    lost the other (v1.0's own TOOL NOTE records the symptom -
+    "PAD-MISMATCH best=none"). `apply_pad_alias()` now resolves the whole
+    map as ONE permutation over a snapshot, so the alias above expresses the
+    true correspondence directly and this entry is a plain PAD-GEOM land-size
+    acceptance rather than a hand-waved PAD-MISMATCH.
 
 - lcsc: C192421
   refs: [U1]

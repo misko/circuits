@@ -14,3 +14,40 @@
     --schematic-parity (0 parity). Waiving S-OCCL on the machine artifact does
     not waive schematic readability — that is graded on the shipped tscircuit
     render, not this file.
+
+- id: R-RULES
+  refs: ["04_kicad/crow_mic_pod_v2.kicad_dru:8-10",
+         "04_kicad/crow_mic_pod_v2.kicad_dru:11-12"]
+  why: >
+    A-FIRE (new 2026-07-25): 2 of the 4 rules in the shipped .kicad_dru CANNOT
+    FIRE. `AUDIO_width` (:8-10) conditions on NetClass 'AUDIO' and the
+    .kicad_pro defines only Default/BEEP/PWR; `pad_rescue_stubs` (:11-12)
+    conditions on insideArea('pad_rescue_stubs') and no rule area of that name
+    is on the board (0 named zones). The finding is REAL and the check is
+    correct — this waiver accepts it for the v1.1 DOCS-ONLY supersede, it does
+    not dispute it.
+
+    WHY IT IS WAIVED RATHER THAN FIXED HERE. v1.1 changes no copper: `source/`
+    is asserted BYTE-IDENTICAL to v1.0 by
+    `release_freshness_check.py --docs-only-supersede`. Regenerating the
+    .kicad_dru would break that identity and turn a paperwork release into a
+    respin — which is the one thing this release is not.
+
+    WHY IT IS SAFE TO SHIP. Measured on the staged board
+    (verification/rules_audit.txt, reproducible): 234 track segments; exactly
+    3 sit at 0.2498mm (AUDIO_P x2, MIC_OUT x1), 0.0002mm — 0.08% — under the
+    0.25mm floor the dead AUDIO_width rule names. Those are low-impedance
+    line-level audio outputs at <1mA; 0.08% of width has no current, impedance
+    or manufacturability consequence. The floor that IS in force, the
+    jlc_2layer_default tier floor of 0.127mm, is met with 1.97x margin on
+    every segment. The 0.2498mm width is KRT's nanometre-quantised import (the
+    "nanometer-floor trap"), and 03_src/rules/nets.yaml records that the AUDIO
+    class was DELIBERATELY dropped for exactly that collision — the class went,
+    the DRU rule naming it did not. `pad_rescue_stubs` is a generator-preserved
+    boilerplate rule that has never had a matching area on this board.
+
+    REQUIRED AT THE NEXT RESPIN, NOT OPTIONAL: regenerate the .kicad_dru so it
+    contains only rules that can fire (drop AUDIO_width and pad_rescue_stubs,
+    or create what they name). rules_audit.py now runs as a gate in
+    03_src/rebuild_all.sh, so the next rebuild of this board FAILS until that
+    is done. This waiver is scoped to the v1.1 archive and expires with it.

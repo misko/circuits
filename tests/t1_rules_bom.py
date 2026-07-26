@@ -387,6 +387,119 @@ def t_unpatterned_net():
     contains(r.out, "'E_PLUS'", "the dropped net should be named")
 
 
+def write_board(proj, areas=()):
+    """A minimal .kicad_pcb carrying exactly the named zones. A-FIRE reads
+    board TEXT (it needs no pcbnew), so the fixture can state the one fact
+    under test — which rule areas exist — and nothing else."""
+    zones = "".join(
+        f'\n\t(zone\n\t\t(layers "F.Cu")\n\t\t(name "{n}")\n'
+        f'\t\t(keepout\n\t\t\t(tracks not_allowed)\n\t\t)\n\t)' for n in areas)
+    p = proj / "04_kicad" / "fixture.kicad_pcb"
+    p.write_text('(kicad_pcb (version 20241229) (generator "test")' + zones + "\n)\n")
+    return p
+
+
+# ------------------------------------------------------------- A-FIRE
+# "a gate that cannot fail is worthless" applied to the DRU itself: a rule
+# whose condition can never be true reads as enforcement and enforces nothing.
+# Both fixtures below are the SEALED shapes, measured 2026-07-25 —
+# crow-mic-pod-v2 v1.0 shipped one of each in the same .kicad_dru.
+
+@test("rules_audit PASSES a DRU whose every rule can fire")
+def t_fire_clean():
+    proj = rules_project()
+    r = run([PY, RULES_AUDIT, proj])
+    contains(r.out, "A-FIRE all", "A-FIRE should report on a clean DRU")
+    check("FAIL  A-FIRE" not in r.out, f"A-FIRE false positive:\n{r.out}")
+
+
+@test("rules_audit FAILS on a DRU rule conditioning on a netclass that does "
+      "not exist (crow-mic-pod-v2 v1.0 'AUDIO_width')", kind="known_bad")
+def t_kb_fire_dead_netclass():
+    """The sealed shape. nets.yaml DROPPED the AUDIO class (its 0.25mm floor
+    collided with KRT's 0.2498mm imported width) but the generated DRU kept
+    the AUDIO_width rule. The board then carried 3 tracks at 0.2498mm —
+    0.0002mm under the floor that rule names — and DRC reported 0.
+
+    Every OTHER check in rules_audit iterates over the classes nets.yaml
+    declares, so a rule naming a dropped class was graded by nothing."""
+    proj = rules_project()
+    dru = next(iter((proj / "04_kicad").glob("*.kicad_dru")))
+    dru.write_text(dru.read_text() + "\n(rule \"AUDIO_width\"\n"
+                   "  (condition \"A.NetClass == 'AUDIO'\")\n"
+                   "  (constraint track_width (min 0.25mm)))\n")
+    r = run([PY, RULES_AUDIT, proj])
+    must_fail(r, "rules_audit on a DRU rule naming a nonexistent netclass",
+              "A-FIRE")
+    contains(r.out, "'AUDIO'", "the dead netclass should be named")
+    contains(r.out, "CANNOT FIRE", "the finding should say why it matters")
+    # RED-VERIFY: the finding comes from A-FIRE and nothing else
+    r2 = run([PY, RULES_AUDIT, proj, "--_disable-fire"])
+    must_pass(r2, "the same fixture with A-FIRE disabled")
+
+
+@test("rules_audit FAILS on a DRU rule conditioning on a rule area absent "
+      "from the board (the fleet's 'pad_rescue_stubs')", kind="known_bad")
+def t_kb_fire_dead_area():
+    """Measured on three sealed boards: crow-mic-pod-v2 v1.0, usb-hub-3s and
+    usb-hub-3s-v2 all ship an insideArea('pad_rescue_stubs') rule with no
+    such rule area on the board. usb-hub-3s-v3 has the area and passes, so
+    the check discriminates rather than flagging the name."""
+    proj = rules_project()
+    dru = next(iter((proj / "04_kicad").glob("*.kicad_dru")))
+    dru.write_text(dru.read_text() + "\n(rule pad_rescue_stubs\n"
+                   "  (condition \"A.insideArea('pad_rescue_stubs') && "
+                   "(A.NetName == 'GND')\")\n"
+                   "  (constraint track_width (min 0.300mm)))\n")
+    write_board(proj, areas=["some_other_area"])
+    r = run([PY, RULES_AUDIT, proj])
+    must_fail(r, "rules_audit on a DRU rule naming an absent rule area",
+              "A-FIRE")
+    contains(r.out, "pad_rescue_stubs", "the dead area should be named")
+    r2 = run([PY, RULES_AUDIT, proj, "--_disable-fire"])
+    must_pass(r2, "the same fixture with A-FIRE disabled")
+
+
+@test("A-FIRE resolves insideArea() against real rule areas, so a LIVE area "
+      "rule passes")
+def t_fire_live_area():
+    """Discrimination, not name-matching: the same rule text that FAILS in
+    t_kb_fire_dead_area PASSES once the board actually carries the area."""
+    proj = rules_project()
+    dru = next(iter((proj / "04_kicad").glob("*.kicad_dru")))
+    dru.write_text(dru.read_text() + "\n(rule stubs\n"
+                   "  (condition \"A.insideArea('my_area')\")\n"
+                   "  (constraint track_width (min 0.300mm)))\n")
+    write_board(proj, areas=["my_area"])
+    r = run([PY, RULES_AUDIT, proj])
+    check("A-FIRE" not in r.out or "FAIL  A-FIRE" not in r.out,
+          f"A-FIRE flagged a rule area that IS on the board:\n{r.out}")
+
+
+@test("rules_audit sees generate_rules_generic.py, not just generate_rules.py")
+def t_order_generic_backend():
+    """A-ORDER's pattern matched only `generate_rules.py`, so every
+    generic-backend board got 'the DRC gate runs with no generate_rules.py
+    before it' while its rebuild_all.sh was in fact correct. A false positive
+    that trains readers to ignore the check is how the REAL ordering defect
+    would get through (measured on crow-mic-pod-v2, 2026-07-25)."""
+    sys.path.insert(0, str(SCRIPTS))
+    import importlib
+    ra = importlib.import_module("rules_audit")
+    d = tmpdir("order_")
+    good = d / "rebuild_ok.sh"
+    good.write_text("#!/bin/sh\n$PY $SK/generate_rules_generic.py .\n"
+                    "kicad-cli pcb drc --severity-all b.kicad_pcb\n")
+    eq(ra.rebuild_order_fails(good), [],
+       "the generic generator running last must satisfy A-ORDER")
+    bad = d / "rebuild_bad.sh"
+    bad.write_text("#!/bin/sh\n$PY $SK/generate_rules_generic.py .\n"
+                   "$PY 03_src/stitch.py\n"
+                   "kicad-cli pcb drc --severity-all b.kicad_pcb\n")
+    check(ra.rebuild_order_fails(bad),
+          "a board-writing step after the generic generator must still FAIL")
+
+
 @test("rules_audit FAILS when generate_rules never ran", kind="known_bad")
 def t_rules_not_run():
     d = tmpdir("rules_")

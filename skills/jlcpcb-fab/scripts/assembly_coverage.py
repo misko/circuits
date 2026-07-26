@@ -68,6 +68,7 @@ Plain python3 (NO pcbnew).
 import argparse
 import csv
 import json
+import math
 import re
 import sys
 from pathlib import Path
@@ -80,7 +81,23 @@ except ImportError:                                   # pragma: no cover
 # `reason:` is a CLOSED vocabulary (03_src/rules/assembly.yaml). If none fits,
 # the honest answer is that the part must be re-specified to a placeable one.
 REASONS = {"not_in_catalog", "consign", "user_supplied", "dnp_by_design",
-           "mechanical", "test_point"}
+           "mechanical", "test_point", "process_incompatible"}
+
+# `process_incompatible` (added 2026-07-25) is the reason the vocabulary was
+# MISSING and boards were therefore mis-declaring: a part that IS in the
+# catalog, IS stocked, and IS wanted on the board, but that the ORDERED
+# process cannot place — the classic case being a true THT part on a
+# `sides: [top]` SMT-only order, whose pads carry no F.Paste so it cannot be
+# intrusive-reflowed. crow-recorder-central-v2 v1.4 shipped exactly that (J1,
+# a stocked C381116 barrel jack, the board's only power inlet) and the nearest
+# available reason would have been `not_in_catalog` — which is FALSE. A closed
+# vocabulary with no true option forces a lie into the decision record.
+
+# A-POS tolerance. 0.05mm is ~1/20 of the smallest land this fleet places
+# (0402, 0.5mm) and ~8x the largest disagreement seen between the two
+# independent datum measurements, so it separates "different convention" from
+# "measurement noise" without flagging rounding in the CPL's 4-decimal field.
+DATUM_TOL_MM = 0.05
 
 
 # ----------------------------------------------------------------- board
@@ -146,8 +163,9 @@ def _atoms(span):
 def read_footprints(path):
     """Every footprint on a `.kicad_pcb`, parsed from the FILE TEXT.
 
-    -> [{ref, value, fp, layer, rot, pads, attrs}] where `pads` is the set of
-    pad NUMBERS and `attrs` the `(attr ...)` flag words.
+    -> [{ref, value, fp, layer, rot, pads, attrs, at, datum, drilled,
+    drilled_pasted}] where `pads` is the set of pad NUMBERS and `attrs` the
+    `(attr ...)` flag words.
 
     No pcbnew: this is the INDEPENDENT reading of the board (canon M1). The
     exporter reads the same facts through the pcbnew API, so a checker that
@@ -161,10 +179,14 @@ def read_footprints(path):
         head = _atoms(text[i:min(i + 400, end + 1)] + ")")
         fpid = head[1] if len(head) > 1 else ""
         rec = {"ref": "", "value": "", "fp": fpid.split(":")[-1],
-               "layer": "", "rot": 0.0, "pads": set(), "attrs": set()}
+               "layer": "", "rot": 0.0, "pads": set(), "attrs": set(),
+               "at": (0.0, 0.0), "datum": None,
+               "drilled": 0, "drilled_pasted": 0}
+        pad_xy = []
         for kind, span in _children(text, i):
             if kind == "at":
                 a = _atoms(span)
+                rec["at"] = (float(a[1]), float(a[2])) if len(a) > 2 else (0.0, 0.0)
                 rec["rot"] = float(a[3]) if len(a) > 3 else 0.0
             elif kind == "layer" and not rec["layer"]:
                 a = _atoms(span)
@@ -181,9 +203,48 @@ def read_footprints(path):
                 a = _atoms(span)
                 if len(a) > 1 and a[1]:
                     rec["pads"].add(a[1])
+                ptype = a[2] if len(a) > 2 else ""
+                lay, at, drill = None, None, None
+                for k2, s2 in _children(span, 0):
+                    if k2 == "at" and at is None:
+                        at = _atoms(s2)
+                    elif k2 == "layers":
+                        lay = _atoms(s2)[1:]
+                    elif k2 == "drill":
+                        drill = _atoms(s2)[1:]
+                on_cu = bool(lay) and any(
+                    L.endswith(".Cu") or L == "*.Cu" for L in lay)
+                if on_cu and at and len(at) > 2:
+                    pad_xy.append((float(at[1]), float(at[2])))
+                if drill and ptype != "np_thru_hole":
+                    rec["drilled"] += 1
+                    if lay and any(L in ("F.Paste", "B.Paste", "*.Paste")
+                                   for L in lay):
+                        rec["drilled_pasted"] += 1
+        if pad_xy:
+            rec["datum"] = _pad_array_centre(pad_xy, rec["at"], rec["rot"])
         if rec["ref"]:
             out.append(rec)
     return out
+
+
+def _pad_array_centre(pad_xy, anchor, rot_deg):
+    """JLC's placement datum in BOARD coords: the centre of the bounding box
+    of the PAD CENTRES, rotated out of the footprint's local frame.
+
+    `pad_xy` are pad `(at x y)` values, which KiCad stores in the footprint's
+    LOCAL (unrotated) frame. Board Y is DOWN, and a footprint rotated by +A
+    rotates its stored local geometry by -A in that frame — hence the sign
+    pattern below. Verified against pcbnew's own already-global
+    `pad.GetPosition()` on a sealed 203-footprint board: max disagreement
+    0.0000 um. That agreement is what lets this checker stay pcbnew-free
+    (canon M1) without being a second, quieter implementation.
+    """
+    mx = (min(x for x, _ in pad_xy) + max(x for x, _ in pad_xy)) / 2
+    my = (min(y for _, y in pad_xy) + max(y for _, y in pad_xy)) / 2
+    a = math.radians(rot_deg)
+    ca, sa = math.cos(a), math.sin(a)
+    return (anchor[0] + mx * ca + my * sa, anchor[1] - mx * sa + my * ca)
 
 
 # ------------------------------------------------------------- artifacts
@@ -201,6 +262,25 @@ def read_cpl(path):
                 rot = None
             rows.append((ref, rot, (r.get("Layer") or "").strip()))
     return rows
+
+
+def read_cpl_xy(path):
+    """{designator: (mid_x_mm, mid_y_mm)} from a JLC CPL.
+
+    JLC's Mid Y is the NEGATED KiCad board Y (the CPL is Y-up, the board is
+    Y-down), so the comparison in _check_datum negates it back."""
+    out = {}
+    with open(path, newline="") as f:
+        for r in csv.DictReader(f):
+            ref = (r.get("Designator") or "").strip()
+            if not ref:
+                continue
+            try:
+                out[ref] = (float((r.get("Mid X") or "").strip()),
+                            float((r.get("Mid Y") or "").strip()))
+            except ValueError:
+                out[ref] = None
+    return out
 
 
 def read_bom_rows(path):
@@ -253,6 +333,29 @@ def load_assembly(path):
     return yaml.safe_load(Path(path).read_text()) or {}
 
 
+def manifest_line(asm):
+    """The MANIFEST `not_assembled:` line, GENERATED from assembly.yaml.
+
+    REFDES ONLY, comma-separated, sorted naturally — no prose, no
+    parentheticals, no explanation. The explanation belongs in
+    assembly.yaml's `evidence:`/`disposition:`, which is where a reader can
+    act on it; a MANIFEST line exists to be COMPARED, and prose cannot be.
+
+    Measured on crow-mic-pod-v2 v1.0: the hand-written line yielded 16
+    whitespace tokens of which 13 were not refdes on the board ('BOM',
+    'HAND-SOLDER', 'NOW', 'ORDER_README', 'POPULATED'), so A-POP could only
+    report it ungradeable. Two homes for one fact is how they drift; this
+    function makes the MANIFEST a projection of the declaration."""
+    refs = [str(r) for e in (asm.get("not_assembled") or [])
+            for r in (e.get("refs") or [])]
+
+    def key(r):
+        m = re.match(r"^([A-Za-z_]+)(\d*)$", r)
+        return (m.group(1), int(m.group(2) or -1)) if m else (r, -1)
+
+    return "not_assembled: " + ", ".join(sorted(set(refs), key=key))
+
+
 _RANGE = re.compile(r"^([A-Za-z_][A-Za-z_]*?)(\d+)(?:\.\.|-)(?:[A-Za-z_]*)(\d+)$")
 
 
@@ -302,7 +405,100 @@ def manifest_not_assembled(path):
 
 
 # ------------------------------------------------------------------ gate
-def check(fps, cpl_rows, bom_rows, asm, manifest_refs, have_assembly):
+def check_datum(fps, cpl_xy, tol=DATUM_TOL_MM):
+    """A-POS — every CPL row sits on JLC's PLACEMENT DATUM, not KiCad's anchor.
+
+    JLC places a part so its own origin lands on Mid X/Y, and that origin is
+    the centre of the bounding box of the PAD CENTRES (measured 227/228 on
+    JLC-native models across six boards; see export_jlc_package.placement_datum
+    for the full measurement and the two refuted alternatives).
+
+    KiCad's footprint ANCHOR is an authoring convenience with no fab meaning.
+    The two coincide for most parts, which is exactly why emitting the anchor
+    survived the fleet's entire history undetected — and why the failures are
+    concentrated in CONNECTORS, where the anchor is conventionally put on pin
+    1 or a mounting feature: on this fleet the anchor differs from the datum
+    on up to 24.16mm, and crow-recorder-central-v2 v1.4 shipped its only USB-C
+    1.3025mm off, against 1.150mm-long contacts -> 0.000mm pad overlap, with
+    four shell posts that miss their holes. That board passed DRC 0/0/0,
+    schematic parity 0, A-POP, A-ROT and two red-team lenses: nothing in the
+    fleet compared a CPL COORDINATE to anything at all.
+
+    This is a PURE-BYTES check with no network and no JLC dependency: board
+    text on one side, shipped CPL bytes on the other.
+    """
+    fails, worst = [], []
+    by_ref = {f["ref"]: f for f in fps}
+    for ref, xy in sorted(cpl_xy.items()):
+        f = by_ref.get(ref)
+        if f is None or f.get("datum") is None:
+            continue
+        if xy is None:
+            fails.append(
+                f"  CPL-DATUM-UNREADABLE: {ref} has a non-numeric Mid X/Y — "
+                f"the placement coordinate cannot be graded")
+            continue
+        dx = xy[0] - f["datum"][0]
+        dy = xy[1] - (-f["datum"][1])          # CPL is Y-up, the board Y-down
+        d = math.hypot(dx, dy)
+        worst.append((d, ref))
+        if d > tol:
+            ax, ay = f["at"]
+            d_anchor = math.hypot(xy[0] - ax, xy[1] - (-ay))
+            why = (" — this is the FOOTPRINT ANCHOR, not the pad-array centre"
+                   if d_anchor <= tol else "")
+            fails.append(
+                f"  CPL-DATUM-OFF: {ref} ({f['fp'][:38]}) Mid X/Y "
+                f"({xy[0]:.4f}, {xy[1]:.4f}) is {d:.4f}mm from its pad-array "
+                f"centre ({f['datum'][0]:.4f}, {-f['datum'][1]:.4f}){why}. "
+                f"JLC places the part THERE, so every pad is off by {d:.4f}mm")
+    worst.sort(reverse=True)
+    return fails, worst
+
+
+def check_smt_placeable(fps, cpl_refs, asm):
+    """A-POS — every CPL ref is placeable by the process actually ORDERED.
+
+    A part with plated DRILLED pads and NO paste on any of them cannot be
+    reflowed: there is no solder in the barrel and none on the land. On an
+    order declaring `service: standard` / `sides: [top]` (SMT only, no
+    selective-solder or wave line bought), such a ref on the CPL is an
+    instruction the assembler cannot execute — they re-quote with an
+    unbudgeted hand-solder line, or they silently drop the part.
+
+    crow-recorder-central-v2 v1.4 shipped J1 — a true THT barrel jack, and
+    the board's ONLY power inlet — on a top-side-SMT-only CPL, while its own
+    assembly.yaml asserted in writing that "the only other THT parts are
+    already off the CPL". Nothing compared the sentence to the bytes.
+
+    Pin-in-paste (intrusive reflow) is CORRECTLY exempt: J2 on that same
+    board has 4 drilled shell posts that all carry F.Paste, so paste is
+    printed into the barrels and it reflows with everything else. The
+    discriminator is paste coverage, never the `through_hole` attribute —
+    which is why this check reads pad layers rather than `(attr through_hole)`.
+    """
+    fails = []
+    by_ref = {f["ref"]: f for f in fps}
+    sides = [str(s) for s in (asm.get("sides") or [])]
+    service = str(asm.get("service") or "")
+    for ref in sorted(cpl_refs):
+        f = by_ref.get(ref)
+        if f is None or not f["drilled"]:
+            continue
+        if f["drilled_pasted"]:
+            continue                      # pin-in-paste: reflows normally
+        fails.append(
+            f"  CPL-NOT-SMT-PLACEABLE: {ref} ({f['fp'][:38]}) has "
+            f"{f['drilled']} plated DRILLED pad(s) and F.Paste on NONE of "
+            f"them, yet it is on the CPL of a service={service or '?'} "
+            f"sides={sides or '?'} order — no reflow process can solder it. "
+            f"Either buy the process, or declare it not_assembled "
+            f"(reason: process_incompatible) and hand-solder it")
+    return fails
+
+
+def check(fps, cpl_rows, bom_rows, asm, manifest_refs, have_assembly,
+          cpl_xy=None):
     """-> (fails, notes, summary). Pure; unit-testable without files."""
     fails, notes = [], []
     by_ref = {f["ref"]: f for f in fps}
@@ -377,12 +573,38 @@ def check(fps, cpl_rows, bom_rows, asm, manifest_refs, have_assembly):
             f"  DECLARED-BUT-PLACED: {len(placed_but_declared)} ref(s) are "
             f"declared not_assembled yet appear ON the CPL — JLC is being "
             f"told to place them: {', '.join(placed_but_declared[:24])}")
+    # An evidence-backed DEFER for the board attribute, exactly parallel to
+    # A-STOCK's `sourcing_plan:`. It exists because the attribute lives in
+    # COPPER-era bytes: on a board whose gerbers are sealed and correct, the
+    # only way to satisfy this check used to be regenerating the board — which
+    # churns every UUID (measured: 81626 diff lines on a semantically identical
+    # rebuild) and turns a data-only fix into a full respin needing the whole
+    # verification battery. The DECISION is still enforced: the ref must be
+    # off the shipped CPL (DECLARED-BUT-PLACED, above, is not deferrable), the
+    # exporter must honour the declaration, and the plan must name the
+    # revision that lands the attribute.
+    attr_plan = {}
+    for e in (asm.get("board_attr_plan") or []):
+        for r in (e.get("refs") or []):
+            attr_plan[str(r)] = e
     for r in sorted(declared & board_refs):
-        if "exclude_from_pos_files" not in by_ref[r]["attrs"]:
-            fails.append(
-                f"  DECLARED-NOT-EXCLUDED: {r} is declared not_assembled but "
-                f"its board footprint has no `exclude_from_pos_files` "
-                f"attribute — the next export puts it straight back on the CPL")
+        if "exclude_from_pos_files" in by_ref[r]["attrs"]:
+            continue
+        e = attr_plan.get(r)
+        if e and str(e.get("measured_on") or "").strip() \
+              and len(str(e.get("plan") or "")) >= 20:
+            notes.append(
+                f"  DEFERRED-BOARD-ATTR: {r} is declared not_assembled and is "
+                f"OFF the shipped CPL, but its board footprint still lacks "
+                f"`exclude_from_pos_files`; board_attr_plan measured_on="
+                f"{e.get('measured_on')} lands it at the next board revision")
+            continue
+        fails.append(
+            f"  DECLARED-NOT-EXCLUDED: {r} is declared not_assembled but "
+            f"its board footprint has no `exclude_from_pos_files` "
+            f"attribute, and no `board_attr_plan:` entry (with "
+            f"`measured_on:` + `plan:`) defers it — nothing stops the next "
+            f"export putting it straight back on the CPL")
     for r in sorted(declared - board_refs):
         fails.append(
             f"  UNDECLARED-UNPOPULATED: assembly.yaml declares {r} "
@@ -459,10 +681,20 @@ def check(fps, cpl_rows, bom_rows, asm, manifest_refs, have_assembly):
                     f"MANIFEST line is GENERATED from assembly.yaml, never "
                     f"hand-written in two places")
 
+    # ---- A-POS: the CPL COORDINATE, and the process that must execute it
+    datum_worst = []
+    if cpl_xy:
+        dfails, datum_worst = check_datum(fps, cpl_xy)
+        fails.extend(dfails)
+    fails.extend(check_smt_placeable(fps, cpl_refs, asm))
+
     hist = {}
     for _ref, _rot, layer in cpl_rows:
         hist[layer or "?"] = hist.get(layer or "?", 0) + 1
     summary = {"board": len(board_refs), "cpl": len(cpl_refs),
+               "datum_max_mm": round(datum_worst[0][0], 5) if datum_worst else None,
+               "datum_max_ref": datum_worst[0][1] if datum_worst else None,
+               "datum_graded": len(datum_worst),
                "unpopulated": len(unpopulated), "declared": len(declared),
                "consigned": len(consigned), "exempt_prefixes": exempt,
                "sides": hist, "unexplained": unexplained}
@@ -479,12 +711,20 @@ def main(argv=None):
     ap.add_argument("--bom", default="")
     ap.add_argument("--manifest", default="")
     ap.add_argument("--json", default="", metavar="OUT")
+    ap.add_argument("--emit-manifest-line", action="store_true",
+                    help="print the MANIFEST `not_assembled:` line GENERATED "
+                         "from assembly.yaml (refdes only) and exit — paste "
+                         "it into MANIFEST.txt instead of hand-writing it")
     # RED-VERIFY hooks (tests only): neuter ONE family of findings so a
     # known-bad fixture is shown to pass when — and only when — that family is
     # disabled, proving the finding came from that check and nothing else.
     ap.add_argument("--_disable-setid", action="store_true",
                     help="neuter the board-vs-CPL set identity checks")
     ap.add_argument("--_disable-uncoded", action="store_true")
+    ap.add_argument("--_disable-datum", action="store_true",
+                    help="neuter A-POS CPL-DATUM-OFF")
+    ap.add_argument("--_disable-smt", action="store_true",
+                    help="neuter A-POS CPL-NOT-SMT-PLACEABLE")
     args = ap.parse_args(argv)
 
     board, cpl, bom, root = discover(args.target)
@@ -495,6 +735,13 @@ def main(argv=None):
              else root / "03_src" / "rules" / "assembly.yaml")
     man_p = (Path(args.manifest) if args.manifest
              else Path(args.target) / "MANIFEST.txt")
+
+    if args.emit_manifest_line:
+        if not Path(asm_p).is_file():
+            print(f"FATAL: no assembly.yaml at {asm_p}", file=sys.stderr)
+            return 2
+        print(manifest_line(load_assembly(asm_p)))
+        return 0
 
     print(f"== A-POP assembly_coverage: {Path(args.target).name} ==")
     if not board or not Path(board).is_file():
@@ -510,8 +757,13 @@ def main(argv=None):
     asm = load_assembly(asm_p)
     fails, notes, summary = check(
         read_footprints(board), read_cpl(cpl), read_bom_rows(bom), asm,
-        manifest_not_assembled(man_p)[0], Path(asm_p).is_file())
+        manifest_not_assembled(man_p)[0], Path(asm_p).is_file(),
+        cpl_xy=read_cpl_xy(cpl))
 
+    if args._disable_datum:
+        fails = [f for f in fails if "CPL-DATUM-" not in f]
+    if args._disable_smt:
+        fails = [f for f in fails if "CPL-NOT-SMT-PLACEABLE" not in f]
     if args._disable_setid:
         fails = [f for f in fails
                  if not any(k in f for k in ("UNDECLARED-UNPOPULATED",
@@ -527,6 +779,11 @@ def main(argv=None):
           f"exempt_prefixes={summary['exempt_prefixes']})")
     print("  placement histogram: "
           + ", ".join(f"{k}={v}" for k, v in sorted(summary["sides"].items())))
+    if summary.get("datum_graded"):
+        print(f"  A-POS datum: {summary['datum_graded']} CPL row(s) graded "
+              f"against the pad-array centre, worst = "
+              f"{summary['datum_max_mm']:.5f}mm ({summary['datum_max_ref']}), "
+              f"tolerance {DATUM_TOL_MM}mm")
     for n in notes:
         print(n)
     for f in fails:

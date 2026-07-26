@@ -32,6 +32,30 @@ match its stated intent:
            CODE READ IT. `current: 5A` next to `min_width: 0.2mm` generated
            a happy 0.25mm netclass and exited 0.
 
+  A-FIRE   a rule in the `.kicad_dru` CANNOT FIRE, because its condition
+           names a netclass that is not in the `.kicad_pro`, or a rule area
+           that is not on the board. This is the "gate that cannot fail"
+           class: the rule reads as enforcement, DRC reports 0, and nothing
+           was ever checked. Every OTHER check here iterates over the
+           classes DECLARED IN nets.yaml, so a DRU rule naming a class that
+           nets.yaml no longer declares was examined by nothing at all —
+           which is exactly how the surviving copies below were made.
+
+           MEASURED on sealed bytes (2026-07-25), three boards:
+             crow-mic-pod-v2 v1.0 — 2 of its 4 rules dead. `AUDIO_width`
+               conditions on NetClass 'AUDIO'; the .kicad_pro defines only
+               Default/BEEP/PWR because nets.yaml DELIBERATELY dropped the
+               AUDIO class (its 0.25mm floor collided with KRT's 0.2498mm
+               imported width) — and the DRU rule was left behind. The
+               board carries 3 tracks at 0.2498mm, 0.0002mm under the floor
+               that dead rule names, and DRC reports 0. The rule was
+               removed from the class list to make DRC pass and its text
+               was never removed with it.
+             usb-hub-3s v1.x, usb-hub-3s-v2 — `pad_rescue_stubs` rule with
+               no such rule area on the board.
+           A dead rule is not cosmetic: it is the difference between a
+           floor that is enforced and a floor that is merely written down.
+
 Ampacity uses IPC-2221 external-layer constants (k=0.048, b=0.44, c=0.725)
 at a default 10 C rise on 1 oz copper. Conservative on purpose: this is a
 floor that says "this trace is not obviously undersized", not a thermal
@@ -102,8 +126,82 @@ def dru_widths(text):
     return out
 
 
+def dru_rules(text):
+    """[(rule_name, body)] for every `(rule NAME ...)` in a .kicad_dru."""
+    return [(m.group(1).strip('"'), m.group(2))
+            for m in re.finditer(r'\(rule\s+(\S+)(.*?)(?=\(rule\s|\Z)',
+                                 text, re.S)]
+
+
+def board_area_names(board_text):
+    """Every named `(zone ...)` on a .kicad_pcb — rule areas AND copper
+    pours, because `insideArea('X')` resolves against any zone named X."""
+    names = set()
+    for m in re.finditer(r"\(zone\b", board_text):
+        # scan forward to this zone's own `(name "...")`, stopping at the
+        # next zone so a later zone's name cannot be attributed to this one
+        seg = board_text[m.end():m.end() + 4000]
+        seg = seg.split("(zone")[0]
+        n = re.search(r'\(name\s+"([^"]*)"\)', seg)
+        if n and n.group(1):
+            names.add(n.group(1))
+    return names
+
+
+def unfireable_rules(dru_text, pro_class_names, board_text, board_name):
+    """A-FIRE — a rule whose condition can never be true enforces nothing.
+
+    Returns a list of findings. A condition is checked only when we have the
+    artifact that could refute it: `NetClass` always (the .kicad_pro is
+    required), `insideArea` only when a board was supplied. Silence about an
+    unreadable artifact is deliberate — a checker that guesses is the defect
+    it is looking for.
+    """
+    fails = []
+    known_classes = set(pro_class_names) | {"Default"}
+    areas = board_area_names(board_text) if board_text else None
+    for name, body in dru_rules(dru_text):
+        # strip comments so a commented-out condition is not graded
+        live = re.sub(r"#[^\n]*", "", body)
+        for cls in re.findall(r"\b[AB]\.NetClass\s*==\s*'([^']+)'", live):
+            if cls not in known_classes:
+                fails.append(
+                    f"A-FIRE rule {name!r}: conditions on NetClass {cls!r}, "
+                    f"which is not a netclass in the project "
+                    f"({sorted(known_classes)}) — the rule CANNOT FIRE and "
+                    f"enforces nothing, while reading as if it does")
+        if areas is None:
+            continue
+        for area in re.findall(r"\b[AB]\.insideArea\('([^']+)'\)", live):
+            if area not in areas:
+                fails.append(
+                    f"A-FIRE rule {name!r}: conditions on "
+                    f"insideArea({area!r}), and no zone/rule area of that "
+                    f"name exists on {board_name} "
+                    f"({len(areas)} named area(s): {sorted(areas)[:4]}) — "
+                    f"the rule CANNOT FIRE and enforces nothing")
+    return fails
+
+
 DRC_GATE_RE = re.compile(r"kicad-cli\s+pcb\s+drc")
-RULES_RE = re.compile(r"generate_rules\.py")
+# BOTH backends: the generic one is `generate_rules_generic.py`. A pattern that
+# matched only `generate_rules.py` reported "the DRC gate runs with no
+# generate_rules.py before it" on EVERY generic-backend board whose
+# rebuild_all.sh was in fact correct — a false positive that taught readers to
+# ignore A-ORDER, which is how a real ordering defect would have gotten through
+# (measured on crow-mic-pod-v2, whose rebuild_all.sh:38 runs the generic
+# generator LAST and was flagged anyway; 2026-07-25).
+RULES_RE = re.compile(r"generate_rules(?:_generic)?\.py")
+# A-ORDER's concern is a step that WRITES the board (a pcbnew save clobbers the
+# netclasses). These do not: they are the generator itself, and read-only
+# CHECKERS that belong exactly here — between the last generate_rules and the
+# DRC gate — because they grade the rules DRC is about to be measured against.
+# Flagging a checker for standing where it must stand would force it out of the
+# one position where it is useful.
+READONLY_AFTER_RULES = {
+    "generate_rules.py", "generate_rules_generic.py",   # the generator
+    "rules_audit.py",                                   # A-FIRE/A-CLASS/A-AGREE
+}
 # A script invocation, ignoring inline heredoc python (`python3 - <<'PYEOF'`),
 # which reads the DRC json and cannot touch the board.
 SCRIPT_RE = re.compile(r"(?<![-\w])([\w./$\"{}]*\.py)\b")
@@ -140,7 +238,7 @@ def rebuild_order_fails(path):
             continue
         for m in SCRIPT_RE.finditer(line):
             name = m.group(1)
-            if name.endswith("generate_rules.py"):
+            if Path(name).name in READONLY_AFTER_RULES:
                 continue
             after.append(f"{name} (line {i + 1})")
     if after:
@@ -157,16 +255,25 @@ def main(argv=None):
     ap.add_argument("--nets")
     ap.add_argument("--pro")
     ap.add_argument("--dru")
+    ap.add_argument("--board", help=".kicad_pcb — supplies the rule-area "
+                                    "names A-FIRE resolves insideArea() against")
     ap.add_argument("--delta-t", type=float, default=10.0)
+    # RED-VERIFY hook (tests only): neuter A-FIRE so a known-bad fixture is
+    # shown to pass when — and only when — that family is disabled.
+    ap.add_argument("--_disable-fire", action="store_true",
+                    help=argparse.SUPPRESS)
     a = ap.parse_args(argv)
 
+    board = Path(a.board) if a.board else None
     if a.project:
         p = Path(a.project)
         nets = Path(a.nets) if a.nets else p / "03_src" / "rules" / "nets.yaml"
         pros = sorted((p / "04_kicad").glob("*.kicad_pro"))
         drus = sorted((p / "04_kicad").glob("*.kicad_dru"))
+        pcbs = sorted((p / "04_kicad").glob("*.kicad_pcb"))
         pro = Path(a.pro) if a.pro else (pros[0] if pros else None)
         dru = Path(a.dru) if a.dru else (drus[0] if drus else None)
+        board = board or (pcbs[0] if pcbs else None)
     else:
         nets, pro, dru = Path(a.nets), Path(a.pro), Path(a.dru) if a.dru else None
 
@@ -245,6 +352,21 @@ def main(argv=None):
     if len(pro_classes) <= 1:
         fails.append(f"A-CLASS: {pro.name} has no netclass beyond Default — "
                      f"generate_rules did not run, or nets.yaml is empty")
+
+    # A-FIRE: every rule in the DRU must be ABLE to fire. Deliberately NOT
+    # scoped to nets.yaml's classes — a rule naming a class nets.yaml dropped
+    # is precisely the case every other check above walks straight past.
+    if dtext and not a._disable_fire:
+        btext = board.read_text() if board and board.is_file() else ""
+        fire = unfireable_rules(dtext, set(pro_classes), btext,
+                                board.name if board else "the board")
+        fails.extend(fire)
+        n_rules = len(dru_rules(dtext))
+        if not fire:
+            oks.append(f"A-FIRE all {n_rules} {dru.name} rule(s) can fire"
+                       + ("" if btext else
+                          " (netclass conditions only — no --board, so "
+                          "insideArea() was NOT graded)"))
 
     # A-ORDER: generate_rules must be the last thing to touch the project
     # before the DRC gate. See rebuild_order_fails() for the incident.

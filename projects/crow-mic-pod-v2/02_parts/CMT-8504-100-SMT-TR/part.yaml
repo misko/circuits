@@ -38,11 +38,25 @@ limits:
   operating_temp: "-40C to 85C"
   storage_temp: "-40C to 85C"
   reflow_max: "260C (see recommended reflow profile, page 1)"
+  # MOISTURE / FLOOR LIFE — absent from v1.0's dossier AND from its ORDER_README,
+  # which is the copy the operator actually reads. Quoted VERBATIM from the
+  # datasheet rev 1.04 SOLDERABILITY table (read 2026-07-25, not inherited):
+  #   Note 2: "It is recommended to reflow solder within 48 hours from opening
+  #            vacuum packaging at a temperature <30 C & relative humidity <60%."
+  #   Note 3: "When out of packaging for more than 48 hours." -> drying
+  #            conditions: "bake at 40 C for 24 hours"
+  #   reel storage: "at relative humidity <60%"
+  # LS1 IS MACHINE-PLACED (cpl.csv row 15), so this is JLC's constraint to meet,
+  # not ours — which is exactly why it has to appear in the order paperwork.
+  # Consequence of ignoring it: popcorning/delamination of a coil transducer
+  # inside a sealed outdoor pod — a LATENT failure found after deployment.
+  floor_life: "48 h from opening the vacuum pack at <30C / <60% RH (rev 1.04 Note 2)"
+  bake_if_exceeded: "40C for 24 h (rev 1.04 Note 3 drying conditions)"
   weight: "0.6g"
   material: "LCP body; brass SMD terminals"
   drive_type: "externally driven (electromagnetic/inductive coil, NOT self-oscillating) — requires an external square-wave drive, nominal 4kHz per rated spec"
 gotchas:
-  - "JLC stock chronically THIN (was 182 on 2026-07-18, 104 on 2026-07-21) — order-day re-check mandatory; Digi-Key hand-solder fallback"
+  - "JLC stock chronically THIN and FALLING: 182 (2026-07-18) -> 104 (2026-07-21) -> 69 (2026-07-25), i.e. -62% in 7 days. Single-source Extended (C22359707), NO qualified alternate. Still passes at build_quantity 8 (8.6x headroom) but at this rate reaches 8 in roughly two more weeks — order-day re-check MANDATORY; Digi-Key hand-solder fallback. Recorded in 03_src/rules/assembly.yaml sourcing_plan."
   - "inductive load: needs flyback/TVS clamp at the driven end when switched"
   - "datasheet's OWN reference 'APPLICATION CIRCUIT' (page 3 of 5) confirms the flyback-diode gotcha directly: transducer '+' to +VDC, '-' to an NPN driver transistor (e.g. 2SC1741AS or equiv., Vce<0.15V) collector, base driven via 180 Ohm from a 2.5V logic square wave, and a flyback diode wired in parallel across the transducer (cathode to +VDC, anode to the driven node) — replicate this clamp topology, do not drive the coil unprotected"
   - "the 2 'DUMMY PAD' corners are NOT a second +/- pair and are NOT internally bonded to the coil — confirmed mechanical-only by the datasheet's own callout; a symmetric-looking 4-pad footprint invites an accidental 2nd power/ground connection here, don't make one without verifying against a real unit"

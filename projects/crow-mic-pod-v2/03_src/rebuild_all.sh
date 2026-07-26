@@ -37,6 +37,15 @@ $PY    $RS stitch 03_src/route.yaml
 $PY 03_src/cleanup_redundant_vias.py           # drop router vias on same-net THT pads
 $PY $SK/generate_rules_generic.py .            # generate_rules LAST (saves clobber netclasses)
 
+echo "== rules gate (A-FIRE: a rule that CANNOT FIRE is a BUILD ERROR) =="
+# Runs AFTER the last generate_rules and BEFORE the DRC gate, on purpose: it
+# grades the rules DRC is about to be measured against. Without it, a rule
+# conditioning on a netclass the project does not define — or on a rule area
+# not on the board — enforces nothing, and DRC's 0/0/0 is partly vacuous for
+# exactly the nets that rule names. crow-mic-pod-v2 v1.0 sealed with 2 of its
+# 4 rules dead and 3 tracks 0.0002mm under the floor one of them named.
+$PY $SK/rules_audit.py .
+
 echo "== DRC gate =="
 kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
     -o 06_build/drc_final.json --format json 04_kicad/crow_mic_pod_v2.kicad_pcb

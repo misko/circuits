@@ -24,7 +24,23 @@ pins:                        # D (SOIC-8) package, standard dual op-amp pinout
   8: V+
 limits:
   vs_max: 40V                 # Absolute Max: Supply voltage VS = (V+)-(V-)
-  vin_range: "(V-)-0.5V to (V+)+0.5V"
+  vin_range: "(V-)-0.5V to (V+)+0.5V"   # ABS-MAX. NOT the linear window: see vcm_range
+  # LINEAR common-mode input range — the binding constraint on this board, and
+  # the one v1.0 never recorded. SBOS855E Electrical Characteristics, VCM row:
+  # "(V-)+0.5 to (V+)-2". On this board V-=GND, V+=5V_AUDIO ⇒ window 0.500..3.000V.
+  # VMID = 5.000 * 22k/(22k+22k) = 2.5000V (R4=R5=22k), so the POSITIVE headroom
+  # is only 0.500Vpk while the negative side has 2.000V — asymmetric by 4x.
+  # Input CM binds 3.1x BEFORE the output clips (1.53Vpk), so this, not the
+  # rail, is the ceiling. Onset ~108.9 dB SPL typ / 105.9 at +3dB mic
+  # sensitivity / 103.4 worst-case (+3dB at V+=4.75V) — BELOW the AOM-5024's own
+  # 110 dB rating, i.e. the mic can deliver more than U1 can linearly accept.
+  # ACCEPTED for v1.x, not a defect to respin: SBOS855E sec.7.3.1 gives the part
+  # internal phase-reversal protection, so it clips at the rail rather than
+  # inverting — graceful, nothing damaged (abs-max is vin_range above, far away).
+  # A crow call at the pod is ~70-90 dB SPL, ~15-20 dB below the ceiling.
+  # If a field recording ever shows clipped POSITIVE peaks: re-centre VMID with
+  # R4=33k/R5=18k -> 1.76V (output still fits). Measured 2026-07-25.
+  vcm_range: "(V-)+0.5 to (V+)-2"
   iin_max: 10mA                # input current, all pins except power-supply
   ta_op: "-40C to 85C"         # OPA1678I grade (I-suffix)
   tj_max: 150C
@@ -33,7 +49,7 @@ limits:
   vs_recommended_single: "4.5V to 36V"
 gotchas:
   - "twin PAD-GEOM ~0.47mm vs JLC CAD is the KiCad-IPC vs TI-datasheet SOIC-8 pad-length split — leads land on both pad shapes; adjudicate at twin, do not re-footprint"
-  - "rotation DB '^SOIC-',270 is assembly-zero truth; twin EDA-frame fit says 90 — keep 270, eyeball JLC preview pin-1 dot"
+  - "rotation is 270, MEASURED — not 'assembly-zero truth' (v1.0's phrasing asserted authority instead of evidence). Oriented formA fit, 8 pads matched by NUMBER, operator calibrated against pcbnew to 0.000000mm over 92 pads incl. a 90deg case: rms 0.2301 @270 vs 4.1804 @0/180 and 5.9074 @90 — an 18.2x separation. board_rot 0 ⇒ CPL 270.0 = shipped. Corroborated on a NUMBERING-FREE channel: our pad columns sit at x=+/-2.475 (rows along Y) vs JLC's rows at y=+/-2.705 (along X), which forces {90,270} and excludes 0/180 outright. The twin's ROT-DB-SUGGEST of 90 is REFUTED — acting on it would rotate the op-amp 180deg and put V+ (pin 8) on the OUTA land. The 0.2301 residual is the adjudicated KiCad-IPC vs TI SOIC-8 land split. Re-measured 2026-07-25."
   - "OPA1678 shares one datasheet (SBOS855) with OPA1677 (single, SOIC-8/SOT-23) and OPA1679 (quad, SOIC-14) — do not transcribe the wrong device's pin table; used Fig 5-3 / Pin Functions: OPA1678 table specifically"
   - "IDR marking on top of die is OP1678 (per Package Option Addendum), not the full MPN — useful for bring-up visual ID"
 verified: "pin map cross-checked against datasheet SBOS855E Figure 5-3 'OPA1678: D Package, 8-Pin SOIC and DGK Package, 8-Pin VSSOP (Top View)' + the adjacent 'Pin Functions: OPA1678' table, both on page 4 — 2026-07-23. Package mechanical (D0008A SOIC outline, body 3.81-3.98mm x 4.81-5.00mm, 1.27mm pitch, JEDEC MS-012 variation AA) confirmed against Mechanical Data drawing on page 53."

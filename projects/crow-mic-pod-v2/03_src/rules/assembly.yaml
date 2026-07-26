@@ -1,0 +1,126 @@
+# crow-mic-pod-v2 — ASSEMBLY DECLARATION (canon A-POP / A-STOCK).
+# Schema + rationale: skills/pcb-design/templates/03_src/rules/assembly.yaml
+# (its KEYS are the contract). Graded by `assembly_coverage.py <project>` and
+# by `release_freshness_check.py <release_dir>` check (e).
+#
+# THE MANIFEST `not_assembled:` LINE IS GENERATED FROM THIS FILE — refdes only,
+# no prose. v1.0 hand-wrote it as a sentence; A-POP measured 16 whitespace
+# tokens of which 13 were not refdes at all ('BOM', 'HAND-SOLDER', 'NOW',
+# 'ORDER_README', 'POPULATED'), so no gate could grade it.
+#
+# WHY THIS FILE EXISTS ON THIS BOARD. v1.0 sealed with the population set
+# EMERGENT: 39 board footprints, 26 CPL placements, and 13 unpopulated parts
+# justified by an `exclude_from_pos_files` attribute bit and nothing else. The
+# consequence was not cosmetic — `fab/bom.csv` carried assembly rows for MK1
+# and J1, two parts JLC is never told to place and cannot source (MK1 with
+# MPN *and* LCSC both blank), which stalls the upload at JLC's BOM/CPL matcher.
+
+# ---- SERVICE DECLARATION ---------------------------------------------------
+service: standard          # JLC "Economic"/standard SMT assembly, as ORDERED.
+sides: [top]               # 26/26 CPL rows are Layer=top (measured from
+                           # fab/cpl.csv, 2026-07-25). No bottom-side pass.
+fiducials: none            # DELIBERATE. No local fiducials placed: the finest
+                           # pitch on this board is U1's SOIC-8 at 1.27mm, an
+                           # order of magnitude above the <=0.4mm-pitch
+                           # threshold where local fiducials start carrying
+                           # placement accuracy. JLC adds its own panel
+                           # fiducials on their rails.
+build_quantity: 8          # 6 deployed pods (BRIEF.md:25-26, "6 active-balanced
+                           # microphone pods") + 2 spares. A-STOCK grades every
+                           # placed line at stock >= qty-per-board x 8.
+
+# ---- NOT ASSEMBLED ---------------------------------------------------------
+# 13 refs, = {39 board footprints} - {26 CPL placements}. Every one carries
+# `exclude_from_pos_files` on the board (verified 2026-07-25: 13/13, zero
+# DECLARED-NOT-EXCLUDED), so the declaration and the machine instruction agree.
+not_assembled:
+
+  - refs: [MK1]
+    reason: user_supplied
+    evidence: >
+      THT electret capsule, hand-wired at pod integration. Two independent
+      walls, both measured 2026-07-25 against the JLC parts library
+      (jlcpcb.com/api/overseas-pcb-order/v1 selectSmtComponentList):
+      (1) SOURCING — the exact MPN IS in the catalog as C3273706
+      (Extended tier) at STOCK 0, and so are both siblings: C3273730
+      (AOM-5024L-HD-F-R) stock 0 and C20107634 (AOM-5024P-HD-MB-R) stock 0.
+      All three AOM-5024 variants are unbuyable today.
+      (2) PROCESS — the footprint is `through_hole` (board attr, measured),
+      and this order is SMT-only (`service: standard`, `sides: [top]`); MK1
+      and J1 are the board's ONLY two THT parts.
+      NOTE this CORRECTS the v1.0 paperwork, which asserted MK1 is "not in
+      the JLC catalog" (ORDER_README section 3) — that claim is FALSE, as
+      the query above shows. The part is catalogued and out of stock, which
+      is a different fact with a different expiry.
+    disposition: >
+      Sourced from Digi-Key 668-1538-ND and hand-soldered at integration.
+      Iron limits are BINDING and printed in ORDER_README section 3:
+      <90 W, tip 360 C +/-10, <=2 s per terminal (AOM-5024 datasheet p.4).
+      Wiring: pad 1 "+" -> R2, pad 2 -> GND.
+
+  - refs: [J1]
+    reason: user_supplied
+    evidence: >
+      THT RJ45 jack, hand-soldered at integration. Measured 2026-07-25
+      against the JLC parts library: the code the v1.0 BOM shipped,
+      C9900035627 (RJHSE-5384), is at STOCK 0, and so is its duplicate
+      listing C9900056698 (RJHSE-5384, stock 0). Both are consign-only
+      placeholder codes priced at $0.0392 — they were never orderable
+      stock. The nearest in-stock relative, C3179625 (RJHSE-5384-02,
+      stock 450), is a RIGHT-ANGLE 2-port variant and NOT a drop-in for
+      this footprint. Same THT/SMT-service wall as MK1.
+      NOT `consign`: a consigned part is POPULATED — you ship it and JLC
+      PLACES it, so it stays ON the CPL. J1 is not placed by anyone at JLC.
+    disposition: >
+      RJHSE-5384 sourced separately and hand-soldered. ORDER_README
+      section 2 carries the REQUIRED pad-1 -> contact-1 continuity backstop
+      on the first assembled board before the array is committed.
+
+  - refs: [H1, H2, H3, H4]
+    reason: mechanical
+    evidence: >
+      M3 mounting holes, footprint MountingHole_3.2mm_M3, ZERO pads and no
+      net (measured from the sealed .kicad_pcb, 2026-07-25). Board attrs
+      `board_only` + `exclude_from_bom` + `exclude_from_pos_files`.
+      No electrical function, so nothing to place.
+    disposition: "n/a — enclosure hardware, fitted at assembly"
+
+  - refs: [TP1, TP2, TP3, TP4, TP5, TP6, TP7]
+    reason: test_point
+    evidence: >
+      Bare probe pads, footprint TestPoint_Pad_D1.5mm, ONE pad each and no
+      part (measured 2026-07-25). Board attrs `exclude_from_bom` +
+      `exclude_from_pos_files`. Silk legend +5V/GND/A+/A-/5VBP/RET/VMID,
+      used by the ORDER_README section 5 first-power ritual.
+    disposition: "n/a — bare copper, nothing to fit"
+
+# ---- CONSIGNED (you supply, JLC PLACES — these stay ON the CPL) -------------
+consigned: []      # DELIBERATE: nothing on this board is consigned. All 26
+                   # placed parts are sourced by JLC from their own library.
+
+# ---- SOURCING PLAN ---------------------------------------------------------
+# A-STOCK fails any coded, PLACED line whose stock evidence is not OK unless it
+# appears here with a measured number and a date. No line needs that today —
+# all 16 coded BOM lines return OK against build_quantity 8. LS1 is recorded
+# anyway because its trend, not its level, is the risk.
+sourcing_plan:
+  - lcsc: C22359707
+    measured_stock: 69
+    measured_on: 2026-07-25
+    plan: >
+      CMT-8504-100-SMT-TR calibration transducer, 1 per board x 8 = 8
+      required against 69 in stock — PASSES today with 8.6x headroom.
+      RECORDED BECAUSE THE TREND IS THE RISK, not the level: 182 (2026-07-18)
+      -> 104 (2026-07-21) -> 69 (2026-07-25), i.e. -62% in 7 days on a
+      single-source Extended part with NO qualified alternate. At that rate
+      it reaches 8 in roughly two more weeks. Order promptly; re-run
+      jlc_stock_check.py the same day you pay. If the array ever grows past
+      ~20 boards, buy LS1 separately and consign it rather than racing the
+      queue. Flagged in ORDER_README section 1.
+
+# ---- EXEMPT REFDES CLASSES -------------------------------------------------
+# DELIBERATELY EMPTY. H* and TP* would both qualify, but every one of the 13
+# unpopulated refs is declared explicitly above WITH its measurement, so no ref
+# on this board is excused by its prefix alone. A class exemption is a standing
+# permission; a declaration is a decision record.
+exempt_prefixes: []

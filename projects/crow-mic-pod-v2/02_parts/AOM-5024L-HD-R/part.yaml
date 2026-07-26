@@ -44,7 +44,8 @@ limits:
   tstg: "-40C ~ +85C"
   weight: "<0.3 g"
 gotchas:
-  - "not in JLC catalog — hand-wire (Digi-Key 668-1538-ND); capsule solder limit ~2s per lead"
+  - "CORRECTED 2026-07-25: it IS in the JLC catalog — C3273706 (Extended), exact MPN. The earlier 'not in JLC catalog' claim was never measured and is FALSE. What is true is that it is UNBUYABLE and UNPLACEABLE: live parts-library query 2026-07-25 returns stock 0 for C3273706 AND both siblings (C3273730 AOM-5024L-HD-F-R stock 0, C20107634 AOM-5024P-HD-MB-R stock 0), and the footprint is through_hole while pod orders are SMT-only. Hand-wire from Digi-Key 668-1538-ND. Declared in 03_src/rules/assembly.yaml as reason: user_supplied with that query as evidence — 'searched and absent' and 'catalogued and out of stock' are different facts with different expiry dates."
+  - "SOLDER LIMITS ARE BINDING (datasheet p.4): iron <90W, tip 360C +/-10, <=2s PER TERMINAL. Exceeding them degrades capsule sensitivity SILENTLY — no visible damage, just a quieter mic. Printed in ORDER_README section 3 for whoever holds the iron."
   - "bias from an RC-filtered rail; op-amp runs on the raw rail (PSRR covers it)"
   - "soldering iron power must be <90W, tip temp 360C +/-10C (680F +/-50F), and soldering duration per
     terminal at/under 2 seconds — datasheet 'Microphone Handling Precautions' (p.4). Exceeding this can
