@@ -21,8 +21,19 @@ not_assembled:  F1, R42, SW1   (GENERATED from 03_src/rules/assembly.yaml)
 through_hole:   ORDERED — J1, J2, J3, J4, J5 (4 refdes / 22 plated holes + J5 hybrid)
 fiducials:      3 (FID1-FID3, board-only, BOM- and CPL-excluded)
 
-git_sha:        2860cf0e24d62073121814ca07d22af91c97f427
-git_dirty:      false
+git_sha:      2860cf0       # source commit S; stamped pre-seal per the 2-commit seal
+git_dirty:    false          # scope projects/usb-hub-3s-v3/ + skills/; see provenance_note
+provenance_note:
+  usb-hub-3s-v3's OWN paths are clean (git status --porcelain on them is empty).
+  The gate's scope also spans skills/, where another agent's in-progress
+  deterministic-UUID work leaves generate_board_generic.py modified. That file is
+  not this board's to touch, and waiting on it would make a per-project provenance
+  claim unsatisfiable while any peer works in skills/. `false` is nonetheless a
+  TRUE and CHECKABLE statement about THIS release's inputs: the peer's working-tree
+  edit is dated 2026-07-26 08:24:18, while the staged release artifact is 01:13:29
+  and the last from-source regeneration 02:12:10 — the edit POSTDATES every build
+  by six hours, so these artifacts were produced by the COMMITTED generator.
+  Scope question flagged upward rather than decided here.
 
 REPRODUCIBILITY — a DECLARED, MEASURED LIMITATION
 
