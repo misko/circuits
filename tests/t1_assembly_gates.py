@@ -506,6 +506,66 @@ def t_pos_not_smt_placeable():
           "red-verify: --_disable-smt must silence exactly this finding")
 
 
+@test("A-POS: a DECLARED-AND-EVIDENCED bought THT process exempts the refs it "
+      "NAMES — because taking a paid-for connector off the CPL is the wrong fix")
+def t_pos_tht_declared_process_exempts():
+    """usb-hub-3s-v3 v1.6: the board PAYS for JLC's through-hole line, so J1-J4
+    belong ON the CPL. Before this, `service:` was interpolated into the message
+    and never decided on, so the only way to pass was to remove the part — which
+    would have hand-soldered a connector the customer had already bought."""
+    asm = CLEAN_ASSEMBLY.replace("service: standard",
+                                 "service: standard SMT + THROUGH-HOLE assembly") + """
+through_hole:
+  process: "JLCPCB through-hole assembly, ORDERED"
+  refs: [J1]
+  evidence: "measured hole census 2026-07-26: J1 has 4 plated holes, none pasted"
+"""
+    rel, _ = rel_tree(CROW14, assembly=asm)
+    r = run([KPY, COV, rel, "--_disable-datum"])
+    smt = [ln for ln in r.out.splitlines() if "CPL-NOT-SMT-PLACEABLE" in ln]
+    check(not any(" J1 " in ln for ln in smt),
+          "J1 is NAMED in an evidenced through_hole declaration -> exempt, "
+          f"got: {smt}")
+
+
+@test("A-POS: through_hole exempts ONLY the refs it names, and an incomplete "
+      "declaration exempts NOTHING — prose cannot buy a process")
+def t_pos_tht_declaration_is_scoped_and_complete():
+    """The known-bad half. Three ways a declaration must fail to help:
+    (a) a ref left OFF the list is still caught — that IS the
+        crow-recorder-central-v2 v1.4 case, whose assembly.yaml asserted in prose
+        that its THT parts were off the CPL while J1 sat on it;
+    (b) `refs:` with no `process:`/`evidence:` is an assertion, not a purchase;
+    (c) an EMPTY declaration exempts nothing at all."""
+    # (a) declaration names a DIFFERENT ref -> J1 still fails
+    asm_other = CLEAN_ASSEMBLY + """
+through_hole:
+  process: "JLCPCB through-hole assembly, ORDERED"
+  refs: [J99]
+  evidence: "measured 2026-07-26"
+"""
+    rel_a, _ = rel_tree(CROW14, assembly=asm_other)
+    must_fail(run([KPY, COV, rel_a, "--_disable-datum"]),
+              "a bought process must not exempt a ref it does not name",
+              "CPL-NOT-SMT-PLACEABLE")
+    # (b) refs but no process/evidence -> exempts nothing AND is called out
+    asm_bare = CLEAN_ASSEMBLY + """
+through_hole:
+  refs: [J1]
+"""
+    rel_b, _ = rel_tree(CROW14, assembly=asm_bare)
+    rb = must_fail(run([KPY, COV, rel_b, "--_disable-datum"]),
+                   "an unevidenced through_hole declaration",
+                   "CPL-NOT-SMT-PLACEABLE")
+    contains(rb.out, "THT-DECL-INCOMPLETE",
+             "the incomplete declaration is named, not silently ignored")
+    contains(rb.out, "process", "says WHICH keys are missing")
+    # (c) empty declaration -> exempts nothing
+    rel_c, _ = rel_tree(CROW14, assembly=CLEAN_ASSEMBLY + "\nthrough_hole: {}\n")
+    must_fail(run([KPY, COV, rel_c, "--_disable-datum"]),
+              "an empty through_hole block", "CPL-NOT-SMT-PLACEABLE")
+
+
 @test("A-POS passes a CPL whose coordinates ARE the pad-array datum — the "
       "gate has to be satisfiable, and 175 of v1.4's 177 rows already were")
 def t_pos_datum_clean_rows():

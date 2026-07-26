@@ -476,24 +476,65 @@ def check_smt_placeable(fps, cpl_refs, asm):
     printed into the barrels and it reflows with everything else. The
     discriminator is paste coverage, never the `through_hole` attribute —
     which is why this check reads pad layers rather than `(attr through_hole)`.
+
+    THE THROUGH-HOLE PROCESS, WHEN IT IS ACTUALLY BOUGHT (2026-07-26).
+    Until now this check could only be satisfied by taking the part OFF the CPL,
+    which is wrong for a board that PAID for through-hole assembly: leaving J1-J4
+    on the CPL is the entire point of buying the line. `service:` was read but
+    never decided on — it was interpolated into the message and otherwise ignored —
+    so usb-hub-3s-v3, whose `service:` names "THROUGH-HOLE assembly (4 refdes / 22
+    plated holes)", still failed on all five connectors. Its own assembly.yaml had
+    already recorded the gap in writing ("this schema has no dedicated
+    through_hole: key ... raised as a skill/template change, PCBA-9").
+
+    The exemption is now a DECLARATION, not a string match on prose:
+
+        through_hole:
+          process: "JLCPCB through-hole assembly (selective/wave), ordered"
+          refs: [J1, J2, J3, J4, J5]
+          evidence: "<dated measurement: hole census + what was ordered>"
+
+    All three keys are REQUIRED and a ref must be NAMED. Silence stays a FAIL,
+    an empty `refs` exempts nothing, and a ref not on the list is still caught —
+    so the crow-recorder-central-v2 v1.4 case (a THT barrel jack on a top-side-SMT
+    CPL, with assembly.yaml asserting in prose that THT parts were off the CPL)
+    still fails exactly as it did. Prose cannot buy a process; a declaration with
+    evidence can, and it is checkable.
     """
     fails = []
     by_ref = {f["ref"]: f for f in fps}
     sides = [str(s) for s in (asm.get("sides") or [])]
     service = str(asm.get("service") or "")
+    th = asm.get("through_hole") or {}
+    th_proc = str(th.get("process") or "").strip()
+    th_ev = str(th.get("evidence") or "").strip()
+    th_refs = {str(r) for r in (th.get("refs") or [])}
+    th_ok = bool(th_proc and th_ev and th_refs)
+    if th_refs and not (th_proc and th_ev):
+        fails.append(
+            "  THT-DECL-INCOMPLETE: assembly.yaml `through_hole:` names "
+            f"{sorted(th_refs)} but is missing "
+            + " and ".join(k for k, v in (("process", th_proc),
+                                          ("evidence", th_ev)) if not v)
+            + " — a bought process is a purchase with evidence, not an "
+              "assertion; without both keys the declaration exempts nothing")
     for ref in sorted(cpl_refs):
         f = by_ref.get(ref)
         if f is None or not f["drilled"]:
             continue
         if f["drilled_pasted"]:
             continue                      # pin-in-paste: reflows normally
+        if th_ok and ref in th_refs:
+            continue                      # the THT line was BOUGHT for this ref
         fails.append(
             f"  CPL-NOT-SMT-PLACEABLE: {ref} ({f['fp'][:38]}) has "
             f"{f['drilled']} plated DRILLED pad(s) and F.Paste on NONE of "
             f"them, yet it is on the CPL of a service={service or '?'} "
             f"sides={sides or '?'} order — no reflow process can solder it. "
-            f"Either buy the process, or declare it not_assembled "
-            f"(reason: process_incompatible) and hand-solder it")
+            f"Either declare the bought process in assembly.yaml "
+            f"`through_hole:` {{process, refs, evidence}} naming this ref, or "
+            f"declare it not_assembled (reason: process_incompatible) and "
+            f"hand-solder it")
     return fails
 
 
