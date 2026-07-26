@@ -203,7 +203,7 @@ placement:
     U_OENAND:   [160.0, 80.0, 0]
     Q_COILDRV:  [170.0, 80.0, 0]     # 2N7002 low-side coil-enable
     Q_COIL:     [182.0, 80.0, 0]     # AO3401A HS -> 5V_KEY_RELAY (gated coil rail)
-    U_OPTO:     [185.0, 90.0, 0]     # LTV-817S -> J_CONTACTOR
+    U_OPTO:     [185.0, 90.0, 0]     # LTV-817S -> J_ISOLOOP (isolated side EAST)
     # v1.2 K_STOP dedicated driver + flyback (ADR-0011 §4): ANCHORED (a floating
     # seed was legalizer-displaced into the comb keepout — measured hard fail;
     # first anchor attempt (166/162,60) was PINCHED: SMA bbox 7.1mm wide +
@@ -217,10 +217,57 @@ placement:
     # ================= DISCRETE SAFETY INPUTS (EAST EDGE) =================
     # y >= 60: keeps every connector pad >=6mm below the EAST end pocket's
     # keypad copper (pocket pads end y46.37).
-    J_MODE:      [197.0, 60.0, 90]   # mouth EAST (by HC14/AND-chain)
-    J_ESTOP:     [197.0, 72.0, 90]
-    J_DOOR:      [197.0, 84.0, 90]
-    J_CONTACTOR: [197.0, 94.0, 90]   # KF350 terminal block
+    # ===== v1.3 P0-A: THE EAST COLUMN, RE-STACKED FOR ONE ISOLATED BLOCK ======
+    # J_ESTOPLOOP + J_CONTACTOR merged into the single 4-pole J_ISOLOOP (user
+    # decision 2026-07-25; see the tsx comment on J_ISOLOOP and ADR-0013). Both
+    # only ever carried isolated-domain nets, so one body with ONE 2.0mm moat and
+    # ONE pour keepout replaces two adjacent bodies each needing their own.
+    #
+    # THE COLUMN IS AT CAPACITY AND THESE FOUR NUMBERS ARE SOLVED, NOT CHOSEN.
+    # The packing is 1-D and every term is MEASURED off the built footprints, so
+    # the order of the connectors cannot change the answer:
+    #     H4 courtyard bottom                       54.547
+    #   + J_MODE / J_ESTOP / J_DOOR courtyards    3 x 10.790
+    #   - (J_DOOR courtyard bottom is 0.545 south of its GND shell tab)  -0.545
+    #   + the ISO_CONTACTOR moat                     2.000
+    #   + J_ISOLOOP pad column (2x5.25 pitch + pad)  12.700
+    #   + copper-to-board-edge (board rule)          0.300
+    #   ------------------------------------------------------
+    #                                              101.372  vs the edge at 102.000
+    # => 0.628mm of AGGREGATE slack to spend on FIVE margins at once. The v1.3
+    # first attempt spent it before it was counted and landed J_ESTOPLOOP inside
+    # J_DOOR; the predecessor solve reached 0.028mm and still measured 1.702mm on
+    # the moat (P-COLLIDE + the ISO scan both caught it).
+    #
+    # WHERE THE 0.628 CAME FROM: the KF350-3.5-4P pad is 2.20mm, not the 2P's
+    # 2.60 (annular ring 0.50mm vs a 0.15mm JLC floor — see the part.yaml). At
+    # 2.60 the same solve gives ~0.05mm on all five margins simultaneously, which
+    # is a number no one can defend; 2.20 is the only lever on this board that
+    # costs nothing external. It also lifts pole-to-pole gap 0.90 -> 1.30mm.
+    #
+    # THE MOAT IS 2-D, NOT VERTICAL. J_DOOR's binding copper is its EAST shell
+    # tab (pad MP, GND, x[197.0,199.7]) — not its signal pads, which sit at
+    # x[194.3,196.0] and are 4.1mm clear. J_ISOLOOP is pulled 1.70mm west of the
+    # SELV column so its pad column x[194.20,196.40] clears the tab in x by
+    # 0.600mm and buys that back diagonally. West is bounded by J_RH_EXHAUST's
+    # courtyard (right edge 191.395); x195.30 leaves 0.160mm there.
+    # MEASURED margins at these anchors (regenerate and re-measure if any move):
+    #   H4 courtyard -> J_MODE courtyard            0.058   (fixed; H4 is the wall)
+    #   J_MODE -> J_ESTOP courtyard                 0.080
+    #   J_ESTOP -> J_DOOR courtyard                 0.090
+    #   J_DOOR -> J_ISOLOOP courtyard               0.510
+    #   J_ISOLOOP -> J_RH_EXHAUST courtyard         0.160
+    #   ISO->SELV copper (J_ISOLOOP.4 <-> J_DOOR.MP) 2.126  (+0.126 on the rule)
+    #   J_ISOLOOP.1 copper -> south board edge      0.650   (+0.350 on the rule)
+    #   J_ISOLOOP body south face                 102.000   (FLUSH, not proud —
+    #     the enclosure wall is the board edge, so the block may not overhang)
+    J_MODE:      [197.0, 60.00, 90]  # mouth EAST (by HC14/AND-chain) — UNMOVED
+    J_ESTOP:     [197.0, 70.88, 90]  # was 72.0; north 1.12 to open the moat
+    J_DOOR:      [197.0, 81.76, 90]  # was 84.0; north 2.24 (the binding shift)
+    J_ISOLOOP:   [195.3, 95.00, 90]  # KF350-3.5-4P, the ONE isolated block;
+                                     # 1.70 west of the SELV column (2-D moat),
+                                     # body y[88.00,102.00] flush to the south
+                                     # edge, courtyard 0.755 clear of the east
 
     # ============ ANALOG SENSE SPINE (SW; ADC cluster = v1.0 +6y rigid) ============
     U_ADC:  [42.0, 76.0, 0]          # MCP3208 (SPI to Pi)
@@ -277,23 +324,40 @@ placement:
     # U_COMP 1.010mm N, J_THERM_A 4.510mm S. (Gate: P-COLLIDE, added to
     # generate_board_generic.py in the same change.)
     U_COMP2: [24.0, 86.5, 0]
-    # !! P0-A OPEN (task#21, 2026-07-25) — DO NOT GENERATE WITH THIS ANCHOR !!
-    # [196.0, 84.0, 90] places this KF350 INSIDE J_DOOR [197.0, 84.0, 90]: the
-    # OPTO-ISOLATED contactor loop is shorted to 3V3, GND and DOOR_RAW (4 kicad
-    # shorting_items; measured pad-copper overlaps 1.300 x 0.600 mm, nearest
-    # non-overlapping approach 0.044mm). The comment below was the INTENT; the
-    # east edge has no room for it. MEASURED budget, x[193.7,200.2]:
-    #   available y 54.605 (H4 courtyard) .. 101.845 (south edge - pad) = 47.240
-    #   needed  J_MODE 10.79 + J_ESTOP 10.79 + J_DOOR 10.79 + J_ESTOPLOOP 7.69
-    #           + J_CONTACTOR 7.69 = 47.750 courtyard, PLUS a 0.660 courtyard
-    #           gap to buy the ISO_CONTACTOR rule's 2.0mm copper moat = 48.410
-    #   => SHORT BY 1.170mm with ZERO body gap between five connectors.
-    # This needs an interface decision (move a SELV connector off the east edge /
-    # merge J_ESTOPLOOP+J_CONTACTOR into one isolated 4-way block / grow the
-    # board), so it is REPORTED, not invented. See 01_docs/STATUS-cooksense.md.
-    J_ESTOPLOOP: [196.0, 84.0, 90]   # v1.3 P0-2: the isolated loop gets its OWN
-                                     # KF350 3.5mm terminal block, between J_ESTOP
-                                     # (SELV, y72) and J_CONTACTOR (isolated, y94)
+    # ---- TRAPPED PLANE PADS PROMOTED TO EXPLICIT ANCHORS (task#21, 2026-07-25)
+    # MEASURED on the first v1.3 stitch of race c0/r9: pad_rescue served 162/167
+    # GND pads and a GND union-find over the FILLED copper (626 items, 5 clusters)
+    # named the two survivors exactly — C_SWB.2 alone, and R_DECDPD.2 with a
+    # 0.37mm2 F.Cu sliver, both islands of one pad. kicad-cli agreed: 2
+    # unconnected_items. Neither is a routing accident: C_SWB.2's 0603 GND pad has
+    # THREE B.Cu analog nets crossing beneath it (TH_CAM_B x46.300 y87.20-87.80,
+    # TCAM_THRESH y86.700 x46.40-47.10, TH_MOUNT_A y86.100), so no via-in-pad site
+    # exists anywhere on the pad in that realization. This is the same defect class
+    # as C_TCPA and R_SHIELD in v1.2 (canon: a routing failure is usually a
+    # PLACEMENT problem), and it gets the same three-part fix: an EXPLICIT anchor
+    # here so the pad centre is a fixed number, a User.2 reservation rect in
+    # route.yaml so no wave can box the site in on ANY re-race, and a deterministic
+    # seed_stub via-in-pad at the pad centre. Anchored AT the positions the
+    # legalizer already chose — the point is determinism, not relocation.
+    C_SWB:  [45.5, 87.0, 0]          # GND pad2 @46.275,87.000 (reserved + seeded)
+    R_DECDPD: [114.8, 64.1, 0]       # GND pad2 @115.310,64.100 (reserved + seeded)
+    # SECOND ROUND, and the second round is the point. Fixing those two moved the
+    # problem rather than removing it: the next race stranded C_DECUEN.1 [3V3] and
+    # C_ULNA.2 [GND] instead (kicad-cli 2 unconnected_items, 0 violations). That is
+    # the pad_rescue whack-a-mole this route.yaml already warns about — four
+    # consecutive v1.2 races each refused a DIFFERENT 2-4 stubs. So these two get
+    # the same three-part deterministic treatment, and the rebuild that lands them
+    # REUSES the promoted chain instead of re-racing: with the copper frozen there
+    # is no new realization to strand a new pad. Sites are MEASURED on that exact
+    # copper, on-pad, and are the best of a 41x41 scan of each pad:
+    #   C_DECUEN.1 (83.040,63.100)  +0.415mm to DECU_G1_RAW
+    #   C_ULNA.2   (96.800,66.190)  +0.360mm to STOP_REQ_N
+    # (both against a 0.13mm seed_stubs floor). C_DECUEN was a legalizer SEED and
+    # C_ULNA a `near: U_ULNA` rule; both are promoted to anchors AT the position
+    # the legalizer chose, because a reservation rect is only as stable as the
+    # coordinate it protects.
+    C_DECUEN: [83.5, 63.0, 0]        # 3V3 pad1 @83.020,63.000 (reserved + seeded)
+    C_ULNA:   [96.3, 66.4, 0]        # GND pad2 @97.075,66.400 (reserved + seeded)
     Q_SWA:  [30.0, 88.0, 0]          # switched 3V3_SW_A -> J_THERM_A
     Q_SWB:  [46.0, 90.0, 0]          # switched 3V3_SW_B -> J_THERM_B
     J_THERM_A: [32.0, 97.0, 0]       # SM08B thermal head A (mouth SOUTH)
@@ -360,7 +424,6 @@ placement:
     C_STOPINV: [128.5, 73.0]
     C_OSCLR:   [148.5, 68.0]
     C_LATCHG:  [104.5, 71.0]
-    C_DECUEN:  [82.5, 63.0]
     C_DECDEN:  [128.5, 68.5]
     R_OS2:     [147.0, 57.5]    # unused-half 2CXRX 10k -> VCC (at U_ONESHOT pin 7 side)
     # ---- v1.2 contactor HW gate (safety band, between AND-chain and U_OPTO) ----
@@ -510,6 +573,23 @@ placement:
     - {match: ["K_U1", "K_U2", "K_U3", "K_U4", "K_U5", "K_U6",
                "K_D1", "K_D2", "K_D3", "K_D4", "K_PRESS", "K_STOP", "J_TC"],
        attrs: [exclude_from_pos_files]}
+    # ---- THE SAME DEFECT, THREE MORE REFS (task#21, 2026-07-25) --------------
+    # MEASURED on the v1.3 board: FOUR through-hole parts were still on the CPL
+    # (J_CONTACTOR, J_ESTOPLOOP, J_LOADCELL, J_PI) — a 2-pole screw terminal, a
+    # JST-XH, and a 40-way 2.54mm pin socket. This board orders JLC STANDARD SMT
+    # assembly (assembly.yaml `service: standard`, `sides: [top]`), which does
+    # not place through-hole parts AT ALL. That is the block above's OWN stated
+    # reason for the twelve relays and J_TC ("the package is THT and standard
+    # SMT assembly does not place through-hole") — it was simply never applied
+    # to the other four, so v1.0 and v1.1 both shipped a CPL instructing JLC to
+    # machine-place parts its ordered service cannot touch.
+    # J_CONTACTOR/J_ESTOPLOOP are now the merged J_ISOLOOP, so the surviving
+    # three go here and into assembly.yaml with dated package evidence.
+    # NOTE this is a POPULATION correction, not a sourcing one: J_LOADCELL
+    # (C158012) and J_PI (C2718002) ARE stocked, and stay in the BOM as
+    # self-supplied lines — they just stop being machine-placement instructions.
+    - {match: ["J_ISOLOOP", "J_LOADCELL", "J_PI"],
+       attrs: [exclude_from_pos_files]}
     # ---- catch-all ----
     - {match: "*", region: drive}
 
@@ -581,6 +661,40 @@ keepouts:
   # side of it is held separately by the ISO_CONTACTOR netclass DRU rule (2.0mm),
   # which is what makes the property machine-checkable rather than incidental.
   - {name: opto_barrier, deny: [tracks, vias, pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [181.4, 85.8, 188.6, 94.2]}
+  # ===== v1.3 P0-A: THE ISO_CONTACTOR MOAT, AS A KEEPOUT =====================
+  # The opto_isolation_2mm DRU rule says ISO_CONTACTOR copper holds 2.0mm to
+  # every other NAMED net (IEC 60664-1 basic insulation, 30V working, pollution
+  # degree 3, material group IIIa). Against tracks the router can honour that;
+  # against the GND/3V3 PLANES it cannot — a pour fills to its own clearance
+  # (0.200mm here) and would sit 0.2mm from the isolated pads. v1.2 measured
+  # exactly that: 82 violations, worst 0.199mm. So the moat has to be POUR
+  # GEOMETRY, and it could not be written until the isolated connectors had a
+  # legal home (they now do: J_ISOLOOP at 195.30,95.00).
+  # Rects are the 2.0mm OUTWARD OFFSET of the isolated copper, MEASURED off the
+  # built footprints, not guessed:
+  #   J_ISOLOOP pads (rot90) x[194.20,196.40] y[88.65,101.35] -> +2.0mm ->
+  #     x[192.20,198.40] y[86.65,103.35]. Extended EAST to the board edge
+  #     (200.10) so no 1.7mm GND sliver is stranded between the moat and the
+  #     edge, and SOUTH past the edge so the clip is the outline, not a number.
+  #   U_OPTO isolated pads (3/4) x[188.765,190.765] y[87.84,92.16] -> +2.0mm ->
+  #     x[186.765,192.765] y[85.84,94.16]; its WEST half is already denied on
+  #     all four layers by opto_barrier, this covers the EAST half and the run
+  #     across to J_ISOLOOP.
+  # THE NORTH EDGE OF THE BLOCK RECT IS THE TIGHT ONE: 86.65 is exactly
+  # J_ISOLOOP.4's pad top (88.65) minus the 2.0mm rule, and J_DOOR's south GND
+  # shell tab ends at 86.61 - so the pour still reaches and bonds that tab, with
+  # 0.04mm to spare. Move J_DOOR south and the tab falls inside the moat and
+  # goes unconnected; move it north and the moat closes. Both are MEASURED
+  # failures, which is why the anchor block above says the numbers are solved.
+  # deny: [pours] ONLY - the isolated nets themselves are TRACKS and must be
+  # able to cross their own moat. The usable ISO track corridor is whatever is
+  # left 2.0mm inside these rects: x[194.20,196.40] south of the opto lobe (the
+  # pad column itself, on any layer - all four are denied to the pour), and
+  # x[188.765,196.40] across the y[87.84,94.16] band. SELV tracks are kept out
+  # by the matching User.2 route keepout in route.yaml (the `iso` wave runs on
+  # User.4 so it is never blocked by its own moat).
+  - {name: iso_moat_block, deny: [pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [192.20, 86.65, 200.10, 102.10]}
+  - {name: iso_moat_opto,  deny: [pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [186.70, 85.80, 192.80, 94.20]}
   # NO POURS north of the logic band: keypad band + relay row + pockets + coil
   # gaps all plane-free (isolation held; coil nets are tracks only, as v1.0).
   - {name: keypad_iso, deny: [pours], layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], rect: [12.0, 10.0, 200.0, 53.0]}
@@ -652,6 +766,29 @@ silk:
     - {text: "NYLON HW", at: [194.0, 19.6], size: 0.5, nudge: false}   # H2 (194,14)
     - {text: "NYLON HW", at: [17.0, 95.2], size: 0.5, nudge: false}    # H3 (17,90)
     - {text: "NYLON HW", at: [187.0, 51.0], size: 0.5, nudge: false}   # H4 (193,52)
+    # ===== v1.3 P0-A: THE ISOLATED BLOCK, NAMED ON THE BOARD =================
+    # J_ISOLOOP is the ONLY connector on this board whose poles are on the far
+    # side of the opto barrier. Every other east-edge housing is SELV. A field
+    # technician holding four wires needs to know that BEFORE landing them, and
+    # the refdes alone does not say it.
+    # THERE IS NO SILK SITE AT THE BLOCK, and that is MEASURED, not assumed. A
+    # full scan of the board for a free F.SilkS box (pads +0.16mm, existing silk
+    # +0.08mm, and every COURTYARD, because silk under a body is silk nobody
+    # reads) says: the nearest visible site for "ISOLATED 30V" is (165.9,65.2),
+    # 41.9mm away, and for the 7-character "ISO 30V" it is (165.5,79.5), 33.6mm
+    # away. The SE corner is saturated -- J_RH_AMBIENT / J_RH_EXHAUST /
+    # J_ISOLOOP refdes already tile the only clear band (y[100.39,101.61]) and
+    # the block's own 14x7mm body covers everything else. Two captions were
+    # placed here first and the nudge search pushed BOTH off the south edge
+    # entirely (measured at y104.19-106.31, i.e. off the board), which is worse
+    # than nothing because it prints nowhere and still counts as done.
+    # So the warning goes where it CAN be read, in the north safety-caption
+    # stack beside the ADR-0012 enclosure lines, and it names the corner so the
+    # reader can find the block. Site MEASURED free at (62.0,15.4), between the
+    # title (y13.0) and the mounting-hardware sentence (y17.0). The pole legend
+    # (1 LOOP / 2 RET / 3 CTR / 4 CTR) does not fit anywhere on silk at all and
+    # lives in the ORDER_README bring-up section + ADR-0013 instead.
+    - {text: "J_ISOLOOP (SE CORNER) = ISOLATED 30V CONTACTOR LOOP -- NOT SELV", at: [62.0, 15.4], size: 0.6, nudge: true}
 
 asserts:
   pad_net:

@@ -123,7 +123,7 @@ EDGE = [
     ("J_THERM_A","S",4.0), ("J_THERM_B","S",4.0), ("J_TC","S",4.0), ("J_PI","S",4.0),
     ("J_LOADCELL","S",4.0), ("J_RH_AMBIENT","S",4.0), ("J_RH_EXHAUST","S",4.0),
     ("J_MODE","E",4.0), ("J_ESTOP","E",4.0), ("J_DOOR","E",4.0),
-    ("J_CONTACTOR","E",4.0),
+    ("J_ISOLOOP","E",4.0),   # v1.3 P0-A: the merged 4-pole isolated block
 ]
 
 

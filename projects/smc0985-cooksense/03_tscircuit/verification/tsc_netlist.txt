@@ -153,7 +153,6 @@ COMPONENTS:
  - R_DOORPD: 10kΩ res0402 resistor
  - D_DOOR: D_DOOR, source_component
  - J_ESTOP: pinrow5
- - J_ESTOPLOOP: pinrow2
  - R_ESTOPPD: 10kΩ res0402 resistor
  - D_ESTOP: D_ESTOP, source_component
  - J_MODE: pinrow5
@@ -164,7 +163,7 @@ COMPONENTS:
  - C_CAND2: 100nF 0402 capacitor
  - U_OPTO: dip4
  - R_OPTOLED: 330Ω res0603 resistor
- - J_CONTACTOR: pinrow2
+ - J_ISOLOOP: pinrow4
  - U_EXP: ssop28
  - C_EXP: 100nF 0402 capacitor
  - R_EXPRST: 10kΩ res0402 resistor
@@ -646,10 +645,6 @@ NET: FAULT_LATCH_CLEAR
   - U_LATCHA B
   - U_AND3 C
 
-NET: CONTACTOR_C
-  - U_OPTO COLLECTOR
-  - J_ESTOPLOOP LOOP_IN
-
 NET: CONTACTOR_DRV
   - R_OPTOLED pin1
   - U_CAND2 Y
@@ -658,12 +653,16 @@ NET: OPTO_LED_A
   - R_OPTOLED pin2
   - U_OPTO ANODE (+)
 
+NET: CONTACTOR_C
+  - J_ISOLOOP LOOP_OUT
+  - U_OPTO COLLECTOR
+
 NET: CONTACTOR_LOOP
-  - J_CONTACTOR C
-  - J_ESTOPLOOP LOOP_OUT
+  - J_ISOLOOP CTR_A
+  - J_ISOLOOP LOOP_RET
 
 NET: CONTACTOR_E
-  - J_CONTACTOR E
+  - J_ISOLOOP CTR_B
   - U_OPTO EMITTER
 
 NET: MODE_AUTO_HW
@@ -2144,10 +2143,6 @@ J_ESTOP
 - pin4: NETS(GND)
 - pin5: NETS(GND)
 
-J_ESTOPLOOP
-- pin1(LOOP_IN): NETS(CONTACTOR_C)
-- pin2(LOOP_OUT): NETS(CONTACTOR_LOOP)
-
 R_ESTOPPD (10kΩ res0402)
 - pin1(anode, pos, left): NETS(ESTOP_RAW)
 - pin2(cathode, neg, right): NETS(GND)
@@ -2201,9 +2196,11 @@ R_OPTOLED (330Ω res0603)
 - pin1(anode, pos, left): NETS(CONTACTOR_DRV)
 - pin2(cathode, neg, right): NETS(OPTO_LED_A)
 
-J_CONTACTOR
-- pin1(C): NETS(CONTACTOR_LOOP)
-- pin2(E): NETS(CONTACTOR_E)
+J_ISOLOOP
+- pin1(LOOP_OUT): NETS(CONTACTOR_C)
+- pin2(LOOP_RET): NETS(CONTACTOR_LOOP)
+- pin3(CTR_A): NETS(CONTACTOR_LOOP)
+- pin4(CTR_B): NETS(CONTACTOR_E)
 
 U_EXP
 - pin1(GPB0): NETS(EFUSE_FLT_N)

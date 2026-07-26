@@ -421,15 +421,37 @@ invariants:
     why: "the over-temp comparator moves to the same rail for the same reason; TEMP_OK is now a single-rail 3V3 node instead of mixing 5V and 3V3"
   # ===== v1.3 — the isolated contactor loop leaves the SELV connector ==========
   - assert: pin_on_net
-    pin: "J_ESTOPLOOP.1"
+    pin: "J_ISOLOOP.1"
     net: CONTACTOR_C
     adr: "0011"
-    why: "the opto-isolated loop now lands on its OWN 3.5mm KF350 terminal block. Until v1.3 J_ESTOP carried ESTOP_RAW (SELV) on pin 2 and CONTACTOR_C (isolated secondary) on pin 3 — ADJACENT pads on a 1.25mm-pitch JST-GH, 0.650mm apart, in ONE field harness, which made a single damaged or contaminated harness a common-cause failure ACROSS the isolation boundary"
+    why: "the opto-isolated loop lands on J_ISOLOOP, the ONE 4-pole 3.5mm KF350 block that carries the WHOLE isolated domain (v1.3 P0-A merged J_ESTOPLOOP+J_CONTACTOR into it; both only ever carried isolated nets, so one body needs one moat instead of two). Until v1.3 J_ESTOP carried ESTOP_RAW (SELV) on pin 2 and CONTACTOR_C (isolated secondary) on pin 3 — ADJACENT pads on a 1.25mm-pitch JST-GH, 0.650mm apart, in ONE field harness, which made a single damaged or contaminated harness a common-cause failure ACROSS the isolation boundary"
   - assert: pin_on_net
-    pin: "J_ESTOPLOOP.2"
+    pin: "J_ISOLOOP.2"
     net: CONTACTOR_LOOP
     adr: "0011"
-    why: "loop return; J_ESTOP pins 3/4 are now GND so that housing is SELV-ONLY"
+    why: "loop return; J_ESTOP pins 3/4 are now GND so that housing is SELV-ONLY. J_ISOLOOP.3 is the SAME net (the on-board link the old inter-connector CONTACTOR_LOOP made) and is a SEPARATE SCREW deliberately: on a safety interlock one loosening screw must not drop both the E-stop return and the contactor feed"
+  # ===== v1.3 P0-A: the merged isolated block, and the two poles that are ONE net
+  - assert: pin_on_net
+    pin: "J_ISOLOOP.3"
+    net: CONTACTOR_LOOP
+    adr: "0011"
+    why: "pins 2 and 3 are the SAME board net — this is the on-board link that used to be the CONTACTOR_LOOP run between J_ESTOPLOOP and J_CONTACTOR. Asserting it pins the merge: if a future edit re-pins pin 3 to anything else, the E-stop loop stops feeding the contactor circuit and the interlock silently becomes a permanent CLOSED loop"
+  - assert: pin_on_net
+    pin: "J_ISOLOOP.4"
+    net: CONTACTOR_E
+    adr: "0011"
+    why: "opto EMITTER out to the external contactor. With pins 1/4 on the two opto terminals and 2/3 on the loop link, every pole of this block is on the far side of the LTV-817S barrier — which is what lets ONE moat and ONE pour keepout defend the whole isolated domain"
+  # ===== v1.3 top_v13_gate_item: VALUE invariants (an EXISTENCE assert is not a VALUE assert)
+  - assert: part_value
+    part: R_WDPETPD
+    equals: "1k"
+    adr: "0011"
+    why: "THE 100k VERSION OF THIS PART PASSED ALL THREE WD_PET TOPOLOGY ASSERTS. R_WDPETPD holds WD_PET low when the Pi tri-states it, so the watchdog BITES on a dead host; the value is derived from I_IL x R < V_IL on the CD74HC221 trigger input, and at 100k the leakage drop leaves the node floating while every existence/topology invariant still reads GREEN. The VALUE is the fix"
+  - assert: part_value
+    part: R_OS
+    equals: "510k"
+    adr: "0011"
+    why: "the one-shot timing resistor: R_OS x C_OS sets the PRESS_TIMED non-retriggerable pulse the press interlock is built on. A substituted decade changes the pulse width, and no topology assert can see it"
   - assert: pin_on_net
     pin: "R_CLMPA.2"
     net: GND

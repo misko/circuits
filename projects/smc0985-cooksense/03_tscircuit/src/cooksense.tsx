@@ -534,15 +534,10 @@ export default () => (
         J_ESTOPLOOP terminal block below. */}
     <chip name="J_ESTOP" footprint="pinrow5" supplierPartNumbers={{ jlcpcb: ["C189896"] }}
       connections={{ pin1: "net.N3V3", pin2: "net.ESTOP_RAW", pin3: "net.GND", pin4: "net.GND", pin5: "net.GND" }} />
-    {/* The E-stop's second (dry, isolated) pole now lands on its own 3.5mm-pitch screw
-        terminal, the same KF350 family as J_CONTACTOR and physically separated from every
-        SELV connector. External wiring is unchanged in FUNCTION: contactor loop out of
-        U_OPTO collector -> J_ESTOPLOOP.1 -> E-stop pole B -> J_ESTOPLOOP.2 -> J_CONTACTOR.1.
-        3.5mm pitch also raises the connector-level creepage on the isolated side from
-        0.65mm to 3.5mm nominal. */}
-    <chip name="J_ESTOPLOOP" footprint="pinrow2" supplierPartNumbers={{ jlcpcb: ["C474892"] }}
-      pinLabels={{ pin1: "LOOP_IN", pin2: "LOOP_OUT" }}
-      connections={{ pin1: "net.CONTACTOR_C", pin2: "net.CONTACTOR_LOOP" }} />
+    {/* The E-stop's second (dry, isolated) pole lands on J_ISOLOOP, the ONE isolated
+        terminal block (declared with U_OPTO below, since every pole on it is on the far
+        side of that barrier). See the J_ISOLOOP comment there for why v1.3 merged what
+        v1.3 first split into two blocks. */}
     <resistor name="R_ESTOPPD" resistance="10k" footprint="0402" connections={{ pin1: "net.ESTOP_RAW", pin2: "net.GND" }} />
     <diode name="D_ESTOP" footprint="sod323" supplierPartNumbers={{ jlcpcb: ["C5158048"] }} connections={{ pin1: "net.ESTOP_RAW", pin2: "net.GND" }} />
     {/* Mode DPDT: pole A (pins1-2) = physical coil-EN gate (MANUAL cuts the rail); pole B (pins3-4) = MODE_RAW logic */}
@@ -576,9 +571,35 @@ export default () => (
       pinLabels={{ pin1: "ANODE", pin2: "CATHODE", pin3: "EMITTER", pin4: "COLLECTOR" }}
       connections={{ pin1: "net.OPTO_LED_A", pin2: "net.GND", pin3: "net.CONTACTOR_E", pin4: "net.CONTACTOR_C" }} />
     <resistor name="R_OPTOLED" resistance="330" footprint="0603" connections={{ pin1: "net.CONTACTOR_DRV", pin2: "net.OPTO_LED_A" }} />
-    <chip name="J_CONTACTOR" footprint="pinrow2" supplierPartNumbers={{ jlcpcb: ["C474892"] }}
-      pinLabels={{ pin1: "C", pin2: "E" }}
-      connections={{ pin1: "net.CONTACTOR_LOOP", pin2: "net.CONTACTOR_E" }} />
+    {/* ---- J_ISOLOOP: THE ONE ISOLATED TERMINAL BLOCK (v1.3 P0-A fix) --------------
+        v1.3 first split the isolated loop OFF J_ESTOP (correct — see the J_ESTOP note
+        above) onto its OWN 2-pole block J_ESTOPLOOP, sitting beside the existing 2-pole
+        J_CONTACTOR. That put FIVE connectors on the east edge and there was not room:
+        MEASURED available 47.453mm (H4's courtyard to the south edge) against 47.750mm
+        of connector courtyard PLUS the moat the ISO_CONTACTOR rule needs. The anchors
+        were written anyway and J_ESTOPLOOP landed INSIDE J_DOOR — the opto-isolated 30V
+        loop shorted to 3V3/GND/DOOR_RAW at 1.300 x 0.600mm of overlapping pad copper.
+        THE FIX IS ONE 4-POLE BLOCK, not a tighter squeeze. Both connectors already
+        carried ONLY isolated-domain nets, so merging them is isolation-NEUTRAL and
+        strictly better to defend: one isolated body with ONE 2.0mm moat and ONE pour
+        keepout, instead of two adjacent bodies each needing their own. It also puts the
+        whole isolated loop on one terminal block for the installer.
+        FIELD WIRING (unchanged in function):
+          1 CONTACTOR_C    -> E-stop pole B in     (opto collector)
+          2 CONTACTOR_LOOP <- E-stop pole B out
+          3 CONTACTOR_LOOP -> contactor circuit    (pins 2/3 are ONE net on the board:
+          4 CONTACTOR_E    <- contactor circuit     the link the old CONTACTOR_LOOP net
+                                                    made between the two blocks)
+        Pins 2 and 3 are DELIBERATELY two screws on one net rather than one screw with
+        two wires landed in it: on a safety interlock a single loosening screw must not
+        be able to drop both the E-stop return AND the contactor feed.
+        3.5mm pitch holds the connector-level creepage on the isolated side at 3.5mm
+        nominal (it was 0.650mm when this loop shared J_ESTOP's 1.25mm-pitch GH housing).
+        THT + `service: standard` = self-supplied/hand-soldered; see assembly.yaml. */}
+    <chip name="J_ISOLOOP" footprint="pinrow4" supplierPartNumbers={{ jlcpcb: ["C42400616"] }}
+      pinLabels={{ pin1: "LOOP_OUT", pin2: "LOOP_RET", pin3: "CTR_A", pin4: "CTR_B" }}
+      connections={{ pin1: "net.CONTACTOR_C", pin2: "net.CONTACTOR_LOOP",
+                     pin3: "net.CONTACTOR_LOOP", pin4: "net.CONTACTOR_E" }} />
 
     {/* ================= BLOCK 6 — MCP23017 EXPANDER (ADR-0003) ============ */}
     {/* Slow signals: 4 rail enables, contactor req, re-arm, BOARD_ID straps; readbacks on GPB0-7. */}

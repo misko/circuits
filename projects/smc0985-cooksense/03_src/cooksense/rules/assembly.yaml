@@ -73,6 +73,49 @@ not_assembled:
                   injects a parasitic junction into the thermocouple loop.
                   ORDER_README section 2."
 
+  - refs: [J_ISOLOOP]
+    reason: not_in_catalog
+    evidence: "JLCPCB parts-library query 2026-07-25 (jlcpcb.com
+               selectSmtComponentList, the endpoint jlc_stock_check.py uses):
+               keyword 'KF350-3.5-4P' -> 1 hit, C42400616 Cixi Kefa Elec,
+               stockCount 0. Keyword 'KF350 4P' -> 3 hits (C9900026363,
+               C42400616, C9900148443), stockCount 0 on all three. CONTROL
+               query the same minute: 'KF350-3.5-2P' -> C474892 stockCount
+               9987, so the zeros are the library's answer, not a dead field.
+               Independently unplaceable by process: MEASURED on the v1.3
+               board, 4 pads / 4 plated DRILLED / F.Paste on 0 of them, on a
+               service=standard sides=[top] order."
+    disposition: "hand-soldered at integration. This is the v1.3 P0-A merged
+                  4-pole isolated block (J_ESTOPLOOP + J_CONTACTOR); every
+                  pole is on the far side of the LTV-817S barrier. Commodity
+                  part, widely stocked outside LCSC. Approved alternates: any
+                  3.5mm-pitch 4-pole THT screw terminal of the 350 family with
+                  a 14.0 x 7.0mm body (XY350-3.5-4P, DG350-3.5-4P). NOT a
+                  pluggable 2EDG-family part — different body, different pin
+                  projection. Order 8 (5 + 3 spares). ORDER_README section 2."
+
+  - refs: [J_LOADCELL, J_PI]
+    reason: process_incompatible
+    evidence: "These two ARE in the catalog and ARE stocked — this is a
+               PROCESS decision, not a sourcing one, which is why the reason
+               is process_incompatible and not not_in_catalog. MEASURED on the
+               v1.3 board (assembly_coverage.py reads the same footprints
+               independently): J_LOADCELL JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical
+               = 5 pads, 5 plated DRILLED, F.Paste on 0; J_PI
+               PinSocket_2x20_P2.54mm_Vertical = 40 pads, 40 plated DRILLED,
+               F.Paste on 0. This board orders service=standard sides=[top]
+               (above), which is reflow SMT only: with no paste on a drilled
+               pad there is no process that solders them. cooksense v1.0 and
+               v1.1 BOTH shipped these two as CPL placement rows anyway — the
+               same defect the twelve relays and J_TC were caught for, simply
+               never applied to the rest of the through-hole population."
+    disposition: "hand-soldered at integration. SUBSTITUTION IS ALLOWED here
+                  (unlike the relays and J_TC): any B5B-XH-A equivalent for
+                  J_LOADCELL, any 2x20 2.54mm female header for J_PI. Both
+                  stay in the BOM as self-supplied lines with their LCSC codes
+                  so the order sheet still says what to buy; they simply stop
+                  being machine-placement instructions. ORDER_README section 2."
+
 # ---- CONSIGNED (you supply, JLC PLACES — these stay ON the CPL) -------------
 # None. Nothing on this board is consigned: the two unplaceable classes above
 # are THT parts JLC's standard service would not place even if supplied, so

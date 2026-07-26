@@ -1,0 +1,55 @@
+mpn: KF350-3.5-4P
+manufacturer: Cixi Kefa
+type: screw_terminal_4p
+datasheet:
+  doc_id: KF350
+  url: https://www.lcsc.com/product-detail/C42400616.html
+  fetched: 2026-07-25
+package: 3.5mm pitch 4P screw terminal, THT
+footprint: cooksense:TerminalBlock_KF350_4P
+pins:
+  1: LOOP_OUT      # CONTACTOR_C   — opto collector out to E-stop pole B
+  2: LOOP_RET      # CONTACTOR_LOOP — E-stop pole B return
+  3: CTR_A         # CONTACTOR_LOOP — same board net as pin 2; contactor circuit
+  4: CTR_B         # CONTACTOR_E   — opto emitter, contactor circuit return
+verified: >
+  4 positional screw poles at 3.5mm pitch. The KF350 body is MODULAR at
+  3.5mm/pole, so the 4P body is exactly 2x the already-fab-proven 2P
+  (TerminalBlock_KF350_2P, C474892, shipped on cooksense v1.0 and v1.1):
+  14.0mm wide x 7.0mm deep vs 7.0 x 7.0. The project footprint is that
+  BODY geometry extended pole-for-pole — same 1.20mm drill, same body
+  depth, same courtyard margin (0.30mm). Pad 1 is RECT as the pole-1
+  marker, matching the 2P.
+  ONE DELIBERATE DEVIATION FROM THE 2P, and it is measured: the pad is
+  2.20mm diameter, not the 2P's 2.60. Annular ring 0.50mm on the 1.20mm
+  drill (JLCPCB's THT minimum is 0.15mm; IPC-2221 class 2 is far below
+  that), so the ring is ~3x the fab floor and the part is hand-soldered
+  anyway. The reason is geometric, not electrical: at 2.60 the pad column
+  is 13.10 x 2.60mm and the east connector column solves with ~0.05mm of
+  margin on EVERY constraint simultaneously — H4's courtyard, both
+  inter-connector courtyard gaps, the ISO_CONTACTOR 2.0mm moat to J_DOOR's
+  GND shell tab, and copper-to-board-edge. 2.20 buys 0.40mm along the poles
+  and 0.40mm across them, and the same solve lands at 0.09–0.35mm. It also
+  raises pole-to-pole copper gap from 0.90 to 1.30mm, which on a 30V
+  isolated block is the right direction. Full budget in
+  03_src/cooksense/floorplan.yaml, EAST COLUMN block.
+sourcing:
+  lcsc: C42400616
+  note: >
+    JLCPCB parts-library query 2026-07-25 (jlcpcb.com selectSmtComponentList,
+    the endpoint jlc_stock_check.py uses): keyword 'KF350-3.5-4P' -> 1 hit,
+    C42400616 Cixi Kefa Elec, stockCount 0. Keyword 'KF350 4P' -> 3 hits
+    (C9900026363, C42400616, C9900148443), stockCount 0 on all three.
+    Control query the same minute: 'KF350-3.5-2P' -> C474892 stockCount 9987,
+    so the zeros are the library's answer, not a dead field.
+    THIS DOES NOT BLOCK THE BUILD: the part is THT and this board orders
+    JLC STANDARD SMT assembly (03_src/cooksense/rules/assembly.yaml
+    `service: standard`), which does not place through-hole parts at all.
+    It is therefore SELF-SUPPLIED / hand-soldered like J_TC and the twelve
+    Standex relays, and is declared in assembly.yaml `not_assembled` with
+    this evidence. Commodity part, widely stocked outside LCSC.
+  alternates: >
+    Any 3.5mm-pitch 4-pole THT screw terminal of the 350 family with a
+    14.0 x 7.0mm body footprint (XY350-3.5-4P, DG350-3.5-4P). NOT a
+    pluggable 2EDG-family part: those are a header + plug pair with a
+    different body and a different pin projection.
