@@ -2,7 +2,9 @@
 
 Every finding raised during this revision and what was done about it.
 
-**As of 2026-07-26 no finding in this file is OPEN.** P1-5 (the CH0/CH3
+**As of 2026-07-26 no finding in this file is OPEN.** The seventh lens's L7-3 was
+escalated and briefly blocked the seal; it was **ruled and then reversed the same
+day** and is closed — H4 passes at 6.5984 mm creepage (ADR-0015). P1-5 (the CH0/CH3
 transfer function) was the last one and is now CLOSED by derivation — see the
 final table. Everything else is fixed, closed by measurement, or deferred with a
 stated reason. Two earlier versions of this line were wrong in opposite
@@ -137,7 +139,13 @@ MANDATORY BEFORE ORDERING, which is the worst place to carry a false statement.
 isolation scan on all four layers, a canonical gerber re-export that matched
 flash-for-flash, and 189/189 CPL rotation offsets consistent per code.
 
-## SEVENTH LENS (2026-07-26) — TWELVE FINDINGS, ELEVEN FIXED, **ONE ESCALATED AND STILL OPEN**
+## SEVENTH LENS (2026-07-26) — 13 FINDINGS: 12 FIXED/DISCLOSED, **1 (L7-3) RULED AND THEN REVERSED**
+
+> **STATUS OF THIS SECTION: NOTHING HERE IS OPEN.** L7-3 was escalated, ruled a
+> FAIL, and **the ruling was REVERSED the same day** — H4 passes at 6.5984 mm
+> CREEPAGE. See "THE H4 RULING WAS REVERSED" at the end of this file, and
+> ADR-0015. The L7-3 row below is kept as written for the record; **its "SEAL IS
+> BLOCKED" is superseded.**
 
 Verdict DO-NOT-SHIP, no P0 on the order package. The lens reproduced the whole
 fab set independently. Four P1s, three of them inside sections the archive marks
@@ -145,7 +153,7 @@ MANDATORY. **This is the round that stopped the seal.**
 
 | # | finding | disposition |
 |---|---|---|
-| **L7-3** | **The entire H4 isolation PASS rests on crediting a 1.000 mm through-slot as a creepage extender, and the archive never said so** | **🛑 ESCALATED — OPEN. THE SEAL IS BLOCKED ON THIS.** Reproduced exactly: notch **1.000 mm** wide; H4 centre 2.200 mm from its edge so the **3.000 mm modelled washer overhangs the slot by 0.800 mm**; straight-line disc-edge to `K_STOP.3` pad-edge **4.0286 mm**; around-the-notch geodesic 6.598 mm; requirement 6.000 mm. Under IEC 60664-1 at the declared **pollution degree 3** the X-dimension is **1.5 mm** and a gap narrower than X is **BRIDGED** — read that way the governing figure is **4.0286 mm and H4 does not pass**. The archive's own RED test puts the pre-notch board at 4.031 mm = FAIL, so **the notch alone converts FAIL to PASS**. This is a judgement about how the standard applies to a through-slot under a spanning washer on a keypad-to-SELV barrier; **it is not the release agent's call.** Now disclosed prominently in §1 with all measured numbers and a STATUS line. **Not sealed.** |
+| **L7-3** | **The entire H4 isolation PASS rests on crediting a 1.000 mm through-notch as a creepage extender, and the archive never said so** | **⚠️ SUPERSEDED — ruled a FAIL, then REVERSED the same day; H4 PASSES at 6.5984 mm creepage (see the reversal at the end of this file + ADR-0015). The finding's DOCUMENTARY half was valid and is fixed: §1 now states the notch width, the X-dimension, the washer overhang, and the method beside every figure.** The ruling text, kept for the record: **ESCALATED — OPEN. THE SEAL IS BLOCKED ON THIS.** Reproduced exactly: notch **1.000 mm** wide; H4 centre 2.200 mm from its edge so the **3.000 mm modelled washer overhangs the slot by 0.800 mm**; straight-line disc-edge to `K_STOP.3` pad-edge **4.0286 mm**; around-the-notch geodesic 6.598 mm; requirement 6.000 mm. Under IEC 60664-1 at the declared **pollution degree 3** the X-dimension is **1.5 mm** and a gap narrower than X is **BRIDGED** — read that way the governing figure is **4.0286 mm and H4 does not pass**. The archive's own RED test puts the pre-notch board at 4.031 mm = FAIL, so **the notch alone converts FAIL to PASS**. This is a judgement about how the standard applies to a through-slot under a spanning washer on a keypad-to-SELV barrier; **it is not the release agent's call.** Now disclosed prominently in §1 with all measured numbers and a STATUS line. **Not sealed.** — *superseded; the release is sealed.* |
 | L7-1 | §2b's accept band `3.0 k – 32.6 k` is wrong by 2.9x at the low end | **VALID — FIXED. This was the most consequential arithmetic error found in any round.** Recomputed with §2b's own inversion, 0–85 °C is **1063.7 Ω – 34 057 Ω**. The old band corresponds to **54.5 °C … 0.79 °C**, so a host implementing it would refuse HOST_AUTH above **54.5 °C — 18 °C BELOW the 72.80 °C hardware trip.** The appliance refuses to cook once merely warm, and the technician chasing that nuisance lockout is the person most likely to widen or disable the board's only software backstop. The row also contradicted its own voltage column, which was correct. |
 | L7-2 | §2b's open-detect row pairs `≥ 2.20 V` with `≥ 1 MΩ`; they are not the same test | **VALID — FIXED.** V = 2.2000 inverts to **220 kΩ**, not 1 MΩ (4.5x). Conversely R_ntc ≥ 1 MΩ needs **V ≥ 2.2533 V**, while the worst-case open with ±1 % parts reads **2.2545 V** → 1.089 MΩ: **1.2 mV of margin** before ADC INL. A host implementing the RESISTANCE form can miss an unplugged NTC — acceptance test (a) failing in exactly the way §2b exists to prevent. The table now gives the correct 220 kΩ and directs the host to the **voltage** form, which has 54 mV. |
 | L7-4 | §11 calls the output a "DRY CONTACT" and never says which pole is positive | **VALID — FIXED.** It is a phototransistor: `CONTACTOR_C = [J_ISOLOOP.1, U_OPTO.4]` collector, `CONTACTOR_E = [J_ISOLOOP.4, U_OPTO.3]` emitter. **Pole 1 is positive.** Reversed, 30 V sits across a junction rated ~6 V; reverse-breakdown failure is SHORT, and short is **PERMISSIVE**. Forward is safe: even at the CTR 600 % ceiling I_C self-limits to **38.2 mA** < 50 mA. |
@@ -159,7 +167,15 @@ MANDATORY. **This is the round that stopped the seal.**
 | L7-12 | §6's provenance qualifier claims 15 measured rows / 26 CPL rows, but **13 of the 15 are `ROW: (WITHHELD — single-channel)`** | **VALID — FIXED.** In-archive LANDED provenance is **2 codes / 5 CPL rows** (C6186, C8185), not 15/26. All 13 withheld codes are covered by the A-POL human gate or the bidirectional exclusion, so nothing is unguarded — but a withheld measurement is not a landed one, and the qualifier claimed more than it had. |
 | L7-13 | Cited-but-absent documents (ADR-0001/6/12/13, BRIEF, pin_map, LTV-817S part.yaml, electrical_invariants.yaml, floorplan.yaml, SUPERSEDED.md) | **VALID — DISCLOSED (§13 item 14).** Individually minor; collectively several load-bearing safety numbers cannot be re-checked from inside. v1.4 ships the cited ADRs and part.yaml files. |
 
-## RULING ON L7-3 (2026-07-26) — THE NOTCH DOES NOT COUNT. H4 FAILS.
+## RULING ON L7-3 (2026-07-26) — ⚠️ THIS RULING WAS REVERSED THE SAME DAY
+
+> **SUPERSEDED. Read the reversal at the end of this file.** The section below is
+> kept verbatim as the record of what was ruled and acted on, because the three
+> re-races it caused produced two permanent findings. **H4 PASSES at 6.5984 mm
+> CREEPAGE**; the 4.0286 mm below is the CLEARANCE, a different requirement. The
+> release is NOT held. See ADR-0015.
+
+### (superseded) THE NOTCH DOES NOT COUNT. H4 FAILS.
 
 **Coordinator ruling, verified against the standard rather than recalled.**
 IEC 60664-1 sets a minimum groove width **X** below which a groove contributes
@@ -196,7 +212,7 @@ the nearest point on each track segment gives the correct figures:
 | hole | a (keypad) | s (SELV) | governing | crosses a void? | verdict |
 |---|---|---|---|---|---|
 | H1 | −0.0500 | 13.6299 | keypad-BONDED → s alone | no | 13.6299 PASS |
-| H2 | −0.0500 | 13.1525 | keypad-BONDED → s alone | no | 13.1525 PASS |
+| H2 | −0.0500 | **13.000** | keypad-BONDED → s alone | no | **13.000** PASS *(this row printed 13.1525 when written — a circle model on a rectangular pad; corrected per L8-3)* |
 | H3 | 40.9324 | −1.4495 | SELV-BONDED → a alone | yes, irrelevant at 40.9 mm | 40.9324 PASS |
 | **H4** | **4.0286** | −1.4493 | SELV-BONDED → a alone | **YES** | **4.0286 FAIL** |
 
@@ -241,3 +257,55 @@ I-HW table. **Standing rule now applied throughout this release: every isolation
 figure states its method beside it.** Done — §1's I-HW table, the §11 ISO
 sentence, the KEYPAD_ISO/floating-tab table and the gate-summary row all now
 carry a method column or clause.
+
+## THE H4 RULING WAS REVERSED (2026-07-26) — H4 PASSES AT 6.5984 mm CREEPAGE
+
+**Nothing about the board changed. What changed was which QUANTITY the number
+was understood to be.** Recorded in full in **ADR-0015**.
+
+| | |
+|---|---|
+| ruled | H4 FAILS: 4.0286 mm vs 6.000 mm, the 1.000 mm notch being below the PD3 X-dimension of 1.5 mm |
+| reversed | **H4 PASSES: 6.5984 mm CREEPAGE.** The X rule governs a **groove — a channel with material at the bottom** — where the question is whether contamination bridges across. This is a **through-notch reaching the east board edge**, so there is no surface across it and it drains at the open end. Creepage goes around it. |
+| the two numbers | **6.5984 mm is the CREEPAGE** (surface path) — the quantity `keypad_isolation_6mm` names in as many words. **4.0286 mm is the CLEARANCE** (straight line), whose requirement at 30 V / PD3 / material group IIIa is well under 1 mm. They answer different questions and were never in conflict. |
+| verified, not accepted | Re-derived independently before restoring the PASS: disc boundary at x=191.500, y = 52 − √(3² − 1.5²) = 49.4019, up the notch's west edge to the NW corner (**0.6019 mm**), then NW corner → `K_STOP.3` pad edge (**5.9965 mm**) = **6.5984 mm**, matching the `I-HW` gate's 6.598 mm to 0.0004 mm by a different construction. The path is not the naive one: the 3.000 mm disc overhangs the notch (2.6627 mm < 3.000), so a straight run at the NW corner would cross the void. |
+| ADR-0012 vindicated | Its method note — *"a straight-line metric cannot see the notch; it measures the pre-notch and notched boards identically at 4.031 mm"* — is **correct, and correct for the reason it was dismissed**: a straight line measures clearance, and the clearance genuinely is the same on both boards. The notch changes the creepage, which is what the rule requires. |
+| kept from the reversed period | Every **method label** added while the ruling stood. That work was right and is what makes the two numbers legible. Plus two permanent findings from the three re-races: **K_STOP is load-bearing geometry** (its north pad edge y29.630 IS the primary barrier's constant; north travel capped at 0.430 mm) and **a corridor is a routing resource, not margin** (the 1.800 mm east gap is where RSTOP_MID and KP_U6 climb). Both in ADR-0015. |
+| the transferable point | **CHECK WHICH QUANTITY THE REQUIREMENT NAMES BEFORE MEASURING.** Creepage and clearance are different properties and a notch affects exactly one of them. This release had already shipped three numbers with the metric implicit; every isolation figure now states its method beside it. |
+| gate caveat that survives | KiCad's DRU language has no creepage primitive, so `keypad_isolation_6mm` is written `(constraint clearance (min 6.0mm))` while its comment requires creepage. **It requires one property and measures another**, and cannot see the notch in either direction. Its 0 violations are not evidence about creepage; `I-HW` is what measures it. §13 item 15. |
+
+## EIGHTH LENS (2026-07-26) — 11 FINDINGS, ALL DOCUMENT EDITS, ALL FIXED
+
+Verdict DO-NOT-SHIP with **no P0** and an explicit finding that the fab package
+needs no re-export and no board change. Every item was a document defect.
+
+| # | finding | disposition |
+|---|---|---|
+| L8-1 | `dispositions.md` still declared the seal blocked: line 5 said nothing was open, the L7 heading said "ONE ESCALATED AND STILL OPEN", and the L7-3 row said "**THE SEAL IS BLOCKED ON THIS**" | **VALID — FIXED.** The reversal was recorded at the end of the file and banners were added to the superseded ruling, but the L7-3 row and the section heading were never amended. **This is the archive's own L7-6 rule turned on itself** — a correction that reaches two of three places is a new contradiction, not a fix. Heading, row and summary line now all carry the reversal, and the L7 count is corrected: **13 findings, 12 fixed/disclosed, 1 reversed** (it was stated as twelve/eleven). |
+| L8-2 | §6 item 15 said "the **FIVE** that have a cathode … and the **two** ESD parts" | **VALID — FIXED, and it re-introduced the error L6-9 existed to remove.** Measured on the board: **8 diodes, 3 with a cathode** (D_KSTOP, D_REVCLAMP — C8678/SS34 — and D_TVS, C113974/SMBJ5.0A) and **5 bidirectional** PESD5V0S1BA (the five refs on `bom.csv`'s C5158048 line). The row now reads THREE, and the five bidirectional parts are named as DO-NOT-CORRECT. |
+| L8-3 | The §1 I-HW table gives H2's `s` as 13.1525 mm; `audit.txt` says 13.000 and the table's own preamble says audit.txt wins | **VALID — FIXED, and it is MY error, third in a family.** `K_STOP.1` is a **1.500 × 1.500 RECTANGULAR** pad (shape=1; pads 2/3/4 are circles). I measured it as a circle of radius 0.750: 16.9026 − 3.750 = 13.1525. True nearest-point-to-rectangle: 15.99979 − 3.000 = **12.99979 ≈ 13.000**. audit.txt used the real shape and was right. Safety impact nil (13.000 >> 6.000); the defect is that the mounting-hole isolation table was demonstrably not generated from its stated source. **See `fresh_lens.md` for all three instances of this error class.** |
+| L8-4 | The §2b correction block says 0.3040 V and 1.8876 V invert to 1047.6 Ω and 34 307 Ω | **VALID — FIXED to 1063.8 Ω and 34 048 Ω.** The stated pair are the inversions of 0.30 and 1.89, not of the 4-decimal endpoints. Self-refuting: the temperature-derived endpoint two lines earlier is 1063.7 Ω. A correction block that introduced its own arithmetic error. The operative instruction (use the voltage form) is unaffected. |
+| L8-5 | The H4 creepage credit never states the notch WIDTH against the X-dimension it must clear | **VALID — FIXED, and this is the documentary half of the false ruling.** §1 and ADR-0015 now say plainly that **the notch is 1.000 mm, i.e. BELOW the 1.5 mm PD3 X-dimension**, and that the rule nonetheless does not apply because it governs a **groove — a channel with material at the bottom** — not a through-notch open at the board edge. Also added: the one-third-of-clearance provision applies to the associated **clearance** (<3 mm), not to the 6 mm **creepage** requirement — an earlier note compared it against the wrong quantity. And the **0.800 mm washer overhang** is now stated with the reason it is not a capillary trap: **4.000 mm of the notch's length stays open and drains.** A reviewer given only "X = 1.5 mm" and not "the notch is 1.000 mm" cannot check the argument — which is precisely what happened. |
+| L8-6 | §4 gave three different DO-NOT-SUBSTITUTE counts and J_ISOLOOP had no table row | **VALID — FIXED.** Heading said 14 of 16, lead sentence said "only two", the code block showed four groups, the table covered 13 refs. Read literally the lead sentence permitted substituting the 12 reeds, whose non-substitutability IS the ADR-0006 isolation argument. §4 now opens with an exhaustive class table summing to 16 (**14 no / 2 yes**) and J_ISOLOOP has its own row. |
+| L8-7 | `2.1709 mm` for U_OPTO.3 ↔ J_RH_EXHAUST.5 is 0.0048 mm high, in five places | **VALID — FIXED to 2.1661 mm**, re-derived as rounded-rectangle cores plus corner radii, and the row now names that method. The binding all-copper 2.0000 mm and the bbox 2.126 mm both reproduce exactly. |
+| L8-8 | A-POS "worst 0.00000 mm" uses the generator's own datum | **ACCEPTED, DISCLOSED.** For the 9 connectors with offset mechanical tabs the pad-centre-bbox datum sits 0.250 mm from the footprint anchor and up to 0.725 mm from the F.Fab body centroid (J_PWR). Displacement is along the pad's 1.700 mm long axis so assembly risk is low, but the figure is datum-relative, not absolute. |
+| L8-9 | §6 item 10 still quoted J_PWR's "2.9×" | **VALID — FIXED to 180 at 8×.** 2.9× came from the operator this archive documents as having a Y-axis frame error. |
+| L8-10 | "the direct corridor there is 0.55 mm, narrower than any router bit" sits next to twelve shipped 0.600 mm internal routs | **VALID — REWRITTEN.** The sentence now explains what actually matters: the notch is OUTLINE geometry, which is what makes it creditable toward creepage. |
+| L8-11 | `stock_check.json` ships `"verdict": "FAIL"` unflagged in INDEX; `fresh_lens.md`'s verdict history stopped at lens 6 | **VALID — BOTH FIXED.** INDEX now carries the stock verdict with its explanation next to it (C42400616, off the CPL by design), as `parity.md` already had. The verdict history runs through lens 8. |
+
+## NINTH LENS (2026-07-26) — 9 FINDINGS, ALL FIXED. ONE IS A REAL SAFETY GAP.
+
+Verdict DO-NOT-SHIP, **no P0**, no re-export and no copper change. But the first
+finding is the most substantive of the whole review series after the two P0s.
+
+| # | finding | disposition |
+|---|---|---|
+| **L9-1** | **The H4 creepage PASS silently requires a fastener no larger than ~6.38 mm across, and the REQUIRED FASTENER SPEC said nothing about diameter.** | **VALID — FIXED, and it is a CLIFF 0.400 mm wide.** H4's 6.5984 mm is creepage AROUND the notch with the fastener modelled as a conductive disc. As the disc grows it eventually touches board on **both** sides of the notch — at which point **the fastener itself bridges the notch** and creepage collapses to the straight line. Measured: OD 6.000 (DIN 125 A2.7, specified) → **6.5984 PASS**; 6.38 → 6.3811 PASS; **6.400 → 3.8286 FAIL**; 6.5 (shakeproof) → 3.7786 FAIL; 6.93 (6 mm A/F hex standoff across corners) → 3.5686 FAIL; 8.0 (DIN 9021) → 3.0286 FAIL. Transition at disc radius 3.200 = exactly the H4-centre-to-notch-north-edge distance. **§1 told the integrator not to shrink the notch and not to grow keypad copper; growing the WASHER is the same defect and was unstated.** The fastener spec now carries clause (2): maximum conductive diameter 6.0 mm, hard limit 6.3 mm, with the full table and the named parts not to substitute. |
+| L9-2 | The keypad barrier's working voltage is nowhere in the archive, and the "30 V / PD3 / material group IIIa" figure quoted for it is imported from `opto_isolation_2mm`, which governs a **different** domain | **VALID — FIXED by removing the false citation and declaring the gap.** `keypad_isolation_6mm` cites only "brief section 4/7 + ADR-0001" and states no voltage, pollution degree or material group; neither document ships. The 4.0286 mm clearance is now reported as a **measurement**, not as a pass against a requirement the archive can show. **v1.4 must ship the keypad domain's working voltage and pollution degree.** |
+| L9-3 | The H4 PASS rests on a standards interpretation the archive itself records as "not the release agent's call", and names no decision-maker | **VALID — FIXED by naming one.** Both the ruling and the reversal were made by the **project owner**, the decision-maker of record; the release agent escalated rather than deciding. §1 now says so and states plainly that **no external or third-party qualified sign-off is recorded and none is claimed.** |
+| L9-4 | §13 says the J_ISOLOOP refdes is "0.45 mm height / 0.150 mm stroke"; KiCad reports actual **0.1125 mm** | **VALID — FIXED.** The stored field is 0.150 mm but the plotted pen is clamped to 25 % of character height, so it prints **25 % BELOW** the 0.150 mm fab floor, not at it. The seven ADR-0012 captions genuinely are 0.150 mm at 0.600 mm height — that half was right. |
+| L9-5 | "H1 / H2 / H3 cross no void" — H3's line does cross an internal slot | **VALID — FIXED** in MANIFEST and §13; §1 already had it right. Conservative direction (true creepage exceeds the 40.9324 straight line) and irrelevant at 40.9 mm. |
+| L9-6 | §1's table claims to be "generated from audit.txt … audit.txt wins", but prints 4 decimals audit.txt does not contain | **VALID — REWORDED honestly.** audit.txt prints 3 decimals from a polygon approximation and is ~0.001 mm high; the analytic 4-decimal figures are the true ones. **Where they differ in SUBSTANCE audit.txt still wins** — that is how L8-3's H2 error was caught. |
+| L9-7 | §2b: the 0–85 °C band's upper end printed 34 057 Ω and the voltage endpoint 1.8876 V | **VALID — FIXED to 34 004.6 Ω and 1.8872 V**, which is what §2b's own error-table row 1 already printed. Second arithmetic slip found in this block; conservative direction both times. |
+| L9-8 | INDEX flags the greppable FAIL strings in `stock_check.json` and `parity.md` but not `mrepro.md`'s "M-REPRO: RED" | **VALID — FIXED.** Now flagged with its explanation (green by metric, red by bytes — UUID churn). |
+| L9-9 | `fresh_lens.md` still said the archive carries 79 digests | **VALID — FIXED to 80** (this file plus ADR-0015). Same class as L7-12, re-opened by the fix that closed L7-3. |

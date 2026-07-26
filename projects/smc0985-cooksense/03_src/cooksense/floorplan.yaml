@@ -59,56 +59,48 @@ board:
   #     pocket skipped: <3mm to the board edge, web too fragile; its single
   #     RSTOP_MID drop is covered by the 6.63mm construction gap).
   cutouts:
-    # ===== H4 CREEPAGE: RULED A FAIL, AND MOVING K_STOP CANNOT FIX IT ==========
-    # v1.3 cut this edge notch to BREAK the surface path from K_STOP.3
-    # [RSTOP_MID, keypad] to H4's SELV-bonded fastener, recording the
-    # around-the-notch geodesic (6.598mm) against a 6.000mm requirement.
+    # ===== THE H4 ISOLATION NOTCH — LOAD-BEARING. DO NOT REMOVE. ===============
+    # It is what makes the keypad->H4-fastener CREEPAGE 6.5984mm instead of the
+    # pre-notch 4.031mm, against a 6.000mm requirement.
     #
-    # RULED 2026-07-26: THE NOTCH DOES NOT COUNT. IEC 60664-1 sets a minimum
-    # groove width X below which a groove contributes NOTHING to creepage — the
-    # path is measured STRAIGHT ACROSS. At pollution degree 3 (declared: steam
-    # and grease) X = 1.5mm; this notch is 1.000mm. The exemption (X reduced to a
-    # third of the associated clearance) applies only below 3mm clearance; this
-    # is 6mm, so X stays 1.5mm. The real figure is the STRAIGHT LINE, 4.0286mm =
-    # FAIL. Aggravating: the 3.0mm fastener disc OVERHANGS the 1.0mm slot by
-    # 0.800mm, ROOFING it — a capillary trap rather than a gap that drains.
+    # IT REACHES THE EAST BOARD EDGE (x191.50 -> x200.00, and 200.000 IS the
+    # edge), so it is OUTLINE geometry: no router-bit minimum, no JLC internal-
+    # cutout surcharge. THAT IS ALSO WHY IT COUNTS. IEC 60664-1's minimum-groove-
+    # width rule (X = 1.5mm at pollution degree 3) governs a GROOVE — a channel
+    # with material at the bottom, where the question is whether contamination
+    # bridges across. A through-notch has no bottom and drains at the open end,
+    # so creepage genuinely goes AROUND it. On 2026-07-26 the X rule was applied
+    # to this notch, H4 was ruled a FAIL at 4.0286mm, and the ruling was reversed
+    # the same day: 4.0286mm is the CLEARANCE (straight line, requirement well
+    # under 1mm at 30V/PD3), not the creepage. See ADR-0015.
     #
-    # THEN WE TRIED TO MOVE K_STOP, AND MEASURED WHY THAT CANNOT WORK.
-    # Three re-races, each refuted by the board:
-    #   d=4.95 north          -> copper_edge_clearance 0.0000: K_STOP.1 lands in
-    #                            the r11r12 coil gap (y[26.0,26.6]).
-    #   d=2.73 north +1.0 E   -> 2x keypad_isolation_6mm (5.2700, 5.4246) + 3
-    #                            unconnected: the 1.800mm east corridor that
-    #                            RSTOP_MID/KP_U6 climb is a ROUTING RESOURCE, and
-    #                            1.0mm east leaves 0.100mm of it after edge_band.
-    #   d=2.73 north          -> DRC 0 violations but 1 UNCONNECTED, twice, not
-    #                            stochastic: 5V_STOP cannot reach K_STOP.1
-    #                            because route.yaml's full north band
-    #                            (User.2, y[9.9,29.4]) forbids logic copper above
-    #                            y29.4 and the pad had moved to y27.65.
+    # THE CREEPAGE PATH, re-derived independently (canon M1), is NOT the naive
+    # one — the 3.000mm fastener disc OVERHANGS the notch (|centre - notch SW
+    # corner| = 2.6627mm < 3.000), so a straight run at the NW corner would cross
+    # the void. The taut path skirts the west edge:
+    #   leg 1  disc boundary at x191.500, y = 52 - sqrt(3^2 - 1.5^2) = 49.4019,
+    #          up the notch's west edge to the NW corner        0.6019mm
+    #   leg 2  NW corner (191.500,48.800) -> K_STOP.3 pad edge  5.9965mm
+    #                                                    TOTAL  6.5984mm
+    # matching the I-HW gate's 6.598mm by a different construction.
     #
-    # AND THE ROOT REASON, WHICH THE THIRD FAILURE EXPOSED:
-    # *** K_STOP.1's NORTH PAD EDGE IS A LOAD-BEARING CREEPAGE CONSTANT. ***
-    # Pad centre y30.380, radius 0.750 -> north edge y29.630 — and that 29.630 IS
-    # the "gap pads 29.63" in route.yaml's header, which sets the PRIMARY
-    # keypad<->SELV creepage against the keypad band cap at y23.200:
-    #     29.630 - 23.200 = 6.430mm by construction.
-    # Moving K_STOP north eats that 1:1. Solving both barriers at once:
-    #     d      pad1 N edge   keypad-band creepage   H4 approach
-    #     0.000     29.630            6.430            4.0286  H4 FAILS
-    #     0.430     29.200            6.000            4.3850  H4 STILL FAILS
-    #     2.730     26.900            3.700            6.3888  BAND FAILS
-    # North travel is capped at 0.430mm by the barrier we are trying to protect,
-    # and H4 still fails there. East is capped at 1.500mm by the board edge and
-    # H4 needs 2.923mm (H4 = 4.9739mm at the cap). Best combined d=0.430,
-    # e=1.500 gives 5.293mm — still a FAIL.
-    # ==> NO PLACEMENT OF K_STOP FIXES H4. The fix must come from somewhere else
-    #     (H4's fastener material, deleting H4, or re-planning the east column).
-    #     ESCALATED. K_STOP anchor left at its v1.3 position.
+    # MEASURED to cross NOTHING (v1.3 placement):
+    #   COIL_STOP_N -> K_STOP.2 and 5V_STOP -> K_STOP.1 both route WEST of x191.5;
+    #   RSTOP_MID -> K_STOP.3 and KP_U6 -> K_STOP.4 route NORTH into the keypad
+    #     domain, never south across y49;
+    #   the GND/3V3 pours start at y53.0, entirely SOUTH of the cut.
+    # An INTERNAL slot here is not manufacturable anyway: the direct corridor
+    # between H4's hardware edge (x196.0) and K_STOP.3's pad edge (x196.55) is
+    # 0.55mm, narrower than any router bit. The edge notch is the only form.
     #
-    # The notch is left in place: harmless edge geometry, removing it is another
-    # outline change, and no creepage figure may be derived from it.
-    - {rect: [191.50, 48.8, 200.10, 49.8]}   # H4 notch — v1.3 relic, NOT creepage-bearing (see above)
+    # *** DO NOT TRY TO FIX H4 BY MOVING K_STOP. *** It cannot work and it was
+    # measured: K_STOP.1's north pad edge (y29.630) IS route.yaml's "gap pads
+    # 29.63", which with the keypad band cap at y23.200 sets the PRIMARY
+    # keypad<->SELV creepage at 6.430mm by construction. North travel is capped
+    # at 0.430mm BY THAT BARRIER; east at 1.500mm by the board edge; and the
+    # 1.800mm east corridor is where RSTOP_MID and KP_U6 CLIMB, not slack.
+    # Full derivation and the three failed re-races: ADR-0015.
+    - {rect: [191.50, 48.8, 200.10, 49.8]}   # H4 keypad-isolation notch (edge-reaching) — LOAD-BEARING, see above
     - {rect: [29.40, 26.0, 37.84, 26.6]}    # coil gap r1r2
     - {rect: [59.88, 26.0, 68.32, 26.6]}    # coil gap r3r4
     - {rect: [90.36, 26.0, 98.80, 26.6]}    # coil gap r5r6

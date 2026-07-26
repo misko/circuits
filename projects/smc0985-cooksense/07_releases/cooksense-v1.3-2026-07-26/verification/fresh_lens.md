@@ -15,7 +15,10 @@ is the one whose findings are dispositioned in `dispositions.md`.
 | 2 | DO-NOT-SEAL | `MANIFEST.txt` and `ORDER_README.md` were not a faithful index of what `verification/` already knew |
 | 3 | DO-NOT-SEAL | the CH0/CH3 ADC transfer function was a declared gap under a MANDATORY acceptance test |
 | 4 | DO-NOT-SEAL | eight defects incl. the `fp-lib-table` pointing outside the archive |
-| **5** | **DO-NOT-SHIP** | **the eleven items below** |
+| 5 | DO-NOT-SHIP | eleven items — the missing review file, the §6 rotation provenance overclaim, the opto 50 mA-vs-3.2 mA rating, 136-vs-121 islands |
+| 6 | DO-NOT-SHIP | twelve items — §6 item 15's false "two-channel" claim, and `GND_ISO` not existing (which reversed a v1.4 fix that would itself have caused a 10.3x violation) |
+| 7 | DO-NOT-SHIP | thirteen items — §2b's accept band inverting to 54.5 °C, the open-detect row's 1.2 mV margin, and the H4 creepage escalation: **ruled a FAIL, then reversed the same day** |
+| **8** | **DO-NOT-SHIP** | **eleven items, all document edits** — a stale "SEAL IS BLOCKED" row, §6 item 15's diode counts, and H2's `s` measured with a circle model on a **rectangular** pad |
 
 ## Lens 5 — what it was asked
 
@@ -61,8 +64,8 @@ Full dispositions with measurements are in `dispositions.md`, section
 ## What lens 5 checked and found correct
 
 Reported as measured agreement, because a checked-and-agrees result is a result:
-all sha256 digests match (78 at the time that lens ran; the archive now
-carries 79, the extra one being this file); the gerbers re-export flash-identical from the
+all sha256 digests match (78 at the time that lens ran; the archive now carries 80 — this
+file plus ADR-0015, added after the H4 reversal); the gerbers re-export flash-identical from the
 shipped board on every copper, mask, paste and edge layer; BOM 205 refdes minus
 CPL 189 equals exactly the 16 declared `not_assembled` refs; schematic `Value`
 matches CPL `Val` on 189/189; A-POS reproduces 189/189 at worst 0.00000 mm; both
@@ -129,6 +132,22 @@ re-enabled reproduce **78** violations with **zero** touching a safety caption.
 16.7 % V_CEO margin — every figure landed.** The only number it could not
 reproduce exactly was a worst-case separation the archive states as 193 mV where
 the lens computes 202 mV: the archive is **9 mV conservative**, by one V_IO.
+
+## The one error class that recurred, in three different disguises
+
+Worth naming because it caught me three times in one release and each time the
+number looked plausible:
+
+| # | what I measured | what the property was | consequence |
+|---|---|---|---|
+| 1 | zone island **positions** vs a boundary | island **shapes** (containment, not overlap) | 7 "stranded" islands that were bonded |
+| 2 | track **endpoints** | the nearest point on the **segment** | H1/H2 wrongly reported failing at 1.0950 mm |
+| 3 | a **circle** of radius 0.75 | a 1.500 × 1.500 **rectangular** pad | H2's `s` published as 13.1525 when it is 13.000 |
+
+**A position is not a shape; an endpoint is not a segment; an inscribed circle is
+not a rectangle.** In every case the cheap proxy was within a few tenths of the
+true figure, which is exactly why it survived review. `audit.txt` used the true
+shapes throughout and was right every time.
 
 **Caveat, unchanged:** this file is written by the agent that built the release.
 It records independent reviews; it is not itself one.

@@ -1,5 +1,8 @@
 cooksense v1.3 — smc0985-cooksense MAIN board
-HELD, NOT SEALED: 2026-07-26 — H4 keypad-to-SELV creepage is 4.0286 mm against 6.000 mm required and FAILS (ruled 2026-07-26: the 1.000 mm notch is below the PD3 X-dimension of 1.5 mm and is not creditable). NOT ORDERABLE. See ORDER_README section 1.
+sealed: 2026-07-26
+READ BEFORE ASSEMBLY: H4's isolation depends on FASTENER DIAMETER. Max conductive OD 6.0 mm
+                     (DIN 125 A2.7); hard limit 6.3 mm. At 6.4 mm the fastener BRIDGES the notch and
+                     creepage collapses 6.5984 -> 3.8286 mm = FAIL. ORDER_README section 1, clause (2).
 supersedes: cooksense-v1.1-2026-07-24 (and v1.0-2026-07-23) — BOTH DO-NOT-ORDER
 
 board: 188 x 92 mm, 4 layer, 222 components + 4 mounting holes; 3925 tracks / 1047 vias
@@ -29,12 +32,12 @@ GATES — every number measured on the artifacts in THIS archive
   M-BOM  bom_source_check                                PASS
   circuit-only value check                               PASS (all 90 unpinned passives swept)
   P-FACT                                                 4/41 dossiers declare asserts; 3 graded, 1 deferred
-  I-HW   mounting-hardware creepage                      *** FAIL *** H4 = 4.0286 mm vs 6.000 required.
-                                                         METHOD: straight line, notch NOT credited (1.000 mm slot is
-                                                         below the PD3 X-dimension of 1.5 mm). The 6.598 mm this line
-                                                         used to print was a GEODESIC around the notch and is retracted.
-                                                         H1 13.6299 / H2 13.1525 / H3 40.9324 PASS — all straight-line,
-                                                         none crossing a void. Exactly one hole is affected.
+  I-HW   mounting-hardware creepage                      PASS. H4 tightest at 6.5984 mm CREEPAGE (surface path around the
+                                                         outline notch) vs 6.000 required. METHOD MATTERS: its straight-line
+                                                         CLEARANCE is 4.0286 mm, against a sub-1mm clearance requirement at
+                                                         30V / PD3 / material group IIIa — a different question, not a conflict.
+                                                         H1 13.6299 / H2 13.000 cross no void (H3's line crosses a slot; conservative), so for those three
+                                                         creepage and clearance coincide. See ADR-0015.
   audit_board                                            PASS (I-ISO 6.12 mm)
   M-REPRO                                                3 rebuilds, 1047 vias each; fp/track/via hashes identical AND
                                                          matching the shipped board. See verification/mrepro.md
@@ -48,7 +51,7 @@ GATES — every number measured on the artifacts in THIS archive
 
 ISOLATION — state the metric beside the number; three measurements, one geometry
   ISO->SELV, all copper all layers incl. filled pours   2.0000 mm  (GND zone edge at J_ISOLOOP.1)
-  ISO->SELV, pad-to-pad true polygon                    2.1709 mm  (U_OPTO.3 <-> J_RH_EXHAUST.5)
+  ISO->SELV, pad-to-pad true polygon                    2.1661 mm  (U_OPTO.3 <-> J_RH_EXHAUST.5)
   ISO->SELV, pad-to-pad bounding-box                    2.126  mm  (J_ISOLOOP.4 <-> J_DOOR.MP)
   KEYPAD_ISO -> everything else                         6.1200 mm
   2.0000 is the headline; the margin is 0.000 BY CONSTRUCTION because the moat
@@ -72,7 +75,7 @@ MANDATORY BEFORE ORDERING — see ORDER_README.md
 FILE DIGEST — sha256, every file in this archive
   3d/cooksense.gltf                                               9b7e60622f23c64f9940e06f1977be4e7f81a591eac6d1494e034aa199f9a1c4
   3d/cooksense.step                                               e115e9d19c37ca66905c42b1737dd404842ee9b77296ed171098005f026af4b4
-  ORDER_README.md                                                 946d844ac4d9568c9ab304be02330274201d7eb128ffa577bc82b8fc3fde26ab
+  ORDER_README.md                                                 a7605880fc4361f972d835ed5234c99e7681ff7a8eae972f1b62962be7d1c9dc
   fab/bom.csv                                                     f81b31d6321bd9aba4cadaf4a547062cd259e99a7f86762d63d26ed8eb7fe79e
   fab/bom_jlc.csv                                                 f81b31d6321bd9aba4cadaf4a547062cd259e99a7f86762d63d26ed8eb7fe79e
   fab/cooksense-B_Cu.gbl                                          6879c71dc016001705fdfb499f9df2d89c9aa6a6c05fbb0c02e3def190d2c580
@@ -106,21 +109,22 @@ FILE DIGEST — sha256, every file in this archive
   source/cooksense.tsx                                            a6b67dbb2d862152efdd78f7b73cd4a78c8d01be8e50a80ec6eace6378b885ca
   source/fp-lib-table                                             f96f5b2653e171e7b8605c7bac0b5d5802c25e3581aa44f6409a778dbee0f400
   source/parity_padmap.txt                                        43f87a91d9c1afe200f0cdbfb52e1e1e1b13c3f0dbbf8b4406dec013dd3e3aeb
-  verification/INDEX.md                                           1cb7e68d16310be7bfa28a5c507fb55e469d679e732b69b1bb69e5a61b51ccec
-  verification/ORDER_README.md                                    946d844ac4d9568c9ab304be02330274201d7eb128ffa577bc82b8fc3fde26ab
+  verification/ADR-0015-creepage-is-not-clearance.md              2111361c20e2955faf52217009871245eed0af1390cb9271d2004729eef07845
+  verification/INDEX.md                                           3b42c2ea7b599dba59e65b7d7b6e7d4a914c197e9ccb5bed1f049e188a790ecd
+  verification/ORDER_README.md                                    a7605880fc4361f972d835ed5234c99e7681ff7a8eae972f1b62962be7d1c9dc
   verification/assembly_coverage.json                             b8d02708d9d43ef2d9d2eb5c4ae10e897bccd50c9c942340d6af25d51e9c556d
   verification/assembly_coverage.txt                              cf8db91c27421686747ee76d0724f1a97df07e9fbcc8649ddcdca569407352f4
   verification/audit.txt                                          9fe5abe175afc719c9dcf6071996c3fb61ea6e746102559ef70942c151e58cbd
   verification/bom_source_check.txt                               0a8279b27c3a7bbc47b44f2442fd213f7231ee669de1b5f8283b53066771fc45
   verification/build_gates.md                                     4fd4452cde28230369808b7c8d1804a6a04f61287fdc1e9f3dc78c4951349a13
   verification/circuit_value_check.txt                            0618b6f479fa2e159bfc7d0b682fe7598b9ba08c834b7f5b3836a49d91b082a5
-  verification/dispositions.md                                    9e266afc0249eb3ef46060bf244adcceafe1bb0145ff71fe86ebdc4161afd73a
+  verification/dispositions.md                                    ad77d2573814d004583da30b2e280964272683f432e4f7a37d34fd8fac4e82a1
   verification/dispositions_v10_carried.md                        74c7b0afbfd3853df8fb9ffbc91e917f14f24874bf2f9e8c428699eb573868f5
   verification/drc.json                                           48845899798b59f23247e60ec65443f4b858d3b85f95114f40cb447c456a691b
   verification/einv.txt                                           bc755960bc256523bd2a0f940ace373935829f54145c5c229c923f685541b1eb
   verification/einv_red_verification.md                           82b6c24822203b2dbdd8ee8f522bae1346b4d9c5f0d5698726fbbdfb3b083272
   verification/erc.json                                           150ab15e04c971a82b2b4ca451b5867673df773d13a3d67bf725001b268031dc
-  verification/fresh_lens.md                                      df23a619349029e8fb876b0ce0d4699b07b5a05b4fcc837f9f0e7b4f263d01ed
+  verification/fresh_lens.md                                      5207bd4964c54a8d000fdcbe468932160ce855ac5a215a7b9d6dd8bd49c2ac31
   verification/missing_models.txt                                 bee2b135e8d5c24ab8f78336c337a9f7ad0a8f34f50a143b3fd0a2594fc28030
   verification/mrepro.md                                          56c43041fd27832e9951660b362d37cea7ba26daa9b2951a43ff6ab9068b2134
   verification/parity.md                                          7d60ddc7f148231f8c4caa964b13982b6db451a962b9694ac1ca237a354788eb
@@ -150,4 +154,4 @@ FILE DIGEST — sha256, every file in this archive
   verification/twin_report.csv                                    da039247c184b793a50e0a99b6e7ca363f0580ff918a33981480d2aa34d79acd
   verification/twin_top.png                                       07f63ca1d6cf8ba1c648fb912e5292fc0f072c5b3dc8f97569ed258b2f7dcb9b
 
-  79 files
+  80 files
