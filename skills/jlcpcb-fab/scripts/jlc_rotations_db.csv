@@ -49,8 +49,14 @@
 "^TO-277",90
 "^SW_SPST_B3",90
 "^Transformer_Ethernet_Pulse_HX0068ANL",270
-"^JST_GH_SM",180
-"^JST_PH_S",180
+"#REFUTED ^JST_GH_SM",180
+"#  ^JST_GH_SM,180 was MEASURED WRONG 2026-07-25 and is disabled. It placed EIGHT",
+"#  connectors 180deg out on smc0985-cooksense v1.0 AND v1.1 (J_DOOR/J_ESTOP/J_MODE/",
+"#  J_RH_AMBIENT/J_RH_EXHAUST/J_THERM_A/J_THERM_B/J_KEY_MATRIX). Measured offset is 0,",
+"#  not 180: C189896 rms 0.0000mm EXACT, C265111 810x separation, C2683602 1037x.",
+"#  Per-LCSC rows now carry the truth. The two rules below share this rule's authorship",
+"#  and have NEVER been measured - treat them as suspect, measure before trusting.",
+"#UNMEASURED ^JST_PH_S",180
 "^Diodes_PowerDI3333-8",270
 "^Quectel_L80-R",270
 "^SC-74-6",180
