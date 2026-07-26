@@ -197,3 +197,21 @@ layout_refs:
   - "XMOS Appendix I 'PCB Layout Design Checklist' + Appendix H 'PCB Design Checklist' (in-datasheet)"
   - "Associated: AN02023 xcore.ai Power Consumption Estimation; XTC Tools (Flash/OTP programming)"
 sourcing: {lcsc: C6938291, alternates: []}
+
+# ---- EXECUTABLE FACTS (canon P-FACT, graded by part_facts_check.py) ---------
+# These were already written down and datasheet-cited above. Until they were
+# declared here nothing READ them: the fleet shipped a consigned MSL-3 XU316
+# with ZERO MSL text in its order paperwork (crow-recorder-central v1.0) while
+# this very file recorded the floor life correctly. A fact that is written
+# down and never read is indistinguishable from a fact nobody knew.
+asserts:
+  - assert: msl
+    level: 3
+    floor_life_h: 168
+    why: "CONSIGNED part — JLC cannot bake what they are not told is
+          moisture-sensitive. MSL 3, 168h floor life below 30C/60% RH, from
+          XMOS XU316-1024-TQ128 xcore.ai datasheet XM-014532-PC v2.0.0
+          section 14.5 'Moisture Sensitivity' p.33. Bake per J-STD-033D if
+          the floor-life window is exceeded or the HIC reads high. The order
+          paperwork MUST state this (ORDER_README section 3b + the MANIFEST
+          msl: line) — this assert is what proves it still does."

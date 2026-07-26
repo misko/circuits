@@ -449,6 +449,90 @@ def bom_only_root():
     return root, d1, d2
 
 
+# ------------------------------------------------- cpl-only supersede (A-POS)
+# RED-VERIFIED 2026-07-25 (tests/README step 3, GIT-SWAP variant): with
+# `git show HEAD:.../release_freshness_check.py` swapped back in, this file
+# reports **30 passed, 4 failed** — every cpl-only case dies on
+# "unrecognized arguments: --cpl-only-supersede". Restored: 34 passed, 0
+# failed. The mode cannot pass vacuously because it did not exist.
+# The crow-recorder-central-v2 v1.5 shape. A wrong CPL COORDINATE is the one
+# defect that is 100% assembly data and 0% copper: v1.4 shipped its only USB-C
+# 1.3025mm off its own pads because the exporter emitted KiCad's footprint
+# ANCHOR instead of JLC's pad-array datum. Fixing it changes fab/cpl.csv and
+# nothing else, so docs-only refuses it and bom-only does not cover it.
+_CPL_MOVED = ("Designator,Val,Package,Mid X,Mid Y,Layer,Rotation\n"
+              "C1,100nF,C_0603,10,-8.6975,top,0.0\n"     # the datum fix
+              "C2,100nF,C_0603,12,-10,top,0.0\n")        # R1 dropped (DNP)
+
+
+def cpl_only_root(cur_cpl=None):
+    root, d1, d2 = bom_only_root()
+    for d in (d1, d2):
+        (d / "fab" / "bom.csv").write_text(_BOM_PRIOR)
+    (d1 / "fab" / "cpl.csv").write_text(_CPL)
+    (d2 / "fab" / "cpl.csv").write_text(cur_cpl or _CPL_MOVED)
+    return root, d1, d2
+
+
+def cgate(d2, d1, *extra):
+    return gate(d2, "--cpl-only-supersede", str(d1), *extra)
+
+
+@test("release_freshness --cpl-only-supersede PASSES a coordinate fix plus a "
+      "row dropped for a part that is no longer populated")
+def t_cpl_only_pass():
+    _, d1, d2 = cpl_only_root()
+    r = must_pass(cgate(d2, d1), "a true cpl-only supersede")
+    contains(r.out, "cpl-only supersede", "the mode should be announced")
+    contains(r.out, "1 coordinate move(s)", "the delta shape should be explicit")
+    contains(r.out, "0 rotation/layer/identity changes",
+             "the assertion that separates this from a rotation fix")
+    contains(r.out, "FRESHNESS: PASS", "verdict")
+    # the stricter mode must still refuse the same tree
+    rd = must_fail(dgate(d2, d1), "docs-only must still refuse a fab change",
+                   "DOCS-ONLY DEVIATION")
+    contains(rd.out, "fab/cpl.csv", "names the file docs-only refuses")
+
+
+@test("release_freshness --cpl-only-supersede FAILS a ROTATION change — a "
+      "coordinate fix and a rotation fix are different claims",
+      kind="known_bad")
+def t_kb_cpl_only_rotation_change():
+    """The v1.3 -> v1.4 supersede WAS a CPL-only change and it moved seven
+    ROTATIONS. If a release could smuggle a rotation into a 'coordinate fix',
+    the two defect classes would share one unaccountable channel."""
+    rot = ("Designator,Val,Package,Mid X,Mid Y,Layer,Rotation\n"
+           "C1,100nF,C_0603,10,-8.6975,top,0.0\n"
+           "C2,100nF,C_0603,12,-10,top,180.0\n")
+    _, d1, d2 = cpl_only_root(rot)
+    r = must_fail(cgate(d2, d1), "a smuggled rotation change",
+                  "CPL-ONLY DEVIATION")
+    contains(r.out, "Rotation changed", "names the column that moved")
+    contains(r.out, "C2", "names the offending ref")
+    contains(r.out, "A-ROT", "points at the evidence such a claim would need")
+
+
+@test("release_freshness --cpl-only-supersede FAILS an ADDED CPL row — "
+      "placing a new part is a population change, not a coordinate fix",
+      kind="known_bad")
+def t_kb_cpl_only_added_row():
+    add = (_CPL + "R2,10k,R_0603,16,-10,top,0.0\n")
+    _, d1, d2 = cpl_only_root(add)
+    r = must_fail(cgate(d2, d1), "an added placement", "CPL-ONLY DEVIATION")
+    contains(r.out, "R2", "names the newly-placed ref")
+    contains(r.out, "ADDED", "says what happened")
+
+
+@test("release_freshness --cpl-only-supersede FAILS when the CPL did not "
+      "change at all — a supersede that moves nothing supersedes nothing",
+      kind="known_bad")
+def t_kb_cpl_only_no_change():
+    _, d1, d2 = cpl_only_root(_CPL)
+    r = must_fail(cgate(d2, d1), "an empty cpl-only supersede", "CPL-ONLY")
+    contains(r.out, "supersedes nothing", "says why it is refused")
+    contains(r.out, "docs-only", "names the mode that WOULD be correct")
+
+
 def bgate(d2, d1, *extra):
     return gate(d2, "--bom-only-supersede", str(d1), *extra)
 

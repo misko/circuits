@@ -72,6 +72,8 @@ RELS = ROOT / "projects"
 
 CROW13 = (RELS / "crow-recorder-central-v2" / "07_releases"
           / "crow-recorder-central-v2-v1.3-2026-07-24")
+CROW14 = (RELS / "crow-recorder-central-v2" / "07_releases"
+          / "crow-recorder-central-v2-v1.4-2026-07-25")
 COOK11 = (RELS / "smc0985-cooksense" / "07_releases"
           / "cooksense-v1.1-2026-07-24")
 INTERP = (RELS / "smc0985-cooksense" / "07_releases"
@@ -165,7 +167,11 @@ def set_attr(board, ref, flag="pcbnew.FP_EXCLUDE_FROM_POS_FILES"):
       "exempt prefix)")
 def t_pop_clean():
     rel, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY)
-    r = must_pass(run([KPY, COV, rel]), "fully-declared release")
+    # A-POS disabled: this case isolates the POPULATION axis. v1.3 shares
+    # v1.4's datum defect (J1/J2 emitted at the footprint anchor), which
+    # t_pos_datum_off_real_release pins on the sealed bytes instead.
+    r = must_pass(run([KPY, COV, rel, "--_disable-datum", "--_disable-smt"]),
+                  "fully-declared release")
     contains(r.out, "A-POP: PASS", "verdict")
     contains(r.out, "placement histogram", "per-side histogram is printed")
 
@@ -316,8 +322,8 @@ def t_pop_declared_but_placed_structured():
         "  - refs: [JP_INJ, J_DBG, U5]"),
         manifest="board: demo\nnot_assembled: J3 J4 J5 J6 J7 J8 J9 J10 "
                  "JP_INJ J_DBG U5\n")
-    r = must_fail(run([KPY, COV, rel]), "declared not_assembled but on CPL",
-                  "DECLARED-BUT-PLACED")
+    r = must_fail(run([KPY, COV, rel, "--_disable-datum", "--_disable-smt"]),
+                  "declared not_assembled but on CPL", "DECLARED-BUT-PLACED")
     contains(r.out, "U5", "names the placed-yet-declared ref")
 
 
@@ -344,9 +350,14 @@ def t_pop_synthetic_one_part():
     defect and not to some unrelated malformation. This is the stale-CPL
     class: the board changed, the CPL did not."""
     rel, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY)
-    must_pass(run([KPY, COV, rel]), "the fixture passes BEFORE the break")
+    # A-POS disabled throughout: this case isolates the set-identity axis, and
+    # v1.3 carries v1.4's datum defect (J1/J2 at the anchor) independently of
+    # the one break introduced below.
+    iso = ["--_disable-datum", "--_disable-smt"]
+    must_pass(run([KPY, COV, rel, *iso]),
+              "the fixture passes BEFORE the break")
     set_attr(board_of(rel), "U5")
-    r = must_fail(run([KPY, COV, rel]), "one extra excluded part",
+    r = must_fail(run([KPY, COV, rel, *iso]), "one extra excluded part",
                   "POS-ATTR-VS-CPL")
     contains(r.out, "U5", "names the broken ref")
     contains(r.out, "1 ref(s)", "exactly one ref is accused")
@@ -354,7 +365,7 @@ def t_pop_synthetic_one_part():
         not_contains(r.out.split("POS-ATTR-VS-CPL")[1], other,
                      f"{other} must not be dragged into the finding")
     # INLINE RED-VERIFY: neuter ONLY the set-identity family -> passes again.
-    rr = run([KPY, COV, rel, "--_disable-setid"])
+    rr = run([KPY, COV, rel, *iso, "--_disable-setid"])
     check(rr.rc == 0, f"red-verify: with the set-identity checks neutered the "
                       f"one-part fixture must pass, got rc={rr.rc}\n{rr.out}")
     not_contains(rr.out, "POS-ATTR-VS-CPL", "neutered run emits no finding")
@@ -440,6 +451,123 @@ def t_pop_manifest_drift():
     r = must_fail(run([KPY, COV, rel]), "MANIFEST/assembly.yaml drift",
                   "MANIFEST-DRIFT")
     contains(r.out, "JP_INJ", "names what the MANIFEST forgot")
+
+
+# ============================================================ A-POS cases
+# The known-bad fixture is a REAL SEALED RELEASE, not a synthetic one:
+# crow-recorder-central-v2 v1.4 shipped its only USB-C 1.3025mm off its own
+# pads. Every gate that release ran was green — DRC 0/0/0, schematic parity 0,
+# A-POP, A-ROT, two red-team lenses — because nothing in the fleet had ever
+# compared a CPL COORDINATE to anything at all. These bytes are immutable, so
+# this fixture cannot rot.
+
+@test("A-POS catches the v1.4 USB-C blocker: a CPL row emitted at KiCad's "
+      "footprint ANCHOR instead of JLC's pad-array placement datum")
+def t_pos_datum_off_real_release():
+    r = must_fail(run([KPY, COV, CROW14, *no_asm()]), "v1.4 A-POS",
+                  "CPL-DATUM-OFF")
+    contains(r.out, "J2", "names the USB-C — the part that cannot seat")
+    contains(r.out, "1.3025", "reports the MEASURED offset, not a verdict")
+    contains(r.out, "FOOTPRINT ANCHOR",
+             "diagnoses WHICH wrong datum was used, so the fix is obvious")
+    # INLINE RED-VERIFY: neuter only this family; the same bytes must pass it.
+    # A finding that survives its own check being disabled came from elsewhere.
+    rr = run([KPY, COV, CROW14, *no_asm(), "--_disable-datum"])
+    check("CPL-DATUM-OFF" not in rr.out,
+          "red-verify: --_disable-datum must silence exactly this finding")
+
+
+@test("A-POS grades EVERY placed row's coordinate, and reports the worst "
+      "residual — a datum gate that only prints failures cannot be trusted "
+      "when it prints nothing")
+def t_pos_datum_reports_worst():
+    r = run([KPY, COV, CROW14, *no_asm()])
+    contains(r.out, "A-POS datum:", "the measurement is always printed")
+    contains(r.out, "177 CPL row(s) graded",
+             "all 177 shipped rows were graded, not a sampled subset")
+
+
+@test("A-POS catches a true THT part on the CPL of an SMT-only order (v1.4 "
+      "J1, the board's ONLY power inlet), and does NOT flag pin-in-paste")
+def t_pos_not_smt_placeable():
+    rel, _ = rel_tree(CROW14, assembly=CLEAN_ASSEMBLY)
+    r = must_fail(run([KPY, COV, rel, "--_disable-datum"]),
+                  "v1.4 J1 process class", "CPL-NOT-SMT-PLACEABLE")
+    contains(r.out, "J1", "names the barrel jack")
+    # J2 also has 4 DRILLED pads — but they carry F.Paste, so it is legitimate
+    # intrusive reflow. The discriminator must be PASTE, never the
+    # `through_hole` attribute, or this check would condemn every pin-in-paste
+    # connector on the fleet.
+    smt = [ln for ln in r.out.splitlines() if "CPL-NOT-SMT-PLACEABLE" in ln]
+    check(not any(" J2 " in ln for ln in smt),
+          "J2 (pin-in-paste, F.Paste on all 4 drilled pads) must NOT be flagged")
+    rr = run([KPY, COV, rel, "--_disable-smt"])
+    check("CPL-NOT-SMT-PLACEABLE" not in rr.out,
+          "red-verify: --_disable-smt must silence exactly this finding")
+
+
+@test("A-POS passes a CPL whose coordinates ARE the pad-array datum — the "
+      "gate has to be satisfiable, and 175 of v1.4's 177 rows already were")
+def t_pos_datum_clean_rows():
+    r = run([KPY, COV, CROW14, *no_asm()])
+    offenders = [ln for ln in r.out.splitlines() if "CPL-DATUM-OFF" in ln]
+    check(len(offenders) == 2,
+          f"exactly 2 of 177 rows are off-datum (J1, J2); got {len(offenders)}")
+    check(all(" J1 " in ln or " J2 " in ln for ln in offenders),
+          "the two offenders are the two connectors, not a systematic shift")
+
+
+@test("the exporter's assembly.yaml path removes a declared ref from the CPL "
+      "— the mechanism that lets a SEALED board drop a placement")
+def t_declared_refs_leave_the_cpl():
+    """crow-recorder-central-v2 v1.5's whole architecture rests on this: the
+    board is sealed and its gerbers are byte-identical to v1.4, so
+    `exclude_from_pos_files` could not be set without regenerating (81626
+    diff lines of UUID churn). The DECLARATION had to become a mechanism."""
+    import re as _re
+    src = (FAB_SCRIPTS / "export_jlc_package.py").read_text()
+    check("declared_unpopulated" in src,
+          "the exporter reads 03_src/rules/assembly.yaml")
+    check(_re.search(r"if ref in _declared_np:\s*\n\s*_dropped_by_decl",
+                     src) is not None,
+          "a declared ref is dropped BEFORE the CPL row is built")
+    # It must only ever REMOVE. A path that could ADD a row would make
+    # assembly.yaml able to place parts that are not on the board.
+    check(src.count("_declared_np") == 3,
+          "the declaration is consulted exactly once, on the drop path")
+
+
+@test("A-POP's DECLARED-NOT-EXCLUDED still FAILS an undeferred ref, and is "
+      "cleared ONLY by a dated board_attr_plan: entry")
+def t_pop_board_attr_plan_defer():
+    asm = CLEAN_ASSEMBLY.replace("exempt_prefixes: [H, TP]", """\
+  - refs: [R_bg1]
+    reason: dnp_by_design
+    evidence: "declared 2026-07-25 for this test fixture, no board attribute"
+    disposition: "n/a"
+exempt_prefixes: [H, TP]""")
+    rel, _ = rel_tree(CROW13, assembly=asm)
+    must_fail(run([KPY, COV, rel, "--_disable-datum", "--_disable-smt"]),
+              "declared ref with no board attribute", "DECLARED-NOT-EXCLUDED")
+    # Now defer it the ONLY sanctioned way. The decision is not weakened: the
+    # ref must still be off the CPL, which DECLARED-BUT-PLACED enforces and
+    # which is NOT deferrable.
+    deferred = asm + """
+board_attr_plan:
+  - refs: [R_bg1]
+    measured_on: 2026-07-25
+    plan: "floorplan.yaml carries the pattern; lands at the next board revision"
+"""
+    rel2, _ = rel_tree(CROW13, assembly=deferred)
+    r = run([KPY, COV, rel2, "--_disable-datum", "--_disable-smt"])
+    check("DECLARED-NOT-EXCLUDED" not in r.out,
+          "a dated board_attr_plan clears the finding")
+    contains(r.out, "DEFERRED-BOARD-ATTR", "and says so out loud, as a note")
+    # A defer with no measurement is not a defer.
+    bare = asm + "\nboard_attr_plan:\n  - refs: [R_bg1]\n    plan: soon\n"
+    rel3, _ = rel_tree(CROW13, assembly=bare)
+    must_fail(run([KPY, COV, rel3, "--_disable-datum", "--_disable-smt"]),
+              "undated/unevidenced defer", "DECLARED-NOT-EXCLUDED")
 
 
 # ========================================================== A-STOCK cases

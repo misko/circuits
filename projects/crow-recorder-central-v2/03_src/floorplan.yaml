@@ -177,6 +177,24 @@ placement:
     - {match: "J10", attrs: [exclude_from_pos_files]}
     - {match: "JP_INJ", attrs: [exclude_from_pos_files]}
     - {match: "J_DBG",  attrs: [exclude_from_pos_files]}
+    # --- ADDED v1.5 (2026-07-25). These three come OFF the CPL. The SEALED
+    # v1.5 board does NOT carry the attribute — v1.5 is data-only and its
+    # gerbers/drills/STEP/PDF are sha256-identical to v1.4, so the board was
+    # deliberately NOT regenerated (a semantically identical rebuild churns
+    # every UUID: 81626 diff lines, measured). The v1.5 CPL drops them via the
+    # exporter's assembly.yaml not_assembled: path instead, and
+    # 03_src/rules/assembly.yaml `board_attr_plan:` carries the dated defer.
+    # These patterns are here so the NEXT regeneration (the v2 copper revision)
+    # emits the attribute with no further edit — canon M3: the source must
+    # already say what the board will be.
+    #
+    # J1: TRUE THT barrel jack (3 plated pads, F.Paste on none) on a
+    #     sides:[top] SMT-only order — no reflow process can solder it.
+    # R_inj1/R_inj2: 1k+1k permanent bridge between ADC ch1 and ch5 with
+    #     JP_INJ unstuffed (-26.5 dB crosstalk vs a 110 dB spec).
+    - {match: "J1",     attrs: [exclude_from_pos_files]}
+    - {match: "R_inj1", attrs: [exclude_from_pos_files]}
+    - {match: "R_inj2", attrs: [exclude_from_pos_files]}
     # --- ADC U2 (ch1-4): input RC (Cc/Rs/Cd 1-4) + AVDD/DVDD/IOVDD/VREF/MICBIAS/LDO decouple ---
     - {match: "Cc1?", near: U2}
     - {match: "Cc2?", near: U2}

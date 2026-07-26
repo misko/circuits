@@ -320,6 +320,23 @@ the CPL — the upload stalls at JLC's BOM/CPL matcher, and fixing it changes
 `--allow-identical` waivers here; the point is to assert the shape of the
 change, not to excuse it.
 
+**CPL-only supersede mode.** When the new release changes ONLY
+`fab/cpl.csv` — a PLACEMENT fix — gate the staging with
+`release_freshness_check.py <release_dir> --cpl-only-supersede
+<prior-release-dir>`: everything else in `fab/`, and all of `source/` and
+`3d/`, must be BYTE-IDENTICAL, and the CPL delta must be coordinate moves
+and/or whole rows REMOVED for parts that are no longer populated. A
+ROTATION, `Layer`, `Val` or `Package` change FAILs, and so does an ADDED
+row, and so does a CPL that did not change at all (that is a docs-only
+supersede). This exists because a wrong CPL coordinate is the one defect
+that is 100% assembly data and 0% copper: crow-recorder-central-v2 v1.4
+shipped its only USB-C 1.3025mm off its own pads (canon A-POS — the
+exporter emitted KiCad's footprint ANCHOR, not JLC's pad-array datum),
+and fixing it changes exactly one file. Keeping rotation OUT of this mode
+is load-bearing: the v1.3 -> v1.4 supersede was ALSO a CPL-only change and
+it moved seven ROTATIONS, so without the split the two defect classes
+would share one unaccountable channel.
+
 Deviations that force rework (both happened, 2026-07-23): regenerating ANY
 artifact after S makes S stale — return to step 1 with a new S. Committing
 the staged release INSIDE the source commit (usb-hub-3s-v3 v1.3 gate-ii)

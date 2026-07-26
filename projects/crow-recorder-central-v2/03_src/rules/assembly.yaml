@@ -37,9 +37,11 @@ fiducials: none            # DELIBERATE, and a recorded limitation, not silence.
 build_quantity: 5          # boards in this order; A-STOCK grades stock >= qty x 5
 
 # ---- NOT ASSEMBLED (the population set) --------------------------------------
-# {board} - {CPL} = 26 refs. 16 are covered by exempt_prefixes: below (H*, TP*);
-# the 10 real decisions are declared here. Every ref listed carries
-# `exclude_from_pos_files` on the sealed board (verified 2026-07-25, all 26).
+# v1.5: {board} - {CPL} = 29 refs. 16 are covered by exempt_prefixes: below
+# (H*, TP*); the 13 real decisions are declared here. Ten of the thirteen carry
+# `exclude_from_pos_files` on the sealed board; the three ADDED at v1.5 (J1,
+# R_inj1, R_inj2) do not and cannot — see board_attr_plan: below, which is why
+# the exporter now honours THIS FILE directly.
 not_assembled:
   - refs: [J3, J4, J5, J6, J7, J8, J9, J10]
     reason: not_in_catalog
@@ -69,13 +71,62 @@ not_assembled:
                29861), so the catalog CAN supply these. They are deliberately
                unstuffed instead: JP_INJ (1x03, beep-injector strap) and J_DBG
                (1x08, 1V8 JTAG) are bring-up/debug-only aids on a single-sided
-               SMT order (sides: [top]) whose only other THT parts are already
-               off the CPL. Both carry a BLANK LCSC on fab/bom.csv and
-               `exclude_from_pos_files` on the board, so nothing on the order
-               form contradicts this."
+               SMT order (sides: [top]). Both carry a BLANK LCSC on
+               fab/bom.csv and `exclude_from_pos_files` on the board, so
+               nothing on the order form contradicts this. CORRECTED at v1.5:
+               this clause previously asserted that 'the only other THT parts
+               are already off the CPL', which was FALSE — J1 was a true THT
+               part sitting ON the v1.4 CPL. It is now declared below, and
+               A-POP's CPL-NOT-SMT-PLACEABLE check compares the sentence to
+               the bytes so the contradiction cannot recur silently."
     disposition: "left unstuffed at assembly; hand-fit a 2.54mm header at the
                   bench only if debug/injection is needed. ORDER_README
                   section 3."
+  - refs: [J1]
+    reason: process_incompatible
+    evidence: "J1 is a TRUE through-hole part on a top-side-SMT-only order.
+               MEASURED on the sealed v1.4 board 2026-07-25 (pcbnew, and
+               independently by assembly_coverage's own s-expression parse):
+               J1 is the ONLY footprint carrying `attr through_hole` WITHOUT
+               `exclude_from_pos_files` — 3 plated slotted pads (1.0x3.0,
+               1.0x3.0, 3.0x1.0) whose layer sets are `*.Cu *.Mask` with
+               F.Paste on NONE of them, so no paste is printed and no reflow
+               process can solder it. This is NOT a catalog wall: C381116 is
+               coded, stocked and on fab/bom.csv — which is precisely why
+               `not_in_catalog` would have been a lie and the closed
+               vocabulary gained `process_incompatible` at v1.5. Contrast J2,
+               which also has 4 drilled pads but carries F.Paste on all four:
+               that is legitimate pin-in-paste intrusive reflow and J2
+               correctly STAYS on the CPL."
+    disposition: "hand-soldered THT at integration, alongside J3-J10. J1 is the
+                  board's ONLY power inlet, so ORDER_README section 3 lists it
+                  FIRST in the hand-solder set and section 3a's
+                  absent-from-placement checklist now names it — under v1.4 it
+                  was on the CPL and named in no checklist, so JLC would have
+                  re-quoted it as an unbudgeted hand-solder line or dropped it
+                  silently and nobody would have been watching."
+  - refs: [R_inj1, R_inj2]
+    reason: dnp_by_design
+    evidence: "R_inj1 (1k, ADC1P<->INJ) and R_inj2 (1k, ADC5P<->INJ) form a
+               PERMANENT 2k bridge between ADC channel 1 and channel 5 on a
+               board whose product IS inter-channel isolation. MEASURED from
+               the sealed v1.4 netlist 2026-07-25: net INJ has exactly 4 nodes
+               {JP_INJ.1, JP_INJ.3, R_inj1.1, R_inj2.1}, and JP_INJ is
+               declared dnp_by_design above — so INJ floats and the only
+               conducting path through it ties ADC1P to ADC5P through
+               1k + 1k. Against the ~99 ohm pod source impedance that is
+               20*log10(99/(2000+99)) = -26.5 dB of channel-1-to-channel-5
+               crosstalk with both pods plugged, and far worse with one
+               unplugged (the 2k then works into the ADC's own high-Z input),
+               against a 110 dB isolation spec. The injection feature these
+               resistors serve is ALREADY unusable with JP_INJ unstuffed, so
+               nothing is lost by unstuffing them: this is a pure defect
+               removal. CPL-only — no copper changes."
+    disposition: "left unstuffed at assembly; the beep-injection bring-up aid
+                  needs JP_INJ fitted anyway, and fitting these two 0402s by
+                  hand at the same time restores it. Leaving them populated
+                  would instead have meant DESOLDERING two 0402s on all 5
+                  boards. ORDER_README section 3."
 
 # ---- CONSIGNED (we supply, JLC PLACES — these stay ON the CPL) ---------------
 consigned:
@@ -97,6 +148,35 @@ consigned:
                   ship dry-packed with the order, HIC check at bag-open, log
                   floor life, bake before reflow if the 168h window is blown).
                   JLC places it."
+
+# ---- BOARD-ATTRIBUTE PLAN (defers A-POP's DECLARED-NOT-EXCLUDED) -------------
+# The evidence-backed defer, exactly parallel to sourcing_plan: below. A-POP
+# normally requires every declared-unpopulated ref to carry
+# `exclude_from_pos_files` on the board, because otherwise the next export
+# puts it back on the CPL. Three refs added at v1.5 cannot carry it: the
+# attribute lives in the .kicad_pcb, and v1.5 is a DATA-ONLY release whose
+# gerbers, drills, STEP and PDFs are sha256-identical to v1.4's. Regenerating
+# the board to set three flags churns every UUID (MEASURED 2026-07-25: a
+# semantically identical rebuild from committed source differs by 81626 diff
+# lines) and would turn a CPL fix into a full respin needing the entire
+# verification battery re-run against bytes nobody has reviewed.
+#
+# The decision is NOT deferred, only the attribute: the exporter now honours
+# this file's not_assembled: set directly, so all three are OFF the shipped
+# v1.5 CPL (verified in verification/assembly_coverage.txt), and A-POP's
+# DECLARED-BUT-PLACED check — which is NOT deferrable — proves it every run.
+board_attr_plan:
+  - refs: [J1, R_inj1, R_inj2]
+    measured_on: 2026-07-25
+    plan: "03_src/floorplan.yaml already carries the three
+           `attrs: [exclude_from_pos_files]` patterns as of v1.5, so the NEXT
+           board regeneration emits the attribute with no further edit. That
+           regeneration lands at the v2 copper revision (AP61102 C3
+           feedforward caps, PCM1865 DVDD bulk, PLL/crystal placement, local
+           fiducials near U1) — the first release whose board bytes change
+           anyway. Until then the exporter's assembly.yaml path is the
+           mechanism, and it is RED-verified by
+           tests/t7_assembly_datum.py::t_declared_refs_leave_the_cpl."
 
 # ---- SOURCING PLAN (justifies a non-OK stock line at seal time) --------------
 sourcing_plan:

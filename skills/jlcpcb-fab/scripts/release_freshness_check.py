@@ -306,7 +306,87 @@ def check_bom_delta(release_dir, prior_dir):
     return fails, notes
 
 
-def check_docs_only(release_dir, prior_dir, bom_only=False):
+def check_cpl_delta(release_dir, prior_dir):
+    """The ONE permitted fab/ change in CPL-only mode: `fab/cpl.csv` changing
+    only PLACEMENT COORDINATES, or losing whole rows for designators that are
+    no longer populated.
+
+    WHY THIS MODE EXISTS. A wrong CPL coordinate is the one defect that is
+    100% assembly data and 0% copper: crow-recorder-central-v2 v1.4 shipped
+    its only USB-C 1.3025mm off its own pads (canon A-POS) because the
+    exporter emitted KiCad's footprint ANCHOR instead of JLC's pad-array
+    placement datum. Fixing it changes fab/cpl.csv and NOTHING else — the
+    gerbers, drills, BOM, STEP, PDFs and the board itself are byte-identical
+    — so docs-only mode correctly refuses, and bom-only mode does not cover
+    it either.
+
+    WHAT THIS ASSERTS THAT IDENTITY CANNOT. A rotation is not a coordinate.
+    The v1.3 -> v1.4 supersede WAS a CPL-only change and it moved seven
+    rotations; had it also smuggled a coordinate, or vice versa, no gate
+    would have separated the two. So this mode permits Mid X/Y to move and
+    FAILs on any Rotation, Layer, Val or Package change, and on any ADDED
+    row. A removed row must be a part that is genuinely off the assembly:
+    its designator must not reappear anywhere in the CPL.
+    """
+    import csv as _csv
+    fails, notes = [], []
+    cur_p, old_p = release_dir / "fab" / "cpl.csv", prior_dir / "fab" / "cpl.csv"
+    if not (cur_p.is_file() and old_p.is_file()):
+        fails.append("  CPL-ONLY: fab/cpl.csv missing on one side — cannot "
+                     "establish the delta")
+        return fails, notes
+
+    def rows(p):
+        out = {}
+        for r in _csv.DictReader(p.read_text().splitlines()):
+            ref = (r.get("Designator") or "").strip()
+            if ref:
+                out[ref] = {k: (v or "").strip() for k, v in r.items()}
+        return out
+
+    cur, old = rows(cur_p), rows(old_p)
+    added = sorted(set(cur) - set(old))
+    removed = sorted(set(old) - set(cur))
+    moved, other = [], 0
+    for ref in sorted(set(cur) & set(old)):
+        c, o = cur[ref], old[ref]
+        for col in ("Rotation", "Layer", "Val", "Package"):
+            if c.get(col) != o.get(col):
+                fails.append(
+                    f"  CPL-ONLY DEVIATION: {ref} {col} changed "
+                    f"{o.get(col)!r} -> {c.get(col)!r} — a CPL-only supersede "
+                    f"may move a part's COORDINATE, never its orientation, "
+                    f"side or identity. A rotation change is a different "
+                    f"claim needing its own A-ROT evidence")
+        dx = c.get("Mid X") != o.get("Mid X")
+        dy = c.get("Mid Y") != o.get("Mid Y")
+        if dx or dy:
+            moved.append(f"{ref} ({o.get('Mid X')},{o.get('Mid Y')}) -> "
+                         f"({c.get('Mid X')},{c.get('Mid Y')})")
+        else:
+            other += 1
+    for ref in added:
+        fails.append(
+            f"  CPL-ONLY DEVIATION: {ref} was ADDED to the CPL — placing a "
+            f"part that was not placed before is a population change, not a "
+            f"coordinate fix (declare it and cut the right kind of release)")
+    if not moved and not removed:
+        fails.append(
+            "  CPL-ONLY: fab/cpl.csv is byte-equivalent to the prior "
+            "release's — a CPL-only supersede that moves nothing and drops "
+            "nothing supersedes nothing; use --docs-only-supersede")
+    if not fails:
+        notes.append(
+            f"  note: fab/cpl.csv delta is {len(moved)} coordinate move(s) "
+            f"[{'; '.join(moved) or 'none'}] and {len(removed)} row(s) "
+            f"REMOVED [{', '.join(removed) or 'none'}]; {other} row(s) "
+            f"unchanged; 0 added, 0 rotation/layer/identity changes — "
+            f"ASSERTED by cpl-only mode")
+    return fails, notes
+
+
+def check_docs_only(release_dir, prior_dir, bom_only=False,
+                    cpl_only=False):
     """Assert the docs-only-supersede contract against the DECLARED prior
     release: fab/source/3d byte-identical (any deviation = FAIL), order
     README + MANIFEST byte-DIFFERENT (identical docs supersede nothing).
@@ -315,7 +395,11 @@ def check_docs_only(release_dir, prior_dir, bom_only=False):
     check_bom_delta() then asserts something stronger about it than identity.
     Nothing else in fab/, and nothing at all in source/ or 3d/, may move."""
     fails, notes = [], []
-    exempt = {("fab", "bom.csv")} if bom_only else set()
+    exempt = set()
+    if bom_only:
+        exempt = {("fab", "bom.csv")}
+    elif cpl_only:
+        exempt = {("fab", "cpl.csv")}
     for sub in _DOCS_ONLY_IDENTICAL_DIRS:
         cur = _tree_files(release_dir / sub)
         old = _tree_files(prior_dir / sub)
@@ -344,7 +428,7 @@ def check_docs_only(release_dir, prior_dir, bom_only=False):
         if same:
             notes.append(f"  note: {sub}/ byte-identical to {prior_dir.name} "
                          f"({same} file(s)) — ASSERTED by "
-                         f"{'bom-only' if bom_only else 'docs-only'} mode")
+                         f"{'bom-only' if bom_only else 'cpl-only' if cpl_only else 'docs-only'} mode")
     # the documents themselves MUST change — that is the release's whole point
     doc_pairs = [("order README", _find_readme(release_dir),
                   _find_readme(prior_dir)),
@@ -821,6 +905,17 @@ def main(argv=None):
                          "README + MANIFEST to differ; the stale check is "
                          "replaced by this identity assertion, checks (b)/(c) "
                          "still run")
+    ap.add_argument("--cpl-only-supersede", metavar="PRIOR_RELEASE_DIR",
+                    default=None,
+                    help="CPL-only supersede mode: docs-only, PLUS the one "
+                         "permitted fab/ change — fab/cpl.csv moving "
+                         "PLACEMENT COORDINATES or dropping whole rows for "
+                         "designators that are no longer populated (canon "
+                         "A-POS: a coordinate emitted at the wrong datum is "
+                         "100%% assembly data and 0%% copper). Everything "
+                         "else in fab/, and all of source/ and 3d/, must "
+                         "still be byte-identical. A ROTATION, Layer, Val or "
+                         "Package change, or an ADDED row, FAILs")
     ap.add_argument("--bom-only-supersede", metavar="PRIOR_RELEASE_DIR",
                     default=None,
                     help="BOM-only supersede mode: docs-only, PLUS the one "
@@ -857,21 +952,25 @@ def main(argv=None):
 
     prior_dir = None
     bom_only = bool(args.bom_only_supersede)
-    if args.docs_only_supersede and args.bom_only_supersede:
-        print("FATAL: pass --docs-only-supersede OR --bom-only-supersede, "
-              "not both", file=sys.stderr)
+    cpl_only = bool(args.cpl_only_supersede)
+    _modes = [args.docs_only_supersede, args.bom_only_supersede,
+              args.cpl_only_supersede]
+    if sum(1 for m in _modes if m) > 1:
+        print("FATAL: pass at most ONE of --docs-only-supersede / "
+              "--bom-only-supersede / --cpl-only-supersede", file=sys.stderr)
         return 2
-    if args.docs_only_supersede or args.bom_only_supersede:
-        prior_dir = Path(args.docs_only_supersede
-                         or args.bom_only_supersede).resolve()
+    _mode = "bom" if bom_only else "cpl" if cpl_only else "docs"
+    if any(_modes):
+        prior_dir = Path(args.docs_only_supersede or args.bom_only_supersede
+                         or args.cpl_only_supersede).resolve()
         if not prior_dir.is_dir():
-            print(f"FATAL: --{'bom' if bom_only else 'docs'}-only-supersede "
+            print(f"FATAL: --{_mode}-only-supersede "
                   f"prior release is not a directory: {prior_dir}",
                   file=sys.stderr)
             return 2
 
     print(f"== release-freshness: {release_dir.name} =="
-          + (f" [{'bom' if bom_only else 'docs'}-only supersede of "
+          + (f" [{_mode}-only supersede of "
              f"{prior_dir.name}]" if prior_dir else ""))
     fails, notes = [], []
 
@@ -884,9 +983,14 @@ def main(argv=None):
         # docs-only mode REPLACES the stale check: identity with the declared
         # prior release is asserted, not flagged.
         if not args._disable_stale:
-            df, dn = check_docs_only(release_dir, prior_dir, bom_only=bom_only)
+            df, dn = check_docs_only(release_dir, prior_dir,
+                                     bom_only=bom_only, cpl_only=cpl_only)
             fails += df
             notes += dn
+            if cpl_only:
+                cf, cn = check_cpl_delta(release_dir, prior_dir)
+                fails += cf
+                notes += cn
             if bom_only:
                 bf, bn = check_bom_delta(release_dir, prior_dir)
                 fails += bf

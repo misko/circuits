@@ -49,3 +49,39 @@ invariants:
     net: MCLK_A2
     adr: 0004
     why: "PCM1865 U3 SCKI (pin 15) driven by the buffered master clock leg 2 (via 33R)"
+
+  # ---- AP61102 feedback dividers (canon E-INV part_value, added v1.5) ------
+  # Datasheet DS42004 Rev6-2 Table 1 fixes R1 (Vout->FB) at 200.0k for EVERY
+  # listed output voltage. These four resistors SET THE RAIL VOLTAGES, and a
+  # wrong one gives a wrong rail rather than a dead board — the exact class
+  # part_value exists for. 3V3 feeds DVDD/IOVDD of both PCM1865 ADCs, so it is
+  # graded tightest. Values are read from the netlist's own (comp (value ...)).
+  - assert: part_value
+    part: R_fb1a
+    equals: 200k
+    tolerance_pct: 1
+    adr: 0005
+    why: "AP61102 U7 3V3 rail: Table 1 R1=200.0k. With R2=44.2k this gives
+          Vout=0.6*(1+200/44.2)=3.315V. A wrong R1 moves the rail feeding both
+          PCM1865 DVDD/IOVDD."
+  - assert: part_value
+    part: R_fb1b
+    equals: 44.2k
+    tolerance_pct: 1
+    adr: 0005
+    why: "AP61102 U7 3V3 rail: Table 1's 3.3V row is R1=200.0k / R2=44.2k and
+          this board copies it verbatim."
+  - assert: part_value
+    part: R_fb2a
+    equals: 200k
+    tolerance_pct: 1
+    adr: 0005
+    why: "AP61102 U8 0V9 core rail: Table 1 R1=200.0k reused (0.9V is not a
+          Table 1 row; R2 is solved from it)."
+  - assert: part_value
+    part: R_fb2b
+    equals: 402k
+    tolerance_pct: 1
+    adr: 0005
+    why: "AP61102 U8 0V9 core rail: R2 = 0.6*200k/(0.9-0.6) = 400k exact; 402k
+          is the E96 neighbour, giving Vout=0.898V. The XU316 core rail."

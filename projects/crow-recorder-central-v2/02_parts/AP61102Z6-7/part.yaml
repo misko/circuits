@@ -97,3 +97,18 @@ layout_refs:
 sourcing:
   lcsc: C5224055
   alternates: [C5224056]      # AP61100Z6-7 (OUT variant, no PG) - only if PG-seq dropped
+
+# ---- EXECUTABLE FACTS (canon P-FACT / canon E-INV) -------------------------
+# NO `asserts:` block here, and that is a DECISION, not an omission.
+# P-FACT's `value` assert grades the fab BOM Comment for refs OF THIS PART
+# (U7/U8), whose Comment is the LCSC code C5224055 — not a value. The fact
+# worth grading on this part is its FEEDBACK DIVIDER, which lives on OTHER
+# refdes (R_fb1a/R_fb1b, R_fb2a/R_fb2b), so its executable home is canon
+# E-INV: 03_src/rules/electrical_invariants.yaml. Asserting it here would have
+# graded the wrong artifact and passed vacuously (measured 2026-07-25: it
+# reported "BOM Comment 'C5224055' cannot be decoded").
+#
+# C3 (33pF feedforward; Table 1, AP61102 column, EVERY Vout) is ABSENT on both
+# rails on this board. It has no refdes, so no gate can grade its presence: it
+# is a BLOCKING REWORK (ORDER_README section 3d) and lands as real parts in the
+# v2 copper revision.
