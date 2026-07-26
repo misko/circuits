@@ -593,5 +593,122 @@ def t_corridor_bad_side():
     must_fail(r, "corridor with bad side", "side must be")
 
 
+# ---------------------------------------------------------------- P-COLLIDE
+# RED-VERIFIED against the pre-fix generator (2026-07-25): with
+# check_placement_collisions() removed from build(), BOTH known-bad cases below
+# generate cleanly and exit 0 — which is exactly how smc0985-cooksense v1.3
+# committed a board with U_COMP2 anchored ON TOP OF Q_SWA (byte-identical
+# anchors [30.0,88.0,0]) and J_ESTOPLOOP inside J_DOOR, shorting the
+# opto-isolated 30V contactor loop to 3V3/GND/DOOR_RAW. kicad DRC does catch it
+# (6 shorting_items) but nothing forces DRC to run before the router does.
+
+@test("P-COLLIDE passes a placement whose parts do not overlap")
+def t_collide_clean():
+    d = tmpdir("gbg_")
+    r = gen(LC / "03_src" / "floorplan.yaml", d / "b.kicad_pcb")
+    contains(r.out, "P-COLLIDE: 0 pad shorts, 0 anchored courtyard overlaps",
+             "generator stdout")
+
+
+@test("P-COLLIDE FAILS two parts anchored at the SAME coordinate",
+      kind="known_bad")
+def t_kb_anchor_collision():
+    # J2 dropped exactly onto J1: the cooksense U_COMP2/Q_SWA defect, minimised.
+    def mutate(c):
+        c["placement"]["anchors"]["J2"] = list(
+            c["placement"]["anchors"]["J1"])
+    d, cfg = scratch_config(mutate)
+    r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
+    must_fail(r, "coincident anchors", "P-COLLIDE")
+    contains(r.out, "PINNED-LAP", "P-COLLIDE report")
+    contains(r.out, "SHORT", "P-COLLIDE report")
+
+
+@test("P-COLLIDE names BOTH refs and the shorted nets, not just a count")
+def t_collide_names_the_nets():
+    def mutate(c):
+        c["placement"]["anchors"]["J2"] = list(
+            c["placement"]["anchors"]["J1"])
+    d, cfg = scratch_config(mutate)
+    r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
+    txt = r.out
+    for want in ("J1", "J2"):
+        contains(txt, want, "P-COLLIDE names the colliding refs")
+
+
+# ------------------------------------------------------- edge-reaching notch
+# A cutout rect that pokes THROUGH a board side is boundary geometry: the side
+# has to be split around it. Emitted as a closed rectangle (pre-2026-07-25
+# behaviour) the untouched side segment runs straight through it and the board
+# has no valid outline at all — kicad DRC `invalid_outline`, "malformed outline
+# (self-intersecting)". cooksense v1.3's H4 keypad-isolation notch shipped that
+# way into a commit and was measured on "filled copper" that KiCad had healed.
+
+def _outline_probe(board, pts):
+    """Ask pcbnew whether the assembled Edge.Cuts polygon is valid, and which
+    of `pts` are inside it. Independent of the generator's own geometry code."""
+    code = ("import pcbnew,sys\n"
+            "b=pcbnew.LoadBoard(sys.argv[1])\n"
+            "s=pcbnew.SHAPE_POLY_SET()\n"
+            "ok=b.GetBoardPolygonOutlines(s,False)\n"
+            "r=['VALID=%s' % ok, 'RINGS=%d' % s.OutlineCount()]\n"
+            "for a in sys.argv[2:]:\n"
+            "    x,y=[float(v) for v in a.split(',')]\n"
+            "    r.append('IN(%s)=%s' % (a, s.Contains("
+            "pcbnew.VECTOR2I_MM(x,y))))\n"
+            "print('@@'+';'.join(r))\n")
+    rr = must_pass(run([KPY, "-c", code, board] + [f"{x},{y}" for x, y in pts]),
+                   "outline probe")
+    return dict(kv.split("=") for kv in rr.out.split("@@")[1].strip().split(";"))
+
+
+@test("an EDGE-REACHING cutout is cut into the boundary, not drawn as an island")
+def t_edge_notch_outline():
+    # cook-loadcell outline is x[20,75] y[20,65]; notch the EAST side.
+    d, cfg = scratch_config(lambda c: c["board"].update(
+        {"cutouts": [{"rect": [70.0, 40.0, 76.0, 42.0]}]}))
+    out = d / "b.kicad_pcb"
+    r = gen(cfg, out)
+    contains(r.out, "1 edge notch(es) cut into the boundary", "generator stdout")
+    p = _outline_probe(out, [(72.0, 41.0), (68.0, 41.0), (72.0, 38.0)])
+    check(p["VALID"] == "True", f"outline not valid: {p}")
+    check(p["RINGS"] == "1", f"expected one outer ring, got {p}")
+    check(p["IN(72.0,41.0)"] == "False", f"notch interior still board: {p}")
+    check(p["IN(68.0,41.0)"] == "True", f"west of notch should be board: {p}")
+    check(p["IN(72.0,38.0)"] == "True", f"south of notch should be board: {p}")
+
+
+@test("an INTERNAL cutout is still an island (no regression)")
+def t_internal_cutout_still_island():
+    d, cfg = scratch_config(lambda c: c["board"].update(
+        {"cutouts": [{"rect": [60.0, 40.0, 64.0, 42.0]}]}))
+    out = d / "b.kicad_pcb"
+    r = gen(cfg, out)
+    check("edge notch" not in r.out,
+          f"internal cutout misclassified as a notch: {r.out}")
+    p = _outline_probe(out, [(62.0, 41.0), (58.0, 41.0)])
+    check(p["VALID"] == "True", f"outline not valid: {p}")
+    check(p["IN(62.0,41.0)"] == "False", f"island interior still board: {p}")
+    check(p["IN(58.0,41.0)"] == "True", f"outside the island should be board: {p}")
+
+
+@test("a cutout crossing TWO sides (a corner) is a HARD error, not a guess",
+      kind="known_bad")
+def t_kb_corner_cutout():
+    d, cfg = scratch_config(lambda c: c["board"].update(
+        {"cutouts": [{"rect": [70.0, 60.0, 76.0, 66.0]}]}))
+    r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
+    must_fail(r, "corner-crossing cutout", "reaches past 2 board sides")
+
+
+@test("a cutout spanning a WHOLE side severs the board and is a HARD error",
+      kind="known_bad")
+def t_kb_severing_cutout():
+    d, cfg = scratch_config(lambda c: c["board"].update(
+        {"cutouts": [{"rect": [70.0, 15.0, 76.0, 70.0]}]}))
+    r = gen(cfg, d / "b.kicad_pcb", expect_ok=False)
+    must_fail(r, "board-severing cutout", "not a notch")
+
+
 if __name__ == "__main__":
     sys.exit(main())

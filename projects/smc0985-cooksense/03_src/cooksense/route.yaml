@@ -372,9 +372,24 @@ prep:
       # walls pin7. SAFETY-relevant: TC over-temp fault flag. (wave PROMOTION is the
       # journal's durable fix for walled late-wave pads.)
       safety: [TEMP_OK, WD_OK, ESTOP_OK, FAULT, TC_FAULT_N, MODE_AUTO_HW,
-               DOOR_OK, REARM_N, STOP_REQ, PRESS_TIMED, CONTACTOR_C,
+               DOOR_OK, REARM_N, STOP_REQ, PRESS_TIMED,
                KEY_RELAY_ALLOWED, ESTOP_RAW, MODE_RAW, DOOR_RAW,
                DECU_G1_RAW, DECD_G1_RAW, ESTOP_NI, MODE_NI, DOOR_NI]
+      # THE ISOLATED DOMAIN gets its OWN wave (task#21, 2026-07-25). CONTACTOR_C
+      # was sitting in `safety` at track_width 0.2 while the v1.3 ISO_CONTACTOR
+      # netclass declares min_width 0.3 — prep's netclass-floor validator dies on
+      # that before a single KRT cycle is spent, so the v1.3 board could not be
+      # routed at all. CONTACTOR_E/CONTACTOR_LOOP were in `sig` (0.25) and would
+      # have died on the next validator pass. Raising `safety` to 0.3 instead
+      # would be the wrong repair: it widens 19 SELV logic nets through the
+      # densest escape field on the board to fix three nets in a corner.
+      # These three are the FAR side of the LTV-817S barrier. They must also hold
+      # the opto_isolation_2mm DRU rule (2.0mm to every other named net), which a
+      # KRT wave cannot express — the moat has to come from placement + a pour
+      # keepout around the isolated corner, NOT from the router. See the P0-A
+      # note in floorplan.yaml: that keepout cannot be written until the isolated
+      # connectors have a legal home.
+      iso: [CONTACTOR_C, CONTACTOR_E, CONTACTOR_LOOP]
       pi: [HOST_AUTH, WD_PET, MCU_RELAY_ENABLE, KEY_CLOCK, KEY_LATCH,
            KEY_RESET_N, KEY_DATA]
       # keypad-iso domain: routes WITHIN the north band (User.3 keepout open north)
@@ -465,6 +480,12 @@ route:
     keepout_layer: User.2
     clearance: 0.15
   waves:
+    # iso FIRST: three short nets in the SE corner that need a 2.0mm moat from
+    # everything else (opto_isolation_2mm). Routing them before any SELV copper
+    # exists is the only ordering under which KRT cannot wall them in. 0.3mm is
+    # the ISO_CONTACTOR netclass floor, not a preference.
+    - {name: iso, group: iso, track_width: 0.3, board_edge_clearance: 0.35,
+       max_iterations: 200000}
     - {name: efuse, group: efuse, track_width: 0.2, max_iterations: 800000,
        max_ripup: 50}
     - {name: safety, group: safety, track_width: 0.2,

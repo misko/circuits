@@ -361,6 +361,7 @@ class BoardBuilder:
         self.check_pads_present()
         self.run_asserts()
         self.legalize()
+        self.check_placement_collisions()
         self.normalize_footprint_text()
         self.apply_design_rules()
         self.add_zones()
@@ -398,9 +399,95 @@ class BoardBuilder:
         a.SetWidth(pcbnew.FromMM(w))
         self.board.Add(a)
 
+    # A cutout rect that reaches PAST a board side is not an island in the
+    # outline — it is a NOTCH in the boundary, and the side it crosses has to be
+    # SPLIT around it. Emitting it as a closed rectangle (what this generator did
+    # until 2026-07-25) leaves the untouched side segment running straight
+    # through the rect, so the Edge.Cuts polygon self-intersects and the board
+    # has NO valid shape: KiCad reports `invalid_outline` ("malformed outline
+    # (self-intersecting)") and every zone fill / gerber outline downstream is
+    # built from a guess. cooksense v1.3's H4 keypad-isolation notch
+    # (rect x[191.50,200.10] against a board edge at x=200.0) was authored as an
+    # edge-reaching cutout, generated, MEASURED on "filled copper" and COMMITTED
+    # with the outline already broken — nothing between generate_board and DRC
+    # reads Edge.Cuts, so an unrun DRC was the only thing holding the gate.
+    _SIDES = ("N", "S", "W", "E")
+
+    def _classify_cutouts(self, X0, Y0, X1, Y1, R):
+        """Split board.cutouts into INTERNAL islands and per-side edge NOTCHES.
+
+        Returns (internal, notches) where notches maps side -> list of
+        (lo, hi, depth): the span consumed on that side and the coordinate the
+        notch bottoms out at. Geometry that cannot be expressed as a simple
+        boundary notch is a hard error rather than a silent malformed outline."""
+        internal, notches = [], {s: [] for s in self._SIDES}
+        for cut in self.board_cfg.get("cutouts") or []:
+            a, b, c, d = [float(v) for v in cut["rect"]]
+            cx0, cx1 = min(a, c), max(a, c)
+            cy0, cy1 = min(b, d), max(b, d)
+            out = [s for s, past in (("W", cx0 < X0), ("E", cx1 > X1),
+                                     ("N", cy0 < Y0), ("S", cy1 > Y1)) if past]
+            if not out:
+                internal.append((cx0, cy0, cx1, cy1))
+                continue
+            r = [cx0, cy0, cx1, cy1]
+            if len(out) > 1:
+                die(f"board.cutouts rect {r} reaches past {len(out)} board "
+                    f"sides ({'+'.join(out)}) — a corner cutout is a different "
+                    f"outline, not a notch; express it with board.corner_cut "
+                    f"or shrink the rect to cross ONE side")
+            if R > 0:
+                die(f"board.cutouts rect {r} is edge-reaching, but the outline "
+                    f"has corner_cut R={R}; notch-on-rounded-corner is not "
+                    f"implemented (it would have to split an arc)")
+            side = out[0]
+            # span consumed on the crossed side, and how deep the notch bites in
+            lo, hi, depth = ((cy0, cy1, cx1) if side == "W" else
+                             (cy0, cy1, cx0) if side == "E" else
+                             (cx0, cx1, cy1) if side == "N" else
+                             (cx0, cx1, cy0))
+            s_lo, s_hi = (Y0, Y1) if side in ("W", "E") else (X0, X1)
+            if not (s_lo < lo < hi < s_hi):
+                die(f"board.cutouts rect {r} spans the whole {side} side "
+                    f"({lo}..{hi} vs {s_lo}..{s_hi}) — that severs the board, "
+                    f"it is not a notch")
+            if not (X0 < depth < X1 if side in ("W", "E")
+                    else Y0 < depth < Y1):
+                die(f"board.cutouts rect {r} notches the {side} side to "
+                    f"{depth}, which is outside the outline — check the rect")
+            notches[side].append((lo, hi, depth))
+        for side, ns in notches.items():
+            ns.sort()
+            for (lo, hi, _), (lo2, _, _) in zip(ns, ns[1:]):
+                if lo2 < hi:
+                    die(f"board.cutouts: two notches overlap on the {side} "
+                        f"side ({lo}..{hi} and from {lo2}) — merge them into "
+                        f"one rect")
+        return internal, notches
+
+    def _side_with_notches(self, side, X0, Y0, X1, Y1, notches, w):
+        """Emit one board side, split around its notches. Direction is
+        irrelevant to Edge.Cuts (the polygon is assembled from the segment
+        soup), so every side is walked in increasing coordinate order."""
+        fixed = {"W": X0, "E": X1, "N": Y0, "S": Y1}[side]
+        lo, hi = (Y0, Y1) if side in ("W", "E") else (X0, X1)
+        pt = ((lambda t, f=fixed: (f, t)) if side in ("W", "E")
+              else (lambda t, f=fixed: (t, f)))          # (along, across) -> xy
+        inner = ((lambda t, d: (d, t)) if side in ("W", "E")
+                 else (lambda t, d: (t, d)))
+        cur = lo
+        for nlo, nhi, depth in notches:
+            self._seg(*pt(cur), *pt(nlo), w)             # side up to the notch
+            self._seg(*pt(nlo), *inner(nlo, depth), w)   # in
+            self._seg(*inner(nlo, depth), *inner(nhi, depth), w)   # across
+            self._seg(*inner(nhi, depth), *pt(nhi), w)   # back out
+            cur = nhi
+        self._seg(*pt(cur), *pt(hi), w)
+
     def add_outline(self):
         w = float(self.board_cfg.get("edge_width", 0.1))
         X0, Y0, X1, Y1, R = self.X0, self.Y0, self.X1, self.Y1, self.RCUT
+        internal, notches = self._classify_cutouts(X0, Y0, X1, Y1, R)
         if R > 0:
             self._seg(X0 + R, Y0, X1 - R, Y0, w)
             self._seg(X1, Y0 + R, X1, Y1 - R, w)
@@ -411,13 +498,15 @@ class BoardBuilder:
             self._arc(X1, Y1, X1 - R, Y1, X1, Y1 - R, R, w)
             self._arc(X0, Y1, X0, Y1 - R, X0 + R, Y1, R, w)
         else:
-            self._seg(X0, Y0, X1, Y0, w)
-            self._seg(X1, Y0, X1, Y1, w)
-            self._seg(X1, Y1, X0, Y1, w)
-            self._seg(X0, Y1, X0, Y0, w)
-        # optional rectangular cutouts / isolation slots in the outline
-        for cut in self.board_cfg.get("cutouts") or []:
-            cx0, cy0, cx1, cy1 = [float(v) for v in cut["rect"]]
+            for side in self._SIDES:
+                self._side_with_notches(side, X0, Y0, X1, Y1,
+                                        notches[side], w)
+        n_notch = sum(len(v) for v in notches.values())
+        if n_notch:
+            self.say(f"outline: {n_notch} edge notch(es) cut into the boundary "
+                     f"+ {len(internal)} internal cutout(s)")
+        # internal rectangular cutouts / isolation slots: closed islands
+        for cx0, cy0, cx1, cy1 in internal:
             self._seg(cx0, cy0, cx1, cy0, w)
             self._seg(cx1, cy0, cx1, cy1, w)
             self._seg(cx1, cy1, cx0, cy1, w)
@@ -552,6 +641,149 @@ class BoardBuilder:
         self.fps = {f.GetReference(): f for f in self.board.GetFootprints()}
         self.say(f"placed {placed} footprints ({len(self.pinned)} anchored)")
         return placed
+
+    # ------------------------------------------------- P-COLLIDE (placement)
+    def _pad_poly(self, pad):
+        """Pad copper as mm polygon rings, on its first copper layer."""
+        cu = pad.GetLayerSet().CuStack()
+        sps = pcbnew.SHAPE_POLY_SET()
+        pad.TransformShapeToPolygon(sps, cu[0], 0, 5000, pcbnew.ERROR_INSIDE)
+        out = []
+        for i in range(sps.OutlineCount()):
+            o = sps.Outline(i)
+            out.append([(pcbnew.ToMM(o.CPoint(j).x), pcbnew.ToMM(o.CPoint(j).y))
+                        for j in range(o.PointCount())])
+        return out
+
+    @staticmethod
+    def _polys_overlap(A, B):
+        """True when two polygon ring lists (mm) share any area.
+
+        Deliberately NOT "min endpoint-to-edge distance <= 0": two rectangles
+        crossing in an X have all FOUR endpoint-to-other-edge distances
+        strictly positive, so a nearest-point metric reports a comfortable gap
+        across a dead short. (Measured on cooksense v1.3: J_ESTOPLOOP.1 vs
+        J_DOOR.1 overlap by 1.300 x 0.600 mm and the endpoint metric called it
+        +0.250mm.) The test is therefore a true segment-crossing test plus a
+        containment test for the fully-enclosed case."""
+        def cross(o, a, b):
+            return ((a[0] - o[0]) * (b[1] - o[1])
+                    - (a[1] - o[1]) * (b[0] - o[0]))
+
+        def seg_hit(p, q, a, c):
+            d1, d2 = cross(a, c, p), cross(a, c, q)
+            d3, d4 = cross(p, q, a), cross(p, q, c)
+            if ((d1 > 0) != (d2 > 0)) and ((d3 > 0) != (d4 > 0)):
+                return True
+            # collinear/touching: any endpoint lying on the other segment
+            for u, v, w in ((a, c, p), (a, c, q), (p, q, a), (p, q, c)):
+                if abs(cross(u, v, w)) < 1e-12 \
+                   and min(u[0], v[0]) - 1e-9 <= w[0] <= max(u[0], v[0]) + 1e-9 \
+                   and min(u[1], v[1]) - 1e-9 <= w[1] <= max(u[1], v[1]) + 1e-9:
+                    return True
+            return False
+
+        def inside(ring, pt):
+            x, y = pt
+            hit = False
+            for i in range(len(ring)):
+                (ax, ay), (bx, by) = ring[i], ring[(i + 1) % len(ring)]
+                if (ay > y) != (by > y) and \
+                   x < (bx - ax) * (y - ay) / ((by - ay) or 1e-18) + ax:
+                    hit = not hit
+            return hit
+
+        for ra in A:
+            for i in range(len(ra)):
+                p, q = ra[i], ra[(i + 1) % len(ra)]
+                for rb in B:
+                    for j in range(len(rb)):
+                        if seg_hit(p, q, rb[j], rb[(j + 1) % len(rb)]):
+                            return True
+        return (A and B
+                and (inside(B[0], A[0][0]) or inside(A[0], B[0][0])))
+
+    def check_placement_collisions(self):
+        """P-COLLIDE — no two parts may be placed ON TOP OF each other.
+
+        THE HOLE THIS FILLS (cooksense v1.3, 2026-07-25): the legalizer only
+        moves FLOATING parts. Anchored parts are written down exactly as
+        `placement.anchors` says, with NO collision test against each other, so
+        two anchors at (or near) the same coordinate place one footprint inside
+        the other and the generator prints `placed 223 footprints` and exits 0.
+        That happened TWICE in one revision — `U_COMP2: [30.0, 88.0, 0]` and
+        `Q_SWA: [30.0, 88.0, 0]` (byte-identical anchors), and J_ESTOPLOOP
+        [196,84,90] inside J_DOOR [197,84,90] — shorting the OPTO-ISOLATED 30V
+        contactor loop to 3V3 / GND / DOOR_RAW at a measured 0.044mm on a
+        mains-adjacent cooking interlock. Both survived a commit. DRC does
+        catch it (shorting_items), but DRC is hundreds of router-minutes
+        downstream and nothing forced it to run; this makes the placement stage
+        refuse to hand on a board that is already electrically dead.
+
+        Two findings, both hard:
+          * SHORT      — copper of two pads on DIFFERENT nets overlaps.
+          * PINNED-LAP — two ANCHORED footprints' courtyards overlap. The
+                         legalizer cannot resolve this one, so it is a source
+                         defect in floorplan.yaml, not a density accident.
+        Floating-vs-anything courtyard overlap is NOT reported: resolving that
+        is the legalizer's job and it is allowed to leave tight packing."""
+        pads = []
+        for f in self.board.GetFootprints():
+            for p in f.Pads():
+                if not p.GetLayerSet().CuStack():
+                    continue
+                bb = p.GetBoundingBox()
+                pads.append((f.GetReference(), p, p.GetNetname(),
+                             pcbnew.ToMM(bb.GetLeft()), pcbnew.ToMM(bb.GetTop()),
+                             pcbnew.ToMM(bb.GetRight()), pcbnew.ToMM(bb.GetBottom())))
+        pads.sort(key=lambda r: r[3])
+        shorts, cache = [], {}
+        for i, (r1, p1, n1, l1, t1, x1, b1) in enumerate(pads):
+            for r2, p2, n2, l2, t2, x2, b2 in pads[i + 1:]:
+                if l2 > x1:
+                    break                       # sweep: no later pad can touch
+                if r1 == r2 or n1 == n2 or t1 > b2 or t2 > b1:
+                    continue
+                if not any(p2.GetLayerSet().Contains(l)
+                           for l in p1.GetLayerSet().CuStack()):
+                    continue
+                for k, pp in ((id(p1), p1), (id(p2), p2)):
+                    if k not in cache:
+                        cache[k] = self._pad_poly(pp)
+                if self._polys_overlap(cache[id(p1)], cache[id(p2)]):
+                    shorts.append((r1, p1.GetNumber(), n1,
+                                   r2, p2.GetNumber(), n2,
+                                   min(x1, x2) - max(l1, l2),
+                                   min(b1, b2) - max(t1, t2)))
+        laps = []
+        pin = [f for f in self.board.GetFootprints()
+               if f.GetReference() in self.pinned]
+        for i, fa in enumerate(pin):
+            ba = fa.GetCourtyard(pcbnew.F_CrtYd).BBox()
+            if ba.GetWidth() == 0:
+                continue
+            for fb in pin[i + 1:]:
+                bb = fb.GetCourtyard(pcbnew.F_CrtYd).BBox()
+                if bb.GetWidth() == 0 or not ba.Intersects(bb):
+                    continue
+                laps.append((fa.GetReference(), fb.GetReference(),
+                             pcbnew.ToMM(min(ba.GetRight(), bb.GetRight())
+                                         - max(ba.GetLeft(), bb.GetLeft())),
+                             pcbnew.ToMM(min(ba.GetBottom(), bb.GetBottom())
+                                         - max(ba.GetTop(), bb.GetTop()))))
+        if shorts or laps:
+            msg = ["P-COLLIDE: this placement is electrically dead."]
+            for r1, pn1, n1, r2, pn2, n2, ox, oy in sorted(shorts):
+                msg.append(f"  SHORT      {r1}.{pn1} [{n1}] <-> {r2}.{pn2} "
+                           f"[{n2}]  pad copper overlaps "
+                           f"(bbox {ox:.3f} x {oy:.3f} mm)")
+            for a, b, ox, oy in sorted(laps):
+                msg.append(f"  PINNED-LAP {a} <-> {b}  courtyards overlap by "
+                           f"{ox:.3f} x {oy:.3f} mm — both are ANCHORED, so the "
+                           f"legalizer cannot fix it: fix placement.anchors")
+            die("\n".join(msg))
+        self.say(f"P-COLLIDE: 0 pad shorts, 0 anchored courtyard overlaps "
+                 f"({len(pads)} copper pads, {len(pin)} anchored parts)")
 
     def check_pads_present(self):
         board_pads = {(f.GetReference(), p.GetNumber())
