@@ -379,8 +379,45 @@ def main(argv=None):
         # confident and meaningless "pin-1" channel. Ratio alone is not enough.
         if cloud and d2v / max(dv, 1e-4) > 3:
             free.append(("pad cloud", db, dv, d2v))
+        # ---- pin-1 MARKING IS NOT NUMBERING-FREE (2026-07-25, usb-hub v1.6) --
+        # It matches OUR F.Fab pin-1 chamfer against JLC's fp_circle pin-1 dot.
+        # Each library draws its mark at ITS OWN pad 1, so when the two number
+        # the part differently BOTH marks move together and the channel
+        # CONFIRMS the numbering disagreement it exists to detect. Worse, it
+        # used to land in `free` and, being often the only entry, OVERRODE the
+        # pad fit. Measured: it proposes 90 for C2296/C2297 (true 0 -> LEDs
+        # across their land) and 90 for C2760089/C404363 (true 270 -> all six
+        # PowerPAK MOSFETs 180 out).
+        # It stays as CORROBORATION — reported, never decisive on its own. A
+        # genuine numbering-free mark is one tied to the part's FUNCTION (a
+        # cathode band, a '+', a diode-glyph apex, a drain paddle), not to a
+        # pad ordinal.
+        weak = []
         if mk and m2v / max(mv, 1e-4) > 2 and mv < 1.5:
-            free.append(("pin-1 marking", mb, mv, m2v))
+            weak.append(("pin-1 marking (corroboration only)", mb, mv, m2v))
+        # ---- the pad cloud may VETO even when it cannot PROPOSE -------------
+        # A degenerate cloud (ratio <= 3) was discarded entirely, throwing away
+        # its EXCLUSION power. On the LEDs it refutes 90 at 12.5x and was
+        # ignored. Excluding an angle needs far less separation than choosing
+        # one: any angle whose cloud residual is >=3x the cloud's own best is
+        # REFUTED, and no channel may propose it.
+        vetoed = set()
+        if cloud:
+            for a, v in cloud.items():
+                vv = v[0] if isinstance(v, tuple) else v
+                if vv >= 3 * max(dv, 1e-4):
+                    vetoed.add(a)
+        if vetoed:
+            dropped = [t for t in free if t[1] in vetoed]
+            free = [t for t in free if t[1] not in vetoed]
+            for n, a, v, s in dropped:
+                print(f"    VETOED  {n} proposed {a} — pad cloud refutes it "
+                      f"({(cloud[a][0] if isinstance(cloud[a], tuple) else cloud[a]):.4f}mm "
+                      f"vs its own best {dv:.4f}mm)")
+            weak = [t for t in weak if t[1] not in vetoed]
+        if weak and not free:
+            print(f"    pin-1 marking proposes {weak[0][1]} but is NOT a "
+                  f"numbering-free channel — not decisive alone")
         if not free:
             pol = "single-channel"
             verdict = (f"NO usable numbering-free channel (size-class "
@@ -423,7 +460,28 @@ def main(argv=None):
                   f"operator. PAD-NUMBER fit: offset {nb}, rms {nv:.4f}mm vs "
                   f"{n2v:.4f}mm next best over {len(common)} pads. "
                   f"NUMBERING-FREE: {verdict}")
-            print(f'    ROW: {lcsc},{angle},"{ev}",{pol}')
+            if pol == "single-channel":
+                # A SINGLE-CHANNEL row rests on the pad-NUMBER fit alone, and
+                # that fit has now been confidently WRONG twice on exactly this
+                # class: usb-hub's LEDs (180 at 17.7x, true 0 — JLC numbers
+                # pad 1 = ANODE while KiCad's Device:LED is pin 1 = K) and
+                # crow-mic-pod's LS1 (a paste-ready `C22359707,90` that would
+                # have put JLC's drive terminal on an NC dummy pad — soldered
+                # and electrically dead). That row escaped into a sealed
+                # archive and had to be quarantined by hand.
+                # So: do NOT emit something pasteable. The angle is still
+                # printed above for a human to act on WITH the order-preview
+                # gate; it must not be copyable into the fleet authority table,
+                # because a wrong row there is wrong for every future board.
+                print(f'    ROW: (WITHHELD — single-channel) the fit proposes '
+                      f'{angle}, but no numbering-free channel confirms it.')
+                print(f'         Resolve by MEASURING a FUNCTION-tied mark '
+                      f'(cathode band, "+", diode-glyph apex, drain paddle) — '
+                      f'NOT a pin-1 dot, which follows pad numbering — then '
+                      f'hand-author the row with that evidence and '
+                      f'polarity=two-channel.')
+            else:
+                print(f'    ROW: {lcsc},{angle},"{ev}",{pol}')
     return rc
 
 
