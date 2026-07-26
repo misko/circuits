@@ -47,7 +47,7 @@ not_assembled:  F1, R42, SW1   (GENERATED from 03_src/rules/assembly.yaml)
 through_hole:   ORDERED — J1, J2, J3, J4, J5 (4 refdes / 22 plated holes + J5 hybrid)
 fiducials:      3 (FID1-FID3, board-only, BOM- and CPL-excluded)
 
-git_sha:      2860cf0       # source commit S; stamped pre-seal per the 2-commit seal
+git_sha:      ee38d80       # source commit S; stamped pre-seal per the 2-commit seal
 git_dirty:    false          # scope projects/usb-hub-3s-v3/ + skills/; see provenance_note
 provenance_note:
   usb-hub-3s-v3's OWN paths are clean (git status --porcelain on them is empty).
