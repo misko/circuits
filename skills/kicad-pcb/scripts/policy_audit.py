@@ -771,8 +771,31 @@ def main():
                 probs.append(f"git_sha not an exact commit: '{sha}'")
             elif sh(["git", "cat-file", "-e", sha], cwd=str(proj)).returncode != 0:
                 probs.append(f"git_sha {sha} not in repo")
-            if "git_dirty:    false" not in mt and "git_dirty: false" not in mt:
-                probs.append("git_dirty not false")
+            # M-REL reads the manifest's SELF-REPORT. Two known weaknesses, both
+            # met on usb-hub-3s-v3 v1.6 (2026-07-26):
+            #
+            # (a) BRITTLE FORMAT, fixed here. This matched two LITERAL spellings,
+            #     so a stamp with six spaces failed a gate whose CONTENT was
+            #     exactly right, and the message said "git_dirty not false" —
+            #     pointing at the fact when the defect was the whitespace. It
+            #     fails closed, which is the safe direction, but it cost a seal
+            #     attempt and sent the reader hunting the wrong thing.
+            #
+            # (b) NOT YET FIXED, and the deeper one: this greps TEXT THE RELEASE
+            #     WROTE ABOUT ITSELF. release_git_dirty.py scopes the real check
+            #     to <project>/ + skills/ and emitted `true` for v1.6 (a peer's
+            #     uncommitted generator edit), yet the manifest says `false` and
+            #     M-REL PASSES, because it never asks the tool. A gate that
+            #     validates its subject's self-report proves nothing (canon M1).
+            #     The durable fix is to re-derive the flag at audit time against
+            #     the manifest's own recorded git_sha and FAIL on disagreement.
+            #     Deliberately not landed mid-flight with four agents in the tree;
+            #     it must arrive with a known-bad fixture that goes RED against a
+            #     hand-edited manifest.
+            if not re.search(r"git_dirty:\s*false\b", mt, re.I):
+                m_gd = re.search(r"git_dirty:\s*(\S+)", mt)
+                probs.append(f"git_dirty is {m_gd.group(1)!r}, not false"
+                             if m_gd else "no git_dirty line in MANIFEST")
             for hm in re.finditer(r"^  ([\w./-]+)\s+([0-9a-f]{16,64})\s*$",
                                   mt, re.M):
                 fp = latest / hm.group(1)
