@@ -28,6 +28,20 @@ Banggood/AliExpress. It is **not** a vendor revision — the genuine V1→V2 res
 
 **Fast field ID:** look for the shield can. Genuine has one; the clone does not.
 
+## The machine index
+
+`facts.yaml` beside this file is the MACHINE INDEX of the numbers below — one
+entry per fact a board may reference, each with its M-IMPORT grade (MEASURED /
+CITED / ESTIMATED+bar / OWED), its method, and a `quote:` that must appear in
+THIS file verbatim. A board consumes facts by id through its
+`03_src/rules/mates.yaml` and never restates a value;
+`skills/kicad-pcb/scripts/import_provenance_check.py` grades the pair and fails
+if the index and this record have drifted apart.
+
+**This file stays the authority.** The index cannot hold a number this record
+does not, and the "NOT established" list below is what stops a downstream board
+assuming one nobody has.
+
 ## Measurements — method matters, so it is recorded
 
 Taken with calipers on the physical units. **Outside-to-outside across barrel

@@ -1,0 +1,120 @@
+# pluto-cal-switch — the foreign facts this board's geometry SPENDS.
+# Canon D-MATE / M-IMPORT (ADR-0005). Graded by
+#   skills/kicad-pcb/scripts/import_provenance_check.py .
+#
+# THIS FILE HOLDS NO NUMBERS, ON PURPOSE. The facts live once, in
+# `spf/plutoplus_hardware/` (README.md is the record, facts.yaml its machine
+# index); this file names the ones this board consumes and says WHERE each is
+# spent. Boards reference; they never restate — the same rule, for the same
+# reason, as `assembly.yaml` being the single home for "who gets placed"
+# (cooksense v1.1 shipped 13 CPL rows contradicting its own MANIFEST because
+# two files held one fact and drifted).
+#
+# The human-facing twin is the BRIEF's `## Mating fact-lock` table, which
+# states each grade for a reader; this is the machine copy — exactly the
+# relationship `power_tree.yaml` has with the Commission fact-lock.
+
+device: plutoplus_hardware
+
+why: >-
+  This board plugs onto an ADALM-PlutoPlus SMA panel — hardware this repo did
+  not design and for which the vendor publishes no PCB source, no DXF, no
+  STEP and no dimensioned drawing. Every dimension below therefore enters the
+  design from outside, which is the whole reason M-IMPORT exists. Rigid SMA
+  direct-mount is dead (ADR-0006); the interface is SMA→SMP adapters, whose
+  ±0.254–0.3 mm float is what these numbers are spent against.
+
+consumes:
+
+  - fact: sma_span_genuine
+    use: dimensional
+    where: >-
+      D6 / ADR-0014 — one half of the 34.88 mm midpoint the three SMP anchor
+      X coordinates in `03_src/floorplan.yaml` are built to.
+
+  - fact: sma_span_clone
+    use: dimensional
+    where: >-
+      D6 / ADR-0014 — the other half of the midpoint. The 0.32 mm disagreement
+      between the two units IS the design constraint, not a footnote.
+
+  - fact: pitch_tx2_rx2_genuine
+    use: dimensional
+    where: floorplan SMP anchor spacing, genuine unit (ADR-0014 per-gap table).
+
+  - fact: pitch_rx2_rx1_genuine
+    use: dimensional
+    where: >-
+      floorplan SMP anchor spacing, genuine unit — the D-free middle pitch,
+      and the number that proves the pitch is NOT uniform. A uniform-pitch
+      floorplan does not mate.
+
+  - fact: pitch_rx1_tx1_genuine
+    use: dimensional
+    where: floorplan SMP anchor spacing, genuine unit (D-free).
+
+  - fact: pitch_tx2_rx2_clone
+    use: dimensional
+    where: floorplan SMP anchor spacing, clone unit — the midpoint's other end.
+
+  - fact: pitch_rx2_rx1_clone
+    use: dimensional
+    where: floorplan SMP anchor spacing, clone unit (D-free).
+
+  - fact: pitch_rx1_tx1_clone
+    use: dimensional
+    where: floorplan SMP anchor spacing, clone unit (D-free).
+
+  - fact: barrel_od
+    use: dimensional
+    where: >-
+      the D-subtraction behind the two outer pitches. It is an INPUT to those
+      numbers, so it is spent wherever they are — the middle pitches are
+      differences of two readings and do not depend on it.
+
+  - fact: connector_outline_width
+    use: dimensional
+    where: >-
+      keep-out envelope around each Pluto-side connector body: how close this
+      board's own parts may come to the mating face. ESTIMATED with its bar
+      declared, and it is spent against SMP's ±0.254–0.3 mm float, not against
+      SMA's ±0.05 mm thread-start window — which is why the bar is affordable
+      here and was not for the rigid path.
+
+  - fact: port_order
+    use: informational
+    where: >-
+      net assignment: which SMP goes to RX1 / RX2 / TX. The two RX ports are
+      adjacent and in the middle, which is what lets the two loopback runs be
+      mirrored about the splitter (D4 / ADR-0011).
+
+  - fact: sma_gender
+    use: informational
+    where: >-
+      ADR-0006's adapter selection (SMA plug → SMP). INFERRED, not confirmed —
+      $101 of adapters rides on it, and it is listed in BRIEF `## Open` as one
+      of the three five-minute physical checks this design is waiting on.
+
+  - fact: cad_span_plot
+    use: informational
+    where: >-
+      ADR-0014's CAD-vs-caliper comparison ONLY. SUPERSEDED for every
+      geometric purpose: the object beats its drawing. Referenced so that the
+      number that was almost built on stays visible with its grade attached,
+      rather than quietly disappearing from the record.
+
+  - fact: rf_axis_height_above_pcb
+    use: owed
+    where: >-
+      the board's Z position relative to the Pluto (ADR-0006 — our half is
+      cited at 2.00 mm above our top surface; the Pluto's half is unknown).
+      BLOCKING for the mechanical stack, not for any RF work. BRIEF `## Open`,
+      physical check 1 of 3.
+
+  - fact: mounting_hole_positions
+    use: owed
+    where: >-
+      the optional bracket that would take load off the connectors
+      (`pluto-plus-mechanical.md`, SMP residual-risk mitigations). Not on the
+      critical path; declared so that nobody designs a bracket to a number
+      nobody has.

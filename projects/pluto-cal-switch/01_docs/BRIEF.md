@@ -77,6 +77,38 @@ three has been confirmed by the user, and each is cheap to reverse.**
 | **T6** | **The GPIO header cannot be read as specified.** PlutoPlus IO is **1.8 V**; RP2040's VIH is a **flat 2.0 V** (not 0.65·IOVDD), and a Zynq HR bank's worst-case VOH at VCCO=1.8 V is **1.35 V**. A direct connection reads permanently LOW — and the failure is FAIL-SAFE, so it passes every "can it spuriously enter loopback" test and surfaces only as "the GPIO control doesn't work", plausibly after seal. There is also a REVERSE hazard: RP2040 VOH 2.62–3.3 V into a Zynq pin whose absolute max is ~2.35 V. | **RESOLVED IN HARDWARE, not by downgrading P2**: the header lands on an **ADC pin** through a ÷2.5 divider, thresholded in firmware. Reads 1.8 / 3.3 / 5.0 V logic with no translator and no second rail, and is **input-only by construction** (an ADC-configured pin has its digital output disabled), so no firmware bug can drive the user's Pluto. | [0008](decisions/0008-control-surfaces-usb-and-gpio-header.md) | **yes** |
 | **T7** | **">25 dB isolation" is not met on the guaranteed MINIMUM above ~5 GHz** by any cheap stocked SPDT — BGS12WN6 is 21 dB min / 28 typ and BGS12P2L6 24 min / 27 typ over 5150–5925 MHz. Typ meets it. | **STATED, not downgraded.** The only part found that brackets the whole band with >25 dB guaranteed at BOTH ends is HMC1118, at ~$15/board for two. Recorded as an available upgrade rather than silently assumed away. | [0002](decisions/0002-spdt-switch-bgs12wn6.md) | yes |
 
+## Mating fact-lock (D-MATE)
+
+This board mates to hardware this repo did not design: an ADALM-PlutoPlus SMA
+panel whose vendor publishes **no PCB source** — three PDFs, no KiCad/Altium,
+no DXF, no STEP, no dimensioned drawing. Every dimension below therefore enters
+from outside and carries its **M-IMPORT grade**.
+
+The facts live ONCE, in `spf/plutoplus_hardware/` (`README.md` is the record,
+`facts.yaml` its machine index). The machine copy of this table is
+`03_src/rules/mates.yaml`, graded by
+`skills/kicad-pcb/scripts/import_provenance_check.py .` — **15/15 facts
+graded, 0 fails, 2026-07-27.**
+
+| Fact (`spf/plutoplus_hardware` id) | Grade | Error bar | Where it is spent | Budget it is spent against |
+|---|---|---|---|---|
+| `sma_span_genuine` · `sma_span_clone` | **MEASURED** | caliper | the 34.88 mm midpoint the three SMP anchor X coords are built to (D6/ADR-0014) | SMP ±0.254–0.3 mm float, minus a ±0.49 mm RSS two-board fab stack |
+| `pitch_*_genuine` · `pitch_*_clone` (6 rows) | **MEASURED** | caliper; the two middle pitches are D-free | per-gap SMP anchor spacing — **the pitch is NOT uniform on either unit** | as above |
+| `barrel_od` | **MEASURED** | caliper | the D-subtraction behind the two outer pitches | — |
+| `connector_outline_width` | **ESTIMATED** | **±1.5 % (±0.12 mm on 8.13 mm)** | keep-out envelope around each Pluto-side connector body | SMP float, NOT the ±0.05 mm SMA window — which is why the bar is affordable here |
+| `port_order` | **MEASURED** | silk on both units + schematic nets | which SMP is RX1 / RX2 / TX | — |
+| `sma_gender` | **ESTIMATED** | categorical; **NOT visually confirmed** | ADR-0006 adapter selection ($101 of adapters) | — |
+| `cad_span_plot` (35.60 mm) | **ESTIMATED** | ±1.5 % (±0.53 mm) | **SUPERSEDED** — comparison only. The object beats its drawing | — |
+| `rf_axis_height_above_pcb` | **OWED** | — | board Z position (ADR-0006). **BLOCKING for the mechanical stack** | Open #1 |
+| `mounting_hole_positions` | **OWED** | — | the optional load-relief bracket | Open, not on the critical path |
+
+**Why this table exists at all (ADR-0005).** The span was first taken from the
+undimensioned vector assembly plot at **35.60 mm**, and three independent
+extractions agreed to **0.003 mm**. A floorplan was ready to be built on it.
+The caliper then read **35.04** (genuine) and **34.72** (clone) — 1.6 % and
+2.5 % off, against a rigid-SMA thread-start window of **±0.05 mm**. Precision
+about a proxy is not accuracy about the object.
+
 ## Commission fact-lock
 
 | Row | Value | Locked by |

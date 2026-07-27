@@ -23,6 +23,10 @@ part selections.
 | `plutoplus_hardware/**` | ADALM-PlutoPlus SDR — SMA port geometry, port map, enclosure, two physical units measured |
 | `contracts.md` | this file |
 
+Inside a device folder, two names are FIXED because machines read them:
+`README.md` is the human record, and `facts.yaml` is its machine index — the
+only thing a board is allowed to reference (canon M-IMPORT / D-MATE, ADR-0005).
+
 Each device gets its own `<device>/**` row naming the device, deliberately —
 rather than a blanket `*/**` — so that adding a device is a decision recorded
 here, and so the reader can see at a glance what hardware this repo has
@@ -49,6 +53,22 @@ worth policing.
   can, a silk label) earns its place; a general product shot does not.
 - Where multiple physical units of nominally the same device exist and DISAGREE,
   that disagreement is the headline finding, not a footnote.
+- **`<device>/facts.yaml` is the MACHINE INDEX of the README, and it is graded
+  against it.** One entry per number a board may reference:
+  `{id, what, value (a STRING, exactly as the record writes it), units, grade,
+  method, quote}` plus `error_bar` for ESTIMATED and `how_to_obtain` for OWED.
+  `grade` is the closed M-IMPORT vocabulary **MEASURED / CITED / ESTIMATED /
+  OWED**. `quote` MUST appear in the record VERBATIM, with the value inside it —
+  that is what stops the index and the record drifting, which is the failure
+  mode any second home creates (cooksense v1.1's CPL vs its own MANIFEST).
+  Run `skills/kicad-pcb/scripts/import_provenance_check.py --root <repo>`.
+  An entry here is a claim that someone can DEFEND the number: a fact with no
+  bar and no method belongs in the README's "NOT established" list instead, and
+  a board that references it dimensionally fails M-BAR — correctly.
+- **OWED is a first-class grade, not a gap in the table.** A number nobody has
+  is recorded with how to obtain it and what it blocks. The alternative is that
+  a downstream board invents a plausible one, which is the failure this whole
+  folder exists to prevent.
 
 ## Repair
 

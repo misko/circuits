@@ -1,0 +1,54 @@
+# SCHEMA EXAMPLE (skill-owned, project-independent) — canon D-MATE / M-IMPORT.
+#
+# SEED THIS ONLY IF THE BOARD MATES TO HARDWARE THIS REPO DID NOT DESIGN.
+# It is the machine copy of the BRIEF's `## Mating fact-lock` table. A board
+# that mates to nothing foreign has no mates.yaml, and its BRIEF says so.
+#
+#   /usr/bin/python3 skills/kicad-pcb/scripts/import_provenance_check.py .
+#
+# THE ONE RULE: THIS FILE HOLDS NO NUMBERS. The facts live once, in
+# `spf/<device>/` — `README.md` is the human record (method stated per number,
+# MEASURED / ESTIMATED / NOT ESTABLISHED separated), `facts.yaml` is its machine
+# index. This file names the ids this board consumes and says WHERE each is
+# spent. Boards reference; they never restate. `value`, `grade`, `method`,
+# `units`, `error_bar` and `quote` in a `consumes:` entry are M-RESTATE FAILs —
+# two homes for one fact is how cooksense v1.1 shipped 13 CPL rows contradicting
+# its own MANIFEST.
+#
+# GRADES, assigned in spf/<device>/facts.yaml, enforced here at the point of USE:
+#   MEASURED   someone touched the object, or read a machine-readable source
+#   CITED      a vendor document, WITH figure / page / section
+#   ESTIMATED  derived, photogrammetric, inferred — and it MUST carry an error
+#              bar before `use: dimensional` is allowed
+#   OWED       nobody has this number yet — `use: owed` ONLY. Declaring the gap
+#              is the point; inventing a plausible number is the failure.
+#
+# `use:` is one of `dimensional` (it lands in geometry), `informational` (it
+# decides a part, a net, a strategy), `owed` (we are waiting on it).
+# `where:` is REQUIRED on every entry: a fact spent nowhere in particular
+# cannot be reviewed at the point of use, which is where M-IMPORT grades it.
+
+device: <device_folder>        # -> spf/<device_folder>/
+
+why: >-
+  One paragraph: what this board plugs into, why the facts come from outside,
+  and what mating budget they are spent against.
+
+consumes:
+
+  - fact: <id in spf/<device>/facts.yaml>
+    use: dimensional
+    where: >-
+      the exact site — "floorplan.yaml connector anchor X coordinates (D6 /
+      ADR-0014)", not "the layout".
+
+  - fact: <id>
+    use: informational
+    where: net assignment / part selection / mating strategy — name it.
+
+  - fact: <id>
+    use: owed
+    where: >-
+      what this blocks, and where the open item is tracked (BRIEF `## Open`).
+      A fact nobody has is declared here rather than guessed; the gate FAILS
+      an OWED fact consumed dimensionally.

@@ -42,6 +42,37 @@ BACKEND GAP to report, not a bespoke script to write here.
   clean is decoration and should be deleted rather than trusted.
   `SKIP_BASENAMES` lists generators/libraries that produce rather than grade;
   adding a name there is a coverage decision and must be justified.
+- **IMPORTED FACTS (canon M-IMPORT / D-MATE, ADR-0005 phase 3).**
+  `import_provenance_check.py PROJECT_DIR` (or `--root REPO` for every board)
+  grades the PROVENANCE of every fact a board consumes from hardware this repo
+  did not design. Input: the board's `03_src/rules/mates.yaml` and the device
+  record `spf/<device>/{README.md,facts.yaml}`. Findings: **M-EXIST** (the id
+  exists AND its `quote:` appears verbatim in the human record, with the value
+  inside it — a machine index drifted from its record is not evidence),
+  **M-GRADE** (MEASURED/CITED/ESTIMATED/OWED; absent or unknown is a FAIL,
+  never a skip), **M-BAR** (ESTIMATED + `use: dimensional` needs a PARSEABLE
+  error bar), **M-PROXY** (the grade must match the METHOD — a number off a
+  rendered plot is not MEASURED however reproducibly it was extracted; the
+  keyword list deliberately excludes "derived", because subtracting two caliper
+  readings is still a measurement), **M-OWED** (a fact nobody has may not be
+  spent dimensionally, and must state how to obtain it), **M-RESTATE** (a board
+  that writes a value has made a second home for it), **D-MATE** (every
+  consumption names its site; a BRIEF declaring a Mating fact-lock must have
+  the yaml). WHY: every other gate here compares OUR artifacts to OUR
+  artifacts. pluto-cal-switch's PlutoPlus SMA span came off an undimensioned
+  vector assembly plot at 35.60 mm — three independent extractions agreeing to
+  0.003 mm — and a caliper on two physical units read 35.04 and 34.72 mm,
+  10-18x the ±0.05 mm mating window. No gate could see it, because the number
+  never came from an artifact any gate reads.
+  **It says NOTHING TO GRADE, not PASS, when no board declares a mates.yaml**
+  — most boards mate to nothing foreign, and a gate that cried wolf on all of
+  them would train readers to ignore red; but an empty denominator may never
+  read as a pass (M-COVER). Known-bads in `t1_import_provenance.py`, headed by
+  the PlutoPlus record AS IT STOOD BEFORE THE CALIPER.
+  DECLARED SCOPE LIMIT: it grades PROVENANCE, not correctness, and it is NOT a
+  mating-feasibility checker (error bar vs mating budget). That has been run
+  once, by hand, on one interface; canon M8 promotes on the SECOND board
+  needing it.
 - **THE REGRADE — the only control for defects that BECOME wrong (ADR-0004).**
   `fleet_regrade.py [--root DIR] [--project NAME]` runs today's standalone
   gates against EVERY sealed release and answers two questions: does it still

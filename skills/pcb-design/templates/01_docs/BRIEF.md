@@ -46,6 +46,29 @@ this table is the USER-FACING lock; the yaml is the machine copy.
 | Off-control / storage (how it de-energizes; quiescent budget) | ... | Q#/A#/D# |
 | Hard-cell parts (spec-critical functions): sourcing class a/b/c | ... | ledger / sourcing spike |
 
+## Mating fact-lock (D-MATE — fill at commission when this board mates to hardware this repo did not design)
+
+Every dimension the floorplan will consume from foreign hardware, with its
+**M-IMPORT grade**. The facts live ONCE, in `spf/<device>/`; this table names
+them for a reader and `03_src/rules/mates.yaml` is the machine copy — exactly
+the relationship the Commission fact-lock has with `power_tree.yaml`.
+
+Grades: **MEASURED** (someone touched the object, or read a machine-readable
+source) · **CITED** (a vendor document, with figure/page/section) ·
+**ESTIMATED** (derived, photogrammetric, inferred — and it MUST carry an error
+bar before it may be spent on a dimension) · **OWED** (nobody has this number;
+say how to get it, and do not design against it).
+
+| Fact (`spf/<device>` id) | Grade | Error bar | Where it is spent | Mating budget it is spent against |
+|---|---|---|---|---|
+| ... | MEASURED | — | floorplan anchor X coords | ±0.25 mm SMP float |
+
+`none — this board does not mate to hardware this repo did not design` is a
+valid answer, and the only one that closes this section. Silence is not a
+declaration: a proxy measured beautifully is still a proxy (an SMA span read
+off an undimensioned plot, three extractions agreeing to 0.003 mm, was 0.56 mm
+from the physical object — ADR-0005).
+
 ## Log
 
 (append-only — see 01_docs/contracts.md for entry formats: D# directive,

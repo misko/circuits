@@ -1,0 +1,203 @@
+# PlutoPlus hardware — the MACHINE INDEX of README.md (canon M-IMPORT, ADR-0005)
+#
+# README.md is the record a human reads: it states, for every number, how it
+# was obtained. THIS file is the index a board may reference by id, and nothing
+# more. Every entry carries a `quote:` that must appear VERBATIM in the record,
+# with its value inside that quote — so the two cannot drift without
+# `import_provenance_check.py` saying so. `value:` is a STRING, written exactly
+# as the record writes it: this is an index, not a calculator, and 11.80 is not
+# 11.8 when the question is whether two files still say the same thing.
+#
+# Grades (M-IMPORT):
+#   MEASURED   someone touched the physical object, or read a machine-readable
+#              source (a .kicad_pcb, a drill file, a STEP)
+#   CITED      a vendor document, WITH figure / page / section
+#   ESTIMATED  derived, photogrammetric, inferred — MUST carry an error bar
+#              before it may be spent on a dimension
+#   OWED       nobody has this number yet. Declaring the gap is the point.
+#
+# THE TWO UNITS ARE NOT THE SAME BOARD (README headline): every geometric fact
+# below is per-unit, because a single "PlutoPlus" dimension does not exist.
+
+device: "ADALM-PlutoPlus SDR (two physical units: Board A genuine, Board B 2025 clone)"
+record: README.md
+
+facts:
+
+  # ---------------------------------------------------------- MEASURED
+  - id: barrel_od
+    what: SMA barrel outside diameter, identical on both units
+    value: "6.25"
+    units: mm
+    grade: MEASURED
+    method: >-
+      caliper across the barrel outside diameter on both physical units in
+      hand. It is the D subtracted from the outside-to-outside readings, so
+      the two middle pitches (which are differences of two such readings)
+      carry no dependence on it at all.
+    quote: "both boards: 6.25 mm"
+
+  - id: sma_span_genuine
+    what: SMA port span, TX2 centre to TX1 centre, Board A (genuine Pluto+)
+    value: "35.04"
+    units: mm
+    grade: MEASURED
+    method: >-
+      caliper on the physical unit, outside-to-outside from TX2's outer edge
+      to TX1's outer edge (41.29 mm), minus the barrel OD.
+    quote: "| **total span** | **35.04** | **34.72** | **0.32** |"
+
+  - id: sma_span_clone
+    what: SMA port span, TX2 centre to TX1 centre, Board B (2025 clone)
+    value: "34.72"
+    units: mm
+    grade: MEASURED
+    method: >-
+      caliper on the physical unit, same technique as Board A (40.97 mm
+      outside-to-outside, minus the barrel OD). It differs from the genuine
+      unit by 0.32 mm — a uniform ~0.9 % shrink, not a redraw.
+    quote: "| **total span** | **35.04** | **34.72** | **0.32** |"
+
+  - id: pitch_tx2_rx2_genuine
+    what: centre-to-centre TX2 to RX2, Board A
+    value: "11.73"
+    units: mm
+    grade: MEASURED
+    method: >-
+      caliper, outside-to-outside across the barrel pair minus the barrel OD.
+      This one DOES depend on the OD (unlike the two middle pitches).
+    quote: "| 11.73 | 11.59 | 0.14 |"
+
+  - id: pitch_rx2_rx1_genuine
+    what: centre-to-centre RX2 to RX1, Board A — the D-free middle pitch
+    value: "11.51"
+    units: mm
+    grade: MEASURED
+    method: >-
+      caliper; a difference of two outside-to-outside readings, so the barrel
+      diameter cancels entirely. The most trustworthy number in the record,
+      and the one that shows the pitch is NOT uniform.
+    quote: "| **11.51** | **11.42** | 0.09 |"
+
+  - id: pitch_rx1_tx1_genuine
+    what: centre-to-centre RX1 to TX1, Board A — D-free
+    value: "11.80"
+    units: mm
+    grade: MEASURED
+    method: caliper; a difference of two outside-to-outside readings, D cancels.
+    quote: "| **11.80** | **11.71** | 0.09 |"
+
+  - id: pitch_tx2_rx2_clone
+    what: centre-to-centre TX2 to RX2, Board B
+    value: "11.59"
+    units: mm
+    grade: MEASURED
+    method: caliper, outside-to-outside minus the barrel OD.
+    quote: "| 11.73 | 11.59 | 0.14 |"
+
+  - id: pitch_rx2_rx1_clone
+    what: centre-to-centre RX2 to RX1, Board B — D-free
+    value: "11.42"
+    units: mm
+    grade: MEASURED
+    method: caliper; a difference of two outside-to-outside readings, D cancels.
+    quote: "| **11.51** | **11.42** | 0.09 |"
+
+  - id: pitch_rx1_tx1_clone
+    what: centre-to-centre RX1 to TX1, Board B — D-free
+    value: "11.71"
+    units: mm
+    grade: MEASURED
+    method: caliper; a difference of two outside-to-outside readings, D cancels.
+    quote: "| **11.80** | **11.71** | 0.09 |"
+
+  - id: port_order
+    what: physical port order along the short edge, both units
+    grade: MEASURED
+    method: >-
+      read off the silkscreen of both physical units in hand (Board A `T2 R2
+      R1 T1`, Board B `TX2A RX2A RX1A TX1A`), and independently off the
+      schematic net names. The two RX ports are adjacent, in the middle.
+    quote: "Physical order along the short edge: **TX2 · RX2 · RX1 · TX1**."
+
+  # ------------------------------------------------------------ ESTIMATED
+  - id: connector_outline_width
+    what: SMA connector footprint outline, square, outer edge flush with the PCB edge
+    value: "8.13"
+    units: mm
+    grade: ESTIMATED
+    method: >-
+      extracted from the undimensioned vector assembly plot `sch/Top.pdf`
+      rendered at 600 dpi. All four outlines came out identical to 0.1 px,
+      which is evidence the extraction is internally sound — and says nothing
+      about its scale.
+    error_bar: "±1.5 % scale uncertainty (±0.12 mm on 8.13 mm)"
+    quote: "Footprint outline 8.13 × 8.13 mm"
+
+  - id: cad_span_plot
+    what: SMA port span read from the published CAD plot — SUPERSEDED by the caliper
+    value: "35.60"
+    units: mm
+    grade: ESTIMATED
+    method: >-
+      extracted from the undimensioned vector assembly plot at 600 dpi and
+      calibrated against two known packages. THREE independent extractions
+      agreed to 0.003 mm, and the caliper still put it 0.56 mm (1.6 %) off the
+      genuine unit. Precision about a proxy is not accuracy about the object;
+      the object beats its drawing.
+    error_bar: "±1.5 % (±0.53 mm on the 35.60 mm span)"
+    quote: "| **span** | **35.60** | **35.04** | **+1.6 %** |"
+
+  - id: sma_gender
+    what: connector gender on the PlutoPlus panel — jacks (female), so a mating board needs plugs
+    grade: ESTIMATED
+    method: >-
+      inferred. The schematic value string is only `SMA-L` and names no
+      manufacturer part; the plot cannot show gender. Near-certain for an SDR,
+      and $101 of adapters rides on it. Standard SMA vs RP-SMA was NOT
+      visually confirmed — the centre contact was not resolvable in the photos.
+    error_bar: >-
+      not applicable — categorical, not a dimension. This entry may not be
+      consumed dimensionally; if that is ever attempted the gate says so.
+    quote: "**Right-angle (90°) through-hole SMA JACKS (female).**"
+
+  - id: case_barrel_protrusion
+    what: threaded barrel protrusion past the aluminium case face
+    value: "7"
+    units: mm
+    grade: ESTIMATED
+    method: photogrammetric estimate from a board photo; no vendor publishes it.
+    # NO error_bar, deliberately: nobody put a number on this one. It is
+    # therefore consumable only as `informational`; a dimensional reference to
+    # it FAILS M-BAR, which is the correct answer, not a defect in this file.
+    quote: "Barrel protrusion past the case face ≈ 7 mm (photogrammetric estimate)."
+
+  # ---------------------------------------------------------------- OWED
+  - id: rf_axis_height_above_pcb
+    what: height of the SMA RF axis above the PlutoPlus PCB top surface
+    grade: OWED
+    how_to_obtain: >-
+      five minutes with a depth gauge or caliper on a physical unit: barrel
+      centre height above the board's top surface. Geometric lower bound is
+      ≥3.2 mm (half the 6.35 mm barrel must clear the board); family typical
+      is 4.5–6 mm. It sets the Z position of anything that mates, and it
+      cannot be guessed.
+    quote: "**RF axis height above the PCB top surface.**"
+
+  - id: mounting_hole_positions
+    what: position and diameter of the four corner mounting holes
+    grade: OWED
+    how_to_obtain: >-
+      caliper on a physical unit, referenced to the board edge. The holes are
+      present on both units with plated pads and would let a bracket take load
+      off the connectors, but they are not drawn on the assembly layer, so
+      there is no proxy to fall back on either.
+    quote: "- Mounting-hole positions and diameter."
+
+# ---------------------------------------------------------------------------
+# NOT INDEXED HERE, and deliberately so: the case outer dimensions
+# (103–106 × 71 mm, no method beyond a photo), the board outline of the
+# physical units (only the CAD figure exists), and the enclosure panel cutout.
+# The README's "NOT established" list is the authority on what is missing; this
+# file indexes what a board is allowed to reference, and an entry here is a
+# claim that someone can defend the number.

@@ -106,7 +106,10 @@ history beyond the live frame is pulled on demand, not preloaded).
 - Seed `03_src/` config from the skill's schema examples —
   `<pcb-design skill>/templates/03_src/{floorplan.yaml,route.yaml,rebuild_all.sh,
   rules/{nets.yaml,power_tree.yaml,electrical_invariants.yaml}}`
-  — then replace the values for THIS board. The keys are the contract the
+  — plus `rules/mates.yaml` ONLY if the board mates to foreign hardware
+  (D-MATE below; a board that mates to nothing must not carry an empty one,
+  which `import_provenance_check.py` fails as M-COVER) —
+  then replace the values for THIS board. The keys are the contract the
   shared generic backend consumes; the values are yours to derive. (The two
   `rules/` schema files were omitted from the copy list until 2026-07-23
   although stages 1-3 mandate authoring both — seed them.)
@@ -136,6 +139,41 @@ history beyond the live frame is pulled on demand, not preloaded).
   the two rows left unlocked on usb-hub-3s (output V range, protection
   posture) cost that family two generation restarts (~27 of 53 commits,
   2026-07-23).
+- **D-MATE, the mating fact-lock (a GATE, canon M-IMPORT).** If this board
+  plugs into, bolts to, or lines up with hardware THIS REPO DID NOT DESIGN,
+  fill the BRIEF's **`## Mating fact-lock`** NOW, before any floorplan
+  exists. Every dimension the floorplan will consume from outside gets a
+  row with its **grade**: **MEASURED** (someone touched the object, or read
+  a machine-readable source — a `.kicad_pcb`, a drill file, a STEP),
+  **CITED** (a vendor document, with figure/page/section), **ESTIMATED**
+  (derived, photogrammetric, inferred — and it MUST carry an error bar
+  before it may be spent on a dimension), **OWED** (nobody has it; say how
+  to get it and do not design against it).
+  The facts live ONCE, in **`spf/<device>/`** — `README.md` is the human
+  record (method stated per number, MEASURED / ESTIMATED / NOT ESTABLISHED
+  kept apart), `facts.yaml` its machine index. The board declares
+  **`03_src/rules/mates.yaml`** naming the device and the ids it consumes,
+  with `use:` and `where:` — **and no values**. Boards reference; they never
+  restate. Seed it from `templates/03_src/rules/mates.yaml` and run
+  `$S/import_provenance_check.py .` (M-EXIST / M-GRADE / M-BAR / M-PROXY /
+  M-OWED / M-RESTATE / D-MATE).
+  WHY THIS IS AT COMMISSION AND NOT AT PLACEMENT: `pluto-cal-switch`'s
+  PlutoPlus SMA span was extracted from an undimensioned vector assembly
+  plot at **35.60 mm**, and three independent extractions agreed to
+  **0.003 mm** — a floorplan and a $101 adapter order were ready to be built
+  on it. A caliper on two physical units read **35.04** (genuine) and
+  **34.72** (2025 clone) against a rigid-SMA capture window of **±0.05 mm**:
+  10-18x over, and the two units sold under one name disagree by 0.32 mm.
+  Precision about a proxy is not accuracy about the object, and where a
+  drawing and the thing disagree the THING wins. Also from that episode:
+  measure the feature whose position you need, not one adjacent to it (the
+  protruding barrels stand ~11 mm toward the camera and parallax hid a 3.5%
+  asymmetry the flat silkscreen boxes showed at ~3 sigma), and a published
+  tolerance whose DATUM is unstated is ESTIMATED, not CITED (JLCPCB's
+  ±0.05 mm hole position is hole-to-hole; the edge-referenced term this
+  board needed is ±0.20 mm and JLCPCB does not publish it — 4x).
+  "This board mates to nothing foreign" is a fine answer; write it in the
+  section, because silence is not a declaration.
 - **D-SPEC, spec-tension check (a GATE, with D-ESC/D-TIER/D-ADJ).** Test
   every numeric requirement against (a) the governing standard and (b) the
   sourceable-part envelope BEFORE architecture. A brief can demand what no
@@ -527,7 +565,12 @@ proximity, plane-clean, refdes-on-silk) + `placement_gates.py
 04_kicad/<board>.kicad_pcb --config 03_src/placement_gates.json` (SHARED:
 P-OUT pads-inside-outline-polygon, P-CAP corridor crossing-demand vs
 capacity — run BEFORE any routing attempt; a corridor FAIL is a
-placement/topology decision, not a router tuning problem) → generate_rules
+placement/topology decision, not a router tuning problem)
++ `import_provenance_check.py <project>` if the board carries
+`03_src/rules/mates.yaml` (canon D-MATE: the floorplan is where a foreign
+dimension becomes copper, so its grade is re-checked at the moment it is
+spent — an ESTIMATED number with no error bar may not anchor a connector)
+→ generate_rules
 BEFORE route-prep
 (the route-input .kicad_pro must carry the netclasses — canon R1) →
 **tier_preflight (R-PREFLIGHT)**: route-stage entry runs `tier_preflight.py`

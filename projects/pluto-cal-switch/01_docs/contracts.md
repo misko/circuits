@@ -20,7 +20,7 @@ one that is unrecoverable if lost.
 | `STATUS*.md` | the live STATUS beacon — the coordinator's between-gates progress signal, OVERWRITTEN at every transition | `STATUS.md` (single-board) or `STATUS-<board>.md` (multi-board, mirroring `journal/<stage>_<board>.md`); schema + audit below; read by `skills/kicad-pcb/scripts/pcb_status.py` |
 | `journal/` | per-stage diary: append an entry at every stage start/iteration/finish | see `journal/contracts.md`; enforced by policy_audit M-JRNL |
 | `learnings/` | per-stage harvest source, written at stage completion | see `learnings/contracts.md`; enforced by policy_audit M-LEARN at release |
-| `<target>-mechanical.md` | **MEASURED geometry of a device this board must MATE WITH**, with its provenance and its error bars. One file per mating target. NOT a design doc and NOT a decision — it is external evidence the design consumes, and it belongs beside `BRIEF.md` because, like the brief, it is the thing the board must be true to. Must state HOW each number was obtained and what its uncertainty is; a bare number with no method is a defect | `pluto-plus-mechanical.md` — derived from the PlutoPlus open-hardware CAD plots, two independent extractions agreeing to 0.003 mm, plus two physical units that DISAGREE by 0.32 mm |
+| `<target>-mechanical.md` | **the board's ANALYSIS of a device it must MATE WITH**: the tolerance stack, the mating strategy, what the geometry means for THIS board. One file per mating target. NOT a design doc and NOT a decision — it is where external evidence is reasoned about, and it belongs beside `BRIEF.md` because, like the brief, it is the thing the board must be true to. Must state HOW each number was obtained and what its uncertainty is; a bare number with no method is a defect | `pluto-plus-mechanical.md`. **The NUMBERS' single home is `spf/plutoplus_hardware/`** (canon M-IMPORT, ADR-0005): `README.md` is the record, `facts.yaml` the machine index, `03_src/rules/mates.yaml` this board's reference. This file may quote them WITH their grade while it reasons; it may not be the only place one exists. NOTE its own history — it was written BEFORE the caliper and still carries the superseded 35.60 mm plot geometry in its early sections, corrected further down; the graded record is `spf/`, not this file |
 | `contracts.md` | this file | |
 
 ## Forbidden
@@ -126,7 +126,26 @@ user in the report — never silently built out-of-spec, never silently
 downgraded. Machine-readable rail envelopes go to `03_src/rules/power_tree.yaml`
 (the E-TOPO input), not here.
 
-### 7. `## Commission fact-lock` — load-derived facts locked BEFORE architecture
+### 7. `## Mating fact-lock` — foreign geometry graded BEFORE the floorplan (D-MATE)
+
+Present when the board mates to hardware this repo did not design. Every
+dimension the floorplan consumes from outside appears here with its **M-IMPORT
+grade** (MEASURED / CITED / ESTIMATED+bar / OWED), where it is spent, and the
+mating budget it is spent against. The facts live ONCE in `spf/<device>/`;
+this table is the user-facing lock and `03_src/rules/mates.yaml` is the machine
+copy — the same relationship the Commission fact-lock has with
+`power_tree.yaml`, and the reason neither table may restate a number that has a
+home elsewhere.
+
+`none — this board does not mate to hardware this repo did not design` closes
+the section; SILENCE DOES NOT. ADR-0005, 2026-07-27: an SMA span extracted from
+an undimensioned vector assembly plot read 35.60 mm with three independent
+extractions agreeing to 0.003 mm, and a caliper on two physical units then read
+35.04 and 34.72 mm — 10-18x the ±0.05 mm mating window, and both a floorplan
+and a $101 adapter order were ready to be built on the plot. Precision about a
+proxy is not accuracy about the object.
+
+### 8. `## Commission fact-lock` — load-derived facts locked BEFORE architecture
 
 A table (template in `templates/01_docs/BRIEF.md`) pinning, per output rail:
 Vout min-max @ Imax, the input envelope + source type, the protection posture,
@@ -156,6 +175,10 @@ table is the user-facing commitment.
 - `Spec tensions` table present; each row links an existing
   `decisions/NNNN-*.md` and is flagged in the report; `none found` allowed
   only after the D-SPEC check ran
+- `Mating fact-lock` present: either every foreign dimension with its
+  M-IMPORT grade + a matching `03_src/rules/mates.yaml`, or the explicit
+  "does not mate" line. A declared lock with no yaml is a D-MATE FAIL
+  (`import_provenance_check.py`) — a user-facing grade nothing checks
 - release gate: cutting a `07_releases/` dir while any criterion is `unmet`
   is a contract violation — `CHECKLIST.md` must carry this line
 

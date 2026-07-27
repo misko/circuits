@@ -269,10 +269,13 @@ page / section — what a `verified:` note is), **ESTIMATED** (derived,
 photogrammetric, inferred — and it MUST carry an error bar). A dimension used in
 COPPER is MEASURED or CITED, never ESTIMATED without its bar; a published number
 whose DATUM is unstated is ESTIMATED, not CITED; and where the grades disagree
-**the object beats its drawing**. There is no machine gate for the wider rule
-yet — `mates.yaml` (D-MATE) and `import_provenance_check.py` are ADR-0005
-phases 2-3 — so outside pin maps this is graded by review, and this contract
-says so rather than implying a check that does not exist.
+**the object beats its drawing**. The wider rule gained its machine half on
+2026-07-27 (ADR-0005 phases 2-4): `03_src/rules/mates.yaml` + `spf/<device>/`,
+graded by `import_provenance_check.py` for M-EXIST/M-GRADE/M-BAR/M-PROXY/
+M-OWED/M-RESTATE/D-MATE. **It reaches MATING geometry, not this folder**: a
+`part.yaml` imports its facts from a datasheet and is still graded by S-VER
+plus review, so outside pin maps and outside a `mates.yaml` this remains [H],
+and this contract says so rather than implying a check that does not exist.
 
 This folder also answers **P-LAYOUT / P-ADJ** — the datasheet LAYOUT section is
 read (not just the pin table) and encoded as a `layout:` block for every IC and

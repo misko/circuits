@@ -90,3 +90,24 @@
   E-TOPO exit 2 for reasons stated in the beacon. `contracts_audit.py` clean.
 - next: stage 4 (schematic authoring) — but THREE user answers and THREE
   physical measurements are owed first, all listed in `STATUS.md`.
+
+## 2026-07-27 — iterate (D-MATE backfill, ADR-0005 phases 2-4)
+
+- did: became the first consumer of `spf/`. Wrote
+  `03_src/rules/mates.yaml` — 15 fact IDs, `use:` + `where:` each, **and no
+  numbers** — against the new machine index `spf/plutoplus_hardware/facts.yaml`
+  (16 entries, each carrying a `quote:` that must appear in the README record
+  VERBATIM). Added the BRIEF's `## Mating fact-lock` table as the user-facing
+  half.
+- result: `import_provenance_check.py .` → **15/15 facts graded, 0 fails**:
+  9 MEASURED (caliper), 3 ESTIMATED (one dimensional — `connector_outline_width`
+  8.13 mm ±1.5 %/±0.12 mm — and two informational), 2 OWED, 1 superseded plot
+  number kept visible with its grade attached. The two OWED are the RF-axis
+  height above the Pluto's PCB and the mounting-hole positions: declared, not
+  invented, and the gate FAILS either if it is ever consumed dimensionally.
+- the thing worth recording: `case_barrel_protrusion` (≈7 mm) is ESTIMATED with
+  **no error bar anywhere in the record**, so it is indexed but deliberately
+  NOT consumed. A dimensional reference to it fails M-BAR — which is the
+  correct answer, not a defect in the file.
+- next: unchanged — stage 4 still waits on three user answers; the three
+  physical measurements now have machine-visible OWED rows instead of prose.

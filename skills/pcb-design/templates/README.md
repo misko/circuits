@@ -13,6 +13,10 @@ design source on 2026-07-20; the fix is that the skill carries its own canon.
 - `03_src/{floorplan.yaml,route.yaml,rules/nets.yaml}` → annotated SCHEMA
   EXAMPLES for the generic backend's config. The **keys are the contract**; the
   values are placeholders adopted from a proven board — replace them.
+- `03_src/rules/mates.yaml` → the CONDITIONAL schema example (canon D-MATE):
+  seeded only when the board mates to hardware this repo did not design. It is
+  the machine copy of the BRIEF's `## Mating fact-lock`, and it holds fact IDs,
+  never values — the facts live once in `spf/<device>/`.
 - `01_docs/{BRIEF,ARCHITECTURE,CHANGELOG,CHECKLIST}.md` +
   `01_docs/decisions/0000-example-adr.md` → starter skeletons for the design
   docs (fill, never leave placeholder text in a committed project).
@@ -40,6 +44,10 @@ cp <skill>/templates/03_src/rules/electrical_invariants.yaml projects/<name>/03_
 # (rebuild driver + BOTH rules schemas seed at commission — stages 1-3 mandate
 #  authoring power_tree + electrical_invariants; omitting them from this list
 #  made boards discover the schemas mid-pipeline. Fixed 2026-07-23.)
+# CONDITIONAL — only if the board mates to hardware this repo did not design
+# (canon D-MATE); a board that mates to nothing must NOT carry an empty one,
+# which import_provenance_check.py fails as M-COVER:
+cp <skill>/templates/03_src/rules/mates.yaml       projects/<name>/03_src/rules/mates.yaml
 cp <skill>/templates/01_docs/*.md                  projects/<name>/01_docs/
 cp <skill>/templates/01_docs/decisions/0000-example-adr.md projects/<name>/01_docs/decisions/
 cp <skill>/templates/project.gitignore             projects/<name>/.gitignore

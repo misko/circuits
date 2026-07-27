@@ -1,6 +1,8 @@
 # ADR-0005 — Every fact from outside this repo carries its provenance and a confidence grade
 
-status: partially accepted — PHASE 1 LANDED 2026-07-27; phases 2-4 OPEN
+status: accepted — PHASE 1 LANDED 2026-07-27; PHASES 2-4 LANDED 2026-07-27
+        (see "Phases 2-4, as built" at the end — the paragraph below is kept
+        verbatim as the record of what was true when phase 1 shipped)
 date: 2026-07-27
 
 **What actually landed (phase 1 only, and nothing more):** `M-IMPORT` is a row
@@ -11,7 +13,10 @@ both rows; the two governing contracts caught up in the same change
 (`skills/kicad-pcb/references/contracts.md`,
 `skills/pcb-design/templates/contracts/02_parts/contracts.md`).
 
-**What did NOT land, and is therefore not enforced by anything:** `D-MATE` and
+**What did NOT land, and is therefore not enforced by anything** *(true when
+phase 1 shipped; SUPERSEDED the same day by "Phases 2-4, as built" at the end.
+Kept verbatim, because a record of what a canon row could and could not do at
+the moment it landed is the point of writing it down):* `D-MATE` and
 the BRIEF MATING section (phase 2); `import_provenance_check.py` and its RED
 fixture (phase 3); `pluto-cal-switch`'s `mates.yaml` backfill (phase 4). The
 M-IMPORT row states this absence in its own Verified cell — a canon row whose
@@ -246,3 +251,69 @@ It does not make imported facts correct. It makes their **status visible**, so
 that a number carrying +-1.5 % cannot be silently spent against a +-0.05 mm
 budget. The caliper still has to be picked up; this only guarantees that
 everyone can see when it has not been.
+
+---
+
+## Phases 2-4, as built — 2026-07-27
+
+**Phase 2 — D-MATE.** The BRIEF template gains `## Mating fact-lock` (grade,
+error bar, where it is spent, and the budget it is spent against), the 01_docs
+contract gains its structure section + a Validate line, and `SKILL.md` stage 0
+gains the D-MATE bullet with the incident in it. `none — this board does not
+mate to hardware this repo did not design` closes the section; SILENCE DOES
+NOT, and the gate enforces exactly that asymmetry.
+
+**Phase 3 — `skills/kicad-pcb/scripts/import_provenance_check.py`**, wired into
+`tests/run_tests.sh` as `t1_import_provenance.py` and given a SEMANTIC Audit
+entry in `skills/kicad-pcb/scripts/contracts.md` (a bare `*.py` wildcard is not
+a contract — ADR-0004). It grades `03_src/rules/mates.yaml` against
+`spf/<device>/{README.md,facts.yaml}`:
+
+| finding | what it refuses |
+|---|---|
+| M-EXIST | an id the record does not hold, or a `quote:` no longer in the record VERBATIM — the machine index drifted from the human record |
+| M-GRADE | absent or invented grade. Absent is a FAIL, never a promotion to ESTIMATED |
+| M-BAR | ESTIMATED + `use: dimensional` with no bar, or a bar that does not PARSE |
+| M-PROXY | the grade contradicting the METHOD — a plot number graded MEASURED |
+| M-OWED | a number nobody has, spent on a dimension; or OWED with no route to obtaining it |
+| M-RESTATE | the board writing a value/grade/method that has a home in `spf/` |
+| M-COVER | a `mates.yaml` consuming NOTHING |
+| D-MATE | a consumption with no site; a BRIEF lock with no yaml |
+
+Two additions beyond the three properties this ADR specified, each earned by
+the same incident rather than invented: **M-PROXY**, because the plot number's
+danger was that it read as measured (three extractions, 0.003 mm apart), and
+**M-EXIST's verbatim-quote half**, because splitting the record into a human
+file and a machine index creates exactly the two-homes drift that
+`assembly.yaml` exists to prevent. The M-PROXY keyword list deliberately
+excludes "derived": subtracting two caliper readings is still a measurement,
+and the PlutoPlus D-free pitches are computed that way.
+
+**The RED fixture was free, as predicted.** `t1_import_provenance.py` carries
+the PlutoPlus record AS IT STOOD BEFORE THE CALIPER, twice: 35.60 mm ESTIMATED
+with no bar, spent dimensionally (M-BAR), and the same number graded MEASURED
+on the strength of its reproducibility (M-PROXY). Both RED-verified by
+neutering the checks: M-BAR disabled -> 18 passed / 2 failed; M-PROXY disabled
+-> 19 passed / 1 failed; restored byte-identical -> **20 passed, 15 known-bad**.
+
+**Phase 4 — `projects/pluto-cal-switch/03_src/rules/mates.yaml`**, referencing
+15 facts in `spf/plutoplus_hardware/facts.yaml` (the new machine index of the
+README): 9 MEASURED, 3 ESTIMATED (one dimensional, with its ±1.5 % bar), 2
+OWED, 1 superseded plot number kept visible with its grade attached. **15/15
+graded, 0 fails.** The two OWED entries are the RF-axis height above the
+Pluto's PCB and the mounting-hole positions — declared rather than invented,
+which is what the grade is for.
+
+**NOT built, still, and for the reason already given:** the mating-feasibility
+checker. It would have compared `connector_outline_width`'s ±0.12 mm against
+SMP's ±0.254 mm float automatically, and the temptation to add it while the
+data was right there was real. One interface, one hand run; M8 triggers on the
+SECOND board. Writing a rule wider than its evidence is M-WIDTH's failure mode
+in reverse.
+
+**One thing this pass could NOT do.** `spf/plutoplus_hardware/photos/` is
+empty: the four photographs the README names were pasted into a chat and never
+written to disk. They are the evidence behind the field-ID tells (shield can,
+silk labels, U.FL count) and behind `port_order`'s silkscreen half. Nothing was
+fabricated to fill the gap; the README already names the four expected files,
+and the folder stays empty until someone saves them.
