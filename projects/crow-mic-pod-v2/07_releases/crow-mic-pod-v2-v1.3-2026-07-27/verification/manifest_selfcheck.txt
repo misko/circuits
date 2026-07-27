@@ -1,0 +1,28 @@
+MANIFEST self-check — crow-mic-pod-v2-v1.3-2026-07-27
+  files on disk (excluding MANIFEST.txt) : 61
+  entries in the sha256 table            : 61
+  table entries with no file             : 0 []
+  files with no table entry              : 0 []
+  hash mismatches                        : 0 []
+  RESULT: PASS — bidirectional, 61/61 verified
+
+  table layout: path-first, `'  '<path>  <hash>`.
+
+THE BOOTSTRAP, STATED RATHER THAN HIDDEN.
+This file is itself one of the 61 rows in the table it is reporting on, so its
+own sha256 is necessarily stamped AFTER this text was written. Of the 61 rows,
+60 were hashed and compared by the run that produced this text; this file's own
+row was computed from these bytes immediately afterwards and cannot have been
+verified by the run that wrote them. That gap is closed by the READER, in one
+command, which is why the command is printed here rather than a claim being made
+on its behalf:
+
+    cd 07_releases/crow-mic-pod-v2-v1.3-2026-07-27
+    sha256sum -c <(sed -n '/^sha256:/,$p' MANIFEST.txt | tail -n +2 \
+                   | awk 'NF==2 {print $2"  "$1}')
+
+Every row must report OK, and the file count must be 61. A single mismatch means
+this directory was mutated after the seal, and 07_releases/contracts.md says
+what to do then: it is no longer evidence of anything — rename it
+TAINTED-crow-mic-pod-v2-v1.3-2026-07-27 and re-release. Do not repair it in
+place.

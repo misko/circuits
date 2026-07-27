@@ -1,0 +1,9 @@
+== release-freshness: crow-mic-pod-v2-v1.3-2026-07-27 == [legible-bom supersede of crow-mic-pod-v2-v1.2-2026-07-26]
+  note: fab/ byte-identical to crow-mic-pod-v2-v1.2-2026-07-26 (4 file(s)) — ASSERTED by legible-bom mode
+  note: source/ byte-identical to crow-mic-pod-v2-v1.2-2026-07-26 (9 file(s)) — ASSERTED by legible-bom mode
+  note: 3d/ byte-identical to crow-mic-pod-v2-v1.2-2026-07-26 (1 file(s)) — ASSERTED by legible-bom mode
+  note: F-LEGIBLE on this release (crow-mic-pod-v2-v1.3-2026-07-27): 0 finding(s)
+  note: F-LEGIBLE on the prior release (crow-mic-pod-v2-v1.2-2026-07-26): 21 finding(s)
+  note: fab/bom.csv delta is 5 Comment rewrite(s) and 15 MPN change(s) over 15 row(s); 0 row(s) byte-identical; 0 added, 0 removed, 0 Footprint/LCSC changes — ASSERTED by legible-bom mode
+  note: A-STOCK: grading verification/stock_check.json (15 graded line(s), verdict=PASS) against 15 coded+placed BOM line(s) x 8 boards
+FRESHNESS: PASS

@@ -26,7 +26,7 @@ supersedes:   crow-mic-pod-v2-v1.2-2026-07-26  (SUPERSEDED.md added there) — f
               unchanged: JLC is asked neither to place nor to source MK1 or J1.
 generated:    2026-07-27 (BOM-LEGIBILITY supersede of v1.2; the v1.2 note below is retained as history)
 history:      2026-07-26 (PACKAGING-ONLY supersede of v1.1 — ONE change: pdf/assembly_front.pdf + pdf/assembly_back.pdf merged into the single 2-page pdf/assembly.pdf the 07_releases contract REQUIRES (canon A-EVID, gate landed 94300f2 after the v1.1 seal; the user chose contract-stands over contract-amend). NOT a board change: fab/, source/, 3d/ and every verification/ artifact are BYTE-IDENTICAL to v1.1 — anyone holding v1.1 gerbers can order them.)
-git_sha:      cf41646aaba0df6f263dfefc4b71c4ea328b1026   (v1.2 packaging supersede; fab/source/3d/verification unchanged since the v1.1 seal chain)
+git_sha:      47036522433b2d0fc574bc00726729e0bf9398bc   (v1.2 packaging supersede; fab/source/3d/verification unchanged since the v1.1 seal chain)
 git_dirty:    false            # scope: projects/crow-mic-pod-v2/ + skills/
 kicad:        10.0.4
 tools:        kicad-cli 10.0.4, export_jlc_package.py (pcbnew 10.0.4), /usr/bin/python3
@@ -164,60 +164,64 @@ open items (order-day, non-blocking): NEVER plug into PoE/Ethernet (ADR-0005 acc
   (ORDER_README section 6) — graceful clipping, no damage, 15-20 dB above the working signal.
 
 sha256:
-  3d/crow_mic_pod_v2.step  f0e81e312e46fc3be737c85ef3e04f5e6044606a5b0edc3ed43445974d5fc9c6
-  ORDER_README.md  35390a7e6d805c65eb01e9c090e2b378d9b98d7e083df4126ce8336a6d0eb226
-  fab/bom.csv  c2eeb1a6d5b6b9ec57e4bd92ec8febe852b18e0718a6cbada96d7de8c4001c22
-  fab/cpl.csv  e84aad879a46aeab8104fb4e4a21023c7d29f2de8ec4cd2632bc67ac09b5349f
-  fab/crow_mic_pod_v2-NPTH.drl  28f3e13b3d2ef47af5f09038b170a20e2fbcafdf58606c3d5832df9b9dcc6a1e
-  fab/crow_mic_pod_v2-PTH.drl  59e1e2fd5b921636da54b89afa4ac1f4dcbb59eb9560920489978f9164d39a35
-  fab/crow_mic_pod_v2_gerbers.zip  e2c8bc9b14e4f52ae0a21c216120cf991e6a021775d01e9db32674e4d34bdf49
-  pdf/assembly.pdf  e05cf03bdcb9963e56046feb2958ca052cb6a4ebd5c5fd6a55efa6ffcf1ceb45
-  pdf/pcb_layers.pdf  60c0e28344864cffad25a5e2f978bdce12944817c844f110e10e4f5b0597f2fb
-  pdf/schematic.pdf  03b5c9f24d5eadbb907c16087749c44a8588637a4bfa8886960c3a3c8884eb11
-  source/crow_mic_pod.pretty/AOM-5024L-HD-R.kicad_mod  6b7623762492ca268b12c525238c3866d5936ccfd0ba07b54f684dea29c362ff
-  source/crow_mic_pod.pretty/CMT-8504-100-SMT-TR.kicad_mod  4b73e0f5173cb41f85bedee088160599ce694eb19a76aa86480fbf5f2f705c61
-  source/crow_mic_pod_v2.kicad_dru  3a3302cfa1a862fa1ba8bca03f9b08ad7a07e37723429dcc3f8d9d0c91b5836a
-  source/crow_mic_pod_v2.kicad_pcb  2f936fd83be1bfddbf2dd6674742950f15cf8d232c68dc4889b8afe41907f3e0
-  source/crow_mic_pod_v2.kicad_pro  c82a014e04a86ff9dd0329ed60b1018c350a5074b6c77a3bb051533af285becd
-  source/crow_mic_pod_v2.kicad_sch  ba332f032406f960d1a7e25e88be8f3513b3da37a570da9543a173a24134ba4a
-  source/crow_mic_pod_v2.net  39ae63a850f695bd7562e152bd242ae4fa638e740b86339dae8bab42920ab020
-  source/crow_mic_pod_v2.tsx  458fd8160976098043940746fb9008568cf9339814cfb9a53da6ffc756f5ce4a
-  source/fp-lib-table  f1773df15ffeff25514faf9d90cf669939022f3a519c69e453e130c975323c3a
-  verification/2026-07-26_independent-audit.md  d2eef9a39ade4a0a54ced8dd46df99f85f7b0b095800776ed3bacde54d102663
-  verification/DISPOSITIONS.md  38e266686fdd9fe0a14d31be720af756ef61e4ee47a53c562de1f821fb47780d
-  verification/assembly_coverage.json  c0f3cde4b28909603fb625525e4c61a558e8d7be7db37f9ec60faf29818c10f5
-  verification/assembly_coverage.txt  67bcc3daf001747115607fa5d89d8977179fdc4e15af5978d30faa7825c59e05
-  verification/audit.txt  1188b9b93820f3015b814f7227ef5e04b02ad77e2f79b057f84f5a20554ac761
-  verification/bom_source_check.txt  831efde755c9409fc8ad443eb88ed0099af9c32814518b49de1f178399795089
-  verification/cpl_datum.txt  5345f8e876a568c07cd68ef0f8378b55c0b100f594234c8dcdcdfc0dbd23841a
-  verification/drc.json  ca0ab132f3f8af52d968e804c6d6892889d1669dc9e1ae8855ab1f7103f961e3
-  verification/erc.json  c648604a9ae90e0cb6e68c19f8d10f1465852e9a095dc33e43afceb63034f706
-  verification/ls1_pad_correspondence.txt  42c82de44a739610c13bc878d5d310fe758ef549db6fc6d0ffbdf3816a0583b9
-  verification/missing_models.txt  7861bd3bde3052a65e7e1ecbaa60d1dd26cbd3750efc0523e6713d60a05e4373
-  verification/parity.md  c0929c1e58893e843ceb207caff3ced7922fff9f94e46bb6b1fc4ee187ffc659
-  verification/part_facts.txt  8d3e71df49fc67b8ffc3b164e7f0c47fdf3f2aca36c1400745eb9c65e3bddf97
-  verification/payload_identity.txt  2f799a749a773e94397bdb5cee4f3531bc4d0a9a8f2125c9bb51aa8025f227aa
-  verification/pin_review.md  943ffe533e5f22650307ff41f4044fab1ce1fb7935552043b78e1d700333bca6
-  verification/policy_audit.md  761bd3b61bb3b53c374379735c505c72f29e57b5c1e26d5d3faf3036697b0ef2
-  verification/redteam-fixpass-2026-07-23.md  bae46c68344d686499bd1dad008889141597cf6e8fd11f7c60c8888c5945aaf7
-  verification/redteam_layout.md  4343d40dacaf47dcd3ca652dba4259a8a05afdd75fa6bd3e410c9d53280e8443
-  verification/redteam_topology.md  2bf12524f92557a1a9c301231ad696b301f5f0a8d87cf554a06af027f675c13b
-  verification/release_freshness.txt  45e18a8de770cb92e48e1334c2a3fb5cd6bd80f984866e043c20ed8c7de1d29f
-  verification/render_bottom_bare.png  72437708569c6dcdbf2667e750782b93c9a16ec204fab52cba9fb36563c9e36e
-  verification/render_review.md  21e56b0e1a9285738863123f089cd45b8214aac66a010b520451377e4660cfdb
-  verification/render_top_bare.png  720bcbfcc0e32295b7f338929bb27c9f81c7ce8cd820c7cd1faf4096dd8e97eb
-  verification/rotation_human_gate.txt  cb3b5efea90299af726916457c0ec15242302f8ce56963bc344dd898354553c2
-  verification/rotation_measurements.txt  f9f6f43afeb80d2797befc2ecc0dab322442f723b7f8a88230b00c98240e8265
-  verification/rules_audit.txt  b83a32b836c4c8f3e67ccc7ad607c0f812dfce5fa81ee0cb7629ac0941d7321f
-  verification/stock_check.json  dd563ece1e918f00992bbf07d6bd057264528f61d7b2356c9911512455ce8fa4
-  verification/stock_check.txt  a960bc2a20c682ce7cf1ce87b794649597d296ae51148406b2772592c69664ed
-  verification/stock_check_delta.md  268b3033ed5ca99612d300dad0facdaec7e51c73f8bff221d6e77b3fe29b599c
-  verification/twin_adjudications.yaml  72c072090344d1ad8012c26738a2b118f598c99decb9f345ec36d22324c9421b
-  verification/twin_bottom.png  4b844cda87b486ae58b2979faaacb8bf538d095577fffe9da61ff87546da563e
-  verification/twin_edge_east.png  9f7948d55f1955b5defb5d27ac642a27249be307172435a68c62658955b81419
-  verification/twin_edge_west.png  3919424cf69695c53c57c5f5e360a0d80f89cdca39551ab3d3cd68107b96c11c
-  verification/twin_iso_nw.png  d50a212906de03532b4a1ab257021a21cc14a91b30cd9824c67393a8289825e4
-  verification/twin_iso_se.png  4f0ad2307fd57516c873ea622b3eef64f6c1d9bb82b6c8174b6b2e95e356cb32
-  verification/twin_report.csv  69bbd1498c0d5f75adca09178c36cbd5971e7b7de5f660b6b31d202f441850ea
-  verification/twin_report.txt  1548917e2dad6168dbf9ed4f5b5855f38a0bec9deb9107309f023f75f5cacc10
-  verification/twin_top.png  1ed1af975f7e41c82d1050d6fc9780b089ac66e4cb5e5070e065a055c1c9d119
+  3d/crow_mic_pod_v2.step                                    f0e81e312e46fc3be737c85ef3e04f5e6044606a5b0edc3ed43445974d5fc9c6
+  ORDER_README.md                                            46f949c4129c7d3b2a25ca69decb908c094bad228b3aaa7f3df762a6f867734b
+  fab/bom.csv                                                4dfe63222e67a07fb9b7f8b8b68866e4b4d9df06569fec13d1348ea5e7cb02d4
+  fab/cpl.csv                                                e84aad879a46aeab8104fb4e4a21023c7d29f2de8ec4cd2632bc67ac09b5349f
+  fab/crow_mic_pod_v2-NPTH.drl                               28f3e13b3d2ef47af5f09038b170a20e2fbcafdf58606c3d5832df9b9dcc6a1e
+  fab/crow_mic_pod_v2-PTH.drl                                59e1e2fd5b921636da54b89afa4ac1f4dcbb59eb9560920489978f9164d39a35
+  fab/crow_mic_pod_v2_gerbers.zip                            e2c8bc9b14e4f52ae0a21c216120cf991e6a021775d01e9db32674e4d34bdf49
+  pdf/assembly.pdf                                           e05cf03bdcb9963e56046feb2958ca052cb6a4ebd5c5fd6a55efa6ffcf1ceb45
+  pdf/pcb_layers.pdf                                         60c0e28344864cffad25a5e2f978bdce12944817c844f110e10e4f5b0597f2fb
+  pdf/schematic.pdf                                          03b5c9f24d5eadbb907c16087749c44a8588637a4bfa8886960c3a3c8884eb11
+  source/crow_mic_pod.pretty/AOM-5024L-HD-R.kicad_mod        6b7623762492ca268b12c525238c3866d5936ccfd0ba07b54f684dea29c362ff
+  source/crow_mic_pod.pretty/CMT-8504-100-SMT-TR.kicad_mod   4b73e0f5173cb41f85bedee088160599ce694eb19a76aa86480fbf5f2f705c61
+  source/crow_mic_pod_v2.kicad_dru                           3a3302cfa1a862fa1ba8bca03f9b08ad7a07e37723429dcc3f8d9d0c91b5836a
+  source/crow_mic_pod_v2.kicad_pcb                           2f936fd83be1bfddbf2dd6674742950f15cf8d232c68dc4889b8afe41907f3e0
+  source/crow_mic_pod_v2.kicad_pro                           c82a014e04a86ff9dd0329ed60b1018c350a5074b6c77a3bb051533af285becd
+  source/crow_mic_pod_v2.kicad_sch                           ba332f032406f960d1a7e25e88be8f3513b3da37a570da9543a173a24134ba4a
+  source/crow_mic_pod_v2.net                                 39ae63a850f695bd7562e152bd242ae4fa638e740b86339dae8bab42920ab020
+  source/crow_mic_pod_v2.tsx                                 458fd8160976098043940746fb9008568cf9339814cfb9a53da6ffc756f5ce4a
+  source/fp-lib-table                                        f1773df15ffeff25514faf9d90cf669939022f3a519c69e453e130c975323c3a
+  verification/2026-07-26_independent-audit.md               d2eef9a39ade4a0a54ced8dd46df99f85f7b0b095800776ed3bacde54d102663
+  verification/DISPOSITIONS.md                               38e266686fdd9fe0a14d31be720af756ef61e4ee47a53c562de1f821fb47780d
+  verification/assembly_coverage.json                        8b9e84e1c49f5d0116133446b38b043ee9f40f24374bfa1c5671ba5fe72d356f
+  verification/assembly_coverage.txt                         7f52b354979341ed9a94963ab50884dbd8dbe13ea2945cc53bcece2922a1218f
+  verification/audit.txt                                     1188b9b93820f3015b814f7227ef5e04b02ad77e2f79b057f84f5a20554ac761
+  verification/bom_echo_gate.txt                             cc5bec20f07ce4ac3c9ca255000c039342a7139178d6aa8b8a6cdd0b843377d9
+  verification/bom_legibility.txt                            59f471ea93ec22e19404774efff1be40c367d094cbb35f38b728443011743d63
+  verification/bom_source_check.txt                          06662be792b1b2cc9fb89fcc93cd8b25c72a1fe38b6af1bba8d99db5124a4891
+  verification/cpl_datum.txt                                 5345f8e876a568c07cd68ef0f8378b55c0b100f594234c8dcdcdfc0dbd23841a
+  verification/drc.json                                      e53a0505f97f2c6b32b80be87107297923fe4efaa57cc9cd781aabc6a612ab75
+  verification/erc.json                                      b215c82baf47b88c246a30bb79a5e7de57e308941498e2118af8a2cd4321a71f
+  verification/ls1_pad_correspondence.txt                    42c82de44a739610c13bc878d5d310fe758ef549db6fc6d0ffbdf3816a0583b9
+  verification/manifest_selfcheck.txt                        fe9acc94adde27a99e394fd9c7f6d7567cfeec9e0f4415541b421459c21534fb
+  verification/missing_models.txt                            7861bd3bde3052a65e7e1ecbaa60d1dd26cbd3750efc0523e6713d60a05e4373
+  verification/parity.md                                     c0929c1e58893e843ceb207caff3ced7922fff9f94e46bb6b1fc4ee187ffc659
+  verification/part_facts.txt                                8d3e71df49fc67b8ffc3b164e7f0c47fdf3f2aca36c1400745eb9c65e3bddf97
+  verification/payload_identity.txt                          2f799a749a773e94397bdb5cee4f3531bc4d0a9a8f2125c9bb51aa8025f227aa
+  verification/pin_review.md                                 943ffe533e5f22650307ff41f4044fab1ce1fb7935552043b78e1d700333bca6
+  verification/policy_audit.md                               4e69b5473f18dc552ea8bb3a3dd1b48e9669149d1f4b1e7ed67f8afedb45455f
+  verification/redteam-fixpass-2026-07-23.md                 bae46c68344d686499bd1dad008889141597cf6e8fd11f7c60c8888c5945aaf7
+  verification/redteam_layout.md                             4343d40dacaf47dcd3ca652dba4259a8a05afdd75fa6bd3e410c9d53280e8443
+  verification/redteam_topology.md                           2bf12524f92557a1a9c301231ad696b301f5f0a8d87cf554a06af027f675c13b
+  verification/release_freshness.txt                         3a7d2978164f97ba7048b0379aec7eb29cf25f51bdd58717b7e1a918dbc39483
+  verification/render_bottom_bare.png                        72437708569c6dcdbf2667e750782b93c9a16ec204fab52cba9fb36563c9e36e
+  verification/render_review.md                              21e56b0e1a9285738863123f089cd45b8214aac66a010b520451377e4660cfdb
+  verification/render_top_bare.png                           720bcbfcc0e32295b7f338929bb27c9f81c7ce8cd820c7cd1faf4096dd8e97eb
+  verification/replot_identity.txt                           664efbe5996ba8bc28ec11a91c9f3c32d07598337e4f275aeef231d2039890a5
+  verification/rotation_human_gate.txt                       cb3b5efea90299af726916457c0ec15242302f8ce56963bc344dd898354553c2
+  verification/rotation_measurements.txt                     f9f6f43afeb80d2797befc2ecc0dab322442f723b7f8a88230b00c98240e8265
+  verification/rules_audit.txt                               b83a32b836c4c8f3e67ccc7ad607c0f812dfce5fa81ee0cb7629ac0941d7321f
+  verification/stock_check.json                              23c909599dd3398acd48475f768f96bb27eb5336a3cf68e1f9b82bee2b3968a0
+  verification/stock_check.txt                               0272f84261f35f31244dec843a9e5a9f3999432a9a7551b671ecdd071902d0ce
+  verification/stock_check_delta.md                          268b3033ed5ca99612d300dad0facdaec7e51c73f8bff221d6e77b3fe29b599c
+  verification/twin_adjudications.yaml                       72c072090344d1ad8012c26738a2b118f598c99decb9f345ec36d22324c9421b
+  verification/twin_bottom.png                               4b844cda87b486ae58b2979faaacb8bf538d095577fffe9da61ff87546da563e
+  verification/twin_edge_east.png                            9f7948d55f1955b5defb5d27ac642a27249be307172435a68c62658955b81419
+  verification/twin_edge_west.png                            3919424cf69695c53c57c5f5e360a0d80f89cdca39551ab3d3cd68107b96c11c
+  verification/twin_iso_nw.png                               d50a212906de03532b4a1ab257021a21cc14a91b30cd9824c67393a8289825e4
+  verification/twin_iso_se.png                               4f0ad2307fd57516c873ea622b3eef64f6c1d9bb82b6c8174b6b2e95e356cb32
+  verification/twin_report.csv                               69bbd1498c0d5f75adca09178c36cbd5971e7b7de5f660b6b31d202f441850ea
+  verification/twin_report.txt                               1548917e2dad6168dbf9ed4f5b5855f38a0bec9deb9107309f023f75f5cacc10
+  verification/twin_top.png                                  1ed1af975f7e41c82d1050d6fc9780b089ac66e4cb5e5070e065a055c1c9d119
