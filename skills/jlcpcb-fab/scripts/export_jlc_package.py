@@ -141,6 +141,51 @@ def placement_datum(fp):
                            int(round((min(ys) + max(ys)) / 2)))
 
 
+def declared_off_bom(board_path):
+    """The refdes set declared `on_bom: false` in 03_src/rules/assembly.yaml.
+
+    THE DECISION EXISTED AND WAS NOT REGENERABLE. crow-mic-pod-v2 v1.1
+    (2026-07-25) removed MK1 and J1 from its assembly BOM because both carried a
+    blank or unbuyable code and neither is on the CPL, and "the upload stalls at
+    JLC's BOM/CPL matcher". That removal was made IN THE ARTIFACT: re-running
+    this exporter on the same board puts both rows straight back, so the sealed
+    v1.2 `fab/bom.csv` is not reproducible from `03_src/` + `03_tscircuit/`
+    (canon M3). `on_bom: false` moves the decision into `assembly.yaml`, which
+    already calls itself "the ONE machine-readable home for who gets placed, and
+    why not" — this is the same file answering the adjacent question, who gets
+    SOURCED.
+
+    IT IS NOT DERIVABLE FROM `reason:`, and that was tried first. usb-hub-3s-v3
+    declares F1 `user_supplied` and F1 IS on its BOM (the holder ships with the
+    order at stock 1213; only the fuse ELEMENT is bought locally). crow-mic-pod-v2
+    declares MK1 and J1 `user_supplied` and both must LEAVE the BOM. Same reason
+    code, opposite BOM answer, because `reason:` records WHY a part is not
+    placed and this records whether JLC is asked to source it. A rule inferred
+    from `reason:` would have silently dropped usb-hub-3s-v3's fuse holder.
+
+    Default is TRUE (stay on the BOM): every board that does not use the key
+    exports byte-identically.
+    """
+    refs, path = set(), None
+    p = Path(board_path).resolve()
+    for anc in list(p.parents)[:4]:
+        cand = anc / "03_src" / "rules" / "assembly.yaml"
+        if cand.is_file():
+            path = cand
+            break
+    if path is None:
+        return refs, None
+    try:
+        import yaml
+    except ImportError:
+        return refs, None
+    data = yaml.safe_load(path.read_text()) or {}
+    for e in (data.get("not_assembled") or []):
+        if e.get("on_bom") is False:
+            refs.update(str(r) for r in (e.get("refs") or []))
+    return refs, path
+
+
 def declared_unpopulated(board_path):
     """The `not_assembled:` refdes set from 03_src/rules/assembly.yaml.
 
@@ -287,6 +332,11 @@ if bom_path.exists():
                         old_lcsc.setdefault(r.strip(), code)
 
 groups, cpl = {}, []
+_off_bom, _off_bom_path = declared_off_bom(args.board)
+_dropped_off_bom = []
+if _off_bom:
+    print(f"  assembly.yaml: {len(_off_bom)} ref(s) declared `on_bom: false` -> "
+          f"dropped from the BOM as well as the CPL ({_off_bom_path})")
 _declared_np, _asm_path = declared_unpopulated(args.board)
 if _asm_path:
     print(f"  assembly.yaml: {len(_declared_np)} ref(s) declared "
@@ -304,6 +354,13 @@ for fp in board.GetFootprints():
         continue
     fpname = str(fp.GetFPID().GetLibItemName())
     code = src_code.get(ref) or old_lcsc.get(ref, "")
+    # ...or declared `on_bom: false` in assembly.yaml: JLC is asked neither to
+    # place it nor to source it, so it leaves the ASSEMBLY BOM entirely. A row
+    # JLC cannot match stalls the whole upload at its BOM/CPL matcher
+    # (crow-mic-pod-v2 v1.0: MK1 with MPN *and* LCSC both empty).
+    if ref in _off_bom:
+        _dropped_off_bom.append(ref)
+        continue
     # group by (CODE, val, footprint): distinct codes NEVER share a row
     groups.setdefault((code, val, fpname), []).append(ref)
     # exclude_from_pos: hand-solder / DNP-position parts stay in the BOM (for
@@ -579,6 +636,20 @@ if _dropped_by_decl:
     print(f"  CPL: {len(_dropped_by_decl)} row(s) dropped by the "
           f"assembly.yaml not_assembled: declaration: "
           f"{', '.join(sorted(_dropped_by_decl))}")
+if _dropped_off_bom:
+    print(f"  BOM: {len(_dropped_off_bom)} row(s) dropped by the assembly.yaml "
+          f"`on_bom: false` declaration: {', '.join(sorted(_dropped_off_bom))}")
+_placed = {r[0] for r in cpl}
+_contradiction = sorted(set(_dropped_off_bom) & _placed)
+if _contradiction:
+    # Structurally impossible with the `continue` above, which drops the ref
+    # before it can reach the CPL — asserted anyway, because the failure it
+    # guards (JLC told to PLACE a part with no BOM line at all) is the
+    # dangerous inversion of the A-POP defect this key exists to fix.
+    print(f"\nA-POP BLOCKED: {_contradiction} are declared `on_bom: false` but "
+          f"appear on the CPL — JLC would be told to place a part with no BOM "
+          f"line to source it from")
+    sys.exit(4)
 
 # Upload zip: gerbers + drills (+ job file when present) — no BOM/CPL inside.
 # Inner-layer Protel extensions are VERSION-DEPENDENT: KiCad 7 wrote

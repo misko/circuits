@@ -597,6 +597,61 @@ def t_declared_refs_leave_the_cpl():
           "the declaration is consulted exactly once, on the drop path")
 
 
+@test("`on_bom: false` drops a ref from the ASSEMBLY BOM, and is NOT inferred "
+      "from `reason:` — two boards say user_supplied and want opposite answers")
+def t_on_bom_false_is_its_own_key():
+    """crow-mic-pod-v2 v1.1 removed MK1 and J1 from its BOM because both carry
+    an unmatchable code and neither is on the CPL — "the upload stalls at JLC's
+    BOM/CPL matcher". That removal was made by EDITING `fab/bom.csv`, so the
+    sealed v1.1/v1.2 BOM was NOT reproducible from source (canon M3):
+    re-running the exporter on the same board puts both rows straight back,
+    which is exactly what happened while staging v1.3 (2026-07-27). `on_bom:
+    false` gives the decision a machine-readable home in the file that already
+    owns "who gets placed, and why not".
+
+    THE KEY EXISTS BECAUSE `reason:` CANNOT CARRY IT. usb-hub-3s-v3 declares F1
+    `user_supplied` and F1 IS on its BOM — the fuse HOLDER (C5249699, stock
+    1213) ships with the order and only the fuse ELEMENT is bought locally.
+    crow-mic-pod-v2 declares MK1 and J1 `user_supplied` and both must LEAVE the
+    BOM. Same reason code, opposite answer, so a rule inferred from `reason:`
+    would have silently dropped a real fuse holder from a real order.
+
+    Asserted here as a SOURCE property (the drop happens before the row is
+    built, it can only ever REMOVE, and a contradiction with the CPL BLOCKS)
+    plus the two live declarations, in the same shape as
+    t_declared_refs_leave_the_cpl above. The end-to-end proof that the
+    regenerated BOM equals the sealed row set is crow-mic-pod-v2 v1.3's own
+    verification/replot_identity.txt.
+
+    RED-VERIFIED 2026-07-27: with `git show HEAD:...export_jlc_package.py`
+    swapped back in, every check below fails — the exporter has no
+    `declared_off_bom` at all and mic-pod's BOM comes out 17 rows, not 15."""
+    import re as _re
+    import yaml as _yaml
+    src = (FAB_SCRIPTS / "export_jlc_package.py").read_text()
+    check("declared_off_bom" in src,
+          "the exporter reads the `on_bom:` declaration")
+    check(_re.search(r"if ref in _off_bom:\s*\n\s*_dropped_off_bom",
+                     src) is not None,
+          "an off-BOM ref is dropped BEFORE its group row is built")
+    check("A-POP BLOCKED" in src and "_contradiction" in src,
+          "a ref that is both `on_bom: false` and ON THE CPL must BLOCK — "
+          "that is the dangerous inversion, JLC placing a part with no line "
+          "to source it from")
+
+    def off_bom(proj):
+        d = _yaml.safe_load(
+            (ROOT / "projects" / proj / "03_src/rules/assembly.yaml").read_text())
+        return {r for e in (d.get("not_assembled") or [])
+                if e.get("on_bom") is False for r in (e.get("refs") or [])}
+
+    eq(off_bom("crow-mic-pod-v2"), {"MK1", "J1"},
+       "crow-mic-pod-v2 declares exactly the two rows v1.1 removed by hand")
+    eq(off_bom("usb-hub-3s-v3"), set(),
+       "usb-hub-3s-v3's F1 is user_supplied AND stays on the BOM — if this "
+       "set is ever non-empty, a fuse holder is being dropped from an order")
+
+
 @test("A-POP's DECLARED-NOT-EXCLUDED still FAILS an undeferred ref, and is "
       "cleared ONLY by a dated board_attr_plan: entry")
 def t_pop_board_attr_plan_defer():

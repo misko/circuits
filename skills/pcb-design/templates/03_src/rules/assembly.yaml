@@ -67,6 +67,27 @@ build_quantity: 5          # boards in the order — A-STOCK grades stock >= qty
 # is deliberately not placed (a user-fitted fuse element, a DNP option strap).
 # `jlc_twin --assembly` reads it and checks/renders those bodies, which is what
 # `--also REF=LCSC` used to be hand-typed for. One home, no drift.
+#
+# OPTIONAL per entry: `on_bom: false` — the part leaves the ASSEMBLY BOM as well
+# as the CPL. Default is true: not being PLACED and not being SOURCED are
+# different decisions, and most unplaced parts still ship with the order.
+# `export_jlc_package.py` reads it and drops the row; a ref that is both
+# `on_bom: false` and on the CPL BLOCKS the export (exit 4), because that is
+# the dangerous inversion — JLC told to place a part with no line to source it.
+#
+#   USE IT when JLC is asked NEITHER to place NOR to source the part: you supply
+#   it and hand-solder it. A row JLC cannot match (blank LCSC, or a consign-only
+#   placeholder code at stock 0) stalls the WHOLE upload at its BOM/CPL matcher —
+#   crow-mic-pod-v2 v1.0 shipped MK1 with its MPN *and* LCSC both empty.
+#   DO NOT USE IT when the part ships with the order and is merely hand-fitted:
+#   usb-hub-3s-v3's F1 fuse HOLDER is `user_supplied`, coded, stocked, and STAYS
+#   on the BOM (only the fuse ELEMENT is bought locally).
+#   That contrast is why this is its own key and NOT inferred from `reason:` —
+#   both boards say `user_supplied` and want opposite BOM answers.
+#
+#   HISTORY: crow-mic-pod-v2 v1.1 made this removal by EDITING fab/bom.csv, so
+#   the sealed BOM was not reproducible from source (canon M3) — re-running the
+#   exporter put both rows straight back. The key landed at v1.3 (2026-07-27).
 not_assembled:
   # - refs: [K_U1, K_U2, K_U3]
   #   reason: not_in_catalog
