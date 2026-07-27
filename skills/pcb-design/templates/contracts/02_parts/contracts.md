@@ -259,6 +259,21 @@ drawing, not just electricals.
 - A part that fails S-VER may not enter the BOM until its note cites the
   figure. "Same as <other part>" and "standard pinout" are not citations.
 
+**S-VER IS THE NARROW INSTANCE OF `M-IMPORT` (canon Meta, landed 2026-07-27,
+ADR-0005 phase 1).** The class is *every fact imported from outside this repo*;
+a pin map is one member, and this folder is where that member is governed. The
+grades M-IMPORT defines apply to everything else a `part.yaml` imports too:
+**MEASURED** (the physical object, or a machine-readable source — a
+`.kicad_pcb`, a drill file, a STEP), **CITED** (a vendor document, WITH figure /
+page / section — what a `verified:` note is), **ESTIMATED** (derived,
+photogrammetric, inferred — and it MUST carry an error bar). A dimension used in
+COPPER is MEASURED or CITED, never ESTIMATED without its bar; a published number
+whose DATUM is unstated is ESTIMATED, not CITED; and where the grades disagree
+**the object beats its drawing**. There is no machine gate for the wider rule
+yet — `mates.yaml` (D-MATE) and `import_provenance_check.py` are ADR-0005
+phases 2-3 — so outside pin maps this is graded by review, and this contract
+says so rather than implying a check that does not exist.
+
 This folder also answers **P-LAYOUT / P-ADJ** — the datasheet LAYOUT section is
 read (not just the pin table) and encoded as a `layout:` block for every IC and
 power/sense part (with the routed precedents behind that read catalogued in

@@ -1,7 +1,23 @@
 # ADR-0005 — Every fact from outside this repo carries its provenance and a confidence grade
 
-status: proposed
+status: partially accepted — PHASE 1 LANDED 2026-07-27; phases 2-4 OPEN
 date: 2026-07-27
+
+**What actually landed (phase 1 only, and nothing more):** `M-IMPORT` is a row
+in the Meta table of `skills/kicad-pcb/references/design-policies.md`, graded
+`[H]`, with the adjacent-property corollary co-resident and its known members
+enumerated; `S-VER` (S3) is re-parented as its narrow instance and says so in
+both rows; the two governing contracts caught up in the same change
+(`skills/kicad-pcb/references/contracts.md`,
+`skills/pcb-design/templates/contracts/02_parts/contracts.md`).
+
+**What did NOT land, and is therefore not enforced by anything:** `D-MATE` and
+the BRIEF MATING section (phase 2); `import_provenance_check.py` and its RED
+fixture (phase 3); `pluto-cal-switch`'s `mates.yaml` backfill (phase 4). The
+M-IMPORT row states this absence in its own Verified cell — a canon row whose
+Verified column reads like enforcement while nothing runs is the
+gate-that-grades-nothing shape M-COVER forbids, and it would be a poor joke to
+commit it in the change that widens the import rule.
 tags: canon, external-facts, mechanical, mating, meta
 
 ## Context
@@ -172,7 +188,8 @@ The other two counts:
 Conclusion: the design stands, but **Phase 1-3 should be sized as a small gate
 plus an 18-part backfill**, not a fleet-wide overhaul.
 
-**Phase 1** — M-IMPORT into the canon, S-VER re-parented as its instance.
+**Phase 1 — DONE 2026-07-27.** M-IMPORT into the canon, S-VER re-parented as
+its instance, both contracts updated in the same change.
 
 **Phase 2** — D-MATE into the commission stage + the BRIEF template.
 
@@ -210,6 +227,18 @@ on re-run twice during this campaign, and each time it was excused as "the known
 temp-path flake, commit 2de4b2a". **That habit trains a reader to ignore red**,
 which is the same disease as a gate that cannot fail. Fix it, or quarantine it
 with a dated reason and an owner. A third excuse is worse than the flake.
+
+**RESOLVED 2026-07-27 — FIXED, not quarantined.** Measured rate before the fix:
+**3/65 = 4.6%** (2/25 in one serial loop, 1/40 in another), all SERIAL, no
+concurrency — which refutes the temp-path theory outright, and 2de4b2a was a fix
+for a real but different bug. The nondeterminism was in the FIXTURE, not the
+checker: the injected track pair sat on top of the sealed board's existing
+copper, KiCad emits ONE violation class per neighbourhood, and pcbnew's `Save()`
+does not order Python-added tracks stably — good and bad boards were a
+byte-identical multiset of lines differing only in where the injected segment
+landed. The pair moved to the board's maximum-clearance site and the fixture now
+ASSERTS its own isolation. The `REAL=1` assertion was NOT touched. 60/60 green
+after. Details in the `t4_regressions.py` INCIDENT 8 header.
 
 ### What this does not do
 
