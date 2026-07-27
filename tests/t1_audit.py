@@ -76,6 +76,31 @@ def t_parity_clean():
     d, b = fresh_board()
     r = must_pass(run([KPY, PARITY, b, SEALED_LC]), "parity clean")
     contains(r.out, "BOARD PARITY 0 -> PASS", "parity output")
+    # G-INPUT/G-COVER (2026-07-27): the verdict must name BOTH boards and carry
+    # its denominator, so a reader can tell a sealed board from a 06_build
+    # reconstruction (canon M-SHIP) and can see how much was compared.
+    contains(r.out, "input: built", "names the built board it graded")
+    contains(r.out, "input: sealed", "names the sealed board it graded")
+    contains(r.out, "nodes identical", "carries an N/M node denominator")
+
+
+@test("board_netlist_parity FAILS two EMPTY boards rather than calling them "
+      "identical", kind="known_bad")
+def t_parity_zero_denominator():
+    """G-COVER. Two boards with no netted pads agree perfectly, and the gate
+    printed `BOARD PARITY 0 -> PASS (0 nodes identical, net-for-net)` and
+    exited 0 — a parity proof over nothing, which is the `jlc_twin` exit-0
+    shape. A zero denominator is a FAIL (canon M-COVER).
+    RED-VERIFIED against pre-fix code (git show 5054b07:...board_netlist_parity
+    .py): it exits 0 on this fixture."""
+    d = tmpdir("parzero_")
+    empty = d / "empty.kicad_pcb"
+    empty.write_text('(kicad_pcb (version 20240108) (generator "test")\n'
+                     '  (general (thickness 1.6))\n'
+                     '  (layers (0 "F.Cu" signal) (31 "B.Cu" signal))\n)\n')
+    r = must_fail(run([KPY, PARITY, empty, empty]),
+                  "board_netlist_parity on two empty boards", "0/0 nodes")
+    contains(r.out, "M-COVER", "cites the canon it is enforcing")
 
 
 # --------------------------------------------------------- known-bad cases

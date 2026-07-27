@@ -39,6 +39,7 @@ import argparse
 import collections
 import re
 import sys
+from pathlib import Path
 
 DEFAULT_NETMAP = {'N3V3': '3V3', 'N5V': '5V', 'N5V_A': '5V_A', 'N5V_C': '5V_C'}
 
@@ -140,7 +141,23 @@ def main():
     allnets = set(nn) | set(kn)
     disc = 0
     print(f"=== {a.board} netlist parity (converter kicad_sch vs sealed 04_kicad) ===")
+    # G-INPUT: name both artifacts by path, so a reader can tell the sealed
+    # board from a 06_build reconstruction (canon M-SHIP).
+    print(f"input: netlist = {Path(a.net_path).resolve()}")
+    print(f"input: board   = {Path(a.pcb_path).resolve()}")
     print(f"converter nets={len(nn)}  kicad nets={len(kn)}")
+
+    # G-COVER: a zero denominator is a FAIL. Two sides that each parse to no
+    # nets agree perfectly, and `PARITY 0 (PASS)` over nothing is the exact
+    # gate-grading-nothing shape (canon M-COVER). A parser that silently
+    # stopped matching — the class that truncated many-pin chips to 2 pins
+    # (Device:U_chip, 2026-07-19) — lands here.
+    if not allnets:
+        print("REAL DISCREPANCIES: 0/0 nets — NEITHER side parsed a single "
+              "net, so nothing was compared. A zero denominator is a FAIL, "
+              "never a pass -> FAIL")
+        sys.exit(1)
+
     for n in sorted(allnets):
         xa, xb = nn.get(n, set()), kn.get(n, set())
         if xa != xb:
@@ -155,8 +172,9 @@ def main():
     nb = sum(len(v) for v in kn.values())
     print(f"connected nodes: converter={na} kicad={nb}   "
           f"no-connects: converter={len(nnc)} kicad={len(knc)}")
-    print(f"REAL DISCREPANCIES: {disc}  ->  "
-          f"{'PARITY 0 (PASS)' if disc == 0 else 'FAIL'}")
+    verdict = (f"PARITY 0 (PASS) over {len(allnets)} nets / {na} nodes"
+               if disc == 0 else "FAIL")
+    print(f"REAL DISCREPANCIES: {disc}/{len(allnets)} nets  ->  {verdict}")
     sys.exit(1 if disc else 0)
 
 

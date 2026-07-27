@@ -247,6 +247,33 @@ def t_sch_parity_fails():
           f"33-part board:\n{rr.out[-2000:]}")
 
 
+@test("kicad_sch_parity FAILS when NEITHER side parses a single net",
+      kind="known_bad")
+def t_sch_parity_zero_denominator():
+    """G-COVER, canon M-COVER (2026-07-27). Two sides that each parse to zero
+    nets agree perfectly, and the gate printed
+    `REAL DISCREPANCIES: 0  ->  PARITY 0 (PASS)` and exited 0 — a parity proof
+    over nothing. That is not hypothetical here: the `Device:U_chip` collision
+    (2026-07-19) was a parser that silently stopped matching and truncated
+    many-pin chips to 2 pins, and the same class taken one step further lands
+    exactly on this line.
+    RED-VERIFIED against pre-fix code (git show 5054b07:...kicad_sch_parity
+    .py): it exits 0 printing PARITY 0 (PASS)."""
+    d = tmpdir("schpz_")
+    empty_net = d / "empty.net"
+    empty_net.write_text("(export (version \"E\") (nets ))\n")
+    empty_pcb = d / "empty.kicad_pcb"
+    empty_pcb.write_text('(kicad_pcb (version 20240108) (generator "test")\n'
+                         '  (general (thickness 1.6))\n'
+                         '  (layers (0 "F.Cu" signal) (31 "B.Cu" signal))\n)\n')
+    rr = run(["/usr/bin/python3", SCRIPTS / "kicad_sch_parity.py", "emptyboard",
+              empty_net, empty_pcb])
+    check(rr.rc != 0,
+          f"kicad_sch_parity exited 0 comparing two EMPTY sides — a zero "
+          f"denominator is a FAIL, never a pass:\n{rr.out[-1500:]}")
+    contains(rr.out, "0/0 nets", "reports the zero denominator explicitly")
+
+
 @test("kicad_sch_parity survives a raw parity_padmap.txt as --padmap (cooksense/crow crash)")
 def t_sch_parity_padmap_file():
     """2026-07-23 incident, BOTH active boards: gen_tscircuit.sh passes the

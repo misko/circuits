@@ -44,7 +44,7 @@ invariants:
   - assert: pin_on_net      # a named pin must sit on a named net
     pin: "D1.1"
     net: VIN
-    adr: 0001
+    adr: "0001"
     why: "D1 reverse-polarity clamp cathode feeds VIN, not the raw battery rail"
 ```
 Kinds: `pin_on_net`, `series_chain` (topological order; `through: {Q1: [D, S]}`

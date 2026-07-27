@@ -12,11 +12,18 @@ two boards not orderable with every gate green:
     CE1 (the only electrolytic, which shipped reversed) while printing PASS.
   * `labeled_resistance("10mOhm")` returns 1.0e7 — milli decoded as mega.
 
-The acceptance test for the auditor itself is ADVERSARIAL and lives in
-`t_flags_the_scripts_independently_known_broken` below: it must flag the two
-scripts we already know are silent. A gate-on-gates that comes back clean on a
-codebase measured to be riddled is decoration.
+The acceptance test for the auditor itself WAS adversarial against the real
+tree (`t_flags_the_scripts_independently_known_broken`): it required the
+auditor to flag the scripts independently measured as silent, because a
+gate-on-gates that comes back clean on a codebase measured to be riddled is
+decoration. That backlog is now CLOSED — 12 unmet obligations across 25
+verdict-printing scripts on 2026-07-27, 0 after — so per that test's own
+written instruction the floor was DELETED rather than lowered, and
+`t_scans_the_whole_real_tree` guards the remaining risk (an auditor that
+reports clean because it scanned nothing). The DISCRIMINATION proof lives
+where it always really did: the synthetic known-bad fixtures below.
 """
+import re
 import sys
 from pathlib import Path
 
@@ -162,43 +169,56 @@ def t_emits_its_own_coverage():
     contains(r.out, "coverage:", "the auditor reports its own denominator")
 
 
-@test("gca_flags_the_scripts_independently_known_broken")
-def t_flags_the_scripts_independently_known_broken():
-    """ADVERSARIAL ACCEPTANCE TEST — the reason to trust this tool at all.
+@test("gca_scans_the_whole_real_tree_and_the_backlog_is_closed")
+def t_scans_the_whole_real_tree():
+    """THE FORMER ADVERSARIAL ACCEPTANCE TEST, RETIRED AS ITS DOCSTRING
+    INSTRUCTED (2026-07-27).
 
-    `rules_audit.py` (A-AMP: 10 of 57 currents graded fleet-wide) and
-    `bom_source_check.py` (row_kind: RS1/RS2 and CE1 dropped while printing
-    PASS) were both proven silent by independent measurement BEFORE this auditor
-    existed. If the auditor does not flag the ones still broken, it is not
-    measuring the property it claims to measure, and this suite should fail
-    rather than reassure.
+    It used to assert `rc != 0` and `>= 5 FAIL lines` against the real tree,
+    with this note attached:
 
-    NEITHER IS ASSERTED BY NAME ANY MORE, because BOTH WERE FIXED in the same
-    campaign, and this test failed twice on the way — once as each repair
-    landed. That is the intended behaviour of an acceptance test pinned to
-    specific defects, and the honest response is to record the repair rather
-    than to loosen the check:
+        IF THE FLOOR BELOW EVER BECOMES THE THING THAT FAILS, DELETE THIS TEST.
+        Do not lower the number to make it pass — a tree that genuinely
+        satisfies G-INPUT/G-COVER/G-RED everywhere has earned the deletion,
+        and a lowered floor is just a gate quietly relaxing until it cannot
+        fail.
 
-      rules_audit.py       A-AMP 10/57 -> 53/57 graded, `coverage A-AMP: N/M`
-      bom_source_check.py  row_kind dropped 87/673 all-R/C rows -> 0/673, and
-                           leg C now prints `coverage leg C: N/M`
+    The floor became the thing that failed. Measured: the backlog went from
+    **12 obligations unmet across 25 verdict-printing scripts** to **0/25** by
+    fixing the nine scripts that were silent (jlc_stock_check,
+    board_netlist_parity, classified_drc, count_parity, escape_check,
+    kicad_sch_parity, net_label_survival, tsx_preflight, waiver_provenance) —
+    not by relaxing anything in gate_contract_audit.py, whose regexes are
+    unchanged in this campaign. So the instruction is followed: the floor is
+    deleted rather than lowered.
 
-    What survives is the property, not the instances: the auditor must not
-    report this tree clean, and it must not go quiet. The synthetic fixtures
-    above are what actually prove it DISCRIMINATES — they are the known-bads;
-    this test only guards against vacuity on the real tree.
+    WHAT REPLACES IT. The risk the old test guarded was VACUITY on the real
+    tree — an auditor that reports clean because it looked at nothing. Two
+    assertions still cover that, and neither can be satisfied by going quiet:
 
-    IF THE FLOOR BELOW EVER BECOMES THE THING THAT FAILS, DELETE THIS TEST.
-    Do not lower the number to make it pass — a tree that genuinely satisfies
-    G-INPUT/G-COVER/G-RED everywhere has earned the deletion, and a lowered
-    floor is just a gate quietly relaxing until it cannot fail.
+      1. the SCAN denominator must stay large. A `SKIP_BASENAMES` entry added
+         to silence a failing script, or a glob that stopped matching, drops
+         this number and is caught here.
+      2. the auditor must still DISCRIMINATE. That is proved by the synthetic
+         known-bad fixtures above, which are the real control — this test only
+         asserts the real tree is clean for the reason claimed, with its own
+         coverage line printed.
     """
-    r = run([KPY, TOOL, "--root", ROOT])
-    check(r.rc != 0, "the auditor must not report the current tree as clean")
-    n = r.out.count("  FAIL ")
-    check(n >= 5, f"the auditor found only {n} violations on a tree independently "
-                  f"measured as riddled — a gate-on-gates this quiet is "
-                  f"decoration, not a control")
+    r = must_pass(run([KPY, TOOL, "--root", ROOT]),
+                  "the G-* backlog is closed on the real tree")
+    contains(r.out, "coverage:", "the auditor reports its own denominator")
+    m = re.search(r"coverage: (\d+)/(\d+) verdict-printing scripts audited "
+                  r"\((\d+) scripts scanned", r.out)
+    check(m is not None, f"the coverage line changed shape: {r.out[:300]!r}")
+    audited, scanned = int(m.group(1)), int(m.group(3))
+    # measured 2026-07-27: 25 verdict-printing of 45 scanned. The floors are
+    # well below those so a genuine addition does not trip them, but a
+    # SKIP_BASENAMES entry or a broken glob that silences a whole family does.
+    check(scanned >= 40, f"only {scanned} scripts scanned under skills/*/scripts/ "
+                         f"— the auditor has gone quiet by not looking")
+    check(audited >= 20, f"only {audited} scripts recognised as printing a "
+                         f"verdict — a gate-on-gates auditing this few is "
+                         f"decoration, not a control")
 
 
 if __name__ == "__main__":

@@ -76,11 +76,61 @@ THE PHYSICS (deterministic — this is the whole check)
   Vout_min > Vin_max  -> BOOST       (step-up only)
   ranges overlap      -> BUCK_BOOST  (must do both)
 
-The selected converter's topology must MATCH the derived one:
+That derivation gives the step-down/step-up REQUIREMENT. The converter part
+supplies an IMPLEMENTATION of it, and the two are graded against each other:
   - MORE capable than needed (buck_boost where buck suffices) = OVER-ENGINEERING
     -> FAIL. Waiver-able only with an ADR justifying the extra capability
     (e.g. "future 20 V PD"); the waiver is applied by policy_audit's E-TOPO row.
   - LESS capable (buck where boost is required) -> FAIL: cannot meet Vout.
+
+WHY `LINEAR` EXISTS (2026-07-27) — AND WHY IT IS NOT A FOURTH TOPOLOGY
+---------------------------------------------------------------------
+Until this change `normalize_type()` accepted only buck / boost / buck_boost,
+while `converter:` was REQUIRED on every rail. An LDO-only board therefore had
+no legal way to declare its power tree at all: naming the LDO raised
+"type 'ldo_regulator_fixed_3v3' does not classify as buck/boost/buck_boost"
+and exited 2. **The only way to a green E-TOPO was to DELETE power_tree.yaml**,
+which returns N-A and exit 0 — a gate silently grading nothing, the exact
+M-COVER class this gate battery exists to police, living inside our own gate.
+
+Three fleet boards were already routing around it when this was fixed:
+  * smc0985-cooksense       `rails: []` plus a parallel `linear_rails:` key
+                            the checker IGNORES BY DESIGN — six documented
+                            rails, all ungraded, and E-TOPO printing N-A.
+  * crow-recorder-central   two LDO rails (1V8 TCR2LF18, 3V3A XC6227) present
+                            only as a comment block; two of four rails graded.
+  * crow-recorder-central-v2  the same two rails, the same comment.
+`pluto-cal-switch` declared its LDO rail truthfully instead, took the exit 2,
+and reported the gap — which is how it got fixed.
+
+A linear regulator is NOT a fourth topology. It is one IMPLEMENTATION of the
+step-down requirement, so it is derived and graded like this:
+
+  required BUCK        + LINEAR -> the requirement is met; now grade the two
+                                   things that actually kill a linear part
+  required BOOST       + LINEAR -> FAIL: a linear regulator cannot step up
+  required BUCK_BOOST  + LINEAR -> FAIL: Vin dips into/below Vout, so the part
+                                   drops out of regulation somewhere in the
+                                   declared envelope
+
+and "the two things that actually kill a linear part" are DROPOUT and
+DISSIPATION, both of which the buck/boost derivation is blind to:
+
+  headroom = vin_min - vout_max          must be >= dropout_mv
+  PD       = (vin_max - vout_min) * iout must be <= pdiss_max_mw
+
+Both numbers are REQUIRED for a LINEAR rail, from the converter's `part.yaml`
+(`dropout_mv:`, `pdiss_max_mw:`) or overridden on the rail. Making them
+optional would recreate the defect one level down: a rail that declares a
+linear converter and no bounds is a rail this gate cannot grade, and per
+canon M-COVER that is a FAIL, not a pass. `pluto-cal-switch` had both numbers
+already — as a prose comment nothing could read (PD 195 mW into a SOT-23 rated
+300 mW). That is the ADR-0004 shift-left move: prose becomes a field.
+
+The over-engineering verdict is UNCHANGED and still fires: buck_boost where
+buck or boost suffices is still a FAIL. LINEAR adds no new over-capability
+axis — a linear regulator is strictly less capable than a buck, so its risk is
+under-capability, which is what dropout and dissipation measure.
 
 INPUT-CURRENT (advisory, always PRINTED)
 ----------------------------------------
@@ -134,6 +184,10 @@ except ImportError:  # pragma: no cover - environments here ship PyYAML
     yaml = None
 
 BUCK, BOOST, BUCK_BOOST = "BUCK", "BOOST", "BUCK_BOOST"
+#: LINEAR is an IMPLEMENTATION of a step-down requirement, never a derived
+#: requirement — derive_topology() can never return it. See the module
+#: docstring.
+LINEAR = "LINEAR"
 
 
 class LoadError(Exception):
@@ -151,10 +205,23 @@ def derive_topology(vin_min, vin_max, vout_min, vout_max):
     return BUCK_BOOST
 
 
+#: a LINEAR pass element, in the spellings the fleet actually uses:
+#: `ldo`, `ldo_regulator_fixed_1v8`, `ldo_regulator_fixed_3v3_low_noise`,
+#: `ldo_3v3_1a`, and the long forms. Checked AFTER buck/boost so a
+#: hypothetical "ldo_or_buck" part cannot be silently downgraded to linear.
+_LINEAR_RE = re.compile(r"ldo|linear|low[-_ ]?dropout", re.I)
+
+
 def normalize_type(raw):
-    """part.yaml `type:` string -> canonical topology, or None if the type does
-    not classify. Buck+boost in any spelling (buck_boost, buck-boost, buckboost,
-    pd_source_buckboost_soc) -> BUCK_BOOST; then buck -> BUCK; boost -> BOOST."""
+    """part.yaml `type:` string -> canonical converter class, or None if the
+    type does not classify (a load switch, an eFuse, a FET: not converters).
+
+    Buck+boost in any spelling (buck_boost, buck-boost, buckboost,
+    pd_source_buckboost_soc) -> BUCK_BOOST; then buck -> BUCK; boost -> BOOST;
+    then a LINEAR pass element -> LINEAR. Switching spellings are tested first
+    on purpose: BUCK_BOOST/BUCK/BOOST name a CAPABILITY and LINEAR names an
+    implementation, so if a string somehow claims both, the capability claim is
+    the one that must be graded."""
     if raw is None:
         return None
     s = str(raw).lower()
@@ -166,6 +233,8 @@ def normalize_type(raw):
         return BUCK
     if has_boost:
         return BOOST
+    if _LINEAR_RE.search(s):
+        return LINEAR
     return None
 
 
@@ -175,8 +244,18 @@ def _norm_id(s):
     return re.sub(r"[/\-_ .]", "", str(s).lower())
 
 
+#: part.yaml facts a LINEAR converter must carry so its rail can be GRADED.
+#: Canon P-FACT: a part's own declared facts are executable. `dropout_mv` is
+#: the datasheet MAXIMUM dropout at the part's rated output current (the
+#: conservative reading — a rail may override it with the number at its own
+#: iout_max_A); `pdiss_max_mw` is the package power rating, which a rail may
+#: override to state a board-specific derating.
+LINEAR_FACTS = ("dropout_mv", "pdiss_max_mw")
+
+
 def load_part_index(proj):
-    """{normalized mpn/dirname -> (dirname, raw_type)} over 02_parts/*/part.yaml."""
+    """{normalized mpn/dirname -> {dir, type, dropout_mv, pdiss_max_mw}} over
+    02_parts/*/part.yaml."""
     idx = {}
     for py in sorted(glob.glob(str(Path(proj) / "02_parts" / "*" / "part.yaml"))):
         try:
@@ -184,30 +263,35 @@ def load_part_index(proj):
         except Exception:
             continue
         dirname = Path(py).parent.name
-        raw_type = y.get("type")
+        rec = {"dir": dirname, "type": y.get("type")}
+        for f in LINEAR_FACTS:
+            rec[f] = y.get(f)
         for key in (y.get("mpn"), dirname):
             if key:
-                idx[_norm_id(key)] = (dirname, raw_type)
+                idx[_norm_id(key)] = rec
     return idx
 
 
 def resolve_converter(converter, part_index):
-    """(dirname, canonical_topology). Raises LoadError if the converter cannot
-    be resolved to a part.yaml or its type does not classify."""
+    """(dirname, canonical_class, facts). Raises LoadError if the converter
+    cannot be resolved to a part.yaml or its type does not classify."""
     hit = part_index.get(_norm_id(converter))
     if hit is None:
         raise LoadError(
             f"converter {converter!r} not found in 02_parts — reference it by "
             f"the part MPN or its 02_parts directory name (known: "
-            f"{sorted(set(v[0] for v in part_index.values()))})")
-    dirname, raw_type = hit
+            f"{sorted(set(v['dir'] for v in part_index.values()))})")
+    dirname, raw_type = hit["dir"], hit["type"]
     topo = normalize_type(raw_type)
     if topo is None:
         raise LoadError(
             f"converter {converter!r} ({dirname}) part.yaml type "
-            f"{raw_type!r} does not classify as buck/boost/buck_boost — the "
-            f"type field must name the converter topology")
-    return dirname, topo
+            f"{raw_type!r} does not classify as buck / boost / buck_boost / "
+            f"linear(ldo) — the type field must name the converter class. If "
+            f"this part is NOT a converter (a load switch, an eFuse, a "
+            f"ferrite, a pass FET) it does not belong on a `rails:` entry: "
+            f"such a stage converts nothing and E-TOPO has nothing to derive")
+    return dirname, topo, {f: hit.get(f) for f in LINEAR_FACTS}
 
 
 # --------------------------------------------------------------------------
@@ -373,19 +457,106 @@ def load_rails(path):
             "eff": eff, "converter": str(r["converter"]),
             "load_uv": load_uv, "ir_budget_mohm": ir_budget, "margin": rmargin,
             "feedback": fb, "fb_low": fb_low, "fb_high": fb_high,
+            # OPTIONAL LINEAR overrides: the part.yaml number is the package /
+            # datasheet figure; a rail may state a board-specific derating (a
+            # hot ambient, no copper under the part) or the dropout at ITS own
+            # iout_max_A rather than the part's rated maximum.
+            "dropout_mv": _num_opt(r.get("dropout_mv"), "dropout_mv", name),
+            "pdiss_max_mw": _num_opt(r.get("pdiss_max_mw"), "pdiss_max_mw",
+                                     name),
         })
     return rails, top
 
 
 # --------------------------------------------------------------------------
 # topology grading — returns (verdict, message). verdict in PASS/FAIL.
+def grade_linear(rail, dirname, facts):
+    """Grade a LINEAR rail on the two things the buck/boost derivation cannot
+    see. Returns (verdict, msg). The topology requirement is already known to
+    be BUCK when this is called.
+
+    DROPOUT   headroom = vin_min - vout_max  >=  dropout_mv
+              (worst case: the lowest input against the highest regulated
+              output — the corner where a linear part falls out of regulation)
+    DISSIPATION  PD = (vin_max - vout_min) * iout  <=  pdiss_max_mw
+              (worst case: the highest input against the lowest regulated
+              output, at full load — the corner where the package cooks)
+
+    Both bounds are REQUIRED. A LINEAR rail whose part declares neither is a
+    rail this gate cannot grade, and per canon M-COVER an ungradeable input is
+    a FAIL, never a pass — otherwise `converter: <some LDO>` would become a
+    new way to reach a green E-TOPO while grading nothing, which is the defect
+    LINEAR was added to remove.
+    """
+    name, iout = rail["name"], rail["iout"]
+    drop_mv = rail.get("dropout_mv")
+    drop_mv = facts.get("dropout_mv") if drop_mv is None else drop_mv
+    pd_mw = rail.get("pdiss_max_mw")
+    pd_mw = facts.get("pdiss_max_mw") if pd_mw is None else pd_mw
+
+    missing = [f for f, v in (("dropout_mv", drop_mv),
+                              ("pdiss_max_mw", pd_mw)) if v is None]
+    if missing:
+        raise LoadError(
+            f"rail {name!r} declares the LINEAR converter {dirname} but "
+            f"neither 02_parts/{dirname}/part.yaml nor the rail declares "
+            f"{missing} — a linear regulator's failure modes are DROPOUT and "
+            f"DISSIPATION, and the Vin-vs-Vout derivation is blind to both. "
+            f"Declare dropout_mv (datasheet MAX at the rated output current) "
+            f"and pdiss_max_mw (the package rating, or a board-specific "
+            f"derating on the rail). A rail this gate cannot grade is a FAIL, "
+            f"not a pass (canon M-COVER)")
+    drop_mv = _num(drop_mv, "dropout_mv", name)
+    pd_mw = _num(pd_mw, "pdiss_max_mw", name)
+
+    headroom_mv = (rail["vin_min"] - rail["vout_max"]) * 1000.0
+    pd_actual_mw = (rail["vin_max"] - rail["vout_min"]) * iout * 1000.0
+    hdr = (f"rail {name!r} LINEAR ({dirname}): headroom "
+           f"{headroom_mv:.0f} mV (Vin_min {rail['vin_min']:g} - Vout_max "
+           f"{rail['vout_max']:g}) vs dropout {drop_mv:g} mV; PD "
+           f"{pd_actual_mw:.0f} mW ((Vin_max {rail['vin_max']:g} - Vout_min "
+           f"{rail['vout_min']:g}) x {iout:g} A) vs rating {pd_mw:g} mW "
+           f"({pd_actual_mw / pd_mw * 100:.0f}%)")
+    probs = []
+    if headroom_mv < drop_mv:
+        probs.append(f"DROPOUT: only {headroom_mv:.0f} mV of headroom against "
+                     f"a {drop_mv:g} mV dropout — the rail falls out of "
+                     f"regulation at the low input corner")
+    if pd_actual_mw > pd_mw:
+        probs.append(f"DISSIPATION: {pd_actual_mw:.0f} mW into a {pd_mw:g} mW "
+                     f"package — a linear pass element burns (Vin-Vout)xIout "
+                     f"as heat; step down with a switcher or move to a larger "
+                     f"package")
+    if probs:
+        return "FAIL", f"{hdr} -> FAIL {'; '.join(probs)}"
+    return "PASS", f"{hdr} -> PASS"
+
+
 def grade_rail(rail, part_index):
     required = derive_topology(rail["vin_min"], rail["vin_max"],
                                rail["vout_min"], rail["vout_max"])
-    dirname, declared = resolve_converter(rail["converter"], part_index)
+    dirname, declared, facts = resolve_converter(rail["converter"], part_index)
+    rail["topo"] = declared          # consumed by worst_case_input_current
     hdr = (f"rail {rail['name']!r} (Vin {rail['vin_min']:g}-{rail['vin_max']:g} V, "
            f"Vout {rail['vout_min']:g}-{rail['vout_max']:g} V): required="
            f"{required}, declared={declared} ({dirname})")
+
+    if declared == LINEAR:
+        # A linear regulator IMPLEMENTS a step-down requirement and nothing
+        # else. Where the envelope needs step-up (BOOST) or both (BUCK_BOOST,
+        # i.e. Vin dips into or below Vout somewhere in the declared range) it
+        # physically cannot deliver the rail.
+        if required != BUCK:
+            why = ("a linear regulator cannot step up"
+                   if required == BOOST else
+                   "the Vin envelope overlaps Vout, so the pass element drops "
+                   "out of regulation somewhere in the declared range")
+            return "FAIL", (
+                f"{hdr} -> FAIL cannot meet Vout range: {why}; the envelope "
+                f"requires a {required} converter")
+        lverdict, lmsg = grade_linear(rail, dirname, facts)
+        return lverdict, f"{hdr} -> step-down requirement MET by a linear pass " \
+                         f"element; {lmsg}"
 
     if declared == required:
         return "PASS", f"{hdr} -> PASS"
@@ -408,15 +579,35 @@ def grade_rail(rail, part_index):
 # --------------------------------------------------------------------------
 # input-current worst case + trunk-declaration cross-check
 def worst_case_input_current(rails):
-    """(I_amps, P_out_W, P_in_W, Vin_min) across all rails sharing the input."""
+    """(I_amps, P_out_W, P_in_W, Vin_min) across all rails sharing the input.
+
+    A SWITCHING rail draws CONSTANT POWER: Iin = Pout/eff / Vin, so the input
+    current RISES as the input sags. A LINEAR rail draws CONSTANT CURRENT:
+    the pass element is in series with the load, so Iin = Iout (+Iq) whatever
+    Vin does, and its input power is Vin*Iout, not Vout*Iout/eff.
+
+    Modelling a linear rail with the switching formula UNDER-STATES its trunk
+    current by exactly Vout/Vin. pluto-cal-switch's power_tree.yaml wrote
+    `eff: 1.0` on its LDO rail with the comment that this "makes the derived
+    input-trunk current equal the output current, which is the physically
+    correct answer for a linear pass element" — it does not: at Vout 3.3 /
+    Vin_min 4.4 it gives 0.075 A for a rail that draws 0.100 A, 25% light.
+    A rail carries `topo` once grade_rail() has resolved its converter; a rail
+    without one is treated as switching, which is the pre-existing behaviour.
+    """
     if not rails:
         return 0.0, 0.0, 0.0, 0.0
     p_out = sum(r["vout_max"] * r["iout"] for r in rails)
-    # each rail's input power is P_out/eff; sum, then divide by the LOWEST
-    # Vin_min (worst case = the input current peaks when the battery is low).
-    p_in = sum(r["vout_max"] * r["iout"] / r["eff"] for r in rails)
+    # the LOWEST Vin_min across the tree: the input current of a switching rail
+    # peaks when the input sags, so every switching rail is charged at it.
     vin_min = min(r["vin_min"] for r in rails)
-    return p_in / vin_min, p_out, p_in, vin_min
+    amps = sum(
+        r["iout"] if r.get("topo") == LINEAR
+        else r["vout_max"] * r["iout"] / r["eff"] / vin_min
+        for r in rails)
+    # reported input power, consistent with the current above. For an
+    # all-switching tree this is identical to Sum(Pout/eff), unchanged.
+    return amps, p_out, amps * vin_min, vin_min
 
 
 _NUM_A = re.compile(r"([\d.]+)\s*A", re.I)
@@ -696,14 +887,69 @@ def find_power_tree(proj, override=None):
     return Path(proj) / "03_src" / "rules" / "power_tree.yaml"
 
 
+def converter_census(part_index):
+    """[(dirname, raw_type, class)] for every 02_parts entry whose `type:`
+    classifies as a converter — the INDEPENDENT evidence that E-TOPO has
+    something to grade.
+
+    This is canon M1 applied to E-TOPO's own N-A: until now the gate asked
+    `power_tree.yaml` whether there was anything to check, and believed the
+    answer. Deleting the file, or writing `rails: []`, therefore produced
+    "E-TOPO N-A" and exit 0 on a board full of regulators. `02_parts/` is a
+    different artifact, written by a different stage, so it can contradict.
+    """
+    out = []
+    for rec in {id(v): v for v in part_index.values()}.values():
+        cls = normalize_type(rec.get("type"))
+        if cls is not None:
+            out.append((rec["dir"], rec.get("type"), cls))
+    return sorted(out)
+
+
+def _ungraded_converters(part_index, rails):
+    """Converter parts in 02_parts that NO rail names. The M-COVER denominator
+    for E-TOPO: `N converters graded / M present`."""
+    named = {_norm_id(r["converter"]) for r in rails}
+    return [c for c in converter_census(part_index)
+            if _norm_id(c[0]) not in named]
+
+
+def no_rails_verdict(proj, ptp_exists, part_index):
+    """(exit_code, lines) for a project with no power_tree.yaml, or one whose
+    `rails:` list is empty. N-A is only legitimate when the board HAS NO
+    CONVERTER."""
+    conv = converter_census(part_index)
+    where = ("power_tree.yaml has no rails" if ptp_exists
+             else "there is no 03_src/rules/power_tree.yaml")
+    if not conv:
+        return 0, [f"E-TOPO N-A: 0/0 — {where}, and 02_parts declares no "
+                   f"buck/boost/buck_boost/linear converter, so there is "
+                   f"genuinely nothing to derive (checked against "
+                   f"{proj}/02_parts, not against the power tree's own "
+                   f"say-so)"]
+    listing = ", ".join(f"{d} (type: {t!r} -> {c})" for d, t, c in conv)
+    return 1, [
+        f"E-TOPO FAIL: 0/{len(conv)} converters graded — {where}, but "
+        f"02_parts declares {len(conv)}: {listing}",
+        f"  Every one of those rails is UNGRADED: no Vin/Vout envelope, no "
+        f"derived topology, no dropout or dissipation bound. An absent or "
+        f"empty power tree is how a board reaches a green E-TOPO while the "
+        f"gate looks at nothing (canon M-COVER), and until 2026-07-27 it was "
+        f"the ONLY way to declare an LDO-only board, because normalize_type() "
+        f"rejected every linear part. It no longer is: declare each rail with "
+        f"`converter:` naming the part, and a linear regulator is graded on "
+        f"its dropout and dissipation instead of a switching topology.",
+    ]
+
+
 def run_check(proj, ptp, nets_override=None):
     """Returns (exit_code, lines). Pure — main() prints and exits."""
     lines = []
     rails, top = load_rails(ptp)
-    if not rails:
-        return 0, ["E-TOPO N-A: power_tree.yaml has no rails"]
-
     part_index = load_part_index(proj)
+    if not rails:
+        return no_rails_verdict(proj, True, part_index)
+
     fails = []
     for rail in rails:
         verdict, msg = grade_rail(rail, part_index)
@@ -750,10 +996,31 @@ def run_check(proj, ptp, nets_override=None):
             f"  OVER-BUILT (advisory): fuse rated {fuse_amps:g} A is >2x the "
             f"derived need {I:.1f} A — over-provisioned")
 
+    # M-COVER: a converter part that no rail names is a converter this gate did
+    # not grade, and the verdict must say so rather than count only the rails
+    # it was handed. This is the partial form of the empty-power-tree defect —
+    # three of four crow-recorder-central rails were declared and the two LDOs
+    # were left in a COMMENT, so E-TOPO printed a confident verdict over half
+    # the tree.
+    ungraded = _ungraded_converters(part_index, rails)
+    n_conv = len(converter_census(part_index))
+    if ungraded:
+        listing = ", ".join(f"{d} (type: {t!r} -> {c})" for d, t, c in ungraded)
+        msg = (f"UNGRADED CONVERTERS: {len(ungraded)} of {n_conv} converter "
+               f"part(s) in 02_parts are named by no rail: {listing} — declare "
+               f"a rail for each, or remove the part")
+        lines.append(f"  {msg}")
+        fails.append(msg)
+
+    graded = len(rails) - len([f for f in fails if f.startswith("rail ")])
     if fails:
-        lines.insert(0, f"E-TOPO FAIL: {len(fails)}/{len(rails)} rail issue(s):")
+        lines.insert(0, f"E-TOPO FAIL: {len(fails)} issue(s) over "
+                        f"{len(rails)} declared rail(s) / {n_conv} converter "
+                        f"part(s) in 02_parts:")
         return 1, lines
-    lines.insert(0, f"E-TOPO OK: {len(rails)} rail(s) topology-correct")
+    lines.insert(0, f"E-TOPO OK: {graded}/{len(rails)} rail(s) "
+                    f"topology-correct, covering {n_conv}/{n_conv} converter "
+                    f"part(s) in 02_parts")
     return 0, lines
 
 
@@ -785,8 +1052,19 @@ def main(argv=None):
     tag = ("E-MARGIN" if args.margin else
            "E-OFF" if args.off_control else "E-TOPO")
     if not ptp.exists():
-        print(f"{tag} N-A: no {ptp} — the power-tree gate is optional")
-        return 0
+        if args.margin or args.off_control:
+            # E-MARGIN/E-OFF genuinely have no input without the file; their
+            # activating fields live only there.
+            print(f"{tag} N-A: no {ptp} — the power-tree gate is optional")
+            return 0
+        # E-TOPO does NOT get to take the file's absence as proof there is
+        # nothing to grade: 02_parts is an independent artifact and can
+        # contradict it (canon M1). Deleting power_tree.yaml was the ONLY way
+        # an LDO-only board could reach a green E-TOPO before 2026-07-27.
+        rc, lines = no_rails_verdict(proj, False, load_part_index(proj))
+        for ln in lines:
+            print(ln)
+        return rc
 
     try:
         if args.margin:

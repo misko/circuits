@@ -3,46 +3,46 @@
 # Graded by skills/kicad-pcb/scripts/power_topology.py.
 #
 # ============================================================================
-# READ THIS FIRST — A GATE GAP, REPORTED RATHER THAN WORKED AROUND
+# A GATE GAP THIS BOARD REPORTED — AND WHICH IS NOW CLOSED (2026-07-27)
 # ============================================================================
-# E-TOPO CANNOT EXPRESS A LINEAR REGULATOR, AND THIS BOARD'S ONLY CONVERTER IS
-# ONE.
+# E-TOPO COULD NOT EXPRESS A LINEAR REGULATOR, AND THIS BOARD'S ONLY CONVERTER
+# IS ONE. `normalize_type()` mapped a part.yaml `type:` to exactly one of
+# buck / boost / buck_boost by substring; anything else returned None and
+# resolve_converter() raised LoadError, which power_topology.py reported as a
+# CONFIG error and exited 2. `converter:` is REQUIRED per rail, so the rail
+# could not be declared without naming one.
 #
-#   power_topology.py normalize_type() (line ~155) maps a part.yaml `type:` to
-#   exactly one of buck / boost / buck_boost, by substring. Anything else
-#   returns None, and resolve_converter() then raises LoadError:
-#     "converter ... part.yaml type 'ldo_regulator_fixed_3v3' does not classify
-#      as buck/boost/buck_boost"
-#   which power_topology.py reports as a CONFIG error and exits 2.
-#
-#   `converter:` is also REQUIRED per rail (line ~343), so the rail cannot be
-#   declared without naming one.
-#
-# THE THREE WAYS OUT, AND WHY ONLY ONE IS HONEST:
-#   (a) omit power_tree.yaml entirely -> the checker returns N-A and exits 0.
+# THE THREE WAYS OUT, AND WHY ONLY ONE WAS HONEST:
+#   (a) omit power_tree.yaml entirely -> the checker returned N-A and exit 0.
 #       REJECTED: that is the M-COVER silent-skip class. The board would have
 #       an ungraded, undeclared power tree and the gate would print OK.
+#       THREE OTHER FLEET BOARDS TOOK THIS ROUTE (smc0985-cooksense with
+#       `rails: []` plus an ignored `linear_rails:` key, and both
+#       crow-recorder-central revisions with their LDO rails in a comment).
 #   (b) label the LDO `..._buck` so the substring match fires. REJECTED: it is
 #       a false statement in a part.yaml, and canon M4 calls a rationale
 #       without evidence an inherited defect. It would also make E-TOPO grade
 #       the wrong thing — a linear regulator is not a switching buck.
 #   (c) DECLARE THE RAIL TRUTHFULLY, let the gate fail on ITS OWN gap, and
-#       report the gap upstream. CHOSEN.
+#       report the gap upstream. CHOSEN — and it is why the gap got fixed.
 #
-# THE TOPOLOGY IS DERIVED ANYWAY, BY HAND, TO THE SAME RULE THE GATE USES:
-#   Vout_max (3.30) < Vin_min (4.40) ALWAYS  =>  STEP-DOWN REQUIRED.
-#   A boost or buck-boost stage would be over-engineering (the usb-hub-3s
-#   class). A LINEAR step-down is the correct implementation at 60 mA and
-#   1.7 V of drop: 117 mW in a SOT-23 rated 300 mW, against a switching
-#   converter's inductor, its switching-node radiation, and its spurs — on a
-#   board whose entire product is a clean 70 MHz-6 GHz measurement, a switcher
-#   would be the WORSE engineering choice, not merely a costlier one.
+# THE FIX, LANDED 2026-07-27. normalize_type() now returns LINEAR for a linear
+# pass element. LINEAR is NOT a fourth topology: it is one IMPLEMENTATION of a
+# step-down requirement, so the Vin-vs-Vout derivation is unchanged and the
+# over-engineering verdict still fires exactly as before —
+#   Vout_max (3.366) < Vin_min (4.40) ALWAYS  =>  STEP-DOWN REQUIRED,
+# and a boost or buck-boost stage here would still be over-engineering (the
+# usb-hub-3s class). What LINEAR adds is the two failure modes the topology
+# derivation is BLIND to, now graded from typed part.yaml fields:
+#   headroom = Vin_min - Vout_max = 1034 mV  >=  dropout_mv 120     -> PASS
+#   PD = (Vin_max - Vout_min) x Iout = 202 mW  <=  pdiss_max_mw 300 -> PASS (67%)
+# Those two numbers were already in this repo, in `gotchas:` prose that nothing
+# could read. Turning them into fields is the ADR-0004 shift-left move.
 #
-# PROPOSED FIX FOR THE SKILL (not made here — skills/ is out of scope for this
-# change and two other agents are working in it): give normalize_type() a
-# LINEAR class, derive it as a legitimate implementation of a STEP-DOWN
-# requirement, and grade its DROPOUT and DISSIPATION instead of its topology.
-# An LDO-only board is not exotic; it is the majority of small boards.
+# The engineering argument for choosing linear here is unchanged and is a
+# JUDGEMENT the gate does not make: at 60 mA and 1.7 V of drop a switcher's
+# inductor, switching-node radiation and spurs would be the WORSE choice on a
+# board whose entire product is a clean 70 MHz-6 GHz measurement.
 # ============================================================================
 
 # ---- E-OFF: N-A, and stated deliberately rather than omitted ---------------
@@ -77,20 +77,29 @@ rails:
     # ~5 mA + two BGS12WN6 at 125 uA max + two LEDs at 1.9 mA ~= 60 mA typical.
     iout_max_A: 0.10
     converter: ME6211C33M5G-N
-    eff: 1.0    # a linear regulator's "efficiency" is Vout/Vin, not a
-                # converter figure; 1.0 makes the derived input-trunk current
-                # equal the output current, which is the physically correct
-                # answer for a linear pass element (Iin = Iout + Iq).
+    eff: 1.0    # A LINEAR RAIL'S `eff` IS NOW IGNORED BY THE INPUT-CURRENT
+                # MODEL, and this comment used to be wrong about why it was
+                # set. A switching rail draws CONSTANT POWER (Iin = Pout/eff /
+                # Vin); a linear rail draws CONSTANT CURRENT (Iin = Iout + Iq,
+                # whatever Vin does). Feeding a linear rail through the
+                # switching formula at eff 1.0 gave 3.3 x 0.1 / 4.4 = 0.075 A
+                # for a rail that draws 0.100 A — 25% LIGHT, in the direction
+                # that under-states trunk copper. power_topology.py now sums
+                # Iout directly for a LINEAR rail and reports 0.1 A. Kept at
+                # 1.0 because the schema requires the field.
     # E-MARGIN: `load_uv_threshold` is DELIBERATELY ABSENT. The 3V3 loads are
     # an MCU, a flash and two RF switches with no published brownout voltage
     # that this rail must clear — unlike the Pi5-on-5V case that motivated
-    # E-MARGIN. The number that DOES matter here is not headroom but
-    # DISSIPATION, and the gate has no field for it:
-    #   PD = (Vin_max - Vout) * Iout = (5.25 - 3.30) * 0.10 = 195 mW
-    #   SOT-23 rating 300 mW (no ambient stated) => 65% at the envelope,
-    #   39% at the realistic 60 mA.
+    # E-MARGIN.
+    # DISSIPATION IS NOW A GRADED NUMBER, not a comment. E-TOPO computes it
+    # from the part.yaml `pdiss_max_mw:` field:
+    #   PD = (Vin_max - Vout_min) * Iout = (5.25 - 3.234) * 0.10 = 202 mW
+    #   SOT-23 rating 300 mW (no ambient stated) => 67% at the envelope.
+    # (This block previously used Vout 3.30 and got 195 mW; the gate takes the
+    # WORST corner, Vout_min, which is the larger drop.)
     # ABOVE ~120 mA THIS PART IS WRONG and must escalate to SOT-89
-    # (XC6227C331PR-G, C6035451, 500 mW) or to a buck. See ADR-0009.
+    # (XC6227C331PR-G, C6035451, 500 mW) or to a buck. See ADR-0009 — and note
+    # the gate now enforces the boundary rather than trusting this note.
 
 # ---- THE ONE MARGIN THAT IS NOT ON THIS RAIL ------------------------------
 # The tightest supply-vs-part margin on the board is NOT a brownout, it is an

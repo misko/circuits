@@ -19,14 +19,14 @@ invariants:
   # ============================================================= #
   - assert: series_chain
     chain: [5V_IN, F1, 5V_P]
-    adr: 0002
+    adr: "0002"
     why: >
       F1 (SMD1812P200TF16 2A PTC) must be the FIRST series element after the
       barrel jack: 5V_IN -> 5V_P. Fault-current limit sits ahead of everything.
   - assert: pin_on_net
     pin: "D9.1"
     net: 5V_P
-    adr: 0002
+    adr: "0002"
     why: >
       D9 (SMBJ5.0A unidirectional TVS) CATHODE (pad1) clamps the protected
       input node 5V_P (after the PTC, before the reverse FET); a reversed
@@ -34,7 +34,7 @@ invariants:
   - assert: pin_on_net
     pin: "D9.2"
     net: GND
-    adr: 0002
+    adr: "0002"
     why: D9 anode (pad2) to GND — the clamp return.
 
   # ============================================================= #
@@ -45,7 +45,7 @@ invariants:
   - assert: pin_on_net
     pin: "Q9.3"
     net: 5V_P
-    adr: 0007
+    adr: "0007"
     why: >
       Q9 (AO3401A P-FET) DRAIN (pad3) faces the INPUT (5V_P). At power-up the
       body diode (drain->source) conducts input->load through ~0.7V, then the
@@ -54,12 +54,12 @@ invariants:
   - assert: pin_on_net
     pin: "Q9.2"
     net: 5V
-    adr: 0007
+    adr: "0007"
     why: Q9 SOURCE (pad2) is the LOAD rail 5V (the output of the guard).
   - assert: series_chain
     chain: [5V_P, Q9, 5V]
     through: {Q9: [3, 2]}
-    adr: 0007
+    adr: "0007"
     why: >
       The conduction path runs drain(pad3, 5V_P) -> source(pad2, 5V); reverse
       input leaves Vgs>=0 and the body diode reverse-biased -> blocks.
@@ -71,21 +71,21 @@ invariants:
   - assert: pin_on_net
     pin: "Q1.2"
     net: GND
-    adr: 0005
+    adr: "0005"
     why: >
       Q1 (AO3400A N-FET) is LOW-SIDE: SOURCE (pad2) to GND. The beeper sits
       between 5V and the FET drain, switched on the ground-return side.
   - assert: pin_on_net
     pin: "Q1.3"
     net: BEEP_RET1
-    adr: 0005
+    adr: "0005"
     why: >
       The switched return is a SEPARATE per-port net BEEP_RET1 on Q1 DRAIN
       (pad3) — NOT shared GND — so beeper switching current never shares the
       audio-ground path (the crosstalk-isolation intent of ADR-0005).
   - assert: series_chain
     chain: [BEEP_G1, R101, BG_1]
-    adr: 0005
+    adr: "0005"
     why: >
       The XU316 gate signal drives the FET THROUGH R101 (1k) into BG_1 (with a
       4n7 + 100k slow network) — never direct — to slow the beeper edge.
@@ -97,19 +97,19 @@ invariants:
   # ============================================================= #
   - assert: series_chain
     chain: [MCLK_A0, R40, MCLK_A]
-    adr: 0006
+    adr: "0006"
     why: MCLK buffer branch A reaches ADC1 MCLK only through R40 (33R source term).
   - assert: series_chain
     chain: [MCLK_B0, R41, MCLK_B]
-    adr: 0006
+    adr: "0006"
     why: MCLK buffer branch B reaches ADC2 MCLK only through R41 (33R source term).
   - assert: series_chain
     chain: [BCLK_X, R42, BCLK]
-    adr: 0006
+    adr: "0006"
     why: XU316 BCLK source reaches both ADCs' shared BCLK only through R42 (33R).
   - assert: series_chain
     chain: [LRCK_X, R43, LRCK]
-    adr: 0006
+    adr: "0006"
     why: XU316 LRCK source reaches both ADCs' shared LRCK only through R43 (33R).
 
   # ============================================================= #
@@ -119,30 +119,30 @@ invariants:
   - assert: pin_on_net
     pin: "U2.8"
     net: 3V3A
-    adr: 0006
+    adr: "0006"
     why: >
       ADC1 (U2 PCM1865) AVDD (pin8) on the quiet analog rail 3V3A (XC6227 LDO),
       isolated from the switching-buck digital rail — the mixed-signal split.
   - assert: pin_on_net
     pin: "U2.13"
     net: 3V3
-    adr: 0006
+    adr: "0006"
     why: ADC1 DVDD (pin13) on the 3V3 digital rail.
   - assert: pin_on_net
     pin: "U3.8"
     net: 3V3A
-    adr: 0006
+    adr: "0006"
     why: ADC2 (U3 PCM1865) AVDD (pin8) on the quiet analog rail 3V3A.
   - assert: pin_on_net
     pin: "U3.13"
     net: 3V3
-    adr: 0006
+    adr: "0006"
     why: ADC2 DVDD (pin13) on the 3V3 digital rail.
   - assert: net_has_part
     net: 3V3A
     part_type: capacitor
     min: 2
-    adr: 0006
+    adr: "0006"
     why: >
       The analog rail 3V3A carries its own bulk+HF decoupling (>=2 caps) at the
       LDO and each ADC AVDD pin — the isolation is only as good as its bypass.

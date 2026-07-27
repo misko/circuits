@@ -8,46 +8,46 @@ invariants:
   - assert: series_chain
     chain: [VIN_RAW, Q1, 5V]
     through: {Q1: [D, S]}
-    adr: 0001
+    adr: "0001"
     why: "high-side RPP P-FET in series between the raw barrel jack and the 5V rail (drain=input, source=5V rail); reverse plug leaves it off"
 
   - assert: net_has_part
     net: VIN_RAW
     part_type: diode
     min: 1
-    adr: 0001
+    adr: "0001"
     why: "SMAJ5.0A TVS clamps surge on the raw input ahead of the RPP FET"
 
   - assert: net_has_part
     net: 5V
     part_type: capacitor
     min: 1
-    adr: 0001
+    adr: "0001"
     why: "bulk decoupling on the protected 5V rail"
 
   # ---- ADR-0004 shared clock (the PCM1865 XI abs-max-2.1V trap) ----
   - assert: pin_on_net
     pin: "U2.10"
     net: GND
-    adr: 0004
+    adr: "0004"
     why: "PCM1865 U2 XI (pin 10) tied to GND — abs-max 2.1V, MUST NOT see the 3.3V MCLK"
 
   - assert: pin_on_net
     pin: "U3.10"
     net: GND
-    adr: 0004
+    adr: "0004"
     why: "PCM1865 U3 XI (pin 10) tied to GND — abs-max 2.1V"
 
   - assert: pin_on_net
     pin: "U2.15"
     net: MCLK_A1
-    adr: 0004
+    adr: "0004"
     why: "PCM1865 U2 SCKI (pin 15) driven by the buffered master clock leg 1 (via 33R), not XI"
 
   - assert: pin_on_net
     pin: "U3.15"
     net: MCLK_A2
-    adr: 0004
+    adr: "0004"
     why: "PCM1865 U3 SCKI (pin 15) driven by the buffered master clock leg 2 (via 33R)"
 
   # ---- AP61102 feedback dividers (canon E-INV part_value, added v1.5) ------
@@ -60,7 +60,7 @@ invariants:
     part: R_fb1a
     equals: 200k
     tolerance_pct: 1
-    adr: 0005
+    adr: "0005"
     why: "AP61102 U7 3V3 rail: Table 1 R1=200.0k. With R2=44.2k this gives
           Vout=0.6*(1+200/44.2)=3.315V. A wrong R1 moves the rail feeding both
           PCM1865 DVDD/IOVDD."
@@ -68,20 +68,20 @@ invariants:
     part: R_fb1b
     equals: 44.2k
     tolerance_pct: 1
-    adr: 0005
+    adr: "0005"
     why: "AP61102 U7 3V3 rail: Table 1's 3.3V row is R1=200.0k / R2=44.2k and
           this board copies it verbatim."
   - assert: part_value
     part: R_fb2a
     equals: 200k
     tolerance_pct: 1
-    adr: 0005
+    adr: "0005"
     why: "AP61102 U8 0V9 core rail: Table 1 R1=200.0k reused (0.9V is not a
           Table 1 row; R2 is solved from it)."
   - assert: part_value
     part: R_fb2b
     equals: 402k
     tolerance_pct: 1
-    adr: 0005
+    adr: "0005"
     why: "AP61102 U8 0V9 core rail: R2 = 0.6*200k/(0.9-0.6) = 400k exact; 402k
           is the E96 neighbour, giving Vout=0.898V. The XU316 core rail."

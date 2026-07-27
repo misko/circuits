@@ -15,109 +15,109 @@ invariants:
   - assert: series_chain
     chain: [5V_IN, F1, 5V_FUSED, Q_REV, 5V_RPP]
     through: {Q_REV: [3, 2]}          # AO3401A pad3=DRAIN (input side) -> pad2=SOURCE (load side)
-    adr: 0001
+    adr: "0001"
     why: "5V SELV input -> polyfuse F1 -> reverse-polarity P-FET Q_REV (DRAIN->SOURCE) -> reverse-protected input 5V_RPP"
 
   - assert: pin_on_net
     pin: "U_EFUSE.5"                   # TPS259573 pad5 = OUT
     net: 5V_PROTECTED
-    adr: 0001
+    adr: "0001"
     why: "the eFuse OUTput is the 5V_PROTECTED rail — the protection stage sits in the power path, not a stub"
 
   - assert: pin_on_net
     pin: "D_REVCLAMP.1"                # SS34 pad1 = CATHODE
     net: 5V_FUSED
-    adr: 0001
+    adr: "0001"
     why: "reverse-crowbar cathode DOWNSTREAM of the polyfuse (pin review Q2, 2026-07-23): the reverse fault current path supply->J_PWR->F1->clamp->GND must pass THROUGH F1 so the polyfuse trips; on 5V_IN (upstream) the clamp current bypassed the fuse and was bounded only by the supply"
 
   - assert: pin_on_net
     pin: "U_EFUSE.6"                   # TPS259573 pad6 = FLT_N (open-drain, LOW=fault)
     net: EFUSE_FLT_N
-    adr: 0001
+    adr: "0001"
     why: "the eFuse fault flag rides the HONESTLY-NAMED net EFUSE_FLT_N (renamed from PWR_GOOD_N, pin review Q1 2026-07-23: FLT_N is LOW=fault i.e. HIGH=power-good, so a _N power-good name inverted the sense; consumers are software-read only — R_PG pullup, TP_PGOOD, expander GPA0)"
 
   - assert: net_has_part
     net: DECU_G1_RAW
     part_type: resistor
     min: 1
-    adr: 0006
+    adr: "0006"
     why: "the U-decoder's enable REQUEST line has a pull-DOWN (pin review Q4 2026-07-23; v1.2 moved it to the RAW net, ADR-0011 §5b): when SR_OE_N tri-states the 595s it is the RAW net that floats — out-of-spec for CMOS inputs and a phantom-select hazard; the gated DECU_G1 is driven push-pull by U_DECUEN and cannot float"
 
   - assert: net_has_part
     net: DECD_G1_RAW
     part_type: resistor
     min: 1
-    adr: 0006
+    adr: "0006"
     why: "the D-decoder's enable REQUEST line has a pull-DOWN — same phantom-select hazard closure as DECU_G1_RAW (v1.2: moved to the RAW net, ADR-0011 §5b)"
 
   - assert: net_has_part
     net: EF_OVLO
     part_type: resistor
     min: 2
-    adr: 0001
+    adr: "0001"
     why: "the TPS259573 programmable OVLO divider EXISTS on EN_OVLO_N (R_OVT + R_OVB) — this is the brief §3.5 over-voltage CUTOFF (flag 2)"
 
   - assert: net_has_part
     net: 5V_PROTECTED
     part_type: capacitor
     min: 1
-    adr: 0001
+    adr: "0001"
     why: "the protected rail carries bulk + ceramic decoupling (CE1 220uF + C_IN1/C_IN2)"
 
   # ===== ADR-0002 — safety AND-chain gates the coil rail (no-MCU HW enforcement) =
   - assert: pin_on_net
     pin: "U_AND3.4"                    # SN74LVC1G11 pad4 = Y (final AND output)
     net: KEY_RELAY_ALLOWED
-    adr: 0002
+    adr: "0002"
     why: "the 3rd cascaded 3-input AND (AND1·AND2·FAULT_LATCH_CLEAR) OUTPUT is KEY_RELAY_ALLOWED — the whole 7-condition chain terminates here"
 
   - assert: series_chain
     chain: [5V_PROTECTED, Q_COIL, 5V_KEY_RELAY]
     through: {Q_COIL: [2, 3]}          # AO3401A pad2=SOURCE (5V_PROTECTED) -> pad3=DRAIN (coil rail)
-    adr: 0002
+    adr: "0002"
     why: "the coil rail 5V_KEY_RELAY is reachable ONLY through the high-side switch Q_COIL (SOURCE->DRAIN); ANY AND-chain condition false turns Q_COIL off and the rail dies"
 
   - assert: pin_on_net
     pin: "Q_COILDRV.1"                 # 2N7002 pad1 = GATE
     net: COIL_EN
-    adr: 0002
+    adr: "0002"
     why: "the coil-rail switch driver Q_COILDRV is gated by COIL_EN = KEY_RELAY_ALLOWED THROUGH the Manual/Auto DPDT pole A (physical MANUAL rail cut, brief §3)"
 
   - assert: pin_on_net
     pin: "U_ONESHOT.13"                # CD74HC221 pad13 = 1Q (v1.2, ADR-0011 §6)
     net: PRESS_TIMED
-    adr: 0002
+    adr: "0002"
     why: "the one-shot Q output is PRESS_TIMED — the hardware <=436ms worst-case (<500ms) PRESS cap, independent of the Pi; v1.2 swapped the RETRIGGERABLE 1G123 for the NON-retriggerable CD74HC221 so the cap is a HARD bound"
 
   - assert: pin_on_net
     pin: "U_ULNB.3"                    # ULN2803 #B pad3 = IN3 (K_PRESS channel input)
     net: PRESS_TIMED
-    adr: 0002
+    adr: "0002"
     why: "the K_PRESS coil driver input is driven ONLY by the one-shot output PRESS_TIMED — a hung Pi cannot hold PRESS beyond the one-shot window"
 
   - assert: pin_on_net
     pin: "U_WD.1"                      # TPS3823 pad1 = RESET_N (push-pull, high=OK)
     net: WD_OK
-    adr: 0002
+    adr: "0002"
     why: "the external watchdog supervisor RESET_N is WD_OK — heartbeat loss / brown-out drops it (flag 1: TPS3823 is the coarse ~1.6s WD, not the fast PRESS timer)"
 
   - assert: pin_on_net
     pin: "U_AND1.3"                    # SN74LVC1G11 #1 pad3 = B
     net: WD_OK
-    adr: 0002
+    adr: "0002"
     why: "WD_OK is an input of the AND-chain (U_AND1.B) — the watchdog directly gates the coil rail"
 
   - assert: pin_on_net
     pin: "K_U1.4"                      # DIP05 reed relay tsx pad4 = CONTACT_A (keypad side)
     net: U_SEL_BUS
-    adr: 0002
+    adr: "0002"
     why: "the reed-relay CONTACT (keypad side) sits on the ISOLATED keypad net U_SEL_BUS, while its COIL (pad1) sits on the SELV-logic rail 5V_KEY_RELAY — the two domains meet ONLY across the relay's 1.5kV coil/contact barrier, no shared copper (brief §7, ADR-0001). Full >=6mm creepage + no-shared-GND is the geometric/audit half (E2)"
 
   # ===== ADR-0006 — reed relay matrix: K_PRESS bridges U_SEL -> D_SEL via RKEY ====
   - assert: series_chain
     chain: [U_SEL_BUS, K_PRESS, RKEY_MID, R_KEY, D_SEL_BUS]
     through: {K_PRESS: [4, 3]}         # DIP05 tsx pad4=CONTACT_A (U side) -> pad3=CONTACT_B (RKEY side)
-    adr: 0006
+    adr: "0006"
     why: "K_PRESS bridges the selected U bus to the selected D bus THROUGH the RKEY solder-select resistor (0R default, field 0/22/47/100/220/470/1k) — the emulation-resistance path of the matrix selector (T1)"
 
   # ===== ADR-0010 — Pi 5 native-I2C pin map (v1.2, review F1) ====================

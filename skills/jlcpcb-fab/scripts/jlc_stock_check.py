@@ -102,7 +102,27 @@ args = ap.parse_args()
 rows = list(csv.DictReader(open(args.bom)))
 coded = [r for r in rows if r.get("LCSC", "").strip()]
 uncoded = [r for r in rows if not r.get("LCSC", "").strip()]
+print(f"input: bom = {args.bom}")
 print(f"{len(rows)} BOM lines: {len(coded)} with LCSC, {len(uncoded)} without\n")
+
+# G-COVER (canon M-COVER, 2026-07-27). The verdict counted PROBLEMS, never what
+# it had looked at, so an EMPTY BOM — a wrong path, a header-only CSV, a
+# filename that is not in the release (the `bom_source_check` defect, ADR-0004)
+# — printed `PASS: 0 coded lines with problems` and exit 0. Worse, the --json
+# sidecar wrote `"verdict": "PASS"` for that run, and release_freshness A-STOCK
+# READS that field: a zero-coverage run could clear the release gate.
+#
+# `nothing_graded` is computed HERE, before the sidecar is written, so the
+# sidecar and the exit code can never disagree.
+nothing_graded = ""
+if not rows:
+    nothing_graded = (f"0/0 BOM lines graded — {args.bom} yielded no rows at "
+                      f"all. A zero denominator is a FAIL, never a pass; check "
+                      f"that this is the BOM the release actually ships.")
+elif not coded:
+    nothing_graded = (f"0/{len(rows)} BOM lines graded — every line in "
+                      f"{args.bom} lacks an LCSC code, so stock was queried "
+                      f"for NONE of them. Nothing here was checked.")
 
 report, failures = [], 0
 
@@ -168,7 +188,13 @@ if args.json:
         json.dump({"tool": "jlc_stock_check.py",
                    "bom": str(args.bom),
                    "min_stock_per_board": args.min_stock,
-                   "verdict": "FAIL" if failures else "PASS",
+                   "verdict": "FAIL" if (failures or nothing_graded) else "PASS",
+                   # the DENOMINATOR travels with the verdict, so a reader of
+                   # the sidecar alone can see a zero-coverage run for what it
+                   # is rather than inferring PASS from an absent FAIL
+                   "graded_lines": len(coded),
+                   "total_lines": len(rows),
+                   "zero_coverage": nothing_graded or None,
                    "failures": failures,
                    "uncoded_lines": len(uncoded),
                    "lines": [{"lcsc": r.get("LCSC", "").strip(),
@@ -181,6 +207,15 @@ if args.json:
                              for r in report]}, f, indent=1)
     print(f"json -> {args.json}")
 
-print(f"\n{'FAIL' if failures else 'PASS'}: {failures} coded lines with problems; "
-      f"{len(uncoded)} lines still uncoded")
+# Uncoded lines are NOT graded by this tool at all — they carry no LCSC to
+# query — so they were silently outside the denominator while reading as part
+# of a passing run. The verdict now states both numbers.
+graded, total = len(coded), len(rows)
+if nothing_graded:
+    print(f"\nFAIL: {nothing_graded} (canon M-COVER)")
+    sys.exit(1)
+print(f"\n{'FAIL' if failures else 'PASS'}: {graded - failures}/{graded} coded "
+      f"BOM lines have stock >= {args.min_stock} x qty ({failures} with "
+      f"problems); {len(uncoded)}/{total} lines carry NO LCSC and were NOT "
+      f"graded by this tool")
 sys.exit(1 if failures else 0)

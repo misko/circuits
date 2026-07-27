@@ -850,19 +850,39 @@ def t_stock_json_roundtrip():
     method by accident (canon M1). Round-trip it through the real writer.
 
     Hermetic: a BOM whose lines are all UNCODED makes zero `query()` calls, so
-    the network is never touched (`--search-missing` is deliberately off)."""
+    the network is never touched (`--search-missing` is deliberately off).
+
+    UPDATED 2026-07-27 (G-COVER). This used to assert the all-uncoded BOM
+    exited 0 with `"verdict": "PASS"`. That was the defect: every line lacking
+    an LCSC means stock was queried for NONE of them, so the sidecar declared
+    PASS over a ZERO denominator — and release_freshness A-STOCK READS that
+    field, so a zero-coverage run could clear the release gate. The round-trip
+    property this test exists for is unchanged and still asserted; what moved
+    is the verdict such a run is entitled to."""
     import json
     d = tmpdir("stkw_")
     bom = d / "bom_jlc.csv"
     bom.write_text("Comment,Designator,Footprint,MPN,LCSC\n"
                    "10k,R1,R_0402_1005Metric,,\n")
     out = d / "stock_check.json"
-    r = must_pass(run([KPY, FAB_SCRIPTS / "jlc_stock_check.py", bom,
-                       "--json", out]), "jlc_stock_check --json (uncoded BOM)")
-    contains(r.out, "PASS:", "the writer still prints its verdict line")
+    r = must_fail(run([KPY, FAB_SCRIPTS / "jlc_stock_check.py", bom,
+                       "--json", out]),
+                  "jlc_stock_check --json (all-uncoded BOM grades NOTHING)",
+                  "0/1 BOM lines graded")
+    contains(r.out, "FAIL:", "the writer still prints its verdict line")
     doc = json.loads(out.read_text())
-    check(doc.get("verdict") == "PASS",
-          f"the sidecar must carry an EXPLICIT verdict, got {doc.get('verdict')!r}")
+    # the SIDECAR and the EXIT CODE must not disagree — the sidecar is what the
+    # release gate reads, so a PASS here beside an exit 1 would be the worse
+    # half of the defect
+    check(doc.get("verdict") == "FAIL",
+          f"the sidecar must agree with the exit code, got "
+          f"{doc.get('verdict')!r} beside rc={r.rc}")
+    check(doc.get("graded_lines") == 0 and doc.get("total_lines") == 1,
+          f"the sidecar must carry the DENOMINATOR so a reader of the JSON "
+          f"alone can see a zero-coverage run: got graded_lines="
+          f"{doc.get('graded_lines')!r} total_lines={doc.get('total_lines')!r}")
+    check(doc.get("zero_coverage"),
+          "the sidecar must SAY why nothing was graded, not leave it inferable")
     check("lines" in doc, "the sidecar must carry a per-line list")
     # and the READER must accept exactly what the WRITER produced
     rel, _ = rel_tree(CROW13, assembly=CLEAN_ASSEMBLY)
