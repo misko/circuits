@@ -94,28 +94,58 @@ def t_retires_the_pour_defect():
       * F-PAYLOAD must PASS. That is the pour, the whole reason v1.9 exists.
       * F-LEGIBLE is pinned FAIL. When v1.10 fixes the encoding this test goes
         RED and must be updated deliberately — an adopted-forward gap that
-        silently heals is one nobody records having closed."""
+        silently heals is one nobody records having closed.
+
+    AND IT DID GO RED, on 2026-07-27, exactly as written. **v1.10 closed the
+    gap** — a BOM-legibility supersede, no copper change — so v1.9 is now
+    superseded and F-LEGIBLE PASSES on the live release. This update is the
+    "deliberately" the sentence above asked for, and it is why the pin was
+    worth having: the hand-off is recorded rather than silently absorbed.
+
+    The assertions now run on BOTH rows, which is stronger than either alone:
+      * v1.9 must read SUPERSEDED and must still show its F-LEGIBLE FAIL. The
+        adopted-forward gap is HISTORY, not erased — a sealed release is never
+        retro-fixed, and a report that forgets what was wrong with it cannot be
+        audited later. This is the same property the v1.8 NO-POUR row carries.
+      * v1.10 must be LIVE, and must PASS F-PAYLOAD **and** F-LEGIBLE. The pour
+        has to survive the supersede (the whole risk of touching this board
+        again), and the legibility fix has to be real."""
     r = run([KPY, TOOL, "--project", "usb-hub-3s-v3"])
     contains(r.out, "v1.8-2026-07-26", "the retired defect is still listed")
     contains(r.out, "NO POUR", "and still named with its reason")
     v18 = [l for l in r.out.splitlines() if "v1.8-2026-07-26" in l]
     check(v18 and "*" in v18[0],
           f"v1.8 must be flagged superseded (*) now that v1.9 exists:\n{v18}")
-    v19 = [l for l in r.out.splitlines() if "v1.9-2026-07-27" in l]
-    check(v19, "v1.9 must appear in the regrade")
-    check("*" not in v19[0][:60],
-          f"v1.9 is the LIVE release and must not read as superseded:\n{v19[0]}")
-    cols = ("F-PAYLOAD", "F-LEGIBLE", "A-EVID", "A-POP")
-    cells = v19[0].split()[1:]
-    verdicts = dict(zip(cols, [c for c in cells if c in ("PASS", "FAIL", "?")]))
+
+    def verdicts_of(line):
+        cols = ("F-PAYLOAD", "F-LEGIBLE", "A-EVID", "A-POP")
+        cells = [c for c in line.split()[1:] if c in ("PASS", "FAIL", "?")]
+        return dict(zip(cols, cells))
+
+    v19 = [l for l in r.out.splitlines()
+           if "v1.9-2026-07-27" in l and "FAIL F-" not in l]
+    check(v19, "v1.9 must still appear in the regrade")
+    check("*" in v19[0][:60],
+          f"v1.9 is SUPERSEDED by v1.10 and must read that way:\n{v19[0]}")
+    check(verdicts_of(v19[0]).get("F-LEGIBLE") == "FAIL",
+          f"v1.9's F-LEGIBLE failure is HISTORY and must not be erased — "
+          f"07_releases is immutable and the record of what was wrong is the "
+          f"point of keeping the row:\n{v19[0]}")
+
+    v110 = [l for l in r.out.splitlines()
+            if "v1.10-2026-07-27" in l and "FAIL F-" not in l]
+    check(v110, "v1.10 must appear in the regrade")
+    check("*" not in v110[0][:60],
+          f"v1.10 is the LIVE release and must not read as superseded:"
+          f"\n{v110[0]}")
+    verdicts = verdicts_of(v110[0])
     check(verdicts.get("F-PAYLOAD") == "PASS",
-          f"v1.9 EXISTS to restore the copper pour; F-PAYLOAD must pass or the "
-          f"fix did not take:\n{v19[0]}")
-    check(verdicts.get("F-LEGIBLE") == "FAIL",
-          f"v1.9 sealed BEFORE F-LEGIBLE existed and its BOM has no UTF-8 BOM "
-          f"marker. This is pinned as an adopted-forward gap: if it now passes, "
-          f"a new release closed it and this test must be updated to say so "
-          f"rather than quietly agreeing:\n{v19[0]}")
+          f"v1.10 inherits v1.9's restored pour and must still ship it — this "
+          f"is the board whose v1.6-v1.8 shipped 44287.91 mm2 of missing "
+          f"copper:\n{v110[0]}")
+    check(verdicts.get("F-LEGIBLE") == "PASS",
+          f"v1.10 EXISTS to make the BOM legible; if F-LEGIBLE does not pass "
+          f"the release did not do the one thing it was cut for:\n{v110[0]}")
 
 
 @test("regrade_confirms_the_clean_boards_are_clean")

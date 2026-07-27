@@ -1,0 +1,9 @@
+== release-freshness: v1.10-2026-07-27 == [legible-bom supersede of v1.9-2026-07-27]
+  note: fab/ byte-identical to v1.9-2026-07-27 (4 file(s)) — ASSERTED by legible-bom mode
+  note: source/ byte-identical to v1.9-2026-07-27 (13 file(s)) — ASSERTED by legible-bom mode
+  note: 3d/ byte-identical to v1.9-2026-07-27 (1 file(s)) — ASSERTED by legible-bom mode
+  note: F-LEGIBLE on this release (v1.10-2026-07-27): 0 finding(s)
+  note: F-LEGIBLE on the prior release (v1.9-2026-07-27): 26 finding(s)
+  note: fab/bom.csv delta is 21 Comment rewrite(s) and 4 MPN change(s) over 46 row(s); 24 row(s) byte-identical; 0 added, 0 removed, 0 Footprint/LCSC changes — ASSERTED by legible-bom mode
+  note: A-STOCK: grading verification/stock_check.json (46 graded line(s), verdict=PASS) against 43 coded+placed BOM line(s) x 5 boards
+FRESHNESS: PASS

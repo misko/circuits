@@ -1,0 +1,36 @@
+MANIFEST self-check — v1.10-2026-07-27
+  files on disk (excluding MANIFEST.txt) : 79
+  entries in the sha256 table            : 79
+  table entries with no file             : 0 []
+  files with no table entry              : 0 []
+  hash mismatches                        : 0 []
+  RESULT: PASS — bidirectional, 79/79 verified
+
+  table layout: sha256sum order, `<hash>  <path>` — the layout that, until
+  2026-07-27, policy_audit's M-REL could not read at all. It matched 0 of
+  v1.9's 76 rows while reporting "provenance + hashes verify"; both layouts are
+  read now and an unreadable table is its own FAIL. This release is the first
+  on this board whose hashes M-REL has ever actually checked.
+
+THE BOOTSTRAP, STATED RATHER THAN HIDDEN.
+This file is itself one of the 79 rows in the table it is reporting on, so its
+own sha256 is necessarily stamped AFTER this text was written. Of the 79 rows,
+78 were hashed and compared by the run that produced this text; this file's own
+row was computed from these bytes immediately afterwards and cannot have been
+verified by the run that wrote them. That is not a gap you can close by being
+cleverer about the order — it is closed by the READER, in one command, which is
+why the command is printed here rather than a claim being made on its behalf:
+
+    cd 07_releases/v1.10-2026-07-27
+    sha256sum -c <(sed -n '/^sha256:/,$p' MANIFEST.txt | tail -n +2 \
+                   | awk 'NF==2 {print $1"  "$2}')
+
+Every row must report OK, and the file count must be 79. A single mismatch
+means this directory was mutated after the seal, and 07_releases/contracts.md
+says what to do then: it is no longer evidence of anything — rename it
+TAINTED-v1.10-2026-07-27 and re-release. Do not repair it in place.
+
+WHY THIS FILE EXISTS AT ALL. v1.5 of this board shipped a manifest_selfcheck.txt
+that was 0 BYTES — the MANIFEST cited it as evidence for a gate that therefore
+could not fail (DISPOSITIONS FL15-1). An empty or hand-written self-check is
+worse than none, because it converts an absent gate into a passing one.
