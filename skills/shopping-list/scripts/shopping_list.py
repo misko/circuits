@@ -345,7 +345,8 @@ def attach_bom(project, parts, boms):
     unmatched = []
     for label, (reldir, bom) in boms.items():
         try:
-            rows = list(csv.DictReader(bom.open(newline="", errors="replace")))
+            rows = list(csv.DictReader(
+                bom.open(newline="", errors="replace", encoding="utf-8-sig")))
         except Exception as e:                    # noqa: BLE001
             unmatched.append(f"{label}: cannot read {bom.name}: {e}")
             continue

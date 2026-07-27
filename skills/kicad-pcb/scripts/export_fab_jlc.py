@@ -68,7 +68,7 @@ ew.CreateDrillandMapFilesSet(str(out), True, False)
 old_lcsc = {}
 bom_path = out / "bom_jlc.csv"
 if bom_path.exists():
-    with open(bom_path) as f:
+    with open(bom_path, encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
             if row.get("LCSC"):
                 old_lcsc[(row["Comment"], row["Footprint"])] = row["LCSC"]

@@ -273,7 +273,7 @@ else:
 old_lcsc = {}       # refdes -> LCSC (from a prior export)
 bom_path = out / "bom_jlc.csv"
 if bom_path.exists():
-    with open(bom_path) as f:
+    with open(bom_path, encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
             # An LCSC code is C-prefixed digits. A carried-over MPN string (a
             # hand-solder part's FPID handle, e.g. AOM-5024L-HD-R) is NOT an LCSC
@@ -384,7 +384,7 @@ for (code, val, fpname), refs in sorted(groups.items()):
     # tokens; merging BEFORE legibility would let two illegible tokens produce
     # a string ("C82317 / C131025") that no narrow legibility test can refuse
     # while still being unreadable by every human on both sides of the upload.
-    comment = legible_comment(val, _auth.resolve(code))
+    comment = legible_comment(val, _auth.resolve(code), fpname)
     if key in lines:
         line = lines[key]
         line[1].extend(refs)

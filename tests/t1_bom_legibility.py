@@ -99,6 +99,119 @@ def t_comment_defect_is_narrow():
         eq(comment_defect(good), None, f"F-WORDS rejected legitimate {good!r}")
 
 
+@test("no dossier hides its LCSC in a bare top-level `lcsc:` — the F-MPN "
+      "authority reads ONE home")
+def t_dossier_lcsc_has_one_home():
+    """MEASURED 2026-07-27, and it is a COVERAGE hole, not a style point. The
+    `02_parts/` contract's schema is `sourcing: {lcsc: C…}` and
+    `load_part_mpns()` reads exactly that. SIX of 204 dossiers declared a bare
+    top-level `lcsc:` instead — five on crow-recorder-central-v2 (including
+    C79924/U9, C237284/L2, C3716677/the four beads, C882626/L1) — so their
+    parts were INVISIBLE to the MPN authority even though the repo knew the
+    answer, and F-MPN condemned their rows as unresolvable. `bom_source_check`
+    leg C and `shopping_list` read the same one home and were equally blind;
+    only `part_facts_check` tolerated both, which is how the drift survived.
+
+    Fixed at the SOURCE (the six dossiers), not by teaching the resolver a
+    second home — a second home for a fact that already has one is the whole
+    subject of ADR-0006. This test is what stops the seventh one appearing.
+
+    RED-VERIFIED 2026-07-27: with the six pre-fix dossiers stashed back in
+    (`git stash push projects/*/02_parts`), this file reports 18 passed /
+    2 failed and this test names all six paths. Restored: 20 / 0."""
+    import yaml as _yaml
+    bare = []
+    for y in sorted((ROOT / "projects").glob("*/02_parts/*/part.yaml")):
+        d = _yaml.safe_load(y.read_text()) or {}
+        if isinstance(d, dict) and d.get("lcsc") and not (
+                isinstance(d.get("sourcing"), dict)
+                and d["sourcing"].get("lcsc")):
+            bare.append(str(y.relative_to(ROOT)))
+    check(not bare,
+          f"{len(bare)} dossier(s) declare a bare top-level `lcsc:`, which the "
+          f"F-MPN authority does not read — move it into the `sourcing:` "
+          f"block the 02_parts contract mandates: {bare}")
+
+
+@test("an UNCODED row falls back to its FOOTPRINT, and a CODED one never does")
+def t_footprint_fallback_is_narrow():
+    """The last legible fact the SOURCE holds about a row JLC will never match
+    on. crow-recorder-central-v2 ships JP_INJ and J_DBG `dnp_by_design` with a
+    deliberately BLANK LCSC (declared with evidence in assembly.yaml) and a
+    board Value of `simple_chip` — a tscircuit placeholder that cannot be
+    fixed without regenerating the board, i.e. without moving copper on a
+    sealed design. `PinHeader_1x03_P2.54mm_Vertical` is something a human can
+    read and check; a blank is not.
+
+    The narrowness is the point: the fallback fires ONLY when the authority
+    resolved nothing, so it can never launder a coded row's Comment. A coded
+    row either carries its MPN or FAILS F-MPN."""
+    from bom_legibility_check import MpnRes  # noqa: PLC0415
+    eq(legible_comment("simple_chip", None, "PinHeader_1x03_P2.54mm_Vertical"),
+       "PinHeader_1x03_P2.54mm_Vertical", "uncoded row keeps nothing legible")
+    eq(legible_comment("simple_chip", None, ""), "",
+       "with no footprint either there is nothing to say — still blank")
+    res = MpnRes("TLV70018DDCR", "", "02_parts/TLV70018DDCR")
+    eq(legible_comment("simple_chip", res, "SOT-23-5"), "TLV70018DDCR",
+       "a RESOLVED row must use its MPN, never the footprint")
+    eq(legible_comment("1nF", None, "C_0402_1005Metric"), "1nF",
+       "a legible board Value always wins")
+
+
+@test("every fab-CSV reader in the fleet tolerates the UTF-8 byte-order-mark "
+      "F-ENCODE now puts on the BOM", kind="known_bad")
+def t_readers_survive_the_bom_marker():
+    """THE DEFECT F-LEGIBLE'S OWN FIX CREATED, caught while cutting the first
+    release that carries the marker.
+
+    ADR-0006 chose a UTF-8 byte-order-mark as the F-ENCODE remedy. `csv`
+    folds it into the FIRST HEADER NAME, so a reader that opens the file as
+    plain utf-8 sees a column called `\\ufeffComment` and `row.get("Comment")`
+    returns None on EVERY row. MEASURED 2026-07-27 on crow-recorder-central-v2
+    v1.6's staged BOM: `bom_source_check` leg C went from **25/25 R/C rows
+    value-graded to 0/25**, reported as 25 COVERAGE-GAP lines and STILL A
+    PASS. Fourteen reader sites across four skills had the same shape.
+
+    Both halves are asserted: the BEHAVIOUR (the same BOM, marked and unmarked,
+    must grade identically) and the SHAPE (no fab-CSV `open()` may omit the
+    encoding), because behaviour alone would not stop the fifteenth site.
+
+    RED-VERIFIED 2026-07-27: with the fourteen `encoding="utf-8-sig"` arguments
+    reverted, this test reports the coverage disagreement (25/25 vs 0/25) and
+    lists the offending call sites."""
+    import re
+    d = tmpdir("bommark_")
+    src = (CROW_V15 / "fab" / "bom.csv").read_bytes()
+    check(not src.startswith(b"\xef\xbb\xbf"), "fixture already marked")
+    plain, marked = d / "plain.csv", d / "marked.csv"
+    plain.write_bytes(src)
+    marked.write_bytes(b"\xef\xbb\xbf" + src)
+    src_check = FAB_SCRIPTS / "bom_source_check.py"
+    cj = RELEASES / "crow-recorder-central-v2/03_tscircuit/build/circuit.json"
+    out = {}
+    for name, p in (("plain", plain), ("marked", marked)):
+        r = run([KPY, src_check, p, cj, "--parts",
+                 RELEASES / "crow-recorder-central-v2/02_parts"])
+        m = re.search(r"coverage leg C: (\d+)/(\d+)", r.out)
+        out[name] = m.group(0) if m else f"(no coverage line)\n{r.out}"
+    eq(out["marked"], out["plain"],
+       "the SAME BOM grades differently with a byte-order-mark — a reader is "
+       "seeing '\\ufeffComment' instead of 'Comment'")
+    contains(out["plain"], "/25", "fixture premise: 25 R/C rows are gradeable")
+
+    # the shape: any open() of something named bom/cpl must name the encoding
+    OPEN = re.compile(r"\bopen\(\s*[^)]*\b(?:bom|cpl)\w*\b[^)]*\)")
+    offenders = []
+    for py in sorted((ROOT / "skills").rglob("*.py")):
+        for m in OPEN.finditer(py.read_text()):
+            if "utf-8-sig" not in m.group(0) and '"w"' not in m.group(0):
+                offenders.append(f"{py.relative_to(ROOT)}: {m.group(0)[:70]}")
+    check(not offenders,
+          f"{len(offenders)} fab-CSV open() call(s) do not name "
+          f"encoding='utf-8-sig', so a byte-order-marked BOM silently loses "
+          f"its first column: {offenders}")
+
+
 @test("F-ENCODE is INDIFFERENT to how the ambiguity is removed")
 def t_encode_indifferent():
     """ADR-0006: "the fix is a BOM marker or ASCII `Ohm`, and the check is
@@ -238,16 +351,43 @@ def t_echo_clean():
 
 
 # ================================================= the EXPORTER, end to end =
-@test("the exporter BLOCKS the board whose BOM JLC could not process, and "
-      "leaves NOTHING uploadable", kind="known_bad")
+def detached_board(tag="expleg_"):
+    """The real crow-recorder board, COPIED out of its project so that
+    `find_parts_dir` finds no `02_parts/` — the authority is then the ledger
+    alone and every IC on the board resolves NOTHING.
+
+    WHY NOT JUST POINT AT THE PROJECT. Until 2026-07-27 this family's block
+    fixture WAS the project board, because five of its coded rows resolved no
+    MPN. Those five were then FIXED at the source (four dossiers moved a bare
+    `lcsc:` into the `sourcing:` block the 02_parts contract mandates; Y1's
+    NDK crystal gained a catalog-verified ledger row) and the fixture went
+    green — a known-bad that evaporates the moment the defect it guards is
+    repaired proves nothing afterwards, which is the exact failure c1af621
+    recorded for `fleet_regrade`. Detaching the board makes the fixture
+    depend on the RESOLVER's behaviour, not on any board's repair state.
+    Rotations are overridden because A-ROT blocks FIRST and this fixture is
+    about F-LEGIBLE."""
+    d = tmpdir(tag)
+    (d / "out").mkdir()
+    board = d / CROW_BOARD.name
+    board.write_bytes(CROW_BOARD.read_bytes())
+    return board, d / "out"
+
+
+CROW_TSC = RELEASES / "crow-recorder-central-v2/03_tscircuit"
+
+
+@test("the exporter BLOCKS when a coded row resolves NO MPN, and leaves "
+      "NOTHING uploadable", kind="known_bad")
 def t_export_blocks_illegible():
-    """crow-recorder-central-v2 is the ADR's incident board. With the MPN read
-    from `02_parts/` instead of the never-created side-file, five of its coded
-    rows (C237284 L2, C2762192 Y1, C3716677 FB*, C79924 U9, C882626 L1) resolve
-    NO MPN from any authority and seven rows still carry a blank Comment. Both
-    are FAILs, and the block must leave no plausible-looking package behind —
-    the A-ROT lesson: a blocked run that leaves a CPL is worse than no gate,
-    because the next person uploads it.
+    """THE ADR'S INCIDENT BOARD, with its MPN authority taken away. 23 of
+    crow-recorder-central-v2's coded rows resolve no MPN from the ledger alone
+    — that is the state EIGHT of nine boards shipped in for the fleet's whole
+    history, because the exporter read a hand-maintained side-file only one
+    project ever created. Each is a FAIL, never a blank, and the block must
+    leave no plausible-looking package behind — the A-ROT lesson: a blocked
+    run that leaves an uploadable file is worse than no gate, because the next
+    person uploads it.
 
     RED-VERIFIED 2026-07-27: `git show HEAD:skills/jlcpcb-fab/scripts/
     export_jlc_package.py` restored in place, this test run — the pre-fix
@@ -256,29 +396,55 @@ def t_export_blocks_illegible():
     restored and the test re-run green."""
     if not CROW_BOARD.exists():
         raise AssertionError(f"missing real board fixture: {CROW_BOARD}")
-    d = tmpdir("expleg_")
-    stale = d / "bom_jlc.csv"
+    board, out = detached_board()
+    stale = out / "bom_jlc.csv"
     stale.write_text("Comment,Designator\nSTALE,X1\n")
-    r = run([KPY, EXPORT, CROW_BOARD, d, "--layers", "4"])
+    r = run([KPY, EXPORT, board, out, "--layers", "4",
+             "--lcsc-source", CROW_TSC, "--allow-unsourced-rotations"])
     must_fail(r, "fab export with an illegible BOM", "F-LEGIBLE BLOCKED")
-    contains(r.out, "F-MPN C2762192", "the block names an unresolvable code")
-    contains(r.out, "F-WORDS", "and the illegible rows")
+    contains(r.out, "no 02_parts/<MPN>/part.yaml declares this code",
+             "the block says what would fix it")
+    contains(r.out, "F-MPN C6938291", "and names an unresolvable code (U1)")
     check(not stale.exists(),
           "a BLOCKED export left a stale bom_jlc.csv behind — the next person "
           "uploads it")
-    check(not (d / "cpl_jlc.csv").exists(), "a blocked export wrote a CPL")
+    check(not (out / "cpl_jlc.csv").exists(), "a blocked export wrote a CPL")
 
 
 @test("the exporter's F-LEGIBLE escape hatch is LOUD and still writes")
 def t_export_escape_hatch():
     """A blocking change needs a transition, and a quiet escape hatch is just
     the old default with extra steps. Mirrors --allow-unsourced-rotations."""
-    d = tmpdir("expleg_")
-    r = must_pass(run([KPY, EXPORT, CROW_BOARD, d, "--layers", "4",
+    board, out = detached_board()
+    r = must_pass(run([KPY, EXPORT, board, out, "--layers", "4",
+                       "--lcsc-source", CROW_TSC,
+                       "--allow-unsourced-rotations",
                        "--allow-illegible-bom"]), "escape-hatch export")
     contains(r.out, "F-LEGIBLE OVERRIDDEN", "the override is loud")
     contains(r.out, "MUST NOT BE ORDERED", "and says what it costs")
-    check((d / "bom_jlc.csv").exists(), "the escape hatch wrote no BOM")
+    check((out / "bom_jlc.csv").exists(), "the escape hatch wrote no BOM")
+
+
+@test("the incident board's OWN export now PASSES F-LEGIBLE end to end")
+def t_crow_export_is_legible_now():
+    """The other side of the known-bad above, and the reason
+    crow-recorder-central-v2 v1.6 exists. WITH its `02_parts/` in reach, all 47
+    coded rows resolve and all 49 Comments read. Two of those 49 rows are the
+    uncoded `dnp_by_design` pin headers JP_INJ and J_DBG, whose board Value is
+    the tscircuit placeholder `simple_chip`: they are legible only because of
+    the FOOTPRINT fallback, and the board cannot be regenerated to fix the
+    Value without moving copper on a sealed design."""
+    d = tmpdir("expleg_crow_")
+    must_pass(run([KPY, EXPORT, CROW_BOARD, d, "--layers", "6"]),
+              "export of the incident board")
+    g = must_pass(run([KPY, CHECK, d / "bom_jlc.csv", "--parts",
+                       RELEASES / "crow-recorder-central-v2/02_parts"]),
+                  "independent F-LEGIBLE grading of the incident board")
+    contains(g.out, "coverage F-MPN: 47/47", "every coded row resolved")
+    contains(g.out, "coverage F-WORDS: 49/49", "every Comment reads")
+    contains(d.joinpath("bom_jlc.csv").read_text(encoding="utf-8-sig"),
+             "PinHeader_1x03_P2.54mm_Vertical,JP_INJ",
+             "the uncoded strap row falls back to its footprint")
 
 
 @test("the exporter's own output PASSES the independent checker, MPN and all")

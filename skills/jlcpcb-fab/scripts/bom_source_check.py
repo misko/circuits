@@ -161,7 +161,7 @@ def read_bom(bom_path):
     both the Comment,Designator,Footprint,MPN,LCSC and the older
     Comment,Designator,Footprint,LCSC headers (MPN absent -> '')."""
     rows = []
-    with open(bom_path, newline="") as f:
+    with open(bom_path, newline="", encoding="utf-8-sig") as f:
         for r in csv.DictReader(f):
             desig = r.get("Designator") or r.get("Designators") or ""
             refs = [d.strip() for d in desig.split(",") if d.strip()]

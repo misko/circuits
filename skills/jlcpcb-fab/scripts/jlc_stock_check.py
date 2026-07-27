@@ -99,7 +99,7 @@ ap.add_argument("--json", default="",
                      "grades; ship it as verification/stock_check.json")
 args = ap.parse_args()
 
-rows = list(csv.DictReader(open(args.bom)))
+rows = list(csv.DictReader(open(args.bom, encoding="utf-8-sig")))
 coded = [r for r in rows if r.get("LCSC", "").strip()]
 uncoded = [r for r in rows if not r.get("LCSC", "").strip()]
 print(f"input: bom = {args.bom}")

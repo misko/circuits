@@ -609,6 +609,122 @@ def t_kb_bom_only_other_fab_file():
     contains(r.out, "demo_gerbers.zip", "names the deviating file")
 
 
+# ------------------------------------ legible-bom supersede mode (F-LEGIBLE)
+# RED-VERIFIED 2026-07-27 (tests/README step 3, GIT-SWAP variant): with
+# `git show HEAD:skills/jlcpcb-fab/scripts/release_freshness_check.py` swapped
+# back in, every test below dies on "unrecognized arguments:
+# --legible-bom-supersede" — the mode cannot pass vacuously, because it did not
+# exist. Restored and re-run green.
+#
+# The case the three modes above ALL correctly refuse. Canon F-LEGIBLE
+# (ADR-0006): crow-recorder-central-v2 v1.5's BOM was uploaded to JLCPCB and
+# its parts "were not being picked up by their web processing". Fixing that
+# EDITS every row — MPN filled from the part's own dossier, a Comment that
+# stops being an LCSC code — while board, gerbers, drills, CPL, STEP and PDFs
+# stay byte-identical. docs-only refuses (fab/ changed); bom-only refuses too,
+# and RIGHTLY, because it FAILs on any EDITED row for the A-POP defect it
+# guards. So the edit needs its own mode with its own assertion.
+_BOM_ILLEGIBLE = (_BOM_HDR + "100nF,\"C1,C2\",C_0603,,C14663\n"
+                  "C25804,R1,R_0603,,C25804\n")
+_BOM_LEGIBLE = (_BOM_HDR
+                + "100nF,\"C1,C2\",C_0603,CC0603KRX7R9BB104,C14663\n"
+                "10k,R1,R_0603,0603WAF1002T5E,C25804\n")
+
+
+def legible_bom_root(cur_bom=None, prior_bom=None):
+    """A prior release whose BOM ships blank MPNs and an LCSC code in the
+    Comment column, and a successor that fixed exactly that. Everything else in
+    fab/ is byte-identical. Both codes resolve from the vetted passives ledger,
+    so the fixture needs no 02_parts tree."""
+    root, d1, d2 = bom_only_root()
+    (d1 / "fab" / "bom.csv").write_text(prior_bom or _BOM_ILLEGIBLE)
+    (d2 / "fab" / "bom.csv").write_text(cur_bom or _BOM_LEGIBLE)
+    return root, d1, d2
+
+
+def lgate(d2, d1, *extra):
+    return gate(d2, "--legible-bom-supersede", str(d1), *extra)
+
+
+@test("release_freshness --legible-bom-supersede PASSES a BOM whose Comment "
+      "and MPN columns were made legible and NOTHING else moved")
+def t_legible_bom_pass():
+    _, d1, d2 = legible_bom_root()
+    r = must_pass(lgate(d2, d1), "a true legible-bom supersede")
+    contains(r.out, "legible-bom supersede", "the mode should be announced")
+    contains(r.out, "0 added, 0 removed, 0 Footprint/LCSC changes",
+             "the assertion that separates this from a sourcing change")
+    contains(r.out, "F-LEGIBLE on this release", "the verdict is quoted")
+    contains(r.out, "FRESHNESS: PASS", "verdict")
+    # the two stricter modes must still refuse the same tree
+    rd = must_fail(dgate(d2, d1), "docs-only must still refuse a fab change",
+                   "DOCS-ONLY DEVIATION")
+    contains(rd.out, "fab/bom.csv", "names the file docs-only refuses")
+    rb = must_fail(bgate(d2, d1), "bom-only must still refuse an EDITED row",
+                   "BOM-ONLY DEVIATION")
+    contains(rb.out, "EDITED", "bom-only refuses it for its own good reason")
+
+
+@test("release_freshness --legible-bom-supersede FAILS a changed LCSC — a "
+      "legibility pass rewrites how a row READS, never WHICH PART it is",
+      kind="known_bad")
+def t_kb_legible_bom_substitution():
+    """The C82317 -> C131025 class, smuggled in as paperwork. A mode that only
+    asked "did the file become legible?" would wave this through: the
+    substituted row is perfectly readable."""
+    sub = (_BOM_HDR + "100nF,\"C1,C2\",C_0603,CC0603KRX7R9BB104,C14663\n"
+           "10k,R1,R_0603,0603WAF1002T5E,C25803\n")     # code substituted
+    _, d1, d2 = legible_bom_root(sub)
+    r = must_fail(lgate(d2, d1), "a smuggled substitution must block",
+                  "LEGIBLE-BOM DEVIATION")
+    contains(r.out, "LCSC changed", "names the column that moved")
+    contains(r.out, "C131025", "points at the incident class")
+
+
+@test("release_freshness --legible-bom-supersede FAILS a REMOVED row — that "
+      "is an A-POP fix and belongs in --bom-only-supersede", kind="known_bad")
+def t_kb_legible_bom_removed_row():
+    _, d1, d2 = legible_bom_root(
+        _BOM_HDR + "100nF,\"C1,C2\",C_0603,CC0603KRX7R9BB104,C14663\n")
+    r = must_fail(lgate(d2, d1), "a removed row must block",
+                  "LEGIBLE-BOM DEVIATION")
+    contains(r.out, "REMOVED", "says what happened")
+    contains(r.out, "--bom-only-supersede", "names the mode that WOULD apply")
+
+
+@test("release_freshness --legible-bom-supersede FAILS a BOM that is STILL "
+      "ILLEGIBLE — the release must ship what it claims", kind="known_bad")
+def t_kb_legible_bom_still_illegible():
+    """The vacuous-pass shape: rewrite one Comment, leave every MPN blank, and
+    call it a legibility release. The verdict comes from the F-LEGIBLE gate
+    itself, not from this file's own opinion (ONE grader, canon M1)."""
+    half = (_BOM_HDR + "100nF,\"C1,C2\",C_0603,,C14663\n"
+            "10k,R1,R_0603,,C25804\n")          # Comments fixed, MPNs blank
+    _, d1, d2 = legible_bom_root(half)
+    r = must_fail(lgate(d2, d1), "an illegible 'legibility' release must block",
+                  "still FAILS F-LEGIBLE")
+    contains(r.out, "must SHIP a legible BOM", "says what is required")
+
+
+@test("release_freshness --legible-bom-supersede FAILS when the PRIOR BOM was "
+      "already legible — there was no defect to supersede", kind="known_bad")
+def t_kb_legible_bom_no_defect():
+    _, d1, d2 = legible_bom_root(_BOM_LEGIBLE, prior_bom=_BOM_LEGIBLE)
+    r = must_fail(lgate(d2, d1), "a supersede of a clean BOM must block",
+                  "LEGIBLE-BOM")
+    contains(r.out, "supersedes nothing", "says why it is refused")
+
+
+@test("release_freshness --legible-bom-supersede still refuses a NON-BOM fab "
+      "change (the exemption is exactly one file)", kind="known_bad")
+def t_kb_legible_bom_other_fab_file():
+    _, d1, d2 = legible_bom_root()
+    (d2 / "fab" / "demo_gerbers.zip").write_bytes(_blob("gerber-tweaked"))
+    r = must_fail(lgate(d2, d1), "a changed gerber must block even here",
+                  "DOCS-ONLY DEVIATION")
+    contains(r.out, "demo_gerbers.zip", "names the deviating file")
+
+
 # ----------------- board-prefixed release names (the _version_key silent skip)
 # Found 2026-07-24: _version_key matched only names STARTING with 'v', so
 # every board-prefixed release (cooksense-v1.1-…, crow-mic-pod-v2-v1.0-…,

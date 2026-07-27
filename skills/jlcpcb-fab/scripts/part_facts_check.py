@@ -165,7 +165,7 @@ def load_fab(root):
                   if (fab / n).exists()), None)
     ref_lcsc, ref_comment, cpl = {}, {}, set()
     if bom_p:
-        for row in csv.DictReader(open(bom_p)):
+        for row in csv.DictReader(open(bom_p, encoding="utf-8-sig")):
             code = (row.get("LCSC") or "").strip()
             com = (row.get("Comment") or "").strip()
             for r in (row.get("Designator") or "").split(","):
@@ -173,7 +173,7 @@ def load_fab(root):
                     ref_lcsc[r.strip()] = code
                     ref_comment[r.strip()] = com
     if cpl_p:
-        for row in csv.DictReader(open(cpl_p)):
+        for row in csv.DictReader(open(cpl_p, encoding="utf-8-sig")):
             r = (row.get("Designator") or "").strip()
             if r:
                 cpl.add(r)

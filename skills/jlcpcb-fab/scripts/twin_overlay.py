@@ -420,7 +420,7 @@ def read_twin_findings(path, board_refs):
     found, orphans = {}, set()
     if not path or not Path(path).is_file():
         return found, orphans
-    for row in csv.DictReader(open(path)):
+    for row in csv.DictReader(open(path, encoding="utf-8-sig")):
         st = (row.get("Status") or "").strip()
         if st not in interesting:
             continue
@@ -442,7 +442,7 @@ def read_ref_lcsc(bom, assembly):
     that is jlc_twin's OUTPUT, and this gate grades jlc_twin's render."""
     out = {}
     if bom and Path(bom).is_file():
-        for r in csv.DictReader(open(bom)):
+        for r in csv.DictReader(open(bom, encoding="utf-8-sig")):
             code = (r.get("LCSC") or "").strip()
             if not code:
                 continue

@@ -1,7 +1,9 @@
 # L2 — 0V9 core buck (U8 AP61102) power inductor.
 mpn: "1277AS-H-1R0M=P2"
 manufacturer: Murata (TOKO DFE series)
-lcsc: C237284
+sourcing: {lcsc: C237284}   # `sourcing:` block, NOT a bare `lcsc:` — the
+                       # 02_parts contract's schema and the ONE place the
+                       # F-MPN authority reads (canon F-LEGIBLE)
 function: "1uH shielded power inductor, 1210 (3225), 0V9 core buck output filter"
 package: "1210 (3225 metric)"
 pins:  # 2-pad non-polar

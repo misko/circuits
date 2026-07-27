@@ -346,6 +346,27 @@ the CPL — the upload stalls at JLC's BOM/CPL matcher, and fixing it changes
 `--allow-identical` waivers here; the point is to assert the shape of the
 change, not to excuse it.
 
+**LEGIBLE-BOM supersede mode.** The case all three modes above correctly
+refuse. Canon **F-LEGIBLE** (ADR-0006): the copper is untouched but
+`fab/bom.csv` must be rewritten so the RECIPIENT can PARSE it — MPN filled
+from the part's own `02_parts/<MPN>/part.yaml` (then the vetted passives
+ledger), a Comment that is a human-readable value instead of an LCSC code or
+a `simple_*` generator placeholder, and a UTF-8 byte-order-mark so a cp936
+reader cannot render `Ω` as `惟`. That EDITS every row, so docs-only
+refuses (fab/ changed) and BOM-only refuses too — rightly, since it FAILs on
+any edited row for the A-POP defect IT guards. Gate it with
+`--legible-bom-supersede <prior-release-dir>`: docs-only PLUS an exemption
+for exactly `fab/bom.csv`, and the mode then asserts something STRONGER than
+identity about it — **every row's designator group, `Footprint` and `LCSC`
+UNCHANGED; no row added or removed; no MPN blanked; only `Comment` and `MPN`
+may move** — and, taken from the F-LEGIBLE gate itself rather than
+re-implemented, **this release's BOM must PASS `bom_legibility_check.py` and
+the prior one must FAIL it**. A changed `LCSC` is a SUBSTITUTION (the
+C82317 → C131025 class) and FAILs; a changed `Footprint` is a different
+board and FAILs. Motivating case: crow-recorder-central-v2 v1.5 (2026-07-27)
+— its BOM was uploaded to JLCPCB and the parts "were not being picked up by
+their web processing".
+
 **CPL-only supersede mode.** When the new release changes ONLY
 `fab/cpl.csv` — a PLACEMENT fix — gate the staging with
 `release_freshness_check.py <release_dir> --cpl-only-supersede

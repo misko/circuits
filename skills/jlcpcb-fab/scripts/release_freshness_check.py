@@ -72,6 +72,19 @@ Usage:
                                [--assembly 03_src/rules/assembly.yaml]
                                [--allow-identical RELPATH ]...
     release_freshness_check.py <release_dir> --docs-only-supersede PRIOR_DIR
+    release_freshness_check.py <release_dir> --legible-bom-supersede PRIOR_DIR
+
+LEGIBLE-BOM SUPERSEDE MODE (--legible-bom-supersede <prior-release-dir>):
+canon F-LEGIBLE (ADR-0006) — the board is untouched and `fab/bom.csv` is
+rewritten so JLC's web processing can PARSE it (MPN filled from the part's own
+dossier, a Comment no longer an LCSC code or a `simple_*` placeholder, a UTF-8
+byte-order-mark). Docs-only mode refuses (fab/ changed) and bom-only mode
+refuses too (it FAILs on an EDITED row, correctly, for the A-POP defect IT
+guards). This mode exempts exactly `fab/bom.csv` and then asserts something
+STRONGER than identity about it: every row's designator group, Footprint and
+LCSC UNCHANGED, no row added or removed, no MPN blanked, only Comment/MPN
+moving — and the new BOM must PASS `bom_legibility_check` while the prior one
+FAILs it. See `check_legible_bom_delta`.
 
 DOCS-ONLY SUPERSEDE MODE (--docs-only-supersede <prior-release-dir>):
 a documentation-only supersede release (usb-hub-3s-v3 v1.4, 2026-07-23)
@@ -306,6 +319,132 @@ def check_bom_delta(release_dir, prior_dir):
     return fails, notes
 
 
+def check_legible_bom_delta(release_dir, prior_dir):
+    """LEGIBLE-BOM mode's EXTRA assertion: the one permitted fab/ change is
+    `fab/bom.csv` gaining LEGIBILITY — and NOTHING else about it moving.
+
+    WHY THIS MODE EXISTS, AND WHY THE THREE THAT PRECEDE IT DO NOT COVER IT.
+    Canon F-LEGIBLE (ADR-0006) says a fab artifact is graded as its RECIPIENT
+    parses it. Fixing a BOM to satisfy it EDITS every row — an MPN appears in a
+    column that was blank, a Comment stops being an LCSC code or a `simple_*`
+    placeholder — while the board, the gerbers, the drills, the CPL, the STEP
+    and the PDFs are byte-identical. `--docs-only-supersede` correctly refuses
+    (fab/ changed). `--bom-only-supersede` correctly refuses too, and for a
+    reason worth keeping: it FAILs on any EDITED row, because for the defect IT
+    guards (canon A-POP, an unplaced part must leave the BOM) an edited row
+    would mean a different board.
+
+    WHAT THIS ASSERTS THAT "the file differs" CANNOT. The row IDENTITY is
+    frozen: same set of designator-groups, and for each group the SAME
+    Footprint and the SAME LCSC code. Only `Comment` and `MPN` may move. So a
+    legibility pass cannot smuggle in a substituted part number (the C82317 ->
+    C131025 class this repo has already been bitten by), a re-grouped
+    designator, a dropped part, or a footprint change — and it cannot smuggle
+    OUT a row either. The MPN may only move from BLANK to a value, or between
+    two spellings of the same part; it may not be blanked.
+
+    AND THE POINT OF THE RELEASE IS ASSERTED, NOT ASSUMED: the new BOM must
+    PASS `bom_legibility_check`, and the prior one must FAIL it. A "legible
+    BOM" supersede whose BOM is still illegible supersedes nothing, and one
+    whose predecessor was ALREADY legible had no defect to fix.
+    """
+    import csv as _csv
+    fails, notes = [], []
+    cur_p = release_dir / "fab" / "bom.csv"
+    old_p = prior_dir / "fab" / "bom.csv"
+    if not (cur_p.is_file() and old_p.is_file()):
+        fails.append("  LEGIBLE-BOM: fab/bom.csv missing on one side — cannot "
+                     "establish the delta")
+        return fails, notes
+
+    def rows(p):
+        out = {}
+        for r in _csv.DictReader(
+                p.read_text(encoding="utf-8-sig").splitlines()):
+            refs = tuple(sorted(d.strip() for d in
+                                (r.get("Designator") or "").split(",")
+                                if d.strip()))
+            if refs:
+                out[refs] = {k: (v or "").strip() for k, v in r.items()}
+        return out
+
+    cur, old = rows(cur_p), rows(old_p)
+    for k in sorted(set(cur) - set(old)):
+        fails.append(
+            f"  LEGIBLE-BOM DEVIATION: row {list(k)} was ADDED — a legibility "
+            f"pass may rewrite the Comment and MPN of an existing row and "
+            f"nothing else; adding one is a population or sourcing change")
+    for k in sorted(set(old) - set(cur)):
+        fails.append(
+            f"  LEGIBLE-BOM DEVIATION: row {list(k)} was REMOVED — that is an "
+            f"A-POP fix, not a legibility fix; use --bom-only-supersede so the "
+            f"removal is graded against the CPL")
+    reworded, mpn_filled, untouched = 0, 0, 0
+    for k in sorted(set(cur) & set(old)):
+        c, o = cur[k], old[k]
+        for col in ("Footprint", "LCSC"):
+            if c.get(col) != o.get(col):
+                fails.append(
+                    f"  LEGIBLE-BOM DEVIATION: {','.join(k)} {col} changed "
+                    f"{o.get(col)!r} -> {c.get(col)!r} — a legibility pass "
+                    f"rewrites how the row READS, never WHICH PART it is. A "
+                    f"changed LCSC is a substitution (the C82317 -> C131025 "
+                    f"class); a changed Footprint is a different board")
+        if o.get("MPN") and not c.get("MPN"):
+            fails.append(
+                f"  LEGIBLE-BOM DEVIATION: {','.join(k)} MPN was BLANKED "
+                f"({o.get('MPN')!r} -> ''), which is the defect this mode "
+                f"exists to fix, running backwards")
+        if c.get("MPN") != o.get("MPN"):
+            mpn_filled += 1
+        if c.get("Comment") != o.get("Comment"):
+            reworded += 1
+        if c == o:
+            untouched += 1
+    if not reworded and not mpn_filled:
+        fails.append(
+            "  LEGIBLE-BOM: fab/bom.csv carries the same Comment and MPN on "
+            "every row as the prior release's — a legibility supersede that "
+            "makes nothing more legible supersedes nothing; use "
+            "--docs-only-supersede")
+
+    # the verdict this mode exists for, taken from the F-LEGIBLE gate itself
+    # rather than re-implemented here (ONE grader, canon M1: this file does not
+    # get to have its own opinion about what "legible" means)
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    try:
+        from bom_legibility_check import check as _legibility
+        from bom_legibility_check import discover as _discover
+    except ImportError as e:                                  # pragma: no cover
+        fails.append(f"  LEGIBLE-BOM: cannot import bom_legibility_check ({e})"
+                     f" — this mode's whole verdict comes from it")
+        return fails, notes
+    for label, d in (("this release", release_dir), ("the prior release",
+                                                     prior_dir)):
+        bom, parts, _what = _discover(d)
+        r = _legibility(bom, parts) if bom else {"fails": ["no BOM"]}
+        n = len(r["fails"])
+        if label == "this release" and n:
+            fails.append(
+                f"  LEGIBLE-BOM: this release's fab/bom.csv still FAILS "
+                f"F-LEGIBLE with {n} finding(s) — run "
+                f"`bom_legibility_check.py {d.name}`. A legibility supersede "
+                f"must SHIP a legible BOM")
+        if label == "the prior release" and not n:
+            fails.append(
+                f"  LEGIBLE-BOM: {prior_dir.name}'s fab/bom.csv ALREADY passes "
+                f"F-LEGIBLE — there was no legibility defect to supersede")
+        notes.append(f"  note: F-LEGIBLE on {label} ({d.name}): "
+                     f"{n} finding(s)")
+    if not fails:
+        notes.append(
+            f"  note: fab/bom.csv delta is {reworded} Comment rewrite(s) and "
+            f"{mpn_filled} MPN change(s) over {len(cur)} row(s); "
+            f"{untouched} row(s) byte-identical; 0 added, 0 removed, 0 "
+            f"Footprint/LCSC changes — ASSERTED by legible-bom mode")
+    return fails, notes
+
+
 def check_cpl_delta(release_dir, prior_dir):
     """The ONE permitted fab/ change in CPL-only mode: `fab/cpl.csv` changing
     only PLACEMENT COORDINATES, or losing whole rows for designators that are
@@ -386,17 +525,18 @@ def check_cpl_delta(release_dir, prior_dir):
 
 
 def check_docs_only(release_dir, prior_dir, bom_only=False,
-                    cpl_only=False):
+                    cpl_only=False, legible_bom=False):
     """Assert the docs-only-supersede contract against the DECLARED prior
     release: fab/source/3d byte-identical (any deviation = FAIL), order
     README + MANIFEST byte-DIFFERENT (identical docs supersede nothing).
 
     `bom_only=True` relaxes EXACTLY ONE file — fab/bom.csv — and only because
     check_bom_delta() then asserts something stronger about it than identity.
+    `legible_bom=True` relaxes the same one file for check_legible_bom_delta().
     Nothing else in fab/, and nothing at all in source/ or 3d/, may move."""
     fails, notes = [], []
     exempt = set()
-    if bom_only:
+    if bom_only or legible_bom:
         exempt = {("fab", "bom.csv")}
     elif cpl_only:
         exempt = {("fab", "cpl.csv")}
@@ -426,9 +566,10 @@ def check_docs_only(release_dir, prior_dir, bom_only=False,
             else:
                 same += 1
         if same:
+            _label = ("bom-only" if bom_only else "cpl-only" if cpl_only
+                      else "legible-bom" if legible_bom else "docs-only")
             notes.append(f"  note: {sub}/ byte-identical to {prior_dir.name} "
-                         f"({same} file(s)) — ASSERTED by "
-                         f"{'bom-only' if bom_only else 'cpl-only' if cpl_only else 'docs-only'} mode")
+                         f"({same} file(s)) — ASSERTED by {_label} mode")
     # the documents themselves MUST change — that is the release's whole point
     doc_pairs = [("order README", _find_readme(release_dir),
                   _find_readme(prior_dir)),
@@ -926,6 +1067,18 @@ def main(argv=None):
                          "source/ and 3d/, must still be byte-identical. Rows "
                          "ADDED or EDITED, or a removal for a still-placed "
                          "designator, FAIL")
+    ap.add_argument("--legible-bom-supersede", metavar="PRIOR_RELEASE_DIR",
+                    default=None,
+                    help="LEGIBLE-BOM supersede mode (canon F-LEGIBLE, "
+                         "ADR-0006): docs-only, PLUS the one permitted fab/ "
+                         "change — fab/bom.csv rewriting ONLY its Comment and "
+                         "MPN columns so JLC can PARSE it. Every row's "
+                         "designator group, Footprint and LCSC must be "
+                         "UNCHANGED (a changed LCSC is a substitution; a "
+                         "changed Footprint is a different board), no row may "
+                         "be added or removed, no MPN may be blanked, this "
+                         "release's BOM must PASS bom_legibility_check and "
+                         "the prior one must FAIL it")
     # RED-VERIFY hooks: neuter one check so a known-bad fixture is shown to
     # pass when — and only when — that check is disabled. Tests only.
     ap.add_argument("--_disable-stale", action="store_true")
@@ -953,24 +1106,28 @@ def main(argv=None):
     prior_dir = None
     bom_only = bool(args.bom_only_supersede)
     cpl_only = bool(args.cpl_only_supersede)
+    legible_bom = bool(args.legible_bom_supersede)
     _modes = [args.docs_only_supersede, args.bom_only_supersede,
-              args.cpl_only_supersede]
+              args.cpl_only_supersede, args.legible_bom_supersede]
     if sum(1 for m in _modes if m) > 1:
         print("FATAL: pass at most ONE of --docs-only-supersede / "
-              "--bom-only-supersede / --cpl-only-supersede", file=sys.stderr)
+              "--bom-only-supersede / --cpl-only-supersede / "
+              "--legible-bom-supersede", file=sys.stderr)
         return 2
-    _mode = "bom" if bom_only else "cpl" if cpl_only else "docs"
+    _mode = ("bom-only" if bom_only else "cpl-only" if cpl_only
+             else "legible-bom" if legible_bom else "docs-only")
     if any(_modes):
         prior_dir = Path(args.docs_only_supersede or args.bom_only_supersede
-                         or args.cpl_only_supersede).resolve()
+                         or args.cpl_only_supersede
+                         or args.legible_bom_supersede).resolve()
         if not prior_dir.is_dir():
-            print(f"FATAL: --{_mode}-only-supersede "
+            print(f"FATAL: --{_mode}-supersede "
                   f"prior release is not a directory: {prior_dir}",
                   file=sys.stderr)
             return 2
 
     print(f"== release-freshness: {release_dir.name} =="
-          + (f" [{_mode}-only supersede of "
+          + (f" [{_mode} supersede of "
              f"{prior_dir.name}]" if prior_dir else ""))
     fails, notes = [], []
 
@@ -984,9 +1141,14 @@ def main(argv=None):
         # prior release is asserted, not flagged.
         if not args._disable_stale:
             df, dn = check_docs_only(release_dir, prior_dir,
-                                     bom_only=bom_only, cpl_only=cpl_only)
+                                     bom_only=bom_only, cpl_only=cpl_only,
+                                     legible_bom=legible_bom)
             fails += df
             notes += dn
+            if legible_bom:
+                lf, ln = check_legible_bom_delta(release_dir, prior_dir)
+                fails += lf
+                notes += ln
             if cpl_only:
                 cf, cn = check_cpl_delta(release_dir, prior_dir)
                 fails += cf

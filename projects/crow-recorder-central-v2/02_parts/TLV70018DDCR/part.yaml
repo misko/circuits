@@ -2,7 +2,9 @@
 # TCR2LF18 C150173 stock=0, this is the documented pin-compatible drop-in).
 mpn: TLV70018DDCR
 manufacturer: Texas Instruments
-lcsc: C79924
+sourcing: {lcsc: C79924}   # `sourcing:` block, NOT a bare `lcsc:` — the
+                       # 02_parts contract's schema and the ONE place the
+                       # F-MPN authority reads (canon F-LEGIBLE)
 function: "fixed 1.8V 200mA LDO, SOT-23-5, 3V3 -> 1V8 (XU316 VDDIOB18 + USB_VDD18, ~50mA)"
 package: SOT-23-5
 footprint: Package_TO_SOT_SMD:SOT-23-5

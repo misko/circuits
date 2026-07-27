@@ -204,3 +204,16 @@ C25915: {mpn: 0402WGF6201TCE, value: "6.2k", verified: "2026-07-26 JLC catalog (
 # ALL THREE were 6.2k (C25915, C137946 RC0402FR-076K2L, C2909371 FRC0402F6201TS),
 # apparently reading "62k" as RKM "6k2".
 C37825: {mpn: 0402WGF6202TCE, value: "62k", verified: "2026-07-26 JLC catalog (selectSmtComponentList describe; 62kΩ ±1% 0402 50V 62.5mW, stock 127526) — cooksense R_OPENT, the open-thermistor detect threshold; replaces C25915 which is 6.2k"}
+# ---------------------------------------------------------------------------
+# crow-recorder-central-v2 Y1, the ONE coded row on that board whose MPN lives
+# in NEITHER authority. The other four F-MPN misses of 2026-07-27 (C237284,
+# C3716677, C79924, C882626) all HAD dossiers — declaring `lcsc:` at the TOP
+# LEVEL instead of inside the `sourcing:` block the 02_parts contract mandates,
+# so the resolver could not see them; those were fixed at the SOURCE (the
+# dossier) rather than duplicated here, because a second home is what ADR-0006
+# is about. Y1 genuinely has no dossier: `02_parts/FA-238_24.0000MD50Y-AC/`
+# describes the Epson FA-238 (C7190380) that was stock 0 at v1.0 staging, and
+# the board ships the NDK part below instead. A ledger row is the sanctioned
+# second authority for exactly this case (canon F-LEGIBLE); it is a CATALOG
+# fact, not an inference from our own label.
+C2762192: {mpn: NX3225SA-24MHZ-EXS00A-CS08583, value: "24MHz", verified: "2026-07-27 JLC catalog (selectSmtComponentList, exact componentCode match: componentModelEn 'NX3225SA-24MHZ-EXS00A-CS08583', brand NDK, describe '24MHz 9pF Crystal Oscillator ±10ppm SMD3225-4P Crystals ROHS', library expand, stock 8137). Agrees with the MPN recorded in 03_tscircuit/src/crow_recorder_central_v2.tsx XTAL24 at authoring time."}

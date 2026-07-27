@@ -229,15 +229,32 @@ def comment_defect(comment):
     return None
 
 
-def legible_comment(board_value, res):
+def legible_comment(board_value, res, footprint=""):
     """The Comment to SHIP for a row: the board's value if it reads, else the
-    authority's declared value, else the MPN. '' when nothing resolves.
+    authority's declared value, else the MPN, else the FOOTPRINT NAME.
+    '' when even that is empty.
 
     Order matters. The board's own Value is preferred because a human authored
-    it; the MPN is the last resort but it is never WRONG, and JLC's matcher
-    wants it anyway ("LM5145" left C485912 at 'No Part Selected'; "LM5145RGYR"
-    matches — the exporter's own comment diagnosed this and then made the fix
-    optional).
+    it; the MPN is the last resort for a CODED row but it is never WRONG, and
+    JLC's matcher wants it anyway ("LM5145" left C485912 at 'No Part Selected';
+    "LM5145RGYR" matches — the exporter's own comment diagnosed this and then
+    made the fix optional).
+
+    THE FOOTPRINT FALLBACK IS FOR THE UNCODED ROW, and it is reached ONLY when
+    the authority resolved nothing (`res is None`), i.e. the row carries no LCSC
+    for JLC to match on at all. Such a row exists so that a HUMAN reading the
+    BOM knows the part is on the board — crow-recorder-central-v2 ships JP_INJ
+    (1x03 beep-injector strap) and J_DBG (1x08 JTAG) `dnp_by_design` with a
+    deliberately BLANK LCSC, declared with evidence in `03_src/rules/
+    assembly.yaml`, and their board Value is the tscircuit placeholder
+    `simple_chip`. There is no MPN to fall back to and the board cannot be
+    re-generated to fix the Value without moving copper, so the last legible
+    fact the SOURCE holds about that row is its footprint —
+    `PinHeader_1x03_P2.54mm_Vertical`, which a human can read and check.
+
+    It is deliberately LAST and deliberately narrow. It never fires for a coded
+    row (that row either resolves an MPN or FAILS F-MPN), so it cannot be used
+    to launder a code-only Comment into a passing one.
     """
     if comment_defect(board_value) is None:
         return board_value.strip()
@@ -246,6 +263,9 @@ def legible_comment(board_value, res):
             return res.value
         if res.mpn and comment_defect(res.mpn) is None:
             return res.mpn
+        return ""
+    if footprint and comment_defect(footprint) is None:
+        return footprint.strip()
     return ""
 
 

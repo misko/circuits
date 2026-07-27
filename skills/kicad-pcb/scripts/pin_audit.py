@@ -108,7 +108,7 @@ def main():
     parts = Path(args.parts_dir)
 
     ref_mpn = {}
-    for row in csv.DictReader(open(args.bom)):
+    for row in csv.DictReader(open(args.bom, encoding="utf-8-sig")):
         for ref in row["Designator"].split(","):
             ref_mpn[ref.strip()] = row.get("MPN", "")
 

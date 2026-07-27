@@ -712,7 +712,8 @@ def main():
     db = rot_db(args.rotations_db)
     lcsc_rot = load_lcsc_rotations(args.lcsc_rotations)
 
-    lines = [r for r in csv.DictReader(open(args.bom)) if r.get("LCSC")]
+    lines = [r for r in csv.DictReader(open(args.bom, encoding="utf-8-sig"))
+             if r.get("LCSC")]
     extra = []          # (ref, lcsc) pairs from --assembly / --also
     if args.assembly and os.path.exists(args.assembly):
         import yaml as _yaml
@@ -1113,7 +1114,7 @@ def main():
         # ---- NO-BODY: the terminal, fit-independent population gate
         cpl_refs = []
         if args.cpl and os.path.exists(args.cpl):
-            with open(args.cpl) as f:
+            with open(args.cpl, encoding="utf-8-sig") as f:
                 for row in csv.DictReader(f):
                     d = (row.get("Designator") or "").strip()
                     if d:

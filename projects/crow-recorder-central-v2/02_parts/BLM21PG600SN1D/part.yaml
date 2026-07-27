@@ -3,7 +3,9 @@
 # no committed part/DCR — un-analyzable at 900mA beeper peak).
 mpn: BLM21PG600SN1D
 manufacturer: Murata
-lcsc: C18305
+sourcing: {lcsc: C18305}   # `sourcing:` block, NOT a bare `lcsc:` — the
+                       # 02_parts contract's schema and the ONE place the
+                       # F-MPN authority reads (canon F-LEGIBLE)
 function: >
   600 ohm @100MHz power-line ferrite bead, 0805, isolating the beeper 5V feed
   (PLUS5V_BEEP) from the shared 5V rail (beep switching-edge noise containment).

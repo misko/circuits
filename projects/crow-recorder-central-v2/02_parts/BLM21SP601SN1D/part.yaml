@@ -6,7 +6,9 @@
 # BOM carried it. This entry replaces it with the TRUE 600R power bead.
 mpn: BLM21SP601SN1D
 manufacturer: Murata
-lcsc: C3716677
+sourcing: {lcsc: C3716677}   # `sourcing:` block, NOT a bare `lcsc:` — the
+                       # 02_parts contract's schema and the ONE place the
+                       # F-MPN authority reads (canon F-LEGIBLE)
 function: >
   600 ohm @100MHz power-line ferrite bead, 0805. FB_BEEP isolates the beeper
   5V feed (PLUS5V_BEEP) from the shared 5V rail; FB_u33/FB_u18 feed the XU316

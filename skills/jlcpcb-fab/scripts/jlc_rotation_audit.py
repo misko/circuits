@@ -308,10 +308,10 @@ def read_fab(fab_dir):
                  None)
     if cpl_p is None:
         return [], {}
-    cpl = list(csv.DictReader(open(cpl_p)))
+    cpl = list(csv.DictReader(open(cpl_p, encoding="utf-8-sig")))
     ref2code = {}
     if bom_p is not None:
-        for row in csv.DictReader(open(bom_p)):
+        for row in csv.DictReader(open(bom_p, encoding="utf-8-sig")):
             code = (row.get("LCSC") or "").strip()
             for r in (row.get("Designator") or "").split(","):
                 if r.strip():
