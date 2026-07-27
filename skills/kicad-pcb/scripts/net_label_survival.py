@@ -190,19 +190,40 @@ def main(argv=None):
               f"change? a parse that yields zero results is an error)")
         return 2
 
+    # G-COVER: a zero LABEL census is a FAIL. `parse 0 nets` was already
+    # caught above, but a schematic that yields ZERO global labels — a
+    # KiCad format change, a sheet that never got its labels, the wrong file
+    # globbed — made `survival_findings` iterate nothing and print
+    # "PASS — 0 labels all survive", which is true and worthless. The whole
+    # incident this gate pins (P5VA_4 -> AUDIO4M) is a label that vanished.
+    if not labels:
+        print(f"S-NETMERGE: LOAD ERROR — schematic {sch} parsed 0 global "
+              f"labels. Every label trivially survives, so the check would "
+              f"pass over nothing; a zero denominator is a FAIL, never a "
+              f"skip (canon M-COVER)")
+        return 2
+
     bad = survival_findings(labels, netnames, cfg.get("exempt") or [])
     pm = cfg.get("pin_map") or []
     bad += pin_map_findings(pm, pad2net)
+    pins = sum(len(p["pins"]) * len(p["refs"]) for p in pm)
+
+    # G-INPUT: name both artifacts by path (canon M-SHIP — a 06_build netlist
+    # is a reconstruction, and a reader must be able to see that it is one).
+    print(f"input: schematic = {sch}")
+    print(f"input: netlist   = {net}  ({len(netnames)} nets)")
 
     if bad:
-        print(f"net_label_survival: FAIL ({len(bad)} findings)")
+        print(f"net_label_survival: FAIL — {len(labels) - len(bad)}/"
+              f"{len(labels)} labels survive, {pins} pin-map assertion(s) "
+              f"checked; {len(bad)} finding(s)")
         for m in bad:
             print("  " + m)
         return 1
-    pins = sum(len(p["pins"]) * len(p["refs"]) for p in pm)
-    print(f"net_label_survival: PASS — {len(labels)} labels all survive to "
-          f"the netlist" + (f"; {pins} pin-map assertions hold" if pins
-                            else "; no pin_map configured (survival only)"))
+    print(f"net_label_survival: PASS — {len(labels)}/{len(labels)} labels "
+          f"survive to the netlist"
+          + (f"; {pins}/{pins} pin-map assertions hold" if pins
+             else "; 0 pin_map assertions configured (survival only)"))
     return 0
 
 

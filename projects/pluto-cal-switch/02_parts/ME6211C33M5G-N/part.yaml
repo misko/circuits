@@ -1,6 +1,20 @@
 mpn: ME6211C33M5G-N
 manufacturer: MicrOne (Nanjing Micro One Elec)
 type: ldo_regulator_fixed_3v3
+
+# E-TOPO LINEAR-RAIL BOUNDS (typed, machine-graded by power_topology.py).
+# These two numbers already existed below under `limits:` and in `gotchas:` —
+# as PROSE, which no gate can read. A linear regulator's failure modes are
+# DROPOUT and DISSIPATION, and the Vin-vs-Vout topology derivation is blind to
+# both, so E-TOPO requires them as fields before it will grade a linear rail.
+# Same shift-left move ADR-0004 prescribes for `current: "2.5A per port"`.
+dropout_mv: 120        # V14 p.8 electrical table: 120 mV at 100 mA (the rail's
+                       # own iout_max_A is 0.10, so this is the number AT the
+                       # design point, not an extrapolation)
+pdiss_max_mw: 300      # SOT-23 package rating, V14 p.4. NO ambient is stated
+                       # for it — an unstated datum, so this is the optimistic
+                       # (Ta=25 C) reading and the 65%-at-envelope figure in
+                       # `gotchas:` is the number that matters, not the margin.
 datasheet:
   doc_id: ME6211AXXG-DS
   revision: "V14"             # printed "V14" in the page footer
@@ -66,13 +80,16 @@ gotchas:
   - "PSRR IS GONE BY A FEW HUNDRED kHz. This single rail feeds a 125 MHz MCU AND
      biases both RF switches. Split it: ferrite + 100 nF + 1 nF into each switch
      VDD branch (ARCHITECTURE sec 5)."
-  - "E-TOPO CANNOT EXPRESS THIS PART. power_topology.py normalize_type() accepts
-     only buck/boost/buck_boost, so type: ldo_* raises LoadError and exits 2 —
-     a gate GAP, not a design problem. Reported upstream; see
-     03_src/rules/power_tree.yaml and ARCHITECTURE O8. The topology is DERIVED
-     and stated there: Vout_max (3.30) < Vin_min (4.40) ALWAYS, so a STEP-DOWN
-     is required and a boost stage would be over-engineering. A linear regulator
-     is the correct step-down at 60 mA and 1.7 V of drop."
+  - "E-TOPO COULD NOT EXPRESS THIS PART — FIXED 2026-07-27, gap CLOSED.
+     normalize_type() accepted only buck/boost/buck_boost, so type: ldo_* raised
+     LoadError and exited 2. It now returns LINEAR, derives the step-down
+     requirement exactly as before (Vout_max 3.30 < Vin_min 4.40 ALWAYS, so a
+     boost or buck-boost stage would be over-engineering), and then grades the
+     two things the topology derivation is blind to: headroom-vs-dropout_mv and
+     PD-vs-pdiss_max_mw, both declared as typed fields above. This entry is kept
+     rather than deleted because the REPORT is the reason the gap was found:
+     the board declared its rail truthfully and took the exit 2 instead of
+     deleting power_tree.yaml, which is what three other fleet boards did."
 verified: "pin map read from the 'Pin Assignment' table for the ME6211CXXG /
   ME6211HXXG family, SOT-23-5 column, p.4 of V14 (1=VIN, 2=VSS, 3=CE, 4=NC,
   5=VOUT) — extracted from the vendored PDF. NOTE the A-series table immediately

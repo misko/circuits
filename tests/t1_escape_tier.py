@@ -413,5 +413,43 @@ def t_infeasible_everywhere():
                   "escape_check on an unescapable package", "NONE")
 
 
+# ============================== G-COVER zero denominator (2026-07-27) =======
+@test("escape_check FAILS when it is handed NO part.yaml at all",
+      kind="known_bad")
+def t_esc_zero_parts():
+    """`escape_check.py` with no arguments printed NOTHING and exited 0. A
+    shell glob that matched nothing — a renamed 02_parts directory, the wrong
+    cwd, a stage that has not run — lands exactly here and reads as a clean
+    escape audit over every part on the board.
+    RED-VERIFIED against pre-fix code (git show 5054b07:...escape_check.py):
+    it exits 0 with empty output, so must_fail goes RED."""
+    r = must_fail(run([KPY, ESC]), "escape_check with no parts",
+                  "0/0 parts graded")
+    contains(r.out, "M-COVER", "cites the canon it is enforcing")
+
+
+@test("escape_check FAILS a part.yaml path that does not exist",
+      kind="known_bad")
+def t_esc_missing_path():
+    """A path that cannot be read is UNGRADED, and must not fall out of the
+    denominator: pre-fix, `check_part` would raise, but a caller passing a
+    mixed list wants the MISSING one named, not a traceback."""
+    r = must_fail(run([KPY, ESC, "/nonexistent/part.yaml"]),
+                  "escape_check on a missing path", "no such part.yaml")
+    contains(r.out, "0/1", "counts the unreadable part in the denominator")
+
+
+@test("escape_check reports its denominator and names the tier table")
+def t_esc_reports_coverage():
+    """G-COVER/G-INPUT: the verdict depends entirely on the tier table, and
+    printed neither it nor how many parts were graded."""
+    d = tmpdir("escov_")
+    p = d / "part.yaml"
+    p.write_text("mpn: TWOPIN\npins:\n  1: A\n  2: B\n")
+    r = must_pass(run([KPY, ESC, p]), "escape_check on a 2-pin part")
+    contains(r.out, "1/1 part.yaml graded", "carries an N/M denominator")
+    contains(r.out, "input: tiers", "names the tier table it graded against")
+
+
 if __name__ == "__main__":
     main()

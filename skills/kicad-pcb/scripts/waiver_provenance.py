@@ -192,12 +192,40 @@ def main(argv=None):
         if n and not any(name in f for f in fails):
             oks.append(f"W-COPY/{name}: {n} waivers, all independently reasoned")
 
+    # G-INPUT: name the tree and the files actually read. The whole check is a
+    # fleet-wide comparison, so WHICH projects were in scope is the verdict.
+    print(f"input: root = {root.resolve()}  "
+          f"({len(projects)} project dir(s), reading {', '.join(rels)})")
+    n_waivers = sum(len(v) for v in loaded.values())
+    print(f"input: {len(loaded)} project(s) carry waivers, "
+          f"{n_waivers} waiver(s) total; grading "
+          f"{len(graded)}: {', '.join(graded) or '(none)'}")
+
     for o in sorted(set(oks)):
         print("  ok  ", o)
     for f in sorted(set(fails)):
         print("FAIL ", f)
+
+    # G-COVER: how many WAIVERS were graded, not how many findings were
+    # printed. A run over zero waivers used to print "PASS (0 fails, 0 ok)",
+    # indistinguishable from a clean fleet — and W-COPY needs at least two
+    # projects loaded before it can compare anything at all.
+    n_graded = sum(len(loaded.get(nm, [])) for nm in graded)
+    if n_graded == 0:
+        print(f"WAIVER PROVENANCE: FAIL 0/{n_waivers} waivers graded — "
+              f"nothing under {root} matched {rels}. A zero denominator is a "
+              f"FAIL, never a pass (canon M-COVER); if this tree genuinely "
+              f"has no waivers, that is a fact worth stating out loud rather "
+              f"than a green verdict")
+        return 1
+    corpus = (f"{n_graded}/{n_waivers} waiver(s) graded across "
+              f"{len(graded)}/{len(loaded)} project(s) carrying waivers")
+    if len(loaded) < 2:
+        corpus += (" — NOTE: W-COPY compares rationales ACROSS projects and "
+                   "only one project carries waivers, so the cross-project "
+                   "half of this gate graded nothing")
     print("WAIVER PROVENANCE:", "FAIL" if fails else "PASS",
-          f"({len(set(fails))} fails, {len(set(oks))} ok)")
+          f"({len(set(fails))} fails, {len(set(oks))} ok) — {corpus}")
     return 1 if fails else 0
 
 

@@ -10,6 +10,14 @@ into *_margin — don't compare baselines across the two scripts).
 Margin (>= floor) and same-net items are reported but do not fail.
 Remember: GUI DRC remains authoritative for zone-fill-dependent checks
 (starved_thermal); this is the scriptable gate, not a replacement.
+
+G-COVER (canon M-COVER, 2026-07-27). `VERDICT: PASS` carried no denominator,
+so a report this script could not PARSE — a KiCad release that changed the
+`[type]: ` block format, a truncated write, an empty file — produced zero
+categories, zero clearance items, and a confident PASS. It now reports
+`N classified / M violations in the report` and FAILS when the report cannot
+be parsed into blocks at all, rather than reading an unreadable report as a
+clean board.
 """
 import argparse
 import collections
@@ -40,20 +48,32 @@ ap.add_argument("--fab-floor", type=float, default=0.10,
                 help="fab clearance floor in mm (JLC 4L+: 0.10)")
 ap.add_argument("--refill", action="store_true",
                 help="refill zones (and save) before DRC")
+ap.add_argument("--report", default="",
+                help="CLASSIFY AN EXISTING DRC REPORT instead of running DRC. "
+                     "The board is not opened at all. This is a REPLAY path "
+                     "(and the seam the G-COVER known-bad fixture uses to "
+                     "hand this script a report it cannot parse); it is NOT a "
+                     "substitute for grading the board, and the verdict names "
+                     "the report file so a stale one is visible.")
 args = ap.parse_args()
 
-board = pcbnew.LoadBoard(args.board)
-if args.refill:
-    pcbnew.ZONE_FILLER(board).Fill(board.Zones())
-    board.Save(args.board)
+if args.report:
+    rpt = args.report
+    print(f"NOTE: --report REPLAY — DRC was NOT run; classifying the existing "
+          f"report at {rpt}. The board was not opened.")
+else:
     board = pcbnew.LoadBoard(args.board)
+    if args.refill:
+        pcbnew.ZONE_FILLER(board).Fill(board.Zones())
+        board.Save(args.board)
+        board = pcbnew.LoadBoard(args.board)
 
-# pid-suffixed: the old fixed /tmp/classified_drc.txt collided across
-# concurrent sessions (a live clean-room canary's DRC clobbered a test-suite
-# run's report mid-read, 2026-07-21 — the t4 clearance pair flaked with
-# another board's categories in its output)
-rpt = f"/tmp/classified_drc.{os.getpid()}.txt"
-_write_drc_report(board, args.board, rpt)
+    # pid-suffixed: the old fixed /tmp/classified_drc.txt collided across
+    # concurrent sessions (a live clean-room canary's DRC clobbered a test-suite
+    # run's report mid-read, 2026-07-21 — the t4 clearance pair flaked with
+    # another board's categories in its output)
+    rpt = f"/tmp/classified_drc.{os.getpid()}.txt"
+    _write_drc_report(board, args.board, rpt)
 txt = Path(rpt).read_text()
 
 blocks = re.split(r"\[(\w+)\]: ", txt)
@@ -73,14 +93,46 @@ for i in range(1, len(blocks) - 1, 2):
     else:
         samenet += 1
 
+# G-INPUT: name the board AND the report actually graded, so a reader can tell
+# a sealed board from a 06_build reconstruction (canon M-SHIP) and can find the
+# raw report this verdict summarises.
+print(f"input: board  = {Path(args.board).resolve()}")
+print(f"input: report = {rpt} ({len(txt)} bytes)")
+
+total_items = sum(cats.values())
+clearance_items = cats.get("clearance", 0) + cats.get("hole_clearance", 0)
+classified = len(real) + margin + samenet
+
+# G-COVER: the report must have PARSED. `re.split` on a format this script no
+# longer recognises yields one block and zero categories, which used to render
+# as a clean board. An unparseable input is a FAIL, never a skip.
+if total_items == 0 and txt.strip() and not re.search(
+        r"\b0 (?:DRC )?(?:violations|errors|problems|unconnected)", txt, re.I):
+    print(f"classified 0/0 — the DRC report at {rpt} is non-empty "
+          f"({len(txt)} bytes) but yielded ZERO `[type]: ` blocks and does not "
+          f"state a zero count either, so this script did not understand it. "
+          f"An unparseable report is a FAIL, never a clean board "
+          f"(canon M-COVER).")
+    print("VERDICT: FAIL")
+    sys.exit(1)
+
 print("categories:", dict(cats.most_common()) or "NONE")
 print(f"unconnected: {cats.get('unconnected_items', 0)}  "
       f"shorts: {cats.get('shorting_items', 0)}")
 print(f"clearance-class items: REAL={len(real)}  margin(>= {args.fab_floor})="
       f"{margin}  same-net={samenet}")
+if clearance_items != classified:
+    print(f"  WARNING: {classified}/{clearance_items} clearance-class items "
+          f"were classified — {clearance_items - classified} were counted by "
+          f"category but did not reach a REAL/margin/same-net bucket")
 for r in real[:20]:
     print("  REAL:", r)
+if len(real) > 20:
+    print(f"  ... and {len(real) - 20} more REAL items ({len(real)} TOTAL; "
+          f"the list above is TRUNCATED at 20)")
 fail = bool(real) or cats.get("unconnected_items", 0) or \
     cats.get("shorting_items", 0)
+print(f"coverage: {classified}/{clearance_items} clearance-class items "
+      f"classified, {total_items} violation(s) in the report")
 print("VERDICT:", "FAIL" if fail else "PASS")
 sys.exit(1 if fail else 0)

@@ -299,13 +299,39 @@ def main():
                       f'[{", ".join(cconds)}], checked: escape_check}}')
         sys.exit(0 if req else 1)
 
+    # G-COVER: `escape_check.py` with no part arguments printed NOTHING and
+    # exited 0 — a green run over zero parts, which is the whole M-COVER
+    # class. A shell glob that matched nothing (a renamed 02_parts dir, a
+    # wrong cwd) reached exactly this line and read as success.
+    if not args.parts:
+        print("P-ESC FAIL: 0/0 parts graded — no part.yaml paths were given "
+              "(a glob that matched nothing lands here). A zero denominator "
+              "is a FAIL, never a pass (canon M-COVER). Pass part.yaml paths, "
+              "or use --style/--pitch for the ad-hoc tier table.")
+        sys.exit(1)
+
+    graded = 0
     for p in args.parts:
+        if not Path(p).exists():
+            # G-COVER: a path that does not exist is UNGRADED, and must not be
+            # silently absent from the denominator.
+            print(f"FAIL {p}: no such part.yaml — a part that cannot be read "
+                  f"is not a part that passed")
+            bad += 1
+            continue
         probs = check_part(p, tiers)
+        graded += 1
         for pr in probs:
             print(f"FAIL {pr}")
         bad += len(probs)
         if not probs:
             print(f"ok   {Path(p).parent.name}")
+    # G-INPUT: name the tier table too — the verdict depends on it entirely.
+    print(f"input: tiers = {Path(args.tiers).resolve()} "
+          f"({len(tiers)} tier(s))")
+    verdict = "FAIL" if bad else "PASS"
+    print(f"P-ESC {verdict}: {graded}/{len(args.parts)} part.yaml graded, "
+          f"{bad} problem(s)")
     sys.exit(1 if bad else 0)
 
 

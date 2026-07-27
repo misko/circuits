@@ -88,7 +88,10 @@ label_survival:
 def t_clean_no_config():
     d = project(CLEAN_LABELS, CLEAN_NETS)
     r = must_pass(run([KPY, GATE, d]), "survival on an intact netlist")
-    contains(r.out, "3 labels all survive", "verdict")
+    # G-COVER (2026-07-27): the verdict now carries an N/M denominator, so a
+    # run over ZERO labels can no longer read like a run over three.
+    contains(r.out, "3/3 labels survive", "verdict carries its denominator")
+    contains(r.out, "input: schematic", "verdict names the artifact it graded")
 
 
 @test("pin_map PASSES pin-for-pin with {n} substitution")
@@ -169,6 +172,25 @@ def t_zero_nets_guard():
     (d / "06_build" / "netlists" / "b.net").write_text("(export (nets))")
     r = must_fail(run([KPY, GATE, d]), "zero-net netlist", "0 nets")
     check(r.rc == 2, f"load error must exit 2, got {r.rc}")
+
+
+@test("a SCHEMATIC that parses to ZERO global labels is a hard error too",
+      kind="known_bad")
+def t_zero_labels_guard():
+    """THE OTHER SIDE OF THE SAME PARSE, and it was open (2026-07-27, G-COVER).
+    The zero-NET guard above landed; the zero-LABEL case did not. A schematic
+    yielding no global labels — a KiCad format change on the label side, a
+    sheet whose labels never got written, the wrong file globbed — made
+    `survival_findings` iterate an empty list and print
+    `PASS — 0 labels all survive to the netlist`, exit 0. Every label
+    trivially survives when there are none, and the incident this gate pins
+    (P5VA_4 -> AUDIO4M) IS a label that vanished.
+    RED-VERIFIED against pre-fix code (git show 5054b07:...net_label_survival
+    .py): it exits 0 with that message, so must_fail goes RED."""
+    d = project([], CLEAN_NETS)
+    r = must_fail(run([KPY, GATE, d]), "zero-label schematic", "0 global")
+    check(r.rc == 2, f"load error must exit 2, got {r.rc}")
+    contains(r.out, "M-COVER", "cites the canon it is enforcing")
 
 
 # ------------------------------------------- template rebuild_all.sh wiring

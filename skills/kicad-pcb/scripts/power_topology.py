@@ -457,6 +457,13 @@ def load_rails(path):
             "eff": eff, "converter": str(r["converter"]),
             "load_uv": load_uv, "ir_budget_mohm": ir_budget, "margin": rmargin,
             "feedback": fb, "fb_low": fb_low, "fb_high": fb_high,
+            # OPTIONAL LINEAR overrides: the part.yaml number is the package /
+            # datasheet figure; a rail may state a board-specific derating (a
+            # hot ambient, no copper under the part) or the dropout at ITS own
+            # iout_max_A rather than the part's rated maximum.
+            "dropout_mv": _num_opt(r.get("dropout_mv"), "dropout_mv", name),
+            "pdiss_max_mw": _num_opt(r.get("pdiss_max_mw"), "pdiss_max_mw",
+                                     name),
         })
     return rails, top
 
@@ -572,15 +579,35 @@ def grade_rail(rail, part_index):
 # --------------------------------------------------------------------------
 # input-current worst case + trunk-declaration cross-check
 def worst_case_input_current(rails):
-    """(I_amps, P_out_W, P_in_W, Vin_min) across all rails sharing the input."""
+    """(I_amps, P_out_W, P_in_W, Vin_min) across all rails sharing the input.
+
+    A SWITCHING rail draws CONSTANT POWER: Iin = Pout/eff / Vin, so the input
+    current RISES as the input sags. A LINEAR rail draws CONSTANT CURRENT:
+    the pass element is in series with the load, so Iin = Iout (+Iq) whatever
+    Vin does, and its input power is Vin*Iout, not Vout*Iout/eff.
+
+    Modelling a linear rail with the switching formula UNDER-STATES its trunk
+    current by exactly Vout/Vin. pluto-cal-switch's power_tree.yaml wrote
+    `eff: 1.0` on its LDO rail with the comment that this "makes the derived
+    input-trunk current equal the output current, which is the physically
+    correct answer for a linear pass element" — it does not: at Vout 3.3 /
+    Vin_min 4.4 it gives 0.075 A for a rail that draws 0.100 A, 25% light.
+    A rail carries `topo` once grade_rail() has resolved its converter; a rail
+    without one is treated as switching, which is the pre-existing behaviour.
+    """
     if not rails:
         return 0.0, 0.0, 0.0, 0.0
     p_out = sum(r["vout_max"] * r["iout"] for r in rails)
-    # each rail's input power is P_out/eff; sum, then divide by the LOWEST
-    # Vin_min (worst case = the input current peaks when the battery is low).
-    p_in = sum(r["vout_max"] * r["iout"] / r["eff"] for r in rails)
+    # the LOWEST Vin_min across the tree: the input current of a switching rail
+    # peaks when the input sags, so every switching rail is charged at it.
     vin_min = min(r["vin_min"] for r in rails)
-    return p_in / vin_min, p_out, p_in, vin_min
+    amps = sum(
+        r["iout"] if r.get("topo") == LINEAR
+        else r["vout_max"] * r["iout"] / r["eff"] / vin_min
+        for r in rails)
+    # reported input power, consistent with the current above. For an
+    # all-switching tree this is identical to Sum(Pout/eff), unchanged.
+    return amps, p_out, amps * vin_min, vin_min
 
 
 _NUM_A = re.compile(r"([\d.]+)\s*A", re.I)
@@ -860,14 +887,69 @@ def find_power_tree(proj, override=None):
     return Path(proj) / "03_src" / "rules" / "power_tree.yaml"
 
 
+def converter_census(part_index):
+    """[(dirname, raw_type, class)] for every 02_parts entry whose `type:`
+    classifies as a converter — the INDEPENDENT evidence that E-TOPO has
+    something to grade.
+
+    This is canon M1 applied to E-TOPO's own N-A: until now the gate asked
+    `power_tree.yaml` whether there was anything to check, and believed the
+    answer. Deleting the file, or writing `rails: []`, therefore produced
+    "E-TOPO N-A" and exit 0 on a board full of regulators. `02_parts/` is a
+    different artifact, written by a different stage, so it can contradict.
+    """
+    out = []
+    for rec in {id(v): v for v in part_index.values()}.values():
+        cls = normalize_type(rec.get("type"))
+        if cls is not None:
+            out.append((rec["dir"], rec.get("type"), cls))
+    return sorted(out)
+
+
+def _ungraded_converters(part_index, rails):
+    """Converter parts in 02_parts that NO rail names. The M-COVER denominator
+    for E-TOPO: `N converters graded / M present`."""
+    named = {_norm_id(r["converter"]) for r in rails}
+    return [c for c in converter_census(part_index)
+            if _norm_id(c[0]) not in named]
+
+
+def no_rails_verdict(proj, ptp_exists, part_index):
+    """(exit_code, lines) for a project with no power_tree.yaml, or one whose
+    `rails:` list is empty. N-A is only legitimate when the board HAS NO
+    CONVERTER."""
+    conv = converter_census(part_index)
+    where = ("power_tree.yaml has no rails" if ptp_exists
+             else "there is no 03_src/rules/power_tree.yaml")
+    if not conv:
+        return 0, [f"E-TOPO N-A: 0/0 — {where}, and 02_parts declares no "
+                   f"buck/boost/buck_boost/linear converter, so there is "
+                   f"genuinely nothing to derive (checked against "
+                   f"{proj}/02_parts, not against the power tree's own "
+                   f"say-so)"]
+    listing = ", ".join(f"{d} (type: {t!r} -> {c})" for d, t, c in conv)
+    return 1, [
+        f"E-TOPO FAIL: 0/{len(conv)} converters graded — {where}, but "
+        f"02_parts declares {len(conv)}: {listing}",
+        f"  Every one of those rails is UNGRADED: no Vin/Vout envelope, no "
+        f"derived topology, no dropout or dissipation bound. An absent or "
+        f"empty power tree is how a board reaches a green E-TOPO while the "
+        f"gate looks at nothing (canon M-COVER), and until 2026-07-27 it was "
+        f"the ONLY way to declare an LDO-only board, because normalize_type() "
+        f"rejected every linear part. It no longer is: declare each rail with "
+        f"`converter:` naming the part, and a linear regulator is graded on "
+        f"its dropout and dissipation instead of a switching topology.",
+    ]
+
+
 def run_check(proj, ptp, nets_override=None):
     """Returns (exit_code, lines). Pure — main() prints and exits."""
     lines = []
     rails, top = load_rails(ptp)
-    if not rails:
-        return 0, ["E-TOPO N-A: power_tree.yaml has no rails"]
-
     part_index = load_part_index(proj)
+    if not rails:
+        return no_rails_verdict(proj, True, part_index)
+
     fails = []
     for rail in rails:
         verdict, msg = grade_rail(rail, part_index)
@@ -914,10 +996,31 @@ def run_check(proj, ptp, nets_override=None):
             f"  OVER-BUILT (advisory): fuse rated {fuse_amps:g} A is >2x the "
             f"derived need {I:.1f} A — over-provisioned")
 
+    # M-COVER: a converter part that no rail names is a converter this gate did
+    # not grade, and the verdict must say so rather than count only the rails
+    # it was handed. This is the partial form of the empty-power-tree defect —
+    # three of four crow-recorder-central rails were declared and the two LDOs
+    # were left in a COMMENT, so E-TOPO printed a confident verdict over half
+    # the tree.
+    ungraded = _ungraded_converters(part_index, rails)
+    n_conv = len(converter_census(part_index))
+    if ungraded:
+        listing = ", ".join(f"{d} (type: {t!r} -> {c})" for d, t, c in ungraded)
+        msg = (f"UNGRADED CONVERTERS: {len(ungraded)} of {n_conv} converter "
+               f"part(s) in 02_parts are named by no rail: {listing} — declare "
+               f"a rail for each, or remove the part")
+        lines.append(f"  {msg}")
+        fails.append(msg)
+
+    graded = len(rails) - len([f for f in fails if f.startswith("rail ")])
     if fails:
-        lines.insert(0, f"E-TOPO FAIL: {len(fails)}/{len(rails)} rail issue(s):")
+        lines.insert(0, f"E-TOPO FAIL: {len(fails)} issue(s) over "
+                        f"{len(rails)} declared rail(s) / {n_conv} converter "
+                        f"part(s) in 02_parts:")
         return 1, lines
-    lines.insert(0, f"E-TOPO OK: {len(rails)} rail(s) topology-correct")
+    lines.insert(0, f"E-TOPO OK: {graded}/{len(rails)} rail(s) "
+                    f"topology-correct, covering {n_conv}/{n_conv} converter "
+                    f"part(s) in 02_parts")
     return 0, lines
 
 
@@ -949,8 +1052,19 @@ def main(argv=None):
     tag = ("E-MARGIN" if args.margin else
            "E-OFF" if args.off_control else "E-TOPO")
     if not ptp.exists():
-        print(f"{tag} N-A: no {ptp} — the power-tree gate is optional")
-        return 0
+        if args.margin or args.off_control:
+            # E-MARGIN/E-OFF genuinely have no input without the file; their
+            # activating fields live only there.
+            print(f"{tag} N-A: no {ptp} — the power-tree gate is optional")
+            return 0
+        # E-TOPO does NOT get to take the file's absence as proof there is
+        # nothing to grade: 02_parts is an independent artifact and can
+        # contradict it (canon M1). Deleting power_tree.yaml was the ONLY way
+        # an LDO-only board could reach a green E-TOPO before 2026-07-27.
+        rc, lines = no_rails_verdict(proj, False, load_part_index(proj))
+        for ln in lines:
+            print(ln)
+        return rc
 
     try:
         if args.margin:

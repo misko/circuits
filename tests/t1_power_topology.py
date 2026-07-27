@@ -35,8 +35,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from harness import (KPY, SCRIPTS, contains, main, must_fail,  # noqa: E402
-                     must_pass, run, test, tmpdir)
+from harness import (KPY, SCRIPTS, check, contains, main,  # noqa: E402
+                     must_fail, must_pass, run, test, tmpdir)
 
 PTOP = SCRIPTS / "power_topology.py"
 
@@ -49,13 +49,18 @@ LM5116_TYPE = "buck_controller"           # -> BUCK
 # --------------------------------------------------------------- fixtures
 def project(power_tree, parts=None, nets=None):
     """Scratch project tree: 02_parts/<dir>/part.yaml with a `type:`, and
-    03_src/rules/power_tree.yaml (+ optional nets.yaml)."""
+    03_src/rules/power_tree.yaml (+ optional nets.yaml).
+
+    A parts value is either the bare `type:` string, or a dict of part.yaml
+    fields (for the LINEAR bounds `dropout_mv:` / `pdiss_max_mw:`)."""
     d = tmpdir("etopo_")
     (d / "03_src" / "rules").mkdir(parents=True)
-    for name, ptype in (parts or {}).items():
+    for name, spec in (parts or {}).items():
         pd = d / "02_parts" / name
         pd.mkdir(parents=True)
-        (pd / "part.yaml").write_text(f"mpn: {name}\ntype: {ptype}\n")
+        fields = {"type": spec} if isinstance(spec, str) else dict(spec)
+        body = "".join(f"{k}: {v}\n" for k, v in fields.items())
+        (pd / "part.yaml").write_text(f"mpn: {name}\n{body}")
     if power_tree is not None:
         (d / "03_src" / "rules" / "power_tree.yaml").write_text(power_tree)
     if nets is not None:
@@ -473,6 +478,259 @@ def t_off_alwayson_with_adr():
     r = must_pass(offctl(d), "E-OFF on ADR-justified always-on")
     contains(r.out, "E-OFF OK", "clean report")
     contains(r.out, "self-drain", "prints the advisory self-drain time")
+
+
+# ==================================== LINEAR REGULATORS (E-TOPO, 2026-07-27)
+# THE DEFECT, reported by the pluto-cal-switch agent. `normalize_type()`
+# accepted only buck / boost / buck_boost while `converter:` was REQUIRED on
+# every rail, so an LDO-only board had NO legal way to declare its power tree:
+# naming the LDO raised
+#     "converter 'ME6211C33M5G-N' ... type 'ldo_regulator_fixed_3v3' does not
+#      classify as buck/boost/buck_boost"
+# and exited 2. THE ONLY ROUTE TO A GREEN E-TOPO WAS TO DELETE power_tree.yaml,
+# which returned N-A and exit 0 — a gate grading nothing and printing OK, the
+# M-COVER class, inside the gate battery that exists to police it.
+#
+# MEASURED on the fleet the day it was fixed (E-TOPO run over every project,
+# before vs after):
+#   pluto-cal-switch            exit 2      -> OK, 1/1 rails, 1/1 converters
+#   smc0985-cooksense           N-A exit 0  -> FAIL 0/1 (`rails: []` + a
+#                                              `linear_rails:` key the checker
+#                                              ignores BY DESIGN, 6 rails)
+#   crow-recorder-central       OK exit 0   -> FAIL, 3 of 4 converters ungraded
+#   crow-recorder-central-v2    OK exit 0   -> FAIL, 1 of 3 converters ungraded
+#   usb-hub-3s                  N-A exit 0  -> FAIL 0/2 — THE BOARD THIS GATE
+#                                              WAS WRITTEN FOR has no
+#                                              power_tree.yaml, so E-TOPO had
+#                                              never once graded the IP6559
+#                                              buck-boost that motivated it
+# Four boards were reading green over a power tree nothing had looked at.
+
+LDO_TYPE = "ldo_regulator_fixed_3v3"      # the real pluto-cal-switch string
+# the real ME6211C33M5G-N numbers: V14 p.8 dropout 120 mV @100 mA, SOT-23 300 mW
+ME6211 = {"type": LDO_TYPE, "dropout_mv": 120, "pdiss_max_mw": 300}
+
+
+@test("E-TOPO PASSES the pluto-cal-switch LDO rail: 4.4-5.25V in, 3.3V out")
+def t_linear_pass():
+    """THE CALIBRATION for LINEAR, using the real part.yaml `type:` string and
+    the real datasheet bounds. Vout_max 3.366 < Vin_min 4.40 ALWAYS, so the
+    requirement is STEP-DOWN, and a linear pass element is a legitimate
+    implementation of it. Headroom 1034 mV vs a 120 mV dropout; PD
+    (5.25-3.234)*0.1 = 202 mW vs a 300 mW package = 67%.
+    RED-VERIFIED against pre-fix code (git show 5054b07:...power_topology.py):
+    normalize_type() returned None for 'ldo_regulator_fixed_3v3', so this
+    exited 2 with a LOAD ERROR and must_pass went RED."""
+    d = project(ptree(rail("3V3", 4.40, 5.25, 3.234, 3.366, 0.10,
+                           "ME6211C33M5G-N", eff=1.0)),
+                parts={"ME6211C33M5G-N": ME6211})
+    r = must_pass(etopo(d), "E-TOPO on the pluto LDO rail")
+    contains(r.out, "required=BUCK", "still DERIVES the step-down requirement")
+    contains(r.out, "declared=LINEAR", "reads the LDO as a linear pass element")
+    contains(r.out, "1034 mV", "reports the measured headroom")
+    contains(r.out, "202 mW", "reports the measured dissipation")
+    contains(r.out, "E-TOPO OK", "clean report")
+
+
+@test("E-TOPO FAILS a linear regulator with too little headroom (DROPOUT)",
+      kind="known_bad")
+def t_linear_dropout_fail():
+    """The passing rail broken in exactly ONE way: Vin_min drops to 3.40 V, so
+    the headroom is 34 mV against a 120 mV dropout and the rail falls out of
+    regulation at the low input corner. The topology derivation still says
+    BUCK and would still have said PASS — which is the point: this failure
+    mode is INVISIBLE to Vin-vs-Vout, so a LINEAR class that only checked
+    topology would be a new silent skip."""
+    d = project(ptree(rail("3V3", 3.40, 5.25, 3.234, 3.366, 0.10,
+                           "ME6211C33M5G-N", eff=1.0)),
+                parts={"ME6211C33M5G-N": ME6211})
+    r = must_fail(etopo(d), "E-TOPO on an LDO in dropout", "DROPOUT")
+    contains(r.out, "required=BUCK",
+             "the topology derivation ALONE would have passed this rail")
+    contains(r.out, "120 mV", "names the dropout it was graded against")
+
+
+@test("E-TOPO FAILS a linear regulator that cooks its package (DISSIPATION)",
+      kind="known_bad")
+def t_linear_dissipation_fail():
+    """The passing rail broken in exactly ONE way: 0.30 A instead of 0.10 A.
+    PD = (5.25-3.234)*0.3 = 605 mW into a SOT-23 rated 300 mW. Again invisible
+    to the topology derivation. This is the boundary the ME6211 part.yaml
+    described in PROSE ('ABOVE ~120 mA THIS PART IS WRONG') and which nothing
+    could read until dropout_mv/pdiss_max_mw became fields."""
+    d = project(ptree(rail("3V3", 4.40, 5.25, 3.234, 3.366, 0.30,
+                           "ME6211C33M5G-N", eff=1.0)),
+                parts={"ME6211C33M5G-N": ME6211})
+    r = must_fail(etopo(d), "E-TOPO on an over-dissipating LDO", "DISSIPATION")
+    contains(r.out, "605 mW", "reports the computed dissipation")
+    contains(r.out, "300 mW", "names the package rating it exceeded")
+
+
+@test("E-TOPO FAILS a linear regulator on a rail that needs to STEP UP",
+      kind="known_bad")
+def t_linear_cannot_boost():
+    """A linear pass element cannot step up. 3.0-4.2 V in, 5 V out derives
+    BOOST, and an LDO physically cannot deliver it — the cannot-meet-Vout half
+    of the verdict, preserved for the new class."""
+    d = project(ptree(rail("5V", 3.0, 4.2, 5, 5, 0.1, "ME6211C33M5G-N")),
+                parts={"ME6211C33M5G-N": ME6211})
+    r = must_fail(etopo(d), "E-TOPO on an LDO asked to boost", "cannot meet")
+    contains(r.out, "cannot step up", "explains the physics")
+
+
+@test("E-TOPO FAILS a linear regulator whose Vin envelope OVERLAPS Vout",
+      kind="known_bad")
+def t_linear_overlap_is_dropout():
+    """Vin 3.0-5.25 V, Vout 3.234-3.366 V: the envelope overlaps, so the
+    derivation says BUCK_BOOST. For a linear part that means the input sags
+    into and below the output somewhere in the declared range — it drops out.
+    This must not be waved through as 'well, it is step-down most of the
+    time'."""
+    d = project(ptree(rail("3V3", 3.0, 5.25, 3.234, 3.366, 0.1,
+                           "ME6211C33M5G-N")),
+                parts={"ME6211C33M5G-N": ME6211})
+    r = must_fail(etopo(d), "E-TOPO on an LDO with an overlapping Vin",
+                  "cannot meet")
+    contains(r.out, "BUCK_BOOST", "names the derived requirement")
+
+
+@test("a LINEAR rail with NO dropout/dissipation bounds is a hard error, not a "
+      "pass", kind="known_bad")
+def t_linear_unbounded_is_an_error():
+    """M-COVER, applied to the fix itself. If a linear rail could be declared
+    without bounds, `converter: <any LDO>` would become a NEW route to a green
+    E-TOPO over a rail the gate grades nothing about — the same defect one
+    level down. The error must NAME both missing fields."""
+    d = project(ptree(rail("3V3", 4.40, 5.25, 3.234, 3.366, 0.10,
+                           "ME6211C33M5G-N")),
+                parts={"ME6211C33M5G-N": LDO_TYPE})     # type only, no bounds
+    r = must_fail(etopo(d), "E-TOPO on an unbounded linear rail", "LOAD ERROR")
+    contains(r.out, "dropout_mv", "names the first missing field")
+    contains(r.out, "pdiss_max_mw", "names the second missing field")
+
+
+@test("a rail may OVERRIDE the part's package rating with a board derating")
+def t_linear_rail_override():
+    """`pdiss_max_mw` on the part is the package rating; a board with a hot
+    ambient or no copper under the part may state a lower one on the rail.
+    The override must be USED, not ignored — 202 mW passes the part's 300 mW
+    and must FAIL a rail-declared 150 mW."""
+    pt = ("rails:\n"
+          "  - name: 3V3\n    vin_min: 4.40\n    vin_max: 5.25\n"
+          "    vout_min: 3.234\n    vout_max: 3.366\n    iout_max_A: 0.10\n"
+          "    converter: ME6211C33M5G-N\n    eff: 1.0\n"
+          "    pdiss_max_mw: 150\n")
+    d = project(pt, parts={"ME6211C33M5G-N": ME6211})
+    r = must_fail(etopo(d), "E-TOPO with a rail-level derating", "DISSIPATION")
+    contains(r.out, "150 mW", "grades against the RAIL's number, not the part's")
+
+
+@test("the OVER-ENGINEERING verdict is unchanged by the LINEAR class",
+      kind="known_bad")
+def t_overengineering_survives_linear():
+    """The check exists to catch buck_boost-where-buck-suffices (usb-hub-3s,
+    2026-07-22). Adding a fourth converter class must not weaken it. This is
+    the incident fixture re-asserted AFTER the change: a 5V-only output below
+    a 9V floor, with the real IP6559 `type:` string."""
+    d = project(ptree(rail("USB-C", 9.0, 12.6, 5, 5, 5, "IP6559-C")),
+                parts={"IP6559-C": IP6559_TYPE})
+    r = must_fail(etopo(d), "E-TOPO on the IP6559 incident", "over-engineered")
+    contains(r.out, "buck suffices", "still names the sufficient topology")
+    # ...and a LINEAR part must never be read as over-engineered: it is
+    # strictly LESS capable than a buck, so its risk is under-capability.
+    d2 = project(ptree(rail("3V3", 4.40, 5.25, 3.234, 3.366, 0.10,
+                            "ME6211C33M5G-N", eff=1.0)),
+                 parts={"ME6211C33M5G-N": ME6211})
+    r2 = must_pass(etopo(d2), "E-TOPO on a linear step-down")
+    check("over-engineered" not in r2.out,
+          "a linear regulator was reported as over-engineered")
+
+
+# ------------------- the silent-skip route itself (M-COVER, 2026-07-27) -----
+@test("E-TOPO FAILS a project with converters in 02_parts and NO power_tree.yaml",
+      kind="known_bad")
+def t_no_power_tree_with_converters_fails():
+    """THE ROUTE-AROUND. Deleting power_tree.yaml returned "N-A ... the
+    power-tree gate is optional" and exit 0 — the gate asked the artifact under
+    grade whether there was anything to grade, and believed it. 02_parts is a
+    DIFFERENT artifact written by a different stage (canon M1), so it can
+    contradict. Measured: usb-hub-3s, the board whose IP6559 buck-boost
+    MOTIVATED this gate, has no power_tree.yaml and had never been graded.
+    RED-VERIFIED against pre-fix code: exits 0 with 'N-A'."""
+    d = project(None, parts={"IP6559-C": IP6559_TYPE,
+                             "LM5116MHX-NOPB": LM5116_TYPE})
+    r = must_fail(etopo(d), "E-TOPO with no power tree but two converters",
+                  "0/2 converters graded")
+    contains(r.out, "IP6559-C", "names the ungraded converter")
+    contains(r.out, "LM5116MHX-NOPB", "names both, not just the first")
+
+
+@test("E-TOPO FAILS `rails: []` while 02_parts declares a converter",
+      kind="known_bad")
+def t_empty_rails_with_converter_fails():
+    """The smc0985-cooksense shape: `rails: []` plus a `linear_rails:` key the
+    checker ignores BY DESIGN, six documented rails, and "E-TOPO N-A" exit 0.
+    An empty rails list is a ZERO DENOMINATOR, which canon M-COVER makes a
+    FAIL outright."""
+    d = project("rails: []\nlinear_rails:\n  - {name: 3V3, element: AMS1117}\n",
+                parts={"AMS1117-3.3": "ldo_3v3_1a"})
+    r = must_fail(etopo(d), "E-TOPO on an empty rails list with an LDO present",
+                  "0/1 converters graded")
+    contains(r.out, "AMS1117-3.3", "names the converter nothing graded")
+
+
+@test("E-TOPO FAILS when SOME converters are declared and others are not",
+      kind="known_bad")
+def t_partial_coverage_fails():
+    """The crow-recorder-central shape, and the subtler one: two switching
+    rails ARE declared and pass, while two LDO rails live only in a COMMENT.
+    E-TOPO printed 'OK: 2 rail(s) topology-correct' over half a power tree.
+    The verdict must carry the 02_parts denominator, not only the rails it was
+    handed."""
+    d = project(ptree(rail("3V3", 4.75, 5.25, 3.32, 3.32, 0.4,
+                           "AP61102Z6-7")),
+                parts={"AP61102Z6-7": "buck_regulator_sync",
+                       "TCR2LF18": "ldo",
+                       "XC6227C331PR-G": "ldo_regulator_fixed_3v3_low_noise"})
+    r = must_fail(etopo(d), "E-TOPO with two undeclared LDOs",
+                  "UNGRADED CONVERTERS")
+    contains(r.out, "2 of 3", "reports the coverage shortfall as a fraction")
+    contains(r.out, "TCR2LF18", "names the first ungraded part")
+    contains(r.out, "XC6227C331PR-G", "names the second")
+
+
+@test("E-TOPO N-A survives when the board genuinely has no converter")
+def t_na_is_still_reachable():
+    """The check must not become unfailable-in-reverse. A board with no
+    converter part at all still gets N-A and exit 0 — and now SAYS what it
+    checked to conclude that, with a 0/0 denominator."""
+    d = project(None, parts={"AO3401A": "pfet_30v_4a",
+                             "TPS259573DSGR": "efuse_ovlo"})
+    r = must_pass(etopo(d), "E-TOPO on a converter-free board")
+    contains(r.out, "0/0", "prints a denominator even for N-A")
+    contains(r.out, "02_parts", "names the artifact it checked to say N-A")
+
+
+@test("a LINEAR rail's input current is Iout, not Pout/eff/Vin")
+def t_linear_input_current_model():
+    """A switching rail draws CONSTANT POWER; a linear rail draws CONSTANT
+    CURRENT. Running a linear rail through the switching formula understates
+    its trunk current by Vout/Vin. pluto-cal-switch's power_tree.yaml carried
+    `eff: 1.0` with a comment claiming that made the derived input current
+    equal the output current — it does not: 3.3*0.1/4.4 = 0.075 A for a rail
+    that draws 0.100 A, 25% light, in the direction that under-sizes copper.
+    RED-VERIFIED: pre-fix this rail could not be declared at all, and with the
+    switching formula it reports 0.1 A only by accident of rounding, so the
+    fixture uses a rail where the two differ in the FIRST decimal."""
+    d = project(ptree(rail("3V3", 4.40, 5.25, 3.234, 3.366, 0.50,
+                           "ME6211C33M5G-N", eff=1.0)),
+                parts={"ME6211C33M5G-N": {"type": LDO_TYPE, "dropout_mv": 120,
+                                          "pdiss_max_mw": 2000}})
+    r = must_pass(etopo(d), "E-TOPO input-current model for a linear rail")
+    # switching formula would give 3.366*0.5/1.0/4.40 = 0.38 A; correct is 0.50
+    contains(r.out, "0.5 A at Vin_min",
+             "sums Iout directly for a linear rail (0.4 A would be the "
+             "constant-power answer)")
 
 
 if __name__ == "__main__":

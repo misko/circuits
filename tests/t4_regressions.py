@@ -788,6 +788,45 @@ def t_independent_waivers_pass():
     r = must_pass(run([PY, WAIVER_PROV, root2]),
                   "waiver_provenance on a DECLARED inheritance")
     contains(r.out, "DECLARED", "the declared reuse should be reported as ok")
+    # G-COVER/G-INPUT (2026-07-27): the verdict must state WHAT it compared.
+    contains(r.out, "input: root", "names the tree it graded")
+    contains(r.out, "waiver(s) graded", "carries an N/M denominator")
+
+
+@test("waiver_provenance FAILS a tree with NO waivers rather than passing it",
+      kind="known_bad")
+def t_waiver_zero_denominator():
+    """G-COVER, canon M-COVER (2026-07-27). W-COPY is a CROSS-PROJECT
+    comparison: it needs at least two projects carrying waivers before it can
+    compare anything. A tree with none printed
+    `WAIVER PROVENANCE: PASS (0 fails, 0 ok)` and exited 0 — byte-identical in
+    meaning to a clean fleet, which is what a wrong `root` argument, a renamed
+    `policy_waivers.yaml`, or a schema change all produce.
+    RED-VERIFIED against pre-fix code (git show 5054b07:...waiver_provenance
+    .py): it exits 0 on this fixture."""
+    d = tmpdir("t4wav_")
+    root = d / "projects"
+    scratch_project(root, "board-alpha", waivers=None)
+    r = must_fail(run([PY, WAIVER_PROV, root]),
+                  "waiver_provenance over a tree with no waivers",
+                  "0/0 waivers graded")
+    contains(r.out, "M-COVER", "cites the canon it is enforcing")
+
+
+@test("waiver_provenance SAYS SO when only one project carries waivers")
+def t_waiver_single_project_says_so():
+    """The subtler half, and the reason the zero case above is not enough.
+    With ONE project carrying waivers the tool exits 0 legitimately — but
+    W-COPY, its whole cross-project half, compared nothing. That has to be
+    visible in the verdict rather than inferred from the project count."""
+    d = tmpdir("t4wav_")
+    root = d / "projects"
+    scratch_project(root, "board-alpha", waivers=INDEPENDENT_A)
+    scratch_project(root, "board-bravo", waivers=None)
+    r = must_pass(run([PY, WAIVER_PROV, root]),
+                  "waiver_provenance with a single waiver-carrying project")
+    contains(r.out, "cross-project half of this gate graded nothing",
+             "declares the half of itself that did not run")
 
 
 # ==========================================================================
@@ -866,6 +905,56 @@ def t_subfloor_crossnet_clearance_is_real():
     must_fail(r, "classified_drc on a sub-floor cross-net gap", "REAL=1")
     contains(r.out, "'5V'", "the offending nets must be named")
     contains(r.out, "VERDICT: FAIL", "classified_drc verdict")
+
+
+@test("classified_drc FAILS a DRC report it cannot PARSE, instead of reading "
+      "it as a clean board", kind="known_bad")
+def t_classified_drc_unparseable_report_is_a_fail():
+    """G-COVER, canon M-COVER (2026-07-27). The whole verdict rests on
+    `re.split(r"\\[(\\w+)\\]: ", txt)`. A report in a format this script no
+    longer recognises — a KiCad release that changed the block header, a
+    truncated write, a kicad-cli that emitted JSON — splits into ONE block,
+    yields zero categories, zero clearance items, and printed
+    `VERDICT: PASS` with exit 0. That is the counting-vs-classifying incident
+    this section is about, one level up: the classifier classified nothing and
+    called the board clean.
+
+    The `--report` replay seam exists so this can be tested at all; without it
+    the report contents are produced by kicad-cli and cannot be injected.
+    RED-VERIFIED against pre-fix code (git show 5054b07:...classified_drc.py
+    + the same fixture through the pid-suffixed path): zero blocks parsed
+    printed `categories: NONE` and `VERDICT: PASS`, exit 0."""
+    d = tmpdir("t4drcfmt_")
+    bogus = d / "future_format.rpt"
+    # a plausible next-format report: real findings, none in the [type]: shape
+    bogus.write_text(
+        '{"$schema": "kicad_drc", "violations": [\n'
+        '  {"type": "clearance", "severity": "error",\n'
+        '   "description": "Clearance violation (netclass \'Default\' '
+        'clearance 0.2 mm; actual 0.05 mm)"},\n'
+        '  {"type": "shorting_items", "severity": "error"}\n'
+        ']}\n')
+    r = run([KPY, CLASSIFIED, "unused.kicad_pcb", "--report", bogus])
+    must_fail(r, "classified_drc on an unparseable report", "VERDICT: FAIL")
+    contains(r.out, "did not understand",
+             "the verdict must name the parse failure, not imply cleanliness")
+    contains(r.out, "M-COVER", "cites the canon it is enforcing")
+
+
+@test("classified_drc still PASSES a genuinely clean report (the guard "
+      "discriminates)")
+def t_classified_drc_clean_report_still_passes():
+    """A guard that failed every report would be worthless. kicad-cli writes
+    an explicit zero-count line for a clean board, and that must still pass —
+    it is the difference between 'no violations' and 'no parse'."""
+    d = tmpdir("t4drcok_")
+    clean = d / "clean.rpt"
+    clean.write_text("** Found 0 DRC violations **\n"
+                     "** Found 0 unconnected pads **\n"
+                     "** Found 0 Footprint errors **\n")
+    r = run([KPY, CLASSIFIED, "unused.kicad_pcb", "--report", clean])
+    check(r.rc == 0, f"a clean report must pass, got rc={r.rc}\n{r.out}")
+    contains(r.out, "VERDICT: PASS", "clean report verdict")
 
 
 @test("INCIDENT(2026-07-13 spf/96785a0): a FAB-LEGAL gap is margin, not a violation")
