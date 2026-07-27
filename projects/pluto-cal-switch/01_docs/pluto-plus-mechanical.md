@@ -126,3 +126,47 @@ caliper check in option 1 settles this too.
 - **Connector protrusion** past the board edge.
 - **Mounting holes**, which would let a standoff carry the daughter board's
   weight instead of the connector solder joints.
+
+## Mating strategy — the blind-mate escape hatch does NOT apply here
+
+A survey of blind-mate coax families was run to see whether a float-mount
+interface could absorb the ±0.5 mm uncertainty above. Result, with sources:
+
+| family | radial float | axial float | band |
+|---|---|---|---|
+| SMP / SMPM / SMPS / GPO / GPPO | **±0.254 mm** | 0–0.254 mm | to 40–100 GHz |
+| SMP/SMPM **spring** bullets | ±0.254 mm | **0.81–2.54 mm** | to 65 GHz |
+| BMA float-mount (Radiall, TE OSP) | **±0.51 mm** | **1.52 mm** | DC–22 GHz |
+| **Amphenol HD-EFI** | **±1.4 mm** | **±1.4 mm**, 5° | **DC–6 GHz** |
+
+The whole SMP family converges on the same MIL-STD-348 number, ±0.254 mm — less
+than our uncertainty. Only BMA float and HD-EFI beat it, and HD-EFI is
+purpose-built for "multiple RF lines between PCBs" with a band ceiling of
+6 GHz that matches this design's top end exactly.
+
+**None of it helps.** Blind-mate requires the interface on BOTH sides, and the
+PlutoPlus side is fixed: four threaded SMA jacks, already fabricated. We cannot
+put HD-EFI on a board we are not making.
+
+And the survey's other finding closes the remaining door: **no float-mount SMA
+exists.** No major manufacturer publishes an SMA with a floating flange or
+bushing, because SMA is a threaded, rigidly-located interface — the coupling
+nut IS the alignment mechanism. Amphenol, Radiall, TE, SV, Cinch: none.
+
+### What that leaves
+
+1. **Rigid SMA plugs at the measured pitch.** Requires the pitch to roughly
+   ±0.1 mm, which means the caliper measurement is now LOAD-BEARING, not a
+   nice-to-have. This is the clean answer if the number can be had.
+2. **Solder-after-mate.** Mount the three Pluto-facing SMAs as THROUGH-HOLE with
+   modest hole clearance, plug the bare board onto the Pluto, then hand-solder
+   the connectors in position. The assembly self-aligns and the tolerance
+   problem disappears entirely. Cost: three hand-soldered joints, which under
+   this repo's PCBA-is-the-deliverable rule needs an `assembly.yaml` entry with
+   reason and evidence — a recorded decision, not a silent one.
+3. **Short semi-rigid jumpers** on one or more ports. Partially concedes the
+   no-cables goal and is the fallback if 1 and 2 both fail.
+
+Option 2 is worth serious consideration even if the caliper number arrives: it
+removes the tolerance stack-up rather than budgeting for it, and this board is
+a low-volume bench adapter where three hand-solder joints cost little.
