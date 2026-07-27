@@ -68,48 +68,77 @@ influence.
 
 | segment | length | why |
 |---|---|---|
-| `TX_PLUTO` SMP → PAD_A1 in | 10 mm | TX sits at one end of the three SMP ports (ARCHITECTURE §2) |
+| `TX_PLUTO` SMA → PAD_A1 in | 10 mm | the port is now placed where the RF wants it, not at a foreign pitch (ADR-0015) |
+| **PAD_A1 internal cascade** | **12 mm** | **NEW: 4 × 3 mm between the five chips of the 25.8 dB pre-split pad (ADR-0016). Five chips in series is not free and it is budgeted, not waved away** |
 | PAD_A1 out → splitter vertex | 22 mm | the splitter is on the mirror axis between the two RX ports; TX enters from the side |
 | splitter arm → PAD_A2 in | 8 mm | ×2, mirrored |
 | PAD_A2 out → switch RF2 | 8 mm | ×2, mirrored |
-| switch RFin → `RX_PLUTOn` SMP | 5 mm | switch hugs its SMP |
-| **total, TX SMP → each RX SMP** | **53 mm** | |
+| switch RFin → `RX_PLUTOn` SMA | 5 mm | switch hugs its port |
+| **total, TX jack → each RX jack** | **65 mm** | |
 | switch RF1 → `RX_ANTn` SMA | 20 mm | ×2, antenna edge |
 
-**53 mm × 6.0 ps/mm = 318 ps** nominal one-way loopback delay per arm. The D4
-artifact is the measured per-arm length and the arm-to-arm DELTA, converted
-with the 6.0 ps/mm constant pinned to the ordered stackup.
+**65 mm × 6.0 ps/mm = 390 ps** nominal one-way loopback delay per arm, ON THE
+BOARD. The D4 artifact is the measured per-arm length and the arm-to-arm
+DELTA, converted with the 6.0 ps/mm constant pinned to the ordered stackup.
+
+**A8 added a SECOND, LARGER delay term the board cannot measure: the cables.**
+0.3 m of RG316-class coax is ~1.5 ns each, four times the whole on-board run,
+and the arm-to-arm delta is now dominated by how well the two RX cables match
+rather than by how well the two microstrips do. That does not weaken D4 — it
+relocates it. **The release publishes the board's delta and states its
+measurement plane (this board's SMA jacks); the cable pair is the user's to
+match or to measure.** A matched pair of cables is a purchasable object, which
+is a better place for the requirement than a routing negotiation.
 
 ---
 
 ## 3. The loss budget — TX_PLUTO to EACH RX_PLUTO, control ON
 
-Measured at the **Pluto's own SMA jacks**, so the SMA→SMP adapters are inside
-the budget.
+**Measurement plane, stated with the number (ADR-0013's surviving rule):** the
+budget below runs from the **Pluto's own SMA jacks**, so the two user-supplied
+cables are inside it. **The release publishes its measured curve at THIS
+BOARD's SMA jacks** — a different plane, ~0.4 dB apart at 70 MHz and ~3.0 dB
+apart at 6 GHz, and the difference is the user's cables, which this project
+neither supplies nor measures.
 
 ### 3.1 Every term
 
 | # | element | 70 MHz | 6 GHz | source |
 |---|---|---|---|---|
-| 1 | SMA→SMP adapter, TX side | 0.05 | 0.15 | [EST] — see §10 |
-| 2 | SMP mated pair + board launch, TX | 0.05 | 0.20 | [EST] |
-| 3 | µstrip 10 mm | 0.019 | 0.36 | [DERIVED] §1.1 |
-| 4 | **PAD_A1** | *A1* | *A1* | [DS] §4 |
-| 5 | µstrip 22 mm | 0.042 | 0.79 | [DERIVED] |
-| 6 | resistive delta 2-way split | **6.021** | **6.021** | [DERIVED] EXACT, §5.1 |
-| 7 | splitter mounting-parasitic excess | 0.00 | 0.35 | [EST] modelled; the measured reference (Mini-Circuits ZFRSC-183-S+ REV D p.1, a DC–18 GHz coax resistive divider) runs 6.05 dB @500 MHz → 6.36 dB @6 GHz, i.e. +0.31 dB |
-| 8 | µstrip 8 mm | 0.015 | 0.29 | [DERIVED] |
-| 9 | **PAD_A2** | *A2* | *A2* | [DS] §4 |
-| 10 | µstrip 8 mm | 0.015 | 0.29 | [DERIVED] |
-| 11 | SPDT insertion loss | 0.20 | 0.65 | [DS] §3.2 |
-| 12 | µstrip 5 mm | 0.010 | 0.18 | [DERIVED] |
-| 13 | SMP mated pair + board launch, RX | 0.05 | 0.20 | [EST] |
-| 14 | SMA→SMP adapter, RX side | 0.05 | 0.15 | [EST] |
-| | **NON-PAD SUBTOTAL** | **6.54** | **9.63** | |
+| 1 | Pluto jack ↔ cable plug, TX side | 0.02 | 0.08 | [EST] — see §10 |
+| 2 | **SMA cable, TX side** (0.3 m RG316-class, **USER-SUPPLIED**) | **0.20** | **1.50** | **[EST, ×2 bar]** — see §10 N1 |
+| 3 | cable plug ↔ board jack + THT launch, TX | 0.05 | 0.25 | [EST] |
+| 4 | µstrip 10 mm | 0.019 | 0.36 | [DERIVED] §1.1 |
+| 5 | **PAD_A1** | *A1* | *A1* | [DS] §4 |
+| 5b | **PAD_A1 internal cascade, 4 × 3 mm** | **0.023** | **0.43** | [DERIVED] — five chips in series (§4.2) |
+| 6 | µstrip 22 mm | 0.042 | 0.79 | [DERIVED] |
+| 7 | resistive delta 2-way split | **6.021** | **6.021** | [DERIVED] EXACT, §5.1 |
+| 8 | splitter mounting-parasitic excess | 0.00 | 0.35 | [EST] modelled; the measured reference (Mini-Circuits ZFRSC-183-S+ REV D p.1, a DC–18 GHz coax resistive divider) runs 6.05 dB @500 MHz → 6.36 dB @6 GHz, i.e. +0.31 dB |
+| 9 | µstrip 8 mm | 0.015 | 0.29 | [DERIVED] |
+| 10 | **PAD_A2** | *A2* | *A2* | [DS] §4 |
+| 11 | µstrip 8 mm | 0.015 | 0.29 | [DERIVED] |
+| 12 | SPDT insertion loss | 0.20 | 0.65 | [DS] §3.2 |
+| 13 | µstrip 5 mm | 0.010 | 0.18 | [DERIVED] |
+| 14 | board jack + THT launch ↔ cable plug, RX | 0.05 | 0.25 | [EST] |
+| 15 | **SMA cable, RX side** | **0.20** | **1.50** | **[EST, ×2 bar]** |
+| 16 | cable plug ↔ Pluto jack, RX | 0.02 | 0.08 | [EST] |
+| | **NON-PAD SUBTOTAL** | **6.89** | **13.02** | |
 
-**Chain tilt = 3.09 dB.** It is irreducible: 1.80 dB of it is microstrip loss,
-0.45 dB the switch, 0.50 dB the coax interfaces, 0.35 dB splitter parasitics.
-No pad value makes the total 30 dB at both ends.
+**Chain tilt = 6.13 dB**, up from 3.09 dB. It is irreducible, and **the two
+cables are now the single largest non-pad term at the top of the band**:
+
+| contributor | 70 MHz | 6 GHz | Δ |
+|---|---|---|---|
+| the two SMA cables (A8) | 0.40 | **3.00** | **+2.60** |
+| microstrip, 65 mm | 0.13 | 2.34 | +2.21 |
+| SPDT | 0.20 | 0.65 | +0.45 |
+| four coax interfaces | 0.14 | 0.66 | +0.52 |
+| splitter parasitics | 0.00 | 0.35 | +0.35 |
+| resistive split (flat by construction) | 6.02 | 6.02 | 0 |
+
+**A8 nearly doubled the tilt, and A9's specification absorbed it without
+changing.** That is the strongest practical argument for a minimum over a
+scalar: a minimax pad referenced to ≈3.0 GHz would have had to move.
 
 ### 3.2 The switch term, stated honestly
 
@@ -130,101 +159,138 @@ Budgeted: **0.20 dB @70 MHz** (WN6 die-level typ 0.15 + a 0.05 board
 allowance, which lands exactly on P2L6's application-board 0.20) and
 **0.65 dB @6 GHz** (WN6 die-level typ 0.62 + 0.03). The board allowance is
 small because the launch and trace contributions are already carried
-separately in rows 3/10/12 — a small deliberate double-count in the
+separately in rows 4/11/13 — a small deliberate double-count in the
 conservative direction.
 
 Worst case over temperature and supply: **0.25 / 1.00 dB** [DS].
 
 ### 3.3 The loss curve
 
-| f | µstrip | switch | coax IFs | splitter par. | split | **L(f)** |
-|---|---|---|---|---|---|---|
-| 70 MHz | 0.11 | 0.20 | 0.21 | 0.00 | 6.02 | **6.54** |
-| 648 MHz¹ | 0.41 | 0.20 | 0.25 | 0.04 | 6.02 | **6.92** |
-| 2 GHz | 0.86 | 0.24 | 0.37 | 0.12 | 6.02 | **7.60** |
-| 3 GHz | 1.14 | 0.32 | 0.45 | 0.18 | 6.02 | **8.11** |
-| 4.5 GHz | 1.54 | 0.43 | 0.58 | 0.26 | 6.02 | **8.82** |
-| 6 GHz | 1.91 | 0.65 | 0.70 | 0.35 | 6.02 | **9.63** |
+| f | µstrip 65 mm | switch | coax IFs | **cables** | splitter par. | split | **L(f)** |
+|---|---|---|---|---|---|---|---|
+| 70 MHz | 0.13 | 0.20 | 0.14 | **0.40** | 0.00 | 6.02 | **6.89** |
+| 648 MHz¹ | 0.50 | 0.20 | 0.17 | **1.10** | 0.04 | 6.02 | **8.03** |
+| 2 GHz | 1.05 | 0.24 | 0.25 | **1.82** | 0.12 | 6.02 | **9.50** |
+| 3 GHz | 1.40 | 0.32 | 0.31 | **2.19** | 0.18 | 6.02 | **10.42** |
+| 4.5 GHz | 1.89 | 0.43 | 0.42 | **2.63** | 0.26 | 6.02 | **11.65** |
+| 6 GHz | 2.34 | 0.65 | 0.66 | **3.00** | 0.35 | 6.02 | **13.02** |
 
-¹ 648 MHz = √(70 × 6000), the geometric mean of the band.
+¹ 648 MHz = √(70 × 6000), the geometric mean of the band. Cable loss is
+interpolated as `0.40·(f/70 MHz)^0.4527`, the exponent fitted to the two
+endpoint [EST]s — a blend of the √f conductor term and the f dielectric term,
+which is the right SHAPE for coax even when the endpoints are estimates.
 
-### 3.4 Choosing the pad — and the D5 assumption
+### 3.4 Choosing the pad — sizing a MINIMUM is a different problem
 
-"30 dB TOTAL" (fact-locked by A2) is a **scalar against a chain that tilts
-3.09 dB**. It cannot be true everywhere. The user has not named a reference
-frequency. **D5: the pad is chosen by MINIMAX** — the value that minimizes
-the worst-case deviation from 30 dB, privileging no frequency:
+**A9 replaced the scalar with a floor** (ADR-0016). Sizing a floor inverts the
+method: instead of centring a pad on a target, you take the **LOWER BOUND of
+every loss term** and require the sum to clear 40 dB. Anything the real board
+does better than that bound only pushes the total UP, which is the safe
+direction.
+
+Taken to its logical end, the design credits **nothing it does not control**:
+
+| term | credited | why |
+|---|---|---|
+| pad | **datasheet MIN column** | the only thing the vendor guarantees |
+| resistive split | **5.97 dB** | 6.017 exact (§5.1) less 0.043 for ±1 % parts |
+| both SMA cables | **0** | user-supplied, unknown length, not on this BOM |
+| four coax interfaces | **0** | [EST], strictly positive |
+| 65 mm of microstrip | **0** | [DERIVED], strictly positive |
+| SPDT insertion loss | **0** | [DS], strictly positive |
+| splitter parasitics | **0** | [EST], strictly positive |
 
 ```
-P_minimax = 30 − (L(70 MHz) + L(6 GHz))/2 = 30 − (6.54 + 9.63)/2 = 21.92 dB
+required pad MIN  =  40 − 5.97  =  34.03 dB      (guaranteed, at the worst frequency)
 ```
 
-Realizable from stocked Mini-Circuits YAT parts:
-`A1 = YAT-10A+`, `A2 = YAT-10A+ + YAT-2A+` per arm. From the MEASURED
-typical-performance tables (YAT-10A+ REV B p.4, YAT-2A+ REV B p.4 — read from
-the PDFs vendored in `02_parts/`):
+Realizable from the two Mini-Circuits YAT values with VERIFIED stock:
 
-| | 10 MHz | 5 GHz | 8 GHz | ⇒ at 6 GHz |
-|---|---|---|---|---|
-| YAT-10A+ | 9.98 | 9.96 | 9.96 | 9.96 |
-| YAT-2A+ | 1.94 | 1.82 | 1.81 | 1.815 |
-| **cascade A1+A2** | **21.90** | 21.74 | 21.73 | **21.74** |
+**`A1 = 2 × YAT-10A+ + 3 × YAT-2A+` pre-split; `A2 = YAT-10A+ + YAT-2A+` per
+arm** ⇒ the TX→RX path crosses **3 × YAT-10A+ + 4 × YAT-2A+**.
 
-**P = 21.90 dB at 70 MHz falling to 21.74 dB at 6 GHz — the pad contributes
-only 0.16 dB of the chain's 3.09 dB tilt.**
-
-| f | L(f) | + P (measured typ) | total |
-|---|---|---|---|
-| 70 MHz | 6.54 | 21.90 | **28.44 dB** |
-| 648 MHz | 6.92 | 21.89 | 28.81 dB |
-| 2 GHz | 7.60 | 21.84 | 29.44 dB |
-| **≈3.0 GHz** | 8.11 | 21.82 | **29.93 dB ← 30 dB is met HERE** |
-| 4.5 GHz | 8.82 | 21.78 | 30.60 dB |
-| 6 GHz | 9.63 | 21.74 | **31.37 dB** |
-
-**Result: 30 dB is met at ≈3.0 GHz; the band span is 30.0 −1.6 / +1.4 dB.**
-
-**What changes if the user names a different reference frequency** — in every
-case it is a change to ONE BOM line (the arm chain's second YAT part), same
-footprint, two placements:
-
-| reference | pad wanted | build | 70 MHz | 6 GHz | RX1↔RX2 isolation |
-|---|---|---|---|---|---|
-| 70 MHz or 648 MHz | 23.5 / 23.1 dB | A2 = YAT-10A+ + **YAT-3A+** (22.87 total) | 29.4 dB | 32.5 dB | 31.8 dB |
-| **≈3.0 GHz (minimax — CHOSEN)** | 21.9 dB | A2 = YAT-10A+ + **YAT-2A+** (21.86) | 28.4 dB | 31.4 dB | 29.8 dB |
-| 6 GHz | 20.4 dB | A2 = **YAT-10A+ alone** (19.97) | 26.5 dB | 29.6 dB | 26.0 dB |
-
-### 3.5 The guaranteed envelope, not just the typical
-
-Datasheet min/max columns [DS], YAT-10A+ p.2 and YAT-2A+ p.2:
+Datasheet min/typ/max columns [DS], YAT-10A+ p.2 and YAT-2A+ p.2:
 
 | | DC–5 GHz | 5–15 GHz |
 |---|---|---|
 | YAT-10A+ | 9.6 / 9.97 / 10.4 | 9.5 / 9.98 / 10.5 |
 | YAT-2A+ | 1.5 / 1.92 / 2.3 | 1.4 / 1.85 / 2.3 |
-| A1 + A2 total | 20.7 / 21.86 / 23.1 | 20.4 / 21.81 / 23.3 |
+| **path total (3×10 + 4×2)** | **34.8** / 37.6 / 40.4 | **34.1** / 37.3 / 40.7 |
 
-**Total TX→RX, guaranteed envelope across band AND unit-to-unit:
-27.2 dB to 32.9 dB.** That is the number the release publishes, alongside the
-measured curve — not "30 dB".
+```
+guaranteed minimum, 70 MHz – 5 GHz :  34.8 + 5.97  =  40.77 dB
+guaranteed minimum, 5 – 6 GHz      :  34.1 + 5.97  =  40.07 dB   <-- BINDS
+```
 
-### 3.6 Which estimates the conclusion is sensitive to
+**≥ 40.07 dB across 70 MHz – 6 GHz, worst frequency 6 GHz.** The step at 5 GHz
+is the YAT min column changing band, not anything physical. Credit only the
+terms the geometry FORCES (≥25 mm of trace = 0.9 dB at 6 GHz, SPDT IL ≥0.2 dB)
+and it is ≥41.2 dB.
+
+**Why not one chip less.** The next build down, `3 × YAT-10A+ + 3 × YAT-2A+`,
+has a 5–15 GHz min of 32.7 dB ⇒ **38.67 dB — it FAILS.** The last YAT-2A+ is
+what buys the guarantee, and it costs $3.40.
+
+**Why not an all-YAT-10A+ build.** `4 × YAT-10A+` in the path clears the floor
+easily (45.4 dB) but lands the TYPICAL at 48.7 dB at 70 MHz — 8.7 dB above
+spec — and the fourth 10 dB chip would have to come out of A2, dropping
+inter-channel isolation from 29.9 dB to 26.0 dB and the open-cable masking
+from 24 dB to 20 dB. **The chosen build is the one that clears 40 dB
+guaranteed while sitting CLOSEST to it typically, without touching A2.**
+
+### 3.5 The published curve, and the envelope around it
+
+The MEASURED typical-performance tables (YAT-10A+ REV B p.4, YAT-2A+ REV B
+p.4, read from the PDFs vendored in `02_parts/`) give the pad's own curve:
+**37.70 dB at 70 MHz falling to 37.14 dB at 6 GHz — the pad contributes only
+0.56 dB of the chain's 6.13 dB tilt**, and it tilts the other way.
+
+| f | L(f) | + pad (measured typ) | **total, typical** |
+|---|---|---|---|
+| 70 MHz | 6.89 | 37.70 | **44.59 dB ← the typical minimum** |
+| 648 MHz | 8.03 | 37.61 | 45.64 dB |
+| 2 GHz | 9.50 | 37.43 | 46.93 dB |
+| 3 GHz | 10.42 | 37.34 | 47.76 dB |
+| 4.5 GHz | 11.65 | 37.20 | 48.85 dB |
+| 6 GHz | 13.02 | 37.14 | **50.16 dB** |
+
+**Guaranteed envelope, across band AND unit-to-unit: 40.1 dB to 53.7 dB**
+(floor from §3.4; ceiling = 40.7 dB max pad + 13.02 dB typical chain at
+6 GHz). It is a wide envelope and it is honest: **the release publishes the
+measured curve of the unit it ships**, exactly as ADR-0013 required and as D4
+requires of the length delta. A calibration board's product is a KNOWN number,
+and a number known to be a curve ships as a curve.
+
+**Note which frequency binds in which sense — it is not a contradiction.** The
+TYPICAL minimum is at **70 MHz**, where the chain loses least. The GUARANTEED
+floor dips at **6 GHz**, where the YAT min column steps down. Both are ≥40 dB,
+and the specification is met in both readings.
+
+**The typical sits 4.6 dB above the floor at 70 MHz, and that is a CHOICE, not
+slack.** A build centred so that the TYPICAL is 40 dB would have a guaranteed
+minimum near 36 dB — i.e. the spec would be met by an average unit and missed
+by a bad one. For a pad whose whole job is surviving a misconfiguration, the
+worst-case reading is the only one that means anything (ADR-0016).
+
+### 3.6 Sensitivity — and why it no longer threatens the specification
 
 | [EST] term | value @6 GHz | if it were HALF | if it were DOUBLE |
 |---|---|---|---|
-| microstrip loss (0.036 dB/mm) | 1.91 dB | P → 22.4 (still 22 dB build) | P → 20.9 (drops to YAT-1A+ arm) |
-| coax interfaces (rows 1,2,13,14) | 0.70 dB | P → 22.1 | P → 21.6 |
-| splitter parasitic excess | 0.35 dB | P → 22.0 | P → 21.7 |
-| **all three together** | 2.96 dB | P → 23.4 (⇒ YAT-3A+ arm) | P → 20.4 (⇒ no arm second pad) |
+| the two cables | 3.00 dB | typical → 48.7 dB | typical → 53.2 dB |
+| microstrip loss (0.036 dB/mm) | 2.34 dB | typical → 49.0 dB | typical → 52.5 dB |
+| coax interfaces (rows 1,3,14,16) | 0.66 dB | typical → 49.8 dB | typical → 50.8 dB |
+| splitter parasitic excess | 0.35 dB | typical → 50.0 dB | typical → 50.5 dB |
 
-**The 22 dB build is robust to any single estimate being wrong by 2×, and
-breaks only if all three are wrong the same way.** That is the honest
-statement of confidence, and it is why the reference-frequency question (D5)
-is a bigger lever than the estimate error.
+**Every cell is still far above 40 dB, and none of them can move the GUARANTEE
+at all**, because the guarantee credits all four at zero. Compare the old
+22 dB minimax build, where this same table decided which YAT part went in the
+arm: an estimate wrong by 2× moved the BOM. **That coupling is gone.** The
+estimates now only sharpen the published typical curve.
 
-**TRIGGER TO RE-DERIVE:** once the board is routed, replace rows 3/5/8/10/12
-with the actual lengths and re-run §3.3/§3.4. If the measured total
-interconnect at 6 GHz lands below ~1.4 dB, the arm's second YAT part changes.
+**TRIGGER TO RE-DERIVE (deliberately weakened):** once the board is routed,
+replace rows 4/5b/6/9/11/13 with the actual lengths and re-run §3.3/§3.5. That
+is now a documentation refresh, not a design risk — **no measured interconnect
+value can invalidate the ≥40 dB minimum, because there is nothing below zero.**
 
 ---
 
@@ -236,9 +302,16 @@ A calibration reference sells a KNOWN number across a swept band.
 
 | option | tilt, 70 MHz → 6 GHz | 6 GHz spread over plausible parasitics | cost |
 |---|---|---|---|
-| YAT cascade | **0.16 dB** [DS] measured typical-performance tables, YAT-10A+ REV B p.4 + YAT-2A+ REV B p.4 (vendored) | 20.7–23.1 dB (a datasheet-GUARANTEED window) | ~$17/board |
-| 2× cascaded 11.5 dB 0402 pi | 0.56 dB [EST] modelled | 21.3–22.7 dB (an UNKNOWN — depends on ground-via inductance the fab does not guarantee) | ~$0.06/board |
-| single 23 dB 0402 pi | **2.14 dB** [EST] | 18.1–22.0 dB | ~$0.03/board |
+| YAT cascade | **0.56 dB over 37.7 dB** [DS] measured typical-performance tables, YAT-10A+ REV B p.4 + YAT-2A+ REV B p.4 (vendored) | 34.1–40.7 dB (a datasheet-**GUARANTEED** window, and the reason the ≥40 dB minimum can be CLAIMED at all) | ~$30.6/board |
+| cascaded 11.5 dB 0402 pi ×3 | ~1.7 dB [EST] modelled | an **UNKNOWN** — depends on ground-via inductance the fab does not guarantee | ~$0.09/board |
+| single high-value 0402 pi | **collapses** [EST] | 18.1–22.0 dB at a 23 dB nominal | ~$0.03/board |
+
+**A9 sharpened this comparison rather than changing its verdict.** Under a
+guaranteed-MINIMUM specification the discrete option is not merely worse — it
+is **inadmissible**, because it has no min column. You cannot promise ≥40 dB
+with a part whose spread is modelled. The chip's guaranteed window IS the
+deliverable now, not just a nicety; it was the weaker half of the argument
+under the 30 dB scalar and it is the whole argument under the 40 dB floor.
 
 The single pi collapses for a reason worth writing down: a 23 dB pi needs a
 348 Ω series element, and an 0402's own end-to-end parasitic capacitance
@@ -246,18 +319,27 @@ The single pi collapses for a reason worth writing down: a 23 dB pi needs a
 package.** This is why discrete pads above ~15 dB stop working at multi-GHz,
 and it is why the arm pads are built as 10 + 2 rather than as one 12.
 
-Note the honest comparison: **the chip's GUARANTEED window (±1.15 dB) is
-WIDER than the discrete's MODELLED spread (±0.7 dB).** The chip does not win
-on spread. It wins on flatness — 0.16 dB against 0.56 dB — which is the
-property a swept cal reference actually sells. ADR-0004.
+Note the honest comparison, which A9 partly overturns: **the chip's GUARANTEED
+window is WIDER than the discrete's MODELLED spread.** Under the 30 dB scalar
+the chip therefore did not win on spread — it won on flatness. **Under a
+guaranteed MINIMUM the comparison is no longer symmetric**: a modelled spread
+cannot support a promise, so the chip wins on the axis that now matters most,
+and the fallback below is demoted from "equivalent with a flatness penalty" to
+"a different specification".
 
-Discrete stays as the fully-specified zero-stock-risk fallback: each 11.5 dB
+Discrete remains fully specified as the zero-stock-risk fallback: each 11.5 dB
 pi is 3× 86.6 Ω 0402 1% (E96 rounds shunt/series/shunt 86.25/87.31/86.25 to
 one value); stock verified C158969 (5202), C227253 (4450), C830266 (1038).
+**Taking it would mean re-stating the specification as typical-with-a-modelled-
+spread, and saying so to the user.**
 
-### 4.2 Split 10 dB pre / 12 dB per arm — four independent reasons
+### 4.2 Split 25.8 dB pre / 11.9 dB per arm — four independent reasons
 
-The obvious build is one 22 dB pad before the split. It is wrong.
+The obvious build is one big pad before the split. It is wrong — and note
+which half of that sentence A9 touched: **the whole 18 dB increase DID go
+pre-split** (one part protects both arms, and a pre-split pad is upstream of
+every downstream fault), while `A2` stayed at 11.9 dB because the four reasons
+below pin it independently of the total.
 
 **(a) Inter-channel isolation.** A resistive split gives 6.02 dB port-to-port
 and that is a theorem (§5.3), not a part limitation. Attenuation placed AFTER
@@ -266,9 +348,13 @@ that arm's pad twice while the wanted signal traverses it once:
 
 ```
 isolation(RX1↔RX2) = 6.02 + 2·A2
-    A2 = 0   →  6.02 dB
-    A2 = 12  →  29.8 dB     ← chosen
+    A2 = 0     →   6.02 dB
+    A2 = 11.9  →  29.9 dB     ← chosen, and UNCHANGED by A9
 ```
+
+**This is why the increase went pre-split.** Isolation is set by `A2` alone,
+so raising the total through `A1` leaves it exactly where three arguments had
+already put it.
 
 At a realistic RX return loss of 10 dB, contamination of RX1 by RX2's
 reflection is −16.0 dBc with no arm pad (**±1.4 dB and ±9.0° of ripple
@@ -311,25 +397,42 @@ error (0.1 nH of mounting-inductance mismatch ≈ 3.8 Ω ≈ 2° at 6 GHz).
 
 ### 4.3 Power dissipation and the board's TX ceiling
 
-At the fact-locked +7 dBm (5.01 mW) PlutoPlus TX:
+At the **CITED** +8 dBm (6.31 mW) maximum PlutoPlus TX (`spf/`
+`ad936x_tx_max_output_power`; AD9363 Rev. D p.4 of 32):
 
 | element | power in | dissipation | rating [DS] | margin |
 |---|---|---|---|---|
-| PAD_A1 (YAT-10A+) | 5.0 mW | 4.5 mW | 1.7 W @25 °C | **25.8 dB** |
-| splitter, hottest resistor | 0.45 mW | 0.11 mW | 62.5 mW @70 °C | **27.4 dB** |
-| PAD_A2 (YAT-10A+) | 0.11 mW | 0.10 mW | 1.7 W | 42 dB |
-| SPDT | 0.02 mW | — | P_RF 26 dBm CW [DS WN6 Table 3] | 33 dB |
+| PAD_A1, FIRST chip (YAT-10A+) | 6.3 mW | 5.7 mW | 1.7 W @25 °C | **24.8 dB** |
+| splitter, hottest resistor | 0.02 mW | 0.005 mW | 62.5 mW @70 °C | **41 dB** |
+| PAD_A2 (YAT-10A+) | 0.005 mW | 0.004 mW | 1.7 W | 56 dB |
+| SPDT | 0.0004 mW | — | P_RF 26 dBm CW [DS WN6 Table 3] | 62 dB |
 
-**Board TX absolute ceiling** — the binding element is the SPDT's 26 dBm CW
-operating limit (BGS12WN6, Table 3, PDF p5), which the loopback path reaches
-only at TX = 26 + 21.9 + 6.0 ≈ far above; the real first limit is **PAD_A1 at
-+32.3 dBm** (1.7 W). Declared board ceiling: **TX ≤ +27 dBm (0.5 W)**, a 5 dB
-guard band below PAD_A1's rating.
+Everything downstream of PAD_A1 got 16 dB colder when A9 moved 18 dB into the
+pre-split pad — the splitter's hottest resistor went from 27.4 dB of margin to
+41 dB. **The first chip of PAD_A1 is now the only element that sees any real
+power at all, and it always was.**
 
-> TX drive level is the one BRIEF fact-lock row still OPEN. At +7 dBm nothing
-> is close. The ceiling above is what protects the board if the user later
-> puts an external PA on TX_PLUTO. Note the discrete fallback pad is 13 dB
-> LESS forgiving — its input shunt resistor reaches 62.5 mW at ~+18.7 dBm.
+**Board TX absolute ceiling — UNCHANGED at +27 dBm.** The binding element is
+still PAD_A1's first chip at **+32.3 dBm** (1.7 W); the SPDT's 26 dBm CW limit
+is now unreachable by a further 37 dB of pad. Declared board ceiling:
+**TX ≤ +27 dBm (0.5 W)**, a 5.3 dB guard band below PAD_A1's rating.
+
+> **AND HERE IS THE RESULT THAT MATTERS MOST, WHICH THE 30 dB DESIGN DID NOT
+> STATE.** The +27 dBm ceiling was derived to protect this BOARD's parts.
+> Check it against the user's RECEIVER — the two ratings had never been put in
+> one table:
+>
+> | pad | guaranteed min TX→RX | RX at TX = +27 dBm | margin to the +2.5 dBm rating |
+> |---|---|---|---|
+> | 30 dB build (ADR-0004/0013) | 27.2 dB | **−0.2 dBm** | **2.7 dB** |
+> | **≥40 dB build (ADR-0016)** | **40.07 dB** | **−13.1 dBm** | **15.6 dB** |
+>
+> **The old board could be driven to its own declared ceiling and leave the
+> user's AD936x 2.7 dB from destruction.** ≥40 dB is what makes the +27 dBm
+> figure honest as a *system* ceiling rather than only a component one.
+>
+> Note also the discrete fallback pad is 13 dB LESS forgiving — its input
+> shunt resistor reaches 62.5 mW at ~+18.7 dBm.
 
 ---
 
@@ -456,54 +559,106 @@ is what the industry does at this bandwidth.**
 
 ## 6. What lands at the Pluto RX input
 
-At the fact-locked +7 dBm TX, with the chosen 21.86 dB pad:
+At the **CITED** +8 dBm maximum PlutoPlus TX, with the ≥40 dB pad:
 
 | f | total loss | RX level |
 |---|---|---|
-| 70 MHz | 28.40 dB | **−21.4 dBm** |
-| 3.0 GHz | 29.97 dB | −23.0 dBm |
-| 6 GHz | 31.44 dB | **−24.4 dBm** |
-| worst case (min pad, min loss) | 27.2 dB | **−20.2 dBm** |
+| 70 MHz | 44.59 dB | **−36.6 dBm** |
+| 3.0 GHz | 47.76 dB | −39.8 dBm |
+| 6 GHz | 50.16 dB | **−42.2 dBm** |
+| **worst case (min pad, everything else credited at zero)** | **40.07 dB** | **−32.1 dBm** |
 
-### 6.1 Damage margin
+**Read the last row as what it is: the design point.** The pad is not sized to
+hit the rows above it — those are where a typical unit happens to land. It is
+sized so that the WORST row cannot hurt anything, because the pad's job is to
+survive a misconfiguration (ADR-0016).
 
-AD9363 RX absolute maximum input = **+2.5 dBm**.
+### 6.1 Damage margin — both governing numbers now CITED
 
-> **CITATION STRENGTH, STATED RATHER THAN DRESSED UP: this figure is a
-> SECONDARY source.** Two independent attempts (the sourcing spike and its
-> adversarial pass) both failed to open a primary AD9363 absolute-maximum
-> page — analog.com, Mouser, DigiKey, Verical and Arrow all returned 403 or a
-> JS shell, DigiKey's HTML mirror now returns 410 Gone, and both LCSC
-> datasheet URLs resolve to a one-page placeholder. The number comes from ADI
-> EngineerZone answers. **It must be confirmed against AD9363 Rev. D before
-> it is relied on.** Open item O5.
+**AD9363 RX absolute maximum input = +2.5 dBm PEAK**
+[DS] AD9363 data sheet **Rev. D, printed page 15 of 32**, ABSOLUTE MAXIMUM
+RATINGS, row `RF Inputs (Peak Power)`. Retrieval path and grade:
+`spf/plutoplus_hardware/`, consumed through `03_src/rules/mates.yaml`.
 
-**Margin at the worst case: +2.5 − (−20.2) = 22.7 dB.** A 6 dB error in the
-cited figure still leaves ~17 dB. The conclusion is insensitive to the
-citation weakness, which is why it does not block.
+**PlutoPlus TX maximum = +8 dBm**
+[DS] same data sheet, **printed page 4 of 32**, TRANSMITTERS 800 MHz,
+`Maximum Output Power`, *"1 MHz tone into 50 Ω load"*.
 
-**Single-fault check.** If BOTH arm pads were absent (an assembly fault),
-RX = 7 − 6.5 − 10.0 = **−9.5 dBm** — still 12 dB below the abs max. If ALL
-pads were absent, RX = **+0.5 dBm** — below the abs max but ABOVE the RX
-front-end's ~0 dBm P1dB. So no credible single or double assembly fault
-damages the Pluto, but a triple fault would produce a compressed, wrong
-measurement rather than a dead radio.
+> **THIS SECTION USED TO CARRY A PARAGRAPH APOLOGISING FOR A SECONDARY
+> SOURCE.** Both figures are now read from the vendor document with a page
+> number, and three things came out of doing it properly:
+>
+> 1. **The secondary source was RIGHT.** +2.5 dBm is the number. The
+>    EngineerZone answer the old text leaned on matched the datasheet exactly.
+>    Confirming a figure that turns out to be correct is not wasted work — it
+>    is the only way to know which of your numbers are the correct ones.
+> 2. **The row says PEAK power, not average.** For the CW calibration tone
+>    peak = average and it costs nothing. For a modulated stimulus it does not,
+>    and anyone driving this fixture with modulation should size against peak.
+>    The old text carried the value without the qualifier.
+> 3. **TX max is +8 dBm, not +7.** The brief's "~+7 dBm" is the LOWEST of the
+>    three characterized bands (8.0 / 7.5 / 7.0 dBm at 800 MHz / 2.4 GHz /
+>    3.5 GHz), and it was being carried as if it were a ceiling. The design was
+>    1 dB optimistic about its own input. **≥40 dB absorbs it without a
+>    change**; 30 dB would also have absorbed it, so this is a correctness fix
+>    rather than a rescue — but it is exactly the class of quiet error that
+>    sizing against "intended" instead of "maximum" produces.
+>
+> **WHAT IS STILL OWED, and it is the honest residual:** both figures are the
+> TRANSCEIVER's, not the SMA PORT's. The +8 dBm bounds the port only if the
+> Pluto's TX front end is passive, and **nobody has established that on a
+> PlutoPlus** (`spf/plutoplus_hardware/plutoplus_tx_frontend_active`, graded
+> OWED). **What the design assumes meanwhile:** that the path from die to
+> panel is passive (balun + match + filter), as it is on the original
+> ADALM-Pluto, so +8 dBm is a hard ceiling. **What it costs if that is wrong:**
+> the ≥40 dB minimum holds RX below the +2.5 dBm rating for any TX up to
+> **+42.5 dBm**, and this board's own declared abuse ceiling is +27 dBm — so
+> **19 dB of undiscovered TX gain** would have to exist before the board's own
+> limit binds, and 34.5 dB before the receiver's does. The gap is bounded, and
+> a power meter closes it in five minutes.
 
-### 6.2 Linearity and SNR — the level is right for a POSITIVE reason
+**Margin at the worst case: +2.5 − (−32.1) = 34.6 dB.** At the board's own
+declared +27 dBm abuse ceiling it is still **15.6 dB** (§4.3) — which under
+the 30 dB build was 2.7 dB.
+
+**Assembly-fault ladder.** If BOTH arm pads were absent, RX = 8 − 6.89 −
+25.78 = **−24.7 dBm**, 27 dB below the rating. If ALL FIVE chips of PAD_A1
+were absent, RX = **−10.8 dBm**, 13.3 dB below. If EVERY pad were absent,
+RX = **+1.1 dBm** — still below the +2.5 dBm absolute maximum, though above
+the front end's ~0 dBm P1dB. **Under the 30 dB build the same all-pads-absent
+case landed at +0.5 dBm, i.e. inside 2 dB of the rating; it is now inside
+1.4 dB of it at a 1 dB higher TX.** The conclusion is unchanged and worth
+restating: no credible assembly fault damages the Pluto, and the absurd one
+produces a compressed, wrong measurement rather than a dead radio.
+
+### 6.2 Linearity and SNR — what the extra 10 dB actually cost
 
 - **Linearity.** The AD936x RX in-band 1 dB compression point is ≈0 dBm at
-  minimum gain. At −21 to −24 dBm the AGC selects a mid gain index and
-  nothing compresses — the cal path does not generate the distortion it
-  exists to measure.
+  minimum gain. At −33 to −42 dBm the AGC selects a mid gain index and nothing
+  compresses — the cal path does not generate the distortion it exists to
+  measure. The extra pad moved this further into the clear, not closer to it.
 - **SNR.** Thermal floor at NF 5 dB: −109 dBm in 1 MHz, −96 dBm in 20 MHz.
-  At −23 dBm that is **86 dB / 73 dB of SNR**, both ABOVE what the AD936x's
-  12-bit converter chain delivers (~65–70 dB in-band).
 
-**The measurement is CONVERTER-limited, not noise-limited** — repeatability
-is set by the ADC, not by how warm the room is. Going hotter (−15 dBm) buys
-no usable SNR because the converter already dominates; going below about
-−40 dBm would start to cost. **−23 dBm is the correct window and the design
-lands in the middle of it.**
+| case | RX level | SNR in 1 MHz | SNR in 20 MHz |
+|---|---|---|---|
+| typical, 70 MHz | −36.6 dBm | **72 dB** | 59 dB |
+| typical, 6 GHz | −42.2 dBm | **67 dB** | 54 dB |
+| worst-case unit, 6 GHz (53.7 dB total) | −45.7 dBm | 63 dB | 50 dB |
+
+The AD936x's 12-bit converter chain delivers ~65–70 dB in-band. So:
+
+**In a 1 MHz analysis bandwidth the measurement stays CONVERTER-limited across
+the band** — repeatability is set by the ADC, not by how warm the room is. **In
+a 20 MHz span the top of the band becomes NOISE-limited**, at 50–54 dB. That is
+the price of the extra 10 dB, stated rather than hidden, and it is the
+recoverable side of the asymmetry the decision was made on: **16× averaging
+returns 12 dB, offline and free**, and a phase-calibration measurement is
+averaged anyway.
+
+**Under the old 30 dB build the same rows read 86 / 73 dB and the design sat
+in the middle of the window rather than at its lower edge.** The trade was
+made deliberately: SNR you can buy back with time, a destroyed receiver you
+cannot.
 
 ---
 
@@ -511,21 +666,25 @@ lands in the middle of it.**
 
 | path | 70 MHz | 6 GHz | derivation |
 |---|---|---|---|
-| RX1 ↔ RX2 (loopback mode) | **29.8 dB** | 29.7 dB | 6.02 + 2·A2 §4.2(a) |
+| RX1 ↔ RX2 (loopback mode) | **29.9 dB** | 29.6 dB | 6.02 + 2·A2 §4.2(a) — **UNCHANGED by A9** |
 | antenna → Pluto, loopback mode | 43 dB | 20 dB | switch RFin→RF1 isolation, min [DS WN6 Table 5] |
-| TX port return loss, loopback mode | **23.6 dB typ** | **27.2 dB typ / 11.7 dB guaranteed** | PAD_A1's own VSWR [DS YAT-10A+ REV B p.2: 1.09 typ / 1.25 max DC–5 GHz, 1.10 typ / **1.70 max** 5–15 GHz; measured p.4: 1.14 @10 MHz, 1.03 @5 GHz, 1.09 @8 GHz] |
-| **loopback → Pluto, ANTENNA mode, TX ON** | **−64 dBm** | **−43 dBm** | see below |
+| TX port return loss, loopback mode | **23.6 dB typ** | **27.2 dB typ / 11.7 dB guaranteed** | PAD_A1's own VSWR [DS YAT-10A+ REV B p.2: 1.09 typ / 1.25 max DC–5 GHz, 1.10 typ / **1.70 max** 5–15 GHz; measured p.4: 1.14 @10 MHz, 1.03 @5 GHz, 1.09 @8 GHz]. **Still set by the FIRST chip of PAD_A1, which is still pre-split — the one surviving argument of the all-pre-split position, and A9 only strengthened it** |
+| **loopback → Pluto, ANTENNA mode, TX ON** | **−73 dBm** | **−50 dBm** | see below |
+| **TX → any RX, ANY switch state, ANY switch fault** | **≥40.07 dB** | ≥40.07 dB | **the pad chain is UPSTREAM of both switches** — §7.2 |
 
 ### 7.1 The limitation the board does not fix, and why that is correct
 
-In ANTENNA mode with TX driven at +7 dBm, the loopback arm sits at
-7 − 30.3 = **−23.3 dBm** on the switch's deselected RF2 throw. Switch
+In ANTENNA mode with TX driven at +8 dBm, the loopback arm sits at
+8 − 38.0 = **−30.0 dBm** on the switch's deselected RF2 throw. Switch
 isolation is 43 dB min at 70 MHz and 20 dB min at 6 GHz [DS], so
-**−64 dBm / −43 dBm** reaches RX_PLUTO — 32 to 53 dB above a Pluto RX noise
+**−73 dBm / −50 dBm** reaches RX_PLUTO — 23 to 46 dB above a Pluto RX noise
 floor of ≈−96 dBm in 20 MHz.
 
-**Transmitting while receiving on antennas will contaminate the receive
-path.** No single stocked SPDT fixes this.
+**Transmitting while receiving on antennas will still contaminate the receive
+path**, by 9 dB less than under the 30 dB build. No single stocked SPDT fixes
+it, and A9 did not set out to — but note that raising the pre-split pad is the
+one change that improves this leakage as a side effect, because the leakage
+path also starts at TX_PLUTO and also crosses PAD_A1.
 
 The brief's two states are "antenna→Pluto" and "TX→both RX". Simultaneous
 transmit-and-antenna-receive is not among them, so the SIMPLEST reading that
@@ -534,6 +693,40 @@ limitation is documented rather than engineered away. **If the user later
 needs it**, the fix is cheap and named: a THIRD BGS12WN6 gating TX, one throw
 on a 50 Ω 0402 terminator, adds 20–43 dB for ~$0.25 and one control bit.
 ADR-0004 records the rejection.
+
+### 7.2 The pad is UPSTREAM of the switch — asked explicitly, and it matters
+
+`TX_PLUTO` connects to exactly one thing: PAD_A1's input. Every path from
+there to an RX port crosses **A1 → the split → an A2 → the switch**, in that
+order. **The complete pad chain lies between the TX port and either switch**,
+so:
+
+| case | what reaches RX_PLUTO |
+|---|---|
+| loopback throw (RF2), normal | TX − (A1 + 6.02 + A2) = **≥40.07 dB down** |
+| antenna throw (RF1), normal | the same chain PLUS 20–43 dB of switch isolation |
+| **switch STUCK in either throw** | one of the two rows above — the chain is not bypassed |
+| **switch DESTROYED, die shorting RFin–RF1–RF2** | still the full chain: **≥40.07 dB down** |
+
+**No switch state and no switch failure can present raw TX to a receiver.** If
+the pads had sat downstream of the switch instead, a stuck or shorted switch
+would put TX_PLUTO on an RX port at the splitter's 6.02 dB alone — RX at
++2 dBm from a +8 dBm TX, i.e. **at the absolute-maximum rating**, and a dead
+receiver regardless of what the total attenuation said.
+
+**This property was already bought, and by an argument that had nothing to do
+with faults.** ADR-0004 put A2 *in the arm* — between the splitter and the
+switch — on isolation, open-cable masking, antenna-mode reflection and
+AGC-dependent leakage. Fault immunity fell out for free and had simply never
+been written down.
+
+**The counterpart, stated so it is not mistaken for coverage.** The ANTENNA
+path carries **no pad at all**: `RX_ANT → 1 nF block → SW.RF1 → RFin →
+RX_PLUTO`, ≈0.3 dB. A transmitter connected to an antenna port reaches the
+Pluto's receiver essentially unattenuated. That is what an antenna port IS, it
+is outside the two states the brief specifies, and ADR-0009's input-protection
+posture is what covers it. **≥40 dB protects the CALIBRATION path. Nothing
+protects the antenna path, by construction.**
 
 ---
 
@@ -579,7 +772,7 @@ a DC-through switch.
 
 **Still open (O6): confirm the PlutoPlus RX/TX SMAs are DC-free.** They are
 almost certainly balun-coupled, but nobody has asserted it. If they are not,
-blocks are needed on the three SMP ports too and the calibration path
+blocks are needed on the three Pluto-facing SMA ports too and the calibration path
 inherits ~0.05 dB and a 16.5 dB local return loss at 6 GHz.
 
 ---
@@ -620,9 +813,12 @@ maximum is ≈VCCO + 0.55 = 2.35 V. ADR-0008.
 
 | # | number | status |
 |---|---|---|
-| N1 | SMA→SMP adapter and SMP mated-pair insertion loss (rows 1,2,13,14) | **[EST] 0.05/0.15–0.20 dB each.** Neither vendor publishes an insertion-loss figure. What IS cited: `SMP-MSLD-PCE-5T` VSWR **1.11 max over DC–6 GHz** (RL 26 dB) and DC–26.5 GHz band, so the SMP interface is well inside band with margin. §3.6 shows the 22 dB build survives a 2× error on this whole group |
-| N2 | AD9363 RX absolute-maximum input, +2.5 dBm | **SECONDARY SOURCE.** §6.1. Does not block: 22.7 dB of margin |
+| **N1** | **SMA CABLE insertion loss (rows 2, 15)** | **[EST] 0.20 dB @70 MHz / 1.50 dB @6 GHz each, ×2 bar**, for a 0.3 m RG316-class assembly. **The cables are USER-SUPPLIED and not on this BOM**, so no vendor number is asserted and none is needed: **ADR-0016's ≥40 dB minimum credits them at ZERO**, and the release publishes the measured curve with whatever cables the user runs. This is the largest [EST] on the board and it cannot move the specification |
+| N1b | Board SMA launch and cable-plug mated-pair loss (rows 1, 3, 14, 16) | **[EST] 0.02–0.05 / 0.08–0.25 dB each.** No vendor publishes an insertion-loss figure for `KH-SMA-KE-Z`; what IS on its datasheet p.1 is **VSWR ≤1.35 over DC–6 GHz**, and ADR-0007 RULE 2 carries the pessimistic ~11–15 dB launch return loss at 6 GHz rather than a modelled 22.3 dB. Also credited at zero in the guarantee |
+| ~~N2~~ | AD9363 RX absolute-maximum input, +2.5 dBm | **CLOSED 2026-07-27 — now [DS] CITED**, Rev. D printed p.15 of 32, `RF Inputs (Peak Power)`. The secondary source was correct. See §6.1 for the PEAK-vs-average qualifier that came with it |
+| **N2b** | PlutoPlus TX maximum, **+8 dBm** | **[DS] CITED**, Rev. D printed p.4 of 32 — and 1 dB HIGHER than the +7 dBm this document carried. **Residual: it is the TRANSCEIVER's maximum, not the PORT's** (`plutoplus_tx_frontend_active`, OWED). §6.1 states what is assumed meanwhile and bounds it: 19 dB of undiscovered TX gain before the board's own +27 dBm ceiling binds |
 | N3 | 50 Ω / 90 Ω trace widths | closed-form, not a field solve. **Re-confirm against JLCPCB's calculator for the ordered stackup** before release |
-| N4 | Routed lengths (§2) | design targets, not measurements. Re-run §3.3/§3.4 after placement |
+| N4 | Routed lengths (§2) | design targets, not measurements. Re-run §3.3/§3.5 after placement — **a documentation refresh now, not a design risk (§3.6)** |
 | N5 | BGS12WN6 board-level IL/RL | **does not exist.** Infineon publishes prober-station numbers only (Table 4 fn 1). Any board-level figure is an estimate |
-| N6 | RF axis height above the Pluto PCB | **not established**, must be measured on a physical unit. Gates mechanics only, no RF number here depends on it |
+| ~~N6~~ | RF axis height above the Pluto PCB | **CLOSED by A8** — cables have no Z relationship, and the Pluto is cased so its PCB was never the reference. The fact stays OWED in `spf/`; this board no longer spends it |
+| **N7** | Mid-value YAT stock (15A+ / 12A+ / 5A+ / 3A+) | **UNVERIFIED.** PAD_A1 is a five-chip cascade only because YAT-10A+ and YAT-2A+ are the values with checked stock. **A substitute's own MIN column must be read** — the ≥40 dB guarantee is built on min columns and cannot rest on an unverified one |

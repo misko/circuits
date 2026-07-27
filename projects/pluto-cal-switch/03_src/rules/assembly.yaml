@@ -12,13 +12,16 @@
 service: standard
 # NOT Economic, and the reason is decided rather than defaulted. TWO
 # independent things force Standard PCBA:
-#   (a) THT parts — 2x SMA vertical flange jacks and the micro-USB's two PCB
-#       LEG slots. THT is Standard-only.
+#   (a) THT parts — 5x SMA vertical flange jacks (was 2x; A8/ADR-0015 made all
+#       five ports true SMA) and the micro-USB's two PCB LEG slots. THT is
+#       Standard-only.
 #   (b) the stackup. JLC's published capability for Economic PCBA is "Standard
 #       stack-up only, special stack-up is not supported", and this board
 #       orders 4-layer JLC04161H-7628 WITH IMPEDANCE CONTROL (ADR-0010).
-# Assembly adder for the THT: ~$3.50 setup + ~$0.0173/joint (2x5 SMA + 2 USB
-# legs = 12 joints ~= $0.21) + $3.00 per extended component.
+# Assembly adder for the THT: ~$3.50 setup + ~$0.0173/joint (5x5 SMA + 2 USB
+# legs = 27 joints ~= $0.47) + $3.00 per extended component. The joint count
+# more than doubled and the adder moved by ~$0.26 — stated rather than left
+# stale, because a number nobody re-derives is a number nobody trusts.
 
 sides: [top]
 # Single-sided placement, deliberately. The RF section occupies L1 and the
@@ -34,27 +37,29 @@ fiducials: none
 # fiducials must be added before the board is routed, not after.
 
 build_quantity: 5
-# A prototype run. Note the binding stock ceiling is the attenuator, NOT the
-# board: YAT-10A+ (C5839318) at 150 pieces / 3 per board = 50 boards.
+# A prototype run. The binding stock ceiling is the attenuator, NOT the board —
+# and A9 MOVED WHICH attenuator binds: YAT-2A+ (C5205333) at 103 pieces /
+# 5 per board = 20 boards, taking over from YAT-10A+ (150 / 4 per board =
+# 37 boards). It was YAT-10A+ at 50 boards under the 30 dB build.
 
 # ---- NOT ASSEMBLED ---------------------------------------------------------
 # EMPTY BY DECLARATION. Every footprint on this board is intended to be machine
-# placed. Two candidates were considered and both are POPULATED:
+# placed. One candidate was considered and it is POPULATED:
 #   * the SMA and micro-USB THT parts — JLC hand-solders them as part of
 #     Standard PCBA; they are populated, they stay on the CPL, and their cost
 #     is in the service declaration above.
-#   * SMP-MSLD-PCE-5T (C6297051, 540 in stock) — in the JLC library and
-#     purchasable. BUT "purchasable" is not "placeable": it is an EDGE-LAUNCH
-#     part straddling a routed outline notch, demanding 0.13 mm coplanarity.
-#     IF JLC's DFM review declines it, the outcome is a real decision with two
-#     branches, and BOTH must be recorded here rather than discovered at fab:
-#       (i)  swap to SMP-MSLD-PCS20T (C3175159, vertical, 546 in stock,
-#            conventional SMT footprint) — a re-spin of three footprints; or
-#       (ii) keep it and hand-solder, which needs a `not_assembled` entry with
-#            reason `not_in_catalog` is WRONG (it IS in the catalog) — the
-#            honest reason would be a new one, and its absence from the closed
-#            vocabulary is itself worth reporting.
-#     ACTION BEFORE ORDER: submit the real gerbers + CPL to JLC DFM.
+#
+# A8/ADR-0015 CLOSED THE ONLY REAL RISK THAT USED TO SIT HERE, and it is worth
+# recording how. This block previously carried a two-branch contingency for
+# SMP-MSLD-PCE-5T (C6297051): an EDGE-LAUNCH part straddling a routed outline
+# notch and demanding 0.13 mm coplanarity, where "in the JLC library and
+# purchasable" is not "placeable", and where a DFM refusal would have forced
+# either a three-footprint re-spin or a `not_assembled` entry whose only honest
+# `reason` did not exist in the closed vocabulary. **The part is deleted.**
+# Five conventional THT SMA flange jacks replace it, and JLC places those
+# routinely. Note the shape of the closure: an open DFM question was retired by
+# a design change, not by getting an answer — if edge-launch SMP ever returns,
+# the question returns with it, unanswered.
 not_assembled: []
 
 # ---- CONSIGNED -------------------------------------------------------------
@@ -70,17 +75,25 @@ consigned: []
 # state and MUST be re-measured at seal.
 sourcing_plan: []
 # WATCH LIST for the seal-time re-query, in ceiling order (all 2026-07-27):
-#   C5839318  YAT-10A+   150  -> 3/board => 50 boards. THE BINDING CEILING.
-#   C5205333  YAT-2A+    103  -> 2/board => 51 boards
-#   C6297051  SMP        540  -> 3/board => 180 boards
+#   C5205333  YAT-2A+    103  -> 5/board => 20 boards. THE BINDING CEILING
+#             SINCE A9 (it was 2/board => 51 before the pad went to 40 dB).
+#   C5839318  YAT-10A+   150  -> 4/board => 37 boards (was 3/board => 50)
+#   C504007   KH-SMA-KE-Z 19252 -> 5/board => 3850 boards
 #   C534203   BGS12WN6  2448  -> 2/board => 1224 boards
 #   C82317    W25Q16    8927  -> 1/board. FRAGILE: 4 of 6 16-Mbit SKUs read
 #             out of stock the same day, and the in-stock fallback
 #             (C2843335, USON-8) is a DIFFERENT FOOTPRINT — a stockout here is
 #             a re-spin, not a re-BOM.
-#   NOT ON THIS BOM but on the critical path: Cinch 134-1019-451 SMA->SMP
-#             adapters, 21 in stock at DigiKey, 3 needed, $33.83 each. They
-#             cost more than the board. ORDER EARLY (ADR-0006).
+#   OWED BEFORE THE SCHEMATIC: stock on the mid-value YAT parts (15A+ / 12A+ /
+#             5A+ / 3A+). A single 15 dB chip would collapse PAD_A1 from five
+#             parts to two, save ~$7/board and lift the 20-board ceiling. Any
+#             substitute's own datasheet MIN column must be READ — ADR-0016's
+#             >=40 dB guarantee is built on min columns and cannot rest on an
+#             unverified one.
+#   CANCELLED by A8/ADR-0015: Cinch 134-1019-451 SMA->SMP adapters ($101, 21 in
+#             stock, one distributor) and C6297051 SMP-MSLD-PCE-5T. Replaced by
+#             3 user-supplied SMA male-male cables, NOT on this BOM, of which
+#             the two RX cables must be an IDENTICAL PAIR.
 
 # ---- EXEMPT REFDES CLASSES -------------------------------------------------
 # Kept short deliberately: a hardcoded/over-broad exemption is how the

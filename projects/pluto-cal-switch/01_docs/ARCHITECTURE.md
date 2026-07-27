@@ -16,58 +16,80 @@ control bit.
 | **OFF (0)** — power-on default | `RX_ANT1 → RX_PLUTO1` and `RX_ANT2 → RX_PLUTO2`, two independent through paths |
 | **ON (1)** | `TX_PLUTO → pad → 2-way split → pad → RX_PLUTO1` **and** `→ pad → RX_PLUTO2`, the two runs length-matched |
 
-Band 70 MHz – 6 GHz, 50 Ω, 30 dB nominal TX→each-RX (see §6 and D5 — the
-30 dB is met at ONE frequency and the band tilt is published, not hidden).
+Band 70 MHz – 6 GHz, 50 Ω, **≥40 dB MINIMUM TX→each-RX across the whole band**
+(§6 and ADR-0016). The loss is published as a curve; the 40 dB is a FLOOR, and
+it is a floor because the pad's job is to survive a misconfiguration, not to
+set the operating level.
 
-## 2. Port map — and the ONE change the mating strategy forces
+## 2. Port map — five true SMA jacks, cable-connected
 
-The brief says "5 SMA ports". Three of those five face the PlutoPlus, and
-rigid multi-SMA direct-mount is dead (`pluto-plus-mechanical.md`, VERDICT
-section, three independent fatal reasons). The chosen path — SMA→SMP adapters
-screwed onto the Pluto's own jacks, daughter board carries SMP and pushes on —
-means the BOARD carries three SMP jacks, not three SMA jacks. The SMA
-interface still exists; it has moved onto the adapters.
+The brief says "5 SMA ports", and the board now delivers exactly that. Rigid
+multi-SMA direct-mount is dead (`pluto-plus-mechanical.md`, VERDICT section,
+three independent fatal reasons, all still standing), but the answer is no
+longer to convert the interface with adapters — **the user chose SMA cables**
+(A8, ADR-0015). A cable has more mating float than any connector interface,
+and it costs $101 less than the adapters it replaces.
 
 | net | board connector | faces | notes |
 |---|---|---|---|
-| `RX_ANT1` | SMA jack, THT vertical flange | the user's antenna | true SMA, user-facing |
-| `RX_ANT2` | SMA jack, THT vertical flange | the user's antenna | true SMA, user-facing |
-| `RX_PLUTO1` | **SMP** | Pluto RX1 (U14) via SMA→SMP adapter | push-on |
-| `RX_PLUTO2` | **SMP** | Pluto RX2 (U10) via SMA→SMP adapter | push-on |
-| `TX_PLUTO` | **SMP** | Pluto TX1 (U12) via SMA→SMP adapter | push-on |
+| `RX_ANT1` | SMA jack, THT vertical flange | the user's antenna | direct |
+| `RX_ANT2` | SMA jack, THT vertical flange | the user's antenna | direct |
+| `RX_PLUTO1` | SMA jack, THT vertical flange | Pluto RX1 (U14) | via a male–male SMA cable |
+| `RX_PLUTO2` | SMA jack, THT vertical flange | Pluto RX2 (U10) | via a male–male SMA cable — **IDENTICAL to the RX1 cable** |
+| `TX_PLUTO` | SMA jack, THT vertical flange | Pluto TX1 (U12) | via a male–male SMA cable, length free |
 
-The Pluto's edge order is `T2 R2 R1 T1` at measured pitches
-**12.00 / 11.60 / 12.00 mm** (`pluto-plus-mechanical.md`, two independent
-extractions agreeing to 0.003 mm). We tap **R2, R1, T1** — a contiguous run of
-three at 11.60 + 11.98 mm. The board's three SMP centres are placed at those
-pitches, NOT at a uniform pitch.
+All five are `KH-SMA-KE-Z` (ADR-0007, extended to ×5 by ADR-0015). **Gender
+chain: Pluto ports are JACKS (female, MEASURED — the owner has both units) ⇒
+cables are MALE–MALE ⇒ our five ports are JACKS.** The board's own gender is
+verified from the datasheet's printed product-name field (`插座` = receptacle)
+and its sheet-2 external-thread outline, with the RP-SMA residual closed on the
+LCSC product page — not from the part-number suffix, because this board has
+already paid $101 once for a gender read off a part number.
 
-`RX_PLUTO2 → RX_PLUTO1 → TX_PLUTO` puts TX at one END of the three, not in the
-middle. The splitter's mirror axis therefore sits between the two RX ports and
-the TX feed enters that axis from the side (§7).
+**Three things the cable deleted from this section.** The Pluto's non-uniform
+edge pitch (11.60 / 11.98 mm) is no longer an input; the board's three
+Pluto-facing connector positions are no longer pinned to a foreign dimension
+that two physical units disagree about by 0.32 mm (D6, retired); and the
+splitter's mirror axis is no longer forced to sit between two ports whose
+spacing somebody else chose. **All five ports may now be placed where the RF
+wants them** — which is a real gain, because under ADR-0006 three of them were
+locked to a pitch that left only ~3.95 mm of board web between adjacent
+outline notches.
 
-**See ADR-0006 (mating strategy) and D6 in BRIEF.md** — the board is built to
-the **34.88 mm midpoint** between the genuine (35.04 mm) and clone (34.72 mm)
-spans, an assumption the user has not confirmed.
+**What the cable ADDED** is in §6: two cables in the TX→RX path, ≈3.0 dB at
+6 GHz, and a tilt that nearly doubled. The specification absorbed it without
+changing, which is the point of specifying a minimum.
 
 ## 3. RF signal chain — every element
 
 ```
                                   ┌──────── RX_ANT1 (SMA J1)
                                   │
-  RX_PLUTO1 (SMP J3) ── SW1 ──────┤ RF1 = antenna
+  RX_PLUTO1 (SMA J3) ── SW1 ──────┤ RF1 = antenna
         (RFin)                    │ RF2 = loopback
-                                  └──── PAD_A2a (12 dB) ────┐
+                                  └──── PAD_A2a (11.9 dB) ──┐
                                                             │
                                                      ┌──────┴──────┐
-  TX_PLUTO (SMP J5) ── PAD_A1 (10 dB) ── R_D1/D2/D3 ─┤  resistive  │
+  TX_PLUTO (SMA J5) ─ PAD_A1 (25.8 dB) ─ R_D1/D2/D3 ─┤  resistive  │
                                           delta split └──────┬──────┘
                                                             │
-                                  ┌──── PAD_A2b (12 dB) ─────┘
-  RX_PLUTO2 (SMP J4) ── SW2 ──────┤ RF2 = loopback
+                                  ┌──── PAD_A2b (11.9 dB) ───┘
+  RX_PLUTO2 (SMA J4) ── SW2 ──────┤ RF2 = loopback
         (RFin)                    │ RF1 = antenna
                                   └──────── RX_ANT2 (SMA J2)
 ```
+
+**Read the topology for what it guarantees, not just for what it does: the
+COMPLETE pad chain sits UPSTREAM of both switches.** `TX_PLUTO` touches exactly
+one thing — PAD_A1's input — and every route from there to an RX port crosses
+A1, the split and an A2. So no switch STATE and no switch FAILURE, including a
+die that shorts all three RF ports together, can present raw TX to a receiver:
+the minimum TX→RX attenuation is the same ≥40 dB in every state and every
+fault, and the switch's own isolation sits on top of it in antenna mode. See
+ADR-0016. The counterpart, stated so it is not mistaken for coverage: **the
+ANTENNA path carries no pad at all** (≈0.3 dB), by construction — 40 dB
+protects the calibration path, and ADR-0009's input-protection posture is what
+covers the antenna ports.
 
 ### 3.1 The two SPDT switches — the polarity falls out with ZERO logic
 
@@ -133,15 +155,24 @@ parts, because the through path crosses ONE chip body instead of two, and
 The split's 6.02 dB loss and its 6.02 dB port-to-port isolation are the SAME
 number and that is a theorem, not a part limitation — see DETAIL_DESIGN §4.3.
 
-### 3.3 The attenuation — SPLIT 10 dB pre / 12 dB per arm, not one 22 dB pad
+### 3.3 The attenuation — SPLIT 25.8 dB pre / 11.9 dB per arm, not one big pad
 
-`YAT-10A+` before the split; `YAT-10A+ + YAT-2A+` in each arm. All Mini-Circuits
-MCLP 2×2 mm (case MC1630), DC–18 GHz, absorptive, thin-film.
+`2 × YAT-10A+ + 3 × YAT-2A+` before the split; `YAT-10A+ + YAT-2A+` in each
+arm. All Mini-Circuits MCLP 2×2 mm (case MC1630), DC–18 GHz, absorptive,
+thin-film. **Path total 37.7 dB typical**, giving ≥40 dB TX→RX once the
+splitter's 6.02 dB is counted (§6, ADR-0016).
+
+**The 18 dB that A9 added went ENTIRELY pre-split, and that is deliberate on
+two counts**: one part protects both arms, and a pre-split pad is upstream of
+every downstream fault including a splitter fault. `PAD_A2` is untouched at
+11.9 dB because its value was never set by the total — it is pinned
+independently by the four arguments below, and moving it would have moved three
+numbers that were separately argued.
 
 Putting the whole pad ahead of the split is the obvious answer and it is
 wrong on four independent counts (DETAIL_DESIGN §5, ADR-0004):
 
-1. inter-channel isolation stays at 6.02 dB instead of 6.02 + 2·A2 = 30.0 dB;
+1. inter-channel isolation stays at 6.02 dB instead of 6.02 + 2·A2 = 29.9 dB;
 2. **unplugging one RX cable adds +3.52 dB to the OTHER channel** with no
    error indication — the surviving arm's Zin goes 50 → 83.3 Ω. Arm pads mask
    the open by 24 dB and the error falls to ~0.2 dB;
@@ -160,16 +191,21 @@ is not.
 
 ### 3.4 Connectors
 
-- **SMA (2×, antenna)** — `KH-SMA-KE-Z` / C504007, vertical THT flange jack,
-  VSWR ≤1.35 DC–6 GHz on its own datasheet p.1, 5-Ø1.4 mm holes on a
+- **SMA (5×, ALL ports)** — `KH-SMA-KE-Z` / C504007, vertical THT flange
+  **jack**, VSWR ≤1.35 DC–6 GHz on its own datasheet p.1, 5-Ø1.4 mm holes on a
   5.08 × 5.08 mm square. 19 252 in stock. Depth reserve `BWSMA-KE-Z001` /
-  C496549 (113 553 in stock) on the identical pattern. ADR-0007.
-- **SMP (3×, Pluto-facing)** — `SMP-MSLD-PCE-5T` / C6297051 (Amphenol RF),
-  **edge-launch**, limited detent, DC–26.5 GHz, **VSWR 1.11 max over
-  DC–6 GHz**, 500 mating cycles, 540 in stock. Land: a routed edge notch
-  7.65 mm wide × 6.4 mm deep, 4.12 mm mouth, 0.83 mm centre trace, 1.84 mm
-  side pads, coplanar within 0.13 mm. **RF axis 2.00 mm above the board's top
-  surface.** ADR-0006.
+  C496549 (113 553 in stock) on the identical pattern. ADR-0007, extended to
+  ×5 by ADR-0015. **Every launch rule is DERIVED ENGINEERING, not vendor
+  instruction** (§8, ADR-0007) — and it now governs five launches, not two, so
+  the ~11–15 dB per-port launch return loss at 6 GHz is a bigger share of the
+  board's own contribution than it was.
+- **Cables (3×, USER-SUPPLIED, NOT on this BOM)** — SMA male–male. **The two
+  RX cables must be an IDENTICAL PAIR** (P6/A6/A7: "same path length on each
+  run", with the user's standing position that it need not be tight *"as long
+  as distance is precisely known, it will be software offset"*). The TX cable's
+  length is free. Their loss is the largest single non-pad term at the top of
+  the band and is user-owned, which is exactly why ADR-0016's ≥40 dB minimum
+  credits them at **zero**.
 - **DC blocks (2×, antenna ports only)** — 1 nF 0402 C0G in series with each
   `RX_ANT`. RL 32.9 dB @70 MHz / 16.5 dB @6 GHz, IL 0.002 / 0.05 dB. The
   calibration path carries none. ADR-0005, DETAIL_DESIGN §8.
@@ -292,25 +328,43 @@ absent:
 | **NOT** a power TVS / crowbar | ME6211 VIN abs-max is 6.5 V against a 4.40–5.25 V host; the USBLC6 clamps hot-plug. It will NOT survive 12 V into the micro-B — that exposure is taken KNOWINGLY |
 | **NOT** UVLO | no battery to over-discharge |
 
-## 6. The 30 dB — and why it is a curve, not a scalar
+## 6. The 40 dB — a FLOOR, and still a curve
 
-The chain carries **3.09 dB of irreducible tilt** across 70 MHz – 6 GHz
-(DETAIL_DESIGN §3). No pad value makes the total 30 dB at both ends.
+The chain carries **6.13 dB of irreducible tilt** across 70 MHz – 6 GHz
+(DETAIL_DESIGN §3) — up from 3.09 dB, because A8 put two SMA cables in the
+path and they cost ≈3.0 dB at 6 GHz. No pad value ever made a scalar true at
+both ends, and doubling the tilt made that worse.
 
-The pad is chosen by **MINIMAX** — the value that minimizes the worst-case
-deviation from 30 dB, privileging no frequency:
+**A9 stops trying.** The specification is a MINIMUM:
 
-| | 70 MHz | ~3.0 GHz | 6 GHz |
+> **TX_PLUTO → each RX_PLUTO attenuates ≥ 40 dB across 70 MHz – 6 GHz,
+> worst-case unit, with the user's cables credited at ZERO.**
+
+| | 70 MHz | 3 GHz | 6 GHz |
 |---|---|---|---|
-| non-pad chain loss | 6.54 dB | 8.11 dB | 9.63 dB |
-| + 21.86 dB pad | **28.4 dB** | **30.0 dB** | **31.4 dB** |
+| non-pad chain loss, typical | 6.89 dB | 10.42 dB | 13.02 dB |
+| + pad (37.70 → 37.14 dB typical) | **44.6 dB** | **47.8 dB** | **50.2 dB** |
+| **guaranteed floor** (pad MIN column + the splitter theorem, everything else at zero) | **40.8 dB** | 40.8 dB | **40.1 dB** |
 
-**30 dB is met at ≈3.0 GHz; the span is 30.0 −1.6 / +1.4 dB.** Recorded as D5 —
-the user has not named a reference frequency, and the choice is a one-BOM-line
-change (DETAIL_DESIGN §3.4).
+**The minimum binds at 70 MHz on the typical curve and at 6 GHz on the
+guaranteed floor** (the YAT min column steps down above 5 GHz), and it is
+≥40 dB at both. What the guarantee rests on is worth stating precisely: **a
+datasheet minimum column and a theorem** — the 6.02 dB of a matched resistive
+3-port, proved three ways in DETAIL_DESIGN §5.3. Both cables, all four coax
+interfaces, 65 mm of microstrip, the SPDT and the splitter's parasitics are
+strictly positive and credited at nothing.
 
-The release must publish loss-vs-frequency, exactly as brief D4 makes the
-length delta a published artifact rather than a target.
+Two consequences of framing it this way, both of which the scalar did not have:
+
+- **It got MORE robust when the tilt doubled.** Every dB of tilt is a dB of
+  extra margin above the floor. A minimax scalar would have had to move.
+- **It cannot be invalidated by an interconnect estimate being wrong low.**
+  There is nothing below zero.
+
+The release still publishes loss-vs-frequency, exactly as brief D4 makes the
+length delta a published artifact rather than a target — now against a floor
+instead of a target. **And it must state its measurement plane: THIS board's
+SMA jacks**, because the cables are the user's and are not on this BOM.
 
 ## 7. Stackup
 
@@ -401,7 +455,7 @@ Classes and widths: `03_src/rules/nets.yaml`. Every class declares a typed
    excitation and does not lengthen the wanted path.
 4. **Reference plane CONTINUOUS under the splitter** — do NOT void it. (The
    opposite advice applies to a STAR topology; one more reason not to use one.)
-5. **RP2040 + micro-USB at the far end from every SMA/SMP**, so the USB pair's
+5. **RP2040 + micro-USB at the far end from all five SMA jacks**, so the USB pair's
    uninterrupted-reference requirement never competes with the RF pour, and so
    the QSPI bus (tens of MHz, sub-ns edges, harmonics past 6 GHz) is as far
    from the calibration path as the board allows.
@@ -417,63 +471,66 @@ Classes and widths: `03_src/rules/nets.yaml`. Every class declares a typed
    ("Case is defined as ground lead", YAT-20A+ p.2 abs-max note 3). Tenting it
    breaks the RF return path.
 
-## 11. Mechanical
+## 11. Mechanical — and how little of it is left
 
-- **Board-to-Pluto interface**: `134-1019-451` (Cinch/Johnson) SMA-plug→SMP
-  adapters on the Pluto's three jacks; three edge-launch SMP jacks on this
-  board; push-on mate with ±0.25–0.3 mm radial and ~4° angular float against a
-  ±0.49 mm RSS two-board tolerance stack. Each adapter threads on
-  INDEPENDENTLY with nothing else attached, which is what dissolves the
-  coupled-datum and wrench-access problems that killed rigid SMA. ADR-0006.
-- **The Z stack**, each term with its status:
+**A8 deleted this section's hardest problem rather than solving it.** The
+board-to-Pluto interface is **three SMA male–male cables**. There is no
+tolerance stack, no coupled datum, no Z relationship, no engagement force, and
+no foreign dimension in the floorplan.
 
-  | term | value | status |
-  |---|---|---|
-  | adapter overall length | 14.25 ± 0.51 mm | cited (Cinch dwg 134-1019-451/460 Rev 3) |
-  | less coupling-nut thread engagement | ≈4.0 mm | **UNVERIFIED estimate — the dominant error** |
-  | ⇒ Pluto SMA face → our board edge | **≈10.2 mm, +0.3/−0.5** | derived |
-  | SMP mated axial misalignment allowance | 0 … +0.254 mm | cited (MIL-STD-348) |
-  | **RF axis above our board's TOP surface** | **2.00 mm REF** | **cited** (dwg SMP-MSLD-PCE-5X sheet 2) |
+The whole of the previous mechanical analysis is preserved in ADR-0006 and
+`pluto-plus-mechanical.md`, because it is the record of *why the obvious build
+is impossible* — the ±0.05 mm thread-start capture window against a ±0.49 mm
+RSS two-board stack, the coupling nut that draws the boards together by 2.8 mm
+so torquing one moves the datum for the other two, and the 2.43 mm of
+corner-to-corner wrench clearance at 11.60 mm pitch. **Those three proofs are
+why a cable is now in the path.** What is dead with them: the 14.25 ± 0.51 mm
+adapter stack and its unverified ~4.0 mm thread-engagement term, the ≈10.2 mm
+board-to-Pluto separation, the 2.00 mm RF-axis-above-top-surface requirement,
+the 135 N push-on / 27 N retention force, and the three 7.65 × 6.4 mm routed
+outline notches with ~3.95 mm of web between them.
 
-- **The RF axis height above the PLUTO's PCB is still NOT ESTABLISHED** and
-  cannot be guessed. Those are right-angle THT jacks, so the axis sits above
-  the Pluto's board plane; the geometric lower bound is ≥3.2 mm and the family
-  typical is 4.5–6 mm. Our board's top copper must sit **2.00 mm below the
-  plane containing the Pluto's three SMA axes** — that half is now a number;
-  the Pluto half is not. **This is the one open mechanical item.** It gates the
-  board's Z position relative to the Pluto; it does NOT gate any of the RF
-  design above. See §12.
-- **Engagement force is a usability cost**: up to 3 × 45 N = **135 N** to push
-  the board on, 3 × 9 N = 27 N minimum to pull it off. Edge-launch takes that
-  force in the board plane as shear rather than as peel on SMT pads, which is
-  the main reason it was chosen over the vertical part.
-- **Enclosure**: PlutoPlus ships in a two-part aluminium shell whose end panel
-  is captured ON the SMA barrels, so fitting the adapters is a
-  case-disassembly-adjacent operation. Assumed bare board with mounting holes
-  for this design until told otherwise.
+What remains mechanical on this board:
+
+- **Five vertical THT SMA flange jacks**, on OUR pitch, chosen for wrench
+  access and for the RF — not for somebody else's edge.
+- **Cable bend radius and strain at the jacks.** Five connectors on a bare
+  board with three cables hanging off them is a lever-arm question the
+  13.5 mm-long `KH-SMA-KE-Z` was already chosen to minimise (ADR-0007: 13.5 mm
+  against the rejected part's 28.6 mm, on the same four 0.9 mm posts). Mounting
+  holes and a stiffener remain advisable.
+- **Enclosure**: unstated for our board; assumed bare with mounting holes.
+  **The PlutoPlus's own two-part aluminium shell has stopped mattering** — A8
+  confirmed the unit is cased, which is precisely why its PCB was never the
+  mating reference. A cable reaches a panel-mounted jack face without caring
+  where the PCB behind it sits.
 
 ## 12. Open items — named, not buried
 
 | # | item | blocks | owner |
 |---|---|---|---|
-| O1 | **RF axis height above the Pluto PCB** — must be measured on a physical unit. Our half is now cited (2.00 mm above our board's top surface) | the board's Z position relative to the Pluto. Blocks NO RF work | user / bench |
-| O1b | **PlutoPlus SMA GENDER is INFERRED, not cited** — the schematic says only `SMA-L`. A jack is the universal SDR convention and no contrary evidence was found | the adapter order. A 5-minute caliper check, and $101 of adapters rides on it | user / bench |
-| O1c | **SMA coupling-nut thread-engagement depth (≈4.0 mm)** has no primary source | the ≈10.2 mm board-to-Pluto separation, ±0.5 mm | bench |
-| O1d | **Will JLC place an edge-launch SMP?** In-library and purchasable ≠ placeable — it straddles a routed outline notch and demands 0.13 mm coplanarity | assembly. Fallback `SMP-MSLD-PCS20T` (vertical) is pre-designed | JLC DFM review |
-| O2 | **Which PlutoPlus** — genuine (35.04 mm span) or clone (34.72 mm)? Built to the 34.88 mm midpoint | ±0.16 mm of the ±0.3 mm SMP float | user (D6) |
-| O3 | **Reference frequency for "30 dB"** — met at ≈3.0 GHz by minimax | a one-BOM-line pad change | user (D5) |
-| O4 | **Which control surface wins** — OR + 10 s USB watchdog assumed | firmware only | user (D7) |
-| O5 | **AD936x RX absolute-max input** (+2.5 dBm) is a SECONDARY source. Every primary route was blocked | nothing — 22 dB of margin absorbs a large error | bench / ADI |
+| ~~O1~~ | ~~RF axis height above the Pluto PCB~~ — **CLOSED by A8.** Cables have no Z relationship, and the Pluto is cased so its PCB was never the reference. Was the ONE blocking mechanical item | — | — |
+| O1b | **Standard SMA vs RP-SMA on the PlutoPlus.** The JACK half is now MEASURED (the owner has both units, A8). Centre-contact polarity is a DIFFERENT property and nobody has looked | which cable to buy. **The $101 exposure is gone** — a cable absorbs gender | user / bench |
+| ~~O1c~~ | ~~SMA coupling-nut thread-engagement depth~~ — **CLOSED by A8.** There is no separation to derive | — | — |
+| ~~O1d~~ | ~~Will JLC place an edge-launch SMP?~~ — **CLOSED by A8.** The part is deleted; five conventional THT SMA jacks replace it, which JLC hand-solders under Standard PCBA | — | — |
+| ~~O2~~ | ~~Which PlutoPlus — genuine or clone?~~ — **CLOSED by A8.** No geometry is consumed, so a cabled board fits both and any future revision | — | — |
+| ~~O3~~ | ~~Reference frequency for "30 dB"~~ — **CLOSED by A9,** by reframing: a MINIMUM needs no reference frequency | — | — |
+| O4 | **Which control surface wins** — OR + 10 s USB watchdog assumed | firmware only. **The only open D#** | user (D7) |
+| O5 | ~~AD936x RX absolute-max input is a SECONDARY source~~ — **CLOSED.** CITED: AD9363 Rev. D, printed p.15 of 32, ABSOLUTE MAXIMUM RATINGS, `RF Inputs (Peak Power) 2.5 dBm`. The secondary source was right, and the row says **PEAK** | nothing | — |
+| **O5b** | **Is there ACTIVE gain between the AD936x TX and the Pluto's TX SMA?** The transceiver's own max is CITED at **+8 dBm** (Rev. D p.4 — and note that is the HIGHEST of three characterized bands, so the "≈+7 dBm" carried until now was the LOWEST); it bounds the PORT only if that path is passive | nothing at the design level — ≥40 dB absorbs **19 dB** of undiscovered TX gain before the board's own +27 dBm ceiling binds, and **34.5 dB** before the receiver's +2.5 dBm rating does. It bounds how far a claim may go, not the design | bench (power meter, 0 dB commanded attenuation) |
+| **O5c** | **Mid-value YAT stock (15A+/12A+/5A+/3A+) is UNVERIFIED.** PAD_A1 is a five-chip cascade only because YAT-10A+ and YAT-2A+ are the values with checked stock | ~$7/board, 12 mm of interconnect, and a 20-board build ceiling. **A substitute's datasheet MIN column must be read** — the guarantee is built on min columns | sourcing, before the schematic |
 | O6 | **PlutoPlus SMA ports DC-free?** All RF ports on both switches are ONE galvanic node through the dice and the resistive splitter. A single DC fault anywhere violates V_RFDC = 0 V on both at once | whether DC blocks become mandatory | bench |
 | O7 | **70–617 MHz is unguaranteed** on BGS12P2L6. First-article measurement at 70/100/200/400 MHz is MANDATORY, not optional | acceptance, not design (BGS12WN6 is the drop-in answer) | bench |
 | O8 | **E-TOPO cannot express a linear regulator.** `power_topology.py:normalize_type` accepts only buck/boost/buck_boost; `type: ldo_*` raises LoadError and exits 2. This board's only converter is an LDO. Reported as a gate gap, not worked around | the E-TOPO gate on this board | skills/ owner |
+| **O8b** | **E-ADR demands invariants from a SUPERSEDED ADR.** `electrical_invariants.py:protection_adrs()` excludes only `0000-example`; it does not read `status:`. ADR-0006 is now `superseded-by-0015` and its decision no longer exists, so there is no design intent left to assert — yet E-ADR reports `11/12 ... no invariant cites adr: 0006`. **The intent loop IS closed**: ADR-0015 emits 3 assertions and ADR-0016 emits 1, and they hold the current intent. Fleet check: this is the FIRST board to supersede a protection/topology-TAGGED ADR (the only other superseded ADR in `projects/`, cooksense 0005, carries no `tags:` line and so was never in the denominator), which is why nothing has hit it before. **Declared, not worked around** — the fix belongs in `skills/` and gaming it by retagging the ADR would be the kind of silent downgrade this canon exists to prevent | the E-ADR gate on this board | skills/ owner |
 
 ## 13. What this board deliberately does NOT do
 
-- **It does not gate TX in antenna mode.** With TX driven at +7 dBm while
-  receiving on antennas, the loopback arm sits at ≈−22 dBm on the deselected
-  throw and the switch's 24 dB (6 GHz) / 42 dB (900 MHz) isolation puts
-  ≈−46 dBm / −64 dBm into RX_PLUTO — well above a Pluto RX noise floor. The
+- **It does not gate TX in antenna mode.** With TX driven at +8 dBm while
+  receiving on antennas, the loopback arm sits at ≈−30 dBm on the deselected
+  throw (8 dB more pad than before) and the switch's 20 dB (6 GHz) / 43 dB
+  (70 MHz) isolation puts ≈−50 dBm / −73 dBm into RX_PLUTO — still above a
+  Pluto RX noise floor, so the limitation stands, 8 dB smaller. The
   brief's two states do not include "transmit while receiving on antennas", so
   the simplest reading that satisfies it is taken. A third BGS12P2L6 with one
   throw on a 50 Ω 0402 would add 24–45 dB for ~$0.25 if the user later needs
@@ -483,9 +540,12 @@ Classes and widths: `03_src/rules/nets.yaml`. Every class declares a typed
   leakage, not its magnitude — that is set by the isolation. The consequence
   worth knowing: the residual RIPPLES with frequency (a cable-length comb)
   rather than sitting flat. ADR-0002.
-- **It does not solve the second-USB ground loop.** Plugging this board's
-  micro-USB into the same host that runs the Pluto closes a loop through the
-  coax shields whose coupling is cable-position-dependent — i.e. it differs
-  between the calibration run and the measurement run. Mitigations available:
-  power from a separate supply, or a common-mode choke on the USB pair.
-  Recorded in ADR-0009; the user must be told.
+- **It does not solve the second-USB ground loop, and A8 made that loop
+  BIGGER.** Plugging this board's micro-USB into the same host that runs the
+  Pluto closes a loop through the coax shields whose coupling is
+  cable-position-dependent — i.e. it differs between the calibration run and
+  the measurement run. Three flexible coax cables are a larger and more mobile
+  loop than three rigid push-on adapters were. Mitigations available: power
+  from a separate supply, or a common-mode choke on the USB pair. Recorded in
+  ADR-0009 and ADR-0015; the user must be told, and **dressing the cables
+  identically between the two runs belongs in the user documentation.**

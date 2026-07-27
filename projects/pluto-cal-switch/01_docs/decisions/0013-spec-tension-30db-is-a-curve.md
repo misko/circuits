@@ -1,7 +1,7 @@
 ---
 id: 0013
 date: 2026-07-27
-status: accepted
+status: superseded-by-0016
 tags: [spec-tension]
 ---
 # 0013 — SPEC TENSION T4: "30 dB total" is a scalar; the chain tilts 3.09 dB
@@ -91,3 +91,36 @@ the stated requirement is taken, recorded as a `D#`, and surfaced loudly.
   neither vendor publishes. If the user measures at the board's own SMP
   connectors instead, every number above improves by ~0.1 dB at 70 MHz and
   ~0.3 dB at 6 GHz. **The measurement plane must be stated with the number.**
+
+## Superseded — 2026-07-27, by ADR-0016 (user directive A9)
+
+**D5 is RESOLVED by REFRAMING the requirement, not by answering the question
+this ADR posed.** The user raised the attenuation to 40 dB and specified it as
+a **MINIMUM across 70 MHz – 6 GHz**. A minimum needs no reference frequency:
+it binds where the chain loses least (70 MHz), and it is met by construction
+everywhere else. The question *"at what frequency do you want the 30 dB to be
+exact?"* — which this ADR was written to force — no longer has to be asked.
+
+**What was RIGHT here and is carried forward into ADR-0016:**
+
+- The tension itself was real and is unchanged: no chain built from stocked
+  parts is flat across 85.7:1, and the tilt got WORSE, not better —
+  **3.09 dB → 6.13 dB** once ADR-0015 put two SMA cables in the path. A
+  specification framed as a minimum absorbed that without changing; the
+  minimax scalar would have had to move.
+- **"A number known to be a curve must ship as a curve."** ADR-0016 publishes
+  loss versus frequency exactly as this ADR demanded. The curve is now
+  presented against a FLOOR rather than against a target.
+- **"Erring to MORE attenuation is the safe direction for the RX."** ADR-0016
+  makes that the organizing principle rather than a footnote, and derives the
+  value from the RX damage rating and the TX maximum instead of from the
+  brief's scalar.
+- The quiet second tension recorded here — that the budget's MEASUREMENT PLANE
+  included parts not on this BOM — survives and is louder: with user-supplied
+  cables the release must state that its published curve is measured at THIS
+  BOARD's SMA jacks.
+
+**What is DEAD:** minimax as the selection rule, the ≈3.0 GHz reference
+frequency, the 30.0 −1.6/+1.4 dB span, the 27.2–32.9 dB guaranteed envelope,
+and the three-row "if the user names a reference frequency" table — there is
+no reference frequency to name.

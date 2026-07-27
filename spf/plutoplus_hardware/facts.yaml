@@ -149,16 +149,17 @@ facts:
     quote: "| **span** | **35.60** | **35.04** | **+1.6 %** |"
 
   - id: sma_gender
-    what: connector gender on the PlutoPlus panel — jacks (female), so a mating board needs plugs
-    grade: ESTIMATED
+    what: connector gender on the PlutoPlus panel — jacks (female), so a mating board needs plugs or a male-ended cable
+    grade: MEASURED
     method: >-
-      inferred. The schematic value string is only `SMA-L` and names no
-      manufacturer part; the plot cannot show gender. Near-certain for an SDR,
-      and $101 of adapters rides on it. Standard SMA vs RP-SMA was NOT
-      visually confirmed — the centre contact was not resolvable in the photos.
-    error_bar: >-
-      not applicable — categorical, not a dimension. This entry may not be
-      consumed dimensionally; if that is ever attempted the gate says so.
+      the owner of both physical units states the RF ports are SMA jacks
+      (female) on the boards in hand, 2026-07-27 — someone looked at the
+      objects. This SUPERSEDES the earlier reading of the same row, which had
+      only the schematic value string `SMA-L` behind it and carried the weaker
+      grade for that reason. NOTE the scope: this settles the SHELL (female,
+      external thread). Standard SMA vs RP-SMA is a DIFFERENT property —
+      centre-contact polarity — and it remains in the record's NOT-established
+      list, nobody having looked at it.
     quote: "**Right-angle (90°) through-hole SMA JACKS (female).**"
 
   - id: case_barrel_protrusion
@@ -172,7 +173,56 @@ facts:
     # it FAILS M-BAR, which is the correct answer, not a defect in this file.
     quote: "Barrel protrusion past the case face ≈ 7 mm (photogrammetric estimate)."
 
+  # ------------------------------------------------------------------ CITED
+  # The transceiver's own limits. A loopback fixture sizes its pad against
+  # these two numbers and nothing else, so they belong in the device record
+  # with a page number rather than in a board's prose with a shrug.
+  - id: ad936x_rx_abs_max_input
+    what: AD9363 receiver RF input absolute maximum, PEAK power
+    value: "2.5"
+    units: dBm
+    grade: CITED
+    method: >-
+      read from the AD9363 data sheet Rev. D, ABSOLUTE MAXIMUM RATINGS table,
+      printed page 15 of 32, row `RF Inputs (Peak Power)`. Retrieved
+      2026-07-27 through a page-for-page mirror of that vendor PDF
+      (radiolocman.com, di=169339) after analog.com timed out and DigiKey's
+      HTML mirror returned 410 Gone; the document and its revision are the
+      vendor's, the host is a mirror, and the record says so. It is a PEAK
+      rating, not an average one.
+    quote: "| `RF Inputs (Peak Power)` | **2.5 dBm** | ABSOLUTE MAXIMUM RATINGS, printed page 15 of 32 |"
+
+  - id: ad936x_tx_max_output_power
+    what: AD9363 transmitter maximum output power — the HIGHEST of the three characterized bands
+    value: "8"
+    units: dBm
+    grade: CITED
+    method: >-
+      read from the AD9363 data sheet Rev. D, printed page 4 of 32,
+      TRANSMITTERS 800 MHz section, row `Maximum Output Power`, condition
+      "1 MHz tone into 50 Ohm load". The other two characterized bands are
+      lower (7.5 dBm at 2.4 GHz, 7.0 dBm at 3.5 GHz), so the commonly-repeated
+      "about +7 dBm" is the WORST characterized band and not a ceiling. Same
+      retrieval path as the row above. 70 MHz and 6 GHz are NOT characterized
+      in that table.
+    quote: "| `Maximum Output Power`, TRANSMITTERS 800 MHz | **8 dBm** | printed page 4 of 32, condition *\"1 MHz tone into 50 Ω load\"* |"
+
   # ---------------------------------------------------------------- OWED
+  - id: plutoplus_tx_frontend_active
+    what: whether any ACTIVE gain sits between the AD936x TX pins and the TX SMA jack
+    grade: OWED
+    how_to_obtain: >-
+      open the case and look at the TX path between the transceiver and the
+      panel jacks, or measure the port with a power meter at a commanded TX
+      attenuation of 0 dB. If the path is passive (balun + match + filter) the
+      transceiver's own maximum output power is a hard CEILING on the port,
+      because a passive network cannot add power — and the pad in any loopback
+      fixture is sized against that ceiling. If it is not passive, the port
+      exceeds the die rating and every such pad is under-sized. No vendor
+      publishes a PlutoPlus schematic or BOM, and "Pluto+" names at least three
+      different boards.
+    quote: "**Whether anything ACTIVE sits between the AD936x TX pins and the TX SMA"
+
   - id: rf_axis_height_above_pcb
     what: height of the SMA RF axis above the PlutoPlus PCB top surface
     grade: OWED

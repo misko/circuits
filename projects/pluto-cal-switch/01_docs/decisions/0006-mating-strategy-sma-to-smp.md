@@ -1,7 +1,7 @@
 ---
 id: 0006
 date: 2026-07-27
-status: accepted
+status: superseded-by-0015
 tags: [mechanical, topology]
 ---
 # 0006 — SMA→SMP adapters on the Pluto; the board carries edge-launch SMP
@@ -175,3 +175,34 @@ total would not.
   Note also that a DETENTED mate LOCATES axially, so three in parallel are
   axially over-constrained — all three adapters must be the same MPN, and
   MIL-STD-348 permits 0.254 mm of mated axial misalignment.
+
+## Superseded — 2026-07-27, by ADR-0015 (user directive A8)
+
+> "lets not do the fixed bulkhead version, lets use SMA cables to connect our
+> board to the pluto."
+
+**Cause: the user chose to pay for the mating float with a cable instead of
+with $101 of adapters.** Nothing above is refuted. The three fatal proofs
+against rigid SMA direct-mount — the ±0.05 mm thread-start window against a
+±0.49 mm RSS stack, the coupling nut that draws the boards together by 2.8 mm
+so torquing one moves the datum for the others, and the 2.43 mm of
+corner-to-corner wrench clearance at 11.60 mm pitch — **all still stand, and
+they are the reason a cable is now in the path.** This ADR is the record of
+*why the obvious build is impossible*; ADR-0015 is the record of what replaced
+it.
+
+What is DEAD from this ADR: the three Cinch `134-1019-451` adapters ($101), the
+three board-side `SMP-MSLD-PCE-5T` edge-launch jacks ($18.75, `02_parts/`
+directory deleted), the SMP-vs-SMA gender chain, the limited-detent /
+engagement-force analysis (135 N push-on, 27 N retention), the 7.65 × 6.4 mm
+routed outline notches and the ~3.95 mm board web between them, the ≈10.2 mm
+board-to-Pluto separation with its unverified ~4.0 mm thread-engagement term,
+the 2.00 mm RF-axis-above-our-top-surface requirement, and the open JLC-DFM
+question about whether an edge-launch part straddling a routed notch is
+PLACEABLE.
+
+What SURVIVES and moved: the gender-chain DISCIPLINE (ADR-0015 closes the SMA
+chain on two independent printed sources rather than on a part-number suffix),
+and the observation that vendors use opposite plug/jack words for the same
+physical half — which is precisely why this board got a $101 recommendation
+wrong once already.
