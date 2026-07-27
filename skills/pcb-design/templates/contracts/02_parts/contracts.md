@@ -59,11 +59,40 @@ type: buck_controller       # REQUIRED. The part CLASS, not its value.
                             # "10k NTC 3380K" on an R_0402 footprint is a
                             # THERMISTOR; it was coded as a plain 10k resistor
                             # and would have shipped as the temp sensor.
-                            # For a CONVERTER the class (buck|boost|buck_boost)
-                            # is machine-graded by E-TOPO against the topology
-                            # DERIVED from 03_src/rules/power_tree.yaml voltage
-                            # envelopes — an over- or under-capable class FAILS
+                            # For a CONVERTER the class is machine-graded by
+                            # E-TOPO against the topology DERIVED from
+                            # 03_src/rules/power_tree.yaml voltage envelopes.
+                            # Recognised (substring, in this order):
+                            #   buck+boost -> BUCK_BOOST
+                            #   buck       -> BUCK
+                            #   boost      -> BOOST
+                            #   ldo|linear|low-dropout -> LINEAR
+                            # An over- or under-capable class FAILS
                             # (buck_boost where a buck suffices = FAIL).
+                            # A part that is NOT a converter (a load switch,
+                            # an eFuse, a pass FET, a ferrite) classifies as
+                            # NOTHING and may not appear on a `rails:` entry —
+                            # such a stage converts nothing and E-TOPO has
+                            # nothing to derive.
+
+# LINEAR CONVERTERS ONLY — both REQUIRED before E-TOPO will grade a rail whose
+# converter is one. A linear regulator's failure modes are DROPOUT and
+# DISSIPATION, and the Vin-vs-Vout topology derivation is blind to BOTH, so a
+# LINEAR rail without them is a rail the gate cannot grade — a FAIL, never a
+# pass (canon M-COVER). Until 2026-07-27 `normalize_type()` rejected every
+# linear part outright, so the only route to a green E-TOPO on an LDO-only
+# board was to DELETE power_tree.yaml; three fleet boards took it.
+# dropout_mv: 120           # datasheet MAX dropout at the part's RATED output
+                            # current (the conservative reading). A rail may
+                            # override with the number at ITS own iout_max_A.
+                            # Graded: vin_min - vout_max >= dropout_mv.
+# pdiss_max_mw: 300         # package power rating. A rail may override with a
+                            # board-specific derating (hot ambient, no copper
+                            # under the part). Graded:
+                            #   (vin_max - vout_min) * iout_max_A <= this.
+                            # STATE THE AMBIENT if the datasheet does; a
+                            # rating with no stated datum is ESTIMATED, not
+                            # CITED (canon M-IMPORT).
 datasheet:
   doc_id: SNVSAI4
   revision: SNVSAI4F        # PIN IT — pinouts change between revisions
