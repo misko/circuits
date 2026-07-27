@@ -246,3 +246,55 @@ that fixes the CPL.
 When you report the filled block above, the results land in
 `02_parts/10FDZ-BT/part.yaml` (`verified:` → replace `NEEDS-PHYSICAL-CONFIRM`
 with the measured numbers and the date) and in an ADR if anything reads wrong.
+
+---
+
+## 6. RESULTS — partial, user-measured 2026-07-27
+
+Grade **MEASURED** (canon M-IMPORT: the user touched the physical object).
+Recorded as reported; the caliper's own resolution is not stated, so treat the
+third digit as indicative.
+
+| # | property | expected | PASS band | measured | verdict |
+|---|---|---|---|---|---|
+| **M11** | pin count | 10 | exactly 10 | **10** | **PASS — DECISIVE** |
+| M2 | pitch | 2.540 | 2.52 - 2.56 | **~2.52** | PASS, at the lower edge |
+| M6 | housing length, flange to flange | 36.26 | 36.0 - 36.5 | **~36.6** | +0.10 over band — see below |
+
+**M6 is +0.10 mm out of band and is NOT treated as a finding.** Three reasons,
+in order of weight: (1) M11 is decisive and M6 is not — a pin COUNT cannot be
+ambiguous, an outline dimension across moulded flanges can; (2) the flange edge
+is a soft caliper reference on a compliant plastic part; (3) the datasheet's own
+p.3 note 4 disclaims its layout dimensions as "for reference only".
+
+### The false alarm, recorded because the reasoning was wrong even though the part is right
+
+The first reported figure was **33.6 mm, base only** (flanges excluded). Against
+the condemn table that is 0.12 mm from **33.72 = a NINE-circuit part**, and
+36.26 - 33.6 = 2.66 ~ one pitch. It was escalated as a possible P0.
+
+It was not. 33.6 is the base, 36.6 the outline, and the 2.66 mm is the two
+flanges. **The defect was in the instrument, not the part: M6 was offered as a
+discriminator without its measurement reference being pinned down**, so the same
+part yields two readings 2.66 mm apart and one of them collides with a real
+condemn value. That is the adjacent-property error (M-IMPORT's co-resident
+corollary) committed by this document — measuring a housing outline when the
+property wanted is the CIRCUIT COUNT.
+
+Fix applied here rather than left as prose: **M11 and M1 are the discriminators;
+M6 is corroboration only.** Section 3's table said M6 "CONDEMNS the footprint" on
+a circuit-count mismatch. It does not, on its own, and must not be read that way.
+
+### Still OPEN — the gate is NOT closed
+
+| # | why it still matters |
+|---|---|
+| **M9 / M10** | **the highest-value measurement remaining.** 5.30 at the boss end vs 8.10 at the far end. If they come back reversed our footprint is MIRRORED and every `TP_M_U1..TP_M_D4` label names the wrong conductor. Nothing measured so far constrains this |
+| **M4** | boss diameter <= 1.75. **STOP** if > 1.80 — it will not enter the hole |
+| **M5** | pin cross-section <= 0.80. **STOP** if > 0.90 — pins will not enter |
+| M1 | end pin -> end pin, 22.86. Validates the footprint span directly; M2 x 9 = 22.68 from the measured pitch, consistent but not the same measurement |
+| M3, M7, M12, M13 | as section 3 |
+| S1, S2 | the two photographs. S2 (OEM tail slotted or plain) settles ADR-0008 vs ADR-0005 D5 and decides whether the flex jumper is built slotted |
+
+The **overlay test in section 2 covers M1, M3, M4 and M5 fit simultaneously** and
+needs no caliper — it is the cheaper path if a 1:1 print is available.
