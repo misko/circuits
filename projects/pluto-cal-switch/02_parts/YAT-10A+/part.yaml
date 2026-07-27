@@ -1,0 +1,121 @@
+mpn: YAT-10A+
+manufacturer: Mini-Circuits
+type: rf_attenuator_fixed_10db
+datasheet:
+  doc_id: YAT-10A+
+  revision: "REVB"            # printed "REV. B / ECO-024948" on p.1
+  url: https://www.minicircuits.com/pdfs/YAT-10A+.pdf
+  sha256: 490edf3bc1b493385842dfd18fe2c7f63eee41c543954a86f146267cb97f65b2
+  fetched: 2026-07-27
+  pages: 5                    # the p.2 footer says "PAGE 2 OF 2" — a vendor
+                              # footer bug. p.3 correctly reads "PAGE 3 OF 5".
+                              # The sourcing spike stopped at p.2 because of it
+                              # and never read the TYPICAL PERFORMANCE curves.
+package: MCLP 2x2 mm leadless, case style MC1630
+footprint: pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630
+escape:
+  style: dfn
+  pitch: 0.65                 # MEASURED off MC1630 drawing 98-MC Rev. H
+  escapes_worst_side: 1       # only pad 2 (RF-IN) / pad 5 (RF-OUT) are signal,
+                              # one per side, centre of opposite rows
+  tier_required: jlc_4layer_standard
+  checked: escape_check 2026-07-27
+pins:                         # PAD DESCRIPTION table + the adjacent TOP VIEW /
+  1: {name: GND, tie: GND}    # BOTTOM VIEW pad-numbering figure, p.2
+  2: RF_IN
+  3: {name: GND, tie: GND}
+  4: {name: GND, tie: GND}
+  5: RF_OUT
+  6: {name: GND, tie: GND}
+  7: {name: EP, tie: GND, note: "bottom exposed pad — RF GROUND RETURN, not a
+      thermal pad ('Case is defined as ground lead', abs-max note 3 p.2)"}
+limits:
+  frequency: DC to 18 GHz                       # p.2 ELECTRICAL SPECIFICATIONS
+  attenuation_dc_5g: 9.6 / 9.97 / 10.4 dB       # min / typ / max, p.2
+  attenuation_5_15g: 9.5 / 9.98 / 10.5 dB
+  vswr_dc_5g: 1.09 typ / 1.25 max
+  vswr_5_15g: 1.10 typ / 1.70 max               # => RL 11.7 dB GUARANTEED @6 GHz
+  prf_abs_max: 1.7 W at +25 C case              # p.2 note 4; derate linearly to
+                                                # 1.0 W at +85 C
+  t_case_op: -40 to +85 C
+gotchas:
+  - "MEASURED TYPICAL PERFORMANCE (p.4), which is what makes this part worth its
+     price on a swept calibration board: attenuation 9.98 dB @10 MHz, 9.98 @1 GHz,
+     9.96 @2 GHz, 9.95 @4 GHz, 9.96 @5 GHz, 9.96 @8 GHz. VSWR 1.14 / 1.12 / 1.10 /
+     1.07 / 1.03 / 1.09 over the same points. Cascaded with YAT-2A+ the pad tilts
+     only 0.16 dB across 70 MHz-6 GHz."
+  - "EVERY PUBLISHED NUMBER IS A GCPW NUMBER. p.2 footnote 1: 'Tested on
+     Mini-Circuits test board TB-YAT-10A+ using coplanar wave guide (CPW) input
+     and output traces.' A plain microstrip run into the 2x2 body will not
+     reproduce the flatness at 6 GHz."
+  - "THE p.3 SUGGESTED-LAYOUT GEOMETRY IS FOR ROGERS, NOT FR4. Its 0.011 in
+     trace / 0.008 in gap is conditioned on 0.168 mm RO4350B, 1/2 oz. The GCPW
+     width/gap MUST be re-solved for the JLC FR4 stackup — copying the numbers
+     is wrong."
+  - "THE EXPOSED PAD IS THE RF GROUND RETURN. Tenting it or leaving it
+     unconnected breaks the return path, not just the thermal path."
+  - "IT IS A ~70 OHM DC PATH TO GROUND ON BOTH RF PORTS (a resistive pi with
+     through-wafer vias). On this board that is a FEATURE, not a hazard: it is
+     what DC-references the whole internal RF node to 0 V and lets the switches
+     run with no DC blocks (ADR-0005). It also means the pad is NOT a DC block."
+  - "IMMUNE TO THE CPL-180 DEFECT: a 180 deg rotation maps pad 2 <-> pad 5 and
+     the GND pads onto each other, and the part is a symmetric bidirectional
+     2-port, so the board still functions. Rotation must still be right for
+     index-dot/AOI, but it is not a functional hazard here."
+  - "JLC lists the SAME MC1630 case under three different package strings across
+     the YAT family (VDFN-6-EP, SMD-6P, MCLP(2x2)). 'SMD-6P' is not a resolvable
+     land pattern. Trust the MC1630 drawing, not the JLC string."
+  - "STOCK CEILING: 150 pieces (C5839318, 2026-07-27), 3 per board = 50 boards.
+     DELIBERATELY NOT YAT-20A+ (C5181338, 37 pieces = 37 boards)."
+verified: "pad map read from the PAD DESCRIPTION table and the adjacent TOP VIEW /
+  BOTTOM VIEW pad-numbering figure on p.2 of REV B (pads 2 and 5 are the CENTRE
+  pad of each 3-pad row, on opposite sides; index dot over pin 1; product marking
+  'YT10', p.3). 2026-07-27"
+layout:
+  source: "REV B p.3 'SUGGESTED PCB LAYOUT (PL-586)', drawing plus two numbered
+    notes, read by rasterizing the page (the text is not in the PDF text layer).
+    Note 1: trace width and gap are for RO4350B 0.0066 in +/-0.0007, 1/2 oz each
+    side, and 'FOR OTHER MATERIALS TRACE WIDTH & GAP MAY NEED TO BE MODIFIED'.
+    Note 2: 'BOTTOM SIDE OF THE PCB IS CONTINUOUS GROUND PLANE'. Drawing also
+    calls a GCPW launch and dense ground stitching, and its legend marks the
+    land pattern FREE OF SOLDER MASK with the surrounding copper SMOBC.
+    Land dimensions from the separate MC1630 case drawing 98-MC Rev. H
+    (03/05/18) sheet 1 of 5: pad pitch 0.65 mm, land 0.30 x 0.80 mm, overall
+    2.70 x 1.25 mm, exposed pad 1.20 x 0.60 mm (land ~1.25 x 0.65 with a
+    0.30 mm 45 deg chamfer as the pin-1 index), tolerance +/-0.05 mm."
+  reviewed: "2026-07-27"
+  keep_short:
+    - {net: LOOP_IN, max_span_mm: 6, why: "GCPW launch into RF-IN; the published
+       flatness is a CPW-launch number and does not survive a long microstrip
+       approach at 6 GHz"}
+    - {net: LOOP_SPLIT, max_span_mm: 6, why: "same, on the RF-OUT side"}
+  notes:
+    - "Continuous ground plane (L2) directly under the part and its launches —
+       no split, no routing channel crossing underneath."
+    - "PL-586 DEVIATION IS REQUIRED AND MUST BE WAIVED WITH EVIDENCE. The drawing
+       calls 31x 0.2 mm epoxy-plugged PTH. Only ~4 of them are in the exposed
+       pad; the rest sit in the four GND lands and around the perimeter. A 0.2 mm
+       drill needs ~0.45-0.5 mm of finished pad at JLC — WIDER THAN THE 0.30 mm
+       LAND ITSELF — so via-in-pad on the GND lands is geometrically impossible
+       at ANY tier. Keep ground vias OUTSIDE the lands, in the surrounding pour,
+       mask-tented; epoxy plugging (a paid JLC option) then falls away because
+       its purpose is to stop solder wicking out of an in-pad via. The waiver
+       must cover the four GND lands, not just the EP."
+    - "Ground stitching around the part at <=2.0 mm (lambda_g/12 at 6 GHz)."
+layout_refs:
+  - "Mini-Circuits YAT-10A+ REV B p.3, 'SUGGESTED PCB LAYOUT (PL-586)' drawing"
+  - "Mini-Circuits MC1630 case drawing 98-MC Rev. H (03/05/18) sheet 1 of 5 —
+     the dimensioned land pattern; NOT in the datasheet body, which only names it"
+  - "Mini-Circuits test board TB-YAT-10A+ (named in p.2 footnote 1 as the fixture
+     every published number was measured on; drawing not published)"
+sourcing:
+  lcsc: C5839318
+  alternates: [C5205332, C5205333]   # YAT-3A+ / YAT-2A+, same MC1630 land,
+                                     # different value — see ADR-0013's table
+asserts:
+  - assert: value
+    equals: YAT-10A+
+    why: "the whole YAT-A family shares the MC1630 land pattern, so a
+      wrong-value part fits perfectly and shifts the board's headline 30 dB by
+      up to 20 dB. The BOM Comment must name the exact model, and the marking
+      (YT10) is the first-article check."

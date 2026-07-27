@@ -19,6 +19,8 @@ one that is unrecoverable if lost.
 | `renders/**` | TRACKED render pair per revision: `bare_<side>.png` (Cu+Mask+Silk fab view — the no-components truth) + the modeled twin renders. ALWAYS produced (SKILL stage 7); a bodiless modeled render means missing 3D model, never unpopulated — CPL is population ground truth (usb-hub-3s incident 2026-07-21) | committed |
 | `journal/` | per-stage diary: append an entry at every stage start/iteration/finish | see `journal/contracts.md`; enforced by policy_audit M-JRNL |
 | `learnings/` | per-stage harvest source, written at stage completion | see `learnings/contracts.md`; enforced by policy_audit M-LEARN at release |
+| `10fdz-bt-land-pattern-confirm.md` | the USER-HELD physical-part gate instrument for the 10FDZ-BT land pattern (`ORDER_README` §0 gate 1): print settings for the 1:1 overlay, the caliper table with PASS/CONDEMN bands, and the report-back block | project-specific. Records only what a human must measure on a real part; carries no CAD-derived truth that `02_parts/10FDZ-BT/part.yaml` does not already hold. Closed by transcribing the reported numbers into that `part.yaml` `verified:` block |
+| `flex-jumper-spec.md` | buildable spec for Board C-flex, the double-ended 10FDZ-BT flex jumper (ADR-0009's separate part): stack-up, conductor geometry, 1:1 mapping, length rule, contact-face handedness, G1/G2 coupon plan | project-specific, out-of-pipeline part (T5) — it has no `03_src`/`04_kicad`/release home because no flex tier exists in `fab_tiers.yaml`. Decisions live in ADR-0016/0017, not here |
 | `contracts.md` | this file | |
 
 ## Forbidden

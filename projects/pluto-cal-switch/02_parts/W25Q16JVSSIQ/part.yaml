@@ -1,0 +1,51 @@
+mpn: W25Q16JVSSIQ
+manufacturer: Winbond
+type: flash_qspi_16mbit
+datasheet:
+  doc_id: W25Q16JV
+  revision: "OWED"
+  url: https://www.winbond.com/resource-files/w25q16jv%20spi%20revh%2004082019%20plus.pdf
+  sha256: "OWED — PDF not fetched in this session"
+  fetched: null
+package: SOIC-8 208mil
+footprint: pluto_cal_switch:SOIC-8_5.23x5.23mm_P1.27mm
+escape:
+  style: leaded
+  pitch: 1.27
+  escapes_worst_side: 4
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-27
+pins: {}                      # OWED — see verified:
+limits: {}
+gotchas:
+  - "**THIS ENTRY IS INCOMPLETE BY DECLARATION. The pin map, limits and layout
+     block are OWED and this part MUST NOT enter a BOM until they are filled
+     from the datasheet FIGURE.** Recorded in 02_parts/README.md's deviations
+     register rather than fabricated. Stage 1-3 stops before the schematic, so
+     nothing downstream has consumed it yet."
+  - "THE FLASH IS THE FRAGILE SUPPLY LINK ON THIS BOARD, NOT THE MCU. Four of
+     six 16-Mbit QSPI SKUs read OUT OF STOCK at LCSC on 2026-07-27: P25Q16H-SSH-IR
+     (C559216), P25Q16H-SSH-IT (C194871), P25Q16H-UXH-IR (C559220) and
+     W25Q16JVSNIQ (C115407). C82317 has 8,927 pieces and costs $0.76 @100 —
+     MORE THAN THE RP2040 ITSELF."
+  - "THE IN-STOCK FALLBACK IS A DIFFERENT FOOTPRINT. W25Q16JVUXIQ (C2843335,
+     21,960 in stock, $1.33 @100) is USON-8, so a C82317 stockout is a RE-SPIN,
+     not a re-BOM. Re-check C82317 stock at order time; consider carrying the
+     USON alternate as a documented non-drop-in in the ORDER_README."
+  - "QSPI ROUTING IS AN RF PROBLEM ON THIS BOARD. The RP2040 executes in place,
+     so this bus runs continuously at tens of MHz with sub-ns edges inside the
+     70 MHz-6 GHz band the board exists to measure. The vendor guide's rule
+     ('wired directly to the flash, using short connections to maintain signal
+     integrity and to also reduce crosstalk in surrounding circuits',
+     hardware-design-with-rp2040 sec 2.2 p.9) is a spur rule here, not just an
+     SI rule. Flash hugs the MCU, both far from every SMA/SMP."
+  - "The 1 kohm QSPI_SS-to-USB_BOOT resistor and the DNF 10 kohm QSPI_SS pull-up
+     must both be 'placed close to the flash chip' (same section)."
+verified: "OWED. The datasheet was not fetched in this session and no pin map is
+  asserted — an empty pins: block is the honest state, and it will fail S-VER by
+  construction if anyone tries to build from it. Assigned to the schematic-stage
+  parts fan-out. 2026-07-27"
+layout: {}
+sourcing:
+  lcsc: C82317
+  alternates: [C2843335]      # W25Q16JVUXIQ, USON-8 — NOT a drop-in footprint

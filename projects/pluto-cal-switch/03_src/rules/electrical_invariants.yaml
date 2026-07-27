@@ -1,114 +1,406 @@
-# SCHEMA EXAMPLE (skill-owned, project-independent). Copy into a new project's
-# 03_src/rules/ and replace the values — the KEYS are the contract.
+# pluto-cal-switch — ELECTRICAL INVARIANTS (canon E-INV, phase E1).
 #
-# ELECTRICAL-INVARIANTS (canon E-INV, phase E1 = netlist-only). Design INTENT
-# made EXECUTABLE against the exported netlist. Every gate elsewhere proves
-# SELF-CONSISTENCY; this one proves the netlist matches what the ADRs decided.
+# Design INTENT made EXECUTABLE against the exported netlist. Every other gate
+# proves SELF-CONSISTENCY; this one proves the netlist matches what the ADRs
+# decided. Graded by electrical_invariants.py PROJECT_DIR; E-ADR
+# (--adr-coverage) flags any protection/topology ADR that emits none.
 #
-# WHY: the D1 reverse-polarity defect (usb-hub-3s v1.0) passed ERC, DRC, parity,
-# jlc_twin AND pin review — symbol/footprint/netlist/board were consistently
-# WRONG together; only intent disagreed, and intent was not machine-checkable.
-#
-# Graded by: electrical_invariants.py PROJECT_DIR  (exit 1 names the assertion
-# + the actual net found). A protection/topology ADR that emits NO invariant is
-# flagged by E-ADR (electrical_invariants.py PROJECT_DIR --adr-coverage).
-#
-# Every invariant REQUIRES `adr:` (the ADR that emitted it) and `why:`.
+# THE ONE THING THIS BOARD MUST NEVER DO is come up in LOOPBACK. Everything in
+# the first block below exists to make that a machine-checked fact rather than
+# a sentence in ADR-0001. NOTE the shape of the assertions: three of them pin
+# TOPOLOGY (a resistor exists, on the right nets) and one pins VALUE — because
+# an invariant that pins a component's EXISTENCE does not pin its value, and
+# the smc0985-cooksense watchdog incident shipped a pull-down at 100k where the
+# datasheet bounded it at 5.2k with all three topology assertions passing.
 
 invariants:
-  # 1) pin_on_net — the named pin must be on the named net (the D1 class).
+
+  # ---- ADR-0001: the power-on state is ANTENNA, in hardware ---------------
+  # The wiring, not the firmware, is what makes OFF = antenna. Get RF1 and RF2
+  # backwards and the board still passes ERC, DRC, parity and every render —
+  # it just boots into loopback while the user believes they are receiving
+  # off-air, which is undetectable because the receiver still sees signal.
   - assert: pin_on_net
-    pin: "D1.1"          # REF.PAD
-    net: VIN
-    adr: 0001
-    why: "D1 reverse-polarity clamp cathode feeds VIN, not the raw battery rail"
+    pin: "U_SW1.3"            # BGS12WN6 pin 3 = RF1
+    net: SW1_ANT
+    adr: "0001"
+    why: "truth table CTRL=0 -> RFIN-RF1 (BGS12WN6 Table 12, PDF p11). RF1 MUST
+      face the ANTENNA so the power-on/undriven state is antenna mode. Swapping
+      RF1 and RF2 inverts the SAFE STATE, not just the feature, and no
+      self-consistency gate can see it"
 
-  # 2) series_chain — consecutive elements share a net, in order. A 2-pad part
-  #    (F1) bridges the nets on its two pads (inferred). A >2-pad part names its
-  #    two bridging pins via `through:` (pin number, pinfunction, or a
-  #    pinfunction with its trailing _<n> stripped: D_5 -> D).
-  - assert: series_chain
-    chain: [VBAT, F1, VBAT_F, Q1, VIN]
-    through: {Q1: [D, S]}
-    adr: 0001
-    why: "battery -> fuse -> protected node -> reverse-polarity FET (D->S) -> VIN"
+  - assert: pin_on_net
+    pin: "U_SW1.1"            # pin 1 = RF2
+    net: LOOP_ARM1
+    adr: "0001"
+    why: "RF2 MUST face the loopback arm — the other half of the same fact"
 
-  # 3) net_has_part — the net must carry >= min parts of a type (refdes prefix:
-  #    C=capacitor, R=resistor, L=inductor, D=diode, Q=transistor, F=fuse,
-  #    U=ic, J=connector, FB=ferrite, LED=led, Y/X=crystal, TP=testpoint).
-  #    The bridge-rail-decoupling class (red-team B).
+  - assert: pin_on_net
+    pin: "U_SW2.3"
+    net: SW2_ANT
+    adr: "0001"
+    why: "channel 2, same reasoning. Both channels must switch together and in
+      the same sense"
+
+  - assert: pin_on_net
+    pin: "U_SW2.1"
+    net: LOOP_ARM2
+    adr: "0001"
+    why: "channel 2, loopback throw"
+
   - assert: net_has_part
-    net: VIN
+    net: RF_CTRL_SW1
+    part_type: resistor
+    min: 2                    # the 1k series AND the 10k pull-down
+    adr: "0001"
+    why: "the CTRL node must carry BOTH the 10k pull-down that defines the
+      state when nothing drives it (I_Ctrl is 2 nA typ, so an undriven CTRL has
+      NO defined state) and the 1k series that de-RFs the shared control net"
+
+  - assert: net_has_part
+    net: RF_CTRL_SW2
+    part_type: resistor
+    min: 2
+    adr: "0001"
+    why: "channel 2, same"
+
+  - assert: part_value
+    part: R_CTRL_PD1
+    max: 45k
+    adr: "0001"
+    why: "THE VALUE, NOT JUST THE EXISTENCE. The pull-down must hold CTRL below
+      V_Ctrl,L = 0.45 V against I_Ctrl max 10 nA, so R_max = 0.45/10n = 45k.
+      10k is fitted, for noise immunity and because two in parallel present 5k
+      to the MCU (0.66 mA at 3.3 V, inside even the 2 mA drive setting). A
+      pull-down that EXISTS at the wrong value passes every topology assertion
+      above and silently disables the property it was fitted for — that is the
+      smc0985-cooksense watchdog class, where a 100k where 5.2k was required
+      left a safety supervisor disabled with three topology assertions green"
+
+  - assert: part_value
+    part: R_CTRL_PD2
+    max: 45k
+    adr: "0001"
+    why: "channel 2, same bound, same reason"
+
+  - assert: net_has_part
+    net: RF_CTRL_SW1
     part_type: capacitor
     min: 1
-    adr: 0007
-    why: "the VIN rail must carry at least one decoupling capacitor"
+    adr: "0001"
+    why: "1 nF shunt AT the CTRL pin. Infineon's own measurement board carried
+      1 nF CTRL-GND (Table 6 fn 2), and without it 25 mm of this stackup's
+      microstrip is lambda/4 at ~1.5 GHz — mid-band — so the shared control net
+      is a resonator radiating into the calibration path, not a wire"
 
-  # 4) part_value — the PARAMETER kind. The three kinds above pin TOPOLOGY:
-  #    which parts exist and what they connect to. AN INVARIANT THAT PINS A
-  #    COMPONENT'S EXISTENCE DOES NOT PIN ITS VALUE.
-  #
-  #    THE INCIDENT (smc0985-cooksense, 2026-07-25, ab94de3 -> 929b089). A
-  #    safety P0 was found: WD_PET, the TPS3823 watchdog heartbeat, had no
-  #    pull-down, so with the host unplugged the supervisor self-pulsed, WD_OK
-  #    never fell, and the external COOKING CONTACTOR stayed energised
-  #    indefinitely. The fix added the pull-down AT 100k. TI SLVS165O S6.5
-  #    gives I_IL at WDI = 190 uA MAX and the pin SOURCES it, so the hold
-  #    resistor is bounded by I_IL x R < V_IL:
-  #        R_max = (0.3 x 3.3 V) / 190 uA = 0.99 V / 190 uA ~= 5.2k
-  #        1k    -> 0.19 V, 81% margin (TI's own recommended value)
-  #        100k  -> node sits at ~VDD; THE WATCHDOG IS SILENTLY DISABLED
-  #    The 100k board looked exactly like the fixed board. All THREE
-  #    invariants that landed with that fix — one net_has_part and two
-  #    pin_on_net, the ones written above this comment in spirit — PASS on the
-  #    100k netlist, because a resistor DOES exist on WD_PET with its pads on
-  #    the right nets. They would have certified the broken board, and did.
-  #
-  #    Bounds: min: / max: / equals: (+ optional tolerance_pct with equals).
-  #    At least ONE is required — an assertion naming a part and bounding
-  #    nothing is the exact gap this kind closes. Values come from the
-  #    netlist's own (comp (value ...)) and are decoded as SI, so 1k / 1kOhm /
-  #    1kΩ / 4k7 / 0R1 are one number. NOTE m is MILLI and M is MEGA. A value
-  #    the gate cannot decode is a FAILURE, never a skip.
+  - assert: net_has_part
+    net: RF_CTRL_SW2
+    part_type: capacitor
+    min: 1
+    adr: "0001"
+    why: "channel 2, same"
+
+  # ---- ADR-0002: the switch VDD rail, and the 34 mV margin it avoids ------
+  - assert: pin_on_net
+    pin: "U_SW1.4"            # BGS12WN6 pin 4 = VDD
+    net: 3V3_SW
+    adr: "0002"
+    why: "the switch VDD must be the FERRITE-ISOLATED 3V3 branch, not raw 3V3
+      and NEVER the 5 V USB rail. BGS12WN6 VDD absolute max is 4.2 V and
+      BGS12P2L6's is 3.6 V; a 5 V rail destroys either. The ferrite branch also
+      keeps the LDO's dead PSRR above a few hundred kHz off the switch bias"
+
+  - assert: pin_on_net
+    pin: "U_SW2.4"
+    net: 3V3_SW
+    adr: "0002"
+    why: "channel 2, same"
+
+  # ---- ADR-0005: DC coupling posture ------------------------------------
+  # The switches' RF ports are DC-connected through the die and V_RFDC must be
+  # 0 V. Two things make that true, and both are checkable.
+  - assert: series_chain
+    chain: [RX_ANT1_EXT, C_DCBLK1, RX_ANT1]
+    adr: "0005"
+    why: "the DC block must be IN SERIES with the antenna port, not shunted
+      across it. RX_ANT1 is the only user-facing port where an unknown DC
+      source (an active antenna, a bias-tee'd LNA) can appear; without the
+      block that bias is shorted to ground through the switch die and the YAT
+      pads, driving fault current through a 0.7 x 1.1 mm part"
+
+  - assert: series_chain
+    chain: [RX_ANT2_EXT, C_DCBLK2, RX_ANT2]
+    adr: "0005"
+    why: "channel 2, same"
+
   - assert: part_value
-    part: R_WDPETPD
-    max: 5.2k
-    adr: 0011
-    why: "I_IL(max) 190uA x R < V_IL 0.99V => R <= 5.2k; TI SLVS165O S7.3.4
-      names 1k explicitly. Above this the WDI node sits at ~VDD and the
-      supervisor never times out — the interlock fails PERMISSIVE"
+    part: C_DCBLK1
+    equals: 1n
+    tolerance_pct: 20
+    adr: "0005"
+    why: "1 nF is the compromise across an 85.7:1 band: Xc = 2.27 ohm at 70 MHz
+      (RL 32.9 dB) and, with an 0402's ~0.4 nH ESL, +j15.0 ohm at 6 GHz
+      (RL 16.5 dB). 100 pF would give 22.7 ohm at 70 MHz — RL 12.9 dB and
+      0.22 dB of loss, materially worse at the bottom. A wrong-value 0402 fits
+      perfectly and is invisible on any render. NB the SI decoder reads m as
+      MILLI and M as MEGA"
+
+  - assert: part_value
+    part: C_DCBLK2
+    equals: 1n
+    tolerance_pct: 20
+    adr: "0005"
+    why: "channel 2, same — and the two MUST match, because an asymmetric block
+      lands directly in the arm-to-arm comparison the board exists to make"
+
+  # ---- ADR-0003: the splitter is a DELTA, and its value is the topology ---
+  # A star and a delta are both "three resistors on three nets". They differ
+  # only in VALUE (16.9 vs 49.9 ohm) and in which pairs they bridge — and the
+  # star is 9.3 dB worse at 6 GHz with identical parts. Nothing but these
+  # assertions can tell the two apart in a netlist.
+  - assert: series_chain
+    chain: [LOOP_SPLIT, R_DELTA1, LOOP_ARM1]
+    adr: "0003"
+    why: "R12 bridges the input vertex to arm 1. In a STAR the same three
+      resistors would each run from a port to a common node instead, and the
+      netlist would be self-consistent either way"
+
+  - assert: series_chain
+    chain: [LOOP_SPLIT, R_DELTA2, LOOP_ARM2]
+    adr: "0003"
+    why: "R13 bridges the input vertex to arm 2"
+
+  - assert: series_chain
+    chain: [LOOP_ARM1, R_DELTA3, LOOP_ARM2]
+    adr: "0003"
+    why: "R23 bridges the two ARMS — this is the leg that exists ONLY in a
+      delta. Under symmetric excitation it carries zero current, which is why
+      the delta's through path crosses ONE chip body where a star's crosses
+      two. Its absence would BE the star topology"
+
+  - assert: part_value
+    part: R_DELTA1
+    equals: 49.9
+    tolerance_pct: 1
+    adr: "0003"
+    why: "the delta value must EQUAL Z0. The port-2 match reduces to
+      Rb^2 + 50*Rb - 5000 = 0 => Rb = 50 ohm UNIQUELY, so 50/50/50 is the ONLY
+      all-ports-matched resistive 3-port. 16.9 ohm here would be a star built
+      on delta wiring: every port mismatched, and no gate but this one sees it"
+
+  - assert: part_value
+    part: R_DELTA2
+    equals: 49.9
+    tolerance_pct: 1
+    adr: "0003"
+    why: "the same 50-ohm uniqueness argument as R_DELTA1, and R_DELTA1/R_DELTA2
+      must additionally MATCH EACH OTHER: amplitude imbalance is 4.339 dB per
+      unit fractional mismatch, so 2% differential between two independent 1%
+      parts is 0.087 dB landing straight in the arm-to-arm comparison the board
+      exists to make. Specify both from the same reel"
+
+  - assert: part_value
+    part: R_DELTA3
+    equals: 49.9
+    tolerance_pct: 1
+    adr: "0003"
+    why: "the isolation leg. It carries ZERO current under symmetric excitation,
+      so its value never shows up in the through response and a wrong part here
+      is invisible on the bench until one RX cable is unplugged — at which point
+      it sets the +3.52 dB error on the surviving channel"
+
+  # ---- ADR-0004: the attenuation is SPLIT, not all pre-split -------------
+  # The whole four-reason argument of ADR-0004 collapses if the arm pads are
+  # omitted or moved ahead of the split. Three consequences follow silently:
+  # inter-channel isolation falls 6.02 + 2*A2 -> 6.02 dB; an unplugged RX
+  # cable adds +3.52 dB to the OTHER channel with no error indication; and in
+  # antenna mode the splitter presents Zin = infinity to TX (Gamma = +1).
+  - assert: series_chain
+    chain: [TX_PLUTO, U_PAD_A1, LOOP_IN]
+    through: {U_PAD_A1: ["2", "5"]}
+    adr: "0004"
+    why: "the 10 dB pre-split pad sits between the TX port and the splitter
+      input — this is what keeps the TX port's return loss set by the pad,
+      which is the one surviving argument of the pre-split position"
+
+  - assert: series_chain
+    chain: [LOOP_ARM1, U_PAD_A2A, LOOP_ARM1_SW]
+    through: {U_PAD_A2A: ["2", "5"]}
+    adr: "0004"
+    why: "THE ARM PAD MUST BE IN THE ARM. Omitting it or relocating it ahead of
+      the split costs ~24 dB of inter-channel isolation, unmasks the
+      loose-connector +3.52 dB error, and leaves the splitter facing two
+      reflective shorts in antenna mode"
+
+  - assert: series_chain
+    chain: [LOOP_ARM2, U_PAD_A2B, LOOP_ARM2_SW]
+    through: {U_PAD_A2B: ["2", "5"]}
+    adr: "0004"
+    why: "channel 2, same reasoning as arm 1 — and the two arms must be
+      topologically IDENTICAL, because the published D4 delta is only meaningful
+      if the only difference between them is geometry"
+
+  # ---- ADR-0006: the three Pluto-facing ports are SMP, and which is which -
+  - assert: pin_on_net
+    pin: "J_SMP_RX1.1"
+    net: RX_PLUTO1
+    adr: "0006"
+    why: "the three SMP jacks map to specific Pluto ports at a NON-UNIFORM
+      pitch (R2-R1 is ~0.4 mm tighter than the outer gaps). Swapping RX1 and
+      RX2 in the netlist produces a board that mates perfectly and reports the
+      two channels transposed — invisible to every geometric gate"
+
+  - assert: pin_on_net
+    pin: "J_SMP_RX2.1"
+    net: RX_PLUTO2
+    adr: "0006"
+    why: "channel 2. RX2 is the OUTER of the two adjacent Pluto RX ports and its
+      SMP sits at the 11.60 mm gap, so a transposition with RX1 also moves the
+      mirror axis the whole loopback layout is built around"
+
+  - assert: pin_on_net
+    pin: "J_SMP_TX.1"
+    net: TX_PLUTO
+    adr: "0006"
+    why: "TX is at one END of the three-port run, not on the mirror axis; a
+      transposition here feeds the splitter from an RX port"
+
+  # ---- ADR-0011: the two arms are the SAME CIRCUIT, part for part ---------
+  # The published length/amplitude delta is only meaningful if the two arms are
+  # topologically identical. This is the netlist half of that; the geometric
+  # half (mirror symmetry, identical rotation, no vias) is named at the bottom
+  # of this file as OUT OF REACH.
+  - assert: net_has_part
+    net: LOOP_ARM1
+    part_type: resistor
+    min: 2
+    adr: "0011"
+    why: "arm 1 sees exactly the two delta legs that terminate on it (R_DELTA1
+      and R_DELTA3). A third resistor on one arm and not the other is an
+      asymmetry that lands directly in the published D4 delta"
+
+  - assert: net_has_part
+    net: LOOP_ARM2
+    part_type: resistor
+    min: 2
+    adr: "0011"
+    why: "arm 2, the mirror of the above. The pair of assertions is the point:
+      either arm alone proves nothing about the match"
+
+  # ---- ADR-0012: the MCU's strapping and control pins ---------------------
+  - assert: pin_on_net
+    pin: "U_MCU.19"           # TESTEN
+    net: GND
+    adr: "0012"
+    why: "RP2040 Table 619 states TESTEN plainly: 'Test enable (connect to
+      Gnd)'. Left floating on a 0.4 mm-pitch QFN-56 it is unprobeable and
+      unreworkable"
+
+  - assert: pin_on_net
+    pin: "U_MCU.40"           # GPIO28 / ADC2
+    net: HDR_CTRL_ADC
+    adr: "0012"
+    why: "the header input MUST land on an ADC-capable pin (GPIO26-29 only).
+      On any other GPIO it becomes a digital input with a flat 2.0 V VIH, which
+      a 1.8 V PlutoPlus output cannot reach — the board would read the header
+      as permanently LOW, fail-safe and therefore invisible to any bench test
+      that only asks whether it can spuriously enter loopback"
+
+  # ---- ADR-0008: the header can never drive the Pluto ---------------------
+  - assert: series_chain
+    chain: [HDR_CTRL_IN, R_HDR_S, HDR_CTRL_ADC]
+    adr: "0008"
+    why: "the header input reaches the MCU ONLY through the series resistor.
+      Direct connection is BOTH non-functional (PlutoPlus IO is 1.8 V against
+      RP2040's flat 2.0 V VIH — it would read permanently LOW, fail-safe and
+      therefore invisible to any 'can it enter loopback' bench test) AND a
+      hazard in reverse (RP2040 VOH 2.62-3.3 V into a Zynq pin whose absolute
+      max is ~2.35 V)"
+
+  - assert: part_value
+    part: R_HDR_S
+    min: 1k
+    adr: "0008"
+    why: "the series resistor is the FAULT-CURRENT BOUND, not just a divider
+      leg. At 2.2k a firmware bug driving 3.3 V into a clamped 1.8 V Zynq pin
+      sources (3.3-2.3)/2200 = 0.45 mA. Below ~1k that bound stops protecting
+      the user's Pluto, and the divider ratio also stops matching the 0.36 V
+      firmware threshold"
+
+  - assert: net_has_part
+    net: HDR_CTRL_ADC
+    part_type: resistor
+    min: 2
+    adr: "0008"
+    why: "series AND shunt. The shunt is also the pull-down that makes an
+      UNCONNECTED header read 0 V = antenna mode"
+
+  # ---- ADR-0009: input protection ----------------------------------------
+  - assert: series_chain
+    chain: [VBUS, F1, VBUS_F]
+    adr: "0009"
+    why: "the PPTC must be genuinely IN SERIES with VBUS. It protects the HOST,
+      not this board — a shorted rail here must not kill the laptop USB port —
+      and a part that exists but is not in the path protects nothing"
+
+  - assert: pin_on_net
+    pin: "U_LDO.3"            # ME6211 SOT-23-5 pin 3 = CE
+    net: VBUS_F
+    adr: "0009"
+    why: "CE MUST be tied to the VIN node explicitly. The ME6211 datasheet
+      never states whether the C series has an internal pull-up or pull-down,
+      so a floating CE is UNDEFINED power-up behaviour — it may not come up, or
+      may come up intermittently. Its Figure 2 typical application (p.2) shows
+      CE tied to VIN, and that is the only guidance that exists"
+
+  - assert: net_has_part
+    net: VBUS
+    part_type: capacitor
+    min: 1
+    adr: "0009"
+    why: "VBUS bulk at the connector. NOTE the binding constraint here is a
+      CEILING, not a floor: USB 2.0 sec 7.2.4.1 caps downstream bulk at 10 uF
+      without surge limiting, and this board budgets 6.8 uF total. No netlist
+      gate can check a ceiling across nets — it is a review item"
+
+  - assert: net_has_part
+    net: USB_DP
+    part_type: ic
+    min: 1
+    adr: "0009"
+    why: "the ESD array must be ON the data lines, not merely near them. ST's
+      own layout section makes trace inductance a TERM IN THE CLAMP VOLTAGE
+      (VCL+ = VTRANSIL + VF + L_IO*di/dt + L_GND*di/dt), so the pair must route
+      THROUGH the part with zero stubs"
 
 # ---------------------------------------------------------------------------
-# label_survival — the schematic NET-MERGE gate (candidate S-NETMERGE), graded
-# by net_label_survival.py PROJECT_DIR. WHY: `kicad-cli sch export netlist`
-# CONNECTS wires whose endpoint touches a foreign wire (T-junction) or that
-# overlap collinearly — a net label silently merges into another net and
-# every downstream gate stays green because all are self-consistent with the
-# merged netlist (crow-recorder-central-v2 P5VA_4->AUDIO4M + MID2P->5V, two
-# DO-NOT-ORDER defects on one board, 2026-07-23).
+# label_survival — the schematic NET-MERGE gate (S-NETMERGE). The generic
+# check (every schematic global_label survives to the exported netlist) is
+# ALWAYS ON and needs no config. No exemptions are declared: every label on
+# this board is intended to reach the netlist.
 #
-# The GENERIC check (every schematic global_label must exist as a netlist net)
-# is ALWAYS ON and needs no config — this block only carries the optional
-# extras. Keys:
-#   exempt:  labels allowed to be absent from the netlist; each entry REQUIRES
-#            `why:` evidence (canon M4 — an exemption without evidence is a
-#            defect).
-#   pin_map: board-specific pin-for-pin net assertions (the generalization of
-#            the crow-recorder 8-port RJ45 map): each entry checks every ref
-#            in `refs`; `{n}` in a net pattern expands to n_start + position;
-#            `unconnected` pins must carry no real net.
+# A pin_map block is NOT declared. It is the right tool for a repeated
+# connector array (the crow-recorder 8-port RJ45 case); this board's five RF
+# ports are individually asserted above, which is stronger, and the SMP/SMA
+# pin maps are single-signal-plus-grounds where a merge would be caught by the
+# generic check anyway.
 label_survival: {}
-#label_survival:
-#  exempt:
-#    - {label: SPARE_NET, why: "test-point label, deliberately unloaded (ADR-000X)"}
-#  pin_map:
-#    - refs: [J3, J4, J5, J6, J7, J8, J9, J10]
-#      n_start: 1
-#      pins: {"1": "AUDIO{n}P", "2": "AUDIO{n}M", "3": PLUS5V_BEEP,
-#             "4": "P5VA_{n}", "5": GND, "6": BEEP_RETURN,
-#             "7": "P5VA_{n}", "8": GND}
-#      unconnected: ["9", "10", "11", "12"]
 
-# DEFERRED to E2 (geometric — need footprint/geometry, not just the netlist):
-#   clamp_le_rating  — a clamp/TVS standoff <= the rail it protects
-#   kelvin_within    — a sense pair within N mm of the element it senses
+# ---------------------------------------------------------------------------
+# WHAT THIS FILE CANNOT REACH, STATED SO IT IS NOT MISTAKEN FOR COVERAGE.
+# E1 is netlist-only. The following are REAL invariants of this design that no
+# assertion here can express, and each is assigned to a human gate:
+#
+#   * the 34 mV / 234 mV VDD headroom question (ADR-0002) — needs a rail
+#     tolerance vs a part's rated MAXIMUM. E-MARGIN grades the LOW corner
+#     against a brownout; nothing grades the HIGH corner against an abs max.
+#     -> red-team topology lens.
+#   * the arm-to-arm MIRROR SYMMETRY and identical (non-mirrored) rotation of
+#     the arm attenuators (ADR-0011) — geometric, and partly a CPL fact.
+#     -> placement audit + A-ROT.
+#   * inter-arm coupling >= 3x dielectric height (ADR-0004) — geometric.
+#     -> placement audit.
+#   * "no via, no layer change in either loopback arm" — geometric.
+#     -> routing gate.
+#   * the 10 uF USB bulk CEILING (ADR-0009) — a sum across nets, not a
+#     per-net minimum. -> red-team topology lens.

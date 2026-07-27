@@ -91,12 +91,52 @@ def sealed_copy(d, name="board.kicad_pcb"):
     return p
 
 
-def add_track(board, net_a, net_b, gap_mm, y=60.0, x0=28.0, x1=32.0, w=0.2):
+#: The floor the injected pair's neighbourhood must clear, in mm. MEASURED
+#: at the chosen site: 3.862mm to the nearest F.Cu copper or board edge
+#: (binary search over `SHAPE::Collide`, exact shapes — a BOUNDING BOX is
+#: useless here, the board's diagonal tracks have boxes 15mm across). 1.0 is
+#: a floor with 3.9x of headroom, not the margin itself.
+TRACK_HALO_MM = 1.0
+
+
+def add_track(board, net_a, net_b, gap_mm, y=51.8, x0=66.0, x1=70.0, w=0.2):
     """Two parallel 0.2mm F.Cu tracks with `gap_mm` of copper-to-copper air
     between them. gap 0.05 = below the 0.10mm JLC fab floor; gap 0.15 = a
-    fab-legal margin item. Same geometry, one number apart."""
+    fab-legal margin item. Same geometry, one number apart.
+
+    THE SITE IS LOAD-BEARING, AND THE FIXTURE NOW ASSERTS IT (2026-07-27).
+    The pair used to be laid at y=60.0, x=28..32 — on top of the sealed
+    board's existing copper: a RING_23 track (30.2,60.8)->(32.6,58.4)
+    crosses BOTH injected tracks, and J3's RING_23 THT pad at (30.2,60.8)
+    overlaps the 5V one. KiCad emits ONE violation class for that
+    neighbourhood and picks by the order items reach the DRC engine, and
+    pcbnew's Save() does not order Python-added tracks stably — so the
+    intended 0.05mm `clearance` item was preempted by `tracks_crossing`
+    on 4.6% of runs (3/65, serial) and REAL fell to 0. See the INCIDENT 8
+    header below for the full measurement. This site is the maximum-clearance site on this board
+    (3.862mm); the isolation assert makes any future contamination fail
+    LOUDLY at fixture-build time instead of flaking at assert time."""
+    top, bot = y - w, y + w + gap_mm + w
     edit_board(board, (
         "import pcbnew\n"
+        # ---- ISOLATION ASSERT, before anything is added. Exact shapes via
+        # pcbnew's own SHAPE::Collide — the checker for the fixture must not
+        # be a hand-rolled bbox approximation of the thing DRC measures.
+        f"rect=pcbnew.SHAPE_RECT(pcbnew.VECTOR2I_MM({x0},{top}),"
+        f" pcbnew.FromMM({x1}-{x0}), pcbnew.FromMM({bot}-{top}))\n"
+        "near=[t for t in b.Tracks() if t.IsOnLayer(pcbnew.F_Cu)"
+        f" and t.GetEffectiveShape().Collide(rect, pcbnew.FromMM({TRACK_HALO_MM}))]\n"
+        "near+=[p for f in b.GetFootprints() for p in f.Pads()"
+        " if p.IsOnLayer(pcbnew.F_Cu)"
+        " and p.GetEffectiveShape(pcbnew.F_Cu).Collide(rect,"
+        f" pcbnew.FromMM({TRACK_HALO_MM}))]\n"
+        "if near:\n"
+        "    raise SystemExit('FIXTURE CONTAMINATED: %d copper item(s) within "
+        f"{TRACK_HALO_MM}mm of the injected pair site, e.g. net %s @ %s. The "
+        "DRC violation CLASS for a contaminated neighbourhood is "
+        "order-dependent and this fixture flakes (see add_track). Move the "
+        "pair to clear copper.'"
+        " % (len(near), near[0].GetNetname(), near[0].GetPosition()))\n"
         f"na=b.FindNet({net_a!r}); nb=b.FindNet({net_b!r})\n"
         f"for net,yy in ((na,{y}),(nb,{y}+{w}+{gap_mm})):\n"
         "    t=pcbnew.PCB_TRACK(b)\n"
@@ -771,6 +811,49 @@ def t_independent_waivers_pass():
 #   t_subfloor_crossnet_clearance_is_real pass but
 #   t_fablegal_margin_is_not_real FAIL — the counting version calls the
 #   0.15mm gap a real violation.
+#
+#   THE FLAKE, ROOT-CAUSED AND KILLED 2026-07-27 (it had been excused twice
+#   as "the known temp-path flake, commit 2de4b2a" — and 2de4b2a fixed a
+#   DIFFERENT, real bug, so the excuse was plausible and wrong).
+#
+#   MEASURED failure rate of t_subfloor_crossnet_clearance_is_real before the
+#   fix: 2/25 (8.0%) run SERIALLY, one process at a time, no concurrency and
+#   no second kicad-cli anywhere — which already refutes the shared-temp-path
+#   theory. A second independent loop hit 1/40 (2.5%); pooled 3/65 = 4.6%.
+#
+#   IT IS NOT A RACE AND IT IS NOT THE REPORT FILE. Measured, in order:
+#     * 20/20 identical output re-running classified_drc.py on ONE fixed
+#       board — the checker is deterministic given its input;
+#     * a captured failing board reproduces BAD 5/5 — the board is the
+#       variable, not the run;
+#     * good vs bad board: byte-identical multiset of lines (0 lines
+#       unique to either, same 265228 bytes) once uuids are normalised.
+#       The files differ ONLY in the ORDER pcbnew's Save() emits the
+#       injected 5V segment — index 37 in the good file, 54 in the bad.
+#   pcbnew does not promise a stable serialisation order for items added
+#   through the Python API, and the position moves run to run.
+#
+#   WHY ORDER CHANGED THE VERDICT: the pair used to be injected at y=60.0,
+#   x=28..32, which on this board is ON TOP OF EXISTING COPPER. A RING_23
+#   track (30.2,60.8)->(32.6,58.4) crosses both injected tracks and J3's
+#   RING_23 THT pad at (30.2,60.8) overlaps the 5V one. KiCad emits ONE
+#   violation class for that neighbourhood and picks by the order items
+#   reach the DRC engine, so the same geometry reported either
+#       [clearance] 0.0500mm 5V<->S_PLUS  +  [shorting_items] 5V/RING_23
+#   or  [tracks_crossing] x2  and NO clearance item at all
+#   — and in the second case REAL=0 and the (correct, unweakened) REAL=1
+#   assertion fails.
+#
+#   THE FIX IS THE FIXTURE, NOT THE ASSERTION. `REAL=1` is the correct
+#   expectation and is unchanged; loosening it would be the "lower the floor
+#   until it cannot fail" move ADR-0004 forbids. The pair moved to y=51.8,
+#   x=66.0..70.0 — the maximum-clearance site on this board, 3.862mm to the
+#   nearest F.Cu copper or board edge, found by binary search over exact
+#   `SHAPE::Collide` (bounding boxes are worthless here: this board's
+#   diagonal tracks have boxes ~15mm across) — and add_track now ASSERTS its
+#   site is clear to TRACK_HALO_MM, naming the offending net, so the
+#   contamination cannot come back silently. The save-order nondeterminism
+#   still happens; it no longer has anything to bite.
 # ==========================================================================
 @test("INCIDENT(2026-07-13 spf/96785a0): a SUB-FLOOR cross-net gap is REAL and blocks",
       kind="known_bad")
@@ -815,6 +898,36 @@ def t_fab_floor_moves_the_boundary():
              "the same 0.05mm gap is fab-legal at a 0.02mm floor and must "
              "re-classify as margin")
     contains(lax.out, "margin(>= 0.02)=1", "the item must still be COUNTED")
+
+
+@test("INCIDENT(2026-07-27 flake): the fixture's ISOLATION ASSERT has teeth",
+      kind="known_bad")
+def t_add_track_rejects_a_contaminated_site():
+    """Test the guard, not just with it. The three tests above are only
+    deterministic because the injected pair has empty copper around it, and
+    that precondition was invisible from the day the fixture was written —
+    the pair sat on RING_23 and the suite flaked at 4.6% (3/65) with nothing
+    in the failure output pointing at the cause.
+
+    VERIFIED RED, 2026-07-27: this calls add_track at the ORIGINAL site
+    (y=60.0, x=28..32) — the exact coordinates that flaked — and requires the
+    assert to refuse it and NAME the copper it collided with. Neutering the
+    assert in add_track (`if near:` -> `if False:`, i.e. the pre-fix
+    behaviour) makes this test FAIL with "add_track ACCEPTED the
+    known-contaminated site"; restoring it makes it pass again. The silent
+    acceptance IS the defect."""
+    d = tmpdir("t4drc_")
+    try:
+        add_track(sealed_copy(d), "5V", "S_PLUS", 0.05, y=60.0, x0=28.0, x1=32.0)
+    except Exception as e:                       # harness.Failed from must_pass
+        contains(str(e), "FIXTURE CONTAMINATED",
+                 "the isolation assert should have refused the old site")
+        contains(str(e), "RING_23",
+                 "the assert must NAME the copper it collided with")
+    else:
+        check(False, "add_track ACCEPTED the known-contaminated site "
+                     "(y=60.0, x=28..32) — the isolation assert cannot fail, "
+                     "so it is worthless and the flake will come back")
 
 
 # ==========================================================================
