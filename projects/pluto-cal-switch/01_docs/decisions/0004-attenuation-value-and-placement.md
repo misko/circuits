@@ -1,7 +1,7 @@
 ---
 id: 0004
 date: 2026-07-27
-status: accepted
+status: superseded-by-0016
 tags: [topology]
 ---
 # 0004 — 22 dB of pad, SPLIT 10 dB pre-split + 12 dB per arm, as YAT chips
@@ -163,3 +163,42 @@ is why the arm pads are built as 10 + 2 rather than as one 12.
   loss. If measured total interconnect at 6 GHz lands below ~1.4 dB, the arm's
   second part changes. DETAIL_DESIGN §3.6 sizes the sensitivity: the 22 dB
   build survives any single estimate being wrong by 2×.
+
+## Superseded — 2026-07-27, by ADR-0016 (user directive A9)
+
+**HALF of this ADR is superseded and half is CARRIED FORWARD UNCHANGED, so
+read the split carefully.**
+
+**SUPERSEDED — the VALUE and its selection rule.** The user raised the total to
+40 dB and specified it as a MINIMUM across the band rather than a scalar at a
+reference frequency. `PAD_A1` goes **10 dB → 25.78 dB**
+(`2 × YAT-10A+ + 3 × YAT-2A+`), the path total goes 21.9 → **37.7 dB typical**
+with a guaranteed minimum of **≥40.07 dB TX → each RX** including the split.
+Minimax, the ≈3.0 GHz reference, the 30.0 −1.6/+1.4 dB span and the
+27.2–32.9 dB envelope all go with it (ADR-0013's supersession).
+
+**CARRIED FORWARD — the PLACEMENT argument, in full.** `PAD_A2` stays at 12 dB
+in EACH ARM, and the four reasons above are the reason it stays. Its value was
+never set by the total: it is pinned independently by inter-channel isolation
+(`6.02 + 2·A2` = 29.9 dB), by masking an unplugged RX cable (2·A2 = 24 dB of
+round trip turning a silent +3.52 dB error into ~0.2 dB), by what the splitter
+presents to TX in antenna mode (|Γ| = 0.063 instead of Γ = +1), and by the
+AD936x RX match moving with the AGC index so the leakage is non-stationary and
+uncalibratable. **The whole 18 dB increase went PRE-SPLIT** precisely so that
+none of those three numbers moved.
+
+Also carried forward unchanged: chips-over-discrete on FLATNESS (0.16 dB vs
+0.56 dB, and the honest note that the chip's guaranteed window is WIDER than
+the discrete's modelled spread); the MC1630 land pattern read from drawing
+98-MC Rev. H; the PL-586 deviation waiver covering the four 0.30 mm GND lands;
+the exposed pad being the RF GROUND RETURN and not a thermal pad; and the
+CPL-180 immunity note.
+
+**One consequence of the increase that ADR-0016 costs explicitly:** PAD_A1 is
+now a FIVE-chip cascade, so ~12 mm of extra interconnect (0.43 dB at 6 GHz) and
+four more mounting discontinuities enter the budget, and the binding stock
+ceiling moves from YAT-10A+ (150 pcs, 4/board = 37 boards) to YAT-2A+ (103 pcs,
+5/board = **20 boards**). A stock query on the mid-value YAT parts — which
+would collapse the cascade to two chips — is recorded as OWED rather than
+assumed, because **a guaranteed-minimum claim may not rest on an unverified
+datasheet min column.**

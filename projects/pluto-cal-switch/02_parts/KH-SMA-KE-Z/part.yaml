@@ -2,9 +2,10 @@ mpn: KH-SMA-KE-Z
 manufacturer: Shenzhen Kinghelm
 type: connector_sma_jack_vertical_tht
 mates: receptacle             # SMA JACK (female shell, female socket contact).
-                              # Read from the part-number decode and the drawing
-                              # title block, NOT assumed — see gotchas: the same
-                              # vendor range contains RP-SMA one character away.
+                              # Read from PRINTED DATASHEET FIELDS, never from
+                              # the part-number suffix — see `verified:` and the
+                              # RP-SMA gotcha. Used x5 on this board (ADR-0015):
+                              # 2 antenna ports + 3 cable ports to the Pluto.
 datasheet:
   doc_id: KH-SMA-KE-Z
   revision: "C504007"         # vendor publishes no revision string; LCSC code
@@ -68,9 +69,22 @@ gotchas:
      PDF counts for this vendor class."
 verified: "pin/hole map read from the drawing on sheet 2/2, which states the
   recommended PCB layout explicitly as 5-D1.4 on 5.08 +/-0.05 x 5.08 +/-0.05 mm
-  with the centre hole at the square's centre; centre pin D1.00 +/-0.05. Gender
-  ('K' = hole/female, board-end) read from the part-number decode on p.1.
-  2026-07-27"
+  with the centre hole at the square's centre; centre pin D1.00 +/-0.05.
+  GENDER, RE-VERIFIED 2026-07-27 AND THE EARLIER CLAIM CORRECTED: this field
+  previously said the gender was read from 'the part-number decode on p.1'.
+  THERE IS NO PART-NUMBER DECODE ON p.1 - p.1 carries the model string in the
+  型号 field and nothing else, so that claim named a source that does not
+  exist. What IS printed: (a) p.1 产品名称 (product-name) field reads
+  'SMA 直式印制面板插座' - 插座 is receptacle/socket, i.e. JACK; (b) sheet 2/2
+  outline shows the mating end as a FIXED barrel with an EXTERNAL 1/4-36UNEF
+  thread at D6.2 and NO coupling nut, which is the jack shell form (a plug's
+  shell sits inside a rotating internal-thread coupling nut). NEITHER PAGE
+  STATES THE CENTRE-CONTACT POLARITY IN WORDS, so (a)+(b) prove FEMALE SHELL
+  and do not by themselves exclude RP-SMA. That residual is closed by a SECOND,
+  INDEPENDENT source (canon M-QUOTE, CITED): LCSC product page C504007,
+  https://www.lcsc.com/product-detail/C504007.html, read 2026-07-27 -
+  'CONN RCPT SMA TH', interface type 'Inner hole'. Two sources, two different
+  properties, and the gap between them named rather than papered over."
 layout:
   source: "Datasheet sheet 2/2 states ONE layout demand — the 5-D1.4 @ 5.08 hole
     pattern. There is NO Application or Layout Information section anywhere.
@@ -84,6 +98,15 @@ layout:
        for FR4 loss (0.036 dB/mm at 6 GHz on this stackup), and identical on
        both channels so the loss is common-mode"}
     - {net: SW2_ANT, max_span_mm: 25, why: "the mirror of the above"}
+    - {net: TX_PLUTO, max_span_mm: 15, why: "ADR-0015: this port is now an SMA
+       jack, not an SMP edge launch. It feeds PAD_A1 directly and every mm of
+       it is 0.036 dB at 6 GHz that lands in the published loss curve"}
+    - {net: RX_PLUTO1, max_span_mm: 15, why: "ADR-0015: SMA jack into SW1.RFin.
+       Must be IDENTICAL to RX_PLUTO2 - this pair is inside the D4 arm-to-arm
+       comparison, so an asymmetry here is indistinguishable from an arm
+       mismatch"}
+    - {net: RX_PLUTO2, max_span_mm: 15, why: "the mirror of the above, and the
+       other half of the same pair"}
   notes:
     - "BOTTOM-PLANE ANTIPAD >= D3.5 mm, opening OUTWARD toward the 5.08 mm post
        square — NOT the D2.6 mm minimum-DRC value. For a THROUGH-HOLE jack the

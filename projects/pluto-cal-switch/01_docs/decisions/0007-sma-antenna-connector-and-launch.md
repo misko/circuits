@@ -132,3 +132,40 @@ recommended hole size.
 - The datasheet contradicts LCSC's parametrics on temperature range (−45/+85
   vs −65/+165). Harmless here, but it means LCSC parametric fields for this
   vendor class are not a spec source — only the PDF counts.
+
+## Extended — 2026-07-27, by ADR-0015 (user directive A8). NOT superseded.
+
+**This part is now used FIVE times, not twice.** ADR-0006's SMA→SMP mating
+strategy is dead; the three Pluto-facing ports are SMA cables into three more
+`KH-SMA-KE-Z` jacks, identical to the two antenna ports. Nothing in the
+selection, the footprint, or the four derived launch RULES changes — they get
+applied to five launches instead of two, and the two rules this ADR corrected
+(the ≥Ø3.5 mm bottom-plane antipad, and "thinner dielectric is BETTER once the
+barrel is modelled") now protect 2.5× as much of the board.
+
+**Two things this extension makes MORE load-bearing, stated because scaling a
+rule is not free:**
+
+1. **RULE 2 — per-port launch return loss at 6 GHz is ~11–15 dB, not 22.3 dB.**
+   With five launches instead of two, and with the TX→RX path now crossing TWO
+   of them instead of two SMP interfaces (VSWR 1.11 max), the launch is a
+   larger share of the board's own contribution. The bench-reference fixture
+   this ADR already recommends (2 × Amphenol 132289, ~$23) converts that
+   estimate into a measurement, and it is now worth more.
+2. **THT joint count triples: 5 × 5 = 25 joints, not 10.** The JLC Standard-PCBA
+   adder moves from ~$3.50 setup + ~$0.17 joints to ~$3.50 + ~$0.43, plus the
+   $3.00 extended-component charge — still trivial, but `assembly.yaml` states
+   it rather than carrying a stale figure.
+
+**GENDER, verified from the datasheet FIELDS rather than the suffix**, because
+this board has already paid $101 once for a gender read off a part number
+(ADR-0006). `产品名称 = SMA 直式印制面板插座` on p.1 — *插座* is
+receptacle/socket, i.e. **jack** — and sheet 2/2 shows a fixed barrel with an
+EXTERNAL `1/4-36UNEF` thread and no coupling nut, which is the jack shell form.
+**Neither page states the centre-contact polarity in words**, so standard-vs-RP
+is closed by a second source: LCSC C504007, read 2026-07-27, `CONN RCPT SMA TH`
+with interface type **"Inner hole"**. Full chain in ADR-0015.
+
+**A correction to this project's own `part.yaml`:** it claimed the gender was
+*"read from the part-number decode on p.1"*. There is no part-number decode on
+p.1. That claim is replaced with the fields that actually exist.

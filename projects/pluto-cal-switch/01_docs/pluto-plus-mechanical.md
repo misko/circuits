@@ -1,5 +1,24 @@
 # PlutoPlus SMA port geometry — measured, with its uncertainty stated
 
+> **STATUS 2026-07-27, READ THIS FIRST. This file is now a POST-MORTEM, not an
+> input.** User directive **A8** dropped rigid mounting for **SMA cables**
+> (ADR-0015), and a cabled board consumes **none** of the geometry below —
+> the span, the seven pitches, the barrel OD, the connector outline and the
+> RF-axis height are all retired in `03_src/rules/mates.yaml`. The Pluto is
+> also in a two-part aluminium case, so **its PCB was never the mating
+> reference in the first place**; the panel-mounted jack faces are.
+>
+> **Keep reading anyway.** The VERDICT section's three proofs — the ±0.05 mm
+> thread-start window against a ±0.49 mm RSS two-board stack, the coupling nut
+> that draws the boards together by 2.8 mm so torquing one moves the datum for
+> the others, and the 2.43 mm of corner-to-corner wrench clearance at 11.60 mm
+> pitch — are *why* there is a cable in the path. They stand.
+>
+> Note also this file's own history, which is the point of the whole exercise:
+> it was written BEFORE the caliper and still carries the superseded **35.60 mm**
+> plot geometry in its early sections, corrected further down. **The graded
+> record is `spf/plutoplus_hardware/`, not this file.**
+
 Source of every number below: the PlutoPlus open-hardware repo
 <https://github.com/plutoplus/plutoplus>, files `sch/Top.pdf` and
 `sch/PLUTOX_SDR-V1.0-20201212.pdf`. Measured 2026-07-27.

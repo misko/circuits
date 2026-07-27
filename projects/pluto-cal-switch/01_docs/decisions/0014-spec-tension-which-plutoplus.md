@@ -1,7 +1,7 @@
 ---
 id: 0014
 date: 2026-07-27
-status: accepted
+status: superseded-by-0015
 tags: [spec-tension, mechanical]
 ---
 # 0014 — SPEC TENSION T5: which PlutoPlus? Built to the 34.88 mm midpoint
@@ -86,3 +86,25 @@ report.**
   error is fatal, and the whole reason SMP was chosen is that it absorbs an
   error of this size. **D6 is what that float is being SPENT on** — it should
   not also be spent on sloppy fabrication tolerances elsewhere.
+
+## Superseded — 2026-07-27, by ADR-0015 (user directive A8)
+
+**D6 is RETIRED, not answered — and that is a strictly better outcome than an
+answer would have been.** With SMA cables between the two boards
+(ADR-0015), this board's connector positions are not referenced to the
+PlutoPlus's at all. There is no midpoint to build to, no ±0.16 mm of SMP float
+to spend on an unanswered question, and no floorplan number that has to change
+if the user later names their unit.
+
+The consequence worth carrying forward: **the 0.32 mm disagreement between two
+units both sold as "PlutoPlus" — the headline finding of
+`spf/plutoplus_hardware/` and the reason M-IMPORT exists — now costs this
+design NOTHING.** A cabled board fits the genuine unit, the clone, and any
+future revision, because it is referenced to none of them. That is the
+strongest resolution a spec tension can get: not a decision under uncertainty,
+but a design that stops consuming the uncertain quantity.
+
+The three-way ambiguity in what "Pluto+" names (2020/21 V1, a genuine ~Sept
+2021 V2 respin, a 2025 knock-off with different artwork) is unchanged and
+remains recorded in the device record. It is simply no longer this board's
+problem.

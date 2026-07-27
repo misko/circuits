@@ -111,3 +111,171 @@
   correct answer, not a defect in the file.
 - next: unchanged — stage 4 still waits on three user answers; the three
   physical measurements now have machine-visible OWED rows instead of prose.
+
+## 2026-07-27 14:05 — start (re-spec: A8 cables + A9 40 dB minimum)
+
+- did: read the two user decisions that landed together — A8 "lets not do the
+  fixed bulkhead version, lets use SMA cables to connect our board to the
+  pluto" (+ the confirmation that the PlutoPlus RF ports are SMA FEMALE and
+  that the Pluto is in a case, so its PCB is not the mating reference at all),
+  and A9 raise the cal-path attenuation 30 -> 40 dB and specify it as a
+  MINIMUM across 70 MHz-6 GHz. Re-read BRIEF/ARCHITECTURE/DETAIL_DESIGN, the
+  14 ADRs, `03_src/rules/*.yaml`, and canon M-IMPORT / M-QUOTE.
+- result: scoped the blast radius before touching anything. A8 kills ADR-0006
+  (SMA->SMP adapters, $101), ADR-0014/D6 (the 34.88 mm midpoint), the whole
+  +/-0.05 mm rigid-SMA tolerance analysis and 13 of the 15 `mates.yaml`
+  consumptions; it promotes ADR-0007's KH-SMA-KE-Z from 2 ports to 5. A9 kills
+  ADR-0013/D5 (minimax reference frequency) by REFRAMING rather than by
+  answering it. Both are edits, not supersedes: nothing on this board is
+  sealed (`04_kicad/` and `07_releases/` hold only `contracts.md`).
+- next: verify the connector gender from the datasheet FIELD (not the
+  part-number suffix — the repo has already paid $101 for a gender inference
+  on this board), confirm pad-vs-switch topology, then re-derive the chain.
+
+## 2026-07-27 14:35 — iterate 1 (gender, verified two ways, and a bad citation found)
+
+- did: opened `02_parts/KH-SMA-KE-Z/KH-SMA-KE-Z-C504007.pdf` and read the
+  PRINTED FIELDS rather than the model string; rendered sheet 2/2 at 400 dpi
+  and cropped the end view.
+- result: **it IS a jack.** the p.1 `产品名称` (product-name) field reads
+  **`SMA 直式印制面板插座`** — 插座 = receptacle/socket. Sheet 2/2 shows the
+  mating end as a FIXED barrel with an EXTERNAL `1/4-36UNEF` thread at Ø6.2
+  and NO coupling nut, which is the jack shell form. **But neither page states
+  the CENTRE-CONTACT polarity in words**, so those two prove FEMALE SHELL and
+  do NOT exclude RP-SMA (whose receptacle also has an external thread and a
+  male pin). Closed on a second, independent source — LCSC C504007 product
+  page, read 2026-07-27: `CONN RCPT SMA TH`, interface type **"Inner hole"**.
+  **AND A DEFECT IN OUR OWN RECORD:** `part.yaml` said the gender was *"read
+  from the part-number decode on p.1"*. **There is no part-number decode on
+  p.1** — the page carries the model string in the 型号 field and nothing
+  else. The claim named a source that does not exist, and it was the ONLY
+  provenance behind the gender of five connectors. Corrected in place.
+- next: the topology question, then the two RF numbers' provenance.
+
+## 2026-07-27 14:50 — iterate 2 (Decision C: pad vs switch)
+
+- did: traced every path from `TX_PLUTO` to an RX port in ARCHITECTURE §3 and
+  `electrical_invariants.yaml`.
+- result: **UPSTREAM, and by a wide margin.** `TX_PLUTO` connects to exactly
+  one thing — PAD_A1's input — and every route to an RX port crosses
+  A1 → split → A2 → switch, in that order. So no switch state and no switch
+  FAULT (including a die shorting RFin–RF1–RF2) can present raw TX to a
+  receiver: the minimum TX→RX attenuation is the same in every state, and the
+  switch's own 20–43 dB of isolation sits ON TOP of it in antenna mode. **The
+  property was already bought and had never been stated**: ADR-0004 put A2 in
+  the ARM on isolation / open-cable / antenna-mode-reflection / AGC arguments,
+  none of which was about faults. Counted what the alternative would have
+  cost: pads downstream of the switch ⇒ a shorted die puts TX on an RX at the
+  splitter's 6.02 dB alone = **+2 dBm from a +8 dBm TX, i.e. AT the abs-max
+  rating**. Added a `series_chain` invariant citing ADR-0016 so the property
+  is machine-checked and not merely true.
+- next: provenance on the two RF numbers before touching the pad value.
+
+## 2026-07-27 15:05 — iterate 3 (the two RF numbers, and a premise corrected)
+
+- did: went after primary sources. `analog.com` PDF timed out at 60 s to
+  WebFetch and `curl` was refused by the sandbox on two attempts (HTTP/2
+  INTERNAL_ERROR, then HTTP/1.1); DigiKey's HTML mirror returned **410 Gone**,
+  reproducing what the sourcing spike and its adversarial pass had both hit.
+  Found a page-for-page mirror of the vendor PDF and walked it page by page.
+- result: **both numbers are now CITED with a page.**
+  **RX abs max = +2.5 dBm** — AD9363 Rev. D, printed **p.15 of 32**, ABSOLUTE
+  MAXIMUM RATINGS, row `RF Inputs (Peak Power)`. The secondary EngineerZone
+  source was RIGHT, and confirming it was still worth doing: the row says
+  **PEAK**, a qualifier the old text did not carry, and the same table's
+  `Tx Monitor Input Power (Peak Power) 9 dBm` is a DIFFERENT port that could
+  be misread as the RX limit.
+  **TX max = +8 dBm** — printed **p.4 of 32**, TRANSMITTERS 800 MHz,
+  `Maximum Output Power`, *"1 MHz tone into 50 Ω load"*; the three
+  characterized bands are **8.0 / 7.5 / 7.0 dBm** at 800 MHz / 2.4 GHz /
+  3.5 GHz. **The board's "+7 dBm" was the LOWEST of the three being carried as
+  a ceiling — the design was 1 dB optimistic about its own input**, and the
+  user's suspicion that some bands run hotter was correct. Also found the
+  honest residual: these are the TRANSCEIVER's numbers, and they bound the SMA
+  PORT only if the Pluto's TX front end is passive, which nobody has
+  established for a PlutoPlus — declared OWED in `spf/` with how to obtain it,
+  and bounded (19 dB of undiscovered gain before the board's own +27 dBm
+  ceiling binds). All three facts moved into `spf/plutoplus_hardware/` and are
+  consumed through `mates.yaml`, because they are facts about foreign hardware
+  and were living as ungraded prose in DETAIL_DESIGN.
+- next: re-derive the chain with cables in it, then size the pad.
+
+## 2026-07-27 15:25 — iterate 4 (the chain, and sizing a floor instead of a target)
+
+- did: re-derived the whole TX→RX budget with two SMA cables replacing the two
+  adapters and the two SMP mated pairs, then sized the pad against the new
+  specification.
+- result: **chain tilt 3.09 → 6.13 dB** — the two cables are +2.60 dB of that
+  at 6 GHz and are now the largest single non-pad term at the top of the band.
+  **Sizing a MINIMUM inverts the method**: instead of centring a pad on a
+  target you take the LOWER BOUND of every term. Taken to its end, the design
+  credits only the pad's datasheet MIN column and the splitter's 5.97 dB
+  worst case, with **both cables, all four coax interfaces, 65 mm of
+  microstrip, the SPDT and the splitter parasitics all credited at ZERO**.
+  `A1 = 2×YAT-10A+ + 3×YAT-2A+`, `A2` untouched ⇒ path min **34.8 dB**
+  (DC–5 GHz) / **34.1 dB** (5–15 GHz) ⇒ **≥40.07 dB, binding at 6 GHz**;
+  typical **44.59 → 50.16 dB**. Checked the build one chip either side:
+  `3×10 + 3×2` gives **38.67 dB and FAILS**, so the last YAT-2A+ is what buys
+  the guarantee for $3.40; `4×10` clears easily but lands 8.7 dB above spec
+  and would have to come out of A2, dropping isolation 29.9 → 26.0 dB.
+  **The whole 18 dB went pre-split**, so isolation, the open-cable masking and
+  the antenna-mode reflection are all unchanged — three numbers that three
+  separate arguments had pinned.
+  **And the result that mattered most was not the one the decision was made
+  on:** at this board's own declared +27 dBm abuse ceiling, the 30 dB build
+  left the user's receiver **2.7 dB** from its absolute maximum; ≥40 dB makes
+  it **15.6 dB**. Two ratings that had never been put in the same table.
+- next: retire the 13 geometric mates.yaml consumptions, then run the gates.
+
+## 2026-07-27 16:20 — iterate 5 (gates, and a NEW gate gap)
+
+- did: ran `import_provenance_check.py`, `contracts_audit.py`,
+  `electrical_invariants.py --adr-coverage` and `tests/run_tests.sh`.
+- result: **import provenance PASS, 18/18 graded, 0 fails** (was 15/15 — 13
+  geometric consumptions retired in place with their cause, 2 survive, and 3
+  ELECTRICAL facts arrived to replace them). **contracts_audit 237 files, 0
+  violations.** **tests 641 passed / 6 failed / 369 known-bad**; all six
+  failures are `t1_electrical_invariants` tests that need the GITIGNORED
+  `projects/smc0985-cooksense/06_build/netlists/cooksense.net`, absent in this
+  worktree (`git check-ignore` confirms `06_build/*`) — KNOWN pre-existing,
+  reported and not chased.
+  **NEW FINDING — E-ADR FAIL 11/12 is a GATE GAP, not a design defect.**
+  `electrical_invariants.py:protection_adrs()` excludes only `0000-example`
+  and never reads `status:`, so it still demands an invariant from **ADR-0006,
+  whose decision was reversed** and for which no design intent exists to
+  assert. The intent loop IS closed — ADR-0015 emits 3 assertions, ADR-0016
+  emits 1. Checked whether this is fleet-wide: **pluto-cal-switch is the FIRST
+  board to supersede a protection/topology-TAGGED ADR** (the only other
+  superseded ADR under `projects/`, cooksense 0005, carries no `tags:` line
+  and so was never in the denominator), which is why nothing had hit it.
+  Declared as ARCHITECTURE §12 **O8b** and spun out as a task; **not worked
+  around**, because retagging the ADR to silence it is exactly the silent
+  downgrade this canon exists to prevent.
+- next: commit. Stage 4 is unblocked — no hardware question remains.
+
+## 2026-07-27 16:30 — finish (re-spec complete)
+
+- did: completed the A8 + A9 re-spec as an EDIT, not a supersede — nothing on
+  this board is sealed (`04_kicad/` and `07_releases/` hold only their
+  `contracts.md`).
+- result: 2 new ADRs (0015 cables, 0016 the 40 dB minimum); 4 marked
+  `superseded-by-NNNN` with a `## Superseded` section appended carrying the
+  reversal, its date and its cause (0004 — half superseded, half carried
+  forward verbatim; 0006, 0013, 0014); 1 EXTENDED not superseded (0007, 2 → 5
+  ports). `02_parts/SMP-MSLD-PCE-5T/` deleted per the 02_parts repair rule,
+  closing a PDF-not-vendored deviation **by deletion rather than by obtaining
+  the drawing** — worth noting which way that went. `spf/plutoplus_hardware/`
+  gained an electrical section and 3 facts; `sma_gender` moved
+  ESTIMATED → MEASURED on the owner's statement. BRIEF: A8/A9 logged, D5 and
+  D6 struck, T4 and T5 resolved, **T8 added** (the pad had been sized against
+  the wrong quantity), the Mating fact-lock re-shaped into Consumed/Retired,
+  and six of eleven Open items closed.
+- **the thing worth recording, and it is not the dB value:** BOTH user
+  decisions removed a dependency rather than resolving one. A8 did not answer
+  "which PlutoPlus?" — it stopped consuming the PlutoPlus's geometry, so the
+  0.32 mm disagreement between two physical units that motivated this repo's
+  entire M-IMPORT canon **now costs this design nothing**. A9 did not answer
+  "30 dB at which frequency?" — it made the question meaningless, and then
+  absorbed a doubling of the chain tilt without changing. **A tension you stop
+  consuming beats a tension you decide.**
+- next: stage 4, schematic authoring.

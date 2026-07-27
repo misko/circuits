@@ -240,30 +240,53 @@ invariants:
       topologically IDENTICAL, because the published D4 delta is only meaningful
       if the only difference between them is geometry"
 
-  # ---- ADR-0006: the three Pluto-facing ports are SMP, and which is which -
+  # ---- ADR-0015: the three Pluto-facing ports are SMA JACKS, cable-fed ------
+  # A8 (2026-07-27) replaced the SMA->SMP adapter interface with SMA cables, so
+  # these three refdes change from J_SMP_* to J_SMA_*. The ASSERTIONS DO NOT
+  # WEAKEN — they get stronger, because the mechanical cue that used to make a
+  # transposition semi-visible (a non-uniform 11.60 / 11.98 mm pitch that only
+  # mated one way) is GONE. With five identical SMA jacks on our own pitch,
+  # NOTHING physical distinguishes RX1 from RX2: plugging a cable into the
+  # wrong one is silent, and swapping them in the netlist is silent too.
+  # A cabled board needs this check MORE than a push-on board did.
   - assert: pin_on_net
-    pin: "J_SMP_RX1.1"
+    pin: "J_SMA_RX1.1"
     net: RX_PLUTO1
-    adr: "0006"
-    why: "the three SMP jacks map to specific Pluto ports at a NON-UNIFORM
-      pitch (R2-R1 is ~0.4 mm tighter than the outer gaps). Swapping RX1 and
-      RX2 in the netlist produces a board that mates perfectly and reports the
-      two channels transposed — invisible to every geometric gate"
+    adr: "0015"
+    why: "the three Pluto-facing jacks map to specific Pluto ports (port_order,
+      MEASURED, consumed via mates.yaml). Swapping RX1 and RX2 in the netlist
+      produces a board that assembles perfectly, cables perfectly, and reports
+      the two channels TRANSPOSED — invisible to every geometric gate, and the
+      whole product of this board is which channel is which"
 
   - assert: pin_on_net
-    pin: "J_SMP_RX2.1"
+    pin: "J_SMA_RX2.1"
     net: RX_PLUTO2
-    adr: "0006"
-    why: "channel 2. RX2 is the OUTER of the two adjacent Pluto RX ports and its
-      SMP sits at the 11.60 mm gap, so a transposition with RX1 also moves the
-      mirror axis the whole loopback layout is built around"
+    adr: "0015"
+    why: "channel 2. This jack is also one half of the D4 arm-to-arm pair, so a
+      transposition moves the mirror axis the loopback layout is built around
+      as well as relabelling the channels"
 
   - assert: pin_on_net
-    pin: "J_SMP_TX.1"
+    pin: "J_SMA_TX.1"
     net: TX_PLUTO
-    adr: "0006"
-    why: "TX is at one END of the three-port run, not on the mirror axis; a
-      transposition here feeds the splitter from an RX port"
+    adr: "0015"
+    why: "TX feeds PAD_A1 and nothing else — that single connection is what
+      makes the ENTIRE pad chain upstream of both switches (ADR-0016 §7.2), so
+      no switch state and no switch fault can present raw TX to a receiver. A
+      transposition here would feed the splitter from an RX port AND break that
+      property"
+
+  - assert: series_chain
+    chain: [TX_PLUTO, U_PAD_A1, LOOP_IN]
+    through: {U_PAD_A1: ["2", "5"]}
+    adr: "0016"
+    why: "THE PAD MUST BE UPSTREAM OF THE SWITCH, and this is the netlist half
+      of that guarantee. If TX_PLUTO ever reached a switch RF port without
+      crossing PAD_A1, a stuck or shorted switch would put the transmitter on a
+      receiver at the splitter's 6.02 dB alone — RX at +2 dBm from a +8 dBm TX,
+      i.e. AT the AD936x absolute maximum. The 40 dB total would still read
+      correct on a sweep, because a sweep measures the intact path"
 
   # ---- ADR-0011: the two arms are the SAME CIRCUIT, part for part ---------
   # The published length/amplitude delta is only meaningful if the two arms are

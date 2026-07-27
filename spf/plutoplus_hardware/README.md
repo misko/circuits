@@ -141,9 +141,49 @@ the top surface; the barrel points horizontally out past the board edge, so the
 
 Footprint outline 8.13 × 8.13 mm, outer edge flush with the PCB edge.
 
-**A mating board therefore needs SMA PLUGS (male).**
+**A mating board therefore needs SMA PLUGS (male)** — or a male-ended cable.
 ⚠️ Standard SMA vs RP-SMA was not visually confirmed — standard is near-certain
 for an SDR, but the centre contact was not resolvable in the photos.
+
+**2026-07-27 — the JACK half is no longer an inference.** The owner of both
+physical units states the RF ports are SMA jacks (female) on the boards in
+hand, so `sma_gender` moves ESTIMATED → MEASURED for the SHELL. The
+standard-vs-RP-SMA question above is UNCHANGED and still open; it is a
+different property (centre-contact polarity) and nobody has looked at it.
+
+## Transceiver electrical limits — the two numbers a mating board spends
+
+The PlutoPlus is an AD936x-family SDR. A board that loops the unit's own TX
+back into its own RX is sizing a pad against **the receiver's damage
+threshold** and **the transmitter's maximum**, so both are facts about this
+foreign device and both live here rather than in a board's prose. Read from
+the **AD9363 data sheet, Rev. D** (the ADI document; retrieved 2026-07-27
+through a page-for-page mirror of that PDF, `radiolocman.com/datasheet/pdf.html?di=169339`,
+after `analog.com` returned a timeout and DigiKey's HTML mirror `410 Gone` to
+three separate attempts — the DOCUMENT and its revision are the vendor's, the
+HOST is a mirror, and that is stated rather than dressed up):
+
+| row, as printed | value | where |
+|---|---|---|
+| `RF Inputs (Peak Power)` | **2.5 dBm** | ABSOLUTE MAXIMUM RATINGS, printed page 15 of 32 |
+| `Tx Monitor Input Power (Peak Power)` | 9 dBm | same table, same page — a DIFFERENT port, recorded so it is not misread as the RX limit |
+| `Maximum Output Power`, TRANSMITTERS 800 MHz | **8 dBm** | printed page 4 of 32, condition *"1 MHz tone into 50 Ω load"* |
+| `Maximum Output Power`, TRANSMITTERS 2.4 GHz | 7.5 dBm | printed page 4 of 32, same condition |
+| `Maximum Output Power`, TRANSMITTERS 3.5 GHz | 7.0 dBm | printed page 4 of 32, same condition |
+
+Three things about these that a consumer must carry with them:
+
+1. **The RX limit is a PEAK-power rating, not an average one.** For a CW
+   calibration tone peak = average and the distinction costs nothing; for a
+   modulated stimulus it does not, and the peak is what the rating bounds.
+2. **The transmitter maximum is BAND-DEPENDENT, and the widely-repeated
+   "≈+7 dBm" is the WORST of the three characterized bands, not the best.**
+   The highest characterized figure is **8 dBm at 800 MHz**. Only 800 MHz,
+   2.4 GHz and 3.5 GHz are characterized: **70 MHz and 6 GHz — the two ends of
+   the band a wideband loopback fixture cares about — are not in the table.**
+3. These are the TRANSCEIVER's numbers, not the SMA PORT's. Everything
+   between the die and the panel jack on this device is undocumented; see the
+   OWED row below.
 
 ## Enclosure
 
@@ -173,6 +213,17 @@ established**: the mounting holes are not drawn on the assembly layer.
 - Standard SMA vs RP-SMA.
 - Which genuine revision Board A is (V1 vs the ~Sept 2021 V2 respin) — read the
   JTAG header silk: `1V8` ⇒ V1, `3V3` ⇒ V2.
+- **Whether anything ACTIVE sits between the AD936x TX pins and the TX SMA
+  jacks.** The transceiver's own maximum output power is cited above, and if
+  the path from die to panel is passive (balun + matching + filter) then that
+  figure is a hard CEILING on what can leave the TX port, because a passive
+  network cannot add power. **Nobody has established that it is passive on a
+  PlutoPlus.** The original ADALM-Pluto carries no TX PA, but "Pluto+" names at
+  least three different boards including a 2025 knock-off with completely
+  different artwork, and no vendor publishes a PlutoPlus schematic or BOM. Any
+  TX gain stage on the panel side of the transceiver would put the port above
+  the die's rating, and a loopback fixture's pad is sized against exactly that
+  number.
 
 ## Consequence for a mating board
 
@@ -191,6 +242,22 @@ The 0.32 mm span difference between these two boards reinforces it: no rigid
 design fits both, whereas an SMP-based interface (±0.254–0.3 mm float, reached
 via SMA→SMP adapters screwed onto the Pluto) plausibly fits both if designed to
 the **34.88 mm midpoint**.
+
+**2026-07-27 — superseded as ADVICE, not as measurement.** The paragraph above
+recommends a mating STRATEGY; `pluto-cal-switch` has since dropped rigid
+mounting altogether in favour of **SMA cables** (its ADR-0015), on the owner's
+direction. The numbers above are unchanged and still correct — they are the
+reason the rigid path failed — but the SMP/34.88 mm recommendation is one
+board's answer and no longer the one in force. **The important consequence for
+any FUTURE mating board: once you interpose a cable, none of the geometry on
+this page is consumed at all.** The span, the seven pitches, the barrel OD, the
+connector outline and the RF-axis height stop being inputs; only the PORT ORDER
+and the connector GENDER survive, and the gender only picks which cable to buy.
+That is why the 0.32 mm disagreement between two units — the headline finding
+of this record — costs a cabled design nothing. It also means the enclosure
+matters: **the PlutoPlus lives in a two-part aluminium shell, so its PCB was
+never the mating reference in the first place; the panel-mounted jack faces
+are.**
 
 ## Sources
 

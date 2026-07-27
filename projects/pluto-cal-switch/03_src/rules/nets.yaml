@@ -48,9 +48,10 @@ classes:
       AMPACITY WIDTH — widening it is as wrong as narrowing it. Fenced with
       ground vias at <=2.0 mm (lambda_g/12 at 6 GHz); L2 unbroken underneath
       everywhere; no vias, no layer changes. Current is negligible and is NOT
-      what sets this width: at the fact-locked +7 dBm TX it is 20 mA rms into
-      50 ohm, and even at the declared +27 dBm board abuse ceiling it is
-      63 mA rms.
+      what sets this width: at the CITED +8 dBm TX MAXIMUM (AD9363 Rev. D
+      p.4 of 32 — 1 dB above the +7 dBm this board carried until 2026-07-27)
+      it is 22 mA rms into 50 ohm, and even at the declared +27 dBm board abuse
+      ceiling it is 63 mA rms.
     nets: [RX_ANT1, RX_ANT2, RX_PLUTO1, RX_PLUTO2, TX_PLUTO,
            SW1_ANT, SW2_ANT, LOOP_IN, LOOP_SPLIT]
     current: signal
@@ -67,9 +68,11 @@ classes:
       layer, no vias, arm attenuators at IDENTICAL (not mirrored) rotation.
       Inter-arm separation >= 3x dielectric height plus a via fence: two
       parallel 50 ohm microstrips on a 0.21 mm prepreg couple at roughly -25 to
-      -35 dB over a few mm at 6 GHz, which is AT OR ABOVE the 29.8 dB isolation
-      the arm pads buy — the routing can undo the pads' work. Current: signal,
-      same reasoning as RF50.
+      -35 dB over a few mm at 6 GHz, which is AT OR ABOVE the 29.9 dB isolation
+      the arm pads buy — the routing can undo the pads' work. NOTE A9 did NOT
+      relax this: the 18 dB attenuation increase went entirely PRE-SPLIT, so
+      the arm pads are unchanged at 11.9 dB and so is the coupling budget they
+      have to survive. Current: signal, same reasoning as RF50.
     nets: [LOOP_ARM1, LOOP_ARM2]
     current: signal
     min_width: 0.35mm
