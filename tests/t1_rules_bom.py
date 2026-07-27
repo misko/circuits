@@ -358,6 +358,86 @@ def t_ampacity_floor():
     contains(r.out, "carries 5.0A", "ampacity failure detail")
 
 
+@test("rules_audit FAILS on a current it cannot read (A-AMP was silent)",
+      kind="known_bad")
+def t_kb_ampacity_unreadable_is_a_fail():
+    """THE SILENCER. `parse_amps` returned a bare None for BOTH "absent" and
+    "present but unparseable", and the caller filed None under OKS as
+    "n/a (no current: declared)". Measured 2026-07-27: that message was wrong
+    100% of the times it fired, because ZERO net classes fleet-wide declare no
+    current — every None was a real value the gate could not read. A-AMP graded
+    10 of 57 declared currents; usb-hub-3s-v3's PWR_IN 7 A, PWR_RAIL 6 A and
+    SWITCH_NODE 7 A were all silenced by the qualifier alone, and the single
+    class it did grade FAILED.
+
+    RED-verified: restoring the old one-line `parse_amps` makes this fixture
+    PASS, which is the bug.
+    """
+    proj = rules_project()
+    set_nets_yaml(proj, lambda s: s["classes"]["PWR"].update(
+        {"current": "uA-level sense", "min_width": "0.2mm"}))
+    r = run([PY, RULES_AUDIT, proj])
+    must_fail(r, "rules_audit on an unreadable current", "A-AMP PWR")
+    contains(r.out, "NEVER CHECKED", "the failure names the real consequence")
+
+
+@test("rules_audit reads a QUALIFIED current instead of discarding it")
+def t_ampacity_qualified_prose_is_parsed():
+    """"7 A worst case" is the real fleet spelling. The old parser lowercased
+    and stripped every letter 'a' anywhere, turning it into "7  worst cse"."""
+    proj = rules_project()
+    set_nets_yaml(proj, lambda s: s["classes"]["PWR"].update(
+        {"current": "7 A worst case", "min_width": "0.2mm"}))
+    r = run([PY, RULES_AUDIT, proj])
+    must_fail(r, "rules_audit on 7 A over 0.2mm", "A-AMP PWR")
+    contains(r.out, "carries 7.0A", "the qualified magnitude is read")
+
+
+@test("rules_audit accepts an EXPLICIT signal exemption")
+def t_ampacity_signal_exemption():
+    """A class with no ampacity obligation must SAY so. Silence is not a
+    declaration, and it is now distinguishable from an unreadable value."""
+    proj = rules_project()
+    set_nets_yaml(proj, lambda s: s["classes"]["PWR"].update(
+        {"current": "signal", "min_width": "0.3mm"}))
+    r = run([PY, RULES_AUDIT, proj])
+    must_pass(r, "rules_audit on a declared-signal class")
+    contains(r.out, "exempt by declaration", "the exemption is explicit")
+
+
+@test("rules_audit reports A-AMP COVERAGE, not just a verdict")
+def t_ampacity_reports_coverage():
+    """Canon M-COVER. 47 of 57 declarations were silently ungraded and nobody
+    could see it, because nothing ever printed a ratio."""
+    proj = rules_project()
+    r = run([PY, RULES_AUDIT, proj])
+    contains(r.out, "coverage A-AMP:", "A-AMP declares its denominator")
+
+
+@test("rules_audit REFUSES a pour_fed waiver with no evidence", kind="known_bad")
+def t_kb_pour_fed_without_evidence():
+    """A-AMP measures the narrowest TRACK, but a plane-fed net does not conduct
+    through a track — on such a class the metric is adjacent to the property.
+    That is excusable only by a DECLARED, EVIDENCED exemption; a bare
+    `pour_fed: true` is a rationale, and canon M4 wants evidence."""
+    proj = rules_project()
+    set_nets_yaml(proj, lambda s: s["classes"]["PWR"].update(
+        {"current": "7 A worst case", "min_width": "0.2mm", "pour_fed": True}))
+    r = run([PY, RULES_AUDIT, proj])
+    must_fail(r, "rules_audit on a bare pour_fed", "no evidence")
+
+
+@test("rules_audit accepts pour_fed WITH the measurement")
+def t_pour_fed_with_evidence():
+    proj = rules_project()
+    set_nets_yaml(proj, lambda s: s["classes"]["PWR"].update(
+        {"current": "7 A worst case", "min_width": "0.3mm",
+         "pour_fed": "F.Cu+B.Cu pour, 10403.45 mm2 measured; tracks are taps"}))
+    r = run([PY, RULES_AUDIT, proj])
+    must_pass(r, "rules_audit on an evidenced pour_fed class")
+    contains(r.out, "carried by POUR", "the exemption names its mechanism")
+
+
 @test("rules_audit FAILS when .kicad_pro and .kicad_dru disagree on width",
       kind="known_bad")
 def t_pro_dru_disagree():

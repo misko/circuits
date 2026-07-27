@@ -77,13 +77,20 @@ re-entered through its next member.
 
 ### Two meta-principles, added to `design-policies.md` beside M1
 
-> **M6 — Grade the shipped bytes.** A gate's input path MUST resolve inside the
-> sealed release directory. Reconstruction (refill-in-memory, a `06_build`
+NAMING NOTE: an earlier draft of this ADR called these M6 and M7. **Both IDs are
+already taken** — M6 is "the authoritative source wins over the derived metric"
+and M7 is the contracts.md governance rule. Landing them under those numbers
+would have silently redefined two live canon entries, which is the documentation
+form of the very defect this ADR is about. They take mnemonic IDs, matching the
+convention the newer canon rows already use (M-PROV, M-DISC, M-CONS).
+
+> **M-SHIP — Grade the shipped bytes.** A gate's input path MUST resolve inside
+> the sealed release directory. Reconstruction (refill-in-memory, a `06_build`
 > shadow, a regenerated export) is permitted only as a SECOND opinion, never as
 > the primary. Where the two disagree, the shipped bytes are authoritative.
 >
-> **M7 — A rule is written at the width of its class, not its incident.** When a
-> post-mortem names a specific thing, the rule MUST name the category and
+> **M-WIDTH — A rule is written at the width of its class, not its incident.**
+> When a post-mortem names a specific thing, the rule MUST name the category and
 > enumerate its known members. `netclasses` → *everything a pcbnew save drops*.
 
 ### A new `F-` family — the fab payload is a graded artifact, not a hashed one

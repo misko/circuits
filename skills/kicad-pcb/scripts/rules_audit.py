@@ -99,19 +99,62 @@ def parse_mm(v):
         return None
 
 
+#: a net class that carries no ampacity obligation must SAY SO, in these words.
+#: "signal", "return (planes)", "none" are declarations; "7 A worst case" is not.
+SIGNAL_RE = re.compile(
+    r"^\s*(signal|none|return\b|n/?a|not applicable)\b", re.I)
+
+#: the first magnitude that is actually FOLLOWED BY AN AMP UNIT:
+#:   "7 A worst case"   -> 7.0     "<50 mA"        -> 0.05
+#:   "~1.5A pulsed"     -> 1.5     "6 A / 5 A"     -> 6.0   (first == larger)
+#:   "7-15 A pulsed"    -> 15.0    ("7-" carries no unit; 15 is the one with A)
+#: Both pair forms happen to yield the LARGER value, which is the conservative
+#: direction for a width floor. That is a property of the data, not a guarantee
+#: of this regex — a declaration like "15 A / 7 A" would take 15 by position
+#: rather than by magnitude. Ranges should be written with the binding figure
+#: first; a schema with a typed `current_a:` removes the ambiguity entirely.
+AMPS_RE = re.compile(
+    r"(?P<num>\d+(?:\.\d+)?)\s*(?P<mult>m|u|µ)?\s*A\b", re.I)
+
+
 def parse_amps(v):
+    """(amps|None, kind) where kind is 'number' | 'signal' | 'unparsed' | 'absent'.
+
+    THE OLD BEHAVIOUR RETURNED A BARE None FOR ALL FOUR CASES, and the caller
+    filed None under OKS with the text "n/a (no current: declared)". Measured
+    2026-07-27: that message was wrong 100% of the times it fired, because ZERO
+    net classes across the fleet declare no current — every None was a
+    PRESENT-BUT-UNPARSED value. A-AMP graded 10 of 57 declared currents, and the
+    three biggest on usb-hub-3s-v3 (PWR_IN 7 A, PWR_RAIL 6 A, SWITCH_NODE 7 A)
+    were silenced by the qualifier alone.
+
+    Two further bugs in the old one line: `.replace("a", "")` on the LOWERCASED
+    string stripped every letter 'a' anywhere ("7 A worst case" -> "7  worst
+    cse"), and the milli branch tested `endswith("m")` AFTER that strip, so it
+    fired on prose ending in 'm' rather than on a unit.
+
+    Prose is still accepted — a schema migration is a separate change and this
+    gate must not go dark in the meantime — but it is now PARSED rather than
+    discarded, and anything genuinely unreadable is reported as `unparsed` so
+    the caller can FAIL it instead of congratulating it.
+    """
     if v is None:
-        return None
-    s = str(v).strip().lower().replace("a", "").strip()
-    if s.endswith("m"):          # 500mA
-        try:
-            return float(s[:-1]) / 1000.0
-        except ValueError:
-            return None
-    try:
-        return float(s)
-    except ValueError:
-        return None
+        return None, "absent"
+    s = str(v).strip()
+    if not s:
+        return None, "absent"
+    if SIGNAL_RE.match(s):
+        return None, "signal"
+    m = AMPS_RE.search(s)
+    if not m:
+        return None, "unparsed"
+    n = float(m.group("num"))
+    mult = (m.group("mult") or "").lower()
+    if mult == "m":
+        n /= 1000.0
+    elif mult in ("u", "µ"):
+        n /= 1e6
+    return n, "number"
 
 
 def dru_widths(text):
@@ -297,6 +340,7 @@ def main(argv=None):
     dwidths = dru_widths(dtext)
 
     fails, oks = [], []
+    n_amp_total = n_amp_graded = 0
 
     for name, c in classes.items():
         c = c or {}
@@ -331,9 +375,49 @@ def main(argv=None):
             fails.append(f"A-AGREE {name}: no track_width rule in {dru.name}")
 
         # A-AMP: the declared current must be backed by the declared width
-        cur = parse_amps(c.get("current"))
-        if cur is None:
-            oks.append(f"A-AMP {name} n/a (no current: declared)")
+        raw = c.get("current")
+        cur, kind = parse_amps(raw)
+        n_amp_total += 1
+        if kind == "absent":
+            fails.append(
+                f"A-AMP {name}: no `current:` declared. Every net class states "
+                f"its ampacity obligation or explicitly declares it has none "
+                f"(`current: signal`) — silence is not a declaration")
+            continue
+        if kind == "signal":
+            n_amp_graded += 1
+            oks.append(f"A-AMP {name} exempt by declaration ({raw!r})")
+            continue
+        if kind == "unparsed":
+            fails.append(
+                f"A-AMP {name}: `current: {raw!r}` declares a value this gate "
+                f"cannot read, so its width was NEVER CHECKED. An unreadable "
+                f"declaration is a FAIL, not an exemption — write the magnitude "
+                f"as a number with a unit (`7 A worst case`), or declare the "
+                f"class exempt (`signal`)")
+            continue
+        n_amp_graded += 1
+
+        # POUR-FED CLASSES. This check measures the narrowest enforced TRACK
+        # width, but a net carried by a plane does not conduct through a track,
+        # so on such a class the metric is adjacent to the property — the same
+        # error shape as measuring island positions instead of island shapes.
+        # It is NOT silently excused: the class must declare `pour_fed:` WITH
+        # EVIDENCE, exactly as a pourless board must declare why it has no pour.
+        # A bare `pour_fed: true` is refused; a waiver needs evidence, not
+        # rationale. The declaration is counted as graded, so coverage does not
+        # quietly fall when a board takes this route.
+        pf = c.get("pour_fed")
+        if pf is not None:
+            if isinstance(pf, str) and pf.strip():
+                oks.append(f"A-AMP {name} {cur}A carried by POUR, not track — "
+                           f"declared: {pf.strip()}")
+            else:
+                fails.append(
+                    f"A-AMP {name}: `pour_fed:` is declared with no evidence. "
+                    f"State the pour geometry that carries {cur}A (layer, "
+                    f"width/area, and the measurement) — a bare `true` is a "
+                    f"rationale, not a waiver")
             continue
         need = required_width_mm(cur, c.get("delta_t", a.delta_t),
                                  c.get("layer", "external"),
@@ -381,6 +465,12 @@ def main(argv=None):
         print("  ok  ", o)
     for f in sorted(set(fails)):
         print("FAIL ", f)
+    # canon M-COVER: a verdict without a denominator hides its own blind spot.
+    # A-AMP reported "n/a (no current: declared)" over 47 of 57 declared
+    # currents fleet-wide and nobody could see it, because nothing printed a
+    # ratio.
+    print(f"  coverage A-AMP: {n_amp_graded}/{n_amp_total} net-class "
+          f"current declarations graded")
     print("RULES AUDIT:", "FAIL" if fails else "PASS",
           f"({len(set(fails))} fails, {len(oks)} checks)")
     return 1 if fails else 0

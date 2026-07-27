@@ -36,8 +36,32 @@ Retrofitting them cost a full repair campaign.
 
 Each class requires: `intent` (prose, why this net is special), `nets` (list
 or patterns), `min_width`, `routing` (pour vs track, and the strategy),
-`verify` (how to prove it). `current` where >1A. `exemptions` are scoped to
-NAMED RULE AREAS that exist on the board — never a blanket carve-out.
+`verify` (how to prove it). `exemptions` are scoped to NAMED RULE AREAS that
+exist on the board — never a blanket carve-out.
+
+**`current:` is REQUIRED on every class, and silence is not a declaration.**
+A class with no ampacity obligation says so — `signal`, `none`, `return
+(planes)` — and that is graded as an explicit exemption. A magnitude may carry
+a qualifier (`7 A worst case`, `<50 mA`, `~1.5A pulsed`, `6 A / 5 A`); the
+first figure followed by an amp unit is taken, so write the BINDING figure
+first in a range. **A value the gate cannot read is a FAIL, never an
+exemption.**
+
+WHY THIS IS SPELLED OUT: `parse_amps` used to return a bare `None` for both
+"absent" and "present but unreadable", and `rules_audit` filed it under OKS as
+"n/a (no current: declared)". Measured 2026-07-27 — **A-AMP graded 10 of 57
+declared currents fleet-wide**, that message was wrong 100% of the times it
+fired (ZERO classes declare no current), and usb-hub-3s-v3 shipped `PWR_IN`
+7 A, `PWR_RAIL` 6 A and `SWITCH_NODE` 7 A all silenced while the single class
+it did grade FAILED. After the fix: 53 of 57, with the remainder failing
+loudly as unreadable.
+
+OPTIONAL per class: **`pour_fed: "<evidence>"`** — A-AMP measures the narrowest
+enforced TRACK width, but a plane-fed net does not conduct through a track, so
+on such a class the metric is ADJACENT to the property (the same error shape as
+measuring island positions instead of island shapes). Declare the pour geometry
+that carries the current — layer, area/width, and the measurement. A bare
+`pour_fed: true` is REFUSED: canon M4 wants evidence, not rationale.
 
 Optional per-class `diff_pair:` `{width, gap, via_gap?, max_uncoupled?}` (mm)
 declares SOLVED controlled-impedance geometry for a differential-pair class

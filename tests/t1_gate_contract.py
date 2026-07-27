@@ -136,13 +136,30 @@ def t_flags_the_scripts_independently_known_broken():
     `rules_audit.py` (A-AMP: 10 of 57 currents graded fleet-wide) and
     `bom_source_check.py` (row_kind: RS1/RS2 and CE1 dropped while printing
     PASS) were both proven silent by independent measurement BEFORE this auditor
-    existed. If the auditor does not flag them, it is not measuring the property
-    it claims to measure, and this suite should fail rather than reassure.
+    existed. If the auditor does not flag the ones still broken, it is not
+    measuring the property it claims to measure, and this suite should fail
+    rather than reassure.
+
+    `rules_audit.py` IS NO LONGER ASSERTED HERE — not because the assertion was
+    inconvenient, but because it was FIXED in the same campaign: A-AMP now
+    reports `coverage A-AMP: N/M` and grades 53 of 57 fleet-wide. This test
+    failing when that landed is the intended behaviour of an acceptance test
+    pinned to a specific defect, and the honest response is to record the
+    repair, not to loosen the check. `bom_source_check.py` remains measurably
+    silent and stays asserted until it is fixed too.
+
+    The floor below keeps this from decaying into a tautology as the tree
+    improves: an auditor reporting a nearly-clean tree today would be lying,
+    and if that floor ever becomes the thing that fails, DELETE IT and rely on
+    the named scripts — do not lower the number to make it pass.
     """
     r = run([KPY, TOOL, "--root", ROOT])
     check(r.rc != 0, "the auditor must not report the current tree as clean")
-    contains(r.out, "rules_audit.py", "flags the A-AMP silencer")
     contains(r.out, "bom_source_check.py", "flags the row_kind silencer")
+    n = r.out.count("  FAIL ")
+    check(n >= 5, f"the auditor found only {n} violations on a tree independently "
+                  f"measured as riddled — a gate-on-gates this quiet is "
+                  f"decoration, not a control")
 
 
 if __name__ == "__main__":
