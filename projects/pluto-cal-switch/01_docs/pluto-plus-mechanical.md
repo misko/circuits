@@ -290,3 +290,70 @@ SMA vs RP-SMA centre contact.
 
 **ADALM-PLUTO geometry does NOT transfer** — ADI Rev D has 2 SMA on a
 109.14 × 63.14 mm board. Different board entirely; do not reuse its numbers.
+
+---
+
+# The tolerance stack, now MEASURED rather than argued
+
+An independent study sourced every term from published fab capability, IPC, and
+connector-vendor specs. It confirms the verdict above with numbers.
+
+| term | value | source |
+|---|---|---|
+| board outline routing | ±0.20 mm | JLCPCB, routed edge, regular precision |
+| hole/pad pattern → outline registration | ±0.20 mm | **Eurocircuits, explicitly labelled "Profile/Cut-Out to Hole"** |
+| copper feature location → datum | ±0.20 mm (Level B) | IPC-7351 Table 3-18 |
+| placement, connector-sized part | ±0.035 mm | Yamaha YRM20 HM head, Cpk≥1.0 |
+| reflow drift, connector-sized part | **unquantified** | no published data exists |
+
+**Per board: ±0.35 mm RSS, ±0.64 mm arithmetic worst case.**
+**Two boards mating: ±0.49 mm RSS, ±1.27 mm AWC.**
+
+Against SMA's ±0.05 mm thread-start capture window that is **10× to 25× over**.
+Independent of the earlier ±0.31 mm estimate and the same conclusion, harder.
+
+## THE TRAP: the fab number you want is not the one published
+
+**JLCPCB's ±0.05 mm "Hole Position Tolerance" has NO STATED DATUM**, and using
+it as the connector-to-board-edge term would understate this budget by 4×.
+
+Every fab that *does* label its datum shows why. Eurocircuits publishes both:
+
+    Hole Positional Tolerance      0.10 mm    "Hole to Hole"
+    Positional Tolerance
+      Profile/Cut-Out to Hole      ±0.20 mm
+
+The profile is a **separate machine setup**, so hole-to-outline is roughly
+double hole-to-hole. JLCPCB's ±0.05 mm matches the hole-to-hole-within-one-pass
+figure, not the outline-referenced one — and JLCPCB publishes **no**
+hole-to-outline, no drill-to-copper, no layer-to-layer registration, and **no
+SMT placement accuracy at all** on either capabilities page.
+
+This board's SMA positions are referenced to the BOARD EDGE, because that is
+what aligns to the Pluto. The edge-referenced term is the one that matters and
+it is the one JLCPCB does not publish. **Take it from a fab that labels its
+datum, not from the number that happens to be printed.**
+
+This generalises beyond this board and is a candidate for the canon.
+
+## The structural principle underneath all of it
+
+Samtec, on multi-connector mezzanine stack-ups:
+
+> in a **single connector** application the daughtercard is assumed to be free
+> floating with alignment features within the connectors themselves ensuring
+> perfect alignment, **therefore being unimpacted by PCB fabrication and
+> assembly process tolerances**. However, in a **multi-connector** application
+> with two or more connectors, mechanical tolerances will stack in any
+> direction at any distance.
+
+That is the whole story in one sentence. ONE connector self-aligns and the
+board floats to it. THREE connectors fight each other, and no amount of
+knowing the pitch changes that — the tolerance is in the boards, not the
+drawing.
+
+Samtec's own SEAM/SEAF spec puts the acceptance limit at **±0.13 mm** X and Y,
+and notes the report's sharpest line: **even the single-board RSS figure of
+±0.35 mm blows that budget.** Their guidance is float, standoffs, or a
+mechanical datum other than the routed edge — which is exactly the SMA→SMP
+adapter path recommended above.
