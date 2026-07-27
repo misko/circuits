@@ -41,6 +41,32 @@ stock, twin).
     plane in the keypad zone) must DECLARE `pourless: "<reason>"` in
     `assembly.yaml` — a bare `pourless: true` is refused, because a waiver
     needs evidence rather than assertion.
+- **A-RENDER (canon M1) — the twin render is GRADED, not merely produced.**
+  - `twin_overlay.py BOARD TWIN.png --side {top,bottom} --twin-dir DIR
+    --bom fab/bom.csv --assembly 03_src/rules/assembly.yaml
+    --twin-report twin_report.csv` measures each body **in PIXELS** out of the
+    PNG and compares it against the position the BOARD implies (mesh bbox x
+    JLC's own model transform x placement). The two channels are independent by
+    construction, so it **cannot agree with a wrong mount** — an analytic-only
+    check would share `jlc_twin`'s method and inherit its error.
+    WHY: crow-recorder-central-v2 v1.5 sealed with its USB-C drawn 90 degrees
+    rotated because `jlc_twin` mounted the mesh on a pad-number fit it had
+    ITSELF declared unreliable in the same row (`PAD-MISMATCH`), while telling
+    the reviewer to "VERIFY leads sit on pads visually" — pointing at the
+    picture that failed fit had corrupted. The predecessor tool drew courtyard
+    boxes and computed no body position anywhere in the file: a rendering aid
+    wearing a checker's docstring, wired into nothing, with no known-bad.
+    **Headline acceptance:** against the SEALED v1.5 render it FAILS on J2 at
+    centre delta 1.435 mm / outward 1.491 mm. The fab data is correct; the
+    RENDER lied, and that distinction is what a reviewer cannot make unaided.
+    **Coverage is partial by construction** — pixel extraction resolves large
+    isolated parts, not dense 0402 fields (v1.5: `22 measured / 177`). Every
+    uncovered ref is NAMED with its reason, and a ref that SHOULD have been
+    measurable and was not is a FAILURE, never an omission.
+    It REFUSES rather than drawing boxes it cannot trust: perspective/iso
+    renders, a `--side` contradicting the filename, a side with no courtyards.
+    Run AFTER `jlc_twin` and BEFORE the fresh-context render review — that
+    review is worthless on a render nobody has proved faithful.
 - **The ASSEMBLY family (canon A-POP / A-STOCK) — PCBA is the deliverable,
   so the order artifacts are GATED, not just produced.**
   - `assembly_coverage.py TARGET` (A-POP), plain python3, takes a sealed

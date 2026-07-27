@@ -15,6 +15,20 @@ usage: jlc_twin.py board.kicad_pcb bom_jlc.csv outdir [--cpl fab/cpl.csv]
 Exit 1 on any MIRRORED, PAD-MISMATCH, PAD-GEOM, MODEL-REG, NO-BODY or
 POLARITY-FIT finding.
 
+MOUNTED ON A FIT IT HAD JUST REJECTED (2026-07-26). On PAD-MISMATCH this tool
+recorded "no correspondence" and then mounted the body at that same rejected
+fit's angle, so the render — the artifact a human is explicitly told to inspect
+("VERIFY leads sit on pads visually") — was corrupted by the failure it was
+supposed to help adjudicate. crow-recorder-central-v2 v1.5: J2, the board's
+only USB-C, reported `PAD-MISMATCH best=(4.5947, False, 90)` and rendered 90
+DEGREES ROTATED (7.555 x 8.940 mm where the part is 8.940 x 7.555) into two
+sealed releases and past four review lenses. A failed fit is not evidence of an
+angle; the mount now falls back to JLC's OWN footprint transform — offset 0,
+their model rot_z, which this file already reads and already calls
+"authoritative" — and says so as MOUNT-FALLBACK. The render is now gated
+against that transform by `twin_overlay.py` (canon A-RENDER), which measures
+the body in PIXELS so it cannot agree with a wrong mount by construction.
+
 MOUNT HANDEDNESS INCIDENT (2026-07-25) — the SECOND half of the bug below.
 Fixing `xform()` in 1b69760 left FOUR more hand-inlined copies of the wrong
 form: the render mount's offset, its z-rotation, and the model-frame rotation
@@ -721,6 +735,7 @@ def main():
         if ref not in on_bom:       # never double-check a ref already on the BOM
             lines.append({"Designator": ref, "LCSC": code})
     findings, criticals, twin, padgeom = [], [], {}, {}
+    mount_fallback = set()   # refs mounted at JLC's own transform, fit failed
     bodies_line = ("bodies mounted: SKIPPED (nothing fitted, so "
                    "nothing was mounted)")
     ref_lcsc = {}          # ref -> LCSC, for NO-BODY rows
@@ -823,11 +838,36 @@ def main():
                 findings.append((lcsc, ref, "PAD-MISMATCH",
                                  f"best={fits[0] if fits else 'none'}"))
                 criticals.append(ref)
-                # still mount the model at the best NON-mirrored fit: the
-                # render is exactly where a human adjudicates these
-                nm = [x for x in fits if not x[1]]
-                if nm:
-                    twin[ref] = (jfp, nm[0][2], oc, _jca, lcsc)
+                # MOUNT AT JLC'S OWN FOOTPRINT TRANSFORM, NEVER AT THE FIT
+                # THAT JUST FAILED (2026-07-26). This used to mount at the
+                # best NON-mirrored fit — the same fit the line above declares
+                # unusable — and then print "VERIFY leads sit on pads
+                # visually", pointing the reviewer at a picture that failed
+                # fit had corrupted. MEASURED on crow-recorder-central-v2 v1.5:
+                # J2 (USB-C C3020560) reported PAD-MISMATCH best=(4.5947,
+                # False, 90) and PAD-GEOM pad 1<->2 ours 0.80mm vs JLC 8.64mm,
+                # and the body rendered ROTATED 90 DEGREES — 7.555 x 8.940 mm
+                # where the part is 8.940 x 7.555 — into two sealed releases.
+                # A residual of 4.59 mm is not a correspondence; the only
+                # transform still supported by evidence is the one JLC ships
+                # with the part, which this tool already reads and already
+                # calls "authoritative" in its own MODEL-REG hint. So: offset
+                # 0, JLC's own model rot_z, anchored by mapping JLC's
+                # common-pad centroid onto ours.
+                twin[ref] = (jfp, 0, oc, _jca, lcsc)
+                mount_fallback.add(ref)
+                if fits:
+                    why = (f"best {fits[0][0]:.2f}mm at {fits[0][2]}deg"
+                           f"{'/mirrored' if fits[0][1] else ''}, over "
+                           f"{FIT_TOL}mm")
+                else:
+                    why = "no pad correspondence at any angle"
+                findings.append((lcsc, ref, "MOUNT-FALLBACK",
+                                 f"{why} — body mounted at JLC's OWN footprint "
+                                 f"transform (offset 0, their model rot_z), "
+                                 f"NOT at the failed fit. The render is "
+                                 f"therefore what JLC's own CAD says, and is "
+                                 f"gated as such by twin_overlay"))
                 continue
             e, mir, ang = good[0]
             if mir:
@@ -1007,6 +1047,19 @@ def main():
                     pg = padgeom.get(ref, 0.0)
                     pgnote = (f", incl. pad_geom_delta={pg:.2f}mm"
                               if pg > 0.1 else "")
+                    if ref in mount_fallback:
+                        # Say which mount the picture actually shows. "VERIFY
+                        # leads sit on pads visually" is an instruction a
+                        # reviewer cannot carry out when the pad
+                        # correspondence is the thing that failed.
+                        hint += (" [MOUNT-FALLBACK: no pad correspondence "
+                                 "exists, so this body is at JLC's OWN "
+                                 "transform and the leads CANNOT be expected "
+                                 "to sit on our pads — the render answers "
+                                 "'what does JLC's CAD look like on our "
+                                 "board', not 'do the leads land'. Settle the "
+                                 "land pattern against the datasheet; the "
+                                 "picture cannot]")
                     findings.append((lcsc, ref, "MODEL-REG",
                                      f"body center {rc[0]:.1f}mm off courtyard, "
                                      f"area ratio {rc[1]:.2f}{pgnote}{hint}"))
@@ -1139,7 +1192,8 @@ def main():
     findings = out_f
     order = {"FETCH-FAILED": -1, "NO-BODY": -1, "MIRRORED": 0,
              "PAD-MISMATCH": 1, "PAD-GEOM": 2, "MODEL-SELF": 3,
-             "MODEL-REG": 3, "POLARITY-FIT": 1, "PAD-MULTIPLICITY": 4,
+             "MODEL-REG": 3, "POLARITY-FIT": 1, "MOUNT-FALLBACK": 1,
+             "PAD-MULTIPLICITY": 4,
              "POLARITY-CHECK": 4, "POLARITY-FIT-BLIND": 4,
              "POLARITY-FIT-OK": 8,
              "ROT-DB-SUGGEST": 5, "NO-CAD": 6,

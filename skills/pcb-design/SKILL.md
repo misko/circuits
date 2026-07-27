@@ -662,6 +662,31 @@ wall-clock for no independence gain.
   test; A-ROT lands only once the whole table is re-derived independently.
   **The rule this bought: a gate must never derive its expectation from the
   artifact it is grading, nor from a table built by it (canon M1).**
+- `twin_overlay.py BOARD 06_build/twin/twin_top.png --side top --twin-dir
+  06_build/twin --bom fab/bom.csv --assembly 03_src/rules/assembly.yaml
+  --twin-report 06_build/twin/twin_report.csv --crop-flagged --report
+  06_build/verify/twin_overlay.md` (canon **A-RENDER**, BLOCKING). **Run it
+  after jlc_twin and BEFORE the fresh-context render review — that review is
+  worthless on a render nobody has proved is faithful.** It measures each
+  body in PIXELS out of the PNG and compares against the body position the
+  BOARD implies (mesh bbox x JLC's own model transform x placement), so it
+  cannot agree with a wrong mount by construction (canon M1). Run it on
+  BOTH sides that carry parts; it REFUSES a perspective/iso render, a
+  `--side` that contradicts the filename, and a side with no courtyards
+  rather than drawing boxes it cannot trust.
+  **Read the COVERAGE line, not the verdict.** Pixel extraction resolves
+  large isolated parts and not dense 0402 fields, so coverage is partial by
+  construction — on crow-recorder-central-v2 v1.5 it is `22 measured / 177`.
+  Every uncovered ref is NAMED with its reason; a ref that should have been
+  measurable and was not is a FAILURE, never an omission.
+  The gate's own headline: run against the SEALED v1.5 render it FAILS on J2
+  at centre delta 1.435 mm / outward 1.491 mm — the 90-degree-rotated USB-C
+  that shipped in two releases past four review lenses, because `jlc_twin`
+  mounted the body at a pad fit it had rejected in the same breath.
+  A body outside its courtyard with expected and measured AGREEING is a
+  MODEL defect with no board exposure (J1, 5.686 mm) — reported, never gated,
+  because gating it buys a permanent waiver and canon M4 says an inherited
+  waiver is a defect vector.
 - Fresh-context PIN REVIEW: `pin_audit.py` dossiers -> new agents per
   part group following `kicad-pcb/references/pin-review-protocol.md`.
   Zero FAILs to proceed.

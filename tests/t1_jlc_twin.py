@@ -1305,5 +1305,82 @@ def t_pad_alias_identity_and_merge():
     eq(apply_pad_alias(sot, {}), sot, "an empty alias is a no-op")
 
 
+@test("a PAD-MISMATCH mounts the body at JLC's OWN transform, never at the "
+      "fit it just rejected", kind="known_bad")
+def t_mount_fallback_on_failed_fit():
+    """THE INCIDENT (2026-07-26). On PAD-MISMATCH this tool recorded "no
+    correspondence" and then mounted the body at that SAME rejected fit's
+    angle — corrupting the render a human is explicitly told to inspect
+    ("VERIFY leads sit on pads visually"). crow-recorder-central-v2 v1.4 and
+    v1.5 both sealed with J2, the board's only USB-C, reporting
+    `PAD-MISMATCH best=(4.594738839150707, False, 90)` and rendering 90
+    DEGREES ROTATED: 7.555 x 8.940 mm where the part is 8.940 x 7.555.
+
+    THE FIXTURE. Our pads are JLC's pad triangle turned 90 deg with pad 3
+    displaced 3.0 mm east, so the best non-mirrored fit is 90 deg at a
+    MEASURED 2.00 mm residual (the common-pad centroid absorbs a third of the
+    displacement) — four times FIT_TOL, and therefore no correspondence.
+    Note the DISCRIMINATION requirement (canon M-DISC): the best failed fit
+    must be a NON-ZERO angle, or the fallback and the bug produce the same
+    mount and this test proves nothing. Here they differ by 90 deg of model
+    rot_z (JLC's own 90 vs the bug's 90-90=0) and by 4.9 mm of body bbox.
+
+    RED-VERIFIED 2026-07-26 by restoring the pre-fix `twin[ref] = (jfp,
+    nm[0][2], oc, _jca, lcsc)` branch in the live file and re-running. The
+    first assertion to go red is the MOUNT-FALLBACK row, which does not exist
+    at all — the pre-fix run emits only PAD-MISMATCH / PAD-GEOM / MODEL-SELF
+    and says nothing about which transform it mounted at. Measured on the
+    same fixture with that branch in place: mounted `rot_z 0.0`, offset
+    (0.25, 1.50), body bbox (0.25, -2.50, 8.25, -0.50) against the fallback's
+    (0.70, -1.283, 2.70, 6.717) — 7.216 mm apart, i.e. the body lies along
+    the WRONG AXIS. Restoring the fix turns it green again.
+    """
+    d = tmpdir("twinfallback_")
+    wrl = d / "bar.wrl"
+    bar_wrl(wrl)
+    code = "C900002"
+    jlc_mod(d, code, str(wrl))
+    # rot_ydown(x, y, 90) == (y, -x); pad "3" then pushed 3.0 mm east.
+    ours = {"1": (-1.0, 2.0), "2": (-1.0, -2.0), "3": (4.6, -2.0)}
+    board, meta = synth_board(d, 0, pads=ours)
+    bom = d / "bom.csv"
+    bom.write_text("Comment,Designator,Footprint,MPN,LCSC\n"
+                   "synthetic,U9,SYNTH,,%s\n" % code)
+    e2k = stub_e2k(d, stderr="NETWORK WAS CALLED - replay is broken\n", rc=1)
+    r = run([KPY, TWIN, board, bom, d / "twin", "--no-render"],
+            cwd=d, env={"EASYEDA2KICAD": str(e2k),
+                        "JLC_TWIN_FETCH_ATTEMPTS": "1"})
+    check("NETWORK WAS CALLED" not in r.out, "replay broken")
+    must_fail(r, "twin on an unfittable part", "PAD-MISMATCH")
+    contains(r.out, "MOUNT-FALLBACK", "the fallback must be SAID, not silent")
+    contains(r.out, "mounted at JLC's OWN footprint transform",
+             "the fallback must name the transform it used")
+    # the fitted angle that FAILED must be reported, so a reader can see the
+    # mount is not it
+    contains(r.out, "best 2.00mm at 90deg", "the rejected fit, quoted")
+
+    ms = read_mount(d / "twin" / "twin.kicad_pcb")
+    eq(len(ms), 1, "one mounted model")
+    eq(ms[0]["rz"], JMODEL_ROT_Z, "mounted model rot_z")
+    # and the body must land where JLC's own pose puts it once their pad
+    # centroid is mapped onto ours — computed here from the invariant, not
+    # from the tool.
+    want, _ = expected_local(0, meta["rotated"])
+    got = bbox_of(render_pose(BAR, (ms[0]["ox"], ms[0]["oy"]), ms[0]["rz"],
+                              (ms[0]["sx"], ms[0]["sy"])))
+    err = max(abs(g - w) for g, w in zip(got, want))
+    check(err < 0.02,
+          "fallback-mounted body bbox: got %s, want %s (max delta %.3f mm)"
+          % (tuple(round(v, 3) for v in got),
+             tuple(round(v, 3) for v in want), err))
+    # DISCRIMINATION: the rejected fit's mount must be VISIBLY different, or
+    # the assertion above would pass the bug.
+    wrong, _ = expected_local(90, meta["rotated"])
+    werr = max(abs(w - g) for w, g in zip(wrong, want))
+    check(werr > 1.0,
+          "this fixture cannot tell the fallback mount from the rejected "
+          "fit's mount (they differ by only %.3f mm)" % werr)
+
+
 if __name__ == "__main__":
     sys.exit(main())

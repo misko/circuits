@@ -1,0 +1,540 @@
+#!/usr/bin/env python3
+"""T1: twin_overlay.py — canon A-RENDER, the gate that asks whether the twin
+RENDER is faithful to the BOARD.
+
+THE INCIDENT (2026-07-26). `twin_overlay.py` shipped with a checker's
+docstring and computed NO BODY POSITION ANYWHERE. It projected courtyards out
+of the board and drew boxes; its only non-zero exits concerned the IMAGE. It
+was wired into no pipeline stage, had no contract Audit row, and had no
+known-bad fixture, so nothing could observe that it graded nothing. Meanwhile
+the thing it claimed to catch had already shipped twice: crow-recorder-central-
+v2 v1.4 and v1.5 sealed with J2, the board's only USB-C, rendered 90 DEGREES
+ROTATED, because `jlc_twin` mounted the body at a pad fit it had ITSELF
+rejected in the same breath (`PAD-MISMATCH best=(4.5947, False, 90)`).
+
+Two constraints decide whether this suite is worth anything:
+
+  (A) CANON M1 — the measured side must come from PIXELS. A gate that
+      recomputed the body position from the mesh and the mount transform
+      would AGREE WITH A WRONG MOUNT, which is the defect itself.
+  (B) The reference is the EXPECTED POSITION, never the courtyard. J1's
+      barrel-jack mesh really is 5.686 mm off its courtyard centre; gating
+      that would fail J1 forever and produce a waiver, and an inherited
+      waiver is how the refdes-on-silk defect crossed three boards (canon M4).
+
+RED-VERIFIED against the pre-fix code. Every known-bad below was run against
+`git show HEAD~:skills/jlcpcb-fab/scripts/twin_overlay.py` (the 232-line
+drawing tool) and the outcome recorded in the test's own docstring. The
+headline: on the SEALED v1.5 render the pre-fix tool exits **0** with
+"OVERLAY OK: 203 courtyards, 16 flagged, 15 crops"; the gate exits **1** with
+"OVERLAY FAIL: 1 unfaithful ref(s): J2 (centre 1.44mm, outward 1.49mm)".
+
+FIXTURES. The board, the BOM, the CPL and the renders are read from the SEALED
+v1.5 release, read-only, never written. JLC's own CAD for the six LCSC codes
+the tests need is vendored under `fixtures/twin_overlay/` — see its
+PROVENANCE.md, including the one deliberate byte-level edit.
+"""
+import math
+import shutil
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from harness import (FAB_SCRIPTS, KPY, ROOT, check, contains, eq, main,  # noqa: E402
+                     must_fail, must_pass, not_contains, run, test, tmpdir)
+
+OVL = FAB_SCRIPTS / "twin_overlay.py"
+FIX = Path(__file__).resolve().parent / "fixtures" / "twin_overlay"
+REL = (ROOT / "projects/crow-recorder-central-v2/07_releases"
+              "/crow-recorder-central-v2-v1.5-2026-07-25")
+BOARD = REL / "source/crow_recorder_central_v2.kicad_pcb"
+BOM = REL / "fab/bom.csv"
+ASSY = REL / "verification/assembly.yaml"
+TOP = REL / "verification/twin_top.png"
+BOTTOM = REL / "verification/twin_bottom.png"
+ISO = REL / "verification/twin_iso_nw.png"
+TWIN_REPORT = REL / "verification/twin_report.csv"
+
+# The board's own edge, from its Edge.Cuts. Written here rather than read so
+# the fixture generator and the checker do not share a source.
+EDGE = (9.95, 9.95, 180.05, 130.05)
+
+
+def gate(*extra, out=None, png=TOP, board=BOARD, side="top", bom=BOM):
+    d = out or tmpdir("ovl_")
+    args = [KPY, OVL, board, png, "--side", side,
+            "--twin-dir", FIX, "--out", d / "ov", "--report", d / "r.md"]
+    if bom:
+        args += ["--bom", bom, "--assembly", ASSY]
+    return run(args + [str(a) for a in extra]), d
+
+
+def synth_render(path, px_box=(100, 150, 700, 573), size=(800, 600),
+                 bodies=(), edge=EDGE):
+    """A minimal stand-in for a kicad-cli render: a SATURATED green rectangle
+    for the board (which is all the calibrator needs) plus DESATURATED grey
+    rectangles for bodies, in mm, projected with the caller's own arithmetic.
+
+    Deliberately not produced by importing twin_overlay's projector — the
+    fixture must be able to disagree with the checker, or it proves nothing.
+    """
+    from PIL import Image
+    W, H = size
+    x0, y0, x1, y1 = px_box
+    im = Image.new("RGB", (W, H), (18, 18, 18))
+    p = im.load()
+    for y in range(y0, y1 + 1):
+        for x in range(x0, x1 + 1):
+            p[x, y] = (76, 110, 55)          # sat 0.50, hue ~85 -> "board"
+    sx = (x1 - x0 + 1) / (edge[2] - edge[0])
+    sy = (y1 - y0 + 1) / (edge[3] - edge[1])
+    for (bx0, by0, bx1, by1) in bodies:
+        for y in range(int(y0 + (by0 - edge[1]) * sy),
+                       int(y0 + (by1 - edge[1]) * sy) + 1):
+            for x in range(int(x0 + (bx0 - edge[0]) * sx),
+                           int(x0 + (bx1 - edge[0]) * sx) + 1):
+                if 0 <= x < W and 0 <= y < H:
+                    p[x, y] = (90, 90, 90)   # sat 0.00 -> "body"
+    im.save(path)
+    return sx, sy
+
+
+def graded_row(report, ref):
+    """The `## Graded refs` row for `ref`, split into cells. Deliberately
+    anchored on that heading: the FAIL table above it has a DIFFERENT column
+    layout, and reading the wrong one silently shifts every assertion by a
+    column."""
+    body = report.split("## Graded refs", 1)
+    check(len(body) == 2, "the report has no `## Graded refs` section")
+    rows = [l for l in body[1].splitlines() if l.startswith(f"| `{ref}` |")]
+    check(rows, f"{ref} has no row in the graded table")
+    return [c.strip() for c in rows[0].split("|")]
+
+
+def red_box_px(path):
+    """bbox of the pure-red courtyard strokes in an overlay image."""
+    from PIL import Image
+    im = Image.open(path).convert("RGB")
+    p = im.load()
+    xs, ys = [], []
+    for y in range(im.size[1]):
+        for x in range(im.size[0]):
+            if p[x, y] == (255, 0, 0):
+                xs.append(x)
+                ys.append(y)
+    check(xs, f"no red courtyard stroke drawn in {path}")
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def flip_j1(dest):
+    """The sealed board with J1 alone flipped to B.Cu — a good input broken
+    in exactly one way, and the only bottom-side footprint anywhere in this
+    fleet (all nine boards measure 0 bottom-side footprints, 2026-07-26)."""
+    code = ("import pcbnew,sys\n"
+            "b=pcbnew.LoadBoard(sys.argv[1])\n"
+            "fp=b.FindFootprintByReference('J1')\n"
+            "fp.Flip(fp.GetPosition(), False)\n"
+            "b.Save(sys.argv[2])\n")
+    must_pass(run([KPY, "-c", code, BOARD, dest]), "flip_j1")
+    return dest
+
+
+# ===================================================================== clean
+
+@test("A-RENDER passes the CORRECTED twin render and prints its coverage")
+def t_corrected_render_passes():
+    """The other half of the headline. The same sealed board and the same
+    fixture CAD, against a render made after jlc_twin stopped mounting on a
+    rejected fit: J2 moves from 1.435/1.491 mm to 0.543/0.025 mm and the gate
+    passes. Rendering here would need kicad-cli, so the corrected geometry is
+    reproduced the honest way instead — a synthetic render with the body drawn
+    at the EXPECTED box, computed by this test from JLC's own transform."""
+    d = tmpdir("ovl_ok_")
+    png = d / "twin_top.png"
+    # J1's expected body and J2's expected body, both at JLC's own transform.
+    # Derived in the docstring of twin_overlay.py from the vendored meshes;
+    # written here as literals so the fixture cannot inherit a checker bug.
+    synth_render(png, bodies=[(16.000, 96.050, 30.400, 105.350),
+                              (83.755, 119.408, 92.695, 126.963)])
+    r, _ = gate(png=png, out=d)
+    must_pass(r, "A-RENDER on a faithful render")
+    contains(r.out, "COVERAGE:", "coverage line")
+    contains(r.out, "OVERLAY OK", "verdict")
+
+
+@test("A-RENDER prints N measured / M total on every run, pass or fail")
+def t_coverage_always_printed():
+    """`bom_source_check`'s row_kind silently dropped 12 of 26 rows while
+    printing PASS. A partial sweep that does not print its denominator is the
+    same defect wearing a different name."""
+    r, _ = gate()
+    must_fail(r, "A-RENDER on the sealed render", "COVERAGE:")
+    # These are the fixture-cache figures (6 vendored LCSC codes). Against
+    # the full 47-code cache the same run reads `22 measured / 177 with an
+    # expected body; 155 unresolvable, 0 resolvable-but-unmeasured, 8
+    # no-model` — the same J2 verdict, the same J1 numbers. The point of the
+    # assertion is that a denominator is ALWAYS printed, never that it is big.
+    contains(r.out, "2 measured / 23 with an expected body",
+             "the measured coverage figure")
+    contains(r.out, "21 unresolvable", "the named unresolvable count")
+    contains(r.out, "0 resolvable-but-unmeasured", "the honest-failure count")
+    contains(r.out, "162 no-model", "the no-JLC-model count")
+
+
+@test("A-RENDER names what it could NOT measure, and why, one ref at a time")
+def t_unmeasurable_named():
+    r, d = gate()
+    rep = (d / "r.md").read_text()
+    contains(rep, "Not measurable by construction", "the section")
+    contains(rep, "`R_cc1` — body 1.00x0.50 mm is under the 2.0 mm "
+                  "resolvability floor", "a named 0402 with its measured size")
+    contains(rep, "`C_vb` — body 2.00x1.30 mm is under the 2.0 mm "
+                  "resolvability floor", "a named 0805 with its measured size")
+    contains(rep, "`J3` — C9900035627: no JLC footprint cached",
+             "an RJ45 named as having no model at all")
+    contains(rep, "No JLC model at all (162)", "the third bucket, counted")
+    # 2 graded + 21 unresolvable + 162 no-model = 185 coded refs: every ref is
+    # in exactly one bucket and none is silently dropped.
+    eq(2 + 21 + 162, 185, "the three buckets must partition the coded refs")
+
+
+@test("A-RENDER passes J1 while REPORTING its 5.686 mm courtyard excursion")
+def t_j1_model_defect_is_reported_not_gated():
+    """Constraint (B). JLC's barrel-jack mesh sits 4.26 mm off its own origin,
+    so the body really is 5.686 mm from the courtyard centre — and the RENDER
+    of it is faithful to 0.046 mm. Gating body-vs-courtyard would fail J1 on
+    every run forever and buy a waiver; canon M4 says an inherited waiver is
+    how the refdes-on-silk defect crossed three boards. The number is reported
+    so a reviewer can classify it as a MODEL defect with no board exposure."""
+    r, d = gate()
+    rep = (d / "r.md").read_text()
+    cells = graded_row(rep, "J1")
+    eq(cells[4], "0.046", "J1 centre delta mm")
+    eq(cells[5], "0.000", "J1 outward excursion mm")
+    eq(cells[8], "5.686", "J1 courtyard excursion mm (reported, not gated)")
+    not_contains(r.out, "unfaithful ref(s): J1", "J1 must not be gated")
+
+
+@test("A-RENDER's rotation operator matches pcbnew, and the fixture can tell "
+      "the two handednesses apart (canon M-DISC)")
+def t_rot_matches_pcbnew():
+    """`formB(a) == formA(-a)` IDENTICALLY, and both equal the identity's own
+    reflection at 0 and 180 — so a 0/180-only fixture passes the handedness
+    bug silently, forever. Five copies of exactly that bug survived weeks of
+    review in jlc_twin.py. This samples 90 and 270 AND asserts the sample set
+    separates the two candidate forms."""
+    sys.path.insert(0, str(FAB_SCRIPTS))
+    from twin_overlay import rot_ydown
+
+    def wrong(x, y, deg):
+        c, s = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+        return (x * c - y * s, x * s + y * c)
+
+    # pcbnew itself is the authority: place a pad at a known footprint-local
+    # offset, rotate the footprint, and ask where the pad ended up.
+    code = ("import pcbnew,sys,json\n"
+            "b=pcbnew.LoadBoard(sys.argv[1])\n"
+            "fp=b.FindFootprintByReference('U1')\n"
+            "o={}\n"
+            "p0=fp.GetPosition()\n"
+            "for a in (0,90,180,270):\n"
+            "  fp.SetOrientationDegrees(0)\n"
+            "  loc=[(pd.GetPosition().x-p0.x, pd.GetPosition().y-p0.y)\n"
+            "       for pd in fp.Pads()][:24]\n"
+            "  fp.SetOrientationDegrees(a)\n"
+            "  got=[(pd.GetPosition().x-p0.x, pd.GetPosition().y-p0.y)\n"
+            "       for pd in fp.Pads()][:24]\n"
+            "  o[a]=[loc,got]\n"
+            "print('@@'+json.dumps(o))\n")
+    r = must_pass(run([KPY, "-c", code, BOARD]), "pcbnew pad rotation")
+    import json
+    data = json.loads(r.out.split("@@", 1)[1].strip())
+    worst_ours = worst_wrong = 0.0
+    n90 = 0
+    for ang, (loc, got) in data.items():
+        for (lx, ly), (gx, gy) in zip(loc, got):
+            ox, oy = rot_ydown(lx / 1e6, ly / 1e6, float(ang))
+            wx, wy = wrong(lx / 1e6, ly / 1e6, float(ang))
+            worst_ours = max(worst_ours, math.hypot(ox - gx / 1e6, oy - gy / 1e6))
+            worst_wrong = max(worst_wrong, math.hypot(wx - gx / 1e6, wy - gy / 1e6))
+        if ang in ("90", "270"):
+            n90 += len(loc)
+    check(n90 >= 24, f"M-DISC: the fixture must sample 90/270; got {n90} pads")
+    check(worst_ours < 1e-6,
+          f"rot_ydown disagrees with pcbnew by {worst_ours:.6f} mm")
+    check(worst_wrong > 1.0,
+          f"M-DISC: this fixture CANNOT tell the two handednesses apart "
+          f"(the wrong form is only {worst_wrong:.6f} mm off) — it would "
+          f"pass the bug")
+
+
+@test("A-RENDER draws a BOTTOM-side courtyard X-MIRRORED")
+def t_bottom_courtyard_is_mirrored():
+    """MEASURED. J1 flipped to B.Cu has a B.CrtYd bbox at x 21.955..38.045 mm;
+    on the fixture render (601 px over 170.1 mm, origin px 100) the mirrored
+    projection is px x 601.7..658.6 and the un-mirrored one is 142.4..199.3 —
+    459 px apart, so this assertion cannot be satisfied by accident."""
+    d = tmpdir("ovl_bot_")
+    b = flip_j1(d / "board.kicad_pcb")
+    png = d / "twin_bottom.png"
+    synth_render(png)
+    r = run([KPY, OVL, b, png, "--side", "bottom",
+             "--out", d / "ov", "--report", d / "r.md"])
+    must_pass(r, "A-RENDER on a bottom render with a bottom part")
+    box = red_box_px(d / "ov" / "twin_bottom_courtyard_overlay.png")
+    sx = 601 / (EDGE[2] - EDGE[0])
+    want_l = 100 + (EDGE[2] - 38.045) * sx
+    want_r = 100 + (EDGE[2] - 21.955) * sx
+    check(abs(box[0] - want_l) <= 2 and abs(box[2] - want_r) <= 2,
+          f"bottom courtyard drawn at px x {box[0]}..{box[2]}, mirrored "
+          f"expectation {want_l:.1f}..{want_r:.1f}")
+    # and it must not have graded anything it cannot grade
+    contains(r.out, "NOTHING GRADED", "a run that grades nothing must say so")
+
+
+# ================================================================ known-bad
+
+@test("A-RENDER FAILS the SEALED v1.5 render, naming J2 (the defect that "
+      "shipped twice)", kind="known_bad")
+def t_sealed_v15_fails_on_j2():
+    """THE HEADLINE. crow-recorder-central-v2 v1.4 and v1.5 both sealed with
+    the board's only USB-C rendered 90 degrees out: 7.555 x 8.940 mm where the
+    part is 8.940 x 7.555. `jlc_twin` printed `PAD-MISMATCH
+    best=(4.594738839150707, False, 90)` and mounted the body at that same
+    rejected 90 anyway, then told the reviewer to "VERIFY leads sit on pads
+    visually" against the picture its own failure had corrupted.
+
+    RED-VERIFIED: the pre-fix twin_overlay.py (232 lines, HEAD~) exits 0 here
+    printing `OVERLAY OK: 203 courtyards, 16 flagged, 15 crops`. It computes
+    no body position anywhere, so no amount of J2 being wrong could move it."""
+    r, d = gate()
+    must_fail(r, "A-RENDER on the sealed v1.5 render", "OVERLAY FAIL")
+    contains(r.out, "unfaithful ref(s): J2", "the named ref")
+    rep = (d / "r.md").read_text()
+    cells = graded_row(rep, "J2")
+    eq(cells[4], "1.435", "J2 centre delta mm")
+    eq(cells[5], "1.491", "J2 outward excursion mm")
+    contains(rep, "NONE (best 4.59mm) -> JLC's own transform",
+             "the report must say the expectation came from JLC's transform, "
+             "not from the fit that failed")
+
+
+@test("A-RENDER FAILS a body displaced 3 mm from where the board puts it",
+      kind="known_bad")
+def t_displaced_body_fails():
+    """The generic form of the J2 defect: the geometry says one place, the
+    pixels say another. Built by moving J1 3 mm east on a scratch copy of the
+    board while leaving the SEALED render alone — so expected moves and
+    measured cannot follow.
+
+    RED-VERIFIED 2026-07-26: the pre-fix tool exits 0 printing `OVERLAY OK:
+    203 courtyards, 0 flagged, 0 crops` — it draws the courtyard 3 mm east and
+    has no opinion about where the body is."""
+    d = tmpdir("ovl_disp_")
+    b = d / "board.kicad_pcb"
+    code = ("import pcbnew,sys\n"
+            "b=pcbnew.LoadBoard(sys.argv[1])\n"
+            "fp=b.FindFootprintByReference('J1')\n"
+            "p=fp.GetPosition(); p.x += 3000000; fp.SetPosition(p)\n"
+            "b.Save(sys.argv[2])\n")
+    must_pass(run([KPY, "-c", code, BOARD, b]), "displace J1")
+    r, _ = gate(board=b, out=d)
+    must_fail(r, "A-RENDER on a 3 mm displaced body", "unfaithful ref(s): J1")
+
+
+@test("A-RENDER FAILS a ref it SHOULD have been able to measure and could not",
+      kind="known_bad")
+def t_resolvable_but_unmeasured_fails():
+    """Item 4 of the coverage contract. A body that is big enough and isolated
+    enough to resolve, but produces no pixels, is a FAILURE — never a quiet
+    omission from the covered set. Built by painting J1's body area back to
+    board green in a copy of the render.
+
+    RED-VERIFIED 2026-07-26: the pre-fix tool exits 0 printing `OVERLAY OK:
+    203 courtyards, 0 flagged, 0 crops` on the erased render — it never looks
+    for a body, so erasing one changes nothing it reports."""
+    from PIL import Image
+    d = tmpdir("ovl_gone_")
+    im = Image.open(TOP).convert("RGB")
+    p = im.load()
+    # J1's body occupies board mm 16.0..30.4 x 96.05..105.35; project with the
+    # test's own arithmetic, then paint it board-green.
+    minx, miny, sx, sy = 301, 150, 5.6790, 5.6869
+    for y in range(int(miny + (95.0 - EDGE[1]) * sy),
+                   int(miny + (106.5 - EDGE[1]) * sy)):
+        for x in range(int(minx + (15.0 - EDGE[0]) * sx),
+                       int(minx + (31.5 - EDGE[0]) * sx)):
+            p[x, y] = (76, 110, 55)
+    png = d / "twin_top.png"
+    im.save(png)
+    r, _ = gate(png=png, out=d)
+    must_fail(r, "A-RENDER on a render with J1's body erased",
+              "resolvable-but-unmeasured")
+    contains(r.out, "J1", "the named ref")
+
+
+@test("A-RENDER REFUSES a perspective render instead of drawing on it",
+      kind="known_bad")
+def t_perspective_refused():
+    """twin_iso_nw.png is rendered with --perspective, so the mm->px map is
+    not affine: measured anisotropy 0.9458 (x 5.9142, y 6.2531 px/mm) against
+    a 0.02 tolerance. A misleading overlay is believed exactly as readily as a
+    correct one. RED-VERIFIED: the pre-fix tool ALSO refused this one — it is
+    the one behaviour that survived, and it is kept pinned."""
+    r, _ = gate(png=ISO)
+    eq(r.rc, 2, "exit code for a refusal")
+    contains(r.out, "OVERLAY REFUSED: anisotropy", "the refusal")
+
+
+@test("A-RENDER REFUSES --side top on a file named twin_bottom.png",
+      kind="known_bad")
+def t_bottom_render_graded_as_top_refused():
+    """The exact invocation that exited 0 on v1.5: the tool printed
+    "anisotropy 0.9976 ... orthographic, projection valid" and drew all 203
+    F.CrtYd boxes UN-MIRRORED on an x-mirrored render. J1's east pad column at
+    board x=24.0 appears at image x=166.12 mm (2x95 - 166.12 = 23.88), so
+    every box was off by 2x(95-x) — 10.0 mm for J2 — and it was declared
+    valid. RED-VERIFIED: the pre-fix tool exits 0 with `OVERLAY OK: 203
+    courtyards`."""
+    r, _ = gate(png=BOTTOM, side="top")
+    eq(r.rc, 2, "exit code for a refusal")
+    contains(r.out, "the render is named twin_bottom.png", "the refusal")
+
+
+@test("A-RENDER REFUSES --side bottom when nothing has a B.CrtYd courtyard",
+      kind="known_bad")
+def t_bottom_side_with_no_bottom_parts_refused():
+    """All 203 of this board's footprints are on the top. Drawing the OTHER
+    side's courtyards onto a bottom render is what the pre-fix tool did; the
+    only honest answer is to refuse. RED-VERIFIED: the pre-fix tool exits 0
+    with `203 courtyards, 16 flagged`."""
+    r, _ = gate(png=BOTTOM, side="bottom")
+    eq(r.rc, 2, "exit code for a refusal")
+    contains(r.out, "no footprint has a courtyard on the B.CrtYd layer",
+             "the refusal")
+
+
+@test("A-RENDER reaches every ref of a MULTI-REF twin finding row",
+      kind="known_bad")
+def t_multiref_finding_row_reaches_all_eight():
+    """THE ROW_KIND DEFECT. `read_twin_findings` keyed on the RAW `Ref`
+    string, so the sealed report's row
+
+        C9900035627,"J10,J3,J4,J5,J6,J7,J8,J9",FETCH-FAILED,...
+
+    — the eight RJ45 connectors, the ONLY parts on this board with no JLC CAD
+    at all — matched no `fp.GetReference()`. All eight drew a thin RED box as
+    if clean, with no crop. The single most important row in the file was the
+    one the tool could not see.
+
+    RED-VERIFIED 2026-07-26: the pre-fix report heads its table `## 16 ref(s)
+    flagged by jlc_twin` and carries the literal composite row
+
+        | `J10,J3,J4,J5,J6,J7,J8,J9` | **FETCH-FAILED** | ...
+
+    with NONE of the eight appearing as a key of its own. 16 keys -> 23 refs
+    is the whole fix, and `--crop-flagged` produced 15 crops there against 23
+    highlighted refs here."""
+    r, d = gate("--twin-report", TWIN_REPORT)
+    must_fail(r, "A-RENDER on the sealed render", "OVERLAY FAIL")
+    rep = (d / "r.md").read_text()
+    for ref in ("J3", "J4", "J5", "J6", "J7", "J8", "J9", "J10"):
+        contains(rep, f"| `{ref}` | **FETCH-FAILED** |",
+                 f"{ref} must appear as a flagged ref in its own right")
+    not_contains(rep, "`J10,J3,J4", "the raw composite key must not survive")
+    contains(rep, "23 ref(s) flagged by jlc_twin",
+             "the flagged count: 16 keys became 23 refs once split")
+
+
+@test("A-RENDER FAILS a twin finding that names no footprint on the board",
+      kind="known_bad")
+def t_orphan_finding_fails():
+    """A finding about a part that is not there is a bug in one of the two
+    files, never a pass — and it is indistinguishable, to a keyed lookup, from
+    the multi-ref row above. RED-VERIFIED: the pre-fix tool exits 0; an
+    unmatched key simply meant the ref was drawn thin-red as clean.
+
+    RED-VERIFIED 2026-07-26: the pre-fix tool exits 0 and reports `1 flagged` —
+    it counted a ref that is not on the board as a flagged ref."""
+    d = tmpdir("ovl_orph_")
+    tr = d / "twin_report.csv"
+    tr.write_text('LCSC,Ref,Status,Detail\n'
+                  'C1,J9001,PAD-MISMATCH,invented\n')
+    r, _ = gate("--twin-report", tr, out=d)
+    must_fail(r, "A-RENDER with an orphan finding",
+              "twin finding(s) naming no footprint")
+    contains(r.out, "J9001(PAD-MISMATCH)", "the named orphan")
+
+
+@test("A-RENDER FAILS a footprint with no courtyard on either layer",
+      kind="known_bad")
+def t_no_courtyard_fails():
+    """A courtyard-less footprint is invisible to the whole projection, so it
+    can never be graded and must never be counted as covered. RED-VERIFIED:
+    the pre-fix tool exits 0 printing `OVERLAY OK: 202 courtyards, 0 flagged`
+    — one fewer than the board has, in a line nothing reads."""
+    d = tmpdir("ovl_nocy_")
+    b = d / "board.kicad_pcb"
+    code = ("import pcbnew,sys\n"
+            "b=pcbnew.LoadBoard(sys.argv[1])\n"
+            "fp=b.FindFootprintByReference('U1')\n"
+            "for g in list(fp.GraphicalItems()):\n"
+            "  if g.GetLayer() in (pcbnew.F_CrtYd, pcbnew.B_CrtYd):\n"
+            "    fp.Remove(g)\n"
+            "b.Save(sys.argv[2])\n")
+    must_pass(run([KPY, "-c", code, BOARD, b]), "strip U1's courtyard")
+    r, _ = gate(board=b, out=d)
+    must_fail(r, "A-RENDER with a courtyard-less footprint",
+              "footprint(s) with no courtyard")
+    contains(r.out, "U1", "the named ref")
+
+
+@test("A-RENDER FAILS when --bom resolves no expected body at all",
+      kind="known_bad")
+def t_nothing_expected_fails():
+    """A gate that grades nothing must never print PASS — the shape of the
+    jlc_twin exit-0 incident. Point --twin-dir at an EMPTY cache and every
+    expectation disappears; the run must say so and fail, not report a clean
+    203-courtyard drawing.
+
+    RED-VERIFIED 2026-07-26, with the honest caveat: the pre-fix tool has no
+    `--twin-dir`, so this exact scenario cannot be posed to it at all. What
+    was measured instead is that it exits 0 on the same board and render with
+    every expectation absent — because it never forms one."""
+    d = tmpdir("ovl_none_")
+    (d / "empty" / "easyeda").mkdir(parents=True)
+    r = run([KPY, OVL, BOARD, TOP, "--side", "top",
+             "--twin-dir", d / "empty", "--bom", BOM,
+             "--out", d / "ov", "--report", d / "r.md"])
+    must_fail(r, "A-RENDER with an empty cache", "NOTHING EXPECTED")
+
+
+@test("A-RENDER FAILS a BOTTOM courtyard drawn UN-mirrored", kind="known_bad")
+def t_bottom_mirror_has_teeth():
+    """The discrimination assertion for the mirror (canon M-DISC applied to a
+    reflection rather than a rotation): if `--side bottom` did NOT mirror, the
+    box would land at px x 142.4..199.3 instead of 601.7..658.6. This asserts
+    the un-mirrored placement is REJECTED, so a future regression to the
+    pre-fix behaviour cannot pass silently.
+
+    RED-VERIFIED 2026-07-26: the pre-fix tool has no `--side` at all. Run on
+    this exact fixture it exits 0 with `OVERLAY OK: 203 courtyards` and draws
+    J1's B.CrtYd box starting at px x=142 — the UN-MIRRORED position (142.4),
+    459 px from where the part actually is."""
+    d = tmpdir("ovl_botneg_")
+    b = flip_j1(d / "board.kicad_pcb")
+    png = d / "twin_bottom.png"
+    synth_render(png)
+    r = run([KPY, OVL, b, png, "--side", "bottom",
+             "--out", d / "ov", "--report", d / "r.md"])
+    must_pass(r, "bottom overlay")
+    box = red_box_px(d / "ov" / "twin_bottom_courtyard_overlay.png")
+    sx = 601 / (EDGE[2] - EDGE[0])
+    unmirrored_l = 100 + (21.955 - EDGE[0]) * sx
+    check(abs(box[0] - unmirrored_l) > 50,
+          f"the bottom courtyard was drawn UN-MIRRORED at px x {box[0]} "
+          f"(un-mirrored expectation {unmirrored_l:.1f}) — the mirror is gone")
+
+
+if __name__ == "__main__":
+    sys.exit(main())
