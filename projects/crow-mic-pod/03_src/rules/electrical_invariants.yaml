@@ -23,7 +23,7 @@ invariants:
   - assert: pin_on_net
     pin: "D1.3"
     net: AUDIO_P
-    adr: 0001
+    adr: "0001"
     why: >
       D1 channel IO1 must clamp AUDIO_P (pin numbering per TPD2E2U06DRLR
       part.yaml, DRL package pin-5 figure). A swapped channel silently
@@ -31,19 +31,19 @@ invariants:
   - assert: pin_on_net
     pin: "D1.5"
     net: AUDIO_N
-    adr: 0001
+    adr: "0001"
     why: D1 channel IO2 must clamp AUDIO_N (the other balanced-pair leg).
   - assert: pin_on_net
     pin: "D1.4"
     net: GND
-    adr: 0001
+    adr: "0001"
     why: >
       D1's GND pin must return to board GND — both ESD channels clamp
       AUDIO_P/AUDIO_N referenced to GND, not to a floating or wrong rail.
   - assert: series_chain
     chain: [AUDIO_P, D1, GND]
     through: {D1: [3, 4]}
-    adr: 0001
+    adr: "0001"
     why: >
       D1 must bridge AUDIO_P to GND (shunt clamp topology) — confirms D1 is
       wired as a clamp across the line, not merely touching the right nets
@@ -51,7 +51,7 @@ invariants:
   - assert: series_chain
     chain: [AUDIO_N, D1, GND]
     through: {D1: [5, 4]}
-    adr: 0001
+    adr: "0001"
     why: D1 must bridge AUDIO_N to GND (shunt clamp topology, second channel).
 
   # --- ADR-0004(a): RJ45 contact map is the interop contract with the
@@ -61,42 +61,42 @@ invariants:
   - assert: pin_on_net
     pin: "J1.1"
     net: AUDIO_P
-    adr: 0004
+    adr: "0004"
     why: "RJ45 contact 1 = AUDIO_P per ADR-0004 net-mapping table."
   - assert: pin_on_net
     pin: "J1.2"
     net: AUDIO_N
-    adr: 0004
+    adr: "0004"
     why: "RJ45 contact 2 = AUDIO_N per ADR-0004 net-mapping table."
   - assert: pin_on_net
     pin: "J1.3"
     net: BEEP_5V
-    adr: 0004
+    adr: "0004"
     why: "RJ45 contact 3 = BEEP_5V (beeper feed) per ADR-0004."
   - assert: pin_on_net
     pin: "J1.4"
     net: "5V"
-    adr: 0004
+    adr: "0004"
     why: "RJ45 contact 4 = +5V_AUDIO feed per ADR-0004 (paired with contact 7)."
   - assert: pin_on_net
     pin: "J1.5"
     net: GND
-    adr: 0004
+    adr: "0004"
     why: "RJ45 contact 5 = GND_AUDIO return per ADR-0004 (paired with contact 8)."
   - assert: pin_on_net
     pin: "J1.6"
     net: BEEP_RET
-    adr: 0004
+    adr: "0004"
     why: "RJ45 contact 6 = BEEP_RET (switched return) per ADR-0004."
   - assert: pin_on_net
     pin: "J1.7"
     net: "5V"
-    adr: 0004
+    adr: "0004"
     why: "RJ45 contact 7 = +5V_AUDIO feed per ADR-0004 (paired with contact 4)."
   - assert: pin_on_net
     pin: "J1.8"
     net: GND
-    adr: 0004
+    adr: "0004"
     why: "RJ45 contact 8 = GND_AUDIO return per ADR-0004 (paired with contact 5)."
 
   # --- ADR-0002: beeper flyback clamp, D2 populated in parallel with BZ1
@@ -107,7 +107,7 @@ invariants:
   - assert: pin_on_net
     pin: "D2.1"
     net: BZ_P
-    adr: 0002
+    adr: "0002"
     why: >
       D2 (SS14) cathode (pad1=K) must sit on BZ_P (supply side) so the diode
       is REVERSE-biased while the central switch is ON; reversed, it
@@ -115,12 +115,12 @@ invariants:
   - assert: pin_on_net
     pin: "D2.2"
     net: BEEP_RET
-    adr: 0002
+    adr: "0002"
     why: "D2 anode (pad2=A) at the switched node BEEP_RET (flyback return path)."
   - assert: pin_on_net
     pin: "D3.1"
     net: BZ_P
-    adr: 0002
+    adr: "0002"
     why: >
       D3 (SMAJ6.0A TVS, DNP alternate footprint) must share D2's orientation
       (cathode at BZ_P) so a future populate-swap cannot invert clamp
@@ -128,13 +128,13 @@ invariants:
   - assert: pin_on_net
     pin: "D3.2"
     net: BEEP_RET
-    adr: 0002
+    adr: "0002"
     why: "D3 anode at BEEP_RET, matching D2's orientation (ADR-0002 swap matrix)."
   - assert: net_has_part
     net: BZ_P
     part_type: diode
     min: 2
-    adr: 0002
+    adr: "0002"
     why: >
       Both clamp footprints (D2 flyback + D3 TVS alternate) must be present
       on the BZ_P rail even though only one is populated at ship time — the
@@ -142,7 +142,7 @@ invariants:
       the same pads/orientation.
   - assert: series_chain
     chain: [BEEP_5V, R12, BZ_P]
-    adr: 0002
+    adr: "0002"
     why: >
       R12 (0R series pad, ADR-0002's "swap point for a series resistor") must
       sit in the +5V_BEEP leg between the RJ45 feed and the clamp/transducer
@@ -155,19 +155,19 @@ invariants:
   - assert: pin_on_net
     pin: "R15.1"
     net: SHIELD
-    adr: 0004
+    adr: "0004"
     why: "R15 (DNP 0R shield-bond reserve) must sit on SHIELD, not GND directly."
   - assert: pin_on_net
     pin: "R15.2"
     net: GND
-    adr: 0004
+    adr: "0004"
     why: >
       R15's other pad must be GND — confirms R15 is the SHIELD-to-GND bond
       jumper (populate to bond), not wired to an unrelated net.
   - assert: pin_on_net
     pin: "J1.SH"
     net: SHIELD
-    adr: 0004
+    adr: "0004"
     why: "RJ45 shield tails land on the dedicated SHIELD net, not bare GND."
 
   # --- ARCHITECTURE.md mic-bias chain: capsule bias sourced from 5VF through
@@ -175,7 +175,7 @@ invariants:
   # (5VF vs 5V matters: 5VF is the filtered/bias-only node per ARCHITECTURE).
   - assert: series_chain
     chain: ["5VF", R2, MIC]
-    adr: 0000
+    adr: "0000"
     why: >
       Mic bias resistor R2 must bridge 5VF (filtered bias rail) to MIC (the
       capsule node) — ARCHITECTURE.md's bias path. Cited to ADR-0000, which

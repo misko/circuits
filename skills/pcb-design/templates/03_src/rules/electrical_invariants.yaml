@@ -20,7 +20,7 @@ invariants:
   - assert: pin_on_net
     pin: "D1.1"          # REF.PAD
     net: VIN
-    adr: 0001
+    adr: "0001"
     why: "D1 reverse-polarity clamp cathode feeds VIN, not the raw battery rail"
 
   # 2) series_chain — consecutive elements share a net, in order. A 2-pad part
@@ -30,7 +30,7 @@ invariants:
   - assert: series_chain
     chain: [VBAT, F1, VBAT_F, Q1, VIN]
     through: {Q1: [D, S]}
-    adr: 0001
+    adr: "0001"
     why: "battery -> fuse -> protected node -> reverse-polarity FET (D->S) -> VIN"
 
   # 3) net_has_part — the net must carry >= min parts of a type (refdes prefix:
@@ -41,7 +41,7 @@ invariants:
     net: VIN
     part_type: capacitor
     min: 1
-    adr: 0007
+    adr: "0007"
     why: "the VIN rail must carry at least one decoupling capacitor"
 
   # 4) part_value — the PARAMETER kind. The three kinds above pin TOPOLOGY:
@@ -73,7 +73,7 @@ invariants:
   - assert: part_value
     part: R_WDPETPD
     max: 5.2k
-    adr: 0011
+    adr: "0011"
     why: "I_IL(max) 190uA x R < V_IL 0.99V => R <= 5.2k; TI SLVS165O S7.3.4
       names 1k explicitly. Above this the WDI node sits at ~VDD and the
       supervisor never times out — the interlock fails PERMISSIVE"

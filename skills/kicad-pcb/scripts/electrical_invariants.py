@@ -18,25 +18,54 @@ grades them against the netlist the board actually exports.
 
 THREE NETLIST-CHECKABLE ASSERTION KINDS (E1)
 --------------------------------------------
-  pin_on_net    {assert: pin_on_net, pin: "D1.1", net: VIN, adr: 0001, why: ...}
+  pin_on_net    {assert: pin_on_net, pin: "D1.1", net: VIN, adr: "0001", why: ...}
                 the named pin must be on the named net (the D1 class).
   series_chain  {assert: series_chain, chain: [BATT_P, F1, Q1, VIN],
-                 through: {Q1: [D, S]}, adr: 0001, why: ...}
+                 through: {Q1: [D, S]}, adr: "0001", why: ...}
                 consecutive elements share a net in order. A 2-pad part
                 bridges the nets on its two pads (inferred); a >2-pad part
                 names its bridging pins with `through: {REF: [in, out]}`.
   net_has_part  {assert: net_has_part, net: VIN_S, part_type: capacitor,
-                 min: 1, adr: 0007, why: ...}
+                 min: 1, adr: "0007", why: ...}
                 the net must carry >= min parts of that type (by refdes
                 prefix). The bridge-rail-decoupling class red-team B found.
   part_value    {assert: part_value, part: R_WDPETPD, max: 5.2k,
-                 adr: 0011, why: ...}
+                 adr: "0011", why: ...}
                 the part's VALUE must satisfy min/max/equals (+ tolerance_pct
                 on equals). See below — this kind exists because EVERY P0 this
                 pipeline found on 2026-07-25 was in a PARAMETER, and the three
                 kinds above pin TOPOLOGY.
 
 Every invariant REQUIRES `adr:` (the ADR that emitted it) and `why:`.
+
+`adr:` MUST BE QUOTED — AND THE GATE REJECTS IT WHEN IT IS NOT
+-------------------------------------------------------------
+A zero-padded ADR reference written BARE is a YAML 1.1 OCTAL literal:
+
+    adr: 0011   ->  the integer 9    ->  re-padded to "0009"
+    adr: 0012   ->  the integer 10   ->  re-padded to "0010"
+    adr: 0010   ->  the integer 8    ->  re-padded to "0008"
+    adr: 0020   ->  the integer 16   ->  re-padded to "0016"
+    adr: 0008   ->  the STRING "0008"  (8 is not an octal digit, so the
+                                        resolver declines and it survives)
+
+So `adr: 0011` did not skip a check — it SILENTLY SATISFIED ADR 0009, and
+E-ADR then reported ADR 0011 as uncited while crediting an ADR that emitted
+nothing. That is worse than a skip: a skip is visible in a coverage
+denominator, a misresolution is a green verdict about the wrong document.
+Whether a given padding survives depends on nothing but which digits it
+contains, which is why the rule is written at the width of the CLASS (canon
+M-WIDTH): EVERY unquoted zero-padded `adr:` is rejected, including the ones
+that happen to survive.
+
+WHY REJECT RATHER THAN COERCE. Coercing to `str()` at parse time cannot work
+and would be the silent-wrong-answer again: by the time `yaml.safe_load()`
+returns, `0011` IS the integer 9 and `str(9).zfill(4)` is "0009" — the
+padding, the only evidence of the author's intent, is already destroyed and
+`adr: 9` and `adr: 0011` are indistinguishable. The padding survives ONLY in
+the source text, so the check is made on the composed NODE (which carries the
+scalar's quoting style), before any value is constructed, and the verdict is a
+LoadError naming the line. `adr: 11` and `adr: "0011"` both remain legal.
 
 WHY `part_value` EXISTS — AN INVARIANT THAT PINS EXISTENCE DOES NOT PIN VALUE
 ----------------------------------------------------------------------------
@@ -340,12 +369,97 @@ def _norm_adr(v):
     return s
 
 
+#: an UNQUOTED zero-padded scalar — the YAML 1.1 octal hazard. Written at the
+#: width of the class (M-WIDTH): `0011`/`0012`/`0020` misresolve, `0008`/`0009`
+#: survive only because 8 and 9 are not octal digits. All are rejected, because
+#: "which of these is safe" is a fact about the digits, not about the schema.
+_PADDED_RE = re.compile(r"0\d+")
+
+
+def _bare_padded_adr_refs(text):
+    """[(line_no, literal, resolves_to)] for every `adr:` whose value is an
+    UNQUOTED zero-padded integer.
+
+    Graded on the COMPOSED NODE, not on the constructed value and not on a
+    text regex: a composed ScalarNode carries `style` (None == plain/unquoted)
+    and its original `value` string, which is the only place the padding still
+    exists. `yaml.safe_load()` has already destroyed it — see the module
+    docstring — so a check that ran after it would be checking the wrong
+    artifact (the adjacent-property error).
+    """
+    out = []
+    try:
+        root = yaml.compose(text)
+    except yaml.YAMLError:
+        return out                      # safe_load below raises its own error
+    seen = []
+
+    def walk(node):
+        if isinstance(node, yaml.MappingNode):
+            for k, v in node.value:
+                if (isinstance(k, yaml.ScalarNode) and k.value == "adr"
+                        and isinstance(v, yaml.ScalarNode)
+                        and v.style is None
+                        and _PADDED_RE.fullmatch(v.value)):
+                    seen.append((v.start_mark.line + 1, v.value))
+                walk(v)
+        elif isinstance(node, yaml.SequenceNode):
+            for c in node.value:
+                walk(c)
+
+    walk(root)
+    for line, lit in seen:
+        got = yaml.safe_load(f"v: {lit}")["v"]
+        if not isinstance(got, int):
+            verdict = "SURVIVES"     # not valid octal, stayed a string
+        elif _norm_adr(got) == lit:
+            verdict = "IDENTITY"     # octal value == decimal value, by luck
+        else:
+            verdict = "MISRESOLVES"
+        out.append((line, lit, _norm_adr(got) if isinstance(got, int) else None,
+                    verdict))
+    return out
+
+
 def load_invariants(path):
     """Parse + validate. Raises LoadError with a naming message on any schema
-    problem (missing adr/why, unknown assert kind, unknown part_type)."""
+    problem (missing adr/why, unknown assert kind, unknown part_type, an
+    UNQUOTED zero-padded `adr:`)."""
     if yaml is None:
         raise LoadError("PyYAML not available")
-    data = yaml.safe_load(Path(path).read_text())
+    raw = Path(path).read_text()
+
+    # Reject the YAML-octal ADR reference BEFORE anything is constructed. This
+    # runs first because it is the only check whose evidence safe_load erases.
+    padded = _bare_padded_adr_refs(raw)
+    if padded:
+        wrong = [b for b in padded if b[3] == "MISRESOLVES"]
+        bits = []
+        for line, lit, resolves, verdict in padded:
+            if verdict == "MISRESOLVES":
+                bits.append(f"line {line}: `adr: {lit}` SILENTLY BECOMES ADR "
+                            f"{resolves} (YAML 1.1 octal) — it satisfies the "
+                            f"WRONG ADR instead of failing")
+            elif verdict == "SURVIVES":
+                bits.append(f"line {line}: `adr: {lit}` survives as a string "
+                            f"only because {lit.lstrip('0')[0]} is not an "
+                            f"octal digit")
+            else:
+                bits.append(f"line {line}: `adr: {lit}` still means ADR "
+                            f"{resolves} only because its octal and decimal "
+                            f"values coincide")
+        raise LoadError(
+            f"{Path(path).name}: {len(padded)} unquoted zero-padded `adr:` "
+            f"reference(s), {len(wrong)} of which resolve to a DIFFERENT ADR "
+            f"— QUOTE them (adr: \"0011\") or drop the padding (adr: 11). "
+            f"Whether a given one is safe today depends only on its digits, "
+            f"so all are rejected (canon M-WIDTH). "
+            + "; ".join(bits[:12])
+            + ("" if len(bits) <= 12 else
+               f"; ... and {len(bits) - 12} more (this list is TRUNCATED at "
+               f"12; the count above is the complete one)"))
+
+    data = yaml.safe_load(raw)
     if data is None:
         return []
     if isinstance(data, dict):
@@ -596,30 +710,41 @@ def protection_adrs(decisions_dir):
 
 
 def adr_coverage(proj, invariants_path=None):
-    """Return list of problem strings: protection/topology ADRs not cited by
-    any invariant. Empty list = loop closed (or nothing to close)."""
+    """(probs, cited_count, total, invp) — protection/topology ADRs not cited
+    by any invariant. Empty probs = loop closed (or nothing to close).
+    `None` in place of the tuple signals N-A (not a commissioned project).
+
+    RAISES LoadError when the invariants file will not parse. It used to
+    swallow it:
+
+        except LoadError:
+            cited = set()   # "a broken file cites nothing"
+
+    which is TRUE and is still the wrong verdict. One weak `why:` field turned
+    into a report of 10 uncited protection ADRs that never once named the parse
+    failure, so the reader chased ten phantom coverage holes instead of one
+    typo. Canon M-COVER: **input a gate cannot parse is a FAIL that names
+    itself, never a zero.** A zero is a measurement; this was not one.
+    """
     dd = Path(proj) / "01_docs" / "decisions"
     if not dd.is_dir():
         return None  # signal N-A
     prot = protection_adrs(dd)
-    if not prot:
-        return []  # nothing to close
     invp = Path(invariants_path) if invariants_path else \
         Path(proj) / "03_src" / "rules" / "electrical_invariants.yaml"
+    if not prot:
+        return [], 0, 0, invp  # nothing to close
     cited = set()
     if invp.exists():
-        try:
-            for inv in load_invariants(invp):
-                cited.add(inv["_adr"])
-        except LoadError:
-            cited = set()  # a broken file cites nothing
+        for inv in load_invariants(invp):     # LoadError propagates, by design
+            cited.add(inv["_adr"])
     probs = []
     for num, title in prot:
         if num not in cited:
             probs.append(f"ADR {num} ({title[:60]}) is a protection/topology "
                          f"ADR but no invariant cites adr: {num} — the intent "
                          f"loop is not closed (E-ADR)")
-    return probs
+    return probs, len(prot) - len(probs), len(prot), invp
 
 
 # --------------------------------------------------------------------------
@@ -644,16 +769,31 @@ def main(argv=None):
     proj = Path(args.project)
 
     if args.adr_coverage:
-        probs = adr_coverage(proj, args.invariants or None)
-        if probs is None:
+        try:
+            res = adr_coverage(proj, args.invariants or None)
+        except LoadError as e:
+            # M-COVER: a parse failure NAMES ITSELF. It is never a zero, and it
+            # is never re-reported as "every protection ADR is uncited".
+            print(f"E-ADR LOAD ERROR: the invariants file will not parse, so "
+                  f"E-ADR graded 0 of its ADRs and says so rather than "
+                  f"reporting them all uncited: {e}")
+            return 2
+        if res is None:
             print("E-ADR N-A: no 01_docs/decisions/ (not a commissioned project)")
             return 0
+        probs, cited, total, invp = res
+        if total == 0:
+            print(f"E-ADR OK: 0/0 — no protection/topology ADR under "
+                  f"{proj / '01_docs' / 'decisions'}, nothing to close")
+            return 0
         if probs:
-            print("E-ADR FAIL:")
+            print(f"E-ADR FAIL: {cited}/{total} protection/topology ADR(s) "
+                  f"cited by an invariant (graded against {invp}):")
             for p in probs:
                 print(f"  {p}")
             return 1
-        print("E-ADR OK: every protection/topology ADR is cited by an invariant")
+        print(f"E-ADR OK: {cited}/{total} protection/topology ADR(s) cited by "
+              f"an invariant (graded against {invp})")
         return 0
 
     invp = Path(args.invariants) if args.invariants else \
@@ -685,7 +825,7 @@ def main(argv=None):
         for f in fails:
             print(f"  {f}")
         return 1
-    print(f"E-INV OK: {len(invs)} invariants hold against {netp.name}")
+    print(f"E-INV OK: {len(invs)}/{len(invs)} invariants hold against {netp}")
     return 0
 
 

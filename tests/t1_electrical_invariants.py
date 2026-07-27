@@ -58,18 +58,18 @@ invariants:
   - assert: pin_on_net
     pin: "D1.1"
     net: VIN
-    adr: 0001
+    adr: "0001"
     why: "D1 is the reverse-polarity clamp; its cathode must feed VIN"
   - assert: series_chain
     chain: [VBAT, F1, VBAT_F, Q1, VIN]
     through: {Q1: [D, S]}
-    adr: 0001
+    adr: "0001"
     why: "battery -> fuse -> protected node -> rev-pol FET drain-source -> VIN"
   - assert: net_has_part
     net: VIN
     part_type: capacitor
     min: 1
-    adr: 0007
+    adr: "0007"
     why: "VIN rail must carry at least one decoupling capacitor"
 """
 
@@ -132,7 +132,7 @@ def t_incident():
         "  - assert: pin_on_net\n"
         "    pin: \"D1.1\"\n"
         "    net: VIN\n"
-        "    adr: 0001\n"
+        "    adr: \"0001\"\n"
         "    why: \"D1 reverse-polarity clamp cathode must feed VIN, not VBAT_F\"\n"),
         net_text=V10_NET.read_text())
     r = must_fail(einv(d), "E-INV on the D1 incident", "pin_on_net")
@@ -164,7 +164,7 @@ def t_net_has_part_zero():
         "    net: VBAT\n"
         "    part_type: capacitor\n"
         "    min: 1\n"
-        "    adr: 0007\n"
+        "    adr: \"0007\"\n"
         "    why: \"claim VBAT needs a cap it does not have — must fail\"\n")
     d = project(CLEAN_NETS, inv)
     r = must_fail(einv(d), "E-INV net_has_part zero", "net_has_part")
@@ -197,7 +197,7 @@ def t_adr_uncited():
         "  - assert: pin_on_net\n"
         "    pin: \"D1.1\"\n"
         "    net: VIN\n"
-        "    adr: 0009\n"          # cites a DIFFERENT adr, not 0001
+        "    adr: \"0009\"\n"          # cites a DIFFERENT adr, not 0001
         "    why: \"cites 0009, leaving protection ADR 0001 uncovered\"\n")
     d = project(CLEAN_NETS, inv)
     dec = d / "01_docs" / "decisions"
@@ -224,7 +224,7 @@ def t_adr_uncited_adr_prefix():
         "  - assert: pin_on_net\n"
         "    pin: \"D1.1\"\n"
         "    net: VIN\n"
-        "    adr: 0009\n"
+        "    adr: \"0009\"\n"
         "    why: \"cites 0009, leaving protection ADR 0001 uncovered\"\n")
     d = project(CLEAN_NETS, inv)
     dec = d / "01_docs" / "decisions"
@@ -264,17 +264,17 @@ invariants:
     net: WD_PET
     part_type: resistor
     min: 1
-    adr: 0011
+    adr: "0011"
     why: "WD_PET must carry a pull resistor or the supervisor self-pulses"
   - assert: pin_on_net
     pin: "R_WDPETPD.1"
     net: WD_PET
-    adr: 0011
+    adr: "0011"
     why: "the pull sits on the WDI node, not a neighbouring watchdog net"
   - assert: pin_on_net
     pin: "R_WDPETPD.2"
     net: GND
-    adr: 0011
+    adr: "0011"
     why: "direction DOWN: a defined LOW produces no edge, so the WD expires"
 """
 
@@ -283,7 +283,7 @@ invariants:
   - assert: part_value
     part: R_WDPETPD
     max: 5.2k
-    adr: 0011
+    adr: "0011"
     why: "I_IL(max) 190uA x R < V_IL 0.99V => R <= 5.2k (TI SLVS165O 6.5/7.3.4)"
 """
 
@@ -389,7 +389,7 @@ def t_part_value_no_bound():
     inv = ("invariants:\n"
            "  - assert: part_value\n"
            "    part: R_WDPETPD\n"
-           "    adr: 0011\n"
+           "    adr: \"0011\"\n"
            "    why: \"names the part but bounds nothing\"\n")
     d = project(inv_text=inv, net_text=cook_netlist())
     r = must_fail(einv(d), "part_value with no bound", "no bound")
@@ -404,7 +404,7 @@ def t_part_value_min_and_equals():
           "  - assert: part_value\n"
           "    part: R_WDPETPD\n"
           "    min: 470\n"
-          "    adr: 0011\n"
+          "    adr: \"0011\"\n"
           "    why: \"below 470R the WDI pull burns needless quiescent current\"\n")
     d = project(inv_text=mn, net_text=cook_netlist("100R"))
     r = must_fail(einv(d), "part_value min bound", ">= 470")
@@ -413,7 +413,7 @@ def t_part_value_min_and_equals():
            "    part: R_WDPETPD\n"
            "    equals: 1k\n"
            "    tolerance_pct: 5\n"
-           "    adr: 0011\n"
+           "    adr: \"0011\"\n"
            "    why: \"TI names 1k explicitly in SLVS165O 7.3.4\"\n")
     d2 = project(inv_text=eqv, net_text=cook_netlist("1.2kΩ"))
     must_fail(einv(d2), "part_value equals +/-5%", "part_value")
@@ -421,6 +421,160 @@ def t_part_value_min_and_equals():
     # decorative (a band that rejects everything is the same as no band)
     d3 = project(inv_text=eqv, net_text=cook_netlist("1.04kΩ"))
     must_pass(einv(d3), "part_value equals +/-5% on an in-band value")
+
+
+# ================================================ `adr:` YAML OCTAL (2026-07-27)
+# THE DEFECT, reported by the pluto-cal-switch agent. A zero-padded ADR
+# reference written BARE is a YAML 1.1 OCTAL literal:
+#     adr: 0011 -> the int 9  -> _norm_adr -> "0009"
+#     adr: 0012 -> the int 10 -> _norm_adr -> "0010"
+#     adr: 0010 -> the int 8  -> _norm_adr -> "0008"
+#     adr: 0008 -> the STRING "0008" (8 is not an octal digit; it survives)
+# So it is not a SKIP — the invariant silently satisfies the WRONG ADR, and
+# E-ADR then credits an ADR that emitted nothing while reporting the intended
+# one as uncited. Measured on this tree before the fix: the pcb-design TEMPLATE
+# (`skills/pcb-design/templates/03_src/rules/electrical_invariants.yaml`, the
+# source of truth every new board is seeded from) and the pluto-cal-switch copy
+# taken from it both wrote `adr: 0011` and both RESOLVED IT TO 0009. The live
+# pluto-cal-switch file cites 0011 AND 0012 — the two the reporter named.
+#
+# The fix REJECTS the bare form rather than coercing it, because coercion is
+# impossible after the fact: safe_load has already turned 0011 into 9, and
+# `adr: 9` and `adr: 0011` are then the same object.
+
+
+def adr_octal_project(inv_adr, adr_file="0009-input-protection.md",
+                      adr_head="# ADR-0009 — input protection: reverse polarity"):
+    """A project with ONE protection ADR and one invariant citing `inv_adr`."""
+    d = project(CLEAN_NETS, inv_text=(
+        "invariants:\n"
+        "  - assert: pin_on_net\n"
+        "    pin: \"D1.1\"\n"
+        "    net: VIN\n"
+        f"    adr: {inv_adr}\n"
+        "    why: \"the reverse-polarity clamp cathode must feed VIN\"\n"))
+    dec = d / "01_docs" / "decisions"
+    dec.mkdir(parents=True)
+    (dec / adr_file).write_text(f"{adr_head}\n\ntags: protection\n")
+    return d
+
+
+@test("E-ADR REFUSES `adr: 0011`, which YAML resolves to ADR 0009 — the "
+      "silent-wrong-answer, not a skip", kind="known_bad")
+def t_adr_octal_misresolves():
+    """RED-VERIFIED against pre-fix code (git show HEAD:...electrical_invariants
+    .py, 2026-07-27): the fixture declares ONE protection ADR — 0009 — and an
+    invariant citing `adr: 0011`, an ADR that does not exist in the fixture at
+    all. Pre-fix output, verbatim:
+
+        E-ADR OK: every protection/topology ADR is cited by an invariant
+        exit=0
+
+    i.e. the gate went GREEN on a citation of a nonexistent document, because
+    `0011` had already become 9 and been re-padded to "0009". must_fail sees
+    exit 0 and this test goes RED. Post-fix it exits 2 naming the line and the
+    misresolution."""
+    d = adr_octal_project("0011")
+    r = must_fail(einv(d, "--adr-coverage"), "E-ADR on a YAML-octal adr",
+                  "0011")
+    contains(r.out, "0009", "names the ADR it would have silently satisfied")
+    contains(r.out, "octal", "names the mechanism, not just the symptom")
+    check("E-ADR OK" not in r.out,
+          "pre-fix behaviour returned: the gate still reports OK on a citation "
+          "of an ADR that does not exist")
+
+
+@test("E-INV REFUSES a bare zero-padded `adr:` on the MAIN grading path too, "
+      "not only under --adr-coverage", kind="known_bad")
+def t_adr_octal_main_path():
+    """The load-time check guards every consumer of the file, so the E-INV run
+    that grades the netlist rejects it as well. Without this the two entry
+    points would disagree about whether the same file is loadable."""
+    d = adr_octal_project("0011")
+    r = must_fail(einv(d), "E-INV on a YAML-octal adr", "LOAD ERROR")
+    contains(r.out, "0011", "names the offending literal")
+    contains(r.out, "adr", "names the field")
+
+
+@test("the rejection is written at the width of the CLASS: `adr: 0008` is "
+      "refused too, though it happens to survive", kind="known_bad")
+def t_adr_octal_class_width():
+    """Canon M-WIDTH. `0008` is not a valid octal literal, so PyYAML declines
+    to convert it and it arrives as the string "0008" — correct, today, purely
+    because of which digits it contains. A rule scoped to the spellings that
+    currently break leaves the class open and it re-enters at the next ADR
+    number (this is the `netclasses` -> `everything a pcbnew save drops`
+    shape). The message must SAY that is why, so the reader does not read the
+    rejection as a false positive.
+    RED-VERIFIED: pre-fix, `adr: 0008` loads and E-ADR exits 0."""
+    d = adr_octal_project("0008", "0008-thermal.md",
+                          "# ADR-0008 — input protection thermal path")
+    r = must_fail(einv(d, "--adr-coverage"), "E-ADR on adr: 0008", "0008")
+    contains(r.out, "not an octal digit", "explains WHY this one survives")
+
+
+@test("a QUOTED adr and an UNPADDED adr both still load — the fix rejects the "
+      "hazard, not the field")
+def t_adr_quoted_and_unpadded_ok():
+    """A rule that rejected every ADR reference would also be 'safe' and would
+    be useless. Both legal spellings must keep working, and `adr: 11` must
+    normalise to the same "0011" that `adr: "0011"` does."""
+    d = adr_octal_project('"0009"')
+    must_pass(einv(d, "--adr-coverage"), "E-ADR on a quoted adr")
+    d2 = adr_octal_project("9")
+    must_pass(einv(d2, "--adr-coverage"), "E-ADR on an unpadded adr")
+
+
+# ======================================= E-ADR parse failure (M-COVER, 2026-07-27)
+@test("E-ADR NAMES a parse failure instead of reporting every ADR uncited",
+      kind="known_bad")
+def t_adr_coverage_load_error_names_itself():
+    """THE DEFECT: `adr_coverage()` caught LoadError and set `cited = set()`
+    with the comment "a broken file cites nothing". True, and the wrong
+    verdict — one weak `why:` field produced a report of TEN uncited protection
+    ADRs that never once mentioned the parse error, sending the reader after
+    ten phantom coverage holes instead of one typo. Canon M-COVER: input a gate
+    cannot parse is a FAIL that NAMES ITSELF, never a zero.
+
+    RED-VERIFIED against pre-fix code: the fixture has THREE protection ADRs
+    and an invariants file whose only defect is a `why:` under 5 characters.
+    Pre-fix, --adr-coverage exits 1 and prints three "no invariant cites adr:"
+    findings with no mention of `why:` or of a load error at all — so the
+    `LOAD ERROR` / `why` assertions below both fail. Post-fix it exits 2 and
+    names the field."""
+    d = project(CLEAN_NETS, inv_text=(
+        "invariants:\n"
+        "  - assert: pin_on_net\n"
+        "    pin: \"D1.1\"\n"
+        "    net: VIN\n"
+        "    adr: \"0001\"\n"
+        "    why: \"x\"\n"))            # the ONE defect: too weak to be evidence
+    dec = d / "01_docs" / "decisions"
+    dec.mkdir(parents=True)
+    for n, t in (("0001", "input protection: reverse polarity"),
+                 ("0002", "protection: overvoltage clamp"),
+                 ("0003", "power topology: the buck selection")):
+        (dec / f"{n}-x.md").write_text(f"# ADR-{n} — {t}\n\ntags: protection\n")
+    r = must_fail(einv(d, "--adr-coverage"), "E-ADR on an unparseable file",
+                  "LOAD ERROR")
+    contains(r.out, "why", "names the FIELD that failed to parse")
+    check("no invariant cites" not in r.out,
+          "pre-fix behaviour returned: a parse failure is still being reported "
+          "as N uncited ADRs")
+    check(r.rc == 2, f"a parse failure must exit 2 (config error), got {r.rc}")
+
+
+@test("E-ADR prints an N/M coverage denominator (canon G-COVER)")
+def t_adr_coverage_denominator():
+    """G-COVER: a verdict with no denominator hides its own blind spot. E-ADR
+    printed a bare 'every protection/topology ADR is cited by an invariant'
+    with no count at all, so a board with ZERO protection ADRs and a board with
+    twelve read identically."""
+    d = adr_octal_project('"0009"')
+    r = must_pass(einv(d, "--adr-coverage"), "E-ADR coverage line")
+    contains(r.out, "1/1", "names how many ADRs were graded, and of how many")
+    contains(r.out, "electrical_invariants.yaml",
+             "names the artifact it graded (G-INPUT)")
 
 
 if __name__ == "__main__":

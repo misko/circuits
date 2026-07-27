@@ -225,7 +225,7 @@ def t_template_abort_names_gate():
         "  - assert: pin_on_net\n"
         "    pin: \"J6.4\"\n"
         "    net: TOTALLY_ELSEWHERE\n"
-        "    adr: 0001\n"
+        "    adr: \"0001\"\n"
         "    why: \"deliberately violated fixture\"\n")
     txt = TEMPLATE.read_text()
     # extract the [1b] battery stanza verbatim from the template

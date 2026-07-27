@@ -18,54 +18,54 @@
 
 invariants:
   # ===== ADR-0009 — pass-through + breakout + both-sides TPs, per line =====
-  - {assert: pin_on_net, pin: "J_MEMBRANE.1",   net: KP_U1, adr: 0009, why: "membrane-side U1"}
-  - {assert: pin_on_net, pin: "J_CN1_JUMPER.1", net: KP_U1, adr: 0009, why: "CN1-jumper-side U1 (straight through)"}
-  - {assert: pin_on_net, pin: "J_KEY_MATRIX.1", net: KP_U1, adr: 0009, why: "breakout U1 == main-board J_KEY_MATRIX.1"}
-  - {assert: pin_on_net, pin: "TP_M_U1.1",      net: KP_U1, adr: 0009, why: "membrane-side TP U1"}
-  - {assert: pin_on_net, pin: "TP_C_U1.1",      net: KP_U1, adr: 0009, why: "jumper-side TP U1"}
-  - {assert: pin_on_net, pin: "J_MEMBRANE.2",   net: KP_U2, adr: 0009, why: "membrane-side U2"}
-  - {assert: pin_on_net, pin: "J_CN1_JUMPER.2", net: KP_U2, adr: 0009, why: "straight through U2"}
-  - {assert: pin_on_net, pin: "J_KEY_MATRIX.2", net: KP_U2, adr: 0009, why: "breakout U2"}
-  - {assert: pin_on_net, pin: "TP_M_U2.1",      net: KP_U2, adr: 0009, why: "TP U2 membrane side"}
-  - {assert: pin_on_net, pin: "TP_C_U2.1",      net: KP_U2, adr: 0009, why: "TP U2 jumper side"}
-  - {assert: pin_on_net, pin: "J_MEMBRANE.3",   net: KP_U3, adr: 0009, why: "membrane-side U3"}
-  - {assert: pin_on_net, pin: "J_CN1_JUMPER.3", net: KP_U3, adr: 0009, why: "straight through U3"}
-  - {assert: pin_on_net, pin: "J_KEY_MATRIX.3", net: KP_U3, adr: 0009, why: "breakout U3"}
-  - {assert: pin_on_net, pin: "TP_M_U3.1",      net: KP_U3, adr: 0009, why: "TP U3 membrane side"}
-  - {assert: pin_on_net, pin: "TP_C_U3.1",      net: KP_U3, adr: 0009, why: "TP U3 jumper side"}
-  - {assert: pin_on_net, pin: "J_MEMBRANE.4",   net: KP_U4, adr: 0009, why: "membrane-side U4"}
-  - {assert: pin_on_net, pin: "J_CN1_JUMPER.4", net: KP_U4, adr: 0009, why: "straight through U4"}
-  - {assert: pin_on_net, pin: "J_KEY_MATRIX.4", net: KP_U4, adr: 0009, why: "breakout U4"}
-  - {assert: pin_on_net, pin: "TP_M_U4.1",      net: KP_U4, adr: 0009, why: "TP U4 membrane side"}
-  - {assert: pin_on_net, pin: "TP_C_U4.1",      net: KP_U4, adr: 0009, why: "TP U4 jumper side"}
-  - {assert: pin_on_net, pin: "J_MEMBRANE.5",   net: KP_U5, adr: 0009, why: "membrane-side U5"}
-  - {assert: pin_on_net, pin: "J_CN1_JUMPER.5", net: KP_U5, adr: 0009, why: "straight through U5"}
-  - {assert: pin_on_net, pin: "J_KEY_MATRIX.5", net: KP_U5, adr: 0009, why: "breakout U5"}
-  - {assert: pin_on_net, pin: "TP_M_U5.1",      net: KP_U5, adr: 0009, why: "TP U5 membrane side"}
-  - {assert: pin_on_net, pin: "TP_C_U5.1",      net: KP_U5, adr: 0009, why: "TP U5 jumper side"}
-  - {assert: pin_on_net, pin: "J_MEMBRANE.6",   net: KP_U6, adr: 0009, why: "membrane-side U6"}
-  - {assert: pin_on_net, pin: "J_CN1_JUMPER.6", net: KP_U6, adr: 0009, why: "straight through U6"}
-  - {assert: pin_on_net, pin: "J_KEY_MATRIX.6", net: KP_U6, adr: 0009, why: "breakout U6"}
-  - {assert: pin_on_net, pin: "TP_M_U6.1",      net: KP_U6, adr: 0009, why: "TP U6 membrane side"}
-  - {assert: pin_on_net, pin: "TP_C_U6.1",      net: KP_U6, adr: 0009, why: "TP U6 jumper side"}
-  - {assert: pin_on_net, pin: "J_MEMBRANE.7",   net: KP_D1, adr: 0009, why: "membrane-side D1"}
-  - {assert: pin_on_net, pin: "J_CN1_JUMPER.7", net: KP_D1, adr: 0009, why: "straight through D1"}
-  - {assert: pin_on_net, pin: "J_KEY_MATRIX.7", net: KP_D1, adr: 0009, why: "breakout D1"}
-  - {assert: pin_on_net, pin: "TP_M_D1.1",      net: KP_D1, adr: 0009, why: "TP D1 membrane side"}
-  - {assert: pin_on_net, pin: "TP_C_D1.1",      net: KP_D1, adr: 0009, why: "TP D1 jumper side"}
-  - {assert: pin_on_net, pin: "J_MEMBRANE.8",   net: KP_D2, adr: 0009, why: "membrane-side D2"}
-  - {assert: pin_on_net, pin: "J_CN1_JUMPER.8", net: KP_D2, adr: 0009, why: "straight through D2"}
-  - {assert: pin_on_net, pin: "J_KEY_MATRIX.8", net: KP_D2, adr: 0009, why: "breakout D2"}
-  - {assert: pin_on_net, pin: "TP_M_D2.1",      net: KP_D2, adr: 0009, why: "TP D2 membrane side"}
-  - {assert: pin_on_net, pin: "TP_C_D2.1",      net: KP_D2, adr: 0009, why: "TP D2 jumper side"}
-  - {assert: pin_on_net, pin: "J_MEMBRANE.9",   net: KP_D3, adr: 0009, why: "membrane-side D3"}
-  - {assert: pin_on_net, pin: "J_CN1_JUMPER.9", net: KP_D3, adr: 0009, why: "straight through D3"}
-  - {assert: pin_on_net, pin: "J_KEY_MATRIX.9", net: KP_D3, adr: 0009, why: "breakout D3"}
-  - {assert: pin_on_net, pin: "TP_M_D3.1",      net: KP_D3, adr: 0009, why: "TP D3 membrane side"}
-  - {assert: pin_on_net, pin: "TP_C_D3.1",      net: KP_D3, adr: 0009, why: "TP D3 jumper side"}
+  - {assert: pin_on_net, pin: "J_MEMBRANE.1",   net: KP_U1, adr: "0009", why: "membrane-side U1"}
+  - {assert: pin_on_net, pin: "J_CN1_JUMPER.1", net: KP_U1, adr: "0009", why: "CN1-jumper-side U1 (straight through)"}
+  - {assert: pin_on_net, pin: "J_KEY_MATRIX.1", net: KP_U1, adr: "0009", why: "breakout U1 == main-board J_KEY_MATRIX.1"}
+  - {assert: pin_on_net, pin: "TP_M_U1.1",      net: KP_U1, adr: "0009", why: "membrane-side TP U1"}
+  - {assert: pin_on_net, pin: "TP_C_U1.1",      net: KP_U1, adr: "0009", why: "jumper-side TP U1"}
+  - {assert: pin_on_net, pin: "J_MEMBRANE.2",   net: KP_U2, adr: "0009", why: "membrane-side U2"}
+  - {assert: pin_on_net, pin: "J_CN1_JUMPER.2", net: KP_U2, adr: "0009", why: "straight through U2"}
+  - {assert: pin_on_net, pin: "J_KEY_MATRIX.2", net: KP_U2, adr: "0009", why: "breakout U2"}
+  - {assert: pin_on_net, pin: "TP_M_U2.1",      net: KP_U2, adr: "0009", why: "TP U2 membrane side"}
+  - {assert: pin_on_net, pin: "TP_C_U2.1",      net: KP_U2, adr: "0009", why: "TP U2 jumper side"}
+  - {assert: pin_on_net, pin: "J_MEMBRANE.3",   net: KP_U3, adr: "0009", why: "membrane-side U3"}
+  - {assert: pin_on_net, pin: "J_CN1_JUMPER.3", net: KP_U3, adr: "0009", why: "straight through U3"}
+  - {assert: pin_on_net, pin: "J_KEY_MATRIX.3", net: KP_U3, adr: "0009", why: "breakout U3"}
+  - {assert: pin_on_net, pin: "TP_M_U3.1",      net: KP_U3, adr: "0009", why: "TP U3 membrane side"}
+  - {assert: pin_on_net, pin: "TP_C_U3.1",      net: KP_U3, adr: "0009", why: "TP U3 jumper side"}
+  - {assert: pin_on_net, pin: "J_MEMBRANE.4",   net: KP_U4, adr: "0009", why: "membrane-side U4"}
+  - {assert: pin_on_net, pin: "J_CN1_JUMPER.4", net: KP_U4, adr: "0009", why: "straight through U4"}
+  - {assert: pin_on_net, pin: "J_KEY_MATRIX.4", net: KP_U4, adr: "0009", why: "breakout U4"}
+  - {assert: pin_on_net, pin: "TP_M_U4.1",      net: KP_U4, adr: "0009", why: "TP U4 membrane side"}
+  - {assert: pin_on_net, pin: "TP_C_U4.1",      net: KP_U4, adr: "0009", why: "TP U4 jumper side"}
+  - {assert: pin_on_net, pin: "J_MEMBRANE.5",   net: KP_U5, adr: "0009", why: "membrane-side U5"}
+  - {assert: pin_on_net, pin: "J_CN1_JUMPER.5", net: KP_U5, adr: "0009", why: "straight through U5"}
+  - {assert: pin_on_net, pin: "J_KEY_MATRIX.5", net: KP_U5, adr: "0009", why: "breakout U5"}
+  - {assert: pin_on_net, pin: "TP_M_U5.1",      net: KP_U5, adr: "0009", why: "TP U5 membrane side"}
+  - {assert: pin_on_net, pin: "TP_C_U5.1",      net: KP_U5, adr: "0009", why: "TP U5 jumper side"}
+  - {assert: pin_on_net, pin: "J_MEMBRANE.6",   net: KP_U6, adr: "0009", why: "membrane-side U6"}
+  - {assert: pin_on_net, pin: "J_CN1_JUMPER.6", net: KP_U6, adr: "0009", why: "straight through U6"}
+  - {assert: pin_on_net, pin: "J_KEY_MATRIX.6", net: KP_U6, adr: "0009", why: "breakout U6"}
+  - {assert: pin_on_net, pin: "TP_M_U6.1",      net: KP_U6, adr: "0009", why: "TP U6 membrane side"}
+  - {assert: pin_on_net, pin: "TP_C_U6.1",      net: KP_U6, adr: "0009", why: "TP U6 jumper side"}
+  - {assert: pin_on_net, pin: "J_MEMBRANE.7",   net: KP_D1, adr: "0009", why: "membrane-side D1"}
+  - {assert: pin_on_net, pin: "J_CN1_JUMPER.7", net: KP_D1, adr: "0009", why: "straight through D1"}
+  - {assert: pin_on_net, pin: "J_KEY_MATRIX.7", net: KP_D1, adr: "0009", why: "breakout D1"}
+  - {assert: pin_on_net, pin: "TP_M_D1.1",      net: KP_D1, adr: "0009", why: "TP D1 membrane side"}
+  - {assert: pin_on_net, pin: "TP_C_D1.1",      net: KP_D1, adr: "0009", why: "TP D1 jumper side"}
+  - {assert: pin_on_net, pin: "J_MEMBRANE.8",   net: KP_D2, adr: "0009", why: "membrane-side D2"}
+  - {assert: pin_on_net, pin: "J_CN1_JUMPER.8", net: KP_D2, adr: "0009", why: "straight through D2"}
+  - {assert: pin_on_net, pin: "J_KEY_MATRIX.8", net: KP_D2, adr: "0009", why: "breakout D2"}
+  - {assert: pin_on_net, pin: "TP_M_D2.1",      net: KP_D2, adr: "0009", why: "TP D2 membrane side"}
+  - {assert: pin_on_net, pin: "TP_C_D2.1",      net: KP_D2, adr: "0009", why: "TP D2 jumper side"}
+  - {assert: pin_on_net, pin: "J_MEMBRANE.9",   net: KP_D3, adr: "0009", why: "membrane-side D3"}
+  - {assert: pin_on_net, pin: "J_CN1_JUMPER.9", net: KP_D3, adr: "0009", why: "straight through D3"}
+  - {assert: pin_on_net, pin: "J_KEY_MATRIX.9", net: KP_D3, adr: "0009", why: "breakout D3"}
+  - {assert: pin_on_net, pin: "TP_M_D3.1",      net: KP_D3, adr: "0009", why: "TP D3 membrane side"}
+  - {assert: pin_on_net, pin: "TP_C_D3.1",      net: KP_D3, adr: "0009", why: "TP D3 jumper side"}
   # D4 (T3): identical treatment IS the requirement — pass through unchanged.
-  - {assert: pin_on_net, pin: "J_MEMBRANE.10",   net: KP_D4, adr: 0009, why: "membrane-side D4 (T3: unchanged pass-through)"}
-  - {assert: pin_on_net, pin: "J_CN1_JUMPER.10", net: KP_D4, adr: 0009, why: "straight through D4"}
-  - {assert: pin_on_net, pin: "J_KEY_MATRIX.10", net: KP_D4, adr: 0009, why: "breakout D4 (lockout is downstream, T3)"}
-  - {assert: pin_on_net, pin: "TP_M_D4.1",       net: KP_D4, adr: 0009, why: "TP D4 membrane side (T3 labeled TP)"}
-  - {assert: pin_on_net, pin: "TP_C_D4.1",       net: KP_D4, adr: 0009, why: "TP D4 jumper side"}
+  - {assert: pin_on_net, pin: "J_MEMBRANE.10",   net: KP_D4, adr: "0009", why: "membrane-side D4 (T3: unchanged pass-through)"}
+  - {assert: pin_on_net, pin: "J_CN1_JUMPER.10", net: KP_D4, adr: "0009", why: "straight through D4"}
+  - {assert: pin_on_net, pin: "J_KEY_MATRIX.10", net: KP_D4, adr: "0009", why: "breakout D4 (lockout is downstream, T3)"}
+  - {assert: pin_on_net, pin: "TP_M_D4.1",       net: KP_D4, adr: "0009", why: "TP D4 membrane side (T3 labeled TP)"}
+  - {assert: pin_on_net, pin: "TP_C_D4.1",       net: KP_D4, adr: "0009", why: "TP D4 jumper side"}
