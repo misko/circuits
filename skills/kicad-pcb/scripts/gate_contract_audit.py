@@ -1,0 +1,174 @@
+#!/usr/bin/env python3
+"""gate_contract_audit.py — canon G-*: a gate on the gates.
+
+    gate_contract_audit.py [--root DIR] [--json OUT] [--enforce LIST]
+
+WHY THIS EXISTS. `contracts_audit.py` governs FOLDERS. Nothing governed the
+CHECKERS, so five of them shipped unable to fail on the property they name, and
+a five-release fleet audit (2026-07-26/27) found two boards not orderable with
+every gate green. Measured on this repo at the time of writing:
+
+  * A-AMP graded **10 of 57** declared net-class currents fleet-wide. Any
+    qualifier ("7 A worst case", "6 A / 5 A", "~1.5A pulsed") makes `parse_amps`
+    return None, and rules_audit.py:336 then files it under OKS with the text
+    "n/a (no current: declared)". ZERO net classes actually declare no current,
+    so that message is wrong 100% of the times it fires. usb-hub-3s-v3 ships
+    PWR_IN 7 A, PWR_RAIL 6 A and SWITCH_NODE 7 A — all silenced; the one class
+    it does grade, VBUS, FAILS.
+  * `bom_source_check.row_kind()` classifies by the whole leading-alpha run, so
+    `RS1/RS2` (the 10 mOhm shunts setting BOTH buck current limits) and `CE1`
+    (the only electrolytic, which shipped REVERSED in v1.0/v1.1) exit leg C
+    while the tool prints PASS.
+  * `labeled_resistance("10mOhm")` returns 1.0e7 — the multiplier is uppercased
+    before lookup, so milli decodes as mega.
+
+None of those is a bad line of code. They are one SHAPE: a checker permitted to
+report success over input it did not understand.
+
+THE THREE OBLIGATIONS. A script that prints a verdict must:
+
+  G-INPUT   name the artifact it graded, so a reader can tell whether it read
+            the SHIPPED bytes or a reconstruction (canon M6). policy_audit ran
+            against a `06_build` shadow tree and reported 79 warnings where the
+            sealed archive has 102; bom_source_check graded a filename that does
+            not exist in the release.
+  G-COVER   emit `N graded / M total`. A verdict with no denominator hides its
+            own blind spot, and every instance above is invisible without one.
+  G-RED     have a fixture in tests/ that makes it FAIL. A gate that has never
+            been observed to fail is a claim, not a control.
+
+THIS SCRIPT IS ITSELF A GATE AND MUST OBEY ITS OWN CONTRACT. It reports its
+coverage, it names its input, and t1_gate_contract.py holds its known-bads. Its
+acceptance test is adversarial: on first run against this repo it MUST flag a
+large number of scripts. A gate-on-gates that comes back clean on a codebase
+independently measured as riddled is decoration, and should be deleted rather
+than trusted.
+"""
+import argparse
+import ast
+import json
+import re
+import sys
+from pathlib import Path
+
+#: a script "prints a verdict" if it emits PASS/FAIL/OK as a result word.
+VERDICT_RE = re.compile(r"""print\(\s*f?["'][^"']*\b(PASS|FAIL)\b""", re.X)
+VERDICT_RE2 = re.compile(r"""["']\s*(PASS|FAIL)\b""")
+
+#: a coverage denominator: "N/M", "graded N of M", "coverage ...".
+COVERAGE_RE = re.compile(
+    r"coverage|"
+    r"\{[^{}]*\}\s*/\s*\{[^{}]*\}|"          # f"{n}/{m}"
+    r"\bof\s+\{?len\(|"                       # "of {len(rows)}"
+    r"\bgraded\b[^\n]*\bof\b|"
+    r"\d+\s*/\s*\{",
+    re.I)
+
+#: naming the graded artifact — a path argument or an explicit echo.
+INPUT_RE = re.compile(
+    r"add_argument\(\s*[\"'](?!--)|"          # a positional path arg
+    r"add_argument\(\s*[\"']--(release|board|pcb|zip|fab|bom|cpl|dir|"
+    r"archive|manifest|src|source|input)|"
+    r"graded against|read from|input:",
+    re.I)
+
+SKIP_BASENAMES = {
+    # generators and libraries, not checkers — they produce, they do not grade.
+    "pcb_toolkit.py", "fab_tier_util.py", "schwriter2.py", "grind_driver.py",
+    "audit_template.py", "circuit_json_to_kicad_pcb.py",
+    "circuit_json_to_kicad_sch.py", "generate_board_generic.py",
+    "generate_rules_generic.py", "route_and_stitch_generic.py",
+    "import_krt.py", "export_fab_jlc.py", "export_jlc_package.py",
+    "pcb_status.py", "jlc_rotation_measure.py", "jlc_rotation_resolve.py",
+}
+
+
+def prints_verdict(text):
+    return bool(VERDICT_RE.search(text) or VERDICT_RE2.search(text))
+
+
+def has_red_fixture(name, tests_dir):
+    """Some tests/*.py must reference this script AND use must_fail."""
+    stem = Path(name).stem
+    for t in sorted(tests_dir.glob("t*.py")):
+        body = t.read_text(errors="replace")
+        if stem in body and "must_fail" in body:
+            return t.name
+    return None
+
+
+def audit(root, enforce=None):
+    root = Path(root)
+    tests_dir = root / "tests"
+    scripts = sorted(root.glob("skills/*/scripts/*.py"))
+    rows, unparsed = [], []
+    for p in scripts:
+        if p.name in SKIP_BASENAMES:
+            continue
+        try:
+            text = p.read_text()
+            ast.parse(text)                 # a file we cannot parse is a FAIL
+        except Exception as e:
+            unparsed.append(f"{p.relative_to(root)}: {e}")
+            continue
+        if not prints_verdict(text):
+            continue
+        rows.append({
+            "script": str(p.relative_to(root)),
+            "cover": bool(COVERAGE_RE.search(text)),
+            "input": bool(INPUT_RE.search(text)),
+            "red": has_red_fixture(p.name, tests_dir),
+        })
+
+    want = set(enforce or ["G-COVER", "G-INPUT", "G-RED"])
+    fails = []
+    for r in rows:
+        if "G-COVER" in want and not r["cover"]:
+            fails.append(f"G-COVER {r['script']}: prints a verdict with no "
+                         f"`N/M` coverage denominator — it can report success "
+                         f"over input it did not understand")
+        if "G-INPUT" in want and not r["input"]:
+            fails.append(f"G-INPUT {r['script']}: never names the artifact it "
+                         f"graded — a reader cannot tell shipped bytes from a "
+                         f"reconstruction (canon M6)")
+        if "G-RED" in want and not r["red"]:
+            fails.append(f"G-RED {r['script']}: no tests/ fixture makes it "
+                         f"FAIL — it has never been observed to gate")
+    return {"root": str(root), "gates": rows, "fails": fails,
+            "unparsed": unparsed,
+            "coverage": f"{len(rows)}/{len(rows)} verdict-printing scripts "
+                        f"audited ({len(scripts)} scripts scanned, "
+                        f"{len(SKIP_BASENAMES)} generator/library names skipped)"}
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--root", default=str(Path(__file__).resolve().parents[3]))
+    ap.add_argument("--json", default=None)
+    ap.add_argument("--enforce", default=None,
+                    help="comma list, e.g. G-COVER,G-INPUT (default: all)")
+    a = ap.parse_args(argv)
+
+    enforce = a.enforce.split(",") if a.enforce else None
+    r = audit(a.root, enforce)
+    if a.json:
+        Path(a.json).write_text(json.dumps(r, indent=2) + "\n")
+
+    print(f"  coverage: {r['coverage']}")
+    for u in r["unparsed"]:
+        print(f"  FAIL G-PARSE {u}")
+    for f in r["fails"]:
+        print(f"  FAIL {f}")
+
+    bad = len(r["fails"]) + len(r["unparsed"])
+    if bad:
+        print(f"G-CONTRACT FAIL: {bad} obligation(s) unmet across "
+              f"{len(r['gates'])} verdict-printing script(s)")
+        return 1
+    print(f"G-CONTRACT OK: {len(r['gates'])} verdict-printing script(s) "
+          f"meet G-INPUT/G-COVER/G-RED")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

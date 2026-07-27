@@ -15,7 +15,32 @@ stock, twin).
 ## Audit
 
 - Checkers: clean + known-bad tests in `tests/` (t1_jlc_twin.py,
-  t1_bom_source.py, t1_release_freshness.py, t1_assembly_gates.py).
+  t1_bom_source.py, t1_release_freshness.py, t1_assembly_gates.py,
+  t1_fab_payload.py).
+- **The FAB PAYLOAD family (canon F-*) — the shipped zip is a GRADED
+  artifact, not merely a hashed one (canon M6, ADR-0004).**
+  - `fab_payload_census.py RELEASE_DIR` opens `fab/*_gerbers.zip` and grades
+    it against `source/*.kicad_pcb`. **F-POUR**: a copper layer carrying pour
+    zones must carry G36 regions in the shipped gerber, and regions on a layer
+    the board declares no zone for fail in reverse. **F-IDENT**: two copper
+    layers with different `%TF.FileFunction` must not be byte-identical once
+    that line is normalised out.
+    WHY: usb-hub-3s-v3 shipped v1.6/v1.7/v1.8 with **0 G36 regions on all four
+    copper layers** — 44287.91 mm2 of missing copper — and every gate was
+    green, because `kicad-cli pcb drc --refill-zones` REFILLS IN MEMORY and so
+    returns 0/0/0 on a board whose saved file has no fill. `In1_Cu.g1` and
+    `In2_Cu.g2` were byte-identical at 18921 B apart from `Copper,L2` vs `L3`.
+    Nothing in this repo had ever opened the zip that becomes copper.
+    It parses the board from `.kicad_pcb` TEXT and the payload from GERBER
+    TEXT — **neither uses pcbnew**, so it cannot inherit the in-memory-refill
+    blindness of the tool under test (canon M1).
+    KEEPOUT/rule-area zones are excluded from the pour census: they have no
+    fill by design, and counting them made a first draft report a good board's
+    two keepout-only inner layers as bare (the adjacent-property error).
+    A genuinely pourless board (the cooksense interposer: BRIEF S4/S7 forbid a
+    plane in the keypad zone) must DECLARE `pourless: "<reason>"` in
+    `assembly.yaml` — a bare `pourless: true` is refused, because a waiver
+    needs evidence rather than assertion.
 - **The ASSEMBLY family (canon A-POP / A-STOCK) — PCBA is the deliverable,
   so the order artifacts are GATED, not just produced.**
   - `assembly_coverage.py TARGET` (A-POP), plain python3, takes a sealed

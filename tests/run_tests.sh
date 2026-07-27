@@ -55,6 +55,8 @@ SUITES=(
   t1_assembly_gates.py
   t1_status.py
   t1_jlc_twin.py
+  t1_fab_payload.py
+  t1_gate_contract.py
   t1_rotation_authority.py
   t1_rotation_fixtures.py
   t1_part_facts.py
