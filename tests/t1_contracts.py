@@ -215,7 +215,11 @@ def t_skill_contract_sync():
     # backstop would have reported success — the very class the comment warns
     # about, reproduced under its own warning. Found while landing F-LEGIBLE
     # (ADR-0006).
-    ID_RE = re.compile(r'(?<![\w-])([ASPRMEDFG]-[A-Z][A-Z0-9-]+)(?![\w-])')
+    # WIDENED AGAIN 2026-07-27 to `Q` when the Q- (sourcing/quote) family was
+    # minted with canon M-QUOTE and skills/shopping-list. This time the
+    # instruction two comments up WAS followed, in the same change that minted
+    # the family — which is the whole point of writing it down.
+    ID_RE = re.compile(r'(?<![\w-])([ASPRMEDFGQ]-[A-Z][A-Z0-9-]+)(?![\w-])')
     for c in (skills / "pcb-design/templates/contracts").rglob("contracts.md"):
         txt = c.read_text()
         for m in ID_RE.finditer(txt):
@@ -269,6 +273,22 @@ def t_skill_contract_sync():
     check(in_(corpus, "F-LEGIBLE"),
           "F-LEGIBLE is cited but exists nowhere in the skill — ADR-0006 "
           "landed without its canon row")
+
+    # 6. RED: the same reach test for the Q- (sourcing/quote) family, minted
+    #    2026-07-27 with canon M-QUOTE. VERIFIED RED against the un-widened
+    #    `[ASPRMEDFG]-` class: `Q-NOPE`/`Q-STOCK` match ZERO times there, so
+    #    `seen_q` comes back empty and the assertion below fails.
+    srcq = "| `x` | governed by Q-NOPE and by Q-STOCK |\n"
+    seen_q = {m.group(1) for m in ID_RE.finditer(srcq)}
+    check("Q-NOPE" in seen_q and "Q-STOCK" in seen_q,
+          f"the check-ID regex does not reach the Q- (sourcing) family — "
+          f"Q-COVER/Q-WIDE/Q-IDENT/Q-STOCK/Q-SNIPPET/Q-GRADE would all be "
+          f"exempt; matched only {sorted(seen_q)}")
+    check(not in_(corpus, "Q-NOPE"),
+          "Q-NOPE unexpectedly exists in the skill — pick another fake ID")
+    check(in_(corpus, "Q-STOCK"),
+          "Q-STOCK is cited but exists nowhere in the skill — the sourcing "
+          "family landed without its canon row")
 
 
 if __name__ == "__main__":

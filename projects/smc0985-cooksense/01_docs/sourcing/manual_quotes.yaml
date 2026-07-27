@@ -1,0 +1,136 @@
+# manual_quotes.yaml — distributor facts a HUMAN READ, with where and when.
+#
+# Consumed by `shopping_list.py` (skills/shopping-list). This file is the ONLY
+# way a DigiKey or Amazon number enters the shopping list: neither has a usable
+# API here (DigiKey's needs OAuth client credentials nobody has provided;
+# Amazon's PA-API needs an affiliate account), so every number below was read
+# off a named page on a named date and is stale the moment it is written.
+#
+# THE RULE THIS FILE EXISTS TO ENFORCE (canon M-QUOTE / Q-SNIPPET):
+#   source: product_page     the ONLY admissible source for a stock figure.
+#   source: search_snippet   admissible for NOTHING. GHR-10V-S was reported to
+#                            the user as available on a DigiKey search snippet
+#                            reading "available to order today with same-day
+#                            shipping"; the PRODUCT PAGE said In Stock: 0. That
+#                            sentence is boilerplate and renders at zero stock.
+#   source: catalog_absence  the one case where a SEARCH page is evidence: the
+#                            property "this catalog does not list the part" IS a
+#                            property of the search. Reading PRESENCE off a
+#                            search page is the error; reading ABSENCE is not.
+#                            Requires `listed: false` and a `note:` saying what
+#                            the catalog returned INSTEAD.
+#
+# Every entry needs `url:` and `read_on:`. `shopping_list.py --quote-max-age-days`
+# (default 7) refuses anything older as a stock figure.
+
+quotes:
+  # ------------------------------------------------------------------ DigiKey
+  - mpn: "DIP05-1A72-12L"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/standex-meder-electronics/DIP05-1A72-12L/1949339"
+    read_on: 2026-07-27
+    dpn: "DIP05-1A72-12L-ND"
+    stock: 56
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    price_breaks:
+      - {qty: 1, usd: 3.87}
+      - {qty: 10, usd: 3.448}
+      - {qty: 25, usd: 3.2932}
+    note: >
+      Standex-Meder, the DO-NOT-SUBSTITUTE reed relay (ADR-0006 isolation comb).
+      56 on the shelf against 12 per board; a 16-board run would clear DigiKey.
+
+  - mpn: "B5B-XH-A(LF)(SN)"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/jst-sales-america-inc/B5B-XH-A/1530483"
+    read_on: 2026-07-27
+    dpn: "455-B5B-XH-A-ND"
+    stock: 63329
+    min: 1
+    mult: 1
+    lifecycle: "Active"
+    price_breaks:
+      - {qty: 1, usd: 0.20}
+      - {qty: 10, usd: 0.17}
+    note: >
+      DigiKey catalogues this under the BARE MPN `B5B-XH-A`; our dossier holds
+      the fully-suffixed `B5B-XH-A(LF)(SN)`. Same part — the suffixes are
+      lead-free/tin-plate qualifiers. Same catalog-record shape as the
+      10FDZ-BT incident, benign here only because DigiKey keeps one record.
+
+  - mpn: "10FDZ-BT(S)(LF)(SN)"
+    distributor: digikey
+    source: product_page
+    url: "https://www.digikey.com/en/products/detail/jst-sales-america-inc/10FDZ-BT/28540420"
+    read_on: 2026-07-27
+    dpn: "455-10FDZ-BT-ND"
+    stock: 0
+    min: 100
+    mult: 100
+    lifecycle: "Active"
+    price_breaks:
+      - {qty: 100, usd: 0.5758}
+    note: >
+      "Not kept in stock at DigiKey" — non-stocked, factory-order only, minimum
+      100 pieces at a manufacturer standard lead time of 16 weeks. ACTIVE and
+      ZERO STOCK are not the same fact, and this is the row that proves it: the
+      lifecycle field says Active on a part you cannot get for four months.
+
+  - mpn: "PCC-SMP-K"
+    distributor: digikey
+    source: catalog_absence
+    url: "https://www.digikey.com/en/products/result?keywords=PCC-SMP-K"
+    read_on: 2026-07-27
+    listed: false
+    note: >
+      The bare Omega MPN `PCC-SMP-K` is not listed as its own orderable line.
+      What IS listed is six PACK-QUANTITY variants — PCC-SMP-K-5 / -50 / -100
+      and their -R counterparts. PCC-SMP-K-5 shows 210 in stock at $48.91
+      (product page 25639954, read 2026-07-27), but the page does not state
+      whether that price is per pack of five or per piece, so the per-piece cost
+      is UNRESOLVED and this is a substitute proposal for a human, not a sourced
+      line. J_TC is DO-NOT-SUBSTITUTE (the chromel/alumel contacts ARE the
+      cold-junction interface) — but a pack quantity of the same Omega part is a
+      packaging question, not a substitution one. Resolve it before ordering.
+
+  - mpn: "KF350-3.5-4P"
+    distributor: digikey
+    source: catalog_absence
+    url: "https://www.digikey.com/en/products/result?keywords=KF350-3.5-4P"
+    read_on: 2026-07-27
+    listed: false
+    note: >
+      "Sorry, 'KF350-3.5-4P' did not return any results." DigiKey does not carry
+      the Cixi Kefa 350 family at all. The board sanctions XY350-3.5-4P and
+      DG350-3.5-4P as approved alternates (assembly.yaml disposition) — neither
+      was searched here, because an alternate is a decision, not a lookup.
+
+  - mpn: "2.54-2*20PPC104"
+    distributor: digikey
+    source: catalog_absence
+    url: "https://www.digikey.com/en/products/result?keywords=2.54-2%2A20PPC104"
+    read_on: 2026-07-27
+    listed: false
+    note: >
+      "Sorry, '2.54-2*20PPC104' did not return any results." Expected: this
+      string is an LCSC HOUSE-BRAND DESCRIPTOR that happens to be the orderable
+      MPN at LCSC, not a manufacturer part number any western distributor
+      indexes. J_PI is explicitly substitutable (any 2x20 2.54mm female header),
+      so this line is a catalog miss, not a sourcing wall.
+
+  # ------------------------------------------------------------------- Amazon
+  # NOTHING. Not "we did not look" — MEASURED 2026-07-27: Amazon product pages
+  # do not render to this toolchain (one fetch returned HTTP 500, another
+  # returned only the JavaScript shell with no price, stock or seller in it),
+  # and Amazon has no usable API (PA-API requires an affiliate account). Amazon
+  # marketplace listings also do not carry manufacturer part numbers as a
+  # first-class field: searching the six MPNs returns generic multi-packs from
+  # resellers, which for FOUR of these six lines would be a SUBSTITUTION the
+  # board's own safety argument forbids (12 reed relays, the TC jack, the
+  # isolated terminal block — ADR-0006/ADR-0013). So every Amazon row is OWED,
+  # and an OWED fact may not be spent. Recording a guessed ASIN here to make the
+  # table look complete is the exact defect this file exists to prevent.

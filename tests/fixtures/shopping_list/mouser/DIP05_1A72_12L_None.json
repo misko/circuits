@@ -1,0 +1,141 @@
+{
+ "Errors": [],
+ "SearchResults": {
+  "NumberOfResult": 1,
+  "Parts": [
+   {
+    "Availability": "132 In Stock",
+    "DataSheetUrl": "https://www.mouser.com/datasheet/3/466/1/753034E08EC46DB770B0F1D71A44CC32CDF28C8E009BBAA87173D21B7C3FFEAC.pdf",
+    "Description": "Reed Relays 1 Form A 5 V Molded DIP",
+    "FactoryStock": "0",
+    "ImagePath": "https://www.mouser.com/images/standexelectronics/images/dip05_1a72_11d_SPL.jpg",
+    "Category": "Reed Relays",
+    "LeadTime": "125 Days",
+    "LifecycleStatus": null,
+    "Manufacturer": "MEDER electronic",
+    "ManufacturerPartNumber": "DIP05-1A72-12L",
+    "Min": "1",
+    "Mult": "1",
+    "MouserPartNumber": "876-DIP05-1A72-12L",
+    "ProductAttributes": [
+     {
+      "AttributeName": "Packaging",
+      "AttributeValue": "Tube"
+     },
+     {
+      "AttributeName": "Standard Pack Qty",
+      "AttributeValue": "25"
+     }
+    ],
+    "PriceBreaks": [
+     {
+      "Quantity": 1,
+      "Price": "$3.87",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 10,
+      "Price": "$3.45",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 25,
+      "Price": "$3.29",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 50,
+      "Price": "$3.16",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 100,
+      "Price": "$3.00",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 250,
+      "Price": "$2.88",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 500,
+      "Price": "$2.73",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 1000,
+      "Price": "$2.64",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 2500,
+      "Price": "$2.63",
+      "Currency": "USD"
+     }
+    ],
+    "AlternatePackagings": null,
+    "ProductDetailUrl": "https://www.mouser.com/en/ProductDetail/MEDER-electronic/DIP05-1A72-12L?qs=k5V78Jg%2Feq5x%2FLYUrMtrGw%3D%3D",
+    "Reeling": false,
+    "ROHSStatus": "RoHS Compliant",
+    "SuggestedReplacement": "",
+    "MultiSimBlue": 0,
+    "UnitWeightKg": {
+     "UnitWeight": 0.00148
+    },
+    "AvailabilityInStock": "132",
+    "AvailabilityOnOrder": [],
+    "InfoMessages": [],
+    "SurchargeMessages": null,
+    "ProductCompliance": [
+     {
+      "ComplianceName": "USHTS",
+      "ComplianceValue": "8536410020"
+     },
+     {
+      "ComplianceName": "CNHTS",
+      "ComplianceValue": "8536411090"
+     },
+     {
+      "ComplianceName": "CAHTS",
+      "ComplianceValue": "8536410011"
+     },
+     {
+      "ComplianceName": "JPHTS",
+      "ComplianceValue": "853641000"
+     },
+     {
+      "ComplianceName": "KRHTS",
+      "ComplianceValue": "8536410000"
+     },
+     {
+      "ComplianceName": "TARIC",
+      "ComplianceValue": "8536490099"
+     },
+     {
+      "ComplianceName": "BRHTS",
+      "ComplianceValue": "85364100"
+     },
+     {
+      "ComplianceName": "ECCN",
+      "ComplianceValue": "EAR99"
+     }
+    ],
+    "TradeCompliance": [
+     {
+      "ComplianceName": "Country of Origin",
+      "ComplianceValue": "Germany"
+     },
+     {
+      "ComplianceName": "Assembly Country of Origin",
+      "ComplianceValue": "Not available"
+     },
+     {
+      "ComplianceName": "Country of Diffusion",
+      "ComplianceValue": "Not available"
+     }
+    ]
+   }
+  ]
+ }
+}

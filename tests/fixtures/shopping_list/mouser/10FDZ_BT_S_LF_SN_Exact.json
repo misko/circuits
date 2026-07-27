@@ -1,0 +1,37 @@
+{
+ "Errors": [],
+ "SearchResults": {
+  "NumberOfResult": 1,
+  "Parts": [
+   {
+    "DataSheetUrl": "",
+    "Description": "Headers & Wire Housings FDZ CONNECTOR (TOP)",
+    "FactoryStock": null,
+    "ImagePath": null,
+    "Category": "Headers & Wire Housings",
+    "LeadTime": "0 Days",
+    "LifecycleStatus": "Obsolete",
+    "Manufacturer": "JST Commercial",
+    "ManufacturerPartNumber": "10FDZ-BT(S)(LF)(SN)",
+    "Min": "0",
+    "Mult": "0",
+    "MouserPartNumber": "N/A",
+    "ProductAttributes": [],
+    "PriceBreaks": [],
+    "AlternatePackagings": null,
+    "ProductDetailUrl": "https://www.mouser.com/en/ProductDetail/JST-Commercial/10FDZ-BTSLFSN?qs=cdbOS8ANM9AFq0tbl4DNEw%3D%3D",
+    "Reeling": false,
+    "ROHSStatus": "",
+    "SuggestedReplacement": "",
+    "MultiSimBlue": 0,
+    "AvailabilityInStock": null,
+    "AvailabilityOnOrder": [],
+    "InfoMessages": [],
+    "SurchargeMessages": null,
+    "RestrictionMessage": "Mouser does not presently sell this product in your region.",
+    "ProductCompliance": [],
+    "TradeCompliance": []
+   }
+  ]
+ }
+}

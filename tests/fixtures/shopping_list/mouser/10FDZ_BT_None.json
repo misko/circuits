@@ -1,0 +1,246 @@
+{
+ "Errors": [],
+ "SearchResults": {
+  "NumberOfResult": 2,
+  "Parts": [
+   {
+    "Availability": "37 In Stock",
+    "DataSheetUrl": "https://www.mouser.com/datasheet/3/1070/1/eFDZ.pdf",
+    "Description": "FFC & FPC Connectors FDZ CONNECTOR (TOP)",
+    "FactoryStock": "0",
+    "ImagePath": null,
+    "Category": "FFC & FPC Connectors",
+    "LeadTime": "180 Days",
+    "LifecycleStatus": null,
+    "Manufacturer": "JST Commercial",
+    "ManufacturerPartNumber": "10FDZ-BT",
+    "Min": "1",
+    "Mult": "1",
+    "MouserPartNumber": "306-10FDZBTSLFSN",
+    "ProductAttributes": [
+     {
+      "AttributeName": "Standard Pack Qty",
+      "AttributeValue": "100"
+     }
+    ],
+    "PriceBreaks": [
+     {
+      "Quantity": 1,
+      "Price": "$0.96",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 10,
+      "Price": "$0.831",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 25,
+      "Price": "$0.78",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 100,
+      "Price": "$0.662",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 300,
+      "Price": "$0.625",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 1000,
+      "Price": "$0.505",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 2500,
+      "Price": "$0.473",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 5000,
+      "Price": "$0.451",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 10000,
+      "Price": "$0.429",
+      "Currency": "USD"
+     }
+    ],
+    "AlternatePackagings": null,
+    "ProductDetailUrl": "https://www.mouser.com/en/ProductDetail/JST-Commercial/10FDZ-BT?qs=olJun0bQHM99eR757fzIdQ%3D%3D",
+    "Reeling": false,
+    "ROHSStatus": "RoHS Compliant",
+    "SuggestedReplacement": "",
+    "MultiSimBlue": 0,
+    "AvailabilityInStock": "37",
+    "AvailabilityOnOrder": [
+     {
+      "Quantity": 100,
+      "Date": "2026-12-01T00:00:00"
+     }
+    ],
+    "InfoMessages": [],
+    "SurchargeMessages": [
+     {
+      "code": "TARIFF_US",
+      "message": "A tariff of 8% may be applied."
+     }
+    ],
+    "ProductCompliance": [
+     {
+      "ComplianceName": "USHTS",
+      "ComplianceValue": "8536694040"
+     },
+     {
+      "ComplianceName": "CNHTS",
+      "ComplianceValue": "8536901100"
+     },
+     {
+      "ComplianceName": "CAHTS",
+      "ComplianceValue": "8536690020"
+     },
+     {
+      "ComplianceName": "JPHTS",
+      "ComplianceValue": "853669000"
+     },
+     {
+      "ComplianceName": "KRHTS",
+      "ComplianceValue": "8536691000"
+     },
+     {
+      "ComplianceName": "TARIC",
+      "ComplianceValue": "8536693000"
+     },
+     {
+      "ComplianceName": "BRHTS",
+      "ComplianceValue": "85366990"
+     },
+     {
+      "ComplianceName": "ECCN",
+      "ComplianceValue": "EAR99"
+     }
+    ],
+    "TradeCompliance": [
+     {
+      "ComplianceName": "Country of Origin",
+      "ComplianceValue": "Malaysia"
+     },
+     {
+      "ComplianceName": "Assembly Country of Origin",
+      "ComplianceValue": "Not available"
+     },
+     {
+      "ComplianceName": "Country of Diffusion",
+      "ComplianceValue": "Not available"
+     }
+    ]
+   },
+   {
+    "Availability": "None",
+    "DataSheetUrl": "https://www.mouser.com/catalog/specsheets/JST_eFDZ__5_.pdf",
+    "Description": "FFC & FPC Connectors FDZ CONNECTOR (TOP)",
+    "FactoryStock": "0",
+    "ImagePath": null,
+    "Category": "FFC & FPC Connectors",
+    "LeadTime": "180 Days",
+    "LifecycleStatus": "New at Mouser",
+    "Manufacturer": "JST Commercial",
+    "ManufacturerPartNumber": "10FDZ-BT(LF)(SN)",
+    "Min": "1",
+    "Mult": "1",
+    "MouserPartNumber": "306-10FDZBTLFSN",
+    "ProductAttributes": [],
+    "PriceBreaks": [
+     {
+      "Quantity": 1,
+      "Price": "$0.95",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 10,
+      "Price": "$0.83",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 25,
+      "Price": "$0.759",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 100,
+      "Price": "$0.685",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 250,
+      "Price": "$0.625",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 1000,
+      "Price": "$0.505",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 2500,
+      "Price": "$0.473",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 5000,
+      "Price": "$0.451",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 10000,
+      "Price": "$0.429",
+      "Currency": "USD"
+     }
+    ],
+    "AlternatePackagings": null,
+    "ProductDetailUrl": "https://www.mouser.com/en/ProductDetail/JST-Commercial/10FDZ-BTLFSN?qs=%252BHhoWzUJg4KWrsJbkfbqdg%3D%3D",
+    "Reeling": false,
+    "ROHSStatus": "RoHS Compliant",
+    "SuggestedReplacement": "",
+    "MultiSimBlue": 0,
+    "AvailabilityInStock": "0",
+    "AvailabilityOnOrder": [],
+    "InfoMessages": [],
+    "SurchargeMessages": [
+     {
+      "code": "TARIFF_US",
+      "message": "A tariff of 8% may be applied."
+     }
+    ],
+    "ProductCompliance": [
+     {
+      "ComplianceName": "USHTS",
+      "ComplianceValue": "8536694040"
+     },
+     {
+      "ComplianceName": "TARIC",
+      "ComplianceValue": "8536699099"
+     }
+    ],
+    "TradeCompliance": [
+     {
+      "ComplianceName": "Country of Origin",
+      "ComplianceValue": "Malaysia"
+     },
+     {
+      "ComplianceName": "Assembly Country of Origin",
+      "ComplianceValue": "Not available"
+     },
+     {
+      "ComplianceName": "Country of Diffusion",
+      "ComplianceValue": "Not available"
+     }
+    ]
+   }
+  ]
+ }
+}
