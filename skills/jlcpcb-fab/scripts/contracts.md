@@ -194,3 +194,20 @@ stock, twin).
   R12 defect (C2933210 = 3.74k labeled 4.12k, 2026-07-23) is invisible —
   measured. A live catalog fetch, when in-env, is a stronger add-on but the
   offline check stands alone.
+  **Leg C prints `coverage leg C: N/M` and reports every COVERAGE-GAP by name
+  (canon M-COVER).** It had two defects that CANCELLED, which is why neither
+  was ever observed: `row_kind` classified by the whole leading-alpha run, so
+  a descriptive refdes poisoned its entire row (`RS1` -> "RS", `CE1` -> "CE",
+  and a row of `C_5V2` + `CL1` yields {"C","CL"} != {"C"}) — **87 of 673
+  all-R/C rows fleet-wide were dropped while the tool printed PASS**; and
+  `labeled_resistance("10mOhm")` returned 1.0e7 because the multiplier was
+  UPPERCASED before lookup, so MILLI decoded as MEGA. The rows that would have
+  exposed the second bug were exactly the rows the first bug dropped: RS1/RS2,
+  the 10 mOhm shunts setting BOTH LM5116 buck current limits. `CE1` — the only
+  electrolytic, the part that shipped REVERSED in cooksense v1.0/v1.1 — was
+  dropped by the same mechanism. Now: 0/673 dropped, `m` is milli and `M` is
+  mega (the rule `electrical_invariants.yaml`'s contract already stated), and
+  an all-R/C row leg C still cannot classify is a **LEG-C-BLIND FAIL**, not a
+  skip. Measured after: crow-recorder-central-v2 v1.5 leg C 13/25 -> 25/25;
+  usb-hub-3s-v3 v1.8 23/26 -> 25/26, with RS1/RS2 now surfacing as
+  UNVERIFIABLE-VALUE (C127692 needs a ledger entry) instead of vanishing.

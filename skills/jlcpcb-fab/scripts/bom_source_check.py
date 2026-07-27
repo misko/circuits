@@ -96,6 +96,10 @@ from collections import namedtuple
 from pathlib import Path
 
 
+#: leg C coverage, filled in place so `main` can print an N/M denominator.
+LEGC_STATS = {}
+
+
 def refdes_codes_from_circuit(circuit_json):
     """{refdes: lcsc} from circuit.json source_component entries. A component
     with no jlcpcb supplier code maps to '' (present, but uncoded)."""
@@ -172,15 +176,44 @@ def read_bom(bom_path):
 # ------------------------------------------------------------ semantic value
 _PKG = ("0201", "0402", "0603", "0805", "1206", "1210", "1812",
         "2010", "2512", "2920")
-_MULT = {"R": 1.0, "K": 1e3, "M": 1e6}          # RKM decimal-point-as-multiplier
+#: RKM decimal-point-as-multiplier. CASE-SENSITIVE ON `m`/`M`, and that single
+#: distinction is load-bearing: `labeled_resistance("10mOhm")` returned
+#: 1.0e7 because the multiplier was uppercased before lookup, so MILLI decoded
+#: as MEGA — a 10 mOhm current-sense shunt read as 10 MOhm, a factor of 1e9.
+#: The repo's own electrical_invariants contract already states the rule
+#: ("note `m` is MILLI and `M` is MEGA"); this table now obeys it.
+#: The bug was invisible because `row_kind` dropped the only rows that use it
+#: (RS1/RS2) — two defects cancelling, which is why neither was ever observed.
+_MULT = {"R": 1.0, "r": 1.0, "K": 1e3, "k": 1e3, "M": 1e6, "m": 1e-3}
 _CAP_UNIT = {"P": 1e-12, "N": 1e-9, "U": 1e-6, "µ": 1e-6, "M": 1e-3}
 
 
 def row_kind(refs):
     """'R' if every designator is a resistor, 'C' if every one a capacitor,
-    else None (mixed / non-passive rows are out of scope for value parsing)."""
-    prefixes = {m.group(0).upper() for r in refs
-                if (m := re.match(r"[A-Za-z]+", r))}
+    else None (mixed / non-passive rows are out of scope for value parsing).
+
+    CLASSIFY BY THE FIRST LETTER, NOT THE WHOLE LEADING-ALPHA RUN. The old
+    `re.match(r"[A-Za-z]+", r)` took the entire run, so a DESCRIPTIVE refdes
+    poisoned its whole row: `RS1` -> "RS", `CE1` -> "CE", `Rs1M` -> "RS",
+    `Cd1` -> "CD". Measured over the sealed fleet 2026-07-27: **87 of 673
+    all-R/C BOM rows were dropped while the tool printed PASS**, and the two
+    most consequential were
+
+      RS1/RS2  the 10 mOhm shunts that set BOTH LM5116 buck current limits
+      CE1      the board's only electrolytic — the part that shipped REVERSED
+               in cooksense v1.0/v1.1
+
+    A single ref with a multi-letter prefix was enough: a row of `C_5V2` plus
+    `CL1` yields prefixes {"C","CL"} != {"C"} and the whole row exits leg C.
+
+    SAFE ON THIS FLEET, MEASURED NOT ASSUMED: every refdes beginning R has an
+    R_* footprint and every one beginning C has a C_*/CP_* footprint (CP =
+    polarized; that is CE1). Nothing beginning R or C is a connector or other
+    non-passive. Were such a part to appear, its value would fail to decode and
+    the row would be FLAGGED — canon says an unverifiable value is not a pass —
+    so it surfaces rather than silently skipping, which is the whole point.
+    """
+    prefixes = {r[0].upper() for r in refs if r}
     if prefixes == {"R"}:
         return "R"
     if prefixes == {"C"}:
@@ -198,10 +231,10 @@ def labeled_resistance(text):
         return None
     m = re.fullmatch(r"(\d*)([RKM])(\d*)", s, re.I)          # RKM: 4k7, 2R2, R47
     if m and (m.group(1) or m.group(3)):
-        return float(f"{m.group(1) or '0'}.{m.group(3) or '0'}") * _MULT[m.group(2).upper()]
+        return float(f"{m.group(1) or '0'}.{m.group(3) or '0'}") * _MULT[m.group(2)]
     m = re.fullmatch(r"(\d+(?:\.\d+)?)([RKM]?)", s, re.I)    # 4.12k, 100k, 470
     if m:
-        return float(m.group(1)) * (_MULT[m.group(2).upper()] if m.group(2) else 1.0)
+        return float(m.group(1)) * (_MULT[m.group(2)] if m.group(2) else 1.0)
     return None
 
 
@@ -293,7 +326,7 @@ def load_ledger(path=None):
     return {str(k): v for k, v in data.items() if isinstance(v, dict)}
 
 
-def value_findings(bom_rows, vendored=None, ledger=None):
+def value_findings(bom_rows, vendored=None, ledger=None, stats=None):
     """Leg C: catalog value vs LABELED value for every R/C row.
 
     Resolution order (first source that yields a value wins):
@@ -321,8 +354,18 @@ def value_findings(bom_rows, vendored=None, ledger=None):
         bom_mpn = row.mpn if isinstance(row, BomRow) else ""
         footprint = row.footprint if isinstance(row, BomRow) else ""
         kind = row_kind(refs)
+        if stats is not None and refs:
+            stats["rows"] = stats.get("rows", 0) + 1
         if not kind:
+            if stats is not None and refs and not (
+                    {r[0].upper() for r in refs} - {"R", "C"}):
+                # an all-R/C row leg C still cannot classify: record it, do not
+                # let it vanish. This counter existing at all is the fix for the
+                # 87-of-673 silent drop measured 2026-07-27.
+                stats.setdefault("unclassified", []).append(",".join(refs[:4]))
             continue
+        if stats is not None:
+            stats["passives"] = stats.get("passives", 0) + 1
         led = ledger.get(lcsc) if lcsc else None
         if not (bom_mpn or lcsc_to_mpn.get(lcsc) or led or lcsc):
             continue        # no code and no MPN anywhere: leg A's MISSING story
@@ -333,8 +376,14 @@ def value_findings(bom_rows, vendored=None, ledger=None):
         unit = "Ω" if kind == "R" else "F"
         labeled = parse_label(comment)
         if labeled is None:
+            # NOT silent: a passive row whose LABEL does not read as a value was
+            # never value-checked, and coverage must say so (canon M-COVER).
+            if stats is not None:
+                stats.setdefault("unlabeled", []).append(f"{tag} = {comment!r}")
             continue                    # label is not a passive value (part-name text)
         if labeled == 0:
+            if stats is not None:
+                stats["graded"] = stats.get("graded", 0) + 1
             continue                    # 0Ω jumper — no meaningful value to encode
         # --- resolve, in trust order; remember what was tried for the flag ---
         derived, via, tried = None, "", []
@@ -354,6 +403,8 @@ def value_findings(bom_rows, vendored=None, ledger=None):
             if v is not None:
                 derived = v
                 via = f"ledger {lcsc} = '{led.get('mpn', '?')}'"
+        if stats is not None:
+            stats["graded"] = stats.get("graded", 0) + 1
         if derived is None:
             out.append(
                 f"UNVERIFIABLE-VALUE on row '{tag}' ({lcsc or 'no LCSC'}): "
@@ -540,7 +591,7 @@ def check(bom_rows, refdes_code, vendored=None, ledger=None,
                     f"— substituted or merged away")
 
     # ---- leg C: catalog value vs the LABELED value (semantic, offline) ----
-    findings.extend(value_findings(bom_rows, vendored, ledger))
+    findings.extend(value_findings(bom_rows, vendored, ledger, stats=LEGC_STATS))
     return findings
 
 
@@ -637,6 +688,25 @@ def main():
           + f"; ledger: {len(ledger)} vetted passive codes"
           + (f"; not_assembled: {len(unpop)} declared refdes "
              f"({', '.join(sorted(unpop)[:4])}...)" if unpop else ""))
+    # canon M-COVER: leg C's denominator, so a PASS cannot hide how little it
+    # graded. Measured 2026-07-27, BEFORE this line existed: row_kind dropped
+    # 87 of 673 all-R/C rows fleet-wide — including RS1/RS2, the 10 mOhm shunts
+    # setting BOTH buck current limits, and CE1, the only electrolytic (the part
+    # that shipped REVERSED in cooksense v1.0/v1.1) — while printing PASS.
+    s = LEGC_STATS
+    unc, unl = s.get("unclassified", []), s.get("unlabeled", [])
+    print(f"  coverage leg C: {s.get('graded', 0)}/{s.get('passives', 0)} "
+          f"R/C rows value-graded ({s.get('rows', 0)} BOM rows seen)")
+    for u in unc:
+        print(f"  COVERAGE-GAP leg C could not classify all-R/C row: {u}")
+    for u in unl:
+        print(f"  COVERAGE-GAP leg C read no value from label: {u}")
+    if unc:
+        findings.append(
+            f"LEG-C-BLIND: {len(unc)} all-R/C row(s) were not value-graded "
+            f"because row_kind could not classify them — a gate that skips is "
+            f"a gate that cannot fail on the property it names")
+
     if findings:
         print(f"BOM SOURCE CHECK: FAIL ({len(findings)})")
         for f in findings:

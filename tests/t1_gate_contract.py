@@ -140,22 +140,28 @@ def t_flags_the_scripts_independently_known_broken():
     measuring the property it claims to measure, and this suite should fail
     rather than reassure.
 
-    `rules_audit.py` IS NO LONGER ASSERTED HERE — not because the assertion was
-    inconvenient, but because it was FIXED in the same campaign: A-AMP now
-    reports `coverage A-AMP: N/M` and grades 53 of 57 fleet-wide. This test
-    failing when that landed is the intended behaviour of an acceptance test
-    pinned to a specific defect, and the honest response is to record the
-    repair, not to loosen the check. `bom_source_check.py` remains measurably
-    silent and stays asserted until it is fixed too.
+    NEITHER IS ASSERTED BY NAME ANY MORE, because BOTH WERE FIXED in the same
+    campaign, and this test failed twice on the way — once as each repair
+    landed. That is the intended behaviour of an acceptance test pinned to
+    specific defects, and the honest response is to record the repair rather
+    than to loosen the check:
 
-    The floor below keeps this from decaying into a tautology as the tree
-    improves: an auditor reporting a nearly-clean tree today would be lying,
-    and if that floor ever becomes the thing that fails, DELETE IT and rely on
-    the named scripts — do not lower the number to make it pass.
+      rules_audit.py       A-AMP 10/57 -> 53/57 graded, `coverage A-AMP: N/M`
+      bom_source_check.py  row_kind dropped 87/673 all-R/C rows -> 0/673, and
+                           leg C now prints `coverage leg C: N/M`
+
+    What survives is the property, not the instances: the auditor must not
+    report this tree clean, and it must not go quiet. The synthetic fixtures
+    above are what actually prove it DISCRIMINATES — they are the known-bads;
+    this test only guards against vacuity on the real tree.
+
+    IF THE FLOOR BELOW EVER BECOMES THE THING THAT FAILS, DELETE THIS TEST.
+    Do not lower the number to make it pass — a tree that genuinely satisfies
+    G-INPUT/G-COVER/G-RED everywhere has earned the deletion, and a lowered
+    floor is just a gate quietly relaxing until it cannot fail.
     """
     r = run([KPY, TOOL, "--root", ROOT])
     check(r.rc != 0, "the auditor must not report the current tree as clean")
-    contains(r.out, "bom_source_check.py", "flags the row_kind silencer")
     n = r.out.count("  FAIL ")
     check(n >= 5, f"the auditor found only {n} violations on a tree independently "
                   f"measured as riddled — a gate-on-gates this quiet is "

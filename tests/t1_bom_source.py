@@ -225,6 +225,55 @@ def t_legc_parsers():
     check(abs(bsc.labeled_capacitance("100nF") - 1e-7) < 1e-12, "label 100nF")
 
 
+@test("labeled_resistance: lowercase m is MILLI, uppercase M is MEGA")
+def t_legc_milli_is_not_mega():
+    """`labeled_resistance("10mΩ")` returned 1.0e7 — the multiplier was
+    UPPERCASED before lookup, so milli decoded as mega. A 10 mΩ current-sense
+    shunt read as 10 MΩ: a factor of 1e9 on the part that sets BOTH LM5116 buck
+    current limits.
+
+    It was invisible because `row_kind` dropped the only rows that use it
+    (RS1/RS2) — two defects cancelling, which is why neither was ever observed.
+    The repo's own electrical_invariants contract already stated the rule
+    ("`m` is MILLI and `M` is MEGA"); this table did not obey it, and the
+    module docstring even documented the hazard as a reason to prefer the
+    numeric prop rather than fixing the decoder.
+
+    RED-verified: restoring `.upper()` on the multiplier lookup makes the
+    10mΩ assertion below return 1e7.
+    """
+    eq(bsc.labeled_resistance("10mΩ"), 0.01, "10mΩ is ten MILLIohms")
+    eq(bsc.labeled_resistance("10MΩ"), 1e7, "10MΩ is ten MEGohms")
+    eq(bsc.labeled_resistance("5mΩ"), 0.005, "5mΩ")
+    eq(bsc.labeled_resistance("1M"), 1e6, "bare 1M is mega")
+    eq(bsc.labeled_resistance("100k"), 1e5, "lowercase k is still kilo")
+    eq(bsc.labeled_resistance("2R2"), 2.2, "RKM 2R2 unaffected")
+
+
+@test("row_kind classifies by the FIRST LETTER, not the whole alpha run")
+def t_row_kind_first_letter():
+    """MEASURED 2026-07-27: the old whole-run prefix dropped **87 of 673**
+    all-R/C BOM rows fleet-wide while the tool printed PASS. A single
+    descriptive refdes poisoned its entire row — {"C","CL"} != {"C"}.
+
+    The two most consequential drops:
+      RS1/RS2  the 10 mΩ shunts setting BOTH buck current limits
+      CE1      the only electrolytic — the part that shipped REVERSED in
+               cooksense v1.0/v1.1
+
+    RED-verified: restoring `re.match(r"[A-Za-z]+", r)` makes every assertion
+    below return None.
+    """
+    eq(bsc.row_kind(["RS1", "RS2"]), "R", "the LM5116 sense shunts")
+    eq(bsc.row_kind(["CE1"]), "C", "the electrolytic that shipped reversed")
+    eq(bsc.row_kind(["C_5V2", "CL1", "Cd1", "Cout_U10"]), "C",
+       "descriptive capacitor refdes in one row")
+    eq(bsc.row_kind(["Rs1M", "RG1", "Rf", "Rd"]), "R",
+       "descriptive resistor refdes in one row")
+    eq(bsc.row_kind(["R1", "C1"]), None, "a genuinely mixed row is still None")
+    eq(bsc.row_kind(["U1"]), None, "a non-passive row is still None")
+
+
 @test("gate FAILS the v1.2 defect: R12 = C2933210 / MPN FRC0603F3741TS (3.74k) "
       "labeled '4.12kΩ' — code identity PASSES, VALUE does not", kind="known_bad")
 def t_kb_value_mismatch():
