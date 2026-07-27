@@ -181,13 +181,25 @@ def check(release_dir, assembly=None):
     src = rel / "source"
     zips = sorted(fab.glob("*_gerbers.zip"))
     pcbs = sorted(src.glob("*.kicad_pcb"))
-    r = {"release": str(rel), "fails": [], "oks": [], "coverage": {}}
+    r = {"release": str(rel), "fails": [], "oks": [], "coverage": {}, "na": None}
 
-    if not zips:
-        r["fails"].append(f"F-SRC: no *_gerbers.zip in {fab}")
-        return r
-    if not pcbs:
-        r["fails"].append(f"F-SRC: no *.kicad_pcb in {src}")
+    # PRE-ARCHIVE-STANDARD RELEASES ARE N-A, NOT FAIL. 07_releases/contracts.md
+    # is explicit that the self-contained-archive structure applies to releases
+    # from 2026-07-20 forward and that "existing sealed releases are NOT
+    # retro-filled ... they are historical facts about what was sent". A release
+    # that predates the standard has no `source/` to grade the payload against,
+    # and reporting that as a defect would be this gate demanding a retro-fill
+    # the canon forbids. It is still reported — never silently skipped.
+    if not zips or not pcbs:
+        missing = []
+        if not zips:
+            missing.append(f"no *_gerbers.zip in {fab.name}/")
+        if not pcbs:
+            missing.append(f"no *.kicad_pcb in {src.name}/")
+        r["na"] = ("F-PAYLOAD N-A: " + "; ".join(missing)
+                   + " — this release predates the self-contained-archive "
+                     "standard, which 07_releases/contracts.md forbids "
+                     "retro-filling. Not gradeable, not a defect.")
         return r
 
     board = board_zone_census(pcbs[0].read_text())
@@ -227,16 +239,36 @@ def check(release_dir, assembly=None):
     # whose only difference IS that line (`Copper,L2` vs `Copper,L3`, 18921 B
     # each) — comparing raw bytes finds them "distinct" and misses the whole
     # point. The property is identical CONTENT under different declared function.
+    #
+    # BUT IDENTITY ALONE IS NOT THE DEFECT, and a first version of this check
+    # got that wrong. Two FULL GND PLANES on a symmetric stackup legitimately
+    # serialise identically — measured on crow-recorder-central v1.0, whose
+    # In1.Cu and In4.Cu are identical at 549906 B AND CARRY A REGION EACH
+    # (G36=1). That is a correct board, and flagging it was a false positive
+    # found by fleet_regrade.py against an already-shipped gate.
+    #
+    # The real signature is identity PLUS NO REGIONS: files that match because
+    # they contain only the layer-independent flash list, which is exactly
+    # usb-hub-3s-v3 v1.8 (In1/In2, 18921 B, G36=0 on both). Requiring zero
+    # regions is what makes this evidence of the pour loss rather than of
+    # symmetry.
     seen = {}
     for layer, (size, func, raw) in sorted(blobs.items()):
         key = FILEFUNC_RE.sub("", raw.decode("utf8", "replace"))
         if key in seen:
             other_layer, other_func = seen[key]
-            r["fails"].append(
-                f"F-IDENT: {layer} ({func}) and {other_layer} ({other_func}) "
-                f"are BYTE-IDENTICAL at {size}B — two different copper layers "
-                f"cannot have the same content; this is the signature of a "
-                f"payload carrying only the layer-independent flash list")
+            if g36.get(layer, 0) == 0 and g36.get(other_layer, 0) == 0:
+                r["fails"].append(
+                    f"F-IDENT: {layer} ({func}) and {other_layer} "
+                    f"({other_func}) are BYTE-IDENTICAL at {size}B AND CARRY 0 "
+                    f"G36 REGIONS — they match because they hold only the "
+                    f"layer-independent flash list, not because the planes are "
+                    f"symmetric; this is the signature of a lost pour")
+            else:
+                r["oks"].append(
+                    f"F-IDENT {layer} == {other_layer} at {size}B, but both "
+                    f"carry pour ({g36.get(layer, 0)}/{g36.get(other_layer, 0)} "
+                    f"G36) — symmetric planes, not a lost pour")
         else:
             seen[key] = (layer, func)
     r["coverage"]["F-IDENT"] = f"{len(blobs)}/{len(blobs)} copper gerbers compared"
@@ -274,6 +306,9 @@ def main(argv=None):
     if a.json:
         Path(a.json).write_text(json.dumps(r, indent=2, default=str) + "\n")
 
+    if r.get("na"):
+        print(f"  {r['na']}")
+        return 0
     for k, v in sorted(r["coverage"].items()):
         print(f"  coverage {k}: {v}")
     for o in r["oks"]:

@@ -69,7 +69,7 @@ def t_silent_gate_is_flagged():
     """THE SHAPE. A verdict with no denominator can report success over input it
     never understood — the shape shared by every instance in the docstring."""
     d = _root({"quiet.py": SILENT},
-              {"t1_quiet.py": "quiet.py\nmust_fail(1)\n"})
+              {"t1_quiet.py": 'TOOL = SCRIPTS / "quiet.py"\nmust_fail(1)\n'})
     must_fail(run([KPY, TOOL, "--root", d]), "silent gate", expect="G-COVER")
 
 
@@ -78,7 +78,7 @@ def t_covered_gate_passes():
     """Discrimination: a gate that names its input, reports coverage and has a
     RED fixture must PASS, or the auditor is just failing everything."""
     d = _root({"loud.py": COVERED},
-              {"t1_loud.py": "loud.py\nmust_fail(1)\n"})
+              {"t1_loud.py": 'TOOL = SCRIPTS / "loud.py"\nmust_fail(1)\n'})
     must_pass(run([KPY, TOOL, "--root", d]), "fully compliant gate")
 
 
@@ -87,7 +87,7 @@ def t_unnamed_input_is_flagged():
     """G-INPUT / canon M6: policy_audit graded a `06_build` shadow tree and
     reported 79 warnings where the sealed archive has 102."""
     d = _root({"noin.py": NO_INPUT},
-              {"t1_noin.py": "noin.py\nmust_fail(1)\n"})
+              {"t1_noin.py": 'TOOL = SCRIPTS / "noin.py"\nmust_fail(1)\n'})
     must_fail(run([KPY, TOOL, "--root", d]), "gate not naming its input",
               expect="G-INPUT")
 
@@ -105,9 +105,42 @@ def t_test_without_must_fail_is_not_red():
     """Mentioning the script in tests/ is not enough — the fixture must assert
     the checker REJECTED something."""
     d = _root({"loud.py": COVERED},
-              {"t1_loud.py": "loud.py\nmust_pass(0)\n"})
+              {"t1_loud.py": 'TOOL = SCRIPTS / "loud.py"\nmust_pass(0)\n'})
     must_fail(run([KPY, TOOL, "--root", d]), "test that never asserts failure",
               expect="G-RED")
+
+
+@test("gca_a_prose_mention_is_not_a_red_fixture", kind="known_bad")
+def t_prose_mention_is_not_a_red_fixture():
+    """A HOLE THIS CHECK SHIPPED WITH, found by running it on itself.
+
+    `has_red_fixture` first searched for the script's stem ANYWHERE in a test
+    file. The sentence "found by fleet_regrade.py" inside an UNRELATED suite's
+    docstring therefore satisfied G-RED for fleet_regrade — a gate-on-gates
+    crediting a fixture that does not exist, which is precisely the defect
+    class it polices.
+
+    Now the name must appear QUOTED, the form both binding idioms use
+    (`ROOT / "skills/.../x.py"` and `SCRIPTS / "x.py"`). A docstring writes it
+    bare. The first fix over-corrected to requiring a literal `scripts/x.py`
+    path, which false-failed 16 gates that DO have real suites; that measurement
+    is what forced the middle ground.
+    """
+    d = _root({"loud.py": COVERED},
+              {"t1_other.py": '"""this suite mentions loud.py in prose only"""\n'
+                              "must_fail(1)\n"})
+    must_fail(run([KPY, TOOL, "--root", d]), "prose-only mention of the script",
+              expect="G-RED")
+
+
+@test("gca_a_quoted_invocation_IS_a_red_fixture")
+def t_quoted_invocation_is_a_red_fixture():
+    """The other side: both real binding idioms must be accepted, or the check
+    rejects suites that genuinely exercise their gate."""
+    for name, body in (("path", 'TOOL = ROOT / "skills/x/scripts/loud.py"\nmust_fail(1)\n'),
+                       ("harness", 'TOOL = SCRIPTS / "loud.py"\nmust_fail(1)\n')):
+        d = _root({"loud.py": COVERED}, {f"t1_{name}.py": body})
+        must_pass(run([KPY, TOOL, "--root", d]), f"{name}-style binding")
 
 
 @test("gca_unparseable_script_is_a_fail_not_a_skip", kind="known_bad")
@@ -124,7 +157,7 @@ def t_unparseable_script_is_a_fail():
 def t_emits_its_own_coverage():
     """The auditor obeys the contract it enforces."""
     d = _root({"loud.py": COVERED},
-              {"t1_loud.py": "loud.py\nmust_fail(1)\n"})
+              {"t1_loud.py": 'TOOL = SCRIPTS / "loud.py"\nmust_fail(1)\n'})
     r = must_pass(run([KPY, TOOL, "--root", d]), "compliant fixture")
     contains(r.out, "coverage:", "the auditor reports its own denominator")
 

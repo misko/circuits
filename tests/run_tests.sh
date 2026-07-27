@@ -58,6 +58,7 @@ SUITES=(
   t1_twin_overlay.py
   t1_fab_payload.py
   t1_gate_contract.py
+  t1_fleet_regrade.py
   t1_rotation_authority.py
   t1_rotation_fixtures.py
   t1_part_facts.py

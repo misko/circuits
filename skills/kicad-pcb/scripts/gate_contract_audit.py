@@ -65,10 +65,17 @@ COVERAGE_RE = re.compile(
     re.I)
 
 #: naming the graded artifact — a path argument or an explicit echo.
+#: `--root` / `--project` / `--releases-root` were added after this check
+#: FALSE-FAILED `fleet_regrade.py`, which prints the full path of every release
+#: it grades — more explicitly than most gates here. The regex is a PROXY for
+#: "names what it graded", and a proxy that rejects a tool doing the thing
+#: properly is the adjacent-property error this repo keeps paying for.
+#: Widened on that principle, not to make one tool pass: any of these options
+#: selects the artifact set under grade.
 INPUT_RE = re.compile(
     r"add_argument\(\s*[\"'](?!--)|"          # a positional path arg
-    r"add_argument\(\s*[\"']--(release|board|pcb|zip|fab|bom|cpl|dir|"
-    r"archive|manifest|src|source|input)|"
+    r"add_argument\(\s*[\"']--(release|releases-root|root|project|board|pcb|"
+    r"zip|fab|bom|cpl|dir|archive|manifest|src|source|input)|"
     r"graded against|read from|input:",
     re.I)
 
@@ -88,11 +95,31 @@ def prints_verdict(text):
 
 
 def has_red_fixture(name, tests_dir):
-    """Some tests/*.py must reference this script AND use must_fail."""
+    """Some tests/*.py must INVOKE this script AND use must_fail.
+
+    A BARE NAME MATCH IS NOT ENOUGH, and this check shipped with that hole: the
+    first version searched for the stem anywhere in the file, so the sentence
+    "found by fleet_regrade.py" inside an unrelated test's DOCSTRING satisfied
+    G-RED for fleet_regrade. A gate could claim a fixture it does not have —
+    a gate-on-gates that cannot fail on the property it names, which is the
+    exact defect class it exists to police.
+
+    The first fix over-corrected the other way: requiring the literal path
+    `scripts/<stem>.py` false-failed 16 gates that DO have real suites but bind
+    through the harness idiom `SCRIPTS / "<stem>.py"` — t1_bom_source.py really
+    does exercise bom_source_check.py. Matching a QUOTED filename covers both
+    binding forms and still excludes prose, because a docstring sentence writes
+    the name bare.
+
+    Still a proxy. A test could quote a name it never runs. But a proxy that
+    rejects prose and accepts both real idioms is the honest middle; the
+    alternative is parsing call graphs to grade a docstring.
+    """
     stem = Path(name).stem
+    pat = re.compile(rf"""["'][^"']*{re.escape(stem)}\.py["']""")
     for t in sorted(tests_dir.glob("t*.py")):
         body = t.read_text(errors="replace")
-        if stem in body and "must_fail" in body:
+        if pat.search(body) and "must_fail" in body:
             return t.name
     return None
 

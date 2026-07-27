@@ -91,10 +91,50 @@ def t_v18_zero_pour_is_caught():
 
 @test("fpay_v18_identical_planes_are_caught", kind="known_bad")
 def t_v18_identical_planes_are_caught():
-    """F-IDENT: an L2 GND plane and an L3 VIN plane cannot be the same bytes."""
+    """F-IDENT: identical copper layers that ALSO carry zero regions."""
     r = must_fail(run([KPY, TOOL, V18]), "F-IDENT on usb-hub v1.8")
     contains(r.out, "F-IDENT", "F-IDENT fires")
     contains(r.out, "18921B", "the measured size is reported")
+    contains(r.out, "0 G36 REGIONS", "identity ALONE is not the finding")
+
+
+CRC_V1 = ROOT / "projects/crow-recorder-central/07_releases/v1.0-2026-07-22"
+UH_V1 = ROOT / "projects/usb-hub-3s/07_releases/v1.0-2026-07-21"
+
+
+@test("fpay_symmetric_planes_are_not_a_lost_pour")
+def t_symmetric_planes_are_not_a_lost_pour():
+    """A FALSE POSITIVE THIS GATE SHIPPED WITH, found by fleet_regrade.py.
+
+    The first F-IDENT fired on ANY two byte-identical copper layers. But two
+    FULL GND PLANES on a symmetric stackup legitimately serialise identically:
+    crow-recorder-central v1.0's In1.Cu and In4.Cu match at 549906 B AND CARRY
+    A REGION EACH (G36=1). That board is correct, and the gate condemned it.
+
+    The real signature is identity PLUS ZERO REGIONS — files that match because
+    they hold only the layer-independent flash list, which is usb-hub v1.8
+    (In1/In2, 18921 B, G36=0 on both). Requiring zero regions is what makes the
+    identity evidence of a lost pour rather than of symmetry.
+
+    RED-verified: dropping the `g36 == 0` condition makes this fixture FAIL.
+    """
+    r = must_pass(run([KPY, TOOL, CRC_V1]),
+                  "a board with symmetric GND planes carrying real pour")
+    contains(r.out, "symmetric planes, not a lost pour",
+             "the identity is reported and correctly dismissed")
+
+
+@test("fpay_pre_archive_release_is_NA_not_a_defect")
+def t_pre_archive_release_is_na():
+    """07_releases/contracts.md: the self-contained-archive standard applies
+    from 2026-07-20 FORWARD, and existing sealed releases are "NOT retro-filled
+    ... they are historical facts about what was sent". A release with no
+    `fab/*_gerbers.zip` cannot be graded, and calling that a defect would be
+    this gate demanding a retro-fill the canon forbids. It is REPORTED, never
+    silently skipped."""
+    r = must_pass(run([KPY, TOOL, UH_V1]), "a pre-archive-standard release")
+    contains(r.out, "F-PAYLOAD N-A", "the ungradeable release is named, not hidden")
+    contains(r.out, "predates the self-contained-archive standard", "with the reason")
 
 
 @test("fpay_good_release_passes")

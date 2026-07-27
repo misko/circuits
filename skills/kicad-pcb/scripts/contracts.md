@@ -42,6 +42,31 @@ BACKEND GAP to report, not a bespoke script to write here.
   clean is decoration and should be deleted rather than trusted.
   `SKIP_BASENAMES` lists generators/libraries that produce rather than grade;
   adding a name there is a coverage decision and must be justified.
+- **THE REGRADE — the only control for defects that BECOME wrong (ADR-0004).**
+  `fleet_regrade.py [--root DIR] [--project NAME]` runs today's standalone
+  gates against EVERY sealed release and answers two questions: does it still
+  pass, and **which of today's gates NEVER GRADED it**. The second is the one
+  that was missing — a gate ID that exists today and appears in NONE of a
+  release's shipped verification artifacts never graded it, and an absent
+  verdict is not a pass.
+  **RUN IT WHENEVER A GATE LANDS.** Shifting left cannot reach this class:
+  interposer v1.0 sealed 2026-07-24 with `J_KEY_MATRIX` at CPL 90.0 from
+  name-DB rule `^JST_GH_SM,180`, which was REFUTED on 2026-07-25 — the day
+  AFTER. It was correct by the knowledge of its day and became a P0 overnight,
+  silently, because the pad array is symmetric about its own centre. Its
+  `policy_audit.md` carries NO A-POP/A-POS/A-ROT/A-POL/A-BODY/A-STOCK row at
+  all, sealed during the days that family was landing and never re-graded.
+  It reports its own coverage and names every gate it could not run; a FAIL on
+  a release carrying `SUPERSEDED.md` is marked as history, so the live defects
+  are not buried under superseded siblings.
+  KNOWN GAP IT REPORTS RATHER THAN HIDES: a board superseded by a SUCCESSOR
+  PROJECT (crow-mic-pod -> crow-mic-pod-v2) carries no `SUPERSEDED.md`, because
+  that file names a successor directory inside the same `07_releases/`. Those
+  read as live and are not. The supersede convention has no cross-project form;
+  special-casing it inside the tool would hide a real gap in the contract.
+  **First run, 2026-07-27: 26 releases regraded, 8 live, 5 live failures, and
+  every live release never graded by FAB-PAYLOAD or RENDER** — both landed that
+  day, which is the mechanism working, not a defect.
 
 ## Structure
 
