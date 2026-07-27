@@ -22,6 +22,13 @@ $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
 # [7b] v1.1 post-stitch geometry fixes (EP thermal vias, VBAT_F F<->B stitch, drill/width floors, GND-island bond)
 $PY 03_src/post_stitch_fixes.py
 $PY "$S/generate_rules_generic.py" .
+# [7c] M-SHIP READ-BACK: prove the pour SURVIVED the last board write.
+#      post_stitch_fixes.py runs AFTER the stitch driver and holds the
+#      LAST save, so the guard inside `stitch` guards nothing here.
+#      Its section 6 (added in v1.6) unfilled to place vias and never
+#      refilled -> v1.6/v1.7/v1.8 shipped 44287.91 mm2 of BARE COPPER
+#      with every gate green. ADR-0004, canon M-SHIP/M-WIDTH.
+$PY "$S/route_and_stitch_generic.py" verify-fill 03_src/route.yaml
 $PY - <<'PYEOF'
 import json
 p="04_kicad/usb_hub_3s_v2.kicad_pro"

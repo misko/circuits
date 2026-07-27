@@ -3299,7 +3299,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("command",
                     choices=["prep", "route", "import", "taps", "quick",
-                             "stitch", "all"])
+                             "stitch", "verify-fill", "all"])
     ap.add_argument("config")
     ap.add_argument("--root", default=None,
                     help="project root (default: the config's grandparent dir)")
@@ -3332,6 +3332,15 @@ def main(argv=None):
             return cmd_quick(cfg, board=a.board, json_out=a.json)
         if a.command == "stitch":
             return cmd_stitch(cfg)
+        if a.command == "verify-fill":
+            # THE READ-BACK, CALLABLE AFTER THE **LAST** BOARD WRITE.
+            # `cmd_stitch` already runs it, but a per-board post-stitch script
+            # runs AFTER the stitch driver and can undo the fill — which is
+            # exactly what happened: usb-hub-3s-v3's post_stitch_fixes.py
+            # section 6 (added in v1.6) unfilled to place vias and never
+            # refilled before its save, and it holds the LAST save in the
+            # chain. A guard that runs before the last writer guards nothing.
+            return verify_saved_fill(rel(cfg, cfg["project"]["board"]))
         for fn in (cmd_prep, cmd_route, cmd_import, cmd_taps, cmd_stitch):
             rc = fn(cfg)
             if rc:

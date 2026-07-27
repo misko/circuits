@@ -214,7 +214,28 @@ for a_pad, b_pad, lbl in (("A4", "B4", "J5 west VBUS pair"),
     sites = [(px + dx, py - dy) for dy in (1.6, 2.2, 2.8, 3.4, 4.0, 4.6, 5.2, 5.8, 6.4)
              for dx in (0.0, -0.9, 0.9, -1.8, 1.8, -2.7, 2.7)]
     place(VBUSCN, sites, 3, lbl)
+
+# REFILL BEFORE THE LAST SAVE. THIS IS THE v1.6 REGRESSION.
+#
+# Section 6 was added in v1.6 and copied the `UnFill()` idiom from sections
+# 1-5 — which is correct, `via_site_ok` must see pads/tracks without pour in
+# the way — but it never restored the fill. Section 5 refills (line ~98) and
+# then saves; section 6 unfilled, placed vias, and saved. It is the LAST save
+# in this file, so the board hit disk with 51 zones and ZERO filled_polygon.
+#
+# v1.6, v1.7 and v1.8 all shipped that way: 44287.91 mm2 of missing copper,
+# G36 region count 0 on F_Cu/In1_Cu/In2_Cu/B_Cu, every gate green — because
+# `kicad-cli pcb drc --refill-zones` REFILLS IN MEMORY and returns 0/0/0 on a
+# board whose saved file has no fill, and nothing had ever read the gerbers.
+#
+# The generic guard is `route_and_stitch_generic.verify_saved_fill()`, but that
+# runs inside the stitch driver and THIS SCRIPT RUNS AFTER IT — so rebuild_all.sh
+# now calls `route_and_stitch_generic.py verify-fill` after the last board write.
+# Canon M-SHIP/M-WIDTH, ADR-0004.
+pcbnew.ZONE_FILLER(b).Fill(b.Zones())
 b.Save(BOARD)
+print(f"refilled {sum(1 for z in b.Zones() if not z.GetIsRuleArea())} pour "
+      f"zone(s) before the final save")
 
 # ---- 7. PowerPAK EP paste window-pane -> MOVED OUT OF THIS FILE ------------
 # It was implemented here first, per-instance, so each aperture could be shrunk
