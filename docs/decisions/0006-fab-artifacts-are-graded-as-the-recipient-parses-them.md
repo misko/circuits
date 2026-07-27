@@ -1,6 +1,6 @@
 # ADR-0006 — A fab artifact is graded as its RECIPIENT will parse it, not as we wrote it
 
-status: proposed
+status: accepted — implemented 2026-07-27 (see "As landed" at the foot)
 date: 2026-07-27
 tags: canon, fab, bom, jlcpcb, meta
 
@@ -171,3 +171,52 @@ part search and reports which it was.
 It does not make JLC accept the BOM. It removes every reason we control for JLC
 to fail to parse it, and it makes a substitution visible when JLC changes
 something on their side.
+
+## As landed (2026-07-27) — and three places this ADR was wrong
+
+Built: `bom_legibility_check.py` (F-MPN/F-WORDS/F-ENCODE, plus `--echo` for
+F-ECHO), the `export_jlc_package.py` fix (MPN from `02_parts/`, legible
+Comment, UTF-8 byte-order-mark, blocking at exit 3 with
+`--allow-illegible-bom` as the loud hatch, and `bom_echo_gate.txt` as the
+F-ECHO worklist), the F-LEGIBLE canon row, `tests/t1_bom_legibility.py`
+(17 tests, 9 known-bad, all 5 exporter tests RED-verified against the pre-fix
+exporter), and F-LEGIBLE wired into `fleet_regrade.py`.
+
+**1. "23 of 26 sealed BOMs fail at least one check" is an UNDER-COUNT. It is
+25 of 26.** The two this ADR missed are `crow-recorder-central/v1.0` (139 blank
+MPN; no encoding defect, because it carries no `Ω`) and `usb-hub-3s/v1.0`. Only
+`crow-mic-pod/v1.0` passes all three.
+
+**2. The 914/1205 denominator EXCLUDES the worst file.** `usb-hub-3s/v1.0`
+ships `Comment,Designator,Footprint,LCSC` — **no MPN column at all** — so its
+48 rows have no blanks to count. Counting a missing column as 48 blanks gives
+**962/1205**. A denominator that shrinks as the defect gets worse is the
+M-COVER shape this ADR is written against, so F-MPN gives the missing column
+its own named finding rather than 48 silent passes.
+
+**3. "the DIRECTORY NAME IS THE MPN" is true for most dossiers and FALSE for
+every MPN containing a slash**, which a path cannot hold:
+`02_parts/SMD2920-700/` declares `mpn: SMD2920-700/16N` and
+`02_parts/LM5116MHX-NOPB/` declares `mpn: LM5116MHX/NOPB`. The resolver reads
+the `mpn:` FIELD and falls back to the directory name — shipping the directory
+name would put a string that is not the part number in the column whose entire
+job is to be the exact part number.
+
+**And one thing this ADR did not know it had.** The MPN authority needed a
+second leg: `02_parts` resolves 562 of the fleet's 1175 coded rows, the vetted
+`lcsc_passives_ledger.yaml` resolves a further 579 (basic-library passives have
+no dossier), and 34 rows over 9 codes resolve from neither and are FAILED by
+name. Without the ledger F-MPN would have condemned half the fleet for a fact
+the repo already knew.
+
+**A defect the new gate found on landing.** usb-hub-3s-v3 v1.5-v1.8 ship SW1's
+MPN as `SS12D07VG6 087` (a SPACE) while `02_parts/SS12D07VG6-087/part.yaml`
+says `SS12D07VG6-087` (a HYPHEN) — the hand-maintained side-file drifted from
+the dossier on the ONE board that ever maintained it. This is why F-MPN
+requires the two paths to AGREE rather than merely requiring the column to be
+non-empty: a blank-only check passes it.
+
+**Adopted forward.** 25 sealed releases fail F-LEGIBLE and are NOT retro-fixed
+(07_releases immutability). Of the 8 releases that are LIVE (no
+`SUPERSEDED.md`), **7 fail F-LEGIBLE**; only `crow-mic-pod/v1.0` passes. A
+board that needs a legible BOM gets a NEW version.

@@ -70,17 +70,37 @@ def t_finds_the_live_pour_defect():
 
 @test("regrade_confirms_the_clean_boards_are_clean")
 def t_confirms_clean_boards():
-    """The other half of discrimination. crow-recorder-central-v2 v1.5 and
-    cooksense v1.4 were audited as ORDERABLE; today's gates must agree, or the
-    regrade is just noise. A sweep that fails everything ranks nothing."""
+    """The other half of discrimination: a sweep that fails everything ranks
+    nothing. crow-recorder-central-v2 v1.5 and cooksense v1.4 were audited as
+    ORDERABLE, and every gate that EXISTED at their audit — F-PAYLOAD, A-EVID,
+    A-POP — must still agree.
+
+    AMENDED 2026-07-27 (ADR-0006). This test used to require NO `FAIL` anywhere
+    in their row, and `F-LEGIBLE` broke it — CORRECTLY. v1.5 is the exact board
+    whose BOM was uploaded and whose parts "were not being picked up by their
+    web processing"; a new gate failing sealed work is the regrade doing its
+    job, not noise. Sealed releases are NOT retro-fixed (07_releases
+    immutability), so the honest form is per-gate: the OLD gates must still
+    pass, the NEW one is pinned as the ADOPTED-FORWARD gap it is. Weakening the
+    assertion to "some gate passes" would have hidden it; deleting the test
+    would have thrown away the discrimination property it exists for."""
+    cols = ("F-PAYLOAD", "F-LEGIBLE", "A-EVID", "A-POP")
     for proj, rel in (("crow-recorder-central-v2", "v1.5-2026-07-25"),
                       ("smc0985-cooksense", "cooksense-v1.4-2026-07-26")):
         r = run([KPY, TOOL, "--project", proj])
         line = [l for l in r.out.splitlines() if rel in l and "*" not in l[:60]]
         check(line, f"{proj} {rel} missing from the regrade output")
-        check("FAIL" not in line[0],
-              f"{proj} {rel} was audited ORDERABLE but the regrade fails it:\n"
-              f"{line[0]}")
+        cells = line[0].split()[1:]
+        verdicts = dict(zip(cols, [c for c in cells if c in ("PASS", "FAIL", "?")]))
+        for gid in ("F-PAYLOAD", "A-EVID", "A-POP"):
+            check(verdicts.get(gid) == "PASS",
+                  f"{proj} {rel} was audited ORDERABLE but {gid} — a gate that "
+                  f"existed at its audit — now fails it:\n{line[0]}")
+        check(verdicts.get("F-LEGIBLE") == "FAIL",
+              f"{proj} {rel} unexpectedly PASSES F-LEGIBLE. Both were sealed "
+              f"before ADR-0006 and both ship an unreadable BOM; if this is now "
+              f"a pass, either the board was re-released (update this test) or "
+              f"the gate stopped biting.\n{line[0]}")
 
 
 if __name__ == "__main__":

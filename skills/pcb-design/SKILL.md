@@ -615,6 +615,22 @@ wall-clock for no independence gain.
   value == its BOM label (the R12/R30 wrong-part class: 2 sealed escapes
   before this gate existed, 2026-07-23). Re-run here even though it ran at
   the first BOM export — it now grades the STAGED fab set.
+- `bom_legibility_check.py <staging_dir>` (canon **F-LEGIBLE**, ADR-0006):
+  the same BOM graded the way JLC PARSES it rather than the way we wrote it —
+  **F-MPN** (every coded row carries BOTH MPN and LCSC, resolved from
+  `02_parts/<MPN>/part.yaml` then the vetted passives ledger, the two match
+  paths AGREEING), **F-WORDS** (no Comment that is an LCSC code or a
+  `simple_*` placeholder), **F-ENCODE** (decodes identically under UTF-8 and
+  cp936). `bom_source_check` asks whether the value is RIGHT; this asks
+  whether the recipient can READ it, and nothing did until one board's BOM was
+  uploaded and its parts "were not being picked up by their web processing"
+  with every semantic gate green. Ship the output as
+  `verification/bom_legibility.txt`. **The exporter enforces the same three
+  and exits 3**, so this is a re-grade of the STAGED bytes, not the only
+  chance. `--allow-illegible-bom` is the loud escape hatch and marks the
+  package NOT ORDERABLE. The order-time **F-ECHO** ritual (JLC's resolved BOM
+  diffed back against ours; `bom_echo_gate.txt` is the worklist) is human by
+  decision — there is deliberately no JLCPCB API integration.
 - **A-ROT is enforced by the exporter itself and cannot be skipped**: it exits
   2 unless every CPL rotation resolves from a MEASURED per-LCSC row (or a
   footprint that MEASURES as its own 180-degree reflection). Clear a block with

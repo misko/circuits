@@ -166,10 +166,21 @@ footprint's own marker) on every 2-pad polarized part BEFORE ordering.
   what the machine does** — fix it, don't rationalize it.
 - **Re-uploading the BOM resets part matching and Do-Not-Place marks**;
   CPL re-upload only redoes placements. Sequence edits accordingly.
-- **MPN column**: the exporter emits `Comment,Designator,Footprint,MPN,LCSC`
-  when `OUTDIR/lcsc_mpn_map.csv` (LCSC,MPN) exists — populate it from the
-  stock-check attribute data. Code + exact MPN together auto-match lines
-  that token comments ("LM5145") leave at "No Part Selected".
+- **MPN column**: ALWAYS emitted, from the AUTHORITATIVE source —
+  `02_parts/<MPN>/part.yaml` (its `mpn:` FIELD; the directory name cannot hold
+  the `/` in `LM5116MHX/NOPB`), then the vetted `references/
+  lcsc_passives_ledger.yaml`. Code + exact MPN together auto-match lines that
+  token comments ("LM5145") leave at "No Part Selected". A coded row that
+  resolves NO MPN **BLOCKS the export** (canon F-MPN, exit 3).
+  **`OUTDIR/lcsc_mpn_map.csv` is RETIRED** (ADR-0006): it was a hand-maintained
+  SECOND HOME read through `mpn_map.get(code, "")`, only one project ever made
+  one, eight of nine shipped 100% blank MPN, and where it existed it drifted
+  (SW1 `SS12D07VG6 087` vs the dossier's `SS12D07VG6-087`). An override goes in
+  the part's own `part.yaml`.
+- **The BOM ships as UTF-8 WITH a byte-order-mark** (canon F-ENCODE). It was
+  always valid UTF-8 and `Ω` was always `CE A9`; with no BOM marker a reader
+  defaulting to GBK/CP936 renders those two bytes as `惟`, which is what one
+  user saw. ASCII `Ohm` would do equally well — the gate is indifferent.
 
 ## Order-time human checklist (JLC preview, before paying)
 
@@ -197,17 +208,38 @@ footprint's own marker) on every 2-pad polarized part BEFORE ordering.
    channel exists, or the two channels disagreed). THT connectors are
    hole-constrained but their orientation instructs the operator, and
    bottom-side parts need their own check.
-2. **Small-via option** — if the board has vias < 0.45/0.2 mm, the
+2. **F-ECHO — JLC's RESOLVED BOM, diffed back against ours. MANDATORY on the
+   first order of a board, and it is the ONE gate that lives entirely on the
+   far side of the upload.** Every other BOM check in this repo reads the
+   document the way WE wrote it (canon M1). JLC resolves our codes on THEIR
+   side and can redirect one: our source said **C82317** for
+   crow-recorder-central-v2's U5 in three places — `part.yaml`, the `.tsx`,
+   the shipped BOM, all agreeing — and JLC's resolved output said **C131025**.
+   Nothing in this repo could have seen it, and this fleet has already shipped
+   two DO-NOT-ORDER releases from the substituted-part class.
+   - the export writes `bom_echo_gate.txt` (the sibling of A-POL's
+     `rotation_human_gate.txt`): one `code / value / refs` line per coded BOM
+     line, which is the list to compare.
+   - after uploading, SAVE JLC's own resolved/matched part table out of their
+     UI, then run
+     `bom_legibility_check.py fab/bom.csv --echo SAVED.csv`.
+   - **a redirected code is a FINDING to adjudicate BEFORE paying**, never a
+     convenience. Zero overlap between the two tables is also a FAIL — that
+     means you saved the wrong file, not that nothing changed.
+   - there is deliberately **NO JLCPCB API integration** (ADR-0006): it would
+     require handing over credentials, the same line already drawn on the
+     Mouser/Nexar APIs. This step is human by decision, not by omission.
+3. **Small-via option** — if the board has vias < 0.45/0.2 mm, the
    "advanced" PCB option must be selected or JLC rejects/holes drift.
-3. **Stock re-check on order day** — stock moves; re-run verify mode the
+4. **Stock re-check on order day** — stock moves; re-run verify mode the
    same day you order.
-4. **DNP semantics** — parts with "DNP" in Value are excluded from BOM/CPL
+5. **DNP semantics** — parts with "DNP" in Value are excluded from BOM/CPL
    but still in the gerbers (pads present, unpopulated). A real MPN
    containing "DNP" would be silently dropped — grep the BOM if in doubt.
-5. **H\* refs are skipped as mounting holes** — if a project uses H* for
+6. **H\* refs are skipped as mounting holes** — if a project uses H* for
    real parts, fix the refs before export.
-6. Confirm layer count / stackup in the order form matches `--layers`.
-7. **First-power ritual when boards arrive**: before the first real power
+7. Confirm layer count / stackup in the order form matches `--layers`.
+8. **First-power ritual when boards arrive**: before the first real power
    source, multimeter the power-entry connector blades against the board
    nets (polarity + continuity to the fuse/protection). Thirty seconds of
    beeping beats every upstream analysis — polarity bugs are electrically

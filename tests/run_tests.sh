@@ -57,6 +57,7 @@ SUITES=(
   t1_jlc_twin.py
   t1_twin_overlay.py
   t1_fab_payload.py
+  t1_bom_legibility.py
   t1_gate_contract.py
   t1_fleet_regrade.py
   t1_rotation_authority.py
