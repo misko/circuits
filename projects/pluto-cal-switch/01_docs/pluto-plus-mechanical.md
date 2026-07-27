@@ -140,16 +140,74 @@ Resolving it needs ONE of:
    float-mount SMA, or short semi-rigid jumpers on one or more ports, which
    partially concedes the no-cables goal.
 
-## Revision caveat — the two files disagree about which board they describe
+## CORRECTION — my revision caveat was WRONG
 
-`Top.pdf` is titled **`PLUTOX-SDR-TV4.0-202111`** (Nov 2021). The schematic is
-**`PLUTOX_SDR-V1.0-20201212`** (Dec 2020). Different version strings, roughly a
-year apart.
+I previously recorded that `Top.pdf` (titled `PLUTOX-SDR-TV4.0-202111`) and the
+schematic (`PLUTOX_SDR-V1.0-20201212`) were "about a year apart" and might
+describe different boards. **That is wrong.**
 
-The refdes U7/U10/U12/U14 and their net names appear consistently in both, so
-the PORT IDENTITIES are safe. The GEOMETRY, however, comes only from the TV4.0
-plot, and nothing here proves the user's physical unit is that revision. The
-caliper check in option 1 settles this too.
+`202111` is a JOB/PROJECT NUMBER, not November 2021. Both CAM plots carry a
+footer timestamp of **Sat Dec 19 2020**, and the PDF metadata reads
+`Producer: Microsoft: Print To PDF, CreationDate: Sat Dec 19 2020`. The plots
+are **7 days after** the schematic and belong to the same design. There is no
+year gap and no mismatch.
+
+## But there ARE three different boards called "Pluto+" — and this one matters
+
+| what | what it is |
+|---|---|
+| **Pluto+ "Release V1"** (2020/21) | The board these files describe. JTAG rail **1.8 V** (silk `1V8 TMS TCK TDO TDI GND`), Samsung K4B4G1646E DDR3. |
+| **Pluto+ "Release V2"** (from ~Sept 2021) | Genuine vendor respin. **3.3 V SPI-flash, JTAG rail 1.8 V → 3.3 V**, DDR3 Samsung → Micron. Vendor: *"The ones that are purchased online now… are the v2 version."* |
+| **"Pluto+ V2" sold from 2025** | **A KNOCK-OFF, not a vendor revision.** Completely different PCB artwork, no RF shield can, DIP switches instead of jumpers, ext-clock select via MIO48 HIGH instead of shorting `EXTCLK` to GND. Reported low-quality TCXO. |
+
+**Anyone buying today most likely has V2 or the knock-off, NOT the board these
+plots describe.** The vendor never mentioned moving a connector in the V1→V2
+respin, and the knock-off's own layout image shows the same edge with the same
+port order (labelled `TX2A RX2A RX1A TX1A`) — so the geometry PROBABLY carries
+across. Nobody has published a side-by-side dimensional comparison, and
+"probably" is not what you build a rigid mount on.
+
+**How to identify which board is in hand:** read the JTAG header silk. `1V8`
+next to the TMS/TCK/TDO/TDI/GND rail ⇒ V1. Look for an RF shield can — the
+genuine boards have one, the 2025 knock-off does not. The knock-off also adds a
+second U.FL (`CLK_OUT`) beside `CLK_IN`, and `DAC1/DAC2` + `GPO0–GPO3` pads.
+
+## Scale — one unresolved tension, recorded rather than smoothed over
+
+Two independent extractions disagree slightly about whether the plot is exactly
+1:1, because they calibrated on different features:
+
+- **2×6 header pitch = 15.240 mm = exactly 6 × 2.54.** Strongest evidence: header
+  pitch is exact by definition and this is a pin-to-pin measurement.
+- **Zynq CLG400 body = 16.78 mm vs 17.00 nominal (×1.013); HanRun RJ45 = 21.04 ×
+  16.09 vs 21.3 × 16.0 (×1.012 / ×0.994).** These are courtyard outlines, which
+  need not equal package bodies — and the plot passed through
+  `Microsoft: Print To PDF`.
+
+Reading the two together: the pitches are right to ~1 %, i.e. **±0.12 mm on a
+12 mm pitch**, better than my original ±1.5 % but NOT zero. The three
+independent measurements of the pitches themselves agree to 0.003 mm, so the
+RATIOS are solid; it is the absolute scale that carries the residual 1 %.
+
+For the SMP-adapter path this is comfortably inside the ±0.3 mm float. For a
+rigid mount it would still matter — one more reason that path is dead.
+
+## Enclosure — established, and it has a consequence
+
+PlutoPlus ships in a **two-part aluminium shell**, upper half removable. The
+SMAs are PCB edge-mount jacks that **pass through plain holes in the end panel
+and are retained by their own nuts** — the end panel is captured ON the SMA
+barrels.
+
+**Consequence: unscrewing the SMA nuts to fit adapters partially frees the end
+panel.** Not a blocker, but it means fitting the SMA→SMP adapters is a
+case-disassembly-adjacent operation, not a purely external one.
+
+Threaded barrel protrusion past the case face ≈ **7 mm** (photogrammetric
+estimate, not published). Case outer ≈ 103–106 × 71 mm, height not established.
+No vendor publishes device dimensions, no mechanical drawing, no STEP file.
+The `150×120×60 mm / 0.3 kg` figure seen on one reseller is the **shipping box**,
+from a WooCommerce shipping field — not the device.
 
 ## Still unestablished
 
