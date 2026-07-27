@@ -79,7 +79,44 @@ outline widths came out identical to 0.1 px, so the extraction is not drifting.
 not mate.** The mating connectors must be placed at the measured non-uniform
 spacing.
 
-## Uncertainty — and why it probably blocks a rigid direct mount
+## INDEPENDENTLY CONFIRMED, and the uncertainty is now closed
+
+A second, independent extraction of the same plot (different method: content-
+stream footprint coordinates rather than rendered pixels) reproduces every
+number above, and closes the scale question five ways instead of my two:
+
+| quantity | my pixel measurement | independent CAD extraction | agreement |
+|---|---|---|---|
+| T2–R2 | 12.02 mm | **12.023 mm** | 0.003 mm |
+| R2–R1 | 11.60 mm | **11.599 mm** | 0.001 mm |
+| R1–T1 | 11.98 mm | **11.980 mm** | 0.000 mm |
+| total span | 35.60 mm | **35.602 mm** | 0.002 mm |
+| board outline | 66.63 × 99.48 | **66.590 × 99.441** | 0.04 mm |
+
+The stronger scale proof: the board's 2×6 headers measure **exactly 15.240 mm =
+6 × 2.54**, and a repo photo confirms they really are 2×6 headers. Footprints
+land on exact mil values (320/220/600) while placements land on exact 0.01 mm
+values — the signature of a 1:1 plot.
+
+**Design intent is almost certainly 12.00 / 11.60 / 12.00 mm** — the three sum
+to exactly 35.60 and the group is centred on the board to within 0.04 mm.
+
+The ±1.5 % uncertainty I recorded is therefore RESOLVED, and a caliper check is
+no longer needed for the PITCH. It is still worth doing to confirm the user's
+unit is the 2020 revision.
+
+**The silkscreen confirms the port map independently.** A board photo reads
+**T2 R2 R1 T1** in physical order, matching the schematic net names exactly.
+
+**The non-uniform pitch survived an attempt to refute it.** The first
+photogrammetric pass measured the protruding BARRELS and found near-uniform
+spacing — but those barrels stick out ~11 mm toward the camera, and parallax
+swamps a 3.5 % difference. Re-measured on the SILKSCREEN boxes, which lie flat
+at equal depth, the CAD ratios reproduce and uniform pitch is excluded at ~3σ.
+That is the adjacent-property trap caught in the act: the barrel is not the
+feature whose spacing you want.
+
+## Uncertainty — superseded by the section above
 
 The scale carries ~1.5 % uncertainty from the courtyard-vs-package stroke
 question. On a 12 mm pitch that is **±0.18 mm**, and the error accumulates
@@ -170,3 +207,86 @@ nut IS the alignment mechanism. Amphenol, Radiall, TE, SV, Cinch: none.
 Option 2 is worth serious consideration even if the caliper number arrives: it
 removes the tolerance stack-up rather than budgeting for it, and this board is
 a low-volume bench adapter where three hand-solder joints cost little.
+
+---
+
+# VERDICT: rigid SMA direct-mount is DEAD. Three reasons, any one fatal.
+
+My earlier reasoning — "the SMA coupling nut rotates independently of the body,
+so three rigid plugs can be threaded onto three fixed jacks" — is TRUE and
+INSUFFICIENT. The nut rotating is necessary, not sufficient. Three things kill
+it, and I had only considered the tolerance one.
+
+### 1. SMA publishes no float because it has essentially none
+
+MIL-STD-348B: plug spigot OD ≤ 4.593 mm against jack bore ≥ 4.597 mm —
+**guaranteed radial float 0.0025 mm.** The thread-start capture window is
+**±0.05 mm** worst case. Outer conductors butt at the reference plane, so axial
+float is **zero**.
+
+Our two-board stack-up (hole position ±0.05, profile-to-hole ±0.20 per board,
+JLCPCB/Eurocircuits published tolerances) is **±0.31 mm RSS, ±0.70 mm worst
+case** — **6 to 14× the capture window.** Knowing the pitch exactly does not
+save it; PCB fabrication tolerance alone exceeds what SMA can absorb.
+
+### 2. Tightening is COUPLED — this is the one I missed
+
+The coupling nut does not merely rotate, it **draws the boards together
+axially, by up to 2.8 mm** over its 3–4 turns to engagement (1/4-36 UNS,
+0.7056 mm/turn). So tightening the first connector MOVES THE DATUM for the
+other two. There is no order of operations that converges: each nut you torque
+mis-seats the ones already done.
+
+### 3. No wrench fits between the connectors
+
+The SMA coupling-nut hex is 7.85–8.00 mm across flats. At the **11.60 mm**
+R2–R1 pitch, adjacent nuts leave **2.43 mm corner-to-corner**. Vendor guidance
+is 12–14 mm minimum SMA pitch for wrench access; **this board is below it.**
+Mating torque is specified at 7–10 in-lb (MIL-PRF-39012/55H) and cannot be
+applied.
+
+Note this also weakens the solder-after-mate idea: it fixes the tolerance
+problem (1) but not the coupling (2) or the wrench access (3).
+
+## The alternative that works: convert the interface ONCE
+
+Screw an **SMA→SMP adapter** onto each of the Pluto's three jacks (e.g.
+Amphenol `AD-SMAJSMPP-2`). Then the daughter board carries SMP and **pushes
+on** — no threads, no torque, no coupling.
+
+Why this actually solves all three:
+
+- Each adapter threads on **independently**, one at a time, with nothing else
+  installed — so the wrench-access problem is a one-time fiddle instead of a
+  every-connect ritual, and there is no coupled datum because nothing else is
+  attached while you do it.
+- The daughter-board interface becomes SMP push-on: **±0.254–0.3 mm radial and
+  4° angular** float, versus SMA's 0.0025 mm.
+- Mating and unmating the adapter board becomes a push/pull, which is what a
+  bench calibration switch actually wants.
+
+Residual concern to size during design: SMP's ±0.3 mm is close to our ±0.31 mm
+RSS stack. Mitigations, in order of preference: tighten the daughter board's
+own connector-position tolerance (it is the half we control), use SMP spring
+bullets for axial compliance, or take load off the interface with a bracket on
+the Pluto's four corner mounting holes.
+
+## STILL BLOCKING, and it must be measured on a physical unit
+
+**RF axis height above the PCB top surface — NOT ESTABLISHED.** These are
+RIGHT-ANGLE through-hole SMA jacks (5 solder joints each: 4 ground pins on a
+~5.1 mm square plus a centre signal pin), so the RF axis sits ABOVE the board
+plane, not in it. Geometric lower bound is ≥3.2 mm (half the 6.35 mm barrel
+must clear the board); typical for the family is 4.5–6 mm.
+
+**This number sets the daughter board's connector height and therefore its
+entire mechanical relationship to the Pluto. It cannot be guessed.**
+
+Also still open: the aluminium case's panel cutout geometry (PlutoPlus ships
+assembled in a case, SMAs protruding — the case may set the standoff or block
+the board entirely); mounting-hole diameter and exact position (photogrammetric
+±0.5 mm only); whether post-2020 production changed the RF geometry; standard
+SMA vs RP-SMA centre contact.
+
+**ADALM-PLUTO geometry does NOT transfer** — ADI Rev D has 2 SMA on a
+109.14 × 63.14 mm board. Different board entirely; do not reuse its numbers.
