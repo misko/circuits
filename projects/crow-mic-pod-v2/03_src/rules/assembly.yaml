@@ -37,6 +37,17 @@ not_assembled:
 
   - refs: [MK1]
     reason: user_supplied
+    on_bom: false             # ...and it leaves the ASSEMBLY BOM too, not just
+                              # the CPL. JLC is asked neither to place MK1 nor to
+                              # SOURCE it: we supply it and hand-solder it. A row
+                              # JLC cannot match stalls the whole upload at its
+                              # BOM/CPL matcher, which is what v1.0 did.
+                              # DECLARED HERE FROM v1.3 (2026-07-27). v1.1 made
+                              # this same removal by EDITING fab/bom.csv, so the
+                              # sealed v1.1/v1.2 BOM was not reproducible from
+                              # source (canon M3): re-running the exporter put
+                              # both rows straight back. The decision has not
+                              # changed; it now has a machine-readable home.
     evidence: >
       THT electret capsule, hand-wired at pod integration. Two independent
       walls, both measured 2026-07-25 against the JLC parts library
@@ -60,6 +71,17 @@ not_assembled:
 
   - refs: [J1]
     reason: user_supplied
+    on_bom: false             # ...and it leaves the ASSEMBLY BOM too, not just
+                              # the CPL. JLC is asked neither to place J1 nor to
+                              # SOURCE it: we supply it and hand-solder it. A row
+                              # JLC cannot match stalls the whole upload at its
+                              # BOM/CPL matcher, which is what v1.0 did.
+                              # DECLARED HERE FROM v1.3 (2026-07-27). v1.1 made
+                              # this same removal by EDITING fab/bom.csv, so the
+                              # sealed v1.1/v1.2 BOM was not reproducible from
+                              # source (canon M3): re-running the exporter put
+                              # both rows straight back. The decision has not
+                              # changed; it now has a machine-readable home.
     evidence: >
       THT RJ45 jack, hand-soldered at integration. Measured 2026-07-25
       against the JLC parts library: the code the v1.0 BOM shipped,

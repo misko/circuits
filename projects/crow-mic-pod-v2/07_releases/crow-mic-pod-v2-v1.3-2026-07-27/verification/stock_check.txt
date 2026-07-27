@@ -1,0 +1,21 @@
+input: bom = 07_releases/crow-mic-pod-v2-v1.3-2026-07-27/fab/bom.csv
+15 BOM lines: 15 with LCSC, 0 without
+
+  OK               C25803     x1   100kΩ                                  base   stock=7824893
+  OK               C14663     x2   100nF                                  base   stock=106572978
+  OK               C49066     x1   100uF                                  expand stock=57723
+  OK               C22775     x3   100Ω                                   base   stock=4343711
+  OK               C25804     x3   10kΩ                                   base   stock=5022858
+  OK               C15850     x6   10uF                                   base   stock=10943652
+  OK               C15849     x1   1uF                                    base   stock=15029810
+  OK               C4184      x1   20kΩ                                   base   stock=2330956
+  OK               C31850     x2   22kΩ                                   base   stock=1657021
+  OK               C23018     x1   3.9kΩ                                  base   stock=1148497
+  OK               C22359707  x1   CMT-8504-100-SMT-TR                    expand stock=69
+  OK               C192421    x1   OPA1678IDR                             expand stock=4525
+  OK               C559105    x1   SMAJ6.0A                               expand stock=6442
+  OK               C2480      x1   SS14                                   base   stock=2093263
+  OK               C1972959   x1   TPD2E2U06DRLR                          expand stock=11123
+json -> 07_releases/crow-mic-pod-v2-v1.3-2026-07-27/verification/stock_check.json
+
+PASS: 15/15 coded BOM lines have stock >= 8 x qty (0 with problems); 0/15 lines carry NO LCSC and were NOT graded by this tool

@@ -1,0 +1,27 @@
+A-FIRE — can every rule in the shipped .kicad_dru actually FIRE?
+rules_audit.py (new check, 2026-07-25). Measured against the STAGED release.
+
+  ok   A-CLASS BEEP present (track_width 0.4mm)
+  ok   A-AGREE BEEP pro/dru agree at 0.4mm
+  ok   A-AMP BEEP n/a (no current: declared)
+  ok   A-CLASS PWR present (track_width 0.4mm)
+  ok   A-AGREE PWR pro/dru agree at 0.4mm
+  ok   A-AMP PWR n/a (no current: declared)
+  ok   A-ORDER generate_rules runs last before the DRC gate
+FAIL  A-FIRE rule 'AUDIO_width': conditions on NetClass 'AUDIO', which is not a netclass in the project (['BEEP', 'Default', 'PWR']) — the rule CANNOT FIRE and enforces nothing, while reading as if it does
+FAIL  A-FIRE rule 'pad_rescue_stubs': conditions on insideArea('pad_rescue_stubs'), and no zone/rule area of that name exists on crow_mic_pod_v2.kicad_pcb (0 named area(s): []) — the rule CANNOT FIRE and enforces nothing
+RULES AUDIT: FAIL (2 fails, 7 checks)
+
+--- the physical consequence, measured on the staged board ---
+  234 track segments, widths: 0.2498mm x3, 0.25mm x140, 0.4mm x48, 0.5mm x43
+  the 3 sub-0.25mm segments sit on: {'AUDIO_P': 2, 'MIC_OUT': 1}
+  0.2498 vs the 0.25 floor AUDIO_width names  -> 0.0002mm under (0.08%)
+  0.2498 vs the tier floor that IS in force   -> 0.127mm floor, 1.97x ABOVE. INTACT.
+
+  Origin: KRT imports tracks at a nanometre-quantised width (the
+  'nanometer-floor trap', kicad-pcb skill). nets.yaml records that the
+  AUDIO class was DROPPED for exactly this reason — a 0.25mm class floor
+  collides with the 0.2498mm imported width. The class went; the DRU rule
+  naming it did not. That is the defect: the rule was removed from the
+  enforcement path to make DRC pass, and its TEXT was left behind reading
+  like enforcement.

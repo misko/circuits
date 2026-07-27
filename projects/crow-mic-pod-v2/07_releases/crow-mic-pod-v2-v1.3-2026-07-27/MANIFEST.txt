@@ -1,0 +1,223 @@
+# MANIFEST — crow-mic-pod-v2 v1.3-2026-07-27
+
+board:        crow_mic_pod_v2  (remote microphone POD, board a — CROW ACOUSTIC LOCALIZATION ARRAY)
+version:      v1.3
+date:         2026-07-27
+supersedes:   crow-mic-pod-v2-v1.2-2026-07-26  (SUPERSEDED.md added there) — for BOM LEGIBILITY ONLY.
+              NO COPPER CHANGE, and v1.2 is NOT DO-NOT-ORDER: its board is the board this release ships.
+              WHAT WAS WRONG. Graded the way the RECIPIENT parses it (canon F-LEGIBLE, ADR-0006) v1.2's
+              fab/bom.csv carries 21 findings: 15 F-MPN (EVERY coded row ships a BLANK MPN, so JLC's
+              matcher leaves a code-only line at "No Part Selected"), 5 F-WORDS (the Comment is an LCSC
+              code — C192421, C1972959, C22359707, C2480, C559105 — a row no human on either side can
+              review) and 1 F-ENCODE (the ohm sign with no UTF-8 byte-order-mark, so a cp936-defaulting
+              reader sees mojibake). THIS RELEASE: 0 findings — 15/15 coded rows carry an MPN resolved
+              from 02_parts/<MPN>/part.yaml or the vetted passives ledger, 15/15 Comments read, and the
+              file carries the byte-order-mark.
+              WHAT DID NOT CHANGE, MEASURED: the .kicad_pcb is md5-identical to v1.2's AND to 04_kicad's
+              (c7b8512ccf0810997116c8c2e59dcad9); the gerbers+drills RE-PLOT from this release's own
+              source board 13/13 byte-identical after the timestamp strip; fab/cpl.csv is byte-identical;
+              17 of 18 payload files are sha256-identical. verification/replot_identity.txt holds the
+              numbers and release_freshness_check.py --legible-bom-supersede ASSERTS them mechanically.
+              A SOURCE FIX WAS NEEDED TO KEEP THE ROW SET, and it closed a canon M3 hole. v1.1 removed the
+              MK1 and J1 rows by EDITING fab/bom.csv; nothing in 03_src/ recorded that, so a fresh export
+              of this same sealed board produces 17 rows, not 15 (MEASURED 2026-07-27). The decision now
+              lives in 03_src/rules/assembly.yaml as `on_bom: false` on both entries and the exporter
+              reads it, so this release's 15 rows are GENERATED, not hand-trimmed. The decision itself is
+              unchanged: JLC is asked neither to place nor to source MK1 or J1.
+generated:    2026-07-27 (BOM-LEGIBILITY supersede of v1.2; the v1.2 note below is retained as history)
+history:      2026-07-26 (PACKAGING-ONLY supersede of v1.1 — ONE change: pdf/assembly_front.pdf + pdf/assembly_back.pdf merged into the single 2-page pdf/assembly.pdf the 07_releases contract REQUIRES (canon A-EVID, gate landed 94300f2 after the v1.1 seal; the user chose contract-stands over contract-amend). NOT a board change: fab/, source/, 3d/ and every verification/ artifact are BYTE-IDENTICAL to v1.1 — anyone holding v1.1 gerbers can order them.)
+git_sha:      cf41646aaba0df6f263dfefc4b71c4ea328b1026   (v1.2 packaging supersede; fab/source/3d/verification unchanged since the v1.1 seal chain)
+git_dirty:    false            # scope: projects/crow-mic-pod-v2/ + skills/
+kicad:        10.0.4
+tools:        kicad-cli 10.0.4, export_jlc_package.py (pcbnew 10.0.4), /usr/bin/python3
+authoring:    tscircuit (source/crow_mic_pod_v2.tsx) — ADR-0002 tscircuit-native. source/crow_mic_pod_v2.net is the parity reference.
+fab:          JLCPCB, 2 layer, tier jlc_2layer_default (0.6/0.3 vias, 0.127 floor; NO advanced small-via option).
+              Board 80 x 45 mm (Edge.Cuts outline centreline, measured 80.0000 x 45.0000). v1.0's MANIFEST said
+              80.1 x 45.1 — that is the bounding box INCLUDING the 0.1 mm Edge.Cuts stroke. Same board, different
+              measurement; order against 80 x 45.
+assembly:     top side only, 26 SMD placements, SMT service — NO THT assembly service required.
+              5 Extended / 10 Basic on the CPL => five one-off feeder setup fees. EVIDENCE: the `type` field of
+              verification/stock_check.json (expand=5, base=10, counted over its 15 graded lines). This is a COST
+              claim, not an orderability one — JLC's fee schedule is not measured here, only the tier split.
+              build_quantity 8 (6 pods per BRIEF + 2 spares), declared in 03_src/rules/assembly.yaml.
+source_note:  source/ ships fp-lib-table + the vendored crow_mic_pod.pretty (uri rewritten to ${KIPRJMOD}/crow_mic_pod.pretty;
+              system libs -> ${KICAD10_FOOTPRINT_DIR}). Standalone kicad-cli DRC on source/ re-measures 0/0/0 with 0
+              lib_footprint_issues (V-REL-FPLIB verified this seal). *.kicad_prl (KiCad UI state) is OMITTED —
+              non-essential, and gitignored, so it was never part of the committed archive. A post-seal lens read
+              v1.0 as '42 files on disk, 41 listed, .kicad_prl shipped-but-unhashed'; that is REFUTED — the file
+              is an untracked kicad-cli DROPPING in the working tree, not a shipped artifact. v1.0's 'omitted'
+              claim was correct. This release's source/ is the 9 committed files and nothing else; a
+              `git check-ignore` sweep over the whole staged directory returns EMPTY.
+3d:           3d/crow_mic_pod_v2.step present — BOARD-BODY geometry only (kicad-cli export; component 3D models not
+              embedded in this headless env). Component heights / enclosure clearance are covered by
+              verification/twin_edge_{east,west}.png.
+
+not_assembled: H1, H2, H3, H4, J1, MK1, TP1, TP2, TP3, TP4, TP5, TP6, TP7
+
+not_assembled_note: GENERATED from 03_src/rules/assembly.yaml
+              (assembly_coverage.py --emit-manifest-line) — REFDES ONLY, never hand-written, so the line above can be
+              machine-compared against {board footprints} - {CPL placements}. v1.0's was a PROSE sentence: A-POP
+              measures it as 16 whitespace tokens of which 13 are not refdes on this board ('BOM', 'HAND-SOLDER',
+              'NOW', 'ORDER_README', 'POPULATED'), which no gate can grade — which is why none did.
+              Reasons + dated evidence live in assembly.yaml; the human-readable version is ORDER_README section 3.
+              MK1 (AOM-5024L-HD-R electret) and J1 (RJHSE-5384 RJ45) are user_supplied hand-solder and are
+              DELIBERATELY ABSENT from fab/bom.csv — do not add them back. H1-H4 mechanical, TP1-TP7 test pads.
+
+WHAT CHANGED FROM v1.0 — PAPERWORK ONLY:
+  source/ pdf/ 3d/ and all of fab/ EXCEPT bom.csv are BYTE-IDENTICAL to v1.0. Independently verified two ways
+  (verification/payload_identity.txt): file-for-file sha256 over v1.0's payload AS COMMITTED — 19 payload files,
+  18 byte-IDENTICAL, 1 differs (fab/bom.csv, the only one); a STRUCTURAL delta assertion on that one file
+  (2 whole rows REMOVED, 0 added, 0 edited, neither on the CPL); AND a RE-PLOT of the gerbers from the staged
+  source/ — 11/11 identical to the shipped zip's members after stripping kicad-cli's generation-timestamp
+  lines. No respin occurred.
+  fab/bom.csv: the MK1 and J1 rows removed. 17 -> 15 data lines, 28 -> 26 designators.
+  Asserted: set(bom.designators) == set(cpl.designators) == 26, and no line has a blank LCSC. v1.0 shipped MK1 with
+  its MPN column AND its LCSC column both empty, and J1 at live stock 0, neither on the CPL — which stalls the
+  upload at JLC's BOM/CPL matcher. That is the reason this release exists.
+
+gates (MEASURED this release, against the STAGED archive):
+  DRC severity-all + refill-zones + parity:  0 violations / 0 unconnected / 0 parity   (verification/drc.json)
+                                             NOTE: kicad-cli 10.0.4 emits no `lib_footprint_issues` key at all; the
+                                             archive's source/ resolves every footprint through its vendored
+                                             fp-lib-table, and that is evidenced by `violations: []` on a run made
+                                             from source/ (V-REL-FPLIB), not by a count of a key that does not exist.
+  ERC:                                       0 errors (176 warnings)                  (verification/erc.json)
+  A-POP assembly_coverage:                   PASS — 39 board footprints, 26 CPL, 13 unpopulated, 13 declared  (verification/assembly_coverage.json)
+  A-POS CPL datum (pad-CENTRE bbox):         worst residual 0.00000 mm over 26 rows, TWO independent readers
+                                             (assembly_coverage board-text + pcbnew re-derivation)  (verification/cpl_datum.txt)
+  A-ROT rotations:                           this board's 4 codes are MEASURED ROWS in the fleet authority table
+                                             (61 rows at seal; landed 2026-07-26, f9eee3f, independently re-derived
+                                             by the table owner): U1 270, LS1 0, D2 0, D3 0 — all equal to the
+                                             shipped CPL, so no coordinate or rotation moves. Re-export at seal:
+                                             A-ROT OK, 26/26 CPL rotations sourced; CPL byte-identical to staging.
+                                             (verification/rotation_measurements.txt)
+  A-POL:                                     D2 + D3 are TWO-CHANNEL (function-tied cathode glyph/band in the JLC
+                                             model agrees with the pad fit); LS1 is TWO-CHANNEL via the '+' mark —
+                                             an fp_text in the JLC model at (-2.50,-1.00) vs ours at (-5.60,-3.50),
+                                             both beside pad 1 (a geometry-only scan misses text: tool gap, not a
+                                             part fact). U1 (C192421) is the ONE SINGLE-CHANNEL row -> JLC
+                                             order-preview human gate (ORDER_README section 3b); its 270 is
+                                             corroborated by cooksense C7984's byte-identical land, and jlc_twin's
+                                             fitted 90 is the negated-handedness signature, excluded at 4.18mm.
+  P-FACT part_facts_check:                   OK — 4 assertion(s) graded from 3 part.yaml `asserts:` blocks
+                                             (verification/part_facts.txt)
+  A-STOCK jlc_stock_check:                   PASS — 15/15 coded lines OK at build_quantity 8   (verification/stock_check.json)
+  M-BOM bom_source_check:                    PASS (every BOM LCSC == source); leg C 10/10 R/C rows value-graded
+                                             (verification/bom_source_check.txt)
+  F-LEGIBLE bom_legibility_check:            OK — 15/15 coded rows resolve an MPN against the authority (6 dossiers +
+                                             144 vetted ledger codes), 15/15 Comments human-readable, UTF-8
+                                             byte-order-mark present. The SAME checker run against sealed v1.2
+                                             beside it returns FAIL, 21 findings.  (verification/bom_legibility.txt)
+  F-ECHO:                                    HUMAN GATE, NOT YET PERFORMED — 15 coded lines to diff back against
+                                             JLC's own resolved table after upload; a code JLC redirects is a
+                                             SUBSTITUTION (C82317 -> C131025 happened on a sibling board and no gate
+                                             in this repo could see it).  (verification/bom_echo_gate.txt)
+  payload identity vs v1.2:                  18 payload files: 17 byte-identical, 1 differs (fab/bom.csv, the intended
+                                             delta); gerber+drill RE-PLOT 13/13 from THIS release's own source board
+                                             after the timestamp strip; fab/cpl.csv byte-identical; BOM row set 0
+                                             added / 0 removed / 0 Footprint-or-LCSC changes
+                                             (verification/replot_identity.txt)
+  policy_audit:                              0 FAIL (PASS=26 / WAIVED=2 evidence-backed / HUMAN=7 / N-A=5)  (verification/policy_audit.md)
+  jlc_twin:                                  exit 0 — 26 OK / 26 refs, bodies mounted 26/26   (verification/twin_report.csv)
+  missing_models:                            NONE — every CPL designator resolves a 3D body   (verification/missing_models.txt)
+  audit_board:                               8/8 polarity + mate/keepout checks        (verification/audit.txt)
+  payload identity vs v1.0:                  19 payload files: 18 byte-identical, 1 differs (fab/bom.csv, the intended
+                                             delta); gerber RE-PLOT 11/11 — numbers QUOTED from the artifact
+                                             (verification/payload_identity.txt)
+
+SEAL-DAY RE-VERIFICATION (2026-07-26 — the tree moved between arming and seal, so nothing was inherited):
+  Every gate above was re-RUN on 2026-07-26 and its output RE-PERSISTED into verification/ (the arming-run
+  bytes of 2026-07-25 were replaced; the usb-hub v1.6 lesson — evidence that went to stdout is not evidence).
+  Fab re-export proof against the landed 61-row rotation table: CPL byte-identical to this archive's fab/cpl.csv;
+  gerbers 11/11 zip members identical with timestamp lines stripped; drills differ ONLY in TF.CreationDate;
+  BOM identical except the 2 deliberately removed rows (MK1, J1). Passive-value check (the cooksense decade-
+  misparse class, known-bad-proven first): 10/10 value-bearing rows reconciled via the vetted ledger, 0
+  VALUE-MISMATCH, 0 UNVERIFIABLE. Stock re-run delta vs arming run: verification/stock_check_delta.md (tight
+  line LS1 = 69 in BOTH runs). Verification set vs v1.0: 33 files vs 20, `comm -23` EMPTY (strict superset).
+
+FIX-CLAIMS IN THIS RELEASE, EACH WITH ITS FALSIFIABLE MEASUREMENT IN verification/:
+  "LS1's pad correspondence is restated"  -> verification/ls1_pad_correspondence.txt. An ORIENTED fit (formA at four
+     rotations, pads by NUMBER) computed from the two .kicad_mod files read in ONE convention. v1.0's claimed mapping
+     fits at rms 7.1007 mm at ALL FOUR angles (nowhere); the true 3<->4 swap fits 0.1414 @0 vs 7.1007 next (50x).
+     Independently corroborated through a DIFFERENT code path: jlc_twin (pcbnew) now reports LS1 fit=0.14mm offset=0.
+     The shipped CPL rotation (0) was and remains correct.
+  "the payload is unchanged"               -> verification/payload_identity.txt, by RE-PLOT rather than re-hashing the
+     shipped bytes (canon M1 — the checker must not share a method with the thing checked).
+  "the two dead .kicad_dru rules are harmless HERE" -> verification/rules_audit.txt: 234 segments, exactly 3 at
+     0.2498 mm (AUDIO_P x2, MIC_OUT x1), 0.0002 mm under the floor the dead rule names; the tier floor actually in
+     force (0.127) holds at 1.97x on every segment.
+
+WAIVED, with evidence (03_src/rules/policy_waivers.yaml):
+  R-RULES (A-FIRE) — 2 of the 4 rules in source/crow_mic_pod_v2.kicad_dru CANNOT FIRE: AUDIO_width conditions on a
+    netclass the .kicad_pro does not define, pad_rescue_stubs on a rule area absent from the board. REAL and measured.
+    Waived for this BOM-ONLY supersede (release_freshness_check.py --bom-only-supersede) because fixing it means
+    regenerating the board, which would make this a
+    respin. Physical effect nil (above). REQUIRED at the next respin: 03_src/rebuild_all.sh now gates on
+    rules_audit.py, so the next rebuild of this board FAILS until it is fixed.
+  S-OCCL — schematic text occlusions in the tscircuit CONVERTER .kicad_sch (a machine artifact per ADR-0002); the
+    HUMAN schematic shipped as pdf/schematic.pdf is tscircuit's own clean native render. Unchanged from v1.0.
+
+open items (order-day, non-blocking): NEVER plug into PoE/Ethernet (ADR-0005 accepted waiver, ORDER_README section 0);
+  J1 pad-1 -> contact-1 continuity backstop on the first assembled board; enclosure panel-cutout vs the 1.05 mm RJ45
+  mouth overhang (no enclosure CAD in repo); LS1 stock re-check on the day you pay (69 today, trend 182->104->69 over
+  7 days, single-source Extended). U1's input common-mode ceiling ~103-109 dB SPL is ACCEPTED and documented
+  (ORDER_README section 6) — graceful clipping, no damage, 15-20 dB above the working signal.
+
+sha256:
+  3d/crow_mic_pod_v2.step  f0e81e312e46fc3be737c85ef3e04f5e6044606a5b0edc3ed43445974d5fc9c6
+  ORDER_README.md  35390a7e6d805c65eb01e9c090e2b378d9b98d7e083df4126ce8336a6d0eb226
+  fab/bom.csv  c2eeb1a6d5b6b9ec57e4bd92ec8febe852b18e0718a6cbada96d7de8c4001c22
+  fab/cpl.csv  e84aad879a46aeab8104fb4e4a21023c7d29f2de8ec4cd2632bc67ac09b5349f
+  fab/crow_mic_pod_v2-NPTH.drl  28f3e13b3d2ef47af5f09038b170a20e2fbcafdf58606c3d5832df9b9dcc6a1e
+  fab/crow_mic_pod_v2-PTH.drl  59e1e2fd5b921636da54b89afa4ac1f4dcbb59eb9560920489978f9164d39a35
+  fab/crow_mic_pod_v2_gerbers.zip  e2c8bc9b14e4f52ae0a21c216120cf991e6a021775d01e9db32674e4d34bdf49
+  pdf/assembly.pdf  e05cf03bdcb9963e56046feb2958ca052cb6a4ebd5c5fd6a55efa6ffcf1ceb45
+  pdf/pcb_layers.pdf  60c0e28344864cffad25a5e2f978bdce12944817c844f110e10e4f5b0597f2fb
+  pdf/schematic.pdf  03b5c9f24d5eadbb907c16087749c44a8588637a4bfa8886960c3a3c8884eb11
+  source/crow_mic_pod.pretty/AOM-5024L-HD-R.kicad_mod  6b7623762492ca268b12c525238c3866d5936ccfd0ba07b54f684dea29c362ff
+  source/crow_mic_pod.pretty/CMT-8504-100-SMT-TR.kicad_mod  4b73e0f5173cb41f85bedee088160599ce694eb19a76aa86480fbf5f2f705c61
+  source/crow_mic_pod_v2.kicad_dru  3a3302cfa1a862fa1ba8bca03f9b08ad7a07e37723429dcc3f8d9d0c91b5836a
+  source/crow_mic_pod_v2.kicad_pcb  2f936fd83be1bfddbf2dd6674742950f15cf8d232c68dc4889b8afe41907f3e0
+  source/crow_mic_pod_v2.kicad_pro  c82a014e04a86ff9dd0329ed60b1018c350a5074b6c77a3bb051533af285becd
+  source/crow_mic_pod_v2.kicad_sch  ba332f032406f960d1a7e25e88be8f3513b3da37a570da9543a173a24134ba4a
+  source/crow_mic_pod_v2.net  39ae63a850f695bd7562e152bd242ae4fa638e740b86339dae8bab42920ab020
+  source/crow_mic_pod_v2.tsx  458fd8160976098043940746fb9008568cf9339814cfb9a53da6ffc756f5ce4a
+  source/fp-lib-table  f1773df15ffeff25514faf9d90cf669939022f3a519c69e453e130c975323c3a
+  verification/2026-07-26_independent-audit.md  d2eef9a39ade4a0a54ced8dd46df99f85f7b0b095800776ed3bacde54d102663
+  verification/DISPOSITIONS.md  38e266686fdd9fe0a14d31be720af756ef61e4ee47a53c562de1f821fb47780d
+  verification/assembly_coverage.json  c0f3cde4b28909603fb625525e4c61a558e8d7be7db37f9ec60faf29818c10f5
+  verification/assembly_coverage.txt  67bcc3daf001747115607fa5d89d8977179fdc4e15af5978d30faa7825c59e05
+  verification/audit.txt  1188b9b93820f3015b814f7227ef5e04b02ad77e2f79b057f84f5a20554ac761
+  verification/bom_source_check.txt  831efde755c9409fc8ad443eb88ed0099af9c32814518b49de1f178399795089
+  verification/cpl_datum.txt  5345f8e876a568c07cd68ef0f8378b55c0b100f594234c8dcdcdfc0dbd23841a
+  verification/drc.json  ca0ab132f3f8af52d968e804c6d6892889d1669dc9e1ae8855ab1f7103f961e3
+  verification/erc.json  c648604a9ae90e0cb6e68c19f8d10f1465852e9a095dc33e43afceb63034f706
+  verification/ls1_pad_correspondence.txt  42c82de44a739610c13bc878d5d310fe758ef549db6fc6d0ffbdf3816a0583b9
+  verification/missing_models.txt  7861bd3bde3052a65e7e1ecbaa60d1dd26cbd3750efc0523e6713d60a05e4373
+  verification/parity.md  c0929c1e58893e843ceb207caff3ced7922fff9f94e46bb6b1fc4ee187ffc659
+  verification/part_facts.txt  8d3e71df49fc67b8ffc3b164e7f0c47fdf3f2aca36c1400745eb9c65e3bddf97
+  verification/payload_identity.txt  2f799a749a773e94397bdb5cee4f3531bc4d0a9a8f2125c9bb51aa8025f227aa
+  verification/pin_review.md  943ffe533e5f22650307ff41f4044fab1ce1fb7935552043b78e1d700333bca6
+  verification/policy_audit.md  761bd3b61bb3b53c374379735c505c72f29e57b5c1e26d5d3faf3036697b0ef2
+  verification/redteam-fixpass-2026-07-23.md  bae46c68344d686499bd1dad008889141597cf6e8fd11f7c60c8888c5945aaf7
+  verification/redteam_layout.md  4343d40dacaf47dcd3ca652dba4259a8a05afdd75fa6bd3e410c9d53280e8443
+  verification/redteam_topology.md  2bf12524f92557a1a9c301231ad696b301f5f0a8d87cf554a06af027f675c13b
+  verification/release_freshness.txt  45e18a8de770cb92e48e1334c2a3fb5cd6bd80f984866e043c20ed8c7de1d29f
+  verification/render_bottom_bare.png  72437708569c6dcdbf2667e750782b93c9a16ec204fab52cba9fb36563c9e36e
+  verification/render_review.md  21e56b0e1a9285738863123f089cd45b8214aac66a010b520451377e4660cfdb
+  verification/render_top_bare.png  720bcbfcc0e32295b7f338929bb27c9f81c7ce8cd820c7cd1faf4096dd8e97eb
+  verification/rotation_human_gate.txt  cb3b5efea90299af726916457c0ec15242302f8ce56963bc344dd898354553c2
+  verification/rotation_measurements.txt  f9f6f43afeb80d2797befc2ecc0dab322442f723b7f8a88230b00c98240e8265
+  verification/rules_audit.txt  b83a32b836c4c8f3e67ccc7ad607c0f812dfce5fa81ee0cb7629ac0941d7321f
+  verification/stock_check.json  dd563ece1e918f00992bbf07d6bd057264528f61d7b2356c9911512455ce8fa4
+  verification/stock_check.txt  a960bc2a20c682ce7cf1ce87b794649597d296ae51148406b2772592c69664ed
+  verification/stock_check_delta.md  268b3033ed5ca99612d300dad0facdaec7e51c73f8bff221d6e77b3fe29b599c
+  verification/twin_adjudications.yaml  72c072090344d1ad8012c26738a2b118f598c99decb9f345ec36d22324c9421b
+  verification/twin_bottom.png  4b844cda87b486ae58b2979faaacb8bf538d095577fffe9da61ff87546da563e
+  verification/twin_edge_east.png  9f7948d55f1955b5defb5d27ac642a27249be307172435a68c62658955b81419
+  verification/twin_edge_west.png  3919424cf69695c53c57c5f5e360a0d80f89cdca39551ab3d3cd68107b96c11c
+  verification/twin_iso_nw.png  d50a212906de03532b4a1ab257021a21cc14a91b30cd9824c67393a8289825e4
+  verification/twin_iso_se.png  4f0ad2307fd57516c873ea622b3eef64f6c1d9bb82b6c8174b6b2e95e356cb32
+  verification/twin_report.csv  69bbd1498c0d5f75adca09178c36cbd5971e7b7de5f660b6b31d202f441850ea
+  verification/twin_report.txt  1548917e2dad6168dbf9ed4f5b5855f38a0bec9deb9107309f023f75f5cacc10
+  verification/twin_top.png  1ed1af975f7e41c82d1050d6fc9780b089ac66e4cb5e5070e065a055c1c9d119

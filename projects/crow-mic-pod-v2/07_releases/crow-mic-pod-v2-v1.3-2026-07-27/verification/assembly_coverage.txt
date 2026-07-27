@@ -1,0 +1,5 @@
+== A-POP assembly_coverage: crow-mic-pod-v2-v1.3-2026-07-27 ==
+  board=39 footprints, cpl=26 placements, unpopulated=13 (declared=13, consigned=0, exempt_prefixes=[])
+  placement histogram: top=26
+  A-POS datum: 26 CPL row(s) graded against the pad-array centre, worst = 0.00000mm (U1), tolerance 0.05mm
+A-POP: PASS (every unpopulated part is declared with evidence)

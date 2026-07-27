@@ -5,6 +5,61 @@ One entry per sealed release; `Released:` names the release directory.
 
 ---
 
+## v1.3 — BOM LEGIBILITY ONLY, no copper change
+
+**Released:** `07_releases/crow-mic-pod-v2-v1.3-2026-07-27/`
+**Supersedes:** `07_releases/crow-mic-pod-v2-v1.2-2026-07-26/` (which gains
+`SUPERSEDED.md` and is otherwise immutable — and is **not** DO-NOT-ORDER).
+**Copper:** UNCHANGED, measured. `source/crow_mic_pod_v2.kicad_pcb` md5
+`c7b8512ccf0810997116c8c2e59dcad9`, identical to v1.2's and to `04_kicad/`'s;
+the gerbers and drills **re-plot from this release's own source 13/13
+byte-identical** after stripping the plot timestamp comments; `fab/cpl.csv`
+byte-identical. 17 of 18 payload files sha256-identical.
+
+### Why
+
+Canon **F-LEGIBLE** (ADR-0006) — a fab artifact is graded as its RECIPIENT will
+parse it. v1.2's `fab/bom.csv` carries **21 findings**:
+
+| check | findings | what JLC saw |
+|---|---|---|
+| F-MPN | 15 | **every** coded row ships a blank MPN → *No Part Selected* |
+| F-WORDS | 5 | the Comment is an LCSC code — `C192421`, `C1972959`, `C22359707`, `C2480`, `C559105` |
+| F-ENCODE | 1 | `Ω` with no UTF-8 byte-order-mark → a cp936 reader sees `惟` |
+
+v1.3 ships **0 findings**: 15/15 coded rows carry an MPN from the dossier or the
+vetted passives ledger, 15/15 Comments read, byte-order-mark present.
+
+### The source fix that kept the row set — and closed a canon M3 hole
+
+v1.1 removed the MK1 and J1 rows by **editing `fab/bom.csv`**. Nothing in
+`03_src/` or `03_tscircuit/` recorded the decision, so a fresh export of the same
+sealed board produces **17 rows, not 15** (measured 2026-07-27 while staging this
+release). The sealed v1.1/v1.2 BOM was therefore not reproducible from source,
+and the next regeneration would have silently re-shipped the defect v1.1 was cut
+to fix.
+
+The decision now lives in `03_src/rules/assembly.yaml` as `on_bom: false` on the
+MK1 and J1 entries; `export_jlc_package.py` reads it and drops the rows, and a
+ref that is both `on_bom: false` and on the CPL BLOCKS the export. **The decision
+is unchanged** — JLC is asked neither to place nor to source either part. It is
+deliberately its own key and not inferred from `reason:`: usb-hub-3s-v3's F1 is
+also `user_supplied` and must STAY on its BOM (the fuse holder ships with the
+order), so a rule read off `reason:` would have dropped a real part from a real
+order.
+
+Row set vs v1.2: **0 added, 0 removed, 0 Footprint/LCSC changes** — asserted by
+`release_freshness_check.py --legible-bom-supersede`, a mode added for this class.
+
+### Still open, unchanged by this release
+
+The J1 pad-1 → contact-1 continuity backstop (section 2), the A-POL pin-1
+order-preview gate on U1 (section 3b), the LS1 stock trend — and now **F-ECHO**:
+after uploading, diff JLC's own resolved part table back against ours
+(`verification/bom_echo_gate.txt`, 15 lines).
+
+---
+
 ## v1.1 — PAPERWORK ONLY, no respin
 
 **Released:** `07_releases/crow-mic-pod-v2-v1.1-2026-07-25/`

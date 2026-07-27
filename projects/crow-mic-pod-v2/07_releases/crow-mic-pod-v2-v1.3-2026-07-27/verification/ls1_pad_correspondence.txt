@@ -1,0 +1,61 @@
+LS1 (C22359707) PAD CORRESPONDENCE — ours vs JLC's BUZ-SMD_4P footprint
+Method: ORIENTED FIT (formA at four rotations, pads matched by NUMBER).
+Measured 2026-07-25. Falsifiable: re-run this file.
+
+Inputs — RAW file coordinates, both read in ONE convention (KiCad
+.kicad_mod is y-down). Reading the two files in DIFFERENT conventions
+is the error this measurement exists to correct.
+
+  ours (07_releases/.../source/crow_mic_pod.pretty/CMT-8504-100-SMT-TR.kicad_mod:17-20)
+      pad 1: (-3.5, -3.5)
+      pad 2: (-3.5, 3.5)
+      pad 3: (3.5, -3.5)
+      pad 4: (3.5, 3.5)
+  JLC  (06_build/twin/easyeda/C22359707/jlc.pretty/BUZ-SMD_4P-L8.5-W8.5-P8.50-TL-A.kicad_mod:17-20)
+      pad 1: (-3.6, -3.6)
+      pad 2: (-3.6, 3.6)
+      pad 3: (3.6, 3.6)
+      pad 4: (3.6, -3.6)
+
+  => pads 1 and 2 COINCIDE; pads 3 and 4 (both NC dummies) are transposed.
+
+ORIENTED FIT — rms(mm) at each rotation:
+  mapping                                   0         90        180        270
+  identity      (JLC n = our n)        5.0220     7.1007     8.6960     7.1007
+  TRUE          (JLC 3<->4)            0.1414     7.1007    10.0409     7.1007
+  v1.0 WAIVER   (JLC 1 = our 2)        7.1007     7.1007     7.1007     7.1007
+
+  TRUE mapping: 0.1414mm @0 vs 7.1007mm next  =>  50.2x separation.
+  v1.0 mapping: 7.1007mm at ALL FOUR angles
+                => fits NOWHERE. A correspondence with no preferred
+                   rotation is not a correspondence.
+
+  Residual 0.1414mm = JLC's 7.2mm pad span vs our 7.0mm — a land-size
+  difference, inside the 0.3mm PAD_GEOM_TOL. Cross-checked INDEPENDENTLY:
+  jlc_twin.py (pcbnew path, separate implementation) reports LS1
+  'OK fit=0.14mm jlc_offset=0' with pad_alias {3:4,4:3}. Two methods agree.
+
+WHY THE v1.0 METHOD COULD NOT HAVE CAUGHT THIS
+  v1.0 validated with the 6 PAIRWISE PAD-PAIR DISTANCES. Re-run here
+  under both mappings:
+    TRUE mapping   : [0.2, 0.2, 0.2, 0.2, 0.2828, 0.2828]
+    v1.0 mapping   : [0.2, 0.2, 0.2, 0.2, 0.2828, 0.2828]
+  IDENTICAL. Pairwise distances are invariant under rigid motion AND
+  under REFLECTION, and these two mappings differ by exactly a
+  reflection. The metric is structurally blind to the error it was
+  used to rule out: it can confirm two point sets are CONGRUENT, never
+  WHICH point maps to which.
+
+  RULE: establish a pad correspondence with an ORIENTED fit and report
+  the winning rms AND its separation from the runner-up. Never a
+  distance set. ('7.1007 at all four angles' is visible as a failure;
+  '0.20-0.28mm deltas on every pair' looks like success.)
+
+CONSEQUENCE FOR THE ORDER: none. Pads 3/4 are NC dummies and the driven
+pair 1/2 coincides; CPL rotation 0 was and remains correct. Polarity is
+confirmed on a NUMBERING-FREE channel (JLC's own fp_text '+' at
+(-2.50,-1.00) F.SilkS, -x side beside pad 1; our part.yaml declares pad 1
+= POLARITY PAD(+) from datasheet rev 1.04). Had the v1.0 claim been TRUE
+it would have been a 1<->2 swap on a POLARIZED part = a 180deg assembly
+reversal, which is why the reasoning was worth correcting even though
+the shipped number was right.

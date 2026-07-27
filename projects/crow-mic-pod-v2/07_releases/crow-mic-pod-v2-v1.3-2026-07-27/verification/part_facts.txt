@@ -1,0 +1,2 @@
+P-FACT: 3/7 part.yaml declare an `asserts:` block; 4 assertion(s) graded against projects/crow-mic-pod-v2/07_releases/crow-mic-pod-v2-v1.1-2026-07-25
+P-FACT OK
