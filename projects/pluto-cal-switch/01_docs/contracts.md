@@ -20,6 +20,7 @@ one that is unrecoverable if lost.
 | `STATUS*.md` | the live STATUS beacon — the coordinator's between-gates progress signal, OVERWRITTEN at every transition | `STATUS.md` (single-board) or `STATUS-<board>.md` (multi-board, mirroring `journal/<stage>_<board>.md`); schema + audit below; read by `skills/kicad-pcb/scripts/pcb_status.py` |
 | `journal/` | per-stage diary: append an entry at every stage start/iteration/finish | see `journal/contracts.md`; enforced by policy_audit M-JRNL |
 | `learnings/` | per-stage harvest source, written at stage completion | see `learnings/contracts.md`; enforced by policy_audit M-LEARN at release |
+| `<target>-mechanical.md` | **MEASURED geometry of a device this board must MATE WITH**, with its provenance and its error bars. One file per mating target. NOT a design doc and NOT a decision — it is external evidence the design consumes, and it belongs beside `BRIEF.md` because, like the brief, it is the thing the board must be true to. Must state HOW each number was obtained and what its uncertainty is; a bare number with no method is a defect | `pluto-plus-mechanical.md` — derived from the PlutoPlus open-hardware CAD plots, two independent extractions agreeing to 0.003 mm, plus two physical units that DISAGREE by 0.32 mm |
 | `contracts.md` | this file | |
 
 ## Forbidden

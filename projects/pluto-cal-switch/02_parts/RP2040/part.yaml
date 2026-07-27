@@ -1,0 +1,212 @@
+mpn: RP2040
+manufacturer: Raspberry Pi Ltd
+type: mcu_usb_control
+datasheet:
+  doc_id: RP-008371-DS-1
+  revision: "RP-008371-DS-1"
+  url: https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf
+  sha256: be56fbb75ba0ae9e26558a73c93ac3e75c2ad4e6878d3b6703de2a76d886ea8c
+  fetched: 2026-07-27
+  pages: 642
+package: QFN-56, 7x7 mm, 0.40 mm pitch, centre thermal/ground pad
+footprint: pluto_cal_switch:QFN-56_7x7_P0.4_RP2040
+escape:
+  style: qfn
+  pitch: 0.4
+  escapes_worst_side: 8
+  tier_required: jlc_4layer_advanced
+  checked: escape_check 2026-07-27
+pins:                         # Tables 615-621, section 5.5.2.2 "Pin List",
+  1:  IOVDD                   # PDF pp.612-614. Reset states in Table 615 are
+  2:  GPIO0                   # LOAD-BEARING for ADR-0001 and are quoted in
+  3:  GPIO1                   # gotchas below.
+  4:  GPIO2
+  5:  GPIO3
+  6:  GPIO4
+  7:  GPIO5
+  8:  GPIO6
+  9:  GPIO7
+  10: IOVDD
+  11: GPIO8
+  12: GPIO9
+  13: GPIO10
+  14: GPIO11
+  15: GPIO12
+  16: GPIO13
+  17: GPIO14
+  18: {name: GPIO15, note: "KEEP FREE — errata RP2040-E5 uses GPIO15 during USB
+       bus reset in the SDK's enumeration workaround"}
+  19: {name: TESTEN, tie: GND, note: "Table 619: 'Test enable (connect to Gnd)'"}
+  20: XIN
+  21: XOUT
+  22: IOVDD
+  23: DVDD
+  24: SWCLK
+  25: SWD
+  26: RUN
+  27: GPIO16
+  28: GPIO17
+  29: GPIO18
+  30: GPIO19
+  31: GPIO20
+  32: GPIO21
+  33: IOVDD
+  34: GPIO22
+  35: GPIO23
+  36: GPIO24
+  37: GPIO25
+  38: {name: GPIO26, note: "ADC0"}
+  39: {name: GPIO27, note: "ADC1"}
+  40: {name: GPIO28, note: "ADC2 — the GPIO-header input (ADR-0008)"}
+  41: {name: GPIO29, note: "ADC3"}
+  42: IOVDD
+  43: ADC_AVDD
+  44: VREG_VIN
+  45: VREG_VOUT
+  46: USB_DM
+  47: USB_DP
+  48: USB_VDD
+  49: IOVDD
+  50: DVDD
+  51: QSPI_SD3
+  52: QSPI_SCLK
+  53: QSPI_SD0
+  54: QSPI_SD2
+  55: QSPI_SD1
+  56: QSPI_CSn
+  57: {name: GND, tie: GND, note: "centre thermal/ground pad — via array to L2"}
+limits:
+  iovdd_nominal: 1.8 to 3.3 V
+  iovdd_abs_max: -0.5 to +3.63 V              # Table 622, sec 5.5.3.1
+  io_pin_abs_max: -0.5 V to IOVDD+0.5 V
+  voh_min_at_3v3: 2.62 V                      # Table 625, sec 5.5.3.4
+  vol_max_at_3v3: 0.5 V
+  vih_min_at_3v3: 2.0 V                       # FLAT 2.0 V, NOT 0.65*IOVDD
+  rpd: 50 to 80 kohm                          # Table 625
+  iiovdd_max: 50 mA summed across all GPIO+QSPI
+  msl_bare_device: 1                          # sec 5.4, PDF p612
+gotchas:
+  - "THE POWER-ON GPIO STATE IS THE REASON THIS PART IS HERE (ADR-0001), and it
+     is documented THREE independent ways: PADS_BANK0 resets PDE=1 / PUE=0
+     (Table 341, sec 2.19.6.3, p.301); SIO GPIO_OE resets to 0x00000000 so
+     nothing is DRIVEN (Table 24, p.46); and Table 615 states the per-pin
+     Reset State as the single word 'Pull-Down' for GPIO0..GPIO29. RPD is
+     50-80 kohm (Table 625). A blank board from JLCPCB falls into the USB
+     mass-storage bootloader (sec 2.8.1, p.129) whose bootrom touches only the
+     QSPI pads, so the pull-down survives indefinitely."
+  - "Table 614 (Pin Types) gives a BETTER citation than the pull-down for the
+     USB-unplugged case: Digital IO (FT) pins are Fault Tolerant, meaning 'very
+     little current flows into the pin whilst it is below 3.63V and IOVDD is
+     0V'."
+  - "VIH IS A FLAT 2.0 V AT IOVDD=3.3 V (Table 625) — NOT 0.65*IOVDD. PlutoPlus
+     IO is 1.8 V, worst-case VOH = VCCO-0.45 = 1.35 V. A 1.8 V header wired
+     directly to a digital input READS PERMANENTLY LOW, and the failure is
+     FAIL-SAFE so no 'can it spuriously enter loopback' test finds it. The header
+     therefore lands on GPIO28 as an ADC input through a /2.5 divider (ADR-0008)."
+  - "REVERSE HAZARD: VOH is 2.62-3.3 V and a Zynq HR bank at VCCO=1.8 V has an
+     IO absolute max of ~2.35 V. The reset state protects at power-on but NOT at
+     runtime. An ADC-configured pin has its digital output DISABLED, which is why
+     the header input is analog by construction, and the 2.2 kohm series bounds
+     any fault to 0.45 mA regardless."
+  - "DO-NOT-SUBSTITUTE: a 'pin-compatible upgrade' to a pre-A4 RP2350 DESTROYS
+     the ADR-0001 safety argument — RP2350-E9 is the erratum where the pad
+     pull-down cannot hold a floating input below ~2.2 V. (RP2040-E9 is a
+     different, unrelated bootloader erratum; the two are easily confused.)"
+  - "PIN CHOICE CONSTRAINTS: keep RF_CTRL off GPIO15 (errata RP2040-E5, the SDK's
+     USB enumeration workaround uses it during bus reset); off GPIO0/1 if a debug
+     UART is wanted; off QSPI_CSn (the BOOTSEL strap). The header input MUST be
+     on GPIO26-29 (the only ADC-capable pins)."
+  - "~29 OF 57 PINS ARE ELECTRICALLY LIVE, not the ~14 an early estimate assumed:
+     12 power pins ALONE (IOVDD x6, DVDD x2, VREG_VIN, VREG_VOUT, USB_VDD,
+     ADC_AVDD) plus the centre pad, each carrying a mandated capacitor. Plan the
+     escape as a dense power ring plus a 6-bit bus, not a sparse fanout."
+  - "WITH NO POWER PLANE (this board's L2 and L4 are both GND, which the RF and
+     the USB pair both require), 3.3 V must reach six scattered IOVDD pins on L1
+     and L3 through that escape. A PLACEMENT problem, not a routing problem."
+  - "IT IS THE BOARD'S ONLY CONTINUOUS IN-BAND SPUR SOURCE. RP2040 executes in
+     place from external QSPI flash, so a tens-of-MHz bus with sub-ns edges runs
+     forever, plus a 12 MHz crystal comb, a 48 MHz USB PLL and clk_sys at
+     125 MHz — all inside 70 MHz-6 GHz with harmonics past it. Mitigation is
+     PLACEMENT: RP2040 + micro-USB at the far end from every SMA/SMP, QSPI short
+     and local. Unquantified; recorded in ADR-0012 as a surviving objection."
+  - "MSL: the DATASHEET classifies the bare device MSL 1 (sec 5.4, PDF p612).
+     JLCPCB's part page for C2040 lists MSL 3 for the reeled part. The ORDER
+     paperwork must state what JLC needs to bake to, not what the die is rated."
+  - "FIRMWARE IS A RELEASE DELIVERABLE. A board with blank flash is SAFE
+     (antenna mode) but not USABLE. 05_firmware/ is on the critical path and the
+     release needs a built, versioned UF2 and its hash."
+verified: "pin map read from section 5.5.2.2 'Pin List' — Table 615 (GPIO pins,
+  PDF p612-613), Table 616 (QSPI, p613), Table 617 (crystal, p613), Table 618
+  (SWD, p613), Table 619 (miscellaneous, p613-614), Table 620 (USB, p614) and
+  Table 621 (power supply pins, p614) — extracted from the vendored PDF, and
+  cross-checked for completeness: pins 1-56 plus the pad account for every
+  number with no gaps and no duplicates. Reset states from the same Table 615
+  Reset State column. 2026-07-27"
+layout:
+  source: "RP2040 datasheet sec 2.9.1 p.151 ('IOVDD should be decoupled with a
+    100nF capacitor close to each of the chip's IOVDD pins'), sec 2.9.7.1 +
+    Figure 16 p.152 (single-3.3 V scheme: VREG_VOUT must be connected to the
+    DVDD pins OFF-CHIP), and Figure 167 'Recommended PCB Footprint' PDF p609.
+    PLUS the vendor's own reference design, 'Hardware design with RP2040'
+    Chapter 2 'Minimal design example': sec 2.1.2 pp.7-8 (one 100 nF per power
+    pin), sec 2.1.3 p.8 ('We must place 1uF capacitors close to both the input
+    (VREG_IN) and the output (VREG_OUT)'), sec 2.2 p.9 (QSPI 'wired directly to
+    the flash, using short connections to maintain the signal integrity, and to
+    also reduce crosstalk in surrounding circuits'; 1 kohm QSPI_SS-to-USB_BOOT
+    and a DNF 10 kohm pull-up, both 'placed close to the flash chip'), sec 2.3
+    p.10 + Table 1 sec 2.3.1 p.11 (12 MHz crystal, CL 10 pF, ESR <= 50 ohm,
+    1 kohm series on XOUT), sec 2.4.1 pp.11-12 (27 ohm USB series termination
+    'placed close to the chip'; 90 ohm differential; and 'we need to make sure
+    that directly below these lines is a ground. A solid, uninterrupted area of
+    ground copper, stretching the entire length of the track')."
+  reviewed: "2026-07-27"
+  keep_short:
+    - {net: "3V3", max_span_mm: 4, why: "100 nF within a few mm of EACH of the
+       six IOVDD pins and both DVDD pins — the vendor's reference design calls
+       its own single violation (pins 48/49 sharing one cap) a compromise that
+       'could have the effect of limiting the maximum speed'"}
+    - {net: VREG_VOUT, max_span_mm: 5, why: "1 uF at the regulator output, and
+       the OFF-CHIP link to both DVDD pins (sec 2.9.7.1)"}
+    - {net: VREG_VIN, max_span_mm: 5, why: "1 uF at the regulator input"}
+    - {net: QSPI_SCLK, max_span_mm: 12, why: "'short connections to maintain
+       signal integrity and reduce crosstalk in surrounding circuits' — and on
+       THIS board the surrounding circuit is a 70 MHz-6 GHz calibration path"}
+    - {net: XIN, max_span_mm: 6, why: "crystal parasitics are budgeted at ~3 pF;
+       'Try and keep the layout as short as possible'"}
+    - {net: XOUT, max_span_mm: 6, why: "same, plus the 1 kohm damping resistor"}
+    - {net: USB_DP, max_span_mm: 30, why: "27 ohm series 'placed close to the
+       chip'; unbroken L2 ground for the ENTIRE length, never crossing an RF
+       trace or a plane split"}
+    - {net: USB_DM, max_span_mm: 30, why: "the mirror of the above"}
+  notes:
+    - "The 0.8 mm / 0.15 mm 90-ohm geometry in the vendor guide is specified for
+       a 1 mm two-layer board and MUST be re-solved for this stackup — on
+       JLC04161H-7628 it is 0.33 mm / 0.25 mm gap (DETAIL_DESIGN sec 1)."
+    - "Centre pad to L2 with a via array."
+    - "Recommended footprint (Figure 167, PDF p609): 7.75 / 6.00 / 5.40 / 3.20 mm
+       reference spans, 0.40 mm pitch, 0.20 mm land width, 0.875 / 1.175 mm
+       offsets. Thermal data Table 611: theta_JA 48.0 C/W."
+layout_refs:
+  - "RP2040 datasheet Figure 167 'Recommended PCB Footprint', PDF p609"
+  - "'Hardware design with RP2040' Chapter 2, the vendor's own Minimal Design
+     Example — an EXISTENCE PROOF that the full 56-pin escape closes on TWO
+     copper layers with top-side-only components ('The relatively large minimum
+     track width, clearances and hole sizes should make this design easily and
+     cheaply manufacturable from a range of PCB suppliers', Ch.2 p.6). This
+     board has 4 layers, so strictly more room than the reference"
+  - "Raspberry Pi Pico open-source design files (the fabricated instance of the
+     same reference)"
+sourcing:
+  lcsc: C2040
+  alternates: []              # none: ADR-0012 datasheet-verified CH32X035F8U6
+                              # and BLOCKED it; MCP2221A is DISQUALIFIED by
+                              # ADR-0001; CH340C rejected on an unspecified
+                              # DTR/RTS reset state
+asserts:
+  - assert: msl
+    level: 3
+    floor_life_h: 168
+    why: "JLCPCB's part page for C2040 lists MSL 3 for the reeled part even
+      though the datasheet classifies the bare device MSL 1 (sec 5.4). An
+      assembler cannot INFER a moisture obligation, and a popcorned 0.4 mm-pitch
+      QFN-56 is not recoverable. The order paperwork must STATE it."

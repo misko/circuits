@@ -1,133 +1,88 @@
-# SCHEMA EXAMPLE (skill-owned, project-independent). Copy into a new project's
-# 03_src/rules/ and replace the values — the KEYS are the contract.
+# pluto-cal-switch — the ASSEMBLY gate battery's input (A-POP / A-STOCK, and
+# A-ROT once it lands). PCBA is the deliverable: an unpopulated part is a
+# DEFECT WITH A DECISION RECORD, never a free outcome.
 #
-# PCBA IS THE DELIVERABLE (see pcb-design/SKILL.md). This file is the ONE
-# machine-readable home for "who gets placed, and why not". The ASSEMBLY gate
-# battery reads it:
-#   A-POP   — the population set is DECLARED, not emergent:
-#             {board footprints} − {CPL designators} MUST equal `not_assembled`
-#             (`assembly_coverage.py <proj>`)
-#   A-STOCK — a release seals only against stock evidence that PASSES, or a
-#             `sourcing_plan:` entry naming the measured stock and its date
-#             (`release_freshness_check.py <release_dir>` check (e))
-#   A-ROT   — PLANNED, held 2026-07-25: every CPL rotation MEASURED, never
-#             inherited. Held because `jlc_twin.xform()` has a handedness bug
-#             that NEGATED every reported offset (see design-policies.md
-#             "Assembly"). This file will supply the not-assembled set so
-#             coded-but-unplaced parts are still checked when it lands.
-#
-# WHY THIS FILE EXISTS. Before it, "not assembled" was a SENTENCE in the release
-# MANIFEST that no code read, and the two artifacts disagreed in the field:
-#   - cooksense v1.1 sealed with 13 CPL placement rows whose BOM line has a
-#     BLANK LCSC. Its MANIFEST declares 12 of them not_assembled (the 13th,
-#     J_TC, is declared nowhere) — so JLC was told to PLACE 12 parts the
-#     manifest says are not assembled, and to source a part with no code.
-#   - the cooksense interposer v1.0 sealed with a blank-LCSC BOM row whose refs
-#     are ALSO on the CPL, no not_assembled line at all, and a disposition that
-#     is PROSE telling a human to delete rows before uploading. Every gate green.
-# An unpopulated part is a DEFECT WITH A DECISION RECORD, never a free outcome.
-#
-# THE MANIFEST `not_assembled:` LINE IS GENERATED FROM THIS FILE. Never hand-write
-# it in two places — that is how the two drifted apart in the first place.
+# STATE: authored at the end of stage 3. NO BOARD EXISTS YET, so `not_assembled`
+# and `consigned` are DECLARED EMPTY rather than left as template comments —
+# an empty declaration is a claim ("every footprint is placed") that A-POP will
+# grade against the real board. If that turns out to be false, the entry gets
+# added here with evidence; it does not get discovered at the CPL.
 
-# ---- SERVICE DECLARATION (required; declaration-only until the capability
-# reference is fetched — do NOT gate on numbers written from memory) ----------
-service: standard          # JLC assembly service tier, as ORDERED
-sides: [top]               # sides that carry placed parts. Adding `bottom` is a
-                           # COST and process decision, not a layout convenience.
-fiducials: none            # `none` + the fab's own statement, or a count/type.
-                           # JLC adds fiducials for SMT orders on their rails;
-                           # LOCAL fiducials beside <=0.4mm-pitch parts are YOUR
-                           # job and cannot be added later. Silence is not allowed:
-                           # state `none` deliberately or declare what you placed.
-build_quantity: 5          # boards in the order — A-STOCK grades stock >= qty x this
+# ---- SERVICE DECLARATION ---------------------------------------------------
+service: standard
+# NOT Economic, and the reason is decided rather than defaulted. TWO
+# independent things force Standard PCBA:
+#   (a) THT parts — 2x SMA vertical flange jacks and the micro-USB's two PCB
+#       LEG slots. THT is Standard-only.
+#   (b) the stackup. JLC's published capability for Economic PCBA is "Standard
+#       stack-up only, special stack-up is not supported", and this board
+#       orders 4-layer JLC04161H-7628 WITH IMPEDANCE CONTROL (ADR-0010).
+# Assembly adder for the THT: ~$3.50 setup + ~$0.0173/joint (2x5 SMA + 2 USB
+# legs = 12 joints ~= $0.21) + $3.00 per extended component.
 
-# ---- NOT ASSEMBLED (the population set) ------------------------------------
-# Every ref here MUST also carry FP_EXCLUDE_FROM_POS_FILES on the board, so it
-# leaves the CPL. Declaring it here but leaving it on the CPL is a FAIL: the
-# declaration and the machine instruction must agree.
-#
-# `reason:` is a CLOSED VOCABULARY — if none fits, the honest answer is that the
-# part should be re-specified to a placeable one:
-#   not_in_catalog  JLC does not carry it. `evidence:` = the catalog query + result.
-#   consign         YOU ship the part, JLC PLACES it. NOTE: consigned parts are
-#                   POPULATED — they stay ON the CPL and belong in `consigned:`
-#                   below, NOT here. Listing a consigned part as not_assembled
-#                   conflates a sourcing class with a population class.
-#   user_supplied   fitted by the end user after delivery (fuse element, jumper).
-#   dnp_by_design   footprint deliberately unstuffed (option strap, alt-BOM).
-#   mechanical      no electrical function (standoff, shield can pad).
-#   test_point      probe pad with no part.
-#
-# `evidence:` must be a DATED MEASUREMENT, not a rationale. "hand-solder" is a
-# sourcing wall you PROVE you hit — a searched-and-absent catalog result — not a
-# style preference.
-#
-# OPTIONAL per entry: `lcsc:` — the code of a part that IS in the catalog but
-# is deliberately not placed (a user-fitted fuse element, a DNP option strap).
-# `jlc_twin --assembly` reads it and checks/renders those bodies, which is what
-# `--also REF=LCSC` used to be hand-typed for. One home, no drift.
-not_assembled:
-  # - refs: [K_U1, K_U2, K_U3]
-  #   reason: not_in_catalog
-  #   evidence: "LCSC search 'DIP05-1A72-12L' 2026-07-24 -> 0 results; Standex
-  #              reed relay, DO-NOT-SUBSTITUTE per part.yaml (contact rating is
-  #              the safety argument). JLC parts library queried same day."
-  #   disposition: "hand-soldered at integration; ORDER_README section 3 lists them"
-  # - refs: [F1]
-  #   reason: user_supplied
-  #   lcsc: C5249699
-  #   evidence: "10A MINI blade fuse ELEMENT is user-fitted; the HOLDER (C5249699)
-  #              IS assembled. Checked 2026-07-23."
-  #   disposition: "purchasing list ships the element loose"
-  # - refs: [H1, H2, H3, H4]
-  #   reason: mechanical
-  #   evidence: "M3 mounting holes, no footprint pads with nets (board 2026-07-24)"
-  #   disposition: "n/a"
-  # - refs: [TP1, TP2]
-  #   reason: test_point
-  #   evidence: "bare probe pads, no part (board 2026-07-24)"
-  #   disposition: "n/a"
+sides: [top]
+# Single-sided placement, deliberately. The RF section occupies L1 and the
+# bottom side stays free so L4 can be an uninterrupted ground pour under the
+# whole board. Adding `bottom` would be a cost AND an RF decision, not a
+# layout convenience.
 
-# ---- CONSIGNED (you supply, JLC PLACES — these stay ON the CPL) -------------
-# A consigned part is ASSEMBLED. It needs the same rotation rigor as any other
-# placed part — more, in fact: crow-recorder-central-v2 v1.2 shipped its
-# CONSIGNED 0.4mm-pitch TQFP-128 at CPL 270 when the twin measured 90 (180 deg
-# off), and consigned parts are the ones you cannot cheaply replace.
-#
-# `msl:` is REQUIRED for consigned parts and for any part with an exposed pad:
-# JLC cannot bake what they do not know is moisture-sensitive. Read it from the
-# datasheet (a fourth datasheet read, budgeted at part selection) and cite it.
-# crow-recorder-central v1.0 shipped a consigned MSL-3 XU316 with zero MSL text
-# in the order paperwork while its own part.yaml recorded "MSL 3, 168h floor life".
-consigned:
-  # - refs: [U1]
-  #   lcsc: C6938291
-  #   msl: "MSL 3, 168h floor life (XMOS XU316 ds v2.0.0 sec.15.2, read 2026-07-23)"
-  #   evidence: "supplied from stock on hand, 5 pcs, 2026-07-24"
-  #   disposition: "ORDER_README section 1b: ship with the order, bake if floor
-  #                 life exceeded; JLC places"
+fiducials: none
+# Declared, not defaulted. JLC adds its own fiducials on the SMT rails. LOCAL
+# fiducials beside <=0.4mm-pitch parts are OUR job and cannot be added later —
+# and this board has TWO parts at 0.40 mm pitch (RP2040 QFN-56, BGS12WN6
+# PG-TSNP-6-10). REVISIT AT PLACEMENT: if JLC's DFM flags either, local
+# fiducials must be added before the board is routed, not after.
 
-# ---- SOURCING PLAN (justifies a non-OK stock line at seal time) -------------
-# A-STOCK fails on any coded, placed line whose stock evidence is not OK unless
-# it appears here with a MEASURED number and a date. Five sealed releases in this
-# fleet shipped stock evidence whose last line says FAIL — including one with the
-# board's own CPU at stock 0 — because nothing ever read the verdict.
-sourcing_plan:
-  # - lcsc: C6938291
-  #   measured_stock: 0
-  #   measured_on: 2026-07-24
-  #   plan: "consigned from stock on hand (see consigned: U1); JLC stock
-  #          irrelevant for this line"
-  # - lcsc: C2939728
-  #   measured_stock: 120
-  #   measured_on: 2026-07-24
-  #   plan: "120 >= 5 boards x 1; single-source, no alternate qualified — accept
-  #          for this build, qualify an alternate before any volume order"
+build_quantity: 5
+# A prototype run. Note the binding stock ceiling is the attenuator, NOT the
+# board: YAT-10A+ (C5839318) at 150 pieces / 3 per board = 50 boards.
+
+# ---- NOT ASSEMBLED ---------------------------------------------------------
+# EMPTY BY DECLARATION. Every footprint on this board is intended to be machine
+# placed. Two candidates were considered and both are POPULATED:
+#   * the SMA and micro-USB THT parts — JLC hand-solders them as part of
+#     Standard PCBA; they are populated, they stay on the CPL, and their cost
+#     is in the service declaration above.
+#   * SMP-MSLD-PCE-5T (C6297051, 540 in stock) — in the JLC library and
+#     purchasable. BUT "purchasable" is not "placeable": it is an EDGE-LAUNCH
+#     part straddling a routed outline notch, demanding 0.13 mm coplanarity.
+#     IF JLC's DFM review declines it, the outcome is a real decision with two
+#     branches, and BOTH must be recorded here rather than discovered at fab:
+#       (i)  swap to SMP-MSLD-PCS20T (C3175159, vertical, 546 in stock,
+#            conventional SMT footprint) — a re-spin of three footprints; or
+#       (ii) keep it and hand-solder, which needs a `not_assembled` entry with
+#            reason `not_in_catalog` is WRONG (it IS in the catalog) — the
+#            honest reason would be a new one, and its absence from the closed
+#            vocabulary is itself worth reporting.
+#     ACTION BEFORE ORDER: submit the real gerbers + CPL to JLC DFM.
+not_assembled: []
+
+# ---- CONSIGNED -------------------------------------------------------------
+# EMPTY. Nothing is supplied from stock on hand. Note this is a POPULATION
+# claim as well as a sourcing one: a consigned part is PLACED and stays on the
+# CPL, so listing one under not_assembled would conflate the two classes.
+consigned: []
+
+# ---- SOURCING PLAN ---------------------------------------------------------
+# A-STOCK fails any coded, placed line whose stock evidence is not OK unless it
+# appears here with a MEASURED number and a date. Nothing is planned yet
+# because no BOM has been exported; the numbers below are the design-time
+# state and MUST be re-measured at seal.
+sourcing_plan: []
+# WATCH LIST for the seal-time re-query, in ceiling order (all 2026-07-27):
+#   C5839318  YAT-10A+   150  -> 3/board => 50 boards. THE BINDING CEILING.
+#   C5205333  YAT-2A+    103  -> 2/board => 51 boards
+#   C6297051  SMP        540  -> 3/board => 180 boards
+#   C534203   BGS12WN6  2448  -> 2/board => 1224 boards
+#   C82317    W25Q16    8927  -> 1/board. FRAGILE: 4 of 6 16-Mbit SKUs read
+#             out of stock the same day, and the in-stock fallback
+#             (C2843335, USON-8) is a DIFFERENT FOOTPRINT — a stockout here is
+#             a re-spin, not a re-BOM.
+#   NOT ON THIS BOM but on the critical path: Cinch 134-1019-451 SMA->SMP
+#             adapters, 21 in stock at DigiKey, 3 needed, $33.83 each. They
+#             cost more than the board. ORDER EARLY (ADR-0006).
 
 # ---- EXEMPT REFDES CLASSES -------------------------------------------------
-# Refdes prefixes whose absence from the CPL is expected and needs no per-ref
-# entry above. DECLARED, never hardcoded in the checker: hardcoding an exemption
-# is how the refdes-on-silk waiver became an inherited defect across three boards.
-# Keep this list SHORT and justify additions in the project's assembly ADR.
+# Kept short deliberately: a hardcoded/over-broad exemption is how the
+# refdes-on-silk waiver became an inherited defect across three boards.
 exempt_prefixes: [H, TP, FID, MH]

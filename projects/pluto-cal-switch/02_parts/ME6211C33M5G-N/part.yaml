@@ -1,0 +1,106 @@
+mpn: ME6211C33M5G-N
+manufacturer: MicrOne (Nanjing Micro One Elec)
+type: ldo_regulator_fixed_3v3
+datasheet:
+  doc_id: ME6211AXXG-DS
+  revision: "V14"             # printed "V14" in the page footer
+  url: https://www.lcsc.com/product-detail/C82942.html
+  sha256: 7e33d6651f019782b16169a5b26b7cad43e9d462b5e25dc54815b458f88fd59b
+  fetched: 2026-07-27
+  pages: 20
+package: SOT-23-5
+footprint: pluto_cal_switch:SOT-23-5
+escape:
+  style: leaded
+  pitch: 0.95
+  escapes_worst_side: 3
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-27
+pins:                         # "Pin Assignment" table for ME6211CXXG/ME6211HXXG,
+  1: VIN                      # SOT-23-5 column, p.4 of V14
+  2: {name: VSS, tie: GND}
+  3: {name: CE, note: "ON/OFF control — MUST be tied to VIN explicitly"}
+  4: NC
+  5: VOUT
+limits:
+  vin_abs_max: 6.5 V                          # Absolute Maximum Ratings, p.4
+  vout: 3.3 V
+  vout_accuracy: "+/-2%"
+  iout_max: 500 mA
+  dropout: 120 mV at 100 mA
+  pd_sot23: 300 mW                            # no ambient stated; assume Ta=25 C
+  cin_cout_required: 1 uF each                # Fig 2 typical application, p.2
+gotchas:
+  - "CE FLOATING IS UNDEFINED. Figure 2 'ME6211C series' typical application
+     (p.2) shows CE tied to the VIN node, and the datasheet NEVER states whether
+     the C series has an internal pull-up or pull-down. Leave CE floating and
+     power-up behaviour is unspecified — it may not come up, or may come up
+     intermittently. TIE CE TO VIN EXPLICITLY IN THE SCHEMATIC. (Same class as
+     the ledger's XC6227 note, except there we at least get told which way it
+     fails.)"
+  - "CIN = COUT = 1 uF ARE NOT SUGGESTIONS. They are the conditions under which
+     every electrical number on p.8 is specified. Deviate and the specs no
+     longer apply."
+  - "THERMAL IS THE ONE NUMBER THAT IS NOT COMFORTABLE AT THE ENVELOPE.
+     PD = (VIN-3.3)*I. At the USB high limit 5.25 V and the 100 mA design
+     envelope that is 195 mW against a SOT-23 rating of 300 mW = 65%, with NO
+     ambient stated for the 300 mW figure. At the realistic ~60 mA it is 117 mW
+     = 39%. IF THE LOAD EVER EXCEEDS ~120 mA THIS PART IS WRONG and must
+     escalate to SOT-89 (XC6227C331PR-G, C6035451, PD 500 mW) or to a buck."
+  - "DROPOUT IS A NON-ISSUE and this part was NOT chosen for LDO-ness. Worst
+     realistic steady-state VBUS at the connector is 4.40 V (USB 2.0 Table 7-7,
+     low-power port), leaving 4.40 - 3.30 - 0.12 = 0.98 V of headroom at 100 mA,
+     a 9x margin. Even at the 4.070 V transient floor it is 0.77 V / 6x. It was
+     chosen for stock, price and package."
+  - "THE '-N' SUFFIX IS UNDOCUMENTED. The V14 datasheet names the part
+     'ME6211C33M5G' throughout (Selection Guide p.3); the trailing '-N' appears
+     only in the LCSC/JLC catalog. JLC's parameter string matches the datasheet
+     exactly (120 mV @100 mA, 500 mA, 60 uA, 50 uVrms, 70 dB @1 kHz, 6 V), so it
+     is near-certainly the same die and package, but the suffix could denote a
+     packaging or marking variant. Same trap class as the ledger's TLV70018 note
+     that DDC (SOT-23-5) and DCK (SC70-5) are different packages."
+  - "NO LAYOUT SECTION EXISTS anywhere in the 20 pages — no Layout, no
+     Application Information, no PCB guidance. The layout block below is derived
+     from the typical application circuit plus general practice, and is labelled
+     as such."
+  - "PSRR IS GONE BY A FEW HUNDRED kHz. This single rail feeds a 125 MHz MCU AND
+     biases both RF switches. Split it: ferrite + 100 nF + 1 nF into each switch
+     VDD branch (ARCHITECTURE sec 5)."
+  - "E-TOPO CANNOT EXPRESS THIS PART. power_topology.py normalize_type() accepts
+     only buck/boost/buck_boost, so type: ldo_* raises LoadError and exits 2 —
+     a gate GAP, not a design problem. Reported upstream; see
+     03_src/rules/power_tree.yaml and ARCHITECTURE O8. The topology is DERIVED
+     and stated there: Vout_max (3.30) < Vin_min (4.40) ALWAYS, so a STEP-DOWN
+     is required and a boost stage would be over-engineering. A linear regulator
+     is the correct step-down at 60 mA and 1.7 V of drop."
+verified: "pin map read from the 'Pin Assignment' table for the ME6211CXXG /
+  ME6211HXXG family, SOT-23-5 column, p.4 of V14 (1=VIN, 2=VSS, 3=CE, 4=NC,
+  5=VOUT) — extracted from the vendored PDF. NOTE the A-series table immediately
+  above it is a DIFFERENT 3-pin part with a DIFFERENT numbering (1=VIN, 2=VOUT,
+  3=VSS); reading the wrong table swaps VOUT and GND. 2026-07-27"
+layout:
+  source: "No Layout or Application-Information section exists. What the
+    datasheet DOES demand is Figure 2 'ME6211C series' Typical Application
+    Circuit, p.2: CIN = 1 uF, CL = 1 uF, and CE shown tied to the VIN node.
+    Those capacitor values are also the conditions for every p.8 electrical
+    spec. Everything else below is DERIVED and labelled."
+  reviewed: "2026-07-27"
+  keep_short:
+    - {net: VBUS_F, max_span_mm: 5, why: "1 uF CIN at the VIN pin — a datasheet
+       SPEC CONDITION, not a suggestion"}
+    - {net: "3V3", max_span_mm: 5, why: "1 uF CL at the VOUT pin — same"}
+  notes:
+    - "CE tied to VIN at the part, not through a long trace."
+    - "DERIVED: pour ground under the part for the 300 mW; at 117 mW typical the
+       SOT-23 needs no special thermal treatment, but the 65% figure at the
+       100 mA envelope leaves no derating margin."
+layout_refs:
+  - "MicrOne ME6211 V14 Figure 2, Typical Application Circuit, p.2"
+  - "NO manufacturer EVM, app note or routed reference layout exists. Recorded
+     as an absence, not skipped."
+sourcing:
+  lcsc: C82942
+  alternates: [C6035451]      # XC6227C331PR-G, SOT-89, PD 500 mW — the escalation
+                              # if the load exceeds ~120 mA. NOT a drop-in:
+                              # different package AND its CE is active-high WITH
+                              # an internal pulldown (floating CE = OFF)

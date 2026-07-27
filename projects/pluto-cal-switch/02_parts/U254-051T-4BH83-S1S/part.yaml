@@ -1,0 +1,125 @@
+mpn: U254-051T-4BH83-S1S
+manufacturer: XKB Industrial Precision (XKB Connectivity)
+type: usb_micro_b_receptacle
+mates: receptacle             # Micro-B FEMALE, device side. Read from the
+                              # drawing's MODEL TYPE block ("MICRO USB") and the
+                              # part-number decode ladder.
+datasheet:
+  doc_id: U254-05XX-4BH83-XXS
+  revision: "RevA0"           # printed "REVISION A0, SHEET 1/1" in the title block
+  url: https://datasheet.lcsc.com/datasheet/pdf/e0d66bd620348eb3993f422158b3cb5b.pdf
+  sha256: 3c860e468dfb777e661510ed5157790d793209f645989d07b03aeaf85fdfa81e
+  fetched: 2026-07-27
+  pages: 1
+package: Micro-B female 5P, SMT right-angle body + 2 THT oval "PCB LEG" slots
+         + 4 large SMT shell pads; envelope 8.30 W x 3.35 D mm, body 5.0 mm tall
+footprint: pluto_cal_switch:USB_Micro-B_XKB_U254-051T
+escape:
+  style: connector
+  pitch: 0.65
+  escapes_worst_side: 3       # only VBUS, D-, D+ route inward; ID is NC and GND
+                              # drops straight to plane
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-27
+pins:                         # ** SEE THE verified: BLOCK — THIS MAP IS NOT
+  1: VBUS                     # PRINTED ON THE VENDOR DRAWING. **
+  2: USB_DM
+  3: USB_DP
+  4: {name: ID, note: "device-only port — leave NC"}
+  5: {name: GND, tie: GND}
+  6: {name: SHELL, tie: GND, note: "4 shell pads + 2 THT legs, ALL to GND"}
+limits:
+  durability: 10000 mating cycles
+  mating_force_max: 35 N
+  unmating_force_min: 8 N
+  current_power_pins: 1.8 A                   # pins 1,5
+  current_signal_pins: 1.0 A                  # pins 2,3,4
+  contact_resistance: 30 mOhm max
+  insulation_resistance: 1000 MOhm min
+  voltage: 30 V AC
+  temp_op: -20 to +85 C
+gotchas:
+  - "**THE PINOUT IS INFERRED, NOT PRINTED — THE HIGHEST-SEVERITY ITEM ON THIS
+     PART.** The XKB drawing labels only 'PIN 1' and 'PIN 5' and states
+     'Current Rating: Signal (Pins 2,3,4): 1.0A, Power (Pins 1,5): 1.8A'. That
+     pins 1 and 5 as the power pair and 2/3/4 as signal, which is CONSISTENT
+     WITH but NOT PROOF OF the USB Micro-B standard map. The signal names above
+     come from the USB Micro-USB Cables and Connectors Specification, NOT from
+     this drawing. If the footprint numbers pin 1 at the opposite end, VBUS and
+     GND swap and the board dies on first plug-in. THIS MUST GO THROUGH THE
+     FRESH-CONTEXT PIN REVIEW against JLC's own fetched footprint before the
+     schematic is sealed — it is exactly the jlc_twin PAD-MISMATCH class, and
+     this fleet has already shipped one reversed-polarity connector."
+  - "THE THT ANCHORS ARE OVAL SLOTS (~1.00 x 1.70 mm), NOT ROUND DRILLS. If the
+     footprint emits them as round holes, as NPTH, or omits them, the entire
+     mechanical-retention argument for choosing this part EVAPORATES and it
+     becomes a pure-SMT connector that tears off. Check the drill/slot report and
+     the plated attribute before release, AS A GATE, not by eye."
+  - "The plug insertion/withdrawal force lands on 2 through-board legs plus 4
+     broad shell pads, NOT on the 5 signal pads. That is why this part was chosen
+     over a pure-SMT one, and it is what the slot check protects."
+  - "SHELL AND LEGS TIE DIRECTLY TO GND — no R/C isolation network. On an RF
+     board the SMA grounds, the board ground and the cable shield must be one
+     system; a split here creates exactly the common-mode path the design is
+     trying to avoid."
+  - "10000 CYCLES IS THE CONNECTOR'S OWN CONTACT/SHELL RATING, not board-level
+     retention. If the enclosure does not strain-relieve the cable, a hard
+     sideways yank can still peel SMT pads. C319170's 4-point all-THT pattern is
+     mechanically stronger despite its 3000-cycle rating, and that trade may be
+     right once the enclosure is known — which the BRIEF still lists as unstated."
+  - "NO Basic-tier micro-USB receptacle exists in JLC's library; every stocked
+     Micro-B hit is Extended. That is not a sourcing failure, it is the state of
+     the catalog."
+  - "USB 2.0 sec 7.2.4.1 CAPS THE DOWNSTREAM BULK AT 10 uF: 'The maximum load
+     (CRPB) that can be placed at the downstream end of a cable is 10 uF in
+     parallel with 44 Ohm... If more bypass capacitance is required in the
+     device, then the device must incorporate some form of VBUS surge current
+     limiting.' This board budgets 6.8 uF total. Adding 'one more 10 uF' makes
+     the board non-compliant and needs a soft-start part. See ADR-0009."
+verified: "**PARTIAL — AND THE GAP IS NAMED RATHER THAN PAPERED OVER.**
+  MECHANICAL is fully read from the drawing's 'RECOMMENDED P.C.B. LAYOUT /
+  TOP VIEW (TOLRANCE: +/-0.05)': 5 signal pads 0.40 x 1.35 mm on 0.65 mm pitch
+  spanning 2.60 mm with PIN 1 and PIN 5 labelled; 4 shell pads (upper pair
+  1.60 mm tall, lower pair 1.90 mm) at 4.10 / 8.30 mm spans; 2 oval THT 'PCB LEG'
+  slots on 5.65 mm centres (1.00 / 1.20 / 1.70 mm); 2 locating-boss holes.
+  Electrical/mechanical limits from the right-hand text column. **THE SIGNAL
+  NAMES ARE NOT ON THE DRAWING** and are taken from the USB Micro-B standard —
+  S-VER's independent figure read is OWED and is assigned to the fresh-context
+  pin review against JLC's fetched footprint. 2026-07-27"
+layout:
+  source: "The drawing's 'RECOMMENDED P.C.B. LAYOUT / TOP VIEW' carries an
+    explicit +/-0.05 mm tolerance callout and gives the full pad geometry (see
+    verified:). It states NO keep-out, NO thermal rule and NO board-edge setback
+    dimension — the sibling C319170 sheet DOES call 'PCB EDGE' explicitly against
+    its lower-left anchor and is the more useful drawing if an edge datum is
+    needed. The USB-side layout rules that actually bind come from the RP2040
+    vendor guide (sec 2.4.1 pp.11-12) and from ST's USBLC6-2 sec 2.3, not from
+    this sheet."
+  reviewed: "2026-07-27"
+  keep_short:
+    - {net: USB_DP, max_span_mm: 30, why: "connector -> ESD -> MCU, over an
+       unbroken L2 ground for the entire length, never crossing an RF trace or a
+       plane split. FS does not need controlled 90 ohm on a run this short (the
+       critical length at a 4 ns edge is ~170 mm), but the stackup gives it for
+       free at essentially the same width"}
+    - {net: USB_DM, max_span_mm: 30, why: "the mirror of the above"}
+    - {net: VBUS, max_span_mm: 10, why: "4.7 uF + 100 nF AT the connector"}
+  notes:
+    - "Place the ESD array IMMEDIATELY at the connector, upstream of everything
+       else on D+/D-, and route the pair THROUGH it with zero stubs."
+    - "Emit the two PCB LEG features as PLATED OVAL SLOTS. This is a different
+       fab feature from a round hole and must be verified in the drill report."
+layout_refs:
+  - "XKB drawing U254-05XX-4BH83-XXS Rev A0 sheet 1/1, 'RECOMMENDED P.C.B.
+     LAYOUT / TOP VIEW'"
+  - "XKB drawing for C319170 (the sibling 4-leg all-THT part) — consulted for
+     its explicit PCB EDGE datum callout, which this sheet lacks"
+  - "'Hardware design with RP2040' sec 2.4.1 pp.11-12 (the USB routing rules
+     that actually bind: 27 ohm series at the chip, solid uninterrupted ground
+     under the entire pair)"
+sourcing:
+  lcsc: C319160
+  alternates: [C319170]       # 4-point all-THT retention, 3000 cycles — the
+                              # mechanically stronger trade if the enclosure does
+                              # not strain-relieve the cable. NOT a drop-in
+                              # footprint (four 0.45 x 1.05 mm slots, not two)

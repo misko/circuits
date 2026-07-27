@@ -1,0 +1,133 @@
+mpn: SMP-MSLD-PCE-5T
+manufacturer: Amphenol RF
+type: connector_smp_jack_limited_detent_edge_launch
+mates: receptacle             # SMP JACK = the SHROUD half: a detent BORE with a
+                              # MALE CENTRE PIN. The mating adapter end must have
+                              # a smooth barrel with a FEMALE SOCKET. See gotchas
+                              # — the plug/jack words are vendor-dependent and
+                              # the ONLY reliable discriminator is the contact.
+datasheet:
+  doc_id: SMP-MSLD-PCE-5X
+  revision: "RevA"            # drawing SMP-MSLD-PCE-5X Rev A, 24-Oct-18
+  url: https://www.lcsc.com/product-detail/C6297051.html
+  sha256: "PENDING — amphenolrf.com returns HTTP 403 to automated fetch and the
+    LCSC PDF is missing sheet 1 of 3. See 02_parts/README.md deviations register."
+  fetched: 2026-07-27
+package: SMP straight jack, limited detent, EDGE MOUNT
+footprint: pluto_cal_switch:SMP_EdgeLaunch_PCE-5T
+escape:
+  style: connector
+  pitch: 1.84                 # side ground pad width / centre-to-side spacing
+                              # class; read from the recommended PCB layout,
+                              # drawing sheet 2
+  escapes_worst_side: 1
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-27
+pins:                         # recommended PCB layout, drawing sheet 2
+  1: RF                       # centre trace 0.83 mm wide
+  2: {name: GND, tie: GND}    # side pad 1.84 mm
+  3: {name: GND, tie: GND}    # side pad 1.84 mm
+limits:
+  frequency: DC to 26.5 GHz
+  vswr: "<=1.11 max over DC-6 GHz"        # RL 26 dB — the band we care about
+  impedance: 50 ohm
+  engagement_force_max: 45 N (10 lb)      # drawing note 3
+  disengagement_force_min: 9 N (2 lb)     # drawing note 3
+  durability: ">=500 mating cycles"       # drawing note 3
+  rf_axis_height_above_board: 2.00 mm REF # drawing sheet 2, "2 REF [.079]"
+gotchas:
+  - "THE GENDER WORDS ARE A TRAP AND THE CONTACT IS THE ONLY DISCRIMINATOR.
+     Amphenol and Cinch use OPPOSITE plug/jack words for the same physical SMP
+     half. This part is the SHROUD: detent bore + MALE PIN. The adapter's SMP end
+     must be the insertable barrel with a FEMALE SOCKET. Two parts both labelled
+     'SMP Jack' by a distributor do in fact mate. Proof the detent is a bore and
+     not a bead: Cinch SMP/SMPM catalog p.7 'SMP Male Connector Interface' gives
+     bore G = 2.90-3.10 mm and groove H = 3.15-3.20 mm — a groove LARGER in
+     diameter than the bore is an internal undercut."
+  - "THE PART NAMED IN THIS PROJECT'S MATING HANDOFF IS THE WRONG GENDER.
+     Amphenol AD-SMAJSMPP-2 is SMA JACK -> SMP PLUG: its Pluto-facing end is an
+     SMA JACK, the same gender as the Pluto's own connectors, so IT CANNOT SCREW
+     ONTO THE PLUTO. Its mirror AD-SMAPSMPJ-2 has the right SMA end but its SMP
+     end is a male-pin limited-detent jack — identical gender to THIS part; two
+     shrouds need a bullet between them. Cinch 134-1019-441 fails the same way.
+     The correct adapter is Cinch 134-1019-451 (SMA Plug, Male Pin -> SMP Jack,
+     Female Socket). See ADR-0006."
+  - "LIMITED DETENT is both the right class and the only stocked one. Full detent
+     (SMP-MSFD-*) reads 0 across all 5 SKUs and smooth bore reads 2. LD gives
+     500 cycles vs full detent's 100 and 27 N total retention vs smooth bore's
+     6.7 N; Cinch's own guidance (catalog p.3) names LD as the PCB-mount /
+     blind-mate class."
+  - "ENGAGEMENT FORCE IS A USABILITY COST: up to 3 x 45 N = 135 N to push the
+     board on. EDGE-LAUNCH takes that IN THE BOARD PLANE as shear rather than as
+     PEEL on SMT pads, which is the main reason it beat the vertical part. No
+     vendor guidance exists on the maximum permissible in-plane force for this
+     footprint."
+  - "A DETENTED MATE LOCATES AXIALLY, so three in parallel are axially
+     OVER-CONSTRAINED. All three adapters must be the SAME MPN. MIL-STD-348
+     permits 0.254 mm of mated axial misalignment."
+  - "EDGE-LAUNCH PUTS THE RF REFERENCE PLANE ON THE ROUTED BOARD OUTLINE. The
+     three notches are cut by the SAME tool path, so the arm-to-arm term is the
+     router's WITHIN-BOARD repeatability rather than JLC's +/-0.2 mm
+     board-to-board figure — but that is an argument, not a measurement, and the
+     published D4 delta (ADR-0011) is measured on the real board and includes it
+     either way."
+  - "IN-LIBRARY AND PURCHASABLE IS NOT PLACEABLE. It straddles a routed outline
+     notch, needs copper to the routed edge, and its own drawing demands
+     coplanarity within 0.13 mm. SUBMIT THE REAL GERBERS + CPL TO JLC DFM REVIEW
+     BEFORE COMMITTING. Fallback: SMP-MSLD-PCS20T (C3175159, vertical, 546 in
+     stock, conventional SMT footprint) — pre-designed, and the swap must be a
+     recorded assembly.yaml decision with the catalog query and its date, not a
+     discovery at fab time."
+  - "THREE NOTCHES AT 11.60 / 11.98 mm PITCH leave only ~3.95 mm of board web
+     between adjacent ones (notch is 7.65 mm wide). A floorplan constraint and a
+     mechanical one."
+  - "Every SMP RF connector in the JLC library is EXTENDED; there is no Basic
+     SMP part."
+verified: "land pattern and RF-axis height read from the recommended-PCB-layout
+  view on drawing sheet 2 (edge notch 7.65 mm overall x 6.4 mm deep, 4.12 mm
+  mouth, centre trace 0.83 mm, side pads 1.84 mm, 'SURFACES TO BE COPLANAR
+  WITHIN 0.13 [.005] MAX', body 4 REF tall with the axis at 2 REF). Force and
+  durability from drawing note 3. INCOMPLETE: sheet 1 of 3 is missing from the
+  LCSC PDF and amphenolrf.com returns 403 to automated fetch, so the mating-face
+  position relative to the board edge is NOT established. 2026-07-27"
+layout:
+  source: "Drawing SMP-MSLD-PCE-5X Rev A sheet 2, 'RECOMMENDED PCB LAYOUT':
+    edge notch 7.65 mm overall x 6.4 mm deep with a 4.12 mm mouth; centre signal
+    trace 0.83 mm wide; two side ground pads 1.84 mm; surfaces coplanar within
+    0.13 mm. The 0.83 mm centre trace is WIDER than this stackup's 0.35 mm
+    50 ohm line, so a short deliberate taper is required at each launch."
+  reviewed: "2026-07-27"
+  keep_short:
+    - {net: RX_PLUTO1, max_span_mm: 8, why: "switch RFin hugs its SMP; every mm
+       here is 0.036 dB at 6 GHz and sits inside the length-matched pair"}
+    - {net: RX_PLUTO2, max_span_mm: 8, why: "the mirror of the above"}
+    - {net: TX_PLUTO, max_span_mm: 14, why: "TX SMP to PAD_A1; longer because TX
+       is at one END of the three SMP ports, not on the mirror axis"}
+  notes:
+    - "Taper 0.83 mm -> 0.35 mm at each launch. Under ~1.4 mm long is under
+       lambda_g/20 at 6 GHz, so electrically invisible — but it must be DRAWN,
+       not left as a router artifact."
+    - "Ground-via fence at <=2.0 mm pitch alongside the notch and down both sides
+       of the trace for the first ~10 mm."
+    - "The three notches are placed at the MEASURED PlutoPlus pitches
+       (11.60 / 11.98 mm scaled to the 34.88 mm midpoint span, ADR-0014), NOT at
+       a uniform pitch."
+layout_refs:
+  - "Amphenol drawing SMP-MSLD-PCE-5X Rev A (24-Oct-18) sheet 2, RECOMMENDED PCB
+     LAYOUT + note 3 (durability/forces). SHEET 1 OF 3 NOT OBTAINED"
+  - "Cinch SMP/SMPM catalog ca-ccs-john-smp-smpm-catalog.pdf pp.3-4, 7 —
+     interface design per MIL-STD-348A, the three detent classes and their
+     forces/cycles, and the male-interface bore/groove table that proves the
+     detent is an internal undercut"
+  - "MIL-STD-348A SMP interface (the governing standard for the mated pair's
+     0.254 mm axial and ~+/-0.25-0.3 mm radial allowances)"
+sourcing:
+  lcsc: C6297051
+  alternates: [C3175159, C5900820]   # PCS20T vertical fallback; PCS17T
+asserts:
+  - assert: value
+    equals: SMP-MSLD-PCE-5T
+    why: "the SMP family differs by DETENT CLASS (full / limited / smooth bore),
+      which changes engagement force by 7x and mating cycles by 10x while looking
+      identical on a render and fitting the same land. Full-detent SKUs also read
+      stock 0. The BOM Comment must name the exact model."

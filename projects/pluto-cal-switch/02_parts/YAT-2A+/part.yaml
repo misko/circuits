@@ -1,0 +1,87 @@
+mpn: YAT-2A+
+manufacturer: Mini-Circuits
+type: rf_attenuator_fixed_2db
+datasheet:
+  doc_id: YAT-2A+
+  revision: "REVB"            # printed "REV. B" on p.1
+  url: https://www.minicircuits.com/pdfs/YAT-2A+.pdf
+  sha256: 33b3c8a1595fbe1f9e8319cb8695b19b4dfbd90b1ce83549edeeb0529994b6e3
+  fetched: 2026-07-27
+  pages: 5                    # p.2 footer says "PAGE 2 OF 2" — vendor footer bug
+package: MCLP 2x2 mm leadless, case style MC1630
+footprint: pluto_cal_switch:MCLP-6-EP_2x2_P0.65_MC1630
+escape:
+  style: dfn
+  pitch: 0.65
+  escapes_worst_side: 1
+  tier_required: jlc_4layer_standard
+  checked: escape_check 2026-07-27
+pins:                         # PAD DESCRIPTION table + pad-numbering figure, p.2
+  1: {name: GND, tie: GND}    # IDENTICAL to YAT-10A+ and the rest of the family
+  2: RF_IN
+  3: {name: GND, tie: GND}
+  4: {name: GND, tie: GND}
+  5: RF_OUT
+  6: {name: GND, tie: GND}
+  7: {name: EP, tie: GND, note: "bottom exposed pad — RF ground return
+      ('Case is defined as ground lead', abs-max note 3 p.2)"}
+limits:
+  frequency: DC to 18 GHz
+  attenuation_dc_5g: 1.5 / 1.92 / 2.3 dB        # min / typ / max, p.2
+  attenuation_5_15g: 1.4 / 1.85 / 2.3 dB
+  vswr_dc_5g: 1.08 typ / 1.25 max
+  vswr_5_15g: 1.12 typ / 1.70 max
+  prf_abs_max: 2.0 W at +25 C case              # p.2 note 4; derate to 1.0 W @85 C
+  t_case_op: -40 to +85 C
+gotchas:
+  - "MEASURED TYPICAL PERFORMANCE (p.4): 1.94 dB @10 MHz, 1.91 @1 GHz, 1.88
+     @2 GHz, 1.83 @4 GHz, 1.82 @5 GHz, 1.81 @8 GHz. VSWR 1.08 / 1.05 / 1.06 /
+     1.08 / 1.07 / 1.12."
+  - "IT SETS THE BOARD'S D5 REFERENCE FREQUENCY. This is the one part that moves
+     if the user names a frequency at which the 30 dB must be exact: swap for
+     YAT-3A+ (C5205332) to reference 70 MHz / 648 MHz, or omit it entirely to
+     reference 6 GHz. Same footprint, two placements. See ADR-0013."
+  - "TWO PER BOARD, ONE PER LOOPBACK ARM — the arm-to-arm pair. SPECIFY SAME
+     REEL / SAME LOT and IDENTICAL (not mirrored) placement rotation: this is
+     one of the two parts whose unit-to-unit spread becomes the published D4
+     amplitude imbalance (ADR-0011)."
+  - "All YAT-family gotchas apply identically: GCPW-conditioned specs, the
+     Rogers-conditioned p.3 geometry, the exposed pad as RF ground return, the
+     ~70 ohm DC path to ground on both ports, and CPL-180 immunity. See
+     02_parts/YAT-10A+/part.yaml."
+verified: "pad map read from the PAD DESCRIPTION table and the adjacent
+  TOP VIEW / BOTTOM VIEW pad-numbering figure on p.2 of REV B; identical to the
+  YAT-10A+ and confirmed independently rather than assumed. Marking 'YT02'
+  region per p.3 PRODUCT MARKING. 2026-07-27"
+layout:
+  source: "REV B p.3 'SUGGESTED PCB LAYOUT (PL-586)' — the same drawing and the
+    same two notes as YAT-10A+ (Rogers-conditioned trace/gap; continuous bottom
+    ground plane). Land dimensions from MC1630 case drawing 98-MC Rev. H sheet 1
+    of 5: 0.65 mm pitch, 0.30 x 0.80 mm lands, EP 1.20 x 0.60 mm, +/-0.05 mm."
+  reviewed: "2026-07-27"
+  keep_short:
+    - {net: LOOP_ARM1, max_span_mm: 6, why: "GCPW launch; and this pad is IN the
+       length-matched pair, so its approach geometry must be identical on both
+       arms or the D4 delta is manufactured rather than measured"}
+    - {net: LOOP_ARM2, max_span_mm: 6, why: "the mirror of the above"}
+  notes:
+    - "THE TWO INSTANCES MUST BE GEOMETRIC MIRRORS AT IDENTICAL ROTATION. The
+       splitter has zero intrinsic phase shift, so 100% of arm-to-arm phase
+       imbalance comes from layout and from mounting-inductance mismatch:
+       0.1 nH = 3.8 ohm = ~2 deg at 6 GHz. Mirroring the ROTATION turns
+       solder-fillet and pick-orientation asymmetry into calibration error."
+    - "Same PL-586 via-in-pad deviation waiver as YAT-10A+ — it covers the four
+       0.30 mm GND lands, not just the exposed pad."
+layout_refs:
+  - "Mini-Circuits YAT-2A+ REV B p.3, 'SUGGESTED PCB LAYOUT (PL-586)'"
+  - "Mini-Circuits MC1630 case drawing 98-MC Rev. H sheet 1 of 5"
+sourcing:
+  lcsc: C5205333
+  alternates: [C5205332]      # YAT-3A+ — the D5 reference-frequency lever
+asserts:
+  - assert: value
+    equals: YAT-2A+
+    why: "the whole YAT-A family shares the MC1630 land, so a wrong-value part
+      fits perfectly. Here it also silently moves the frequency at which the
+      board's headline 30 dB is exact (ADR-0013). The marking is the
+      first-article check."

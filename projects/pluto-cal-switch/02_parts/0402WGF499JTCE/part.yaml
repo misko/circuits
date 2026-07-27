@@ -1,0 +1,122 @@
+mpn: 0402WGF499JTCE
+manufacturer: UNI-ROYAL (Uniroyal Elec)
+type: res_thick_49r9_1pct_0402
+datasheet:
+  doc_id: 0402WGF499JTCE
+  revision: "n/a"
+  url: https://www.lcsc.com/product-detail/C25120.html
+  sha256: "n/a — see gotchas: NO manufacturer datasheet exists for this SKU"
+  fetched: 2026-07-27
+package: 0402 (1005 metric), 2 terminals
+footprint: pluto_cal_switch:R_0402_1005Metric_RF
+escape:
+  style: passive
+  pitch: 0.5
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-27
+pins:
+  1: A
+  2: B
+limits:
+  resistance: 49.9 ohm +/-1%
+  power: 62.5 mW at 70 C
+  voltage_max: 50 V
+  tcr: +/-100 ppm/C
+  temp: -55 to +155 C
+gotchas:
+  - "THREE OF THESE ARE THE ENTIRE 2-WAY SPLITTER, wired as a DELTA (one between
+     each pair of the three ports). Realised split loss 6.017 dB, port return
+     loss 66.0 dB at DC, port-to-port isolation 6.017 dB. See ADR-0003 and
+     DETAIL_DESIGN 5."
+  - "NO HF DATA EXISTS FOR THIS PART. It is a commodity thick film characterized
+     at DC: no S-parameters, no |Z|/R curve, no Application or Layout section,
+     no manufacturer datasheet at all beyond the distributor parametrics. EVERY
+     6 GHz figure in DETAIL_DESIGN 5.4 rests on the topology plus a generic
+     mounting-parasitic model (Vishay AN 53077 p.2), NOT on measured data for
+     this part. If measured 6 GHz return loss comes in below ~15 dB, the
+     documented remedy is Vishay CH0402/FC0402 HF thin-film 49.9 ohm
+     (characterized to 50 GHz, doc 53014 p.1) — which is NOT LCSC-stocked."
+  - "SPECIFY ALL THREE FROM THE SAME REEL. Amplitude imbalance between the two
+     split arms is 4.339 dB per unit fractional mismatch, so two INDEPENDENT
+     +/-1% parts give up to 2% differential = 0.087 dB. Same-reel parts track."
+  - "IDENTICAL PLACEMENT ROTATION, NOT MIRRORED, on the two arm resistors — a
+     mirrored CPL rotation turns solder-fillet asymmetry into phase error."
+  - "MINIMUM-AREA PADS (IPC-7351 'Least' density), no thermal reliefs, no
+     teardrops, no solder-mask-defined pads. Every extra pad micron is mounting
+     inductance Lp and capacitance Cg, and on this part the MOUNTING is the
+     limit, not the resistor."
+  - "DO NOT SUBSTITUTE 51 ohm C25125 as a 'fallback'. The sourcing spike recorded
+     it as 'also JLCPCB Basic, 31,975 in stock'; the JLC order API says
+     componentLibraryType = expand (EXTENDED) and stock 0, and the LCSC page says
+     Out of Stock (both verified 2026-07-27). A fallback that cannot be bought is
+     an inherited defect. The real second source is YAGEO RC0402FR-0749R9L,
+     C87044, Extended, 1.22 M in stock, same value and package."
+  - "THE STAR/WYE ALTERNATIVE (3x 16.9 ohm) IS REJECTED TWICE OVER: 9.3 dB worse
+     return loss at 6 GHz with identical parts, and C82287 is Extended with 17
+     pieces in stock. See ADR-0003."
+  - "The board's TX input ceiling from the splitter alone is +24 dBm (the hottest
+     resistor takes P_in/4 and is rated 62.5 mW). The attenuator, not the
+     splitter, is the binding thermal element."
+verified: "2-terminal passive — exempt from the datasheet-FIGURE pin-map rule
+  (S-VER). Value, tolerance, power, voltage and TCR read from the LCSC C25120
+  product page and the JLCPCB partdetail page, 2026-07-27. NOTE the two pages
+  expose DIFFERENT fields: 'PCBA Type: Economic and Standard' is NOT the same
+  attribute as 'Library Type', and conflating them is how the C25125 error above
+  was generated. Library type confirmed `base` (BASIC) via the JLC order API."
+layout:
+  source: "No manufacturer layout section exists (see gotchas). The governing
+    HF references are Vishay Sfernice AN 'Microwave Thin Film Resistors', doc
+    53077 rev 11-Apr-2025 p.2 — whose only HF-valid equivalent circuit carries
+    Lp 'the parasitic inductance due to the mounting' and Cg 'the parasitic
+    capacitance due to the mounting' as terms SEPARATE from the resistor, model
+    stated valid 0.1-70 GHz — and Vishay CH doc 53014 rev 02-Jun-2025 p.1, whose
+    50 GHz claim is conditioned on the phrase 'When correctly mounted and
+    utilized', and p.2, which defers land patterns to IPC-7351A with
+    'Dimension and tolerance of land pattern shall be defined by PCB designer'.
+    The rules below are DERIVED from those, and are labelled as such."
+  reviewed: "2026-07-27"
+  keep_short:
+    - {net: LOOP_SPLIT, max_span_mm: 2.5, why: "the delta's electrically active
+       path (input vertex to each output vertex) must stay inside lambda_g/20 =
+       1.39 mm at 6 GHz. Three 0402s in a triangle occupy ~2 mm overall, which
+       is acceptable ONLY because the R23 leg carries ZERO current under
+       symmetric excitation and therefore does not lengthen the wanted path"}
+    - {net: LOOP_ARM1, max_span_mm: 2.5, why: "same, arm 1 vertex"}
+    - {net: LOOP_ARM2, max_span_mm: 2.5, why: "same, arm 2 vertex — and the two
+       must be geometric mirrors about the input axis"}
+  notes:
+    - "KEEP THE REFERENCE PLANE CONTINUOUS UNDER THE TRIANGLE — do NOT void it.
+       The delta has no floating common node, and a small Cg at each vertex
+       partially cancels the series Lp, forming a pi-section that mimics 50 ohm
+       line. (The OPPOSITE advice — void the plane under the node — applies to
+       the STAR topology, which is one more reason not to use one.)"
+    - "Ground-via fence around the triangle at <=2.0 mm pitch (lambda_g/12)."
+    - "All three 50 ohm lines enter the vertices on the SAME LAYER with an
+       IDENTICAL taper. No via transitions inside the splitter."
+    - "Mirror the two output arms EXACTLY about the axis through the input vertex
+       and the midpoint of R23 — this makes brief D4's length match symmetric by
+       construction rather than by tuning."
+layout_refs:
+  - "Vishay Sfernice AN 53077 rev 11-Apr-2025 p.2 (HF equivalent circuit; the
+     mounting parasitics are separate terms from the resistor)"
+  - "Vishay CH 53014 rev 02-Jun-2025 p.1-2 (HF capability conditioned on
+     mounting; land patterns deferred to IPC-7351A)"
+  - "Mini-Circuits ZFRSC-183-S+ REV D p.1 — a DC-18 GHz COAX resistive divider,
+     used as the MEASURED third-party reference for this topology across our
+     exact band (total loss 6.05 dB @500 MHz to 6.30/6.36 dB @6 GHz; isolation
+     6.05 to 6.22 dB; and the prose that resistive dividers' 'isolation equals
+     the insertion loss between ports')"
+  - "HyperLabs HL7071, DC-30 GHz SMD resistive power divider — a packaged
+     version of exactly this network. Confirms the approach; no LCSC code, so
+     specifying it would be a sourcing failure"
+sourcing:
+  lcsc: C25120
+  alternates: [C87044]        # YAGEO RC0402FR-0749R9L, same value/package
+asserts:
+  - assert: value
+    equals: 49.9
+    tolerance_pct: 1
+    why: "the splitter's port match and its 6.017 dB split are set by this value
+      against Z0 = 50 ohm. A wrong-value 0402 fits perfectly and is invisible on
+      any render. NB the SI decoder reads m as MILLI and M as MEGA — a 49.9 that
+      decodes as anything else is a FAIL, not a skip."

@@ -1,0 +1,147 @@
+mpn: BGS12WN6
+manufacturer: Infineon Technologies
+type: rf_switch_spdt_reflective
+datasheet:
+  doc_id: BGS12WN6
+  revision: "Rev2.9"          # printed "Revision 2.9 / 2026-04-24" on the cover footer
+  url: https://www.infineon.com/assets/row/public/documents/24/49/infineon-bgs12wn6-datasheet-en.pdf
+  sha256: 6cd5d36c7aaa3d514bbae4e4f28cd39efda4e47e0b6c0301853b7f57a4e5c645
+  fetched: 2026-07-27
+  pages: 17
+package: PG-TSNP-6-10, 0.7 x 1.1 x 0.37 mm leadless, 0.40 mm pitch both axes
+footprint: pluto_cal_switch:TSNP-6_0.7x1.1_P0.4_NSMD
+escape:
+  style: dfn
+  pitch: 0.4
+  escapes_worst_side: 3       # left column VDD/RFIN/CTRL; right column is RF1/GND/RF2
+  tier_required: jlc_4layer_advanced
+  checked: escape_check 2026-07-27
+pins:                         # Figure 2 (pin configuration, top view), PDF p11 /
+  1: RF2                      # printed p9 — RENDERED AND READ VISUALLY, and
+  2: GND                      # cross-checked against Table 11 on the same page.
+  3: RF1                      # Left column top->bottom 4/5/6, right column
+  4: VDD                      # top->bottom 3/2/1.
+  5: RFIN
+  6: CTRL
+limits:
+  frequency_characterized: 50 MHz - 9 GHz     # Table 4/5; NOT in "Operation ranges"
+  vdd_op: 1.65 / 1.8 / 3.6 V                  # Table 2, PDF p5 / printed p3
+  vdd_abs_max: 0 to 4.2 V                     # Table 1, PDF p4 / printed p2
+  v_ctrl_l: -0.3 to 0.45 V
+  v_ctrl_h: 1.0 V to VDD
+  i_ctrl: 2 nA typ / 10 nA max
+  idd: 63 uA typ / 125 uA max
+  prf_op: 26 dBm CW                           # Table 3, PDF p5 / printed p3
+  prf_abs_max: 30 dBm                         # Table 1, PDF p4 / printed p2
+  v_rfdc_max: 0 V                             # "No DC voltages allowed on RF-Ports"
+  ta: -40 to +85 C
+  tj_max: 125 C
+  t_switch: 160 ns typ / 220 ns max           # Table 10, PDF p10 / printed p8
+gotchas:
+  - "TRUTH TABLE (Table 12, PDF p11 / printed p9): CTRL=0 -> RFIN-RF1, CTRL=1 ->
+     RFIN-RF2. Board wiring MUST be RF1=RX_ANTn, RF2=loopback arm — that is what
+     makes the brief's ON=loopback polarity fall out with ZERO logic (ADR-0001).
+     Swapping RF1/RF2 inverts the SAFE STATE, not just the feature."
+  - "CTRL FLOATS. I_Ctrl is 2 nA typ, so an undriven CTRL has NO defined state.
+     A 10k external pull-down at the pin is MANDATORY (ADR-0001) — without it the
+     RF path is undefined during supply ramp, MCU reset, and on an unprogrammed
+     board."
+  - "CTRL has NO absolute-maximum row anywhere in the datasheet — only an
+     OPERATING max of VDD (Table 2). Nothing is clamped; beyond VDD is simply
+     undefined with no damage threshold to reason about. The GPIO header must
+     NEVER reach CTRL directly (ADR-0008)."
+  - "ALL RF PORTS ARE DC-CONNECTED THROUGH THE DIE. Table 1 footnote 1, verbatim:
+     'There is also a DC connection between switched paths. The DC voltage at RF
+     ports V_RFDC has to be 0 V.' Combined with the resistive splitter this makes
+     every RF port on BOTH switches one galvanic node — a single DC fault
+     violates the rating everywhere at once. Satisfied here by derivation: the
+     YAT pads DC-reference the node to ground (~70 ohm/port). See ADR-0005."
+  - "REFLECTIVE: 'The isolated port is a reflective short' (Description, PDF p1).
+     The deselected throw is a SHORT, not 50 ohm. Consequence worked in ADR-0004:
+     without arm pads the splitter sees Zin = infinity in antenna mode."
+  - "IL AND RL ARE PROBER-STATION NUMBERS. Table 4 footnote 1: 'Measured on
+     prober station to exclude board effects, without any matching components.'
+     They are NOT a board-level budget. Isolation (Table 5) IS application-board
+     and is comparable. No board-level IL/RL exists for this part anywhere."
+  - "ISOLATION CHARACTERIZATION HOLES inside our band: 960-1200, 2690-3300,
+     4200-4400 and 5000-5150 MHz have NO published row."
+  - ">25 dB isolation is NOT met on the guaranteed MINIMUM above ~5 GHz
+     (21 dB min / 28 typ at 5150-5925). No cheap stocked SPDT meets it."
+  - "NO APPLICATION SCHEMATIC EXISTS. Section 4 'Application information'
+     (PDF p11) contains ONLY the pin figure, pin table and truth table — no
+     reference circuit, no decoupling value, no DC-block value."
+  - "ROTATION AUTHORITY IS FIGURE 2, not the package outline and not the pin-1
+     glyph. The BGS12WN6 and BGS12P2L6 outline drawings are drawn 180 deg apart
+     on the page, and their pin-1 glyphs DIFFER (WN6 = lasered X for
+     PG-TSNP-6-10 / triangle for PG-TSNP-6-2; P2L6 = filled triangle). Figure 2
+     is byte-identical in both datasheets. A CPL rotation error on a 0.4 mm-pitch
+     leadless part is invisible until the board is dead, and this fleet has
+     already shipped a board killed that way (interposer v1.0)."
+  - "0.4 mm pitch, leadless, terminals entirely under the body: NO hand rework,
+     NO visual solder inspection, X-ray only. PCBA-only part."
+  - "LCSC serves the STALE Rev 2.2 (2020) PDF, which says 0.05-6 GHz and names
+     the package TSLP-6-4. Both are wrong for the current part. Use the Infineon
+     URL above; Infineon returns HTTP 202 without a browser User-Agent."
+verified: "pin map read from Figure 2 (pin configuration, top view), PDF p11 /
+  printed p9 — figure RENDERED at 300 dpi and read visually, then cross-checked
+  against Table 11 on the same page. Truth table from Table 12, same page.
+  2026-07-27"
+layout:
+  source: "Section 4 'Application information' (PDF p11) contains NO transmission-
+    line geometry, NO ground-via guidance, NO keepout and NO application
+    schematic — reported honestly rather than invented. What the document DOES
+    mandate is Figure 5 'Footprint recommendation' (PDF p13 / printed p11):
+    NSMD land pattern, six 0.25 x 0.25 mm copper lands on 0.40 mm pitch in BOTH
+    axes (0.15 mm land-to-land gap), a SINGLE solder-mask opening spanning all
+    six lands, stencil apertures 0.25 mm on the same grid at 100 um stencil
+    thickness. The mask rule is also a FAB rule, not a preference: a 0.15 mm gap
+    is below JLCPCB's 0.2 mm minimum solder-mask dam, so per-pad openings are
+    unmanufacturable. Everything below the keep_short list is DERIVED from the
+    pin map, and is labelled as such."
+  reviewed: "2026-07-27"
+  keep_short:
+    - {net: RF_CTRL_SW, max_span_mm: 4, why: "series 1k + 1nF shunt must sit AT
+       the CTRL pin. A control trace entering the RF section is a resonator —
+       25 mm of this stackup's microstrip is lambda/4 at ~1.5 GHz, mid-band"}
+    - {net: "3V3_SW", max_span_mm: 4, why: "100 nF + 1 nF at the VDD pad. Table 6
+       footnote 2 records that Infineon's own measurement board carried 1 nF from
+       VDD to GND and 1 nF from VCTRL to GND — that is the configuration the
+       published harmonic/IMD numbers were taken in"}
+  notes:
+    - "DERIVED (my reading, not the datasheet's words): RF1 (pin 3) and RF2
+       (pin 1) sit on one column with GND (pin 2) BETWEEN them, so the two throws
+       come with a ground land already separating them. RFIN (pin 5) is on the
+       OPPOSITE column, flanked by VDD (pin 4) and CTRL (pin 6) — the RF common
+       is boxed in by two DC pins, so turn VDD and CTRL away from the RFIN launch
+       immediately and bypass them at the pad."
+    - "PIN-2 GROUND VIA ESCAPES OUTWARD, and it is the reason for the fab tier.
+       A jlc_4layer_standard 0.45 mm via centred on the 0.25 mm land leaves only
+       0.050 mm to the pin-1 and pin-3 lands, under the 0.127 mm floor. Offsetting
+       it onto a stub adds ~0.2-0.3 nH = 7-11 ohm of common ground-return
+       impedance at 6 GHz, attacking the spec that is ALREADY tightest (21 dB min
+       isolation). At jlc_4layer_advanced a 0.25 mm via fits at the land with
+       0.150 mm clearance. See ADR-0010."
+    - "The 50 ohm microstrip on this stackup is 0.35 mm wide against a 0.25 mm
+       land, so RFIN/RF1/RF2 each need a short deliberate taper into the pad.
+       Under 0.3 mm long = under lambda/20 at 6 GHz, so electrically invisible —
+       but it must be DRAWN, not left as a router artifact."
+    - "No exposed pad and IDD is 63 uA typ, so thermal is a non-issue."
+layout_refs:
+  - "Infineon BGS12WN6 Rev 2.9, Figure 5 'Footprint recommendation', PDF p13"
+  - "Infineon BGS12WN6 Rev 2.9, Table 6 footnote 2 (the application board's own
+     1 nF VDD-GND and 1 nF VCTRL-GND bypass — the measured configuration)"
+  - "Infineon BGS12P2L6 Rev 2.1, Figure 4 (same land pattern, compared dimension
+     by dimension — one footprint qualifies both parts)"
+  - "NO manufacturer EVM, app note or routed reference layout exists for this
+     part. Recorded as an absence, not skipped."
+sourcing:
+  lcsc: C534203
+  alternates: [C3312945]      # BGS12P2L6 — pin-, truth-table- and LAND-identical
+asserts:
+  - assert: value
+    equals: BGS12WN6
+    why: "the BOM Comment must name the PART, not the function. BGS12P2L6 shares
+      this land pattern and is a legitimate alternate, but the two differ in
+      guaranteed band coverage (P2L6 has no row at 70 MHz or at 6.000 GHz) and in
+      VDD operating maximum (3.4 V vs 3.6 V, against a 3.366 V worst-case rail).
+      A silent substitution changes what the board is guaranteed to do."
