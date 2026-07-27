@@ -52,6 +52,7 @@ KPY = "/usr/bin/python3"
 #: each reads the release's own bytes, not a rebuild).
 GATES = [
     ("F-PAYLOAD", "jlcpcb-fab/scripts/fab_payload_census.py", ["{rel}"]),
+    ("F-LEGIBLE", "jlcpcb-fab/scripts/bom_legibility_check.py", ["{rel}"]),
     ("A-EVID", "kicad-pcb/scripts/release_required_check.py", ["{rel}"]),
     ("A-POP", "jlcpcb-fab/scripts/assembly_coverage.py", ["{rel}"]),
 ]
@@ -61,6 +62,7 @@ GATES = [
 FAMILIES = {
     "ASSEMBLY": ["A-POP", "A-POS", "A-ROT", "A-POL", "A-BODY", "A-STOCK"],
     "FAB-PAYLOAD": ["F-POUR", "F-IDENT"],
+    "FAB-BOM": ["F-LEGIBLE", "F-MPN", "F-WORDS", "F-ENCODE", "F-ECHO"],
     "RENDER": ["A-RENDER"],
     "META": ["M-REL", "M-REPRO", "M-CONS", "M-BOM"],
 }

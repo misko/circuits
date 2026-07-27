@@ -105,6 +105,32 @@ Machine-readable patterns (contracts_audit; the tree below is the human view):
         │                            (bom_source_check.py / policy_audit M-BOM):
         │                            no merged/substituted/missing/dropped code —
         │                            the v1.1 25V-for-50V-cap defect (canon M6)
+        ├── bom_legibility.txt       REQUIRED — canon F-LEGIBLE (ADR-0006): the
+        │                            BOM graded AS JLC PARSES IT, not as we
+        │                            wrote it (`bom_legibility_check.py
+        │                            <release_dir>`). F-MPN every coded row
+        │                            carries BOTH MPN and LCSC, resolved from
+        │                            02_parts/<MPN>/part.yaml then the vetted
+        │                            passives ledger, the two agreeing;
+        │                            F-WORDS the Comment is a human-readable
+        │                            value, never an LCSC code or a `simple_*`
+        │                            placeholder; F-ENCODE the file decodes
+        │                            identically under UTF-8 and cp936.
+        │                            bom_source_check asks "is this value
+        │                            RIGHT?"; this asks "can the recipient READ
+        │                            it?" — one BOM was uploaded and its parts
+        │                            "were not being picked up by their web
+        │                            processing" while every semantic gate was
+        │                            green (canon M1)
+        ├── bom_echo_gate.txt        REQUIRED where the order has been placed —
+        │                            canon F-ECHO, the human-gated half. Written
+        │                            by `export_jlc_package.py` beside A-POL's
+        │                            rotation_human_gate.txt: the (code, value,
+        │                            refs) triples to compare against JLC's OWN
+        │                            resolved table after upload. A code JLC
+        │                            redirects is a SUBSTITUTION and a FINDING
+        │                            (C82317 -> C131025 on a shipped board;
+        │                            nothing in this repo could see it)
         ├── twin_report.{csv,txt}   the JLC digital-twin verification (jlc_twin.py)
         ├── twin_{top,bottom,iso_nw,iso_se,edge_west,edge_east}.png
         │                            six renders of the board with JLC's part
@@ -417,6 +443,20 @@ checked shared a method.
     the shipped stock evidence carries a PARSEABLE PASS verdict and every
     coded, placed line clears `qty x build_quantity` or names a
     `sourcing_plan:` entry with its measured stock and date
+  - `bom_legibility_check.py <release_dir>` exits 0 (canon F-LEGIBLE) — every
+    coded row carries an MPN that AGREES with its dossier, every Comment is a
+    human-readable value, and the file decodes identically under UTF-8 and
+    cp936. **Adopted-forward**: 25 of the 26 releases sealed before ADR-0006
+    fail this and are NOT retro-fixed (07_releases immutability). A board that
+    needs a legible BOM gets a NEW version; `fleet_regrade.py` says which
+- **the ORDER-TIME F-ECHO ritual (canon F-LEGIBLE, human-gated).** The
+  ORDER_README carries it beside the A-POL rotation-preview gate: after
+  uploading `fab/bom.csv`, save JLC's OWN resolved/matched part table out of
+  their UI and run `bom_legibility_check.py fab/bom.csv --echo SAVED.csv`
+  against `bom_echo_gate.txt`. A code JLC redirects is a SUBSTITUTION and a
+  FINDING to adjudicate BEFORE paying, never after. There is deliberately no
+  JLCPCB API integration (ADR-0006): it would require handing over
+  credentials, the same line already drawn on the Mouser/Nexar APIs
 - red-team review present in `verification/`, both lenses'
   (topology/protection + layout/thermal) verdicts = ORDER, zero unresolved
   P0 (a P0 blocks the release); archived verbatim in `08_reviews/`

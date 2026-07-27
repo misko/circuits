@@ -16,7 +16,55 @@ stock, twin).
 
 - Checkers: clean + known-bad tests in `tests/` (t1_jlc_twin.py,
   t1_bom_source.py, t1_release_freshness.py, t1_assembly_gates.py,
-  t1_fab_payload.py).
+  t1_fab_payload.py, t1_bom_legibility.py).
+- **The FAB LEGIBILITY family (canon F-LEGIBLE, ADR-0006) — the BOM is graded
+  AS JLC PARSES IT, not as we wrote it.**
+  - `bom_legibility_check.py TARGET` (a sealed release dir, a project dir, or
+    a BOM csv; plain python3, offline, no pcbnew) runs **F-MPN** (every coded
+    row carries BOTH MPN and LCSC, resolved from `02_parts/<MPN>/part.yaml`
+    then the vetted `references/lcsc_passives_ledger.yaml`, and the two paths
+    must AGREE), **F-WORDS** (the Comment is a human-readable value — never an
+    LCSC code, never a `simple_*` placeholder, never blank) and **F-ENCODE**
+    (the file decodes IDENTICALLY under UTF-8 and cp936; a byte-order-mark or
+    ASCII `Ohm` both pass — the check is INDIFFERENT to which). `--echo
+    JLC_RESOLVED.csv` runs **F-ECHO**, the human-gated half: JLC's resolved
+    table diffed back against ours, a substitution is a FINDING.
+    WHY: crow-recorder-central-v2 v1.5's BOM was uploaded and its parts "were
+    not being picked up by their web processing". Every prior BOM check asked
+    "is this value CORRECT?" and none asked whether the recipient can PARSE
+    the file — canon M1, all of them reading the document the way WE wrote it.
+    MEASURED over 26 sealed BOMs / 1205 rows: **914 blank MPN** (962 counting
+    the one file with NO MPN COLUMN at all, which the 914 denominator silently
+    excluded), **470 illegible Comments**, **23/26 carrying `Ω` with no UTF-8
+    byte-order-mark** so a cp936 reader sees `惟`. **25 of 26 fail.**
+    The MPN AUTHORITY is the dossier's `mpn:` FIELD, not its directory name:
+    a path cannot hold the `/` in `LM5116MHX/NOPB` or `SMD2920-700/16N`, and
+    shipping the directory name for those would put a string that is not the
+    part number in the column whose whole job is to be the part number.
+    The graded artifact is the SHIPPED bom.csv (canon M-SHIP); the authority
+    lives in the project, not the archive, and is NAMED in the output.
+  - `export_jlc_package.py` enforces the same three at export time and BLOCKS
+    (exit 3), writing nothing uploadable — a coded row with no resolvable MPN
+    or an illegible Comment stops the package, exactly as A-ROT does for an
+    unsourced rotation. `--allow-illegible-bom` is the loud, discouraged
+    escape hatch. It writes the BOM as **UTF-8 with a byte-order-mark**, and
+    emits `bom_echo_gate.txt` — the F-ECHO worklist, the sibling of A-POL's
+    `rotation_human_gate.txt`.
+  - **`lcsc_mpn_map.csv` is RETIRED as an input.** It was an OPTIONAL,
+    HAND-MAINTAINED side-file read through `mpn_map.get(code, "")` — a second
+    home for a fact `02_parts/<MPN>/` already owned, a silent default (the
+    `row_kind` shape canon M-COVER forbids), and opt-in by construction, all
+    three at once. Only ONE project ever created it; eight of nine shipped
+    100% blank MPN. Where it DID exist it drifted: usb-hub-3s-v3 v1.5-v1.8
+    ship SW1 as `SS12D07VG6 087` against the dossier's `SS12D07VG6-087`. A
+    leftover file is now IGNORED loudly and its drift REPORTED. An MPN
+    override belongs in the part's own `part.yaml`, which is the one home.
+  - **F-ECHO stays HUMAN-GATED by decision, not by omission** (ADR-0006 "NOT
+    built"): a JLCPCB API integration would require handing over credentials,
+    the same line already drawn on the Mouser/Nexar APIs. The one substitution
+    this fleet has seen — our C82317 for crow-recorder-central-v2's U5 in
+    THREE places, JLC's resolved output C131025 — is only visible from inside
+    their UI, and the ritual lives in the release ORDER_README.
 - **The FAB PAYLOAD family (canon F-*) — the shipped zip is a GRADED
   artifact, not merely a hashed one (canon M6, ADR-0004).**
   - `fab_payload_census.py RELEASE_DIR` opens `fab/*_gerbers.zip` and grades

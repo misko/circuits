@@ -207,8 +207,15 @@ def t_skill_contract_sync():
     # (assembly) family from exactly the check that exists to catch a gate
     # landing without its canon row — the same silent-skip class as the M-REL
     # glob bug and the `^v` release-name regex. Widen it whenever a new family
-    # is minted; case 4 below is the standing proof that it bites.
-    ID_RE = re.compile(r'(?<![\w-])([ASPRMED]-[A-Z][A-Z0-9-]+)(?![\w-])')
+    # is minted; cases 4 and 5 below are the standing proof that it bites.
+    # WIDENED AGAIN 2026-07-27 to `F` and `G`. The instruction directly above
+    # was NOT followed when the F- family (F-POUR/F-IDENT, ADR-0004) and the
+    # G- family (G-INPUT/G-COVER/G-RED, the gate-on-gates) were minted, so for
+    # their whole existence a contract could have cited `F-ANYTHING` and this
+    # backstop would have reported success — the very class the comment warns
+    # about, reproduced under its own warning. Found while landing F-LEGIBLE
+    # (ADR-0006).
+    ID_RE = re.compile(r'(?<![\w-])([ASPRMEDFG]-[A-Z][A-Z0-9-]+)(?![\w-])')
     for c in (skills / "pcb-design/templates/contracts").rglob("contracts.md"):
         txt = c.read_text()
         for m in ID_RE.finditer(txt):
@@ -245,6 +252,23 @@ def t_skill_contract_sync():
     check(in_(corpus, "A-POP"),
           "A-POP is cited by a contract but exists nowhere in the skill — the "
           "assembly family landed without its canon row")
+
+    # 5. RED: the same reach test for the F- (fab-artifact) family, which
+    #    landed with ADR-0004 while the class was still `[ASPRMED]-` and was
+    #    therefore invisible to this backstop for its whole existence.
+    #    VERIFIED RED against that class: `F-NOPE`/`F-LEGIBLE` match ZERO
+    #    times, so the assertion below fails.
+    fab = "| `x` | governed by F-NOPE and by F-LEGIBLE |\n"
+    seen_f = {m.group(1) for m in ID_RE.finditer(fab)}
+    check("F-NOPE" in seen_f and "F-LEGIBLE" in seen_f,
+          f"the check-ID regex does not reach the F- (fab-artifact) family — "
+          f"F-POUR/F-IDENT/F-LEGIBLE would all be exempt; matched only "
+          f"{sorted(seen_f)}")
+    check(not in_(corpus, "F-NOPE"),
+          "F-NOPE unexpectedly exists in the skill — pick another fake ID")
+    check(in_(corpus, "F-LEGIBLE"),
+          "F-LEGIBLE is cited but exists nowhere in the skill — ADR-0006 "
+          "landed without its canon row")
 
 
 if __name__ == "__main__":

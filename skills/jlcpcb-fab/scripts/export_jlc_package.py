@@ -17,6 +17,12 @@ Run only AFTER the audit gate and classified DRC pass (kicad-pcb skill).
   bom_jlc.csv is only a per-refdes FALLBACK for parts the source does not code.
 - Bottom-side CPL coordinates are NOT mirrored (JLC handles that), but
   bottom ROTATIONS are the classic failure — check the assembly preview.
+- The BOM is graded as its RECIPIENT parses it (canon F-LEGIBLE, ADR-0006):
+  the MPN comes from `02_parts/<MPN>/part.yaml` (the dossier's `mpn:` field,
+  then the vetted passives ledger) and a coded row resolving NO MPN BLOCKS;
+  the Comment is a real value, never an LCSC code or a `simple_*` placeholder;
+  and the file carries a UTF-8 byte-order-mark so a cp936 reader cannot render
+  `Ω` as `惟`. `lcsc_mpn_map.csv` is RETIRED as an input.
 """
 import argparse
 import csv
@@ -184,6 +190,12 @@ ap.add_argument("--allow-unsourced-rotations", action="store_true",
                      "and written to rotations_unsourced.csv either way. Use "
                      "it to produce the measurement worklist — never to place "
                      "an order.")
+ap.add_argument("--allow-illegible-bom", action="store_true",
+                help="LOUD, DISCOURAGED ESCAPE HATCH (canon F-LEGIBLE): write "
+                     "the BOM even though some coded rows resolve NO MPN from "
+                     "02_parts/<MPN>/part.yaml or the vetted ledger, or some "
+                     "Comment is an LCSC code / a `simple_*` placeholder. Use "
+                     "it to produce the worklist — never to place an order.")
 args = ap.parse_args()
 
 board = pcbnew.LoadBoard(args.board)
@@ -328,28 +340,83 @@ for fp in board.GetFootprints():
 # same NON-EMPTY (code, footprint) (same physical part, perhaps a different
 # value string). Groups with different codes are already distinct keys and can
 # NEVER merge. Merged Comment is the shared value token, else "a / b".
+# ============================================ canon F-LEGIBLE (ADR-0006) ===
+# THE MPN COMES FROM THE PART'S OWN DOSSIER, and a coded row that resolves none
+# is a FAIL. This column used to be filled from an OPTIONAL, HAND-MAINTAINED
+# side-file, `OUTDIR/lcsc_mpn_map.csv`, read with `mpn_map.get(code, "")` — a
+# silent default, the exact `row_kind` shape canon M-COVER forbids. Only ONE
+# project ever created that file, so eight of nine boards shipped 100% blank
+# MPN and nothing noticed: 914 of 1205 sealed BOM rows fleet-wide. The
+# author had ALREADY DIAGNOSED the symptom in this file's own comment ("a
+# Comment like 'LM5145' left C485912 at 'No Part Selected'; 'LM5145RGYR'
+# matches") and then made the remedy opt-in. A known remedy behind an opt-in
+# flag is not a remedy.
+#
+# The authoritative MPN was in the tree the whole time: `02_parts/<MPN>/
+# part.yaml`. usb-hub-3s-v3's own release history proves the mechanism — v1.5
+# blank-MPN 0 (side-file complete), v1.6-v1.8 blank-MPN 3, and those three
+# codes (C25757, C2296, C2297) ALL HAVE DOSSIERS. The side-file is a SECOND
+# HOME for a fact that already has one, and it drifted the moment a part was
+# added. It is RETIRED as an input here; an override belongs in the part's own
+# part.yaml, which is the one home.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from bom_legibility_check import (MpnAuthority, comment_defect,  # noqa: E402
+                                  legible_comment)
+
+
+def find_parts_dir(board_path):
+    """The board's `02_parts/` — the MPN authority — or None."""
+    p = Path(board_path).resolve()
+    for anc in list(p.parents)[:4]:
+        if (anc / "02_parts").is_dir():
+            return anc / "02_parts"
+    return None
+
+
+_parts_dir = find_parts_dir(args.board)
+_auth = MpnAuthority(_parts_dir, None)
+print(f"MPN authority: {_auth.describe()}")
+
 lines = {}
 for (code, val, fpname), refs in sorted(groups.items()):
     key = (code, fpname) if code else ("", val, fpname)
+    # LEGIBLE FIRST, THEN MERGE. The merge builds "a / b" out of two Comment
+    # tokens; merging BEFORE legibility would let two illegible tokens produce
+    # a string ("C82317 / C131025") that no narrow legibility test can refuse
+    # while still being unreadable by every human on both sides of the upload.
+    comment = legible_comment(val, _auth.resolve(code))
     if key in lines:
         line = lines[key]
         line[1].extend(refs)
         t_old = line[0].split()[0] if line[0].split() else line[0]
-        t_new = val.split()[0] if val.split() else val
-        line[0] = t_old if t_old == t_new else f"{line[0]} / {val}"
+        t_new = comment.split()[0] if comment.split() else comment
+        line[0] = t_old if t_old == t_new else f"{line[0]} / {comment}"
     else:
-        lines[key] = [val, list(refs), fpname, code]
-# Optional OUTDIR/lcsc_mpn_map.csv (LCSC,MPN): adds an exact manufacturer
-# part number column — JLC's matcher auto-selects far more reliably with
-# the full MPN (a Comment like "LM5145" left C485912 at "No Part Selected";
-# "LM5145RGYR" matches).
-mpn_map = {}
-mpn_path = out / "lcsc_mpn_map.csv"
-if mpn_path.exists():
-    with open(mpn_path) as f:
+        lines[key] = [comment, list(refs), fpname, code]
+
+# The retired side-file is IGNORED, loudly, and its DRIFT is measured — a
+# second home that silently disagrees with the first is the whole defect.
+_retired = out / "lcsc_mpn_map.csv"
+if _retired.exists():
+    print(f"  NOTE: {_retired.name} is RETIRED as an input (ADR-0006) and was "
+          f"NOT read. Move any override into 02_parts/<MPN>/part.yaml.")
+    with open(_retired) as f:
         for row in csv.DictReader(f):
-            if row.get("LCSC") and row.get("MPN"):
-                mpn_map[row["LCSC"]] = row["MPN"]
+            c, m = (row.get("LCSC") or "").strip(), (row.get("MPN") or "").strip()
+            res = _auth.resolve(c) if c else None
+            if c and m and res and res.mpn != m:
+                print(f"    DRIFT {c}: side-file says {m!r}, {res.source} says "
+                      f"{res.mpn!r} — the dossier wins")
+
+# F-MPN / F-WORDS accumulators, drained into the blocking report below.
+_NO_MPN = []        # (code, refs) — coded rows the authority cannot resolve
+_ILLEGIBLE = []     # (refs, why) — Comment no human can review
+for comment, refs, fpname, code in lines.values():
+    if code and _auth.resolve(code) is None:
+        _NO_MPN.append((code, sorted(refs)))
+    why = comment_defect(comment)
+    if why:
+        _ILLEGIBLE.append((sorted(refs), why))
 
 # ===================================================== canon A-ROT / A-POL ===
 # THE ASSEMBLY HALF OF THIS EXPORT IS BLOCKED unless every CPL rotation is
@@ -431,12 +498,77 @@ else:
     print(f"  A-ROT OK: all {len(cpl)} CPL rotations are sourced (measured "
           f"per-LCSC row, or a footprint measured 180-symmetric)")
 
-with open(bom_path, "w", newline="") as f:
+# ============================================== canon F-MPN / F-WORDS ======
+# THE ASSEMBLY HALF IS BLOCKED unless every coded row resolves an MPN and every
+# Comment is something a human can read. Same shape as the A-ROT block above,
+# and for the same reason: silence used to resolve to a blank column, and
+# silence is now a FAIL.
+if (_NO_MPN or _ILLEGIBLE) and not args.allow_illegible_bom:
+    print(f"\nF-LEGIBLE BLOCKED: {len(_NO_MPN)} coded row(s) resolve NO MPN "
+          f"and {len(_ILLEGIBLE)} row(s) carry a Comment no human can review. "
+          f"A fab artifact is graded as its RECIPIENT will parse it:")
+    for code, refs in sorted(_NO_MPN):
+        print(f"  F-MPN {code}: {','.join(refs)} — no 02_parts/<MPN>/part.yaml "
+              f"declares this code and it is not in the vetted passives ledger")
+    for refs, why in sorted(_ILLEGIBLE):
+        print(f"  F-WORDS {','.join(refs)}: Comment is {why}")
+    print("  FIX F-MPN: add `sourcing: {lcsc: <code>}` to the part's own "
+          "02_parts/<MPN>/part.yaml (the dossier's `mpn:` field is the answer), "
+          "or append a CATALOG-VERIFIED row to "
+          "jlcpcb-fab/references/lcsc_passives_ledger.yaml. NEVER re-create "
+          "lcsc_mpn_map.csv — that second home is what drifted.")
+    print("  FIX F-WORDS: give the part a real value in the .tsx, or let the "
+          "dossier supply one; the exporter falls back to the resolved MPN.")
+    print("  ESCAPE HATCH (worklist only, NEVER for an order): "
+          "--allow-illegible-bom")
+    for _stale in (bom_path, out / "cpl_jlc.csv"):
+        if _stale.exists():
+            _stale.unlink()
+            print(f"  removed stale {_stale.name} (a blocked run must not "
+                  f"leave an uploadable package behind)")
+    sys.exit(3)
+elif _NO_MPN or _ILLEGIBLE:
+    print(f"\n  F-LEGIBLE OVERRIDDEN by --allow-illegible-bom: "
+          f"{len(_NO_MPN)} unresolved MPN(s), {len(_ILLEGIBLE)} illegible "
+          f"Comment(s). THIS PACKAGE MUST NOT BE ORDERED.")
+else:
+    print(f"  F-LEGIBLE OK: {len(lines)}/{len(lines)} BOM lines carry a "
+          f"resolved MPN (where coded) and a human-readable Comment")
+
+# ENCODING: UTF-8 WITH A BYTE-ORDER-MARK. The file was always valid UTF-8 and
+# `Ω` was always correctly `CE A9`; there was simply no BOM, so a reader
+# defaulting to GBK/CP936 rendered those two bytes as `惟` — which is what the
+# user saw. Nothing was corrupt; the reader's assumption was wrong and we gave
+# it nothing to correct itself with. 23 of 26 sealed BOMs are in that state.
+# The BOM marker is the fix chosen here; ASCII `Ohm` would do equally well and
+# `bom_legibility_check.py` is deliberately indifferent to which.
+with open(bom_path, "w", newline="", encoding="utf-8-sig") as f:
     w = csv.writer(f)
     w.writerow(["Comment", "Designator", "Footprint", "MPN", "LCSC"])
     for val, refs, fpname, code in sorted(lines.values(), key=lambda x: x[0]):
+        res = _auth.resolve(code)
         w.writerow([val, ",".join(sorted(refs)), fpname,
-                    mpn_map.get(code, ""), code])
+                    res.mpn if res else "", code])
+
+# F-ECHO worklist — the human-gated half, beside A-POL's rotation_human_gate.txt.
+# JLC RESOLVES our codes on their side and can redirect one: our source said
+# C82317 for crow-recorder-central-v2's U5 in three places and JLC's resolved
+# output said C131025. Nothing in this repo could see that, so the export names
+# the triples to compare and the ORDER_README ritual says how.
+echo_path = out / "bom_echo_gate.txt"
+with open(echo_path, "w", encoding="utf-8") as f:
+    f.write("F-ECHO — JLC's RESOLVED BOM vs OURS. After uploading bom_jlc.csv,\n"
+            "save JLC's own resolved/matched part table out of their UI and run\n"
+            "  bom_legibility_check.py <this outdir>/bom_jlc.csv --echo SAVED.csv\n"
+            "A code JLC redirects is a SUBSTITUTION and is a FINDING, not a\n"
+            "convenience. C82317 -> C131025 happened on a shipped board and no\n"
+            "gate in this repo could have seen it.\n\n")
+    for val, refs, fpname, code in sorted(lines.values(), key=lambda x: x[0]):
+        if code:
+            f.write(f"{code}\t{val}\t{','.join(sorted(refs))}\n")
+print(f"  F-ECHO worklist: {echo_path.name} ({sum(1 for v in lines.values() if v[3])} "
+      f"coded line(s) to confirm against JLC's resolved table)")
+
 with open(out / "cpl_jlc.csv", "w", newline="") as f:
     w = csv.writer(f)
     w.writerow(["Designator", "Val", "Package", "Mid X", "Mid Y", "Layer",
