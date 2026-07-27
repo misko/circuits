@@ -2,6 +2,56 @@
 
 Board internal name `usb_hub_3s_v2`; project directory `usb-hub-3s-v3`.
 
+## v1.10 — 2026-07-27
+
+Released: `07_releases/v1.10-2026-07-27/`. **BOM-LEGIBILITY supersede of v1.9.
+NO COPPER CHANGE.** v1.9 gains `SUPERSEDED.md`; it is otherwise immutable and it
+is **not** DO-NOT-ORDER — its board is this board.
+
+### Why
+
+Canon **F-LEGIBLE** (ADR-0006): a fab artifact is graded as its RECIPIENT will
+parse it, not as we wrote it. v1.9's `fab/bom.csv` carries **26 findings**:
+
+| check | findings | what JLC saw |
+|---|---|---|
+| F-WORDS | 21 | the Comment is an LCSC code — 21 of 46 rows unreviewable by a human on either side |
+| F-MPN | 4 | `C25757`/R42, `C2296`/D8, `C2297`/D9–D12 ship a **blank MPN** despite having `02_parts` dossiers (JLC: *No Part Selected*); and **SW1 ships `SS12D07VG6 087` with a SPACE** where `02_parts/SS12D07VG6-087` says a HYPHEN |
+| F-ENCODE | 1 | `Ω` with no UTF-8 byte-order-mark — a cp936 reader sees `惟` |
+
+v1.10 ships **0 findings**: 46/46 coded rows carry an MPN from the dossier or the
+vetted passives ledger, 46/46 Comments read, byte-order-mark present.
+
+The SW1 space-vs-hyphen is the one that matters most and is unique to this
+board: usb-hub-3s-v3 is the **only** project that ever created the retired
+`lcsc_mpn_map.csv` side-file, so it is the only one where a second home for the
+MPN could drift from the first. This is why F-MPN requires the two match paths to
+AGREE and not merely to be non-empty — a blank-only check passes that row.
+
+### What did NOT change, measured
+
+* `source/usb_hub_3s_v2.kicad_pcb` md5 `83af8e5a5596a51cf139dd06e8903d47` —
+  identical to v1.9's **and** to `04_kicad/`'s.
+* Gerbers + drills **re-plotted** from this release's own source: **15/15
+  byte-identical** to v1.9's sealed zip after stripping the plot timestamp
+  comments — the restored pour (36 zones / 106 filled outlines) included.
+* `fab/cpl.csv` byte-identical; every A-ROT rotation and A-POS coordinate
+  carried forward unchanged. 21 of 22 payload files sha256-identical.
+* Asserted mechanically by `release_freshness_check.py --legible-bom-supersede`,
+  a mode added for this class: only `Comment` and `MPN` may move, and a changed
+  `LCSC` (a substitution) or `Footprint` FAILs.
+
+No source change was needed on this board — all 29 dossiers already declared
+their code under `sourcing:`, so the MPN column is filled entirely from
+artifacts already in the tree.
+
+### Still open, unchanged by this release
+
+The A-POL single-channel JLC order-preview human gate (C130056, C13755, C473910,
+C7519, C98732), the order-day stock recheck, the In1_Cu/In2_Cu gerber-viewer
+check — and now **F-ECHO**: after uploading, diff JLC's own resolved part table
+back against ours (`verification/bom_echo_gate.txt`, 46 lines).
+
 ## v1.9 — 2026-07-27
 
 Released: `07_releases/v1.9-2026-07-27/`. **DO-NOT-ORDER supersede of v1.8, v1.7

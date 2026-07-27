@@ -1,0 +1,50 @@
+PAYLOAD IDENTITY - v1.10 vs v1.9 (canon: a fix-claim needs the measurement)
+==========================================================================
+
+CLAIM: v1.10 changes fab/bom.csv and NOTHING else. The copper is untouched.
+
+This board's v1.6-v1.8 shipped 44287.91 mm2 of MISSING COPPER with every gate
+green, so "the copper is untouched" is the claim on this board that most needs
+a measurement rather than an assertion.
+
+METHOD (falsifiable, not a copy-check). Two independent measurements:
+
+  (1) THE BOARD STILL GENERATES THESE BYTES. The gerbers + drills were
+      RE-PLOTTED from the v1.10 source board with export_jlc_package.py
+      --layers 4 into a scratch dir, then compared to the members of v1.9's
+      SEALED gerber zip and to its loose drills, after stripping ONLY the
+      plot's own timestamp comments (TF.CreationDate, "Created by", and the
+      .drl "DRILL file KiCad ... date" line). A copy would prove nothing; a
+      RE-PLOT proves the BOARD - including its 36 zones / 106 filled_polygon
+      of restored pour, which is inside those re-plotted bytes.
+
+  (2) sha256 over EVERY payload file (fab/, pdf/, source/, 3d/) present in
+      either release. verification/ is deliberately EXCLUDED: it is this
+      release's own fresh evidence and is expected to differ.
+
+BOARD IDENTITY, measured first and independently (md5):
+  04_kicad/usb_hub_3s_v2.kicad_pcb        83af8e5a5596a51cf139dd06e8903d47
+  v1.9/source/usb_hub_3s_v2.kicad_pcb     83af8e5a5596a51cf139dd06e8903d47
+  v1.10/source/usb_hub_3s_v2.kicad_pcb    83af8e5a5596a51cf139dd06e8903d47
+  -> the sealed board, the working board and this release's board are ONE FILE.
+
+RESULT (1): 15/15 re-plotted gerber+drill artifacts byte-identical after the
+timestamp strip (13 zip members + 2 loose drills).
+
+RESULT (2):
+  CHANGED    fab/bom.csv                                                6d717b7b46b0ab96 -> 3636288a8fcc5d7f
+  payload files identical : 21
+  payload files changed   : 1
+
+Exactly ONE payload file differs: fab/bom.csv. fab/cpl.csv was re-exported in
+the same run and came out BYTE-IDENTICAL to v1.9's (cmp, 0 differences), so
+every rotation and coordinate the A-ROT/A-POL work established is carried
+forward unchanged - including the five A-POL single-channel codes whose JLC
+order-preview human gate is still REQUIRED before the first order.
+
+That identity is asserted MECHANICALLY, not by reading this file, via
+  release_freshness_check.py <rel> --legible-bom-supersede <v1.9>
+which additionally FAILs on any ADDED or REMOVED row, on any changed Footprint
+or LCSC (a changed LCSC is a SUBSTITUTION - the C82317 -> C131025 class), on a
+blanked MPN, and on a BOM that does not itself PASS F-LEGIBLE - see
+verification/release_freshness.txt and verification/bom_legibility.txt.

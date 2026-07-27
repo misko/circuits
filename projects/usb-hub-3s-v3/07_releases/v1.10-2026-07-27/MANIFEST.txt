@@ -1,0 +1,564 @@
+MANIFEST — usb-hub-3s-v3 v1.10-2026-07-27
+
+board: usb_hub_3s_v2   130.1 x 92.1 mm, 4 layer
+
+supersedes: v1.9-2026-07-27 — for BOM LEGIBILITY ONLY. NO COPPER CHANGE, and
+            v1.9 is NOT DO-NOT-ORDER: its board is the board this release ships,
+            and every gate, review verdict and bench number it carries stands
+            unaltered here.
+            WHAT WAS WRONG. Graded the way the RECIPIENT parses it (canon
+            F-LEGIBLE, ADR-0006) v1.9's fab/bom.csv carries 26 findings:
+              21 F-WORDS  the Comment is an LCSC code, so 21 of 46 rows cannot be
+                          reviewed by a human on either side of the upload
+               4 F-MPN    C25757 (R42), C2296 (D8) and C2297 (D9-D12) ship a
+                          BLANK MPN although all three HAVE 02_parts dossiers
+                          (0402WGF1603TCE, KT-0805Y, KT-0805G) — JLC's matcher
+                          leaves a code-only line at "No Part Selected"; and SW1
+                          ships 'SS12D07VG6 087' with a SPACE where
+                          02_parts/SS12D07VG6-087 says a HYPHEN. That last one is
+                          the whole reason F-MPN requires the two match paths to
+                          AGREE rather than merely requiring the column to be
+                          non-empty: a blank-only check passes it. This board is
+                          the ONLY one that ever maintained the retired
+                          lcsc_mpn_map.csv side-file, and it is the only board
+                          where the side-file could DRIFT from the dossier.
+               1 F-ENCODE `Ohm` with no UTF-8 byte-order-mark, so a reader
+                          defaulting to cp936 renders CE A9 as mojibake.
+            THIS RELEASE: 0 findings. 46/46 coded rows carry an MPN resolved from
+            02_parts/<MPN>/part.yaml or the vetted passives ledger, 46/46
+            Comments read, and the file carries the byte-order-mark.
+            WHAT DID NOT CHANGE, MEASURED: the .kicad_pcb is md5-identical to
+            v1.9's AND to 04_kicad's (83af8e5a5596a51cf139dd06e8903d47); the
+            gerbers+drills RE-PLOT from this release's own source board 15/15
+            byte-identical to v1.9's sealed zip after the timestamp strip — which
+            includes the restored pour, 36 zones / 106 filled_polygon;
+            fab/cpl.csv is byte-identical, so every A-ROT rotation and A-POS
+            coordinate is carried forward unchanged; 21 of 22 payload files are
+            sha256-identical. verification/replot_identity.txt holds the numbers
+            and release_freshness_check.py --legible-bom-supersede ASSERTS them
+            mechanically — every row's designator group, Footprint and LCSC
+            unchanged, no row added or removed, no MPN blanked, and the shipped
+            BOM must itself PASS F-LEGIBLE.
+            NO SOURCE CHANGE WAS NEEDED ON THIS BOARD: all 29 of its dossiers
+            already declared their code under `sourcing:`, so the MPN column is
+            filled entirely from artifacts that were already in the tree.
+
+supersedes (historical, unchanged by this release): v1.8-2026-07-26, and with it
+            v1.7-2026-07-26 and v1.6-2026-07-26 —
+            all three DO-NOT-ORDER. **THEIR GERBERS HAVE NO COPPER POUR.**
+            44287.91 mm2 of copper absent from a byte-identical fab payload
+            shared by all three: no GND plane, no VIN plane, no
+            5VA/5VC/VBUS/switch-node island. A board built from those zips
+            carries its 7 A battery trunk and its 6 A / 5 A rails on nothing but
+            the thin routed stubs that were never meant to carry them, and has
+            no return path at all.
+            ROOT CAUSE: 03_src/post_stitch_fixes.py section 6, added in v1.6,
+            unfills the zones to place vias and never refills before its own
+            save — and that script holds the LAST save in the pipeline, so the
+            refill guard inside the stitch driver guarded nothing.
+            WHY EVERY GATE WAS GREEN: `kicad-cli pcb drc --refill-zones`
+            REFILLS THE ZONES IN MEMORY. It returns 0/0/0 on a board whose
+            SAVED file has no fill. DRC, parity, twin, renders, the schematic
+            rule check, the assembly battery and the policy audit were all
+            measuring an in-memory board that was correct while the bytes on
+            disk — and in the zip — were not.
+            v1.8 carries the SUPERSEDED.md naming this release. v1.6 and v1.7
+            already hold the one added file 07_releases/contracts.md permits
+            ("nothing else, ever") and reach here through the chain
+            v1.6 -> v1.7 -> v1.8 -> v1.9; 01_docs/STATUS.md is their live
+            marker. (v1.5 and earlier: A-POS datum defect, 11 of 108 CPL rows
+            off JLC's pad-centre datum, all five connectors.)
+
+THE FIX-CLAIM, MEASURED BY A METHOD THAT CAN FALSIFY IT
+
+  F-PAYLOAD (fab_payload_census.py, canon F-POUR/F-IDENT) opens the SHIPPED ZIP
+  and grades it against the board in source/. It is downstream of the export,
+  which is where the defect lived, and it shares no method with the build.
+  Both releases graded side by side in verification/fab_payload_census.txt:
+
+      v1.8-2026-07-26   F-PAYLOAD FAIL: 5 finding(s), 0 ok
+      v1.9-2026-07-27   F-PAYLOAD OK:   5 check(s) passed
+
+  G36 regions in the shipped gerbers, B.Cu / F.Cu / In1.Cu / In2.Cu:
+      v1.8     0 / 0 / 0 / 0        (and In1_Cu == In2_Cu, BYTE-IDENTICAL,
+                                     18921 B — impossible for a GND plane and a
+                                     VIN plane unless neither holds a plane)
+      v1.9    17 / 87 / 1 / 1       (all four copper gerbers distinct)
+
+  gerber zip:      88 692 B  ->  394 534 B
+  saved-board read-back (verify-fill, TEXT not pcbnew, canon M1):
+      36 pour zone(s) in the SAVED file, 106 filled_polygon block(s)
+  filled zone area on the board object:
+      F.Cu 10402.72 + In1.Cu 11406.27 + In2.Cu 11276.88 + B.Cu 11196.24
+      = 44282.10 mm2 across 36 zones / 106 filled outlines
+
+  Full write-up: verification/copper_restoration_proof.md
+
+NOTHING ELSE CHANGED
+
+  netlist parity vs v1.8:  0 differences (122 components, 73 nets, 372 nodes;
+                           identical component set, identical net-name set,
+                           0 nets differing node-for-node) [parity.md]
+  fab/cpl.csv:             BYTE-IDENTICAL to v1.8 AND to v1.9 (diff clean,
+                           119 rows)
+  fab/bom.csv:             BYTE-IDENTICAL to v1.8 at v1.9. **CHANGED AT v1.10**
+                           and ONLY in its Comment and MPN columns — see the
+                           v1.9 supersede block at the head of this file and
+                           verification/bom_legibility.txt. Every row's
+                           designator group, Footprint and LCSC is unchanged.
+  Both identities are ASSERTED, not tolerated — see
+  verification/freshness_exceptions.txt. This is NOT a docs-only supersede:
+  fab/ changed (the zip, the PTH drill), and the gate would be right to refuse
+  that claim.
+
+GATES
+
+DRC:            0 violations / 0 unconnected / 0 schematic-parity  [drc.json]
+                (kicad-cli pcb drc --severity-all --refill-zones
+                 --schematic-parity, with the authoritative .kicad_sch beside
+                 the board so the parity leg actually RUNS)
+standalone:     0 / 0 / 0 — RE-PROVED for v1.9, not inherited: source/ extracted
+                to a bare temp dir and both rule checks re-run there;
+                footprint_link_issues 0 (V-REL-FPLIB holds).
+                [standalone_archive_drc.json]
+re-plot:        13 of 13 files in the shipped zip re-plot from source/
+                BYTE-IDENTICAL, the whole per-file diff being the two
+                wall-clock stamp lines. [standalone_replot.txt]
+ERC:            0 errors, 221 warnings — all lib_symbol_issues
+                (converter-synthesised symbols; v1.8 shipped the same 221).
+                0 footprint_link_issues.  [erc.json]
+rules_audit:    PASS — 0 fails, 32 checks. **A-AMP coverage 10/10** net-class
+                current declarations graded (it graded 3/10 until 2026-07-27:
+                the parser could not read a qualifier, so "7 A worst case",
+                "6 A / 5 A" and "7 A pulsed" were silently unchecked).
+                A-ORDER: generate_rules runs last before the DRC gate.
+                [rules_audit.txt]
+A-ROT:          119/119 CPL rotations sourced from MEASURED per-LCSC rows
+A-POS datum:    119 rows graded, worst residual 0.00050 mm (Q6), tol 0.05 mm
+A-POP:          PASS — 122 BOM refdes = 119 CPL placements + 3 not_assembled;
+                0 blank-LCSC rows; {BOM}-{CPL} == assembly.yaml exactly.
+                ORDERING DEPENDENCY, stated because it produced a shipped FAIL
+                the v1.9 render review caught (RR-1): assembly_coverage's
+                MANIFEST-UNDECLARED leg grades THIS file, so on a first build it
+                runs before the MANIFEST exists and CANNOT pass. The archived
+                assembly_coverage.txt is the RE-RUN, taken AFTER the stamp —
+                the same position the seal procedure already gives policy_audit
+                and release_freshness_check. [gate_adjudications_v1.9.md 3.1]
+A-STOCK:        PASS — verdict parsed from stock_check.json, 0 problem lines,
+                0 uncoded
+M-BOM:          bom_source_check PASS (46 lines, 0 without LCSC) — fab BOM
+                LCSC == source per refdes; leg C 25/26 R/C rows
+                value-graded, UNCHANGED from v1.9. The 1 gap is still C1/C2,
+                whose BOM label is not a value; at v1.9 that label was the LCSC
+                code `C2982822` and at v1.10 it is the part number
+                `KNM2100UF35V149EC0055` — more legible, still not a value, so
+                the gap count does not move. Reported, not a failure
+F-LEGIBLE:      OK — 46/46 coded rows resolve an MPN against the authority
+                (29 dossiers + 144 vetted ledger codes), 46/46 Comments
+                human-readable, UTF-8 byte-order-mark present. The SAME checker
+                run against sealed v1.9 beside it returns FAIL, 26 findings.
+                [bom_legibility.txt]
+F-ECHO:         HUMAN GATE, NOT YET PERFORMED — 46 coded lines to confirm
+                against JLC's own resolved table after upload. JLC can redirect
+                a code (C82317 -> C131025 happened on a sibling board and no
+                gate in this repo could see it). Worklist:
+                verification/bom_echo_gate.txt; ritual in ORDER_README
+twin:           bodies mounted 122/122; exit 0 — BUT READ THE CAVEAT, because
+                the counter does not mean what its name suggests (v1.9 render
+                review RR-2). The NO-BODY pass asks "does this ref RENDER a
+                body", not "does JLC HAVE a model". MEASURED by set-differencing
+                twin_report.csv: 46 LCSC codes, 45 carry a MODEL-REG* row, and
+                exactly ONE does not — C2984354 (R12), whose only row is
+                FETCH-FAILED. R12 renders its own KiCad footprint's body, so it
+                counts as mounted while JLC has NO CAD for it at all (the same
+                404 ORDER_README gate P5 records, re-probed 2026-07-27).
+                missing_models.txt is GENERATED and is NOT hand-edited — v1.5 of
+                this board shipped a hand-authored copy claiming zero gaps while
+                seven placements rendered nothing — so the correction lives
+                here and in gate_adjudications_v1.9.md 3.2. Note also its
+                denominator is 122 CHECKED REFS, not the 119 CPL placements
+                (--cpl was not passed; the file discloses this itself).
+A-RENDER:       twin_overlay top: 53 measured / 121 with an expected body,
+                **0 resolvable-but-unmeasured**, 29 flagged and **0 board
+                defects**. Bottom side correctly REFUSED — all 119 placements
+                are top-side, so this board has one populated side.
+                Per-class adjudication with the crops examined:
+                gate_adjudications_v1.9.md
+                **THE CROPS ARE NOT IN THIS ARCHIVE** (v1.9 render review RR-4):
+                twin_overlay_top.md names twin_top_courtyard_overlay.png plus 50
+                per-ref overlay_*.png, and NONE of the 51 ship. Stated rather
+                than left to be discovered. The A-RENDER verdict does not rest
+                on them — gate_adjudications_v1.9.md adjudicates all 29 flags BY
+                CLASS with the mechanism for each, and every class is
+                reproducible from twin_report.csv + the board. Coverage IS
+                disclosed by the report itself: 53 measured / 121, so render
+                faithfulness is established for 44% of the board.
+S-COUNT:        4-way PASS at 122 (board, circuit.json, kicad_sch, netlist all
+                == 03_tscircuit/manifest.yaml). Was FAIL x4: the v1.6 status-LED
+                cell was never declared. **12** refs added (Q8, R37-R42,
+                D8-D12) — not the 8 the audit reported, because count_parity
+                prints extra[:8] and truncates.
+E-INV:          39 invariants hold; E-ADR OK
+E-TOPO:         2 rails topology-correct (all-buck)
+E-MARGIN:       PASS on **2 rails** (was 1 until v1.9).
+                5VC -> Pi 4 at 3 A: headroom 597.0 mV vs 352.8 mV derated
+                    (98 mOhm x 3 A x 1.2) -> slack +244.2 mV
+                5VA -> 3x USB-A, **ADDED v1.9, NEVER PREVIOUSLY COMPUTED**
+                    (fix-lens P2-6): headroom 282.0 mV (worst-low 5.032 V vs
+                    USB 2.0 sec.7.2.1's 4.75 V at the connector) vs 130.2 mV
+                    derated (18.1 mOhm x 6 A x 1.2) -> slack +151.8 mV,
+                    delivered 4.923 V. The 18.1 mOhm is an EFFECTIVE rail-level
+                    resistance, not a two-point resistance: 3 of its 4 terms are
+                    per-port at 2 A and only the pour carries 6 A, so it is
+                    defined as 108.5 mV / 6 A to make the gate's own arithmetic
+                    reproduce the worst-port drop. Charging the two 30 mOhm
+                    USB-A mating contacts to the board leaves +7.8 mV.
+                    The rail's vout window was also synced from the bare
+                    nominal 5/5 to the tolerance-inclusive 5.032/5.273.
+                    [DETAIL_DESIGN sec.4a]
+                OPEN, UNRECONCILED: the v1.9 lens's own SOR reads 3.009 mOhm
+                    for the three 5VC delivery segments against RL-2's 9.32 and
+                    the 12 carried in the budget — a 3x disagreement between two
+                    mesh solves on identical copper that neither side could
+                    reconcile. SAFE DIRECTION (the shipped budget is the
+                    pessimistic one; at 3.009 the slack would be +276.6 mV).
+                    Recorded, not averaged away; settled by bench Q2/Q5.
+E-OFF:          quiescent_ua **714 typ / 744 worst** — CORRECTED IN v1.9 FROM
+                271, a 2.6x understatement that had shipped in three sealed
+                releases. The two LM5116 UVLO dividers (R6+R7 and R15+R16, each
+                49.9k + 6.98k = 56.88 kOhm) sit PERMANENTLY ACROSS VIN and were
+                never in the budget: SW1 gates ENABLE, not power, so both draw
+                12.6/56880 = 221.5 uA whenever the XT60 is mated = 443.0 uA.
+                THE CONSEQUENCE WAS A GATE THAT COULD NOT PASS: bench Q6
+                declared "PASS <= 300 uA", which a correctly-built board CANNOT
+                meet — the same defect class as a gate that cannot fail, and it
+                would have condemned a good board. Q6 re-based to <= 1.00 mA,
+                derived: worst-good 744 uA, weakest-possible-bad 1461 uA (Q8
+                failed, LED lit, at VIN 9.0 V / Vf 2.4 V), sqrt = 1042 -> 1.00 mA
+                sits 1.34x above good and 1.46x below bad, with a stated
+                1.00-1.45 mA INDETERMINATE band and a discrimination step,
+                because two terms (the D2/R1 zener leg, C1/C2 polymer leakage)
+                are unbounded in the record and are NAMED rather than zeroed.
+                Storage life 292 d to flat / 233 d to the 20% LiPo floor.
+                Root cause upstream: power_topology.py grade_off_control()
+                checks only that quiescent_ua is DECLARED, never that it
+                reconciles with the netlist. [power_tree.yaml, ORDER_README Q6]
+P-FACT:         8/29 part.yaml declare asserts; 8 graded; **1 reported FAIL
+                that is a GATE GAP, not a board defect** — KT-0805Y/D8 pad 1 is
+                the LED cathode on LEDPKK, which is the Q8 DRAIN (Q8 source ->
+                GND, traced node-by-node out of the shipped netlist). The
+                gate's polarity classifier is a closed net-NAME list and cannot
+                express a SWITCHED low-side node. Shipped failing WITH its
+                adjudication rather than omitted; reported upstream.
+                [part_facts.txt, gate_adjudications_v1.9.md]
+
+AMPACITY — the A-AMP judgement, with the measurements that justify it
+
+  Method (canon M1: reads only zone copper, so it cannot agree with a declared
+  track width by construction): sweep the perpendicular cross-section of the
+  FILLED zone polygons along each power path with pcbnew and sum the copper
+  over every layer the net pours on, because the layers are via-bonded and
+  conduct in parallel. Take the MINIMUM along the path.
+
+  POUR-FED (declared pour_fed: WITH the measurement in 03_src/rules/nets.yaml):
+    PWR_IN       7 A    VBAT   8.750 mm F.Cu (J1->F1)          need 4.399 mm  1.99x
+                        VBAT_F 14.650 mm (B.Cu 8.950+F.Cu 5.700)
+                        VIN    38.400 / 43.150 mm on the In2 plane
+    SWITCH_NODE  7 A    SW_A   6.050 mm (B.Cu 4.800+F.Cu 1.250) need 4.399 mm  1.38x
+                        SW_C   9.600 / 7.200 mm
+    PWR_RAIL   6/5 A    PMID   9.300 mm (Q6->F2)               need 2.765 mm  2.62x
+                        5VA   27.450 mm to the farthest port   need 3.556 mm
+                        5VC    9.950 mm ; VBUSC 20.200 mm
+  Corroborated by pad-level connectivity: every trunk pad sits ON the pour
+  (point-in-filled-polygon), and the only track-only pads on those classes are
+  UVLO/FB dividers and controller bias/sense pins.
+
+  **NOT POUR-FED, and deliberately NOT declared so:**
+    VBUS   The TPS2557 OUT pads (U3.6/7, U4.6/7, U5.6/7) touch NO pour. Each
+           port reaches its port pour through ONE routed 0.800 mm B.Cu track,
+           13.554 mm long, of which 8.810 mm is standalone copper. Declaring
+           this class pour-fed would have been a false statement about the one
+           segment that decides the answer. The DECLARED CURRENT was corrected
+           instead, from the 2.5 A burst figure to the design's own continuous
+           budget (DETAIL_DESIGN sec.3: "2 A continuous / 2.5 A burst" per
+           port; 3 x 2 A = 6 A = buck-A's declared iout_max_A, which PWR_RAIL
+           also declares). At 2.0 A: 0.800 mm needs 0.781 mm, **dT 9.6 C, PASS**.
+           At the 2.5 A burst: **dT 16.0 C**, over the house dT of 10 C.
+           **AND THE ENFORCED CEILING IS 2.72 A, NOT 2.5 A** — added v1.9
+           (fix-lens P2-5), because that number APPEARED NOWHERE and the class
+           read as though something limited a port to 2.5 A. Nothing does:
+           R20/R21/R22 = 36.5 k gives I_OS(min) = 127981/36.5^1.0708 = 2717 mA
+           and the TPS2557 is guaranteed NOT TO LIMIT BELOW IT, so 2.72 A is
+           what a port can carry indefinitely. At 2.72 A the feed wants
+           1.132 mm and runs **dT 19.4 C**. Three ports at the ceiling is
+           8.16 A on a 6 A rail — still below buck-A's 11.0 A valley limit
+           (~10.5 A corrected, see P2-1), so NOTHING INTERVENES: the case is
+           reachable and must be survivable, and it is, term by term — L1
+           Irms 10 A / Isat 15.2 A; RS1 8.16^2 x 10 mOhm = 0.67 W in a 1 W
+           2512; F1 ~7.2 A of a 10 A blade.
+           **A-AMP still GRADES 2.0 A** (the parser takes the first number in
+           `current:`) and PASSES; 2.72 A would FAIL. That choice is now
+           WRITTEN DOWN beside the number in nets.yaml instead of being hidden
+           by it — a PASS on 2.0 A is only honest while the 2.72 A line stands
+           beside it.
+           **RESIDUAL, stated rather than papered over**, and handed to the new
+           bench gate Q4b in ORDER_README. The v-next widening is re-sized on
+           2.72 A (~1.15 mm), not on the 2.5 A figure (1.10 mm).
+    GATE   100 % routed track — zero zone copper on all six nets. It failed only
+           because "~2 A pk" was read as 2 A CONTINUOUS (a 48.4 C rise). A gate
+           net carries 2 A for the switching edge and nothing between:
+           Qg <= 76 nC (from the design's own C_HB = 1 uF at <<1 % droop,
+           DETAIL_DESIGN sec.2.8), fsw 250 kHz (sec.2.1), duty 1.9 %,
+           **I_rms = 0.276 A**, which needs 0.051 mm against 0.300 mm enforced:
+           **5.9x, dT 0.54 C**. The 0.300 mm floor is set by dI/dt loop area,
+           not ampacity, which is the correct reason for a gate-drive width.
+
+population:     122 BOM parts = 119 CPL placements + 3 not_assembled
+not_assembled:  F1, R42, SW1   (GENERATED from 03_src/rules/assembly.yaml)
+through_hole:   ORDERED — J1, J2, J3, J4, J5 (4 refdes / 22 plated holes + J5 hybrid)
+stackup:        **NOT DECLARED IN THE BOARD FILE** — usb_hub_3s_v2.kicad_pcb and
+                .kicad_pro contain ZERO stackup entries (v1.9 fix-lens P2-7), so
+                the copper weight behind every ampacity figure above is a FAB
+                DEFAULT. ASSUMED AND TO BE ORDERED: JLC 4-layer 1.6 mm STANDARD,
+                1 oz outer (34.8 um) / **0.5 oz inner** (17.4 um) — the two
+                planes carry HALF the copper "1 oz external" arithmetic implies.
+                It changes no conclusion here (every IPC-2221 requirement quoted
+                is an outer-layer one; PWR_IN's 1.99x is attributed to VBAT's
+                8.750 mm on F.Cu). Now pinned in nets.yaml, DETAIL_DESIGN and —
+                where it actually binds, since the gerbers do not carry it —
+                ORDER_README section 1b as an ORDER-FORM OBLIGATION. Declaring
+                it in the board is a next-rev work order; doing it in v1.9 would
+                change the payload the three lenses were run against.
+fiducials:      3 (FID1-FID3, board-only, BOM- and CPL-excluded)
+consigned:      none
+msl:            no consigned part and no exposed-pad part requiring a stated
+                moisture obligation beyond JLC's standard handling; the LM5116
+                HTSSOP-20-1EP and TPS2557 VSON-8 exposed pads carry no MSL
+                declaration in their part.yaml limits
+
+git_sha:      23916e251d0d3c31ed60f90ceb2bd3209316c0a5       # source commit S; stamped pre-seal per the 2-commit seal
+git_dirty:    false          # scope: projects/usb-hub-3s-v3/ + skills/ (release_git_dirty.py)
+
+3d:             step present, gltf absent (no glTF exporter for this board;
+                absence noted here as the contract requires)
+
+REVIEWS — all three run ZERO-CONTEXT against THIS STAGING DIRECTORY, before the
+seal, which is the point: 07_releases/ becomes immutable at the seal commit, so
+a finding here costs an EDIT and the same finding afterwards costs a SUPERSEDE.
+**NO P0 IN ANY OF THE THREE.** Per-finding disposition: 08_reviews/DISPOSITIONS.md
+
+pin_review:     PASS-WITH-NOTES (0 P0, 1 P1, 8 P2) — verification/pin_review.md,
+                verbatim from 08_reviews/2026-07-27_v1.9_pin-review.md.
+                122 components / 73 nets / ALL 372 pins read and adjudicated;
+                board pads cross-checked pad-by-pad against the netlist by an
+                independently written comparator: 372/372 agree, 0 mismatches.
+                The P1 is a REVIEW-TOOL defect, not a board defect: pin_audit.py
+                resolves 02_parts/<MPN>/part.yaml and the LM5116's MPN contains
+                a '/', so it produced an EMPTY dossier for U2 and U11 — the two
+                highest-consequence parts — and exited 0. Reported upstream.
+render_review:  PASS (0 P0, 3 P1, 6 P2) — verification/render_review.md,
+                verbatim from 08_reviews/2026-07-27_v1.9_render-review.md.
+                Confirmed the pour independently on all four layers and derived
+                BOTH feedback dividers from the netlist before reading any design
+                doc, matching this release's numbers exactly. All three P1s acted
+                on before the seal: A-POP ordering (RR-1, re-run PASS),
+                missing_models semantics (RR-2, adjudicated), and the 5VC corner
+                vs "the port limit" (RR-3, adjudicated — 5.479 V is INSIDE
+                Type-C vSafe5V by 21 mV but +229 mV above the Pi 4's own
+                recommended-input maximum, 521 mV under its absolute maximum).
+redteam:        **ORDER** (0 P0, 1 P1, 8 P2) — verification/redteam_layout.md ==
+                verification/redteam_topology.md, both verbatim from
+                08_reviews/2026-07-27_v1.9_redteam_fix-lens.md. ONE INTEGRATED
+                LENS covering both contract axes plus fix confirmation, stated so
+                two identical files are not read as an error: the fix under
+                review is a layout fact whose consequences are topology facts.
+                FOUR INSTRUMENTS, each stated so it can be disagreed with, and
+                the stranded-island check PROVEN ABLE TO FAIL by three negative
+                controls (strip the 34 VIN vias -> In2 strands; strip the 178 GND
+                vias AND restrict pads to outer layers -> In1 strands; vias
+                intact -> clean). The pour was independently re-counted FROM THE
+                SHIPPED GERBERS by a parser that does not use pcbnew: 87/17/1/1
+                G36 regions = 106, matching the pcbnew island census
+                island-for-island, F.Cu area agreeing to 0.001 mm2.
+
+PRE-SEAL CORRECTIONS — what the three lenses changed in THIS release
+
+  Every item below was fixed AT SOURCE (canon M3) and propagated, not patched
+  into the staging copy. The board did not change: source/usb_hub_3s_v2.kicad_pcb
+  is md5 83af8e5a5596a51cf139dd06e8903d47, identical to 04_kicad/, DRC 0/0/0,
+  106 filled_polygon blocks in the saved text.
+
+  P1-1  E-OFF quiescent 271 -> 714 uA and bench Q6 300 uA -> 1.00 mA. See E-OFF.
+  P2-1  DETAIL_DESIGN sec.2.5's "no shared trunk copper enters the sense loop"
+        WITHDRAWN — it is falsified by measurement. R10.1 taps the GND PLANE
+        3.73 mm from RS1.2 (re-measured here with pcbnew, independent of the
+        review), putting 0.359 mOhm (buck-A) / 0.381 mOhm (buck-C) of shared
+        trunk copper inside the sense loop. With the CS side, 0.483 / 0.555
+        mOhm total -> +4.8% / +5.6% sense error -> **the 11.0 A current limit is
+        really ~10.5 A**. New sec.2.5a carries the withdrawal, the table and the
+        corrected limit. Still 1.75x the rail load; no design change.
+  P2-4  R-THERM waiver REWRITTEN. It said "U11.21 ... 1 direct via (vs 3 on
+        U2.21)" and carried a next-rev work order that is ALREADY DONE.
+        RE-MEASURED here: U2.21 = 7 GND vias, U11.21 = 7. Dissipation re-derived
+        at the CURRENT envelope (the old figures were the superseded 15.5 A Q1 /
+        5 A Q6 one). The three TPS2557 EPs (1 via each) are NAMED for the first
+        time, with the numbers that make them acceptable. Stale evidence is the
+        same failure mode as no evidence, and this waiver had outlived four
+        releases.
+  P2-5  The VBUS hardware ceiling — 2.72 A, not 2.5 A — now appears in
+        nets.yaml, DETAIL_DESIGN sec.3 and ORDER_README section 6. See A-AMP.
+  P2-6  5VA E-MARGIN computed and WIRED INTO THE GATE. See E-MARGIN.
+  P2-7  The stackup is DECLARED for the first time: JLC 4-layer 1.6 mm STANDARD,
+        1 oz outer / 0.5 oz inner. The board file carries no stackup at all, so
+        every ampacity figure's copper weight was an unnamed fab default. It
+        changes no conclusion here (every IPC-2221 figure quoted is an
+        outer-layer one) but it is now PINNED — in nets.yaml beside the plane
+        cross-sections, in DETAIL_DESIGN's envelope, and as an ORDER-FORM
+        OBLIGATION in ORDER_README section 1b, which is where it actually binds
+        because the gerbers do not carry it. Declaring it in the BOARD is a
+        next-rev work order: doing it now would change the sealed payload the
+        three lenses were run against.
+  P2-8  5VA's 5.273 V worst corner vs the 5.25 V ceiling sec.2.11 cites as its
+        own reason not to raise the rail — recorded, with the adjudication that
+        the ceiling is right, the corner is right, and only one of the two
+        limits on that number had ever been checked.
+  PR-4/5/8, RR-3  Four more shipped-document statements corrected: the DEMB /
+        diode-emulation choice had NO written derivation (sec.2.10a); the
+        USBLC6 "pass-through" claim asserted a property the netlist cannot carry
+        (sec.5.2); the TPS2513A floating-channel citation belonged to the
+        TPS2514x, a DIFFERENT VARIANT (sec.3); and sec.4 now pairs each rail
+        corner with the limit that actually governs it.
+
+  RECORDED, DEFERRED, WITH THEIR MEASUREMENTS — both are COPPER findings, and
+  v1.9 exists to fix the pour: re-routing would void every verdict just collected.
+  P2-2  buck-A's pour is 2.7x (SW: 0.774 vs 0.287 mOhm) and 3.2x (CS: 6.578 vs
+        2.083 mOhm) MORE RESISTIVE than the geometrically MIRRORED buck-C cell,
+        from a 0.300 mm neck ~0.8 mm long. SW_A is 1.38x of IPC-2221 by summed
+        cross-section and 0.96x by resistance-equivalent width — the two methods
+        disagree by 44%, and nets.yaml now STATES THE METHOD WITH THE NUMBER.
+        Thermally closed either way (37.9 mW / 143 mW). Next-rev: widen the neck
+        and find out why two mirrored cells differ 3x.
+  P2-3  Gate loops 25-34 nH (HO_A 20.253 mm with a mid-run layer change, HO_C
+        24.151 mm; mean gap to SW copper 1.966 / 2.510 mm). Q ~ 0.8-1.0, so
+        switching-loss/EMI, NOT shoot-through. The uncomfortable part: the GATE
+        class justifies its 0.300 mm on dI/dt loop area and nobody had ever
+        MEASURED the loop. Now measured. Next-rev: route HO/SW as a pair.
+
+REPRODUCIBILITY — a DECLARED, MEASURED LIMITATION
+
+This release rebuilds from source to a FUNCTIONALLY IDENTICAL board but not a
+byte-identical one. Root cause: the generator mints fresh random UUIDs, KiCad
+serialises footprints in UUID order, the zone filler therefore walks zones in a
+different order, and Clipper tessellates pour boundaries differently; island
+rescue keys off those islands and inherits it. Measured across three from-source
+regenerations at v1.8: footprints, tracks, total track length, zones, pads and
+nets all IDENTICAL; via count 292 / 294 / 293, the entire delta additive
+island-rescue bonding on the 5VA/5VC pours plus one via displaced 0.010 mm; all
+three DRC 0/0/0. The same signature accounts for this release's PTH drill
+differing from v1.8's by one added hole and one moved 0.010 mm, and for the
+5.81 mm2 gap between the fleet audit's 44287.91 mm2 figure for the missing
+copper and this build's 44282.10 mm2 of restored copper.
+
+What you order is the STAGED ARTIFACT in fab/ — fixed, hashed below, verified.
+A deterministic-UUID fix is a fleet task in progress; this manifest RECORDS the
+backend state the release was built with, which is canon M3 honoured in its
+durable form rather than pretended.
+
+GATE GAPS REPORTED UPSTREAM FROM THIS RELEASE (not fixed here — shared gates,
+concurrent agents in skills/). Full evidence in gate_adjudications_v1.9.md:
+  twin_overlay A-RENDER   pixel segmentation loses a light body over a filled
+                          pour (18 MLCCs measure as a 0.809 mm sliver of a
+                          3.200 mm body) -> 18 false FAILs
+  twin_overlay A-RENDER   a MOUNT-FALLBACK body (no pad correspondence) is
+                          graded against a FITTED-body expectation -> 6 false
+                          FAILs, Q1..Q6
+  part_facts P-FACT       pad1_net_polarity resolves polarity from a CLOSED
+                          net-NAME list -> a switched low-side node reads as
+                          positive -> 1 false FAIL, D8
+  rules_audit A-AMP       has pour_fed: but no way to declare a LOW-DUTY PULSED
+                          class -> the GATE class's RMS had to go in current:
+  rules_audit A-ORDER     the read-only-checker whitelist keys on FILENAME, so
+                          it cannot see that route_and_stitch_generic.py
+                          verify-fill writes nothing -> rebuild_*.sh reordered
+                          instead (harmless: generate_rules_generic.py never
+                          opens the .kicad_pcb)
+  count_parity S-COUNT    prints extra[:8] — the message TRUNCATES at eight
+                          refdes; the audit read "8 missing", the gap was 12
+
+sha256:  # EVERY file in the release; MANIFEST.txt is the one exclusion
+0f4f82644d4afc906f4976a7af6067b0857b2dad18932a9cb136cf3e99ef087a  3d/usb_hub_3s_v2.step
+be8b7c1762cd6d7703fd7a032fb820fb4fcd5a467c00b34e615263a615384869  ORDER_README.md
+6d717b7b46b0ab9613b1cb76d7bd5daf4c2f566f264d1dcfd888eafabc0a4796  fab/bom.csv
+68ac8441f79276b66c04edd552711dcd2c971ae40e0d585427cbe598ba296d50  fab/cpl.csv
+5b02a3ee26fb5ebb65d61fad4f1c23b4f109ed5060b414c3120be381ceb57efd  fab/usb_hub_3s_v2-NPTH.drl
+74791ec08bc780d25456e166c874c5c3bf190bb1133aa3c647f2d561933b9f2f  fab/usb_hub_3s_v2-PTH.drl
+de66c866956bedca1d8ab0d049d5e147bb4e140b85bc8ed5e4cdbb5909fe28cd  fab/usb_hub_3s_v2_gerbers.zip
+ccc4376519526f1b56201a6a04b8993cab9cf37f6e3a0883afa96e94013ba7e4  pdf/assembly.pdf
+24eb5f9af5cfc74fb6f7d64484305d85748c2870e0156f7dedebceaca7586728  pdf/pcb_layers.pdf
+db01cea80d1af9d2309a5494f9b07274188346529f1077323bed782c21fee61d  pdf/schematic.pdf
+ba1ddd9b282a632e79b1d5c9a885467838c970013919637164806c98ac7d5cf3  rotation_human_gate.txt
+4fb72085bfef7740b599059cbb2d03d44e8c9bf26688150809c6f3965db52d0b  source/Button_Switch_THT.pretty/SW_Slide_1P2T_CK-12D07.kicad_mod
+4ff93367ca8f1d9e071f7ab0edc109ab4e3d6098695a6c3c7064d69d672515dc  source/fp-lib-table
+9ec04bfc9cb3a6bd46b4a83fcb755df367c87c5a45c229f10228b0290742cf0e  source/usb_hub_3s.pretty/KH-AF90DIP-112_Horizontal.kicad_mod
+c4713b4feda0c78c326ea1eab79963c4189602f14052d5063644839de08c6761  source/usb_hub_3s.pretty/L_YJYCOIN_YSPI1770Y.kicad_mod
+7abf754670b187036e51a32c923f55e37cfa4a797ac4421af838e242fa40a3a3  source/usb_hub_3s.pretty/PowerPAK_SO-8_Single_Paste65.kicad_mod
+544d1589cf635e9c812c843e731f4d836c047f13cb982187d3ffc6edab444922  source/usb_hub_3s.pretty/TYPE-C-31-M-12_EdgeTrim.kicad_mod
+f4e2f40f3f169033ae880a684f82a162bce4d10ae47529c36edb3ca517a80103  source/usb_hub_3s.pretty/XT60PW-M_EdgeTrim.kicad_mod
+8b91fcaa4d434b988d5e0725fc04fe8846d943c5b0a60dce67453b05ead6bd7f  source/usb_hub_3s_v2.kicad_dru
+c0b40aa102bee3b1951dc6ac3ff5e2606a96b529fcff4f8bb7b5c5072bf1242f  source/usb_hub_3s_v2.kicad_pcb
+7963fbc396bbb950a6b1e430029cc890d66cf966983a3011c672020973c00eed  source/usb_hub_3s_v2.kicad_pro
+f007c55a3fe0a64efb6b864ffc3c83b693fd2ef57d8d5bd500ede30e60f664b2  source/usb_hub_3s_v2.kicad_sch
+0ebdba192de66f02256c734c4cabf01b4cd39df6dd34c3a21e2c6ed73219d6b9  source/usb_hub_3s_v2.net
+056bbf0b706776410bf212bcf37c8f24e9b1ec69ac3dacae8fded4868ef0f543  source/usb_hub_3s_v2.tsx
+4b2d5d18a45ddbf60ee5c2e1a68f28473dc80320471a72da771a37132ac12190  verification/2026-07-22_v1.0_redteam_layout.md
+4b869a433becd94c62319dfdb76313db6e0dad94fa591ea96c37b4dc2c6ab3f8  verification/2026-07-22_v1.0_redteam_topology_rereview.md
+857cb4224d8ce795cbac837a6cce8b0dbbe51fbe6d45dbb18ef33ef14bec26be  verification/2026-07-23_v1.3_redteam_fresh-lens.md
+a3f4715d8bd4ddcaba2737170641f2b5517dbb68c340d0cbd90b2343c8df062c  verification/2026-07-25_v1.4_pcba-audit_assembly.md
+1af2b48deba8c89cd248a3c0c0ac03c349dcc4447e2eaa2540fe846247dc441f  verification/2026-07-25_v1.5_fresh-lens_staged.md
+0eb00cd344946ef0b60d27f5060569aad312080bb7ee59404b49a1942638bba7  verification/2026-07-25_v1.5_redteam_layout.md
+f9fd4bca2cf179757bd0b21aa8600315e1971e10a95490fe59b7a8714b15055a  verification/2026-07-26_v1.8_pin-review.md
+9ded6fb4aedf78784a8d025e12e219ffd1b195be1cc110cc1705d80566f98d0f  verification/2026-07-26_v1.8_render-review.md
+b3b6db66a7d73169e8c9039f61d2c7ddf33ef5d36c0b6ddeae1fbaef0cbb4a7d  verification/2026-07-27_v1.9_pin-review.md
+227ae87569199594088b5a180731247396305e01cb9b02de9cb6760e88929d64  verification/2026-07-27_v1.9_redteam_fix-lens.md
+550db0efe6cd76f0b5aa76ce93b43e406d988a4bca2ba78a0043c03a9971ed05  verification/2026-07-27_v1.9_render-review.md
+c09285f133f212a2ed5de6cd23c5d3a1e165f02bde46712630c0738a306c827f  verification/DETAIL_DESIGN.md
+8db23e118e0e52bc826ae05b8ab67cbd0b891e5bd2147ab25f00aeb4e7f79424  verification/assembly.yaml
+e6cf6f13786b773a65d7e18288f9a3c55b72a82b7b387d8bfb12e3743f1e112e  verification/assembly_coverage.txt
+d74e4dddca8c22cfdfd2b6cf97a1638d67b963b10891abbd152211628095458c  verification/audit.txt
+adcb6ea73e31546ac62e95b46c0d77256bde732489205c7acdc7f1cfaa889921  verification/bom_source_check.txt
+6a4e01c19818bbfe5528f046856b8d28a67ff1d629e674515d4b65f7826a0665  verification/copper_restoration_proof.md
+c044c3bfead24849412b479182506f5a7ede26cd6b293b61ab8eff4d7bf8e671  verification/cpl_acceptance_gate.md
+8376b115ec8269befc7f86336bde82af008f14bd04a760ab53b14290f4ada59c  verification/drc.json
+55a5d5507631749ac60644426902ab6447004aa0e3dc75f436f09f5eb5334e92  verification/erc.json
+e109ff2b060b28577a00fb5c5d7caf93f6f0e8a60dadc4ab140a1cdf5eea538a  verification/fab_payload_census.txt
+9ffb2a6ea093d6667ad8a6d46a84d63b751e423f3f7ebf8eec1bd784b15b60a5  verification/freshness_exceptions.txt
+10bfc30552221588838bf23d298cf9391e3d8e3eb66ba7b0e3910dbb9d0e8916  verification/gate_adjudications_v1.9.md
+a393530f41fa4d74dd9cc58ecef13b706bd301afaff693a081f5234c6b75e053  verification/manifest_selfcheck.txt
+a149252f97bf35185a190c6096f12f1e1ba63990ce7ccfa80fd02df2326a7477  verification/missing_models.txt
+25bd52c8855c5db3fcaacd060923d5594daab8e033e6a55a51fa5699b1d3dec6  verification/nets.yaml
+1d6504dfac691ef1b0f747ff4f52e8bdb44b7db16c0adf878083e3b5a55c52b2  verification/parity.md
+a0b5179bd00ea3081dcc8dc289cff87f0191eb814afc7c14297e779c2c351464  verification/part_facts.txt
+9321995bf15e8fb53c425a6d75e097f8461f2c5736e150fe0b38f7f6799e78e0  verification/pin_review.md
+1e218e5b0d46c6abfc797123dc2be536d790f677bfce2ce61a6a6bc21d10ae71  verification/policy_audit.md
+28986c1b3c185af9b1442d95b184dca0b53bf3df2a3084a24b44f1e5ac63c570  verification/power_tree.yaml
+766c346b55f62610d7cdc1e7cb07006b389a87aba7f75abb84eb8465c02ef8b5  verification/redteam_layout.md
+6066f93fd5380d9c0a6c353490ae76a149d126b921f627ad7d03648cdabe2273  verification/redteam_topology.md
+0db0a0e00797e0a8a00cac1b330b163fd6006167c6e4e312d5049cb9d73ca23d  verification/release_freshness.txt
+0b4fb86011294c8bc2d0be9634e66a414e02e979e102a68b94107e452d16f543  verification/render_bottom_bare.png
+1de7d82bf7cbe9c56c1b7990cd1df1d814b038fb50d3c43b0760a2d99ad71c64  verification/render_review.md
+b6ee4bbe3e89bcf62f96405d79cd7d5743021cda2e31593a9362ac837850ed7e  verification/render_top_bare.png
+9897e1a56fc7e9182e8bbf468db9069706f0cae74576177c9c79038693864c38  verification/rules_audit.txt
+d48a92c9aaa604b60f92d1484158267b507179532e426d45550419c7a8b94f31  verification/standalone_archive_drc.json
+25e419c16cdeb978e73639d64cdf7a323c21cf6b5216d36cedde095f8ed2078a  verification/standalone_replot.txt
+4252ed5dfb3dbf649034094b663c8bb323016128f4530a65b2a2aac11fd7567e  verification/stock_check.json
+5c18012ac6c634ec67e92aaac2d4a0d9f6b814816fb40a8653611f6c7d64c41d  verification/stock_check.txt
+ca3b25c9ccb6057ed806b7bd3009050faef160d9af661c8d203b54929c5e978b  verification/twin_adjudications.yaml
+8711d236037fa65673a814fb329da4a68e664e2488393c916e2e39e971f9393a  verification/twin_bottom.png
+086f8226e853a11688839d0633526f2e3bf9ddaf7f2f7c08c92af7256fdedadf  verification/twin_edge_east.png
+948abe20f8939f63984c55452e92f8c5f9c8fed5a8c1199a75f35480c1b17415  verification/twin_edge_west.png
+ead48e80a3afd07a8c1e1e2a81b3cea7a45a1f798861350954adb9b5c695a78f  verification/twin_iso_nw.png
+69983c56fbf2d3e863806e86c720aef4bdcf96efac617357befaba395687716f  verification/twin_iso_se.png
+46424b5df44031dd70786c4b5c4d432c75a07929234955741dc6ff565acbed35  verification/twin_overlay_bottom.txt
+46ff02833128fb54f9b174675128c532ed38ba8d21a6f633bee8f2c5256519d1  verification/twin_overlay_top.md
+88398990621d2bb56494768ebf4d4dc1517584b1a2fb430c2a5937b001b7f2d7  verification/twin_report.csv
+860e953fe1cbeecd1cf7ec7603f7925528e5203b764396978d7af992eecb1402  verification/twin_top.png

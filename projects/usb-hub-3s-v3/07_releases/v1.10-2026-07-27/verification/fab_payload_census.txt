@@ -1,0 +1,26 @@
+F-PAYLOAD (canon F-POUR / F-IDENT) — fab_payload_census.py
+Run 2026-07-27. The gate opens the SHIPPED gerber zip and grades it against
+the board in source/. It is the gate that would have caught the v1.6/v1.7/v1.8
+defect; both releases are graded here side by side so the fix is falsifiable.
+
+########## v1.8-2026-07-26 (DO-NOT-ORDER) ##########
+  coverage F-IDENT: 4/4 copper gerbers compared
+  coverage F-POUR: 4/4 zone-bearing copper layers
+  FAIL F-POUR B.Cu: board declares 14 zone(s) (0 filled_polygon in the saved file) but the SHIPPED gerber has 0 G36 regions — this layer ships with NO POUR
+  FAIL F-POUR F.Cu: board declares 20 zone(s) (0 filled_polygon in the saved file) but the SHIPPED gerber has 0 G36 regions — this layer ships with NO POUR
+  FAIL F-POUR In1.Cu: board declares 1 zone(s) (0 filled_polygon in the saved file) but the SHIPPED gerber has 0 G36 regions — this layer ships with NO POUR
+  FAIL F-POUR In2.Cu: board declares 1 zone(s) (0 filled_polygon in the saved file) but the SHIPPED gerber has 0 G36 regions — this layer ships with NO POUR
+  FAIL F-IDENT: In2.Cu (Copper,L3,Inr) and In1.Cu (Copper,L2,Inr) are BYTE-IDENTICAL at 18921B AND CARRY 0 G36 REGIONS — they match because they hold only the layer-independent flash list, not because the planes are symmetric; this is the signature of a lost pour
+F-PAYLOAD FAIL: 5 finding(s), 0 ok
+exit=1
+
+########## v1.9-2026-07-27 (this release) ##########
+  coverage F-IDENT: 4/4 copper gerbers compared
+  coverage F-POUR: 4/4 zone-bearing copper layers
+  ok   F-POUR B.Cu 14 zone(s) -> 17 G36 region(s)
+  ok   F-POUR F.Cu 20 zone(s) -> 87 G36 region(s)
+  ok   F-POUR In1.Cu 1 zone(s) -> 1 G36 region(s)
+  ok   F-POUR In2.Cu 1 zone(s) -> 1 G36 region(s)
+  ok   F-IDENT 4 copper gerbers all distinct
+F-PAYLOAD OK: 5 check(s) passed
+exit=0

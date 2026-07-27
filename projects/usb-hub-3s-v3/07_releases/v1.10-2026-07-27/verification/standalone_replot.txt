@@ -1,0 +1,52 @@
+STANDALONE ARCHIVE RE-PLOT — 07_releases contract "Validate", item 5:
+  "source/ opens: kicad-cli pcb drc source/<board>.kicad_pcb runs, and the board
+   it loads is the one the gerbers were plotted from — re-plot from source/ and
+   the gerbers match"
+
+Run 2026-07-27. Method: `source/` copied to a BARE temp directory with no
+project around it (so the vendored .pretty + the rewritten fp-lib-table are the
+only footprint sources), then `export_jlc_package.py` re-plotted from that copy
+and every file compared against the SHIPPED zip.
+
+Excluded from the comparison, and only these: the two lines every Gerber/Excellon
+writer stamps with wall-clock time --
+    %TF.CreationDate,<ISO8601>*%
+    G04 Created by KiCad (PCBNEW ...) date <YYYY-MM-DD HH:MM:SS>*
+    ; DRILL file KiCad ... date <ISO8601>     (Excellon)
+Nothing else is filtered. Per file the whole diff is 8 lines, all of them those
+stamps.
+
+RESULT
+------
+    MATCH   usb_hub_3s_v2-B_Cu.gbl
+    MATCH   usb_hub_3s_v2-B_Mask.gbs
+    MATCH   usb_hub_3s_v2-B_Paste.gbp
+    MATCH   usb_hub_3s_v2-B_Silkscreen.gbo
+    MATCH   usb_hub_3s_v2-Edge_Cuts.gm1
+    MATCH   usb_hub_3s_v2-F_Cu.gtl
+    MATCH   usb_hub_3s_v2-F_Mask.gts
+    MATCH   usb_hub_3s_v2-F_Paste.gtp
+    MATCH   usb_hub_3s_v2-F_Silkscreen.gto
+    MATCH   usb_hub_3s_v2-In1_Cu.g1
+    MATCH   usb_hub_3s_v2-In2_Cu.g2
+    MATCH   usb_hub_3s_v2-NPTH.drl
+    MATCH   usb_hub_3s_v2-PTH.drl
+    == 13 match / 0 differ ==
+
+The two drill files match with their date lines stripped and NOTHING else
+excluded, which is the strongest statement available: identical hole census,
+identical coordinates.
+
+This is the direct answer to the v1.6/v1.7/v1.8 defect from the opposite
+direction. Those releases' `source/` board ALSO re-plotted faithfully to their
+gerbers -- the gerbers were a true rendering of a board that had no fill. The
+re-plot check proves the ARCHIVE is self-consistent; only F-PAYLOAD
+(`fab_payload_census.txt`) proves the payload has copper in it. Both are needed
+and neither substitutes for the other.
+
+Companion evidence in this directory:
+  standalone_archive_drc.json   DRC 0/0/0 on the same bare-directory copy,
+                                --severity-all --refill-zones --schematic-parity
+                                (ERC on it: 0 errors, 0 footprint_link_issues,
+                                221 lib_symbol_issues warnings -- V-REL-FPLIB
+                                holds, which is what v1.6's archive failed 12/0/0)

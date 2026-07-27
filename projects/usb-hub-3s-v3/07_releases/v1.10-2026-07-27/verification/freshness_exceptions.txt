@@ -1,0 +1,23 @@
+# FRESHNESS EXCEPTIONS — v1.10-2026-07-27
+#
+# EMPTY BY DESIGN, and that is the point of this file at v1.10.
+#
+# v1.9 needed two exceptions because it was a COPPER-ONLY supersede whose BOM and
+# CPL were byte-identical to v1.8's, and check (a) flags exactly that identity.
+# v1.10 is gated in LEGIBLE-BOM mode instead:
+#
+#     release_freshness_check.py <rel> --legible-bom-supersede <v1.9>
+#
+# which does not flag the identity, it ASSERTS it — fab/, source/ and 3d/ must be
+# byte-identical to v1.9 apart from the ONE exempted file, fab/bom.csv, about
+# which the mode then asserts something STRONGER than identity: every row's
+# designator group, Footprint and LCSC unchanged, no row added or removed, no MPN
+# blanked, only Comment and MPN moving, this release's BOM PASSING
+# bom_legibility_check and v1.9's FAILING it.
+#
+# An assertion the gate makes is worth more than a waiver a human writes, so the
+# waivers are gone rather than carried forward. Carrying v1.9's two lines here
+# would also have been FALSE: they said fab/bom.csv is identical to v1.8's, and
+# at v1.10 it is not.
+#
+# format: <relpath>   <reason>
