@@ -756,9 +756,26 @@ def main():
     # ADR-0007 per-board "<board>-v1.0-<date>" (cooksense-v1.0-2026-07-23).
     # A bare "v*" glob silently skipped the per-board form and M-REL graded
     # N-A on two real seals (2026-07-23) — discovery must match BOTH.
+    #
+    # AND THEY SORT NUMERICALLY, NOT LEXICALLY. `sorted()` on the directory
+    # NAME puts "v1.10-…" BEFORE "v1.9-…", because '1' < '9' as a character.
+    # The first release in this fleet to reach a double-digit minor
+    # (usb-hub-3s-v3 v1.10, 2026-07-27) therefore had M-REL grade the WRONG
+    # release's MANIFEST and demand a SUPERSEDED.md on the NEWEST directory —
+    # a gate silently graded a superseded release for as long as the newest one
+    # was double-digit. `_version_key` is imported from the jlcpcb-fab freshness
+    # gate rather than re-implemented, so the two cannot disagree about which
+    # release is latest (the same ONE-loader arrangement M-BOM already has with
+    # bom_source_check below).
+    _jlc_scripts = (Path(__file__).resolve().parent.parent.parent
+                    / "jlcpcb-fab" / "scripts")
+    sys.path.insert(0, str(_jlc_scripts))
+    from release_freshness_check import _version_key  # noqa: E402
+
     _reldir = proj / "07_releases"
-    rels = sorted(str(p) for p in _reldir.glob("*")
-                  if p.is_dir() and re.match(r"(?:.+-)?v\d", p.name))
+    rels = sorted((str(p) for p in _reldir.glob("*")
+                   if p.is_dir() and re.match(r"(?:.+-)?v\d", p.name)),
+                  key=lambda s: (_version_key(Path(s).name) or ("", ()), s))
     if rels:
         latest = Path(rels[-1])
         man = latest / "MANIFEST.txt"
@@ -796,15 +813,40 @@ def main():
                 m_gd = re.search(r"git_dirty:\s*(\S+)", mt)
                 probs.append(f"git_dirty is {m_gd.group(1)!r}, not false"
                              if m_gd else "no git_dirty line in MANIFEST")
-            for hm in re.finditer(r"^  ([\w./-]+)\s+([0-9a-f]{16,64})\s*$",
-                                  mt, re.M):
-                fp = latest / hm.group(1)
+            # (c) THE FLEET SHIPS TWO TABLE LAYOUTS AND THIS READ ONLY ONE.
+            #     `'  '<path>  <hash>` is what crow-recorder-central-v2,
+            #     crow-mic-pod-v2 and cooksense write; usb-hub-3s-v3 writes
+            #     sha256sum order, `<hash>  <path>`. The pattern below used to
+            #     require two leading spaces and path-first, so it matched
+            #     ZERO of usb-hub-3s-v3's 76 entries — M-REL reported
+            #     "provenance + hashes verify" on that board for all ten of its
+            #     releases while verifying nothing. MEASURED 2026-07-27:
+            #     66 / 80 / 57 entries matched on the other three boards, 0 on
+            #     this one. A denominator that silently goes to zero is the
+            #     M-COVER shape, so both layouts are read AND an empty table is
+            #     now a FAIL in its own right.
+            _hashed = 0
+            for hm in re.finditer(
+                    r"^(?:\s+(?P<p1>[\w./-]+)\s+(?P<h1>[0-9a-f]{16,64})"
+                    r"|(?P<h2>[0-9a-f]{16,64})\s+(?P<p2>[\w./-]+))\s*$",
+                    mt, re.M):
+                rel_p = hm.group("p1") or hm.group("p2")
+                want = hm.group("h1") or hm.group("h2")
+                fp = latest / rel_p
+                _hashed += 1
                 if not fp.exists():
-                    probs.append(f"missing hashed file {hm.group(1)}")
+                    probs.append(f"missing hashed file {rel_p}")
                     continue
                 h = sh(["sha256sum", str(fp)]).stdout.split()[0]
-                if not h.startswith(hm.group(2)):
-                    probs.append(f"sha256 mismatch {hm.group(1)}")
+                if not h.startswith(want):
+                    probs.append(f"sha256 mismatch {rel_p}")
+            _n_files = sum(1 for p in latest.rglob("*")
+                           if p.is_file() and p.name != "MANIFEST.txt")
+            if _hashed == 0 and _n_files and "sha256:" in mt:
+                probs.append(
+                    f"sha256 table yielded ZERO readable entries against "
+                    f"{_n_files} file(s) on disk — a gate that verifies "
+                    f"nothing must not report that hashes verify (M-COVER)")
         else:
             probs.append("no MANIFEST.txt")
         cl = proj / "01_docs" / "CHANGELOG.md"

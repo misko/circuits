@@ -18,8 +18,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harness import (FIXTURES, KPY, ROOT, SCRIPTS, check, contains,  # noqa: E402
-                     edit_board, eq, main, must_fail, must_pass, project_copy,
-                     run, test, tmpdir)
+                     edit_board, eq, main, must_fail, must_pass,
+                     not_contains, project_copy, run, test, tmpdir)
 
 GEN = SCRIPTS / "generate_board_generic.py"
 AUDIT_T = SCRIPTS / "audit_template.py"
@@ -468,6 +468,111 @@ def t_mrel_per_board_bad_manifest():
           f"M-REL did not FAIL the bad manifest in a per-board dir: {row}")
     check("git_sha not an exact commit" in row[0],
           f"M-REL failure did not name the bad git_sha: {row}")
+
+
+def _two_release_project(d, names, table_layout="path-first"):
+    """A scratch git project with TWO release dirs whose names are given, the
+    LAST-BY-VERSION one being the live release. Both carry a real sha256 table
+    over their own files, written in the requested LAYOUT."""
+    import hashlib
+    import subprocess
+    subprocess.run(["git", "init", "-q", str(d)], check=True)
+    (d / "seed.txt").write_text("x\n")
+    env_git = ["git", "-C", str(d), "-c", "user.email=t@t", "-c", "user.name=t"]
+    subprocess.run(env_git + ["add", "-A"], check=True)
+    subprocess.run(env_git + ["commit", "-qm", "seed"], check=True)
+    sha = subprocess.run(env_git[:3] + ["rev-parse", "HEAD"],
+                         capture_output=True, text=True).stdout.strip()
+    (d / "01_docs").mkdir(exist_ok=True)
+    (d / "01_docs" / "CHANGELOG.md").write_text(
+        "".join(f"- {n}: entry\n" for n in names))
+    for i, n in enumerate(names):
+        rel = d / "07_releases" / n
+        (rel / "verification").mkdir(parents=True)
+        (rel / "verification" / "drc.json").write_text('{"v": %d}' % i)
+        if i < len(names) - 1:
+            (rel / "SUPERSEDED.md").write_text(f"superseded by {names[-1]}\n")
+        files = sorted(p.relative_to(rel).as_posix() for p in rel.rglob("*")
+                       if p.is_file() and p.name != "MANIFEST.txt")
+        rows = []
+        for f in files:
+            h = hashlib.sha256((rel / f).read_bytes()).hexdigest()
+            rows.append(f"{h}  {f}" if table_layout == "hash-first"
+                        else f"  {f}  {h}")
+        (rel / "MANIFEST.txt").write_text(
+            f"git_sha: {sha}\ngit_dirty: false\nsha256:\n"
+            + "\n".join(rows) + "\n")
+    return d
+
+
+@test("M-REL sorts releases NUMERICALLY: v1.10 is newer than v1.9")
+def t_mrel_double_digit_minor():
+    """MEASURED 2026-07-27, on the first release in this fleet to reach a
+    double-digit minor. `sorted()` over the DIRECTORY NAME puts `v1.10-…`
+    BEFORE `v1.9-…`, because '1' < '9' as a character. M-REL then graded the
+    WRONG release's MANIFEST and demanded a `SUPERSEDED.md` on the NEWEST
+    directory — usb-hub-3s-v3 v1.10 could not seal, and the message accused the
+    live release of being superseded. `_version_key` is now imported from the
+    jlcpcb-fab freshness gate, which already sorted numerically, so the two
+    cannot disagree about which release is latest.
+
+    RED-VERIFIED 2026-07-27: with the pre-fix `sorted(...)` restored, this test
+    reports `v1.10-2026-07-27 lacks SUPERSEDED.md`."""
+    d = tmpdir("mrel10_")
+    _two_release_project(d, ["v1.9-2026-07-27", "v1.10-2026-07-27"])
+    run([KPY, POLICY, d, "--skip-drc"])
+    md = (d / "06_build" / "policy_audit.md").read_text()
+    row = [l for l in md.splitlines() if "M-REL" in l]
+    check(row, "no M-REL row at all")
+    not_contains(row[0], "v1.10-2026-07-27 lacks SUPERSEDED.md",
+                 "M-REL treated the NEWEST release as superseded — the "
+                 "release list is being sorted as text, so v1.10 < v1.9")
+    contains(row[0], "v1.10-2026-07-27",
+             "M-REL graded the wrong release: the latest is v1.10")
+
+
+@test("M-REL reads a sha256sum-ORDER table too, and an unreadable table is a "
+      "FAIL rather than a silent zero", kind="known_bad")
+def t_mrel_hash_first_table():
+    """A GATE THAT VERIFIED NOTHING AND SAID HASHES VERIFY. The fleet ships two
+    MANIFEST table layouts — `'  '<path>  <hash>` on three boards and sha256sum
+    order `<hash>  <path>` on usb-hub-3s-v3 — and the matcher required the
+    first. MEASURED 2026-07-27 over the four live releases: 66 / 80 / 57
+    entries matched, and **0 of usb-hub-3s-v3's 76**. M-REL reported
+    "provenance + hashes verify" on that board across all ten of its releases
+    while checking not one file.
+
+    Both halves are asserted: the hash-first layout must be READ (a corrupted
+    file under it must FAIL), and a table that yields ZERO entries against a
+    non-empty directory must FAIL in its own right — a denominator that
+    silently goes to zero is the M-COVER shape this repo keeps paying for.
+
+    RED-VERIFIED 2026-07-27: with the pre-fix single-layout regex restored, the
+    corrupted hash-first release PASSES M-REL."""
+    d = tmpdir("mrelhf_")
+    _two_release_project(d, ["v1.0-2026-07-27", "v1.1-2026-07-27"],
+                         table_layout="hash-first")
+    latest = d / "07_releases" / "v1.1-2026-07-27"
+    (latest / "verification" / "drc.json").write_text('{"TAMPERED": true}')
+    run([KPY, POLICY, d, "--skip-drc"])
+    md = (d / "06_build" / "policy_audit.md").read_text()
+    row = [l for l in md.splitlines() if "M-REL" in l]
+    check(row and "| M-REL | FAIL" in md,
+          f"M-REL did not FAIL a TAMPERED file in a sha256sum-order table — "
+          f"it is not reading that layout at all: {row}")
+    contains(row[0], "sha256 mismatch", "and must say which check bit")
+
+    e = tmpdir("mrelempty_")
+    _two_release_project(e, ["v1.0-2026-07-27", "v1.1-2026-07-27"])
+    bad = e / "07_releases" / "v1.1-2026-07-27" / "MANIFEST.txt"
+    bad.write_text(bad.read_text().split("sha256:")[0] + "sha256:\n")
+    run([KPY, POLICY, e, "--skip-drc"])
+    md2 = (e / "06_build" / "policy_audit.md").read_text()
+    row2 = [l for l in md2.splitlines() if "M-REL" in l]
+    check(row2 and "| M-REL | FAIL" in md2,
+          f"an EMPTY sha256 table passed M-REL: {row2}")
+    contains(row2[0], "ZERO readable entries",
+             "the empty-table failure must name itself")
 
 
 @test("M-LEARN FAILS a release with no stage learnings", kind="known_bad")
