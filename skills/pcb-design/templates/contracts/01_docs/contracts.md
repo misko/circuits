@@ -21,12 +21,20 @@ one that is unrecoverable if lost.
 | `journal/` | per-stage diary: append an entry at every stage start/iteration/finish | see `journal/contracts.md`; enforced by policy_audit M-JRNL |
 | `learnings/` | per-stage harvest source, written at stage completion | see `learnings/contracts.md`; enforced by policy_audit M-LEARN at release |
 | `<target>-mechanical.md` | **the board's ANALYSIS of a device it must mate with**: the tolerance stack, the mating strategy, what the geometry means for THIS board. One file per mating target. NOT a design doc and NOT a decision — it is where external evidence is reasoned about, and it belongs beside `BRIEF.md` because, like the brief, it is something the board must be true to | **the NUMBERS live in `spf/<device>/`, not here** (canon M-IMPORT, ADR-0005): the device record is the single home, `facts.yaml` its machine index, and `03_src/rules/mates.yaml` the board's reference. This file may quote them WITH their grade while it reasons; it may not be the only place one exists. Every number it does state must say how it was obtained — a bare dimension with no method is a defect |
+| `sourcing/` | what to BUY for the self-supplied parts, and the evidence behind each number — dated, append-only, produced by `/shopping-list` | see `sourcing/contracts.md`; governed by canon M-QUOTE |
 | `contracts.md` | this file | |
 
 ## Forbidden
 
 - Part datasheets or PDFs → `02_parts/<MPN>/`.
-- Stock, price, availability → volatile; `06_build/cache/`, never committed as truth.
+- Stock, price, availability → volatile; `06_build/cache/`, never committed as
+  truth. **The one carve-out is `sourcing/`**, and it is a carve-out for
+  PROVENANCE, not for the numbers: a dated shopping list, every figure stamped
+  with its M-IMPORT grade and the URL/date it was read from, is an OBSERVATION —
+  the same shape as a journal entry. It is committed as *what a distributor said
+  on a day*, never as *what is true*, it is never re-consumed by a build, and
+  the raw responses stay in `06_build/cache/`. Anything without that stamping
+  is still forbidden here.
 - Generated renders → `06_build/renders/`, EXCEPT the tracked
   `renders/**` pair above (bare + modeled board views — the one
   sanctioned committed-render set). Other committed images only if

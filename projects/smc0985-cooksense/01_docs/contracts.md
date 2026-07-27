@@ -21,12 +21,20 @@ one that is unrecoverable if lost.
 | `learnings/` | per-stage harvest source, written at stage completion | see `learnings/contracts.md`; enforced by policy_audit M-LEARN at release |
 | `10fdz-bt-land-pattern-confirm.md` | the USER-HELD physical-part gate instrument for the 10FDZ-BT land pattern (`ORDER_README` §0 gate 1): print settings for the 1:1 overlay, the caliper table with PASS/CONDEMN bands, and the report-back block | project-specific. Records only what a human must measure on a real part; carries no CAD-derived truth that `02_parts/10FDZ-BT/part.yaml` does not already hold. Closed by transcribing the reported numbers into that `part.yaml` `verified:` block |
 | `flex-jumper-spec.md` | buildable spec for Board C-flex, the double-ended 10FDZ-BT flex jumper (ADR-0009's separate part): stack-up, conductor geometry, 1:1 mapping, length rule, contact-face handedness, G1/G2 coupon plan | project-specific, out-of-pipeline part (T5) — it has no `03_src`/`04_kicad`/release home because no flex tier exists in `fab_tiers.yaml`. Decisions live in ADR-0016/0017, not here |
+| `sourcing/` | what to BUY for the 16 self-supplied / hand-solder refs, and the evidence behind each number — dated, append-only, produced by `/shopping-list` | see `sourcing/contracts.md`; governed by canon M-QUOTE. Re-synced from `skills/pcb-design/templates/contracts/01_docs/` on 2026-07-27 |
 | `contracts.md` | this file | |
 
 ## Forbidden
 
 - Part datasheets or PDFs → `02_parts/<MPN>/`.
-- Stock, price, availability → volatile; `06_build/cache/`, never committed as truth.
+- Stock, price, availability → volatile; `06_build/cache/`, never committed as
+  truth. **The one carve-out is `sourcing/`**, and it is a carve-out for
+  PROVENANCE, not for the numbers: a dated shopping list, every figure stamped
+  with its M-IMPORT grade and the URL/date it was read from, is an OBSERVATION —
+  the same shape as a journal entry. It is committed as *what a distributor said
+  on a day*, never as *what is true*, it is never re-consumed by a build, and
+  the raw responses stay in `06_build/cache/`. Anything without that stamping
+  is still forbidden here.
 - Generated renders → `06_build/renders/`, EXCEPT the tracked
   `renders/**` pair above (bare + modeled board views — the one
   sanctioned committed-render set). Other committed images only if

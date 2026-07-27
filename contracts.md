@@ -16,6 +16,10 @@ via an explicit pattern (see the coverage rule below).
 - Sealed folders (a project's `04_kicad/`, `07_releases/`) are covered by
   their parent's patterns — adding any file to them, including a contract,
   is forbidden.
+- `.secrets/` is deliberately absent from the table: it is gitignored, so no
+  file in it is in the audit's universe (`git ls-files`) and none may ever be.
+  It is the ONE home for API keys — mode 600, one `<service>.env` per service,
+  read at runtime by name and never hardcoded into a skill.
 - Machine-checked: `/usr/bin/python3 scripts/contracts_audit.py`
   (C-COV coverage, C-ALLOW patterns, C-ISO skills→projects isolation);
   run by `tests/run_tests.sh`. Every `## Allowed` first column is parsed —
@@ -30,7 +34,7 @@ via an explicit pattern (see the coverage rule below).
 | `contracts.md` | this file |
 | `.gitignore` | build/cache exclusions |
 | `resume_state.md` | session-resume snapshot (superseded by commits as they land) |
-| `skills/` | the product: pcb-design, kicad-pcb, jlcpcb-fab (own contract) |
+| `skills/` | the product: pcb-design, kicad-pcb, jlcpcb-fab, shopping-list (own contract) |
 | `docs/` | repo-level canon: ADRs + proof docs (own contract) |
 | `examples/` | frozen evidence snapshots skills may cite (own contract) |
 | `scripts/` | repo-level tooling, e.g. this audit (own contract) |

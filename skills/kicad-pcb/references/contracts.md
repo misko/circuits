@@ -22,7 +22,8 @@ hard-won empirics agents must not rediscover. Nothing here is advisory.
   example: `[H]` + "no gate yet, ADR-0005 phases 2-3".)
 - A row that declares itself the NARROW INSTANCE of a wider row must say so in
   BOTH rows, and the wider row must enumerate its known members (M-WIDTH).
-  Currently: S3/S-VER <-> M-IMPORT.
+  Currently: S3/S-VER <-> M-IMPORT, and M-QUOTE <-> M-IMPORT (distributor
+  facts — stock/price/lifecycle — graded by `shopping_list.py`'s Q-* family).
 - Data YAMLs: consumed by a script that validates shape on load; numbers
   carry provenance (which board/order proved them — canon M6: the fab's
   published page overrides at order time).

@@ -1,0 +1,139 @@
+{
+ "Errors": [],
+ "SearchResults": {
+  "NumberOfResult": 1,
+  "Parts": [
+   {
+    "Availability": "30599 In Stock",
+    "DataSheetUrl": "https://www.mouser.com/datasheet/3/1070/1/eXH.pdf",
+    "Description": "Headers & Wire Housings XH HEADER (TOP)",
+    "FactoryStock": "0",
+    "ImagePath": "https://www.mouser.com/images/jstcommercial/images/B5BXHALFSN_SPL.JPG",
+    "Category": "Headers & Wire Housings",
+    "LeadTime": "112 Days",
+    "LifecycleStatus": null,
+    "Manufacturer": "JST Commercial",
+    "ManufacturerPartNumber": "B5B-XH-A(LF)(SN)",
+    "Min": "1",
+    "Mult": "1",
+    "MouserPartNumber": "306-B5BXHALFSN",
+    "ProductAttributes": [
+     {
+      "AttributeName": "Standard Pack Qty",
+      "AttributeValue": "500"
+     }
+    ],
+    "PriceBreaks": [
+     {
+      "Quantity": 1,
+      "Price": "$0.20",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 10,
+      "Price": "$0.17",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 100,
+      "Price": "$0.145",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 250,
+      "Price": "$0.129",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 1000,
+      "Price": "$0.116",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 2500,
+      "Price": "$0.113",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 5000,
+      "Price": "$0.109",
+      "Currency": "USD"
+     },
+     {
+      "Quantity": 10000,
+      "Price": "$0.104",
+      "Currency": "USD"
+     }
+    ],
+    "AlternatePackagings": null,
+    "ProductDetailUrl": "https://www.mouser.com/en/ProductDetail/JST-Commercial/B5B-XH-ALFSN?qs=cdbOS8ANM9ApoXpxtybURg%3D%3D",
+    "Reeling": false,
+    "ROHSStatus": "RoHS Compliant",
+    "SuggestedReplacement": "",
+    "MultiSimBlue": 0,
+    "AvailabilityInStock": "30599",
+    "AvailabilityOnOrder": [
+     {
+      "Quantity": 34500,
+      "Date": "2026-10-20T00:00:00"
+     }
+    ],
+    "InfoMessages": [],
+    "SurchargeMessages": [
+     {
+      "code": "TARIFF_US",
+      "message": "A tariff of 30% may be applied."
+     }
+    ],
+    "ProductCompliance": [
+     {
+      "ComplianceName": "USHTS",
+      "ComplianceValue": "8536694040"
+     },
+     {
+      "ComplianceName": "CNHTS",
+      "ComplianceValue": "8536901100"
+     },
+     {
+      "ComplianceName": "CAHTS",
+      "ComplianceValue": "8536690020"
+     },
+     {
+      "ComplianceName": "JPHTS",
+      "ComplianceValue": "853669000"
+     },
+     {
+      "ComplianceName": "KRHTS",
+      "ComplianceValue": "8536691000"
+     },
+     {
+      "ComplianceName": "TARIC",
+      "ComplianceValue": "8536693000"
+     },
+     {
+      "ComplianceName": "BRHTS",
+      "ComplianceValue": "85366990"
+     },
+     {
+      "ComplianceName": "ECCN",
+      "ComplianceValue": "EAR99"
+     }
+    ],
+    "TradeCompliance": [
+     {
+      "ComplianceName": "Country of Origin",
+      "ComplianceValue": "China"
+     },
+     {
+      "ComplianceName": "Assembly Country of Origin",
+      "ComplianceValue": "Not available"
+     },
+     {
+      "ComplianceName": "Country of Diffusion",
+      "ComplianceValue": "Not available"
+     }
+    ]
+   }
+  ]
+ }
+}

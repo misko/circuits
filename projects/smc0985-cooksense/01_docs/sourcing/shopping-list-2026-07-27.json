@@ -1,0 +1,1116 @@
+{
+ "project": "smc0985-cooksense",
+ "scope": "self_supplied",
+ "boards": 1,
+ "min_stock": 10,
+ "total_parts": 41,
+ "selected": 6,
+ "coverage": {
+  "mouser": {
+   "graded": 6,
+   "ok": 3,
+   "total": 6
+  },
+  "digikey": {
+   "graded": 6,
+   "ok": 2,
+   "total": 6
+  },
+  "amazon": {
+   "graded": 0,
+   "ok": 0,
+   "total": 6
+  }
+ },
+ "totals": {
+  "mouser": {
+   "usd": 43.519999999999996,
+   "priced": 3
+  },
+  "digikey": {
+   "usd": 41.576,
+   "priced": 2
+  },
+  "amazon": {
+   "usd": 0.0,
+   "priced": 0
+  }
+ },
+ "rows": [
+  {
+   "mpn": "10FDZ-BT(S)(LF)(SN)",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "JST",
+   "type": "connector_zif_membrane_1x10",
+   "lcsc": null,
+   "qty": 2,
+   "refs": "interposer: J_CN1_JUMPER, J_MEMBRANE",
+   "reasons": [
+    "interposer BOM row carries a BLANK LCSC",
+    "part.yaml sourcing.lcsc is empty \u2014 no fab-library line exists, so it is self-supplied"
+   ],
+   "dist": {
+    "mouser": {
+     "status": "OK",
+     "grade": "CITED",
+     "why": "",
+     "caution": "distributor stock 37 is the whole near-term supply: FactoryStock 0, lead 180 Days \u2014 a re-order is not quick",
+     "record": {
+      "mfr_mpn": "10FDZ-BT",
+      "mouser_pn": "306-10FDZBTSLFSN",
+      "manufacturer": "JST Commercial",
+      "stock": 37,
+      "stock_raw": "37 In Stock",
+      "lifecycle": null,
+      "factory_stock": "0",
+      "lead_time": "180 Days",
+      "min": "1",
+      "mult": "1",
+      "url": "https://www.mouser.com/en/ProductDetail/JST-Commercial/10FDZ-BT?qs=olJun0bQHM99eR757fzIdQ%3D%3D",
+      "breaks": [
+       {
+        "Quantity": 1,
+        "Price": "$0.96",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10,
+        "Price": "$0.831",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 25,
+        "Price": "$0.78",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 100,
+        "Price": "$0.662",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 300,
+        "Price": "$0.625",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 1000,
+        "Price": "$0.505",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 2500,
+        "Price": "$0.473",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 5000,
+        "Price": "$0.451",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10000,
+        "Price": "$0.429",
+        "Currency": "USD"
+       }
+      ],
+      "found_by": "broad",
+      "is_same_part": true
+     },
+     "records": 3,
+     "unit_price": 0.96,
+     "break_qty": 1,
+     "below_first_break": false,
+     "ext_price": 1.92,
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "10FDZ-BT(S)(LF)(SN)",
+       "opt": "Exact",
+       "hits": 1,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "10FDZ-BT",
+       "opt": "None",
+       "hits": 2,
+       "error": null
+      }
+     ],
+     "all_records": [
+      {
+       "mfr_mpn": "10FDZ-BT(S)(LF)(SN)",
+       "mouser_pn": "N/A",
+       "manufacturer": "JST Commercial",
+       "stock": null,
+       "stock_raw": "null",
+       "lifecycle": "Obsolete",
+       "factory_stock": null,
+       "lead_time": "0 Days",
+       "min": "0",
+       "mult": "0",
+       "url": "https://www.mouser.com/en/ProductDetail/JST-Commercial/10FDZ-BTSLFSN?qs=cdbOS8ANM9AFq0tbl4DNEw%3D%3D",
+       "breaks": [],
+       "found_by": "exact",
+       "is_same_part": true
+      },
+      {
+       "mfr_mpn": "10FDZ-BT",
+       "mouser_pn": "306-10FDZBTSLFSN",
+       "manufacturer": "JST Commercial",
+       "stock": 37,
+       "stock_raw": "37 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "180 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/JST-Commercial/10FDZ-BT?qs=olJun0bQHM99eR757fzIdQ%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.96",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.831",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 25,
+         "Price": "$0.78",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.662",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 300,
+         "Price": "$0.625",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.505",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2500,
+         "Price": "$0.473",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 5000,
+         "Price": "$0.451",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10000,
+         "Price": "$0.429",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": true
+      },
+      {
+       "mfr_mpn": "10FDZ-BT(LF)(SN)",
+       "mouser_pn": "306-10FDZBTLFSN",
+       "manufacturer": "JST Commercial",
+       "stock": 0,
+       "stock_raw": "None",
+       "lifecycle": "New at Mouser",
+       "factory_stock": "0",
+       "lead_time": "180 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/JST-Commercial/10FDZ-BTLFSN?qs=%252BHhoWzUJg4KWrsJbkfbqdg%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.95",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.83",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 25,
+         "Price": "$0.759",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.685",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 250,
+         "Price": "$0.625",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.505",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2500,
+         "Price": "$0.473",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 5000,
+         "Price": "$0.451",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10000,
+         "Price": "$0.429",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": true
+      }
+     ]
+    },
+    "digikey": {
+     "distributor": "digikey",
+     "url": "https://www.digikey.com/en/products/detail/jst-sales-america-inc/10FDZ-BT/28540420",
+     "dpn": "455-10FDZ-BT-ND",
+     "read_on": "2026-07-27",
+     "status": "LOW-STOCK",
+     "grade": "CITED",
+     "stock": 0,
+     "unit_price": 0.5758,
+     "break_qty": 100,
+     "min": 100,
+     "mult": 100,
+     "ext_price": 1.1516,
+     "lifecycle": "Active",
+     "why": "Q-STOCK: stock 0 is not > the 10 floor; stock 0 < the 2 needed; minimum order quantity 100 exceeds the 2 needed \u2014 the extended price shown is for 2, you would pay for 100; note: \"Not kept in stock at DigiKey\" \u2014 non-stocked, factory-order only, minimum 100 pieces at a manufacturer standard lead time of 16 weeks. ACTIVE and ZERO STOCK are not the same fact, and this is the row that proves it: the lifecycle field says Active on a part you cannot get for four months."
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    }
+   }
+  },
+  {
+   "mpn": "2.54-2*20PPC104",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "BOOMELE (Boom Precision Elec)",
+   "type": "header_2x20_female_stacking",
+   "lcsc": "C35165",
+   "qty": 1,
+   "refs": "cooksense: J_PI",
+   "reasons": [
+    "assembly.yaml not_assembled: J_PI (process_incompatible) \u2014 hand-soldered, you supply it"
+   ],
+   "dist": {
+    "mouser": {
+     "status": "NOT-IN-CATALOG",
+     "grade": "CITED",
+     "records": 0,
+     "why": "0 catalog records for '2.54-2*20PPC104' (Exact) or '2.54-2*20PPC104' (broad). This distributor does not list the part at all \u2014 which is a FINDING, not a stock figure",
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "2.54-2*20PPC104",
+       "opt": "Exact",
+       "hits": 0,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "2.54-2*20PPC104",
+       "opt": "None",
+       "hits": 0,
+       "error": null
+      }
+     ],
+     "all_records": []
+    },
+    "digikey": {
+     "distributor": "digikey",
+     "url": "https://www.digikey.com/en/products/result?keywords=2.54-2%2A20PPC104",
+     "dpn": null,
+     "read_on": "2026-07-27",
+     "status": "NOT-IN-CATALOG",
+     "grade": "CITED",
+     "stock": 0,
+     "why": "catalog searched 2026-07-27, authoritative MPN not listed as its own orderable line: \"Sorry, '2.54-2*20PPC104' did not return any results.\" Expected: this string is an LCSC HOUSE-BRAND DESCRIPTOR that happens to be the orderable MPN at LCSC, not a manufacturer part number any western distributor indexes. J_PI is explicitly substitutable (any 2x20 2.54mm female header), so this line is a catalog miss, not a sourcing wall."
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    }
+   }
+  },
+  {
+   "mpn": "B5B-XH-A(LF)(SN)",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "JST",
+   "type": "connector",
+   "lcsc": "C157991",
+   "qty": 1,
+   "refs": "cooksense: J_LOADCELL",
+   "reasons": [
+    "assembly.yaml not_assembled: J_LOADCELL (process_incompatible) \u2014 hand-soldered, you supply it"
+   ],
+   "dist": {
+    "mouser": {
+     "status": "OK",
+     "grade": "CITED",
+     "why": "",
+     "caution": "distributor stock 30599 is the whole near-term supply: FactoryStock 0, lead 112 Days \u2014 a re-order is not quick",
+     "record": {
+      "mfr_mpn": "B5B-XH-A(LF)(SN)",
+      "mouser_pn": "306-B5BXHALFSN",
+      "manufacturer": "JST Commercial",
+      "stock": 30599,
+      "stock_raw": "30599 In Stock",
+      "lifecycle": null,
+      "factory_stock": "0",
+      "lead_time": "112 Days",
+      "min": "1",
+      "mult": "1",
+      "url": "https://www.mouser.com/en/ProductDetail/JST-Commercial/B5B-XH-ALFSN?qs=cdbOS8ANM9ApoXpxtybURg%3D%3D",
+      "breaks": [
+       {
+        "Quantity": 1,
+        "Price": "$0.20",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10,
+        "Price": "$0.17",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 100,
+        "Price": "$0.145",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 250,
+        "Price": "$0.129",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 1000,
+        "Price": "$0.116",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 2500,
+        "Price": "$0.113",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 5000,
+        "Price": "$0.109",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10000,
+        "Price": "$0.104",
+        "Currency": "USD"
+       }
+      ],
+      "found_by": "exact",
+      "is_same_part": true
+     },
+     "records": 4,
+     "unit_price": 0.2,
+     "break_qty": 1,
+     "below_first_break": false,
+     "ext_price": 0.2,
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "B5B-XH-A(LF)(SN)",
+       "opt": "Exact",
+       "hits": 1,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "B5B-XH-A",
+       "opt": "None",
+       "hits": 4,
+       "error": null
+      }
+     ],
+     "all_records": [
+      {
+       "mfr_mpn": "B5B-XH-A(LF)(SN)",
+       "mouser_pn": "306-B5BXHALFSN",
+       "manufacturer": "JST Commercial",
+       "stock": 30599,
+       "stock_raw": "30599 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "112 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/JST-Commercial/B5B-XH-ALFSN?qs=cdbOS8ANM9ApoXpxtybURg%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.20",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.17",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.145",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 250,
+         "Price": "$0.129",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.116",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2500,
+         "Price": "$0.113",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 5000,
+         "Price": "$0.109",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10000,
+         "Price": "$0.104",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true
+      },
+      {
+       "mfr_mpn": "B5B-XH-A-GU",
+       "mouser_pn": "306-B5B-XH-A-GU",
+       "manufacturer": "JST Commercial",
+       "stock": 552,
+       "stock_raw": "552 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "112 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/JST-Commercial/B5B-XH-A-GU?qs=cIziFXvMxOWoxyR1NmICcg%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$1.88",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$1.64",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 25,
+         "Price": "$1.57",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$1.46",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 250,
+         "Price": "$1.32",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$1.22",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$1.08",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2500,
+         "Price": "$1.06",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 5000,
+         "Price": "$0.99",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false
+      },
+      {
+       "mfr_mpn": "B5B-XH-AM(LF)(SN)",
+       "mouser_pn": "306-B5BXHAMLFSN",
+       "manufacturer": "JST Commercial",
+       "stock": 534,
+       "stock_raw": "534 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "112 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/JST-Commercial/B5B-XH-AMLFSN?qs=cdbOS8ANM9CpaTRoZw%2FusA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.17",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.148",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.126",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 250,
+         "Price": "$0.112",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2500,
+         "Price": "$0.106",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 5000,
+         "Price": "$0.095",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10000,
+         "Price": "$0.09",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false
+      },
+      {
+       "mfr_mpn": "B5B-XH-A-G",
+       "mouser_pn": "306-B5B-XH-A-G",
+       "manufacturer": "JST Commercial",
+       "stock": 282,
+       "stock_raw": "282 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "112 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/JST-Commercial/B5B-XH-A-G?qs=3vio67wFuYrd8TSBq9KCFA%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$0.55",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$0.482",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 25,
+         "Price": "$0.441",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$0.398",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 250,
+         "Price": "$0.363",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$0.306",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2500,
+         "Price": "$0.287",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 5000,
+         "Price": "$0.274",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10000,
+         "Price": "$0.26",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "broad",
+       "is_same_part": false
+      }
+     ]
+    },
+    "digikey": {
+     "distributor": "digikey",
+     "url": "https://www.digikey.com/en/products/detail/jst-sales-america-inc/B5B-XH-A/1530483",
+     "dpn": "455-B5B-XH-A-ND",
+     "read_on": "2026-07-27",
+     "status": "OK",
+     "grade": "CITED",
+     "stock": 63329,
+     "unit_price": 0.2,
+     "break_qty": 1,
+     "min": 1,
+     "mult": 1,
+     "ext_price": 0.2,
+     "lifecycle": "Active",
+     "why": "note: DigiKey catalogues this under the BARE MPN `B5B-XH-A`; our dossier holds the fully-suffixed `B5B-XH-A(LF)(SN)`. Same part \u2014 the suffixes are lead-free/tin-plate qualifiers. Same catalog-record shape as the 10FDZ-BT incident, benign here only because DigiKey keeps one record."
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    }
+   }
+  },
+  {
+   "mpn": "DIP05-1A72-12L",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "Standex-Meder Electronics",
+   "type": "reed_relay_spst_no_5v",
+   "lcsc": null,
+   "qty": 12,
+   "refs": "cooksense: K_D1, K_D2, K_D3, K_D4, K_PRESS, K_STOP, K_U1, K_U2, K_U3, K_U4, K_U5, K_U6",
+   "reasons": [
+    "assembly.yaml not_assembled: K_D1, K_D2, K_D3, K_D4, K_PRESS, K_STOP, K_U1, K_U2, K_U3, K_U4, K_U5, K_U6 (not_in_catalog) \u2014 hand-soldered, you supply it",
+    "cooksense BOM row carries a BLANK LCSC",
+    "part.yaml asserts not_on_assembly_bom",
+    "part.yaml sourcing.lcsc is empty \u2014 no fab-library line exists, so it is self-supplied"
+   ],
+   "dist": {
+    "mouser": {
+     "status": "OK",
+     "grade": "CITED",
+     "why": "",
+     "caution": "distributor stock 132 is the whole near-term supply: FactoryStock 0, lead 125 Days \u2014 a re-order is not quick",
+     "record": {
+      "mfr_mpn": "DIP05-1A72-12L",
+      "mouser_pn": "876-DIP05-1A72-12L",
+      "manufacturer": "MEDER electronic",
+      "stock": 132,
+      "stock_raw": "132 In Stock",
+      "lifecycle": null,
+      "factory_stock": "0",
+      "lead_time": "125 Days",
+      "min": "1",
+      "mult": "1",
+      "url": "https://www.mouser.com/en/ProductDetail/MEDER-electronic/DIP05-1A72-12L?qs=k5V78Jg%2Feq5x%2FLYUrMtrGw%3D%3D",
+      "breaks": [
+       {
+        "Quantity": 1,
+        "Price": "$3.87",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 10,
+        "Price": "$3.45",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 25,
+        "Price": "$3.29",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 50,
+        "Price": "$3.16",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 100,
+        "Price": "$3.00",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 250,
+        "Price": "$2.88",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 500,
+        "Price": "$2.73",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 1000,
+        "Price": "$2.64",
+        "Currency": "USD"
+       },
+       {
+        "Quantity": 2500,
+        "Price": "$2.63",
+        "Currency": "USD"
+       }
+      ],
+      "found_by": "exact",
+      "is_same_part": true
+     },
+     "records": 1,
+     "unit_price": 3.45,
+     "break_qty": 10,
+     "below_first_break": false,
+     "ext_price": 41.4,
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "DIP05-1A72-12L",
+       "opt": "Exact",
+       "hits": 1,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "DIP05-1A72-12L",
+       "opt": "None",
+       "hits": 1,
+       "error": null
+      }
+     ],
+     "all_records": [
+      {
+       "mfr_mpn": "DIP05-1A72-12L",
+       "mouser_pn": "876-DIP05-1A72-12L",
+       "manufacturer": "MEDER electronic",
+       "stock": 132,
+       "stock_raw": "132 In Stock",
+       "lifecycle": null,
+       "factory_stock": "0",
+       "lead_time": "125 Days",
+       "min": "1",
+       "mult": "1",
+       "url": "https://www.mouser.com/en/ProductDetail/MEDER-electronic/DIP05-1A72-12L?qs=k5V78Jg%2Feq5x%2FLYUrMtrGw%3D%3D",
+       "breaks": [
+        {
+         "Quantity": 1,
+         "Price": "$3.87",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 10,
+         "Price": "$3.45",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 25,
+         "Price": "$3.29",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 50,
+         "Price": "$3.16",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 100,
+         "Price": "$3.00",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 250,
+         "Price": "$2.88",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 500,
+         "Price": "$2.73",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 1000,
+         "Price": "$2.64",
+         "Currency": "USD"
+        },
+        {
+         "Quantity": 2500,
+         "Price": "$2.63",
+         "Currency": "USD"
+        }
+       ],
+       "found_by": "exact",
+       "is_same_part": true
+      }
+     ]
+    },
+    "digikey": {
+     "distributor": "digikey",
+     "url": "https://www.digikey.com/en/products/detail/standex-meder-electronics/DIP05-1A72-12L/1949339",
+     "dpn": "DIP05-1A72-12L-ND",
+     "read_on": "2026-07-27",
+     "status": "OK",
+     "grade": "CITED",
+     "stock": 56,
+     "unit_price": 3.448,
+     "break_qty": 10,
+     "min": 1,
+     "mult": 1,
+     "ext_price": 41.376,
+     "lifecycle": "Active",
+     "why": "note: Standex-Meder, the DO-NOT-SUBSTITUTE reed relay (ADR-0006 isolation comb). 56 on the shelf against 12 per board; a 16-board run would clear DigiKey."
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    }
+   }
+  },
+  {
+   "mpn": "KF350-3.5-4P",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "Cixi Kefa",
+   "type": "screw_terminal_4p",
+   "lcsc": "C42400616",
+   "qty": 1,
+   "refs": "cooksense: J_ISOLOOP",
+   "reasons": [
+    "assembly.yaml not_assembled: J_ISOLOOP (not_in_catalog) \u2014 hand-soldered, you supply it"
+   ],
+   "dist": {
+    "mouser": {
+     "status": "NOT-IN-CATALOG",
+     "grade": "CITED",
+     "records": 0,
+     "why": "0 catalog records for 'KF350-3.5-4P' (Exact) or 'KF350-3.5-4P' (broad). This distributor does not list the part at all \u2014 which is a FINDING, not a stock figure",
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "KF350-3.5-4P",
+       "opt": "Exact",
+       "hits": 0,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "KF350-3.5-4P",
+       "opt": "None",
+       "hits": 0,
+       "error": null
+      }
+     ],
+     "all_records": []
+    },
+    "digikey": {
+     "distributor": "digikey",
+     "url": "https://www.digikey.com/en/products/result?keywords=KF350-3.5-4P",
+     "dpn": null,
+     "read_on": "2026-07-27",
+     "status": "NOT-IN-CATALOG",
+     "grade": "CITED",
+     "stock": 0,
+     "why": "catalog searched 2026-07-27, authoritative MPN not listed as its own orderable line: \"Sorry, 'KF350-3.5-4P' did not return any results.\" DigiKey does not carry the Cixi Kefa 350 family at all. The board sanctions XY350-3.5-4P and DG350-3.5-4P as approved alternates (assembly.yaml disposition) \u2014 neither was searched here, because an alternate is a decision, not a lookup."
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    }
+   }
+  },
+  {
+   "mpn": "PCC-SMP-K",
+   "mpn_source": "part.yaml mpn:",
+   "manufacturer": "Omega Engineering (Newport Electronics)",
+   "type": "thermocouple_connector_typeK_pcb",
+   "lcsc": null,
+   "qty": 1,
+   "refs": "cooksense: J_TC",
+   "reasons": [
+    "assembly.yaml not_assembled: J_TC (not_in_catalog) \u2014 hand-soldered, you supply it",
+    "cooksense BOM row carries a BLANK LCSC",
+    "part.yaml asserts not_on_assembly_bom",
+    "part.yaml sourcing.lcsc is empty \u2014 no fab-library line exists, so it is self-supplied"
+   ],
+   "dist": {
+    "mouser": {
+     "status": "NOT-IN-CATALOG",
+     "grade": "CITED",
+     "records": 0,
+     "why": "0 catalog records for 'PCC-SMP-K' (Exact) or 'PCC-SMP-K' (broad). This distributor does not list the part at all \u2014 which is a FINDING, not a stock figure",
+     "searches": [
+      {
+       "kind": "exact",
+       "query": "PCC-SMP-K",
+       "opt": "Exact",
+       "hits": 0,
+       "error": null
+      },
+      {
+       "kind": "broad",
+       "query": "PCC-SMP-K",
+       "opt": "None",
+       "hits": 0,
+       "error": null
+      }
+     ],
+     "all_records": []
+    },
+    "digikey": {
+     "distributor": "digikey",
+     "url": "https://www.digikey.com/en/products/result?keywords=PCC-SMP-K",
+     "dpn": null,
+     "read_on": "2026-07-27",
+     "status": "NOT-IN-CATALOG",
+     "grade": "CITED",
+     "stock": 0,
+     "why": "catalog searched 2026-07-27, authoritative MPN not listed as its own orderable line: The bare Omega MPN `PCC-SMP-K` is not listed as its own orderable line. What IS listed is six PACK-QUANTITY variants \u2014 PCC-SMP-K-5 / -50 / -100 and their -R counterparts. PCC-SMP-K-5 shows 210 in stock at $48.91 (product page 25639954, read 2026-07-27), but the page does not state whether that price is per pack of five or per piece, so the per-piece cost is UNRESOLVED and this is a substitute proposal for a human, not a sourced line. J_TC is DO-NOT-SUBSTITUTE (the chromel/alumel contacts ARE the cold-junction interface) \u2014 but a pack quantity of the same Omega part is a packaging question, not a substitution one. Resolve it before ordering."
+    },
+    "amazon": {
+     "status": "NO-QUOTE",
+     "grade": "OWED",
+     "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+    }
+   }
+  }
+ ],
+ "failures": [
+  {
+   "mpn": "10FDZ-BT(S)(LF)(SN)",
+   "qty": 2,
+   "distributor": "digikey",
+   "status": "LOW-STOCK",
+   "why": "Q-STOCK: stock 0 is not > the 10 floor; stock 0 < the 2 needed; minimum order quantity 100 exceeds the 2 needed \u2014 the extended price shown is for 2, you would pay for 100; note: \"Not kept in stock at DigiKey\" \u2014 non-stocked, factory-order only, minimum 100 pieces at a manufacturer standard lead time of 16 weeks. ACTIVE and ZERO STOCK are not the same fact, and this is the row that proves it: the lifecycle field says Active on a part you cannot get for four months."
+  },
+  {
+   "mpn": "10FDZ-BT(S)(LF)(SN)",
+   "qty": 2,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  },
+  {
+   "mpn": "2.54-2*20PPC104",
+   "qty": 1,
+   "distributor": "mouser",
+   "status": "NOT-IN-CATALOG",
+   "why": "0 catalog records for '2.54-2*20PPC104' (Exact) or '2.54-2*20PPC104' (broad). This distributor does not list the part at all \u2014 which is a FINDING, not a stock figure"
+  },
+  {
+   "mpn": "2.54-2*20PPC104",
+   "qty": 1,
+   "distributor": "digikey",
+   "status": "NOT-IN-CATALOG",
+   "why": "catalog searched 2026-07-27, authoritative MPN not listed as its own orderable line: \"Sorry, '2.54-2*20PPC104' did not return any results.\" Expected: this string is an LCSC HOUSE-BRAND DESCRIPTOR that happens to be the orderable MPN at LCSC, not a manufacturer part number any western distributor indexes. J_PI is explicitly substitutable (any 2x20 2.54mm female header), so this line is a catalog miss, not a sourcing wall."
+  },
+  {
+   "mpn": "2.54-2*20PPC104",
+   "qty": 1,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  },
+  {
+   "mpn": "B5B-XH-A(LF)(SN)",
+   "qty": 1,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  },
+  {
+   "mpn": "DIP05-1A72-12L",
+   "qty": 12,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  },
+  {
+   "mpn": "KF350-3.5-4P",
+   "qty": 1,
+   "distributor": "mouser",
+   "status": "NOT-IN-CATALOG",
+   "why": "0 catalog records for 'KF350-3.5-4P' (Exact) or 'KF350-3.5-4P' (broad). This distributor does not list the part at all \u2014 which is a FINDING, not a stock figure"
+  },
+  {
+   "mpn": "KF350-3.5-4P",
+   "qty": 1,
+   "distributor": "digikey",
+   "status": "NOT-IN-CATALOG",
+   "why": "catalog searched 2026-07-27, authoritative MPN not listed as its own orderable line: \"Sorry, 'KF350-3.5-4P' did not return any results.\" DigiKey does not carry the Cixi Kefa 350 family at all. The board sanctions XY350-3.5-4P and DG350-3.5-4P as approved alternates (assembly.yaml disposition) \u2014 neither was searched here, because an alternate is a decision, not a lookup."
+  },
+  {
+   "mpn": "KF350-3.5-4P",
+   "qty": 1,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  },
+  {
+   "mpn": "PCC-SMP-K",
+   "qty": 1,
+   "distributor": "mouser",
+   "status": "NOT-IN-CATALOG",
+   "why": "0 catalog records for 'PCC-SMP-K' (Exact) or 'PCC-SMP-K' (broad). This distributor does not list the part at all \u2014 which is a FINDING, not a stock figure"
+  },
+  {
+   "mpn": "PCC-SMP-K",
+   "qty": 1,
+   "distributor": "digikey",
+   "status": "NOT-IN-CATALOG",
+   "why": "catalog searched 2026-07-27, authoritative MPN not listed as its own orderable line: The bare Omega MPN `PCC-SMP-K` is not listed as its own orderable line. What IS listed is six PACK-QUANTITY variants \u2014 PCC-SMP-K-5 / -50 / -100 and their -R counterparts. PCC-SMP-K-5 shows 210 in stock at $48.91 (product page 25639954, read 2026-07-27), but the page does not state whether that price is per pack of five or per piece, so the per-piece cost is UNRESOLVED and this is a substitute proposal for a human, not a sourced line. J_TC is DO-NOT-SUBSTITUTE (the chromel/alumel contacts ARE the cold-junction interface) \u2014 but a pack quantity of the same Omega part is a packaging question, not a substitution one. Resolve it before ordering."
+  },
+  {
+   "mpn": "PCC-SMP-K",
+   "qty": 1,
+   "distributor": "amazon",
+   "status": "NO-QUOTE",
+   "why": "no amazon quote recorded. Open the PRODUCT PAGE (never a search snippet) and add an entry to 01_docs/sourcing/manual_quotes.yaml with its url and read_on date; Amazon has no usable API (PA-API needs an affiliate account) so this stays ESTIMATED even once recorded"
+  }
+ ],
+ "single_source": [],
+ "methods": {
+  "mouser": "Mouser Search API (search/partnumber). TWO searches per part: `Exact` on the authoritative MPN, then `None` on the suffix-stripped MPN \u2014 one part has several catalog records and they disagree. CITED.",
+  "digikey": "PRODUCT PAGE read by a human and recorded in 01_docs/sourcing/manual_quotes.yaml. No API key available (OAuth client credentials not provided). CITED from a product page; a search snippet is REFUSED.",
+  "amazon": "Direct product links only, hand-recorded. No usable API (PA-API needs an affiliate account). ESTIMATED, always \u2014 stock and price are volatile and unverifiable."
+ },
+ "unparsed": [],
+ "generated": "2026-07-27 21:08 UTC",
+ "mouser_calls": 12,
+ "key_provenance": "<repo>/.secrets/mouser.env",
+ "verdict": "FAIL"
+}
