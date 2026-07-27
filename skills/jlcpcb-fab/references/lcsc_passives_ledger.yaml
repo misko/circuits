@@ -41,6 +41,13 @@ C4328: {mpn: 0805W8F2002T5E, value: "20k", verified: "2026-07-23 JLC catalog (se
 C11702: {mpn: 0402WGF1001TCE, value: "1k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C12530: {mpn: CL05A225MQ5NSNC, value: "2.2uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C12891: {mpn: CL31A226KAHNNNE, value: "22uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+# 10 mOhm current-sense shunt (usb-hub-3s-v3 RS1/RS2, LM5116 CS). The 2026-07-23
+# seed skipped it: leg C's first two sources both name the MPN 25121WF100MT4E,
+# and neither the BOM MPN column nor part.yaml decodes "100M" -> 10 mOhm, so the
+# row read as UNVERIFIABLE-VALUE the moment leg C started grading milliohms
+# (07721d6). Catalog describe verbatim: "-55C~+155C 10mOhm 1W 200V Thick Film
+# Resistor +-1% +-1500ppm/C 2512" -> 0.01 ohm, which is what the BOM labels it.
+C127692: {mpn: 25121WF100MT4E, value: "0.01", verified: "2026-07-27 JLC catalog (selectSmtComponentList describe: '10mΩ 1W 200V Thick Film Resistor ±1% 2512', UNI-ROYAL)"}
 C14663: {mpn: CC0603KRX7R9BB104, value: "100nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C14858: {mpn: CL10C101JB8NNNC, value: "100pF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C15195: {mpn: CL05B103KB5NNNC, value: "10nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}

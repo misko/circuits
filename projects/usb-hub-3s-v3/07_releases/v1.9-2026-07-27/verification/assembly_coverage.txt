@@ -1,0 +1,22 @@
+== A-POP assembly_coverage: v1.9-2026-07-27 ==
+  board=129 footprints, cpl=119 placements, unpopulated=10 (declared=3, consigned=0, exempt_prefixes=['H', 'TP', 'FID', 'MH'])
+  placement histogram: top=119
+  A-POS datum: 119 CPL row(s) graded against the pad-array centre, worst = 0.00050mm (Q6), tolerance 0.05mm
+A-POP: PASS (every unpopulated part is declared with evidence)
+
+# RE-RUN 2026-07-27, AFTER the MANIFEST was written. The first run of this gate
+# in this release ended `A-POP: FAIL (1)` on MANIFEST-UNDECLARED — the release
+# MANIFEST carries no not_assembled: line — while the MANIFEST plainly carried
+# `not_assembled:  F1, R42, SW1`. The v1.9 zero-context render review caught it
+# (finding RR-1) and root-caused it by MTIME: assembly_coverage.txt 11:43:54 vs
+# MANIFEST.txt 12:04:45, i.e. A-POP read the MANIFEST 21 MINUTES BEFORE THE
+# MANIFEST WAS WRITTEN. On a first build that leg can never pass.
+#
+# So this gate now runs where the seal procedure already puts policy_audit and
+# release_freshness_check: AFTER the stamp. Nothing about the board or the
+# population set changed between the two runs — the FAIL was an ordering
+# artifact and nothing else, and it is adjudicated in
+# gate_adjudications_v1.9.md section 3.1 rather than quietly overwritten.
+#
+# Reported upstream as a gate gap: assembly_coverage.py has no way to say
+# "the manifest is not stamped yet" and must either FAIL or be re-run.

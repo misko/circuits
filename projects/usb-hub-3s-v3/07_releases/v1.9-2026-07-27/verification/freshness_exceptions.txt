@@ -1,0 +1,31 @@
+# FRESHNESS EXCEPTIONS — v1.9-2026-07-27
+#
+# release_freshness_check.py check (a) flags any file under pdf/ or fab/ that is
+# sha256-IDENTICAL to the same-named file in an earlier release, on the rule that
+# "a changed board must not ship an earlier release's generated output". Two files
+# here ARE identical to v1.8's, and that identity is the CLAIM, not an oversight.
+#
+# v1.9 is a COPPER-ONLY supersede. The pour was missing from v1.6/v1.7/v1.8 and is
+# back; nothing about which parts go on the board, or where, changed. That is
+# measured, not asserted:
+#   * netlist parity vs v1.8: 0 differences (122 components, 73 nets, 372 nodes,
+#     identical component set, identical net-name set) — verification/parity.md
+#   * A-POS datum: 119 CPL rows graded, worst residual 0.00050 mm (Q6)
+#   * A-ROT: all 119 rotations resolve from MEASURED per-LCSC rows
+# If the BOM or the CPL had come out DIFFERENT from v1.8's, something other than
+# copper would have moved and this release would be mis-described. Asserting the
+# identity is therefore stronger than tolerating it.
+#
+# NOTE WHAT IS **NOT** LISTED HERE, because it is what makes this a real supersede:
+#   fab/usb_hub_3s_v2_gerbers.zip   88 692 B -> 394 534 B   (the copper)
+#   fab/usb_hub_3s_v2-PTH.drl       differs                 (island-rescue via)
+#   pdf/pcb_layers.pdf              differs                 (the planes are in it)
+#   pdf/schematic.pdf               differs                 (tscircuit's own render
+#                                                            again, not Eeschema's)
+#   source/usb_hub_3s_v2.kicad_pcb  differs                 (36 filled zones)
+# This is NOT a --docs-only-supersede and must not be gated as one: fab/ changed.
+#
+# format: <relpath>   <reason>
+
+fab/bom.csv   COPPER-ONLY supersede of v1.8-2026-07-26 — identical BY DESIGN. 46 rows / 122 refdes, 0 blank LCSC, and {BOM}-{CPL} = {F1, R42, SW1} exactly as 03_src/rules/assembly.yaml declares. No part was added, removed, substituted or revalued; only the pour changed. A DIFFERENT BOM here would mean something moved that this release does not claim to have moved.
+fab/cpl.csv   COPPER-ONLY supersede of v1.8-2026-07-26 — identical BY DESIGN. 119 placements, all top side, every rotation from a MEASURED per-LCSC row (A-ROT 119/119) and every position on JLC's pad-array datum (A-POS worst residual 0.00050 mm). Placement did not change because the fix was a zone refill, and netlist parity against v1.8 is 0 differences.

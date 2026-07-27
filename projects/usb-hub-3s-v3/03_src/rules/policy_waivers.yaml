@@ -12,16 +12,45 @@
     and — the v1.2 discrete VBUS P-FET — Q6.5/5VC (AON6403 drain-tab) and
     Q6.1-3/PMID (AON6403 source): 5VC and PMID are both pour-fed, NEITHER a plane
     net. Confirmed by control pads Q2.5/Q4.5 (VIN drains) which PASS with 3 In2
-    vias each. Datasheet-Rds dissipation <0.15W each (Q1 0.14W, Q3 0.11W, Q5
-    0.08W, and Q6 AON6403 ~4.3mOhm x 5A^2 = 0.11W) into 14.9mm^2 DFN5x6 pads on
+    vias each. RE-MEASURED 2026-07-27 ON THE v1.9 BOARD, at the CURRENT load
+    envelope: the dissipation figures this waiver used to carry were the
+    SUPERSEDED 15.5 A Q1 / 5 A Q6 envelope. Q1 at the 7 A worst-case trunk =
+    0.14 W; Q3 (buck-A LS drain) 0.11 W at the 4.66 A LS-FET RMS; Q5 (buck-C LS)
+    0.05 W; Q6 AON6403 at the Pi 4's ACTUAL 3 A (ADR-0004, not the provisioned
+    5 A) = 3^2 x 4.3 mOhm = 0.039 W. All <0.15 W, into 14.9mm^2 DFN5x6 pads on
     170-390mm^2 pours; dTj ~6-9C. (Q7 = BSS138 SOT-23 signal FET, no thermal path
-    — not R-THERM-relevant.) U11.21 (LM5116 buck-C GND EP) IS on
-    the In1 GND plane with 1 direct via (vs 3 on the sister EP U2.21 — stitch-grid
-    luck from the STANDARD-tier non-ThermalVias footprint swap) PLUS 11 GND vias
-    within 5mm; controller-grade ~0.15-0.20W, thermally a non-issue. Next-rev work
-    order: add a >=4x 0.3mm via array under BOTH LM5116 EPs. Not a copper defect.
+    — not R-THERM-relevant.)
+    ---- EP VIA COUNTS: THE OLD PROSE DESCRIBED A BOARD THAT NO LONGER EXISTS.
+    Raised as P2-4 by the v1.9 fix lens, and before that as RL-11 by the v1.5
+    layout lens, where rewriting it was DEFERRED. It should not have been: a
+    stale waiver is an inherited defect, and this one outlived four releases.
+    THIS WAIVER USED TO SAY "U11.21 IS on the In1 GND plane with 1 direct via
+    (vs 3 on the sister EP U2.21)" and carried "Next-rev work order: add a >=4x
+    0.3mm via array under BOTH LM5116 EPs". BOTH ARE FALSE ON THIS BOARD.
+    MEASURED by exact polygon containment (via centre inside the pad polygon) on
+    the sealed v1.9 copper: U2.21 = 7 GND vias, U11.21 = 7 GND vias (3x2 +
+    centre, at +-0.85 / +-2.1 mm). THE WORK ORDER IS DONE, and was done some
+    revisions ago without ever being marked done — which is exactly how a waiver
+    comes to describe a board that no longer exists. Thermal check at the real
+    dissipation: the LM5116 internal LDO burns (12.6-7.4) x ~43 mA = 224 mW into
+    a 22.1 mm^2 EP with 7 vias, ~8 C rise. A non-issue, now for a MEASURED
+    reason instead of an asserted one.
+    ---- ALSO COVERED, AND PREVIOUSLY UNNAMED: U3.9 / U4.9 / U5.9, the three
+    TPS2557 VSON-8 exposed pads, have EXACTLY 1 via each. They sat inside this
+    waiver's blast radius without ever being named in it, against
+    02_parts/TPS2557DRBR/part.yaml's own gotcha ("EP needs thermal vias
+    (R-THERM; TPS2557-class EPs shipped with zero once)"). Named now, with the
+    number that makes them acceptable rather than with silence: at the 2 A port
+    budget P = 2^2 x 35 mOhm (rDS(on) max over -40..125 C, SLVS931B) = 140 mW;
+    at the guaranteed-non-trip 2.72 A hardware ceiling (nets.yaml VBUS), 259 mW.
+    VSON-8 DRB ~48.7 C/W gives 7-13 C onto the F.Cu GND pour the EP sits on.
+    ACCEPTABLE, and well below TI's own layout example. NEXT-REV WORK ORDER,
+    this one genuinely OPEN: take the three TPS2557 EPs to a >=4x 0.3 mm array
+    like the LM5116 EPs already have.
     NB VERIFIED on the v1.2 discrete board (DRC 0/0/0; policy_audit R-THERM WAIVED):
     the flagged pads are the pour-carried FET drains/source above, all fab-legal.
+    Re-verified 2026-07-27 on v1.9: DRC 0/0/0, and every via count above is a
+    measurement on THIS release's copper, not an inherited sentence.
 
 - id: R-POUR
   why: >

@@ -27,15 +27,23 @@ $PY "$S/route_and_stitch_generic.py" taps   03_src/route.yaml
 $PY "$S/route_and_stitch_generic.py" stitch 03_src/route.yaml
 # [7b] v1.1 post-stitch geometry fixes (EP thermal vias, VBAT_F F<->B stitch, drill/width floors, GND-island bond)
 $PY 03_src/post_stitch_fixes.py
-# [8] generate_rules LAST (pcbnew saves clobber .kicad_pro netclasses)  [SHARED]
-$PY "$S/generate_rules_generic.py" .
 # [7c] M-SHIP READ-BACK: prove the pour SURVIVED the last board write.
 #      post_stitch_fixes.py runs AFTER the stitch driver and holds the
 #      LAST save, so the guard inside `stitch` guards nothing here.
 #      Its section 6 (added in v1.6) unfilled to place vias and never
 #      refilled -> v1.6/v1.7/v1.8 shipped 44287.91 mm2 of BARE COPPER
 #      with every gate green. ADR-0004, canon M-SHIP/M-WIDTH.
+#      POSITION (v1.9): this sits BETWEEN the last board write and
+#      generate_rules, not after it. It only needs to follow the last
+#      pcbnew SAVE, and generate_rules_generic.py never opens the
+#      .kicad_pcb (it writes .kicad_pro/.kicad_dru and sweeps stray
+#      droppings), so the read-back is over identical bytes either way.
+#      Running it after generate_rules tripped canon A-ORDER, whose
+#      read-only-checker whitelist keys on FILENAME and so cannot see
+#      that `route_and_stitch_generic.py verify-fill` writes nothing.
 $PY "$S/route_and_stitch_generic.py" verify-fill 03_src/route.yaml
+# [8] generate_rules LAST (pcbnew saves clobber .kicad_pro netclasses)  [SHARED]
+$PY "$S/generate_rules_generic.py" .
 # [8b] silk-height floor (pcbnew resets min_text_height to 0.8; advanced floor 0.45)
 $PY - <<'PYEOF'
 import json

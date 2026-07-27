@@ -1,0 +1,34 @@
+  ok   A-CLASS SWITCH_NODE present (track_width 0.6mm)
+  ok   A-AGREE SWITCH_NODE pro/dru agree at 0.6mm
+  ok   A-AMP SWITCH_NODE 7.0A carried by POUR, not track — declared: MEASURED 2026-07-27 on the v1.9 board with pcbnew. Narrowest summed zone cross-section across the switch loop: SW_A 6.050 mm (B.Cu 4.800 + F.Cu 1.250) at Q2->L1 and 7.200 mm at Q3->L1; SW_C 9.600 mm and 7.200 mm. IPC-2221 needs 4.399 mm for 7 A at dT 10 C, 1 oz external -> 1.38x margin at the tightest section. Island areas F.Cu 85.74 / 194.81 mm2, B.Cu 195.98 / 195.98 mm2. All eleven power pads (Q2.1/2/3, Q3.5 x4, L1.1 and the buck-C twins) sit ON the pour; the routed 0.600 mm copper serves only the bootstrap-cap return, the RC snubber and the LM5116 SW sense pin.
+  ok   A-CLASS PWR_IN present (track_width 0.6mm)
+  ok   A-AGREE PWR_IN pro/dru agree at 0.6mm
+  ok   A-AMP PWR_IN 7.0A carried by POUR, not track — declared: MEASURED 2026-07-27 on the v1.9 board with pcbnew. Narrowest summed zone cross-section on the battery trunk: VBAT 8.750 mm F.Cu (J1->F1), VBAT_F 14.650 mm (B.Cu 8.950 + F.Cu 5.700, F1->Q1), VIN 38.400 mm on the In2.Cu plane (Q1->Q2) and 43.150 mm (Q1->Q4). IPC-2221 needs 4.399 mm for 7 A at dT 10 C, 1 oz external -> 1.99x margin at the tightest section. Zone areas VBAT 352.62 mm2 F.Cu, VBAT_F 169.73 F.Cu + 191.99 B.Cu, VIN 634.37 F.Cu + 11276.88 In2.Cu (full-board plane), bonded by 34 VIN vias. The only routed VIN copper is 2.825 mm of 0.300 mm serving the UVLO dividers and the two controller bias pins.
+  ok   A-CLASS PWR_RAIL present (track_width 0.4mm)
+  ok   A-AGREE PWR_RAIL pro/dru agree at 0.4mm
+  ok   A-AMP PWR_RAIL 6.0A carried by POUR, not track — declared: MEASURED 2026-07-27 on the v1.9 board with pcbnew. Narrowest summed zone cross-section per rail: 5VA 27.450 mm (B.Cu 12.750 + F.Cu 14.700) on L1->U5, the longest port feed; 5VC 9.950 mm (L2->Q6); PMID 9.300 mm (Q6->F2); VBUSC 20.200 mm (F2->J5). IPC-2221 needs 3.556 mm for 6 A and 2.765 mm for 5 A at dT 10 C, 1 oz external -> 2.62x margin at the tightest section. Zone areas 5VA 1130.90 F.Cu + 1111.67 B.Cu, 5VC 243.41 + 285.10, PMID 44.97 + 52.48, VBUSC 223.87 + 263.08 mm2. Every rail pad (L1.2, L2.2, U3/U4/U5.2, U6.5, U7.5, Q6.1/2/3/5, F2.1/2, J5.A4/A9/B4/B9) sits ON the pour; the routed 0.400 mm copper reaches only the FB-divider tops and the two LM5116 VOUT sense pins.
+  ok   A-CLASS VBUS present (track_width 0.8mm)
+  ok   A-AGREE VBUS pro/dru agree at 0.8mm
+  ok   A-AMP VBUS 2.0A ok at 0.8mm (need 0.781mm)
+  ok   A-CLASS INDICATOR present (track_width 0.2mm)
+  ok   A-AGREE INDICATOR pro/dru agree at 0.2mm
+  ok   A-AMP INDICATOR 0.0016A ok at 0.2mm (need 0.000mm)
+  ok   A-CLASS GATE present (track_width 0.3mm)
+  ok   A-AGREE GATE pro/dru agree at 0.3mm
+  ok   A-AMP GATE 0.276A ok at 0.3mm (need 0.051mm)
+  ok   A-CLASS SENSE present (track_width 0.2mm)
+  ok   A-AGREE SENSE pro/dru agree at 0.2mm
+  ok   A-AMP SENSE 0.05A ok at 0.2mm (need 0.005mm)
+  ok   A-CLASS USB_DATA present (track_width 0.15mm)
+  ok   A-AGREE USB_DATA pro/dru agree at 0.15mm
+  ok   A-AMP USB_DATA exempt by declaration ('signal')
+  ok   A-CLASS NC_PADS present (track_width 0.2mm)
+  ok   A-AGREE NC_PADS pro/dru agree at 0.2mm
+  ok   A-AMP NC_PADS exempt by declaration ('none')
+  ok   A-CLASS GND_RET present (track_width 0.25mm)
+  ok   A-AGREE GND_RET pro/dru agree at 0.25mm
+  ok   A-AMP GND_RET exempt by declaration ('return (planes)')
+  ok   A-FIRE all 12 usb_hub_3s_v2.kicad_dru rule(s) can fire
+  ok   A-ORDER generate_rules runs last before the DRC gate
+  coverage A-AMP: 10/10 net-class current declarations graded
+RULES AUDIT: PASS (0 fails, 32 checks)

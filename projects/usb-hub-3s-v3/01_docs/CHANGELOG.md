@@ -2,6 +2,195 @@
 
 Board internal name `usb_hub_3s_v2`; project directory `usb-hub-3s-v3`.
 
+## v1.9 — 2026-07-27
+
+Released: `07_releases/v1.9-2026-07-27/`. **DO-NOT-ORDER supersede of v1.8, v1.7
+AND v1.6.** All three gain `SUPERSEDED.md`; they are otherwise immutable.
+
+### The defect: three sealed releases with NO COPPER POUR
+
+v1.6, v1.7 and v1.8 shipped gerbers carrying **zero copper pour on all four
+layers — 44287.91 mm2 of missing copper**. No GND plane, no VIN plane, no
+5VA/5VC/VBUS/switch-node islands. On such a board the 7 A battery trunk and the
+6 A rails exist only as the thin routed stubs that were never meant to carry
+them, and the return path does not exist at all.
+
+**Root cause:** `03_src/post_stitch_fixes.py` section 6, added in v1.6, unfills
+the zones so it can place vias and never refills before its own save. That script
+holds the **LAST** save in the pipeline, so the refill guard inside the stitch
+driver guarded nothing.
+
+**Why every gate stayed green:** `kicad-cli pcb drc --refill-zones` refills the
+zones **IN MEMORY**. It reports 0/0/0 on a board whose saved file has no fill.
+DRC, parity, twin, renders, ERC and the policy audit were all measuring an
+in-memory board that was correct while the bytes on disk were not.
+
+**The signature was in the shipped payload the whole time.** v1.8's `In1_Cu` and
+`In2_Cu` gerbers are BYTE-IDENTICAL at 18921 bytes — a GND plane and a VIN plane
+cannot be the same file unless neither contains a plane.
+
+### The fix, and the two gates that make the class impossible
+
+* **M-SHIP read-back** (`route_and_stitch_generic.py verify-fill`): reopens the
+  saved `.kicad_pcb` AS TEXT and counts `filled_polygon` blocks. Text rather than
+  pcbnew deliberately — pcbnew is the tool whose save behaviour is under test
+  (canon M1). Wired into `rebuild_fast.sh` and `rebuild_all.sh`.
+* **F-PAYLOAD** (`fab_payload_census.py`, canon F-POUR/F-IDENT): opens the
+  shipped **zip** and grades it against the board. The only gate downstream of
+  the export, and the one that closes the loop.
+
+MEASURED, both releases graded side by side in
+`verification/fab_payload_census.txt`:
+
+| | v1.8 | v1.9 |
+|---|---|---|
+| F-PAYLOAD | **FAIL: 5 findings, 0 ok** | **OK: 5 checks passed** |
+| G36 regions B.Cu / F.Cu / In1.Cu / In2.Cu | 0 / 0 / 0 / 0 | **17 / 87 / 1 / 1** |
+| F-IDENT | inner layers byte-identical at 18921 B | all 4 copper gerbers distinct |
+| saved-board read-back | 0 `filled_polygon` | **36 zones, 106 `filled_polygon`** |
+| gerber zip | 88 692 B | **394 534 B** |
+
+**Nothing electrical changed.** Netlist parity vs v1.8 is **0 differences**
+(122 components, 73 nets, 372 nodes) and `fab/cpl.csv` is byte-identical.
+
+### Also in v1.9 — four gates that did not exist when v1.8 sealed
+
+* **A-AMP now grades 10/10 net-class currents** (was 3/10: the parser could not
+  read any declaration carrying a qualifier, so "7 A worst case", "6 A / 5 A" and
+  "7 A pulsed" were silently unchecked). PWR_IN, PWR_RAIL and SWITCH_NODE are now
+  declared `pour_fed:` with cross-sections MEASURED on this board with pcbnew:
+  narrowest 8.750 mm (VBAT), 9.300 mm (PMID) and 6.050 mm (SW_A) against
+  IPC-2221 requirements of 4.399 / 2.765 / 4.399 mm. **VBUS and GATE are NOT
+  pour-fed and are not declared so** — VBUS reaches its port pour through one
+  0.800 mm B.Cu track per port (8.810 mm of it standalone copper), redeclared at
+  the design's own 2 A continuous (dT 9.6 C; the 2.5 A burst is dT 16.0 C, stated
+  and handed to bench gate Q4b); GATE is 100 % track and was failing only because
+  a 2 A switching peak was being read as continuous — I_rms is 0.276 A.
+* **S-COUNT parity restored 4-way.** The v1.6 status-LED cell was never added to
+  `03_tscircuit/manifest.yaml`: **12** refs (Q8, R37-R42, D8-D12), not the 8 the
+  audit reported — `count_parity.py` prints `extra[:8]` and truncates.
+* **A-RENDER** (`twin_overlay.py`) run for the first time, both sides. 29 refs
+  flagged, **0 board defects**; the bottom side correctly REFUSED (no populated
+  bottom). Per-class adjudication with the crops examined:
+  `verification/gate_adjudications_v1.9.md`.
+* **`pdf/schematic.pdf` is tscircuit's own render again** (ADR-0002). v1.6-v1.8
+  regressed to an Eeschema re-render (`Creator: Eeschema-PDF`) and A-EVID passed
+  it because A-EVID checks the FILENAME, not the producer.
+* **`verification/rules_audit.txt` ships** — v1.8 shipped none while A-AMP failed.
+* **`verification/bom_source_check.txt` PASSES again** after the 10 mOhm shunt
+  C127692 was catalog-verified into the fleet passives ledger; leg C had started
+  grading milliohms and read the row as UNVERIFIABLE-VALUE.
+
+### The three pre-seal lenses, and what they cost in EDITS
+
+Three zero-context reviews were run against the STAGED archive before the seal —
+pin review **PASS-WITH-NOTES**, render review **PASS**, integrated red-team
+**ORDER**, **no P0 in any of them**. That timing is the whole point: `07_releases/`
+becomes immutable at the seal commit, so **a finding here costs an edit and the
+same finding afterwards costs a supersede**. Every item below was fixed at
+SOURCE (canon M3) and propagated. **The board did not change** —
+`source/usb_hub_3s_v2.kicad_pcb` is md5 `83af8e5a5596a51cf139dd06e8903d47`,
+identical to `04_kicad/`; DRC 0/0/0; 106 `filled_polygon` blocks in the saved
+text.
+
+**P1 — the OFF-state budget was 2.6× low, and the bench gate it fed COULD NOT
+PASS.** `power_tree.yaml` declared `quiescent_ua: 271`. It omitted the two
+LM5116 **UVLO dividers** — `R6+R7` and `R15+R16`, each 49.9 k + 6.98 k =
+**56.88 kΩ**, sitting **permanently across VIN**. SW1 gates ENABLE, not power
+(pad 1 = T1→GND, pad 2 = COM→ENKILL, pad 3 unconnected; no pole touches
+VBAT/VBAT_F/VIN), so both conduct for the whole of storage:
+`12.6 V / 56 880 Ω = 221.5 µA` each = **443.0 µA** that was never counted.
+Corrected to **714 µA typ / 744 µA countable worst**; storage life on a 3S
+5000 mAh pack is **292 days to flat / 233 to the 20 % LiPo floor**, not 769/615.
+
+**The serious part is the gate, not the number.** ORDER_README bench **Q6**
+declared *"PASS ≤ 300 µA"* — a threshold a correctly-built board **cannot
+meet**. A gate that cannot pass is the same defect class as a gate that cannot
+fail, and this one would have condemned a good board. Q6 is re-based to
+**≤ 1.00 mA**, derived rather than picked: worst-case-good 744 µA;
+weakest-possible-bad 1461 µA (Q8 failed, pack LED lit, at the *weakest* corner
+VIN 9.0 V / Vf 2.4 V); `sqrt(744 × 1461) = 1042` → 1.00 mA sits **1.34× above
+good and 1.46× below bad**. It carries a **1.00–1.45 mA INDETERMINATE band with
+a discrimination step** (lift D8 and re-measure), because two terms — the D2/R1
+zener leg and **C1/C2 polymer leakage, which has no entry in its `part.yaml` at
+all** — are unbounded in the record and are NAMED rather than silently zeroed.
+Root cause reported upstream: `power_topology.py grade_off_control()` checks
+only that `quiescent_ua` is *declared*, never that it reconciles with the
+netlist.
+
+**Five shipped documents were asserting things that are not true, and all five
+are corrected:**
+
+* **The CS/CSG pair is not a Kelvin connection.** sec.2.5 said *"no shared trunk
+  copper enters the sense loop"*. Re-measured with pcbnew: `R10.1` taps the
+  **GND plane 3.73 mm** from `RS1.2`, putting **0.359 mΩ** (buck-A) / 0.381 mΩ
+  (buck-C) of shared trunk copper inside the loop; with the CS side, 0.483 /
+  0.555 mΩ → **+4.8 % / +5.6 %** sense error → **the 11.0 A current limit is
+  really ≈10.5 A**. The claim is withdrawn verbatim and the corrected limit is
+  in a new sec.2.5a. Still 1.75× the rail load; no design change.
+* **The R-THERM waiver described a board that no longer exists.** It said
+  *"U11.21 … 1 direct via (vs 3 on U2.21)"* and carried a next-rev work order
+  that is **already done**. Measured here: **U2.21 = 7 GND vias, U11.21 = 7**.
+  Its dissipation figures were still the superseded 15.5 A Q1 / 5 A Q6 envelope.
+  Rewritten, and the three TPS2557 EPs (1 via each) are **named for the first
+  time** with the numbers that make them acceptable. *A stale waiver is an
+  inherited defect* — this one had outlived four releases, having been raised
+  and DEFERRED once already at v1.5 (RL-11).
+* **The port ceiling nobody had written down: 2.72 A, not 2.5 A.** `R20/R21/R22
+  = 36.5 kΩ` → `I_OS(min) = 2717 mA`, and the TPS2557 is guaranteed not to limit
+  below it, so **nothing enforces 2 A or 2.5 A**. Three ports at the ceiling is
+  8.16 A on a 6 A rail, still under the valley limit, so **nothing intervenes**
+  — checked survivable term by term (L1, RS1 0.67 W in a 1 W part, F1) at a cost
+  of **ΔT 19.4 °C** on the feed. A-AMP still grades 2.0 A and that choice is now
+  written down beside the number instead of hidden by it.
+* **`DETAIL_DESIGN` had no line for DEMB.** `U2.11`/`U11.11` are tied to GND
+  (R_DEMB = 0 Ω), so **both bucks run in permanent diode emulation** — a
+  deliberate departure from the TI worked design this project declares it
+  adopts, against that file's own rule that *"a value in the schematic with no
+  line here is UNJUSTIFIED"*. Now derived (DCM below ≈0.9 A/rail) and recorded
+  as the CHOICE it is.
+* **A datasheet citation belonged to a different device variant.** The
+  "unused channel-2 pins may float" claim quoted SLVSBY8D's **TPS2514x** pin
+  table, where pins 3/4 are genuine N/C; the fitted **TPS2513A** has real
+  DP2/DM2 there. Restated as an engineering judgement, not a datasheet
+  permission.
+
+**Also corrected before the seal:** 5VA's **E-MARGIN had never been computed**
+although it feeds three known 2 A loads — now derived (**+151.8 mV** at the
+receptacle, +7.8 mV with the mating contacts charged) and **wired into the
+machine gate**, which now grades 2 rails instead of 1; the rail's declared
+window went from the bare nominal 5/5 to the tolerance-inclusive 5.032/5.273.
+The **stackup is declared for the first time** (JLC 4-layer STANDARD, 1 oz outer
+/ 0.5 oz inner) — the board file carries none, so every ampacity figure's copper
+weight was an unnamed fab default; it is now an **order-form obligation** in
+ORDER_README, which is where it binds, since gerbers do not carry it. Two
+gate-reporting defects the render review caught were fixed: `A-POP` shipped a
+**FAIL** that was purely an ordering artifact (it grades the MANIFEST, and ran
+21 minutes before the MANIFEST existed — re-run **PASS**, and it now runs after
+the stamp), and the MANIFEST's `twin:` line repeated `missing_models.txt`'s
+`122/122` without the caveat that **R12 (C2984354) has no JLC model at all**.
+And the gerber zip size stated in six documents was **394 530 B**; the file on
+disk is **394 534 B**, corrected everywhere.
+
+**RECORDED, DEFERRED, WITH THEIR MEASUREMENTS** — both are copper, and v1.9
+exists to fix the pour; re-routing would void every verdict just collected.
+Buck-A's pour is **2.7× (SW) and 3.2× (CS) more resistive than the
+geometrically MIRRORED buck-C cell**, from a 0.300 mm neck ~0.8 mm long — and
+SW_A is 1.38× of IPC-2221 by summed cross-section but **0.96× by
+resistance-equivalent width**, a 44 % disagreement between two methods, so
+`nets.yaml` now states the method with the number. High-side gate loops measure
+**25–34 nH** (Q ≈ 1, so switching-loss/EMI, not shoot-through) — the
+uncomfortable part being that the GATE class justifies its 0.300 mm width on
+dI/dt loop area and **nobody had ever measured the loop**.
+
+**Left OPEN and written down rather than papered over:** the fix lens's own SOR
+reads **3.009 mΩ** for the three 5VC delivery segments against RL-2's 9.32 mΩ
+and the 12 mΩ carried in the budget — **a 3× disagreement between two mesh
+solves on identical copper that neither side could reconcile**. It is in the
+safe direction (the shipped budget is the pessimistic one), which is the only
+reason it is not a finding. Bench gates Q2/Q5 settle it, not whichever number
+reached the file first.
+
 ## v1.8 — 2026-07-26
 
 Released: `07_releases/v1.8-2026-07-26/`. **VERIFICATION-COMPLETENESS supersede of

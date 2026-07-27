@@ -12,6 +12,21 @@
 # ->VBUSC TVS; Q7 BSS138 re-roled to the ENKILL gate inverter. buck-C EN re-merged
 # to ENKILL (EN_C net + D6 gone). tsci drops parts SILENTLY — this file is the only
 # artifact that disagrees after a silent drop.
+#
+# v1.6 STATUS-LED CELL + 5VC TRIM STRAP — DECLARED HERE 2026-07-27 (v1.9).
+# The cell landed in the TSX at v1.6 and this file was never updated, so
+# count_parity FAILed 4x (board, circuit.json, kicad_sch, netlist all agreed at
+# 118 non-exempt refs; only the declared-intent file lagged at 110). ADDS 12:
+#   Q8   BSS138 low-side gate for the pack LED, off the ENKILL bus
+#   R37  6.98k ballast VIN -> LEDPK;  D8  amber PACK-LIVE LED
+#   R38/R39/R40  6.98k ballasts VBUSA1/2/3 -> LEDVA1/2/3
+#   D9/D10/D11   green per-port LEDs (tapped POST the TPS2557, so a latched-off
+#                port reads dark instead of reading the 5VA rail)
+#   R41  6.98k ballast VBUSC -> LEDVC;  D12 green USB-C LED (POST Q6+F2)
+#   R42  160k DNP 5VC setpoint-trim strap (parallel with R12)
+# NOTE for future audits: count_parity prints `extra[:8]` — its message TRUNCATES
+# at eight refdes. The 2026-07-27 audit read "8 refs missing"; the real gap was
+# 12. Diff the sets, do not count the printed list.
 components: [
   J1, J2, J3, J4, J5, F1,
   U2, U3, U4, U5, U6, U7, U8, U9, U10, U11, U12,
@@ -28,4 +43,7 @@ components: [
   R30, R34, R35,
   C53, C54,
   D5,
+  # v1.6 status-LED cell + 5VC trim strap (declared 2026-07-27, v1.9)
+  Q8, R37, R38, R39, R40, R41, R42,
+  D8, D9, D10, D11, D12,
 ]
