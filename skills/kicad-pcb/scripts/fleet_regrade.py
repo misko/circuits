@@ -174,11 +174,30 @@ def main(argv=None):
           "read as live here and are not — the supersede convention has no "
           "cross-project form. Reported rather than special-cased: inventing a "
           "rule for it inside this tool would hide a real gap in the contract.")
+    # FIXED 2026-07-27. This loop used to suppress `why` for any superseded
+    # release, which made the tool CONTRADICT ITS OWN PURPOSE: a retired defect
+    # vanished from the report the instant a successor was sealed, so the one
+    # artifact that could tell you WHY a release was retired stopped saying it
+    # at exactly the moment that became history worth keeping.
+    #
+    # It also made t1_fleet_regrade's "the retired defect is STILL NAMED, with
+    # its reason" assertion UNPASSABLE — a gate that cannot pass, the same class
+    # as usb-hub v1.9's `<= 300 uA` bench gate that would have failed a good
+    # board. Found by that test going red, not by anyone predicting it.
+    #
+    # Suppression was the right instinct aimed at the wrong thing: the noise a
+    # reader must not drown in is superseded FAILS COUNTED AS LIVE BLOCKERS, and
+    # that is handled above (`fails` skips superseded, and the row carries `*`).
+    # A reason is not noise; it is the audit trail. So it is printed either way
+    # and LABELLED, which is strictly more information than withholding it.
     for r in sorted(rows, key=lambda x: x["release"]):
         for g, _, _ in GATES:
             why = r["gates"].get(g + "_why")
-            if why and r["release"] not in superseded:
-                print(f"  {g} {r['release']}: {why}")
+            if not why:
+                continue
+            hist = "  [superseded: history, not a live defect]" \
+                if r["release"] in superseded else ""
+            print(f"  {g} {r['release']}: {why}{hist}")
 
     if a.json:
         Path(a.json).write_text(json.dumps(

@@ -57,15 +57,65 @@ def t_separates_superseded_from_live():
     contains(r.out, "history, not a live defect", "and its meaning is explicit")
 
 
-@test("regrade_finds_the_live_pour_defect", kind="known_bad")
-def t_finds_the_live_pour_defect():
-    """usb-hub v1.8 is LIVE (no SUPERSEDED.md — no successor exists yet) and
-    must show as a live F-PAYLOAD failure, not be lost among its superseded
-    siblings."""
-    r = must_fail(run([KPY, TOOL, "--project", "usb-hub-3s-v3"]),
-                  "regrade over usb-hub-3s-v3")
-    contains(r.out, "v1.8-2026-07-26", "v1.8 is listed")
-    contains(r.out, "NO POUR", "the live defect is named with its reason")
+@test("regrade_retires_the_pour_defect_without_erasing_it")
+def t_retires_the_pour_defect():
+    """UPDATED 2026-07-27, when v1.9 sealed. This test used to assert that
+    usb-hub v1.8 shows as a LIVE F-PAYLOAD failure, on the stated premise "no
+    successor exists yet". v1.9-2026-07-27 IS that successor: it restores the
+    copper pour (F-PAYLOAD OK, 5 checks) and v1.8 gained the SUPERSEDED.md the
+    07_releases contract permits exactly once. The old premise is now false BY
+    DESIGN, so the assertion had to move rather than be deleted.
+
+    What must still hold, and is what this now checks:
+      1. the v1.8 defect is STILL NAMED, with its reason. A retired defect that
+         vanishes from the report is a report that cannot be audited later.
+      2. it is marked as superseded HISTORY, not counted as a live blocker.
+      3. the successor is LIVE and does NOT fail F-PAYLOAD — otherwise the fix
+         did not take and the regrade would be agreeing with a broken release.
+
+    The RED fixture for F-POUR is NOT lost: t1_fab_payload.py pins the sealed,
+    immutable v1.8 directory itself (`V18`) and asserts the gate reports
+    "NO POUR" on it. That is the permanent proof the checker can fail, and it
+    lives with the checker rather than here.
+
+    AMENDED LATER THE SAME DAY (ADR-0006), for the reason its sibling
+    `t_confirms_clean_boards` was amended, and discovered the same way — by
+    going RED rather than by anyone predicting it. This test asserted a blanket
+    `"FAIL" not in v19`. `F-LEGIBLE` was minted HOURS AFTER v1.9 sealed and
+    fails it on F-ENCODE (the BOM carries 'Omega' with no UTF-8 byte-order-mark,
+    so a cp936-defaulting reader renders it as a CJK character). That failure is
+    CORRECT and must not be suppressed: 07_releases is immutable, so v1.9 cannot
+    be retro-fixed, and the honest record is that the fleet's newest release
+    already carries a known adopted-forward gap.
+
+    The blanket assertion was ALSO the weaker test. It could not distinguish
+    "the pour fix did not take" — the thing this test exists to catch — from
+    "a gate invented afterwards found something else". Per-gate can:
+      * F-PAYLOAD must PASS. That is the pour, the whole reason v1.9 exists.
+      * F-LEGIBLE is pinned FAIL. When v1.10 fixes the encoding this test goes
+        RED and must be updated deliberately — an adopted-forward gap that
+        silently heals is one nobody records having closed."""
+    r = run([KPY, TOOL, "--project", "usb-hub-3s-v3"])
+    contains(r.out, "v1.8-2026-07-26", "the retired defect is still listed")
+    contains(r.out, "NO POUR", "and still named with its reason")
+    v18 = [l for l in r.out.splitlines() if "v1.8-2026-07-26" in l]
+    check(v18 and "*" in v18[0],
+          f"v1.8 must be flagged superseded (*) now that v1.9 exists:\n{v18}")
+    v19 = [l for l in r.out.splitlines() if "v1.9-2026-07-27" in l]
+    check(v19, "v1.9 must appear in the regrade")
+    check("*" not in v19[0][:60],
+          f"v1.9 is the LIVE release and must not read as superseded:\n{v19[0]}")
+    cols = ("F-PAYLOAD", "F-LEGIBLE", "A-EVID", "A-POP")
+    cells = v19[0].split()[1:]
+    verdicts = dict(zip(cols, [c for c in cells if c in ("PASS", "FAIL", "?")]))
+    check(verdicts.get("F-PAYLOAD") == "PASS",
+          f"v1.9 EXISTS to restore the copper pour; F-PAYLOAD must pass or the "
+          f"fix did not take:\n{v19[0]}")
+    check(verdicts.get("F-LEGIBLE") == "FAIL",
+          f"v1.9 sealed BEFORE F-LEGIBLE existed and its BOM has no UTF-8 BOM "
+          f"marker. This is pinned as an adopted-forward gap: if it now passes, "
+          f"a new release closed it and this test must be updated to say so "
+          f"rather than quietly agreeing:\n{v19[0]}")
 
 
 @test("regrade_confirms_the_clean_boards_are_clean")
