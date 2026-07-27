@@ -6,3 +6,8 @@ lipo3s_trace.md
 
 # local agent worktrees / session state
 .claude/
+
+# --- secrets: API keys, never committed (added 2026-07-27) ---
+.secrets/
+*.env
+.env
