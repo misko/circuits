@@ -3227,8 +3227,70 @@ def cmd_stitch(cfg):
     if ctx.state_path().is_file():
         ctx.state_path().unlink()
     print(f"\nsaved {ctx.path}")
+    rc = verify_saved_fill(ctx.path)
     print("NEXT: run your rules generator LAST — this save did not touch "
           ".kicad_pro, but any pcbnew save in the chain clobbers netclasses.")
+    return rc
+
+
+def verify_saved_fill(path):
+    """READ BACK THE SAVED FILE and prove the pour survived (canon M-SHIP).
+
+    THE INCIDENT. usb-hub-3s-v3 shipped v1.6, v1.7 and v1.8 with 51 zones on
+    the board and ZERO copper pour in the gerbers — 44287.91 mm2 missing, G36
+    region count 0 on all four copper layers. Every gate was green, because
+    `kicad-cli pcb drc --refill-zones` REFILLS IN MEMORY and therefore returns
+    0/0/0 on a board whose SAVED FILE has no fill.
+
+    `p_fill` prints "filled N zones" — a claim about an IN-MEMORY object it
+    just mutated, and the last honest moment before the bytes hit disk. This
+    function is the read-back: it reopens the file AS TEXT and counts what is
+    actually there. Text, not pcbnew, deliberately — pcbnew is the tool whose
+    save behaviour is under test, so re-reading through it would share a method
+    with the thing being checked (canon M1).
+
+    Canon M-WIDTH is why this exists at all rather than a zone-specific patch:
+    this project already knew "pcbnew saves clobber NETCLASSES" and wrote the
+    rule at the width of THAT incident. The law is that a save drops state not
+    present in the source, and zone fill is the same class with no rule. Any
+    further member found belongs in this same read-back, not in a new one.
+
+    KEEPOUT/RULE-AREA ZONES ARE EXCLUDED: they carry no fill by design, and
+    counting them would make a pour-free board look healthy.
+    """
+    import re as _re
+    txt = Path(path).read_text()
+    pours = fills = 0
+    for m in _re.finditer(r"\(zone[\s(]", txt):
+        i = m.start()
+        depth, j, in_str = 0, i, False
+        while j < len(txt):
+            ch = txt[j]
+            if ch == '"' and txt[j - 1] != "\\":
+                in_str = not in_str
+            elif not in_str:
+                if ch == "(":
+                    depth += 1
+                elif ch == ")":
+                    depth -= 1
+                    if depth == 0:
+                        break
+            j += 1
+        blk = txt[i:j + 1]
+        if "(keepout" in blk:
+            continue
+        pours += 1
+        fills += len(_re.findall(r"\(filled_polygon\b", blk))
+    print(f"  read-back: {pours} pour zone(s) in the SAVED file, "
+          f"{fills} filled_polygon block(s)")
+    if pours and not fills:
+        print("FAIL M-SHIP: the saved board has POUR ZONES BUT NO FILL. "
+              "Every downstream gate will still pass — `kicad-cli pcb drc "
+              "--refill-zones` refills in memory and reports 0/0/0 — and the "
+              "GERBERS WILL SHIP BARE COPPER. This is usb-hub-3s-v3 "
+              "v1.6/v1.7/v1.8, 44287.91 mm2 missing across three sealed "
+              "releases. Re-run the `fill` pass and do not export.")
+        return 1
     return 0
 
 

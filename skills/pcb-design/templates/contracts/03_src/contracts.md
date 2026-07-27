@@ -58,7 +58,22 @@ agent runs it FIRST. `$S` = `skills/kicad-pcb/scripts` (resolved repo-relative,
 | 7b | `$S/route_and_stitch_generic.py taps 03_src/route.yaml` — only if `taps:` configured (no-op otherwise); pour-fed sense pins / boxed-in pads, before the pours fill | `/usr/bin/python3` |
 | 7c | `$S/route_and_stitch_generic.py quick 03_src/route.yaml` — the LOOP tool, not a gate: seconds-fast ratsnest-unconnected + copper clearance/track_width verdict on the post-import pre-stitch board (JSON to `06_build/route/quick.json`). Iterate routing against THIS, not against step 10 (~seconds vs ~8-10 min/cycle measured on a 112-part board) | `/usr/bin/python3` |
 | 8 | `$S/route_and_stitch_generic.py stitch 03_src/route.yaml` (pours + thermal vias); verdict must be `gate: clean` | `/usr/bin/python3` |
-| 9 | `$S/generate_rules_generic.py .` — ALWAYS LAST (pcbnew saves clobber `.kicad_pro` netclasses) | any python3 |
+| 9 | `$S/generate_rules_generic.py .` — ALWAYS LAST (see the SAVE-DROPS list below) | any python3 |
+
+**WHAT A pcbnew SAVE DROPS — the list, not the instance (canon M-WIDTH).**
+This rule used to read "pcbnew saves clobber netclasses", written at the width
+of the one incident that taught it. The LAW is that *a pcbnew save drops state
+that is not in the source*, and every member must be re-asserted or re-verified
+AFTER the last save. Known members:
+
+| dropped | re-asserted by | the incident |
+|---|---|---|
+| `.kicad_pro` netclasses | `generate_rules_generic.py` runs LAST (step 9) | a board-writing step after the rules generator left DRC measuring a board whose rules were gone, and passing |
+| **zone FILL** | `verify_saved_fill()` after `board.Save()` in `route_and_stitch_generic.py`; `fab_payload_census.py` F-POUR at export | **usb-hub-3s-v3 v1.6/v1.7/v1.8 — 51 zones, 0 `filled_polygon`, 0 G36 regions on all four copper layers, 44287.91 mm2 of missing copper across THREE sealed releases.** Invisible because `kicad-cli pcb drc --refill-zones` REFILLS IN MEMORY and returns 0/0/0 on a board whose saved file has no fill |
+
+Adding a member here is the fix; writing a second bespoke check for it is not.
+The read-back reopens the saved file AS TEXT, never through pcbnew — pcbnew is
+the tool whose save behaviour is under test (canon M1).
 | 10 | DRC gate `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity` = 0/0/0 | `kicad-cli` |
 | 10b | `$S/grind_driver.py .` — the BOUNDED mechanical grind loop when step 10 is dirty: classifies findings, auto-applies only the conservatively-safe generator reruns per `references/grind_fixes.yaml`, escalates real work into `06_build/grind_escalation.md` (exit 2/3/4 — table/novel/D-BACK), journals each cycle (M9). It cannot loop forever; a nonzero exit summons the designer ONCE with counts + samples | `/usr/bin/python3` |
 

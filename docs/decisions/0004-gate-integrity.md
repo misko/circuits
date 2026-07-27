@@ -1,6 +1,6 @@
 # ADR-0004 — A gate must grade the shipped bytes and declare its coverage
 
-status: proposed
+status: accepted (phases 0-4 implemented 2026-07-27)
 date: 2026-07-27
 tags: canon, gates, pipeline, fab, meta
 

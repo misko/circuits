@@ -217,5 +217,39 @@ def t_unclassifiable_copper_layer_fails():
               expect="F-LAYER")
 
 
+# ------------------------------------ PREVENTION: the stage reads back its write
+
+@test("fill read-back catches the bare board at SAVE time, not at export",
+      kind="known_bad")
+def t_fill_readback_catches_v18_board():
+    """The other half of the same defect, and the half that PREVENTS it.
+
+    F-PAYLOAD above catches a bare payload at EXPORT — several stages after the
+    damage. `verify_saved_fill` runs immediately after the stitch driver's
+    `board.Save()` and reopens the file AS TEXT, so the loss is caught at the
+    moment it happens. Text, not pcbnew, deliberately: pcbnew is the tool whose
+    save behaviour is under test (canon M1).
+
+    Measured on the two real boards: crow-recorder-central-v2 v1.5 reads back
+    7 pour zones / 108 filled_polygon (rc 0); usb-hub-3s-v3 v1.8 reads back
+    36 pour zones / 0 filled_polygon (rc 1).
+    """
+    sys.path.insert(0, str(ROOT / "skills/kicad-pcb/scripts"))
+    from route_and_stitch_generic import verify_saved_fill
+    bad = V18 / "source" / "usb_hub_3s_v2.kicad_pcb"
+    check(verify_saved_fill(bad) == 1,
+          "the v1.8 board has 36 pour zones and no fill; the read-back must FAIL")
+
+
+@test("fill read-back PASSES a genuinely filled board")
+def t_fill_readback_passes_good_board():
+    sys.path.insert(0, str(ROOT / "skills/kicad-pcb/scripts"))
+    from route_and_stitch_generic import verify_saved_fill
+    good = CRV2 / "source" / "crow_recorder_central_v2.kicad_pcb"
+    check(verify_saved_fill(good) == 0,
+          "a filled board must pass — a check that fails everything "
+          "discriminates nothing")
+
+
 if __name__ == "__main__":
     sys.exit(main())
