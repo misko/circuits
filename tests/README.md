@@ -120,6 +120,7 @@ Every test names the defect, its DATE, and the commit or doc that records it.
 | `jlc_twin.xform()` HANDEDNESS: every `jlc_offset` NEGATED — invisible at 0/180, exactly 180° wrong at 90/270; six "authority" rotation rows were populated from it, and a CORRECT sealed release (crow-rv2 v1.2) was "fixed" into a wrong one (v1.3) on that evidence | 2026-07-25 · `1b69760`, `e0d735c` | `t1_jlc_twin.t_xform_matches_pcbnew` (the operator vs pcbnew itself) + `t_fit_offset_handedness` (both fit directions), RED-verified |
 | a CPL placing 13 parts whose BOM line has a BLANK LCSC, while the MANIFEST declared 12 of them not_assembled | 2026-07-24 · cooksense v1.1 sealed bytes | `t1_assembly_gates` A-POP names all 13 + the MANIFEST contradiction |
 | five sealed releases shipping stock evidence whose LAST LINE says FAIL, one with the board's own CPU at stock 0 | 2026-07-23/24 · crow-rv2 v1.0-v1.3 sealed bytes | `t1_assembly_gates` A-STOCK, incl. "deleting the verdict still FAILS" |
+| **a FIXTURE laid on top of existing copper, so the DRC violation CLASS it asserted was order-dependent — the SUB-FLOOR test flaked at 4.6% (3/65, serial) and was excused twice as "the known temp-path flake"** | 2026-07-27 · ADR-0005 | `add_track`'s ISOLATION ASSERT + `t_add_track_rejects_a_contaminated_site` (RED-verified by neutering the assert) |
 
 Two things this file does that the T1 tiers do not:
 
@@ -209,5 +210,17 @@ This is the whole workflow — follow it every time something ships broken.
   clean-room canary running the same scripts) clobbered a suite run's
   report mid-read — two t4 flakes with another board's categories in the
   output (2026-07-21). Per-process paths ended that class.
+  **AND THEN THIS NOTE BECAME AN EXCUSE.** A SECOND, unrelated flake with a
+  similar symptom (`t_subfloor_crossnet_clearance_is_real`, missing `REAL=1`)
+  was twice waved off as "the known temp-path flake, commit 2de4b2a" — but it
+  measured **3/65 = 4.6% running strictly SERIALLY**, with no concurrency and
+  no second `kicad-cli` anywhere, which alone refutes a shared path. It was
+  the fixture: the injected track pair sat on the sealed board's existing
+  copper, KiCad emits one violation class per neighbourhood, and pcbnew's
+  `Save()` does not order Python-added tracks stably. Fixed 2026-07-27 by
+  moving the pair to clear copper and making the fixture assert its own
+  isolation; the `REAL=1` expectation was NOT weakened. **A named prior flake
+  is a hypothesis, not a diagnosis — measure the rate before you reuse the
+  name.**
 - No pytest: `harness.py` is a ~60-line runner so the suite runs on the
   KiCad interpreter with zero installs.
