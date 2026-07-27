@@ -462,8 +462,8 @@ def adr_octal_project(inv_adr, adr_file="0009-input-protection.md",
 @test("E-ADR REFUSES `adr: 0011`, which YAML resolves to ADR 0009 — the "
       "silent-wrong-answer, not a skip", kind="known_bad")
 def t_adr_octal_misresolves():
-    """RED-VERIFIED against pre-fix code (git show HEAD:...electrical_invariants
-    .py, 2026-07-27): the fixture declares ONE protection ADR — 0009 — and an
+    """RED-VERIFIED against pre-fix code (git show 5054b07:...
+    electrical_invariants.py, 2026-07-27): the fixture declares ONE protection ADR — 0009 — and an
     invariant citing `adr: 0011`, an ADR that does not exist in the fixture at
     all. Pre-fix output, verbatim:
 
@@ -536,12 +536,20 @@ def t_adr_coverage_load_error_names_itself():
     ten phantom coverage holes instead of one typo. Canon M-COVER: input a gate
     cannot parse is a FAIL that NAMES ITSELF, never a zero.
 
-    RED-VERIFIED against pre-fix code: the fixture has THREE protection ADRs
-    and an invariants file whose only defect is a `why:` under 5 characters.
-    Pre-fix, --adr-coverage exits 1 and prints three "no invariant cites adr:"
-    findings with no mention of `why:` or of a load error at all — so the
-    `LOAD ERROR` / `why` assertions below both fail. Post-fix it exits 2 and
-    names the field."""
+    RED-VERIFIED against pre-fix code (5054b07): the fixture has THREE
+    protection ADRs and an invariants file whose only defect is a `why:` under
+    5 characters. Pre-fix, --adr-coverage exits 1 and prints three "no
+    invariant cites adr:" findings with no mention of `why:` or of a load error
+    at all — so the `LOAD ERROR` / `why` assertions below both fail. Post-fix
+    it exits 2 and names the field.
+
+    AND IT IS NOT SYNTHETIC. Run pre-fix against the real `projects/usb-hub-3s`,
+    whose invariants file uses the older pre-checker schema:
+        E-ADR FAIL:
+          ADR 0001 (Battery/input protection: ...) is a protection/topology ADR
+          but no invariant cites adr: 0001 — the intent loop is not closed
+    That board's file contains twelve assertions citing ADR 0001. The gate
+    reported the opposite of the truth, and named no parse error."""
     d = project(CLEAN_NETS, inv_text=(
         "invariants:\n"
         "  - assert: pin_on_net\n"
