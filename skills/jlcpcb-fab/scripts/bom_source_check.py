@@ -294,11 +294,36 @@ def mpn_capacitance(mpn, footprint=""):
     """Farads encoded in a ceramic-cap MPN, or None if not confidently parseable.
     Anchors on the standard 3-digit code IMMEDIATELY followed by a tolerance
     letter ('104K'=10e4 pF=100nF, '475M'=47e5 pF=4.7uF) to avoid grabbing a
-    voltage/series digit-run."""
+    voltage/series digit-run.
+
+    ---- THE VOLTAGE-SUFFIX FAMILY (2026-07-28) -----------------------------
+    That `(?![0-9])` also refused every MPN that puts the VOLTAGE CODE
+    straight after the tolerance letter, which is FH/Fenghua's whole ceramic
+    range: `0402CG101J500NT` = 0402, C0G, code 101, tol J, **500 = 50 V**,
+    NT reel. The digit the lookahead was rejecting is the `5` of the voltage.
+    The vetted ledger already worked around it with three explicit `value:`
+    entries, which is a workaround recording a parser bug rather than a part
+    fact.
+
+    So the voltage form gets its OWN anchored alternative rather than a
+    loosened lookahead: three digits, then a LETTER or end-of-string. That
+    keeps the original guarantee — a bare digit-run can still never be read as
+    a value — while covering the family.
+
+    MEASURED against all 146 rows of the vetted ledger, whose `value:` fields
+    are catalog-verified and are an INDEPENDENT authority (canon M1): 6 MPNs
+    newly parsed, every one agreeing with its declared value
+    (0402CG101J500NT->100pF, 0402CG180J500NT->18pF, 0402CG120J500NT->12pF,
+    0402B102K500NT->1nF, 0402B472K500NT->4.7nF, 0603B103K500NT->10nF);
+    0 regressions and 0 disagreements.
+    """
     s = _strip_package(mpn, footprint)
     cands = set()
-    for m in re.finditer(r"(?<![0-9])(\d{2})([0-8])[JKMDFGZ](?![0-9])", s):
-        cands.add(round(int(m.group(1)) * (10 ** int(m.group(2))) * 1e-12, 15))
+    for pat in (r"(?<![0-9])(\d{2})([0-8])[JKMDFGZ](?![0-9])",
+                r"(?<![0-9])(\d{2})([0-8])[JKMDFGZ]\d{3}(?=[A-Z]|$)"):
+        for m in re.finditer(pat, s):
+            cands.add(round(int(m.group(1)) * (10 ** int(m.group(2))) * 1e-12,
+                            15))
     return next(iter(cands)) if len(cands) == 1 else None
 
 

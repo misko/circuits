@@ -167,8 +167,16 @@ table is the user-facing commitment.
 
 ## Validate — BRIEF.md
 
-- `sha256sum` of the bytes between the prompt markers equals `prompt_sha256`
-  (runnable: `sed -n '/prompt-verbatim-begin/,/prompt-verbatim-end/p' | sed '1d;$d' | sha256sum`)
+- `sha256sum` of the bytes between the prompt markers, **with the FINAL
+  NEWLINE STRIPPED**, equals `prompt_sha256`. That newline is `sed`'s line
+  terminator, not part of the prompt, and the commission computes the digest
+  without it — so the command must drop it or it can never reproduce the value
+  it is checking. Runnable, and verified against the recorded hash of
+  `pluto-rx2-8way` (the most recent commission):
+  `sed -n '/prompt-verbatim-begin/,/prompt-verbatim-end/p' 01_docs/BRIEF.md | sed '1d;$d' | head -c -1 | sha256sum`
+  Without `head -c -1` EVERY board's check disagrees with its own recorded
+  hash, which trains the reader to ignore the one check that proves the
+  commission was not rewritten (2026-07-28)
 - git history: section 2 and existing log entries byte-identical since the
   commit that introduced them (only appends and Status/Impact edits allowed)
 - every `Source`/`Authority` tag (P, D#, Q#, A#) resolves to an existing

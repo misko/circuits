@@ -20,7 +20,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from harness import (ROOT, KPY, check, contains, main, must_fail,  # noqa: E402
+from harness import (ROOT, KPY, check, contains, eq, main,  # noqa: E402
+                     must_fail,
                      must_pass, run, test, tmpdir)
 
 AUDIT = ROOT / "scripts" / "contracts_audit.py"
@@ -304,6 +305,77 @@ def t_firmware_template_permits_headers():
     (d / "notes.md").write_text("stray\n")
     must_fail(run([KPY, AUDIT, "--walk", "--root", d]),
               "a stray .md under 05_firmware", "notes.md")
+
+
+@test("the 01_docs contract's OWN prompt-hash command reproduces the digest a "
+      "commission records — and refuses an altered prompt", kind="known_bad")
+def t_prompt_hash_command_reproduces():
+    """THE DEFECT (2026-07-28). The Validate line shipped
+
+        sed -n '/prompt-verbatim-begin/,/prompt-verbatim-end/p' | sed '1d;$d' | sha256sum
+
+    which keeps the block's FINAL NEWLINE — `sed`'s line terminator, not part
+    of the prompt. Commissions compute the digest with it stripped, so EVERY
+    board's check disagreed with its own recorded hash. A check that never
+    reproduces its own recorded value trains the reader to ignore it, and this
+    is the one check that proves the commission text was not rewritten after
+    the fact.
+
+    MEASURED against the real pluto-rx2-8way BRIEF (the most recent
+    commission): recorded `1bf0eca3306a...`; the shipped command produced
+    `21708345f8ae...`; with `head -c -1` it produces `1bf0eca3306a...` exactly.
+
+    THIS TEST RUNS THE CONTRACT'S OWN TEXT. The command is extracted from the
+    shipped `contracts.md` with a regex and executed — the document is what is
+    graded, so re-implementing the pipeline here would prove nothing about the
+    thing a human will actually paste (canon M1).
+
+    A SECOND defect the same line carried, found by running it: it named no
+    FILE. Pasted as written it reads stdin, so a human running it in a shell
+    gets a hang and a subprocess gets the digest of the empty string.
+
+    RED-VERIFIED 2026-07-28 (git-swap, tests/README step 3): with git HEAD's
+    01_docs contract swapped back in, the test fails with `the contract's own
+    command reproduces the recorded digest: got
+    'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'` —
+    which is sha256 of NOTHING, the missing-filename half. Against the real
+    pluto-rx2-8way BRIEF, where the filename is supplied by hand, the
+    trailing-newline half shows on its own: recorded `1bf0eca3306a...`,
+    shipped command `21708345f8ae...`, `head -c -1` `1bf0eca3306a...`.
+    """
+    import hashlib
+    import re
+    import subprocess
+    c = (ROOT / "skills" / "pcb-design" / "templates" / "contracts" /
+         "01_docs" / "contracts.md").read_text()
+    m = re.search(r"`(sed -n '/prompt-verbatim-begin/.*?sha256sum)`", c, re.S)
+    check(m, "the 01_docs contract no longer carries a runnable prompt-hash "
+             "command at all")
+    cmd = " ".join(m.group(1).split())
+
+    d = tmpdir("phash_")
+    body = ("we want a high speed switching 8 pole on RX2, timed off a GPS "
+            "PPS edge.\n\nEach antenna gets an SMA connector.")
+    (d / "01_docs").mkdir()
+    (d / "01_docs" / "BRIEF.md").write_text(
+        "# BRIEF\n\n<!-- prompt-verbatim-begin -->\n" + body +
+        "\n<!-- prompt-verbatim-end -->\n\nprompt_sha256: \"" +
+        hashlib.sha256(body.encode()).hexdigest() + "\"\n")
+    want = hashlib.sha256(body.encode()).hexdigest()
+
+    got = subprocess.run(cmd, shell=True, cwd=d, capture_output=True,
+                         text=True).stdout.split()[0]
+    eq(got, want, "the contract's own command reproduces the recorded digest")
+
+    # THE KNOWN-BAD: the prompt is rewritten by one word. The command must
+    # produce a DIFFERENT digest, or the check is decorative.
+    (d / "01_docs" / "BRIEF.md").write_text(
+        (d / "01_docs" / "BRIEF.md").read_text().replace("8 pole", "4 pole"))
+    tampered = subprocess.run(cmd, shell=True, cwd=d, capture_output=True,
+                              text=True).stdout.split()[0]
+    check(tampered != want,
+          "an ALTERED commission prompt still hashes to the recorded digest — "
+          "the check cannot detect a rewritten brief")
 
 
 @test("skill<->contract sync: every emitted check-ID is in canon; no contract "

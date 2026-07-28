@@ -617,5 +617,84 @@ def t_conly_backward_compat():
     check(r.rc != 0, "bom-only invocation without --circuit-only must error")
 
 
+@test("mpn_capacitance decodes the FH/Fenghua VOLTAGE-SUFFIX ceramics the "
+      "ledger was working around by hand", kind="known_bad")
+def t_legc_voltage_suffix_ceramics():
+    """THE DEFECT (2026-07-28). The decoder anchored on `<3-digit code><tol>`
+    with a `(?![0-9])` lookahead "to avoid grabbing a voltage/series
+    digit-run". That lookahead also refused every MPN that puts the VOLTAGE
+    CODE straight after the tolerance letter — which is FH/Fenghua's entire
+    ceramic range: `0402CG101J500NT` is 0402, C0G, code 101, tolerance J,
+    **500 = 50 V**, NT reel. The digit it was rejecting is the `5` of the
+    voltage.
+
+    The vetted ledger already carried three explicit `value:` entries for this
+    family, which is a workaround recording a PARSER BUG as if it were a part
+    fact — and the ledger is the load-bearing offline source, so a parser hole
+    hidden there is a hole in leg C for every future board that stocks the
+    same series without someone hand-writing a row.
+
+    MEASURED across all 146 vetted ledger rows, whose `value:` fields are
+    catalog-verified and are an INDEPENDENT authority (canon M1): 6 MPNs newly
+    parsed, all 6 agreeing with their declared value, 0 regressions and 0
+    disagreements.
+
+    RED-VERIFIED 2026-07-28 (git-swap, tests/README step 3): with git HEAD's
+    bom_source_check.py swapped back in this fails on `FH C0G 101J500 ->
+    100pF: got None, want 1e-10` — the family returned None, i.e. the gate
+    FLAGGED it as unverifiable rather than checking it.
+    """
+    for mpn, want in (("0402CG101J500NT", 100e-12),    # C1546, ledger 100pF
+                      ("0402CG180J500NT", 18e-12),     # C1549, ledger 18pF
+                      ("0402CG120J500NT", 12e-12),     # C1547, ledger 12pF
+                      ("0402B102K500NT", 1e-9),        # C1523, ledger 1nF
+                      ("0402B472K500NT", 4.7e-9),      # C1538, ledger 4.7nF
+                      ("0603B103K500NT", 10e-9)):      # C57112, ledger 10nF
+        got = bsc.mpn_capacitance(mpn, "")
+        check(got is not None and abs(got - want) < want * 1e-9,
+              f"FH ceramic {mpn} -> {want*1e12:g}pF: got {got!r}, want {want}")
+    # ...and the guarantee the lookahead was there for still holds: a bare
+    # digit-run must NEVER be read as a value.
+    eq(bsc.mpn_capacitance("MYSTERY-PART-1234567", ""), None,
+       "a bare digit-run is still not a capacitance")
+    eq(bsc.mpn_capacitance("0402CG101J5001NT", ""), None,
+       "a FOUR-digit run after the tolerance letter is not a voltage code, "
+       "and must not be read as one")
+    # the classic tolerance-terminated form is untouched
+    check(abs(bsc.mpn_capacitance("GRM188R71H104KA01", "C_0603_1608Metric")
+              - 1e-7) < 1e-12, "104K -> 100nF still decodes")
+
+
+@test("every vetted ledger row the MPN decoder CAN read agrees with the "
+      "catalog value recorded beside it")
+def t_legc_ledger_cross_check():
+    """Canon M1 in its cleanest form available here: the ledger's `value:`
+    strings were verified once against the JLC catalog — a different authority
+    from the MPN grammar — so every row is a free test of the decoder. Any
+    disagreement is either a parser bug or a mis-recorded ledger row, and both
+    are worth a red build.
+
+    Measured 2026-07-28: 146 rows, 0 disagreements.
+    """
+    led = bsc.load_ledger()
+    check(len(led) > 100, f"the ledger did not load: {len(led)} rows")
+    checked, bad = 0, []
+    for code, e in led.items():
+        mpn, val = e.get("mpn", ""), e.get("value", "")
+        for parse, label in ((bsc.mpn_capacitance, bsc.labeled_capacitance),
+                             (bsc.mpn_resistance, bsc.labeled_resistance)):
+            got, want = parse(mpn, ""), label(val)
+            if got is None or want is None:
+                continue
+            checked += 1
+            if abs(got - want) > abs(want) * 0.001:
+                bad.append(f"{code} {mpn}: decoded {got!r}, ledger says "
+                           f"{val!r} ({want!r})")
+    check(not bad, f"MPN decode disagrees with the vetted catalog value on "
+                   f"{len(bad)}/{checked} rows: {bad[:6]}")
+    check(checked >= 60, f"only {checked} ledger rows were decodable at all — "
+                         f"this cross-check has lost its denominator")
+
+
 if __name__ == "__main__":
     sys.exit(main())

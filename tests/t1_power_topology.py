@@ -31,6 +31,7 @@ so against pre-change power_topology.py the flag is an unrecognized argument
 E-OFF case below goes RED. Each known-bad is additionally a passing-TOPOLOGY
 board broken in exactly one margin/off dimension.
 """
+import re
 import sys
 from pathlib import Path
 
@@ -802,6 +803,76 @@ def t_fuse_advisory_names_its_source():
              "and quote the LINE, so the reader can check the reading")
     not_contains(r.out, "fuse rated 3401",
                  "the part number must not be reported as the rating")
+
+
+@test("E-TOPO does not round a sub-amp trunk current to a number that is not "
+      "the one it compared", kind="known_bad")
+def t_small_trunk_current_is_legible():
+    """THE DEFECT (2026-07-28). The derived input-trunk current printed at
+    `.1f`, so 0.126 A rendered as `0.1 A` and anything under 0.05 A rendered as
+    `0.0 A` — a worst-case trunk current of ZERO, which is exactly the number a
+    reader does not question. Every mA-class rail on a low-power board read the
+    same, while the DECLARED current on the very same line was already printed
+    at `{:g}`: one sentence, two differently-rounded numbers.
+
+    THE FIX KEEPS >= 1 A EXACTLY AS IT WAS, on purpose. A display change that
+    moves every figure already quoted in a sealed verification report is not a
+    fix; only the band where one decimal has no resolution left changes.
+
+    RED-VERIFIED 2026-07-28 (git-swap, tests/README step 3): with git HEAD's
+    power_topology.py swapped back in, the line reads
+    `input-trunk worst case: 0.1 A` and this fails on `the derived current is
+    printed at full precision: got 0.1 A, want ~0.126 A`.
+    """
+    d = project(ptree(rail("3V3", 4.5, 5.5, 3.3, 3.3, 0.1, "FAKEBUCK", eff=0.9),
+                      rail("1V8", 4.5, 5.5, 1.8, 1.8, 0.1, "FAKEBUCK", eff=0.9)),
+                parts={"FAKEBUCK": "buck_converter"})
+    r = etopo(d)
+    m = re.search(r"input-trunk worst case: ([\d.]+) A", r.out)
+    check(m, f"no input-trunk line in:\n{r.out}")
+    val = float(m.group(1))
+    check(abs(val - 0.126) < 0.003,
+          f"the derived current is printed at full precision: got {val} A, "
+          f"want ~0.126 A (`.1f` rendered it 0.1)")
+    not_contains(r.out, "worst case: 0.1 A",
+                 "a sub-amp trunk current flattened to one decimal")
+    # the ADJACENT property, re-measured every run: an amp-scale figure must
+    # NOT move, or this fix silently rewrites every archived report.
+    d2 = project(ptree(rail("USB-A", 9.0, 12.6, 5, 5, 6, "LM5116MHX-NOPB"),
+                       rail("USB-C", 9.0, 12.6, 5, 5, 5, "LM5116MHX-NOPB")),
+                 parts={"LM5116MHX-NOPB": LM5116_TYPE})
+    contains(etopo(d2).out, "worst case: 6.8 A",
+             "the amp-scale rendering is unchanged")
+
+
+@test("E-TOPO's UNDER-BUILT finding cannot quote the SAME number as both the "
+      "declared trunk and the derived need", kind="known_bad")
+def t_underbuilt_numbers_do_not_collide():
+    """The half that makes the formatting a CORRECTNESS bug rather than a
+    cosmetic one. The comparison runs on the real float, the report did not:
+    a 0.1 A declared trunk against a 0.126 A derived need is a true
+    UNDER-BUILT, and at `.1f` the derived side printed `0.1` — so the finding
+    read `declared trunk current 0.1 A ... is below the derived worst case
+    0.1 A`. A failure whose own evidence says the two quantities are equal is
+    a failure a reader will overrule.
+
+    RED-VERIFIED 2026-07-28 (git-swap): pre-fix this fails with `UNDER-BUILT
+    quotes the SAME number twice — '0.1' vs '0.1'`.
+    """
+    d = project(ptree(rail("3V3", 4.5, 5.5, 3.3, 3.3, 0.1, "FAKEBUCK", eff=0.9),
+                      rail("1V8", 4.5, 5.5, 1.8, 1.8, 0.1, "FAKEBUCK", eff=0.9),
+                      top="input_trunk_class: VIN\n"),
+                parts={"FAKEBUCK": "buck_converter"},
+                nets="classes:\n  VIN:\n    nets: [VIN]\n"
+                     "    current: \"0.1 A\"\n")
+    r = etopo(d)
+    contains(r.out, "UNDER-BUILT", "the shortfall is found at all")
+    m = re.search(r"declared trunk current ([\d.]+) A.*?derived worst "
+                  r"case ([\d.]+) A", r.out, re.S)
+    check(m, f"UNDER-BUILT finding is not parseable:\n{r.out}")
+    check(m.group(1) != m.group(2),
+          f"UNDER-BUILT quotes the SAME number twice — {m.group(1)!r} vs "
+          f"{m.group(2)!r}; the reader cannot see the shortfall it is about")
 
 
 if __name__ == "__main__":

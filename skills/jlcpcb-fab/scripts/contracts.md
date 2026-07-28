@@ -299,7 +299,7 @@ stock, twin).
   passives have no part.yaml, so without it the sealed usb-hub-3s-v3 v1.2
   R12 defect (C2933210 = 3.74k labeled 4.12k, 2026-07-23) is invisible —
   measured. A live catalog fetch, when in-env, is a stronger add-on but the
-  offline check stands alone.
+  offline check stands alone. The MPN grammar reads BOTH ceramic shapes: `<code><tolerance>` terminated (`...104KA01`) and `<code><tolerance><3-digit voltage>` (`0402CG101J500NT` = C0G, code 101, tol J, 50 V) — the second was refused until 2026-07-28 by a `(?![0-9])` lookahead, and the ledger carried three hand-written `value:` rows working around it, which is a PARSER BUG recorded as a part fact. A ledger row must never be the fix for something the grammar should read; cross-checked at 146/146 rows, 0 disagreements, by `t1_bom_source.t_legc_ledger_cross_check`.
   **Leg C prints `coverage leg C: N/M` and reports every COVERAGE-GAP by name
   (canon M-COVER).** It had two defects that CANCELLED, which is why neither
   was ever observed: `row_kind` classified by the whole leading-alpha run, so

@@ -1005,10 +1005,29 @@ def run_check(proj, ptp, nets_override=None):
                 fails.append(fmsg)
 
     # input-current worst case — always printed
+    def _a(x):
+        """Amps/watts at 3 significant figures.
+
+        `.1f` printed a derived need of 0.15 A as `0.1 A` and anything under
+        0.05 A as `0.0 A` — a worst-case trunk current of ZERO, which is
+        exactly the number a reader does not question. It also silently
+        widened the UNDER-BUILT margin it was reporting: the comparison is
+        done on the real float, so the printed number disagreed with the
+        verdict beside it. Low-power boards are the whole point of this gate's
+        `.1f`-era blind spot: every mA-class rail rendered the same.
+
+        At or above 1 A the existing one-decimal form is kept EXACTLY, so no
+        sealed verification report's quoted number moves and no existing
+        assertion changes meaning — a display fix that rewrites every archived
+        figure is not a fix. Below 1 A, where one decimal has no resolution
+        left, it goes to 3 significant figures.
+        """
+        return f"{x:.1f}" if abs(x) >= 1 else f"{x:.3g}"
+
     I, p_out, p_in, vin_min = worst_case_input_current(rails)
     lines.append(
-        f"  input-trunk worst case: {I:.1f} A at Vin_min {vin_min:g} V "
-        f"(Sum Pout={p_out:g} W / eff = {p_in:.1f} W input / {vin_min:g} V)")
+        f"  input-trunk worst case: {_a(I)} A at Vin_min {vin_min:g} V "
+        f"(Sum Pout={p_out:g} W / eff = {_a(p_in)} W input / {vin_min:g} V)")
 
     trunk_current, trunk_class, unambiguous, fuse_amps, fuse_src = \
         find_trunk_declaration(proj, top, rails, nets_override)
@@ -1016,7 +1035,7 @@ def run_check(proj, ptp, nets_override=None):
         if trunk_current < I * 0.98:
             note = (f"  UNDER-BUILT: declared trunk current {trunk_current:g} A "
                     f"(class {trunk_class!r}) is below the derived worst case "
-                    f"{I:.1f} A — copper/fuse cannot carry the load")
+                    f"{_a(I)} A — copper/fuse cannot carry the load")
             if unambiguous:
                 lines.append(note + " -> FAIL")
                 fails.append(note.strip())
@@ -1026,16 +1045,16 @@ def run_check(proj, ptp, nets_override=None):
             lines.append(
                 f"  OVER-BUILT (advisory): declared trunk current "
                 f"{trunk_current:g} A (class {trunk_class!r}) is >2x the derived "
-                f"need {I:.1f} A — over-provisioned (the usb-hub-3s 16A-vs-7A "
+                f"need {_a(I)} A — over-provisioned (the usb-hub-3s 16A-vs-7A "
                 f"class); confirm it is intentional")
         else:
             lines.append(
                 f"  trunk current {trunk_current:g} A (class {trunk_class!r}) "
-                f"consistent with derived {I:.1f} A")
+                f"consistent with derived {_a(I)} A")
     if fuse_amps is not None and fuse_amps > 2 * I:
         lines.append(
             f"  OVER-BUILT (advisory): fuse rated {fuse_amps:g} A is >2x the "
-            f"derived need {I:.1f} A — over-provisioned "
+            f"derived need {_a(I)} A — over-provisioned "
             f"[read from {fuse_src}]")
 
     # M-COVER: a converter part that no rail names is a converter this gate did
