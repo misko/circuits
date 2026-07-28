@@ -15,6 +15,7 @@ below fails with "no such file"; the gate could not exist. The tampered
 fixtures were additionally verified to FAIL against the CURRENT auditor
 run on an untampered copy (each breaks a passing tree in exactly one way).
 """
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -72,7 +73,22 @@ def t_repo_clean():
     so the `NOT GRADED` assertion fails.
     """
     r = must_pass(run([KPY, AUDIT]), "contracts_audit on the repo")
-    contains(r.out, "/6958 tracked", "the verdict states the full universe")
+    # PROPERTY, not the literal count (canon: assert PROPERTIES, never bytes).
+    # The original form pinned "/6958 tracked" and went RED the same day, when
+    # concurrent board work grew the tree to 6979 — a test that fails whenever
+    # anyone adds a file measures the repo's size, not the gate's behaviour.
+    # What the test NAMES is that the verdict CARRIES ITS DENOMINATOR, so that
+    # is what it now checks: graded <= tracked, and tracked genuinely wider.
+    m = re.search(r"(\d+)/(\d+) tracked", r.out)
+    check(m is not None,
+          "the verdict states the full universe as <graded>/<tracked> tracked\n"
+          f"--- got ---\n{r.out}")
+    graded, tracked = int(m.group(1)), int(m.group(2))
+    check(graded <= tracked,
+          f"graded {graded} cannot exceed tracked {tracked}")
+    check(tracked > graded,
+          "the non-projects scope must report a WIDER tracked universe than it "
+          f"graded, else the denominator says nothing (got {graded}/{tracked})")
     contains(r.out, "NOT GRADED", "the verdict says what it did not grade")
     contains(r.out, "--projects", "the verdict names the wider invocation")
     # ...and the wider scope does NOT print an exclusion it did not make

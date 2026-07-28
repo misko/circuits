@@ -228,3 +228,13 @@ C37825: {mpn: 0402WGF6202TCE, value: "62k", verified: "2026-07-26 JLC catalog (s
 # second authority for exactly this case (canon F-LEGIBLE); it is a CATALOG
 # fact, not an inference from our own label.
 C2762192: {mpn: NX3225SA-24MHZ-EXS00A-CS08583, value: "24MHz", verified: "2026-07-27 JLC catalog (selectSmtComponentList, exact componentCode match: componentModelEn 'NX3225SA-24MHZ-EXS00A-CS08583', brand NDK, describe '24MHz 9pF Crystal Oscillator ±10ppm SMD3225-4P Crystals ROHS', library expand, stock 8137). Agrees with the MPN recorded in 03_tscircuit/src/crow_recorder_central_v2.tsx XTAL24 at authoring time."}
+
+# --- pluto-rx2-8way stage 4, 2026-07-28 -------------------------------------
+# Three codes the board pins at SOURCE that no dossier and no ledger row could
+# resolve, so `bom_source_check --circuit-only` reported 8 UNVERIFIABLE-VALUE.
+# Each row rests on TWO INDEPENDENT bases that agree (the F-LEGIBLE two-path
+# rule): a live catalog read, AND the vendor ordering-code decode, which is a
+# different instrument from the catalog string (canon M1).
+C137864: {mpn: RC0402JR-0747RL, value: "47", verified: "2026-07-28 catalog read via jlc_stock_check (exact componentCode match -> mpn RC0402JR-0747RL, stock 86783, status OK). Decode agrees independently: YAGEO RC series, 0402, J = +-5%, field '47R' = 47 ohm. Replaced tscircuit's own auto-assigned C25118 (stock 10, EXTENDED) for the 4x 47R series element whose value ADR-0005 machine-asserts."}
+C274349: {mpn: RC0402FR-0727R4L, value: "27.4", verified: "2026-07-28 catalog read via jlc_stock_check (exact componentCode match -> mpn RC0402FR-0727R4L, stock 5133, status OK). Decode agrees independently: YAGEO RC series, 0402, F = +-1%, field '27R4' = 27.4 ohm. USB D+/D- series termination."}
+C1548: {mpn: 0402CG150J500NT, value: "15pF", verified: "2026-07-28 catalog read via jlc_stock_check (exact componentCode match -> mpn 0402CG150J500NT, stock 2388330, status OK, JLC BASIC). Decode agrees independently: FH 0402, CG = C0G/NP0 dielectric, field '150' = 15 x 10^0 pF, J = +-5%, 500 = 50 V. This is the FH C0G family whose ordering code mpn_capacitance() could not parse until the 2026-07-28 regex fix; the row is kept because the CODE->MPN mapping still needs an authority."}
