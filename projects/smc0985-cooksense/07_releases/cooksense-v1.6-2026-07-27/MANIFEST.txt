@@ -1,0 +1,357 @@
+cooksense v1.6 — smc0985-cooksense MAIN board
+board revision: v1.3 (UNCHANGED) — the F.Silkscreen reads `cooksense SMC0985KS sidecar v1.3`
+                and that is correct. v1.4, v1.5 and v1.6 are DOCUMENTATION/BOM release
+                identifiers; source/cooksense.kicad_pcb is md5 420445b5141dd1111eccab038c68511b,
+                the SAME file v1.3, v1.4, v1.5 and 04_kicad/ carry.
+
+*** v1.6 IS DOCUMENTATION ONLY AND REGENERATES NOTHING. ***
+                fab/ (19 files), source/ (11), 3d/ (2) and pdf/ (3) are BYTE-FOR-BYTE v1.5's --
+                35 files, 0 differing, 0 added, 0 missing, measured by directory sha256 in both
+                directions and ASSERTED by release_freshness_check.py --docs-only-supersede
+                cooksense-v1.5-2026-07-27, which FAILs on any difference, addition or omission.
+                Per the 07_releases/ contract that mode is REQUIRED here in place of the six
+                file-by-file identity waivers v1.5 legitimately needed, so
+                verification/freshness_exceptions.txt lists ZERO paths and says why.
+                IF YOU HOLD v1.5: its gerbers, BOM and CPL ARE THESE BYTES. Order them. What
+                v1.6 replaces is ORDER_README.md.
+sealed: 2026-07-27
+git_sha: beed8354e13bbd638eebe49776ffffd55e2ea2ce
+git_dirty: false (scope: projects/smc0985-cooksense/ + skills/, tool-verified by
+           release_git_dirty.py at that commit, exit 0 — not eyeballed)
+
+READ BEFORE ASSEMBLY: H4's isolation is CREEPAGE AROUND AN EDGE NOTCH, and the notch and the washer
+                     are ONE MECHANISM -- the detour around the notch IS the barrier.
+                     MIND WHICH EDGE. H4's centre (y52.000) is 2.200 mm from the notch's NEAR (south)
+                     bank at y49.800, and 3.200 mm from its FAR (north) bank at y48.800.
+                     *** THE GOVERNING DISTANCE IS 3.200 mm TO THE FAR BANK ***, because bridging
+                     requires the washer to REACH THE FAR SIDE. A washer whose radius merely exceeds
+                     2.200 mm overhangs the notch and is FINE -- the specified DIN 125 A2.7 (r 3.000)
+                     does exactly that, and the notch stays open beneath it.
+                     A washer of radius >= 3.200 mm (OD >= 6.400 mm) lands on solid board on BOTH SIDES
+                     and the FASTENER ITSELF BRIDGES THE NOTCH. The detour vanishes and CREEPAGE
+                     (surface path -- same metric on both sides of the cliff) collapses from
+                     6.3811 mm at OD 6.38 (the last passing size) to 4.7195 mm at OD 6.40 = FAIL,
+                     invisibly. 1.66 mm of barrier lost to 0.02 mm of diameter. For reference the
+                     headline figure at the SPECIFIED OD 6.00 is 6.5984 mm.
+                     (The straight-line CLEARANCE at OD 6.40 is 3.8286 mm -- a DIFFERENT metric,
+                     quoted only for comparison; do NOT read it as the creepage.)
+                     MAX CONDUCTIVE OD AT H4 = 6.0 mm (DIN 125 A2.7); HARD LIMIT 6.3 mm. Do not
+                     substitute a shakeproof washer (6.5), DIN 9021 (8.0) or a hex standoff
+                     (6mm A/F = 6.93 across corners). This limit is NOT on the silkscreen -- keep this
+                     document with the unit. ORDER_README section 1, REQUIRED FASTENER SPEC clause (2).
+                     UNCHANGED FROM v1.4 AND STILL CORRECT — v1.4 is the release that fixed it.
+
+READ BEFORE ORDERING PARTS: v1.4's fab/bom.csv CANNOT BE ORDERED and this one can. Two lines moved,
+                     both read live 2026-07-27 (selectSmtComponentList, exact componentCode match):
+                       C25744 -> C60490   17 refs, 10 kOhm 0402. C25744 read stockCount 0. It is the
+                                          SAME code and the SAME shortage that forced usb-hub-3s-v3
+                                          v1.11 the same day. In: YAGEO RC0402FR-0710KL, stock
+                                          8 404 363, describe string CHARACTER-IDENTICAL.
+                       C25862 -> C138040  R_ILM, 1.2 kOhm 0402. NOT out of stock — unorderable in
+                                          this quantity: minPurchaseNum 7463 against stockCount
+                                          25/65/90 across one afternoon, which `stock >= 5 x qty`
+                                          PASSES. In: YAGEO RC0402FR-071K2L, stock 472 208,
+                                          describe again character-identical.
+                     Both are EXTENDED parts; the feeder fee is a property of the shortage.
+                     0 Footprint changes, 0 rows added, 0 rows removed. ORDER_README section 5.
+
+supersedes: cooksense-v1.5-2026-07-27 — its ORDER_README, not its board, its BOM or its CPL.
+            EVERY ORDERABLE FILE IS BYTE-IDENTICAL. v1.5's fab set is correct and remains
+            correct; three of its ORDER_README's statements about SAFETY were wrong:
+              (1) section 10 said the unkeyed 5-pin JST-GH family is "J_MODE / J_DOOR / J_ESTOP"
+                  and that "any single cross-plug is fail-safe". THERE ARE FIVE IDENTICAL C189896
+                  HOUSINGS, and an SHT45 pod harness in J_MODE ENERGISES THE RELAY COIL RAIL with
+                  all seven AND-chain terms AND the Manual rail-cut bypassed. The claim is
+                  WITHDRAWN; section 10 now carries all five and the complete 20-cell matrix.
+              (2) no document stated that REARM_N must be PULSED (held low it forces the fault
+                  latch's forbidden state and the latch loses its memory permanently), nor that
+                  MCP23017 GPPUB must be written 0x00.
+              (3) section 13 was missing the measurement that 11 of the 18 safety-chain nets carry
+                  NO restrictive default at all, four of them PERMISSIONS.
+            See SUPERSEDED.md on v1.5. Also supersedes cooksense-v1.4-2026-07-26 and
+            cooksense-v1.3-2026-07-26, and cooksense-v1.1-2026-07-24 / v1.0-2026-07-23 —
+            BOTH DO-NOT-ORDER (22 wrong CPL rotations).
+
+board: 188 x 92 mm, 4 layer, 222 components + 4 mounting holes; 3925 tracks / 1047 vias
+fab_tier: jlc_4layer_advanced — ADVANCED small-via option REQUIRED (0.25 mm via /
+          0.15 mm drill), verified needed: all 1047 vias are 0.25/0.15.
+assembly: JLC standard SMT, TOP side only, build_quantity 5
+cpl_rows: 189
+not_assembled: J_ISOLOOP J_LOADCELL J_PI J_TC K_D1 K_D2 K_D3 K_D4 K_PRESS K_STOP K_U1 K_U2 K_U3 K_U4 K_U5 K_U6
+
+GATES — every number measured on the artifacts in THIS archive
+  DRC --severity-all --refill-zones --schematic-parity   0 / 0 / 0
+  STANDALONE DRC, same command                           0 / 0 / 0 from source/ extracted ALONE into an
+                                                         empty directory (V-REL-FPLIB: the vendored
+                                                         source/cooksense.pretty/ is why it resolves)
+  ERC --severity-all (in-place, with fp-lib-table)       0 errors, 1303 warnings
+                                                         (913 endpoint_off_grid, 389 lib_symbol_issues,
+                                                         1 isolated_pin_label) — the same 1303 as v1.4
+  E-INV                                                  85 / 85, against source/cooksense.net.
+                                                         WAS 83/83. v1.6 adds two part_value asserts
+                                                         pinning R_COILENPD = 100k and R_REARMPU =
+                                                         100k -- the two numbers ORDER_README
+                                                         section 10.2's cross-plug bound and section
+                                                         7a-1's power-up-forced-SET property are
+                                                         COMPUTED FROM. RED-VERIFIED: substituting
+                                                         10k for either makes the checker report
+                                                         E-INV FAIL: 2/85, naming both parts and
+                                                         both actual values
+  E-TOPO                                                 *** FAIL — 1 of 1 converters GRADED, and it
+                                                         does not pass. SEE THE BLOCK BELOW. ***
+  F-LEGIBLE                                              OK — 0 findings, 56 checks. 54/54 coded rows
+                                                         resolve an MPN against 40 dossiers + 146 vetted
+                                                         ledger codes; 56/56 Comments read; UTF-8 BOM
+                                                         marker present. The SAME checker returns FAIL,
+                                                         83 findings, 0 checks, on sealed v1.4 beside it
+  M-BOM  bom_source_check                                PASS — every BOM LCSC == source; leg C 25/25
+                                                         R/C rows value-graded (was 24/25 + 1
+                                                         UNVERIFIABLE-VALUE on CE1 in v1.4)
+  circuit-only value check                               PASS (every coded R/C catalog value == its tsx
+                                                         value prop)
+  P-FACT                                                 6/43 dossiers declare asserts; 5 graded (was 3),
+                                                         1 deferred. The two NEW value asserts are
+                                                         RED-VERIFIED in verification/
+                                                         part_facts_red_verification.txt
+  A-ROT                                                  189 / 189 from authority-table rows (no
+                                                         --allow-unsourced). fab/rotation_human_gate.txt
+                                                         is BYTE-IDENTICAL to v1.4's
+  A-POS  pad-centre-bbox datum                           189 / 189, worst 0.00000 mm (R_DECDPD)
+  A-POL  single-channel                                  10 codes / 13 refs GENERATED -> verification/
+                                                         rotation_human_gate.txt.
+                                                         TRUE population 12 codes / 16 refs: D_KSTOP,
+                                                         D_REVCLAMP (C8678) and D_TVS (C113974) are
+                                                         POLARITY-FIT-BLIND in twin_report.csv — the twin
+                                                         could not fit them at all, so they never reached
+                                                         the generated list. ORDER_README section 6
+                                                         item 15 is their only defence. UNCHANGED.
+  A-POP  population                                      226 board, 189 CPL, 37 unpopulated
+                                                         (16 declared + 21 exempt)
+  A-BODY                                                 189 / 189 bodies mounted, GENERATED against
+                                                         fab/cpl.csv. v1.4 reported 185/186 because its
+                                                         run was given NO --cpl: the denominator was
+                                                         BOARD footprints and it counted J_ISOLOOP, which
+                                                         is not on the CPL at all
+  A-STOCK                                                54 coded lines, 53 clear at 5 boards; the ONE
+                                                         failure is C42400616 (J_ISOLOOP), unplaced by
+                                                         design. AND SEE THE STOCK CAVEAT BELOW
+  jlc_twin                                               190 refs OK / 431 finding rows, all adjudicated;
+                                                         1 FETCH-FAILED (C42400616) adjudicated as
+                                                         GENUINE library absence by a same-minute control
+  policy_audit --board cooksense                         FAIL=1 HUMAN=6 N-A=4 PASS=25 WAIVED=4.
+                                                         The ONE fail is E-TOPO, below, and it is
+                                                         UNCHANGED and DELIBERATE. M-REL PASSES:
+                                                         provenance + hashes verify, 6 of 6 cooksense
+                                                         release dirs, CHANGELOG names every one
+  A-EVID  release_required_check                         32 required artifacts present, 0 missing
+  freshness --docs-only-supersede                        PASS with ZERO exceptions. The mode ASSERTS
+                                                         fab/source/3d byte-identity with
+                                                         cooksense-v1.5-2026-07-27 in both directions
+                                                         instead of waiving it file by file, which is
+                                                         what the 07_releases/ contract requires for
+                                                         this shape. v1.5 needed six waivers because it
+                                                         RE-PLOTTED; v1.6 regenerates nothing
+  manifest self-check                                    see verification/manifest_selfcheck.txt --
+                                                         bidirectional, 0 orphan entries, 0 unlisted
+                                                         files, re-verified by `sha256sum -c`, a
+                                                         DIFFERENT program from the python hashlib
+                                                         that wrote the table (canon M1)
+  contracts_audit                                        243 files, 0 violations
+  audit_board                                            PASS (I-ISO 6.12 mm) — carried, board unchanged
+  M-REPRO                                                3 rebuilds, 1047 vias each — carried, board
+                                                         unchanged. verification/mrepro.md
+  stranded pour islands                                  121 / 121 bonded, 0 stranded; re-measured on
+                                                         THIS release's own gerbers as 13 + 106 + 1 + 1
+                                                         regions with identical area
+
+*** E-TOPO FAILS, AND IT IS A SUPPLY SPECIFICATION, NOT A COPPER DEFECT ***
+  power_topology.py learned LINEAR on 2026-07-27. v1.4 declared `rails: []` with its envelopes in a
+  `linear_rails:` key the checker ignores by design, so E-TOPO graded 0 of 1 converters — an LDO-only
+  board reaching a green gate by showing it nothing. v1.5 declares the AMS1117-3.3 rail properly:
+
+    rail '3V3' LINEAR (AMS1117-3.3): headroom 1101 mV (Vin_min 4.5 - Vout_max 3.399) vs dropout
+    1300 mV; PD 690 mW ((Vin_max 5.5 - Vout_min 3.201) x 0.3 A) vs rating 1200 mW (57%)
+    -> FAIL DROPOUT: only 1101 mV of headroom against a 1300 mV dropout
+
+  Both numbers are CITED to Advanced Monolithic Systems ds1117 (2009-08 RoHS): dropout p.3 "Dropout
+  Voltage (VIN-VOUT)" MAX at IOUT = 0.8 A (Note 4); PD p.3 Note 2 "1.2 W for SOT-223"; Vout p.2
+  AMS1117-3.3 at VIN 4.8 V, boldface full-temperature limits.
+
+  THIS RAIL DRAWS 0.3 A AND THE DATASHEET PUBLISHES NO DROPOUT FIGURE THERE. p.1 says only that
+  dropout is "guaranteed maximum 1.3V, decreasing at lower load currents"; Note 4 bounds the HIGH
+  side; p.6's six TYPICAL PERFORMANCE curves include no dropout-vs-load. So the 0.3 A dropout is
+  OWED, the graded number is the only CITED one at 2.67x this rail's load, and vin_min was left at
+  4.5 rather than raised to the 4.75 that makes the gate pass — that would be fitting a number to a
+  gate. WHAT IT MEANS FOR THE ORDER: the LDO input needs >= 3.399 + 1.300 = 4.699 V, so "5 V SELV"
+  (BRIEF section 3.5, no tolerance stated) under-specifies this board's supply. Buy a supply that
+  holds >= 4.85 V at J_PWR under load, and MEASURE VIN-VOUT at U_LDO at bring-up — that single
+  measurement retires the OWED fact. ORDER_README section 0. NOTHING HERE BLOCKS FABRICATION OR
+  ASSEMBLY; the boards are exactly as orderable as v1.4's were.
+
+*** WHY v1.6 EXISTS — THREE SAFETY-PAPERWORK DEFECTS, RE-VERIFIED BEFORE THEY WERE BELIEVED ***
+  The 2026-07-27 adversarial audit (verification/redteam_adversarial.md; report-only, committed
+  f8427c5) raised 0 new P0 and 7 P1. A12 was closed without a reseal (539ecf0). A1, A2 and A3 are
+  closed here. EVERY ONE WAS RE-VERIFIED against this archive's own source/cooksense.net by a
+  hand-written s-expression parser and set arithmetic -- no shared code with the tsx author, the
+  board generator or policy_audit (canon M1) -- and TWO OF THE THREE RE-VERIFICATIONS DISAGREED
+  WITH THE AUDIT IN DETAIL. Both disagreements are recorded rather than smoothed away, in
+  verification/crossplug_and_permission_defaults.md.
+
+  A1  CONFIRMED, every number. COIL_EN has exactly three nodes -- J_MODE.4, Q_COILDRV.1,
+      R_COILENPD.1 -- no ESD device, no series element, sole hold 100 kOhm against 10 kOhm on
+      R_DOORPD/R_ESTOPPD/R_MODEPD. An SHT45 pod harness in J_MODE powers up from pin 1 and puts its
+      module SCL pull-up on COIL_EN: 3.000 V at the documented 10k, 3.152 V at BRIEF C7's 4.7k,
+      both above the 2N7002's 2.5 V max VGS(th). J_MODE (196.75,-60.00) is 38.29 mm from
+      J_RH_EXHAUST (186.00,-96.75). DISAGREEMENT: the audit's R <= 175 kOhm general bound assumes a
+      minimum-threshold subthreshold device and is the SOFTER result; it is published as such.
+      NEW ROOT CAUSE: the 2026-07-23 re-pinning modelled a cross-plug as a passive BRIDGE between
+      pins -- right for three dry-contact harnesses, wrong for one that SOURCES current.
+  A2  CONFIRMED and EXTENDED: 11 of the 18 safety-chain nets carry no pull, not 4. DISAGREEMENT:
+      the tsx's "the other twelve are pulled restrictive" is NOT falsified -- those twelve are
+      exactly BRIEF D10 item 8's Pi/expander authorization lines and all twelve ARE pulled
+      restrictive. The claim is wrong in SCOPE, not arithmetic. NEW FINDING: MCP23017 DS20001952C
+      section 3.5.7 -- a GPPUB write puts a 100 kOhm pull-up on GPB1/2/3/7, which are exactly these
+      four permissions, converting an indeterminate float into a DETERMINISTIC PERMISSIVE. POR is
+      0x00; ORDER_README section 7a-2 makes writing it 0x00 explicitly a REQUIRED firmware invariant.
+  A3  CONFIRMED, and the persistence is worse than stated. REARM_N has ONE driver (U_EXP.26), no
+      button, no pin, no test point. Held low the latch degenerates to a combinational repeater and
+      loses its memory. NEW: EXP_RST_N has NO DRIVER, so the defeat survives every Pi reboot though
+      not a 3V3 power cycle. ORDER_README section 7a-1 adds a REQUIRED negative bring-up test that
+      THIS REVISION IS EXPECTED TO FAIL; the tester is told so and told to record it.
+
+  NOT CLOSED, NAMED RATHER THAN HIDDEN: all three HARDWARE fixes are copper and are USER DECISIONS
+  for the next ELECTRICAL revision -- a keyed/different housing for J_MODE (or COIL_EN off a field
+  connector), four-to-eleven 0402 pull-downs, an edge-detect on REARM_N. And
+  03_tscircuit/src/cooksense.tsx:551 still carries the falsified clause: source/cooksense.tsx is
+  inside the docs-only byte-identity set, so editing it would make this NOT a docs-only supersede
+  by the gate's own definition. The considered alternative -- an asserted comment-only-source
+  relaxation in release_freshness_check.py -- was rejected on the merits (a comment-stripper that
+  must be right about TypeScript strings, template literals and regex literals is a worse gate than
+  a deferred comment). The clause is corrected in ORDER_README section 13 gap 20; its correction in
+  the tsx is OWED to the revision that adds the pull-downs, the same change that makes it true.
+
+*** THE STOCK PASS IS NECESSARY AND NOT SUFFICIENT ***
+  stockCount is LCSC CATALOG stock. JLC's assembly uploader allocates feeders from a DIFFERENT pool.
+  usb-hub-3s-v3 v1.10 sealed with {"lcsc": "C25744", "status": "OK", "stock": 291} in its own sealed
+  evidence and JLC refused that line hours later. A FAIL from A-STOCK is real; a PASS is a
+  precondition, not a promise. Watch minPurchaseNum as well as stockCount — that is what caught
+  C25862 here, whose 7463-piece minimum sat against double-digit stock while stock >= 5 x qty passed.
+
+ISOLATION — state the metric beside the number; three measurements, one geometry
+  ISO->SELV, all copper all layers incl. filled pours   2.0000 mm  (GND zone edge at J_ISOLOOP.1)
+  ISO->SELV, pad-to-pad true polygon                    2.1661 mm  (U_OPTO.3 <-> J_RH_EXHAUST.5)
+  ISO->SELV, pad-to-pad bounding-box                    2.126  mm  (J_ISOLOOP.4 <-> J_DOOR.MP)
+  KEYPAD_ISO -> everything else                         6.1200 mm
+  Carried from v1.4 — the copper these were measured on is byte-identical.
+
+READ FIRST: verification/INDEX.md names every verification file and how current it is, including
+the ones whose narrative half was NOT re-run and the two BOM-derived halves of semantic_battery.txt
+that this release SUPERSEDES with regenerated files.
+
+MANDATORY BEFORE ORDERING — see ORDER_README.md
+  section 10   *** THE UNKEYED GH FAMILY IS FIVE CONNECTORS AND ONE CROSS-PLUG IS NOT FAIL-SAFE ***
+               An SHT45 pod harness in J_MODE energises the coil rail with the whole AND chain and
+               the Manual rail-cut bypassed. Complete 20-cell matrix + the mandatory discipline.
+               READ IT BEFORE YOU BUILD A HARNESS.
+  section 7a   TWO HOST-FIRMWARE INVARIANTS THE HARDWARE CANNOT ENFORCE: REARM_N must be PULSED,
+               and MCP23017 GPPUB must be written 0x00.
+  section 0    THE SUPPLY SPECIFICATION — E-TOPO's one FAIL. What to buy, and what to measure.
+  section 2-0  THE DOOR INPUT IS NOT SUPERVISED. A shorted door cable reads
+               "closed" and is undetectable. You commissioned NC reed + EOL;
+               this board is NO with no EOL. Decision required before commissioning.
+  section 5    order-day stock recheck (and the three J_ISOLOOP options)
+  section 6    ORDER-PREVIEW HUMAN GATE (17 rows)
+  section 12   R_OPENT must read C37825 (62 kOhm). If the BOM says C25915, STOP.
+  section 1    NON-CONDUCTIVE ENCLOSURE is a load-bearing assumption (ADR-0012)
+  section 11   J_ISOLOOP pole legend — hand-wired, and the legend IS the gate
+  section 13   declared gaps, with counts
+
+FILE DIGEST — sha256, every file in this archive (88 files)
+  3d/cooksense.gltf                                               9b7e60622f23c64f9940e06f1977be4e7f81a591eac6d1494e034aa199f9a1c4
+  3d/cooksense.step                                               e115e9d19c37ca66905c42b1737dd404842ee9b77296ed171098005f026af4b4
+  ORDER_README.md                                                 e993304c1ec804fffd8d7139b1ee252d6f001e6bdadb6054ba2c825d5e84e7d4
+  fab/bom.csv                                                     624490c85976240b4598b93aa6fe3f994073c14656a6ea28b63b2e7eaf884335
+  fab/bom_jlc.csv                                                 624490c85976240b4598b93aa6fe3f994073c14656a6ea28b63b2e7eaf884335
+  fab/cooksense-B_Cu.gbl                                          7e7ec5e838180bc28abb4cb8d3c6f69f6f87cc6cd285c022416c184265f431ce
+  fab/cooksense-B_Mask.gbs                                        39c4c70c631955e20dc7faee141c53f422b4cb6859d6c3c54ce528c093c17ee2
+  fab/cooksense-B_Paste.gbp                                       ed1846fd84e3b48681a664efbf70824d0367f28a96aab96df65d832f23738cca
+  fab/cooksense-B_Silkscreen.gbo                                  c656a43129aa25ef1b5ec06325701f28f04abd1ec16f8cfa1db36ac7875eb6d5
+  fab/cooksense-Edge_Cuts.gm1                                     f739b5aad45875c09ebf16e9c27a64b3ed6d827ed13b6b154cb5865e9b562871
+  fab/cooksense-F_Cu.gtl                                          fa545aec2e0096c8b0515afa62dd6b6934e4b08a2d4509bdd5d40d3f15093db9
+  fab/cooksense-F_Mask.gts                                        eca3286283beb1eb3d9d5969102017cb78df6d88f0d181b0263d0294ffb85e38
+  fab/cooksense-F_Paste.gtp                                       102decd7f7a44b7390795f2e334978e3abff67823e85fd7cb61a2c8aa8d1ba0b
+  fab/cooksense-F_Silkscreen.gto                                  8d79820fe5d3ebd36b804b3624dc2ac61795d9e750b1334be1d65ee3e9df5f62
+  fab/cooksense-In1_Cu.g1                                         1db0a4c2ef34df26039229fe1935a18dd26b1a58fa0a07dc9dc56a77cb930d7c
+  fab/cooksense-In2_Cu.g2                                         5b8e45cdbf282ae0cb787d3f45c14cdf98a7e20fc8f8f8d39b77ce8a3d952ad8
+  fab/cooksense-NPTH.drl                                          cee3aa2357bb4d8ae7d2989b339a8410557dd3f966f3f27e86064d7c60236c0d
+  fab/cooksense-PTH.drl                                           ce4a80664d0d3a5c5a7bf6cbdccda652e07764018083675266e942f8c575987e
+  fab/cooksense_gerbers.zip                                       c74d7eedc52a934a688aa197178a2c04933f9ee9dc188c25363636c0a43af38a
+  fab/cpl.csv                                                     6b1884e6e54f3297ec367da0fec8876b2c83845958eaf5c1c71e71f221ed7f2c
+  fab/cpl_jlc.csv                                                 6b1884e6e54f3297ec367da0fec8876b2c83845958eaf5c1c71e71f221ed7f2c
+  fab/rotation_human_gate.txt                                     9d075ab4b7c62bb5bec14e8b129207d9622c7f78334c151dde6cd9f32b6243b2
+  pdf/assembly.pdf                                                75c15184f5fb5c8fdb78647850f4d2915f0d610294f0c02a8d836ef5fe3a8d32
+  pdf/pcb_layers.pdf                                              77d50caec50c2efbb2f7abcee34333bb96eefa229d9694a99f7ffc6cfccf1090
+  pdf/schematic.pdf                                               76366a946066513c72d89ddf2447c7bbbafa73b7002e975360a903e31032abc2
+  source/cooksense.kicad_dru                                      e40bd37bf72357b9af99f3f0737a0aded4046fb49cff80c5e922fa3b9530a115
+  source/cooksense.kicad_pcb                                      9ec55584f61fc9eed1073b819a1cadc1612e90767cdd23d5a1db21434baae2a0
+  source/cooksense.kicad_pro                                      113df11e6cf0e282c775b2985d3b3313870d0e4dfefce3bf12e9626595a1e3bf
+  source/cooksense.kicad_sch                                      3108cc1b41a625a06a824e5dad0bba8c0a0712af847109f90c93df2252224786
+  source/cooksense.net                                            1bb8870ffeb1e617f640cc07a5577a0ddbfdd0bfd4ff7255b32ac0dc53088849
+  source/cooksense.pretty/Omega_PCC-SMP-K_TypeK_PCpin.kicad_mod   29b5bfaafc0d232359b05f5ea834ea58c210b895c8ea8f69a17e2580c88ff212
+  source/cooksense.pretty/Relay_StandexDIP_1A_pinout12.kicad_mod  fcce58d87d3888d66ee832ee2b512fab393bb5c4e56f0d07baf4ad40a3f6d69a
+  source/cooksense.pretty/TerminalBlock_KF350_4P.kicad_mod        a266d5017edb8d0fde5a2d1e11151d5dfcb7376fe29b13999ef89036660bdd2a
+  source/cooksense.tsx                                            4801c3180001c67dd8f675247cf6fad70bd5e6850b0b58ebf5c02fcd0909ae7f
+  source/fp-lib-table                                             f96f5b2653e171e7b8605c7bac0b5d5802c25e3581aa44f6409a778dbee0f400
+  source/parity_padmap.txt                                        43f87a91d9c1afe200f0cdbfb52e1e1e1b13c3f0dbbf8b4406dec013dd3e3aeb
+  verification/ADR-0015-creepage-is-not-clearance.md              d8a1b3bdfa29c563464a58fcc15c745a628590d8c4a37cb62745ff2c6d54f0c0
+  verification/INDEX.md                                           22dda094236360f9c471c39fead9bc623ea7a010ee5d36ada3e873007cdd58c2
+  verification/assembly_coverage.json                             a87e2579be3111945753c350ed4cabb1361908605f47706edf6c8c47782e7a55
+  verification/assembly_coverage.txt                              f921609cb0e4f643d245ede786dd3c6f2899b73c85315fb2db109b6ee5e9535a
+  verification/audit.txt                                          9fe5abe175afc719c9dcf6071996c3fb61ea6e746102559ef70942c151e58cbd
+  verification/bom_delta.txt                                      e9ce46424ffdce554dd8fbfade173ab1215c7420f54ee112eaba776dd4cd17ac
+  verification/bom_legibility.txt                                 14e5397187f9bd3ecb8395f8cfe8d95850710384052fb1da1c3d0ef0126131de
+  verification/bom_source_check.txt                               7e355c63b894e8564f277149f0f38bd80fc026427cf123a35b794013f031b031
+  verification/build_gates.md                                     4fd4452cde28230369808b7c8d1804a6a04f61287fdc1e9f3dc78c4951349a13
+  verification/circuit_value_check.txt                            ab13d410f0dd24f63a5ae83a49f9d8f4d877e17edffd0148f38904cf3ffb8233
+  verification/copper_did_not_move.md                             1e9cf04157a151563f85d46466fe7e8575fe0af32d55b3e94a3b5babdf26871f
+  verification/crossplug_and_permission_defaults.md               584b5c6a5ab4d9217b1505b34752d2a0ae4b0287465771f331c11fc7565e1ff6
+  verification/dispositions.md                                    edaea0d76c2de6c24ebd2706a7ccb09af761af41a45d8e6855e42be87fb4fe52
+  verification/dispositions_v10_carried.md                        74c7b0afbfd3853df8fb9ffbc91e917f14f24874bf2f9e8c428699eb573868f5
+  verification/drc.json                                           9ef1d2723e71e74e1d29ed7ebc17c9015d7d0f2271fb65b6422928a7e3e05573
+  verification/einv.txt                                           12d77eee1bb082e4395624fd61532d3870e52cc359665d5445257697aa1c39ea
+  verification/einv_red_verification.md                           82b6c24822203b2dbdd8ee8f522bae1346b4d9c5f0d5698726fbbdfb3b083272
+  verification/erc.json                                           c560068225c42d173341bbd250a8ca22e82706e9c8fedea83a5bcad312a1e98a
+  verification/fresh_lens.md                                      5207bd4964c54a8d000fdcbe468932160ce855ac5a215a7b9d6dd8bd49c2ac31
+  verification/freshness_exceptions.txt                           407dd66b496deea20b6f80ff31a4dcd3efde9357d5524eb0c06fc7ac7c02946c
+  verification/manifest_selfcheck.txt                             8f9fc5b2e5ec8e97e9c9b2186d72020861f1f514df42c04284b855c301e284b0
+  verification/missing_models.txt                                 50e1734fd6f3de4c947ca61ec2837b286f164caeddc4243cb07406bb72ebdc43
+  verification/mrepro.md                                          56c43041fd27832e9951660b362d37cea7ba26daa9b2951a43ff6ab9068b2134
+  verification/parity.md                                          7d60ddc7f148231f8c4caa964b13982b6db451a962b9694ac1ca237a354788eb
+  verification/part_facts.txt                                     6a0b1efe8d37d23e0b570a1da2dd82264ce398d8bb9d02648acd2dc102d97761
+  verification/part_facts_red_verification.txt                    3de3780c14070921d8f82ce123bfb4d2b2ae2057e7d9932a3b74cc6fe7321069
+  verification/pin_review.md                                      5a99fbe0788034a0ca6bce2ed03ddd304e9f6e4a34d087b1975367c91bf85c4f
+  verification/policy_audit.md                                    4c07f10b0a23db740e2377f804b9efc09766bd37ced5e889ffce97bbbf5ae802
+  verification/power_tree.yaml                                    269d33c67aac8817d92e2f48138ef0c8701991d8877ac757d0730fe86a3ae951
+  verification/redteam_adversarial.md                             ffc370b7945bc07c070f112016bc512e82481bdbed1957c2d4f9b807e39a3c91
+  verification/redteam_layout.md                                  fc5a0fcbc1a4a390c2d3519248cd3ece5cb8bafa1319ce6c4745ec9b5b05b158
+  verification/redteam_topology.md                                8185eefaf6a2a628b784a315f44071778352a6b5a7c0b68807ce5ab0a1524d84
+  verification/render_bottom_bare.png                             59cd795b225cc4744a0c592214baf48be4d30dca2b5ea5b89622a17f37a076f4
+  verification/render_review.md                                   1b1a51c8630a8b5a107338b539c7ad6ee056fb3aa3cea25c89b4ac078094ab46
+  verification/render_top_bare.png                                00f4f33c921bd1866c5518bde1c70eb7fd1a4e9d11c2905c30f10b9a53dce514
+  verification/rotation_C22046_measurement.md                     ec03a6896343a5ca51544320cd0dd69b882af1e3d866ff1ad1f96e59b92db74c
+  verification/rotation_audit.txt                                 d846e021093a593e1f37007f8e4c99be2b6943229c2f6e04a4db6c2f0733512c
+  verification/rotation_human_gate.txt                            9d075ab4b7c62bb5bec14e8b129207d9622c7f78334c151dde6cd9f32b6243b2
+  verification/rotation_measurements_v13.txt                      26d861ee6b201d81855d68ce402a7e1acf7adfa3d0c4170aa20a9b738f3ca38a
+  verification/semantic_battery.txt                               d399f81f72fc7cece912a6baafb33a3f54c199a9026d1e1935a582528bed226b
+  verification/stock_check.csv                                    8b03b14e9a3ee464e8a691b81abdef2c9ca7bf64dcdf8104bfacecb884826fbf
+  verification/stock_check.json                                   a2137c29b61179779d8b5a265af3092cbe4ae2a79b42dd65534a8721572be837
+  verification/stock_check.txt                                    cffac67c8a72e35dc13370c0da2aac346f1d0f980ac88bce7c2e24d031147936
+  verification/stranded_islands.md                                d01fa836a2177fb7e822783e414e1bae3eb95d4d1306fd123e1b10cc9d8f26b4
+  verification/twin_adjudications.yaml                            7525c3c19be12194a01c345e3ba8ddf4d630fcff75ea4d173beea5e1b6e734e0
+  verification/twin_bottom.png                                    46a4e3e3072247dcf5c02b2254369906edfb980840a1c94faa0811a1ae3595d4
+  verification/twin_edge_east.png                                 a241e3834d8c4c62ca62350c09c068203526e25f84a49551d8613d0d52396e14
+  verification/twin_edge_west.png                                 aae14aa0a19163e7967e6eae19d33ffb94d6df2d59c1fbb7410c4fcb287efd73
+  verification/twin_iso_nw.png                                    02a29d76d90ec5a9c6f07b106259acca9b7af7d6fa53f85d1e27d1448db6b9fc
+  verification/twin_iso_se.png                                    6d830c042c6dff79a8d28adf4b2a812313a969e9b22e4aa3973683bff64727b5
+  verification/twin_report.csv                                    e5e82ff973b1d2c3117a07b3c8635a5f0f0ce578f50004587fbec2fec56019e7
+  verification/twin_top.png                                       07f63ca1d6cf8ba1c648fb912e5292fc0f072c5b3dc8f97569ed258b2f7dcb9b

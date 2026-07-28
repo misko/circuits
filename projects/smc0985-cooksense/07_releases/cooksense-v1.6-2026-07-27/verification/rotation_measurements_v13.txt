@@ -1,0 +1,192 @@
+# A-ROT rotation measurement worklist — cooksense v1.3, 2026-07-26
+# Board: 04_kicad/cooksense.kicad_pcb (DRC 0/0/0, commit 8762a26 lineage)
+# Tool: skills/jlcpcb-fab/scripts/jlc_rotation_measure.py --row (pcbnew-verified operator)
+# MEASURED ONLY. jlc_lcsc_rotations.csv is the coordinator's to land (canon M1).
+
+
+=== U_SR1  C10092  SOIC-16_3.9x9.9mm_P1.27mm  board_rot 0
+    model: /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/twin/easyeda/C10092/jlc.pretty/SOIC-16_L9.9-W3.9-P1.27-LS6.0-BL.kicad_mod
+    PAD-NUMBER  rms        0:  5.5286 90:  7.8141 180:  5.5286 270:  0.2650
+    SIZE-CLASS  spread     (no channel)
+    PAD-CLOUD   rms        0:  1.5449 90:  0.2650 180:  1.5449 270:  0.2650
+    PIN-1-MARK  dist       0:  6.2425 90:  9.7856 180:  6.5850 270:  0.7655
+    pin-1 marking proposes 270 but is NOT a numbering-free channel — not decisive alone
+    ==> offset 270  polarity=single-channel
+        NO usable numbering-free channel (size-class absent, pad cloud degenerate, pin-1 marking inconclusive). A-POL: this row is SINGLE-CHANNEL and MUST name the JLC ORDER-PREVIEW human gate.
+        CPL for U_SR1 = (0 + 270) % 360 = 270
+    ROW: (WITHHELD — single-channel) the fit proposes 270, but no numbering-free channel confirms it.
+         Resolve by MEASURING a FUNCTION-tied mark (cathode band, "+", diode-glyph apex, drain paddle) — NOT a pin-1 dot, which follows pad numbering — then hand-author the row with that evidence and polarity=two-channel.
+
+=== D_TVS  C113974  D_SMB  board_rot 0
+    model: /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/twin/easyeda/C113974/jlc.pretty/SMB_L4.6-W3.6-LS5.3-RD.kicad_mod
+    PAD-NUMBER  rms        0:  0.2100 90:  3.1925 180:  4.5100 270:  3.1925
+    SIZE-CLASS  spread     (no channel)
+    PAD-CLOUD   rms        0:  0.2100 90:  3.1925 180:  0.2100 270:  3.1925
+    PIN-1-MARK  dist       0:  3.2799 90:  4.2304 180:  3.4479 270:  2.1794
+    ==> offset 0  polarity=single-channel
+        NO usable numbering-free channel (size-class absent, pad cloud degenerate, pin-1 marking inconclusive). A-POL: this row is SINGLE-CHANNEL and MUST name the JLC ORDER-PREVIEW human gate.
+        CPL for D_TVS = (0 + 0) % 360 = 0
+    ROW: (WITHHELD — single-channel) the fit proposes 0, but no numbering-free channel confirms it.
+         Resolve by MEASURING a FUNCTION-tied mark (cathode band, "+", diode-glyph apex, drain paddle) — NOT a pin-1 dot, which follows pad numbering — then hand-author the row with that evidence and polarity=two-channel.
+
+=== U_ONESHOT  C133954  SOIC-16_3.9x9.9mm_P1.27mm  board_rot 0
+    model: /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/twin/easyeda/C133954/jlc.pretty/SOIC-16_L9.9-W3.9-P1.27-LS6.0-BL.kicad_mod
+    PAD-NUMBER  rms        0:  5.5286 90:  7.8141 180:  5.5286 270:  0.2650
+    SIZE-CLASS  spread     (no channel)
+    PAD-CLOUD   rms        0:  1.5449 90:  0.2650 180:  1.5449 270:  0.2650
+    PIN-1-MARK  dist       0:  6.2425 90:  9.7856 180:  6.5850 270:  0.7655
+    pin-1 marking proposes 270 but is NOT a numbering-free channel — not decisive alone
+    ==> offset 270  polarity=single-channel
+        NO usable numbering-free channel (size-class absent, pad cloud degenerate, pin-1 marking inconclusive). A-POL: this row is SINGLE-CHANNEL and MUST name the JLC ORDER-PREVIEW human gate.
+        CPL for U_ONESHOT = (0 + 270) % 360 = 270
+    ROW: (WITHHELD — single-channel) the fit proposes 270, but no numbering-free channel confirms it.
+         Resolve by MEASURING a FUNCTION-tied mark (cathode band, "+", diode-glyph apex, drain paddle) — NOT a pin-1 dot, which follows pad numbering — then hand-author the row with that evidence and polarity=two-channel.
+
+=== U_ADC  C16939  SOIC-16_3.9x9.9mm_P1.27mm  board_rot 0
+    model: /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/twin/easyeda/C16939/jlc.pretty/SOIC-16_L9.9-W3.9-P1.27-LS6.0-BL.kicad_mod
+    PAD-NUMBER  rms        0:  5.5286 90:  7.8141 180:  5.5286 270:  0.2650
+    SIZE-CLASS  spread     (no channel)
+    PAD-CLOUD   rms        0:  1.5449 90:  0.2650 180:  1.5449 270:  0.2650
+    PIN-1-MARK  dist       0:  6.2425 90:  9.7856 180:  6.5850 270:  0.7655
+    pin-1 marking proposes 270 but is NOT a numbering-free channel — not decisive alone
+    ==> offset 270  polarity=single-channel
+        NO usable numbering-free channel (size-class absent, pad cloud degenerate, pin-1 marking inconclusive). A-POL: this row is SINGLE-CHANNEL and MUST name the JLC ORDER-PREVIEW human gate.
+        CPL for U_ADC = (0 + 270) % 360 = 270
+    ROW: (WITHHELD — single-channel) the fit proposes 270, but no numbering-free channel confirms it.
+         Resolve by MEASURING a FUNCTION-tied mark (cathode band, "+", diode-glyph apex, drain paddle) — NOT a pin-1 dot, which follows pad numbering — then hand-author the row with that evidence and polarity=two-channel.
+
+=== U_TC  C2653162  TSSOP-14_4.4x5mm_P0.65mm  board_rot 0
+    model: /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/twin/easyeda/C2653162/jlc.pretty/TSSOP-14_L5.0-W4.4-P0.65-LS6.4-BL.kicad_mod
+    PAD-NUMBER  rms        0:  4.4061 90:  6.2309 180:  4.4061 270:  0.0625
+    SIZE-CLASS  spread     (no channel)
+    PAD-CLOUD   rms        0:  2.0304 90:  0.0625 180:  2.0304 270:  0.0625
+    PIN-1-MARK  dist       0:  3.6547 90:  5.2927 180:  4.0744 270:  0.6303
+    pin-1 marking proposes 270 but is NOT a numbering-free channel — not decisive alone
+    ==> offset 270  polarity=single-channel
+        NO usable numbering-free channel (size-class absent, pad cloud degenerate, pin-1 marking inconclusive). A-POL: this row is SINGLE-CHANNEL and MUST name the JLC ORDER-PREVIEW human gate.
+        CPL for U_TC = (0 + 270) % 360 = 270
+    ROW: (WITHHELD — single-channel) the fit proposes 270, but no numbering-free channel confirms it.
+         Resolve by MEASURING a FUNCTION-tied mark (cathode band, "+", diode-glyph apex, drain paddle) — NOT a pin-1 dot, which follows pad numbering — then hand-author the row with that evidence and polarity=two-channel.
+
+=== U_EFUSE  C2653844  Texas_DSG0008A_WSON-8-1EP_2x2mm_P0.5mm_EP0.9x1.6mm  board_rot 0
+    model: /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/twin/easyeda/C2653844/jlc.pretty/WSON-8_L2.0-W2.0-P0.50-TL-EP.kicad_mod
+    PAD-NUMBER  rms        0:  0.0000 90:  1.4697 180:  2.0785 270:  1.4697
+    SIZE-CLASS  spread     0:  0.0000 90:  0.0000 180:  0.0000 270:  0.0000
+    PAD-CLOUD   rms        0:  0.1706 90:  0.5009 180:  0.1706 270:  0.5009
+    PIN-1-MARK  dist       0:  0.0000 90:  2.0000 180:  2.8284 270:  1.8006
+    pin-1 marking proposes 0 but is NOT a numbering-free channel — not decisive alone
+    ==> offset 0  polarity=single-channel
+        NO usable numbering-free channel (size-class degenerate, pad cloud degenerate, pin-1 marking inconclusive). A-POL: this row is SINGLE-CHANNEL and MUST name the JLC ORDER-PREVIEW human gate.
+        CPL for U_EFUSE = (0 + 0) % 360 = 0
+    ROW: (WITHHELD — single-channel) the fit proposes 0, but no numbering-free channel confirms it.
+         Resolve by MEASURING a FUNCTION-tied mark (cathode band, "+", diode-glyph apex, drain paddle) — NOT a pin-1 dot, which follows pad numbering — then hand-author the row with that evidence and polarity=two-channel.
+
+=== U_EXP  C506653  SSOP-28_5.3x10.2mm_P0.65mm  board_rot 0
+    model: /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/twin/easyeda/C506653/jlc.pretty/SSOP-28_L10.2-W5.3-P0.65-LS7.8-BL.kicad_mod
+    PAD-NUMBER  rms        0:  6.1624 90:  8.7149 180:  6.1624 270:  0.0403
+    SIZE-CLASS  spread     (no channel)
+    PAD-CLOUD   rms        0:  1.7609 90:  0.0403 180:  1.7609 270:  0.0403
+    PIN-1-MARK  dist       0:  6.6512 90: 10.0154 180:  6.9287 270:  1.6261
+    ==> offset 270  polarity=single-channel
+        NO usable numbering-free channel (size-class absent, pad cloud degenerate, pin-1 marking inconclusive). A-POL: this row is SINGLE-CHANNEL and MUST name the JLC ORDER-PREVIEW human gate.
+        CPL for U_EXP = (0 + 270) % 360 = 270
+    ROW: (WITHHELD — single-channel) the fit proposes 270, but no numbering-free channel confirms it.
+         Resolve by MEASURING a FUNCTION-tied mark (cathode band, "+", diode-glyph apex, drain paddle) — NOT a pin-1 dot, which follows pad numbering — then hand-author the row with that evidence and polarity=two-channel.
+
+=== D_DOOR  C5158048  D_SOD-323  board_rot 0
+    model: /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/twin/easyeda/C5158048/jlc.pretty/SOD-323_L1.7-W1.3-LS2.5-BI.kicad_mod
+    PAD-NUMBER  rms        0:  0.1500 90:  1.5945 180:  2.2500 270:  1.5945
+    SIZE-CLASS  spread     (no channel)
+    PAD-CLOUD   rms        0:  0.1500 90:  1.5945 180:  0.1500 270:  1.5945
+    PIN-1-MARK  dist       0:  0.9823 90:  1.6279 180:  1.8180 270:  1.2728
+    ==> offset 0  polarity=single-channel
+        NO usable numbering-free channel (size-class absent, pad cloud degenerate, pin-1 marking inconclusive). A-POL: this row is SINGLE-CHANNEL and MUST name the JLC ORDER-PREVIEW human gate.
+        CPL for D_DOOR = (0 + 0) % 360 = 0
+    ROW: (WITHHELD — single-channel) the fit proposes 0, but no numbering-free channel confirms it.
+         Resolve by MEASURING a FUNCTION-tied mark (cathode band, "+", diode-glyph apex, drain paddle) — NOT a pin-1 dot, which follows pad numbering — then hand-author the row with that evidence and polarity=two-channel.
+
+=== U_DECD  C5620  SOIC-16_3.9x9.9mm_P1.27mm  board_rot 0
+    model: /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/twin/easyeda/C5620/jlc.pretty/SOIC-16_L9.9-W3.9-P1.27-LS6.0-BL.kicad_mod
+    PAD-NUMBER  rms        0:  5.5286 90:  7.8141 180:  5.5286 270:  0.2650
+    SIZE-CLASS  spread     (no channel)
+    PAD-CLOUD   rms        0:  1.5449 90:  0.2650 180:  1.5449 270:  0.2650
+    PIN-1-MARK  dist       0:  6.2425 90:  9.7856 180:  6.5850 270:  0.7655
+    pin-1 marking proposes 270 but is NOT a numbering-free channel — not decisive alone
+    ==> offset 270  polarity=single-channel
+        NO usable numbering-free channel (size-class absent, pad cloud degenerate, pin-1 marking inconclusive). A-POL: this row is SINGLE-CHANNEL and MUST name the JLC ORDER-PREVIEW human gate.
+        CPL for U_DECD = (0 + 270) % 360 = 270
+    ROW: (WITHHELD — single-channel) the fit proposes 270, but no numbering-free channel confirms it.
+         Resolve by MEASURING a FUNCTION-tied mark (cathode band, "+", diode-glyph apex, drain paddle) — NOT a pin-1 dot, which follows pad numbering — then hand-author the row with that evidence and polarity=two-channel.
+
+=== U_LDO  C6186  SOT-223  board_rot 0
+    model: /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/twin/easyeda/C6186/jlc.pretty/SOT-223-3_L6.5-W3.4-P2.30-LS7.0-BR.kicad_mod
+    PAD-NUMBER  rms        0:  6.2186 90:  4.3986 180:  0.1559 270:  4.3986
+    SIZE-CLASS  spread     (no channel)
+    PAD-CLOUD   rms        0:  3.0626 90:  2.1870 180:  0.1559 270:  2.1870
+    PIN-1-MARK  dist       0:  8.4334 90:  4.2145 180:  1.5532 270:  6.8937
+    ==> offset 180  polarity=two-channel
+        both channels agree: pad cloud -> 180 (0.1559mm vs 2.1870mm next)
+        CPL for U_LDO = (0 + 180) % 360 = 180
+    ROW: C6186,180,"SOT-223; measured 2026-07-26 against SOT-223-3_L6.5-W3.4-P2.30-LS7.0-BR.kicad_mod with the pcbnew-verified operator. PAD-NUMBER fit: offset 180, rms 0.1559mm vs 4.3986mm next best over 4 pads. NUMBERING-FREE: both channels agree: pad cloud -> 180 (0.1559mm vs 2.1870mm next)",two-channel
+
+=== U_SCHM  C6820  SOIC-14_3.9x8.7mm_P1.27mm  board_rot 0
+    model: /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/twin/easyeda/C6820/jlc.pretty/SOIC-14_L8.7-W3.9-P1.27-LS6.0-BL.kicad_mod
+    PAD-NUMBER  rms        0:  5.0885 90:  7.1948 180:  5.0885 270:  0.1450
+    SIZE-CLASS  spread     (no channel)
+    PAD-CLOUD   rms        0:  1.3827 90:  0.1450 180:  1.3827 270:  0.1450
+    PIN-1-MARK  dist       0:  5.4239 90:  8.5777 180:  5.8338 270:  0.5228
+    pin-1 marking proposes 270 but is NOT a numbering-free channel — not decisive alone
+    ==> offset 270  polarity=single-channel
+        NO usable numbering-free channel (size-class absent, pad cloud degenerate, pin-1 marking inconclusive). A-POL: this row is SINGLE-CHANNEL and MUST name the JLC ORDER-PREVIEW human gate.
+        CPL for U_SCHM = (0 + 270) % 360 = 270
+    ROW: (WITHHELD — single-channel) the fit proposes 270, but no numbering-free channel confirms it.
+         Resolve by MEASURING a FUNCTION-tied mark (cathode band, "+", diode-glyph apex, drain paddle) — NOT a pin-1 dot, which follows pad numbering — then hand-author the row with that evidence and polarity=two-channel.
+
+=== U_COMP  C7984  SOIC-8_3.9x4.9mm_P1.27mm  board_rot 0
+    model: /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/twin/easyeda/C7984/jlc.pretty/SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL.kicad_mod
+    PAD-NUMBER  rms        0:  4.1820 90:  5.9096 180:  4.1820 270:  0.2351
+    SIZE-CLASS  spread     0:  0.0000 90:  0.0000 180:  0.0000 270:  0.0000
+    PAD-CLOUD   rms        0:  1.6755 90:  0.2351 180:  1.6755 270:  0.2351
+    PIN-1-MARK  dist       0:  3.4742 90:  5.1685 180:  3.9655 270:  1.0508
+    pin-1 marking proposes 270 but is NOT a numbering-free channel — not decisive alone
+    ==> offset 270  polarity=single-channel
+        NO usable numbering-free channel (size-class degenerate, pad cloud degenerate, pin-1 marking inconclusive). A-POL: this row is SINGLE-CHANNEL and MUST name the JLC ORDER-PREVIEW human gate.
+        CPL for U_COMP = (0 + 270) % 360 = 270
+    ROW: (WITHHELD — single-channel) the fit proposes 270, but no numbering-free channel confirms it.
+         Resolve by MEASURING a FUNCTION-tied mark (cathode band, "+", diode-glyph apex, drain paddle) — NOT a pin-1 dot, which follows pad numbering — then hand-author the row with that evidence and polarity=two-channel.
+
+=== U_LATCHA  C8185  SOT-353_SC-70-5  board_rot 0
+    model: /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/twin/easyeda/C8185/jlc.pretty/SOT-353_L2.1-W1.3-P0.65-LS2.3-BR.kicad_mod
+    PAD-NUMBER  rms        0:  2.0133 90:  1.4236 180:  0.0024 270:  1.4236
+    SIZE-CLASS  spread     (no channel)
+    PAD-CLOUD   rms        0:  0.4443 90:  0.4387 180:  0.0024 270:  0.4387
+    PIN-1-MARK  dist       0:  2.5812 90:  1.3248 180:  0.4355 270:  2.0975
+    ==> offset 180  polarity=two-channel
+        both channels agree: pad cloud -> 180 (0.0024mm vs 0.4387mm next)
+        CPL for U_LATCHA = (0 + 180) % 360 = 180
+    ROW: C8185,180,"SOT-353_SC-70-5; measured 2026-07-26 against SOT-353_L2.1-W1.3-P0.65-LS2.3-BR.kicad_mod with the pcbnew-verified operator. PAD-NUMBER fit: offset 180, rms 0.0024mm vs 1.4236mm next best over 5 pads. NUMBERING-FREE: both channels agree: pad cloud -> 180 (0.0024mm vs 0.4387mm next)",two-channel
+
+=== D_KSTOP  C8678  D_SMA  board_rot 0
+    model: /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/twin/easyeda/C8678/jlc.pretty/SMA_L4.3-W2.6-LS5.2-RD.kicad_mod
+    PAD-NUMBER  rms        0:  0.2000 90:  2.9732 180:  4.2000 270:  2.9732
+    SIZE-CLASS  spread     (no channel)
+    PAD-CLOUD   rms        0:  0.2000 90:  2.9732 180:  0.2000 270:  2.9732
+    PIN-1-MARK  dist       0:  2.8723 90:  3.9271 180:  3.2977 270:  1.9242
+    ==> offset 0  polarity=single-channel
+        NO usable numbering-free channel (size-class absent, pad cloud degenerate, pin-1 marking inconclusive). A-POL: this row is SINGLE-CHANNEL and MUST name the JLC ORDER-PREVIEW human gate.
+        CPL for D_KSTOP = (0 + 0) % 360 = 0
+    ROW: (WITHHELD — single-channel) the fit proposes 0, but no numbering-free channel confirms it.
+         Resolve by MEASURING a FUNCTION-tied mark (cathode band, "+", diode-glyph apex, drain paddle) — NOT a pin-1 dot, which follows pad numbering — then hand-author the row with that evidence and polarity=two-channel.
+
+=== U_ULNA  C9683  SOIC-18W_7.5x11.6mm_P1.27mm  board_rot 0
+    model: /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/twin/easyeda/C9683/jlc.pretty/SOIC-18_L11.6-W7.5-P1.27-LS10.3-BL.kicad_mod
+    PAD-NUMBER  rms        0:  8.1344 90: 11.5027 180:  8.1344 270:  0.1500
+    SIZE-CLASS  spread     (no channel)
+    PAD-CLOUD   rms        0:  2.6238 90:  0.1500 180:  2.6238 270:  0.1500
+    PIN-1-MARK  dist       0:  8.4290 90: 12.5421 180:  8.8329 270:  1.3918
+    pin-1 marking proposes 270 but is NOT a numbering-free channel — not decisive alone
+    ==> offset 270  polarity=single-channel
+        NO usable numbering-free channel (size-class absent, pad cloud degenerate, pin-1 marking inconclusive). A-POL: this row is SINGLE-CHANNEL and MUST name the JLC ORDER-PREVIEW human gate.
+        CPL for U_ULNA = (0 + 270) % 360 = 270
+    ROW: (WITHHELD — single-channel) the fit proposes 270, but no numbering-free channel confirms it.
+         Resolve by MEASURING a FUNCTION-tied mark (cathode band, "+", diode-glyph apex, drain paddle) — NOT a pin-1 dot, which follows pad numbering — then hand-author the row with that evidence and polarity=two-channel.

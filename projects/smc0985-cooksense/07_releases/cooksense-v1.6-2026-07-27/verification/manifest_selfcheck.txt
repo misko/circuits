@@ -1,0 +1,34 @@
+MANIFEST SELF-CHECK — cooksense-v1.6-2026-07-27
+
+BIDIRECTIONAL. Both directions are graded, because only one of them catches a
+release that gained a file after the fact: a table row with no file is a missing
+artifact, and a file with no table row is unaccounted-for.
+
+  table rows                              88
+  files in the archive (excl. MANIFEST)   88
+  orphan table rows (row, no file)        0   []
+  unlisted files (file, no row)           0   []
+  digest mismatches                       0   []
+
+TWO FILES ARE EXCLUDED FROM THE DIGEST COMPARISON HERE, AND BOTH ARE NAMED
+RATHER THAN QUIETLY SKIPPED:
+
+  MANIFEST.txt   cannot hash itself. This is the one exclusion the 07_releases
+                 contract states.
+  verification/manifest_selfcheck.txt
+                 cannot hash itself EITHER, for the same reason one step removed:
+                 its digest is computed from the bytes that exist AFTER it is
+                 written, so a run that hashed it here would be hashing the file
+                 it is in the middle of producing. Its row IS in the table and IS
+                 verified — by the EXTERNAL check below, run after this file was
+                 final.
+
+RE-VERIFIED BY A DIFFERENT PROGRAM (canon M1). The table above was written by
+python's hashlib; it is re-read and re-checked by `sha256sum -c`, a separate
+implementation that shares no code with it. That command is run as the LAST step
+of the seal, over all 88 rows including this file's own, and its exit
+code and output are recorded verbatim in the seal commit message. A checker that
+validates its own output proves nothing, which is why the confirming run is a
+different program and its result lives outside this file.
+
+VERDICT (this file's own checks): PASS

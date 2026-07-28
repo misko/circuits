@@ -1,0 +1,1 @@
+E-INV OK: 85/85 invariants hold against projects/smc0985-cooksense/07_releases/cooksense-v1.6-2026-07-27/source/cooksense.net

@@ -1,0 +1,219 @@
+# Reviewed jlc_twin findings — cooksense MAIN board.
+# HEADER REFRESHED 2026-07-26: this said '2026-07-23, routing-stage successor
+# lead' and described 22 refs / 12 footprint classes, while the body below now
+# covers the v1.3 run (31 PAD-GEOM across 13 codes, plus MIRRORED, POLARITY-FIT,
+# MODEL-REG, FETCH-FAILED and NO-BODY, and a RETIRED entry for C67470). Every
+# entry cites MEASURED evidence (canon M4). Statuses match the twin's finding
+# strings exactly.
+#
+# METHOD for the PAD-GEOM class (22 refs, 12 footprint classes): our pad geometry
+# extracted from 04_kicad/cooksense.kicad_pcb (footprint-local frame), JLC's from
+# the twin's fetched jlc.pretty/*.kicad_mod (scratchpad cook_twin/easyeda/<code>).
+# In EVERY case the pitch and pad TOPOLOGY are identical and the pad-NUMBER fit is
+# non-mirrored (twin status PAD-GEOM, not MIRRORED); the pairwise-span delta is
+# pad LENGTH / fillet-style preference along the across-body axis: KiCad official
+# (IPC/JEDEC nominal) vs EasyEDA house style. For each class the HEEL..TOE extents
+# of both patterns are given plus their shared landing-zone OVERLAP — the lead
+# lands on copper in both patterns. This is the same adjudicated class as
+# usb-hub-3s C83846/C148222 ("KiCad-vs-EasyEDA fillet-length preferences on JEDEC
+# bodies"); the SMB numbers there (4.30 vs 4.72) are byte-identical to D_TVS here.
+# Render check (twin_top.png): every body below mounts centered on its pads;
+# U_OPTO pin-1 dot top-left = our pad 1; audit_board polarity gate (18 checks,
+# incl. pad1=cathode vs footprint marker for every 2-pad polarized part) PASS.
+
+# -- SOT-23 (KiCad SOT-23 vs JLC SOT-23_L2.9-W1.3-P1.90-LS2.4). Same 1.9mm pitch,
+#    3-pad topology. Across-body per side: ours center 0.938 len 1.48 = [0.20..1.68];
+#    JLC center 1.15 len 1.00 = [0.65..1.65] -> JLC pad is a near-SUBSET of ours
+#    (overlap 1.00mm/side). The 2.10-vs-2.49 pad1<->3 span = 2x the 0.212mm center
+#    delta from pad-length difference; lead lands on both.
+- {lcsc: C15127, refs: [Q_COIL, Q_REV, Q_SWA, Q_SWB, Q_SWRHA, Q_SWRHE], status: PAD-GEOM,
+   why: "SOT-23 pad-length class: ours [0.20..1.68] vs JLC [0.65..1.65] per side, overlap 1.00mm (JLC near-subset of ours); pitch 1.90 identical, fit non-mirrored. KiCad official IPC pattern vs EasyEDA house fillet."}
+
+# -- SOT-23-6 (KiCad SOT-23-6 vs JLC SOT-23-6_L2.9-W1.6-P0.95-LS2.8). 0.95mm
+#    pitch identical. Per side: ours [0.48..1.80]; JLC [0.80..1.90]; overlap 1.00mm.
+- {lcsc: C22046, refs: [U_AND1, U_AND2, U_AND3, U_FAULTAND, U_CAND1, U_CAND2,
+          U_DECUEN, U_DECDEN, U_LATCHG, U_OSCLR], status: PAD-GEOM,
+   why: "SOT-23-6 pad-length class: ours [0.475..1.800] vs JLC [0.800..1.900] per side, overlap 1.000mm; pitch 0.95 identical, 6-pad topology matches, fit non-mirrored. v1.2 adds the six NEW 1G11 gates (contactor gate, decoder-enable gates, latch-freeze, one-shot clear) — RE-MEASURED on the v1.2 board, numbers identical to the v1.0 measurement for the original four, as they must be for the same footprint. SEPARATELY: this LCSC's CPL ROTATION was 90deg wrong until 2026-07-25 (name-DB ^SOT-23 gave -90; measured 180, rms 0.213 vs 2.078 next best, 9.8x, 10/10 refs) — fixed by the C22046,180 row in jlc_lcsc_rotations.csv, NOT by this adjudication. A pad-geometry adjudication must never be read as blessing a rotation."}
+
+# -- SOIC-16 3.9x9.9 (KiCad official vs JLC SOIC-16_L9.9-W3.9-P1.27-LS6.0).
+#    1.27mm pitch identical, 16-pad topology matches. Across-body per side: ours
+#    center 2.475 len 1.95 = [1.50..3.45]; JLC center 2.74 len 1.971 = [1.75..3.73];
+#    overlap 1.70mm/side. The 4.95-vs-5.48 pad1<->16 span = 2x the 0.265mm center
+#    delta; the SOIC gull-wing foot (lead span 6.0) lands inside both.
+- {lcsc: C10092, refs: [U_SR1], status: PAD-GEOM,
+   why: "SOIC-16 pad-length class: ours [1.50..3.45] vs JLC [1.75..3.73] per side, overlap 1.70mm; pitch 1.27 identical, fit non-mirrored. KiCad IPC nominal vs EasyEDA toe-extended. (v1.2: U_SR2 deleted, ADR-0011 §5.)"}
+- {lcsc: C16939, refs: [U_ADC], status: PAD-GEOM,
+   why: "SOIC-16 pad-length class, same measurement as C10092: ours [1.50..3.45] vs JLC [1.75..3.73] per side, overlap 1.70mm; pitch identical, fit non-mirrored."}
+- {lcsc: C5620, refs: [U_DECU, U_DECD], status: PAD-GEOM,
+   why: "SOIC-16 pad-length class, same measurement as C10092: ours [1.50..3.45] vs JLC [1.75..3.73] per side, overlap 1.70mm; pitch identical, fit non-mirrored (Nexperia 74HC238D SOIC-16 = same JEDEC body)."}
+
+# -- SOIC-8 (KiCad official vs JLC SOIC-8_L5.0-W4.0-P1.27-LS6.0). Per side:
+#    ours [1.50..3.45]; JLC center 2.71 len 1.95 = [1.73..3.69]; overlap 1.72mm.
+# -- C67470 IS RETIRED, NOT ADJUDICATED. The v1.3 electrical revision replaced the
+#    LM393 (C67470) with the LMV393IDR (C7984) so U_COMP could run off 3V3_ANALOG
+#    and stay inside the comparator's VICR, and added a second device U_COMP2 for
+#    open-thermistor detect. C67470 is on NO refdes on this board (circuit.json
+#    carries no supplier number for it; the v1.3 BOM and CPL contain 0 rows).
+#    The entry below is kept ONLY as a retirement marker: an adjudication that
+#    grades a part which is not fitted is coverage that cannot fail, and it is
+#    exactly how the v1.2 set could look complete while C7984's identical-class
+#    finding went ungraded.
+- {lcsc: C67470, refs: [], status: RETIRED,
+   why: "NOT ON THE v1.3 BOARD. Displaced by C7984 (LMV393IDR) in the v1.3 analog revision; 0 rows in bom_jlc.csv and cpl_jlc.csv, 0 refs in circuit.json. Its former PAD-GEOM adjudication (SOIC-8, ours [1.50..3.45] vs JLC [1.73..3.69] per side, overlap 1.72mm) is superseded by the C7984 entry below, which is re-measured against the land JLC actually ships for the replacement part."}
+# -- SOIC-8 (C7984 LMV393IDR, NEW in v1.3: U_COMP over-temp + U_COMP2 open-detect).
+#    First appearance of this code on the board, so this is a FIRST measurement and
+#    not an inherited one.
+- {lcsc: C7984, refs: [U_COMP, U_COMP2], status: PAD-GEOM,
+   why: "SOIC-8 pad-length class, MEASURED 2026-07-26 against JLC SOIC-8_L5.0-W4.0-P1.27-LS6.0-BL. Twin reports pad1<->pad8 ours 4.950mm vs JLC 5.420mm (d0.470mm) - the SAME KiCad-official-vs-EasyEDA-house-style fillet-length class already adjudicated on this board for C10092/C16939/C5620/C133954 (SOIC-16, 4.95 vs 5.48) and on usb-hub-3s for C83846/C148222. Pitch 1.27 identical, 8-pad topology matches, fit non-mirrored (rms 0.2351mm at 270 vs 4.1820mm next best). The delta is pad LENGTH along the across-body axis, so the lead lands on copper in both patterns; ours is the shorter-toe IPC/JEDEC nominal. NOTE this code is A-POL SINGLE-CHANNEL (dual-row SOIC pad cloud is its own 180 reflection; size-class degenerate) and therefore appears in rotation_human_gate.txt for BOTH refs - the geometry adjudication here does not discharge that obligation."}
+
+# -- SOT-223 (KiCad SOT-223 vs JLC SOT-223-3_L6.5-W3.4-P2.30-LS7.0). 2.3mm lead
+#    pitch identical. Leads: ours center 3.15 len 2.0 = [2.15..4.15]; JLC center
+#    2.97 len 2.5 = [1.72..4.22] -> OUR pad is a SUBSET of JLC's (overlap 2.00mm =
+#    our full pad). Tab: ours [2.15..4.15] vs JLC 2.34-long [1.80..4.14], overlap
+#    1.99mm. The 6.30-vs-5.94 pad2<->4 span = 2x the 0.18mm center delta.
+- {lcsc: C6186, refs: [U_LDO], status: PAD-GEOM,
+   why: "SOT-223 pad-length class: our lead pads [2.15..4.15] are a SUBSET of JLC's [1.72..4.22] (overlap = our full 2.00mm); tab overlap 1.99mm; pitch 2.30 identical, fit non-mirrored."}
+
+# -- DO-214AA / SMB (KiCad D_SMB vs JLC SMB_L4.6-W3.6-LS5.3). Per side: ours
+#    center 2.15 len 2.5 = [0.90..3.40]; JLC center 2.36 len 2.047 = [1.34..3.38];
+#    overlap 2.05mm. IDENTICAL numbers to the adjudicated usb-hub-3s C83846 D_SMB
+#    finding (ours 4.30 vs JLC 4.72 span). Polarity: audit_board pad1=cathode
+#    check PASS; body on-pads in twin_top.png.
+- {lcsc: C113974, refs: [D_TVS], status: PAD-GEOM,
+   why: "D_SMB fillet-length class (== usb-hub-3s C83846, 4.30 vs 4.72): ours [0.90..3.40] vs JLC [1.34..3.38] per side, overlap 2.05mm; leads land on both; polarity gate PASS."}
+
+# -- SOIC-16 3.9x9.9, CD74HC221 (v1.2 NEW part, ADR-0011 s6 non-retriggerable
+#    one-shot; KiCad official vs JLC SOIC-16_L9.9-W3.9-P1.27-LS6.0-BL). Same
+#    footprint CLASS as C10092/U_SR1 above but a DIFFERENT LCSC, so it needs its
+#    own row. 1.27mm pitch identical, 16-pad topology matches, fit non-mirrored.
+#    MEASURED on the v1.2 board: ours per side [1.500..4.745]; JLC
+#    [1.755..4.751]; overlap 2.990mm. The gull-wing foot (lead span 6.0) lands
+#    inside both. Twin reports the pad1<->16 span as 4.95 vs 5.48 = 2x the
+#    0.265mm centre delta, i.e. pad LENGTH, not pitch.
+- {lcsc: C133954, refs: [U_ONESHOT], status: PAD-GEOM,
+   why: "SOIC-16 pad-length class (same class as C10092/U_SR1, different LCSC so its own row): ours [1.500..4.745] vs JLC [1.755..4.751] per side, overlap 2.990mm; pitch 1.27 identical, 16-pad topology matches, fit non-mirrored. KiCad IPC nominal vs EasyEDA toe-extended; the gull-wing foot (LS6.0) lands on copper in both."}
+
+# -- DO-214AC / SMA (KiCad D_SMA vs JLC SMA_L4.3-W2.6-LS5.2). Per side: ours
+#    [0.75..3.25]; JLC [1.20..3.20]; overlap 2.00mm. Same class as usb-hub-3s
+#    C148222 (+0.42mm fillet; here +0.40).
+- {lcsc: C8678, refs: [D_REVCLAMP, D_KSTOP], status: PAD-GEOM,
+   why: "D_SMA fillet-length class (== usb-hub-3s C148222): ours [0.750..3.250] vs JLC [1.200..3.200] per side, overlap 2.000mm; polarity gate PASS (pad1=cathode vs footprint marker). v1.2 adds D_KSTOP (the K_STOP coil flyback, SS34 in the same D_SMA land) — RE-MEASURED on the v1.2 board, byte-identical extents to D_REVCLAMP."}
+
+# -- SOD-323 (KiCad D_SOD-323 vs JLC SOD-323_L1.7-W1.3-LS2.5). Per side: ours
+#    center 1.05 len 0.6 = [0.75..1.35]; JLC center 1.2 len 0.8 = [0.80..1.60];
+#    overlap 0.55mm. Lead span 2.5 -> the lead foot occupies ~[0.85..1.25], fully
+#    inside BOTH patterns' copper.
+- {lcsc: C5158048, refs: [D_ESD_IN, D_ESTOP], status: PAD-GEOM,
+   why: "SOD-323 pad-length class: ours [0.750..1.350] vs JLC [0.800..1.600] per side, overlap 0.550mm covering the full lead-foot zone [0.85..1.25] (LS2.5); polarity gate PASS. v1.2 adds D_ESTOP (the E-stop input clamp, same PESD5V0S1BA land) — RE-MEASURED on the v1.2 board, extents identical to D_ESD_IN."}
+
+# -- 1812 chip polyfuse (KiCad Fuse_1812 vs JLC F1812). Ours center 2.138 len
+#    1.12 = [1.58..2.70] (toe-fillet biased); JLC center 1.85 len 1.407 =
+#    [1.15..2.55] (under-body biased); overlap 0.98mm. The 4.5mm 1812 body's
+#    terminal band (~[1.60..2.25] per side) is inside BOTH. Unpolarized.
+- {lcsc: C89650, refs: [F1], status: PAD-GEOM,
+   why: "1812 fillet-style class: ours [1.58..2.70] (toe bias) vs JLC [1.15..2.55] (under-body bias) per side, overlap 0.98mm covering the full terminal band [1.60..2.25]; unpolarized part."}
+
+# -- SMDIP-4 opto (vendored LTV-817S SMD-gullwing vs JLC OPTO-SMD-4_L4.6-W6.5-
+#    P2.54-LS10.3). 2.54mm pitch identical, 4-pad topology matches. Per side:
+#    ours center 4.765 len 2.0 = [3.76..5.76]; JLC center 5.0 len 3.0 =
+#    [3.50..6.50] -> OUR pad is a SUBSET of JLC's (overlap = our full 2.00mm).
+#    Render: pin-1 dot at top-left = our pad 1 position (verified twin_top.png).
+- {lcsc: C125121, refs: [U_OPTO], status: PAD-GEOM,
+   why: "SMDIP-4, and the delta POINTS THE WRONG WAY - re-measured 2026-07-26 on the v1.3 board. The twin compares pad1<->pad4 CENTRE span (ours 9.530 vs JLC 10.000, d0.470) but the property this land exists to hold is the CLEAR STRIP between the two lead rows, i.e. the LTV-817S input<->output isolation barrier (5000Vrms; 02_parts/LTV-817S-TA1/part.yaml: 'the wide-body SMDIP-4 (W9.53mm) land holds the two lead rows ~9.53mm apart - preserve that full creepage/clearance across the barrier'). MEASURED, footprint-local: OURS rows at x=+-4.765 with 2.00mm-wide pads -> inner edges +-3.765 -> CLEAR STRIP 7.530mm. JLC OPTO-SMD-4_L4.6-W6.5-P2.54-LS10.3-BL rows at y=+-5.000 with 3.00mm-tall pads -> inner edges +-3.500 -> CLEAR STRIP 7.000mm. So JLC separates the ROWS 0.470mm further and then spends 0.265mm per side reaching back toward the barrier, leaving its strip 0.530mm NARROWER than ours. Our land is the CONSERVATIVE one on the only axis that matters, and adopting JLC would ERODE the barrier. Domains split as designed: pads 1/2 = OPTO_LED_A/GND (SELV, -x), pads 3/4 = CONTACTOR_E/CONTACTOR_C (isolated, +x); the strip is additionally denied to tracks/vias/pours on all four layers by the floorplan `opto_barrier` keepout [181.4,85.8,188.6,94.2], and the copper either side is held at 2.0mm by the `opto_isolation_2mm` DRU rule. Pitch 2.54 identical, 4-pad topology matches, fit non-mirrored; render pin-1 dot matches pad 1. This adjudication blesses GEOMETRY only - C125121 also carries a MEASURED rotation row, and the ORDER_README human gate names U_OPTO first because a rotated opto swaps the LED and transistor sides ACROSS the barrier."}
+
+# -- J_PI 2x20 THT pin socket (KiCad PinSocket_2x20_P2.54mm_Vertical vs JLC
+#    HDR-TH_40P-P2.54-V-F-R2-C20). MIRRORED here is a NUMBERING-WIND convention,
+#    not a mirrored land pattern. MEASURED pad maps (footprint-local): ours winds
+#    odd/even as two COLUMNS x={0,-2.54} advancing +y (pad1 (0,0), pad2 (-2.54,0),
+#    pad39 (0,48.26), pad40 (-2.54,48.26)); JLC winds odd/even as two ROWS
+#    y={+1.27,-1.27} advancing +x (pad1 (-24.13,+1.27), pad2 (-24.13,-1.27)).
+#    Rotating either into the other's frame lands the odd/even columns SWAPPED ->
+#    mirror fit 0.00mm, i.e. the PHYSICAL 2x20 2.54mm hole grids are IDENTICAL
+#    and only the pad-number assignment winds oppositely. The part is a
+#    shroudless, keyless, symmetric 40-contact THT socket: each contact connects
+#    ONLY to the hole it sits in — there is no internal die/pin identity to
+#    mirror (unlike the VQFN incident this check exists for). Assembly is
+#    hole-constrained; electrical pin-1 is defined by OUR footprint numbering +
+#    netlist + silk, which the Pi mates to by physical position. Backstop: JLC
+#    order-preview rotation check in ORDER_README (THT rotation is operator
+#    instruction only).
+- {lcsc: C35165, refs: [J_PI], status: MIRRORED,
+   why: "Numbering-wind convention on a symmetric keyless 2x20 THT socket: hole grids identical (mirror fit 0.00mm), ours winds by column (+y), JLC by row (+x); no internal pin identity to mirror, hole-constrained assembly; pin-1 defined by our netlist+silk."}
+# -- C35165 RE-MEASURED FROM FIRST PRINCIPLES ON BOTH SIDES (2026-07-26). The
+#    entry above is correct but states the conclusion; these are the numbers, and
+#    they also settle FLEET TASK #31 (the A-POS datum), so they are recorded here
+#    rather than in a commit body.
+#      JLC land HDR-TH_40P-P2.54-V-F-R2-C20-S2.54-2:
+#         pad  1 (-24.13, +1.27)   pad  2 (-24.13, -1.27)   pad 3 (-21.59, +1.27)
+#         pad 39 (+24.13, +1.27)   pad 40 (+24.13, -1.27)
+#         => array CENTRED on the origin, and JLC winds by ROW (pad 2 is the
+#            other row of the SAME column).
+#      OURS PinSocket_2x20_P2.54mm_Vertical:
+#         pad 1 (0.000, 0.000)  pad 2 (-2.540, 0.000)  pad 3 (0.000, +2.540)
+#         => origin AT PAD 1, and we wind by COLUMN (pad 2 is the next column of
+#            the SAME row). Our pad span runs 0.000 .. +48.260.
+#    THE MIRROR IS THEREFORE A WIND, NOT A REFLECTION: two conventions over an
+#    identical symmetric hole grid, which is why the mirror fit is 0.00mm and the
+#    non-mirror fit is exactly one pitch (2.54mm) off.
+#    A-POS FALLS OUT OF THE SAME GEOMETRY. JLC's CPL datum is the bbox centre of
+#    PAD CENTRES; ours is the footprint anchor, which sits on pad 1. So:
+#         x-component  48.260 / 2      = 24.130 mm   (pad-array half-span)
+#         y-component  2.540  / 2      =  1.270 mm   (half the row pitch)
+#         EUCLIDEAN    hypot(24.130, 1.270) = 24.1634 mm
+#    BOTH published figures are exact and they are DIFFERENT QUANTITIES: 24.130
+#    is the along-the-row component, 24.1634 is the full 2-D anchor->datum shift.
+#    The coordinator's earlier 24.16 was not an approximation of 24.13 — it is
+#    the exact Euclidean shift. MEASURED on the v1.3 board: J_PI anchor
+#    (94.000, 95.000), pad-centre datum (118.130, 96.270), shift 24.1634mm.
+#    NOT ON THE CPL any more (v1.3 declares J_PI process_incompatible: 40/40
+#    plated drilled pads, F.Paste on none, on a service=standard sides=[top]
+#    order), so the datum error is now unreachable on this board as well as
+#    fixed in the exporter. Independent A-POS re-derivation over the v1.3 CPL:
+#    189/189 rows on-datum, worst deviation 0.0000mm.
+#    NO ROTATION ROW for C35165 (coordinator decision 2026-07-26): a wind is not
+#    an offset, so there is nothing measurable to assert.
+
+# =============================================================================
+# v1.3 TWIN RE-RUN, 2026-07-26 — the non-PAD-GEOM classes, adjudicated.
+# Regenerated (never reused, per the 9066ebd/828db4c render-path fix). Counts on
+# the v1.3 board: 184 OK, 184 MODEL-REG-OK, 31 PAD-GEOM (13 codes, all graded
+# above), 9 POLARITY-FIT (6 OK / 3 BLIND), 1 MIRRORED (C35165, above),
+# 1 FETCH-FAILED + 1 NO-BODY (C42400616). No PAD-MISMATCH, no MODEL-REG finding.
+# =============================================================================
+
+# -- MODEL-REG: 184/184 OK. Worst body-to-courtyard offset 0.98mm (J_LOADCELL,
+#    C157991) — a large THT connector body seated on its own courtyard, median
+#    0.00mm across the board. Recorded because this class is where the mount-
+#    handedness incident hid: MODEL-REG once graded the render mount with the
+#    mount's own method (canon M1) and waived a true 14.37mm finding on a shipped
+#    XT60. A clean sweep here is only meaningful because that operator is now
+#    pinned against `kicad-cli pcb render`.
+- {lcsc: ALL, refs: [], status: MODEL-REG,
+   why: "184/184 MODEL-REG-OK on the v1.3 board; worst 0.98mm (J_LOADCELL C157991, THT connector body on courtyard), median 0.00mm. No finding in this class."}
+
+# -- POLARITY-FIT, AND THE TOOL'S CHANNEL IS INVERTED RELATIVE TO THE TRUTH.
+#    This is the entry to read before trusting either tool on a polarized 2-pad
+#    part. MEASURED on the v1.3 board:
+#      BLIND on the two parts that ARE polarized (C113974 SMBJ5.0A, C8678 SS34)
+#      OK    on the one that is NOT (C5158048 PESD5V0S1BA, both pins cathodes)
+#    Neither verdict is usable as delivered, and the reason is the same in both
+#    directions: the twin's numbering-free channel looks for a PIN-1 DOT or an
+#    F.Fab CHAMFER, and a rectifier's CATHODE BAND is neither. jlc_rotation_
+#    measure.py has the same gap and says so in its own withheld verdicts.
+- {lcsc: C113974, refs: [D_TVS], status: POLARITY-FIT,
+   why: "POLARITY-FIT-BLIND is a TOOL GAP, not a missing mark, and the marks are measured: JLC SMB_L4.6-W3.6-LS5.3-RD carries a FULL-HEIGHT F.SilkS cathode band at x=-1.020 (y -1.890..+1.890) and filled cathode-end polygons spanning x=-2.668..-3.125 (y +1.249..+1.962), with pad 1 at x=-2.36 => cathode at -x. OURS Diode_SMD:D_SMB: pad 1 at x=-2.150, F.SilkS bracket closed edge x=-3.660, F.Fab cathode BAR at x=-0.649 with the triangle APEX at x=-0.649 against a base at x=+0.501 (a diode triangle points at its cathode) => cathode at -x. BOTH WEST => offset 0, agreeing with the pad-NUMBER fit (rms 0.2100 vs 3.1925 next best). The twin reports BLIND because its numbering-free channel looks for a pin-1 DOT or an F.Fab CHAMFER and a cathode BAND is neither. Landed as C113974,0,two-channel on that measured evidence (be6e750), cross-checked against the SAME JLC land on usb-hub-3s-v3 (C113976, C83846). The tool's own pin-1-marking channel proposes 270 here and is WRONG, which is why a pin-1 dot is not admissible on a part whose polarity is carried by a band."}
+- {lcsc: C8678, refs: [D_KSTOP, D_REVCLAMP], status: POLARITY-FIT,
+   why: "POLARITY-FIT-BLIND, same tool gap as C113974, same resolution. MEASURED: JLC SMA_L4.3-W2.6-LS5.2-RD carries a full-height F.SilkS cathode band at x=-0.880 (y -1.430..+1.430) and filled cathode-end polygons x=-2.512..-2.973 (y +1.096..+1.503), pad 1 at x=-2.20 => cathode -x. OURS Diode_SMD:D_SMA: pad 1 at x=-2.000, silk bracket closed edge x=-3.510, F.Fab cathode bar at x=-0.649, triangle apex (-0.649,+0.001) against a base at x=+0.501, cathode lead running to x=-1.551 => cathode -x. BOTH WEST => offset 0, pad-NUMBER fit agrees (rms 0.2000 vs 2.9732). Landed as C8678,0,two-channel (be6e750), cross-checked against crow-recorder-central-v2 C87074 on the same JLC land. Tool pin-1 channel proposes 270 and is WRONG."}
+- {lcsc: C5158048, refs: [D_DOOR, D_ESD_IN, D_ESTOP, D_LCCLK, D_LCDAT], status: POLARITY-FIT,
+   why: "POLARITY-FIT-OK IS A FALSE-CONFIDENCE PASS HERE — it reports agreement about a property this device does not have. The twin says 'marking channel agrees with the pad fit (both at pad 1; margins 0.56/0.41mm)', but the ARCHIVED manufacturer datasheet (Nexperia PESD5V0S1BA, 26 April 2024, now at 02_parts/PESD5V0S1BA/PESD5V0S1BA_2024-04-26.pdf) section 5 Table 2 gives pin 1 = K1 'cathode (diode 1)' and pin 2 = K2 'cathode (diode 2)', graphic symbol sym045 = back-to-back zeners with no anode pin brought out; section 10: 'suitable on lines where the signal polarities are both positive and negative with respect to ground'. BOTH PINS ARE CATHODES, so a 180deg rotation is electrically identical and there is no orientation to confirm. The mark the twin matched is OUR unidirectional-looking Diode_SMD:D_SOD-323 cathode band against JLC's SOD-323 land, i.e. two libraries agreeing about a polarity the part does not have. Note also that JLC's own land NAME carries the BI (bidirectional) suffix while its drawing still inherits the shared SOD323 note '1. The marking bar indicates the cathode'. LOGGED SEPARATELY as a v1.4 cosmetic defect: our silk asserts a cathode on five refs (D_DOOR, D_ESD_IN, D_ESTOP, D_LCCLK, D_LCDAT); the assembly risk is nil (JLC follows the CPL, not our silk) but a REVIEWER hand-checking the board may 'correct' a placement that was already right. Not fixed in v1.3 — five footprint swaps after the DRC gate was measured is not worth invalidating it."}
+- {lcsc: C2887273, refs: [CE1], status: POLARITY-FIT,
+   why: "POLARITY-FIT-OK and GENUINE: a polarized aluminium electrolytic whose polarity IS carried by a chamfer, which is a shape the twin's channel can read. Twin: 'marking channel agrees with the pad fit (both at pad 1; margins 1.03/0.25mm)'. Independently, the landed row measures JLC's silk chamfer running -1.98,3.38 -> -3.38,1.98 on the -x (pad-1) end, matching our pad-1 end, offset 0, rms 0.0300 vs 3.7972 at 90 (127x). SEPARATELY AND IMPORTANTLY: the export raises ROT-XCHECK-180 on this code (MEASURED 0 vs advisory name-DB 180, EXACTLY 180 apart) and the measurement wins — the '^CP_Elec_6.3x7.7' name-DB rule encodes a different vendor's pad-1 convention, and sealed cooksense v1.0 AND v1.1 both shipped CE1 at 180.0 = REVERSED on a polarized cap. That belongs in SUPERSEDED.md, not here."}
+
+# -- C42400616 (J_ISOLOOP): FETCH-FAILED + NO-BODY, adjudicated as GENUINE LIBRARY
+#    ABSENCE rather than a transient network error, and the CONTROL is what makes
+#    that a part fact instead of a tool gap.
+- {lcsc: C42400616, refs: [J_ISOLOOP], status: FETCH-FAILED,
+   why: "GENUINE ABSENCE FROM JLC'S LIBRARY, established by a same-minute CONTROL rather than by repetition. easyeda2kicad against the EasyEDA/JLC API, same tool, same network: C474892 (KF350-3.5-2P, stockCount 9987, SAME product family) -> FETCHED with its 3D model CONN-TH_P3.50_KF350-3.5-2P; C9900026363 (KF350 4P alternate) -> 'Failed to fetch data from EasyEDA API'; C42400616 (this part) -> same error. The API answered for the 2-pole part of the same family and refused BOTH 4-pole codes, consistent with stockCount 0 on all three 4P lines. Also re-run under JLC_TWIN_FETCH_ATTEMPTS=8 with the same result. CONSEQUENCE: this part cannot be twin-verified or model-fitted, and does not need to be — it is not_assembled (not_in_catalog), hand-soldered, and carries exclude_from_pos_files so it is OFF the CPL. NO rotation row (coordinator decision 2026-07-26): an offset nobody can measure must not become a table authority. Orientation evidence lives in 02_parts/KF350-3.5-4P/part.yaml `orientation:` and in the ORDER_README pole legend, which is the real gate because the whole risk is a human landing four wires."}
+- {lcsc: C42400616, refs: [J_ISOLOOP], status: NO-BODY,
+   why: "Consequence of FETCH-FAILED above, not an independent finding: with no CAD there is no 3D body to mount, so bodies mounted is 185/186. The one absent body is a hand-soldered THT screw terminal that is off the CPL."}
+

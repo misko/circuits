@@ -1,0 +1,59 @@
+# FRESHNESS GATE — v1.6, and it needs NO identity exceptions at all.
+#
+# FORMAT (release_freshness_check.py `_load_exceptions`): one `<relpath>
+# <reason>` per line; `#` lines are prose. A path with NO reason is itself a
+# FAIL — "a waiver needs evidence".
+#
+# THIS FILE DELIBERATELY LISTS ZERO PATHS.
+# ----------------------------------------
+# v1.5 shipped SIX exceptions here, and correctly: that release RE-PLOTTED its
+# gerbers and CHANGED source/cooksense.tsx, so no narrow supersede mode
+# described it and the gate ran in FULL-RELEASE mode, where identity with an
+# earlier release IS the finding and each identity had to be argued one file at
+# a time.
+#
+# v1.6 is a different shape. It regenerates NOTHING. fab/, source/ and 3d/ are
+# byte-for-byte the same files v1.5 sealed, carried across unopened, and pdf/
+# likewise. The gate is therefore run as:
+#
+#     release_freshness_check.py 07_releases/cooksense-v1.6-2026-07-27 \
+#         --docs-only-supersede 07_releases/cooksense-v1.5-2026-07-27
+#
+# In that mode the stale check is REPLACED by an ASSERTION: every file under
+# fab/, source/ and 3d/ is sha256-compared in BOTH directions against
+# cooksense-v1.5-2026-07-27, and a differing, missing or ADDED file is a FAIL.
+# The 07_releases/ contract is explicit that this is the required treatment —
+# "Never waive fab-identical files one-by-one for this case; the mode asserts
+# the identity instead of flagging it" — so a v1.6 that shipped six waivers
+# would be the weaker document, not the more careful one.
+#
+# The mode also REQUIRES ORDER_README.md and MANIFEST.txt to differ from v1.5's.
+# Both do; that is the entire content of this release.
+#
+# WHY THE OTHER FOUR MODES ARE NOT USED, CHECKED RATHER THAN ASSUMED
+# ------------------------------------------------------------------
+#   --bom-only / --cpl-only / --legible-bom / --sourcing  each relax exactly one
+#   fab/ file and then assert something stronger about it. v1.6 changes no fab/
+#   file at all, so every one of them would be a weaker claim than docs-only.
+#   docs-only is the strictest mode this release can satisfy, which is the one
+#   to run.
+#
+# WHAT DID CHANGE
+# ---------------
+#   ORDER_README.md      section 10 rewritten (three housings -> five, the
+#                        "any single cross-plug is fail-safe" claim WITHDRAWN, a
+#                        20-cell cross-plug matrix, a mandatory discipline);
+#                        new section 7a (two host-firmware invariants);
+#                        section 7 step 3 REARM_N marked PULSE;
+#                        section 13 gaps 19-23; E-INV row 83/83 -> 85/85
+#   MANIFEST.txt         rewritten for this release
+#   verification/        crossplug_and_permission_defaults.md   NEW
+#                        redteam_adversarial.md                 NEW (verbatim
+#                                                               08_reviews copy)
+#                        einv.txt          83/83 -> 85/85
+#                        policy_audit.md   regraded against THIS release
+#                        dispositions.md   A1/A2/A3 rows appended
+#                        INDEX.md          currency restated
+#                        freshness_exceptions.txt   this file
+#   Everything else in verification/ is carried unchanged and is still current,
+#   because it describes a board that did not move.

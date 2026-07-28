@@ -1,0 +1,174 @@
+# cooksense POWER TREE — canon E-TOPO.
+#
+# cooksense is ALL-LINEAR by design (ARCHITECTURE.md "Power"; commission journal
+# 01_commission E-TOPO N-A): a 5V SELV input, protection (polyfuse + reverse-pol
+# P-FET + TPS259573 eFuse with programmable OVLO cutoff + SMBJ5.0A TVS + bulk), an
+# AMS1117-3.3 LINEAR LDO for 3V3, a ferrite split to 3V3_ANALOG, and per-sensor
+# high-side P-FET LOAD SWITCHES (AO3401A) for the switched 3V3 sensor rails. There
+# is NO switching converter (no buck / boost / buck_boost) anywhere on the board.
+#
+# ##########################################################################
+# v1.5, 2026-07-27 — THE PARAGRAPH BELOW WAS TRUE UNTIL E-TOPO LEARNED `LINEAR`.
+# It is kept VERBATIM because it is the record of why the gate saw nothing:
+#
+#   "THEREFORE `rails:` is EMPTY: power_topology.py has nothing to derive (it
+#   grades buck/boost/buck_boost topology against a converter part.yaml
+#   `type:`, and none exists here) -> "E-TOPO N-A" exit 0, which is exactly the
+#   intended verdict: the gate CONFIRMS no switching converter is expected.
+#   Listing the LDO/load-switches as `rails:` would (correctly) raise a
+#   LoadError, because their part.yaml `type:` (ldo_3v3_1a / pfet_30v_4a) does
+#   not classify as a switching topology.
+#
+#   The per-rail Vin/Vout ENVELOPES are documented below under `linear_rails:`
+#   (a key the checker ignores) so the intent is captured as data, not only
+#   prose. If any future rev adds a switching converter, MOVE that rail into
+#   `rails:` with its vin/vout/iout/converter and the gate will grade it."
+#
+# On 2026-07-27 power_topology.py gained LINEAR, and with it the two bounds a
+# Vin-vs-Vout topology derivation is blind to: DROPOUT and DISSIPATION. An
+# all-linear board is no longer N-A — it is GRADED, and an empty `rails:` beside
+# an LDO declared in 02_parts is a FAIL (canon M-COVER). So the ONE rail with a
+# LINEAR PASS ELEMENT — 3V3, the AMS1117-3.3 — has MOVED out of `linear_rails:`
+# (documentation the checker ignored) into `rails:` (data the checker grades),
+# with both required numbers CITED to the AMS datasheet.
+#
+# THE OTHER FIVE `linear_rails:` ENTRIES STAY WHERE THEY ARE, AND THAT IS A
+# DECISION, NOT AN OMISSION. `rails:` means "a CONVERTER produces this rail".
+# 5V_PROTECTED (eFuse pass-through), 5V_KEY_RELAY and the four 3V3_SW_* (P-FET
+# load switches) and 5V_STOP (a 0R link) CONVERT NOTHING — Vout IS Vin minus an
+# Rds(on)/ESR drop. Declaring a switch as a `converter:` would make E-TOPO
+# derive a topology for a part that has none, and `type: pfet_30v_4a` does not
+# normalize to any topology the gate knows, so it would raise a LoadError rather
+# than grade anything. 3V3_ANALOG likewise: a ferrite bead is a filter.
+# ##########################################################################
+
+# SOURCE TYPE (canon E-OFF, authoritative). cooksense is EXTERNALLY powered by a
+# 5V SELV supply through the Molex Micro-Fit J_PWR (polyfuse -> reverse-pol P-FET
+# -> TPS259573 eFuse). There is NO self-contained energy source: no battery, cell,
+# pack, supercap, or coin cell anywhere on the board. The only stored energy is the
+# bulk/decoupling caps (µJ, bleed in ms) and the reed-relay coil inductance, which
+# DE-ENERGIZES the instant input is removed (fail-safe: coils drop, contacts open).
+# So there is nothing to "turn off for storage" and no stored quiescent drain to
+# bound — E-OFF is satisfied by construction. (Before this declaration E-OFF matched
+# the word "discharge"/"cell" inside ADR-0006-relay-technology and mis-fired a
+# self-contained-source finding; `source_type:` is authoritative and overrides that
+# heuristic, per power_topology.py classify_source.)
+source_type: external_5v_selv
+
+# THE ONE GRADED RAIL. Every number below is CITED to Advanced Monolithic Systems
+# ds1117 (2009-08 RoHS, 8pp), the datasheet 02_parts/AMS1117-3.3 already names.
+# A copy is in-tree at archived_projects/ble-bus-bar/02_parts/AMS1117-3.3/
+# ds1117_2009-08_RoHS.pdf — page numbers below are that PDF's.
+rails:
+  - name: 3V3
+    converter: AMS1117-3.3     # 02_parts/AMS1117-3.3, type: ldo_3v3_1a -> LINEAR
+    # INPUT ENVELOPE — UNCHANGED from what this file has declared since v1.2, and
+    # deliberately not moved. 5V_PROTECTED is the eFuse output; the eFuse itself
+    # operates 2.7-18V (02_parts/TPS259573DSGR limits) so it imposes NO floor
+    # above 4.5, and the brief commissions only "5V SELV >=2A" with no tolerance.
+    # 4.5 is therefore the board's honest low corner, and it is the number that
+    # makes the DROPOUT line below fail. Raising it to 4.75 would make E-TOPO
+    # pass with 51 mV to spare; that would be fitting a number to a gate.
+    vin_min: 4.5
+    vin_max: 5.5
+    # OUTPUT ENVELOPE — CITED. ds1117 p.2, ELECTRICAL CHARACTERISTICS, "Output
+    # Voltage" row, device AMS1117-3.3, condition VIN = 4.8V. The BOLDFACE figures
+    # are the ones that "apply over the full operating temperature range" (the
+    # table's own note): Min 3.201 / Typ 3.300 / Max 3.399 V. v1.0-v1.4 carried
+    # 3.234/3.366 here, which is nominal +-2% — a plausible-looking number that is
+    # NOT in the datasheet. Replaced with the cited full-temperature limits.
+    vout_min: 3.201
+    vout_max: 3.399
+    iout_max_A: 0.3            # logic: 595/238/HC14/1G-family/MCP23017/watchdog/one-shot
+    # DROPOUT — CITED, AND THE RAIL'S OWN LOAD FIGURE IS **OWED**.
+    # ds1117 p.3, ELECTRICAL CHARACTERISTICS (continued), "Dropout Voltage
+    # (VIN - VOUT)" row, devices AMS1117-1.5/-1.8/-2.5/-2.85/-3.3/-5.0, condition
+    # "dVOUT, dVREF = 1%, IOUT = 0.8A (Note 4)": Typ 1.1 V, **Max 1.3 V**.
+    # Corroborated by the JLC catalog record for C6186, read live 2026-07-27,
+    # whose `describe` carries `1.1V@(800mA)`.
+    #
+    # THIS RAIL DRAWS 0.3 A, NOT 0.8 A, AND THE DATASHEET PUBLISHES NO NUMBER
+    # THERE. p.1 General Description says only "The dropout voltage of the device
+    # is guaranteed maximum 1.3V, DECREASING AT LOWER LOAD CURRENTS", and Note 4
+    # (p.3) says "Dropout voltage is specified up to 0.8A load. For currents over
+    # 0.8A dropout will be higher" — it bounds the HIGH side and says nothing
+    # about the low side. The TYPICAL PERFORMANCE CHARACTERISTICS page (p.6) has
+    # six curves and NOT ONE of them is dropout-vs-load-current: they are Minimum
+    # Operating Current, Short-Circuit Current, Load Regulation, Ripple Rejection
+    # vs Current, Temperature Stability and Adjust Pin Current.
+    #
+    # So the dropout at 0.3 A is **OWED** (canon M-OWED): nobody in this tree has
+    # it. HOW TO OBTAIN IT: bench-measure VIN-VOUT at IOUT = 0.3 A on the first
+    # assembled board while sweeping VIN down until VOUT leaves the 3.201 V floor
+    # — that is a MEASURED fact and it retires this note. It is NOT obtainable
+    # from a clone vendor's AMS1117 curve: C6186's componentBrandEn is "Advanced
+    # Monolithic Systems" (read live 2026-07-27), so ds1117 is the authoritative
+    # document and another die's curve is the adjacent-property error.
+    #
+    # The number declared is the ONLY CITED one, at 2.67x this rail's load. It is
+    # conservative by an UNQUANTIFIED margin, and it FAILS:
+    #   headroom = 4.500 - 3.399 = 1101 mV  vs  dropout 1300 mV  -> short 199 mV
+    # An invented 0.3 A figure would clear it. That is exactly what this file will
+    # not do.
+    dropout_mv: 1300
+    # DISSIPATION — CITED. ds1117 p.3, Note 2: "the maximum power dissipation of
+    # **1.2 W for SOT-223**, 2.2W for TO-252 and 780mW for 8-Lead SOIC". U_LDO is
+    # the SOT-223 (02_parts/AMS1117-3.3 package). Not derated further: the tab is
+    # VOUT and is flooded with 3V3 copper (that part.yaml's layout `notes`), which
+    # is the mounting Table 1 (p.5) characterises at 55-65 C/W.
+    #   PD = (5.500 - 3.201) x 0.3 = 690 mW  vs  1200 mW  -> 57%, PASS
+    pdiss_max_mw: 1200
+
+# Documentation-only (ignored by power_topology.py). Each linear rail's envelope.
+# 3V3 is NO LONGER LISTED HERE — it moved into `rails:` above, and keeping a
+# second copy would be two homes for one fact (they would drift, and the one the
+# gate does not read would be the one someone edited).
+linear_rails:
+  - name: 5V_PROTECTED
+    kind: protection_pass          # eFuse pass-through (no conversion)
+    vin_min: 4.5
+    vin_max: 5.5                    # nominal 5V SELV; eFuse OVLO cutoff set ~5.5-6V (R_OVT/R_OVB)
+    vout_min: 4.5
+    vout_max: 5.5
+    iout_max_A: 2.0                # whole-board worst: 12 reed coils ~120mA + logic + sensors
+    element: TPS259573DSGR         # eFuse (efuse_ovlo) — current-limit + OVLO cutoff, NOT a converter
+    note: "5V SELV in -> polyfuse F1 -> reverse-pol P-FET Q_REV -> eFuse -> 5V_PROTECTED"
+  - name: 5V_KEY_RELAY
+    kind: gated_load_switch         # AND-chain-gated high-side P-FET (AO3401A Q_COIL)
+    vin_min: 4.5
+    vin_max: 5.5
+    vout_min: 4.5
+    vout_max: 5.5
+    iout_max_A: 0.15               # reed coils ~120mA worst (only 1U+1D+PRESS energised at once)
+    element: AO3401A
+    note: "5V_PROTECTED -> Q_COIL (gated by the safety AND-chain) -> reed-coil rail"
+  - name: 5V_STOP
+    kind: always_available_link     # v1.2 (ADR-0011 §4): 0R link, deliberately UNGATED
+    vin_min: 4.5
+    vin_max: 5.5
+    vout_min: 4.5
+    vout_max: 5.5
+    iout_max_A: 0.02               # one DIP05 reed coil (~10mA) + margin
+    element: R_STOPRAIL (0R)
+    note: "5V_PROTECTED -> R_STOPRAIL -> 5V_STOP: K_STOP's coil rail, present whenever
+      the board is powered. NOT gated by the AND-chain/Manual pole — the STOP relay must
+      survive the faults that kill 5V_KEY_RELAY (review F3c). Driver = dedicated 2N7002
+      Q_STOPDRV from STOP_REQ (100k pull-down), flyback D_KSTOP across the coil."
+  - name: 3V3_ANALOG
+    kind: ferrite_filtered
+    vin_min: 3.201                  # = the 3V3 rail's cited output envelope (`rails:` above)
+    vin_max: 3.399
+    vout_min: 3.2
+    vout_max: 3.399
+    iout_max_A: 0.05              # MCP3208 VDD/VREF + thermistor ref dividers + comparator threshold
+    element: GZ2012D601TF          # ferrite bead (600R@100MHz) split off 3V3
+    note: "3V3 -> ferrite FB1 -> 3V3_ANALOG (ADC ref + thermistor bias, kept off digital noise)"
+  - name: 3V3_SW_A / 3V3_SW_B / 3V3_SW_RHA / 3V3_SW_RHE
+    kind: switched_load_switch      # per-sensor high-side P-FET (AO3401A) for stuck-I2C power-cycling (ADR-0004)
+    vin_min: 3.201                  # = the 3V3 rail's cited output envelope (`rails:` above)
+    vin_max: 3.399
+    vout_min: 3.2
+    vout_max: 3.399
+    iout_max_A: 0.1               # one MLX90640 camera or SHT45 + its bus pullups per rail
+    element: AO3401A
+    note: "3V3 -> Q_SW{A,B,RHA,RHE} (enabled by MCP23017) -> switched sensor rail; bus pullups die with the rail (ADR-0004 N1)"
