@@ -1,0 +1,20 @@
+A-RENDER twin_overlay.py --side bottom — run 2026-07-28 (v1.12)
+Command:
+  twin_overlay.py 07_releases/v1.12-2026-07-28/source/usb_hub_3s_v2.kicad_pcb \
+    06_build/twin_v112/twin_bottom.png --side bottom --twin-dir 06_build/twin_v112 \
+    --bom fab/bom.csv --assembly 03_src/rules/assembly.yaml --twin-report twin_report.csv
+
+OVERLAY REFUSED: no footprint has a courtyard on the B.CrtYd layer, but 129 have one
+on the other side. Either --side is wrong for this render or this board has nothing on
+the named side; drawing the OTHER side's courtyards onto it is what this refusal exists
+to stop.
+exit=2
+
+UNCHANGED from v1.11, and it is the CORRECT result rather than a gap. All 119 CPL
+placements are on the top side (assembly_coverage.txt: 'placement histogram: top=119'),
+so this board has no populated bottom side and "both sides that carry parts" is one
+side. The gate refuses rather than drawing the top side's courtyards onto a bottom
+render — the failure mode the refusal exists to stop.
+verification/render_bottom_bare.png is still shipped as the no-component truth view of
+that face, and v1.12 changes it: the four J5 shell slots and the two alignment holes
+moved/resized, so the bottom face is not identical to v1.11's.

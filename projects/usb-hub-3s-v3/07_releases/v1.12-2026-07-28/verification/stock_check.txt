@@ -1,0 +1,14 @@
+  OK               C6165170   x1   SMD2920-700/16N                        expand stock=3204
+  OK               C2939728   x1   SS12D07VG6-087                         expand stock=52996
+  OK               C473910    x2   TPS2513ADBVR                           expand stock=65
+  OK               C130056    x3   TPS2557DRBR                            expand stock=7104
+  OK               C5337088   x1   TYPE-C-31-M-12A                        expand stock=84
+  OK               C7519      x4   USBLC6-2SC6                            expand stock=29633
+  OK               C98732     x1   XT60PW-M                               expand stock=8434
+json -> 07_releases/v1.12-2026-07-28/verification/stock_check.json
+
+PASS: 46/46 coded BOM lines have stock >= 5 x qty (0 with problems); 0/46 lines carry NO LCSC and were NOT graded by this tool
+  SCOPE: graded against LCSC CATALOG stock (stockCount). JLC's assembly uploader
+  allocates from a DIFFERENT pool, so a PASS here does NOT mean the line will
+  clear at order time. A FAIL is real; a PASS is necessary and not sufficient.
+  The only instrument that answers 'will it clear' is the uploader itself — F-ECHO.

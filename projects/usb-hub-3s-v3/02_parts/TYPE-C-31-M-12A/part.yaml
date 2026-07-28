@@ -9,6 +9,70 @@ datasheet:
   fetched: 2026-07-21
 package: USB-C 16P SMT pins + 4 TH shell legs, horizontal
 footprint: usb_hub_3s:TYPE-C-31-M-12_EdgeTrim
+# ---- v1.12 (2026-07-28): the footprint COPPER is now AUTHORED FROM THIS SHEET ----
+# Up to and including v1.11 the named footprint was KiCad's stock
+# Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12 with three silk lines removed,
+# and that stock geometry DISAGREES with this part. The file keeps its name (the
+# board, the BOM Footprint column and this dossier all reference it) but its copper
+# is no longer inherited. Never swap it back for the stock library part.
+land_pattern:                       # HRO TYPE-C-31-M-12A REV A 2022.10.26,
+  source: "datasheet p.1 view 'RECOMMEND P.C.B LAYOUT (COMPONENT SIDE)'"
+  tolerance: "+/-0.05 (the view states its own tolerance)"
+  datum: "alignment-hole centreline; pad row sits 1.070 toward the pad side"
+  pad_row_to_alignment: 1.070       # was 1.445 (stock) -> the v1.12 defect
+  pad_len: 1.140                    # was 1.450 (stock); = 1.64 - 0.50 on the sheet
+  pad_w: {narrow: 0.30, wide: 0.60} # "8-0.30" / "4-0.60"
+  pitch: 0.50
+  spans: {A5_A8: 2.50, B8_B5: 3.50, A4_B4: 4.80, A1_B1: 6.40}   # 4.80/6.40 were 4.90/6.50
+  alignment: {span: 5.78, dia: 0.60, post_dia: 0.50}
+  shell_slots: {span: 8.65, separation: 4.18, front_offset: 0.50,
+                pad_w: 0.90, drill_w: 0.60,
+                front: {pad_h: 2.00, drill_h: 1.70},
+                rear:  {pad_h: 1.70, drill_h: 1.40}}
+  pcb_edge_from_alignment: 5.79     # sheet nominal. THIS BOARD USES 5.600 - a
+                                    # PRE-EXISTING edge position carried from v1.0 and
+                                    # UNTOUCHED by v1.12. Not "deliberate": no decision
+                                    # record exists and floorplan.yaml's J5 entry carries
+                                    # no note about the vendor's 5.79. Benign in
+                                    # DIRECTION - the mouth overhangs the edge by 0.680
+                                    # where the vendor intends 0.490, i.e. MORE plug
+                                    # clearance - but it is 3.8x the sheet's own +/-0.05.
+  verified: "three independent sources, 2026-07-28. (1) raster measurement of the
+    sheet at 600 dpi, scale calibrated on four pad-centre spans (S=105.1268 px/mm):
+    datum 1.0654, pad_len 1.1415, front slot offset 0.4985, slot span 8.6510.
+    (2) EasyEDA/JLC C5337088 packageDetail.dataStr.shape parsed at 10 mil/unit:
+    datum 1.070102, pad_len 1.14000, front slot offset 0.500126, slot span 8.64972.
+    (3) the HRO base TYPE-C-31-M-12 sheet REV A 2020.12.08 (sha256
+    6ae33d50ac47820114661138dc4e4659f40fdc5d4f485b46685dfec338da1a9e, read as a
+    working copy, NOT committed here) carries a dimension-for-dimension identical
+    recommended layout, so this is not an M-12 vs M-12A variant difference.
+    NOTE the 8.64 on the sheet's FRONT VIEW is the PART's leg span, a different
+    dimension from the layout view's 8.65 slot centres."
+  lead: # MEASURED from JLC's own 3D mesh, anchored on the part's own datum
+    source: "sheet top view '0.40 +/- 0.10' tail projection past the '7.35' housing;
+      cross-checked against .easyeda_cache/8fd25e967d514fadb32489eb3c21393e.obj
+      (3379 verts, bbox 8.9400 x 7.7500 x 4.2900 = 8.94 wide, 7.35+0.40 deep)"
+    datum_check: "posts measured dia 0.5000 at x = +/-2.8900, span 5.7800 — the
+      sheet's 2-phi0.50 / 5.78 exactly, so the mesh is anchored on the same datum
+      the land pattern is"
+    tail_projection: 0.400          # past the housing back face
+    tail_from_alignment: [1.070, 1.470]   # solderable extent, +ve = away from the mouth
+    contact_width: 0.20             # sheet top view '16-0.20 +/- 0.05'
+    fillet_balance:                 # land minus tail, at the recommended pattern
+      heel: 0.570                   # mouth side, where the tail leaves the housing
+      toe: 0.170                    # past the tail tip
+    note: "DO NOT equate the recommended LAND with the LEAD. A land is lead plus
+      fillets; v1.12's first severity write-up made that substitution and produced
+      an '80.7% overlap' figure that was a land-vs-land ratio. The tail is 100% on
+      its land under BOTH the stock and the corrected pattern; what the stock
+      pattern broke was the fillet balance (heel 0.350 vs 0.570) and the paste
+      volume (+27.2% per land on a 0.5 mm pitch)."
+  hole_dia_decision: "0.60 taken, not the 0.65 v1.11 used. Both are inside the
+    sheet's +/-0.05 band and 0.65 was defensible while the pad row was 0.375 mm
+    further away. At the corrected datum it is not: KiCad's shape engine measures
+    land A1/B12 to NPTH hole at 0.1944 mm with 0.65 against this board's
+    min_hole_clearance 0.200 (DRC FAILS - built and measured), and 0.2194 mm with
+    0.60. JLC's own C5337088 package also ships 0.600."
 escape:
   style: connector
   pitch: 0.5

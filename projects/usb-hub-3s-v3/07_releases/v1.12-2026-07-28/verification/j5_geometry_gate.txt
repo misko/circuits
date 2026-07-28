@@ -1,0 +1,249 @@
+J5 LAND-PATTERN GEOMETRY GATE — the measurement behind this release's fix claim
+==============================================================================
+
+Run against THIS RELEASE'S OWN source copy:
+  07_releases/v1.12-2026-07-28/source/usb_hub_3s.pretty/TYPE-C-31-M-12_EdgeTrim.kicad_mod
+
+TWO INSTRUMENTS THAT SHARE NO CODE (canon M1):
+  A  a purpose-written s-expression tokeniser over the RAW .kicad_mod TEXT,
+     compared against dimensions RETYPED BY HAND from the HRO TYPE-C-31-M-12A
+     REV A 2022.10.26 sheet, view 'RECOMMEND P.C.B LAYOUT (COMPONENT SIDE)'.
+     It never imports pcbnew.
+  B  pcbnew.FootprintLoad + KiCad's own shape engine. It never reads the file
+     as text.
+
+INSTRUMENT A — own s-expression parser over the raw .kicad_mod text
+  parsed 22 pads from 07_releases/v1.12-2026-07-28/source/usb_hub_3s.pretty/TYPE-C-31-M-12_EdgeTrim.kicad_mod (9841 bytes)
+
+INSTRUMENT B — pcbnew.FootprintLoad (KiCad's own model, nm integers)
+  loaded 22 pads; footprint 'TYPE-C-31-M-12_EdgeTrim'
+  KiCad shape-engine min land<->NPTH-hole clearance = 0.2194 mm (nearest land A1)
+
+---- results ----
+  OK   A: alignment span                  got     5.7800  want     5.7800  d=+0.0000
+  OK   A: alignment hole dia              got     0.6000  want     0.6000  d=+0.0000
+  OK   A: alignment hole size             got     0.6000  want     0.6000  d=+0.0000
+  OK   A: alignment hole dia              got     0.6000  want     0.6000  d=+0.0000
+  OK   A: alignment hole size             got     0.6000  want     0.6000  d=+0.0000
+  OK   A: PAD ROW -> ALIGNMENT (datum)    got     1.0700  want     1.0700  d=-0.0000
+  OK   A: pad A1  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   A: pad A1  width                   got     0.6000  want     0.6000  d=+0.0000
+  OK   A: pad A1  x                       got    -3.2000  want    -3.2000  d=+0.0000
+  OK   A: pad A4  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   A: pad A4  width                   got     0.6000  want     0.6000  d=+0.0000
+  OK   A: pad A4  x                       got    -2.4000  want    -2.4000  d=+0.0000
+  OK   A: pad A5  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   A: pad A5  width                   got     0.3000  want     0.3000  d=+0.0000
+  OK   A: pad A5  x                       got    -1.2500  want    -1.2500  d=+0.0000
+  OK   A: pad A6  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   A: pad A6  width                   got     0.3000  want     0.3000  d=+0.0000
+  OK   A: pad A6  x                       got    -0.2500  want    -0.2500  d=+0.0000
+  OK   A: pad A7  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   A: pad A7  width                   got     0.3000  want     0.3000  d=+0.0000
+  OK   A: pad A7  x                       got     0.2500  want     0.2500  d=+0.0000
+  OK   A: pad A8  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   A: pad A8  width                   got     0.3000  want     0.3000  d=+0.0000
+  OK   A: pad A8  x                       got     1.2500  want     1.2500  d=+0.0000
+  OK   A: pad A9  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   A: pad A9  width                   got     0.6000  want     0.6000  d=+0.0000
+  OK   A: pad A9  x                       got     2.4000  want     2.4000  d=+0.0000
+  OK   A: pad A12 length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   A: pad A12 width                   got     0.6000  want     0.6000  d=+0.0000
+  OK   A: pad A12 x                       got     3.2000  want     3.2000  d=+0.0000
+  OK   A: pad B1  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   A: pad B1  width                   got     0.6000  want     0.6000  d=+0.0000
+  OK   A: pad B1  x                       got     3.2000  want     3.2000  d=+0.0000
+  OK   A: pad B4  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   A: pad B4  width                   got     0.6000  want     0.6000  d=+0.0000
+  OK   A: pad B4  x                       got     2.4000  want     2.4000  d=+0.0000
+  OK   A: pad B5  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   A: pad B5  width                   got     0.3000  want     0.3000  d=+0.0000
+  OK   A: pad B5  x                       got     1.7500  want     1.7500  d=+0.0000
+  OK   A: pad B6  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   A: pad B6  width                   got     0.3000  want     0.3000  d=+0.0000
+  OK   A: pad B6  x                       got     0.7500  want     0.7500  d=+0.0000
+  OK   A: pad B7  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   A: pad B7  width                   got     0.3000  want     0.3000  d=+0.0000
+  OK   A: pad B7  x                       got    -0.7500  want    -0.7500  d=+0.0000
+  OK   A: pad B8  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   A: pad B8  width                   got     0.3000  want     0.3000  d=+0.0000
+  OK   A: pad B8  x                       got    -1.7500  want    -1.7500  d=+0.0000
+  OK   A: pad B9  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   A: pad B9  width                   got     0.6000  want     0.6000  d=+0.0000
+  OK   A: pad B9  x                       got    -2.4000  want    -2.4000  d=+0.0000
+  OK   A: pad B12 length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   A: pad B12 width                   got     0.6000  want     0.6000  d=+0.0000
+  OK   A: pad B12 x                       got    -3.2000  want    -3.2000  d=+0.0000
+  OK   A: span A5<->A8                    got     2.5000  want     2.5000  d=+0.0000
+  OK   A: span B8<->B5                    got     3.5000  want     3.5000  d=+0.0000
+  OK   A: span A4<->B4                    got     4.8000  want     4.8000  d=+0.0000
+  OK   A: span A1<->B1                    got     6.4000  want     6.4000  d=+0.0000
+  OK   A: land order W->E A1 B12 A4 B9 B8 A5 B7 A6 A7 B6 A8 B5 A9 B4 A12 B1
+  OK   A: slot centre span                got     8.6500  want     8.6500  d=+0.0000
+  OK   A: slot centre span (rear)         got     8.6500  want     8.6500  d=+0.0000
+  OK   A: front slot -> alignment         got     0.5000  want     0.5000  d=+0.0000
+  OK   A: slot separation                 got     4.1800  want     4.1800  d=+0.0000
+  OK   A: front slot pad h                got     2.0000  want     2.0000  d=+0.0000
+  OK   A: front slot pad w                got     0.9000  want     0.9000  d=+0.0000
+  OK   A: front slot drill w              got     0.6000  want     0.6000  d=+0.0000
+  OK   A: front slot drill h              got     1.7000  want     1.7000  d=+0.0000
+  OK   A: front slot pad h                got     2.0000  want     2.0000  d=+0.0000
+  OK   A: front slot pad w                got     0.9000  want     0.9000  d=+0.0000
+  OK   A: front slot drill w              got     0.6000  want     0.6000  d=+0.0000
+  OK   A: front slot drill h              got     1.7000  want     1.7000  d=+0.0000
+  OK   A: rear slot pad h                 got     1.7000  want     1.7000  d=+0.0000
+  OK   A: rear slot pad w                 got     0.9000  want     0.9000  d=+0.0000
+  OK   A: rear slot drill w               got     0.6000  want     0.6000  d=+0.0000
+  OK   A: rear slot drill h               got     1.4000  want     1.4000  d=+0.0000
+  OK   A: rear slot pad h                 got     1.7000  want     1.7000  d=+0.0000
+  OK   A: rear slot pad w                 got     0.9000  want     0.9000  d=+0.0000
+  OK   A: rear slot drill w               got     0.6000  want     0.6000  d=+0.0000
+  OK   A: rear slot drill h               got     1.4000  want     1.4000  d=+0.0000
+  OK   A: land inner edge -> align        got     0.5000  want     0.5000  d=+0.0000
+  OK   A: land outer edge -> align        got     1.6400  want     1.6400  d=+0.0000
+  OK   A: land inner edge to NPTH hole edge (axial) = 0.2000 mm (min_hole_clearance 0.200; true 2-D clearance is larger, the roundrect corner is the nearest feature)
+  OK   B: alignment span                  got     5.7800  want     5.7800  d=+0.0000
+  OK   B: alignment hole dia              got     0.6000  want     0.6000  d=+0.0000
+  OK   B: PAD ROW -> ALIGNMENT (datum)    got     1.0700  want     1.0700  d=-0.0000
+  OK   B: pad A1  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   B: pad A1  x                       got    -3.2000  want    -3.2000  d=+0.0000
+  OK   B: pad A4  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   B: pad A4  x                       got    -2.4000  want    -2.4000  d=+0.0000
+  OK   B: pad A5  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   B: pad A5  x                       got    -1.2500  want    -1.2500  d=+0.0000
+  OK   B: pad A6  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   B: pad A6  x                       got    -0.2500  want    -0.2500  d=+0.0000
+  OK   B: pad A7  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   B: pad A7  x                       got     0.2500  want     0.2500  d=+0.0000
+  OK   B: pad A8  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   B: pad A8  x                       got     1.2500  want     1.2500  d=+0.0000
+  OK   B: pad A9  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   B: pad A9  x                       got     2.4000  want     2.4000  d=+0.0000
+  OK   B: pad A12 length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   B: pad A12 x                       got     3.2000  want     3.2000  d=+0.0000
+  OK   B: pad B1  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   B: pad B1  x                       got     3.2000  want     3.2000  d=+0.0000
+  OK   B: pad B4  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   B: pad B4  x                       got     2.4000  want     2.4000  d=+0.0000
+  OK   B: pad B5  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   B: pad B5  x                       got     1.7500  want     1.7500  d=+0.0000
+  OK   B: pad B6  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   B: pad B6  x                       got     0.7500  want     0.7500  d=+0.0000
+  OK   B: pad B7  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   B: pad B7  x                       got    -0.7500  want    -0.7500  d=+0.0000
+  OK   B: pad B8  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   B: pad B8  x                       got    -1.7500  want    -1.7500  d=+0.0000
+  OK   B: pad B9  length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   B: pad B9  x                       got    -2.4000  want    -2.4000  d=+0.0000
+  OK   B: pad B12 length                  got     1.1400  want     1.1400  d=+0.0000
+  OK   B: pad B12 x                       got    -3.2000  want    -3.2000  d=+0.0000
+  OK   B: slot centre span                got     8.6500  want     8.6500  d=+0.0000
+  OK   B: front slot -> alignment         got     0.5000  want     0.5000  d=+0.0000
+  OK   B: slot separation                 got     4.1800  want     4.1800  d=+0.0000
+  OK   B: front slot pad h                got     2.0000  want     2.0000  d=+0.0000
+  OK   B: front slot drill h              got     1.7000  want     1.7000  d=+0.0000
+  OK   B: rear slot pad h                 got     1.7000  want     1.7000  d=+0.0000
+  OK   B: rear slot drill h               got     1.4000  want     1.4000  d=+0.0000
+  OK   B: slot pad w                      got     0.9000  want     0.9000  d=+0.0000
+  OK   B: slot drill w                    got     0.6000  want     0.6000  d=+0.0000
+  OK   B: land<->NPTH clearance 0.2194 >= min_hole_clearance 0.200
+
+GEOMETRY GATE PASS  (127 checks passed, 0 failed)
+
+==============================================================================
+RED-VERIFY 1 — the gate must be ABLE to fail. Fed the v1.11 footprint EXACTLY
+as sealed (git show HEAD:...), the same gate goes RED and names the defect:
+
+  FAIL A: alignment hole dia              got     0.6500  want     0.6000  d=+0.0500
+  FAIL A: alignment hole size             got     0.6500  want     0.6000  d=+0.0500
+  FAIL A: alignment hole dia              got     0.6500  want     0.6000  d=+0.0500
+  FAIL A: alignment hole size             got     0.6500  want     0.6000  d=+0.0500
+  FAIL A: PAD ROW -> ALIGNMENT (datum)    got     1.4450  want     1.0700  d=+0.3750
+  FAIL A: pad A1  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL A: pad A1  x                       got    -3.2500  want    -3.2000  d=-0.0500
+  FAIL A: pad A4  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL A: pad A4  x                       got    -2.4500  want    -2.4000  d=-0.0500
+  FAIL A: pad A5  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL A: pad A6  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL A: pad A7  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL A: pad A8  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL A: pad A9  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL A: pad A9  x                       got     2.4500  want     2.4000  d=+0.0500
+  FAIL A: pad A12 length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL A: pad A12 x                       got     3.2500  want     3.2000  d=+0.0500
+  FAIL A: pad B1  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL A: pad B1  x                       got     3.2500  want     3.2000  d=+0.0500
+  FAIL A: pad B4  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL A: pad B4  x                       got     2.4500  want     2.4000  d=+0.0500
+  FAIL A: pad B5  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL A: pad B6  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL A: pad B7  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL A: pad B8  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL A: pad B9  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL A: pad B9  x                       got    -2.4500  want    -2.4000  d=-0.0500
+  FAIL A: pad B12 length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL A: pad B12 x                       got    -3.2500  want    -3.2000  d=-0.0500
+  FAIL A: span A4<->B4                    got     4.9000  want     4.8000  d=+0.1000
+  FAIL A: span A1<->B1                    got     6.5000  want     6.4000  d=+0.1000
+  FAIL A: slot centre span                got     8.6400  want     8.6500  d=-0.0100
+  FAIL A: slot centre span (rear)         got     8.6400  want     8.6500  d=-0.0100
+  FAIL A: front slot -> alignment         got     0.5300  want     0.5000  d=+0.0300
+  FAIL A: front slot pad h                got     2.1000  want     2.0000  d=+0.1000
+  FAIL A: front slot pad w                got     1.0000  want     0.9000  d=+0.1000
+  FAIL A: front slot pad h                got     2.1000  want     2.0000  d=+0.1000
+  FAIL A: front slot pad w                got     1.0000  want     0.9000  d=+0.1000
+  FAIL A: rear slot pad h                 got     1.6000  want     1.7000  d=-0.1000
+  FAIL A: rear slot pad w                 got     1.0000  want     0.9000  d=+0.1000
+  FAIL A: rear slot drill h               got     1.2000  want     1.4000  d=-0.2000
+  FAIL A: rear slot pad h                 got     1.6000  want     1.7000  d=-0.1000
+  FAIL A: rear slot pad w                 got     1.0000  want     0.9000  d=+0.1000
+  FAIL A: rear slot drill h               got     1.2000  want     1.4000  d=-0.2000
+  FAIL A: land inner edge -> align        got     0.8750  want     0.5000  d=+0.3750
+  FAIL A: land outer edge -> align        got     2.0150  want     1.6400  d=+0.3750
+  FAIL B: alignment hole dia              got     0.6500  want     0.6000  d=+0.0500
+  FAIL B: PAD ROW -> ALIGNMENT (datum)    got     1.4450  want     1.0700  d=+0.3750
+  FAIL B: pad A1  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL B: pad A1  x                       got    -3.2500  want    -3.2000  d=-0.0500
+  FAIL B: pad A4  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL B: pad A4  x                       got    -2.4500  want    -2.4000  d=-0.0500
+  FAIL B: pad A5  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL B: pad A6  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL B: pad A7  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL B: pad A8  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL B: pad A9  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL B: pad A9  x                       got     2.4500  want     2.4000  d=+0.0500
+  FAIL B: pad A12 length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL B: pad A12 x                       got     3.2500  want     3.2000  d=+0.0500
+  FAIL B: pad B1  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL B: pad B1  x                       got     3.2500  want     3.2000  d=+0.0500
+  FAIL B: pad B4  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL B: pad B4  x                       got     2.4500  want     2.4000  d=+0.0500
+  FAIL B: pad B5  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL B: pad B6  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL B: pad B7  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL B: pad B8  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL B: pad B9  length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL B: pad B9  x                       got    -2.4500  want    -2.4000  d=-0.0500
+  FAIL B: pad B12 length                  got     1.4500  want     1.1400  d=+0.3100
+  FAIL B: pad B12 x                       got    -3.2500  want    -3.2000  d=-0.0500
+  FAIL B: slot centre span                got     8.6400  want     8.6500  d=-0.0100
+  FAIL B: front slot -> alignment         got     0.5300  want     0.5000  d=+0.0300
+  FAIL B: front slot pad h                got     2.1000  want     2.0000  d=+0.1000
+  FAIL B: rear slot pad h                 got     1.6000  want     1.7000  d=-0.1000
+  FAIL B: rear slot drill h               got     1.2000  want     1.4000  d=-0.2000
+  FAIL B: slot pad w                      got     1.0000  want     0.9000  d=+0.1000
+GEOMETRY GATE FAIL  (49 checks passed, 78 failed)
+
+==============================================================================
+RED-VERIFY 2 — the alignment-hole DECISION must be falsifiable. Same corrected
+footprint, only the hole reverted to the v1.11 diameter 0.65, nothing else:
+
+  KiCad shape-engine min land<->NPTH-hole clearance = 0.1944 mm (nearest land A1)
+  OK   A: land inner edge to NPTH hole edge (axial) = 0.2000 mm (min_hole_clearance 0.200; true 2-D clearance is larger, the roundrect corner is the nearest feature)
+  FAIL A: alignment hole dia              got     0.6500  want     0.6000  d=+0.0500
+  FAIL A: alignment hole size             got     0.6500  want     0.6000  d=+0.0500
+  FAIL A: alignment hole dia              got     0.6500  want     0.6000  d=+0.0500
+  FAIL A: alignment hole size             got     0.6500  want     0.6000  d=+0.0500
+  FAIL B: alignment hole dia              got     0.6500  want     0.6000  d=+0.0500
+  FAIL B: land<->NPTH clearance 0.1944 < min_hole_clearance 0.200
+GEOMETRY GATE FAIL  (121 checks passed, 6 failed)

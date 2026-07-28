@@ -1,0 +1,8 @@
+  ok   F-MPN row 41 (SW1): C2939728 = SS12D07VG6-087 (02_parts/SS12D07VG6-087)
+  ok   F-MPN row 42 (U6,U7): C473910 = TPS2513ADBVR (02_parts/TPS2513ADBVR)
+  ok   F-MPN row 43 (U3,U4,U5): C130056 = TPS2557DRBR (02_parts/TPS2557DRBR)
+  ok   F-MPN row 44 (J5): C5337088 = TYPE-C-31-M-12A (02_parts/TYPE-C-31-M-12A)
+  ok   F-MPN row 45 (U10,U12,U8,U9): C7519 = USBLC6-2SC6 (02_parts/USBLC6-2SC6)
+  ok   F-MPN row 46 (J1): C98732 = XT60PW-M (02_parts/XT60PW-M)
+  ok   F-WORDS all 46 Comment(s) human-readable
+F-LEGIBLE OK: 48 check(s) passed

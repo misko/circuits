@@ -1,0 +1,36 @@
+COPPER-POUR SYMMETRIC DIFFERENCE — v1.11 sealed board vs v1.12
+computed with SHAPE_POLY_SET booleans on the SAVED filled polygons.
+
+WHY THIS AND NOT A GERBER DIFF: KiCad's zone filler re-emits its region
+polygons with a different vertex tessellation on every run, so a text or
+coordinate diff on a copper gerber counts churn, not moved features. A
+boolean XOR of the filled polygons is representation-free. (Proof of that
+claim, measured on this very release: the two v1.12 builds — which differ
+only in the footprint's `descr` STRING — have 6272 differing text lines in
+the .kicad_pcb and a copper XOR of 0.00000000 mm2 on all four layers.)
+
+  F.Cu     XOR area     3.5905 mm2 in  41 region(s); 27 region(s) not wholly inside the J5 corner, totalling 0.000001 mm2
+        largest: area  0.000000 mm2  bbox x  131.869.. 131.911  y  105.609.. 105.655
+        largest: area  0.000000 mm2  bbox x   24.812..  24.913  y  104.564.. 104.642
+        largest: area  0.000000 mm2  bbox x  144.283.. 144.285  y  105.839.. 105.841
+  In1.Cu   XOR area    10.0333 mm2 in  44 region(s); 3 region(s) not wholly inside the J5 corner, totalling 0.000000 mm2
+        largest: area  0.000000 mm2  bbox x   27.661..  27.709  y  105.306.. 105.420
+        largest: area  0.000000 mm2  bbox x   26.951..  27.002  y  104.470.. 104.500
+        largest: area  0.000000 mm2  bbox x   27.618..  27.618  y  105.202.. 105.202
+  In2.Cu   XOR area     9.4501 mm2 in  20 region(s); 1 region(s) not wholly inside the J5 corner, totalling 0.000000 mm2
+        largest: area  0.000000 mm2  bbox x   27.956..  27.964  y  105.276.. 105.307
+  B.Cu     XOR area     5.0280 mm2 in 174 region(s); 157 region(s) not wholly inside the J5 corner, totalling 0.000968 mm2
+        largest: area  0.000150 mm2  bbox x  102.950.. 103.028  y   96.784..  96.800
+        largest: area  0.000066 mm2  bbox x  142.933.. 142.977  y   83.522..  83.534
+        largest: area  0.000066 mm2  bbox x  142.887.. 142.932  y   83.535..  83.539
+
+  TOTAL |XOR| across all four copper layers: 28.1019 mm2
+
+WHERE the XOR regions of MEANINGFUL area (>= 0.0001 mm2) live:
+  F.Cu      14 region(s), total   3.5905 mm2 ; UNION BBOX x 114.840..125.160  y 103.862..107.106
+  In1.Cu    41 region(s), total  10.0333 mm2 ; UNION BBOX x 114.680..125.675  y 100.939..111.700
+  In2.Cu    19 region(s), total   9.4501 mm2 ; UNION BBOX x 114.879..125.675  y 100.939..111.231
+  B.Cu      18 region(s), total   5.0272 mm2 ; UNION BBOX x 102.950..125.160  y 96.784..107.106
+
+  J5 sits at (120.000, 109.000). Every meaningful region is in its corner;
+  the remainder is zone-filler slivers tens of microns across.

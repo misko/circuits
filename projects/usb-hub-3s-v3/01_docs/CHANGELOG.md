@@ -2,6 +2,476 @@
 
 Board internal name `usb_hub_3s_v2`; project directory `usb-hub-3s-v3`.
 
+## v1.12 — 2026-07-28
+
+Released: `07_releases/v1.12-2026-07-28/`. **COPPER MOVED, AND SO DID A
+PLACEMENT COORDINATE.** `J5`'s land pattern was wrong in every release of this
+board from v1.0 to v1.11, and is corrected here. The board file has a new md5
+for the first time since v1.9 — `83af8e5a…` → `35ba862e…` — and v1.9's change
+was a restored pour, not moved geometry; this is the first release since **v1.6**
+whose copper features are in different places.
+
+v1.11 gains `SUPERSEDED.md`. It is otherwise immutable, and it is **not**
+DO-NOT-ORDER in the sense v1.6–v1.8 were (those shipped gerbers with no copper
+pour at all). v1.11's boards would populate. What they would carry is an
+elevated assembly-yield risk on the port that feeds the Pi — see "Is v1.11
+unbuildable?" below, which answers that honestly rather than dramatically.
+
+### What was wrong
+
+`J5` is HRO `TYPE-C-31-M-12A` (LCSC **C5337088**) on footprint
+`usb_hub_3s:TYPE-C-31-M-12_EdgeTrim`. That footprint was KiCad's stock
+`Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12` with three silkscreen lines
+deleted — verified, not assumed: `diff` against
+`/usr/share/kicad/footprints/Connector_USB.pretty/USB_C_Receptacle_HRO_TYPE-C-31-M-12.kicad_mod`
+returns the footprint NAME line and three removed `fp_line` records, and
+**every pad record identical**. **The stock geometry does not match the part**,
+and three independent sources say so:
+
+| | pad length | pad row → alignment-hole line | hole ⌀ |
+|---|---|---|---|
+| HRO sheet `TYPE-C-31-M-12A` REV A 2022.10.26 | 1.140 | 1.070 | 0.60 |
+| HRO sheet `TYPE-C-31-M-12` REV A 2020.12.08 (2 yrs earlier) | 1.140 | 1.070 | 0.60 |
+| JLC / EasyEDA package `C5337088` | **1.14000** | **1.070102** | **0.59999** |
+| **v1.0 … v1.11 as sealed** | **1.450** | **1.445** | 0.65 |
+
+The board is the outlier by **+0.375 mm on the datum** and **+0.310 mm on pad
+length**.
+
+**The base `-12` sheet was read, not cited.** It matters because if the two HRO
+part numbers had different land patterns, the stock footprint might have been
+right for one of them. It is not: the 2020.12.08 `TYPE-C-31-M-12` drawing
+(sha256 `6ae33d50…`) carries a **dimension-for-dimension identical** recommended
+layout — `8-0.30`, `4-0.60`, `0.50`, `1.50`, `1.64`, `2.00`/`1.70`, `1.70`/`1.40`,
+`0.60`/`0.90`, `Ø0.60`, `2.50`, `3.50`, `4.80`, `5.78`, `6.40`, `8.65`, `4.18`,
+`5.79`, and the same "TOLERANCE FOR PCB LAYOUT IS ± 0.05" note. Two vendor
+sheets two years apart, and both disagree with the stock footprint. (That PDF is
+a working copy, not a committed artifact: the dossier this project owns is the
+`-12A` sheet at `02_parts/TYPE-C-31-M-12A/`, which is the part actually bought.)
+
+### Why that is not cosmetic
+
+This connector **cannot self-align in reflow.** It is pinned by two Ø0.50
+moulded posts in NPTH holes and four stamped shell legs soldered into plated
+slots, so surface tension on twelve lands cannot pull it into place — the body
+goes where the posts and legs put it, and the lands must be where the leads
+land.
+
+**JLC's own 3D model settles what the tails actually do**, and it corrects the
+first version of this entry. Anchored on the part's own datum — the two Ø0.5000
+posts, measured out of the mesh at x = ±2.8900, span **5.7800**, exactly the
+sheet — the housing is 7.35 deep with the tail projecting **0.4000** past it,
+which is the sheet's own top-view `0.40 ± 0.10` and makes the mesh 7.7500 deep.
+So the **solderable contact tail runs 1.070 … 1.470 from the alignment line and
+is 0.400 long** — and it lands **100 % on its pad in v1.11 as well as v1.12.**
+
+Nothing hung off a land. What the stock pattern actually did was **invert the
+fillet balance and over-paste the row**:
+
+| | land | tail | heel (mouth side) | toe (past the tip) | paste vs spec |
+|---|---|---|---|---|---|
+| **v1.11** | 0.720 … 2.170 | 1.070 … 1.470 | **0.350** | **0.700** | **+27.2 %** |
+| **v1.12** | 0.500 … 1.640 | 1.070 … 1.470 | **0.570** | **0.170** | — |
+
+The heel is the end where the tail leaves the housing and where the fillet
+carries the joint; the vendor puts the surplus there, and v1.11 put it at the
+toe instead — starving the heel to 61 % of intended while doubling the toe. And
+0.700 mm of every land and its open stencil aperture sat beyond the tail tip on
+a **0.5 mm-pitch** row, on a part that cannot self-align. That is a
+**bridge-and-fillet** exposure, not an open-joint one.
+
+**This entry originally claimed the leads sat 0.220 mm off their lands, at
+80.7 % overlap.** That was wrong, and it was wrong in a specific and instructive
+way: the measurement equated the vendor's recommended LAND with the LEAD, so it
+compared a land to a land and labelled the answer a lead. Its own output should
+have given it away — it reported the corrected pattern as "100 % overlap, heel
+0.0000, toe 0.0000", which would be a land with no fillet at either end, i.e. a
+bad land pattern rather than the vendor's own. The fresh-context lens caught it
+pre-seal (F-1); the numbers above are the re-measurement, and
+`verification/lead_overlap.txt` carries the correction in full with the method.
+The fix does not change. The story did.
+
+### What moved, exactly
+
+Only the pad row moved. **The connector body did not.**
+
+| feature | v1.11 | v1.12 | source |
+|---|---|---|---|
+| pad row centre (from alignment line) | 1.445 | **1.070** | all three |
+| pad length | 1.450 | **1.140** | all three |
+| `A1/B12 ↔ B1/A12` centres | 6.50 | **6.40** | all three |
+| `A4/B9 ↔ B4/A9` centres | 4.90 | **4.80** | all three |
+| shell pad width | 1.00 | **0.90** | sheet + JLC |
+| front shell pad height | 2.1 | **2.00** | sheet + JLC |
+| rear shell pad / drill height | 1.6 / 1.2 | **1.70 / 1.40** | sheet |
+| shell slot centre span | 8.64 | **8.65** | layout view + JLC |
+| front shell slot from alignment line | 0.53 | **0.50** | sheet + JLC |
+| alignment hole ⌀ | 0.65 | **0.60** | DECISION, below |
+
+Unchanged and verified unchanged: pad pitch 0.50 and widths 0.30/0.60,
+`A5↔A8` 2.50, `B8↔B5` 3.50, alignment span 5.78, slot separation 4.18,
+front slot drill height 1.70, and **the whole F.Fab / F.CrtYd / F.SilkS body
+outline, byte-for-byte**.
+
+### The two decisions this release had to make
+
+**1. Which feature moves.** The 1.070 separation can be restored by moving the
+pad row *or* by moving the alignment holes. They are not equivalent.
+
+The **alignment holes are the datum**, and in v1.11 their positions are right:
+span 5.78, exactly the sheet's, and they are the feature the moulded posts
+actually locate the body by. The four shell slots are body-referenced too, and
+they were *not* perfectly right — front offset 0.53 against the sheet's 0.50,
+centre span 8.64 against 8.65, and wrong pad/drill heights — so it would
+overstate the case to call the hole/slot set flawless. But the scale separates
+them cleanly: the slot errors are **0.03 mm, 0.005 mm and pad-size only**, on
+0.60-wide plated slots taking ~0.3 mm stamped legs, while the pad row is out by
+**0.375 mm** on a 0.5 mm-pitch row. One of those is a rounding inheritance; the
+other is the defect.
+
+So: the datum stays, the slots are corrected *relative to it*, and the pad row —
+the outlier by an order of magnitude — moves to meet it. Moving the holes
+instead would have carried the connector body, and therefore the USB-C mouth,
+0.375 mm away from the board edge: a change to a **mating interface**, on an
+edge-mount part, against eleven sealed releases of mechanical review. So the pad
+row moved.
+
+The mating face is stated and checked, not assumed: the alignment line sits at
+board **y = 106.400** and the south edge at **y = 112.000**, so
+**alignment-to-edge = 5.600 mm, identical in v1.11 and v1.12.** (The sheet's
+nominal is 5.79; this board's 5.600 is a pre-existing edge position carried
+from v1.0, and this release deliberately does not touch it — correcting a land
+pattern and re-siting a connector are two different changes and only one of
+them was reviewed.) The proof that the body did not move is structural rather
+than narrative: the F.Fab, F.CrtYd and F.SilkS records and the 3D-model
+reference are **byte-identical** to v1.11's, so there is nothing in the file
+that *could* have moved it.
+
+**2. Alignment hole diameter: 0.65 → 0.60, CHANGED.** ⌀0.65 was a defensible
+choice, not an error: the sheet's layout view states its own tolerance as
+±0.05, so 0.55–0.65 is vendor-sanctioned, and 0.65 buys post-entry clearance
+against the Ø0.50 moulded post — a post that will not enter lifts the part off
+all twelve lands, which is the worst failure available. It was defensible **in
+the old geometry, where the pad row was 0.375 mm further away.** At the
+corrected datum it is no longer free, and the number that decides it was
+measured rather than argued: with the corrected pad row, KiCad's own shape
+engine puts land `A1/B12` at **0.1944 mm** from the NPTH hole at ⌀0.65 — under
+this board's `min_hole_clearance` of 0.200, so **DRC fails** — and at
+**0.2194 mm** at ⌀0.60, which clears. Both were built and both were measured;
+the ⌀0.65 variant is kept as the gate's known-bad fixture.
+
+Two secondary reasons point the same way. JLC — who drill this board *and*
+place this part — ship **0.600** in their own `C5337088` package. And the
+lateral-play argument reverses at the true geometry: the sheet's contacts are
+`16-0.20±0.05`, so a 0.20 mm lead on a 0.30 mm land has 0.05 mm of registration
+margin per side, which is exactly what a ⌀0.60 hole on a Ø0.50 post preserves
+and what a ⌀0.65 hole spends.
+
+### Three corrections to the defect report this release was commissioned from
+
+The brief listed the front slot offset (0.53), the slot span (8.64) and the
+shell pad width (1.00) as already correct. Two of the three are not, and the
+third is a real number read from the wrong view. All were re-measured before
+being changed:
+
+* **front slot offset is 0.50, not 0.53.** The sheet's own `0.50` dimension
+  terminates on the pad-inner-edge line, and the front slot centre measures
+  0.4 px — 0.004 mm — from that same line: they are one line. JLC agrees at
+  0.500126. 0.53 is a stock-KiCad inheritance with no support in either sheet.
+* **slot centre span is 8.65, not 8.64.** Both numbers are on the sheet and
+  they are different dimensions: `8.64` on the FRONT VIEW is the **part's leg
+  span**; `8.65` on the RECOMMENDED LAYOUT view is the **slot centres**. JLC
+  reads 8.64972. A footprint takes the layout view's.
+* **shell pad width is 0.90, not 1.00** — this one the brief did not list as a
+  delta at all, but it names JLC's 0.900 × 2.000 in passing. The sheet
+  dimensions it too, at the rear-left slot: `0.90` pad over `0.60` drill.
+
+None of the three is large (30 µm, 5 µm, 100 µm). They are recorded because a
+land pattern authored from a drawing should contain the drawing's numbers, and
+because "already correct" claims that turn out to be inherited are exactly how
+the 0.375 mm survived twelve releases.
+
+### The second defect, which nobody had named
+
+Correcting the land pattern turned out to correct something else that was
+wrong for the same reason, and it is arguably the worse of the two.
+
+`export_jlc_package.py` emits a CPL `Mid X`/`Mid Y` that is **the centre of the
+bounding box of the pad centres**, not KiCad's footprint anchor — because JLC
+places a part so that **its own model origin** lands on that coordinate. (That
+convention is measured, not assumed: 227 of 228 JLC footprints across this
+fleet, and it exists in this repo because `crow-recorder-central-v2` v1.4
+shipped a USB-C 1.3025 mm off and unable to seat.)
+
+The pad centres were wrong, so the datum computed from them was wrong:
+
+| | datum, measured from the alignment-hole line |
+|---|---|
+| JLC's own `C5337088` model origin | **+1.30492 mm** |
+| v1.11's emitted CPL row for J5 | +1.10250 mm — **0.2024 mm off** |
+| v1.12's emitted CPL row for J5 | +1.30500 mm — **0.00008 mm off** |
+
+v1.11 therefore told the placement machine to set the connector **0.2025 mm
+north of where its own alignment posts sit**, and those posts have only
+0.075 mm of radial clearance in v1.11's ⌀0.65 holes — so the commanded position
+is one the part cannot physically occupy.
+
+**These are two independent failure modes, not one error that adds to the
+other**, and it is worth being exact about that rather than stacking the numbers
+for effect. The land error mis-registers every joint on a part that is already
+seated. The placement error asks the machine to put the part where its posts
+will not go. Which one you actually get depends on whether the posts or the
+pick-head win, and this project cannot determine that from here — a chamfered
+post in a 0.65 hole may well be dragged into place by 0.2 mm, in which case the
+placement error is absorbed at the cost of scrubbing the lands, and only the
+0.375 mm land error survives to the joint. Both are fixed; neither needed the
+other to justify the release.
+
+**No gate could have caught it**, and the reason is canon M1 rather than an
+oversight: `A-POS` recomputes the datum from the same board it is grading, so
+it is self-consistent by construction — v1.11's MANIFEST reads *"A-POS datum:
+119 rows graded, worst residual 0.00050 mm"* and that number is true and means
+nothing here. Checker and checked shared a method. The comparison that does
+have force is the one above: our datum against **JLC's**, computed from their
+package rather than from ours.
+
+`fab/cpl.csv` therefore is **not** byte-identical to v1.11's: J5's `Mid Y`
+moves 107.5025 → 107.7050. That single row is the whole CPL delta.
+
+### Verified two ways, with no shared code
+
+The footprint is **authored**, not copied. (`pluto-rx2-8way` holds a correct
+`TYPE-C-31-M-12A` from the same drawings; it was read as precedent and no byte
+of it was taken — files are never copied between projects.)
+
+* **Instrument A** — a purpose-written s-expression tokeniser over the raw
+  `.kicad_mod` **text**, compared against dimensions retyped by hand off the
+  sheet. It never imports `pcbnew`.
+* **Instrument B** — `pcbnew.FootprintLoad` plus KiCad's own shape engine. It
+  never reads the file as text.
+
+**127 checks, 0 failures.** Both instruments independently confirm the datum at
+1.0700 and the pad length at 1.1400.
+
+**The gate was proved able to fail, twice.** Fed the v1.11 footprint exactly as
+sealed (`git show HEAD:…`) it goes red and names the defect —
+`PAD ROW → ALIGNMENT got 1.4450 want 1.0700 d=+0.3750`, pad length +0.3100 on
+all sixteen lands, wide-land x ±0.0500. Fed the corrected footprint with only
+the hole reverted to ⌀0.65, it goes red on the clearance measurement above.
+
+The vendor sheet was also measured **as a raster**, independently of both
+instruments and of JLC: page 1 at 600 dpi, scale calibrated on four pad-centre
+spans that agree to 0.15 % (S = 105.1268 px/mm), intensity-weighted sub-pixel
+centroids. Datum 1.0654, pad length 1.1415, front slot offset 0.4985, slot span
+8.6510, hole ⌀ 0.5994. That reading is what refuted 4.90/6.50 outright: at the
+scale set by the narrow-pad pitch alone, the wide-pad spans read 4.8095 and
+6.4095, and 4.90/6.50 would be 9.5 px away.
+
+### Why no gate caught this, and why `jlc_twin` will not catch it now either
+
+`jlc_twin` is the gate whose whole job is comparing our footprint to JLC's, and
+it reported **`fit=0.00mm` on J5 on the defective board.** It is not a tuning
+problem, it is **structurally blind to this class**, in two independent ways:
+
+* `pads_of()` drops unnumbered pads, so the two NPTH alignment holes — the
+  datum the whole defect is measured against — never enter the fit at all;
+* `centered()` removes the centroid from both point sets before comparing, so
+  the comparison is **translation-invariant by construction**. A pad row
+  displaced 0.375 mm *as a rigid group*, relative to features the fit cannot
+  see, is exactly the thing that survives a centroid-removed match;
+* and — raised by the fresh lens, then measured here — **JLC names its pads
+  differently, so the correspondence set is not just small but degenerate.**
+  Their package names its lands `{1, A1/B12, A4/B9, A5, A6, A7, A8, B1/A12,
+  B4/A9, B5, B6, B7, B8}`; ours are `{A1, A12, A4, A5…A9, B1, B12, B4…B9, SH}`.
+  The intersection is **eight names** — A5…A8, B5…B8 — and **all eight are
+  collinear** (their y = 2982.205, ours = −3.670, one value each). After
+  `centered()`, the fit is eight points on a line against eight points on a
+  line: it carries no information at all about where that line sits on the only
+  axis this defect lives on.
+
+**So a fix that merely stops dropping unnumbered pads will not close this.** The
+gate needs a numbering-free landmark fit — which this repo already has, in
+`export_jlc_package`'s `placement_datum` cross-check.
+
+It is run in this release and it passes, and its verdict is **not** evidence
+about the datum. This gate gap is reported and already queued; it is
+deliberately **not** patched inside a board fix — `skills/` changes and board
+changes do not belong in the same commit, and a gate rewritten by the agent
+whose work it is about to grade is not a gate.
+
+Nothing else was positioned to catch it either: DRC grades copper against
+copper and the wrong pattern is internally consistent; `escape_check` grades
+pitch and escape geometry, which were right; the pin review grades the pad-name
+→ net map, which was right. **The land pattern itself had no checker.** The
+two-instrument gate written for this release is the first thing in this repo
+that reads a vendor drawing's numbers and compares them to emitted copper.
+
+### Exposure elsewhere — RECORDED, NOT FIXED HERE
+
+The same defective footprint file, **byte-identical** (md5
+`7aebd381d4637d498f8d9fdf9a6ea0ab`), is carried by two sibling projects that
+are **not in this release's scope**:
+
+* `projects/usb-hub-3s/03_src/lib/usb_hub_3s.pretty/TYPE-C-31-M-12_EdgeTrim.kicad_mod`
+  — and that project has a **sealed release, `v1.0-2026-07-21`**, so a sealed
+  archive there carries the defect.
+* `projects/usb-hub-3s-v2/03_src/lib/usb_hub_3s.pretty/TYPE-C-31-M-12_EdgeTrim.kicad_mod`
+  — no sealed release.
+
+Both measure the same 1.4450 datum, 1.45 pad length and ⌀0.65 hole. Within this
+project, **all twelve sealed releases v1.0 … v1.11 carry it** (md5 identical in
+every `source/usb_hub_3s.pretty/`). Recording it here so the finding does not
+die with this release; fixing those boards is their own change, with their own
+gates and their own reviews.
+
+### Is v1.11 unbuildable? No — and that is not the same as fine
+
+Stated plainly, because "DO-NOT-ORDER" has been used on this board before for a
+genuinely different reason (v1.6–v1.8 shipped gerbers with no copper pour) and
+the two should not be blurred.
+
+v1.11's boards **would populate**, and the bare PCB is a perfectly good PCB.
+The holes and slots are in the right places, so a connector pushed home by hand
+seats correctly, and every contact tail then sits **100 %** on its own land.
+What v1.11 buys is elevated **assembly-yield** risk on the port that feeds the
+Pi: 0.700 mm of open stencil aperture per land beyond the tail tip, 27 % more
+paste than the vendor specifies, on a 0.5 mm pitch, is a bridge waiting for a
+reflow profile to find it — and the heel fillet, the one that carries the joint,
+is starved to 0.350 mm where the vendor asks for 0.570.
+
+**The honest uncertainty is the placement half, not the land half.** v1.11's CPL
+asks the machine for a position the part cannot occupy (0.2025 mm against
+0.075 mm of radial post clearance). Either the posts drag the part into the
+holes — in which case the placement error is absorbed and you get the land error
+described above — or they do not, and the part is set down proud on its posts.
+We cannot tell which from here, and it would take a built board to find out. The
+worse branch is the reason this release exists rather than a note in the
+ORDER_README.
+
+So: a defect worth a new release and a `SUPERSEDED.md`. It is not a board that
+cannot be built, and this entry does not claim it is.
+
+**Order v1.12.**
+
+### What moved in the fab payload, measured three ways
+
+| artifact | v1.11 → v1.12 |
+|---|---|
+| `fab/bom.csv` | **byte-identical** — no part changed |
+| `fab/cpl.csv` | **one row**: `J5` `Mid Y` −107.502 → −107.705 |
+| `fab/*_gerbers.zip` | 11 of 13 members changed; `Edge_Cuts.gm1` and `B_Paste.gbp` **byte-identical after the plot-timestamp strip** |
+| `fab/*-NPTH.drl` | the alignment-hole tool, ⌀0.65 → ⌀0.60 |
+| `fab/*-PTH.drl` | the four shell slots |
+| netlist | **0 differences** — 122 components, 73 nets, 372 nodes, identical |
+
+The copper that moved was bounded exactly, with KiCad's own polygon booleans
+rather than a text diff (the zone filler re-emits its region polygons in an
+arbitrary order, so a line diff on a copper gerber is noise):
+
+```
+COPPER-POUR SYMMETRIC DIFFERENCE (SHAPE_POLY_SET XOR, saved filled polygons)
+  F.Cu     3.5905 mm2   regions not wholly inside the J5 corner: 0.000001 mm2
+  In1.Cu  10.0333 mm2                                            0.000000 mm2
+  In2.Cu   9.4501 mm2                                            0.000000 mm2
+  B.Cu     5.0280 mm2                                            0.000968 mm2
+  TOTAL   28.1019 mm2   outside the J5 corner: 0.000969 mm2  (0.0034 %)
+```
+
+Every XOR region of meaningful area (≥ 0.0001 mm²) lies in a tight box around
+J5 — F.Cu x 114.840–125.160, y 103.862–107.106. The 0.000969 mm² remainder is
+174 zone-filler slivers, the largest 78 × 16 µm: re-triangulation noise, not
+geometry. And independently, at the pcbnew level: `Edge_Cuts` **identical**,
+**0** footprints moved, exactly **one** footprint's pads changed, **0** tracks
+and **0** vias changed outside the J5 corner, with the track delta confined to
+`CC1 / CC2 / DPC / DMC` — the four nets `route.yaml` hands to the deterministic
+tap router precisely because *"CC + interleaved D+/D- edge pads defeat KRT"*.
+
+### Routing: why KRT was not re-rolled
+
+J5's nets are **not** KRT-routed. `route.yaml` `waves.exclude` names
+`CC1, CC2, DPC, DMC` verbatim and VBUS/GND are pour-owned, so the affected area
+belongs to the deterministic tap pass, which re-derives from pad positions on
+every build. Verified rather than assumed: the promoted chain
+`03_src/route/final_chain.kicad_pcb` holds 504 items across 44 nets with **zero**
+items on those nets and **zero** endpoints anywhere in the J5 corner box. So
+`rebuild_fast.sh`'s stated validity condition — *"valid ONLY while KRT-routed
+pins do NOT move"* — holds, and re-rolling KRT would have replaced 504
+stochastic, already-reviewed items with 504 unreviewed ones for no benefit and
+destroyed the fix-pass diff above.
+
+### Gates
+
+```
+DRC          0 violations / 0 unconnected / 0 schematic-parity
+             (--severity-all --refill-zones --schematic-parity)
+ERC          0 errors, 221 warnings — all lib_symbol_issues, identical to v1.11
+audit_board  PASS — 21 polarity, 19 proximity, 4 edge, 129 silk
+netlist      PARITY 0 — 122 components, 73 nets, 372 nodes; board-vs-board 372/372
+J5 geometry  PASS — 127 checks, 0 failures, two instruments sharing no code
+             + 2 RED-verifies that make the gate fail on demand
+rules_audit  PASS — 0 fails, 32 checks; A-AMP 10/10; A-ORDER generate_rules last
+F-PAYLOAD    OK — 5 checks on the SHIPPED zip; F-POUR B/F/In1/In2 = 17/87/1/1
+             G36 regions, all four copper gerbers distinct
+A-ROT        119/119 CPL rotations sourced from measured per-LCSC rows
+A-POS        119 rows, worst residual 0.00050 mm (Q6), tol 0.05 mm
+A-BODY       bodies mounted 119/119
+M-BOM        bom_source_check PASS — 46 lines, 0 without LCSC
+F-LEGIBLE    OK — 48 checks; 46/46 MPNs resolved, 46/46 Comments readable
+A-STOCK      PASS — 46/46 coded lines. READ THE CAVEAT: this is CATALOG stock
+P-FACT       FAIL 1 — KT-0805Y/D8, pre-existing, adjudicated, unchanged
+A-RENDER     29 unfaithful refs — pre-existing and IDENTICAL to v1.11's 29,
+             adjudicated as 0 board defects; COVERAGE 53/121, unchanged
+jlc_twin     exit 0, 119/119 bodies — and see below, its J5 verdict is not evidence
+```
+
+**`jlc_stock_check` on `C5337088` now reads 84**, down from the 104 recorded at
+v1.11 and against the 0 JLC's assembly side allocated at the real upload. The
+gate PASSES it (84 ≥ 5 × 1). That is exactly the necessary-and-not-sufficient
+verdict v1.10 → v1.11 taught this board to distrust, and the tool now prints its
+own scope caveat. **J5 remains a pre-order line.** The gate reads LCSC catalog
+stock; JLC's assembly uploader allocates from a different pool; F-ECHO at upload
+is the only instrument that settles it.
+
+### What the fresh-context lens changed
+
+The FIX-PASS lens ran against the staged archive before the seal and returned
+**ORDER-WITH-CONDITIONS, no P0**. It re-derived every dimension by methods that
+share no code with this release's gate — `pdftocairo -svg` **vector** extraction
+of the sheet (5036 paths, 0 images, so it never touched a raster), its own
+EasyEDA parser, its own `.kicad_mod` re-parse — and confirmed the corrected
+copper on every number, plus 5.600000 mm alignment-to-edge on both boards and
+the 0.2194 / 0.1944 / 0.4200 clearance figures. Its conditions were all pre-seal
+edits and all of them are in this release:
+
+| | what it found | what changed |
+|---|---|---|
+| **F-1** | the severity narrative was a tautology — see "Why that is not cosmetic" | `lead_overlap.txt` rewritten from the part's own mesh; every derived sentence corrected in the MANIFEST, ORDER_README, `part.yaml`, `SUPERSEDED.md` and **the footprint `descr`**, which forced a rebuild because it lives inside the board file |
+| **F-2/F-3** | `policy_audit.md` absent; the MANIFEST said `A-POP: PASS` while the shipped gate file said FAIL | both are post-stamp artifacts by construction; the stamp step generates them in the right order and the archived copies are those re-runs |
+| **F-4** | `gerber_payload_delta.txt` asserted "every geometric change lies inside the J5 corner" directly above its own count of **494** that do not | reworded to defer to the XOR area bound, which is the representation-free measurement |
+| **F-5** | `min_hole_clearance: 0.200` has no fab provenance — `fab_tiers.yaml` models no hole-to-copper capability at any tier | **accepted.** Decision 2 stands on the vendor's ⌀0.60 nominal and JLC's own ⌀0.59999, not on the DRC number; 0.2194 is inherent to the vendor's own layout (0.500 − 0.300 = 0.200 axial by construction). Filed as a missing `fab_tiers.yaml` field |
+| **F-6** | JLC gives **all four** shell slots at 2.00/1.70, disagreeing with both sheets on the **rear** pair, and no document said so | stated in the MANIFEST. The footprint follows the sheet; JLC's package is the simplification, and 1.40 leaves 0.30 mm/end on an 0.800 leg where v1.11's 1.20 left 0.20 |
+| **F-7** | the **F.Courtyard is stale** — kept byte-identical by design, but sized for the old land row: north margin 0.500 → 1.030 mm | declared, not changed. Changing it would perturb the very graphics the mating-face proof rests on. Next revision re-derives it |
+| **F-8** | J5's twin metrics moved (MODEL-REG 0.05 → 0.33 mm, overlay excursion 0.049 → 0.326); "identical to v1.11" was true of the set, not of J5 | declared, with the cause (F-7) |
+| **F-9** | "deliberate" was asserted for the 5.600 mm mating face with no decision record behind it | reworded to "pre-existing and untouched" everywhere, with the direction stated: the mouth overhangs 0.680 where the vendor intends 0.490 — *more* plug clearance, not less |
+| **F-10** | the base `-12` sheet row pointed outside the archive without saying so | the MANIFEST's source table now footnotes all three rows with where they live |
+
+One finding I verified and **refined rather than accepted**: it read the
+`jlc_twin` correspondence set as *empty*. It is not empty — it is eight collinear
+points, a sharper and slightly different failure, and the text above says so.
+
+### Still open, unchanged by this release
+
+`U11`/`U2` `C13755` (LM5116) — catalog stock but JLC assembly 0, pre-order or
+consignment, no substitute. `J5` `C5337088` — catalog 84, allocated 0 at the
+last upload; if it cannot be pre-ordered the footprint-compatible fallback is
+`C165948` `TYPE-C-31-M-12` at 5 A instead of 6 A, and **that fallback is now
+safer than it was**, because the two HRO sheets carry a dimension-identical
+recommended layout and this release's footprint is authored to it. `R42`/`F1`/
+`SW1` off the CPL is deliberate and declared. The A-POL single-channel
+order-preview human gate and the In1_Cu/In2_Cu viewer check stand as v1.11 left
+them. `C2984354`/R12 twin FETCH-FAILED, identical to v1.11 — a network failure,
+not a finding.
+
 ## v1.11 — 2026-07-27
 
 Released: `07_releases/v1.11-2026-07-27/`. **ONE OUT-OF-STOCK PASSIVE SUBSTITUTED

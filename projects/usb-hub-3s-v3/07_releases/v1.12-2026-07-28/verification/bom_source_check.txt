@@ -1,0 +1,5 @@
+BOM-vs-source: 06_build/fab_v112/bom_jlc.csv
+  source: 03_tscircuit/build/circuit.json (122 coded refdes); ledger: 149 vetted passive codes
+  coverage leg C: 25/26 R/C rows value-graded (46 BOM rows seen)
+  COVERAGE-GAP leg C read no value from label: KNM2100UF35V149EC0055 [C1,C2] = 'KNM2100UF35V149EC0055'
+BOM SOURCE CHECK: PASS (every BOM LCSC == source)

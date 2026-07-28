@@ -1,0 +1,38 @@
+J5 CORNER — BEFORE / AFTER, the same plot from the two boards
+=============================================================
+
+  j5_corner_v111_before.png   plotted from 07_releases/v1.11-2026-07-27/source/usb_hub_3s_v2.kicad_pcb
+  j5_corner_v112_after.png    plotted from this release's source/usb_hub_3s_v2.kicad_pcb
+
+Command (identical for both, only the board path differs):
+  kicad-cli pcb export svg --layers "F.Cu,F.Paste,Edge.Cuts,User.Drawings" \
+      --page-size-mode 2 --exclude-drawing-sheet -o <tag>.svg <board>
+  rsvg-convert -w 4000 ; crop x 113.00..128.00 mm, y 102.00..112.05 mm
+
+WHAT TO LOOK AT. The two black filled circles are the NPTH alignment holes —
+they are the DATUM and they are in the same place in both pictures. Compare the
+twelve grey lands above them:
+
+  BEFORE  the lands are long, and their lower edges stop well short of the
+          alignment-hole line. The real contact tail (0.400 long, measured from
+          JLC's mesh) sits fully on the land in this picture too - but it sits
+          in the wrong PART of it: 0.350 mm of land on the heel side where the
+          fillet works, and 0.700 mm of land and open stencil aperture past the
+          tail tip with no lead over it. 27% more paste per land than the vendor
+          specifies, on a 0.5 mm pitch.
+  AFTER   the lands are 1.140 long instead of 1.450, and the row has moved
+          0.375 mm DOWN (toward the connector mouth, at the bottom of the
+          frame) so that it sits 1.070 from the alignment-hole line. The lower
+          land edges now come down to 0.219 mm from the hole edges.
+
+Also visible: the four shell-slot pads are narrower (0.90 instead of 1.00), and
+the escape channel north of the land row is correspondingly clearer — the six
+deterministic tap legs (CC1, CC2, and the two D+/D- pairs) re-derived from the
+new pad positions and have more room, not less.
+
+This is a render before/after pair, which is one of the falsification methods the
+07_releases contract's fix-claim evidence rule names. It is CORROBORATION, not the
+primary evidence: the primary evidence is verification/j5_geometry_gate.txt
+(127 checks, two instruments sharing no code, plus two RED-verifies) and
+verification/copper_xor.txt (28.1019 mm2 of copper moved, 0.000969 mm2 of it
+outside this frame).

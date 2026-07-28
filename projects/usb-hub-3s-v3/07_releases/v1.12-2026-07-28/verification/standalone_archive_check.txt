@@ -1,0 +1,42 @@
+STANDALONE ARCHIVE RE-MEASURE — the 07_releases contract's completeness test
+============================================================================
+
+"a release passes only if someone with this directory, KiCad, and no network can
+ open the board, read the schematic, check mechanical fit, see every gate's
+ evidence, and re-plot the gerbers"
+
+Run from INSIDE this release's own source/ directory, with nothing else on the
+path:
+
+    cd 07_releases/v1.12-2026-07-28/source
+    kicad-cli pcb drc --severity-all --refill-zones --schematic-parity \
+        --format json -o /tmp/rel_drc.json usb_hub_3s_v2.kicad_pcb
+
+    Found 0 violations
+    Found 0 unconnected items
+    Found 0 schematic parity issues
+
+    STANDALONE ARCHIVE RE-MEASURE: DRC 0/0/0
+
+THIS TEST CAUGHT A REAL DEFECT IN THE STAGING, recorded rather than silently
+fixed. The first run read **12 violations, all lib_footprint_issues**:
+
+    The footprint library 'usb_hub_3s' is not enabled in the current configuration
+    The footprint library 'Button_Switch_THT' is not enabled in the current configuration
+
+Cause: the staged `source/fp-lib-table` was a verbatim copy of the project's
+`04_kicad/fp-lib-table`, whose URIs read `${KIPRJMOD}/../03_src/lib/<lib>.pretty`.
+From inside `source/` that resolves to a path that does not exist in the archive
+— so the two VENDORED `.pretty` directories sitting right beside it were
+unreachable, and every footprint in them raised. Canon **V-REL-FPLIB**
+(usb-hub-3s, 2026-07-21), which is exactly why the contract requires the
+fp-lib-table AND the vendored `.pretty` in `source/`.
+
+Fixed by rewriting the two project-local URIs to `${KIPRJMOD}/<lib>.pretty`, i.e.
+relative to `source/` itself. The result is byte-identical to v1.11's sealed
+`source/fp-lib-table` (`diff` clean), which is the cross-check that the rewrite
+is the intended form and not an invention.
+
+Note also: `kicad-cli` writes a `usb_hub_3s_v2.kicad_prl` next to any board it
+opens. That dropping was removed after each run; the release directory contains
+no `.kicad_prl`, and the MANIFEST sha256 table accounts for every file present.

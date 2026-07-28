@@ -1,0 +1,8 @@
+  ok   A-AMP NC_PADS exempt by declaration ('none')
+  ok   A-CLASS GND_RET present (track_width 0.25mm)
+  ok   A-AGREE GND_RET pro/dru agree at 0.25mm
+  ok   A-AMP GND_RET exempt by declaration ('return (planes)')
+  ok   A-FIRE all 12 usb_hub_3s_v2.kicad_dru rule(s) can fire
+  ok   A-ORDER generate_rules runs last before the DRC gate
+  coverage A-AMP: 10/10 net-class current declarations graded
+RULES AUDIT: PASS (0 fails, 32 checks)

@@ -1,0 +1,38 @@
+GERBER/DRILL PAYLOAD DELTA — v1.11 sealed zip vs v1.12's shipped zip
+compared as COORDINATE SETS (zone-fill region order is not stable)
+
+  layer                                  coords+- outside J5  non-coord
+  usb_hub_3s_v2-B_Cu.gbl                     1174       329         10
+  usb_hub_3s_v2-B_Mask.gbs                      8         0          8
+  usb_hub_3s_v2-B_Paste.gbp              IDENTICAL after timestamp strip
+  usb_hub_3s_v2-B_Silkscreen.gbo                8         0          6
+  usb_hub_3s_v2-Edge_Cuts.gm1            IDENTICAL after timestamp strip
+  usb_hub_3s_v2-F_Cu.gtl                     1156        98         18
+  usb_hub_3s_v2-F_Mask.gts                     32         0         12
+  usb_hub_3s_v2-F_Paste.gtp                    24         0          4
+  usb_hub_3s_v2-F_Silkscreen.gto               32         0         10
+  usb_hub_3s_v2-In1_Cu.g1                     980        16          6
+  usb_hub_3s_v2-In2_Cu.g2                     908        51          6
+  usb_hub_3s_v2-NPTH.drl                        0         0          2
+  usb_hub_3s_v2-PTH.drl                        18         0         16
+
+  TOTAL coordinates present in exactly one payload and OUTSIDE the J5 corner box (x112-128, y99-112.5): **494**
+
+  -> READ THIS WITH copper_xor.txt, NOT ALONE. Those coordinates are NOT moved
+     features. A gerber line/coordinate diff cannot distinguish a moved feature
+     from the zone filler re-emitting the same outline with a different vertex
+     sampling, and it re-emits a LOT: on B.Cu, 748 of the 1027 out-of-box
+     coordinates have a neighbour within 0.001 mm in the other payload.
+     MEASURED PROOF OF THAT on this very release: the two v1.12 builds, which
+     differ only in the footprint's `descr` STRING, have 6272 differing text
+     lines in the .kicad_pcb and a copper XOR of 0.00000000 mm2 on all four
+     layers.
+     The representation-free measurement is copper_xor.txt, which bounds the same
+     regions with SHAPE_POLY_SET booleans: of 28.1019 mm2 of copper XOR,
+     **0.000969 mm2 (0.0034%) lies in regions not wholly inside the J5 corner**,
+     the largest a 78 x 16 um sliver. THAT is the statement about moved copper;
+     this file's job is the census.
+     (An earlier version of this line asserted "every geometric change lies
+     inside the J5 corner" directly above a count of 494 that do not. It
+     contradicted its own measurement and was corrected pre-seal — fresh-lens
+     finding F-4.)

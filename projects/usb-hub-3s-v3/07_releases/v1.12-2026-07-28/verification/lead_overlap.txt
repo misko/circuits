@@ -1,0 +1,53 @@
+LEAD vs LAND — the contact tail MEASURED FROM THE PART, not assumed from the
+recommended land.
+
+CORRECTION, 2026-07-28, raised by the fresh-context lens (F-1) and confirmed here
+by an independent measurement. The FIRST version of this file opened by DEFINING
+the contact tail as the vendor's recommended land (-1.6400..-0.5000, length
+1.140). That is a category error: a land is lead PLUS fillets, so every number
+downstream of it was a land-vs-land ratio wearing a lead's name — including the
+"0.220 mm inboard", "80.7 % overlap" and "0.530 mm past the lead" figures that
+reached the MANIFEST, the CHANGELOG, part.yaml and the footprint descr. Its own
+output should have given it away: it reported the CORRECTED land as "100.0 %
+overlap, heel 0.0000, toe 0.0000", i.e. a land with no fillet at either end,
+which would be a bad land pattern rather than the vendor's own.
+
+THE LEAD IS DIMENSIONED. The sheet's top view gives the tail projection past the
+housing as `0.40 +/- 0.10` beside the `7.35` housing depth, and JLC's 3D mesh for
+C5337088 is 7.7500 deep — 7.35 + 0.40, exactly. Measured below from that mesh
+(.easyeda_cache/8fd25e967d514fadb32489eb3c21393e.obj, 3379 vertices), anchored on
+the part's OWN datum: the two moulded alignment posts.
+
+ANCHORING THE MESH ON THE PART'S OWN DATUM
+  alignment posts: dia 0.5000 at x = -2.8900 and +2.8900  ->  span 5.7800   [sheet: 2-Ø0.50, 5.78]
+  alignment line  : mesh y = 2.5050
+  mouth face      : mesh y = -3.7750 ; housing depth 7.35 -> back face 3.5750
+  mesh max y      : 3.9750  ->  tail projects 0.4000 past the housing   [sheet: 0.40 +/- 0.10]
+
+THE SOLDERABLE CONTACT TAIL, referred to the alignment line
+  (+ve = north, away from the mouth; this is the direction the land row sits in)
+  tail: +1.0700 .. +1.4700   length 0.4000
+
+LAND vs TAIL
+  v1.11 (stock geometry)       land +0.7200 .. +2.1700  (length 1.450)
+      tail on land            : 0.4000 mm = 100.0 % of the tail
+      HEEL  (mouth side, where the tail leaves the housing and the fillet works): 0.3500
+      TOE   (past the tail tip, land + open stencil with no lead over it)      : 0.7000
+      land length vs the vendor's 1.140: +27.2 % paste per land
+  v1.12 (vendor's recommended) land +0.5000 .. +1.6400  (length 1.140)
+      tail on land            : 0.4000 mm = 100.0 % of the tail
+      HEEL  (mouth side, where the tail leaves the housing and the fillet works): 0.5700
+      TOE   (past the tail tip, land + open stencil with no lead over it)      : 0.1700
+      land length vs the vendor's 1.140: +0.0 % paste per land
+
+WHAT IS AND IS NOT TRUE ABOUT THE v1.11 LAND PATTERN
+  NOT true: contacts hanging off their lands. The tail is 100 % on the land in BOTH.
+  TRUE    : the fillet balance is INVERTED. The vendor puts the surplus at the HEEL
+            (0.570 vs 0.170); v1.11 put it at the TOE (0.350 vs 0.700). The heel is
+            where the solder fillet carries the joint, and v1.11 starved it to 61 %
+            of the intended length while doubling the toe.
+  TRUE    : 27 % more paste per land than the vendor specifies, and 0.700 mm of every
+            land and its stencil aperture beyond the tail tip, on a 0.5 mm-PITCH row,
+            on a part that cannot self-align. That is the bridge exposure.
+  So the defect is real and correctly signed. It is a FILLET-BALANCE AND PASTE-VOLUME
+  defect, not an open-joint one, and the release's documents now say so.
