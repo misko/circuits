@@ -257,11 +257,40 @@ def grade(root, parts_dir, strict=False):
                 continue
 
             if kind == "value":
-                want = parse_si(e.get("equals"))
-                if want is None:
+                raw = e.get("equals")
+                want = parse_si(raw)
+                # ---- STRING MODE (2026-07-28) --------------------------------
+                # `equals:` used to be pushed through the SI decoder and
+                # NOTHING ELSE, so an MPN operand — `RP2040`, `PE42482A-X`,
+                # `TYPE-C-31-M-12A` — decoded to None, emitted a non-blocking
+                # P-FACT-CONFIG note and GRADED NOTHING, while the run still
+                # printed `P-FACT OK`. Measured before this fix: 11 of 13
+                # asserts on pluto-rx2-8way (including both pre-existing
+                # exemplars) and 5 on pluto-cal-switch checked nothing at all.
+                # That is precisely the class the 02_parts contract names as
+                # the REASON `asserts:` exists: a fact written down and never
+                # read is indistinguishable from a fact nobody knew.
+                #
+                # An operand the SI decoder cannot read is not a broken
+                # assertion — it is a LITERAL. Comparison is exact after
+                # stripping surrounding whitespace, deliberately NOT
+                # case-folded or punctuation-normalised: `SS12D07VG6 087` vs
+                # `SS12D07VG6-087` is a real drift this fleet has already
+                # shipped (ADR-0006/F-ECHO), so a compare loose enough to
+                # accept it would re-open the hole it is here to close.
+                strmode = want is None and str(raw or "").strip() != ""
+                if want is None and not strmode:
                     finds.append(("P-FACT-CONFIG",
-                                  f"{mpn}: value assert has no decodable "
-                                  f"`equals:` ({e.get('equals')!r})"))
+                                  f"{mpn}: value assert has no `equals:` at "
+                                  f"all ({raw!r})"))
+                    continue
+                if strmode and "tolerance_pct" in e:
+                    finds.append((
+                        "P-FACT-CONFIG",
+                        f"{mpn}: value assert carries `tolerance_pct:` but "
+                        f"`equals: {raw!r}` is not a number — a tolerance on "
+                        f"a literal grades nothing; drop it or make the "
+                        f"operand numeric"))
                     continue
                 tol = float(e.get("tolerance_pct", 0)) / 100.0
                 if not refs:
@@ -272,6 +301,14 @@ def grade(root, parts_dir, strict=False):
                                   f"pass"))
                     continue
                 for r in refs:
+                    if strmode:
+                        seen = str(ref_comment.get(r) or "").strip()
+                        if seen != str(raw).strip():
+                            finds.append((
+                                "P-FACT", f"{mpn}/{r}: BOM Comment "
+                                f"{ref_comment.get(r)!r}, part.yaml asserts "
+                                f"the literal {raw!r} — {e['why'][:90]}"))
+                        continue
                     got = parse_si(ref_comment.get(r))
                     if got is None:
                         finds.append((

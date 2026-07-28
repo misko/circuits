@@ -215,6 +215,21 @@ asserts:                    # OPTIONAL, canon P-FACT. The part's own facts,
     tolerance_pct: 5               # SI-aware: 1k / 1kOhm / 1kΩ / 4k7 / 0R1
     why: "I_IL(max) 190uA x R < V_IL 0.99V => R <= 5.2k; TI SLVS165O 7.3.4
       names 1k explicitly"         # NB m is MILLI and M is MEGA
+  - assert: value                  # ...and an `equals:` the SI decoder cannot
+    equals: PE42482A-X             # read is a LITERAL, compared EXACTLY to the
+    why: "the Comment must NAME the switch; a pin-compatible SPDT in the same
+      land is a different part"    # Comment (whitespace-stripped, NOT
+                                   # case-folded and NOT punctuation-
+                                   # normalised: `SS12D07VG6 087` vs
+                                   # `SS12D07VG6-087` is a drift this fleet has
+                                   # already shipped). `tolerance_pct:` on a
+                                   # literal is a CONFIG ERROR — a percentage
+                                   # band around a part number grades nothing.
+                                   # Until 2026-07-28 a non-numeric `equals:`
+                                   # emitted a non-blocking P-FACT-CONFIG and
+                                   # checked NOTHING while the run printed
+                                   # `P-FACT OK`: 11 of 13 asserts on
+                                   # pluto-rx2-8way and 5 on pluto-cal-switch.
   - assert: not_on_assembly_bom    # no ref of this part may carry an LCSC on
     why: "THT on an SMT-only order and stock 0 on all three siblings (live
       query 2026-07-25) — hand-wire from Digi-Key"   # the BOM, or sit on CPL

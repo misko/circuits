@@ -221,6 +221,102 @@ def t_value_contradicts():
     contains(r.out, "1k", "names the DECLARED value")
 
 
+# ================= `equals:` as a LITERAL (2026-07-28, the fleet-wide hole) ===
+RF_SWITCH = """\
+mpn: PE42482A-X
+type: rf_switch
+asserts:
+  - assert: value
+    equals: PE42482A-X
+    why: "the BOM Comment must NAME the switch; a pin-compatible SPDT in the
+      same land is a different part and only the Comment can say which"
+sourcing: {lcsc: C7654321}
+"""
+
+
+@test("P-FACT FAILS a WRONG MPN in the BOM Comment — an `equals:` the SI "
+      "decoder cannot read is a LITERAL, not a broken assertion",
+      kind="known_bad")
+def t_value_literal_mpn_mismatch():
+    """THE FLEET-WIDE HOLE (2026-07-28). `equals:` was pushed through
+    `parse_si()` and nothing else. An MPN operand — `RP2040`, `PE42482A-X`,
+    `TYPE-C-31-M-12A`, `MCP1755S-3302E/DB` — decoded to None, emitted a
+    NON-BLOCKING `P-FACT-CONFIG` note and GRADED NOTHING, while the run went on
+    to print `P-FACT OK`.
+
+    MEASURED before the fix: 11 of 13 asserts on pluto-rx2-8way (including
+    BOTH assertions that shipped as the exemplars) and 5 on pluto-cal-switch
+    checked nothing at all. After it: 0 P-FACT-CONFIG anywhere in the fleet,
+    and ZERO new failures — every one became a properly graded assert. That is
+    exactly the class the 02_parts contract cites as the REASON `asserts:`
+    exists, reproduced inside the mechanism built to end it: a fact written
+    down and never read is indistinguishable from a fact nobody knew.
+
+    RED-VERIFIED 2026-07-28 (git-swap, tests/README step 3): with git HEAD's
+    part_facts_check.py swapped back in this fails with `P-FACT on a wrong MPN
+    SHOULD HAVE FAILED but exited 0 — the gate is not gating`, and the report
+    reads `P-FACT-CONFIG: PE42482A-X: value assert has no decodable
+    equals: ('PE42482A-X')` followed by `P-FACT OK`. Restored, it FAILS as it
+    must.
+    """
+    d = release({"PE42482A-X": RF_SWITCH},
+                [("PE42480A-X", "U_SW1", "QFN-20", "PE42482A-X", "C7654321")])
+    r = must_fail(pfact(d), "P-FACT on a wrong MPN", "P-FACT")
+    contains(r.out, "U_SW1", "names the ref")
+    contains(r.out, "PE42480A-X", "names the ACTUAL BOM Comment")
+    contains(r.out, "PE42482A-X", "names the DECLARED literal")
+    check("P-FACT-CONFIG" not in r.out,
+          f"a literal operand is still being called a config error:\n{r.out}")
+
+
+@test("P-FACT accepts the matching literal, and the compare is EXACT — the "
+      "SS12D07VG6 space-vs-hyphen drift is a MISMATCH", kind="known_bad")
+def t_value_literal_is_exact():
+    """The adjacent property, re-measured every run rather than asserted in a
+    docstring: the SAME fixture with the Comment CORRECTED must PASS, or the
+    known-bad above proves only that the gate says no to everything.
+
+    And the compare is deliberately not case-folded or punctuation-normalised.
+    `SS12D07VG6 087` vs `SS12D07VG6-087` is a drift this fleet has ALREADY
+    shipped — usb-hub-3s-v3 SW1, where the retired side-file and the dossier
+    disagreed by exactly one character and a blank-only check passed it
+    (ADR-0006 / F-ECHO). A compare loose enough to accept that would re-open
+    the hole it is here to close, so both near-misses must still FAIL.
+    """
+    ok = release({"PE42482A-X": RF_SWITCH},
+                 [("PE42482A-X", "U_SW1", "QFN-20", "PE42482A-X", "C7654321")])
+    r = must_pass(pfact(ok), "P-FACT on the matching literal")
+    check("P-FACT-CONFIG" not in r.out, f"config noise on a good part:\n{r.out}")
+    # leading/trailing whitespace is the ONE thing normalised away
+    sp = release({"PE42482A-X": RF_SWITCH},
+                 [("  PE42482A-X  ", "U_SW1", "QFN-20", "PE42482A-X", "C7")])
+    must_pass(pfact(sp), "P-FACT on a whitespace-padded Comment")
+    for near in ("pe42482a-x", "PE42482AX", "PE42482A X"):
+        bad = release({"PE42482A-X": RF_SWITCH},
+                      [(near, "U_SW1", "QFN-20", "PE42482A-X", "C7654321")])
+        must_fail(pfact(bad), f"P-FACT on the near-miss {near!r}", "U_SW1")
+
+
+@test("P-FACT REFUSES `tolerance_pct:` on a literal operand — a tolerance on "
+      "a part number grades nothing", kind="known_bad")
+def t_value_literal_rejects_tolerance():
+    """A percentage band around a string is meaningless, and silently ignoring
+    it would let an author believe a fuzzy match was happening. It is a schema
+    error, named as one."""
+    y = RF_SWITCH.replace("    equals: PE42482A-X\n",
+                          "    equals: PE42482A-X\n    tolerance_pct: 5\n")
+    d = release({"PE42482A-X": y},
+                [("PE42482A-X", "U_SW1", "QFN-20", "PE42482A-X", "C7654321")])
+    r = pfact(d, "--strict")
+    must_fail(r, "P-FACT on tolerance_pct over a literal", "P-FACT-CONFIG")
+    contains(r.out, "tolerance", "names the offending key")
+    # ...and the numeric operand still takes its tolerance, untouched
+    must_pass(pfact(release({"TPS3823-33DBVR": WD_OK},
+                            [("1.02k", "R_WDPETPD", "R_0402",
+                              "TPS3823-33DBVR", "C7719")]), "--strict"),
+              "a numeric equals still honours tolerance_pct")
+
+
 @test("P-FACT reports an assertion that reached NO ref — it is not a pass",
       kind="known_bad")
 def t_facts_reach_the_refs():
