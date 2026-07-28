@@ -343,6 +343,22 @@ lands; **immutability begins the moment the seal commit exists.**
 3. **Seal commit.** A commit that adds ONLY the release directory, the
    `01_docs/CHANGELOG.md` entry, and `SUPERSEDED.md` on the predecessor.
    From this commit on the directory is IMMUTABLE.
+4. **Refresh the beacon — the seal is not complete without it (canon
+   M-BEACON).** OVERWRITE `01_docs/STATUS*.md` (the board's own, on a
+   multi-board project) so that `step:` names the release just created,
+   `state:` is `done`, and `updated:` is now; then run
+   `status_beacon_check.py <project>` and require exit 0. The beacon is the
+   coordinator's only between-gates eye and it does not go blank when it goes
+   stale — it keeps reporting the PREVIOUS release as live, with a plausible
+   `sealed / done`. Measured 2026-07-27, before this step existed: EVERY
+   beacon in the fleet named a superseded release (13 M-BEACON findings across
+   4 of 6 boards), and one had a whole second frame APPENDED into a file this
+   contract says is OVERWRITTEN. This step is where that class is closed —
+   the gate catches drift AFTER the fact; the ritual is what prevents it.
+   It comes AFTER the seal commit deliberately: the release directory it must
+   name does not exist until then. Commit the refreshed beacon with the next
+   working commit (it is `01_docs/` working state, never part of the sealed
+   archive, and it must NEVER be added to the release directory).
 
 **Docs-only supersede mode.** When the new release changes ONLY
 documentation (dispositions, README, MANIFEST — no fab/source/3d delta),
@@ -513,6 +529,11 @@ checked shared a method.
   provenance line and a `bodies mounted: N/M` header with **N == M** (canon
   A-BODY). A missing or unparseable counter is a FAIL, not a skip
 - `01_docs/CHANGELOG.md` has an entry whose `Released:` names this directory
+- while this directory is the LIVE release (no `SUPERSEDED.md`), the board's
+  `01_docs/STATUS*.md` beacon NAMES it and is not older than it —
+  `status_beacon_check.py <project>` exits 0 (canon M-BEACON). The beacon is
+  working state, not release content: it is refreshed by seal step 4 and never
+  written into this directory
 
 ## Repair
 
