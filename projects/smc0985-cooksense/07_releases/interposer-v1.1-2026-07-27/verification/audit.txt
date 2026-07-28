@@ -1,0 +1,1 @@
+interposer audit PASS: polarity(pad1-net x30) + mate-direction + pin-order + isolation(10 KP_* nets, 0 zones)

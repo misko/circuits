@@ -1,0 +1,8 @@
+$ python3 assembly_coverage.py interposer-v1.1-2026-07-27 --assembly assembly.yaml --json assembly_coverage.json
+exit 0
+
+== A-POP assembly_coverage: interposer-v1.1-2026-07-27 ==
+  board=27 footprints, cpl=1 placements, unpopulated=26 (declared=2, consigned=0, exempt_prefixes=['H', 'TP'])
+  placement histogram: top=1
+  A-POS datum: 1 CPL row(s) graded against the pad-array centre, worst = 0.00000mm (J_KEY_MATRIX), tolerance 0.05mm
+A-POP: PASS (every unpopulated part is declared with evidence)

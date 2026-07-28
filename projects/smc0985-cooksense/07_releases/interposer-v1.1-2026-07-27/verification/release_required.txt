@@ -1,0 +1,5 @@
+$ release_required_check.py interposer-v1.1-2026-07-27
+exit 0
+
+  CONDITIONAL absent (contract states a condition): 3d/<board>.gltf
+A-EVID OK: 31 required artifact(s) present, 1 conditional absent

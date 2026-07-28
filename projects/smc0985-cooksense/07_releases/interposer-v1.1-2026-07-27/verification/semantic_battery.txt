@@ -1,0 +1,64 @@
+interposer v1.1 — schematic-gate semantic battery (re-measured 2026-07-27)
+Every line below was RE-RUN for this release, not carried forward. Where the
+number changed from v1.0 the change is named.
+
+ERC --severity-all:            0 errors / **79** warnings: endpoint_off_grid 56 +
+                               lib_symbol_issues 23 (converter cosmetics).
+                               CHANGED FROM v1.0's 102, and the delta is EXACTLY its
+                               23 footprint_link_issues — one per component. v1.0 ran
+                               ERC where the `cooksense` footprint library did not
+                               resolve, so those 23 warnings were reporting the SAME
+                               archive defect as its 29 standalone-DRC violations, not
+                               a schematic property. This release's erc.json is run ON
+                               THE SHIPPED source/interposer.kicad_sch WITH THE SHIPPED
+                               fp-lib-table beside it (canon M-SHIP), the library
+                               resolves, and they are gone. The number now AGREES with
+                               the policy_audit S-ERC row (M-CONS): v1.0's manifest
+                               said 102 while its own audit said 79 and nothing
+                               compared them.
+                               Errors are 0 either way.
+S-NETMERGE net_label_survival: PASS — 10/10 labels survive to the netlist
+                               CHANGED HOW IT IS RUN: v1.0's shadow root symlinked the
+                               SHARED 03_tscircuit/kicad/, so `*.kicad_sch` sorted
+                               cooksense FIRST and the interposer's S-NETMERGE was
+                               graded against the MAIN BOARD's 100+ global labels.
+                               The shadow now exposes only interposer.kicad_sch.
+E-INV:                         OK — 50/50 invariants hold vs interposer.net
+E-ADR:                         interposer file cites ADR-0009; PROJECT-WIDE coverage
+                               proven on the merged cooksense+interposer invariants
+                               view (per-board split = ADR-0007; evidence-backed
+                               waiver in policy_waivers.yaml)
+E-TOPO / E-MARGIN / E-OFF:     N-A BY DESIGN — rails: [] (passive board, no power;
+                               source_type external scan signals; BRIEF fact-lock)
+S-COUNT count_parity:          ok x4 — board == circuit.json == kicad_sch == netlist
+                               == manifest, 23 components.
+                               CHANGED FROM v1.0's x3: the shadow root's
+                               03_tscircuit/build/circuit.json was the SHARED file,
+                               i.e. COOKSENSE's 222-component circuit. It now points
+                               at interposer.circuit.json (23), so the circuit.json
+                               leg grades this board.
+netlist parity:                50/50 connected nodes agree, board vs netlist; the one
+                               no-connect difference (J_KEY_MATRIX.MP, netless BY
+                               DESIGN on this floating board) is written out node-level
+                               in verification/parity.md
+bom_source_check:              PASS — every BOM LCSC == source, per refdes.
+                               CHANGED FROM v1.0: graded against
+                               03_tscircuit/build/interposer.circuit.json. v1.0's
+                               export read the SHARED build/circuit.json (cooksense's)
+                               and produced a correct code for J_KEY_MATRIX only BY
+                               COINCIDENCE — the main board carries the same refdes for
+                               the same part. Both 10FDZ-BT refs resolved blank because
+                               they are simply not in the other board's circuit.
+part_facts_check (P-FACT):     OK — 4/41 part.yaml declare an `asserts:` block, 3
+                               assertions graded; 1 DEFERRED (keepout_region, needs
+                               board geometry) and 1 UNREACHED (a cooksense-only part),
+                               both NAMED rather than silently passed
+netlist:                       10 nets (KP_U1..U6, KP_D1..D4) x 5 nodes = 50 nodes;
+                               J_KEY_MATRIX MP tabs in NO net (floating, by design);
+                               8 netless pads total (4x H mounting hole, 2x ZIF
+                               polarization boss, 2x MP tab)
+DRC (kicad-cli, severity-all,  0 violations / 0 unconnected / 0 schematic-parity
+ --refill-zones --schematic-   on 04_kicad/interposer.kicad_pcb AND, independently,
+ parity):                      0/0/0 on source/interposer.kicad_pcb extracted ALONE
+                               into an empty directory (standalone_archive_drc.json).
+                               The SAME command on v1.0's archive returns 29.

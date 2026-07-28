@@ -99,3 +99,53 @@ cathode band drawn on a bidirectional part.
 
 Source commit S = 595d197.
 
+## interposer-v1.1-2026-07-27 (Board C RE-SEAL — supersedes v1.0, fab NOT ordered)
+
+Released: `07_releases/interposer-v1.1-2026-07-27/`.
+Supersedes: `interposer-v1.0-2026-07-24`, which is **DO-NOT-ORDER**.
+
+**The P0.** v1.0's CPL shipped `J_KEY_MATRIX` (C2683602, JST GH) at rotation
+**90.0** where the measured authority says **270.0** — 180 degrees out. It fails
+SILENTLY: the GH pad array is symmetric about its own centre, so at 180 every pad
+still lands on a pad and the part solders perfectly, while pin 1 <-> pin 10 swaps
+and **the whole ten-line keypad ribbon reverses**. The 90 came from the
+footprint-NAME rule `^JST_GH_SM,180`, refuted on 2026-07-25 — the day after v1.0
+sealed. v1.1 derives 270.0 from the EXACT PAD-FIT path: the measured per-LCSC row
+for C2683602 is offset 0 at rms 0.0049 mm vs 5.0792 mm next-best = 1037x
+separation, board_rot 270 + 0 = 270.0, re-fitted independently here by `jlc_twin`
+at 0.01 mm and matching the sealed main board's own CPL.
+
+**The second P0, and the root cause of both.** Both self-supplied through-hole
+10FDZ-BT ZIFs shipped ON v1.0's CPL with a blank LCSC and no declaration
+anywhere — the only defence was README prose telling a human to delete two rows.
+Root cause: **the entire assembly gate family never ran on v1.0** — its
+`policy_audit.md` has no A-* row at all. An absent verdict is not a pass. v1.1
+carries A-POP / A-POS / A-ROT / A-POL / A-BODY / A-STOCK / A-EVID / A-RENDER,
+all green, plus a new `03_src/interposer/rules/assembly.yaml` with a DATED JLC
+catalog query, `exclude_from_pos_files` on the board, and a GENERATED MANIFEST
+`not_assembled:` line.
+
+**Also folded in:** a legible BOM (F-LEGIBLE FAIL -> OK: MPN resolved from the
+dossier, Comment a real value, UTF-8 byte-order-mark); a `pourless:` declaration
+so F-POUR can tell a deliberately pourless board from one that lost its zones;
+and a SELF-CONTAINED archive — `kicad-cli pcb drc --severity-all --refill-zones
+--schematic-parity` from `source/` alone returns **0/0/0** where v1.0's returns
+**29** (its fp-lib-table pointed outside itself and the two unresolvable
+footprints were the two ZIFs, the entire point of the board).
+
+**The copper did not move**, measured with an aperture-resolved, order-independent
+gerber comparator that shares no method with the plotter: both copper layers, both
+masks, both pastes and both drill files IDENTICAL; the profile identical as an
+undirected segment set; F.Silkscreen differing by 50 of 5368 atoms, all inside one
+0.514 x 0.900 mm cell — the version digit.
+
+**Board:** 54 x 46 mm, 2 layer, 23 parts + 4 holes, 183 segments / 35 vias,
+0 zones. DRC 0/0/0. ERC 0/102. policy_audit FAIL=0. E-INV 50/50.
+
+**USER-HELD, unwaived, in ORDER_README section 0:** the 10FDZ-BT POLARITY read
+(M9/M10 UNMEASURED — if reversed the board still works and only the TP/KP NAMING
+is wrong) and the M3 boss offset (0.190 mm of error against 0.23 mm of clearance,
+and it would interfere at the boss's nominal diameter — dry-fit every connector).
+The user has measured the part and decided to build with the current footprint.
+
+Source commit S = ee5632a.

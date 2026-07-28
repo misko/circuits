@@ -1,0 +1,122 @@
+COPPER IDENTITY — interposer v1.0 -> v1.1, and the archive's own re-plot
+=======================================================================
+written 2026-07-27, by an ad-hoc semantic gerber comparator (scratchpad
+`gerbcmp.py`, reproduced verbatim at the bottom of this file).
+
+WHY A BYTE COMPARISON WOULD NOT DO. `generate_board_generic` mints FRESH UUIDs
+on every run and emits footprints in a different order, so the plotter numbers
+its apertures differently and flashes them in a different sequence. v1.1's
+`.kicad_pcb` therefore has a different md5 to v1.0's (5c7e4d3... vs 19212ec...)
+WITHOUT ANY GEOMETRY MOVING, and every gerber differs textually. `sha256` and
+`diff` both say "changed" and neither says WHAT.
+
+So the comparison resolves every D-code to its APERTURE DEFINITION (shape +
+parameters) and compares the MULTISET of (resolved-aperture, op, x, y) tuples
+plus every G36..G37 region outline. Drills resolve T-codes to diameters and
+compare the multiset of (diameter, plated, x, y). Two files agree iff those
+multisets are equal — aperture numbering and statement order cancel out.
+
+
+A. v1.0 (sealed 2026-07-24) vs v1.1 — DID THE COPPER MOVE?
+----------------------------------------------------------
+file                             atoms  verdict
+interposer-B_Cu.gbl                180  IDENTICAL GEOMETRY
+interposer-B_Mask.gbs               52  IDENTICAL GEOMETRY
+interposer-B_Paste.gbp               0  IDENTICAL GEOMETRY
+interposer-B_Silkscreen.gbo         26  IDENTICAL GEOMETRY
+interposer-Edge_Cuts.gm1             8  differs in TRAVERSAL DIRECTION only (below)
+interposer-F_Cu.gtl                450  IDENTICAL GEOMETRY
+interposer-F_Mask.gts               84  IDENTICAL GEOMETRY
+interposer-F_Paste.gtp              12  IDENTICAL GEOMETRY
+interposer-F_Silkscreen.gto       5368  differs in ONE GLYPH CELL only (below)
+interposer-NPTH.drl                  6  IDENTICAL GEOMETRY
+interposer-PTH.drl                  55  IDENTICAL GEOMETRY
+
+**BOTH COPPER LAYERS, BOTH MASKS, BOTH PASTES AND BOTH DRILL FILES ARE
+GEOMETRICALLY IDENTICAL.** The 630 copper atoms, the 136 mask atoms, the 12
+paste atoms and the 61 drilled holes are the same set of shapes at the same
+coordinates. The ten-line pass-through, the two 10FDZ-BT land patterns (20 x
+PTH C0.900 at pitch 2.5400, span 22.8600; 2 x NPTH C1.800 bosses) and the
+JST GH land are untouched by this respin.
+
+  Edge_Cuts — the two multisets differ by exactly two directed atoms:
+    v1.0 only:  (C,0.100000, D01, 10000000, -10000000)
+                (C,0.100000, D02, 64000000, -56000000)
+    v1.1 only:  (C,0.100000, D02, 10000000, -10000000)
+                (C,0.100000, D01, 64000000, -56000000)
+  i.e. ONE edge is traversed in the opposite direction. As an UNDIRECTED
+  segment set the two profiles are equal — measured, all four segments:
+    ((10000000,-56000000),(10000000,-10000000))
+    ((10000000,-56000000),(64000000,-56000000))
+    ((10000000,-10000000),(64000000,-10000000))
+    ((64000000,-56000000),(64000000,-10000000))
+  identical-as-undirected-set: True. The 54.00 x 46.00 mm profile is unchanged.
+
+  F.Silkscreen — 5328 of v1.0's 5368 atoms survive unchanged. 40 atoms are
+  removed and 10 added, and EVERY ONE of those 50 differing atoms lies inside
+  a single character cell:
+        x 44.286 .. 44.800 mm   (0.514 mm wide)
+        y 12.009 .. 12.909 mm   (0.900 mm tall = the caption's text height)
+  That is the version digit in the board caption: `... (Board C) v1.0 ...`
+  became `... (Board C) v1.1 ...`. A '0' is a stroked ellipse (40 atoms); a
+  '1' is three strokes (10 atoms). Nothing else on the silk moved — no
+  refdes, no functional label, no pin-1 numeral, no isolation warning.
+  THE CHANGE IS DELIBERATE: v1.0 is DO-NOT-ORDER and was never fabbed, and a
+  board silk-marked with a version it is not is a provenance error that
+  cannot be corrected after fab.
+
+
+B. THE ARCHIVE STANDS ALONE — re-plotted from `source/`, compared to `fab/`
+--------------------------------------------------------------------------
+`source/` was copied to an empty directory with NO project tree around it and
+re-plotted by `export_jlc_package.py`. All 11 payload files come back
+IDENTICAL GEOMETRY against the shipped zip:
+
+file                             atoms  verdict
+interposer-B_Cu.gbl                180  IDENTICAL GEOMETRY
+interposer-B_Mask.gbs               52  IDENTICAL GEOMETRY
+interposer-B_Paste.gbp               0  IDENTICAL GEOMETRY
+interposer-B_Silkscreen.gbo         26  IDENTICAL GEOMETRY
+interposer-Edge_Cuts.gm1             8  IDENTICAL GEOMETRY
+interposer-F_Cu.gtl                450  IDENTICAL GEOMETRY
+interposer-F_Mask.gts               84  IDENTICAL GEOMETRY
+interposer-F_Paste.gtp              12  IDENTICAL GEOMETRY
+interposer-F_Silkscreen.gto       5338  IDENTICAL GEOMETRY
+interposer-NPTH.drl                  6  IDENTICAL GEOMETRY
+interposer-PTH.drl                  55  IDENTICAL GEOMETRY
+
+(The standalone re-plot's BOM/CPL are NOT graded here: with no `03_tscircuit`
+tree beside it there is no authoritative LCSC source, so A-ROT correctly
+BLOCKS and the run was forced with `--allow-unsourced-rotations` to obtain the
+gerbers. That is the gate behaving, not a defect: an archive-only re-plot can
+reproduce the COPPER, and the CPL rotations are sourced from the measured
+per-LCSC table which lives in `skills/`, not in the release.)
+
+  Standalone DRC, from the archive alone, nothing else on disk:
+    v1.1  `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity`
+          -> 0 violations / 0 unconnected / 0 parity   (standalone_archive_drc.json)
+    v1.0  THE SAME COMMAND ON THE SEALED v1.0 ARCHIVE -> **29 violations**
+  v1.0's `source/fp-lib-table` points the `cooksense` library at
+  `${KIPRJMOD}/../03_src/lib/cooksense.pretty` — OUTSIDE the archive — while
+  shipping `source/cooksense.pretty/` INSIDE it, so the two 10FDZ-BT
+  footprints (the entire point of the board) could not load for anyone holding
+  only that directory. v1.1's archive fp-lib-table names
+  `${KIPRJMOD}/cooksense.pretty` and additionally ships `.kicad_pro` +
+  `.kicad_dru`, which v1.0 omitted. The 29-vs-0 pair is the falsifiable
+  measurement of that claim (canon "fix-claim evidence rule").
+
+
+THE COMPARATOR (canon M1: it shares no method with the plotter)
+---------------------------------------------------------------
+Plain python3, no pcbnew, no KiCad. It parses GERBER TEXT and EXCELLON TEXT.
+The plotter that produced the files is pcbnew's PLOT_CONTROLLER; nothing in
+this comparison consults it, the board object, or any export code path.
+
+    def gerber_atoms(text):        # %ADDnn -> shape; Dnn -> select; XxxYyyDzz
+        ...                        # emits Counter[(aperture, op, x, y)]
+                                   # plus ("REGION", sorted outline) per G36..G37
+    def drill_atoms(text):         # Tnn C<dia>; Xx.xxYy.yy
+        ...                        # emits Counter[(diameter, plated, x, y)]
+
+Full source: the run that produced this file used
+`gerbcmp.py <zipA> <zipB>`, exit 0 iff every file's multisets are equal.

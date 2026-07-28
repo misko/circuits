@@ -1,0 +1,7 @@
+$ python3 bom_source_check.py bom.csv interposer.circuit.json --parts 02_parts
+exit 0
+
+BOM-vs-source: /home/mouse9911/gits/circuits/.claude/worktrees/agent-a4c47c31240616a22/projects/smc0985-cooksense/07_releases/interposer-v1.1-2026-07-27/fab/bom.csv
+  source: /home/mouse9911/gits/circuits/.claude/worktrees/agent-a4c47c31240616a22/projects/smc0985-cooksense/03_tscircuit/build/interposer.circuit.json (1 coded refdes); vendored: 38 part.yaml codes; ledger: 144 vetted passive codes
+  coverage leg C: 0/0 R/C rows value-graded (2 BOM rows seen)
+BOM SOURCE CHECK: PASS (every BOM LCSC == source)

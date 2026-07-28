@@ -1,0 +1,13 @@
+{
+  "release": "/home/mouse9911/gits/circuits/.claude/worktrees/agent-a4c47c31240616a22/projects/smc0985-cooksense/07_releases/interposer-v1.1-2026-07-27",
+  "fails": [],
+  "oks": [
+    "F-IDENT 2 copper gerbers all distinct",
+    "F-POUR pourless by declaration (assembly.yaml): ZERO copper zones BY DESIGN, and it is the safety argument rather than a layout convenience. The whole board is ONE floating keypad domain: BRIEF sections 4/5/7 and ADR-0009 forbid any ground, power or chassis bond on the keypad side of the OEM membrane interface, so there is no net to pour to \u2014 a pour tied to nothing is an antenna, and a pour tied to anything breaks the isolation the board exists to provide. MEASURED on the v1.1 board: the copper net set is EXACTLY the ten KP_U1..U6 / KP_D1..D4 nets and nothing else, 0 zones, both J_KEY_MATRIX MP tabs in no net, all 4 mounting holes np_thru_hole, both ZIF polarization bosses NPTH (verification/audit.txt)."
+  ],
+  "coverage": {
+    "F-POUR": "0/0 zone-bearing copper layers",
+    "F-IDENT": "2/2 copper gerbers compared"
+  },
+  "na": null
+}

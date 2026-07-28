@@ -1,0 +1,7 @@
+$ python3 part_facts_check.py shadow_root --parts 02_parts
+exit 0
+
+P-FACT: 4/41 part.yaml declare an `asserts:` block; 3 assertion(s) graded against /home/mouse9911/gits/circuits/.claude/worktrees/agent-a4c47c31240616a22/projects/smc0985-cooksense/06_build/interposer/shadow_root
+  P-FACT-DEFERRED: LTV-817S-TA1: `keepout_region` is DECLARED but this checker cannot yet grade it (needs board geometry) — THE 5000Vrms INPUT<->OUTPUT BARRIER, and the gotcha saying so was already in this file whe
+  P-FACT-UNREACHED: RVT220UF16V67RV0015: pad1_net_polarity reached NO board ref (lcsc C2887273)
+P-FACT OK

@@ -1,0 +1,192 @@
+board:        interposer (Board C, project smc0985-cooksense; ADR-0007 multi-board)
+version:      v1.1
+sealed:       2026-07-27 (fab NOT ordered; see order gates)
+supersedes:   interposer-v1.0-2026-07-24 — DO-NOT-ORDER (CPL rotation 180 out;
+              both self-supplied ZIFs on the CPL). See its SUPERSEDED.md.
+git_sha:      ee5632a                 # the EXACT commit these came from
+git_dirty:    false                   # scope: projects/smc0985-cooksense/ + skills/ (release_git_dirty.py, exit 0 — tool-verified, not eyeballed)
+kicad:        10.0.4
+tools:        03_src/interposer/rebuild_all.sh (deterministic promoted-chain import via the
+              single-board shadow root; chain 03_src/interposer/route/final_chain.kicad_pcb
+              = the race-3 winner c0/r1, unchanged since v1.0), /usr/bin/python3 pcbnew,
+              jlcpcb-fab/scripts/export_jlc_package.py
+fab:          JLCPCB, 2 layer, jlc_2layer_default (NO advanced options); 54 x 46 mm,
+              1.6mm (10FDZ-BT applicable PCB thickness is 1.6mm)
+quantity:     5 suggested (1 build + G2 fit-trial spares + one board for the open-item-1
+              ream test) — NOT ORDERED
+assembly:     JLC standard SMT, top side only, fiducials: none (JLC rail; finest pitch on
+              the board is 1.25mm, 3x the <=0.4mm at which local fiducials stop being
+              optional). ONE machine-placed part.
+not_assembled: J_CN1_JUMPER, J_MEMBRANE
+consigned:    none — nothing on this board is consigned. The two unplaceable parts are
+              a POPULATION decision, not a sourcing one; declaring them `consign` would
+              put them back on the CPL, which is the exact defect v1.0 shipped.
+msl:          none required — no consigned part and no exposed-pad package on this board.
+
+ON `git_dirty: false`. `release_git_dirty.py smc0985-cooksense` returns exit 0 with the
+release directory and `01_docs/CHANGELOG.md` at their pre-seal state — measured twice:
+immediately after the source commit ee5632a, and again at stamp time with the CHANGELOG
+entry temporarily reverted. GATE LIMITATION, reported rather than worked around: the
+tool excuses seal OUTPUT only when it is UNTRACKED (`??`), and on a board whose CHANGELOG
+already exists the new entry shows as MODIFIED (` M`), so the tool reports `true` while
+the only difference is the very entry the seal commit is required to carry. That is a
+false positive of the same shape the tool was written to prevent, and it is named here
+instead of being resolved by hand-writing `false` — which is exactly what a sibling
+board did in 2026-07-26, shipping a mechanical claim its own tool contradicted.
+
+THE `not_assembled:` LINE ABOVE IS A BARE REFDES LIST, AND IT IS GENERATED — by
+`assembly_coverage.py --emit-manifest-line` from 03_src/interposer/rules/assembly.yaml
+(shipped here as source/assembly.yaml), never hand-written in two places. It exists to
+be COMPARED, and prose cannot be compared: a hand-written line on a sibling board
+yielded 50 tokens, 44 of them English words, and accused the wrong parts. The reasons,
+the DATED catalog evidence and the dispositions live in assembly.yaml, which is where a
+reader can act on them. Both refs are self-supplied JST 10FDZ-BT(S)(LF)(SN): NOT in
+JLC's catalog, and independently unplaceable by the ordered SMT process (10 plated
+DRILLED pads each, F.Paste on 0 of them).
+
+order-gates:  USER-HELD, both stated in ORDER_README §0:
+              (1) 10FDZ-BT physical confirm — MEASURED and PASSING for FIT (the user has
+                  the part; footprint NOT re-cut, by decision), with TWO NAMED OPEN ITEMS:
+                  the M3 boss offset (2.35mm read; 0.190mm of error against 0.23mm of
+                  clearance, and it would INTERFERE at the boss's ø1.70 nominal) and
+                  M9/M10 POLARITY, which is UNMEASURED — "pin 1 = the boss end" is
+                  DECLARED, not confirmed against the OEM's CN1.
+              (2) flex-jumper G1/G2 coupon discipline (separate part).
+              Plus the five-second JLC placement-preview look at the GH rotation, and the
+              order-time F-ECHO diff of JLC's resolved BOM (verification/bom_echo_gate.txt).
+
+gates:        DRC 0 / 0 / 0 (--severity-all --refill-zones --schematic-parity) ·
+              STANDALONE ARCHIVE DRC 0 / 0 / 0 — source/ extracted ALONE into an empty
+                directory (verification/standalone_archive_drc.json). The SAME command on
+                v1.0's archive returns 29 ·
+              ERC 0 errors / 79 warnings (endpoint_off_grid 56, lib_symbol_issues 23),
+                run ON THE SHIPPED source/interposer.kicad_sch WITH THE SHIPPED
+                fp-lib-table beside it. v1.0 shipped 102 and the delta is EXACTLY its
+                23 footprint_link_issues, one per component: v1.0's ERC was run where
+                the cooksense footprint library did not resolve, so 23 warnings were
+                reporting the SAME archive defect as its 29 standalone DRC violations.
+                Fixing the archive removed them. Errors: 0 either way ·
+              policy_audit FAIL=0  PASS=22  WAIVED=4  HUMAN=7  N-A=7 ·
+              A-POP PASS — {board} − {CPL} == assembly.yaml's not_assembled set ·
+              A-POS PASS — worst CPL datum residual 0.00000 mm over 1 row, tol 0.05 ·
+              A-ROT OK — all 1 CPL rotations sourced from a MEASURED per-LCSC row ·
+              A-POL — C2683602 is two-channel; NO single-channel human gate raised ·
+              A-BODY 1/1 bodies mounted (generated header) ·
+              A-RENDER OK — 1 measured / 1, centre delta 0.165 mm, tol 1.00 ·
+              A-STOCK PASS — C2683602 stock 8559 re-queried 2026-07-27 vs need 1 x 5 ·
+              A-EVID 0 required artifacts missing (v1.0 FAILS this with 5) ·
+              F-LEGIBLE OK — 3 checks; 1/1 coded rows resolve an MPN, 2/2 Comments
+                legible, UTF-8 byte-order-mark present. The SAME checker returns
+                FAIL, 2 findings, on sealed v1.0 beside it ·
+              F-PAYLOAD OK — F-IDENT 2/2 copper gerbers distinct; F-POUR POURLESS BY
+                DECLARATION (source/assembly.yaml carries the reason) ·
+              netlist parity 50/50 connected nodes; ONE no-connect difference
+                (J_KEY_MATRIX.MP, netless BY DESIGN) written out node-level ·
+              count_parity 23 x4 (board == circuit.json == kicad_sch == netlist ==
+                manifest) · net_label_survival 10/10 · E-INV 50/50 ·
+              audit_board PASS (polarity pad1-net x30, mate-direction, pin-order,
+                isolation = exactly 10 KP_* nets / 0 zones) ·
+              jlc_twin exit 0 — C2683602 fit 0.01mm, jlc_offset=0, src=lcsc,
+                MODEL-REG-OK 0.08mm; 0 unadjudicated findings ·
+              bom_source_check PASS · part_facts_check (P-FACT) OK ·
+              reviews: PIN PASS, RENDER PASS, red-team INTEGRATED lens ORDER / ORDER,
+                0 P0 (verification/dispositions.md)
+
+THE COPPER DID NOT MOVE, AND ON A REGENERATED BOARD THAT CLAIM NEEDS A METHOD.
+generate_board_generic mints fresh UUIDs every run, so the .kicad_pcb md5 changed
+(19212ec -> 5c7e4d3) and every gerber differs textually while nothing moved. Measured
+with an APERTURE-RESOLVED, ORDER-INDEPENDENT gerber/Excellon multiset comparator that
+parses gerber TEXT and shares no method with the plotter (canon M1), full output in
+verification/copper_identity.txt:
+  F_Cu 450 atoms · B_Cu 180 · F_Mask 84 · B_Mask 52 · F_Paste 12 · B_Paste 0 ·
+  B_Silk 26 · PTH 55 holes · NPTH 6 holes  ->  ALL IDENTICAL to v1.0
+  Edge_Cuts: ONE segment's traversal DIRECTION reversed; IDENTICAL as an undirected
+    segment set (all four segments enumerated in that file)
+  F_Silkscreen: 50 of 5368 atoms differ, EVERY ONE inside x 44.286..44.800,
+    y 12.009..12.909 mm — a single 0.514 x 0.900 mm character cell, i.e. the version
+    digit in the board caption (v1.0 -> v1.1). Deliberate: v1.0 was never fabbed and a
+    board silk-marked with a version it is not cannot be corrected after fab.
+Re-plotted from THIS archive's own source/ with no project tree around it: 11/11
+IDENTICAL GEOMETRY. The red-team lens reproduced the whole table with its OWN
+independently-written comparator.
+
+3d:           interposer.step (kicad-cli --subst-models). No .gltf — no exporter
+              configured for this board. The two 10FDZ-BT are bodiless in the twin
+              render because JLC has no model for a part JLC is not placing; A-BODY is
+              1/1 over the CPL, which is the population ground truth.
+isolation:    floating keypad domain BY DESIGN: copper nets == the ten KP_U*/KP_D*
+              exactly; 0 zones; no GND/power/chassis net exists anywhere
+              (BRIEF §5 / ADR-0009; measured, verification/audit.txt). Declared as
+              `pourless:` in source/assembly.yaml so F-POUR passes for the RIGHT reason —
+              a deliberately pourless board and one that LOST its zones are the same bytes.
+archive:      SELF-CONTAINED. source/fp-lib-table names ${KIPRJMOD}/cooksense.pretty
+              (v1.0's pointed OUTSIDE the archive while shipping the library inside it),
+              and .kicad_pro + .kicad_dru + assembly.yaml + floorplan.yaml ship too.
+              Proof: verification/standalone_archive_drc.json, 0/0/0 from source/ alone.
+
+sha256 of every file (MANIFEST.txt itself excluded — it cannot hash itself):
+9f2061f679599eb66fa5c2f1c78db3f9cbf8e225052c22378dc45bbbf766e289  3d/interposer.step
+fad3bcde758ae177fc82739d3368a15fd2024788af784cd7f26b35636ca33c2a  ORDER_README.md
+454294b9f2eafdc21fe71144f51072819150d61869b93dbeeb37a5eeba98ded4  fab/bom.csv
+e30e297c3e7506177fc08ab9853a1f782eb5d2892f1337b5ecd8ecd412b49d9f  fab/cpl.csv
+8071113c7a27752cbb92911b986b8481c258937cd3ed73f19797c802f5c466c3  fab/interposer-NPTH.drl
+536ed4efd3ade973698fb654566b2fbf16618676df8bb38eab8a9976b19cd774  fab/interposer-PTH.drl
+dfa3277836c0a14a2fdb135478bb69188c718d5be10de5bd68a3829c3dfee29d  fab/interposer_gerbers.zip
+08f6a7b69ff16a40935edf0c9cdd2c02aeb15451aa1c1a799340e2bf82c9e9b1  pdf/assembly.pdf
+2835173174d8183fa461d21b47685ba44fccdd6dcfb0fcb51f61521a82b18927  pdf/pcb_layers.pdf
+207e07d5da4d2a0b890fcc5169d1b925646d9bd13a1757a3ea130fcd5acfc948  pdf/schematic.pdf
+c356443c1471036c03943117301a1a23e96c19cf4ed694d8d6e7bdf0655a933c  source/assembly.yaml
+9b555fb3b3aeb2bcef7a0e69cdf34e69859c121862d8d2df013c09f485b468d4  source/cooksense.pretty/JST_10FDZ-BT_1x10_P2.54mm_Vertical_ZIF.kicad_mod
+29b5bfaafc0d232359b05f5ea834ea58c210b895c8ea8f69a17e2580c88ff212  source/cooksense.pretty/Omega_PCC-SMP-K_TypeK_PCpin.kicad_mod
+fcce58d87d3888d66ee832ee2b512fab393bb5c4e56f0d07baf4ad40a3f6d69a  source/cooksense.pretty/Relay_StandexDIP_1A_pinout12.kicad_mod
+c91dcbc0d17eb85cc1058d9483be306d5e31945d7e359ebaea181820d2a601dc  source/cooksense.pretty/TerminalBlock_KF350_2P.kicad_mod
+a266d5017edb8d0fde5a2d1e11151d5dfcb7376fe29b13999ef89036660bdd2a  source/cooksense.pretty/TerminalBlock_KF350_4P.kicad_mod
+b7ae346e80c250d04f39a54a1d1bba48a1636d05eb7000f69d358d519cf4e5ab  source/floorplan.yaml
+f96f5b2653e171e7b8605c7bac0b5d5802c25e3581aa44f6409a778dbee0f400  source/fp-lib-table
+ed0bed14afc74a41689bf074a7ee533b79e464d19e1dbdb18d981db282a0e4fc  source/interposer.kicad_dru
+589896467ac4847f191ca3d72fb4148dbfe2a23dc0e543b8a50b24558e3d62a1  source/interposer.kicad_pcb
+4a7a6d7a838133e21dc3dc579151dc6c93a06b5c8cece24d73e4e1456beae261  source/interposer.kicad_pro
+7e251759d8ddd77a4ab7d4c5e048ad6bbe1da11a9b853ce0b2ee92746d155d24  source/interposer.kicad_sch
+5a3e99100532d9e629d25f1758d0fbf5bca28899cf01466c86a83d5cf9bfeb71  source/interposer.net
+9836cfd35889977f88b012dcab7d96ad23a7cdab2245b34595e08c658b9de3a6  source/interposer.tsx
+7f82b2d9ab3c719fc3b1082d297a9bd67a7ef43a61d32a54d04a77c91d7033d4  verification/assembly_coverage.json
+72564b241024067e446e4240f20e7d53d65edb1829a22765cce98d2f3c982bd7  verification/assembly_coverage.txt
+ddd3e212ed306cf011ace0091bd337b123de7bdee7271040cc98e47394c28543  verification/audit.txt
+437071538c444305537c7f8a4ed460fd85586daada9c3cf5508e9f5aaba9017c  verification/bom_echo_gate.txt
+d251e2ac09f430cda2b8a14f7f96903dcfef6d1abc648147cc8b91efe4f95b1d  verification/bom_legibility.json
+b0d2f12a792b6872d87198eade39ce297142633bbec5b6a5f5df2f86b984b171  verification/bom_legibility.txt
+78e0f98c0387ab27c4127cf20976661b437349187ae8bbb2986d0ca39dfbbaa6  verification/bom_source_check.txt
+76380c89d55f656a8f7ba071cae6c8e361c0f3b8fcad36aa53d0287c6ccac491  verification/copper_identity.txt
+a380412527094efd78fb23a4ecc372cc323f19c063c62d00114f50537c6817d8  verification/dispositions.md
+8436aef4d9a29ea563dcb70c3d8ed4165bf0c4aab15bb59c9e843dd088d349dd  verification/drc.json
+6271769dd9a4923f199227ab1eef490571a210a1e2dc8cde031b0ecd56cedc91  verification/erc.json
+6b0e097840654181b2e1ecf34b8fdaf228422d65f19c1885f7edfbc86bd35242  verification/fab_payload_census.json
+1e9664f1881f27ea0917fb33fdb0523328786b42f65110261afa52ffe5ee2b47  verification/fab_payload_census.txt
+38cc747dac5cf6f625aabda9155bbb20230eee4308d43dac781d91168ef6f5a0  verification/freshness_exceptions.txt
+76f56f513f8cf2cad960585f2b143e77132aef6e85660cb6c089834fa13dfc10  verification/manifest_selfcheck.txt
+423e77c35fe8bab72609d61a87befda61bb976e98b0d472ce27ee74c661c234a  verification/missing_models.txt
+710c90d71637f3daf2e8eb9150a4773aa70026d92092520503407ac142bf1f5c  verification/parity.md
+4aebd8ef7ed668167af54ea349ea06ad71b60d0fc9867552f5d4c1fd0c90d876  verification/part_facts_check.txt
+0d095954b094cb4fe099f47b81893436c4f2f712de2528ef51fdbf7ab6a5c258  verification/pin_review.md
+ad19f6a58cb2df507157a974202c6038e226ebd64d674b2ec0c02089795a5c72  verification/policy_audit.md
+ac89848ae5090eec5e60d3c4b43de2497e067a2ea4e3edce69fe03b1df5f29be  verification/redteam_layout.md
+f933e5f1087a803e27bc0409b4fce91531220a11f548ac1ce51efb5566694a8c  verification/redteam_topology.md
+144523f85c52f6147c61fb66521016edea95430a4f308cfb0b0044603b7aa039  verification/release_freshness.txt
+ba045d079a82762ffca22847fb6953890656815b48dcc1a92c84d145b6d4cf91  verification/release_required.txt
+d32779a1efa386b52f1892b87d29322a148277b4bcfa21f61cab072f0f7a82fb  verification/render_bottom_bare.png
+0f80177843b22b8d3bdd5cb03c93cebc12f3d9bc88da2923e4a6800c272ac520  verification/render_review.md
+ab2942e2532804a3d075f1b39bd94d6b80afdcf6c5616f28fe5eeab38b62d950  verification/render_top_bare.png
+d02bf230701f1f1702912e78d81b495fce02f502b8b848faf96c2706e1bf0bff  verification/semantic_battery.txt
+c8e6ac2654f791039f2d1609b103c7138bd16e198ca74c583065c919424699f8  verification/standalone_archive_drc.json
+c71a9d20c2fdb16a3d60a60b744f45ad826db56c29af1400cfaba3577f04c8cf  verification/stock_check.csv
+32ed7da486c7016ed4a3bc4094ebdf3d803bbb9cbec750c8d03c05b2ddc87b0f  verification/stock_check.json
+1f7d99f19534483448f81f421cf6a07bcb3b551b6935623f06f8ffc450717a98  verification/stock_check.txt
+6068fc6f2248f40571c2e778a2a914cc850248de27d9d8fd4edac787f5d82829  verification/twin_bottom.png
+fbeb32b1402202ef3d39fe1c3d411eefce36079cfc581f68792282d89a532635  verification/twin_edge_east.png
+65bffec67c32a61ca65e5680a5133e26e439ae043d68f0791d168563ee35f2b9  verification/twin_edge_west.png
+921fd5253805169c8cb74088c18df4aab072ceb4c3b86359f27b0745fc00dc5b  verification/twin_iso_nw.png
+ce7dfe40a2efc92bb6adf17a97317faeb8558e66af3f6e13d90d9e60679ee4ec  verification/twin_iso_se.png
+332eb512f9979223a881376fddd6e0320c3680a09addf71fcd3ad9f026178026  verification/twin_overlay.md
+2762dcb86124dfc55da71bc7379bd67e0beae0a95e720e46c74f939ded4125f2  verification/twin_report.csv
+cd2ff8f57297ae5ac65fdc785d6389a98587afa0ffb95bdf2eee510b6cc5528f  verification/twin_top.png
+c468203755d19a754bbe77acb78d987da84c182d4b6ebee6eef5f0740fa48588  verification/twin_top_courtyard_overlay.png

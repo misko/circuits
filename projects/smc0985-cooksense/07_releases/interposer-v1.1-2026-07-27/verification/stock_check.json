@@ -1,0 +1,22 @@
+{
+ "tool": "jlc_stock_check.py",
+ "bom": "06_build/fab/bom_jlc.csv",
+ "min_stock_per_board": 5,
+ "verdict": "PASS",
+ "graded_lines": 1,
+ "total_lines": 2,
+ "zero_coverage": null,
+ "failures": 0,
+ "uncoded_lines": 1,
+ "lines": [
+  {
+   "lcsc": "C2683602",
+   "designators": "J_KEY_MATRIX",
+   "qty": 1,
+   "status": "OK",
+   "stock": 8559,
+   "type": "expand",
+   "mpn": "SM10B-GHS-TB"
+  }
+ ]
+}

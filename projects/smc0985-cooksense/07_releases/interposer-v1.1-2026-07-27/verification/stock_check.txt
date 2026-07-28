@@ -1,0 +1,6 @@
+input: bom = 06_build/fab/bom_jlc.csv
+2 BOM lines: 1 with LCSC, 1 without
+
+  OK               C2683602   x1   SM10B-GHS-TB                           expand stock=8559
+
+PASS: 1/1 coded BOM lines have stock >= 5 x qty (0 with problems); 1/2 lines carry NO LCSC and were NOT graded by this tool

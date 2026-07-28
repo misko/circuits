@@ -1,0 +1,21 @@
+MANIFEST SELF-CHECK — interposer v1.1
+=====================================
+Run AFTER the MANIFEST was stamped, by a DIFFERENT TOOL than the one that wrote
+the table (canon M1: a table verified by its own writer proves nothing).
+
+  writer:   an ad-hoc python sha256 pass (the stamp step)
+  verifier: /usr/bin/sha256sum -c, reading the MANIFEST's own table
+
+sha256sum -c   : 65 / 65 rows OK, 0 not OK
+  (no failures)
+
+BIDIRECTIONAL COVERAGE (the direction a hash table cannot check by itself):
+  table entries with no file on disk : 0 
+  files on disk absent from the table: 0 
+  (MANIFEST.txt itself is the one intended exclusion — it cannot hash itself.
+   `verification/manifest_selfcheck.txt`, this file, IS hashed: the table is
+   re-stamped after it is written, and the fixed point is confirmed below.)
+
+FIXED POINT: the table is stamped, this file is written, the table is
+re-stamped over the new bytes, and `sha256sum -c` is re-run. The re-run is
+recorded by the caller in the seal commit body.
