@@ -37,7 +37,7 @@ Board graded: usb_hub_3s_v2
 | E-MARGIN | PASS | E-MARGIN OK: 2 rail(s) clear the load brownout with IR margin   rail 'USB-A' (Vout_min 5.032 V, load_UV 4.75 V, Imax 6 A): headroom 282 mV = 47 mOhm total IR budget at 6 A -> PASS: clears IR drop 109  |
 | E-OFF | PASS | E-OFF OK: de-energization path (off_control) + stored draw (quiescent_ua) both declared E-OFF: self-contained energy source detected (source_type: '3S LiPo battery pack, 9.0-12.6 V, XT60 input')   off |
 | M-REPRO | PASS | all rebuild inputs git-tracked |
-| M-REL | FAIL | git_sha not an exact commit: 'GIT_SHA_PLACEHOLDER' |
+| M-REL | PASS | v1.11-2026-07-27: provenance + hashes verify (board 'usb_hub_3s_v2': 12 of 12 release dir(s) in 07_releases) |
 | M-BOM | PASS | v1.11-2026-07-27/fab/bom.csv: every LCSC == source (122 coded) |
 | A-POP | PASS | v1.11-2026-07-27: A-POP: PASS (every unpopulated part is declared with evidence) |
 | A-BODY | PASS | v1.11-2026-07-27: bodies mounted 122/122 (generated) |
@@ -47,4 +47,4 @@ Board graded: usb_hub_3s_v2
 | M1 | HUMAN | independent-reference coverage — release review |
 | M6 | HUMAN | authoritative-source discipline — encoded in protocols |
 
-Summary: FAIL=1, HUMAN=6, N-A=2, PASS=29, WAIVED=2
+Summary: HUMAN=6, N-A=2, PASS=30, WAIVED=2

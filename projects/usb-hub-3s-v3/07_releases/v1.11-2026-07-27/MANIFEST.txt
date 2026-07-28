@@ -246,7 +246,7 @@ REVIEWS
 3d:             step present, gltf absent (no glTF exporter for this board;
                 absence noted here as the contract requires)
 
-git_sha:      GIT_SHA_PLACEHOLDER       # source commit S; stamped pre-seal per the 2-commit seal
+git_sha:      4859027b92b3370157e9f8f872e2054e20012d8c       # source commit S; stamped pre-seal per the 2-commit seal
 git_dirty:    false          # scope: projects/usb-hub-3s-v3/ + skills/ (release_git_dirty.py)
 
 sha256:  # EVERY file in the release; MANIFEST.txt is the one exclusion
@@ -300,12 +300,13 @@ a2303c066320c697fdf1f2dad0b12dad62797dcb0fbeb8a5ccf4bd39f9b1fed5  verification/d
 5cc89c88efd918b3e55f6356b21417db1144fd60b41d75338d7125ddad9447d0  verification/erc.json
 7a8c4ec328ae94f673f6a3740ffe0bb21c4eaa8063db6b873af99bcc830f9e97  verification/freshness_exceptions.txt
 10bfc30552221588838bf23d298cf9391e3d8e3eb66ba7b0e3910dbb9d0e8916  verification/gate_adjudications_v1.9.md
+0ea55969897073bf3d6a06c7e1894551a9fe356271383fd2abab75270899cde9  verification/manifest_selfcheck.txt
 a149252f97bf35185a190c6096f12f1e1ba63990ce7ccfa80fd02df2326a7477  verification/missing_models.txt
 25bd52c8855c5db3fcaacd060923d5594daab8e033e6a55a51fa5699b1d3dec6  verification/nets.yaml
 1d6504dfac691ef1b0f747ff4f52e8bdb44b7db16c0adf878083e3b5a55c52b2  verification/parity.md
 8a0bf1aab0f014e983191a9757927613b2abcca5c1c24566f914cbfe2b81971c  verification/part_facts.txt
 9321995bf15e8fb53c425a6d75e097f8461f2c5736e150fe0b38f7f6799e78e0  verification/pin_review.md
-73be730a5a5455ceded1296d24be192bc10a807a5fb885e4d6caca47e68d1b41  verification/policy_audit.md
+4b1bbf7195fc6a6c83cc1ec957345f3fb2e3add2fd419028a1490ed16c828d35  verification/policy_audit.md
 28986c1b3c185af9b1442d95b184dca0b53bf3df2a3084a24b44f1e5ac63c570  verification/power_tree.yaml
 766c346b55f62610d7cdc1e7cb07006b389a87aba7f75abb84eb8465c02ef8b5  verification/redteam_layout.md
 6066f93fd5380d9c0a6c353490ae76a149d126b921f627ad7d03648cdabe2273  verification/redteam_topology.md

@@ -1,0 +1,61 @@
+MANIFEST self-check — v1.11-2026-07-27
+  files on disk (excluding MANIFEST.txt) : 76
+  entries in the sha256 table            : 76
+  table entries with no file             : 0 []
+  files with no table entry              : 0 []
+  hash mismatches                        : 0 []
+  RESULT: PASS — bidirectional, 76/76 verified
+
+  table layout: sha256sum order, `<hash>  <path>` — the layout that, until
+  2026-07-27, policy_audit's M-REL could not read at all. v1.10 was the first
+  release of this board whose hashes M-REL ever actually checked; this is the
+  second.
+
+THE BOOTSTRAP, STATED RATHER THAN HIDDEN.
+This file is itself one of the 76 rows in the table it is reporting on, so its
+own sha256 is necessarily stamped AFTER this text was written. Of the 76 rows,
+75 were hashed by the run that produced this text; this file's own row was
+computed from these bytes immediately afterwards and cannot have been verified
+by the run that wrote them. That is not a gap you close by being cleverer about
+the order — it is closed by the READER, in one command, which is why the command
+is printed here rather than a claim being made on its behalf:
+
+    cd 07_releases/v1.11-2026-07-27
+    sha256sum -c <(sed -n '/^sha256:/,$p' MANIFEST.txt | tail -n +2 \
+                   | awk 'NF==2 {print $1"  "$2}')
+
+Every row must report OK, and the file count must be 76. A single mismatch means
+this directory was mutated after the seal, and 07_releases/contracts.md says what
+to do then: it is no longer evidence of anything — rename it
+TAINTED-v1.11-2026-07-27 and re-release. Do not repair it in place.
+
+INDEPENDENCE (canon M1). The verification below was performed by `sha256sum -c`,
+a DIFFERENT tool from the python that wrote the table. A table checked only by
+the program that produced it proves that program is self-consistent, which is
+not the claim being made.
+
+WHY THIS FILE EXISTS AT ALL. v1.5 of this board shipped a manifest_selfcheck.txt
+that was 0 BYTES — the MANIFEST cited it as evidence for a gate that therefore
+could not fail (DISPOSITIONS FL15-1). An empty or hand-written self-check is
+worse than none, because it converts an absent gate into a passing one.
+
+WHAT THIS FILE DOES NOT PROVE, on this release in particular. It proves the
+directory has not been mutated since the seal. It says nothing about whether the
+substituted part is the right part — that claim rests on JLC's own catalog
+records (the two `describe` strings compared as strings), on the executable
+`asserts: value 10k` in 02_parts/RC0402FR-0710KL/part.yaml, and on the
+cell-level BOM diff in replot_identity.txt. Hash integrity and correctness are
+different properties and this file only carries the first.
+
+MEASURED, POST-STAMP, BY `sha256sum -c` (the command printed above, run against
+the FINAL table after git_sha was stamped and after policy_audit /
+release_freshness / assembly_coverage were re-run into the directory):
+
+    76 rows checked, 76 report OK, 0 failures, exit 0
+    bidirectional: 76 table entries, 76 files on disk,
+                   0 orphan entries, 0 unlisted files
+
+The ONE row that command cannot vouch for is this file's own, for the bootstrap
+reason above — its hash was computed from these bytes after this sentence was
+written. Re-running the command yourself closes that, which is the point of
+printing it.
