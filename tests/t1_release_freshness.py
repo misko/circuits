@@ -1083,6 +1083,485 @@ def t_kb_sourcing_illegible():
     contains(r.out, "FAILS F-LEGIBLE", "quotes the other gate's verdict")
 
 
+# --------------------------------------- value-change supersede mode
+# RED-VERIFIED 2026-07-28 (tests/README step 3, GIT-SWAP variant): with
+# `git show HEAD:skills/jlcpcb-fab/scripts/release_freshness_check.py` swapped
+# back in, EVERY test in this section dies on "unrecognized arguments:
+# --value-change-supersede" (argparse exit 2, carrying none of the asserted
+# findings) — the mode cannot pass vacuously, because it did not exist.
+# MEASURED: pre-fix `--only=value-change` reports **0 passed, 18 failed, 0
+# known-bad**; with the new script restored, **18 passed, 0 failed, 17
+# known-bad**. Whole file: **56 passed, 18 failed, 41 known-bad** pre-fix ->
+# **74 passed, 0 failed, 58 known-bad** post-fix.
+#
+# A git-swap red on a brand-new flag proves only that the flag is NEW, not that
+# its assertions bite — so each of the three HEADLINE assertions additionally
+# carries an ADJACENT-PROPERTY red-verify INLINE, re-measured on every run: the
+# same fixture tree with the one broken property RESTORED must PASS. Same
+# input, opposite verdict, in the same test. That is what shows the finding
+# came from THAT assertion and not from some unrelated malformation of the
+# fixture (the class ADR-0005 was written for: a fixture whose defect was
+# order-dependent, excused twice as a known flake).
+#
+# HARNESS INTEGRITY, re-measured on this section 2026-07-28 — the runner itself
+# was once able to exit 0 while reporting failures (commit 0dd56ab), so a new
+# suite that cannot fail the RUN is worth as little as a gate that cannot fail.
+# Breaking one assertion here (`contains(r.out, "A-POS", ...)` -> a string that
+# is not in the output) makes `./tests/run_tests.sh --only=value-change` print
+# `TOTAL 17 passed, 1 failed` / `FAILURES PRESENT` and EXIT 1. Restored, the
+# same command is green.
+#
+# WHY THE MODE EXISTS, measured on crow-mic-pod-v2 v1.3, 2026-07-28
+# (08_reviews/2026-07-28_v1.3_fix-verification_cal1.md, the CAL-1
+# re-derivation). `export_jlc_package.py:349` reads `val = fp.GetValue()` FROM
+# THE BOARD and feeds that ONE string to BOTH the BOM `Comment` column and the
+# CPL `Val` column. So changing a VMID divider from 22k to 33k/18k on two
+# ALREADY-PLACED 0603 resistors moves the `.kicad_pcb` md5, the `.kicad_sch`,
+# the `.net`, the BOM rows for those refs and exactly 2 CPL `Val` cells — while
+# **all 11 gerbers and drills are byte-identical** (measured 11/11, the method
+# validated by re-plotting the sealed v1.3 zip from its own archived board).
+# Every earlier mode refuses that shape, each for its own good reason:
+# docs-only needs fab/ byte-identical; bom-only permits only row REMOVAL and
+# only for refs NOT on the CPL (R4/R5 are on it); legible-bom reads a changed
+# LCSC as a substitution; sourcing demands an md5-identical board and a
+# byte-identical CPL, and a value change moves both; and cpl-only names a `Val`
+# change as its own explicit exclusion. The result was that a legitimate,
+# copper-identical value fix was unsealable without hand-editing a CSV — which
+# canon M3 forbids. This mode asserts the REAL invariant instead.
+#
+# FIXTURE VALUES. The incident's own pair is 22k -> 33k/18k, and the fixture
+# uses 22k -> 47k/18k for one measured reason: `C4216` (33k, 0603WAF3302T5E) is
+# NOT a vetted row in `lcsc_passives_ledger.yaml` and has no `02_parts` dossier,
+# so a BOM carrying it cannot pass F-LEGIBLE — which the review recorded as its
+# own finding, and which this mode's F-LEGIBLE clause would (correctly) block.
+# C31850/C25819/C25810 are all vetted ledger rows, so the fixture exercises the
+# delta assertions rather than dying on the sourcing gap.
+_BOM_VC_PRIOR = (_BOM_HDR
+                 + "100nF,\"C1,C2\",C_0603,CC0603KRX7R9BB104,C14663\n"
+                 "10k,R1,R_0603,0603WAF1002T5E,C25804\n"
+                 "22k,\"R4,R5\",R_0603,0603WAF2202T5E,C31850\n")
+#: the exporter groups by (code, val, footprint), so two refs that no longer
+#: share a value SPLIT into two rows. The ref SET is what must be frozen, not
+#: the row set — which is why this mode compares per DESIGNATOR.
+_BOM_VC_NEW = (_BOM_HDR
+               + "100nF,\"C1,C2\",C_0603,CC0603KRX7R9BB104,C14663\n"
+               "10k,R1,R_0603,0603WAF1002T5E,C25804\n"
+               "47k,R4,R_0603,0603WAF4702T5E,C25819\n"
+               "18k,R5,R_0603,0603WAF1802T5E,C25810\n")
+_CPL_VC_PRIOR = ("Designator,Val,Package,Mid X,Mid Y,Layer,Rotation\n"
+                 "C1,100nF,C_0603,10,-10,top,0.0\n"
+                 "C2,100nF,C_0603,12,-10,top,0.0\n"
+                 "R1,10k,R_0603,14,-10,top,0.0\n"
+                 "R4,22k,R_0603,16,-10,top,0.0\n"
+                 "R5,22k,R_0603,18,-10,top,0.0\n")
+_CPL_VC_NEW = ("Designator,Val,Package,Mid X,Mid Y,Layer,Rotation\n"
+               "C1,100nF,C_0603,10,-10,top,0.0\n"
+               "C2,100nF,C_0603,12,-10,top,0.0\n"
+               "R1,10k,R_0603,14,-10,top,0.0\n"
+               "R4,47k,R_0603,16,-10,top,0.0\n"      # the ONLY delta:
+               "R5,18k,R_0603,18,-10,top,0.0\n")     # two `Val` cells
+#: the value is carried BY the board and BY the schematic symbol — a board-only
+#: edit leaves `kicad-cli pcb drc --schematic-parity` reporting
+#: footprint_symbol_mismatch on exactly those refs (measured 2026-07-28).
+_SRC_VC_PRIOR = {
+    "demo.kicad_pcb": '(kicad_pcb (version 20241229)\n'
+                      '  (footprint "R_0603" (property "Reference" "R4")\n'
+                      '    (property "Value" "22k")))\n',
+    "demo.kicad_sch": '(kicad_sch (version 20241229)\n'
+                      '  (symbol (property "Reference" "R4")\n'
+                      '    (property "Value" "22k")))\n',
+    "demo.tsx": '<resistor name="R4" resistance="22k" footprint="0603" />\n',
+    "demo.net": '(export (components (comp (ref "R4") (value "22k"))))\n',
+}
+_SRC_VC_NEW = {
+    "demo.kicad_pcb": '(kicad_pcb (version 20241229)\n'
+                      '  (footprint "R_0603" (property "Reference" "R4")\n'
+                      '    (property "Value" "47k")))\n',
+    "demo.kicad_sch": '(kicad_sch (version 20241229)\n'
+                      '  (symbol (property "Reference" "R4")\n'
+                      '    (property "Value" "47k")))\n',
+    "demo.tsx": '<resistor name="R4" resistance="47k" footprint="0603" />\n',
+    "demo.net": '(export (components (comp (ref "R4") (value "47k"))))\n',
+}
+#: both the OLD and the NEW value, where a later reader will find them
+_VC_NOTE = ("\nCAL-1 fix: the VMID divider moves R4 22k -> 47k and R5 22k -> "
+            "18k (0603, same land pattern, no copper change). LCSC C31850 -> "
+            "C25819 / C25810.\n")
+
+
+def value_change_root(*, cur_bom=None, cur_cpl=None, cur_src=None,
+                      prior_bom=None, prior_cpl=None, note=_VC_NOTE,
+                      drill_date="2026-07-25"):
+    """A prior release and a VALUE-CHANGE supersede of it: two placed 0603s are
+    re-valued, so the BOM rows and their CPL `Val` cells move and every gerber,
+    drill, coordinate, rotation, layer and package stays put."""
+    import re as _re
+    root, d1, d2 = bom_only_root()
+    for d, bom, cpl, src in (
+            (d1, prior_bom or _BOM_VC_PRIOR, prior_cpl or _CPL_VC_PRIOR,
+             _SRC_VC_PRIOR),
+            (d2, cur_bom or _BOM_VC_NEW, cur_cpl or _CPL_VC_NEW,
+             cur_src or _SRC_VC_NEW)):
+        (d / "fab" / "bom.csv").write_text(bom)
+        (d / "fab" / "cpl.csv").write_text(cpl)
+        (d / "source").mkdir(exist_ok=True)
+        for name, text in src.items():
+            (d / "source" / name).write_text(text)
+        (d / "fab" / "demo_gerbers.zip").write_bytes(
+            _real_zip("demo", drill_date=drill_date))
+        (d / "fab" / "demo-PTH.drl").write_text(
+            f"; DRILL file {{KiCad}} date {drill_date}\nM48\nT1C0.300\nM30\n")
+        # A-STOCK is a DIFFERENT check with its own teeth; satisfy it for every
+        # code any fixture in this section can ship (the union, not just this
+        # side's), so a known-bad that edits one BOM cell cannot accidentally
+        # be caught by A-STOCK instead of by the assertion under test.
+        codes = set(_re.findall(r"C\d{4,}", bom)) | {
+            "C14663", "C25804", "C25803", "C31850", "C25819", "C25810"}
+        (d / "verification" / "stock_check.json").write_text(json.dumps({
+            "tool": "jlc_stock_check.py", "bom": "fab/bom.csv",
+            "min_stock_per_board": 5, "verdict": "PASS",
+            "failures": [], "uncoded_lines": [],
+            "lines": [{"lcsc": c, "designators": "-", "qty": 1,
+                       "status": "OK", "stock": 747998}
+                      for c in sorted(codes)]}))
+    (d2 / "ORDER_README.md").write_text(_README_FINAL.format(ver="1.4") + note)
+    return root, d1, d2
+
+
+def vgate(d2, d1, *extra, refs="R4,R5"):
+    a = ["--value-change-supersede", str(d1)]
+    if refs is not None:
+        a += ["--designators", refs]
+    return gate(d2, *a, *extra)
+
+
+@test("release_freshness --value-change-supersede PASSES a re-valued pair: "
+      "the CPL delta is `Val` cells, the BOM delta is the declared "
+      "designators, and every gerber/drill is unmoved")
+def t_value_change_pass():
+    """The crow-mic-pod-v2 CAL-1 shape (2026-07-28), which had NO mode at all:
+    a resistor VALUE change on already-placed parts. It also proves the five
+    earlier modes still refuse this tree — each for its own reason — so the new
+    mode is an addition, not a loosening."""
+    _, d1, d2 = value_change_root()
+    r = must_pass(vgate(d2, d1), "a true value-change supersede")
+    contains(r.out, "value-change supersede", "the mode should be announced")
+    contains(r.out, "declared value-change designator(s): R4, R5",
+             "the declared list is echoed")
+    contains(r.out, "gerber/drill payload file(s) identical",
+             "the copper claim must be stated")
+    contains(r.out, "md5", "both board hashes are printed")
+    contains(r.out, "0 coordinate/rotation/layer/package changes",
+             "the assertion that separates this from a placement fix")
+    contains(r.out, "all declared", "the BOM delta is confined")
+    contains(r.out, "canon M3", "the source-moved assertion is named")
+    contains(r.out, "FRESHNESS: PASS", "verdict")
+    # every OTHER mode must still refuse this tree — the modes are distinct
+    rd = must_fail(dgate(d2, d1), "docs-only must still refuse a fab change",
+                   "DOCS-ONLY DEVIATION")
+    contains(rd.out, "fab/cpl.csv", "names a file docs-only refuses")
+    rb = must_fail(bgate(d2, d1), "bom-only must still refuse an edited row",
+                   "BOM-ONLY DEVIATION")
+    rc_ = must_fail(cgate(d2, d1), "cpl-only must still refuse a Val change",
+                    "CPL-ONLY DEVIATION")
+    contains(rc_.out, "Val changed", "cpl-only names Val as its exclusion")
+    rl = must_fail(lgate(d2, d1), "legible-bom must still refuse a split row",
+                   "LEGIBLE-BOM DEVIATION")
+    contains(rl.out, "was ADDED",
+             "legible-bom freezes the row set, so a value split is refused")
+    rs = must_fail(sgate(d2, d1), "sourcing must still refuse a moved CPL",
+                   "SOURCING DEVIATION")
+    contains(rs.out, "fab/cpl.csv differs", "sourcing needs an unmoved CPL")
+
+
+@test("release_freshness --value-change-supersede FAILS a moved CPL "
+      "COORDINATE — a re-label is not a placement fix", kind="known_bad")
+def t_kb_value_change_cpl_coordinate_moved():
+    """ASSERTION 2. A coordinate move is canon A-POS's defect and
+    `--cpl-only-supersede`'s mode; if it could ride along inside a value
+    change, the two classes would share one unaccountable channel — the exact
+    argument that kept ROTATION out of cpl-only mode.
+
+    ADJACENT-PROPERTY RED-VERIFY, inline below: the SAME tree with R4's Mid X
+    restored PASSES. Same fixture, one property flipped, opposite verdict — so
+    the finding comes from the coordinate and not from anything else about the
+    fixture."""
+    moved = _CPL_VC_NEW.replace("R4,47k,R_0603,16,-10", "R4,47k,R_0603,17.3,-10")
+    _, d1, d2 = value_change_root(cur_cpl=moved)
+    r = must_fail(vgate(d2, d1), "a smuggled coordinate move",
+                  "VALUE-CHANGE DEVIATION")
+    contains(r.out, "CPL Mid X changed", "names the column that moved")
+    contains(r.out, "R4", "names the offending ref")
+    contains(r.out, "A-POS", "points at the defect class it belongs to")
+    # RED-VERIFY: restore ONLY the coordinate -> the same tree passes.
+    (d2 / "fab" / "cpl.csv").write_text(_CPL_VC_NEW)
+    rr = must_pass(vgate(d2, d1),
+                   "red-verify: with the coordinate restored the same tree "
+                   "must pass")
+    not_contains(rr.out, "Mid X changed", "and emits no coordinate finding")
+
+
+@test("release_freshness --value-change-supersede FAILS a BOM change on an "
+      "UNDECLARED designator — the delta is confined to the refs the caller "
+      "named", kind="known_bad")
+def t_kb_value_change_undeclared_designator():
+    """ASSERTION 3. The whole point of `--designators` is that a second,
+    unreviewed edit cannot ride along inside a value fix. Here R1 — a part
+    nobody declared — quietly changes its LCSC while R4/R5 do their legitimate
+    thing.
+
+    ADJACENT-PROPERTY RED-VERIFY, inline: declaring R1 as well is NOT the fix
+    (the list must name what really moved, and R1's Comment did move with its
+    code), so the restore-the-property direction is used instead — R1's row put
+    back, same tree, PASSES."""
+    sneak = _BOM_VC_NEW.replace("10k,R1,R_0603,0603WAF1002T5E,C25804",
+                                "10k,R1,R_0603,0603WAF1002T5E,C25803")
+    _, d1, d2 = value_change_root(cur_bom=sneak)
+    r = must_fail(vgate(d2, d1), "an undeclared BOM edit",
+                  "VALUE-CHANGE DEVIATION")
+    contains(r.out, "R1", "names the undeclared ref")
+    contains(r.out, "NOT on the declared --designators list",
+             "says exactly why it blocks")
+    contains(r.out, "'LCSC'", "names the cell that moved")
+    # RED-VERIFY: restore ONLY R1's row -> the same tree passes.
+    (d2 / "fab" / "bom.csv").write_text(_BOM_VC_NEW)
+    rr = must_pass(vgate(d2, d1),
+                   "red-verify: with R1's row restored the same tree must pass")
+    not_contains(rr.out, "NOT on the declared", "and emits no confinement finding")
+
+
+@test("release_freshness --value-change-supersede FAILS a CHANGED GERBER "
+      "while ACCEPTING a re-plot of the same copper (the timestamp strip is "
+      "exactly as wide as the plot's own stamp)", kind="known_bad")
+def t_kb_value_change_gerber_changed():
+    """ASSERTION 1, both halves of ONE property, because a strip list too wide
+    is as wrong as one too narrow. First: re-plot the SAME copper on a
+    different day, including the Excellon `; DRILL file {KiCad} date` header
+    that a first pass on usb-hub-3s-v3 v1.11 missed (it read 11/15 until the
+    drill date was covered) — ACCEPTED. Then move the copper itself —
+    REFUSED. The second half is the adjacent-property red-verify of the first.
+    """
+    _, d1, d2 = value_change_root()
+    # a genuine RE-PLOT: new plot timestamps, identical copper
+    (d2 / "fab" / "demo_gerbers.zip").write_bytes(
+        _real_zip("demo", drill_date="2026-07-28"))
+    (d2 / "fab" / "demo-PTH.drl").write_text(
+        "; DRILL file {KiCad} date 2026-07-28\nM48\nT1C0.300\nM30\n")
+    rp = must_pass(vgate(d2, d1), "a re-plot of the same copper is accepted")
+    contains(rp.out, "payload file(s) identical", "and says so with a count")
+    # now the copper itself moves
+    (d2 / "fab" / "demo_gerbers.zip").write_bytes(
+        _real_zip("demo-MOVED", drill_date="2026-07-28"))
+    r = must_fail(vgate(d2, d1), "a changed plot must block",
+                  "VALUE-CHANGE DEVIATION")
+    contains(r.out, "demo_gerbers.zip", "names the file")
+    contains(r.out, "is COPPER", "says what a difference means")
+    contains(r.out, "full respin", "says what it costs")
+
+
+@test("release_freshness --value-change-supersede FAILS a moved CPL ROTATION "
+      "(A-ROT is a different claim with its own evidence)", kind="known_bad")
+def t_kb_value_change_rotation_moved():
+    rot = _CPL_VC_NEW.replace("R5,18k,R_0603,18,-10,top,0.0",
+                              "R5,18k,R_0603,18,-10,top,180.0")
+    _, d1, d2 = value_change_root(cur_cpl=rot)
+    r = must_fail(vgate(d2, d1), "a smuggled rotation", "VALUE-CHANGE DEVIATION")
+    contains(r.out, "CPL Rotation changed", "names the column")
+    contains(r.out, "A-ROT", "points at the evidence such a claim needs")
+
+
+@test("release_freshness --value-change-supersede FAILS a `Val` change on an "
+      "UNDECLARED designator (the CPL half of the confinement rule)",
+      kind="known_bad")
+def t_kb_value_change_undeclared_cpl_val():
+    sneak = _CPL_VC_NEW.replace("R1,10k,R_0603,14,-10,top,0.0",
+                                "R1,100k,R_0603,14,-10,top,0.0")
+    _, d1, d2 = value_change_root(cur_cpl=sneak)
+    r = must_fail(vgate(d2, d1), "an undeclared Val move",
+                  "VALUE-CHANGE DEVIATION")
+    contains(r.out, "R1 CPL Val changed", "names the ref and the cell")
+    contains(r.out, "nobody reviewed", "says what the risk is")
+
+
+@test("release_freshness --value-change-supersede FAILS a HAND-EDITED CSV: "
+      "the values moved but no source file did (canon M3)", kind="known_bad")
+def t_kb_value_change_hand_edited_csv():
+    """The defect this whole mode exists to make unnecessary. crow-mic-pod-v2's
+    review put it plainly: the only way to satisfy the modes that existed was
+    to hand-edit a CSV, and a fab artifact that changed without its source is
+    not regenerable — the next rebuild silently restores the old value."""
+    _, d1, d2 = value_change_root(cur_src=_SRC_VC_PRIOR)   # source untouched
+    r = must_fail(vgate(d2, d1), "a hand-edited CSV must block",
+                  "VALUE-CHANGE DEVIATION")
+    contains(r.out, "HAND-EDITED CSV", "names the defect")
+    contains(r.out, "canon M3", "names the canon")
+    contains(r.out, "source/*.kicad_pcb", "names the file that should have moved")
+
+
+@test("release_freshness --value-change-supersede FAILS a board edited "
+      "WITHOUT its schematic — the shortcut that leaves schematic parity "
+      "broken", kind="known_bad")
+def t_kb_value_change_schematic_not_updated():
+    """MEASURED 2026-07-28: editing only the two `(property "Value" ...)`
+    strings in the .kicad_pcb leaves `kicad-cli pcb drc --severity-all
+    --refill-zones --schematic-parity` reporting 2 footprint_symbol_mismatch
+    violations ("Value (R4) doesn't match symbol value") against the sealed
+    schematic. A release whose board and schematic disagree is not a release,
+    so this mode requires BOTH to have moved."""
+    half = dict(_SRC_VC_NEW)
+    half["demo.kicad_sch"] = _SRC_VC_PRIOR["demo.kicad_sch"]   # sch left behind
+    _, d1, d2 = value_change_root(cur_src=half)
+    r = must_fail(vgate(d2, d1), "a board-only edit must block",
+                  "VALUE-CHANGE DEVIATION")
+    contains(r.out, "source/*.kicad_sch", "names the file left behind")
+    contains(r.out, "footprint_symbol_mismatch", "quotes what KiCad reports")
+
+
+@test("release_freshness --value-change-supersede FAILS a new Comment against "
+      "the OLD part's LCSC — the R12/R30 wrong-part class verbatim",
+      kind="known_bad")
+def t_kb_value_change_lcsc_not_moved():
+    """The defect the crow-mic-pod-v2 review predicted for a board-only edit:
+    with the source untouched the exporter keeps the old code and emits a
+    Comment claiming the NEW value against the MPN and LCSC of the OLD part. A
+    different VALUE is a different PART; a row that says otherwise is what
+    `bom_source_check` legs A+C exist to catch, and this mode must not be the
+    hole they are caught through."""
+    stale_code = (_BOM_HDR
+                  + "100nF,\"C1,C2\",C_0603,CC0603KRX7R9BB104,C14663\n"
+                  "10k,R1,R_0603,0603WAF1002T5E,C25804\n"
+                  "47k / 18k,\"R4,R5\",R_0603,0603WAF2202T5E,C31850\n")
+    _, d1, d2 = value_change_root(cur_bom=stale_code)
+    r = must_fail(vgate(d2, d1), "a re-labelled old part must block",
+                  "VALUE-CHANGE DEVIATION")
+    contains(r.out, "while its LCSC stayed", "says exactly what is wrong")
+    contains(r.out, "R12/R30 wrong-part class", "names the incident class")
+
+
+@test("release_freshness --value-change-supersede FAILS when the BOM and the "
+      "CPL DISAGREE about the new value — they come from one GetValue() call",
+      kind="known_bad")
+def t_kb_value_change_csvs_disagree():
+    """`export_jlc_package.py:349` feeds ONE `fp.GetValue()` string to the BOM
+    Comment and the CPL Val, so the two artifacts cannot honestly disagree. A
+    disagreement is positive evidence that one of them was written by hand —
+    which is the failure this mode was built to make unnecessary."""
+    disagree = _CPL_VC_NEW.replace("R4,47k,", "R4,33k,")
+    _, d1, d2 = value_change_root(cur_cpl=disagree)
+    r = must_fail(vgate(d2, d1), "disagreeing CSVs must block",
+                  "VALUE-CHANGE DEVIATION")
+    contains(r.out, "written BY HAND", "names the defect")
+    contains(r.out, "fp.GetValue()", "names the mechanism")
+
+
+@test("release_freshness --value-change-supersede FAILS a changed FOOTPRINT "
+      "even on a DECLARED designator — a different land pattern is a "
+      "different board", kind="known_bad")
+def t_kb_value_change_footprint_changed():
+    bad = _BOM_VC_NEW.replace("47k,R4,R_0603,", "47k,R4,R_0805,")
+    _, d1, d2 = value_change_root(cur_bom=bad)
+    r = must_fail(vgate(d2, d1), "a changed footprint must block",
+                  "VALUE-CHANGE DEVIATION")
+    contains(r.out, "BOM Footprint changed", "names the column")
+    contains(r.out, "different board", "says what it means")
+
+
+@test("release_freshness --value-change-supersede FAILS a designator list "
+      "WIDER than the real delta — padding launders unrelated edits exactly "
+      "as a list too narrow hides them", kind="known_bad")
+def t_kb_value_change_padded_designator_list():
+    _, d1, d2 = value_change_root()
+    r = must_fail(vgate(d2, d1, refs="R4,R5,R1"), "a padded list must block",
+                  "VALUE-CHANGE")
+    contains(r.out, "R1 is declared", "names the padded ref")
+    contains(r.out, "NOTHING about it changed", "says why it blocks")
+    # and the honest list on the same tree still passes
+    must_pass(vgate(d2, d1), "the honest list is accepted")
+
+
+@test("release_freshness --value-change-supersede FAILS when no value moved "
+      "at all — a supersede that changes no value supersedes nothing",
+      kind="known_bad")
+def t_kb_value_change_nothing_moved():
+    _, d1, d2 = value_change_root(cur_bom=_BOM_VC_PRIOR, cur_cpl=_CPL_VC_PRIOR)
+    r = must_fail(vgate(d2, d1), "an empty value-change supersede",
+                  "VALUE-CHANGE")
+    contains(r.out, "supersedes nothing", "says why it is refused")
+    contains(r.out, "--legible-bom-supersede", "names a mode that might apply")
+
+
+@test("release_freshness --value-change-supersede FAILS a DROPPED BOM "
+      "designator — that is an A-POP fix, not a re-label", kind="known_bad")
+def t_kb_value_change_dropped_ref():
+    dropped = (_BOM_HDR
+               + "100nF,\"C1,C2\",C_0603,CC0603KRX7R9BB104,C14663\n"
+               "47k,R4,R_0603,0603WAF4702T5E,C25819\n"
+               "18k,R5,R_0603,0603WAF1802T5E,C25810\n")     # R1 gone
+    _, d1, d2 = value_change_root(cur_bom=dropped)
+    r = must_fail(vgate(d2, d1), "a dropped ref must block",
+                  "VALUE-CHANGE DEVIATION")
+    contains(r.out, "R1 was REMOVED", "names the ref")
+    contains(r.out, "--bom-only-supersede", "names the mode that WOULD apply")
+
+
+@test("release_freshness --value-change-supersede FAILS an UNDOCUMENTED "
+      "change — both the OLD and the NEW value must be in MANIFEST/README",
+      kind="known_bad")
+def t_kb_value_change_undocumented():
+    """A release whose only reason to exist is legible solely as a CSV diff
+    against a release nobody will still have is not auditable later."""
+    _, d1, d2 = value_change_root(note="\n")
+    r = must_fail(vgate(d2, d1), "an unrecorded value change must block",
+                  "VALUE-CHANGE DEVIATION")
+    contains(r.out, "'22k'", "names the value that left")
+    contains(r.out, "MANIFEST", "says where it must be recorded")
+
+
+@test("release_freshness --value-change-supersede still refuses a NON-BOM, "
+      "NON-CPL, NON-PLOT fab change (the exemption is exactly two files)",
+      kind="known_bad")
+def t_kb_value_change_other_fab_file():
+    _, d1, d2 = value_change_root()
+    (d2 / "fab" / "notes.txt").write_text("an extra fab artifact\n")
+    r = must_fail(vgate(d2, d1), "an added fab file must block",
+                  "DOCS-ONLY DEVIATION")
+    contains(r.out, "notes.txt", "names the deviating file")
+
+
+@test("release_freshness --value-change-supersede still refuses a NON-AUTHORING "
+      "source/ change (the source exemption is by extension, not a blanket)",
+      kind="known_bad")
+def t_kb_value_change_other_source_file():
+    """The relaxation covers `.kicad_pcb` `.kicad_sch` `.tsx` `.net` — the
+    files a VALUE lives in. A moved `fp-lib-table` means the archive's library
+    resolution changed, which is not a value change (V-REL-FPLIB: without the
+    vendored libs a standalone re-measure raises lib_footprint_issues)."""
+    _, d1, d2 = value_change_root()
+    for d, txt in ((d1, "(fp_lib_table (lib (name jlc)))\n"),
+                   (d2, "(fp_lib_table (lib (name jlc2)))\n")):
+        (d / "source" / "fp-lib-table").write_text(txt)
+    r = must_fail(vgate(d2, d1), "a changed fp-lib-table must block",
+                  "DOCS-ONLY DEVIATION")
+    contains(r.out, "fp-lib-table", "names the deviating file")
+
+
+@test("release_freshness --value-change-supersede REFUSES to run without "
+      "--designators — an empty confinement list confines nothing",
+      kind="known_bad")
+def t_kb_value_change_requires_designators():
+    """A mode whose assertion is 'the delta is confined to a declared list'
+    cannot default that list to empty, or it would accept any BOM/CPL edit at
+    all while printing the reassuring name of a strict mode."""
+    _, d1, d2 = value_change_root()
+    r = must_fail(vgate(d2, d1, refs=None), "a mode with no declared list",
+                  "REQUIRES --designators")
+    check(r.rc == 2, f"a usage error should exit 2, got {r.rc}")
+    # and the mirror: --designators without the mode is also refused, so the
+    # flag can never look like it is confining a delta that it is not
+    r2 = must_fail(gate(d2, "--designators", "R4,R5"),
+                   "--designators alone", "only means anything with")
+
+
 # ----------------- board-prefixed release names (the _version_key silent skip)
 # Found 2026-07-24: _version_key matched only names STARTING with 'v', so
 # every board-prefixed release (cooksense-v1.1-…, crow-mic-pod-v2-v1.0-…,

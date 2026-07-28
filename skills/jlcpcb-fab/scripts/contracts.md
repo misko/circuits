@@ -235,6 +235,23 @@ stock, twin).
   identical pdf/ is allowed, the order README + MANIFEST MUST differ from
   the prior's, and the audit==manifest + no-draft-marker checks still run.
   Default mode is byte-for-byte unchanged.
+- The same script carries FIVE more supersede modes, each docs-only PLUS an
+  exemption for exactly the artifact that legitimately moves, about which it
+  then asserts something STRONGER than identity: `--bom-only-supersede` (whole
+  rows REMOVED for refs NOT on the CPL, canon A-POP), `--cpl-only-supersede`
+  (coordinate moves; a ROTATION/`Layer`/`Val`/`Package` change FAILs, canon
+  A-POS), `--legible-bom-supersede` (only `Comment`+`MPN` move and the
+  F-LEGIBLE verdict flips, ADR-0006), `--sourcing-supersede` (`MPN`+`LCSC`
+  move together on the substituted rows, canon M8), and
+  `--value-change-supersede … --designators R4,R5` (a part VALUE moves on
+  already-placed parts: gerbers/drills identical after stripping only the
+  plot's own timestamps, the CPL delta confined to `Val` cells, the BOM delta
+  confined to the DECLARED refs, and the source REQUIRED to have moved with
+  them — canon M3). Their normative statements live in ONE place, the
+  `07_releases/contracts.md` supersede-mode sections; this list is an index,
+  not a second home. Never gate a supersede with hand-written
+  `--allow-identical` waivers instead: an assertion the gate makes beats a
+  waiver a human writes.
 - Fetch/stock classifiers must treat any UNRECOGNIZED failure as a blocking
   failure, never as an affirmative disposition (the NO-CAD incident,
   2026-07-20).

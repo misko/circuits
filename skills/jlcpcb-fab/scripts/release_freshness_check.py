@@ -74,6 +74,24 @@ Usage:
     release_freshness_check.py <release_dir> --docs-only-supersede PRIOR_DIR
     release_freshness_check.py <release_dir> --legible-bom-supersede PRIOR_DIR
     release_freshness_check.py <release_dir> --sourcing-supersede PRIOR_DIR
+    release_freshness_check.py <release_dir> --value-change-supersede PRIOR_DIR
+                               --designators R4,R5
+
+VALUE-CHANGE SUPERSEDE MODE (--value-change-supersede <prior> --designators):
+a PART VALUE moved on parts that are already placed (22k -> 33k on an existing
+0603), so the ASSEMBLY DATA moves and the COPPER does not. Measured on
+crow-mic-pod-v2 v1.3, 2026-07-28: `export_jlc_package.py` reads
+`val = fp.GetValue()` FROM THE BOARD and feeds that one string to BOTH the BOM
+`Comment` column and the CPL `Val` column, so a pure value change moves the
+`.kicad_pcb`, the `.kicad_sch`, the `.net`, the BOM rows for those refs and
+exactly their CPL `Val` cells — while all 11 gerbers and drills stay
+BYTE-IDENTICAL. Every earlier mode refuses it, correctly and for its own
+reason: docs-only needs fab/ identical, bom-only permits only row REMOVAL of
+UNPLACED refs, legible-bom reads a changed LCSC as a substitution, sourcing
+demands an md5-identical board and a byte-identical CPL, and cpl-only names a
+`Val` change as its own explicit exclusion. Without this mode the only way to
+seal a copper-identical value fix is to hand-edit a CSV, which canon M3
+forbids. See `check_value_change_delta`.
 
 SOURCING SUPERSEDE MODE (--sourcing-supersede <prior-release-dir>):
 the board is untouched and JLC will not SUPPLY one line of the prior BOM, so a
@@ -751,6 +769,367 @@ def check_sourcing_delta(release_dir, prior_dir):
     return fails, notes
 
 
+# ------------------------------------------------- value-change supersede
+#: source/ members a VALUE change legitimately moves. The value lives in the
+#: BOARD (`(property "Value" ...)`) and in the SCHEMATIC symbol, and both reach
+#: the netlist — measured on crow-mic-pod-v2 v1.3, 2026-07-28. Everything else
+#: under source/ must still be byte-identical.
+_AUTHORING_EXT = (".kicad_pcb", ".kicad_sch", ".tsx", ".net")
+
+
+def _csv_rows_in_order(path, key="Designator"):
+    """[(ref, {col: cell})] in FILE ORDER, one entry per designator. A row
+    whose Designator cell groups several refs (the BOM's `"R4,R5"`) yields one
+    entry per ref, all sharing the row's other cells — which is what makes a
+    BOM and a CPL comparable at the DESIGNATOR level even when the exporter
+    splits or merges rows around them."""
+    import csv as _csv
+    out = []
+    for r in _csv.DictReader(path.read_text(encoding="utf-8-sig").splitlines()):
+        cells = {k: (v or "").strip() for k, v in r.items() if k is not None}
+        for ref in (d.strip() for d in (cells.get(key) or "").split(",")):
+            if ref:
+                out.append((ref, cells))
+    return out
+
+
+def check_value_change_delta(release_dir, prior_dir, declared):
+    """VALUE-CHANGE mode's EXTRA assertion: a part's VALUE moved on parts that
+    are already placed, so the ASSEMBLY DATA moves and the COPPER does not.
+
+    WHY THIS MODE EXISTS, AND WHY NO EARLIER MODE COVERS IT. Measured on
+    crow-mic-pod-v2 v1.3, 2026-07-28 (`08_reviews/`, the CAL-1 re-derivation):
+    `export_jlc_package.py` reads `val = fp.GetValue()` **from the board** and
+    feeds that ONE string to BOTH the BOM `Comment` column and the CPL `Val`
+    column. So changing a divider from 22k to 33k on two already-placed 0603
+    resistors moves the `.kicad_pcb`, the `.kicad_sch`, the `.net`, 2 CPL `Val`
+    cells and the BOM rows for those refs — while **all 11 gerbers and drills
+    are byte-identical** (verified 11/11, the method validated by re-plotting
+    the sealed v1.3 zip from its own archived board). `--docs-only-supersede`
+    refuses (fab/ changed). `--bom-only-supersede` refuses (it permits only row
+    REMOVAL, and these refs ARE on the CPL). `--legible-bom-supersede` refuses
+    (a changed LCSC is a substitution to it). `--sourcing-supersede` refuses
+    (it demands an md5-identical board and a byte-identical CPL — a value
+    change moves both). `--cpl-only-supersede` names a `Val` change as its own
+    explicit exclusion. Without this mode the only way to seal a
+    copper-identical value fix is to hand-edit a CSV, which canon M3 forbids.
+
+    WHAT IS ASSERTED, none of it waivable:
+
+      * **the COPPER did not move**, stated the strong way: every gerber and
+        drill is identical after stripping ONLY the plot's own timestamps
+        (`_PLOT_TS_RE`, incl. the Excellon `; DRILL file ... date` header that
+        a first pass on usb-hub-3s-v3 v1.11 missed — it read 11/15 until the
+        drill date was covered). That ACCEPTS a re-plot from this release's own
+        board, which is stronger evidence than a byte-copy. A release with no
+        gerber/drill to compare cannot make the claim at all and FAILs;
+      * **the SOURCE moved** (canon M3, in the direction this mode needs it).
+        A value is carried BY the board and BY the schematic, so an unchanged
+        `source/*.kicad_pcb` or `*.kicad_sch` means the CSVs were HAND-EDITED.
+        Both md5s are PRINTED. Editing the board alone is not a way out: the
+        measurement recorded `kicad-cli pcb drc --schematic-parity` returning
+        2 `footprint_symbol_mismatch` violations for exactly that shortcut;
+      * **the CPL delta is `Val` cells and NOTHING else** — identical row
+        count, identical designator sequence, and for every ref every
+        coordinate, rotation, layer and package cell unchanged. A moved
+        coordinate is `--cpl-only-supersede`'s defect (A-POS) and a moved
+        rotation is A-ROT's; neither may ride along here;
+      * **every moved cell belongs to a DECLARED designator.** The caller
+        names the refs (`--designators R4,R5`) and a change touching any other
+        ref FAILs. The list must also not be WIDER than the delta: a declared
+        ref that moved nothing is padding, and a strip list too wide is as
+        wrong as one too narrow;
+      * **the BOM ref set is FROZEN** — rows may split or merge around the new
+        values (the exporter groups by `(code, val, footprint)`), but no
+        designator may be added or dropped. That is A-POP's business and
+        `--bom-only-supersede`'s mode;
+      * **a declared ref's `Footprint` may not move** (a different land
+        pattern is a different board), and its `LCSC` MUST move. A different
+        value is a different part: a row whose `Comment` claims 33 kΩ against
+        the 22 kΩ part's code is the R12/R30 wrong-part class verbatim, and it
+        is exactly what a board-only edit produces;
+      * **the two artifacts AGREE** — each declared ref's new CPL `Val` appears
+        as a token in its own BOM `Comment` (the exporter writes one merged
+        `a / b` Comment when two values share a code+footprint, so containment
+        is the honest form of "same string"). They come from one `GetValue()`
+        call; a disagreement means one of the two CSVs was written by hand;
+      * the new BOM **PASSES `bom_legibility_check`** (taken from the F-LEGIBLE
+        gate itself, never re-implemented — ONE grader, canon M1);
+      * and **both the OLD and the NEW value of every declared designator are
+        NAMED in MANIFEST.txt or the order README**, so the reason this
+        release exists is legible to someone who was not here.
+    """
+    fails, notes = [], []
+    declared = sorted({d for d in declared if d})
+    if not declared:
+        fails.append(
+            "  VALUE-CHANGE: no --designators given — this mode confines the "
+            "delta to a DECLARED refdes list, so an empty list confines "
+            "nothing and would accept any BOM/CPL edit at all")
+        return fails, notes
+    notes.append(f"  note: declared value-change designator(s): "
+                 f"{', '.join(declared)}")
+
+    # -- (1) the COPPER did not move (re-plot friendly, byte-copy accepted)
+    cur_fab = _tree_files(release_dir / "fab")
+    old_fab = _tree_files(prior_dir / "fab")
+    checked = 0
+    for rel in sorted(set(cur_fab) & set(old_fab)):
+        if not rel.lower().endswith(_REPLOTTABLE):
+            continue
+        ok, detail = _payload_identical(cur_fab[rel], old_fab[rel])
+        checked += 1
+        if not ok:
+            fails.append(
+                f"  VALUE-CHANGE DEVIATION: fab/{rel} is not the same plot as "
+                f"{prior_dir.name}/fab/{rel} ({detail}) — a VALUE change moves "
+                f"no copper, no silk and no drill. The timestamp strip "
+                f"deliberately tolerates a RE-PLOT and nothing else, so a "
+                f"difference here is COPPER, and this is a full respin")
+    if checked:
+        notes.append(
+            f"  note: {checked} gerber/drill payload file(s) identical to "
+            f"{prior_dir.name}'s after stripping only the plot's own "
+            f"timestamps — ASSERTED (a re-plot is accepted; changed copper is "
+            f"not)")
+    else:
+        fails.append(
+            f"  VALUE-CHANGE: no gerber/drill payload file is present in BOTH "
+            f"this release and {prior_dir.name} ({'/'.join(_REPLOTTABLE)}) — "
+            f"the copper-identity claim this mode rests on cannot be made, and "
+            f"an unevaluable claim is a FAIL, not a skip")
+
+    # -- (2) the SOURCE moved (canon M3, in the direction this mode needs)
+    for ext, required in ((".kicad_pcb", True), (".kicad_sch", True),
+                          (".tsx", None), (".net", False)):
+        cur_s = sorted(p for p in (release_dir / "source").glob("*" + ext))
+        old_s = {p.name: p for p in (prior_dir / "source").glob("*" + ext)}
+        if not cur_s or not old_s:
+            if required:
+                fails.append(
+                    f"  VALUE-CHANGE: source/*{ext} is missing on one side "
+                    f"(here {len(cur_s)}, {prior_dir.name} {len(old_s)}) — a "
+                    f"value is carried BY that file, so without it on both "
+                    f"sides the change cannot be shown to come from SOURCE")
+            continue
+        moved = [p.name for p in cur_s if p.name in old_s
+                 and hashlib.md5(p.read_bytes()).hexdigest()
+                 != hashlib.md5(old_s[p.name].read_bytes()).hexdigest()]
+        if ext in (".kicad_pcb", ".kicad_sch"):
+            for p in cur_s:
+                if p.name in old_s:
+                    notes.append(
+                        f"  note: source/{p.name} md5 "
+                        f"{hashlib.md5(p.read_bytes()).hexdigest()} vs "
+                        f"{prior_dir.name}'s "
+                        f"{hashlib.md5(old_s[p.name].read_bytes()).hexdigest()}")
+        if required is False:
+            continue
+        if not moved:
+            fails.append(
+                f"  VALUE-CHANGE DEVIATION: every source/*{ext} is IDENTICAL "
+                f"to {prior_dir.name}'s, but fab/ carries a new value — that "
+                f"is a HAND-EDITED CSV (canon M3: everything must be "
+                f"regenerable from source). The value lives in that file; "
+                f"change it there and re-export"
+                + (" (editing the board alone leaves the schematic disagreeing "
+                   "— `kicad-cli pcb drc --schematic-parity` reports "
+                   "footprint_symbol_mismatch, measured 2026-07-28)"
+                   if ext == ".kicad_sch" else ""))
+        else:
+            notes.append(f"  note: source/{', '.join(moved)} CHANGED — the "
+                         f"value moved because the SOURCE moved (canon M3)")
+
+    # -- (3) the CPL delta is `Val` cells and nothing else
+    cur_p = release_dir / "fab" / "cpl.csv"
+    old_p = prior_dir / "fab" / "cpl.csv"
+    if not (cur_p.is_file() and old_p.is_file()):
+        fails.append("  VALUE-CHANGE: fab/cpl.csv missing on one side — cannot "
+                     "establish the delta")
+        return fails, notes
+    cur_cpl = _csv_rows_in_order(cur_p)
+    old_cpl = _csv_rows_in_order(old_p)
+    cpl_moved, cpl_new_val = [], {}
+    if [r for r, _ in cur_cpl] != [r for r, _ in old_cpl]:
+        cur_set, old_set = {r for r, _ in cur_cpl}, {r for r, _ in old_cpl}
+        fails.append(
+            f"  VALUE-CHANGE DEVIATION: fab/cpl.csv designator sequence "
+            f"differs from {prior_dir.name}'s ({len(cur_cpl)} vs "
+            f"{len(old_cpl)} row(s); +{sorted(cur_set - old_set)} "
+            f"-{sorted(old_set - cur_set)}) — a value change places exactly "
+            f"the same parts in exactly the same order. A row added or removed "
+            f"is a POPULATION change")
+    else:
+        for (ref, c), (_r, o) in zip(cur_cpl, old_cpl):
+            for col in sorted(set(c) | set(o)):
+                if col in ("Designator", "Val") or c.get(col) == o.get(col):
+                    continue
+                fails.append(
+                    f"  VALUE-CHANGE DEVIATION: {ref} CPL {col} changed "
+                    f"{o.get(col)!r} -> {c.get(col)!r} — a value change moves "
+                    f"the `Val` cell and NOTHING else. A moved coordinate is "
+                    f"--cpl-only-supersede's defect (canon A-POS) and a moved "
+                    f"Rotation needs its own A-ROT evidence; neither rides "
+                    f"along inside a value fix")
+            if c.get("Val") != o.get("Val"):
+                cpl_moved.append(f"{ref} {o.get('Val')!r} -> {c.get('Val')!r}")
+                cpl_new_val[ref] = c.get("Val", "")
+                if ref not in declared:
+                    fails.append(
+                        f"  VALUE-CHANGE DEVIATION: {ref} CPL Val changed "
+                        f"{o.get('Val')!r} -> {c.get('Val')!r} but {ref} is "
+                        f"NOT on the declared --designators list "
+                        f"({', '.join(declared)}) — every moved cell must be "
+                        f"one the caller declared, or the release is changing "
+                        f"parts nobody reviewed")
+
+    # -- (4) the BOM delta is confined to the declared designators
+    cur_b = release_dir / "fab" / "bom.csv"
+    old_b = prior_dir / "fab" / "bom.csv"
+    if not (cur_b.is_file() and old_b.is_file()):
+        fails.append("  VALUE-CHANGE: fab/bom.csv missing on one side — cannot "
+                     "establish the delta")
+        return fails, notes
+    cur_bom = dict(_csv_rows_in_order(cur_b))
+    old_bom = dict(_csv_rows_in_order(old_b))
+    for ref in sorted(set(cur_bom) - set(old_bom)):
+        fails.append(
+            f"  VALUE-CHANGE DEVIATION: {ref} was ADDED to fab/bom.csv — a "
+            f"value change re-labels parts that are already there; adding one "
+            f"is a population or sourcing change")
+    for ref in sorted(set(old_bom) - set(cur_bom)):
+        fails.append(
+            f"  VALUE-CHANGE DEVIATION: {ref} was REMOVED from fab/bom.csv — "
+            f"that is an A-POP fix; use --bom-only-supersede so the removal is "
+            f"graded against the CPL")
+    bom_moved, undeclared_hits = [], []
+    for ref in sorted(set(cur_bom) & set(old_bom)):
+        c, o = cur_bom[ref], old_bom[ref]
+        changed = sorted(col for col in set(c) | set(o)
+                         if col != "Designator" and c.get(col) != o.get(col))
+        if not changed:
+            continue
+        bom_moved.append(ref)
+        if ref not in declared:
+            undeclared_hits.append((ref, changed))
+            fails.append(
+                f"  VALUE-CHANGE DEVIATION: {ref}'s BOM row changed "
+                f"{changed} but {ref} is NOT on the declared --designators "
+                f"list ({', '.join(declared)}) — a value-change supersede is "
+                f"confined to the refs the caller named, precisely so a "
+                f"second, unreviewed edit cannot ride along inside it")
+            continue
+        for col in changed:
+            if col in ("Comment", "MPN", "LCSC"):
+                continue
+            fails.append(
+                f"  VALUE-CHANGE DEVIATION: {ref} BOM {col} changed "
+                f"{o.get(col)!r} -> {c.get(col)!r} — even on a declared "
+                f"designator only Comment, MPN and LCSC may move. A changed "
+                f"Footprint is a different land pattern, i.e. a different "
+                f"board")
+        if c.get("Comment") != o.get("Comment") and c.get("LCSC") == o.get("LCSC"):
+            fails.append(
+                f"  VALUE-CHANGE DEVIATION: {ref} Comment moved "
+                f"{o.get('Comment')!r} -> {c.get('Comment')!r} while its LCSC "
+                f"stayed {c.get('LCSC')!r} — a different VALUE is a different "
+                f"PART. A row whose Comment claims the new value against the "
+                f"OLD part's code is the R12/R30 wrong-part class verbatim, "
+                f"and it is exactly what editing the board without the source "
+                f"produces. (If only the wording changed, that is "
+                f"--legible-bom-supersede.)")
+
+    # -- (5) the declared list is not WIDER than the delta
+    for ref in declared:
+        if ref not in cur_bom and ref not in cpl_new_val:
+            fails.append(
+                f"  VALUE-CHANGE: {ref} is declared on --designators but "
+                f"appears in neither fab/bom.csv nor the CPL delta — the list "
+                f"must name the refs that actually moved")
+        elif ref not in bom_moved and ref not in cpl_new_val:
+            fails.append(
+                f"  VALUE-CHANGE: {ref} is declared on --designators but "
+                f"NOTHING about it changed — a declared list wider than the "
+                f"real delta launders unrelated edits exactly as a list too "
+                f"narrow hides them")
+    if not cpl_moved:
+        fails.append(
+            "  VALUE-CHANGE: not one fab/cpl.csv `Val` cell moved — a "
+            "value-change supersede that changes no value supersedes nothing. "
+            "If only the BOM's wording moved, that is "
+            "--legible-bom-supersede; if only its LCSC moved, "
+            "--sourcing-supersede")
+
+    # -- (6) the two artifacts AGREE (they come from ONE GetValue() call)
+    for ref, val in sorted(cpl_new_val.items()):
+        row = cur_bom.get(ref)
+        if row is None:
+            continue
+        comment = row.get("Comment", "")
+        tokens = [t.strip() for t in comment.split("/")] or [comment]
+        if val and val not in tokens and val != comment:
+            fails.append(
+                f"  VALUE-CHANGE DEVIATION: {ref} CPL Val is {val!r} but its "
+                f"BOM Comment is {comment!r} — the exporter feeds ONE "
+                f"`fp.GetValue()` string to both columns, so a disagreement "
+                f"means one of the two CSVs was written BY HAND (canon M3)")
+
+    # -- (7) the verdict this mode leans on comes from the F-LEGIBLE gate
+    #        itself, never re-implemented here (ONE grader, canon M1)
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    try:
+        from bom_legibility_check import check as _legibility
+        from bom_legibility_check import discover as _discover
+    except ImportError as e:                                  # pragma: no cover
+        fails.append(f"  VALUE-CHANGE: cannot import bom_legibility_check "
+                     f"({e}) — the re-valued row's readability is ungraded, "
+                     f"and unevaluable input is a FAIL")
+        return fails, notes
+    bom, parts, _what = _discover(release_dir)
+    r = _legibility(bom, parts) if bom else {"fails": ["no BOM"]}
+    n = len(r["fails"])
+    notes.append(f"  note: F-LEGIBLE on this release ({release_dir.name}): "
+                 f"{n} finding(s)")
+    if n:
+        fails.append(
+            f"  VALUE-CHANGE: this release's fab/bom.csv FAILS F-LEGIBLE with "
+            f"{n} finding(s) — run `bom_legibility_check.py "
+            f"{release_dir.name}`. The re-valued row must still resolve an MPN "
+            f"that AGREES with its dossier; a new value nobody can look up is "
+            f"not sourced")
+
+    # -- (8) the change is RECORDED where a later reader will find it
+    docs = []
+    for p in (release_dir / "MANIFEST.txt", _find_readme(release_dir)):
+        if p is not None and p.is_file():
+            docs.append(p.read_text(errors="ignore"))
+    doctext = "\n".join(docs)
+    for ref in declared:
+        # the CPL is the authority on a placed part's value; an UNPLACED
+        # declared ref still has one, in its BOM Comment.
+        was = (dict(old_cpl).get(ref, {}).get("Val", "")
+               or old_bom.get(ref, {}).get("Comment", ""))
+        new = (cpl_new_val.get(ref, "")
+               or cur_bom.get(ref, {}).get("Comment", ""))
+        missing = [v for v in (was, new) if v and v not in doctext]
+        if missing:
+            fails.append(
+                f"  VALUE-CHANGE DEVIATION: {ref} moved {was!r} -> {new!r} but "
+                f"{missing} appears in neither MANIFEST.txt nor the order "
+                f"README — BOTH values must be recorded, or the reason this "
+                f"release exists is legible only as a CSV diff against a "
+                f"release nobody will still have")
+    if not fails:
+        notes.append(
+            f"  note: fab/cpl.csv delta is {len(cpl_moved)} `Val` cell(s) "
+            f"[{'; '.join(cpl_moved)}] over {len(cur_cpl)} row(s), 0 "
+            f"coordinate/rotation/layer/package changes, 0 rows added or "
+            f"removed; fab/bom.csv moved {len(bom_moved)} designator(s) "
+            f"[{', '.join(bom_moved)}], all declared, 0 refs added or removed, "
+            f"0 Footprint changes — ASSERTED by value-change mode")
+    return fails, notes
+
+
 def check_cpl_delta(release_dir, prior_dir):
     """The ONE permitted fab/ change in CPL-only mode: `fab/cpl.csv` changing
     only PLACEMENT COORDINATES, or losing whole rows for designators that are
@@ -831,7 +1210,8 @@ def check_cpl_delta(release_dir, prior_dir):
 
 
 def check_docs_only(release_dir, prior_dir, bom_only=False,
-                    cpl_only=False, legible_bom=False, sourcing=False):
+                    cpl_only=False, legible_bom=False, sourcing=False,
+                    value_change=False):
     """Assert the docs-only-supersede contract against the DECLARED prior
     release: fab/source/3d byte-identical (any deviation = FAIL), order
     README + MANIFEST byte-DIFFERENT (identical docs supersede nothing).
@@ -843,6 +1223,12 @@ def check_docs_only(release_dir, prior_dir, bom_only=False,
     the source to move WITH the BOM) and a re-plotted gerber/drill's own
     timestamp lines — each asserted, more strongly than identity, by
     check_sourcing_delta().
+    `value_change=True` relaxes fab/bom.csv, fab/cpl.csv, the re-plotted
+    gerber/drill timestamp lines, and the AUTHORING members of source/
+    (`.kicad_pcb` `.kicad_sch` `.tsx` `.net` — a value is carried BY those
+    files, so canon M3 REQUIRES them to move); check_value_change_delta()
+    then asserts far more than identity about every one of them, including
+    that the plot is unchanged and that the source really did move.
     Nothing else in fab/, and nothing at all in source/ or 3d/, may move.
 
     THE FILE SET IS GRADED IN EVERY MODE, and that is not incidental: a file
@@ -863,6 +1249,13 @@ def check_docs_only(release_dir, prior_dir, bom_only=False,
             exempt = {("fab", "bom.csv")}
             exempt |= {("source", rel) for rel in _tree_files(
                 release_dir / "source") if rel.endswith(".tsx")}
+            exempt |= {("fab", rel) for rel in cur
+                       if sub == "fab" and rel.lower().endswith(_REPLOTTABLE)}
+        if value_change:
+            exempt = {("fab", "bom.csv"), ("fab", "cpl.csv")}
+            exempt |= {("source", rel) for rel in _tree_files(
+                release_dir / "source")
+                if rel.lower().endswith(_AUTHORING_EXT)}
             exempt |= {("fab", rel) for rel in cur
                        if sub == "fab" and rel.lower().endswith(_REPLOTTABLE)}
         for rel in sorted(set(cur) - set(old)):
@@ -890,7 +1283,8 @@ def check_docs_only(release_dir, prior_dir, bom_only=False,
         if same:
             _label = ("bom-only" if bom_only else "cpl-only" if cpl_only
                       else "legible-bom" if legible_bom
-                      else "sourcing" if sourcing else "docs-only")
+                      else "sourcing" if sourcing
+                      else "value-change" if value_change else "docs-only")
             notes.append(f"  note: {sub}/ byte-identical to {prior_dir.name} "
                          f"({same} file(s)) — ASSERTED by {_label} mode")
     # the documents themselves MUST change — that is the release's whole point
@@ -1439,6 +1833,34 @@ def main(argv=None):
                          "source/*.tsx CHANGED (canon M3 — a BOM that moved "
                          "without its source is HAND-EDITED), and BOTH codes "
                          "of every substitution named in MANIFEST/README")
+    ap.add_argument("--value-change-supersede", metavar="PRIOR_RELEASE_DIR",
+                    default=None,
+                    help="VALUE-CHANGE supersede mode: a PART VALUE moved on "
+                         "already-placed parts (22k -> 33k), so the ASSEMBLY "
+                         "DATA moves and the COPPER does not — the exporter "
+                         "feeds one `fp.GetValue()` string to both the BOM "
+                         "Comment and the CPL Val. REQUIRES --designators. "
+                         "ASSERTS every gerber/drill identical after stripping "
+                         "ONLY the plot's own timestamps (so a re-plot is "
+                         "accepted), the source/.kicad_pcb AND .kicad_sch "
+                         "CHANGED with both md5s printed (canon M3 — an "
+                         "unchanged source means a HAND-EDITED CSV), the CPL "
+                         "delta confined to `Val` cells with every coordinate/"
+                         "rotation/layer/package and the row order unchanged, "
+                         "the BOM delta confined to the DECLARED designators "
+                         "with no ref added or dropped and no Footprint "
+                         "moving, each declared ref's LCSC moving with its "
+                         "value (a different value is a different part), the "
+                         "CPL Val agreeing with the BOM Comment, F-LEGIBLE "
+                         "PASSing, and BOTH the old and new value recorded in "
+                         "MANIFEST/README")
+    ap.add_argument("--designators", action="append", default=[],
+                    metavar="R4,R5",
+                    help="the refdes whose VALUE this release changes — the "
+                         "list --value-change-supersede confines the BOM/CPL "
+                         "delta to. Repeatable and/or comma-separated. A "
+                         "change touching a ref NOT on the list FAILs, and so "
+                         "does a ref on the list that did not move")
     # RED-VERIFY hooks: neuter one check so a known-bad fixture is shown to
     # pass when — and only when — that check is disabled. Tests only.
     ap.add_argument("--_disable-stale", action="store_true")
@@ -1468,22 +1890,39 @@ def main(argv=None):
     cpl_only = bool(args.cpl_only_supersede)
     legible_bom = bool(args.legible_bom_supersede)
     sourcing = bool(args.sourcing_supersede)
+    value_change = bool(args.value_change_supersede)
     _modes = [args.docs_only_supersede, args.bom_only_supersede,
               args.cpl_only_supersede, args.legible_bom_supersede,
-              args.sourcing_supersede]
+              args.sourcing_supersede, args.value_change_supersede]
     if sum(1 for m in _modes if m) > 1:
         print("FATAL: pass at most ONE of --docs-only-supersede / "
               "--bom-only-supersede / --cpl-only-supersede / "
-              "--legible-bom-supersede / --sourcing-supersede", file=sys.stderr)
+              "--legible-bom-supersede / --sourcing-supersede / "
+              "--value-change-supersede", file=sys.stderr)
         return 2
     _mode = ("bom-only" if bom_only else "cpl-only" if cpl_only
              else "legible-bom" if legible_bom
-             else "sourcing" if sourcing else "docs-only")
+             else "sourcing" if sourcing
+             else "value-change" if value_change else "docs-only")
+    declared = [d.strip() for chunk in args.designators
+                for d in chunk.replace(";", ",").split(",") if d.strip()]
+    if declared and not value_change:
+        print("FATAL: --designators only means anything with "
+              "--value-change-supersede — it is the list that mode confines "
+              "the BOM/CPL delta to", file=sys.stderr)
+        return 2
+    if value_change and not declared:
+        print("FATAL: --value-change-supersede REQUIRES --designators R4,R5 — "
+              "the mode's whole assertion is that the delta is confined to a "
+              "DECLARED refdes list, and an empty list confines nothing",
+              file=sys.stderr)
+        return 2
     if any(_modes):
         prior_dir = Path(args.docs_only_supersede or args.bom_only_supersede
                          or args.cpl_only_supersede
                          or args.legible_bom_supersede
-                         or args.sourcing_supersede).resolve()
+                         or args.sourcing_supersede
+                         or args.value_change_supersede).resolve()
         if not prior_dir.is_dir():
             print(f"FATAL: --{_mode}-supersede "
                   f"prior release is not a directory: {prior_dir}",
@@ -1507,9 +1946,15 @@ def main(argv=None):
             df, dn = check_docs_only(release_dir, prior_dir,
                                      bom_only=bom_only, cpl_only=cpl_only,
                                      legible_bom=legible_bom,
-                                     sourcing=sourcing)
+                                     sourcing=sourcing,
+                                     value_change=value_change)
             fails += df
             notes += dn
+            if value_change:
+                vf, vn = check_value_change_delta(release_dir, prior_dir,
+                                                  declared)
+                fails += vf
+                notes += vn
             if sourcing:
                 qf, qn = check_sourcing_delta(release_dir, prior_dir)
                 fails += qf

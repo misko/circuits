@@ -870,12 +870,41 @@ seal commit adds ONLY the release dir → **refresh the STATUS beacon so it name
 the release you just cut, and run `status_beacon_check.py` (canon M-BEACON)**.
 That section is the ONE home for the seal dance (this file and
 ORCHESTRATION_STATE.md only point at it).
-**Docs-only supersede:** when a new release changes ONLY documentation, seal
-it with `release_freshness_check.py <release_dir> --docs-only-supersede
-<prior-release-dir>` — fab/source/3d identity to the prior is ASSERTED (any
-deviation blocks: it is not docs-only), identical pdf/ allowed, ORDER_README
-+ MANIFEST must differ, audit/manifest + draft-marker checks still gate.
-Never waive fab-identical files one-by-one for this case.
+**Supersede modes — pick the one that matches the SHAPE of the fix.** A
+supersede release seals against `release_freshness_check.py <release_dir>
+--<mode>-supersede <prior-release-dir>`. Each mode is docs-only PLUS an
+exemption for exactly the artifact that legitimately moves, and it then
+asserts something STRONGER than identity about that artifact. **Never gate a
+supersede with hand-written `--allow-identical` waivers**: an assertion the
+gate makes beats a waiver a human writes (usb-hub-3s-v3 v1.11 shipped SEVEN,
+every one machine-checkable — weaker evidence than the release it superseded).
+The modes' ONE home is the `07_releases/contracts.md` "supersede mode"
+sections; this is the index:
+
+| what moved | mode | the extra assertion |
+|---|---|---|
+| documentation only | `--docs-only-supersede` | `fab/` `source/` `3d/` BYTE-IDENTICAL; ORDER_README + MANIFEST must DIFFER |
+| a BOM row leaves | `--bom-only-supersede` | whole rows REMOVED, only for designators NOT on the CPL (canon A-POP) |
+| a placement coordinate | `--cpl-only-supersede` | coordinate moves and/or dropped rows; a ROTATION/`Layer`/`Val`/`Package` change or an ADDED row FAILs (canon A-POS) |
+| how the BOM READS | `--legible-bom-supersede` | only `Comment` + `MPN` move; this BOM PASSES and the prior FAILs `bom_legibility_check` (canon F-LEGIBLE) |
+| WHICH PART is bought | `--sourcing-supersede` | `MPN`+`LCSC` move together; board md5 identical, CPL byte-identical, `.tsx` CHANGED, both codes in MANIFEST/README (canon M8) |
+| a part's VALUE | `--value-change-supersede … --designators R4,R5` | gerbers/drills identical after the plot-timestamp strip; CPL delta confined to `Val` cells; BOM delta confined to the DECLARED refs |
+
+**Value-change supersede** is the one to reach for when a resistor/capacitor
+VALUE changes on parts that are ALREADY PLACED, and it is the case where "no
+copper moved" and "BOM only" come apart. Measured 2026-07-28:
+`export_jlc_package.py` reads `val = fp.GetValue()` **from the board** and
+feeds that ONE string to BOTH the BOM `Comment` and the CPL `Val`, so a value
+change moves the `.kicad_pcb`, the `.kicad_sch`, the `.net`, the BOM rows and
+exactly those CPL `Val` cells while **all 11 gerbers and drills stay
+byte-identical**. `--designators` is REQUIRED — the mode's whole assertion is
+that the delta is confined to the refs you named, so it refuses a list that is
+empty, too narrow (a change touching an undeclared ref FAILs) or too WIDE (a
+declared ref that moved nothing FAILs). It also requires the SOURCE to have
+moved (canon M3 — an unchanged `.kicad_pcb`/`.kicad_sch` means a hand-edited
+CSV; editing the board alone leaves `--schematic-parity` reporting
+`footprint_symbol_mismatch`) and each declared ref's `LCSC` to have moved with
+its value, because a different value is a different part.
 **A release is a COMPLETE, SELF-CONTAINED ARCHIVE — not a pointer to a git
 SHA.** Someone
 holding only that directory must be able to open the board, read the

@@ -453,6 +453,76 @@ quantity), the second board, which is what makes promotion mandatory. Do
 NOT reach for `--allow-identical` waivers here: an assertion the gate makes
 beats a waiver a human writes.
 
+**VALUE-CHANGE supersede mode.** The case ALL FIVE modes above correctly
+refuse, and the one where "no copper moved" and "BOM only" come apart. A part
+VALUE changes on parts that are ALREADY PLACED (22 kΩ → 33 kΩ on an existing
+0603). Gate it with `--value-change-supersede <prior-release-dir>
+--designators R4,R5`.
+
+Measured on crow-mic-pod-v2 v1.3, 2026-07-28: `export_jlc_package.py` reads
+`val = fp.GetValue()` **from the board** and feeds that ONE string to BOTH the
+BOM `Comment` column and the CPL `Val` column. So a pure value change moves
+the `.kicad_pcb`, the `.kicad_sch`, the `.net`, the BOM rows for those refs
+and exactly their CPL `Val` cells — while **all 11 gerbers and drills are
+byte-identical** (11/11, the method validated by re-plotting the sealed v1.3
+fab set from its own archived board). docs-only refuses (fab/ changed);
+bom-only refuses (it permits only row REMOVAL, and only for refs NOT on the
+CPL — these ARE on it); legible-bom refuses (a changed LCSC is a substitution
+to it); sourcing refuses (it demands an md5-identical board and a
+byte-identical CPL, and a value change moves both); and cpl-only names a
+`Val` change as its own explicit exclusion. Without this mode the only way to
+seal a copper-identical value fix is to hand-edit a CSV, which canon M3
+forbids. The mode asserts, none of it waivable:
+
+- **the COPPER did not move**: every gerber and drill identical after
+  stripping only the plot's own timestamps (`%TF.CreationDate`, `G04 Created
+  by`, the Excellon `; DRILL file … date` line and its `; #@! TF.CreationDate`
+  twin) — so a **RE-PLOT from this release's own board is ACCEPTED**, which is
+  stronger evidence than a byte-copy, and anything else is copper. A release
+  with no gerber/drill on both sides cannot make the claim and FAILs;
+- **the SOURCE moved**, in the direction canon M3 requires here: both
+  `source/*.kicad_pcb` and `source/*.kicad_sch` CHANGED, with both md5s
+  PRINTED. A value lives in those files, so unchanged source means a
+  HAND-EDITED CSV. Editing the board alone is not a way out — measured, that
+  leaves `kicad-cli pcb drc --schematic-parity` reporting
+  `footprint_symbol_mismatch` on exactly those refs;
+- **the CPL delta is `Val` cells and NOTHING else**: identical row count,
+  identical designator sequence, and for every ref the coordinate, rotation,
+  layer and package unchanged. A moved coordinate is `--cpl-only-supersede`'s
+  defect (A-POS) and a moved rotation is A-ROT's; neither rides along here;
+- **every moved cell belongs to a DECLARED designator.** `--designators` is
+  REQUIRED (an empty confinement list confines nothing, so the mode refuses to
+  run) and must be neither too narrow nor too WIDE: a change touching an
+  undeclared ref FAILs, and a declared ref that moved nothing FAILs too;
+- **the BOM ref set is FROZEN.** Rows may split or merge around the new values
+  — the exporter groups by `(code, val, footprint)` — but no designator may be
+  added or dropped (that is A-POP's business and `--bom-only-supersede`'s
+  mode), and a declared ref's `Footprint` may not move;
+- **a declared ref's `LCSC` MUST move with its value.** A different value is a
+  different part: a row whose `Comment` claims the new value against the OLD
+  part's code is the R12/R30 wrong-part class verbatim, and it is exactly what
+  a board-only edit produces;
+- **the two artifacts AGREE** — each declared ref's new CPL `Val` appears as a
+  token in its own BOM `Comment` (one merged `a / b` Comment is written when
+  two values share a code+footprint, so containment is the honest form). They
+  come from ONE `GetValue()` call; a disagreement is positive evidence that
+  one CSV was written by hand;
+- the new BOM **PASSES `bom_legibility_check`** (from the F-LEGIBLE gate
+  itself, never re-implemented — ONE grader, canon M1), so a new value with no
+  vetted ledger row or `02_parts` dossier blocks;
+- and **BOTH the old and the new value of every declared designator are NAMED
+  in `MANIFEST.txt` or the order README**, so the reason this release exists
+  is legible to someone who was not here.
+
+This mode is the FIRST of the six built proactively rather than after a seal
+paid for its absence, and that is recorded deliberately: canon M8 promotes on
+the second strike, so a one-strike build is an exception, taken because the
+measurement (11/11 gerbers, the `fp.GetValue()` single-source finding) already
+existed and the alternative shape — individually-measured file waivers — is
+the exact weaker-evidence pattern M8 condemns. crow-mic-pod-v2 itself took a
+firmware-side fix and sealed nothing; this gate is for the fleet's next value
+change. Do NOT reach for `--allow-identical` waivers here.
+
 **CPL-only supersede mode.** When the new release changes ONLY
 `fab/cpl.csv` — a PLACEMENT fix — gate the staging with
 `release_freshness_check.py <release_dir> --cpl-only-supersede
