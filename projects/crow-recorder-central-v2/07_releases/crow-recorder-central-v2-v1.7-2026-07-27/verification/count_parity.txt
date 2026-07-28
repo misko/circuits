@@ -1,0 +1,11 @@
+input: project = /home/mouse9911/gits/circuits/.claude/worktrees/agent-a952b2500ab156ab1/projects/crow-recorder-central-v2
+input: board        = /home/mouse9911/gits/circuits/.claude/worktrees/agent-a952b2500ab156ab1/projects/crow-recorder-central-v2/04_kicad/crow_recorder_central_v2.kicad_pcb  (199 refdes)
+input: circuit.json = /home/mouse9911/gits/circuits/.claude/worktrees/agent-a952b2500ab156ab1/projects/crow-recorder-central-v2/03_tscircuit/build/circuit.json  (199 refdes)
+input: kicad_sch    = /home/mouse9911/gits/circuits/.claude/worktrees/agent-a952b2500ab156ab1/projects/crow-recorder-central-v2/03_tscircuit/kicad/crow_recorder_central_v2.kicad_sch  (199 refdes)
+input: manifest     = /home/mouse9911/gits/circuits/.claude/worktrees/agent-a952b2500ab156ab1/projects/crow-recorder-central-v2/03_tscircuit/manifest.yaml  (199 refdes)
+input: netlist      = /home/mouse9911/gits/circuits/.claude/worktrees/agent-a952b2500ab156ab1/projects/crow-recorder-central-v2/06_build/netlists/crow_recorder_central_v2.net  (199 refdes)
+ok   board == manifest (199/199 components)
+ok   circuit.json == manifest (199/199 components)
+ok   kicad_sch == manifest (199/199 components)
+ok   netlist == manifest (199/199 components)
+S-COUNT PASS: 4/4 source pair(s) agree with manifest over 199 refdes

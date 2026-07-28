@@ -1,0 +1,29 @@
+<!--
+PROVENANCE
+  Source:   external LLM review, user-supplied, 2026-07-24
+  Subject:  sealed crow-recorder-central-v2-v1.2-2026-07-24 (seal 64764a7)
+  Verified: ORCHESTRATOR-VERIFIED against the sealed v1.2 bytes before archival.
+  Verdict:  HOLD for JLC PCBA (bare-PCB fab unaffected).
+  Disposition: this release (v1.3) regenerates the CPL to per-LCSC exact-fit
+            rotations + repairs the evidence. See rotation_fix_v1.3.md and
+            review_dispositions.md. Also archived: 08_reviews/
+            2026-07-24_v1.2_external-llm_cpl-rotation.md.
+  Body below is preserved VERBATIM.
+-->
+
+# External review of crow-recorder-central-v2 v1.2 (user-supplied, 2026-07-24)
+
+ORCHESTRATOR-VERIFIED against sealed v1.2 bytes:
+- CPL rotation blocker CONFIRMED: fab/cpl.csv ships U1 (C6938291, TQFP-128 XU316)
+  at 270.0 deg; twin_report ROT-DB-SUGGEST says fit=0.00mm jlc_offset=90 db=270.0
+  -> exact pad-fit is 90, CPL wrote the generic ^TQFP- db value 270 = 180deg off
+  on the consigned 128-lead 0.4mm-pitch SoC. 9 more rows flagged: Q1/Q2 (SOT-23,
+  180), U2/U3 (TSSOP-30, 90 vs db 270), U7/U8 (SOT-563, 90 vs db 0), U9 (SOT-23-5,
+  180), U5 (SOIC-8, 90 vs db 270), D_USB (USON-10, 90 vs db 270).
+- missing_models.txt CONFIRMED stale: "CPL rows: 172; modeled: 172" — should be
+  177 after the 5 new v1.2 caps.
+- Decoupling fix (8->13 100nF on 0V9) verified GOOD in a prior review; USB pair,
+  16 U1 EP vias, LV straps all intact.
+VERDICT: HOLD for JLC PCBA (bare-PCB fab unaffected). Fix = CPL regen from exact
+pad-fits + evidence repair + reseal v1.3. Needs a human JLC-preview pin-1 check
+on U1 to confirm 90 vs 270 physically.

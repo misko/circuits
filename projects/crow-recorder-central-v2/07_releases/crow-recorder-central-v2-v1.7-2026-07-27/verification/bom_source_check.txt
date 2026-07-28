@@ -1,0 +1,4 @@
+BOM-vs-source: projects/crow-recorder-central-v2/07_releases/crow-recorder-central-v2-v1.7-2026-07-27/fab/bom.csv
+  source: projects/crow-recorder-central-v2/03_tscircuit/build/circuit.json (185 coded refdes); vendored: 26 part.yaml codes; ledger: 144 vetted passive codes; not_assembled: 13 declared refdes (J1, J10, J3, J4...)
+  coverage leg C: 25/25 R/C rows value-graded (49 BOM rows seen)
+BOM SOURCE CHECK: PASS (every BOM LCSC == source)
