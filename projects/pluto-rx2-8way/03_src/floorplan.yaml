@@ -42,11 +42,19 @@ board:
     footprint: MountingHole:MountingHole_3.2mm_M3
     at: [[24.5, 24.5], [67.5, 24.5], [24.5, 84.5], [67.5, 84.5]]
 
-libraries: [/usr/share/kicad/footprints]
-# plus the project footprint library once QFN-24_4x4_P0.5_EP2.7_PE42482 and
-# SMA_Vertical_5.08sq_D1.4 are authored — BOTH ARE OWED (02_parts/README.md
-# deviation 4); neither exists in this repo or anywhere else, and neither may
-# be copied from the sibling board.
+libraries: [03_src/lib, /usr/share/kicad/footprints]
+# PROJECT LIBRARY FIRST, deliberately. Both OWED footprints were AUTHORED on
+# 2026-07-28 into 03_src/lib/pluto_rx2_8way.pretty/ — QFN-24_4x4_P0.5_EP2.7_PE42482
+# from pSemi Figure 23's RECOMMENDED LAND PATTERN inset (DOC-75785-4 p21) and
+# SMA_Vertical_5.08sq_D1.4 from the Kinghelm sheet-2/2 PCB inset (2021.08.10).
+# Neither was copied; neither existed anywhere in this repo.
+# WHY THE ORDER MATTERS AND IS NOT COSMETIC: KiCad ships
+# Package_DFN_QFN:QFN-24-1EP_4x4mm_P0.5mm_EP2.65x2.65mm, an IPC-GENERATED land
+# for the same package outline with 0.85 mm pads at r = 1.95 and a 2.65 mm EP,
+# against the vendor's 0.60 mm pads at r = 1.90 and a 2.75 mm EP. Resolving to
+# the stock library would move every RF land 0.05 mm outward and shrink the
+# RF-ground exposed pad by 0.10 mm on a 4.00 mm package — a substitution no
+# DRC, parity or netlist check can see.
 
 placement:
   # ANCHORS are PINNED — the legalizer never moves them. Everything here is a
