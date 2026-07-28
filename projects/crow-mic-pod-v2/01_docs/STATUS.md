@@ -2,17 +2,14 @@
 
 This file is the ONE place a coordinator reads to know, in a glance, where this
 board is between gates. OVERWRITTEN (not appended) at every transition; history
-lives in `journal/<stage>.md`. Read by `skills/kicad-pcb/scripts/pcb_status.py`.
+lives in `journal/<stage>.md`. Read by `skills/kicad-pcb/scripts/pcb_status.py`,
+graded by `skills/kicad-pcb/scripts/status_beacon_check.py` (canon M-BEACON).
 
 <!-- reader parses from here down -->
 stage:   seal
-step:    "v1.1 staging RE-VERIFIED 2026-07-26 (frozen 2026-07-25, digest c9804afe). Seal is BLOCKED on A-ROT: the hardened exporter demands measured per-LCSC rotation rows for 4 codes this board places (C192421 U1, C22359707 LS1, C2480 D2, C559105 D3) and the 57-row authority table has none of them. All four MEASURED this session; rows reported to the orchestrator (table owner). Secondary blocker: skills/ working tree is dirty (peer rotation-tool checkouts) so release_git_dirty cannot report clean for the stamp."
-measure: "value check: 10/10 value-bearing BOM rows reconciled via ledger, 0 MISMATCH, 0 UNVERIFIABLE (21 R/C refdes); DRC --severity-all --refill-zones --schematic-parity 0/0/0 on staged source; policy_audit 0 FAIL (26 PASS/2 WAIVED/7 HUMAN/5 N-A); freshness PASS in --bom-only-supersede v1.0 mode (fab delta = 2 rows REMOVED J1,MK1, 0 added/edited; one self-inflicted kicad_prl dropping removed); P-FACT OK (3/7 yaml declare asserts, 4 graded); A-POP PASS (39 fp, 26 CPL, 13 declared); A-POS worst 0.00000mm; A-STOCK live PASS 15/15 (LS1 C22359707 stock=69); jlc_twin exit 0, 26 OK, 2 ADJUDICATED-PAD-GEOM (U1, D3, both pre-characterized), bodies 26/26; contracts_audit 187 files 0 violations"
-state:   blocked
-stage:   sealed
-step:    "v1.2 SEALED: 07_releases/crow-mic-pod-v2-v1.2-2026-07-26 (seal fe5f882, input cf41646). PACKAGING supersede of v1.1 (seal c636241), chosen by the user: assembly drawing merged to the single 2-page pdf/assembly.pdf the contract requires (canon A-EVID). NOT a board change — fab/source/3d/verification byte-identical to v1.1 (diff -rq: assembly files are the only delta); v1.1 gerbers remain orderable, its SUPERSEDED.md says so."
-measure: "A-EVID OK 31 required present + 1 conditional absent (3d gltf); freshness PASS in --docs-only-supersede v1.1 mode; policy_audit 0 FAIL incl. M-REL (git_sha cf41646, git_dirty false TOOL-verified, 57 files hashed); check-ignore sweep empty; assembly.pdf = 2 pages (front, back), pdfunite of v1.1's own pair"
+step:    "v1.3 SEALED and LIVE: 07_releases/crow-mic-pod-v2-v1.3-2026-07-27 — the only release of this board with no SUPERSEDED.md. F-LEGIBLE (ADR-0006) supersede of v1.2: v1.2's fab/bom.csv carried 21 findings (15 F-MPN blank MPNs, 5 F-WORDS Comments that were LCSC codes, 1 F-ENCODE ohm sign with no BOM marker) and v1.3 ships 0. NO COPPER CHANGE, measured: source/crow_mic_pod_v2.kicad_pcb md5 c7b8512ccf0810997116c8c2e59dcad9 identical to v1.2's and to 04_kicad/'s, gerbers+drills re-plot 13/13 byte-identical, fab/cpl.csv byte-identical. v1.2 is superseded but NOT DO-NOT-ORDER."
+measure: "quoted from the SEALED archive, not re-measured here — crow-mic-pod-v2-v1.3-2026-07-27/MANIFEST.txt `gates (MEASURED this release, against the STAGED archive)`: DRC --severity-all --refill-zones --schematic-parity 0/0/0; ERC 0 errors (176 warnings); A-POP PASS 39 board footprints / 26 CPL / 13 unpopulated / 13 declared; A-POS worst datum residual 0.00000 mm over 26 rows by TWO independent readers; A-ROT this board's 4 codes (U1 270, LS1 0, D2 0, D3 0) are MEASURED rows in the 61-row fleet authority table; F-LEGIBLE 0 findings, 15/15 coded rows carry an MPN."
 state:   done
-next:    "Order per v1.2 ORDER_README: JLC preview human gate on U1 pin-1 (CPL 270); NEVER PoE (ADR-0005); LS1 C22359707 stock re-check on order day; enclosure cutout check. Upstream owed (reported): release_git_dirty cannot excuse the MODIFIED tracked CHANGELOG a second seal produces."
+next:    "ORDER-DAY, from v1.3 ORDER_README: NEVER plug into PoE/Ethernet (ADR-0005 accepted waiver, section 0); JLC placement-preview eyeball on U1 pin 1 (CPL 270); LS1 C22359707 stock re-check on the day you pay (69 at seal, trend 182->104->69 over 7 days, single-source Extended); J1 pad-1 -> contact-1 continuity backstop on the first assembled board; enclosure panel cutout vs the 1.05 mm RJ45 mouth overhang."
 op_pid:
-updated: 2026-07-26T12:15:00
+updated: 2026-07-27T18:39:08

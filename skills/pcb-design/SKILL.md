@@ -260,6 +260,22 @@ this at the source, MANDATORY (`policy_audit` M-JRNL / M-LEARN):
   monitor is `skills/kicad-pcb/scripts/pcb_status.py` (one line per board;
   derives STALLED from a stale `working` beacon with no live op).
 
+- **The beacon is GATED — canon M-BEACON, M9's enforcement arm.**
+  `skills/kicad-pcb/scripts/status_beacon_check.py [PROJECT ...] [--root REPO]`
+  checks four properties: no field appears twice (the file is OVERWRITTEN, so a
+  second occurrence is an APPEND); all seven fields present; a beacon claiming a
+  COMPLETED seal names the LIVE release (the newest of THIS board's series with
+  no `SUPERSEDED.md`, resolved through `release_index.py` — one home); and
+  `updated:` does not predate that board's newest seal. **REFRESHING THE BEACON
+  IS PART OF THE SEAL** — the 07_releases contract's "Seal procedure" step 4:
+  a seal is not complete until the beacon names the release it just created, and
+  the gate is run after the seal commit. Measured 2026-07-27, before the gate
+  existed: EVERY beacon in the fleet named the wrong release (13 findings across
+  4 of 6 boards), and one had two frames appended into it, which the reader
+  rendered as a confident `sealed / done` pointing at a SUPERSEDED release. A
+  beacon is the coordinator's only between-gates eye; a stale one does not go
+  blank, it lies.
+
 ## Compute discipline — tokens under a declared ceiling (the D-TIER symmetry)
 
 Fab cost is governed by a tier DECLARED up front (D-TIER); compute is the same
@@ -850,8 +866,10 @@ Then cut `07_releases/v1.0-<date>/` per the release contract, following its
 **"Seal procedure (normative — the 2-commit seal)"** section EXACTLY: stage
 the archive → run every gate + review against staging → source commit S →
 stamp MANIFEST (`git_sha: S`, `git_dirty: false`) + re-run M-REL/freshness →
-seal commit adds ONLY the release dir. That section is the ONE home for the
-seal dance (this file and ORCHESTRATION_STATE.md only point at it).
+seal commit adds ONLY the release dir → **refresh the STATUS beacon so it names
+the release you just cut, and run `status_beacon_check.py` (canon M-BEACON)**.
+That section is the ONE home for the seal dance (this file and
+ORCHESTRATION_STATE.md only point at it).
 **Docs-only supersede:** when a new release changes ONLY documentation, seal
 it with `release_freshness_check.py <release_dir> --docs-only-supersede
 <prior-release-dir>` — fab/source/3d identity to the prior is ASSERTED (any

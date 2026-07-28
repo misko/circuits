@@ -73,6 +73,25 @@ BACKEND GAP to report, not a bespoke script to write here.
   mating-feasibility checker (error bar vs mating budget). That has been run
   once, by hand, on one interface; canon M8 promotes on the SECOND board
   needing it.
+- **THE LIVE BEACON (canon M9 / M-BEACON).** `pcb_status.py` READS the beacon;
+  `status_beacon_check.py [PROJECT ...] [--root REPO]` grades it against the
+  TREE — the two are deliberately separate scripts, because a reader that
+  validated its own input would prove nothing (canon M1). Four findings:
+  **M-BEACON-DUP** (a field appears twice — an APPEND into a file the 01_docs
+  contract says is OVERWRITTEN, which the reader's last-wins rule renders as a
+  frame nobody wrote), **M-BEACON-FIELD** (a missing field; the one that makes
+  AGE unevaluable, and unevaluable is a FAIL — M-COVER), **M-BEACON-REL** (a
+  completed-seal claim must name the LIVE release), **M-BEACON-AGE**
+  (`updated:` may not predate that board's newest seal). Release identity and
+  ordering are IMPORTED from `jlcpcb-fab/scripts/release_index.py`, never
+  re-derived (M-WIDTH). WHY: M9 made the beacon mandatory and nothing made it
+  TRUE — measured 2026-07-27, EVERY beacon in the fleet named the wrong
+  release, 13 findings across 4 of 6 boards. Known-bads in `t1_status.py` are
+  the REAL drifted files (`tests/fixtures/beacons/`), not synthetic ones,
+  including the mtime ADJACENT-PROPERTY red-verify.
+  DECLARED SCOPE LIMIT: whether a project OWES a beacon is a LIFECYCLE question
+  it does not answer — it grades the beacons that EXIST and prints the projects
+  with none BY NAME, so the gap is visible rather than silent.
 - **THE REGRADE — the only control for defects that BECOME wrong (ADR-0004).**
   `fleet_regrade.py [--root DIR] [--project NAME]` runs today's standalone
   gates against EVERY sealed release and answers two questions: does it still

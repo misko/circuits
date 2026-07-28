@@ -282,10 +282,46 @@ the seven pipeline stages above. The reader
 `op_pid` overrides staleness (a long route legitimately runs while the beacon
 sits). The template seed is `skills/pcb-design/templates/01_docs/STATUS.md`.
 
+**PERMITTED STRUCTURE — exactly one occurrence of each of the seven fields.**
+The file is a FRAME, not a log: it is rewritten whole, so a second `stage:` (or
+`step:`, `measure:`, `state:`, `next:`, `op_pid:`, `updated:`) means someone
+APPENDED where the contract says OVERWRITE. The reader takes the LAST value of
+each field, so an appended file does not look broken — it renders a frame
+nobody wrote, mixing two moments in time. Extra `key:` lines outside the seven
+are IGNORED by the reader and must not be used to carry content: narrative that
+needs a home goes to `journal/<stage>.md`, which is append-only and is where
+history belongs (one beacon had grown 20 such keys precisely because its stage
+had no journal file).
+
+**A SEALED BEACON NAMES THE LIVE RELEASE.** Which release is live is a property
+of `07_releases/` — the newest of THIS board's own series with no
+`SUPERSEDED.md` — so a beacon stating it is a SECOND HOME for a fact that
+already has an authoritative one, and second homes drift. It is kept anyway
+(the human reading `step:` needs the version in the sentence) and MACHINE-
+CHECKED against the tree; it is never the only place the fact lives. Refreshing
+it is step 4 of the seal procedure in the `07_releases/` contract: **a seal is
+not complete until the beacon names the release it just created.**
+
 ## Validate — STATUS*.md
 
+**Audit: `/usr/bin/python3 skills/kicad-pcb/scripts/status_beacon_check.py
+<project>`** (or `--root <repo>` for the whole fleet) — canon **M-BEACON**,
+exit 0 required. It grades every `01_docs/STATUS*.md` and prints an `N/M`
+denominator per property; a beacon it cannot parse is a FAIL, never a skip.
+The four findings, and what each means:
+
+| finding | means | repair |
+|---|---|---|
+| `M-BEACON-DUP` | a field appears twice — the file was APPENDED to. The reader's last-wins rule has been reporting a frame nobody wrote | rewrite the frame WHOLE; move the retired frame's content to `journal/<stage>.md` if it has no other home |
+| `M-BEACON-FIELD` | a required field is missing. Not cosmetic: a missing `updated:` makes `M-BEACON-AGE` unevaluable, and unevaluable input is a FAIL (canon M-COVER) | add the field; if `updated:` is unknown, the beacon is not a beacon |
+| `M-BEACON-REL` | the beacon claims a COMPLETED seal but names a release that is not the live one (usually the predecessor, because the seal did not refresh it) | overwrite `step:` to name the live release; then ask why the seal ritual's step 4 was skipped |
+| `M-BEACON-AGE` | `updated:` predates the board's newest seal — stale by construction, whatever the text says | refresh the whole frame, not just the timestamp |
+
+Also true, and checked by eye rather than by that gate:
+
 - exactly the seven fields present, one `key:` per line; `stage`/`state` values
-  are in the vocabularies above
+  are in the vocabularies above (a value outside them renders as `?` in
+  `pcb_status.py`)
 - `updated` parses as ISO-8601 (`YYYY-MM-DDTHH:MM:SS`); `op_pid` is empty or an
   integer
 - runnable: `pcb_status.py --root <repo>` lists the board with a non-`?` stage
@@ -295,8 +331,12 @@ sits). The template seed is `skills/pcb-design/templates/01_docs/STATUS.md`.
   frame, not accumulating entries — the append-only record is `journal/`)
 - a beacon whose `measure:` is a claim with no gate output behind it is a defect
   in review, same rule as a journal entry
-- there is no enforcing policy_audit gate yet (an optional STATUS gate is a
-  candidate follow-up); today the beacon is coordinator-facing and reader-checked
+
+**A FAILING M-BEACON IS NOT A COSMETIC DEFECT.** The beacon is the
+coordinator's only between-gates eye, and a stale one does not go blank: it
+keeps reporting a superseded release as live, in a frame that reads
+`sealed / done`. Measured 2026-07-27, before the gate existed: every beacon in
+the fleet named the wrong release.
 
 ## Validate
 
@@ -320,7 +360,9 @@ sits). The template seed is `skills/pcb-design/templates/01_docs/STATUS.md`.
 This folder answers: **S5** (design math with margins in DETAIL_DESIGN.md),
 **S9** (spec tensions surfaced at commission — [H] BRIEF `Spec tensions`
 table filled + a spec-tension ADR per tension), **M5-partial** (CHANGELOG
-entry naming every release directory), plus the ADR obligations referenced
+entry naming every release directory), **M9 / M-BEACON** (`journal/` +
+`learnings/` per stage, and the live head `STATUS*.md` agreeing with the tree —
+`status_beacon_check.py`), plus the ADR obligations referenced
 throughout (protection ADR mandatory; split planes, trunk-instead-of-pour,
 and any policy waiver each need a written decision). A protection/topology
 ADR is not complete until it emits >= 1 assertion into
