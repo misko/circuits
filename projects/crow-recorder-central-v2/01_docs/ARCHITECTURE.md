@@ -105,39 +105,62 @@ v1.7 netlist rather than the source:
 
 So the level is a FIRMWARE constant by construction. It lives, with its full
 derivation, both models and the trim ladder, in **`05_firmware/cal_burst.c`** —
-`CAL_BURST_DUTY_NUM/DEN = **1/12**`, giving `20·log10(sin(π/12)) = −11.7401 dB`
-of 4 kHz fundamental and **99.0772 dB SPL** at the capsule for a typical unit,
-clearing the ceiling by **+2.2372 dB** (and 95.0772 dB / +6.2372 dB for a
-minimum-spec unit). `make test` re-derives all of it from the physics.
+`CAL_BURST_DUTY_NUM/DEN = **1/20**`:
 
-**`sin(πD)` is NOT a conservative bound at this duty — re-verified, and the
-earlier conclusion is not carried forward.** It *was* conservative at 1/6
-(every L corner returned −6.02…−6.68 dB against the law's −6.021). At 1/12 two
-mechanisms push the delivered attenuation the WRONG way:
+| model | attenuation | typical unit at MK1 | clears by |
+|---|---|---|---|
+| NOMINAL `20·log10(sin(π/20))` | −16.1134 dB | 94.7039 dB SPL | +6.6105 dB |
+| **WORST CASE** (gate RC + L-R) | **−11.9165 dB** | **98.9008 dB SPL** | **+2.4136 dB** |
 
-1. **L-R regime change.** The 20.8 µs pulse no longer lets the coil current
-   build, so the long freewheel tail dominates the waveform. Exact-exponential
-   integration of `i' = (v−iR)/L` with the SS14 freewheel gives −10.905 dB at
-   the L = 3 mH corner against the law's −11.740 — **non-conservative by
-   +0.835 dB**.
-2. **Gate-RC duty bias — larger, and previously unnoticed anywhere in this
-   design.** Turn-ON waits only for the gate to CLIMB to `Vgs(th)` (0.65–1.45 V,
-   20–44 % of the 3.3 V drive); turn-OFF waits for it to FALL from ~3.26 V all
-   the way DOWN to `Vgs(th)` (56–80 % of the way). The lags are asymmetric, so
-   the conduction window is **STRETCHED** by +1.11 µs (Vth 1.45) to +6.47 µs
-   (Vth 0.65). The stretch is an ABSOLUTE time, so its fractional cost grows as
-   the duty shrinks: 5 % of the pulse at 1/2, **31 % at 1/12**. DETAIL_DESIGN
-   documents this RC purely as an EMI slew-limiter; it also biases the duty
-   upward, which only matters once duty is used to control LEVEL.
+`make test` re-derives all of it from the physics, and its **fatal** assertion
+is the WORST-CASE form — so duties 1/2, 1/6 and 1/12 all fail it.
 
-**Combined worst case: −8.71 dB, not −11.74 dB. Slack +3.03 dB**, under which
-the typical unit **misses the ceiling by 0.79 dB** (the minimum-spec unit still
-clears by +3.21 dB). So the criterion is met NOMINALLY and not under worst
-case, and the open-loop uncertainty (~3 dB) is LARGER than the criterion
-(2.24 dB). **The level must be trimmed against a MEASUREMENT at bring-up** —
-or taken open-loop at `DEN = 14`, the first value that clears worst case
-(+0.11 dB; 16 → +0.93 dB, 20 → +2.41 dB). The trim floor moved 16 → 24 for
-exactly that reason: the old floor forbade the values that fix the worst case.
+**`sin(πD)` is NOT a conservative bound here.** It is re-verified from scratch
+at every retune rather than extrapolated, because the L-R term is **not
+monotonic in duty** — and extrapolating it is exactly the mistake the 1/6 → 1/12
+carry-forward made:
+
+1. **L-R regime change.** Exact-exponential integration of `i' = (v−iR)/L` with
+   the SS14 freewheel over L = 10 µH…3 mH, at the **commanded** duty: at 1/6
+   every corner conservative; at 1/12 the 3 mH corner ran **+0.835 dB
+   non-conservative**; at **1/20 every corner is conservative again** (worst
+   slack −0.087 dB). At the shipped duty this term is benign on its own — it
+   re-enters only through (2), which pushes the *effective* duty back into the
+   7–11 % region where the 3 mH corner misbehaves (+0.75 dB).
+2. **Gate-RC duty bias — now the DOMINANT term, and previously unnoticed.**
+   Turn-ON waits only for the gate to CLIMB to `Vgs(th)`; turn-OFF waits for it
+   to FALL from the 3.069 V gate peak all the way DOWN to `Vgs(th)`. Asymmetric
+   ⇒ the conduction window is **STRETCHED** by +0.77 µs (Vth 1.45) to
+   **+6.19 µs** (Vth 0.65). Being an ABSOLUTE time its fractional cost grows as
+   the duty shrinks — 5.2 % of the pulse at 1/2, 31.1 % at 1/12, **49.5 % at
+   1/20.** Nearly half the conduction window at the shipped duty is gate-RC
+   artefact, not commanded drive. DETAIL_DESIGN documents this RC purely as an
+   EMI slew-limiter; nobody had noticed it also biases the duty upward, which
+   only matters once duty is used to control LEVEL.
+
+**Combined worst case −11.9165 dB against the law's −16.1134 — slack
++4.197 dB.** The criterion is nevertheless met **under the worst-case model**
+(+2.4136 dB typical, +6.4136 dB minimum-spec).
+
+**Why 1/20 and not 1/14** (the least value that clears, +0.11 dB): the risk is
+asymmetric. Clipping destroys the timing reference outright; a low level only
+costs SNR, and the local path still sits ~77 dB above the mic's self-noise.
+With the open-loop uncertainty (+4.20 dB) still larger than the criterion,
+1/14's +0.11 dB is a rounding error against a model that has already moved 3 dB
+once.
+
+**What is open is the MODEL, not the margin** — the stretch has never been
+measured on hardware. The **TP11 bring-up measurement is NORMATIVE** and is
+written up in `01_docs/CHECKLIST.md`: scope `U1.122` (commanded pulse) against
+`TP11`/`BEEP_RETURN` (actual conduction window), subtract, record. It
+**licenses tightening the duty back toward 1/14–1/16 with evidence**, worth
+~2–4 dB of burst level and far-pod SNR. Until then 1/20 stands.
+
+Trim floor **36**, re-derived at 1/20 and bound by the gate reaching the
+AO3400A's 2.5 V Rdson spec point (fails at den ≈ 37.5). An earlier revision set
+it at 24 on a "the worst case saturates" argument that measurement
+**retracted**: over 1/20 → 1/40, nominal gains 5.99 dB and worst case 5.24 dB —
+they track within ~0.75 dB per doubling.
 
 Nothing about this touches copper, the BOM, or any release: `07_releases/`
 payloads are `fab/ source/ verification/ 3d/ pdf/ MANIFEST.txt ORDER_README.md`

@@ -250,3 +250,81 @@
   gate-RC stretch directly and collapses most of the 3 dB), or take DEN=14
   open-loop. Still owed: the operator-facing copy in the NEXT release's
   ORDER_README.
+
+## 2026-07-28 15:10 — iterate 3 (retune 1/12 -> 1/20; and my own unit bug, caught)
+- did: USER DECISION — set DEN=20 and make the TP11 bench measurement a
+  normative bring-up step. Instruction was explicit: re-run the exponential
+  integration AT 1/20 over the full 10uH-3mH range, do NOT extrapolate from
+  1/12, and re-cost the gate-RC bias at the new duty.
+- result: FIRST, A SELF-INFLICTED ERROR CAUGHT BEFORE IT SHIPPED. My initial
+  1/20 script imported TAU_ON/TAU_OFF (SECONDS) and fed them microseconds; it
+  printed "26,595,744 tau" and a 0.00 us stretch identical across all three
+  Vth corners. Sections 2/3/6 of that run were garbage and were discarded, not
+  reported. Re-run in consistent units, the numbers reproduce ladder.py's
+  independent earlier values at DEN=20 exactly (-11.917 dB worst) — two runs,
+  same answer, different code paths.
+  (a) L-R TERM IS NON-MONOTONIC IN DUTY. Commanded-duty sweep, full range:
+      1/6 conservative everywhere; 1/12 the 3mH corner +0.835 dB
+      NON-conservative; **1/20 CONSERVATIVE AGAIN at every L, worst slack
+      -0.087 dB**. So extrapolating from 1/12 would have been wrong in the
+      other direction — which is exactly why the instruction said not to.
+      This term is benign at the shipped duty on its own; it re-enters only
+      because the gate stretch moves the EFFECTIVE duty back into the 7-11%
+      region where the 3mH corner misbehaves (+0.75 dB).
+  (b) GATE-RC BIAS NOW DOMINATES OUTRIGHT. At 1/20 (12.50 us commanded, gate
+      peak 3.069 V): stretch +6.19/+3.19/+0.77 us at Vth 0.65/1.05/1.45,
+      worth +3.450/+1.954/+0.514 dB. As a fraction of the pulse: 5.2% at 1/2,
+      31.1% at 1/12, **49.5% at 1/20** — NEARLY HALF THE CONDUCTION WINDOW AT
+      THE SHIPPED DUTY IS GATE ARTEFACT, NOT COMMANDED DRIVE. That changes
+      what TP11 is FOR: it is no longer a nice-to-have trim aid, it is the
+      measurement of the single dominant term.
+  COMBINED WORST CASE -11.9165 dB vs the law's -16.1134; slack +4.197 dB.
+  MARGINS: nominal typical +6.6105 / min-spec +10.6105; **WORST CASE typical
+  +2.4136 / min-spec +6.4136 — the criterion is now MET UNDER WORST CASE**, so
+  the test's FATAL assertion was PROMOTED from the nominal margin to the
+  worst-case one. That is why 1/2, 1/6 AND 1/12 all now fail it.
+  FAR END STILL CLOSES at the extra 4.37 dB (quoted at NOMINAL, the
+  pessimistic end here since the worst-case drive is LOUDER): SNR 48.57 /
+  38.57 / 28.57 / 18.57 dB at 15/25/35/45 dB(1/3-oct) ambient, timing sigma
+  0.148 / 0.469 / 1.483 / 4.688 us against a 20.83 us sample. Even the noisy
+  case is 1.6 mm of travel and under a quarter of a sample. Local path
+  90.704 dB SPL, 76.7 dB above the mic self-noise.
+  TRIM FLOOR RE-DERIVED 24 -> 36, and my OWN earlier rationale RETRACTED: v1.9
+  claimed the worst case "saturates" beyond 1/24 (~1.3 dB per doubling vs 6 dB
+  nominal). Measured over 1/20->1/40, nominal gains 5.99 dB and worst case
+  5.24 dB — they track within ~0.75 dB per doubling. The real floor is the gate
+  reaching the AO3400A 2.5 V Rdson spec point, which fails at den ~ 37.5.
+- next: land it, write TP11 up as a normative bring-up step where a person
+  doing bring-up will actually look, and fix the CHANGELOG version-series wart.
+
+## 2026-07-28 15:45 — finish (1/20 landed; TP11 normative; version series flagged)
+- did: landed DEN=20 and DEN_MIN=36, promoted the fatal assertion to the
+  worst-case form, added den=12 as a third always-run known-bad, added
+  assertions pinning the gate-RC stretch itself (6.19 us, 49.5% of the pulse)
+  so the dominant term cannot drift unnoticed, and wrote the TP11 procedure
+  into 01_docs/CHECKLIST.md as a new "Bring-up" section.
+- result: `make test` PASS, 0 failures. RED-VERIFIED by recompilation at all
+  three superseded duties: DEN=2 -> exit 1 (worst-case typical margin
+  -10.2236), DEN=6 -> exit 1 (-5.3586), DEN=12 -> exit 1 (-0.7897). All three
+  also run inline every time.
+  One thing got BETTER, unprompted: timer quantization is now EXACT — 25000/20
+  = 1250 ticks, 0.0000 dB error, where 25000/12 was not an integer and cost
+  -0.0014 dB. Coil average current ~4-15 mA (deep DCM), shared Q2 ~25-90 mA,
+  pod capsule headroom to its 110 dB THD limit 15.30 dB typical / 19.30 dB
+  minimum-spec.
+  TP11 is NORMATIVE and states what it LICENSES: once the stretch is measured,
+  the Vgs(th) sweep collapses to one number, the +4.20 dB open-loop uncertainty
+  collapses with it, and the duty may be tightened back toward 1/14-1/16 WITH
+  EVIDENCE (~2-4 dB of burst level and far-pod SNR recovered). Until then 1/20
+  stands and the duty must NOT be tightened on the model alone.
+  CHANGELOG version-series wart FLAGGED AND MADE UNMISSABLE, not silently
+  fixed: a banner at the top states that v1.8/v1.9/v1.10 are FIRMWARE+DOCS ONLY
+  and that no 07_releases/ directory exists or will exist for them, with a
+  table separating the board series (v0.1..v1.7) from the firmware+docs series.
+  A separate `fw-vN.N` series is RECOMMENDED in that banner and deliberately
+  NOT applied — renumbering rewrites committed history that other records
+  already cite by number, so it is the owner's call.
+  NO copper, BOM, netlist or release moved. 04_kicad/ and 07_releases/ not
+  written on either board; central v1.7 and pod v1.3 stay sealed and live.
+- next: the TP11 measurement itself, at first power. Nothing else is owed on
+  CAL-1.

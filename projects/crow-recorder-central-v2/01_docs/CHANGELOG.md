@@ -3,7 +3,107 @@
 One entry per REVISION (a design state, git-tagged). Reverse-chronological.
 `Released:` is `no`, or the name of the `07_releases/` directory that shipped it.
 
-## v1.9 — 2026-07-28 — FIRMWARE + DOCS ONLY (retune of v1.8)
+> ## ⚠ READ THIS BEFORE LOOKING FOR A RELEASE DIRECTORY
+>
+> **The newest BOARD release is `v1.7`. `v1.8`, `v1.9` and `v1.10` are NOT
+> board releases and no `07_releases/` directory exists for them — not now,
+> and not later.**
+>
+> This one version series currently means two different things, which is a
+> known wart:
+>
+> | entries | what changed | `07_releases/` directory? |
+> |---|---|---|
+> | `v0.1` … **`v1.7`** | copper / BOM / netlist / sourcing — real board states | **yes** — `v1.7` is the live, sealed, orderable one |
+> | **`v1.8` … `v1.10`** | **FIRMWARE + DOCS ONLY** (`05_firmware/`, `01_docs/`) | **NO, and never will be** — release payloads are `fab/ source/ verification/ 3d/ pdf/ MANIFEST.txt ORDER_README.md` and carry no firmware |
+>
+> So: **the board you would order today is `v1.7`**, unchanged since
+> 2026-07-27. The `v1.8`–`v1.10` entries below change only the calibration-burst
+> drive level (a firmware constant) and the documents around it. They cannot be
+> "released" because there is nothing in a release payload for them to change.
+>
+> **Recommendation, NOT applied here** (flagged for the owner rather than acted
+> on unilaterally): give firmware its own series — `fw-v0.1`, `fw-v0.2`, … — in
+> a separate `## Firmware` section or a `05_firmware/CHANGELOG.md`, so board
+> and firmware version numbers can never be confused again and `M-BEACON-REL`
+> keeps grading a single unambiguous board series. Renumbering the three
+> existing entries is a one-time edit; it is not done here because it rewrites
+> committed history that other records already cite by number.
+
+## v1.10 — 2026-07-28 — FIRMWARE + DOCS ONLY (retune of v1.9). NOT A BOARD RELEASE
+
+- **No copper, no BOM, no netlist, no release.** v1.7 remains the live, sealed,
+  orderable board release; the pod's v1.3 likewise. See the banner at the top
+  of this file — no `07_releases/` directory exists or will exist for v1.10.
+- **`CAL_BURST_DUTY_DEN` 12 → 20.** USER DECISION, on the residual v1.9
+  escalated. Rationale, recorded because it is the load-bearing part: **the
+  risk is asymmetric.** Clipping DESTROYS the timing reference outright; a low
+  level only costs SNR, and the local path still sits ~77 dB above the mic's
+  own self-noise. With the open-loop uncertainty still LARGER than the
+  criterion, `DEN = 14`'s +0.11 dB is a rounding error against a model that had
+  just moved 3 dB. 20 buys **+2.41 dB of real worst-case margin** while the
+  uncertainty stays open.
+- **THE CRITERION IS NOW MET UNDER THE WORST-CASE MODEL, not merely
+  nominally** — so the self-test's FATAL assertion was PROMOTED from the
+  nominal margin to the worst-case one. That is a strictly stronger gate, and
+  it is why 1/2, **1/6 and 1/12** now all fail it.
+
+  | model | attenuation | typical unit | minimum-spec |
+  |---|---|---|---|
+  | NOMINAL `20·log10(sin(π/20))` | −16.1134 dB | +6.6105 dB | +10.6105 dB |
+  | **WORST CASE** | **−11.9165 dB** | **+2.4136 dB** | +6.4136 dB |
+
+- **The bound was re-verified AT 1/20 from scratch, not extrapolated** — and
+  the result differs from 1/12 in a way extrapolation would have got wrong:
+  - **L-R term is NON-MONOTONIC in duty.** Commanded-duty sweep over
+    L = 10 µH…3 mH: conservative at 1/6, **+0.835 dB non-conservative at
+    1/12**, and **conservative again at 1/20** (worst slack −0.087 dB). At the
+    shipped duty this term is benign on its own; it re-enters only because the
+    gate stretch moves the *effective* duty back into the 7–11 % region where
+    the 3 mH corner misbehaves (+0.75 dB).
+  - **Gate-RC bias now DOMINATES the entire error budget.** Stretch +6.19 µs at
+    `Vgs(th)` = 0.65 V = **49.5 % of the 12.50 µs commanded pulse** (5.2 % at
+    1/2, 31.1 % at 1/12). **Nearly half the conduction window at the shipped
+    duty is gate-RC artefact, not commanded drive.** Slack +3.450 dB on its own.
+  - Combined slack **+4.197 dB**.
+- **Far end re-checked at the extra 4.37 dB and it still closes**, at the
+  nominal attenuation (the pessimistic end here — the worst-case drive is
+  *louder*, so far-end SNR only improves): far-pod matched-filter SNR
+  48.57 / **38.57** / 28.57 / **18.57** dB at 15/25/35/45 dB(⅓-oct) ambient,
+  timing σ 0.148 / 0.469 / 1.483 / **4.688** µs against a 20.83 µs sample. Even
+  the noisy case is 1.6 mm of sound travel and under a quarter of one sample.
+  Local path 90.704 dB SPL, 76.7 dB above the mic's self-noise.
+- **TP11 BRING-UP MEASUREMENT IS NOW NORMATIVE**, in `01_docs/CHECKLIST.md`
+  (new "Bring-up" section) and repeated in `05_firmware/README.md` and the
+  `cal_burst.c` header — a person doing bring-up does not read `.c` files.
+  Scope `U1.122` (commanded pulse) against `TP11`/`BEEP_RETURN` (actual
+  conduction window), subtract, record the stretch with the board serial.
+  **What it LICENSES**, stated explicitly: once the stretch is known for real
+  parts the `Vgs(th)` sweep collapses to a single number, the **+4.20 dB
+  open-loop uncertainty collapses with it, and the duty may be tightened back
+  toward 1/14–1/16 WITH EVIDENCE** (~2–4 dB of burst level and far-pod SNR
+  recovered). Until then 1/20 stands; do not tighten on the model alone.
+- **Trim floor 24 → 36, and the old rationale RETRACTED.** v1.9 justified a
+  floor of 24 by claiming the worst case "saturates" beyond it (~1.3 dB per
+  doubling against 6 dB nominal). **Measurement refutes that**: over 1/20 → 1/40
+  nominal gains 5.99 dB and worst case gains 5.24 dB — they track within
+  ~0.75 dB per doubling. The real floor is the one hard physical limit, the
+  gate reaching the AO3400A's 2.5 V Rdson spec point, which fails at den ≈ 37.5;
+  36 gives 2.547 V.
+- **Test re-RED-verified against the promoted criterion:** rebuilt at
+  `DEN` = 2, 6 and 12 it **exits 1 every time**, failing on
+  `TYPICAL-unit margin, WORST CASE` (−10.2236 / −5.3586 / −0.7897 dB). All
+  three are also always-run INLINE known-bad fixtures. New assertions pin the
+  gate-RC stretch itself (6.19 µs, 49.5 % of the pulse) so the dominant term
+  cannot drift unnoticed.
+- One thing that got *better*: timer quantization is now **exact** —
+  25000 ÷ 20 = 1250 ticks, 0.0000 dB error (it was −0.0014 dB at 1/12, where
+  25000/12 is not an integer). Coil average current ~4–15 mA (deep DCM), shared
+  Q2 ~25–90 mA, pod capsule headroom to its 110 dB THD limit 15.30 dB
+  (typical) / 19.30 dB (minimum-spec).
+- Released: no — **and never will be; this is a firmware+docs revision.**
+
+## v1.9 — 2026-07-28 — FIRMWARE + DOCS ONLY (retune of v1.8). SUPERSEDED BY v1.10 SAME DAY (duty 1/12 → 1/20 once the gate-RC bias was costed; kept for the record). NOT A BOARD RELEASE
 
 - **No copper, no BOM, no netlist, no release.** Same shape as v1.8. v1.7
   remains the live, sealed, orderable release; the pod's v1.3 likewise.

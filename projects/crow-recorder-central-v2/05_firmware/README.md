@@ -23,12 +23,12 @@ make test MCU=...  # the MCU is a variable, never a constant
 `make test` needs only a host C compiler and libm — no XMOS toolchain, no
 silicon. It re-derives every constant in `cal_burst.c` from the physics and
 fails if any of them drifts. Measured 2026-07-28: **PASS, 0 failures**; and
-RED-verified against the **current** acceptance criterion — rebuilt with
-`CAL_BURST_DUTY_DEN` set to the pre-fix `2` **and** to the superseded `6`, it
-reports **6 failures each and exits 1** both times, with
-`TYPICAL-unit margin, NOMINAL` going negative (−9.50 dB and −3.48 dB). Both
-old values are also checked INLINE as always-run known-bad fixtures, so the
-gate proves it can fail on every single run, not only when someone recompiles.
+RED-verified against the **current** acceptance criterion — rebuilt at each of
+the three superseded duties, it **exits 1 every time**, failing on the fatal
+`TYPICAL-unit margin, WORST CASE` assertion: `DEN=2` → −10.2236 dB, `DEN=6` →
+−5.3586 dB, `DEN=12` → −0.7897 dB. All three are *also* checked INLINE as
+always-run known-bad fixtures, so the gate proves it can fail on every single
+run, not only when someone recompiles.
 
 There is no flash step here yet. When the application is written: XU316 boots
 from `U5` W25Q16JVSSIQ over QSPI; the programming/debug connector and its
@@ -51,21 +51,34 @@ since the unit that clips is a loud one.
 | burst at 1/2 duty, **TYPICAL-curve** LS1 | **110.8173** |
 | pod OPA1678 worst-case linear input ceiling | **101.3144** |
 | **shortfall that must be given back HERE** | **9.5028** |
-| shipped level, duty **1/12** (−11.7401 dB nominal) | **99.0772** — clears by **+2.2372 dB** |
-| same duty, minimum-spec LS1 | **95.0772** — clears by +6.2372 dB |
+| shipped level, duty **1/20** (−16.1134 dB nominal) | **94.7039** — clears by +6.6105 dB |
+| same, **under the WORST-CASE model** (−11.9165 dB) | **98.9008** — clears by **+2.4136 dB** |
+| minimum-spec LS1, worst case | 94.9008 — clears by +6.4136 dB |
 
 Derivation, evidence and the model are in the header comment of
 `cal_burst.c`; the defect is CAL-1 in
 `projects/crow-mic-pod-v2/08_reviews/DISPOSITIONS.md`.
 
-**`sin(πD)` is NOT a conservative bound at this duty.** It was at 1/6; it is
-not at 1/12, and the old conclusion is not carried forward. Two measured
-mechanisms push the delivered attenuation the wrong way — an L-R regime change
-at the 3 mH corner (+0.835 dB) and, dominantly, a **gate-RC duty bias** that
-stretches the conduction window by +1.1…+6.5 µs (turn-off must fall from
-3.26 V *down* to Vgs(th) while turn-on only climbs *up* to it). Combined worst
-case: **−8.71 dB, not −11.74 dB — slack +3.03 dB.** Under that model the
-typical unit **misses by 0.79 dB**. See "Still open" below.
+**`sin(πD)` is NOT a conservative bound here**, and it is re-verified from
+scratch at every retune rather than extrapolated — the L-R term is *not
+monotonic in duty* (conservative at 1/6, non-conservative at 1/12,
+conservative again at 1/20), and extrapolating it is exactly the mistake the
+1/6 → 1/12 carry-forward made.
+
+At 1/20 the dominant term is the **gate-RC duty bias**: turn-off must fall from
+the 3.069 V gate peak *down* to `Vgs(th)` while turn-on only climbs *up* to it,
+so the conduction window is stretched by **+6.19 µs = 49 % of the 12.50 µs
+commanded pulse**. Combined worst case **−11.9165 dB, not −16.1134 dB — slack
++4.197 dB**. The criterion is nevertheless met **under the worst-case model**
+(+2.4136 dB), which is why the self-test's fatal assertion is the worst-case
+form and why duties 1/2, 1/6 **and 1/12** all fail it.
+
+**Why 1/20 and not 1/14** (the least value that clears): the risk is
+asymmetric. Clipping destroys the timing reference outright; a low level only
+costs SNR, and the local path still sits ~77 dB above the mic's self-noise.
+With the open-loop uncertainty (+4.20 dB) still larger than the criterion,
+1/14's +0.11 dB is a rounding error against a model that has already moved
+3 dB once.
 
 Why it can only be fixed here: measured from the SEALED v1.7 netlist,
 `PLUS5V_BEEP` is the 5 V rail through a ferrite bead with **no series
@@ -74,22 +87,31 @@ ports**, and `BEEP_GATE` has exactly **two nodes** — `U1.122` and `R_bg1.1`.
 There is no analog level control anywhere on this board. The GPIO waveform is
 the only lever, so the level is a FIRMWARE constant by construction.
 
-**Still open, and the user's call.** Duty 1/12 meets the criterion
-**nominally** (+2.24 dB) and **misses it under the worst-case model**
-(−0.79 dB). The open-loop uncertainty on this hardware is **~3 dB — larger
-than the 2.24 dB criterion itself**, so the level *cannot* be set open-loop to
-the accuracy the criterion demands. Two ways forward, both cheap:
+## Bring-up: the TP11 measurement is NORMATIVE
 
-- **Trim against a measurement** at bring-up (the intended path). Raise
-  `CAL_BURST_DUTY_DEN` until the measured capsule level is ≤ 101.3 dB SPL.
-  Scoping `BEEP_RETURN` at `TP11` reads the gate-RC stretch directly and
-  collapses most of the 3 dB on its own.
-- **Or take the worst case open-loop:** `DEN = 14` is the first value that
-  clears the typical unit under the worst-case model (+0.11 dB); `16` gives
-  +0.93 dB, `20` gives +2.41 dB. One-line change, ladder in `cal_burst.c`.
+The margin is met under the worst-case model, so nothing is *open* about the
+level. What is open is the **model**: nearly half the conduction window at this
+duty is gate-RC artefact and **it has never been measured on hardware.**
 
-The trim floor moved `16 → 24` for exactly this reason — the old floor would
-have forbidden 1/14…1/20, the values that fix the worst case.
+**Do the TP11 stretch measurement once per board build.** Full procedure —
+scope CH1 on `U1.122` (commanded pulse) against CH2 on `TP11`/`BEEP_RETURN`
+(actual conduction window), subtract, record — is written up as a normative
+bring-up step in **`01_docs/CHECKLIST.md`**, and repeated in the header of
+`cal_burst.c`.
+
+**What it licenses:** once the stretch is known for real parts, the
+`Vgs(th)` 0.65–1.45 V sweep collapses to a single number, the **+4.20 dB
+open-loop uncertainty collapses with it, and the duty may be tightened back
+toward 1/14–1/16 WITH EVIDENCE** — recovering ~2–4 dB of burst level and
+far-pod SNR. Until then **1/20 stands**; the extra margin is the price of not
+knowing. **Do not tighten the duty on the strength of the model alone.**
+
+The trim floor is `36`, re-derived at 1/20 and bound by the one hard physical
+limit: the gate must still reach the AO3400A's 2.5 V Rdson spec point inside
+the commanded pulse, which fails at den ≈ 37.5. (An earlier revision set it at
+24 on a "the worst case saturates" argument that measurement **retracted** —
+over 1/20 → 1/40 nominal gains 5.99 dB and worst case gains 5.24 dB, tracking
+within ~0.75 dB per doubling.)
 
 ## Hardware-default behaviour (unprogrammed board)
 

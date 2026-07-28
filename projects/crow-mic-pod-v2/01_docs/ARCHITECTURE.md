@@ -106,39 +106,52 @@ case is now a unit on the datasheet's TYPICAL curve:
 **It is fixed at CENTRAL, not here.** This pod's VMID divider was measured
 unable to clear the guaranteed spec by ANY value (best +0.86 dB worst-case, and
 its optimum sits at VMID ≈ 2.07 V — the OPPOSITE direction from the audit's
-proposed 33k/18k). Central instead reduces the burst drive by **−11.7401 dB**
-(duty **1/12**), putting **99.0772 dB** on this capsule for a typical unit —
-clearing by **+2.2372 dB** — and 95.0772 dB for a minimum-spec one.
+proposed 33k/18k). Central instead reduces the burst drive at duty **1/20**:
+
+| model | attenuation | typical unit at MK1 | clears the ceiling by |
+|---|---|---|---|
+| NOMINAL `20·log10(sin(π/20))` | −16.1134 dB | 94.7039 dB SPL | +6.6105 dB |
+| **WORST CASE** (gate RC + L-R) | **−11.9165 dB** | **98.9008 dB SPL** | **+2.4136 dB** |
+
 **No copper, BOM or release on this board changes; v1.3 stays live and is NOT
 superseded.**
 
 The fix lives in `projects/crow-recorder-central-v2/05_firmware/cal_burst.c`
-(`CAL_BURST_DUTY_NUM/DEN = 1/12`), because central has no analog level control
+(`CAL_BURST_DUTY_NUM/DEN = 1/20`), because central has no analog level control
 at all — its `PLUS5V_BEEP` is the 5 V rail through a ferrite bead with no
 series resistor, one AO3400A switches all eight ports, and `BEEP_GATE` is a
 2-node net between the XU316 GPIO and a 1 k series resistor. The GPIO waveform
 is the only lever. Central's `01_docs/ARCHITECTURE.md` and `DETAIL_DESIGN.md`
 carry the same rule and the full derivation.
 
-Three things this does NOT do, stated so they are not assumed:
-- **The level is not proven under worst case.** `sin(πD)` is a conservative
-  bound at duty 1/6 but NOT at 1/12: an L-R regime change (+0.835 dB at the
-  3 mH corner) and, dominantly, a **gate-RC duty bias** at central that
-  stretches the conduction window by +1.1…+6.5 µs together give a combined
-  worst case of **−8.71 dB, not −11.74 dB**. Under that model the typical unit
-  **misses this ceiling by 0.79 dB** (the minimum-spec unit still clears by
-  +3.21 dB). The open-loop uncertainty (~3 dB) exceeds the criterion (2.24 dB),
-  so **the level must be trimmed against a MEASUREMENT at bring-up** — this
-  pod's own MK1, with the recorder as the meter, is the intended instrument.
+**The margin now holds under the worst-case model**, not merely nominally —
+central's self-test asserts the worst-case form as its fatal check. But
+`sin(πD)` is NOT a conservative bound there, and the reason matters to this
+board because the burst it receives is what is affected: an L-R term that is
+**non-monotonic in duty** (conservative at 1/6, non-conservative at 1/12,
+conservative again at 1/20) plus a **gate-RC duty bias** at central that
+stretches the conduction window by up to **+6.19 µs — 49.5 % of the commanded
+pulse** — together leave **+4.197 dB** of slack against the law. Central took
+duty 1/20 rather than the least-clearing 1/14 precisely because that
+uncertainty is larger than the criterion, and **the risk is asymmetric: a burst
+that clips destroys this pod's channel, while a quiet one only costs SNR.**
+
+Two things this does NOT do, stated so they are not assumed:
 - **It does not resolve PSR-1.** The drive change is on the galvanically
   SEPARATE beep domain. PSR-1's dominant path is the 16 Hz R1·C1 mic-bias
   corner (−11.4 dB at 60 Hz), which nothing here touches.
 - **It does not touch POE-1, DC-1 or MECH-1**, which remain open.
 
+**This pod is an INSTRUMENT in central's bring-up procedure.** MK1 with the
+recorder as the meter is the acoustic cross-check on the burst level
+(acceptance: measured capsule level ≤ 101.3 dB SPL); central's TP11 scope
+measurement is the electrical half. See
+`projects/crow-recorder-central-v2/01_docs/CHECKLIST.md`, "Bring-up".
+
 Benign side effects at this pod: the beep-loop burst current falls from
-~150 mA to **~10–25 mA** (deep DCM; 5V_BEEP cable IR drop 0.19 V → ~0.02 V),
+~150 mA to **~4–15 mA** (deep DCM; 5V_BEEP cable IR drop 0.19 V → ~0.01 V),
 and MK1's headroom to its own 110 dB THD<3 % limit improves from 3.18 dB to
-**10.92 dB** (typical unit) / 14.92 dB (minimum-spec).
+**15.30 dB** (typical unit) / 19.30 dB (minimum-spec).
 
 ## Power / budget (E-TOPO: no converter — externally powered)
 

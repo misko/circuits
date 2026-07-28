@@ -133,3 +133,33 @@
 - next: this board is unchanged and still orderable. The CAL-1 residual is a
   bring-up MEASUREMENT task and MK1 with the recorder as the meter is the
   intended instrument — nothing on this board changes either way.
+
+## 2026-07-28 15:45 — iterate (central retuned to 1/20; this pod is now an INSTRUMENT)
+- did: recorded central's second same-day retune, 1/12 -> 1/20. Read-only over
+  this board's copper again: 07_releases/ and 04_kicad/ untouched, 03_src/ and
+  03_tscircuit/ untouched.
+- result: USER DECISION, on the worst-case residual this board's records
+  carried. Central now attenuates -16.1134 dB nominal / **-11.9165 dB WORST
+  CASE** -> **98.9008 dB** at this capsule for a typical-curve unit under the
+  worst case, CLEARING BY +2.4136 dB (94.9008 dB / +6.4136 dB minimum-spec).
+  The margin now holds under the WORST-CASE model, not merely nominally.
+  Rationale recorded because it is the load-bearing part: THE RISK IS
+  ASYMMETRIC — a burst that clips destroys THIS pod's channel outright, while a
+  quiet one only costs SNR, and the local path still sits 76.7 dB above MK1's
+  own self-noise. Central took 1/20 over the least-clearing 1/14 because the
+  open-loop uncertainty (+4.20 dB) still exceeds the criterion.
+  What remains open is the MODEL, not the margin: at 1/20 the gate-RC bias at
+  central stretches the conduction window +6.19 us = **49.5% of the commanded
+  pulse**, and it has never been measured. NEW, and it involves this board:
+  **MK1 with the recorder as the meter is the ACOUSTIC CROSS-CHECK** in
+  central's normative bring-up step (acceptance: measured capsule level
+  <= 101.3 dB SPL); central's TP11 scope measurement is the electrical half.
+  See projects/crow-recorder-central-v2/01_docs/CHECKLIST.md, "Bring-up".
+  Benign here: beep-loop burst current ~150 mA -> ~4-15 mA (deep DCM; cable IR
+  0.19 V -> ~0.01 V); MK1 headroom to its own 110 dB THD<3% limit 3.18 ->
+  15.30 dB (typical) / 19.30 dB (minimum-spec).
+  THIS BOARD: no copper, no BOM, no netlist, no release change. v1.3 carries no
+  SUPERSEDED.md and remains live. Divider still 22k/22k. POE-1, PSR-1, DC-1,
+  MECH-1 all still explicitly OPEN; the scope note now names all three retunes.
+- next: nothing owed on this board. Its role in CAL-1 is now as the acoustic
+  instrument for central's bring-up measurement.
