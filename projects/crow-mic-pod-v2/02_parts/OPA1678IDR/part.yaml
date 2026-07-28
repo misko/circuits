@@ -30,17 +30,44 @@ limits:
   # "(V-)+0.5 to (V+)-2". On this board V-=GND, V+=5V_AUDIO ⇒ window 0.500..3.000V.
   # VMID = 5.000 * 22k/(22k+22k) = 2.5000V (R4=R5=22k), so the POSITIVE headroom
   # is only 0.500Vpk while the negative side has 2.000V — asymmetric by 4x.
-  # Input CM binds 3.1x BEFORE the output clips (1.53Vpk), so this, not the
-  # rail, is the ceiling. Onset ~108.9 dB SPL typ / 105.9 at +3dB mic
-  # sensitivity / 103.4 worst-case (+3dB at V+=4.75V) — BELOW the AOM-5024's own
-  # 110 dB rating, i.e. the mic can deliver more than U1 can linearly accept.
+  # Input CM binds BEFORE the output clips, so this, not the rail, is the
+  # ceiling. Onset at R4=R5=22k: **106.8 dB SPL nominal / 103.8 at +3dB mic
+  # sensitivity / 101.3 worst-case (+3dB at V+=4.75V)** — BELOW the AOM-5024's
+  # own 110 dB rating, i.e. the mic can deliver more than U1 can linearly
+  # accept. CORRECTED 2026-07-28 (was 108.9/105.9/103.4, optimistic by
+  # 2.14 dB): the AOM-5024's -24 dB re 1V/Pa is spec'd at RL=2.2k against its
+  # own 2.2k source impedance, and this board loads it with R2=3.9k, so the
+  # TERMINAL sensitivity is 63.10 * [3.9/6.1]/[2.2/4.4] = 80.68 mV/Pa, not
+  # 63.10. See 08_reviews/2026-07-28_v1.3_fix-verification_cal1.md.
   # ACCEPTED for v1.x, not a defect to respin: SBOS855E sec.7.3.1 gives the part
   # internal phase-reversal protection, so it clips at the rail rather than
   # inverting — graceful, nothing damaged (abs-max is vin_range above, far away).
   # A crow call at the pod is ~70-90 dB SPL, ~15-20 dB below the ceiling.
+  # The ON-BOARD CALIBRATION BURST IS NOT (finding CAL-1): LS1 at 45.618mm
+  # delivers 106.82 dB SPL at MK1 — at or above this ceiling. OPEN P1.
   # If a field recording ever shows clipped POSITIVE peaks: re-centre VMID with
-  # R4=33k/R5=18k -> 1.76V (output still fits). Measured 2026-07-25.
+  # R4=33k/R5=18k -> 1.7647V. **"output still fits" was ASSERTED, not measured,
+  # and is model-dependent — see vo_range below.** At the datasheet's guaranteed
+  # output limit that pair reaches only 105.2 dB worst-case (still 1.65 dB under
+  # the burst) because the OUTPUT, not the input CM window, then binds; at a
+  # light-load 0.2V headroom it reaches 109.7 dB (+2.9 dB). Measured 2026-07-25,
+  # re-derived and corrected 2026-07-28.
   vcm_range: "(V-)+0.5 to (V+)-2"
+  # SBOS855E Electrical Characteristics, OUTPUT / VO row — a MIN/MAX GUARANTEE,
+  # and the table header's conditions are RL = 2 kOhm at VS = +/-15V, i.e. about
+  # 7.1 mA of output current. The front-page feature line says the same
+  # ("rail-to-rail output swing to within 800 mV with a 2-kOhm load").
+  # THIS BOARD IS NOWHERE NEAR THAT LOAD: OUTA sees (R6+R7) || R8 || (R10+~10k
+  # central) = 30k || 10k || 10.1k = 4.30 kOhm, so at the clip point it sources
+  # ~0.22 mA — 3.2% of the spec's test current — and Fig 6-22 (Output Voltage vs
+  # Output Current) is monotonic in the helpful direction. The real headroom is
+  # far below 800 mV; the datasheet does not promise it, and NO citation to a
+  # load condition existed anywhere in this tree before 2026-07-28 (three places
+  # used three different values: 0.8V here, 0.2V implied by this file's old
+  # "output clips at 1.53Vpk", 0.1V implied by the 2026-07-27 audit's fix
+  # arithmetic — a spread worth 4.5 dB of ceiling). Quote the guaranteed number;
+  # state the model explicitly whenever a headroom claim depends on it.
+  vo_range: "(V-)+0.8 to (V+)-0.8"   # GUARANTEED at RL=2k, VS=+/-15V; typical at this board's 4.3k load is much closer to the rails but UNSPECIFIED
   iin_max: 10mA                # input current, all pins except power-supply
   ta_op: "-40C to 85C"         # OPA1678I grade (I-suffix)
   tj_max: 150C
