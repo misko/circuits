@@ -73,6 +73,16 @@ Usage:
                                [--allow-identical RELPATH ]...
     release_freshness_check.py <release_dir> --docs-only-supersede PRIOR_DIR
     release_freshness_check.py <release_dir> --legible-bom-supersede PRIOR_DIR
+    release_freshness_check.py <release_dir> --sourcing-supersede PRIOR_DIR
+
+SOURCING SUPERSEDE MODE (--sourcing-supersede <prior-release-dir>):
+the board is untouched and JLC will not SUPPLY one line of the prior BOM, so a
+part is SUBSTITUTED — `MPN` + `LCSC` move on the affected rows and nothing else
+does. Promoted under canon M8 (two-strike): usb-hub-3s-v3 v1.11 sealed this
+exact shape gated by SEVEN individually-measured file waivers because no mode
+permitted a changed LCSC, and crow-recorder-central-v2 v1.7 needs the identical
+thing. A waiver a human writes is weaker evidence than an assertion the gate
+makes; this mode makes the assertion. See `check_sourcing_delta`.
 
 LEGIBLE-BOM SUPERSEDE MODE (--legible-bom-supersede <prior-release-dir>):
 canon F-LEGIBLE (ADR-0006) — the board is untouched and `fab/bom.csv` is
@@ -416,6 +426,331 @@ def check_legible_bom_delta(release_dir, prior_dir):
     return fails, notes
 
 
+# ------------------------------------------------ sourcing supersede (M8)
+# Lines a PLOT writes about ITSELF: the moment of plotting, never the board.
+# Stripping exactly these — and nothing else — is what lets a RE-PLOT prove the
+# board still generates the shipped payload, which a copy-check cannot. The list
+# is the one measured in usb-hub-3s-v3 v1.11's verification/replot_identity.txt,
+# including the Excellon header line that a first pass missed (it read 11/15
+# until the drill date was covered; the strip list is part of the method).
+_PLOT_TS_RE = re.compile(
+    rb"^(?:%TF\.CreationDate,[^\n]*"
+    rb"|G04 Created by[^\n]*"
+    rb"|;\s*DRILL file[^\n]*"
+    rb"|;\s*#@!\s*TF\.CreationDate,[^\n]*)$", re.M)
+
+#: fab/ members compared TIMESTAMP-STRIPPED rather than byte-for-byte.
+_REPLOTTABLE = (".zip", ".drl", ".gbr", ".gbrjob")
+
+
+def _strip_plot_timestamps(data: bytes) -> bytes:
+    return _PLOT_TS_RE.sub(b"", data)
+
+
+def _payload_identical(cur: Path, old: Path):
+    """(bool, detail) — are these two fab payload files the same PLOT, ignoring
+    only the timestamps the plotter stamps into its own output? A zip is opened
+    and compared MEMBER BY MEMBER: two archives of identical members can differ
+    in bytes (member order, mtimes, compression), and that difference says
+    nothing about the copper."""
+    import zipfile
+    if cur.read_bytes() == old.read_bytes():
+        # the carried-forward case: nothing to explain, and no need to parse a
+        # payload this gate is not the validator of (F-PAYLOAD opens the zip).
+        return True, "byte-identical"
+    if cur.suffix.lower() == ".zip":
+        try:
+            with zipfile.ZipFile(cur) as zc, zipfile.ZipFile(old) as zo:
+                nc = sorted(i.filename for i in zc.infolist() if not
+                            i.is_dir())
+                no = sorted(i.filename for i in zo.infolist() if not
+                            i.is_dir())
+                if nc != no:
+                    return False, (f"zip member list differs: "
+                                   f"+{sorted(set(nc) - set(no))} "
+                                   f"-{sorted(set(no) - set(nc))}")
+                diff = [n for n in nc
+                        if _strip_plot_timestamps(zc.read(n))
+                        != _strip_plot_timestamps(zo.read(n))]
+                if diff:
+                    return False, (f"{len(diff)} of {len(nc)} zip member(s) "
+                                   f"differ after the timestamp strip: "
+                                   f"{', '.join(diff[:6])}")
+                return True, f"{len(nc)}/{len(nc)} zip members"
+        except zipfile.BadZipFile as e:
+            return False, f"unreadable zip ({e})"
+    same = (_strip_plot_timestamps(cur.read_bytes())
+            == _strip_plot_timestamps(old.read_bytes()))
+    return same, "timestamp-stripped" if same else "differs beyond timestamps"
+
+
+def check_sourcing_delta(release_dir, prior_dir):
+    """SOURCING mode's EXTRA assertion: the one permitted fab/ change is
+    `fab/bom.csv` moving `MPN` + `LCSC` on the SUBSTITUTED rows, and nothing
+    else about the payload moving at all.
+
+    WHY THIS MODE EXISTS (canon M8, the two-strike promotion). JLC refusing to
+    SUPPLY a line is not a design defect and not a paperwork defect: v1.10 of
+    usb-hub-3s-v3 was uploaded and line 8 came back "10 shortfall" (C25744, the
+    only basic-library 10k 0402, stockCount 0). The fix substitutes an
+    electrically identical part at SOURCE and changes NO copper. None of the
+    four earlier modes covers it — docs-only requires fab/ byte-identical,
+    cpl-only permits only coordinates, bom-only only ROW REMOVAL, and
+    legible-bom explicitly FAILs a changed LCSC because when it was written a
+    changed LCSC could only be the C82317 -> C131025 accident. So v1.11 shipped
+    gated by SEVEN hand-written file waivers, each carrying its own measurement
+    — weaker evidence than the release it superseded, because a waiver is a
+    human's claim and this is all machine-checkable. crow-recorder-central-v2
+    v1.7 is the second board needing it, which under M8 makes promotion
+    MANDATORY rather than optional.
+
+    WHAT IS ASSERTED, none of it waivable:
+
+      * the `.kicad_pcb` is BYTE-IDENTICAL, and the md5 is PRINTED (on a board
+        whose v1.6-v1.8 shipped 44287.91 mm2 of MISSING COPPER with every gate
+        green, "the copper did not move" is the claim that most needs a number);
+      * `fab/cpl.csv` is BYTE-IDENTICAL — a substitution to a different package
+        would move the placement datum, so an unchanged CPL is what makes
+        "drop-in" mean something;
+      * every gerber and drill is identical after stripping ONLY the plot's own
+        timestamps — which ACCEPTS a re-plot from this release's own board, the
+        stronger evidence, instead of demanding a byte-copy;
+      * `fab/bom.csv` keeps its ROW COUNT and its designator groups IN THE SAME
+        ORDER, and on every row the ONLY cells permitted to move are `MPN` and
+        `LCSC`, together, on the substituted rows. A `Comment` or `Footprint`
+        change is a different board. An `MPN` moving where the `LCSC` did not is
+        a LEGIBILITY edit and belongs in `--legible-bom-supersede`;
+      * no row is left with a BLANK `MPN` or a blank/malformed `LCSC`, and the
+        new BOM PASSES `bom_legibility_check` (ONE grader, canon M1 — this file
+        does not get its own opinion about what "legible" means);
+      * the SOURCE moved too (canon M3): a `fab/bom.csv` that changed without
+        its `.tsx` changing is a HAND-EDITED BOM — the defect crow-mic-pod-v2
+        paid for on 2026-07-27;
+      * and BOTH codes of every substitution — the one leaving and the one
+        arriving — are NAMED in the release's own MANIFEST or order README, so
+        the diff is auditable by someone who was not here.
+    """
+    import csv as _csv
+    fails, notes = [], []
+
+    # -- (1) the copper did not move, stated as a NUMBER
+    cur_b = sorted((release_dir / "source").glob("*.kicad_pcb"))
+    old_b = sorted((prior_dir / "source").glob("*.kicad_pcb"))
+    if len(cur_b) != 1 or len(old_b) != 1:
+        fails.append(
+            f"  SOURCING: expected exactly one source/*.kicad_pcb on each side, "
+            f"found {len(cur_b)} here and {len(old_b)} in {prior_dir.name} — "
+            f"the copper-identity claim cannot be made")
+    elif cur_b[0].name != old_b[0].name:
+        fails.append(
+            f"  SOURCING DEVIATION: the board file is named {cur_b[0].name!r} "
+            f"here and {old_b[0].name!r} in {prior_dir.name} — a sourcing "
+            f"supersede substitutes a PART, never a board")
+    else:
+        h_cur = hashlib.md5(cur_b[0].read_bytes()).hexdigest()
+        h_old = hashlib.md5(old_b[0].read_bytes()).hexdigest()
+        if h_cur != h_old:
+            fails.append(
+                f"  SOURCING DEVIATION: source/{cur_b[0].name} md5 {h_cur} != "
+                f"{prior_dir.name}'s {h_old} — a sourcing supersede changes "
+                f"WHICH PART IS BOUGHT, never the copper. If the board really "
+                f"moved, cut a full release")
+        else:
+            notes.append(f"  note: source/{cur_b[0].name} md5 {h_cur} — "
+                         f"IDENTICAL to {prior_dir.name}'s (ASSERTED)")
+
+    # -- (2) the placement datum did not move
+    cur_cpl, old_cpl = release_dir / "fab" / "cpl.csv", prior_dir / "fab" / "cpl.csv"
+    if cur_cpl.is_file() and old_cpl.is_file():
+        if _sha256(cur_cpl) != _sha256(old_cpl):
+            fails.append(
+                "  SOURCING DEVIATION: fab/cpl.csv differs from "
+                f"{prior_dir.name}'s — a part substitution changes NO "
+                "placement. A moved CPL means the replacement is not a "
+                "drop-in (different land pattern), or something else was "
+                "changed under cover of the swap")
+        else:
+            n = max(len(cur_cpl.read_text().splitlines()) - 1, 0)
+            notes.append(f"  note: fab/cpl.csv byte-identical to "
+                         f"{prior_dir.name}'s ({n} rows) — ASSERTED")
+
+    # -- (3) the plot still describes the same copper (re-plot friendly)
+    cur_fab = _tree_files(release_dir / "fab")
+    old_fab = _tree_files(prior_dir / "fab")
+    checked = 0
+    for rel in sorted(set(cur_fab) & set(old_fab)):
+        if not rel.lower().endswith(_REPLOTTABLE):
+            continue
+        ok, detail = _payload_identical(cur_fab[rel], old_fab[rel])
+        checked += 1
+        if not ok:
+            fails.append(
+                f"  SOURCING DEVIATION: fab/{rel} is not the same plot as "
+                f"{prior_dir.name}/fab/{rel} ({detail}) — the timestamp strip "
+                f"deliberately tolerates a RE-PLOT and nothing else, so a "
+                f"difference here is COPPER, not paperwork")
+    if checked:
+        notes.append(f"  note: {checked} gerber/drill payload file(s) identical "
+                     f"to {prior_dir.name}'s after stripping only the plot's "
+                     f"own timestamps — ASSERTED (a re-plot is accepted; a "
+                     f"changed plot is not)")
+
+    # -- (4) the SOURCE moved too (canon M3) — otherwise the BOM was hand-edited
+    cur_tsx = sorted((release_dir / "source").glob("*.tsx"))
+    old_tsx = {p.name: p for p in (prior_dir / "source").glob("*.tsx")}
+    if not cur_tsx:
+        fails.append(
+            "  SOURCING DEVIATION: this release ships no source/*.tsx, so the "
+            "BOM row cannot be shown to have moved because the SOURCE moved "
+            "(canon M3). A fab/bom.csv that changes on its own is a "
+            "HAND-EDITED BOM")
+    else:
+        moved = [p.name for p in cur_tsx
+                 if p.name in old_tsx and _sha256(p) != _sha256(old_tsx[p.name])]
+        if not moved:
+            fails.append(
+                f"  SOURCING DEVIATION: fab/bom.csv changed but every "
+                f"source/*.tsx is byte-identical to {prior_dir.name}'s — that "
+                f"is a HAND-EDITED BOM (canon M3: everything must be "
+                f"regenerable from source). Change the "
+                f"`supplierPartNumbers` in the .tsx and re-export")
+        else:
+            notes.append(f"  note: source/{', '.join(moved)} CHANGED — the BOM "
+                         f"row moved because the source moved (canon M3)")
+
+    # -- (5) the BOM delta itself
+    cur_p, old_p = release_dir / "fab" / "bom.csv", prior_dir / "fab" / "bom.csv"
+    if not (cur_p.is_file() and old_p.is_file()):
+        fails.append("  SOURCING: fab/bom.csv missing on one side — cannot "
+                     "establish the delta")
+        return fails, notes
+
+    def rows(p):
+        out = []
+        for r in _csv.DictReader(
+                p.read_text(encoding="utf-8-sig").splitlines()):
+            refs = tuple(d.strip() for d in
+                         (r.get("Designator") or "").split(",") if d.strip())
+            if refs:
+                out.append((refs, {k: (v or "").strip() for k, v in r.items()}))
+        return out
+
+    cur, old = rows(cur_p), rows(old_p)
+    if len(cur) != len(old):
+        fails.append(
+            f"  SOURCING DEVIATION: fab/bom.csv has {len(cur)} data row(s), "
+            f"{prior_dir.name}'s has {len(old)} — a substitution changes WHICH "
+            f"PART a row buys, never how many rows there are (a removal is "
+            f"--bom-only-supersede)")
+        return fails, notes
+    order_cur = [r for r, _ in cur]
+    order_old = [r for r, _ in old]
+    if order_cur != order_old:
+        bad = next((i for i in range(len(cur)) if order_cur[i] != order_old[i]),
+                   0)
+        fails.append(
+            f"  SOURCING DEVIATION: fab/bom.csv designator groups differ in "
+            f"CONTENT OR ORDER — row {bad + 1} is {list(order_cur[bad])} here "
+            f"and {list(order_old[bad])} in {prior_dir.name}. A re-grouped BOM "
+            f"is a different assembly, and a reordered one cannot be diffed "
+            f"cell-by-cell at all")
+        return fails, notes
+
+    subs, untouched = [], 0
+    for (refs, c), (_r, o) in zip(cur, old):
+        ref = ",".join(refs)
+        changed = sorted(k for k in set(c) | set(o) if c.get(k) != o.get(k))
+        for col in changed:
+            if col in ("MPN", "LCSC"):
+                continue
+            fails.append(
+                f"  SOURCING DEVIATION: {ref} {col} changed {o.get(col)!r} -> "
+                f"{c.get(col)!r} — a sourcing supersede moves MPN and LCSC and "
+                f"NOTHING else. A changed Footprint is a different board; a "
+                f"changed Comment is a legibility edit "
+                f"(--legible-bom-supersede)")
+        if "LCSC" in changed:
+            new, was = c.get("LCSC", ""), o.get("LCSC", "")
+            if not re.fullmatch(r"C\d+", new or ""):
+                fails.append(
+                    f"  SOURCING DEVIATION: {ref} LCSC became {new!r} — a "
+                    f"substituted row must carry a real LCSC code; a coded row "
+                    f"losing its code is an A-POP change, not a sourcing one")
+            if not c.get("MPN"):
+                fails.append(
+                    f"  SOURCING DEVIATION: {ref} was substituted "
+                    f"{was} -> {new} but its MPN is BLANK — the substituted "
+                    f"row is exactly the row a human must be able to check "
+                    f"against the vendor (canon F-MPN)")
+            subs.append((ref, was, new, o.get("MPN", ""), c.get("MPN", "")))
+        elif "MPN" in changed:
+            fails.append(
+                f"  SOURCING DEVIATION: {ref} MPN changed {o.get('MPN')!r} -> "
+                f"{c.get('MPN')!r} while its LCSC did not — that is a "
+                f"LEGIBILITY edit (how the row READS), not a substitution "
+                f"(WHICH PART it is). Use --legible-bom-supersede")
+        if not changed:
+            untouched += 1
+    if not subs:
+        fails.append(
+            "  SOURCING: not one fab/bom.csv row changed its LCSC — a sourcing "
+            "supersede that substitutes no part supersedes nothing; use "
+            "--docs-only-supersede (or --legible-bom-supersede if the BOM only "
+            "became more readable)")
+
+    # -- (6) the verdict this mode leans on comes from the F-LEGIBLE gate
+    #        itself, never re-implemented here (ONE grader, canon M1)
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    try:
+        from bom_legibility_check import check as _legibility
+        from bom_legibility_check import discover as _discover
+    except ImportError as e:                                  # pragma: no cover
+        fails.append(f"  SOURCING: cannot import bom_legibility_check ({e}) — "
+                     f"the substituted row's readability is ungraded, and "
+                     f"unevaluable input is a FAIL")
+        return fails, notes
+    bom, parts, _what = _discover(release_dir)
+    r = _legibility(bom, parts) if bom else {"fails": ["no BOM"]}
+    n = len(r["fails"])
+    notes.append(f"  note: F-LEGIBLE on this release ({release_dir.name}): "
+                 f"{n} finding(s)")
+    if n:
+        fails.append(
+            f"  SOURCING: this release's fab/bom.csv FAILS F-LEGIBLE with {n} "
+            f"finding(s) — run `bom_legibility_check.py {release_dir.name}`. "
+            f"The substituted code must resolve an MPN like every other row; "
+            f"a new part that nobody can look up is not sourced")
+
+    # -- (7) the substitution is RECORDED where a later reader will find it
+    docs = []
+    for p in (release_dir / "MANIFEST.txt", _find_readme(release_dir)):
+        if p is not None and p.is_file():
+            docs.append(p.read_text(errors="ignore"))
+    doctext = "\n".join(docs)
+    for ref, was, new, o_mpn, c_mpn in subs:
+        missing = [code for code in (was, new) if code and code not in doctext]
+        if missing:
+            fails.append(
+                f"  SOURCING DEVIATION: {ref} was substituted {was} -> {new} "
+                f"but {', '.join(missing)} appears in neither MANIFEST.txt nor "
+                f"the order README — BOTH codes must be recorded, or the "
+                f"reason this release exists is legible only as a CSV diff "
+                f"against a release nobody will still have")
+    if subs:
+        notes.append(
+            "  note: " + str(len(subs)) + " substitution(s), each recorded in "
+            "MANIFEST/README: " + "; ".join(
+                f"{ref} {was}({o_mpn or '-'}) -> {new}({c_mpn or '-'})"
+                for ref, was, new, o_mpn, c_mpn in subs))
+    if not fails:
+        notes.append(
+            f"  note: fab/bom.csv delta is {len(subs)} substituted row(s) over "
+            f"{len(cur)} row(s); {untouched} row(s) cell-identical; 0 added, 0 "
+            f"removed, 0 reordered, 0 Comment/Footprint changes — ASSERTED by "
+            f"sourcing mode")
+    return fails, notes
+
+
 def check_cpl_delta(release_dir, prior_dir):
     """The ONE permitted fab/ change in CPL-only mode: `fab/cpl.csv` changing
     only PLACEMENT COORDINATES, or losing whole rows for designators that are
@@ -496,7 +831,7 @@ def check_cpl_delta(release_dir, prior_dir):
 
 
 def check_docs_only(release_dir, prior_dir, bom_only=False,
-                    cpl_only=False, legible_bom=False):
+                    cpl_only=False, legible_bom=False, sourcing=False):
     """Assert the docs-only-supersede contract against the DECLARED prior
     release: fab/source/3d byte-identical (any deviation = FAIL), order
     README + MANIFEST byte-DIFFERENT (identical docs supersede nothing).
@@ -504,7 +839,17 @@ def check_docs_only(release_dir, prior_dir, bom_only=False,
     `bom_only=True` relaxes EXACTLY ONE file — fab/bom.csv — and only because
     check_bom_delta() then asserts something stronger about it than identity.
     `legible_bom=True` relaxes the same one file for check_legible_bom_delta().
-    Nothing else in fab/, and nothing at all in source/ or 3d/, may move."""
+    `sourcing=True` relaxes fab/bom.csv, every source/*.tsx (canon M3 REQUIRES
+    the source to move WITH the BOM) and a re-plotted gerber/drill's own
+    timestamp lines — each asserted, more strongly than identity, by
+    check_sourcing_delta().
+    Nothing else in fab/, and nothing at all in source/ or 3d/, may move.
+
+    THE FILE SET IS GRADED IN EVERY MODE, and that is not incidental: a file
+    ADDED to a sealed release is what this check caught on 2026-07-27 when
+    `kicad-cli pcb drc` wrote a `.kicad_prl` into an immutable release —
+    invisible to `git status` (gitignored) and invisible to any hash of the
+    files you expected NOT to change."""
     fails, notes = [], []
     exempt = set()
     if bom_only or legible_bom:
@@ -514,6 +859,12 @@ def check_docs_only(release_dir, prior_dir, bom_only=False,
     for sub in _DOCS_ONLY_IDENTICAL_DIRS:
         cur = _tree_files(release_dir / sub)
         old = _tree_files(prior_dir / sub)
+        if sourcing:
+            exempt = {("fab", "bom.csv")}
+            exempt |= {("source", rel) for rel in _tree_files(
+                release_dir / "source") if rel.endswith(".tsx")}
+            exempt |= {("fab", rel) for rel in cur
+                       if sub == "fab" and rel.lower().endswith(_REPLOTTABLE)}
         for rel in sorted(set(cur) - set(old)):
             fails.append(
                 f"  DOCS-ONLY DEVIATION: {sub}/{rel} exists here but not in "
@@ -538,7 +889,8 @@ def check_docs_only(release_dir, prior_dir, bom_only=False,
                 same += 1
         if same:
             _label = ("bom-only" if bom_only else "cpl-only" if cpl_only
-                      else "legible-bom" if legible_bom else "docs-only")
+                      else "legible-bom" if legible_bom
+                      else "sourcing" if sourcing else "docs-only")
             notes.append(f"  note: {sub}/ byte-identical to {prior_dir.name} "
                          f"({same} file(s)) — ASSERTED by {_label} mode")
     # the documents themselves MUST change — that is the release's whole point
@@ -1050,6 +1402,23 @@ def main(argv=None):
                          "be added or removed, no MPN may be blanked, this "
                          "release's BOM must PASS bom_legibility_check and "
                          "the prior one must FAIL it")
+    ap.add_argument("--sourcing-supersede", metavar="PRIOR_RELEASE_DIR",
+                    default=None,
+                    help="SOURCING supersede mode (canon M8, promoted from the "
+                         "seven file waivers usb-hub-3s-v3 v1.11 shipped "
+                         "instead): docs-only, PLUS the one permitted fab/ "
+                         "change — fab/bom.csv moving MPN+LCSC on the "
+                         "SUBSTITUTED rows because JLC will not SUPPLY the "
+                         "part. ASSERTS the .kicad_pcb md5 identical, "
+                         "fab/cpl.csv byte-identical, every gerber/drill "
+                         "identical after stripping ONLY the plot's own "
+                         "timestamps (so a re-plot is accepted), the BOM's row "
+                         "count and designator order unchanged with no cell "
+                         "but MPN/LCSC moving, no blank MPN and no blank LCSC "
+                         "on a substituted row, F-LEGIBLE PASSing, the "
+                         "source/*.tsx CHANGED (canon M3 — a BOM that moved "
+                         "without its source is HAND-EDITED), and BOTH codes "
+                         "of every substitution named in MANIFEST/README")
     # RED-VERIFY hooks: neuter one check so a known-bad fixture is shown to
     # pass when — and only when — that check is disabled. Tests only.
     ap.add_argument("--_disable-stale", action="store_true")
@@ -1078,19 +1447,23 @@ def main(argv=None):
     bom_only = bool(args.bom_only_supersede)
     cpl_only = bool(args.cpl_only_supersede)
     legible_bom = bool(args.legible_bom_supersede)
+    sourcing = bool(args.sourcing_supersede)
     _modes = [args.docs_only_supersede, args.bom_only_supersede,
-              args.cpl_only_supersede, args.legible_bom_supersede]
+              args.cpl_only_supersede, args.legible_bom_supersede,
+              args.sourcing_supersede]
     if sum(1 for m in _modes if m) > 1:
         print("FATAL: pass at most ONE of --docs-only-supersede / "
               "--bom-only-supersede / --cpl-only-supersede / "
-              "--legible-bom-supersede", file=sys.stderr)
+              "--legible-bom-supersede / --sourcing-supersede", file=sys.stderr)
         return 2
     _mode = ("bom-only" if bom_only else "cpl-only" if cpl_only
-             else "legible-bom" if legible_bom else "docs-only")
+             else "legible-bom" if legible_bom
+             else "sourcing" if sourcing else "docs-only")
     if any(_modes):
         prior_dir = Path(args.docs_only_supersede or args.bom_only_supersede
                          or args.cpl_only_supersede
-                         or args.legible_bom_supersede).resolve()
+                         or args.legible_bom_supersede
+                         or args.sourcing_supersede).resolve()
         if not prior_dir.is_dir():
             print(f"FATAL: --{_mode}-supersede "
                   f"prior release is not a directory: {prior_dir}",
@@ -1113,9 +1486,14 @@ def main(argv=None):
         if not args._disable_stale:
             df, dn = check_docs_only(release_dir, prior_dir,
                                      bom_only=bom_only, cpl_only=cpl_only,
-                                     legible_bom=legible_bom)
+                                     legible_bom=legible_bom,
+                                     sourcing=sourcing)
             fails += df
             notes += dn
+            if sourcing:
+                qf, qn = check_sourcing_delta(release_dir, prior_dir)
+                fails += qf
+                notes += qn
             if legible_bom:
                 lf, ln = check_legible_bom_delta(release_dir, prior_dir)
                 fails += lf
