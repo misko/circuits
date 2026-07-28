@@ -1,0 +1,64 @@
+mpn: 0402WGF4700TCE
+manufacturer: UNI-ROYAL (Uniroyal Electronics)
+type: resistor_thick_film
+datasheet:
+  doc_id: 0402WGF4700TCE
+  revision: "LCSC series sheet, undated"
+  url: https://datasheet.lcsc.com/lcsc/1810301810_UNI-ROYAL-Uniroyal-Elec-0402WGF4700TCE_C25117.pdf
+  sha256: OWED                  # not fetched at spike time — see 02_parts/README.md
+  fetched: null
+  pages: null
+package: 0402 (1005 metric), 1.00 x 0.50 mm, thick film, wrap-around termination
+footprint: Resistor_SMD:R_0402_1005Metric
+escape:
+  style: passive
+  pitch: 0.5
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-28
+limits:
+  resistance: 470 ohm +/-1%
+  tempco: +/-100 ppm/C
+  power: 62.5 mW
+  voltage: 50 V
+  ta: -55 to +155 C
+gotchas:
+  - "THIS IS AN RF PART IN A PASSIVE PACKAGE. It is the series arm of the RX1
+     resistive pickoff (brief T2/D3), so its PARASITICS are load-bearing and its
+     resistance tolerance is not the interesting number. Vishay technical note
+     60107 'Frequency Response of Thin Film Chip Resistors' (rev 04-Feb-09),
+     TABLE 1 page 1, gives an 0402 WRAP-AROUND chip a model internal shunt
+     capacitance C = 0.0392 pF and internal inductance L = 0.1209 nH. Uniroyal
+     publishes NO high-frequency data for this thick-film part, so those figures
+     are CITED FOR THE CLASS and ESTIMATED FOR THIS PART — call it
+     0.04 +/- 0.02 pF. Consequence, worked in 01_docs/journal/02_parts.md: the
+     -20 dB tap is flat to within 0.5 dB up to ~3 GHz and rises to about
+     -18.6 dB at 6 GHz (+1.7 dB tilt). The MAIN-LINE loss is unaffected
+     (0.408 dB at DC, 0.433 dB at 6 GHz)."
+  - "IF THE TAP MUST BE FLATTER, SPLIT THE SERIES ARM. Two 220 ohm 0402s in
+     series (C25091, also JLC Basic) put their C_p in series, halving it to
+     ~0.020 pF and cutting the 6 GHz tilt from ~1.7 dB to ~0.5 dB, for one extra
+     placement. The R total becomes 440 ohm: tap -19.8 dB, main-line loss
+     0.432 dB, return loss 26.3 dB. This is a DESIGN CHOICE, not a defect —
+     recorded here so the schematic stage makes it deliberately."
+  - "JLC BASIC (library type 'base', live 2026-07-27, stock 1,885,144). Keeping
+     it Basic is worth more than the 0.01 dB of accuracy a 0.1% thin-film part
+     would buy: the tap ratio is a MEASURED release artifact under brief D4, not
+     a design target, so tolerance buys nothing that measurement does not."
+verified: "2-pad passive — exempt from the S-VER figure-citation requirement per
+  the 02_parts contract. Value, tolerance, tempco, power, voltage and
+  temperature range read from the LCSC parametric record for C25117, live
+  2026-07-27. The PDF itself is OWED (see README)."
+sourcing:
+  lcsc: C25117
+  alternates: [C25091]           # 220 ohm 0402, JLC Basic — for the split-arm
+                                 # (2 x 220) variant described in gotchas
+asserts:
+  - assert: value
+    equals: 470
+    tolerance_pct: 1
+    why: "the tap ratio, the main-line insertion loss and the main-line return
+      loss are ALL set by this single value: tap = 50/(Rs+50), IL =
+      20log10(1 + 50/(2*(Rs+50))), and the shunt (Rs+50) across 50 ohm sets RL.
+      A one-value substitution moves the published RX1 tap calibration, and
+      nothing on the board can detect it — the netlist, DRC and parity are all
+      identical for any resistor value."

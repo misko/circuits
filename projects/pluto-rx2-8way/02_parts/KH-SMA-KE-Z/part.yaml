@@ -1,0 +1,133 @@
+mpn: KH-SMA-KE-Z
+manufacturer: Shenzhen Kinghelm Electronic Co., Ltd.
+type: rf_connector_sma_jack_vertical_tht
+datasheet:
+  doc_id: KH-SMA-KE-Z
+  revision: "2021.08.10"          # the drawing sheet's own 日期 (date) field,
+                                  # title block sheet 2/2. The vendor publishes
+                                  # no version number; the date IS the revision.
+  url: https://datasheet.lcsc.com/lcsc/2003301010_Kinghelm-KH-SMA-KE-Z_C504007.pdf
+  sha256: 05257621aa124d9a077a47230c4ffc0030b23477c0e5c5e694abffa5f8daee08
+  fetched: 2026-07-27
+  pages: 2
+package: vertical THT flange jack, 6.5 x 6.5 mm flange, 13.5 mm overall,
+  1/4-36UNEF thread D6.2, four 0.9 mm SQUARE posts on a 5.08 x 5.08 mm square
+  plus a centre signal pin
+footprint: pluto_rx2_8way:SMA_Vertical_5.08sq_D1.4    # OWED — not yet drawn
+mates: receptacle                 # JACK (female, inner HOLE). Read from the
+                                  # drawing: the model string is KH-SMA-KE-Z
+                                  # where K = hole, and the sheet-2 front view
+                                  # shows a bore, not a pin. NOT RP-SMA.
+escape:
+  style: connector
+  pitch: 5.08
+  escapes_worst_side: 1           # only the centre signal pin leaves; the four
+                                  # posts are all GND
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-27
+pins:                             # drawing sheet 2/2, PCB layout inset
+  1: RF                           # (labelled PCB shi-yi-tu), bottom right:
+  2: {name: GND, tie: GND}        # FIVE D1.4 mm holes — four on a 5.08 x 5.08
+  3: {name: GND, tie: GND}        # mm square plus ONE at the centre. Centre =
+  4: {name: GND, tie: GND}        # signal (it is the continuation of the coax
+  5: {name: GND, tie: GND}        # inner conductor in the side view); the four
+                                  # corner posts are the 4-SQ0.9 ground legs.
+limits:
+  frequency: DC - 6 GHz           # spec page sheet 1/2
+  impedance: 50 ohm
+  vswr: "<= 1.35, DC-6 GHz"       # spec page sheet 1/2
+  mating_cycles: ">= 500"
+  dielectric_withstand: ">= 1500 V"
+gotchas:
+  - "GROUND HOLES MUST BE D1.4 mm, NOT D1.3. The drawing's own PCB-layout inset
+     says 5-D1.4 and the arithmetic backs it: a 0.9 mm SQUARE post has a
+     1.273 mm diagonal, so a D1.3 hole leaves 0.014 mm radial clearance —
+     inside JLC's plated-hole tolerance. D1.4 gives 0.064 mm. Some vendor
+     sheets in this class recommend D1.3; this one does not, and the number is
+     arithmetically justified rather than inherited."
+  - "RP-SMA LANDMINE ONE CHARACTER AWAY, AND IT IS LIVE. DreamLNK SMA-KE-P901
+     (C914556, 1287 in stock 2026-07-27) and SMA-KWE901 (C914553, 5088) are
+     listed by LCSC as RP-SMA / 'Male Pin' in an external-thread shell. They
+     will not mate with a standard SMA male cable. A price-driven substitution
+     yields a board that assembles cleanly and CANNOT BE CONNECTED — on this
+     board, ten times over."
+  - "DO NOT SUBSTITUTE ON APPEARANCE. C914559 SMA-KE901 has a 4.90 mm post
+     square, not 5.08 — the legs will not enter. C5250058 BWSMA-KE11,
+     C530661 KH-SMA-KE8-G and C496550 BWSMA-KE-P001 all have an OFFSET pin
+     (centre pin not on the flange axis). C53133521 XY-SMA-KE-Z001 is rated
+     3 GHz. The '5.08' belongs in the footprint NAME."
+  - "MECHANICAL LEVER ARM is the reason this part wins its class: 13.5 mm
+     overall on four 0.9 mm posts, against 28.6 mm for BWSMA-KE23 (C5250061)
+     on the identical post pattern. Ten cabled ports on one board is ten torque
+     paths into the same laminate."
+  - "THT: this part DISQUALIFIES the board from JLC Economic PCBA and adds a
+     per-order THT surcharge (~$3.50 setup + ~$0.0173/joint + $3.00 extended-
+     component fee). At 10 jacks x 5 pins = 50 joints that is ~$0.87/board of
+     joint fee alone, before the connectors themselves."
+  - "THE VENDOR PUBLISHES NO APPLICATION OR LAYOUT SECTION. No via-fence rule,
+     no antipad rule, no board-thickness requirement, no VSWR-vs-launch curve.
+     Every launch rule in layout: below is DERIVED ENGINEERING and cannot be
+     waived by citing the datasheet."
+  - "LCSC'S PARAMETRIC RECORD FOR C504007 CARRIES NEITHER THE FREQUENCY NOR THE
+     IMPEDANCE (both show '-', live 2026-07-27), and it contradicts the PDF on
+     temperature range. Only the PDF counts for this vendor class."
+verified: "pin map read from the mechanical drawing, sheet 2/2 of 2, title block
+  KH-SMA-KE-Z, dated 2021.08.10, Shenzhen Kinghelm — page RENDERED at 200 dpi
+  and read VISUALLY. The PCB-layout inset gives 5-D1.4 with a 5.08 x 5.08
+  corner square and one centre hole; the flange view gives 4-SQ0.9 on the same
+  5.08 square; the side view gives 13.5 overall / 8 thread / 1/4-36UNEF D6.2 /
+  0.9 post. Rendered from the vendor PDF whose sha256 is recorded above and
+  checked byte-for-byte against that hash. 2026-07-27"
+layout:
+  source: "NO vendor layout section exists (see gotchas). Every rule here is
+    DERIVED from the geometry plus the 6 GHz / VSWR<=1.35 claim on sheet 1/2,
+    and is labelled as such. The single vendor-sourced constraint is the
+    5-D1.4 hole pattern itself."
+  reviewed: "2026-07-27"
+  keep_short:
+    - {net: RF_ANT_LAUNCH, max_span_mm: 3, why: "DERIVED: the transition from
+       the D1.4 through-hole barrel to 50 ohm microstrip is the highest-VSWR
+       feature on each port. Any series part (DC block, ESD) belongs inside
+       3 mm of the launch or it adds a second discontinuity at a different
+       reference plane"}
+  notes:
+    - "DERIVED: a D1.4 plated barrel in a 1.6 mm board is a ~1.6 mm-long,
+       1.4 mm-diameter conductor — electrically short (lambda/20 at 6 GHz is
+       ~1.5 mm on this laminate) but only if the ground return is equally
+       short. The four corner posts ARE that return, so all four must land on
+       plane copper with their own via cluster, not on a single shared pour
+       neck."
+    - "DERIVED: the bottom-plane antipad under the centre barrel should be
+       >= D3.5 mm, not the D2.6 that DRC would accept — the barrel plus a tight
+       antipad is a capacitive discontinuity that shows up as return loss at
+       6 GHz, and the correction is geometric, not tunable later."
+    - "DERIVED: ground-via fence at <= 2.0 mm pitch (lambda/20 at 6 GHz)
+       continuing >= 10 mm down BOTH sides of each RF trace out of the launch."
+    - "OWED, and this is the biggest open item on this part: TEN jacks on one
+       board is a port-to-port isolation question the vendor sheet does not
+       touch. Two adjacent SMA barrels 10 mm apart share a laminate; the
+       coupling floor that sets is unmeasured. It bounds the AoA leakage budget
+       from below independently of the switch, and must be measured, not
+       assumed."
+layout_refs:
+  - "Kinghelm KH-SMA-KE-Z drawing sheet 2/2 (2021.08.10) — the PCB-layout
+     inset; the ONLY vendor-published layout artifact for this part"
+  - "OWED: no manufacturer application note, EVM or routed reference layout
+     exists for this connector. Recorded as an absence, not skipped."
+sourcing:
+  lcsc: C504007
+  alternates: [C6915271, C496549]  # C6915271 = KH-SMA-KE-Z48H, land-identical
+                                   # and the ONLY alternate that also publishes
+                                   # VSWR <= 1.35 / DC-6 GHz — but see the
+                                   # README deviation on its stock depth.
+                                   # C496549 = BWSMA-KE-Z001, land-identical by
+                                   # drawing, deep stock, but publishes NO VSWR
+                                   # at all.
+asserts:
+  - assert: value
+    equals: KH-SMA-KE-Z
+    why: "the BOM Comment must name the part, because the failure this prevents
+      is invisible to every electrical check: an RP-SMA sibling one character
+      away (SMA-KE-P901) shares the flange, the post square and the footprint,
+      and produces a board that passes DRC, parity and assembly inspection and
+      cannot be plugged into a Pluto."
