@@ -1,0 +1,8 @@
+== A-POP assembly_coverage: crow-recorder-central-v2-v1.6-2026-07-27 ==
+  board=203 footprints, cpl=174 placements, unpopulated=29 (declared=13, consigned=1, exempt_prefixes=['H', 'TP'])
+  placement histogram: top=174
+  A-POS datum: 174 CPL row(s) graded against the pad-array centre, worst = 0.00050mm (J2), tolerance 0.05mm
+  DEFERRED-BOARD-ATTR: J1 is declared not_assembled and is OFF the shipped CPL, but its board footprint still lacks `exclude_from_pos_files`; board_attr_plan measured_on=2026-07-25 lands it at the next board revision
+  DEFERRED-BOARD-ATTR: R_inj1 is declared not_assembled and is OFF the shipped CPL, but its board footprint still lacks `exclude_from_pos_files`; board_attr_plan measured_on=2026-07-25 lands it at the next board revision
+  DEFERRED-BOARD-ATTR: R_inj2 is declared not_assembled and is OFF the shipped CPL, but its board footprint still lacks `exclude_from_pos_files`; board_attr_plan measured_on=2026-07-25 lands it at the next board revision
+A-POP: PASS (every unpopulated part is declared with evidence)

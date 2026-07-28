@@ -1,0 +1,274 @@
+board:        crow_recorder_central_v2
+version:      v1.6
+ordered:      2026-07-27 (design seal; fab order at user's discretion)
+git_sha:      895021b
+git_dirty:    false                   # scope: projects/crow-recorder-central-v2/ + skills/ (never seal with these inputs dirty)
+kicad:        10.0.4
+tools:        KRT (promoted chain), /usr/bin/python3 pcbnew, tsci (bun); CPL via
+              export_jlc_package.py with the PAD-ARRAY PLACEMENT DATUM
+              (placement_datum(), new at v1.5) + the per-LCSC rotation
+              resolver (jlc_rotation_resolve.py + jlc_lcsc_rotations.csv);
+              BOM MPN column resolved from 02_parts/<MPN>/part.yaml + the
+              vetted lcsc_passives_ledger.yaml (new at v1.6, ADR-0006)
+fab:          JLCPCB 6 layer, stackup JLC06161H-3313 1.6mm, ADVANCED small-via
+              (0.30/0.15 via-in-pad), vias EPOXY-FILLED + CAPPED (board setup
+              capping/filling=yes; ORDER_README section 1a fab note)
+quantity:     5 (declared build_quantity in 03_src/rules/assembly.yaml; A-STOCK
+              grades every coded, placed line against 5x its per-board quantity)
+assembly:     JLC standard service, TOP side only (CPL histogram top=174,
+              bottom=0), fiducials NONE on the board (deliberate; JLC's
+              panel-rail fiducials carry the order, local fiducials are a
+              v-next layout item - ORDER_README section 6). Declared in
+              03_src/rules/assembly.yaml.
+supersedes:   crow-recorder-central-v2-v1.5-2026-07-25 - for BOM LEGIBILITY,
+              plus ONE input declaration. NO COPPER CHANGE, and v1.5 is NOT
+              DO-NOT-ORDER: its board is electrically and physically the same
+              board this one ships, and every review verdict it carries stands
+              unaltered here.
+
+              WHAT WAS WRONG. v1.5's fab/bom.csv was uploaded to JLCPCB and its
+              parts "were not being picked up by their web processing". Graded
+              by bom_legibility_check.py (canon F-LEGIBLE, ADR-0006) the sealed
+              file carries 72 findings: 47 F-MPN (every coded row ships a BLANK
+              MPN, so JLC's matcher leaves a code-only line at "No Part
+              Selected"), 24 F-WORDS (a Comment that is an LCSC code or the
+              tscircuit placeholder `simple_chip`/`simple_inductor` - a row no
+              human on either side can review) and 1 F-ENCODE (the ohm sign
+              with no UTF-8 byte-order-mark, so a reader defaulting to cp936
+              renders CE A9 as the mojibake the user reported).
+
+              WHAT CHANGED IN THE PAYLOAD. fab/bom.csv, and nothing else. 0
+              findings here: 47/47 coded rows carry an MPN resolved from
+              02_parts/<MPN>/part.yaml or the vetted passives ledger, 49/49
+              Comments read, and the file carries the byte-order-mark.
+
+              WHAT CHANGED IN THE INPUTS, AND WHY IT IS IN THIS RELEASE.
+              03_src/rules/power_tree.yaml now DECLARES the two LDO rails, 1V8
+              (U9) and 3V3A (U10), which had lived in a COMMENT in that file.
+              Canon E-TOPO gained LINEAR-regulator support on 2026-07-27, AFTER
+              v1.5 sealed, and immediately reported UNGRADED CONVERTERS: 2 of 3
+              converter part(s) in 02_parts are named by no rail - i.e. two of
+              this board's three regulators had never been graded by anything,
+              and this board is NAMED in the E-TOPO canon row as one of the
+              three that reached a green gate that way. Sealing v1.6 on a FAIL
+              would have shipped a WORSE gate profile than the release being
+              superseded, so the rails are declared and the gate is now green
+              on its own terms: E-TOPO FAIL (2 of 3 ungraded) -> OK, 4/4 rails
+              covering 3/3 converters. It changes no gerber, no drill, no
+              placement and no BOM row.
+
+              THE FOUR NUMBERS THAT DECLARATION NEEDED, ALL CITED (canon
+              M-IMPORT), from datasheets held locally beside their dossiers:
+                TCR2LF18       dropout 620 mV = the MAX at IOUT=150mA,
+                               VOUT=1.8V, Tj -40..85C - Toshiba TCR2LF/TCR2LE
+                               series datasheet 2014-11-06, Electrical
+                               Characteristics p.4 (same figure in the per-Vout
+                               Drop-out table, 1.8V<=VOUT<2.0V row, Note 6).
+                               pdiss 200 mW = SMV(SOT-25) "Unit Rating"
+                               (Note 1, bare package, no board heat-sinking) at
+                               Ta=25C - Absolute Maximum Ratings p.2. The
+                               board-mounted figure is 580 mW; the unit rating
+                               is declared because it asserts nothing about our
+                               copper.
+                XC6227C331PR-G dropout 200 mV = Vdif MAX at IOUT=300mA for the
+                               VOUT(T)=3.30V row - Torex ETR03054-006 OUTPUT
+                               VOLTAGE CHART, Voltage Chart 2 p.6/23 (condition
+                               defined in ELECTRICAL CHARACTERISTICS p.4/23).
+                               pdiss 500 mW = SOT-89-5 "IC only" at Ta=25C -
+                               ABSOLUTE MAXIMUM RATINGS p.3/23 (the
+                               board-mounted 1300 / 1750 mW are not claimed).
+              Both dropouts are quoted at a HIGHER current than the rail draws
+              (150 mA vs 50 mA; 300 mA vs 80 mA), so each BOUNDS its rail from
+              above - the conservative direction. The XC6227 datasheet proves
+              the monotonicity itself: same row, Vdif2 at IOUT=0mA is 80 mV MAX
+              against 200 mV at 300 mA.
+
+              THE TWO RAIL CURRENTS ARE DERIVED FROM THE BOARD, not assumed:
+                1V8  0.05 A - the net's only sinks are U1.35+U1.56 (VDDIOB18)
+                       and U1.62 (USB_VDD18, through ferrite FB_u18). 36 mA is
+                       the CITED datasheet MAX for I(USB_VDD18) in HS mode
+                       (XMOS XM-014532-PC-2.0.0 s.15.7 p.37). XMOS publishes NO
+                       operating current for a VDDIO bank (s.15.1 p.36 gives
+                       only an ABSOLUTE-MAXIMUM 126 mA sum, a limit and not a
+                       consumption), so VDDIOB18 is ESTIMATED at 5 +/- 5 mA
+                       with its bar - MEASURED from the netlist, all six of the
+                       bank's general-purpose port pins are UNCONNECTED and it
+                       drives only the 24 MHz crystal, JTAG and RST_N.
+                3V3A 0.08 A - the net's only sinks are U2.8 and U3.8, the two
+                       PCM1865 AVDD pins at 31 mA TYP each (TI SLAS831D s.7.6
+                       p.14, 4-channel active). TI publishes no MAX, so the
+                       62 mA typ sum is carried at +29% as an ESTIMATED
+                       ceiling.
+              GRADED: 1V8 headroom 1382 mV vs 620 mV dropout, PD 81 mW vs
+              200 mW (40%). 3V3A headroom 1567 mV vs 200 mV, PD 147 mW vs
+              500 mW (29%). Both PASS. verification/power_topology.txt.
+
+              ONE THING THIS RELEASE DOES NOT CLAIM. U9 AS ORDERED is
+              TLV70018DDCR (C79924), the ADR-0006 pin-compatible drop-in taken
+              when TCR2LF18/C150173 went stock 0 at v1.0 staging; the BOM says
+              so. The 1V8 rail names TCR2LF18 because that dossier is the
+              brief's primary, is what E-TOPO's census counts, and carries the
+              CONSERVATIVE dropout of the two (620 mV vs the TI part's
+              published 250 mV @ 200 mA). NO claim is made about the TI part's
+              package dissipation rating: that datasheet is not in this tree and
+              was not read. With 1382 mV of headroom and PD at 40% of rating,
+              the choice is nowhere near load-bearing.
+
+              WHAT DID NOT CHANGE, MEASURED: the .kicad_pcb is md5-identical to
+              v1.5's AND to 04_kicad's (de39e145e856cb14d491770c77d1ec0a); the
+              gerbers+drills RE-PLOT from 04_kicad 17/17 byte-identical to
+              v1.5's sealed zip and loose drills after the timestamp strip
+              (15 zip members + 2 loose); fab/cpl.csv is byte-identical; 20 of
+              21 payload files are sha256-identical.
+              verification/replot_identity.txt holds the numbers and
+              release_freshness_check.py --legible-bom-supersede ASSERTS them
+              mechanically - every row's designator group, Footprint and LCSC
+              unchanged, no row added or removed, no MPN blanked, and the
+              shipped BOM must itself PASS F-LEGIBLE.
+
+              REGENERABLE FROM SOURCE, AND PROVEN SO. fab/bom.csv here was not
+              copied from any staging area: it was re-exported from 03_src/ +
+              03_tscircuit/ + 02_parts/ through the fixed export_jlc_package.py
+              and came out sha256-identical to an independent earlier run's BOM
+              (d2cdad3ab4742d1e...). Two independent generations, one artifact
+              (canon M3).
+
+              FIVE DOSSIERS NEEDED A SOURCE FIX for their rows to resolve at
+              all, and none of them is an invented number: 1277AS-H-1R0M,
+              1277AS-H-2R2M, BLM21PG600SN1D, BLM21SP601SN1D and TLV70018DDCR
+              declared their code as a bare top-level `lcsc:` instead of the
+              `sourcing: {lcsc: ...}` block the 02_parts contract mandates and
+              the F-MPN authority reads, so the repo already knew the answer and
+              could not see it. Y1's NDK crystal has no dossier and gained a
+              CATALOG-VERIFIED row in
+              skills/jlcpcb-fab/references/lcsc_passives_ledger.yaml
+              (C2762192 = NX3225SA-24MHZ-EXS00A-CS08583, JLC
+              selectSmtComponentList exact-code match, 2026-07-27).
+
+              v1.4 remains DO-NOT-ORDER FOR PCBA (J2 1.3025mm off its own pads)
+              and v1.3 remains DO-NOT-ORDER for its rotation defect; neither
+              verdict is touched here.
+gates:        DRC 0 violations / 0 unconnected / 0 parity (--severity-all
+              --refill-zones --schematic-parity) * standalone-archive DRC on
+              source/ alone 0/0/0 * ERC 0 errors (1211 warnings: 862
+              endpoint_off_grid + 349 lib_symbol_issues, unchanged from v1.5) *
+              netlist parity 0 REAL discrepancies (116 nets, 598 connected
+              nodes both sides) * count parity 199/199/199/199 *
+              audit_board OK (21 polarity + 11 connector mate/keepout + USB
+              diff-pair spread 0.110mm + U1 EP thermal vias) * A-POS worst
+              datum residual 0.00050mm over all 174 rows (tol 0.05mm) *
+              A-ROT OK all 174 rotations sourced, 0 ROT-DB-SUGGEST *
+              A-POL 0 single-channel refs (no human-gate file emitted; all 15
+              orientable codes resolved two-channel) * A-POP 0 findings
+              (board=203 footprints, cpl=174 placements, unpopulated=29) *
+              A-STOCK PASS (the one non-OK CPL line, C6938291, carries a dated
+              sourcing_plan; C9900035627 is off the CPL; re-queried 2026-07-27)
+              * M-BOM PASS, 49 lines, leg C 25/25 value-graded *
+              F-LEGIBLE OK 0 findings, 49 checks (47/47 coded rows resolve an
+              MPN, 49/49 Comments legible, byte-order-mark present) - the SAME
+              checker returns FAIL, 72 findings, on sealed v1.5 beside it *
+              E-TOPO OK 4/4 rails covering 3/3 converters (was FAIL, 2 of 3
+              ungraded) * E-MARGIN N-A (no rail declares load_uv_threshold) *
+              E-OFF N-A (source_type dc_jack, externally powered) *
+              P-FACT OK (1 assertion: U1 MSL-3/168h stated in the paperwork) *
+              E-INV OK 11/11 invariants * jlc_twin exit 0, 176 OK, bodies
+              mounted 174/174, 0 NO-BODY * policy_audit 0 FAIL *
+              contracts_audit 0 violations
+3d:           step present; gltf absent (no exporter for this board)
+consigned:    U1 C6938291 (XMOS XU316-1024-TQ128-I24) - we supply, JLC PLACES
+              it; it is ON the CPL at 270 degrees
+msl:          U1 MSL-3, 168h floor life below 30C/60% RH (XMOS XM-014532-PC
+              v2.0.0 s.14.5 p.33); bake per J-STD-033D if exceeded or if the
+              HIC reads high. Declared EXECUTABLY in
+              02_parts/XU316-1024-TQ128-I24/part.yaml `asserts:` and graded by
+              P-FACT against this paperwork. No other exposed-pad part is
+              consigned.
+rework:       BLOCKING on all 5 boards before the first-article gates: 2x 33pF
+              0402 C0G, one piggybacked across R_fb1a and one across R_fb2a
+              (AP61102 C3 feedforward, datasheet DS42004 Rev6-2 Table 1,
+              AP61102 column, 33pF at EVERY Vout; absent on both rails).
+              No copper needed - the pads are the existing resistors' own
+              terminals. 3V3 loses 5.52x of its FB ripple without it (0.34-0.66
+              mV vs 1.9-3.6 mV) on the rail feeding both PCM1865 DVDD/IOVDD;
+              0V9 loses only 1.50x. ORDER_README section 3d + the 4a scope gate.
+pre_order:    F-ECHO, NEW HERE AND NOT MINE TO WAIVE: after uploading
+              fab/bom.csv, save JLC's OWN resolved part table out of their UI
+              and diff it back against ours (bom_legibility_check.py <bom>
+              --echo <saved>; verification/bom_echo_gate.txt, 47 lines). A code
+              JLC redirects is a SUBSTITUTION - C82317 -> C131025 happened on
+              this very board's upload and nothing in this repo could see it.
+              The v1.5 pre-order conditions stand unaltered: the A-POL JLC
+              order-preview human gate, the order-day stock recheck on the
+              Extended-tier parts, and the 33pF feedforward rework above.
+not_assembled: J1,J10,J3,J4,J5,J6,J7,J8,J9,JP_INJ,J_DBG,R_inj1,R_inj2
+sha256:       # EVERY file in the release; MANIFEST.txt excluded (cannot hash itself)
+  3d/crow_recorder_central_v2.step                           c7b03d95b418e457fd5f0dc7bdda0f8b725ec7758d36e1e884e74d6673b1dea2
+  ORDER_README.md                                            4afa888edd5234671c04a58ec2647d3cc2338e3d16671bbf8a70007e7e03f8d7
+  fab/bom.csv                                                d2cdad3ab4742d1e1473acc9a4bb5448dd7937636abc967d5be402b4742b3d01
+  fab/cpl.csv                                                af3892cd67d244b20fd18be41a099ea0832839340885c6d368a590caf78b950a
+  fab/crow_recorder_central_v2-NPTH.drl                      74f826c6876bc125242a24f5291e66a8c02b920a1cf4b15f97b131ffe5fc0e18
+  fab/crow_recorder_central_v2-PTH.drl                       b21b1ed2929d81a0c75e3c4fb6a561d84308e0a2135acc9b7795571926081b87
+  fab/crow_recorder_central_v2_gerbers.zip                   0f42ba9ade563776284d48e5c1f9e31fce06e5130d6a9d9c663a3dfb0f1eb7b8
+  pdf/assembly.pdf                                           2baf8c7603d1a061caac436c69a67e33089512be5cf3365d2546ef6590abffbb
+  pdf/pcb_layers.pdf                                         d218d8c1edb43315bb9f72dfacfca2fee050bf0fb932ae3d378a7562303562e7
+  pdf/schematic.pdf                                          b1db6c443632ffffd35956abf5e4022bf4bd74c08705c285f437d96cc28e083f
+  source/Sensor_Humidity.pretty/Sensirion_DFN-4_1.5x1.5mm_P0.8mm_SHT4x_NoCentralPad.kicad_mod 6eb0eecd94247336fb8bb895e442e5adfbab8e91beb344f0e996992e4370885d
+  source/crow_recorder_central_v2.kicad_dru                  30d003fc8855161d279473b89c383b38a79a52d8062603c6ba84c558bd66ae60
+  source/crow_recorder_central_v2.kicad_pcb                  756b2935a0f1fae3f7d9111874ce20daa6d3661eea712a317d09dfce5c129402
+  source/crow_recorder_central_v2.kicad_pro                  bb6b495e0f30445c8c2827834844a94ac6fc196345581dafd5a3a27d1e65a336
+  source/crow_recorder_central_v2.kicad_sch                  636aa321489faa8f86d60bce6ca8233f57d7058bf416ce878fc979795d56eaee
+  source/crow_recorder_central_v2.net                        7012636b0918ce37c01fee7f6ecd9a71c63bcfe18130ef6a2fa6e342d68f2afa
+  source/crow_recorder_central_v2.pretty/RJ45_RJHSE538X_num.kicad_mod d3d35a79f52b9a2bee6a712a1cce5ede755e54b153a4cb56eed653f5152bfea2
+  source/crow_recorder_central_v2.pretty/TQFP-128_14x14mm_P0.4mm_EP_XU316.kicad_mod ef4886687aca74024a820f20f7f7fee0043bd0f5e5eec9d88406a586e0ddf0c9
+  source/crow_recorder_central_v2.pretty/US8_MO-187CA_P0.5mm_NC7NZ34.kicad_mod 21a72507199a09aff5c90d2d3ab287c156b393afde28526e20ffe6336dac6758
+  source/crow_recorder_central_v2.pretty/USB4105_GCT_16P_TopMnt_num.kicad_mod 9ff9294a2a8d041533ce0cb386f89a221a2c01eea13125f9ee60c80ad68b8880
+  source/crow_recorder_central_v2.tsx                        386c9f54b2f2b371216d8e6fc02b3b7184dc8cb4120e705b8f3ad0230831b4a1
+  source/fp-lib-table                                        4b13122d46cd28fe5d956997008510976f79115681c60f6ee014dae1af4c2f14
+  verification/assembly.yaml                                 d7cf777149b923c0f4f64cef076125cb634f60053ecd85e9e47b6211d73b73d5
+  verification/assembly_coverage.json                        8804c92faadfe62f6b0738aa2d136dc146000c9e66c525a474b44ee6a4ee67d6
+  verification/assembly_coverage.txt                         3aad5cecb01f92b36eb02a0bb3c6b4619edb0be27cb99fd77f2f2ed62a15b8ff
+  verification/audit.txt                                     71f541693880502574113defc2baec3e84fbb53a8cbbe8b230863970f3062118
+  verification/bom_echo_gate.txt                             0591a53e105e4848b3e53d2fc056bf3f4cc40f07453e494cdf8ce7a81280739f
+  verification/bom_legibility.txt                            d8c67673acc50823240696bae39d3526c2299723b1efa6aafd39e046f37a96cf
+  verification/bom_source_check.txt                          440f589361e933130a6095ada2d036e8bc09f5d08eba416d0eaaa3b75b77320e
+  verification/check_port_nets.txt                           990fbd66ddb576e8734180dd24e9c117b61d75cf25685b022f0efbe56f69f8af
+  verification/count_parity.txt                              bfaa5c1a70b248b05042e986d6d05613417a3180a3132f16c43e49c5f3155265
+  verification/decoupling_fix.md                             037e6479506ce84d02129ca74ac7038b16c3bd7eaaa6ee15d12313d7b83adf76
+  verification/drc.json                                      57a7afe3abd0f0b648373175ec1a78c277709740d2b3e3723c05bd7a3df50d26
+  verification/electrical_invariants.txt                     e84a9cfa0902a4b87d2f6ad9ccdc1bdde9c634b88c45e000ef4c40abb6ab0e00
+  verification/electrical_invariants.yaml                    a0fb2c81a2f75c9d77bbc49bc130a768632eee86f555c4f5f07f66a1b2f827a6
+  verification/erc.json                                      e5df4d86053c3baf83e9716c8186300489dd232478ba7c37205e09d48c61cb94
+  verification/external_review_v1.1_2nd.md                   a5db468408b3fcc472b9144b7281b092c5915c357b17f960f468d01549cee6c8
+  verification/external_review_v1.2.md                       db04c055129beda6b739a4eceec8cdd894d7551ca9fab9e5ca275475dc0896ca
+  verification/fresh_lens_v1.4.md                            e0484d73230efcdc4ebc0f3a4a2fa381c293d977c7bb9a56488a3d87cdae6529
+  verification/fresh_lens_v1.4_final.md                      be6912c10cd699237919e1357082d77e5284b7eaf43bcc9ced558b99d7aa6eb9
+  verification/missing_models.txt                            388d07b156785a841deded339192fe18a49356bcd4d61916ff655cd6c5698e41
+  verification/parity.md                                     093eb3a00bfd4b090af4b9f0de835ae0b318279a0fcd91d4464d59efe156d742
+  verification/part_facts.txt                                844fd46a24d93bef165202934f4849c749a7cea032a970879e3f0f07c81071c2
+  verification/pin_review.md                                 6d3e71f532e60695d12c8ad2133ee8105a1fad4c241178ce55ead029f7616b8c
+  verification/policy_audit.md                               ec4cb6f0225b8427ae904e784aac0765850cd9b8c14aff350c239160379f7f47
+  verification/power_topology.txt                            77328e2538748090744bd5ef6c479269a62a3ce3788ea940ab2974812e43dfbe
+  verification/power_tree.yaml                               abf4e926a9bb361f699702638632487c43cee4c48105ea7c2faa1af3e7ae5fa4
+  verification/redteam_layout.md                             d2c99d9106be3b4d5b58e7e0be86dc1508fe68dc89f9a97596d332ee44f79724
+  verification/redteam_topology.md                           cea0734c5a90d61e75c27c05cec26f28fb1c194a291f72364cf44d4e335a9dd8
+  verification/release_freshness.txt                         e5fad635459b9c760a8b023d356801072073491add8534f7795aae9b8be8663d
+  verification/render_bottom_bare.png                        fce62fbcefd884aeca15f2d5b70ca0f0d91658241c39c47bf3331f24eaf8ba1e
+  verification/render_review.md                              6e4303f564ed756e72b1e88155e9e0c9d272449115498102058be9b33a2b10c1
+  verification/render_top_bare.png                           0151eec8adfaa56c053ff9a0e26ed62a0583b78c5ed399a616dd2f4b422629b4
+  verification/replot_identity.txt                           c98eb5a9392efdb7c66a78a266f103f52251018c066daa5620601c4eff9c71bd
+  verification/review_dispositions.md                        5f33f0e7b1aed0e881f54e63fb645654acb00be231798a35dd225ff3a370766f
+  verification/rot_remeasure.py                              cdee8f7bef5527735c99d006ba74fad1691e576afa2babe16af9f1c5a71b620c
+  verification/rotation_remeasure.txt                        a8d1bd23d4bc450b493050c69fd53cc2fa27c9df8aaa1933c821414ea4601989
+  verification/standalone_archive_drc.json                   0b13619fa2a0cac5567950b129403b251511a41bac1c967b147f0bfc2ca61bc0
+  verification/stock_check.csv                               9b5f4d21191c7f5248d8a6d5c8625986df464973c20f2d8d8ea1d4365007996b
+  verification/stock_check.json                              4da86a45fdc9024c2a3905f4e32243d2062f7ffd4daa9db15f501cec5d292a8c
+  verification/stock_check.txt                               d9275daca9cea4ddaf9dc8bfa9b29d94b30e026d7c829a235f7ca8a41ab6ec94
+  verification/twin_bottom.png                               66e12eeb04843e181e47d117389f456cebe92e7e681b46cf9f5ffd3267abc1af
+  verification/twin_edge_east.png                            09a4fe05f25fc7aff91cf4e2b0ab8421cdf046540df40a45884f9a1f37d29b0b
+  verification/twin_edge_west.png                            fb7b121a1ada6824a06efebe12ddfbde712a1b2eb1cb8aa1553e6ecc8cb77c0c
+  verification/twin_iso_nw.png                               40cca3f1ecd2f879b6db08d64a23b0b4d1a6541d36ed10917e1feb889113730e
+  verification/twin_iso_se.png                               f515207ac34f0f215e30d58bb285dec6fd55d5e84c52e91a2f8a23aa6f3df630
+  verification/twin_report.csv                               942ee3e19dba101c9f18fa78c7043a0b0db09b21b41f7854e9a41afacdb8f4da
+  verification/twin_report.txt                               387b5b9b50332501081d0b519a65b78bd8e24f7155920901efa807167c6dbcea
+  verification/twin_top.png                                  035e06f08530efdf99dd54b2837226eb3c8ae35c307dd5e8408ffc1e42932376
+  verification/usb90_solve.md                                0a6ffb98ba06c9bb185af420ffa16fc543f5b40093fc3cb955b8a4a817ef2559

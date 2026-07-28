@@ -1,0 +1,10 @@
+E-TOPO OK: 4/4 rail(s) topology-correct, covering 3/3 converter part(s) in 02_parts
+  rail '3V3_DIGITAL' (Vin 4.9-5.1 V, Vout 3.3-3.3 V): required=BUCK, declared=BUCK (AP61102Z6-7) -> PASS
+  rail '0V9_CORE' (Vin 4.9-5.1 V, Vout 0.9-0.9 V): required=BUCK, declared=BUCK (AP61102Z6-7) -> PASS
+  rail '1V8' (Vin 3.2-3.4 V, Vout 1.782-1.818 V): required=BUCK, declared=LINEAR (TCR2LF18) -> step-down requirement MET by a linear pass element; rail '1V8' LINEAR (TCR2LF18): headroom 1382 mV (Vin_min 3.2 - Vout_max 1.818) vs dropout 620 mV; PD 81 mW ((Vin_max 3.4 - Vout_min 1.782) x 0.05 A) vs rating 200 mW (40%) -> PASS
+  rail '3V3A' (Vin 4.9-5.1 V, Vout 3.267-3.333 V): required=BUCK, declared=LINEAR (XC6227C331PR-G) -> step-down requirement MET by a linear pass element; rail '3V3A' LINEAR (XC6227C331PR-G): headroom 1567 mV (Vin_min 4.9 - Vout_max 3.333) vs dropout 200 mV; PD 147 mW ((Vin_max 5.1 - Vout_min 3.267) x 0.08 A) vs rating 500 mW (29%) -> PASS
+  input-trunk worst case: 1.1 A at Vin_min 3.2 V (Sum Pout=3.05754 W / eff = 3.6 W input / 3.2 V)
+  trunk current 1.6 A (class 'PWR_IN') consistent with derived 1.1 A
+  OVER-BUILT (advisory): fuse rated 3401 A is >2x the derived need 1.1 A — over-provisioned
+E-MARGIN N-A: no rail declares load_uv_threshold - no regulated rail feeds a known fixed-brownout load
+E-OFF N-A: no self-contained energy source detected (source_type: 'dc_jack' (externally powered)) - de-energization is by unplugging the input

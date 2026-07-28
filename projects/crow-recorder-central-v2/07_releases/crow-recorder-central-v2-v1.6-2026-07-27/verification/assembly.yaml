@@ -1,0 +1,201 @@
+# assembly.yaml — crow-recorder-central-v2 ASSEMBLY INTENT (canon A-POP / A-STOCK)
+#
+# Seeded from skills/pcb-design/templates/03_src/rules/assembly.yaml (the KEYS
+# are the contract); every value below is measured for THIS board.
+#
+# This file is the ONE machine-readable home for "who gets placed, and why not".
+# The release MANIFEST's `not_assembled:` line is GENERATED from it — never
+# hand-written in two places. Read by:
+#   assembly_coverage.py <release_dir|project>      (A-POP)
+#   release_freshness_check.py <release_dir> (e)    (A-STOCK)
+#
+# WHY IT LANDS AT v1.4. Sealed v1.3 had NO assembly.yaml at all: A-POP measured
+# board=203 footprints / cpl=177 placements / unpopulated=26 / declared=0 and
+# reported UNDECLARED-UNPOPULATED on all 26, plus DECLARED-BUT-PLACED on U1 —
+# whose MANIFEST line said `U1 (XU316 consign)` under `not_assembled:` while U1
+# sits ON the CPL. Consigned means POPULATED: we ship the part, JLC PLACES it.
+# That conflation is the exact defect `consigned:` exists to prevent.
+
+# ---- SERVICE DECLARATION -----------------------------------------------------
+service: standard          # JLC assembly service tier as ORDERED. `standard` is
+                           # required, not preferred: this order carries a
+                           # CONSIGNED line (U1, see consigned: below) and a
+                           # 0.4mm-pitch TQFP-128 with a pasted exposed pad.
+                           # Declaration of INTENT — no fetched capability
+                           # numbers are asserted here.
+sides: [top]               # MEASURED from the shipped CPL 2026-07-25: placement
+                           # histogram top=174, bottom=0 (was 177 at v1.4; J1,
+                           # R_inj1 and R_inj2 left the CPL at v1.5). Single-
+                           # sided SMT; no bottom-side process is ordered or
+                           # paid for.
+fiducials: none            # DELIBERATE, and a recorded limitation, not silence.
+                           # No FID footprints exist on this board (0 refs match
+                           # ^FID/^MH on the sealed 04_kicad board, measured
+                           # 2026-07-25). JLC's own panel-rail fiducials carry
+                           # the order. LOCAL fiducials beside U1 (0.4mm pitch)
+                           # were NOT placed and cannot be added to a sealed
+                           # board — carried as a v-next layout item in
+                           # ORDER_README section 6, not silently omitted.
+build_quantity: 5          # boards in this order; A-STOCK grades stock >= qty x 5
+
+# ---- NOT ASSEMBLED (the population set) --------------------------------------
+# v1.5: {board} - {CPL} = 29 refs. 16 are covered by exempt_prefixes: below
+# (H*, TP*); the 13 real decisions are declared here. Ten of the thirteen carry
+# `exclude_from_pos_files` on the sealed board; the three ADDED at v1.5 (J1,
+# R_inj1, R_inj2) do not and cannot — see board_attr_plan: below, which is why
+# the exporter now honours THIS FILE directly.
+not_assembled:
+  - refs: [J3, J4, J5, J6, J7, J8, J9, J10]
+    reason: not_in_catalog
+    evidence: "JLC parts-library query 2026-07-25, keyword 'RJHSE-5384' -> 3
+               hits: C9900035627 (the code on our BOM) stock 0, C9900056698
+               stock 0 — both C99* CONSIGN-ONLY PLACEHOLDERS with no EasyEDA
+               CAD, i.e. no assembly line JLC can run; and C3179625
+               (RJHSE-5384-02) which is a different variant. Broader query
+               'RJHSE' 2026-07-25 returns 8 stocked Amphenol jacks, of which
+               the closest is C464587 (RJHSE5384, stock 658) — MEASURED
+               2026-07-23 by jlc_twin as NOT a land drop-in for our
+               RJ45_RJHSE538X_num footprint (PAD-GEOM d8.07mm vs our pads,
+               MODEL-SELF), recorded in 02_parts/RJHSE-5384/part.yaml and
+               explicitly flagged do-not-substitute-silently. So the exact
+               land-compatible part is not orderable as a placed line: this is
+               a sourcing wall we HIT and measured, not a style preference."
+    disposition: "hand-soldered THT at integration; ORDER_README section 3
+                  lists them and section 3a requires confirming they are ABSENT
+                  from the JLC placement preview"
+  - refs: [JP_INJ, J_DBG]
+    reason: dnp_by_design
+    evidence: "NOT a sourcing wall — proven by query, and this correction
+               matters: v1.3's ORDER_README called both 'uncoded, hand-solder',
+               which reads as scarcity. JLC parts-library query 2026-07-25 for
+               2.54mm THT pin headers returns stocked parts (C2337 1x40
+               straight pin, stock 86244; C52016391 PH254-01-03-Z 1x03, stock
+               29861), so the catalog CAN supply these. They are deliberately
+               unstuffed instead: JP_INJ (1x03, beep-injector strap) and J_DBG
+               (1x08, 1V8 JTAG) are bring-up/debug-only aids on a single-sided
+               SMT order (sides: [top]). Both carry a BLANK LCSC on
+               fab/bom.csv and `exclude_from_pos_files` on the board, so
+               nothing on the order form contradicts this. CORRECTED at v1.5:
+               this clause previously asserted that 'the only other THT parts
+               are already off the CPL', which was FALSE — J1 was a true THT
+               part sitting ON the v1.4 CPL. It is now declared below, and
+               A-POP's CPL-NOT-SMT-PLACEABLE check compares the sentence to
+               the bytes so the contradiction cannot recur silently."
+    disposition: "left unstuffed at assembly; hand-fit a 2.54mm header at the
+                  bench only if debug/injection is needed. ORDER_README
+                  section 3."
+  - refs: [J1]
+    reason: process_incompatible
+    evidence: "J1 is a TRUE through-hole part on a top-side-SMT-only order.
+               MEASURED on the sealed v1.4 board 2026-07-25 (pcbnew, and
+               independently by assembly_coverage's own s-expression parse):
+               J1 is the ONLY footprint carrying `attr through_hole` WITHOUT
+               `exclude_from_pos_files` — 3 plated slotted pads (1.0x3.0,
+               1.0x3.0, 3.0x1.0) whose layer sets are `*.Cu *.Mask` with
+               F.Paste on NONE of them, so no paste is printed and no reflow
+               process can solder it. This is NOT a catalog wall: C381116 is
+               coded, stocked and on fab/bom.csv — which is precisely why
+               `not_in_catalog` would have been a lie and the closed
+               vocabulary gained `process_incompatible` at v1.5. Contrast J2,
+               which also has 4 drilled pads but carries F.Paste on all four:
+               that is legitimate pin-in-paste intrusive reflow and J2
+               correctly STAYS on the CPL."
+    disposition: "hand-soldered THT at integration, alongside J3-J10. J1 is the
+                  board's ONLY power inlet, so ORDER_README section 3 lists it
+                  FIRST in the hand-solder set and section 3a's
+                  absent-from-placement checklist now names it — under v1.4 it
+                  was on the CPL and named in no checklist, so JLC would have
+                  re-quoted it as an unbudgeted hand-solder line or dropped it
+                  silently and nobody would have been watching."
+  - refs: [R_inj1, R_inj2]
+    reason: dnp_by_design
+    evidence: "R_inj1 (1k, ADC1P<->INJ) and R_inj2 (1k, ADC5P<->INJ) form a
+               PERMANENT 2k bridge between ADC channel 1 and channel 5 on a
+               board whose product IS inter-channel isolation. MEASURED from
+               the sealed v1.4 netlist 2026-07-25: net INJ has exactly 4 nodes
+               {JP_INJ.1, JP_INJ.3, R_inj1.1, R_inj2.1}, and JP_INJ is
+               declared dnp_by_design above — so INJ floats and the only
+               conducting path through it ties ADC1P to ADC5P through
+               1k + 1k. Against the ~99 ohm pod source impedance that is
+               20*log10(99/(2000+99)) = -26.5 dB of channel-1-to-channel-5
+               crosstalk with both pods plugged, and far worse with one
+               unplugged (the 2k then works into the ADC's own high-Z input),
+               against a 110 dB isolation spec. The injection feature these
+               resistors serve is ALREADY unusable with JP_INJ unstuffed, so
+               nothing is lost by unstuffing them: this is a pure defect
+               removal. CPL-only — no copper changes."
+    disposition: "left unstuffed at assembly; the beep-injection bring-up aid
+                  needs JP_INJ fitted anyway, and fitting these two 0402s by
+                  hand at the same time restores it. Leaving them populated
+                  would instead have meant DESOLDERING two 0402s on all 5
+                  boards. ORDER_README section 3."
+
+# ---- CONSIGNED (we supply, JLC PLACES — these stay ON the CPL) ---------------
+consigned:
+  - refs: [U1]
+    lcsc: C6938291
+    msl: "MSL 3, 168h floor life below 30C / 60% RH; bake per J-STD-033D if
+          exceeded or if the humidity-indicator card reads high. Source: XMOS
+          XU316-1024-TQ128 xcore.ai datasheet XM-014532-PC v2.0.0 section 14.5
+          'Moisture Sensitivity' p.33, read from the archived PDF
+          02_parts/XU316-1024-TQ128-I24/ on 2026-07-25 (sha256 recorded in
+          part.yaml). Reflow profile per J-STD-020 (section 14.6)."
+    evidence: "JLC stock MEASURED 0 on 2026-07-25 (jlc_stock_check.py:
+               'LOW_STOCK(0) C6938291 x1 expand stock=0'), unchanged from
+               2026-07-24 — ADR-0003 records this line as chronically 0 and
+               therefore consignment/global-sourcing. U1 IS PLACED: it is on
+               fab/cpl.csv at 270.0 deg and stays there."
+    disposition: "ORDER_README section 2 (consignment line), section 3a
+                  (MANDATORY pin-1 preview gate), section 3b (MSL-3 handling:
+                  ship dry-packed with the order, HIC check at bag-open, log
+                  floor life, bake before reflow if the 168h window is blown).
+                  JLC places it."
+
+# ---- BOARD-ATTRIBUTE PLAN (defers A-POP's DECLARED-NOT-EXCLUDED) -------------
+# The evidence-backed defer, exactly parallel to sourcing_plan: below. A-POP
+# normally requires every declared-unpopulated ref to carry
+# `exclude_from_pos_files` on the board, because otherwise the next export
+# puts it back on the CPL. Three refs added at v1.5 cannot carry it: the
+# attribute lives in the .kicad_pcb, and v1.5 is a DATA-ONLY release whose
+# gerbers, drills, STEP and PDFs are sha256-identical to v1.4's. Regenerating
+# the board to set three flags churns every UUID (MEASURED 2026-07-25: a
+# semantically identical rebuild from committed source differs by 81626 diff
+# lines) and would turn a CPL fix into a full respin needing the entire
+# verification battery re-run against bytes nobody has reviewed.
+#
+# The decision is NOT deferred, only the attribute: the exporter now honours
+# this file's not_assembled: set directly, so all three are OFF the shipped
+# v1.5 CPL (verified in verification/assembly_coverage.txt), and A-POP's
+# DECLARED-BUT-PLACED check — which is NOT deferrable — proves it every run.
+board_attr_plan:
+  - refs: [J1, R_inj1, R_inj2]
+    measured_on: 2026-07-25
+    plan: "03_src/floorplan.yaml already carries the three
+           `attrs: [exclude_from_pos_files]` patterns as of v1.5, so the NEXT
+           board regeneration emits the attribute with no further edit. That
+           regeneration lands at the v2 copper revision (AP61102 C3
+           feedforward caps, PCM1865 DVDD bulk, PLL/crystal placement, local
+           fiducials near U1) — the first release whose board bytes change
+           anyway. Until then the exporter's assembly.yaml path is the
+           mechanism, and it is RED-verified by
+           tests/t7_assembly_datum.py::t_declared_refs_leave_the_cpl."
+
+# ---- SOURCING PLAN (justifies a non-OK stock line at seal time) --------------
+sourcing_plan:
+  - lcsc: C6938291
+    measured_stock: 0
+    measured_on: 2026-07-25
+    plan: "CONSIGNED — JLC stock is IRRELEVANT for this line. We supply U1
+           (XU316-1024-TQ128-I24) from global distribution; JLC only places it.
+           Measured JLC stock on 2026-07-25 is 0 and has been 0 at every check
+           since 2026-07-23 (ADR-0003), which is exactly why the part is
+           consigned rather than sourced by the assembler. See consigned: U1
+           above for the MSL-3 handling that rides with the consignment."
+
+# ---- EXEMPT REFDES CLASSES ---------------------------------------------------
+# Prefixes whose CPL absence needs no per-ref entry. Both classes verified on
+# the sealed board 2026-07-25: H1-H4 are MountingHole_3.2mm_M3 footprints with
+# board_only + exclude_from_bom + exclude_from_pos_files and no pads on a net;
+# TP1-TP12 are TestPoint_Pad_D1.5mm bare probe pads with exclude_from_bom +
+# exclude_from_pos_files and no part. 16 refs total.
+exempt_prefixes: [H, TP]

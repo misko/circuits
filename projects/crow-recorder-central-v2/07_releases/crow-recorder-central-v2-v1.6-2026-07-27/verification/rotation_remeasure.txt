@@ -1,0 +1,25 @@
+== OPERATOR PROOF (this board, pcbnew as the oracle) ==
+   board angle    0.0 deg : max |pcbnew - operator| = 0.000000000 mm
+   board angle   90.0 deg : max |pcbnew - operator| = 0.000000000 mm
+   board angle  180.0 deg : max |pcbnew - operator| = 0.000000000 mm
+   board angle  270.0 deg : max |pcbnew - operator| = 0.000000000 mm
+   (the NEGATED form is the pre-fix jlc_twin.xform; shown for contrast)
+   board angle    0.0 deg : max |pcbnew - NEGATED| = 0.000000000 mm
+   board angle   90.0 deg : max |pcbnew - NEGATED| = 35.560000000 mm
+   board angle  180.0 deg : max |pcbnew - NEGATED| = 0.000000000 mm
+   board angle  270.0 deg : max |pcbnew - NEGATED| = 0.960000000 mm
+
+== PER-PART FIT (ours vs JLC's cached land, matched by pad NUMBER) ==
+ref     lcsc          brd    n   best    rms_mm   next    rms_mm     sep     CPL  shipped ok
+U1      C6938291        0  129    270    0.0025      0   11.9812   4811x   270.0    270.0 OK
+U2      C181312         0   30    270    0.0025      0    5.0702   2028x   270.0    270.0 OK
+U3      C181312         0   30    270    0.0025      0    5.0702   2028x   270.0    270.0 OK
+U5      C82317          0    8    270    0.0577      0    5.4176     94x   270.0    270.0 OK
+U7      C5224055        0    6    270    0.0725      0    1.1183     15x   270.0    270.0 OK
+U8      C5224055        0    6    270    0.0725      0    1.1183     15x   270.0    270.0 OK
+D_USB   C90627          0   10    270    0.0150      0    1.1438     76x   270.0    270.0 OK
+Q1      C15127          0    3    180    0.2003    270    1.7777      9x   180.0    180.0 OK
+Q2      C20917          0    3    180    0.0589    270    1.6951     29x   180.0    180.0 OK
+U9      C79924          0    5    180    0.1592    270    2.0757     13x   180.0    180.0 OK
+
+rows checked: 10   mismatches vs shipped fab/cpl.csv: 0
