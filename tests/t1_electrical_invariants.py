@@ -209,6 +209,89 @@ def t_adr_uncited():
     contains(r.out, "loop is not closed", "explains the missing link")
 
 
+# ============================== E-ADR vs a WITHDRAWN decision (O8b, 2026-07-28)
+def superseded_project(status, adr="0006", by="0015"):
+    """A project whose ONLY protection ADR carries `status:` — and no
+    invariant citing it. The loop is open by construction; the question the
+    fixture asks is whether E-ADR should still be demanding that it close."""
+    inv = ("invariants:\n"
+           "  - assert: pin_on_net\n"
+           "    pin: \"D1.1\"\n"
+           "    net: VIN\n"
+           "    adr: \"0009\"\n"
+           "    why: \"cites 0009 only\"\n")
+    d = project(CLEAN_NETS, inv)
+    dec = d / "01_docs" / "decisions"
+    dec.mkdir(parents=True)
+    (dec / f"{adr}-mating-strategy.md").write_text(
+        f"---\nid: {adr}\ndate: 2026-07-27\nstatus: {status}\n"
+        f"tags: [mechanical, topology]\n---\n"
+        f"# {adr} — SMA->SMP adapters on the Pluto; edge-launch SMP\n")
+    (dec / f"{by}-sma-cables.md").write_text(
+        f"---\nid: {by}\ndate: 2026-07-27\nstatus: accepted\n"
+        f"tags: [mechanical]\n---\n"
+        f"# {by} — SMA CABLES to the Pluto; five true SMA jacks\n")
+    return d
+
+
+@test("E-ADR does not demand an invariant from a SUPERSEDED protection ADR")
+def t_adr_superseded_is_skipped():
+    """THE DECLARED GAP O8b (2026-07-28). protection_adrs() excluded only
+    `0000-example` and never read `status:`, so a topology ADR whose decision
+    had been REVERSED was still required to emit a machine-checkable
+    invariant. pluto-cal-switch ADR-0006 (SMA->SMP adapters on the Pluto) was
+    reversed outright by ADR-0015 (SMA cables, five true SMA jacks): there is
+    no topology left to assert, and E-ADR reported FAIL 11/12 for a hole that
+    cannot be filled.
+
+    It was declared as a gap rather than gamed by retagging the ADR — the
+    right call, and the reason the fix belongs in the GATE: deleting a live
+    ADR's `topology` tag to silence a checker would have left the next reader
+    a lie in the decision record.
+
+    MEASURED on the real tree: pluto-cal-switch goes from 12 protection ADRs
+    (11 cited, FAIL) to 10 (10 cited, PASS). The two dropped are 0006
+    (superseded-by-0015) and 0004 (superseded-by-0016).
+
+    RED-VERIFIED 2026-07-28 (git-swap, tests/README step 3): with git HEAD's
+    electrical_invariants.py swapped back in this fails with `E-ADR on a
+    superseded ADR should have exited 0, got 1` and the report naming
+    `ADR 0006 ... the intent loop is not closed`. Restored, it passes.
+    """
+    d = superseded_project("superseded-by-0015")
+    r = must_pass(einv(d, "--adr-coverage"), "E-ADR on a superseded ADR")
+    check("ADR 0006" not in r.out,
+          f"a withdrawn decision is still being demanded:\n{r.out}")
+
+
+@test("E-ADR STILL FAILS a protection ADR that is not superseded — the skip "
+      "reads the STATUS, not the presence of the word", kind="known_bad")
+def t_adr_non_superseded_still_fails():
+    """The other half of the property, and the one that matters: a status read
+    too loosely turns the whole gate off. Same fixture, same open loop, the
+    ONE difference being `status: accepted`.
+
+    The three shapes here are the ones that could go wrong, each broken in
+    exactly one way from the passing case:
+      * `accepted` — the ordinary live ADR. MUST still FAIL.
+      * `accepted   # proposed | accepted | rejected | superseded-by-0012` —
+        THE TEMPLATE'S OWN PLACEHOLDER, on 10 live ADRs across the fleet. The
+        word `superseded` is present, in a COMMENT. Reading it as the status
+        would silently un-grade a tenth of the fleet's ADRs. This is the S-VER
+        defect verbatim (a `verified:` inside a comment shadowing the real
+        key), which is why it is asserted here rather than trusted.
+      * `proposed` — not yet decided is not withdrawn.
+    """
+    for status in ("accepted",
+                   "accepted   # proposed | accepted | rejected | "
+                   "superseded-by-0012",
+                   "proposed"):
+        d = superseded_project(status)
+        r = must_fail(einv(d, "--adr-coverage"),
+                      f"E-ADR on status={status!r}", "ADR 0006")
+        contains(r.out, "loop is not closed", f"status={status!r} report")
+
+
 @test("E-ADR sees an uncited protection ADR headed '# ADR-NNNN' (the vacuous-"
       "pass regex bug)", kind="known_bad")
 def t_adr_uncited_adr_prefix():

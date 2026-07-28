@@ -692,9 +692,48 @@ def _adr_tags(text):
     return m.group(1) if m else ""
 
 
+def _adr_status(text):
+    """The ADR's front-matter `status:`, lowercased, comment stripped.
+
+    Read from the `---` FRONT MATTER ONLY. The word `status:` occurs in ADR
+    PROSE ("its status: superseded") often enough that a whole-file grep is a
+    liability — the S-VER defect verbatim, where a cross-reference inside a
+    comment shadowed the real key.
+    """
+    m = re.match(r"\s*---\s*\n(.*?)\n---\s*$", text, re.S | re.M)
+    if not m:
+        return ""
+    s = re.search(r"^status:\s*(.+)$", m.group(1), re.M)
+    if not s:
+        return ""
+    # `status: accepted    # proposed | accepted | rejected | superseded-by-0012`
+    # is the TEMPLATE's own placeholder line and appears on 10 live ADRs. The
+    # value is `accepted`; the vocabulary reminder after the `#` is a comment
+    # and must never be read as the status.
+    return re.split(r"\s+#", s.group(1))[0].strip().lower()
+
+
 def protection_adrs(decisions_dir):
     """[(number, title)] for every ADR whose title/tags mark it
-    protection|topology|input-protection (0000-example excluded)."""
+    protection|topology|input-protection.
+
+    EXCLUDED: `0000-example` (the template), and any ADR whose front-matter
+    `status:` starts with `superseded`.
+
+    WHY THE STATUS READ (2026-07-28, declared gap O8b). E-ADR demanded an
+    invariant from every protection/topology ADR ever written, including ones
+    whose decision NO LONGER EXISTS. pluto-cal-switch ADR-0006 (SMA->SMP
+    adapters on the Pluto) was reversed outright by ADR-0015 (SMA cables, five
+    true SMA jacks); there is no topology left to assert, and E-ADR reported
+    FAIL 11/12 for a hole that cannot be filled. The gap was DECLARED rather
+    than gamed by retagging the ADR, which is the right call and also why the
+    fix belongs here: retagging would have hidden a live ADR's protection tag
+    to silence a checker, and the next reader would have inherited a lie.
+
+    A superseded ADR's invariants do not vanish — they moved to its successor,
+    which is itself graded. What is dropped is the DEMAND on a decision that
+    was withdrawn.
+    """
     out = []
     for f in sorted(Path(decisions_dir).glob("*.md")):
         if f.name == "contracts.md" or f.name.startswith("0000"):
@@ -703,6 +742,8 @@ def protection_adrs(decisions_dir):
         if not m:
             continue
         text = f.read_text()
+        if _adr_status(text).startswith("superseded"):
+            continue
         title = _adr_title(text)
         if PROT_RE.search(title) or PROT_RE.search(_adr_tags(text)):
             out.append((m.group(1), title))

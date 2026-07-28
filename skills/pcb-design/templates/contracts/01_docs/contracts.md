@@ -367,7 +367,11 @@ throughout (protection ADR mandatory; split planes, trunk-instead-of-pour,
 and any policy waiver each need a written decision). A protection/topology
 ADR is not complete until it emits >= 1 assertion into
 `03_src/rules/electrical_invariants.yaml` (canon E-INV); **E-ADR** flags a
-protection ADR that emits none. For a self-powered board the protection ADR
+protection ADR that emits none. **A SUPERSEDED ADR IS EXEMPT** — E-ADR skips
+any ADR whose front-matter `status:` starts with `superseded`, so a reversed
+decision is not asked to assert a topology that no longer exists. SUPERSEDE
+BY STATUS, never by retagging: deleting a live ADR's `protection`/`topology`
+tag to quiet the checker leaves the decision record lying to the next reader. For a self-powered board the protection ADR
 must also settle OFF-CONTROL (de-energization) + stored quiescent draw,
 emitted to `03_src/rules/power_tree.yaml` where **E-OFF** gates it; a regulated
 rail feeding a known load pins its `load_uv_threshold` + `ir_budget_mohm` there
