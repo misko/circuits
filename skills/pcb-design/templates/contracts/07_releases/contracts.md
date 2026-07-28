@@ -409,6 +409,50 @@ board and FAILs. Motivating case: crow-recorder-central-v2 v1.5 (2026-07-27)
 — its BOM was uploaded to JLCPCB and the parts "were not being picked up by
 their web processing".
 
+**SOURCING supersede mode.** The case ALL FOUR modes above correctly
+refuse, and the one that had to be built twice before it was built once
+(canon **M8**, two-strike promotion). JLC will not SUPPLY a line: the part
+is at stock 0 at the order quantity, or the uploader returns a shortfall.
+The fix substitutes an electrically identical part **at source** and moves
+no copper — `MPN` and `LCSC` change together on the affected rows and
+nothing else in the payload changes at all. docs-only refuses (fab/
+changed), cpl-only permits only coordinates, bom-only permits only row
+REMOVAL, and legible-bom explicitly FAILs a changed LCSC (correctly — when
+it was written, a changed LCSC could only be the C82317 → C131025
+accident). Gate it with `--sourcing-supersede <prior-release-dir>`, which
+asserts, none of it waivable:
+
+- the `source/*.kicad_pcb` is **md5-IDENTICAL** and the hash is PRINTED;
+- `fab/cpl.csv` is **byte-identical** — a substitution moves no placement,
+  so an unchanged CPL is what makes "drop-in" mean something;
+- every gerber and drill is identical after stripping **only the plot's own
+  timestamps** (`%TF.CreationDate`, `G04 Created by`, the Excellon date
+  line and its `; #@! TF.CreationDate` twin) — so a **RE-PLOT from this
+  release's own board is ACCEPTED**, which is stronger evidence than a
+  byte-copy, and any other difference is copper;
+- `fab/bom.csv` keeps its **row count and its designator groups in the same
+  order**, and the ONLY cells permitted to move are `MPN` + `LCSC`,
+  together, on the substituted rows. A `Comment` or `Footprint` change
+  FAILs; an `MPN` moving where the `LCSC` did not FAILs and is redirected
+  to `--legible-bom-supersede`;
+- no substituted row is left with a blank `MPN` or a blank/malformed
+  `LCSC`, and the new BOM **PASSES `bom_legibility_check`** (taken from the
+  F-LEGIBLE gate itself, not re-implemented — ONE grader, canon M1);
+- a `source/*.tsx` **CHANGED** (canon M3): a `fab/bom.csv` that moved
+  without its source is a HAND-EDITED BOM, the defect crow-mic-pod-v2 paid
+  for on 2026-07-27;
+- and **BOTH codes of every substitution are NAMED in MANIFEST.txt or the
+  order README**, so the diff is auditable by someone who was not here.
+
+Motivating cases: usb-hub-3s-v3 v1.11 (2026-07-27) sealed this exact shape
+gated by **SEVEN individually-measured file waivers** because the mode did
+not exist — weaker evidence than the release it superseded, since every one
+of those measurements is machine-checkable; and crow-recorder-central-v2
+v1.7 (`C25767` → `C138030`, 220 kΩ at `R_vb1`, stock 0 at the 5-board
+quantity), the second board, which is what makes promotion mandatory. Do
+NOT reach for `--allow-identical` waivers here: an assertion the gate makes
+beats a waiver a human writes.
+
 **CPL-only supersede mode.** When the new release changes ONLY
 `fab/cpl.csv` — a PLACEMENT fix — gate the staging with
 `release_freshness_check.py <release_dir> --cpl-only-supersede

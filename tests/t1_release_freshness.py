@@ -790,6 +790,299 @@ def t_kb_legible_bom_other_fab_file():
     contains(r.out, "demo_gerbers.zip", "names the deviating file")
 
 
+# ------------------------------------------ sourcing supersede mode (canon M8)
+# RED-VERIFIED 2026-07-27 (tests/README step 3, GIT-SWAP variant): with
+# `git show HEAD:skills/jlcpcb-fab/scripts/release_freshness_check.py` swapped
+# back in, EVERY test in this section dies on "unrecognized arguments:
+# --sourcing-supersede" (argparse exit 2, carrying none of the asserted
+# findings) — the mode cannot pass vacuously, because it did not exist.
+# MEASURED: pre-fix `--only=sourcing` reports **0 passed, 14 failed, 0
+# known-bad**; the fixed script restored, **14 passed, 0 failed, 13 known-bad**.
+# Acceptance beyond the fixtures: the mode PASSES the REAL sealed
+# usb-hub-3s-v3 v1.11 against v1.10 (10 measured notes replacing the seven file
+# waivers that release shipped) and the REAL crow-recorder-central-v2 v1.7
+# against v1.6.
+#
+# WHY THE MODE EXISTS. JLC refusing to SUPPLY a line is neither a design defect
+# nor a paperwork defect. usb-hub-3s-v3 v1.10's BOM was uploaded and line 8 came
+# back "10 shortfall" (C25744, the only basic-library 10k 0402, stockCount 0);
+# the fix substitutes an electrically identical part AT SOURCE and moves no
+# copper. None of the four earlier modes covers that: docs-only requires fab/
+# byte-identical, cpl-only permits only coordinates, bom-only only ROW REMOVAL,
+# and legible-bom explicitly FAILS a changed LCSC. So v1.11 sealed gated by
+# SEVEN hand-written file waivers instead of an assertion — weaker evidence than
+# the release it superseded. crow-recorder-central-v2 v1.7 is the second board
+# needing it, and canon M8 makes the second one MANDATORY.
+_BOM_SUB_PRIOR = (_BOM_HDR + "100nF,\"C1,C2\",C_0603,CC0603KRX7R9BB104,C14663\n"
+                  "10k,R1,R_0402,0402WGF1002TCE,C25744\n")
+_BOM_SUB_NEW = (_BOM_HDR + "100nF,\"C1,C2\",C_0603,CC0603KRX7R9BB104,C14663\n"
+                "10k,R1,R_0402,RC0402FR-0710KL,C60490\n")
+_TSX_PRIOR = ('<resistor name="R1" resistance="10k" footprint="0402"\n'
+              '  supplierPartNumbers={{ jlcpcb: ["C25744"] }} />\n')
+_TSX_NEW = ('<resistor name="R1" resistance="10k" footprint="0402"\n'
+            '  supplierPartNumbers={{ jlcpcb: ["C60490"] }} />\n')
+#: the substitution documented where a later reader will find it
+_SUB_NOTE = ("\nSourcing: R1's 10k moves C25744 (0402WGF1002TCE, stock 0) -> "
+             "C60490 (RC0402FR-0710KL, stock 8220334). No copper change.\n")
+
+
+def _real_zip(tag, drill_date="2026-07-25"):
+    """A REAL zip carrying one gerber, so the timestamp-strip comparison is
+    exercised on a parseable archive rather than on an opaque blob."""
+    import io
+    import zipfile
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("demo-F_Cu.gbr",
+                   f"%TF.CreationDate,{drill_date}T10:00:00*%\n"
+                   f"G04 Created by KiCad on {drill_date}*\n"
+                   f"G04 layer {tag}*\nX100Y100D02*\nM02*\n")
+    return buf.getvalue()
+
+
+def sourcing_root(*, cur_bom=None, prior_bom=None, cur_tsx=None,
+                  cur_cpl=None, note=_SUB_NOTE):
+    """A prior release and a sourcing supersede of it: one BOM row's MPN+LCSC
+    move, the .tsx that produced them moves with it (canon M3), and everything
+    else — board, CPL, gerbers, drills — is untouched."""
+    root, d1, d2 = bom_only_root()
+    for d, bom, tsx in ((d1, prior_bom or _BOM_SUB_PRIOR, _TSX_PRIOR),
+                        (d2, cur_bom or _BOM_SUB_NEW, cur_tsx or _TSX_NEW)):
+        (d / "fab" / "bom.csv").write_text(bom)
+        (d / "fab" / "cpl.csv").write_text(_CPL)
+        (d / "source").mkdir(exist_ok=True)
+        (d / "source" / "demo.kicad_pcb").write_text("(kicad_pcb (version 20241229))\n")
+        (d / "source" / "demo.tsx").write_text(tsx)
+        (d / "fab" / "demo_gerbers.zip").write_bytes(_real_zip("demo"))
+        (d / "fab" / "demo-PTH.drl").write_text(
+            "; DRILL file {KiCad} date 2026-07-25\nM48\nT1C0.300\nM30\n")
+        # A-STOCK is a DIFFERENT check with its own teeth; satisfy it for
+        # whichever code this side of the substitution actually ships, so these
+        # fixtures isolate the sourcing-delta assertion and nothing else.
+        import re as _re
+        (d / "verification" / "stock_check.json").write_text(json.dumps({
+            "tool": "jlc_stock_check.py", "bom": "fab/bom.csv",
+            "min_stock_per_board": 5, "verdict": "PASS",
+            "failures": [], "uncoded_lines": [],
+            "lines": [{"lcsc": c, "designators": "R1", "qty": 1,
+                       "status": "OK", "stock": 8220334}
+                      for c in sorted(set(_re.findall(r"C\d{4,}", bom)))]}))
+    if cur_cpl:
+        (d2 / "fab" / "cpl.csv").write_text(cur_cpl)
+    (d2 / "ORDER_README.md").write_text(
+        _README_FINAL.format(ver="1.4") + note)
+    return root, d1, d2
+
+
+def sgate(d2, d1, *extra):
+    return gate(d2, "--sourcing-supersede", str(d1), *extra)
+
+
+@test("release_freshness --sourcing-supersede PASSES a part substitution: "
+      "MPN+LCSC move on one row, the .tsx moves with it, nothing else does")
+def t_sourcing_pass():
+    """The usb-hub-3s-v3 v1.11 shape, which shipped gated by seven file
+    waivers because this mode did not exist."""
+    _, d1, d2 = sourcing_root()
+    r = must_pass(sgate(d2, d1), "a true sourcing supersede")
+    contains(r.out, "sourcing supersede", "the mode should be announced")
+    contains(r.out, "md5", "the copper claim must carry a NUMBER")
+    contains(r.out, "fab/cpl.csv byte-identical",
+             "the placement datum is asserted unmoved")
+    contains(r.out, "C25744(0402WGF1002TCE) -> C60490(RC0402FR-0710KL)",
+             "both codes AND both MPNs are recorded for a later auditor")
+    contains(r.out, "0 added, 0 removed, 0 reordered",
+             "the delta shape should be explicit")
+    contains(r.out, "canon M3", "the source-moved assertion is named")
+    contains(r.out, "FRESHNESS: PASS", "verdict")
+    # every stricter mode must still refuse this tree — the modes are distinct
+    rd = must_fail(dgate(d2, d1), "docs-only must still refuse a fab change",
+                   "DOCS-ONLY DEVIATION")
+    contains(rd.out, "fab/bom.csv", "names the file docs-only refuses")
+    rl = must_fail(lgate(d2, d1), "legible-bom must still refuse a changed LCSC",
+                   "LEGIBLE-BOM DEVIATION")
+    contains(rl.out, "LCSC changed", "for its own good reason")
+    rb = must_fail(bgate(d2, d1), "bom-only must still refuse an EDITED row",
+                   "BOM-ONLY DEVIATION")
+    contains(rb.out, "EDITED", "bom-only refuses it for its own good reason")
+
+
+@test("release_freshness --sourcing-supersede FAILS a changed FOOTPRINT — a "
+      "different land pattern is a different board, not a substitution",
+      kind="known_bad")
+def t_kb_sourcing_footprint_change():
+    """A part substitution is the ONE BOM edit that CAN reach the copper: a
+    replacement in a different package needs new pads. Break the clean case in
+    exactly one way — the substituted row's Footprint moves too."""
+    bad = (_BOM_HDR + "100nF,\"C1,C2\",C_0603,CC0603KRX7R9BB104,C14663\n"
+           "10k,R1,R_0805,RC0402FR-0710KL,C60490\n")
+    _, d1, d2 = sourcing_root(cur_bom=bad)
+    r = must_fail(sgate(d2, d1), "a smuggled footprint change",
+                  "SOURCING DEVIATION")
+    contains(r.out, "Footprint changed", "names the column that moved")
+    contains(r.out, "different board", "says what a footprint change means")
+    contains(r.out, "R1", "names the offending ref")
+
+
+@test("release_freshness --sourcing-supersede FAILS a DROPPED BOM row — a "
+      "substitution changes which part a row buys, never how many rows there "
+      "are", kind="known_bad")
+def t_kb_sourcing_dropped_row():
+    _, d1, d2 = sourcing_root(
+        cur_bom=_BOM_HDR + "10k,R1,R_0402,RC0402FR-0710KL,C60490\n")
+    r = must_fail(sgate(d2, d1), "a dropped row must block",
+                  "SOURCING DEVIATION")
+    contains(r.out, "data row", "reports the row counts")
+    contains(r.out, "--bom-only-supersede", "names the mode that WOULD apply")
+
+
+@test("release_freshness --sourcing-supersede FAILS a REORDERED designator "
+      "list — a BOM that cannot be diffed cell-by-cell cannot be asserted "
+      "about at all", kind="known_bad")
+def t_kb_sourcing_reordered():
+    swapped = (_BOM_HDR + "10k,R1,R_0402,RC0402FR-0710KL,C60490\n"
+               "100nF,\"C1,C2\",C_0603,CC0603KRX7R9BB104,C14663\n")
+    _, d1, d2 = sourcing_root(cur_bom=swapped)
+    r = must_fail(sgate(d2, d1), "a reordered BOM must block",
+                  "SOURCING DEVIATION")
+    contains(r.out, "CONTENT OR ORDER", "says what is wrong")
+
+
+@test("release_freshness --sourcing-supersede FAILS a BLANKED MPN on the "
+      "substituted row — that row is exactly the one a human must check",
+      kind="known_bad")
+def t_kb_sourcing_blank_mpn():
+    blank = (_BOM_HDR + "100nF,\"C1,C2\",C_0603,CC0603KRX7R9BB104,C14663\n"
+             "10k,R1,R_0402,,C60490\n")
+    _, d1, d2 = sourcing_root(cur_bom=blank)
+    r = must_fail(sgate(d2, d1), "a blank MPN must block", "SOURCING")
+    contains(r.out, "MPN is BLANK", "names the defect")
+    contains(r.out, "F-MPN", "points at the canon it violates")
+
+
+@test("release_freshness --sourcing-supersede FAILS a HAND-EDITED BOM: the "
+      "row moved but no source/*.tsx did (canon M3)", kind="known_bad")
+def t_kb_sourcing_hand_edited_bom():
+    """The defect crow-mic-pod-v2 paid for on 2026-07-27. A bom.csv that
+    changed without its source changing is not regenerable, so the next
+    rebuild silently restores the out-of-stock code."""
+    _, d1, d2 = sourcing_root(cur_tsx=_TSX_PRIOR)      # tsx left untouched
+    r = must_fail(sgate(d2, d1), "a hand-edited BOM must block",
+                  "SOURCING DEVIATION")
+    contains(r.out, "HAND-EDITED BOM", "names the defect")
+    contains(r.out, "canon M3", "names the canon")
+
+
+@test("release_freshness --sourcing-supersede FAILS an undocumented "
+      "substitution — BOTH codes must be recorded in MANIFEST/README",
+      kind="known_bad")
+def t_kb_sourcing_undocumented():
+    """A release whose only reason to exist is legible solely as a CSV diff
+    against a release nobody will still have is not auditable later."""
+    _, d1, d2 = sourcing_root(note="\n")
+    r = must_fail(sgate(d2, d1), "an unrecorded substitution must block",
+                  "SOURCING DEVIATION")
+    contains(r.out, "C25744", "names the code that left")
+    contains(r.out, "C60490", "names the code that arrived")
+    contains(r.out, "MANIFEST", "says where it must be recorded")
+
+
+@test("release_freshness --sourcing-supersede FAILS a moved CPL — a "
+      "substitution that moves a placement is not a drop-in", kind="known_bad")
+def t_kb_sourcing_cpl_moved():
+    moved = ("Designator,Val,Package,Mid X,Mid Y,Layer,Rotation\n"
+             "C1,100nF,C_0603,10,-8.6975,top,0.0\n"
+             "C2,100nF,C_0603,12,-10,top,0.0\n"
+             "R1,10k,R_0603,14,-10,top,0.0\n")
+    _, d1, d2 = sourcing_root(cur_cpl=moved)
+    r = must_fail(sgate(d2, d1), "a moved CPL must block", "SOURCING DEVIATION")
+    contains(r.out, "fab/cpl.csv differs", "names the file")
+    contains(r.out, "not a drop-in", "says what it implies")
+
+
+@test("release_freshness --sourcing-supersede FAILS a CHANGED BOARD — the "
+      "copper claim is the one this mode most needs to make", kind="known_bad")
+def t_kb_sourcing_board_changed():
+    _, d1, d2 = sourcing_root()
+    (d2 / "source" / "demo.kicad_pcb").write_text(
+        "(kicad_pcb (version 20241229) (generator moved))\n")
+    r = must_fail(sgate(d2, d1), "a changed board must block",
+                  "SOURCING DEVIATION")
+    contains(r.out, "md5", "reports both hashes")
+    contains(r.out, "never the copper", "says what the mode does not permit")
+
+
+@test("release_freshness --sourcing-supersede FAILS a CHANGED GERBER while "
+      "ACCEPTING a re-plot of the same copper (the timestamp strip is exactly "
+      "as wide as the plot's own stamp)", kind="known_bad")
+def t_kb_sourcing_gerber_changed():
+    """Two halves of ONE property, because a strip list that is too wide is as
+    wrong as one that is too narrow. First: re-plot the SAME copper on a
+    different day — accepted. Then change the copper itself — refused."""
+    _, d1, d2 = sourcing_root()
+    (d2 / "fab" / "demo_gerbers.zip").write_bytes(
+        _real_zip("demo", drill_date="2026-07-27"))     # a RE-PLOT, same copper
+    (d2 / "fab" / "demo-PTH.drl").write_text(
+        "; DRILL file {KiCad} date 2026-07-27\nM48\nT1C0.300\nM30\n")
+    must_pass(sgate(d2, d1), "a re-plot of the same copper is accepted")
+    (d2 / "fab" / "demo_gerbers.zip").write_bytes(
+        _real_zip("demo-MOVED", drill_date="2026-07-27"))   # the copper MOVED
+    r = must_fail(sgate(d2, d1), "a changed plot must block",
+                  "SOURCING DEVIATION")
+    contains(r.out, "demo_gerbers.zip", "names the file")
+    contains(r.out, "is COPPER, not paperwork", "says what a difference means")
+
+
+@test("release_freshness --sourcing-supersede FAILS when NO row changed its "
+      "LCSC — a supersede that substitutes nothing supersedes nothing",
+      kind="known_bad")
+def t_kb_sourcing_no_substitution():
+    _, d1, d2 = sourcing_root(cur_bom=_BOM_SUB_PRIOR)
+    r = must_fail(sgate(d2, d1), "an empty sourcing supersede", "SOURCING")
+    contains(r.out, "supersedes nothing", "says why it is refused")
+    contains(r.out, "--docs-only-supersede", "names the mode that WOULD apply")
+
+
+@test("release_freshness --sourcing-supersede FAILS an MPN-only edit — "
+      "rewriting how a row READS is --legible-bom-supersede's job",
+      kind="known_bad")
+def t_kb_sourcing_mpn_only():
+    """The two modes must not overlap: if an MPN could move here without its
+    LCSC, a legibility rewrite could be laundered through a sourcing claim and
+    never face F-LEGIBLE's before/after assertion."""
+    reworded = (_BOM_HDR + "100nF,\"C1,C2\",C_0603,CC0603KRX7R9BB104,C14663\n"
+                "10k,R1,R_0402,0402WGF1002TCE-SPELLED-DIFFERENTLY,C25744\n")
+    _, d1, d2 = sourcing_root(cur_bom=reworded)
+    r = must_fail(sgate(d2, d1), "an MPN-only edit must block",
+                  "SOURCING DEVIATION")
+    contains(r.out, "while its LCSC did not", "says what distinguishes them")
+    contains(r.out, "--legible-bom-supersede", "names the mode that applies")
+
+
+@test("release_freshness --sourcing-supersede still refuses a NON-BOM, "
+      "NON-PLOT fab change (the exemption is exactly one file)",
+      kind="known_bad")
+def t_kb_sourcing_other_fab_file():
+    _, d1, d2 = sourcing_root()
+    (d2 / "fab" / "notes.txt").write_text("an extra fab artifact\n")
+    r = must_fail(sgate(d2, d1), "an added fab file must block",
+                  "DOCS-ONLY DEVIATION")
+    contains(r.out, "notes.txt", "names the deviating file")
+
+
+@test("release_freshness --sourcing-supersede FAILS a BOM that does not pass "
+      "F-LEGIBLE — a substituted code nobody can look up is not sourced",
+      kind="known_bad")
+def t_kb_sourcing_illegible():
+    """The verdict comes from the F-LEGIBLE gate itself, not from this file's
+    own opinion (ONE grader, canon M1): the new code resolves no MPN."""
+    bad = (_BOM_HDR + "100nF,\"C1,C2\",C_0603,CC0603KRX7R9BB104,C14663\n"
+           "10k,R1,R_0402,NOT-A-REAL-MPN,C99999999\n")
+    _, d1, d2 = sourcing_root(cur_bom=bad)
+    r = must_fail(sgate(d2, d1), "an illegible BOM must block", "SOURCING")
+    contains(r.out, "FAILS F-LEGIBLE", "quotes the other gate's verdict")
+
+
 # ----------------- board-prefixed release names (the _version_key silent skip)
 # Found 2026-07-24: _version_key matched only names STARTING with 'v', so
 # every board-prefixed release (cooksense-v1.1-…, crow-mic-pod-v2-v1.0-…,

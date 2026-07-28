@@ -1,0 +1,4 @@
+table rows: 73; files on disk (excl MANIFEST): 73
+unlisted files: []
+orphaned rows:  []
+sha256sum -c: exit 0, 0 problem line(s)

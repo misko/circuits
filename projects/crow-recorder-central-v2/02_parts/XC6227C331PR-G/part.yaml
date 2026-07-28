@@ -40,18 +40,30 @@ limits:
 # Both CITED (canon M-IMPORT) from the LOCAL datasheet copy beside this file,
 # XC6227_ETR03054-006.pdf (sha256 in `datasheet:` above).
 #
-# dropout_mv 200 — OUTPUT VOLTAGE CHART, Voltage Chart 2, p.6/23, the
-#   VOUT(T) = 3.30 V row: "DROPOUT VOLTAGE 1, Vdif" typ 120 mV, MAX 200 mV.
+# PAGE ANCHORS CORRECTED 2026-07-27 (v1.7): all three were LOW BY ONE. The
+#   VALUES, table names, rows and conditions were and are correct and every
+#   derived grade recomputes unchanged — but a citation that does not resolve is
+#   a citation nobody can re-check, which is the whole point of M-IMPORT. The
+#   off-by-one is a one-dossier transcription slip: the TCR2LF18 dossier beside
+#   it is exact, so there is no systematic reader offset to correct elsewhere.
+#   Re-derived from the archived PDF page images, independently of the report
+#   that raised it (canon M1 — checker and checked must not share a method).
+#
+# dropout_mv 200 — OUTPUT VOLTAGE CHART (Continued), Voltage Chart 2, p.7/23,
+#   the VOUT(T) = 3.30 V row: "DROPOUT VOLTAGE 1, Vdif" typ 120 mV, MAX 200 mV.
+#   NOT p.6/23: that page is Voltage Chart 1, which ENDS at VOUT(T) = 3.00 and
+#   has no 3.30 row at all — the anchor pointed at a table that cannot contain
+#   the number.
 #   The parameter's condition is defined in ELECTRICAL CHARACTERISTICS,
-#   p.4/23: "Dropout Voltage1 Vdif, IOUT = 300 mA, VCE = VIN". THE MAX IS
+#   p.5/23: "Dropout Voltage1 Vdif, IOUT = 300 mA, VCE = VIN" (E-2). THE MAX IS
 #   TAKEN, NOT THE 120 mV TYP the front page advertises.
 #   ON THE LOAD-CURRENT CAVEAT: quoted at 300 mA, and the 3V3A rail draws
 #   ~80 mA — LESS, so this bounds it. The datasheet PROVES the monotonicity
-#   itself rather than leaving it to inference: the same 3.30 V row gives
-#   "DROPOUT VOLTAGE 2, Vdif2" at IOUT = 0 mA as 40 mV typ / 80 mV max, i.e.
-#   dropout RISES from 80 mV at 0 mA to 200 mV at 300 mA. 80 mA sits inside
+#   itself rather than leaving it to inference: the same 3.30 V row (p.7/23)
+#   gives "DROPOUT VOLTAGE 2, Vdif2" at IOUT = 0 mA as 40 mV typ / 80 mV max,
+#   i.e. dropout RISES from 80 mV at 0 mA to 200 mV at 300 mA. 80 mA sits inside
 #   that span and 200 mV is its upper bound.
-# pdiss_max_mw 500 — ABSOLUTE MAXIMUM RATINGS, p.3/23, the table's own row
+# pdiss_max_mw 500 — ABSOLUTE MAXIMUM RATINGS, p.4/23, the table's own row
 #   label states Ta = 25C: "Power Dissipation (Ta=25C), SOT-89-5: 500 (IC
 #   only) / 1300 (40mm x 40mm Standard Board) / 1750 (JESD51-7 Board)", with
 #   the note "(*1) The power dissipation figure shown is PCB mounted and is

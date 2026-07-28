@@ -1,0 +1,14 @@
+== release-freshness: crow-recorder-central-v2-v1.7-2026-07-27 == [sourcing supersede of crow-recorder-central-v2-v1.6-2026-07-27]
+  note: fab/ byte-identical to crow-recorder-central-v2-v1.6-2026-07-27 (1 file(s)) — ASSERTED by sourcing mode
+  note: source/ byte-identical to crow-recorder-central-v2-v1.6-2026-07-27 (11 file(s)) — ASSERTED by sourcing mode
+  note: 3d/ byte-identical to crow-recorder-central-v2-v1.6-2026-07-27 (1 file(s)) — ASSERTED by sourcing mode
+  note: source/crow_recorder_central_v2.kicad_pcb md5 de39e145e856cb14d491770c77d1ec0a — IDENTICAL to crow-recorder-central-v2-v1.6-2026-07-27's (ASSERTED)
+  note: fab/cpl.csv byte-identical to crow-recorder-central-v2-v1.6-2026-07-27's (174 rows) — ASSERTED
+  note: 3 gerber/drill payload file(s) identical to crow-recorder-central-v2-v1.6-2026-07-27's after stripping only the plot's own timestamps — ASSERTED (a re-plot is accepted; a changed plot is not)
+  note: source/crow_recorder_central_v2.tsx CHANGED — the BOM row moved because the source moved (canon M3)
+  note: F-LEGIBLE on this release (crow-recorder-central-v2-v1.7-2026-07-27): 0 finding(s)
+  note: 1 substitution(s), each recorded in MANIFEST/README: R_vb1 C25767(0402WGF2203TCE) -> C138030(RC0402FR-07220KL)
+  note: fab/bom.csv delta is 1 substituted row(s) over 49 row(s); 48 row(s) cell-identical; 0 added, 0 removed, 0 reordered, 0 Comment/Footprint changes — ASSERTED by sourcing mode
+  note: A-STOCK: grading verification/stock_check.json (47 graded line(s), verdict=FAIL) against 45 coded+placed BOM line(s) x 5 boards
+  note: A-STOCK: verification/stock_check.json verdict is FAIL but every problem line (C6938291, C9900035627) is unplaced or covered by a sourcing_plan entry
+FRESHNESS: PASS

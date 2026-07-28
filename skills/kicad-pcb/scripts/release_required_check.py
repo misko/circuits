@@ -45,6 +45,14 @@ from pathlib import Path
 #: a tree line: leading glyphs, the item, then its description column.
 TREE_RE = re.compile(r"^(?P<indent>[\s│]*)(?:├──|└──)\s*(?P<item>\S+)\s*(?P<desc>.*)$")
 
+#: a DIRECTORY node carrying contract METAVARIABLE syntax — `<version>-<date>`,
+#: `[<board>-]<version>-<date>`. Deliberately a SEPARATE name from
+#: PLACEHOLDER_RE below, which rewrites an artifact NAME into a glob: the two
+#: questions are different ("is this a real path component?" vs "what filename
+#: does this describe?"), and one regex answering both is how a widened
+#: contract form would silently change matching behaviour.
+METAVAR_DIR_RE = re.compile(r"[<>\[\]]")
+
 #: REQUIRED, but only under a condition the CONTRACT states. These are reported
 #: as CONDITIONAL and never as a hard failure — the tool cannot know whether a
 #: board is tscircuit-authored or whether a 3D model exists upstream, and
@@ -131,8 +139,20 @@ def parse(contract_path):
         stack[depth:] = [(item.rstrip("/"), req, cond)]
         if item.endswith("/"):
             continue                      # directories are containers, not artifacts
+        # A node describing the RELEASE ROOT is a METAVARIABLE, not a real
+        # directory: the root is whatever `release_dir` names. The filter used
+        # to be `startswith("<")`, which covered `<version>-<YYYY-MM-DD>/` and
+        # NOT the multi-board form the template itself now carries,
+        # `[<board>-]<version>-<YYYY-MM-DD>/` — so the literal string
+        # "[<board>-]<version>-<YYYY-MM-DD>" was prefixed onto EVERY artifact
+        # path and the gate reported "31 missing, 0 present" on a complete
+        # release (measured 2026-07-27 on crow-recorder-central-v2 v1.7 the
+        # moment its contract was re-synced from the template). A gate that
+        # cannot read the CANONICAL contract is broken against every project
+        # that syncs to it, so the test is "does this node contain placeholder
+        # syntax at all", not "does it start with one particular bracket".
         parent = "/".join(n for (n, _r, _c) in stack[:depth]
-                          if not n.startswith("<"))
+                          if not METAVAR_DIR_RE.search(n))
         entries.append({"dir": parent, "item": item,
                         "required": req, "conditional": cond})
     return entries, unparsed

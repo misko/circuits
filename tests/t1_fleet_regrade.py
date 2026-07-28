@@ -229,6 +229,7 @@ def t_confirms_clean_boards():
     live", then restored to green. The new assertion bites."""
     cols = ("F-PAYLOAD", "F-LEGIBLE", "A-EVID", "A-POP")
 
+
     def row(proj, rel):
         r = run([KPY, TOOL, "--project", proj])
         # the TABLE row, not a trailing detail line: detail lines start with a
@@ -244,14 +245,41 @@ def t_confirms_clean_boards():
               f"{len(cols)} — the table shape moved:\n{line[0]}")
         return line[0], dict(zip(cols, cells))
 
-    # SUPERSEDED, sealed before ADR-0006: the OLD gates must still pass and the
-    # NEW one must still bite. This is history being kept legible, not a defect.
-    for proj, rel in (("crow-recorder-central-v2", "v1.5-2026-07-25"),):
+    # MERGED 2026-07-27 from two concurrent agents, and BOTH halves were right
+    # about different things -- kept rather than picking a winner.
+    #
+    # From one: the `row()` helper above, which parses the TABLE row instead of
+    # a trailing detail line and ASSERTS the parsed cell count. A test that
+    # silently mis-parses a moved table is a test that grades nothing.
+    #
+    # From the other: A-EVID is not a fixed expectation, because it reads the
+    # project's OWN 07_releases/contracts.md -- so a CONTRACT RE-SYNC widens the
+    # gate by a second door. When crow-recorder-central-v2 synced its copy from
+    # the template at v1.7, the contract gained the two ADR-0006 artifacts
+    # (`verification/bom_legibility.txt`, `verification/bom_echo_gate.txt`) and
+    # v1.5, which predates ADR-0006 entirely, does not carry them. That is the
+    # same gap F-LEGIBLE already pins on that release, arriving through a
+    # different door, so it is PINNED the same way rather than excused.
+    #
+    # cooksense is expected PASS only while ITS contract copy is un-synced. When
+    # it syncs, this row moves -- record the move here rather than loosening the
+    # assertion, which is how an adopted-forward gap stops being visible.
+    expect_aevid = {"crow-recorder-central-v2": "FAIL",
+                    "smc0985-cooksense": "PASS"}
+    for proj, rel in (("crow-recorder-central-v2", "v1.5-2026-07-25"),
+                      ("smc0985-cooksense", "cooksense-v1.4-2026-07-26")):
         line, verdicts = row(proj, rel)
-        for gid in ("F-PAYLOAD", "A-EVID", "A-POP"):
+        for gid in ("F-PAYLOAD", "A-POP"):
             check(verdicts.get(gid) == "PASS",
                   f"{proj} {rel} was audited ORDERABLE but {gid} — a gate that "
-                  f"existed at its audit — now fails it:\n{line}")
+                  f"existed at its audit AND whose contract has not widened "
+                  f"since — now fails it:\n{line}")
+        check(verdicts.get("A-EVID") == expect_aevid[proj],
+              f"{proj} {rel} A-EVID is {verdicts.get('A-EVID')}, expected "
+              f"{expect_aevid[proj]}. A FAIL here is legitimate ONLY as the "
+              f"contract widening described above — check WHICH artifacts are "
+              f"missing before updating this expectation:\n{line}")
+
         check(verdicts.get("F-LEGIBLE") == "FAIL",
               f"{proj} {rel} unexpectedly PASSES F-LEGIBLE. It was sealed "
               f"before ADR-0006 and ships an unreadable BOM; if this is now a "

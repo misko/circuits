@@ -3,6 +3,42 @@
 One entry per REVISION (a design state, git-tagged). Reverse-chronological.
 `Released:` is `no`, or the name of the `07_releases/` directory that shipped it.
 
+## v1.7 — 2026-07-27
+- **SOURCING supersede of v1.6. NO COPPER CHANGE.** v1.6 is not wrong and its
+  board is this board; it is UNORDERABLE because JLC cannot SUPPLY one of its
+  47 coded lines.
+- **The blocker.** `C25767` (UNI-ROYAL 0402WGF2203TCE, 220 kΩ 0402, `R_vb1`)
+  reads `stockCount: 0`. It is ON the CPL (1 × 5 boards = 5 needed), carried no
+  `sourcing_plan:` and sat on no watch-list. **At the v1.6 seal it measured 16
+  and graded `OK`** — nothing distinguishes "clears 5× need" from "clears it by
+  eleven units", and the watch-list that release DID name (`C5224055` 383,
+  `C882626` 496) missed the line at 16.
+- **The substitution.** `C138030` / YAGEO `RC0402FR-07220KL`, stock **736 704**,
+  same 0402 land, catalog `describe` string **character-identical** (compared as
+  strings), same RC0402FR series as this board's existing `C60490`/`C105871`
+  swaps. Q-IDENT: the record's MPN exactly equals the authoritative MPN the
+  vetted passives ledger already holds for that code — a sourced line, not a
+  proposal. Changed at SOURCE (`supplierPartNumbers` in the `.tsx`), never in
+  the CSV (canon M3).
+- **The copper did not move, measured.** Board md5
+  `de39e145e856cb14d491770c77d1ec0a` identical across `04_kicad/`, v1.6 and
+  v1.7; gerbers+drills **17/17 byte-identical after the timestamp strip** when
+  RE-PLOTTED from this release's own board; `fab/cpl.csv` byte-identical;
+  `fab/bom.csv` 49 → 49 rows, designators identical in order, **exactly 2 cells
+  changed**, both on `R_vb1`.
+- **Gated by an assertion, not by waivers.** `release_freshness_check.py
+  --sourcing-supersede` landed with this release under canon M8 — usb-hub-3s-v3
+  v1.11 shipped the identical shape behind SEVEN hand-written file waivers.
+  v1.7 carries **zero** freshness waivers.
+- **Also carried in** (2026-07-27 order-readiness audit): two stale
+  ORDER_README sentences that were true at v1.4 and false from v1.6 on; a stale
+  `verification/twin_top.png` byte-identical to v1.5's, on which A-RENDER FAILED
+  while the same sealed BOARD renders faithfully — regenerated here; the first
+  ever F-PAYLOAD and A-RENDER reports for this board; and three page anchors in
+  `02_parts/XC6227C331PR-G/part.yaml` that were all low by one (values right,
+  citations unresolvable — under M-IMPORT that is the part that matters).
+- Released: `crow-recorder-central-v2-v1.7-2026-07-27`
+
 ## v1.6 — 2026-07-27
 - **BOM-LEGIBILITY supersede of v1.5, plus one rail declaration. NO COPPER
   CHANGE, and v1.5 is NOT DO-NOT-ORDER** — its board is this board.
