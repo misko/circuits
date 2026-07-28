@@ -1,233 +1,158 @@
-# SCHEMA EXAMPLE (skill-owned, project-independent). Adopted from a proven
-# board as a reference for the generic backend's config format. Copy into a
-# new project's 03_src/ and replace the values — the KEYS are the contract.
+# pluto-rx2-8way — route + stitch config for
+# skills/kicad-pcb/scripts/route_and_stitch_generic.py.
 #
-# cook-loadcell route + stitch — the whole per-board input to
-# skills/kicad-pcb/scripts/route_and_stitch_generic.py, replacing the
-# 86-line route_prep.py + 36-line route_waves.sh + 278-line stitch_and_fill.py.
+# ============================================================================
+# WHY THIS FILE WAS REWRITTEN, 2026-07-28 (stage 4). WHAT WAS HERE BEFORE WAS
+# THE SKILL'S SCHEMA EXAMPLE, UNEDITED — cook-loadcell's config, verbatim,
+# down to
+#     project: {name: cook_loadcell, board: 04_kicad/cook_loadcell.kicad_pcb}
+# and a 2-layer `layers: [F.Cu, B.Cu]` with `fab_tier: standard`.
+# `rebuild_reuse.sh` derives BOARD from floorplan.yaml (correctly,
+# `pluto_rx2_8way`) but EVERY route/stitch step reads THIS file, so the
+# routing stage would have opened, routed, stitched and gated a board file
+# that does not exist — or, worse on a shared tree, a DIFFERENT board's.
+# The same class of leftover was caught on a sibling board a day earlier
+# (a stale `project.name` that would have emitted the wrong .kicad_pcb).
 #
-#   /usr/bin/python3 ../../skills/kicad-pcb/scripts/route_and_stitch_generic.py \
-#       prep 03_src/route.yaml
-#   ~/gits/KiCadRoutingTools/.venv/bin/python \
-#       ../../skills/kicad-pcb/scripts/route_and_stitch_generic.py route 03_src/route.yaml
-#   /usr/bin/python3 ... import 03_src/route.yaml
-#   /usr/bin/python3 ... quick  03_src/route.yaml   # loop tool: seconds-fast
-#       unconnected + clearance/track_width verdict, pre-stitch (exit 1 dirty)
-#   /usr/bin/python3 ... stitch 03_src/route.yaml
+# ============================================================================
+# WHAT IS AUTHORITATIVE HERE AND WHAT IS NOT — read this before trusting a
+# number below.
 #
-# 55x45 2-layer. GND is NOT routed — F/B pours + stitch vias own it.
+#   AUTHORITATIVE (derived at stages 1-3, gated, and NOT to be "tuned"):
+#     * project identity + the board path
+#     * fab_tier `jlc_4layer_advanced` (ADR-0003; via/drill floors DERIVE
+#       from it — explicit sub-floor values are a hard error naming the tier)
+#     * the four-layer role assignment: L1 = F.Cu routing, L2 = In1.Cu SOLID
+#       GND and NOTHING ELSE, L3 = In2.Cu the digital escape layer,
+#       L4 = B.Cu GND (ARCHITECTURE sec 5/6)
+#     * the RF wave runs FIRST and on F.Cu ONLY, with NO VIAS anywhere in an
+#       arm (nets.yaml RF50 `intent:` — "a via's inductance depends on drill
+#       and plating, which are not specified per hole", and ADR-0006 sells
+#       CONSTANCY). Widening an RF50 track is as wrong as narrowing it.
+#     * track widths are OMITTED so they DERIVE from each wave's member
+#       netclass floors in rules/nets.yaml — the same source the .kicad_dru
+#       gate is generated from. An explicit width below a member's class
+#       floor is a hard error at prep; a silent ride-under is what cost
+#       usb-hub-3s 157 track_width findings on its first DRC.
+#
+#   NOT YET MEASURED — STAGE 6 OWNS THESE, and nothing below has been run:
+#     keepout rects, per-wave iteration budgets, the stitch pass ORDER and
+#     its per-pass parameters, seed stubs, taps, and the stitch grid extent.
+#     They are seeded from the schema example's SHAPE with this board's
+#     geometry substituted. Treat every one as a hypothesis until
+#     `route_and_stitch_generic.py quick` has measured it.
+# ============================================================================
 
 project:
-  name: cook_loadcell
-  board: 04_kicad/cook_loadcell.kicad_pcb
+  name: pluto_rx2_8way
+  board: 04_kicad/pluto_rx2_8way.kicad_pcb
   build_dir: 06_build/route
 
 prep:
   out: r0.kicad_pcb
   keepouts:
-    # User.2 = normal keepouts; User.3 = User.2 + the ANALOG GUARD, used by
-    # the bridge wave only (D5/3.7e, audit I-AN)
+    # User.2 = the normal keepout layer. User.3 = User.2 PLUS the RF fan, used
+    # by the DIGITAL waves only: the control bus and the QSPI bus must descend
+    # through the 225-315 degree escape sector on L3 and must never run
+    # parallel to an RF arm (nets.yaml CTRL/QSPI `routing:`).
     layers: [User.2, User.3]
-    mounting_holes: {radius: 3.0}      # M3 screw head + margin
-    edge_band: 0.7                     # KRT has no edge concept; dru floor 0.3
+    mounting_holes: {radius: 3.0}       # M3 head + margin, four at the corners
+    edge_band: 0.7                      # KRT has no edge concept; dru floor 0.3
     rects:
-      # the whole digital EAST region is keepout for the BRIDGE wave only
-      - {x0: 42.0, y0: 30.0, x1: 75.0, y1: 56.0, layer: User.3}
-      - {x0: 47.0, y0: 56.0, x1: 75.0, y1: 65.0, layer: User.3}
+      # THE RECEIVE FAN IS KEEPOUT FOR THE DIGITAL WAVES. The star centre is
+      # (46, 46) and the jack ring radius is 20.0, so the fan occupies
+      # roughly x 21..71, y 21..66. The digital strip starts at y ~ 65
+      # (below the lowest flange edge at y = 60.14 + 3.25).
+      - {x0: 21.0, y0: 21.0, x1: 71.0, y1: 65.0, layer: User.3}
   waves:
     exclude: ["GND", "unconnected-*"]
     groups:
-      an: [E_PLUS, S_PLUS, S_MINUS, RING_12, RING_23, RING_34, RING_41,
-           AVDD_FB, BASE]
-      pwr: [5V, 3V3]
-      sig: rest
+      # HARDEST FIRST (golden rule 4). The nine radial arms plus the pickoff
+      # cell claim the board before anything else is allowed to exist.
+      rf:   [ANT1, ANT2, ANT3, ANT4, ANT5, ANT6, ANT7,
+             RX1_MAIN, RX1_TAP_MID, RX1_TAP, RX2_OUT]
+      pwr:  [VBUS, VBUS_F, VBUS_LDO, 3V3, DVDD_1V1]
+      usb:  [USB_DP, USB_DM, USB_DP_MCU, USB_DM_MCU]
+      ctrl: [SEL_V1, SEL_V2, SEL_V3, SEL_V4, SW_V1, SW_V2, SW_V3, SW_V4]
+      qspi: [QSPI_SCLK, QSPI_CSN, QSPI_SD0, QSPI_SD1, QSPI_SD2, QSPI_SD3]
+      sig:  rest
 
 route:
   krt: ~/gits/KiCadRoutingTools
-  # race: 3      # KRT is stochastic — run N wave-chains CONCURRENTLY in
-  #   isolated temp dirs (06_build/route/race/cN), import each candidate
-  #   into a copy of the track-free board, evaluate each with `quick`, and
-  #   promote the MEASURED best: fewest routed-net unconnected, tie-break
-  #   fewest copper violations. Per-candidate numbers + the choice land in
-  #   06_build/route/race_log.json (auditable, never vibes). CLI --race N
-  #   overrides. Candidates see ROUTE_RACE_CANDIDATE in their environment.
-  # kicad_python: /usr/bin/python3   # interpreter race uses for import+quick
   common:
-    layers: [F.Cu, B.Cu]
-    # via_size / via_drill / clearance may be OMITTED: with a nets.yaml
-    # fab_tier declared they default to that tier's published floors
-    # (min_via_diameter / min_via_drill / min_space, fab_tiers.yaml).
-    # Explicit values below the tier floor are a hard error naming the tier
-    # — the clean-room 3S board routed 0.6/0.3 template vias on a tier whose
-    # floor was 0.45/0.3 and only DRC noticed (drill_out_of_range x2).
-    via_size: 0.6
-    via_drill: 0.3
-    fab_tier: standard
+    # L2 (In1.Cu) IS ABSENT FROM THIS LIST ON PURPOSE. It is the solid,
+    # unbroken reference under every RF arm and under the USB pair, and
+    # ARCHITECTURE sec 6 makes that the single most important routing rule on
+    # the board: nine arms sharing ONE reference is what makes their phases
+    # comparable at all. L4 (B.Cu) is a GND pour and is likewise not a
+    # routing layer here.
+    layers: [F.Cu, In2.Cu]
+    # via_size / via_drill / clearance OMITTED -> they default to the
+    # jlc_4layer_advanced floors published in fab_tiers.yaml (ADR-0003).
+    fab_tier: jlc_4layer_advanced
     no_stub_layer_swap: true
     keepout: true
     keepout_layer: User.2
-    # 0.21 not 0.15: 0.6/0.3 vias at 0.15 pack drills to ~0.45 < the 0.5
-    # hole-to-hole fab floor; 0.21 forces centres to 0.81 -> drill gap 0.51
-    clearance: 0.21
   waves:
-    # track_width may be OMITTED: it then DERIVES from the wave's member
-    # nets' netclass floors (rules/nets.yaml `classes` min_width — the same
-    # source the .kicad_dru gate is generated from), using the LARGEST
-    # member floor so no net rides under its class. An EXPLICIT width below
-    # a member net's class floor is a hard error at PREP naming the class —
-    # never a silent ride-under (v4 usb-hub-3s first DRC: 157 track_width
-    # findings, all waves routed below their class floors, 2026-07-21).
-    # HARDEST FIRST (golden rule 4): bridge nets claim the guarded west side
-    - {name: an,  group: an,  track_width: 0.5,  keepout_layer: User.3,
-       max_iterations: 400000}
-    - {name: pwr, group: pwr, track_width: 0.5,  max_iterations: 400000}
-    - {name: sig, group: sig, track_width: 0.25, max_iterations: 800000,
+    # RF FIRST, F.Cu ONLY, NO VIAS. Equal length is equal phase by
+    # construction (ADR-0007); a layer change inside an arm destroys the one
+    # property this board sells.
+    - {name: rf,   group: rf,   layers: [F.Cu], max_iterations: 400000}
+    - {name: pwr,  group: pwr,  max_iterations: 400000}
+    - {name: usb,  group: usb,  layers: [F.Cu], max_iterations: 400000}
+    - {name: ctrl, group: ctrl, keepout_layer: User.3, max_iterations: 600000}
+    - {name: qspi, group: qspi, keepout_layer: User.3, max_iterations: 600000}
+    - {name: sig,  group: sig,  keepout_layer: User.3, max_iterations: 800000,
        max_probe_iterations: 60000, max_ripup: 30}
-  # canon M3: the shipped board imports the PROMOTED chain file, not a
-  # fresh stochastic route. Delete this to re-route from scratch.
-  final: 03_src/route/r2.kicad_pcb
-
-# TAPS (canon M8 promotion: cook-hub u7 taps, then usb-pwr-hub-3s
-# route_taps.py). NAMED connections KRT cannot thread — pour-fed sense pins,
-# boxed-in connector pads, plane drops. Runs AFTER `import`, BEFORE `stitch`
-# (pours fill around the tap copper):
-#   /usr/bin/python3 .../route_and_stitch_generic.py taps 03_src/route.yaml
-# Strategy 1: same-layer direct/L/Z join; strategy 2: stub -> via ->
-# hop_layer join -> via -> stub. EVERY emitted segment/via is verified
-# against the live board's exact copper (pcb_toolkit); an unroutable tap is
-# a hard error, never a silent skip (a skipped tap resurfaces only as a DRC
-# unconnected item after fill). `plane: true` ends at a via AT the `to`
-# point (a point inside the net's inner plane, merged by the fill).
-#
-# A long pour-net pin tap's corridor is ORDER-fragile (KRT hugs the escape-
-# field lane edges). `reattempt` re-routes the WHOLE tap set longest-first
-# (most-constrained-first) on a fresh board when a tap fails — BOUNDED by
-# max_retries (default 2) and progress-gated, so it terminates and escalates
-# rather than spinning (the v1.1 U1 pour-pin recurrence, canon M8). A tap
-# still stuck after the bound is structurally fragile — promote it to a
-# deterministic stitch.seed_stubs (below), or fix placement (D-ADJ).
-#
-# taps:
-#   clearance: 0.15
-#   via: {size: 0.6, drill: 0.3}     # tier-derived when omitted
-#   reattempt: {max_retries: 2}      # bounded longest-first re-route on fail
-#   connections:
-#     - {net: VCC,  from: U1.4,  to: C8.1,         width: 0.3}
-#     - {net: CC1,  from: J5.A5, to: R10.2,        width: 0.25,
-#        layer: F.Cu, hop_layer: B.Cu}
-#     - {net: 5V,   from: R6.1,  to: [41.0, 46.5], width: 0.3, plane: true}
+  # canon M3: the shipped board imports the PROMOTED chain file, not a fresh
+  # stochastic route. NO CHAIN HAS BEEN PROMOTED YET — this key stays absent
+  # until stage 6 promotes one into 03_src/route/ and commits it. Its absence
+  # is what makes `import` a no-op today rather than a silent wrong replay.
+  # final: 03_src/route/rN.kicad_pcb
 
 stitch:
   clearance: 0.15
-  # spacing 0.85 center-to-center = 0.55mm drill-edge gap > the 0.5mm
-  # hole-to-hole floor (0.62 gave 0.32mm and a stochastic route tripped it)
-  # via size/drill may be OMITTED with a declared fab_tier (tier floors are
-  # the default); explicit sub-floor values are a hard error naming the tier.
-  # The same floors gate normalize_vias, hole_to_hole.shrink_to and the
-  # astar_fallback via pin (whose 0.45/0.2 toolkit default was below a
-  # 2-layer standard board's floors — crow-array-pod incident).
-  via: {size: 0.6, drill: 0.3, spacing: 0.85, pth_margin: 0.3}
+  # via size/drill OMITTED -> tier floors (jlc_4layer_advanced). `spacing` is
+  # centre-to-centre and must leave more than the tier's hole_to_hole (0.25)
+  # of drill-edge gap.
+  via: {spacing: 0.85, pth_margin: 0.3}
   keepin: {inset: 0.8}
-  # seed_stubs runs FIRST (before fill so the pour flows around the stub
-  # copper); unify_zone_priorities runs after the last fill, before
-  # heal_islands (it needs filled zones to check for pour fragmentation).
-  passes: [seed_stubs, dedupe_vias, normalize_vias, drop_micro_fragments,
-           drop_dangling, split_t_junctions, reload, hole_to_hole, pad_rescue,
-           stub_fallback, astar_fallback, stitch_grid, fill, island_rescue,
-           fill, unify_zone_priorities, heal_islands, gate]
-  # DETERMINISTIC POUR-FED PIN SEED STUBS (canon M8: usb-hub-3s
-  # plan_seed_stubs.py + add_seed_stubs.py). The pour-fed nets that leave a
-  # dense IC pin row and weave across the escape field to their pour island —
-  # KRT excludes them, taps are too short to thread. Runs BEFORE fill (the
-  # pour bonds the pin around the stub copper). Each stub is EXPLICIT geometry
-  # verified against the live board's exact copper with collision REFUSAL
-  # (refuse whole, never shave), declares the `pin` (REF.PAD) it serves (the
-  # pass proves the copper reaches it), and is idempotent. Plan the coordinates
-  # against the FROZEN promoted chain (a maze router like plan_seed_stubs.py),
-  # not by hand — re-plan if the chain is re-promoted. Omit or leave empty on
-  # boards without pour-fed-pin opens.
-  #   seed_stubs:
-  #     clearance: 0.13                  # tighter than stitch clearance
-  #     via: {size: 0.25, drill: 0.15}   # tier-derived when omitted
-  #     stubs:
-  #       - {net: LX1, pin: U1.18,
-  #          segments: [{layer: F.Cu, width: 0.25, pts: [[60.6,70.9],[57.6,71.9]]}],
-  #          vias: [[57.6,71.9]]}
-  # SAME-NET ZONE PRIORITY UNIFY (canon M8: usb-hub-3s v1.0 "P3-union", v1.1
-  # re-learn). Two pours of the SAME net overlapping at the SAME priority make
-  # KiCad report `zones_intersect` ("intersecting zones must have distinct
-  # priorities"). The pass bumps the smaller zone to a distinct higher priority
-  # so the union NESTS legally (same net => identical copper), refills, and
-  # re-verifies. A CROSS-net overlap is a SHORT and is REFUSED (escalate to
-  # shorting_items — never a mechanical bump). `min_bbox` skips slivers.
+  passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
+           split_t_junctions, reload, hole_to_hole, pad_rescue, stub_fallback,
+           astar_fallback, stitch_grid, fill, island_rescue, fill,
+           unify_zone_priorities, heal_islands, prune_stitch_dangling, gate]
   unify_zone_priorities: {min_bbox: 0.8}
   dedupe_vias: {radius: 0.5, metric: box}
-  normalize_vias: {below_width: 0.449, size: 0.6, drill: 0.3}
+  normalize_vias: {below_width: 0.249, size: 0.25, drill: 0.15}
   drop_micro_fragments: {max_length: 0.12, require_free_end: true}
-  # KRT overshoot tails (one wave left a 0.7mm S_MINUS stub -> track_dangling)
   drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
-  # KRT T-junctions: a stub end landing MID-BODY is continuous copper
-  # but unanchored, so KiCad reports track_dangling. Split, never delete.
   split_t_junctions: {tol: 0.05}
-  hole_to_hole: {min_gap: 0.5, mode: nudge, prefer_keep: [GND]}
+  hole_to_hole: {min_gap: 0.25, mode: nudge, prefer_keep: [GND]}
   pad_rescue:
-    net: GND                  # single-plane form (2-layer boards)
-    # 4-LAYER / TWO INNER PLANES (In1=GND, In2=VIN): rescue BOTH plane-nets'
-    # pads, not one. Use `nets` (per-pad via to EACH plane) instead of `net`:
-    #   nets:
-    #     - {net: GND, layer: In1.Cu}
-    #     - {net: VIN, layer: In2.Cu}
-    # or auto-detect every solid inner-plane pour:  auto: true
-    via_in_pad: true          # B.Cu is a solid GND pour under the whole board
+    # Four-layer board with ONE inner plane net (In1.Cu = GND) plus a B.Cu GND
+    # pour. Every SMA ground post, U_SW's exposed pad, U_MCU's centre pad
+    # (its ONLY ground connection — 56 leads and not one is GND) and U_ESD's
+    # single ground pin need a via to L2 AT the pad, not a neck to a stitch.
+    nets:
+      - {net: GND, layer: In1.Cu}
+    via_in_pad: true
     served_within: 1.6
-    rings: [0.75, 0.95, 1.2, 1.6, 2.1, 2.7]
+    rings: [0.6, 0.8, 1.0, 1.4, 1.9, 2.5]
     stub_width: 0.3
-    # GAP-B SUB-FLOOR SCOPING (default ON): each adjacent-via+stub is a plane
-    # drop, not a trunk, so it is exempted from the netclass ampacity floor by
-    # a named rule area (`pad_rescue_stubs`) + a relaxed insideArea track_width
-    # rule appended to the board's .kicad_dru (KiCad last-match precedence).
-    # Set `stub_scope: false` to disable, or tune it:
-    #   stub_scope: {area_name: pad_rescue_stubs, min_track_width: 0.3,
-    #                layers: [F.Cu, B.Cu]}
-    # NOTE: if your generate_rules-LAST rewrites .kicad_dru, it must preserve
-    # (or re-emit) the pad_rescue_stubs rule, else the exemption is lost.
-    # NON-FATAL: a pad whose via sites are blocked by a B.Cu track underneath
-    # is still served by top-pour thermal spokes at fill. The DRC unconnected
-    # gate is the arbiter.
-    # NOTE: a pad already served by its footprint's OWN thermal via grid
-    # (same-net PTH pads inside the SMD pad outline — HTSSOP/QFN EPs) is
-    # SKIPPED automatically: a rescue via stacked on the grid is a
-    # hole_to_hole clash (3S clean-room cleanup_vias.py part 1 incident).
     require: none
   stub_fallback: {net: GND, min_dist: 0.2, max_dist: 8.0, width: 0.3}
   astar_fallback: {net: GND, width: 0.25, window: 3.0, attempts: 3}
   stitch_grid:
+    # THE FENCE IS THE PRODUCT, NOT HOUSEKEEPING. ARCHITECTURE sec 6 requires
+    # ground vias flanking every RF arm at <= 1.37 mm (lambda_g/20 at 6 GHz)
+    # and between adjacent SMA barrels; the 2.39 mm flange-to-flange gap the
+    # R = 20 ring buys EXISTS to hold that fence. A uniform grid does NOT
+    # discharge that obligation — the fence is per-arm geometry and is stage-6
+    # work (a seed_stubs-style explicit plan, or a fence pass). This grid is
+    # the BACKGROUND stitching only.
     net: GND
-    x: [24, 74, 8]
-    y: [24, 64, 8]
-    # OUT of the guarded analog rect — the bridge corner stays quiet
-    avoid: [{x0: 20.0, y0: 26.0, x1: 44.0, y1: 58.0, margin: 1.0}]
-  island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu], require: all}
-  # POUR-ISLAND AUTO-HEAL (after the last fill): a same-net zone that FILLS
-  # as >=2 disconnected islands is the DRC unconnected class "Zone [X] <->
-  # Zone [X]" — the v4 usb-hub-3s tail was 4/7 exactly this (LX1/LX2/VIN_S/
-  # VBUSA3 priority-2 F.Cu pours sliced by escape tracks, 2026-07-21), each
-  # bridged by hand before this pass existed. heal_islands groups each pour
-  # net's islands with pcbnew connectivity, bridges the narrowest
-  # collision-clear gap with a track at the NET-CLASS width (zone-min-width
-  # fallback) or a via through a shared same-net plane (every segment/via
-  # pcb_toolkit-verified, taps discipline), then REFILLS and RE-VERIFIES:
-  # a heal that does not reduce the island count is a hard error, a healed
-  # board re-runs as a no-op (idempotent), and different nets are never
-  # bridged. `layers` limits which copper layers are inspected (default:
-  # all); min_bbox skips slivers (those are isolated_copper -> escalate).
+    x: [24, 68, 4]
+    y: [24, 88, 4]
+  island_rescue: {min_bbox: 0.8, layers: [F.Cu, In2.Cu, B.Cu], require: all}
   heal_islands: {min_bbox: 0.8}
-  # EPILOGUE (recommended for 4-layer/plane boards): after the final fill,
-  # prune vias THE STITCHER ITSELF emitted that ended up with same-net copper
-  # on <2 layers — the `via_dangling` DRC class. Tests the FILLED polys
-  # (via_janitor only credits zone OUTLINES, so a via in a fill void passes
-  # janitor and still dangles — 3S clean-room cleanup_vias.py stray-via
-  # deletions). Never touches imported-route or footprint vias. Add it to
-  # `passes` after the last `fill`:
-  #   passes: [..., fill, island_rescue, fill, prune_stitch_dangling, gate]
-  # prune_stitch_dangling: {tol: 0.05, min_layers: 2}
+  prune_stitch_dangling: {tol: 0.05, min_layers: 2}

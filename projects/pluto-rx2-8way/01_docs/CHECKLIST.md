@@ -25,17 +25,39 @@ a checklist line. Run from the project root unless stated.
 
 ## B. Design decisions still owed at stage 3 (must all be closed before order)
 
-- [ ] `02_parts/<MPN>/part.yaml` exists for **`U_LDO`, `U_MCU`, `U_FLASH`,
+- [x] `02_parts/<MPN>/part.yaml` exists for **`U_LDO`, `U_MCU`, `U_FLASH`,
       `Y_XTAL`, `J_USB`, `D_TVS`, `F_IN`, `U_ESD`, `FB_IN`**
-      (`02_parts/README.md` deviation 5)
-- [ ] **`U_LDO` satisfies all three derived constraints** (`DETAIL_DESIGN.md`
-      §5): dropout ≤ 1.35 V at 0.15 A; **`V_IN` abs max ≥ 10 V** so the TVS
-      clamp (~9.2 V) is inside its rating; **θ_JA ≤ 195 °C/W** — a bare
-      SOT-23-5 is DISQUALIFIED at the 0.15 A envelope
-- [ ] `03_src/rules/power_tree.yaml` `rails:` is NO LONGER empty once that
-      dossier lands, and `$K/power_topology.py projects/pluto-rx2-8way` → PASS
-      (it currently reports an EARNED N-A; the moment a converter appears in
-      `02_parts` the gate turns red until the rail is declared)
+      (`02_parts/README.md` deviation 5) — **DONE 2026-07-28**
+- [x] **`U_LDO` satisfies all three derived constraints** (`DETAIL_DESIGN.md`
+      §5) — **DONE 2026-07-28, and TWO of the three MOVED during the stage-2
+      merge**: dropout **≤ 1.23 V** at 0.15 A (not 1.35 — `F_IN` R_1max 0.75 Ω
+      + `FB_IN` DCR 0.06 Ω drop 121.5 mV ahead of the pass element, which
+      DISQUALIFIES AMS1117-3.3 at 1.3 V max); **`V_IN` abs max ≥ 10.3 V** (not
+      ≥ 10 — the 5.0 V-standoff TVS the ADR derived 9.2 V from was rejected at
+      selection; `SMBJ6.0A` clamps at 10.3 V, so a part rated exactly 10 V is
+      now OUT of spec); **θ_JA ≤ 195 °C/W**. `MCP1755S-3302E/DB` clears all
+      three at 500 mV / +17.6 V / 62 °C/W
+- [x] `03_src/rules/power_tree.yaml` `rails:` is NO LONGER empty, and
+      `$K/power_topology.py projects/pluto-rx2-8way` → **PASS 2026-07-28**
+      (headroom 1230 mV vs dropout 500 mV; PD 307 mW vs a 968 mW derived
+      package rating, 32 %)
+- [x] **Stage-4 back-fill: the two parts the stage-2 sweep missed.** `02_parts`
+      carries `KT-0603R` (C2286, the RED indicator — `LED_PWR`/`LED_ST`) and
+      `TS-1187A-B-A-B` (C318884, the pushbutton — `SW_BOOT`/`SW_RUN`), both with
+      the manufacturer document committed. **DONE 2026-07-28.** They were missed
+      because the sweep's denominator was `DETAIL_DESIGN.md` §8's value index —
+      which lists the BALLASTS `R_LED1`/`R_LED2` and never the indicators — and
+      not the union of `floorplan.yaml` refdes with `nets.yaml` nets
+- [ ] **Three LCSC codes need a row in the VETTED PASSIVES LEDGER**
+      (`skills/jlcpcb-fab/references/lcsc_passives_ledger.yaml`), which is where
+      commodity-passive identity lives fleet-wide — NOT a `02_parts` dossier,
+      which would be a second home for the same fact. All three were read from
+      the JLC catalog on 2026-07-28 (stock + library tier + describe string):
+      **C137864** `RC0402JR-0747RL` 47 Ω ±5 % 0402, stock 86,783;
+      **C274349** `RC0402FR-0727R4L` 27.4 Ω ±1 % 0402, stock 5,133;
+      **C1548** `0402CG150J500NT` 15 pF 50 V **C0G** ±5 % 0402, **base**, stock
+      2,388,330. Until they land, `bom_source_check --circuit-only` exits 1 with
+      8 `UNVERIFIABLE-VALUE` findings and the board must not export a fab BOM
 - [x] Footprints `QFN-24_4x4_P0.5_EP2.7_PE42482` and
       `SMA_Vertical_5.08sq_D1.4` authored in this project. **Neither may be
       copied from a sibling board** — **DONE 2026-07-28**, both in
@@ -61,18 +83,43 @@ a checklist line. Run from the project root unless stated.
 
 ## C. Schematic gate
 
-- [ ] `$K/tsx_preflight.py projects/pluto-rx2-8way` → PASS before the first
-      `tsci build` (S-COUNT: tscircuit drops parts SILENTLY)
-- [ ] `kicad-cli sch erc --severity-all` → **0 errors**
-- [ ] `$K/count_parity.py projects/pluto-rx2-8way` → refdes sets agree with
-      `03_tscircuit/manifest.yaml`
-- [ ] `$K/net_label_survival.py projects/pluto-rx2-8way` → PASS (S-NETMERGE)
-- [ ] `$K/electrical_invariants.py projects/pluto-rx2-8way` → **PASS, all
-      assertions reached.** 21 invariants across ADRs 0002/0004/0005/0006 (written as 19 at stage 3; it was 20, and the FB_IN series chain added at the stage-2 merge makes 21)
-- [ ] `$K/electrical_invariants.py projects/pluto-rx2-8way --adr-coverage` →
-      **4/4** protection/topology ADRs cited
+- [x] `$K/tsx_preflight.py projects/pluto-rx2-8way` → PASS before the first
+      `tsci build` (S-COUNT: tscircuit drops parts SILENTLY) — **13/13 part.yaml
+      tsx-safe or mapped, 8 multi-pin, 2026-07-28**
+- [x] `kicad-cli sch erc --severity-all` → **0 errors** (430 warnings, all three
+      in the documented parametric classes: `endpoint_off_grid` 207 from the
+      converter's 0.635 mm fidelity grid, `lib_symbol_issues` 163 from the
+      embedded `elt` lib not being in the running kicad-cli config,
+      `footprint_link_issues` 60). **The gate is 0 ERRORS; `--exit-code-violations`
+      returns non-zero on warnings too, so read the classification, not the exit
+      code**
+- [x] `$K/count_parity.py projects/pluto-rx2-8way` → refdes sets agree with
+      `03_tscircuit/manifest.yaml` — **3/3 source pairs over 64 refdes**
+- [x] `$K/net_label_survival.py projects/pluto-rx2-8way` → PASS (S-NETMERGE) —
+      **44/44 labels survive to the netlist, 74 nets. READ THE COUNT, not just
+      the verdict**: a sibling board's rebuild silently merged `3V3_ANALOG` into
+      `3V3` and was caught only because the count came back 161/162
+- [x] `$K/electrical_invariants.py projects/pluto-rx2-8way` → **PASS, all
+      assertions reached — 24/24, 2026-07-28.** (19 at stage 3 → 20 → 21 with
+      the `FB_IN` series chain from the stage-2 merge → **24** with ADR-0008's
+      three.) **This gate could not run at all before a netlist existed, and it
+      was the project's ONLY `policy_audit` FAIL for two stages**
+- [x] `$K/electrical_invariants.py projects/pluto-rx2-8way --adr-coverage` →
+      **5/5** protection/topology ADRs cited (ADR-0008 added at stage 4)
 - [ ] `$J/bom_source_check.py --circuit-only …` → PASS at the FIRST BOM export,
-      not first at seal
+      not first at seal. **Currently 8 findings, all one class and all named**:
+      `UNVERIFIABLE-VALUE` on C137864 (47 Ω ×4), C1548 (15 pF ×2), C274349
+      (27.4 Ω ×2) — three LCSC codes the vetted passives ledger does not carry.
+      Closes with the section-B back-fill above (a `02_parts` dossier resolves
+      the code) or by appending the three catalog-verified rows to
+      `skills/jlcpcb-fab/references/lcsc_passives_ledger.yaml`
+- [ ] **Every commodity passive's LCSC code is PINNED in the TSX.** tscircuit's
+      parts engine assigns one to any un-coded passive, and `tsci build` is
+      non-deterministic — so an unpinned BOM line is a build-time choice, not a
+      design decision (canon M3). Its unprompted 47 Ω pick was **C25118 at stock
+      10, extended**, for a part used four times whose value ADR-0005
+      machine-asserts. Grep: every `<resistor>`/`<capacitor>` in the TSX carries
+      `supplierPartNumbers`
 
 ## D. Placement gate
 
@@ -89,7 +136,29 @@ a checklist line. Run from the project root unless stated.
 - [ ] **`U_SW` pin 1 (LS): ground via centre within 0.5 mm of the pad centre.**
       MEASURE IT — LS is on the GND net, so P-ADJ has no net to grade and
       SKIPS this budget silently (ADR-0005)
-- [ ] `SW_VDD` span ≤ 3 mm, `SW_V4` span ≤ 4 mm (P-ADJ, from the part.yaml)
+- [ ] `SW_V4` span ≤ 4 mm (P-ADJ, from the part.yaml). **`SW_VDD` joins `SW_LS`
+      in P-ADJ-UNREACHED, not in P-ADJ**: `U_SW` pin 8 is on the global `3V3`
+      net and there is no series element to make a second node, so the budget
+      names a net this board does not carry. MEASURE the pin-8-to-`C_SW1` span
+      by hand instead — same disposition as LS
+- [ ] **`U_ESD` centre within 2.0 mm of `J_USB`'s D+/D− pad row** (ADR-0008,
+      ST DocID11265 §2.2). **NOTHING GRADES THIS**: P-ADJ grades `keep_short`
+      net SPANS only and ignores `adjacency:` refdes pairs, and the netlist is
+      identical at 2 mm and at 8 mm. The arithmetic is 6 nH per 10 mm × 0.5 mm
+      at dI/dt = 24 A/ns ⇒ **+144 V per leg**, turning a 17 V clamp into 305 V.
+      The stage-3 floorplan had it at ~8 mm; measure the built board
+- [ ] **`C_ESD` within 2.0 mm of `U_ESD` pin 5**, and **`U_ESD` pin 2 has its
+      OWN via to the L2 plane AT the pad** — not a shared neck, not a trace to
+      the nearest stitch. Pin 2 is the single ground pin and carries the entire
+      surge return; 10 mm of ground trace alone costs 144 V of clamp
+- [ ] **`U_ESD` dressed IN-LINE**: the connector-side track lands on pin 1
+      (D+) / pin 3 (D−) and the MCU-side track leaves on pin 6 / pin 4. Pins
+      1+6 and 3+4 are internally the same node, so **no ERC, DRC, netlist or
+      parity check can tell this dress from a stub** (ST Figure 7)
+- [ ] **`SH` bonded to GND on all four legs, each with its own via**, and
+      **`SBU1`/`SBU2` carry no trace, no via and no test point** — grounding SBU
+      misdeclares the port to an accessory AND gives an ESD strike a path into
+      the board
 - [ ] **Bottom-plane antipad ≥ Ø3.5 mm under every SMA centre barrel.** Carried
       by the FOOTPRINT as a 0.80 mm local clearance on pad 1 (1.9 + 2 × 0.8 =
       3.5), so it opens in every ground plane by construction — MEASURE it on
@@ -109,6 +178,16 @@ a checklist line. Run from the project root unless stated.
       KRT cycle (R-PREFLIGHT)
 - [ ] **No via, and no layer change, anywhere on an `RF50` arm.** Grep the
       board, do not eyeball it
+- [ ] **`SW_BOOT` and `SW_RUN` each need TWO short traces the router will not
+      ask for.** `Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A` gives ONE pad
+      NUMBER to TWO physical feet — pad `1` at (±3, −1.875) and pad `2` at
+      (±3, +1.875) — and KiCad's `duplicate_pad_numbers_are_jumpers` is **no**
+      on this footprint (MEASURED 2026-07-28 on a scratch board: nets attached,
+      no copper between the feet ⇒ `kicad-cli pcb drc --severity-all` = 0
+      violations but **2 unconnected items** per switch). So the left and right
+      foot of each node must be joined in copper, ~6 mm each, **four traces
+      total across the two buttons**. The netlist cannot express this and the
+      schematic gate cannot see it
 - [ ] **L2 solid and unbroken under every RF arm and under the USB pair** —
       no split, no slot (R-PLANE)
 - [ ] `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity` →

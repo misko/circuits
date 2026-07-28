@@ -1,14 +1,37 @@
 #!/bin/bash
-# TEMPLATE rebuild_all.sh — the canonical generic pipeline (skill-owned).
-# Copy into a new board's 03_src/ and set BOARD + TSX below. ZERO board-specific
+# pluto-rx2-8way rebuild_all.sh — the canonical generic pipeline, seeded from
+# skills/pcb-design/templates/03_src/rebuild_all.sh. ZERO board-specific
 # generation Python: board + route + rules all run on the SHARED skill scripts.
 # See 03_src/contracts.md for the authoritative step order.
+#
+# SEEDED-BUT-UNEDITED UNTIL 2026-07-28: this file still carried the template's
+# `BOARD=power3s / TSX=power3s`, so it would have built a board this project
+# does not have. Fixed at stage 4 together with route.yaml (which was still
+# cook-loadcell's schema example verbatim).
+#
+# THREE DELIBERATE DEVIATIONS FROM THE TEMPLATE, each with its reason:
+#  (a) the converter emits to 03_tscircuit/kicad/<board>.kicad_sch FIRST — the
+#      home 03_tscircuit/contracts.md calls "the AUTHORITATIVE machine bridge"
+#      and the exact path rebuild_reuse.sh requires ("run rebuild_all.sh once
+#      and COMMIT it"). The template writes only 04_kicad/, so rebuild_reuse's
+#      stated precondition could never be satisfied by running rebuild_all.
+#      The 04_kicad copy is made from it, so the two are identical by
+#      construction.
+#  (b) `03_src/audit_board.py` is guarded with -f. This board has no per-board
+#      audit script and should not need one (the generic backend + the SHARED
+#      placement_gates.py own that job); rebuild_reuse.sh already guards the
+#      same call and the template does not.
+#  (c) STAGE 4 STOPS AT STEP [2]. Steps [3]+ need a promoted KRT route chain,
+#      which does not exist yet — `route.yaml` deliberately carries no `final:`
+#      key. For the SCHEMATIC gate alone use the bridge:
+#        bash <kicad-pcb skill>/scripts/gen_tscircuit.sh projects/pluto-rx2-8way
+#      which writes only 03_tscircuit/ and never touches 04_kicad.
 set -euo pipefail
 cd "$(dirname "$0")/.."                       # -> project root (03_src/..)
 
 # --- board-specific knobs (the ONLY things to edit) -------------------------
-BOARD=power3s                                  # <board> stem for 04_kicad/<board>.*
-TSX=power3s                                    # 03_tscircuit/src/<TSX>.tsx basename
+BOARD=pluto_rx2_8way                           # <board> stem for 04_kicad/<board>.*
+TSX=pluto_rx2_8way                             # 03_tscircuit/src/<TSX>.tsx basename
 # ----------------------------------------------------------------------------
 
 PY=/usr/bin/python3
@@ -25,9 +48,14 @@ $PY "$S/tsx_preflight.py" . \
     || { echo "GATE FAILED [0] TSX-PRE (tsx_preflight.py): map alphanumeric pads in 03_tscircuit/parity_padmap.txt BEFORE tsci build"; exit 1; }
 
 # [1] tscircuit TSX -> circuit.json -> converter .kicad_sch -> netlist
+# (a): the converter's output lands in 03_tscircuit/kicad/ (the authoritative
+# machine bridge per 03_tscircuit/contracts.md, and the PINNED canonical
+# rebuild_reuse.sh consumes); 04_kicad gets a COPY for the board stages.
 ( cd 03_tscircuit && tsci build "src/$TSX.tsx" )
+mkdir -p 03_tscircuit/kicad 06_build/netlists 04_kicad
 $PY "$S/circuit_json_to_kicad_sch.py" 03_tscircuit/build/circuit.json \
-    -o "04_kicad/$BOARD.kicad_sch" --parts 02_parts
+    -o "03_tscircuit/kicad/$BOARD.kicad_sch" --parts 02_parts
+cp "03_tscircuit/kicad/$BOARD.kicad_sch" "04_kicad/$BOARD.kicad_sch"
 kicad-cli sch export netlist --output "06_build/netlists/$BOARD.net" "04_kicad/$BOARD.kicad_sch"
 
 # [1b] CHEAP SEMANTIC BATTERY at the schematic gate — seconds each, run HERE
@@ -59,7 +87,8 @@ kicad-cli sch erc --severity-all --exit-code-violations "04_kicad/$BOARD.kicad_s
 $PY "$S/generate_board_generic.py" 03_src/floorplan.yaml -o "04_kicad/$BOARD.kicad_pcb"
 
 # [4] placement/pad invariants  [per-board gate + SHARED placement gates]
-$PY 03_src/audit_board.py
+# (b): guarded — this board carries no per-board audit script by design.
+if [ -f 03_src/audit_board.py ]; then $PY 03_src/audit_board.py; fi
 # P-OUT pads-inside-outline + P-CAP corridor crossing-demand vs capacity —
 # the two checks the cooksense routing D-BACK (2026-07-23, ~13h) proved were
 # missing statically. Config 03_src/placement_gates.json is OPTIONAL

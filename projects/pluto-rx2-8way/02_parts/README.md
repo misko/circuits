@@ -1,12 +1,13 @@
 # 02_parts — folder status + deviations register
 
-**Status: COMPLETE for every part the design names (2026-07-28).** Started as
-the D-SPEC sourcing-spike output (2026-07-27/28), amended at the stage-3 design
-gate, and finished at the stage-2 continuation: **thirteen dossiers, one per
-part in `01_docs/DETAIL_DESIGN.md`.** Nothing here is in a BOM yet, because
-there is no BOM yet — that is still a deviation from the contract's flow and it
-is registered below, but it is now a deviation of TIMING rather than of
-COVERAGE.
+**Status: FIFTEEN dossiers (2026-07-28).** Started as the D-SPEC sourcing-spike
+output (2026-07-27/28), amended at the stage-3 design gate, extended at the
+stage-2 continuation to **thirteen — one per part in
+`01_docs/DETAIL_DESIGN.md`** — and then **back-filled by TWO more at stage 4**,
+when the schematic showed that "one per part in `DETAIL_DESIGN.md`" was the
+wrong denominator (deviation 8). Nothing here is in a BOM yet, because there is
+no BOM yet — that is still a deviation from the contract's flow and it is
+registered below, but it is now a deviation of TIMING rather than of COVERAGE.
 
 | MPN | role | LCSC | JLC lib | PDF present |
 |---|---|---|---|---|
@@ -22,14 +23,20 @@ COVERAGE.
 | `1206L050/24WR` | 500 mA PPTC (`F_IN`) — 1206 | C2154056 | extended | **yes** |
 | `SMBJ6.0A` | **6.0 V** standoff unidirectional TVS (`D_TVS`) — SMB | C83270 | extended | **yes** |
 | `BLM21SP601SN1D` | 600R ferrite (`FB_IN`) — 0805 | C3716677 | extended | **yes** |
+| `KT-0603R` | red 0603 indicator — **ONE MPN serves BOTH** `LED_PWR` and `LED_ST` | C2286 | **base** | **yes** |
+| `TS-1187A-B-A-B` | SMD tact switch — **ONE MPN serves BOTH** `SW_BOOT` and `SW_RUN` | C318884 | **base** | **yes** |
 | `0402WGF4700TCE` | 470R single-arm pickoff — **REJECTED ALTERNATE**, not on the board | C25117 | base | no, by contract |
 
-**ELEVEN OF TWELVE POPULATED PARTS ARE `extended` LIBRARY.** Only C25091 and
-C97521 are `base`. Every extended line needs an order-day `jlc_stock_check`
-re-run, and two of them are thin enough to name here: **`C638611` (U_LDO) at
-86** and **`C5337088` (J_USB) at 84**, measured 2026-07-28. Neither is a
-blocker at prototype quantity; both are single-source lines for a function the
-board cannot omit.
+**ELEVEN OF FOURTEEN POPULATED PARTS ARE `extended` LIBRARY** (was eleven of
+twelve). Only C25091, C97521 and the two parts added on 2026-07-28 — **C2286
+and C318884, both `base`** — are not. That is the one piece of good sourcing
+news this board has had: the two back-filled lines are the deepest-stocked on
+the BOM (7.59 M and 1.36 M) and neither needed an extended-tier part to get
+there. Every extended line still needs an order-day `jlc_stock_check` re-run,
+and two of them are thin enough to name here: **`C638611` (U_LDO) at 86** and
+**`C5337088` (J_USB) at 84**, measured 2026-07-28. Neither is a blocker at
+prototype quantity; both are single-source lines for a function the board
+cannot omit.
 
 **THE PRIMARY CHANGED ON 2026-07-28.** The user confirmed BRIEF D3 with the
 SPLIT-ARM variant, so the pickoff is **2 x 220 ohm in series** and the single
@@ -58,21 +65,38 @@ is reachable from a CDN link embedded in that page's own markup
   from that document (ordering-code decode section 3 p2, tempco section 4.8 p5,
   rated power / voltage / temperature section 5 p5) instead of from an LCSC
   parametric record.
+- **`KT-0603R` and `TS-1187A-B-A-B`** — added 2026-07-28 and fetched by the
+  SAME mechanism, which is the third and fourth independent confirmation that
+  it works: both `www.lcsc.com/datasheet/lcsc_datasheet_*.pdf` URLs served HTML
+  landing pages (50,921 and 51,906 bytes, confirmed with `file`), and the real
+  documents came off the `datasheet.lcsc.com/datasheet/pdf/<hash>.pdf` links
+  embedded in that markup. `KT-0603R` hashes to `a3bac1cc…` (11 pages, Hubei
+  KENTO's own 承认书 / spec-for-approval, Rev A.0, 2018-12-06);
+  `TS-1187A-B-A-B` to `64b75233…` (1 page, XKB's own drawing TS-1187A-X-X-X rev
+  A0). The switch drawing is corroborated from an unexpected direction: KiCad's
+  `SW_Push_1P1T_XKB_TS-1187A` footprint carries
+  `(descr "... http://www.helloxkb.com/public/images/pdf/TS-1187A-X-X-X.pdf")`
+  — **the footprint and the datasheet name each other**, which is why its land
+  matches to zero deviation.
 
 ## Deviations from `contracts.md`
 
-1. **THIRTEEN `part.yaml` exist for parts not yet on a board** (four at the
-   sourcing spike, thirteen since 2026-07-28). The contract forbids "a
-   `part.yaml` for a part not on the board (stale after a swap)".
+1. **FIFTEEN `part.yaml` exist for parts not yet on a BOM** (four at the
+   sourcing spike, thirteen on 2026-07-28, fifteen after the stage-4 back-fill
+   the same day). The contract forbids "a `part.yaml` for a part not on the
+   board (stale after a swap)".
    These are pre-BOM by design: the D-SPEC gate requires the sourcing spike to
    VERIFY the spec-critical part before architecture, precisely so stage 2
    never DISCOVERS feasibility. **The deviation is NARROWER than it was, not
    wider**: at the spike it was four dossiers covering an unknown fraction of
-   an undecided design; it is now one dossier per part the design NAMES, so
-   the set can be checked against `DETAIL_DESIGN.md` §8 rather than against
-   nothing. The pre-BOM window is what remains, and it closes at stage 4.
-   **Before bring-up:** each must appear in the BOM or its directory must be
-   deleted, and the swap noted in `01_docs/CHANGELOG.md`.
+   an undecided design; it is now one dossier per part the design NAMES.
+   ~~so the set can be checked against `DETAIL_DESIGN.md` §8 rather than against
+   nothing.~~ **THAT SENTENCE WAS THE DEFECT — struck, not deleted, because it
+   is the record of how two parts went missing.** §8 is a VALUE index, and a
+   part with no value is absent from it; see deviation 8 for the denominator
+   that actually works. The pre-BOM window is what remains, and it closes when
+   a BOM exists. **Before bring-up:** each must appear in the BOM or its
+   directory must be deleted, and the swap noted in `01_docs/CHANGELOG.md`.
 
 2. **`part.yaml` files were EDITED without a datasheet revision change.** The
    contract says "edit a `part.yaml` only when the datasheet REVISION
@@ -114,12 +138,29 @@ is reachable from a CDN link embedded in that page's own markup
    EP, against the vendor's 0.60 mm pads at r = 1.90 and a 2.75 mm EP.
    `03_src/floorplan.yaml` now binds `libraries: [03_src/lib, /usr/share/kicad/
    footprints]` with the project library FIRST for exactly that reason.
+   **AND THE 2026-07-28 BACK-FILL WENT THE OTHER WAY — NO FOURTH FOOTPRINT IS
+   OWED**, which is worth recording because "the stock land is wrong" had been
+   true three times running on this board. Both new parts were checked
+   pad-by-pad against the vendor drawing by an independent parser (re-deriving
+   from the `.kicad_mod` TEXT and confirmed against `pcbnew.FootprintLoad`):
+   `Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A` is XKB's own recommended land
+   **dimension for dimension, 8 of 8 exact, delta 0.0000 on every one** — it is
+   not an IPC generation that happens to agree, and KiCad's `(descr ...)` names
+   the very drawing committed here. `LED_SMD:LED_0603_1608Metric` matches the
+   KENTO land on the dimension that matters — **inner gap 0.700 vs 0.70 CITED,
+   exact** — with only the standard IPC toe/side expansion outward
+   (0.875 × 0.95 pads vs 0.70 × ~0.70), and the pad fully covers the termination
+   band (pad |x| 0.350–1.225 against band |x| 0.50–0.80).
 
 5. ~~**Two thirds of the board still has no dossier.**~~ **CLOSED
    2026-07-28.** All nine remaining dossiers written and merged. The set is
-   graded, not merely present: **S-VER**, **P-ESC 13/13**, **P-TIER PASS at
-   `jlc_4layer_advanced`**, **P-LAYOUT 8/8 in-scope parts carry a datasheet
-   `layout:` block**. `U_LDO` = `MCP1755S-3302E/DB` clears all three derived
+   graded, not merely present: **S-VER**, **P-ESC 13/13** (**15/15** after the
+   stage-4 back-fill — `escape_check.py` over every `part.yaml` prints
+   `P-ESC PASS: 15/15 part.yaml graded, 0 problem(s)`), **P-TIER PASS at
+   `jlc_4layer_advanced`** (both new parts escape at `jlc_2layer_default`, three
+   tiers of headroom), **P-LAYOUT 8/8 in-scope parts carry a datasheet
+   `layout:` block** (still 8/8 — neither new part is in P-LAYOUT scope, and
+   both carry a `layout:` block anyway). `U_LDO` = `MCP1755S-3302E/DB` clears all three derived
    constraints (500 mV / +17.6 V / 62 °C/W against 1.23 V / 10.3 V / 195 °C/W),
    so `03_src/rules/power_tree.yaml` now declares the 3V3 rail and **E-TOPO
    PASSES** instead of turning red.
@@ -156,6 +197,59 @@ is reachable from a CDN link embedded in that page's own markup
    `SMD2920-700/16N`, `1277AS-H-2R2M=P2`, `KNTC0603/10KF3950` and
    `10FDZ-BT(S)(LF)(SN)` all sit in directories with the punctuation removed.
 
+8. **TWO PARTS WERE MISSED BY THE STAGE-2 SWEEP, AND THE REASON IS A
+   DENOMINATOR, NOT AN OVERSIGHT.** The indicator LED (`KT-0603R`) and the
+   pushbutton (`TS-1187A-B-A-B`) had no dossier until 2026-07-28, and were found
+   at **stage 4** — late enough that the schematic's exported netlist already
+   carried `LED_PWR`, `LED_ST`, `SW_BOOT` and `SW_RUN` with **empty footprint
+   fields and the literal placeholder values `__LED_LCSC__` / `__SW_LCSC__`**,
+   which is a hard error at `generate_board_generic.py`
+   ("has no footprint FPID in the netlist and no 02_parts ... add
+   `02_parts/<part>/part.yaml` with a `footprint:` line").
+
+   **THE LESSON IS THE DENOMINATOR AND IT IS REUSABLE.** The stage-2 sweep
+   declared itself complete against **`DETAIL_DESIGN.md` §8's value index** —
+   see deviation 1, "the set can be checked against `DETAIL_DESIGN.md` §8 rather
+   than against nothing", which is exactly what was done and exactly what was
+   wrong. §8 lists **`R_LED1`, `R_LED2` | 680 Ω | §5 — 1.91 mA**: the
+   **BALLASTS**, not the things they ballast. **At sweep time there was no row
+   anywhere in `01_docs/` for the indicator LEDs as PARTS, and no mention of a
+   button, BOOTSEL or RUN outside a netclass table in `ARCHITECTURE.md` §104.**
+   (§5 gained `SW_BOOT`/`SW_RUN` and `R_BOOT` rows later on 2026-07-28, as part
+   of this same discovery — the document has been amended, which is why this
+   entry states the state that produced the miss rather than today's.) A value
+   index answers "what value does each component have"; it does not answer "what
+   components are there", and a part with no VALUE — an LED, a switch, a
+   connector — can be absent from it while being present on the board. **The
+   indicator LEDs are still absent from §8 today**, which is the point: the
+   index is not the wrong document, it is the wrong KIND of document for this
+   question.
+
+   **The right denominator is the union of `03_src/floorplan.yaml`'s seeded
+   refdes and `03_src/rules/nets.yaml`'s declared nets**, because those are the
+   two artifacts the generator actually consumes. Both named these parts before
+   the sweep ran: the floorplan seeded `LED_PWR`, `LED_ST`, `SW_BOOT` (and later
+   `SW_RUN`); `nets.yaml` declared `LED_PWR`, `LED_STAT`, `BOOTSEL_N`, `RUN_N`.
+   Checking a parts folder against prose is checking it against an author's
+   memory; checking it against the floorplan and the netlist is checking it
+   against the thing that will fail.
+
+9. **THE `value:` ASSERT CONVENTION AND THE BOARD DISAGREE, AND NOTHING SAYS SO
+   TODAY.** All fifteen dossiers assert `value: equals: <MPN>`. This board's
+   schematic puts the **LCSC CODE** in `value` — measured 2026-07-28 from
+   `06_build/netlists/pluto_rx2_8way.net`: `U_ESD` "C7519", `D_TVS` "C83270",
+   `FB_IN` "C3716677", `F_IN` "C2154056", `U_LDO` "C638611", `Y_XTAL`
+   "C20625731", `U_FLASH` "C97521" (passives carry the value instead: `R_T1`
+   "220Ω"), and the two placeholders this back-fill exists to resolve read
+   literally `__LED_LCSC__` and `__SW_LCSC__`. Every one of those asserts is
+   currently **inert** for an unrelated reason — `part_facts_check.py` decodes
+   `equals:` through a NUMERIC-ONLY `parse_si()`, so an MPN string grades
+   nothing — which is why the disagreement has never surfaced. The day that
+   checker gains a literal-string fallback, all fifteen go red at once. That is
+   **one** board-owner decision (move the asserts to C-codes, or make the BOM
+   Comment carry the MPN), not fifteen per-dossier ones, so the two new dossiers
+   deliberately followed the house convention rather than diverging quietly.
+
 ## OWED measurements — named, not buried
 
 | owed | why it matters |
@@ -164,6 +258,12 @@ is reachable from a CDN link embedded in that page's own markup
 | SMA launch **dissipative** loss | the vendor publishes VSWR only, so `DETAIL_DESIGN.md` §2's 0.10 dB per launch is a mismatch-loss LOWER BOUND |
 | `C_p` for the 0402 arms | CITED for the 0402 wrap-around class (Vishay TN 60107 Table 1 p1), **ESTIMATED 0.04 ± 0.02 pF for this thick-film part**. The 6 GHz tap tilt scales linearly with it — which is the whole reason the arm is split |
 | RP2040 pad output impedance | ESTIMATED 25 ± 10 Ω at 12 mA. The 47 Ω series value holds the switch's absolute-maximum bound across the whole bar, which is what makes the estimate tolerable |
+| **`KT-0603R` `pad1_net_polarity` assert — NOT SHIPPED, deliberately** | The graded kind reads pad 1's net from the netlist and matches it against a negative-net regex. Whether that passes depends on **where the ballast sits**, which was undecided on 2026-07-28: ballast on the ANODE side puts pad 1 on GND and the assert is a real gate; ballast on the CATHODE side puts pad 1 on `LED_PWR`/`LED_STAT` and the assert **fails on a correctly oriented board**. Shipping a coin-flip gate is how waiving becomes a habit. **To close: once the topology is fixed, add three lines to `KT-0603R/part.yaml` — `- assert: pad1_net_polarity / pad: 1 / polarity: negative` — iff the cathode returns directly to GND.** The unconditional half (pad 1 IS the cathode) is already in `pins:` and gotcha 1 |
+| `KT-0603R` forward voltage at the ACTUAL operating point | The sheet characterises Vf only at **20 mA**, and the ballast runs the part at ~1.9 mA — 10× below it, where Vf is lower. There is **no Vf-vs-If curve and no Iv-vs-If curve** in the document (§7 has one spectrum plot). Current is therefore bounded, not known: **1.32 mA ≤ I ≤ ~2.6 mA**, the lower bound CITED from the 20 mA Vf max and the upper ESTIMATED from the low-current droop. Margin to the 25 mA DC limit is ≥ 9.6×, so nothing is at risk — but §5's "3.8 mA" line item is a nominal, not a maximum |
+| `KT-0603R` moisture level | §11.4.2 states a **7-day floor life** at ≤30 °C/60 % RH and a bake to recover, and **never states a JEDEC MSL level**. 168 h is MSL 3's floor life, but the number is not the level and this dossier will not infer one. Not live while JLC supplies the reel; live the moment the part is hand-supplied — get it off the reel label |
+| `TS-1187A-B-A-B` contact bounce | **Not specified anywhere in the one-page drawing** — no time, no envelope, no method. Irrelevant for `BOOTSEL_N` (sampled once across a held press); **real for `RUN_N`**, which is the RP2040 reset. `DETAIL_DESIGN.md` §5 and §8 list **no capacitor on RUN**. Either one is added or the omission is dispositioned |
+| `TS-1187A-B-A-B` minimum switching current | The 50 mA/12 V rating is a **maximum**; the sheet gives no dry-circuit minimum and no gold-plating claim (its item table says fine-silver contacts, silver-plated terminals — LCSC's parametric says "Gold", and the drawing wins). The board runs the contact at ~0.3 mA, so reliable wetting is DERIVED from the switch class, not CITED |
+| `TS-1187A-B-A-B` actuator height vs the enclosure | H = 1.5 mm leaves the plunger **0.3 mm proud** of the cover — a fingernail/tool button, not a fingertip one. Fine for a bench instrument, wrong behind a panel. The fix is a height code on the identical land (C318889 1.7 mm, C318887 2.5 mm, …), but **every taller code is `extended` tier** — the 1.5 mm part is the only `base` one |
 
 ## Rejected candidates — no PDF committed, reason recorded
 
@@ -204,11 +304,20 @@ the pool a PCBA order allocates from:
 | C2154056 | 1206L050/24WR | extended | 4,209 | |
 | C83270 | SMBJ6.0A | extended | 9,746 | C113976 is the ledger's catalog-verified unidirectional twin |
 | C3716677 | BLM21SP601SN1D | extended | 6,368 | |
+| C2286 | KT-0603R | **base** | **7,593,490** | deepest line on the board. x2 (`LED_PWR`, `LED_ST`) |
+| C318884 | TS-1187A-B-A-B | **base** | **1,361,371** | x2 (`SW_BOOT`, `SW_RUN`). The only `base` height code in the TS-1187A family |
 
-**Four `jlc_stock_check.py --json` runs, all four VERDICT lines PASS**, cached
-in `06_build/cache/stock_{ldo,mcu,usb,prot}.json`. The verdict line is the gate
-(canon A-STOCK) and it was READ, not assumed — a missing or unparseable verdict
-is a FAIL, not a skip.
+**Five `jlc_stock_check.py --json` runs, all five VERDICT lines PASS**, cached
+in `06_build/cache/stock_{ldo,mcu,usb,prot,hmi}.json`. The verdict line is the
+gate (canon A-STOCK) and it was READ, not assumed — a missing or unparseable
+verdict is a FAIL, not a skip. The 2026-07-28 back-fill run printed
+`PASS: 2/2 coded BOM lines have stock >= 5 x qty (0 with problems); 0/2 lines
+carry NO LCSC and were NOT graded by this tool`, and its sidecar records
+`"verdict": "PASS"` with both lines `"type": "base"`.
+(`06_build/` is gitignored by this project's own `.gitignore`, so these caches
+are measured and readable but **not tracked** — the same as the four before
+them, and consistent with the contract's "stock lives in `06_build/cache/`,
+never in a `part.yaml`".)
 
 **The trap, worth the line it costs:** the LCSC RETAIL product page for
 **C25091 reports stock 0** on the same day it shows 995,162 in the assembly
@@ -217,6 +326,16 @@ of a catalog record, not the state of the part (canon M-QUOTE) — and this is
 the code the whole confirmed pickoff design depends on, so a casual retail
 check would have read as a blocker that is not one. It WOULD be a blocker if
 the part ever had to be hand-supplied.
+
+**AND THE TRAP WAS RE-CHECKED ON THE TWO PARTS ADDED 2026-07-28, WHERE IT DOES
+NOT FIRE — which is why both pools get recorded rather than one.** Both new
+lines are `base`, the same class as C25091, so the retail page was read for
+each: **C2286 shows 4,975,100 retail against 7,593,490 assembly**, and
+**C318884 shows 1,125,780 retail against 1,361,371 assembly**. Deep in both
+pools, different numbers in each, no zero anywhere. A trap that fires on one
+base part and not on two others is a property of the CATALOG RECORD, not of the
+tier — so the rule is to read the pool you will actually order from, every time,
+not to learn "base parts read 0 on retail".
 
 (These figures are OBSERVATIONS with a date, recorded here because the folder
 status is what they describe. The volatile numbers a build consumes live in

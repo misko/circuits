@@ -21,3 +21,5 @@ __pycache__/
 # tscircuit build cache + intermediate export
 03_tscircuit/.tscircuit/
 03_tscircuit/dist/
+03_tscircuit/node_modules/
+03_tscircuit/tsx_build/

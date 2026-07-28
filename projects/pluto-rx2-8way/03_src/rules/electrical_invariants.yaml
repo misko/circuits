@@ -112,6 +112,56 @@ invariants:
       on which way the cable was inserted"
 
   # ===================================================================
+  # ADR-0008 — which node U_ESD's VBUS clamp leg sits on. The one thing
+  # stage 2 deliberately left open (USBLC6-2SC6 dossier: "RAISE IT AT
+  # SCHEMATIC CAPTURE ... what is NOT defensible is choosing by accident").
+  # ===================================================================
+  - assert: pin_on_net
+    pin: "U_ESD.5"
+    net: VBUS_F
+    adr: "0008"
+    why: "THE DECISION ITSELF. Pin 5 is the array's VBUS clamp leg, and it goes
+      DOWNSTREAM of F_IN so that F_IN is upstream of EVERY clamp on this board
+      without exception (ADR-0004's ordering, which D_TVS already obeys). The
+      rejected arm - pin 5 on raw VBUS, the connector side - buys ST DocID11265
+      sec 2.3's 'as close as possible to the connector' and pays for it by
+      putting a SHORTED clamp leg outside the only current limit the board
+      owns: a failed-short Transil then sits across the host's VBUS behind
+      nothing but the host's own limit, which on a 3 A port is ~15 W into a
+      SOT-23-6. The counter-intuitive half, recorded because it reverses the
+      dossier's own framing: raw VBUS is also WORSE for the I/O-strike path.
+      C_BULK 4.7 uF and D_TVS both live on VBUS_F, an I/O surge is steered UP
+      into the pin-5 node, and the energy needs a SINK - so the chosen arm puts
+      the clamp leg ON the sink instead of 0.75 ohm away from it"
+
+  - assert: pin_on_net
+    pin: "U_ESD.2"
+    net: GND
+    adr: "0008"
+    why: "pin 2 is the ONLY ground pin on the package and it carries the ENTIRE
+      surge return for both I/O channels and the rail clamp. ST sec 2.2 (PDF
+      p4) prices it: 10 mm of 0.5 mm track is ~6 nH, +144 V at 24 A/ns, added
+      DIRECTLY to what the RP2040 PHY must survive. Asserting the net is what
+      E1 can do; the geometry (its own via to L2 AT the pad, never a trace to a
+      distant stitch) is a CHECKLIST line, and the split is stated rather than
+      pretended away"
+
+  - assert: pin_on_net
+    pin: "C_ESD.1"
+    net: VBUS_F
+    adr: "0008"
+    why: "ST Figure 18 (PDF p9) puts CBUS = 100 nF ON the VBUS pin, and this
+      board had no such capacitor: DETAIL_DESIGN section 5's passives table
+      listed C_BULK, C_LDI, C_LDO, C_SW1/2 and C_MCU* and nothing at pin 5.
+      Both stage-2 dossiers flagged it independently and neither could add it
+      ('do not let it fall between the two dossiers'). It is the element that
+      makes the pin-5 leg a LOCAL AC return - the strike loop is I/O pad ->
+      steering diode -> (internal) Transil -> pin 2 -> GND, closed by THIS
+      capacitor, not by anything upstream through F_IN. Asserting the NODE is
+      the netlist-checkable half; the <= 2 mm proximity is P-ADJ at the board
+      stage"
+
+  # ===================================================================
   # ADR-0002 — the split-arm resistive pickoff (D3, user-confirmed)
   # ===================================================================
   - assert: series_chain

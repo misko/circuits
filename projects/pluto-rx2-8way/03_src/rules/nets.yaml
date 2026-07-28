@@ -175,8 +175,23 @@ classes:
     routing: KRT, inside the digital strip only
     verify: DRC floor + A-AMP
 
-# Default class (0.25 mm): LED_PWR, LED_STAT, RUN_N, BOOTSEL_N, XIN, XOUT,
-# XOUT_XTAL, USB_CC1, USB_CC2.
+# Default class (0.25 mm): LED_PWR, LED_STAT, LED_STAT_A, RUN_N, BOOTSEL_N,
+# XIN, XOUT, XOUT_XTAL, USB_CC1, USB_CC2.
+#
+# LED_STAT_A ADDED 2026-07-28 AT SCHEMATIC CAPTURE, and it is here because a
+# series resistor between a driver and an LED needs TWO nets and there is no
+# arrangement that needs one: LED_STAT is the GPIO25 node, LED_STAT_A the
+# ballasted anode node between R_LED2 and LED_ST. LED_PWR needs only one name
+# because its cathode is on GND. 0.25 mm carries 1.91 mA with absurd margin.
+# SWCLK / SWDIO ARE DELIBERATELY ABSENT FROM THIS LIST AND FROM THE BOARD.
+# The two SWD pins carry no net; the converter emits an explicit ERC
+# no-connect for each. The firmware path is UF2 over USB-C (BOOTSEL_N +
+# RUN_N), and both pins have specified 50-80 kohm internal pull-ups at reset,
+# so an open pin is a defined state rather than a float. Reversing it costs
+# two test pads (in_bom no, no BOM or CPL row) and one line here - recorded so
+# that a future reader can price it instead of rediscovering it. What it buys
+# back is bench debugging of the PIO frame itself, which is the one thing on
+# this board that printf-over-USB perturbs.
 #
 # XOUT_XTAL IS THE NODE BETWEEN R_XTAL (1 kohm) AND THE CRYSTAL, and it exists
 # because the resistor does: the RP2040 Hardware Design guide requires a 1 kohm

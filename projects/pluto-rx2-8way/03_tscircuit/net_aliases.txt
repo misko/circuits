@@ -1,0 +1,37 @@
+# net_aliases.txt — TSNAME CANONICAL, one per line. `#` starts a comment;
+# `=` and `->` are also accepted as separators. Auto-discovered by the
+# converter (circuit_json_to_kicad_sch.py) next to build/.
+#
+# WHY IT EXISTS AT ALL: tscircuit's `net.` selector cannot author a name
+# starting with a digit, so a digit-leading rail is authored with an
+# author-prefix `N`. The converter's canon_net then strips a single leading
+# `N` THAT GUARDS A DIGIT (N5V -> 5V, N3V3 -> 3V3) and leaves a leading N
+# followed by a non-digit alone (NRST, NC, NRESET).
+#
+# THIS BOARD HAS EXACTLY ONE DIGIT-LEADING RAIL AND IT IS WRITTEN OUT BELOW
+# RATHER THAN LEFT TO THE CONVENTION. The convention would handle it, and the
+# line is still here on purpose: 03_src/rules/nets.yaml keys its netclasses on
+# the CANONICAL names, and on this board a netclass miss is not cosmetic — the
+# PWR class is `min_width: 0.4mm` for IR drop and robustness, and a 3V3 that
+# fell to the default 0.25 mm class would be graded by A-AMP as a signal net.
+# An explicit mapping cannot be silently wrong the way an assumed one can.
+N3V3 3V3
+
+# EVERY OTHER NET ON THIS BOARD STARTS WITH A LETTER AND PASSES THROUGH
+# VERBATIM. Listed here as a POSITIVE STATEMENT, because the absence of a line
+# and the absence of a need are not the same thing to a reader:
+#
+#   RF50     ANT1..ANT7, RX1_MAIN, RX1_TAP_MID, RX1_TAP, RX2_OUT
+#   CTRL     SEL_V1..SEL_V4, SW_V1..SW_V4
+#   USB_D    USB_DP, USB_DM, USB_DP_MCU, USB_DM_MCU
+#   PWR      VBUS, VBUS_F, VBUS_LDO   (+ 3V3, mapped above)
+#   QSPI     QSPI_SCLK, QSPI_CSN, QSPI_SD0..QSPI_SD3
+#   DVDD_1V1 DVDD_1V1        <- starts with D, not a digit
+#   default  LED_PWR, LED_STAT, LED_STAT_A, RUN_N, BOOTSEL_N, XIN, XOUT,
+#            XOUT_XTAL, USB_CC1, USB_CC2
+#   GND      pours + stitching on all four layers; no netclass width
+#
+# LED_STAT_A is the one net NOT enumerated in nets.yaml's default-class
+# comment: it is the ballasted anode node between R_LED2 and LED_ST. A series
+# resistor between a driver and an LED needs two nets and there is no way
+# around it. Default class (0.25 mm) is correct for 1.91 mA.

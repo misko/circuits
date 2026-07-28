@@ -99,43 +99,132 @@ placement:
     R_T2: [49.365, 33.443, 15]     # r = 13.0 on theta 75 (switch side)
 
   # SEEDS are starting points the legalizer may walk outward from.
+  #
+  # REVISED 2026-07-28 AT STAGE 4, and the revision is not cosmetic. Three
+  # things changed and each has a reason a reader must not undo:
+  #
+  # 1. U_ESD MOVED FROM [54.0, 84.0] TO THE D+/D- ESCAPE, AND C_ESD IS NEW.
+  #    Both stage-2 dossiers (USBLC6-2SC6 and TYPE-C-31-M-12A) independently
+  #    recorded the SAME finding against this file: an `adjacency:` budget of
+  #    2.0 mm from ST DocID11265 sec 2.2, against ~8 mm as seeded. The
+  #    arithmetic is the part: 6 nH per 10 mm x 0.5 mm at dI/dt = 24 A/ns is
+  #    +144 V PER LEG, so a 17 V clamp becomes 305 V and the port is protected
+  #    only in the designer's belief. At 2 mm the adder is ~29 V/leg. See
+  #    01_docs/decisions/0008-esd-array-vbus-leg-node.md, which also settles
+  #    which node pin 5 sits on (VBUS_F) and adds the Figure-18 CBUS = C_ESD.
+  #    NOTE: `adjacency:` is NOT graded by P-ADJ (which grades keep_short net
+  #    SPANS only) - so this placement is held by the ADR and by CHECKLIST.md,
+  #    not by a gate. Stated rather than assumed.
+  #
+  # 2. TWENTY-FOUR SEEDS ARE NEW because the parts are new to this file, not
+  #    to the design: C_MCU5..C_MCU10 (DETAIL_DESIGN sec 5 corrected the RP2040
+  #    decoupling count from four to TEN), C_VREG_IN/C_VREG_OUT and R_XTAL and
+  #    R_USB1/R_USB2 and C_XTAL1/C_XTAL2 (the four mandatory RP2040 passive
+  #    groups), C_ESD, C_FLASH, R_BOOT, R_CSPU, SW_RUN.
+  #
+  # 3. U_MCU IS ROTATED 180. The RP2040 dossier's DERIVED layout note: pins
+  #    43-56 (QSPI + all four supply domains + the USB pair) and pins 15-28
+  #    (XIN/XOUT/SWCLK/SWDIO/RUN + the select GPIOs) are OPPOSITE sides, and
+  #    "the MCU's crystal side should point at the switch, not its QSPI side".
+  #    At rotation 0 the QSPI side faces -y, i.e. straight at the nine-arm
+  #    receive fan - and nets.yaml calls QSPI "the only CONTINUOUS in-band spur
+  #    source" on this board. 180 turns the spur source away from the fan and
+  #    sends the four select lines up the escape corridor toward U_SW.
+  #
+  # THE DIGITAL-STRIP SEEDS ARE INTENT AT CLUSTER RESOLUTION, not measured
+  # geometry - the file's own banner. What stage 5 must MEASURE (the
+  # keep_short budgets P-ADJ will grade, from the 02_parts layout: blocks):
+  #    VBUS <= 8 mm | VBUS_F <= 12 mm | USB_CC1/USB_CC2 <= 5 mm
+  #    USB_DP/USB_DM <= 20 mm | QSPI_SD* + QSPI_SCLK <= 12 mm
+  #    QSPI_CSN <= 15 mm | XIN/XOUT <= 6 mm | SW_V4 <= 4 mm
+  # and three budgets that will land in P-ADJ-UNREACHED rather than P-ADJ,
+  # because they name nets this board does not carry: PE42482A-X's SW_LS (LS
+  # is ON GND by ADR-0005, already recorded in nets.yaml), PE42482A-X's
+  # SW_VDD (pin 8 is on 3V3 - there is no series element to make a second
+  # node), and KH-SMA-KE-Z's RF_ANT_LAUNCH (a generic name, not a board net).
+  # ABM8-272-T3's `keep_short: GND <= 3 mm` will FAIL as written: GND is a
+  # four-layer pour with hundreds of pads. All four are 02_parts one-line
+  # fixes, listed here so stage 5 does not rediscover them.
   seeds:
-    # VDD bypass at pin 8 (part.yaml budgets SW_VDD <= 3 mm)
-    C_SW1: [44.6, 49.4]
+    # ---- the switch cell: bypass at pin 8, pull-downs at pins 9..12 --------
+    C_SW1: [44.6, 49.4]            # part.yaml budgets SW_VDD <= 3 mm
     C_SW2: [47.4, 49.4]
-    # the four pull-downs at pins 9..12, inside the escape corridor
     R_PD1: [43.4, 50.6]
     R_PD2: [45.0, 50.6]
     R_PD3: [46.6, 50.6]
     R_PD4: [48.2, 50.6]            # V4: part.yaml budgets SW_V4 <= 4 mm
-    # the digital strip (y >~ 65): MCU, flash, crystal, regulator, USB
-    U_MCU:   [46.0, 72.0]
-    U_FLASH: [38.0, 72.0]
-    Y_XTAL:  [54.0, 72.0]
-    C_MCU1:  [42.0, 68.0]
-    C_MCU2:  [50.0, 68.0]
-    C_MCU3:  [42.0, 76.0]
-    C_MCU4:  [50.0, 76.0]
-    R_S1: [43.0, 66.5]
-    R_S2: [44.6, 66.5]
-    R_S3: [46.2, 66.5]
-    R_S4: [47.8, 66.5]
-    U_LDO:  [30.0, 80.0]
-    C_LDI:  [27.0, 80.0]
-    C_LDO:  [33.0, 80.0]
-    F_IN:   [30.0, 84.0]
-    D_TVS:  [34.0, 84.0]
-    FB_IN:  [27.0, 84.0]
-    C_BULK: [37.0, 84.0]
+
+    # ---- the MCU cell (rotation 180, see note 3 above) ---------------------
+    U_MCU:   [46.0, 73.5, 180]
+    # source terminations at the DRIVER end (ADR-0005), by pins 15-18 =
+    # GPIO12..15 = SEL_V1..SEL_V4, which rotation 180 puts on the -y side
+    R_S1: [49.0, 69.6]
+    R_S2: [50.2, 69.6]
+    R_S3: [51.4, 69.6]
+    R_S4: [52.6, 69.6]
+    # crystal cell at XIN/XOUT (pins 20/21), same -y side, inboard of the
+    # select group. R_XTAL is IN the XOUT net and C_XTAL2 sits on the CRYSTAL
+    # side of it (RP2040 HD guide sec 2.3, Figure 8, PDF p11).
+    Y_XTAL:  [46.6, 68.4]
+    R_XTAL:  [48.4, 69.2]
+    C_XTAL1: [44.6, 67.4]
+    C_XTAL2: [48.6, 67.4]
+    # the ten 100 nF, one per RP2040 power pin (six IOVDD, two DVDD,
+    # USB_VDD, ADC_AVDD) - distributed AROUND the package, which is what
+    # Raspberry Pi's own routed reference does (Figure 6, PDF p9)
+    C_MCU1:  [41.6, 71.0]
+    C_MCU2:  [50.4, 71.0]
+    C_MCU3:  [41.6, 76.0]
+    C_MCU4:  [50.4, 76.0]
+    C_MCU5:  [43.4, 69.6]
+    C_MCU6:  [47.0, 78.4]
+    C_MCU7:  [45.0, 78.4]          # DVDD pin 23 -> on DVDD_1V1
+    C_MCU8:  [48.6, 78.4]          # DVDD pin 50 -> on DVDD_1V1
+    C_MCU9:  [42.6, 78.4]          # USB_VDD pin 48
+    C_MCU10: [40.4, 76.8]          # ADC_AVDD pin 43
+    # the on-die 1.1 V regulator's two MANDATORY capacitors (RP2040 sec
+    # 2.10.1, PDF p157) at pins 44 and 45, which rotation 180 puts at the
+    # -x end of the +y side
+    C_VREG_IN:  [41.4, 78.4]
+    C_VREG_OUT: [40.2, 78.4]
+    # USB series terminations (RP2040 Table 620) between pins 46/47 and U_ESD
+    R_USB2: [43.6, 80.0]           # USB_DM
+    R_USB1: [44.8, 80.0]           # USB_DP
+
+    # ---- flash + boot straps (QSPI side, +x end of the +y row) ------------
+    U_FLASH: [53.5, 76.5]
+    C_FLASH: [53.5, 79.2]
+    R_CSPU:  [53.5, 73.8]          # 10 k /CS pull-up, AT the flash (sec 9.3)
+    R_BOOT:  [57.0, 76.5]          # 1 k QSPI_CSN -> BOOTSEL_N
+    SW_BOOT: [60.5, 76.5]
+    SW_RUN:  [64.5, 76.5]
+
+    # ---- USB entry + protection, hugging J_USB (ADR-0008) -----------------
     J_USB:  [46.0, 87.0]
-    R_CC1:  [50.0, 84.0]
-    R_CC2:  [52.0, 84.0]
-    U_ESD:  [54.0, 84.0]
-    LED_PWR: [60.0, 80.0]
-    LED_ST:  [63.0, 80.0]
-    R_LED1:  [60.0, 77.0]
-    R_LED2:  [63.0, 77.0]
-    SW_BOOT: [66.0, 84.0]
+    # U_ESD straddles the D+/D- escape immediately behind the connector pad
+    # row (which the authored footprint puts at y = 87 - 3.67 = 83.33). The
+    # rotation intent: pins 1/2/3 (D+ in, GND, D- in) face the CONNECTOR and
+    # pins 6/4 (D+ out, D- out) face the MCU, so the pair physically passes
+    # THROUGH the clamp with a zero-length stub (ST Figure 7). Pins 1+6 and
+    # 3+4 are the same node, so no ERC, DRC, netlist or parity check can tell
+    # this dress from a stub - it is intent someone has to hold.
+    U_ESD:  [46.2, 81.4, 90]
+    R_CC1:  [43.4, 81.4]           # A5 pad lands at x = 44.75
+    R_CC2:  [49.0, 81.4]           # B5 pad lands at x = 47.75
+    C_ESD:  [46.2, 79.5]           # CBUS 100 nF AT pin 5 (ST Figure 18)
+    F_IN:   [43.2, 79.5]           # pad 1 (VBUS) toward the connector
+    D_TVS:  [40.6, 79.5]           # cathode = pad 1 -> VBUS_F
+    C_BULK: [38.2, 79.5]
+    FB_IN:  [36.0, 79.5]
+    C_LDI:  [33.6, 79.5]           # regulator INPUT cap, on VBUS_LDO
+    U_LDO:  [30.4, 80.4]
+    C_LDO:  [30.4, 83.4]
+
+    # ---- indicators (clear of the M3 keepout at [67.5, 84.5]) -------------
+    LED_PWR: [58.0, 85.0]
+    R_LED1:  [58.0, 82.5]
+    LED_ST:  [61.5, 85.0]
+    R_LED2:  [61.5, 82.5]
 
   legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 40}
 

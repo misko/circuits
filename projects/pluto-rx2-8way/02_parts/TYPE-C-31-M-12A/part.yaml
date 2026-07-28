@@ -153,14 +153,19 @@ gotchas:
        EXACT      signal-pad pitch 0.50; signal-pad width 0.30 (8 off);
                   VBUS/GND pad width 0.60 (4 off); A5<->A8 span 2.50;
                   B8<->B5 span 3.50; alignment holes 5.78 apart;
-                  shell slots 8.64 (KiCad) vs 8.65 (sheet); slot drill
-                  1.70 tall (KiCad oval 0.6x1.7); shell-slot centre 0.53 above
-                  the alignment-hole centre (sheet: 0.51-0.59 measured)
+                  shell slots 8.64 (KiCad) vs 8.65 (sheet land view, and 8.64
+                  on the sheet's own front view — 0.01, a fifth of the sheet's
+                  +/-0.05); shell slots 4.18 front-to-rear; front slot drill
+                  1.70 tall; front slot centre 0.53 above the alignment-hole
+                  centre (sheet: 0.51-0.59 measured)
        DIFFERS    A4/B9 <-> B4/A9 centres  KiCad 4.90  vs sheet 4.80  (+0.10)
                   A1/B12 <-> B1/A12        KiCad 6.50  vs sheet 6.40  (+0.10)
                   SMT pad LENGTH           KiCad 1.45  vs sheet 1.14  (+0.31)
                   pad centre to alignment-hole centre
                                            KiCad 1.445 vs sheet 1.07  (+0.375)
+                  front shell-slot PAD ht  KiCad 2.1   vs sheet 2.00  (+0.10)
+                  rear  shell-slot PAD ht  KiCad 1.6   vs sheet 1.70  (-0.10)
+                  rear  shell-slot DRILL   KiCad 1.2   vs sheet 1.40  (-0.20)
                   alignment hole diameter  KiCad 0.65  vs sheet 0.60  (+0.05)
      1.14 is not a pixel estimate: the sheet dimensions pad-TOP-to-hole-centre
      as 1.64 and pad-BOTTOM-to-hole-centre as 0.50, and 1.64 - 0.50 = 1.14; a
@@ -170,12 +175,34 @@ gotchas:
      RULED OUT as an M-12-vs-M-12A difference: the base TYPE-C-31-M-12 sheet
      (C165948, REV A 2020.12.08) was fetched and read and its recommended layout
      is DIMENSION-FOR-DIMENSION IDENTICAL to this one — 1.50/0.50/8-0.30/4-0.60/
-     2.50/3.50/4.80/5.78/6.40/8.65/0.50/1.64/4.18/5.79/phi 0.60/2.00/1.70. Two
-     HRO sheets two years apart agree with each other and disagree with KiCad.
-     So the OWED footprint keeps KiCad's hole pattern verbatim and re-lays the
-     pad row: twelve pads, 4x 0.60 and 8x 0.30, all 1.14 long, narrow pitch
-     0.50, wide-pad centres at +/-2.40 and +/-3.20, row centre 1.07 from the
-     alignment-hole line. KEEP THE PAD NAMES A1..B12 + SH."
+     2.50/3.50/4.80/5.78/6.40/8.65/0.50/1.64/4.18/5.79/phi 0.60/2.00/1.70/1.40.
+     Two HRO sheets two years apart agree with each other and disagree with
+     KiCad. THE AUTHORED FOOTPRINT therefore keeps KiCad's DATUM and hole
+     PATTERN (the part that matches) and takes every dimension the sheet
+     actually LABELS: twelve lands, 4x 0.60 + 8x 0.30, all 1.14 long, narrow
+     pitch 0.50, wide-pad centres +/-2.40 and +/-3.20, row centre 1.07 from the
+     alignment-hole line, front slot 2.00 pad / 1.70 drill, rear slot 1.70 pad /
+     1.40 drill. Pad names A1..B12 + SH kept."
+  - "TWO NUMBERS IN THE AUTHORED FOOTPRINT ARE JUDGEMENTS, NOT TRANSCRIPTIONS,
+     AND BOTH ARE STATED IN ITS `descr` AS WELL AS HERE.
+     (1) ALIGNMENT-HOLE DIAMETER 0.65, not the sheet's 0.60 nominal. The post is
+     2-phi 0.50 (front view) and the sheet's own note allows +/-0.05 on the PCB
+     layout, so 0.55-0.65 is all vendor-sanctioned. 0.65 is the CLEARANCE end
+     and is taken deliberately: at 0.55 a phi 0.50 post has 0.025 mm radial
+     clearance, and a locating post that will not enter lifts the part off ALL
+     TWELVE lands. That failure dominates the 0.075-vs-0.050 mm of extra lateral
+     play 0.65 permits, because final location comes from reflow self-alignment
+     on twelve lands plus four soldered legs, not from the posts.
+     (2) SHELL-SLOT WIDTHS 1.00 pad / 0.60 drill are INHERITED from the KiCad
+     part, because the sheet dimensions the slot HEIGHTS and NOT the widths. A
+     300 dpi read suggests ~1.2 pad / ~0.9 drill +/- 0.1 — an ESTIMATE, and an
+     estimate does not go into copper (canon M-IMPORT). 0.60 already gives ~2x
+     clearance on a ~0.3 mm stamped stainless leg.
+     OPEN AND RECORDED: that same raster read puts the two slot CENTRES 4.03
+     apart +/-0.08, against the sheet's PRINTED 4.18. 4.18 is CITED and stands;
+     the discrepancy is real and unresolved. Check it against a physical part or
+     a JLC CAD twin before release — it is the one dimension in this footprint
+     where two readings of the same sheet disagree by more than its tolerance."
   - "PAD NAMES ARE ALPHANUMERIC (A1..A12, B1..B12, SH) AND TSCIRCUIT DROPS THE
      PART SILENTLY. This is the S-COUNT incident of 2026-07-21 (proven-parts
      ledger, usb-c-receptacle-high-current). Run tsx_preflight and map the pads
@@ -315,13 +342,20 @@ layout:
        VBUS lands is nothing thermally; route them as PWR class (0.40 mm,
        DETAIL_DESIGN sec 8) for IR drop and robustness, not for ampacity."
     - "DERIVED: this connector is at the BOARD EDGE by construction — the
-       recommended layout dimensions everything back from a line labelled PCB
-       EDGE (5.79 to the pad-row top, 4.18 to the alignment-hole centres). The
-       mouth overhangs that edge. So the outline, not the placement, fixes
-       J_USB's y; the floorplan's [46.0, 87.0] against an outline top of y=89
-       is consistent with that and should be checked against the OWED footprint
-       once it exists, because the 0.375 pad-row discrepancy above moves the
-       part relative to its own edge."
+       recommended layout view carries a line explicitly labelled PCB EDGE and
+       dimensions the geometry back from it, and the mouth overhangs that edge.
+       So the OUTLINE, not the placement grid, fixes J_USB's y; the floorplan's
+       [46.0, 87.0] against an outline top of y=89 is consistent with that and
+       must be re-checked against the authored footprint, because the 0.375 mm
+       pad-row correction moves the part relative to its own edge.
+       HONEST LIMIT: the printed '5.79' is measured from the PCB EDGE line to a
+       feature I could NOT identify unambiguously at 300 dpi (pad-row top and
+       upper-slot top are both plausible termini, 0.15 apart). It is therefore
+       NOT used anywhere — not in the footprint, not in the outline. '4.18' IS
+       identified (shell-slot front-to-rear, corroborated by the side view's
+       2.60/6.77 leg rows and by KiCad). Recorded as unresolved rather than
+       guessed: the board-edge-to-connector offset must come from the outline
+       work with the physical part or a JLC CAD twin, not from this number."
     - "OWED: no routed reference layout for THIS connector was consulted. HRO
        publishes none, and no OSHWLab-by-LCSC board was searched for C5337088.
        Recorded as not done, not as absent."
@@ -336,7 +370,7 @@ layout_refs:
   - "KiCad 10 Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12 — read as a
      third party's reading of the same drawing, and it disagrees with both HRO
      sheets on the pad row (numbers in gotchas). Its HOLE pattern is exact and
-     is the seed for the OWED footprint."
+     is the seed for the AUTHORED footprint (datum + hole pattern kept, pad row re-laid)."
   - "ST Doc ID 11265 Rev 5 sec 2.2/2.3 + Figure 7 (PDF pp4-5) — the connector-
      to-array proximity rule lives in the ESD part's datasheet, not in HRO's"
   - "OWED: krhro.com's own application material was not read — the vendor host
@@ -345,14 +379,25 @@ sourcing:
   lcsc: C5337088
   alternates: [C165948]            # C165948 = TYPE-C-31-M-12, the SAME 16P part
                                    # with a lower-conductivity contact alloy:
-                                   # 5 A instead of 6 A, and its drawing's
-                                   # recommended land is dimension-for-dimension
-                                   # IDENTICAL (verified, see layout_refs). At
-                                   # 0.15 A the ampacity difference is
-                                   # unreachable, so this is a true drop-in —
-                                   # and it is the deeper part by three orders
-                                   # of magnitude. Check stock at order time;
-                                   # never here.
+                                   # 5 A instead of 6 A. TRUE DROP-IN, and the
+                                   # claim is verified rather than assumed — its
+                                   # own drawing (REV A 2020.12.08) was fetched
+                                   # and its RECOMMEND P.C.B LAYOUT is
+                                   # dimension-for-dimension IDENTICAL to the
+                                   # -12A's, so the AUTHORED footprint
+                                   # pluto_rx2_8way:USB_C_Receptacle_HRO_TYPE-C-
+                                   # 31-M-12A fits BOTH parts with no change.
+                                   # At 0.15 A the 5-vs-6 A difference is
+                                   # unreachable and the -12's -30..+80 C is the
+                                   # same number this sheet's own Note 5 gives.
+                                   # THIS IS THE SUPPLY HEDGE: the -12A is the
+                                   # thin line and the -12 is the deep one, by
+                                   # roughly three orders of magnitude. Stock is
+                                   # checked at selection and at order time, in
+                                   # 06_build/cache/ — never committed here.
+                                   # If the swap is taken, the `value` assert
+                                   # below must be edited to match, because it
+                                   # grades the BOM Comment string.
 asserts:
   - assert: value
     equals: TYPE-C-31-M-12A

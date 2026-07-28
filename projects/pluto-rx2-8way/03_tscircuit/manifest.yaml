@@ -1,0 +1,94 @@
+# pluto-rx2-8way — the AUTHOR'S declared component list (canon S-COUNT base).
+#
+# WHY THIS FILE IS HAND-WRITTEN AND WHY IT IS THE ONLY HONEST BASE: after a
+# silent `tsci build` drop, EVERY GENERATED ARTIFACT AGREES WITH EVERY OTHER —
+# circuit.json, the converter .kicad_sch, the netlist and the board are all
+# consistently missing the same part, and ERC still reads 0. Only DECLARED
+# INTENT disagrees. (2026-07-21: four USB connectors dropped, 48/52.) That is
+# the entire reason `count_parity.py` exists and the entire reason this file
+# is not generated from anything.
+#
+# THE RISK IS LIVE ON THIS BOARD: J_USB's pads are A1..B12 + SH, which is the
+# exact class tscircuit rejects WITHOUT an error. Every one carries dual
+# portHints and is mapped in parity_padmap.txt; `tsx_preflight.py` is run
+# BEFORE the first build and this file is what catches it if that fails.
+#
+# 64 components. Mounting holes H1-H4 are NOT here: they are emitted by
+# generate_board_generic from floorplan.yaml `mounting_holes:` and are
+# non-electrical (count_parity SKIPs ^H\d).
+components:
+  # ---- RF core: the SP8T, ten SMA jacks, the RX1 pickoff (13) -------------
+  - U_SW
+  - J_ANT1
+  - J_ANT2
+  - J_ANT3
+  - J_ANT4
+  - J_ANT5
+  - J_ANT6
+  - J_ANT7
+  - J_ANT8          # THE RX1 ANTENNA, tapped — not an eighth dedicated element
+  - J_RX1
+  - J_RX2
+  - R_T1            # 220R, the pickoff arm; SERIES pair by decision (ADR-0002)
+  - R_T2            # 220R; the alternate build populates this one as 0R
+
+  # ---- control plane: source terminations, pull-downs, switch bypass (10) --
+  - R_S1
+  - R_S2
+  - R_S3
+  - R_S4
+  - R_PD1
+  - R_PD2
+  - R_PD3
+  - R_PD4
+  - C_SW1
+  - C_SW2
+
+  # ---- sequencer: RP2040 + its mandatory passive groups (25) --------------
+  - U_MCU
+  - C_MCU1          # IOVDD pin 1
+  - C_MCU2          # IOVDD pin 10
+  - C_MCU3          # IOVDD pin 22
+  - C_MCU4          # IOVDD pin 33
+  - C_MCU5          # IOVDD pin 42
+  - C_MCU6          # IOVDD pin 49
+  - C_MCU7          # DVDD  pin 23  -> on DVDD_1V1
+  - C_MCU8          # DVDD  pin 50  -> on DVDD_1V1
+  - C_MCU9          # USB_VDD  pin 48
+  - C_MCU10         # ADC_AVDD pin 43
+  - C_VREG_IN       # sec 2.10.1 MANDATORY, at VREG_VIN  (pin 44)
+  - C_VREG_OUT      # sec 2.10.1 MANDATORY, at VREG_VOUT (pin 45)
+  - Y_XTAL
+  - R_XTAL          # 1k on XOUT — CONDITIONAL rule, both conditions hold here
+  - C_XTAL1
+  - C_XTAL2
+  - U_FLASH
+  - C_FLASH
+  - R_CSPU          # 10k /CS pull-up — POPULATED, not DNF (W25Q128JV sec 9.3)
+  - R_BOOT          # 1k QSPI_CSN -> BOOTSEL_N (never 0R: CSN is a driven output)
+  - SW_BOOT
+  - SW_RUN
+  - R_USB1          # 27.4R, REQUIRED by RP2040 Table 620
+  - R_USB2
+
+  # ---- USB-C entry + protection (8) --------------------------------------
+  - J_USB
+  - R_CC1           # 5.1k Rd — a PROTECTION part (ADR-0004), value asserted
+  - R_CC2
+  - U_ESD
+  - C_ESD           # ST Figure 18 CBUS at pin 5 — added by ADR-0008
+  - F_IN
+  - D_TVS           # pad 1 = CATHODE, on VBUS_F (the D1 defect class)
+  - C_BULK
+
+  # ---- 3V3 rail (4) -------------------------------------------------------
+  - FB_IN
+  - C_LDI
+  - U_LDO
+  - C_LDO
+
+  # ---- indicators (4) -----------------------------------------------------
+  - R_LED1
+  - LED_PWR
+  - R_LED2
+  - LED_ST

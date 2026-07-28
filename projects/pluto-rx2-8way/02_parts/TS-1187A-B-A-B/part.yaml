@@ -1,0 +1,447 @@
+mpn: TS-1187A-B-A-B
+manufacturer: XKB Industrial Precision Co., Limited (XKB Connection)
+type: tactile_switch_spst_no   # a momentary MECHANICAL contact. Classifies as
+                               # NOTHING for E-TOPO (it converts nothing) and
+                               # may not appear on a `rails:` entry.
+status: primary
+datasheet:
+  doc_id: TS-1187A-X-X-X       # the DWG NO. in the title block. The drawing is
+                               # the FAMILY sheet: the three trailing X are the
+                               # order-code fields decoded below, and it is the
+                               # only document XKB publishes for this part.
+  revision: A0                 # REVISION field of the title block, sheet 1/1.
+                               # The REVISIONS strip along the bottom is EMPTY
+                               # (three unfilled rows) — so A0 is the original
+                               # issue and there is no revision history to read.
+  url: https://datasheet.lcsc.com/datasheet/pdf/56c8799ae5193945a16a1ffbe378246a.pdf?productCode=C318884
+  sha256: 64b75233cadaceb75ab3f3e33b532af8d04de98821c910ea13eb76c5fd1eed34
+  fetched: 2026-07-28
+  pages: 1
+  note: "PROVENANCE, STATED PLAINLY. Obtained via the mechanism
+    02_parts/README.md records: the `lcsc_datasheet_2304140030_...C318884.pdf`
+    URL serves an HTML LANDING PAGE (51,906 bytes of markup, confirmed by
+    `file`), and the real document is the
+    `datasheet.lcsc.com/datasheet/pdf/<hash>.pdf` link embedded in that page's
+    own markup. It IS XKB's own drawing, not an LCSC rewrap: the title block
+    reads 'XKB INDUSTRIAL PRECISION CO.,LIMITED', DWG NO. TS-1187A-X-X-X, MODEL
+    TYPE 'TACT SWITCH', SIZE A4, and the footer carries XKB's three domains
+    (www.xk-dg.cn, www.helloxkb.com, www.helloxkb.cn). Independent corroboration
+    that this is the right vendor for the KiCad footprint: KiCad's own
+    Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A carries
+    `(descr \"SMD Tactile Switch, http://www.helloxkb.com/public/images/pdf/
+    TS-1187A-X-X-X.pdf\")` — the footprint names THIS drawing by filename.
+    Grade: CITED. LIMITS, recorded rather than smoothed over: (1) it is ONE
+    PAGE, a mechanical drawing with a short SPECIFICATION block — there is no
+    reliability chapter, no bounce specification, no minimum switching current
+    and no solderability/reflow profile, and each of those absences is called
+    out where it bites below; (2) it is an IMAGE-ONLY PDF (Adobe Acrobat Image
+    Conversion Plug-in, no text layer), so every number here was read VISUALLY
+    off a 200-dpi render, not extracted; (3) the drawing carries no date beyond
+    the PDF's own 2020-01-09 creation stamp, and the DSND/DWN/CHKD/APPD
+    signature and date boxes are all BLANK."
+package: >-
+  SMD-4P gull-wing tact switch. Body 5.1 +/-0.05 x 5.1 +/-0.05 mm (top view),
+  6.5 +/-0.25 mm across the terminal tips, terminal foot width 0.5 mm, terminal
+  centre-to-centre across the body 3.7 +/-0.05 mm. Round plunger, diameter
+  2.0 mm. Overall height H = 1.5 +/-0.05 mm for this order code (height code A),
+  against a metal cover top at 1.2 mm — so the plunger stands 0.3 mm proud. Base
+  0.9 mm. Weight 1.0 g. Materials, from the drawing's item table: keystake
+  PA46/Brass, cover SUS nickel-plated, base LCP, contact fine-silver on SUS
+  (natural), terminals brass 0.30 t, silver-plated. THE PART CARRIES NO MARKING
+  — nothing on the body identifies the force, the height or the maker.
+footprint: Button_Switch_SMD:SW_Push_1P1T_XKB_TS-1187A   # STANDARD KiCad part,
+                               # and it is the vendor's recommended land
+                               # DIMENSION FOR DIMENSION, zero deviation. See
+                               # the footprint gotcha. No project-local
+                               # footprint is owed.
+escape:                        # emitted by escape_check.py, 2026-07-28.
+                               # NOTE: escape_check.check_part() returns early
+                               # for parts with <= 2 pins, and this part
+                               # declares 2 (see pins:), so P-ESC does not
+                               # RE-DERIVE this block today. It is declared and
+                               # correct anyway — the ad-hoc run
+                               # `escape_check.py --style connector --pitch 3.75`
+                               # prints `ok` at every tier and
+                               # `tier_required: jlc_2layer_default`.
+  style: connector             # four gull-wing feet escaping OUTWARD on a coarse
+                               # grid; no fanout ring, no dogbones.
+  pitch: 3.75                  # the SMALLER of the two pad-centre spacings
+                               # MEASURED from the KiCad footprint text
+                               # (3.75 mm across, 6.00 mm along). The tighter one
+                               # is what any escape has to fit through, so it is
+                               # the honest number to declare — same convention
+                               # as ../ABM8-272-T3/part.yaml.
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-28
+pins:                          # *** READ THIS BEFORE WIRING THE PART ***
+                               # FOUR PHYSICAL PADS, **TWO** ELECTRICAL NODES,
+                               # and the KiCad footprint expresses that by
+                               # giving TWO pad NUMBERS to FOUR pads:
+                               #   pad "1" appears at (-3.000, -1.875) AND
+                               #                      (+3.000, -1.875)
+                               #   pad "2" appears at (-3.000, +1.875) AND
+                               #                      (+3.000, +1.875)
+                               # (read from the .kicad_mod text and confirmed
+                               # via pcbnew.FootprintLoad — 4 pads, 2 distinct
+                               # numbers). `pins:` therefore declares TWO
+                               # entries, because pin_audit.py resolves this map
+                               # against the footprint's pad NUMBERS and a
+                               # 3-or-4-entry map would report
+                               # "part.yaml pins with NO pad on the footprint".
+  1: {name: SW_A, note: "One side of the contact. = vendor terminals **A + B**,
+       which the internal-circuit diagram (top-right of the drawing) joins with
+       a plain straight wire. A is the upper-LEFT foot and B the upper-RIGHT
+       foot in the body top view; in the KiCad footprint these are the two pads
+       at y = -1.875. The two are interchangeable and the node is symmetric with
+       pin 2 — an SPST-NO contact has no polarity and no preferred side."}
+  2: {name: SW_B, note: "The other side of the contact. = vendor terminals
+       **C + D**, likewise joined by a straight wire; C is the lower-LEFT foot,
+       D the lower-RIGHT, and in the KiCad footprint these are the two pads at
+       y = +1.875. On this board this is the pin that goes to GND for both
+       SW_BOOT and SW_RUN — but only by convention, not by any property of the
+       part."}
+limits:                        # CITED from the SPECIFICATION block and the
+                               # dimensioned views of the committed drawing.
+  contact_rating:      "50 mA at 12 V DC"
+  contact_resistance:  "100 mOhm max"
+  insulation_resistance: "100 MOhm min at 500 V DC. THE SHEET PRINTS
+                          '100mΩ min.500V DC' — a 100 milliohm insulation
+                          resistance is a dead short, so this is a units typo in
+                          the source and is recorded as an ERRATUM, not as a
+                          fact. Nothing on this board depends on the number."
+  dielectric_strength: "250 V AC for 1 minute"
+  travel:              "0.25 mm (SPECIFICATION block); the dimensioned side view
+                        says TRAVEL 0.2 +/-0.1, which is the same statement with
+                        its tolerance. Both are recorded because they disagree in
+                        appearance and agree in substance."
+  operating_force:     "160 gf (order-code field 2 = B; the drawing's title block
+                        gives A:100gf B:160gf C:260gf). = 1.57 N. LCSC's
+                        parametric record for C318884 says 1.6 N — the same
+                        number rounded."
+  height_h:            "1.5 +/-0.05 mm (order-code field 3 = A; the Code-X table
+                        gives A 1.5 / B 1.6 / C 1.7 / D 2.0 / E 2.5 / F 3.0 /
+                        G 3.5 / H 4.0 / I 4.5 / J 5.0)"
+  keystake_material:   "Brass (order-code field 4 = B; the title block gives
+                        A:PA46 B:Brass)"
+  topr:                "-30 to +85 C"
+  tstg:                "-30 to +80 C"
+  cycle_life:          "NOT ON THE DRAWING. LCSC's catalogue record for C318884
+                        says 100,000 cycles. That is a CATALOGUE number with no
+                        vendor document behind it in this repo — grade it
+                        ESTIMATED, not CITED. It is not a live risk here: two
+                        straps on a laboratory instrument will see hundreds of
+                        actuations, not 10^5."
+  bounce:              "NOT STATED ANYWHERE IN THE DOCUMENT. See the bounce
+                        gotcha — the debounce requirement on this board is
+                        therefore DERIVED, and for RUN_N it is a real one."
+  min_switching_current: "NOT STATED. The 50 mA / 12 V rating is a MAXIMUM; the
+                        sheet gives no dry-circuit minimum. See the wetting
+                        gotcha."
+  msl:                 "not stated. A moulded LCP/SUS/brass mechanical switch is
+                        not a moisture-sensitive body; recorded as an ABSENCE in
+                        the source rather than as an inferred level, which is why
+                        there is no `msl` assert below."
+gotchas:
+  - "FOUR PADS, TWO NODES, AND KICAD DRC WILL DEMAND COPPER BETWEEN THE PAIRS —
+     MEASURED, NOT ASSUMED. The internal-circuit diagram on the drawing joins
+     A-B with a straight wire and C-D with a straight wire, with one
+     normally-open contact between the two rails; so the part itself already
+     shorts each pair. KiCad does NOT take that on trust: the footprint text
+     carries `duplicate_pad_numbers_are_jumpers no`, and the consequence was
+     MEASURED rather than reasoned — a scratch board carrying only this
+     footprint, with both pad-1s on one net and both pad-2s on another and NO
+     copper between them, gives
+       `kicad-cli pcb drc --severity-all` -> 0 violations, **2 unconnected
+       items**, 'Missing connection between items: Pad 1 [N1] of SW1 on F.Cu /
+       Pad 1 [N1] of SW1 on F.Cu' and the same for pad 2.
+     So the board must route a ~6 mm trace between the left and right foot of
+     EACH node. That is not optional tidiness: this project's DRC gate is
+     `--severity-all` with **0 unconnected** (CLAUDE.md), so two switches wired
+     'one foot each' would fail the gate — and would ALSO be relying on the
+     switch's internal strap to carry a board net, which is a jumper the vendor
+     never specified as one."
+  - "THE ORDER CODE IS FOUR FIELDS AND THREE OF THEM ARE INVISIBLE ON THE PART.
+     `TS-1187A-B-A-B` decodes off the title block as family TS-1187A, force
+     **B = 160 gf**, height **A = 1.5 mm**, keystake **B = Brass**. Every one of
+     the ten height codes and all three forces share the IDENTICAL land, the
+     identical body and the identical drawing — so a substitution is a pure BOM
+     change with no footprint consequence and no electrical consequence, and
+     therefore nothing on the board can detect it. What changes is how the button
+     FEELS and whether a finger can reach it. Since the part carries no marking
+     at all, the BOM Comment is the only record; see asserts:."
+  - "H = 1.5 mm MEANS THE PLUNGER STANDS 0.3 mm PROUD OF THE COVER, AND THAT IS
+     A DECISION SOMEBODY SHOULD MAKE ON PURPOSE. From the side view: cover top
+     1.2 mm, overall H 1.5 mm, travel 0.25 mm. So the actuator protrudes 0.3 mm
+     and travels 0.25 of it — a fingertip will not reliably work it; a fingernail,
+     a pen tip or a probe will. For BOOTSEL and RUN on a bench instrument that is
+     normal and arguably desirable (neither should be easy to hit by accident).
+     IT BECOMES WRONG THE MOMENT AN ENCLOSURE IS INVOLVED: a panel of any
+     thickness over a 0.3 mm actuator needs a plunger cap or a through-hole, and
+     the fix is a HEIGHT CODE, not a mechanical part. Same land, same everything:
+       C318889  TS-1187A-C-C-B  H 1.7 mm  260 gf  extended  169,937 in stock
+       C318888  TS-1187A-C-D-B  H 2.0 mm  260 gf  extended   57,739
+       C318887  TS-1187A-C-E-B  H 2.5 mm  260 gf  extended  129,623
+       C571338  TS-1187A-C-F-B  H 3.0 mm  260 gf  extended   73,209
+     (live JLC assembly-library reads, 2026-07-28). All four are `extended`
+     tier — the 1.5 mm part is the ONLY height in this family that is `base`,
+     which is why it is the primary here and why the trade is stated rather than
+     assumed away."
+  - "BOUNCE IS NOT SPECIFIED AND ONE OF THE TWO NETS CARES. The drawing has no
+     bounce figure at all — no time, no envelope, no test method. A tact switch
+     of this class bounces for the order of 1-10 ms, which is DERIVED from the
+     class and not from this document.
+     BOOTSEL_N does not care: it is sampled once, while the boot ROM reads the
+     flash, so the strap only has to be held down across the reset — bounce
+     inside a held press is invisible.
+     RUN_N DOES care: RUN is the RP2040's reset input, and a bouncing reset can
+     produce several resets from one press, or release the core mid-bounce.
+     FINDING, RECORDED NOT FIXED, AND RE-CHECKED AGAINST THE AMENDED DOCUMENT:
+     DETAIL_DESIGN section 5 gained a `SW_BOOT / SW_RUN` row and an `R_BOOT` row
+     on 2026-07-28, and it STILL lists NO capacitor on RUN — the capacitor table
+     runs C_BULK, C_LDI, C_LDO, C_SW1/2, C_MCU1..10, C_VREG_IN/OUT, C_XTAL1/2
+     and stops, and a grep for C_RUN or 'debounce' across 01_docs/ and
+     03_src/floorplan.yaml returns nothing (measured 2026-07-28). The section-5
+     row argues, correctly, that RUN's CITED 50-80 kOhm internal pull-up
+     (RP2040 Table 625) makes 'a button to GND a complete reset circuit' — which
+     is true about the STATIC circuit and says nothing about the DYNAMIC one.
+     Either a small capacitor from RUN_N to GND is added (Raspberry Pi's own
+     Pico fits 1 uF; anything from 100 nF up damps this) or the omission is
+     dispositioned deliberately. 03_src/ and 01_docs/ are not this dossier's to
+     edit; this is the flag, not the fix."
+  - "IT IS A DRY CIRCUIT — 40 MICROAMPS ON ONE OF THE TWO — AND THE SHEET GIVES
+     NO MINIMUM SWITCHING CURRENT. The rating is 50 mA at 12 V: a MAXIMUM. What
+     the closed contacts actually carry on this board, from
+     DETAIL_DESIGN.md section 5 as it stands 2026-07-28:
+       SW_RUN — RUN's internal pull-up is CITED at 50-80 kOhm (RP2040 Table 625)
+         and nothing else drives the net, so the contact carries
+         3.3 V / 80 k = **41 uA** to 3.3 V / 50 k = **66 uA**.
+       SW_BOOT — BOOTSEL_N reaches 3V3 through R_BOOT (1 k) in series with
+         R_CSPU (10 k) paralleled by the same 50-80 kOhm internal, so roughly
+         3.3 V / (8.6 k + 1 k) = **~0.34 mA**.
+     That is **0.08 % of rating** on SW_RUN and 0.7 % on SW_BOOT. The 100 mOhm
+     max contact resistance drops 6.6 NANOVOLTS at 66 uA against a V_IL that is
+     a volt-class number, so BOTH CITED electrical specs are non-binding by four
+     to six orders of magnitude — worth saying plainly so nobody spends time on
+     them, and worth saying because the interesting question is the opposite end
+     of the range, not this one.
+     WHAT IS NOT CITED IS THAT OTHER END, AND 41 uA IS FAR ENOUGH DOWN TO SAY SO
+     OUT LOUD: the drawing gives no minimum switching current, no dry-circuit
+     qualification, and no gold plating (its item table says fine-silver contacts
+     on SUS and silver-plated brass terminals). Silver in a sealed tact switch
+     wets reliably at tens of microamps and that is DERIVED from the class, NOT
+     from this document — there is no vendor statement behind it. THE
+     CONSEQUENCE IF IT IS EVER WRONG IS ASYMMETRIC AND WORTH KNOWING: a
+     non-wetting SW_BOOT fails to enter the bootloader and you notice
+     immediately; a non-wetting SW_RUN fails to reset and you notice
+     immediately too. Neither failure is silent, neither is destructive, and
+     both are recoverable by pressing harder — which is why this is recorded as
+     an uncited assumption rather than escalated into a part change.
+     A DISCREPANCY WORTH RECORDING RATHER THAN RESOLVING SILENTLY: LCSC's
+     parametric record for C318884 says the contact plating is 'Gold'; the vendor
+     drawing says silver. The drawing wins (canon M-IMPORT: a vendor document
+     beats a catalogue parametric), and neither answer changes anything at
+     0.3 mA."
+  - "BOOTSEL_N IS NOT AN ISOLATED STRAP — IT CARRIES A QSPI LINE. Per
+     DETAIL_DESIGN.md section 5 (rows added 2026-07-28) and
+     03_src/floorplan.yaml, R_BOOT is a 1 kOhm from QSPI_CSN to BOOTSEL_N with
+     R_CSPU 10 kOhm pulling QSPI_CSN to 3V3: SW_BOOT pulls the flash chip-select
+     low through that resistor to enter the bootloader, and 1 kOhm rather than
+     0 Ohm because QSPI_SS is a DRIVEN OUTPUT in normal operation and a hard
+     short to GND through this button would be a drive-fight into the pad. The
+     consequence for placement is real and it is the one thing about this part
+     that interacts with the rest of the board: BOOTSEL_N is galvanically tied to
+     a QSPI net and therefore falls under the QSPI containment rules
+     nets.yaml/ADR-0007 impose, and the SW_BOOT track is a stub hanging off the
+     flash chip-select for the entire life of the board, not only during boot.
+     Keep it short, keep it inside the digital strip, and do not let it wander
+     toward the receive fan. SW_RUN has no such coupling — RUN is a dedicated
+     reset pin — which is why the two buttons are NOT interchangeable in
+     placement even though they are the same part."
+  - "KICAD SW_Push_1P1T_XKB_TS-1187A vs XKB 'P.C.B LAYOUT TOP VIEW', MEASURED —
+     EXACT MATCH, ZERO DEVIATION. The drawing dimensions the recommended land
+     with four numbers: outer edge-to-edge 7.0 and inner edge-to-edge 5.0 across
+     the long axis, outer 4.5 and inner 3.0 across the short axis. From those,
+     pad 1.00 x 0.75 mm on a 6.00 x 3.75 mm centre grid. KiCad places 1.0 x 0.75
+     pads at x = +/-3.0, y = +/-1.875:
+       outer edge-to-edge X   7.0000 vs 7.0 CITED   delta 0.0000
+       inner edge-to-edge X   5.0000 vs 5.0 CITED   delta 0.0000
+       outer edge-to-edge Y   4.5000 vs 4.5 CITED   delta 0.0000
+       inner edge-to-edge Y   3.0000 vs 3.0 CITED   delta 0.0000
+       pad width              1.0000 vs 1.0 DERIVED delta 0.0000
+       pad height             0.7500 vs 0.75 DERIVED delta 0.0000
+       pitch X                6.0000 vs 6.0 DERIVED delta 0.0000
+       pitch Y                3.7500 vs 3.75 DERIVED delta 0.0000
+     Eight of eight exact. This is NOT an IPC-generated land that happens to
+     agree — KiCad has copied the vendor's own recommended pattern, and its
+     `(descr ...)` names this drawing's URL. Cross-checks: the land's 3.75 mm Y
+     pitch sits inside the body view's terminal pitch of 3.7 +/-0.05 (at its
+     upper limit, biasing the pads very slightly outward, which is normal for a
+     gull-wing foot); the four pads group as two rows of two, matching the
+     internal A+B / C+D straps. Re-derived from the .kicad_mod TEXT by a parser
+     that shares no code with pcbnew, then confirmed against
+     pcbnew.FootprintLoad — two methods, one answer (canon M1).
+     NO PROJECT-LOCAL FOOTPRINT IS OWED for this part."
+  - "JLC LIBRARY TIER IS **base**, WHICH IS THE POINT. 02_parts/README.md names
+     '11 of 12 populated parts are extended' as this board's standing sourcing
+     risk. C318884 is base with 1,361,371 in the assembly pool (live 2026-07-28)
+     and 1,125,780 on the LCSC retail page — BOTH pools deep, so the C25091 trap
+     the README documents (retail 0 against assembly 995,162) was CHECKED HERE
+     and does not fire. Stock is never committed to this file (02_parts
+     contract); it lives in 06_build/cache/stock_hmi.json."
+verified: "Declares TWO pins, so policy_audit's S-VER skips it (<= 2 pins) — the
+  citation is written ANYWAY, because the two-node-from-four-pads structure is
+  precisely the fact a skipped part would carry unexamined. Read from the
+  committed XKB drawing TS-1187A-X-X-X rev A0, sheet 1/1, an image-only PDF
+  RENDERED at 200 dpi and read VISUALLY at up to 3x magnification:
+  (a) the INTERNAL CIRCUIT DIAGRAM, upper-centre-right of the sheet — four
+  circled terminals A, B, C, D, with A joined to B by a plain straight
+  conductor, C joined to D by a plain straight conductor, and a single
+  normally-open contact blade drawn between the two rails. That is the two-node
+  structure, stated by the vendor in a diagram whose only purpose is to state it.
+  (b) the BODY TOP VIEW, left of the sheet, which places those labels
+  physically: A upper-left, B upper-right, C lower-left, D lower-right, with
+  terminal foot width 0.5, body 5.1 +/-0.05 square, tip-to-tip 6.5 +/-0.25 and
+  terminal row pitch 3.7 +/-0.05. The A/B row and the C/D row are therefore the
+  two nodes, which is exactly how KiCad's footprint numbers its four pads
+  (both y = -1.875 pads are '1', both y = +1.875 pads are '2').
+  (c) the P.C.B LAYOUT TOP VIEW, centre of the sheet, dimensioned 7.0 / 5.0 /
+  4.5 / 3.0 — the land the footprint comparison in gotchas: is measured against.
+  (d) the SIDE VIEW (plunger diameter 2.0, TRAVEL 0.2 +/-0.1, cover 1.2, base
+  0.9, overall H +/-0.05) and the Code-X height table A..J.
+  (e) the TITLE BLOCK: PART NO TS-1187A-X-X-X, Operating Force A:100gf B:160gf
+  C:260gf, Height Code-X, Keystake A:PA46 B:Brass — the order-code decode.
+  (f) the SPECIFICATION block and the item/material table.
+  The KiCad side was re-derived from the .kicad_mod TEXT by an independent
+  parser and confirmed against pcbnew.FootprintLoad; the DRC consequence of the
+  duplicate pad numbers was MEASURED on a scratch board rather than reasoned
+  about (see gotcha 1). 2026-07-28"
+layout:                        # NOT in P-LAYOUT scope (2 declared pins, and
+                               # `type:` does not match the fet/crystal/inductor
+                               # class), so this block is voluntary — same
+                               # posture as ../BLM21SP601SN1D/part.yaml. The
+                               # vendor publishes NO layout section, so every
+                               # rule below is labelled DERIVED.
+  source: "The XKB drawing has no layout chapter, no application note and no
+    reference design — it is one page of mechanical dimensions plus a
+    SPECIFICATION block. Its only layout-relevant content is the P.C.B LAYOUT
+    TOP VIEW (compared numerically in gotchas:) and the body envelope
+    (5.1 square, 6.5 across the terminals, 1.5 tall). EVERYTHING BELOW IS
+    DERIVED ENGINEERING and is labelled as such."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: BOOTSEL_N, max_span_mm: 20, why: "DERIVED, and the budget is a
+       CONTAINMENT rule rather than a signal-integrity one. As declared in
+       03_src/floorplan.yaml on 2026-07-28, BOOTSEL_N reaches QSPI_CSN through
+       R_BOOT (1 kOhm), so this net is a permanent stub on the flash chip-select
+       and lives inside the QSPI containment that nets.yaml and ADR-0007 impose.
+       20 mm is the whole-net pad span P-ADJ can measure and it is chosen to
+       FORBID the one thing that matters: the strap leaving the digital strip.
+       On the floorplan as declared — U_FLASH region, R_BOOT [57.0, 76.5],
+       SW_BOOT [60.5, 76.5] — the realised span is a few millimetres, so this is
+       a ceiling with room, not a constraint being fought."}
+    - {net: RUN_N, max_span_mm: 20, why: "DERIVED. RUN is the RP2040's reset
+       input and the net is HIGH-IMPEDANCE between presses — it sits at 3V3
+       through a pull-up with nothing else driving it, which is the classic
+       shape for picking up an injected edge and resetting the board at random.
+       Same 20 mm ceiling as BOOTSEL_N and for the same containment reason
+       (SW_RUN is at [64.5, 76.5], in the same strip). If a capacitor is added to
+       RUN_N per the bounce gotcha, THAT capacitor — not this budget — becomes
+       the binding placement rule and it belongs at the RP2040 pin."}
+  notes:
+    - "MEASURED, and it is the rule that will actually bite: ROUTE COPPER BETWEEN
+       THE TWO PADS OF EACH NUMBER. `duplicate_pad_numbers_are_jumpers no` in
+       the footprint means KiCad will not accept the switch's own internal strap
+       as the connection — a scratch-board DRC with the four pads netted and no
+       copper between them reports 2 unconnected items (gotcha 1). Two 6 mm
+       traces per switch, four in total. Budget the space at placement rather
+       than discovering it at the DRC gate."
+    - "DERIVED: this is a HUMAN INTERFACE part, so its placement constraint is
+       ACCESS, not electricals. The plunger is 2.0 mm across and stands 0.3 mm
+       proud (gotcha 3); the courtyard is 7.5 x 5.6 mm. Whatever presses it — a
+       fingernail, a pen, a panel plunger — needs a clear approach cone above the
+       part, so nothing tall may sit within a couple of millimetres, and the
+       two buttons want enough separation to be pressed one at a time. The
+       floorplan's 4.0 mm centre spacing between SW_BOOT [60.5, 76.5] and SW_RUN
+       [64.5, 76.5] is BELOW the 5.1 mm body width plus any clearance — i.e. the
+       two courtyards overlap as declared. FLAGGED, NOT FIXED: 03_src/ is not
+       this dossier's to edit, and floorplan legalisation may resolve it, but a
+       reader should not assume it has."
+    - "DERIVED: BOOTSEL and RUN are pressed TOGETHER during a manual bootloader
+       entry (hold BOOTSEL, tap RUN, release BOOTSEL). That is a two-finger
+       gesture on a 0.3 mm actuator, and it is the ergonomic case the pair must
+       actually satisfy — not 'each button is reachable'. It is another reason
+       the spacing note above matters, and another reason a taller height code
+       may be the right answer once the enclosure exists."
+    - "DERIVED: the metal cover is a floating conductive body 5.1 mm square
+       sitting 1.2 mm above the copper, and the drawing gives it no terminal —
+       it is not grounded through any pad. Do not treat it as a shield and do
+       not route sensitive copper under it expecting isolation; equally, there
+       is no ground connection to make. It is simply a floating plate over
+       whatever the layout puts underneath."
+    - "OWED: no XKB application note, reliability report or reference layout
+       exists for this part — the vendor publishes one drawing. No
+       OSHWLab-by-LCSC board was searched for C318884, and no bounce measurement
+       was made or found. Recorded as not done, not as absent."
+layout_refs:
+  - "XKB TS-1187A-X-X-X rev A0, 'P.C.B LAYOUT TOP VIEW' — the vendor's own
+     recommended land, which the footprint comparison in gotchas: is measured
+     against and matches to zero deviation on eight of eight dimensions"
+  - "XKB TS-1187A-X-X-X rev A0, internal circuit diagram + body top view — the
+     A+B / C+D node structure and the physical terminal positions"
+  - "/usr/share/kicad/footprints/Button_Switch_SMD.pretty/
+     SW_Push_1P1T_XKB_TS-1187A.kicad_mod — read as TEXT. Its own `(descr ...)`
+     cites http://www.helloxkb.com/public/images/pdf/TS-1187A-X-X-X.pdf, i.e.
+     the committed drawing: the footprint and the datasheet name each other"
+  - "OWED: no manufacturer app note, EVM or routed reference exists for a
+     commodity tact switch and none was searched for on OSHWLab"
+sourcing:
+  lcsc: C318884
+  alternates: [C318889, C318887]
+                               # SAME LAND, SAME FAMILY, DIFFERENT HEIGHT — and
+                               # therefore a pure BOM swap with NO footprint
+                               # consequence, which is the only reason they are
+                               # listed. C318889 = TS-1187A-C-C-B (H 1.7 mm,
+                               # 260 gf, extended, 169,937); C318887 =
+                               # TS-1187A-C-E-B (H 2.5 mm, 260 gf, extended,
+                               # 129,623). BOTH ARE `extended` AND BOTH ARE
+                               # STIFFER (260 gf vs 160 gf) — the height and the
+                               # force are separate order-code fields but XKB's
+                               # base-tier stocking happens to pair 1.5 mm with
+                               # 160 gf. Neither alternate's drawing was
+                               # separately fetched: the committed sheet IS the
+                               # family drawing and covers every code. What is
+                               # NOT listed is the wider tact-switch market
+                               # (Alps SKRK, Omron B3U, CK KMR2, ...): those are
+                               # DIFFERENT lands and a different footprint, so
+                               # they are re-selections, not alternates.
+asserts:
+  # DECLARED BUT NOT ACTUALLY GRADED TODAY — the same limitation the
+  # ../SMBJ6.0A and ../BLM21SP601SN1D dossiers record: part_facts_check.py
+  # decodes `equals:` through parse_si(), which is NUMERIC-ONLY, so an MPN
+  # string returns None and the entry reports P-FACT-CONFIG and grades NOTHING.
+  # Reported, not fixed — part_facts_check.py lives under skills/.
+  # A SECOND, BOARD-LEVEL DIVERGENCE the first one is hiding: this board's
+  # schematic puts the LCSC CODE in `value`, not the MPN (measured 2026-07-28
+  # from 06_build/netlists/pluto_rx2_8way.net — U_ESD "C7519", D_TVS "C83270",
+  # U_LDO "C638611", ...), and this part's placeholder reads `__SW_LCSC__`.
+  # The full finding is written up once, in ../KT-0603R/part.yaml's asserts:
+  # comment; it is a single board-owner decision, not a per-dossier one.
+  - assert: value
+    equals: TS-1187A-B-A-B
+    why: "the BOM Comment must name all four order-code fields, because THREE of
+      them are undetectable after assembly and the part carries no marking at
+      all. Every height code A..J and every force code A/B/C shares this exact
+      land, this exact body and this exact drawing, so a substitution passes DRC,
+      schematic parity, the JLC twin check and a pin review — and changes how
+      hard the button is to press and whether a 0.3 mm actuator becomes a 4.0 mm
+      one. The specific near-miss on this board is a HEIGHT swap: C318887 is
+      TS-1187A-C-E-B, one field different, 2.5 mm tall and 260 gf, and it would
+      stand 1.0 mm proud of any panel cut-out designed for the 1.5 mm part.
+      There is also no `msl` assert here and that is deliberate: the drawing
+      states no moisture level and an LCP/SUS/brass mechanical body is not a
+      moisture-sensitive package — reported as an absence, not inferred."
+  # NO `pad1_net_polarity` ASSERT: an SPST normally-open contact is SYMMETRIC.
+  # Pad 1 and pad 2 are electrically interchangeable, so there is no polarity
+  # fact to grade and asserting one would be inventing a constraint. On this
+  # board pad 2 conventionally goes to GND, but that is a drawing convention and
+  # swapping it changes nothing.

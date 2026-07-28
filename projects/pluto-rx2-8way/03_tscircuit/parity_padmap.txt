@@ -1,0 +1,60 @@
+# parity_padmap.txt — pluto-rx2-8way
+#
+# Documented per-board footprint pad-name deltas. Two consumers:
+#   * tsx_preflight.py (canon TSX-PRE) — every NON-NUMERIC pad name in
+#     02_parts/*/part.yaml `pins:` must appear here, or tscircuit DROPS the
+#     whole part SILENTLY, with ERC still reading 0 errors. This is not a
+#     hypothetical: 2026-07-21, four USB connectors, 48 of 52 parts, and only
+#     an agent's hand count caught it.
+#   * kicad_sch_parity.py --padmap — node-for-node parity against a sealed
+#     04_kicad board. N/A at this stage: no sealed board exists yet.
+#
+# ============================================================================
+# J_USB — TYPE-C-31-M-12A (C5337088). The ONLY part on this board with
+# alphanumeric pads. Sixteen contacts named A1..A12 / B1..B12 plus a shield
+# pad SH; every one is authored in the TSX with DUAL portHints
+# (portHints={[realName, numericAlias]}), so tscircuit sees a numeric pin id
+# and the converter emits the REAL KiCad pad name. The numeric aliases below
+# are the ORDER the TSX lays them out in — row A first, then row B, then SH:
+#
+#   tsx1  A1    tsx2  A4    tsx3  A5    tsx4  A6    tsx5  A7
+#   tsx6  A8    tsx7  A9    tsx8  A12   tsx9  B1    tsx10 B4
+#   tsx11 B5    tsx12 B6    tsx13 B7    tsx14 B8    tsx15 B9
+#   tsx16 B12   tsx17 SH
+J_USB: A1 A4 A5 A6 A7 A8 A9 A12 B1 B4 B5 B6 B7 B8 B9 B12 SH
+#
+# TWO PROPERTIES OF THE REAL LAND THAT THE TSX FOOTPRINT DOES NOT MODEL, both
+# harmless at the schematic gate and both load-bearing at the board stage:
+#
+#  1. THE FOUR VBUS AND FOUR GND CONTACTS SHARE PADS TWO-TO-ONE. A1+B12,
+#     A4+B9, B4+A9 and B1+A12 each land on ONE 0.60 mm piece of copper, so the
+#     authored footprint carries SIXTEEN pad NAMES on TWELVE lands. The TSX
+#     renders them as two separate rows (render-only geometry; the fab
+#     footprint is pluto_rx2_8way:USB_C_Receptacle_HRO_TYPE-C-31-M-12A). The
+#     netlist consequence is already satisfied here: A1 and B12 are the same
+#     node whether or not the schematic says so, and the TSX puts both on GND
+#     — a symbol that put them on different nets would be a hard short that
+#     DRC reports as a zero-length collision, not as a net error.
+#  2. SH IS FOUR PLATED SHELL LEGS ON ONE PAD NAME. `tie:` is declared on SH
+#     in the part.yaml and not on the GND CONTACTS, on purpose: A1/A12/B1/B12
+#     are electrical pins the schematic authors, whereas SH is the mechanical
+#     pad. All four legs bond DIRECTLY to GND, each with its own via.
+#
+# ============================================================================
+# EVERY OTHER PART ON THIS BOARD IS NUMERIC, AND THAT IS A MEASUREMENT, NOT AN
+# ASSUMPTION — tsx_preflight.py grades all 02_parts/*/part.yaml `pins:` maps
+# and reports the denominator. Three that LOOK like they should be here and
+# are not, recorded so nobody re-checks them:
+#
+#   U_SW    PE42482A-X   pads 1..24 plus the exposed pad, which the vendor
+#                        land numbers 25 — numeric, and authored as pad 25.
+#   U_MCU   RP2040       pads 1..56 plus the centre pad, numbered 57 by
+#                        Table 621 itself (not by the footprint). It is the
+#                        chip's ONLY ground connection.
+#   U_LDO   MCP1755S     SOT-223-3 whose TAB IS PAD 4, not pad 2, and KiCad
+#                        ships both numberings. Numeric either way, so
+#                        TSX-PRE cannot see the difference — the wrong one
+#                        yields a WORKING board and surfaces only as a
+#                        jlc_twin PAD-MISMATCH. 02_parts declares
+#                        Package_TO_SOT_SMD:SOT-223 (the pad-4 variant) and
+#                        the TSX authors pad 4.
