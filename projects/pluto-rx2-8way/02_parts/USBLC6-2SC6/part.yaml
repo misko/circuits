@@ -1,0 +1,288 @@
+mpn: USBLC6-2SC6
+manufacturer: STMicroelectronics
+type: esd_protection_array_2ch_rail_to_rail
+datasheet:
+  doc_id: DocID11265
+  revision: DocID11265-Rev5        # printed in the footer of every page:
+                                   # "Doc ID 11265 Rev 5", cover date
+                                   # October 2011. The revision history
+                                   # (Table 6, PDF p13) runs 1 (14-Mar-2005)
+                                   # through 5 and stops there in this file.
+  url: https://datasheet.lcsc.com/datasheet/pdf/0d3a2ab954b34651a0695e7ccf534db0.pdf?productCode=C7519
+  sha256: 8ba7ab4ec1781b7f6052f5999a2304bd611c0ed2b5e8f36ffa5092552932a42e
+  fetched: 2026-07-28
+  pages: 14
+  note: "PROVENANCE, STATED PLAINLY BECAUSE IT IS NOT THE MANUFACTURER'S OWN
+    HOST. st.com is UNREACHABLE from this environment for /resource/ PDFs:
+    https://www.st.com/resource/en/datasheet/usblc6-2sc6.pdf and
+    .../usblc6-2.pdf and .../CD00050750.pdf each time out with 0 bytes after
+    40-50 s, on BOTH Akamai edge addresses (23.62.46.171 and .183), while a
+    HEAD to www.st.com/ returns 301 — so it is a resource-path block, not DNS
+    and not the network. Mouser (JS challenge), TME (403) and RS (403) all
+    refuse too. This file is therefore the LCSC-redistributed copy, and it IS
+    ST's own document, not a rewrap: Author=STMICROELECTRONICS,
+    Producer=Acrobat Distiller 7.0.5, Keywords include the internal ID 11265,
+    every page footer carries 'Doc ID 11265 Rev 5', and the back page is ST's
+    own 2011 disclaimer. Grade: CITED. A newer ST revision may exist (a 2021
+    datasheet date is visible in search metadata) and was NOT obtainable —
+    recorded as OWED rather than assumed absent. What that risks is bounded:
+    the pinout and the SOT23-6L land are fixed by JEDEC MO-178 AB and have not
+    moved since 2005; re-check the CLAMPING and CAPACITANCE numbers if a newer
+    sheet ever becomes reachable."
+package: >-
+  SOT23-6L (JEDEC MO-178 AB), Table 4 PDF p12: D 2.80-3.05, E 1.50-1.75,
+  H (lead tip to lead tip) 2.60-3.00, A 0.90-1.45, A1 0-0.10, lead width b
+  0.35-0.50, lead foot L 0.10-0.60, e = 0.95 pitch. 16.7 mg. Marking "UL26"
+  (Table 5 PDF p13 + Figure 23 PDF p12) — the marking is NOT the MPN, and it is
+  the only thing on the part.
+footprint: Package_TO_SOT_SMD:SOT-23-6      # STANDARD KiCad part, and it MATCHES
+                                   # — numbers in gotchas. Not the
+                                   # _Handsoldering variant: this is a reflow
+                                   # part on an SMT board and the handsolder
+                                   # land is 0.10 wider and 0.43 longer for no
+                                   # reason here.
+escape:                            # emitted by escape_check.py, 2026-07-28
+  style: leaded
+  pitch: 0.95
+  escapes_worst_side: 3            # pins 4/5/6 = USB_DM, VBUS, USB_DP — three
+                                   # nets leave that side. The 1/2/3 side is
+                                   # USB_DP, GND, USB_DM = two (GND excluded).
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-28
+pins:                              # Figure 1 "Functional diagram (top view)",
+  1: {name: IO1, note: "SAME NODE as pin 6 — USB_DP"}
+  2: {name: GND, note: "the ONLY ground pin; it carries the whole surge return"}
+  3: {name: IO2, note: "SAME NODE as pin 4 — USB_DM"}
+  4: {name: IO2, note: "SAME NODE as pin 3 — USB_DM"}
+  5: {name: VBUS, note: "rail-clamp leg: the Transil cathode. Needs a local
+       100 nF (Figure 18, PDF p9) and a LOW-INDUCTANCE rail — see gotchas"}
+  6: {name: IO1, note: "SAME NODE as pin 1 — USB_DP"}
+limits:
+  vpp_iec61000_4_2_air:     15 kV          # Table 1, PDF p2
+  vpp_iec61000_4_2_contact: 15 kV          # Table 1, PDF p2 — the DEVICE-level
+                                           # number. The compliance claim on the
+                                           # cover is "IEC 61000-4-2 level 4:
+                                           # 15 kV air / 8 kV contact".
+  vpp_hbm_mil883g_3015_7:   25 kV          # Table 1, PDF p2
+  tstg: -55 to +150 C                      # Table 1, PDF p2
+  tj:   -40 to +125 C                      # Table 1, PDF p2
+  tl:   "260 C, 10 s"                      # Table 1, PDF p2
+  irm:  "10 nA typ / 150 nA max at VRM = 5.25 V"   # Table 2, PDF p2
+  vbr_vbus_gnd: "6 V min at IR = 1 mA"     # Table 2, PDF p2
+  vf:   "1.1 V max at IF = 10 mA"          # Table 2, PDF p2
+  vcl:  "12 V max at 1 A 8/20 us; 17 V max at 5 A 8/20 us (any I/O to GND)"
+                                           # Table 2, PDF p2
+  c_io_gnd: "2.5 pF typ / 3.5 pF max at VR = 1.65 V"   # Table 2, PDF p2
+  dc_io_gnd: "0.015 pF matching"           # Table 2, PDF p2 — the number behind
+                                           # the cover's "consistent D+/D-
+                                           # signal balance" claim
+  c_io_io:  "1.2 pF typ / 1.7 pF max"      # Table 2, PDF p2
+  bandwidth: "specified for data lines to 480 Mbit/s (sec 2.4.2, PDF p7);
+    Figure 5 (PDF p3) gives the S21 roll-off"
+gotchas:
+  - "WHAT IT PROTECTS, EXHAUSTIVELY: TWO data lines plus the VBUS rail. Figure 1
+     (PDF p1) is a rail-to-rail array — two steering diodes per I/O (I/O up to
+     VBUS, GND up to I/O) and ONE Transil between VBUS and GND. There are
+     exactly two I/O channels: pins 1+6 are one node, pins 3+4 the other. On
+     this board that is USB_DP, USB_DM and VBUS.
+     WHAT IS THEREFORE LEFT UNPROTECTED ON THE TYPE-C RECEPTACLE:
+       CC1 (J_USB.A5), CC2 (J_USB.B5), SBU1 (A8), SBU2 (B8).
+     That is ACCEPTABLE HERE, and the reason is a property of THIS board, not a
+     property of the part: SBU1/SBU2 carry NO trace at all (explicit
+     no-connect — a pad with nothing behind it has no victim), and CC1/CC2
+     terminate in R_CC1/R_CC2 5.1 kOhm to GND AND NOTHING ELSE — there is no PD
+     controller, no CC mux, no MCU pin, no silicon of any kind on CC. The whole
+     CC exposure is a 0402 resistor whose worst failure is going open, which
+     stops the board being recognised as a sink; it cannot propagate. Every pin
+     with SEMICONDUCTOR behind it — D+/D- into the RP2040 PHY, VBUS into the
+     LDO — is covered. THE CONDITION IS FALSIFIABLE AND MUST BE RE-CHECKED IF
+     IT CHANGES: the moment anything active is put on CC or SBU (a PD sink
+     controller, a debug UART on SBU, even a test point that leads somewhere),
+     this conclusion is VOID and a 4-channel array becomes the right answer.
+     Named alternates for that day: TPD4E05U06 (4-ch, 0.9 pF, CC-rated) or a
+     second USBLC6-2SC6 across CC1/CC2 — NOT a silent swap, a re-decision."
+  - "IT DOES NOT PROTECT AGAINST SUSTAINED OVERVOLTAGE, AND ITS SURVIVAL DEPENDS
+     ON ADR-0004's CC DECISION. VBR is 6 V MIN at 1 mA (Table 2) and the leakage
+     spec is quoted at VRM = 5.25 V — which is EXACTLY this board's declared
+     VBUS maximum (ARCHITECTURE sec 3). So the array sits just under its knee in
+     normal operation and is off (150 nA max). Put 9 V on VBUS and it conducts
+     CONTINUOUSLY into a die rated for microsecond pulses, and it cooks. What
+     makes 9 V unreachable is R_CC1/R_CC2 = 5.1 kOhm advertising a plain 5 V
+     sink so no PD source ever negotiates up (ADR-0004). Those two resistors are
+     part of THIS part's protection story, which is why ADR-0004 calls them a
+     PROTECTION decision and machine-asserts their value."
+  - "IT IS NOT A SUBSTITUTE FOR D_TVS AND D_TVS IS NOT A SUBSTITUTE FOR IT — THE
+     TWO SIT ON DIFFERENT NODES AND DIFFERENT TIME SCALES. This array clamps
+     12 V at 1 A / 17 V at 5 A on an 8/20 us pulse: a small die for a fast,
+     low-energy ESD strike, and its whole value comes from being AT the
+     connector. D_TVS is a 5.0 V-standoff SMAJ5.0A-class part clamping ~9.2 V at
+     43.5 A on VBUS_F, downstream of F_IN, for the energy event (ADR-0004).
+     Deleting either because 'the other one covers VBUS' is the error."
+  - "WHICH NODE PIN 5 SITS ON IS AN OPEN SCHEMATIC DECISION AND IT IS NOT FREE.
+     ADR-0004 puts the FUSE UPSTREAM OF THE CLAMP deliberately, so that a TVS
+     failing short opens F_IN rather than burning. But the rail-to-rail topology
+     means an I/O surge is DUMPED INTO PIN 5, so pin 5 wants the lowest-
+     inductance path to the source it can get — i.e. raw VBUS, on the CONNECTOR
+     side of F_IN, not VBUS_F behind a PPTC's resistance and inductance.
+     The two arms, costed: pin 5 on VBUS_F puts the PPTC in the ESD return path
+     and raises the clamp; pin 5 on raw VBUS means a shorted VBUS leg is limited
+     only by the HOST's own current limit, not by F_IN. Either is defensible;
+     what is NOT defensible is choosing by accident. RAISE IT AT SCHEMATIC
+     CAPTURE and record the choice — this dossier deliberately does not silently
+     decide something ADR-0004 owns. Whichever node is chosen, Figure 18
+     (PDF p9) requires a 100 nF (CBUS) at pin 5."
+  - "PINS 1 AND 6 ARE THE SAME NET AND SO ARE 3 AND 4 — 'IN-LINE' IS A LAYOUT
+     RULE, NOT A CIRCUIT ONE. Figure 1 shows a straight internal connection.
+     Wiring only pin 1 to USB_DP and leaving pin 6 open is electrically
+     identical and LAYOUT-WRONG: routing the data line IN on 1 and OUT on 6
+     (and IN on 3, OUT on 4) is what forces the trace to physically pass through
+     the clamp with a zero-length stub. Figure 7 'ESD behavior: layout
+     optimization' (PDF p5) draws exactly this as the unsuitable-vs-optimized
+     pair. Same net either way, so no ERC, DRC or parity check can tell them
+     apart."
+  - "THE INDUCTANCE ARITHMETIC IS THE WHOLE PART. Section 2.2 (PDF p4): a
+     10 mm x 0.5 mm track is ~6 nH; at dI/dt = Ip/tr = 24 A/ns that is 144 V on
+     the I/O leg AND 144 V on the GND leg, so the clamp the RP2040 actually
+     sees goes from 31.2 V to 319.2 V. ST prints those numbers to make the point
+     that an unsuitably laid-out USBLC6-2 is worse than none, because the
+     designer thinks the port is protected. Pin 2 is the SINGLE ground pin and
+     carries the entire return — it gets its own via to the L2 plane at the pad,
+     never a trace to a distant stitch."
+  - "KICAD SOT-23-6 vs ST FIGURE 22, MEASURED. Figure 22 'SOT23-6L footprint
+     dimensions in mm' (PDF p12) gives pad 0.60 wide x 1.20 long, pitch 0.95,
+     row centre-to-centre 2.30 (= 1.20 + 1.10 gap), outer span 3.50.
+     Package_TO_SOT_SMD:SOT-23-6 gives pads 0.60 x 1.325 at x = +/-1.1375,
+     y = 0, +/-0.95:
+       pad WIDTH   0.60  vs 0.60   EXACT
+       PITCH       0.95  vs 0.95   EXACT
+       pad LENGTH  1.325 vs 1.20   +0.125 (IPC toe/heel)
+       row centre  2.275 vs 2.30   -0.025
+       outer span  3.60  vs 3.50   +0.10
+       inner gap   0.95  vs 1.10   -0.15
+     Both lands fully cover the lead seating zone, which Table 4 bounds at
+     0.75 (E/2 max) to 1.50 (H/2 max) from the centre: ST spans 0.55-1.75,
+     KiCad 0.475-1.80. The only differences are the standard IPC expansions.
+     DECLARED AS A MATCH — no project-local footprint owed for this part."
+  - "MSL / BAKE: the datasheet states NO moisture sensitivity level for
+     SOT23-6L. Reported as an ABSENCE, not as MSL 1 — which is why there is no
+     `msl` assert below. If the order paperwork needs a level, get it from the
+     ECOPACK grade on the reel label, not from this sheet."
+  - "USBLC6-4SC6 APPEARS IN THIS DATASHEET (Figure 14, PDF p8) AND IS NOT IN IT.
+     Figure 14's lower diagram shows a 4-line sibling on the downstream side.
+     There is no pinout, no land drawing and no electrical table for it here —
+     if it is ever wanted, that is a different datasheet and a fresh S-VER read,
+     not an extrapolation from this one."
+verified: "pin map read from Figure 1 'Functional diagram (top view)', PDF p1 —
+  page RENDERED at 300 dpi and read VISUALLY. The figure shows pin 1 I/O1 and
+  pin 6 I/O1 joined by a straight internal conductor, pin 3 I/O2 and pin 4 I/O2
+  likewise, pin 2 GND and pin 5 VBUS with the Transil between them (cathode at
+  VBUS), and four steering diodes: GND->I/O and I/O->VBUS on each channel. That
+  read was then cross-checked against Figure 18 'USBLC6-2 PCB layout
+  considerations' (PDF p9), which independently labels D+in at pin 1, GND at
+  pin 2, D-in at pin 3, D-out at pin 4, VBUS at pin 5 (with CBUS = 100 nF) and
+  D+out at pin 6 — a second figure, drawn for a different purpose, agreeing pin
+  for pin. Package and land from Table 4 and Figure 22, PDF p12, also rendered
+  and read. 2026-07-28"
+layout:
+  source: "ST DocID11265 Rev 5 section 2.3 'How to ensure good ESD protection'
+    (PDF p5) with its Important note — 'put the protection device as close as
+    possible to the disturbance source (generally the connector)' — plus
+    Figure 7 'ESD behavior: layout optimization' (PDF p5, the explicit
+    unsuitable-vs-optimized pad picture), Figure 18 'USBLC6-2 PCB layout
+    considerations' (PDF p9, the CBUS = 100 nF at VBUS), and the arithmetic in
+    section 2.2 (PDF p4) that puts a VOLTAGE on every millimetre of track."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: USB_DP, max_span_mm: 20, why: "CITED-then-DERIVED. sec 2.2 makes
+       track length a clamp-voltage term (6 nH per 10 mm x 0.5 mm => +144 V at
+       24 A/ns), so 'short' here is not tidiness. 20 mm is the whole-net pad
+       span P-ADJ can measure — J_USB [46.0, 87.0] -> U_ESD [54.0, 84.0] ->
+       U_MCU [46.0, 72.0] is ~16 mm on the floorplan as declared — and it is a
+       real ceiling: it forbids the pair leaving the digital strip and crossing
+       the receive fan. The BINDING sub-constraint is the connector-to-array
+       segment; see adjacency:."}
+    - {net: USB_DM, max_span_mm: 20, why: "as USB_DP. The pair must be budgeted
+       together — Table 2's 0.015 pF I/O-to-GND matching is the reason to buy
+       this part, and asymmetric routing throws it away."}
+    - {net: VBUS, max_span_mm: 25, why: "pin 5 is where an I/O surge is DUMPED,
+       not a bystander: the rail-to-rail topology steers the strike up into the
+       Transil, so pin 5's inductance is in series with the clamp exactly like
+       pin 2's. It also carries the F_IN/D_TVS/C_BULK/C_LDI chain, which USB 2.0
+       sec 7.2.4.1 caps at 10 uF of device-side bypass (this board budgets
+       5.7 uF, DETAIL_DESIGN sec 5) — a budget that only means anything if the
+       bypass is local to the rail it is bypassing."}
+  adjacency:
+    - {refdes: [U_ESD, J_USB], max_mm: 2.0, why: "THE rule of this part, and the
+       one number worth arguing about. From sec 2.2: 2 mm of 0.5 mm track is
+       ~1.2 nH, so the parasitic adder is ~29 V per leg and the clamp the RP2040
+       sees stays near 75 V instead of 305 V. sec 2.3's Important note says the
+       same thing in words. FINDING, recorded rather than absorbed: the
+       floorplan currently has U_ESD at [54.0, 84.0] and J_USB at [46.0, 87.0]
+       — about 8 mm lateral, several times this budget. The array belongs
+       straddling the D+/D- escape immediately behind the connector pads, with
+       the CC resistors beside it, not in a line of parts to one side."}
+    - {refdes: [U_ESD, C_ESD], max_mm: 2.0, why: "Figure 18 (PDF p9) puts
+       CBUS = 100 nF ON the VBUS pin. OWED: this board's DETAIL_DESIGN sec 5
+       passives table does not yet carry that capacitor — it lists C_BULK,
+       C_LDI, C_LDO, C_SW1/2, C_MCU1..4 and no VBUS-pin 100 nF. Either it is
+       added (it is 0.1 uF and does NOT count against the USB 2.0 10 uF cap in
+       the way the bulk does, but it does count in the 6.1 uF total ADR-0004
+       quotes) or the omission is dispositioned. Do not let it fall between the
+       two dossiers."}
+  notes:
+    - "DERIVED: pin 2 is the ONLY ground and the return for every clamped
+       event. Give it its own via to the L2 solid plane AT the pad — not a
+       shared neck, not a trace to the nearest stitch. By sec 2.2's numbers a
+       10 mm ground trace alone costs 144 V of clamp."
+    - "DERIVED: route D+ IN on pin 1 / OUT on pin 6 and D- IN on pin 3 / OUT on
+       pin 4, so the connector-side and MCU-side tracks physically terminate on
+       opposite pads. It is the same net either way, so this is invisible to
+       every gate on the board and has to be a placement/routing intent that
+       someone holds."
+    - "OWED: no manufacturer EVM, application note or routed reference layout
+       beyond Figures 7 and 18 was fetched — ST publishes AN1236/AN1181-class
+       ESD application notes and none were read, because st.com's resource host
+       is unreachable (see datasheet.note). Recorded as blocked, not absent.
+       No OSHWLab-by-LCSC board was searched for C7519 either."
+layout_refs:
+  - "ST DocID11265 Rev 5, Figure 7 'ESD behavior: layout optimization', PDF p5 —
+     the manufacturer's own good/bad pad picture, read visually"
+  - "ST DocID11265 Rev 5, Figure 18 'USBLC6-2 PCB layout considerations', PDF p9
+     — the reference connection incl. CBUS = 100 nF at VBUS"
+  - "ST DocID11265 Rev 5, Figure 14 'USB 2.0 port application diagram using
+     USBLC6-2', PDF p8 — the circuit-level reference (upstream transceiver, USB
+     connector, series RS, the array across D+/D-)"
+  - "ST DocID11265 Rev 5, Figure 22 + Table 4, PDF p12 — the SOT23-6L
+     recommended land, the footprint comparison above is against this"
+  - "OWED: ST application notes on ESD protection layout were not reachable
+     (st.com /resource/ blocked, 2026-07-28). Recorded as blocked."
+sourcing:
+  lcsc: C7519
+  alternates: [C2827638, C1972959] # C2827638 = USBLC6-2P6, ST's OWN SOT-666
+                                   # sibling in this same datasheet: identical
+                                   # die and identical pin function, 2.9 mm2
+                                   # instead of 9 mm2 — but a DIFFERENT land
+                                   # (Figure 20, PDF p11) so it is a footprint
+                                   # change, never a drop-in. C1972959 =
+                                   # TPD2E2U06DRLR (SOT-553), already in the
+                                   # proven-parts ledger as
+                                   # esd-2ch-bidirectional-sot553 — 2-channel
+                                   # like this part but with NO VBUS clamp leg,
+                                   # so swapping to it silently DELETES the
+                                   # VBUS protection and leaves D_TVS alone on
+                                   # that node. Neither alternate's numbers were
+                                   # independently read here.
+asserts:
+  - assert: value
+    equals: USBLC6-2SC6
+    why: "the BOM Comment must name the full order code. SOT23-6 is the single
+      most crowded package on any BOM and the marking on the part is 'UL26'
+      (Table 5, PDF p13), which resolves to nothing a human recognises — so the
+      BOM Comment is the ONLY place the identity is legible before reflow. The
+      near-miss that matters is a 2-channel array WITHOUT the VBUS leg (e.g.
+      TPD2E2U06 class, listed as an alternate above): it drops into the same
+      six pads, protects D+/D- identically, and silently removes the VBUS clamp
+      at the connector — leaving that node to D_TVS alone, which sits behind
+      F_IN on VBUS_F and is a different clamp on a different node. The board
+      assembles, enumerates and passes every electrical check with a protection
+      leg missing."

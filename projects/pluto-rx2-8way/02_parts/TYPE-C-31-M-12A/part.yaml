@@ -5,7 +5,7 @@ datasheet:
   doc_id: TYPE-C-31-M-12A          # the sheet carries NO drawing number — the
                                    # title-block DRAWING NO. field is struck
                                    # through. PART NO. is the only identifier.
-  revision: RevA-2022.10.26        # title block: REV. "A", DESCRIPTION "NEW",
+  revision: RevA-2022-10-26        # title block: REV. "A", DESCRIPTION "NEW",
                                    # ECN NO. and DATE both struck through,
                                    # DRAWN LIUCAN 2022.10.26. THE DATE IS THE
                                    # DISAMBIGUATOR, not the letter: the base
@@ -214,8 +214,12 @@ gotchas:
      resistivity of copper, so the shell METAL is not the ground bond — the four
      plated legs are. Do not rely on the shell to carry return current between
      two ground stitches; give every leg its own via to the L2 plane."
-verified: "pin map read from the SIGNAL NAME table, sheet 1 of 1, lower right
-  (two PIN / SIGNAL NAME column pairs, eight rows, sixteen entries) — page RENDERED
+verified: "pin map read from the vendor mechanical DRAWING, PDF p1 (the whole
+  document is sheet 1 of 1) — THIS SHEET HAS NO NUMBERED FIGURES, which is stated
+  rather than papered over with an invented figure number; the views are named by
+  their titles and their position on the sheet. The pin map comes from the SIGNAL
+  NAME table at lower right (two PIN / SIGNAL NAME column pairs, eight rows,
+  sixteen entries) — page RENDERED
   at 300 dpi from the PDF whose sha256 is recorded above and read VISUALLY, then
   cross-checked pad-by-pad against the contact callouts on the top elevation
   ('A1 B12 A4 B9 B8 A5 B7 A6 A7 B6 A8 B5 B4 A9 B1 A12', left to right over the

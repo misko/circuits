@@ -75,7 +75,7 @@ rails:
 # `clamp_le_rating` in electrical_invariants.yaml because it needs both parts'
 # facts, not the netlist. The pairing as actually selected:
 #   D_TVS  SMBJ6.0A   V_C = 10.3 V at I_PP 58.3 A (Littelfuse SMBJ table)
-#   U_LDO  MCP1755S   V_IN absolute maximum = +17.6 V (DS20005160B p6)
+#   U_LDO  MCP1755S   V_IN absolute maximum = +17.6 V (DS20005160B Absolute Maximum Ratings, p5)
 # 17.6 > 10.3 with 7.3 V to spare. NOTE THE CONSTRAINT MOVED: ADR-0004 wrote
 # ">= 10 V" against a 5.0 V-standoff part clamping at 9.2 V, and the part
 # actually selected is a 6.0 V standoff clamping at 10.3 V (the 5.0 V standoff

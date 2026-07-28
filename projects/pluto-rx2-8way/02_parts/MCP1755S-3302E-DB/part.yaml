@@ -178,10 +178,17 @@ gotchas:
      '3.3V 300mA 16V' (live 2026-07-28) — that is the OPERATING maximum from
      PDF p5, not the abs max from the Absolute Maximum Ratings table on the same
      page. Reading the parametric alone would have understated the headroom.
-     Both numbers clear the >= 10 V bar, and the operating one clearing it is
-     the STRONGER result: with the SMAJ5.0A-class clamp at ~9.2 V at 43.5 A, the
-     regulator is inside its NORMAL OPERATING RANGE during a clamp event, not
-     merely inside its survival rating."
+     AND THE BAR MOVED AFTER ADR-0004 WAS WRITTEN. ADR-0004 says '>= 10 V',
+     derived from a 5.0 V-standoff SMAJ clamping at ~9.2 V at 43.5 A. The TVS
+     actually selected is SMBJ6.0A (02_parts/SMBJ6.0A: V_C = 10.3 V at
+     I_PP 58.3 A) because VBUS_max 5.25 V sits ABOVE a 5.0 V standoff's working
+     voltage. The LIVE requirement is therefore V_IN(abs max) >= 10.3 V, and a
+     regulator rated exactly 10 V is now OUT of spec rather than marginal. This
+     part clears the moved bar twice over: 17.6 V abs max is 7.3 V above the
+     clamp, and the 16.0 V OPERATING maximum is 5.7 V above it — so during a
+     clamp event the regulator is inside its NORMAL OPERATING RANGE, not merely
+     inside its survival rating. That is what makes this selection insensitive
+     to which standoff the protection dossier finally settles on."
   - "THE GATE'S DISSIPATION FORMULA IS THIS DATASHEET'S OWN FORMULA, AND IT IS
      VALID *BECAUSE* THIS PART IS CMOS. Equation 5-1 (PDF p21) is
      PLDO = (VIN(MAX) - VOUT(MIN)) x IOUT(MAX) — character for character what

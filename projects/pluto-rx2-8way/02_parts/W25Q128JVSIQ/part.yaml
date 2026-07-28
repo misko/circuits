@@ -57,7 +57,7 @@ pins:                            # Figure 1a 'W25Q128JV Pin Assignments, 8-pin
   2: DO_IO1                      # RENDERED at 200 dpi and read VISUALLY, then
   3: WP_IO2                      # cross-checked pin-by-pin against section 3.3
   4: {name: GND, tie: GND}       # 'Pin Description SOIC 208-mil, WSON 6x5-mm /
-  5: DI_IO0                      # 8x6-mm', PDF p7. Pin-1 dot at the TOP-LEFT of
+  5: DI_IO0                      # 8x6-mm', PDF p6. Pin-1 dot at the TOP-LEFT of
   6: CLK                         # the Top View; 1..4 down the left, 5..8 up the
   7: HOLD_RESET_IO3              # right. `tie: GND` on pin 4 is belt-and-braces:
   8: VCC                         # this package has a real GND LEAD, not an EP, so
@@ -144,13 +144,13 @@ gotchas:
      10 kohm footprint next to the flash and leave it unpopulated."
   - "THE RP2040 BOOTROM SPEAKS 03h, AND 03h IS THE SLOW INSTRUCTION. The bootrom
      probes at ~1 MHz with 'standard 03h serial read commands, which are
-     near-universally supported' (RP2040 datasheet section 2.8.1.2, PDF p130), and
+     near-universally supported' (RP2040 datasheet section 2.8.1.2, PDF p131), and
      this device caps 03h at fR = 50 MHz while everything else runs to 133 MHz
      (section 9.6, PDF p65). Consequence for the SECOND STAGE, not for the board:
      if a second stage leaves the SSI on 03h it is limited to 50 MHz regardless of
      the clock divider. The four commands the bootrom's flash-programming routines
      additionally require — 02h page program, 05h status read, 06h write enable,
-     20h 4 kB sector erase (Hardware Design section 2.6, PDF p13) — are all
+     20h 4 kB sector erase (Hardware Design section 2.6, PDF p14) — are all
      present in Instruction Set Table 1, PDF p23."
   - "WARM-RESET RECOVERY IS THE RISK THAT KILLS UNKNOWN FLASH, AND IT IS COVERED
      FOR WINBOND BY NAME. A device left in quad-IO continuous read (M7-M0 = Fxh)
@@ -158,11 +158,11 @@ gotchas:
      would never re-read the second stage. The bootrom issues a fixed exit
      sequence first, and the datasheet says who it was designed for: 'This is
      designed to miss the XIP continuation codes on Cypress, Micron and WINBOND
-     parts' (RP2040 datasheet section 2.8.1.2, PDF p130). Choosing a Winbond
+     parts' (RP2040 datasheet section 2.8.1.2, PDF p131). Choosing a Winbond
      W25Q-series part is therefore not a preference — it is the reason the
      board survives its own reset button. The SDK's reference second stage
      boot2_w25q080.S targets this same family (Hardware Design section 2.6,
-     PDF p13)."
+     PDF p14)."
   - "THE DATASHEET STATES NO MOISTURE SENSITIVITY LEVEL. Checked across all 79
      pages of Rev I: 'moisture', 'MSL' and 'J-STD-020' do not appear; section 9.1
      note 2 mentions J-STD-20C only for lead temperature. OWED — and stated as
@@ -177,7 +177,7 @@ gotchas:
 verified: "pin map read from Figure 1a 'W25Q128JV Pin Assignments, 8-pin SOIC
   208-mil (Package Code S)', PDF p6 — page RENDERED at 200 dpi and read VISUALLY,
   then cross-checked pin-by-pin against the section 3.3 pin-description table
-  'Pin Description SOIC 208-mil, WSON 6x5-mm / 8x6-mm', PDF p7, including its
+  'Pin Description SOIC 208-mil, WSON 6x5-mm / 8x6-mm', PDF p6, including its
   two footnotes (IO0/IO1 for Standard and Dual SPI; IO0-IO3 for Quad SPI, /HOLD
   or /RESET available only in Standard/Dual). Independently sanity-checked
   against the manufacturer-of-the-MCU's own use of the same device: Figure 7
@@ -266,11 +266,11 @@ layout_refs:
      6523a2ebf743fcfbcc69bc3901b24ca3a2d23617d8ee50beb5f606b31134f0b5 —
      Figure 6 (PDF p9, the routed board, read visually), Figure 7 (PDF p10, the
      flash + USB_BOOT schematic with this exact device), section 2.2 (PDF p10),
-     section 2.6 'Supported flash chips' (PDF p13). NOT COMMITTED here (19.9 MB,
+     section 2.6 'Supported flash chips' (PDF p14). NOT COMMITTED here (19.9 MB,
      and it is the MCU's application guide, not this part's datasheet); every
      fact taken from it is transcribed above with its page"
   - "RP2040 datasheet build-2025-02-20-3184e62, section 2.8.1.2 'Flash Boot
-     Sequence' (PDF p130) and section 2.6.3 XIP (PDF pp121-122) — the 03h probe,
+     Sequence' (PDF p131) and section 2.6.3 XIP (PDF pp121-122) — the 03h probe,
      the XIP-exit sequence and the 16 MB window. Held at
      02_parts/RP2040/rp2040-datasheet-2025-02-20-3184e62.pdf"
   - "OWED: no OSHWLab-by-LCSC project searched for C97521."

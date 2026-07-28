@@ -285,38 +285,72 @@ behaviour.
 (3.3 V ±3 %), `Iout_max 0.15 A`. `Vout_max < Vin_min` ⇒ step-down ⇒ **LINEAR
 meets it**, and a switcher is rejected on RF grounds (ARCHITECTURE §3).
 
-1. **Dropout ≤ 1.35 V at 0.15 A** — `Vin_min − Vout_max = 4.75 − 3.40`.
-   Comfortable for anything modern; recorded so the gate can check it.
-2. **`V_IN` absolute maximum ≥ 10 V** (ADR-0004). A 5.0 V-standoff TVS of the
-   SMAJ5.0A class clamps at ≈9.2 V at 43.5 A. A 6 V-rated LDO — which is most
-   popular 3.3 V parts — **dies before the protection conducts**.
+1. **Dropout ≤ 1.23 V at 0.15 A.** ~~1.35 V~~ — **CORRECTED 2026-07-28 at the
+   stage-2 merge, and the correction is a NODE, not an arithmetic slip.**
+   `4.75 − 3.40 = 1.35 V` is measured at the **USB-C VBUS pin**, and the
+   regulator is not connected there: `F_IN` (`R_1max` **0.75 Ω**) and `FB_IN`
+   (DCR max **0.06 Ω**) are in series ahead of it, so at 0.15 A the pass
+   element sees `4.75 − 0.15 × 0.81` = **4.63 V** and the real headroom is
+   **1.23 V**. The protection chain eats **9 %** of the budget it was written
+   against. `power_tree.yaml` declares `vin_min: 4.63` for this reason.
+   **This changed the answer, it did not merely tighten it:** AMS1117-3.3 — the
+   obvious JLC-Basic default — is spec'd `1.3 V max` dropout at 0.8 A, which
+   passes 1.35 V by 50 mV and **FAILS 1.23 V**.
+2. **`V_IN` absolute maximum ≥ 10.3 V** (ADR-0004). ~~≥ 10 V~~ — **the
+   constraint MOVED because the TVS moved.** ADR-0004 derived ≥ 10 V from a
+   5.0 V-standoff part clamping at ≈9.2 V; that standoff was **rejected at
+   selection** (see `D_TVS` below), and `SMBJ6.0A` clamps at **10.3 V at
+   I_PP 58.3 A**. A regulator rated exactly 10 V is now **out of spec**, not
+   marginal. A 6 V-rated LDO — which is most popular 3.3 V parts, including
+   this repo's own ledger entry `analog-ldo-quiet-3v3` (XC6227, V_IN abs max
+   **6.5 V**, Torex ETR03054-006 p4) — dies before the protection conducts;
+   worse, the SMBJ6.0A's *breakdown minimum* (6.67 V) is already above it.
 3. **`θ_JA ≤ 195 °C/W`.**
    `PD_max = (Vin_max − Vout_min) · Iout = (5.25 − 3.20) × 0.15` = **308 mW**.
    For `Tj ≤ 0.8 · Tj_max = 100 °C` at `Tamb = 40 °C`:
-   `θ_JA ≤ 60 / 0.308` = **195 °C/W**. **A bare SOT-23-5 (200–250 °C/W) is
-   DISQUALIFIED at the envelope** — SOT-89 / SOT-223 / a DFN with a thermal
-   pad qualifies. (At the ~60 mA typical, PD = 123 mW and a SOT-23-5 would be
-   fine; the envelope is what the part must survive, not the typical.)
+   `θ_JA ≤ 60 / 0.308` = **195 °C/W**. **A bare SOT-23-5 is DISQUALIFIED at the
+   envelope**, and that is now CITED rather than asserted from a range: the
+   selected part's own thermal table gives **SOT-23-5 = 256 °C/W** against
+   SOT-223-3 = 62 °C/W (Microchip DS20005160B, Temperature Specifications,
+   PDF p8, datum JESD51-7 named in §5.3.1 p22) — so the "200–250 °C/W"
+   estimate this line used to carry was if anything *optimistic*. (At the
+   ~60 mA typical, PD = 123 mW and a SOT-23-5 would be fine; the envelope is
+   what the part must survive, not the typical.)
 
-**The dossier is OWED** (stage-2 continuation). Until it exists,
-`power_tree.yaml` carries `rails: []` and E-TOPO reports an EARNED N-A — and
-turns red the moment a converter dossier lands. See that file's header.
+**CLOSED 2026-07-28: `U_LDO` = `MCP1755S-3302E/DB`** (Microchip, LCSC
+**C638611**, SOT-223-3, JLC *extended*). Dropout **500 mV max at 300 mA** —
+the datasheet maximum at the part's RATED current, i.e. the conservative
+reading, against a 150 mA load; `V_IN` abs max **+17.6 V** (operating max
+16.0 V, so it stays *in regulation* through a clamp event rather than merely
+surviving); `θ_JA` **62 °C/W** ⇒ ΔT = 19.1 °C ⇒ Tj = **59 °C** at Ta 40 °C.
+All three by 2.7× / 7.3 V / 3.1×.
+`power_tree.yaml` now declares the rail and **E-TOPO PASSES**: headroom
+1230 mV vs dropout 500 mV, PD 307 mW vs a 968 mW derived package rating (32 %).
+**Sourcing risk, stated because it is the weakest thing about the choice:**
+C638611 stock was **86** on 2026-07-28 and the tape-and-reel twin
+(MCP1755ST-3302E/DB, C111176) is **stock 0**. Alternates with their
+consequences are in the dossier; MIC5209-3.3YS is the closest but wants ~1 Ω
+of output ESR and is the `SOT-223-3_TabPin2` footprint variant, so that swap
+moves the footprint too.
+**The tab is pad 4, not pad 2**, and KiCad ships both numberings. Because the
+EP is internally tied to GND the wrong one still yields a *working* board —
+invisible to ERC, DRC and parity, visible only as a JLC-twin PAD-MISMATCH.
 
 ### Passives
 
 | ref | value | derivation |
 |---|---|---|
-| `F_IN` | PPTC 500 mA hold / 1 A trip | above the 0.15 A envelope by 3.3×, below the 500 mA a USB 2.0 host advertises |
-| `D_TVS` | 5.0 V standoff unidirectional TVS | above `Vbus_max` 5.25 V so it never conducts in normal operation; clamp ≈9.2 V drives constraint 2 above |
+| `F_IN` | PPTC 500 mA hold / 1 A trip — **`1206L050/24WR`** (C2154056) | above the 0.15 A envelope by 3.3×, below the 500 mA a USB 2.0 host advertises. **Derated hold at 50 °C is 0.38 A** (vendor rerating table) — still 2.5× the envelope, and 1.6× even at the part's +85 °C ceiling. `V_max` 24 V is the POST-TRIP standoff, which is why the 6 V variant lost |
+| `D_TVS` | ~~5.0 V~~ **6.0 V standoff** unidirectional TVS — **`SMBJ6.0A`** (C83270) | **THE 5.0 V STANDOFF WAS WRONG AND THIS ROW USED TO SAY SO BACKWARDS.** It read "above `Vbus_max` 5.25 V so it never conducts": 5.0 is not above 5.25. Littelfuse defines V_R as the maximum voltage appliable *without operation*, and USB-C `vSafe5V` runs to **5.50 V**, not 5.25. Fitted leakage at 5.25 V: **≈47 µA** for the 6.0 V part against **≈1.26 mA** for the 5.0 V part (27×, and already above its rated standoff at 25 °C with no published temperature behaviour). Clamp **10.3 V at I_PP 58.3 A** drives constraint 2 above. Package chosen on **dynamic resistance, not P_PPM**: SMB 62–50 mΩ vs SMA 94–76 mΩ ⇒ 8.5–8.9 V vs 9.5–9.6 V at a 30 A ESD peak |
 | `C_BULK` | 4.7 µF X5R 0805 | bulk on the clamped node |
-| `C_LDI` | 1 µF X7R | regulator input |
-| `C_LDO` | 1 µF X7R | regulator output — **the exact value and ESR window are set by the LDO's own stability requirement and are OWED with its dossier** |
+| `C_LDI` | 1 µF X7R **0805** | regulator input. **CLOSED**: DS20005160B §4.4 p17 requires the input capacitor to be "of equivalent or higher value than the output capacitor" — 1 µF vs 1 µF meets it **at equality, the boundary of the rule**. `C_BULK` does NOT help here because `FB_IN` sits between them |
+| `C_LDO` | 1 µF X7R **0805** | regulator output. **OWED-ITEM CLOSED 2026-07-28**: DS20005160B §4.4 "Output Capacitor", p17 — minimum **1 µF**, ESR **≤ 2 Ω** with no lower bound, **ceramic-stable (X7R/X5R explicitly recommended; a 1 µF X7R 0805 is ~50 mΩ)**, maximum 1000 µF. The placeholder **STANDS unchanged** — it is literally the datasheet's own test condition (`COUT = 1 µF X7R`). **The package is part of the spec**: the 1 µF floor is on *effective* capacitance at 3.3 V bias, so 0805 is required and a 1 µF X7R 0402 can derate below it. And if a future swap forces an ESR-hungry LDO, the ESR must live IN THE CAPACITOR — 1 Ω in the DC path costs 1 Ω × 0.15 A = 150 mV, dragging 3.30 V to 3.15 V, **below the 3.20 V `vout_min` floor** |
 | **VBUS bypass total** | **5.7 µF** | `C_BULK + C_LDI`. **USB 2.0 §7.2.4.1 caps a device's downstream VBUS bypass at 10 µF** to bound inrush; 5.7 µF nominal (≈4.6 µF after DC derating) is what makes "no inrush limiter" a decision. The 3V3-side 0.1 µF parts do NOT count against this limit |
 | `C_SW1` / `C_SW2` | 100 nF + 1 µF | `U_SW` VDD at pin 8, span ≤3 mm. IDD is 120 µA typ, so this is decoupling for control-line transients, not for load current — which is exactly why it must be AT the pad |
 | `C_MCU1..4` | 100 nF each | MCU supply pins, local |
 | `R_CC1` / `R_CC2` | 5.1 kΩ ±5 % | USB Type-C Rd: advertises a plain 5 V sink, which is what makes sustained overvoltage unreachable (ADR-0004) |
 | `R_LED1` / `R_LED2` | 680 Ω | `(3.3 − 2.0)/680` = **1.91 mA**; E24 above the 650 Ω a 2 mA target implies |
-| `Y_XTAL` + load caps | 12 MHz, `C = 2·(C_L − C_stray)` | with `C_L = 12 pF` and `C_stray ≈ 5 pF` ⇒ 14 pF ⇒ **15 pF E24**. **`C_L` is OWED with the crystal dossier** — the formula is pinned, the input is not |
+| `Y_XTAL` + load caps | 12 MHz **`ABM8-272-T3`** (C20625731), `C = 2·(C_L − C_stray)` | **THE 15 pF STANDS AND BOTH INPUTS THAT PRODUCED IT WERE WRONG.** This row read `C_L = 12 pF` (marked OWED) and `C_stray ≈ 5 pF` ⇒ 14 ⇒ 15 pF E24. `C_L` is now **CITED at 10 pF** (Abracon drawing 456603 Rev B, p1, "Load capacitance (CL) 10 pF"), and `C_stray` is **3 pF** — the RP2040 hardware-design guide's own worked number for this exact chip, not a generic guess. `2·(10 − 3) = 14` ⇒ **15 pF E24, identical**, because the two errors cancelled. Recorded rather than quietly corrected: the next person to touch the crystal would otherwise re-derive 10 pF from a `C_stray` with no source and **under-load the oscillator**. Other crystal facts now CITED: ESR ≤ 50 Ω, C0 ≤ 3.0 pF, drive 10 µW typ / 200 µW max, ±30 ppm tolerance and ±30 ppm over temperature |
 
 ---
 
@@ -358,7 +392,7 @@ ideal frame is `15X/2`, which carries a factor of **3**. `500,000 = 2⁵·5⁶` 
 |---|---|---|---|---|
 | `U_SW` | 0.66 mW (200 µA × 3.3 V) + ≤41 mW of RF at the +20 dBm hot-switch ceiling | 63 °C/W (CITED, Table 4, PDF p9) | **≤2.6 °C** | thermally a non-event. **The exposed pad is there for RF ground, not for heat** — Table 8 calls it "ground for proper operation" |
 | `U_MCU` | ~165 mW | ~40 °C/W | ~6.6 °C | |
-| `U_LDO` | **308 mW at the envelope**, 123 mW typical | **≤195 °C/W required** | ≤60 °C | the only real thermal item on the board — see §5 constraint 3 |
+| `U_LDO` | **308 mW at the envelope**, 123 mW typical | **62 °C/W** (MCP1755S SOT-223-3, CITED, DS20005160B p8, datum JESD51-7 named §5.3.1 p22) against ≤195 required | **19.1 °C** ⇒ Tj 59 °C at Ta 40 | the only real thermal item on the board — see §5 constraint 3. The same table gives SOT-23-5 at **256 °C/W**, which is the primary-source confirmation that the disqualification in §5 is right |
 
 ---
 
@@ -373,12 +407,12 @@ ideal frame is `15X/2`, which carries a factor of **3**. `500,000 = 2⁵·5⁶` 
 | `R_LED1`, `R_LED2` | 680 Ω | §5 — 1.91 mA |
 | `C_SW1` / `C_SW2` | 100 nF / 1 µF | §5 |
 | `C_BULK` | 4.7 µF | §5 — with `C_LDI`, under the USB 10 µF cap |
-| `C_LDI` / `C_LDO` | 1 µF / 1 µF | §5 — output value OWED with the LDO dossier |
+| `C_LDI` / `C_LDO` | 1 µF X7R 0805 / 1 µF X7R 0805 | §5 — CLOSED: DS20005160B §4.4 p17, min 1 µF, ESR ≤ 2 Ω, ceramic-stable. 0805 because the floor is on EFFECTIVE capacitance at 3.3 V bias |
 | `C_MCU1..4` | 100 nF | §5 |
-| XTAL load caps | 15 pF | §5 — `C_L` OWED |
-| `F_IN` | 500 mA hold PPTC | §5 |
-| `D_TVS` | 5.0 V standoff TVS | §5 |
-| `U_LDO` | 3.3 V linear, three constraints | §5 — part OWED |
+| XTAL load caps | 15 pF | §5 — CLOSED: `C_L` 10 pF CITED, `C_stray` 3 pF; `2·(10−3)=14` ⇒ 15 pF E24. Same answer as the old `2·(12−5)`, from two corrected inputs |
+| `F_IN` | `1206L050/24WR` (C2154056) | §5 — 0.50 A hold / 1.00 A trip, 0.38 A derated at 50 °C |
+| `D_TVS` | `SMBJ6.0A` (C83270) | §5 — **6.0 V** standoff, clamp 10.3 V. The 5.0 V standoff conducts at VBUS max |
+| `U_LDO` | `MCP1755S-3302E/DB` (C638611) | §5 — SOT-223-3; 500 mV / +17.6 V / 62 °C/W against 1.23 V / 10.3 V / 195 °C/W |
 | `U_SW` | PE42482A-X (C5121458) | the D-SPEC sourcing spike, `journal/02_parts.md` |
 | `J_ANT*`, `J_RX*` | KH-SMA-KE-Z (C504007) | ditto |
 | RF50 track | 0.36 mm | §1 |
@@ -392,9 +426,9 @@ ideal frame is `15X/2`, which carries a factor of **3**. `500,000 = 2⁵·5⁶` 
 
 | owed | consequence if it stays owed |
 |---|---|
-| the `U_LDO` dossier (3 constraints in §5) | E-TOPO stays N-A over a real rail; no dropout or dissipation gate |
-| the RP2040, QSPI flash, crystal, USB-C and TVS/PPTC dossiers | no pin maps, no escape blocks, no P-FACT coverage on ~2/3 of the parts |
-| `QFN-24_4x4_P0.5_EP2.7_PE42482` and `SMA_Vertical_5.08sq_D1.4` footprints | nothing can be generated; both must be authored, neither may be copied |
+| ~~the `U_LDO` dossier~~ | **CLOSED 2026-07-28** — `MCP1755S-3302E/DB`; E-TOPO now grades a real rail and PASSES (headroom 1230 mV vs 500, PD 307 mW vs 968) |
+| ~~the RP2040, QSPI flash, crystal, USB-C and TVS/PPTC dossiers~~ | **CLOSED 2026-07-28** — all nine written; S-VER, P-ESC 13/13 and P-LAYOUT 8/8 all grade them |
+| ~~`QFN-24_4x4_P0.5_EP2.7_PE42482` and `SMA_Vertical_5.08sq_D1.4`~~ | **CLOSED 2026-07-28** — both authored from the vendor land drawings into `03_src/lib/pluto_rx2_8way.pretty/`, 48 geometry + 6 silk/courtyard properties verified independently. **A THIRD footprint became owed in their place**: the stock KiCad `USB_C_Receptacle_HRO_TYPE-C-31-M-12` disagrees with the vendor's RECOMMEND P.C.B LAYOUT by up to **0.375 mm** on pad-centre-to-alignment-hole, confirmed against a second HRO sheet two years apart |
 | RP2040 pad output impedance (ESTIMATED 25 ± 10 Ω) | §4's table is derived from an estimate; 47 Ω holds across the whole bar, which is why the estimate is tolerable |
 | the AD9363 RX digital-chain group delay (ESTIMATED ~0.7 µs / ~4.9 µs) | §6's margin is 1.95× on an estimated term; a bench measurement at bring-up is a CHECKLIST item |
 | SMA launch dissipative loss (vendor publishes none) | §2's 0.10 dB per launch is a LOWER bound |

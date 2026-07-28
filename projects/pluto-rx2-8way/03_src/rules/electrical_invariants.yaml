@@ -35,6 +35,27 @@ invariants:
       on the host's current budget. Fuse UPSTREAM of clamp is the ordering, and
       it is only checkable as a chain"
 
+  - assert: series_chain
+    chain: [VBUS_F, FB_IN, VBUS_LDO]
+    adr: "0004"
+    why: "ADDED 2026-07-28 at the stage-2 merge, and the gap it closes is that
+      FB_IN appeared in NO invariant at all while being a SERIES element in the
+      supply path. Two things follow from that, both silent:
+      (1) the node between the ferrite and U_LDO.VIN is a DISTINCT net from
+      VBUS_F, and it was not named anywhere - nets.yaml's PWR class listed only
+      [VBUS, VBUS_F, 3V3], so this net would have taken the DEFAULT 0.25 mm
+      class and been graded by A-AMP as a signal while carrying the board's
+      whole 0.15 A. It is now VBUS_LDO and it is in PWR.
+      (2) a ferrite that ends up in PARALLEL with the path it is supposed to
+      filter - a pour that bridges VBUS_F to VBUS_LDO - shorts it out
+      completely and NOTHING else can see that: DRC is clean (same-net copper),
+      ERC is clean, parity is clean, and the board works. Only the chain says
+      the two nodes must be SEPARATE and joined through the part.
+      The ferrite is not protection and this invariant does not claim it is:
+      ADR-0004 gives it 0.06 ohm at DC, so it attenuates the fast residual past
+      the clamp and does NOTHING for a sustained overvoltage. Its own dossier
+      records that above ~2 GHz it stops filtering at all"
+
   - assert: pin_on_net
     pin: "D_TVS.1"
     net: VBUS_F

@@ -118,8 +118,20 @@ classes:
       200 uA max + two indicator LEDs ~4 mA + the four pull-downs 1.3 mA is
       ~60 mA typical, and 0.15 A is declared so the LDO's thermal margin is
       graded against the envelope rather than against the hope (ADR-0004
-      binds U_LDO to V_IN abs max >= 10 V for the TVS clamp pairing).
-    nets: [VBUS, VBUS_F, 3V3]
+      binds U_LDO to V_IN abs max >= the TVS clamp; the clamp as SELECTED is
+      SMBJ6.0A at 10.3 V, not the 9.2 V the ADR derived from a 5.0 V standoff
+      that was rejected at selection - see power_tree.yaml and DETAIL_DESIGN
+      section 5).
+      VBUS_LDO IS THE FOURTH MEMBER AND IT WAS MISSING UNTIL 2026-07-28. A
+      ferrite is a SERIES element, so FB_IN's output - the node feeding
+      U_LDO.VIN - is a distinct net from VBUS_F. With only three names
+      declared it would have fallen to the DEFAULT 0.25 mm class and been
+      graded by A-AMP as a signal net while carrying the board's entire
+      0.15 A supply current. Found at the stage-2 merge by the part dossier
+      that owns the ferrite, not by any gate: nothing cross-checks a
+      netclass's member list against the series elements the invariants
+      declare.
+    nets: [VBUS, VBUS_F, VBUS_LDO, 3V3]
     current: 0.15 A
     min_width: 0.4mm
     routing: KRT, L1 stubs onto an L3 pour

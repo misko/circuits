@@ -1,16 +1,35 @@
 # 02_parts — folder status + deviations register
 
-**Status: D-SPEC SOURCING SPIKE output (2026-07-27/28), amended at the stage-3
-design gate (2026-07-28).** Four dossiers, written before any schematic exists.
-Nothing here is in a BOM yet, because there is no BOM yet. That is itself a
-deviation from the contract's flow and it is registered below.
+**Status: COMPLETE for every part the design names (2026-07-28).** Started as
+the D-SPEC sourcing-spike output (2026-07-27/28), amended at the stage-3 design
+gate, and finished at the stage-2 continuation: **thirteen dossiers, one per
+part in `01_docs/DETAIL_DESIGN.md`.** Nothing here is in a BOM yet, because
+there is no BOM yet — that is still a deviation from the contract's flow and it
+is registered below, but it is now a deviation of TIMING rather than of
+COVERAGE.
 
-| MPN | role | LCSC | PDF present |
-|---|---|---|---|
-| `PE42482A-X` | the SP8T antenna selector (`U_SW`) | C5121458 | **yes** |
-| `KH-SMA-KE-Z` | 10x SMA jack (8 antenna + RX1 out + RX2 out) | C504007 | **yes — fetched 2026-07-28** |
-| `0402WGF2200TCE` | **220R — one of the two series arms of the RX1 pickoff** (`R_T1`, `R_T2`) | C25091 | **yes — fetched 2026-07-28** |
-| `0402WGF4700TCE` | 470R single-arm pickoff — **REJECTED ALTERNATE**, not on the board | C25117 | no, by contract |
+| MPN | role | LCSC | JLC lib | PDF present |
+|---|---|---|---|---|
+| `PE42482A-X` | the SP8T antenna selector (`U_SW`) | C5121458 | extended | **yes** |
+| `KH-SMA-KE-Z` | 10x SMA jack (8 antenna + RX1 out + RX2 out) | C504007 | extended | **yes** |
+| `0402WGF2200TCE` | **220R — one of the two series arms of the RX1 pickoff** (`R_T1`, `R_T2`) | C25091 | base | **yes** |
+| `MCP1755S-3302E/DB` | the 3V3 linear regulator (`U_LDO`) — SOT-223-3 | C638611 | extended | **yes** |
+| `RP2040` | the sequencer (`U_MCU`) — QFN-56 7x7 P0.4 | C2040 | extended | **yes** |
+| `W25Q128JVSIQ` | QSPI XIP flash (`U_FLASH`) — SOIC-8 208mil | C97521 | **base** | **yes** |
+| `ABM8-272-T3` | 12 MHz crystal (`Y_XTAL`) — 3225-4P | C20625731 | extended | **yes** |
+| `TYPE-C-31-M-12A` | USB-C 2.0 16P receptacle (`J_USB`) | C5337088 | extended | **yes** |
+| `USBLC6-2SC6` | USB data-line ESD array (`U_ESD`) — SOT-23-6 | C7519 | extended | **yes** |
+| `1206L050/24WR` | 500 mA PPTC (`F_IN`) — 1206 | C2154056 | extended | **yes** |
+| `SMBJ6.0A` | **6.0 V** standoff unidirectional TVS (`D_TVS`) — SMB | C83270 | extended | **yes** |
+| `BLM21SP601SN1D` | 600R ferrite (`FB_IN`) — 0805 | C3716677 | extended | **yes** |
+| `0402WGF4700TCE` | 470R single-arm pickoff — **REJECTED ALTERNATE**, not on the board | C25117 | base | no, by contract |
+
+**ELEVEN OF TWELVE POPULATED PARTS ARE `extended` LIBRARY.** Only C25091 and
+C97521 are `base`. Every extended line needs an order-day `jlc_stock_check`
+re-run, and two of them are thin enough to name here: **`C638611` (U_LDO) at
+86** and **`C5337088` (J_USB) at 84**, measured 2026-07-28. Neither is a
+blocker at prototype quantity; both are single-source lines for a function the
+board cannot omit.
 
 **THE PRIMARY CHANGED ON 2026-07-28.** The user confirmed BRIEF D3 with the
 SPLIT-ARM variant, so the pickoff is **2 x 220 ohm in series** and the single
@@ -42,13 +61,18 @@ is reachable from a CDN link embedded in that page's own markup
 
 ## Deviations from `contracts.md`
 
-1. **Four `part.yaml` exist for parts not yet on a board.** The contract
-   forbids "a `part.yaml` for a part not on the board (stale after a swap)".
+1. **THIRTEEN `part.yaml` exist for parts not yet on a board** (four at the
+   sourcing spike, thirteen since 2026-07-28). The contract forbids "a
+   `part.yaml` for a part not on the board (stale after a swap)".
    These are pre-BOM by design: the D-SPEC gate requires the sourcing spike to
    VERIFY the spec-critical part before architecture, precisely so stage 2
-   never DISCOVERS feasibility. **Before bring-up:** each must appear in the
-   BOM or its directory must be deleted, and the swap noted in
-   `01_docs/CHANGELOG.md`.
+   never DISCOVERS feasibility. **The deviation is NARROWER than it was, not
+   wider**: at the spike it was four dossiers covering an unknown fraction of
+   an undecided design; it is now one dossier per part the design NAMES, so
+   the set can be checked against `DETAIL_DESIGN.md` §8 rather than against
+   nothing. The pre-BOM window is what remains, and it closes at stage 4.
+   **Before bring-up:** each must appear in the BOM or its directory must be
+   deleted, and the swap noted in `01_docs/CHANGELOG.md`.
 
 2. **`part.yaml` files were EDITED without a datasheet revision change.** The
    contract says "edit a `part.yaml` only when the datasheet REVISION
@@ -91,18 +115,46 @@ is reachable from a CDN link embedded in that page's own markup
    `03_src/floorplan.yaml` now binds `libraries: [03_src/lib, /usr/share/kicad/
    footprints]` with the project library FIRST for exactly that reason.
 
-5. **Two thirds of the board still has no dossier.** Stage 3 has fixed the
-   architecture, so the remaining stage-2 work is now enumerable rather than
-   open-ended: **`U_LDO`** (3.3 V linear, and it carries THREE derived hard
-   constraints — dropout ≤ 1.35 V at 0.15 A, `V_IN` abs max ≥ 10 V so the TVS
-   clamp sits inside its rating, and θ_JA ≤ 195 °C/W which DISQUALIFIES a bare
-   SOT-23-5 — see `01_docs/DETAIL_DESIGN.md` §5), **`U_MCU`** (RP2040),
-   **`U_FLASH`** (QSPI), **`Y_XTAL`** (12 MHz), **`J_USB`** (USB-C 2.0),
-   **`D_TVS`** (5.0 V standoff), **`F_IN`** (500 mA PPTC), **`U_ESD`** (USB
-   data array), **`FB_IN`** (ferrite). Until `U_LDO` lands, E-TOPO reports an
-   EARNED N-A (`03_src/rules/power_tree.yaml` explains why, and the gate
-   checks that claim against this folder rather than against the power tree's
-   own say-so).
+5. ~~**Two thirds of the board still has no dossier.**~~ **CLOSED
+   2026-07-28.** All nine remaining dossiers written and merged. The set is
+   graded, not merely present: **S-VER**, **P-ESC 13/13**, **P-TIER PASS at
+   `jlc_4layer_advanced`**, **P-LAYOUT 8/8 in-scope parts carry a datasheet
+   `layout:` block**. `U_LDO` = `MCP1755S-3302E/DB` clears all three derived
+   constraints (500 mV / +17.6 V / 62 °C/W against 1.23 V / 10.3 V / 195 °C/W),
+   so `03_src/rules/power_tree.yaml` now declares the 3V3 rail and **E-TOPO
+   PASSES** instead of turning red.
+   **Two of the three constraints MOVED while the set was being built, and both
+   moves came from OTHER parts** — which is the argument for merging centrally
+   rather than trusting nine independent dossiers:
+   - dropout ≤ 1.35 V became **≤ 1.23 V**, because `F_IN` (R_1max 0.75 Ω) and
+     `FB_IN` (DCR 0.06 Ω) drop **121.5 mV** at 0.15 A and the 1.35 V was
+     measured at the USB-C VBUS pin, not at the regulator. This CHANGED THE
+     ANSWER: AMS1117-3.3, the obvious JLC-Basic default, is 1.3 V max and
+     passes 1.35 while failing 1.23.
+   - `V_IN` abs max ≥ 10 V became **≥ 10.3 V**, because the 5.0 V-standoff TVS
+     the constraint was derived from was rejected at selection (VBUS max
+     5.25 V sits above its 5.0 V working voltage) and `SMBJ6.0A` clamps at
+     10.3 V. A part rated exactly 10 V is now out of spec.
+
+6. **A THIRD footprint became OWED while closing deviation 4.**
+   `USB_C_Receptacle_HRO_TYPE-C-31-M-12A`. KiCad ships
+   `Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12` and it does NOT match
+   this vendor's RECOMMEND P.C.B LAYOUT — measured pad by pad, the pad-centre
+   to alignment-hole distance differs by **0.375 mm** and the SMT pad length by
+   0.31 mm, so the contact tails would land off-centre and cover only ~0.95 of
+   the sheet's 1.14 mm pad at the heel. **Ruled out as an M-12-vs-M-12A variant
+   difference**: the base M-12 sheet was fetched and its recommended layout is
+   dimension-for-dimension identical to the M-12A's. Two HRO sheets two years
+   apart agree with each other and disagree with KiCad.
+
+7. **Directory names sanitise `/` out of the MPN.** `1206L050-24WR` holds
+   `mpn: 1206L050/24WR`, and `MCP1755S-3302E-DB` holds
+   `mpn: MCP1755S-3302E/DB`. The contract says `part.yaml.mpn == directory
+   name`; a `/` cannot be a path component. The `mpn:` field is authoritative
+   and is the string to type at a distributor. This is established fleet
+   practice, not a local invention — `MCP23017-E/SS`, `LM5116MHX/NOPB`,
+   `SMD2920-700/16N`, `1277AS-H-2R2M=P2`, `KNTC0603/10KF3950` and
+   `10FDZ-BT(S)(LF)(SN)` all sit in directories with the punctuation removed.
 
 ## OWED measurements — named, not buried
 
@@ -137,12 +189,26 @@ reasoning is in the D-SPEC spike report; the one-line verdicts:
 Against the **JLCPCB assembly parts library** (`jlc_stock_check.py`), which is
 the pool a PCBA order allocates from:
 
-| LCSC | MPN | library | stock |
-|---|---|---|---|
-| C25091 | 0402WGF2200TCE | base | **995,162** |
-| C25117 | 0402WGF4700TCE | base | 1,871,945 |
-| C5121458 | PE42482A-X | extended | **1,498** |
-| C504007 | KH-SMA-KE-Z | extended | **18,585** (19,136 on 2026-07-27 — −551 in a day) |
+| LCSC | MPN | library | stock | note |
+|---|---|---|---|---|
+| C25091 | 0402WGF2200TCE | base | **995,162** | and see the pool trap below |
+| C25117 | 0402WGF4700TCE | base | 1,871,945 | rejected alternate |
+| C5121458 | PE42482A-X | extended | **1,498** | |
+| C504007 | KH-SMA-KE-Z | extended | **18,585** | 19,136 on 2026-07-27 — −551 in a day |
+| C638611 | MCP1755S-3302E/DB | extended | **86** | **THINNEST LINE ON THE BOARD.** The T&R twin MCP1755ST-3302E/DB (C111176) is **stock 0**, so the tube code is the only buyable one |
+| C2040 | RP2040 | extended | 65,244 | |
+| C97521 | W25Q128JVSIQ | **base** | 104,716 | |
+| C20625731 | ABM8-272-T3 | extended | 17,562 | |
+| C5337088 | TYPE-C-31-M-12A | extended | **84** | second-thinnest, and the board's only USB connector |
+| C7519 | USBLC6-2SC6 | extended | 29,868 | |
+| C2154056 | 1206L050/24WR | extended | 4,209 | |
+| C83270 | SMBJ6.0A | extended | 9,746 | C113976 is the ledger's catalog-verified unidirectional twin |
+| C3716677 | BLM21SP601SN1D | extended | 6,368 | |
+
+**Four `jlc_stock_check.py --json` runs, all four VERDICT lines PASS**, cached
+in `06_build/cache/stock_{ldo,mcu,usb,prot}.json`. The verdict line is the gate
+(canon A-STOCK) and it was READ, not assumed — a missing or unparseable verdict
+is a FAIL, not a skip.
 
 **The trap, worth the line it costs:** the LCSC RETAIL product page for
 **C25091 reports stock 0** on the same day it shows 995,162 in the assembly

@@ -111,7 +111,7 @@ gotchas:
      value explicitly marked OWED. It is now CITED at 10 pF, twice and
      independently: Abracon Drawing 456603 Rev B (PDF p1, 'Load capacitance (CL)
      ... 10 ... pF') and the RP2040 datasheet's own Table 257 'Key Crystal
-     Specifications' (PDF p216), which lists this exact part with CL min = typ =
+     Specifications' (PDF p217), which lists this exact part with CL min = typ =
      max = 10 pF. See the load-capacitor gotcha below for what that does to the
      15 pF in the value index — the short answer is nothing, for a reason worth
      reading."
@@ -129,7 +129,7 @@ gotchas:
      pins of RP2040. We'll assume a value of 3pF for this... to give us a total
      load capacitance of 10.5pF, which is close enough to the target of 10pF.'
      It is ESTIMATED, not CITED — the RP2040 datasheet publishes NO XIN/XOUT pin
-     capacitance anywhere (Table 628, PDF p617, gives only square-wave VIH/VIL) —
+     capacitance anywhere (Table 628, PDF p618, gives only square-wave VIH/VIL) —
      but it is the only estimate with evidence behind it, because Raspberry Pi
      Pico was tuned with it and this part is 'Crystal approved for use with
      Raspberry Pi's RP2040 and RP235x range' (Abracon Rev B features list, PDF
@@ -166,7 +166,7 @@ gotchas:
      DETAIL_DESIGN section 5. It is NOT a generic crystal rule and it is NOT in
      the RP2040 datasheet as a value — the datasheet only alludes to it ('the
      Abracon crystal and that particular damping resistor are tuned for 3.3V
-     operation', section 2.16.1.1, PDF p217). The value and its two preconditions
+     operation', section 2.16.1.1, PDF p218). The value and its two preconditions
      are in Hardware design with RP2040 section 2.3, PDF p11: 'We've opted for a
      device with a maximum of 50 ohm [ESR], as we've found that this, along with a
      1k ohm series resistor (R5), is a good value to prevent the crystal being
@@ -237,7 +237,7 @@ verified: >
   Y1 pin 1 to the XIN side, pin 3 to the XOUT side through R5, and pins 2 and 4
   to GND. Electrical specifications from the Key Electrical Specifications table,
   PDF p1, cross-checked line by line against RP2040 datasheet Table 257 "Key
-  Crystal Specifications", PDF p216, which publishes the same part: 12.000 MHz,
+  Crystal Specifications", PDF p217, which publishes the same part: 12.000 MHz,
   fundamental-AT, -40/+85 C, +/-30 ppm tolerance, +/-30 ppm stability, ESR max
   50 ohm, C0 max 3.0 pF, CL 10 pF, drive 10 uW typ / 200 uW max, aging +/-5 ppm.
   Every line agrees. Rendered from the PDF whose sha256 is recorded above.
@@ -260,7 +260,7 @@ layout:
     are a factor, and we therefore need to keep them small so we don't upset the
     crystal and stop it oscillating as intended. Try and keep the layout as short
     as possible", and the whole 3 pF stray budget that the 15 pF value is derived
-    against. RP2040 datasheet section 2.16 (PDF pp216-217) adds the electrical
+    against. RP2040 datasheet section 2.16 (PDF pp217-218) adds the electrical
     frame — 1-15 MHz crystals supported, 12 MHz for the USB bootloader, "the
     crystal oscillator is powered from the VDDIO voltage" so the drive scales
     with IOVDD.
@@ -333,7 +333,7 @@ layout_refs:
      application guide rather than this part's datasheet); every fact taken from
      it is transcribed above with its page"
   - "RP2040 datasheet build-2025-02-20-3184e62, section 2.16 'Crystal Oscillator
-     (XOSC)' and Table 257 'Key Crystal Specifications', PDF pp216-217 — the
+     (XOSC)' and Table 257 'Key Crystal Specifications', PDF pp217-218 — the
      independent second publication of this part's numbers. Held at
      02_parts/RP2040/rp2040-datasheet-2025-02-20-3184e62.pdf"
   - "REFUTED SOURCE, recorded so it is not re-consulted: Abracon ABM8 FAMILY

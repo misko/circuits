@@ -2,7 +2,7 @@ mpn: RP2040
 manufacturer: Raspberry Pi Ltd
 type: microcontroller            # NOT a converter. The chip contains an on-chip
                                  # LINEAR core regulator (VREG_VIN -> VREG_VOUT,
-                                 # 1.1 V, 100 mA max, section 2.10 PDF p155) and it
+                                 # 1.1 V, 100 mA max, section 2.10 PDF p156) and it
                                  # is deliberately NOT typed `linear` here: E-TOPO
                                  # grades a `rails:` entry by its CONVERTER part's
                                  # type, and typing an MCU as a converter would put
@@ -27,13 +27,13 @@ datasheet:
 package: >
   QFN-56, 7.00 x 7.00 mm body, 0.40 mm pitch, 14 leads/side, exposed centre
   ground pad 3.20 x 3.20 mm. The ePad is DELIBERATELY SMALL — datasheet
-  section 5.1 NOTE, PDF p607: "There is no standard size for the central GND pad
+  section 5.1 NOTE, PDF p608: "There is no standard size for the central GND pad
   (or ePad) with QFNs. However, the one on RP2040 is smaller than most. This
   means that standard 0.4mm QFN-56 footprints provided with CAD tools may need
   adjusting. This gives the opportunity to route between the central pad and the
   ones on the periphery, which can help with maintaining power and ground
   integrity on cheaper PCBs." Land pattern, Figure 167 'Recommended PCB Footprint
-  for the RP2040 QFN-56 package', PDF p608 — 7.75 outer land envelope / 6.00
+  for the RP2040 QFN-56 package', PDF p609 — 7.75 outer land envelope / 6.00
   inner pad-row opening / 5.40 row span / 3.20 ePad / 0.20 pad width / 0.40
   pitch / 0.875 and 1.175 offsets.
 footprint: Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm
@@ -45,7 +45,7 @@ footprint: Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm
   #   adjacent-pad copper gap 0.200 mm
   #   pad 57 = EP 3.20 x 3.20 mm, carrying pad_prop_heatsink
   #   EP-to-pad copper gap 1.400 mm
-  # Every one of those is the corresponding number in Figure 167 (PDF p608).
+  # Every one of those is the corresponding number in Figure 167 (PDF p609).
   # That is why this is the RIGHT footprint and not merely a fitting one —
   # KiCad's own `descr` cites "rp2040-datasheet.pdf#page=607".
   # TWO CONSEQUENCES A ROUTER NEEDS:
@@ -95,8 +95,8 @@ pins:                            # Figure 3 'RP2040 Pinout for QFN-56 7x7mm
   16: GPIO13
   17: GPIO14
   18: GPIO15
-  19: {name: TESTEN, tie: GND, note: "Table 619, PDF p614: 'Test enable (connect
-        to Gnd)'. Table 1 (PDF p11) repeats it: 'Factory test mode pin. Tie to
+  19: {name: TESTEN, tie: GND, note: "Table 619, PDF pp614-615: 'Test enable (connect
+        to Gnd)'. Table 1 (PDF p12) repeats it: 'Factory test mode pin. Tie to
         GND.' Internal pull-DOWN at reset, so a float is probably survivable —
         but the datasheet does not say survivable, it says connect it"}
   20: XIN                        # Analogue (XOSC), Table 617, PDF p614
@@ -136,7 +136,7 @@ pins:                            # Figure 3 'RP2040 Pinout for QFN-56 7x7mm
   54: QSPI_SD2                   # NOTE THE ORDER: SD3, SCLK, SD0, SD2, SD1, SS_N.
   55: QSPI_SD1                   # The four data lines are NOT in numerical order
   56: QSPI_SS_N                  # and SCLK sits BETWEEN SD3 and SD0.
-  57: {name: GND, tie: GND, note: "Table 621 'Power supply pins', PDF p614, last
+  57: {name: GND, tie: GND, note: "Table 621 'Power supply pins', PDF p615, last
         row: GND, number 57, 'Common ground connection via central pad'. THE
         CENTRE PAD IS THE ONLY GROUND CONNECTION THE CHIP HAS — there is no
         peripheral GND lead anywhere on the 56. Without the pins: entry + tie: it
@@ -150,46 +150,46 @@ limits:
                                                # does NOT meet spec below 3.135 V
   adc_avdd:     1.62 / 3.3 / 3.63 V            # Table 634, PDF p623; ADC degraded
                                                # below 2.97 V
-  vreg_iout_max: 100 mA                        # section 2.10, PDF p155
-  iovdd_abs_max: -0.5 to 3.63 V                # Table 622, PDF p614
-  vpin_abs_max:  -0.5 to IOVDD + 0.5 V         # Table 622, PDF p614
-  vih_3v3:       2.0 V min                     # Table 625, PDF p615
-  vil_3v3:       0.8 V max                     # Table 625, PDF p615
-  vhys_3v3:      0.2 V min (Schmitt enabled)   # Table 625, PDF p615
-  voh_3v3:       2.62 V min                    # Table 625, PDF p616
-  vol_3v3:       0.5 V max                     # Table 625, PDF p616
-  pad_drive:     2 / 4 / 8 / 12 mA, DEFAULT 4 mA   # Table 614, PDF p612
-  r_pu / r_pd:   50 - 80 kohm                  # Table 625, PDF p616
-  iiovdd_max:    50 mA total sourced by GPIO+QSPI   # Table 625, PDF p616
-  iiovss_max:    50 mA total sunk by GPIO+QSPI      # Table 625, PDF p616
-  xosc_range:    1 - 15 MHz crystal            # section 2.16.1, PDF p216
-  xin_cmos_max:  50 MHz (XIN driven, XOUT floating)  # section 2.16.1, PDF p216
-  ta:            -40 to +85 C (case)           # Table 624, PDF p615
-  theta_ja:      48.00 C/W                     # Table 611, PDF p608. NOTE:
+  vreg_iout_max: 100 mA                        # section 2.10, PDF p156
+  iovdd_abs_max: -0.5 to 3.63 V                # Table 622, PDF p615
+  vpin_abs_max:  -0.5 to IOVDD + 0.5 V         # Table 622, PDF p615
+  vih_3v3:       2.0 V min                     # Table 625, PDF p617
+  vil_3v3:       0.8 V max                     # Table 625, PDF p617
+  vhys_3v3:      0.2 V min (Schmitt enabled)   # Table 625, PDF p617
+  voh_3v3:       2.62 V min                    # Table 625, PDF p617
+  vol_3v3:       0.5 V max                     # Table 625, PDF p617
+  pad_drive:     2 / 4 / 8 / 12 mA, DEFAULT 4 mA   # Table 614, PDF p613
+  r_pu / r_pd:   50 - 80 kohm                  # Table 625, PDF p617
+  iiovdd_max:    50 mA total sourced by GPIO+QSPI   # Table 625, PDF p617
+  iiovss_max:    50 mA total sunk by GPIO+QSPI      # Table 625, PDF p617
+  xosc_range:    1 - 15 MHz crystal            # section 2.16.1, PDF p217
+  xin_cmos_max:  50 MHz (XIN driven, XOUT floating)  # section 2.16.1, PDF p217
+  ta:            -40 to +85 C (case)           # Table 624, PDF p616
+  theta_ja:      48.00 C/W                     # Table 611, PDF p609. NOTE:
                                                # DETAIL_DESIGN section 7 currently
                                                # uses ~40 C/W — see gotchas.
-  psi_jt:        0.80 C/W                      # Table 611, PDF p608
-  theta_jc:      19.01 C/W                     # Table 611, PDF p608
-  theta_jb:      29.03 C/W                     # Table 611, PDF p608
-  esd_hbm:       2 kV all pins / 4 kV FT digital pins   # Table 623, PDF pp614-615
-  esd_cdm:       500 V                         # Table 623, PDF p615
-  msl:           1                             # section 5.4, PDF p611. Unlimited
+  psi_jt:        0.80 C/W                      # Table 611, PDF p609
+  theta_jc:      19.01 C/W                     # Table 611, PDF p609
+  theta_jb:      29.03 C/W                     # Table 611, PDF p609
+  esd_hbm:       2 kV all pins / 4 kV FT digital pins   # Table 623, PDF pp615-616
+  esd_cdm:       500 V                         # Table 623, PDF p616
+  msl:           1                             # section 5.4, PDF p612. Unlimited
                                                # floor life, no bake obligation —
                                                # which is why there is no `msl`
                                                # assert below.
 gotchas:
-  - "THE ONLY GROUND IS THE CENTRE PAD, PIN 57 (Table 621, PDF p614). Fifty-six
+  - "THE ONLY GROUND IS THE CENTRE PAD, PIN 57 (Table 621, PDF p615). Fifty-six
      peripheral leads and not one of them is GND. A QFN whose EP is treated as an
      optional thermal feature has no return path: every IO return, the crystal
      return and the core-regulator return all go through that one pad. It needs a
      via ARRAY into L2, not one via."
   - "DVDD IS NOT SUPPLIED BY THIS BOARD — IT IS SUPPLIED BY THE CHIP, THROUGH THE
-     BOARD. Section 2.9.2 (PDF p151): 'The connection between the output pin of
+     BOARD. Section 2.9.2 (PDF p152): 'The connection between the output pin of
      the on-chip regulator (VREG_VOUT) and the DVDD supply pins is made off-chip.'
      So pin 45 must be wired in COPPER to pins 23 and 50. Miss that link and the
      core has no 1.1 V, the chip never leaves reset, and nothing about the
      schematic looks wrong: VREG_VOUT reads as an output nobody uses and DVDD as a
-     supply nobody drives. Section 2.7 (PDF p128) makes it a boot dependency —
+     supply nobody drives. Section 2.7 (PDF p129) makes it a boot dependency —
      the hardware boot sequence waits for DVDD to be stable before the power-on
      state machine even starts."
   - "THE 1.1 V RAIL IS ABSENT FROM THIS BOARD'S RULES. `03_src/rules/nets.yaml`
@@ -199,15 +199,15 @@ gotchas:
      with a real 100 mA converter, and it is currently graded by nothing. OWED —
      reported upstream, not fixed here (this dossier does not write 03_src/)."
   - "TWO 1 uF CAPACITORS ARE MANDATORY AND ARE NOT IN DETAIL_DESIGN section 5.
-     Section 2.10.1 (PDF p156): 'The regulator must have 1uF capacitors placed
+     Section 2.10.1 (PDF p157): 'The regulator must have 1uF capacitors placed
      close to its input (VREG_VIN) and output (VREG_VOUT) pins.' Section 2.9.3
-     (PDF p151) repeats the input one. Hardware Design with RP2040 section 2.1.3
+     (PDF p152) repeats the input one. Hardware Design with RP2040 section 2.1.3
      (PDF p9-10) names them C10 (pin 44) and C8 (pin 45) and puts 'Make sure C8 is
      close to pin 45' / 'Make sure C10 is close to pin 44' on the schematic
      itself. The regulator also has an ESR window on these two, met in practice by
      small ceramics. Neither capacitor exists in the value index. OWED."
   - "THE DECOUPLING COUNT IS SHORT BY SIX. The datasheet asks for 100 nF at EACH
-     power pin: IOVDD x6 (pins 1, 10, 22, 33, 42, 49) section 2.9.1 PDF p151;
+     power pin: IOVDD x6 (pins 1, 10, 22, 33, 42, 49) section 2.9.1 PDF p152;
      DVDD x2 (23, 50) section 2.9.2; USB_VDD x1 (48) section 2.9.4; ADC_AVDD x1
      (43) section 2.9.5 — TEN. DETAIL_DESIGN section 5 budgets C_MCU1..4, i.e.
      FOUR. Raspberry Pi's own minimal design runs NINE and says so explicitly
@@ -217,7 +217,7 @@ gotchas:
      PDF p9). THIS BOARD IS FOUR-LAYER, so the trade-off Raspberry Pi accepted
      under duress is not one we have to inherit. OWED: six more 100 nF."
   - "USB_DP AND USB_DM NEED 27 OHM SERIES RESISTORS AND THEY ARE NOT IN
-     DETAIL_DESIGN section 5 EITHER. Table 620 (PDF p615) and Table 614 (PDF p612)
+     DETAIL_DESIGN section 5 EITHER. Table 620 (PDF p615) and Table 614 (PDF p613)
      both state it as a requirement, not a suggestion: '27 ohm series resistor
      required for USB operation'. Raspberry Pi's own schematic fits 27.4 ohm (E96
      1%, R3/R4 in Figure 3/Figure 9 of Hardware Design, PDF p8/p12) with the note
@@ -227,7 +227,7 @@ gotchas:
   - "THE CRYSTAL NEEDS A 1 kOHM SERIES RESISTOR ON XOUT AND IT IS NOT IN
      DETAIL_DESIGN section 5 EITHER. The RP2040 DATASHEET does not state the value
      — it only alludes to it ('the Abracon crystal and that particular damping
-     resistor are tuned for 3.3V operation', section 2.16.1.1 PDF p217). The value
+     resistor are tuned for 3.3V operation', section 2.16.1.1 PDF p218). The value
      lives ONLY in Hardware Design with RP2040 section 2.3 (PDF p11): 'We've opted
      for a device with a maximum of 50 ohm [ESR], as we've found that this, along
      with a 1k ohm series resistor (R5), is a good value to prevent the crystal
@@ -237,7 +237,7 @@ gotchas:
      the crystal terminal, with the XOUT-side load capacitor on the CRYSTAL side
      of it (Figure 8, PDF p11). OWED as a component; see 02_parts/ABM8-272-T3."
   - "QSPI_SS_N IS ALSO THE BOOT STRAP, AND IT IS SAMPLED ONCE. Section 2.8.1
-     (PDF p130): 'Check if SPI CS pin is tied low (\"bootrom button\"), and skip
+     (PDF p131): 'Check if SPI CS pin is tied low (\"bootrom button\"), and skip
      flash boot if so.' The strap is a 1 kohm from QSPI_SS to a button/header to
      GND (R1, Hardware Design section 2.2, PDF p10) — 1 kohm and not 0 ohm because
      QSPI_SS is a driven OUTPUT in normal operation and the button would otherwise
@@ -255,37 +255,37 @@ gotchas:
      to the flash."
   - "RUN HAS AN INTERNAL PULL-UP AND MAY BE LEFT TO IT. Table 619 (PDF p614): RUN
      is pin 26, Digital In (FT), reset state Pull-Up, 'Chip enable / reset'.
-     Table 1 (PDF p11): 'Reset when driven low, run when driven high. If no
+     Table 1 (PDF p12): 'Reset when driven low, run when driven high. If no
      external reset is required, this pin can be tied directly to IOVDD.' Note the
      asymmetry with the switch's control pins: HERE the internal pull is real and
      specified (50-80 kohm, Table 625), so a button to GND is a complete reset
      circuit. Do NOT copy ADR-0005's external-pull-down reasoning onto this pin —
      that reasoning exists because PE42482A-X publishes NO internal pull at all."
-  - "PAD DRIVE DEFAULT IS 4 mA, NOT 2 mA (Table 614, PDF p612: 'Default Drive
+  - "PAD DRIVE DEFAULT IS 4 mA, NOT 2 mA (Table 614, PDF p613: 'Default Drive
      Strength is 4mA'). ADR-0005 firmware obligation 1 asks for 2 mA + slow slew
      on the four select lines; that is a DEPARTURE FROM RESET STATE, so it is
      firmware that must run, not firmware that must merely not break. The ADR
      already treats it as non-load-bearing (the 47 ohm series value holds the
      3.6 V bound at the strongest setting), which is the right call — this note
      only corrects which way the default points."
-  - "THE DATASHEET PUBLISHES NO XIN/XOUT PIN CAPACITANCE. Table 628 (PDF p617)
+  - "THE DATASHEET PUBLISHES NO XIN/XOUT PIN CAPACITANCE. Table 628 (PDF p618)
      gives only VIH/VIL for driving XIN with a square wave. So the C_stray term in
      the load-capacitor formula CANNOT be cited for this chip — it is ESTIMATED,
      and Raspberry Pi's own 3 pF (Hardware Design section 2.3, PDF p11) is the
      only empirically anchored number available, because Pico was tuned with it.
      This is the input DETAIL_DESIGN section 5 carries as 5 pF. See
      02_parts/ABM8-272-T3/part.yaml for the recomputation."
-  - "ERRATA: NONE OF THE SIXTEEN ARE BOARD-LEVEL. Appendix B (PDF pp627-635)
+  - "ERRATA: NONE OF THE SIXTEEN ARE BOARD-LEVEL. Appendix B (PDF pp628-636)
      lists E1-E16; all sixteen are bootrom, ROSC/XOSC register, DMA, ADC-input-
      enable, USB-controller, watchdog or XIP-DMA software issues. Checked and
      reported as an ABSENCE rather than skipped. The nearest to a hardware fact is
      RP2040-E5 (GPIO digital inputs not disabled for ADC pins by default), and
      this board uses no ADC pin."
-  - "THETA_JA IS 48.00 C/W, NOT ~40 (Table 611, PDF p608). DETAIL_DESIGN section 7
+  - "THETA_JA IS 48.00 C/W, NOT ~40 (Table 611, PDF p609). DETAIL_DESIGN section 7
      uses ~40 C/W for a ~165 mW estimate -> 6.6 C rise. At the cited 48.00 the
      same dissipation gives 7.9 C. Still a non-event thermally; recorded because
      the table's number currently has no source and now can have one."
-  - "MSL 1 (section 5.4, PDF p611), 0.40 mm pitch, 56 leads plus a 3.2 mm ePad:
+  - "MSL 1 (section 5.4, PDF p612), 0.40 mm pitch, 56 leads plus a 3.2 mm ePad:
      PCBA part. Reflow only. Tin whisker testing is not performed and is not
      applicable — bottom-only termination (section 5.4 NOTE)."
 verified: "pin map read from Figure 3 'RP2040 Pinout for QFN-56 7x7mm (reduced
@@ -301,7 +301,7 @@ verified: "pin map read from Figure 3 'RP2040 Pinout for QFN-56 7x7mm (reduced
   pp607-608. Rendered from the PDF whose sha256 is recorded above. 2026-07-28"
 layout:
   source: "TWO manufacturer sources, in datasheet-first order. (1) RP2040
-    datasheet sections 2.9 / 2.10 (PDF pp150-156): 100 nF at EACH IOVDD, DVDD,
+    datasheet sections 2.9 / 2.10 (PDF pp151-158): 100 nF at EACH IOVDD, DVDD,
     USB_VDD and ADC_AVDD pin; 1 uF at VREG_VIN and 1 uF at VREG_VOUT, both close
     to the pin; VREG_VOUT wired off-chip to both DVDD pins. (2) Hardware Design
     with RP2040 (build 2024-10-15 / 2b6018e, sha256
@@ -360,8 +360,8 @@ layout:
        PDF p10). 15 mm is 12 mm plus the resistor pair, not a relaxation of the
        bus budget"}
     - {net: DVDD, max_span_mm: 10, why: "pin 45 -> pins 23 and 50 is an off-chip
-       1.1 V link the chip cannot boot without (section 2.9.2, PDF p151), and it
-       carries the 1 uF regulator output capacitor that section 2.10.1 (PDF p156)
+       1.1 V link the chip cannot boot without (section 2.9.2, PDF p152), and it
+       carries the 1 uF regulator output capacitor that section 2.10.1 (PDF p157)
        makes mandatory. WARNING, recorded rather than discovered: this net does
        NOT EXIST in 03_src/rules/nets.yaml today, so P-ADJ will find fewer than
        two pads and SKIP this budget SILENTLY — the same gate gap ADR-0005 records
@@ -388,7 +388,7 @@ layout:
        puts the switch's digital side at 225-315 degrees; the MCU's crystal side
        should point at the switch, not its QSPI side."
     - "DERIVED: the four select lines SEL_V1..SEL_V4 may be assigned to ANY four
-       GPIOs — PIO can drive all of bank 0 (Table 3, PDF p13). Choose four
+       GPIOs — PIO can drive all of bank 0 (Table 3, PDF p14). Choose four
        CONSECUTIVE GPIOs on the side facing the switch, because ADR-0005 firmware
        obligation 2 requires all bits written in ONE PIO instruction, and a PIO
        OUT/SET writes a contiguous pin range. Non-consecutive pins force a
@@ -401,10 +401,10 @@ layout:
        done, not as absent."
 layout_refs:
   - "RP2040 datasheet build-2025-02-20-3184e62, sections 2.9 'Power Supplies'
-     (PDF pp150-154) and 2.10 'Core Supply Regulator' (PDF pp155-157) — the
+     (PDF pp151-154) and 2.10 'Core Supply Regulator' (PDF pp156-158) — the
      per-pin decoupling rules and the two mandatory 1 uF regulator capacitors"
   - "RP2040 datasheet, section 5.1 Figure 167 'Recommended PCB Footprint for the
-     RP2040 QFN-56 package' + the section 5.1 reduced-ePad NOTE, PDF pp607-608 —
+     RP2040 QFN-56 package' + the section 5.1 reduced-ePad NOTE, PDF pp608-609 —
      the manufacturer's own land pattern"
   - "Hardware design with RP2040, build-date 2024-10-15 / build-version
      2b6018e-clean, sha256
@@ -414,7 +414,7 @@ layout_refs:
      (PDF p9, the manufacturer's own ROUTED board, read visually), Figure 3 /
      Figure 5 schematic sheets with their placement directives (PDF pp8-9),
      section 2.2 flash (PDF p10), section 2.3 crystal (PDF p11), section 2.4.1 USB
-     (PDF pp11-12), section 2.6 'Supported flash chips' (PDF p13).
+     (PDF pp12-13), section 2.6 'Supported flash chips' (PDF p14).
      NOT COMMITTED to 02_parts/: the PDF is 19.9 MB, it is an application guide
      rather than this part's datasheet, and every fact this project takes from it
      is transcribed into gotchas:/layout: above WITH its page. Flagged for the

@@ -56,6 +56,8 @@ USB-C host  ──►  J_USB  ──►  VBUS  ──[F_IN 500 mA PPTC]──►
                                                               │
                                                      [FB_IN ferrite]
                                                               │
+                                                          VBUS_LDO
+                                                              │
                                                         U_LDO (linear)
                                                               │
                                                              3V3 ──┬── U_MCU  (RP2040, ~50 mA)
@@ -96,7 +98,7 @@ here, because two homes drift.
 | `RF50` | the nine radial arms plus `RX1_MAIN` / `RX1_TAP_MID` / `RX1_TAP`. The width is an **impedance** width, so widening it is as wrong as narrowing it. L1 only, **no vias**, solid L2 underneath, fenced at ≤1.37 mm |
 | `CTRL` | `SEL_V1..4` / `SW_V1..4`. Its impedance is load-bearing: it sets the series-termination value that keeps the switch's 3.6 V digital absolute maximum from being exceeded by reflection. **No shunt capacitance anywhere** — an RC that would be harmless on a static control net costs more than the entire blanking allowance |
 | `USB_D` | `USB_DP` / `USB_DM`. The binding rule is the **reference plane**, not the impedance |
-| `PWR` | `VBUS`, `VBUS_F`, `3V3`. Width for IR drop and robustness, far above the ampacity need |
+| `PWR` | `VBUS`, `VBUS_F`, **`VBUS_LDO`**, `3V3`. Width for IR drop and robustness, far above the ampacity need. `VBUS_LDO` is FB_IN's output — a ferrite is a series element, so it is a fourth net, not a continuation of `VBUS_F`. It was missing from the class until the stage-2 merge, where it would have defaulted to the 0.25 mm class and been graded as a signal while carrying the whole 0.15 A |
 | `QSPI` | the execute-in-place bus — the board's only continuous in-band spur source, so "short" is an EMI rule here |
 | default | `LED_PWR`, `LED_STAT`, `RUN_N`, `BOOTSEL_N`, `XIN`, `XOUT`, `USB_CC1`, `USB_CC2` |
 | `GND` | pours + stitching on all four layers; no netclass width. `U_SW` pin 1 (LS) is **on this net**, by a via at the pad |
