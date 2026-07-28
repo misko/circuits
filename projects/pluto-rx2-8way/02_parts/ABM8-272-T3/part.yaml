@@ -1,0 +1,390 @@
+mpn: ABM8-272-T3
+manufacturer: Abracon LLC
+type: crystal                    # In P-LAYOUT scope by TYPE (the checker matches
+                                 # fet/mosfet/current_sense/shunt/crystal/
+                                 # oscillator/inductor), so the layout: block
+                                 # below is REQUIRED, not optional, even though
+                                 # this is a 4-pad passive.
+datasheet:
+  doc_id: "456603"               # Abracon Drawing # 456603 — the number printed
+                                 # in the sheet header of all three pages.
+  revision: RevB                 # "Revision #: B" in the same header block, with
+                                 # "Date of Issue: Sept. 16th, 2024". This is a
+                                 # SOURCE CONTROL DRAWING for one ordering code,
+                                 # not the ABM8 family datasheet. See gotchas —
+                                 # the two documents DISAGREE and this one wins.
+  url: https://abracon.com/datasheets/ABM8-272-T3.pdf
+  sha256: aead22b6bd9d6f8ad4472352f70fce3ade633e90b9772ba80fabe8fd0856ae91
+  fetched: 2026-07-28
+  pages: 3
+package: >
+  Ultra-miniature ceramic SMD crystal, 3.2 +/-0.20 x 2.5 +/-0.20 mm, height
+  0.80 max (Table 2, the plain "ABM8" height class). Four bottom terminations,
+  each 0.9 +/-0.10 wide x 0.80 +/-0.10 tall, with a 1.2 +/-0.10 gap between the
+  two columns and a 0.70 +/-0.10 gap between the two rows — so termination
+  centres are 2.1 mm apart across the part and 1.5 mm apart along it, and the
+  terminations occupy 3.0 x 2.3 mm of the 3.2 x 2.5 mm body. Mechanical
+  Dimensions sheet, Abracon Drawing 456603 Rev B, PDF p2. Hermetically sealed,
+  seam-welded; MSL 1.
+footprint: Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm
+  # STOCK KiCad footprint, verified present under
+  # /usr/share/kicad/footprints/Crystal.pretty.
+  # MEASURED 2026-07-28 out of the machine-readable .kicad_mod:
+  #   4 pads 1.4 x 1.2 mm at (+/-1.1, +/-0.85) — centres 2.2 mm across,
+  #   1.7 mm along; pad 1 at (-1.1, +0.85) i.e. bottom-left in top view,
+  #   then 2 bottom-right, 3 top-right, 4 top-left.
+  # FIT AGAINST THE PART (Rev B drawing, PDF p2): terminations are 0.9 x 0.80 at
+  #   2.1 x 1.5 centres, so each land extends ~0.30 mm outboard and ~0.20 mm
+  #   inboard of its termination — a real fillet on the outside, room on the
+  #   inside, and 0.80 mm of pad-to-pad copper gap at the narrowest. The land is
+  #   0.1 mm wider and 0.2 mm longer in centre spacing than the part; that is a
+  #   generic 3225 land, not this vendor's, and it is FINE for a 4-pad hermetic
+  #   can whose only self-alignment requirement is that the two live terminations
+  #   land on their own pads.
+  # PAD-ORDER MATCH IS THE POINT: KiCad's 1/2/3/4 go counter-clockwise from
+  #   bottom-left in TOP view, and so do Abracon's (Rev B TOP VIEW: 1 bottom-left,
+  #   2 bottom-right GND, 3 top-right, 4 top-left GND). Diagonal pairs are
+  #   correct in both. A footprint whose 2 and 4 were the live pair would put the
+  #   crystal across the ground pads and it would simply not oscillate.
+escape:                          # emitted by escape_check.py, 2026-07-28
+  style: passive
+  pitch: 1.5                     # the SMALLER of the two termination-centre
+                                 # spacings from the Rev B drawing (1.5 mm along
+                                 # the part, 2.1 mm across it). The tighter one is
+                                 # what any escape has to fit through, so it is
+                                 # the honest number to declare; the KiCad land's
+                                 # equivalents are 1.7 and 2.2.
+  escapes_worst_side: 1          # per side, exactly one net leaves: pads 1 and 3
+                                 # carry XIN and the XOUT-side node, pads 2 and 4
+                                 # are GND and take vias at the pad. Nothing about
+                                 # this part constrains the fab tier.
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-28
+pins:                            # Mechanical Dimensions sheet, Abracon Drawing
+  1: XTAL_A                      # 456603 Rev B, PDF p2 — BOTTOM VIEW gives the
+  2: {name: GND, tie: GND}       # numbering (1 top-left, 2 top-right, 3
+  3: XTAL_B                      # bottom-right, 4 bottom-left as seen from
+  4: {name: GND, tie: GND}       # below) and the TOP VIEW carries the function
+                                 # labels: "GND" printed at pin 4 (top-left) and
+                                 # at pin 2 (bottom-right), with the crystal
+                                 # element drawn between pin 1 (bottom-left) and
+                                 # pin 3 (top-right).
+                                 # THE TWO LIVE PADS ARE INTERCHANGEABLE. A
+                                 # quartz resonator is a symmetric two-terminal
+                                 # device: pad 1 to XIN and pad 3 to XOUT, or the
+                                 # reverse, are the same circuit. This is stated
+                                 # so nobody spends time on a rotation review that
+                                 # cannot find a defect — the rotation that DOES
+                                 # matter is 90 deg, which lands the live pair on
+                                 # the ground pads.
+limits:
+  frequency: 12.000 MHz (min = typ = max)      # Key Electrical Specifications,
+                                               # PDF p1
+  mode: fundamental AT-cut                     # PDF p1
+  f_tolerance_25C: +/-30 ppm                   # PDF p1
+  f_stability_over_temp: +/-30 ppm             # PDF p1, referenced to +25 C
+  esr_r1_max: 50 ohm                           # PDF p1 — LOAD-BEARING, see below
+  c0_shunt_max: 3.0 pF                         # PDF p1
+  cl_load: 10 pF                               # PDF p1 — typical column, no min
+                                               # or max published. THE NUMBER THAT
+                                               # CLOSES DETAIL_DESIGN section 5.
+  drive_level: 10 uW typ / 200 uW max          # PDF p1
+  aging_1st_year: +/-5 ppm at 25 +/-3 C        # PDF p1
+  insulation_resistance: ">=500 Mohm at 100 Vdc +/-15 V"   # PDF p1
+  ta: -40 to +85 C                             # PDF p1
+  tstg: -55 to +125 C                          # PDF p1
+  msl: 1                                       # PDF p1 — "This product is
+                                               # Hermetically Sealed and not
+                                               # Moisture Sensitive - MSL = 1".
+                                               # No bake obligation, so no `msl`
+                                               # assert below.
+  packaging: tape and reel, 3000 pcs/reel      # PDF p3 (the "-T3" suffix)
+  c1_motional: OWED                            # Abracon publishes NO motional
+                                               # capacitance for this part, on
+                                               # either the SCD or the family
+                                               # sheet. It is the input the
+                                               # frequency-pulling arithmetic in
+                                               # gotchas needs, so that arithmetic
+                                               # carries a band, not a number.
+gotchas:
+  - "C_L IS 10 pF, NOT 12. DETAIL_DESIGN section 5 carries `C_L = 12 pF` with the
+     value explicitly marked OWED. It is now CITED at 10 pF, twice and
+     independently: Abracon Drawing 456603 Rev B (PDF p1, 'Load capacitance (CL)
+     ... 10 ... pF') and the RP2040 datasheet's own Table 257 'Key Crystal
+     Specifications' (PDF p216), which lists this exact part with CL min = typ =
+     max = 10 pF. See the load-capacitor gotcha below for what that does to the
+     15 pF in the value index — the short answer is nothing, for a reason worth
+     reading."
+  - "THE 15 pF LOAD CAPACITORS STAND, AND BOTH OF THE INPUTS THAT PRODUCED THEM
+     WERE WRONG. Section 5's formula is C = 2*(C_L - C_stray). It was evaluated as
+     2*(12 - 5) = 14 -> 15 pF E24. The correct evaluation is 2*(10 - 3) = 14 ->
+     15 pF E24. IDENTICAL, because the C_L error and the C_stray error were the
+     same size and opposite in sign. The value index needs no change; section 5's
+     DERIVATION does, or the next person to touch the crystal re-derives 10 pF
+     from a C_stray that has no source and quietly under-loads the oscillator.
+     C_stray = 3 pF is the manufacturer's own worked number for this exact chip
+     and this exact crystal — Hardware design with RP2040 section 2.3, PDF p11:
+     'we must also add a value for the unintentional extra capacitance, or
+     parasitic capacitance, that we get from the PCB tracks and the XIN and XOUT
+     pins of RP2040. We'll assume a value of 3pF for this... to give us a total
+     load capacitance of 10.5pF, which is close enough to the target of 10pF.'
+     It is ESTIMATED, not CITED — the RP2040 datasheet publishes NO XIN/XOUT pin
+     capacitance anywhere (Table 628, PDF p617, gives only square-wave VIH/VIL) —
+     but it is the only estimate with evidence behind it, because Raspberry Pi
+     Pico was tuned with it and this part is 'Crystal approved for use with
+     Raspberry Pi's RP2040 and RP235x range' (Abracon Rev B features list, PDF
+     p1). Section 5's 5 pF has no stated basis at all."
+  - "WHICH WAY TO BE WRONG, IF YOU MUST BE. Both candidate pairs are internally
+     self-consistent, so the arithmetic alone cannot choose; the physics of the
+     error direction can. Frequency pulling is
+     df/f = (C1/2)*[1/(C0+C_L) - 1/(C0+C_actual)] with C0 = 3.0 pF max (CITED)
+     and C1 OWED, so the band below uses C1 = 4-8 fF, ESTIMATED for a 12 MHz
+     fundamental AT-cut 3225:
+       15 pF caps + 3 pF stray -> 10.5 pF actual ->  -6 to -11 ppm  (CHOSEN)
+       15 pF caps + 5 pF stray -> 12.5 pF actual -> -25 to -50 ppm
+       10 pF caps + 3 pF stray ->  8.0 pF actual -> +28 to +56 ppm
+       10 pF caps + 5 pF stray -> 10.0 pF actual ->   0 ppm
+     All four are inside the crystal's OWN +/-60 ppm (tolerance plus stability),
+     so frequency is not the deciding term. START-UP is: over-loading reduces the
+     oscillator's negative-resistance margin (the slow-or-no-start direction),
+     while under-loading raises the drive level toward the 200 uW ceiling on a
+     part whose damping resistor was tuned for the loaded case. 15 pF is the
+     combination Raspberry Pi actually measured over temperature, and Raspberry Pi
+     says the quiet part out loud: 'Any deviation from the crystal circuit shown
+     here, or with an IOVDD level other than 3.3V, will require extensive testing
+     to ensure that the crystal oscillates under all conditions, and starts-up
+     sufficiently quickly as not to cause problems with your application'
+     (Hardware Design section 2.3, PDF p11). Take the tested circuit."
+  - "THE LOAD CAPACITORS MUST BE C0G/NP0. DERIVED, not from either datasheet: a
+     load capacitor IS the tuning element, so a dielectric whose value moves with
+     temperature or DC bias re-tunes the oscillator across the operating range and
+     partly defeats the crystal's own +/-30 ppm stability spec. At 15 pF this
+     costs nothing — 15 pF 0402 is a C0G part in every catalogue — but it has to
+     be WRITTEN DOWN, because a BOM that says only '15 pF 0402' can be filled
+     with X7R."
+  - "THE 1 kOHM SERIES RESISTOR APPLIES TO THIS BOARD, AND IT IS MISSING FROM
+     DETAIL_DESIGN section 5. It is NOT a generic crystal rule and it is NOT in
+     the RP2040 datasheet as a value — the datasheet only alludes to it ('the
+     Abracon crystal and that particular damping resistor are tuned for 3.3V
+     operation', section 2.16.1.1, PDF p217). The value and its two preconditions
+     are in Hardware design with RP2040 section 2.3, PDF p11: 'We've opted for a
+     device with a maximum of 50 ohm [ESR], as we've found that this, along with a
+     1k ohm series resistor (R5), is a good value to prevent the crystal being
+     over-driven and being damaged when using an IOVDD level of 3.3V. However, if
+     IOVDD is less than 3.3V, then the drive current of the XIN/XOUT pins is
+     reduced, and you will find that the amplitude of the crystal is lower, or may
+     not even oscillate at all.' BOTH preconditions hold here: this part's ESR max
+     IS 50 ohm (Rev B, PDF p1) and this board's IOVDD IS 3.3 V (ARCHITECTURE
+     section 3). So the answer is YES, fit 1 kohm — and the reason it is yes is
+     specific, not inherited. TOPOLOGY, from Figure 8 (PDF p11): the resistor goes
+     between the RP2040 XOUT PIN and the crystal terminal, and the XOUT-side 15 pF
+     load capacitor connects on the CRYSTAL side of the resistor, not the pin
+     side. Putting the capacitor on the pin side turns the R-C into a low-pass on
+     the drive instead of a damping element in the loop. OWED as a component:
+     section 5's passives table, section 8's value index and nets.yaml all have
+     no R_XTAL and no net for the node between it and the crystal."
+  - "READING THE ABM8 FAMILY DATASHEET INSTEAD OF THIS SOURCE CONTROL DRAWING
+     GIVES FIVE WRONG NUMBERS. Both documents were fetched. The generic ABM8 sheet
+     (https://abracon.com/Resonators/abm8.pdf, REVISED 07-29-20, 2 pages, sha256
+     564ac331d8bf38b4ae1222444b0d9cfea3a6ba29148a8be906b2e0ffe40471d8) publishes
+     the FAMILY STANDARD: CL 18 pF, ESR max 120 ohm for 12.000-15.999 MHz
+     fundamental (Table 1), drive level 100 uW max, tolerance +/-50 ppm, operating
+     -10 to +60 C. Drawing 456603 Rev B, for THIS ordering code, publishes CL
+     10 pF, ESR max 50 ohm, drive 200 uW max, +/-30 ppm, -40 to +85 C. The
+     -272 is a factory-configured variant and its SCD overrides the family sheet
+     on every one of those lines. The costly one is CL: 2*(18 - 3) = 30 pF load
+     capacitors, twice the right value, from a document with the right part family
+     on the cover. THE FAMILY SHEET IS NOT COMMITTED HERE precisely so that it
+     cannot be picked up by mistake; it is recorded by hash as the refuted source."
+  - "THE CHAMFER IS NOT A PIN-1 MARKER ON THIS PART, AND THE DRAWING SAYS SO.
+     Rev B, PDF p2, under both views: 'Due to material availability, the chamfer
+     could be located on pin #1, 3, or 4. Be advised that the chamfer location has
+     no impact on the electrical performance of the device.' So the visible corner
+     feature CANNOT be used to set or to inspect rotation, and any CPL convention
+     that keys off it is keying off nothing. This is benign here only because pads
+     1 and 3 are electrically interchangeable — a 180 deg error is invisible and
+     harmless, a 90 deg error puts the resonator across the two GND pads and the
+     board never leaves the ring oscillator."
+  - "SUBSTITUTING ON FREQUENCY IS THE TRAP THIS PART EXISTS TO AVOID, AND THE
+     FLEET HAS ALREADY PAID FOR IT ONCE. `skills/kicad-pcb/references/
+     proven-parts.yaml` records it under `crystal-24mhz-3225`: 'match CL, not just
+     frequency, when substituting'. The live instance here is JLC's cheapest
+     12 MHz 3225: X322512MSB4SI (C9002) is BASIC library with ~224k in stock
+     against this part's EXTENDED ~17.6k (both checked 2026-07-28), it is
+     land-identical, it is 12.000 MHz, and its CL is 20 pF. Fitting it without
+     changing the capacitors gives 7.5 + 3 = 10.5 pF against a 20 pF requirement —
+     roughly half the load the crystal needs. It would need 2*(20 - 3) = 34 pF
+     caps, and the 1 kohm damping value would have to be re-derived because it was
+     tuned against a 50 ohm ESR part. The board would probably still oscillate,
+     several tens of ppm off, with unknown start-up margin at -40 C."
+  - "MSL 1, HERMETICALLY SEALED (PDF p1). No floor-life obligation and no bake, so
+     no `msl` assert below. The SCD publishes NO reflow profile — the family sheet
+     does (preheat 150-180 C for 60-120 s, reflow above liquidus 30-40 s at
+     230 C, peak 260 +/-5 C for 10 s max), and that is the ONE line for which the
+     refuted family document is still the best available source. Recorded as such
+     rather than silently promoted to CITED."
+verified: >
+  pin map read from the Mechanical Dimensions sheet of Abracon Drawing # 456603
+  Revision B, dated Sept. 16th 2024, PDF p2 (the sheet's own header numbers it
+  "Page (4) of (9)") — page RENDERED at 400 dpi and read VISUALLY. The BOTTOM
+  VIEW gives the numbering and the termination geometry (0.9 +/-0.10 pad width,
+  0.80 +/-0.10 pad height, 1.2 +/-0.10 column gap, 0.70 +/-0.10 row gap); the
+  TOP VIEW on the same sheet carries the function labels, printing "GND" at
+  pin 4 and at pin 2 and drawing the resonator symbol between pin 1 and pin 3.
+  Cross-checked against a SECOND, independent manufacturer document that uses
+  this exact part — Figure 8 "Schematic section showing the crystal oscillator
+  and load capacitors" in Hardware design with RP2040, PDF p11 — which wires
+  Y1 pin 1 to the XIN side, pin 3 to the XOUT side through R5, and pins 2 and 4
+  to GND. Electrical specifications from the Key Electrical Specifications table,
+  PDF p1, cross-checked line by line against RP2040 datasheet Table 257 "Key
+  Crystal Specifications", PDF p216, which publishes the same part: 12.000 MHz,
+  fundamental-AT, -40/+85 C, +/-30 ppm tolerance, +/-30 ppm stability, ESR max
+  50 ohm, C0 max 3.0 pF, CL 10 pF, drive 10 uW typ / 200 uW max, aging +/-5 ppm.
+  Every line agrees. Rendered from the PDF whose sha256 is recorded above.
+  2026-07-28
+layout:
+  source: >
+    Abracon's Source Control Drawing publishes NO layout or application section —
+    three sheets of specification, mechanical dimensions and tape-and-reel, and
+    nothing between them. Reported as an absence rather than invented. The layout
+    authority used instead is the MCU manufacturer's, for this exact pairing,
+    because the crystal circuit is a property of the oscillator it hangs on and
+    not of the can. Hardware design with RP2040 (build-date 2024-10-15,
+    build-version 2b6018e-clean, sha256
+    6523a2ebf743fcfbcc69bc3901b24ca3a2d23617d8ee50beb5f606b31134f0b5), section
+    2.3 "Crystal oscillator", PDF p11, with Figure 8 as the circuit of record —
+    Y1 = ABM8-272-T3, C2 = C3 = 15 pF from each terminal to GND, R5 = 1 kohm in
+    series with the XOUT leg, load capacitor on the crystal side of R5. Two
+    placement rules come from that text, and both are about capacitance rather
+    than about signal integrity — "the parasitic capacitance of the PCB traces
+    are a factor, and we therefore need to keep them small so we don't upset the
+    crystal and stop it oscillating as intended. Try and keep the layout as short
+    as possible", and the whole 3 pF stray budget that the 15 pF value is derived
+    against. RP2040 datasheet section 2.16 (PDF pp216-217) adds the electrical
+    frame — 1-15 MHz crystals supported, 12 MHz for the USB bootloader, "the
+    crystal oscillator is powered from the VDDIO voltage" so the drive scales
+    with IOVDD.
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: XIN, max_span_mm: 6, why: "the 15 pF value is derived against a TOTAL
+       stray of 3 pF covering BOTH pins AND BOTH tracks (Hardware Design section
+       2.3, PDF p11), so trace capacitance is not a second-order effect here — it
+       is a named term in the arithmetic that sets the BOM value. DERIVED for this
+       stackup, using DETAIL_DESIGN section 1's own Hammerstad-Jensen method: a
+       0.25 mm line on 0.2104 mm prepreg at Dk 4.4 gives w_eff 0.2888, u 1.373,
+       eps_eff 3.245, Z0 60.6 ohm, t_pd 6.01 ps/mm, hence C' = t_pd/Z0 =
+       0.099 pF/mm. Six millimetres is 0.6 pF, a fifth of the whole allowance, and
+       that is what makes 6 mm the budget rather than a round number"}
+    - {net: XOUT, max_span_mm: 6, why: "same 0.099 pF/mm arithmetic, plus the fact
+       that the 1 kohm damping resistor lives IN this net, so the pad-to-pad span
+       already has a part inside it. WARNING, recorded rather than left to be
+       discovered: once R_XTAL exists there are TWO nets here — the MCU-pin side
+       and the crystal side — and 03_src/rules/nets.yaml today declares only
+       `XOUT`. Whichever of the two keeps that name, the OTHER one inherits this
+       same 6 mm budget and currently has nowhere to be declared"}
+    - {net: GND, max_span_mm: 3, why: "pads 2 and 4 are the can's ground and they
+       are the RETURN for the whole oscillator loop. A crystal loop is XIN pad ->
+       C2 -> ground -> C3 -> XOUT pad, so ground path length is IN the loop, not
+       beside it. Each GND pad takes its own via to L2 at the pad. NOTE this
+       budget is graded by NOTHING: GND is a pour with no netclass width
+       (nets.yaml), so its board-wide pad span is meaningless and P-ADJ will
+       either skip it or flag the whole plane. It is discharged geometrically at
+       placement, the way ADR-0005 discharges SW_LS, and it is written here so the
+       obligation has a home"}
+  notes:
+    - "DERIVED, and it is the reason this part gets a layout block at all: the
+       crystal is the one structure on this board whose BOM VALUE is a function of
+       its own copper. Move the crystal 10 mm further from the MCU and the 15 pF
+       capacitors become wrong — 1 pF of extra track is 1 pF straight into the
+       stray budget the value was derived from. There is no other component here
+       with that property, and it is why 'keep it short' is a numeric budget for
+       this part and a habit everywhere else."
+    - "DERIVED: put the crystal, both load capacitors and the 1 kohm on the pin
+       15-28 side of the RP2040, which is where XIN (20) and XOUT (21) are, and
+       keep the whole cell on the far side of the MCU from the flash. The QSPI bus
+       is the board's spur source (nets.yaml) and the crystal node is a
+       high-impedance analogue node with a few hundred millivolts of swing on it;
+       there is no reason to put them on the same edge, and the pinout does not
+       ask you to."
+    - "DERIVED: no ground pour void is needed under this part and no guard ring is
+       specified by anyone. What IS specified is that the two GND pads go to the
+       plane at the pad. Stated because 'crystal' triggers a reflex to draw a
+       guard ring, and an invented guard ring on a 3.2 x 2.5 can inside a solid-L2
+       stackup buys nothing and costs a plane cut."
+    - "OWED: C1, the motional capacitance, is published by neither Abracon
+       document. The pulling arithmetic in gotchas therefore carries a 4-8 fF band
+       instead of a number. If the +/-6 to -11 ppm figure ever needs to be tighter
+       than that, C1 has to come from Abracon."
+    - "OWED: no OSHWLab-by-LCSC board was searched for C20625731, and Abracon
+       publishes no evaluation board for a two-terminal resonator. Recorded as not
+       done, not as absent."
+layout_refs:
+  - "Abracon Drawing # 456603 Rev B, Mechanical Dimensions sheet, PDF p2 — the
+     only vendor-published geometry for this part. There is NO recommended land
+     pattern on it; the terminations are given and the land is the fabricator's
+     problem, which is why the KiCad generic 3225 land is used and measured
+     against the terminations above"
+  - "Hardware design with RP2040, build 2024-10-15 / 2b6018e-clean, sha256
+     6523a2ebf743fcfbcc69bc3901b24ca3a2d23617d8ee50beb5f606b31134f0b5,
+     https://datasheets.raspberrypi.com/rp2040/hardware-design-with-rp2040.pdf —
+     section 2.3 and Figure 8 (PDF p11), the circuit of record for this exact
+     crystal on this exact MCU, including the 1 kohm value and its two
+     preconditions. NOT COMMITTED to 02_parts/ (19.9 MB, and it is the MCU's
+     application guide rather than this part's datasheet); every fact taken from
+     it is transcribed above with its page"
+  - "RP2040 datasheet build-2025-02-20-3184e62, section 2.16 'Crystal Oscillator
+     (XOSC)' and Table 257 'Key Crystal Specifications', PDF pp216-217 — the
+     independent second publication of this part's numbers. Held at
+     02_parts/RP2040/rp2040-datasheet-2025-02-20-3184e62.pdf"
+  - "REFUTED SOURCE, recorded so it is not re-consulted: Abracon ABM8 FAMILY
+     datasheet, https://abracon.com/Resonators/abm8.pdf, REVISED 07-29-20,
+     2 pages, sha256
+     564ac331d8bf38b4ae1222444b0d9cfea3a6ba29148a8be906b2e0ffe40471d8. Disagrees
+     with Drawing 456603 Rev B on CL, ESR, drive level, tolerance and operating
+     temperature. Its ONE surviving use is the reflow profile, which the SCD omits"
+  - "OWED: no OSHWLab-by-LCSC project searched for C20625731."
+sourcing:
+  lcsc: C20625731                  # JLC **extended** library tier (checked
+                                   # 2026-07-28). Extended is accepted here on
+                                   # purpose: this board already carries an
+                                   # extended part it cannot avoid (RP2040,
+                                   # C2040), so the per-order extended-component
+                                   # fee is already paid, and the marginal cost of
+                                   # a second extended line is a reel setup
+                                   # against a crystal that the MCU vendor tuned
+                                   # its own silicon reference against.
+  alternates: [C50430, C70565]     # C50430 = YXC X322512MMB4SI, 3225, 12 MHz,
+                                   # CL 10 pF — the only land-identical part found
+                                   # that also matches C_L, so the 15 pF caps
+                                   # would carry over. Its ESR and drive level
+                                   # were NOT independently read here, so the
+                                   # 1 kohm would have to be re-derived, and its
+                                   # stock is thin (~1.7k, 2026-07-28).
+                                   # C70565 = YXC X322512MOB4SI, CL 12 pF — listed
+                                   # because it is deep-stocked and land-identical
+                                   # and someone WILL find it; at CL 12 pF the
+                                   # caps become 2*(12-3) = 18 pF, so it is a
+                                   # BOM-changing swap, not a drop-in.
+                                   # DELIBERATELY NOT LISTED: C9002
+                                   # X322512MSB4SI, the JLC Basic 12 MHz 3225.
+                                   # CL 20 pF. See gotchas — it is the cheap trap,
+                                   # not an alternate.
+asserts:
+  # Same known gate gap as this board's other parts: part_facts_check.py decodes
+  # `equals:` with an SI parser and cannot read an alphanumeric MPN, so this
+  # prints P-FACT-CONFIG rather than a pass (measured on this project 2026-07-28,
+  # before this dossier existed: KH-SMA-KE-Z and PE42482A-X were already in that
+  # state). Declared anyway — CONFIG is loud, prose is not.
+  - assert: value
+    equals: ABM8-272-T3
+    why: >
+      the BOM Comment must carry the -272 configuration code, because every
+      electrical check on this board is blind to the one parameter that matters.
+      JLC's basic-library X322512MSB4SI is the same 3.2 x 2.5 land, the same
+      12.000 MHz, cheaper and thirteen times deeper in stock, and its C_L is
+      20 pF against this part's 10. Fitted against 15 pF capacitors it is loaded
+      to about half what it needs; DRC, ERC, schematic parity, the netlist and
+      assembly inspection all pass, and the failure surfaces as a clock that is
+      tens of ppm off with unknown cold start-up margin. The fleet has already
+      written this lesson down once, in proven-parts.yaml under
+      crystal-24mhz-3225 — "match CL, not just frequency, when substituting".

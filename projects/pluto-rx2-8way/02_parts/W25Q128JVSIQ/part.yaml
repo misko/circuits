@@ -1,0 +1,302 @@
+mpn: W25Q128JVSIQ
+manufacturer: Winbond Electronics Corporation
+type: flash_memory_nor_qspi      # NOT a converter; contributes nothing to
+                                 # power_tree.yaml rails.
+datasheet:
+  doc_id: W25Q128JV
+  revision: RevI                 # printed in the footer of EVERY page,
+                                 # "Publication Release Date: August 23, 2021 /
+                                 # Revision I", and confirmed by section 12
+                                 # Revision History (PDF p78): I, 2021/08/23,
+                                 # p75, "Added W25Q128JVPIN".
+                                 # TRAP PAID FOR HERE: winbond.com serves a
+                                 # DIFFERENT document under a RevF-named URL than
+                                 # under the RevI-named one, and the RevF file is
+                                 # 78 pages against RevI's 79. The URL name is not
+                                 # evidence — the page footer is. Rev I is the one
+                                 # hashed below; the F-named file was discarded.
+  url: https://www.winbond.com/resource-files/W25Q128JV%20RevI%2008232021%20Plus.pdf
+  sha256: c565fe744cf6f6d97e7aa510402e0d974b8d1c56bcadca78ed8d70304a95a03b
+  fetched: 2026-07-28
+  pages: 79
+package: >
+  SOIC-8 208-mil (Winbond Package Code S). Section 10.1, PDF p68 — body
+  D = 5.28 nom (5.18/5.38), E = 5.28 nom, D1/E1 = 5.23 nom, total lead span
+  H = 7.90 nom (7.70/8.10), pitch e = 1.27 BSC, lead width b = 0.42 nom
+  (0.35/0.48), lead foot L = 0.65 nom, height A = 1.95 nom (1.75/2.16),
+  standoff A1 = 0.15 nom, lead thickness C = 0.20 nom, lead angle 0-8 deg.
+  208 mil = 5.28 mm IS the body width — the "208-mil" in the name is the body,
+  not the lead span, and the 150-mil SOIC-8 (3.9 mm body) is a DIFFERENT land.
+footprint: Package_SO:SOIC-8_5.3x5.3mm_P1.27mm
+                                 # STOCK KiCad footprint, verified present under
+                                 # /usr/share/kicad/footprints/Package_SO.pretty.
+                                 # Its own `descr` says "208 mils width" and cites
+                                 # JEITA/EIAJ ED-7311-19 variation 08-001-BBA.
+                                 # Land: 8 pads 1.625 x 0.65 mm at pitch 1.27,
+                                 # rows at x = +/-3.5875 (7.175 mm centre-to-
+                                 # centre) — outboard edge at 4.40 mm vs the
+                                 # part's 3.95 mm lead tip, so the toe fillet is
+                                 # 0.45 mm and the heel clears D/2 = 2.64.
+                                 # DO NOT reach for SOIC-8_3.9x4.9mm_P1.27mm in
+                                 # the same library: it is the 150-mil land, its
+                                 # rows are 1.35 mm closer together, and the part
+                                 # will not sit on it.
+escape:                          # emitted by escape_check.py, 2026-07-28
+  style: leaded
+  pitch: 1.27
+  escapes_worst_side: 4          # pins 5-8 (DI/IO0, CLK, IO3, VCC): four nets
+                                 # leave. The other side is pins 1-4
+                                 # (/CS, IO1, IO2, GND) = three, GND excluded.
+                                 # Four is below the DENSE_LEADED_ESCAPES = 6
+                                 # threshold, so no escape corridor is implied and
+                                 # the cheap tier is UNCONDITIONAL.
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-28
+pins:                            # Figure 1a 'W25Q128JV Pin Assignments, 8-pin
+  1: "/CS"                       # SOIC 208-mil (Package Code S)', PDF p6 — page
+  2: DO_IO1                      # RENDERED at 200 dpi and read VISUALLY, then
+  3: WP_IO2                      # cross-checked pin-by-pin against section 3.3
+  4: {name: GND, tie: GND}       # 'Pin Description SOIC 208-mil, WSON 6x5-mm /
+  5: DI_IO0                      # 8x6-mm', PDF p7. Pin-1 dot at the TOP-LEFT of
+  6: CLK                         # the Top View; 1..4 down the left, 5..8 up the
+  7: HOLD_RESET_IO3              # right. `tie: GND` on pin 4 is belt-and-braces:
+  8: VCC                         # this package has a real GND LEAD, not an EP, so
+                                 # the converter would not drop it — but the tie
+                                 # costs nothing and states the intent.
+                                 # NAMES ARE DELIBERATELY THE DUAL-FUNCTION FORM.
+                                 # See the first gotcha: writing "WP" and "HOLD"
+                                 # here is how a schematic ends up tying them to
+                                 # VCC.
+limits:
+  density: 128 Mbit / 16 Mbyte             # section 1, PDF p5
+  vcc: 2.7 - 3.6 V                         # section 9.2, PDF p61
+  vcc_at_133mhz: 3.0 - 3.6 V               # section 9.2, PDF p61 — the FULL clock
+                                           # rate needs 3.0 V min, not 2.7
+  vcc_abs_max: -0.6 to 4.6 V               # section 9.1, PDF p61
+  vio_abs_max: -0.6 to VCC + 0.4 V         # section 9.1, PDF p61
+  ta: -40 to +85 C (suffix I)              # section 9.2, PDF p61
+  f_clk_max: 133 MHz (all instructions except 03h)   # section 9.6, PDF p65
+  f_read03h_max: 50 MHz                    # section 9.6, PDF p65 — 03h Read Data
+                                           # is the SLOW one, and it is exactly the
+                                           # instruction the RP2040 bootrom uses
+  icc_read_50mhz: 8 mA typ / 15 mA max     # ICC3, section 9.4, PDF p63
+  icc_read_104mhz: 12 mA typ / 20 mA max   # ICC3, section 9.4, PDF p63
+  icc_program_erase: 20 mA typ / 25 mA max # ICC4-ICC7, section 9.4, PDF p63
+  icc_standby: 10 uA typ / 60 uA max       # ICC1, section 9.4, PDF p63
+  icc_powerdown: 1 uA typ / 20 uA max      # ICC2, section 9.4, PDF p63
+  vil: -0.5 to 0.3 x VCC (0.99 V at 3.3 V) # section 9.4, PDF p63
+  vih: 0.7 x VCC (2.31 V at 3.3 V) to VCC + 0.4    # section 9.4, PDF p63
+  c_in: 6 pF max                           # section 9.4, PDF p63
+  c_out: 8 pF max                          # section 9.4, PDF p63
+  t_vsl: 20 us min, VCC(min) to /CS low    # section 9.3, PDF p62
+  t_puw: 5 ms min before a write instruction   # section 9.3, PDF p62
+  v_wi: 1.0 - 2.0 V write-inhibit threshold    # section 9.3, PDF p62
+  endurance: 100,000 program/erase cycles per sector   # section 2, PDF p5
+  retention: ">20 years"                   # section 2, PDF p5
+  esd_hbm: -2000 to +2000 V                # section 9.1, PDF p61
+gotchas:
+  - "PINS 3 AND 7 ARE IO2 AND IO3 ON THIS PART AND MUST BE LEFT FREE. Section
+     7.1.4 'Quad Enable (QE)', PDF p17: 'When the QE bit is set to a 1 (factory
+     fixed default for part numbers with ordering options \"IQ/IN\" & \"JQ\"), the
+     Quad IO2 and IO3 pins are enabled, and /HOLD function is disabled'. The
+     -IQ suffix on THIS MPN is that option. The failure this note exists to
+     prevent is the classic one: a schematic that reads the pin names as /WP and
+     /HOLD, decides they are active-low protection inputs, and ties both to VCC
+     through pull-ups or straight to the rail. On a QE = 1 part those two pins are
+     bidirectional data lines carrying half of every quad transfer, so the board
+     boots off 03h at 1 MHz, the second stage switches to quad-IO continuous read,
+     and execution dies on the first XIP fetch — after the boot LED is already on.
+     Route pins 3 and 7 to QSPI_SD2 and QSPI_SD3. Nothing else."
+  - "THE ONE-CHARACTER SUFFIX THAT DECIDES WHETHER IT BOOTS: -IQ vs -IM. Section
+     11 ORDERING INFORMATION, PDF p75. Q = 'QE = 1 (fixed) in Status register-2',
+     note 5: '/HOLD function is disabled to support Standard, Dual and Quad I/O
+     WITHOUT USER SETTING'. M = 'QE = 0 (programmable)'. W25Q128JVSIM is the same
+     die in the same SOIC-8 208-mil with the same land pattern and the same eight
+     pin functions, and it arrives with quad mode OFF. It is recoverable in
+     firmware (write Status Register-2), but recovery is a second-stage bootloader
+     change, and the board that needs it looks identical to the board that does
+     not. ORDER THE -IQ. This is the reason the `value:` assert below names the
+     full twelve-character product number and not 'W25Q128JV'."
+  - "TWO LCSC CODES, SAME MPN, DIFFERENT LIBRARY TIER. C97521 is JLC **base**
+     (Basic library, no per-part extended fee, no reel setup); C113767 is the
+     IDENTICAL W25Q128JVSIQ in the IDENTICAL SOIC-8-208mil at **extended**
+     (checked live 2026-07-28). Both are stocked. Choosing the wrong one costs
+     real money for a byte-identical part and no check on this board would ever
+     notice. Order against C97521."
+  - "16 MB IS NOT OVER-SPECIFYING; IT IS THE CEILING, AND IT IS THE CHEAP PART.
+     RP2040's XIP window is 16 MB by construction — 'Bus reads to a 16MB memory
+     window starting at 0x10000000 are translated into a serial flash transfer'
+     (RP2040 datasheet section 2.6.3, PDF p121) and '24 bits for flash addressing,
+     so the maximum supported flash size (for XIP operation) is 16MB' (PDF p122);
+     Hardware Design with RP2040 section 2.2 (PDF p10) says the same of the
+     W25Q128JVS it fits: 'This is the largest memory size that RP2040 can
+     support.' The 4 MB sibling W25Q32JVSSIQ (C82344 / C179173) is EXTENDED tier
+     at JLC while this 16 MB part is BASIC, so downsizing would cost more per
+     board and buy nothing. The Pico's 2 MB is the floor, not the target."
+  - "/CS MUST TRACK VCC ON THE RAMP. Section 9.3 Figure 58b, PDF p62: '/CS must
+     track VCC during VCC Ramp Up/Down', with tVSL = 20 us from VCC(min) to /CS
+     low and tPUW = 5 ms before any write instruction. THIS is the requirement the
+     QSPI_SS pull-up serves — not a bus-idle nicety. RP2040 asserts its own
+     internal pull-up on QSPI_CSn at reset (50-80 kohm, RP2040 Table 616/625), and
+     Raspberry Pi's minimal design marks its external 10 kohm (R2) DNF because
+     'with this particular flash device, the external pull-up is unnecessary'
+     (Hardware Design section 2.2, PDF p10) — this IS that flash family. Fit the
+     10 kohm footprint next to the flash and leave it unpopulated."
+  - "THE RP2040 BOOTROM SPEAKS 03h, AND 03h IS THE SLOW INSTRUCTION. The bootrom
+     probes at ~1 MHz with 'standard 03h serial read commands, which are
+     near-universally supported' (RP2040 datasheet section 2.8.1.2, PDF p130), and
+     this device caps 03h at fR = 50 MHz while everything else runs to 133 MHz
+     (section 9.6, PDF p65). Consequence for the SECOND STAGE, not for the board:
+     if a second stage leaves the SSI on 03h it is limited to 50 MHz regardless of
+     the clock divider. The four commands the bootrom's flash-programming routines
+     additionally require — 02h page program, 05h status read, 06h write enable,
+     20h 4 kB sector erase (Hardware Design section 2.6, PDF p13) — are all
+     present in Instruction Set Table 1, PDF p23."
+  - "WARM-RESET RECOVERY IS THE RISK THAT KILLS UNKNOWN FLASH, AND IT IS COVERED
+     FOR WINBOND BY NAME. A device left in quad-IO continuous read (M7-M0 = Fxh)
+     stops answering ordinary SPI, so an RP2040 reset WITHOUT a flash power cycle
+     would never re-read the second stage. The bootrom issues a fixed exit
+     sequence first, and the datasheet says who it was designed for: 'This is
+     designed to miss the XIP continuation codes on Cypress, Micron and WINBOND
+     parts' (RP2040 datasheet section 2.8.1.2, PDF p130). Choosing a Winbond
+     W25Q-series part is therefore not a preference — it is the reason the
+     board survives its own reset button. The SDK's reference second stage
+     boot2_w25q080.S targets this same family (Hardware Design section 2.6,
+     PDF p13)."
+  - "THE DATASHEET STATES NO MOISTURE SENSITIVITY LEVEL. Checked across all 79
+     pages of Rev I: 'moisture', 'MSL' and 'J-STD-020' do not appear; section 9.1
+     note 2 mentions J-STD-20C only for lead temperature. OWED — and stated as
+     OWED rather than assumed, because SOIC bodies in this class are commonly
+     MSL 3 and an assumed level in order paperwork is worse than an absent one.
+     Not a blocker for a JLC-supplied part (JLC owns its own dry storage); it
+     becomes a real obligation only if this part is ever consigned."
+  - "128 Mbit = 16 MEGABYTES, not 16 megabits. Winbond's own headline is
+     '3V 128M-BIT SERIAL FLASH MEMORY' (cover) and section 1 spells it out:
+     '65,536 programmable pages of 256-bytes each', 4,096 x 4 kB sectors. A BOM
+     comment reading '128 MB' is off by 8x in the direction that looks generous."
+verified: "pin map read from Figure 1a 'W25Q128JV Pin Assignments, 8-pin SOIC
+  208-mil (Package Code S)', PDF p6 — page RENDERED at 200 dpi and read VISUALLY,
+  then cross-checked pin-by-pin against the section 3.3 pin-description table
+  'Pin Description SOIC 208-mil, WSON 6x5-mm / 8x6-mm', PDF p7, including its
+  two footnotes (IO0/IO1 for Standard and Dual SPI; IO0-IO3 for Quad SPI, /HOLD
+  or /RESET available only in Standard/Dual). Independently sanity-checked
+  against the manufacturer-of-the-MCU's own use of the same device: Figure 7
+  'Schematic section showing the flash memory and USB_BOOT circuitry' in Hardware
+  design with RP2040, PDF p10, which wires /CS=1, IO1=2, IO2=3, GND=4, IO0=5,
+  CLK=6, IO3=7, VCC=8 — agreeing pin for pin. Package and land from section 10.1
+  '8-Pin SOIC 208-mil (Package Code S)', PDF p68. QE behaviour from section 7.1.4
+  (PDF p17) and section 11 (PDF p75). Rendered from the PDF whose sha256 is
+  recorded above. 2026-07-28"
+layout:
+  source: "Winbond publishes NO layout or application section for W25Q128JV —
+    reported as an absence rather than invented; Rev I has package drawings
+    (section 10) and electricals (section 9) and nothing between them. The routed
+    reference used instead is the MCU manufacturer's, for this exact pairing:
+    Hardware design with RP2040 (build 2024-10-15 / 2b6018e, sha256
+    6523a2ebf743fcfbcc69bc3901b24ca3a2d23617d8ee50beb5f606b31134f0b5) Figure 6
+    'Section of layout showing RP2040 routing and decoupling', PDF p9, read
+    visually at 200 dpi: the flash U2 is placed hard against the QSPI corner of
+    the RP2040 with the six-net bus as short straight surface runs and no vias,
+    its 100 nF (C5 in Figure 7) immediately at pin 8, and the /CS resistor pair
+    tucked between the two parts. The prose rules are section 2.2 (PDF p10): 'the
+    QSPI pins of RP2040 should be wired directly to the flash, using short
+    connections to maintain the signal integrity, and to also reduce crosstalk in
+    surrounding circuits' and 'Both R1 and R2 should be placed close to the flash
+    chip'. Winbond's own contribution to placement is electrical, not
+    geometric: section 9.3 (PDF p62) makes /CS track VCC on the ramp, which is
+    what puts the pull-up AT the flash rather than at the MCU."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: QSPI_SCLK, max_span_mm: 12, why: "the clock is the only continuously
+       toggling net in the bus and therefore the spur source of record. nets.yaml
+       already states the board-level premise: the QSPI bus is 'the only
+       CONTINUOUS in-band spur source... sitting 25 mm from a nine-arm receive
+       fan, so \"short\" is an EMI rule here'. DERIVED: radiated field scales with
+       LOOP AREA, so this budget buys ~6 dB per halving at every harmonic and it
+       is only available at placement"}
+    - {net: QSPI_SD0, max_span_mm: 12, why: "Hardware Design section 2.2, PDF p10
+       — 'short connections to maintain the signal integrity, and to also reduce
+       crosstalk'. Also the ONE data line the bootrom uses on its own (03h serial
+       read is IO0/IO1 only), so a fault here fails the boot, not just XIP"}
+    - {net: QSPI_SD1, max_span_mm: 12, why: "same source; the other half of the
+       bootrom's serial path"}
+    - {net: QSPI_SD2, max_span_mm: 12, why: "same source. This is package pin 3,
+       named /WP in every symbol library on earth — see the first gotcha"}
+    - {net: QSPI_SD3, max_span_mm: 12, why: "same source. Package pin 7, named
+       /HOLD in every symbol library on earth — see the first gotcha"}
+    - {net: QSPI_CSN, max_span_mm: 15, why: "carries three parts: flash pin 1, the
+       DNF 10 kohm pull-up that satisfies section 9.3's '/CS must track VCC'
+       (PDF p62), and the 1 kohm BOOTSEL strap. 'Both R1 and R2 should be placed
+       close to the flash chip, so we avoid additional lengths of copper tracks
+       which could affect the signal' (Hardware Design section 2.2, PDF p10).
+       15 mm is 12 mm plus that resistor pair, not a looser bus budget"}
+  notes:
+    - "THE 100 nF AT PIN 8 IS DELIBERATELY *NOT* A keep_short ENTRY, and the
+       reason is worth stating so nobody adds one. The flash VCC is on the global
+       `3V3` net (nets.yaml PWR class: VBUS, VBUS_F, 3V3), so a `{net: 3V3,
+       max_span_mm: 4}` budget would measure the whole rail's pad span and fail
+       P-ADJ on every revision — a rule that can only ever be waived is not a
+       rule, it is an inherited defect in the making. The obligation is real
+       (C5 sits on pin 8 in Hardware Design Figure 7, PDF p10) and it is
+       discharged geometrically at placement instead, the way ADR-0005 discharges
+       the SW_LS budget. It becomes machine-gradeable only if the flash VCC is
+       given its own local net."
+    - "DERIVED: the bus fans out on ONE side of each part. RP2040's QSPI is pads
+       51-56 in the order SD3, SCLK, SD0, SD2, SD1, SS_N; the flash presents /CS,
+       IO1, IO2 on its left and IO0, CLK, IO3 on its right. There is no rotation
+       of the SOIC that makes all six nets straight — the reference design does
+       not achieve it either. Optimise for SCLK and CSN being clean and let the
+       data lines cross; the bus is source-synchronous with a shared clock, so
+       skew between data lines at 31-62 MHz over 12 mm (0.07 ns) is not the
+       constraint."
+    - "DERIVED: keep the whole flash + resistor group INSIDE the digital strip and
+       below the lowest RF flange, per nets.yaml's QSPI routing rule ('inside the
+       digital strip only'). The SOIC-8 208-mil is a 7.9 mm-wide part; it is the
+       second-largest footprint in the digital corner after the MCU, and it has to
+       be placed before the passives, not squeezed in after."
+    - "OWED: no OSHWLab-by-LCSC board was searched for C97521. Recorded as not
+       done, not as absent."
+layout_refs:
+  - "Winbond W25Q128JV Rev I, section 10.1 '8-Pin SOIC 208-mil (Package Code S)',
+     PDF p68 — the package drawing. NOTE: Winbond publishes the PACKAGE, not a
+     recommended land; the KiCad JEITA ED-7311-19 land is the land of record"
+  - "Winbond W25Q128JV Rev I, section 9.3 Figure 58b 'Power-up, Power-Down
+     Requirement', PDF p62 — the '/CS must track VCC' rule that places the pull-up"
+  - "Hardware design with RP2040, build 2024-10-15 / 2b6018e-clean, sha256
+     6523a2ebf743fcfbcc69bc3901b24ca3a2d23617d8ee50beb5f606b31134f0b5 —
+     Figure 6 (PDF p9, the routed board, read visually), Figure 7 (PDF p10, the
+     flash + USB_BOOT schematic with this exact device), section 2.2 (PDF p10),
+     section 2.6 'Supported flash chips' (PDF p13). NOT COMMITTED here (19.9 MB,
+     and it is the MCU's application guide, not this part's datasheet); every
+     fact taken from it is transcribed above with its page"
+  - "RP2040 datasheet build-2025-02-20-3184e62, section 2.8.1.2 'Flash Boot
+     Sequence' (PDF p130) and section 2.6.3 XIP (PDF pp121-122) — the 03h probe,
+     the XIP-exit sequence and the 16 MB window. Held at
+     02_parts/RP2040/rp2040-datasheet-2025-02-20-3184e62.pdf"
+  - "OWED: no OSHWLab-by-LCSC project searched for C97521."
+sourcing:
+  lcsc: C97521                     # JLC **base** library tier (checked 2026-07-28)
+  alternates: [C113767, C179173]   # C113767 = the IDENTICAL W25Q128JVSIQ at
+                                   # EXTENDED tier — same part, worse cost, see
+                                   # gotchas. C179173 = W25Q32JVSSIQ, 4 MB, same
+                                   # SOIC-8-208mil land and the same -SIQ (QE = 1)
+                                   # ordering option, extended tier: the fallback
+                                   # if 128 Mbit ever goes short. Its electricals
+                                   # were NOT independently read here — treat the
+                                   # swap as a new dossier, not a drop-in.
+asserts:
+  # Same known gate gap as the other parts on this board: part_facts_check.py
+  # decodes `equals:` with an SI parser and cannot read an alphanumeric MPN, so
+  # this prints P-FACT-CONFIG rather than a pass (measured on this project
+  # 2026-07-28, before this dossier existed: KH-SMA-KE-Z and PE42482A-X both
+  # already sit in that state). Declared anyway — CONFIG is loud, prose is not.
+  - assert: value
+    equals: W25Q128JVSIQ
+    why: "the last two characters decide whether the board boots. Section 11
+      (PDF p75) makes -IQ mean QE = 1 factory-FIXED and -IM mean QE = 0
+      programmable; W25Q128JVSIM is the same die, the same SOIC-8 208-mil, the
+      same eight functions and the same footprint, and it arrives with IO2/IO3
+      disabled. A BOM Comment reading 'W25Q128JV', '16MB QSPI flash' or
+      'W25Q128' cannot distinguish them, no DRC, ERC, parity or assembly
+      inspection can see the difference, and the board fails at the first XIP
+      fetch — after it has already enumerated over USB."

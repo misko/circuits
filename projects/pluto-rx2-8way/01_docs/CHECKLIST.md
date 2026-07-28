@@ -68,7 +68,7 @@ a checklist line. Run from the project root unless stated.
       `03_tscircuit/manifest.yaml`
 - [ ] `$K/net_label_survival.py projects/pluto-rx2-8way` → PASS (S-NETMERGE)
 - [ ] `$K/electrical_invariants.py projects/pluto-rx2-8way` → **PASS, all
-      assertions reached.** 19 invariants across ADRs 0002/0004/0005/0006
+      assertions reached.** 20 invariants across ADRs 0002/0004/0005/0006 (the count was written as 19 at stage 3 and is 20 — corrected 2026-07-28)
 - [ ] `$K/electrical_invariants.py projects/pluto-rx2-8way --adr-coverage` →
       **4/4** protection/topology ADRs cited
 - [ ] `$J/bom_source_check.py --circuit-only …` → PASS at the FIRST BOM export,

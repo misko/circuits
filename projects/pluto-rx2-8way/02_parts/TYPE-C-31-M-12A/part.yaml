@@ -1,0 +1,352 @@
+mpn: TYPE-C-31-M-12A
+manufacturer: Korean Hroparts Elec (HRO Electronics Co., Ltd — krhro.com)
+type: usb_c_receptacle_usb2_16p
+datasheet:
+  doc_id: TYPE-C-31-M-12A          # the sheet carries NO drawing number — the
+                                   # title-block DRAWING NO. field is struck
+                                   # through. PART NO. is the only identifier.
+  revision: RevA-2022.10.26        # title block: REV. "A", DESCRIPTION "NEW",
+                                   # ECN NO. and DATE both struck through,
+                                   # DRAWN LIUCAN 2022.10.26. THE DATE IS THE
+                                   # DISAMBIGUATOR, not the letter: the base
+                                   # TYPE-C-31-M-12 sheet (C165948) is ALSO
+                                   # "REV A / NEW", dated 2020.12.08.
+  url: https://datasheet.lcsc.com/datasheet/pdf/12a90887c690607bfae27dd23b7920e4.pdf?productCode=C5337088
+  sha256: fd8a23ee5f8bad1c98f53d3269d70d727d342216a4de7abc438f099b21ca62f5
+  fetched: 2026-07-28
+  pages: 1
+  note: "HRO's OWN host is unreachable: krhro.com/uploads/soft/180320/
+    1-1P320120243.pdf (the URL KiCad's footprint cites) returns HTTP 403 to a
+    plain GET, 2026-07-28. This is the LCSC-redistributed copy of HRO's sheet,
+    reached through the /datasheet/pdf/<hash>.pdf link embedded in the C5337088
+    product page — the older /lcsc/<id>_<part>_<code>.pdf form now serves an
+    HTML landing page. The hash below is byte-identical to the copy usb-hub-3s
+    fetched on 2026-07-21, so two independent fetches a week apart agree."
+package: >-
+  board-edge horizontal (right-angle) top-mount USB-C 2.0 receptacle, 16
+  contacts. Body 8.94 W x 7.35 D, 3.26 above the board; shell aperture
+  8.34 (+0.06/-0.02) x 2.56 +/-0.04 with a 0.70 +/-0.05 tongue centred in it.
+  16 SMT tails, each 0.20 +/-0.05 wide, standing 0.40 +/-0.10 off the board and
+  landing on TWELVE pads (the four VBUS and four GND contacts pair up two-to-a-
+  pad); 4 PTH shell/mid-plate legs (2x 0.80 + 2x 1.10 wide, projecting 1.01
+  below the board) at 8.64 centres across and 4.18 apart front-to-back (leg
+  rows at 2.60 and 6.77 from the mating face); 2 NPTH alignment posts
+  2-phi 0.50 at 5.78 centres; seating-plane flatness 0.10. Housing UL94 V-0,
+  contacts copper alloy, mid plate and shell stainless steel (drawing Note 1).
+footprint: pluto_rx2_8way:USB_C_Receptacle_HRO_TYPE-C-31-M-12A  # OWED — see
+                                   # gotchas "KICAD'S STOCK FOOTPRINT DOES NOT
+                                   # MATCH THIS LAND". The stock KiCad part
+                                   # Connector_USB:USB_C_Receptacle_HRO_TYPE-C-
+                                   # 31-M-12 is the SEED (its hole pattern is
+                                   # exact); only the SMT pad row must be
+                                   # redrawn.
+mates: receptacle                  # STATED HONESTLY: the TITLE BLOCK DOES NOT
+                                   # CARRY THE GENDER. It reads only
+                                   # "PART NO. TYPE-C-31-M-12A" and
+                                   # TITLE "高导铜，过6A大电流款" (high-conductivity
+                                   # copper, over-6 A high-current type) — there
+                                   # is no "AF"/"AM" field to read, and this
+                                   # dossier says so rather than pretending
+                                   # there was one (usb-hub-3s ADR-0006 is about
+                                   # a gender that was never actually READ).
+                                   # The gender is settled by the FRONT VIEW
+                                   # (sheet 1, lower-left, section marks A-A /
+                                   # B-B), rendered at 300 dpi and read
+                                   # visually: an oval SHELL RING 8.34 x 2.56
+                                   # encloses a 0.70-thick TONGUE that is
+                                   # clear of the ring top and bottom, with A1
+                                   # ..A12 leadered to the tongue's UPPER face
+                                   # and B12..B1 to its LOWER face. A tongue
+                                   # inside a cavity is a RECEPTACLE; a plug has
+                                   # a hollow shell and no tongue, and 0.70 mm
+                                   # is the USB Type-C receptacle tongue
+                                   # thickness. Corroborated by the sheet's
+                                   # RECOMMEND P.C.B LAYOUT (a board-mount land
+                                   # with solder tails — a cable plug has none)
+                                   # and by LCSC's own C5337088 description
+                                   # string, which reads "Female ... Right Angle
+                                   # Type-C SMD" (live 2026-07-28).
+escape:                            # emitted by escape_check.py, 2026-07-28
+  style: connector
+  pitch: 0.5                       # the eight 0.30 signal pads; the four 0.60
+                                   # VBUS/GND pads sit outside that run
+  escapes_worst_side: 5            # ONE side (the single pad row). Nets that
+                                   # leave: VBUS, USB_CC1, USB_CC2, USB_DP,
+                                   # USB_DM. GND is excluded (plane); SBU1/SBU2
+                                   # are excluded because they carry NO trace on
+                                   # this board (see gotchas) — if that ever
+                                   # changes this number becomes 7.
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-28
+pins:                              # Signal table, sheet 1 lower-right ("PIN /
+  A1:  {name: GND, note: "pairs with B12 onto ONE 0.60 mm land"}
+  A4:  {name: VBUS, note: "pairs with B9 onto ONE 0.60 mm land"}
+  A5:  {name: USB_CC1, note: "Rd = 5.1 kOhm to GND, R_CC1 (ADR-0004)"}
+  A6:  {name: DP1, note: "STRAP TO B6 — see the D+/D- gotcha"}
+  A7:  {name: DN1, note: "STRAP TO B7 — see the D+/D- gotcha"}
+  A8:  {name: SBU1, note: "NO-CONNECT: no trace, no via, no test point"}
+  A9:  {name: VBUS, note: "pairs with B4 onto ONE 0.60 mm land"}
+  A12: {name: GND, note: "pairs with B1 onto ONE 0.60 mm land"}
+  B1:  GND
+  B4:  VBUS
+  B5:  {name: USB_CC2, note: "Rd = 5.1 kOhm to GND, R_CC2 (ADR-0004)"}
+  B6:  {name: DP2, note: "STRAP TO A6"}
+  B7:  {name: DN2, note: "STRAP TO A7"}
+  B8:  {name: SBU2, note: "NO-CONNECT: no trace, no via, no test point"}
+  B9:  VBUS
+  B12: GND
+  SH:  {name: SHIELD, tie: GND, note: "the FOUR plated shell legs, one KiCad pad
+        name. `tie:` is here and NOT on the GND contacts on purpose: A1/A12/
+        B1/B12 are electrical pins the schematic authors, whereas SH is the
+        mechanical pad tscircuit's footprint token drops — the exact case
+        load_part_ties() exists for. Bond DIRECTLY to GND, all four legs;
+        see layout:"}
+limits:                            # all from the NOTE block, sheet 1 right
+  current_rating: 6 A              # Note 4-1 (printed in RED on the sheet).
+                                   # 40x the 0.15 A this board draws — see the
+                                   # "6 A IS A MATERIALS CLAIM" gotcha.
+  voltage_rating: 20 V             # Note 4-1
+  insulation_resistance: ">= 100 MOhm"          # Note 4-2
+  dielectric_withstand: "AC 100 V for 1 minute" # Note 4-3
+  insertion_force: 0.5 - 2.0 kgf   # Note 3-1
+  removal_force: 0.8 - 2.0 kgf     # Note 3-2
+  durability: 10000 cycles         # Note 3-3
+  operating_temperature: -30 to +80 C           # Note 5. LCSC's PARAMETRIC
+                                   # record for C5337088 says -30 to +85 C
+                                   # (live 2026-07-28) and CONTRADICTS the
+                                   # vendor sheet. The PDF counts.
+  reflow: "260 C peak, 10 s on the board"       # Note 6
+  plating: "contacts Ni >= 50 uin under Au on the functional area, gold flash on
+    the solder area; front shell Ni >= 30 uin"  # Note 2
+gotchas:
+  - "D+/D- EXIST AS TWO SEPARATE PAIRS AND THE BOARD MUST SHORT THEM. The signal
+     table (sheet 1) gives A6=DP1, A7=DN1 AND B6=DP2, B7=DN2 as four distinct
+     contacts on four distinct 0.30 mm lands. A Type-C plug is REVERSIBLE: in one
+     insertion the cable's D+ lands on A6, in the other on B6. THEREFORE
+     A6 must be strapped to B6 (net USB_DP) and A7 to B7 (net USB_DM). A board
+     that wires only one pair enumerates when the cable goes in one way round
+     and is DEAD the other way — and NOTHING can see it: every pin has a net so
+     ERC passes, the copper is legal so DRC passes, and the netlist is
+     self-consistent so schematic-parity passes. This is the same defect CLASS
+     as the reversed XT60 and the usb-hub-3s D1 cathode. The strap is
+     electrically FREE here: RP2040 USB is full-speed 12 Mbit/s with ~4 ns
+     edges, so a 3 mm T-stub between the two pads is ~20 ps of skew — nothing.
+     Total failure on one side, zero cost on the other."
+  - "KICAD'S STOCK FOOTPRINT DOES NOT MATCH THIS LAND, AND IT IS NOT A VARIANT
+     DIFFERENCE. Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12 (KiCad 10,
+     descr cites krhro.com/uploads/soft/180320/1-1P320120243.pdf) against the
+     RECOMMEND P.C.B LAYOUT on this sheet, measured pad by pad:
+       EXACT      signal-pad pitch 0.50; signal-pad width 0.30 (8 off);
+                  VBUS/GND pad width 0.60 (4 off); A5<->A8 span 2.50;
+                  B8<->B5 span 3.50; alignment holes 5.78 apart;
+                  shell slots 8.64 (KiCad) vs 8.65 (sheet); slot drill
+                  1.70 tall (KiCad oval 0.6x1.7); shell-slot centre 0.53 above
+                  the alignment-hole centre (sheet: 0.51-0.59 measured)
+       DIFFERS    A4/B9 <-> B4/A9 centres  KiCad 4.90  vs sheet 4.80  (+0.10)
+                  A1/B12 <-> B1/A12        KiCad 6.50  vs sheet 6.40  (+0.10)
+                  SMT pad LENGTH           KiCad 1.45  vs sheet 1.14  (+0.31)
+                  pad centre to alignment-hole centre
+                                           KiCad 1.445 vs sheet 1.07  (+0.375)
+                  alignment hole diameter  KiCad 0.65  vs sheet 0.60  (+0.05)
+     1.14 is not a pixel estimate: the sheet dimensions pad-TOP-to-hole-centre
+     as 1.64 and pad-BOTTOM-to-hole-centre as 0.50, and 1.64 - 0.50 = 1.14; a
+     300 dpi render measured 1.14 independently. The 0.375 offset means the
+     contact tails land 0.375 off-centre on KiCad's pads, biased toward the
+     board edge, leaving only ~0.95 of the sheet's 1.14 pad covered at the heel.
+     RULED OUT as an M-12-vs-M-12A difference: the base TYPE-C-31-M-12 sheet
+     (C165948, REV A 2020.12.08) was fetched and read and its recommended layout
+     is DIMENSION-FOR-DIMENSION IDENTICAL to this one — 1.50/0.50/8-0.30/4-0.60/
+     2.50/3.50/4.80/5.78/6.40/8.65/0.50/1.64/4.18/5.79/phi 0.60/2.00/1.70. Two
+     HRO sheets two years apart agree with each other and disagree with KiCad.
+     So the OWED footprint keeps KiCad's hole pattern verbatim and re-lays the
+     pad row: twelve pads, 4x 0.60 and 8x 0.30, all 1.14 long, narrow pitch
+     0.50, wide-pad centres at +/-2.40 and +/-3.20, row centre 1.07 from the
+     alignment-hole line. KEEP THE PAD NAMES A1..B12 + SH."
+  - "PAD NAMES ARE ALPHANUMERIC (A1..A12, B1..B12, SH) AND TSCIRCUIT DROPS THE
+     PART SILENTLY. This is the S-COUNT incident of 2026-07-21 (proven-parts
+     ledger, usb-c-receptacle-high-current). Run tsx_preflight and map the pads
+     in parity_padmap.txt BEFORE the first tsci build — not after, because the
+     failure is a MISSING part, not a wrong one, and a missing part is exactly
+     what count-parity exists to catch."
+  - "THE FOUR VBUS AND FOUR GND CONTACTS SHARE PADS TWO-TO-ONE: A1+B12,
+     A4+B9, B4+A9, B1+A12 each land on ONE 0.60 mm pad. The footprint therefore
+     carries SIXTEEN pad NAMES on TWELVE pieces of copper (KiCad models this as
+     two coincident pads per merged land). Consequence for the netlist: A1 and
+     B12 are the same node whether or not the schematic says so, so a symbol
+     that puts them on different nets is a hard short that DRC will report as a
+     zero-length collision, not as a net error."
+  - "SBU1 (A8) AND SBU2 (B8) ARE BROKEN OUT ON THIS PART AND MUST BE LEFT OPEN.
+     They are real pads with real contacts, not omitted. The USB Type-C spec
+     requires a device with no alternate mode and no audio-accessory support to
+     leave SBU unconnected — do NOT ground them (a grounded SBU misdeclares the
+     port to an accessory and gives an ESD strike a path INTO the board). Leave
+     them with an explicit ERC no-connect and NO trace, NO via, NO test point.
+     That is also what makes the ESD-array coverage argument below sound: an
+     isolated pad with nothing behind it has no victim."
+  - "6 A IS A MATERIALS CLAIM, NOT A BIGGER CONNECTOR — SO IT IS NOT
+     OVER-ENGINEERING HERE. The sheet's TITLE is literally the reason for the
+     part's existence: 高导铜 = high-conductivity copper. The -12A differs from
+     the base TYPE-C-31-M-12 (C165948) in contact ALLOY only: LCSC's own
+     parametrics read 16P/20V/6A/7.35mm vs 16P/20V/5A/7.35mm, and the two HRO
+     drawings are dimensionally identical including the land. A 16-pin USB 2.0
+     receptacle is already the SMALLEST and cheapest Type-C receptacle class
+     there is — it physically omits the eight SuperSpeed contacts — so 'high
+     current' costs this board zero area, zero extra escapes and zero fab tier.
+     At 0.15 A the ampacity is 40x unused and irrelevant; what IS used is Note
+     3-3's 10000 mating cycles, which is the number that matters for a bench
+     instrument that gets plugged and unplugged all day."
+  - "THE ONE-CHARACTER SUBSTITUTION IS LIVE AND IT IS IN KICAD'S OWN LIBRARY.
+     Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-17 sits one line below the
+     -12 in the same footprint list, in the same HRO family, with the same four
+     SH shell legs — and it is a SIX-PIN POWER-ONLY receptacle: its pads are
+     A5, A9, A12, B5, B9, B12 and it has NO D+ and NO D- at all. Pick it by
+     mistake and the board powers up, the CC pull-downs advertise correctly,
+     both LEDs light, the RP2040 runs from flash — and USB enumeration and the
+     BOOTSEL/UF2 firmware path simply do not exist. On this board that is the
+     ONLY function the port has besides power."
+  - "HYBRID SMT+TH: 12 SMT lands + 4 PLATED shell legs + 2 NPTH alignment holes.
+     The shell legs need soldering and must be DECLARED to the fab or the hybrid
+     is missed (usb-hub-3s-v3 assembly.yaml records exactly this for its J5).
+     It adds no NEW cost class to this board — the ten KH-SMA-KE-Z jacks already
+     commit it to through-hole assembly — but it adds 4 joints to that line
+     item, and the alignment holes are NPTH and must not be plated."
+  - "STAINLESS STEEL SHELL AND MID PLATE (Note 1-3, 1-4). Stainless is ~40x the
+     resistivity of copper, so the shell METAL is not the ground bond — the four
+     plated legs are. Do not rely on the shell to carry return current between
+     two ground stitches; give every leg its own via to the L2 plane."
+verified: "pin map read from the SIGNAL NAME table, sheet 1 of 1, lower right
+  (two PIN / SIGNAL NAME column pairs, eight rows, sixteen entries) — page RENDERED
+  at 300 dpi from the PDF whose sha256 is recorded above and read VISUALLY, then
+  cross-checked pad-by-pad against the contact callouts on the top elevation
+  ('A1 B12 A4 B9 B8 A5 B7 A6 A7 B6 A8 B5 B4 A9 B1 A12', left to right over the
+  16-0.20+/-0.05 tail dimension) and against the twelve labelled lands of the
+  RECOMMEND P.C.B LAYOUT (component side) view ('A1/B12 A4/B9 B8 A5 B7 A6 A7 B6
+  A8 B5 B4/A9 B1/A12'). All three agree. GENDER read from the front view, same
+  sheet, lower left (see mates:). LAND PATTERN read from the RECOMMEND P.C.B
+  LAYOUT view including its tolerance note 'TOLERANCE FOR PCB LAYOUT IS +/-0.05',
+  measured against a 0.50-pitch scale derived from the eight signal pads and
+  cross-checked against the base TYPE-C-31-M-12 sheet (C165948, REV A
+  2020.12.08). 2026-07-28"
+layout:
+  source: "THE VENDOR PUBLISHES NO APPLICATION OR LAYOUT SECTION — one sheet,
+    six notes, none of them about routing. Reported as an absence, as with
+    KH-SMA-KE-Z. The ONE vendor-sourced layout artifact is the RECOMMEND P.C.B
+    LAYOUT (COMPONENT SIDE) view and its +/-0.05 tolerance note. Everything else
+    below is DERIVED and labelled so, from three CITED external requirements:
+    USB 2.0 sec 7.2.4.1 (device VBUS bypass <= 10 uF), the USB Type-C Rd
+    requirement carried by this board's ADR-0004 / DETAIL_DESIGN sec 5, and ST
+    Doc ID 11265 Rev 5 sec 2.2 (PDF p4) for the ESD-path inductance arithmetic."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: USB_CC1, max_span_mm: 5, why: "DERIVED. The net has exactly two pads
+       — A5 and R_CC1 — so its span IS the Rd stub length and P-ADJ can measure
+       it honestly. 5.1 kOhm to GND is what advertises this board as a plain 5 V
+       sink and makes sustained overvoltage UNREACHABLE (ADR-0004); a long CC
+       stub adds nothing but antenna and an ESD entry path to the one net on
+       this connector that has no clamp behind it. R_CC1 belongs at the pad."}
+    - {net: USB_CC2, max_span_mm: 5, why: "DERIVED, and NOT a duplicate of CC1:
+       the plug is reversible, so BOTH CC lines need their own Rd. A board with
+       one 5.1 kOhm works in exactly one insertion orientation — the same
+       invisible half-dead failure as an unstrapped D+/D-."}
+    - {net: USB_DP, max_span_mm: 20, why: "DERIVED from the floorplan the board
+       already declares: J_USB [46.0, 87.0] -> U_ESD [54.0, 84.0] -> U_MCU
+       [46.0, 72.0] is ~16 mm of pad span today. 20 mm is a real ceiling — it
+       forbids the pair ever leaving the digital strip (y >~ 65) and crossing
+       the receive fan, which ARCHITECTURE sec 4 makes a reference-plane rule
+       rather than an impedance one. NOTE the binding sub-constraint is NOT this
+       whole-net number: see adjacency: below."}
+    - {net: USB_DM, max_span_mm: 20, why: "as USB_DP, and it must track USB_DP —
+       the pair's value is its symmetry, and a 20 mm ceiling on one leg with
+       none on the other buys nothing."}
+    - {net: VBUS, max_span_mm: 25, why: "DERIVED. VBUS runs J_USB -> F_IN ->
+       (VBUS_F) and carries U_ESD's clamp leg; USB 2.0 sec 7.2.4.1 caps the
+       device-side bypass at 10 uF and this board budgets 5.7 uF of it
+       (C_BULK 4.7 + C_LDI 1, DETAIL_DESIGN sec 5), which is what makes 'no
+       inrush limiter' a DECISION rather than an omission. That budget is only
+       true if the bypass is actually ON this rail and local to it; a VBUS net
+       that wanders is a VBUS net whose effective bypass nobody has counted."}
+  adjacency:
+    - {refdes: [J_USB, U_ESD], max_mm: 2.0, why: "DERIVED, and this is the
+       number that actually matters. ST Doc ID 11265 Rev 5 sec 2.2 (PDF p4)
+       costs it: a 10 mm x 0.5 mm track is ~6 nH, and at dI/dt = 24 A/ns that
+       adds 144 V on the I/O leg AND 144 V on the GND leg, turning a 17 V clamp
+       into 305 V. At 2 mm the adder is ~29 V per leg and the clamp stays near
+       75 V. sec 2.3 states the rule in words — 'put the protection device as
+       close as possible to the disturbance source (generally the connector)'.
+       FINDING, recorded not hidden: the floorplan currently places U_ESD at
+       [54.0, 84.0] against J_USB at [46.0, 87.0] — roughly 8 mm lateral and
+       3 mm down, i.e. several times this budget. Re-place before routing."}
+    - {refdes: [J_USB, R_CC1], max_mm: 4.0, why: "DERIVED — the Rd stub rule
+       above, expressed where placement can act on it."}
+    - {refdes: [J_USB, R_CC2], max_mm: 4.0, why: "DERIVED — as R_CC1."}
+  notes:
+    - "DERIVED: SHIELD TREATMENT IS SH -> GND DIRECTLY, ALL FOUR LEGS, AT THE
+       PADS — no 1 MOhm resistor, no 4.7 nF cap, no split. The R||C shield break
+       exists to stop a ground LOOP between a chassis ground and a signal
+       ground, and this board has ONE ground: ARCHITECTURE sec 6 pours and
+       stitches GND on all four layers and nets.yaml gives GND no netclass at
+       all, so there is no second domain to isolate from and the network would
+       break nothing. It would however insert an impedance in the ESD path: a
+       1 MOhm||4.7 nF is ~34 Ohm at 1 GHz, and by the sec 2.2 arithmetic above
+       every ohm and every nanohenry on the return leg is added directly to what
+       the D+/D- clamp must survive. Worse for a RECEIVER too, not better: a
+       shell tied through 4.7 nF is a floating conductor at the board edge.
+       Bond it hard, and give each of the four legs its own via to L2."
+    - "DERIVED: the four merged 0.60 lands are TWO nets (VBUS and GND), and they
+       are the only pads on this part that carry real current. 0.15 A across two
+       VBUS lands is nothing thermally; route them as PWR class (0.40 mm,
+       DETAIL_DESIGN sec 8) for IR drop and robustness, not for ampacity."
+    - "DERIVED: this connector is at the BOARD EDGE by construction — the
+       recommended layout dimensions everything back from a line labelled PCB
+       EDGE (5.79 to the pad-row top, 4.18 to the alignment-hole centres). The
+       mouth overhangs that edge. So the outline, not the placement, fixes
+       J_USB's y; the floorplan's [46.0, 87.0] against an outline top of y=89
+       is consistent with that and should be checked against the OWED footprint
+       once it exists, because the 0.375 pad-row discrepancy above moves the
+       part relative to its own edge."
+    - "OWED: no routed reference layout for THIS connector was consulted. HRO
+       publishes none, and no OSHWLab-by-LCSC board was searched for C5337088.
+       Recorded as not done, not as absent."
+layout_refs:
+  - "HRO TYPE-C-31-M-12A sheet 1 of 1 (REV A, 2022.10.26), RECOMMEND P.C.B
+     LAYOUT (COMPONENT SIDE) view + its '+/-0.05' tolerance note — the ONLY
+     vendor-published layout artifact for this part"
+  - "HRO TYPE-C-31-M-12 sheet 1 of 1 (REV A, 2020.12.08, LCSC C165948) — fetched
+     purely as an INDEPENDENT SECOND vendor drawing to test whether the land
+     pattern is variant-specific. It is not: the two are dimension-for-dimension
+     identical."
+  - "KiCad 10 Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12 — read as a
+     third party's reading of the same drawing, and it disagrees with both HRO
+     sheets on the pad row (numbers in gotchas). Its HOLE pattern is exact and
+     is the seed for the OWED footprint."
+  - "ST Doc ID 11265 Rev 5 sec 2.2/2.3 + Figure 7 (PDF pp4-5) — the connector-
+     to-array proximity rule lives in the ESD part's datasheet, not in HRO's"
+  - "OWED: krhro.com's own application material was not read — the vendor host
+     returns HTTP 403 (2026-07-28). Recorded as blocked, not as absent."
+sourcing:
+  lcsc: C5337088
+  alternates: [C165948]            # C165948 = TYPE-C-31-M-12, the SAME 16P part
+                                   # with a lower-conductivity contact alloy:
+                                   # 5 A instead of 6 A, and its drawing's
+                                   # recommended land is dimension-for-dimension
+                                   # IDENTICAL (verified, see layout_refs). At
+                                   # 0.15 A the ampacity difference is
+                                   # unreachable, so this is a true drop-in —
+                                   # and it is the deeper part by three orders
+                                   # of magnitude. Check stock at order time;
+                                   # never here.
+asserts:
+  - assert: value
+    equals: TYPE-C-31-M-12A
+    why: "the BOM Comment must name the exact HRO order code, because the
+      substitution that hurts is INSIDE the same family and inside KiCad's own
+      footprint list: TYPE-C-31-M-17 is HRO's SIX-PIN POWER-ONLY receptacle in
+      the same body with the same four shell legs and NO D+/D- contacts at all.
+      Fitted by mistake, the board takes power, the 5.1 kOhm CC pull-downs
+      advertise correctly, the rails come up, both LEDs light and the RP2040
+      runs — and the USB port's only other job on this board, BOOTSEL/UF2
+      firmware load, silently does not exist. No ERC, DRC, parity or twin check
+      can see a connector that is electrically fine and functionally half a
+      part. (TYPE-C-31-M-12 is a different case and is listed as an alternate:
+      same 16 contacts, same land, lower ampacity — a substitution that is
+      safe HERE and is recorded as safe rather than forbidden by reflex.)"

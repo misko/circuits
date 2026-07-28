@@ -1,0 +1,334 @@
+mpn: SMBJ6.0A
+manufacturer: Littelfuse
+type: tvs_diode_unidirectional
+datasheet:
+  doc_id: "TVS Diodes, Surface Mount - 600 W > SMBJ series"
+  revision: "v4-2025-07-04"    # the page-footer "Revised: JC.07/04/25 v4." on
+                               # every page, normalised to ISO + version so it
+                               # is path-legal and appears in the filename.
+  url: https://datasheet.lcsc.com/datasheet/pdf/4ab84a227fae39f9eac85241b8264ead.pdf
+  sha256: d7df155be4b1f612085401e8c946f065e284d65a0e7de22b9225a7b73946e51b
+  fetched: 2026-07-28
+  pages: 6
+  note: "SERIES sheet — one document covers all 57 standoff voltages of SMBJ in
+    both directionalities, so the standoff/breakdown/clamp figures below are
+    read off the ONE ROW 'SMBJ6.0A' of the Electrical Characteristics table
+    (PDF p2) and the MPN is decoded against the sheet's own Part Numbering
+    System (PDF p6). THE LCSC TRAP AGAIN: the
+    www.lcsc.com/datasheet/lcsc_datasheet_..._C83270.pdf URL served an HTML
+    landing page; the real document is the datasheet.lcsc.com/datasheet/pdf/
+    <hash>.pdf link embedded in that page's markup, which is the URL above."
+package: DO-214AA (SMB, J-bend). Overall 5.210-5.590 mm (G) x 3.300-3.940 mm
+  (C) x 1.930-2.200 mm high (A); moulded body 4.060-4.750 mm (B); lead foot
+  0.760-1.520 mm (E), lead thickness 0.152-0.305 mm (H). Molded plastic body
+  over a glass-passivated junction. Dimensions table + drawing, PDF p5
+footprint: Diode_SMD:D_SMB
+escape:                        # emitted by escape_check.py, 2026-07-28
+  style: passive
+  pitch: 4.3                   # pad centre-to-centre MEASURED from the KiCad
+                               # footprint (pads at x = +/-2.15 mm)
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-28
+pins:                          # 2-pad diode. Recorded ANYWAY because polarity
+                               # is the whole risk (see asserts:).
+  1: {name: CATHODE, note: "the CATHODE-BAND end. 'Uni-directional products are
+       denoted with a cathode band' — Physical Specifications table, PDF p5,
+       and the band is drawn on the package top view in the same figure and in
+       the Part Marking System diagram, PDF p6. Diode_SMD:D_SMB puts its
+       silkscreen bar and its F.Fab cathode line at the PAD 1 end (verified by
+       reading the .kicad_mod: F.SilkS closed edge at x = -3.66 mm, F.Fab
+       cathode bar at x = -2.30 mm, pad 1 at x = -2.15 mm). Goes to VBUS_F."}
+  2: {name: ANODE, tie: GND, note: "goes to GND."}
+limits:                        # ALL CITED from the row 'SMBJ6.0A', Electrical
+                               # Characteristics table, PDF p2, unless noted
+  v_wm: 6.0 V                  # datasheet calls it V_R, "Reverse Stand off
+                               # Voltage". Its own glossary (PDF p3) defines it
+                               # as "Maximum voltage that can be applied to the
+                               # TVS without operation" — the sentence that
+                               # decides this board's standoff question.
+  v_br: 6.67 V min / 7.37 V max   # at I_T = 10 mA
+  i_t: 10 mA
+  v_c: 10.3 V at I_PP 58.3 A   # THE number that sets U_LDO's V_IN abs max
+  i_r: 800 uA max at V_R (6.0 V), 25 C
+  tc_vbr: 0.046 %/C
+  p_ppm: 600 W                 # 10/1000 us waveform, duty cycle 0.01 %,
+                               # Maximum Ratings, PDF p1
+  p_d: 5.0 W                   # on an INFINITE heat sink at T_L = 50 C. Read
+                               # the qualifier: it is not a board number.
+  i_fsm: 100 A                 # 8.3 ms single half sine, unidirectional only
+  v_f: "< 3.5 V at 50 A"       # single-die parts (note 4, PDF p1)
+  theta_jl: 20 C/W             # typical, junction to lead
+  theta_ja: 100 C/W            # typical, junction to ambient
+  tj: -65 to +150 C
+  tstg: -65 to +175 C
+  esd_iec61000_4_2: 30 kV air / 30 kV contact   # Features, PDF p1
+  msl: 1                       # Environmental Specifications, PDF p5. No bake
+                               # obligation, hence no `msl` assert below.
+  c_j: "~3-5 nF at V=0, ~2.5-3.5 nF at V=V_R"  # ESTIMATED, +/-40 %: read off
+                               # Figure 5 'Typical Junction Capacitance'
+                               # (PDF p4), a log-log plot of C_j vs V_BR with
+                               # no tabulated values. Immaterial against USB
+                               # 2.0's 10 uF bypass cap (0.003 uF), and three
+                               # orders of magnitude too much for any RF net —
+                               # which is why this part exists only on VBUS_F.
+gotchas:
+  - "*** D-SPEC FINDING: THE 5.0 V STANDOFF THIS BOARD'S DOCS SPECIFY IS WRONG,
+     AND THE SENTENCE THAT JUSTIFIES IT IS ARITHMETICALLY BACKWARDS. ***
+     DETAIL_DESIGN section 5 says the 5.0 V-standoff TVS is 'above Vbus_max
+     5.25 V so it never conducts in normal operation'. 5.0 is not above 5.25.
+     Littelfuse's own glossary (PDF p3) defines V_R as 'Maximum voltage that
+     can be applied to the TVS WITHOUT OPERATION', so a 5.0 V part on a rail
+     whose maximum is 5.25 V is, by the vendor's definition, operating. And
+     5.25 V is the LENIENT reading: J_USB is USB-C, and USB Type-C vSafe5V is
+     4.75-5.50 V at the source, so the device-end ceiling this part must stand
+     off is 5.5 V, not 5.25 V. The fleet ledger already carried the warning
+     verbatim — tvs-clamp-5v-vbus: 'SMBJ5.0A (5 V standoff) is WRONG -> conducts
+     in normal op' — and it was read as not-this-board's-case because that entry
+     was written for a 5.35-5.43 V REGULATED rail. The arithmetic is the same
+     and the answer is the same. THIS PART IS THE 6.0 V STANDOFF."
+  - "*** THE ABOVE MOVES A CONSTRAINT ON A PART SOMEONE ELSE IS CHOOSING. ***
+     ADR-0004 and DETAIL_DESIGN section 5 constraint 2 derive 'U_LDO MUST have
+     V_IN(abs max) >= 10 V' from a 5.0 V-standoff clamp at ~9.2 V / 43.5 A
+     (that is the SMAJ5.0A row; the SMBJ5.0A row is 9.2 V at 65.3 A — same
+     clamp, bigger die). At the 6.0 V standoff the rail actually requires,
+     V_C = 10.3 V at 58.3 A. THE REQUIREMENT IS THEREFORE V_IN(abs max)
+     >= 10.3 V, AND IN PRACTICE >= 12 V, because 10 V is a real and very common
+     LDO abs-max step and it now has NEGATIVE margin (-0.3 V) against the
+     clamp. An LDO rated exactly 10 V is DISQUALIFIED, not waived. Note also
+     that the package does NOT rescue this: SMAJ6.0A (400 W, DO-214AC) has the
+     SAME V_C of 10.3 V — the clamping factor V_C/V_R is ~1.72 across the whole
+     SMxJ family, so 10.3 V is a property of the 6.0 V standoff, not of the
+     die size. There is no 5.5 V standoff anywhere in SMAJ/SMBJ/SMCJ; the
+     family steps 5.0 -> 6.0."
+  - "LEAKAGE, WITH THE ARITHMETIC, BECAUSE THE DATASHEET PUBLISHES NO
+     LEAKAGE-VS-VOLTAGE CURVE AND THE QUESTION IS THE WHOLE ARGUMENT.
+     Two points exist per row: I_R (max) at V_R, and I_T = 10 mA at V_BR. Fit an
+     exponential between them (ESTIMATED, max-unit, 25 C, no error bar
+     available because the vendor gives no third point):
+       SMBJ6.0A: k = ln(10/0.8)/(6.67-6.00) = 3.77 /V
+                 at 5.25 V -> 0.8 mA x e^(-3.77*0.75) = ~47 uA
+                 at 5.50 V -> ~121 uA
+       SMBJ5.0A: k = ln(10/0.8)/(6.40-5.00) = 1.804 /V
+                 at 5.25 V -> 0.8 mA x e^(+1.804*0.25) = ~1.26 mA
+                 at 5.50 V -> ~1.97 mA
+     So the 5.0 V part leaks ~27x more at the SAME rail voltage — 1.26 mA is
+     2.1 % of this board's ~60 mA typical draw, flowing continuously through
+     F_IN and out of the LDO's input, for no function. That is bad but not
+     fatal; what makes it disqualifying is the UNBOUNDED part: 800 uA is a
+     25 C number, the datasheet publishes NO leakage-vs-temperature curve, and
+     TVS leakage rises steeply with junction temperature. A part sitting ABOVE
+     its rated standoff at 25 C has no published behaviour at 85 C at all."
+  - "DIRECTIONALITY IS A CATALOG FACT, AND THE MPN STRING WILL NOT TELL YOU.
+     Part Numbering System, PDF p6: SMBJ / <V_R> / C / A, where the 'C' —
+     PRESENT OR ABSENT — is the only thing that distinguishes bi-directional
+     from uni-directional, and 'A' is merely the 5 % V_BR tolerance. The fleet
+     already paid for this: LCSC C140903 (LRC) is listed 'Bidirectional TVS'
+     under the bare MPN string 'SMBJ6.0A', re-confirmed LIVE 2026-07-28. A
+     bidirectional part here never clamps in the reverse direction and never
+     conducts as a forward diode, so a reversed-or-bidirectional substitution
+     produces a board that powers up normally and has no clamp. VERIFY THE
+     DIRECTION COLUMN OF THE CATALOG ROW, NOT THE MPN. Checked live 2026-07-28:
+     C83270 (Littelfuse) 'TVS Unidirectional DO-214AA' — correct; C113976 (MDD)
+     'TVS Unidirectional DO-214AA(SMB)' — correct; C140903 (LRC)
+     'Bidirectional TVS SMB-FL' — WRONG PART UNDER THE RIGHT STRING."
+  - "THERE IS A SECOND, VISUAL DISCRIMINATOR AND IT BELONGS ON THE BRING-UP
+     CHECKLIST. Electrical Characteristics table, PDF p2: the uni-directional
+     SMBJ6.0A carries marking code 'KG'; the bi-directional SMBJ6.0CA carries
+     'AG'. Plus the cathode band, which uni-directional parts have and
+     bi-directional parts do not (Physical Specifications, PDF p5). Incoming
+     inspection of one part under 10x settles the directionality question
+     without a curve tracer."
+  - "PAD 1 IS THE CATHODE AND ITS NET IS VBUS_F, NOT VBUS — AND THOSE ARE TWO
+     DIFFERENT FACTS WITH TWO DIFFERENT CHECKS. Reversing the part (cathode to
+     GND) turns the clamp into a forward diode across VBUS_F: ~0.9 V forward
+     drop, a dead short on a 5 V rail, and F_IN trips on power-up. That failure
+     is caught by the `pad1_net_polarity` assert below. Putting the cathode on
+     VBUS instead of VBUS_F is the OTHER failure — the exact usb-hub-3s v1.0 D1
+     defect, which passed ERC, DRC, parity, twin AND pin review because every
+     artifact was consistently wrong together — and `pad1_net_polarity` does
+     NOT catch it, because VBUS grades 'positive' just as VBUS_F does. That one
+     is covered by the `pin_on_net` invariant ADR-0004 emits into
+     03_src/rules/electrical_invariants.yaml. Neither check substitutes for the
+     other; this note exists so nobody assumes it does."
+  - "THE TVS DOES NOT SURVIVE A SUSTAINED FAULT, AND ADR-0004 DOES NOT ASK IT
+     TO. The datasheet says so in its own Features list (PDF p1): 'Typical
+     failure mode is SHORT from over-specified voltage or current.' Arithmetic:
+     at F_IN's only CITED trip point (8.00 A, 0.10 s max) the clamp sits at
+     ~7.2 V, i.e. ~57 W for 100 ms. Steady-state capability on a real board is
+     ~1 W (theta_JA 100 C/W); the 5.0 W figure is on an INFINITE heat sink. The
+     device therefore fails SHORT, which raises the fault current, which opens
+     F_IN. That is the crowbar the fleet ledger describes ('pair the clamp with
+     an upstream resettable fuse so the clamp current TRIPS the fuse; the TVS
+     alone does not disconnect') and it is WHY ADR-0004 put the fuse upstream.
+     The chain is designed to sacrifice a $0.05 diode, not to ride out the
+     fault. Say that on the bring-up checklist so a dead-short D_TVS after a
+     misplug is read as the protection WORKING."
+  - "P_PPM IS NOT WHY THIS PACKAGE WAS CHOSEN, AND THE REAL REASON IS DYNAMIC
+     RESISTANCE. Nothing on this board generates a 10/1000 us surge: there is
+     no long outdoor cable, no inductive load, no mains reference. The credible
+     threats are (a) IEC 61000-4-2 ESD through the USB-C shell — ~30 A peak for
+     ~60 ns, order 20 uJ, against which 600 W at 10/1000 us is over-spec by
+     ~10^4 in energy, and (b) cable hot-unplug, ~6 nJ at 0.5 uH/m and 0.15 A.
+     Every candidate package clears both by orders of magnitude. What actually
+     differs is the SLOPE. From the two published points, R_dyn =
+     (V_C - V_BR)/I_PP: SMBJ6.0A gives 62 mohm (V_BR min) to 50 mohm (V_BR
+     max); SMAJ6.0A, with the same V_C at 38.8 A, gives 94 to 76 mohm. At a
+     30 A ESD peak that is 8.54-8.88 V for the SMB against 9.48-9.64 V for the
+     SMA — ~0.8 V of LDO margin for 2.7 mm of extra board width. The 200 W
+     SOD-123FL class was rejected on the same axis: its I_PP at this standoff
+     is roughly a third of the SMB's, so its slope is roughly 3x and its clamp
+     at 30 A lands near 12 V — ESTIMATED BY SCALING, not read; no SMF datasheet
+     was fetched, and that is recorded as an estimate rather than dressed up."
+  - "AT THE ESD EDGE THE CLAMP VOLTAGE IS SET BY GEOMETRY, NOT BY V_C, AND THIS
+     IS THE REASON THE keep_short BUDGET BELOW IS LOAD-BEARING. An 8 kV contact
+     discharge has a ~0.7-1 ns rise to ~30 A, i.e. di/dt ~ 30-43 A/ns. A 12 mm
+     out-and-back clamp loop at ~1 nH/mm is ~24 nH, and L*di/dt = 24 nH x
+     30 A/ns = ~720 V. Even a 5 mm loop gives ~300 V. So V_C = 10.3 V is the
+     DC-and-slow-transient number that sets U_LDO's abs-max requirement; the
+     nanosecond edge is handled by loop area, by the USB-C shell bond, by
+     U_ESD on D+/D-, and downstream by FB_IN's series impedance into the LDO's
+     input capacitor. A dossier that reported only V_C would imply a protection
+     this part does not provide."
+  - "600 W IS CHARACTERISED ON COPPER THIS BOARD MUST ACTUALLY DRAW. Maximum
+     Ratings note 2, PDF p1: 'Mounted on copper pad area of 0.2 x 0.2 in
+     (5.0 x 5.0 mm) to EACH terminal' — 25 mm^2 per terminal. The
+     Diode_SMD:D_SMB land is 2.50 x 2.30 = 5.75 mm^2 per pad, 23 % of that. The
+     headline rating does not apply to the bare land; the copper is a layout
+     obligation, not a footprint property."
+  - "JLC LIBRARY TIER IS 'EXTENDED', SO AN ORDER-DAY STOCK RECHECK IS
+     MANDATORY. Live 2026-07-28: C83270 (Littelfuse) 9746 in the assembly pool.
+     Stock is never committed to this file (02_parts contract); it lives in
+     06_build/cache/."
+verified: "2-pad diode — exempt from the S-VER pinout-FIGURE requirement per the
+  02_parts contract, but POLARITY IS NOT EXEMPT and was read off the drawing:
+  PDF p5 'Dimensions / DO-214AA (SMB J-Bend)' was RENDERED at 150 dpi and read
+  VISUALLY, giving the cathode band on the package top view and the
+  Solder-Pads inset letters (I = pad height >= 2.260 mm, J and L = pad widths
+  >= 2.160 mm, K = pad gap <= 2.740 mm); PDF p6 'Part Marking System' was
+  rendered and read the same way, confirming the cathode band is drawn on the
+  marking face for uni-directional products only and giving the KG/AG marking
+  discriminator. Electrical figures are the row 'SMBJ6.0A' of the Electrical
+  Characteristics table, PDF p2; absolute ratings and thermal resistances from
+  the Maximum Ratings table, PDF p1; the V_R definition from the glossary under
+  the I-V Curve Characteristics, PDF p3; MSL and the cathode-band polarity
+  statement from Physical/Environmental Specifications, PDF p5; the C/A
+  numbering rule from Part Numbering System, PDF p6. Cross-checked against
+  LCSC's live parametric record for C83270 read 2026-07-28 ('SMBJ6.0A,
+  Littelfuse, DO-214AA, 10.3V, 58.3A, 6.67V, 600W, 6V, TVS Unidirectional'),
+  which agrees on V_R, V_BR min, V_C, I_PP, P_PPM and direction. Two
+  independent sources. 2026-07-28"
+layout:
+  source: "Littelfuse publishes NO application or layout section for the SMBJ
+    series. It publishes exactly TWO layout-relevant facts and both are cited
+    here: (1) Maximum Ratings note 2, PDF p1 — the 600 W / 58.3 A ratings are
+    characterised 'mounted on copper pad area of 0.2 x 0.2 in (5.0 x 5.0 mm) to
+    each terminal', i.e. 25 mm^2 per terminal; and (2) the Solder Pads inset of
+    the Dimensions drawing, PDF p5 — pads >= 2.160 mm wide, >= 2.260 mm tall,
+    gap <= 2.740 mm. EVERY OTHER RULE BELOW IS DERIVED ENGINEERING and is
+    labelled DERIVED, in the same posture as ../KH-SMA-KE-Z/part.yaml.
+    LAND-PATTERN COMPARISON, done numerically rather than assumed:
+    Diode_SMD:D_SMB places 2.50 x 2.30 mm pads at x = +/-2.15 mm -> width 2.50
+    >= 2.160 PASS, height 2.30 >= 2.260 PASS (by 0.04 mm), gap 1.80 <= 2.740
+    PASS, span 6.80 mm. Lead-foot fit across the full tolerance stack (overall
+    G 5.210-5.590, foot E 0.760-1.520): the foot's inner edge lands between
+    |x| = 1.085 and 2.035 mm and its outer edge between 2.605 and 2.795 mm,
+    against a pad spanning |x| 0.90-3.40 mm — worst-case inner clearance
+    0.185 mm, worst-case toe 0.605 mm. The library land FITS the part and meets
+    the published minima; it does NOT by itself deliver the characterisation
+    copper (5.75 mm^2 of 25 mm^2), which is what the first note below is for."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: VBUS_F, max_span_mm: 12, why: "the clamp is only as good as its
+       loop. At the ESD edge L*di/dt across the clamp loop dominates V_C
+       completely (24 nH x 30 A/ns = ~720 V for a 12 mm out-and-back loop), so
+       12 mm is not a tidiness budget — it is the number that decides what
+       U_LDO actually sees. VBUS_F is also the node that must carry F_IN's
+       output, D_TVS's cathode, C_BULK and FB_IN's input as ONE compact
+       star (ADR-0004); a long VBUS_F means the clamp, the bulk cap and the
+       ferrite are not on the same node in any sense that matters above
+       100 MHz."}
+  notes:
+    - "DERIVED FROM A CITED NUMBER: give each terminal as much of the 25 mm^2
+       characterisation copper (note 2, PDF p1) as the floorplan allows. The
+       anode pad should drop straight into the L2/L4 ground pour through its
+       own via cluster rather than through a neck — the anode is the ESD return
+       path and a necked pour is series inductance in exactly the loop the
+       keep_short budget is trying to shrink."
+    - "DERIVED: D_TVS belongs between J_USB and F_IN's output in PHYSICAL
+       order — i.e. as close to the connector as the fuse-upstream topology
+       allows — so the transient is clamped before it has travelled far into
+       the board. ADR-0004 fixes the ELECTRICAL order (fuse first); this is the
+       geometric corollary and the two are not the same statement."
+    - "DERIVED: no RF net, no RF arm and no antenna launch may pass within the
+       clamp loop or under this part. C_j is ~3-5 nF; this is a large,
+       nonlinear shunt element and ADR-0004's whole RF-port posture is that the
+       board adds no ungraded parasitics to the receive paths."
+    - "OWED: Littelfuse's 'TVS Diode Selection' / 'Transient Suppression Devices
+       and Principles' application notes were NOT fetched. Recorded as not
+       done, not as absent."
+layout_refs:
+  - "Littelfuse SMBJ series, Revised JC.07/04/25 v4, Maximum Ratings note 2
+     (PDF p1) — the 5.0 x 5.0 mm per-terminal copper the ratings assume"
+  - "Littelfuse SMBJ series, Dimensions + Solder Pads inset (PDF p5) — the only
+     vendor-published land geometry, and the cathode-band drawing"
+  - "Littelfuse SMBJ series, Part Marking System (PDF p6) — the KG/AG marking
+     and the cathode-band-on-uni-only rule"
+  - "OWED: no Littelfuse application note was fetched; no OSHWLab-by-LCSC board
+     was searched for C83270."
+sourcing:
+  lcsc: C83270
+  alternates: [C113976]        # C113976 = MDD SMBJ6.0A, DO-214AA, catalog row
+                               # reads 'TVS Unidirectional' (checked live
+                               # 2026-07-28) with 74443 in stock — this is the
+                               # part the fleet ledger's tvs-clamp-5v-vbus entry
+                               # already carries as catalog-verified. DELIBERATELY
+                               # NOT LISTED: C140903 (LRC), same MPN string,
+                               # catalog-BIDIRECTIONAL. Any substitution must
+                               # re-read the DIRECTION column of the specific
+                               # code, and MDD's own datasheet (2010, Freelance
+                               # Graphics) was NOT the document these facts came
+                               # from — swapping to it means re-verifying V_C
+                               # and I_R against MDD's sheet, not inheriting
+                               # Littelfuse's.
+                               # ST SMBJ6.0A-TR (C130396) was CONSIDERED AND
+                               # REJECTED: ST specifies it on an 8/20 us basis
+                               # at V_C 13.7 V / 61 A (a different, more
+                               # energetic waveform, so the numbers are not
+                               # comparable term by term) with a much better
+                               # 20 uA leakage — but a 13.7 V clamp would push
+                               # U_LDO's V_IN abs max requirement to >= 16 V.
+asserts:
+  - assert: pad1_net_polarity
+    pad: 1
+    polarity: positive
+    why: "pad 1 is the CATHODE — 'Uni-directional products are denoted with a
+      cathode band', Physical Specifications PDF p5, and Diode_SMD:D_SMB puts
+      its silk bar and F.Fab cathode line at the pad-1 end. A reversed
+      unidirectional TVS is a forward diode across the rail: ~0.9 V, a dead
+      short on 5 V, F_IN trips on first power-up and the board never runs. The
+      netlist is self-consistent either way, so no ERC, DRC or parity check can
+      see it — this is the XT60 class, and ADR-0004 names the sibling defect
+      (usb-hub-3s v1.0 D1) that passed ERC, DRC, parity, twin AND pin review.
+      NOTE THE LIMIT OF THIS ASSERT: it grades pad 1's net as POSITIVE, which
+      VBUS and VBUS_F both are, so it does NOT enforce cathode-on-VBUS_F. That
+      is the `pin_on_net` invariant in 03_src/rules/electrical_invariants.yaml."
+  # THE `value` ASSERT BELOW IS DECLARED BUT NOT ACTUALLY GRADED TODAY.
+  # part_facts_check.py decodes `equals:` through parse_si(), which is
+  # NUMERIC-ONLY; an MPN string returns None and the entry is reported
+  # P-FACT-CONFIG and grades NOTHING (measured 2026-07-28: six of nine dossiers
+  # on this board are in that state, both exemplars included). The
+  # `pad1_net_polarity` assert above IS a graded kind and will bite the moment
+  # a netlist exists. Reported, not fixed — part_facts_check.py lives under
+  # skills/ and needs a literal-string fallback or a distinct `mpn:` kind.
+  - assert: value
+    equals: SMBJ6.0A
+    why: "the BOM Comment must name the exact standoff and directionality,
+      because both failures are electrically invisible. SMBJ6.0CA — ONE
+      CHARACTER longer — is the bi-directional die: it never clamps in reverse,
+      so the board powers up, passes every gate and has no clamp. SMBJ5.0A is
+      the standoff DETAIL_DESIGN section 5 currently specifies and it sits
+      BELOW the 5.25 V (USB 2.0) / 5.5 V (USB-C vSafe5V) rail ceiling, leaking
+      ~1.26 mA continuously with no published behaviour at temperature.
+      SMBJ6.5A and SMBJ7.0A clamp at 11.2 V and 12.0 V and would silently
+      invalidate whatever V_IN abs max U_LDO was selected against. All four fit
+      the same DO-214AA land and all four reflow identically."

@@ -36,14 +36,29 @@ invariants:
       it is only checkable as a chain"
 
   - assert: pin_on_net
-    pin: "D_TVS.2"
+    pin: "D_TVS.1"
     net: VBUS_F
     adr: "0004"
     why: "THE D1 CLASS, EXACTLY. D_TVS's CATHODE must clamp the PROTECTED node
       downstream of F_IN, not the raw VBUS pin upstream of it. usb-hub-3s v1.0
       shipped this backwards and passed ERC, DRC, parity, twin and pin review
-      because every artifact agreed with every other artifact. Pad 2 is the
-      cathode on the SMA/SMAJ land pattern (banded end)"
+      because every artifact agreed with every other artifact.
+      CORRECTED 2026-07-28 AT THE STAGE-2 MERGE — this assertion said `D_TVS.2`
+      and gave as its reason 'Pad 2 is the cathode on the SMA/SMAJ land pattern
+      (banded end)'. THAT IS BACKWARDS. Pad 1 is the cathode. Three independent
+      legs: (a) the repo's own 03_src contract, hard rule 5 — 'KiCad footprints
+      put the cathode on pad 1'; (b) the KiCad footprint itself, read as text —
+      `Diode_SMD:D_SMB` puts pad 1 at x = -2.15 mm with the F.Fab cathode bar at
+      x = -0.649 mm and the F.SilkS polarity band at the pad-1 end; (c) five
+      sibling boards' dossiers all say pad 1 = K (usb-hub-3s-v3 SMBJ6.0A,
+      crow-mic-pod-v2 SMAJ6.0A, crow-recorder-central SMBJ5.0A,
+      crow-recorder-central-v2 SMAJ5.0A, usb-hub-3s SMAJ24A).
+      The severity is the point: E-INV cannot run before a netlist exists, so
+      this would have first fired at STAGE 4 and demanded the author wire the
+      TVS BACKWARDS to turn it green. A gate that asserts the defect it was
+      written to prevent is worse than no gate. The part fact now also lives in
+      `02_parts/SMBJ6.0A/part.yaml` as a `pad1_net_polarity` assert, so
+      part_facts_check grades it against the exported netlist independently"
 
   - assert: net_has_part
     net: VBUS_F

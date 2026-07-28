@@ -1,0 +1,260 @@
+mpn: 1206L050/24WR             # DIRECTORY NAME SANITISES THE SLASH (a '/' cannot
+                               # appear in a path). Fleet precedent and the
+                               # machine handling for it are explicit:
+                               # bom_legibility_check.py load_part_mpns() names
+                               # 02_parts/SMD2920-700/ -> mpn SMD2920-700/16N and
+                               # 02_parts/LM5116MHX-NOPB/ -> mpn LM5116MHX/NOPB,
+                               # and treats the `mpn:` FIELD as authoritative
+                               # with the directory name only as fallback. The
+                               # ORDERABLE string is the one above; it is what
+                               # LCSC C2154056 lists and what Littelfuse's own
+                               # Packaging Options table (PDF p6) gives for part
+                               # number 1206L050/24 ("/24" = the 24 V rating,
+                               # "WR" = tape and reel, 3000).
+manufacturer: Littelfuse
+type: pptc_resettable_fuse     # PPTC, not a fuse: it RESETS. Nothing on this
+                               # board opens permanently, and the CHECKLIST must
+                               # say so or a bring-up tech will replace a part
+                               # that is merely latched hot (ADR-0004).
+datasheet:
+  doc_id: "POLY-FUSE Resettable PTCs, Surface Mount > 1206L Series"
+  revision: "2017-03-22"       # the page-footer "Revised: 03/22/17" on every
+                               # page, normalised to ISO so it is path-legal and
+                               # appears verbatim in the committed filename.
+  url: https://datasheet.lcsc.com/datasheet/pdf/a54e5411abf1153e443b4b285981f895.pdf
+  sha256: e7684db822499deed0d4cd78a519d79fc09dba208d531c4852e10f7b1e06ffe7
+  fetched: 2026-07-28
+  pages: 6
+  note: "SERIES sheet — one document covers all 19 hold-current/voltage variants
+    of 1206L, so the MPN is decoded against the sheet's OWN Electrical
+    Characteristics table (p1) and Packaging Options table (p6), not against a
+    distributor parametric record. THE LCSC TRAP APPLIES AND WAS PAID AGAIN
+    HERE: www.lcsc.com/datasheet/lcsc_datasheet_..._C163512.pdf served an HTML
+    landing page; the real document is the datasheet.lcsc.com/datasheet/pdf/
+    <hash>.pdf link embedded in that page's markup, which is the URL above.
+    Littelfuse's own site was not reachable with a plain fetch."
+package: 1206 (3216 metric), body 3.00-3.40 x 1.50-1.80 mm, thickness
+  0.75-1.25 mm (the /24 variant is the THICK one in this series — the 6 V
+  1206L050 is 0.45-0.75 mm), terminal band 0.25-0.75 mm, marking "F2".
+  Dimensions table + Top/Bottom/Side views, PDF p5
+footprint: Fuse:Fuse_1206_3216Metric
+escape:                        # emitted by escape_check.py, 2026-07-28
+  style: passive
+  pitch: 2.8                   # pad centre-to-centre MEASURED from the KiCad
+                               # footprint (pads at x = +/-1.4 mm)
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-28
+limits:                        # ALL CITED from the Electrical Characteristics
+                               # table, PDF p1, row "1206L050/24"
+  i_hold: 0.50 A               # "maximum current device will pass without
+                               # tripping in 20 C still air" — the datasheet's
+                               # own definition, and the datum is 20 C, NOT 23 C
+  i_trip: 1.00 A               # "minimum current at which the device will trip
+                               # in 20 C still air"
+  v_max: 24 Vdc                # max voltage the device withstands at I_max
+  i_max: 100 A                 # max fault current at V_max
+  p_d: 0.6 W                   # dissipation in the TRIPPED state, 20 C still air
+  r_min: 0.15 ohm              # minimum resistance, initial (un-soldered)
+  r_1max: 0.75 ohm             # MAXIMUM resistance at 20 C measured one hour
+                               # after tripping OR after 260 C / 20 s reflow.
+                               # THIS is the design number for a reflowed board,
+                               # not r_min.
+  t_trip_max: 0.10 s at 8.00 A # the only CITED time-to-trip point in the table
+  ta: -40 to +85 C             # Environmental Specifications, PDF p4
+  t_surface_tripped_max: 125 C # ditto
+  msl: 1                       # "Moisture Sensivity Level: Level 1, J-STD-020",
+                               # PDF p4. Unlimited floor life, no bake — which
+                               # is why there is no `msl` assert below.
+  hold_current_vs_temperature: # Temperature Rerating table, PDF p2, row
+                               # "1206L050/24". THE VENDOR LABELS THIS TABLE
+                               # "only for reference" IN ITS OWN NOTE — it is
+                               # CITED, but cited from a table its author
+                               # declines to guarantee. Stated, not smoothed.
+    -40C: 0.76 A
+    -20C: 0.68 A
+    0C:   0.60 A
+    20C:  0.50 A
+    40C:  0.43 A
+    50C:  0.38 A               # <-- the number this board is sized against
+    60C:  0.33 A
+    70C:  0.29 A
+    85C:  0.24 A
+gotchas:
+  - "DERATED HOLD AT 50 C IS 0.38 A, AND THAT IS THE NUMBER THAT MATTERS, NOT
+     THE 0.50 A HEADLINE. Against DETAIL_DESIGN section 5: 0.38 / 0.15 A design
+     envelope = 2.53x; 0.38 / 0.060 A typical = 6.3x. Even at the part's own
+     +85 C ceiling the hold is 0.24 A = 1.6x the envelope, so this part cannot
+     nuisance-trip anywhere in its operating range on this board. The sizing
+     rule the fleet ledger records (polyfuse-pptc-5a-vbus: 'for a 5 A
+     CONTINUOUS load pick 7 A HOLD, which derates to ~5.6 A at 50 C') is
+     applied here in the same direction and with the same arithmetic."
+  - "THE TIGHTER PART WAS CONSIDERED AND REJECTED WITH NUMBERS. 1206L035/30
+     (0.35 A hold / 0.75 A trip, same package, same series) derates to 0.27 A at
+     50 C = 1.8x the 0.15 A envelope. That is a real 1.4x tighter trip point
+     against the USB host's 500 mA advertisement — but 1.8x margin on a design
+     envelope that is itself only 2.5x the typical leaves the RP2040's worst
+     case (~50 mA, plus its own startup surge into 6.1 uF of bypass) sharing a
+     band with the trip threshold. 0.50 A hold is the brief's target and the
+     arithmetic supports it."
+  - "IR DROP AT 0.15 A THROUGH R_1max = 0.75 x 0.15 = 112.5 mV, AND IT COMES
+     STRAIGHT OFF THE LDO'S INPUT HEADROOM. With FB_IN's 9.0 mV (0.06 ohm max
+     DCR) the protection chain costs 121.5 mV between VBUS and U_LDO.VIN, so
+     the LDO's real V_IN(min) is 4.75 - 0.1215 = 4.6285 V and the dropout
+     budget is 4.6285 - 3.40 = 1.229 V, NOT the 1.35 V DETAIL_DESIGN section 5
+     constraint 1 states (that number is computed at VBUS, upstream of both
+     series elements). The chain eats 9.0 % of the stated budget. It is still
+     comfortable — a modern 150 mA LDO drops <300 mV — but the U_LDO dossier
+     must be graded against 1.229 V, and the PWR trace resistance (~5.5 mV over
+     a 30 mm 0.40 mm x 35 um run) is NOT in that number. USE R_1max, NOT R_min:
+     0.15 ohm would say 22.5 mV, and R_1max is explicitly the value after the
+     260 C reflow this board will see."
+  - "V_max 24 V IS NOT DECORATION — IT IS THE POST-TRIP STANDOFF. Once the
+     device latches, the FULL source voltage minus the TVS's leakage-region
+     voltage stands across it. Worst credible misapplication (a 24 V supply via
+     a USB-C adapter, or a source that ignores the 5.1 kohm Rd pull-downs):
+     24 - ~6.3 = ~17.7 V across a tripped element. The 6 V variant (1206L050,
+     C163512, 17945 in stock) is outside rating there, and even in the
+     DESIGNED fault — a board-side short, where the tripped element stands off
+     VBUS — 6 V against a USB-C vSafe5V ceiling of 5.5 V is 9 % margin. The /24
+     costs 0.05 ohm of R_1max against the 6 V part (0.75 vs 0.70), i.e. 7.5 mV
+     at 0.15 A, or 0.6 % of the dropout budget. Cheapest insurance on the
+     board."
+  - "THE TRIPPED CHAIN IS STABLE, AND THAT IS WORTH KNOWING BEFORE BRING-UP.
+     P_d = 0.6 W in the tripped state, so at 24 V applied the device holds
+     itself latched at roughly 0.6/17.7 = ~34 mA, which flows into D_TVS at
+     ~6.3 V = ~0.21 W — inside the SMB's ~1 W board-mounted capability. The
+     board therefore survives a 24 V misapplication in a latched, browned-out
+     state rather than failing. Unplug, wait, it resets. This is a PPTC, not a
+     fuse: nothing is consumed and nothing needs replacing."
+  - "THE FUSE DOES NOT ENFORCE THE USB 500 mA BUDGET AND NOBODY SHOULD THINK IT
+     DOES. I_hold 0.50 A and I_trip 1.00 A bound a band in which the device's
+     behaviour is UNDEFINED by the datasheet: it will hold 0.50 A indefinitely
+     and it will trip above 1.00 A, and between them it may do either. A
+     board-side fault drawing 0.7 A can therefore sit on the host's budget
+     forever. What this part actually buys is (a) hard-short protection with a
+     100 A interrupt rating, and (b) the crowbar leg of ADR-0004: when D_TVS
+     fails SHORT the fault current is far above 1 A and the fuse opens. The
+     ADR's 'burns on the host's budget' argument is satisfied by (a), not by a
+     precise 500 mA threshold."
+  - "PAD COPPER IS A THERMAL PARAMETER FOR THIS PART, NOT A COSMETIC ONE. A PPTC
+     trips by self-heating, so its effective hold current is set by how fast the
+     land pulls heat out, and Littelfuse's rerating table is characterised on
+     THEIR land (PDF p5: two pads 1.00 x 1.80 mm with a 1.80 mm gap, 1.80 mm^2
+     of copper per pad). Fuse:Fuse_1206_3216Metric gives 1.25 x 1.75 mm at
+     +/-1.4 mm = 2.19 mm^2 per pad, +21.5 % copper, a 1.55 mm gap (0.25 mm
+     TIGHTER) and a 4.05 mm span (0.25 mm LONGER). Direction of the error:
+     more copper -> cooler device -> effective hold slightly ABOVE the table,
+     i.e. away from nuisance trip and slightly slower to protect. Both effects
+     are a few percent and neither is graded by anything, which is why it is
+     written here. DO NOT flood one pad into a plane and leave the other on a
+     thin trace: asymmetric heat-sinking biases the trip point in a direction
+     no measurement on this board would reveal."
+  - "LAND FIT, CHECKED NUMERICALLY AGAINST THE TOLERANCE STACK. Terminal band
+     is 0.25-0.75 mm on a 3.00-3.40 mm body. Worst case A: max body 3.40, min
+     terminal 0.25 -> the band spans |x| 1.45..1.70 mm and sits wholly inside
+     the KiCad pad (|x| 0.775..2.025), with 0.325 mm of toe beyond the body.
+     Worst case B: min body 3.00, max terminal 0.75 -> band spans |x|
+     0.75..1.50 and 0.025 mm of it falls in the pad gap. Negligible. Body width
+     1.50-1.80 mm against a 1.75 mm pad: at max body the termination overhangs
+     0.025 mm per side. The library land FITS; the note above is about thermal
+     characterisation, not about fit."
+  - "JLC LIBRARY TIER IS 'EXTENDED', SO AN ORDER-DAY STOCK RECHECK IS
+     MANDATORY. Live 2026-07-28: C2154056 = 4209 in the assembly pool. The
+     6 V sibling C163512 has 17945 and the 15 V C151162 has 47268 — both are
+     DIFFERENT PARTS by V_max and neither may be substituted without redoing
+     the post-trip standoff arithmetic above. Stock is never committed to this
+     file (02_parts contract): the number lives in 06_build/cache/."
+verified: "2-pad passive — exempt from the S-VER pinout-FIGURE requirement per
+  the 02_parts contract; the part has no pin map to get wrong and no polarity.
+  Everything in limits: is read from the committed PDF whose sha256 is recorded
+  above: the Electrical Characteristics table row '1206L050/24' (PDF p1) for
+  I_hold / I_trip / V_max / I_max / P_d / R_min / R_1max / time-to-trip; the
+  Temperature Rerating table row '1206L050/24' (PDF p2) for the hold-vs-ambient
+  series; Environmental Specifications (PDF p4) for temperature range and MSL;
+  the Dimensions table and Pad Layout drawing (PDF p5, page RENDERED at 150 dpi
+  and read VISUALLY to confirm which dimension is the pad and which is the gap —
+  the text layer alone is ambiguous because the pad height and the gap are both
+  labelled '1.80 mm'); and the Packaging Options table (PDF p6) for the
+  ordering number 1206L050/24WR. Cross-checked against LCSC's own parametric
+  record for C2154056 read live 2026-07-28 ('1206L050/24WR ... 100A 100ms
+  150mR 1A 24V 500mA 750mR 1206 Resettable Fuses'), which agrees on every field
+  it carries. Two independent sources. 2026-07-28"
+layout:
+  source: "Littelfuse publishes NO application or layout section for the 1206L
+    series — no copper-area rule, no spacing rule, no thermal-relief rule. The
+    ONE vendor-published layout artifact is the Pad Layout drawing on PDF p5
+    (two 1.00 x 1.80 mm pads, 1.80 mm gap), and it is cited as such. EVERY
+    OTHER RULE BELOW IS DERIVED ENGINEERING and is labelled DERIVED, in the
+    same posture as ../KH-SMA-KE-Z/part.yaml. The derivation input the vendor
+    DOES give is the Temperature Rerating table (PDF p2), which turns local
+    ambient into hold current at about 5 mA/C between 40 C and 50 C — that is
+    what makes placement an electrical decision here."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: VBUS, max_span_mm: 8, why: "DERIVED: F_IN must be the FIRST element
+       on VBUS. Every millimetre of VBUS copper, and anything tapped off it,
+       sits UPSTREAM of the protection and is protected by nothing (ADR-0004
+       put the fuse ahead of the clamp deliberately). 8 mm is the J_USB VBUS
+       pad to F_IN pad budget; it is a topology rule expressed as a span
+       because P-ADJ can measure a span and cannot read a schematic."}
+  notes:
+    - "DERIVED: keep F_IN away from U_LDO, the board's only real dissipator
+       (308 mW at the envelope, DETAIL_DESIGN section 7). The rerating table is
+       the reason this is quantitative rather than tidy: 0.43 A at 40 C vs
+       0.38 A at 50 C is ~5 mA of hold current per degree of LOCAL ambient. A
+       PPTC placed against a warm regulator is a different component from the
+       one in the table."
+    - "DERIVED: the two pads must have SYMMETRIC copper. The device's trip point
+       is a heat-flow balance; a flood on one terminal and a 0.4 mm trace on the
+       other biases it, and nothing on this board — not DRC, not A-AMP, not
+       P-ADJ — can see that."
+    - "DERIVED: no thermal vias, no via field, under or immediately at either
+       pad. Vias into a plane are a heat path, and a heat path lowers the
+       effective trip point in a direction the datasheet table does not cover."
+    - "OWED: the Average Time Current Curves chart (PDF p2) is the only source
+       for time-to-trip at any current other than 8.00 A, and Littelfuse labels
+       it 'provided as guidance only ... Customer must verify the performance in
+       their application.' No intermediate trip time is claimed in this dossier.
+       If bring-up ever needs one, it is a BENCH measurement, not a read."
+layout_refs:
+  - "Littelfuse 1206L Series, Revised 03/22/17, Pad Layout drawing PDF p5 — the
+     only vendor-published layout artifact for this part"
+  - "Littelfuse 1206L Series, Temperature Rerating table PDF p2 — the input that
+     makes placement-vs-local-ambient a numeric decision"
+  - "OWED: no Littelfuse application note (the 'Resettable PTC Design Guide' /
+     AN classes) was fetched. Recorded as not done, not as absent."
+  - "OWED: no OSHWLab-by-LCSC board was searched for C2154056."
+sourcing:
+  lcsc: C2154056
+  alternates: [C151162, C163512]   # C151162 = 1206L050/15YR (15 V, identical
+                                   # 0.75 ohm R_1max, 47268 in stock) — the
+                                   # drop-in if C2154056 goes short, at the cost
+                                   # of the 24 V post-trip case. C163512 =
+                                   # 1206L050YR (6 V, 0.70 ohm) — SAME hold and
+                                   # trip, but see the V_max gotcha before
+                                   # substituting: it is a different decision,
+                                   # not a different reel.
+asserts:
+  # DECLARED BUT NOT ACTUALLY GRADED TODAY, AND SAYING SO IS THE POINT OF THIS
+  # BLOCK. part_facts_check.py decodes `equals:` through parse_si(), which is
+  # NUMERIC-ONLY; an MPN string returns None and the assertion is reported
+  # P-FACT-CONFIG ("value assert has no decodable `equals:`") and grades
+  # NOTHING. Measured 2026-07-28 on this project: six of nine dossiers are in
+  # that state, INCLUDING both parts this board holds up as exemplars
+  # (PE42482A-X, KH-SMA-KE-Z). The pattern is kept here for consistency with
+  # them and because the fact is the right one to record — but it is a
+  # WRITTEN-DOWN fact that nothing reads, which is the exact failure mode the
+  # 02_parts contract's P-FACT section exists to kill. The fix belongs in
+  # part_facts_check.py (literal-string fallback, or a distinct `mpn:` kind),
+  # not here, and is reported rather than applied.
+  - assert: value
+    equals: 1206L050/24WR
+    why: "the BOM Comment must name the exact ordering number, because every
+      failure this part has is invisible to every electrical check on the
+      board. The 1206L family puts nineteen variants on ONE footprint with ONE
+      datasheet: 1206L035 (0.35 A hold) nuisance-trips the RP2040's worst case,
+      1206L110TH (1.10 A hold) lets a 1 A board-side fault sit on the host's
+      budget indefinitely, and 1206L050 (the 6 V sibling, one character
+      shorter) is outside rating the moment the device latches against anything
+      above 6 V. All four assemble, reflow, pass DRC, pass parity and power the
+      board up identically."

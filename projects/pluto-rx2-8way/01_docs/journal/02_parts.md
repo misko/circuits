@@ -217,3 +217,47 @@
   legibility risk. Proposed as a skill patch in the report — not applied here,
   because another agent is working in `skills/`.
 - next: still merging the nine dossiers.
+
+## 2026-07-28 15:40 — iterate 3 (merge: E-TOPO turned GREEN, and the TVS invariant was BACKWARDS)
+
+- did: merged the returning dossiers, spot-verified their citations against the
+  committed PDFs MYSELF rather than trusting the report, and filled
+  `03_src/rules/power_tree.yaml`.
+- result: **E-TOPO PASS 1/1** — `rail '3V3' (Vin 4.63-5.25 V, Vout 3.2-3.4 V):
+  required=BUCK, declared=LINEAR (MCP1755S-3302E-DB) -> step-down requirement MET
+  by a linear pass element; headroom 1230 mV vs dropout 500 mV; PD 307 mW vs
+  rating 968 mW (32%)`, trunk current 0.15 A consistent with the PWR class.
+  policy_audit: **FAIL=1 HUMAN=6 N-A=26 PASS=7**, the one FAIL still the
+  STRUCTURAL E-INV. S-VER 9/9, P-ESC 10/10, **P-TIER PASS at
+  jlc_4layer_advanced**, P-LAYOUT 5/5, E-ADR 4/4, M-REPRO PASS.
+- result (**the find of the merge**): the stage-3 invariant
+  `pin_on_net: D_TVS.2 -> VBUS_F` is **BACKWARDS**. Its own `why:` said "Pad 2 is
+  the cathode on the SMA/SMAJ land pattern (banded end)". **Pad 1 is the
+  cathode.** Three independent legs: (a) this repo's `03_src/contracts.md` hard
+  rule 5, "KiCad footprints put the cathode on pad 1"; (b) `Diode_SMD:D_SMB` read
+  AS TEXT — pad 1 at x = -2.15 mm, F.Fab cathode bar at x = -0.649 mm, F.SilkS
+  band at the pad-1 end; (c) five sibling dossiers all say pad 1 = K
+  (usb-hub-3s-v3 SMBJ6.0A, crow-mic-pod-v2 SMAJ6.0A, crow-recorder-central
+  SMBJ5.0A, crow-recorder-central-v2 SMAJ5.0A, usb-hub-3s SMAJ24A).
+  **The severity is the timing.** E-INV cannot run before a netlist exists, so
+  this would first have fired at STAGE 4 and demanded the author wire the TVS
+  BACKWARDS to turn it green — the exact usb-hub-3s v1.0 D1 defect the assertion
+  was written to prevent, re-created by the assertion itself. Corrected to
+  `D_TVS.1`, with all three legs recorded in the `why:`.
+- result (the SECOND cross-part find, invisible to any single dossier): **the
+  dropout budget was being measured at the wrong node.** DETAIL_DESIGN section 5
+  derives "dropout <= 1.35 V" from `Vin_min - Vout_max = 4.75 - 3.40`, but 4.75 V
+  is at the USB-C VBUS PIN and two series elements sit between it and the
+  regulator: `F_IN` R_1max **0.75 ohm** (Littelfuse 1206L table) + `FB_IN` DCR max
+  **0.06 ohm** (Murata PSDS) = 0.81 ohm, i.e. **121.5 mV at 0.15 A**. The real
+  headroom is **1.23 V, not 1.35 V**. `power_tree.yaml` now declares
+  `vin_min: 4.63` for exactly that reason — and `vin_max: 5.25` RAW, because PD is
+  worst at the high corner and subtracting the same drop there would under-state
+  it by 18 mW. Worst case at both ends, asymmetric on purpose.
+- result (the constraint that MOVED): ADR-0004 derived "V_IN abs max >= 10 V"
+  from a 5.0 V-standoff TVS clamping at 9.2 V. **The 5.0 V standoff was rejected
+  at selection** because VBUS_max 5.25 V sits ABOVE its 5.0 V working voltage
+  (I_R is specified 800 uA max AT V_WM). The selected `SMBJ6.0A` clamps at
+  **10.3 V**, so the constraint is now **>= 10.3 V** and a regulator rated
+  exactly 10 V would be OUT of spec. MCP1755S is +17.6 V, clearing it by 7.3 V.
+- next: the last three dossiers, then the README register and DETAIL_DESIGN.

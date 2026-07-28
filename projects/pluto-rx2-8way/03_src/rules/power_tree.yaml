@@ -17,49 +17,79 @@ quiescent_ua: 0
 
 input_trunk_class: PWR
 
-rails: []
-# ================= WHY `rails:` IS EMPTY, AND WHAT MAKES IT HONEST ==========
+rails:
+  - name: 3V3
+    # ---- vin: the LDO's OWN input, not the USB connector's ----------------
+    # 4.75 V is the USB 2.0 low limit at the DEVICE end. It is NOT what the
+    # regulator sees, because two series elements sit between the VBUS pin and
+    # VIN and both were selected AFTER this envelope was written:
+    #   F_IN  1206L050/24WR  R_1max 0.75 ohm  (Littelfuse 1206L table, PDF p2)
+    #   FB_IN BLM21SP601SN1D DCR max 0.06 ohm (Murata PSDS, DC resistance row)
+    #   0.15 A x 0.81 ohm = 121.5 mV
+    # so vin_min at the pass element is 4.75 - 0.1215 = 4.63 V. Declaring 4.75
+    # here would grade the dropout at a node the regulator is not connected to
+    # and hand the rail 121 mV of headroom it does not have. The R_1max figure
+    # is the CONSERVATIVE reading (post-reflow / post-trip), not R_min 0.15.
+    vin_min: 4.63
+    # vin_max stays the RAW 5.25 V on purpose, asymmetrically: E-TOPO computes
+    # dissipation as (vin_max - vout_min) x iout, so the worst case for HEAT is
+    # the highest input. Subtracting the same IR drop at the high corner
+    # (5.13 V) would UNDER-state PD by 18 mW. Worst case at both ends, and the
+    # asymmetry is deliberate rather than an oversight.
+    vin_max: 5.25
+    vout_min: 3.20            # 3.3 V nominal, -3% worst case
+    vout_max: 3.40            # 3.3 V nominal, +3% worst case
+    iout_max_A: 0.15          # design envelope; ~0.06 A typical (nets.yaml PWR)
+    converter: MCP1755S-3302E-DB
+    # eff: is IGNORED for a LINEAR rail by power_topology.py — a pass element
+    # draws Iin = Iout whatever Vin does, so the derived input-trunk current is
+    # 0.15 A and matches nets.yaml's PWR class declaration exactly. Left unset
+    # rather than set to a decorative 1.0 (pluto-cal-switch wrote `eff: 1.0`
+    # with a comment claiming it made the trunk current correct; it does not).
+
+# ================= WHAT THIS RAIL IS GRADED ON, AND WHY IT IS GREEN =========
 #
-# The board HAS one converted rail — 5 V VBUS -> 3.3 V for the RP2040, the
-# QSPI flash and PE42482A-X's VDD. Its ENVELOPE is already fixed and lives in
-# 01_docs/ARCHITECTURE.md and DETAIL_DESIGN.md:
+# Derived topology: vout_max (3.40) < vin_min (4.63) => step-down => BUCK
+# required, and a LINEAR pass element IMPLEMENTS that requirement (E-TOPO's
+# 2026-07-27 amendment). A switcher is refused on RF grounds regardless of
+# efficiency (ARCHITECTURE section 3), so LINEAR is the CHOSEN implementation
+# of a step-down, not a compromise.
 #
-#     name        3V3
-#     vin_min     4.75 V   (USB 2.0 low limit at the device end)
-#     vin_max     5.25 V   (USB 2.0 high limit)
-#     vout_min    3.20 V   (3.3 V nominal, -3% worst case)
-#     vout_max    3.40 V   (3.3 V nominal, +3% worst case)
-#     iout_max_A  0.15     (design envelope; ~0.06 A typical — see nets.yaml PWR)
-#     converter   <OWED — the LDO has no 02_parts dossier yet>
+# The two bounds the Vin-vs-Vout derivation is blind to, both from
+# 02_parts/MCP1755S-3302E-DB/part.yaml, both CITED:
+#   dropout_mv    500   Microchip DS20005160B AC/DC Characteristics: V_DROPOUT
+#                       300 mV typ / 500 mV MAX at IL = 300 mA — the datasheet
+#                       MAX at the part's RATED current, i.e. the conservative
+#                       reading, and 2x our actual load. Headroom is
+#                       (4.63 - 3.40) = 1230 mV against it.
+#   pdiss_max_mw  968   DERIVED, not published: Microchip states "Internal
+#                       Power Dissipation ... Internally Limited", so the
+#                       package rating is computed from theta_JA 62 C/W
+#                       (SOT-223-3, Temperature Characteristics table) at the
+#                       DETAIL_DESIGN section 7 datum Tj <= 0.8*Tj_max = 100 C
+#                       and Ta = 40 C: (100-40)/62 = 968 mW. PD at the envelope
+#                       is (5.25 - 3.20) x 0.15 = 308 mW = 32% of it.
 #
-# Derived topology: vout_max (3.40) < vin_min (4.75) => step-down => a LINEAR
-# regulator MEETS the requirement (E-TOPO's 2026-07-27 amendment). Its dropout
-# and dissipation bounds are the numbers that matter and both are already
-# constrained in DETAIL_DESIGN section 5:
-#     dropout at 0.15 A must be <= 4.75 - 3.40 = 1.35 V
-#     PD = (5.25 - 3.20) * 0.15 = 308 mW  -> the package rating must exceed it
-#     and ADR-0004 additionally binds V_IN(abs max) >= 10 V so the TVS clamp
-#     (~9.2 V at 43.5 A for the SMAJ5.0A class) sits INSIDE the regulator's
-#     rating rather than outside it.
+# ADR-0004's third constraint is NOT machine-graded here and that is stated
+# rather than implied: V_IN(abs max) >= the TVS clamp. It is DEFERRED as
+# `clamp_le_rating` in electrical_invariants.yaml because it needs both parts'
+# facts, not the netlist. The pairing as actually selected:
+#   D_TVS  SMBJ6.0A   V_C = 10.3 V at I_PP 58.3 A (Littelfuse SMBJ table)
+#   U_LDO  MCP1755S   V_IN absolute maximum = +17.6 V (DS20005160B p6)
+# 17.6 > 10.3 with 7.3 V to spare. NOTE THE CONSTRAINT MOVED: ADR-0004 wrote
+# ">= 10 V" against a 5.0 V-standoff part clamping at 9.2 V, and the part
+# actually selected is a 6.0 V standoff clamping at 10.3 V (the 5.0 V standoff
+# was rejected because VBUS_max 5.25 V sits ABOVE its 5.0 V working voltage).
+# A regulator rated exactly 10 V would now be OUT of spec. See DETAIL_DESIGN
+# section 5.
 #
-# `converter:` must name a part that exists in 02_parts, and the LDO dossier is
-# a stage-2 continuation item (02_parts/README.md). Naming a part that is not
-# there is a LoadError FAIL — strictly worse than the N-A this file earns
-# today, because a LoadError says nothing about coverage.
-#
-# THE N-A IS EARNED, NOT ASSERTED. power_topology.py checks `rails: []` against
-# 02_parts DIRECTLY (converter_census(), canon M1: "checked against 02_parts,
-# not against the power tree's own say-so"). 02_parts currently declares three
-# parts — an SP8T switch, an SMA jack and a thick-film resistor — and no
-# converter of any kind, so E-TOPO reports:
-#
-#     E-TOPO N-A: 0/0 — power_tree.yaml has no rails, and 02_parts declares no
-#     buck/boost/buck_boost/linear converter, so there is genuinely nothing to
-#     derive
-#
-# and THE MOMENT the LDO dossier lands this file turns E-TOPO RED until the
-# rail above is uncommented with its `converter:` filled. That is the intended
-# failure mode: the gap is held open by the gate, not by a TODO.
+# THE N-A THIS FILE USED TO EARN IS GONE, AND THAT WAS THE DESIGN. Until
+# 2026-07-28 this file carried `rails: []` and E-TOPO reported an N-A that
+# power_topology.py checked against 02_parts DIRECTLY (converter_census(),
+# canon M1 — "checked against 02_parts, not against the power tree's own
+# say-so"), so the N-A would turn RED the moment any converter dossier landed.
+# It landed; the rail above is why the gate is green instead. The gap was held
+# open by the gate, not by a TODO, and it closed by being filled.
 #
 # E-MARGIN: N-A by construction. No rail on this board feeds a load with a
 # published brownout threshold — the RP2040, the flash and the switch are all

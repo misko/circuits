@@ -1,0 +1,389 @@
+mpn: MCP1755S-3302E/DB          # directory is MCP1755S-3302E-DB: the MPN carries
+                                # a '/' that cannot be a path component. Same
+                                # substitution the fleet already uses for
+                                # LM5116MHX/NOPB and MCP23017-E/SS.
+manufacturer: Microchip Technology Inc.
+type: ldo_linear_3v3_fixed      # -> LINEAR for E-TOPO (normalize_type: no
+                                # buck/boost substring; _LINEAR_RE matches
+                                # "ldo" and "linear"). A CMOS pass element,
+                                # not a switcher — which is the whole point on
+                                # this board (ARCHITECTURE section 3 REFUSES a
+                                # switching regulator on RF grounds).
+
+# ---- LINEAR CONVERTER BLOCK — both required or E-TOPO cannot grade the rail --
+dropout_mv: 500                 # DATASHEET MAX at the part's RATED output
+                                # current: VDROPOUT = 300 mV typ / 500 mV MAX at
+                                # IL = 300 mA (AC/DC Characteristics, PDF p6).
+                                # 300 mA is the ENSURED minimum output current
+                                # (PDF p5), so this is the conservative reading.
+                                # Graded against vin_min - vout_max =
+                                # 4.75 - 3.40 = 1350 mV  ->  500 <= 1350, a 2.7x
+                                # margin. At THIS board's 0.15 A the real number
+                                # is lower still; the datasheet publishes no
+                                # separate 150 mA column, so the rated-current
+                                # figure is what is cited rather than an
+                                # interpolation off a curve (that would be
+                                # ESTIMATED, not CITED — canon M-IMPORT).
+pdiss_max_mw: 968               # PACKAGE rating, DERATED TO THIS BOARD.
+                                # Microchip Equation 5-3 (PDF p21):
+                                #   PD(MAX) = (Tj(MAX) - Ta(MAX)) / theta_JA
+                                # theta_JA = 62 C/W (SOT-223-3, PDF p8; datum
+                                # JESD51-7, named in section 5.3.1 PDF p22).
+                                # AMBIENT AND JUNCTION DATUM, stated because a
+                                # rating without one is ESTIMATED:
+                                #   Ta = 40 C, Tj <= 100 C (= 0.8 x the 125 C
+                                #   specified-limit basis DETAIL_DESIGN section
+                                #   5 uses) -> (100-40)/62 = 968 mW.
+                                # The datasheet's own UNDERATED figure at its
+                                # 150 C junction limit is (150-40)/62 = 1774 mW;
+                                # 968 is deliberately the stricter number so the
+                                # gate cannot pass something the board's own
+                                # thermal rule would reject.
+                                # Graded: (5.25 - 3.20) x 0.15 = 307.5 mW
+                                #   <= 968 mW, a 3.1x margin. Resulting rise is
+                                #   307.5 mW x 62 C/W = 19.1 C -> Tj = 59.1 C.
+datasheet:
+  doc_id: DS20005160
+  revision: DS20005160B         # Appendix A "Revision B (March 2021)", PDF p37;
+                                # the string DS20005160B-page N is in the footer
+                                # of every page, so the revision is unambiguous.
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2210171900_Microchip-Tech-MCP1755S-3302E-DB_C638611.pdf
+                                # MICROCHIP'S OWN CDN 403s to a scripted client
+                                # (ww1.microchip.com/downloads/... returned 403
+                                # on three candidate paths, 2026-07-28). This is
+                                # LCSC's mirror OF THE MICROCHIP DOCUMENT: the
+                                # PDF's internal title is "MCP1755/MCP1755S Data
+                                # Sheet", 42 pages, producer Acrobat Distiller
+                                # 21.0, footers DS20005160B. Recorded as the URL
+                                # actually fetched and hashed, not as a
+                                # manufacturer URL that was never retrieved.
+  sha256: 4868d8c139ed953bee3106ff3f0f4c7a0e0747ec1d50f7980684e462e61154c3
+  fetched: 2026-07-28
+  pages: 42
+package: SOT-223-3 (Microchip package code DB), 3 gullwing leads on 2.30 mm BSC
+  pitch plus a heat-spreader TAB. Body 6.50 x 3.50 mm nominal (D x E1), overall
+  width E 7.00 mm nominal across the leads, height A 1.80 mm max, lead width b
+  0.76 mm nominal, tab lead width b2 3.00 mm nominal. Microchip Technology
+  Drawing C04-032B, PDF p27. RECOMMENDED LAND PATTERN drawing C04-2032A, PDF
+  p28 - contact pitch 2.30 BSC, overall pitch 4.60 BSC, contact pad spacing
+  C 6.10, pad width X1 0.95 max, TAB pad width X2 3.25 max, pad length Y 1.90 max
+footprint: Package_TO_SOT_SMD:SOT-223
+                                # STANDARD KiCad library footprint, verified to
+                                # exist under /usr/share/kicad/footprints.
+                                # Pads (measured out of the .kicad_mod):
+                                #   1 at (-3.15, -2.30) 2.0 x 1.5
+                                #   2 at (-3.15,  0.00) 2.0 x 1.5
+                                #   3 at (-3.15, +2.30) 2.0 x 1.5
+                                #   4 at (+3.15,  0.00) 2.0 x 3.8   <- the TAB
+                                # Pitch 2.30 mm matches drawing C04-032B e.
+                                # KiCad's land is slightly MORE generous than
+                                # Microchip's C04-2032A (pad 2.0 x 1.5 vs
+                                # 1.90 x 0.95; pad spacing 6.30 vs 6.10) — more
+                                # toe and heel, adjacent-pad gap still 0.80 mm.
+                                # Accepted as a superset, recorded so the
+                                # difference is a decision and not a surprise.
+escape:                         # emitted by escape_check.py, 2026-07-28
+  style: leaded
+  pitch: 2.3
+  escapes_worst_side: 2         # the lead side carries VIN, GND, VOUT: two nets
+                                # LEAVE (GND excluded). The opposite side is the
+                                # TAB alone, which is GND -> 0 escapes.
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-28
+                                # P-TIER: the board declares jlc_4layer_advanced
+                                # (nets.yaml), so this part asks for LESS than
+                                # the board provides. No tier pressure from the
+                                # regulator — every constraint it imposes on
+                                # this design is electrical or thermal.
+pins:                           # PHYSICAL PADS. Read from "Package Types -
+  1: VIN                        # MCP1755S", PDF p2 (SOT-223-3 diagram, the one
+  2: {name: GND, tie: GND}      # labelled EP-4 on the tab), page RENDERED at
+  3: VOUT                       # 300 dpi and read VISUALLY, then cross-checked
+  4: {name: EP, tie: GND, note: "THE TAB IS PAD 4, NOT PAD 2. Table 3-2 row 5:
+        'EP - Exposed Pad, Connected to GND'. It is both the ground return and
+        the only thermal path off the die; theta_JA 62 C/W assumes it is
+        soldered to copper. tie: GND is load-bearing here - a 3-lead SOT-223
+        token drops the tab, and a dropped tab is invisible to DRC, ERC and
+        parity because the part still works, just hotter"}
+                                # pin-by-pin cross-check against Table 3-2
+                                # "MCP1755S PIN FUNCTION TABLE", PDF p15.
+limits:
+  vin_abs_max: "+17.6 V"                       # Absolute Maximum Ratings, PDF p5
+  vin_operating: 3.6 - 16.0 V                  # AC/DC Characteristics, PDF p5
+  vout_abs_max: (GND - 0.3) to +5.5 V          # Absolute Maximum Ratings, p5
+  vout_regulation: VR -2.0% / +0.85% typ / +2.0% max  # PDF p6 -> 3.234-3.366 V
+  vout_tempco: 35 ppm/C                        # TCVOUT, PDF p6
+  line_regulation: "+/-0.01 %/V typ, +/-0.05 max (VR+1V <= VIN <= 16 V)"  # p6
+  load_regulation: "+/-0.1 % typ, +/-0.5 max (IL 1.0 mA to 300 mA)"       # p6
+  iout_max: 300 mA ensured minimum              # PDF p5
+  i_soft_current_limit: 450 mA typ              # PDF p5
+  i_pulse_current_limit: 350 mA typ             # PDF p5
+  i_short_circuit_foldback: 30 mA typ           # PDF p5
+  iq: 68 uA typ / 100 uA max at IL = 0 mA       # PDF p5
+  ignd: 300 uA typ / 400 uA max at IL = 300 mA  # PDF p5
+  dropout: 300 mV typ / 500 mV max at IL = 300 mA   # PDF p6
+  psrr: 80 dB typ at 1 kHz (VR 5 V, IL 100 mA, VIN_AC 1 Vpk-pk, CIN 0 uF)  # p8
+  uvlo: 3.00 V typ rising / 2.70 V typ falling, 300 mV hysteresis  # p6, p19
+  tsd: 150 C typ shutdown, 140 C typ recovery (10 C hysteresis)    # p8, p19
+  ta_specified: -40 to +125 C                   # TEMPERATURE SPECIFICATIONS, p8
+  tj_operating: -40 to +150 C                   # PDF p8
+  tj_abs_max: "+165 C"                          # Absolute Maximum Ratings, p5
+  tstg: -55 to +150 C                           # PDF p5
+  theta_ja: 62 C/W (SOT-223-3)                  # PDF p8; datum JESD51-7, p22
+  theta_jc: 15 C/W (SOT-223-3)                  # PDF p8
+  esd: 3 kV HBM / 400 V MM, all pins            # Absolute Maximum Ratings, p5
+  qualification: AEC-Q100 reliability testing passed   # headline, PDF p1
+gotchas:
+  - "C_LDO IS CLOSED BY THIS PART, AND THE 1 uF X7R PLACEHOLDER STANDS EXACTLY.
+     Section 4.3 'Output Capacitor', PDF p17, verbatim: 'The MCP1755/MCP1755S
+     requires a minimum output capacitance of 1 uF for output voltage stability.
+     Ceramic capacitors are recommended... The Equivalent Series Resistance
+     (ESR) of the electrolytic output capacitor should be no greater than 2
+     ohms... Ceramic materials, X7R and X5R, have low-temperature coefficients
+     and are well within the acceptable ESR range required. A typical 1 uF X7R
+     0805 capacitor has an ESR of 50 milliohms.' So the window is: C >= 1 uF,
+     ESR <= 2 ohm with NO LOWER BOUND, ceramic X7R/X5R explicitly named as
+     inside it. Every AC/DC spec in this datasheet is measured with
+     COUT = 1 uF (X7R) — the placeholder IS the test condition. Max recommended
+     is 1000 uF; larger COUT improves transient response and PSRR.
+     DERATING NOTE (mine, not the datasheet's): a 1 uF X7R 0805 at 3.3 V DC bias
+     keeps well over the 1 uF floor, but a 1 uF X7R in 0402 can lose >50% and
+     land BELOW it. The floor is on the EFFECTIVE capacitance at 3.3 V bias, so
+     the package is part of the spec, not a free choice."
+  - "THE ESR WINDOW IS AN UPPER BOUND ONLY, AND THAT IS THE PROPERTY THAT WON
+     THIS SELECTION. The nearest rival on stock depth, MIC5209-3.3YS-TR
+     (C144220, 1999 in stock vs this part's 86), needs the OPPOSITE: its
+     DS20005720A section 4.3 asks for 'an ESR of about 1 ohm' and warns
+     'Ultra-low-ESR and ceramic capacitors can cause a low amplitude oscillation
+     on the output and/or underdamped transient response'. Swapping to it does
+     NOT keep C_LDO — it forces a tantalum. And the obvious workaround is
+     REFUTED BY ARITHMETIC: putting ~1 ohm in SERIES with the DC path costs
+     1 ohm x 0.15 A = 150 mV, which drags 3.30 V to 3.15 V, BELOW the 3.20 V
+     vout_min floor. The ESR would have to live inside the capacitor. Any
+     alternate swap must re-open C_LDO; it is not a like-for-like."
+  - "MCP1755 AND MCP1755S ARE DIFFERENT PINOUTS IN THE SAME SOT-223 OUTLINE.
+     MCP1755S (this part) is SOT-223-3: 1=VIN, 2=GND, 3=VOUT, 4=EP.
+     MCP1755 is SOT-223-5 (package code DC): 1=SHDN, 2=VIN, 3=GND, 4=VOUT,
+     5=PWRGD, 6=EP (Table 3-1, PDF p15). A one-letter order-code slip moves VIN
+     from pad 1 to pad 2 and VOUT from pad 3 to pad 4, on a land pattern that
+     looks like the same part. Nothing on the board can see it before power-up."
+  - "THE TAPE-AND-REEL TWIN IS AT STOCK ZERO. Per the Product Identification
+     System (PDF p39), 'T' after the device name means Tape and Reel:
+     MCP1755ST-3302E/DB is the reel code (LCSC C111176) and it was 0 in stock on
+     2026-07-28; MCP1755S-3302E/DB (this part, C638611) is the TUBE code and is
+     the buyable one. Both are the same die, package, pinout and specification —
+     but the BOM must name the code that exists, and JLC feeds tube parts."
+  - "LCSC'S PARAMETRIC SAYS '16V' AND ADR-0004'S CONSTRAINT IS WRITTEN AGAINST
+     THE ABSOLUTE MAXIMUM, WHICH IS 17.6 V. C638611's LCSC record reads
+     '3.3V 300mA 16V' (live 2026-07-28) — that is the OPERATING maximum from
+     PDF p5, not the abs max from the Absolute Maximum Ratings table on the same
+     page. Reading the parametric alone would have understated the headroom.
+     Both numbers clear the >= 10 V bar, and the operating one clearing it is
+     the STRONGER result: with the SMAJ5.0A-class clamp at ~9.2 V at 43.5 A, the
+     regulator is inside its NORMAL OPERATING RANGE during a clamp event, not
+     merely inside its survival rating."
+  - "THE GATE'S DISSIPATION FORMULA IS THIS DATASHEET'S OWN FORMULA, AND IT IS
+     VALID *BECAUSE* THIS PART IS CMOS. Equation 5-1 (PDF p21) is
+     PLDO = (VIN(MAX) - VOUT(MIN)) x IOUT(MAX) — character for character what
+     DETAIL_DESIGN section 5 computes — and section 5.2.1 justifies dropping the
+     supply-current term: 'The power dissipation, as a result of the quiescent
+     current draw, is so low, it is insignificant (68.0 uA x VIN).' That
+     justification is PART-SPECIFIC. A 1117-class bipolar LDO draws 5 mA typ /
+     11 mA max of quiescent current (AMS DS1117 Electrical Characteristics, PDF
+     p3, 'Quiescent Current' row), which adds up to 5.25 V x 11 mA = 58 mW —
+     19% on top of the 308 mW — that the gate's formula CANNOT SEE. Worst case
+     here is IGND 400 uA x 5.25 V = 2.1 mW, 0.7%. Any future swap to a bipolar
+     part must re-derive pdiss_max_mw, not inherit it."
+  - "62 C/W IS A JESD51-7 NUMBER AND THE BOARD HAS TO EARN IT. Section 5.3.1,
+     PDF p22: 'The Thermal Resistance from Junction to Ambient is derived from an
+     EIA/JEDEC standard... JESD51-7, High Effective Thermal Conductivity Test
+     Board for Leaded Surface Mount Packages... The actual thermal resistance for
+     a particular application can vary depending on many factors, such as copper
+     area and thickness.' JESD51-7 is a multi-layer board with internal planes,
+     which this 4-layer stackup is — so the datum CLASS matches. What does not
+     come free is the copper: the tab is the only path off the die, so a starved
+     tab land makes 62 C/W a fiction. The margin is large enough to absorb it
+     (307.5 mW at 62 C/W is a 19 C rise against a 60 C allowance) but the
+     obligation is real and it lives in layout: below."
+  - "TRUE CURRENT FOLDBACK, NOT PLAIN CURRENT LIMIT. Section 4.2, PDF p17: on a
+     low-impedance short the output current and voltage 'fold back towards 30 mA
+     and 0V'. A conventional limiter would hold ~450 mA into a fault and recover
+     the instant it clears; this part collapses to 30 mA and stays there until
+     the excessive load is removed. Nowhere near the 0.15 A envelope, and the
+     4.7 uF + 1 uF + 4 x 0.1 uF downstream is a trivial start-up load, but it
+     means a bring-up short does NOT present as a warm regulator holding
+     half an amp — it presents as a dead 3V3 rail. Do not read that as a failed
+     part."
+  - "UVLO IS 3.00 V RISING / 2.70 V FALLING (PDF p6, p19) — 1.75 V below the
+     4.75 V USB floor. There is no undervoltage supervision to add and none to
+     design around; recorded so the next reader does not add a supervisor for a
+     threshold the part already has, and does not mistake the 3.6 V OPERATING
+     minimum for a brownout limit. Section 4.7 (PDF p19) does warn that PCB trace
+     drop between source and LDO input can trip UVLO — at 4.75 V minus a
+     ferrite and 0.4 mm of PWR track that is not reachable here, which is a
+     conclusion, not an omission."
+  - "NO MSL LEVEL IS STATED ANYWHERE IN DS20005160B. Section 6.0 Packaging
+     Information (PDF p25+) carries package marking and drawings only. There is
+     therefore no msl: assert on this part — stated as an ABSENCE in the
+     document rather than left silent. If the assembler needs one it must come
+     from Microchip's packaging specification, not from this dossier."
+  - "KiCAD SHIPS TWO 3-LEAD SOT-223 FOOTPRINTS AND ONLY ONE IS RIGHT HERE.
+     Package_TO_SOT_SMD:SOT-223 numbers the tab pad 4 (correct for this part).
+     Package_TO_SOT_SMD:SOT-223-3_TabPin2 numbers BOTH the centre lead and the
+     tab '2' — a duplicate pad number. Because the EP is internally connected to
+     GND, the wrong one still produces an electrically working board, so no ERC,
+     DRC or parity check can see the difference; what it produces is a footprint
+     whose numbering contradicts Table 3-2 and a PAD-MISMATCH artifact against a
+     JLC-fetched twin. This is the same trap the fleet already paid for on a
+     SOT-89-5 (proven-parts.yaml analog-ldo-quiet-3v3: 'JLC's fetched footprint
+     numbers BOTH the center lead and the tab 2 -> PAD-MISMATCH artifact')."
+verified: "pin map read from the figure 'Package Types - MCP1755S', PDF p2 of 42
+  — the SOT-223-3 diagram whose tab is labelled EP-4 — page RENDERED at 300 dpi
+  with pdftoppm and read VISUALLY, then cross-checked pin-by-pin against Table
+  3-2 'MCP1755S PIN FUNCTION TABLE', PDF p15 (VOUT=3, GND=2, VIN=1, EP=4). The
+  two agree, including that the SOT-223-3 has no SHDN and no PWRGD. Package and
+  land pattern read from Microchip Technology Drawing C04-032B (PDF p27) and
+  C04-2032A (PDF p28), both rendered and read visually; lead pitch 2.30 BSC is
+  from the C04-032B dimension table and is what the escape: pitch cites.
+  Rendered from the PDF whose sha256 is recorded above. 2026-07-28"
+layout:
+  source: "DS20005160B section 4.3 'Output Capacitor' (PDF p17), section 4.4
+    'Input Capacitor' (PDF p17), section 4.7 dropout/UVLO trace-drop note (PDF
+    p19), and section 5.0-5.3 'Application Circuits and Issues' with Figure 5-1
+    'Typical Application Circuit' and Equations 5-1..5-5 (PDF p21-22). The
+    datasheet has NO routed reference layout and no EVM artwork — reported as an
+    absence, not invented. Figure 5-1 is a SCHEMATIC, not a layout: it shows the
+    SOT-223 with EP, CIN 1 uF ceramic on VIN and COUT 1 uF ceramic on VOUT and
+    nothing about copper. The two placement rules the datasheet does state are
+    verbatim: output cap 'located as close to the LDO output as is practical'
+    and input cap 'placed as close to the input of the LDO as is practical',
+    plus 'the input capacitor should be of equivalent or higher value than the
+    output capacitor'. The thermal rule is section 5.3.1's warning that the
+    62 C/W depends on copper area and thickness."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: VBUS_F, max_span_mm: 15, why: "the regulator's input trunk. Section
+       4.4 (PDF p17) opens 'Low input source impedance is necessary for the LDO
+       output to operate properly' and section 4.7 (PDF p19) makes PCB trace
+       drop between the source and the LDO input an explicit UVLO hazard. On
+       this net ADR-0004 already fixes the membership - fuse output, D_TVS
+       cathode, C_BULK and the FB_IN input all sit on VBUS_F - so a span budget
+       is exactly the measurable form of 'keep the protection chain a cluster,
+       not a tour of the board'. 15 mm is loose enough for a real four-pad
+       placement and tight enough that a strung-out power chain trips it.
+       SHARED WITH the TVS/PPTC dossier when that lands; a tighter budget there
+       supersedes this one, it does not conflict with it"}
+  adjacency:
+    - {a: U_LDO, b: C_LDO, max_mm: 3, why: "section 4.3, PDF p17: 'The output
+       capacitor should be located as close to the LDO output as is practical.'
+       C_LDO is the LOOP COMPENSATION element, not decoupling - 1 uF is the
+       stability floor, so trace inductance between pad 3 and the cap is inside
+       the control loop"}
+    - {a: U_LDO, b: C_LDI, max_mm: 3, why: "section 4.4, PDF p17: 'The capacitor
+       should be placed as close to the input of the LDO as is practical...
+       For good step response performance, the input capacitor should be of
+       equivalent or higher value than the output capacitor.' C_LDI 1 uF vs
+       C_LDO 1 uF satisfies that at EQUALITY, which is the boundary of the rule
+       - and C_BULK 4.7 uF does NOT help, because FB_IN sits between them"}
+  notes:
+    - "WHY THE TWO DATASHEET RULES ARE `adjacency:` AND NOT `keep_short:`, said
+       plainly rather than hidden: P-ADJ measures the pad-span of a NAMED NET
+       across the whole board. The LDO's OUTPUT net is 3V3, which by design
+       reaches the RP2040, the QSPI flash, the switch VDD and both LEDs, so a
+       span budget on it would be a gate that can never fail. The LDO's INPUT
+       net - the node between FB_IN and U_LDO pin 1 - HAS NO NAME IN
+       03_src/rules/nets.yaml, whose PWR class lists only [VBUS, VBUS_F, 3V3];
+       a keep_short on a net that does not exist scores len(pts) < 2 and is
+       SILENTLY SKIPPED, which is worse than declaring nothing. Both rules are
+       therefore recorded in the refdes form, and the missing net name is
+       flagged OWED below."
+    - "OWED (not mine to fix - 03_src is the board author's): the ferrite-output
+       node U_LDO.VIN needs a name in nets.yaml. ADR-0004's chain is
+       VBUS_F --[FB_IN]-- U_LDO.VIN, so it is a distinct net from VBUS_F by
+       construction. Until it is named, the input-capacitor placement rule
+       cannot be machine-graded on this board, only reviewed."
+    - "DERIVED (mine, not the datasheet's): the TAB (pad 4) is the ONLY thermal
+       path and it is on GND. Give it a copper pour on F.Cu at least the width
+       of the tab land continuing away from the leads, with stitching vias into
+       the inner ground plane - not a neck. Section 5.3.1 (PDF p22) names copper
+       area and thickness as the variables behind 62 C/W, and this board's whole
+       thermal claim (19.1 C rise, Tj 59.1 C) rests on that number. The pour is
+       also the RF ground, so there is no tension between the two uses."
+    - "DERIVED: the SOT-223 lead side carries VIN and VOUT with GND BETWEEN
+       them (pads 1/2/3). That is a free advantage - the input and output nodes
+       of a regulator are never adjacent, so there is no input-to-output
+       coupling path across the package to design around, and the GND lead sits
+       where a return via belongs. Place the part so pad 1 faces the protection
+       cluster and pad 3 faces the 3V3 consumers, and no PWR trace has to cross
+       another."
+    - "DERIVED, and it is a placement constraint the datasheet cannot state:
+       this is an RF board (ARCHITECTURE section 3 REFUSES a switcher because
+       its harmonics would sit ~25 mm from the receive fan). A linear regulator
+       has no switching node, so the LDO carries no such exclusion - but it does
+       carry a 19 C hot spot and a 0.15 A DC return. Keep the whole power
+       cluster OUT of the nine-arm radial fan and on the RP2040/USB edge, so the
+       regulator's return current never shares copper with an RF launch's ground
+       fence."
+layout_refs:
+  - "Microchip DS20005160B section 5.0 'Application Circuits and Issues',
+     Figure 5-1 'Typical Application Circuit' + Equations 5-1..5-5, PDF p21-22
+     — the manufacturer's own application circuit and thermal method"
+  - "Microchip DS20005160B sections 4.3 / 4.4, PDF p17 — the only two
+     placement sentences the vendor publishes, quoted verbatim in layout.source"
+  - "Microchip Technology Drawing C04-032B (package outline, PDF p27) and
+     C04-2032A (RECOMMENDED LAND PATTERN, PDF p28) — read visually at 100 dpi
+     and compared pad-for-pad against KiCad Package_TO_SOT_SMD:SOT-223"
+  - "NOT DONE, recorded as an absence rather than skipped: no routed reference
+     exists to consult. Microchip publishes no EVM, no evaluation-board artwork
+     and no layout figure for the MCP1755 in this document, and no
+     OSHWLab-by-LCSC board was searched for C638611. A 3-lead SOT-223 at 2.30 mm
+     pitch and 0.15 A does not need a routed precedent, which is why this was
+     not chased — but it was not chased, and that is the honest word for it."
+sourcing:
+  lcsc: C638611
+  alternates: [C144220, C512091]
+                                # C144220 = MIC5209-3.3YS-TR (Microchip/Micrel,
+                                #   DS20005720A: SOT-223-3, VIN abs max
+                                #   -20 to +20 V (p4), theta_JA 62 C/W on the
+                                #   datasheet's stated "EIA/JEDEC ... 4 Layer
+                                #   Board" datum (p8), dropout 300 mV max at
+                                #   exactly IL=150 mA / 400 mV over full temp
+                                #   (Table 1-1, p6), 500 mA rated). Passes all
+                                #   three ADR-0004/DETAIL_DESIGN constraints with
+                                #   room and has ~23x the stock. IT IS NOT
+                                #   DROP-IN: its tab is pad 2 (a DIFFERENT KiCad
+                                #   footprint, SOT-223-3_TabPin2), its IGND is
+                                #   1.8 mA typ / 2.5 mA max at 150 mA instead of
+                                #   0.3 mA, and it needs ~1 ohm of output-cap
+                                #   ESR, so C_LDO changes from ceramic to
+                                #   tantalum. A swap re-opens the footprint, the
+                                #   dissipation term AND C_LDO. See gotchas.
+                                # C512091 = MCP1703-3302E/DB (SOT-223-3, VIN abs
+                                #   max 16 V, 250 mA, 2 uA Iq, ceramic-stable at
+                                #   1 uF). Same footprint and same pinout family
+                                #   as this part and it keeps C_LDO — but its
+                                #   published PSRR is 44 dB at 100 Hz against
+                                #   this part's 80 dB at 1 kHz, and it was at
+                                #   stock 50 on 2026-07-28. Second, not first.
+asserts:
+  - assert: value
+    equals: MCP1755S-3302E/DB
+    why: "the BOM Comment must name the ORDER CODE, because three of the five
+      failure modes this part has are order-code failures that assemble
+      perfectly. (1) MCP1755 without the S is the SOT-223-5 variant: VIN moves
+      from pad 1 to pad 2 and VOUT from pad 3 to pad 4 in a package with the
+      same outline (Table 3-1 vs Table 3-2, PDF p15). (2) MCP1755ST-3302E/DB is
+      the tape-and-reel code for the identical die and was stock 0 on
+      2026-07-28, so a 'helpful' substitution to it is a part that cannot ship.
+      (3) The Microchip siblings that share the SOT-223-3 land - TC1262-3.3VDB
+      (C52507), TC2117-3.3VDB (C98655), TC1108-3.3VDB (C622711) - all fit this
+      footprint and all regulate 3.3 V, and LCSC's input-voltage column lists
+      every one of them at 6 V against this part's 16 V. That column is the
+      OPERATING maximum, not the absolute maximum (it reads 16 V here where the
+      datasheet says 17.6 V), so their datasheets must be opened before any
+      substitution - but a 6 V OPERATING part is nowhere near ADR-0004's >= 10 V
+      ABSOLUTE-MAXIMUM bar, and ADR-0004 disqualifies that class at selection:
+      with an SMAJ5.0A-class clamp at ~9.2 V the regulator dies before the
+      protection conducts. Such a part in this footprint produces a board that
+      passes ERC, DRC, parity, twin and pin review and then fails the first time
+      the TVS is asked to do its job."
