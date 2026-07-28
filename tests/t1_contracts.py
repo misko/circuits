@@ -55,9 +55,29 @@ def fixture_tree():
 
 
 # ------------------------------------------------------------ clean cases
-@test("contracts_audit: the real repo (non-projects scope) is clean")
+@test("contracts_audit: the real repo (non-projects scope) is clean, and its "
+      "verdict CARRIES ITS DENOMINATOR")
 def t_repo_clean():
-    must_pass(run([KPY, AUDIT]), "contracts_audit on the repo")
+    """The second half is canon M-COVER and it landed 2026-07-28.
+    `contracts_audit: 243 files, 0 violations` was being read as COVERAGE. It
+    is not: the default universe excludes `projects/**` and
+    `archived_projects/**`, which was 6715 of 6958 tracked files — the
+    invocation CLAUDE.md names grades 3.5% of the tree. A verdict with no
+    denominator invites exactly that reading, and every other gate here prints
+    N/M.
+
+    RED-VERIFIED 2026-07-28 (git-swap): pre-fix the line is
+    `contracts_audit: 243 files, 0 violations` and `tracked` appears nowhere,
+    so the `NOT GRADED` assertion fails.
+    """
+    r = must_pass(run([KPY, AUDIT]), "contracts_audit on the repo")
+    contains(r.out, "/6958 tracked", "the verdict states the full universe")
+    contains(r.out, "NOT GRADED", "the verdict says what it did not grade")
+    contains(r.out, "--projects", "the verdict names the wider invocation")
+    # ...and the wider scope does NOT print an exclusion it did not make
+    w = run([KPY, AUDIT, "--projects"])
+    check("NOT GRADED" not in w.out,
+          f"--projects claims an exclusion it did not make:\n{w.out[-500:]}")
 
 
 @test("contracts_audit passes a well-governed fixture tree")
@@ -164,6 +184,126 @@ def t_template_seed():
     r = must_pass(run([KPY, AUDIT, "--walk", "--root", d]),
                   "contracts_audit on template-seeded project")
     contains(r.out, "0 violations", "seeded project audits clean")
+
+
+# ================== the MARKDOWN PIPE in a pattern cell (2026-07-28) =========
+PIPE_ROOT = """# contract: fixture root
+## Allowed
+| Pattern | What |
+|---|---|
+| `*.c\\|*.h\\|*.rs\\|*.py` | the firmware |
+| `README.md` | doc |
+"""
+
+
+def pipe_tree(names):
+    d = tmpdir("ctp_")
+    (d / "contracts.md").write_text(PIPE_ROOT)
+    for n in names:
+        (d / n).parent.mkdir(parents=True, exist_ok=True)
+        (d / n).write_text("x")
+    return d
+
+
+@test("contracts_audit reads a pattern cell whose pipes are ESCAPED — "
+      "`*.c\\|*.h\\|*.rs\\|*.py` permits all four, not just the first",
+      kind="known_bad")
+def t_escaped_pipe_alternation():
+    """THE DEFECT (2026-07-28). `parse_allowed` split table rows with a naive
+    `line.split("|")`, so the 05_firmware contract's one Allowed row —
+    `` `*.c|*.h|*.rs|*.py` `` — was torn into four cells and only `*.c` ever
+    became a pattern. EVERY `.h`, `.rs` and `.py` in the repo failed C-ALLOW
+    while its own contract said, in plain sight, that it was permitted. Six
+    live failures in `archived_projects/` prove it, and it is why a constant
+    shipped in a `.c` rather than the `.h` it belonged in: the author read the
+    audit and concluded the FILE was wrong, not the parser.
+
+    A parser that silently keeps the first fragment of a pattern list is worse
+    than one that rejects the row outright — it disagrees with the document it
+    is enforcing and gives no hint why.
+
+    THE KNOWN-BAD IS THE ASYMMETRY, and it is what makes this a fixture rather
+    than a restatement: in ONE tree, `main.c` must PASS and `pinmap.h` must
+    also pass, while `notes.md` — matched by no pattern at all — must still
+    FAIL. Pre-fix the first two disagree with each other over one row.
+
+    RED-VERIFIED 2026-07-28 (git-swap, tests/README step 3): with git HEAD's
+    contracts_audit.py swapped back in, the all-permitted tree FAILS with
+    `C-ALLOW  pinmap.h: not permitted by contracts.md` (and `main.rs`,
+    `tool.py`), i.e. `contracts_audit on an all-permitted tree should have
+    exited 0, got 1`. Restored, it passes and `notes.md` still fails.
+    """
+    ok = pipe_tree(["main.c", "pinmap.h", "main.rs", "tool.py", "README.md"])
+    r = must_pass(run([KPY, AUDIT, "--walk", "--root", ok]),
+                  "contracts_audit on an all-permitted tree")
+    contains(r.out, "0 violations", "every listed extension is permitted")
+    # ...and the row did not become a wildcard: an extension it never named
+    # is still refused, in the SAME tree shape.
+    bad = pipe_tree(["main.c", "notes.md"])
+    b = must_fail(run([KPY, AUDIT, "--walk", "--root", bad]),
+                  "contracts_audit on an unlisted extension", "C-ALLOW")
+    contains(b.out, "notes.md", "names the file the row never permitted")
+
+
+@test("contracts_audit does not split a pattern cell on a pipe inside a "
+      "BACKTICK code span either", kind="known_bad")
+def t_codespan_pipe_not_split():
+    """The defensive half. Every project contract already in the tree — and
+    every archived copy, which is never retro-edited — carries the UNESCAPED
+    form `` `*.c|*.h|*.rs|*.py` ``, so a fix that only understood `\\|` would
+    leave the whole existing fleet broken. A pipe inside a code span is
+    content, not a delimiter.
+
+    RED-VERIFIED 2026-07-28 by the same git-swap: pre-fix this tree reports
+    `C-ALLOW  pinmap.h` and exits 1.
+    """
+    d = tmpdir("ctc_")
+    (d / "contracts.md").write_text(
+        "# contract: fixture root\n## Allowed\n| Pattern | What |\n|---|---|\n"
+        "| `*.c|*.h|*.rs|*.py` | the firmware, pipes unescaped |\n")
+    for n in ("main.c", "pinmap.h", "main.rs", "tool.py"):
+        (d / n).write_text("x")
+    r = must_pass(run([KPY, AUDIT, "--walk", "--root", d]),
+                  "contracts_audit on an unescaped-pipe contract")
+    contains(r.out, "0 violations", "the code span is one pattern cell")
+    (d / "notes.md").write_text("x")
+    must_fail(run([KPY, AUDIT, "--walk", "--root", d]),
+              "contracts_audit on an unlisted extension", "notes.md")
+
+
+@test("the 05_firmware TEMPLATE permits a header and a src/ tree — the "
+      "contract and the auditor now agree", kind="known_bad")
+def t_firmware_template_permits_headers():
+    """The end-to-end statement, against the SHIPPED template rather than a
+    hand-written fixture: `05_firmware/pinmap.h` and `05_firmware/src/x.c`
+    must audit clean, and `05_firmware/notes.md` must not.
+
+    MEASURED: the whole fleet holds 5 firmware source files, and 4 of them are
+    the `.h` files under `archived_projects/cook-hub/05_firmware/{include,src}/`
+    that this row was failing. Those archived copies keep failing until they
+    are re-synced from this template on their next revision — templates are
+    the source of truth and project copies are seeded, never retro-edited
+    (CLAUDE.md, Structure governance).
+
+    RED-VERIFIED 2026-07-28 (git-swap): pre-fix, `pinmap.h` fails C-ALLOW
+    against the template's own contract.
+    """
+    tpl = (ROOT / "skills" / "pcb-design" / "templates" / "contracts" /
+           "05_firmware" / "contracts.md")
+    d = tmpdir("ctf_")
+    shutil.copy(tpl, d / "contracts.md")
+    (d / "pinmap.h").write_text("#define X 1\n")
+    (d / "src").mkdir()
+    (d / "src" / "relay_fsm.c").write_text("int main(void){return 0;}\n")
+    (d / "include").mkdir()
+    (d / "include" / "protocol.h").write_text("#define Y 2\n")
+    (d / "README.md").write_text("build\n")
+    r = must_pass(run([KPY, AUDIT, "--walk", "--root", d]),
+                  "contracts_audit on the shipped 05_firmware template")
+    contains(r.out, "0 violations", "the template permits what it says")
+    (d / "notes.md").write_text("stray\n")
+    must_fail(run([KPY, AUDIT, "--walk", "--root", d]),
+              "a stray .md under 05_firmware", "notes.md")
 
 
 @test("skill<->contract sync: every emitted check-ID is in canon; no contract "

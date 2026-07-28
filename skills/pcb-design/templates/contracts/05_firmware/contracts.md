@@ -9,7 +9,7 @@ the board has no MCU.
 
 | Path | What |
 |---|---|
-| `src/` (local subfolder) or `*.c|*.h|*.rs|*.py` | the firmware |
+| `*.c\|*.h\|*.rs\|*.py` `src/**` `include/**` | the firmware — sources at the top level, or at any depth under `src/`/`include/`. **The pipes are BACKSLASH-ESCAPED because this is a markdown table cell**: an unescaped `\|` inside a code span is still a cell delimiter, and the auditor read this row as `*.c` alone until 2026-07-28, so every `.h`, `.rs` and `.py` in the repo failed C-ALLOW while the contract said they were permitted. A firmware tree is arbitrary depth, so it takes DEEP patterns rather than a nested `contracts.md` per source folder |
 | `Makefile` / build config | must take the MCU as a VARIABLE, not a constant |
 | `tests/` | host-runnable logic tests |
 | `README.md` | how to build, how to flash, which connector |
