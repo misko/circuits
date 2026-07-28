@@ -33,13 +33,27 @@ package: >-
   rows at 2.60 and 6.77 from the mating face); 2 NPTH alignment posts
   2-phi 0.50 at 5.78 centres; seating-plane flatness 0.10. Housing UL94 V-0,
   contacts copper alloy, mid plate and shell stainless steel (drawing Note 1).
-footprint: pluto_rx2_8way:USB_C_Receptacle_HRO_TYPE-C-31-M-12A  # OWED — see
-                                   # gotchas "KICAD'S STOCK FOOTPRINT DOES NOT
-                                   # MATCH THIS LAND". The stock KiCad part
+footprint: pluto_rx2_8way:USB_C_Receptacle_HRO_TYPE-C-31-M-12A
+                                   # AUTHORED 2026-07-28 ->
+                                   # 03_src/lib/pluto_rx2_8way.pretty/. NOT owed
+                                   # any more. See gotchas "KICAD'S STOCK
+                                   # FOOTPRINT DOES NOT MATCH THIS LAND" for the
+                                   # pad-by-pad comparison that made authoring
+                                   # necessary. KiCad's
                                    # Connector_USB:USB_C_Receptacle_HRO_TYPE-C-
-                                   # 31-M-12 is the SEED (its hole pattern is
-                                   # exact); only the SMT pad row must be
-                                   # redrawn.
+                                   # 31-M-12 was the SEED for the HOLE pattern
+                                   # (exact); the SMT pad row was re-laid to the
+                                   # sheet. VERIFIED after authoring, from the
+                                   # emitted file rather than by eye: 16 SMD
+                                   # pads on four SHARED 0.60 lands at +/-2.40
+                                   # and +/-3.20 plus eight 0.30 lands at 0.50
+                                   # pitch, all 1.14 long; row centre 1.07 mm
+                                   # from the alignment-hole line (the 0.375 mm
+                                   # error the stock part carries); pad names
+                                   # alphanumeric A1..B12 + SH; F.SilkS stroke
+                                   # 0.15 (the jlc_4layer_advanced floor, not
+                                   # KiCad's 0.12 default); loads clean through
+                                   # pcbnew.FootprintLoad.
 mates: receptacle                  # STATED HONESTLY: the TITLE BLOCK DOES NOT
                                    # CARRY THE GENDER. It reads only
                                    # "PART NO. TYPE-C-31-M-12A" and
