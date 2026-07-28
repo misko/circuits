@@ -125,10 +125,16 @@
   refs: ["06_build/verification/pin_review.md"]
   why: >-
     The 8 flagged part.yaml entries carry verified: notes without a
-    figure/page citation string, but every one was INDEPENDENTLY re-verified by
-    the fresh-context PIN REVIEW (06_build/verification/pin_review.md,
-    2026-07-23, 5/5 groups, 0 confirmed pin-map defects) — a stronger check
-    than a citation: pinouts re-DERIVED against the named source per part:
+    figure/page citation string. The waiver rests on the MACHINE pin checks
+    recorded in 06_build/verification/pin_review.md (v1.3, 2026-07-26):
+    pin_audit.py over 74 dossiers, audit_board I-POL 18 polarity checks,
+    kicad-cli schematic-parity 0, and E-INV 83/83 — NOT on a narrative group
+    review. That file is EXPLICIT that its narrative review is
+    INCOMPLETE/carried-from-v1.0 and "should not be read as" coverage; this
+    waiver does not claim otherwise (an earlier revision of this text cited a
+    "5/5 groups, 0 confirmed pin-map defects" pin review that the file it names
+    does not contain — corrected here). On top of those machine checks, each
+    pinout is re-DERIVED against the named source per part:
     SN74HC595DR (TI SCLS041J, SER/SRCLK/RCLK + QH' daisy chain), 2N7002
     (Diodes DS11303 G/S/D, 5 instances), AO3401A (S/D/G re-derived, 6
     instances incl. reverse-block orientation), ULN2803ADWR (IN/OUT
