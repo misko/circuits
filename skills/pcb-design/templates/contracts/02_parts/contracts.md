@@ -166,9 +166,17 @@ layout:                     # REQUIRED for ICs + power/sense parts (P-LAYOUT).
   source: "TI SLVSDG8B Sec.11 + EVM SLVUAP7A: pass FET + sense R + VBUS caps
     HARD against the power-stage pin edge; Kelvin-sense back to the chip"
   reviewed: "2026-07-14"
-  keep_short:               # nets whose pad-span P-ADJ measures on the board
+  keep_short:               # nets whose pad-span P-ADJ measures on the board.
     - {net: RSNS,  max_span_mm: 5, why: "Kelvin sense R adjacent to ISNS/VPWR"}
     - {net: PDSRC, max_span_mm: 5, why: "pass-FET source common node at chip"}
+                            # `net:` MUST be a NET NAME ON THIS BOARD carrying
+                            # >= 2 pads. A name copied out of the datasheet's
+                            # reference design, a renamed net, or prose like
+                            # "V+ decoupler (pin 8)" resolves to nothing, and
+                            # P-ADJ-UNREACHED FAILS it by name: a budget
+                            # nothing evaluates is not a pass. Measured
+                            # 2026-07-28 before that gate existed: 61 of 119
+                            # budgets fleet-wide (51%) were graded by NOTHING.
   # adjacency: [...]        # optional refdes-pair form; notes: free-text rules
 layout_refs:                # REQUIRED for every HARD part (dense escapes,
                             # switching power, >0.5A analog, RF): the LAYOUT
@@ -335,6 +343,11 @@ the board's placement HONOURS it:
   and flags any that exceeds its `max_span_mm` (the datasheet's "keep it local"
   rule made mechanical) — warn+waiver: a real over-span must be re-placed or
   dispositioned in `policy_waivers.yaml` with the measured span + why.
+  **P-ADJ-UNREACHED** is a SEPARATE row and is NOT waivable by a P-ADJ waiver:
+  it fails any budget whose `net:` does not resolve to a 2+-pad net here. The
+  split is deliberate — a P-ADJ waiver's evidence is a set of MEASURED spans,
+  and letting it also cover budgets that were never measured is exactly the
+  waiver-widening canon M4 forbids.
 - The Layout read is the independent human half: escape/pinout can be right while
   the part is still placed wrong (usb-hub-3s-v2 TPS25740A). P-ADJ is the machine
   half — it caught RSNS span 11.5mm > 5mm on that exact board.

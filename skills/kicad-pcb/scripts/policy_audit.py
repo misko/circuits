@@ -203,32 +203,62 @@ def main():
     else:
         rows.append(("S-NET", "N-A", "no board"))
 
-    weak, tot = [], 0
+    # ---- S-VER reads the KEY, not the first place the word appears ---------
+    # It used to grep the raw text for the first literal `verified:` and read
+    # 300 characters from there. `part.yaml` is a YAML document that TALKS
+    # ABOUT ITSELF: `gotchas:` entries cross-reference "see verified:", a
+    # `sha256:` value says "no PDF is vendored; see verified:", and comments
+    # write "# Footprint match verified: ...". Any of those that sorts before
+    # the real key SHADOWS it, and S-VER then grades a sentence that is not
+    # the citation. Measured 2026-07-28 over all 557 fleet part.yaml: 15 files
+    # where the grep and the parsed key disagree — 4 shadowed by a `#`
+    # comment, 11 by an earlier quoted string. The 300-char window was the
+    # second half of the same mistake: a citation past that cut-off read as
+    # absent. `yaml.safe_load` + `y["verified"]` has neither failure mode.
+    weak, tot, unparsed = [], 0, []
     for py in sorted(glob.glob(str(proj / "02_parts" / "*" / "part.yaml"))):
-        txt = Path(py).read_text()
-        # 2-pad passives need no figure citation (no pinout to mirror)
-        npins = 0
+        name = Path(py).parent.name
+        y = None
         if yaml:
             try:
-                y = yaml.safe_load(txt) or {}
-                npins = len(y.get("pins") or {})
-            except Exception:
-                npins = 0
+                y = yaml.safe_load(Path(py).read_text()) or {}
+            except Exception as exc:
+                y = None
+                why = str(exc).splitlines()[0][:80]
+        if y is None:
+            # canon M-COVER: input the gate cannot parse is a FAIL that names
+            # itself, never a silently-skipped zero. NOT PINNED BY A FIXTURE
+            # and deliberately said so: an unparseable part.yaml never reaches
+            # here today, because P-LAYOUT's unguarded `yaml.safe_load` below
+            # raises first and takes the whole audit down. That is loud rather
+            # than silent, so it is not this change's defect — it is reported
+            # in the commit body as its own job. The branch stands as the
+            # backstop for the no-PyYAML case and for when that is fixed.
+            tot += 1
+            unparsed.append(f"{name} ({'no PyYAML' if not yaml else why})")
+            continue
+        # 2-pad passives need no figure citation (no pinout to mirror)
+        npins = len(y.get("pins") or {})
         if npins and npins <= 2:
             continue
-        m = re.search(r'verified:\s*["\']?(.{0,300})', txt, re.S)
-        if not m:
-            weak.append(Path(py).parent.name + " (missing)")
-            tot += 1
-            continue
+        v = y.get("verified")
+        note = v if isinstance(v, str) else (
+            "" if v is None else yaml.safe_dump(v, allow_unicode=True))
         tot += 1
-        note = m.group(1)
+        if not note.strip():
+            weak.append(name + " (missing)")
+            continue
         if not re.search(r"(fig(ure)?\.?\s*[\dA-Z-]|table\s*[\d-]|p\.?\s*\d|page\s*\d|drawing)",
                          note, re.I):
-            weak.append(Path(py).parent.name)
+            weak.append(name)
     if tot:
-        grade("S-VER", not weak, f"{tot}/{tot} verified: cite figure/page",
-              f"weak/missing figure citations: {weak[:8]} ({len(weak)}/{tot})")
+        bad = weak + unparsed
+        detail = f"weak/missing figure citations: {weak[:8]} ({len(weak)}/{tot})"
+        if unparsed:
+            detail += (f"; UNPARSEABLE part.yaml (not graded, not passed): "
+                       f"{unparsed[:4]} ({len(unparsed)}/{tot})")
+        grade("S-VER", not bad, f"{tot}/{tot} verified: cite figure/page",
+              detail)
     else:
         rows.append(("S-VER", "N-A", "no 02_parts entries"))
 
@@ -329,24 +359,59 @@ def main():
                     if n:
                         netpads.setdefault(n, []).append(
                             (MM(p.GetPosition().x), MM(p.GetPosition().y)))
-            viol = []
+            viol, unreached, graded = [], [], 0
             for py in part_yamls:
                 y = yaml.safe_load(Path(py).read_text()) or {}
                 for ks in ((y.get("layout") or {}).get("keep_short") or []):
                     net, mx = ks.get("net"), float(ks.get("max_span_mm", 6))
                     pts = netpads.get(net) or []
                     if len(pts) < 2:
+                        # ---- UNREACHED, not skipped (canon M-COVER) --------
+                        # A declared budget whose net carries fewer than two
+                        # pads on this board is graded by NOTHING, and the
+                        # `continue` said so to no one: P-ADJ then reported
+                        # PASS over a budget it never evaluated. The usual
+                        # cause is a NET NAME that does not exist here —
+                        # renamed, or copied from the datasheet's reference
+                        # design — which is exactly the case where a silent
+                        # pass is most misleading, because the budget looks
+                        # honoured and was never even looked up. P-FACT
+                        # already reports its unreached assertions this way;
+                        # this is the same rule.
+                        unreached.append(
+                            f"{Path(py).parent.name}: keep_short net "
+                            f"{net!r} has {len(pts)} pad(s) on this board "
+                            f"(needs 2) — budget {mx}mm graded NOTHING")
                         continue
+                    graded += 1
                     span = max(math.hypot(a[0] - b[0], a[1] - b[1])
                                for a in pts for b in pts)
                     if span > mx + 1e-6:
                         viol.append(f"{net} span {span:.1f}mm > {mx}mm "
                                     f"({ks.get('why', '')})")
+            tot_ks = graded + len(unreached)
             grade("P-ADJ", not viol,
-                  "board honours every layout keep_short net-span budget",
-                  f"datasheet layout budgets exceeded: {viol[:5]} — re-place per "
-                  f"the part's layout: block (targets HARD against the chip), or "
-                  f"waive with the measured span + why (P-ADJ)")
+                  f"board honours every layout keep_short net-span budget "
+                  f"({graded}/{tot_ks} budgets reached)",
+                  f"datasheet layout budgets exceeded: {viol[:5]} — re-place "
+                  f"per the part's layout: block (targets HARD against the "
+                  f"chip), or waive with the measured span + why (P-ADJ)")
+            # ---- ITS OWN ROW, deliberately, not folded into P-ADJ ----------
+            # Both boards that carry keep_short budgets already hold a P-ADJ
+            # waiver, and each names THREE measured span violations as its
+            # evidence. Reporting "never graded" under the same ID would let
+            # those waivers absorb 57 findings of a DIFFERENT CLASS without
+            # anyone writing a word about them — a waiver silently widening
+            # past its evidence is canon M4's inherited-defect pattern, and it
+            # is the failure this gate exists to stop, not to reproduce.
+            grade("P-ADJ-UNREACHED", not unreached,
+                  f"every declared keep_short budget resolved to a net with "
+                  f">=2 pads ({graded}/{tot_ks})",
+                  f"budgets DECLARED but graded by NOTHING: {unreached[:5]} "
+                  f"({len(unreached)}/{tot_ks}) — the net name does not name a "
+                  f"2+-pad net on this board (renamed, or copied from the "
+                  f"datasheet's reference design). Fix the name or drop the "
+                  f"budget; a budget nothing evaluates is not a pass")
         else:
             rows.append(("P-ADJ", "N-A", "no board"))
     else:

@@ -29,7 +29,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from harness import (KPY, SCRIPTS, check, contains, main, must_fail,  # noqa: E402
+from harness import (KPY, SCRIPTS, check, contains, eq, main,  # noqa: E402
+                     must_fail,
                      must_pass, run, test, tmpdir)
 
 ESC = SCRIPTS / "escape_check.py"
@@ -449,6 +450,227 @@ def t_esc_reports_coverage():
     r = must_pass(run([KPY, ESC, p]), "escape_check on a 2-pin part")
     contains(r.out, "1/1 part.yaml graded", "carries an N/M denominator")
     contains(r.out, "input: tiers", "names the tier table it graded against")
+
+
+# ============================ S-VER READS THE KEY (2026-07-28) ==============
+# policy_audit's S-VER grepped the RAW TEXT for the first literal `verified:`
+# and read 300 characters from there. `part.yaml` is a YAML document that
+# TALKS ABOUT ITSELF — `gotchas:` entries say "see verified:", a `sha256:`
+# value says "no PDF is vendored; see verified:", comments say "# Footprint
+# match verified: ..." — so any earlier mention SHADOWS the real key, and the
+# 300-char window then bleeds PAST the value into unrelated keys.
+#
+# MEASURED over all 557 fleet part.yaml: 15 files where the grep and the
+# parsed key disagree (4 shadowed by a `#` comment, 11 by an earlier quoted
+# string). And the window half is the same class as the E-TOPO
+# `fuse rated 3401 A` incident: on smc0985-cooksense/MF-MSMF200L-2 the real
+# citation is `2/3-pad commodity; polarity/pad-1 asserted in board generator
+# + audit I9` — no figure, no page — and S-VER PASSED it because the window
+# ran three keys further into `sourcing:` and matched `p 4` out of the PPTC's
+# trip current, `Itrip 4A`.
+SHADOWED_PART = '''\
+mpn: SHADOWED-8
+manufacturer: Example
+type: logic
+package: SOIC-8
+footprint: lib:SOIC-8_3.9x4.9mm_P1.27mm
+# Footprint match verified: figure 3 of the KiCad library drawing
+pins: {1: A, 2: B, 3: C, 4: D, 5: E, 6: F, 7: G, 8: H}
+verified: "pin map taken from a colleague's schematic, not from the datasheet"
+'''
+
+WINDOW_PART = '''\
+mpn: WINDOW-8
+manufacturer: Example
+type: fuse
+package: SOIC-8
+footprint: lib:SOIC-8_3.9x4.9mm_P1.27mm
+pins: {1: A, 2: B, 3: C, 4: D, 5: E, 6: F, 7: G, 8: H}
+verified: "2/3-pad commodity; polarity asserted in the board generator"
+sourcing:
+  lcsc: C89650
+  note: "6286 stock. F1: Ihold 2A, Itrip 4A, 16V (ADR-0001)."
+'''
+
+GOOD_PART = '''\
+mpn: GOOD-8
+manufacturer: Example
+type: logic
+package: SOIC-8
+footprint: lib:SOIC-8_3.9x4.9mm_P1.27mm
+pins: {1: A, 2: B, 3: C, 4: D, 5: E, 6: F, 7: G, 8: H}
+verified: "pin map read from figure 2, datasheet page 3 of 14"
+'''
+
+
+@test("S-VER FAILS a weak citation that an earlier `verified:` in a COMMENT "
+      "was hiding", kind="known_bad")
+def t_sver_comment_shadow():
+    """The part's real citation admits it came from a colleague's schematic —
+    no figure, no page. A `# Footprint match verified: figure 3 ...` comment
+    sits above it, and the grep found that first and graded S-VER PASS.
+
+    RED-VERIFIED 2026-07-28 (git-swap, tests/README step 3): with git HEAD's
+    policy_audit.py swapped back in this fails with `S-VER on a
+    comment-shadowed citation: got 'PASS', want 'FAIL'`. Restored, FAIL.
+    """
+    d = scratch_project({"SHADOWED-8": SHADOWED_PART})
+    rows = audit_rows(d)
+    check(rows["S-VER"][0] == "FAIL",
+          f"S-VER on a comment-shadowed citation: got {rows['S-VER'][0]!r}, "
+          f"want 'FAIL' — detail was {rows['S-VER'][1]!r}")
+    contains(rows["S-VER"][1], "SHADOWED-8", "names the part")
+    # the ADJACENT property, re-measured every run: the same tree with the ONE
+    # thing fixed — a real citation — must PASS, or the gate proves nothing.
+    ok = scratch_project({"GOOD-8": GOOD_PART})
+    check(audit_rows(ok)["S-VER"][0] == "PASS", "a real citation still passes")
+
+
+@test("S-VER FAILS a weak citation the 300-char WINDOW rescued from a later "
+      "key — `Itrip 4A` is not `page 4`", kind="known_bad")
+def t_sver_window_bleed():
+    """The real smc0985-cooksense/MF-MSMF200L-2 shape, reproduced. The
+    `verified:` value carries no figure and no page; the old window read on
+    into `sourcing.note` and matched `p 4` inside the PPTC's trip current
+    `Itrip 4A`. Same class as E-TOPO's `fuse rated 3401 A`, where an
+    unanchored pattern read a rating out of a part number.
+
+    RED-VERIFIED 2026-07-28 (git-swap): pre-fix `S-VER on a window-bleed
+    citation: got 'PASS', want 'FAIL'`. It is also the measured fleet delta —
+    this fix turns up 2 previously-hidden weak citations (the same part on
+    smc0985-cooksense and archived cook-hub) and clears 0 false alarms.
+    """
+    d = scratch_project({"WINDOW-8": WINDOW_PART})
+    rows = audit_rows(d)
+    check(rows["S-VER"][0] == "FAIL",
+          f"S-VER on a window-bleed citation: got {rows['S-VER'][0]!r}, "
+          f"want 'FAIL' — detail was {rows['S-VER'][1]!r}")
+    contains(rows["S-VER"][1], "WINDOW-8", "names the part")
+
+
+# ============= P-ADJ-UNREACHED: a budget nothing evaluates (2026-07-28) =====
+# `pts = netpads.get(net) or []; if len(pts) < 2: continue` — a declared
+# keep_short budget whose net does not name a 2+-pad net on this board was
+# graded by NOTHING, and the `continue` said so to no one. P-ADJ then reported
+# PASS over a budget it never looked up. The usual cause is a net name that
+# does not exist here (renamed, or copied out of the datasheet's reference
+# design), which is exactly when a silent pass misleads most.
+#
+# MEASURED fleet-wide 2026-07-28: 61 of 119 declared keep_short budgets — 51%
+# — resolved to nothing. 32 of 46 on crow-recorder-central-v2, 25 of 37 on
+# smc0985-cooksense, and all 4 on crow-mic-pod-v2, whose `net:` fields are
+# PROSE ("V+ decoupler (pin 8)") rather than net names at all.
+#
+# IT IS ITS OWN ROW, deliberately. Both boards carrying budgets already hold a
+# P-ADJ waiver, and each names THREE measured span violations as its evidence.
+# Reporting "never graded" under the same ID would let those waivers absorb 57
+# findings of a different class in silence — canon M4's inherited-defect
+# pattern, which is the failure this gate exists to stop.
+FX_PART = """mpn: FXPART
+manufacturer: Example
+type: buck_converter
+package: SOT-23-6
+footprint: t:SOT-23-6
+pins: {1: SW, 2: GND, 3: VIN, 4: FB, 5: EN, 6: BST}
+verified: "pin map read from figure 1, page 2"
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: escape_check}
+layout:
+  keep_short:
+%s
+"""
+KS_REAL = ('    - {net: SW_NODE, max_span_mm: 6, why: "switch-node loop area '
+           'sets EMI; datasheet Layout sec 11"}')
+KS_GHOST = ('    - {net: NOT_ON_THIS_BOARD, max_span_mm: 3, why: "net name '
+            'copied out of the datasheet reference design"}')
+KS_LONE = ('    - {net: LONE, max_span_mm: 3, why: "resolves to a single-pad '
+           'net on this board"}')
+
+
+def _fp(ref, x, y, pads):
+    ps = "\n".join(
+        f'\t\t(pad "{i}" smd roundrect (at 0 {j * 1.0} 0) (size 0.9 0.9)\n'
+        f'\t\t\t(layers "F.Cu" "F.Mask" "F.Paste") (roundrect_rratio 0.25)\n'
+        f'\t\t\t(net {n} "{nm}"))' for j, (i, n, nm) in enumerate(pads))
+    return (f'\t(footprint "t:R_0402"\n\t\t(layer "F.Cu")\n\t\t(at {x} {y} 0)\n'
+            f'\t\t(property "Reference" "{ref}" (at 0 -2 0) (layer "F.SilkS")\n'
+            f'\t\t\t(effects (font (size 1 1) (thickness 0.15))))\n'
+            f'\t\t(property "Value" "V" (at 0 2 0) (layer "F.Fab")\n'
+            f'\t\t\t(effects (font (size 1 1) (thickness 0.15))))\n'
+            f'\t\t(attr smd)\n{ps}\n\t)')
+
+
+def padj_project(keep_short, sw_span=2.0):
+    """A scratch project WITH a board: `SW_NODE` spans `sw_span` mm over two
+    real pads, `LONE` has exactly one pad, and `NOT_ON_THIS_BOARD` has none."""
+    d = scratch_project({"FXPART": FX_PART % "\n".join(keep_short)})
+    (d / "04_kicad").mkdir(parents=True, exist_ok=True)
+    (d / "04_kicad" / "fx.kicad_pcb").write_text(
+        '(kicad_pcb\n\t(version 20260206)\n\t(generator "pcbnew")\n'
+        '\t(generator_version "10.0")\n\t(general (thickness 1.6))\n'
+        '\t(paper "A4")\n\t(layers\n\t\t(0 "F.Cu" signal)\n'
+        '\t\t(2 "B.Cu" signal)\n\t\t(11 "F.Paste" user)\n'
+        '\t\t(13 "F.SilkS" user "F.Silkscreen")\n\t\t(15 "F.Mask" user)\n'
+        '\t\t(25 "Edge.Cuts" user)\n\t\t(31 "F.CrtYd" user "F.Courtyard")\n'
+        '\t\t(35 "F.Fab" user)\n\t)\n\t(setup (pad_to_mask_clearance 0))\n'
+        '\t(net 0 "")\n\t(net 1 "SW_NODE")\n\t(net 2 "GND")\n\t(net 3 "LONE")\n'
+        + _fp("U1", 100, 100, [("1", 1, "SW_NODE"), ("2", 2, "GND")]) + "\n"
+        + _fp("C1", 100 + sw_span, 100,
+              [("1", 1, "SW_NODE"), ("2", 2, "GND")]) + "\n"
+        + _fp("TP1", 150, 100, [("1", 3, "LONE")]) + "\n)\n")
+    return d
+
+
+@test("P-ADJ-UNREACHED FAILS a keep_short budget whose net has fewer than 2 "
+      "pads — declared, and graded by NOTHING", kind="known_bad")
+def t_padj_unreached_is_reported():
+    """The two shapes, in one board: a net that does not exist here at all
+    (`NOT_ON_THIS_BOARD`, 0 pads — the reference-design copy) and one that
+    resolves to a single pad (`LONE`). Neither can be measured, and neither
+    was reported. The finding must NAME the net, since the fix is almost
+    always the name itself.
+
+    RED-VERIFIED 2026-07-28 (git-swap, tests/README step 3): with git HEAD's
+    policy_audit.py swapped back in, `06_build/policy_audit.md` has NO
+    `P-ADJ-UNREACHED` row at all and P-ADJ reads
+    `PASS | board honours every layout keep_short net-span budget` — over
+    three budgets of which it evaluated one. This test fails there with
+    `report has no P-ADJ-UNREACHED row`.
+    """
+    d = padj_project([KS_REAL, KS_GHOST, KS_LONE])
+    rows = audit_rows(d)
+    check("P-ADJ-UNREACHED" in rows, f"report has no P-ADJ-UNREACHED row: "
+                                     f"{sorted(rows)}")
+    eq(rows["P-ADJ-UNREACHED"][0], "FAIL", "P-ADJ-UNREACHED grade")
+    contains(rows["P-ADJ-UNREACHED"][1], "NOT_ON_THIS_BOARD",
+             "names the net that does not exist here")
+    contains(rows["P-ADJ-UNREACHED"][1], "LONE", "names the single-pad net")
+    contains(rows["P-ADJ-UNREACHED"][1], "2/3", "carries the N/M denominator")
+    # the SPAN check is unaffected and still passes on its own terms
+    eq(rows["P-ADJ"][0], "PASS", "P-ADJ span grade")
+    contains(rows["P-ADJ"][1], "1/3 budgets reached",
+             "P-ADJ states how many budgets it actually measured")
+
+
+@test("P-ADJ-UNREACHED PASSES when every budget resolves, and P-ADJ still "
+      "FAILS an exceeded span — the two are independent")
+def t_padj_unreached_adjacent_property():
+    """The adjacent-property red-verify, re-measured on every run: a gate that
+    fired on everything would prove nothing. With only the resolvable budget
+    declared, P-ADJ-UNREACHED PASSES; widen the same board's SW_NODE span past
+    its budget and P-ADJ FAILS while P-ADJ-UNREACHED stays PASS. Splitting the
+    row is only worth anything if the two verdicts can disagree."""
+    ok = padj_project([KS_REAL])
+    rows = audit_rows(ok)
+    eq(rows["P-ADJ-UNREACHED"][0], "PASS", "all budgets reached")
+    contains(rows["P-ADJ-UNREACHED"][1], "1/1", "denominator on the pass side")
+    eq(rows["P-ADJ"][0], "PASS", "span within budget")
+
+    over = padj_project([KS_REAL], sw_span=25.0)   # 25mm against a 6mm budget
+    r2 = audit_rows(over)
+    eq(r2["P-ADJ"][0], "FAIL", "span over budget")
+    contains(r2["P-ADJ"][1], "SW_NODE", "names the over-budget net")
+    eq(r2["P-ADJ-UNREACHED"][0], "PASS",
+       "a span violation is not an unreached budget")
 
 
 if __name__ == "__main__":
