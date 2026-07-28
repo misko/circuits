@@ -56,6 +56,7 @@ release sealed with no assembly.yaml" now pass `no_asm()`, making that
 historical fact explicit instead of inheriting today's working tree.
 """
 import csv
+import json
 import shutil
 import subprocess
 import sys
@@ -982,6 +983,55 @@ sourcing_plan:
     r = must_fail(run([KPY, FRESH, rel]), "incomplete sourcing plan",
                   "STOCK-PLAN-INCOMPLETE")
     contains(r.out, "C6938291", "names the incomplete entry")
+
+
+# --------------------------------------------------------------- A-STOCK scope
+@test("the stock sidecar states what its PASS does NOT cover")
+def t_stock_sidecar_declares_its_own_limit():
+    """Canon M-QUOTE, added 2026-07-27 after a measured miss.
+
+    `jlc_stock_check.py` grades `stockCount`, which is LCSC CATALOG stock. JLC's
+    assembly uploader allocates from a DIFFERENT pool. usb-hub v1.11's
+    predecessor shipped this very sidecar reading
+
+        C25744 ... "status": "OK", "stock": 291      "verdict": "PASS"
+
+    and JLC refused that exact line the same day with "10 shortfall", because
+    LCSC held 291 and JLC's assembly warehouse held none. The gate was not
+    wrong about the number it measured; it was silent about which number that
+    was, and `release_freshness` A-STOCK READS this file.
+
+    So the PROPERTY is not "the verdict is correct" -- it is that the verdict
+    CARRIES ITS OWN SCOPE, because a downstream reader has no other way to know.
+    A gate that reports a true fact about the wrong pool, without saying which
+    pool, is the adjacent-property error with a machine-readable interface.
+
+    Runs OFFLINE: the sidecar is written before the zero-coverage exit, so an
+    all-uncoded BOM exercises the writer with no network at all.
+    """
+    with tmpdir() as d:
+        bom = Path(str(d)) / "bom.csv"
+        bom.write_text("Comment,Designator,Footprint,LCSC\n"
+                       "10k,R1,R_0402_1005Metric,\n"
+                       "100nF,C1,C_0402_1005Metric,\n")
+        out = Path(str(d)) / "stock.json"
+        run([KPY, FAB_SCRIPTS / "jlc_stock_check.py", str(bom),
+             "--json", str(out)])
+        check(out.is_file(), "the sidecar must be written even on a run that "
+                             "grades nothing -- that is the zero-coverage case "
+                             "a reader most needs to see")
+        j = json.loads(out.read_text())
+        eq(j.get("stock_source"), "lcsc_catalog_stockCount",
+           "the sidecar must name WHICH stock pool it read")
+        eq(j.get("predicts_jlc_assembly_allocation"), False,
+           "the sidecar must state that it does NOT predict JLC allocation")
+        check("F-ECHO" in (j.get("pass_means") or ""),
+              f"pass_means must point at the instrument that DOES answer it: "
+              f"{j.get('pass_means')!r}")
+        # and the limit is not json-only: a human reading the terminal sees it
+        r = run([KPY, FAB_SCRIPTS / "jlc_stock_check.py", str(bom)])
+        contains(r.out, "necessary and not sufficient",
+                 "the printed verdict states its own limit")
 
 
 if __name__ == "__main__":

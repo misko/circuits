@@ -189,9 +189,27 @@ if args.json:
                    "bom": str(args.bom),
                    "min_stock_per_board": args.min_stock,
                    "verdict": "FAIL" if (failures or nothing_graded) else "PASS",
-                   # the DENOMINATOR travels with the verdict, so a reader of
-                   # the sidecar alone can see a zero-coverage run for what it
-                   # is rather than inferring PASS from an absent FAIL
+                   # THE LIMIT TRAVELS WITH THE VERDICT (canon M-QUOTE,
+                   # 2026-07-27). This tool reads `stockCount`, which is LCSC
+                   # CATALOG stock. JLC's assembly uploader allocates from a
+                   # DIFFERENT pool, so a PASS here does NOT predict that a
+                   # line will clear at order time. Measured: usb-hub v1.11's
+                   # predecessor shipped this sidecar saying
+                   #   "C25744 ... status: OK, stock: 291"  verdict: PASS
+                   # and JLC refused that exact line hours later ("10
+                   # shortfall"), because LCSC's catalog held 291 while JLC's
+                   # assembly warehouse held none. A FAIL from this tool is
+                   # REAL -- an outright stock-out is a stock-out. A PASS is
+                   # NECESSARY AND NOT SUFFICIENT, and the only instrument that
+                   # answers "will it clear" is the uploader itself (F-ECHO).
+                   # Emitted as a field, not a comment, because
+                   # release_freshness A-STOCK READS this file and a reader of
+                   # the sidecar alone must see the limit.
+                   "stock_source": "lcsc_catalog_stockCount",
+                   "predicts_jlc_assembly_allocation": False,
+                   "pass_means": ("catalog stock >= min_stock x qty at query "
+                                  "time; NOT that JLC will allocate the line "
+                                  "-- see F-ECHO"),
                    "graded_lines": len(coded),
                    "total_lines": len(rows),
                    "zero_coverage": nothing_graded or None,
@@ -211,11 +229,33 @@ if args.json:
 # query — so they were silently outside the denominator while reading as part
 # of a passing run. The verdict now states both numbers.
 graded, total = len(coded), len(rows)
+
+# SCOPE, printed on EVERY exit path -- pass, fail, or zero-coverage. It sat
+# below the `nothing_graded` early-exit at first, so the one run that grades
+# NOTHING was also the one run that never said what it grades. Moved here after
+# the test for it went red, which is the whole argument for writing the test.
+#
+# The failure mode this addresses: a reader takes a PASS as "this will clear at
+# JLC". It will not. Measured 2026-07-27 -- this tool passed C25744 at
+# "stock: 291" and JLC refused that exact line the same day with "10
+# shortfall", because LCSC's catalog held 291 and JLC's assembly warehouse held
+# none. Canon M-QUOTE.
+SCOPE = ("  SCOPE: graded against LCSC CATALOG stock (stockCount). JLC's "
+         "assembly uploader\n"
+         "  allocates from a DIFFERENT pool, so a PASS here does NOT mean the "
+         "line will\n"
+         "  clear at order time. A FAIL is real; a PASS is necessary and not "
+         "sufficient.\n"
+         "  The only instrument that answers 'will it clear' is the uploader "
+         "itself — F-ECHO.")
+
 if nothing_graded:
     print(f"\nFAIL: {nothing_graded} (canon M-COVER)")
+    print(SCOPE)
     sys.exit(1)
 print(f"\n{'FAIL' if failures else 'PASS'}: {graded - failures}/{graded} coded "
       f"BOM lines have stock >= {args.min_stock} x qty ({failures} with "
       f"problems); {len(uncoded)}/{total} lines carry NO LCSC and were NOT "
       f"graded by this tool")
+print(SCOPE)
 sys.exit(1 if failures else 0)
