@@ -172,9 +172,6 @@ def t_retires_the_pour_defect():
     v111 = [l for l in r.out.splitlines()
             if "v1.11-2026-07-27" in l and "FAIL F-" not in l]
     check(v111, "v1.11 must appear in the regrade")
-    check("*" not in v111[0][:60],
-          f"v1.11 is the LIVE release and must not read as superseded:"
-          f"\n{v111[0]}")
     verdicts = verdicts_of(v111[0])
     check(verdicts.get("F-PAYLOAD") == "PASS",
           f"v1.11 inherits v1.9's restored pour through TWO supersedes and must "
@@ -183,6 +180,32 @@ def t_retires_the_pour_defect():
     check(verdicts.get("F-LEGIBLE") == "PASS",
           f"v1.11 SUBSTITUTES an MPN/LCSC pair; if F-LEGIBLE does not pass, the "
           f"substituted row is one JLC leaves at 'No Part Selected':\n{v111[0]}")
+
+    # AMENDED 2026-07-28: this block used to pin `"*" not in v111[0]` — i.e. it
+    # named v1.11 as the LIVE release. v1.12 sealed the same day (J5's land was
+    # KiCad's stock geometry, 0.375 mm off HRO's and JLC's) and the test went
+    # RED for the one reason a regrade must NOT go red: the fleet advanced
+    # exactly as intended. A test that names a version measures WHEN it ran,
+    # not what the gate does. The version-specific rows above stay — they are
+    # HISTORY, and the point of an immutable 07_releases is that their verdicts
+    # never move — but liveness is now asserted as the PROPERTY it always was:
+    # whichever release is live carries the restored pour and a legible BOM.
+    # TABLE rows only. The regrade also emits per-gate DETAIL lines that begin
+    # with the gate id (`A-EVID usb-hub-3s-v3/v1.1-...: ... [superseded: ...]`);
+    # those carry the board path but never the `*` liveness marker, so a naive
+    # substring filter reads every one of them as a live release. Table rows are
+    # the ones whose first token IS the board path.
+    rows = [l for l in r.out.splitlines()
+            if l.strip().startswith("usb-hub-3s-v3/") and "FAIL F-" not in l]
+    live = [l for l in rows if "*" not in l[:60]]
+    check(len(live) == 1,
+          "exactly one usb-hub-3s-v3 release may be live (no `*`); got "
+          f"{len(live)}:\n" + "\n".join(rows))
+    lv = verdicts_of(live[0])
+    check(lv.get("F-PAYLOAD") == "PASS",
+          f"the LIVE release must ship the restored pour:\n{live[0]}")
+    check(lv.get("F-LEGIBLE") == "PASS",
+          f"the LIVE release must ship a BOM JLC can read:\n{live[0]}")
 
 
 @test("regrade_confirms_the_clean_boards_are_clean")
