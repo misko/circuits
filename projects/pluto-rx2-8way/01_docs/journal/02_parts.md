@@ -261,3 +261,47 @@
   **10.3 V**, so the constraint is now **>= 10.3 V** and a regulator rated
   exactly 10 V would be OUT of spec. MCP1755S is +17.6 V, clearing it by 7.3 V.
 - next: the last three dossiers, then the README register and DETAIL_DESIGN.
+
+## 2026-07-28 16:40 — finish (stage 2 complete: 13 dossiers, 3 footprints)
+
+- did: merged the last dossiers, closed the four RP2040-mandated passive groups
+  the MCU research surfaced, added the two nets that did not exist, verified the
+  third footprint independently, and re-ran every gate.
+- result: **P-ESC 13/13 · P-TIER PASS at `jlc_4layer_advanced` · S-VER 12/12 ·
+  P-LAYOUT 8/8 · E-ADR 4/4 · E-TOPO PASS 1/1 · M-REPRO PASS ·
+  contracts_audit 0 violations for this board · policy_audit FAIL=1 HUMAN=6
+  N-A=26 PASS=7**, the one FAIL still the STRUCTURAL E-INV.
+- result: **THREE footprints authored, not two.** The third was DISCOVERED by
+  the research: KiCad's stock `USB_C_Receptacle_HRO_TYPE-C-31-M-12` disagrees
+  with the vendor's own RECOMMEND P.C.B LAYOUT by **0.375 mm** on pad-centre to
+  alignment-hole and 0.31 mm on pad length — the contact tails would sit
+  off-centre, covering ~0.95 of a 1.14 mm pad at the heel. Ruled out as a
+  variant difference by fetching the BASE M-12 sheet, which is
+  dimension-for-dimension identical to the M-12A's: two HRO sheets two years
+  apart agree with each other and disagree with KiCad. Verified independently
+  after authoring: 16 SMD pads on four shared 0.60 lands (±2.40, ±3.20) plus
+  eight 0.30 lands at 0.50 pitch, all **1.14** long, row centre **1.07** from
+  the alignment-hole line, pad names alphanumeric A1..B12 + SH, F.SilkS 0.15.
+- result: **FOUR passive groups were MISSING from `DETAIL_DESIGN.md` §5 and
+  every one of them is mandatory**, found by reading the RP2040's own
+  application guide rather than its pin table:
+  `R_XTAL` 1 kΩ on XOUT (HD guide §2.3 p11 — and the rule is CONDITIONAL on
+  ESR ≤ 50 Ω at IOVDD 3.3 V, both of which this board satisfies);
+  `C_VREG_IN` / `C_VREG_OUT` 1 µF each (§2.10.1 p157, both mandatory);
+  `C_MCU` **ten** not four (ten pins want local bypass; the Pico runs nine and
+  says why it compromised — a 2-layer board, which this is not);
+  `R_USB1/2` 27.4 Ω ±1 % (Table 620).
+- result: **a second net that did not exist** — `DVDD_1V1`. RP2040's core
+  regulator is ON-DIE and its output must be wired back IN COPPER from
+  `VREG_VOUT` (pin 45) to `DVDD` (pins 23, 50). A board that omits that link
+  looks correct in every artifact: `VREG_VOUT` reads as an unused output and
+  `DVDD` as an undriven supply, and no ERC, DRC or parity check objects. It is
+  now a 0.4 mm netclass at 0.1 A. **E-TOPO still cannot grade it**, and that is
+  stated in the class rather than hidden: the converter is inside the MCU, and
+  typing an MCU as a converter to make a rail appear would be worse than the gap.
+- result: two citations corrected against primary sources — `U_MCU` θ_JA is
+  **48.0 °C/W** (Table 611, p609), not the uncited ~40 §7 carried; the flash's
+  "~5 mA" is **8 mA typ / 15 mA max** (ICC3 at 50 MHz). Both absorbed by the
+  0.15 A envelope.
+- next: stage 4, `03_tscircuit/` authoring. E-INV turns gradeable the moment a
+  netlist exists, and the corrected `D_TVS.1` assertion is what it will grade.

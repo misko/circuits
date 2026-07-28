@@ -100,6 +100,7 @@ here, because two homes drift.
 | `USB_D` | `USB_DP` / `USB_DM`. The binding rule is the **reference plane**, not the impedance |
 | `PWR` | `VBUS`, `VBUS_F`, **`VBUS_LDO`**, `3V3`. Width for IR drop and robustness, far above the ampacity need. `VBUS_LDO` is FB_IN's output — a ferrite is a series element, so it is a fourth net, not a continuation of `VBUS_F`. It was missing from the class until the stage-2 merge, where it would have defaulted to the 0.25 mm class and been graded as a signal while carrying the whole 0.15 A |
 | `QSPI` | the execute-in-place bus — the board's only continuous in-band spur source, so "short" is an EMI rule here |
+| `DVDD_1V1` | **the 1.1 V core rail, and it is real copper no gate can grade.** RP2040's core regulator is on-die; its output leaves at `VREG_VOUT` (pin 45) and must be wired back IN COPPER to `DVDD` (pins 23, 50). A board that omits the link looks correct in every artifact — `VREG_VOUT` reads as an unused output, `DVDD` as an undriven supply — and no ERC, DRC or parity check objects. E-TOPO cannot grade it either, because the converter is inside the MCU; typing an MCU as a converter to make a rail appear would be worse than the gap |
 | default | `LED_PWR`, `LED_STAT`, `RUN_N`, `BOOTSEL_N`, `XIN`, `XOUT`, `USB_CC1`, `USB_CC2` |
 | `GND` | pours + stitching on all four layers; no netclass width. `U_SW` pin 1 (LS) is **on this net**, by a via at the pad |
 

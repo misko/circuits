@@ -272,7 +272,7 @@ behaviour.
 | item | current |
 |---|---|
 | RP2040 (125 MHz, PIO loop) | ~50 mA worst case |
-| QSPI flash (XIP) | ~5 mA |
+| QSPI flash (XIP) | ~5 mA → **8 mA typ / 15 mA max** (CITED, W25Q128JV `ICC3` at 50 MHz). The ~5 mA was an estimate; the envelope absorbs it (0.15 A vs ~70 mA typical) |
 | PE42482A-X | 200 µA max (CITED, Table 2, PDF p3) |
 | 2 indicator LEDs | 3.8 mA |
 | 4 pull-downs, all high | 1.3 mA |
@@ -347,7 +347,11 @@ invisible to ERC, DRC and parity, visible only as a JLC-twin PAD-MISMATCH.
 | `C_LDO` | 1 µF X7R **0805** | regulator output. **OWED-ITEM CLOSED 2026-07-28**: DS20005160B §4.4 "Output Capacitor", p17 — minimum **1 µF**, ESR **≤ 2 Ω** with no lower bound, **ceramic-stable (X7R/X5R explicitly recommended; a 1 µF X7R 0805 is ~50 mΩ)**, maximum 1000 µF. The placeholder **STANDS unchanged** — it is literally the datasheet's own test condition (`COUT = 1 µF X7R`). **The package is part of the spec**: the 1 µF floor is on *effective* capacitance at 3.3 V bias, so 0805 is required and a 1 µF X7R 0402 can derate below it. And if a future swap forces an ESR-hungry LDO, the ESR must live IN THE CAPACITOR — 1 Ω in the DC path costs 1 Ω × 0.15 A = 150 mV, dragging 3.30 V to 3.15 V, **below the 3.20 V `vout_min` floor** |
 | **VBUS bypass total** | **5.7 µF** | `C_BULK + C_LDI`. **USB 2.0 §7.2.4.1 caps a device's downstream VBUS bypass at 10 µF** to bound inrush; 5.7 µF nominal (≈4.6 µF after DC derating) is what makes "no inrush limiter" a decision. The 3V3-side 0.1 µF parts do NOT count against this limit |
 | `C_SW1` / `C_SW2` | 100 nF + 1 µF | `U_SW` VDD at pin 8, span ≤3 mm. IDD is 120 µA typ, so this is decoupling for control-line transients, not for load current — which is exactly why it must be AT the pad |
-| `C_MCU1..4` | 100 nF each | MCU supply pins, local |
+| `C_MCU1..10` | 100 nF each, **TEN not four** | **CORRECTED 2026-07-28.** RP2040 has TEN pins that need local bypass — 6x IOVDD, 2x DVDD, ADC_AVDD, USB_VDD — and this row budgeted four. Raspberry Pi's own Pico runs NINE and documents *why* it compromised (a 2-layer board); this board is 4-layer and has no such excuse |
+| `C_VREG_IN` / `C_VREG_OUT` | 1 µF each | **MISSING UNTIL 2026-07-28.** RP2040 §2.10.1 (PDF p157) makes both MANDATORY: `VREG_VIN` (pin 44) and `VREG_VOUT` (pin 45). The internal 1.1 V regulator is not optional and neither are its capacitors |
+| `R_XTAL` | **1 kΩ**, in series with **XOUT** | **MISSING UNTIL 2026-07-28.** Required by the RP2040 Hardware Design guide §2.3 (PDF p11), and the rule is CONDITIONAL, not generic: it applies when the crystal's ESR max is ≤ 50 Ω **and** IOVDD is 3.3 V. `ABM8-272-T3` is ESR ≤ 50 Ω and this board is 3.3 V, so both conditions hold. It sits between the XOUT **pin** and the crystal terminal, with the XOUT-side load capacitor on the **crystal** side of it |
+| `C_XTAL1` / `C_XTAL2` | 15 pF **C0G/NP0** | see the `Y_XTAL` row. **The dielectric is DERIVED and is in neither datasheet**: "15 pF 0402" is orderable as X7R, whose capacitance moves with bias and temperature — on a load capacitance that sets oscillator start-up margin |
+| `R_USB1` / `R_USB2` | **27.4 Ω ±1 %** | **MISSING UNTIL 2026-07-28.** Series termination on `USB_DP`/`USB_DM`, required by RP2040 Table 620; Raspberry Pi fits 27.4 Ω 1 %. Without them the USB pair is unterminated at the die |
 | `R_CC1` / `R_CC2` | 5.1 kΩ ±5 % | USB Type-C Rd: advertises a plain 5 V sink, which is what makes sustained overvoltage unreachable (ADR-0004) |
 | `R_LED1` / `R_LED2` | 680 Ω | `(3.3 − 2.0)/680` = **1.91 mA**; E24 above the 650 Ω a 2 mA target implies |
 | `Y_XTAL` + load caps | 12 MHz **`ABM8-272-T3`** (C20625731), `C = 2·(C_L − C_stray)` | **THE 15 pF STANDS AND BOTH INPUTS THAT PRODUCED IT WERE WRONG.** This row read `C_L = 12 pF` (marked OWED) and `C_stray ≈ 5 pF` ⇒ 14 ⇒ 15 pF E24. `C_L` is now **CITED at 10 pF** (Abracon drawing 456603 Rev B, p1, "Load capacitance (CL) 10 pF"), and `C_stray` is **3 pF** — the RP2040 hardware-design guide's own worked number for this exact chip, not a generic guess. `2·(10 − 3) = 14` ⇒ **15 pF E24, identical**, because the two errors cancelled. Recorded rather than quietly corrected: the next person to touch the crystal would otherwise re-derive 10 pF from a `C_stray` with no source and **under-load the oscillator**. Other crystal facts now CITED: ESR ≤ 50 Ω, C0 ≤ 3.0 pF, drive 10 µW typ / 200 µW max, ±30 ppm tolerance and ±30 ppm over temperature |
@@ -391,7 +395,7 @@ ideal frame is `15X/2`, which carries a factor of **3**. `500,000 = 2⁵·5⁶` 
 | part | dissipation | θ_JA | ΔT | note |
 |---|---|---|---|---|
 | `U_SW` | 0.66 mW (200 µA × 3.3 V) + ≤41 mW of RF at the +20 dBm hot-switch ceiling | 63 °C/W (CITED, Table 4, PDF p9) | **≤2.6 °C** | thermally a non-event. **The exposed pad is there for RF ground, not for heat** — Table 8 calls it "ground for proper operation" |
-| `U_MCU` | ~165 mW | ~40 °C/W | ~6.6 °C | |
+| `U_MCU` | ~165 mW | **48.0 °C/W** (CITED, RP2040 datasheet Table 611, PDF p609) — this row said ~40, uncited | **7.9 °C** | |
 | `U_LDO` | **308 mW at the envelope**, 123 mW typical | **62 °C/W** (MCP1755S SOT-223-3, CITED, DS20005160B p8, datum JESD51-7 named §5.3.1 p22) against ≤195 required | **19.1 °C** ⇒ Tj 59 °C at Ta 40 | the only real thermal item on the board — see §5 constraint 3. The same table gives SOT-23-5 at **256 °C/W**, which is the primary-source confirmation that the disqualification in §5 is right |
 
 ---
@@ -408,8 +412,11 @@ ideal frame is `15X/2`, which carries a factor of **3**. `500,000 = 2⁵·5⁶` 
 | `C_SW1` / `C_SW2` | 100 nF / 1 µF | §5 |
 | `C_BULK` | 4.7 µF | §5 — with `C_LDI`, under the USB 10 µF cap |
 | `C_LDI` / `C_LDO` | 1 µF X7R 0805 / 1 µF X7R 0805 | §5 — CLOSED: DS20005160B §4.4 p17, min 1 µF, ESR ≤ 2 Ω, ceramic-stable. 0805 because the floor is on EFFECTIVE capacitance at 3.3 V bias |
-| `C_MCU1..4` | 100 nF | §5 |
-| XTAL load caps | 15 pF | §5 — CLOSED: `C_L` 10 pF CITED, `C_stray` 3 pF; `2·(10−3)=14` ⇒ 15 pF E24. Same answer as the old `2·(12−5)`, from two corrected inputs |
+| `C_MCU1..10` | 100 nF | §5 — TEN power pins, not four |
+| `C_VREG_IN` / `C_VREG_OUT` | 1 µF / 1 µF | §5 — RP2040 §2.10.1 p157, both mandatory |
+| `R_XTAL` | 1 kΩ | §5 — RP2040 HD guide §2.3 p11, conditional on ESR ≤ 50 Ω + IOVDD 3.3 V |
+| `R_USB1` / `R_USB2` | 27.4 Ω ±1 % | §5 — RP2040 Table 620 |
+| XTAL load caps (`C_XTAL1/2`) | 15 pF **C0G/NP0** | §5 — CLOSED: `C_L` 10 pF CITED, `C_stray` 3 pF; `2·(10−3)=14` ⇒ 15 pF E24. Same answer as the old `2·(12−5)`, from two corrected inputs |
 | `F_IN` | `1206L050/24WR` (C2154056) | §5 — 0.50 A hold / 1.00 A trip, 0.38 A derated at 50 °C |
 | `D_TVS` | `SMBJ6.0A` (C83270) | §5 — **6.0 V** standoff, clamp 10.3 V. The 5.0 V standoff conducts at VBUS max |
 | `U_LDO` | `MCP1755S-3302E/DB` (C638611) | §5 — SOT-223-3; 500 mV / +17.6 V / 62 °C/W against 1.23 V / 10.3 V / 195 °C/W |
