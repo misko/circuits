@@ -451,6 +451,33 @@ placement:
     C_OS2:        [144.30, 65.70, 0]   # 1uF Cext for U_ONESHOT section 2 (pins 6-7 at
                                        # x147.525, y63.905/65.175). tw = 0.7*10k*1uF = 7ms.
 
+    # ============ v1.7 — EIGHT FLOATERS PINNED AT THEIR v1.6 POSITIONS ========
+    # NOT cosmetic, and MEASURED rather than guessed. Adding eleven anchored
+    # pull-downs into the AND-chain/latch cluster changed the OCCUPANCY the
+    # `near:` legalizer searches, and it re-solved EIGHT unrelated floaters onto
+    # different rings — C_AND1 by 5.946mm, C_AND2 3.280, C_FAULTAND 3.280,
+    # TP_FAULT 2.300, U_OSCLR 2.088, C_MR/U_STOPINV/U_CAND1 0.500 each. Nothing
+    # asked them to move. THE COST IS REAL AND THE STITCH PASS FOUND IT: route.yaml
+    # carries MEASURED, coordinate-pinned User.2 reservations and deterministic
+    # seed-stub bonds for C_FAULTAND's two plane pads (159.020 / 159.980, 76.600 —
+    # the task#21 M-REPRO fix), and at the re-solved position the stub "does not
+    # reach the pin pad", which is a hard ERROR. Pinning them at the coordinates
+    # v1.6 SHIPPED keeps every measured number in route.yaml true and shrinks the
+    # placement delta to what this revision actually changed: J_MODE, R_COILENPD,
+    # R_MODEPD and the fourteen new parts. Each position re-verified collision-free
+    # against the v1.7 board and all 48 rule areas; tightest neighbour gap 0.270mm
+    # (U_STOPINV -> R_STOPREQNPD). Some of these also appear in `seeds:` below;
+    # anchors win (generate_board_generic resolves anchors first), and the seed is
+    # left as the record of where the part was originally aimed.
+    C_AND1:     [159.50, 70.60, 0]
+    C_AND2:     [171.50, 70.60, 0]
+    C_FAULTAND: [159.50, 76.60, 0]   # route.yaml pins BOTH its pads by coordinate
+    TP_FAULT:   [174.50, 70.00, 0]
+    U_OSCLR:    [145.70, 69.50, 0]
+    C_MR:       [153.50, 82.60, 0]
+    U_STOPINV:  [126.00, 73.00, 0]
+    U_CAND1:    [176.30, 82.50, 0]
+
   seeds:
     # eFuse fine-pin locals (outward-only-local, around U_EFUSE @60,57; v1.0 +12y)
     C_DVDT: [57.0, 60.0]

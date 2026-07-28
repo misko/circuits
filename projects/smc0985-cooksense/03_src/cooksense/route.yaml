@@ -307,10 +307,27 @@ prep:
       # the half-box must cover via_r 0.125 + gap 0.155 + track_half 0.125 = 0.405.
       # The two fine-pitch IC pins get what their neighbours allow instead, and are
       # biased onto the free end of the pad.
-      - {x0: 121.96, y0: 83.45, x1: 123.06, y1: 84.55, layer: User.2} # R_EXPRST.2   3V3@122.510,84.00 (EXP_RST_N pad1@121.49 W)
+      # R_EXPRST.2 reservation DELETED v1.7 (ADR-0020): the part is gone — EXP_RST_N
+      # had no driver, U_EXP.18 now sits on WD_OK, and a 10k pull-up there would
+      # have become a PERMISSIVE pull on WD_OK. Its 1.1x1.1 User.2 rect and its
+      # seed-stub bond are removed together; leaving either behind reserves copper
+      # for a pad that does not exist (the stitch pass ERRORs on the stub).
       - {x0: 127.96, y0: 88.45, x1: 129.06, y1: 89.55, layer: User.2} # R_RAENBPD.2  GND@128.510,89.00 (RAIL_EN_B pad1@127.49 W)
       - {x0: 135.35, y0: 82.425, x1: 136.45, y1: 83.525, layer: User.2} # U_EXP.9      3V3@136.500,82.975 SSOP-28 0.65 pitch: y box is pad-height+0.15 to pins 8/10; via biased to the pad's WEST end (135.900)
       - {x0: 160.1, y0: 78.8, x1: 161.2, y1: 79.9, layer: User.2} # U_OENAND.5   3V3@160.838,79.35 SOT-353: pad4 SR_OE_N is 0.95mm S; via at 160.650
+      # SIXTH-WAVE reservations (v1.7, 2026-07-28). The v1.7 reroute left three
+      # plane pads unconnected; C_WD.1 took a deterministic stub with no
+      # reservation, but these TWO REFUSED — `via collides foreign copper` — which
+      # is the seed_stub pass doing its job (refused, not guessed). A refusal means
+      # the ROUTER has already put copper across the only on-pad site, so the fix
+      # has to act at PREP, before routing: reserve the site, then bond it.
+      # Same +-0.55mm box as the third-wave rects, centred on the pad.
+      #   R_WDOKPD.2 GND@151.800,82.660 — NEW (ADR-0019). Pad 1 (WD_OK) is at
+      #     150.780, 1.02mm west, well outside the box.
+      #   R_OVB.2    GND@ 68.510,56.000 — pre-existing; it bonded on the ladder in
+      #     v1.6 and did not on the v1.7 chain. Pad 1 (EF_OVLO) is at 67.490.
+      - {x0: 151.25, y0: 82.11, x1: 152.35, y1: 83.21, layer: User.2} # R_WDOKPD.2 GND@151.800,82.66
+      - {x0: 67.96,  y0: 55.45, x1: 69.06,  y1: 56.55, layer: User.2} # R_OVB.2    GND@68.510,56.00
       # PREEMPTIVE — the rest of the Pi-edge / expander pull-down cluster. Same
       # footprint, same field, same failure mode; each has opened at least once
       # across the v1.2 races. Reserving them together is what ends the whack-a-mole.
@@ -698,7 +715,6 @@ stitch:
       # THIRD-WAVE + PREEMPTIVE bonds (task#21 D-BACK iterate 4, 2026-07-25) — one
       # per reservation rect above, at the pad centre except where the box is
       # end-biased (U_EXP.9 / U_OENAND.5, both fine-pitch).
-      - {net: 3V3, pin: R_EXPRST.2,     vias: [[122.510, 84.000]]}
       - {net: GND, pin: R_RAENBPD.2,    vias: [[128.510, 89.000]]}
       - {net: 3V3, pin: U_EXP.9,        vias: [[135.900, 82.975]]}
       - {net: 3V3, pin: U_OENAND.5,     vias: [[160.650, 79.350]]}
@@ -755,6 +771,28 @@ stitch:
       - {net: 3V3, pin: C_TCDV.1,     vias: [[60.320, 80.900]]}
       - {net: GND, pin: C_TCDV.2,     vias: [[61.305, 81.055]]}
       - {net: 3V3, pin: C_EXP.1,      vias: [[146.020, 82.000]]}
+      # SIXTH WAVE (v1.7, 2026-07-28) — the three plane pads the v1.7 reroute left
+      # unconnected at the DRC gate (0 violations / 3 unconnected / 0 parity).
+      # MEASURED from the DRC report itself, at each pad's own centre:
+      #   R_WDOKPD.2 GND @151.800,82.660  — NEW part (ADR-0019), dropped into the
+      #     U_WD/C_MR pocket where the rescue ladder was already tight
+      #   R_OVB.2    GND @ 68.510,56.000  — pre-existing; it bonded on the ladder in
+      #     v1.6 and did not on this chain. Stochastic rescue is exactly what these
+      #     deterministic stubs exist to retire (M-REPRO), so it is stubbed rather
+      #     than re-raced.
+      #   C_WD.1     3V3 @153.420,75.800  — same class; the nearest 3V3 via sits
+      #     1.85mm away at (152.01,77.00) and the ladder did not close the gap.
+      - {net: GND, pin: R_WDOKPD.2,   vias: [[151.800, 82.660]]}
+      - {net: GND, pin: R_OVB.2,      vias: [[68.510, 56.000]]}
+      - {net: 3V3, pin: C_WD.1,       vias: [[153.420, 75.800]]}
+      # SEVENTH (v1.7, 2026-07-28): with the two reservations in place the reroute
+      # came back 0 violations / 1 unconnected / 0 parity, and the survivor was
+      # U_STOPINV.5 (3V3, SOT-353 VCC). MEASURED before writing the line rather
+      # than after a refusal: an on-pad via at the pad CENTRE clears all foreign
+      # copper by +0.384mm against the 0.155mm rule (best site on the pad is
+      # +0.444 at x126.938), so no reservation is needed here — the router did not
+      # cross this pad, the rescue ladder simply did not reach it.
+      - {net: 3V3, pin: U_STOPINV.5,  vias: [[126.838, 72.350]]}
       - {net: GND, pin: C_EXP.2,      vias: [[146.985, 81.955]]}   # -> PAD CENTRE (was 145.210,63.750, a site measured on a long-dead chain); the reservation rect guarantees it
       # J_PWR Micro-Fit MECHANICAL RETENTION TABS (R-THERM, 2026-07-23). The two
       # 1MP shell tabs (5.66mm2 each, GND, SMD) trip R-THERM (>4mm2 GND pad, <2

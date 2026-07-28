@@ -1180,3 +1180,50 @@ where it is not.
 E-INV: **74/74** on the v1.3 netlist — 11 new assertions pin the door direction,
 the open-detect divider and both comparator rails, and the isolated-loop move.
 Every one of them would have been invisible to DRC, ERC and parity.
+
+## 2026-07-28 — v1.7 routing, iterate 1-3 (electrical revision; copper HAS moved)
+- did: three rebuild attempts. (1) `--reroute` #1 died in stitch on a route.yaml
+  reservation + seed-stub bond for R_EXPRST.2, a part ADR-0020 DELETES. (2) after
+  removing those, `--reroute` #2 exposed that eleven new anchored pull-downs had
+  re-solved EIGHT untouched floaters onto different legalizer rings (C_AND1 5.946mm,
+  C_AND2 3.280, C_FAULTAND 3.280, TP_FAULT 2.300, U_OSCLR 2.088, C_MR/U_STOPINV/
+  U_CAND1 0.500) — and route.yaml pins C_FAULTAND's two plane pads BY COORDINATE,
+  so its deterministic stub no longer reached the pad. All eight pinned at the
+  coordinates v1.6 shipped, each re-verified collision-free (tightest 0.270mm).
+  (3) full reroute then produced clean copper.
+- result: race 3/3 candidates `unconnected=1 violations=0`; winner c0/r9 promoted to
+  03_src/cooksense/route/final_chain.kicad_pcb. Full-severity DRC with
+  --refill-zones --schematic-parity on that build: **0 violations / 3 unconnected /
+  0 parity** — R_WDOKPD.2 GND (new), R_OVB.2 GND and C_WD.1 3V3 (both pre-existing,
+  both bonded on v1.6's chain and not on this one). Deterministic seed-stub bonds
+  added at the MEASURED pad centres: C_WD.1 took its bond; **R_WDOKPD.2 and R_OVB.2
+  REFUSED** — `via collides foreign copper`, the seed_stub pass refusing rather than
+  guessing. A refusal means the router already crossed the only on-pad site, so the
+  fix must act at PREP: both now carry a +-0.55mm User.2 reservation rect, matching
+  the third-wave pattern, and a full reroute is running.
+  (The 106 starved_thermal in that intermediate DRC are an ARTEFACT, not a finding:
+  the stitch step exited non-zero on the two refusals, so steps 7/8 generate_rules
+  LAST and 8/8 apply_drc_policy never ran and min_resolved_spokes stayed at 2
+  instead of the policy's 1.)
+- next: reroute #3 with the two reservations in place; re-measure DRC.
+
+## 2026-07-28 — v1.7 routing FINISH — DRC 0/0/0
+- did: reroute #3 with the two User.2 reservations, then one more reuse rebuild for
+  the last survivor.
+- result: reroute #3 raced 3/3 candidates at `unconnected=1 violations=0`, seed_stubs
+  served 60 pins with **0 refused** (both previously-refused GND pads took their
+  via-in-pad inside the new reservations), and DRC came back **0 violations /
+  1 unconnected / 0 parity** — the survivor was `U_STOPINV.5` (3V3, SOT-353 VCC).
+  MEASURED BEFORE WRITING THE FIX rather than after a second refusal: an on-pad via
+  at the pad centre (126.838, 72.350) clears all foreign copper by **+0.384 mm**
+  against the 0.155 mm rule (best on-pad site +0.444 at x126.938), so no reservation
+  was needed — the router never crossed that pad, the rescue ladder just did not
+  reach it. Added the stub, reuse rebuild, seed_stubs 61 served / 0 refused.
+  **GATE: `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity` =
+  0 violations / 0 unconnected / 0 parity.**
+  Board: 239 footprints (235 parts + 4 holes), 4166 tracks, 1104 vias, 59 zones,
+  191 nets. audit_board PASS (I-ISO 6.12 mm, I-OUT 0.35 mm, 18 polarity /
+  28 proximity / 13 edge). placement_gates PASS (P-OUT 0.30 mm, P-CAP 0.23 vs 0.5).
+  count_parity **S-COUNT PASS 4/4 over 235 refdes**. E-INV 109/109.
+- next: fab export + the assembly/verification battery. A-ROT for the NEW LCSC
+  C485354 is MEASURED but its authority row is OWED to `skills/` (see the handoff).
