@@ -34,6 +34,128 @@ rails:
     converter: AP61102Z6-7
     eff: 0.80
 
+  # ========================================================================
+  # THE TWO LINEAR RAILS. Declared 2026-07-27, at v1.6.
+  #
+  # These two rails used to live in the COMMENT at the foot of this file:
+  #   "1V8 (TCR2LF18) and 3V3A (XC6227) are LINEAR LDOs, not switching
+  #    converters — E-TOPO grades switching converters."
+  # That sentence was FALSE as of 2026-07-27 and, worse, it was the exact
+  # silent-skip shape canon M-COVER is written against: E-TOPO gained LINEAR
+  # support that day and immediately reported `UNGRADED CONVERTERS: 2 of 3
+  # converter part(s) in 02_parts are named by no rail`. Two of this board's
+  # three regulators had never been graded by anything. (This board is NAMED
+  # in the E-TOPO canon row as one of the three that took a route around the
+  # gate — "both crow-recorder-central revisions with their LDO rails in a
+  # COMMENT". This is that finding being paid off, not re-argued.)
+  #
+  # A LINEAR rail is graded on the two things Vin-vs-Vout cannot see:
+  #   headroom = vin_min - vout_max          >= dropout_mv
+  #   PD       = (vin_max - vout_min) * iout <= pdiss_max_mw
+  # Both numbers live in the converter's own part.yaml, CITED to figure/page
+  # (canon M-IMPORT) — see the E-TOPO LINEAR FACTS block in each dossier.
+  # They are NOT overridden here: an override would put a second home on a
+  # fact that already has one.
+  #
+  # ON `eff:` FOR A LINEAR RAIL. The schema requires the field and the
+  # input-current model IGNORES it for a LINEAR rail — a series pass element
+  # draws constant CURRENT (Iin = Iout), not constant power. pluto-cal-switch
+  # set eff: 1.0 believing it made the trunk arithmetic come out right; it did
+  # not, it under-stated that rail by 25%. 1.0 here for the same schema reason
+  # and for no other.
+  # ========================================================================
+
+  # ---- 1V8: the XU316 1.8V I/O + USB-PHY analog rail -----------------------
+  # CASCADED off 3V3_DIGITAL above, not off the 5V trunk. NOTE the known
+  # limitation this exposes: worst_case_input_current() models a FLAT tree and
+  # charges every switching rail at the LOWEST vin_min in the file, so
+  # declaring this rail widens the printed trunk figure in the CONSERVATIVE
+  # direction (the bucks get costed at 3.2 V instead of 4.9 V). smc0985-
+  # cooksense declares its cascaded 3V3_ANALOG / 3V3_SW_* rails the same way.
+  # Stated rather than worked around: a wrong-but-high advisory beats an
+  # ungraded rail.
+  - name: 1V8
+    # Vin is the 3V3 rail. That rail declares 3.3 flat (no feedback: block),
+    # which is an author assertion this rail should not inherit uncritically,
+    # so the envelope is widened +/-3% around it. Both directions are the
+    # conservative ones: a lower vin_min tightens headroom, a higher vin_max
+    # raises PD.
+    vin_min: 3.20
+    vin_max: 3.40
+    # TCR2LF18 fixed 1.8V, accuracy +/-1% for VOUT >= 1.8V (Electrical
+    # Characteristics, "Output voltage accuracy", p.4 of the Toshiba TCR2LF
+    # series datasheet 2014-11-06). 1.8 -/+ 1% = 1.782 / 1.818.
+    vout_min: 1.782
+    vout_max: 1.818
+    # DERIVED FROM THE BOARD, not assumed. The 1V8 net carries exactly three
+    # sinks (netlist, source/crow_recorder_central_v2.net): U1.35 + U1.56
+    # (VDDIOB18, the bottom I/O bank) and, through ferrite FB_u18, U1.62
+    # (USB_VDD18). J_DBG.1 is the xSYS/xTAG level-reference sense, R_rst is a
+    # pull-up, TP4 a testpoint — all microamps.
+    #   USB_VDD18   36 mA  CITED, and it is the MAX not the typ: XU316-1024-
+    #               TQ128 datasheet XM-014532-PC-2.0.0, s.15.7 Power
+    #               Consumption p.37, "I(USB_VDD18) (hs)  typ 30  max 36 mA".
+    #               High-speed USB is this board's operating mode.
+    #   VDDIOB18   <10 mA  ESTIMATED, with its bar, because XMOS PUBLISHES NO
+    #               OPERATING CURRENT FOR A VDDIO BANK. s.15.1 p.36 gives only
+    #               "I(VDDIOB18) Sum of current for VDDIOB18  126 mA" and that
+    #               is an ABSOLUTE MAXIMUM — a limit, not a consumption, and
+    #               spending it as one would be the adjacent-property error.
+    #               What the bank actually drives is MEASURED from the
+    #               netlist: ALL SIX of its general-purpose port pins are
+    #               unconnected (X0D12/13/22/23 = pins 46/47/48/49, X1D12/23 =
+    #               53/57), leaving the 24 MHz crystal (XIN/XOUT, 33/34), JTAG
+    #               (TDI/TDO/TMS/TCK, 36/37/44/51) and RST_N (38). An
+    #               oscillator driver plus five near-static 1.8 V pins:
+    #               5 +/- 5 mA, so <= 10 mA.
+    # 36 + 10 = 46 mA -> 0.05 A declared. (The old comment's "~50mA" was the
+    # right number with no derivation attached to it.)
+    iout_max_A: 0.05
+    # NAMING THE CONVERTER, AND THE ONE THING THIS DOES NOT SAY. U9 AS ORDERED
+    # is TLV70018DDCR (C79924) — the ADR-0006 pin-compatible drop-in promoted
+    # at v1.0 staging when TCR2LF18/C150173 went stock 0 — and the shipped BOM
+    # says so. TCR2LF18 is named here because it is the brief's primary, it is
+    # the dossier E-TOPO's census counts (TLV70018DDCR carries no `type:`), and
+    # its numbers are the CONSERVATIVE pair: 620 mV of dropout against the TI
+    # part's published 250 mV @ 200 mA (SBVS205, recorded in
+    # 02_parts/TLV70018DDCR/part.yaml), so the grade below holds for whichever
+    # of the two qualified parts is populated. NO CLAIM IS MADE about the TI
+    # part's package dissipation rating: that datasheet is not in this tree and
+    # was not read, and the 1382 mV of headroom / 40% of PD leave the choice
+    # nowhere near load-bearing.
+    converter: TCR2LF18
+    eff: 1.0
+    # Graded: headroom 3.20 - 1.818 = 1382 mV vs 620 mV dropout -> PASS.
+    #         PD (3.40 - 1.782) x 0.05 = 81 mW vs 200 mW -> PASS (40%).
+
+  # ---- 3V3A: the quiet analog rail for both PCM1865 AVDD pins -------------
+  - name: 3V3A
+    # U10.4 (VIN) and U10.1 (CE) sit on the 5V net itself — post-RPP-FET,
+    # post-TVS, and NOT behind any of the F1..F8 pod PTCs (netlist). Same
+    # envelope the two bucks declare.
+    vin_min: 4.9
+    vin_max: 5.1
+    # XC6227C331: VOUT(E) MIN 3.2670 / MAX 3.3330 for the VOUT(T) = 3.30 V
+    # row, OUTPUT VOLTAGE CHART Voltage Chart 2 p.6/23 (ETR03054-006). Fixed
+    # output, internal divider -> no E-MARGIN `feedback:` block applies, and
+    # it is absent deliberately.
+    vout_min: 3.267
+    vout_max: 3.333
+    # DERIVED FROM THE BOARD. The 3V3A net's only sinks are U2.8 and U3.8, the
+    # AVDD pins of the two PCM1865s (netlist; the rest of the net is Cout_U10,
+    # Couth_U10, four AVDD decouplers and TP5).
+    #   PCM1865 AVDD, 4-channel device, active mode: 31 mA TYP — TI SLAS831D
+    #   Rev D, s.7.6 "Electrical Characteristics: DC", p.14. 2 x 31 = 62 mA.
+    # TI PUBLISHES NO MAX for this parameter, so 62 mA is a TYP sum and the
+    # declared ceiling is ESTIMATED with its bar: 0.08 A, +29% over the only
+    # published figure. (The old comment's "~70mA" was the typ plus a little,
+    # with no headroom for the missing max.)
+    iout_max_A: 0.08
+    converter: XC6227C331PR-G
+    eff: 1.0
+    # Graded: headroom 4.9 - 3.333 = 1567 mV vs 200 mV dropout -> PASS.
+    #         PD (5.1 - 3.267) x 0.08 = 147 mW vs 500 mW -> PASS (29%).
+
 # NOTE (pod 5V distribution is NOT a rail here). +5V_AUDIO / +5V_BEEP to the
 # pods are RAW 5V distributed through per-port PTCs + ~25ft Cat5e — a pass-through
 # DISTRIBUTION path, not a regulated converter output, so it is NOT an E-TOPO/
@@ -43,6 +165,7 @@ rails:
 # off-board delivery is this raw 5V; no on-board regulated rail feeds an
 # off-board brownout-sensitive load, so E-MARGIN is N-A for this board.
 #
-# NOTE: 1V8 (TCR2LF18) and 3V3A (XC6227) are LINEAR LDOs, not switching
-# converters — E-TOPO grades switching converters. Their part.yaml type: is ldo.
-# 1V8: 3V3 -> 1.8 (drop 1.5V @ ~50mA); 3V3A: 5V -> 3.3 (drop 1.7V @ ~70mA).
+# (The NOTE that used to stand here — "1V8 (TCR2LF18) and 3V3A (XC6227) are
+# LINEAR LDOs ... E-TOPO grades switching converters" — is gone because it
+# stopped being true on 2026-07-27 and because a rail described in a comment
+# is a rail no gate reads. Both are now declared above.)
