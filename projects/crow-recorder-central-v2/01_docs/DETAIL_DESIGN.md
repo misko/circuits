@@ -70,6 +70,66 @@ PCM1865 datasheet's line-input application circuit at authoring.
 - +5V_BEEP is the always-on 5V bus to all pods (green-3); the pod transducer
   sits between +5V_BEEP and green-6; Q2 sinks the common return.
 
+### Burst drive LEVEL — the arithmetic (CAL-1, 2026-07-28)
+
+The gate waveform is not free: it is bounded above by the pod preamp's input
+ceiling. See ARCHITECTURE.md for the constraint and `05_firmware/cal_burst.c`
+for the shipped constant. The numbers a value depends on, with equations:
+
+| quantity | equation | value |
+|---|---|---|
+| LS1→MK1 on the pod | pcbnew, sealed pod v1.3, LS1 (33.000, 46.000) MK1 (74.000, 26.000) | 45.61798 mm |
+| burst at the capsule | `100 dB + 20·log10(100.000 / 45.61798)` | **106.8173 dB SPL** |
+| pod mic sensitivity at its board load | `10^(−24/20) · [3.9/(3.9+2.2)] ÷ [2.2/(2.2+2.2)]` (spec'd at RL = 2k2, loaded 3k9) | 80.680 mV/Pa |
+| pod preamp worst-case ceiling | `min{(V+)−2−Vm, Vm−0.5, (Vm−h)/G, ((V+)−h−Vm)/G}` at V+ = 4.75 V, h = 0.8 V, G = 1.5, Vm = 2.5 V, S+3 dB | **101.3144 dB SPL** |
+| **shortfall** | difference | **5.5028 dB** |
+| duty → 4 kHz fundamental | `20·log10(sin(π·D))` | D = 1/6 → **−6.0206 dB** |
+| capsule after | sum | **100.7967 dB** (clears by 0.5178 dB) |
+
+**Why `sin(π·D)` and not an RMS.** The CMT-8504's acoustic output at 4 kHz is a
+sharp mechanical resonance — the datasheet's own response curve (rev 1.04 p.3)
+peaks ~104 dB at ~3.9 kHz, ~15 dB above the 2–3 kHz shelf. A resonator passes
+the component AT resonance and rejects DC and harmonics, so the output follows
+the FUNDAMENTAL of the coil current. A 1/6-duty square is only −4.8 dB in RMS
+but exactly −6.02 dB in its fundamental; the resonance follows the latter.
+
+`sin(π·D)` holds at both ends of the coil's UNSPECIFIED inductance: at L→0 the
+current is a duty-D square (fundamental `(2V/πR)·sin(πD)`); at L→∞ it is a small
+asymmetric-triangle ripple of pk-pk `D(1−D)(V+Vf)T/L` whose fundamental is
+`(pk-pk/π²)·sin(πD)/(D(1−D))` — the `D(1−D)` cancels, same law. Numerically
+integrating `i' = (v − iR)/L` with the SS14 freewheel over L = 20 µH…3 mH gives
+D = 1/6 attenuations of −6.02 to −6.68 dB: the law is a **conservative bound**.
+
+**Model sanity, by a second method (canon M1).** The datasheet's 150 mA "at
+rated voltage, 4000 Hz, ½ duty" is MEASURED; volt-second balance on the same
+circuit is ANALYTIC: `<i> = (5·D − Vf(1−D))/R = (2.5 − 0.225)/15 = 151.7 mA`.
+They agree to 1.1 %, so the circuit model is not self-certified.
+
+**Electrical → acoustic is ESTIMATED, not specified.** The datasheet has NO
+SPL-vs-drive curve — a single trace at one drive level. A magnetic buzzer is a
+permanent-magnet-biased coil, so force is linear in current and SPL scales as
+`20·log10(I₁)`. This is the CONSERVATIVE choice: a diaphragm near its excursion
+limit at rated drive compresses (backing off gains MORE than linearly), and an
+unbiased reluctance device would be square-law (−12 dB). Nothing physical
+delivers LESS than −6.02 dB. To measure it: calibrated ¼″ mic at 10 cm on axis,
+or the pod's own MK1 with the recorder as the meter, D = ½ vs D = 1/6.
+
+**Side effects, all benign.** Coil average current ~150 mA → ~30–50 mA (so the
+shared Q2 sees ~0.9 A → ~0.2–0.3 A); pod 5V_BEEP cable IR drop 0.19 V → ~0.04 V;
+the pod's AOM-5024 gains headroom to its own 110 dB THD<3 % limit, 3.18 → 9.20 dB.
+Gate slew is unaffected: `R_bg1·C_bg` = 4.7 µs against a 41.667 µs on-time
+(8.9 τ) and a 208.33 µs off-time (44.8 τ, through 1k∥100k) — Q2 still switches
+fully both ways. Below duty 1/16 that stops being true; that is the trim floor.
+
+**Far end of the link budget — checked, and it does not break.** All six pods
+fire together from the one FET, so each pod's dominant path is its OWN LS1 at
+45.6 mm; the five other pods, on a 25 ft (7.62 m) radius array (separations
+7.62/13.20/15.24 m), power-sum to 67.0 dB SPL — **39.8 dB below** the local
+path. Matched-filtered on a 20 ms 4 kHz burst (50 Hz noise bandwidth), the
+far-pod SNR after −6 dB is 48.7 dB at a 25 dB(1/3-oct) ambient and still
+28.7 dB at a noisy 45 dB ambient, for a timing σ of 0.15–1.5 µs against a
+20.83 µs sample period. 6 dB is safe at both ends.
+
 ## Per-port power protection
 - MINISMDC050F-2 PTC (F1..F8) on +5V_AUDIO feed per port. Rhold = [PARTS]; in
   the pod power delivery IR budget (power_tree PLUS5V_AUDIO). 0.5A hold >> 20mA

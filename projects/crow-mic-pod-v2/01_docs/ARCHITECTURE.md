@@ -76,6 +76,51 @@ GALVANICALLY SEPARATE from 5V_AUDIO / GND_AUDIO on the pod — they meet only
 at the central — so beeper switching current never shares the analog ground
 (G8). This is the analog-audio-pod archetype's SW-corner switched block.
 
+### BINDING CROSS-BOARD CONSTRAINT — the burst level is CAPPED at central
+
+**This pod's preamp sets an UPPER BOUND on the LS1 drive that the sibling
+`crow-recorder-central-v2` is allowed to apply. If that drive is ever raised
+back to a plain 50 % duty, this board clips on its own calibration tone.**
+Recorded here because a constraint recorded on only one side of a two-board
+system is how it gets undone.
+
+LS1 sits **45.61798 mm** from MK1 (pcbnew, sealed v1.3 board: LS1 (33.000,
+46.000), MK1 (74.000, 26.000)). At the CMT-8504's datasheet minimum of
+≥100 dB SPL @ 10 cm that is `100 + 20·log10(100.000/45.61798)` =
+**106.8173 dB SPL** at the capsule, against a U1 worst-case LINEAR INPUT
+COMMON-MODE ceiling of **101.3144 dB** (SBOS855E §6.7 `VCM = (V−)+0.5 …
+(V+)−2`; mic sensitivity +3 dB at V+ = 4.75 V, the same instant the 150 mA
+burst peaks). **Shortfall 5.5028 dB.** That is finding **CAL-1** —
+`08_reviews/2026-07-27_v1.3_adversarial-audit_first-principles.md`, re-derived
+in `08_reviews/2026-07-28_v1.3_fix-verification_cal1.md`.
+
+**It is fixed at CENTRAL, not here.** This pod's VMID divider was measured
+unable to clear the guaranteed spec by ANY value (best +0.86 dB worst-case, and
+its optimum sits at VMID ≈ 2.07 V — the OPPOSITE direction from the audit's
+proposed 33k/18k). Central instead reduces the burst drive by −6.0206 dB, to
+**100.7967 dB** at this capsule, clearing by 0.5178 dB. **No copper, BOM or
+release on this board changes; v1.3 stays live and is NOT superseded.**
+
+The fix lives in `projects/crow-recorder-central-v2/05_firmware/cal_burst.c`
+(`CAL_BURST_DUTY_NUM/DEN = 1/6`), because central has no analog level control
+at all — its `PLUS5V_BEEP` is the 5 V rail through a ferrite bead with no
+series resistor, one AO3400A switches all eight ports, and `BEEP_GATE` is a
+2-node net between the XU316 GPIO and a 1 k series resistor. The GPIO waveform
+is the only lever. Central's `01_docs/ARCHITECTURE.md` carries the same rule.
+
+Two things this does NOT do, stated so they are not assumed:
+- **It does not cover a loud LS1.** The 5.50 dB shortfall is computed from the
+  transducer's datasheet MINIMUM. A unit at the datasheet's own TYPICAL curve
+  (~104 dB @ 10 cm at 3.9 kHz, rev 1.04 p.3) puts 110.8173 dB on this capsule
+  and stays **3.48 dB over** the ceiling even after −6.02 dB. The level must be
+  trimmed against a MEASUREMENT at bring-up.
+- **It does not resolve PSR-1.** PSR-1's dominant path is the 16 Hz R1·C1
+  mic-bias corner (−11.4 dB at 60 Hz), which nothing here touches.
+
+Benign side effects at this pod: the beep-loop burst current falls from
+~150 mA to ~30–50 mA (5V_BEEP cable IR drop 0.19 V → ~0.04 V), and MK1's
+headroom to its own 110 dB THD<3 % limit improves from 3.18 dB to 9.20 dB.
+
 ## Power / budget (E-TOPO: no converter — externally powered)
 
 (24AWG solid Cat5e ≈ 0.084 Ω/m; 25 ft = 7.62 m. ROUND-TRIP resistance below —

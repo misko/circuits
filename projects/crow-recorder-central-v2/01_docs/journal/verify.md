@@ -107,3 +107,80 @@
   the stamp . contracts_audit PASS.
 - next: fresh-context lens over the staged bytes, then source commit S, stamp,
   seal commit.
+
+## 2026-07-28 11:05 — start (CAL-1 cross-board drive-level fix, CENTRAL end)
+- did: opened the cross-board CAL-1 assignment. The pod's preamp clips on its own
+  calibration burst (106.817 dB SPL at MK1 vs a 101.31 dB worst-case OPA1678
+  input-common-mode ceiling, shortfall 5.51 dB). The user's chosen fix is to cut
+  the LS1 drive ~6 dB AT CENTRAL rather than respin the pod. First question:
+  HOW does central set that level?
+- result: read `03_tscircuit/src/crow_recorder_central_v2.tsx` lines 189-196 and
+  the 8-port map at 325-340. The beep drive is a HARD-SWITCHED, FIXED 5 V
+  low-side chop with NO analog level control anywhere: `PLUS5V_BEEP` = `N5V`
+  through FB_BEEP (600R@100MHz bead, ~0 ohm DC) + C_BEEP 47uF, always on; Q2
+  AO3400A N-FET S=GND, D=`BEEP_RETURN`; gate from XU316 pin 122 `BEEP_GATE`
+  through R_bg1 1k with C_bg 4.7nF + R_bg2 100k. No series resistor in the coil
+  loop, no adjustable supply, no DAC. ALL EIGHT PORTS share the ONE
+  `PLUS5V_BEEP` net and the ONE `BEEP_RETURN` net (BRIEF D1) -> one FET fires
+  every pod together. So the ONLY reachable level control is the GPIO WAVEFORM,
+  i.e. FIRMWARE. And `05_firmware/` on this board (and on every board in this
+  tree) contains ONLY the template `contracts.md` - 1849 bytes, no code.
+- next: re-derive the required reduction, model duty-cycle -> 4 kHz fundamental
+  honestly (the CMT-8504 datasheet has NO SPL-vs-drive curve), check the far end
+  of the link budget, then land the constant + the binding cross-board constraint.
+
+## 2026-07-28 11:40 — iterate 1 (the arithmetic, the model, and the far end)
+- did: re-derived every number the fix depends on rather than inheriting it,
+  then modelled duty-cycle -> 4 kHz acoustic output honestly, then checked the
+  OTHER end of the link budget (the risk in this fix: LS1 is shared, so any
+  reduction hits every receiving pod, not just the near one that clips).
+- result: MEASURED. Geometry, from pcbnew on a COPY of the SEALED pod v1.3
+  board (sha256 2f936fd8... unchanged): LS1 (33.000, 46.000), MK1 (74.000,
+  26.000), |d| = 45.61798 mm -> burst 106.8173 dB SPL. Pod mic at ITS load
+  80.680 mV/Pa. Worst-case OPA1678 input-common-mode ceiling 101.3144 dB.
+  SHORTFALL 5.5028 dB.
+  MODEL: output follows the 4 kHz FUNDAMENTAL, not the RMS - the CMT-8504 ds
+  rev 1.04 p.3 response curve is a sharp resonance peaking ~104 dB at ~3.9 kHz,
+  and a resonator passes the component AT resonance. A 1/6-duty square is only
+  -4.8 dB RMS but exactly -6.02 dB in fundamental. sin(pi*D) holds at BOTH ends
+  of the UNSPECIFIED coil inductance (L->0 square current; L->inf triangle
+  ripple, the D(1-D) cancels); numerical integration of i'=(v-iR)/L with the
+  SS14 freewheel over L = 20uH..3mH gives -6.02..-6.68 dB at D=1/6, so the law
+  is a CONSERVATIVE bound. M1 sanity by a second method: ds MEASURED 150 mA at
+  1/2 duty vs ANALYTIC volt-second balance 151.7 mA, 1.1% apart.
+  Electrical->acoustic is ESTIMATED, not specified - the ds has NO SPL-vs-drive
+  curve, one trace at one level. Linear-in-current is the conservative pick
+  (compression or square-law both deliver MORE reduction).
+  FAR END: 6 dB does NOT break it, by a wide margin. All six pods fire from the
+  ONE FET, so each pod's dominant path is its OWN LS1 at 45.6 mm; the five
+  others on a 7.62 m-radius array (separations 7.62/13.20/15.24 m) power-sum to
+  67.0 dB SPL - 39.8 dB BELOW the local path. Matched-filtered on a 20 ms burst
+  (50 Hz noise bw), far-pod SNR after -6 dB is 48.7 dB at a 25 dB(1/3-oct)
+  ambient and 28.7 dB at 45 dB, timing sigma 0.15-1.5 us vs a 20.83 us sample.
+  Pod noise floor is the CAPSULE (14 dB(A), self-noise) not the electronics
+  (-1.9 dB SPL over 20 kHz from 9.19 nV/rtHz).
+  NEW, and it does not fit in CAL-1: the 5.50 dB shortfall uses LS1's ds
+  MINIMUM. A unit on the ds's own TYPICAL curve (~104 dB @10cm) lands at
+  110.8173 dB and stays 3.48 dB OVER the ceiling even after -6.02 dB.
+- next: land the constant, then the constraint on both boards, then gates.
+
+## 2026-07-28 12:10 — finish (fix landed, firmware+docs only)
+- did: landed the drive level as a named, derived constant with a host test;
+  recorded the constraint on BOTH boards; ran the gates.
+- result: `05_firmware/cal_burst.c` CAL_BURST_DUTY_NUM/DEN = 1/6 ->
+  20*log10(sin(pi/6)) = -6.0206 dB -> 100.7967 dB at the capsule, clearing the
+  101.3144 dB ceiling by 0.5178 dB. `make test` PASS 0 failures, and
+  RED-VERIFIED: rebuilt on a COPY at the pre-fix DEN=2 it reports 5 failures
+  including MARGIN -5.5028 dB and exits 1 - the gate can fail.
+  Also landed: Makefile (MCU a VARIABLE per the folder contract), README.md
+  (states build, connector, and the UNPROGRAMMED-BOARD behaviour - SILENT,
+  because R_bg2 100k holds Q2's gate low; the dangerous default is the SOFTWARE
+  one, a naive 50% duty). ARCHITECTURE.md + DETAIL_DESIGN.md carry the
+  constraint and the full arithmetic; CHANGELOG v1.8 firmware+docs only.
+  NO copper, BOM, netlist or release moved. 04_kicad/ and 07_releases/ not
+  written; v1.7 stays sealed, live and orderable. contracts_audit: the two
+  boards hold at their 10-file pre-existing baseline, 0 added.
+- next: the operator-facing copy is OWED to the NEXT release's ORDER_README
+  (every existing one is inside an immutable sealed release). And the residual
+  is the user's: -6 dB clears a MINIMUM-output LS1 by 0.52 dB and leaves a
+  TYPICAL-output one 3.48 dB over - trim against a measurement at bring-up.

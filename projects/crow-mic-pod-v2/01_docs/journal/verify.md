@@ -77,3 +77,28 @@
 - next: user decision. Parts side is already clean and dated: 33k = **C4216**
   (JLC Basic, 747 998), 18k = **C25810** (JLC Basic, 1 357 175), both the same
   Uni-Royal 0603 series as the 22k they replace (live query 2026-07-28).
+
+## 2026-07-28 12:10 — iterate (CAL-1 closed from the OTHER board; nothing here moved)
+- did: recorded, on this board, the resolution of CAL-1 by a system-level drive
+  reduction at the sibling `crow-recorder-central-v2`. Read-only pass over this
+  board's copper: `07_releases/` and `04_kicad/` opened read-only, `03_src/` and
+  `03_tscircuit/` untouched.
+- result: CAL-1 re-derived here once more before depending on it — pcbnew on a
+  COPY of the SEALED v1.3 board (sha256 2f936fd8...): LS1 (33.000, 46.000),
+  MK1 (74.000, 26.000), |d| = 45.61798 mm -> burst 106.8173 dB SPL; worst-case
+  U1 input-common-mode ceiling 101.3144 dB; SHORTFALL 5.5028 dB. Fixed AT
+  CENTRAL by duty 1/6 (-6.0206 dB) -> 100.7967 dB, clearing by 0.5178 dB.
+  This board: NO copper, NO BOM, NO netlist, NO release change. v1.3 carries no
+  SUPERSEDED.md and remains the live release. The 33k/18k pair of FIX-1 was NOT
+  applied — the divider stays 22k/22k.
+  Landed here: the binding constraint in `01_docs/ARCHITECTURE.md` (Calibration
+  transducer), three gotchas on `02_parts/CMT-8504-100-SMT-TR/part.yaml` (the
+  cap, the absent SPL-vs-drive curve, and the unspecified coil inductance), and
+  the DISPOSITIONS row moving CAL-1 OPEN -> resolved with its fix location.
+  POE-1, PSR-1, DC-1, MECH-1 re-stated individually as still OPEN; PSR-1
+  explicitly NOT resolved — the drive change is on the galvanically separate
+  beep domain and its dominant path is the 16 Hz R1*C1 corner, -11.4 dB at
+  60 Hz, untouched.
+- next: this board is unchanged and still orderable. The residual on CAL-1 is
+  the user's: -6 dB clears a MINIMUM-output LS1 by 0.52 dB but leaves a
+  TYPICAL-output one (ds curve ~104 dB @10cm) 3.48 dB over the ceiling.

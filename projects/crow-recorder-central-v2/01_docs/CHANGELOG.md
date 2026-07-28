@@ -3,6 +3,63 @@
 One entry per REVISION (a design state, git-tagged). Reverse-chronological.
 `Released:` is `no`, or the name of the `07_releases/` directory that shipped it.
 
+## v1.8 — 2026-07-28 — FIRMWARE + DOCS ONLY
+
+- **No copper, no BOM, no netlist, no release.** `04_kicad/` and `07_releases/`
+  untouched; `03_src/` and `03_tscircuit/` untouched. **v1.7 remains the live,
+  sealed, orderable release.** Release payloads are
+  `fab/ source/ verification/ 3d/ pdf/ MANIFEST.txt ORDER_README.md` and carry
+  no firmware, so nothing here is supersedable or needs to be superseded.
+- **What changed, and why it is a design state at all.** This board's
+  calibration-burst DRIVE LEVEL is now defined, bounded and derived. It was
+  previously undefined — and the obvious first cut (50 % duty, the CMT-8504's
+  own characterisation condition) is the one value that is WRONG.
+- **The defect is on the sibling board.** `crow-mic-pod-v2` CAL-1: LS1 sits
+  45.61798 mm from MK1, putting **106.8173 dB SPL** on the capsule against an
+  OPA1678 worst-case linear input-common-mode ceiling of **101.3144 dB**.
+  Shortfall **5.5028 dB** — the calibration transducer saturates the preamp it
+  exists to calibrate. The pod cannot fix it (its divider was measured unable to
+  clear the guaranteed spec by ANY value, best +0.86 dB, optimum in the opposite
+  direction), so the user's chosen fix is a ~6 dB drive reduction HERE. The pod
+  v1.3 release stays live and is NOT superseded.
+- **Established first: the level is firmware, and only firmware.** Measured from
+  the SEALED v1.7 netlist, not the source — `PLUS5V_BEEP` is the 5 V rail
+  through a ferrite bead with **no series resistor and no regulator** (11 nodes);
+  `BEEP_RETURN` is **one AO3400A for all eight ports** (10 nodes, BRIEF D1);
+  `BEEP_GATE` has exactly **two** nodes, `U1.122` and `R_bg1.1`. There is no
+  analog level control on this board. The GPIO waveform is the only lever.
+- **The constant.** `05_firmware/cal_burst.c`, `CAL_BURST_DUTY_NUM/DEN = 1/6`
+  → `20·log10(sin(π/6)) = −6.0206 dB` of 4 kHz fundamental → **100.7967 dB SPL**
+  at the capsule, clearing the ceiling by **0.5178 dB**. Named, derived in place,
+  with a trim ladder and a trim floor (duty 1/16, where the 4.7 µs gate RC stops
+  fully enhancing Q2). `make test` re-derives every number from the physics:
+  **PASS, 0 failures**, and **RED-verified** — rebuilt at the pre-fix `DEN = 2`
+  it reports 5 failures including a negative ceiling margin, and exits 1.
+- **The model, stated because it is not free.** SPL follows the 4 kHz
+  FUNDAMENTAL, not the RMS: the datasheet's own response curve (rev 1.04 p.3)
+  is a sharp resonance peaking ~104 dB at ~3.9 kHz, and a resonator passes the
+  component at resonance. `sin(π·D)` holds at BOTH ends of the coil's
+  unspecified inductance and a numerical L-R-diode integration over
+  20 µH…3 mH returns −6.02…−6.68 dB, so the law is a conservative bound. Model
+  sanity by a second method (canon M1): the datasheet's MEASURED 150 mA at ½
+  duty vs an ANALYTIC volt-second balance of 151.7 mA — 1.1 % apart.
+  Electrical→acoustic is **ESTIMATED, not specified** (the datasheet has no
+  SPL-vs-drive curve) and deliberately conservative.
+- **The far end of the link budget was checked, and 6 dB does not break it.**
+  All six pods fire together, so each pod's dominant path is its own LS1;
+  the five others power-sum to 67.0 dB SPL, **39.8 dB below** the local path.
+  Far-pod matched-filter SNR after −6 dB is 48.7 dB at a 25 dB(1/3-oct) ambient
+  and 28.7 dB at 45 dB, giving a timing σ of 0.15–1.5 µs against a 20.83 µs
+  sample. Massive margin at both ends.
+- **Owed, and flagged, not silently absorbed.** (a) CAL-1's shortfall uses LS1's
+  datasheet MINIMUM; a unit at the datasheet's TYPICAL curve (~104 dB @ 10 cm)
+  lands at 110.8173 dB and stays **3.48 dB over** the ceiling even after
+  −6.02 dB, so the level must be TRIMMED AGAINST A MEASUREMENT at bring-up.
+  (b) The operator-facing copy of this constraint is owed to the NEXT release's
+  `ORDER_README.md` — every existing one is inside an immutable sealed release
+  and cannot be retro-filled.
+- Released: no
+
 ## v1.7 — 2026-07-27
 - **SOURCING supersede of v1.6. NO COPPER CHANGE.** v1.6 is not wrong and its
   board is this board; it is UNORDERABLE because JLC cannot SUPPLY one of its

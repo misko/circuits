@@ -62,6 +62,57 @@ Sequencing (ADR-0005, per XMOS ref): 3V3 comes up first, its PG enables the
 Worst-case 5V trunk current (E-TOPO): digital ~0.5A + analog ~0.1A + pods
 (6*20mA audio + 6*150mA beep peak) ~1.0A => ~1.6A worst case << GST25A05 5A.
 
+## Calibration-burst drive level — a BINDING CROSS-BOARD CONSTRAINT
+
+**This board's beep drive is bounded ABOVE by the input ceiling of the preamp
+on the sibling board, `crow-mic-pod-v2`. Raising it breaks the pod.** This is
+the one system rule that neither board can see on its own, so it is recorded
+on both.
+
+The pod carries its calibration transducer LS1 **45.61798 mm** from its own
+microphone MK1 (pcbnew, sealed pod v1.3 board). At the CMT-8504's datasheet
+minimum of ≥100 dB SPL @ 10 cm, the burst lands on the capsule at
+
+    100 dB + 20·log10(100.000 / 45.61798)  =  106.8173 dB SPL
+
+and the pod's OPA1678 runs out of **linear input common-mode range** first
+(SBOS855E §6.7, `VCM = (V−)+0.5 … (V+)−2`) at a worst-case ceiling of
+**101.3144 dB SPL** — mic sensitivity +3 dB at V+ = 4.75 V, which is the same
+instant the 150 mA burst peaks. **Shortfall 5.5028 dB.** That is defect
+**CAL-1** (`projects/crow-mic-pod-v2/08_reviews/DISPOSITIONS.md`): the
+calibration transducer saturates the preamp it exists to calibrate.
+
+It is fixed HERE, not on the pod — the pod's VMID divider was measured unable
+to clear the guaranteed spec by any value (best +0.86 dB, optimum in the
+opposite direction). The pod's v1.3 release stays live and is NOT superseded.
+
+**There is no analog level control on this board**, measured from the SEALED
+v1.7 netlist rather than the source:
+
+| net | nodes | consequence |
+|---|---|---|
+| `PLUS5V_BEEP` | 11 — `FB_BEEP.2` (bead off the 5 V rail, ~0 Ω DC), `C_BEEP.1`, `TP12`, pin 3 of all EIGHT RJ45s | fixed 5 V; **no series resistor, no regulator** |
+| `BEEP_RETURN` | 10 — pin 6 of all EIGHT RJ45s, `TP11`, `Q2.3` | **ONE AO3400A for every pod** (BRIEF D1) |
+| `BEEP_GATE` | **2** — `U1.122` (XU316 GPIO) and `R_bg1.1` | the GPIO waveform is the ONLY lever |
+
+So the level is a FIRMWARE constant by construction. It lives, with its full
+derivation, model and trim ladder, in **`05_firmware/cal_burst.c`** —
+`CAL_BURST_DUTY_NUM/DEN = 1/6`, giving `20·log10(sin(π/6)) = −6.0206 dB` of
+4 kHz fundamental and **100.7967 dB SPL** at the capsule, clearing the ceiling
+by 0.5178 dB. `make test` re-derives all of it from the physics.
+
+Nothing about this touches copper, the BOM, or any release: `07_releases/`
+payloads are `fab/ source/ verification/ 3d/ pdf/ MANIFEST.txt ORDER_README.md`
+and carry no firmware. **v1.7 stays sealed and live.** The operator-facing copy
+of this constraint is owed to the NEXT release's `ORDER_README.md` (the sealed
+ones are immutable and cannot be retro-filled).
+
+Open and NOT covered by the −6 dB fix: CAL-1's shortfall is computed from LS1's
+datasheet MINIMUM output. A unit at the datasheet's own TYPICAL response curve
+(~104 dB @ 10 cm at 3.9 kHz, rev 1.04 p.3) lands at 110.8173 dB and stays
+3.48 dB over the ceiling even after −6.02 dB. The level must be **trimmed
+against a measurement at bring-up**.
+
 ## Ground strategy
 
 - Digital GND (GND) + analog GND (GND_A) joined at a single point / star at
