@@ -1,0 +1,10 @@
+== release-freshness: crow-recorder-central-v2-v1.6-2026-07-27 == [legible-bom supersede of crow-recorder-central-v2-v1.5-2026-07-25]
+  note: fab/ byte-identical to crow-recorder-central-v2-v1.5-2026-07-25 (4 file(s)) — ASSERTED by legible-bom mode
+  note: source/ byte-identical to crow-recorder-central-v2-v1.5-2026-07-25 (12 file(s)) — ASSERTED by legible-bom mode
+  note: 3d/ byte-identical to crow-recorder-central-v2-v1.5-2026-07-25 (1 file(s)) — ASSERTED by legible-bom mode
+  note: F-LEGIBLE on this release (crow-recorder-central-v2-v1.6-2026-07-27): 0 finding(s)
+  note: F-LEGIBLE on the prior release (crow-recorder-central-v2-v1.5-2026-07-25): 72 finding(s)
+  note: fab/bom.csv delta is 24 Comment rewrite(s) and 47 MPN change(s) over 49 row(s); 0 row(s) byte-identical; 0 added, 0 removed, 0 Footprint/LCSC changes — ASSERTED by legible-bom mode
+  note: A-STOCK: grading verification/stock_check.json (47 graded line(s), verdict=FAIL) against 45 coded+placed BOM line(s) x 5 boards
+  note: A-STOCK: verification/stock_check.json verdict is FAIL but every problem line (C6938291, C9900035627) is unplaced or covered by a sourcing_plan entry
+FRESHNESS: PASS

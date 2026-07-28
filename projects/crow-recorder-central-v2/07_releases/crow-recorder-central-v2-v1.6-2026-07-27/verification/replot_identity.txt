@@ -1,0 +1,63 @@
+PAYLOAD IDENTITY - v1.6 vs v1.5 (canon: a fix-claim needs the measurement)
+=========================================================================
+
+CLAIM: v1.6 changes fab/bom.csv and NOTHING else in the payload. The copper
+is untouched. The other v1.6 change, 03_src/rules/power_tree.yaml, is an
+INPUT, not a payload file: it declares the two LDO rails so E-TOPO can grade
+them, and it reaches no gerber, no drill, no placement and no BOM row.
+
+METHOD (falsifiable, not a copy-check). Three independent measurements:
+
+  (1) THE BOARD IS THE SAME FILE. md5 of the .kicad_pcb in three places.
+  (2) THE BOARD STILL GENERATES THESE BYTES. The gerbers + drills were
+      RE-PLOTTED from 04_kicad/ with export_jlc_package.py --layers 6 into
+      06_build/proof/v16/ and compared against the members of v1.5's SEALED
+      zip AND its two loose drills, after stripping ONLY the plot's own
+      timestamp comments. A copy proves nothing; a RE-PLOT proves the board.
+  (3) sha256 over EVERY payload file (fab/, pdf/, source/, 3d/) present in
+      either release. verification/ is EXCLUDED: it is this release's own
+      fresh evidence and is expected to differ.
+
+(1) BOARD IDENTITY (md5):
+  04_kicad/crow_recorder_central_v2.kicad_pcb      de39e145e856cb14d491770c77d1ec0a
+  v1.5/source/crow_recorder_central_v2.kicad_pcb   de39e145e856cb14d491770c77d1ec0a
+  v1.6/source/crow_recorder_central_v2.kicad_pcb   de39e145e856cb14d491770c77d1ec0a
+  -> ONE FILE: the sealed board, the working board and this release's board.
+
+(2) REPLOT IDENTITY vs v1.5's sealed archive:
+    zip members  : 15/15 byte-identical after the timestamp strip
+    loose drills : 2/2 byte-identical after the timestamp strip
+  -> 17/17 re-plotted gerber+drill artifacts identical (15 zip members + 2 loose drills).
+     The ONLY lines exempted are the KiCad wall-clock stamps:
+     TF.CreationDate, 'Created by KiCad', and the .drl 'DRILL file KiCad
+     ... date' line. Nothing else is waived.
+
+(3) PAYLOAD sha256 SWEEP (fab/ pdf/ source/ 3d/):
+  CHANGED    fab/bom.csv                                            5610ed90611be7f1 -> d2cdad3ab4742d1e
+  ONLY IN v1.6  source/crow_recorder_central_v2.kicad_prl
+
+  payload files identical : 20
+  payload files changed   : 1
+  payload files in one    : 1
+
+Exactly ONE payload file differs: fab/bom.csv. fab/cpl.csv was re-exported
+in the SAME run and came out BYTE-IDENTICAL to v1.5's — the legibility fix
+touches the BOM's Comment and MPN columns and nothing that reaches the
+placement machine, so every A-ROT rotation and A-POS coordinate is carried
+forward untouched.
+
+REPRODUCIBILITY CROSS-CHECK (canon M3, and it is the reason this file exists
+in this form). The BOM shipped here was NOT copied from anywhere: it was
+re-exported from 03_src/ + 03_tscircuit/ + 02_parts/ through the fixed
+export_jlc_package.py, and it came out sha256-identical to the BOM an
+independent staging run had produced earlier the same day
+(d2cdad3ab4742d1e1473acc9a4bb5448dd7937636abc967d5be402b4742b3d01). Two
+independent generations, one artifact — the release is regenerable from
+source, which is what crow-mic-pod-v2 v1.1 was not.
+
+That identity is asserted MECHANICALLY, not by reading this file, via
+  release_freshness_check.py <rel> --legible-bom-supersede <v1.5>
+which additionally FAILs on any ADDED or REMOVED row, on any changed
+Footprint or LCSC (a changed LCSC is a SUBSTITUTION - the C82317 -> C131025
+class), on a blanked MPN, and on a BOM that does not itself PASS F-LEGIBLE.
+See verification/release_freshness.txt and verification/bom_legibility.txt.

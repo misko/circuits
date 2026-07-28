@@ -1,0 +1,1 @@
+E-INV OK: 11/11 invariants hold against 06_build/netlists/crow_recorder_central_v2.net

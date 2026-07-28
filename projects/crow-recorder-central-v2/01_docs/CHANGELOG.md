@@ -3,6 +3,49 @@
 One entry per REVISION (a design state, git-tagged). Reverse-chronological.
 `Released:` is `no`, or the name of the `07_releases/` directory that shipped it.
 
+## v1.6 — 2026-07-27
+- **BOM-LEGIBILITY supersede of v1.5, plus one rail declaration. NO COPPER
+  CHANGE, and v1.5 is NOT DO-NOT-ORDER** — its board is this board.
+- **What was wrong.** v1.5's `fab/bom.csv` was uploaded to JLCPCB and the parts
+  "were not being picked up by their web processing". Graded the way the
+  RECIPIENT parses it (canon **F-LEGIBLE**, ADR-0006) the sealed file carries
+  **72 findings**: 47 F-MPN (every coded row ships a blank MPN, so JLC's matcher
+  leaves a code-only line at *No Part Selected*), 24 F-WORDS (the Comment is an
+  LCSC code or a `simple_chip`/`simple_inductor` generator stand-in) and
+  1 F-ENCODE (the ohm sign with no UTF-8 byte-order-mark, so a cp936 reader
+  renders `CE A9` as the mojibake the user saw). **v1.6: 0 findings.**
+- **Five dossiers needed a source fix, and the answer was already in the tree.**
+  `1277AS-H-1R0M`, `1277AS-H-2R2M`, `BLM21PG600SN1D`, `BLM21SP601SN1D` and
+  `TLV70018DDCR` declared their code as a bare top-level `lcsc:` instead of the
+  `sourcing: {lcsc: ...}` block the 02_parts contract mandates and the F-MPN
+  authority reads. Y1's NDK crystal genuinely has no dossier and gained a
+  catalog-verified ledger row (`C2762192` = `NX3225SA-24MHZ-EXS00A-CS08583`).
+- **E-TOPO: FAIL → OK, and this is the second half of the release.** E-TOPO
+  gained LINEAR-regulator support on 2026-07-27, *after* v1.5 sealed, and
+  reported `UNGRADED CONVERTERS: 2 of 3` — this board's `1V8` (U9) and `3V3A`
+  (U10) rails lived in a COMMENT in `power_tree.yaml`, so **two of its three
+  regulators had never been graded by anything.** Both are now declared and
+  graded on dropout and dissipation:
+  `1V8` headroom 1382 mV vs **620 mV**, PD 81 mW vs **200 mW** (40%);
+  `3V3A` headroom 1567 mV vs **200 mV**, PD 147 mW vs **500 mW** (29%).
+  All four numbers CITED to figure/page in the converters' own `part.yaml`
+  (Toshiba TCR2LF series 2014-11-06 pp.2/4; Torex ETR03054-006 pp.3/6 of 23),
+  both dropouts taken at a HIGHER current than the rail draws so each bounds it
+  from above. Rail currents DERIVED from the netlist, not assumed — and where
+  XMOS publishes no VDDIO operating current the estimate carries its bar
+  (5 ± 5 mA) rather than borrowing the 126 mA absolute maximum.
+- **The copper did not move, measured three ways.** `.kicad_pcb` md5-identical
+  (`de39e145e856cb14d491770c77d1ec0a`) to v1.5's and to `04_kicad/`'s; gerbers +
+  drills **re-plot 17/17 byte-identical** to v1.5's sealed archive after the
+  timestamp strip; `fab/cpl.csv` byte-identical; 20 of 21 payload files
+  sha256-identical. Asserted mechanically by
+  `release_freshness_check.py --legible-bom-supersede`.
+- **Regenerable from source, proven (canon M3).** The shipped BOM was re-exported
+  from `03_src/` + `03_tscircuit/` + `02_parts/` and came out sha256-identical to
+  an independent earlier generation of the same release
+  (`d2cdad3ab4742d1e…`) — two runs, one artifact.
+- Released: `07_releases/crow-recorder-central-v2-v1.6-2026-07-27`
+
 ## v1.5 — 2026-07-25
 - **CPL-CORRECTION supersede: v1.4 is DO-NOT-ORDER for PCBA.** v1.4 places J2,
   the board's ONLY USB-C connector, **1.3025 mm off its own pads**. Its contacts

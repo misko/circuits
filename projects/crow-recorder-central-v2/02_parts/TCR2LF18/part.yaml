@@ -30,6 +30,40 @@ limits:
   iq: "1.0uA typ (2.0uA max) - ultra-low quiescent"
   vct_on_min: "1.0V"          # CONTROL logic-high threshold
   tj_max: "150C"
+
+# ---------------------------------------------------------------------------
+# E-TOPO LINEAR FACTS (canon E-TOPO, LINEAR half landed 2026-07-27). These two
+# fields are EXECUTABLE: power_topology.py reads them to grade the 1V8 rail on
+# the two failure modes the Vin-vs-Vout topology derivation is blind to.
+#   headroom = vin_min - vout_max  >=  dropout_mv
+#   PD       = (vin_max - vout_min) x iout  <=  pdiss_max_mw
+# Both are CITED (canon M-IMPORT) from the LOCAL datasheet copy beside this
+# file, TCR2LF_series_2014-11-06.pdf (sha256 in `datasheet:` above).
+#
+# dropout_mv 620 — Electrical Characteristics table, p.4: "Drop-out voltage
+#   VIN-VOUT, IOUT = 150 mA, VOUT = 1.8V" -> typ 370 mV at Tj 25C, MAX 620 mV
+#   over Tj = -40 to 85C. The same 620 mV is the "1.8V <= VOUT < 2.0V" row of
+#   the per-Vout Drop-out voltage table on the same page (Max, Note 6 = Tj -40
+#   to 85C). THE MAX IS TAKEN, NOT THE TYP.
+#   ON THE LOAD-CURRENT CAVEAT (the adjacent-property error this repo keeps
+#   paying for): Toshiba publishes dropout at ONE current, 150 mA. The 1V8 rail
+#   draws ~50 mA, i.e. LESS, and dropout rises monotonically with IOUT —
+#   "Dropout Voltage vs. Output Current", p.9, VOUT=1.8V panel. So 620 mV at
+#   150 mA is an UPPER BOUND on the 50 mA case, the conservative direction. A
+#   number quoted at a LOWER current than the rail draws would not be usable.
+# pdiss_max_mw 200 — Absolute Maximum Ratings, p.2, header states Ta = 25C:
+#   "Power dissipation PD, SMV: 200 mW (Note 1) / 580 mW (Note 2)". Note 1 =
+#   "Unit Rating" (the bare package, NO board heat-sinking); Note 2 = mounted
+#   on FR4 25.4 x 25.4 x 1.6 mm. THE UNIT RATING IS DECLARED because it asserts
+#   nothing about our copper — this board is 6-layer with a ground plane, which
+#   can only help. AMBIENT: the rating is Ta = 25C as published. The board
+#   declares no operating ambient (BRIEF.md has none), so it is NOT derated to
+#   an ambient nobody has stated; the assumption is not load-bearing here —
+#   with tj_max 150C the unit rating implies 625 C/W, so even at Ta = 85C
+#   (Topr max, same table) the rating would be 104 mW and the rail's 81 mW
+#   still clears it.
+dropout_mv: 620
+pdiss_max_mw: 200
 gotchas:
   - "CONTROL (pin 3) = active-high enable with an INTERNAL PULL-DOWN between
      CONTROL and GND (feature list p.1; App-Note table p.5: HIGH=ON, LOW=OFF,

@@ -32,6 +32,41 @@ limits:
   iq: "100uA typ (220uA max)"
   vce_high_min: "1.2V"        # CE logic-high threshold
   tsd: "150C detect / 125C release"
+
+# ---------------------------------------------------------------------------
+# E-TOPO LINEAR FACTS (canon E-TOPO, LINEAR half landed 2026-07-27). Executable:
+# power_topology.py reads these to grade the 3V3A rail on dropout and package
+# dissipation, the two failure modes the Vin-vs-Vout derivation cannot see.
+# Both CITED (canon M-IMPORT) from the LOCAL datasheet copy beside this file,
+# XC6227_ETR03054-006.pdf (sha256 in `datasheet:` above).
+#
+# dropout_mv 200 — OUTPUT VOLTAGE CHART, Voltage Chart 2, p.6/23, the
+#   VOUT(T) = 3.30 V row: "DROPOUT VOLTAGE 1, Vdif" typ 120 mV, MAX 200 mV.
+#   The parameter's condition is defined in ELECTRICAL CHARACTERISTICS,
+#   p.4/23: "Dropout Voltage1 Vdif, IOUT = 300 mA, VCE = VIN". THE MAX IS
+#   TAKEN, NOT THE 120 mV TYP the front page advertises.
+#   ON THE LOAD-CURRENT CAVEAT: quoted at 300 mA, and the 3V3A rail draws
+#   ~80 mA — LESS, so this bounds it. The datasheet PROVES the monotonicity
+#   itself rather than leaving it to inference: the same 3.30 V row gives
+#   "DROPOUT VOLTAGE 2, Vdif2" at IOUT = 0 mA as 40 mV typ / 80 mV max, i.e.
+#   dropout RISES from 80 mV at 0 mA to 200 mV at 300 mA. 80 mA sits inside
+#   that span and 200 mV is its upper bound.
+# pdiss_max_mw 500 — ABSOLUTE MAXIMUM RATINGS, p.3/23, the table's own row
+#   label states Ta = 25C: "Power Dissipation (Ta=25C), SOT-89-5: 500 (IC
+#   only) / 1300 (40mm x 40mm Standard Board) / 1750 (JESD51-7 Board)", with
+#   the note "(*1) The power dissipation figure shown is PCB mounted and is
+#   for reference only". THE IC-ONLY 500 mW IS DECLARED so no claim is made
+#   about how our copper compares to Torex's 40 x 40 mm test board; our
+#   6-layer board with the SOT-89 tab soldered to the VSS plane can only be
+#   better than the bare package. AMBIENT: Ta = 25C as published, not derated
+#   to an ambient this board never declared. Not load-bearing: with the 150C
+#   thermal-shutdown detect the IC-only rating implies 250 C/W, so even at
+#   Ta = 85C (Topr max, same table) the rating is 260 mW against the rail's
+#   147 mW.
+#   Cross-check outside this board: pluto-cal-switch's power_tree.yaml already
+#   names "XC6227C331PR-G, C6035451, 500 mW" as its SOT-89 escalation target.
+dropout_mv: 200
+pdiss_max_mw: 500
 gotchas:
   - "CE (pin 1) is active-HIGH. This is the 'C' TYPE = built-in CE PULL-DOWN
      resistor (Selection Guide p.2, Function Chart p.3): CE OPEN => Stand-by(OFF),

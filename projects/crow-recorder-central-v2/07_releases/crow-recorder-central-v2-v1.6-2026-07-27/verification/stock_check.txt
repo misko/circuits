@@ -1,0 +1,53 @@
+input: bom = 07_releases/crow-recorder-central-v2-v1.6-2026-07-27/fab/bom.csv
+49 BOM lines: 47 with LCSC, 2 without
+
+  OK               C25741     x2   100kΩ                                  base   stock=726466
+  OK               C1525      x44  100nF                                  base   stock=47583485
+  OK               C25076     x16  100Ω                                   base   stock=973822
+  OK               C60490     x3   10kΩ                                   expand stock=8272402
+  OK               C15850     x9   10uF                                   base   stock=10942256
+  OK               C237284    x1   1277AS-H-1R0M=P2                       expand stock=16787
+  OK               C882626    x1   1277AS-H-2R2M=P2                       expand stock=496
+  OK               C1547      x2   12pF                                   base   stock=2557230
+  OK               C26083     x1   1MΩ                                    base   stock=1125843
+  OK               C11702     x3   1kΩ                                    base   stock=1230891
+  OK               C1523      x8   1nF                                    base   stock=5783003
+  OK               C52923     x10  1uF                                    base   stock=14327688
+  OK               C377773    x17  2.2uF                                  base   stock=962186
+  OK               C72203     x1   2.2uF                                  expand stock=21080
+  OK               C25764     x2   200kΩ                                  base   stock=1746192
+  OK               C25767     x1   220kΩ                                  expand stock=16
+  OK               C45783     x3   22uF                                   base   stock=3948136
+  OK               C2762192   x1   24MHz                                  expand stock=8137
+  OK               C25778     x1   330kΩ                                  expand stock=90480
+  OK               C25105     x4   33Ω                                    base   stock=245862
+  OK               C105871    x2   4.7kΩ                                  expand stock=4316425
+  OK               C1538      x1   4.7nF                                  base   stock=794443
+  OK               C25785     x1   402kΩ                                  expand stock=53522
+  OK               C25895     x1   44.2kΩ                                 expand stock=106419
+  OK               C25792     x1   47kΩ                                   base   stock=1666133
+  OK               C96123     x1   47uF                                   base   stock=800907
+  OK               C25905     x2   5.1kΩ                                  base   stock=2136920
+  OK               C25130     x1   680Ω                                   expand stock=19556
+  OK               C20917     x1   AO3400A                                base   stock=1553568
+  OK               C15127     x1   AO3401A                                base   stock=730207
+  OK               C5224055   x2   AP61102Z6-7                            expand stock=383
+  OK               C3716677   x4   BLM21SP601SN1D                         expand stock=6392
+  OK               C381116    x1   DC-005-5A-2.0                          expand stock=20561
+  OK               C136345    x1   JFC1206-1200FS                         expand stock=9265
+  OK               C2649901   x8   MINISMDC050F-2                         expand stock=29535
+  OK               C232798    x1   NC7NZ34K8X                             expand stock=1508
+  OK               C181312    x2   PCM1865DBTR                            expand stock=1575
+  LOW_STOCK(0)     C9900035627 x8   RJHSE-5384                             expand stock=0
+  OK               C2909890   x1   SHT40-AD1B-R2                          expand stock=18614
+  OK               C87074     x1   SMAJ5.0A                               expand stock=17556
+  OK               C79924     x1   TLV70018DDCR                           expand stock=8200
+  OK               C1972959   x8   TPD2E2U06DRLR                          expand stock=11123
+  OK               C90627     x1   TPD4EUSB30DQAR                         expand stock=8055
+  OK               C3020560   x1   USB4105-GF-A                           expand stock=3486
+  OK               C82317     x1   W25Q16JVSSIQ                           expand stock=9775
+  OK               C6035451   x1   XC6227C331PR-G                         expand stock=1268
+  LOW_STOCK(0)     C6938291   x1   XU316-1024-TQ128-I24                   expand stock=0
+json -> 07_releases/crow-recorder-central-v2-v1.6-2026-07-27/verification/stock_check.json
+
+FAIL: 45/47 coded BOM lines have stock >= 5 x qty (2 with problems); 2/49 lines carry NO LCSC and were NOT graded by this tool

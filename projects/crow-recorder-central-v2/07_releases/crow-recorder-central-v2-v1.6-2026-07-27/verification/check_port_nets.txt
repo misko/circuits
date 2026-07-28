@@ -1,0 +1,1 @@
+check_port_nets: PASS — 115 labels all survive to the netlist; 8 ports pin-for-pin per the brief
