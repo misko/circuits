@@ -1,0 +1,1 @@
+E-INV OK: 83/83 invariants hold against projects/smc0985-cooksense/06_build/netlists/cooksense.net

@@ -1,0 +1,65 @@
+mpn: RC0402FR-071K2L
+manufacturer: YAGEO
+type: resistor_thickfilm   # R_ILM -- the TPS259573 eFuse current-limit programming resistor
+datasheet: {doc_id: RC-series (RC0402), revision: series/LCSC, url: "https://www.lcsc.com/product-detail/C138040.html", sha256: null, fetched: 2026-07-27}
+package: "0402 (1005 metric)"
+footprint: Resistor_SMD:R_0402_1005Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-27}
+pins: {1: A, 2: B}
+limits: {R: "1.2k ohm", tol: "F +-1%", tcr: "+-100ppm/C", power: "62.5mW (0402)", vmax: "50V", temp: "-55C..+155C"}
+asserts:
+  - {assert: value, equals: 1.2k, tolerance_pct: 1,
+     why: "R_ILM IS THE eFUSE CURRENT LIMIT. TPS259573 pin 7 (ILM) takes a resistor to
+       GND that PROGRAMS the IN->OUT current limit; the part dossier
+       (02_parts/TPS259573DSGR, TI SLVSE57C) records the programmable window as
+       `Rilm 487ohm (4.42A max) .. 5000ohm` and states `Do NOT leave floating`. A
+       substituted value therefore re-programs the board's INPUT PROTECTION set point
+       -- lower R = higher limit (the fuse stops protecting), higher R = lower limit
+       (the eFuse trips on the reed-coil inrush and the board browns out mid-cycle).
+       Neither failure shows up in DRC, ERC, parity, the twin render or the CPL. The
+       exact trip current is NOT restated here: TI's ILIM equation is a curve fit and
+       this dossier does not own it -- 02_parts/TPS259573DSGR does, and the power
+       review is where the number is derived. What this assert pins is that the value
+       on the board is the value the design chose."}
+gotchas:
+  - "THIS ENTRY EXISTS BECAUSE THE PART IT REPLACES CANNOT BE BOUGHT IN ONES. cooksense
+     v1.0-v1.4 shipped R_ILM as C25862 (UNI-ROYAL 0402WGF1201TCE). Read live 2026-07-27
+     the code is not out of stock the way C25744 is -- it is UNORDERABLE IN THIS
+     QUANTITY: `stockCount` moved 25 -> 65 -> 90 across three reads the same afternoon
+     while `minPurchaseNum` is 7463. A line whose minimum purchase is 80x its own stock
+     is a line JLC cannot commit against for a 5-board order, and the naive
+     `stock >= 5 x qty` test PASSES it (90 >= 5) -- which is exactly why the swap is
+     recorded here rather than left to the stock gate."
+  - "DROP-IN, AND THE CLAIM IS CHECKABLE RATHER THAN ASSERTED: JLC's catalog `describe`
+     string for C138040 is CHARACTER-IDENTICAL to C25862's, compared AS STRINGS (both
+     read live 2026-07-27) ---
+     `-55C~+155C 1.2kOhm 50V 62.5mW Thick Film Resistor +-1% +-100ppm/C 0402 Chip
+     Resistor - Surface Mount ROHS`. Same package (`componentSpecificationEn` 0402 on
+     both), value, tolerance, tempco, power and voltage; `leastPatchNumber` 20 on both.
+     THE SPEC STRING, NOT THE VALUE, IS WHAT WAS MATCHED: a +-5% 1.2k (C25928, C137910,
+     C170376 ...) also reads `1.2k` and would have satisfied a value-only comparison
+     while doubling the current-limit tolerance on a protection part."
+  - "SAME MANUFACTURER AND SERIES AS THE 10k SWAP IN THIS RELEASE (YAGEO RC0402FR), and
+     the same series R_OS already ships (C137961, RC0402FR-07510KL) -- so this is not a
+     new vendor on the board."
+  - "PINNED AT SOURCE: the .tsx now carries `supplierPartNumbers={{ jlcpcb: [\"C138040\"] }}`
+     on R_ILM. v1.0-v1.4 left it to tscircuit's parts engine."
+  - "qty 1/board = 5 for the 5-board order."
+verified: "2-pad passive, non-polarized, standard IPC-7351 0402 land -- there is no pin
+  map to derive, so S-VER's figure citation does not apply and the fact that needs
+  provenance is the VALUE. Two independent readings, both 2026-07-27:
+  (1) MPN DECODE -- Yageo RC series, `RC0402FR-07` prefix + `1K2L`: 1K2 = 1.2 x 10^3 =
+  1.2 kOhm, `F` = +-1% tolerance, `07` = taping/packaging.
+  (2) LIVE JLC CATALOG QUERY -- POST
+  https://jlcpcb.com/api/overseas-pcb-order/v1/shoppingCart/smtGood/selectSmtComponentList
+  keyword C138040, exact componentCode match, read 2026-07-27: componentModelEn
+  `RC0402FR-071K2L`, componentBrandEn `YAGEO`, componentSpecificationEn `0402`,
+  describe `-55C~+155C 1.2kOhm 50V 62.5mW Thick Film Resistor +-1% +-100ppm/C 0402 Chip
+  Resistor - Surface Mount ROHS`. M-QUOTE grade: CITED (machine-readable API response,
+  source + read date recorded here)."
+sourcing:
+  lcsc: C138040
+  alternates: []
+  note: "JLCPCB EXTENDED library (`componentLibraryType: expand`). REPLACES C25862
+    (0402WGF1201TCE, minPurchaseNum 7463 against double-digit stock). Live stock and
+    price are VOLATILE and belong in the release's stock_check.json, not here."

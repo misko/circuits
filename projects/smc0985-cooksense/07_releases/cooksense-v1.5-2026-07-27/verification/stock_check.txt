@@ -1,0 +1,62 @@
+input: bom = projects/smc0985-cooksense/06_build/fab/bom_jlc.csv
+56 BOM lines: 54 with LCSC, 2 without
+
+  OK               C17888     x2   0Ω                                     base   stock=3427030
+  OK               C21189     x2   0Ω                                     base   stock=9302300
+  OK               C138040    x1   1.2kΩ                                  expand stock=472208
+  OK               C25741     x22  100kΩ                                  base   stock=674954
+  OK               C14663     x5   100nF                                  base   stock=106356403
+  OK               C1525      x36  100nF                                  base   stock=47155369
+  OK               C25076     x2   100Ω                                   base   stock=877642
+  OK               C17902     x1   10kΩ                                   base   stock=3234167
+  OK               C60490     x17  10kΩ                                   expand stock=8391861
+  OK               C15195     x2   10nF                                   base   stock=11033621
+  OK               C15850     x5   10uF                                   base   stock=10896706
+  OK               C25756     x1   15kΩ                                   base   stock=1406868
+  OK               C26083     x2   1MΩ                                    base   stock=1112685
+  OK               C11702     x9   1kΩ                                    base   stock=1184679
+  OK               C1523      x1   1nF                                    base   stock=5768693
+  OK               C15849     x6   1uF                                    base   stock=14982437
+  OK               C25879     x4   2.2kΩ                                  base   stock=1312232
+  OK               C35165     x1   2.54-2*20PPC104                        expand stock=5345
+  OK               C2887273   x1   220uF                                  expand stock=145399
+  OK               C25768     x2   22kΩ                                   base   stock=1490969
+  OK               C45783     x1   22uF                                   base   stock=3953408
+  OK               C8545      x6   2N7002                                 base   stock=307224
+  OK               C23138     x1   330Ω                                   base   stock=2168624
+  OK               C25105     x2   33Ω                                    base   stock=214884
+  OK               C587657    x1   43650-0224                             expand stock=172
+  OK               C137961    x1   510kΩ                                  expand stock=452463
+  OK               C37825     x1   62kΩ                                   expand stock=126481
+  OK               C25834     x1   68kΩ                                   expand stock=187640
+  OK               C6186      x1   AMS1117-3.3                            base   stock=1723851
+  OK               C15127     x6   AO3401A                                base   stock=745856
+  OK               C157991    x1   B5B-XH-A(LF)(SN)                       expand stock=145669
+  OK               C133954    x1   CD74HC221M96                           expand stock=2531
+  OK               C1017      x1   GZ2012D601TF                           base   stock=555583
+  LOW_STOCK(0)     C42400616  x1   KF350-3.5-4P                           expand stock=0
+  OK               C7984      x2   LMV393IDR                              expand stock=15896
+  OK               C125121    x1   LTV-817S-TA1                           expand stock=4088
+  OK               C2653162   x1   MAX31856MUD+T                          expand stock=7985
+  OK               C506653    x1   MCP23017-E/SS                          expand stock=896
+  OK               C16939     x1   MCP3208-CI-SL                          expand stock=124
+  OK               C89650     x1   MF-MSMF200L-2                          expand stock=244
+  OK               C5158048   x5   PESD5V0S1BA                            expand stock=395615
+  OK               C189896    x5   SM05B-GHS-TB                           expand stock=81615
+  OK               C265111    x2   SM08B-GHS-TB                           expand stock=9710
+  OK               C2683602   x1   SM10B-GHS-TB                           expand stock=8559
+  OK               C113974    x1   SMBJ5.0A                               expand stock=236638
+  OK               C6820      x1   SN74HC14DR                             expand stock=62903
+  OK               C5620      x2   SN74HC238DR                            expand stock=5574
+  OK               C10092     x1   SN74HC595DR                            expand stock=31208
+  OK               C8185      x4   SN74LVC1G00DCKR                        expand stock=15010
+  OK               C22046     x10  SN74LVC1G11DBVR                        expand stock=3706
+  OK               C8678      x2   SS34                                   base   stock=2521912
+  OK               C2653844   x1   TPS259573DSGR                          expand stock=160
+  OK               C7719      x1   TPS3823-33DBVR                         expand stock=22526
+  OK               C9683      x2   ULN2803ADWR                            expand stock=2315
+
+report -> projects/smc0985-cooksense/06_build/cache/stock_check_report.csv
+json -> projects/smc0985-cooksense/06_build/cache/stock_check.json
+
+FAIL: 53/54 coded BOM lines have stock >= 5 x qty (1 with problems); 2/56 lines carry NO LCSC and were NOT graded by this tool

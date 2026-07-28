@@ -1,0 +1,12 @@
+rows: 56 -> 56
+designator lists identical IN ORDER: False
+added rows: none
+removed rows: none
+cells changed by column: {'Comment': 28, 'Footprint': 0, 'MPN': 54, 'LCSC': 2}
+total cells changed: 84
+
+LCSC changes (2):
+   R_ILM                                                          C25862 -> C138040
+   R_BID0,R_BID1,R_DOORPD,R_ESTOPPD,R_EXPRST,R_MODEPD,R_OE,R_OS   C25744 -> C60490
+
+Footprint changes: 0
