@@ -179,8 +179,25 @@ stock, twin).
     unsourced state and EXPIRED the moment its rows were measured
     (2026-07-26) — a known-bad fixture must own its brokenness, so the
     tests inject a header-only table instead.
+  - `jlc_rotation_measure.py` is the ONE way a row is MADE. It reports the
+    channels separately and never merges them, and every geometric channel
+    must be read in the footprint-LOCAL frame: `pad.GetFPRelativePosition()`
+    is local, but `shape.GetStart() - fp.GetPosition()` is the BOARD frame
+    (there is no `PCB_SHAPE.GetStart0()` on this build), and mixing the two
+    ran the PIN-1-MARK channel exactly `board_rot` degrees out of step with
+    every pad channel — 2026-07-28, C485354/J_MODE at board_rot 90, the
+    fleet's FIRST non-zero placement to reach that channel; every earlier
+    pin-1-decided row sits at board_rot 0 where it is invisible. A BACK-SIDE
+    footprint is additionally mirrored and gets NO channel rather than a
+    wrong one.
+  - **PIN-1 DISSENT is BLOCKING (exit 1) and WITHHOLDS the row.** A decisive
+    pin-1 marking naming a different angle from the one the row would claim
+    is the A-POL alarm itself; before this it was four numbers in a channel
+    row with no verdict, so catching it was a human's job. Resolve from the
+    DATASHEET terminal drawing, never by outvoting a channel.
   - Pinned by `tests/t1_rotation_authority.py` (one known-bad per mechanism,
-    red-verified against the restored pre-fix resolver: 8 tests go RED).
+    red-verified against the restored pre-fix resolver: 8 tests go RED; plus
+    the two 2026-07-28 frame tests, RED at 0 passed / 2 failed).
 - **`release_index.py` is the ONE home for release SELECTION** — "which board
   does this release directory belong to" and "which of them is newest". A
   LIBRARY (no verdict, nothing graded); `release_freshness_check.py`,

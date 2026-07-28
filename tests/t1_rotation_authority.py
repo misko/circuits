@@ -30,6 +30,7 @@ CANNOT satisfy any of the four `unsourced` tests: it answers with a number and
 a non-blocking source in exactly the cases that shipped the defects.
 """
 import csv
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -47,6 +48,7 @@ from jlc_rotation_resolve import (SRC_LCSC, SRC_UNSOURCED,  # noqa: E402
 AUDIT = FAB_SCRIPTS / "jlc_rotation_audit.py"
 EXPORT = FAB_SCRIPTS / "export_jlc_package.py"
 SYMPROBE = FAB_SCRIPTS / "jlc_footprint_symmetry.py"
+MEASURE = FAB_SCRIPTS / "jlc_rotation_measure.py"
 
 # The REAL boards the class bit. Read-only; nothing here ever writes a project.
 USB_BOARD = ROOT / "projects/usb-hub-3s-v3/04_kicad/usb_hub_3s_v2.kicad_pcb"
@@ -646,6 +648,184 @@ def t_mprov_jlc_offset_refutation_allowed():
     r = must_pass(run([KPY, AUDIT, "--table", scratch_table([ok])]),
                   "M-PROV refutation discharge")
     contains(r.out, "OK", "the table grades clean")
+
+
+# ===========================================================================
+# jlc_rotation_measure.py — THE FRAME OF THE PIN-1 CHANNEL
+#
+# THE INCIDENT (2026-07-28, smc0985-cooksense J_MODE / C485354). The one new
+# LCSC on the cooksense revision came back with a RECORDED DISSENT: PAD-NUMBER
+# and PAD-CLOUD both fitted 180, while the tool's PIN-1-MARK channel named 270.
+# On a JST ZH housing a 180 error SOLDERS PERFECTLY and reverses the harness —
+# interposer v1.0's exact failure — so the row could not be pasted on a
+# 2-vs-1 vote, and A-ROT held the export BLOCKED.
+#
+# THE CAUSE WAS THE TOOL, NOT THE PART. `our_pads()` reads
+# `pad.GetFPRelativePosition()` = the footprint-LOCAL frame. `our_marks()` read
+# graphics as `shape.GetStart() - fp.GetPosition()` = the BOARD frame, because
+# `PCB_SHAPE.GetStart0()` does not exist on this KiCad build. So the pin-1
+# channel ran exactly `board_rot` degrees out of step with every pad channel.
+# J_MODE is placed at board_rot 90 and was the FLEET'S FIRST non-zero placement
+# to reach the channel: C6035451, C232798, C2762192 and C125121 — every earlier
+# row the pin-1 mark decided — all sit at board_rot 0, where the defect is
+# invisible. The same shape as the `xform` handedness bug: silent on the
+# samples anyone had looked at.
+#
+# THE PROOF IT WAS A ROTATION AND NOT A DIFFERENT MEASUREMENT: post-fix the
+# channel reports {0:6.9065, 90:5.2174, 180:0.9463, 270:4.5977} against the
+# pre-fix {0:4.5977, 90:6.9065, 180:5.2174, 270:0.9463} — the SAME FOUR VALUES
+# cyclically shifted by 90. The dissent is discharged and all three channels
+# say 180.
+#
+# The two tests below are hermetic: a hand-written 8-pad board and a hand-
+# written JLC model, no project file and no network.
+# ===========================================================================
+
+_FX_PADS = [("1", -2.475, -1.905), ("2", -2.475, -0.635), ("3", -2.475, 0.635),
+            ("4", -2.475, 1.905), ("5", 2.475, 1.905), ("6", 2.475, 0.635),
+            ("7", 2.475, -0.635), ("8", 2.475, -1.905)]
+# body outline with the pin-1 corner CHAMFERED — the removed corner
+# (-1.95, -2.45) is the marker, and it sits over pad 1.
+_FX_FAB = [(-1.95, -1.45, -0.95, -2.45), (-0.95, -2.45, 1.95, -2.45),
+           (1.95, -2.45, 1.95, 2.45), (1.95, 2.45, -1.95, 2.45),
+           (-1.95, 2.45, -1.95, -1.45)]
+_FX_LCSC = "C0FIXTURE"
+
+
+def measure_fixture(d, board_rot, dot=(1.75, 2.25)):
+    """A hermetic (board, cache) pair for jlc_rotation_measure.py.
+
+    Our land and JLC's are the SAME part at offset 180: JLC's pad N sits where
+    ours does after a 180 turn. The land is a dual-row 8-pad SO-8 shape, so —
+    exactly like the real C232798 — it is its OWN 180 reflection and both
+    geometric numbering-free channels go degenerate. That is deliberate: it
+    leaves the PIN-1 MARKING as the only channel with anything to say, which is
+    what makes this fixture able to see the frame at all.
+
+    `dot` places JLC's pin-1 silk circle. The default is its own pad-1 corner
+    (correct). Moving it to (-1.75, -2.25) is the known-bad: a model that marks
+    pin 1 at the WRONG END, broken in exactly that one way.
+    """
+    pads = "\n".join(
+        f'\t\t(pad "{n}" smd roundrect (at {x} {y} {board_rot:g}) '
+        f'(size 1.5 0.6)\n\t\t\t(layers "F.Cu" "F.Mask" "F.Paste") '
+        f'(roundrect_rratio 0.25))' for n, x, y in _FX_PADS)
+    fab = "\n".join(
+        f'\t\t(fp_line (start {a} {b}) (end {c} {e})\n'
+        f'\t\t\t(stroke (width 0.1) (type solid)) (layer "F.Fab"))'
+        for a, b, c, e in _FX_FAB)
+    board = d / f"fx_{board_rot:g}.kicad_pcb"
+    board.write_text(
+        '(kicad_pcb\n\t(version 20260206)\n\t(generator "pcbnew")\n'
+        '\t(generator_version "10.0")\n\t(general (thickness 1.6))\n'
+        '\t(paper "A4")\n\t(layers\n\t\t(0 "F.Cu" signal)\n'
+        '\t\t(2 "B.Cu" signal)\n\t\t(11 "F.Paste" user)\n'
+        '\t\t(13 "F.SilkS" user "F.Silkscreen")\n\t\t(15 "F.Mask" user)\n'
+        '\t\t(25 "Edge.Cuts" user)\n\t\t(31 "F.CrtYd" user "F.Courtyard")\n'
+        '\t\t(35 "F.Fab" user)\n\t)\n\t(setup (pad_to_mask_clearance 0))\n'
+        f'\t(footprint "test:CHAMFERED_SO8"\n\t\t(layer "F.Cu")\n'
+        f'\t\t(at 100 100 {board_rot:g})\n'
+        f'\t\t(property "Reference" "U1" (at 0 -4 {board_rot:g}) '
+        f'(layer "F.SilkS")\n'
+        f'\t\t\t(effects (font (size 1 1) (thickness 0.15))))\n'
+        f'\t\t(property "Value" "{_FX_LCSC}" (at 0 4 {board_rot:g}) '
+        f'(layer "F.Fab")\n'
+        f'\t\t\t(effects (font (size 1 1) (thickness 0.15))))\n'
+        f'\t\t(attr smd)\n{fab}\n{pads}\n\t)\n)\n')
+
+    mod = d / "easyeda" / _FX_LCSC / "jlc.pretty"
+    mod.mkdir(parents=True, exist_ok=True)
+    jpads = "\n".join(
+        f'\t(pad {n} smd rect (at {-x:g} {-y:g} 0.00) (size 1.500 0.600) '
+        f'(layers F.Cu F.Paste F.Mask))' for n, x, y in _FX_PADS)
+    (mod / "m.kicad_mod").write_text(
+        '(module easyeda2kicad:FIXTURE_SO8 (layer F.Cu) (tedit 0)\n'
+        '\t(attr smd)\n'
+        f'\t(property "LCSC Part" "{_FX_LCSC}")\n{jpads}\n'
+        f'\t(fp_circle (center {dot[0]:g} {dot[1]:g}) '
+        f'(end {dot[0] + 0.1:g} {dot[1]:g}) (layer F.SilkS) (width 0.25))\n)\n')
+    return board
+
+
+def measure(board, d):
+    return run([KPY, MEASURE, board, f"U1={_FX_LCSC}", "--cache", d, "--row"])
+
+
+def pin1_row(out):
+    """{angle: mm} parsed out of the tool's own PIN-1-MARK channel line."""
+    line = [l for l in out.splitlines() if "PIN-1-MARK" in l]
+    check(line, f"no PIN-1-MARK channel line in:\n{out}")
+    return {int(a): float(v)
+            for a, v in re.findall(r"(\d+):\s*([\d.]+)", line[0])}
+
+
+@test("jlc_rotation_measure reads the pin-1 mark in the footprint-LOCAL "
+      "frame, so the channel does not turn with the PLACEMENT angle")
+def t_pin1_mark_frame_is_local():
+    """RED-VERIFIED 2026-07-28 (tests/README step 3): with git HEAD's
+    jlc_rotation_measure.py swapped back in, this test reports the pin-1
+    channel's minimum at 180 / 90 / 0 / 270 for the four placements —
+    ONE PART, FOUR DIFFERENT ANSWERS — and fails on the first non-zero
+    rotation with `board_rot 90 pin-1 best: got 270, want 180`. Restored, all
+    four agree at 180.
+
+    The property is the whole point and it is method-free: turning a part on
+    the board cannot change which angle of JLC's model matches our library
+    land. Any channel that moves with `board_rot` is measuring the placement,
+    not the part.
+    """
+    d = tmpdir("rotmeas_")
+    seen = {}
+    for brot in (0, 90, 180, 270):
+        b = measure_fixture(d, brot)
+        r = must_pass(measure(b, d), f"measure at board_rot {brot}")
+        got = min(pin1_row(r.out).items(), key=lambda kv: kv[1])[0]
+        eq(got, 180, f"board_rot {brot} pin-1 best")
+        contains(r.out, "pin-1 marking proposes 180",
+                 f"board_rot {brot} verdict")
+        # pcbnew normalises 270 to -90, so compare the VALUE, not the text
+        cpl = float(re.search(r"CPL for U1 = .*= ([-\d.]+)", r.out).group(1))
+        eq(cpl, float((brot + 180) % 360), f"board_rot {brot} CPL")
+        seen[brot] = tuple(sorted(pin1_row(r.out).values()))
+    # the same four distances at every placement: one measurement, not four
+    eq(len(set(seen.values())), 1, "distinct pin-1 distance multisets")
+
+
+@test("jlc_rotation_measure BLOCKS a model whose pin-1 mark contradicts the "
+      "offset the row would claim — it no longer prints the dissent and "
+      "exits 0", kind="known_bad")
+def t_pin1_dissent_blocks():
+    """THE KNOWN-BAD: JLC's model marks pin 1 at the WRONG END (the dot moved
+    from its pad-1 corner to the pad-5 corner, the single break), on a part
+    placed at board_rot 90. The pad-NUMBER fit still says 180; the pin-1
+    marking is DECISIVE at 0 (0.2828mm vs 4.2107mm next). Two channels of one
+    tool contradicting each other about which terminal is pin 1 is the A-POL
+    alarm itself, and it is what C485354 looked like.
+
+    RED-VERIFIED 2026-07-28 (git-swap, tests/README step 3): against git HEAD's
+    jlc_rotation_measure.py this test fails with `PIN-1 DISSENT gate SHOULD
+    HAVE FAILED but exited 0 — the gate is not gating`. Pre-fix the
+    contradiction was four numbers in a channel row and nothing else: no
+    verdict, no nonzero exit, and `--row` still printed. On C485354 a human
+    did notice and it still cost a day, because the report took no position.
+
+    Adjacent-property red-verify, re-measured on EVERY run rather than
+    asserted in a docstring: the SAME fixture with that one property RESTORED
+    — the dot back on its own pad-1 corner — must PASS and emit a row. A
+    gate that blocked both ways would prove nothing.
+    """
+    d = tmpdir("rotdis_")
+    bad = measure_fixture(d, 90, dot=(-1.75, -2.25))
+    r = must_fail(measure(bad, d), "PIN-1 DISSENT gate", "PIN-1 DISSENT")
+    contains(r.out, "DECISIVE at 0", "the dissenting angle is named")
+    contains(r.out, "ROW: (WITHHELD", "nothing pasteable escapes a dissent")
+    not_contains(r.out, f"ROW: {_FX_LCSC},", "a withheld row")
+
+    d2 = tmpdir("rotdis_ok_")
+    good = measure_fixture(d2, 90)            # the ONE property restored
+    ok = must_pass(measure(good, d2), "same fixture, pin-1 dot on pad 1")
+    contains(ok.out, "==> offset 180", "the restored fixture still fits 180")
+    not_contains(ok.out, "PIN-1 DISSENT", "a corroborating mark")
 
 
 if __name__ == "__main__":

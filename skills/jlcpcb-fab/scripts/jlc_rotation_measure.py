@@ -107,9 +107,36 @@ def our_pads(fp):
 
 
 def our_marks(fp):
-    """Our pin-1 markings, SHAPES only. KiCad's F.Fab outline is CHAMFERED at
-    pin 1; the chamfer's own corner is the marker. A refdes is placed for
-    legibility, not orientation, so text is never counted."""
+    """Our pin-1 markings, SHAPES only, in the footprint-LOCAL frame. KiCad's
+    F.Fab outline is CHAMFERED at pin 1; the chamfer's own corner is the
+    marker. A refdes is placed for legibility, not orientation, so text is
+    never counted.
+
+    ---- THE FRAME (2026-07-28, smc0985-cooksense J_MODE / C485354) ----------
+    `our_pads()` reads `pad.GetFPRelativePosition()`, which is LOCAL — the
+    library land, unrotated. A footprint's GRAPHICS have no such accessor on
+    this KiCad build (`PCB_SHAPE.GetStart0` does not exist), and
+    `GetStart() - fp.GetPosition()` is the BOARD frame, i.e. the local point
+    already turned by the placement angle. Mixing the two put the PIN-1-MARK
+    channel exactly `board_rot` degrees out of step with every pad channel.
+
+    MEASURED: J_MODE is placed at board_rot 90, so the channel reported its
+    minimum at 270 (0.9463 mm) while PAD-NUMBER and PAD-CLOUD both said 180 —
+    a DISSENT that is a tool artefact, not a part fact. Un-rotating by
+    -board_rot reproduces the .kicad_pcb's own stored local coordinates to
+    0.0000 mm and moves that same 0.9463 mm minimum onto 180, where it
+    corroborates. Every earlier pin-1-decided row (C6035451, C232798,
+    C2762192, C125121) sits at board_rot 0, where the bug is invisible — this
+    was the fleet's FIRST non-zero placement to reach the channel.
+
+    A BACK-SIDE placement is additionally mirrored, and this inverse does not
+    model that, so a flipped footprint gets NO channel rather than a wrong
+    one — the same choice the symmetry guard below makes. Measured 0 flipped
+    footprints in 1159 across the 9 fleet boards, so nothing regresses.
+    """
+    if fp.IsFlipped():
+        return []
+    brot = fp.GetOrientationDegrees()
     c = fp.GetPosition()
     segs = []
     for d in fp.GraphicalItems():
@@ -133,15 +160,16 @@ def our_marks(fp):
                        for i in range(o.PointCount())]
         except Exception:
             pts = []
+        # board-frame offset -> LOCAL, by KiCad's own operator run backwards
+        def loc(px, py):
+            return rot((px - c.x) / 1e6, (py - c.y) / 1e6, -brot)
         if len(pts) >= 3:
             for i in range(len(pts)):
                 a, b = pts[i], pts[(i + 1) % len(pts)]
-                segs.append((((a[0] - c.x) / 1e6, (a[1] - c.y) / 1e6),
-                             ((b[0] - c.x) / 1e6, (b[1] - c.y) / 1e6)))
+                segs.append((loc(a[0], a[1]), loc(b[0], b[1])))
             continue
         sp, e = d.GetStart(), d.GetEnd()
-        segs.append((((sp.x - c.x) / 1e6, (sp.y - c.y) / 1e6),
-                     ((e.x - c.x) / 1e6, (e.y - c.y) / 1e6)))
+        segs.append((loc(sp.x, sp.y), loc(e.x, e.y)))
     if not segs:
         return []
     # ---- SYMMETRY GUARD (2026-07-25, crow-mic-pod-v2 LS1) -------------------
@@ -450,6 +478,25 @@ def main(argv=None):
                        "terminal drawing, and put this code on the JLC "
                        "ORDER-PREVIEW human gate before the first order.")
             rc = 1
+        # ---- PIN-1 DISSENT (2026-07-28, C485354) ----------------------------
+        # A DECISIVE pin-1 marking that names a DIFFERENT angle from the one
+        # this row is about to claim is the A-POL alarm itself: either the two
+        # libraries mark pin 1 on opposite terminals, or one of the two marks
+        # is drawn wrong. Before this gate the contradiction was printed as
+        # four numbers in a channel row and NOTHING ELSE, so noticing it was a
+        # human's job — on C485354 a human did notice, and the row still cost a
+        # day of arbitration because the report gave no verdict either way.
+        # A disagreement now BLOCKS and WITHHOLDS the row: an unresolved row is
+        # a better outcome than a confident wrong one.
+        dissent = bool(weak) and weak[0][1] != angle
+        if dissent:
+            print(f"    PIN-1 DISSENT — this row would claim offset {angle}, "
+                  f"but the pin-1 marking channel is DECISIVE at "
+                  f"{weak[0][1]} ({weak[0][2]:.4f}mm vs {weak[0][3]:.4f}mm "
+                  f"next). Resolve against the DATASHEET terminal drawing "
+                  f"before any row is written, and put this code on the JLC "
+                  f"ORDER-PREVIEW human gate.")
+            rc = 1
         print(f"    ==> offset {angle}  polarity={pol}")
         print(f"        {verdict}")
         print(f"        CPL for {ref} = ({brot:g} + {angle}) % 360 = "
@@ -460,7 +507,12 @@ def main(argv=None):
                   f"operator. PAD-NUMBER fit: offset {nb}, rms {nv:.4f}mm vs "
                   f"{n2v:.4f}mm next best over {len(common)} pads. "
                   f"NUMBERING-FREE: {verdict}")
-            if pol == "single-channel":
+            if dissent:
+                print(f'    ROW: (WITHHELD — PIN-1 DISSENT) the fit proposes '
+                      f'{angle}; the pin-1 marking says {weak[0][1]}. Nothing '
+                      f'here is pasteable until that is settled from the '
+                      f'datasheet.')
+            elif pol == "single-channel":
                 # A SINGLE-CHANNEL row rests on the pad-NUMBER fit alone, and
                 # that fit has now been confidently WRONG twice on exactly this
                 # class: usb-hub's LEDs (180 at 17.7x, true 0 — JLC numbers
