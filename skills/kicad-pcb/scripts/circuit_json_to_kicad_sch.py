@@ -956,6 +956,18 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
         uf.find(k)
     for net, x, y, _a, _j in cand_labels:
         uf.find(key((x, y)))
+        # A label sitting MID-SEGMENT is electrically ON that wire — KiCad's
+        # netlister attaches it, so it must join the wire's root here too.
+        # Without this union the label is a singleton root and the label-name
+        # guard below cannot see the merge at all. The pin-tip half of this
+        # rule already existed (the `_on_segment` drop above); this is the
+        # label half, and the label half is the one that shipped a defect.
+        for a, b, _n in segs:
+            if key((x, y)) in (key(a), key(b)):
+                break
+            if _on_segment(x, y, a[0], a[1], b[0], b[1]):
+                uf.union(key((x, y)), key(a))
+                break
     # roots -> {pin_nets, label_names}
     root_pin_nets = {}
     root_label_names = {}
@@ -977,6 +989,37 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
             raise LayoutFallback(
                 f"cross-net short after import: root joins nets {sorted(real)} "
                 f"({dropped} segs already dropped)")
+
+    # ---- ...and a root that carries two different LABEL NAMES ---------------
+    # THE MERGE HAPPENS AT EXPORT, AND IT HAPPENS ON LABELS (2026-07-28,
+    # smc0985-cooksense rebuild). The guard above asks whether a root joins two
+    # PIN nets, which is the short a human would draw. `kicad-cli sch export
+    # netlist` does not care: two global labels on ONE electrical root merge
+    # their nets whether or not a second pin is involved.
+    #
+    # MEASURED: tscircuit's auto-layout put the `3V3_ANALOG` global label at
+    # (275.59, 365.76) — MID-SEGMENT on a `3V3` wire running (275.59, 401.32)
+    # to (275.59, 355.60). One root, two label names, ONE pin net. The pin
+    # guard saw nothing, the converter dropped 3 segments, DECLARED SUCCESS,
+    # and the exported netlist had 191 nets with no `3V3_ANALOG` anywhere.
+    # That would have re-merged the analog rail into the digital one and
+    # silently undone the v1.3 P1-1 fix. `net_label_survival.py` caught it at
+    # 161/162 — a human noticing one number, on a gate that runs later.
+    #
+    # Raising here means the board auto-falls back to `--mode grid`, which is
+    # the whole point of LayoutFallback: a layout that cannot be imported
+    # without merging nets is not a layout to import.
+    #
+    # GND is excluded on the same grounds as above — it is the one name that
+    # legitimately reaches every root.
+    for r, names in root_label_names.items():
+        real = {n for n in names if n and n != "GND"}
+        if len(real) >= 2:
+            raise LayoutFallback(
+                f"cross-net LABEL merge after import: root carries labels "
+                f"{sorted(real)} — these merge into one net at "
+                f"`kicad-cli sch export netlist` even though no second pin is "
+                f"involved ({dropped} segs already dropped)")
 
     # ---- emit candidate labels only if they name a real (pin-bearing) root
     emit_labels = []

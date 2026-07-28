@@ -339,5 +339,94 @@ def t_empty_circuit():
         check(rr.rc != 0, "an EMPTY sheet passed parity against a real board")
 
 
+# ============ the LABEL-ON-WIRE merge the pin guard cannot see (2026-07-28) ==
+def _label(name, x, y, i):
+    return {"type": "schematic_net_label", "schematic_net_label_id": f"lbl_{i}",
+            "text": name, "anchor_position": {"x": x, "y": y},
+            "center": {"x": x, "y": y}, "anchor_side": "left"}
+
+
+def _layout_with(extra_labels):
+    """The `rotated_placement` t0 fixture plus extra net labels, run through
+    `convert_layout`. Returns the LayoutFallback message, or None on success.
+
+    The fixture's one wire runs (0.5, 0) -> (1.5, 0) on net `k_mid`, so a
+    label placed anywhere strictly between those points is MID-SEGMENT — the
+    exact geometry of the incident."""
+    import json
+    import tempfile
+    sys.path.insert(0, str(SCRIPTS))
+    from circuit_json_to_kicad_sch import (LayoutFallback,  # noqa: E402
+                                           convert_layout)
+    base = json.load(open(FIXTURES / "t0" / "rotated_placement"
+                          / "circuit.json"))
+    p = tempfile.mktemp(suffix=".json")
+    json.dump(base + extra_labels, open(p, "w"))
+    try:
+        convert_layout(p, "p", "t", "r", "d")
+        return None
+    except LayoutFallback as e:
+        return str(e)
+
+
+@test("convert_layout FALLS BACK when one wire root carries two different "
+      "LABEL NAMES — the merge happens on labels, not on pins",
+      kind="known_bad")
+def t_label_on_wire_merge():
+    """THE INCIDENT (2026-07-28, smc0985-cooksense rebuild). The converter's
+    cross-net guard asked whether a wire root joins two different PIN nets —
+    the short a human would draw. `kicad-cli sch export netlist` does not care:
+    two global labels on ONE electrical root merge their nets whether or not a
+    second pin is involved.
+
+    MEASURED: tscircuit's auto-layout put the `3V3_ANALOG` global label at
+    (275.59, 365.76), MID-SEGMENT on a `3V3` wire running (275.59, 401.32) to
+    (275.59, 355.60). One root, two label names, ONE pin net. The pin guard saw
+    nothing; the converter dropped 3 segments, DECLARED SUCCESS, and the
+    exported netlist had 191 nets with no `3V3_ANALOG` anywhere. That would
+    have re-merged the analog rail into the digital one and silently undone the
+    v1.3 P1-1 fix. It was caught only because `net_label_survival.py` reported
+    161/162 and a human read the number.
+
+    TWO defects, both fixed here. A mid-segment label was a SINGLETON root in
+    the union-find — it was never joined to the wire it sits on — so even a
+    label-name guard could not have seen the merge; and there was no
+    label-name guard. The pin-tip half of the mid-segment rule already existed
+    (`_on_segment` in the segment-drop pass); the label half is the one that
+    shipped a defect.
+
+    RED-VERIFIED 2026-07-28 (git-swap, tests/README step 3): with git HEAD's
+    circuit_json_to_kicad_sch.py swapped back in, `convert_layout` returns
+    successfully on the two-label fixture and this fails with `a root carrying
+    two different label names was imported without complaint`.
+    """
+    msg = _layout_with([_label("MID_A", 0.75, 0.0, 9),
+                        _label("MID_B", 1.25, 0.0, 10)])
+    check(msg, "a root carrying two different label names was imported "
+               "without complaint — the netlist would merge them at export")
+    contains(msg, "LABEL merge", "the fallback names the class")
+    contains(msg, "MID_A", "names the first label")
+    contains(msg, "MID_B", "names the second label")
+
+
+@test("convert_layout still imports a layout whose labels do NOT merge — the "
+      "guard is not a blanket refusal of mid-segment labels")
+def t_label_on_wire_adjacent_property():
+    """The adjacent-property red-verify, re-measured every run. tscircuit
+    routinely places a net's OWN label part-way along its wire, and a guard
+    that refused those would send every board to `--mode grid` and cost the
+    layout import entirely. Three cases that must all still import:
+      * the untouched fixture;
+      * ONE extra mid-segment label (root carries one name);
+      * TWO mid-segment labels with the SAME name (no merge — same net).
+    """
+    check(_layout_with([]) is None, "the untouched t0 fixture no longer imports")
+    check(_layout_with([_label("MID_ANALOG", 1.0, 0.0, 9)]) is None,
+          "a single mid-segment label was refused")
+    check(_layout_with([_label("MID_A", 0.75, 0.0, 9),
+                        _label("MID_A", 1.25, 0.0, 10)]) is None,
+          "two labels of the SAME net were treated as a merge")
+
+
 if __name__ == "__main__":
     sys.exit(main())
