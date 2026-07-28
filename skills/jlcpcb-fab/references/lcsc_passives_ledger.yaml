@@ -141,6 +141,11 @@ C137798: {mpn: RC0603FR-0712K4L, value: "12.4k", verified: "2026-07-23 JLC catal
 C137947: {mpn: RC0402FR-0768KL, value: "68k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C137948: {mpn: RC0402FR-07680RL, value: "680", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C138030: {mpn: RC0402FR-07220KL, value: "220k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+# cooksense v1.5 R_ILM: the eFuse current-limit programming resistor. REPLACES
+# C25862 (0402WGF1201TCE), whose minPurchaseNum is 7463 against a stockCount that
+# read 25 / 65 / 90 across one afternoon — unorderable in ones, and the naive
+# `stock >= 5 x qty` test passes it. describe CHARACTER-IDENTICAL to C25862's.
+C138040: {mpn: RC0402FR-071K2L, value: "1.2k", verified: "2026-07-27 JLC catalog (selectSmtComponentList describe: '-55℃~+155℃ 1.2kΩ 50V 62.5mW Thick Film Resistor ±1% ±100ppm/℃ 0402', YAGEO, exact componentCode match)"}
 C149504: {mpn: 0805W8F1003T5E, value: "100k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C276264: {mpn: RC0402FR-0724K3L, value: "24.3k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C304743: {mpn: RS-03K3741FT, value: "3.74k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
@@ -149,6 +154,12 @@ C409935: {mpn: ERJ2RKF8873X, value: "887k", verified: "2026-07-23 JLC catalog (s
 C453769: {mpn: RC-02K8252FT, value: "82.5k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C728591: {mpn: RT0603BRD073K92L, value: "3.92k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe) — 3.92k 0.1% (RT0603BRD073K92L; reel-code MPN not decoder-anchorable) — value from part.yaml + catalog"}
 C2836443: {mpn: RVT100UF25V67RV0011, value: "100uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
+# cooksense CE1, the 220uF bulk on 5V_PROTECTED. THE 2026-07-23 SEED MISSED IT AND
+# ITS OWN SIBLING WAS ALREADY HERE (C2887276, one digit away, same RVT family): leg C
+# read `220uF [CE1]` as UNVERIFIABLE-VALUE from cooksense v1.4 onward because
+# neither the blank BOM MPN column nor 02_parts/RVT220UF16V's dirname decodes
+# `RVT220UF16V67RV0015` -> 220uF. The catalog does, verbatim.
+C2887273: {mpn: RVT220UF16V67RV0015, value: "220uF", verified: "2026-07-27 JLC catalog (selectSmtComponentList describe: '-55℃~+105℃ 110mA@120Hz 16V 2000hrs@105℃ 220uF 6.3mm 7.7mm ±20% SMD,D6.3xL7.7mm Aluminum Electrolytic Capacitors - SMD', KNSCHA, exact componentCode match)"}
 C2887276: {mpn: RVT100UF16V67RV0016, value: "100uF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C2930095: {mpn: FRC0603F3652TS, value: "36.5k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C2933195: {mpn: FRC0603F3091TS, value: "3.09k", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe) — catalog 3.09k but the usb-hub v1.2/current BOM LABELS it 100k (R30) — second latent defect FOUND BY this ledger cross-check, 2026-07-23"}

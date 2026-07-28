@@ -1,0 +1,76 @@
+mpn: RC0402FR-0710KL
+manufacturer: YAGEO
+type: resistor_thickfilm   # 17 refs: the 10k 0402 population (see `asserts` for what the value buys)
+datasheet: {doc_id: RC-series (RC0402), revision: series/LCSC, url: "https://www.lcsc.com/product-detail/C60490.html", sha256: null, fetched: 2026-07-27}
+package: "0402 (1005 metric)"
+footprint: Resistor_SMD:R_0402_1005Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-27}
+pins: {1: A, 2: B}
+limits: {R: "10k ohm", tol: "F +-1%", tcr: "+-100ppm/C", power: "62.5mW (0402)", vmax: "50V", temp: "-55C..+155C"}
+asserts:
+  - {assert: value, equals: 10k, tolerance_pct: 1,
+     why: "THREE DIFFERENT JOBS RIDE ON THIS ONE VALUE and none of them fails
+       loudly if it moves. (1) R_REF0..R_REF7 are the TOP LEG of the eight
+       thermistor dividers into the MCP3208 (3V3_ANALOG -> R_REF{n} -> TH_{ch});
+       the divider ratio IS the temperature transfer function, so a substituted
+       value re-scales every channel's reading and the board reports wrong
+       temperatures while every gate stays green. (2) R_DOORPD / R_ESTOPPD /
+       R_MODEPD are the DEFAULT-SAFE pull-downs on the door, E-stop and
+       mode interlock inputs -- an open contact must read LOW, and these are what
+       makes it read LOW; they are sized against the Schmitt input leakage and the
+       contact wetting current. (3) R_OE holds the '595 output-enable interlock
+       (SR_OE_N) at its safe default. The remaining refs (R_BID0/1 board-ID straps,
+       R_EXPRST expander reset, R_OS2 one-shot RC, R_TEMPOK comparator pull-up)
+       are logic-level and tolerant, but they share the row."}
+gotchas:
+  - "THIS ENTRY EXISTS BECAUSE THE PART IT REPLACES WENT TO ZERO. cooksense v1.0-v1.4
+     shipped these 17 refs as C25744 (UNI-ROYAL 0402WGF1002TCE, BASIC library). The JLC
+     parts API, read live 2026-07-27, returns `stockCount: 0` and `minPurchaseNum: 5268`
+     for that code. This is the SAME code and the SAME shortage that forced
+     usb-hub-3s-v3 v1.11 hours earlier, on a different board, for a different circuit
+     -- so it is a CATALOG event, not a cooksense one. C25744 was the only
+     basic-library 10k 0402, so every replacement is an Extended part and the one-time
+     feeder fee is a property of the shortage, not of the choice."
+  - "DROP-IN, AND THE CLAIM IS CHECKABLE RATHER THAN ASSERTED: JLC's catalog `describe`
+     string for C60490 is CHARACTER-IDENTICAL to C25744's, compared AS STRINGS by
+     scripts/ident (both read live 2026-07-27) ---
+     `-55C~+155C 10kOhm 50V 62.5mW Thick Film Resistor +-1% +-100ppm/C 0402 Chip
+     Resistor - Surface Mount ROHS`. Same package (`componentSpecificationEn` 0402 on
+     both), value, tolerance, tempco, power and voltage. `leastPatchNumber` is 20 on
+     BOTH, so the minimum-order step did not move either. No copper, footprint,
+     netlist or CPL change follows: the v1.5 board .kicad_pcb is md5-identical to
+     v1.4's, 420445b5141dd1111eccab038c68511b."
+  - "PINNED AT SOURCE, NOT LEFT TO THE PARTS ENGINE. v1.0-v1.4 wrote these refs as a
+     bare `<resistor resistance=\"10k\" footprint=\"0402\">` and let tscircuit's parts
+     engine choose the code -- which is how a catalog snapshot became a BOM line
+     nobody decided. The .tsx now carries `supplierPartNumbers={{ jlcpcb: [\"C60490\"] }}`
+     on all 17, so a rebuild cannot silently re-choose."
+  - "EXTENDED-TIER, so the ORDER-DAY STOCK RECHECK IS NOT OPTIONAL on this line the way
+     it was for a basic part. And the recheck is NECESSARY, NOT SUFFICIENT: usb-hub-3s-v3
+     v1.10 sealed with C25744 recorded at `\"status\": \"OK\", \"stock\": 291` and JLC's
+     ASSEMBLY uploader refused the line hours later. `stockCount` is LCSC CATALOG stock
+     and JLC allocates assembly feeders from a different pool."
+  - "qty 17/board = 85 for the 5-board order. If C60490 also runs dry, any 10k +-1%
+     0402 with stock is electrically equivalent -- but PIN THE CODE IN THE .tsx and
+     re-verify the catalog `describe` as a string; do not let the exporter
+     value-resolve it."
+verified: "2-pad passive, non-polarized, standard IPC-7351 0402 land -- there is no pin
+  map to derive, so S-VER's figure citation does not apply and the fact that needs
+  provenance is the VALUE. Two independent readings, both 2026-07-27:
+  (1) MPN DECODE -- Yageo RC series, `RC0402FR-07` prefix + `10KL`: the E96/E24 code
+  10K = 10 x 10^3 = 10 kOhm, `F` = +-1% tolerance, `07` = taping/packaging.
+  (2) LIVE JLC CATALOG QUERY -- POST
+  https://jlcpcb.com/api/overseas-pcb-order/v1/shoppingCart/smtGood/selectSmtComponentList
+  keyword C60490, exact componentCode match, read 2026-07-27: componentModelEn
+  `RC0402FR-0710KL`, componentBrandEn `YAGEO`, componentSpecificationEn `0402`,
+  describe `-55C~+155C 10kOhm 50V 62.5mW Thick Film Resistor +-1% +-100ppm/C 0402 Chip
+  Resistor - Surface Mount ROHS`. M-QUOTE grade: CITED (machine-readable API response,
+  source + read date recorded here). The land pattern is the same
+  Resistor_SMD:R_0402_1005Metric this board already uses for its other 0402s."
+sourcing:
+  lcsc: C60490
+  alternates: []
+  note: "JLCPCB EXTENDED library (`componentLibraryType: expand`). REPLACES C25744
+    (0402WGF1002TCE), which read stockCount 0 on the same day. The live stock and
+    price figures are VOLATILE and belong in the release's stock_check.json, not
+    here."

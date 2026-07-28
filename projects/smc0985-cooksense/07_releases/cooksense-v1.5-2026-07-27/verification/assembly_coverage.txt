@@ -1,0 +1,6 @@
+== A-POP assembly_coverage: smc0985-cooksense ==
+  board=226 footprints, cpl=189 placements, unpopulated=37 (declared=16, consigned=0, exempt_prefixes=['H', 'TP'])
+  placement histogram: top=189
+  A-POS datum: 189 CPL row(s) graded against the pad-array centre, worst = 0.00000mm (R_DECDPD), tolerance 0.05mm
+  MANIFEST-UNDECLARED: the release MANIFEST carries no `not_assembled:` line while the board has unpopulated parts — the population decision must be visible in the order paperwork
+A-POP: FAIL (1 finding(s))
