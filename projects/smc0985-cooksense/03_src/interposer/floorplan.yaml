@@ -60,6 +60,23 @@ placement:
   # all parts anchored (legalize has nothing to move); clearance 0.8 per
   # tier_preflight PF-LEGALIZE (via drill 0.3 + 2*hole_clearance 0.25)
   legalize: {enable: true, clearance: 0.8}
+  patterns:
+    # ---- NOT ASSEMBLED (canon A-POP; declared in 03_src/interposer/rules/
+    # assembly.yaml) --------------------------------------------------------
+    # v1.0 sealed BOTH 10FDZ-BT ZIFs onto the CPL with a BLANK LCSC: JLC was
+    # told to machine-place two parts it has no code to source, and the only
+    # defence was ORDER_README PROSE telling a human to delete the rows before
+    # uploading. `exclude_from_pos_files` is the SOURCE half of the fix — it
+    # takes them off the CPL at export; assembly.yaml is the DECLARATION half
+    # (closed-vocabulary reason + DATED catalog evidence + disposition), and
+    # the release MANIFEST's `not_assembled:` line is GENERATED from it.
+    # MEASURED on the v1.0 board: each is 10 plated DRILLED pads with F.Paste
+    # on NONE — a true THT part, unplaceable by the SMT-only service this
+    # board orders (assembly.yaml `service: standard`, `sides: [top]`).
+    # Placement is UNAFFECTED: both are anchors, and initial_pose() resolves
+    # anchors before patterns.
+    - {match: ["J_MEMBRANE", "J_CN1_JUMPER"],
+       attrs: [exclude_from_pos_files]}
 
 # NO zones, NO pours: the board is a single floating isolated net set (BRIEF
 # §5 keypad-domain isolation — nothing to pour, and a pour tied to nothing is
@@ -69,7 +86,11 @@ silk:
   min_text_height: 0.6
   refdes: {size: 0.7, min_size: 0.5, fab_copy: true, clearance: 0.16, priority_prefixes: "JT"}
   captions:
-    - {text: "cooksense interposer (Board C) v1.0  SMC0985KS", at: [37.0, 12.5], size: 0.9, nudge: false}
+    # The silk carries the RELEASE version. v1.0 was never fabbed; v1.1 is the
+    # first orderable payload (v1.0 is DO-NOT-ORDER: CPL rotation 180 out).
+    # A board silk-marked with a version it is not is a provenance lie that is
+    # IMPOSSIBLE to correct after fab, so this string moves with the release.
+    - {text: "cooksense interposer (Board C) v1.1  SMC0985KS", at: [37.0, 12.5], size: 0.9, nudge: false}
     - {text: "FLOATING KEYPAD DOMAIN - NO GND / NO CHASSIS BOND", at: [37.0, 54.3], size: 0.7, nudge: false}
     - {text: "OEM MEMBRANE TAIL", at: [36.0, 24.6], size: 0.7, nudge: false}
     - {text: "FLEX JUMPER TO OEM CN1", at: [36.0, 50.8], size: 0.7, nudge: false}

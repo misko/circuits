@@ -44,12 +44,39 @@ verified: >
   centerline, 2.54+-0.05 outside the first contact hole; row is (2.6) from the
   front housing edge, housing outline edge (5.3) from the first hole, B=36.26
   total. Ratings from p.1 Specifications. 2026-07-24.
-  NEEDS-PHYSICAL-CONFIRM (blocks fab ORDER, not the seal — user directive
-  2026-07-24 'go ahead assuming 10FDZ-BT'): hole/boss fit, which housing end
-  carries circuit 1 vs the boss, and the (2.6) front/rear sense were taken from
-  the reference drawing only — verify drill pattern + polarization-peg position
-  against a purchased 10FDZ-BT before ordering (ORDER_README bring-up ritual,
-  v1.0 J_TC/J_PWR pin-1 class).
+  PHYSICALLY MEASURED 2026-07-27 on the purchased part (grade MEASURED, canon
+  M-IMPORT — the user touched the object). Full record and arithmetic:
+  01_docs/10fdz-bt-land-pattern-confirm.md sections 6 and 6b.
+    M11 pin count           10                     PASS (decisive)
+    M1  end pin -> end pin  23.50 outside-to-outside -> 22.86-22.90 c-c  PASS
+    M2  pitch (derived)     2.540-2.544            PASS
+    M4  boss diameter       1.60 into a ø1.80 hole PASS/GO (0.10 radial, 2x nominal)
+    M5  pin cross-section   0.60-0.64 into ø0.90   PASS/GO (0.13-0.15 radial)
+    M3  boss -> nearest pin 2.35 vs a 2.39-2.69 band   0.04 LOW — OPEN, see below
+  M1/M2/M5 are ONE reading (9 x pitch + one pin width) and the split is
+  under-determined; recorded as a range rather than collapsed.
+  DECISION 2026-07-27: BUILD WITH THIS FOOTPRINT. It is NOT re-cut. Both
+  hard-stop go/no-go items pass with margin.
+  OPEN 1 — M3 = 2.35 puts the worst pin 0.190 mm out when the boss is registered
+  in its hole, against 0.10 (boss play) + 0.13 (pin play) = 0.23 mm of clearance:
+  it fits by 0.04 mm, and the measurement reference was not stated so 2.35 is
+  taken as real and worst-case. The boss is a LOCATOR, not a contact — reaming
+  the ø1.80 NPTH or nipping the boss is a five-minute fix, not scrap. Sensitivity:
+  at the boss's ø1.70 NOMINAL the clearance is 0.18 mm and it would interfere by
+  ~0.01 mm, so DRY-FIT EVERY connector before soldering.
+  OPEN 2 — POLARITY STILL UNCONFIRMED (M9/M10 NOT MEASURED): which housing end
+  carries circuit 1 relative to the boss is DECLARED ("pin 1 = the boss end",
+  see pins: above), not confirmed against the OEM's CN1. Discriminator: the boss
+  end overhangs the end pin by 5.30 mm, the far end by 8.10 mm. If reversed, the
+  board still works — all ten lines pass through and the tail is self-keying —
+  but every TP_M_*/TP_C_*/KP_* label names the wrong physical conductor. Carried
+  as a NAMED open item in 07_releases/interposer-v1.1-2026-07-27/ORDER_README.md
+  section 0, NOT as a fab blocker.
+  OEM TAIL (grade CITED from user photographs 2026-07-27, not measured): the OEM
+  keypad tail is PLAIN — NO punched lock slots. eFDZ p.3 RECOMMENDS two
+  1.2 x 3 mm slots for the slider to lock on (ADR-0017); this OEM did not use
+  them. Both are true. Affects the flex jumper's build (plain, not slotted), not
+  this connector's land pattern.
 layout:
   source: "eFDZ p.3 PC-board layout (top entry) + p.2 outline drawings. Passive ZIF — no signal-timing constraints; the governing rules are mechanical."
   reviewed: "2026-07-24"

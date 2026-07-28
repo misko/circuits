@@ -33,7 +33,15 @@ PY=/usr/bin/python3
 cd "$ROOT"
 
 REUSE=1
+SHADOW_ONLY=0
 [ "${1:-}" = "--reroute" ] && REUSE=0
+# --shadow-only: build the single-board AUDIT VIEW and stop. The board is NOT
+# regenerated. This exists because generate_board_generic mints FRESH UUIDs on
+# every run, so a full rebuild after the release is staged would make the
+# release's source/*.kicad_pcb differ from 04_kicad's for no design reason —
+# i.e. the only way to refresh the audit view was to invalidate the thing being
+# audited. (v1.1, 2026-07-27.)
+[ "${1:-}" = "--shadow-only" ] && SHADOW_ONLY=1
 
 test -f "$PROJ/06_build/netlists/interposer.net" \
   || { echo "MISSING netlist $PROJ/06_build/netlists/interposer.net (run the schematic stage first)"; exit 2; }
@@ -67,10 +75,68 @@ ln -s ../../../08_reviews                      "$SH/08_reviews"
 ln -s ../../../../03_src/interposer/audit_board.py "$SH/03_src/audit_board.py"
 ln -s ../../../../03_src/interposer/rebuild_all.sh "$SH/03_src/rebuild_all.sh"
 mkdir -p "$SH/03_tscircuit"
-for f in src build kicad verification package.json; do
+for f in verification package.json; do
   ln -s ../../../../03_tscircuit/$f "$SH/03_tscircuit/$f" 2>/dev/null || true
 done
+# src/ and kicad/ are REAL dirs holding ONLY the interposer's file, for the same
+# reason build/ is below: net_label_survival takes `03_tscircuit/kicad/*.kicad_sch`
+# SORTED and grades the FIRST — which is cooksense.kicad_sch, so the interposer's
+# S-NETMERGE was graded against the MAIN BOARD's 100+ global labels and reported
+# LABEL-LOST on nets this board has never heard of. (v1.1, 2026-07-27.)
+mkdir -p "$SH/03_tscircuit/src" "$SH/03_tscircuit/kicad"
+ln -s ../../../../../03_tscircuit/src/interposer.tsx "$SH/03_tscircuit/src/interposer.tsx"
+ln -s ../../../../../03_tscircuit/kicad/interposer.kicad_sch "$SH/03_tscircuit/kicad/interposer.kicad_sch"
+# 03_tscircuit/build is a REAL dir for the SAME reason 06_build is: every
+# consumer globs `03_tscircuit/build/circuit.json` and grades the FIRST match,
+# and the shared build/ dir's circuit.json is COOKSENSE's (222 source
+# components vs the interposer's 23). v1.0's fab export inherited that file and
+# only produced a correct LCSC for J_KEY_MATRIX BY COINCIDENCE — the main board
+# carries the same refdes for the same part; both 10FDZ-BT refs resolved BLANK
+# because they simply are not in the other board's circuit. A gate reading the
+# wrong board's source is not a gate. (v1.1, 2026-07-27.)
+mkdir -p "$SH/03_tscircuit/build"
+ln -s ../../../../../03_tscircuit/build/interposer.circuit.json "$SH/03_tscircuit/build/circuit.json"
+for f in interposer.schematic.pdf interposer.schematic.svg; do
+  ln -s ../../../../../03_tscircuit/build/$f "$SH/03_tscircuit/build/$f" 2>/dev/null || true
+done
 cp "$ROOT/$PROJ/03_tscircuit/manifest_interposer.yaml" "$SH/03_tscircuit/manifest.yaml"
+# 07_releases is a REAL dir exposing ONLY THIS BOARD's releases. policy_audit
+# takes `sorted(07_releases/*)[-1]` as "the latest release" and grades M-REL /
+# M-BOM / A-POP / A-BODY against it; assembly_coverage.py resolves its
+# assembly.yaml as <release>/../../03_src/rules/assembly.yaml, which in this
+# multi-board project is the COOKSENSE file. Without this the interposer's
+# A-family either never ran (v1.0: no A-* row in its policy_audit.md at all)
+# or would grade the wrong board's population set. (v1.1, 2026-07-27.)
+#
+# EACH RELEASE IS A REAL DIRECTORY WHOSE CONTENTS ARE SYMLINKS, never a symlink
+# to the release. assembly_coverage.py does `Path(target).resolve()` and then
+# takes `root = t.parent.parent` — a symlinked release RESOLVES BACK OUT to the
+# real tree, so `root` becomes the shared project and it grades the interposer
+# release against COOKSENSE's assembly.yaml (18 spurious findings, measured
+# 2026-07-27). Linking the CHILDREN keeps the release path inside the shadow
+# while the bytes still come from the one real archive — nothing is copied, so
+# there is no second copy to drift.
+mkdir -p "$SH/07_releases"
+ln -s ../../../../07_releases/contracts.md "$SH/07_releases/contracts.md" 2>/dev/null || true
+for d in "$ROOT/$PROJ"/07_releases/interposer-*; do
+  [ -d "$d" ] || continue
+  b=$(basename "$d")
+  mkdir -p "$SH/07_releases/$b"
+  for e in "$d"/*; do
+    ln -s "../../../../../07_releases/$b/$(basename "$e")" \
+          "$SH/07_releases/$b/$(basename "$e")" 2>/dev/null || true
+  done
+done
+
+if [ "$SHADOW_ONLY" = 1 ]; then
+  # the audit view needs the CURRENT board/rules, not a regenerated one
+  for f in interposer.kicad_pcb interposer.kicad_pro interposer.kicad_dru \
+           interposer.kicad_sch fp-lib-table; do
+    [ -f "$PROJ/04_kicad/$f" ] && cp "$PROJ/04_kicad/$f" "$SH/04_kicad/"
+  done
+  echo "== --shadow-only: audit view built at $SH (board NOT regenerated) =="
+  exit 0
+fi
 
 echo "== 1/7 generate_board (placement, track-free) =="
 # SHARED-FILE GUARD (measured 2026-07-24): generate_board_generic rewrites
