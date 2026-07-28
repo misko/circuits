@@ -36,9 +36,24 @@ a checklist line. Run from the project root unless stated.
       dossier lands, and `$K/power_topology.py projects/pluto-rx2-8way` → PASS
       (it currently reports an EARNED N-A; the moment a converter appears in
       `02_parts` the gate turns red until the rail is declared)
-- [ ] Footprints `QFN-24_4x4_P0.5_EP2.7_PE42482` and
+- [x] Footprints `QFN-24_4x4_P0.5_EP2.7_PE42482` and
       `SMA_Vertical_5.08sq_D1.4` authored in this project. **Neither may be
-      copied from a sibling board**
+      copied from a sibling board** — **DONE 2026-07-28**, both in
+      `03_src/lib/pluto_rx2_8way.pretty/`, drawn from pSemi Figure 23's
+      RECOMMENDED LAND PATTERN inset (DOC-75785-4 p21) and the Kinghelm
+      sheet-2/2 PCB inset (2021.08.10). Verified 48 geometry properties +
+      6 silk/courtyard clearances by an independent re-derivation from the
+      emitted file text, plus a `pcbnew.FootprintLoad` of each
+- [ ] `03_src/floorplan.yaml` `libraries:` lists `03_src/lib` **FIRST**. KiCad
+      ships `Package_DFN_QFN:QFN-24-1EP_4x4mm_P0.5mm_EP2.65x2.65mm` for the same
+      package outline with 0.85 mm pads at r = 1.95 and a 2.65 mm EP against the
+      vendor's 0.60 mm at r = 1.90 and 2.75 mm. Library ORDER decides which land
+      is fabricated and no DRC, parity or netlist check can see the difference
+- [ ] Every `03_src/lib/*.pretty` footprint's **F.SilkS stroke ≥ 0.15 mm** and
+      text height ≥ 0.45 mm — the `jlc_4layer_advanced` floors in
+      `references/fab_tiers.yaml`. Both footprints were first emitted at KiCad's
+      0.12 mm default and corrected; **no pipeline gate grades this**, so it is
+      a checklist line rather than a command
 - [ ] **Re-confirm `RF50` = 0.36 mm against JLCPCB's own impedance calculator
       for the exact ordered stackup** (`JLC04161H-7628`). The width here is a
       closed-form Hammerstad-Jensen result, not a field solve, and Dk is quoted
@@ -75,7 +90,16 @@ a checklist line. Run from the project root unless stated.
       MEASURE IT — LS is on the GND net, so P-ADJ has no net to grade and
       SKIPS this budget silently (ADR-0005)
 - [ ] `SW_VDD` span ≤ 3 mm, `SW_V4` span ≤ 4 mm (P-ADJ, from the part.yaml)
-- [ ] **Bottom-plane antipad ≥ Ø3.5 mm under every SMA centre barrel**
+- [ ] **Bottom-plane antipad ≥ Ø3.5 mm under every SMA centre barrel.** Carried
+      by the FOOTPRINT as a 0.80 mm local clearance on pad 1 (1.9 + 2 × 0.8 =
+      3.5), so it opens in every ground plane by construction — MEASURE it on
+      the filled board anyway, because a zone-fill setting can override a pad
+      clearance and the failure is silent. Recomputed cost of getting it wrong:
+      RL **14.5 dB (Ø3.5) vs 8.9 dB (Ø2.6)** at 6 GHz, i.e. **5.6 dB**
+- [ ] **Each SMA ground post connects SOLID to plane copper, not through a
+      thermal spoke** (`zone_connect 2` in the footprint) — and the 40 THT
+      joints that creates are hand-soldered WITH PREHEAT. A cold post joint is
+      worse for the launch than the spoke would have been
 - [ ] Ground-via fence between every pair of adjacent SMA barrels, pitch
       ≤ 1.37 mm
 
