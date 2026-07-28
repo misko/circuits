@@ -402,4 +402,4 @@ def t_beacon_zero_denominator():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

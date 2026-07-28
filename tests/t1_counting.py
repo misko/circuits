@@ -164,4 +164,4 @@ def t_pre_names_padmap():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -283,4 +283,4 @@ def t_no_outline():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

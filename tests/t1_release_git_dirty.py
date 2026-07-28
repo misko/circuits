@@ -206,4 +206,4 @@ def t_modified_sealed_release_still_blocks():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

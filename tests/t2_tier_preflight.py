@@ -305,4 +305,4 @@ def t_skip_preflight_hatch():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

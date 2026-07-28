@@ -292,4 +292,4 @@ def t_skill_contract_sync():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

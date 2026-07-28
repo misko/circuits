@@ -452,4 +452,4 @@ def t_esc_reports_coverage():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

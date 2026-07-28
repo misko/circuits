@@ -135,18 +135,46 @@ def t_slug_bridges_the_separator():
       "the last directory")
 def t_cooksense_resolves_to_cooksense():
     """The free fixture: this layout exists in the tree today and produced the
-    wrong answer. Opened READ-ONLY (07_releases is immutable)."""
-    latest = ri.latest_release(COOK, "cooksense")
-    eq(latest.name, "cooksense-v1.4-2026-07-26", "cooksense's latest")
-    eq(ri.latest_release(COOK, "interposer").name,
-       "interposer-v1.0-2026-07-24", "interposer's latest")
-    # and the board identity comes from the tree, not from a name list
-    eq(ri.board_slugs(COOK), ["cooksense", "interposer"], "declared boards")
-    # every earlier cooksense release, and NOT the interposer
-    series = [p.name for p in ri.releases_for_board(COOK, "cooksense")]
-    check(all(n.startswith("cooksense-") for n in series),
-          f"cooksense's series is contaminated with another board: {series}")
-    eq(len(series), 4, "cooksense release count")
+    wrong answer. Opened READ-ONLY (07_releases is immutable).
+
+    RE-DERIVED 2026-07-27, and the reason is the point. This test used to
+    assert the literal names `cooksense-v1.4-2026-07-26` and
+    `interposer-v1.0-2026-07-24`. It went RED hours later when interposer v1.1
+    sealed -- not because resolution broke, but because A RELEASE NAME IS A
+    GOLDEN VALUE. `tests/README.md` says assert PROPERTIES, never file bytes,
+    and a hardcoded release directory is exactly a golden file wearing a
+    different hat: every future seal of either board breaks it, and the next
+    author's cheapest move is to bump the string, which teaches nothing.
+
+    Worse, it hid a real failure for as long as it did: this suite ended in
+    `main()` rather than `sys.exit(main())`, so it reported "2 failed" and
+    exited 0, and run_tests.sh printed ALL SUITES PASSED over it.
+
+    What actually matters here -- and what is asserted below -- is the
+    SEPARATION property: each board's series contains only that board's
+    releases, its latest is drawn from its own series, and the two series are
+    disjoint. That is true of every future release of either board."""
+    boards = ri.board_slugs(COOK)
+    eq(boards, ["cooksense", "interposer"], "declared boards, read from 04_kicad")
+
+    series = {b: [p.name for p in ri.releases_for_board(COOK, b)] for b in boards}
+    for b, names in series.items():
+        check(names, f"{b} has no releases at all -- fixture premise gone")
+        check(all(ri.slug(n).rsplit("-v", 1)[0] == b for n in names),
+              f"{b}'s series is contaminated with another board: {names}")
+        latest = ri.latest_release(COOK, b)
+        check(latest.name in names,
+              f"{b}'s latest {latest.name} is not from its own series: {names}")
+        check(latest.name == max(names, key=lambda n: ri._version_key(n)[1]),
+              f"{b}'s latest is not the highest version in its series: {names}")
+
+    check(not (set(series["cooksense"]) & set(series["interposer"])),
+          "the two boards' release series overlap -- they are separate boards")
+    # the defect in one line: the LAST directory by name is NOT cooksense's latest
+    last_dir = sorted(p.name for p in (COOK / "07_releases").glob("*-v*"))[-1]
+    check(last_dir != ri.latest_release(COOK, "cooksense").name,
+          "this tree no longer exhibits the two-board hazard -- the fixture's "
+          f"premise is gone and it proves nothing (last dir = {last_dir})")
 
 
 @test("THE PRE-FIX SELECTOR, run against the real tree, picks the INTERPOSER",
@@ -157,11 +185,24 @@ def t_the_pre_fix_selector_is_reproduced_and_wrong():
     (the v1.10 fix), and still wrong, because the version tuple is the SECOND
     component of a key whose first component is the board prefix.
 
-    Measured on the sealed tree: pre-fix latest = interposer-v1.0-2026-07-24
-    while the board under audit is cooksense; and rels[:-1] demands
-    SUPERSEDED.md on 4 dirs including cooksense-v1.4, the LIVE release. The
-    fixed selector: latest = cooksense-v1.4-2026-07-26, 3 dirs demanded, all
-    3 of which have the file.
+    Measured on the sealed tree at the time of writing: pre-fix latest =
+    interposer-v1.0-2026-07-24 while the board under audit is cooksense; and
+    rels[:-1] demands SUPERSEDED.md on 4 dirs including cooksense-v1.4, the
+    LIVE release.
+
+    RE-DERIVED 2026-07-27, hours later, when interposer v1.1 sealed and this
+    known-bad went red. Its own failure message had predicted this in advance
+    -- "the tree changed, so this fixture proves nothing until it is
+    re-derived" -- and that is exactly what happened, which is the argument
+    for writing such a message rather than an opaque `eq`.
+
+    The lesson is the same one `fleet_regrade.py` was built on: some defects
+    were always wrong, others BECOME wrong. A fixture pinned to a release NAME
+    decays on the next seal. So the assertion is now the INVARIANT the defect
+    consists of -- the pre-fix selector picks a release belonging to a
+    DIFFERENT board than the one being graded -- which stays true for every
+    future release of either board, and fails loudly if the two-board hazard
+    ever stops existing in this tree.
     """
     reldir = COOK / "07_releases"
     prefix_rels = sorted(
@@ -169,9 +210,15 @@ def t_the_pre_fix_selector_is_reproduced_and_wrong():
          if p.is_dir() and re.match(r"(?:.+-)?v\d", p.name)),
         key=lambda s: (ri._version_key(Path(s).name) or ("", ()), s))
     pre_fix_latest = Path(prefix_rels[-1]).name
-    eq(pre_fix_latest, "interposer-v1.0-2026-07-24",
-       "the pre-fix selector no longer reproduces the defect — the tree "
-       "changed, so this fixture proves nothing until it is re-derived")
+    graded = sorted(p.stem for p in (COOK / "04_kicad").glob("*.kicad_pcb"))[0]
+    check(ri.slug(pre_fix_latest).rsplit("-v", 1)[0] != graded,
+          f"the pre-fix selector no longer reproduces the defect: it picked "
+          f"{pre_fix_latest}, which belongs to the graded board {graded!r}. "
+          f"The tree changed, so this fixture proves nothing until it is "
+          f"re-derived.")
+    check(pre_fix_latest != ri.latest_release(COOK, graded).name,
+          f"pre-fix and fixed selectors now AGREE ({pre_fix_latest}) — the "
+          f"known-bad has stopped being bad and must be re-derived")
 
     board = sorted(p.stem for p in (COOK / "04_kicad").glob("*.kicad_pcb"))[0]
     eq(board, "cooksense", "the board policy_audit grades (boards[0])")
@@ -188,8 +235,21 @@ def t_the_pre_fix_selector_is_reproduced_and_wrong():
     check("cooksense-v1.4-2026-07-26" not in post_demand,
           f"the FIXED selector still demands SUPERSEDED.md on the live "
           f"cooksense release: {post_demand}")
-    eq(len(pre_demand), 4, "pre-fix demand count")
-    eq(len(post_demand), 3, "fixed demand count")
+    # NOT a hardcoded count. `eq(len(pre_demand), 4)` stood here and decayed
+    # the moment interposer v1.1 sealed -- the same golden-value rot as the
+    # release NAMES above. The property is that the pre-fix selector demands
+    # strictly MORE than the fixed one (it sweeps both boards' series), and
+    # that the surplus is exactly what does not belong to the graded board.
+    check(len(pre_demand) > len(post_demand),
+          f"pre-fix must over-demand; it swept both boards: "
+          f"pre={pre_demand} post={post_demand}")
+    surplus = set(pre_demand) - set(post_demand)
+    check(surplus, "pre-fix and fixed demand sets are identical — the "
+                   "two-board hazard is gone and this fixture is inert")
+    check(all(ri.slug(n).rsplit("-v", 1)[0] != "cooksense" or
+              n == ri.latest_release(COOK, "cooksense").name for n in surplus),
+          f"the surplus should be the OTHER board's releases plus cooksense's "
+          f"own LIVE one, and is not: {sorted(surplus)}")
     for n in post_demand:
         check((COOK / "07_releases" / n / "SUPERSEDED.md").is_file(),
               f"{n} is demanded and does not have SUPERSEDED.md")
@@ -313,4 +373,4 @@ def t_earlier_releases_scoped():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

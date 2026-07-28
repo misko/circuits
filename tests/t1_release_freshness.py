@@ -972,4 +972,4 @@ def t_mc_sibling_reference_ok():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
