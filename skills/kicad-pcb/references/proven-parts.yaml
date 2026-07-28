@@ -109,20 +109,37 @@ functions:
              stays UNCONDITIONAL advanced — both directions pinned in
              tests/t4_regressions.py"
 
-  usb-c-receptacle-high-current:
+  usb-c-receptacle-high-current:   # NAME IS MISLEADING — see the first gotcha
     candidates:
       - mpn: TYPE-C-31-M-12A
         maker: HRO
         lcsc: C5337088
+        alternates: [C165948]
         package: USB-C 16P SMT+TH hybrid
         escape: {style: connector, pitch: 0.5, tier_required: jlc_2layer_default}
         status: designed-in
-        provenance: usb-pwr-hub-3s (cleanroom v3, 2026-07-21); VBUS pads
-          rated for high current per HRO datasheet
+        provenance: usb-pwr-hub-3s (cleanroom v3, 2026-07-21); re-read against
+          the HRO drawings 2026-07-28 while sourcing pluto-rx2-8way
         gotchas:
+          - "THE ENTRY NAME OVERSELLS THE PART. This is the COMMODITY 16P USB
+             2.0 receptacle, not a high-current variant; the '6 A' is a
+             CONTACT-ALLOY claim on the VBUS contacts, not a connector rating
+             anyone has verified in this pipeline. Size the rail from the
+             cable and the fuse, never from this row's name."
+          - "*** KiCad's `Connector:USB_C_Receptacle_HRO_TYPE-C-31-M-12` DOES
+             NOT MATCH HRO'S RECOMMENDED LAND. *** Pad length 1.45 vs the
+             drawing's 1.14; the whole SMT pad row sits 0.375 mm off the
+             alignment datum; the rear slot is drilled 1.2 vs 1.40. Confirmed
+             2026-07-28 against TWO HRO sheets two years apart — TYPE-C-31-M-12
+             (C165948) and TYPE-C-31-M-12A (C5337088) — which AGREE WITH EACH
+             OTHER and disagree with KiCad. Derive the land from the drawing,
+             or measure the library footprint against it before using it."
           - "A1..B12 + SH pad names are ALPHANUMERIC — tscircuit drops the
              part SILENTLY (S-COUNT incident 2026-07-21). Run tsx_preflight,
              map pads in parity_padmap.txt BEFORE the first tsci build"
+          - "C165948 (TYPE-C-31-M-12) is a LAND-VERIFIED alternate against the
+             same drawing and is far deeper stock — 260287 vs C5337088's 84
+             (2026-07-28). Prefer it unless the -12A revision is required."
 
   # ------------------------------------------------------------------
   # usb-hub-3s harvest (cleanroom v4, 2026-07-21) — 9 function entries
@@ -192,7 +209,7 @@ functions:
           - "stock is VOLATILE (62 on 2026-07-21) — order-day recheck is
              MANDATORY, alternates unverified"
       - mpn: TYPE-C-31-M-12A
-        note: "see usb-c-receptacle-high-current for the matching receptacle"
+        note: "see `usb-c-receptacle-high-current` for the matching receptacle"
 
   power-nfet-30v:                 # logic-level switching NFET, 30V class
     candidates:
@@ -521,6 +538,16 @@ functions:
              center lead and the tab '2' (dup pad) -> PAD-MISMATCH artifact,
              adjudicate; tab = pin 2 = VSS on GND (Torex ETR03054-006)."
           - "VIN abs-max 6.5V, no OVP — same 5V-rail OVP caveat as the bucks."
+          - "*** DISQUALIFIED for any board whose TVS clamps ABOVE 6.5 V. ***
+             6.5 V is the ABSOLUTE MAXIMUM, so it must sit above the clamping
+             voltage of whatever protects its input, not above the rail. A
+             6.0 V-standoff SMBJ on unregulated USB VBUS clamps near 10.3 V at
+             rated current — 3.8 V past this part's abs max, and the clamp is
+             the NORMAL protective event, not a fault. Found 2026-07-28 while
+             sourcing pluto-rx2-8way, where this ledger row would otherwise
+             have been copied straight in behind exactly such a clamp. If the
+             input is unregulated VBUS behind a TVS, use `wide-vin-ldo-3v3`;
+             the clamp itself is `tvs-clamp-5v-vbus`."
 
   ldo-1v8-200ma:
     candidates:
@@ -572,11 +599,141 @@ functions:
              2026-07-23). A bidirectional TVS on a DC rail never clamps
              reverse; verify the direction column, not the MPN string.
              Extended-tier -> order-day stock recheck."
+          - "RE-USED on pluto-rx2-8way 2026-07-28 as C83270 (Littelfuse
+             SMBJ6.0A, uni-directional) with C113976 as the alternate —
+             the same function, a second catalog code. DIRECTIONALITY is
+             the 'C' in SMBJ/<V_R>/C/A (Part Numbering System, PDF p6);
+             'A' is only the 5 % tolerance suffix and says nothing about
+             direction. Visual discriminator for bring-up: uni-directional
+             SMBJ6.0A marks 'KG', bi-directional SMBJ6.0CA marks 'AG'."
           - "Vwm 6.0V clears a 5.35-5.43V regulated 5V rail (no nuisance leakage);
              SMBJ5.0A (5V standoff) is WRONG -> conducts in normal op."
+          - "6.0 V IS ALSO THE RIGHT STANDOFF FOR *UNREGULATED* USB VBUS, and
+             the reasoning that says otherwise is arithmetically backwards.
+             USB-C vSafe5V runs to 5.50 V, so a 5.0 V standoff is NOT 'above
+             Vbus_max' — it is BELOW it, and a 5.0 V part conducts in normal
+             operation on a legal bus. Recorded 2026-07-28 (pluto-rx2-8way
+             D-SPEC) because a board's own DETAIL_DESIGN had written the
+             5.0 V choice down with that exact justification. The 6.0 V part
+             covers BOTH the regulated-5V and the raw-VBUS case; there is no
+             VBUS application in this fleet where 5.0 V is correct."
           - "Vclamp ~10.3V is above a 5V-load ceiling -> PAIR with an upstream
              resettable fuse so the clamp current TRIPS the fuse (crowbar); the TVS
              alone does not disconnect. Extended-tier -> order-day stock recheck."
+  # ------------------------------------------------------------------
+  # pluto-rx2-8way harvest (2026-07-28) — RF signal chain. The board paid
+  # for research this ledger had NO entry for: no RF switch and no SMA
+  # connector existed here at all, so the sourcing spike was run from
+  # scratch. Harvested with the disqualifications, which are the expensive
+  # half.
+  # ------------------------------------------------------------------
+
+  rf-switch-sp8t-absorptive:      # 1-of-8 antenna select, DC-6 GHz
+    candidates:
+      - mpn: PE42482A-X
+        maker: pSemi (Murata)
+        lcsc: C5121458
+        alternates: [C726151, C500479]
+        package: QFN-24 4x4 P0.5, EP 2.70 sq
+        escape: {style: qfn, pitch: 0.5, escapes_worst_side: 5,
+                 tier_required: jlc_4layer_advanced}
+        status: designed-in
+        provenance: pluto-rx2-8way (2026-07-27 sourcing spike; escape_check
+          2026-07-27 -> advanced tier)
+        gotchas:
+          - "ABSORPTIVE, not reflective: deselected ports are internally
+             terminated in 50 ohm (Fig 1 + Table 3, PDF p1/p7, 15-23 dB return
+             loss on terminated ports). For an antenna array that is a
+             first-order property — a reflective switch re-radiates."
+          - "NO DC BLOCKING CAPS REQUIRED provided every RF pin sits at 0 VDC
+             (Table 8 fn 1, PDF p20). That is what removes the 85.7:1-bandwidth
+             DC-block problem: no single capacitor spans 70 MHz to 6 GHz."
+          - "LS HAS A 1 Mohm INTERNAL PULL-UP AND MUST BE TIED TO GND (Table 5
+             fn 1, PDF p10). Floating it reads as logic 1 and selects the
+             COMPLEMENTED half of the truth table — RF1<->RF8, RF2<->RF3,
+             RF4<->RF7, RF5<->RF6. The board still works, wired backwards."
+          - "V1..V4 HAVE NO INTERNAL PULL AT ALL (5 uA max input current,
+             Table 2 PDF p3). All four FLOAT through reset and supply ramp, so
+             the selected antenna is undefined until firmware drives them."
+          - "DIGITAL ABS-MAX 3.6 V while VDD ABS-MAX IS 5.5 V (Table 1, PDF
+             p2) — the control pins are NOT rated to the supply. 300 mV of
+             margin on a 3.3 V rail, and it forbids 5 V logic outright."
+          - "Truth table is a plain 3-bit binary mux with V1 as MSB and V3 as
+             LSB (Table 5, PDF p10) — three PIO lines, no external decoder."
+
+  rf-connector-sma-jack-vertical:   # cabled RF port, board-edge or field
+    candidates:
+      - mpn: KH-SMA-KE-Z
+        maker: Kinghelm
+        lcsc: C504007
+        alternates: [C6915271, C496549]
+        package: vertical THT flange jack, 6.5 sq flange, 13.5 mm overall,
+          four 0.9 mm SQUARE posts on 5.08 x 5.08 plus a centre signal pin
+        escape: {style: connector, pitch: 5.08, escapes_worst_side: 1,
+                 tier_required: jlc_2layer_default}
+        status: designed-in
+        provenance: pluto-rx2-8way (2026-07-27 sourcing spike, x10 ports)
+        gotchas:
+          - "GROUND HOLES MUST BE D1.4 mm, NOT D1.3. A 0.9 mm SQUARE post has
+             a 1.273 mm diagonal, so D1.3 leaves 0.014 mm radial clearance —
+             inside JLC's plated-hole tolerance. The drawing's own PCB-layout
+             inset says 5-D1.4."
+          - "RP-SMA LANDMINE ONE CHARACTER AWAY, AND IT IS LIVE. DreamLNK
+             SMA-KE-P901 (C914556) and SMA-KWE901 (C914553) are listed by LCSC
+             as RP-SMA / 'Male Pin' in an external-thread shell — they will not
+             mate with a standard SMA male cable. Read the gender column."
+          - "DO NOT SUBSTITUTE ON APPEARANCE. C914559 has a 4.90 mm post square
+             (legs will not enter); C5250058, C530661 and C496550 all put the
+             centre pin OFF the flange axis. The post square and the pin axis
+             are the two facts to check, not the photo."
+          - "MECHANICAL LEVER ARM is why this part wins its class: 13.5 mm
+             overall on four 0.9 mm posts vs 28.6 mm for BWSMA-KE23 (C5250061)
+             on the identical pattern. Ten cabled ports is ten torque paths
+             into one laminate."
+          - "THT DISQUALIFIES the board from JLC Economic PCBA and adds a
+             per-order surcharge (~$3.50 setup + ~$0.0173/joint + $3.00
+             extended-component fee). 10 jacks x 5 pins = 50 joints."
+          - "THE VENDOR PUBLISHES NO APPLICATION OR LAYOUT SECTION — no via
+             fence, antipad, thickness or VSWR-vs-launch guidance. Every launch
+             rule for this part is DERIVED ENGINEERING and cannot be waived by
+             citing the datasheet."
+
+  wide-vin-ldo-3v3:               # 3V3 behind an UNREGULATED input + TVS
+    candidates:
+      - mpn: MCP1755S-3302E/DB
+        maker: Microchip
+        lcsc: C638611
+        alternates: [C144220, C512091]
+        package: SOT-223-3 (package code DB), 2.30 mm BSC lead pitch + tab
+        escape: {style: leaded, pitch: 2.3, escapes_worst_side: 2,
+                 tier_required: jlc_2layer_default}
+        status: designed-in
+        provenance: pluto-rx2-8way (2026-07-28 sourcing spike). THIS ENTRY
+          EXISTS BECAUSE `analog-ldo-quiet-3v3` (XC6227, 6.5 V abs max) is
+          DISQUALIFIED behind any TVS that clamps above 6.5 V — see
+          `analog-ldo-quiet-3v3`.
+        gotchas:
+          - "16 V IS THE OPERATING MAXIMUM, 17.6 V IS THE ABSOLUTE MAXIMUM
+             (LCSC parametric vs PDF p5 / Absolute Maximum table). Write a
+             survival constraint against the abs max and an operating one
+             against 16 V; they are different numbers for different questions."
+          - "MCP1755 AND MCP1755S ARE DIFFERENT PINOUTS IN THE SAME SOT-223
+             OUTLINE (Table 3-1, PDF p15). MCP1755S = SOT-223-3: 1=VIN, 2=GND,
+             3=VOUT, tab=EP. MCP1755 = SOT-223-5 (code DC): 1=SHDN, 2=VIN,
+             3=GND, 4=VOUT, 5=PWRGD. One letter in the order code."
+          - "OUTPUT CAP: 1 uF MINIMUM ceramic, and the ESR spec is an UPPER
+             BOUND ONLY (section 4.3, PDF p17) — which is what won the
+             selection. The nearest rival on stock depth, MIC5209-3.3YS-TR
+             (C144220), needs the OPPOSITE: a MINIMUM ESR, so a plain X7R
+             makes it unstable."
+          - "THE TAPE-AND-REEL TWIN IS A DIFFERENT ORDER CODE AND WAS AT STOCK
+             ZERO: MCP1755ST-3302E/DB (C111176) vs this cut-tape part
+             (2026-07-28). The 'T' in the Product Identification System is the
+             reel suffix, not a typo to normalise away."
+          - "Dissipation is the datasheet's own Equation 5-1 (PDF p21),
+             PLDO = (VIN_max - VOUT_min) x IOUT_max, valid because the part is
+             CMOS (ground current does not scale with load)."
+
   ferrite-bead-600r-0805-power:
     candidates:
       - mpn: BLM21SP601SN1D

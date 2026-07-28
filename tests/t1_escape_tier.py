@@ -307,39 +307,129 @@ def t_layout_present():
     check(g == "PASS", f"P-LAYOUT not PASS with a valid layout block (got {g})")
 
 
-@test("proven-parts ledger parses and every escape block is schema-valid")
-def t_proven_parts_schema():
-    """The v4 harvest added 9 function entries — the ledger must parse and
-    every candidate's escape block must use the checker's own vocabulary
-    (style/tier/condition names), or the next D-ESC consult starts from a
-    corrupt ledger."""
-    import yaml as _y
+LEDGER_PATH = SCRIPTS.parent / "references" / "proven-parts.yaml"
+_XREF = re.compile(r"(?:see|use)\s+`([a-z][a-z0-9-]*)`")
+
+
+def ledger_findings(ledger):
+    """Every problem in a proven-parts ledger, as a LIST — so the same
+    function can be pointed at a deliberately corrupted copy and required to
+    produce findings. A validator that only ever runs on the good file proves
+    nothing about whether it can bite (tests/README, the whole point).
+
+    Returns (findings, candidates_examined) so the caller can assert a
+    denominator too: a validator that examined nothing is not a pass.
+    """
     sys.path.insert(0, str(SCRIPTS))
     import escape_check as ec
-    ledger = _y.safe_load(
-        (SCRIPTS.parent / "references" / "proven-parts.yaml").read_text())
     tiers = ec.load_tiers()
     statuses = {"shipped", "designed-in", "incident", "unresolved"}
-    n = 0
-    for fn, body in ledger["functions"].items():
+    fns = set(ledger.get("functions") or {})
+    out, n = [], 0
+    for fn, body in (ledger.get("functions") or {}).items():
         for c in body.get("candidates") or []:
+            text = " ".join(str(v) for v in c.values())
+            # a cross-reference must RESOLVE: pointing the next board at a
+            # function that does not exist sends it nowhere, and that is the
+            # exact failure this ledger exists to prevent.
+            for ref in _XREF.findall(text):
+                if ref not in fns:
+                    out.append(f"{fn}/{c.get('mpn')}: dangling cross-reference "
+                               f"`{ref}` — no such function entry")
+            if "projects/" in text:
+                out.append(f"{fn}/{c.get('mpn')}: names a projects/ path "
+                           f"(C-ISO) — provenance names BOARDS, never paths")
             if set(c) == {"mpn", "note"}:      # cross-reference stub
                 continue
-            check(c.get("status") in statuses,
-                  f"{fn}/{c.get('mpn')}: bad status {c.get('status')!r}")
-            check(bool(c.get("provenance")),
-                  f"{fn}/{c.get('mpn')}: no provenance")
+            if c.get("status") not in statuses:
+                out.append(f"{fn}/{c.get('mpn')}: bad status "
+                           f"{c.get('status')!r}")
+            if not c.get("provenance"):
+                out.append(f"{fn}/{c.get('mpn')}: no provenance")
             esc = c.get("escape")
             if esc:
-                check(esc.get("style") in
-                      ec.OUTWARD_STYLES | ec.RING_STYLES | {"bga"},
-                      f"{fn}/{c['mpn']}: bad style {esc.get('style')!r}")
-                check(esc.get("tier_required") in tiers,
-                      f"{fn}/{c['mpn']}: bad tier {esc.get('tier_required')!r}")
+                if esc.get("style") not in (ec.OUTWARD_STYLES | ec.RING_STYLES
+                                            | {"bga"}):
+                    out.append(f"{fn}/{c['mpn']}: bad style "
+                               f"{esc.get('style')!r}")
+                if esc.get("tier_required") not in tiers:
+                    out.append(f"{fn}/{c['mpn']}: bad tier "
+                               f"{esc.get('tier_required')!r}")
                 bad = set(esc.get("conditions") or []) - ec.KNOWN_CONDITIONS
-                check(not bad, f"{fn}/{c['mpn']}: unknown conditions {bad}")
+                if bad:
+                    out.append(f"{fn}/{c['mpn']}: unknown conditions {bad}")
             n += 1
-    check(n >= 14, f"ledger looks truncated: only {n} candidates")
+    return out, n
+
+
+@test("proven-parts ledger parses, every escape block is schema-valid, and "
+      "every cross-reference RESOLVES")
+def t_proven_parts_schema():
+    """The v4 harvest added 9 function entries and the pluto-rx2-8way harvest
+    (2026-07-28) added 3 more — the ledger must parse, every candidate's
+    escape block must use the checker's own vocabulary (style/tier/condition
+    names), and every `` see `x` `` / `` use `x` `` must name a function that
+    exists, or the next D-ESC consult starts from a corrupt ledger or is sent
+    to a row that is not there.
+
+    The cross-reference rule is what makes a DISQUALIFICATION usable: the
+    2026-07-28 harvest disqualified `analog-ldo-quiet-3v3` behind a >6.5 V
+    clamp and pointed at `wide-vin-ldo-3v3`. A pointer to a row that does not
+    exist is worse than no pointer, because it reads as an answer.
+    """
+    import yaml as _y
+    findings, n = ledger_findings(_y.safe_load(LEDGER_PATH.read_text()))
+    check(not findings, f"proven-parts ledger: {len(findings)} finding(s) over "
+                        f"{n} candidates: {findings[:6]}")
+    check(n >= 17, f"ledger looks truncated: only {n} candidates")
+
+
+@test("the proven-parts validator BITES: each way of corrupting a ledger "
+      "entry produces its own finding", kind="known_bad")
+def t_proven_parts_validator_has_teeth():
+    """Until 2026-07-28 the ledger's only check was a run of `check()` calls
+    inside a test that had only ever seen a GOOD file. A validator whose
+    failure path has never executed is the `jlc_twin` exit-0 shape: it
+    reports success and nothing has proved it could report anything else.
+
+    Each case below is the SHIPPED ledger broken in exactly ONE way, so the
+    finding is attributable to that break and not to a malformed document.
+    """
+    import copy
+    import yaml as _y
+    good = _y.safe_load(LEDGER_PATH.read_text())
+    base, n = ledger_findings(good)
+    check(not base, f"the fixture base is not clean: {base[:3]}")
+    fn = "wide-vin-ldo-3v3"
+    check(fn in good["functions"], f"{fn} missing — the harvest did not land")
+
+    def broken(mutate):
+        g = copy.deepcopy(good)
+        mutate(g["functions"][fn]["candidates"][0])
+        f, _ = ledger_findings(g)
+        return f
+
+    cases = [
+        ("bad status", lambda c: c.__setitem__("status", "probably-fine"),
+         "bad status"),
+        ("no provenance", lambda c: c.pop("provenance"), "no provenance"),
+        ("bad tier", lambda c: c["escape"].__setitem__("tier_required",
+                                                       "jlc_9layer_magic"),
+         "bad tier"),
+        ("bad style", lambda c: c["escape"].__setitem__("style", "wishful"),
+         "bad style"),
+        ("dangling xref", lambda c: c.__setitem__(
+            "provenance", "see `ldo-that-does-not-exist`"),
+         "dangling cross-reference"),
+        ("projects/ path", lambda c: c.__setitem__(
+            "provenance", "projects/pluto-rx2-8way/02_parts/MCP1755S-3302E-DB"),
+         "projects/ path"),
+    ]
+    for name, mutate, expect in cases:
+        f = broken(mutate)
+        check(f, f"{name}: the validator found NOTHING — it cannot bite")
+        check(any(expect in x for x in f),
+              f"{name}: no finding mentions {expect!r}; got {f}")
 
 
 @test("P-TIER FAILS the incident: 0.5mm QFN vs a standard-tier board",
