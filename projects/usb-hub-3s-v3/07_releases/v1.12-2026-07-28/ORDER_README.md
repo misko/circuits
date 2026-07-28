@@ -46,10 +46,10 @@ did was **invert the fillet balance and over-paste the row**: the heel, where
 the tail leaves the housing and the fillet carries the joint, was starved to
 61 % of intended while the toe was doubled, and 0.700 mm of every land and its
 open stencil aperture sat past the tail tip on a **0.5 mm-pitch** row. Bridge
-exposure and a weak fillet — not an open joint. (An earlier draft of this
+exposure and a weak fillet — not an open joint. (An earlier revision of this
 document said the contacts sat 0.220 mm off their lands at 80.7 % overlap. That
-was a land-vs-land ratio mislabelled as a lead; it was caught pre-seal and the
-numbers above are the re-measurement.)
+was a land-vs-land ratio mislabelled as a lead; the fresh-context lens caught it
+before the seal and the numbers above are the re-measurement.)
 
 **And the placement coordinate was wrong too, for the same reason.** JLC places
 a part so that its own model origin lands on the CPL's `Mid X`/`Mid Y`, and that
