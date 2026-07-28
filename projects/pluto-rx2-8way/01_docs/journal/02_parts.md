@@ -196,3 +196,24 @@
   `contracts_audit --projects` = **0 violations for this board** after seeding
   `03_src/lib/contracts.md` from the skill template (the folder did not exist).
 - next: merge the nine dossiers as the research agents return.
+
+## 2026-07-28 14:55 — iterate 2 (a silk floor the footprints were BELOW, found by cross-checking the tier)
+
+- did: cross-checked both authored footprints against the DECLARED fab tier's own
+  numbers in `references/fab_tiers.yaml` rather than against KiCad's defaults.
+- result: **both were emitted with a 0.12 mm F.SilkS stroke — KiCad's default —
+  against `jlc_4layer_advanced`'s `min_silk_stroke: 0.15`.** 16 segments, 8 per
+  footprint, now 0.15. Everything else clears the tier with room: adjacent-pad
+  copper gap 0.200 mm and EP-to-pad 0.225 mm against a 0.09 mm space floor; SMA
+  hole edge-to-edge 2.192 mm (centre to corner) and 3.680 mm (corner to corner)
+  against a 0.25 mm hole-to-hole floor.
+  Re-verified after the edit: 48/48 geometry + 6/6 silk-courtyard + both reload
+  through pcbnew.
+- result (the gap this exposes, reported not patched): **nothing in the pipeline
+  grades a FOOTPRINT's silk stroke or text height against the board's declared
+  `fab_tier`.** `tier_preflight.py` covers routing/stitch/rescue parameters and
+  P-SILK-FN covers refdes presence/legibility at BOARD stage; a footprint authored
+  below the tier's silk floor passes both and only shows up as a fab-time
+  legibility risk. Proposed as a skill patch in the report — not applied here,
+  because another agent is working in `skills/`.
+- next: still merging the nine dossiers.

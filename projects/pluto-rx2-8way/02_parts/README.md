@@ -68,11 +68,28 @@ is reachable from a CDN link embedded in that page's own markup
    and **no committed PDF** — the binary lives with the part that is on the
    board.
 
-4. **`footprint:` names do not exist yet** for `PE42482A-X` and
-   `KH-SMA-KE-Z`. Neither `.kicad_mod` has been drawn, in this project or
-   anywhere in the repo — the sibling project's
+4. ~~**`footprint:` names do not exist yet** for `PE42482A-X` and
+   `KH-SMA-KE-Z`.~~ **CLOSED 2026-07-28.** Both `.kicad_mod` are AUTHORED into
+   `03_src/lib/pluto_rx2_8way.pretty/` from the vendor land drawings — pSemi
+   Figure 23's RECOMMENDED LAND PATTERN inset (DOC-75785-4 p21) and the
+   Kinghelm sheet-2/2 PCB inset (2021.08.10). Neither was copied; the sibling's
    `pluto_cal_switch:SMA_Vertical_5.08sq_D1.4` is declared in its `part.yaml`
-   and emitted by nothing. **Both must be authored; neither may be copied.**
+   and emitted by nothing, so there was no source to copy even had it been
+   allowed. Verified by an INDEPENDENT parser that re-derives every dimension
+   from the emitted file text and compares it against the drawing numbers
+   re-typed by hand (canon M1), plus a `pcbnew.FootprintLoad`: **48 geometry
+   properties + 6 silk/courtyard clearances, all PASS.**
+   Two facts the footprints now CARRY rather than leave to the board:
+   the SMA's `>= D3.5` bottom/inner-plane antipad, encoded as a **0.80 mm local
+   clearance on pad 1** (1.9 + 2 x 0.8 = 3.5) so it opens in every ground plane;
+   and `zone_connect 2` (SOLID) on the four ground posts, because the posts ARE
+   the launch return path and a thermal spoke is not one.
+   **And the stock KiCad footprint would have been WRONG**, which is why this
+   was authoring and not a lookup: `Package_DFN_QFN:QFN-24-1EP_4x4mm_P0.5mm_
+   EP2.65x2.65mm` is IPC-generated with 0.85 mm pads at r = 1.95 and a 2.65 mm
+   EP, against the vendor's 0.60 mm pads at r = 1.90 and a 2.75 mm EP.
+   `03_src/floorplan.yaml` now binds `libraries: [03_src/lib, /usr/share/kicad/
+   footprints]` with the project library FIRST for exactly that reason.
 
 5. **Two thirds of the board still has no dossier.** Stage 3 has fixed the
    architecture, so the remaining stage-2 work is now enumerable rather than
