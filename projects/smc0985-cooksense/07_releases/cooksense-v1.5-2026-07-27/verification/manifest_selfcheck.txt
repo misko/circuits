@@ -1,0 +1,71 @@
+MANIFEST self-check — cooksense-v1.5-2026-07-27
+  table rows                             : 86
+  files on disk (excluding MANIFEST.txt) : 86
+  orphan entries (in the table, no file) : 0 []
+  unlisted files (on disk, no entry)     : 0 []
+  sha256sum -c                           : exit 0, 86/86 rows OK
+  RESULT: PASS — bidirectional, 86/86 verified
+
+  table layout: `  <path>  <hash>`, path-first — the layout cooksense,
+  crow-recorder-central-v2 and crow-mic-pod-v2 write. usb-hub-3s-v3 writes
+  sha256sum order, `<hash>  <path>`. M-REL reads BOTH since 2026-07-27; before
+  that it read only one, and reported "provenance + hashes verify" on ten
+  usb-hub releases while matching zero of their rows.
+
+INDEPENDENCE (canon M1). The verification was performed by `sha256sum -c` from
+coreutils — a DIFFERENT program from the python `hashlib` that wrote the table.
+A table checked only by the program that produced it proves that program is
+self-consistent, which is not the claim being made.
+
+THE BOOTSTRAP, STATED RATHER THAN HIDDEN.
+This file is itself one of the 86 rows in the table it reports on, so its own
+sha256 is necessarily stamped AFTER this text was written. 85 of the 86 rows
+were hashed from files that existed before this sentence; this file's own row
+was computed from these bytes immediately afterwards and cannot have been
+verified by the run that wrote them. That is not a gap you close by being
+cleverer about the ordering — it is closed by the READER, in one command, which
+is why the command is printed here rather than a claim being made on its behalf:
+
+    cd 07_releases/cooksense-v1.5-2026-07-27
+    sha256sum -c <(sed -n '/^FILE DIGEST/,$p' MANIFEST.txt | tail -n +2 \
+                   | awk 'NF==2 {print $2"  "$1}')
+
+Every row must report OK and the count must be 86. A single mismatch means this
+directory was mutated after the seal, and 07_releases/contracts.md says what to
+do then: it is no longer evidence of anything — rename it
+TAINTED-cooksense-v1.5-2026-07-27 and re-release. Do not repair it in place.
+
+WHAT THIS FILE DOES NOT PROVE, on this release in particular.
+It proves the directory has not been mutated since the seal. It says NOTHING
+about whether the two substituted parts are the right parts. That claim rests on
+three other artifacts, none of which is a hash:
+
+  * JLC's own catalog records — the two `describe` strings compared AS STRINGS
+    and found character-identical (02_parts/RC0402FR-0710KL/ and
+    02_parts/RC0402FR-071K2L/, read live 2026-07-27);
+  * the EXECUTABLE `asserts: value` blocks in those two dossiers, RED-VERIFIED
+    in verification/part_facts_red_verification.txt — breaking the C60490
+    Comment to `22k` makes part_facts_check FAIL naming all 17 refs, and
+    C138040 to `5.1k` names R_ILM;
+  * the cell-level BOM delta in verification/bom_delta.txt (2 LCSC cells,
+    0 Footprint changes, 0 rows added or removed).
+
+Hash integrity and correctness are different properties and this file carries
+only the first.
+
+AND IT SAYS NOTHING ABOUT E-TOPO. This release ships ONE FAILING policy row, by
+design and with its reasoning written out — see the MANIFEST's
+`*** E-TOPO FAILS ***` block and ORDER_README section 0. A green self-check is
+not a green board.
+
+MEASURED, POST-STAMP (run against the FINAL table, after git_sha
+c132c1f8226dd808db2b15bed585626d280e81f9 was stamped and after policy_audit was
+re-run into the directory):
+
+    86 rows checked, 86 report OK, 0 failures, exit 0
+    bidirectional: 86 table entries, 86 files on disk,
+                   0 orphan entries, 0 unlisted files
+
+The ONE row that command cannot vouch for is this file's own, for the bootstrap
+reason above. Re-running the command yourself closes that, which is the point of
+printing it.

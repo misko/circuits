@@ -265,6 +265,71 @@ def t_audit_manifest_honest():
                  "matching FAIL counts are not a disagreement")
 
 
+#: The summary line `policy_audit.py` ITSELF prints, and the form every MANIFEST
+#: in this fleet copies. Distinct from the `1 FAIL` prose the test above uses.
+_MANIFEST_FAIL_EQ = (
+    "# MANIFEST — demo v{ver}\n\nversion: v{ver}\n"
+    "gates:\n  policy_audit  FAIL=1  PASS=24  WAIVED=4  HUMAN=6  N-A=5\n")
+_MANIFEST_FAIL_EQ_UNDER = (
+    "# MANIFEST — demo v{ver}\n\nversion: v{ver}\n"
+    "gates:\n  policy_audit  FAIL=0  PASS=25  WAIVED=4  HUMAN=6  N-A=5\n")
+
+
+@test("release_freshness reads the `FAIL=N` form — the one policy_audit ITSELF "
+      "prints — so an HONEST manifest is not accused of under-reporting")
+def t_audit_manifest_fail_eq_honest():
+    """FOUND BY A REAL SEAL, 2026-07-27 (cooksense v1.5, the first release in
+    this fleet whose MANIFEST honestly claims a NON-ZERO policy_audit FAIL).
+
+    `_manifest_claimed_fail` matched `(\\d+)\\s*FAIL`, which reads "0 FAIL" and
+    does NOT read "FAIL=1". The fallback then found the word PASS inside
+    "PASS=24" and returned **0**. So every MANIFEST in the fleet — all of which
+    copy the audit's own `FAIL=0  PASS=30 …` summary line — was parsed as
+    "claims 0 FAIL" BY ACCIDENT, and the check only ever agreed because the
+    true count was also 0. cooksense v1.5 says FAIL=1 beside an audit that says
+    FAIL=1, and the gate accused it of contradicting itself.
+
+    This asserts the honest direction; the sibling below asserts the check can
+    still bite in the same notation.
+
+    RED-VERIFIED per tests/README: swapping the pre-fix
+    `n = re.search(r"(\\d+)\\s*FAIL", seg)` back into `_manifest_claimed_fail`
+    makes THIS test go RED (the honest FAIL=1 manifest is accused of
+    under-reporting) while the known-bad sibling below still passes — which is
+    precisely the blindness being fixed: before the fix the parser could not
+    tell the two fixtures apart, it returned 0 for both."""
+    _, d2 = two_release_root(
+        v2_pdf_tags={"assembly_front.pdf": "front-v1.2",
+                     "assembly_back.pdf": "back-v1.2",
+                     "pcb_layers.pdf": "layers-v1.2"},
+        audit=_AUDIT_FAIL, manifest=_MANIFEST_FAIL_EQ)
+    r = gate(d2)
+    not_contains(r.out, "DISAGREEMENT",
+                 "FAIL=1 in the manifest matches FAIL=1 in the audit")
+
+
+@test("release_freshness STILL bites in the `FAIL=N` notation: a manifest "
+      "claiming FAIL=0 beside an audit reporting FAIL=1 is a disagreement",
+      kind="known_bad")
+def t_audit_manifest_fail_eq_under_reports():
+    """The other half, and the one that matters: the fix must not make the
+    check blind. Before the fix BOTH of these fixtures returned claimed=0, so
+    this one passed for the WRONG REASON — the parser could not tell an honest
+    FAIL=1 from an under-reporting FAIL=0, it just always said 0."""
+    _, d2 = two_release_root(
+        v2_pdf_tags={"assembly_front.pdf": "front-v1.2",
+                     "assembly_back.pdf": "back-v1.2",
+                     "pcb_layers.pdf": "layers-v1.2"},
+        audit=_AUDIT_FAIL, manifest=_MANIFEST_FAIL_EQ_UNDER)
+    r = must_fail(gate(d2), "FAIL=0 beside an audit FAIL=1 must block",
+                  "AUDIT/MANIFEST DISAGREEMENT")
+    contains(r.out, "M-BOM", "names the disagreeing check")
+    rr = gate(d2, "--_disable-audit-manifest")
+    check(rr.rc == 0,
+          f"red-verify: with the audit/manifest check neutered this fixture "
+          f"must pass, got rc={rr.rc}\n{rr.out}")
+
+
 # ------------------------------------------------------- (c) DRAFT README
 @test("release_freshness FAILS when the shipped README carries a draft marker",
       kind="known_bad")

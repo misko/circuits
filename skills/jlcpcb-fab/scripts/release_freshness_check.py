@@ -577,10 +577,30 @@ def _audit_fail_checkids(audit_text):
 
 def _manifest_claimed_fail(manifest_text):
     """FAIL count the MANIFEST claims for policy_audit. 'policy_audit: 0 FAIL'
-    -> 0; a 'PASS' with no explicit FAIL count -> 0; unknown -> None."""
+    -> 0; 'policy_audit FAIL=1 PASS=24' -> 1; a bare 'PASS' with no explicit
+    FAIL count -> 0; unknown -> None.
+
+    THE `FAIL=N` FORM WAS UNREADABLE HERE UNTIL 2026-07-27, AND IT IS THE FORM
+    policy_audit.py ITSELF PRINTS. `(\\d+)\\s*FAIL` matches "0 FAIL" but not
+    "FAIL=1"; the fallback then saw the word PASS inside "PASS=24" and returned
+    **0**. Every MANIFEST in this fleet writes the summary line the audit
+    prints — `policy_audit  FAIL=0  PASS=30  WAIVED=2 …` — so every one of them
+    was read as "claims 0 FAIL" by ACCIDENT, and the check only ever agreed
+    because the true count happened to be 0 as well.
+
+    It bit for the first time on cooksense v1.5, whose MANIFEST honestly says
+    `FAIL=1` beside a shipped policy_audit.md that says FAIL=1: the parser read
+    the claim as 0, `audit_fail > claimed` fired, and the gate accused an
+    HONEST manifest of under-reporting. The dangerous direction is the same
+    bug's mirror — a manifest claiming `FAIL=1` beside an audit reporting
+    FAIL=5 would also read as claimed=0, so the check could never distinguish a
+    manifest that under-reports by 4 from one that under-reports by 5. Ordered
+    explicit-first so `FAIL=N` wins and `N FAIL` remains supported.
+    """
     for m in re.finditer(r"policy_audit\b[^\n]*", manifest_text):
         seg = m.group(0)
-        n = re.search(r"(\d+)\s*FAIL", seg)
+        n = (re.search(r"\bFAIL\s*[=:]\s*(\d+)", seg)
+             or re.search(r"(\d+)\s*FAIL\b", seg))
         if n:
             return int(n.group(1))
         if re.search(r"\bPASS\b|\b0\s*board-FAIL\b", seg):

@@ -265,6 +265,22 @@ def beacon_gate(proj, releases_of=None, *extra):
     return run(args + list(extra))
 
 
+def _live_cooksense_release():
+    """The LIVE cooksense release directory name, DERIVED from the tree.
+
+    Not a literal. `cooksense-v1.4-2026-07-26` was written into an assertion
+    below and decayed the moment v1.5 sealed — a failure with nothing to say
+    about the property under test. Read through the shared release_index, which
+    is the same one home policy_audit and M-REL use, so this fixture cannot
+    disagree with the gate it is checking about which release is live.
+    """
+    sys.path.insert(0, str(ROOT / "skills" / "jlcpcb-fab" / "scripts"))
+    import release_index as ri  # noqa: E402
+    rels = ri.releases_for_board(PROJECTS / "smc0985-cooksense", "cooksense")
+    check(rels, "no cooksense release found — this fixture needs the real tree")
+    return rels[-1].name
+
+
 # ------------------------------------------------------------ clean cases
 @test("M-BEACON: a beacon that names the LIVE release, with all seven fields "
       "written once, PASSES against the real sealed release set")
@@ -343,9 +359,19 @@ def t_beacon_missing_fields():
     for f in ("step", "op_pid", "updated"):
         contains(r.out, f, f"names the missing field {f}")
     contains(r.out, "M-BEACON-AGE", "the unevaluable age is reported, not skipped")
-    contains(r.out, "cooksense-v1.4-2026-07-26",
-             "the newest seal is the v1.4 of THIS board, not the interposer's "
-             "v1.1 and not the same-day v1.3")
+    # NOT A PINNED NAME. This line read `cooksense-v1.4-2026-07-26` until the
+    # v1.5 seal (2026-07-27) and then failed for a reason that had nothing to do
+    # with the property under test — the same golden-value rot t1_release_index
+    # documents at length. The PROPERTY is that the gate names the live release
+    # of THIS board (cooksense), not the sibling interposer's and not an earlier
+    # cooksense; that survives every future seal.
+    live = _live_cooksense_release()
+    contains(r.out, live,
+             f"the newest seal named is {live}, this board's own live release "
+             f"— not the interposer's, and not an earlier cooksense")
+    check(not live.startswith("interposer"),
+          "the two-board hazard this fixture exists for has disappeared: the "
+          "live cooksense release now reads as an interposer one")
 
 
 @test("M-BEACON-AGE bites ALONE: a beacon naming the live release but written "

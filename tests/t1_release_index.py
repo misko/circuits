@@ -226,15 +226,20 @@ def t_the_pre_fix_selector_is_reproduced_and_wrong():
           "the pre-fix pick and the graded board must DISAGREE for this "
           "fixture to be the defect")
 
-    # the superseded demand: pre-fix hits the LIVE cooksense release
+    # the superseded demand: pre-fix hits the LIVE cooksense release.
+    # DERIVED, NOT PINNED — and this is the second time the lesson has had to
+    # be applied inside this very test. `cooksense-v1.4-2026-07-26` stood in
+    # both literals below and decayed on the v1.5 seal (2026-07-27), exactly
+    # like the `eq(len(pre_demand), 4)` the comment further down retired.
+    live = ri.releases_for_board(COOK, "cooksense")[-1].name
     pre_demand = [Path(p).name for p in prefix_rels[:-1]]
-    check("cooksense-v1.4-2026-07-26" in pre_demand,
-          f"pre-fix SUPERSEDED demand did not reach the live release: "
-          f"{pre_demand}")
+    check(live in pre_demand,
+          f"pre-fix SUPERSEDED demand did not reach the live release "
+          f"({live}): {pre_demand}")
     post_demand = [p.name for p in ri.releases_for_board(COOK, "cooksense")[:-1]]
-    check("cooksense-v1.4-2026-07-26" not in post_demand,
+    check(live not in post_demand,
           f"the FIXED selector still demands SUPERSEDED.md on the live "
-          f"cooksense release: {post_demand}")
+          f"cooksense release ({live}): {post_demand}")
     # NOT a hardcoded count. `eq(len(pre_demand), 4)` stood here and decayed
     # the moment interposer v1.1 sealed -- the same golden-value rot as the
     # release NAMES above. The property is that the pre-fix selector demands

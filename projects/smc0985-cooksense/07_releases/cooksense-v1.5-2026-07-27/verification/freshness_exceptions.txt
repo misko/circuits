@@ -1,104 +1,70 @@
-FRESHNESS GATE — v1.5, and the SIX identity exceptions it was run with
-======================================================================
+# FRESHNESS GATE — v1.5, and the SIX identity exceptions it is run with.
+#
+# FORMAT (release_freshness_check.py `_load_exceptions`): one `<relpath>
+# <reason>` per line; `#` lines are prose. A path with NO reason is itself a
+# FAIL — "a waiver needs evidence". The first draft of this file was written as
+# a prose document with `-----` rules in it, and the gate correctly reported
+# four of those rules as reasonless waivers. Written in the parsed format now,
+# so these exceptions are DATA the gate loads rather than a story beside it.
+#
+# WHY NOT ONE OF THE FOUR NARROW SUPERSEDE MODES
+# ----------------------------------------------
+# This release is a legibility pass AND a substitution, and it re-plotted its
+# gerbers from its own source. None of --docs-only / --cpl-only / --bom-only /
+# --legible-bom-supersede describes that shape, and each was RUN and REFUSED
+# rather than assumed. Measured:
+#
+#   --legible-bom-supersede cooksense-v1.4-2026-07-26 -> FAIL, 19 findings, of
+#   which the two that matter say exactly the right thing:
+#
+#     LEGIBLE-BOM DEVIATION: R_BID0,...,R_TEMPOK LCSC changed
+#       'C25744' -> 'C60490' — a legibility pass rewrites how the row READS,
+#       never WHICH PART it is. A changed LCSC is a substitution
+#     LEGIBLE-BOM DEVIATION: R_ILM LCSC changed 'C25862' -> 'C138040'
+#
+#   That is the gate working. This IS a substitution, so the mode that forbids
+#   substitutions must refuse it. Recorded here rather than quietly not run.
+#
+# So the gate runs in FULL-RELEASE mode, where the stale check compares every
+# generated artifact against earlier releases of this board and IDENTITY IS THE
+# FINDING. Six artifacts are identical BY DESIGN. Each carries its reason below.
+#
+# WHAT IS NOT WAIVED, AND DID CHANGE
+# ----------------------------------
+#   fab/bom.csv, fab/bom_jlc.csv    2 LCSC cells, 54 MPN fills, 28 Comment
+#                                   rewrites, 0 Footprint changes, 0 rows
+#                                   added/removed (verification/bom_delta.txt)
+#   fab/*.gtl .gbl .g1 .g2 .gts     RE-PLOTTED from this archive's own source/
+#   .gbs .gtp .gbp .gto .gbo .gm1   rather than copied, so the archive's fab/
+#   fab/*.drl, fab/*_gerbers.zip    provably came from the archive's source/.
+#                                   They differ from v1.4's only in the
+#                                   wall-clock stamp and in KiCad's
+#                                   nondeterministic emission ORDER: 11 of 13
+#                                   members are GEOMETRICALLY IDENTICAL and
+#                                   poured copper AREA is equal to six decimal
+#                                   places on all four copper layers. Proof:
+#                                   verification/copper_did_not_move.md
+#   source/cooksense.tsx            where the substitution was made (canon M3:
+#                                   changed at source, never in the CSV)
+#   source/cooksense.net            freshly exported from the same unchanged
+#                                   .kicad_sch; E-INV 83/83 grades against it
+#   MANIFEST.txt, ORDER_README.md   rewritten
+#   verification/**                 per verification/INDEX.md, which states the
+#                                   currency of every file
+#
+# A-STOCK, AS THE GATE ITSELF DISPOSITIONS IT
+# -------------------------------------------
+#   note: A-STOCK: verification/stock_check.json verdict is FAIL but every
+#         problem line (C42400616) is unplaced or covered by a sourcing_plan
+#         entry
+# The shipped verdict field says FAIL and that is correct and expected: the one
+# failing line is J_ISOLOOP's terminal block — not_assembled, THT on an SMT-only
+# order, off the CPL. The gate READS the verdict rather than trusting an exit
+# code, then checks whether the failing line is PLACED. It is not.
 
-Command (exactly as run, 2026-07-27):
-
-  release_freshness_check.py 07_releases/cooksense-v1.5-2026-07-27 \
-      --assembly 03_src/rules/assembly.yaml \
-      --allow-identical pdf/assembly.pdf \
-      --allow-identical pdf/pcb_layers.pdf \
-      --allow-identical pdf/schematic.pdf \
-      --allow-identical fab/cpl.csv \
-      --allow-identical fab/cpl_jlc.csv \
-      --allow-identical fab/rotation_human_gate.txt
-  -> FRESHNESS: PASS
-
-WHY NOT ONE OF THE FOUR NARROW SUPERSEDE MODES
-----------------------------------------------
-This release is a legibility pass AND a substitution, and it re-plotted its
-gerbers from its own source. None of --docs-only / --cpl-only / --bom-only /
---legible-bom-supersede describes that shape, and each was RUN and REFUSED
-rather than assumed:
-
-  --legible-bom-supersede cooksense-v1.4-2026-07-26  ->  FAIL, 19 findings,
-    of which the two that matter say exactly the right thing:
-
-      LEGIBLE-BOM DEVIATION: R_BID0,...,R_TEMPOK LCSC changed
-        'C25744' -> 'C60490' — a legibility pass rewrites how the row READS,
-        never WHICH PART it is. A changed LCSC is a substitution
-      LEGIBLE-BOM DEVIATION: R_ILM LCSC changed 'C25862' -> 'C138040'
-
-    That is the gate working. This IS a substitution, so the mode that forbids
-    substitutions must refuse it. Recorded here rather than quietly not run.
-
-So the gate runs in FULL-RELEASE mode, where the stale check compares every
-generated artifact against earlier releases and IDENTITY IS THE FINDING. Six
-artifacts are identical BY DESIGN, and each exception carries its own reason
-and its own measurement:
-
-  fab/cpl.csv, fab/cpl_jlc.csv       md5 d606af7ad01986b754955a5abead783a,
-                                     equal to v1.4's and v1.3's.
-                                     THIS IS THE POINT, NOT A LAPSE: the
-                                     .kicad_pcb is md5-identical
-                                     (420445b5141dd1111eccab038c68511b), so a
-                                     re-exported CPL that DIFFERED would mean
-                                     the exporter had moved a placement, which
-                                     is the A-POS defect that put
-                                     crow-recorder-central-v2 v1.4's USB-C
-                                     1.3025 mm off its own pads. Every A-ROT
-                                     rotation and A-POS coordinate carries
-                                     forward untouched, including the 12-code /
-                                     16-ref POLARITY-FIT-BLIND population.
-
-  fab/rotation_human_gate.txt        md5 a72b13657951ecb78204e16399c6d720,
-                                     equal to v1.4's. Generated FROM the CPL and
-                                     the same rotation authority; identical for
-                                     the same reason.
-
-  pdf/schematic.pdf                  tscircuit's own render of the schematic
-                                     (ADR-0002). The .tsx changed ONLY in
-                                     `supplierPartNumbers` attributes and a
-                                     comment block — neither is drawn. The
-                                     schematic PDF is a picture of the CIRCUIT,
-                                     and the circuit did not change: E-INV
-                                     83/83 against a freshly exported netlist,
-                                     DRC --schematic-parity 0.
-
-  pdf/pcb_layers.pdf                 a plot of the board. The board file is the
-  pdf/assembly.pdf                   same file. A DIFFERENT plot would mean the
-                                     copper moved.
-
-WHAT IS NOT WAIVED, AND DID CHANGE
------------------------------------
-  fab/bom.csv, fab/bom_jlc.csv       2 LCSC cells, 54 MPN fills, 28 Comment
-                                     rewrites, 0 Footprint changes, 0 rows
-                                     added/removed (verification/bom_delta.txt)
-  fab/*.gbl .gtl .g1 .g2 .gbs .gts   RE-PLOTTED from this archive's own source/
-  .gbp .gtp .gbo .gto .gm1 .drl      rather than copied, so the archive's fab/
-  fab/cooksense_gerbers.zip          provably came from the archive's source/.
-                                     They differ from v1.4's only in the
-                                     wall-clock stamp and in KiCad's
-                                     nondeterministic emission ORDER: 11 of 13
-                                     members are GEOMETRICALLY IDENTICAL, and
-                                     poured copper AREA is equal to six decimal
-                                     places on all four copper layers. Full
-                                     proof: verification/copper_did_not_move.md
-  source/cooksense.tsx               where the substitution was made (canon M3:
-                                     changed at source, never in the CSV)
-  source/cooksense.net               freshly exported from the same unchanged
-                                     .kicad_sch; E-INV 83/83 grades against it
-  MANIFEST.txt, ORDER_README.md      rewritten
-  verification/**                    per verification/INDEX.md, which states the
-                                     currency of every file
-
-A-STOCK, AS THE GATE ITSELF DISPOSITIONED IT
----------------------------------------------
-  note: A-STOCK: grading verification/stock_check.json (54 graded line(s),
-        verdict=FAIL) against 51 coded+placed BOM line(s) x 5 boards
-  note: A-STOCK: verification/stock_check.json verdict is FAIL but every
-        problem line (C42400616) is unplaced or covered by a sourcing_plan entry
-
-The shipped verdict field says FAIL and that is correct and expected: the one
-failing line is J_ISOLOOP's terminal block, which is not_assembled, THT on an
-SMT-only order, and off the CPL. The gate reads the verdict rather than trusting
-the exit code, and then checks whether the failing line is PLACED. It is not.
+fab/cpl.csv the .kicad_pcb is md5-identical (420445b5141dd1111eccab038c68511b) to v1.4's, so a re-exported CPL that DIFFERED would mean the exporter had moved a placement — the A-POS defect that put crow-recorder-central-v2 v1.4's USB-C 1.3025 mm off its own pads. Identity here is the assertion, not a lapse: every A-ROT rotation and A-POS coordinate carries forward untouched, including the 12-code / 16-ref POLARITY-FIT-BLIND population ORDER_README section 6 is the only defence for.
+fab/cpl_jlc.csv byte-identical twin of fab/cpl.csv, same reason and same md5 d606af7ad01986b754955a5abead783a.
+fab/rotation_human_gate.txt GENERATED from the CPL and the same measured rotation authority, both unchanged, so it is identical for the same reason the CPL is. md5 a72b13657951ecb78204e16399c6d720. If this file had moved while the CPL did not, the rotation authority would have changed under a board nobody touched.
+pdf/schematic.pdf tscircuit's OWN render of the schematic (ADR-0002). The .tsx changed only in supplierPartNumbers attributes and a comment block, neither of which is drawn. This PDF is a picture of the CIRCUIT, and the circuit did not change: E-INV 83/83 against a freshly exported netlist and DRC --schematic-parity 0.
+pdf/pcb_layers.pdf a plot of the board, and the board file is the same file (md5 420445b5141dd1111eccab038c68511b). A DIFFERENT plot would mean the copper moved.
+pdf/assembly.pdf a plot of the same unchanged board with the same unchanged placements; fab/cpl.csv is byte-identical, so an assembly drawing that differed would contradict the CPL it depicts.

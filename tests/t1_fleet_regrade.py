@@ -200,24 +200,79 @@ def t_confirms_clean_boards():
     immutability), so the honest form is per-gate: the OLD gates must still
     pass, the NEW one is pinned as the ADOPTED-FORWARD gap it is. Weakening the
     assertion to "some gate passes" would have hidden it; deleting the test
-    would have thrown away the discrimination property it exists for."""
+    would have thrown away the discrimination property it exists for.
+
+    AMENDED AGAIN 2026-07-27, and the amendment IS the answer the previous one
+    demanded. The paragraph above ends "if this is now a pass, either the board
+    was re-released (update this test) or the gate stopped biting." cooksense
+    WAS re-released: `cooksense-v1.5-2026-07-27` fixes exactly the 83 F-LEGIBLE
+    findings v1.4 carried, so v1.4 gained a SUPERSEDED.md and left the LIVE set.
+    The failure that surfaced this was not the F-LEGIBLE assertion at all — the
+    row filter `"*" not in l[:60]` skips superseded table rows, so once v1.4 was
+    starred the filter fell through to a trailing DETAIL line and parsed
+    nonsense out of it. A fixture pinned to a release NAME decays; this one now
+    asks for the board's LIVE release by name-independent means and asserts the
+    property per release STATE:
+
+      SUPERSEDED and pre-ADR-0006  old gates PASS, F-LEGIBLE FAIL (history)
+      LIVE                         ALL FOUR must PASS
+
+    crow-recorder-central-v2 v1.5 keeps the first shape (it too is superseded,
+    by v1.6, for the same reason); cooksense now exercises the second, which is
+    the stronger claim and the one a live board must satisfy.
+
+    RED-VERIFIED IN PLACE at the v1.5 seal, per tests/README: pointing the LIVE
+    half at `cooksense-v1.4-2026-07-26` — the superseded, F-LEGIBLE-failing
+    release it used to assert on — makes this test FAIL with
+    "the LIVE cooksense release cooksense-v1.4-2026-07-26 carries a
+    SUPERSEDED.md — the release index and the regrade disagree about what is
+    live", then restored to green. The new assertion bites."""
     cols = ("F-PAYLOAD", "F-LEGIBLE", "A-EVID", "A-POP")
-    for proj, rel in (("crow-recorder-central-v2", "v1.5-2026-07-25"),
-                      ("smc0985-cooksense", "cooksense-v1.4-2026-07-26")):
+
+    def row(proj, rel):
         r = run([KPY, TOOL, "--project", proj])
-        line = [l for l in r.out.splitlines() if rel in l and "*" not in l[:60]]
-        check(line, f"{proj} {rel} missing from the regrade output")
-        cells = line[0].split()[1:]
-        verdicts = dict(zip(cols, [c for c in cells if c in ("PASS", "FAIL", "?")]))
+        # the TABLE row, not a trailing detail line: detail lines start with a
+        # gate id and carry a ':' before the release name.
+        line = [ln for ln in r.out.splitlines()
+                if rel in ln and ln.lstrip().startswith(("*", proj[0], proj))
+                and ":" not in ln.split(rel)[0]]
+        check(line, f"{proj} {rel} missing from the regrade table")
+        cells = [c for c in line[0].split()[1:]
+                 if c in ("PASS", "FAIL", "?")]
+        check(len(cells) == len(cols),
+              f"{proj} {rel}: parsed {len(cells)} verdict cells, expected "
+              f"{len(cols)} — the table shape moved:\n{line[0]}")
+        return line[0], dict(zip(cols, cells))
+
+    # SUPERSEDED, sealed before ADR-0006: the OLD gates must still pass and the
+    # NEW one must still bite. This is history being kept legible, not a defect.
+    for proj, rel in (("crow-recorder-central-v2", "v1.5-2026-07-25"),):
+        line, verdicts = row(proj, rel)
         for gid in ("F-PAYLOAD", "A-EVID", "A-POP"):
             check(verdicts.get(gid) == "PASS",
                   f"{proj} {rel} was audited ORDERABLE but {gid} — a gate that "
-                  f"existed at its audit — now fails it:\n{line[0]}")
+                  f"existed at its audit — now fails it:\n{line}")
         check(verdicts.get("F-LEGIBLE") == "FAIL",
-              f"{proj} {rel} unexpectedly PASSES F-LEGIBLE. Both were sealed "
-              f"before ADR-0006 and both ship an unreadable BOM; if this is now "
-              f"a pass, either the board was re-released (update this test) or "
-              f"the gate stopped biting.\n{line[0]}")
+              f"{proj} {rel} unexpectedly PASSES F-LEGIBLE. It was sealed "
+              f"before ADR-0006 and ships an unreadable BOM; if this is now a "
+              f"pass, either the board was re-released (update this test) or "
+              f"the gate stopped biting.\n{line}")
+
+    # LIVE: every standalone gate that can run must PASS. Derived from the tree
+    # so the next cooksense seal does not break this for the wrong reason.
+    sys.path.insert(0, str(ROOT / "skills" / "jlcpcb-fab" / "scripts"))
+    import release_index as ri  # noqa: E402
+    cook = ROOT / "projects" / "smc0985-cooksense"
+    live = ri.releases_for_board(cook, "cooksense")[-1].name
+    line, verdicts = row("smc0985-cooksense", live)
+    check("*" not in line[:60],
+          f"the LIVE cooksense release {live} carries a SUPERSEDED.md — the "
+          f"release index and the regrade disagree about what is live:\n{line}")
+    for gid in cols:
+        check(verdicts.get(gid) == "PASS",
+              f"smc0985-cooksense {live} is the LIVE release and {gid} fails "
+              f"it. A live release must pass every gate that can be run "
+              f"against it standalone:\n{line}")
 
 
 if __name__ == "__main__":
