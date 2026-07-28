@@ -96,3 +96,263 @@ mrepro_method_trap: a `.kicad_pcb` copied to a scratch dir WITHOUT its `.kicad_p
   scoping" — this is a MATERIAL design change, so BOTH red-team lenses plus a pin
   review of the changed parts; (6) seal cooksense-v1.7 + SUPERSEDED.md on v1.6 +
   CHANGELOG entry + beacon refresh + status_beacon_check.
+
+## 2026-07-28 — start (v1.7 RELEASE STAGE, resumed from the planned handoff)
+- did: scoped intake per the skill rule — STATUS beacon, the TAIL of this journal,
+  CLAUDE.md, pcb-design SKILL stage 7, jlcpcb-fab SKILL pipeline + assembly battery,
+  the 07_releases contract "Seal procedure (normative — the 2-commit seal)", and the
+  three handoff commits ae80e37 (source) / 8553b89 (route) / 8b814ae (handoff).
+- result: **the A-ROT blocker is CLEARED upstream.** `C485354` now has a MEASURED row
+  at `skills/jlcpcb-fab/scripts/jlc_lcsc_rotations.csv:66` — offset 180, CPL 270.0,
+  two-channel, landed by 772b152 which ALSO fixed the tool-frame bug behind the
+  recorded PIN-1 dissent (the pin-1 channel had been reading our marks in the BOARD
+  frame and JLC's in the LOCAL frame, so it was exactly board_rot out of step). The
+  dissent is resolved and is NOT to be re-litigated; the HUMAN GATE on J_MODE stands
+  on its own footing (near-symmetric contact array => a 180 error solders perfectly
+  and reverses the harness = interposer v1.0's failure), and must appear in ORDER_README.
+  Tree state confirmed: 07_releases/ untouched, v1.6 still live, working tree clean
+  for this project (the one dirty path is a SIBLING board, which does not block).
+- next: export the fab package, run the full fab/assembly gate battery against the
+  STAGED archive, launch the four review lenses CONCURRENTLY (both red-team lenses +
+  fresh-context PIN and RENDER reviews) against curated input, then the 2-commit seal.
+
+## 2026-07-28 — iterate (fab package + gate battery; ONE fix taken before the reviews)
+- did: cleared A-ROT, ran the fab/assembly battery against staging, and took one
+  defect the battery surfaced rather than shipping it into the review lenses.
+- result: **export EXIT=0, A-ROT OK on all 202 CPL rotations.** `J_MODE` resolves
+  `90 + 180 -> 270` from the landed C485354 row. A-POL SINGLE-CHANNEL on the same
+  10 codes as v1.6 (unchanged), three advisory ROT-XCHECK notes unchanged.
+  **SILK REVISION BUMP, and it was OWED.** The board silk read `sidecar v1.3`.
+  v1.4/v1.5/v1.6 were docs/BOM-only supersedes over a board md5-identical to
+  v1.3's, so the string was honest through all three — v1.7 MOVES COPPER, so a
+  field board saying v1.3 would send anyone diffing it against the sealed v1.3
+  archive to the wrong netlist. This is the same defect BOTH red-team lenses
+  caught at v1.2->v1.3 (floorplan.yaml:860 records it). Bumped in floorplan.yaml
+  and REBUILT FROM SOURCE. **The rebuild is a copper IDENTITY, measured:** tracks
+  4166 hash 16d81d6b2d1634d6, vias 1104 hash 5cc95d962b455a39, footprints 239
+  hash a4cfa2956c816c70 — all three byte-identical to the pre-bump board; DRC
+  re-measures 0/0/0. Same 4-character token, so the stroke-font bbox is unchanged
+  and the pinned caption displaced no neighbour (refdes on silk 228/235, the same
+  2 pre-existing crowded captions). It also re-confirms M-REPRO: a full
+  from-source rebuild reproduced this board's copper exactly.
+  **TWO GATE DEFECTS IN `jlc_twin.py`, both MEASURED on this board, both owed to
+  skills/ (this agent was told not to edit skills/, so they are reported):**
+  (1) PAD-GEOM is a KNIFE EDGE. `PAD_GEOM_TOL = 0.3` is compared with a strict
+  `>` against a delta that IS exactly 0.300, so the six IDENTICAL `Diode_SMD:D_SOD-323`
+  refs against JLC's SOD-323 land split 3-fire / 3-silent on the last bit of
+  math.hypot over BOARD-frame doubles: D_COILEN 0.300000000000006, D_ESD_IN
+  0.300000000000002, D_ESTOP 0.300000000000006 fire; D_DOOR / D_LCCLK / D_LCDAT
+  0.299999999999977 do not. Same footprint, same JLC land, same 2.100-vs-2.400
+  pad1<->2 delta — the only variable is where the part sits on the board.
+  (2) `marker_side()` HAS THE FRAME BUG THAT WAS JUST FIXED NEXT DOOR. It takes
+  the pad axis from `opads_raw`, computed with the footprint temporarily
+  DEROTATED to 0, but reads `fp.GraphicalItems()` at the footprint's REAL board
+  orientation. At board rot 0 the two frames coincide; at 90 the graphics project
+  onto an axis perpendicular to the pad axis and the overhangs collapse
+  symmetric. MEASURED: D_COILEN (board rot 90) over_a = over_b = -0.2000, margin
+  0.0000 -> POLARITY-FIT-BLIND, against margin 0.5600 -> pad 1 on the five
+  identical refs at rot 0. So D_COILEN's BLIND is a TOOL ARTEFACT, not a missing
+  mark — same class as the `jlc_rotation_measure.py` pin-1 bug fixed at 772b152,
+  still live in jlc_twin.
+  **A THIRD, in `twin_overlay.py` + `jlc_twin.py`'s hard-coded render size.**
+  A-RENDER's `MIN_BODY_PX = 20` is an ABSOLUTE pixel floor while its tolerance is
+  in mm, and jlc_twin renders at a hard-coded 1600x1000. At that size this board
+  produced ONE false unfaithful (`U_LDO` centre 1.248 mm, 576 body px) and ONE
+  false unmeasured (`Q_SWDRVRHA`, 13 px vs floor 20). Re-rendered at 3200x2000
+  the SAME board gives U_LDO 0.140 mm / 3425 px and Q_SWDRVRHA 0.047 mm / 338 px,
+  0 unfaithful, 0 unmeasured, coverage 52 -> 53. VERIFIED INDEPENDENTLY of the
+  tool (canon M1) with a pure-PIL column scan of twin_top.png over U_LDO's
+  courtyard: the three SOT-223 gull-wing leads render as bright metal across
+  x 17.61..19.75 mm and the tab across 23.27..25.80, i.e. the picture spans the
+  full EXPECTED 18.255..25.365 box — the extractor was excluding the three thin
+  leads while including the one large tab, which is what shifted the measured
+  centre 1.05 mm toward the tab. The RENDER was faithful; the SEGMENTATION was
+  resolution-limited.
+  Gate results against staging: DRC 0/0/0. ERC 0 errors / 411 warnings (410
+  lib_symbol_issues + 1 isolated_pin_label). E-INV 109/109, E-ADR 8/8.
+  net_label_survival 162/162 over 192 nets. S-COUNT 4/4 over 235 refdes (run in a
+  SHADOW ROOT — `count_parity.py` globs `*.kicad_sch` / `*.net` and picked the
+  INTERPOSER's on a two-board project; the multi-board mis-targeting class again).
+  audit_board PASS (I-ISO 6.12 mm, I-OUT 0.35 mm). placement_gates PASS (P-OUT
+  0.30 mm pad datum; the `--courtyard` variant reports 6 edge-connector
+  overhangs BY DESIGN and is not this board's gate). bom_source_check PASS, leg C
+  26/26. F-LEGIBLE OK 57 checks / 0 findings. P-FACT OK, 5 graded of 6 dossiers
+  declaring asserts, 1 DEFERRED. A-STOCK **PASS 55/55** coded lines, verdict line
+  parsed from the JSON sidecar. jlc_twin EXIT 0 (203 OK / 461 rows, bodies
+  204/205). A-RENDER OK. A-POS worst 0.00000 mm over all 202 rows.
+  **PARITY IS 1/163 AND IT IS THE SAME ONE v1.6 SHIPPED, now MEASURED rather than
+  restated:** `('J_KEY_MATRIX','MP')`. Both SM10B-GHS-TB mechanical shell tabs are
+  on NO NET, where `03_tscircuit/parity_padmap.txt` declares them bonded to
+  GND_ISO. Every OTHER connector's MP tabs are on GND (measured, all 20 of them).
+  Bounded: the tabs sit 3.696 mm from the nearest signal pad (KP_U1) and 25.5 /
+  40.5 mm from the nearest filled zone of any net, so there is no creepage path
+  for a floating intermediate conductor to split. P2, pre-existing since v1.0,
+  NOT introduced by v1.7, deferred with the numbers.
+- next: policy_audit, the four review lenses (launched concurrently), then
+  ORDER_README + MANIFEST + the 2-commit seal.
+
+## 2026-07-28 — iterate (staging complete; four review lenses running concurrently)
+- did: closed the policy_audit FAILs that were closeable, staged the full archive,
+  wrote the ORDER_README/CHANGELOG/SUPERSEDED, and launched the review battery.
+- result: **policy_audit FAIL 5 -> 3**, and the two that closed are worth naming.
+  A-BODY was reporting "1 of 205 CPL placements have NO 3D body: J_ISOLOOP" — a
+  FAILURE I MANUFACTURED. v1.7 re-authors J_ISOLOOP BY MPN (deliberate source
+  change: `C42400616` has stockCount 0 on every KF350 4-pole line and JLC has no
+  CAD, so naming it on a JLC ASSEMBLY BOM asks the fab to source what it does not
+  carry), so it is UNCODED and correctly out of the twin's population. I had been
+  forcing it back in with `--also`, which inserted an off-CPL hand-soldered THT
+  screw terminal into the A-BODY denominator. Shipped evidence is the run WITHOUT
+  `--also`: **bodies mounted 204/204**. The `--also` probe is kept as SEPARATE
+  evidence (verification/twin_isoloop_probe.md) because dropping the ref would
+  otherwise quietly retire the FETCH-FAILED adjudication's claim that the part is
+  genuinely absent from JLC's library — re-probed live today, **absence
+  REPRODUCED**, so both adjudications stay in the register on live evidence.
+  **P-ADJ-UNREACHED is a NEW upstream check (fd1fe57, landed today) and it fires
+  hard: 25 of 37 declared keep_short budgets across 02_parts/ name a net that does
+  not exist on this board.** Before it existed P-ADJ reported PASS over budgets it
+  had never evaluated. Full 37-row census measured and shipped. Classified:
+  (A) 13 RAIL-PIN budgets (`VCC` x4, `VDD` x2, `VREF`, `N3V3`, `3V3_DIGITAL`,
+  `+5V`, `5V_SELV`, ...) — per-instance LOCAL budgets written as a PIN name;
+  renaming them to `3V3` is a FAKE GRADE, measured: that rail is 76 pads / ~150 mm
+  and the EXISTING P-ADJ waiver already documents it as geometrically unreachable,
+  so a rename converts 13 honest "never evaluated" into 13 instant violations
+  absorbed by an existing waiver — which policy_audit's own source says is the
+  inherited-defect pattern it exists to stop. (B) 7 REFERENCE-DESIGN net names on
+  fitted parts, and I measured what each rename WOULD have scored so the omission
+  is auditable: HS_GATE -> HS_GATE_COIL 10.169 / SWG_A 4.128 / SWG_B 6.445 /
+  SWG_RHA 6.445 / SWG_RHE 7.429 (budget 6); OPTO_LED -> OPTO_LED_A 5.722 (PASSES);
+  EN_OVLO_N -> EF_OVLO 8.473; ILM -> EF_ILM 6.982; dVdt -> EF_DVDT 4.524; +5V ->
+  5V_IN 18.106; 5V_SELV -> 5V_RPP 15.581; T_PLUS/T_MINUS -> TC_POS 13.640 /
+  TC_NEG 8.967. NOT renamed: a rename without a RE-PLACE trades 7 unreached for 10
+  violations on a placement this revision did not author, and re-placing
+  invalidates a route measuring 0/0/0. (C) 5 on parts NOT FITTED here (AQY212GS,
+  SN74HC138DR, SN74HC139DR, LM393DR, SN74LVC1G123DCTR x2 — the superseded
+  comparator and the superseded one-shot). Waived under its OWN id with the census
+  attached and the electrical intent cross-verified by a DIFFERENT instrument
+  (audit_board I-PROX, 28 proximity checks, every IC decoupler 2-5 mm from its
+  own package pin). The schema fix — a per-INSTANCE budget form — is OWED to
+  skills/ and reported, not applied.
+  **E-INV RED VERIFICATION REGENERATED, not inherited.** The shipped file was
+  v1.3-era and proved 83 invariants could fail; this release ships 109. Four new
+  mutations, one per NEW invariant family: R_COILENPD 680->100k (ADR-0018 value),
+  J_MODE.4 COIL_EN_IN->COIL_EN (ADR-0018 topology — the "simplification" that
+  deletes R_COILENS), R_FAULTPU.2 off 3V3 (ADR-0019 DIRECTION — the blanket
+  pull-down), U_LATCHB.1 REARM_PULSE_N->REARM_N (ADR-0020 edge bypassed). All
+  four made the checker exit 1; all four restored to a byte-identical file with
+  109/109 and `git status` clean on the invariants file.
+  A-EVID: 26 of 32 required artifacts present; the 6 outstanding are MANIFEST.txt
+  and the four review verdicts + policy_audit, all of which come last by design.
+- next: join the four lenses, disposition every finding, then stamp and seal.
+
+## 2026-07-28 — iterate (PIN REVIEW landed: PASS, and it found a v1.7 REGRESSION)
+- did: joined the fresh-context pin review (20 parts: the new J_MODE, the one-shot
+  and latch group, the safety-chain gates + expander, the isolation/drive parts),
+  archived it VERBATIM, and re-derived every finding from the board myself.
+- result: **VERDICT PASS. No mirror, no mis-mapped pin, no wrong power/gate/enable
+  net.** The reviewer also diffed all 20 placed footprints against the stock KiCad
+  library and found them pad-for-pad identical, which closes the mirror class on
+  this set independently of our own generator. Four QUESTIONs, all CONFIRMED by my
+  own netlist query, and **one of them is a REGRESSION THIS REVISION INTRODUCED**:
+  **`U_EXP.8` (GPB7, the WD_OK READBACK) and `U_EXP.18` (RESET_N) are now the SAME
+  NET.** MEASURED both ways: v1.6 had U_EXP.8 = WD_OK and U_EXP.18 = EXP_RST_N;
+  ADR-0020 moved .18 onto WD_OK, so now WD_OK high => expander out of reset =>
+  GPB7 necessarily reads 1, and WD_OK low => expander IN reset => cannot be read.
+  **GPB7 can never report "not OK", and the other seven status bits go dark at the
+  moment they matter most.** Graded P1, not P0, and NOT reverted: reverting
+  restores the defect ADR-0020 exists to close (driverless EXP_RST_N => the
+  expander's registers held across every Pi reboot => a held-low REARM_N survived
+  a reboot). The trade is a sampled diagnostic bit for a hardware reset path that
+  forces every RAIL_EN / CONTACTOR_REQ / REARM_N to POR on any watchdog timeout.
+  The diagnostic is RECOVERABLE and in a better form: MCP23017 IODIRA/IODIRB POR
+  to 0xFF, so a host that reads IODIRA back and finds 0xFF where it wrote outputs
+  has a LATCHED watchdog-event indication where GPB7 was a sampled one. Written up
+  as new ORDER_README **§7a-3** with the bring-up test, and §7a's header rewritten
+  (2 firmware invariants -> 3 obligations, one of which v1.7 moved into hardware).
+  Other three QUESTIONs, all confirmed and all PRE-EXISTING: `KEY_LATCH =
+  {J_PI.32, U_LATCHG.1}` with no default (the only Pi-sourced input without one,
+  and it clocks U_SR1's RCLK); `PRESS_REQ = {U_ONESHOT.2, U_SR1.7}` floats at
+  power-on because U_SR1's outputs are Hi-Z via R_OE; `J_MODE.1 = 3V3` and
+  `J_MODE.3 = KEY_RELAY_ALLOWED` leave the enclosure bare while `.2` and `.4` are
+  protected — ADR-0018's scope was the ARMING net and the failure direction on
+  pin 1 is restrictive (rail collapse => everything de-asserts), so P2.
+  **AND A REAL skills/ DEFECT, which I reproduced: `pin_audit.py:130` joins
+  `parts / mpn / "part.yaml"` LITERALLY and falls through in silence.** MEASURED:
+  **16 of 54 dossiers on this board carry `(not in yaml)` on every pin** — U_EXP
+  (`MCP23017-E/SS`, '/' illegal in a path), J_PI (`2.54-2*20PPC104`), J_LOADCELL
+  (a `(LF)(SN)` suffix), and the thirteen uncoded self-supplied refs (twelve reeds
+  + J_ISOLOOP) whose MPN column is EMPTY. **The one IC whose reset pin this
+  revision re-targeted is in that set**, so the reviewer checking U_EXP.18 had an
+  empty function column to check it against and caught the regression anyway. The
+  MCP23017 part.yaml even carries `note_dirname:` documenting the exact mismatch
+  and NOTHING READS IT. Reported, not applied.
+- next: the two red-team lenses and the render review are still running.
+
+## 2026-07-28 — finish (BLOCKED: the review battery returned TWO CONFIRMED P0s; v1.7 NOT SEALED)
+- did: joined all four lenses, archived every verdict VERBATIM, and re-derived
+  every finding from primary sources before dispositioning it.
+- result: **STOPPED AT THE SEAL. `07_releases/cooksense-v1.7-2026-07-28/` is
+  MUTABLE STAGING and stays uncommitted.** Verdicts: redteam-topology
+  **DO-NOT-ORDER** (2 P0), redteam-layout **DO-NOT-ORDER** (1 P0), render-review
+  **FAIL** (1 P0), pin-review **PASS**.
+  **P0-A — THE eFUSE OV CUTOFF IS AT 9.2 V ON A RAIL FEEDING 7.5 V COILS, AND
+  BOTH RED-TEAM LENSES FOUND IT INDEPENDENTLY.** R_OVT 100k / R_OVB 15k, ratio
+  0.130435, against SLVSE57C's V_OVLO(R) 1.13/1.20/1.27 V -- the datasheet IS in
+  02_parts/ and the layout lens could not open it, so it reported the setpoint
+  UNVERIFIED; the topology lens read it and reported it WRONG; I read it and
+  confirm 9.200 V nominal, 8.492-9.933 V worst case. Intent per the part.yaml
+  gotcha, power_tree.yaml:130, ARCHITECTURE.md:41 and BRIEF.md:77 is 5.5-6 V.
+  Exposure: 13 DIP05-1A72-12L reed coils at **7.5 V max** and D_TVS SMBJ5.0A
+  whose V_BR starts at **6.40 V** (so on a sustained OV the 600 W transient part
+  becomes the DC regulator). **AND THE MOST USEFUL OUTPUT IS THAT BOTH LENSES'
+  PROPOSED FIXES ARE WRONG**, which only three-way arithmetic shows: my first cut
+  (R_OVB->22k) tops out at 7.159 V, above the TVS; the topology lens's
+  (R_OVT->57.6k) puts V_pin at 1.1545 V against a 1.13 V threshold at the
+  DECLARED vin_max 5.5 V, i.e. nuisance-trips. The admissible window at vin_max
+  5.5 is ratio in (0.198437, 0.205455) = 1.0354x wide, against a 1.0404x spread
+  from two +-1% legs: **NO +-1% DIVIDER FITS.** The supply envelope, the TVS
+  standoff and the OVLO requirement are mutually incompatible AS DECLARED, and
+  the root cause is the same undeclared supply tolerance that produces the
+  E-TOPO dropout gap. That is a user decision, not an agent patch.
+  **P0-B — ONE I2C WRITE DEFEATS THE WATCHDOG IN BOTH CHAINS, AND v1.7 MADE IT
+  WORSE.** WD_OK carries U_EXP.8 (GPB7, a BIDIRECTIONAL MCP23017 I/O rated
+  25 mA) on the same node as U_WD.1 (TPS3823, V_OL specified only to 1.2 mA) and
+  -- since ADR-0020 -- U_EXP.18 (RESET_N). `IODIRB.7=0, OLATB.7=1` forces the net
+  high; recovery needs the node below 0.66 V so the contention is
+  SELF-SUSTAINING. It removes the watchdog term from U_AND1.3, U_CAND1.1,
+  U_FAULTAND.1 and U_OENAND.2 at once. MEASURED both boards: v1.6 had U_EXP.18
+  on EXP_RST_N, so **ADR-0020 is what put the reset on the net its own defeat
+  disables, and Decision B's claim ("the expander's outputs cannot persist
+  across a watchdog timeout") is false in exactly its own case.** The PIN review
+  reached the SAME NET from the other side (a degenerate GPB7 readback, written
+  up as ORDER_README section 7a-3) -- two lenses, one node, and the more serious
+  reading is the right one. Fix is one 0402 on an existing line: 10k (C60490) in
+  series to U_EXP.8 ONLY, leaving U_EXP.18 and the five gate inputs on the raw
+  net, which also repairs the readback for free.
+  **THE RENDER LENS'S P0 IS DOWNGRADED TO P1 WITH EVIDENCE, NOT DISMISSED.**
+  R-01 (J_ESTOP/J_DOOR identical unkeyed pin-compatible pair) is CONFIRMED from
+  the board and its mechanism is real -- but ORDER_README section 10.4 already
+  grades both cells `FALSE-CLEAR` in a published 20-cell matrix whose own summary
+  is "not one of the twenty is fail-safe", and the reviewer was deliberately
+  denied that document. A zero-context lens re-deriving a disclosed hazard is the
+  system working. What IS new is R-04: the mitigation section 10.5 leans on is the
+  silk refdes, and `J_DOOR`'s label measures 2.80 mm from J_ESTOP against 2.87 mm
+  from J_DOOR -- **closer to the wrong connector** (163 of 228 refdes are >3 mm
+  from their part; 16 sit nearer a different part). A label that points at the
+  wrong part is not a mitigation.
+  **AND ONE CLEAN v1.7 REGRESSION I CONFIRMED MYSELF:** the `J_MODE` and
+  `D_COILEN` refdes are printed INTO the east-edge milled notch. Notch void
+  x[191.50..200.05] y[48.80..49.80]; J_MODE's refdes bbox x[194.099..197.801]
+  y[48.386..49.614] is ENTIRELY inside it. **ADR-0018's two headline parts will
+  ship with no designator**, and D_COILEN is simultaneously POLARITY-FIT-BLIND.
+  Nothing caught it because `silk_edge_clearance` -- the exact rule -- is one of
+  the four silk DRC checks this board sets to `ignore`, which ORDER_README
+  section 13 already warns about in the abstract. This release is the instance.
+- do_not: seal on the strength of the green gates. Every mechanical gate in this
+  release passes and the battery still found two P0s -- that IS the argument for
+  the battery. Do not "fix" either P0 by picking one of the two proposed
+  resistor values: neither satisfies all three constraints, and the third
+  constraint (the SMBJ5.0A's 6.40 V V_BR) only appeared because a SECOND
+  independent lens looked. Do not revert ADR-0020's U_EXP.18 move to recover the
+  readback -- that restores the driverless EXP_RST_N the ADR exists to close;
+  isolate GPB7 instead. Do not put 680R on J_MODE.3 with the RT-03 fix (1.543 V,
+  below V_GS(th) max -- it would brick the coil rail).

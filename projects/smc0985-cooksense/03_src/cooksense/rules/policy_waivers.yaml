@@ -32,6 +32,58 @@
     07_releases/v1.0/.../redteam_layout L2). The rails ride the generate_rules
     DRU floors (PWR_3V3 0.3mm, PWR_IN 0.5mm) and pours, not a keep-short trace.
 
+- id: P-ADJ-UNREACHED
+  why: >-
+    A SEPARATE waiver with its OWN evidence, deliberately NOT folded into the
+    P-ADJ waiver above — `policy_audit.py` says in its own source that letting
+    the existing P-ADJ waiver absorb these would be "a waiver silently widening
+    past its evidence", and that is exactly what this entry refuses to do.
+    THE COMPLETE CENSUS, MEASURED on 04_kicad/cooksense.kicad_pcb 2026-07-28:
+    **37 keep_short budgets declared across 02_parts, 12 graded, 25 unreached.**
+    Every row is enumerated in verification/padj_unreached_census.md — no
+    sampling, no "and others". The 25 split into exactly three causes:
+      (A) RAIL-PIN BUDGETS, 13 of 25 (`VCC` x4, `VDD` x2, `VREF`, `N3V3`,
+          `3V3_DIGITAL`, `+5V`, `5V_SELV`, and the two MCP entries). These are
+          per-instance LOCAL budgets ("0.1uF bypass hard against THIS package")
+          written as a PIN name. Renaming them to this board's rail is NOT a
+          fix, it is a FAKE GRADE, and that is measured rather than asserted:
+          the rail they would resolve to is `3V3` at **76 pads / ~150 mm span**,
+          which the P-ADJ waiver above already documents as geometrically
+          unreachable by a max-pairwise-pad-span metric. Renaming would convert
+          13 honest "never evaluated" into 13 instant violations absorbed by an
+          existing waiver — strictly worse evidence than saying so here.
+      (B) REFERENCE-DESIGN NET NAMES on FITTED parts, 7 of 25 (`HS_GATE` x2,
+          `OPTO_LED`, `EN_OVLO_N`, `ILM`, `dVdt`, `T_PLUS`/`T_MINUS`/`BIAS`).
+          These name a genuinely LOCAL relationship that this board DOES have
+          under a different net name. MEASURED, so the reader can see exactly
+          what the rename would have scored: HS_GATE -> `HS_GATE_COIL` 10.169mm,
+          `SWG_A` 4.128, `SWG_B` 6.445, `SWG_RHA` 6.445, `SWG_RHE` 7.429 (budget
+          6); OPTO_LED -> `OPTO_LED_A` 5.722 (budget 6, PASSES); EN_OVLO_N ->
+          `EF_OVLO` 8.473, ILM -> `EF_ILM` 6.982, dVdt -> `EF_DVDT` 4.524
+          (budgets 5); +5V -> `5V_IN` 18.106 (budget 10); 5V_SELV -> `5V_RPP`
+          15.581 (budget 3); T_PLUS/T_MINUS -> `TC_POS` 13.640 / `TC_NEG` 8.967
+          (budget 5, and the SAME two nets already grade PASS against
+          PCC-SMP-K's 20 mm budget). NOT renamed in this release: a rename
+          without a re-place trades 7 unreached for 10 violations on a placement
+          this revision did not author, and re-placing invalidates a route that
+          measures DRC 0/0/0 — that is a design pass, not a seal step.
+      (C) PARTS NOT FITTED on this board, 5 of 25 (`AQY212GS`, `SN74HC138DR`,
+          `SN74HC139DR`, `LM393DR`, `SN74LVC1G123DCTR` x2). Their budgets cannot
+          resolve because the part is not on the board. `LM393DR` is the
+          superseded comparator (v1.3 moved to the LMV393, whose IDENTICAL
+          budgets DO grade and PASS); `SN74LVC1G123DCTR` is the superseded
+          one-shot (v1.7 uses the CD74HC221's second section instead).
+    THE ELECTRICAL INTENT IS VERIFIED BY A DIFFERENT INSTRUMENT (canon M1), so
+    this is not an unmeasured hole: `audit_board.py`'s I-PROX gate PASSES 28
+    proximity checks over this board, measuring every IC decoupler 2-5 mm from
+    its own package pin, pad-to-pad — which is the fact the class-(A) budgets
+    were written to assert and which a whole-rail span metric structurally
+    cannot see. The class-(B) local spans are given above, measured.
+    OWED, and reported rather than applied (this agent may not edit skills/):
+    P-ADJ needs a per-INSTANCE budget form (`<ref-pattern> pin <n> -> <part>
+    within <x> mm`) so a local decoupling rule stops being expressed as a net
+    name. Until it exists, class (A) cannot be stated truthfully in the schema.
+
 - id: P-PLANE
   why: >-
     The 6 tracks on the In1 reference plane are ALL net=GND — same-net GND-pour

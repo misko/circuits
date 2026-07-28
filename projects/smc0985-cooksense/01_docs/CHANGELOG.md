@@ -467,3 +467,122 @@ and it passes by **59 mV**). A-POP 226 board / 189 CPL / 37 unpopulated; A-BODY
 189/189; A-ROT 189/189; A-POS worst 0.00000 mm; A-EVID 32 required artifacts, 0
 missing; freshness **PASS in `--docs-only-supersede` mode with zero exceptions**;
 `contracts_audit` 0 violations.
+
+## cooksense-v1.7 — **ATTEMPTED 2026-07-28, NOT SEALED. BLOCKED ON TWO CONFIRMED P0s.**
+
+**THERE IS NO v1.7 RELEASE.** `07_releases/cooksense-v1.7-2026-07-28/` exists as
+**MUTABLE STAGING** and is deliberately **not committed**. The live sealed
+release is still `cooksense-v1.6-2026-07-27`, its fab set is unchanged, and v1.6
+therefore carries **no `SUPERSEDED.md`** — nothing supersedes it yet.
+
+This entry is kept because the work is real and the blockers are the most
+valuable thing the pass produced. **Everything below the two P0s was completed
+and every gate passed** — which is precisely the argument for running the review
+battery against staging rather than after a seal.
+
+### THE TWO BLOCKERS
+
+**P0-A — the eFuse OV cutoff is at 9.200 V (8.492–9.933 V worst case) on a rail
+feeding 7.5 V reed coils.** `R_OVT` 100 kΩ / `R_OVB` 15 kΩ ⇒ ratio 0.130435
+against SLVSE57C's `V_OVLO(R)` = 1.13/1.20/1.27 V. Four documents state the
+intent as 5.5–6 V. **Found INDEPENDENTLY by BOTH red-team lenses** (layout P0-1
+reported it UNVERIFIED because it could not open the PDF; topology RT-02 read the
+PDF and reported it WRONG) and confirmed by the lead from
+`02_parts/TPS259573DSGR/SLVSE57C.pdf`. Exposure: 13 DIP05-1A72-12L coils rated
+7.5 V max, and `D_TVS` SMBJ5.0A whose V_BR starts at **6.40 V** — so on a
+sustained OV the 600 W transient part becomes the DC regulator. **Both lenses
+proposed a fix and neither is correct:** `R_OVB`→22 k tops out at 7.159 V (above
+the TVS); `R_OVT`→57.6 k puts V_pin at 1.1545 V against a 1.13 V threshold at the
+declared `vin_max` 5.5 V (nuisance trip). The admissible ratio window at
+`vin_max` 5.5 is **1.0354× wide against a 1.0404× ±1 % spread — no ±1 % divider
+fits.** The supply envelope, the TVS standoff and the OVLO requirement are
+mutually incompatible as declared, and the root cause is the same undeclared
+supply tolerance behind the E-TOPO dropout gap. **Escalated, not patched.**
+
+**P0-B — one I²C register write defeats the watchdog in both gating chains, and
+v1.7 made it worse.** `WD_OK` carries `U_EXP.8` (GPB7, a **bidirectional**
+MCP23017 I/O rated 25 mA) alongside `U_WD.1` (TPS3823, V_OL specified only at
+1.2 mA) and — **since ADR-0020** — `U_EXP.18` (`RESET_N`). `IODIRB.7=0,
+OLATB.7=1` forces the net high; recovery needs the node below 0.66 V, so the
+contention is **self-sustaining**. It removes the watchdog term from `U_AND1.3`,
+`U_CAND1.1`, `U_FAULTAND.1` and `U_OENAND.2` at once. v1.6 had `U_EXP.18` on
+`EXP_RST_N`, so **ADR-0020 is what put the reset on the net its own defeat
+disables**, falsifying Decision B's claim in exactly its own case. Fix is one
+0402 on an existing BOM line — 10 kΩ (C60490) in series to `U_EXP.8` **only**.
+**Escalated, not patched** (electrical setpoint on a protection path; the
+`R_OPENT` precedent).
+
+### WHAT WAS COMPLETED AND IS COMMITTED
+
+1. **ADR-0018 — `J_MODE` leaves the JST-GH family.** Now a JST ZH
+   S4B-ZR-SM4A-TF, 4 circuits on 1.50 mm pitch (`C485354`) — a GH harness
+   physically cannot enter it, closing v1.6 §10's one non-fail-safe cross-plug
+   cell as a MECHANICAL interference rather than a label. Plus `R_COILENS`
+   680 Ω in series, `R_COILENPD` moved **to the connector pin** at 680 Ω (was
+   100 kΩ on the gate), and `D_COILEN` (PESD5V0S1BA). Measured: legitimate drive
+   still passes at **2.982 V** (+482 mV over the 2N7002's 2.5 V max `V_GS(th)`)
+   while injected pull-ups give **0.210 / 0.417 / 0.779 V** at 10 k / 4.7 k /
+   2.2 k — all below the 1.0 V min threshold. Rejection bound moves from
+   *R ≥ 230 kΩ* to **R ≥ 1564 Ω**.
+2. **ADR-0019 — all eleven undefaulted safety-chain nets get a restrictive
+   default.** Ten pull-DOWN, one pull-UP. `R_FAULTPU` is UP on purpose and is the
+   evidence the direction was derived: a pull-down on `FAULT` is the PERMISSIVE
+   state with `U_LATCHA` dead.
+3. **ADR-0020 — `REARM_N` becomes an EDGE**, using the CD74HC221's already-fitted
+   second section (one 1 µF cap, zero new ICs), and `U_EXP.18` moves off the
+   driverless `EXP_RST_N` onto `WD_OK` — **which is what created P0-B.**
+
+Plus the three stale statements v1.6 could not touch, and `J_ISOLOOP` re-authored
+by MPN so its BOM line stops naming a code JLC cannot source.
+
+**THE SILKSCREEN REVISION MOVED, AND IT WAS OWED.** The board read `sidecar v1.3`
+through v1.4/v1.5/v1.6 — honest, because it was v1.3's board. v1.7 moves copper,
+so it was bumped at source and the board **rebuilt from scratch**. The rebuild is
+a **copper IDENTITY**: tracks 4166 hash `16d81d6b2d1634d6`, vias 1104
+`5cc95d962b455a39`, footprints 239 `a4cfa2956c816c70` — all three byte-identical
+by value before and after, DRC still 0/0/0. M-REPRO evidence obtained for free.
+
+**COPPER DELTA v1.6 → staging**, measured: footprints 226 → **239**, track
+segments 3925 → **4166**, vias 1047 → **1104**, poured GND on F.Cu 2838.969 →
+**3080.104 mm²**, total track length 9073.908 → **9017.754 mm** (down, because
+`R_COILENPD` moved off a long haul onto the pin it defends and `EXP_RST_N` was
+deleted). BOM: 14 refdes added, 1 removed, 3 changed in place.
+
+**GATES — all green, and they were not enough.** DRC 0/0/0; ERC 0 errors / 411
+warnings; **E-INV 109/109** RED-verified with four NEW mutations, one per new
+invariant family, each restored byte-identically; E-ADR 8/8; S-COUNT 4/4 over 235
+refdes; net_label_survival 162/162; **A-ROT 202/202**; A-POS worst **0.00000 mm**;
+A-BODY 204/204; **A-RENDER OK**; **A-STOCK PASS 55/55**; F-LEGIBLE OK 0 findings;
+M-BOM PASS; P-FACT OK; `jlc_twin` exit 0; `audit_board` PASS (I-ISO 6.12 mm);
+`placement_gates` PASS. E-TOPO remains the one deliberate FAIL on unchanged terms.
+
+### OTHER FINDINGS WORTH THE NEXT AGENT'S TIME
+
+- **A clean v1.7 regression the lead confirmed:** the `J_MODE` and `D_COILEN`
+  refdes print **into the east-edge milled notch** (void x[191.50..200.05]
+  y[48.80..49.80]; J_MODE's bbox x[194.099..197.801] y[48.386..49.614] entirely
+  inside). ADR-0018's two headline parts would ship with no designator.
+  `silk_edge_clearance` — the exact rule — is one of four silk DRC checks this
+  board sets to `ignore`.
+- **The render lens's P0 (identical unkeyed `J_ESTOP`/`J_DOOR`) is downgraded to
+  P1 with evidence**: ORDER_README §10.4 already grades both cells
+  `✗ FALSE-CLEAR` in a published 20-cell matrix, and the reviewer was
+  deliberately denied it. What IS new is that the mitigation §10.5 leans on is
+  broken — `J_DOOR`'s silk label sits **2.80 mm from J_ESTOP and 2.87 mm from
+  J_DOOR**, i.e. closer to the wrong connector.
+- **A new `policy_audit` check landed the same day** (`P-ADJ-UNREACHED`) and
+  reports that **25 of 37 declared `keep_short` budgets name nets that do not
+  exist on this board**. Waived with a full 37-row census rather than faked by
+  re-pointing local pin budgets at 76-pad rails. The topology lens then landed
+  the same class on the only protection IC.
+- **Six checker defects reported upstream**, none of them board defects:
+  `pin_audit.py`'s literal MPN→directory join (**16 of 54 dossiers blank,
+  including `U_EXP`**); `jlc_twin.py`'s PAD-GEOM knife edge and its
+  `marker_side()` frame bug (same class as 772b152, still live); A-RENDER's
+  absolute 20-px floor against a hard-coded 1600×1000 render; `count_parity.py`'s
+  first-glob multi-board mis-targeting; and `jlc_twin --adjudications <missing
+  path>` running silently with zero adjudications.
+
+**The full finding ledger with the lead's independent re-derivation of every
+claim is `08_reviews/DISPOSITIONS.md` (v1.7 section) and the staging archive's
+`verification/dispositions.md`.**

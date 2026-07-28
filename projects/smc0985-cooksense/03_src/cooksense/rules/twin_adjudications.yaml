@@ -99,8 +99,20 @@
 #    center 1.05 len 0.6 = [0.75..1.35]; JLC center 1.2 len 0.8 = [0.80..1.60];
 #    overlap 0.55mm. Lead span 2.5 -> the lead foot occupies ~[0.85..1.25], fully
 #    inside BOTH patterns' copper.
-- {lcsc: C5158048, refs: [D_ESD_IN, D_ESTOP], status: PAD-GEOM,
-   why: "SOD-323 pad-length class: ours [0.750..1.350] vs JLC [0.800..1.600] per side, overlap 0.550mm covering the full lead-foot zone [0.85..1.25] (LS2.5); polarity gate PASS. v1.2 adds D_ESTOP (the E-stop input clamp, same PESD5V0S1BA land) — RE-MEASURED on the v1.2 board, extents identical to D_ESD_IN."}
+# -- v1.7 adds D_COILEN (the COIL_EN_IN clamp). RE-MEASURED, not inherited, and
+#    the re-measurement turned up a GATE DEFECT worth naming: gd here is EXACTLY
+#    0.300 against `PAD_GEOM_TOL = 0.3` compared with a strict `>`, so which of
+#    the SIX identical D_SOD-323 refs raise PAD-GEOM is decided by the last bit
+#    of math.hypot over BOARD-frame doubles. MEASURED 2026-07-28 on this board:
+#      D_COILEN 0.300000000000006  D_ESD_IN 0.300000000000002  D_ESTOP 0.300000000000006  -> fire
+#      D_DOOR   0.299999999999977  D_LCCLK  0.299999999999977  D_LCDAT 0.299999999999977  -> silent
+#    Same footprint, same JLC land, same 2.100-vs-2.400 delta; the only variable
+#    is where the part sits on the board. Reported to skills/ as a proposed
+#    patch (tolerance comparison needs an epsilon); adjudicated here for all
+#    six refs so the answer does not depend on which side of the knife an
+#    unrelated placement nudge lands on.
+- {lcsc: C5158048, refs: [D_COILEN, D_DOOR, D_ESD_IN, D_ESTOP, D_LCCLK, D_LCDAT], status: PAD-GEOM,
+   why: "SOD-323 pad-length class: ours [0.750..1.350] vs JLC [0.800..1.600] per side, overlap 0.550mm covering the full lead-foot zone [0.85..1.25] (LS2.5); polarity gate PASS. v1.2 adds D_ESTOP (the E-stop input clamp, same PESD5V0S1BA land) — RE-MEASURED on the v1.2 board, extents identical to D_ESD_IN. v1.7 adds D_COILEN and RE-MEASURED BOTH LANDS FROM THE FOOTPRINTS rather than inheriting the v1.2 text: OURS Diode_SMD:D_SOD-323 pads at local x=+-1.0500 with size_x 0.6000 -> per-side copper [0.7500..1.3500]; JLC SOD-323_L1.7-W1.3-LS2.5-BI pads at local x=+-1.2000 with size 0.8000x0.8000 -> per-side copper [0.8000..1.6000]; overlap [0.800..1.350] = 0.550mm, and the LS2.5/L1.7 lead foot [0.85..1.25] is inside BOTH. All six refs carry the IDENTICAL footprint and the identical 2.100-vs-2.400 pad1<->2 delta, so one adjudication covers the class."}
 
 # -- 1812 chip polyfuse (KiCad Fuse_1812 vs JLC F1812). Ours center 2.138 len
 #    1.12 = [1.58..2.70] (toe-fillet biased); JLC center 1.85 len 1.407 =
