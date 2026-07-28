@@ -113,6 +113,10 @@ def main():
     ap.add_argument("--config", default="")
     ap.add_argument("--skip-drc", action="store_true",
                     help="skip the kicad-cli ERC/DRC runs (fast re-grade)")
+    ap.add_argument("--board", default="",
+                    help="which board of a MULTI-BOARD project to grade "
+                         "(04_kicad stem, e.g. 'interposer'); default is the "
+                         "first, which is what the release scope follows")
     args = ap.parse_args()
     proj = Path(args.project).resolve()
     cfgp = Path(args.config) if args.config else proj / "03_src/rules/policy_audit.json"
@@ -122,8 +126,25 @@ def main():
 
     boards = sorted(glob.glob(str(proj / "04_kicad" / "*.kicad_pcb")))
     schs = sorted(glob.glob(str(proj / "04_kicad" / "*.kicad_sch")))
+    # WHICH BOARD IS UNDER AUDIT. A project may build several
+    # (smc0985-cooksense builds `cooksense` and `interposer`), and every check
+    # below — including the RELEASE scope — must grade the SAME one. `--board`
+    # names it; without it the first is graded, exactly as before.
+    if args.board:
+        _want = re.sub(r"[\s_]+", "-", args.board.strip()).strip("-").lower()
+        _hit = [b for b in boards
+                if re.sub(r"[\s_]+", "-", Path(b).stem).strip("-").lower()
+                == _want]
+        if not _hit:
+            sys.exit(f"policy_audit: --board {args.board!r} matches none of "
+                     f"{[Path(b).stem for b in boards]}")
+        boards = _hit + [b for b in boards if b not in _hit]
+        schs = [s for s in schs
+                if re.sub(r"[\s_]+", "-", Path(s).stem).strip("-").lower()
+                == _want] or schs
     board_p = boards[0] if boards else None
     sch_p = schs[0] if schs else None
+    board_name = Path(board_p).stem if board_p else None
 
     waivers = []
     wp = proj / "03_src/rules/policy_waivers.yaml"
@@ -752,31 +773,51 @@ def main():
     else:
         rows.append(("M-REPRO", "FAIL", "no rebuild_all.sh"))
 
-    # Release dirs come in TWO shipped naming forms: plain "v1.0-<date>" and
-    # ADR-0007 per-board "<board>-v1.0-<date>" (cooksense-v1.0-2026-07-23).
-    # A bare "v*" glob silently skipped the per-board form and M-REL graded
-    # N-A on two real seals (2026-07-23) — discovery must match BOTH.
+    # RELEASE SELECTION IS SCOPED TO THE BOARD UNDER AUDIT. Not to the last
+    # directory in 07_releases — that is a property ADJACENT to the one this
+    # gate names, and the difference is the whole defect class:
     #
-    # AND THEY SORT NUMERICALLY, NOT LEXICALLY. `sorted()` on the directory
-    # NAME puts "v1.10-…" BEFORE "v1.9-…", because '1' < '9' as a character.
-    # The first release in this fleet to reach a double-digit minor
-    # (usb-hub-3s-v3 v1.10, 2026-07-27) therefore had M-REL grade the WRONG
-    # release's MANIFEST and demand a SUPERSEDED.md on the NEWEST directory —
-    # a gate silently graded a superseded release for as long as the newest one
-    # was double-digit. `_version_key` is imported from the jlcpcb-fab freshness
-    # gate rather than re-implemented, so the two cannot disagree about which
-    # release is latest (the same ONE-loader arrangement M-BOM already has with
-    # bom_source_check below).
+    #  (a) MULTI-BOARD PROJECT. smc0985-cooksense/07_releases/ holds
+    #      cooksense-v1.0…v1.4 AND interposer-v1.0. Under any order whose
+    #      leading component is the board prefix, `interposer-…` lands last, so
+    #      `rels[-1]` resolved to the INTERPOSER while everything above graded
+    #      the COOKSENSE board. M-REL, M-BOM, A-POP and A-BODY all reported on
+    #      the wrong archive, and M-REL demanded SUPERSEDED.md on
+    #      cooksense-v1.4 — the LIVE release — which blocked the v1.5 seal.
+    #      Measured 2026-07-27.
+    #  (b) TEXT VERSION ORDER. "v1.10-…" sorts before "v1.9-…" because
+    #      '1' < '9'. usb-hub-3s-v3 v1.10 (2026-07-27) had M-REL grade the
+    #      superseded release and accuse the live one of being superseded.
+    #
+    # Both live in ONE place now — release_index.py, imported rather than
+    # re-implemented, so no consumer of release ordering can disagree with
+    # another (the same ONE-loader arrangement M-BOM has with bom_source_check
+    # below). Board identity comes from the .kicad_pcb this audit LOADED, so
+    # the release scope cannot drift from the board every other check graded.
+    #
+    # A release set it cannot attribute is a FAIL, never a silent pick
+    # (canon M-COVER): an unparseable dir name, a prefix naming a board this
+    # project does not build, or a bare name in a multi-board project.
     _jlc_scripts = (Path(__file__).resolve().parent.parent.parent
                     / "jlcpcb-fab" / "scripts")
     sys.path.insert(0, str(_jlc_scripts))
-    from release_freshness_check import _version_key  # noqa: E402
+    import release_index as _relidx  # noqa: E402
 
     _reldir = proj / "07_releases"
-    rels = sorted((str(p) for p in _reldir.glob("*")
-                   if p.is_dir() and re.match(r"(?:.+-)?v\d", p.name)),
-                  key=lambda s: (_version_key(Path(s).name) or ("", ()), s))
-    if rels:
+    _all_reldirs = sorted(p for p in _reldir.glob("*") if p.is_dir()) \
+        if _reldir.is_dir() else []
+    _rel_error, latest = None, None
+    try:
+        rels = [str(p) for p in
+                _relidx.releases_for_board(proj, board_name)]
+    except _relidx.ReleaseSetError as e:
+        rels, _rel_error = [], str(e)
+    if _rel_error:
+        grade("M-REL", False, "",
+              f"release set UNRESOLVABLE, so no release was graded: "
+              f"{_rel_error}")
+        latest = None
+    elif rels:
         latest = Path(rels[-1])
         man = latest / "MANIFEST.txt"
         probs = []
@@ -849,19 +890,32 @@ def main():
                     f"nothing must not report that hashes verify (M-COVER)")
         else:
             probs.append("no MANIFEST.txt")
+        # The CHANGELOG is a PROJECT document, so it is checked against EVERY
+        # release directory, not just this board's series — scoping it to the
+        # audited board would drop the sibling board's entries from coverage
+        # unless someone remembered to run the audit again with --board.
         cl = proj / "01_docs" / "CHANGELOG.md"
-        for rd in rels:
-            name = Path(rd).name
-            if cl.exists() and name not in cl.read_text():
-                probs.append(f"CHANGELOG missing entry for {name}")
+        for rd in _all_reldirs:
+            if cl.exists() and rd.name not in cl.read_text():
+                probs.append(f"CHANGELOG missing entry for {rd.name}")
+        # SUPERSEDED.md, by contrast, is a WITHIN-SERIES claim: only THIS
+        # board's earlier releases are superseded by THIS board's latest.
         for rd in rels[:-1]:
             if not (Path(rd) / "SUPERSEDED.md").exists():
                 probs.append(f"{Path(rd).name} lacks SUPERSEDED.md")
         if not (latest / "verification").is_dir() or \
                 not any((latest / "verification").iterdir()):
             probs.append("verification/ empty")
-        grade("M-REL", not probs, f"{latest.name}: provenance + hashes verify",
+        grade("M-REL", not probs,
+              f"{latest.name}: provenance + hashes verify "
+              f"(board {board_name!r}: {len(rels)} of {len(_all_reldirs)} "
+              f"release dir(s) in 07_releases)",
               "; ".join(probs[:6]))
+    elif _all_reldirs:
+        rows.append(("M-REL", "N-A",
+                     f"no release for board {board_name!r} "
+                     f"({len(_all_reldirs)} dir(s) in 07_releases belong to "
+                     f"other boards)"))
     else:
         rows.append(("M-REL", "N-A", "no releases yet"))
 
@@ -882,13 +936,18 @@ def main():
     cjs = (glob.glob(str(proj / "03_tscircuit" / "build" / "circuit.json"))
            or glob.glob(str(proj / "03_tscircuit" / "dist" / "**" / "circuit.json"),
                         recursive=True))
-    # the orderable artifact: prefer the latest sealed release, else the build
+    # the orderable artifact: prefer THIS BOARD's latest sealed release, else
+    # the build. An UNRESOLVABLE release set falls through to neither — the
+    # gate says so rather than quietly grading 06_build as if it were sealed.
     fab_bom = next((b for b in
-                    [str(latest / "fab" / "bom.csv") if rels else "",
+                    [str(latest / "fab" / "bom.csv") if latest else "",
                      str(proj / "06_build" / "fab" / "bom.csv"),
                      str(proj / "06_build" / "fab" / "bom_jlc.csv")]
                     if b and Path(b).exists()), None)
-    if not cjs or not fab_bom:
+    if _rel_error:
+        rows.append(("M-BOM", "FAIL",
+                     f"cannot identify the orderable BOM: {_rel_error}"))
+    elif not cjs or not fab_bom:
         rows.append(("M-BOM", "N-A", "no circuit.json source or no fab BOM"))
     else:
         try:
@@ -917,10 +976,13 @@ def main():
     # from the exporter that produced them (canon M1). Until 2026-07-25
     # nothing in this repo had ever read a cpl.csv back, and cooksense v1.1
     # sealed 13 blank-LCSC parts onto its CPL past every gate.
-    _asm_target = str(latest) if rels else str(proj)
+    _asm_target = str(latest) if latest else str(proj)
     _fab_ready = (rels or (proj / "06_build" / "fab" / "cpl_jlc.csv").exists()
                   or (proj / "06_build" / "fab" / "cpl.csv").exists())
-    if not _fab_ready:
+    if _rel_error:
+        rows.append(("A-POP", "FAIL",
+                     f"cannot identify the orderable CPL: {_rel_error}"))
+    elif not _fab_ready:
         rows.append(("A-POP", "N-A", "no CPL exported yet"))
     else:
         r = sh([sys.executable, str(jlc_scripts / "assembly_coverage.py"),
@@ -945,13 +1007,18 @@ def main():
     # while 7 of 108 placements rendered nothing, so a missing/unparseable
     # counter is a FAIL, not a skip.
     _mm = None
-    for _c in ([latest / "verification" / "missing_models.txt"] if rels else []) \
+    for _c in ([latest / "verification" / "missing_models.txt"] if latest
+               else []) \
             + [proj / "06_build" / "twin" / "missing_models.txt",
                proj / "06_build" / "verification" / "missing_models.txt"]:
         if _c.exists():
             _mm = _c
             break
-    if _mm is None:
+    if _rel_error:
+        rows.append(("A-BODY", "FAIL",
+                     f"cannot identify the release to read bodies from: "
+                     f"{_rel_error}"))
+    elif _mm is None:
         rows.append(("A-BODY", "N-A", "no twin run / missing_models.txt yet"))
     else:
         _t = _mm.read_text()
@@ -986,7 +1053,7 @@ def main():
                   "design is generating artifacts but 01_docs/journal/ has no "
                   "stage entries — every start/iteration/finish must journal "
                   "(canon M9)")
-        if rels:
+        if rels or _all_reldirs:
             lrn = [l for l in sorted((docs / "learnings").glob("*.md"))
                    if l.name != "contracts.md"] if (docs / "learnings").is_dir() else []
             grade("M-LEARN", bool(lrn),
@@ -1016,8 +1083,17 @@ def main():
     for _, g, _ in rows:
         counts[g] = counts.get(g, 0) + 1
     summary = ", ".join(f"{k}={v}" for k, v in sorted(counts.items()))
+    # NAME THE BOARD GRADED. A multi-board project produces one report per
+    # board, and the release-scoped rows (M-REL/M-BOM/A-POP/A-BODY) only mean
+    # anything once the reader knows which board this run was about.
+    _board_line = (f"Board graded: {board_name} "
+                   + (f"(of {len(boards)} in 04_kicad: "
+                      f"{', '.join(sorted(Path(b).stem for b in boards))}; "
+                      f"select with --board)" if len(boards) > 1 else "")
+                   ) if board_name else "Board graded: none (no 04_kicad board)"
     lines = [f"# Policy audit — {proj.name}", "",
              f"Generated by policy_audit.py; canon: design-policies.md", "",
+             _board_line, "",
              "| ID | Grade | Detail |", "|---|---|---|"]
     for cid, g, det in rows:
         lines.append(f"| {cid} | {g} | {cell(det)} |")

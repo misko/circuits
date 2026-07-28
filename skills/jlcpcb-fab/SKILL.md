@@ -528,9 +528,17 @@ STAGED release directory, before the seal commit — a finding here costs an
 edit, the same finding after the seal costs a supersede:
 
 ```
-python3 scripts/assembly_coverage.py   07_releases/<ver>-<date>   # A-POP
-python3 scripts/release_freshness_check.py 07_releases/<ver>-<date>   # incl. A-STOCK
+python3 scripts/assembly_coverage.py   07_releases/[<board>-]<ver>-<date>   # A-POP
+python3 scripts/release_freshness_check.py 07_releases/[<board>-]<ver>-<date>   # incl. A-STOCK
 ```
+
+**Name the release directory per board when the project builds more than
+one** (`cooksense-v1.4-2026-07-26`). That prefix is the only thing that says
+which board a sealed archive belongs to: `scripts/release_index.py` is the one
+place that answers "which release is this board's latest", it orders versions
+NUMERICALLY (`v1.10 > v1.9`), and it REFUSES a directory set it cannot
+attribute rather than returning the last one. `rels[-1]` over a two-board
+`07_releases/` graded the wrong archive in four gates at once (2026-07-27).
 
 `assembly_coverage.py` is plain python3 and re-derives `{board} − {CPL}` from
 the BOARD's own text and the CPL/BOM bytes — never from

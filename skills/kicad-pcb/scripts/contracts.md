@@ -99,6 +99,25 @@ BACKEND GAP to report, not a bespoke script to write here.
   every live release never graded by FAB-PAYLOAD or RENDER** — both landed that
   day, which is the mechanism working, not a defect.
 
+- **RELEASE SELECTION IS SCOPED TO A BOARD, AND IMPORTED, NEVER RE-DERIVED.**
+  `policy_audit.py` takes `--board <04_kicad stem>` on a MULTI-BOARD project
+  and resolves M-REL / M-BOM / A-POP / A-BODY against **that board's** release
+  series via `jlcpcb-fab/scripts/release_index.py` — never `rels[-1]`.
+  A release set it cannot attribute is a FAIL that names the directory, never
+  a silent pick (canon M-COVER), and every dependent row fails with it rather
+  than falling through to `06_build` as though nothing were wrong.
+  The report's header line states the board graded and the alternatives.
+  WHY: `smc0985-cooksense` builds `cooksense` AND `interposer` and holds both
+  series in one `07_releases/`. `interposer-…` sorts LAST, so `rels[-1]`
+  resolved to the interposer while `boards[0]` handed the audit the cooksense
+  board — four checks graded the wrong archive, and M-REL demanded
+  `SUPERSEDED.md` on `cooksense-v1.4`, the LIVE release, blocking a v1.5 seal
+  (measured 2026-07-27). `power_topology.py` reads its fuse declaration through
+  the same index, newest release first, and NAMES the file and line the number
+  came from — it printed `fuse rated 3401 A` off `AO3401A` in a part list.
+  Pinned by `tests/t1_release_index.py` and `t1_audit.py`
+  (`t_mrel_scopes_to_the_board_under_audit`, red-verified).
+
 ## Structure
 
 One file per tool; no package/`__init__.py` — scripts are invoked by path.

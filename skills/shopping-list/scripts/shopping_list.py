@@ -91,6 +91,13 @@ import urllib.request
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+# "Which release is this board's newest?" has ONE implementation in this repo
+# (canon M-WIDTH). Imported, never re-derived — see release_index.py for the
+# two defects that came from every tool answering it its own way.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]
+                       / "jlcpcb-fab" / "scripts"))
+import release_index as _relidx                                # noqa: E402
+
 MOUSER_URL = "https://api.mouser.com/api/v1/search/partnumber"
 CALL_SPACING_S = 2.1              # 28.6 calls/min against a published 30/min
 CACHE_TTL_S = 6 * 3600
@@ -316,23 +323,39 @@ def read_parts(project):
 
 
 def newest_release_boms(project):
-    """-> {board_label: bom.csv path}. Newest release per board prefix.
-    07_releases/ is IMMUTABLE — opened read-only, never written (repo CLAUDE.md)."""
+    """-> {board_label: (release_dir_name, bom.csv path)}. Newest release PER
+    BOARD, board identity and version ordering both from `release_index`.
+
+    07_releases/ is IMMUTABLE — opened read-only, never written (repo
+    CLAUDE.md).
+
+    THIS FUNCTION HELD HALF THE FLEET-WIDE DEFECT. It grouped by board prefix
+    correctly, then picked the newest with `d.name > prev[0]` — a TEXT
+    comparison, under which `v1.10-2026-07-27` is OLDER than `v1.9-2026-07-27`
+    ('1' < '9'). usb-hub-3s-v3 reached a double-digit minor on 2026-07-27, so
+    this would have quoted the SUPERSEDED v1.9 BOM — the wrong refdes set, and
+    therefore the wrong quantities to order — while naming it as the newest.
+    Ordering is now numeric per component, in the one place that owns it
+    (canon M-WIDTH).
+    """
     out = {}
     rel = project / "07_releases"
     if not rel.is_dir():
         return out
-    for d in sorted(p for p in rel.iterdir() if p.is_dir()):
-        bom = d / "fab" / "bom.csv"
-        if not bom.is_file():
-            continue
-        label = re.sub(r"-v[\d.]+-\d{4}-\d{2}-\d{2}$", "", d.name) or d.name
-        if label == d.name:                       # unprefixed `v1.0-DATE`
-            label = project.name
-        prev = out.get(label)
-        if prev is None or d.name > prev[0]:
-            out[label] = (d.name, bom)
-    return {k: v for k, v in out.items()}
+    for _slug, dirs in sorted(_relidx.index(project).items()):
+        # newest first, so the first release that actually ships a bom.csv
+        # wins — a release without one is skipped, not treated as newest.
+        for d in reversed(dirs):
+            bom = d / "fab" / "bom.csv"
+            if not bom.is_file():
+                continue
+            # the label is the RELEASE's own spelling of the board, and the
+            # project name for the unprefixed `v1.0-DATE` form — unchanged
+            # from before; only the ORDERING and the grouping moved.
+            raw = (_relidx.parse_release_name(d.name) or ("", ()))[0]
+            out[raw or project.name] = (d.name, bom)
+            break
+    return out
 
 
 def attach_bom(project, parts, boms):

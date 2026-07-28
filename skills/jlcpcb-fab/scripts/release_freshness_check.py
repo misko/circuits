@@ -137,46 +137,17 @@ def _sha256(p: Path) -> str:
     return h.hexdigest()
 
 
-# Release dir name -> (board-prefix, version). Two shapes exist in the fleet:
-#   bare            v1.2-2026-07-23
-#   board-prefixed  cooksense-v1.1-2026-07-24 / crow-recorder-central-v2-v1.0-…
-# The greedy board group makes the LAST v-token before the date the release
-# version, so a board name that itself ends in -v2 (crow-recorder-central-v2)
-# parses as board='crow-recorder-central-v2', ver=1.0 — not ver=2.
-# HISTORY: the original regex was ^v(...) only, so EVERY board-prefixed
-# release silently skipped the stale-artifact check (a) — the same silent-skip
-# class as the M-REL glob bug. Found 2026-07-24.
-_NAME_RE = re.compile(r"^(?:(?P<board>.+)-)?v(?P<ver>\d+(?:\.\d+)*)(?=-|$)")
-
-
-def _version_key(dirname: str):
-    """Release dir name -> (board_prefix_or_'', version_tuple), or None.
-
-    Both naming shapes parse; the board prefix is kept so a shared
-    07_releases/ root holding TWO boards (smc0985-cooksense holds cooksense-*
-    AND interposer-*) never cross-compares them."""
-    m = _NAME_RE.match(dirname)
-    if not m:
-        return None
-    return (m.group("board") or "",
-            tuple(int(x) for x in m.group("ver").split(".")))
-
-
-def _earlier_releases(release_dir: Path, releases_root: Path):
-    """Sibling release dirs of the SAME board with a strictly-lower version
-    (any earlier one — a stale file can be inherited from any predecessor,
-    not only the immediate one)."""
-    me = _version_key(release_dir.name)
-    if me is None:
-        return []
-    out = []
-    for sib in sorted(releases_root.iterdir()):
-        if not sib.is_dir() or sib.resolve() == release_dir.resolve():
-            continue
-        v = _version_key(sib.name)
-        if v is not None and v[0] == me[0] and v[1] < me[1]:
-            out.append(sib)
-    return out
+# RELEASE NAMING AND ORDERING LIVE IN ONE PLACE: release_index.py, in this
+# same directory. This module used to own them, and policy_audit.py imported
+# `_version_key` from here; both names are re-exported so those callers keep
+# working, but there is exactly ONE implementation of "which board is this
+# release for" and "which of them is newer" in the repo (canon M-WIDTH — the
+# rule is written at the width of the class, so no consumer of release
+# ordering can quietly re-derive it differently).
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from release_index import (_NAME_RE, _version_key,            # noqa: E402,F401
+                           earlier_releases as _earlier_releases,
+                           parse_release_name, slug)          # noqa: F401
 
 
 def _artifacts(release_dir: Path):

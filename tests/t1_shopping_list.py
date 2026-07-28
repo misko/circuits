@@ -426,5 +426,69 @@ def t_mpn_authority_is_the_field():
     not_contains(r.out, "MCP23017-E-SS ", "the sanitised directory name")
 
 
+# ------------------------------------------------- release selection (M-WIDTH)
+@test("the BOM comes from the board's NUMERICALLY newest release: v1.10 beats "
+      "v1.9", kind="known_bad")
+def t_newest_release_is_numeric_not_text():
+    """`newest_release_boms` grouped by board prefix correctly and then picked
+    the newest with `d.name > prev[0]` — a TEXT comparison, under which
+    `v1.10-2026-07-27` is OLDER than `v1.9-2026-07-27` because '1' < '9'.
+
+    This is the SAME defect that made policy_audit's M-REL grade the wrong
+    release when usb-hub-3s-v3 reached a double-digit minor on 2026-07-27; it
+    was fixed there and left standing HERE, which is the M-WIDTH failure — a
+    rule written at the width of its incident instead of its class. The
+    consequence is not cosmetic: the quantities this tool tells you to buy come
+    from the refdes on that BOM, so quoting the superseded release quotes the
+    wrong parts list while naming it as the newest.
+
+    RED-VERIFIED 2026-07-27 by restoring `if prev is None or d.name > prev[0]`
+    over the same directory listing: this test reports
+    `newest release: got 'v1.9-2026-07-27', want 'v1.10-2026-07-27'`.
+    """
+    import importlib
+    sys.path.insert(0, str(ROOT / "skills" / "shopping-list" / "scripts"))
+    sl = importlib.import_module("shopping_list")
+    d = tmpdir("shopver_")
+    (d / "04_kicad").mkdir(parents=True)
+    (d / "04_kicad" / "brd.kicad_pcb").write_text("(kicad_pcb)\n")
+    for v in ("v1.2-2026-07-23", "v1.9-2026-07-27", "v1.10-2026-07-27"):
+        fab = d / "07_releases" / v / "fab"
+        fab.mkdir(parents=True)
+        fab.joinpath("bom.csv").write_text(
+            f"Comment,Designator,Footprint,MPN,LCSC\n{v},R1,0402,X,C1\n")
+    got = sl.newest_release_boms(d)
+    check(len(got) == 1, f"one board, one series expected: {got}")
+    (rel, bom), = got.values()
+    check(rel == "v1.10-2026-07-27",
+          f"newest release: got {rel!r}, want 'v1.10-2026-07-27' — the "
+          f"release list is being ordered as TEXT")
+    contains(bom.read_text(), "v1.10-2026-07-27",
+             "and the BOM actually read must be that release's")
+
+
+@test("a MULTI-BOARD project quotes each board's OWN newest release")
+def t_multi_board_boms_do_not_cross():
+    """The cooksense shape: two series under one 07_releases/. Picking 'the
+    last directory' would hand the interposer's BOM to both boards."""
+    import importlib
+    sys.path.insert(0, str(ROOT / "skills" / "shopping-list" / "scripts"))
+    sl = importlib.import_module("shopping_list")
+    d = tmpdir("shopmb_")
+    (d / "04_kicad").mkdir(parents=True)
+    for b in ("cooksense", "interposer"):
+        (d / "04_kicad" / f"{b}.kicad_pcb").write_text("(kicad_pcb)\n")
+    for v in ("cooksense-v1.0-2026-07-23", "cooksense-v1.4-2026-07-26",
+              "interposer-v1.0-2026-07-24"):
+        fab = d / "07_releases" / v / "fab"
+        fab.mkdir(parents=True)
+        fab.joinpath("bom.csv").write_text(
+            f"Comment,Designator,Footprint,MPN,LCSC\n{v},R1,0402,X,C1\n")
+    got = {k: v[0] for k, v in sl.newest_release_boms(d).items()}
+    check(got == {"cooksense": "cooksense-v1.4-2026-07-26",
+                  "interposer": "interposer-v1.0-2026-07-24"},
+          f"per-board newest release: {got}")
+
+
 if __name__ == "__main__":
     sys.exit(main())

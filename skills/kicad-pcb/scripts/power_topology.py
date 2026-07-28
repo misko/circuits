@@ -183,6 +183,11 @@ try:
 except ImportError:  # pragma: no cover - environments here ship PyYAML
     yaml = None
 
+# release ordering has ONE home in this repo (canon M-WIDTH)
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]
+                       / "jlcpcb-fab" / "scripts"))
+import release_index as _relidx                                # noqa: E402
+
 BUCK, BOOST, BUCK_BOOST = "BUCK", "BOOST", "BUCK_BOOST"
 #: LINEAR is an IMPLEMENTATION of a step-down requirement, never a derived
 #: requirement — derive_topology() can never return it. See the module
@@ -610,23 +615,42 @@ def worst_case_input_current(rails):
     return amps, p_out, amps * vin_min, vin_min
 
 
-_NUM_A = re.compile(r"([\d.]+)\s*A", re.I)
+# A CURRENT, NOT A SUBSTRING OF A PART NUMBER. The leading `(?<![0-9A-Za-z.])`
+# is the whole fix: without it, `AO3401A` — the reverse-polarity FET on
+# crow-recorder-central-v2's ORDER_README line
+#
+#   "AO3401A reverse-polarity FET (Q1) + SMAJ5.0A (D1) + 2A fuse (F_IN)."
+#
+# — matched as "3401" + "A", and E-TOPO printed `fuse rated 3401 A is >2x the
+# derived need 0.7 A` on a board whose fuse is 2 A and is named on that same
+# line (measured 2026-07-27). `SMAJ5.0A` reads as 5.0 A by the same mechanism.
+# A gate that prints nonsense trains its reader to skim, which is how real
+# findings get missed. The trailing `(?![0-9A-Za-z])` rejects `2Ah`/`3401AB`.
+_NUM_A = re.compile(r"(?<![0-9A-Za-z.])([\d.]+)\s*A(?![0-9A-Za-z])", re.I)
 
 
 def _first_amps(text):
     m = _NUM_A.search(str(text))
-    return float(m.group(1)) if m else None
+    if not m:
+        return None
+    try:
+        return float(m.group(1))
+    except ValueError:                      # a bare '.' or '1.2.3'
+        return None
 
 
 def find_trunk_declaration(proj, top, rails, nets_override=None):
     """Best-effort: locate a declared input-trunk current and a fuse rating.
-    Returns (trunk_current, trunk_class_name, unambiguous, fuse_amps). Any may
-    be None. `unambiguous` is True only when the input trunk class is named
+    Returns (trunk_current, trunk_class_name, unambiguous, fuse_amps,
+    fuse_source). Any may be None. `fuse_source` is the file and the LINE the
+    fuse number was read out of — a number this gate prints must be traceable
+    to the text it came from. `unambiguous` is True only when the trunk class
+    is named
     explicitly (input_trunk_class:) or a single netclass matches the input by
     name/nets — the guard that keeps the under-built FAIL from false-firing."""
     netsy = Path(nets_override) if nets_override else \
         Path(proj) / "03_src" / "rules" / "nets.yaml"
-    trunk_current = trunk_class = fuse_amps = None
+    trunk_current = trunk_class = fuse_amps = fuse_src = None
     unambiguous = False
     classes = {}
     if netsy.exists() and yaml:
@@ -659,24 +683,41 @@ def find_trunk_declaration(proj, top, rails, nets_override=None):
         elif len(cands) > 1:
             trunk_class, trunk_current = cands[0][0], None  # ambiguous -> advisory
 
-    # fuse rating: an ORDER_README line, or a 'fuse' mention in nets.yaml
+    # fuse rating: an ORDER_README line, or a 'fuse' mention in nets.yaml.
+    # RELEASE ORDER IS NEWEST-FIRST, not glob order. This used to take
+    # whatever the filesystem handed back first across EVERY release of EVERY
+    # board in the project, so on a multi-board project it could quote a
+    # sibling board's fuse, and on any project it could quote a superseded
+    # release's. Ordering comes from release_index (numeric per component,
+    # board-grouped); the file the number came from is RETURNED, so a wrong
+    # number names its own source instead of floating free.
     fuse_texts = []
-    for pat in ("07_releases/*/ORDER_README*", "07_releases/*/*ORDER*",
-                "01_docs/*ORDER*"):
-        for fp in glob.glob(str(Path(proj) / pat)):
-            fuse_texts.append(Path(fp).read_text(errors="replace"))
+    rel_dirs = []
+    try:
+        _idx = _relidx.index(proj)
+        for _b in sorted(_idx):
+            rel_dirs += list(reversed(_idx[_b]))
+    except Exception:                       # unattributable set -> glob order
+        rel_dirs = sorted((Path(proj) / "07_releases").glob("*")) \
+            if (Path(proj) / "07_releases").is_dir() else []
+    for d in rel_dirs:
+        for fp in sorted(list(d.glob("ORDER_README*")) + list(d.glob("*ORDER*"))):
+            if fp.is_file():
+                fuse_texts.append((fp, fp.read_text(errors="replace")))
+    for fp in sorted(glob.glob(str(Path(proj) / "01_docs/*ORDER*"))):
+        fuse_texts.append((Path(fp), Path(fp).read_text(errors="replace")))
     if netsy.exists():
-        fuse_texts.append(netsy.read_text(errors="replace"))
-    for txt in fuse_texts:
+        fuse_texts.append((netsy, netsy.read_text(errors="replace")))
+    for src, txt in fuse_texts:
         for line in txt.splitlines():
             if re.search(r"fuse", line, re.I):
                 a = _first_amps(line)
                 if a is not None:
-                    fuse_amps = a
+                    fuse_amps, fuse_src = a, f"{src.name}: {line.strip()[:90]}"
                     break
         if fuse_amps is not None:
             break
-    return trunk_current, trunk_class, unambiguous, fuse_amps
+    return trunk_current, trunk_class, unambiguous, fuse_amps, fuse_src
 
 
 # --------------------------------------------------------------------------
@@ -969,7 +1010,7 @@ def run_check(proj, ptp, nets_override=None):
         f"  input-trunk worst case: {I:.1f} A at Vin_min {vin_min:g} V "
         f"(Sum Pout={p_out:g} W / eff = {p_in:.1f} W input / {vin_min:g} V)")
 
-    trunk_current, trunk_class, unambiguous, fuse_amps = \
+    trunk_current, trunk_class, unambiguous, fuse_amps, fuse_src = \
         find_trunk_declaration(proj, top, rails, nets_override)
     if trunk_current is not None:
         if trunk_current < I * 0.98:
@@ -994,7 +1035,8 @@ def run_check(proj, ptp, nets_override=None):
     if fuse_amps is not None and fuse_amps > 2 * I:
         lines.append(
             f"  OVER-BUILT (advisory): fuse rated {fuse_amps:g} A is >2x the "
-            f"derived need {I:.1f} A — over-provisioned")
+            f"derived need {I:.1f} A — over-provisioned "
+            f"[read from {fuse_src}]")
 
     # M-COVER: a converter part that no rail names is a converter this gate did
     # not grade, and the verdict must say so rather than count only the rails

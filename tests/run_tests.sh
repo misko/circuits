@@ -51,6 +51,7 @@ SUITES=(
   t1_electrical_invariants.py
   t1_power_topology.py
   t1_release_git_dirty.py
+  t1_release_index.py
   t1_release_freshness.py
   t1_assembly_gates.py
   t1_status.py

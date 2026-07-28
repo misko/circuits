@@ -181,6 +181,30 @@ stock, twin).
     tests inject a header-only table instead.
   - Pinned by `tests/t1_rotation_authority.py` (one known-bad per mechanism,
     red-verified against the restored pre-fix resolver: 8 tests go RED).
+- **`release_index.py` is the ONE home for release SELECTION** — "which board
+  does this release directory belong to" and "which of them is newest". A
+  LIBRARY (no verdict, nothing graded); `release_freshness_check.py`,
+  `policy_audit.py`, `shopping_list.py` and `power_topology.py` all import it,
+  so no consumer of release ordering can re-derive it differently (canon
+  M-WIDTH). Board identity is the slugged stem of `04_kicad/*.kicad_pcb` —
+  authoritative, in-tree, no hardcoded name list — and slugging is what makes
+  `crow_recorder_central_v2` and `crow-recorder-central-v2` one board.
+  Versions order NUMERICALLY PER COMPONENT: `v1.10 > v1.9 > v1.2`.
+  **A set it cannot attribute raises `ReleaseSetError` naming the directory —
+  never a guess** (canon M-COVER): an unparseable dir name, a prefix naming a
+  board the project does not build, a BARE `v1.0-<date>` where the project
+  builds more than one board, or "the latest" asked with no board named when
+  two series exist.
+  WHY, measured 2026-07-27: `smc0985-cooksense` holds `cooksense-v1.0…v1.4`
+  AND `interposer-v1.0`; `rels[-1]` returned the INTERPOSER, so policy_audit's
+  M-REL/M-BOM/A-POP/A-BODY graded the wrong archive while the board under
+  audit was cooksense, and M-REL demanded `SUPERSEDED.md` on the live
+  `cooksense-v1.4` — blocking a v1.5 seal. Separately `v1.10` sorted BEFORE
+  `v1.9` as text (usb-hub-3s-v3, 2026-07-27): fixed in policy_audit and left
+  standing in `shopping_list.newest_release_boms`, the M-WIDTH failure this
+  module closes. Pinned by `tests/t1_release_index.py` (5 known-bad, the
+  headline one running the PRE-FIX selector against the real tree so the red
+  side is measured on every run).
 - `release_freshness_check.py <release_dir>` gates a seal: it FAILS when a
   generated fab/PDF artifact is sha256-identical to an earlier release of the
   same board (stale/inherited output), when the shipped

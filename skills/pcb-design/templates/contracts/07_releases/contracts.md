@@ -53,9 +53,35 @@ Machine-readable patterns (contracts_audit; the tree below is the human view):
 | `<version>-<date>/verification/**` | every gate's evidence |
 
 
+### The directory NAME is how a machine tells the boards apart
+
+Two shapes ship: bare `v<N>[.<N>…]-<YYYY-MM-DD>` and, when a project builds
+more than one board, per-board `<board>-v<N>[.<N>…]-<YYYY-MM-DD>`
+(`cooksense-v1.4-2026-07-26`). **`<board>` MUST be the `04_kicad` board stem**
+(separator style and case are free: `crow_recorder_central_v2` and
+`crow-recorder-central-v2` are the same board). This is not cosmetic — it is
+the only thing that says which board a sealed archive belongs to.
+
+- **A MULTI-BOARD project MUST use the per-board form for every release**,
+  including the first. A bare name in a multi-board `07_releases/` is
+  unattributable and every gate that resolves "this board's latest release"
+  REFUSES it (`release_index.py`, canon M-COVER) rather than guessing.
+- **Versions order NUMERICALLY PER COMPONENT**: `v1.10 > v1.9 > v1.2`. Never
+  sort these names as text, and never re-implement the ordering — import
+  `jlcpcb-fab/scripts/release_index.py`, which is its one home.
+- **"The latest release" means the newest of THIS BOARD's series**, never the
+  last directory in `07_releases/`. `smc0985-cooksense` holds `cooksense-*`
+  and `interposer-*`; `interposer-…` sorts last, and a gate taking `rels[-1]`
+  graded the interposer while reporting on cooksense, then demanded
+  `SUPERSEDED.md` on the live `cooksense-v1.4` and blocked its successor
+  (2026-07-27).
+- `SUPERSEDED.md` is a WITHIN-SERIES claim: it is owed by this board's earlier
+  releases, never by a sibling board's.
+
 ```
 07_releases/
-└── <version>-<YYYY-MM-DD>/         e.g. v4.10-2026-07-14
+└── [<board>-]<version>-<YYYY-MM-DD>/   e.g. v4.10-2026-07-14,
+    │                                   cooksense-v1.4-2026-07-26
     ├── MANIFEST.txt                REQUIRED — sha256 of EVERY file below
     ├── ORDER_README.md             REQUIRED — order options, hand-solder list,
     │                               first-power ritual
@@ -524,5 +550,9 @@ This folder answers **M5** (M-REL) and hosts the evidence for everything:
 - `verification/policy_audit.md` ships in the bundle: zero FAIL, waivers
   evidence-backed, HUMAN items (S5/S6/S7, M1) carrying reviewer verdicts.
 
-Audit: `policy_audit.py <project>` runs M-REL mechanically; a release cut
-with any policy FAIL is invalid (cut a new one after the fix or waiver).
+Audit: `policy_audit.py <project> [--board <04_kicad stem>]` runs M-REL
+mechanically; a release cut with any policy FAIL is invalid (cut a new one
+after the fix or waiver). **On a multi-board project `--board` is REQUIRED to
+grade the second board** — the audit grades one board per run (the report's
+header line names it), and M-REL/M-BOM/A-POP/A-BODY resolve the release from
+THAT board's series.

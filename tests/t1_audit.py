@@ -575,6 +575,186 @@ def t_mrel_hash_first_table():
              "the empty-table failure must name itself")
 
 
+# ------------------------------- M-REL release scope: WHICH BOARD (2026-07-27)
+#: a minimal but genuinely pcbnew-loadable board, so a scratch multi-board
+#: project reaches the release checks instead of dying in LoadBoard.
+_MINI_PCB = """(kicad_pcb (version 20221018) (generator test)
+  (general (thickness 1.6))
+  (paper "A4")
+  (layers
+    (0 "F.Cu" signal)
+    (31 "B.Cu" signal)
+    (36 "B.SilkS" user "B.Silkscreen")
+    (37 "F.SilkS" user "F.Silkscreen")
+    (44 "Edge.Cuts" user)
+  )
+  (setup)
+)
+"""
+
+
+def _multi_board_project(d, boards, names, superseded=()):
+    """A scratch git project that BUILDS several boards and holds several
+    release series — the smc0985-cooksense shape. Each release carries a real
+    sha256 table over its own files; `superseded` names the dirs that get a
+    SUPERSEDED.md, so the fixture can state exactly which ones should be
+    demanded."""
+    import hashlib
+    import subprocess
+    subprocess.run(["git", "init", "-q", str(d)], check=True)
+    (d / "seed.txt").write_text("x\n")
+    env_git = ["git", "-C", str(d), "-c", "user.email=t@t", "-c", "user.name=t"]
+    subprocess.run(env_git + ["add", "-A"], check=True)
+    subprocess.run(env_git + ["commit", "-qm", "seed"], check=True)
+    sha = subprocess.run(env_git[:3] + ["rev-parse", "HEAD"],
+                         capture_output=True, text=True).stdout.strip()
+    (d / "04_kicad").mkdir(exist_ok=True)
+    for b in boards:
+        (d / "04_kicad" / f"{b}.kicad_pcb").write_text(_MINI_PCB)
+    (d / "01_docs").mkdir(exist_ok=True)
+    (d / "01_docs" / "CHANGELOG.md").write_text(
+        "".join(f"- {n}: entry\n" for n in names))
+    for i, n in enumerate(names):
+        rel = d / "07_releases" / n
+        (rel / "verification").mkdir(parents=True)
+        (rel / "verification" / "drc.json").write_text('{"v": %d}' % i)
+        if n in superseded:
+            (rel / "SUPERSEDED.md").write_text("superseded\n")
+        files = sorted(p.relative_to(rel).as_posix() for p in rel.rglob("*")
+                       if p.is_file() and p.name != "MANIFEST.txt")
+        rows = [f"  {f}  {hashlib.sha256((rel / f).read_bytes()).hexdigest()}"
+                for f in files]
+        (rel / "MANIFEST.txt").write_text(
+            f"git_sha: {sha}\ngit_dirty: false\nsha256:\n"
+            + "\n".join(rows) + "\n")
+    return d
+
+
+#: the cooksense shape: two boards, one 07_releases/, and the board that sorts
+#: SECOND owns the release that sorts LAST.
+_COOK_SHAPE_BOARDS = ["cooksense", "interposer"]
+_COOK_SHAPE_RELS = ["cooksense-v1.0-2026-07-23", "cooksense-v1.1-2026-07-24",
+                    "cooksense-v1.4-2026-07-26", "interposer-v1.0-2026-07-24"]
+
+
+@test("M-REL scopes the release series to the BOARD under audit, not to the "
+      "last directory in 07_releases", kind="known_bad")
+def t_mrel_scopes_to_the_board_under_audit():
+    """MEASURED 2026-07-27 on smc0985-cooksense, which builds TWO boards and
+    holds both series in one 07_releases/::
+
+        cooksense-v1.0 … cooksense-v1.4   interposer-v1.0
+
+    `rels[-1]` returned the INTERPOSER — the board prefix is the leading
+    component of the sort key, so `interposer-…` lands last — while
+    `boards[0]` gave policy_audit `cooksense.kicad_pcb` to grade. M-REL,
+    M-BOM, A-POP and A-BODY all reported on the wrong archive, and
+    `rels[:-1]` demanded SUPERSEDED.md on cooksense-v1.4, the LIVE cooksense
+    release, which blocked a v1.5 seal. "The last directory" is a property
+    ADJACENT to "this board's latest release".
+
+    This fixture reproduces that shape and asserts BOTH halves: the release
+    named in the M-REL row is cooksense's, and the live cooksense release is
+    not accused of being superseded.
+
+    RED-VERIFIED 2026-07-27 by restoring the pre-fix selector in
+    policy_audit.py (`rels = sorted(07_releases/*, key=(_version_key, name))`
+    with `latest = rels[-1]` and the SUPERSEDED loop over `rels[:-1]`) and
+    re-running `--only=M-REL`: **4 passed, 2 failed** (this test and
+    t_mrel_unattributable_release_set_fails; the four pre-existing M-REL tests
+    still pass, so the neuter is scoped to the property under test). The
+    measured failure line on this fixture is
+
+        | M-REL | FAIL | cooksense-v1.4-2026-07-26 lacks SUPERSEDED.md |
+
+    — the blocked seal, reproduced. Restored byte-identical afterwards
+    (md5 bb8d0ef5879407945119efbbfdf614e4); the suite returns to green.
+    """
+    d = tmpdir("mrelboard_")
+    _multi_board_project(d, _COOK_SHAPE_BOARDS, _COOK_SHAPE_RELS,
+                         superseded=["cooksense-v1.0-2026-07-23",
+                                     "cooksense-v1.1-2026-07-24"])
+    run([KPY, POLICY, d, "--skip-drc", "--board", "cooksense"])
+    md = (d / "06_build" / "policy_audit.md").read_text()
+    contains(md, "Board graded: cooksense",
+             "the report must NAME the board it graded")
+    row = [l for l in md.splitlines() if "| M-REL |" in l]
+    check(row, f"no M-REL row at all:\n{md}")
+    contains(row[0], "cooksense-v1.4-2026-07-26",
+             "M-REL graded the wrong release: cooksense's latest is v1.4")
+    not_contains(row[0], "interposer",
+                 "M-REL reached into the SIBLING BOARD's release series")
+    not_contains(row[0], "cooksense-v1.4-2026-07-26 lacks SUPERSEDED.md",
+                 "M-REL accused the LIVE cooksense release of being "
+                 "superseded — this is what blocked the v1.5 seal")
+    check("| M-REL | PASS" in md, f"M-REL should PASS this project:\n{row}")
+    # A-POP/A-BODY/M-BOM take their target from the same resolution
+    contains(md, "cooksense-v1.4-2026-07-26",
+             "the release-scoped rows must name cooksense's archive")
+
+    # the mirror: --board interposer grades the OTHER series, not 'the last dir'
+    run([KPY, POLICY, d, "--skip-drc", "--board", "interposer"])
+    md2 = (d / "06_build" / "policy_audit.md").read_text()
+    row2 = [l for l in md2.splitlines() if "| M-REL |" in l]
+    contains(row2[0], "interposer-v1.0-2026-07-24", "interposer's own release")
+    not_contains(row2[0], "cooksense-v1.4", "and not the sibling's")
+
+
+@test("M-REL FAILS an UNATTRIBUTABLE release set instead of picking one",
+      kind="known_bad")
+def t_mrel_unattributable_release_set_fails():
+    """canon M-COVER: input a gate cannot parse is a FAIL, never a skip, and
+    never a silent pick. Two shapes, both refused by name:
+
+      * a release dir naming a board the project does not build;
+      * a BARE `v1.0-<date>` in a project that builds two boards — it names no
+        board and more than one is possible.
+
+    RED-VERIFIED 2026-07-27 with the pre-fix `rels[-1]` selector restored
+    (same swap as the test above; `--only=M-REL` -> 4 passed, 2 failed).
+    MEASURED pre-fix rows:
+
+      ghost: `| M-REL | FAIL | boarda-v1.0-2026-01-01 lacks SUPERSEDED.md |`
+             — it graded `ghost-v1.0-…` (the last directory, for a board this
+             project does not build) and on that basis accused the project's
+             only real release of being superseded. A wrong answer stated
+             confidently, which is worse than a skip.
+      bare:  `| M-REL | PASS | v1.0-2026-01-01: provenance + hashes verify |`
+             — a green verdict over a release it could not attribute at all.
+
+    Both dependent gates were equally blind pre-fix: M-BOM `N-A`, A-BODY
+    `N-A`, A-POP failing for an unrelated reason.
+    """
+    d = tmpdir("mrelghost_")
+    _multi_board_project(d, ["boarda"],
+                         ["boarda-v1.0-2026-01-01", "ghost-v1.0-2026-01-02"])
+    run([KPY, POLICY, d, "--skip-drc"])
+    md = (d / "06_build" / "policy_audit.md").read_text()
+    row = [l for l in md.splitlines() if "| M-REL |" in l]
+    check(row and "| M-REL | FAIL" in md,
+          f"M-REL did not FAIL an unattributable release set: {row}")
+    contains(row[0], "ghost", "the failure must NAME the stray directory")
+    # every gate that takes its target from the same resolution must say so —
+    # not fall through to 06_build as though nothing were wrong
+    for cid in ("M-BOM", "A-POP", "A-BODY"):
+        r = [l for l in md.splitlines() if f"| {cid} |" in l]
+        check(r and f"| {cid} | FAIL" in md,
+              f"{cid} kept grading something while the release set was "
+              f"unresolvable: {r}")
+        contains(r[0], "ghost",
+                 f"{cid} failed without naming WHY the release set is "
+                 f"unresolvable")
+
+    e = tmpdir("mrelbare_")
+    _multi_board_project(e, ["boarda", "boardb"], ["v1.0-2026-01-01"])
+    run([KPY, POLICY, e, "--skip-drc"])
+    md2 = (e / "06_build" / "policy_audit.md").read_text()
+    row2 = [l for l in md2.splitlines() if "| M-REL |" in l]
+    check(row2 and "| M-REL | FAIL" in md2,
+          f"a bare release name in a 2-board project passed M-REL: {row2}")
+    contains(row2[0], "NO board", "the failure must say what is missing")
+
+
 @test("M-LEARN FAILS a release with no stage learnings", kind="known_bad")
 def t_learnings_missing():
     d = tmpdir("jrn_")

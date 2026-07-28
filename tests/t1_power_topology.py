@@ -36,7 +36,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harness import (KPY, SCRIPTS, check, contains, main,  # noqa: E402
-                     must_fail, must_pass, run, test, tmpdir)
+                     must_fail, must_pass, not_contains, run, test, tmpdir)
 
 PTOP = SCRIPTS / "power_topology.py"
 
@@ -731,6 +731,77 @@ def t_linear_input_current_model():
     contains(r.out, "0.5 A at Vin_min",
              "sums Iout directly for a linear rail (0.4 A would be the "
              "constant-power answer)")
+
+
+# ================ the FUSE number is a CURRENT, not a part-number substring ===
+#: the exact line crow-recorder-central-v2 ships at ORDER_README.md:7. The true
+#: fuse rating (2 A) is on the same line as two decoys that both end in a digit
+#: followed by 'A'.
+_INCIDENT_README_LINE = ("AO3401A reverse-polarity FET (Q1) + SMAJ5.0A (D1) "
+                         "+ 2A fuse (F_IN).")
+
+
+@test("E-TOPO reads the FUSE rating, not a part number that ends in a digit "
+      "and an A", kind="known_bad")
+def t_fuse_rating_is_not_a_part_number():
+    """MEASURED 2026-07-27: E-TOPO printed
+
+        OVER-BUILT (advisory): fuse rated 3401 A is >2x the derived need 0.7 A
+
+    on crow-recorder-central-v2. NO SUCH FUSE EXISTS. `_first_amps` was
+    `([\\d.]+)\\s*A` with no boundary on either side, so on the shipped
+    ORDER_README line above it matched `AO3401A` — the reverse-polarity FET's
+    part number — as "3401" + "A". The real rating, 2 A, is four tokens later
+    on the SAME LINE, and `SMAJ5.0A` reads as 5.0 A by the identical
+    mechanism. This is the adjacent-property error inside a gate's own output:
+    it measured a substring NEAR the number it needed.
+
+    A gate that prints nonsense trains its reader to skim, which is how real
+    findings get missed — so the assertion is both halves: the true rating is
+    read, AND neither decoy is.
+
+    RED-VERIFIED 2026-07-27 by restoring `_NUM_A = re.compile(r"([\\d.]+)\\s*A",
+    re.I)`: this test reports `fuse rating: 3401 A read out of a part number
+    — got '3401', want '2'`. Restored byte-identical afterwards.
+    """
+    import importlib
+    sys.path.insert(0, str(SCRIPTS))
+    pt = importlib.import_module("power_topology")
+    got = pt._first_amps(_INCIDENT_README_LINE)
+    check(got == 2.0,
+          f"fuse rating: {got} A read out of a part number — got {got!r}, "
+          f"want 2.0, from: {_INCIDENT_README_LINE}")
+    # the decoys, each on its own so the failure names which one leaked
+    check(pt._first_amps("AO3401A reverse-polarity FET (Q1)") is None,
+          "'AO3401A' read as a current")
+    check(pt._first_amps("SMAJ5.0A (D1)") is None, "'SMAJ5.0A' read as a current")
+    check(pt._first_amps("F_IN opens at 2 A") == 2.0, "'2 A' must still read")
+    check(pt._first_amps("PWR_IN 7 A worst case") == 7.0,
+          "a qualified netclass current must still read")
+    check(pt._first_amps("2Ah battery") is None,
+          "'2Ah' is a charge, not a current")
+
+
+@test("the fuse advisory NAMES the file and line its number came from")
+def t_fuse_advisory_names_its_source():
+    """G-INPUT applied to a single number: `fuse rated 3401 A` was
+    unfalsifiable from the output alone — nothing said where 3401 came from,
+    so a reader could only shrug. The line is now quoted back."""
+    d = project(ptree(rail("5V", 11.0, 12.6, 5, 5, 0.2, "LM5116MHX-NOPB")),
+                parts={"LM5116MHX-NOPB": "buck"},
+                nets="classes:\n  PWR_IN:\n    nets: [VIN]\n"
+                     "    current: \"2 A\"\n")
+    (d / "01_docs").mkdir(exist_ok=True)
+    (d / "01_docs" / "ORDER_NOTES.md").write_text(
+        f"# order\n{_INCIDENT_README_LINE}\n")
+    r = etopo(d)
+    contains(r.out, "fuse rated 2 A", "the true rating from the incident line")
+    contains(r.out, "ORDER_NOTES.md",
+             "the advisory must name the file it read the number out of")
+    contains(r.out, "AO3401A",
+             "and quote the LINE, so the reader can check the reading")
+    not_contains(r.out, "fuse rated 3401",
+                 "the part number must not be reported as the rating")
 
 
 if __name__ == "__main__":

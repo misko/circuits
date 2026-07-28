@@ -28,12 +28,21 @@ recorded responses so the suite never makes one.
   forbid caching their content, and the 06_build contract already forbids
   treating a cached stock number as truth at order time.
 - Substituting a part. Naming a near MPN is reporting; choosing one is not.
+- **Re-deriving "the newest release".** `newest_release_boms` imports
+  `jlcpcb-fab/scripts/release_index.py`; it must not sort release directories
+  itself. It did, with `d.name > prev[0]` — a TEXT comparison under which
+  `v1.10-2026-07-27` is older than `v1.9-2026-07-27` — so it would have quoted
+  the SUPERSEDED BOM, and therefore the wrong refdes set and the wrong
+  quantities, while naming it as the newest (usb-hub-3s-v3 reached a
+  double-digit minor 2026-07-27). The same defect had already been fixed in
+  policy_audit and left standing here: canon M-WIDTH, a rule written at the
+  width of its incident rather than its class.
 
 ## Audit
 
 - `gate_contract_audit.py` — G-INPUT / G-COVER / G-RED (`shopping_list.py`
   prints a verdict).
-- `tests/t1_shopping_list.py` — 17 tests, 11 known-bad, hermetic via
+- `tests/t1_shopping_list.py` — 19 tests, 12 known-bad, hermetic via
   `--replay tests/fixtures/shopping_list/mouser/`. Q-WIDE, Q-SNIPPET and
   Q-IDENT are each RED-verified against a neutered checker, with the measured
   pass/fail counts recorded in the suite docstring.

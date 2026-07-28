@@ -824,7 +824,11 @@ wall-clock for no independence gain.
   adversarial fresh-context read of intent-vs-netlist caught it.
 
 - POLICY AUDIT (final gate): `/usr/bin/python3
-  <kicad-pcb skill>/scripts/policy_audit.py <project>` — zero FAIL; any
+  <kicad-pcb skill>/scripts/policy_audit.py <project> [--board <04_kicad
+  stem>]` — **one board per run**: the report header names the board graded,
+  and M-REL / M-BOM / A-POP / A-BODY resolve the release from THAT board's
+  series, never from the last directory in `07_releases/`. On a project that
+  builds several boards, run it once per board with `--board`. Zero FAIL; any
   WAIVED entry evidence-backed in `03_src/rules/policy_waivers.yaml`; the
   HUMAN-graded items (schematic readability S6, decoupling S7, design-math
   S5) carry verdicts from the fresh-context reviews. Includes E-INV and
