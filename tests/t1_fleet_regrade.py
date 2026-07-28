@@ -109,7 +109,31 @@ def t_retires_the_pour_defect():
         audited later. This is the same property the v1.8 NO-POUR row carries.
       * v1.10 must be LIVE, and must PASS F-PAYLOAD **and** F-LEGIBLE. The pour
         has to survive the supersede (the whole risk of touching this board
-        again), and the legibility fix has to be real."""
+        again), and the legibility fix has to be real.
+
+    AMENDED AGAIN 2026-07-27, and this time NOT because a gate found something:
+    **v1.11** superseded v1.10 for a reason no gate in this repo can see. JLC's
+    UPLOADER rejected the v1.10 BOM — "10 shortfall" on C25744, the 10k 0402 at
+    R28/R29 — while `jlc_stock_check` had PASSED that exact line at the v1.10
+    seal reading `stock: 291`. The part was substituted for C60490 (electrically
+    identical, catalog `describe` character-identical) and the copper did not
+    move. So this test now pins THREE rows, and the third one carries the point:
+
+      * v1.10 must now read SUPERSEDED — and must STILL PASS all four gates.
+        This is the discrimination that matters here. A superseded release whose
+        gates still pass is one that was UNORDERABLE, not WRONG, and the regrade
+        has to be able to say the difference. If v1.10's row ever starts FAILING
+        a gate, something retro-touched a sealed directory.
+      * v1.11 must be LIVE and must PASS F-PAYLOAD and F-LEGIBLE. F-PAYLOAD
+        because the pour has now survived TWO supersedes on the board that
+        shipped 44287.91 mm2 of missing copper; F-LEGIBLE because a substituted
+        MPN/LCSC pair that does not resolve is exactly the row JLC leaves at
+        "No Part Selected".
+
+    WHAT THIS TEST STILL CANNOT SEE, stated so nobody mistakes green for safe:
+    every gate passed on v1.10 and it could not be built. Row-level PASS here is
+    a statement about OUR artifacts, not about JLC's willingness to stuff the
+    board."""
     r = run([KPY, TOOL, "--project", "usb-hub-3s-v3"])
     contains(r.out, "v1.8-2026-07-26", "the retired defect is still listed")
     contains(r.out, "NO POUR", "and still named with its reason")
@@ -135,17 +159,30 @@ def t_retires_the_pour_defect():
     v110 = [l for l in r.out.splitlines()
             if "v1.10-2026-07-27" in l and "FAIL F-" not in l]
     check(v110, "v1.10 must appear in the regrade")
-    check("*" not in v110[0][:60],
-          f"v1.10 is the LIVE release and must not read as superseded:"
-          f"\n{v110[0]}")
-    verdicts = verdicts_of(v110[0])
+    check("*" in v110[0][:60],
+          f"v1.10 is SUPERSEDED by v1.11 and must read that way:\n{v110[0]}")
+    v110v = verdicts_of(v110[0])
+    for gid in ("F-PAYLOAD", "F-LEGIBLE", "A-EVID", "A-POP"):
+        check(v110v.get(gid) == "PASS",
+              f"v1.10 was superseded because JLC would not SUPPLY C25744, not "
+              f"because anything was wrong with it — all four gates must STILL "
+              f"pass on it. A gate turning red on a sealed directory means "
+              f"something retro-touched it. {gid}:\n{v110[0]}")
+
+    v111 = [l for l in r.out.splitlines()
+            if "v1.11-2026-07-27" in l and "FAIL F-" not in l]
+    check(v111, "v1.11 must appear in the regrade")
+    check("*" not in v111[0][:60],
+          f"v1.11 is the LIVE release and must not read as superseded:"
+          f"\n{v111[0]}")
+    verdicts = verdicts_of(v111[0])
     check(verdicts.get("F-PAYLOAD") == "PASS",
-          f"v1.10 inherits v1.9's restored pour and must still ship it — this "
-          f"is the board whose v1.6-v1.8 shipped 44287.91 mm2 of missing "
-          f"copper:\n{v110[0]}")
+          f"v1.11 inherits v1.9's restored pour through TWO supersedes and must "
+          f"still ship it — this is the board whose v1.6-v1.8 shipped "
+          f"44287.91 mm2 of missing copper:\n{v111[0]}")
     check(verdicts.get("F-LEGIBLE") == "PASS",
-          f"v1.10 EXISTS to make the BOM legible; if F-LEGIBLE does not pass "
-          f"the release did not do the one thing it was cut for:\n{v110[0]}")
+          f"v1.11 SUBSTITUTES an MPN/LCSC pair; if F-LEGIBLE does not pass, the "
+          f"substituted row is one JLC leaves at 'No Part Selected':\n{v111[0]}")
 
 
 @test("regrade_confirms_the_clean_boards_are_clean")

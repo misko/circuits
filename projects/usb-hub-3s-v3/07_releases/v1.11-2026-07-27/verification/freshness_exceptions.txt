@@ -1,0 +1,64 @@
+# FRESHNESS EXCEPTIONS — v1.11-2026-07-27
+#
+# release_freshness_check.py check (a) flags any file under pdf/ or fab/ that is
+# sha256-IDENTICAL to the same-named file in an EARLIER release, on the rule that
+# "a changed board must not ship an earlier release's generated output". Six files
+# here are identical to v1.10's (and to earlier releases'), and that identity IS
+# THE CLAIM of this release, not an oversight.
+#
+# WHAT V1.11 IS. A single out-of-stock PASSIVE substituted for an electrically
+# identical part. R28/R29's 10k 0402 moves C25744 (UNI-ROYAL 0402WGF1002TCE,
+# basic library) -> C60490 (YAGEO RC0402FR-0710KL, extended). JLC returned
+# "10 shortfall" on that line of the v1.10 upload and the parts API now reports
+# `stockCount: 0` for C25744. It was the ONLY basic-library 10k 0402 in the
+# catalog, so every replacement is an Extended part; the one-time feeder fee is
+# accepted. NO COPPER CHANGE, NO FOOTPRINT CHANGE, NO NETLIST CHANGE.
+#
+# WHY EACH IDENTITY BELOW IS ASSERTED RATHER THAN TOLERATED — all measured, in
+# verification/replot_identity.txt:
+#   * source/usb_hub_3s_v2.kicad_pcb md5 83af8e5a5596a51cf139dd06e8903d47 —
+#     IDENTICAL to v1.10's and to 04_kicad's. One file.
+#   * gerbers + drills RE-PLOTTED from THIS release's own source board come out
+#     15/15 BYTE-IDENTICAL to v1.10's sealed zip after stripping only the plot's
+#     own timestamps. The shipped zip is carried forward because the re-plot
+#     PROVES the board still generates exactly those bytes — a copy-check would
+#     prove nothing, a re-plot proves the board (36 zones / 106 filled_polygon
+#     of pour are inside those bytes).
+#   * fab/cpl.csv byte-identical (cmp, 0 differences, 119 rows). R28/R29 keep the
+#     same package, so no placement, rotation or datum moved.
+#   * the BOM diff is TWO CELLS, parsed as CSV: 46 -> 46 rows, designator list
+#     identical in order, 0 cells changed on any other row, 0 Footprint changes,
+#     0 Comment changes, 0 rows added or removed.
+#
+# NOTE WHAT IS **NOT** LISTED HERE, because it is what makes this a real supersede:
+#   fab/bom.csv                     CHANGED (R28,R29 MPN + LCSC — the whole point)
+#   source/usb_hub_3s_v2.tsx        CHANGED (canon M3: the BOM row moved because
+#                                    the SOURCE moved. A bom.csv that changed
+#                                    without its .tsx would be a HAND-EDITED BOM,
+#                                    the defect crow-mic-pod-v2 paid for on
+#                                    2026-07-27)
+# This is NOT a --docs-only-supersede and must not be gated as one: fab/ changed.
+#
+# WHY THESE ARE FILE WAIVERS AND NOT A GATE MODE — stated rather than left to be
+# discovered. release_freshness_check has four supersede modes and NONE covers a
+# part substitution: --docs-only requires fab/ byte-identical (bom.csv changed);
+# --cpl-only permits only cpl.csv movement; --bom-only permits only ROW REMOVAL;
+# --legible-bom permits only Comment and MPN and explicitly FAILS a changed LCSC,
+# because at v1.10 a changed LCSC could only be the C82317 -> C131025 accident.
+# A DELIBERATE, EVIDENCED substitution is a different animal and the gate cannot
+# yet tell the two apart. The honest thing at this seal is a waiver carrying the
+# measurement; the right thing next is a --substitution-supersede mode that
+# ASSERTS "exactly one BOM row's MPN+LCSC moved, everything else byte-identical,
+# and the new code is evidenced" — an assertion the gate makes beats a waiver a
+# human writes, and this is a class that will recur (C13755 is queued behind it).
+# Filed as a follow-up; deliberately NOT built inside a one-line part swap.
+#
+# format: <relpath>   <reason>
+
+pdf/assembly.pdf   PART-SUBSTITUTION supersede of v1.10-2026-07-27 — identical BY DESIGN. The assembly drawing is a render of the PLACEMENT, and no placement moved: fab/cpl.csv is byte-identical (cmp, 0 differences, 119 rows) and the board .kicad_pcb is md5-identical. R28/R29 keep the same 0402 land, so there is nothing for this drawing to show differently. A CHANGED assembly.pdf here would mean something moved that this release does not claim to have moved.
+pdf/pcb_layers.pdf   PART-SUBSTITUTION supersede of v1.10-2026-07-27 — identical BY DESIGN. This is a render of the COPPER, and the copper is byte-for-byte the same board (md5 83af8e5a5596a51cf139dd06e8903d47, and a re-plot from this release's own source reproduces v1.10's gerbers 15/15). A changed layer plot would be the signature of the v1.6-v1.8 defect class, not of a BOM substitution.
+pdf/schematic.pdf   PART-SUBSTITUTION supersede of v1.10-2026-07-27 — identical BY DESIGN. tscircuit's own schematic render carries refdes, value and connectivity; R28/R29 remain 10k on CC1/CC2 to VBUSC. The LCSC supplier code is NOT drawn on the schematic — verified, not assumed: `grep -c C25744` over both 04_kicad/usb_hub_3s_v2.kicad_sch and the release's source/ copy returns 0, and re-running the bridge converter on the NEW circuit.json reproduces the committed .kicad_sch with 0 differing lines after normalising UUIDs and the title-block date (884 diff lines, all of them the sheet UUID). The schematic genuinely cannot change under this edit.
+fab/cpl.csv   PART-SUBSTITUTION supersede of v1.10-2026-07-27 — identical BY DESIGN, and this is the identity that most needs asserting. The CPL is the assembly datum, and a substitution to a DIFFERENT PACKAGE would move it. C60490 is the same 0402 land as C25744 (JLC componentSpecificationEn "0402" on both records, read live 2026-07-27), so all 119 rows, rotations and coordinates carry forward untouched — including the five A-POL single-channel codes whose JLC order-preview human gate is still owed. A CHANGED cpl.csv would mean the substitution was not a drop-in.
+fab/usb_hub_3s_v2_gerbers.zip   PART-SUBSTITUTION supersede of v1.10-2026-07-27 — identical BY DESIGN. No copper changed. The shipped zip is v1.10's bytes; that it is still the RIGHT payload is proved by RE-PLOTTING from this release's own source board, which reproduces all 13 members byte-identically after the timestamp strip. F-PAYLOAD independently opens this zip and grades it against source/: 5 checks pass, B.Cu/F.Cu/In1.Cu/In2.Cu at 17/87/1/1 G36 regions, all four distinct.
+fab/usb_hub_3s_v2-PTH.drl   PART-SUBSTITUTION supersede of v1.10-2026-07-27 — identical BY DESIGN. No hole moved; R28/R29 are SMD. Re-plotted from this release's own board and byte-identical after stripping the Excellon date header.
+fab/usb_hub_3s_v2-NPTH.drl   PART-SUBSTITUTION supersede of v1.10-2026-07-27 — identical BY DESIGN. Same reason as the PTH drill: no hole moved.

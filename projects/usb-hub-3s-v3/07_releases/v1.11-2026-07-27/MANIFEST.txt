@@ -1,0 +1,329 @@
+MANIFEST — usb-hub-3s-v3 v1.11-2026-07-27
+
+board: usb_hub_3s_v2   130.1 x 92.1 mm, 4 layer
+
+supersedes: v1.10-2026-07-27 — A SINGLE OUT-OF-STOCK PASSIVE SUBSTITUTED FOR AN
+            ELECTRICALLY IDENTICAL PART. NO COPPER CHANGE. v1.10 is NOT wrong
+            and is NOT DO-NOT-ORDER: its board is the board this release ships,
+            and every gate, review verdict and bench number it carries stands
+            unaltered here. It is UNORDERABLE, which is a different thing.
+
+            WHAT WAS WRONG. v1.10's fab/bom.csv was uploaded to JLCPCB and line
+            8 came back "10 shortfall": C25744, the 10 kOhm 0402 on R28/R29 (the
+            USB-C CC1/CC2 Rp pull-ups). JLC's own parts API, re-queried
+            2026-07-27, reports stockCount 0 for that code. C25744 was the ONLY
+            basic-library 10 kOhm 0402 in JLC's catalog, so every replacement is
+            an EXTENDED part; the one-time feeder fee is accepted rather than
+            avoidable.
+
+            THE SWAP. C25744 -> C60490. Both catalog records read live
+            2026-07-27 (selectSmtComponentList, exact componentCode match):
+
+                                 C25744 (out)        C60490 (in)
+              MPN                0402WGF1002TCE      RC0402FR-0710KL
+              brand              UNI-ROYAL           YAGEO
+              stockCount         0                   8 220 334
+              library            base                expand
+              leastPatchNumber   20                  20
+              price @1-999       $0.0020             $0.0058
+              describe           CHARACTER-IDENTICAL on both records:
+                "-55C~+155C 10kOhm 50V 62.5mW Thick Film Resistor +-1%
+                 +-100ppm/C 0402 Chip Resistor - Surface Mount ROHS"
+
+            The two describe strings were compared AS STRINGS and are equal.
+            Same package, value, tolerance, tempco, power and voltage — a true
+            drop-in. The minimum patch step did not move (20 on both).
+
+            CHANGED AT SOURCE, NEVER IN THE CSV (canon M3). The edit is in
+            03_tscircuit/src/usb_hub_3s_v2.tsx, two supplierPartNumbers, and
+            the BOM row is REGENERATED from it by export_jlc_package.py. A
+            bom.csv that moved without its .tsx moving would be a hand-edited
+            BOM — the defect crow-mic-pod-v2 paid for on 2026-07-27, on this
+            same day. source/usb_hub_3s_v2.tsx is therefore in the CHANGED
+            column of the payload table BY DESIGN.
+
+            NEW ARTIFACT: 02_parts/RC0402FR-0710KL/part.yaml, with the VALUE
+            claim carrying its provenance per canon S-VER / M-IMPORT. For a
+            2-terminal passive there is no pin map to derive, so the fact that
+            needs a grade is the VALUE, and it has two independent readings —
+            the MPN decode (RC0402FR-07 + 10KL: 10K = 10 x 10^3, F = +-1%) and
+            the live catalog query above, M-QUOTE grade CITED (machine-readable
+            API response, source and read date recorded in the dossier). Its
+            `asserts: value 10k` block is EXECUTABLE and was RED-VERIFIED at
+            this seal: rewriting the BOM Comment to 22kOhm in a scratch copy
+            makes part_facts_check FAIL naming R28 and R29. 22k is not a random
+            wrong value — it is the USB Type-C 1.5 A Rp, so the assert refuses
+            exactly the substitution that would silently downgrade this port.
+
+            THERE WAS NO 0402WGF1002TCE DOSSIER TO RETIRE. C25744 never had one
+            on this board; it resolved through the vetted passives ledger, which
+            is what that ledger is for. The ledger row stays: it is append-only
+            and eleven sealed releases (v1.0-v1.10 here, plus other boards) still
+            reference the code, and F-MPN must keep resolving it for them.
+            02_parts/0402WGF1603TCE/part.yaml (R42, a DIFFERENT code and value,
+            DNP) cross-referenced C25744 inside its `verified:` note; that
+            MEASUREMENT is left intact and a dated gotcha records that the code
+            moved while the R0402 geometry it cited did not.
+
+WHAT DID NOT CHANGE, MEASURED RATHER THAN ASSERTED
+
+  This board's v1.6-v1.8 shipped 44287.91 mm2 of MISSING COPPER with every gate
+  green, so "the copper is untouched" is the claim on THIS board that most needs
+  a number. And a part substitution is the one BOM edit that CAN reach the
+  copper — a different land pattern would — so footprint identity is measured,
+  not argued from a datasheet.
+
+  board md5      83af8e5a5596a51cf139dd06e8903d47 — IDENTICAL across 04_kicad/,
+                 v1.10/source/ and v1.11/source/. One file. Re-measured AFTER
+                 `kicad-cli pcb drc --refill-zones` ran on it: unchanged
+                 (--refill-zones refills IN MEMORY; it must not, and did not,
+                 write).
+  re-plot        15/15 gerber+drill artifacts BYTE-IDENTICAL to v1.10's SEALED
+                 zip after stripping only the plot's own timestamps (13 zip
+                 members + 2 loose drills, 0 differ). A copy-check would prove
+                 nothing; this RE-PLOTS FROM THE BOARD, pour and all.
+  fab/cpl.csv    BYTE-IDENTICAL (cmp, 0 differences, 119 rows) — every A-ROT
+                 rotation and A-POS coordinate carried forward untouched,
+                 including the five A-POL single-channel codes whose JLC
+                 order-preview human gate is still owed.
+  fab/bom.csv    46 -> 46 rows; designator list IDENTICAL IN ORDER; exactly TWO
+                 cells changed, both on the row "R28,R29" (MPN, LCSC); 0 cells
+                 changed on any other row; 0 Footprint changes; 0 Comment
+                 changes; 0 rows added or removed. Parsed as CSV, not diffed as
+                 text.
+  payload        20 of 22 files sha256-identical. The 2 that differ are
+                 fab/bom.csv and source/usb_hub_3s_v2.tsx.
+  schematic      CANNOT change under this edit, and that is verified rather than
+                 assumed: the LCSC code appears NOWHERE in the .kicad_sch
+                 (grep count 0, both 04_kicad's and the release copy), and
+                 re-running the bridge converter on the NEW circuit.json
+                 reproduces the committed sheet with 0 differing lines after
+                 normalising UUIDs and the title-block date. The converter emits
+                 fresh UUIDs every run, so the sheet is nondeterministic by
+                 construction and was compared structurally, not by hash.
+  circuit.json   REGENERATED by `tsci build` from the edited tsx. Diffed
+                 element-by-element against the committed v1.10 build: 3604
+                 non-warning elements, exactly 3 substantive deltas — R28's and
+                 R29's supplier_part_numbers, and source_filesystem_md5_hash
+                 (which changed because the tsx did). The trailing warning
+                 elements carry random ids and an unstable order; a control
+                 rebuild of the UNEDITED tsx reproduces the same 16-element
+                 churn, so it is the generator's nondeterminism and not this
+                 change.
+  DRC            0 violations / 0 unconnected / 0 parity, re-run on THIS
+                 release's own source board at --severity-all --refill-zones
+                 --schematic-parity
+  ERC            0 errors, 221 warnings (all lib_symbol_issues, the same 221)
+
+GATES
+
+DRC:            0 violations / 0 unconnected / 0 schematic-parity  [drc.json]
+                (kicad-cli pcb drc --severity-all --refill-zones
+                 --schematic-parity, the authoritative .kicad_sch beside the
+                 board so the parity leg actually RUNS)
+ERC:            0 errors, 221 warnings — all lib_symbol_issues, the baselined
+                parametric class (the embedded lib is not in the running
+                kicad-cli config). Identical to v1.10's 221  [erc.json]
+audit_board:    AUDIT PASS — 21 polarity, 19 proximity, 4 edge, 129 silk
+                [audit.txt]
+policy_audit:   FAIL=0  [policy_audit.md] — run with --board usb-hub-3s-v2, the
+                selector added 2026-07-27 after rels[-1] graded the wrong
+                board's release on a sibling project
+rules_audit:    PASS — 0 fails, 32 checks; A-AMP coverage 10/10; A-ORDER
+                generate_rules runs last before the DRC gate  [rules_audit.txt]
+F-PAYLOAD:      OK — 5 checks passed, on the SHIPPED zip: F-POUR B.Cu/F.Cu/
+                In1.Cu/In2.Cu = 17/87/1/1 G36 regions, all four copper gerbers
+                distinct  [fab_payload_census.txt]
+A-ROT:          119/119 CPL rotations sourced from MEASURED per-LCSC rows. The
+                substituted code needed no new row: R_0402_1005Metric MEASURES
+                as its own 180-degree reflection (jlc_footprint_symmetry), the
+                one exemption, which reads no names and no tables
+A-POS datum:    119 rows graded, worst residual 0.00050 mm (Q6), tol 0.05 mm
+A-POP:          PASS — 122 BOM refdes = 119 CPL placements + 3 not_assembled;
+                0 blank-LCSC rows; {BOM}-{CPL} == assembly.yaml exactly.
+                ORDERING DEPENDENCY (v1.9 RR-1): assembly_coverage's
+                MANIFEST-UNDECLARED leg grades THIS file, so the archived
+                assembly_coverage.txt is the RE-RUN taken AFTER the stamp
+A-STOCK:        PASS — verdict parsed from stock_check.json, 46/46 coded lines,
+                0 problem lines, 0 uncoded. C60490 reads stock 8 217 745,
+                library expand. **READ THE CAVEAT BELOW BEFORE BELIEVING IT.**
+M-BOM:          bom_source_check PASS (46 lines, 0 without LCSC) — fab BOM
+                LCSC == source per refdes; leg C 25/26 R/C rows value-graded,
+                UNCHANGED from v1.10. The 1 gap is still C1/C2, whose BOM label
+                (KNM2100UF35V149EC0055) is a part number and not a value.
+                Reported, not a failure  [bom_source_check.txt]
+F-LEGIBLE:      OK — 46/46 coded rows resolve an MPN against the authority (now
+                30 dossiers + 144 vetted ledger codes), 46/46 Comments
+                human-readable, UTF-8 byte-order-mark present. Row 7 resolves
+                C60490 = RC0402FR-0710KL from 02_parts/RC0402FR-0710KL
+                [bom_legibility.txt]
+F-ECHO:         HUMAN GATE, NOT YET PERFORMED — 46 coded lines to confirm
+                against JLC's own resolved table after upload. Worklist:
+                verification/bom_echo_gate.txt. It matters MORE on this release,
+                not less: we have just changed a code by hand-authored intent,
+                and JLC redirecting a code is exactly the class F-ECHO exists
+                for (C82317 -> C131025 on a sibling board)
+P-FACT:         1 violated part fact, UNCHANGED from v1.10 and NOT introduced
+                here: KT-0805Y/D8 pad 1 sits on 'LEDPKK' while the dossier
+                asserts pad 1 negative. It is carried, adjudicated and open —
+                see v1.10's gate_adjudications_v1.9.md. THIS RELEASE ADDS THE
+                9TH GRADED ASSERT (RC0402FR-0710KL value 10k) AND IT PASSES;
+                the count moved 8 -> 9 and the failure count did not move
+                [part_facts.txt]
+freshness:      PASS with SEVEN documented exceptions, each carrying its
+                measurement — verification/freshness_exceptions.txt. This is
+                weaker than v1.10, which was gated by an ASSERTION rather than
+                waivers, and the file says why: none of the four supersede modes
+                covers a part substitution (--legible-bom explicitly FAILS a
+                changed LCSC, because when it was written a changed LCSC could
+                only be the C82317 accident). A --substitution-supersede mode is
+                filed as a follow-up and deliberately NOT built inside a
+                one-line part swap
+
+THE ONE GATE VERDICT IN THIS FILE YOU SHOULD NOT TRUST AT FACE VALUE
+
+  A-STOCK says PASS on C60490. A-STOCK ALSO SAID PASS ON C25744 AT v1.10, hours
+  before JLC refused that line. v1.10's own sealed evidence reads:
+
+      {"lcsc": "C25744", "designators": "R28,R29", "qty": 2,
+       "status": "OK", "stock": 291, "type": "base", ...}
+
+  291 >= 5 x 2, so the rule was satisfied and the verdict was PASS. The number
+  the gate reads is `stockCount` — LCSC's CATALOG stock — and it is NOT the
+  quantity JLC's assembly uploader will commit against an order. The same gate
+  reports C13755 (LM5116, U2/U11) at stock 7275 / OK today while JLC's assembly
+  side has 0 and wants a Pre-order.
+
+  So: a FAIL from this gate is real. A PASS is NECESSARY AND NOT SUFFICIENT.
+  C60490's 8.2 M is two to four orders of magnitude above the 291 that failed,
+  which materially reduces the risk without eliminating the class. Making the
+  gate read the assembly-side figure is a SEPARATE change; it is named here
+  rather than quietly folded into a part swap.
+
+STILL OPEN, UNCHANGED BY THIS RELEASE — none of these is fixed here
+
+  U11 / U2  C13755 (LM5116): catalog 7275 but JLC ASSEMBLY stock 0, so the line
+            needs Pre-order or consignment. No substitute — it is the core of
+            the buck stage.
+  U3/U4/U5, Q1/Q6, Q2-Q5: the same leastPatchNumber 0 signature as C13755,
+            suspected same behaviour, UNCONFIRMED.
+  J5        C5337088: showed 0 at the v1.10 upload; catalog now 104.
+  R42 / F1 / SW1 absent from the CPL: DELIBERATE, declared in
+            03_src/rules/assembly.yaml, not a defect.
+  F1 possibly moving onto the CPL now that THT assembly is bought: a BOARD
+            change, deferred — it would void the review verdicts this release
+            carries forward.
+  The A-POL single-channel JLC order-preview human gate (C130056, C13755,
+            C473910, C7519, C98732) and the In1_Cu / In2_Cu gerber-viewer check
+            stand exactly as v1.10 left them.
+
+population:     122 BOM parts = 119 CPL placements + 3 not_assembled
+not_assembled:  F1, R42, SW1   (GENERATED from 03_src/rules/assembly.yaml)
+through_hole:   ORDERED — J1, J2, J3, J4, J5 (4 refdes / 22 plated holes + J5 hybrid)
+stackup:        NOT DECLARED IN THE BOARD FILE — unchanged from v1.10. ASSUMED
+                AND TO BE ORDERED: JLC 4-layer 1.6 mm STANDARD, 1 oz outer /
+                0.5 oz inner. Binds via ORDER_README section 1b as an ORDER-FORM
+                OBLIGATION, since the gerbers do not carry it
+fiducials:      3 (FID1-FID3, board-only, BOM- and CPL-excluded)
+consigned:      none
+msl:            no consigned part and no exposed-pad part requiring a stated
+                moisture obligation beyond JLC's standard handling
+
+REVIEWS
+
+  NOT RE-RUN, AND THAT IS THE POINT. This release makes no material change: the
+  board is byte-identical, the netlist is untouched, and the substituted part is
+  the same package, value, tolerance and rating. The v1.0/v1.3/v1.4/v1.5/v1.8/
+  v1.9 review artifacts are carried forward unaltered in verification/ and their
+  verdicts stand. A re-review would be graded against an identical artifact.
+
+  The ONE thing a reviewer would look at that IS new is the substitution itself,
+  and it is checked by three independent things rather than by a fresh lens: the
+  catalog `describe` string equality (JLC's own record, not ours), the executable
+  `asserts: value 10k` in the new dossier (RED-verified at this seal), and the
+  cell-level BOM diff.
+
+3d:             step present, gltf absent (no glTF exporter for this board;
+                absence noted here as the contract requires)
+
+git_sha:      GIT_SHA_PLACEHOLDER       # source commit S; stamped pre-seal per the 2-commit seal
+git_dirty:    false          # scope: projects/usb-hub-3s-v3/ + skills/ (release_git_dirty.py)
+
+sha256:  # EVERY file in the release; MANIFEST.txt is the one exclusion
+         # layout is sha256sum's own: `<hash>  <path>`
+
+0f4f82644d4afc906f4976a7af6067b0857b2dad18932a9cb136cf3e99ef087a  3d/usb_hub_3s_v2.step
+97afb40f22650abfd1befba11a019417f01df6c14576fd5e27075dbd5bbca99b  ORDER_README.md
+1dfc50426d09cb6a76e7a5970d4035b36633d6f2b8a314838df9136563038963  fab/bom.csv
+68ac8441f79276b66c04edd552711dcd2c971ae40e0d585427cbe598ba296d50  fab/cpl.csv
+5b02a3ee26fb5ebb65d61fad4f1c23b4f109ed5060b414c3120be381ceb57efd  fab/usb_hub_3s_v2-NPTH.drl
+74791ec08bc780d25456e166c874c5c3bf190bb1133aa3c647f2d561933b9f2f  fab/usb_hub_3s_v2-PTH.drl
+de66c866956bedca1d8ab0d049d5e147bb4e140b85bc8ed5e4cdbb5909fe28cd  fab/usb_hub_3s_v2_gerbers.zip
+ccc4376519526f1b56201a6a04b8993cab9cf37f6e3a0883afa96e94013ba7e4  pdf/assembly.pdf
+24eb5f9af5cfc74fb6f7d64484305d85748c2870e0156f7dedebceaca7586728  pdf/pcb_layers.pdf
+db01cea80d1af9d2309a5494f9b07274188346529f1077323bed782c21fee61d  pdf/schematic.pdf
+ba1ddd9b282a632e79b1d5c9a885467838c970013919637164806c98ac7d5cf3  rotation_human_gate.txt
+4fb72085bfef7740b599059cbb2d03d44e8c9bf26688150809c6f3965db52d0b  source/Button_Switch_THT.pretty/SW_Slide_1P2T_CK-12D07.kicad_mod
+4ff93367ca8f1d9e071f7ab0edc109ab4e3d6098695a6c3c7064d69d672515dc  source/fp-lib-table
+9ec04bfc9cb3a6bd46b4a83fcb755df367c87c5a45c229f10228b0290742cf0e  source/usb_hub_3s.pretty/KH-AF90DIP-112_Horizontal.kicad_mod
+c4713b4feda0c78c326ea1eab79963c4189602f14052d5063644839de08c6761  source/usb_hub_3s.pretty/L_YJYCOIN_YSPI1770Y.kicad_mod
+7abf754670b187036e51a32c923f55e37cfa4a797ac4421af838e242fa40a3a3  source/usb_hub_3s.pretty/PowerPAK_SO-8_Single_Paste65.kicad_mod
+544d1589cf635e9c812c843e731f4d836c047f13cb982187d3ffc6edab444922  source/usb_hub_3s.pretty/TYPE-C-31-M-12_EdgeTrim.kicad_mod
+f4e2f40f3f169033ae880a684f82a162bce4d10ae47529c36edb3ca517a80103  source/usb_hub_3s.pretty/XT60PW-M_EdgeTrim.kicad_mod
+8b91fcaa4d434b988d5e0725fc04fe8846d943c5b0a60dce67453b05ead6bd7f  source/usb_hub_3s_v2.kicad_dru
+c0b40aa102bee3b1951dc6ac3ff5e2606a96b529fcff4f8bb7b5c5072bf1242f  source/usb_hub_3s_v2.kicad_pcb
+7963fbc396bbb950a6b1e430029cc890d66cf966983a3011c672020973c00eed  source/usb_hub_3s_v2.kicad_pro
+f007c55a3fe0a64efb6b864ffc3c83b693fd2ef57d8d5bd500ede30e60f664b2  source/usb_hub_3s_v2.kicad_sch
+0ebdba192de66f02256c734c4cabf01b4cd39df6dd34c3a21e2c6ed73219d6b9  source/usb_hub_3s_v2.net
+01cbff1ae8406328ebbd78112b722ac1737460d40674d3703add8d9f39ca165b  source/usb_hub_3s_v2.tsx
+4b2d5d18a45ddbf60ee5c2e1a68f28473dc80320471a72da771a37132ac12190  verification/2026-07-22_v1.0_redteam_layout.md
+4b869a433becd94c62319dfdb76313db6e0dad94fa591ea96c37b4dc2c6ab3f8  verification/2026-07-22_v1.0_redteam_topology_rereview.md
+857cb4224d8ce795cbac837a6cce8b0dbbe51fbe6d45dbb18ef33ef14bec26be  verification/2026-07-23_v1.3_redteam_fresh-lens.md
+a3f4715d8bd4ddcaba2737170641f2b5517dbb68c340d0cbd90b2343c8df062c  verification/2026-07-25_v1.4_pcba-audit_assembly.md
+1af2b48deba8c89cd248a3c0c0ac03c349dcc4447e2eaa2540fe846247dc441f  verification/2026-07-25_v1.5_fresh-lens_staged.md
+0eb00cd344946ef0b60d27f5060569aad312080bb7ee59404b49a1942638bba7  verification/2026-07-25_v1.5_redteam_layout.md
+f9fd4bca2cf179757bd0b21aa8600315e1971e10a95490fe59b7a8714b15055a  verification/2026-07-26_v1.8_pin-review.md
+9ded6fb4aedf78784a8d025e12e219ffd1b195be1cc110cc1705d80566f98d0f  verification/2026-07-26_v1.8_render-review.md
+b3b6db66a7d73169e8c9039f61d2c7ddf33ef5d36c0b6ddeae1fbaef0cbb4a7d  verification/2026-07-27_v1.9_pin-review.md
+227ae87569199594088b5a180731247396305e01cb9b02de9cb6760e88929d64  verification/2026-07-27_v1.9_redteam_fix-lens.md
+550db0efe6cd76f0b5aa76ce93b43e406d988a4bca2ba78a0043c03a9971ed05  verification/2026-07-27_v1.9_render-review.md
+c09285f133f212a2ed5de6cd23c5d3a1e165f02bde46712630c0738a306c827f  verification/DETAIL_DESIGN.md
+8db23e118e0e52bc826ae05b8ab67cbd0b891e5bd2147ab25f00aeb4e7f79424  verification/assembly.yaml
+f6a9d674542405f222c3f3838461b53dd3bfd2602a0ae4e70ff91d09c169c0cd  verification/assembly_coverage.txt
+120a5ebed5178f9ab2c561819c59ee118964b756254de81fd4b6cb3c6002db01  verification/audit.txt
+e6530ea2a444b48568870decc50fd7f13353933908c1f20edaf68a95b10afb60  verification/bom_echo_gate.txt
+da3b70f398587617a6c6eb642182b0b0ef4ebc199094cc77e1a10f0cfdedf000  verification/bom_legibility.txt
+7957a445b364bafca760b9b7788a223381cc47dbe75293c075e53e30985f8322  verification/bom_source_check.txt
+6a4e01c19818bbfe5528f046856b8d28a67ff1d629e674515d4b65f7826a0665  verification/copper_restoration_proof.md
+c044c3bfead24849412b479182506f5a7ede26cd6b293b61ab8eff4d7bf8e671  verification/cpl_acceptance_gate.md
+a2303c066320c697fdf1f2dad0b12dad62797dcb0fbeb8a5ccf4bd39f9b1fed5  verification/drc.json
+5cc89c88efd918b3e55f6356b21417db1144fd60b41d75338d7125ddad9447d0  verification/erc.json
+7a8c4ec328ae94f673f6a3740ffe0bb21c4eaa8063db6b873af99bcc830f9e97  verification/freshness_exceptions.txt
+10bfc30552221588838bf23d298cf9391e3d8e3eb66ba7b0e3910dbb9d0e8916  verification/gate_adjudications_v1.9.md
+a149252f97bf35185a190c6096f12f1e1ba63990ce7ccfa80fd02df2326a7477  verification/missing_models.txt
+25bd52c8855c5db3fcaacd060923d5594daab8e033e6a55a51fa5699b1d3dec6  verification/nets.yaml
+1d6504dfac691ef1b0f747ff4f52e8bdb44b7db16c0adf878083e3b5a55c52b2  verification/parity.md
+8a0bf1aab0f014e983191a9757927613b2abcca5c1c24566f914cbfe2b81971c  verification/part_facts.txt
+9321995bf15e8fb53c425a6d75e097f8461f2c5736e150fe0b38f7f6799e78e0  verification/pin_review.md
+73be730a5a5455ceded1296d24be192bc10a807a5fb885e4d6caca47e68d1b41  verification/policy_audit.md
+28986c1b3c185af9b1442d95b184dca0b53bf3df2a3084a24b44f1e5ac63c570  verification/power_tree.yaml
+766c346b55f62610d7cdc1e7cb07006b389a87aba7f75abb84eb8465c02ef8b5  verification/redteam_layout.md
+6066f93fd5380d9c0a6c353490ae76a149d126b921f627ad7d03648cdabe2273  verification/redteam_topology.md
+7789179ccc97b69cd6b58cf67064057f0561120afeca180a6531900d0338868e  verification/release_freshness.txt
+0b4fb86011294c8bc2d0be9634e66a414e02e979e102a68b94107e452d16f543  verification/render_bottom_bare.png
+1de7d82bf7cbe9c56c1b7990cd1df1d814b038fb50d3c43b0760a2d99ad71c64  verification/render_review.md
+b6ee4bbe3e89bcf62f96405d79cd7d5743021cda2e31593a9362ac837850ed7e  verification/render_top_bare.png
+514c762df8e92dfc4f468ce0a691f522f77a84a09809b05cb1e46d490b6c1a9d  verification/replot_identity.txt
+9003f21d29f25655d88dba969f254bb9778ade8f392867b45e75a0a275d86181  verification/rules_audit.txt
+36c82c88b6cd348981a3ab7f1bbc5287901ecac6b214630091dbb9b82274937f  verification/stock_check.json
+418f88a0580c2f66a5f149b8e7477f5597fa4bf2811359c834a46446826b4b17  verification/stock_check.txt
+ca3b25c9ccb6057ed806b7bd3009050faef160d9af661c8d203b54929c5e978b  verification/twin_adjudications.yaml
+8711d236037fa65673a814fb329da4a68e664e2488393c916e2e39e971f9393a  verification/twin_bottom.png
+086f8226e853a11688839d0633526f2e3bf9ddaf7f2f7c08c92af7256fdedadf  verification/twin_edge_east.png
+948abe20f8939f63984c55452e92f8c5f9c8fed5a8c1199a75f35480c1b17415  verification/twin_edge_west.png
+ead48e80a3afd07a8c1e1e2a81b3cea7a45a1f798861350954adb9b5c695a78f  verification/twin_iso_nw.png
+69983c56fbf2d3e863806e86c720aef4bdcf96efac617357befaba395687716f  verification/twin_iso_se.png
+46424b5df44031dd70786c4b5c4d432c75a07929234955741dc6ff565acbed35  verification/twin_overlay_bottom.txt
+46ff02833128fb54f9b174675128c532ed38ba8d21a6f633bee8f2c5256519d1  verification/twin_overlay_top.md
+88398990621d2bb56494768ebf4d4dc1517584b1a2fb430c2a5937b001b7f2d7  verification/twin_report.csv
+860e953fe1cbeecd1cf7ec7603f7925528e5203b764396978d7af992eecb1402  verification/twin_top.png

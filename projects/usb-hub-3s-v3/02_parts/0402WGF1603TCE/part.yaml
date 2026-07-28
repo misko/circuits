@@ -43,6 +43,15 @@ gotchas:
   - "qty 1/board (R42), unpopulated. 0402 is deliberate: it fits beside R12 without
      disturbing the buck-C feedback cluster, which is already the roll-fragile
      escape on this board."
+  - "CROSS-REFERENCE UPDATE, v1.11 2026-07-27 — the `verified:` note below cites
+     'the other 0402 on this board (C25744, R28/R29)'. That MEASUREMENT stands
+     exactly as written and is not being rewritten: it was made on 2026-07-25
+     against JLC's R0402 land, which is the same land C25744 and its replacement
+     both use. What changed is the CODE, not the geometry: R28/R29 are C60490
+     (YAGEO RC0402FR-0710KL) from v1.11 onward because C25744 went to stockCount 0
+     and JLC returned '10 shortfall' on the v1.10 upload. See
+     02_parts/RC0402FR-0710KL/part.yaml. R42 (this part, C25757) is UNAFFECTED —
+     it is a different code, different value, and it is DNP anyway."
 verified: "2-pad passive, non-polarized, standard IPC-7351 0402 land. Value
   confirmed from the LCSC catalog page AND from the MPN decode (1603 = 160k), two
   independent readings, 2026-07-25. Land cross-checked against JLC's own R0402

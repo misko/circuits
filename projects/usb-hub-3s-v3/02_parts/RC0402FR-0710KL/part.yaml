@@ -1,0 +1,65 @@
+mpn: RC0402FR-0710KL
+manufacturer: YAGEO
+type: resistor_thickfilm   # R28/R29 = the USB-C CC1/CC2 Rp pull-ups to VBUSC
+datasheet: {doc_id: RC-series (RC0402), revision: series/LCSC, url: "https://www.lcsc.com/product-detail/C60490.html", sha256: null, fetched: 2026-07-27}
+package: "0402 (1005 metric)"
+footprint: Resistor_SMD:R_0402_1005Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-27}
+pins: {1: A, 2: B}
+limits: {R: "10k ohm", tol: "F +-1%", tcr: "+-100ppm/C", power: "62.5mW (0402)", vmax: "50V", temp: "-55C..+155C"}
+asserts:
+  - {assert: value, equals: 10k, tolerance_pct: 1,
+     why: "10k on CC1/CC2 IS the USB-C Rp advertisement. USB Type-C R2.0 Table 4-24:
+       Rp to 5V = 56k for Default USB, 22k for 1.5A, 10k for 3.0A. A substituted
+       22k would silently re-advertise this port as 1.5A; a 56k would advertise
+       500mA/900mA. Nothing electrical fails and no gate downstream of the BOM can
+       see it — the sink simply draws less than the board can deliver."}
+gotchas:
+  - "THIS ENTRY EXISTS BECAUSE THE PART IT REPLACES WENT TO ZERO. v1.0-v1.10 shipped
+     R28/R29 as C25744 (UNI-ROYAL 0402WGF1002TCE, BASIC library). On 2026-07-27 the
+     user's v1.10 BOM upload came back '10 shortfall' on that line, and the JLC parts
+     API confirms `stockCount: 0`. C25744 was the ONLY basic-library 10k 0402 in the
+     catalog, so EVERY replacement is an Extended part and costs the one-time feeder
+     fee. That fee is accepted (ADR/CHANGELOG v1.11); the alternative is a board that
+     cannot be assembled."
+  - "DROP-IN, AND THE CLAIM IS CHECKABLE RATHER THAN ASSERTED: JLC's catalog
+     `describe` string for C60490 is CHARACTER-IDENTICAL to C25744's ---
+     `-55C~+155C 10kOhm 50V 62.5mW Thick Film Resistor +-1% +-100ppm/C 0402 Chip
+     Resistor - Surface Mount ROHS` (both read live 2026-07-27, compared as strings,
+     equal). Same package, value, tolerance, tempco, power and voltage. No copper,
+     footprint, netlist or CPL change: the v1.11 board .kicad_pcb is md5-identical to
+     v1.10's, 83af8e5a5596a51cf139dd06e8903d47."
+  - "EXTENDED-TIER, so the ORDER-DAY STOCK RECHECK IS NOT OPTIONAL on this line the
+     way it was for a basic part. It is also the reason the line now needs a feeder:
+     `componentLibraryType: expand`. `leastPatchNumber` is 20 --- the SAME as C25744's
+     --- so the minimum-order step did not move."
+  - "qty 2/board (R28, R29). No alternate is coded: the whole point of this entry is
+     that the alternate WAS the basic part and it is gone. If C60490 also runs dry,
+     any 10k +-1% 0402 with stock is electrically equivalent --- but bake the code in
+     the tsx and re-verify the catalog `describe`, do not let the fab exporter
+     value-resolve it (that mechanism shipped R12 as C2933210 and R30 as C2933195,
+     both catalog-wrong, on this same board)."
+verified: "2-pad passive, non-polarized, standard IPC-7351 0402 land --- there is no
+  pin map to derive, so S-VER's figure citation does not apply and the fact that
+  needs provenance is the VALUE. Two independent readings, both 2026-07-27:
+  (1) MPN DECODE --- Yageo RC series, `RC0402FR-07` prefix + `10KL`: the E96/E24
+  code 10K = 10 x 10^3 = 10 kOhm, `F` = +-1% tolerance, `07` = taping/packaging.
+  (2) LIVE JLC CATALOG QUERY --- POST
+  https://jlcpcb.com/api/overseas-pcb-order/v1/shoppingCart/smtGood/selectSmtComponentList
+  keyword C60490, exact componentCode match, read 2026-07-27: componentModelEn
+  `RC0402FR-0710KL`, componentBrandEn `YAGEO`, componentSpecificationEn `0402`,
+  describe `-55C~+155C 10kOhm 50V 62.5mW Thick Film Resistor +-1% +-100ppm/C 0402
+  Chip Resistor - Surface Mount ROHS`. M-QUOTE grade: CITED (machine-readable API
+  response, source + read date recorded here). The land pattern is the same
+  Resistor_SMD:R_0402_1005Metric this board already uses for its other 0402s, and
+  jlc_twin re-measures JLC's own R0402 geometry against it at export time --- an
+  independent method (canon M1), not this note."
+sourcing:
+  lcsc: C60490
+  alternates: []
+  note: "JLCPCB EXTENDED library (`componentLibraryType: expand`). Catalog stock
+    8,220,334 and unit price $0.0058/ea @1-999 read 2026-07-27 --- a VOLATILE fact
+    recorded here only as the sourcing rationale for the swap, never as a gate input
+    (02_parts/contracts.md forbids stock fields; the live number belongs in
+    06_build/cache/ and in the release's stock_check.json). REPLACES C25744
+    (0402WGF1002TCE), which read stockCount 0 on the same day."
