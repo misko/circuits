@@ -72,3 +72,27 @@ mrepro_method_trap: a `.kicad_pcb` copied to a scratch dir WITHOUT its `.kicad_p
 - next: adjudicate the keying option against that measurement (a NARROWER non-mating
   connector is the only one that lands without a repack), verify JLC stock for the
   candidates, then write ADRs before touching the tsx.
+
+## 2026-07-28 — handoff (PLANNED, at the declared routing-gate boundary)
+- did: took the v1.7 electrical revision from source through DRC 0/0/0, then ran the
+  fab export once to find out exactly what the release stage still owes.
+- result: **DRC --severity-all --refill-zones --schematic-parity = 0/0/0.**
+  export_jlc_package exits **A-ROT BLOCKED on exactly ONE placement** — `C485354`
+  (J_MODE, the new JST ZH header) has no MEASURED row in the fleet authority table
+  `skills/jlcpcb-fab/scripts/jlc_lcsc_rotations.csv`; every other placement on the
+  board resolves from an existing measured row. The row IS measured (offset 180,
+  two-channel, CPL 270) and is saved verbatim in
+  `06_build/verify/arot_C485354_measured_row.txt` together with its raw four-angle
+  channels and the PIN-1-MARK dissent. THIS AGENT WAS INSTRUCTED NOT TO EDIT
+  `skills/`, so the row is REPORTED rather than applied — it is the single
+  mechanical step between this tree and a fab package.
+  Also emitted by the export and unchanged from v1.6: A-POL SINGLE-CHANNEL on 10
+  codes (order-preview human gate), and the three advisory ROT-XCHECK notes.
+- next (for the successor, in order): (1) land the C485354 row; (2) re-run
+  export_jlc_package -> bom_source_check / bom_legibility (F-LEGIBLE) /
+  jlc_stock_check / jlc_twin + twin_overlay (A-RENDER) / part_facts_check;
+  (3) A-POP/A-POS/A-ROT/A-BODY; (4) policy_audit --board cooksense (E-TOPO stays
+  the one FAIL, deliberate); (5) scoped review lenses per canon "Verification
+  scoping" — this is a MATERIAL design change, so BOTH red-team lenses plus a pin
+  review of the changed parts; (6) seal cooksense-v1.7 + SUPERSEDED.md on v1.6 +
+  CHANGELOG entry + beacon refresh + status_beacon_check.
