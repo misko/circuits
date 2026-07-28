@@ -470,7 +470,7 @@ missing; freshness **PASS in `--docs-only-supersede` mode with zero exceptions**
 
 ## cooksense-v1.7 — **ATTEMPTED 2026-07-28, NOT SEALED. BLOCKED ON TWO CONFIRMED P0s.**
 
-**THERE IS NO v1.7 RELEASE.** `07_releases/cooksense-v1.7-2026-07-28/` exists as
+**THERE IS NO v1.7 RELEASE.** `06_build/tmp/cooksense-v1.7-BLOCKED-2026-07-28/` exists as
 **MUTABLE STAGING** and is deliberately **not committed**. The live sealed
 release is still `cooksense-v1.6-2026-07-27`, its fab set is unchanged, and v1.6
 therefore carries **no `SUPERSEDED.md`** — nothing supersedes it yet.

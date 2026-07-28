@@ -177,7 +177,7 @@ authority, so the next reader does not have to trust a comment.
 
 Four lenses ran CONCURRENTLY against the pre-seal staging archive with curated
 independent input. Full ledger with the lead's own re-derivation of every
-finding: `07_releases/cooksense-v1.7-2026-07-28/verification/dispositions.md`.
+finding: `06_build/tmp/cooksense-v1.7-BLOCKED-2026-07-28/verification/dispositions.md`.
 
 | lens | file | verdict |
 |---|---|---|
