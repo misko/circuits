@@ -1,0 +1,4 @@
+(version 1)
+(rule "KEYPAD_ISO_width"
+  (condition "A.NetClass == 'KEYPAD_ISO'")
+  (constraint track_width (min 0.4mm)))

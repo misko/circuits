@@ -1,0 +1,7 @@
+$ release_freshness_check.py interposer-v1.1-2026-07-27
+exit 0
+
+== release-freshness: interposer-v1.1-2026-07-27 ==
+  note: pdf/schematic.pdf identical to interposer-v1.0-2026-07-24/pdf/schematic.pdf — WAIVED (reason: THE SCHEMATIC IS UNCHANGED, measured on the shipped bytes of both releases: source/interposer.tsx md5 27dc390b502cd1942cbc9ec2e714833e IDENTICAL to v1.0's, source/interposer.kicad_sch md5 7def3f18fa213a65bfd3981bc733e8be IDENTICAL to v1.0's, and source/interposer.net is node-for-node identical (2224 normalized lines, 0 differing, after suppressing only the (date/(tool headers and the one absolute (source path line) - see verification/parity.md. This PDF is tscircuit's OWN render of that unchanged .tsx (ADR-0002), so an identical hash is the CORRECT output, not a stale carry-over. v1.1 changes the ASSEMBLY PAYLOAD and one silk glyph; pdf/pcb_layers.pdf and pdf/assembly.pdf DID change and are not excepted.)
+  note: A-STOCK: grading verification/stock_check.json (1 graded line(s), verdict=PASS) against 1 coded+placed BOM line(s) x 5 boards
+FRESHNESS: PASS

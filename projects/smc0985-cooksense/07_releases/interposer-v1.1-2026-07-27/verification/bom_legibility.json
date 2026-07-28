@@ -1,0 +1,16 @@
+{
+  "bom": "/home/mouse9911/gits/circuits/.claude/worktrees/agent-a4c47c31240616a22/projects/smc0985-cooksense/07_releases/interposer-v1.1-2026-07-27/fab/bom.csv",
+  "authority": "38 code(s) from /home/mouse9911/gits/circuits/.claude/worktrees/agent-a4c47c31240616a22/projects/smc0985-cooksense/02_parts + 144 from the vetted passives ledger",
+  "fails": [],
+  "oks": [
+    "F-ENCODE bom.csv: UTF-8 byte-order-mark present \u2014 the reader is told",
+    "F-MPN row 2 (J_KEY_MATRIX): C2683602 = SM10B-GHS-TB (02_parts/SM10B-GHS-TB)",
+    "F-WORDS all 2 Comment(s) human-readable"
+  ],
+  "coverage": {
+    "F-ENCODE": "1/1 file decoded (216 bytes)",
+    "F-MPN": "1/1 coded rows resolved against the authority (2 BOM rows total)",
+    "F-WORDS": "2/2 rows legible"
+  },
+  "target_kind": "sealed release"
+}

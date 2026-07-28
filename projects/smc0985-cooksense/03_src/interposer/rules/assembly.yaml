@@ -1,0 +1,108 @@
+# interposer (Board C) — ASSEMBLY intent. Canon A-POP / A-POS / A-STOCK / F-POUR.
+# Seeded from skills/pcb-design/templates/03_src/rules/assembly.yaml (2026-07-27).
+# ADR-0007 multi-board: this is the INTERPOSER's file; the main board keeps
+# 03_src/cooksense/rules/assembly.yaml. 03_src/rules/ symlinks the COOKSENSE
+# copy, so every interposer-scoped gate must be pointed at this path (the
+# single-board shadow root does that; the release also SHIPS a copy as
+# source/assembly.yaml so a standalone archive resolves it without the tree).
+#
+# THE INCIDENT THIS FILE CLOSES IS THIS BOARD'S OWN. interposer v1.0 sealed
+# with BOTH 10FDZ-BT ZIFs on the CPL carrying a BLANK LCSC — JLC was told to
+# machine-place two parts it has no code to source — with no `not_assembled:`
+# declaration anywhere and no `exclude_from_pos_files` on the board. The only
+# defence was ORDER_README PROSE telling a human to delete the rows before
+# uploading. Every gate was green, because the ENTIRE assembly gate family
+# never ran on that release: its policy_audit.md has no A-* row at all.
+
+# ---- SERVICE DECLARATION ----------------------------------------------------
+service: standard          # JLC standard SMT assembly. NO through-hole line is
+                           # bought for this board (see `through_hole:` below,
+                           # deliberately absent) — the two THT ZIFs are
+                           # hand-soldered, which is why they are not_assembled.
+sides: [top]               # MEASURED on the v1.1 board: 23 footprints + 4
+                           # mounting holes, 0 on B.Cu (placement histogram,
+                           # assembly_coverage.py). The board is single-sided by
+                           # construction: every part is a connector or a pad TP
+                           # on F.Cu.
+fiducials: none            # DELIBERATE, not silence. JLC adds panel fiducials on
+                           # their own rails. The ONLY machine-placed part on
+                           # this board is J_KEY_MATRIX, a 1.25 mm-pitch JST GH
+                           # — 3x the <=0.4 mm pitch at which LOCAL fiducials
+                           # stop being optional. Nothing here is fine-pitch.
+build_quantity: 5          # JLCPCB minimum fab quantity for this 54x46 mm
+                           # 2-layer board; ORDER_README section 1 orders 5
+                           # (1 build + G2 fit-trial spares). A-STOCK grades
+                           # every coded, placed line at stock >= qty x 5.
+
+# ---- POURLESS (canon F-POUR / F-PAYLOAD, ADR-0004) --------------------------
+# A DELIBERATELY pourless board and a board that LOST its zones are THE SAME
+# BYTES. usb-hub-3s-v3 shipped v1.6/v1.7/v1.8 with 44287.91 mm2 of missing
+# copper and every gate green. This board genuinely has zero zones, and until
+# v1.1 nothing said so: v1.0's payload census reports F-POUR FAIL purely for
+# the absence of this declaration.
+pourless: >
+  ZERO copper zones BY DESIGN, and it is the safety argument rather than a
+  layout convenience. The whole board is ONE floating keypad domain: BRIEF
+  sections 4/5/7 and ADR-0009 forbid any ground, power or chassis bond on the
+  keypad side of the OEM membrane interface, so there is no net to pour to —
+  a pour tied to nothing is an antenna, and a pour tied to anything breaks the
+  isolation the board exists to provide. MEASURED on the v1.1 board: the copper
+  net set is EXACTLY the ten KP_U1..U6 / KP_D1..D4 nets and nothing else, 0
+  zones, both J_KEY_MATRIX MP tabs in no net, all 4 mounting holes np_thru_hole,
+  both ZIF polarization bosses NPTH (verification/audit.txt).
+
+# ---- NOT ASSEMBLED (the population set) ------------------------------------
+not_assembled:
+  - refs: [J_MEMBRANE, J_CN1_JUMPER]
+    reason: not_in_catalog
+    evidence: "JLCPCB parts-library query 2026-07-27 (jlcpcb.com
+               selectSmtComponentList, the same endpoint jlc_stock_check.py
+               uses). Keyword '10FDZ-BT' -> 1 hit: C593708
+               10FDZ-BT-M(S)(LF)(SN), stockCount 0 — and that is the '-M'
+               variant, NOT the specified 10FDZ-BT(S)(LF)(SN), which returns
+               no line at all. Keyword '10FDZ' -> 3 hits, the other two being
+               AP7347DQ-10FDZW regulators (name collision, wrong part class),
+               stockCount 0 on all three. Keyword 'FDZ-BT' -> 7 hits across
+               the family: 08FDZ-BT stockCount 954, 06FDZ-BT 1366, 05FDZ-BT
+               100 — LIVE numbers the same minute, so the zeros are the
+               library's answer and not a dead field — while every 10-circuit
+               or larger line (10-M, 12, 13, 17) reads 0. No orderable
+               10-circuit line exists. INDEPENDENTLY unplaceable by process:
+               MEASURED on the v1.1 board (assembly_coverage.py reads the
+               footprints itself), each ZIF is 10 pads, 10 plated DRILLED,
+               F.Paste on 0 of them, on a service=standard sides=[top] order
+               — reflow prints no solder into a bare barrel, so no bought
+               process can solder them."
+    disposition: "self-supplied and hand-soldered at integration. Both stay in
+                  the BOM as uncoded self-supply lines so the order sheet still
+                  says what to buy, and leave the CPL so JLC is not instructed
+                  to place them. DO-NOT-SUBSTITUTE the variant: 'BT' is TOP
+                  entry; 10FDZ-ST is SIDE entry with a DIFFERENT land pattern
+                  (its row sits 8.2 mm from the outline, not 2.6) and would be
+                  scrap on these boards (ADR-0008 variant discipline). Buy from
+                  Mouser / RS / DigiKey: 2 needed + spares. ORDER_README
+                  section 2."
+
+# ---- CONSIGNED (you supply, JLC PLACES — these stay ON the CPL) -------------
+# None. The two self-supplied parts are THT parts JLC's standard SMT service
+# would not place even if consigned, so they are a POPULATION decision
+# (not_assembled), never a sourcing one. Declaring them `consign` would put
+# them back on the CPL, which is the exact defect v1.0 shipped.
+consigned: []
+
+# ---- SOURCING PLAN (justifies a non-OK stock line at seal time) -------------
+# EMPTY BY MEASUREMENT, not by omission: the board's only coded, placed line is
+# J_KEY_MATRIX C2683602, re-queried 2026-07-27 at stockCount 8559 against a
+# need of 1 x build_quantity 5 = 5 (1712x margin). Nothing needs justifying.
+sourcing_plan: []
+
+# ---- EXEMPT REFDES CLASSES -------------------------------------------------
+# H  = M2.5 mounting holes (generate_board_generic sets FP_BOARD_ONLY +
+#      FP_EXCLUDE_FROM_BOM; no pads, no part). MEASURED: H1..H4, all
+#      np_thru_hole and in no net — floating by design (BRIEF section 5).
+# TP = bare probe pads, no part. MEASURED: 20 (TP_M_U1..U6, TP_M_D1..D4,
+#      TP_C_U1..U6, TP_C_D1..D4) — the both-sides continuity map ORDER_README
+#      section 4 walks at bring-up.
+# Nothing else is exempt. FID/MH classes do not exist on this board, so listing
+# them would be an INHERITED exemption rather than a judgement (canon M4).
+exempt_prefixes: [H, TP]

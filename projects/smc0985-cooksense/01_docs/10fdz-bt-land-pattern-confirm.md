@@ -1,7 +1,14 @@
 # 10FDZ-BT land-pattern confirm — the physical-part gate
 
-status: **OPEN — USER-HELD.** Nothing in this repo can close it.
-gate: `07_releases/interposer-v1.0-2026-07-24/ORDER_README.md` §0 gate 1
+status: **ANSWERED 2026-07-27 — see §6.** The user has the part in hand and has
+measured it; the land pattern is CONFIRMED and **the decision is to build with
+the current footprint.** TWO ITEMS REMAIN OPEN and are carried as NAMED open
+items in the order paperwork rather than as silence: the M3 boss offset
+(measured 2.35 mm, 0.19 mm off nominal against 0.23 mm of clearance) and the
+M9/M10 polarity read, which was NOT taken. §§1-5 below are the instrument as
+written 2026-07-27 and are left unedited — the results are recorded in §6.
+gate: `07_releases/interposer-v1.1-2026-07-27/ORDER_README.md` §0 gate 1
+      (v1.0's copy of this gate is superseded along with the release)
 blocks: fab ORDER of the interposer (Board C). Not the seal, not the design.
 written: 2026-07-27
 part: JST `10FDZ-BT(S)(LF)(SN)` — `02_parts/10FDZ-BT/`, datasheet `eFDZ.pdf`
@@ -236,16 +243,34 @@ hard stops — they mean the boards would be scrap, not merely mislabelled.
 
 ## 7. Status of this gate
 
-**OPEN.** It cannot be closed from this repo, by any agent, by any amount of
-re-measuring the CAD — the CAD is the thing under test. `STATUS-interposer.md`
-carries it as USER-HELD and unchanged. The interposer release is separately
-**DO-NOT-ORDER** for an unrelated CPL rotation defect (task #18); closing this
-gate does not unblock ordering v1.0, it unblocks ordering the **v1.1 re-seal**
-that fixes the CPL.
+**ANSWERED 2026-07-27 for the FIT; TWO NAMED OPEN ITEMS remain.** See §6b.
 
-When you report the filled block above, the results land in
-`02_parts/10FDZ-BT/part.yaml` (`verified:` → replace `NEEDS-PHYSICAL-CONFIRM`
-with the measured numbers and the date) and in an ADR if anything reads wrong.
+The fit questions this gate existed to ask are settled by measurement on the
+physical part: 10 circuits, span 23.50 mm outside-to-outside, pitch 2.540-2.544,
+boss ø1.60 into a ø1.80 hole, pins 0.60-0.64 into ø0.90 holes. Both hard-stop
+go/no-go items (M4, M5) PASS with clearance to spare. **The user has decided to
+build with the current footprint; it is not re-cut.**
+
+What is NOT closed, and is carried as NAMED OPEN ITEMS in
+`07_releases/interposer-v1.1-2026-07-27/ORDER_README.md` §0 rather than as
+silence:
+
+1. **M3 = 2.35 mm** — 0.19 mm off the drilled nominal against 0.23 mm of total
+   clearance. It fits, by 0.04 mm, and the boss is a LOCATOR whose interference
+   is a five-minute bench fix. Dry-fit every connector.
+2. **M9/M10 polarity — UNMEASURED.** The convention "pin 1 = the contact at the
+   boss end" stands as DECLARED, not as CONFIRMED against the OEM's CN1. If it
+   is reversed the board still works (all ten lines pass through, the tail is
+   self-keying) and only the `TP_M_*` / `KP_*` NAMES are wrong.
+
+The measured results are reflected in `02_parts/10FDZ-BT/part.yaml`
+(`verified:`), which no longer says `NEEDS-PHYSICAL-CONFIRM` for fit and now
+names the one remaining unconfirmed property.
+
+`interposer-v1.0-2026-07-24` remains **DO-NOT-ORDER** for the separate CPL
+rotation defect. **`interposer-v1.1-2026-07-27` is the orderable release**, and
+this gate no longer blocks it — the two open items above travel with the order
+paperwork instead.
 
 ---
 
@@ -298,3 +323,94 @@ a circuit-count mismatch. It does not, on its own, and must not be read that way
 
 The **overlay test in section 2 covers M1, M3, M4 and M5 fit simultaneously** and
 needs no caliper — it is the cheaper path if a 1:1 print is available.
+
+---
+
+## 6b. RESULTS ROUND 2 — user-measured 2026-07-27, and the BUILD DECISION
+
+Grade **MEASURED** for M1/M2/M3/M4/M5/M11 (the user touched the physical
+object); grade **CITED** for S2 (read off user photographs, not measured).
+This round closes the two go/no-go items M4 and M5 that round 1 left open.
+
+| # | property | expected | PASS band | measured | verdict |
+|---|---|---|---|---|---|
+| M11 | pin count | 10 | exactly 10 | **10** | PASS (confirms round 1) |
+| M1 | end pin -> end pin, 9 pitches | 22.86 c-c | 22.71 - 23.01 | **23.50 OUTSIDE-TO-OUTSIDE** | PASS — see the split below |
+| M2 | pitch, derived from M1 | 2.540 | 2.52 - 2.56 | **2.540 - 2.544** | PASS |
+| **M4** | boss diameter | ~1.70 | <= 1.75 (STOP if > 1.80) | **1.60** | **PASS — GO. 0.10 mm radial clearance in the ø1.80 hole, DOUBLE nominal** |
+| **M5** | pin cross-section | ~0.6 | <= 0.80 (STOP if > 0.90) | **0.60 - 0.64** | **PASS — GO. 0.13 - 0.15 mm radial clearance in the ø0.90 holes** |
+| **M3** | boss centre -> nearest pin centre | 2.54 | 2.39 - 2.69 | **2.35** | **0.04 mm LOW of the band — OPEN ITEM, see below** |
+| M9 / M10 | which housing end carries circuit 1 | 5.30 / 8.10 | +-0.3 | **NOT MEASURED** | **STILL OPEN** |
+
+### M1/M2/M5 are ONE measurement, not three
+
+The raw reading is 23.50 mm outside-to-outside across the row, which is
+`9 x pitch + one pin width` — two unknowns from one number:
+
+    assume pitch 2.5400 (nominal) -> c-c 22.860, pin width 0.640
+    assume pin width 0.600        -> c-c 22.900, pitch  2.5444
+
+Both sit inside their PASS bands and nothing downstream turns on the split, so
+it is recorded as a RANGE. Collapsing it to one number would be an assumption
+wearing a measurement's clothes — the same error §6's M6 false alarm was.
+
+### M3 = 2.35: it fits, and the arithmetic is written out where it is needed
+
+Full working is in `07_releases/interposer-v1.1-2026-07-27/ORDER_README.md` §0
+open item 1. In one line: registering the boss in its hole leaves the worst pin
+**0.190 mm** out (both readings of M1/M2 give the same worst case), against
+**0.10 mm** of boss play plus **0.13 mm** of pin play = **0.23 mm** of total
+clearance. Margin **0.04 mm**, i.e. the error consumes 83% of the budget.
+
+**The measurement reference for M3 was not stated**, which is exactly the defect
+§6 already recorded about M6 — so 2.35 is treated as real and worst-case rather
+than explained away.
+
+**The boss is a LOCATOR, not a contact.** It carries no circuit and no load; it
+exists to stop the connector going in backwards. If it interferes, reaming the
+ø1.80 NPTH one drill size or nipping 0.2 mm off the boss is a five-minute fix
+that touches no net. It is not a scrap condition. And note the sensitivity: at
+the boss's ø1.70 NOMINAL the total clearance would be 0.18 mm and the fit would
+INTERFERE by ~0.01 mm — the 0.04 mm margin is bought by this lot's ø1.60 boss,
+so every connector gets dry-fitted before soldering, not just the first.
+
+### S2 — ANSWERED: the OEM keypad tail is PLAIN, no punched lock slots
+
+**Grade: CITED from user photographs, not MEASURED.**
+
+This resolves the ADR-0008 / ADR-0005-D5 conflict without overturning either:
+JST's eFDZ p.3 "Recommended dimensions for membrane switch lead" *recommends*
+two 1.2 x 3 mm slots 3.81 mm inboard of each outer conductor for the slider to
+lock on (measured off the drawing at 1200 dpi, ADR-0017), and **this OEM did not
+use them.** Both facts are true: a manufacturer's recommended lead is not the
+only lead the connector accepts, and ADR-0017's decision #1 — that ADR-0008's
+"a genuine FDZ would not use, or need, tail holes" is a retired ARGUMENT — is
+unaffected. It was the argument that was wrong, not the conclusion.
+
+**Consequence for the flex jumper (task #13, separate part):** ADR-0017 §4 built
+the G1 coupon with one slotted end and one plain end to answer this empirically.
+S2 answers it from photographs instead, at zero cost: **build the production
+jumper PLAIN**, to match the tail the ZIF is already holding in the appliance.
+S1 (does the slider carry lock pips?) is still unanswered and would decide only
+whether a slotted jumper would ALSO work — it cannot make the plain one wrong,
+since the OEM's own plain tail is in service today. The flex-jumper spec is not
+edited here; this is the interposer's gate document and the jumper is another
+part's decision to land.
+
+### Verdict for this round
+
+    10FDZ-BT PHYSICAL CONFIRM — round 2, 2026-07-27
+    M4 boss dia   1.60   GO       M5 pin size  0.60-0.64  GO
+    M11 pins      10              M1 span      23.50 o/o -> 22.86-22.90 c-c
+    M2 pitch      2.540-2.544     M3 boss->pin 2.35  (0.04 low; fits by 0.04)
+    M9/M10        NOT MEASURED    S2 OEM tail slots: NO (plain), CITED
+
+    VERDICT: **BUILD WITH THE CURRENT FOOTPRINT** — user decision, 2026-07-27.
+             Both hard-stop go/no-go items (M4, M5) PASS with margin.
+             TWO NAMED OPEN ITEMS carried into the order paperwork:
+               1. M3 = 2.35 (0.19 mm off nominal, 0.23 mm of clearance)
+               2. M9/M10 polarity UNMEASURED — if reversed, the board still
+                  works and only the TP_/KP_ NAMING is wrong
+
+**The footprint is NOT re-cut.** That is a decision, recorded here so a later
+reader does not mistake it for an oversight.

@@ -21,6 +21,31 @@
     ADR is cited" (journal 03_schematic_interposer.md). ADR-0009 (this
     board's) emits 50 invariants, all holding against interposer.net.
 
+- id: E-TOPO
+  why: >
+    ADR-0007 multi-board scoping artifact, in a gate whose independence check
+    is otherwise exactly right. E-TOPO deliberately refuses power_tree.yaml's
+    own say-so about there being nothing to grade (canon M1) and instead reads
+    02_parts for converter dossiers — but 02_parts is PROJECT-scoped in this
+    repo, not board-scoped, so on Board C it reads the MAIN board's catalogue.
+    The one part it names, AMS1117-3.3 (type: ldo_3v3_1a), is on the SEALED
+    cooksense board and is graded there; it is on NO artifact of this board.
+    MEASURED on the SHIPPED v1.1 board (07_releases/interposer-v1.1-2026-07-27/
+    source/interposer.kicad_pcb, enumerated 2026-07-27): 27 footprints total =
+    4x MountingHole_2.7mm_M2.5 (no pads, no part) + 20x TestPoint_Pad_D1.5mm
+    (bare probe pads, no part) + EXACTLY THREE real parts — J_MEMBRANE and
+    J_CN1_JUMPER (JST 10FDZ-BT, type: connector_zif_membrane_1x10) and
+    J_KEY_MATRIX (JST SM10B-GHS-TB, type: connector_wire_to_board_1x10).
+    NONE classifies as buck / boost / buck_boost / linear. Corroborated from
+    two more artifacts that share no method with the board file: fab/bom.csv
+    has 2 rows (10FDZ-BT, SM10B-GHS-TB) and fab/cpl.csv has 1. There is no
+    rail, no regulator, no protection element and no stored energy anywhere on
+    this board — BRIEF sections 4/5, ADR-0009, and the interposer fact-lock:
+    any component on a matrix line would alter the scan the OEM controller
+    sees. The board is energized only by the OEM controller's own scan pulses.
+    Waiving E-TOPO here does NOT waive it for the project: the cooksense board
+    is graded against the same gate with its own power_tree.yaml.
+
 - id: M-REPRO
   why: >
     Shadow-view scoping artifact: the audit runs against the single-board

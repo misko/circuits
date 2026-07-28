@@ -1,0 +1,16 @@
+# ONE exception, and the reason is a measurement rather than an assertion.
+#
+# The freshness gate's rule is right: "a changed board must not ship an earlier
+# release's generated output". Its premise here is what does not hold — the
+# SCHEMATIC did not change. This release changes the ASSEMBLY PAYLOAD (CPL
+# rotation, CPL datum, population set, BOM legibility) plus one silk character;
+# the circuit is untouched.
+#
+# NOT REGENERATED ON PURPOSE. Re-running `rsvg-convert -f pdf` on the same
+# unchanged SVG produces a DIFFERENT md5 (d4124f62... vs 8ae35bb4..., measured
+# 2026-07-27) purely from PDF metadata. Shipping that would satisfy this gate
+# with NOISE — the byte would differ and the document would not — which is
+# exactly the shape of green this repo keeps paying for. An honest waiver with
+# a number beats a gate satisfied by a timestamp.
+
+pdf/schematic.pdf   reason: THE SCHEMATIC IS UNCHANGED, measured on the shipped bytes of both releases: source/interposer.tsx md5 27dc390b502cd1942cbc9ec2e714833e IDENTICAL to v1.0's, source/interposer.kicad_sch md5 7def3f18fa213a65bfd3981bc733e8be IDENTICAL to v1.0's, and source/interposer.net is node-for-node identical (2224 normalized lines, 0 differing, after suppressing only the (date/(tool headers and the one absolute (source path line) - see verification/parity.md. This PDF is tscircuit's OWN render of that unchanged .tsx (ADR-0002), so an identical hash is the CORRECT output, not a stale carry-over. v1.1 changes the ASSEMBLY PAYLOAD and one silk glyph; pdf/pcb_layers.pdf and pdf/assembly.pdf DID change and are not excepted.

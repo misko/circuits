@@ -1,0 +1,8 @@
+F-ECHO — JLC's RESOLVED BOM vs OURS. After uploading bom_jlc.csv,
+save JLC's own resolved/matched part table out of their UI and run
+  bom_legibility_check.py <this outdir>/bom_jlc.csv --echo SAVED.csv
+A code JLC redirects is a SUBSTITUTION and is a FINDING, not a
+convenience. C82317 -> C131025 happened on a shipped board and no
+gate in this repo could have seen it.
+
+C2683602	SM10B-GHS-TB	J_KEY_MATRIX

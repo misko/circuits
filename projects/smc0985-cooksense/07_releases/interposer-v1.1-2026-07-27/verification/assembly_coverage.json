@@ -1,0 +1,22 @@
+{
+ "target": "/home/mouse9911/gits/circuits/.claude/worktrees/agent-a4c47c31240616a22/projects/smc0985-cooksense/07_releases/interposer-v1.1-2026-07-27",
+ "summary": {
+  "board": 27,
+  "cpl": 1,
+  "datum_max_mm": 0.0,
+  "datum_max_ref": "J_KEY_MATRIX",
+  "datum_graded": 1,
+  "unpopulated": 26,
+  "declared": 2,
+  "consigned": 0,
+  "exempt_prefixes": [
+   "H",
+   "TP"
+  ],
+  "sides": {
+   "top": 1
+  },
+  "unexplained": []
+ },
+ "fails": []
+}
