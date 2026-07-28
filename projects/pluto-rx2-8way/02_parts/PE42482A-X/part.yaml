@@ -12,7 +12,14 @@ datasheet:
 package: QFN-24, 4.00 x 4.00 x 0.85 mm, 0.50 mm pitch (6 leads/side, "2.50 Ref."
   across 5 gaps), exposed ground pad 2.70 +/-0.05 mm sq, lead 0.25 x 0.40 mm,
   0.30 x 45 deg pin-1 chamfer. Figure 23 'Package Mechanical Drawing', PDF p21
-footprint: pluto_rx2_8way:QFN-24_4x4_P0.5_EP2.7_PE42482   # OWED — not yet drawn
+footprint: pluto_rx2_8way:QFN-24_4x4_P0.5_EP2.7_PE42482
+  # AUTHORED 2026-07-28 -> 03_src/lib/pluto_rx2_8way.pretty/. Drawn from the
+  # RECOMMENDED LAND PATTERN inset of Figure 23 (PDF p21): pad 0.30 x 0.60 (x24),
+  # pitch 0.50 (x20), envelope 4.40, EP land 2.75 sq -> pad centres at r = 1.90.
+  # NOT interchangeable with KiCad's stock QFN-24-1EP_4x4mm_P0.5mm_EP2.65x2.65mm,
+  # which is IPC-generated: its pads are 0.85 long at r = 1.95 and its EP is 2.65.
+  # Using the stock part would move every RF land 0.05 mm outward and shrink the
+  # RF-ground EP by 0.10 mm on a 4.00 mm package. The vendor land is what is drawn.
 escape:                          # emitted by escape_check.py, 2026-07-27
   style: qfn
   pitch: 0.5

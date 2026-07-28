@@ -120,3 +120,79 @@
   are OWED and named in `02_parts/README.md`: the KH-SMA-KE-Z and 0402 PDFs,
   and port-to-port isolation across ten SMA barrels on one laminate — which
   bounds the AoA leakage budget from below independently of the switch.
+
+## 2026-07-28 13:45 — start (stage 2 continuation: nine dossiers + two footprints)
+
+- did: re-entered stage 2 from the stage-3 design gate. Read the four ADRs that
+  bind part selection (0003 tier, 0004 protection, 0005 control, 0007 floorplan),
+  `DETAIL_DESIGN.md` §5/§7, the 02_parts contract and the two exemplar dossiers.
+  Consulted `references/proven-parts.yaml` FIRST for every one of the nine, then
+  fanned the REMAINING research out as four CONCURRENT subagents:
+  `U_LDO` alone (three derived hard constraints), `U_MCU`+`U_FLASH`+`Y_XTAL`,
+  `J_USB`+`U_ESD`, `F_IN`+`D_TVS`+`FB_IN`.
+- result: three ledger HITS found before any research was spent — `usb2-esd-array`
+  (USBLC6-2SC6 / C7519), `ferrite-bead-600r-0805-power` (BLM21SP601SN1D /
+  C3716677), `usb-c-receptacle-high-current` (TYPE-C-31-M-12A / C5337088). Three
+  NEAR-MISSES that are precedent and not hits: `crystal-24mhz-3225` is 24 MHz
+  against this board's 12 MHz, `polyfuse-pptc-5a-vbus` is 5 A against ~500 mA, and
+  **`analog-ldo-quiet-3v3` (XC6227C331PR-G) is disqualified by its OWN ledger
+  gotcha — "VIN abs-max 6.5V" against ADR-0004's binding V_IN(abs max) >= 10 V.**
+  The ledger's obvious answer fails the constraint the ADR wrote down; that is the
+  ledger working, not failing.
+  RP2040 tier pre-check, ad-hoc: `escape_check --style qfn --pitch 0.4 --pins 56
+  --escapes-worst-side 14` -> `jlc_4layer_advanced`, i.e. the 0.40 mm-pitch QFN-56
+  lands on the SAME tier the 0.50 mm QFN-24 already forced. P-TIER survives the
+  MCU. (2-layer and 4-layer-standard are both INFEASIBLE for it.)
+- next: the two OWED footprints while the research runs.
+
+## 2026-07-28 14:20 — iterate 1 (DELIVER 2: both footprints AUTHORED)
+
+- did: rendered the two land drawings and authored both `.kicad_mod` into
+  `03_src/lib/pluto_rx2_8way.pretty/` (the library nickname both `part.yaml`
+  already declared). Geometry COMPUTED from the drawing numbers, never typed as
+  coordinates; then verified by an INDEPENDENT regex parser that re-derives every
+  dimension from the emitted file text and compares it against the drawing numbers
+  re-typed a second time by hand (canon M1 — checker and checked must not share a
+  method), and a third time by loading both through `pcbnew.FootprintLoad`.
+- result: **48/48 property checks PASS, plus a clean pcbnew load of both.**
+  `QFN-24_4x4_P0.5_EP2.7_PE42482` — from Figure 23's RECOMMENDED LAND PATTERN
+  inset (DOC-75785-4 p21): pad 0.30 x 0.60 (x24), pitch 0.50 (x20), envelope 4.40
+  => pad centres at r = **1.90 mm**; EP land **2.75 mm sq**. Derived and checked:
+  adjacent-pad copper gap **0.200 mm**, EP-to-pad gap **0.225 mm**. Pin numbering
+  re-verified against Figure 22 (p20) INDEPENDENTLY of the existing `part.yaml`:
+  pin-1 dot top-left, 1-6 down the left column, 7-12 across the bottom, 13-18 up
+  the right, 19-24 across the top — all eight corner pins asserted by position.
+  EP paste is a 3x3 window-pane, 0.75 mm apertures on 0.95 mm centres =
+  **66.9 % coverage**, envelope 2.65 mm inside the 2.75 mm land (DERIVED per
+  IPC-7093 — pSemi publishes no stencil recommendation).
+  **The stock KiCad footprint would have been WRONG and this is the evidence:**
+  `QFN-24-1EP_4x4mm_P0.5mm_EP2.65x2.65mm` is IPC-generated with 0.85 mm pads at
+  r = 1.95 and a 2.65 mm EP — every RF land 0.05 mm further out and the RF-ground
+  EP 0.10 mm smaller, on a 4.00 mm package.
+  `SMA_Vertical_5.08sq_D1.4` — from sheet 2/2 (2021.08.10): **five D1.4 holes**,
+  four on 5.08 x 5.08 plus one at the centre, verified centred to 0 mm; annular
+  ring 0.25 mm; post-to-hole radial clearance **0.0636 mm** recomputed from the
+  0.9 mm square post's 1.2728 mm diagonal, which is the arithmetic that justifies
+  D1.4 over D1.3 (0.014 mm).
+- result (the number the footprint exists to carry): the >= **D3.5 mm antipad** is
+  encoded as a **0.80 mm LOCAL CLEARANCE on pad 1** (1.9 + 2 x 0.8 = 3.5), so it
+  opens in every ground plane and cannot be forgotten at pour time. Antipad radius
+  1.750 mm against a nearest ground-pad edge at 2.642 mm — it opens OUTWARD toward
+  the post square without swallowing it. **Recomputed cost of getting it wrong:**
+  treating the D1.4 barrel as the inner conductor, Z_launch = 60/sqrt(4.4) *
+  ln(D/1.4) gives 26.2 ohm at D3.5 and 17.7 ohm at D2.6; as excess shunt C over a
+  1.6 mm board that is 0.203 pF vs 0.408 pF, i.e. RL **14.5 dB vs 8.9 dB at
+  6 GHz** — a **5.6 dB** improvement, not the ~9 dB carried in the brief (9 dB is
+  close to the ABSOLUTE RL of the D2.6 case, 8.9 dB). Reported as measured.
+  FINDING, not applied: the post square permits up to ~D4.78 before the ground
+  pads are reached, and D4.7 computes to RL ~20.6 dB — another ~6 dB. It is NOT
+  taken here, because a D4.7 void in L2 starves the first 1.4 mm of the exiting
+  microstrip of its reference. That is a board-stage trade (a low-Z barrel then a
+  high-Z unreferenced section is a compensating pair), and it belongs to routing
+  with a field solve behind it, not to a footprint.
+- result: ground posts set `zone_connect 2` (SOLID) — the four posts ARE the
+  launch return and a thermal spoke is not one. Named consequence: 10 jacks x 4
+  posts = 40 THT joints into four ground planes need preheat.
+  `contracts_audit --projects` = **0 violations for this board** after seeding
+  `03_src/lib/contracts.md` from the skill template (the folder did not exist).
+- next: merge the nine dossiers as the research agents return.

@@ -13,7 +13,18 @@ datasheet:
 package: vertical THT flange jack, 6.5 x 6.5 mm flange, 13.5 mm overall,
   1/4-36UNEF thread D6.2, four 0.9 mm SQUARE posts on a 5.08 x 5.08 mm square
   plus a centre signal pin
-footprint: pluto_rx2_8way:SMA_Vertical_5.08sq_D1.4    # OWED — not yet drawn
+footprint: pluto_rx2_8way:SMA_Vertical_5.08sq_D1.4
+  # AUTHORED 2026-07-28 -> 03_src/lib/pluto_rx2_8way.pretty/. Drawn from drawing
+  # sheet 2/2 (2021.08.10): PCB inset "5-D1.4", four corner holes on 5.08 x 5.08
+  # plus one at the centre; rear view 4-SQ0.9 / flange 6.5 sq / insulator D4.2.
+  # TWO DERIVED PROPERTIES ARE CARRIED IN THE FOOTPRINT ITSELF rather than left
+  # to the board, because both are silent if forgotten:
+  #   - pad 1 carries a 0.80 mm LOCAL CLEARANCE, which is what opens the >= D3.5
+  #     antipad in every ground plane (1.9 + 2 x 0.8 = 3.5). See layout: notes.
+  #   - pads 2-5 are zone_connect 2 (SOLID). The four posts ARE the launch return
+  #     path; a thermal spoke is not one. Consequence, stated not discovered: a
+  #     solid connection into four ground planes makes these 40 THT joints harder
+  #     to hand-solder — preheat is a bring-up requirement, not a preference.
 mates: receptacle                 # JACK (female, inner HOLE). Read from the
                                   # drawing: the model string is KH-SMA-KE-Z
                                   # where K = hole, and the sheet-2 front view
