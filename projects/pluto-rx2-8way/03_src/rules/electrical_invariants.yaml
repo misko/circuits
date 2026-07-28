@@ -1,0 +1,114 @@
+# SCHEMA EXAMPLE (skill-owned, project-independent). Copy into a new project's
+# 03_src/rules/ and replace the values — the KEYS are the contract.
+#
+# ELECTRICAL-INVARIANTS (canon E-INV, phase E1 = netlist-only). Design INTENT
+# made EXECUTABLE against the exported netlist. Every gate elsewhere proves
+# SELF-CONSISTENCY; this one proves the netlist matches what the ADRs decided.
+#
+# WHY: the D1 reverse-polarity defect (usb-hub-3s v1.0) passed ERC, DRC, parity,
+# jlc_twin AND pin review — symbol/footprint/netlist/board were consistently
+# WRONG together; only intent disagreed, and intent was not machine-checkable.
+#
+# Graded by: electrical_invariants.py PROJECT_DIR  (exit 1 names the assertion
+# + the actual net found). A protection/topology ADR that emits NO invariant is
+# flagged by E-ADR (electrical_invariants.py PROJECT_DIR --adr-coverage).
+#
+# Every invariant REQUIRES `adr:` (the ADR that emitted it) and `why:`.
+
+invariants:
+  # 1) pin_on_net — the named pin must be on the named net (the D1 class).
+  - assert: pin_on_net
+    pin: "D1.1"          # REF.PAD
+    net: VIN
+    adr: "0001"
+    why: "D1 reverse-polarity clamp cathode feeds VIN, not the raw battery rail"
+
+  # 2) series_chain — consecutive elements share a net, in order. A 2-pad part
+  #    (F1) bridges the nets on its two pads (inferred). A >2-pad part names its
+  #    two bridging pins via `through:` (pin number, pinfunction, or a
+  #    pinfunction with its trailing _<n> stripped: D_5 -> D).
+  - assert: series_chain
+    chain: [VBAT, F1, VBAT_F, Q1, VIN]
+    through: {Q1: [D, S]}
+    adr: "0001"
+    why: "battery -> fuse -> protected node -> reverse-polarity FET (D->S) -> VIN"
+
+  # 3) net_has_part — the net must carry >= min parts of a type (refdes prefix:
+  #    C=capacitor, R=resistor, L=inductor, D=diode, Q=transistor, F=fuse,
+  #    U=ic, J=connector, FB=ferrite, LED=led, Y/X=crystal, TP=testpoint).
+  #    The bridge-rail-decoupling class (red-team B).
+  - assert: net_has_part
+    net: VIN
+    part_type: capacitor
+    min: 1
+    adr: "0007"
+    why: "the VIN rail must carry at least one decoupling capacitor"
+
+  # 4) part_value — the PARAMETER kind. The three kinds above pin TOPOLOGY:
+  #    which parts exist and what they connect to. AN INVARIANT THAT PINS A
+  #    COMPONENT'S EXISTENCE DOES NOT PIN ITS VALUE.
+  #
+  #    THE INCIDENT (smc0985-cooksense, 2026-07-25, ab94de3 -> 929b089). A
+  #    safety P0 was found: WD_PET, the TPS3823 watchdog heartbeat, had no
+  #    pull-down, so with the host unplugged the supervisor self-pulsed, WD_OK
+  #    never fell, and the external COOKING CONTACTOR stayed energised
+  #    indefinitely. The fix added the pull-down AT 100k. TI SLVS165O S6.5
+  #    gives I_IL at WDI = 190 uA MAX and the pin SOURCES it, so the hold
+  #    resistor is bounded by I_IL x R < V_IL:
+  #        R_max = (0.3 x 3.3 V) / 190 uA = 0.99 V / 190 uA ~= 5.2k
+  #        1k    -> 0.19 V, 81% margin (TI's own recommended value)
+  #        100k  -> node sits at ~VDD; THE WATCHDOG IS SILENTLY DISABLED
+  #    The 100k board looked exactly like the fixed board. All THREE
+  #    invariants that landed with that fix — one net_has_part and two
+  #    pin_on_net, the ones written above this comment in spirit — PASS on the
+  #    100k netlist, because a resistor DOES exist on WD_PET with its pads on
+  #    the right nets. They would have certified the broken board, and did.
+  #
+  #    Bounds: min: / max: / equals: (+ optional tolerance_pct with equals).
+  #    At least ONE is required — an assertion naming a part and bounding
+  #    nothing is the exact gap this kind closes. Values come from the
+  #    netlist's own (comp (value ...)) and are decoded as SI, so 1k / 1kOhm /
+  #    1kΩ / 4k7 / 0R1 are one number. NOTE m is MILLI and M is MEGA. A value
+  #    the gate cannot decode is a FAILURE, never a skip.
+  - assert: part_value
+    part: R_WDPETPD
+    max: 5.2k
+    adr: "0011"
+    why: "I_IL(max) 190uA x R < V_IL 0.99V => R <= 5.2k; TI SLVS165O S7.3.4
+      names 1k explicitly. Above this the WDI node sits at ~VDD and the
+      supervisor never times out — the interlock fails PERMISSIVE"
+
+# ---------------------------------------------------------------------------
+# label_survival — the schematic NET-MERGE gate (candidate S-NETMERGE), graded
+# by net_label_survival.py PROJECT_DIR. WHY: `kicad-cli sch export netlist`
+# CONNECTS wires whose endpoint touches a foreign wire (T-junction) or that
+# overlap collinearly — a net label silently merges into another net and
+# every downstream gate stays green because all are self-consistent with the
+# merged netlist (crow-recorder-central-v2 P5VA_4->AUDIO4M + MID2P->5V, two
+# DO-NOT-ORDER defects on one board, 2026-07-23).
+#
+# The GENERIC check (every schematic global_label must exist as a netlist net)
+# is ALWAYS ON and needs no config — this block only carries the optional
+# extras. Keys:
+#   exempt:  labels allowed to be absent from the netlist; each entry REQUIRES
+#            `why:` evidence (canon M4 — an exemption without evidence is a
+#            defect).
+#   pin_map: board-specific pin-for-pin net assertions (the generalization of
+#            the crow-recorder 8-port RJ45 map): each entry checks every ref
+#            in `refs`; `{n}` in a net pattern expands to n_start + position;
+#            `unconnected` pins must carry no real net.
+label_survival: {}
+#label_survival:
+#  exempt:
+#    - {label: SPARE_NET, why: "test-point label, deliberately unloaded (ADR-000X)"}
+#  pin_map:
+#    - refs: [J3, J4, J5, J6, J7, J8, J9, J10]
+#      n_start: 1
+#      pins: {"1": "AUDIO{n}P", "2": "AUDIO{n}M", "3": PLUS5V_BEEP,
+#             "4": "P5VA_{n}", "5": GND, "6": BEEP_RETURN,
+#             "7": "P5VA_{n}", "8": GND}
+#      unconnected: ["9", "10", "11", "12"]
+
+# DEFERRED to E2 (geometric — need footprint/geometry, not just the netlist):
+#   clamp_le_rating  — a clamp/TVS standoff <= the rail it protects
+#   kelvin_within    — a sense pair within N mm of the element it senses
