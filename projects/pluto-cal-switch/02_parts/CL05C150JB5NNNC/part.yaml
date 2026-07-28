@@ -1,0 +1,77 @@
+mpn: CL05C150JB5NNNC
+manufacturer: Samsung Electro-Mechanics
+type: cap_c0g_15p_50v_0402
+datasheet:
+  doc_id: C86285
+  revision: "n/a"
+  url: https://www.lcsc.com/product-detail/C86285.html
+  sha256: "n/a — no manufacturer datasheet is published for this commodity SKU;
+    the parametrics below are the JLCPCB catalog record, cited in verified:"
+  fetched: 2026-07-28
+package: 0402 (1005 metric), 2 terminals
+footprint: pluto_cal_switch:C_0402_1005Metric
+escape:
+  style: passive
+  pitch: 0.5
+  tier_required: jlc_2layer_default
+  checked: "2-terminal 0402 — no escape problem at any tier"
+pins:
+  1: A
+  2: B
+limits:
+  capacitance: 15 pF
+  tolerance: "+/-5% (J)"
+  dielectric: "C0G / NP0"
+  voltage: 50 V
+gotchas:
+  - "TWO PER BOARD — the 12 MHz crystal's load capacitors (C_XIN / C_XOUT).
+     THE VALUE IS DERIVED FROM THE CRYSTAL, NOT COPIED FROM THE PICO:
+     CL = (C1.C2)/(C1+C2) + Cstray with the ABM8-272-T3's CL = 10 pF and
+     Cstray ~ 3 pF gives C1 = C2 = 2 x (10 - 3) = 14 pF -> E24 15 pF. It
+     coincides with Raspberry Pi's reference value because the reference
+     crystal has the same 10 pF load — NOT because the value is universal.
+     ADR-0012 records the arithmetic for the JLC Basic 20 pF crystal C9002,
+     where the same formula gives 34 pF -> 33 pF: fitting 15 pF against a
+     20 pF crystal pulls the frequency high and can stop it starting, and a
+     crystal that does not start means USB never enumerates."
+  - "C0G IS MANDATORY AND IS ALSO AUTOMATIC AT THIS VALUE — no X7R part exists
+     at 15 pF. Pinning the code anyway costs nothing and removes catalog drift."
+  - "JLC EXTENDED, stockCount 98 309 (read 2026-07-28)."
+  - "WHY THIS MPN AND NOT THE CHEAPER/BASIC ONE — AND IT IS A GATE REASON, NOT
+     AN ENGINEERING ONE, WHICH IS WORTH SAYING OUT LOUD. The FH `0402CG###J500NT`
+     C0G series is electrically equivalent and one of its members is JLC BASIC.
+     It is the ALTERNATE and not the primary because `bom_source_check`'s
+     `mpn_capacitance` decoder CANNOT PARSE IT: the decoder anchors on a 3-digit
+     code immediately followed by a tolerance letter and then a NON-digit
+     (regex `(\\d{2})([0-8])[JKMDFGZ](?![0-9])`), and in `...CG102J500NT` the
+     `J` is followed by the voltage digits `500`, so the lookahead rejects it and
+     leg C reports UNVERIFIABLE-VALUE. The vetted ledger already works around
+     this three times (C1546/C1547/C1549 all carry an explicit `value:`), which
+     is the evidence that it is a decoder gap and not this part. The Samsung
+     `CL05C###JB5NNNC` form decodes cleanly, so choosing it makes the value
+     MACHINE-VERIFIABLE from the part dossier alone. A PROPOSED patch to the
+     decoder is reported with this board's stage-4 findings; if it lands, the FH
+     part becomes a legitimate primary again."
+verified: "2-terminal passive — exempt from the datasheet-FIGURE pin-map rule
+  (S-VER). Value, tolerance, dielectric and voltage read from the JLCPCB parts
+  record for C86285 (selectSmtComponentList, exact componentModelEn match,
+  describe '15pF 50V C0G +/-5% 0402 Multilayer Ceramic Capacitors MLCC'), read
+  2026-07-28; componentLibraryType `expand` (EXTENDED), stockCount 98 309."
+layout:
+  source: "No manufacturer layout section. The governing rule is the system
+    vendor's: Raspberry Pi `hardware-design-with-rp2040` sec.2.3 p.10 — keep the
+    oscillator loop short, with a local ground return."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: XIN, max_span_mm: 8, why: "the load cap is part of the oscillator
+       loop; stray C adds to the 3 pF the 15 pF value was derived against"}
+    - {net: XOUT_R, max_span_mm: 8, why: "same, the damped side"}
+  notes:
+    - "Both cap returns join the ground plane AT the crystal, not elsewhere on
+       the board — a split return turns the two load caps into a loop antenna
+       right next to the board's most sensitive high-impedance node."
+sourcing:
+  lcsc: C86285
+  alternates: [C1548]         # FH 0402CG150J500NT, JLC BASIC, same value.
+                              # NOT the primary, and the reason is a GATE, not
+                              # a part property — see the last gotcha.

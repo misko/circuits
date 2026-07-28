@@ -3,8 +3,8 @@ manufacturer: Shenzhen Kinghelm
 type: connector_sma_jack_vertical_tht
 mates: receptacle             # SMA JACK (female shell, female socket contact).
                               # Read from PRINTED DATASHEET FIELDS, never from
-                              # the part-number suffix — see `verified:` and the
-                              # RP-SMA gotcha. Used x5 on this board (ADR-0015):
+                              # the part-number suffix — see the verification
+                              # note below, and the RP-SMA gotcha. Used x5 on this board (ADR-0015):
                               # 2 antenna ports + 3 cable ports to the Pluto.
 datasheet:
   doc_id: KH-SMA-KE-Z

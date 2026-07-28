@@ -1,0 +1,70 @@
+mpn: PZ254-1-04-Z-8.5
+manufacturer: HCTL
+type: connector_pin_header_1x4_2p54_tht
+mates: plug                   # MALE pin header (pins), mating a female socket
+                              # or DuPont-style jumper leads. Read from the
+                              # catalog record's "Pin Header" classification and
+                              # the PZ254 series decode (Z = straight/plugin).
+datasheet:
+  doc_id: C2894927
+  revision: "n/a"
+  url: https://www.lcsc.com/product-detail/C2894927.html
+  sha256: "n/a — no manufacturer PDF is vendored; see verified:"
+  fetched: 2026-07-28
+package: 1x4P 2.54 mm straight through-hole pin header, 6 mm pin, 2.5 mm body
+footprint: pluto_cal_switch:PinHeader_1x04_P2.54mm_Vertical
+escape:
+  style: connector
+  pitch: 2.54
+  escapes_worst_side: 2
+  tier_required: jlc_2layer_default
+  checked: "2.54 mm THT — no escape problem"
+pins:                         # THE PIN ORDER IS THIS BOARD'S DECISION, NOT THE
+  1: {name: GND, tie: GND}    # PART'S: a 1x4 header has no signal names. ADR-0008
+  2: HDR_CTRL_IN              # sec.3 specifies GND / CTRL_IN / STATE_OUT / GND,
+  3: HDR_STATE_OUT            # and that ORDER is the design fact — the two
+  4: {name: GND, tie: GND}    # grounds flank the two signals.
+limits:
+  current: 3 A
+  voltage: 250 V
+  temp_op: "-40 to +105 C"
+  pitch: 2.54 mm
+gotchas:
+  - "THE GROUND-FLANKED ORDER IS LOAD-BEARING, NOT COSMETIC. ADR-0009 calls
+     this header the board's SECOND, UNKEYED entry and the realistic miswire
+     path. Pins 1 and 4 are GND so that a connector inserted one position off
+     lands a signal on a ground, not a ground on a signal — and so that a
+     reversed 4-way jumper maps GND/STATE/CTRL/GND, i.e. it still grounds both
+     ends. That is why the header is 1x4 rather than 1x3."
+  - "3V3 IS DELIBERATELY NOT EXPORTED (ADR-0009). A back-feed must not be able
+     to fight the LDO. If the user later needs a rail here it goes out through
+     a series Schottky, as a new decision."
+  - "THE 5.0 V CEILING MUST REACH THE SILK. The divider makes the board
+     level-agnostic from 1.8 V to 5.0 V (ADR-0008), but 5.0 V IS the ceiling and
+     a user cannot infer it from a bare 4-pin header."
+  - "THT: contributes 4 more hand-soldered joints on top of the 5x5 SMA and the
+     2 micro-USB legs. Already inside the Standard-PCBA declaration
+     (03_src/rules/assembly.yaml); the joint count moves, the service does not."
+verified: "commodity 4-pin 2.54 mm header — there is no pin map to read from a
+  figure: the part has four identical pins and the SIGNAL assignment above is
+  ADR-0008 sec.3's, not the vendor's. Mechanical parametrics (1x4P, 2.54 mm
+  pitch, straight/plugin, 6 mm pin, 3 A, 250 V, -40 to +105 C) read from the
+  JLCPCB catalog record for C2894927 (selectSmtComponentList, exact model
+  match), read 2026-07-28; componentLibraryType `expand`, stockCount 16 531."
+layout:
+  source: "No manufacturer layout section. The rules below are ADR-0008 and
+    ADR-0009 made geometric, and are labelled as derived."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: HDR_CTRL_IN, max_span_mm: 8, why: "the segment from the header pin
+       to the ESD clamp is the UNPROTECTED stub (TPD2E2U06 datasheet sec.10.1)"}
+    - {net: HDR_STATE_OUT, max_span_mm: 8, why: "same, channel 2"}
+  notes:
+    - "PUT IT AT A BOARD EDGE, AND NOT THE RF EDGE. The header carries a
+       user-wired flying lead; ARCHITECTURE sec.10.6 forbids RF_CTRL running
+       parallel to a loopback arm, and the same reasoning applies to the wire
+       the user dresses across the board."
+    - "The ESD clamp sits between this connector and both series resistors."
+sourcing:
+  lcsc: C2894927
+  alternates: [C5156431]      # PZ254-1-04-Z-C, same 1x4 2.54 straight header

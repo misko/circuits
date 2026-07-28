@@ -1,0 +1,63 @@
+mpn: KT-0603R
+manufacturer: Hubei KENTO Elec
+type: led_indicator_red_0603
+datasheet:
+  doc_id: C2286
+  revision: "n/a"
+  url: https://www.lcsc.com/product-detail/C2286.html
+  sha256: "n/a — no manufacturer PDF is vendored; see verified:"
+  fetched: 2026-07-28
+package: 0603 (1608 metric), 1.6 x 0.8 mm, 2 terminals
+footprint: pluto_cal_switch:LED_0603_1608Metric
+escape:
+  style: passive
+  pitch: 0.8
+  tier_required: jlc_2layer_default
+  checked: "2-terminal 0603 — no escape problem"
+pins:
+  1: {name: K, note: "CATHODE — pad 1 carries the KiCad polarity marker"}
+  2: {name: A, note: "anode"}
+limits:
+  vf: "1.8 to 2.4 V"
+  if_max: 20 mA
+  viewing_angle: 120 deg
+  temp_op: "-40 to +85 C"
+gotchas:
+  - "THE 680 ohm SERIES VALUE WAS DERIVED AGAINST Vf = 2.0 V (DETAIL_DESIGN
+     sec.9: (3.3 - 2.0)/2 mA = 650 ohm -> E24 680 ohm => 1.9 mA). This part's Vf
+     window is 1.8-2.4 V, so the real current runs 1.32-2.21 mA across the
+     window — the design point sits INSIDE it, and the power-tree envelope
+     (2 x 1.9 mA = 3.8 mA against a declared 4 mA) holds at the worst corner."
+  - "POLARITY IS THE ONLY THING AN LED CAN GET WRONG AND IT IS SILENT ON A
+     RENDER. Pad 1 = CATHODE here; the board drives D_LED_MODE's ANODE from a
+     GPIO and returns its cathode through the resistor to GND, and ties
+     D_LED_PWR's anode to 3V3. A reversed LED simply never lights, which on a
+     STATUS indicator reads as 'the feature is broken', not 'the LED is
+     backwards'."
+  - "TWO PER BOARD, SAME PART, DIFFERENT MEANING: D_LED_PWR (3V3 present) and
+     D_LED_MODE (RF path is in LOOPBACK). They are the same red device, so the
+     SILK is what distinguishes them — that is a functional-caption obligation,
+     not decoration."
+  - "JLC BASIC (componentLibraryType `base`), stockCount 7 594 081 read
+     2026-07-28."
+verified: "2-terminal passive — exempt from the datasheet-FIGURE pin-map rule
+  (S-VER). Vf window, current rating, viewing angle, package and temperature
+  read from the JLCPCB catalog record for C2286 (selectSmtComponentList, exact
+  componentModelEn match, describe '1.6mm x 0.8mm square LED 1.8V~2.4V 120deg
+  20mA ... 0603'), read 2026-07-28. THE CATHODE-ON-PAD-1 CONVENTION IS THE
+  KiCad FOOTPRINT'S, not a vendor statement — it is the convention this repo's
+  generators and the placement audit's polarity check both key on, and it is
+  recorded here because part.yaml is where generators look (03_src/lib
+  contract)."
+layout:
+  source: "No manufacturer layout section and none needed. The only rules are
+    this board's own."
+  reviewed: "2026-07-28"
+  notes:
+    - "KEEP BOTH LEDs AND THEIR RESISTORS OUT OF THE RF SECTION. An LED is a
+       DC part but its trace from a switching GPIO is not, and ARCHITECTURE
+       sec.10.5 puts every digital thing at the far end from the SMA jacks."
+    - "Silk must name WHICH is which (PWR / LOOPBACK) — see gotchas."
+sourcing:
+  lcsc: C2286
+  alternates: [C84263]        # NCD0603R1, same package, brighter

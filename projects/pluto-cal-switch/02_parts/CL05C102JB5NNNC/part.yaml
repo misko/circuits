@@ -1,0 +1,104 @@
+mpn: CL05C102JB5NNNC
+manufacturer: Samsung Electro-Mechanics
+type: cap_c0g_1n0_50v_0402    # THE DIELECTRIC IS PART OF THE CLASS HERE.
+                              # An X7R 1 nF fits the same land, costs less, and
+                              # is the WRONG PART on an RF path (see gotchas).
+datasheet:
+  doc_id: C307441
+  revision: "n/a"
+  url: https://www.lcsc.com/product-detail/C307441.html
+  sha256: "n/a — no manufacturer datasheet is published for this commodity SKU;
+    the parametrics below are the JLCPCB catalog record, cited in verified:"
+  fetched: 2026-07-28
+package: 0402 (1005 metric), 2 terminals
+footprint: pluto_cal_switch:C_0402_1005Metric_RF
+escape:
+  style: passive
+  pitch: 0.5
+  tier_required: jlc_2layer_default
+  checked: "2-terminal 0402 — no escape problem at any tier"
+pins:
+  1: A
+  2: B
+limits:
+  capacitance: 1 nF
+  tolerance: "+/-5% (J)"
+  dielectric: "C0G / NP0"
+  voltage: 50 V
+gotchas:
+  - "TWO PER BOARD, ONE IN SERIES WITH EACH ANTENNA PORT (C_DCBLK1/2, ADR-0005).
+     They are the ONLY DC blocks on the board: the calibration path deliberately
+     carries none, because the YAT pads DC-reference the whole internal RF node
+     to ground through ~70 ohm/port and the switches' V_RFDC = 0 V rating is
+     therefore satisfied by construction (DETAIL_DESIGN sec.8). Fitting a block
+     on the loopback path would be a defect, not a belt-and-braces."
+  - "C0G IS NOT INTERCHANGEABLE WITH X7R HERE, AND THE SUBSTITUTION IS INVISIBLE.
+     An X7R 1 nF drops capacitance with DC bias and temperature and has orders
+     of magnitude worse Q; on a series element carrying the whole antenna signal
+     that lands directly in the amplitude accuracy the board exists to deliver,
+     and it fits the same land, weighs the same and looks the same on every
+     render. The tsx therefore PINS the LCSC code rather than declaring a bare
+     1 nF and letting the parts engine choose the cheapest dielectric."
+  - "VALUE IS A COMPROMISE ACROSS 85.7:1, DERIVED IN DETAIL_DESIGN sec.8: Xc =
+     2.27 ohm at 70 MHz (RL 32.9 dB, IL 0.002 dB) and, with an 0402's ~0.4 nH
+     ESL, +j15.0 ohm at 6 GHz (RL 16.5 dB, IL 0.05 dB). 100 pF would give
+     22.7 ohm at 70 MHz — RL 12.9 dB and 0.22 dB of loss, materially worse at
+     the bottom of the band."
+  - "0201 IS THE DOCUMENTED UPGRADE, NOT A DOWNGRADE: ESL ~0.25 nH gives
+     +j9.4 ohm at 6 GHz = RL 20.6 dB, 4 dB better. 0402 is specified for
+     assembly robustness on a low-volume bench board. If measured antenna-port
+     return loss disappoints, this is the named remedy."
+  - "WHY THIS MPN AND NOT THE CHEAPER/BASIC ONE — AND IT IS A GATE REASON, NOT
+     AN ENGINEERING ONE, WHICH IS WORTH SAYING OUT LOUD. The FH `0402CG###J500NT`
+     C0G series is electrically equivalent and one of its members is JLC BASIC.
+     It is the ALTERNATE and not the primary because `bom_source_check`'s
+     `mpn_capacitance` decoder CANNOT PARSE IT: the decoder anchors on a 3-digit
+     code immediately followed by a tolerance letter and then a NON-digit
+     (regex `(\\d{2})([0-8])[JKMDFGZ](?![0-9])`), and in `...CG102J500NT` the
+     `J` is followed by the voltage digits `500`, so the lookahead rejects it and
+     leg C reports UNVERIFIABLE-VALUE. The vetted ledger already works around
+     this three times (C1546/C1547/C1549 all carry an explicit `value:`), which
+     is the evidence that it is a decoder gap and not this part. The Samsung
+     `CL05C###JB5NNNC` form decodes cleanly, so choosing it makes the value
+     MACHINE-VERIFIABLE from the part dossier alone. A PROPOSED patch to the
+     decoder is reported with this board's stage-4 findings; if it lands, the FH
+     part becomes a legitimate primary again."
+  - "SPECIFY BOTH FROM THE SAME REEL. An asymmetric block lands directly in the
+     arm-to-arm comparison the board publishes (ADR-0011)."
+verified: "2-terminal passive — exempt from the datasheet-FIGURE pin-map rule
+  (S-VER). Value, tolerance, dielectric and voltage read from the JLCPCB parts
+  record for C307441 (selectSmtComponentList, exact componentModelEn match,
+  describe field '1nF 50V C0G +/-5% 0402 Multilayer Ceramic Capacitors MLCC'),
+  read 2026-07-28; componentLibraryType `expand` (EXTENDED), stockCount
+  81 680. NO manufacturer datasheet exists for this SKU and none is claimed."
+layout:
+  source: "No manufacturer layout section exists. The governing rules are this
+    board's own RF launch rules (ARCHITECTURE sec.8, ADR-0007) and the same
+    minimum-mounting-parasitic argument recorded on the 49.9 ohm splitter part."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: RX_ANT1, max_span_mm: 25, why: "the jack-side half of the antenna
+       run; the block sits IN the 50 ohm line, so the discontinuity it creates
+       is minimised by keeping the pads and their entry/exit tapers short"}
+    - {net: SW1_ANT, max_span_mm: 25, why: "the switch-side half"}
+    - {net: RX_ANT2, max_span_mm: 25, why: "channel 2, and it must MIRROR
+       channel 1 — an asymmetry here is indistinguishable from an arm mismatch"}
+    - {net: SW2_ANT, max_span_mm: 25, why: "channel 2, switch side"}
+  notes:
+    - "MINIMUM-AREA PADS (IPC-7351 'Least'), no thermal reliefs, no teardrops,
+       no solder-mask-defined pads — every extra pad micron is mounting
+       inductance in series with a part whose whole job is to be transparent."
+    - "Reference plane CONTINUOUS underneath; ground-via fence at <=2.0 mm
+       either side, same as the rest of the RF50 class."
+sourcing:
+  lcsc: C307441
+  alternates: [C53547]        # FH 0402CG102J500NT, same value/dielectric.
+                              # NOT the primary, and the reason is a GATE, not
+                              # a part property — see the last gotcha.
+asserts:
+  - assert: value
+    equals: 1n
+    tolerance_pct: 20
+    why: "the same bound electrical_invariants.yaml puts on C_DCBLK1/2 under
+      ADR-0005. A wrong-value 0402 fits perfectly and is invisible on any
+      render. NB the SI decoder reads m as MILLI and M as MEGA."

@@ -31,9 +31,17 @@ invariants:
 
   - assert: pin_on_net
     pin: "U_SW1.1"            # pin 1 = RF2
-    net: LOOP_ARM1
+    net: LOOP_ARM1_SW
     adr: "0001"
-    why: "RF2 MUST face the loopback arm — the other half of the same fact"
+    why: "RF2 MUST face the loopback arm — the other half of the same fact.
+      CORRECTED 2026-07-28 (stage 4): this said `LOOP_ARM1`, which CONTRADICTED
+      the ADR-0004 chain below (`[LOOP_ARM1, <arm pad>, LOOP_ARM1_SW]`) and made
+      this file UNSATISFIABLE — LOOP_ARM1 is the SPLITTER-side net (the one the
+      two delta legs terminate on, as the ADR-0011 assertion at the bottom
+      requires) and LOOP_ARM1_SW is the SWITCH-side net on the far side of the
+      arm pad. Asserting RF2 on LOOP_ARM1 would have demanded a board where the
+      arm pad is NOT between the splitter and the switch, i.e. exactly the
+      topology ADR-0004 spent four independent arguments rejecting"
 
   - assert: pin_on_net
     pin: "U_SW2.3"
@@ -44,9 +52,9 @@ invariants:
 
   - assert: pin_on_net
     pin: "U_SW2.1"
-    net: LOOP_ARM2
+    net: LOOP_ARM2_SW
     adr: "0001"
-    why: "channel 2, loopback throw"
+    why: "channel 2, loopback throw — same 2026-07-28 correction as U_SW1.1"
 
   - assert: net_has_part
     net: RF_CTRL_SW1
@@ -120,18 +128,25 @@ invariants:
   # The switches' RF ports are DC-connected through the die and V_RFDC must be
   # 0 V. Two things make that true, and both are checkable.
   - assert: series_chain
-    chain: [RX_ANT1_EXT, C_DCBLK1, RX_ANT1]
+    chain: [RX_ANT1, C_DCBLK1, SW1_ANT]
     adr: "0005"
-    why: "the DC block must be IN SERIES with the antenna port, not shunted
+    why: "CORRECTED 2026-07-28 (stage 4): this chain read
+      `[RX_ANT1_EXT, C_DCBLK1, RX_ANT1]`, which named THREE nets for the
+      antenna path's TWO nodes — `RX_ANT1_EXT` appeared in no netclass, no
+      part.yaml and no architecture table, while `SW1_ANT` (which does appear in
+      all three, and which the assertion on U_SW1.3 requires) had nothing
+      connecting it to the block. The two real nodes are the JACK side and the
+      SWITCH side; the block bridges them. The assertion is unchanged in force —
+      the DC block must be IN SERIES with the antenna port, not shunted
       across it. RX_ANT1 is the only user-facing port where an unknown DC
       source (an active antenna, a bias-tee'd LNA) can appear; without the
       block that bias is shorted to ground through the switch die and the YAT
       pads, driving fault current through a 0.7 x 1.1 mm part"
 
   - assert: series_chain
-    chain: [RX_ANT2_EXT, C_DCBLK2, RX_ANT2]
+    chain: [RX_ANT2, C_DCBLK2, SW2_ANT]
     adr: "0005"
-    why: "channel 2, same"
+    why: "channel 2, same — and the same 2026-07-28 net-naming correction"
 
   - assert: part_value
     part: C_DCBLK1
@@ -215,17 +230,39 @@ invariants:
   # inter-channel isolation falls 6.02 + 2*A2 -> 6.02 dB; an unplugged RX
   # cable adds +3.52 dB to the OTHER channel with no error indication; and in
   # antenna mode the splitter presents Zin = infinity to TX (Gamma = +1).
+  # RE-SPEC'D 2026-07-28 (stage 4) FOR A9. These three chains still named ONE
+  # part each — `U_PAD_A1`, `U_PAD_A2A`, `U_PAD_A2B` — which was true under the
+  # 30 dB build. A9/ADR-0016 made PAD_A1 a FIVE-chip cascade (2x YAT-10A+ +
+  # 3x YAT-2A+) and each arm pad a TWO-chip cascade (YAT-10A+ + YAT-2A+), and
+  # this file was never re-spec'd with the prose. As written the assertions
+  # named parts that the board does not contain, so E-INV would have FAILED on
+  # a correct netlist — the failure mode that trains people to weaken gates.
+  # series_chain takes an arbitrary alternating chain, so the cascade is now
+  # asserted CHIP BY CHIP: stronger than before, because it also pins the ORDER
+  # (the FIRST chip is a YAT-10A+, which is the element DETAIL_DESIGN section
+  # 4.3 computes the board's +27 dBm TX ceiling against, and section 7 the TX
+  # port return loss against).
   - assert: series_chain
-    chain: [TX_PLUTO, U_PAD_A1, LOOP_IN]
-    through: {U_PAD_A1: ["2", "5"]}
+    chain: [TX_PLUTO, U_PAD_A1A, U_PAD_A1B, U_PAD_A1C, U_PAD_A1D, U_PAD_A1E,
+            LOOP_SPLIT]
+    through:
+      U_PAD_A1A: ["2", "5"]
+      U_PAD_A1B: ["2", "5"]
+      U_PAD_A1C: ["2", "5"]
+      U_PAD_A1D: ["2", "5"]
+      U_PAD_A1E: ["2", "5"]
     adr: "0004"
-    why: "the 10 dB pre-split pad sits between the TX port and the splitter
+    why: "the 25.8 dB pre-split pad sits between the TX port and the splitter
       input — this is what keeps the TX port's return loss set by the pad,
-      which is the one surviving argument of the pre-split position"
+      which is the one surviving argument of the pre-split position. The chain
+      ends at LOOP_SPLIT, not the retired duplicate name LOOP_IN: PAD_A1's
+      output IS the delta's input vertex"
 
   - assert: series_chain
-    chain: [LOOP_ARM1, U_PAD_A2A, LOOP_ARM1_SW]
-    through: {U_PAD_A2A: ["2", "5"]}
+    chain: [LOOP_ARM1, U_PAD_A2A1, U_PAD_A2A2, LOOP_ARM1_SW]
+    through:
+      U_PAD_A2A1: ["2", "5"]
+      U_PAD_A2A2: ["2", "5"]
     adr: "0004"
     why: "THE ARM PAD MUST BE IN THE ARM. Omitting it or relocating it ahead of
       the split costs ~24 dB of inter-channel isolation, unmasks the
@@ -233,12 +270,17 @@ invariants:
       reflective shorts in antenna mode"
 
   - assert: series_chain
-    chain: [LOOP_ARM2, U_PAD_A2B, LOOP_ARM2_SW]
-    through: {U_PAD_A2B: ["2", "5"]}
+    chain: [LOOP_ARM2, U_PAD_A2B1, U_PAD_A2B2, LOOP_ARM2_SW]
+    through:
+      U_PAD_A2B1: ["2", "5"]
+      U_PAD_A2B2: ["2", "5"]
     adr: "0004"
     why: "channel 2, same reasoning as arm 1 — and the two arms must be
       topologically IDENTICAL, because the published D4 delta is only meaningful
-      if the only difference between them is geometry"
+      if the only difference between them is geometry. Note the chain is
+      chip-for-chip the mirror of arm 1's, in the same order (10 dB then 2 dB):
+      a reversed cascade would be electrically equivalent and would still break
+      the identical-rotation rule the CPL has to carry (ADR-0011)"
 
   # ---- ADR-0015: the three Pluto-facing ports are SMA JACKS, cable-fed ------
   # A8 (2026-07-27) replaced the SMA->SMP adapter interface with SMA cables, so
@@ -278,8 +320,14 @@ invariants:
       property"
 
   - assert: series_chain
-    chain: [TX_PLUTO, U_PAD_A1, LOOP_IN]
-    through: {U_PAD_A1: ["2", "5"]}
+    chain: [TX_PLUTO, U_PAD_A1A, U_PAD_A1B, U_PAD_A1C, U_PAD_A1D, U_PAD_A1E,
+            LOOP_SPLIT]
+    through:
+      U_PAD_A1A: ["2", "5"]
+      U_PAD_A1B: ["2", "5"]
+      U_PAD_A1C: ["2", "5"]
+      U_PAD_A1D: ["2", "5"]
+      U_PAD_A1E: ["2", "5"]
     adr: "0016"
     why: "THE PAD MUST BE UPSTREAM OF THE SWITCH, and this is the netlist half
       of that guarantee. If TX_PLUTO ever reached a switch RF port without
@@ -360,11 +408,18 @@ invariants:
 
   # ---- ADR-0009: input protection ----------------------------------------
   - assert: series_chain
-    chain: [VBUS, F1, VBUS_F]
+    chain: [VBUS, F1, FB1, VBUS_F]
     adr: "0009"
     why: "the PPTC must be genuinely IN SERIES with VBUS. It protects the HOST,
       not this board — a shorted rail here must not kill the laptop USB port —
-      and a part that exists but is not in the path protects nothing"
+      and a part that exists but is not in the path protects nothing.
+      STRENGTHENED 2026-07-28 (stage 4): the chain was [VBUS, F1, VBUS_F], which
+      asserted that F1's two pads bridge those two nets — true only if nothing
+      else is in the path. ARCHITECTURE section 5 puts the 600 ohm FERRITE
+      between them, so the old chain would have FAILED the correct board and,
+      worse, would have PASSED a board with the ferrite missing or shunted. Both
+      series elements are now pinned in ORDER: fuse first (at the connector,
+      where it protects the host), ferrite second (feeding the LDO)"
 
   - assert: pin_on_net
     pin: "U_LDO.3"            # ME6211 SOT-23-5 pin 3 = CE

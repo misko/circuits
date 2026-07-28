@@ -1,0 +1,22 @@
+# Documented per-board FOOTPRINT PAD-NAME DELTAS, consumed by
+# kicad_sch_parity.py.  Format: `tsxpad realpad` per line, `#` comments.
+#
+# EMPTY BY MEASUREMENT, NOT BY OVERSIGHT. tsx_preflight.py (canon TSX-PRE) is
+# the gate: it FAILS if any 02_parts/*/part.yaml `pins:` map carries a
+# non-numeric pad name that is not listed here. Every pad name on this board is
+# numeric (1..N) — there is no USB-C `A1..B12` and no shield `SH`, which is the
+# class tscircuit rejects WITHOUT AN ERROR, dropping the whole part while ERC
+# still reads 0 (2026-07-21 incident: four USB connectors, 48/52 parts).
+#
+# TWO PARTS TO RE-CHECK HERE AT THE BOARD STAGE, when the real KiCad footprints
+# are authored in 03_src/lib/ — neither affects the schematic gate, because ERC
+# and refdes parity do not bind pad NAMES:
+#
+#   * J_USB (U254-051T-4BH83-S1S) is authored on 6 tsx pads. Pad 6 is the
+#     SHELL, which the real land pattern splits into FOUR SMT shell pads plus
+#     TWO THT "PCB LEG" oval slots — all GND. If the KiCad footprint names them
+#     anything but `6`, map them here.
+#   * SW_BOOT (TS-1187A-B-A-B) is authored on 4 tsx pads (1,2 = one contact;
+#     3,4 = the other). A prior board in this fleet recorded a JLC-pads-1-4 vs
+#     KiCad-pads-1/2 adjudication for this MPN; if the vendored footprint uses
+#     2 pads, map 2->1 and 4->3 here.

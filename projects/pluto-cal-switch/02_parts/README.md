@@ -1,8 +1,19 @@
 # 02_parts — status and DEVIATIONS REGISTER
 
+State as of **2026-07-28**, during pipeline stage 4 (schematic authoring).
+
+> **STAGE-4 UPDATE 2026-07-28 — TWO DEVIATIONS CLOSED, ONE PART ADDED.**
+> Authoring the schematic is the moment the parts stage's IOUs come due, and
+> two of the three did. `W25Q16JVSSIQ` and `USBLC6-2SC6` carried `pins: {}` /
+> `verified: OWED`; both are now **figure-verified with their PDFs vendored**
+> (see the table below). The third — the micro-USB's INFERRED signal names —
+> is **still open by design**: its resolution is a fresh-context pin review
+> against JLC's own footprint, which is a stage-7 gate, not something the
+> schematic can settle. And `ABM8-272-T3` is **added**, closing ADR-0012's
+> deferred 12 MHz crystal by resolution **(a)**, not (b).
+
 State as of **2026-07-27**, end of pipeline stages 1-3 (design docs, parts,
-rules). **No schematic exists yet**, so nothing downstream has consumed any of
-these entries.
+rules), for everything not touched above.
 
 > **RE-SPEC 2026-07-27 (A8 + A9, ADR-0015 / ADR-0016).** Two part changes:
 > `SMP-MSLD-PCE-5T` is **DELETED** — the board connects with SMA cables, so
@@ -21,6 +32,9 @@ these entries.
 | `KH-SMA-KE-Z` | C504007 | **5** | drawing sheet 2/2 `PCB layout`, 5-Ø1.4 @ 5.08 mm. Gender re-verified 2026-07-27 from the p.1 产品名称 (product-name) field + the sheet-2 external-thread outline, and the RP-SMA residual closed on LCSC C504007 — see ADR-0015 |
 | `RP2040` | C2040 | 1 | Tables 615-621, §5.5.2.2 Pin List, PDF pp.612-614 — all 56 pins + pad accounted for, no gaps, no duplicates |
 | `ME6211C33M5G-N` | C82942 | 1 | Pin Assignment table, ME6211CXXG SOT-23-5 column, V14 p.4 |
+| `W25Q16JVSSIQ` | C82317 | 1 | **NEW 2026-07-28** — Figure 1a `Pin Assignments, 8-pin SOIC150-mil/208-mil (Package Code SN, SS)`, Rev H printed p.5, cross-checked against the sec.3.3 Pin Description table on the same page |
+| `USBLC6-2SC6` | C7519 | 1 | **NEW 2026-07-28** — Figure 1 `Functional diagram (top view)`, Doc ID 11265 Rev 5 p.1, cross-checked against Figure 7 p.5 |
+| `ABM8-272-T3` | C20625731 | 1 | **NEW 2026-07-28** — TOP VIEW pad figure, Abracon drawing 456603 Rev B printed p.(4), rendered at 130 dpi and read visually |
 
 ## Deviations — every departure from `contracts.md`, with what must happen
 
@@ -39,9 +53,21 @@ by obtaining the drawing, and if SMP ever returns the deviation returns with it.
 
 | MPN | deviation | why | before bring-up |
 |---|---|---|---|
-| `W25Q16JVSSIQ` | **`pins:` EMPTY, `verified: OWED`**, no PDF | datasheet not fetched this session | fetch, extract the pin map from the figure, fill `pins:` / `limits:` / `layout:`. Re-check stock: 4 of 6 16-Mbit SKUs read out of stock 2026-07-27 |
-| `USBLC6-2SC6` | **`pins:` EMPTY, `verified: OWED`**, no PDF | the cached file is an HTML error page saved with a `.pdf` extension — not a valid PDF | re-fetch from st.com; its §2.3 layout demand is already transcribed in `gotchas:` and is the strongest USB-side rule on the board |
-| `U254-051T-4BH83-S1S` | **`pins:` populated but the SIGNAL NAMES ARE NOT ON THE VENDOR DRAWING** — they come from the USB Micro-B standard. Mechanical geometry IS fully read | XKB labels only "PIN 1" and "PIN 5" and gives current ratings by pin group; that is consistent with, not proof of, the standard map | **fresh-context pin review against JLC's own fetched footprint.** If the footprint numbers pin 1 at the opposite end, VBUS and GND swap and the board dies on first plug-in. This is the `jlc_twin` PAD-MISMATCH class and this fleet has already shipped one reversed connector |
+| ~~`W25Q16JVSSIQ`~~ | ~~`pins:` EMPTY, `verified: OWED`, no PDF~~ | — | **CLOSED 2026-07-28.** PDF fetched (Rev H, sha256 `81af3f69…`) and vendored; `pins:`, `limits:` and `layout:` filled from Figure 1a + the sec.3.3 table on printed p.5. Stock re-check at order time still stands |
+| ~~`USBLC6-2SC6`~~ | ~~`pins:` EMPTY, `verified: OWED`, no PDF~~ | — | **CLOSED 2026-07-28.** A valid ST PDF (Doc ID 11265 Rev 5, sha256 `8ba7ab4e…`) was located and vendored; `pins:` filled from Figure 1. **Provenance stated rather than implied:** st.com refused an automated re-fetch (HTTP/2 `INTERNAL_ERROR`; the CCC mirror times out), so the copy used is the byte-identical one already in this repo at `projects/usb-hub-3s-v3/02_parts/USBLC6-2SC6/`, whose sha256 matches |
+| `U254-051T-4BH83-S1S` | **`pins:` populated but the SIGNAL NAMES ARE NOT ON THE VENDOR DRAWING** — they come from the USB Micro-B standard. Mechanical geometry IS fully read | XKB labels only "PIN 1" and "PIN 5" and gives current ratings by pin group; that is consistent with, not proof of, the standard map | **STILL OPEN — and the schematic cannot close it.** The resolution is a **fresh-context pin review against JLC's own fetched footprint**, i.e. a stage-7 `jlc_twin` PAD-MISMATCH check on a board that does not exist yet. The schematic authored on 2026-07-28 binds `J_USB` to this map, so a later correction is a netlist change, not a rework. If the footprint numbers pin 1 at the opposite end, VBUS and GND swap and the board dies on first plug-in; this fleet has already shipped one reversed connector |
+
+### What the two closures actually changed
+
+Both were closed by READING, not by deciding — but the USBLC6 read produced a
+fact the schematic would otherwise have got wrong, and it is worth naming:
+**pins 1/6 carry the SAME label `I/O1` and pins 3/4 the same label `I/O2`.**
+Each pair is ONE internal node. Figure 7's "route the data line in one pin and
+out the other" is a **copper** instruction (no stub in the clamp path), not two
+electrical nets. Splitting `USB_DP` into `USB_DP_CON` → `USB_DP` across pins 1
+and 6 would have drawn a part that does not exist, and would have made an ESD
+shunt look like a series element to every downstream reader — including a human
+reviewing the schematic PDF.
 
 ## Not yet created — parts whose refdes set the schematic decides
 
@@ -68,27 +94,49 @@ lands — they are not interchangeable decouplers.
 
 ## Open sourcing items
 
-- **12 MHz crystal — DELIBERATELY NOT SELECTED YET.** The JLC **Basic** part
+- ~~**12 MHz crystal — DELIBERATELY NOT SELECTED YET.**~~ **CLOSED 2026-07-28
+  by SELECTING `ABM8-272-T3` (Abracon, JLC `C20625731`, Extended, 17 567 in
+  stock) — ADR-0012 resolution (a), not (b).** The JLC **Basic** part
   X322512MSB4SI (C9002) is **CL = 20 pF, ESR = 80 Ω** against Raspberry Pi's
   reference of **CL = 10 pF, ESR ≤ 50 Ω** — 2× the load and 1.6× the ESR
   ceiling, with the 1 kΩ damping resistor sized against the 50 Ω part. **A
-  crystal that does not start means USB never enumerates.** Two fully specified
-  resolutions in ADR-0012; if C9002 is taken, the load caps become **33 pF, NOT
-  the reference's 15 pF**, and a start-up test at both temperature extremes
-  goes into the release gate.
+  crystal that does not start means USB never enumerates — and on this board
+  that is not a degraded mode, it is a brick, because the ONLY programming path
+  is the USB mass-storage bootloader.** ABM8-272-T3 lands exactly on both
+  limits (CL = 10 pF typ, R1 = **50 Ω max**) and its own datasheet, printed
+  p.(2), states *"Crystal approved for use with Raspberry Pi's RP2040 and
+  RP235x range of microcontroller products"* — a vendor statement about this
+  part number, not an inference. So the schematic carries the reference
+  circuit **unmodified**: 2 × 15 pF load caps (derived, `2 × (10 − 3) = 14 pF →
+  E24 15 pF`) and the 1 kΩ series damping resistor, with **no** start-up test
+  at temperature extremes added to the release gate. Cost of the choice, stated:
+  Extended-library status (a one-time feeder fee) and **zero ESR margin** —
+  50 Ω max against a ≤ 50 Ω limit. What buys that back is that 50 Ω is the
+  value the vendor's own 1 kΩ damping resistor was sized against; an 80 Ω part
+  has no such backing. C9002 remains the documented fallback and takes
+  resolution (b) **with** its 33 pF caps and its start-up test.
 - ~~**SMA→SMP adapters (`134-1019-451`, Cinch)**, 3 × $33.83 = **$101**, 21 in
   stock~~ — **CANCELLED 2026-07-27 by A8/ADR-0015.** The board connects with
   SMA cables. Nothing on the critical path replaces them: **three SMA
   male–male cables, user-supplied, commodity**, of which **two must be
   IDENTICAL** (the RX pair — P6's "same path length on each run" now lands on
   the cables, not on a PCB trace match).
-- **A stock query on the mid-value YAT parts is OWED before the schematic.**
-  `PAD_A1` is a five-chip cascade only because YAT-10A+ and YAT-2A+ are the two
-  values with verified stock. A single **YAT-15A+ / YAT-12A+** (or YAT-5A+ /
-  YAT-3A+) would collapse it to two chips, save ~$7/board and ~12 mm of
-  interconnect, and lift the 20-board stock ceiling. **The min column of any
-  substitute must be read from its own datasheet** — ADR-0016's guarantee is
-  built on min columns, and an unverified one cannot carry it.
+- ~~**A stock query on the mid-value YAT parts is OWED before the schematic.**~~
+  **QUERIED 2026-07-28 — the answer is MEASURED, and the collapse is NOT taken
+  at stage 4.** JLC `selectSmtComponentList`, exact model match, read
+  2026-07-28: **YAT-15A+ `C7169783` 79 · YAT-12A+ `C5839322` 4 · YAT-5A+
+  `C6338032` 10 · YAT-3A+ `C5205332` 152** (against the committed YAT-10A+
+  `C5839318` **150** and YAT-2A+ `C5205333` **103**). So **YAT-15A+ is the only
+  mid value with usable stock**, and YAT-12A+/5A+ are effectively unbuyable.
+  A `YAT-15A+ + YAT-10A+` pre-split pad would be 25 dB nominal against the
+  present 25.78 dB, would drop the per-board YAT-2A+ count from 5 to 2 (lifting
+  the binding ceiling from 20 boards to ~51), and would delete ~12 mm of
+  interconnect. **It is not taken here, and the reason is the same one that
+  makes ADR-0016 claimable at all: the guarantee is built on datasheet MIN
+  columns, and YAT-15A+'s min column has not been read.** Substituting it is a
+  re-derivation of `DETAIL_DESIGN` §3.4 and a change to ADR-0016's arithmetic —
+  a stage-1/3 backtrack, not a schematic edit. **Escalated to the user as a
+  costed option, not silently taken and not silently dropped.**
 
 ## Stock, checked 2026-07-27 — informational, NEVER a committed truth
 

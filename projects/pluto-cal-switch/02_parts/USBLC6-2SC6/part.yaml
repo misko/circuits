@@ -2,12 +2,12 @@ mpn: USBLC6-2SC6
 manufacturer: STMicroelectronics
 type: esd_protection_usb_2ch
 datasheet:
-  doc_id: USBLC6-2
-  revision: "OWED"
+  doc_id: USBLC6-2                      # "Doc ID 11265" in the page footer
+  revision: "Rev 5"                     # printed "Doc ID 11265 Rev 5", Oct 2011
   url: https://www.st.com/resource/en/datasheet/usblc6-2sc6.pdf
-  sha256: "OWED — the locally cached copy is NOT a valid PDF (an error page was
-    saved under the .pdf name); re-fetch required"
-  fetched: null
+  sha256: 8ba7ab4ec1781b7f6052f5999a2304bd611c0ed2b5e8f36ffa5092552932a42e
+  fetched: 2026-07-28
+  pages: 14
 package: SOT-23-6L
 footprint: pluto_cal_switch:SOT-23-6
 escape:
@@ -16,16 +16,41 @@ escape:
   escapes_worst_side: 3
   tier_required: jlc_2layer_default
   checked: escape_check 2026-07-27
-pins: {}                      # OWED — see verified:
+pins:                         # Figure 1 "Functional diagram (top view)", p.1/14.
+  1: I/O1                     # READ FROM THE FIGURE, not from a memory of the
+  2: {name: GND, tie: GND}    # standard map. NOTE pins 1 and 6 carry the SAME
+  3: I/O2                     # label I/O1, and pins 3 and 4 the same label I/O2:
+  4: I/O2                     # each pair is ONE internal node. Figure 7 ("ESD
+  5: VBUS                     # behavior: layout optimization", p.5) shows the
+  6: I/O1                     # data line entering one and leaving the other —
+                              # that is a LAYOUT rule (route THROUGH, no stub),
+                              # not two electrical nets. In the netlist pin1 and
+                              # pin6 are on ONE net, pin3 and pin4 on the other.
 limits:
-  vbr_vbus_diode: ">= 6 V at 1 mA"   # from the sourcing spike's read of Table 2
-                                     # p.2 — NOT re-verified here
+  vbr_vbus_diode: ">= 6 V at 1 mA"      # Table 2 "Electrical characteristics",
+                                        # VBR between VBUS and GND, min 6 V
+  irm_leakage: "150 nA max at VRM = 5.25 V"      # Table 2
+  vf: "1.1 V max at IF = 10 mA"                  # Table 2
+  vcl: "12 V max at IPP = 1 A 8/20 us; 17 V at 5 A"   # Table 2, any I/O to GND
+  c_io_gnd: "3.5 pF max at VR = 1.65 V"          # Table 2
+  d_c_io_gnd: "0.015 pF matching"                # Table 2 — the D+/D- balance
+  vpp_esd: "15 kV air / 15 kV contact (IEC 61000-4-2)"   # Table 1
+  tj: "-40 to +125 C"                            # Table 1
 gotchas:
-  - "**THIS ENTRY IS INCOMPLETE BY DECLARATION.** The cached PDF is corrupt (an
-     HTML error page saved with a .pdf extension), so no pin map is asserted.
-     The pin map, limits and layout block are OWED and this part MUST NOT enter
-     a BOM until they are filled from the datasheet FIGURE. Recorded in
-     02_parts/README.md's deviations register rather than fabricated."
+  - "PIN-MAP DEVIATION CLOSED 2026-07-28. This entry was `pins: {}` / `verified:
+     OWED` because the cached file was an HTML error page saved with a .pdf
+     extension. A VALID ST PDF (Doc ID 11265 Rev 5, sha256 8ba7ab...) was
+     located, its Figure 1 read, and the PDF vendored here. st.com refused an
+     automated re-fetch (HTTP/2 INTERNAL_ERROR, and its CCC mirror times out);
+     the copy used is the byte-identical one already vendored in this repo at
+     projects/usb-hub-3s-v3/02_parts/USBLC6-2SC6/, whose sha256 matches the one
+     recorded above. Provenance stated rather than implied."
+  - "PINS 1/6 AND 3/4 ARE PAIRS OF THE SAME NODE, and this is the one thing a
+     schematic can get wrong here in a way no gate sees. Binding pin 6 to a
+     DIFFERENT net from pin 1 (e.g. `USB_DP_CON` -> `USB_DP`) would draw a
+     part that does not exist and would make the ESD clamp look like a series
+     element. The through-routing demand of section 2.3 is satisfied in COPPER,
+     by where the pads sit, not by splitting the net."
   - "ITS LAYOUT SECTION IS THE STRONGEST DEMAND OF ANY PART ON THE USB SIDE and
      must be honoured once the pin map is verified. ST sec 2.3 'How to ensure
      good ESD protection', verbatim: 'While the USBLC6-2 provides high immunity
@@ -45,10 +70,40 @@ gotchas:
      (ADR-0009) — surviving it needs an SMBJ5.0A-class TVS *and* the PPTC to
      crowbar, because a 5 V TVS clamps around 10.3 V, above a 5 V load's ceiling,
      so the clamp alone does not disconnect."
-verified: "OWED. Cached PDF is corrupt; no pin map is asserted. An empty pins:
-  block will fail S-VER by construction if anyone tries to build from it.
-  Assigned to the schematic-stage parts fan-out. 2026-07-27"
-layout: {}
+verified: "pin map read from Figure 1 'Functional diagram (top view)', printed
+  p.1 of 14, USBLC6-2 Doc ID 11265 Rev 5 (October 2011) — the figure prints the
+  six pin numbers with their labels in two columns (1 I/O1 / 2 GND / 3 I/O2 on
+  the left, 6 I/O1 / 5 VBUS / 4 I/O2 on the right). Cross-checked against
+  Figure 7 'ESD behavior: layout optimization' p.5, which draws the same
+  numbering with the data line entering pin 1 and leaving pin 6. Electrical
+  limits from Table 1 (Absolute ratings) and Table 2 (Electrical
+  characteristics), p.1-2. 2026-07-28"
+layout:
+  source: "ST section 2.3 'How to ensure good ESD protection' (p.5) + Figure 6
+    (p.4) + Figure 7 (p.5). This is a real layout section with PHYSICS in it,
+    not boilerplate: section 2.2 works a numeric example in which 10 mm x 0.5 mm
+    tracks (~6 nH each) raise the clamp voltage from +31.2 V to +319.2 V at a
+    1 ns edge. The rules below are the vendor's own, quoted."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: USB_DP, max_span_mm: 6, why: "section 2.3 verbatim: 'the track from
+       data lines to I/O pins ... must be as short as possible to avoid
+       overvoltages due to parasitic phenomena'. Section 2.2 quantifies it:
+       L_IO*dI/dt at 24 A/ns is 144 V per 6 nH"}
+    - {net: USB_DM, max_span_mm: 6, why: "same, the other line"}
+    - {net: VBUS, max_span_mm: 6, why: "section 2.3: 'from VCC to VBUS pin ...
+       as short as possible'"}
+  notes:
+    - "PLACE IT AT THE CONNECTOR. Section 2.3 note, verbatim: 'A good precaution
+       to take is to put the protection device as close as possible to the
+       disturbance source (generally the connector).' It sits UPSTREAM of
+       everything else on D+/D-, including the 27 ohm series terminators."
+    - "THE PAIR ROUTES THROUGH THE PART WITH ZERO STUBS — Figure 7 contrasts an
+       'Unsuitable layout' (stubbed) with the correct one (in-line). A stub is
+       series inductance IN the clamp path, and section 2.2's arithmetic is what
+       it costs."
+    - "GND (pin 2) gets its OWN via AT the pad into the L2 plane — never a trace
+       to a via elsewhere. L_GND*dI/dt is the second of the two 144 V terms."
 sourcing:
   lcsc: C7519
   alternates: []

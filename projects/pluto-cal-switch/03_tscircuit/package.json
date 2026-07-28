@@ -1,0 +1,5 @@
+{
+  "name": "pluto-cal-switch-tscircuit",
+  "main": "src/pluto_cal_switch.tsx",
+  "dependencies": {}
+}

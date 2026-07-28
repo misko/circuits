@@ -1,14 +1,24 @@
 #!/bin/bash
-# TEMPLATE rebuild_all.sh — the canonical generic pipeline (skill-owned).
-# Copy into a new board's 03_src/ and set BOARD + TSX below. ZERO board-specific
-# generation Python: board + route + rules all run on the SHARED skill scripts.
+# rebuild_all.sh — pluto-cal-switch. Seeded from the skill-owned template
+# (skills/pcb-design/templates/03_src/rebuild_all.sh) on 2026-07-28 and filled.
+# ZERO board-specific generation Python: board + route + rules all run on the
+# SHARED skill scripts (ADR-0002 amendment). A bespoke 03_src/generate_board.py
+# would need its own ADR; this board does not have one and does not need one.
 # See 03_src/contracts.md for the authoritative step order.
+#
+# STAGE 4 STATE (2026-07-28): steps [0] through [2] are GREEN and are what the
+# schematic gate runs. Steps [3] onward WILL FAIL until stage 5 lands, and they
+# fail for two DECLARED reasons, not mysteries:
+#   * 03_src/lib/pluto_cal_switch.pretty/ does not exist yet, so no footprint
+#     this board names resolves;
+#   * 03_src/floorplan.yaml carries this board's identity but NO placement.
+# That is the handoff boundary, and it is deliberate.
 set -euo pipefail
 cd "$(dirname "$0")/.."                       # -> project root (03_src/..)
 
 # --- board-specific knobs (the ONLY things to edit) -------------------------
-BOARD=power3s                                  # <board> stem for 04_kicad/<board>.*
-TSX=power3s                                    # 03_tscircuit/src/<TSX>.tsx basename
+BOARD=pluto_cal_switch                         # <board> stem for 04_kicad/<board>.*
+TSX=pluto_cal_switch                           # 03_tscircuit/src/<TSX>.tsx basename
 # ----------------------------------------------------------------------------
 
 PY=/usr/bin/python3

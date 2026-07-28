@@ -1,0 +1,81 @@
+mpn: TS-1187A-B-A-B
+manufacturer: XKB Connection
+type: tact_switch_spst_no
+datasheet:
+  doc_id: TS-1187A
+  revision: "n/a"             # vendor publishes no revision string
+  url: https://www.lcsc.com/product-detail/C318884.html
+  sha256: "n/a — no manufacturer PDF is vendored; see verified: for what IS
+    and is NOT asserted about this part"
+  fetched: 2026-07-28
+package: SMD-4P, 5.1 x 5.1 mm gull-wing tact switch, 1.5 mm actuator
+footprint: pluto_cal_switch:SW_Push_1P1T_XKB_TS-1187A
+escape:
+  style: connector
+  pitch: 4.5
+  escapes_worst_side: 1
+  tier_required: jlc_2layer_default
+  checked: "4 large gull-wing pads on a ~4.5 mm span — no escape problem"
+pins:                         # FOUR physical pads, TWO electrical nodes: the
+  1: A                        # 4-pad tact switch shorts 1-2 and 3-4 internally
+  2: A                        # (the classic 6x6/5x5 arrangement). The switch
+  3: B                        # closes A to B when pressed.
+  4: B
+limits:
+  operating_force: 1.6 N
+  travel: 1.5 mm
+  life: 100000 cycles
+  rating: "12 V / 50 mA"
+  temp_op: "-30 to +85 C"
+gotchas:
+  - "THIS IS THE BOOTSEL BUTTON AND IT IS NOT IN ANY ADR — it is an authoring
+     decision taken at stage 4 and declared. RP2040 enters its USB
+     mass-storage bootloader by holding QSPI_CSn LOW at power-up. A BLANK board
+     enters it anyway (ADR-0012), so the button is not needed for the FIRST
+     flash — it is needed for EVERY SUBSEQUENT one. With D7 (control
+     arbitration) still open, the firmware WILL be rebuilt at least once, and
+     without this button the only reflash path on a board whose flash is a
+     0.4 mm-pitch QFN neighbour is shorting a pin by hand. ~$0.02 against a
+     class of brick."
+  - "PAD PAIRING IS NOT A DATASHEET FACT HERE — it is the standard 4-pad tact
+     arrangement and it is asserted as such, NOT quoted. What makes that safe
+     on THIS net is that BOTH nodes are benign either way: pads 1/2 carry
+     USB_BOOT and pads 3/4 carry GND, so if the internal pairing were rotated
+     90 degrees the switch would short USB_BOOT to GND permanently — which is
+     LOUD (the board would boot to the bootloader every time), not silent. It
+     must still be confirmed against JLC's own footprint at the twin stage."
+  - "JLC BASIC (componentLibraryType `base`), stockCount 1 361 224 read
+     2026-07-28 — no feeder fee and no stock risk."
+  - "TWIN PAD-ALIAS: prior boards in this fleet recorded a JLC-pads-1-4 vs
+     KiCad-pads-1/2 mismatch for this MPN (ble-bus-bar adjudication). Carry the
+     4-pad convention above and let jlc_twin adjudicate at the fab stage."
+verified: "PARTIAL, AND THE GAP IS NAMED. No manufacturer PDF is published for
+  this SKU, so the pad map above is NOT figure-verified: it is the standard
+  4-pad tact-switch arrangement (1-2 one contact, 3-4 the other), asserted from
+  the SMD-4P package designation and the 5.1 x 5.1 mm body in the JLCPCB
+  catalog record for C318884 (selectSmtComponentList, exact model match,
+  read 2026-07-28). WHY THAT IS ACCEPTABLE HERE AND WOULD NOT BE ON AN RF OR
+  POWER PART: the two nodes are USB_BOOT and GND, so every possible pairing
+  either works or fails LOUDLY at first power-up (see gotchas). This is a
+  DECLARED partial verification, and it is registered in 02_parts/README.md
+  rather than being allowed to look complete."
+layout:
+  source: "No manufacturer layout section exists. The governing rule is the
+    system vendor's: Raspberry Pi `hardware-design-with-rp2040` sec.2.2 p.9 —
+    the 1 kohm QSPI_SS-to-USB_BOOT resistor is 'placed close to the flash chip'."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: USB_BOOT, max_span_mm: 20, why: "the button may sit at a board edge
+       for finger access, but the 1 kohm R_BOOT that isolates it from QSPI_CSn
+       must sit AT THE FLASH — the long segment is then USB_BOOT, which is a DC
+       node, not the QSPI line"}
+  notes:
+    - "PUT THE BUTTON WHERE A FINGER REACHES IT AND THE RESISTOR WHERE THE
+       FLASH IS. Splitting them that way is what keeps a ~20 mm user-accessible
+       trace off the XIP bus (ARCHITECTURE sec.10.5: the QSPI bus is this
+       board's only continuous in-band spur source)."
+    - "Keep it away from all five SMA jacks — it is a mechanical part a human
+       presses, and pressing it flexes the board."
+sourcing:
+  lcsc: C318884
+  alternates: [C318887]       # TS-1187A-C-E-B, same body, taller actuator

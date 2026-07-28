@@ -1,0 +1,21 @@
+# TSNAME CANONICAL  (one per line) — ONLY for names the converter's N-guard
+# convention cannot reach. `#` starts a comment.
+#
+# The convention (repo ADR-0001 canon_net): a leading `N` that GUARDS A DIGIT is
+# stripped (N3V3 -> 3V3, N5V -> 5V), while a leading N followed by a non-digit
+# is left alone (NRST, NC, NRESET). So the two digit-leading rails on this
+# board are handled automatically and need no line here:
+#
+#     N3V3     -> 3V3      (handled by canon_net)
+#     N3V3_SW  -> 3V3_SW   (handled by canon_net)
+#
+# THE MAPPINGS ARE LOAD-BEARING, NOT COSMETIC: 03_src/rules/nets.yaml keys its
+# netclasses on the CANONICAL names (PWR carries `3V3` and `3V3_SW`), and on
+# this board a netclass miss is an IMPEDANCE or an AMPACITY defect, not a
+# cosmetic one. Every other net on this board starts with a letter and passes
+# through verbatim.
+#
+# This file is therefore intentionally EMPTY of mappings. It exists, and is
+# empty, as a POSITIVE STATEMENT that the convention covers every rail here —
+# the converter auto-discovers it, so its absence and its emptiness are not the
+# same thing to a reader.

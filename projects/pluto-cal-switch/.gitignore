@@ -1,0 +1,32 @@
+# pluto-cal-switch — required by this project's own contracts.md:
+# "must ignore 06_build/; must NOT ignore 01_docs/decisions/ or 02_parts/".
+# Created 2026-07-28 at the schematic gate — the project had NO .gitignore at
+# all, which only became visible the moment stage 4 produced its first
+# disposable artifacts.
+
+06_build/*
+!06_build/contracts.md
+
+# tscircuit DISPOSABLE cache (03_tscircuit/contracts.md, mutability class 3).
+# build/ + kicad/ + verification/ ARE committed — they are GENERATED but they
+# are the reviewable diff, and kicad/<board>.kicad_sch is the PINNED canonical
+# schematic that rebuild_reuse.sh consumes (tsci build is non-deterministic).
+03_tscircuit/.tscircuit/
+03_tscircuit/dist/
+03_tscircuit/node_modules/
+03_tscircuit/tsx_build/
+
+# KiCad droppings
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*-backups/
+_autosave-*
+fp-info-cache
+*.kicad_prl
+
+__pycache__/
+
+# failed routing-attempt artifacts, and the transient stitch scratch that only
+# ever appears tracked when a run was killed mid-stitch
+*.failed
+*.stitch_state.json

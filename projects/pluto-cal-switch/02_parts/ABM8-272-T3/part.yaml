@@ -1,0 +1,126 @@
+mpn: ABM8-272-T3
+manufacturer: Abracon LLC
+type: crystal_12mhz_smd3225
+datasheet:
+  doc_id: "Abracon Drawing 456603"      # printed in the title block of every page
+  revision: "B"                          # "Revision #: B", Date of Issue Sept. 16th 2024
+  url: https://abracon.com/datasheets/ABM8-272-T3.pdf
+  sha256: aead22b6bd9d6f8ad4472352f70fce3ade633e90b9772ba80fabe8fd0856ae91
+  fetched: 2026-07-28
+  pages: 3
+package: SMD3225-4P, 3.2 x 2.5 x 0.8 mm ceramic seam-sealed, 4 pads
+footprint: pluto_cal_switch:Crystal_SMD_3225-4Pin_3.2x2.5mm
+escape:
+  style: passive
+  pitch: 1.2                   # pad centre-to-centre across the 3.2 mm axis
+  escapes_worst_side: 1        # only pads 1 and 3 are signal, diagonally opposed
+  tier_required: jlc_2layer_default
+  checked: "derived from the 1.2 x 0.9 mm land geometry (drawing 456603 p.4);
+    a 4-pad 3225 has no escape problem at any tier"
+pins:                          # TOP VIEW figure, drawing 456603 printed p.(4)
+  1: XTAL_A                    # of (9) [PDF p.2 of 3]. The figure labels pads
+  2: {name: GND, tie: GND}     # 2 and 4 "GND" in dashed boxes and draws the
+  3: XTAL_B                    # crystal element symbol bridging pads 1 and 3.
+  4: {name: GND, tie: GND}     # Pads 2/4 are the CASE, tied to ground.
+limits:
+  frequency: 12.000 MHz
+  mode: "fundamental AT"
+  load_capacitance: 10 pF                 # Key Electrical Specifications, typ
+  esr_max: 50 ohm                         # "Equivalent series resistance (R1)", max
+  c0_shunt_max: 3.0 pF
+  tolerance_25c: "+/-30 ppm"
+  stability_over_temp: "+/-30 ppm (-40 to +85 C, ref +25 C)"
+  aging: "+/-5 ppm, first year at 25 +/-3 C"
+  drive_level: "10 uW typ / 200 uW max"
+  temp_op: "-40 to +85 C"
+  msl: 1                                  # "Hermetically Sealed and not
+                                          # Moisture Sensitive - MSL = 1"
+gotchas:
+  - "THIS PART EXISTS TO CLOSE ADR-0012's DEFERRED CRYSTAL ITEM BY RESOLUTION
+     (a), NOT (b). ADR-0012 stated Raspberry Pi's own limits as CL = 10 pF and
+     ESR <= 50 ohm (hardware-design-with-rp2040 sec.2.3 p.10, Table 1 sec.2.3.1
+     p.11) and recorded that the JLC BASIC part X322512MSB4SI (C9002) is
+     CL = 20 pF / ESR = 80 ohm — 2x the load and 1.6x the ESR ceiling. This part
+     lands EXACTLY on both limits: CL = 10 pF typ, R1 = 50 ohm MAX. Taking it
+     means the reference 15 pF load caps and the 1 kohm series damping resistor
+     are used AS PUBLISHED, with no recomputation and no start-up test at
+     temperature extremes in the release gate — which resolution (b) would have
+     required."
+  - "THE DATASHEET ITSELF NAMES THE HOST. Applications, p.(2) of (9), verbatim:
+     'Crystal approved for use with Raspberry Pi's RP2040 and RP235x range of
+     microcontroller products.' That is a vendor statement about THIS
+     part-number, not an inference from parameters, and it is the strongest
+     evidence available for a crystal choice."
+  - "ESR IS AT THE CEILING, NOT INSIDE IT. 50 ohm max against a <= 50 ohm limit
+     is zero margin on the one parameter the vendor warns about. What buys the
+     margin back is that 50 ohm is the value the 1 kohm damping resistor in the
+     reference circuit was SIZED AGAINST, so the loop gain budget is the
+     vendor's own rather than an extrapolation. A part at 80 ohm has no such
+     backing. Recorded rather than glossed."
+  - "LOAD CAPS ARE 2 x 15 pF, DERIVED, NOT COPIED. CL = (C1.C2)/(C1+C2) + Cstray
+     with Cstray ~ 3 pF gives C1 = C2 = 2 x (10 - 3) = 14 pF -> E24 15 pF. The
+     same arithmetic on C9002's 20 pF gives 34 pF -> 33 pF, which is ADR-0012's
+     resolution (b) and is what makes the two resolutions NOT interchangeable:
+     fitting 15 pF against a 20 pF crystal pulls the frequency high and can
+     stop it starting."
+  - "PAD 1 / PAD 3 ARE INTERCHANGEABLE — a quartz crystal is symmetric, so XIN
+     and XOUT may land either way round. The chamfer is NOT a polarity marker
+     here: the drawing's own note reads 'Due to material availability, the
+     chamfer could be located on pin #1, 3, or 4. Be advised that the chamfer
+     location has no impact on the electrical performance of the device.'
+     A-ROT must not be asked to grade a rotation this part does not have."
+  - "STOCK IS AN EXTENDED-LIBRARY NUMBER. JLC C20625731, componentLibraryType
+     `expand`, stockCount 17 567 (read 2026-07-28 via
+     selectSmtComponentList, exact model match). The one-time extended-part
+     feeder fee is the price of staying inside the vendor's crystal envelope;
+     on a 20-board bench build it is noise. C9002 remains the BASIC fallback
+     and takes resolution (b) WITH its 33 pF caps and its start-up test."
+verified: "pad map read from the TOP VIEW / BOTTOM VIEW figure on the
+  'Mechanical Dimensions' page of Abracon drawing 456603 Revision B (printed
+  page (4) of (9); PDF page 2 of 3) — the page was RENDERED at 130 dpi and read
+  visually, not scraped: the TOP VIEW labels pads 2 and 4 'GND' and draws the
+  crystal element between pads 1 and 3. Electrical limits read from the 'Key
+  Electrical Specifications' table on printed page (2) of (9). 2026-07-28"
+layout:
+  source: "Abracon publishes no application/layout section in drawing 456603 —
+    it is a mechanical + electrical datasheet only. The layout rules below come
+    from the SYSTEM vendor, Raspberry Pi `hardware-design-with-rp2040` sec.2.3
+    p.10 (the RP2040 reference crystal circuit), and are labelled as derived."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: XIN, max_span_mm: 8, why: "oscillator loop area. The RP2040 guide's
+       instruction is that the crystal sits close to the device with a local
+       ground; a long XIN/XOUT pair raises stray C (which shifts the effective
+       CL away from the 10 pF the 15 pF caps were derived for) and picks up the
+       QSPI edges running past it"}
+    - {net: XOUT_R, max_span_mm: 8, why: "same loop, the damped side"}
+  notes:
+    - "GUARD THE OSCILLATOR FROM THE QSPI BUS. On this board the flash bus is
+       the declared in-band spur source (ARCHITECTURE sec.10.5); the crystal is
+       the board's most sensitive high-impedance node. Do not run QSPI under or
+       beside the XIN/XOUT pair."
+    - "PADS 2 AND 4 (case) GO TO THE L2 GROUND PLANE with their own vias at the
+       pads — the case is a shield, and a case grounded through a long trace is
+       not one."
+    - "Continuous ground under the crystal and its two load caps; the load-cap
+       returns join the plane AT the crystal, not somewhere else on the board."
+layout_refs:
+  - "Abracon drawing 456603 Rev B p.(4) (mechanical dimensions + TOP/BOTTOM
+     VIEW pad numbering) and p.(2) (Key Electrical Specifications)"
+  - "Raspberry Pi `hardware-design-with-rp2040` sec.2.3 p.10 + Table 1
+     sec.2.3.1 p.11 — the CL = 10 pF / ESR <= 50 ohm limits this part was
+     selected against, and the 15 pF / 1 kohm reference circuit"
+sourcing:
+  lcsc: C20625731
+  alternates: [C9002]         # YXC X322512MSB4SI, JLC BASIC — but CL = 20 pF /
+                              # ESR = 80 ohm, so it is NOT a drop-in: taking it
+                              # forces 33 pF load caps and a start-up test at
+                              # both temperature extremes (ADR-0012 res. (b))
+asserts:
+  - assert: value
+    equals: 12MHz
+    why: "the RP2040's USB clock is derived from this crystal by a fixed PLL
+      configuration in the bootrom. A 12 MHz part is not a preference — a
+      different frequency does not enumerate, and a blank board that does not
+      enumerate cannot be programmed at all, because the only programming path
+      IS the USB mass-storage bootloader (ADR-0012)."

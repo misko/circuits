@@ -1,0 +1,69 @@
+mpn: RC0402FR-073K3L
+manufacturer: YAGEO
+type: res_thick_3k3_1pct_0402
+datasheet:
+  doc_id: C137992
+  revision: "n/a"
+  url: https://www.lcsc.com/product-detail/C137992.html
+  sha256: "n/a — commodity thick-film SKU; the parametrics are the JLCPCB
+    catalog record, cited in verified:"
+  fetched: 2026-07-28
+package: 0402 (1005 metric), 2 terminals
+footprint: pluto_cal_switch:R_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default,
+         checked: "2-terminal 0402 — no escape problem at any tier"}
+pins:
+  1: A
+  2: B
+limits:
+  resistance: 3.3 kohm +/-1%
+  power: 62.5 mW
+  voltage_max: 50 V
+  tcr: "+/-100 ppm/C"
+  temp: "-55 to +155 C"
+gotchas:
+  - "IT IS THE DIVIDER BOTTOM **AND** THE PULL-DOWN, AND THE SECOND JOB IS THE
+     SAFETY-RELEVANT ONE. With R_HDR_S = 2.2k it sets the /2.5 ratio that puts
+     1.8 / 3.3 / 5.0 V header logic at 0.72 / 1.32 / 2.00 V into the ADC — but
+     it is ALSO what makes an UNCONNECTED header read 0 V, i.e. ANTENNA mode.
+     Omit it and the ADC pin floats and the board's mode becomes undefined; get
+     the VALUE wrong and the divider ratio moves against a firmware threshold
+     of 0.36 V that no gate re-derives."
+  - "THE 1% TOLERANCE IS LOAD-BEARING FOR THE RATIO, NOT FOR THE PULL-DOWN.
+     Worst-case ratio spread with two 1% parts is +/-2%, i.e. 0.72 V moves by
+     ~14 mV against a 360 mV threshold — 25x margin. A 5% pair would still
+     clear it; 1% costs nothing and removes the question."
+  - "STOCK, AND WHY NOT THE OTHER 3.3k: the JLC BASIC UNI-ROYAL 0402WGF3301TCE
+     (C25890) is the code tscircuit's parts engine chose by itself, and it read
+     stockCount 31 on 2026-07-28 — one board's worth of margin over a 20-board
+     build. This YAGEO part is EXTENDED with 674 548. That is the whole reason
+     the code is PINNED in the tsx instead of left to the parts engine: an
+     auto-chosen code is a snapshot of the catalog on the day it ran (the
+     cooksense v1.5 C25744 incident)."
+verified: "2-terminal passive — exempt from the datasheet-FIGURE pin-map rule
+  (S-VER). Resistance, tolerance, power, voltage and TCR read from the JLCPCB
+  parts record for C137992 (selectSmtComponentList, exact componentModelEn
+  match, describe '-55C~+155C 3.3kOhm 50V 62.5mW Thick Film Resistor +/-1%
+  +/-100ppm/C'), read 2026-07-28; componentLibraryType `expand` (EXTENDED),
+  stockCount 674 548."
+layout:
+  source: "No manufacturer layout section and none needed; the rules are
+    ADR-0008's, made geometric."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: HDR_CTRL_ADC, max_span_mm: 10, why: "the divider node is a
+       high-impedance (1.32 kohm Thevenin) analogue node running to an ADC pin.
+       Keep it short and away from the QSPI bus and from RF_CTRL"}
+  notes:
+    - "The divider pair sits at the HEADER end, not at the MCU: the 2.2 kohm is
+       the fault-current bound for anything a user lands on the header, and a
+       bound that sits at the far end of a long trace bounds less."
+sourcing:
+  lcsc: C137992
+  alternates: [C25890]        # UNI-ROYAL 0402WGF3301TCE, JLC BASIC but stock 31
+asserts:
+  - assert: value
+    equals: 3.3k
+    tolerance_pct: 1
+    why: "the /2.5 divider ratio and the unconnected-header-reads-antenna
+      property both depend on this exact value against R_HDR_S = 2.2k."

@@ -1,121 +1,75 @@
-# SCHEMA EXAMPLE (skill-owned, project-independent). Adopted from a proven
-# board as a reference for the generic backend's config format. Copy into a
-# new project's 03_src/ and replace the values — the KEYS are the contract.
+# pluto-cal-switch — route + stitch config for the SHARED generic backend
+# (skills/kicad-pcb/scripts/route_and_stitch_generic.py). ZERO board-specific
+# routing Python.
 #
-# cook-loadcell route + stitch — the whole per-board input to
-# skills/kicad-pcb/scripts/route_and_stitch_generic.py, replacing the
-# 86-line route_prep.py + 36-line route_waves.sh + 278-line stitch_and_fill.py.
+# =============================================================================
+# STATE 2026-07-28: IDENTITY ONLY. NO ROUTING IS AUTHORED YET.
+# =============================================================================
+# Stage 4 (schematic) finished at its declared handoff boundary. Routing is a
+# LATER session's work and it cannot start before placement exists.
 #
-#   /usr/bin/python3 ../../skills/kicad-pcb/scripts/route_and_stitch_generic.py \
-#       prep 03_src/route.yaml
-#   ~/gits/KiCadRoutingTools/.venv/bin/python \
-#       ../../skills/kicad-pcb/scripts/route_and_stitch_generic.py route 03_src/route.yaml
-#   /usr/bin/python3 ... import 03_src/route.yaml
-#   /usr/bin/python3 ... quick  03_src/route.yaml   # loop tool: seconds-fast
-#       unconnected + clearance/track_width verdict, pre-stitch (exit 1 dirty)
-#   /usr/bin/python3 ... stitch 03_src/route.yaml
+# Same reason this file was touched at stage 4 as floorplan.yaml: it was still
+# the cook-loadcell TEMPLATE VERBATIM (`project.name: cook_loadcell`, a 2-layer
+# F/B wave plan, an analog-guard keepout for a load-cell bridge, and
+# `final: 03_src/route/r2.kicad_pcb` pointing at a promoted chain that does not
+# exist here). A rebuild would have replayed a foreign board's routing intent.
+# Purged; identity set; the plan left EMPTY, which is honest.
 #
-# 55x45 2-layer. GND is NOT routed — F/B pours + stitch vias own it.
+# WHAT A ROUTING SESSION MUST HONOUR HERE, already decided upstream:
+#   * KRT ONLY, fanout-first, on a TRACK-FREE board, imported ONCE, and the
+#     final chain PROMOTED into 03_src/route/ and committed (canon M3). KiCad
+#     has no autorouter.
+#   * netclass widths come from rules/nets.yaml and are IMPEDANCE widths on
+#     every RF class: 0.35 mm is 50 ohm on this stackup and BOTH a narrowing
+#     AND a widening are defects. Do not let a wave override them.
+#   * LOOP_ARM1/2 (+ their _SW halves and the arm-pad internal nets) are a
+#     MATCHED PAIR, mirror-symmetric, SAME LAYER, NO VIAS. Their delta is a
+#     published release artifact (ADR-0011).
+#   * RF_CTRL routes on an INNER layer under ground across the RF region and
+#     must NEVER run parallel to a loopback arm (ARCHITECTURE sec.10.6).
+#   * L2 stays one unbroken plane: no routing channel through it, anywhere.
+#   * ground-via fence at <=2.0 mm pitch (lambda_g/12 at 6 GHz) beside every RF
+#     trace and around every SMA launch, plus a >=D3.5 mm bottom-plane antipad
+#     at each launch, opening OUTWARD (ADR-0007).
+#   * fab tier jlc_4layer_advanced — tier_preflight (R-PREFLIGHT) will refuse
+#     any via/clearance below its floors and will name the tier.
+# =============================================================================
 
 project:
-  name: cook_loadcell
-  board: 04_kicad/cook_loadcell.kicad_pcb
+  name: pluto_cal_switch
+  board: 04_kicad/pluto_cal_switch.kicad_pcb
   build_dir: 06_build/route
 
 prep:
   out: r0.kicad_pcb
   keepouts:
-    # User.2 = normal keepouts; User.3 = User.2 + the ANALOG GUARD, used by
-    # the bridge wave only (D5/3.7e, audit I-AN)
-    layers: [User.2, User.3]
-    mounting_holes: {radius: 3.0}      # M3 screw head + margin
-    edge_band: 0.7                     # KRT has no edge concept; dru floor 0.3
-    rects:
-      # the whole digital EAST region is keepout for the BRIDGE wave only
-      - {x0: 42.0, y0: 30.0, x1: 75.0, y1: 56.0, layer: User.3}
-      - {x0: 47.0, y0: 56.0, x1: 75.0, y1: 65.0, layer: User.3}
+    layers: [User.2]
+    edge_band: 0.7            # KRT has no edge concept; the dru floor is 0.3
   waves:
     exclude: ["GND", "unconnected-*"]
-    groups:
-      an: [E_PLUS, S_PLUS, S_MINUS, RING_12, RING_23, RING_34, RING_41,
-           AVDD_FB, BASE]
-      pwr: [5V, 3V3]
-      sig: rest
+    groups: {}                # NOT AUTHORED — see the banner above
+  # NOTE for the routing session: on this board the HARDEST-FIRST rule (golden
+  # rule 4) means the loopback arms go FIRST, together, as one wave — they are a
+  # matched pair and a router that threads one and then squeezes the other has
+  # already lost the property the board exists to publish.
 
 route:
   krt: ~/gits/KiCadRoutingTools
-  # race: 3      # KRT is stochastic — run N wave-chains CONCURRENTLY in
-  #   isolated temp dirs (06_build/route/race/cN), import each candidate
-  #   into a copy of the track-free board, evaluate each with `quick`, and
-  #   promote the MEASURED best: fewest routed-net unconnected, tie-break
-  #   fewest copper violations. Per-candidate numbers + the choice land in
-  #   06_build/route/race_log.json (auditable, never vibes). CLI --race N
-  #   overrides. Candidates see ROUTE_RACE_CANDIDATE in their environment.
-  # kicad_python: /usr/bin/python3   # interpreter race uses for import+quick
   common:
-    layers: [F.Cu, B.Cu]
-    # via_size / via_drill / clearance may be OMITTED: with a nets.yaml
-    # fab_tier declared they default to that tier's published floors
-    # (min_via_diameter / min_via_drill / min_space, fab_tiers.yaml).
-    # Explicit values below the tier floor are a hard error naming the tier
-    # — the clean-room 3S board routed 0.6/0.3 template vias on a tier whose
-    # floor was 0.45/0.3 and only DRC noticed (drill_out_of_range x2).
-    via_size: 0.6
-    via_drill: 0.3
-    fab_tier: standard
+    layers: [F.Cu, In2.Cu]
+    fab_tier: jlc_4layer_advanced   # via_size/via_drill/clearance DEFAULT to
+                                    # this tier's published floors when omitted;
+                                    # an explicit sub-floor value is a hard
+                                    # error that names the tier (R-PREFLIGHT)
     no_stub_layer_swap: true
     keepout: true
     keepout_layer: User.2
-    # 0.21 not 0.15: 0.6/0.3 vias at 0.15 pack drills to ~0.45 < the 0.5
-    # hole-to-hole fab floor; 0.21 forces centres to 0.81 -> drill gap 0.51
-    clearance: 0.21
-  waves:
-    # track_width may be OMITTED: it then DERIVES from the wave's member
-    # nets' netclass floors (rules/nets.yaml `classes` min_width — the same
-    # source the .kicad_dru gate is generated from), using the LARGEST
-    # member floor so no net rides under its class. An EXPLICIT width below
-    # a member net's class floor is a hard error at PREP naming the class —
-    # never a silent ride-under (v4 usb-hub-3s first DRC: 157 track_width
-    # findings, all waves routed below their class floors, 2026-07-21).
-    # HARDEST FIRST (golden rule 4): bridge nets claim the guarded west side
-    - {name: an,  group: an,  track_width: 0.5,  keepout_layer: User.3,
-       max_iterations: 400000}
-    - {name: pwr, group: pwr, track_width: 0.5,  max_iterations: 400000}
-    - {name: sig, group: sig, track_width: 0.25, max_iterations: 800000,
-       max_probe_iterations: 60000, max_ripup: 30}
-  # canon M3: the shipped board imports the PROMOTED chain file, not a
-  # fresh stochastic route. Delete this to re-route from scratch.
-  final: 03_src/route/r2.kicad_pcb
-
-# TAPS (canon M8 promotion: cook-hub u7 taps, then usb-pwr-hub-3s
-# route_taps.py). NAMED connections KRT cannot thread — pour-fed sense pins,
-# boxed-in connector pads, plane drops. Runs AFTER `import`, BEFORE `stitch`
-# (pours fill around the tap copper):
-#   /usr/bin/python3 .../route_and_stitch_generic.py taps 03_src/route.yaml
-# Strategy 1: same-layer direct/L/Z join; strategy 2: stub -> via ->
-# hop_layer join -> via -> stub. EVERY emitted segment/via is verified
-# against the live board's exact copper (pcb_toolkit); an unroutable tap is
-# a hard error, never a silent skip (a skipped tap resurfaces only as a DRC
-# unconnected item after fill). `plane: true` ends at a via AT the `to`
-# point (a point inside the net's inner plane, merged by the fill).
-#
-# A long pour-net pin tap's corridor is ORDER-fragile (KRT hugs the escape-
-# field lane edges). `reattempt` re-routes the WHOLE tap set longest-first
-# (most-constrained-first) on a fresh board when a tap fails — BOUNDED by
-# max_retries (default 2) and progress-gated, so it terminates and escalates
-# rather than spinning (the v1.1 U1 pour-pin recurrence, canon M8). A tap
-# still stuck after the bound is structurally fragile — promote it to a
-# deterministic stitch.seed_stubs (below), or fix placement (D-ADJ).
-#
-# taps:
-#   clearance: 0.15
-#   via: {size: 0.6, drill: 0.3}     # tier-derived when omitted
-#   reattempt: {max_retries: 2}      # bounded longest-first re-route on fail
-#   connections:
-#     - {net: VCC,  from: U1.4,  to: C8.1,         width: 0.3}
-#     - {net: CC1,  from: J5.A5, to: R10.2,        width: 0.25,
-#        layer: F.Cu, hop_layer: B.Cu}
-#     - {net: 5V,   from: R6.1,  to: [41.0, 46.5], width: 0.3, plane: true}
+  waves: []                   # NOT AUTHORED — see the banner above
+  # final: 03_src/route/rN.kicad_pcb   # the PROMOTED chain (canon M3). No chain
+  #                                    # is promoted yet; there is nothing to
+  #                                    # replay, and pointing at one that does
+  #                                    # not exist is how a foreign board's
+  #                                    # routing gets replayed by accident.
 
 stitch:
   clearance: 0.15

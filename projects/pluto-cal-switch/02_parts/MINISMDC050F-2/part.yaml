@@ -1,0 +1,84 @@
+mpn: MINISMDC050F-2
+manufacturer: Littelfuse       # PolySwitch miniSMD family. NOT Bourns; TE
+                               # Connectivity is a second source.
+type: resettable_fuse          # PPTC, 0.5 A hold, in series with VBUS
+datasheet:
+  doc_id: littelfuse-ptc-minismdc
+  revision: "2410121433"       # LCSC-hosted datasheet build id (in the filename)
+  url: https://lcsc.com/datasheet/lcsc_datasheet_2410121433_Littelfuse-MINISMDC050F-2_C2649901.pdf
+  sha256: 3c468fdf92610d2962870285b2e605e83d770200f54d1c2316f4d5d223cd2b89
+  fetched: 2026-07-23           # PDF adopted from a sibling project (see verified:)
+package: SMD 1812 (4532 metric)
+footprint: Fuse:Fuse_1812_4532Metric
+escape:
+  style: passive
+  pitch: 3.6
+  tier_required: jlc_2layer_default
+  checked: "2-pad 1812 — no escape problem at any tier"
+pins:                          # 2-pad non-polar PTC (figure-citation exempt)
+  1: {name: T1, note: "PTC terminal (non-polar)"}
+  2: {name: T2, note: "PTC terminal (non-polar)"}
+limits:
+  i_hold: 0.5A                 # 23 C hold current
+  i_trip: 1.0A
+  v_max: 24VDC
+  i_max: 100A                  # maximum fault current the device interrupts
+  r_min: 0.15ohm               # initial minimum resistance
+  r1_max: 1.0ohm               # maximum resistance 1 h after trip/reflow
+  time_to_trip: "0.15 s at trip current"
+  t_op: "-40..+85C"
+gotchas:
+  - "IT PROTECTS THE HOST, NOT THIS BOARD (ADR-0009). A shorted rail here must
+     not kill the laptop's USB port — that is the failure that actually costs
+     money. It is therefore FIRST in the chain, at the connector, upstream of
+     the ferrite and of everything else."
+  - "ITS SERIES RESISTANCE IS IN THE VBUS PATH AND MUST BE CHECKED AGAINST THE
+     LDO's DROPOUT, and on this board it PASSES with room: at the 0.10 A design
+     envelope the drop is 0.015 V (R_min) to 0.100 V (R1_max, aged and hot).
+     Worst case that leaves 4.40 - 0.10 = 4.30 V at the LDO input against
+     Vout_max 3.366 V + dropout 0.120 V = 3.486 V, i.e. 814 mV of headroom
+     still. NOTE this drop is NOT modelled by E-TOPO, which grades
+     vin_min at the RAIL declaration in power_tree.yaml — the number above is
+     the reason vin_min = 4.40 V is still honest with a PPTC in front of it."
+  - "MANUFACTURER IS LITTELFUSE (PolySwitch miniSMD), not Bourns. A true Bourns
+     equivalent would be MF-MSMD050-2 (different land and resistance) — do not
+     substitute silently."
+  - "RESETTABLE, NOT ONE-SHOT: it latches into a high-resistance state on a
+     fault and recovers after the fault clears and power is cycled. There is no
+     second, one-shot fuse on this board — the USB host's own port protection is
+     the backstop, which is exactly the arrangement ADR-0009 intends."
+  - "1812 IS PHYSICALLY LARGE (4.5 x 3.2 mm) next to this board's 0402-and-
+     smaller RF section. It belongs in the USB corner with the MCU, at the far
+     end from every SMA jack (ARCHITECTURE sec.10.5) — it has no RF function and
+     no reason to be near one."
+verified: "2-pad non-polar PPTC — exempt from the datasheet-FIGURE pin-map rule
+  (S-VER): the part has two identical, non-polar terminals and there is no pin
+  assignment to misread. Ratings from the Littelfuse miniSMDC datasheet
+  electrical table via the LCSC-hosted PDF for C2649901.
+  PROVENANCE OF THE PDF, STATED RATHER THAN IMPLIED: the file is the copy
+  already vendored in this repo at
+  projects/crow-recorder-central-v2/02_parts/MINISMDC050F-2/, sha256
+  3c468fdf... — the same document, adopted rather than re-fetched. The
+  gotchas: and layout: blocks below are THIS board's, re-derived against this
+  board's power tree; the sibling's pod-power-budget notes are NOT inherited.
+  2026-07-28"
+layout:
+  source: "Littelfuse publishes no PCB layout section for the miniSMD family.
+    The rules below are this board's own (ADR-0009 + ARCHITECTURE sec.10.5) and
+    are labelled as derived."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: VBUS, max_span_mm: 12, why: "the segment from the micro-USB VBUS pin
+       to the fuse is UNPROTECTED, and it also carries the USBLC6's VBUS clamp
+       connection, which ST's section 2.3 wants as short as possible"}
+    - {net: VBUS_PF, max_span_mm: 12, why: "fuse to ferrite; a two-pad node with
+       nothing else on it, so there is no reason for it to be long"}
+  notes:
+    - "PUT IT IN THE USB CORNER, NOT THE RF SECTION. It has no RF function; a
+       4.5 x 3.2 mm part in the calibration path would only displace ground."
+    - "A PPTC's trip point moves with ambient temperature. It sits nowhere near
+       the LDO (the only warm part on the board, 202 mW worst case), which is
+       an accident worth keeping deliberate."
+sourcing:
+  lcsc: C2649901
+  alternates: ["MF-MSMD050-2 (Bourns, verify land/R)", "0ZCJ0050FF2E (Bel Fuse, 1812 0.5 A)"]

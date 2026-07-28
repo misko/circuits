@@ -1,0 +1,68 @@
+mpn: RC0402FR-0727RL
+manufacturer: YAGEO
+type: res_thick_27r_1pct_0402
+datasheet:
+  doc_id: C138021
+  revision: "n/a"
+  url: https://www.lcsc.com/product-detail/C138021.html
+  sha256: "n/a — commodity thick-film SKU; the parametrics are the JLCPCB
+    catalog record, cited in verified:"
+  fetched: 2026-07-28
+package: 0402 (1005 metric), 2 terminals
+footprint: pluto_cal_switch:R_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default,
+         checked: "2-terminal 0402 — no escape problem at any tier"}
+pins:
+  1: A
+  2: B
+limits:
+  resistance: 27 ohm +/-1%
+  power: 62.5 mW
+  voltage_max: 50 V
+  tcr: "+/-100 ppm/C"
+  temp: "-55 to +155 C"
+gotchas:
+  - "TWO PER BOARD — the USB D+/D- series terminators, one per line. The value
+     is the RP2040 vendor's (`hardware-design-with-rp2040` sec.2.4.1 pp.11-12),
+     and the instruction that comes with it is a PLACEMENT one: 'placed close to
+     the chip'. Its job is to sum with the driver's own output impedance to
+     ~45 ohm per line, matching the 90 ohm differential pair."
+  - "THE TWO MUST MATCH EACH OTHER, which is what 1% buys here — a differential
+     pair with mismatched series R converts differential to common mode, and
+     the common mode on this board leaves through a USB cable that is
+     galvanically bonded to the RF ground system (ADR-0009's ground-bridge
+     consequence)."
+  - "SAME REEL for the pair, same reasoning."
+verified: "2-terminal passive — exempt from the datasheet-FIGURE pin-map rule
+  (S-VER). Resistance, tolerance, power, voltage and TCR read from the JLCPCB
+  parts record for C138021 (selectSmtComponentList, exact componentModelEn
+  match, describe '-55C~+155C 27Ohm 50V 62.5mW Thick Film Resistor +/-1%
+  +/-100ppm/C'), read 2026-07-28; componentLibraryType `expand` (EXTENDED),
+  stockCount 236 924."
+layout:
+  source: "Raspberry Pi `hardware-design-with-rp2040` sec.2.4.1 pp.11-12 — the
+    27 ohm value, the 'placed close to the chip' rule, the 90 ohm differential
+    geometry, and the uninterrupted-ground requirement."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: USB_DP_MCU, max_span_mm: 6, why: "vendor sec.2.4.1: the terminator
+       is 'placed close to the chip', so the stub between it and the RP2040 is
+       the segment that must be short — the long, controlled-impedance run is on
+       the other side of it"}
+    - {net: USB_DM_MCU, max_span_mm: 6, why: "the mirror of the above"}
+  notes:
+    - "SOLID, UNINTERRUPTED L2 GROUND UNDER THE WHOLE PAIR, vendor sec.2.4.1
+       verbatim: 'A solid, uninterrupted area of ground copper, stretching the
+       entire length of the track'. On this board that is the SAME requirement
+       the RF makes, not a competing one (ARCHITECTURE sec.8)."
+    - "The two resistors sit SIDE BY SIDE at the same distance from the MCU so
+       the pair stays length-matched through the discontinuity."
+sourcing:
+  lcsc: C138021
+  alternates: []
+asserts:
+  - assert: value
+    equals: 27
+    tolerance_pct: 1
+    why: "the vendor's specified USB series termination. A wrong value here
+      degrades the eye without failing anything a bench test asks."

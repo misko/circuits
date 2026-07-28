@@ -1,0 +1,85 @@
+mpn: TPD2E2U06DRLR
+manufacturer: Texas Instruments
+type: esd_protection          # 2-channel bidirectional TVS diode ESD array
+datasheet:
+  doc_id: SLLSEG9
+  revision: SLLSEG9C          # JUNE 2013 - REVISED DECEMBER 2019
+  url: https://www.ti.com/lit/ds/symlink/tpd2e2u06.pdf
+  sha256: a133b86ea3d3c3d34667339b92d3b5e98d541d10e9775d63e7cdfa153794f4ed
+  fetched: 2026-07-23           # PDF adopted from projects/crow-mic-pod-v2 —
+                                # provenance stated in the verification note below
+package: SOT-553 (5-lead, TI package code DRL)
+footprint: pluto_cal_switch:SOT-553
+escape:
+  style: leaded
+  pitch: 0.5
+  escapes_worst_side: 3
+  tier_required: jlc_2layer_default
+  checked: "derived from the 0.5 mm-pitch SOT-553 land; no escape problem at
+    this board's jlc_4layer_advanced tier"
+pins:                         # DRL (5-Pin SOT / SOT-553) package
+  1: {name: NC, note: "not connected internally — datasheet: left floating, grounded, or connected to VCC"}
+  2: {name: NC, note: "not connected internally"}
+  3: {name: IO1, note: "protected I/O channel 1 — as close to the source connector as possible"}
+  4: {name: GND, tie: GND, note: "TVS return/reference — both channels clamp to this pin"}
+  5: {name: IO2, note: "protected I/O channel 2"}
+limits:
+  vrwm: 5.5V                   # reverse stand-off voltage, IIO < 10uA
+  vbr: "6.5V min / 8.5V max"   # breakdown voltage, IIO = 1mA
+  vclamp_io_to_gnd: "9.7V @ IPP=1A / 12.4V @ IPP=5A (TLP)"
+  ipp_max: 5.5A
+  vio_recommended: "0V to 5.5V"
+  cl_typ: 1.5pF
+  esd_iec61000_4_2: "+/-25kV contact, +/-30kV air-gap"
+  ta_op: "-40C to 125C"
+gotchas:
+  - "V_RWM IS 5.5 V AND THE HEADER'S DECLARED CEILING IS 5.0 V (ADR-0008). That
+     is 0.5 V of margin on a user-wired, UNKEYED entry, and it is the whole
+     reason this part fits: it does NOT protect against somebody landing 12 V on
+     the header — above V_BR (6.5 V min) it conducts and the 2.2 kohm series
+     resistor is what limits the current to (12-8.5)/2200 = 1.6 mA. The clamp
+     and the series R are ONE mechanism; neither alone covers the miswire."
+  - "PINS 1 AND 2 ARE NC — not a second GND and not a VCC rail. The datasheet
+     allows float/GND/VCC and states no default; FLOATING is the conservative
+     choice and is what this board does."
+  - "SAME MPN, DIFFERENT PACKAGE, DIFFERENT PIN TABLE: TPD2E2U06 is also sold
+     in a 3-pin DCK/SC70 (IO1=1, IO2=2, GND=3). This is the 5-pin DRL/SOT-553
+     variant. Do not cross-read the DCK table onto it."
+  - "alternate code C51886141 exists for the same MPN"
+verified: "pin map read from datasheet SLLSEG9C Sec. 5 'Pin Configuration and
+  Functions' — the DRL Package 5-Pin SOT (Top View) figure plus the 'Pin
+  Functions' table, both on printed p.3 (IO1=3, IO2=5, GND=4, NC=1,2).
+  PROVENANCE OF THE PDF, STATED RATHER THAN IMPLIED: the file is the copy
+  already vendored in this repo at projects/crow-mic-pod-v2/02_parts/, sha256
+  a133b86e... — the same document, not a re-fetch. The pin map above was
+  re-read from THAT file for this board rather than copied from the sibling
+  part.yaml's conclusion. The layout: block below is NOT inherited — the
+  crow board's notes describe a 13 mm RJ45 stub that has nothing to do with
+  this board, and reusing them would be the inherited-defect class. 2026-07-28"
+layout:
+  source: "datasheet SLLSEG9C Sec. 10.1 'Layout Guidelines' (p.11) + Sec. 10.2
+    Figure 12 'Routing with DRL Package' (p.12): place the device as close to
+    the connector as possible; route the connector-to-TVS segment straight with
+    no sharp corners; keep unprotected traces away from it; put a GND via
+    immediately adjacent to the GND pin."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: HDR_CTRL_IN, max_span_mm: 8, why: "Sec.10.1: the connector-to-TVS
+       segment is the UNPROTECTED stub. On this board the header is the second,
+       UNKEYED entry (ADR-0009) and the realistic miswire path, so this is the
+       one span where the clamp's value is actually decided"}
+    - {net: HDR_STATE_OUT, max_span_mm: 8, why: "channel 2, same reasoning —
+       and this line leaves the board toward a 1.8 V Zynq pin whose absolute
+       maximum is ~2.35 V"}
+  notes:
+    - "IT SITS AT THE HEADER, NOT AT THE MCU. The protected nets are
+       HDR_CTRL_IN and HDR_STATE_OUT — the two pins a user can touch — and the
+       clamp is UPSTREAM of both series resistors, so a strike is clamped before
+       it reaches the divider."
+    - "GND (pin 4) gets its own via AT the pad into the L2 plane."
+    - "Pins 1 and 2 (NC) are FLOATED. On this 4-layer board the GND pour COULD
+       reach them, unlike the crow 2-layer case — they are floated because the
+       datasheet says they are not connected internally, not because of routing."
+layout_refs:
+  - "datasheet SLLSEG9C Sec. 10.1 (p.11) and Figure 12, Sec. 10.2 (p.12)"
+sourcing: {lcsc: C1972959, alternates: [C51886141]}

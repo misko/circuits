@@ -1,0 +1,101 @@
+# pluto-cal-switch — the AUTHOR'S declared refdes set (canon S-COUNT base).
+#
+# Hand-authored ALONGSIDE src/pluto_cal_switch.tsx, not derived from it.
+# count_parity.py checks this set against every GENERATED artifact
+# (circuit.json / kicad_sch / netlist / board). That asymmetry is the whole
+# point: after a silent tsci drop every generated artifact AGREES WITH ITSELF,
+# and only declared intent disagrees.
+#
+# 73 components. Holes are non-electrical and excluded (count_parity SKIPs ^H\d);
+# they come from 03_src/floorplan.yaml `mounting_holes:`, not from the tsx.
+#
+# Blocks: 7 J (5 SMA + micro-USB + 1x4 header) · 16 U (9 YAT attenuator chips,
+# 2 SPDT, MCU, flash, LDO, 2 ESD arrays) · 16 R · 27 C · 2 FB · 1 F · 2 D ·
+# 1 Y · 1 SW.
+#
+# THE NINE YAT CHIPS ARE THE HEADLINE COUNT AND THEY ARE NOT PADDING.
+# A9/ADR-0016 raised the cal-path spec to a >=40 dB MINIMUM, which is sized
+# against DATASHEET MIN COLUMNS: 3x YAT-10A+ + 4x YAT-2A+ in the TX->RX path
+# gives 34.1 dB guaranteed at 5-15 GHz, plus the splitter theorem's 5.97 dB
+# = 40.07 dB. One chip less (3x10 + 3x2) is 38.67 dB and FAILS. On the board
+# that is 4x YAT-10A+ and 5x YAT-2A+, because PAD_A1 is crossed once and each
+# arm pad only by its own arm.
+components:
+  # ---- connectors -------------------------------------------------------
+  - J_HDR
+  - J_SMA_ANT1
+  - J_SMA_ANT2
+  - J_SMA_RX1
+  - J_SMA_RX2
+  - J_SMA_TX
+  - J_USB
+  # ---- integrated circuits ---------------------------------------------
+  - U_ESD
+  - U_FLASH
+  - U_HDR_ESD
+  - U_LDO
+  - U_MCU
+  - U_PAD_A1A
+  - U_PAD_A1B
+  - U_PAD_A1C
+  - U_PAD_A1D
+  - U_PAD_A1E
+  - U_PAD_A2A1
+  - U_PAD_A2A2
+  - U_PAD_A2B1
+  - U_PAD_A2B2
+  - U_SW1
+  - U_SW2
+  # ---- resistors --------------------------------------------------------
+  - R_BOOT
+  - R_CTRL1
+  - R_CTRL2
+  - R_CTRL_PD1
+  - R_CTRL_PD2
+  - R_DELTA1
+  - R_DELTA2
+  - R_DELTA3
+  - R_HDR_G
+  - R_HDR_O
+  - R_HDR_S
+  - R_LED1
+  - R_LED2
+  - R_USBM
+  - R_USBP
+  - R_XTAL
+  # ---- capacitors -------------------------------------------------------
+  - C_ADCV
+  - C_CTRL1
+  - C_CTRL2
+  - C_DCBLK1
+  - C_DCBLK2
+  - C_DV1
+  - C_DV2
+  - C_FLASH
+  - C_IO1
+  - C_IO2
+  - C_IO3
+  - C_IO4
+  - C_IO5
+  - C_IO6
+  - C_LDOI
+  - C_LDOO
+  - C_SW1A
+  - C_SW1B
+  - C_SW2A
+  - C_SW2B
+  - C_USBV
+  - C_VBUS
+  - C_VBUSH
+  - C_VREGI
+  - C_VREGO
+  - C_XIN
+  - C_XOUT
+  # ---- ferrites / fuse / indicators / timing / switch -------------------
+  - FB1
+  - FB2
+  - F1
+  - D_LED_MODE
+  - D_LED_PWR
+  - Y1
+  - SW_BOOT
