@@ -202,6 +202,19 @@ def t_confirms_clean_boards():
     assertion to "some gate passes" would have hidden it; deleting the test
     would have thrown away the discrimination property it exists for."""
     cols = ("F-PAYLOAD", "F-LEGIBLE", "A-EVID", "A-POP")
+    # AMENDED AGAIN 2026-07-27, same principle, second instance. A-EVID reads
+    # the project's OWN 07_releases/contracts.md, so a contract RE-SYNC is a
+    # widened gate by another route. When crow-recorder-central-v2 synced its
+    # copy from the template at v1.7, the contract gained the two ADR-0006
+    # evidence artifacts — `verification/bom_legibility.txt` and
+    # `verification/bom_echo_gate.txt` — and v1.5, which predates ADR-0006
+    # entirely, does not carry them. That is the SAME gap F-LEGIBLE already
+    # pins on that release, arriving through a different door, so it is pinned
+    # the same way instead of excused. cooksense v1.4 still passes A-EVID
+    # because its contract copy has not been re-synced yet; when it is, expect
+    # this row to move too, and record it here rather than loosening the test.
+    expect_aevid = {"crow-recorder-central-v2": "FAIL",
+                    "smc0985-cooksense": "PASS"}
     for proj, rel in (("crow-recorder-central-v2", "v1.5-2026-07-25"),
                       ("smc0985-cooksense", "cooksense-v1.4-2026-07-26")):
         r = run([KPY, TOOL, "--project", proj])
@@ -209,10 +222,17 @@ def t_confirms_clean_boards():
         check(line, f"{proj} {rel} missing from the regrade output")
         cells = line[0].split()[1:]
         verdicts = dict(zip(cols, [c for c in cells if c in ("PASS", "FAIL", "?")]))
-        for gid in ("F-PAYLOAD", "A-EVID", "A-POP"):
+        for gid in ("F-PAYLOAD", "A-POP"):
             check(verdicts.get(gid) == "PASS",
                   f"{proj} {rel} was audited ORDERABLE but {gid} — a gate that "
-                  f"existed at its audit — now fails it:\n{line[0]}")
+                  f"existed at its audit AND whose contract has not widened "
+                  f"since — now fails it:\n{line[0]}")
+        check(verdicts.get("A-EVID") == expect_aevid[proj],
+              f"{proj} {rel} A-EVID is {verdicts.get('A-EVID')}, expected "
+              f"{expect_aevid[proj]}. A FAIL here is legitimate ONLY as the "
+              f"ADR-0006 contract widening described above — check WHICH "
+              f"artifacts are missing before updating this expectation:\n"
+              f"{line[0]}")
         check(verdicts.get("F-LEGIBLE") == "FAIL",
               f"{proj} {rel} unexpectedly PASSES F-LEGIBLE. Both were sealed "
               f"before ADR-0006 and both ship an unreadable BOM; if this is now "

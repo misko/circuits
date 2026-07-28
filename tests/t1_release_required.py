@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harness import (KPY, ROOT, check, contains, main, must_fail,  # noqa: E402
-                     must_pass, run, test, tmpdir)
+                     must_pass, not_contains, run, test, tmpdir)
 
 TOOL = ROOT / "skills/kicad-pcb/scripts/release_required_check.py"
 
@@ -95,6 +95,49 @@ def t_conditional_not_failed():
     conditional absence is SURFACED and does not block."""
     r = must_pass(run([KPY, TOOL, str(fixture())]), "conditional absence")
     contains(r.out, "CONDITIONAL absent", "the reader is told, not blocked")
+
+
+@test("A-EVID reads the MULTI-BOARD root form the TEMPLATE itself carries — "
+      "`[<board>-]<version>-<date>/` is a metavariable, not a directory",
+      kind="known_bad")
+def t_multiboard_root_is_a_placeholder():
+    """MEASURED 2026-07-27. The release-root node used to be recognised by
+    `startswith("<")`, which covers `<version>-<YYYY-MM-DD>/` and NOT the
+    multi-board form `[<board>-]<version>-<YYYY-MM-DD>/` that the canonical
+    template gained the same day. The literal string was then prefixed onto
+    EVERY artifact path, and the gate reported `31 missing, 0 present` on a
+    COMPLETE release — crow-recorder-central-v2 v1.7, in the minute after its
+    contract was re-synced from the template.
+
+    A gate that cannot read the CANONICAL contract is broken against every
+    project that syncs to it, and it fails on releases that are fine — the
+    false-accusation direction, which trains a reader to ignore it.
+
+    RED-VERIFIED by construction: this fixture's contract differs from
+    `CONTRACT` in exactly one character run (the root node), and against the
+    pre-fix `startswith("<")` filter it reports every artifact missing while
+    `t_complete_passes` above, on the identical tree, passes."""
+    d = tmpdir("aevid_mb_")
+    (d / "contracts.md").write_text(CONTRACT.replace(
+        "└── <version>-<YYYY-MM-DD>/",
+        "└── [<board>-]<version>-<YYYY-MM-DD>/"))
+    rel = d / "demoboard-v1.0-2026-01-01"
+    for sub in ("fab", "verification"):
+        (rel / sub).mkdir(parents=True, exist_ok=True)
+    for rp in ("MANIFEST.txt", "fab/bom.csv", "fab/cpl.csv",
+               "verification/drc.json", "verification/erc.json"):
+        (rel / rp).write_text("x\n")
+    r = must_pass(run([KPY, TOOL, str(rel)]),
+                  "a complete release under the multi-board root form")
+    contains(r.out, "A-EVID OK", "grades clean")
+    not_contains(r.out, "[<board>-]",
+                 "the metavariable must never appear inside a looked-for path")
+
+    # and the teeth survive the fix: remove one artifact, it must still FAIL
+    (rel / "verification" / "drc.json").unlink()
+    rf = must_fail(run([KPY, TOOL, str(rel)]),
+                   "multi-board root, missing artifact", "A-EVID FAIL")
+    contains(rf.out, "verification/drc.json", "names the artifact AND its dir")
 
 
 @test("A-EVID FAILS on a contract line it cannot parse — never silently skips",
