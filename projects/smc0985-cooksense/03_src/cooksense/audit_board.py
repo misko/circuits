@@ -112,7 +112,24 @@ PROX = [
     # went with it. The stale row made I-PROX report "missing C_SR2" forever.
     ("C_SR1","U_SR1",7.0),
     ("C_DECU","U_DECU",7.0), ("C_DECD","U_DECD",7.0),
-    ("R_HSG","Q_COIL",5.0), ("C_KR","Q_COIL",6.0), ("R_COILENPD","Q_COILDRV",6.0),
+    ("R_HSG","Q_COIL",5.0), ("C_KR","Q_COIL",6.0),
+    # v1.7 (ADR-0018): R_COILENPD's anchor MOVED from Q_COILDRV to J_MODE, and the
+    # move is the point of the fix rather than a placement convenience. It is no
+    # longer "the gate pull-down" — it is the LOWER LEG OF THE DIVIDER that rejects
+    # a pull-up injected onto the J_MODE pole-A field pin, and a divider only works
+    # where the injection lands. Leaving the old 6mm-to-Q_COILDRV row would have
+    # demanded the resistor sit 29.6mm from the pin it defends. R_COILENS is the
+    # series element out to the gate and D_COILEN is the clamp; all three belong at
+    # the connector, so all three are gated against it.
+    # BUDGET 8.0 FOR ALL FOUR, AND THE NUMBER IS NOT FITTED TO THE PLACEMENT.
+    # I-PROX measures CENTRE-TO-CENTRE, and J_MODE's own body is 10.5mm long, so a
+    # part sitting hard against the connector still measures several mm from its
+    # centre: as placed, D_COILEN 5.83, R_COILENPD 4.79, R_COILENS 5.00, R_MODEPD
+    # 6.14 — while their distances to the PADS they serve are 1.15 / 1.85 / 4.05 /
+    # 3.15mm. 8.0 is the bound that says "in the connector's own strip"; the nearest
+    # alternative site is the logic band at >=15mm, so the gate still has teeth.
+    ("R_COILENPD","J_MODE",8.0), ("R_COILENS","J_MODE",8.0),
+    ("D_COILEN","J_MODE",8.0),   ("R_MODEPD","J_MODE",8.0),
     ("R_OS","U_ONESHOT",6.0), ("C_OS","U_ONESHOT",6.0),
     ("C_LDOOUT","U_LDO",8.0),
 ]

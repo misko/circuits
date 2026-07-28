@@ -54,3 +54,21 @@ ropent_fix: **CLOSED at dddc1a1, approved by the coordinator, who reproduced eve
 mrepro_3run: **GREEN — cooksense does NOT reproduce usb-hub's nondeterminism.** Three from-source regenerations of identical source (the coordinator's decisive test after usb-hub measured 292/294/293 vias): vias **1045 / 1045 / 1045**, via hash 88c3ab97b6a5ec5f x3, track hash b35fccb5d57160ae x3 (3902 each), footprint hash 19b74787faa5dba1 x3 (226 each), island_rescue 18 x3, seed_stubs 58 pins / 0 refused x3. Zone fill identical too: islands 1/114/19/2 and areas 8434.792 / 2921.120 / 7400.062 / 8474.288 on all three. SCOPE OF THE CLAIM: these are `--reuse-route` runs, i.e. the canon-M3 authoritative path that imports the promoted frozen chain, so the track set is fixed by construction and only the stitch can vary — and this board's stochastic rescue ladder is nearly empty (pad_rescue 166/167 GND + 76/76 3V3, the rest deterministically seeded), which is exactly what the v1.2 determinism work bought. The UUID mechanism IS still present (file bytes differ per run) and an earlier build PAIR showed 1-part-in-4e6 zone-area drift with identical island and via counts; via count has never varied across 5 observed builds. So cooksense is NOT blocked on the fleet UUID fix, but the fix is still owed for the fleet.
 mrepro_method_trap: a `.kicad_pcb` copied to a scratch dir WITHOUT its `.kicad_pro` alongside fills with DEFAULT netclass clearances — the netclasses live in the .kicad_pro. My first pre/post zone comparison reported a ~54mm2 fill difference that was entirely this artifact; paired correctly the same two boards agree to 1 part in 4e6. ANY zone-fill comparison must copy the .kicad_pro under a matching basename or it is measuring the fallback, not the board.
 ```
+
+## 2026-07-28 — start (ELECTRICAL REVISION v1.7, authorized by the user)
+- did: intake for the v1.6-deferred hardware fixes. Read CLAUDE.md, pcb-design SKILL,
+  CHANGELOG, v1.6 ORDER_README sections 0/2a/7a/10, verification/crossplug_and_permission_defaults.md,
+  STATUS beacon, cooksense.tsx blocks 2/3/4 + connector block, floorplan east-column solve.
+- result: FOUR items confirmed and scoped. (1) COIL_EN cross-plug: J_MODE is 1 of FIVE
+  identical C189896 GH housings; COIL_EN = {J_MODE.4, Q_COILDRV.1(G), R_COILENPD.1}, sole hold
+  100k, no series element, no ESD. (2) 11 of 18 safety-chain nets carry no restrictive default.
+  (3) REARM_N has one driver and EXP_RST_N has NONE. (4) three stale source/doc statements.
+  KEY SPATIAL FACT for the keying adjudication: the east connector column is SATURATED —
+  measured courtyard gaps H4->J_MODE 0.058, J_MODE->J_ESTOP 0.080, J_ESTOP->J_DOOR 0.090,
+  J_DOOR->J_ISOLOOP 0.510, J_ISOLOOP->J_RH_EXHAUST 0.160 = 0.898 mm of TOTAL slack in the
+  column, against a JST-PH 5-pin that is ~+3 mm wider than the GH it would replace. A
+  same-position family swap to PH is therefore NOT free; it is an east-edge repack plus a
+  re-derivation of the 2.0 mm ISO moat that took a bounded solve to close.
+- next: adjudicate the keying option against that measurement (a NARROWER non-mating
+  connector is the only one that lands without a repack), verify JLC stock for the
+  candidates, then write ADRs before touching the tsx.

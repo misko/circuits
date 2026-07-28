@@ -144,7 +144,42 @@ export default () => (
     <chip name="Q_COILDRV" footprint="sot23" supplierPartNumbers={{ jlcpcb: ["C8545"] }}
       pinLabels={{ pin1: "G", pin2: "S", pin3: "D" }}
       connections={{ pin1: "net.COIL_EN", pin2: "net.GND", pin3: "net.HS_GATE_COIL" }} />
-    <resistor name="R_COILENPD" resistance="100k" footprint="0402" connections={{ pin1: "net.COIL_EN", pin2: "net.GND" }} />
+    {/* v1.7 COIL_EN FRONT END (ADR-0018 decision D) — the SECOND layer under the J_MODE
+        keying, because a mechanical key cannot fix a MIS-BUILT harness and this board's
+        harnesses are hand-crimped in the field.
+
+          J_MODE.4 --- COIL_EN_IN --+-- R_COILENPD 680R --- GND
+                                    +-- D_COILEN (PESD5V0S1BA) --- GND
+                                    +-- R_COILENS 680R --- COIL_EN --- Q_COILDRV.1 (GATE)
+
+        THE PULL-DOWN IS AT THE CONNECTOR PIN, NOT AT THE GATE, AND THAT ORDERING IS THE
+        WHOLE TRICK: the gate draws no DC, so the series element drops ZERO volts on the
+        legitimate path while the divider acts in full on an injected source.
+
+        <=v1.6 this net was three nodes (J_MODE.4, Q_COILDRV.1, R_COILENPD.1) with NO series
+        element, NO ESD device and a sole 100k hold, and an SHT45 pod harness cross-plugged
+        into J_MODE put 3.000V (10k module pull-up) on a 2N7002 whose V_GS(th) is 2.5V MAX —
+        the relay coil rail came up with all seven AND-chain terms AND the Manual rail cut
+        bypassed. v1.6 ORDER_README section 10 withdrew the "any single cross-plug is
+        fail-safe" claim over exactly this and MEASURED that the obvious 100k->10k trim is
+        NOT sufficient (3.3*10/20 = 1.65V still turns the FET on).
+
+        WORST CASE BOTH WAYS, at 680R (full derivation: ADR-0018):
+          legitimate AUTO drive  3.201V rail (power_tree vout_min) x 680/(680+50 ohm '1G11
+                                 Ron floor) = 2.982V vs V_GS(th) MAX 2.5V -> +482mV, and a
+                                 worst-case 2.5V-threshold device then passes ~2.05mA where
+                                 45uA is required (5.0-0.5V over R_HSG 100k). Gate-driver
+                                 load 4.7mA against +-32mA of drive.
+          injected pull-up 10k   0.210V | 4.7k -> 0.417V | 2.2k (THIS BOARD's own I2C pull-up
+                                 value) -> 0.779V, all under V_GS(th) MIN 1.0V.
+          rejection bound        R >= 1564 ohm.  At the old 100k it was R >= 230k, i.e.
+                                 nothing realistic was rejected.
+        WHAT IT STILL CANNOT DO: a HARD SHORT of COIL_EN_IN to 3V3 arms the rail anyway. No
+        resistor defends a zero-ohm source — which is why the mechanical key is PRIMARY.
+        R_COILENS shares the 680R value deliberately: one new BOM line covers both refs. */}
+    <resistor name="R_COILENPD" resistance="680" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C137948"] }} connections={{ pin1: "net.COIL_EN_IN", pin2: "net.GND" }} />
+    <resistor name="R_COILENS" resistance="680" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C137948"] }} connections={{ pin1: "net.COIL_EN_IN", pin2: "net.COIL_EN" }} />
+    <diode name="D_COILEN" footprint="sod323" supplierPartNumbers={{ jlcpcb: ["C5158048"] }} connections={{ pin1: "net.COIL_EN_IN", pin2: "net.GND" }} />
     <capacitor name="C_KR" capacitance="10uF" footprint="0805" connections={{ pin1: "net.N5V_KEY_RELAY", pin2: "net.GND" }} />
 
     {/* ---- fault-trigger AND + hardware fault latch (SR from 2x SN74LVC1G00 NAND) ---- */}
@@ -154,16 +189,71 @@ export default () => (
     <chip name="U_FAULTAND" footprint="sot23_6" supplierPartNumbers={{ jlcpcb: ["C22046"] }}
       pinLabels={{ pin1: "A", pin2: "GND", pin3: "B", pin4: "Y", pin5: "VCC", pin6: "C" }}
       connections={{ pin1: "net.WD_OK", pin2: "net.GND", pin3: "net.ESTOP_OK", pin4: "net.FAULT_SET_N", pin5: "net.N3V3", pin6: "net.TEMP_OK" }} />
-    {/* /SR NAND latch: /S=FAULT_SET_N sets FAULT; /R=REARM_N (manual re-arm) clears. Q=FAULT, /Q=FAULT_LATCH_CLEAR. */}
+    {/* /SR NAND latch: /S=FAULT_SET_N sets FAULT; /R=REARM_PULSE_N (an EDGE, see below)
+        clears. Q=FAULT, /Q=FAULT_LATCH_CLEAR. */}
     <chip name="U_LATCHA" footprint="sot23_5" supplierPartNumbers={{ jlcpcb: ["C8185"] }}
       pinLabels={{ pin1: "A", pin2: "B", pin3: "GND", pin4: "Y", pin5: "VCC" }}
       connections={{ pin1: "net.FAULT_SET_N", pin2: "net.FAULT_LATCH_CLEAR", pin3: "net.GND", pin4: "net.FAULT", pin5: "net.N3V3" }} />
+    {/* v1.7 (ADR-0020 decision A): pin1 (/R) was net.REARM_N — the RAW expander line, with
+        exactly one driver and no hardware requirement that it ever go back high. Held LOW it
+        forced FAULT_LATCH_CLEAR permissive at U_AND3.6 AND U_CAND2.3 forever, put the latch
+        in its forbidden state (Q=/Q=1) whenever a fault was also present, and degenerated
+        U_LATCHA into a combinational repeater: the live terms still gated, but THE MEMORY
+        WAS GONE, so a fault that cleared re-permitted cooking with no re-arm. ORDER_README
+        section 7 said "Pulse REARM_N low" and nothing in hardware enforced a pulse. /R is
+        now the 7ms one-shot output REARM_PULSE_N, so only a TRANSITION clears the latch. */}
     <chip name="U_LATCHB" footprint="sot23_5" supplierPartNumbers={{ jlcpcb: ["C8185"] }}
       pinLabels={{ pin1: "A", pin2: "B", pin3: "GND", pin4: "Y", pin5: "VCC" }}
-      connections={{ pin1: "net.REARM_N", pin2: "net.FAULT", pin3: "net.GND", pin4: "net.FAULT_LATCH_CLEAR", pin5: "net.N3V3" }} />
+      connections={{ pin1: "net.REARM_PULSE_N", pin2: "net.FAULT", pin3: "net.GND", pin4: "net.FAULT_LATCH_CLEAR", pin5: "net.N3V3" }} />
     <capacitor name="C_FAULTAND" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
     <capacitor name="C_LATCHA" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
     <capacitor name="C_LATCHB" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
+
+    {/* ================= v1.7 RESTRICTIVE DEFAULTS (ADR-0019) ==================
+        THE ELEVEN SAFETY-CHAIN NETS THAT CARRIED NO DEFAULT AT ALL. Measured in v1.6
+        (verification/crossplug_and_permission_defaults.md section 2.2): of the 18 nets
+        feeding a permission/gating input, 7 carried a pull and 11 carried none. Each is
+        driven by exactly ONE push-pull CMOS output, so a 100k does nothing while the board
+        is healthy and everything when the driver is absent — unfitted, tombstoned, cracked
+        or dead. A dead U_SCHM (SOIC-14) floats ESTOP_OK + MODE_AUTO_HW + DOOR_OK AT ONCE,
+        and U_EXP.2/3/4 read back the SAME floating nets so software has no cross-check. And
+        the asymmetry that makes hardware the only fix: all four permissions sit on MCP23017
+        port B, one GPPUB write pulls them UP with 100k (DS20001952C section 3.5.7) turning
+        an indeterminate float into a DETERMINISTIC PERMISSIVE, and there is NO software way
+        to add a pull-DOWN.
+
+        THE DIRECTION IS DERIVED PER NET, NOT BLANKET-FITTED. The test is not "is this a
+        permission" but "if the driver is absent, which level is RESTRICTIVE AT THE
+        CONSUMER". Ten come out DOWN and ONE comes out UP:
+
+          R_FAULTPU is the proof. FAULT's only consumer is U_LATCHB.B. A pull-DOWN there
+          would be ACTIVELY HARMFUL: with U_LATCHA dead and FAULT low, FAULT_LATCH_CLEAR =
+          NAND(REARM_PULSE_N=1, FAULT=0) = 1 = PERMISSIVE at both U_AND3.6 and U_CAND2.3.
+          Pulled HIGH the same dead part gives 0 = restrictive.
+
+          R_FSETNPD is the second proof. FAULT_SET_N is ACTIVE-LOW and gets a pull-DOWN,
+          i.e. its default is ASSERTED — the opposite of the convention applied to the other
+          active-low line in the same latch (REARM_N is pulled UP, deasserted). Both are
+          right, because for FAULT_SET_N the asserted state BLOCKS the machine and for
+          REARM_N the asserted state PERMITS it.
+
+        Bonus the derivation buys and was not designed for: FAULT up + FAULT_LATCH_CLEAR
+        down biases the latch's exit from its forbidden state toward SET (restrictive)
+        instead of leaving it a race.
+
+        Value 100k on the SAME C25741 the board's existing 22 pulls already use: zero new
+        BOM lines, zero new feeders, 33uA per net against a push-pull driver. */}
+    <resistor name="R_WDOKPD"      resistance="100k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25741"] }} connections={{ pin1: "net.WD_OK", pin2: "net.GND" }} />
+    <resistor name="R_ESTOPOKPD"   resistance="100k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25741"] }} connections={{ pin1: "net.ESTOP_OK", pin2: "net.GND" }} />
+    <resistor name="R_MODEHWPD"    resistance="100k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25741"] }} connections={{ pin1: "net.MODE_AUTO_HW", pin2: "net.GND" }} />
+    <resistor name="R_DOOROKPD"    resistance="100k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25741"] }} connections={{ pin1: "net.DOOR_OK", pin2: "net.GND" }} />
+    <resistor name="R_AND1PD"      resistance="100k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25741"] }} connections={{ pin1: "net.AND1", pin2: "net.GND" }} />
+    <resistor name="R_AND2PD"      resistance="100k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25741"] }} connections={{ pin1: "net.AND2", pin2: "net.GND" }} />
+    <resistor name="R_CTRSAFEPD"   resistance="100k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25741"] }} connections={{ pin1: "net.CTR_SAFE", pin2: "net.GND" }} />
+    <resistor name="R_FLCPD"       resistance="100k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25741"] }} connections={{ pin1: "net.FAULT_LATCH_CLEAR", pin2: "net.GND" }} />
+    <resistor name="R_STOPREQNPD"  resistance="100k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25741"] }} connections={{ pin1: "net.STOP_REQ_N", pin2: "net.GND" }} />
+    <resistor name="R_FSETNPD"     resistance="100k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25741"] }} connections={{ pin1: "net.FAULT_SET_N", pin2: "net.GND" }} />
+    <resistor name="R_FAULTPU"     resistance="100k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25741"] }} connections={{ pin1: "net.FAULT", pin2: "net.N3V3" }} />
 
     {/* ---- 595 output-enable interlock: SR_OE_N = NAND(MCU_RELAY_ENABLE, WD_OK) + 10k pullup ---- */}
     <chip name="U_OENAND" footprint="sot23_5" supplierPartNumbers={{ jlcpcb: ["C8185"] }}
@@ -234,13 +324,31 @@ export default () => (
         OS_CLR_N = DOOR_OK·STOP_REQ_N (door abort OR STOP preemption clears the pulse),
         1Q=PRESS_TIMED, 1Q_N=PRESS_TIMED_N (latch-freeze). tw = K*Rx*Cx, K~0.7-0.75 at 3V3:
         510k*1uF -> 357-383ms typ, <=436ms worst < 500ms HARD (DETAIL_DESIGN #2).
-        Section 2 unused: 2A_N=N3V3, 2B=GND, 2R_N=GND (held reset), 2CXRX 10k to VCC. */}
+
+        SECTION 2 IS NO LONGER UNUSED (v1.7, ADR-0020 decision A). It is the REARM_N
+        EDGE-DETECT, and it costs ZERO new ICs — the dual was already on the board with half
+        of it tied off. 2A_N = REARM_N (A_N is the NEGATIVE-EDGE trigger, so only a HIGH->LOW
+        TRANSITION fires), 2B = N3V3 (B must be high to enable A-triggering), 2Q_N =
+        REARM_PULSE_N -> U_LATCHB.1 (/R). Held-low REARM_N now yields ONE 7ms pulse and then
+        /R returns high: THE LATCH GETS ITS MEMORY BACK. With a fault still present the latch
+        simply returns to SET when the pulse ends — you cannot clear a live fault, which is
+        correct.
+          t_w = K*Rx*Cx = 0.7 * 10k * 1uF = 7.0ms (K=0.7 at VCC=4.5V, DS p.1; Fig 6 puts
+          K~0.75 toward 3V -> 7.0-7.5ms). Bounds that matter: >> the NAND latch's ns, << any
+          human or software timescale.
+        2R_N = WD_OK, NOT a tie-off. It holds section 2 RESET (2Q_N high = /R deasserted) for
+        the whole TPS3823 reset window, which (a) removes the one risk this change could
+        introduce — a '221 emitting a spurious pulse as its own supply comes up — and so
+        PRESERVES the power-up-forced-SET property, and (b) makes a re-arm attempt during a
+        watchdog fault ignored IN HARDWARE. With R_WDOKPD (ADR-0019) a dead U_WD also holds
+        it reset, i.e. the latch can then never be cleared: restrictive, consistently. */}
     <chip name="U_ONESHOT" footprint="soic16" supplierPartNumbers={{ jlcpcb: ["C133954"] }}
       pinLabels={{ pin1: "A1_N", pin2: "B1", pin3: "R1_N", pin4: "Q1_N", pin5: "Q2", pin6: "CX2", pin7: "CXRX2", pin8: "GND", pin9: "A2_N", pin10: "B2", pin11: "R2_N", pin12: "Q2_N", pin13: "Q1", pin14: "CX1", pin15: "CXRX1", pin16: "VCC" }}
       connections={{
         pin1: "net.GND", pin2: "net.PRESS_REQ", pin3: "net.OS_CLR_N", pin4: "net.PRESS_TIMED_N",
-        pin7: "net.OS2_RC", pin8: "net.GND", pin9: "net.N3V3", pin10: "net.GND",
-        pin11: "net.GND", pin13: "net.PRESS_TIMED", pin14: "net.OS_C", pin15: "net.OS_RC", pin16: "net.N3V3",
+        pin6: "net.OS2_C", pin7: "net.OS2_RC", pin8: "net.GND", pin9: "net.REARM_N", pin10: "net.N3V3",
+        pin11: "net.WD_OK", pin12: "net.REARM_PULSE_N",
+        pin13: "net.PRESS_TIMED", pin14: "net.OS_C", pin15: "net.OS_RC", pin16: "net.N3V3",
       }} />
     {/* LCSC code PINNED (task#21, 2026-07-25). tscircuit's own auto-selection returned
         C25782 / C163467 / C2906936 for this "510k" — and JLC's catalog says ALL THREE are
@@ -253,7 +361,11 @@ export default () => (
         does not inherit whatever the auto-picker likes. */}
     <resistor name="R_OS" resistance="510k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C137961"] }} connections={{ pin1: "net.OS_RC", pin2: "net.N3V3" }} />
     <capacitor name="C_OS" capacitance="1uF" footprint="0603" connections={{ pin1: "net.OS_C", pin2: "net.OS_RC" }} />
+    {/* R_OS2 was the "never hard-tie the RC node" 10k on an UNUSED half; v1.7 it is a real
+        Rext. C_OS2 is its Cext, on the SAME C15849 1uF 0603 line as C_OS / C_ADCV / the four
+        C_SW* — no new BOM line. THE TWO VALUES ARE THE 7ms (E-INV part_value pins both). */}
     <resistor name="R_OS2" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.OS2_RC", pin2: "net.N3V3" }} />
+    <capacitor name="C_OS2" capacitance="1uF" footprint="0603" connections={{ pin1: "net.OS2_C", pin2: "net.OS2_RC" }} />
     <capacitor name="C_OSV" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
     {/* STOP_REQ_N inverter (1G00 as inverter) + one-shot clear gate: OS_CLR_N = DOOR_OK · STOP_REQ_N */}
     <chip name="U_STOPINV" footprint="sot23_5" supplierPartNumbers={{ jlcpcb: ["C8185"] }}
@@ -547,9 +659,24 @@ export default () => (
         failing together, silently, on one component.
         On 3V3_ANALOG the same failure gives 0.000V = LOW = RESTRICTIVE, because the
         TH_CAM nodes sit at 0V through R_CLMPA/B and R_HYS pulls TEMP_OK down with them.
-        CONTEXT WORTH KEEPING: TEMP_OK was the ONLY permission in the safety chain
-        actively pulled toward permissive. The other twelve are pulled restrictive, and
-        REARM_N is correctly pulled up. */}
+        CONTEXT WORTH KEEPING, CORRECTED 2026-07-28 (this clause used to end "The other
+        twelve are pulled restrictive, and REARM_N is correctly pulled up", and v1.6
+        established it was wrong in SCOPE, not in arithmetic — the correction is OWED to
+        this revision because this is the revision that makes the sentence true):
+        TEMP_OK was the ONLY permission in the safety chain actively pulled toward
+        PERMISSIVE, and moving it to 3V3_ANALOG is what fixed that. The twelve the old
+        sentence counted are BRIEF D10 item 8's Pi/expander AUTHORIZATION lines — HOST_AUTH,
+        MCU_RELAY_ENABLE, CONTACTOR_REQ, KEY_RESET_N, STOP_REQ, RAIL_EN_A/B/RHA/RHE,
+        DECU_G1_RAW, DECD_G1_RAW, REARM_N — and all twelve genuinely ARE pulled restrictive
+        (11 x 100k to GND, plus REARM_N 100k UP because that line is active-LOW). There was
+        never a missing pull-down among them. WHAT THE SENTENCE GOT WRONG was calling that
+        "the safety chain": it counted only the SOFTWARE-driven lines, and the HARDWARE-
+        derived nets were in neither group — 11 of the 18 nets feeding a permission/gating
+        input carried NO default at all, four of them permissions. Those eleven are fitted
+        in this revision (ADR-0019, the R_*PD/R_FAULTPU block above), so the honest statement
+        is now: EVERY net feeding a permission or gating input on this board carries a
+        deterministic default, and its DIRECTION is derived at the consumer — which is why
+        one of them (FAULT) is pulled UP. */}
     <resistor name="R_TEMPOK" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.TEMP_OK", pin2: "net.N3V3_ANALOG" }} />
     {/* v1.3: follows U_COMP.8 from 5V_PROTECTED to 3V3_ANALOG — it was still authored on the
         old rail and so no longer bypassed the part it exists for. This 100nF is a SAFETY
@@ -629,18 +756,44 @@ export default () => (
         v1.3 first split into two blocks. */}
     <resistor name="R_ESTOPPD" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.ESTOP_RAW", pin2: "net.GND" }} />
     <diode name="D_ESTOP" footprint="sod323" supplierPartNumbers={{ jlcpcb: ["C5158048"] }} connections={{ pin1: "net.ESTOP_RAW", pin2: "net.GND" }} />
-    {/* Mode DPDT: pole A (pins1-2) = physical coil-EN gate (MANUAL cuts the rail); pole B (pins3-4) = MODE_RAW logic */}
-    {/* J_MODE RE-PINNED to the sibling GH convention (pin review Q, 2026-07-23): 3V3 on pin 1,
-        GND on pin 5, signals in the middle — matching J_DOOR/J_ESTOP. Old pinout put 3V3 on pin 3
-        ADJACENT to COIL_EN on pin 2: a cross-plugged sibling harness could short COIL_EN to 3V3
-        through the external switch and energize the coil rail BYPASSING the AND-chain. New pinout:
-        pole B (mode sense) = pins 1-2 (3V3 -> MODE_RAW); pole A (coil gate) = pins 3-4
-        (KEY_RELAY_ALLOWED -> COIL_EN). COIL_EN's neighbours are now the AND-chain output (3) and
-        GND (5): any cross-plug bridge either applies the intended gating or holds the rail OFF.
-        (A J_DOOR-style harness bridging 2-3/4-5 gives MODE_RAW<->KEY_RELAY_ALLOWED contention -
-        benign - and COIL_EN->GND = safe-off.) */}
-    <chip name="J_MODE" footprint="pinrow5" supplierPartNumbers={{ jlcpcb: ["C189896"] }}
-      connections={{ pin1: "net.N3V3", pin2: "net.MODE_RAW", pin3: "net.KEY_RELAY_ALLOWED", pin4: "net.COIL_EN", pin5: "net.GND" }} />
+    {/* Mode DPDT, AS BUILT (corrected 2026-07-28 — the line that stood here said "pole A
+        (pins1-2) ... pole B (pins3-4)" and CONTRADICTED the block below AND the netlist; it
+        was the pre-2026-07-23-re-pin survivor, and a harness built from it would have left
+        COIL_EN open and the machine permanently unable to arm. v1.6 recorded it as declared
+        gap 23. ORDER_README section 10.1's table is the harness authority):
+          pole B (mode sense)   = pins 1-2   3V3 -> MODE_RAW
+          pole A (physical coil-rail cut, MANUAL opens it) = pins 3-4   KEY_RELAY_ALLOWED -> COIL_EN_IN */}
+    {/* v1.7 — J_MODE LEAVES THE JST-GH FAMILY (ADR-0018 decision C). It was one of FIVE
+        identical C189896 SM05B-GHS-TB housings (J_DOOR, J_ESTOP, J_MODE, J_RH_AMBIENT,
+        J_RH_EXHAUST) with nothing mechanical to tell them apart, and an SHT45 pod harness
+        plugged into it ARMED THE RELAY COIL RAIL with all seven AND-chain terms and the
+        Manual rail cut bypassed.
+
+        THE 2026-07-23 RE-PIN THAT STOOD HERE WAS A REAL IMPROVEMENT AND IS NOT REVERSED —
+        its CONCLUSION was generalised past its evidence. It reasoned "any cross-plug BRIDGE
+        either applies the intended gating or holds the rail OFF", which MODELS A CROSS-PLUG
+        AS A PASSIVE BRIDGE BETWEEN PINS: correct for three dry-contact harnesses, WRONG for
+        a harness that SOURCES CURRENT. v1.6 ORDER_README section 10 inherited the
+        generalisation and its "any single cross-plug is fail-safe" claim is WITHDRAWN.
+
+        Now S4B-ZR-SM4A-TF, JST ZH, 1.5mm pitch, 4 circuits (C485354, genuine JST, stock
+        10760 min 1 read 2026-07-28). 4 circuits is EXACTLY what a dry DPDT needs; the 5th
+        GH pin (GND/shield) was never used by this harness.
+        THE MIS-MATE IS NOW A MECHANICAL INTERFERENCE IN THE DIRECTION THAT MATTERS: a
+        GHR-05V-S plug is 4.15mm tall (JST eGH p.2) and this header's ENTIRE OUTER HEIGHT is
+        3.70mm (JST eZH p.4), cavity sized for a 3.40mm ZHR-4 — no GH plug enters, and the
+        pitches (1.25 vs 1.50) could align at most one circuit anyway. Both "energises the
+        coil rail" cells of the 20-cell matrix, and both "input falsified" cells, are GONE.
+        BOUNDED HONESTLY: GHR-05V-S and ZHR-4 are the SAME 7.50mm overall width and the ZH
+        plug is smaller in every other dimension, so the REVERSE direction (this harness
+        pushed into a GH socket) is DEGRADED — cannot latch, cannot engage more than one
+        contact — but is NOT an interference. That direction is the benign one: dry contacts
+        into a pod socket short a current-limited switched rail, loudly.
+        A 4-circuit GH (SM04B-GHS-TB) would have keyed the same direction at LOWER placement
+        cost and was rejected on SOURCING: genuine JST reads stockCount 0 / 1, and the only
+        stocked 4-circuit GH is an XYECONN clone. */}
+    <chip name="J_MODE" footprint="pinrow4" supplierPartNumbers={{ jlcpcb: ["C485354"] }}
+      connections={{ pin1: "net.N3V3", pin2: "net.MODE_RAW", pin3: "net.KEY_RELAY_ALLOWED", pin4: "net.COIL_EN_IN" }} />
     <resistor name="R_MODEPD" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.MODE_RAW", pin2: "net.GND" }} />
 
     {/* ---- optically-isolated external-contactor request (LTV-817S), <=30V/50mA dry (brief §3) ---- */}
@@ -710,13 +863,29 @@ export default () => (
         pin1: "net.EFUSE_FLT_N", pin2: "net.MODE_AUTO_HW", pin3: "net.ESTOP_OK", pin4: "net.DOOR_OK",
         pin5: "net.TEMP_OK", pin6: "net.FAULT", pin7: "net.TC_FAULT_N", pin8: "net.WD_OK",
         pin9: "net.N3V3", pin10: "net.GND", pin12: "net.I2C_SCL", pin13: "net.I2C_SDA",
-        pin15: "net.GND", pin16: "net.GND", pin17: "net.GND", pin18: "net.EXP_RST_N",
+        pin15: "net.GND", pin16: "net.GND", pin17: "net.GND", pin18: "net.WD_OK",
         pin19: "net.EXP_INTB", pin20: "net.INT_ALERT",
         pin21: "net.RAIL_EN_A", pin22: "net.RAIL_EN_B", pin23: "net.RAIL_EN_RHA", pin24: "net.RAIL_EN_RHE",
         pin25: "net.CONTACTOR_REQ", pin26: "net.REARM_N", pin27: "net.BOARD_ID0", pin28: "net.BOARD_ID1",
       }} />
     <capacitor name="C_EXP" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
-    <resistor name="R_EXPRST" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.EXP_RST_N", pin2: "net.N3V3" }} />
+    {/* v1.7 (ADR-0020 decision B): pin18 (RESET_N) was on net.EXP_RST_N = {R_EXPRST.1,
+        U_EXP.18} — A NET WITH NO DRIVER. Nothing on this board could reset the expander, so
+        its registers held until 3V3 dropped and a held-low REARM_N survived EVERY Pi reboot.
+        RESET_N now sits on WD_OK, the TPS3823's push-pull RESET_N: power-up, brown-out and
+        watchdog timeout each return every expander GPIO to POR (all INPUTS), where the
+        eleven authorization pull-downs and R_REARMPU take over. THE EXPANDER'S OUTPUTS CAN
+        NO LONGER PERSIST ACROSS A WATCHDOG TIMEOUT — the exact worry ADR-0011 section 8
+        wrote down and could only mitigate ("a Pi that dies ... the MCP23017 keeps its
+        CONTACTOR_REQ latch").
+        R_EXPRST IS DELETED, AND THAT IS REQUIRED, NOT TIDYING: left in place its 10k pull-UP
+        would land on WD_OK — a pull toward PERMISSIVE on the board's most-consumed
+        permission — and beat ADR-0019's R_WDOKPD outright (3.3*100/110 = 3.0V). WD_OK's
+        default is the 100k pull-DOWN and nothing else.
+        FIRMWARE CONSEQUENCE, REQUIRED (ORDER_README section 7a-3): init the expander only
+        AFTER the WD_PET heartbeat is established (during Pi boot R_WDPETPD holds WD_PET
+        static and the supervisor times out every ~1.6s), and treat a POR-pattern IODIR/IOCON
+        readback as "the expander was reset" — the MCP23017 has no reset-status flag. */}
     {/* v1.2 DETERMINISTIC PULLS (ADR-0011 §7): hold the SAFE state while the Pi/expander are
         un-driven (boot/reset — MCP23017 pins reset to INPUTS). Pull-DOWN every authorization/
         enable; pull-UP on REARM_N (active-low re-arm: floating must NOT clear the fault latch). */}

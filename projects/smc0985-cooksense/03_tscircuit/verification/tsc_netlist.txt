@@ -30,7 +30,9 @@ COMPONENTS:
  - Q_COIL: sot23
  - R_HSG: 100kΩ res0402 resistor
  - Q_COILDRV: sot23
- - R_COILENPD: 100kΩ res0402 resistor
+ - R_COILENPD: 680Ω res0402 resistor
+ - R_COILENS: 680Ω res0402 resistor
+ - D_COILEN: D_COILEN, source_component
  - C_KR: 10uF 0805 capacitor
  - U_FAULTAND: sot23_6
  - U_LATCHA: sot23_5
@@ -38,6 +40,17 @@ COMPONENTS:
  - C_FAULTAND: 100nF 0402 capacitor
  - C_LATCHA: 100nF 0402 capacitor
  - C_LATCHB: 100nF 0402 capacitor
+ - R_WDOKPD: 100kΩ res0402 resistor
+ - R_ESTOPOKPD: 100kΩ res0402 resistor
+ - R_MODEHWPD: 100kΩ res0402 resistor
+ - R_DOOROKPD: 100kΩ res0402 resistor
+ - R_AND1PD: 100kΩ res0402 resistor
+ - R_AND2PD: 100kΩ res0402 resistor
+ - R_CTRSAFEPD: 100kΩ res0402 resistor
+ - R_FLCPD: 100kΩ res0402 resistor
+ - R_STOPREQNPD: 100kΩ res0402 resistor
+ - R_FSETNPD: 100kΩ res0402 resistor
+ - R_FAULTPU: 100kΩ res0402 resistor
  - U_OENAND: sot23_5
  - R_OE: 10kΩ res0402 resistor
  - C_OENAND: 100nF 0402 capacitor
@@ -52,6 +65,7 @@ COMPONENTS:
  - R_OS: 510kΩ res0402 resistor
  - C_OS: 1uF 0603 capacitor
  - R_OS2: 10kΩ res0402 resistor
+ - C_OS2: 1uF 0603 capacitor
  - C_OSV: 100nF 0402 capacitor
  - U_STOPINV: sot23_5
  - U_OSCLR: sot23_6
@@ -155,7 +169,7 @@ COMPONENTS:
  - J_ESTOP: pinrow5
  - R_ESTOPPD: 10kΩ res0402 resistor
  - D_ESTOP: D_ESTOP, source_component
- - J_MODE: pinrow5
+ - J_MODE: pinrow4
  - R_MODEPD: 10kΩ res0402 resistor
  - U_CAND1: sot23_6
  - U_CAND2: sot23_6
@@ -166,7 +180,6 @@ COMPONENTS:
  - J_ISOLOOP: pinrow4
  - U_EXP: ssop28
  - C_EXP: 100nF 0402 capacitor
- - R_EXPRST: 10kΩ res0402 resistor
  - R_RAENAPD: 100kΩ res0402 resistor
  - R_RAENBPD: 100kΩ res0402 resistor
  - R_RAENRHAPD: 100kΩ res0402 resistor
@@ -255,20 +268,27 @@ NET: N5V_IN
   - F1 pin1
   - J_PWR V5IN
 
-NET: AND1
-  - U_AND3 A
-  - U_AND1 Y
-
-NET: AND2
-  - U_AND3 B
-  - U_AND2 Y
-
 NET: HS_GATE_COIL
   - Q_COILDRV D
   - R_HSG pin1
   - Q_COIL G
 
+NET: COIL_EN
+  - R_COILENS pin2
+  - Q_COILDRV G
+
+NET: AND1
+  - R_AND1PD pin1
+  - U_AND3 A
+  - U_AND1 Y
+
+NET: AND2
+  - R_AND2PD pin1
+  - U_AND3 B
+  - U_AND2 Y
+
 NET: FAULT_SET_N
+  - R_FSETNPD pin1
   - U_LATCHA A
   - U_FAULTAND Y
 
@@ -289,6 +309,10 @@ NET: WD_MR_N
   - R_MR pin1
   - U_WD MR_N
 
+NET: REARM_PULSE_N
+  - U_ONESHOT Q2_N
+  - U_LATCHB A
+
 NET: OS_C
   - C_OS pin1 (+)
   - U_ONESHOT CX1
@@ -298,7 +322,12 @@ NET: OS_RC
   - R_OS pin1
   - U_ONESHOT CXRX1
 
+NET: OS2_C
+  - C_OS2 pin1 (+)
+  - U_ONESHOT CX2
+
 NET: OS2_RC
+  - C_OS2 pin2 (-)
   - R_OS2 pin1
   - U_ONESHOT CXRX2
 
@@ -362,6 +391,7 @@ NET: STOP_REQ_N
   - U_DECUEN B
   - U_OSCLR B
   - U_STOPINV Y
+  - R_STOPREQNPD pin1
 
 NET: DECD_G1
   - U_DECDEN Y
@@ -626,10 +656,11 @@ NET: ESTOP_RAW
   - J_ESTOP pin2
   - U_SCHM 1A
 
-NET: COIL_EN
+NET: COIL_EN_IN
   - J_MODE pin4
+  - D_COILEN pin1 (+)
+  - R_COILENS pin1
   - R_COILENPD pin1
-  - Q_COILDRV G
 
 NET: MODE_RAW
   - R_MODEPD pin1
@@ -639,9 +670,11 @@ NET: MODE_RAW
 NET: CTR_SAFE
   - U_CAND2 A
   - U_CAND1 Y
+  - R_CTRSAFEPD pin1
 
 NET: FAULT_LATCH_CLEAR
   - U_CAND2 B
+  - R_FLCPD pin1
   - U_LATCHB Y
   - U_LATCHA B
   - U_AND3 C
@@ -669,16 +702,14 @@ NET: CONTACTOR_E
 NET: MODE_AUTO_HW
   - U_EXP GPB1
   - U_SCHM 4Y
+  - R_MODEHWPD pin1
   - U_AND1 A
 
 NET: DOOR_OK
   - U_EXP GPB3
   - U_OSCLR A
   - U_SCHM 6Y
-
-NET: EXP_RST_N
-  - R_EXPRST pin1
-  - U_EXP RESET_N
+  - R_DOOROKPD pin1
 
 NET: CONTACTOR_REQ
   - R_CTRREQPD pin1
@@ -688,7 +719,7 @@ NET: CONTACTOR_REQ
 NET: REARM_N
   - R_REARMPU pin1
   - U_EXP GPA5
-  - U_LATCHB A
+  - U_ONESHOT A2_N
 
 NET: BOARD_ID0
   - R_BID0 pin1
@@ -952,7 +983,6 @@ NET: GND
   - U_CAND2 GND
   - U_CAND1 GND
   - R_MODEPD pin2
-  - J_MODE pin5
   - D_ESTOP pin2 (-)
   - R_ESTOPPD pin2
   - J_ESTOP pin5
@@ -1023,8 +1053,6 @@ NET: GND
   - U_OSCLR GND
   - U_STOPINV GND
   - C_OSV pin2 (-)
-  - U_ONESHOT R2_N
-  - U_ONESHOT B2
   - U_ONESHOT GND
   - U_ONESHOT A1_N
   - R_WDPETPD pin2
@@ -1035,6 +1063,16 @@ NET: GND
   - U_SCHM GND
   - C_OENAND pin2 (-)
   - U_OENAND GND
+  - R_FSETNPD pin2
+  - R_STOPREQNPD pin2
+  - R_FLCPD pin2
+  - R_CTRSAFEPD pin2
+  - R_AND2PD pin2
+  - R_AND1PD pin2
+  - R_DOOROKPD pin2
+  - R_MODEHWPD pin2
+  - R_ESTOPOKPD pin2
+  - R_WDOKPD pin2
   - C_LATCHB pin2 (-)
   - C_LATCHA pin2 (-)
   - C_FAULTAND pin2 (-)
@@ -1042,6 +1080,7 @@ NET: GND
   - U_LATCHA GND
   - U_FAULTAND GND
   - C_KR pin2 (-)
+  - D_COILEN pin2 (-)
   - R_COILENPD pin2
   - Q_COILDRV S
   - C_AND3 pin2 (-)
@@ -1100,7 +1139,6 @@ NET: N3V3
   - Q_SWA S
   - R_BID1 pin2
   - R_REARMPU pin2
-  - R_EXPRST pin2
   - C_EXP pin1 (+)
   - U_EXP VDD
   - C_CAND2 pin1 (+)
@@ -1139,7 +1177,7 @@ NET: N3V3
   - R_OS2 pin2
   - R_OS pin2
   - U_ONESHOT VCC
-  - U_ONESHOT A2_N
+  - U_ONESHOT B2
   - R_MR pin2
   - C_WD pin1 (+)
   - U_WD VDD
@@ -1148,6 +1186,7 @@ NET: N3V3
   - C_OENAND pin1 (+)
   - R_OE pin2
   - U_OENAND VCC
+  - R_FAULTPU pin2
   - C_LATCHB pin1 (+)
   - C_LATCHA pin1 (+)
   - C_FAULTAND pin1 (+)
@@ -1193,10 +1232,13 @@ NET: KEY_RELAY_ALLOWED
 
 NET: WD_OK
   - TP_WDOK pin1
+  - U_EXP RESET_N
   - U_EXP GPB7
   - U_CAND1 A
+  - U_ONESHOT R2_N
   - U_WD RESET_N
   - U_OENAND B
+  - R_WDOKPD pin1
   - U_FAULTAND A
   - U_AND1 B
 
@@ -1219,12 +1261,14 @@ NET: ESTOP_OK
   - U_EXP GPB2
   - U_CAND1 B
   - U_SCHM 2Y
+  - R_ESTOPOKPD pin1
   - U_FAULTAND B
   - U_AND1 C
 
 NET: FAULT
   - TP_FAULT pin1
   - U_EXP GPB5
+  - R_FAULTPU pin1
   - U_LATCHB B
   - U_LATCHA Y
 
@@ -1436,9 +1480,17 @@ Q_COILDRV
 - pin2(S): NETS(GND)
 - pin3(D): NETS(HS_GATE_COIL)
 
-R_COILENPD (100kΩ res0402)
-- pin1(anode, pos, left): NETS(COIL_EN)
+R_COILENPD (680Ω res0402)
+- pin1(anode, pos, left): NETS(COIL_EN_IN)
 - pin2(cathode, neg, right): NETS(GND)
+
+R_COILENS (680Ω res0402)
+- pin1(anode, pos, left): NETS(COIL_EN_IN)
+- pin2(cathode, neg, right): NETS(COIL_EN)
+
+D_COILEN
+- pin1(pos, anode, left): NETS(COIL_EN_IN)
+- pin2(neg, cathode, right): NETS(GND)
 
 C_KR (10uF 0805)
 - pin1(pos, anode, left): NETS(N5V_KEY_RELAY)
@@ -1460,7 +1512,7 @@ U_LATCHA
 - pin5(VCC): NETS(N3V3)
 
 U_LATCHB
-- pin1(A): NETS(REARM_N)
+- pin1(A): NETS(REARM_PULSE_N)
 - pin2(B): NETS(FAULT)
 - pin3(GND): NETS(GND)
 - pin4(Y): NETS(FAULT_LATCH_CLEAR)
@@ -1477,6 +1529,50 @@ C_LATCHA (100nF 0402)
 C_LATCHB (100nF 0402)
 - pin1(pos, anode, left): NETS(N3V3)
 - pin2(neg, cathode, right): NETS(GND)
+
+R_WDOKPD (100kΩ res0402)
+- pin1(anode, pos, left): NETS(WD_OK)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_ESTOPOKPD (100kΩ res0402)
+- pin1(anode, pos, left): NETS(ESTOP_OK)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_MODEHWPD (100kΩ res0402)
+- pin1(anode, pos, left): NETS(MODE_AUTO_HW)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_DOOROKPD (100kΩ res0402)
+- pin1(anode, pos, left): NETS(DOOR_OK)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_AND1PD (100kΩ res0402)
+- pin1(anode, pos, left): NETS(AND1)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_AND2PD (100kΩ res0402)
+- pin1(anode, pos, left): NETS(AND2)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_CTRSAFEPD (100kΩ res0402)
+- pin1(anode, pos, left): NETS(CTR_SAFE)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_FLCPD (100kΩ res0402)
+- pin1(anode, pos, left): NETS(FAULT_LATCH_CLEAR)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_STOPREQNPD (100kΩ res0402)
+- pin1(anode, pos, left): NETS(STOP_REQ_N)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_FSETNPD (100kΩ res0402)
+- pin1(anode, pos, left): NETS(FAULT_SET_N)
+- pin2(cathode, neg, right): NETS(GND)
+
+R_FAULTPU (100kΩ res0402)
+- pin1(anode, pos, left): NETS(FAULT)
+- pin2(cathode, neg, right): NETS(N3V3)
 
 U_OENAND
 - pin1(A): NETS(MCU_RELAY_ENABLE)
@@ -1542,13 +1638,13 @@ U_ONESHOT
 - pin3(R1_N): NETS(OS_CLR_N)
 - pin4(Q1_N): NETS(PRESS_TIMED_N)
 - pin5(Q2): NOT_CONNECTED
-- pin6(CX2): NOT_CONNECTED
+- pin6(CX2): NETS(OS2_C)
 - pin7(CXRX2): NETS(OS2_RC)
 - pin8(GND): NETS(GND)
-- pin9(A2_N): NETS(N3V3)
-- pin10(B2): NETS(GND)
-- pin11(R2_N): NETS(GND)
-- pin12(Q2_N): NOT_CONNECTED
+- pin9(A2_N): NETS(REARM_N)
+- pin10(B2): NETS(N3V3)
+- pin11(R2_N): NETS(WD_OK)
+- pin12(Q2_N): NETS(REARM_PULSE_N)
 - pin13(Q1): NETS(PRESS_TIMED)
 - pin14(CX1): NETS(OS_C)
 - pin15(CXRX1): NETS(OS_RC)
@@ -1565,6 +1661,10 @@ C_OS (1uF 0603)
 R_OS2 (10kΩ res0402)
 - pin1(anode, pos, left): NETS(OS2_RC)
 - pin2(cathode, neg, right): NETS(N3V3)
+
+C_OS2 (1uF 0603)
+- pin1(pos, anode, left): NETS(OS2_C)
+- pin2(neg, cathode, right): NETS(OS2_RC)
 
 C_OSV (100nF 0402)
 - pin1(pos, anode, left): NETS(N3V3)
@@ -2155,8 +2255,7 @@ J_MODE
 - pin1: NETS(N3V3)
 - pin2: NETS(MODE_RAW)
 - pin3: NETS(KEY_RELAY_ALLOWED)
-- pin4: NETS(COIL_EN)
-- pin5: NETS(GND)
+- pin4: NETS(COIL_EN_IN)
 
 R_MODEPD (10kΩ res0402)
 - pin1(anode, pos, left): NETS(MODE_RAW)
@@ -2220,7 +2319,7 @@ U_EXP
 - pin15(A0): NETS(GND)
 - pin16(A1): NETS(GND)
 - pin17(A2): NETS(GND)
-- pin18(RESET_N): NETS(EXP_RST_N)
+- pin18(RESET_N): NETS(WD_OK)
 - pin19(INTB): NETS(EXP_INTB)
 - pin20(INTA): NETS(INT_ALERT)
 - pin21(GPA0): NETS(RAIL_EN_A)
@@ -2235,10 +2334,6 @@ U_EXP
 C_EXP (100nF 0402)
 - pin1(pos, anode, left): NETS(N3V3)
 - pin2(neg, cathode, right): NETS(GND)
-
-R_EXPRST (10kΩ res0402)
-- pin1(anode, pos, left): NETS(EXP_RST_N)
-- pin2(cathode, neg, right): NETS(N3V3)
 
 R_RAENAPD (100kΩ res0402)
 - pin1(anode, pos, left): NETS(RAIL_EN_A)

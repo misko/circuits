@@ -282,7 +282,19 @@ placement:
     #   J_ISOLOOP.1 copper -> south board edge      0.650   (+0.350 on the rule)
     #   J_ISOLOOP body south face                 102.000   (FLUSH, not proud —
     #     the enclosure wall is the board edge, so the block may not overhang)
-    J_MODE:      [197.0, 60.00, 90]  # mouth EAST (by HC14/AND-chain) — UNMOVED
+    # v1.7 (ADR-0018): J_MODE is now a JST ZH 4-circuit S4B-ZR-SM4A-TF, NOT a
+    # 5-circuit GH — a 1.5mm-pitch header a GH plug physically cannot enter, so
+    # the one cross-plug that arms the coil rail is an interference rather than
+    # a labelling rule. Courtyard 10.500 x 8.000 vs the GH's 10.700 x 6.400:
+    # 0.200mm NARROWER in this saturated column and 1.600mm deeper westward.
+    # Origin 197.00 -> 195.95 keeps the MOUTH at the board edge (fab body face
+    # 199.95 against the x=200.0 edge; courtyard x[192.45, 200.45], the same
+    # east limit the GH held at 200.245). MEASURED effect on the column, and it
+    # IMPROVES: H4 -> J_MODE 0.058 -> 0.203, J_MODE -> J_ESTOP 0.090 -> 0.235.
+    # Nothing else in the column moves and the 2.0mm ISO moat is untouched.
+    # Westward the courtyard takes 1.305mm of a strip whose only occupant was
+    # R_MODEPD (now anchored, below, with the three COIL_EN front-end parts).
+    J_MODE:      [195.95, 60.00, 90]  # mouth EAST (by HC14/AND-chain)
     J_ESTOP:     [197.0, 70.88, 90]  # was 72.0; north 1.12 to open the moat
     J_DOOR:      [197.0, 81.76, 90]  # was 84.0; north 2.24 (the binding shift)
     J_ISOLOOP:   [195.3, 95.00, 90]  # KF350-3.5-4P, the ONE isolated block;
@@ -392,6 +404,53 @@ placement:
     J_RH_AMBIENT: [168.0, 97.0, 0]   # mouth SOUTH
     J_RH_EXHAUST: [186.0, 97.0, 0]   # mouth SOUTH
 
+    # ============ v1.7 — J_MODE FRONT END (ADR-0018) ==========================
+    # ALL FOUR ARE ANCHORS, NOT SEEDS, AND THAT IS DELIBERATE: they live in a
+    # 2.475mm strip bounded EAST by the new J_MODE courtyard (x192.45) and WEST
+    # by U_ULNB's (x189.975), the tightest pocket on the board. This floorplan's
+    # own history is of the legalizer rippling floaters into hostile spots
+    # (C_WD/R_MR 2026-07-24, D_KSTOP into a comb keepout); a verified pinned
+    # coordinate is the fix. Every gap below was MEASURED against the v1.6
+    # courtyards with J_MODE substituted, 0 overlaps, and the ORDER is the
+    # electrical one: CLAMP nearest the pin, then the pull-down, then the series
+    # element, then pole B's pull-down.
+    #   J_MODE pads land at x194.30: pin1 3V3 y62.25 / pin2 MODE_RAW y60.75 /
+    #   pin3 KEY_RELAY_ALLOWED y59.25 / pin4 COIL_EN_IN y57.75.
+    D_COILEN:   [191.21, 56.60, 90]  # PESD5V0S1BA on COIL_EN_IN — the ESD device
+                                     # J_DOOR/J_ESTOP have and J_MODE did not.
+                                     # rot90: SOD-323 is 3.29 wide unrotated and
+                                     # does NOT fit the strip; at 90 it is 1.99
+                                     # -> 0.240mm to U_ULNB, 0.245 to J_MODE.
+                                     # 1.15mm from the pin it clamps.
+    R_COILENPD: [191.21, 59.30, 0]   # 680R. THE divider leg (ADR-0018): at the
+                                     # PIN, not the gate. 0.260mm to U_ULNB.
+    R_COILENS:  [191.21, 61.60, 0]   # 680R series into the gate node COIL_EN.
+    R_MODEPD:   [191.21, 63.90, 0]   # 10k, was a `near: J_MODE` pattern whose
+                                     # legalized site (192.3,61.7) is now INSIDE
+                                     # the ZH courtyard. Pinned here, 3.15mm from
+                                     # the MODE_RAW pad.
+
+    # ============ v1.7 — RESTRICTIVE DEFAULTS (ADR-0019) ======================
+    # Eleven 100k, each hard against the gate whose OUTPUT it defaults. Every
+    # coordinate grid-searched against the v1.6 courtyards + all 48 rule areas:
+    # 0 overlaps, nearest-neighbour gap printed in the routing journal (min
+    # 0.270mm, R_FLCPD -> U_LATCHB). Anchored for the same reason as above.
+    R_WDOKPD:     [151.29, 82.66, 0]   # WD_OK       DOWN  (U_WD.1)
+    R_ESTOPOKPD:  [169.00, 60.00, 0]   # ESTOP_OK    DOWN  (U_SCHM.4)
+    R_MODEHWPD:   [174.96, 65.42, 0]   # MODE_AUTO_HW DOWN (U_SCHM.8)
+    R_DOOROKPD:   [146.64, 72.08, 0]   # DOOR_OK     DOWN  (U_SCHM.12 -> U_OSCLR.1)
+    R_AND1PD:     [157.29, 70.66, 0]   # AND1        DOWN  (U_AND1.4)
+    R_AND2PD:     [169.29, 70.66, 0]   # AND2        DOWN  (U_AND2.4)
+    R_CTRSAFEPD:  [177.24, 85.08, 0]   # CTR_SAFE    DOWN  (U_CAND1.4)
+    R_FLCPD:      [181.48, 72.07, 0]   # FAULT_LATCH_CLEAR DOWN (U_LATCHB.4)
+    R_STOPREQNPD: [126.52, 74.93, 0]   # STOP_REQ_N  DOWN  (U_STOPINV.4)
+    R_FSETNPD:    [157.29, 76.66, 0]   # FAULT_SET_N DOWN  — ACTIVE-LOW net, default ASSERTED
+    R_FAULTPU:    [168.88, 75.95, 0]   # FAULT       *UP*  — the one that runs the other way;
+                                       # pulled DOWN it would make a dead U_LATCHA PERMISSIVE
+    # ============ v1.7 — REARM_N EDGE-DETECT (ADR-0020) =======================
+    C_OS2:        [144.30, 65.70, 0]   # 1uF Cext for U_ONESHOT section 2 (pins 6-7 at
+                                       # x147.525, y63.905/65.175). tw = 0.7*10k*1uF = 7ms.
+
   seeds:
     # eFuse fine-pin locals (outward-only-local, around U_EFUSE @60,57; v1.0 +12y)
     C_DVDT: [57.0, 60.0]
@@ -432,7 +491,9 @@ placement:
     # All three move to the open drive-band pocket west of U_EXP / south of
     # U_DECD; C_ULNB moves INSIDE the plane band (its old legalized spot y51.6
     # was north of the planes, the one place GND cannot reach).
-    R_EXPRST: [122.0, 84.0]
+    # R_EXPRST DELETED v1.7 (ADR-0020): EXP_RST_N had NO DRIVER, U_EXP.18 now
+    # sits on WD_OK, and leaving a 10k pull-UP there would have landed it on
+    # WD_OK and beaten R_WDOKPD's 100k pull-DOWN (3.3*100/110 = 3.0V).
     R_BID0:   [125.0, 84.0]
     R_BID1:   [122.0, 86.5]
     C_ULNB:   [186.0, 67.5]     # I-PROX to U_ULNB (184,59) = 8.7 <= 9.0
@@ -500,7 +561,9 @@ placement:
     - {match: "C_OSV", near: U_ONESHOT}
     - {match: "R_HSG", near: Q_COIL}
     - {match: "C_KR", near: Q_COIL}
-    - {match: "R_COILENPD", near: Q_COILDRV}
+    # R_COILENPD is no longer a near-Q_COILDRV pattern (v1.7, ADR-0018): it is the
+    # divider leg that rejects an injected pull-up and it only works AT THE J_MODE
+    # PIN. Explicit anchor in the J_MODE front-end block above.
     # SUPERSEDED by the explicit R_DECUPD anchor above (task#21): the near-rule's
     # site was inside U_DECU's SEL output fan and the real consumer is U_DECUEN.1.
     # Kept as documentation of the pin-review-Q4 intent; the anchor wins (pinned).
@@ -558,7 +621,8 @@ placement:
     - {match: "D_DOOR", near: J_DOOR}
     - {match: "R_ESTOPPD", near: J_ESTOP}
     - {match: "D_ESTOP", near: J_ESTOP}
-    - {match: "R_MODEPD", near: J_MODE}
+    # R_MODEPD: explicit anchor now (v1.7) — the near-pattern site is inside the
+    # new ZH courtyard.
     # ---- test points ----
     - {match: "TP_USEL", region: keypad}
     - {match: "TP_DSEL", region: keypad}

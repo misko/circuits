@@ -1,0 +1,65 @@
+mpn: S4B-ZR-SM4A-TF
+manufacturer: JST
+type: connector_wire_to_board_header_1x4   # CLASS: 1.5mm ZH SMD side-entry header
+datasheet:
+  doc_id: eZH                     # JST ZH series drawing (no printed numeric revision)
+  revision: eZH                   # JST catalog sheet carries no rev code; token == filename
+  url: https://www.jst-mfg.com/product/pdf/eng/eZH.pdf
+  sha256: ea6ee36db6758fc569e4ae416e89c9db92896482ac3c3a6fb713d66cb513b2c5
+  fetched: 2026-07-28
+package: JST ZH 1.5mm 4-circuit SMD side-entry (right-angle) FULLY SHROUDED header, 2 solder tabs
+footprint: Connector_JST:JST_ZH_S4B-ZR-SM4A-TF_1x04-1MP_P1.50mm_Horizontal
+escape:                           # escape_check.py --style connector --pitch 1.5
+  style: connector
+  pitch: 1.5
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-28
+pins:                             # 1..4 signal + 2 mechanical tabs (KiCad pad name "MP")
+  1: P1                           # No.1 circuit is the marked end of the row (eZH p.2 housing drawing)
+  2: P2
+  3: P3
+  4: P4
+  MP: {name: MP, tie: GND, note: "two SM4-type reinforcement/solder tabs (footprint pad 'MP' x2 = one common node); carry no signal current — tie to GND for retention"}
+limits: {current_per_contact: "1.0A AC/DC (AWG#26)", voltage: "50V AC/DC", temp_range: "-25..+85C incl. current rise", wire: "AWG #32-#26, insulation OD 0.5-1.1mm", withstanding: "500VAC 1 min, no breakdown", contact_resistance: "20 mOhm initial / 30 mOhm after environmental tests"}
+gotchas:
+  - "THIS PART EXISTS ON THIS BOARD FOR ITS PITCH, NOT ITS ELECTRICALS (ADR-0018). It keys
+    J_MODE out of the five-identical-C189896 JST-GH family so that the ONE cross-plug that
+    energises the relay coil rail is a mechanical interference rather than a labelling rule.
+    DO NOT 'normalise' J_MODE back to a 5-pin GH for BOM tidiness — that re-opens the hazard
+    v1.6 ORDER_README section 10 withdrew a fail-safe claim over."
+  - "THE KEYING EVIDENCE, both directions, from the two JST drawings. BLOCKED: a GHR-05V-S
+    plug is 4.15mm tall (eGH p.2 housing drawing) and this header's ENTIRE OUTER HEIGHT is
+    3.70mm (eZH p.4 side-entry header drawing), whose cavity holds a 3.40mm ZHR-4 — 0.45mm
+    of interference against the outer envelope, 0.75mm against the cavity. Pitches also
+    differ (1.25 vs 1.50mm), so even a hypothetical entry aligns at most one circuit.
+    NOT BLOCKED, stated honestly: GHR-05V-S and ZHR-4 have the SAME overall housing width
+    (B = 7.50mm on both drawings) and the ZH plug is smaller in every other dimension, so a
+    ZHR-4 CAN be pushed into a GH shroud — it cannot latch and its 1.50mm contacts cannot
+    engage 1.25mm posts on more than one circuit, but it is not an interference. The claim
+    is bounded to the hazard direction."
+  - "RETENTION IS FRICTION, NOT A POSITIVE LATCH. ZH is a housing-lance system (eZH p.1);
+    GH's own selling point is a 'large outer latch for positive lock' (eGH p.1). On THIS
+    net set that loss fails safe: an unplugged J_MODE leaves COIL_EN_IN held at 0V by
+    R_COILENPD and MODE_RAW low, so the coil rail is off and MODE_AUTO_HW drops the
+    AND-chain. Cost is availability, not safety. ORDER_README section 10.5 requires a
+    cable-tie strain relief at this housing."
+  - "TEMPERATURE IS NARROWER THAN GH (-25..+85C vs -40..+105C) AND IS NOT THIS BOARD'S
+    BINDING LIMIT: DIP05-1A72-12L (the twelve reed relays) is -20..+70C, tighter at both
+    ends. The board's operating envelope does not move — verified across 02_parts 2026-07-28."
+  - "SM4A = SIDE entry = KiCad Horizontal (right-angle) SMD, matching the GH siblings'
+    side-entry convention on the same east edge. The TOP-entry sibling is B4B-ZR-SM4-TF =
+    a DIFFERENT footprint (Vertical), not a drop-in."
+  - "mates with JST ZHR-4 crimp housing + SZH-002T-P0.5 contacts (AWG #28-#26, insulation
+    OD 0.8-1.1mm) or SZH-003T-P0.5. This is a SECOND crimp system on the harness bench,
+    which is the POINT: a J_MODE harness cannot be built from GH parts by accident."
+verified: "pad map 1..4 + 2xMP from footprint Connector_JST:JST_ZH_S4B-ZR-SM4A-TF_1x04-1MP_P1.50mm_Horizontal (pin1 x=-2.25, pin4 x=+2.25 -> 1.50mm pitch; MP at +-4.20); ratings from JST eZH.pdf p.1 (Specifications); model/dimension row S4B-ZR-SM4A-TF A=4.5 B=9.0 from eZH.pdf p.4 (Header/SMT type/SM4 type table); mating housing ZHR-4 A=4.5 B=7.5 and contact SZH-002T-P0.5 from eZH.pdf p.2 — 2026-07-28"
+layout:                           # in P-LAYOUT scope (npins>2)
+  source: "JST eZH SM4 land pattern + solder-tab retention (mechanical). Passive interconnect: this header carries a DRY DPDT mode switch (two poles, no current beyond the CMOS drive), so it has no bus-integrity constraint of its own. The one electrical rule it DOES impose is ADR-0018's front end."
+  reviewed: "2026-07-28"
+  keep_short:
+    - {net: COIL_EN_IN, max_span_mm: 12.0, why: "R_COILENPD 680R, D_COILEN (PESD5V0S1BA) and the series R_COILENS 680R must all sit at THIS connector, not out at the FET gate — the pull-down is the divider that rejects an injected pull-up and the TVS is the clamp, and both only work at the pin. The gate-side node COIL_EN carries no such budget: it draws no DC and sits 900R from GND."}
+  notes: "Tie both MP tabs to GND (retention). Pin 1 is the marked end of the row. Field cable leaving the enclosure: series-R + ESD at this connector entry — implemented as R_COILENS + D_COILEN on pole A; pole B (MODE_RAW) keeps its existing R_MODEPD 10k and the SN74HC14 Schmitt input."
+sourcing:
+  lcsc: C485354
+  alternates: []
+  note: "genuine JST, ordered as S4B-ZR-SM4A-TF(LF)(SN) = C485354 (JLC extended). NO stock/price committed (volatile) — the selection-time read is in 06_build/cache/. DO-NOT-SUBSTITUTE: a clone or a different circuit count changes the keying property this part was chosen for, and a 4-circuit GH (SM04B-GHS-TB) was REJECTED at selection because genuine JST reads stockCount 0/1 and the only stocked option is an XYECONN clone (ADR-0018 option E)."

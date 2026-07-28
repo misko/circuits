@@ -26,8 +26,20 @@ pins:
 limits: {vcc: "2-6V"}
 gotchas:
   - "pin 12 = 6Y (output), pin 13 = 6A (input) - name key kept unique; symbol uses 12=6Y"
-  - "gates A/B: E-stop chain (raw->1A, 1Y->2A, 2Y=ESTOP_OK); unused inputs 3A/4A/5A/6A tied GND, outputs NC"
-verified: "TI SCLS085 D pin table (standard hex inverter); pin review re-checks - 2026-07-19"
+  - "ALL SIX GATES ARE USED — corrected 2026-07-28 (v1.6 declared gap 22). This line read
+    'unused inputs 3A/4A/5A/6A tied GND, outputs NC' and was a v1.0-era survivor: it was
+    already false by v1.2, when the mode and door inputs joined the E-stop on this package.
+    As built the part is THREE double-inverter buffers, one per discrete safety input:
+      E-STOP  ESTOP_RAW -> 1A(1) , 1Y(2)=ESTOP_NI -> 2A(3) , 2Y(4)  = ESTOP_OK
+      MODE    MODE_RAW  -> 3A(5) , 3Y(6)=MODE_NI  -> 4A(9) , 4Y(8)  = MODE_AUTO_HW
+      DOOR    DOOR_RAW  -> 5A(11), 5Y(10)=DOOR_NI -> 6A(13), 6Y(12) = DOOR_OK
+    THERE IS NO UNUSED INPUT TO TIE and no spare gate to reach for. A future revision needing
+    an inverter needs another package. (v1.7 also gives all three OUTPUTS a restrictive
+    default — R_ESTOPOKPD / R_MODEHWPD / R_DOOROKPD, ADR-0019 — because a dead or unfitted
+    U_SCHM floats all three permissions at once and the expander readbacks sample the SAME
+    nets, so software has no independent cross-check.)"
+verified: "TI SCLS085 D pin table (standard hex inverter); pin review re-checks - 2026-07-19;
+  gate-usage line re-derived from the netlist and corrected - 2026-07-28"
 layout:                          # P-LAYOUT: hex Schmitt inverter (E-stop de-bounce chain, ADR-0003) - layout-agnostic apart from VCC bypass + UNUSED-INPUT ties
   source: "TI SN74HC14 datasheet SCLS085L sec.8.2.2 Detailed Design Procedure #1
     (decoupling cap VCC-GND placed physically close to the device and electrically
@@ -39,10 +51,10 @@ layout:                          # P-LAYOUT: hex Schmitt inverter (E-stop de-bou
   reviewed: "2026-07-22"
   keep_short:
     - {net: VCC, max_span_mm: 5, why: "0.1uF VCC(14)-GND(7) bypass hard against the package, electrically close to BOTH pins (DS sec.8.2.2 #1 / sec.8.3)"}
-  notes: "Honest: a jelly-bean hex inverter, layout-agnostic apart from the VCC bypass
-    - BUT the unused-input tie is a hard wiring rule the floorplan must honour
-    (sec.8.2.1.2 / sec.8.4.1): the four unused inverters' inputs 3A/4A/5A/6A tie to
-    GND, outputs left NC (per gotcha). The Schmitt input is used for exactly its
+  notes: "Honest: a jelly-bean hex inverter, layout-agnostic apart from the VCC bypass.
+    The sec.8.2.1.2 / sec.8.4.1 unused-input rule is SATISFIED VACUOUSLY on this board —
+    all six gates are used (see gotcha), so there is no input to tie and nothing for the
+    floorplan to honour beyond the bypass. The Schmitt input is used for exactly its
     hysteresis/slow-edge tolerance - the E-stop chain (raw->1A, 1Y->2A, 2Y=ESTOP_OK)
     cleans a slow/noisy contact, so no input-slew concern. Keep each used output run
     short (<=70pF load, sec.8.2.2 #2). Coarse 1.27mm SOIC-14 - no escape/fanout wall."

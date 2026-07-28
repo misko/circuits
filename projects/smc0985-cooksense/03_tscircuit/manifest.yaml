@@ -2,7 +2,11 @@
 # The hand-authored intent count_parity.py checks every generated artifact
 # against; a silent tsci drop surfaces here as the missing refdes. Holes
 # (H1-H4) are non-electrical and excluded (count_parity SKIP ^H\d).
-# 222 components (v1.3 P0-A: J_ESTOPLOOP + J_CONTACTOR merged into the single
+# 235 components (v1.7 ELECTRICAL REVISION 2026-07-28: +11 restrictive defaults
+# ADR-0019, +R_COILENS/+D_COILEN ADR-0018, +C_OS2 ADR-0020, -R_EXPRST ADR-0020
+# (its net EXP_RST_N had no driver and its 10k pull-up would have landed on WD_OK).
+# 222 -> 235 (+14 added, -1 removed).
+# (v1.3 P0-A: J_ESTOPLOOP + J_CONTACTOR merged into the single
 # 4-pole isolated terminal block J_ISOLOOP, so 223 -> 222.
 # (v1.3: +U_COMP2 +C_COMP2 +R_OPENT +R_OPENB for hardware
 # open-thermistor detect, and R_DOORPU renamed R_DOORPD because it now pulls DOWN.
@@ -49,6 +53,7 @@ components:
   - C_MR
   - C_OENAND
   - C_OS
+  - C_OS2
   - C_OSCLR
   - C_OSV
   - C_SCHM
@@ -67,6 +72,7 @@ components:
   - C_ULNA
   - C_ULNB
   - C_WD
+  - D_COILEN
   - D_DOOR
   - D_ESD_IN
   - D_ESTOP
@@ -79,8 +85,8 @@ components:
   - FB1
   - J_DOOR
   - J_ESTOP
-  - J_KEY_MATRIX
   - J_ISOLOOP
+  - J_KEY_MATRIX
   - J_LOADCELL
   - J_MODE
   - J_PI
@@ -114,17 +120,25 @@ components:
   - Q_SWDRVRHE
   - Q_SWRHA
   - Q_SWRHE
+  - R_AND1PD
+  - R_AND2PD
   - R_BID0
   - R_BID1
   - R_CLMPA
   - R_CLMPB
   - R_COILENPD
+  - R_COILENS
   - R_CTRREQPD
+  - R_CTRSAFEPD
   - R_DECDPD
   - R_DECUPD
+  - R_DOOROKPD
   - R_DOORPD
+  - R_ESTOPOKPD
   - R_ESTOPPD
-  - R_EXPRST
+  - R_FAULTPU
+  - R_FLCPD
+  - R_FSETNPD
   - R_HOSTAUTHPD
   - R_HSG
   - R_HYS1
@@ -135,6 +149,7 @@ components:
   - R_LCCLK
   - R_LCDAT
   - R_MCUENPD
+  - R_MODEHWPD
   - R_MODEPD
   - R_MR
   - R_OE
@@ -175,6 +190,7 @@ components:
   - R_STOP
   - R_STOPPD
   - R_STOPRAIL
+  - R_STOPREQNPD
   - R_SWPUA
   - R_SWPUB
   - R_SWPURHA
@@ -184,6 +200,7 @@ components:
   - R_TEMPOK
   - R_TH1
   - R_TH2
+  - R_WDOKPD
   - R_WDPETPD
   - TP_3V3
   - TP_5VKR

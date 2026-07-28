@@ -135,3 +135,45 @@
 - result: schematic stage GREEN. Converter-vs-sealed parity intentionally RED (53 node diffs = precisely the intended v1.2 change set; the board stage re-establishes parity against the NEW board).
 - PROVENANCE NOTE: this change set landed inside commit f428f06 (a crow-recorder-central-v2 commit) — a SHARED-INDEX RACE: another board lead ran `git commit` in this MAIN tree while these files were staged. Content verified correct and complete in f428f06; the intended cooksense commit message is carried by THIS journal entry. Mitigation adopted: commit with `git commit -- <pathspecs>` (index-independent) for the rest of v1.2.
 - next: floorplan edits for the changed part set (U_SR2 gone; HC221 SOIC-16 replaces SSOP-8; +7 SOT gates, +14 passives, +TP), then full reroute race.
+
+## 2026-07-28 — iterate 1 (v1.7 ELECTRICAL REVISION — source authored)
+- did: authored ADR-0018/0019/0020, 02_parts/S4B-ZR-SM4A-TF dossier (JST eZH fetched,
+  sha256 ea6ee36d…), and the tsx/manifest/floorplan/electrical_invariants edits.
+  J_MODE C189896 GH-5 -> C485354 JST ZH-4; COIL_EN split at R_COILENS into COIL_EN_IN
+  (R_COILENPD 100k->680, D_COILEN PESD5V0S1BA) and COIL_EN (gate only); 11 restrictive
+  defaults; U_ONESHOT section 2 rewired as the REARM_N edge-detect (+C_OS2 1uF);
+  U_EXP.18 EXP_RST_N -> WD_OK and R_EXPRST deleted.
+- result: manifest 222 -> 235 refs (+14 / -1). E-INV asserts 83 -> 109 declared.
+  tsx_preflight PASS 44/44 (33 multi-pin). All five edited YAMLs parse.
+  PLACEMENT PRE-VERIFIED BEFORE THE BUILD: all 16 new/moved anchors grid-searched
+  against the v1.6 courtyards with J_MODE substituted by the ZH courtyard
+  (x[192.45,200.45], y[54.75,65.25]) and against all 48 rule areas — 0 overlaps,
+  minimum neighbour gap 0.240 mm (D_COILEN -> U_ULNB). The east column IMPROVES:
+  H4->J_MODE 0.058 -> 0.203, J_MODE->J_ESTOP 0.090 -> 0.235.
+- next: tsci build -> converter -> ERC/parity/semantic battery.
+
+## 2026-07-28 — iterate 2 (schematic gate GREEN, and one real defect the gate caught)
+- did: rebuilt circuit.json (tsci build), ran the converter, exported the netlist, ran the
+  cheap semantic battery.
+- result: **THE FIRST CONVERTER RUN SHIPPED A NET MERGE AND net_label_survival CAUGHT IT.**
+  In WIRED (`--mode layout`) mode the exported netlist had 191 nets and NO `3V3_ANALOG`:
+  `net_label_survival` reported 161/162 labels surviving, LABEL-LOST `3V3_ANALOG`. Traced to
+  ONE geometric collision in tscircuit's schematic AUTO-layout: the `3V3_ANALOG` global label
+  at (275.59, 365.76) lies MID-SEGMENT on a `3V3` wire running (275.59, 401.32)-(275.59, 355.60).
+  circuit.json is INNOCENT — it carries `N3V3_ANALOG` with 22 ports, separate from `N3V3`'s 76.
+  The converter's own cross-net guard only fires when a wire root joins two PIN nets; a label
+  sitting ON another net's wire merges at netlist EXPORT and the guard never sees it, so the
+  documented auto-fallback did not trigger (it dropped 3 segs and passed).
+  Shipping that would have re-merged the analog rail into the digital one and silently undone
+  the v1.3 P1-1 fix. Rebuilt with the converter's sanctioned `--mode grid` fallback.
+  GATES: net_label_survival PASS 162/162 (192 nets); E-INV **109/109** (was 85/85);
+  E-ADR 8/8; ERC 0 errors / 411 warnings; circuit.json == manifest 235/235;
+  bom_source_check --circuit-only PASS; E-TOPO FAIL unchanged and deliberate
+  (headroom 1101 mV vs 1300 mV dropout, short 199 mV).
+  RED-VERIFIED, 4 probes, each restored after: R_COILENPD 680->100k FAIL 1/109;
+  R_FAULTPU.2 direction 3V3->GND FAIL 1/109; U_LATCHB.1 REARM_PULSE_N->REARM_N FAIL 1/109;
+  AND1 resistor min 1->2 FAIL 1/109. Green again at 109/109.
+  generate_board: 235 parts / 99 anchored / 4 holes, P-COLLIDE 0 pad shorts 0 courtyard
+  overlaps, asserts 34 passed, 103 floaters legalized. placement_gates PASS
+  (P-OUT 0.30mm, P-CAP 0.23 vs 0.5). audit_board PASS (I-ISO 6.12mm, I-OUT 0.35mm).
+- next: KRT FULL REROUTE — the copper has moved.
