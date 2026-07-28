@@ -452,6 +452,21 @@ invariants:
     equals: "510k"
     adr: "0011"
     why: "the one-shot timing resistor: R_OS x C_OS sets the PRESS_TIMED non-retriggerable pulse the press interlock is built on. A substituted decade changes the pulse width, and no topology assert can see it"
+  # ===== v1.6 (adversarial audit 2026-07-27, A1/A3): the two resistor VALUES the
+  # ===== board's two documented cross-plug / re-arm bounds are COMPUTED FROM.
+  # ===== Both already had EXISTENCE + DIRECTION asserts, and both bounds are
+  # ===== published as numbers in ORDER_README; a silent decade change would move
+  # ===== the published number and leave every other invariant green.
+  - assert: part_value
+    part: R_COILENPD
+    equals: "100k"
+    adr: "0011"
+    why: "COIL_EN's ONLY hold. The net has three nodes — J_MODE.4 (a FIELD pin on an unkeyed housing shared with four identical siblings), Q_COILDRV.1 and this resistor — with no ESD device and no series element, so this value alone sets how weak an external pull-up has to be before it energises the relay coil rail with all seven AND-chain terms AND the Manual rail-cut bypassed. ORDER_README section 10.2 publishes the bound derived from it: solving 3.3*100k/(100k+R) >= 1.2 V gives R <= 175 kOhm, and an SHT45 pod's 10k module pull-up cross-plugged into J_MODE puts 3.000 V on that gate. Raising the value widens the hazard, lowering it narrows the published bound — either way the DOCUMENT and the BOARD must move together, and no topology assert can see it"
+  - assert: part_value
+    part: R_REARMPU
+    equals: "100k"
+    adr: "0011"
+    why: "the re-arm line's only restraint. REARM_N = {R_REARMPU.1, U_EXP.26 (MCP23017 GPA5), U_LATCHB.1} — ONE driver, no button, no connector pin, no test point — so this pull-up is the entire reason a dead or un-initialised expander cannot clear the fault latch. It is load-bearing twice: DS20001952C gives IODIR POR = 1111 1111, so at every power-up GPA5 is an INPUT and this resistor is what holds REARM_N high while WD_OK is still low in the TPS3823 reset delay — the property that makes the coil rail unable to come up after a power interruption without an explicit re-arm (ORDER_README section 7a-1). EXP_RST_N has no driver, so nothing else on this board can restore that state"
   - assert: pin_on_net
     pin: "R_CLMPA.2"
     net: GND

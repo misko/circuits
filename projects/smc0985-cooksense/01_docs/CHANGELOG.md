@@ -276,3 +276,194 @@ and it would interfere at the boss's nominal diameter — dry-fit every connecto
 The user has measured the part and decided to build with the current footprint.
 
 Source commit S = ee5632a.
+
+## cooksense-v1.6-2026-07-27 (SEAL — documentation-only supersede of v1.5: a cross-plug that is NOT fail-safe, and the claim that said it was)
+
+Released: `07_releases/cooksense-v1.6-2026-07-27/`.
+Supersedes: `cooksense-v1.5-2026-07-27`.
+
+**THE COPPER DID NOT MOVE, AND THIS TIME THE PROOF IS SHORTER THAN v1.5'S,
+BECAUSE NOTHING WAS PRODUCED.** v1.5 re-plotted its gerbers from its own
+`source/`, so it needed an aperture-resolved, order-independent comparator and a
+shoelace area integrator to show that 11 of 13 members were geometrically
+identical and the poured area equal to six decimal places
+(`verification/copper_did_not_move.md`). **v1.6 regenerates nothing at all.**
+`fab/` (19 files), `source/` (11), `3d/` (2) and `pdf/` (3) — **35 files, all
+byte-identical to v1.5's**, carried across unopened, measured here by directory
+sha256 in both directions: 35 identical, **0 differing, 0 added, 0 missing**.
+`source/cooksense.kicad_pcb` is still md5 `420445b5141dd1111eccab038c68511b` —
+the same file `04_kicad/`, v1.3, v1.4 and v1.5 carry. The identity is not merely
+measured, it is **ASSERTED by the gate**: `release_freshness_check.py
+--docs-only-supersede cooksense-v1.5-2026-07-27` sha256s every file under those
+three trees in both directions and FAILs on any difference, addition or
+omission. Per the `07_releases/` contract that mode is REQUIRED here rather than
+the six file-by-file identity waivers v1.5 legitimately needed — "the mode
+asserts the identity instead of flagging it" — so `freshness_exceptions.txt`
+lists **zero paths** and says why.
+
+**v1.6 EXISTS BECAUSE THREE OF THIS BOARD'S OWN SAFETY DOCUMENTS WERE WRONG.**
+The 2026-07-27 adversarial audit (f8427c5, report-only, 0 new P0 / 7 P1) left
+three open; A12 was closed without a reseal in 539ecf0; A1, A2 and A3 are closed
+here. Every one was RE-VERIFIED against this archive's own `source/cooksense.net`
+before acceptance — by a hand-written s-expression parser and set arithmetic,
+which shares no code with the tsx author, the board generator or `policy_audit`
+(canon M1) — and **two of the three re-verifications disagreed with the audit in
+detail.** Both disagreements are recorded rather than smoothed away, in
+`verification/crossplug_and_permission_defaults.md`.
+
+Cross-check that licenses all of it: the working netlist
+(`06_build/netlists/cooksense.net`, md5 `60a3326…`) and the sealed one
+(`v1.5/source/cooksense.net`, md5 `8ebed11…`) differ in bytes only in the export
+header — **192 nets both sides, the same net-name set, 0 nets with differing
+membership, 222 refdes, 0 with a differing value.**
+
+**A1 — `J_MODE` IS A CROSS-PLUG HAZARD, AND ORDER_README SAID THE OPPOSITE.**
+Confirmed, every number. `fab/bom.csv` line 45 ships **five** `C189896`
+SM05B-GHS-TB housings — `J_DOOR, J_ESTOP, J_MODE, J_RH_AMBIENT, J_RH_EXHAUST` —
+one part, one footprint, nothing mechanical to tell them apart. §10 analysed
+**three** and concluded "Pinouts are arranged so any single cross-plug is
+fail-safe". **That claim is now WITHDRAWN in terms.** `COIL_EN` has exactly three
+nodes — `J_MODE.4`, `Q_COILDRV.1`, `R_COILENPD.1` — no ESD device, no series
+element, and its **only** hold is 100 kΩ, against 10 kΩ on `R_DOORPD` /
+`R_ESTOPPD` / `R_MODEPD`: the one pin that directly enables the relay rail is
+held ten times more weakly than the pins that merely report a switch. An SHT45
+pod harness plugged into `J_MODE` powers up normally from pin 1 and lands its
+module SCL pull-up on `COIL_EN` — **3.000 V** at the documented 10 kΩ
+(`DETAIL_DESIGN.md:114`), **3.152 V** at BRIEF C7's 4.7 kΩ, both above the
+2N7002's 2.5 V max `V_GS(th)`, so no subthreshold argument is needed. The rail
+comes up with **all seven AND-chain terms and the Manual rail-cut bypassed** —
+the rail cut *is* the pin 3→4 pole, and this drives pin 4 directly.
+`J_MODE` (196.75, −60.00) is **38.29 mm** from `J_RH_EXHAUST` (186.00, −96.75),
+same cable, same connector.
+
+*Where the re-verification differs from the audit:* the audit's general bound
+`R ≤ 175 kΩ` is correct arithmetic but rests on a 1.2 V minimum-threshold
+subthreshold assumption — it is a worst-case-hazard figure and is now published
+as such, weaker than the 10 k/4.7 k result beside it. *And the ROOT CAUSE is
+new:* the 2026-07-23 pin-review-Q re-pinning (DISPOSITIONS #6) reasoned that
+"any cross-plug **bridge** either applies the intended gating or holds the rail
+OFF". **That models a cross-plug as a passive bridge between pins** — right for
+three dry-contact harnesses, wrong for a harness that *sources* current. The
+re-pinning was a genuine improvement and is not reversed; its conclusion was
+generalised past its evidence, and §10 inherited the generalisation.
+
+§10 is rewritten: five housings, the withdrawn claim, the **complete 20-cell
+cross-plug matrix** (1 cell energises the coil rail, 6 are rail shorts, 3 are
+permissive mis-reads), a mandatory discipline, and §10.6 naming the copper fixes
+— including the measurement that the obvious `R_COILENPD` 100k→10k trim is **not
+sufficient on its own** (3.3·10/20 = 1.65 V still turns the FET on).
+
+**A2 — FOUR PERMISSIONS HAVE NO PULL, AND THE SOURCE'S CLAIM IS WRONG IN SCOPE,
+NOT IN ARITHMETIC.** `WD_OK`, `ESTOP_OK`, `MODE_AUTO_HW` and `DOOR_OK` carry no
+pull resistor of any kind — confirmed. **Extended:** of the **18** nets feeding a
+permission/gating input, **7 carry a pull and 11 carry none** (the four, plus
+`AND1`, `AND2`, `CTR_SAFE`, `FAULT`, `FAULT_SET_N`, `FAULT_LATCH_CLEAR`,
+`STOP_REQ_N`). Sharpest single-part cases: a dead **`U_SCHM`** floats
+`ESTOP_OK` + `MODE_AUTO_HW` + `DOOR_OK` at once — the E-stop can read clear with
+the mushroom pressed, and the expander readbacks sample the SAME nets so
+software has no independent cross-check; a dead **`U_LATCHB`** (SOT-23-5) floats
+`FAULT_LATCH_CLEAR` into both `U_AND3.6` and `U_CAND2.3`, removing the
+fault-latch permission from the coil rail and the contactor together. **No single
+part floats all four** — `U_SCHM` gives three, `U_WD` the fourth.
+
+*Where the re-verification differs from the audit:* the audit calls the tsx's
+"the other twelve are pulled restrictive" FALSIFIED. Checked, that is not the
+right verdict. **The twelve are exactly BRIEF D10 item 8's Pi/expander
+authorization lines** — `HOST_AUTH`, `MCU_RELAY_ENABLE`, `CONTACTOR_REQ`,
+`KEY_RESET_N`, `STOP_REQ`, `RAIL_EN_A/B/RHA/RHE`, `DECU_G1_RAW`, `DECD_G1_RAW`,
+`REARM_N` — **and all twelve genuinely ARE pulled restrictive** (11 × 100 kΩ to
+GND plus `REARM_N` 100 kΩ to 3V3 on an active-low line). The sentence is not
+wrong about its twelve; it is wrong as a statement about "the safety chain",
+because it counts only the SOFTWARE-driven lines and the four HARDWARE-derived
+permissions are in neither group. "FALSIFIED" would send a reader hunting for a
+missing pull-down among the twelve, and there isn't one.
+
+**NEW FINDING, from the re-verification and not in the audit:** all four
+permissions are read back on MCP23017 port B (`GPB7` = `WD_OK`, `GPB2` =
+`ESTOP_OK`, `GPB1` = `MODE_AUTO_HW`, `GPB3` = `DOOR_OK`), and DS20001952C §3.5.7
+— read from the PDF in `02_parts/MCP23017-E-SS/` — says a set `GPPU` bit pulls
+an input pin up with a **100 kΩ** resistor. POR is `0x00`, so the default is
+safe; but **one register write converts the indeterminate float into a
+deterministic PERMISSIVE** on all four, including "E-stop clear" with the
+mushroom pressed, and it is invisible while the board is healthy because a
+push-pull driver beats 100 kΩ. There is no software way to add a pull-DOWN — the
+register can only make the default worse. Shipped as a REQUIRED firmware
+invariant, §7a-2: write `GPPUB = 0x00` explicitly.
+
+**A3 — `REARM_N` HELD LOW DEFEATS THE FAULT LATCH, AND IT SURVIVES EVERY PI
+REBOOT.** Confirmed. `REARM_N = {R_REARMPU.1, U_EXP.26 (GPA5), U_LATCHB.1}` —
+**one driver**, no button, no connector pin, no test point. Held low, /R is
+asserted forever: `FAULT_LATCH_CLEAR` is permissive at `U_AND3.6` and
+`U_CAND2.3` at all times, a live fault puts the NAND latch in its forbidden
+state (Q = /Q = 1), and `U_LATCHA` degenerates to `FAULT` = NOT(`FAULT_SET_N`) —
+a combinational repeater. The live terms still gate; **the memory is gone**, so a
+fault that clears re-permits cooking with no re-arm. ORDER_README §7 said "Pulse
+REARM_N low" and nothing in hardware enforces a pulse.
+
+The elegant property the audit credits is **confirmed with its two datasheet
+facts, neither of which was written down anywhere before now**: `WD_OK` is low
+for the TPS3823 reset delay (t_d 120/200/300 ms) so the latch is FORCED SET at
+every power-up, and MCP23017 `IODIR` POR is `1111 1111` so GPA5 is an INPUT at
+power-on and `R_REARMPU` holds the line high. **New, and worse than the audit
+stated:** `EXP_RST_N = {R_EXPRST.1, U_EXP.18}` has **no driver** — nothing on
+this board can reset the expander — so a held-low `REARM_N` does not survive a
+3V3 power cycle but **does survive every Pi reboot**. This board's own
+`electrical_invariants.yaml` already recorded that retention mechanism, in the
+`why:` for `R_WDPETPD`, and had never applied it to `REARM_N`. §7a-1 now carries
+the driver invariant, the analysis, and a **REQUIRED negative bring-up test**
+that this revision is expected to FAIL — the tester is told so and told to record
+it.
+
+**WHAT IS NOW MACHINE-CHECKED THAT WAS NOT.** E-INV goes **83/83 → 85/85**: two
+`part_value` asserts pin `R_COILENPD` = 100k and `R_REARMPU` = 100k, the two
+numbers §10.2's cross-plug bound and §7a-1's power-up property are computed
+from. A silent decade change would have moved a published number while every
+existence and direction assert stayed green. **RED-VERIFIED**: substituting
+`10k` for either makes the checker report `E-INV FAIL: 2/85`, naming both parts
+and both actual values.
+
+**TWO MORE, FOUND BY THE RE-VERIFICATION ITSELF** (declared gaps 22 and 23):
+`02_parts/SN74HC14DR/part.yaml` still says "unused inputs 3A/4A/5A/6A tied GND"
+when all six gates are used (E-stop, mode, door); and `cooksense.tsx:632`
+contradicts `cooksense.tsx:637-638` about which `J_MODE` pole is which — the
+netlist says line 632 is the pre-re-pin survivor, and a harness built from it
+would leave `COIL_EN` open and the machine permanently unable to arm. §10.1's
+table is now named as the harness authority in place of the source comment.
+
+**WHAT IS NOT CLOSED, NAMED RATHER THAN HIDDEN.**
+
+1. **All three hardware fixes are USER DECISIONS** and are deferred to the next
+   ELECTRICAL revision: a keyed/different housing for `J_MODE` (or `COIL_EN` off
+   a field connector), four-to-eleven 0402 pull-downs, and an edge-detect on
+   `REARM_N`. This release ships the board v1.5 shipped.
+2. **`03_tscircuit/src/cooksense.tsx:551` still carries the falsified clause**,
+   and that is a deliberate, argued choice rather than an oversight.
+   `source/cooksense.tsx` is inside the docs-only supersede's byte-identity set,
+   so a comment-only edit would make v1.6 *not a docs-only supersede* by the
+   gate's own definition, and the `07_releases/` contract forbids the
+   alternative ("never waive fab-identical files one-by-one for this case").
+   **The considered alternative was to extend `release_freshness_check.py` with
+   an asserted comment-only-source relaxation, and it was rejected on the
+   merits:** such a mode must strip TypeScript/JSX comments correctly in the
+   presence of strings, template literals and regex literals, and a
+   subtly-wrong comment-stripper in a shared fleet gate would let a real value
+   change through — a worse outcome than a deferred comment. The clause is
+   corrected in ORDER_README §13 gap 20 and in
+   `verification/crossplug_and_permission_defaults.md` §2.3, and its correction
+   in the tsx is OWED to the revision that adds the pull-downs — **the same
+   change that makes the sentence true.**
+3. **`verification/redteam_topology.md:58` carries the same claim and is NOT
+   edited.** A dated review is a record of what a reviewer said, not a wiki. The
+   INDEX now flags that line and points at the correction.
+
+**GATES AT SEAL** — every number measured on the artifacts in this archive:
+DRC `--severity-all --refill-zones --schematic-parity` **0 / 0 / 0**; ERC
+**0 errors, 1303 warnings**; **E-INV 85 / 85** against `source/cooksense.net`;
+`policy_audit --board cooksense` **FAIL=1 HUMAN=6 N-A=4 PASS=25 WAIVED=4** — the
+one FAIL is **E-TOPO**, unchanged and deliberate: the AMS1117-3.3 3V3 rail is
+short **199 mV** on dropout at `Vin_min` (headroom 1101 mV vs 1300 mV required),
+mitigated as a USER-HELD order gate in ORDER_README §0 (hold ≥ 4.85 V at `J_PWR`
+and it passes by **59 mV**). A-POP 226 board / 189 CPL / 37 unpopulated; A-BODY
+189/189; A-ROT 189/189; A-POS worst 0.00000 mm; A-EVID 32 required artifacts, 0
+missing; freshness **PASS in `--docs-only-supersede` mode with zero exceptions**;
+`contracts_audit` 0 violations.

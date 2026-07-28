@@ -2,14 +2,21 @@
 
 ---
 
-## ORDERABLE — all gates green
+## ORDERABLE — every gate green except E-TOPO, which is a declared, user-held supply decision (§0)
 
-
+> **BEFORE YOU BUILD ANY FIELD HARNESS, READ §10.** Five identical unkeyed 5-pin
+> JST-GH housings are fitted, not three, and **one cross-plug is not fail-safe**:
+> an SHT45 pod harness in `J_MODE` energises the relay coil rail with the whole
+> AND chain and the Manual rail-cut bypassed. Every version of §10 up to v1.5
+> claimed otherwise; that claim is withdrawn.
+>
+> **AND BEFORE YOU WRITE HOST FIRMWARE, READ §7a** — two invariants the hardware
+> cannot enforce: `REARM_N` must be PULSED, and MCP23017 `GPPUB` must be `0x00`.
 
 `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity` on
 `04_kicad/cooksense.kicad_pcb`: **0 violations / 0 unconnected / 0 schematic
 parity**. Placement gate P-COLLIDE **0 pad shorts / 0 anchored courtyard
-overlaps**. E-INV **83/83**. A-ROT **189/189 CPL rotations sourced from measured
+overlaps**. E-INV **85/85**. A-ROT **189/189 CPL rotations sourced from measured
 per-LCSC rows**. A-POS **189/189 CPL rows on the pad-centre datum, worst
 deviation 0.0000 mm**. M-REPRO **green across three from-source regenerations**
 (**1047** vias each, identical track/via/footprint hashes, and all three match the
@@ -75,7 +82,8 @@ thermocouple front-end (MAX31856), dual-comparator thermistor window
 loop on its own connector (new in v1.3). Board **188 × 92 mm**, **4 layer**,
 **222 components** placed (v1.3 generate_board; 223 -> 222 on the J_ISOLOOP
 merge), E-INV **83/83** on the v1.3
-netlist. v1.3 is the second electrical revision (v1.2 was never sealed);
+netlist (v1.6 raises the invariant count to **85** — two `part_value` asserts, §13
+table; the netlist itself is unchanged). v1.3 is the second electrical revision (v1.2 was never sealed);
 schematic deltas vs v1.2: door pull-down, open-detect comparator half,
 comparator rail move, isolated-loop connector move (§2, §11).
 
@@ -740,8 +748,10 @@ pull-downs:**
    WDI; if TP_WDOK stays high with the heartbeat STOPPED, the watchdog is
    self-petting (the R_WDPETPD-value defect) — **STOP, the board's primary
    runaway backstop does not exist.**
-3. **REARM_N.** Pulse REARM_N low (MCP23017 U_EXP output; R_REARMPU pull-UP,
-   so a floating expander cannot clear the latch) to clear the hardware fault
+3. **REARM_N — ⚠️ A PULSE, AND NOTHING IN HARDWARE ENFORCES THAT.** Pulse
+   REARM_N low (MCP23017 U_EXP GPA5, pin 26; R_REARMPU 100 kΩ pull-UP, so a
+   floating expander cannot clear the latch) to clear the hardware fault latch,
+   **then drive it HIGH again**. See §7a — held low it permanently defeats the
    latch.
    *Proves:* every latch SET input is clear — WD_OK (step 2), ESTOP_OK
    (E-stop loop closed), TEMP_OK (both NTCs connected and cool; note the v1.3
@@ -769,6 +779,93 @@ First-use functional checks (after the ritual, folded from v1.1):
   must read DOOR-OPEN (non-permissive). If it reads closed, the harness or the
   pull is wrong — stop.
 
+## 7a. ⚠️ TWO HOST-FIRMWARE INVARIANTS THE HARDWARE CANNOT ENFORCE (NEW IN v1.6)
+
+Both are single register writes on the MCP23017 expander, both defeat a
+hardware safety property, and **neither is detectable at any test point while
+the board is healthy.** Write them into the host software's own safety
+requirements and re-check them at every firmware release.
+
+### 7a-1. `REARM_N` MUST BE PULSED. HELD LOW IT PERMANENTLY DEFEATS THE FAULT LATCH.
+
+**The topology** (netlist-verified): a cross-coupled /S-/R NAND latch.
+`U_LATCHA` = NAND(`FAULT_SET_N`, `FAULT_LATCH_CLEAR`) → `FAULT` (= Q);
+`U_LATCHB` = NAND(`REARM_N`, `FAULT`) → `FAULT_LATCH_CLEAR` (= /Q).
+`FAULT_SET_N` = `U_FAULTAND`.Y = `WD_OK` · `ESTOP_OK` · `TEMP_OK`, so /S is
+asserted (low) by any of those three faulting.
+
+**`REARM_N` has exactly one driver in the whole board:**
+`REARM_N = {R_REARMPU.1, U_EXP.26 (GPA5), U_LATCHB.1}`. No button, no connector
+pin, no test point, no jumper. BRIEF.md:85-86 requires "explicit manual re-arm";
+in this build that is a register write from the same Pi the hardware chain
+exists to bound (brief §12 threat model, T6).
+
+**What happens if it is held low** — driven, not pulsed:
+
+- /R asserted → `FAULT_LATCH_CLEAR` is forced **HIGH permanently**, i.e.
+  permissive at `U_AND3.C` (coil rail) and `U_CAND2.B` (external contactor) at
+  all times;
+- with a fault ALSO present, /S and /R are both low: the NAND latch's
+  **forbidden state**, Q = /Q = 1, `FAULT` and `FAULT_LATCH_CLEAR` asserted
+  together;
+- `U_LATCHA` degenerates to `FAULT` = NOT(`FAULT_SET_N`) — a combinational
+  repeater. **The latch loses its memory.**
+
+**What survives:** the LIVE terms. `WD_OK`, `ESTOP_OK` and `TEMP_OK` still gate
+the coil rail (`U_AND1`) and the contactor (`U_CAND1`) while the fault is
+present. **What is lost is MEMORY** — a fault that clears (a camera cooling by
+1 °C, a watchdog restored, an E-stop released) re-permits cooking with **no
+re-arm**, which is exactly what ADR-0011 §2 and the v1.2 TEMP_OK-into-SET fix
+were for.
+
+**It also removes this design's most elegant property.** At every power-up
+`WD_OK` is LOW for the TPS3823 reset delay (t_d = 120/200/300 ms, datasheet
+§6.8) → `FAULT_SET_N` low → the latch is FORCED SET → the coil rail cannot come
+up after ANY power interruption without an explicit re-arm. The MCP23017 helps
+here: `IODIR` POR value is `1111 1111` (DS20001952C register table), so GPA5 is
+an INPUT at power-on and `R_REARMPU` holds `REARM_N` high. **A held-low
+`REARM_N` therefore does NOT survive a 3V3 power cycle — but it DOES survive
+every Pi reboot**, because `EXP_RST_N = {R_EXPRST.1, U_EXP.18}` has **no
+driver**: nothing on this board can reset the expander, so its registers hold
+until 3V3 drops.
+
+**REQUIRED BRING-UP TEST (negative, do it once per build):** with the machine
+otherwise armed, hold `REARM_N` low, induce a fault (open the E-stop, or unplug
+one thermistor head), then clear the fault. **`TP_ALLOW` must stay LOW and
+`TP_5VKR` must stay at 0 V until `REARM_N` has been returned high and pulsed
+again.** On this revision it will NOT — that is the defect being documented;
+record the result and treat the software rule as the mitigation.
+
+**What would fix it in hardware** (next electrical revision): an edge-detect /
+one-shot on `REARM_N`, so that only a TRANSITION clears the latch. A stated
+driver invariant is what v1.6 ships instead.
+
+### 7a-2. `GPPU` MUST STAY `0x00` ON PORT B BITS 1, 2, 3 AND 7.
+
+`WD_OK`, `ESTOP_OK`, `MODE_AUTO_HW` and `DOOR_OK` carry **no pull resistor of
+any kind** (§13 gap 8). They are also read back by the expander:
+`U_EXP.8` = GPB7 = `WD_OK`, `U_EXP.3` = GPB2 = `ESTOP_OK`,
+`U_EXP.2` = GPB1 = `MODE_AUTO_HW`, `U_EXP.4` = GPB3 = `DOOR_OK`.
+
+MCP23017 DS20001952C §3.5.7, verbatim: *"The GPPU register controls the pull-up
+resistors for the port pins. If a bit is set and the corresponding pin is
+configured as an input, the corresponding port pin is internally pulled up with
+a 100 kΩ resistor."* POR value is `0000 0000` — **the safe default, and it must
+be left alone.**
+
+With the driver alive a 100 kΩ pull-up is harmless (a push-pull HC14 or TPS3823
+output wins easily), **so setting these bits has no visible effect on a healthy
+board.** In the failure case it is decisive: an unfitted, cracked or dead
+`U_SCHM` / `U_WD` leaves an indeterminate float today, and a 100 kΩ pull-up to
+3V3 converts that into a **deterministic PERMISSIVE** reading of all four
+permissions — including "E-stop clear" with the mushroom pressed. There is no
+software way to add a pull-DOWN on these pins; the register can only make the
+default worse.
+
+**RULE:** the host's expander init must write `GPPUB = 0x00` explicitly (not
+merely leave it at POR), and any library that enables pull-ups by default —
+several Python MCP23017 wrappers do — must be configured off for port B.
+
 ## 8. ⚠️ RELAY-COUPLING BENCH MEASUREMENT (carried from v1.1 — licenses any future denser repack)
 
 This board places the reeds at the **15.24 mm coupling-vetted pitch in the
@@ -794,16 +891,186 @@ revision below 15.24 mm pitch or a two-row repack, measure ON THIS BOARD:
 - The socket's stack tails protrude ~12 mm below the board — trim them or fit
   standoffs of at least that height.
 
-## 10. Harness labeling discipline (unkeyed 5-pin GH family)
+## 10. ⚠️ HARNESS LABELING DISCIPLINE — **FIVE** IDENTICAL UNKEYED 5-PIN GH HOUSINGS, AND ONE CROSS-PLUG IS **NOT** FAIL-SAFE
 
-J_MODE / J_DOOR / J_ESTOP share the same unkeyed 5-pin JST-GH housing and a
-common 3V3(1)/GND(5) convention. Pinouts are arranged so any single cross-plug
-is fail-safe, **and v1.3 removed the worst cross-plug consequence**: J_ESTOP
-is now SELV-ONLY (pins 3/4 are GND — see §11), so a cross-plugged harness can
-no longer close the contactor loop through GND. The discipline stands anyway:
-**label every harness at both ends and match labels before power** — a
-cross-plug still swaps safety inputs, and the §2a door-short residual is a
-harness-quality failure.
+**v1.6 CORRECTION. Every version of this section up to and including v1.5 said
+"J_MODE / J_DOOR / J_ESTOP share the same unkeyed 5-pin JST-GH housing […]
+Pinouts are arranged so any single cross-plug is fail-safe". That claim is
+WITHDRAWN. It modelled THREE housings; the board has FIVE, and the two it
+omitted carry POWERED harnesses.** One of the twenty cross-plug combinations
+energises the relay coil rail with the entire seven-term AND chain **and** the
+Manual rail-cut bypassed. Read this whole section before you build a harness.
+
+### 10.1 The five housings (from `fab/bom.csv` line 45 and the netlist)
+
+**One part, one footprint, one unkeyed housing, five instances:**
+`SM05B-GHS-TB` / `JST_GH_SM05B-GHS-TB_1x05-1MP_P1.25mm_Horizontal` / `C189896`
+→ `J_DOOR, J_ESTOP, J_MODE, J_RH_AMBIENT, J_RH_EXHAUST`.
+
+Nothing mechanical distinguishes them. Board positions from `fab/cpl.csv`:
+`J_MODE` (196.75, −60.00) and `J_RH_EXHAUST` (186.00, −96.75) are **38.29 mm
+apart**, both field-accessible, on adjacent edges.
+
+| connector | pin 1 | pin 2 | pin 3 | pin 4 | pin 5 | harness type |
+|---|---|---|---|---|---|---|
+| `J_DOOR` | 3V3 | DOOR_RAW | GND | DOOR_RAW | GND | PASSIVE — dry Form-A reed (§2a) |
+| `J_ESTOP` | 3V3 | ESTOP_RAW | GND | GND | GND | PASSIVE — dry E-stop contact |
+| `J_MODE` | 3V3 | MODE_RAW | KEY_RELAY_ALLOWED | **COIL_EN** | GND | PASSIVE — DPDT mode switch |
+| `J_RH_AMBIENT` | 3V3_SW_RHA | GND | SDA_A | SCL_A | SHIELD_DRAIN | **POWERED — SHT45 pod** |
+| `J_RH_EXHAUST` | 3V3_SW_RHE | GND | SDA_B | SCL_B | SHIELD_DRAIN | **POWERED — SHT45 pod** |
+
+### 10.2 THE HAZARD — an SHT45 pod harness in `J_MODE` energises the coil rail
+
+An RH pod harness is `1 = VCC, 2 = GND, 3 = SDA, 4 = SCL, 5 = SHIELD`. Plugged
+into `J_MODE` its conductors land like this:
+
+| pod wire | lands on | consequence |
+|---|---|---|
+| 1 VCC | `3V3` | **the pod powers up normally** |
+| 2 GND | `MODE_RAW` | pod return through `R_MODEPD` 10 kΩ |
+| 3 SDA | `KEY_RELAY_ALLOWED` | pod's SDA pull-up fights a CMOS output — benign |
+| 4 **SCL** | **`COIL_EN`** | **the pod's module SCL pull-up drives the coil-rail gate** |
+| 5 SHIELD | `GND` | — |
+
+`COIL_EN` has exactly three nodes in the netlist — `J_MODE.4`,
+`Q_COILDRV.1` (gate), `R_COILENPD.1` — so its **only** hold is `R_COILENPD =
+100 kΩ` to GND. It has **no ESD device and no series resistor**; `J_MODE` is the
+only one of the five housings whose field pins carry neither (`J_DOOR` has
+`D_DOOR`, `J_ESTOP` has `D_ESTOP`).
+
+The pod's SCL pull-up returns to the pod's **VDD pin**, which wire 1 has just
+tied to the real 3V3 rail — so it is a clean pull-up to 3.3 V regardless of
+where the pod's ground floated to:
+
+| pod pull-up | V(COIL_EN) = 3.3 · 100/(100 + R) | 2N7002 gate |
+|---|---|---|
+| **10 kΩ** (`01_docs/DETAIL_DESIGN.md`: "SHT pods carry module 10k pullups") | **3.000 V** | fully on |
+| **4.7 kΩ** (BRIEF C7, Adafruit-class module) | **3.152 V** | fully on |
+
+2N7002 `V_GS(th)` is specified 1.0 V min / 2.5 V max at I_D = 250 µA, so at
+3.00 V **every** device in the specification window is on, and `Q_COILDRV` has
+only to sink the `R_HSG` 100 kΩ current — 10 µA to bring `HS_GATE_COIL` to 4.0 V
+(`Q_COIL` `V_GS` = −1.0 V), 45 µA to hold it at 0.5 V (`V_GS` = −4.5 V, the
+condition `AO3401A` `R_DS(on)` < 60 mΩ is specified at). `Q_COIL` then connects
+`5V_PROTECTED` to **`5V_KEY_RELAY`** — all twelve reed coils plus `K_PRESS` and
+both ULN2803 commons — with **all seven AND-chain terms bypassed**
+(`MODE_AUTO_HW`, `WD_OK`, `ESTOP_OK`, `TEMP_OK`, `MCU_RELAY_ENABLE`,
+`HOST_AUTH`, `FAULT_LATCH_CLEAR`) **and the Manual/Auto physical rail cut
+bypassed with them** — the rail cut IS the `J_MODE` pin 3→4 pole, and this
+cross-plug drives pin 4 directly.
+
+**The bound, for any external pull-up whatever:** solving
+3.3 · 100 kΩ/(100 kΩ + R) ≥ 1.2 V gives **R ≤ 175 kΩ**. Any external pull-up
+under 175 kΩ on that pin can energise the coil rail. (The 1.2 V figure assumes a
+minimum-threshold 2N7002 conducting in subthreshold — that is the
+worst-case-hazard bound and is softer than the 10 kΩ / 4.7 kΩ result above,
+which needs no subthreshold assumption at all.) For comparison the three
+passive-harness safety inputs `R_DOORPD` / `R_ESTOPPD` / `R_MODEPD` are all
+**10 kΩ** — the one pin that directly enables the relay rail is held **ten times
+more weakly** than the pins that merely report a switch.
+
+### 10.3 WHY THE OLD CLAIM WAS WRONG — the model, not the arithmetic
+
+The pin-review-Q re-pinning of 2026-07-23 (DISPOSITIONS #6) was correct as far
+as it went and is not being reversed: it moved 3V3 away from `COIL_EN` so that
+`COIL_EN`'s neighbours are the AND-chain output (pin 3) and GND (pin 5), and it
+reasoned that "any cross-plug bridge either applies the intended gating or holds
+the rail OFF." **That reasoning models a cross-plug as a passive BRIDGE between
+pins.** It is the right model for the three dry-contact harnesses and the wrong
+model for a harness that *sources* current onto a pin. The two powered housings
+were not in the analysis, so the conclusion was generalised past its evidence.
+
+### 10.4 THE COMPLETE CROSS-PLUG MATRIX — all twenty combinations
+
+Rows = the harness you are holding; columns = the socket you plug it into. Each
+cell is analysed on its own — "this one harness is in the wrong socket and
+everything else is right."
+
+| mark | meaning |
+|---|---|
+| **☠ RAIL** | energises the coil rail with the AND chain and the Manual rail-cut bypassed |
+| **⚡ SHORT** | a rail short or an unlimited over-current path |
+| **✗ FALSE-CLEAR** | a SAFETY INPUT is forced or driven to its PERMISSIVE state |
+| **? INDETERMINATE** | a safety input is driven into its threshold band — the reading depends on the individual part, so it is not fail-safe either |
+| **○ CANNOT ARM** | an input is falsified but `COIL_EN` is unconnected, so the rail cannot come up: annoying, not dangerous |
+| **↔ SILENT SWAP** | works electrically, and transposes two channels with nothing to detect it |
+
+| harness ↓ / socket → | `J_DOOR` | `J_ESTOP` | `J_MODE` | `J_RH_AMBIENT` | `J_RH_EXHAUST` |
+|---|---|---|---|---|---|
+| **DOOR** — 2-wire dry Form-A reed on positions 1–2 | — | **✗** the reed now drives `ESTOP_RAW`: **door closed ⇒ E-STOP READS CLEAR**. The E-stop's own isolated pole on `J_ISOLOOP` is untouched, so the external contactor loop still breaks; the SELV permission does not | **○** reed drives `MODE_RAW` ⇒ reads AUTO with no mode switch fitted; `COIL_EN` unconnected ⇒ `R_COILENPD` holds the rail **OFF** | **⚡** reed shorts `3V3_SW_RHA` to GND — no current limit ahead of `Q_SWRHA` (only while `RAIL_EN_RHA` is asserted) | **⚡** same on `3V3_SW_RHE` |
+| **ESTOP** — 2-wire dry NC contact on positions 1–2 | **✗** contact drives `DOOR_RAW`: **E-stop not pressed ⇒ DOOR READS CLOSED**. `DOOR_OK` gates `OS_CLR_N` (the press one-shot) only, not the rail | — | **○** as the DOOR row: AUTO reported, rail OFF | **⚡** as above | **⚡** as above |
+| **MODE** — 4-wire DPDT, poles on 1–2 and 3–4, both closed in AUTO | **⚡** pole 1–2 ties 3V3→`DOOR_RAW` and pole 3–4 ties GND(pin 3)→`DOOR_RAW`(pin 4): **in AUTO 3V3 is shorted to GND through two switch contacts in series.** In MANUAL both open ⇒ door reads OPEN, safe | **✗** pole 1–2 ties 3V3→`ESTOP_RAW` ⇒ **in AUTO the E-stop reads CLEAR permanently**; pole 3–4 lands GND on GND (pins 3/4 are both GND). In MANUAL: safe | — | **⚡** pole 1–2 shorts `3V3_SW_RHA` to GND; pole 3–4 shorts `SDA_A` to `SCL_A` | **⚡** same on bus B |
+| **RH POD** — 5-wire POWERED SHT45 module | **?** pod GND **and** pod SCL both land on `DOOR_RAW`. The module's SCL pull-up alone puts `DOOR_RAW` at **3.3·10/(10+10) = 1.65 V** — half the rail — and the pod's own return current through `R_DOORPD` adds to it. `U_SCHM` is an SN74HC14 and 1.65 V is **inside its V_T+ spread at 3.3 V**, so whether the door reads CLOSED depends on the individual part. Not fail-safe | **?** pod GND lands on `ESTOP_RAW` (SCL and SDA land on real GND). The pod's supply return flows through `R_ESTOPPD` 10 kΩ, lifting `ESTOP_RAW` by I·10 kΩ until the module browns out — an unbounded, part-dependent voltage on the E-stop input. Not fail-safe | **☠ THE HAZARD — §10.2. COIL RAIL ENERGISED, ALL SEVEN AND-CHAIN TERMS AND THE MANUAL RAIL-CUT BYPASSED** | — | **↔** if the two pod harnesses are swapped with each other both buses work: the ambient and exhaust humidity channels are TRANSPOSED IN SOFTWARE and nothing on the board or in the protocol detects it (both SHT45s are address 0x44 on their own bus) |
+
+**How the twenty are counted.** Five harnesses (DOOR, ESTOP, MODE, POD-ambient,
+POD-exhaust) into five sockets = 25 matings, of which 5 are correct, leaving
+**20 cross-plugs**. The two pod harnesses are identical, so the table renders
+them as one row of four cells that stands for eight cross-plugs. Class totals
+over all twenty:
+
+| class | count | which |
+|---|---|---|
+| **☠ RAIL** | **2** | either pod harness into `J_MODE` |
+| **⚡ SHORT** | **7** | any dry-contact harness into either pod socket (6) + MODE into `J_DOOR` (1) |
+| **✗ FALSE-CLEAR** | **3** | DOOR→`J_ESTOP`, ESTOP→`J_DOOR`, MODE→`J_ESTOP` |
+| **? INDETERMINATE** | **4** | either pod into `J_DOOR` or `J_ESTOP` |
+| **○ CANNOT ARM** | **2** | DOOR or ESTOP into `J_MODE` |
+| **↔ SILENT SWAP** | **2** | the two pod harnesses exchanged |
+
+**Not one of the twenty is fail-safe in the sense the old §10 claimed for all of
+them.** How each class announces itself, which is what decides how much the
+labeling discipline has to carry:
+
+- the **7 ⚡** cells announce themselves loudly — a dead sensor rail, a supply
+  that current-limits or shuts down, a jammed I²C bus;
+- the **2 ○** cells announce themselves by the machine refusing to arm;
+- the **2 ☠** cells announce themselves by the machine arming when it must not,
+  which is the wrong way round, and they are why §10.5 item 1 is not optional;
+- the **3 ✗** and **4 ?** cells are **SILENT**. Nothing on the board detects
+  them. Their only defences are the harness labels and the §7 bring-up steps
+  that exercise the E-stop and the door directly (press the mushroom and watch
+  `TP_ESTOP`; open the door and watch the press interlock) — do both, per
+  harness, after any harness work;
+- the **2 ↔** cells are silent too, and are a data-integrity failure rather than
+  a safety one: the two humidity channels are transposed and both read
+  plausibly.
+
+### 10.5 THE MANDATORY DISCIPLINE
+
+1. **LABEL EVERY HARNESS AT BOTH ENDS AND MATCH LABELS BEFORE POWER.** This is
+   the only defence the board has for the ☠ cell. It is not optional and it is
+   not a quality nicety.
+2. **PHYSICALLY DISTINGUISH `J_MODE`.** Before commissioning, give the `J_MODE`
+   harness a permanent mechanical difference the other four cannot have — a
+   different jacket colour AND a cable tie / heatshrink collar at the housing —
+   so that a `J_MODE` plug is identifiable by touch in a hot, wet cabinet.
+3. **DRESS THE TWO POD HARNESSES AWAY FROM THE EAST EDGE.** `J_MODE`,
+   `J_DOOR` and `J_ESTOP` are the east-edge column; the pods and thermistor
+   heads are on the south edge. Route them so a pod plug cannot physically reach
+   the east column.
+4. **TP_ALLOW / TP_5VKR ARE THE CHECK.** After any harness work, with the mode
+   switch in MANUAL, `TP_5VKR` must read **0 V**. If it does not, a harness is
+   in the wrong socket — do not proceed.
+5. The v1.3 improvement still stands and still matters: `J_ESTOP` is **SELV-only**
+   (pins 3/4/5 are GND, the isolated contactor loop moved to `J_ISOLOOP`, §11),
+   so no cross-plug can close the contactor loop through GND any more.
+6. The **§2a door-short residual** (a conductor-to-conductor short between
+   harness wires 1 and 2 reads DOOR-CLOSED) is unchanged and is a
+   harness-quality failure.
+
+### 10.6 WHAT WOULD ACTUALLY FIX IT — for the next ELECTRICAL revision
+
+Copper changes, deliberately NOT made in this documentation-only release:
+
+- `R_COILENPD` 100 kΩ → **10 kΩ** raises the bound from R ≤ 175 kΩ to
+  R ≤ 17 kΩ. That is a real improvement but it does **not** clear a 10 kΩ pod
+  pull-up (3.3 · 10/20 = 1.65 V, still above threshold) and only just clears
+  4.7 kΩ. **It is not sufficient on its own.**
+- A series element into `J_MODE.4`, or a **different housing / keyed housing**
+  for `J_MODE`, or moving `COIL_EN` off a field connector entirely. Any of the
+  three closes the class rather than trimming it. This is the recommendation.
+- An ESD device on `MODE_RAW` and `COIL_EN`, which `J_DOOR` and `J_ESTOP`
+  already have and `J_MODE` does not.
 
 ## 11. ⚠️ THE ISOLATED LOOP — ONE CONNECTOR, `J_ISOLOOP`, AND ITS POLE LEGEND
 
@@ -984,7 +1251,7 @@ counted is a finding; a gap nobody counted is how things drift.
 |---|---|
 | DRC (`--severity-all --refill-zones --schematic-parity`) | **0 / 0 / 0** — see the qualifier immediately below; **9 checks are set to `ignore`** |
 | P-COLLIDE (placement) | 0 pad shorts, 0 anchored courtyard overlaps |
-| E-INV | **83 / 83** |
+| E-INV | **85 / 85** (was 83/83 through v1.5; v1.6 adds `part_value` asserts pinning `R_COILENPD` = 100k and `R_REARMPU` = 100k — the two numbers §10.2 and §7a-1 compute their bounds from. Both RED-VERIFIED: substituting 10k makes the checker report `FAIL 2/85`) |
 | A-ROT | 189 / 189 CPL rotations from measured rows |
 | A-POS | 189 / 189 CPL rows on the pad-centre datum, worst 0.0000 mm |
 | A-POL | **10 codes / 13 refs GENERATED; TRUE population 12 codes / 16 refs** -> §6 human gate item 15. The three extra refs (D_KSTOP, D_REVCLAMP on C8678; D_TVS on C113974) are `POLARITY-FIT-BLIND` in `twin_report.csv` — the twin could not fit them at all, so they never reached the generated list |
@@ -993,7 +1260,7 @@ counted is a finding; a gap nobody counted is how things drift.
 | M-REPRO | 3 from-source rebuilds, **1047** vias each, identical fp/track/via hashes, matching the shipped board |
 | Stranded pour islands | **121 islands** on the fill THAT SHIPS (GND F.Cu 106, GND B.Cu 13, GND In1.Cu 1, 3V3 In2.Cu 1), **121 bonded, 0 stranded**. The 136 printed in earlier revisions came from a refill-in-memory, not from the stored fill — same conclusion, wrong population. |
 | jlc_twin | 420 rows: 184 OK, 184 MODEL-REG-OK, 31 PAD-GEOM, 9 POLARITY-CHECK, **6 POLARITY-FIT-OK, 3 POLARITY-FIT-BLIND**, 1 MIRRORED, 1 FETCH-FAILED, 1 NO-BODY — **all adjudicated**. Earlier revisions collapsed the two POLARITY-FIT classes into one "9 POLARITY-FIT", which hid the **3 BLIND** rows (C8678/D_KSTOP, C8678/D_REVCLAMP, C113974/D_TVS) — the ones with no numbering-free channel at all. They are §6 item 15. |
-| contracts_audit | 189 files, 0 violations |
+| contracts_audit | 243 files, 0 violations (the repo grew; the count is the fleet's, not this board's) |
 
 ### ⚠️ THE DRC CLAIM HAS A QUALIFIER — nine checks are OFF
 
@@ -1272,3 +1539,78 @@ place where silk quality actually gets checked.
    fresh UUIDs and KiCad serialises footprints in UUID order. A fleet-level fix
    is owned elsewhere; on this board the nondeterminism never reaches a via
    decision (via count has not varied across 5 observed builds).
+19. **⚠️ NEW IN v1.6 — `J_MODE` IS A CROSS-PLUG HAZARD, NOT A FAIL-SAFE
+   CONNECTOR.** An SHT45 pod harness in `J_MODE` energises the coil rail with
+   all seven AND-chain terms and the Manual rail-cut bypassed. This gap is
+   **mitigated by discipline only** (§10.5) and the mitigation is a human
+   procedure, not a hardware property. The fix is copper — §10.6 — and it is
+   deliberately deferred to the next ELECTRICAL revision so that this
+   documentation-only release ships the same board as v1.5. **If you are
+   commissioning this machine, §10 is the section to read twice.**
+20. **⚠️ NEW IN v1.6 — ELEVEN OF THE EIGHTEEN SAFETY-CHAIN NETS HAVE NO
+   RESTRICTIVE DEFAULT, AND FOUR OF THEM ARE PERMISSIONS.** Measured over the
+   netlist: of the 18 nets feeding a permission/gating input on this board,
+   **7 carry a pull resistor and 11 carry none at all** —
+   `WD_OK`, `ESTOP_OK`, `MODE_AUTO_HW`, `DOOR_OK` (the four **permissions**,
+   driven by `U_WD` and `U_SCHM`), plus `AND1`, `AND2`, `CTR_SAFE`, `FAULT`,
+   `FAULT_SET_N`, `FAULT_LATCH_CLEAR`, `STOP_REQ_N` (internal nodes driven by
+   the chain's own gates). Every one is a single push-pull CMOS output into
+   LVC/HC inputs that have no bus-hold, so an unfitted, tombstoned or cracked
+   part leaves an INDETERMINATE level that may read HIGH = permissive.
+
+   The sharpest single-part cases: a dead **`U_SCHM` (SN74HC14, SOIC-14)**
+   floats `ESTOP_OK`, `MODE_AUTO_HW` **and** `DOOR_OK` simultaneously — the
+   E-stop can then read clear with the mushroom pressed, and the expander
+   readbacks sample the SAME floating nets so software sees the same wrong
+   answer with no independent cross-check. A dead **`U_LATCHB` (SN74LVC1G00,
+   SOT-23-5)** floats `FAULT_LATCH_CLEAR` into both `U_AND3.C` and `U_CAND2.B`,
+   removing the fault-latch permission from the coil rail and the external
+   contactor at once. A dead **`U_WD` (TPS3823)** floats `WD_OK` into five CMOS
+   inputs. **No single part floats all four permissions** — `U_SCHM` accounts
+   for three and `U_WD` for the fourth.
+
+   **This is what the source's own claim missed, and the correction is a matter
+   of SCOPE, not arithmetic.** `03_tscircuit/src/cooksense.tsx` says "TEMP_OK
+   was the ONLY permission in the safety chain actively pulled toward
+   permissive. The other twelve are pulled restrictive". Checked here: those
+   **twelve are exactly the Pi/expander authorization lines of BRIEF D10 item 8**
+   — `HOST_AUTH`, `MCU_RELAY_ENABLE`, `CONTACTOR_REQ`, `KEY_RESET_N`,
+   `STOP_REQ`, `RAIL_EN_A/B/RHA/RHE`, `DECU_G1_RAW`, `DECD_G1_RAW`, `REARM_N` —
+   and **all twelve genuinely ARE pulled restrictive** (eleven × 100 kΩ to GND,
+   plus `REARM_N` × 100 kΩ to 3V3, which is restrictive because it is
+   active-low). The sentence is not wrong about its twelve. It is wrong as a
+   statement about "the safety chain", because it counts only the
+   SOFTWARE-driven lines and the four HARDWARE-derived permissions are in
+   neither group.
+
+   **Partly caught at bring-up** (§7 step 2 exercises the watchdog; step 3 reads
+   TP_ESTOP / TP_TEMPOK / TP_FAULT). **An in-service failure — ESD, thermal
+   cycling, a solder crack — is not caught at all.** Cost of the hardware fix:
+   four 0402 pull-downs for the permissions (eleven for the whole chain), which
+   is a copper change and therefore not in this release. Firmware mitigation
+   available today: §7a-2 (`GPPUB = 0x00`), which prevents the failure being
+   made *deterministically* permissive by a register write.
+21. **⚠️ NEW IN v1.6 — `REARM_N` HELD LOW PERMANENTLY DEFEATS THE FAULT LATCH.**
+   Full analysis and the required negative bring-up test are in §7a-1. Mitigated
+   by a stated software invariant only; the hardware fix (an edge-detect on
+   `REARM_N`) is deferred to the next electrical revision.
+22. **The `SN74HC14DR` dossier's gotcha is STALE, and it is the only doc that
+   describes the part's usage.** `02_parts/SN74HC14DR/part.yaml` says "gates
+   A/B: E-stop chain […]; unused inputs 3A/4A/5A/6A tied GND, outputs NC". On
+   this board **all six gates are used** — 1A/1Y+2A/2Y = E-stop, 3A/3Y+4A/4Y =
+   mode, 5A/5Y+6A/6Y = door (netlist-verified). The text describes the
+   v1.0/v1.1 build. No electrical consequence — the netlist, not the prose, is
+   what the board is built from — but it is recorded because this is the third
+   inherited-prose defect found on this board and the pattern is the finding.
+23. **The `J_MODE` pole labels contradict themselves in the source, and one of
+   the two is WRONG.** `03_tscircuit/src/cooksense.tsx` line 632 says "pole A
+   (pins1-2) = physical coil-EN gate […]; pole B (pins3-4) = MODE_RAW logic";
+   six lines later the same block says "pole B (mode sense) = pins 1-2 (3V3 ->
+   MODE_RAW); pole A (coil gate) = pins 3-4". **The netlist settles it: pins 1-2
+   are 3V3/MODE_RAW and pins 3-4 are KEY_RELAY_ALLOWED/COIL_EN**, so the second
+   statement is right and line 632 is a survivor of the pre-re-pin layout. A
+   harness built from line 632 would put the coil-gate pole across 3V3 and
+   MODE_RAW and leave `COIL_EN` open — the machine would be permanently
+   unable to arm (fail-safe, but a wasted commissioning day). **The pinout in
+   §10.1 of this document is the authority; build the mode-switch harness from
+   that table, not from the source comment.**
