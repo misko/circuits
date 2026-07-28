@@ -303,7 +303,15 @@ export default () => (
     <chip name="D_USB" supplierPartNumbers={{ jlcpcb: [LCSC.TPD4E] }}
       footprint={fp(Array.from({ length: 10 }, (_, i) => i + 1))}
       connections={conn({ 1: "USB_DP", 2: "USB_DN", 3: "GND", 8: "GND" })} /* 4,5,6,7,9,10 -> NC */ />
-    <resistor name="R_vb1" resistance="220k" footprint="0402" connections={{ pin1: N("VBUS"), pin2: N("VBUS_SENSE") }} />
+    {/* v1.7: the resolver's first choice for 220k/0402 is C25767 (UNI-ROYAL
+        0402WGF2203TCE), which read stockCount 0 on 2026-07-27 — it measured 16
+        at the v1.6 seal and was graded OK, because nothing distinguishes
+        "clears 5x need" from "clears it by eleven units". Pinned to C138030
+        (YAGEO RC0402FR-07220KL, stock 736,704, same 0402 land, catalog
+        `describe` string CHARACTER-IDENTICAL, compared as strings): same YAGEO
+        RC0402FR series as this board's existing C60490 / C105871 swaps. Top leg
+        of the VBUS->VBUS_SENSE divider; no copper, footprint or netlist change. */}
+    <resistor name="R_vb1" resistance="220k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C138030"] }} connections={{ pin1: N("VBUS"), pin2: N("VBUS_SENSE") }} />
     <resistor name="R_vb2" resistance="330k" footprint="0402" connections={{ pin1: N("VBUS_SENSE"), pin2: N("GND") }} />
     <capacitor name="C_vb" capacitance="2.2uF" footprint="0805" connections={{ pin1: N("VBUS"), pin2: N("GND") }} />
     <resistor name="R_vbld" resistance="47k" footprint="0402" connections={{ pin1: N("VBUS"), pin2: N("GND") }} />
