@@ -23,9 +23,12 @@ make test MCU=...  # the MCU is a variable, never a constant
 `make test` needs only a host C compiler and libm — no XMOS toolchain, no
 silicon. It re-derives every constant in `cal_burst.c` from the physics and
 fails if any of them drifts. Measured 2026-07-28: **PASS, 0 failures**; and
-RED-verified — rebuilt with `CAL_BURST_DUTY_DEN` set back to the pre-fix `2`,
-it reports **5 failures**, including `MARGIN vs the pod input ceiling` going
-negative, and exits 1. A gate that cannot fail is worthless.
+RED-verified against the **current** acceptance criterion — rebuilt with
+`CAL_BURST_DUTY_DEN` set to the pre-fix `2` **and** to the superseded `6`, it
+reports **6 failures each and exits 1** both times, with
+`TYPICAL-unit margin, NOMINAL` going negative (−9.50 dB and −3.48 dB). Both
+old values are also checked INLINE as always-run known-bad fixtures, so the
+gate proves it can fail on every single run, not only when someone recompiles.
 
 There is no flash step here yet. When the application is written: XU316 boots
 from `U5` W25Q16JVSSIQ over QSPI; the programming/debug connector and its
@@ -37,16 +40,32 @@ pinout are in `01_docs/ARCHITECTURE.md` and `01_docs/DETAIL_DESIGN.md` (xSYS /
 **Central's beep drive is bounded ABOVE by the input ceiling of the preamp on
 the sibling board, `crow-mic-pod-v2`. Raising it breaks the pod.**
 
+The acceptance criterion **changed on 2026-07-28** (user decision): it is no
+longer "clears a minimum-spec LS1" but **"clears a unit on the datasheet's
+TYPICAL curve"** — the right end of the tolerance for a clipping problem,
+since the unit that clips is a loud one.
+
 | | dB SPL at the pod capsule MK1 |
 |---|---|
-| burst at 1/2 duty (the pre-fix level) | **106.8173** |
+| burst at 1/2 duty, minimum-spec LS1 (pre-fix) | **106.8173** |
+| burst at 1/2 duty, **TYPICAL-curve** LS1 | **110.8173** |
 | pod OPA1678 worst-case linear input ceiling | **101.3144** |
-| shortfall that must be given back HERE | **5.5028** |
-| shipped level, duty 1/6 (−6.0206 dB) | **100.7967** — clears by 0.5178 dB |
+| **shortfall that must be given back HERE** | **9.5028** |
+| shipped level, duty **1/12** (−11.7401 dB nominal) | **99.0772** — clears by **+2.2372 dB** |
+| same duty, minimum-spec LS1 | **95.0772** — clears by +6.2372 dB |
 
 Derivation, evidence and the model are in the header comment of
 `cal_burst.c`; the defect is CAL-1 in
 `projects/crow-mic-pod-v2/08_reviews/DISPOSITIONS.md`.
+
+**`sin(πD)` is NOT a conservative bound at this duty.** It was at 1/6; it is
+not at 1/12, and the old conclusion is not carried forward. Two measured
+mechanisms push the delivered attenuation the wrong way — an L-R regime change
+at the 3 mH corner (+0.835 dB) and, dominantly, a **gate-RC duty bias** that
+stretches the conduction window by +1.1…+6.5 µs (turn-off must fall from
+3.26 V *down* to Vgs(th) while turn-on only climbs *up* to it). Combined worst
+case: **−8.71 dB, not −11.74 dB — slack +3.03 dB.** Under that model the
+typical unit **misses by 0.79 dB**. See "Still open" below.
 
 Why it can only be fixed here: measured from the SEALED v1.7 netlist,
 `PLUS5V_BEEP` is the 5 V rail through a ferrite bead with **no series
@@ -55,12 +74,22 @@ ports**, and `BEEP_GATE` has exactly **two nodes** — `U1.122` and `R_bg1.1`.
 There is no analog level control anywhere on this board. The GPIO waveform is
 the only lever, so the level is a FIRMWARE constant by construction.
 
-**Still open, and the user's call:** CAL-1's 5.50 dB is computed from LS1's
-datasheet *minimum* output. A unit at the datasheet's own *typical* curve
-(~104 dB @ 10 cm at 3.9 kHz) lands at 110.8173 dB and, even after −6.02 dB,
-remains 3.48 dB over the ceiling. −6 dB is the authorized fix for the recorded
-defect; it is not proven sufficient for a loud unit. **Trim against a
-measurement at bring-up** using the ladder in `cal_burst.c`.
+**Still open, and the user's call.** Duty 1/12 meets the criterion
+**nominally** (+2.24 dB) and **misses it under the worst-case model**
+(−0.79 dB). The open-loop uncertainty on this hardware is **~3 dB — larger
+than the 2.24 dB criterion itself**, so the level *cannot* be set open-loop to
+the accuracy the criterion demands. Two ways forward, both cheap:
+
+- **Trim against a measurement** at bring-up (the intended path). Raise
+  `CAL_BURST_DUTY_DEN` until the measured capsule level is ≤ 101.3 dB SPL.
+  Scoping `BEEP_RETURN` at `TP11` reads the gate-RC stretch directly and
+  collapses most of the 3 dB on its own.
+- **Or take the worst case open-loop:** `DEN = 14` is the first value that
+  clears the typical unit under the worst-case model (+0.11 dB); `16` gives
+  +0.93 dB, `20` gives +2.41 dB. One-line change, ladder in `cal_burst.c`.
+
+The trim floor moved `16 → 24` for exactly this reason — the old floor would
+have forbidden 1/14…1/20, the values that fix the worst case.
 
 ## Hardware-default behaviour (unprogrammed board)
 

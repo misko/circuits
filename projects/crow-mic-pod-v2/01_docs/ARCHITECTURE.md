@@ -85,41 +85,60 @@ Recorded here because a constraint recorded on only one side of a two-board
 system is how it gets undone.
 
 LS1 sits **45.61798 mm** from MK1 (pcbnew, sealed v1.3 board: LS1 (33.000,
-46.000), MK1 (74.000, 26.000)). At the CMT-8504's datasheet minimum of
-≥100 dB SPL @ 10 cm that is `100 + 20·log10(100.000/45.61798)` =
-**106.8173 dB SPL** at the capsule, against a U1 worst-case LINEAR INPUT
-COMMON-MODE ceiling of **101.3144 dB** (SBOS855E §6.7 `VCM = (V−)+0.5 …
-(V+)−2`; mic sensitivity +3 dB at V+ = 4.75 V, the same instant the 150 mA
-burst peaks). **Shortfall 5.5028 dB.** That is finding **CAL-1** —
+46.000), MK1 (74.000, 26.000)), so the burst reaches the capsule at
+`SPL(10 cm) + 20·log10(100.000/45.61798)` = `SPL(10 cm) + 6.8173 dB`, against a
+U1 worst-case LINEAR INPUT COMMON-MODE ceiling of **101.3144 dB** (SBOS855E
+§6.7 `VCM = (V−)+0.5 … (V+)−2`; mic sensitivity +3 dB at V+ = 4.75 V, the same
+instant the burst peaks). That is finding **CAL-1** —
 `08_reviews/2026-07-27_v1.3_adversarial-audit_first-principles.md`, re-derived
 in `08_reviews/2026-07-28_v1.3_fix-verification_cal1.md`.
+
+**The criterion changed 2026-07-28 (user decision).** CAL-1 as filed sized the
+shortfall against the transducer's datasheet MINIMUM — the wrong tolerance end
+for a CLIPPING problem, since the unit that clips is a LOUD one. The binding
+case is now a unit on the datasheet's TYPICAL curve:
+
+| LS1 output | burst at MK1 | shortfall vs 101.3144 dB |
+|---|---|---|
+| ds MINIMUM, 100 dB @10 cm | 106.8173 dB SPL | 5.5028 dB *(old basis)* |
+| **ds TYPICAL, 104 dB @10 cm** (rev 1.04 p.3) | **110.8173 dB SPL** | **9.5028 dB** *(binding)* |
 
 **It is fixed at CENTRAL, not here.** This pod's VMID divider was measured
 unable to clear the guaranteed spec by ANY value (best +0.86 dB worst-case, and
 its optimum sits at VMID ≈ 2.07 V — the OPPOSITE direction from the audit's
-proposed 33k/18k). Central instead reduces the burst drive by −6.0206 dB, to
-**100.7967 dB** at this capsule, clearing by 0.5178 dB. **No copper, BOM or
-release on this board changes; v1.3 stays live and is NOT superseded.**
+proposed 33k/18k). Central instead reduces the burst drive by **−11.7401 dB**
+(duty **1/12**), putting **99.0772 dB** on this capsule for a typical unit —
+clearing by **+2.2372 dB** — and 95.0772 dB for a minimum-spec one.
+**No copper, BOM or release on this board changes; v1.3 stays live and is NOT
+superseded.**
 
 The fix lives in `projects/crow-recorder-central-v2/05_firmware/cal_burst.c`
-(`CAL_BURST_DUTY_NUM/DEN = 1/6`), because central has no analog level control
+(`CAL_BURST_DUTY_NUM/DEN = 1/12`), because central has no analog level control
 at all — its `PLUS5V_BEEP` is the 5 V rail through a ferrite bead with no
 series resistor, one AO3400A switches all eight ports, and `BEEP_GATE` is a
 2-node net between the XU316 GPIO and a 1 k series resistor. The GPIO waveform
-is the only lever. Central's `01_docs/ARCHITECTURE.md` carries the same rule.
+is the only lever. Central's `01_docs/ARCHITECTURE.md` and `DETAIL_DESIGN.md`
+carry the same rule and the full derivation.
 
-Two things this does NOT do, stated so they are not assumed:
-- **It does not cover a loud LS1.** The 5.50 dB shortfall is computed from the
-  transducer's datasheet MINIMUM. A unit at the datasheet's own TYPICAL curve
-  (~104 dB @ 10 cm at 3.9 kHz, rev 1.04 p.3) puts 110.8173 dB on this capsule
-  and stays **3.48 dB over** the ceiling even after −6.02 dB. The level must be
-  trimmed against a MEASUREMENT at bring-up.
-- **It does not resolve PSR-1.** PSR-1's dominant path is the 16 Hz R1·C1
-  mic-bias corner (−11.4 dB at 60 Hz), which nothing here touches.
+Three things this does NOT do, stated so they are not assumed:
+- **The level is not proven under worst case.** `sin(πD)` is a conservative
+  bound at duty 1/6 but NOT at 1/12: an L-R regime change (+0.835 dB at the
+  3 mH corner) and, dominantly, a **gate-RC duty bias** at central that
+  stretches the conduction window by +1.1…+6.5 µs together give a combined
+  worst case of **−8.71 dB, not −11.74 dB**. Under that model the typical unit
+  **misses this ceiling by 0.79 dB** (the minimum-spec unit still clears by
+  +3.21 dB). The open-loop uncertainty (~3 dB) exceeds the criterion (2.24 dB),
+  so **the level must be trimmed against a MEASUREMENT at bring-up** — this
+  pod's own MK1, with the recorder as the meter, is the intended instrument.
+- **It does not resolve PSR-1.** The drive change is on the galvanically
+  SEPARATE beep domain. PSR-1's dominant path is the 16 Hz R1·C1 mic-bias
+  corner (−11.4 dB at 60 Hz), which nothing here touches.
+- **It does not touch POE-1, DC-1 or MECH-1**, which remain open.
 
 Benign side effects at this pod: the beep-loop burst current falls from
-~150 mA to ~30–50 mA (5V_BEEP cable IR drop 0.19 V → ~0.04 V), and MK1's
-headroom to its own 110 dB THD<3 % limit improves from 3.18 dB to 9.20 dB.
+~150 mA to **~10–25 mA** (deep DCM; 5V_BEEP cable IR drop 0.19 V → ~0.02 V),
+and MK1's headroom to its own 110 dB THD<3 % limit improves from 3.18 dB to
+**10.92 dB** (typical unit) / 14.92 dB (minimum-spec).
 
 ## Power / budget (E-TOPO: no converter — externally powered)
 

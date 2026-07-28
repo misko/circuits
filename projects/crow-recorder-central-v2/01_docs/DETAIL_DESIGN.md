@@ -76,29 +76,80 @@ The gate waveform is not free: it is bounded above by the pod preamp's input
 ceiling. See ARCHITECTURE.md for the constraint and `05_firmware/cal_burst.c`
 for the shipped constant. The numbers a value depends on, with equations:
 
+**Acceptance criterion changed 2026-07-28 (user decision): clears a
+TYPICAL-curve unit, not a minimum-spec one.** The unit that clips is a loud
+one, so sizing against the datasheet minimum was the wrong tolerance end.
+
 | quantity | equation | value |
 |---|---|---|
 | LS1→MK1 on the pod | pcbnew, sealed pod v1.3, LS1 (33.000, 46.000) MK1 (74.000, 26.000) | 45.61798 mm |
-| burst at the capsule | `100 dB + 20·log10(100.000 / 45.61798)` | **106.8173 dB SPL** |
+| distance term | `20·log10(100.000 / 45.61798)` | +6.8173 dB |
+| burst, minimum-spec LS1 | `100 dB + 6.8173` | 106.8173 dB SPL |
+| **burst, TYPICAL-curve LS1** | `104 dB + 6.8173` (rev 1.04 p.3) | **110.8173 dB SPL** |
 | pod mic sensitivity at its board load | `10^(−24/20) · [3.9/(3.9+2.2)] ÷ [2.2/(2.2+2.2)]` (spec'd at RL = 2k2, loaded 3k9) | 80.680 mV/Pa |
 | pod preamp worst-case ceiling | `min{(V+)−2−Vm, Vm−0.5, (Vm−h)/G, ((V+)−h−Vm)/G}` at V+ = 4.75 V, h = 0.8 V, G = 1.5, Vm = 2.5 V, S+3 dB | **101.3144 dB SPL** |
-| **shortfall** | difference | **5.5028 dB** |
-| duty → 4 kHz fundamental | `20·log10(sin(π·D))` | D = 1/6 → **−6.0206 dB** |
-| capsule after | sum | **100.7967 dB** (clears by 0.5178 dB) |
+| **binding shortfall** | typical burst − ceiling | **9.5028 dB** |
+| duty → 4 kHz fundamental (NOMINAL) | `20·log10(sin(π·D))` | D = 1/12 → **−11.7401 dB** |
+| capsule after, typical unit | sum | **99.0772 dB** — clears by **+2.2372 dB** |
+| capsule after, minimum-spec unit | sum | 95.0772 dB — clears by +6.2372 dB |
 
-**Why `sin(π·D)` and not an RMS.** The CMT-8504's acoustic output at 4 kHz is a
-sharp mechanical resonance — the datasheet's own response curve (rev 1.04 p.3)
-peaks ~104 dB at ~3.9 kHz, ~15 dB above the 2–3 kHz shelf. A resonator passes
-the component AT resonance and rejects DC and harmonics, so the output follows
-the FUNDAMENTAL of the coil current. A 1/6-duty square is only −4.8 dB in RMS
-but exactly −6.02 dB in its fundamental; the resonance follows the latter.
+**Why the FUNDAMENTAL and not an RMS.** The CMT-8504's acoustic output at 4 kHz
+is a sharp mechanical resonance — the datasheet's own response curve
+(rev 1.04 p.3) peaks ~104 dB at ~3.9 kHz, ~15 dB above the 2–3 kHz shelf. A
+resonator passes the component AT resonance and rejects DC and harmonics, so
+the output follows the FUNDAMENTAL of the coil current. A 1/12-duty square is
+−10.8 dB in RMS but −11.74 dB in its fundamental; the resonance follows the
+latter.
 
-`sin(π·D)` holds at both ends of the coil's UNSPECIFIED inductance: at L→0 the
-current is a duty-D square (fundamental `(2V/πR)·sin(πD)`); at L→∞ it is a small
-asymmetric-triangle ripple of pk-pk `D(1−D)(V+Vf)T/L` whose fundamental is
-`(pk-pk/π²)·sin(πD)/(D(1−D))` — the `D(1−D)` cancels, same law. Numerically
-integrating `i' = (v − iR)/L` with the SS14 freewheel over L = 20 µH…3 mH gives
-D = 1/6 attenuations of −6.02 to −6.68 dB: the law is a **conservative bound**.
+#### `sin(π·D)` is NOT a conservative bound at 1/12 — re-verified 2026-07-28
+
+It **was** at 1/6, and that conclusion is explicitly NOT carried forward. At
+1/6, integrating `i' = (v−iR)/L` with the SS14 freewheel over L = 10 µH…3 mH
+returned −6.02…−6.68 dB against the law's −6.021 — conservative at every
+corner. At 1/12 two mechanisms push the delivered attenuation the wrong way:
+
+**(a) L-R regime change.** The 20.8 µs pulse no longer lets the current build,
+so the long freewheel tail dominates the waveform and its fundamental content
+stops tracking `sin(πD)`. Exact per-step exponential integration:
+
+| L | 10 µH | 100 µH | 500 µH | 1 mH | **3 mH** |
+|---|---|---|---|---|---|
+| measured, D = 1/12 | −11.796 | −12.295 | −13.234 | −12.612 | **−10.905** |
+| law | −11.740 | −11.740 | −11.740 | −11.740 | −11.740 |
+| slack | −0.06 | −0.56 | −1.49 | −0.87 | **+0.835 NON-CONSERVATIVE** |
+
+**(b) Gate-RC duty bias — larger, and not anticipated anywhere in this design.**
+`R_bg1·C_bg` = 4.70 µs, `(R_bg1‖R_bg2)·C_bg` = 4.65 µs. Turn-ON waits only for
+the gate to CLIMB to `Vgs(th)`; turn-OFF waits for it to FALL from ~3.26 V all
+the way DOWN to `Vgs(th)`. Asymmetric ⇒ the conduction window is STRETCHED:
+
+| `Vgs(th)` (AO3400A 0.65/1.05/1.45 V) | t_on lag | t_off lag | **stretch** | D_eff | atten | vs law |
+|---|---|---|---|---|---|---|
+| 0.65 V | 1.03 µs | 7.51 µs | **+6.47 µs** | 10.95 % | −9.445 | **+2.30** |
+| 1.05 V | 1.80 µs | 5.33 µs | +3.53 µs | 9.75 % | −10.418 | +1.32 |
+| 1.45 V | 2.72 µs | 3.83 µs | +1.11 µs | 8.78 % | −11.302 | +0.44 |
+
+The stretch is an ABSOLUTE time, independent of the commanded pulse, so its
+FRACTIONAL cost grows as the duty shrinks — 5 % of the pulse at D = 1/2, **31 %
+at D = 1/12**. The "Beeper switch" section above documents this RC purely as an
+EMI slew-limiter; it also biases the duty upward, which only becomes a defect
+once duty is used to control LEVEL.
+
+**Combined worst case over L ∈ {20 µ, 100 µ, 500 µ, 3 m} × Vth ∈ {0.65, 1.05,
+1.45}: −8.71 dB, not −11.74 dB. Slack +3.03 dB.**
+
+| criterion | NOMINAL (law) | WORST CASE |
+|---|---|---|
+| TYPICAL-curve unit | +2.2372 dB PASS | **−0.79 dB — still clips** |
+| minimum-spec unit | +6.2372 dB PASS | +3.21 dB PASS |
+
+**Consequence: the open-loop uncertainty (~3 dB) exceeds the criterion
+(2.24 dB), so the level cannot be set open-loop to the required accuracy.**
+Trim against a MEASUREMENT at bring-up, or take `DEN = 14` — the first value
+that clears worst case (+0.11 dB; 16 → +0.93, 20 → +2.41). Scoping
+`BEEP_RETURN` at TP11 against the commanded pulse reads the stretch directly
+and collapses most of the 3 dB. The trim floor moved 16 → 24 because the old
+floor forbade exactly the values that fix the worst case.
 
 **Model sanity, by a second method (canon M1).** The datasheet's 150 mA "at
 rated voltage, 4000 Hz, ½ duty" is MEASURED; volt-second balance on the same
@@ -114,21 +165,34 @@ unbiased reluctance device would be square-law (−12 dB). Nothing physical
 delivers LESS than −6.02 dB. To measure it: calibrated ¼″ mic at 10 cm on axis,
 or the pod's own MK1 with the recorder as the meter, D = ½ vs D = 1/6.
 
-**Side effects, all benign.** Coil average current ~150 mA → ~30–50 mA (so the
-shared Q2 sees ~0.9 A → ~0.2–0.3 A); pod 5V_BEEP cable IR drop 0.19 V → ~0.04 V;
-the pod's AOM-5024 gains headroom to its own 110 dB THD<3 % limit, 3.18 → 9.20 dB.
-Gate slew is unaffected: `R_bg1·C_bg` = 4.7 µs against a 41.667 µs on-time
-(8.9 τ) and a 208.33 µs off-time (44.8 τ, through 1k∥100k) — Q2 still switches
-fully both ways. Below duty 1/16 that stops being true; that is the trim floor.
+**Side effects at 1/12, all benign.** Coil average current ~150 mA → **~10–25 mA**
+(deep DCM; peak 33–307 mA depending on L), so the shared Q2 sees ~0.9 A →
+~60–150 mA and the pod 5V_BEEP cable IR drop 0.19 V → ~0.02 V. The pod's
+AOM-5024 gains headroom to its own 110 dB THD<3 % limit: 3.18 dB → **10.92 dB**
+for a typical unit, 14.92 dB for a minimum-spec one. Gate reachability holds:
+the 20.833 µs on-time is 4.43 τ, so the gate still peaks at **3.26 V**, well
+clear of the AO3400A's 2.5 V Rdson spec point (Vgs(th) 0.65/1.05/1.45 V).
+Timer quantization: 25000 ticks/period ÷ 12 = 2083.33 → 2083, a −0.0014 dB
+error — note this GREW from −0.0006 dB at 1/6, because `sin(πD)` is steeper at
+small D. Still negligible, but it will not stay negligible indefinitely.
 
-**Far end of the link budget — checked, and it does not break.** All six pods
-fire together from the one FET, so each pod's dominant path is its OWN LS1 at
-45.6 mm; the five other pods, on a 25 ft (7.62 m) radius array (separations
-7.62/13.20/15.24 m), power-sum to 67.0 dB SPL — **39.8 dB below** the local
-path. Matched-filtered on a 20 ms 4 kHz burst (50 Hz noise bandwidth), the
-far-pod SNR after −6 dB is 48.7 dB at a 25 dB(1/3-oct) ambient and still
-28.7 dB at a noisy 45 dB ambient, for a timing σ of 0.15–1.5 µs against a
-20.83 µs sample period. 6 dB is safe at both ends.
+**Far end of the link budget — re-checked at the new duty, still does not
+break.** All six pods fire together from the one FET, so each pod's dominant
+path is its OWN LS1 at 45.6 mm; the five other pods, on a 25 ft (7.62 m) radius
+array (separations 7.62/13.20/15.24 m), power-sum to 67.0 dB SPL. Matched-
+filtered on a 20 ms 4 kHz burst (50 Hz noise bandwidth):
+
+| ambient (⅓-oct @ 4 kHz) | in-band noise | far-pod SNR at −11.74 dB | timing σ |
+|---|---|---|---|
+| 15 dB | 2.32 dB | 52.95 dB | 0.090 µs |
+| 25 dB | 12.32 dB | **42.95 dB** | 0.283 µs |
+| 35 dB | 22.32 dB | 32.95 dB | 0.896 µs |
+| 45 dB | 32.32 dB | **22.95 dB** | 2.834 µs |
+
+against a 20.83 µs sample period — still one to two orders of magnitude of
+sub-sample timing margin. The local path sits at 95.077 dB SPL, **81.1 dB above
+the mic's own 14 dB(A) self-noise.** The extra 5.72 dB costs nothing that
+matters at either end.
 
 ## Per-port power protection
 - MINISMDC050F-2 PTC (F1..F8) on +5V_AUDIO feed per port. Rhold = [PARTS]; in

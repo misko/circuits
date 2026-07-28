@@ -102,3 +102,34 @@
 - next: this board is unchanged and still orderable. The residual on CAL-1 is
   the user's: -6 dB clears a MINIMUM-output LS1 by 0.52 dB but leaves a
   TYPICAL-output one (ds curve ~104 dB @10cm) 3.48 dB over the ceiling.
+
+## 2026-07-28 13:55 — iterate (CAL-1 basis moved to the TYPICAL unit; still nothing here moved)
+- did: recorded the same-day retune of central's drive from duty 1/6 to 1/12,
+  and the CHANGED BASIS behind it. Read-only over this board's copper again:
+  07_releases/ and 04_kicad/ untouched, 03_src/ and 03_tscircuit/ untouched.
+- result: USER DECISION — sizing CAL-1 against LS1's datasheet MINIMUM was the
+  wrong tolerance end for a CLIPPING problem, because the unit that clips is a
+  LOUD one. New binding case: ds TYPICAL curve ~104 dB @10cm (rev 1.04 p.3) ->
+  **110.8173 dB SPL** at MK1 -> **shortfall 9.5028 dB** (was 5.5028).
+  Central now attenuates -11.7401 dB nominal (duty 1/12) -> **99.0772 dB** at
+  this capsule for a typical unit, clearing by **+2.2372 dB**; 95.0772 dB and
+  +6.2372 dB for a minimum-spec unit.
+  RESIDUAL RECORDED OPEN, not smoothed over: sin(pi*D) is a conservative bound
+  at 1/6 but NOT at 1/12. An L-R regime change (+0.835 dB at the 3 mH corner)
+  and a previously-unnoticed GATE-RC DUTY BIAS at central (the conduction
+  window is STRETCHED +1.1..+6.5 us because turn-off must fall from 3.26 V DOWN
+  to Vgs(th) while turn-on only climbs UP to it — 31% of the pulse at this
+  duty) give a COMBINED WORST CASE of -8.71 dB, under which the typical unit
+  MISSES this board's ceiling by 0.79 dB (minimum-spec still clears by
+  +3.21 dB). Open-loop uncertainty ~3 dB EXCEEDS the 2.24 dB criterion.
+  Benign here: beep-loop burst current ~150 mA -> ~10-25 mA (cable IR 0.19 V ->
+  ~0.02 V); MK1 headroom to its own 110 dB THD<3% limit 3.18 -> 10.92 dB
+  (typical) / 14.92 dB (minimum-spec).
+  THIS BOARD: no copper, no BOM, no netlist, no release change. v1.3 carries no
+  SUPERSEDED.md and remains live. Divider still 22k/22k; FIX-1's 33k/18k still
+  NOT applied. POE-1, PSR-1, DC-1, MECH-1 all still explicitly OPEN, and PSR-1
+  still NOT resolved (separate galvanic domain; dominant path is the 16 Hz
+  R1*C1 corner, -11.4 dB at 60 Hz).
+- next: this board is unchanged and still orderable. The CAL-1 residual is a
+  bring-up MEASUREMENT task and MK1 with the recorder as the meter is the
+  intended instrument — nothing on this board changes either way.

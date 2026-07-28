@@ -70,17 +70,25 @@ the one system rule that neither board can see on its own, so it is recorded
 on both.
 
 The pod carries its calibration transducer LS1 **45.61798 mm** from its own
-microphone MK1 (pcbnew, sealed pod v1.3 board). At the CMT-8504's datasheet
-minimum of ≥100 dB SPL @ 10 cm, the burst lands on the capsule at
-
-    100 dB + 20·log10(100.000 / 45.61798)  =  106.8173 dB SPL
-
+microphone MK1 (pcbnew, sealed pod v1.3 board), so the burst lands on the
+capsule at `SPL(10 cm) + 20·log10(100.000/45.61798)` = `SPL(10 cm) + 6.8173 dB`,
 and the pod's OPA1678 runs out of **linear input common-mode range** first
 (SBOS855E §6.7, `VCM = (V−)+0.5 … (V+)−2`) at a worst-case ceiling of
 **101.3144 dB SPL** — mic sensitivity +3 dB at V+ = 4.75 V, which is the same
-instant the 150 mA burst peaks. **Shortfall 5.5028 dB.** That is defect
-**CAL-1** (`projects/crow-mic-pod-v2/08_reviews/DISPOSITIONS.md`): the
-calibration transducer saturates the preamp it exists to calibrate.
+instant the burst peaks. That is defect **CAL-1**
+(`projects/crow-mic-pod-v2/08_reviews/DISPOSITIONS.md`): the calibration
+transducer saturates the preamp it exists to calibrate.
+
+**The acceptance criterion changed on 2026-07-28 (user decision).** CAL-1 as
+filed sized the shortfall against LS1's datasheet MINIMUM output — the wrong
+end of the tolerance for a CLIPPING problem, because the unit that clips is a
+LOUD one. The criterion is now **"clears a unit on the datasheet's TYPICAL
+curve"** (~104 dB @ 10 cm at 3.9 kHz, rev 1.04 p.3):
+
+| LS1 output | burst at the capsule | shortfall vs the 101.3144 dB ceiling |
+|---|---|---|
+| datasheet MINIMUM, 100 dB @10 cm | 106.8173 dB SPL | 5.5028 dB *(the old basis)* |
+| **datasheet TYPICAL, 104 dB @10 cm** | **110.8173 dB SPL** | **9.5028 dB** *(binding)* |
 
 It is fixed HERE, not on the pod — the pod's VMID divider was measured unable
 to clear the guaranteed spec by any value (best +0.86 dB, optimum in the
@@ -96,22 +104,46 @@ v1.7 netlist rather than the source:
 | `BEEP_GATE` | **2** — `U1.122` (XU316 GPIO) and `R_bg1.1` | the GPIO waveform is the ONLY lever |
 
 So the level is a FIRMWARE constant by construction. It lives, with its full
-derivation, model and trim ladder, in **`05_firmware/cal_burst.c`** —
-`CAL_BURST_DUTY_NUM/DEN = 1/6`, giving `20·log10(sin(π/6)) = −6.0206 dB` of
-4 kHz fundamental and **100.7967 dB SPL** at the capsule, clearing the ceiling
-by 0.5178 dB. `make test` re-derives all of it from the physics.
+derivation, both models and the trim ladder, in **`05_firmware/cal_burst.c`** —
+`CAL_BURST_DUTY_NUM/DEN = **1/12**`, giving `20·log10(sin(π/12)) = −11.7401 dB`
+of 4 kHz fundamental and **99.0772 dB SPL** at the capsule for a typical unit,
+clearing the ceiling by **+2.2372 dB** (and 95.0772 dB / +6.2372 dB for a
+minimum-spec unit). `make test` re-derives all of it from the physics.
+
+**`sin(πD)` is NOT a conservative bound at this duty — re-verified, and the
+earlier conclusion is not carried forward.** It *was* conservative at 1/6
+(every L corner returned −6.02…−6.68 dB against the law's −6.021). At 1/12 two
+mechanisms push the delivered attenuation the WRONG way:
+
+1. **L-R regime change.** The 20.8 µs pulse no longer lets the coil current
+   build, so the long freewheel tail dominates the waveform. Exact-exponential
+   integration of `i' = (v−iR)/L` with the SS14 freewheel gives −10.905 dB at
+   the L = 3 mH corner against the law's −11.740 — **non-conservative by
+   +0.835 dB**.
+2. **Gate-RC duty bias — larger, and previously unnoticed anywhere in this
+   design.** Turn-ON waits only for the gate to CLIMB to `Vgs(th)` (0.65–1.45 V,
+   20–44 % of the 3.3 V drive); turn-OFF waits for it to FALL from ~3.26 V all
+   the way DOWN to `Vgs(th)` (56–80 % of the way). The lags are asymmetric, so
+   the conduction window is **STRETCHED** by +1.11 µs (Vth 1.45) to +6.47 µs
+   (Vth 0.65). The stretch is an ABSOLUTE time, so its fractional cost grows as
+   the duty shrinks: 5 % of the pulse at 1/2, **31 % at 1/12**. DETAIL_DESIGN
+   documents this RC purely as an EMI slew-limiter; it also biases the duty
+   upward, which only matters once duty is used to control LEVEL.
+
+**Combined worst case: −8.71 dB, not −11.74 dB. Slack +3.03 dB**, under which
+the typical unit **misses the ceiling by 0.79 dB** (the minimum-spec unit still
+clears by +3.21 dB). So the criterion is met NOMINALLY and not under worst
+case, and the open-loop uncertainty (~3 dB) is LARGER than the criterion
+(2.24 dB). **The level must be trimmed against a MEASUREMENT at bring-up** —
+or taken open-loop at `DEN = 14`, the first value that clears worst case
+(+0.11 dB; 16 → +0.93 dB, 20 → +2.41 dB). The trim floor moved 16 → 24 for
+exactly that reason: the old floor forbade the values that fix the worst case.
 
 Nothing about this touches copper, the BOM, or any release: `07_releases/`
 payloads are `fab/ source/ verification/ 3d/ pdf/ MANIFEST.txt ORDER_README.md`
 and carry no firmware. **v1.7 stays sealed and live.** The operator-facing copy
 of this constraint is owed to the NEXT release's `ORDER_README.md` (the sealed
 ones are immutable and cannot be retro-filled).
-
-Open and NOT covered by the −6 dB fix: CAL-1's shortfall is computed from LS1's
-datasheet MINIMUM output. A unit at the datasheet's own TYPICAL response curve
-(~104 dB @ 10 cm at 3.9 kHz, rev 1.04 p.3) lands at 110.8173 dB and stays
-3.48 dB over the ceiling even after −6.02 dB. The level must be **trimmed
-against a measurement at bring-up**.
 
 ## Ground strategy
 

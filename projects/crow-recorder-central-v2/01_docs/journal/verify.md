@@ -184,3 +184,69 @@
   (every existing one is inside an immutable sealed release). And the residual
   is the user's: -6 dB clears a MINIMUM-output LS1 by 0.52 dB and leaves a
   TYPICAL-output one 3.48 dB over - trim against a measurement at bring-up.
+
+## 2026-07-28 13:20 — iterate 2 (retune 1/6 -> 1/12; the bound REFUTED at the new duty)
+- did: USER DECISION — retune to duty 1/12 AND move the acceptance criterion
+  from "clears a minimum-spec LS1" to "clears a unit on the ds TYPICAL curve".
+  Instruction was explicit: re-verify the sin(pi*D) bound AT THE NEW DUTY and
+  do not carry the old conclusion forward. Re-ran the L-R integration with an
+  EXACT per-step exponential (not Euler) over L = 10 uH .. 3 mH.
+- result: **THE LAW IS NOT A CONSERVATIVE BOUND AT 1/12.** It was at 1/6
+  (-6.02..-6.68 dB at every corner vs the law's -6.021). At 1/12 it fails, and
+  for TWO reasons, only one of which was predicted:
+  (a) L-R REGIME CHANGE (predicted): the 20.8 us pulse no longer lets current
+      build, the long freewheel tail dominates, and the L=3mH corner returns
+      -10.905 dB against the law's -11.740 -> NON-CONSERVATIVE by +0.835 dB.
+  (b) GATE-RC DUTY BIAS (NOT predicted, and the DOMINANT term): turn-ON waits
+      only for the gate to CLIMB to Vgs(th) (20-44% of the 3.3V drive) but
+      turn-OFF waits for it to FALL from ~3.26V DOWN to Vgs(th) (56-80% of the
+      way). Asymmetric -> the conduction window is STRETCHED by +1.11 us
+      (Vth 1.45) to +6.47 us (Vth 0.65). It is an ABSOLUTE time, so its
+      fractional cost grows as duty shrinks: 5% of the pulse at D=1/2, 31% at
+      D=1/12. DETAIL_DESIGN documents this RC ONLY as an EMI slew-limiter;
+      nobody noticed it also biases the duty UPWARD, which only becomes a
+      defect once duty is used to control LEVEL.
+  COMBINED WORST CASE over L in {20u,100u,500u,3m} x Vth in {0.65,1.05,1.45}:
+  **-8.71 dB, not -11.74 dB. Slack +3.03 dB.**
+  MARGINS: criterion shortfall vs the TYPICAL unit = 9.5028 dB (110.8173 -
+  101.3144). At 1/12 nominal: typical +2.2372 dB PASS, minimum-spec +6.2372.
+  At 1/12 WORST CASE: typical **-0.79 dB, STILL CLIPS**; minimum-spec +3.21 dB.
+  So the structural finding is: the OPEN-LOOP UNCERTAINTY (~3 dB) EXCEEDS THE
+  CRITERION (2.24 dB). This level cannot be set open-loop to the accuracy the
+  criterion demands. den=14 is the first value clearing worst case (+0.11 dB);
+  16 -> +0.93, 20 -> +2.41. Trim floor raised 16 -> 24 (the old floor forbade
+  exactly the values that fix the worst case; at 1/24 the gate still peaks at
+  2.94 V vs the AO3400A's 2.5 V Rdson spec point).
+- next: land 1/12 with BOTH models declared, move the test to the new
+  criterion, re-RED-verify, propagate to both boards.
+
+## 2026-07-28 13:55 — finish (retune landed; residual recorded OPEN, not smoothed)
+- did: landed DEN=12, moved the test's acceptance criterion to the TYPICAL
+  unit, added always-run inline known-bad fixtures for BOTH superseded values,
+  and pinned the declared worst-case constant to the model so a future retune
+  cannot leave it stale.
+- result: `make test` **PASS, 0 failures**, and it prints the residual in the
+  clear ("criterion met NOMINALLY +2.24 dB; under the WORST-CASE model MISSED
+  by 0.79 dB"). RED-VERIFIED against the NEW criterion by recompilation:
+  DEN=2 -> 6 failures, exit 1; DEN=6 -> 6 failures, exit 1 (TYPICAL-unit margin
+  -9.5028 and -3.4822). Both are ALSO checked inline on every run, so the gate
+  proves it can fail without a recompile.
+  One thing the retune changed that I did not expect beyond the bound: the
+  TIMER QUANTIZATION error grew from -0.0006 dB at 1/6 to -0.0014 dB at 1/12,
+  because sin(pi*D) is steeper at small D. Still negligible; the test's
+  tolerance is now stated against that physics (0.01 dB, ~300x below the 3 dB
+  open-loop uncertainty) rather than an arbitrary round number.
+  Side effects at 1/12: coil average current ~10-25 mA (deep DCM, peak
+  33-307 mA depending on L), shared Q2 ~60-150 mA, pod cable IR ~0.02 V, MK1
+  headroom to its 110 dB THD limit 10.92 dB typical / 14.92 dB minimum-spec.
+  FAR END re-checked at the new duty and still fine: far-pod matched-filter SNR
+  42.95 dB at 25 dB(1/3-oct) ambient, 22.95 dB at 45 dB, timing sigma
+  0.28-2.83 us against a 20.83 us sample; local path 95.077 dB SPL, 81.1 dB
+  above the mic's own self-noise.
+  NO copper, BOM, netlist or release moved. 04_kicad/ and 07_releases/ not
+  written on either board; central v1.7 and pod v1.3 stay sealed and live.
+- next: USER CALL on the worst-case residual — trim against a measurement at
+  bring-up (scoping BEEP_RETURN at TP11 against the commanded pulse reads the
+  gate-RC stretch directly and collapses most of the 3 dB), or take DEN=14
+  open-loop. Still owed: the operator-facing copy in the NEXT release's
+  ORDER_README.

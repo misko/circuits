@@ -3,7 +3,72 @@
 One entry per REVISION (a design state, git-tagged). Reverse-chronological.
 `Released:` is `no`, or the name of the `07_releases/` directory that shipped it.
 
-## v1.8 — 2026-07-28 — FIRMWARE + DOCS ONLY
+## v1.9 — 2026-07-28 — FIRMWARE + DOCS ONLY (retune of v1.8)
+
+- **No copper, no BOM, no netlist, no release.** Same shape as v1.8. v1.7
+  remains the live, sealed, orderable release; the pod's v1.3 likewise.
+- **THE ACCEPTANCE CRITERION CHANGED, not just the constant.** USER DECISION:
+  CAL-1 as filed sized the shortfall against LS1's datasheet MINIMUM output,
+  which is the wrong end of the tolerance for a CLIPPING problem — the unit
+  that clips is a LOUD one. The criterion is now **"clears a unit on the
+  datasheet's TYPICAL curve"** (~104 dB @ 10 cm at 3.9 kHz, rev 1.04 p.3):
+  burst **110.8173 dB SPL** at the capsule, ceiling 101.3144, **binding
+  shortfall 9.5028 dB** (was 5.5028 against the minimum-spec unit).
+- **The constant.** `CAL_BURST_DUTY_DEN` **6 → 12**. Nominal attenuation
+  `20·log10(sin(π/12))` = **−11.7401 dB** → **99.0772 dB SPL** typical /
+  95.0772 dB minimum-spec, clearing by **+2.2372** / +6.2372 dB. The old 1/6
+  cleared the OLD criterion by 0.52 dB and MISSES the new one by 3.48 dB.
+- **`sin(πD)` IS NO LONGER A CONSERVATIVE BOUND, and the old conclusion is not
+  carried forward.** v1.8 established the law as a conservative bound at 1/6
+  by integrating the L-R-diode circuit over 20 µH…3 mH. Re-run at 1/12, it
+  fails — for TWO reasons, one predicted and one not:
+  - **L-R regime change** (predicted): the 20.8 µs pulse no longer lets the
+    current build, the long freewheel tail dominates, and the L = 3 mH corner
+    returns **−10.905 dB** against the law's −11.740 — **+0.835 dB
+    non-conservative**. At 1/6 every corner had been conservative.
+  - **Gate-RC duty bias** (NOT predicted, and the dominant term): turn-ON waits
+    only for the gate to CLIMB to `Vgs(th)` (20–44 % of the 3.3 V drive), but
+    turn-OFF waits for it to FALL from ~3.26 V DOWN to `Vgs(th)` (56–80 % of
+    the way). The lags are asymmetric, so the conduction window is **STRETCHED
+    by +1.11…+6.47 µs**. Being an ABSOLUTE time, its fractional cost grows as
+    the duty shrinks: **5 % of the pulse at D = 1/2, 31 % at D = 1/12.**
+    DETAIL_DESIGN had documented this RC purely as an EMI slew-limiter; nobody
+    had noticed it also biases the duty upward, which only becomes a defect
+    once duty is used to control LEVEL.
+  - **Combined worst case: −8.71 dB, not −11.74 dB. Slack +3.03 dB.**
+- **So the criterion is met NOMINALLY (+2.24 dB) and MISSED under the
+  worst-case model (−0.79 dB), and that is recorded as OPEN, not smoothed
+  over.** The minimum-spec unit still clears worst-case by +3.21 dB. The real
+  finding is structural: **the open-loop uncertainty (~3 dB) is LARGER than the
+  criterion (2.24 dB)**, so this level cannot be set open-loop to the accuracy
+  the criterion demands. Trim against a MEASUREMENT at bring-up, or take
+  `DEN = 14` — the first value that clears worst case (+0.11 dB; 16 → +0.93,
+  20 → +2.41). Scoping `BEEP_RETURN` at TP11 against the commanded pulse reads
+  the stretch directly and collapses most of the 3 dB.
+- **Trim floor 16 → 24.** The old floor would have forbidden 1/14…1/20 —
+  exactly the values that fix the worst case. At 1/24 the gate still peaks at
+  2.94 V, clearing the AO3400A's 2.5 V Rdson spec point; past ~1/37 it never
+  reaches 2.5 V at all.
+- **Test moved to the new criterion and re-RED-verified.** `make test` **PASS,
+  0 failures**, and now carries BOTH old values as ALWAYS-RUN inline known-bad
+  fixtures (den 2 → −9.50 dB, den 6 → −3.48 dB against the typical unit), so
+  the gate proves it can fail on every run rather than only on a recompile.
+  Recompiled at `DEN = 2` and at `DEN = 6`: **6 failures each, exit 1 both
+  times.** A new assertion pins the declared worst-case constant to the model,
+  so a future retune cannot silently leave the uncertainty stale.
+- **Far end re-checked at the new duty, still fine.** Far-pod matched-filter
+  SNR 42.95 dB at a 25 dB(⅓-oct) ambient and 22.95 dB at 45 dB, timing σ
+  0.28–2.83 µs against a 20.83 µs sample. Local path 95.077 dB SPL, 81.1 dB
+  above the mic's own self-noise. Coil average current now ~10–25 mA (deep
+  DCM), shared Q2 ~60–150 mA, pod capsule headroom to its 110 dB THD limit
+  10.92 dB (typical) / 14.92 dB (minimum-spec).
+- One quantization note: the timer rounding error grew from −0.0006 dB at 1/6
+  to −0.0014 dB at 1/12, because `sin(πD)` is steeper at small D. Negligible
+  now; the test's tolerance is stated against that physics rather than a
+  round number.
+- Released: no
+
+## v1.8 — 2026-07-28 — FIRMWARE + DOCS ONLY (SUPERSEDED BY v1.9 SAME DAY — the duty below was retuned 1/6 → 1/12 when the acceptance criterion moved to the TYPICAL-curve unit; kept for the record)
 
 - **No copper, no BOM, no netlist, no release.** `04_kicad/` and `07_releases/`
   untouched; `03_src/` and `03_tscircuit/` untouched. **v1.7 remains the live,
