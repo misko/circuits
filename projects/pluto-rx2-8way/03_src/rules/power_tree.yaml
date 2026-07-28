@@ -1,129 +1,67 @@
-# SCHEMA EXAMPLE (skill-owned, project-independent). Copy into a new project's
-# 03_src/rules/ and replace the values — the KEYS are the contract.
+# pluto-rx2-8way — power tree. The input to E-TOPO / E-MARGIN / E-OFF
+# (skills/kicad-pcb/scripts/power_topology.py). Authored at stage 3; see
+# 01_docs/ARCHITECTURE.md "Power tree" and 01_docs/decisions/0004-*.md.
+
+# ---- E-OFF: de-energization + stored draw (ADR-0004) ----
+# This board carries NO self-contained energy source. It is bus-powered from a
+# USB-C host and is de-energized by unplugging the cable. Declared rather than
+# omitted: E-OFF must grade this as N-A FOR A STATED REASON, not because the
+# file is silent (canon M-COVER — a gate that passes while grading nothing).
+source_type: usb_bus_powered_5v
+off_control: "unplug the USB-C cable — no self-contained energy source is
+              present on the board (ADR-0004)"
+quiescent_ua: 0
+# Unplugged the board holds <= 6.1 uF of ceramic bypass (held under the USB 2.0
+# 10 uF downstream-bypass limit by design, ADR-0004), which the regulator's own
+# path bleeds in milliseconds. There is no storage self-drain question.
+
+input_trunk_class: PWR
+
+rails: []
+# ================= WHY `rails:` IS EMPTY, AND WHAT MAKES IT HONEST ==========
 #
-# The POWER-TREE gate battery reads this ONE file (power_topology.py):
-#   E-TOPO   — converter topology DERIVED from Vin-vs-Vout (default run)
-#   E-MARGIN — output setpoint vs load brownout, net of the delivery IR drop
-#              (`power_topology.py <proj> --margin`)
-#   E-OFF    — de-energization path + stored quiescent draw for a battery source
-#              (`power_topology.py <proj> --off-control`)
+# The board HAS one converted rail — 5 V VBUS -> 3.3 V for the RP2040, the
+# QSPI flash and PE42482A-X's VDD. Its ENVELOPE is already fixed and lives in
+# 01_docs/ARCHITECTURE.md and DETAIL_DESIGN.md:
 #
-# WHY E-TOPO: usb-hub-3s (2026-07-22) shipped an IP6559 BUCK-BOOST + 4 external
-# FETs + 30V-FET/TVS coordination + a 16A input trunk for a 5V-ONLY USB-C port.
-# But the battery is 9-12.6V and the output is 5V, so Vout(5) < Vin_min(9)
-# ALWAYS: a plain step-down BUCK sufficed. Root cause: D-SPEC pinned the CURRENT
-# ("5A compliant") but never the OUTPUT VOLTAGE RANGE, and topology was
-# interpreted.
-#   Vout_max < Vin_min  -> BUCK        (step-down only)
-#   Vout_min > Vin_max  -> BOOST       (step-up only)
-#   ranges overlap      -> BUCK_BOOST  (must do both)
-# The converter's part.yaml `type:` must EQUAL the derived topology; MORE capable
-# than needed = over-engineering (FAIL, waiver-able with an ADR justifying the
-# extra capability), LESS capable = cannot meet Vout (FAIL).
+#     name        3V3
+#     vin_min     4.75 V   (USB 2.0 low limit at the device end)
+#     vin_max     5.25 V   (USB 2.0 high limit)
+#     vout_min    3.20 V   (3.3 V nominal, -3% worst case)
+#     vout_max    3.40 V   (3.3 V nominal, +3% worst case)
+#     iout_max_A  0.15     (design envelope; ~0.06 A typical — see nets.yaml PWR)
+#     converter   <OWED — the LDO has no 02_parts dossier yet>
 #
-# WHY E-MARGIN + E-OFF: usb-hub-3s-v3 (2026-07-23) passed BOTH zero-context
-# red-team reviews with two defects neither flagged — (A) a 4.97V rail feeding a
-# Raspberry Pi 5 (UV detect ~4.63V) at 5A left only ~68mΩ for board+connector+
-# cable IR drop (the setpoint headroom was computed but never judged); (B) a
-# 3S-LiPo board tied both buck EN pins active with no master switch, so the
-# controllers idle-drain the pack in storage (no review asked how it is
-# de-energized). The optional fields below make both a gated NUMBER.
-
-# ---- E-OFF: de-energization + stored quiescent draw (OPTIONAL, top-level) ----
-# Declare these when the board carries its own energy source. E-OFF FIRES when a
-# battery/cell/pack is detected (source_type:, or VBAT/BATT/PACK nets, or a
-# battery ADR); an external supply (usb / dc_jack / mains) is N-A — unplugging
-# de-energizes it. "always-on" is allowed ONLY with an ADR reference in the
-# string (a self-draining storage state must be an explicit decision).
-source_type: 3S-LiPo pack        # battery|cell|lipo|pack|... vs usb|dc_jack|mains
-off_control: "SW1 master slide switch in series with VBAT"  # the de-energize path
-quiescent_ua: 60                 # stored/shutdown draw, µA (idle controllers etc.)
-pack_capacity_mah: 5000          # OPTIONAL — enables an advisory self-drain-time print
-
-# OPTIONAL: name the nets.yaml netclass that carries the shared input trunk.
-# When set, an input-trunk current declared MATERIALLY BELOW the derived worst
-# case is an under-built-copper FAIL (not just an advisory). Omit it and the
-# checker falls back to a heuristic and stays advisory-only.
-input_trunk_class: PWR_IN
-
-# OPTIONAL: E-MARGIN floor (mΩ) used for a rail that declares load_uv_threshold
-# but no ir_budget_mohm — the minimum series-resistance budget the setpoint
-# headroom must buy (default 100 mΩ ~= a bare realistic cable+connector+trace).
-ir_floor_mohm: 100
-
-rails:
-  # A 5V-FIXED output rail sets vout_min == vout_max == 5. `converter` is the
-  # part MPN or its 02_parts directory name; its part.yaml `type:` is read.
-  - name: USB-A            # human label for the rail
-    vin_min: 9.0           # battery / input rail LOW  (worst case for buck)
-    vin_max: 12.6          # battery / input rail HIGH
-    vout_min: 5            # output envelope LOW  (== max for a fixed rail)
-    vout_max: 5            # output envelope HIGH
-    iout_max_A: 7          # max continuous output current, amps
-    converter: LM5116MHX-NOPB   # <refdes or part MPN / 02_parts dir name>
-    eff: 0.9               # converter efficiency (default 0.9 if omitted)
-
-  # A rail feeding a KNOWN brownout-sensitive load (E-MARGIN). load_uv_threshold
-  # ACTIVATES the check; vout_min is the WORST-CASE (lowest) regulated output.
-  # Here a Pi5 (UV ~4.63V) at 5A: a 5.1V setpoint over an assumed 60mΩ delivery
-  # path passes (headroom 470mV > 60mΩ x 5A x 1.2 = 360mV). The 4.97V setpoint
-  # the v3 board shipped would FAIL. The reviewer confirms ir_budget_mohm ([H]).
-  # - name: PI5
-  #   vin_min: 9.0
-  #   vin_max: 12.6
-  #   vout_min: 5.1
-  #   vout_max: 5.1
-  #   iout_max_A: 5
-  #   converter: LM5116MHX-NOPB
-  #   load_uv_threshold: 4.63   # the load's undervoltage / brownout voltage, V
-  #   ir_budget_mohm: 60        # worst-case board+connector+cable series R, mΩ
-  #   margin: 0.2               # OPTIONAL headroom margin over the IR drop (default 0.2)
-
-  # OPTIONAL per-rail `feedback:` — the divider-tolerance window (2026-07-23,
-  # usb-hub-3s-v3 external review): the gates accepted AUTHOR-DECLARED
-  # vout_min/vout_max, and the author computed them from ONLY the regulator
-  # reference tolerance (Vref ±1.5%), omitting the divider resistors' — the
-  # real window (Vref 1.215V ±1.5%, Rtop 4.12k ±0.1%, Rbot 1.21k ±1%) is
-  # 5.227-5.479V vs the declared 5.27-5.43V, and nothing could catch it.
-  # With the block present the checker COMPUTES the worst-case corners of
-  #   vout = vref * (1 + r_top/r_bottom)
-  #   low  = vref_min * (1 + r_top_min / r_bottom_max)
-  #   high = vref_max * (1 + r_top_max / r_bottom_min)
-  # and (a) E-TOPO + E-MARGIN FAIL if the DECLARED window is NARROWER than the
-  # computed one (under-stated corners), (b) E-MARGIN grades headroom from the
-  # COMPUTED worst-low, not the declared vout_min. All six fields are REQUIRED
-  # when the block is present (a partial tolerance stack is the incident in
-  # disguise). Absent -> declared window taken at face value (back-compat).
-  # - name: USB-C
-  #   vin_min: 9.0
-  #   vin_max: 12.6
-  #   vout_min: 5.22            # must COVER the computed 5.227-5.479 corners
-  #   vout_max: 5.48
-  #   iout_max_A: 5
-  #   converter: LM5116MHX-NOPB
-  #   load_uv_threshold: 4.63
-  #   ir_budget_mohm: 88
-  #   feedback:
-  #     vref: 1.215             # regulator FB reference, V
-  #     vref_tol_pct: 1.5       # reference tolerance, %
-  #     r_top_ohm: 4120         # divider top (output -> FB), Ω
-  #     r_top_tol_pct: 0.1      # its tolerance, %
-  #     r_bottom_ohm: 1210      # divider bottom (FB -> GND), Ω
-  #     r_bottom_tol_pct: 1.0   # its tolerance, %
-
-  # A full-PD rail (5-20V) legitimately overlaps Vin -> buck_boost is REQUIRED
-  # and a buck_boost part PASSES (not over-engineering):
-  # - name: USB-C-PD
-  #   vin_min: 9.0
-  #   vin_max: 12.6
-  #   vout_min: 5
-  #   vout_max: 20
-  #   iout_max_A: 5
-  #   converter: IP6559-C
-  #   eff: 0.9
-
-# E-TOPO also PRINTS the worst-case input-trunk current
-#   Sum(vout_max * iout_max) / eff / Vin_min
-# across all rails, and flags a declared trunk/fuse that is under-built
-# (materially below the derived need) or over-built (>2x it — the usb-hub-3s
-# 16A-vs-7A class). Always reported so the mismatch is visible.
+# Derived topology: vout_max (3.40) < vin_min (4.75) => step-down => a LINEAR
+# regulator MEETS the requirement (E-TOPO's 2026-07-27 amendment). Its dropout
+# and dissipation bounds are the numbers that matter and both are already
+# constrained in DETAIL_DESIGN section 5:
+#     dropout at 0.15 A must be <= 4.75 - 3.40 = 1.35 V
+#     PD = (5.25 - 3.20) * 0.15 = 308 mW  -> the package rating must exceed it
+#     and ADR-0004 additionally binds V_IN(abs max) >= 10 V so the TVS clamp
+#     (~9.2 V at 43.5 A for the SMAJ5.0A class) sits INSIDE the regulator's
+#     rating rather than outside it.
+#
+# `converter:` must name a part that exists in 02_parts, and the LDO dossier is
+# a stage-2 continuation item (02_parts/README.md). Naming a part that is not
+# there is a LoadError FAIL — strictly worse than the N-A this file earns
+# today, because a LoadError says nothing about coverage.
+#
+# THE N-A IS EARNED, NOT ASSERTED. power_topology.py checks `rails: []` against
+# 02_parts DIRECTLY (converter_census(), canon M1: "checked against 02_parts,
+# not against the power tree's own say-so"). 02_parts currently declares three
+# parts — an SP8T switch, an SMA jack and a thick-film resistor — and no
+# converter of any kind, so E-TOPO reports:
+#
+#     E-TOPO N-A: 0/0 — power_tree.yaml has no rails, and 02_parts declares no
+#     buck/boost/buck_boost/linear converter, so there is genuinely nothing to
+#     derive
+#
+# and THE MOMENT the LDO dossier lands this file turns E-TOPO RED until the
+# rail above is uncommented with its `converter:` filled. That is the intended
+# failure mode: the gap is held open by the gate, not by a TODO.
+#
+# E-MARGIN: N-A by construction. No rail on this board feeds a load with a
+# published brownout threshold — the RP2040, the flash and the switch are all
+# ordinary 3.3 V parts with no external undervoltage-detect behaviour, so there
+# is no `load_uv_threshold` to declare. Stated rather than left blank.

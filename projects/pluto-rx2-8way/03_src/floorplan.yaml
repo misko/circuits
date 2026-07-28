@@ -1,125 +1,190 @@
-# SCHEMA EXAMPLE (skill-owned, project-independent). Adopted from a proven
-# board as a reference for the generic backend's config format. Copy into a
-# new project's 03_src/ and replace the values — the KEYS are the contract.
+# pluto-rx2-8way floorplan — the per-board input to
+# skills/kicad-pcb/scripts/generate_board_generic.py (no board-specific
+# generation Python; ADR-0002 of the repo).
 #
-# cook-loadcell floorplan — the whole per-board input to
-# skills/kicad-pcb/scripts/generate_board_generic.py, replacing the 373-line
-# hand-written 03_src/generate_board.py.
-#   /usr/bin/python3 ../../skills/kicad-pcb/scripts/generate_board_generic.py \
-#       03_src/floorplan.yaml -o 06_build/proof/cook_loadcell.kicad_pcb
-# 55x45 2-layer: sensors J1/J2 + J5 north, J3/J4 + J6 south, HX711 center-west
-# (analog corner W, digital SE).
+# THIS FILE IS INTENT, NOT COPPER. Every number below is DERIVED in
+# 01_docs/decisions/0007-radial-star-floorplan.md and 01_docs/DETAIL_DESIGN.md;
+# nothing here has been measured, legalized or gated yet. At stage 5 the
+# legalizer may move SEEDS (never ANCHORS), and placement_gates.py (P-OUT pads
+# inside the outline polygon, P-CAP corridor demand) plus P-COLLIDE grade the
+# result.
+#
+# THE SHAPE, IN ONE SENTENCE: PE42482A-X sits at the geometric centre of a
+# 20.0 mm ring carrying ten vertical SMA jacks at 30 degree spacing over 270
+# degrees, with the remaining 90 degree sector (centred straight down, off the
+# package's pins-7..12 edge) reserved as the digital escape corridor into a
+# 24 mm strip along the bottom of the board. Nine equal-length 50 ohm arms —
+# EQUAL LENGTH IS EQUAL PHASE BY CONSTRUCTION, which is the whole AoA
+# requirement (ADR-0006).
+#
+# WHY THE OUTLINE IS A RECTANGLE AND NOT pSemi's OCTAGON: the EVK (Figure 21,
+# PDF p19) uses EDGE-LAUNCH jacks, which must sit on an edge, so nine of them
+# force a nine-sided outline. KH-SMA-KE-Z is a VERTICAL THT FLANGE jack that
+# mounts on the board FACE. The polygon was the connector style's shadow, not
+# the requirement — and dropping it keeps this board inside the SHARED generic
+# backend, which supports a rectangle (+ corner radius, + edge notches) and has
+# no polygon outline at all.
 
 project:
-  name: cook_loadcell
-  netlist: 06_build/netlists/cook_loadcell.net
-  output: 04_kicad/cook_loadcell.kicad_pcb
+  name: pluto_rx2_8way
+  netlist: 06_build/netlists/pluto_rx2_8way.net
+  output: 04_kicad/pluto_rx2_8way.kicad_pcb
   parts_dir: 02_parts
 
 board:
-  outline: {x0: 20.0, y0: 20.0, x1: 75.0, y1: 65.0}
+  # 50.0 x 68.0 mm. Star centre C = (46.0, 46.0), ring radius R = 20.0 mm.
+  outline: {x0: 21.0, y0: 21.0, x1: 71.0, y1: 89.0}
   edge_width: 0.1
-  layers: 2
+  layers: 4
   mounting_holes:
+    # Ten cabled SMA ports are ten torque paths into one laminate; these are
+    # structural. All four sit >= 10.4 mm from the nearest flange centre.
     footprint: MountingHole:MountingHole_3.2mm_M3
-    at: [[23.5, 23.5], [71.5, 23.5], [23.5, 61.5], [71.5, 61.5]]
+    at: [[24.5, 24.5], [67.5, 24.5], [24.5, 84.5], [67.5, 84.5]]
 
 libraries: [/usr/share/kicad/footprints]
+# plus the project footprint library once QFN-24_4x4_P0.5_EP2.7_PE42482 and
+# SMA_Vertical_5.08sq_D1.4 are authored — BOTH ARE OWED (02_parts/README.md
+# deviation 4); neither exists in this repo or anywhere else, and neither may
+# be copied from the sibling board.
 
 placement:
-  # anchors are PINNED — the legalizer never moves them
+  # ANCHORS are PINNED — the legalizer never moves them. Everything here is a
+  # position the RF derivation produced, so moving it changes an electrical
+  # claim, not a convenience.
   anchors:
-    # XH footprints are pad-1-origin; pads run +x at rot 0. Pitch must be
-    # >= 11.1 (B3B-XH courtyard is 10.99 wide) or bodies overlap pairwise
-    # and J1/J3 pad 1 lands on the corner mounting holes.
-    J1: [30.2, 24.2, 0]
-    J2: [41.3, 24.2, 0]
-    J5: [52.5, 24.2, 0]
-    J3: [30.2, 60.8, 0]
-    J4: [41.3, 60.8, 0]
-    J6: [53.5, 60.8, 0]
-    U1: [38.0, 42.0, 0]
-    Q1: [28.5, 36.0, 0]
-    JP1: [63.0, 42.0, 270]
-  # seeds are starting points the legalizer may walk outward from
+    # ---- the switch, at the geometric centre, rotation 0 so that pins 7..12
+    #      (GND, VDD, V1..V4 — the only side with no RF on it) face DOWN into
+    #      the escape sector. Every RF port then exits toward its own slot and
+    #      NO ARM CROSSES ANOTHER ARM (ADR-0007).
+    U_SW: [46.0, 46.0, 0]
+
+    # ---- the ring: x = 46 + 20*cos(theta), y = 46 - 20*sin(theta), with theta
+    #      in the usual math convention (y-up) and the KiCad angle taken as
+    #      (-theta) mod 90. The 5.08 mm post square is 4-fold symmetric, so the
+    #      rotation is electrically irrelevant and is chosen only to maximise
+    #      the flange-to-flange gap; at R = 20 that gap is 2.39 mm (support
+    #      bound), against 1.36 mm at R = 18 and 0.09 mm — i.e. touching — at
+    #      R = 18 with axis-aligned flanges. THAT GAP IS THE GROUND-VIA FENCE,
+    #      and the fence is the port-to-port isolation budget.
+    J_RX2:  [40.824, 26.681, 75]   # theta 105  <- RFC  (pin 22) -> Pluto RX2
+    J_ANT1: [31.858, 31.858, 45]   # theta 135  <- RF1  (pin 24)
+    J_ANT2: [26.681, 40.824, 15]   # theta 165  <- RF2  (pin 2)
+    J_ANT3: [26.681, 51.176, 75]   # theta 195  <- RF3  (pin 4)
+    J_ANT4: [31.858, 60.142, 45]   # theta 225  <- RF4  (pin 6)
+    J_ANT5: [60.142, 60.142, 45]   # theta 315  <- RF5  (pin 13)
+    J_ANT6: [65.319, 51.176, 15]   # theta 345  <- RF6  (pin 15)
+    J_ANT7: [65.319, 40.824, 75]   # theta 15   <- RF7  (pin 17)
+    J_ANT8: [51.176, 26.681, 15]   # theta 75   <- RF8  (pin 19) = the RX1 antenna
+    J_RX1:  [60.142, 31.858, 45]   # theta 45   -> Pluto RX1 (off-switch)
+
+    # ---- the pickoff cell, ON the 75 degree radius so the RX1 arm is the same
+    #      radial run as the other eight. IDENTICAL rotation on both, never
+    #      mirrored: mounting-inductance asymmetry is ~0.1 nH ~= 2 deg at
+    #      6 GHz and mirroring converts fillet asymmetry into calibration
+    #      error (ADR-0006(d)). This is a CPL fact.
+    #      r is bounded ABOVE by the J_ANT8 flange, whose inner edge sits at
+    #      r = 20.0 - 3.25 = 16.75: at r = 15.0 the outer pad of R_T1 reaches
+    #      r = 15.48, leaving 1.27 mm. Pad-to-pad span across RX1_TAP_MID is
+    #      then 1.04 mm, inside the lambda_g/20 = 1.37 mm lumped bound.
+    R_T1: [49.882, 31.511, 15]     # r = 15.0 on theta 75 (antenna side)
+    R_T2: [49.365, 33.443, 15]     # r = 13.0 on theta 75 (switch side)
+
+  # SEEDS are starting points the legalizer may walk outward from.
   seeds:
-    R1: [28.5, 39.5]
-    R2: [26.6, 42.6]     # moved: its GND pad kept landing on the S_PLUS B.Cu run
-    C1: [28.5, 44.5]
-    C2: [28.5, 47.0]
-    R7: [63.0, 27.5]
-    C7: [63.0, 30.0]
-    SJ1: [63.0, 32.5]
-    C3: [44.0, 38.0]
-    C4: [47.0, 38.0]
-    C5: [44.0, 46.0]
-    C6: [47.0, 46.0]
-    D1: [55.0, 55.0]
-    D2: [58.0, 55.0]
-    TP1: [24.0, 32.0]
-    TP2: [24.0, 40.0]
-    TP3: [24.0, 48.0]
-    TP4: [24.0, 55.0]
-    TP5: [52.0, 51.0]
-    TP6: [56.0, 51.0]
-    TP7: [60.0, 51.0]
-  patterns:
-    # the KiCad SolderJumper footprint ships exclude_from_bom but the symbol
-    # is in_bom yes -> footprint_symbol_mismatch parity error. Clear it.
-    - match: "SJ*"
-      clear_attrs: [exclude_from_bom]
+    # VDD bypass at pin 8 (part.yaml budgets SW_VDD <= 3 mm)
+    C_SW1: [44.6, 49.4]
+    C_SW2: [47.4, 49.4]
+    # the four pull-downs at pins 9..12, inside the escape corridor
+    R_PD1: [43.4, 50.6]
+    R_PD2: [45.0, 50.6]
+    R_PD3: [46.6, 50.6]
+    R_PD4: [48.2, 50.6]            # V4: part.yaml budgets SW_V4 <= 4 mm
+    # the digital strip (y >~ 65): MCU, flash, crystal, regulator, USB
+    U_MCU:   [46.0, 72.0]
+    U_FLASH: [38.0, 72.0]
+    Y_XTAL:  [54.0, 72.0]
+    C_MCU1:  [42.0, 68.0]
+    C_MCU2:  [50.0, 68.0]
+    C_MCU3:  [42.0, 76.0]
+    C_MCU4:  [50.0, 76.0]
+    R_S1: [43.0, 66.5]
+    R_S2: [44.6, 66.5]
+    R_S3: [46.2, 66.5]
+    R_S4: [47.8, 66.5]
+    U_LDO:  [30.0, 80.0]
+    C_LDI:  [27.0, 80.0]
+    C_LDO:  [33.0, 80.0]
+    F_IN:   [30.0, 84.0]
+    D_TVS:  [34.0, 84.0]
+    FB_IN:  [27.0, 84.0]
+    C_BULK: [37.0, 84.0]
+    J_USB:  [46.0, 87.0]
+    R_CC1:  [50.0, 84.0]
+    R_CC2:  [52.0, 84.0]
+    U_ESD:  [54.0, 84.0]
+    LED_PWR: [60.0, 80.0]
+    LED_ST:  [63.0, 80.0]
+    R_LED1:  [60.0, 77.0]
+    R_LED2:  [63.0, 77.0]
+    SW_BOOT: [66.0, 84.0]
+
   legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 40}
 
+# ESCAPE CORRIDOR — the reserved lane off the ONE side of U_SW that carries no
+# RF (pins 7..12: GND, VDD, V1..V4, escape budget 5, recorded in the part.yaml
+# escape block). Expands to a named rule area denying footprints and pours
+# while leaving tracks and vias allowed.
+escape_corridors:
+  - {ref: U_SW, side: S, depth_mm: 4.0}
+
 design_rules:
-  track_min_width: 0.15
-  min_clearance: 0.127
-  via_min_annulus: 0.13
-  hole_clearance: 0.25
-  hole_to_hole: 0.5
+  # jlc_4layer_advanced floors (ADR-0003 / fab_tiers.yaml). These are FLOORS —
+  # RF50 runs at 0.36 mm because that is 50 ohm, not because of a DRC minimum.
+  track_min_width: 0.09
+  min_clearance: 0.09
+  via_min_size: 0.25
+  min_through_drill: 0.15
+  via_min_annulus: 0.05
+  hole_clearance: 0.20
+  hole_to_hole: 0.25
   copper_edge_clearance: 0.3
-  via_min_size: 0.45
-  min_through_drill: 0.2
   solder_mask_min_width: 0.0
   solder_mask_expansion: 0.0
 
 zones:
-  - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal}
+  # L2 (In1.Cu) is the SOLID reference under every RF arm and under the USB
+  # pair — no split, no slot, anywhere. L1/L4 are filled GND around the arms
+  # and carry the via fences. The 3V3 pour on L3 (In2.Cu) is deliberately NOT
+  # declared here yet: it belongs to the digital strip only, and a board-wide
+  # 3V3 pour on L3 would sit under the RF fan. It is added as a REGION at
+  # stage 5 once the strip is legalized; until then 3V3 is the PWR netclass at
+  # 0.4 mm, which carries the 0.15 A envelope with enormous margin.
+  - {net: GND, layers: [F.Cu, In1.Cu, In2.Cu, B.Cu], priority: 0, min_thickness: 0.2, clearance: 0.25, connect: thermal}
+
+asserts:
+  # pad_net checks the GENERATOR runs after placement — the board-side twin of
+  # 03_src/rules/electrical_invariants.yaml (which reads the NETLIST; canon M1,
+  # two artifacts, two methods, one claim).
+  pad_net:
+    - {ref: U_SW, pad: 1,  net: GND}       # LS — a via at the pad, ADR-0005
+    - {ref: U_SW, pad: 9,  net: SW_V1}     # MSB
+    - {ref: U_SW, pad: 11, net: SW_V3}     # LSB
+    - {ref: U_SW, pad: 12, net: SW_V4}     # the mute line
+    - {ref: U_SW, pad: 19, net: RX1_TAP}   # RF8 = the reference, ADR-0006
+    - {ref: U_SW, pad: 22, net: RX2_OUT}   # RFC
+    - {ref: U_SW, pad: 24, net: ANT1}      # RF1 = the delta reference
+    - {ref: U_SW, pad: 25, net: GND}       # exposed pad — the RF ground return
 
 silk:
   min_text_height: 0.6
   refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQ"}
-  labels:
-    - {match: "TP*", from: value, strip: "TP ", size: 0.6}
   captions:
-    - ["LOAD SENSOR 1  B R W", 30.5, 29.2, 0.7]
-    - ["SENSOR 2  B R W", 38.8, 31.0, 0.7]
-    - ["FULL BRIDGE ALT: E+ S+ S- E- SH", 52.0, 29.4, 0.65]
-    - ["SENSOR 3  B R W", 30.5, 57.2, 0.7]
-    - ["SENSOR 4  B R W", 39.5, 55.4, 0.7]
-    - ["TO COOK-HUB J6: 5V 3V3 G DAT CLK", 54.0, 57.2, 0.65]
-    - ["JP1 RATE: 1-2=10SPS 2-3=80SPS", 62.0, 37.8, 0.6]
-    - ["SJ1: SHIELD HARD BOND", 63.0, 34.6, 0.55]
-    # title block lives in the SE clearing (JP1 y<=44.5, TP row y=51)
-    - ["cook-loadcell v1.0  HX711 PCB C", 57.0, 47.0, 0.7]
-    - ["MODE = POPULATION: 4x HALF-BRIDGE OR J5", 57.0, 48.7, 0.6]
-
-asserts:
-  pad_net:
-    - {ref: D1, pad: 1, net: DAT}      # pad 1 = cathode
-    - {ref: D2, pad: 1, net: CLK}
-    - {ref: Q1, pad: 2, net: 5V}
-    - {ref: Q1, pad: 3, net: E_PLUS}
-    - {ref: U1, pad: 8, net: S_PLUS}
-    - {ref: U1, pad: 7, net: S_MINUS}
-    - {ref: J6, pad: 4, net: DAT}
-    - {ref: J6, pad: 5, net: CLK}
-
-# ESCAPE CORRIDORS (Phase F 2026-07-21, from usb-pwr-hub-3s ADR-0008):
-# reserved routing lanes off a dense package's loaded side — satisfies
-# escape_check v2's `escape-corridor` condition (P-ESC). Expands to a named
-# rule area `esc_<ref>_<side>` denying footprints+pours (tracks/vias stay
-# allowed — that is the lane). Unknown ref / bad side = hard error.
-#
-# escape_corridors:
-#   - {ref: U1, side: E, depth_mm: 4.0}            # full-side lane
-#   - {ref: U2, side: N, depth_mm: 3.0, width_mm: 6.0, layers: [F.Cu]}
+    # THE PORT CONTRACT IS A SILKSCREEN OBLIGATION (ADR-0004), not
+    # documentation: this board carries no ESD device and no DC block on any
+    # of its ten RF ports, and V_RFDC(max) on the switch is 0 V.
+    - ["RX ONLY - PASSIVE ANTENNAS - 0 VDC - NO BIAS TEE - NO TRANSMIT", 46.0, 64.0, 0.7]
+    - ["pluto-rx2-8way  8-WAY AoA SELECTOR  70 MHz - 6 GHz", 46.0, 86.0, 0.7]
+    - ["ANT8 = RX1 ANTENNA (-19.8 dB TAP)", 56.0, 24.0, 0.55]
+    - ["RX1 -> PLUTO RX1", 62.0, 35.5, 0.55]
+    - ["RX2 -> PLUTO RX2", 38.0, 23.5, 0.55]

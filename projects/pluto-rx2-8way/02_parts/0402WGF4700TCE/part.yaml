@@ -1,13 +1,47 @@
 mpn: 0402WGF4700TCE
-manufacturer: UNI-ROYAL (Uniroyal Electronics)
+manufacturer: UNI-ROYAL (Uniroyal Electronics / UniOhm)
 type: resistor_thick_film
+
+# ===========================================================================
+# STATUS: REJECTED ALTERNATE — NOT ON THE BOARD.  Re-labelled 2026-07-28.
+#
+# This dossier was written during the D-SPEC spike as the PRIMARY series arm of
+# the RX1 resistive pickoff. The user has since CONFIRMED D3 with the SPLIT-ARM
+# variant: the arm is 2 x 220 ohm (0402WGF2200TCE, C25091), and this single
+# 470 ohm part is the alternate that LOST. See ADR-0002.
+#
+# It lost on ONE property, and not the one the numbers below emphasise. Its
+# arithmetic is CORRECT and its tap/IL/RL figures are strictly fine. What
+# beats it is that a single arm carries the full 0402 shunt parasitic, so its
+# 6 GHz tap tilt is +1.69 dB with an UNCERTAINTY BAND 2.73 dB WIDE (from the
+# +/-0.02 pF bar on C_p), against +0.43 dB and 0.83 dB for the split arm. A
+# known tilt calibrates out; an unknown one does not, and this board sells a
+# published, bounded path table (ADR-0006).
+#
+# THE DIRECTORY IS KEPT DELIBERATELY, against the 02_parts contract's usual
+# rule that a rejected candidate keeps its reason and not its dossier: this
+# one was written first, was PRIMARY for a day, and its numbers are cited in
+# 01_docs/journal/02_parts.md. Deleting it would leave those citations
+# dangling and would erase the honest record that the primary changed.
+# Registered as a deviation in 02_parts/README.md.
+#
+# NO PDF IS COMMITTED HERE, per the same contract. The datasheet is the UniOhm
+# 1-CHIP SERIES sheet, which serves every 0402WGF value; the binary lives with
+# the part that IS on the board, ../0402WGF2200TCE/.
+# ===========================================================================
+status: rejected_alternate
+
 datasheet:
-  doc_id: 0402WGF4700TCE
-  revision: "LCSC series sheet, undated"
-  url: https://datasheet.lcsc.com/lcsc/1810301810_UNI-ROYAL-Uniroyal-Elec-0402WGF4700TCE_C25117.pdf
-  sha256: OWED                  # not fetched at spike time — see 02_parts/README.md
-  fetched: null
-  pages: null
+  doc_id: "Thick Film Chip Resistors — 1-CHIP SERIES"
+  revision: "V.3, Feb.12,2019"    # printed in the page footer of every page.
+                                  # Resolved 2026-07-28; the earlier
+                                  # "LCSC series sheet, undated" was a
+                                  # placeholder written before the fetch.
+  url: https://datasheet.lcsc.com/datasheet/pdf/0a975aaa49b7c97f38a963127be4a823.pdf
+  sha256: 11cd644d5d8a34a6d12775afb80bf58d8fc11f0c3b700dbd0f7a59942ceaa5ef
+  fetched: 2026-07-28
+  pages: 9
+  file: ../0402WGF2200TCE/UNIOHM-1CHIP-SERIES-V3-2019-02-12.pdf
 package: 0402 (1005 metric), 1.00 x 0.50 mm, thick film, wrap-around termination
 footprint: Resistor_SMD:R_0402_1005Metric
 escape:
@@ -34,31 +68,43 @@ gotchas:
      -20 dB tap is flat to within 0.5 dB up to ~3 GHz and rises to about
      -18.6 dB at 6 GHz (+1.7 dB tilt). The MAIN-LINE loss is unaffected
      (0.408 dB at DC, 0.433 dB at 6 GHz)."
-  - "IF THE TAP MUST BE FLATTER, SPLIT THE SERIES ARM. Two 220 ohm 0402s in
-     series (C25091, also JLC Basic) put their C_p in series, halving it to
-     ~0.020 pF and cutting the 6 GHz tilt from ~1.7 dB to ~0.5 dB, for one extra
-     placement. The R total becomes 440 ohm: tap -19.8 dB, main-line loss
-     0.432 dB, return loss 26.3 dB. This is a DESIGN CHOICE, not a defect —
-     recorded here so the schematic stage makes it deliberately."
+  - "THE SPLIT ARM WON, AND THIS IS THE ENTRY THAT PROPOSED IT. Two 220 ohm
+     0402s in series (C25091, also JLC Basic) put their C_p in series, halving
+     it to ~0.0196 pF: tilt +0.431 dB at 6 GHz instead of +1.691 dB, and the
+     +/-0.02 pF uncertainty band narrows from 2.73 dB to 0.83 dB. Rs becomes
+     440 ohm: tap -19.83 dB, main-line loss 0.432 dB, return loss 26.28 dB.
+     The user CONFIRMED that variant on 2026-07-28 (ADR-0002), so this part is
+     no longer the primary."
+  - "ONE CASE STILL USES THIS VALUE CLASS, AND IT IS NOT THIS PART. ADR-0002
+     records an alternate BUILD in which R_T2 is populated as 0 ohm, giving
+     Rs = 220 (tap -15.42 dB, RX1 loss 0.769 dB) and +4.84 dB of
+     reference-dwell SIR. That is a 0 ohm jumper plus one 220 ohm part — it
+     does NOT bring 470 ohm back."
   - "JLC BASIC (library type 'base', live 2026-07-27, stock 1,885,144). Keeping
      it Basic is worth more than the 0.01 dB of accuracy a 0.1% thin-film part
      would buy: the tap ratio is a MEASURED release artifact under brief D4, not
      a design target, so tolerance buys nothing that measurement does not."
 verified: "2-pad passive — exempt from the S-VER figure-citation requirement per
-  the 02_parts contract. Value, tolerance, tempco, power, voltage and
-  temperature range read from the LCSC parametric record for C25117, live
-  2026-07-27. The PDF itself is OWED (see README)."
+  the 02_parts contract. Originally (2026-07-27) read from the LCSC parametric
+  record for C25117 with the PDF OWED. UPGRADED 2026-07-28: the series sheet
+  was fetched (sha256 above) and the value now decodes from its own ORDERING
+  PROCEDURE, section 3 p2 — 0402 / WG = 1/16 W / F = +/-1% / 4700 = 470 with no
+  trailing zeros = 470 ohm — with tempco (section 4.8 p5: 0402, R > 10 ohm ->
+  100 PPM/C), rated power (section 5 p5: 0402 = 1/16 W at 70 C), working and
+  overload voltage (50 V / 100 V) and temperature range all CITED from the
+  document rather than from a parametric record."
 sourcing:
   lcsc: C25117
-  alternates: [C25091]           # 220 ohm 0402, JLC Basic — for the split-arm
-                                 # (2 x 220) variant described in gotchas
-asserts:
-  - assert: value
-    equals: 470
-    tolerance_pct: 1
-    why: "the tap ratio, the main-line insertion loss and the main-line return
-      loss are ALL set by this single value: tap = 50/(Rs+50), IL =
-      20log10(1 + 50/(2*(Rs+50))), and the shunt (Rs+50) across 50 ohm sets RL.
-      A one-value substitution moves the published RX1 tap calibration, and
-      nothing on the board can detect it — the netlist, DRC and parity are all
-      identical for any resistor value."
+  alternates: []                 # this part IS the alternate. The part on the
+                                 # board is 0402WGF2200TCE / C25091, and it is
+                                 # not interchangeable with this one: the value
+                                 # is the design.
+asserts: []
+  # DELIBERATELY EMPTY. This part is not on the board, so an `asserts:` entry
+  # here would be an assertion that can never reach a ref — and the honest
+  # verdict for that is UNREACHED, not PASS. The value assertion that matters
+  # now lives on ../0402WGF2200TCE/, where there is a ref to grade.
+  #
+  # (The retired entry asserted `value: equals 470, tolerance_pct 1`. Recorded
+  # here rather than deleted, so the change is visible in the file and not only
+  # in git.)

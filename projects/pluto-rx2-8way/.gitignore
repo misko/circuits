@@ -1,0 +1,23 @@
+# Required by the project-root contract: 06_build/ is DISPOSABLE and must not be
+# committed as truth (its contracts.md is the one exception). MISSING SINCE
+# COMMISSION — the scaffold copied the stage contracts but no .gitignore, and
+# 8 of 10 boards in this fleet have one. Without it the first policy_audit run
+# leaves 06_build/policy_audit.md sitting untracked-and-committable.
+#
+# NOT ignored, deliberately: 01_docs/decisions/ and 02_parts/ — the least
+# regenerable content in the repo, and a repo-wide pattern that swallowed them
+# would be a defect.
+06_build/*
+!06_build/contracts.md
+
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*-backups/
+_autosave-*
+fp-info-cache
+__pycache__/
+*.kicad_prl
+
+# tscircuit build cache + intermediate export
+03_tscircuit/.tscircuit/
+03_tscircuit/dist/
