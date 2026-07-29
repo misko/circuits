@@ -133,11 +133,16 @@ components:
   - R_DECDPD
   - R_DECUPD
   - R_DOOROKPD
+  - R_DOOROKSER
   - R_DOORPD
   - R_ESTOPOKPD
+  - R_ESTOPOKSER
   - R_ESTOPPD
   - R_FAULTPU
+  - R_FAULTSER
   - R_FLCPD
+  - R_FLTDIVB
+  - R_FLTDIVT
   - R_FSETNPD
   - R_HOSTAUTHPD
   - R_HSG
@@ -150,6 +155,7 @@ components:
   - R_LCDAT
   - R_MCUENPD
   - R_MODEHWPD
+  - R_MODEHWSER
   - R_MODEPD
   - R_MR
   - R_OE
@@ -198,6 +204,7 @@ components:
   - R_TCN
   - R_TCP
   - R_TEMPOK
+  - R_TEMPOKSER
   - R_TH1
   - R_TH2
   - R_WDOKPD

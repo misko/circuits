@@ -886,8 +886,8 @@ export default () => (
     <chip name="U_EXP" footprint="ssop28" supplierPartNumbers={{ jlcpcb: ["C506653"] }}
       pinLabels={{ pin1: "GPB0", pin2: "GPB1", pin3: "GPB2", pin4: "GPB3", pin5: "GPB4", pin6: "GPB5", pin7: "GPB6", pin8: "GPB7", pin9: "VDD", pin10: "VSS", pin11: "NC", pin12: "SCL", pin13: "SDA", pin14: "NC", pin15: "A0", pin16: "A1", pin17: "A2", pin18: "RESET_N", pin19: "INTB", pin20: "INTA", pin21: "GPA0", pin22: "GPA1", pin23: "GPA2", pin24: "GPA3", pin25: "GPA4", pin26: "GPA5", pin27: "GPA6", pin28: "GPA7" }}
       connections={{
-        pin1: "net.EFUSE_FLT_N", pin2: "net.MODE_AUTO_HW", pin3: "net.ESTOP_OK", pin4: "net.DOOR_OK",
-        pin5: "net.TEMP_OK", pin6: "net.FAULT", pin7: "net.TC_FAULT_N",
+        pin1: "net.EFUSE_FLT_DIV", pin2: "net.MODE_AUTO_HW_EXP", pin3: "net.ESTOP_OK_EXP", pin4: "net.DOOR_OK_EXP",
+        pin5: "net.TEMP_OK_EXP", pin6: "net.FAULT_EXP", pin7: "net.TC_FAULT_N",
         pin9: "net.N3V3", pin10: "net.GND", pin12: "net.I2C_SCL", pin13: "net.I2C_SDA",
         pin15: "net.GND", pin16: "net.GND", pin17: "net.GND", pin18: "net.WD_OK",
         pin19: "net.EXP_INTB", pin20: "net.INT_ALERT",
@@ -930,6 +930,45 @@ export default () => (
         EFUSE_FLT_N, to 3V3) fails deterministically. The direct-pin form is what
         the solver's own debug calls `hasDirectConnections`, and it converges.
         DO NOT "tidy" this back into the pinLabels map. */}
+    {/* =================================================================
+        v1.7 REVIEW-BATTERY FIX (TOPO P0-1, 2026-07-28). R_WDOKSER below
+        isolated GPB7 so one I2C write could no longer win the WD_OK
+        contention. THE OTHER FIVE PORT-B READBACK PINS HAD THE SAME
+        DEFECT AND WERE MISSED: ADR-0020 identified the mechanism,
+        computed the remedy, and applied it to ONE of six pins.
+
+        GPB1-GPB5 sat DIRECTLY on MODE_AUTO_HW / ESTOP_OK / DOOR_OK /
+        TEMP_OK / FAULT. `IODIRB = 0x00, OLATB = 0xFF` is ONE I2C
+        transaction. Arithmetic from the two datasheets: MCP23017
+        V_OH >= V_DD-0.7 at -3.0 mA (DS20001952C D090) => weakest source
+        233 ohm, realistic ~50; SN74HC14 sink <= 82.5 ohm. Contention
+        computes to 0.863 V at the weak end and 2.055 V at the realistic
+        end, against SN74LVC1G11 V_IL max 0.8 V / V_IH min 2.0 V — so
+        there is NO datasheet corner in which those nodes are a
+        guaranteed LOW. TEMP_OK is worse still (open-drain wired-AND
+        behind a 10k pull-UP => 2.48 V) and is the one safety term with
+        no independent physical backup, feeding the coil rail AND the
+        contactor AND the fault-latch SET.
+
+        Same remedy, same part, same BOM line as R_WDOKSER: the EXPANDER
+        sees the net only through 10k; every gate consumer stays on the
+        RAW net, so the hardware chain is untouched.
+        ================================================================= */}
+    <resistor name="R_MODEHWSER" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.MODE_AUTO_HW", pin2: ["U_EXP.pin2", "net.MODE_AUTO_HW_EXP"] }} />
+    <resistor name="R_ESTOPOKSER" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.ESTOP_OK", pin2: ["U_EXP.pin3", "net.ESTOP_OK_EXP"] }} />
+    <resistor name="R_DOOROKSER" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.DOOR_OK", pin2: ["U_EXP.pin4", "net.DOOR_OK_EXP"] }} />
+    <resistor name="R_TEMPOKSER" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.TEMP_OK", pin2: ["U_EXP.pin5", "net.TEMP_OK_EXP"] }} />
+    <resistor name="R_FAULTSER" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.FAULT", pin2: ["U_EXP.pin6", "net.FAULT_EXP"] }} />
+    {/* PIN P0-b (2026-07-28). EFUSE_FLT_N is pulled to 5V_PROTECTED through
+        R_PG 100k, so with no fault it idles at 5.0 V — into an MCP23017 at
+        VDD 3.3 V whose abs-max V_IN is VDD+0.3 = 3.6 V (DS20001952C S1.0).
+        ~14 uA of continuous injection into 3V3. Every OTHER 5 V-domain
+        signal on this board is level-referenced; this one was not.
+        Divider 10k/22k: 5.00 x 22/32 = 3.4375 V at the pin with the eFuse
+        released, and 0 V when /FLT pulls low. TP_PGOOD stays on the RAW
+        5 V node so the test point still reads the real flag. */}
+    <resistor name="R_FLTDIVT" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.EFUSE_FLT_N", pin2: "net.EFUSE_FLT_DIV" }} />
+    <resistor name="R_FLTDIVB" resistance="22k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25768"] }} connections={{ pin1: "net.EFUSE_FLT_DIV", pin2: "net.GND" }} />
     <resistor name="R_WDOKSER" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.WD_OK", pin2: ["U_EXP.pin8", "net.WD_OK_EXP"] }} />
     {/* v1.7 (ADR-0020 decision B): pin18 (RESET_N) was on net.EXP_RST_N = {R_EXPRST.1,
         U_EXP.18} — A NET WITH NO DRIVER. Nothing on this board could reset the expander, so
