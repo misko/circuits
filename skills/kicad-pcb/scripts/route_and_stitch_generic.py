@@ -107,7 +107,7 @@ def load_cfg(path, root=None):
     path = Path(path).resolve()
     if not path.is_file():
         die(f"route config not found: {path}")
-    cfg = yaml.safe_load(path.read_text()) or {}
+    cfg = yaml.safe_load(path.read_text(encoding="utf-8-sig")) or {}
     if "project" not in cfg:
         die(f"{path}: no 'project:' block")
     cfg["_path"] = path
@@ -156,7 +156,7 @@ def net_class_floors(cfg):
         floors = {}
         p = cfg["_root"] / "03_src" / "rules" / "nets.yaml"
         if p.is_file():
-            d = yaml.safe_load(p.read_text()) or {}
+            d = yaml.safe_load(p.read_text(encoding="utf-8-sig")) or {}
             for cname, c in (d.get("classes") or {}).items():
                 c = c or {}
                 w = c.get("min_width")
@@ -280,7 +280,7 @@ def _rules_ride_along(cfg, src_pcb, out_pcb):
             f"generator BEFORE route-prep")
     import json
     try:
-        d = json.loads(pro.read_text())
+        d = json.loads(pro.read_text(encoding="utf-8-sig"))
     except Exception as e:                                   # pragma: no cover
         die(f"canon R1: {pro} is not readable JSON: {e}")
     ns = d.get("net_settings") or {}
@@ -491,7 +491,7 @@ def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
             f = workdir / f"nets_{grp}.txt"
             if not f.is_file():
                 die(f"wave {name!r}: {f} missing — run `prep` first")
-            nets = f.read_text().split()
+            nets = f.read_text(encoding="utf-8-sig").split()
         if not nets:
             print(f"{tag}wave {name}: 0 nets, skipped")
             continue
@@ -564,7 +564,7 @@ def _race_candidate(cfg, py, krt, waves, tier, common, build, i, results):
             die(f"candidate {i}: quick wrote no JSON (exit {r.returncode}): "
                 f"{(r.stderr or r.stdout)[-300:]}")
         import json
-        q = json.loads(qj.read_text())
+        q = json.loads(qj.read_text(encoding="utf-8-sig"))
         results[i] = {
             "chain": str(chain),
             "unconnected": q["unconnected"]["routed_total"],
@@ -690,7 +690,7 @@ def cmd_import(cfg):
     # same precedence every rebuild_all.sh used ("[ -f 06_build/... ] || cp").
     final = get(cfg, "route.final")
     if (build / "FINAL").is_file():
-        chain = Path((build / "FINAL").read_text().strip())
+        chain = Path((build / "FINAL").read_text(encoding="utf-8-sig").strip())
     elif final:
         chain = rel(cfg, final)
     else:
@@ -1007,7 +1007,7 @@ def cmd_quick(cfg, board=None, json_out=None):
     if not rpt.is_file():
         die(f"quick: kicad-cli drc wrote no report "
             f"(exit {r.returncode}): {(r.stderr or r.stdout)[-500:]}")
-    g = jsonlib.loads(rpt.read_text())
+    g = jsonlib.loads(rpt.read_text(encoding="utf-8-sig"))
     rpt.unlink()
 
     excl = list(get(cfg, "prep.waves.exclude", ["GND", "unconnected-*"]))
@@ -1129,7 +1129,7 @@ class Ctx:
         p = self.state_path()
         if not p.is_file():
             return 0
-        d = json.loads(p.read_text())
+        d = json.loads(p.read_text(encoding="utf-8-sig"))
         self.counts = d.get("counts", {})
         self.failures = d.get("failures", [])
         self.pending = [tuple(x) for x in d.get("pending", [])]
@@ -2007,7 +2007,7 @@ def _append_stub_dru(ctx, name, min_w, nets=None):
             f"  (condition \"{cond}\")\n"
             f"  (constraint track_width (min {min_w:.3f}mm)))\n")
     if dru.is_file():
-        txt = dru.read_text()
+        txt = dru.read_text(encoding="utf-8-sig")
         if f"(rule {name}\n" in txt:
             return
         sep = "" if txt.endswith("\n") else "\n"
@@ -3259,7 +3259,7 @@ def verify_saved_fill(path):
     counting them would make a pour-free board look healthy.
     """
     import re as _re
-    txt = Path(path).read_text()
+    txt = Path(path).read_text(encoding="utf-8-sig")
     pours = fills = 0
     for m in _re.finditer(r"\(zone[\s(]", txt):
         i = m.start()

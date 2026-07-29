@@ -310,7 +310,7 @@ def load_model(path, aliases=None, overrides=None, return_ports=False, ties=None
     aliases = aliases or {}
     overrides = overrides or {}
     ties = ties or {}
-    d = json.load(open(path))
+    d = json.load(open(path, encoding="utf-8-sig"))
     comps = {e['source_component_id']: e for e in d
              if e.get('type') == 'source_component'}
     ports = [e for e in d if e.get('type') == 'source_port']
@@ -716,7 +716,7 @@ def convert_layout(circuit_json, project, title, rev, date, aliases=None, overri
     LayoutFallback if geometry can't be imported without a cross-net short."""
     aliases = aliases or {}
     overrides = overrides or {}
-    d = json.load(open(circuit_json))
+    d = json.load(open(circuit_json, encoding="utf-8-sig"))
     components, flag_host, portinfo = load_model(circuit_json, aliases, overrides,
                                                  return_ports=True, ties=ties)
     comp_by_ref = {c["refdes"]: c for c in components}

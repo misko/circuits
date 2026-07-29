@@ -264,7 +264,7 @@ def load_part_index(proj):
     idx = {}
     for py in sorted(glob.glob(str(Path(proj) / "02_parts" / "*" / "part.yaml"))):
         try:
-            y = yaml.safe_load(Path(py).read_text()) or {}
+            y = yaml.safe_load(Path(py).read_text(encoding="utf-8-sig")) or {}
         except Exception:
             continue
         dirname = Path(py).parent.name
@@ -401,7 +401,7 @@ def load_rails(path):
     rail on any schema problem (esp. a missing Vout ENVELOPE — the incident)."""
     if yaml is None:
         raise LoadError("PyYAML not available")
-    data = yaml.safe_load(Path(path).read_text())
+    data = yaml.safe_load(Path(path).read_text(encoding="utf-8-sig"))
     if data is None:
         return [], {}
     if not isinstance(data, dict) or "rails" not in data:
@@ -655,7 +655,7 @@ def find_trunk_declaration(proj, top, rails, nets_override=None):
     classes = {}
     if netsy.exists() and yaml:
         try:
-            ny = yaml.safe_load(netsy.read_text()) or {}
+            ny = yaml.safe_load(netsy.read_text(encoding="utf-8-sig")) or {}
             classes = ny.get("classes", {}) or {}
         except Exception:
             classes = {}
@@ -841,7 +841,7 @@ def detect_energy_source(proj, top, nets_override=None):
         netsy = Path(proj) / "03_src" / "rules" / "nets.yaml"
     if netsy.exists() and yaml:
         try:
-            ny = yaml.safe_load(netsy.read_text()) or {}
+            ny = yaml.safe_load(netsy.read_text(encoding="utf-8-sig")) or {}
             for cname, cbody in (ny.get("classes", {}) or {}).items():
                 for n in (cbody or {}).get("nets", []) or []:
                     if _BATT_NET_RE.match(str(n)):

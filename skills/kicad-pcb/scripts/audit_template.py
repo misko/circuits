@@ -56,7 +56,7 @@ ap.add_argument("--config", required=True)
 ap.add_argument("--update-baseline", action="store_true")
 args = ap.parse_args()
 
-cfg = json.loads(Path(args.config).read_text())
+cfg = json.loads(Path(args.config).read_text(encoding="utf-8-sig"))
 X0, Y0, W, H = cfg["frame"]
 M = cfg.get("edge_margin", 0.3)
 SR = cfg.get("screw_head_r", 3.2)
@@ -175,7 +175,7 @@ if cy_ov:
 # report mid-read, 2026-07-21 — two t4 flakes with impossible categories)
 rpt = f"/tmp/audit_drc.{os.getpid()}.txt"
 _write_drc_report(board, args.board, rpt)
-txt = Path(rpt).read_text()
+txt = Path(rpt).read_text(encoding="utf-8-sig")
 blocks = re.split(r"\[(\w+)\]: ", txt)
 counts = collections.Counter(re.findall(r"\[(\w+)\]", txt))
 counts = {k: v for k, v in counts.items()
@@ -201,7 +201,7 @@ if args.update_baseline:
     BASELINE.write_text(json.dumps(counts, indent=1, sort_keys=True))
     print("baseline updated:", counts)
 elif BASELINE.exists():
-    base = json.loads(BASELINE.read_text())
+    base = json.loads(BASELINE.read_text(encoding="utf-8-sig"))
     for k, v in counts.items():
         if v > base.get(k, 0):
             msg = f"I7 DRC-regression: {k} {base.get(k, 0)} -> {v}"

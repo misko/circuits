@@ -114,7 +114,7 @@ def main():
 
     mp = ts / "manifest.yaml"
     if mp.exists() and yaml:
-        y = yaml.safe_load(mp.read_text()) or {}
+        y = yaml.safe_load(mp.read_text(encoding="utf-8-sig")) or {}
         comps = y.get("components") or []
         sources["manifest"] = keep({str(c) for c in comps})
         origin["manifest"] = str(mp)
@@ -123,7 +123,7 @@ def main():
                *glob.glob(str(ts / "dist" / "**" / "circuit.json"),
                           recursive=True)]:
         if Path(cj).exists():
-            d = json.loads(Path(cj).read_text())
+            d = json.loads(Path(cj).read_text(encoding="utf-8-sig"))
             sources["circuit.json"] = keep(
                 {e.get("name") for e in d if e.get("type") == "source_component"})
             origin["circuit.json"] = str(cj)
@@ -131,7 +131,7 @@ def main():
 
     sch = pick(glob.glob(str(ts / "kicad" / "*.kicad_sch")), want, "kicad_sch")
     if sch:
-        txt = Path(sch).read_text()
+        txt = Path(sch).read_text(encoding="utf-8-sig")
         refs = set()
         for m in re.finditer(
                 r'\(symbol \(lib_id[^\n]*\n.{0,1200}?\(property "Reference" "([^"]+)"',

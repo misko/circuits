@@ -98,7 +98,7 @@ def item_to_patterns(item):
 
 def parse(contract_path):
     """(entries, unparsed) — entries are dicts with dir/item/required/conditional."""
-    text = Path(contract_path).read_text()
+    text = Path(contract_path).read_text(encoding="utf-8-sig")
     blk = tree_block(text)
     if blk is None:
         return [], ["no fenced tree block containing '├──' found in the contract"]

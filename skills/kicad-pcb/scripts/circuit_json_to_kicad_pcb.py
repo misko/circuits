@@ -83,7 +83,7 @@ def parse_netlist(path):
 
 def load_placement(circuit_json):
     """refdes -> (x, y, rotation_deg, layer) from circuit.json pcb_component."""
-    d = json.load(open(circuit_json))
+    d = json.load(open(circuit_json, encoding="utf-8-sig"))
     src = {e['source_component_id']: e for e in d
            if e.get('type') == 'source_component'}
     place = {}

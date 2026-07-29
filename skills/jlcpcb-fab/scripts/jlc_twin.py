@@ -505,7 +505,7 @@ def kicad_env(board_path):
         p = Path.home() / ".config" / "kicad" / ver / "kicad_common.json"
         if p.exists():
             try:
-                v = (json.load(open(p)).get("environment") or {}).get("vars")
+                v = (json.load(open(p, encoding="utf-8-sig")).get("environment") or {}).get("vars")
                 env.update({str(k): str(x) for k, x in (v or {}).items()})
             except Exception:
                 pass

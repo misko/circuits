@@ -427,7 +427,7 @@ def load_invariants(path):
     UNQUOTED zero-padded `adr:`)."""
     if yaml is None:
         raise LoadError("PyYAML not available")
-    raw = Path(path).read_text()
+    raw = Path(path).read_text(encoding="utf-8-sig")
 
     # Reject the YAML-octal ADR reference BEFORE anything is constructed. This
     # runs first because it is the only check whose evidence safe_load erases.
@@ -716,7 +716,7 @@ def _load_part_electrical(parts_dir):
         return out
     for py in sorted(Path(parts_dir).glob("*/part.yaml")):
         try:
-            d = yaml.safe_load(py.read_text()) or {}
+            d = yaml.safe_load(py.read_text(encoding="utf-8-sig")) or {}
         except Exception:
             continue
         el = d.get("electrical")
@@ -875,9 +875,46 @@ _GRADERS["node_level"] = _grade_node_level     # ADR-0007; registered here
 # because the dict literal above is defined before the grader body.
 
 
+def _check_declared_supplies(nl, invs):
+    """Every net named in `supplies:` must EXIST in the netlist.
+
+    The trap this closes, found on cooksense 2026-07-29: the invariants file
+    declared `supplies: {N3V3: 3.3}` — the tsx AUTHOR-PREFIX form — and no net
+    called `N3V3` exists in the netlist. `_grade_node_level` filters `supplies`
+    to nets it can see, so the 3V3 rail was silently INVISIBLE to every
+    node_level grade on the board. A misnamed rail does not announce itself: it
+    either downgrades a grade to UNREACHED for the wrong reason, or lets a
+    DIFFERENT rail win the shortest-path search and reports a confident wrong
+    voltage. Declared-but-absent is a source-file defect, so it is graded at
+    full width (canon M-WIDTH) whenever `supplies:` is present at all — not
+    only when a node_level assert happens to consult the rail.
+    """
+    declared = {}
+    for inv in invs:
+        declared.update(inv.get("_supplies") or {})
+    if not declared:
+        return []
+    nets = set(nl.pins_of_net)
+    upper = {n.upper(): n for n in nets}
+    out = []
+    for name in sorted(declared):
+        if name in nets:
+            continue
+        # near-miss: the author-prefix form, and case
+        cands = [c for c in (upper.get(name.upper()),
+                             upper.get(name.upper().lstrip("N")),
+                             upper.get("N" + name.upper())) if c]
+        hint = (f" Did you mean {cands[0]!r}?" if cands else
+                " No net with a similar name exists either.")
+        out.append(f"supplies: declared rail net {name!r} is NOT in the "
+                   f"netlist, so every node_level assert that would consult "
+                   f"it is graded without it.{hint}")
+    return out
+
+
 def check_invariants(nl, invs):
     """Grade all invariants; return list of failure strings (empty = all pass)."""
-    fails = []
+    fails = _check_declared_supplies(nl, invs)
     for inv in invs:
         g = _GRADERS[inv["assert"]]
         if inv["assert"] == "node_level":
@@ -954,7 +991,7 @@ def protection_adrs(decisions_dir):
         m = re.match(r"(\d{4})", f.name)
         if not m:
             continue
-        text = f.read_text()
+        text = f.read_text(encoding="utf-8-sig")
         if _adr_status(text).startswith("superseded"):
             continue
         title = _adr_title(text)
@@ -1074,7 +1111,7 @@ def main(argv=None):
               "(looked in 06_build/netlists/*.net, 04_kicad/*.net)")
         return 2
 
-    nl = Netlist(netp.read_text())
+    nl = Netlist(netp.read_text(encoding="utf-8-sig"))
     fails = check_invariants(nl, invs)
     if fails:
         print(f"E-INV FAIL: {len(fails)}/{len(invs)} invariants violated "

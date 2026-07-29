@@ -171,7 +171,7 @@ def read_footprints(path):
     exporter reads the same facts through the pcbnew API, so a checker that
     imported pcbnew would be re-asking the exporter's own oracle.
     """
-    text = Path(path).read_text()
+    text = Path(path).read_text(encoding="utf-8-sig")
     out = []
     for m in re.finditer(r"\(footprint\s", text):
         i = m.start()
@@ -330,7 +330,7 @@ def discover(target):
 def load_assembly(path):
     if not path or not Path(path).is_file() or not yaml:
         return {}
-    return yaml.safe_load(Path(path).read_text()) or {}
+    return yaml.safe_load(Path(path).read_text(encoding="utf-8-sig")) or {}
 
 
 def manifest_line(asm):
@@ -386,7 +386,7 @@ def manifest_not_assembled(path):
     the declaration — which would then surface as a bogus MANIFEST-DRIFT."""
     if not path or not Path(path).is_file():
         return None, ""
-    lines = Path(path).read_text().splitlines()
+    lines = Path(path).read_text(encoding="utf-8-sig").splitlines()
     for i, line in enumerate(lines):
         if not re.match(r"\s*not_assembled\s*:", line):
             continue

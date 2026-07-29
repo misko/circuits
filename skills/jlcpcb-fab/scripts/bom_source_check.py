@@ -103,7 +103,7 @@ LEGC_STATS = {}
 def refdes_codes_from_circuit(circuit_json):
     """{refdes: lcsc} from circuit.json source_component entries. A component
     with no jlcpcb supplier code maps to '' (present, but uncoded)."""
-    data = json.loads(Path(circuit_json).read_text())
+    data = json.loads(Path(circuit_json).read_text(encoding="utf-8-sig"))
     if isinstance(data, dict):                       # some builds wrap in {..}
         data = data.get("elements") or data.get("soup") or []
     out = {}
@@ -141,7 +141,7 @@ def vendored_primary_codes(parts_dir):
     codes = {}
     for y in sorted(parts_dir.glob("*/part.yaml")):
         try:
-            src = (yaml.safe_load(y.read_text()) or {}).get("sourcing") or {}
+            src = (yaml.safe_load(y.read_text(encoding="utf-8-sig")) or {}).get("sourcing") or {}
         except Exception:
             continue
         lcsc = str(src.get("lcsc") or "").strip()
@@ -345,7 +345,7 @@ def load_ledger(path=None):
     except ImportError:
         return {}
     try:
-        data = yaml.safe_load(p.read_text()) or {}
+        data = yaml.safe_load(p.read_text(encoding="utf-8-sig")) or {}
     except Exception:
         return {}
     return {str(k): v for k, v in data.items() if isinstance(v, dict)}
@@ -470,7 +470,7 @@ def circuit_value_findings(circuit_json, vendored=None, ledger=None):
     ledger=None loads the default vetted ledger; pass {} to disable (RED)."""
     if ledger is None:
         ledger = load_ledger()
-    data = json.loads(Path(circuit_json).read_text())
+    data = json.loads(Path(circuit_json).read_text(encoding="utf-8-sig"))
     if isinstance(data, dict):
         data = data.get("elements") or data.get("soup") or []
     lcsc_to_mpn = dict(vendored or {})
@@ -646,7 +646,7 @@ def load_not_assembled(path):
     p = Path(path)
     if not p.is_file():
         return ()
-    asm = yaml.safe_load(p.read_text()) or {}
+    asm = yaml.safe_load(p.read_text(encoding="utf-8-sig")) or {}
     return {str(r) for e in (asm.get("not_assembled") or [])
             for r in (e.get("refs") or [])}
 

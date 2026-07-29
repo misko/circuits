@@ -86,7 +86,7 @@ KNOWN_CONDITIONS = {COND_OUTWARD, COND_CORRIDOR}
 
 
 def load_tiers(path=TIERS_PATH):
-    return yaml.safe_load(Path(path).read_text())["tiers"]
+    return yaml.safe_load(Path(path).read_text(encoding="utf-8-sig"))["tiers"]
 
 
 def grade_tier(style, pitch, tier, escapes_worst_side=None, npins=None):
@@ -176,7 +176,7 @@ def infer_from_strings(*strings):
 
 def check_part(part_yaml, tiers):
     """-> list of problem strings (empty = part's escape block agrees)."""
-    y = yaml.safe_load(Path(part_yaml).read_text()) or {}
+    y = yaml.safe_load(Path(part_yaml).read_text(encoding="utf-8-sig")) or {}
     npins = len(y.get("pins") or {})
     mpn = y.get("mpn", Path(part_yaml).parent.name)
     probs = []

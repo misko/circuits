@@ -107,7 +107,7 @@ NO_MATE_RE = re.compile(r"does not mate", re.I)
 def load_yaml(path):
     """-> (obj, error). A file we cannot parse is a FAIL, never a skip."""
     try:
-        return yaml.safe_load(path.read_text()) or {}, None
+        return yaml.safe_load(path.read_text(encoding="utf-8-sig")) or {}, None
     except Exception as e:                            # noqa: BLE001
         return None, str(e)
 

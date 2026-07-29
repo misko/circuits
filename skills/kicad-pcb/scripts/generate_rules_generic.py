@@ -88,7 +88,7 @@ def foreign_dru_rules(dru_path, generated_names):
     p = Path(dru_path)
     if not p.is_file():
         return []
-    return [blk for name, blk in extract_rules(p.read_text())
+    return [blk for name, blk in extract_rules(p.read_text(encoding="utf-8-sig"))
             if name and name not in generated_names]
 
 
@@ -101,7 +101,7 @@ def main(argv=None):
     if not nets_path.is_file():
         sys.exit(f"generate_rules_generic: no {nets_path}")
 
-    nets = yaml.safe_load(nets_path.read_text()) or {}
+    nets = yaml.safe_load(nets_path.read_text(encoding="utf-8-sig")) or {}
     classes = nets.get("classes") or {}
     try:
         tier = resolve_tier(root)
@@ -130,7 +130,7 @@ def main(argv=None):
     board = pro.stem
     dru = ki / f"{board}.kicad_dru"
 
-    proj = json.loads(pro.read_text())
+    proj = json.loads(pro.read_text(encoding="utf-8-sig"))
     ns = proj.setdefault("net_settings", {})
 
     # keep any existing Default class, replace the rest with ours

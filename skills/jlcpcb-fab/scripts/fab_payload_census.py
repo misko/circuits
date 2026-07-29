@@ -161,7 +161,7 @@ def load_pourless(rel, explicit):
             continue
         try:
             import yaml
-            d = yaml.safe_load(p.read_text()) or {}
+            d = yaml.safe_load(p.read_text(encoding="utf-8-sig")) or {}
         except Exception:
             continue
         v = d.get("pourless")
@@ -202,7 +202,7 @@ def check(release_dir, assembly=None):
                      "retro-filling. Not gradeable, not a defect.")
         return r
 
-    board = board_zone_census(pcbs[0].read_text())
+    board = board_zone_census(pcbs[0].read_text(encoding="utf-8-sig"))
     g36, blobs, unknown = payload_census(zips[0])
 
     for u in unknown:

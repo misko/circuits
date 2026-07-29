@@ -113,7 +113,7 @@ def parse_netlist(path):
     path = Path(path)
     if not path.is_file():
         die(f"netlist not found: {path}")
-    s = path.read_text()
+    s = path.read_text(encoding="utf-8-sig")
     comps = {}
     for m in re.finditer(
             r'\(comp\s+\(ref\s+"([^"]+)"\)(.*?)(?=\(comp\s+\(ref|\(libparts)', s, re.S):
@@ -1623,7 +1623,7 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     cfgp = Path(args.config).resolve()
-    cfg = yaml.safe_load(cfgp.read_text())
+    cfg = yaml.safe_load(cfgp.read_text(encoding="utf-8-sig"))
     if not isinstance(cfg, dict):
         die(f"{cfgp} is not a YAML mapping")
     # paths in the config are relative to the PROJECT ROOT (the config's

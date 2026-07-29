@@ -120,7 +120,7 @@ def main():
     args = ap.parse_args()
     proj = Path(args.project).resolve()
     cfgp = Path(args.config) if args.config else proj / "03_src/rules/policy_audit.json"
-    cfg = json.loads(cfgp.read_text()) if cfgp.exists() else {}
+    cfg = json.loads(cfgp.read_text(encoding="utf-8-sig")) if cfgp.exists() else {}
     build = proj / "06_build"
     build.mkdir(exist_ok=True)
 
@@ -149,7 +149,7 @@ def main():
     waivers = []
     wp = proj / "03_src/rules/policy_waivers.yaml"
     if wp.exists() and yaml:
-        waivers = yaml.safe_load(wp.read_text()) or []
+        waivers = yaml.safe_load(wp.read_text(encoding="utf-8-sig")) or []
     waived_ids = {}
     for w in waivers:
         if w.get("id"):
@@ -178,7 +178,7 @@ def main():
         sh(["kicad-cli", "sch", "erc", "--severity-all", "--format", "json",
             "-o", str(out), sch_p])
         if out.exists():
-            d = json.loads(out.read_text())
+            d = json.loads(out.read_text(encoding="utf-8-sig"))
             viols = [v for s in d.get("sheets", []) for v in s.get("violations", [])]
             erc_errors = sum(1 for v in viols if v.get("severity") == "error")
             erc_warns = len(viols) - erc_errors
@@ -221,7 +221,7 @@ def main():
         y = None
         if yaml:
             try:
-                y = yaml.safe_load(Path(py).read_text()) or {}
+                y = yaml.safe_load(Path(py).read_text(encoding="utf-8-sig")) or {}
             except Exception as exc:
                 y = None
                 why = str(exc).splitlines()[0][:80]
@@ -283,7 +283,7 @@ def main():
         netsy = proj / "03_src/rules/nets.yaml"
         declared = None
         if netsy.exists():
-            declared = (yaml.safe_load(netsy.read_text()) or {}).get("fab_tier")
+            declared = (yaml.safe_load(netsy.read_text(encoding="utf-8-sig")) or {}).get("fab_tier")
         if not netsy.exists():
             rows.append(("P-TIER", "N-A", "no 03_src/rules/nets.yaml yet"))
         elif declared not in tiers:
@@ -294,7 +294,7 @@ def main():
             drank = tiers[declared]["rank"]
             over = []
             for py in part_yamls:
-                y = yaml.safe_load(Path(py).read_text()) or {}
+                y = yaml.safe_load(Path(py).read_text(encoding="utf-8-sig")) or {}
                 tr = (y.get("escape") or {}).get("tier_required")
                 if tr in tiers and tiers[tr]["rank"] > drank:
                     over.append(f"{y.get('mpn', Path(py).parent.name)} "
@@ -325,7 +325,7 @@ def main():
     if part_yamls and yaml:
         scoped, missing, bad = 0, [], []
         for py in part_yamls:
-            y = yaml.safe_load(Path(py).read_text()) or {}
+            y = yaml.safe_load(Path(py).read_text(encoding="utf-8-sig")) or {}
             npins = len(y.get("pins") or {})
             if not (npins > 2 or LAYOUT_SCOPE.search(str(y.get("type", "")))):
                 continue
@@ -361,7 +361,7 @@ def main():
                             (MM(p.GetPosition().x), MM(p.GetPosition().y)))
             viol, unreached, graded = [], [], 0
             for py in part_yamls:
-                y = yaml.safe_load(Path(py).read_text()) or {}
+                y = yaml.safe_load(Path(py).read_text(encoding="utf-8-sig")) or {}
                 for ks in ((y.get("layout") or {}).get("keep_short") or []):
                     net, mx = ks.get("net"), float(ks.get("max_span_mm", 6))
                     pts = netpads.get(net) or []
@@ -422,7 +422,7 @@ def main():
     # and vs symbol Reference/Value property texts (approx bboxes; the same
     # ground-truth-geometry philosophy as the board silk de-collision).
     if sch_p:
-        stxt = Path(sch_p).read_text()
+        stxt = Path(sch_p).read_text(encoding="utf-8-sig")
         items = []  # (x0,y0,x1,y1,desc)
         CH_W, CH_H = 1.05, 2.2   # per-char width, line height @1.27mm font
         for m in re.finditer(r'\(global_label "([^"]+)".{0,80}?\(at ([-\d.]+) ([-\d.]+) (\d+)\)', stxt):
@@ -477,7 +477,7 @@ def main():
         sh(["kicad-cli", "pcb", "drc", "--severity-all", "--refill-zones",
             "--schematic-parity", "--format", "json", "-o", str(out), board_p])
         if out.exists():
-            drc = json.loads(out.read_text())
+            drc = json.loads(out.read_text(encoding="utf-8-sig"))
     if drc is not None:
         court = [v for v in drc["violations"] if "courtyard" in v.get("type", "")]
         grade("P-CRT", not court, "0 courtyard findings",
@@ -494,16 +494,16 @@ def main():
     audit_src = ""
     ab = proj / "03_src" / "audit_board.py"
     if ab.exists():
-        audit_src = ab.read_text()
+        audit_src = ab.read_text(encoding="utf-8-sig")
         for extra in glob.glob(str(proj / "03_src" / "rules" / "audit*.json")):
-            audit_src += Path(extra).read_text()
+            audit_src += Path(extra).read_text(encoding="utf-8-sig")
     if board is None:
         rows.append(("P-POL", "N-A", "no board yet"))
         rows.append(("P-KEEP", "N-A", "no board yet"))
     else:
         has_pol = bool(re.search(r"polarit|pad.?1.*net|pad1.*=", audit_src, re.I))
         pol_alt = bool(re.search(r"polarity_audit",
-                       (proj / "03_src" / "generate_schematic.py").read_text()
+                       (proj / "03_src" / "generate_schematic.py").read_text(encoding="utf-8-sig")
                        if (proj / "03_src" / "generate_schematic.py").exists() else ""))
         grade("P-POL", has_pol or pol_alt,
               "polarity machine-check present (pad-1 nets vs part facts)",
@@ -524,7 +524,7 @@ def main():
         wv = Path(board_p).parent / "refdes_waiver.json"
         if not wv.exists():
             wv = proj / "06_build" / "refdes_waiver.json"
-        waived_refs = set(json.loads(wv.read_text())) if wv.exists() else set()
+        waived_refs = set(json.loads(wv.read_text(encoding="utf-8-sig"))) if wv.exists() else set()
         for f in board.GetFootprints():
             r = f.GetReference()
             # EXEMPT BY ATTRIBUTE, NOT BY REFDES PREFIX. This read
@@ -628,7 +628,7 @@ def main():
         pwr = set()
         prof = Path(board_p).with_suffix(".kicad_pro")
         if prof.exists():
-            pro = json.loads(prof.read_text())
+            pro = json.loads(prof.read_text(encoding="utf-8-sig"))
             ns = pro.get("net_settings", {})
             pats = ns.get("netclass_patterns", [])
             for cl in ns.get("classes", []):
@@ -692,7 +692,7 @@ def main():
     if cands:
         ok, det = False, ""
         for c in sorted(cands)[:1]:
-            pro = json.loads(Path(c).read_text())
+            pro = json.loads(Path(c).read_text(encoding="utf-8-sig"))
             classes = pro.get("net_settings", {}).get("classes", [])
             names = [cl.get("name") for cl in classes]
             ok = len(classes) > 1
@@ -713,11 +713,11 @@ def main():
             _pcb = next(iter(sorted((proj / "04_kicad").glob("*.kicad_pcb"))), None)
             if _dru and _pro:
                 _cls = {c.get("name") for c in
-                        (json.loads(_pro.read_text()).get("net_settings") or {})
+                        (json.loads(_pro.read_text(encoding="utf-8-sig")).get("net_settings") or {})
                         .get("classes") or []}
                 _fire = _ra.unfireable_rules(
-                    _dru.read_text(), _cls,
-                    _pcb.read_text() if _pcb else "",
+                    _dru.read_text(encoding="utf-8-sig"), _cls,
+                    _pcb.read_text(encoding="utf-8-sig") if _pcb else "",
                     _pcb.name if _pcb else "the board")
                 if _fire:
                     ok = False
@@ -820,7 +820,7 @@ def main():
     # ---------------- meta ----------------
     reb = proj / "03_src" / "rebuild_all.sh"
     if reb.exists():
-        deps = re.findall(r"(0[36]_\w+/[\w./-]+\.kicad_pcb)", reb.read_text())
+        deps = re.findall(r"(0[36]_\w+/[\w./-]+\.kicad_pcb)", reb.read_text(encoding="utf-8-sig"))
         untracked, absent = [], []
         def tracked(path):
             return sh(["git", "ls-files", "--error-unmatch", str(path)],
@@ -898,7 +898,7 @@ def main():
         man = latest / "MANIFEST.txt"
         probs = []
         if man.exists():
-            mt = man.read_text()
+            mt = man.read_text(encoding="utf-8-sig")
             m = re.search(r"git_sha:\s*([^\s]+)", mt)
             sha = m.group(1) if m else ""
             if not re.fullmatch(r"[0-9a-f]{7,40}", sha):
@@ -972,7 +972,7 @@ def main():
         # unless someone remembered to run the audit again with --board.
         cl = proj / "01_docs" / "CHANGELOG.md"
         for rd in _all_reldirs:
-            if cl.exists() and rd.name not in cl.read_text():
+            if cl.exists() and rd.name not in cl.read_text(encoding="utf-8-sig"):
                 probs.append(f"CHANGELOG missing entry for {rd.name}")
         # SUPERSEDED.md, by contrast, is a WITHIN-SERIES claim: only THIS
         # board's earlier releases are superseded by THIS board's latest.
@@ -1097,7 +1097,7 @@ def main():
     elif _mm is None:
         rows.append(("A-BODY", "N-A", "no twin run / missing_models.txt yet"))
     else:
-        _t = _mm.read_text()
+        _t = _mm.read_text(encoding="utf-8-sig")
         _m = re.search(r"bodies mounted:\s*(\d+)\s*/\s*(\d+)", _t)
         if "GENERATED by jlc_twin" not in _t or not _m:
             grade("A-BODY", False, "",
@@ -1120,7 +1120,7 @@ def main():
         started = bool(boards) or (proj / "03_src" / "route").is_dir()
         jrn = [j for j in sorted((docs / "journal").glob("*.md"))
                if j.name != "contracts.md"] if (docs / "journal").is_dir() else []
-        entries = sum(1 for j in jrn if "## " in j.read_text())
+        entries = sum(1 for j in jrn if "## " in j.read_text(encoding="utf-8-sig"))
         if not started:
             rows.append(("M-JRNL", "N-A", "no board/route artifacts yet"))
         else:
@@ -1144,7 +1144,7 @@ def main():
 
     adjp = proj / "03_src/rules/twin_adjudications.yaml"
     if adjp.exists() and yaml:
-        entries = yaml.safe_load(adjp.read_text()) or []
+        entries = yaml.safe_load(adjp.read_text(encoding="utf-8-sig")) or []
         thin = [e.get("lcsc") for e in entries
                 if len(str(e.get("why", ""))) < 40]
         grade("M-WAIV", not thin, f"{len(entries)} adjudications, all evidenced",
@@ -1205,7 +1205,7 @@ def main():
     # WRITTEN, re-read off disk — not from the in-memory counts that produced
     # it. A summary computed from `rows` can only ever agree with itself; that
     # is what let the corrupt file ship with a headline nobody could derive.
-    bad = report_inconsistencies(dest.read_text(), len(rows), counts)
+    bad = report_inconsistencies(dest.read_text(encoding="utf-8-sig"), len(rows), counts)
     if bad:
         print(f"policy_audit: REPORT CORRUPT — {dest}", file=sys.stderr)
         for b in bad:

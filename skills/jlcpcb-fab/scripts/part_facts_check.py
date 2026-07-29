@@ -124,7 +124,7 @@ def load_parts(parts_dir):
     for f in sorted(Path(parts_dir).glob("*/part.yaml")):
         total += 1
         try:
-            d = yaml.safe_load(f.read_text()) or {}
+            d = yaml.safe_load(f.read_text(encoding="utf-8-sig")) or {}
         except Exception as e:
             raise ConfigError(f"{f}: unparseable ({e})")
         if not isinstance(d, dict):
@@ -194,7 +194,7 @@ def load_netlist_pad1(root):
             break
     if not hits:
         return {}, None
-    text = Path(hits[0]).read_text()
+    text = Path(hits[0]).read_text(encoding="utf-8-sig")
     out = {}
     for m in re.finditer(r'\(net\s+\(code[^)]*\)\s*\(name\s+"([^"]*)"\)'
                          r'(.*?)(?=\n\s*\(net\s+\(code|\Z)', text, re.S):
@@ -212,9 +212,9 @@ def order_text(root):
     for name in ("ORDER_README.md", "MANIFEST.txt"):
         p = Path(root) / name
         if p.exists():
-            parts.append(p.read_text())
+            parts.append(p.read_text(encoding="utf-8-sig"))
     for p in sorted(Path(root).glob("verification/*.md")):
-        parts.append(p.read_text())
+        parts.append(p.read_text(encoding="utf-8-sig"))
     return "\n".join(parts)
 
 

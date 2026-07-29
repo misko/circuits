@@ -265,7 +265,7 @@ def rebuild_order_fails(path):
     path = Path(path)
     if not path.is_file():
         return []
-    lines = path.read_text().splitlines()
+    lines = path.read_text(encoding="utf-8-sig").splitlines()
     gate = next((i for i, l in enumerate(lines) if DRC_GATE_RE.search(l)), None)
     if gate is None:
         return []                       # no DRC gate in this chain: not our call
@@ -327,16 +327,16 @@ def main(argv=None):
         print(f"FAIL A-SRC: .kicad_pro not found at {pro}")
         return 1
 
-    spec = yaml.safe_load(nets.read_text()) or {}
+    spec = yaml.safe_load(nets.read_text(encoding="utf-8-sig")) or {}
     classes = spec.get("classes") or {}
-    proj = json.loads(pro.read_text())
+    proj = json.loads(pro.read_text(encoding="utf-8-sig"))
     ns = proj.get("net_settings") or {}
     pro_classes = {c.get("name"): c for c in ns.get("classes") or []}
     patterns = ns.get("netclass_patterns") or []
     pat_by_class = {}
     for e in patterns:
         pat_by_class.setdefault(e.get("netclass"), set()).add(e.get("pattern"))
-    dtext = dru.read_text() if dru and dru.is_file() else ""
+    dtext = dru.read_text(encoding="utf-8-sig") if dru and dru.is_file() else ""
     dwidths = dru_widths(dtext)
 
     fails, oks = [], []
@@ -441,7 +441,7 @@ def main(argv=None):
     # scoped to nets.yaml's classes — a rule naming a class nets.yaml dropped
     # is precisely the case every other check above walks straight past.
     if dtext and not a._disable_fire:
-        btext = board.read_text() if board and board.is_file() else ""
+        btext = board.read_text(encoding="utf-8-sig") if board and board.is_file() else ""
         fire = unfireable_rules(dtext, set(pro_classes), btext,
                                 board.name if board else "the board")
         fails.extend(fire)

@@ -69,7 +69,7 @@ def parse_mod(path):
            the body is every vendor's pin-1 dot. Lines are body outline and
            carry no orientation on their own.
     """
-    t = Path(path).read_text()
+    t = Path(path).read_text(encoding="utf-8-sig")
     pads = []
     for m in re.finditer(
             r'\(pad\s+("?[^\s")]+"?)\s+(\S+)\s+(\S+)[^)]*?\(at ([-\d.]+) '

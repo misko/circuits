@@ -66,7 +66,7 @@ EXIT_CLEAN, EXIT_INFRA, EXIT_ESCALATE, EXIT_NOVEL, EXIT_DBACK = 0, 1, 2, 3, 4
 
 
 def load_fixes(path):
-    d = yaml.safe_load(Path(path).read_text()) or {}
+    d = yaml.safe_load(Path(path).read_text(encoding="utf-8-sig")) or {}
     table = {}
     for e in d.get("fixes") or []:
         if not e.get("class") or e.get("action") not in ("auto", "escalate"):
@@ -149,7 +149,7 @@ def run_check_cmd(cmd, root, out_path):
     if not out_path.is_file():
         sys.exit(f"grind_driver: --check-cmd wrote no {out_path} "
                  f"(exit {r.returncode}): {(r.stderr or r.stdout)[-400:]}")
-    return json.loads(out_path.read_text())
+    return json.loads(out_path.read_text(encoding="utf-8-sig"))
 
 
 def measure(args, root, cfg_path, board):
@@ -166,7 +166,7 @@ def measure(args, root, cfg_path, board):
     if not qjson.is_file():
         sys.exit(f"grind_driver: quick produced no JSON (exit "
                  f"{rq.returncode}): {(rq.stderr or rq.stdout)[-400:]}")
-    q = json.loads(qjson.read_text())
+    q = json.loads(qjson.read_text(encoding="utf-8-sig"))
     if q["verdict"] == "DIRTY":
         findings = {}
         for cls, e in q.get("violations", {}).items():
@@ -186,7 +186,7 @@ def measure(args, root, cfg_path, board):
                    cwd=str(root), capture_output=True, text=True)
     if not gj.is_file():
         sys.exit("grind_driver: full DRC wrote no gate.json")
-    return "full", classify_gate(json.loads(gj.read_text()), args.fab_floor)
+    return "full", classify_gate(json.loads(gj.read_text(encoding="utf-8-sig")), args.fab_floor)
 
 
 # --------------------------------------------------------------- output --
@@ -305,7 +305,7 @@ def main(argv=None):
     cfg_path = root / args.config
     board = None
     if cfg_path.is_file():
-        cfg = yaml.safe_load(cfg_path.read_text()) or {}
+        cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8-sig")) or {}
         b = (cfg.get("project") or {}).get("board")
         board = (root / b) if b else None
     elif not args.check_cmd:

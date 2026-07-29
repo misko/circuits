@@ -30,7 +30,7 @@ ap.add_argument("--min-clearance", type=float, default=0.10)
 ap.add_argument("--no-fill", action="store_true")
 args = ap.parse_args()
 
-src = Path(args.krt_file).read_text()
+src = Path(args.krt_file).read_text(encoding="utf-8-sig")
 netname = dict(re.findall(r'\(net (\d+) "([^"]+)"\)', src))
 board = pcbnew.LoadBoard(args.base)
 LAY = {"F.Cu": pcbnew.F_Cu, "B.Cu": pcbnew.B_Cu,

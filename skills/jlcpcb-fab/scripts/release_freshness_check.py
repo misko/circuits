@@ -196,7 +196,7 @@ def _load_exceptions(release_dir: Path):
     f = release_dir / "verification" / "freshness_exceptions.txt"
     if not f.is_file():
         return allow, bad
-    for raw in f.read_text().splitlines():
+    for raw in f.read_text(encoding="utf-8-sig").splitlines():
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
@@ -276,7 +276,7 @@ def check_bom_delta(release_dir, prior_dir):
     def rows(p):
         import csv as _csv
         out = {}
-        for r in _csv.DictReader(p.read_text().splitlines()):
+        for r in _csv.DictReader(p.read_text(encoding="utf-8-sig").splitlines()):
             refs = tuple(sorted(d.strip() for d in
                                 (r.get("Designator") or "").split(",") if d.strip()))
             if refs:
@@ -289,7 +289,7 @@ def check_bom_delta(release_dir, prior_dir):
     if cpl.is_file():
         import csv as _csv
         placed = {(r.get("Designator") or "").strip()
-                  for r in _csv.DictReader(cpl.read_text().splitlines())
+                  for r in _csv.DictReader(cpl.read_text(encoding="utf-8-sig").splitlines())
                   if (r.get("Designator") or "").strip()}
     added = sorted(set(cur) - set(old))
     removed = sorted(set(old) - set(cur))
@@ -588,7 +588,7 @@ def check_sourcing_delta(release_dir, prior_dir):
                 "drop-in (different land pattern), or something else was "
                 "changed under cover of the swap")
         else:
-            n = max(len(cur_cpl.read_text().splitlines()) - 1, 0)
+            n = max(len(cur_cpl.read_text(encoding="utf-8-sig").splitlines()) - 1, 0)
             notes.append(f"  note: fab/cpl.csv byte-identical to "
                          f"{prior_dir.name}'s ({n} rows) — ASSERTED")
 
@@ -1162,7 +1162,7 @@ def check_cpl_delta(release_dir, prior_dir):
 
     def rows(p):
         out = {}
-        for r in _csv.DictReader(p.read_text().splitlines()):
+        for r in _csv.DictReader(p.read_text(encoding="utf-8-sig").splitlines()):
             ref = (r.get("Designator") or "").strip()
             if ref:
                 out[ref] = {k: (v or "").strip() for k, v in r.items()}
@@ -1365,8 +1365,8 @@ def check_audit_manifest(release_dir):
                 f"manifest's claimed audit result)"]
     if not manifest.is_file():
         return [f"  MISSING: MANIFEST.txt"]
-    at = audit.read_text()
-    mt = manifest.read_text()
+    at = audit.read_text(encoding="utf-8-sig")
+    mt = manifest.read_text(encoding="utf-8-sig")
     audit_fail, how = _audit_fail_count(at)
     claimed = _manifest_claimed_fail(mt)
     if claimed is None:
@@ -1400,7 +1400,7 @@ def check_draft_readme(release_dir):
     pat = re.compile(
         r"\b(" + "|".join(re.escape(m) for m in _DRAFT_MARKERS) + r")\b",
         re.I)
-    for i, line in enumerate(readme.read_text().splitlines(), 1):
+    for i, line in enumerate(readme.read_text(encoding="utf-8-sig").splitlines(), 1):
         for m in pat.finditer(line):
             fails.append(
                 f"  DRAFT README: {readme.name}:{i} contains draft/placeholder "
@@ -1436,7 +1436,7 @@ def _erc_measured(erc_json_path):
         return None, None
     try:
         import json
-        d = json.loads(erc_json_path.read_text())
+        d = json.loads(erc_json_path.read_text(encoding="utf-8-sig"))
     except Exception:
         return None, None
     counts = {"error": 0, "warning": 0}
@@ -1496,7 +1496,7 @@ def check_manifest_consistency(release_dir, releases_root):
     release path that is not this release."""
     fails = []
     manifest = release_dir / "MANIFEST.txt"
-    mt = manifest.read_text() if manifest.is_file() else ""
+    mt = manifest.read_text(encoding="utf-8-sig") if manifest.is_file() else ""
 
     # -- ERC counts: MANIFEST vs policy_audit S-ERC row vs erc.json
     stated_e, stated_w = [], []
@@ -1506,7 +1506,7 @@ def check_manifest_consistency(release_dir, releases_root):
         stated_w.append(("MANIFEST", w))
     audit = release_dir / "verification" / "policy_audit.md"
     if audit.is_file():
-        row = re.search(r"^\s*\|\s*S-ERC\s*\|[^\n]*", audit.read_text(), re.M)
+        row = re.search(r"^\s*\|\s*S-ERC\s*\|[^\n]*", audit.read_text(encoding="utf-8-sig"), re.M)
         if row:
             e, w = _erc_claim(row.group(0), near=r"^")
             stated_e.append(("policy_audit.md S-ERC", e))
@@ -1539,7 +1539,7 @@ def check_manifest_consistency(release_dir, releases_root):
             if f.suffix not in (".txt", ".md") or not f.is_file():
                 continue
             try:
-                text = f.read_text()
+                text = f.read_text(encoding="utf-8-sig")
             except UnicodeDecodeError:
                 continue
             seen = set()
@@ -1619,7 +1619,7 @@ def _parse_stock_evidence(path):
     if path.suffix == ".json":
         import json as _json
         try:
-            d = _json.loads(path.read_text())
+            d = _json.loads(path.read_text(encoding="utf-8-sig"))
         except Exception:
             return None, lines
         for e in d.get("lines", []):
@@ -1762,7 +1762,7 @@ def _load_assembly(release_dir, override):
         import yaml
     except ImportError:
         return {}
-    return yaml.safe_load(p.read_text()) or {}
+    return yaml.safe_load(p.read_text(encoding="utf-8-sig")) or {}
 
 
 # ------------------------------------------------------------------- main

@@ -488,11 +488,11 @@ class Mouser:
             f = self.replay_dir / f"{name}.json"
             if not f.is_file():
                 raise RuntimeError(f"replay fixture missing: {f.name}")
-            return json.loads(f.read_text())
+            return json.loads(f.read_text(encoding="utf-8-sig"))
         cp = self._cache_path(name)
         if self.use_cache and cp and cp.is_file():
             try:
-                d = json.loads(cp.read_text())
+                d = json.loads(cp.read_text(encoding="utf-8-sig"))
                 age = time.time() - float(d.get("fetched_at_epoch", 0))
                 if age < CACHE_TTL_S:
                     return d["payload"]

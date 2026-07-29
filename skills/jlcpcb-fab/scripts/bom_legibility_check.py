@@ -118,7 +118,7 @@ def load_part_mpns(parts_dir):
     out = {}
     for y in sorted(parts_dir.glob("*/part.yaml")):
         try:
-            d = yaml.safe_load(y.read_text()) or {}
+            d = yaml.safe_load(y.read_text(encoding="utf-8-sig")) or {}
         except Exception:                                 # noqa: BLE001
             continue
         if not isinstance(d, dict):
@@ -166,7 +166,7 @@ def load_ledger_mpns(path=None):
     if not p.is_file() or yaml is None:
         return {}
     try:
-        d = yaml.safe_load(p.read_text()) or {}
+        d = yaml.safe_load(p.read_text(encoding="utf-8-sig")) or {}
     except Exception:                                     # noqa: BLE001
         return {}
     out = {}

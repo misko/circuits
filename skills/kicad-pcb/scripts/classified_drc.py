@@ -74,7 +74,7 @@ else:
     # another board's categories in its output)
     rpt = f"/tmp/classified_drc.{os.getpid()}.txt"
     _write_drc_report(board, args.board, rpt)
-txt = Path(rpt).read_text()
+txt = Path(rpt).read_text(encoding="utf-8-sig")
 
 blocks = re.split(r"\[(\w+)\]: ", txt)
 cats = collections.Counter(blocks[1::2])

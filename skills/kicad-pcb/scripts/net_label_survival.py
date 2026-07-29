@@ -94,7 +94,7 @@ def load_config(path):
         return {}
     if yaml is None:
         raise LoadError("PyYAML unavailable but a config file exists")
-    data = yaml.safe_load(p.read_text()) or {}
+    data = yaml.safe_load(p.read_text(encoding="utf-8-sig")) or {}
     blk = data.get("label_survival") if isinstance(data, dict) else None
     if blk is None:
         return {}
@@ -183,8 +183,8 @@ def main(argv=None):
         print(f"S-NETMERGE: LOAD ERROR — {e}")
         return 2
 
-    labels = schematic_labels(Path(sch).read_text())
-    netnames, pad2net = parse_netlist(Path(net).read_text())
+    labels = schematic_labels(Path(sch).read_text(encoding="utf-8-sig"))
+    netnames, pad2net = parse_netlist(Path(net).read_text(encoding="utf-8-sig"))
     if not netnames:
         print(f"S-NETMERGE: LOAD ERROR — netlist {net} parsed 0 nets (format "
               f"change? a parse that yields zero results is an error)")

@@ -86,6 +86,36 @@ def t_clean_uncoded():
               "gate on an uncoded row")
 
 
+@test("gate READS a circuit.json carrying a UTF-8 BOM instead of crashing",
+      kind="known_bad")
+def t_utf8_bom_circuit_json():
+    """Found running the gate on a project dir, 2026-07-29: it died with
+    `json.decoder.JSONDecodeError: Unexpected UTF-8 BOM (decode using
+    utf-8-sig)`. A CRASH is the worst possible verdict — worse than a FAIL,
+    because the wrapper reads a non-zero exit as "gate ran and objected" and a
+    human reads the traceback as a broken test rather than an ungraded BOM. The
+    three bytes EF BB BF are what any Windows editor and several exporters
+    prepend, so this is an input the gate must simply accept.
+
+    Note the encoding is a decode concern for EVERY hand-authorable source the
+    skills read, not just this one file: the fix is `encoding="utf-8-sig"` at
+    all 124 read sites across skills/, not a patch at the one that happened to
+    crash first (canon M-WIDTH).
+
+    RED-VERIFIED: with `read_text()` restored at bom_source_check.py:106 this
+    fixture dies on the JSONDecodeError instead of reporting a verdict."""
+    d = write_case(tmpdir("bomsrc_bom_"), SRC, [
+        ("10uF 50V", ["C9", "C10"], "C77102"),
+        ("10uF 25V", ["C49", "C50"], "C77100")])
+    cj = d / "circuit.json"
+    cj.write_bytes(b"\xef\xbb\xbf" + cj.read_bytes())    # prepend the BOM
+    r = must_pass(run([KPY, GATE, d / "bom.csv", cj]),
+                  "gate on a BOM-prefixed circuit.json")
+    check("JSONDecodeError" not in r.out and "Traceback" not in r.out,
+          f"the gate must report a verdict, not a traceback:\n{r.out}")
+    contains(r.out, "PASS", "verdict")
+
+
 # ------------------------------------------ non-LCSC supplier handle blanking
 @test("refdes_codes_from_circuit blanks a non-C supplier HANDLE (an MPN) and "
       "keeps a real C-code verbatim")

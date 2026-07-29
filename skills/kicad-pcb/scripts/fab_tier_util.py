@@ -34,7 +34,7 @@ class FabTierError(RuntimeError):
 
 
 def load_tiers(path=TIERS_PATH):
-    return yaml.safe_load(Path(path).read_text())["tiers"]
+    return yaml.safe_load(Path(path).read_text(encoding="utf-8-sig"))["tiers"]
 
 
 def resolve(project_dir, tiers=None):
@@ -44,7 +44,7 @@ def resolve(project_dir, tiers=None):
     nets_path = Path(project_dir) / "03_src" / "rules" / "nets.yaml"
     if not nets_path.is_file():
         return None
-    name = (yaml.safe_load(nets_path.read_text()) or {}).get("fab_tier")
+    name = (yaml.safe_load(nets_path.read_text(encoding="utf-8-sig")) or {}).get("fab_tier")
     if not name:
         return None
     tiers = tiers if tiers is not None else load_tiers()

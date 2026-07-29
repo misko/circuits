@@ -156,7 +156,7 @@ gate "[4] kicad-cli sch erc --severity-all"
 kicad-cli sch erc --severity-all --format json -o "$B/drc/erc.json" "$K/$BOARD.kicad_sch" >/dev/null 2>&1
 $PY - "$B/drc/erc.json" <<'PY' || fail "ERC errors"
 import json,sys
-d=json.load(open(sys.argv[1]))
+d=json.load(open(sys.argv[1], encoding="utf-8-sig"))
 v=[x for s in d['sheets'] for x in s['violations']]
 e=[x for x in v if x.get('severity')=='error']
 print(f"      ERC: {len(e)} errors, {len(v)-len(e)} warnings (baselined)")
@@ -258,7 +258,7 @@ kicad-cli pcb drc --severity-all --refill-zones --schematic-parity --format json
 $PY - "$B/drc/gate.json" <<'PY' || fail "DRC not clean"
 import json,sys
 from collections import Counter
-d=json.load(open(sys.argv[1]))
+d=json.load(open(sys.argv[1], encoding="utf-8-sig"))
 nv,nu,npar=len(d['violations']),len(d['unconnected_items']),len(d.get('schematic_parity',[]))
 print(f"      violations: {nv} {dict(Counter(v['type'] for v in d['violations']))}")
 print(f"      unconnected: {nu}")

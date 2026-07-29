@@ -54,7 +54,7 @@ def main(argv=None):
         return 2
 
     padmap_p = proj / "03_tscircuit" / "parity_padmap.txt"
-    padmap = padmap_p.read_text() if padmap_p.exists() else ""
+    padmap = padmap_p.read_text(encoding="utf-8-sig") if padmap_p.exists() else ""
     parts = sorted(glob.glob(str(proj / "02_parts" / "*" / "part.yaml")))
 
     # G-INPUT: name the project, the padmap, and how many parts were in scope.
@@ -73,7 +73,7 @@ def main(argv=None):
 
     bad, multipin = [], 0
     for py in parts:
-        y = yaml.safe_load(Path(py).read_text()) or {}
+        y = yaml.safe_load(Path(py).read_text(encoding="utf-8-sig")) or {}
         pins = y.get("pins") or {}
         if len(pins) > 2:
             multipin += 1

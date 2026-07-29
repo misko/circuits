@@ -109,12 +109,12 @@ class Preflight:
         if route_cfg is not None:
             self.cfg = route_cfg
         elif self.route_path.is_file():
-            self.cfg = yaml.safe_load(self.route_path.read_text()) or {}
+            self.cfg = yaml.safe_load(self.route_path.read_text(encoding="utf-8-sig")) or {}
         else:
             self.cfg = None
         self.tier = resolve_tier(self.root)   # FabTierError propagates: HARD
         nets_p = self.root / "03_src" / "rules" / "nets.yaml"
-        self.nets = (yaml.safe_load(nets_p.read_text()) or {}) \
+        self.nets = (yaml.safe_load(nets_p.read_text(encoding="utf-8-sig")) or {}) \
             if nets_p.is_file() else {}
 
     # ------------------------------------------------------------- helpers
@@ -153,7 +153,7 @@ class Preflight:
             pro = bp.with_suffix(".kicad_pro")
             if pro.is_file():
                 try:
-                    r = json.loads(pro.read_text())["board"][
+                    r = json.loads(pro.read_text(encoding="utf-8-sig"))["board"][
                         "design_settings"]["rules"]
                     v = r.get("min_hole_clearance")
                     if v is not None:
@@ -180,7 +180,7 @@ class Preflight:
         bp = self.board_path()
         for c in cands:
             try:
-                d = yaml.safe_load(c.read_text()) or {}
+                d = yaml.safe_load(c.read_text(encoding="utf-8-sig")) or {}
             except Exception:
                 continue
             out = (d.get("project") or {}).get("output")

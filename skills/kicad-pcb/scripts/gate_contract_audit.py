@@ -138,7 +138,7 @@ def audit(root, enforce=None):
         if p.name in SKIP_BASENAMES:
             continue
         try:
-            text = p.read_text()
+            text = p.read_text(encoding="utf-8-sig")
             ast.parse(text)                 # a file we cannot parse is a FAIL
         except Exception as e:
             unparsed.append(f"{p.relative_to(root)}: {e}")
@@ -191,7 +191,7 @@ def check_self_consistency(refs_dir):
     ft = Path(refs_dir) / "fab_tiers.yaml"
     if not ft.exists() or yaml is None:
         return fails, n
-    doc = yaml.safe_load(ft.read_text()) or {}
+    doc = yaml.safe_load(ft.read_text(encoding="utf-8-sig")) or {}
     for tier, d in sorted((doc.get("tiers") or {}).items()):
         if not isinstance(d, dict):
             continue

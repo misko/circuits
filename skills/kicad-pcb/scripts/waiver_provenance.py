@@ -83,7 +83,7 @@ def load_waivers(proj_dir, rel):
     p = Path(proj_dir) / rel
     if not p.is_file():
         return []
-    raw = p.read_text()
+    raw = p.read_text(encoding="utf-8-sig")
     header = "\n".join(l.lstrip("# ").rstrip() for l in raw.splitlines()
                        if l.lstrip().startswith("#"))
     try:

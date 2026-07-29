@@ -94,7 +94,7 @@ if [ "$STUDY" = 1 ]; then
   if [ -s "$KPCB" ]; then
     step verify "kicad-cli DRC on tscircuit export"
     kicad-cli pcb drc --severity-all --format json -o "$T/verification/drc.json" "$KPCB" >/dev/null 2>&1
-    V=$(python3 -c "import json;d=json.load(open('$T/verification/drc.json'));print(len(d['violations']),len(d['unconnected_items']))" 2>/dev/null || echo "? ?")
+    V=$(python3 -c "import json;d=json.load(open('$T/verification/drc.json', encoding="utf-8-sig"));print(len(d['violations']),len(d['unconnected_items']))" 2>/dev/null || echo "? ?")
     echo "    tscircuit-export DRC (kicad-cli, severity-all): $V  (violations unconnected)"
   fi
 fi

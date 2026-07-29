@@ -383,7 +383,7 @@ def main(argv=None):
 
     cfg = {}
     if args.config and Path(args.config).exists():
-        cfg = json.loads(Path(args.config).read_text())
+        cfg = json.loads(Path(args.config).read_text(encoding="utf-8-sig"))
     if args.courtyard:
         cfg["courtyard"] = True
     waive = cfg.get("waive", {})

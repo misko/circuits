@@ -792,5 +792,56 @@ def t_node_level_unreached():
     contains(r.out, "electrical", "names the block that would fix it")
 
 
+@test("E-INV rejects a `supplies:` rail net that is NOT in the netlist, and "
+      "names the near-miss", kind="known_bad")
+def t_supplies_net_absent():
+    """THE COOKSENSE INCIDENT VERBATIM, 2026-07-29. The invariants file declared
+    `supplies: {N3V3: 3.3}` — the tsx AUTHOR-PREFIX form — and no net called
+    `N3V3` exists in the netlist. _grade_node_level filters supplies to nets it
+    can see, so the 3V3 rail was INVISIBLE to every node_level grade on the
+    board and nothing said so.
+
+    RED-VERIFIED against the pre-fix checker: it failed, but for the WRONG
+    REASON — "no supply rail voltages declared — add `supplies:`" — when
+    `supplies:` was in fact declared and merely misspelt. A verdict that sends
+    the author to add a block they already wrote is a false lead, so this
+    fixture pins the DIAGNOSIS, not just the exit code."""
+    nets = {"3V3": [("R_PG", "2", "p2")],
+            "TAP": [("R_PG", "1", "p1"), ("U_RX", "1", "GPB0")],
+            "GND": [("R_B", "2", "p2"), ("R_B", "1", "p1")]}
+    inv = NL_INV.replace("supplies: {V5: 5.0}", "supplies: {N3V3: 3.3}")
+    d = project(net_text=_nl_comps(nets, {"R_PG": "100k", "R_B": "1k",
+                                          "U_RX": "CRX"}), inv_text=inv)
+    _parts(d, "CRX", NL_EL)
+    r = must_fail(einv(d), "a supplies: rail that is not a net")
+    contains(r.out, "N3V3", "names the rail it could not find")
+    contains(r.out, "'3V3'", "suggests the net the author meant")
+
+
+@test("E-INV catches a misnamed rail even when ANOTHER rail resolves — the "
+      "silent half of the trap", kind="known_bad")
+def t_supplies_net_absent_while_another_resolves():
+    """The sharper case, and the reason this is graded whenever `supplies:` is
+    present at all rather than only when a grade comes up short. With ONE valid
+    rail the pre-fix checker PASSES: it finds V5, computes a level, reports
+    green, and the misnamed second rail is simply never mentioned. Nothing in
+    the output distinguishes this board from one whose supplies are all correct.
+
+    RED-VERIFIED: pre-fix this fixture exits 0."""
+    nets = {"V5":  [("R_PG", "2", "p2")],
+            "3V3": [("R_B2", "2", "p2")],
+            "TAP": [("R_PG", "1", "p1"), ("U_RX", "1", "GPB0")],
+            "GND": [("R_B", "2", "p2"), ("R_B", "1", "p1"),
+                    ("R_B2", "1", "p1")]}
+    inv = NL_INV.replace("supplies: {V5: 5.0}",
+                         "supplies: {V5: 5.0, N3V3: 3.3}")
+    d = project(net_text=_nl_comps(nets, {"R_PG": "100k", "R_B": "1k",
+                                          "R_B2": "1k", "U_RX": "CRX"}),
+                inv_text=inv)
+    _parts(d, "CRX", NL_EL)
+    r = must_fail(einv(d), "a misnamed rail beside a resolving one")
+    contains(r.out, "N3V3", "names the misnamed rail even though V5 resolved")
+
+
 if __name__ == "__main__":
     sys.exit(main())

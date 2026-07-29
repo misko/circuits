@@ -179,7 +179,7 @@ def declared_off_bom(board_path):
         import yaml
     except ImportError:
         return refs, None
-    data = yaml.safe_load(path.read_text()) or {}
+    data = yaml.safe_load(path.read_text(encoding="utf-8-sig")) or {}
     for e in (data.get("not_assembled") or []):
         if e.get("on_bom") is False:
             refs.update(str(r) for r in (e.get("refs") or []))
@@ -214,7 +214,7 @@ def declared_unpopulated(board_path):
                 print(f"  WARNING: {cand} exists but PyYAML is missing — the "
                       f"not_assembled: declaration is NOT being honoured")
                 return set(), None
-            data = yaml.safe_load(cand.read_text()) or {}
+            data = yaml.safe_load(cand.read_text(encoding="utf-8-sig")) or {}
             refs = {str(r) for e in (data.get("not_assembled") or [])
                     for r in (e.get("refs") or [])}
             return refs, cand
