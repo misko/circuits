@@ -447,6 +447,11 @@ def main():
                 y = yaml.safe_load(Path(py).read_text(encoding="utf-8-sig")) or {}
                 lay = y.get("layout") or {}
                 pname = Path(py).parent.name
+                if not isinstance(lay, dict):
+                    unreached.append(
+                        f"{pname}: layout: is not a mapping "
+                        f"({type(lay).__name__}) — no budget in it can be read")
+                    lay = {}
                 # THE DECLARING PART'S FOOTPRINTS, resolved by footprint id —
                 # the only refdes<->part relation a part.yaml carries. Where an
                 # id is shared (two 0402 resistor MPNs, two YAT attenuator
@@ -459,7 +464,31 @@ def main():
                 # ---------------- keep_short: pin -> nearest partner ---------
                 for ks in (lay.get("keep_short") or []):
                     n_ks += 1
-                    net, mx = ks.get("net"), float(ks.get("max_span_mm", 6))
+                    # A MALFORMED BUDGET IS UNREACHED, NEVER A CRASH. Measured
+                    # 2026-07-29: `adjacency:` in the wild is mostly FREE PROSE
+                    # (~40 string entries on usb-hub-3s-v3, 5 on archived
+                    # crow-mic-pod), which crashed the first version of this
+                    # loop with `'str' object has no attribute 'get'`. A crash
+                    # is the WORST available verdict — the wrapper reads the
+                    # non-zero exit as "the gate objected" while a human reads
+                    # the traceback as a broken test rather than an ungraded
+                    # board (fa22228's BOM post-mortem, same lesson).
+                    if not isinstance(ks, dict):
+                        unreached.append(
+                            f"{pname}: keep_short entry is not a mapping "
+                            f"({str(ks)[:60]!r}) — a budget needs `net:` + "
+                            f"`max_span_mm:`; prose belongs under notes:; "
+                            f"graded NOTHING")
+                        continue
+                    try:
+                        mx = float(ks.get("max_span_mm", 6))
+                    except (TypeError, ValueError):
+                        unreached.append(
+                            f"{pname}: keep_short {ks.get('net')!r} has a "
+                            f"non-numeric max_span_mm "
+                            f"({ks.get('max_span_mm')!r}) — graded NOTHING")
+                        continue
+                    net = ks.get("net")
                     pts = netpads.get(net) or []
                     want = [str(p) for p in (ks.get("anchor_pins") or [])]
                     if len(pts) < 2:
@@ -535,6 +564,17 @@ def main():
                 # ---------------- adjacency: refdes pair -> copper gap -------
                 for ad in (lay.get("adjacency") or []):
                     n_adj += 1
+                    if not isinstance(ad, dict):
+                        # see the keep_short note above: on this fleet the
+                        # STRING form is the common one, and it is a real
+                        # finding (a placement constraint no gate can read),
+                        # not an exception.
+                        unreached.append(
+                            f"{pname}: adjacency entry is PROSE, not a graded "
+                            f"budget ({str(ad)[:60]!r}) — write it as "
+                            f"{{refdes: [A, B], max_mm: N, why: ...}} or move "
+                            f"it to notes:; graded NOTHING")
+                        continue
                     pair = ad.get("refdes") or [ad.get("a"), ad.get("b")]
                     pair = [str(r) for r in pair if r]
                     mx = ad.get("max_mm", ad.get("max_span_mm"))

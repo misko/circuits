@@ -931,5 +931,42 @@ def t_padj_pair_is_graded():
     contains(gh["P-ADJ-UNREACHED"][1], "U_NOT_HERE", "names the missing refdes")
 
 
+@test("a PROSE adjacency entry is UNREACHED, not a CRASH — the string form is "
+      "the fleet's COMMON one", kind="known_bad")
+def t_padj_pair_prose_entry_does_not_crash():
+    """FOUND BY RUNNING THE NEW GATE ON THE FLEET, 2026-07-29, and it is the
+    reason to do that before believing a green fixture. `adjacency:` in the wild
+    is mostly FREE PROSE: 22 string entries on usb-hub-3s-v3 ('Cin (C13 HF +
+    C9-C12 bulk) hard against the HS-FET drain (VIN) and PGND'), 5 more on
+    archived crow-mic-pod. The first version of the pair loop did
+    `ad.get("refdes")` on them and died with `AttributeError: 'str' object has
+    no attribute 'get'`.
+
+    A CRASH IS THE WORST AVAILABLE VERDICT — worse than a FAIL — because the
+    wrapper reads the non-zero exit as "the gate ran and objected" while a human
+    reads the traceback as a broken test rather than an ungraded board (the same
+    lesson as fa22228's UTF-8 BOM post-mortem). And the prose entries are a real
+    finding, not an exception: they declare a placement constraint no gate can
+    read, which is the M-COVER class this whole change is about. MEASURED after
+    the fix: usb-hub-3s-v3 reports `P-ADJ-PAIR GRADED NOTHING: 0 of 22` with all
+    22 named under P-ADJ-UNREACHED, instead of a traceback.
+
+    RED-VERIFIED 2026-07-29 by restoring the unguarded `ad.get("refdes")`:
+    policy_audit exits non-zero with the AttributeError above and writes NO
+    report at all, so `audit_rows` fails on a missing
+    `06_build/policy_audit.md`.
+    """
+    prose = ('    - "Cin (C13 HF + C9-C12 bulk) hard against the HS-FET drain '
+             '(VIN) and PGND -> smallest possible hot loop"')
+    rows = audit_rows(padj_project([KS_REAL], adjacency=[prose]))
+    eq(rows["P-ADJ-UNREACHED"][0], "FAIL", "a prose adjacency entry")
+    contains(rows["P-ADJ-UNREACHED"][1], "PROSE", "names the shape problem")
+    contains(rows["P-ADJ-UNREACHED"][1], "notes:", "and where prose belongs")
+    eq(rows["P-ADJ-PAIR"][0], "FAIL", "0 of 1 adjacency budgets measurable")
+    contains(rows["P-ADJ-PAIR"][1], "GRADED NOTHING", "with no denominator")
+    # the keep_short half is unaffected by a malformed neighbour
+    eq(rows["P-ADJ"][0], "PASS", "keep_short still graded")
+
+
 if __name__ == "__main__":
     sys.exit(main())
