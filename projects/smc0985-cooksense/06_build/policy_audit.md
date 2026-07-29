@@ -6,8 +6,8 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 
 | ID | Grade | Detail |
 |---|---|---|
-| S-ERC | PASS | 0 errors (412 warnings) |
-| S-NC | PASS | all floats no_connect-flagged |
+| S-ERC | N-A | no schematic or --skip-drc |
+| S-NC | N-A | no ERC data |
 | S-NET | PASS | 163 routed nets, all named |
 | S-VER | WAIVED | weak/missing figure citations: ['2N7002', 'AO3401A', 'GZ2012D601TF', 'KF350-3.5-4P', 'LTV-817S-TA1', 'SN74HC14DR', 'SN74HC595DR', 'ULN2803ADWR'] (9/36) — waived: The 8 flagged part.yaml entries carry verified: notes without a figure/page citation strin... |
 | P-ESC | PASS | 44 parts: escape blocks agree with escape_check |
@@ -19,12 +19,12 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 | S5 | HUMAN | design-math spot-check per review protocol |
 | S6 | HUMAN | schematic readability graded in render review |
 | S7 | HUMAN | decoupling-adjacency graded in render review |
-| P-CRT | PASS | 0 courtyard findings |
-| R-DRC | PASS | 0/0/0 at severity-all |
+| P-CRT | N-A | no DRC run |
+| R-DRC | N-A | no DRC run |
 | P-POL | PASS | polarity machine-check present (pad-1 nets vs part facts) |
 | P-KEEP | PASS | mate/keepout checks present in project audit |
 | P-SILK-REF | PASS | all refdes on visible silk |
-| P-SILK-FN | PASS | every connector/fuse/TP has functional silk nearby |
+| P-SILK-FN | FAIL | no functional silk text within 8.0mm of: ['TP_TCTH', 'TP_TCDRDY', 'TP_SPARE', 'TP_FAULT', 'TP_TCFAULT', 'TP_WDOK', 'J_PWR', 'TP_ENCL', 'J_TC', 'J_DOOR'] |
 | P-PLANE | PASS | In1 carries only its plane (0 tracks) |
 | R-PLANE | N-A | no plane_regions configured |
 | R-POUR | WAIVED | high-current-class nets with no pour: ['5V_FUSED', '5V_IN', '5V_PROTECTED', '5V_RPP'] — waived: The four PWR_IN-class 5V nets (5V_IN, 5V_FUSED, 5V_PROTECTED, 5V_RPP) are distributed as T... |
@@ -48,4 +48,4 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 | M1 | HUMAN | independent-reference coverage — release review |
 | M6 | HUMAN | authoritative-source discipline — encoded in protocols |
 
-Summary: FAIL=1, HUMAN=6, N-A=4, PASS=26, WAIVED=4
+Summary: FAIL=2, HUMAN=6, N-A=8, PASS=21, WAIVED=4
