@@ -6,10 +6,10 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 
 | ID | Grade | Detail |
 |---|---|---|
-| S-ERC | N-A | no schematic or --skip-drc |
-| S-NC | N-A | no ERC data |
-| S-NET | PASS | 162 routed nets, all named |
-| S-VER | WAIVED | weak/missing figure citations: ['2N7002', 'AO3401A', 'GZ2012D601TF', 'KF350-3.5-4P', 'LTV-817S-TA1', 'MF-MSMF200L-2', 'SN74HC14DR', 'SN74HC595DR'] (10/36) — waived: The 8 flagged part.yaml entries carry verified: notes without a figure/page citation strin... |
+| S-ERC | PASS | 0 errors (412 warnings) |
+| S-NC | PASS | all floats no_connect-flagged |
+| S-NET | PASS | 163 routed nets, all named |
+| S-VER | WAIVED | weak/missing figure citations: ['2N7002', 'AO3401A', 'GZ2012D601TF', 'KF350-3.5-4P', 'LTV-817S-TA1', 'SN74HC14DR', 'SN74HC595DR', 'ULN2803ADWR'] (9/36) — waived: The 8 flagged part.yaml entries carry verified: notes without a figure/page citation strin... |
 | P-ESC | PASS | 44 parts: escape blocks agree with escape_check |
 | P-TIER | PASS | all parts escape at declared fab_tier 'jlc_4layer_advanced' |
 | P-LAYOUT | PASS | 33 in-scope parts carry a datasheet layout: block |
@@ -19,8 +19,8 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 | S5 | HUMAN | design-math spot-check per review protocol |
 | S6 | HUMAN | schematic readability graded in render review |
 | S7 | HUMAN | decoupling-adjacency graded in render review |
-| P-CRT | N-A | no DRC run |
-| R-DRC | N-A | no DRC run |
+| P-CRT | PASS | 0 courtyard findings |
+| R-DRC | PASS | 0/0/0 at severity-all |
 | P-POL | PASS | polarity machine-check present (pad-1 nets vs part facts) |
 | P-KEEP | PASS | mate/keepout checks present in project audit |
 | P-SILK-REF | PASS | all refdes on visible silk |
@@ -32,20 +32,20 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 | R-RULES | PASS | r0.kicad_pro: classes=['Default', 'PWR_IN', 'COIL_RAIL', 'STOP_RAIL', 'PWR_3V3', 'PWR_SW', 'ISO_CONTACTOR', 'KEYPAD_ISO', 'ANALOG_SENSE'] |
 | R4 | HUMAN | escape-first routing order — design review (feasibility itself is machine-checked: P-ESC/P-TIER) |
 | R-LEN | PASS | length-spread audit present in 03_src |
-| E-INV | PASS | E-INV OK: 109/109 invariants hold against /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/netlists/cooksense.net |
-| E-ADR | PASS | E-ADR OK: 8/8 protection/topology ADR(s) cited by an invariant (graded against /home/mouse9911/gits/circuits/projects/smc0985-cooksense/03_src/rules/electrical_invariants.yaml) |
-| E-TOPO | FAIL | E-TOPO FAIL: 1 issue(s) over 1 declared rail(s) / 1 converter part(s) in 02_parts:   rail '3V3' (Vin 4.5-5.5 V, Vout 3.201-3.399 V): required=BUCK, declared=LINEAR (AMS1117-3.3) -> step-down requireme |
+| E-INV | PASS | E-INV OK: 115/115 invariants hold against /home/mouse9911/gits/circuits/projects/smc0985-cooksense/06_build/netlists/cooksense.net |
+| E-ADR | PASS | E-ADR OK: 9/9 protection/topology ADR(s) cited by an invariant (graded against /home/mouse9911/gits/circuits/projects/smc0985-cooksense/03_src/rules/electrical_invariants.yaml) |
+| E-TOPO | PASS | E-TOPO OK: 1/1 rail(s) topology-correct, covering 1/1 converter part(s) in 02_parts   rail '3V3' (Vin 4.754-5.25 V, Vout 3.201-3.399 V): required=BUCK, declared=LINEAR (AMS1117-3.3) -> step-down requi |
 | E-MARGIN | N-A | E-MARGIN N-A: no rail declares load_uv_threshold - no regulated rail feeds a known fixed-brownout load |
 | E-OFF | N-A | E-OFF N-A: no self-contained energy source detected (source_type: 'external_5v_selv' (externally powered)) - de-energization is by unplugging the input |
 | M-REPRO | PASS | all rebuild inputs git-tracked |
-| M-REL | FAIL | no MANIFEST.txt; cooksense-v1.6-2026-07-27 lacks SUPERSEDED.md |
-| M-BOM | PASS | cooksense-v1.7-2026-07-28/fab/bom.csv: every LCSC == source (204 coded) |
-| A-POP | FAIL | 1 finding(s): MANIFEST-UNDECLARED: the release MANIFEST carries no `not_assembled:` line while the board has unpopulated parts — the p |
-| A-BODY | PASS | cooksense-v1.7-2026-07-28: bodies mounted 204/204 (generated) |
+| M-REL | PASS | cooksense-v1.6-2026-07-27: provenance + hashes verify (board 'cooksense': 6 of 8 release dir(s) in 07_releases) |
+| M-BOM | FAIL | 4 BOM-vs-source defect(s): MERGED row '100kΩ' (LCSC C25741): its designators have DIFFERENT source codes and must be SEPARATE rows — R_COILENPD->C137948, R_CTRREQPD->C25741, R_DECDPD->C25741, R_DECUPD->C25741, R_HOSTAUTHPD->C25741, R_HSG->C25741, R_KRSTPD->C25741, R_MCUENPD->C25741, R_MR->C25741, R_OPENB->C25741, R_OVT->C270658, R_PG->C25741, R_RAENAPD->C25741, R_RAENBPD->C25741, R_RAENRHAPD->C25741, R_RAENRHEPD->C25741, R_REARMPU->C25741, R_STOPPD->C25741, R_SWPUA->C25741, R_SWPUB->C25741, R_SWPURHA->C25741, R_SWPURHE->C25741 \|\| SUBSTITUTED code on row '15kΩ': BOM has C25756 but source says C407739 for ['R_OVB'] \|\| MERGED row 'SM05B-GHS-TB' (LCSC C189896): its designators have DIFFERENT source codes and must be SEPARATE rows — J_DOOR->C189896, J_ESTOP->C189896, J_MODE->C485354, J_RH_AMBIENT->C189896, J_RH_EXHAUST->C189896 |
+| A-POP | PASS | cooksense-v1.6-2026-07-27: A-POP: PASS (every unpopulated part is declared with evidence) |
+| A-BODY | PASS | cooksense-v1.6-2026-07-27: bodies mounted 189/189 (generated) |
 | M-JRNL | PASS | 10 stage journals, 10 with entries |
 | M-LEARN | PASS | 4 stage learnings files |
 | M-WAIV | N-A | no adjudication file |
 | M1 | HUMAN | independent-reference coverage — release review |
 | M6 | HUMAN | authoritative-source discipline — encoded in protocols |
 
-Summary: FAIL=3, HUMAN=6, N-A=8, PASS=20, WAIVED=4
+Summary: FAIL=1, HUMAN=6, N-A=4, PASS=26, WAIVED=4

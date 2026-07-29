@@ -238,3 +238,14 @@ C2762192: {mpn: NX3225SA-24MHZ-EXS00A-CS08583, value: "24MHz", verified: "2026-0
 C137864: {mpn: RC0402JR-0747RL, value: "47", verified: "2026-07-28 catalog read via jlc_stock_check (exact componentCode match -> mpn RC0402JR-0747RL, stock 86783, status OK). Decode agrees independently: YAGEO RC series, 0402, J = +-5%, field '47R' = 47 ohm. Replaced tscircuit's own auto-assigned C25118 (stock 10, EXTENDED) for the 4x 47R series element whose value ADR-0005 machine-asserts."}
 C274349: {mpn: RC0402FR-0727R4L, value: "27.4", verified: "2026-07-28 catalog read via jlc_stock_check (exact componentCode match -> mpn RC0402FR-0727R4L, stock 5133, status OK). Decode agrees independently: YAGEO RC series, 0402, F = +-1%, field '27R4' = 27.4 ohm. USB D+/D- series termination."}
 C1548: {mpn: 0402CG150J500NT, value: "15pF", verified: "2026-07-28 catalog read via jlc_stock_check (exact componentCode match -> mpn 0402CG150J500NT, stock 2388330, status OK, JLC BASIC). Decode agrees independently: FH 0402, CG = C0G/NP0 dielectric, field '150' = 15 x 10^0 pF, J = +-5%, 500 = 50 V. This is the FH C0G family whose ordering code mpn_capacitance() could not parse until the 2026-07-28 regex fix; the row is kept because the CODE->MPN mapping still needs an authority."}
+
+# --- cooksense v1.7 P0-A: the eFuse OV divider, 2026-07-28 -------------------
+# The two legs the user's supply-spec decision bought. BOTH are +-0.5% (the D
+# tolerance field), because the admissible OV window is 1.0354x wide and a +-1%
+# pair spans 1.0404x — no +-1% divider fits, which is the whole reason these
+# codes exist. Each row rests on TWO INDEPENDENT bases that agree: a live
+# catalog read, and the Uni-Royal ordering-code decode, which is a different
+# instrument from the catalog string (canon M1). Both also agree with the value
+# the .tsx declares, a third check the ledger does not require.
+C270658: {mpn: 0402WGD1003TCE, value: "100k", verified: "2026-07-28 catalog read via jlc_stock_check (exact componentCode match -> mpn 0402WGD1003TCE, stock 9643, status OK). Decode agrees independently: Uni-Royal 0402, D = +-0.5%, field '1003' = 100 x 10^3 = 100 kOhm. Agrees with cooksense.tsx:120 R_OVT resistance='100k'. TOP leg of the TPS259573 OV divider (5V_RPP -> EF_OVLO)."}
+C407739: {mpn: 0402WGD2612TCE, value: "26.1k", verified: "2026-07-28 catalog read via jlc_stock_check (exact componentCode match -> mpn 0402WGD2612TCE, stock 227, status OK). Decode agrees independently: Uni-Royal 0402, D = +-0.5%, field '2612' = 261 x 10^2 = 26.1 kOhm. Agrees with cooksense.tsx:121 R_OVB resistance='26.1k'. BOTTOM leg (EF_OVLO -> GND); this is the leg that moved 15k -> 26.1k to bring the OV trip from 9.200 V down onto a 7.5 V coil rail. STOCK IS THIN AT 227 — clears 5x5 comfortably but is a watch-list line for any larger build, and a stock PASS is necessary and not sufficient (F-ECHO at upload is the only instrument)."}
