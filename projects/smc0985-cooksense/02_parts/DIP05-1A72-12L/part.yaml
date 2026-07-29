@@ -11,13 +11,56 @@ datasheet:
 package: DIP low profile 19.3 x 6.5 x 5.1mm, 4 leads 0.5x0.25mm on DIP-14 corner grid (pin span 15.24mm, row spacing 7.62mm)
 footprint: cooksense:Relay_StandexDIP_1A_pinout12
 escape: {style: leaded, pitch: 2.54, tier_required: jlc_2layer_default, checked: escape_check 2026-07-22}
-pins:                       # pin-out code 12, DS p.3 "Pin-Out (Top View)" fig 12
-  1: COIL_A                 # bottom-left of top view; + terminal for -12D diode variant
-  7: COIL_B                 # bottom-right
-  8: CONTACT_B              # top-right (switch, form A NO)
-  14: CONTACT_A             # top-left
-limits: {coil: "5V nom / 7.5V max, 500R +-10%, pull-in <=3.5V, drop-out >=0.75V (DS p.2)", contact: "model 72: 10W, 200V, 0.5A switch / 1.0A carry (DS p.1)", dielectric_coil_contact: "1.5 kVDC min EN60255-27 (DS p.3)", t_op: "-20..+70C"}
+pins:                       # pin-out code 12, DS p.3 "Pin-Out (Top View)" sub-figure 12
+  # ===================================================================
+  # CORRECTED 2026-07-28. THE PREVIOUS MAP WAS READ OFF THE WRONG
+  # SUB-FIGURE AND IS THE DEFECT PIN-P0.
+  #
+  # It claimed FOUR leads (1 COIL_A / 7 COIL_B / 8 CONTACT_B /
+  # 14 CONTACT_A) with "the isolation boundary between the rows".
+  # That describes sub-figure "13" on the same page, the 4-lead
+  # variant at 14/8/2/6 — NOT sub-figure 12, which is this part.
+  #
+  # Sub-figure 12, re-rendered at 300 dpi and read directly, shows
+  # EIGHT leads and only FOUR electrical nodes:
+  #   a vertical conductor ties 1 <-> 14   = CONTACT A
+  #   a vertical conductor ties 7 <-> 8    = CONTACT B
+  #   a vertical conductor ties 2 <-> 13   = COIL A  (junction dot)
+  #   pin 6 alone                          = COIL B
+  #   pin 9 is drawn as a BARE CIRCLE      = mechanical lead, NC
+  #
+  # Cross-checked against 06_build/netlists/cooksense.net, which is
+  # what makes the consequence unambiguous: the old 4-pad footprint
+  # put 5V_KEY_RELAY on pad1(DIP 1) and U_SEL_BUS on pad4(DIP 14) —
+  # THE SAME INTERNAL NODE — and COIL_*_N on pad2(DIP 7) with KP_* on
+  # pad3(DIP 8), likewise the same node. Two hard shorts per relay,
+  # twelve relays, and NO HOLES AT ALL for the coil.
+  # ===================================================================
+  1:  CONTACT_A               # switch common; tied internally to 14
+  2:  COIL_A                  # tied internally to 13
+  6:  COIL_B
+  7:  CONTACT_B               # tied internally to 8
+  8:  CONTACT_B               # same node as 7
+  9:  NC                      # mechanical lead only, no internal connection
+  13: COIL_A                  # same node as 2
+  14: CONTACT_A               # same node as 1
+limits: {coil: "5V nom / 7.5V max, 500R +-10%, pull-in <=3.5V, drop-out >=0.75V (DS p.2)", contact: "model 72: 10W, 200V, 0.5A switch / 1.0A carry (DS p.1)", dielectric_coil_contact: "1.5 kVDC min EN60255-27 (DS p.3) -- THE PART's internal rating; see the ISOLATION-GEOMETRY gotcha, the PCB geometry it was paired with was wrong", t_op: "-20..+70C"}
 gotchas:
+  - "ISOLATION GEOMETRY — THE BOARD-LEVEL CONSEQUENCE, and it is bigger than the
+     short. This part's coil and contact INTERLEAVE ALONG THE PACKAGE, they are
+     NOT split between the two rows: CONTACT_A at position 1, COIL_A at position
+     2, COIL_B at position 6, CONTACT_B at position 7. So the coil-to-contact
+     separation on the LAND is 2.54 mm between ADJACENT PINS at each end of the
+     package -- NOT the 7.62 mm row separation. ADR-0002 and this file's own
+     `layout:` block both asserted 'the isolation boundary runs BETWEEN the rows'
+     and every pour-relief and routing rule downstream was built on that. Those
+     rules are UNSUPPORTED and must be re-derived. This is why the fix is not a
+     footprint swap: the v1.1 isolation-comb repack, which is the shape of the
+     whole board, was designed around a 7.62 mm boundary that does not exist."
+  - "The 4-lead variant IS real, but it is sub-figure 13 (leads at 14/8/2/6), a
+     DIFFERENT pin-out code. If a 4-lead part is wanted, order the -13 code and
+     re-derive; do not re-map this one."
+
   - "pin-out 12 = coil on pins 1/7 row, contact on pins 8/14 row: the isolation boundary runs BETWEEN the rows (ADR-0002)"
   - "coil is non-polar on -12L; keep pin 1 = +RELAY_5V so the -12D alternate (internal diode, cathode at pin 1 side per DS p.4 D(Q) figure) drops in"
   - "adjacent-relay magnetic coupling: DS p.3 handling note; 15.24mm super-column pitch + one-at-a-time firmware default"
