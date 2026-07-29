@@ -50,3 +50,45 @@ proven orderable), withdrew "J_MODE 0.0000 mm pad gap" as **its own bug**
 from 0.55), and withdrew the D_KSTOP flyback loop. Render refuted BOTH its own
 overlay exits with an independent classifier. **All three lenses confirmed the
 v1.7 J_MODE GH->ZH change is correct** — it cannot mate with any GH harness.
+
+---
+
+# 2026-07-29 — the three blockers closed, and a fourth that blocks instead
+
+No new lenses were run. This section records the DISPOSITION of the carried
+findings, with the measurement that closed each one.
+
+| id | disposition | evidence |
+|---|---|---|
+| **PIN-P0-1 / TOPO P1-1** — U_EXP.1 readback dead at 0.833 V | **CLOSED** | ADR-0022: `R_PG` pull-up 5V_PROTECTED → 3V3, `R_FLTDIVT`/`R_FLTDIVB`/`EFUSE_FLT_DIV` deleted. `node_level` reports **3.300 V at U_EXP.1** vs V_IH 2.640. E-INV 136/136, 5 new asserts RED-verified |
+| **RENDER-P0-1** — J_ISOLOOP no artwork | **CLOSED for the caption, PARTIAL for the legend** | `ISO 30V` at **0.085 mm** from the block body, `NOT SELV` at 7.892 mm, both h0.600/0.150. Pole legend does NOT fit at the terminal and rides the north-stack caption |
+| **RENDER P1-1 / P0-A** — six designators at 0.130 mm, label ownership | **CLOSED** | 250 texts re-measured: 0 below the 0.1125 mm tier floor, 0 storing an unachievable stroke, 11/11 safety texts at h0.600/0.150. Ownership leads J_DOOR +3.087, J_ESTOP +0.659, J_MODE +10.685 mm |
+| **RENDER P0-B** — P-SILK-FN could not fail | **already FIXED upstream**; the project's own waiver text is now corrected too |
+| **TOPO P1-2** — coil pull-in margin | **ESCALATED TO P0 — BLOCKS** | Computed for the first time. **−0.130 V at +70 °C** on the typical driver drop, −0.060 V at +50 °C on worst case. Datasheet committed |
+| **PIN Q-1** — pad 1 called GPA0 | **CLOSED** | It is GPB0; GPA0 is pad 21 (`RAIL_EN_A`, an output). Copper was always right |
+
+## Findings this session made, that no lens reported
+
+| # | finding |
+|---|---|
+| 1 | `electrical_invariants.yaml` declared `supplies: {… N3V3: 3.3}` — the tsx author-prefix form. **No net `N3V3` exists in the netlist**, so the 3V3 rail was invisible to every `node_level` grade. Found by reading the netlist, not by a gate |
+| 2 | `node_level` grades a LOGIC LEVEL, not an ABS-MAX. Moving `R_PG` back to 5 V leaves it PASSING at 5.000 V; only the `pin_on_net R_PG.2` assert catches it. Two different claims, and the RED-verification is what exposed the difference |
+| 3 | The **6.46 mm** "ISO 30V fits here" re-run that the fix list inherited **does not reproduce** either — that site is blocked by `U_OPTO`'s body and `J_RH_EXHAUST`'s body; the clear band is 0.87 mm and a 0.45 mm text needs 0.92 mm. Third unreproduced "nearest site" number on this corner in three sessions |
+| 4 | The real obstruction at the block was never geometry: it was `C_LATCHB`'s and `U_OPTO`'s **designators**, parked first-come-first-served. A 0402's reference does not outrank the only NOT-SELV warning on a 30 V terminal |
+| 5 | A per-pole legend at J_ISOLOOP is **geometrically impossible**, stated precisely: the pads sit at the CENTRE of the KF350 body in x, so every square millimetre either side of a pole is under the moulding once the block is fitted |
+| 6 | The **1.5 mm ownership margin is not affordable at 0.60 mm text** — it was measured at 0.45 mm and a 0.60 mm box needs 78% more area. `J_ESTOP` has ZERO qualifying slots and landed at a degraded 0.5 mm demand, measured lead +0.659 mm |
+| 7 | `route.yaml` had **predicted its own next failure** ("a site legal by 0.00 mm is a site the next reroute takes away") and not reserved against it. The `U_TC.8` stub refused on the first race after the netlist changed |
+| 8 | Deterministic plane-bond sites were being chosen by **proximity**; the nearest legal site for `Q_SWDRVB.2` and `U_TC.5` both scored **growth 0.00** — legal by nothing. Sites are now chosen by **max growth**. Slack survives a re-route; distance to the pad centre does not |
+| 9 | **`C506653` (MCP23017-E/SS, `U_EXP`) is at ZERO LCSC stock**, where the same gate read 56/56 PASS last session |
+
+## Verdict
+
+**SEAL BLOCKED. v1.7 is NOT sealed. `07_releases/` is untouched and
+v1.0–v1.6 remain DO-NOT-ORDER.** The blocker is the coil pull-in margin, whose
+remedy is a topology decision (coil rail, driver technology, or declared
+envelope) and is deliberately not made here.
+
+**A fresh four-lens battery is OWED, not skipped.** It was not run because a
+confirmed P0 already blocks and closing it will change the power tree or the
+coil driver — a material change that needs its own battery. Running four lenses
+against a board that must change again would spend it twice.

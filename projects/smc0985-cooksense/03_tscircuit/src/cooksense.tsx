@@ -81,7 +81,9 @@ export default () => (
       connections={{ pin1: "net.N5V_FUSED", pin2: "net.GND" }} />
     {/* TPS259573 eFuse: programmable OVLO cutoff (EN_OVLO_N divider), Rilm, Cdvdt. FLT_N pin6 is
         open-drain ACTIVE-LOW FAULT (LOW=fault, pulled HIGH=good by R_PG) -> net EFUSE_FLT_N, read by
-        the expander GPA0 (software: HIGH=power good). Renamed from PWR_GOOD_N 2026-07-23 (pin review
+        the expander pad 1 = GPB0 (software: HIGH=power good; PIN Q-1 2026-07-28 — every
+        document in the P0-b work called this pin "GPA0", which is pad 21 and here carries
+        RAIL_EN_A, an OUTPUT. Copper was always right; the paperwork was wrong). Renamed from PWR_GOOD_N 2026-07-23 (pin review
         Q1): the _N name implied LOW=power-good, backwards from the actual sense; consumers are
         software-read only (no hardware AND-chain input), so the RENAME is the honest fix. */}
     <chip name="U_EFUSE" footprint="dfn8" supplierPartNumbers={{ jlcpcb: ["C2653844"] }}
@@ -120,7 +122,21 @@ export default () => (
     <resistor name="R_OVT" resistance="100k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C270658"] }} connections={{ pin1: "net.N5V_RPP", pin2: "net.EF_OVLO" }} />
     <resistor name="R_OVB" resistance="26.1k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C407739"] }} connections={{ pin1: "net.EF_OVLO", pin2: "net.GND" }} />
     <resistor name="R_ILM" resistance="1.2k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C138040"] }} connections={{ pin1: "net.EF_ILM", pin2: "net.GND" }} />
-    <resistor name="R_PG" resistance="100k" footprint="0402" connections={{ pin1: "net.EFUSE_FLT_N", pin2: "net.N5V_PROTECTED" }} />
+    {/* ADR-0022 / v1.7 (2026-07-29). R_PG's TOP END IS ON 3V3, NOT 5V_PROTECTED, AND THAT
+        IS THE WHOLE FIX FOR THE DEAD FAULT READBACK. TPS259573 /FLT (pin6) is OPEN-DRAIN:
+        it can only PULL LOW, so the rail this pull-up hangs on is the rail the node idles
+        at, and the eFuse is indifferent to which one it is (SLVSE57C gives no minimum
+        pull-up rail; the pin's abs-max is 20 V, so 3.3 V is far inside it).
+        WHY IT CHANGED: v1.7's first cut left this on 5V_PROTECTED and level-shifted the
+        node with a 10k/22k divider into U_EXP.1. That divider was sized as if EFUSE_FLT_N
+        were a STIFF 5 V source. It is not — its ONLY source of high is THIS resistor, so
+        the real chain is R_PG + R_top over R_bot = 100k+10k over 22k, and the tap sat at
+        5.000 x 22/132 = 0.833 V against the MCP23017's V_IH(min) 0.8 x VDD = 2.640 V.
+        The readback could never report power-good. At R_PG = 100k NO R_top > 0 solution
+        exists. Moving the pull-up rail instead costs zero parts and REMOVES two:
+        the node now idles at 3.300 V (>= 2.640 V, PASS) and is pulled to V_OL on fault.
+        Graded by the `node_level` invariant on EFUSE_FLT_N (ADR-0007), not by this comment. */}
+    <resistor name="R_PG" resistance="100k" footprint="0402" connections={{ pin1: "net.EFUSE_FLT_N", pin2: "net.N3V3" }} />
     {/* SMBJ5.0A TVS: cathode to protected rail, anode GND (pad1=K per part.yaml) */}
     <diode name="D_TVS" footprint="smb" supplierPartNumbers={{ jlcpcb: ["C113974"] }}
       connections={{ pin1: "net.N5V_PROTECTED", pin2: "net.GND" }} />
@@ -892,7 +908,7 @@ export default () => (
     <chip name="U_EXP" footprint="ssop28" supplierPartNumbers={{ jlcpcb: ["C506653"] }}
       pinLabels={{ pin1: "GPB0", pin2: "GPB1", pin3: "GPB2", pin4: "GPB3", pin5: "GPB4", pin6: "GPB5", pin7: "GPB6", pin8: "GPB7", pin9: "VDD", pin10: "VSS", pin11: "NC", pin12: "SCL", pin13: "SDA", pin14: "NC", pin15: "A0", pin16: "A1", pin17: "A2", pin18: "RESET_N", pin19: "INTB", pin20: "INTA", pin21: "GPA0", pin22: "GPA1", pin23: "GPA2", pin24: "GPA3", pin25: "GPA4", pin26: "GPA5", pin27: "GPA6", pin28: "GPA7" }}
       connections={{
-        pin1: "net.EFUSE_FLT_DIV", pin2: "net.MODE_AUTO_HW_EXP", pin3: "net.ESTOP_OK_EXP", pin4: "net.DOOR_OK_EXP",
+        pin1: "net.EFUSE_FLT_N", pin2: "net.MODE_AUTO_HW_EXP", pin3: "net.ESTOP_OK_EXP", pin4: "net.DOOR_OK_EXP",
         pin5: "net.TEMP_OK_EXP", pin6: "net.FAULT_EXP", pin7: "net.TC_FAULT_N",
         pin9: "net.N3V3", pin10: "net.GND", pin12: "net.I2C_SCL", pin13: "net.I2C_SDA",
         pin15: "net.GND", pin16: "net.GND", pin17: "net.GND", pin18: "net.WD_OK",
@@ -965,16 +981,23 @@ export default () => (
     <resistor name="R_DOOROKSER" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.DOOR_OK", pin2: ["U_EXP.pin4", "net.DOOR_OK_EXP"] }} />
     <resistor name="R_TEMPOKSER" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.TEMP_OK", pin2: ["U_EXP.pin5", "net.TEMP_OK_EXP"] }} />
     <resistor name="R_FAULTSER" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.FAULT", pin2: ["U_EXP.pin6", "net.FAULT_EXP"] }} />
-    {/* PIN P0-b (2026-07-28). EFUSE_FLT_N is pulled to 5V_PROTECTED through
-        R_PG 100k, so with no fault it idles at 5.0 V — into an MCP23017 at
-        VDD 3.3 V whose abs-max V_IN is VDD+0.3 = 3.6 V (DS20001952C S1.0).
-        ~14 uA of continuous injection into 3V3. Every OTHER 5 V-domain
-        signal on this board is level-referenced; this one was not.
-        Divider 10k/22k: 5.00 x 22/32 = 3.4375 V at the pin with the eFuse
-        released, and 0 V when /FLT pulls low. TP_PGOOD stays on the RAW
-        5 V node so the test point still reads the real flag. */}
-    <resistor name="R_FLTDIVT" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.EFUSE_FLT_N", pin2: "net.EFUSE_FLT_DIV" }} />
-    <resistor name="R_FLTDIVB" resistance="22k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C25768"] }} connections={{ pin1: "net.EFUSE_FLT_DIV", pin2: "net.GND" }} />
+    {/* PIN P0-b (2026-07-28) / ADR-0022 (2026-07-29). THE DIVIDER THAT USED TO SIT HERE
+        — R_FLTDIVT 10k / R_FLTDIVB 22k, EFUSE_FLT_N -> EFUSE_FLT_DIV -> GND — IS DELETED,
+        and the net EFUSE_FLT_DIV no longer exists.
+        P0-b was real: with R_PG pulled to 5V_PROTECTED, EFUSE_FLT_N idled at 5.0 V into an
+        MCP23017 at VDD 3.3 V whose abs-max V_IN is VDD+0.3 = 3.6 V (DS20001952C S1.0),
+        ~14 uA of continuous injection into 3V3. But the divider FIXED THE ABS-MAX AND
+        BROKE THE FUNCTION: it was computed as 5.00 x 22/32 = 3.4375 V, which treats
+        EFUSE_FLT_N as a stiff 5 V source. The node's only source of high is R_PG (100k,
+        open-drain /FLT), so the true chain was 100k+10k over 22k -> 0.833 V, below the
+        MCP23017's V_IH(min) of 2.640 V. Both defects are cured at the ROOT by moving
+        R_PG's top end to 3V3 (see U_EFUSE above): the node then idles at 3.300 V, which is
+        both inside abs-max AND a valid logic high, with two fewer parts on the BOM.
+        U_EXP.1 (GPB0) is now wired DIRECTLY to EFUSE_FLT_N, and so is TP_PGOOD — which
+        means the test point once again reads the node the firmware reads. The v1.7 draft
+        rationale for keeping TP_PGOOD on the raw node ("the instrument sees the real
+        node") was FALSE AS BUILT: with the divider in place the probe read 1.212 V, not
+        5 V, because R_FLTDIVT+R_FLTDIVB loaded R_PG. Recorded, not deleted. */}
     <resistor name="R_WDOKSER" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.WD_OK", pin2: ["U_EXP.pin8", "net.WD_OK_EXP"] }} />
     {/* v1.7 (ADR-0020 decision B): pin18 (RESET_N) was on net.EXP_RST_N = {R_EXPRST.1,
         U_EXP.18} — A NET WITH NO DRIVER. Nothing on this board could reset the expander, so

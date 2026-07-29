@@ -377,6 +377,24 @@ prep:
       # boxes here cut the horizontal analog channels and stranded TH_CAM_A/B).
       - {x0: 158.47, y0: 76.05, x1: 160.53, y1: 77.15, layer: User.2} # C_FAULTAND 3V3@159.020 + GND@159.980 (BOTH pads plane -> reserve the whole cap, C_AND3/C_OENAND precedent; no signal escape to protect)
       - {x0: 65.13, y0: 72.55, x1: 66.23, y1: 73.65, layer: User.2} # C_TCNA.2   GND@65.680,73.10 (TC_NEG signal pad1@64.720 W; E-biased, box starts 0.23mm E of pad1's east edge)
+      # ---- U_TC.8 STUB RESERVATION (2026-07-29). THE FILE ALREADY PREDICTED
+      # THIS: the seed_stub note above says a site legal by 0.00 mm "is a site
+      # that the next reroute takes away (which is exactly how the U_TC.8 stub
+      # went stale)" — and it went stale again on the FIRST race after the
+      # ADR-0022 netlist change dropped R_FLTDIVT/R_FLTDIVB, refusing with
+      #   seed_stub 3V3 U_TC.8: REFUSED — seg (65.862,78.95)->(64.987,78.95)
+      #   F.Cu collides foreign copper
+      # Predicting a failure twice and not reserving against it is the same
+      # class of miss as an unexecuted claim, so the stub PATH now gets the
+      # reservation every via site above already has.
+      # Path is the 0.30 mm F.Cu segment y=78.950, x 65.8625 -> 64.9875, plus
+      # the via at the west end. The +-0.55 rule gives y[78.40,79.50]; y0 is
+      # CLIPPED to 78.60 because U_TC.9's pad (TC_CS_N) occupies y[78.10,78.50]
+      # and the convention is to clip 0.10 mm off a foreign pad rather than
+      # fence it. The 0.35 mm south margin that leaves is not a shortfall in
+      # practice: the thing the 0.55 exists to exclude is a foreign track
+      # centreline, and U_TC.9's own pad already occupies that space.
+      - {x0: 64.40, y0: 78.60, x1: 66.60, y1: 79.50, layer: User.2} # U_TC.8 3V3 stub path + via @64.9875,78.95
       - {x0: 158.76, y0: 81.65, x1: 159.86, y1: 82.75, layer: User.2} # R_OE.2     3V3@159.310,82.20 (SR_OE_N signal pad1@158.290 W; E-biased, 0.63mm channel kept open to C_OENAND's rect at x160.39)
       # THE LAST TWO UNRESERVED SEED_STUB SITES (task#21, 2026-07-25). Closing the
       # class instead of the symptom. Race 2 fixed the four sites race 1 refused and
@@ -851,6 +869,33 @@ stitch:
       # floating and the DRC count would drop without the defect going away.
       - {net: GND, pin: R_AND1PD.2,   vias: [[157.8000, 70.6600]]}   # 335 legal on-pad sites, PAD CENTRE, growth 0.65
       - {net: GND, pin: C_AND3.2,     vias: [[183.9800, 70.6000]]}   # 362 legal, PAD CENTRE, growth 0.80
+      # ===== v1.7 / ADR-0022 RE-ROUTE — THREE MORE TRAPPED PLANE PADS ======
+      # Deleting R_FLTDIVT/R_FLTDIVB moved copper, the race re-converged, and
+      # the SAME class surfaced on three DIFFERENT pads: the full DRC gate read
+      # 0 violations / 0 parity but **3 unconnected items** —
+      #   Q_SWDRVB.2 [GND]   pad vs the F.Cu GND zone
+      #   U_TC.5     [3V3]   pad vs a 3V3 via 3.3 mm away
+      #   U_LATCHB.5 [3V3]   pad vs C_LATCHB.1, i.e. the pair was fenced from
+      #                      the plane AND from each other
+      # This is why the class gets DETERMINISTIC bonds rather than a re-race:
+      # re-racing moves WHICH pads are trapped, it does not stop pads being
+      # trapped, and each of the last three races trapped a different set.
+      # SITES CHOSEN BY MAX GROWTH, NOT BY PROXIMITY, and that is this session's
+      # correction to the method. The note above already says a site legal by
+      # 0.00 mm "is a site that the next reroute takes away". Picking the
+      # NEAREST legal site gave exactly that: Q_SWDRVB.2 at 0.140 mm off centre
+      # and U_TC.5 at 0.020 mm both scored **growth 0.00** — legal by nothing.
+      # Re-scored over every on-pad site by how far the via could GROW and stay
+      # legal, the same pads yield growth 0.75 and 0.20. Slack is the property
+      # that survives a re-route; distance to the pad centre is not.
+      - {net: GND, pin: Q_SWDRVB.2, vias: [[49.0625, 90.9300]]}   # 877 legal on-pad sites, 0.500 off centre, growth 0.75 (nearest site scored 0.00)
+      - {net: 3V3, pin: U_TC.5,     vias: [[59.4175, 77.5300]]}   # 420 legal, 0.730 off centre, growth 0.20 (nearest site scored 0.00)
+      - {net: 3V3, pin: U_LATCHB.5, vias: [[182.8375, 73.3500]]}  # 197 legal, PAD CENTRE, growth 0.55
+      # ...and C_LATCHB.1 too, on the SECOND pass, exactly as the v1.7 note
+      # above warned: bonding U_LATCHB.5 alone left the pair still unconnected
+      # TO EACH OTHER (DRC went 3 -> 1 unconnected and the remaining item was
+      # C_LATCHB.1 <-> U_LATCHB.5). One via per FENCED PAD, not one per pair.
+      - {net: 3V3, pin: C_LATCHB.1, vias: [[182.6600, 76.1800]]}   # 799 legal, 0.063 off centre, growth 0.65
       - {net: 3V3, pin: C_OSV.1,      vias: [[154.7200, 63.9000]]}   # 369 legal, PAD CENTRE, growth 0.80
       - {net: 3V3, pin: C_AND1.1,     vias: [[159.0200, 70.6000]]}   # 280 legal, PAD CENTRE, growth 0.50
       - {net: 3V3, pin: C_AND2.1,     vias: [[171.0200, 70.6000]]}   # 360 legal, PAD CENTRE, growth 0.75

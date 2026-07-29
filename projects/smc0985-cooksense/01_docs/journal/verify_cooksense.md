@@ -1074,3 +1074,323 @@ part dossier and ADR-0006 amendment, the identity padmap, the contract fixes,
 the silk ownership + cross-name passes, the 7 plane bonds, the re-derived U_TC.8
 stub, E-INV 136/136, and a board that measures **DRC 0/0/0** with the full fab
 battery green. `04_kicad/` was built FROM this source; nothing is stale.
+
+---
+
+## 2026-07-29 — v1.7 unblock: the three P0s, and two more "impossible"s that were not
+
+**START.** Inherited state: the relay defect FIXED and proven (DIP05-1A72-13L,
+pin-out code 13, coil/contact node sets disjoint at 8.032 mm over 48 pads,
+keypad<->SELV barrier 6.2200 mm with pours filled), board DRC 0/0/0, whole fab
+battery green, `07_releases/` untouched, v1.0-v1.6 DO-NOT-ORDER. THREE blockers
+left, each now with a machine-checkable definition of done.
+
+### FIX 1 — the dead fault readback (PIN-P0-1 / TOPO P1-1). CLOSED.
+
+`E-INV` was RED on exactly one assert and that red was the acceptance test:
+
+```
+node_level (ADR 0022): EFUSE_FLT_DIV reads 0.833 V at U_EXP.1, required
+logic high against V_IH(min) 2.640 V — 5.000 V via 5V_PROTECTED through
+110k [R_FLTDIVT=10k + R_PG=100k] over 22k [R_FLTDIVB=22k] -> 0.833 V
+```
+
+The user's chosen fix, applied in `03_tscircuit/src/cooksense.tsx`: **`R_PG`'s
+top end moves from `5V_PROTECTED` to `3V3` and BOTH divider resistors are
+deleted.** `R_FLTDIVT`, `R_FLTDIVB` and the net `EFUSE_FLT_DIV` no longer exist;
+`U_EXP.1` and `TP_PGOOD` sit directly on `EFUSE_FLT_N`. Recorded as **ADR-0022**
+(`01_docs/decisions/0022-the-efuse-flag-lives-on-3v3.md`) with the no-solution
+proof: at `R_PG` = 100k, 5 x R_b/(100k + R_t + R_b) >= 2.64 needs R_b >= 111.9k
+AND R_t ~ 0, so no R_top > 0 solution exists.
+
+MEASURED after the fix, from the gate and not from the argument:
+
+```
+node_level (ADR 0022): EFUSE_FLT_N reads 3.300 V at U_EXP.1 —
+3.300 V via 3V3 through 100k [R_PG=100k], no resistive path to GND
+-> pulled to the rail, 3.300 V     (V_IH(min) 2.640 V)
+E-INV OK: 136/136        E-ADR OK: 9/9
+```
+
+**FIVE NEW ASSERTS, ALL RED-VERIFIED** on a scratch copy (source netlist md5
+`5bc8eaf9225b5b551fca3b4872dd21b2` identical before and after), each mutation
+being the defect the assert exists to catch:
+
+| mutation | what fired |
+|---|---|
+| `R_PG.2` 3V3 -> 5V_PROTECTED | `pin_on_net R_PG.2` — and NOT `node_level`, which reads 5.000 V and still passes `logic_high`. Recorded: `node_level` grades a LOGIC LEVEL, not an abs-max. The rail assert is the abs-max guard and they are different claims |
+| `R_PG.1` off `EFUSE_FLT_N` | `pin_on_net` + `UNREACHED node_level` (no resistive path to any rail) |
+| `U_EXP.1` -> GND | `pin_on_net` + `node_level` receiver-on-wrong-net |
+| `TP_PGOOD.1` -> 3V3 | `pin_on_net` |
+| `R_PG` 100k -> 10k | `part_value` |
+
+**AND A CHECKER DEFECT FOUND WHILE LANDING IT, worth more than the fix.**
+`electrical_invariants.yaml` line 1 declared `supplies: {5V_PROTECTED: 5.0,
+N3V3: 3.3}` — the TSX author-prefix form. **No net named `N3V3` exists in the
+netlist**; the converter strips the N. So the 3V3 rail was INVISIBLE to every
+`node_level` grade and the checker's rail search had one rail where it should
+have had two. It did not misreport the divider (that network genuinely hung off
+5V_PROTECTED) but it would have reported UNREACHED on this fix. Found by reading
+the netlist, not by any gate. Corrected to `3V3: 3.3`.
+
+Also closed PIN Q-1 in the same edit: every document in the P0-b work called
+`U_EXP` pad 1 "GPA0". It is **GPB0**; GPA0 is pad 21 and carries `RAIL_EN_A`, an
+OUTPUT. Copper was always right.
+
+### FIX 2 / FIX 3 — the silk pass, and THE SECOND UNREPRODUCED MEASUREMENT
+
+The fix list said the "SE corner is saturated, nearest site 33.6/41.9 mm"
+justification did not reproduce, and that a re-run found `ISO 30V` at
+(189.05, 93.35), 6.46 mm from the block. **THAT NUMBER DOES NOT REPRODUCE
+EITHER.** Re-measured with a body-aware obstacle set (pads +0.16, silk +0.08,
+every footprint BODY +0.05 — silk under a mounted block is silk nobody reads):
+
+* (189.05, 93.35) at h 0.60 is blocked by `U_OPTO`'s body AND graphics AND by
+  `J_RH_EXHAUST`'s body; at h 0.45 still blocked by `J_RH_EXHAUST`. The clear
+  band there is U_OPTO bottom 92.86 -> J_RH_EXHAUST top 93.73 = **0.87 mm**, and
+  a 0.45 mm text needs a 0.92 mm box. The site does not exist.
+
+So THREE sessions have now carried a "nearest site" number on this corner
+without re-deriving it, and the third was mine to inherit. The remedy is that
+the number is now PRODUCED BY THE PASS at every run instead of being written in
+`floorplan.yaml`.
+
+**What was actually blocking it was not geometry.** It was `C_LATCHB`'s and
+`U_OPTO`'s designators, parked in the only channel first-come-first-served by
+the generator's de-collider. With a **hazard-caption reserve** armed around the
+block BEFORE any label is placed (PASS D0), `ISO 30V` places at
+(190.750, 86.500), h 0.600 / stroke 0.150, **0.561 mm from the block body** —
+against a recorded "impossible" of 33.6 mm and an inherited 6.46 mm.
+
+Honest residuals, reported by the pass rather than dropped from its list:
+`NOT SELV` and the pole legend have **no site within 8 mm** (nearest 11.086 mm)
+— the block affords exactly one caption. And a legend BESIDE EACH POLE is
+genuinely impossible and now says so precisely: the poles sit at x = 195.30 and
+the KF350 body spans x[191.57, 199.22], so the pads are at the CENTRE of the
+block in x and every square millimetre either side of a pole is under the
+moulding once it is fitted. The pole map therefore rides the north-stack
+sentence, in pole order: `POLES 1=C 2=LOOP 3=LOOP 4=E`.
+
+**FIX 3 — the stroke floor, and the floor moved.** `fab_tiers.yaml` used to
+declare `min_silk_text_height: 0.45` AND `min_silk_stroke: 0.15`, which KiCad
+makes unsatisfiable (stroke <= 0.25 x height, so 0.45 mm text carries at most
+0.1125 mm). ADR-0007 set `min_silk_stroke` to **0.1125** with the corollary that
+JLC's published 0.150 needs >= 0.60 mm text. So the pass now enforces two
+different things:
+
+1. EVERY silk text: stroke = 0.25 x height **exactly**. Not `max(0.13, sz*0.2)`.
+   29 refdes stored 0.150 on 0.45 mm text — a number KiCad prints at 0.1125.
+   Making the file say what the plotter does is the point.
+2. EVERY SAFETY text: h >= 0.600, hence stroke 0.150 — JLC's published floor.
+
+The safety class is enumerated FROM A RULE and printed every run: the four
+safety connectors, every label printed within 8.0 mm of a safety housing, and
+the ADR-0018 interlock parts. **10 members.** A first cut used a name-token rule
+and swept in 27 including `C_STOPR` and `R_MODEHWSER` — pull-downs nobody reads
+under stress; scoped to the property instead.
+
+Three things had to be learned to make it satisfiable, each recorded in the
+file: heights are raised FIRST (a first cut ran after the ownership passes and
+`D_COILEN` / `J_ESTOP` / `R_COILENPD` had NO legal 0.60 mm position left);
+safety labels may EVICT non-safety designators, because a 0402's reference does
+not outrank the label a human reads while landing a harness (every eviction is
+printed with the victim's before/after); and among candidates that already clear
+the ownership margin the pass takes the NEAREST, not the largest lead — sorting
+on lead put `J_DOOR` 9.708 mm from J_DOOR to win a +3.617 mm it did not need.
+
+Also corrected, because a false waiver is how the next one gets believed: the
+`P-SILK-FN` waiver's claim that 0.13-0.15 mm is "at or above the floor" and its
+"SE corner saturated / 41.9 mm" line, plus the `SILK-TEXT-THICKNESS` waiver's
+"0.15mm stroke = JLCPCB's silk floor". All three are struck through in
+`03_src/cooksense/rules/policy_waivers.yaml` WITH the replacement measurement.
+
+### THE REBUILD, AND FOUR THINGS THAT ONLY A REAL RE-RACE FINDS
+
+`rebuild_all.sh --reroute` was run **six times**. The first five failed loudly,
+which is the point of a fail-loud pass, and each failure was a different real
+defect rather than the same one:
+
+1. **`fix_silk_placement` PASS D0 evicted a label and it came straight back.**
+   `D_DOOR` was evicted from the J_ISOLOOP hazard-caption reserve, the
+   radius-sorted ladder put it 0.5 mm away still inside the reserve, and
+   `ISO 30V` then had no site at 11.086 mm. An eviction that does not FORBID
+   the band it evicts from is not an eviction. `forbid=` added.
+2. **An evicted victim had nowhere to go.** `J_ESTOP` displaced `R_MODEPD`;
+   `R_MODEPD` had no legal slot even at a 10 mm leash and the pass died. A
+   priority rule that can strand its victim is unsound, so eviction now
+   requires a MOVABILITY PROBE — a dry run of the same search for the victim,
+   restored afterwards — as a PRECONDITION of the candidate.
+3. **Ordering, twice.** Connectors-before-the-rest was not enough: within the
+   connectors, tuple order gave `J_DOOR` its slot before `J_ESTOP` looked, and
+   J_ESTOP has **ZERO** free 0.60 mm positions clearing the 1.5 mm ownership
+   margin once the captions and the void pass have taken theirs. Both the
+   height pass and the ownership pass are now MOST-CONSTRAINED-FIRST, with the
+   scarcity measured and printed (`J_ESTOP=0, J_DOOR=1, J_MODE=24`).
+4. **The 1.5 mm ownership margin is not affordable at 0.60 mm text.** It was
+   measured when the safety designators were 0.45 mm high; a 0.60 mm box needs
+   78% more area. Rather than trade a real legibility gain for a real ownership
+   gain and get neither, the demand now steps down 1.5 -> 1.0 -> 0.5 -> 0.1 and
+   the pass PRINTS the margin it actually obtained. **A positive lead stays
+   mandatory.** `J_ESTOP` landed at a degraded 0.5 mm demand with a measured
+   **+0.659 mm** lead; `J_DOOR` +3.087 mm; `J_MODE` +10.685 mm.
+
+Then the ROUTE found three more, all of the same family and all only visible
+because the netlist changed:
+
+5. **`seed_stub 3V3 U_TC.8: REFUSED — collides foreign copper.`** `route.yaml`
+   had already PREDICTED this in its own comment ("a site legal by 0.00 mm is a
+   site that the next reroute takes away — which is exactly how the U_TC.8 stub
+   went stale"). Predicting a failure twice and not reserving against it is the
+   same class of miss as an unexecuted claim. The stub PATH now carries the
+   User.2 reservation every via site already had, x[64.40,66.60] y[78.60,79.50],
+   with y0 clipped to 78.60 off U_TC.9's pad.
+6. **Three more TRAPPED PLANE PADS** — DRC read 0 violations / 0 parity and
+   **3 unconnected**: `Q_SWDRVB.2` [GND] vs the F.Cu GND zone, `U_TC.5` [3V3]
+   vs a 3V3 via, `U_LATCHB.5` [3V3] vs `C_LATCHB.1`. Deterministic bonds, not a
+   re-race: re-racing changes WHICH pads are trapped, not THAT pads are trapped.
+   **AND THE SITE-CHOICE METHOD IS CORRECTED**: sites are now picked by MAX
+   GROWTH, not by proximity to the pad centre. The nearest legal site for
+   `Q_SWDRVB.2` (0.140 mm off centre) and for `U_TC.5` (0.020 mm) both scored
+   **growth 0.00** — legal by nothing, i.e. exactly the site the file warns the
+   next reroute takes away. Re-scored by slack the same pads give 0.75 and 0.20.
+7. **And then one more, exactly as route.yaml's own note warned:** bonding
+   `U_LATCHB.5` alone left the pair unconnected TO EACH OTHER. DRC went
+   3 -> 1 and the survivor was `C_LATCHB.1`. One via per FENCED PAD, not per pair.
+
+### GATES — the sixth rebuild, exit 0
+
+```
+kicad-cli pcb drc --severity-all --refill-zones --schematic-parity
+   0 violations / 0 unconnected / 0 schematic parity
+E-INV            136/136          E-ADR 9/9
+E-TOPO           PASS  (headroom 1355 mV vs dropout 1300; PD 615 mW / 1200, 51%)
+audit_board      PASS  18 polarity / 28 proximity / 13 edge / 245 silk
+                       I-ISO 6.22 mm, I-OUT 0.35 mm (J_DOOR.MP)
+placement_gates  PASS  0 fails 0 warns; P-OUT 0.30 mm, P-CAP ratio 0.29
+count_parity     S-COUNT PASS 4/4 over 241 refdes   (--board cooksense)
+export_jlc       exit 0; A-ROT 208/208 sourced; F-LEGIBLE 59/59 + 58 checks
+bom_source_check PASS (every BOM LCSC == source), leg C 27/27
+ERC              0 errors / 417 warnings
+SILK             250 texts: 0 below the 0.1125 tier floor, 0 storing a stroke
+                 KiCad would clamp away, 11/11 safety texts at h0.600/0.150
+J_ISOLOOP        'ISO 30V' 0.085 mm from the block body; 'NOT SELV' 7.892 mm
+```
+
+`count_parity` went 243 -> **241** and `03_tscircuit/manifest.yaml` was edited to
+match — the manifest is the AUTHOR's declared intent, so deleting two parts from
+the design without deleting them from the manifest would have been the gate
+working correctly.
+
+### TWO GATES ARE NOT GREEN, AND BOTH ARE REPORTED RATHER THAN WAIVED
+
+* **`policy_audit` FAIL=1 / WAIVED=5 / PASS=25 / HUMAN=6 / N-A=4.** The single
+  FAIL is `M-BOM`, and it is the same non-defect as last session: M-BOM grades
+  the LATEST SEALED release's BOM (v1.6) against current source, and source has
+  moved. PROVEN not asserted: `bom_source_check` run directly against the
+  STAGED v1.7 BOM returns **PASS — every BOM LCSC == source**, 210 coded refdes,
+  leg C 27/27. It resolves at the seal.
+* **`jlc_stock_check` FAIL — and this one is NEW and REAL.**
+  **`C506653` MCP23017-E/SS (`U_EXP`) reads stockCount = 0.** 55/56 coded lines
+  clear the 5x floor; this one has nothing. Last session the same gate read
+  56/56 PASS, so this is a live change, not an inherited number. It is a
+  SOURCING blocker, not a design defect, and it does not change the verdict
+  below — but the board cannot be assembled by JLC while its GPIO expander has
+  no stock.
+
+## THE VERDICT: **v1.7 IS NOT SEALED, AND THE REASON IS A NEW P0**
+
+### TOPO P1-2 ESCALATES TO P0 — the reed coils are not guaranteed to close hot
+
+The carried finding was that the pull-in margin is computed NOWHERE and might go
+negative. **It is computed now, and it does go negative.** The ULN2803A datasheet
+(SLRS049G) is COMMITTED to `02_parts/ULN2803ADWR/` (sha256
+`84ec37810a5cef7c352a320852a6b21bdbe709d2fb60b4d6e7ad6d93ec324a4d`), with an
+honest provenance deviation registered in `02_parts/README.md`: **every ti.com
+URL for this part 404s** while a sibling dossier's TI URL returned 200 the same
+minute, so it came from a mirror — verified TI-origin by PDF metadata
+(`Author "Texas Instruments, Incorporated [SLRS049,G]"`, TopLeaf compositor) and
+cross-checked byte-for-byte against a SECOND independent host, differing only in
+the auto-generated package-addendum date stamp.
+
+The EC table specifies V_CE(sat) only at 100/200/350 mA — two orders above the
+~7 mA coil — so **Figure 1 (p.5) was digitized at 900 dpi** against its own
+gridlines: 0.629-0.674 V at 10 mA. Three figures are carried, each labelled for
+what it is: **0.67 V** Fig.1 typ, **0.88 V** derived worst case (typ x the EC
+table's own worst max/typ ratio 1.30 — NOT a datasheet guarantee), **1.10 V**
+hard monotonic bound (the 100 mA MAX).
+
+The reference temperature is **20 °C, not 25 °C** — the Standex footnote sits
+under a table headed "Coil Data (at 20°C)". So
+`V_PI(T) = 3.500 x (1 + 0.004 x (T - 20))`, and with the rail floor
+`5V_KEY_RELAY` vout_min = 4.740 V:
+
+| T | V_PI | margin @0.67 typ | @0.88 w-c | @1.10 bound |
+|---|---|---|---|---|
+| -20 °C | 2.940 V | **+1.130** | +0.920 | +0.700 |
+| +25 °C | 3.570 V | **+0.500** | +0.290 | +0.070 |
+| +50 °C | 3.920 V | **+0.150** | **-0.060** | -0.280 |
+| +70 °C | 4.200 V | **-0.130** | **-0.340** | -0.560 |
+
+**NEGATIVE AT +70 °C ON THE TYPICAL DRIVER DROP, and from +50 °C up on the
+worst case.** Re-derived independently by the lead and agreeing to the digit:
+V_PI(70) = 3.5 x 1.2 = 4.200; 4.740 - 0.67 - 4.200 = -0.130.
+
+The current view is the SAME fact, not a second derate: 0.4 %/K IS the copper
+tempco, pull-in is an ampere-turn condition so `I_PI = 3.5/500 = 7.00 mA` and is
+temperature-independent, while delivered current FALLS as the coil heats —
+9.64 / 7.98 / 7.29 / **6.81** mA at -20/+25/+50/+70 °C. At +70 °C
+**6.81 mA < 7.00 mA must-operate.** Both views agree. Hot is worst in both terms
+at once, and **-20 °C is comfortable, so a bench test at room temperature will
+not find this.**
+
+`K_STOP` is the one relay NOT exposed, and the review's number reproduces
+exactly: it is not on a Darlington but on a dedicated 2N7002 off the ungated
+`5V_STOP`, margins +1.714 / +1.084 / +0.734 / **+0.454** V. Caveat recorded
+because it is the same class of gap: the 2N7002 datasheet is ALSO not committed,
+so its 0.10 V V_DS is an estimate — not load-bearing (even at 0.50 V the +70 °C
+margin is +0.054 V) but it should be cited before anyone leans on it.
+
+**Twelve reed relays on a cooking appliance are not guaranteed to close at the
+top of the board's own declared envelope. That is a P0 and it blocks.** The
+remedy — raise the coil rail, drop the driver saturation (a MOSFET array instead
+of a Darlington), or narrow the declared envelope — is a TOPOLOGY DECISION and
+is deliberately NOT made here, exactly as the `R_PG` rail choice was not.
+
+### THE FRESH REVIEW BATTERY IS OWED, NOT SKIPPED
+
+Four fresh lenses were NOT run this session, and the reason is stated rather
+than elided: a confirmed P0 already blocks the seal, and closing it will change
+the power tree or the coil driver — a MATERIAL change that needs its own
+battery. Running four lenses now would grade a board that must change again and
+spend the battery twice. It is OWED against whatever revision fixes the coil
+margin, and this entry is the record of that debt.
+
+### WHAT IS COMMITTED AND SOUND
+
+ADR-0022 and its five RED-verified asserts; the `supplies:` netlist-name fix;
+the silk pass with its stroke floor, hazard-caption reserve, movability probe
+and measured orderings; the J_ISOLOOP artwork at 0.085 mm; three corrected
+waivers; the corrected `floorplan.yaml` "no silk site" claim; the U_TC.8 stub
+reservation; four trapped-plane-pad bonds chosen by slack; the committed
+ULN2803A datasheet and the two `electrical:` blocks; and a board that measures
+**DRC 0/0/0** built entirely from `03_src/` + `03_tscircuit/`.
+`07_releases/` is UNTOUCHED. v1.0-v1.6 remain DO-NOT-ORDER.
+
+### DETERMINISM PROVEN, not assumed (canon M3)
+
+The winning chain `06_build/route/race/c0/r9.kicad_pcb` was promoted to
+`03_src/cooksense/route/final_chain.kicad_pcb`, and `rebuild_all.sh` was then
+run in its DEFAULT (promoted-chain, no race) mode from that source alone:
+
+```
+DET_REBUILD_EXIT=0
+DRC: 0 violations / 0 unconnected / 0 schematic parity
+E-INV 136/136 · S-COUNT 4/4 over 241 · audit_board PASS (I-ISO 6.22 mm)
+placement_gates PASS · silk 250 texts / 0 under floor / 11-11 safety at 0.600/0.150
+J_ISOLOOP: 'ISO 30V' 0.085 mm, 'NOT SELV' 7.892 mm
+```
+
+The board file's md5 differs between the two builds (`e5565da5…` vs
+`17cfca47…`) and that is expected and NOT a determinism failure: KiCad mints
+fresh UUIDs and timestamps on every save. Per `tests/README.md` the assertion is
+on PROPERTIES, never on bytes — and every graded property reproduced exactly.

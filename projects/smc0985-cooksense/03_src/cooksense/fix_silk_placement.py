@@ -53,14 +53,18 @@ MM = pcbnew.ToMM
 OWNERSHIP_FIX = ("J_DOOR", "J_ESTOP", "J_MODE")
 # NOT in that list, and the omission is MEASURED, not an oversight: `J_ISOLOOP`
 # was also reported (R-04: its label is 0.80 mm from J_RH_EXHAUST).  A full sweep
-# of every legal silk position for it returns 31 candidates and the BEST lead any
-# of them achieves is **-2.955 mm** — there is nowhere on this board where that
-# label is nearer J_ISOLOOP than J_RH_EXHAUST, because the only clear silk band
-# (y ~101) lies west of J_ISOLOOP and south of J_RH_EXHAUST.  It is also not the
-# same hazard class: J_ISOLOOP is a KF350 4-pole screw terminal and
-# J_RH_EXHAUST is a 5-pin GH — they cannot be cross-plugged into each other, so
-# the designator is not a mitigation for anything there.  Recorded as a residual
-# P2 rather than "fixed" by moving a label 5 mm and calling it better.
+# of every legal silk position for it finds NO position where that label is
+# nearer J_ISOLOOP than J_RH_EXHAUST — the only clear silk band (y ~101) lies
+# west of J_ISOLOOP and south of J_RH_EXHAUST, so the geometry is against it.
+# The number is RE-MEASURED AND PRINTED at every run (see the RESIDUAL line at
+# the end) rather than quoted from a prior session: 2026-07-29 it reads
+# **-3.963 mm** where an earlier session recorded -2.955 mm, and the earlier
+# number was never re-derived.  It is also not the same hazard class: J_ISOLOOP
+# is a KF350 4-pole screw terminal and J_RH_EXHAUST is a 5-pin GH — they cannot
+# be cross-plugged into each other, so the designator is not a mitigation for
+# anything there.  AND IT NO LONGER CARRIES THE BLOCK'S IDENTITY ALONE: PASS E
+# puts an `ISO 30V` caption 0.561 mm from the block body, which is what a human
+# actually reads.  Recorded as a residual P2, with the caption as the mitigation.
 
 # ---------------------------------------------------------------------------
 # PASS C — CROSS-NAMED LABELS.  Added 2026-07-28 after the RENDER lens' P0-A,
@@ -116,15 +120,78 @@ EDGE_CLEAR_MM = 0.25          # silk-to-board-edge clearance the notch fix enfor
 PAD_CLEAR_MM = 0.16           # matches floorplan silk.refdes.clearance
 SAMPLE_MM = 0.15              # void test sampling pitch
 
+# ---------------------------------------------------------------------------
+# PASS D — SILK STROKE, AND THE FLOOR THAT MOVED (ADR-0007 item 5, G-SELFCON).
+#
+# WHAT THIS PASS SHIPPED WRONG, 2026-07-28.  The thickness expression below used
+# to be `max(0.13, sz * 0.2)`.  At sz = 0.45 that is 0.130 mm, and BOTH v1.7
+# red-team lenses measured it independently: `J_ESTOP`, `J_DOOR`, `J_MODE`,
+# `D_DOOR`, `R_DOORPD`, `D_COILEN` — the six SAFETY designators, and exactly the
+# refs passes A/B/C exist to repair — came out as the THINNEST silk on the
+# board, against 0.150 on the other 243 texts.  The pass that fixes the safety
+# labels made them the least legible.  Nothing caught it because
+# `text_thickness` is one of the four DRC classes this project sets to `ignore`.
+#
+# AND THE FLOOR IT WAS MEASURED AGAINST WAS ITSELF UNSATISFIABLE.
+# `skills/kicad-pcb/references/fab_tiers.yaml` declared `min_silk_text_height:
+# 0.45` AND `min_silk_stroke: 0.15` together.  KiCad clamps stroke to
+# <= 0.25 x height, so 0.45 mm text can carry AT MOST 0.1125 mm and NO BOARD
+# COULD EVER HAVE MET BOTH.  ADR-0007 (2026-07-29) resolved it: `min_silk_stroke`
+# is now **0.1125** — the stroke the enforced height can actually carry — with
+# the corollary stated in the file: **reaching JLC's published 0.15 requires
+# >= 0.60 mm text.**
+#
+# So the rule this pass now enforces has two halves, and they are different:
+#   1. EVERY silk text: stroke = 0.25 x height exactly.  Not `max(0.13, ...)`,
+#      not a constant.  A stored 0.150 on a 0.45 mm text is a LIE — KiCad prints
+#      it at 0.1125 — and 29 refdes on this board carried that lie.  Making the
+#      file say what the plotter does is the point.
+#   2. EVERY SAFETY-CRITICAL text: height >= 0.60 mm, hence stroke 0.150 mm.
+#      These are the labels a human reads under stress with a harness in one
+#      hand, and they are the ones that must clear JLC's PUBLISHED floor, not
+#      merely the pipeline's proven-by-ordering floor.
+#
+# AND THE WAIVER THAT COVERED IT WAS FALSE.  This project's `P-SILK-FN` waiver,
+# written the same day, asserted that 0.13-0.15 is "at or above the floor".  It
+# is not, under either reading, and it is corrected in
+# `03_src/cooksense/rules/policy_waivers.yaml` in the same change — a waiver
+# that misstates a measurement is how the next one gets believed.
+STROKE_RATIO = 0.25           # KiCad's own clamp; see fab_tiers.yaml header
+TIER_MIN_STROKE_MM = 0.1125   # fab_tiers.yaml min_silk_stroke (ADR-0007)
+SAFETY_TEXT_H_MM = 0.60       # the height that can carry JLC's published 0.150
+SAFETY_TEXT_STROKE_MM = SAFETY_TEXT_H_MM * STROKE_RATIO      # = 0.150
+
+# M-WIDTH: the rule names the CATEGORY and enumerates its members, rather than
+# fixing the six instances the reviewers happened to measure.  It is stated in
+# terms of WHAT A HUMAN READS, because that is the property:
+#
+#   (a) every SAFETY CONNECTOR designator; plus
+#   (b) every visible refdes whose LABEL CENTRE sits within
+#       CROSSNAME_RADIUS_MM of a safety connector's centre — i.e. every word
+#       printed where somebody landing a harness will read it, whatever part it
+#       names; plus
+#   (c) the ADR-0018 coil-enable interlock's own parts, named explicitly.
+#
+# (c) exists because the reviewers' six include `D_COILEN`, whose label is far
+# outside (b)'s radius but which is the interlock flyback diode ADR-0018 turns
+# on.  A first cut used a NAME-TOKEN rule instead ("any ref containing STOP,
+# DOOR, MODE...") and it swept in 27 members including `C_STOPR`, `R_STOPPD`
+# and `R_MODEHWSER` — pull-downs and series resistors scattered across the
+# board that no human reads under stress.  Enforcing 0.60 mm on those buys
+# nothing and spends placement slack; the rule is scoped to the property, and
+# both the rule and its enumerated members are PRINTED at every run.
+INTERLOCK_TEXT_REFS = ("D_COILEN", "R_COILENPD")
+
 # Candidate offsets, RADIUS-SORTED.  The generator walks a fixed ladder and
 # takes the first free slot, which is how a J_MODE label ended up 11 mm north of
 # J_MODE (and inside a notch); this pass takes the NEAREST valid slot instead,
 # because "which part does this designator belong to" is the property being
 # repaired.  0.25 mm grid out to 8 mm.
-OFF = sorted(((dx * 0.25, dy * 0.25) for dx in range(-32, 33) for dy in range(-32, 33)),
+OFF = sorted(((dx * 0.25, dy * 0.25) for dx in range(-40, 41) for dy in range(-40, 41)),
              key=lambda p: (round((p[0] ** 2 + p[1] ** 2) ** 0.5, 4), abs(p[0]), abs(p[1])))
 # a designator further than this from its part is not a designator
 MAX_ANCHOR_MM = 6.0
+MAX_ANCHOR_SAFETY_MM = 10.0     # see PASS D: 0.60 mm text needs 78% more area
 # ownership rivals: the CONNECTORS.  ORDER_README §10 makes the silk designator
 # the mitigation for five identical unkeyed housings, so "nearer J_ESTOP than
 # J_DOOR" is the failure that matters.  Requiring a label to beat all 239
@@ -188,9 +255,49 @@ def main(argv):
     fps = {f.GetReference(): f for f in board.GetFootprints()}
     fp_boxes = {r: box(f.GetBoundingBox(False, False)) for r, f in fps.items()}
 
+    # ---- the SAFETY-TEXT class, enumerated from the rule (M-WIDTH) ---------
+    _sc_ctr = {r: (MM(fps[r].GetPosition().x), MM(fps[r].GetPosition().y))
+               for r in SAFETY_CONNECTORS if r in fps}
+
+    def _label_ctr(ref):
+        b = box(fps[ref].Reference().GetBoundingBox())
+        return ((b[0] + b[2]) / 2, (b[1] + b[3]) / 2)
+
+    safety_text_refs = []
+    for r, f in sorted(fps.items()):
+        t = f.Reference()
+        if not (t.IsVisible() and t.IsOnLayer(pcbnew.F_SilkS)):
+            continue
+        if r in SAFETY_CONNECTORS or r in INTERLOCK_TEXT_REFS:
+            safety_text_refs.append(r)
+            continue
+        lc = _label_ctr(r)
+        if any(((lc[0] - c[0]) ** 2 + (lc[1] - c[1]) ** 2) ** 0.5 <= CROSSNAME_RADIUS_MM
+               for c in _sc_ctr.values()):
+            safety_text_refs.append(r)
+    safety_text_refs = tuple(safety_text_refs)
+    print(f"  SAFETY-TEXT CLASS ({len(safety_text_refs)} members): safety-connector "
+          f"designators + every label printed within {CROSSNAME_RADIUS_MM} mm of a "
+          f"safety housing + the ADR-0018 interlock parts {INTERLOCK_TEXT_REFS}. "
+          f"All must print at h >= {SAFETY_TEXT_H_MM} / stroke "
+          f"{SAFETY_TEXT_STROKE_MM:.4f} mm")
+    print(f"      {list(safety_text_refs)}")
+
     # ---- obstacle sets, built the way the generator builds them ------------
-    def obstacles(exclude_ref):
-        pad_obst, silk_obst = [], []
+    def obstacles(exclude_ref, split_soft=False):
+        """pads/bodies/graphics are HARD.  Other footprints' designators are
+        HARD too — unless `split_soft`, in which case NON-SAFETY designators are
+        returned separately as EVICTABLE.
+
+        The split exists because silk placement on this board is contended and
+        was being resolved FIRST-COME-FIRST-SERVED: `C_LATCHB`, a 0402 latch
+        capacitor, held the only site where the NOT-SELV terminal's caption
+        could go, and `J_DOOR`, `D_COILEN`, `R_COILENPD` and `R_DOORPD` had no
+        legal 0.60 mm position because 0402 designators had taken the slack.
+        A 0402's reference does not outrank the label a human reads while
+        landing a harness on an interlock, so it yields — and the eviction is
+        PRINTED, with the victim's before/after, so the trade is visible."""
+        pad_obst, silk_obst, soft = [], [], []
         for f in board.GetFootprints():
             for p in f.Pads():
                 pad_obst.append(box(p.GetBoundingBox(), PAD_CLEAR_MM))
@@ -199,12 +306,18 @@ def main(argv):
                     silk_obst.append(box(g.GetBoundingBox(), PAD_CLEAR_MM * 0.5))
             pad_obst.append(box(f.GetBoundingBox(False, False), 0.05))
             t = f.Reference()
-            if f.GetReference() != exclude_ref and t.IsVisible() \
-                    and t.IsOnLayer(pcbnew.F_SilkS):
-                silk_obst.append(box(t.GetBoundingBox(), PAD_CLEAR_MM * 0.5))
+            r = f.GetReference()
+            if r != exclude_ref and t.IsVisible() and t.IsOnLayer(pcbnew.F_SilkS):
+                bx = box(t.GetBoundingBox(), PAD_CLEAR_MM * 0.5)
+                if split_soft and r not in safety_text_refs:
+                    soft.append((r, bx))
+                else:
+                    silk_obst.append(bx)
         for d in board.GetDrawings():
             if d.GetClass() == "PCB_TEXT" and d.IsOnLayer(pcbnew.F_SilkS):
                 silk_obst.append(box(d.GetBoundingBox(), PAD_CLEAR_MM * 0.5))
+        if split_soft:
+            return pad_obst, silk_obst, soft
         return pad_obst, silk_obst
 
     fp_ctr = {r: (MM(f.GetPosition().x), MM(f.GetPosition().y))
@@ -225,7 +338,7 @@ def main(argv):
             g = ctr_dist(tb, fp_ctr[r2])
             if g < worst[1]:
                 worst = (r2, g)
-        if worst[0] is not None and worst[1] < own + MIN_OWNERSHIP_MARGIN_MM:
+        if worst[0] is not None and worst[1] < own + _own_margin[0]:
             return False, own, worst[0], worst[1]
         return True, own, worst[0], worst[1]
 
@@ -263,14 +376,105 @@ def main(argv):
 
     moves, failures = [], []
 
-    def place(ref, need_owner, need_crossname=False):
+    _depth = [0]
+    _free_pass = [True]
+    # THE OWNERSHIP MARGIN IS A CEILING THAT DEGRADES, NOT A CONSTANT.
+    # 1.5 mm was measured on the v1.7 board when the safety designators were
+    # 0.45 mm high.  At 0.60 mm — which the stroke floor now REQUIRES of them —
+    # a 0.60 mm box needs 78% more area, and `J_ESTOP` measures **ZERO** legal
+    # positions clearing 1.5 mm once the hazard captions and the void pass have
+    # taken their slots.  Failing the build there would trade a real legibility
+    # gain for a real ownership gain and get neither, so the pass steps the
+    # demand down 1.5 -> 1.0 -> 0.5 -> 0.1 mm and PRINTS the margin it actually
+    # obtained.  A positive lead is still mandatory: at 0.1 mm and no slot, the
+    # pass dies, because a designator nearer somebody else's connector than its
+    # own is the defect this whole file exists to stop.
+    OWNERSHIP_MARGIN_LADDER = (MIN_OWNERSHIP_MARGIN_MM, 1.0, 0.5, 0.1)
+    _own_margin = [MIN_OWNERSHIP_MARGIN_MM]
+
+    def place_owner_degrading(ref, **kw):
+        """place() with the ownership margin stepped down until it lands."""
+        for m in OWNERSHIP_MARGIN_LADDER:
+            _own_margin[0] = m
+            n0 = len(failures)
+            place(ref, True, **kw)
+            if len(failures) == n0:
+                if m != MIN_OWNERSHIP_MARGIN_MM:
+                    print(f"             {ref}: NO slot clears "
+                          f"{MIN_OWNERSHIP_MARGIN_MM} mm at h "
+                          f"{MM(fps[ref].Reference().GetTextSize().x):.2f}; "
+                          f"landed at a DEGRADED {m} mm demand — recorded, "
+                          f"not silently accepted")
+                _own_margin[0] = MIN_OWNERSHIP_MARGIN_MM
+                return
+            failures.pop()
+        _own_margin[0] = MIN_OWNERSHIP_MARGIN_MM
+        failures.append(ref)
+    # THE HAZARD-CAPTION RESERVE, honoured by every refdes placement from the
+    # first pass onward.  A first cut declared it only in PASS E and evicted
+    # squatters afterwards; that failed, because by then `J_DOOR`'s newly
+    # enlarged designator had taken the site and evicting it just moved the
+    # contention around.  A reservation that is applied after the fact is not a
+    # reservation.  See PASS E for what it is for and how its size was measured.
+    ISO_RESERVE_MM = 2.6
+    iso_reserve = [None]
+
+    def movable(v, cand):
+        """Could `v` be re-placed if `cand` took its slot?  A DRY RUN of the
+        same search, restoring the board afterwards.
+
+        Without this the priority rule is unsound rather than merely rude: on
+        the rebuild after the netlist shrank, `J_ESTOP` displaced `R_MODEPD`,
+        `R_MODEPD` had NO legal slot anywhere — not even at a 10 mm leash — and
+        the pass died.  An eviction is only legitimate if the evicted label has
+        somewhere to go, so that is now a precondition of the candidate, not a
+        consequence discovered afterwards."""
+        _depth[0] += 1
+        try:
+            return _place(v, False, forbid=cand,
+                          max_anchor=MAX_ANCHOR_SAFETY_MM, probe=True)
+        finally:
+            _depth[0] -= 1
+
+    def place(ref, need_owner, need_crossname=False, sizes=None, forbid=None,
+              free_first=True, max_anchor=None):
+        """Two phases: a slot that displaces nobody is always preferred; only
+        if none exists may a SAFETY label evict a non-safety designator."""
+        if free_first and _depth[0] == 0:
+            n0 = len(failures)
+            _free_pass[0] = True
+            place(ref, need_owner, need_crossname, sizes, forbid,
+                  free_first=False, max_anchor=max_anchor)
+            _free_pass[0] = False
+            if len(failures) == n0:
+                return
+            failures.pop()              # retry with eviction permitted
+            place(ref, need_owner, need_crossname, sizes, forbid,
+                  free_first=False, max_anchor=max_anchor)
+            _free_pass[0] = True
+            return
+        return _place(ref, need_owner, need_crossname, sizes, forbid, max_anchor)
+
+    def _place(ref, need_owner, need_crossname=False, sizes=None, forbid=None,
+               max_anchor=None, probe=False):
+        # SAFETY refs are offered 0.60 ONLY: dropping to 0.45 to win a slot
+        # is what put six safety designators below the stroke floor.
+        if sizes is None:
+            sizes = ((SAFETY_TEXT_H_MM,) if ref in safety_text_refs
+                     else (0.6, 0.45))
         f = fps[ref]
         t = f.Reference()
         before = box(t.GetBoundingBox())
         before_pos = (MM(t.GetPosition().x), MM(t.GetPosition().y))
         before_rot = t.GetTextAngleDegrees()
         before_sz = MM(t.GetTextSize().x)
-        pad_obst, silk_obst = obstacles(ref)
+        before_th = MM(t.GetTextThickness())
+        evict_ok = ref in safety_text_refs and _depth[0] == 0
+        if evict_ok:
+            pad_obst, silk_obst, soft_obst = obstacles(ref, split_soft=True)
+        else:
+            pad_obst, silk_obst = obstacles(ref)
+            soft_obst = []
         fx, fy = MM(f.GetPosition().x), MM(f.GetPosition().y)
         # TWO different objectives, deliberately:
         #  * a VOID eviction wants the NEAREST legal slot (a designator 12 mm
@@ -282,11 +486,12 @@ def main(argv):
         #    proximity.
         best = None
         cands = []
+        ladder = tuple((sz, rot) for sz in sizes for rot in (0, 90))
         for dx, dy in OFF:                      # radius-sorted: NEAREST first
-            for sz, rot in ((0.6, 0), (0.6, 90), (0.45, 0), (0.45, 90)):
+            for sz, rot in ladder:
                 t.SetTextAngleDegrees(rot)
                 t.SetTextSize(pcbnew.VECTOR2I_MM(sz, sz))
-                t.SetTextThickness(int(max(0.13, sz * 0.2) * 1e6))
+                t.SetTextThickness(int(sz * STROKE_RATIO * 1e6))
                 t.SetPosition(pcbnew.VECTOR2I_MM(fx + dx, fy + dy))
                 cand = box(t.GetBoundingBox())
                 if not inside((cand[0] - EDGE_CLEAR_MM, cand[1] - EDGE_CLEAR_MM,
@@ -295,10 +500,23 @@ def main(argv):
                 if any(hit(cand, o) for o in pad_obst) or \
                    any(hit(cand, o) for o in silk_obst):
                     continue
-                own = box_gap(cand, fp_boxes[ref])
-                if own > MAX_ANCHOR_MM:
+                victims = [r2 for r2, o in soft_obst if hit(cand, o)]
+                if victims and not evict_ok:
                     continue
+                own = box_gap(cand, fp_boxes[ref])
+                # SAFETY labels get a longer leash: at h 0.60 the east connector
+                # column has no 6 mm slot left, and a designator 7 mm from its
+                # own part that WINS ownership beats a 3 mm one that does not.
+                lim = max_anchor if max_anchor is not None else (
+                    MAX_ANCHOR_SAFETY_MM if ref in safety_text_refs
+                    else MAX_ANCHOR_MM)
+                if own > lim:
+                    continue
+                if forbid is not None and hit(cand, forbid):
+                    continue          # caller's reserved band
                 if need_crossname:
+                    if victims and _free_pass[0]:
+                        continue
                     # a CROSS-NAMED label wants the NEAREST slot that stops
                     # naming the wrong housing — it is not competing for
                     # prominence, it is getting out of somebody else's
@@ -307,37 +525,332 @@ def main(argv):
                         continue
                     if need_owner and not owner_ok(ref, cand)[0]:
                         continue
-                    best = (rot, sz, fx + dx, fy + dy, cand, own)
+                    best = (rot, sz, fx + dx, fy + dy, cand, own, victims)
                     break
                 if need_owner:
+                    if victims and _free_pass[0]:
+                        continue
                     ok, oc, rival, rd = owner_ok(ref, cand)
                     if not ok:
                         continue
-                    cands.append((rd - oc, -own, rot, sz, fx + dx, fy + dy, cand, own))
+                    # Ranking, in order: (1) slots that displace NOBODY outrank
+                    # every evicting slot, whatever lead they win — displacing a
+                    # neighbour is a real cost; (2) among those, the label that
+                    # sits NEAREST ITS OWN PART wins.  It is deliberately NOT
+                    # "largest lead": every candidate here has already cleared
+                    # MIN_OWNERSHIP_MARGIN_MM, so the ownership question is
+                    # already answered, and maximising the lead beyond that just
+                    # walks the designator away from the part it names.  A first
+                    # cut sorted on lead and put `J_DOOR` 9.708 mm from J_DOOR to
+                    # win +3.617 mm it did not need.
+                    cands.append((-len(victims), -own, rd - oc, rot, sz,
+                                  fx + dx, fy + dy, cand, own, victims))
                     continue
-                best = (rot, sz, fx + dx, fy + dy, cand, own)
+                if victims and _free_pass[0]:
+                    continue
+                if victims and not all(movable(v, cand) for v in victims):
+                    continue
+                best = (rot, sz, fx + dx, fy + dy, cand, own, victims)
                 break
             if best:
                 break
         if need_owner and cands:
+            # LAZILY down the sorted list: the movability probe is a full
+            # search, so it runs only until the best acceptable candidate.
             cands.sort(reverse=True)
-            lead, _, rot, sz, px, py, cand, own = cands[0]
-            print(f"             {ref}: {len(cands)} legal positions clear the "
-                  f"{MIN_OWNERSHIP_MARGIN_MM} mm lead; best is {lead:+.3f} mm")
-            best = (rot, sz, px, py, cand, own)
+            n_all = len(cands)
+            pick = next((c for c in cands
+                         if not c[-1] or all(movable(v, c[-3]) for v in c[-1])),
+                        None)
+            cands = [pick] if pick else []
+        if need_owner and cands:
+            nv, _, lead, rot, sz, px, py, cand, own, victims = cands[0]
+            print(f"             {ref}: {n_all} legal positions clear the "
+                  f"{MIN_OWNERSHIP_MARGIN_MM} mm lead; taking the NEAREST — "
+                  f"{own:.3f} mm from its own part, lead {lead:+.3f} mm"
+                  + (f" (evicting {victims})" if victims else ""))
+            best = (rot, sz, px, py, cand, own, victims)
         if not best:
             # restore and record the failure — never ship a silent non-fix
             t.SetTextAngleDegrees(before_rot)
             t.SetTextSize(pcbnew.VECTOR2I_MM(before_sz, before_sz))
+            t.SetTextThickness(int(before_th * 1e6))
             t.SetPosition(pcbnew.VECTOR2I_MM(*before_pos))
+            if probe:
+                return False
             failures.append(ref)
             return
-        rot, sz, px, py, cand, own = best
+        rot, sz, px, py, cand, own, victims = best
+        if probe:
+            t.SetTextAngleDegrees(before_rot)
+            t.SetTextSize(pcbnew.VECTOR2I_MM(before_sz, before_sz))
+            t.SetTextThickness(int(before_th * 1e6))
+            t.SetPosition(pcbnew.VECTOR2I_MM(*before_pos))
+            return True
         t.SetTextAngleDegrees(rot)
         t.SetTextSize(pcbnew.VECTOR2I_MM(sz, sz))
-        t.SetTextThickness(int(max(0.13, sz * 0.2) * 1e6))
+        t.SetTextThickness(int(sz * STROKE_RATIO * 1e6))
         t.SetPosition(pcbnew.VECTOR2I_MM(px, py))
         moves.append((ref, before_pos, (px, py), before, cand, sz, rot, own))
+        for v in victims:
+            print(f"             {ref} displaces {v} (a non-safety designator) "
+                  f"from x[{cand[0]:.3f},{cand[2]:.3f}] y[{cand[1]:.3f},{cand[3]:.3f}]")
+            # A DISPLACED LABEL GETS THE LONGER LEASH, and this is not
+            # generosity — it is what makes the eviction sound.  On the first
+            # full rebuild after the netlist shrank, `J_ESTOP` displaced
+            # `R_MODEPD`, `R_MODEPD` had no free slot inside the ordinary 6 mm
+            # anchor, and the whole pass died.  A victim that cannot land turns
+            # a priority rule into a build failure, so it is allowed to travel
+            # as far as a safety label may.
+            _depth[0] += 1
+            try:
+                n0 = len(failures)
+                place(v, False, forbid=cand, max_anchor=MAX_ANCHOR_SAFETY_MM)
+                if len(failures) > n0:
+                    print(f"             ...and {v} could not be re-placed even "
+                          f"at a {MAX_ANCHOR_SAFETY_MM} mm leash")
+            finally:
+                _depth[0] -= 1
+
+    # ---- PASS D0: ARM the J_ISOLOOP hazard-caption reserve ----------------
+    # Done FIRST so every later placement respects it.  Rationale, geometry and
+    # the two unreproduced "nearest site" numbers are in PASS E below.
+    if "J_ISOLOOP" in fps:
+        _ib = fp_boxes["J_ISOLOOP"]
+        iso_reserve[0] = (_ib[0] - ISO_RESERVE_MM, _ib[1] - ISO_RESERVE_MM,
+                          _ib[2] + ISO_RESERVE_MM, _ib[3] + ISO_RESERVE_MM)
+        _ev = []
+        for ref in sorted(fps):
+            t = fps[ref].Reference()
+            if not (t.IsVisible() and t.IsOnLayer(pcbnew.F_SilkS)):
+                continue
+            if not hit(box(t.GetBoundingBox()), iso_reserve[0]):
+                continue
+            b0 = box(t.GetBoundingBox())
+            print(f"  ISOLOOP    evicting {ref} from the {ISO_RESERVE_MM} mm "
+                  f"hazard-caption reserve (label x[{b0[0]:.3f},{b0[2]:.3f}] "
+                  f"y[{b0[1]:.3f},{b0[3]:.3f}])")
+            # forbid= is load-bearing: without it an evicted label can be
+            # re-placed straight back into the reserve by the radius-sorted
+            # ladder, which is what happened on the first full rebuild after
+            # the netlist shrank by two parts — `D_DOOR` was evicted, landed
+            # 0.5 mm away still inside the reserve, and "ISO 30V" then had no
+            # site at 11.086 mm. An eviction that does not forbid the band it
+            # is evicting from is not an eviction.
+            place(ref, ref in OWNERSHIP_FIX, forbid=iso_reserve[0])
+            _ev.append(ref)
+        print(f"  ISOLOOP    reserve armed at x[{iso_reserve[0][0]:.3f},"
+              f"{iso_reserve[0][2]:.3f}] y[{iso_reserve[0][1]:.3f},"
+              f"{iso_reserve[0][3]:.3f}]; {len(_ev)} foreign label(s) evicted "
+              f"{_ev if _ev else ''}")
+
+    # ---- PASS E: J_ISOLOOP gets artwork AT THE TERMINAL --------------------
+    # RENDER P0-1 (2026-07-28): `J_ISOLOOP` — the ONLY connector whose poles sit
+    # on the far side of the opto barrier, an isolated 30 V contactor loop,
+    # explicitly NOT SELV — carried NO TEXT AT THE TERMINAL.  No caption, no
+    # pole legend (0 of 4), and its own designator printed 1.300 mm from
+    # `J_RH_EXHAUST` against 4.900 mm from itself.  The only NOT-SELV warning on
+    # the board is the north-stack sentence 155.3 mm away in the opposite corner.
+    #
+    # TWO RECORDED "IMPOSSIBLE"S, AND BOTH ARE WRONG IN DIFFERENT DIRECTIONS.
+    # `floorplan.yaml` recorded "the SE corner is saturated; nearest site for
+    # ISO 30V is (165.5,79.5), 33.6 mm away".  A later session re-ran the sweep
+    # and reported a legal site at (189.05, 93.35), 6.46 mm out, and THAT is the
+    # number the fix list inherited.  **Neither reproduces here.**  Re-measured
+    # 2026-07-29 with THIS pass's obstacle set (pads +0.16, silk +0.08, every
+    # footprint BODY +0.05 — because silk under a mounted block is silk nobody
+    # reads) and the board outline with its 12 milled slots:
+    #
+    #   * (189.05, 93.35) at h 0.60 is BLOCKED by `U_OPTO`'s body and graphics
+    #     AND by `J_RH_EXHAUST`'s body; at h 0.45 it is still blocked by
+    #     `J_RH_EXHAUST`.  The clear band there is U_OPTO bottom 92.86 to
+    #     J_RH_EXHAUST top 93.73 = **0.87 mm**, and a 0.45 mm text needs 0.92 mm
+    #     of box.  The 6.46 mm site does not exist under a body-aware sweep.
+    #   * "33.6 mm away" is equally wrong the other way: there IS a site at the
+    #     block, in the NORTH-WEST channel between `J_DOOR` (bbox left 193.78)
+    #     and the block's own top-left corner, taken ROTATED 90 degrees.
+    #
+    # So the caption goes vertically up that channel, hard against the block.
+    # Recorded plainly because this is the THIRD time a "nearest site" number on
+    # this corner has been carried between sessions without being re-derived.
+    #
+    # WHAT IS STILL NOT POSSIBLE, STATED RATHER THAN QUIETLY DROPPED: a legend
+    # printed BESIDE EACH POLE.  The four poles sit at x = 195.30, y = 89.75 /
+    # 93.25 / 96.75 / 100.25, and the KF350's body spans x[191.57, 199.22] — the
+    # pads are at the CENTRE of the block in x, so every square millimetre
+    # either side of a pole is under the moulding once the block is fitted.  A
+    # per-pole digit would be printed and then covered.  The legend is therefore
+    # a single ordered token, `1C 2L 3L 4E`, placed with the caption: pole 1 =
+    # CONTACTOR_C, poles 2 and 3 = CONTACTOR_LOOP (the loop pair), pole 4 =
+    # CONTACTOR_E.  That is the same information in the same reading order, in
+    # the only place a human can read it.
+    # REQUIRED vs BEST-EFFORT, and the split is a MEASUREMENT, not a preference.
+    # After the reserve is cleared, the block affords ONE 7-character caption
+    # and its own designator.  "ISO 30V" is required and the pass dies without
+    # it; "NOT SELV" and the pole legend are attempted in priority order and
+    # REPORTED WITH THE MEASURED NEAREST-SITE DISTANCE when they do not fit,
+    # rather than being dropped from the list so the run looks clean.
+    ISO_ART = ("ISO 30V",)
+    ISO_ART_BEST_EFFORT = ("NOT SELV", "1C2L3L4E")
+    ISO_MAX_GAP_MM = 8.0
+    # AND THE CHANNEL HAS TO BE CLEARED FIRST, which is the finding underneath
+    # the finding.  The NW channel is the ONLY site at the block, and it was
+    # occupied — by `C_LATCHB`'s designator, a 0402 latch capacitor, which the
+    # generator's de-collider parked there because it was free.  Measured
+    # 2026-07-29: with a foreign label in the channel the nearest legal site for
+    # "ISO 30V" is 11.086 mm away; with the reserve armed it is under 1 mm.  A
+    # 0402's reference does not outrank the only NOT-SELV warning on a 30 V
+    # terminal, so the reserve (PASS D0) is armed BEFORE any label is placed and
+    # every refdes placement in this file honours it.  Nothing about silk is
+    # first-come-first-served once a hazard label needs the space.
+    iso_fp = fps.get("J_ISOLOOP")
+    if iso_fp is not None:
+        iso_box = fp_boxes["J_ISOLOOP"]
+        icx, icy = MM(iso_fp.GetPosition().x), MM(iso_fp.GetPosition().y)
+        for txt in ISO_ART + ISO_ART_BEST_EFFORT:
+            pad_obst, silk_obst = obstacles(None)
+            near = [o for o in pad_obst + silk_obst
+                    if not (o[2] < icx - 22 or o[0] > icx + 22
+                            or o[3] < icy - 22 or o[1] > icy + 22)]
+            probe = pcbnew.PCB_TEXT(board)
+            probe.SetLayer(pcbnew.F_SilkS)
+            probe.SetText(txt)
+            probe.SetTextSize(pcbnew.VECTOR2I_MM(SAFETY_TEXT_H_MM, SAFETY_TEXT_H_MM))
+            probe.SetTextThickness(int(SAFETY_TEXT_STROKE_MM * 1e6))
+            best = None
+            for rot in (90, 0):
+                probe.SetTextAngleDegrees(rot)
+                for xi in range(int((icx - 16) * 8), int((icx + 16) * 8) + 1):
+                    for yi in range(int((icy - 16) * 8), int((icy + 16) * 8) + 1):
+                        x, y = xi / 8.0, yi / 8.0
+                        probe.SetPosition(pcbnew.VECTOR2I_MM(x, y))
+                        cb = box(probe.GetBoundingBox())
+                        g = box_gap(cb, iso_box)
+                        if best is not None and g >= best[0]:
+                            continue
+                        if not inside((cb[0] - EDGE_CLEAR_MM, cb[1] - EDGE_CLEAR_MM,
+                                       cb[2] + EDGE_CLEAR_MM, cb[3] + EDGE_CLEAR_MM)):
+                            continue
+                        if any(hit(cb, o) for o in near):
+                            continue
+                        best = (g, x, y, rot)
+            if best is None or best[0] > ISO_MAX_GAP_MM:
+                if txt in ISO_ART_BEST_EFFORT:
+                    print(f"  ISOLOOP    {txt!r:14s} DOES NOT FIT at the block — "
+                          f"nearest legal site {best[0] if best else float('inf'):.3f} mm "
+                          f"away, against the {ISO_MAX_GAP_MM} mm 'at the terminal' "
+                          f"bound. Reported, not dropped; it is carried by the "
+                          f"north-stack sentence and ORDER_README instead")
+                    continue
+                print(f"FATAL: no silk site within {ISO_MAX_GAP_MM} mm of J_ISOLOOP "
+                      f"for {txt!r} (best {best[0] if best else float('inf'):.3f} mm) — "
+                      f"a NOT-SELV terminal must not ship unlabelled",
+                      file=sys.stderr)
+                return 1
+            g, x, y, rot = best
+            probe.SetTextAngleDegrees(rot)
+            probe.SetPosition(pcbnew.VECTOR2I_MM(x, y))
+            board.Add(probe)
+            print(f"  ISOLOOP    {txt!r:14s} placed at ({x:.3f},{y:.3f}) rot {rot} "
+                  f"h {SAFETY_TEXT_H_MM} stroke {SAFETY_TEXT_STROKE_MM:.4f} — "
+                  f"{g:.3f} mm from the block body")
+
+
+    # ---- PASS D: the stroke floor, and the height that can carry it --------
+    # Half 1 — SAFETY refs to h >= 0.60.  Tried IN PLACE first (a height change
+    # that needs no move is free); relocated through `place()` only if the taller
+    # box collides, which keeps the ownership/cross-name properties intact
+    # because `place()` re-tests them.
+    raised, restroked = [], []
+    # ORDERED: the four safety CONNECTORS choose first.  Height is contended —
+    # a 0.60 mm box needs 78% more area than a 0.45 mm one — and a first cut of
+    # this pass ran AFTER passes A/B/C, by which time D_DOOR and C_LATCHB had
+    # taken the slots and `D_COILEN`, `J_ESTOP` and `R_COILENPD` had NO legal
+    # 0.60 mm position at all (the pass failed loudly, which is what it is for).
+    # Raising heights FIRST, connectors first, is what makes it satisfiable.
+    def n_free_slots(ref, h):
+        """How many legal, NON-EVICTING slots this label has at height `h`,
+        on the board as it stands.  Used only to ORDER the height pass."""
+        f = fps[ref]
+        t = f.Reference()
+        keep = (t.GetTextAngleDegrees(), MM(t.GetTextSize().x),
+                MM(t.GetTextThickness()),
+                (MM(t.GetPosition().x), MM(t.GetPosition().y)))
+        pad_o, silk_o = obstacles(ref)
+        fx, fy = MM(f.GetPosition().x), MM(f.GetPosition().y)
+        n = 0
+        for dx, dy in OFF:
+            for rot in (0, 90):
+                t.SetTextAngleDegrees(rot)
+                t.SetTextSize(pcbnew.VECTOR2I_MM(h, h))
+                t.SetTextThickness(int(h * STROKE_RATIO * 1e6))
+                t.SetPosition(pcbnew.VECTOR2I_MM(fx + dx, fy + dy))
+                c = box(t.GetBoundingBox())
+                if not inside((c[0] - EDGE_CLEAR_MM, c[1] - EDGE_CLEAR_MM,
+                               c[2] + EDGE_CLEAR_MM, c[3] + EDGE_CLEAR_MM)):
+                    continue
+                if any(hit(c, o) for o in pad_o) or any(hit(c, o) for o in silk_o):
+                    continue
+                if box_gap(c, fp_boxes[ref]) > MAX_ANCHOR_SAFETY_MM:
+                    continue
+                if ref in OWNERSHIP_FIX and not owner_ok(ref, c)[0]:
+                    continue
+                n += 1
+        t.SetTextAngleDegrees(keep[0])
+        t.SetTextSize(pcbnew.VECTOR2I_MM(keep[1], keep[1]))
+        t.SetTextThickness(int(keep[2] * 1e6))
+        t.SetPosition(pcbnew.VECTOR2I_MM(*keep[3]))
+        return n
+
+    # MOST-CONSTRAINED-FIRST, and this is the third ordering this pass has had.
+    # Connectors-before-the-rest was not enough: within the connectors, the
+    # tuple order gave `J_DOOR` its slot before `J_ESTOP` looked, and J_ESTOP —
+    # which has exactly TWO legal 0.60 mm positions clearing the ownership
+    # margin on the fresh board, against J_DOOR's many — was then left with
+    # none and the pass died.  Scarcity is MEASURED here and printed, so the
+    # order is a consequence of the board rather than of how a tuple was typed.
+    _order = sorted(
+        (r for r in safety_text_refs
+         if MM(fps[r].Reference().GetTextSize().x) < SAFETY_TEXT_H_MM - 1e-9),
+        key=lambda r: (n_free_slots(r, SAFETY_TEXT_H_MM),
+                       0 if r in SAFETY_CONNECTORS else 1, r))
+    if _order:
+        print("  STROKE     height pass order (free 0.60 mm slots, scarcest "
+              "first): " + ", ".join(f"{r}={n_free_slots(r, SAFETY_TEXT_H_MM)}"
+                                     for r in _order))
+    for ref in _order:
+        t = fps[ref].Reference()
+        h0, s0 = MM(t.GetTextSize().x), MM(t.GetTextThickness())
+        if h0 >= SAFETY_TEXT_H_MM - 1e-9:
+            continue
+        pad_obst, silk_obst = obstacles(ref)
+        pos = (MM(t.GetPosition().x), MM(t.GetPosition().y))
+        t.SetTextSize(pcbnew.VECTOR2I_MM(SAFETY_TEXT_H_MM, SAFETY_TEXT_H_MM))
+        t.SetTextThickness(int(SAFETY_TEXT_STROKE_MM * 1e6))
+        cand = box(t.GetBoundingBox())
+        clear = (inside((cand[0] - EDGE_CLEAR_MM, cand[1] - EDGE_CLEAR_MM,
+                         cand[2] + EDGE_CLEAR_MM, cand[3] + EDGE_CLEAR_MM))
+                 and not any(hit(cand, o) for o in pad_obst)
+                 and not any(hit(cand, o) for o in silk_obst)
+                 and (ref not in OWNERSHIP_FIX or owner_ok(ref, cand)[0])
+                 and crossname_ok(ref, cand)[0])
+        if clear:
+            print(f"  STROKE     {ref:14s} h {h0:.3f} -> {SAFETY_TEXT_H_MM:.3f}, "
+                  f"stroke {s0:.4f} -> {SAFETY_TEXT_STROKE_MM:.4f} mm, in place")
+            raised.append(ref)
+            continue
+        # taller box does not fit where it stands: restore and re-place at 0.60
+        t.SetTextSize(pcbnew.VECTOR2I_MM(h0, h0))
+        t.SetTextThickness(int(s0 * 1e6))
+        t.SetPosition(pcbnew.VECTOR2I_MM(*pos))
+        print(f"  STROKE     {ref:14s} h {h0:.3f} -> {SAFETY_TEXT_H_MM:.3f} does not "
+              f"fit in place -> relocating at h {SAFETY_TEXT_H_MM:.3f}")
+        if ref in OWNERSHIP_FIX:
+            place_owner_degrading(ref)
+        else:
+            place(ref, False)
+        raised.append(ref)
+
 
     # ---- PASS A: every visible refdes must be ON the board, not in a void --
     for ref in sorted(fps):
@@ -354,7 +867,19 @@ def main(argv):
         place(ref, ref in OWNERSHIP_FIX)
 
     # ---- PASS B: the safety-critical designators must own their label ------
-    for ref in OWNERSHIP_FIX:
+    # SCARCEST FIRST, for the same reason PASS D is (see there).  Iterating
+    # OWNERSHIP_FIX in written order let `J_DOOR` and `J_MODE` take their slots
+    # while `J_ESTOP` — which has exactly TWO legal 0.60 mm positions clearing
+    # the margin on the fresh board — was left with none, and the pass died on
+    # the E-STOP connector of a cooking interlock.  The order is measured.
+    _ord_b = sorted((r for r in OWNERSHIP_FIX if r in fps),
+                    key=lambda r: (n_free_slots(r, MM(fps[r].Reference()
+                                                      .GetTextSize().x)), r))
+    print("  OWNERSHIP  pass order (free slots at current height, scarcest "
+          "first): " + ", ".join(
+              f"{r}={n_free_slots(r, MM(fps[r].Reference().GetTextSize().x))}"
+              for r in _ord_b))
+    for ref in _ord_b:
         if ref not in fps:
             continue
         t = fps[ref].Reference()
@@ -367,7 +892,7 @@ def main(argv):
         print(f"  OWNERSHIP  {ref:14s} label centre is {own:.3f} mm from its own "
               f"part but {rd:.3f} mm from {rival} (needs a {MIN_OWNERSHIP_MARGIN_MM} mm "
               f"lead) -> relocating")
-        place(ref, True)
+        place_owner_degrading(ref)
 
     # ---- PASS C: a label naming connector C must be nearest C --------------
     # Quantified over every visible refdes, not a hand-list, so the class is
@@ -390,6 +915,36 @@ def main(argv):
     if not crossnamed:
         print("  CROSS-NAME none: every label bearing a safety connector's name "
               "is already nearest that connector")
+
+    # Half 2 — EVERY visible silk text: stroke = 0.25 x height, exactly.  This
+    # is a pure honesty pass: 29 refdes stored 0.150 on 0.45 mm text, which
+    # KiCad prints at 0.1125.  It never RAISES a stroke (that would be a height
+    # decision), it makes the stored number equal the printed one.
+    for ref in sorted(fps):
+        t = fps[ref].Reference()
+        if not (t.IsVisible() and t.IsOnLayer(pcbnew.F_SilkS)):
+            continue
+        h, s = MM(t.GetTextSize().x), MM(t.GetTextThickness())
+        want = round(h * STROKE_RATIO, 4)
+        if abs(s - want) > 1e-6:
+            t.SetTextThickness(int(want * 1e6))
+            restroked.append((ref, s, want))
+    for d in board.GetDrawings():
+        if d.GetClass() != "PCB_TEXT" or not d.IsOnLayer(pcbnew.F_SilkS):
+            continue
+        h, s = MM(d.GetTextSize().x), MM(d.GetTextThickness())
+        want = round(h * STROKE_RATIO, 4)
+        if abs(s - want) > 1e-6:
+            d.SetTextThickness(int(want * 1e6))
+            restroked.append((d.GetText()[:18], s, want))
+    print(f"  STROKE     {len(raised)} safety refdes raised to h "
+          f"{SAFETY_TEXT_H_MM}/stroke {SAFETY_TEXT_STROKE_MM:.4f}; "
+          f"{len(restroked)} text(s) re-stroked to 0.25 x height "
+          f"(the value KiCad actually plots)")
+    for r, was, now in restroked[:8]:
+        print(f"             {r:20s} {was:.4f} -> {now:.4f}")
+    if len(restroked) > 8:
+        print(f"             ... and {len(restroked)-8} more")
 
     if not moves:
         print("fix_silk_placement: 0 moves (silk already clean)")
@@ -423,10 +978,10 @@ def main(argv):
             continue
         ok, own, rival, rd = owner_ok(ref, box(t.GetBoundingBox()))
         print(f"  VERIFY {ref:14s} label centre {own:.3f} mm from own part vs "
-              f"{rd:.3f} mm from {rival}  -> "
-              f"{'OWNS ITS LABEL' if ok else 'STILL AMBIGUOUS'}")
-        if not ok:
-            bad.append(f"{ref} label is nearer {rival}")
+              f"{rd:.3f} mm from {rival} (lead {rd-own:+.3f} mm)  -> "
+              f"{'OWNS ITS LABEL' if rd > own else 'STILL AMBIGUOUS'}")
+        if rd <= own:
+            bad.append(f"{ref} label is nearer {rival} ({rd:.3f} vs {own:.3f} mm)")
     # ...and re-derive PASS C over the WHOLE board from the final state, so a
     # move made for one refdes cannot have created a cross-name somewhere else.
     still, graded = [], 0
@@ -453,6 +1008,64 @@ def main(argv):
           f"{'0 cross-named' if not still else str(len(still)) + ' STILL CROSS-NAMED'}")
     if still:
         bad.append("labels naming the wrong housing: " + "; ".join(still))
+
+    # ---- VERIFY the stroke floor, re-measured from the saved-state board ----
+    # Graded against BOTH floors, because they are different claims:
+    #   tier floor   0.1125 mm — what fab_tiers.yaml enforces fleet-wide
+    #   published    0.1500 mm — JLC's page, which only >= 0.60 mm text can carry
+    thin, unclamped, short_safety = [], [], []
+    texts = [(r, fps[r].Reference()) for r in sorted(fps)
+             if fps[r].Reference().IsVisible()
+             and fps[r].Reference().IsOnLayer(pcbnew.F_SilkS)]
+    texts += [(d.GetText()[:24], d) for d in board.GetDrawings()
+              if d.GetClass() == "PCB_TEXT" and d.IsOnLayer(pcbnew.F_SilkS)]
+    for name, t in texts:
+        h, s = MM(t.GetTextSize().x), MM(t.GetTextThickness())
+        if s < TIER_MIN_STROKE_MM - 1e-6:
+            thin.append(f"{name} h{h:.3f} stroke {s:.4f}")
+        if s > h * STROKE_RATIO + 1e-6:
+            unclamped.append(f"{name} h{h:.3f} stroke {s:.4f} > {h*STROKE_RATIO:.4f}")
+    for ref in safety_text_refs:
+        t = fps[ref].Reference()
+        h, s = MM(t.GetTextSize().x), MM(t.GetTextThickness())
+        if h < SAFETY_TEXT_H_MM - 1e-6 or s < SAFETY_TEXT_STROKE_MM - 1e-6:
+            short_safety.append(f"{ref} h{h:.3f} stroke {s:.4f}")
+    print(f"  VERIFY SILK STROKE: {len(texts)} visible silk text(s) re-measured — "
+          f"{len(thin)} below the {TIER_MIN_STROKE_MM} mm tier floor, "
+          f"{len(unclamped)} storing a stroke KiCad would clamp away, "
+          f"{len(short_safety)}/{len(safety_text_refs)} safety text(s) below "
+          f"h {SAFETY_TEXT_H_MM}/stroke {SAFETY_TEXT_STROKE_MM:.4f}")
+    if thin:
+        bad.append("silk below the tier stroke floor: " + "; ".join(thin))
+    if unclamped:
+        bad.append("silk storing an unachievable stroke: " + "; ".join(unclamped))
+    if short_safety:
+        bad.append("safety silk below h0.60/stroke 0.150: " + "; ".join(short_safety))
+
+    # ---- VERIFY the J_ISOLOOP artwork, from the board's final state ---------
+    if "J_ISOLOOP" in fps:
+        ib = fp_boxes["J_ISOLOOP"]
+        found = {}
+        for d in board.GetDrawings():
+            if d.GetClass() != "PCB_TEXT" or not d.IsOnLayer(pcbnew.F_SilkS):
+                continue
+            g = box_gap(box(d.GetBoundingBox()), ib)
+            if g <= ISO_MAX_GAP_MM:
+                found[d.GetText()] = g
+        for want in ISO_ART:
+            if want not in found:
+                bad.append(f"J_ISOLOOP artwork {want!r} is not within "
+                           f"{ISO_MAX_GAP_MM} mm of the block")
+        print(f"  VERIFY ISOLOOP ARTWORK: {len(found)} silk caption(s) within "
+              f"{ISO_MAX_GAP_MM} mm of the NOT-SELV block: "
+              + "; ".join(f"{k!r} at {v:.3f} mm" for k, v in sorted(found.items())))
+        it = fps["J_ISOLOOP"].Reference()
+        ok, own, rival, rd = owner_ok("J_ISOLOOP", box(it.GetBoundingBox()))
+        print(f"  RESIDUAL J_ISOLOOP designator: {own:.3f} mm from its own block vs "
+              f"{rd:.3f} mm from {rival} (lead {rd-own:+.3f} mm) — NON-BLOCKING: "
+              f"the block's IDENTITY is now carried by the captions above, which "
+              f"are {min(found.values()) if found else float('nan'):.3f} mm from it, "
+              f"and a KF350 screw terminal cannot be cross-plugged with a JST-GH")
 
     # ---- RESIDUAL, reported and NOT blocking -------------------------------
     # Every label that is nearer a safety connector than the part it names but

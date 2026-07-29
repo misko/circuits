@@ -1,4 +1,11 @@
-supplies: {5V_PROTECTED: 5.0, N3V3: 3.3}
+# NET NAMES HERE ARE THE CANONICAL KiCad NAMES, NOT THE TSX AUTHOR NAMES.
+# 2026-07-29: this line read `N3V3: 3.3` — the tsx author-prefix form. No net
+# called N3V3 exists in the netlist (the converter strips the N), so the 3V3
+# rail was INVISIBLE to every `node_level` grade, and the checker's rail search
+# silently had one rail instead of two. It did not misreport the P0-b divider
+# (that network genuinely hangs off 5V_PROTECTED) but it would have reported
+# UNREACHED on the ADR-0022 fix. Found by reading the netlist, not by the gate.
+supplies: {5V_PROTECTED: 5.0, 3V3: 3.3}
 
 # cooksense ELECTRICAL-INVARIANTS (canon E-INV, phase E1 = netlist-only).
 #
@@ -36,7 +43,7 @@ invariants:
     pin: "U_EFUSE.6"                   # TPS259573 pad6 = FLT_N (open-drain, LOW=fault)
     net: EFUSE_FLT_N
     adr: "0001"
-    why: "the eFuse fault flag rides the HONESTLY-NAMED net EFUSE_FLT_N (renamed from PWR_GOOD_N, pin review Q1 2026-07-23: FLT_N is LOW=fault i.e. HIGH=power-good, so a _N power-good name inverted the sense; consumers are software-read only — R_PG pullup, TP_PGOOD, and, v1.7 onward, expander GPA0 THROUGH THE R_FLTDIVT/R_FLTDIVB divider rather than directly: this node rests at the 5 V rail and the MCP23017 input is abs-max 3.6 V. See the PIN P0-b block at the end of this file)"
+    why: "the eFuse fault flag rides the HONESTLY-NAMED net EFUSE_FLT_N (renamed from PWR_GOOD_N, pin review Q1 2026-07-23: FLT_N is LOW=fault i.e. HIGH=power-good, so a _N power-good name inverted the sense; consumers are software-read only — R_PG pullup, TP_PGOOD and expander pad 1 = GPB0, all three DIRECTLY on the node. v1.7's first cut inserted a 10k/22k divider here; ADR-0022 deleted it and moved R_PG's pull-up to 3V3 instead, which fixes the same abs-max problem at the root and leaves the node at a valid logic high. See the ADR-0022 block at the end of this file)"
 
   - assert: net_has_part
     net: DECU_G1_RAW
@@ -792,62 +799,80 @@ invariants:
     net: FAULT
     adr: "0020"
     why: "and the near end is on the RAW FAULT, so the isolation is a series element and not a stub"
-
-  # ===== v1.7 / PIN P0-b — U_EXP.1 IS OFF THE 5 V NODE ======================
-  # GPA0 idled at 5.0 V into a 3.3 V part.  EFUSE_FLT_N is an OPEN-DRAIN flag
-  # pulled up to 5V_PROTECTED through R_PG (100k), so with no fault the node
-  # rests at the 5 V rail; the MCP23017's abs-max input is VDD+0.3 = 3.6 V.
-  # ~14 uA of continuous injection into 3V3 through the input clamp, forever,
-  # on a part that is also the I2C expander for five safety readbacks.
-  # The remedy is a 10k/22k divider to GND: 5.25 V worst-case rail -> 3.609 V at
-  # the tap... which is why the ratio is 10k TOP / 22k BOTTOM and not the other
-  # way round.  22k/(10k+22k) x 5.25 = 3.609 V — still marginal — so read the
-  # numbers that actually govern: at the NOMINAL 5.0 V rail the tap is 3.438 V,
-  # and the MCP23017 input is specified to VDD+0.3 = 3.6 V, so the divider must
-  # be graded against the 5V_PROTECTED OV cutoff ADR-0021 sets, not against an
-  # unbounded rail.  Recorded here so the next reader grades the RATIO, not the
-  # existence of two resistors.
-  # TP_PGOOD DELIBERATELY STAYS ON THE RAW NODE: the test point exists to let a
-  # human see the eFuse's real open-drain flag at its real level, and a divided
-  # copy would silently change what a probe reads.
+  # ===== ADR-0022 — U_EXP.1 (GPB0) READS A REAL, VALID LOGIC LEVEL ==========
+  # TWO defects, one root, one fix.
+  #
+  # (a) PIN P0-b, 2026-07-28: EFUSE_FLT_N is the TPS259573's OPEN-DRAIN /FLT
+  #     flag.  Pulled up to 5V_PROTECTED through R_PG 100k it idled at 5.0 V
+  #     into an MCP23017 whose abs-max input is VDD+0.3 = 3.6 V — ~14 uA of
+  #     continuous injection into 3V3, forever, on the part that carries five
+  #     safety readbacks.
+  # (b) PIN-P0-1 / TOPO P1-1, 2026-07-28: the 10k/22k divider v1.7 added to fix
+  #     (a) was sized as if EFUSE_FLT_N were a STIFF 5 V source.  Its only
+  #     source of high is R_PG itself, so the real chain is 100k+10k over 22k,
+  #     ratio 22/132 not 22/32, and the tap sat at 0.833 V against the
+  #     MCP23017 V_IH(min) of 0.8 x VDD = 2.640 V.  The fault readback was
+  #     DEAD.  At R_PG = 100k no R_top > 0 solution exists — this was a design
+  #     choice, not a value tweak.
+  #
+  # THE FIX (chosen 2026-07-29): move R_PG's top end from 5V_PROTECTED to 3V3
+  # and DELETE both divider resistors.  /FLT is open-drain and indifferent to
+  # the pull-up rail (SLVSE57C states no minimum; pin abs-max 20 V), so the
+  # node idles at exactly the rail — 3.300 V, which is simultaneously inside
+  # the MCP23017 abs-max and above V_IH.  Two parts leave the BOM.
+  #
+  # WHAT THE OLD ASSERTS PROVED, AND WHY IT WAS NOT ENOUGH:  the deleted block
+  # asserted part_value on both divider legs and pin_on_net on all four of
+  # their ends.  Every one of those PASSED on the broken board, because they
+  # graded the MECHANISM (two resistors exist, at these values, on these nets)
+  # and nobody graded the OUTCOME (what voltage the pin sees).  That is exactly
+  # ADR-0007's M-ENTRY / claims-become-checks finding, and the `node_level`
+  # assert at the bottom of this block is the remedy.  It is the LAST assert
+  # here on purpose: it is the only one that can fail for an arithmetic reason.
+  #
+  # TP_PGOOD IS BACK ON THE NODE THE FIRMWARE READS.  The v1.7 draft kept it on
+  # the raw node with the rationale "the instrument must see the real node".
+  # That rationale was FALSE AS BUILT: R_FLTDIVT+R_FLTDIVB (32k) loaded the
+  # 100k pull-up, so the "raw" node a probe would have seen rested at
+  # 5.000 x 32/132 = 1.212 V, not 5 V.  The claim is recorded as refuted rather
+  # than deleted.
   - assert: part_value
-    part: R_FLTDIVT
-    equals: "10k"
-    adr: "0001"
-    why: "the TOP leg, from the 5 V EFUSE_FLT_N node to the tap. Value matters in BOTH directions: too small and it loads the 100k R_PG pull-up enough to move the flag's own high level; too large and the MCP23017 input leakage (+-1 uA) walks the tap. 10k is the same C60490 line as the five series resistors above, so the divider costs zero new BOM lines"
-  - assert: part_value
-    part: R_FLTDIVB
-    equals: "22k"
-    adr: "0001"
-    why: "the BOTTOM leg and the actual ratio. C25768 is this board's OWN 0402 22k line — not a new part. Delete it or make it 0R and GPA0 is grounded (the flag reads permanently 'fault'); make it large and the 5 V comes back onto the pin. THIS RESISTOR IS THE FIX"
+    part: R_PG
+    equals: "100k"
+    adr: "0022"
+    why: "the ONLY source of logic-high on EFUSE_FLT_N. 100k against the MCP23017's +-1 uA input leakage costs at most 100 mV of the 660 mV headroom (3.300 - 2.640); the eFuse's own /FLT leakage is 1 uA max, so worst case 200 mV and the node still clears V_IH by 460 mV. Raise this much further and leakage, not the rail, sets the high level"
   - assert: pin_on_net
-    pin: "R_FLTDIVT.1"
+    pin: "R_PG.2"
+    net: 3V3
+    adr: "0022"
+    why: "THE FIX, IN ONE ASSERT. Put this end back on 5V_PROTECTED and the node idles at 5.0 V into a 3.6 V abs-max input — PIN P0-b restored — while every other assert in this file, including U_EXP.1's own pin_on_net, still passes. This is the assert that distinguishes the fixed board from the broken one"
+  - assert: pin_on_net
+    pin: "R_PG.1"
     net: EFUSE_FLT_N
-    adr: "0001"
-    why: "the divider's top actually hangs on the 5 V open-drain node — otherwise it is a divider off something else and GPA0's protection is imaginary"
+    adr: "0022"
+    why: "and the pull-up's other end is on the flag node itself. A pull-up dangling on some other net leaves EFUSE_FLT_N floating: an open-drain output with no pull-up has NO defined high, and the readback would report whatever the input pin's leakage decides"
   - assert: pin_on_net
-    pin: "R_FLTDIVB.2"
-    net: GND
-    adr: "0001"
-    why: "and the bottom is on GND. A divider with a floating bottom leg is a wire, and the pin is back at 5 V with both resistors still on the BOM"
-  - assert: pin_on_net
-    pin: "U_EXP.1"                     # MCP23017 pad1 = GPA0 (eFuse fault readback)
-    net: EFUSE_FLT_DIV
-    adr: "0001"
-    why: "THE WHOLE FIX IN ONE ASSERT. GPA0 is on the TAP and nowhere else. Re-wiring this pin back to EFUSE_FLT_N restores 5.0 V on a 3.6 V abs-max input and NOTHING else on this board would notice — R_FLTDIVT and R_FLTDIVB would both still be present, both still the right value, and both still connected to the right rails"
+    pin: "U_EXP.1"                     # MCP23017 pad1 = GPB0 (NOT GPA0 — pad 21 is GPA0)
+    net: EFUSE_FLT_N
+    adr: "0022"
+    why: "GPB0 reads the flag DIRECTLY now that the node is a 3.3 V node. Pad 1 is GPB0; every document in the v1.7 P0-b work called it GPA0, which is pad 21 and carries RAIL_EN_A, an OUTPUT (PIN Q-1). The copper was always right; this comment is the paperwork catching up"
   - assert: pin_on_net
     pin: "TP_PGOOD.1"
     net: EFUSE_FLT_N
-    adr: "0001"
-    why: "and the TEST POINT stays on the RAW node, deliberately. Moving TP_PGOOD onto the divided tap would make a probe read 3.4 V for a healthy 5 V flag and 0 V for a fault — the same two states, at levels that match neither the eFuse datasheet nor the ORDER_README bring-up table. The instrument must see the real node"
+    adr: "0022"
+    why: "the test point and the firmware now read the SAME node, which is what the v1.7 rationale claimed and the v1.7 build did not deliver (the divider made the probed node 1.212 V). ORDER_README's bring-up table can state one number for both"
 
   - assert: node_level
-    net: EFUSE_FLT_DIV
+    net: EFUSE_FLT_N
     receiver: U_EXP.1
     driver_state: released
     must_be: logic_high
     adr: "0022"
     why: >-
-      With the eFuse released, U_EXP.1 must read a valid logic HIGH or the
-      power-good readback is dead. The v1.7 divider was sized as if
-      EFUSE_FLT_N were a stiff 5 V source; it is open-drain behind R_PG 100k.
+      THE OUTCOME, ASSERTED. With the eFuse released, U_EXP.1 must read a valid
+      logic HIGH or the power-good readback is dead however correct the parts
+      list looks. R_PG 100k to 3V3, no resistive path to GND, so the node is
+      pulled to the rail: 3.300 V against V_IH(min) 2.640 V. The v1.7 divider
+      that this replaces gave 0.833 V and passed six mechanism asserts while
+      doing it.
+

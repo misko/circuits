@@ -903,24 +903,34 @@ silk:
     # side of the opto barrier. Every other east-edge housing is SELV. A field
     # technician holding four wires needs to know that BEFORE landing them, and
     # the refdes alone does not say it.
-    # THERE IS NO SILK SITE AT THE BLOCK, and that is MEASURED, not assumed. A
-    # full scan of the board for a free F.SilkS box (pads +0.16mm, existing silk
-    # +0.08mm, and every COURTYARD, because silk under a body is silk nobody
-    # reads) says: the nearest visible site for "ISOLATED 30V" is (165.9,65.2),
-    # 41.9mm away, and for the 7-character "ISO 30V" it is (165.5,79.5), 33.6mm
-    # away. The SE corner is saturated -- J_RH_AMBIENT / J_RH_EXHAUST /
-    # J_ISOLOOP refdes already tile the only clear band (y[100.39,101.61]) and
-    # the block's own 14x7mm body covers everything else. Two captions were
-    # placed here first and the nudge search pushed BOTH off the south edge
-    # entirely (measured at y104.19-106.31, i.e. off the board), which is worse
-    # than nothing because it prints nowhere and still counts as done.
-    # So the warning goes where it CAN be read, in the north safety-caption
-    # stack beside the ADR-0012 enclosure lines, and it names the corner so the
-    # reader can find the block. Site MEASURED free at (62.0,15.4), between the
-    # title (y13.0) and the mounting-hardware sentence (y17.0). The pole legend
-    # (1 LOOP / 2 RET / 3 CTR / 4 CTR) does not fit anywhere on silk at all and
-    # lives in the ORDER_README bring-up section + ADR-0013 instead.
-    - {text: "J_ISOLOOP (SE CORNER) = ISOLATED 30V CONTACTOR LOOP -- NOT SELV", at: [62.0, 15.4], size: 0.6, nudge: true}
+    # ===== THE "NO SILK SITE AT THE BLOCK" CLAIM WAS FALSE. CORRECTED. ======
+    # This block used to assert, in this file, that a full scan found the
+    # nearest site for "ISO 30V" at (165.5,79.5) -- 33.6mm away -- and that "the
+    # SE corner is saturated". The v1.7 RENDER lens graded that a P0 (the
+    # NOT-SELV terminal carries NO artwork), a later session re-ran the sweep
+    # and reported a legal site at (189.05,93.35) 6.46mm out, and the fix list
+    # inherited THAT number. **RE-MEASURED 2026-07-29 AND NEITHER REPRODUCES:**
+    #   * (189.05,93.35) at h0.60 is blocked by U_OPTO's body AND graphics AND
+    #     by J_RH_EXHAUST's body; at h0.45 still blocked by J_RH_EXHAUST. The
+    #     clear band there is U_OPTO bottom 92.86 -> J_RH_EXHAUST top 93.73 =
+    #     0.87mm, and a 0.45mm text needs a 0.92mm box. It does not exist.
+    #   * "33.6mm" is wrong the other way: with the hazard-caption reserve armed
+    #     (fix_silk_placement.py PASS D0) "ISO 30V" places at (190.750,86.500),
+    #     h0.60/stroke 0.150, **0.561mm from the block body**. What blocked it
+    #     was never geometry -- it was C_LATCHB's and U_OPTO's designators,
+    #     parked there first-come-first-served by the de-collider.
+    # THREE sessions carried a "nearest site" number on this corner without
+    # re-deriving it. That is the inherited-defect pattern, and the remedy is
+    # that the number is now PRODUCED BY THE PASS at every run, not written here.
+    #
+    # WHAT REALLY IS IMPOSSIBLE, stated precisely so it is not re-litigated: a
+    # legend printed BESIDE EACH POLE. The four poles sit at x=195.30,
+    # y=89.75/93.25/96.75/100.25 and the KF350 body spans x[191.57,199.22] --
+    # the pads are at the CENTRE of the block in x, so every square millimetre
+    # either side of a pole is under the moulding once the block is fitted. A
+    # per-pole digit would be printed and then covered. The pole map therefore
+    # rides the north-stack sentence below, in pole order, where it can be read.
+    - {text: "J_ISOLOOP (SE CORNER) = ISOLATED 30V CONTACTOR LOOP -- NOT SELV -- POLES 1=C 2=LOOP 3=LOOP 4=E", at: [62.0, 15.4], size: 0.6, nudge: true}
 
 asserts:
   pad_net:

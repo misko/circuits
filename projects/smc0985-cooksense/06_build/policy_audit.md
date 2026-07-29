@@ -6,9 +6,9 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 
 | ID | Grade | Detail |
 |---|---|---|
-| S-ERC | PASS | 0 errors (420 warnings) |
+| S-ERC | PASS | 0 errors (417 warnings) |
 | S-NC | PASS | all floats no_connect-flagged |
-| S-NET | PASS | 169 routed nets, all named |
+| S-NET | PASS | 168 routed nets, all named |
 | S-VER | WAIVED | weak/missing figure citations: ['2N7002', 'AO3401A', 'GZ2012D601TF', 'KF350-3.5-4P', 'LTV-817S-TA1', 'SN74HC14DR', 'SN74HC595DR', 'ULN2803ADWR'] (9/36) — waived: The 8 flagged part.yaml entries carry verified: notes without a figure/page citation strin... |
 | P-ESC | PASS | 44 parts: escape blocks agree with escape_check |
 | P-TIER | PASS | all parts escape at declared fab_tier 'jlc_4layer_advanced' |
@@ -24,7 +24,7 @@ Board graded: cooksense (of 2 in 04_kicad: cooksense, interposer; select with --
 | P-POL | PASS | polarity machine-check present (pad-1 nets vs part facts) |
 | P-KEEP | PASS | mate/keepout checks present in project audit |
 | P-SILK-REF | PASS | all refdes on visible silk |
-| P-SILK-FN | WAIVED | no functional silk text within 8.0mm of: ['J_ISOLOOP', 'J_THERM_B', 'J_LOADCELL', 'J_DOOR', 'J_TC', 'J_KEY_MATRIX', 'J_PWR', 'TP_5VP', 'TP_TCDRDY', 'TP_5VKR'] — waived: NEW FAILURE ON A NEWLY-SIGHTED GATE, AND THAT IS THE POINT. Until 2026-07-28 P-SILK-FN's d... |
+| P-SILK-FN | WAIVED | no functional silk text within 8.0mm of: ['TP_WDOK', 'TP_TCFAULT', 'TP_SPARE', 'TP_ESTOP', 'TP_ALLOW', 'J_PWR', 'J_KEY_MATRIX', 'J_TC', 'J_THERM_B', 'J_ESTOP'] — waived: NEW FAILURE ON A NEWLY-SIGHTED GATE, AND THAT IS THE POINT. Until 2026-07-28 P-SILK-FN's d... |
 | P-PLANE | PASS | In1 carries only its plane (0 tracks) |
 | R-PLANE | N-A | no plane_regions configured |
 | R-POUR | WAIVED | high-current-class nets with no pour: ['5V_FUSED', '5V_IN', '5V_PROTECTED', '5V_RPP'] — waived: The four PWR_IN-class 5V nets (5V_IN, 5V_FUSED, 5V_PROTECTED, 5V_RPP) are distributed as T... |

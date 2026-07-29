@@ -14,44 +14,109 @@ unaffected and `interposer-v1.1-2026-07-27` remains ORDERABLE.**
 the reed-relay land pattern is re-derived.** This is not a paperwork verdict; the
 key-matrix relay array as drawn cannot work.
 
-> ## STATUS UPDATE 2026-07-29 — the relay land IS FIXED IN SOURCE, and v1.7 IS STILL NOT SEALED
+> ## STATUS UPDATE 2026-07-29 (second) — THREE P0s CLOSED, A FOURTH FOUND, v1.7 STILL NOT SEALED
 >
 > **v1.0 through v1.6 remain DO-NOT-ORDER and that does not change.** Every one
 > of them carries the pin-out-**12** land described below. There is no sealed
 > release of this board that can be built.
 >
-> **The relay defect itself is fixed in source, and the fix is verified.** The
-> part is now `DIP05-1A72-`**`13L`** (pin-out CODE 13, LCSC C1524853) on a new
-> land `03_src/lib/cooksense.pretty/Relay_StandexDIP_1A_pinout13.kicad_mod`; the
-> pinout12 file is DELETED. **v1.7 will be the first release with a correct relay
-> land.** Two independent zero-context reviewers re-rendered datasheet p.3 at
-> 400 dpi, counted the leads on sub-figure 13 (FOUR: contact 14↔8 on one row,
-> coil 2↔6 on the other, rows 7.62 mm apart) and confirmed from the netlist that
-> **the coil node set and the contact node set are now DISJOINT** — `5V_KEY_RELAY`
-> appears on no contact pad, `U_SEL_BUS` on no coil pad, minimum coil-to-contact
-> pad distance 8.032 mm over all 48 pads. A third measured the ≥6.0 mm
-> keypad↔SELV barrier independently, with pours filled, at **6.2200 mm**, and the
-> intra-package coil↔contact gap **improved** from 6.1200 to 6.3494 mm. ADR-0002's
-> isolation claim is TRUE under code 13, where under code 12 it was false.
+> **v1.7 WILL BE THE FIRST RELEASE WITH A CORRECT RELAY LAND.** The part is
+> `DIP05-1A72-`**`13L`** (pin-out CODE 13, LCSC C1524853) on
+> `03_src/lib/cooksense.pretty/Relay_StandexDIP_1A_pinout13.kicad_mod`; the
+> pinout12 file is DELETED. Three independent zero-context lenses re-rendered
+> datasheet p.3 at 400 dpi and confirmed sub-figure 13 has FOUR leads (contact
+> 14↔8 on one row, coil 2↔6 on the other, rows 7.62 mm apart); the netlist
+> confirms the coil and contact node sets are **DISJOINT** — minimum
+> coil-to-contact pad distance **8.032 mm** over all 48 pads — and the land is
+> CHIRAL, so a relay cannot be seated backwards. The ≥6.0 mm keypad↔SELV
+> barrier was measured independently WITH POURS FILLED at **6.2200 mm**.
+> ADR-0002's isolation claim is TRUE under code 13, where under code 12 it was
+> false. **That defect is closed and is not revisited.**
 >
-> **But v1.7 is NOT sealed, because a SECOND review battery found two new P0s**
-> (see `08_reviews/DISPOSITIONS.md`, "v1.7b"). Neither is the relay:
+> ### The three blockers this session closed
 >
-> 1. **The `U_EXP` pad-1 protection divider added by v1.7 is sized without the
->    100 kΩ pull-up that is the node's only source.** `EFUSE_FLT_N` is an
->    open-drain flag whose sole driver-high is `R_PG` = 100 kΩ, so the real
->    ratio is 22/132, not 22/32: the tap sits at **0.833 V** against the
->    MCP23017's V_IH(min) of **2.640 V**. The eFuse fault readback can never
->    report power-good — the pin is protected and dead. Found by TWO lenses with
->    no shared method.
-> 2. **`J_ISOLOOP`, the NOT-SELV 30 V contactor terminal, has no artwork at the
->    terminal at all** — no text inside its silk body, no pole legend, and its
->    own designator printed 1.300 mm from `J_RH_EXHAUST` against 4.900 mm from
->    itself. The recorded justification that there was no room **did not
->    reproduce**: a re-run of the sweep found a site 6.46 mm from the block.
+> 1. **The `U_EXP` eFuse fault readback was DEAD** (found by two lenses with no
+>    shared method). The divider v1.7 added was sized as if `EFUSE_FLT_N` were a
+>    stiff 5 V source; its only source of high is `R_PG` 100 kΩ, so the real
+>    ratio was 22/132 and the pin sat at **0.833 V** against V_IH(min)
+>    **2.640 V** — the indeterminate band. **ADR-0022**: `R_PG`'s pull-up moves
+>    to **3V3** and both divider resistors are DELETED. The node now idles at
+>    **3.300 V**, inside the MCP23017's 3.6 V abs-max AND above V_IH, with two
+>    fewer parts. Verified by the gate, not by argument: the `node_level`
+>    invariant went RED→GREEN and five new asserts were RED-verified.
+>    *`TP_PGOOD`'s v1.7 rationale — "the instrument must see the real node" —
+>    was FALSE AS BUILT: the divider loaded the 100 kΩ pull-up, so the "raw"
+>    node a probe would have touched rested at 1.212 V, not 5 V. Recorded as
+>    refuted, not deleted.*
+> 2. **`J_ISOLOOP`, the NOT-SELV 30 V terminal, had no artwork.** It now carries
+>    **`ISO 30V` printed 0.085 mm from the block body** and `NOT SELV` at
+>    7.892 mm, both at h 0.600 / stroke 0.150. *The recorded "SE corner is
+>    saturated, nearest site 33.6 mm" claim did not reproduce — and neither did
+>    the 6.46 mm re-run that superseded it (that site is blocked by `U_OPTO`'s
+>    and `J_RH_EXHAUST`'s bodies; the clear band there is 0.87 mm and a 0.45 mm
+>    text needs 0.92 mm). What blocked the corner was never geometry: it was a
+>    0402's designator parked there first-come-first-served.* A per-pole legend
+>    at the terminal is genuinely impossible — the pads sit at the CENTRE of the
+>    KF350 body in x, so anything either side of a pole is under the moulding
+>    once it is fitted — so the pole map rides the north-stack caption as
+>    `POLES 1=C 2=LOOP 3=LOOP 4=E`.
+> 3. **Six safety designators printed at 0.130 mm stroke**, thinner than the
+>    other 243 texts, emitted by v1.7's own silk-repair pass. Fixed at the root:
+>    every silk stroke is now `0.25 × height` (KiCad's own clamp) and every
+>    SAFETY text is h 0.600 / stroke 0.150 — JLC's published floor. **250 texts
+>    re-measured: 0 below the 0.1125 mm tier floor, 0 storing a stroke KiCad
+>    would clamp away, 11/11 safety texts at 0.600/0.150.** Three waivers that
+>    misstated this were CORRECTED in place with the replacement measurement.
 >
-> Both are fixable and neither touches the relay or the isolation geometry. Until
-> they are fixed and a fresh battery clears, **there is still nothing to order.**
+> ### Why there is still no seal: THE REED COILS MAY NOT CLOSE WHEN HOT
+>
+> The pull-in margin was computed for the first time in this tree, and it is
+> **NEGATIVE inside the board's own −20…+70 °C envelope.** The ULN2803A
+> datasheet is now committed; its V_CE(sat) at the ~7 mA coil current is
+> 0.67 V typ. With `V_PI(T) = 3.500 × (1 + 0.004 × (T − 20))` and the
+> `5V_KEY_RELAY` floor of 4.740 V:
+>
+> | T | V_PI | margin (typ 0.67 V) | margin (worst 0.88 V) |
+> |---|---|---|---|
+> | −20 °C | 2.940 V | +1.130 V | +0.920 V |
+> | +25 °C | 3.570 V | +0.500 V | +0.290 V |
+> | +50 °C | 3.920 V | +0.150 V | **−0.060 V** |
+> | +70 °C | 4.200 V | **−0.130 V** | **−0.340 V** |
+>
+> The ampere-turn view agrees: must-operate is 7.00 mA and delivered current
+> falls to **6.81 mA at +70 °C**. **−20 °C is comfortable, so a bench test at
+> room temperature will not find this.** `K_STOP` is the one relay not exposed
+> (a 2N7002, not a Darlington: +0.454 V at +70 °C).
+>
+> **Twelve reed relays on a cooking appliance are not guaranteed to close hot.
+> Until that is fixed, there is still nothing to order.** The remedy — raise the
+> coil rail, replace the Darlington with a MOSFET array, or narrow the declared
+> envelope — is a topology decision and is not made unilaterally.
+>
+> ### Also new, and a real order blocker in its own right
+>
+> **`C506653` (MCP23017-E/SS, `U_EXP`) reads ZERO LCSC stock** as of
+> 2026-07-29. The same gate read 56/56 PASS the previous session, so this is a
+> live change, not an inherited number. 55/56 coded BOM lines clear the 5×
+> floor; this one has nothing.
+>
+> ### Copper moved. Real numbers.
+>
+> The board is a full from-source rebuild with a fresh KRT race, not a patch:
+> **243 → 241 refdes** (`R_FLTDIVT`, `R_FLTDIVB` deleted, and the net
+> `EFUSE_FLT_DIV` with them); `R_PG` pad 2 moves off the `5V_PROTECTED` pour
+> onto `3V3`; 17 silk designators relocated and 218 re-stroked; four new
+> deterministic plane-bond vias (`Q_SWDRVB.2`, `U_TC.5`, `U_LATCHB.5`,
+> `C_LATCHB.1`) and one new routing reservation for the `U_TC.8` stub.
+> Measured after the rebuild: **DRC 0 violations / 0 unconnected / 0 schematic
+> parity**, E-INV 136/136, E-ADR 9/9, E-TOPO PASS, audit_board PASS
+> (I-ISO 6.22 mm), placement_gates PASS, count_parity 4/4 over 241,
+> A-ROT 208/208, F-LEGIBLE 59/59, jlc_twin 210/210 bodies mounted,
+> ERC 0 errors / 417 warnings.
+>
+> `07_releases/` is UNTOUCHED. The staged archive lives at
+> `06_build/staging/cooksense-v1.7/`, where it cannot make itself the live
+> release.
 
 ## The defect
 `03_src/lib/cooksense.pretty/Relay_StandexDIP_1A_pinout12.kicad_mod` carries

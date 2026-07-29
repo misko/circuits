@@ -40,7 +40,65 @@ pins:                       # pin-out code 13, DS p.3 "Pin-Out (Top View)" sub-f
   8:  CONTACT_B               # east column, far end
   14: CONTACT_A               # east column, pin-1 end
 limits: {coil: "5V nom / 7.5V max, 500R +-10%, pull-in <=3.5V, drop-out >=0.75V (DS p.2)", contact: "model 72: 10W, 200V, 0.5A switch / 1.0A carry (DS p.1)", dielectric_coil_contact: "1.5 kVDC min EN60255-27 (DS p.3) -- THE PART's internal rating; see the ISOLATION-GEOMETRY gotcha, the PCB geometry it was paired with was wrong", t_op: "-20..+70C"}
+electrical:
+  # COIL, DS p.2 "Coil Data (at 20 C)", Contact Form 1A / Switch Model 72 /
+  # Pin-Out 10,11,12,13 / 5 VDC row. NOTE THE REFERENCE TEMPERATURE IS 20 C,
+  # NOT 25 C — every derate below is anchored there, because that is what the
+  # datasheet's own footnote is anchored to.
+  coil_v_nom: 5.0
+  coil_v_max: 7.5
+  coil_r_typ_ohm: 500            # +-10%  -> 450 .. 550 at 20 C
+  coil_r_tol_pct: 10
+  coil_p_nom_mW: 50
+  v_pullin_max_20C: 3.5          # MAX (the must-operate voltage), DS p.2
+  v_dropout_min_20C: 0.75        # MIN, DS p.2
+  tc_pct_per_K: 0.4              # DS p.2 footnote, VERBATIM: "The Pull-In,
+                                 # Drop-Out Voltage and Coil Resistance will
+                                 # change at rate of 0.4% per K"
+  t_op: [-20, 70]
+  source: "Standex DIP-series datasheet Version 03 (01 Aug 2025), p.2 Coil Data
+    table + its 0.4%/K footnote; operating temperature p.3 Relay Data."
+
 gotchas:
+  - "*** PULL-IN MARGIN GOES NEGATIVE INSIDE THE DECLARED -20..+70 C ENVELOPE.
+     (red-team TOPO P1-2, computed 2026-07-29 — before that date this margin was
+     computed NOWHERE in the tree.) ***
+     The DS footnote is not decoration: V_PI(T) = 3.500 x (1 + 0.004 x (T - 20)),
+     referenced to 20 C, NOT 25 C. Driver is a ULN2803A low-side Darlington whose
+     V_CE(sat) at the ~7 mA coil current is 0.67 V TYP / ~0.88 V worst case
+     (02_parts/ULN2803ADWR, SLRS049G Fig.1 digitized — see that dossier's
+     gotcha). Rail floor is 5V_KEY_RELAY vout_min = 4.740 V (power_tree.yaml).
+       margin(T) = 4.740 - V_CE(sat) - V_PI(T)
+         T      V_PI     margin @0.67 TYP   @0.88 w-c   @1.10 hard bound
+        -20 C   2.940 V      +1.130 V        +0.920 V      +0.700 V
+        +25 C   3.570 V      +0.500 V        +0.290 V      +0.070 V
+        +50 C   3.920 V      +0.150 V        -0.060 V      -0.280 V
+        +70 C   4.200 V      -0.130 V        -0.340 V      -0.560 V
+     NEGATIVE AT +70 C EVEN ON THE TYPICAL DRIVER DROP. The 0.4%/K IS the coil's
+     copper tempco (+0.39%/K), so the current view is the SAME fact, not a second
+     independent derate: pull-in is an ampere-turn condition, I_PI = 3.5/500 =
+     7.00 mA and TEMPERATURE-INDEPENDENT, while the delivered current FALLS as
+     the copper heats — 9.64 / 7.98 / 7.29 / 6.81 mA at -20/+25/+50/+70 C on
+     nominal 500R and the 0.67 V typ drop (8.32 / 6.88 / 6.28 / 5.87 mA on 550R
+     and 0.88 V). At +70 C 6.81 mA < 7.00 mA must-operate: the current view and
+     the voltage view agree, and BOTH say the relay is not guaranteed to close.
+     HOT IS THE WORST CORNER, and it is worst in both terms at once (coil R up,
+     so V_PI up AND I down). -20 C is comfortable; do not let a bench test at
+     room temperature stand in for the hot corner.
+     K_STOP IS THE ONE RELAY THAT IS *NOT* EXPOSED, and it is worth knowing why:
+     it does not hang off a Darlington. Its coil sits on the ungated 5V_STOP
+     (vout_min 4.754 V, a 0R link) and is sunk by a dedicated 2N7002 (Q_STOPDRV),
+     whose V_DS at ~7 mA is ~0.10 V — margin +1.714 / +1.084 / +0.734 / +0.454 V
+     at -20/+25/+50/+70 C, confirming the review's '+450 mV at 70 C'. CAVEAT,
+     stated because it is the same class of gap this finding was: the 2N7002
+     datasheet is NOT COMMITTED to 02_parts/2N7002 either (its `datasheet.url`
+     is an LCSC product page, not a PDF), so that 0.10 V is an ESTIMATE, not a
+     cited maximum. It is not load-bearing here — even at an absurdly pessimistic
+     0.50 V of V_DS the +70 C margin is still +0.054 V — but the number should be
+     cited before anyone leans on it.
+     NOT A FIX, JUST THE ARITHMETIC — this gotcha records the finding; the
+     remedy (raise the coil rail, drop the driver saturation, or narrow the
+     temperature envelope) is a topology decision and is NOT made here."
   - "ISOLATION GEOMETRY under code 13 — the claim ADR-0002 makes is TRUE, and it
      is true only because the part changed. COIL_A=DIP2 and COIL_B=DIP6 are both
      on the WEST column; CONTACT_A=DIP14 and CONTACT_B=DIP8 are both on the EAST

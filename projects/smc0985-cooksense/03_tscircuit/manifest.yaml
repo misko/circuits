@@ -2,6 +2,12 @@
 # The hand-authored intent count_parity.py checks every generated artifact
 # against; a silent tsci drop surfaces here as the missing refdes. Holes
 # (H1-H4) are non-electrical and excluded (count_parity SKIP ^H\d).
+# v1.7 / ADR-0022, 2026-07-29: -R_FLTDIVT -R_FLTDIVB. The U_EXP.1 protection
+# divider is DELETED, not resized: with R_PG's pull-up moved from 5V_PROTECTED
+# to 3V3 the eFuse flag node idles at 3.300 V, which is simultaneously inside
+# the MCP23017's 3.6 V abs-max AND above its 2.640 V V_IH, so the divider that
+# was added to fix the first problem (and created the second, sitting the pin
+# at 0.833 V in the indeterminate band) has nothing left to do. Two parts out.
 # 235 components (v1.7 ELECTRICAL REVISION 2026-07-28: +11 restrictive defaults
 # ADR-0019, +R_COILENS/+D_COILEN ADR-0018, +C_OS2 ADR-0020, -R_EXPRST ADR-0020
 # (its net EXP_RST_N had no driver and its 10k pull-up would have landed on WD_OK).
@@ -141,8 +147,6 @@ components:
   - R_FAULTPU
   - R_FAULTSER
   - R_FLCPD
-  - R_FLTDIVB
-  - R_FLTDIVT
   - R_FSETNPD
   - R_HOSTAUTHPD
   - R_HSG

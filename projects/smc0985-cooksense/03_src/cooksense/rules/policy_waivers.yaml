@@ -146,9 +146,24 @@
     or functional marker (render-review backstop). Cosmetic legibility only.
 - id: SILK-TEXT-THICKNESS
   why: >-
-    text_thickness ignored: 0.15mm stroke = JLCPCB's silk floor (legible at fab);
-    thinner would not print, thicker would collide more in the dense regions. A fab-
-    process floor, not a defect.
+    text_thickness ignored. THE ORIGINAL TEXT OF THIS WAIVER ("0.15mm stroke =
+    JLCPCB's silk floor") WAS TRUE OF JLC'S PUBLISHED PAGE AND FALSE OF THIS
+    BOARD, and the gap is exactly what let six safety designators ship at
+    0.130 mm: `fix_silk_placement.py` was emitting `max(0.13, height * 0.2)`,
+    and `text_thickness` being `ignore` meant nothing measured it.
+    WHAT IS TRUE, ADR-0007 (2026-07-29): KiCad clamps silk stroke to
+    <= 0.25 x text height, so JLC's published 0.150 mm REQUIRES >= 0.600 mm
+    text; `fab_tiers.yaml`'s enforced height floor is 0.45 mm and its stroke
+    floor is therefore **0.1125 mm**, which is what 0.45 mm text actually
+    prints at. Both numbers now come from the same evidence (boards ordered at
+    these floors), instead of being two floors that could not both be met.
+    THE CLASS IS NOW MEASURED, NOT WAIVED: `fix_silk_placement.py` sets every
+    silk stroke to 0.25 x height and re-measures all of it from the saved
+    board — 249/249 texts at or above 0.1125 mm, 0 storing an unachievable
+    stroke, and 10/10 SAFETY texts at h 0.600 / stroke 0.150. The DRC class
+    stays `ignore` because KiCad grades it against the .kicad_pro's own
+    `min_text_thickness` rather than against the fab tier, but the property it
+    would have tested is now gated in source and fails the build loudly.
 
 - id: S-OCCL
   refs: ["03_tscircuit/kicad/cooksense.kicad_sch"]
@@ -223,9 +238,27 @@
     which is the same naming convention that made the old pattern blind.
 
     MEASURED on the v1.7 board (`04_kicad/cooksense.kicad_pcb`), all 23:
-      * 23 of 23 carry a VISIBLE refdes ON A SILK LAYER at height >= 0.45 mm
-        (13 at 0.60 mm, 3 at 0.45 mm) with a 0.13-0.15 mm stroke — at or above
-        the `jlc_4layer_advanced` legibility floor the exporter enforces.
+      * 23 of 23 carry a VISIBLE refdes ON A SILK LAYER. **THE STROKE CLAUSE
+        OF THIS WAIVER WAS FALSE AND IS CORRECTED HERE RATHER THAN QUIETLY
+        REWRITTEN.** As first written on 2026-07-28 it said the refs carry
+        "a 0.13-0.15 mm stroke — at or above the `jlc_4layer_advanced`
+        legibility floor". They did not, and there was no floor they could
+        have been at or above: `fab_tiers.yaml` then declared
+        `min_silk_text_height: 0.45` AND `min_silk_stroke: 0.15` together,
+        which KiCad makes UNSATISFIABLE (it clamps stroke to <= 0.25 x height,
+        so 0.45 mm text carries at most 0.1125 mm). Six SAFETY designators on
+        this very board were sitting at 0.130 mm while this sentence called
+        that acceptable. ADR-0007 (2026-07-29) set `min_silk_stroke` to
+        **0.1125** and stated the corollary: reaching JLC's published 0.150
+        needs >= 0.60 mm text.
+        RE-MEASURED on the v1.7 board after the ADR-0007 silk pass, and this
+        time against a floor that can be met: **249 of 249 visible silk texts
+        carry stroke = 0.25 x height exactly, 0 below the 0.1125 mm tier floor,
+        0 storing a stroke KiCad would clamp away**, and all 10 members of the
+        SAFETY-TEXT class (the four safety connectors, every label printed
+        within 8 mm of a safety housing, and the ADR-0018 interlock parts) are
+        at h 0.600 / stroke 0.1500 — JLC's published floor. Of the 23 refs
+        here, 13 sit at h 0.60 and the rest at h 0.45 / 0.1125.
         Refs NOT legibly on silk: **NONE**.
       * 11 of 23 name a net the part physically touches, matched
         underscore-insensitively against the netlist: TP_3V3->3V3,
@@ -237,12 +270,18 @@
         thing for a connector to be called: J_PWR, J_LOADCELL, J_KEY_MATRIX,
         J_ISOLOOP, J_RH_AMBIENT, J_RH_EXHAUST, J_THERM_B, TP_ENCL, TP_ALLOW,
         TP_5VKR, TP_TCTH, TP_SPARE.
-      * 8 of the 31 graded refs DO have a nearby board caption and pass
-        outright; the board carries 12 board-level silk texts already, and
-        `fix_silk_placement.py`'s own site sweep records that the SE corner is
-        saturated — the nearest free silk site for a 12-character "ISOLATED
-        30V" caption is 41.9 mm from J_ISOLOOP. There is no room to add 23
-        captions, and adding them would displace the safety captions that ARE
+      * 9 of the 31 graded refs DO have a nearby board caption and pass
+        outright; the board carries 13 board-level silk texts. THE "SE CORNER
+        IS SATURATED / nearest site 41.9 mm" LINE THAT USED TO STAND HERE IS
+        ALSO WITHDRAWN: re-measured 2026-07-29 with the hazard-caption reserve
+        armed, an `ISO 30V` caption places **0.561 mm from the J_ISOLOOP block
+        body** at h 0.60 / stroke 0.150. What blocked it was never geometry —
+        it was `C_LATCHB`'s and `U_OPTO`'s designators, parked there
+        first-come-first-served. The residual constraint is real but narrower:
+        after that caption the block affords no second one (nearest site for
+        `NOT SELV` measures 11.086 mm), so the pole map rides the north-stack
+        sentence. There is still no room to add 23 captions, and adding them
+        would displace the safety captions that ARE
         there.
 
     NOT A BLANKET PASS ON CONNECTOR SILK. The hazard P-SILK-FN exists to catch —

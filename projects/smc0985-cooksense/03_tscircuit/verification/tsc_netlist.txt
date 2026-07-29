@@ -185,8 +185,6 @@ COMPONENTS:
  - R_DOOROKSER: 10kΩ res0402 resistor
  - R_TEMPOKSER: 10kΩ res0402 resistor
  - R_FAULTSER: 10kΩ res0402 resistor
- - R_FLTDIVT: 10kΩ res0402 resistor
- - R_FLTDIVB: 22kΩ res0402 resistor
  - R_WDOKSER: 10kΩ res0402 resistor
  - R_RAENAPD: 100kΩ res0402 resistor
  - R_RAENBPD: 100kΩ res0402 resistor
@@ -739,11 +737,6 @@ NET: FAULT_EXP
   - R_FAULTSER pin2
   - U_EXP GPB5
 
-NET: EFUSE_FLT_DIV
-  - R_FLTDIVB pin1
-  - R_FLTDIVT pin2
-  - U_EXP GPB0
-
 NET: WD_OK_EXP
   - R_WDOKSER pin2
   - U_EXP GPB7
@@ -1009,7 +1002,6 @@ NET: GND
   - R_RAENRHAPD pin2
   - R_RAENBPD pin2
   - R_RAENAPD pin2
-  - R_FLTDIVB pin2
   - C_EXP pin2 (-)
   - U_EXP A2
   - U_EXP A1
@@ -1162,7 +1154,6 @@ NET: N5V_PROTECTED
   - C_IN1 pin1 (+)
   - CE1 pin1 (+)
   - D_TVS pin1 (+)
-  - R_PG pin2
   - U_EFUSE OUT
 
 NET: N3V3
@@ -1242,6 +1233,7 @@ NET: N3V3
   - C_LDOOUT pin1 (+)
   - U_LDO TAB
   - U_LDO VOUT
+  - R_PG pin2
 
 NET: N5V_KEY_RELAY
   - TP_5VKR pin1
@@ -1312,7 +1304,7 @@ NET: FAULT
 
 NET: EFUSE_FLT_N
   - TP_PGOOD pin1
-  - R_FLTDIVT pin1
+  - U_EXP GPB0
   - R_PG pin1
   - U_EFUSE FLT_N
 
@@ -1416,7 +1408,7 @@ R_ILM (1.2kΩ res0402)
 
 R_PG (100kΩ res0402)
 - pin1(anode, pos, left): NETS(EFUSE_FLT_N)
-- pin2(cathode, neg, right): NETS(N5V_PROTECTED)
+- pin2(cathode, neg, right): NETS(N3V3)
 
 D_TVS
 - pin1(pos, anode, left): NETS(N5V_PROTECTED)
@@ -2340,7 +2332,7 @@ J_ISOLOOP
 - pin4(CTR_B): NETS(CONTACTOR_E)
 
 U_EXP
-- pin1(GPB0): NETS(EFUSE_FLT_DIV)
+- pin1(GPB0): NETS(EFUSE_FLT_N)
 - pin2(GPB1): NETS(MODE_AUTO_HW_EXP)
 - pin3(GPB2): NETS(ESTOP_OK_EXP)
 - pin4(GPB3): NETS(DOOR_OK_EXP)
@@ -2392,14 +2384,6 @@ R_TEMPOKSER (10kΩ res0402)
 R_FAULTSER (10kΩ res0402)
 - pin1(anode, pos, left): NETS(FAULT)
 - pin2(cathode, neg, right): NETS(FAULT_EXP)
-
-R_FLTDIVT (10kΩ res0402)
-- pin1(anode, pos, left): NETS(EFUSE_FLT_N)
-- pin2(cathode, neg, right): NETS(EFUSE_FLT_DIV)
-
-R_FLTDIVB (22kΩ res0402)
-- pin1(anode, pos, left): NETS(EFUSE_FLT_DIV)
-- pin2(cathode, neg, right): NETS(GND)
 
 R_WDOKSER (10kΩ res0402)
 - pin1(anode, pos, left): NETS(WD_OK)
