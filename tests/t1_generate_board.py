@@ -431,14 +431,15 @@ def t_silk_constraints_from_tier():
     gen(p, out)
     code = ("import pcbnew,sys\nb=pcbnew.LoadBoard(sys.argv[1])\n"
             "ds=b.GetDesignSettings()\n"
-            "print('@@%.3f,%.3f' % (ds.m_MinSilkTextHeight/1e6,"
+            "print('@@%.6f,%.6f' % (ds.m_MinSilkTextHeight/1e6,"
             " ds.m_MinSilkTextThickness/1e6))\n")
     r = must_pass(run([KPY, "-c", code, out]), "probe silk constraints")
     h, t = [float(v) for v in r.out.split("@@")[1].strip().split(",")]
-    check(abs(h - 0.45) < 1e-6,
-          f"silk height constraint is {h}, want the tier floor 0.45")
-    check(abs(t - 0.15) < 1e-6,
-          f"silk stroke constraint is {t}, want the tier floor 0.15")
+    want_h, want_t = _tier_silk_floors()
+    check(abs(h - want_h) < 1e-6,
+          f"silk height constraint is {h}, want the tier floor {want_h}")
+    check(abs(t - want_t) < 1e-6,
+          f"silk stroke constraint is {t}, want the tier floor {want_t}")
     # and no emitted silk text may sit below the constraint it now carries
     code = ("import pcbnew,sys\nb=pcbnew.LoadBoard(sys.argv[1])\nbad=[]\n"
             "silk={pcbnew.F_SilkS,pcbnew.B_SilkS}\n"
@@ -446,7 +447,8 @@ def t_silk_constraints_from_tier():
             "  if not callable(getattr(t,'GetTextSize',None)): return\n"
             "  if t.GetLayer() not in silk: return\n"
             "  if hasattr(t,'IsVisible') and not t.IsVisible(): return\n"
-            "  if t.GetTextSize().y<449000 or t.GetTextThickness()<149000:\n"
+            f"  if t.GetTextSize().y<{int(want_h*1e6)-1000} or "
+            f"t.GetTextThickness()<{int(want_t*1e6)-1000}:\n"
             "    bad.append((who,t.GetTextSize().y/1e6,t.GetTextThickness()/1e6))\n"
             "for f in b.GetFootprints():\n"
             "  scan(f.Reference(),f.GetReference()); scan(f.Value(),f.GetReference())\n"
@@ -522,8 +524,9 @@ def t_fp_internal_text_normalized():
     h, t = hits[0]
     check(abs(h - 0.45) < 1e-6,
           f"footprint-internal text height is {h}, want normalized 0.45")
-    check(t >= 0.15 - 1e-9,
-          f"footprint-internal text stroke is {t}, want >= 0.15")
+    _, want_t = _tier_silk_floors()
+    check(t >= want_t - 1e-9,
+          f"footprint-internal text stroke is {t}, want >= {want_t}")
 
 
 @test("an explicit design_rules silk constraint below the tier floor FAILS "
@@ -563,6 +566,19 @@ def t_kb_silk_below_tier():
     contains(r.out, "min_silk_text_height", "the failure must cite the floor")
 
 
+
+
+def _tier_silk_floors(tier="jlc_4layer_advanced"):
+    """Read the floors FROM fab_tiers.yaml. These tests are named "derive from
+    the declared tier" and used to pin the literal 0.15 instead — so when
+    G-SELFCON (ADR-0007) corrected the stroke floor to the value the 0.45 height
+    can actually carry, both went red for the one reason a derivation test must
+    not: the config it derives from changed, exactly as intended."""
+    import yaml
+    d = yaml.safe_load((ROOT / "skills" / "kicad-pcb" / "references" /
+                        "fab_tiers.yaml").read_text())
+    e = d["tiers"][tier]
+    return float(e["min_silk_text_height"]), float(e["min_silk_stroke"])
 
 # --------------------------------------------- escape corridors (Phase F)
 @test("escape_corridors expands to a named footprint/pour rule area")

@@ -49,6 +49,11 @@ import ast
 import json
 import re
 import sys
+
+try:
+    import yaml
+except ImportError:            # G-SELFCON degrades to N-A, never a false OK
+    yaml = None
 from pathlib import Path
 
 #: a script "prints a verdict" if it emits PASS/FAIL/OK as a result word.
@@ -168,6 +173,45 @@ def audit(root, enforce=None):
                         f"{len(SKIP_BASENAMES)} generator/library names skipped)"}
 
 
+
+# --------------------------------------------------------------- G-SELFCON
+# ADR-0007. A rule file can contradict ITSELF, and then no board can satisfy it.
+# fab_tiers.yaml declares min_silk_text_height 0.45 AND min_silk_stroke 0.15 on
+# every tier, while KiCad clamps a text stroke to <= 0.25 x height: 0.45 mm text
+# can reach at most 0.1125 mm of stroke, so the two floors cannot both be met.
+# smc0985-cooksense then shipped six SAFETY designators below the stroke floor —
+# J_ESTOP, J_DOOR, J_MODE among them — and the waiver written the same day
+# called 0.13 acceptable. Nothing could have passed; nothing said so.
+KICAD_STROKE_OVER_HEIGHT = 0.25      # KiCad's own clamp on stroke vs text height
+
+
+def check_self_consistency(refs_dir):
+    """Cross-FIELD checks on the rule files themselves. Returns (fails, n)."""
+    fails, n = [], 0
+    ft = Path(refs_dir) / "fab_tiers.yaml"
+    if not ft.exists() or yaml is None:
+        return fails, n
+    doc = yaml.safe_load(ft.read_text()) or {}
+    for tier, d in sorted((doc.get("tiers") or {}).items()):
+        if not isinstance(d, dict):
+            continue
+        h, s = d.get("min_silk_text_height"), d.get("min_silk_stroke")
+        if h is None or s is None:
+            continue
+        n += 1
+        reachable = float(h) * KICAD_STROKE_OVER_HEIGHT
+        if float(s) > reachable + 1e-9:
+            fails.append(
+                f"G-SELFCON fab_tiers.yaml[{tier}]: min_silk_stroke "
+                f"{s} mm is UNREACHABLE at min_silk_text_height {h} mm — "
+                f"KiCad clamps stroke to <= {KICAD_STROKE_OVER_HEIGHT} x height, "
+                f"so the most this text can plot is {reachable:.4f} mm. "
+                f"No board can satisfy both floors; raise the height to "
+                f">= {float(s)/KICAD_STROKE_OVER_HEIGHT:.2f} mm or lower the "
+                f"stroke to <= {reachable:.4f} mm")
+    return fails, n
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--root", default=str(Path(__file__).resolve().parents[3]))
@@ -187,13 +231,19 @@ def main(argv=None):
     for f in r["fails"]:
         print(f"  FAIL {f}")
 
-    bad = len(r["fails"]) + len(r["unparsed"])
+    sc_fails, sc_n = check_self_consistency(
+        Path(__file__).resolve().parent.parent / "references")
+    print(f"  G-SELFCON: {sc_n} rule-file cross-field pair(s) graded")
+    for f in sc_fails:
+        print(f"  FAIL {f}")
+
+    bad = len(r["fails"]) + len(r["unparsed"]) + len(sc_fails)
     if bad:
         print(f"G-CONTRACT FAIL: {bad} obligation(s) unmet across "
               f"{len(r['gates'])} verdict-printing script(s)")
         return 1
     print(f"G-CONTRACT OK: {len(r['gates'])} verdict-printing script(s) "
-          f"meet G-INPUT/G-COVER/G-RED")
+          f"meet G-INPUT/G-COVER/G-RED; {sc_n} rule-file pair(s) self-consistent")
     return 0
 
 

@@ -28,7 +28,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from harness import (KPY, ROOT, check, contains, main, must_fail,  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent /
+                       'skills' / 'kicad-pcb' / 'scripts'))   # G-SELFCON
+from harness import (KPY, ROOT, check, contains, eq, main, must_fail,  # noqa: E402
                      must_pass, run, test, tmpdir)
 
 TOOL = ROOT / "skills/kicad-pcb/scripts/gate_contract_audit.py"
@@ -219,6 +221,54 @@ def t_scans_the_whole_real_tree():
     check(audited >= 20, f"only {audited} scripts recognised as printing a "
                          f"verdict — a gate-on-gates auditing this few is "
                          f"decoration, not a control")
+
+
+# ----------------------------------------------- G-SELFCON (ADR-0007, 2026-07-29)
+@test("G-SELFCON FAILS a tier whose silk stroke floor is unreachable at its own "
+      "text-height floor", kind="known_bad")
+def t_selfcon_unreachable_stroke():
+    """THE INCIDENT. fab_tiers.yaml declared min_silk_text_height 0.45 AND
+    min_silk_stroke 0.15 on all five tiers, while KiCad clamps a text stroke to
+    <= 0.25 x height — 0.45 mm text can carry at most 0.1125 mm. The two floors
+    were UNSATISFIABLE TOGETHER and had been since they were written; no board
+    could ever have met both, and nothing said so. smc0985-cooksense then
+    shipped six SAFETY designators below the stroke floor and the waiver written
+    the same day called 0.13 acceptable.
+
+    RED-VERIFIED: run against the real repo BEFORE the fab_tiers fix, this
+    reports 5 failures (one per tier); after, 0. The fixture below is
+    synthetic so the test does not go green merely because the repo was fixed."""
+    import gate_contract_audit as gca                       # noqa: E402
+    d = tmpdir("selfcon_")
+    (d / "fab_tiers.yaml").write_text(
+        "tiers:\n"
+        "  bad_tier:\n"
+        "    min_silk_text_height: 0.45\n"
+        "    min_silk_stroke: 0.15\n"
+        "  ok_tier:\n"
+        "    min_silk_text_height: 0.60\n"
+        "    min_silk_stroke: 0.15\n")
+    fails, n = gca.check_self_consistency(d)
+    eq(n, 2, "both tiers graded (the denominator, canon M-COVER)")
+    eq(len(fails), 1, f"exactly the unsatisfiable tier fails:\n{fails}")
+    check("bad_tier" in fails[0], f"names the offending tier:\n{fails[0]}")
+    check("0.1125" in fails[0],
+          f"states the stroke actually reachable:\n{fails[0]}")
+    check("0.60" in fails[0],
+          f"states the height that WOULD satisfy the declared stroke:\n{fails[0]}")
+
+
+@test("G-SELFCON passes the repo's own fab_tiers.yaml, with a denominator")
+def t_selfcon_repo_clean():
+    """The other half of discrimination: a check that only ever fails ranks
+    nothing. The repo's five tiers must now be self-consistent AND the verdict
+    must say how many pairs it graded."""
+    import gate_contract_audit as gca                       # noqa: E402
+    fails, n = gca.check_self_consistency(
+        ROOT / "skills" / "kicad-pcb" / "references")
+    check(n >= 5, f"graded every tier, got {n}")
+    eq(len(fails), 0, f"repo fab_tiers is self-consistent:\n{fails}")
+
 
 
 if __name__ == "__main__":

@@ -24,6 +24,23 @@
 #     floor to the published 1.0mm would retroactively outlaw those shipped
 #     boards; heights in [0.45, 1.0) are a documented legibility risk, not
 #     a fab reject.
+#   * THE TWO FLOORS ARE COUPLED, and until 2026-07-29 they contradicted each
+#     other (found by G-SELFCON, ADR-0007). KiCad clamps a text stroke to
+#     <= 0.25 x height, so 0.45mm text can carry AT MOST 0.1125mm of stroke:
+#     a 0.15 stroke floor beside a 0.45 height floor is UNSATISFIABLE and no
+#     board could ever have met both. smc0985-cooksense then shipped SIX
+#     SAFETY designators (J_ESTOP, J_DOOR, J_MODE, D_DOOR, R_DOORPD,
+#     D_COILEN) below the stroke floor, and the waiver written the same day
+#     called 0.13 acceptable. Nothing could have passed; nothing said so.
+#     `min_silk_stroke` is therefore now the stroke the ENFORCED height can
+#     actually carry (0.25 x 0.45 = 0.1125), consistent with the same
+#     proven-by-ordering evidence that set the height — those shipped boards
+#     printed at 0.1125 by construction. It is NOT a claim that JLC's
+#     published 0.15 has been relaxed.
+#   * TO REACH THE PUBLISHED 0.15 STROKE, TEXT MUST BE >= 0.60mm. That is the
+#     rule for anything a human reads under stress: connector and safety
+#     designators, polarity marks, terminal legends. Declared here rather
+#     than left to be rediscovered per board.
 
 tiers:
   jlc_2layer_default:
@@ -38,7 +55,8 @@ tiers:
                               # (ADR-0008: 0.65mm pitch - 0.3 drill = 0.35 < 0.5)
     via_in_pad: false
     min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
-    min_silk_stroke: 0.15       # JLC capability page — verify at order time
+    min_silk_stroke: 0.1125    # = 0.25 x the 0.45 height floor (KiCad clamp); see header.
+                               # JLC publishes 0.15, which needs >= 0.60mm text.
     provenance: "cook-loadcell / crow-array-pod shipped at these floors"
 
   jlc_4layer_standard:
@@ -52,7 +70,8 @@ tiers:
                               # (usb-pwr-hub-3s ADR-0008, 2026-07-21)
     via_in_pad: false
     min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
-    min_silk_stroke: 0.15       # JLC capability page — verify at order time
+    min_silk_stroke: 0.1125    # = 0.25 x the 0.45 height floor (KiCad clamp); see header.
+                               # JLC publishes 0.15, which needs >= 0.60mm text.
     provenance: >
       JLC published no-fee multilayer floor. The clean-room 3S run's 2
       drill_out_of_range violations (2026-07-20) were router-emitted vias
@@ -68,7 +87,8 @@ tiers:
     min_hole_to_hole: 0.25    # JLC advanced-option floor — verify at order time
     via_in_pad: true          # POFV: resin-filled + capped, paid option
     min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
-    min_silk_stroke: 0.15       # JLC capability page — verify at order time
+    min_silk_stroke: 0.1125    # = 0.25 x the 0.45 height floor (KiCad clamp); see header.
+                               # JLC publishes 0.15, which needs >= 0.60mm text.
     order_readme: "ADVANCED option REQUIRED: min via 0.25/0.15 mm (<reason>)"
     provenance: >
       usb-power-3s v1.0-v1.3 ordered with exactly this line ("VQFN fanout");
@@ -84,7 +104,8 @@ tiers:
     min_hole_to_hole: 0.5     # JLC published — binds adjacent-pin escape vias
     via_in_pad: false
     min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
-    min_silk_stroke: 0.15       # JLC capability page — verify at order time
+    min_silk_stroke: 0.1125    # = 0.25 x the 0.45 height floor (KiCad clamp); see header.
+                               # JLC publishes 0.15, which needs >= 0.60mm text.
     order_readme: "6-layer stackup selected in the order form (<reason>)"
     provenance: >
       JLC published 6L standard floor (same via geometry as 4L standard;
@@ -105,7 +126,8 @@ tiers:
     via_in_pad: true          # ADR-0009: 0.30/0.15 via-in-pad on 0.4mm pitch
                               # keeps 0.10mm copper gap — resin fill + cap
     min_silk_text_height: 0.45  # proven by ordering; JLC page says 1.0 — see header
-    min_silk_stroke: 0.15       # JLC capability page — verify at order time
+    min_silk_stroke: 0.1125    # = 0.25 x the 0.45 height floor (KiCad clamp); see header.
+                               # JLC publishes 0.15, which needs >= 0.60mm text.
     order_readme: "6 layers + \"advanced\" SMALL-VIA option REQUIRED: min via 0.30/0.15 mm (<reason>)"
     provenance: >
       crow-array-central v1.0-2026-07-18 SEALED at these floors (ADR-0009:
