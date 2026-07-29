@@ -1,4 +1,4 @@
-mpn: DIP05-1A72-12L
+mpn: DIP05-1A72-13L
 manufacturer: Standex-Meder Electronics
 type: reed_relay_spst_no_5v
 datasheet:
@@ -9,41 +9,36 @@ datasheet:
   fetched: 2026-07-19
   local: datasheet-reed-relay-series-dip.pdf
 package: DIP low profile 19.3 x 6.5 x 5.1mm, 4 leads 0.5x0.25mm on DIP-14 corner grid (pin span 15.24mm, row spacing 7.62mm)
-footprint: cooksense:Relay_StandexDIP_1A_pinout12
+footprint: cooksense:Relay_StandexDIP_1A_pinout13
 escape: {style: leaded, pitch: 2.54, tier_required: jlc_2layer_default, checked: escape_check 2026-07-22}
-pins:                       # pin-out code 12, DS p.3 "Pin-Out (Top View)" sub-figure 12
+pins:                       # pin-out code 13, DS p.3 "Pin-Out (Top View)" sub-figure 13
   # ===================================================================
-  # CORRECTED 2026-07-28. THE PREVIOUS MAP WAS READ OFF THE WRONG
-  # SUB-FIGURE AND IS THE DEFECT PIN-P0.
+  # PART CHANGED -12L -> -13L, 2026-07-28, user decision (route 2).
   #
-  # It claimed FOUR leads (1 COIL_A / 7 COIL_B / 8 CONTACT_B /
-  # 14 CONTACT_A) with "the isolation boundary between the rows".
-  # That describes sub-figure "13" on the same page, the 4-lead
-  # variant at 14/8/2/6 — NOT sub-figure 12, which is this part.
+  # This is a PART-NUMBER correction, not a redesign. The board was
+  # always DESIGNED for a row-split relay: ADR-0002 asserts "the
+  # isolation boundary runs between the columns", the footprint's own
+  # descr said so, and the v1.1 isolation-comb repack is built on it.
+  # Sub-figure 13 IS that geometry. Sub-figure 12 -- the code that was
+  # specified -- is not, and specifying it is what broke the board.
   #
-  # Sub-figure 12, re-rendered at 300 dpi and read directly, shows
-  # EIGHT leads and only FOUR electrical nodes:
-  #   a vertical conductor ties 1 <-> 14   = CONTACT A
-  #   a vertical conductor ties 7 <-> 8    = CONTACT B
-  #   a vertical conductor ties 2 <-> 13   = COIL A  (junction dot)
-  #   pin 6 alone                          = COIL B
-  #   pin 9 is drawn as a BARE CIRCLE      = mechanical lead, NC
+  # Sub-figure 13, re-rendered at 300 dpi and read directly: FOUR leads.
+  #   CONTACT (switch)  14 <-> 8   -- both on the EAST column
+  #   COIL              2  <-> 6   -- both on the WEST column
+  # Coil-to-contact separation is therefore the 7.62 mm COLUMN spacing,
+  # which is what ADR-0002 and every downstream pour-relief and routing
+  # rule already assume. Those rules become TRUE rather than void.
   #
-  # Cross-checked against 06_build/netlists/cooksense.net, which is
-  # what makes the consequence unambiguous: the old 4-pad footprint
-  # put 5V_KEY_RELAY on pad1(DIP 1) and U_SEL_BUS on pad4(DIP 14) —
-  # THE SAME INTERNAL NODE — and COIL_*_N on pad2(DIP 7) with KP_* on
-  # pad3(DIP 8), likewise the same node. Two hard shorts per relay,
-  # twelve relays, and NO HOLES AT ALL for the coil.
+  # For contrast, and why -12 had to go: under code 12 the part has
+  # EIGHT leads, 1<->14 tied as one CONTACT node and 7<->8 as the other,
+  # with the coil on the inner pins. On the old 4-pad land that shorted
+  # 5V_KEY_RELAY to U_SEL_BUS and every ULN2803 output to its keypad
+  # line, and left the coil with no holes at all.
   # ===================================================================
-  1:  CONTACT_A               # switch common; tied internally to 14
-  2:  COIL_A                  # tied internally to 13
-  6:  COIL_B
-  7:  CONTACT_B               # tied internally to 8
-  8:  CONTACT_B               # same node as 7
-  9:  NC                      # mechanical lead only, no internal connection
-  13: COIL_A                  # same node as 2
-  14: CONTACT_A               # same node as 1
+  2:  COIL_A                  # west column, one pitch in from the pin-1 end
+  6:  COIL_B                  # west column, one pitch in from the far end
+  8:  CONTACT_B               # east column, far end
+  14: CONTACT_A               # east column, pin-1 end
 limits: {coil: "5V nom / 7.5V max, 500R +-10%, pull-in <=3.5V, drop-out >=0.75V (DS p.2)", contact: "model 72: 10W, 200V, 0.5A switch / 1.0A carry (DS p.1)", dielectric_coil_contact: "1.5 kVDC min EN60255-27 (DS p.3) -- THE PART's internal rating; see the ISOLATION-GEOMETRY gotcha, the PCB geometry it was paired with was wrong", t_op: "-20..+70C"}
 gotchas:
   - "ISOLATION GEOMETRY — THE BOARD-LEVEL CONSEQUENCE, and it is bigger than the
@@ -75,7 +70,7 @@ asserts:
        THT on an SMT-only order. Declared not_assembled (not_in_catalog) with
        exclude_from_pos_files; this assert makes the BOM/CPL absence gradeable rather
        than trusting the placement pattern to have been applied."}
-verified: "pin map read from DS p.3 Pin-Out figures (code 12) + p.4 option figures; coil/contact data p.1-2; dielectric p.3 Relay Data table - 2026-07-19"
+verified: "pin map read from DS p.3 Pin-Out sub-figure 13, re-rendered at 300 dpi 2026-07-28 (code 13) + p.4 option figures; coil/contact data p.1-2; dielectric p.3 Relay Data table - 2026-07-19"
 layout:                          # P-LAYOUT: reed relay (mains-switching stage, DO-NOT-SUBSTITUTE)
   source: "Standex DIP-series datasheet (Version 03, 01 Aug 2025) p.3 'Handling &
     Assembly Instructions' + p.3 Pin-Out (Top View, code 12) + p.4 Options figures.
@@ -103,4 +98,4 @@ layout:                          # P-LAYOUT: reed relay (mains-switching stage, 
 sourcing:
   lcsc: ""
   alternates: [DIP05-1A72-12D]   # internal-diode variant, SAME pinout (approved, ADR-0006); global-source / hand-solder like the base part
-  note: "DO-NOT-SUBSTITUTE (spec 15.4). JLC catalog C1561362 stock 0 -> HAND-SOLDER line, global sourcing (DigiKey DIP05-1A72-12L ~$4.36/1, active). Approved alternate: DIP05-1A72-12D (same pinout, internal diode). Order 16 + 4 spares."
+  note: "DO-NOT-SUBSTITUTE (spec 15.4). JLC catalog C1561362 stock 0 -> HAND-SOLDER line, global sourcing (DigiKey DIP05-1A72-13L (SOURCING RE-CHECK OWED 2026-07-28: the ~$4.36/1 figure and the C1561362 stock-0 reading were both taken against the -12L code; the -13L code needs its own catalog/distributor read before order), active). Approved alternate: DIP05-1A72-12D (same pinout, internal diode). Order 16 + 4 spares."

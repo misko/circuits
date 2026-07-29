@@ -19,7 +19,7 @@
 // PAD-NAME NOTES for the BOARD stage (schematic gate = ERC + refdes parity, which
 // do NOT bind pad names, so these are documented, not blocking):
 //   * DIP05 reed relays authored on 'dip4' (pads 1,2,3,4). Real KiCad footprint
-//     cookhub:Relay_StandexDIP_1A_pinout12 pads = 1,7,8,14. Remap at board:
+//     cooksense:Relay_StandexDIP_1A_pinout13 pads = 2,6,8,14 (code 13). Remap at board:
 //     tsx1->1(COIL_A/+), tsx2->7(COIL_B/-), tsx3->8(CONTACT_B), tsx4->14(CONTACT_A).
 //   * TPS259573 eFuse on 'dfn8' (pads 1..8); real WSON-8 also has EP(pad9)=GND —
 //     tie EP to the GND pour at board (thermal path).
@@ -95,7 +95,7 @@ export default () => (
         v1.2-v1.6 shipped 100k/15k, and so did the BLOCKED v1.7 staging archive: ratio
         0.130435, which against SLVSE57C's V_OVLO(R)
         1.13/1.20/1.27 V puts the cutoff at 9.200 V NOMINAL (8.49-9.99 V worst case) on a
-        rail feeding thirteen DIP05-1A72-12L coils rated 7.5 V MAX and D_TVS SMBJ5.0A whose
+        rail feeding twelve DIP05-1A72-13L coils rated 7.5 V MAX and D_TVS SMBJ5.0A whose
         V_BR STARTS at 6.40 V — at 9.996 V the 600 W transient part passes ~6.6 A / 66 W as a
         DC regulator. Both v1.7 red-team lenses found it independently; both their proposed
         fixes were REFUTED (22k tops out at 7.159 V, above the TVS; 57.6k nuisance-trips at
@@ -489,20 +489,26 @@ export default () => (
     <capacitor name="C_ULNA" capacitance="100nF" footprint="0603" connections={{ pin1: "net.N5V_KEY_RELAY", pin2: "net.GND" }} />
     <capacitor name="C_ULNB" capacitance="100nF" footprint="0603" connections={{ pin1: "net.N5V_KEY_RELAY", pin2: "net.GND" }} />
 
-    {/* ---- 12x DIP05-1A72-12L reed relays. Coil (tsx pins 1,2 = real pads 1,7) on the gated rail; ---- */}
+    {/* ---- 12x DIP05-1A72-13L reed relays, PIN-OUT CODE 13 (changed from -12L 2026-07-28).
+        Coil (tsx pins 1,2 = real DIP leads 2,6 -- WEST column) on the gated rail;
+        contact (tsx pins 3,4 = real DIP leads 8,14 -- EAST column). The coil/contact
+        split is therefore the 7.62 mm COLUMN spacing, which is what ADR-0002 and the
+        isolation comb already assume. Under the old -12L code the leads were 1/14 and
+        7/8 tied as two CONTACT nodes with the coil on inner pins -- that land shorted
+        5V_KEY_RELAY to the select bus and gave the coil no holes. ---- */}
     {/* contact (tsx pins 3,4 = real pads 8,14) in the ISOLATED keypad domain. NO shared GND (block 7). */}
     {U.map((i) => (
-      <chip key={`KU${i}`} name={`K_U${i}`} footprint="dip4" supplierPartNumbers={{ jlcpcb: ["DIP05-1A72-12L"] }}
+      <chip key={`KU${i}`} name={`K_U${i}`} footprint="dip4" supplierPartNumbers={{ jlcpcb: ["DIP05-1A72-13L"] }}
         pinLabels={{ pin1: "COIL_A", pin2: "COIL_B", pin3: "CONTACT_B", pin4: "CONTACT_A" }}
         connections={{ pin1: "net.N5V_KEY_RELAY", pin2: `net.COIL_U${i}_N`, pin3: `net.KP_U${i}`, pin4: "net.U_SEL_BUS" }} />
     ))}
     {D.map((i) => (
-      <chip key={`KD${i}`} name={`K_D${i}`} footprint="dip4" supplierPartNumbers={{ jlcpcb: ["DIP05-1A72-12L"] }}
+      <chip key={`KD${i}`} name={`K_D${i}`} footprint="dip4" supplierPartNumbers={{ jlcpcb: ["DIP05-1A72-13L"] }}
         pinLabels={{ pin1: "COIL_A", pin2: "COIL_B", pin3: "CONTACT_B", pin4: "CONTACT_A" }}
         connections={{ pin1: "net.N5V_KEY_RELAY", pin2: `net.COIL_D${i}_N`, pin3: `net.KP_D${i}`, pin4: "net.D_SEL_BUS" }} />
     ))}
     {/* K_PRESS bridges U_SEL_BUS -> RKEY -> D_SEL_BUS (RKEY = solder-select field, 0R default) */}
-    <chip name="K_PRESS" footprint="dip4" supplierPartNumbers={{ jlcpcb: ["DIP05-1A72-12L"] }}
+    <chip name="K_PRESS" footprint="dip4" supplierPartNumbers={{ jlcpcb: ["DIP05-1A72-13L"] }}
       pinLabels={{ pin1: "COIL_A", pin2: "COIL_B", pin3: "CONTACT_B", pin4: "CONTACT_A" }}
       connections={{ pin1: "net.N5V_KEY_RELAY", pin2: "net.COIL_PRESS_N", pin3: "net.RKEY_MID", pin4: "net.U_SEL_BUS" }} />
     {/* K_STOP: dedicated preempt path KP_U6 -> RSTOP -> KP_D1 (brief §4 U6-K_STOP-RSTOP-D1).
@@ -511,7 +517,7 @@ export default () => (
         Q_STOPDRV + flyback D_KSTOP — a WD/TEMP/latch fault that kills the key rail can no
         longer disable the STOP relay (review F3c: "the safety chain cannot stop a running
         cook"). Deliberately NOT gated by KEY_RELAY_ALLOWED/ESTOP/DOOR/MODE — see the ADR. */}
-    <chip name="K_STOP" footprint="dip4" supplierPartNumbers={{ jlcpcb: ["DIP05-1A72-12L"] }}
+    <chip name="K_STOP" footprint="dip4" supplierPartNumbers={{ jlcpcb: ["DIP05-1A72-13L"] }}
       pinLabels={{ pin1: "COIL_A", pin2: "COIL_B", pin3: "CONTACT_B", pin4: "CONTACT_A" }}
       connections={{ pin1: "net.N5V_STOP", pin2: "net.COIL_STOP_N", pin3: "net.RSTOP_MID", pin4: "net.KP_U6" }} />
     <resistor name="R_STOPRAIL" resistance="0" footprint="0603" connections={{ pin1: "net.N5V_PROTECTED", pin2: "net.N5V_STOP" }} />
