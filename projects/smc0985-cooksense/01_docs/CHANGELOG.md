@@ -3,6 +3,90 @@
 Multi-board project (ADR-0007): per-board releases `07_releases/cooksense-v*`.
 INTERPOSER (Board C) is deferred (coupon-gated) and has no release yet.
 
+---
+
+# ⛔ DO-NOT-ORDER — EVERY cooksense RELEASE, v1.0 THROUGH v1.6 (2026-07-28)
+
+**Applies to the MAIN board `cooksense` only. The `interposer` board is
+unaffected and `interposer-v1.1-2026-07-27` remains ORDERABLE.**
+
+**Do not fabricate or hand-build a cooksense board from any sealed release until
+the reed-relay land pattern is re-derived.** This is not a paperwork verdict; the
+key-matrix relay array as drawn cannot work.
+
+## The defect
+`03_src/lib/cooksense.pretty/Relay_StandexDIP_1A_pinout12.kicad_mod` carries
+**4 pads** at DIP positions 1/7/8/14. Standex DIP-series datasheet (Version 03,
+01 Aug 2025) p.3 "Pin-Out (Top View)" **sub-figure 12** — re-rendered at 300 dpi
+and read directly — shows **8 leads and 4 electrical nodes**:
+
+| node | DIP pins |
+|---|---|
+| CONTACT_A | **1 ↔ 14** (tied by an internal vertical conductor) |
+| CONTACT_B | **7 ↔ 8** (tied) |
+| COIL_A | **2 ↔ 13** (tied; junction dot on the figure) |
+| COIL_B | 6 |
+| — | 9 = bare circle, mechanical lead, no internal connection |
+
+The previous map (4 leads: 1 COIL_A / 7 COIL_B / 8 CONTACT_B / 14 CONTACT_A)
+describes **sub-figure 13**, the genuinely-4-lead variant at 14/8/2/6. The wrong
+sub-figure was read.
+
+## Measured consequence, cross-checked against `06_build/netlists/cooksense.net`
+| pad | DIP | true node | net |
+|---|---|---|---|
+| 1 | 1 | contact A | `5V_KEY_RELAY` |
+| 4 | 14 | contact A — **same node** | `U_SEL_BUS` |
+| 2 | 7 | contact B | `COIL_U1_N` |
+| 3 | 8 | contact B — **same node** | `KP_U1` |
+
+- `5V_KEY_RELAY` is **hard-shorted to the select bus**. On `K_STOP` this puts
+  `5V_STOP` onto `KP_U6`, a membrane-matrix line that leaves the board.
+- **Every ULN2803 output is shorted to its keypad line.**
+- **The coil has no holes at all** (DIP 2/6/9/13) — the part cannot be seated and
+  is never energised. The array is non-functional.
+- ×12 relays: `K_U1..U6`, `K_D1..D4`, `K_PRESS`, `K_STOP`.
+
+## Why this is an architecture question, not a footprint swap
+Coil and contact **interleave along the package** — CONTACT_A at 1, COIL_A at 2,
+COIL_B at 6, CONTACT_B at 7. Coil-to-contact separation on the land is therefore
+**2.54 mm between adjacent pins**, not the **7.62 mm row separation** ADR-0002
+and the part's `layout:` block both assert. Every pour-relief and routing rule
+derived from "the isolation boundary runs between the rows" is unsupported — and
+so is the shape of the board, since the v1.1 isolation-comb repack (contact
+columns facing shared keypad pockets, coil-coil gaps carrying logic, 12 milled
+slots, 25 DRC deny rects) was designed around that boundary.
+
+Fixing the footprint alone would clear the short and leave the isolation
+rationale void — a board that passes every gate while its central geometric
+argument is false. That is a worse defect than the one it replaces.
+
+## Mitigating, and the reason no built board was ever wrong at the factory
+The relays are `not_on_assembly_bom` (hand-soldered, `not_in_catalog`) and carry
+`exclude_from_pos_files`, so **JLC never placed them** and no CPL row was ever
+wrong. The defect lands on the PCB **holes** and the **netlist**, i.e. at hand
+assembly and bring-up on the mains-switching stage.
+
+## Three routes, none of them mine to choose
+1. Re-author the land to sub-figure 12 (8 pads) **and re-derive the isolation
+   comb** against the true 2.54 mm boundary — a placement/route/architecture pass.
+2. Change the part to the **-13 pin-out code**, which is genuinely 4-lead, and
+   re-derive against ITS geometry.
+3. Re-spec the isolation approach entirely.
+
+## Immutability
+Nothing was written into any sealed release directory. `07_releases/` is
+untouched; this notice lives in the CHANGELOG and the STATUS beacon, which is how
+this fleet records an orderability verdict (see `usb-hub-3s-v3` v1.6–v1.8).
+
+## Found by
+The v1.7 pre-seal review battery, fresh-context PIN lens, 2026-07-28 —
+independently re-verified from the datasheet figure and the netlist before being
+recorded. Full evidence: `08_reviews/2026-07-28_v1.7_pin-review_FRESH-LENS.md`
+and `08_reviews/DISPOSITIONS_v1.7.md`.
+
+---
+
 ## cooksense-v1.0 — 2026-07-23
 
 Released: `07_releases/cooksense-v1.0-2026-07-23/`. First orderable release of
