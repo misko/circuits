@@ -1185,6 +1185,107 @@ def t_silently_unplaced_part_fails_parity():
 
 
 
+# ==========================================================================
+# INCIDENT 14 — A CONNECTOR LEGEND SITTING ON ITS NEIGHBOUR
+#   2026-07-29 · projects/pluto-rx2-8way/03_src/floorplan.yaml, revision
+#     header item A, recorded by that board's own agent:
+#       '"RX2 -> PLUTO RX2" measured NEARER J_ANT1 (7.29 mm) THAN J_RX2
+#        (7.85 mm) — a connector labelled on its neighbour, on the one pair of
+#        ports whose confusion feeds an SDR input with an antenna.'
+#   · projects/pluto-cal-switch, MEASURED here 2026-07-29: the legend
+#     'USB 5V' is 7.40 mm from J_USB and 6.01 mm from F1, so the board's USB
+#     connector owns no legend of its own.
+#   · fleet sweep 2026-07-29: 55 misowned labels across 11 of 23 boards,
+#     including 12 on cooksense's interposer and 5 on cooksense itself.
+#
+#   P-SILK-FN graded PRESENCE — "some silk text is within 8mm of this part" —
+#   and PASSED all of it. Presence cannot see this class by construction: a
+#   label nearer the WRONG connector is present. And it is worse than a missing
+#   label, because it actively misdirects the person plugging the cable in.
+#
+#   The fix is P-SILK-OWN in policy_audit.py: within the J/F/TP family, each
+#   part must have a nearby text that is NEARER to it than to any other member,
+#   and the row reports the ownership LEAD in mm. It is a SEPARATE row from
+#   P-SILK-FN because four boards in this fleet hold P-SILK-FN waivers, all
+#   evidenced on presence, and folding a new class under a waived ID is canon
+#   M4's inherited-defect pattern (the same reason P-ADJ-UNREACHED is its own
+#   row).
+# ==========================================================================
+@test("INCIDENT(2026-07-29 pluto-rx2-8way floorplan): a legend NEARER the "
+      "neighbouring connector FAILS P-SILK-OWN while P-SILK-FN still PASSES",
+      kind="known_bad")
+def t_silk_legend_on_the_wrong_connector():
+    """Built by moving ONE text on a known-clean board (tests/README: a
+    known-bad fixture is a good input broken in exactly one way).
+
+    THE MEASUREMENTS, taken off cook-loadcell 2026-07-29. Family (J*/F*/TP*):
+    13 parts, 0 misowned — the baseline is genuinely clean, which is asserted
+    first so the fixture cannot pass by accident. `SENSOR 4  B R W` sits at
+    (39.5, 55.4): 5.69mm from J4 and 10.75mm from J3, so J4 owns it by 5.06mm.
+    Moving that text to x=34.0 makes it 9.08mm from J4 and 6.60mm from J3 —
+    still WELL INSIDE J4's 14.44mm search radius, so PRESENCE is unchanged and
+    P-SILK-FN keeps passing. J4's other neighbours' legends are owned by them,
+    so J4 is left owning nothing: the pluto-rx2-8way shape exactly.
+
+    THE BASELINE IS THE **SEALED** BOARD, DELIBERATELY, and the reason is a
+    finding in itself: a FRESHLY GENERATED cook-loadcell fails P-SILK-OWN on
+    its own — `TO COOK-HUB J6: 5V 3V3 G DAT` lands 7.82mm from J6 and 2.83mm
+    from TP5 (measured 2026-07-29). The silk de-collision search is
+    order-dependent (CLAUDE.md: "silk de-collision is order-dependent"), so it
+    can push a legend past a neighbour, and nothing graded that until now. That
+    is a REAL defect in the regenerated board, reported rather than absorbed;
+    it is not a usable baseline for a one-mutation fixture, so this test copies
+    the sealed board (read-only) and mutates the copy.
+
+    RED-VERIFIED 2026-07-29 (git-swap, tests/README step 3): with git HEAD's
+    policy_audit.py swapped back in, the mutated board's report has NO
+    `P-SILK-OWN` row at all and `P-SILK-FN | PASS | every connector/fuse/TP has
+    functional silk nearby`, so this test fails on `report has no P-SILK-OWN
+    row`. Restored, P-SILK-FN stays PASS and P-SILK-OWN FAILS naming J4, J3 and
+    both distances.
+    """
+    d = tmpdir("t4silk_")
+    b = sealed_copy(d, "cook_loadcell.kicad_pcb")
+    proj = project_copy("cook-loadcell", d / "proj", board=b)
+    board = proj / "04_kicad" / b.name
+
+    def rows_of():
+        r = run([KPY, POLICY, proj, "--skip-drc"])
+        md = proj / "06_build" / "policy_audit.md"
+        check(md.exists(), f"policy_audit wrote no report\n{r.out[-1500:]}")
+        out = {}
+        for line in md.read_text().splitlines():
+            m = re.match(r"^\| (\S+) \| (\S+) \| (.*) \|$", line)
+            if m:
+                out[m.group(1)] = (m.group(2), m.group(3))
+        return out
+
+    base = rows_of()
+    check("P-SILK-OWN" in base, f"report has no P-SILK-OWN row: {sorted(base)}")
+    eq(base["P-SILK-OWN"][0], "PASS", "the UNMUTATED board's silk ownership")
+    contains(base["P-SILK-OWN"][1], "13/13",
+             "the denominator: every family member graded")
+    contains(base["P-SILK-OWN"][1], "lead", "the measured ownership lead")
+
+    edit_board(board,
+               "import pcbnew\n"
+               "hit=0\n"
+               "for t in b.GetDrawings():\n"
+               "    if t.GetClass()=='PCB_TEXT' and 'SENSOR 4' in t.GetText():\n"
+               "        p=t.GetPosition(); t.SetPosition(\n"
+               "            pcbnew.VECTOR2I(pcbnew.FromMM(34.0), p.y))\n"
+               "        hit+=1\n"
+               "assert hit==1, f'fixture found {hit} SENSOR 4 texts, want 1'")
+    bad = rows_of()
+    eq(bad["P-SILK-FN"][0], "PASS",
+       "PRESENCE cannot see this class — the text is still nearby")
+    eq(bad["P-SILK-OWN"][0], "FAIL", "ownership must see it")
+    contains(bad["P-SILK-OWN"][1], "J4", "names the part left owning nothing")
+    contains(bad["P-SILK-OWN"][1], "J3", "and the part that stole the label")
+    contains(bad["P-SILK-OWN"][1], "SENSOR 4", "and quotes the legend")
+    contains(bad["P-SILK-OWN"][1], "WRONG PART", "and says what is wrong")
+
+
 @test("INCIDENT(2026-07-21 usb-hub-3s ADR-0006): the male-plug class — "
       "connector gender is a recorded part FACT and the calibration is "
       "pinned BOTH directions")

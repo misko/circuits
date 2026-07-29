@@ -30,7 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harness import (KPY, SCRIPTS, check, contains, eq, main,  # noqa: E402
-                     must_fail,
+                     must_fail, not_contains,
                      must_pass, run, test, tmpdir)
 
 ESC = SCRIPTS / "escape_check.py"
@@ -667,6 +667,7 @@ escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked:
 layout:
   keep_short:
 %s
+%s
 """
 KS_REAL = ('    - {net: SW_NODE, max_span_mm: 6, why: "switch-node loop area '
            'sets EMI; datasheet Layout sec 11"}')
@@ -674,14 +675,19 @@ KS_GHOST = ('    - {net: NOT_ON_THIS_BOARD, max_span_mm: 3, why: "net name '
             'copied out of the datasheet reference design"}')
 KS_LONE = ('    - {net: LONE, max_span_mm: 3, why: "resolves to a single-pad '
            'net on this board"}')
+#: a budget on a net that HAS two pads, neither of them on the declaring part —
+#: the shape a series element makes (RP2040 `USB_DP` is `USB_DP_MCU` after the
+#: 27R; the SMA jack's `SW1_ANT` is between the DC block and the switch).
+KS_NOT_MINE = ('    - {net: PARTNERS, max_span_mm: 3, why: "a net this part '
+               'does not touch — 2 pads, none of them mine"}')
 
 
-def _fp(ref, x, y, pads):
+def _fp(ref, x, y, pads, fpid="t:R_0402"):
     ps = "\n".join(
         f'\t\t(pad "{i}" smd roundrect (at 0 {j * 1.0} 0) (size 0.9 0.9)\n'
         f'\t\t\t(layers "F.Cu" "F.Mask" "F.Paste") (roundrect_rratio 0.25)\n'
         f'\t\t\t(net {n} "{nm}"))' for j, (i, n, nm) in enumerate(pads))
-    return (f'\t(footprint "t:R_0402"\n\t\t(layer "F.Cu")\n\t\t(at {x} {y} 0)\n'
+    return (f'\t(footprint "{fpid}"\n\t\t(layer "F.Cu")\n\t\t(at {x} {y} 0)\n'
             f'\t\t(property "Reference" "{ref}" (at 0 -2 0) (layer "F.SilkS")\n'
             f'\t\t\t(effects (font (size 1 1) (thickness 0.15))))\n'
             f'\t\t(property "Value" "V" (at 0 2 0) (layer "F.Fab")\n'
@@ -689,10 +695,23 @@ def _fp(ref, x, y, pads):
             f'\t\t(attr smd)\n{ps}\n\t)')
 
 
-def padj_project(keep_short, sw_span=2.0):
-    """A scratch project WITH a board: `SW_NODE` spans `sw_span` mm over two
-    real pads, `LONE` has exactly one pad, and `NOT_ON_THIS_BOARD` has none."""
-    d = scratch_project({"FXPART": FX_PART % "\n".join(keep_short)})
+def padj_project(keep_short, sw_span=2.0, bulk_at=None, adjacency=()):
+    """A scratch project WITH a board.
+
+    `U1` IS THE DECLARING PART — its footprint id matches FXPART's `footprint:`
+    (`t:SOT-23-6`), which is how P-ADJ resolves the ANCHOR PIN of a keep_short
+    budget. It used to be `t:R_0402` like everything else, which no longer
+    resolves and would make every budget UNREACHED.
+
+    `SW_NODE` runs U1.1 -> C1.1 at `sw_span` mm; `bulk_at` optionally adds a
+    THIRD pad on the same net that far away (the correctly-placed bulk cap
+    whose presence used to make the budget score worse); `PARTNERS` has two
+    pads and neither is U1's; `LONE` has one; `NOT_ON_THIS_BOARD` none.
+    """
+    d = scratch_project({"FXPART": FX_PART % ("\n".join(keep_short),
+                                             "\n".join(adjacency) and
+                                             "  adjacency:\n"
+                                             + "\n".join(adjacency))})
     (d / "04_kicad").mkdir(parents=True, exist_ok=True)
     (d / "04_kicad" / "fx.kicad_pcb").write_text(
         '(kicad_pcb\n\t(version 20260206)\n\t(generator "pcbnew")\n'
@@ -703,9 +722,16 @@ def padj_project(keep_short, sw_span=2.0):
         '\t\t(25 "Edge.Cuts" user)\n\t\t(31 "F.CrtYd" user "F.Courtyard")\n'
         '\t\t(35 "F.Fab" user)\n\t)\n\t(setup (pad_to_mask_clearance 0))\n'
         '\t(net 0 "")\n\t(net 1 "SW_NODE")\n\t(net 2 "GND")\n\t(net 3 "LONE")\n'
-        + _fp("U1", 100, 100, [("1", 1, "SW_NODE"), ("2", 2, "GND")]) + "\n"
+        '\t(net 4 "PARTNERS")\n'
+        + _fp("U1", 100, 100, [("1", 1, "SW_NODE"), ("2", 2, "GND")],
+              fpid="t:SOT-23-6") + "\n"
         + _fp("C1", 100 + sw_span, 100,
               [("1", 1, "SW_NODE"), ("2", 2, "GND")]) + "\n"
+        + (_fp("C_BULK", 100 + bulk_at, 100,
+               [("1", 1, "SW_NODE"), ("2", 2, "GND")]) + "\n"
+           if bulk_at else "")
+        + _fp("D1", 120, 110, [("1", 4, "PARTNERS")]) + "\n"
+        + _fp("D2", 122, 110, [("1", 4, "PARTNERS")]) + "\n"
         + _fp("TP1", 150, 100, [("1", 3, "LONE")]) + "\n)\n")
     return d
 
@@ -737,7 +763,7 @@ def t_padj_unreached_is_reported():
     contains(rows["P-ADJ-UNREACHED"][1], "2/3", "carries the N/M denominator")
     # the SPAN check is unaffected and still passes on its own terms
     eq(rows["P-ADJ"][0], "PASS", "P-ADJ span grade")
-    contains(rows["P-ADJ"][1], "1/3 budgets reached",
+    contains(rows["P-ADJ"][1], "1/3 declared budgets graded",
              "P-ADJ states how many budgets it actually measured")
 
 
@@ -761,6 +787,148 @@ def t_padj_unreached_adjacent_property():
     contains(r2["P-ADJ"][1], "SW_NODE", "names the over-budget net")
     eq(r2["P-ADJ-UNREACHED"][0], "PASS",
        "a span violation is not an unreached budget")
+
+
+# ===== P-ADJ measured the WRONG DISTANCE, and ignored half its schema =======
+# 2026-07-29. Two board agents found this independently, from opposite ends.
+@test("P-ADJ grades the ANCHOR PIN to its nearest partner, not the whole "
+      "net's worst pad pair — a correctly-placed bulk cap must not make a "
+      "budget WORSE", kind="known_bad")
+def t_padj_anchor_not_whole_net():
+    """THE PERVERSE CONSEQUENCE THAT NAMES THE DEFECT. The span was
+    `max(dist(a,b) for a in pads for b in pads)` over the WHOLE net, so ADDING
+    a third pad — a correctly-placed bulk capacitor — made the score worse.
+    The same board, one part later, scored lower for being more correct.
+
+    Here U1.1 -> C1.1 is 2mm against a 6mm budget, and `C_BULK` sits 40mm away
+    on the same net. Whole-net: 40mm, FAIL. Anchor: 2mm, PASS — and the row
+    must NAME THE PAIR IT GRADED, because an unstated anchor is a hidden
+    assumption.
+
+    MEASURED ON THE REAL BOARDS. pluto-cal-switch RP2040:3V3 reported 72.96mm
+    against 4mm (3V3 is a poured rail crossing a 72mm board); the anchor
+    metric on the same 44 budgets is 44/44 PASS, worst 2.60mm
+    (U_MCU.26 -> C_IO3.1). pluto-rx2-8way RP2040:DVDD_1V1 reported 13.167mm
+    against 10mm; the anchor pair is U_MCU.23 -> C_MCU7.1 at 8.79mm, which is
+    inside the budget AND is the tight number the whole-net figure buried.
+
+    AND IT DOES NOT SOFTEN THE INCIDENT P-ADJ WAS BUILT FOR: usb-hub-3s-v2's
+    TPS25740A `RSNS <= 5mm` still FAILS on the anchor metric at 7.34mm
+    (U1.19 -> Q6.5), where the whole-net number was 10.18mm.
+
+    RED-VERIFIED 2026-07-29 (git-swap, tests/README step 3): with git HEAD's
+    policy_audit.py swapped back in, this fixture's P-ADJ row reads
+    `FAIL | datasheet layout budgets exceeded: ['SW_NODE span 40.0mm > 6.0mm
+    ...']` and the test fails on `P-ADJ on the anchor pair`.
+    """
+    d = padj_project([KS_REAL], sw_span=2.0, bulk_at=40.0)
+    rows = audit_rows(d)
+    eq(rows["P-ADJ"][0], "PASS", "P-ADJ on the anchor pair")
+    contains(rows["P-ADJ"][1], "U1.1->C1.1", "names the pin pair it graded")
+    contains(rows["P-ADJ"][1], "of 6.0mm", "and the budget it graded against")
+    # the bulk cap is on the net and is NOT what got graded
+    not_contains(rows["P-ADJ"][1], "40.", "the whole-net span is not the metric")
+
+    # ...and the anchor pin itself moving away still FAILS: this is a change of
+    # METRIC, not a loosening. 25mm from U1.1 to its nearest partner.
+    over = padj_project([KS_REAL], sw_span=25.0, bulk_at=40.0)
+    r2 = audit_rows(over)
+    eq(r2["P-ADJ"][0], "FAIL", "an anchor pin far from every partner")
+    contains(r2["P-ADJ"][1], "U1.1->C1.1", "names the pair that failed")
+
+
+@test("P-ADJ reports UNREACHED when the DECLARING PART has no pad on the "
+      "budgeted net — it must not grade off two other parts' pads",
+      kind="known_bad")
+def t_padj_anchor_must_be_the_declaring_part():
+    """`PARTNERS` has two pads and neither belongs to U1, the part whose
+    datasheet sentence this is. The old whole-net metric happily measured
+    D1.1 -> D2.1 (2mm, inside the 3mm budget) and reported the budget honoured
+    — a PASS assembled entirely out of parts the sentence is not about.
+
+    This is the commonest form in the fleet, and it is always a series
+    element: RP2040's `USB_DP` budget names a net that becomes `USB_DP_MCU`
+    after the 27R, the SMA jack's `SW1_ANT` lives between the DC block and the
+    switch, ABM8's `XOUT` is the crystal side of R_XTAL. MEASURED 2026-07-29:
+    5 such budgets on pluto-cal-switch and 3 on pluto-rx2-8way, every one of
+    them previously graded — and every one of them graded off somebody else's
+    copper.
+
+    RED-VERIFIED 2026-07-29 (git-swap): pre-fix, P-ADJ reads
+    `PASS | ... (1/1 budgets reached)` on this fixture and P-ADJ-UNREACHED
+    reads PASS, so this test fails on `P-ADJ-UNREACHED on a budget the
+    declaring part is not in`.
+    """
+    d = padj_project([KS_NOT_MINE])
+    rows = audit_rows(d)
+    eq(rows["P-ADJ-UNREACHED"][0], "FAIL",
+       "P-ADJ-UNREACHED on a budget the declaring part is not in")
+    contains(rows["P-ADJ-UNREACHED"][1], "PARTNERS", "names the net")
+    contains(rows["P-ADJ-UNREACHED"][1], "U1",
+             "names the declaring part's refdes, which is the anchor it wanted")
+    # and P-ADJ must NOT report a pass over it: zero graded is zero
+    eq(rows["P-ADJ"][0], "FAIL", "P-ADJ over a zero denominator")
+    contains(rows["P-ADJ"][1], "GRADED NOTHING",
+             "a gate with no denominator says so (canon M-COVER)")
+    contains(rows["P-ADJ"][1], "M-COVER", "and cites the canon")
+
+
+@test("P-ADJ-PAIR grades layout.adjacency refdes pairs — a schema field no "
+      "gate read at all", kind="known_bad")
+def t_padj_pair_is_graded():
+    """`layout.adjacency` was in the 02_parts schema, in the part.yaml files,
+    and READ BY NOTHING — while looking covered, which is worse than an absent
+    field: the author who wrote it believed a gate stood behind it.
+
+    THE LIVE EXAMPLE, with its number: USBLC6-2SC6 requires U_ESD within
+    2.0mm of J_USB because ST DocID11265 sec 2.2 turns 6nH per 10mm into a 17V
+    clamp firing at 305V. pluto-rx2-8way's floorplan sat at ~8mm and no gate
+    objected — that board's agent had to hand-measure it, and got the placement
+    to 1.689mm on D+/D-. This gate now reads 1.689mm for the same pair (canon
+    M1: two methods, one number), and it FAILS the two MCP1755S budgets the
+    same board never had graded: U_LDO~C_LDO 4.88mm and U_LDO~C_LDI 10.78mm,
+    both against 3mm.
+
+    An adjacency budget is measured as the COPPER GAP (pad edge to pad edge —
+    the track length the nH/mm arithmetic applies to) on the worst net the two
+    parts share, POURED nets excluded because a plane joins them without a
+    track.
+
+    RED-VERIFIED 2026-07-29 (git-swap): pre-fix there is NO `P-ADJ-PAIR` row in
+    the report at all, and this test fails on `report has no P-ADJ-PAIR row`.
+    """
+    far = ('    - {refdes: [U1, C_BULK], max_mm: 2.0, why: "the ESD array '
+           'belongs behind the connector pads; 6nH/10mm is a clamp term"}')
+    d = padj_project([KS_REAL], adjacency=[far], bulk_at=40.0)
+    rows = audit_rows(d)
+    check("P-ADJ-PAIR" in rows, f"report has no P-ADJ-PAIR row: {sorted(rows)}")
+    eq(rows["P-ADJ-PAIR"][0], "FAIL", "P-ADJ-PAIR on a 40mm-apart pair")
+    contains(rows["P-ADJ-PAIR"][1], "U1~C_BULK", "names the pair")
+    contains(rows["P-ADJ-PAIR"][1], "of 2.0mm", "and the budget")
+    # SEPARATE ROW: the keep_short verdict is untouched by it
+    eq(rows["P-ADJ"][0], "PASS", "keep_short is graded on its own")
+
+    # ...and a pair that IS adjacent passes, on the gap and not the centres
+    near = ('    - {refdes: [U1, C1], max_mm: 2.0, why: "same sentence, and '
+            'this placement honours it"}')
+    ok = audit_rows(padj_project([KS_REAL], adjacency=[near]))
+    eq(ok["P-ADJ-PAIR"][0], "PASS", "an adjacent pair")
+    contains(ok["P-ADJ-PAIR"][1], "U1~C1", "names the pair it graded")
+
+    # ...and a pair that shares NO net is UNREACHED, not silently measured:
+    # without a shared net there is no copper whose length the budget bounds.
+    nonet = ('    - {refdes: [D1, TP1], max_mm: 2.0, why: "these two share no '
+             'net at all, so this budget bounds no copper"}')
+    un = audit_rows(padj_project([KS_REAL], adjacency=[nonet]))
+    eq(un["P-ADJ-UNREACHED"][0], "FAIL", "an adjacency budget over no shared net")
+    contains(un["P-ADJ-UNREACHED"][1], "share no net", "says why")
+
+    # ...and a refdes that is not on the board at all is UNREACHED by name
+    ghost = ('    - {refdes: [U1, U_NOT_HERE], max_mm: 2.0, why: "a refdes '
+             'copied out of the reference design"}')
+    gh = audit_rows(padj_project([KS_REAL], adjacency=[ghost]))
+    eq(gh["P-ADJ-UNREACHED"][0], "FAIL", "an adjacency budget naming a ghost")
+    contains(gh["P-ADJ-UNREACHED"][1], "U_NOT_HERE", "names the missing refdes")
 
 
 if __name__ == "__main__":

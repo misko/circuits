@@ -58,10 +58,35 @@ DEFERRED, and named rather than silently missing:
                       outline). It is the LTV-817S isolation-barrier class and
                       it is the one this file cannot yet see. Recorded in
                       design-policies.md as the open half of P-FACT.
+
+THE DENOMINATOR IS THE VERDICT (fixed 2026-07-29, canon M-COVER)
+----------------------------------------------------------------
+MEASURED on pluto-rx2-8way at stage 5: `16 assertion(s) graded`, all 16
+reported P-FACT-UNREACHED, final line `P-FACT OK`, exit 0. `graded` was
+incremented on ENTRY to the assertion loop, before anything was compared, so
+the count that was supposed to be the coverage proof counted the misses too.
+That is the `jlc_twin`-exited-0-on-11-unverified-parts shape verbatim, and it
+is what canon M-COVER exists to forbid: **a zero denominator is a FAIL.**
+
+Two things changed:
+  * `graded` now counts only assertions that REACHED A COMPARISON, `unreached`
+    counts the rest, and both numbers are printed on every run — on the OK
+    path too, because that is the path where a silent zero did the damage.
+  * REFDES RESOLUTION HAPPENS WHERE THE FACT ENTERS (ADR-0007 M-ENTRY). It
+    used to be BOM-only, and the fab BOM does not exist until stage 7, so at
+    stage 5 every assertion missed its refs — including `pad1_net_polarity`,
+    whose evidence artifact (the exported netlist) has been on disk since
+    stage 4. The map is now taken from the first artifact that HAS it — fab
+    BOM, else `03_tscircuit/build/circuit.json` (`supplier_part_numbers`),
+    else the netlist's own `(comp (value "C…"))` — and the run says WHICH.
+    On pluto-rx2-8way that turns the two polarity assertions (KT-0603R LED
+    and the SMBJ6.0A TVS — the XT60 class) from UNREACHED into graded at the
+    placement gate instead of at the order gate.
 """
 import argparse
 import csv
 import glob
+import json
 import re
 import sys
 from pathlib import Path
@@ -206,6 +231,48 @@ def load_netlist_pad1(root):
     return out, Path(hits[0])
 
 
+def load_entry_refmap(root):
+    """({lcsc_code: [refs]}, artifact_label) from the EARLIEST artifact that
+    carries the refdes<->LCSC relation — canon M-ENTRY (ADR-0007): grade a fact
+    where it enters the pipeline, not where it shows.
+
+    Used only when there is no fab BOM (before stage 7). Keyed on the LCSC
+    CODE, never on a value+footprint match (canon M6: the substitution class).
+    """
+    d = Path(root)
+    for cj in ("03_tscircuit/build/circuit.json",
+               "03_tscircuit/dist/src/*/circuit.json"):
+        for hit in sorted(glob.glob(str(d / cj))):
+            try:
+                doc = json.loads(Path(hit).read_text(encoding="utf-8-sig"))
+            except Exception:
+                continue
+            els = doc if isinstance(doc, list) else (doc.get("elements") or [])
+            out = {}
+            for e in els:
+                if not isinstance(e, dict) or e.get("type") != "source_component":
+                    continue
+                ref = e.get("name")
+                for code in ((e.get("supplier_part_numbers")
+                              or {}).get("jlcpcb") or []):
+                    if ref and code:
+                        out.setdefault(str(code).strip(), []).append(str(ref))
+            if out:
+                return out, str(Path(hit).relative_to(d))
+    # last resort: this pipeline's converter writes the LCSC code into the
+    # netlist's Value for library parts (U_LDO -> "C638611").
+    for pat in ("06_build/netlists/*.net", "04_kicad/*.net", "*.net"):
+        for hit in sorted(glob.glob(str(d / pat))):
+            text = Path(hit).read_text(encoding="utf-8-sig")
+            out = {}
+            for m in re.finditer(r'\(comp\s*\(ref\s+"([^"]+)"\)\s*'
+                                 r'\(value\s+"(C\d{3,})"\)', text):
+                out.setdefault(m.group(2), []).append(m.group(1))
+            if out:
+                return out, str(Path(hit).relative_to(d))
+    return {}, None
+
+
 def order_text(root):
     """Every word of the release's order paperwork, concatenated."""
     parts = []
@@ -220,12 +287,19 @@ def order_text(root):
 
 # --------------------------------------------------------------------------
 def grade(root, parts_dir, strict=False):
-    """Returns (findings, graded_count, declaring_parts, total_parts)."""
+    """Returns (findings, coverage, declaring_parts, total_parts) where
+    coverage is {"graded": n, "unreached": n, "refmap": label}.
+
+    `graded` counts assertions that REACHED A COMPARISON. It used to be
+    incremented on entry to this loop, which made it count the misses too:
+    pluto-rx2-8way printed `16 assertion(s) graded` with 16 UNREACHED under it
+    and `P-FACT OK` at the bottom (canon M-COVER — the denominator IS the
+    verdict)."""
     parts, total = load_parts(parts_dir)
     ref_lcsc, ref_comment, cpl, bom_p, cpl_p = load_fab(root)
     pad1, netp = load_netlist_pad1(root)
     otext = order_text(root)
-    finds, graded = [], 0
+    finds, graded, unreached = [], 0, 0
 
     # LCSC -> refs, so a part's facts reach the refs that ARE it. Keyed on the
     # code, never on a value+footprint match (canon M6: the substitution class).
@@ -233,6 +307,29 @@ def grade(root, parts_dir, strict=False):
     for r, c in ref_lcsc.items():
         if c:
             by_code.setdefault(c, []).append(r)
+    refmap_label = str(bom_p.name) if bom_p else None
+    if not by_code:
+        # No fab BOM yet (any stage before 7). The relation still exists —
+        # earlier, in the artifact where it was authored (M-ENTRY).
+        by_code, refmap_label = load_entry_refmap(root)
+
+    def miss(text):
+        """One UNREACHED finding, counted."""
+        nonlocal unreached
+        unreached += 1
+        finds.append(("P-FACT-UNREACHED", text))
+
+    def why_no_ref(mpn, p):
+        return (f"{mpn}: no refdes carries lcsc "
+                f"{p['lcsc'] or '(undeclared in sourcing:)'} — "
+                + ("there is no fab BOM and no refdes<->LCSC artifact under "
+                   f"{root} at all, so nothing on this board can be resolved "
+                   f"to this part (P-FACT grades from stage 7's BOM, or from "
+                   f"03_tscircuit/build/circuit.json earlier)"
+                   if refmap_label is None else
+                   f"{refmap_label} names {len(by_code)} code(s) and this is "
+                   f"not one of them")
+                + " — an assertion that grades nothing is not a pass")
 
     for mpn, p in sorted(parts.items()):
         refs = sorted(by_code.get(p["lcsc"], [])) if p["lcsc"] else []
@@ -244,9 +341,18 @@ def grade(root, parts_dir, strict=False):
                               f"cannot yet grade it (needs board geometry) — "
                               f"{e['why'][:90]}"))
                 continue
-            graded += 1
 
             if kind == "not_on_assembly_bom":
+                # THE ONLY assertion whose absence-of-evidence IS the pass —
+                # but only against a BOM that exists. Without one there is
+                # nothing for the part to be absent FROM.
+                if bom_p is None:
+                    miss(f"{mpn}: not_on_assembly_bom has no fab BOM to be "
+                         f"absent from under {root} — an assembly claim is "
+                         f"graded at stage 7, and an empty directory is not "
+                         f"a clean BOM")
+                    continue
+                graded += 1
                 bad = [r for r in refs if ref_lcsc.get(r)] + \
                       [r for r in refs if r in cpl]
                 if bad:
@@ -293,13 +399,16 @@ def grade(root, parts_dir, strict=False):
                         f"operand numeric"))
                     continue
                 tol = float(e.get("tolerance_pct", 0)) / 100.0
-                if not refs:
-                    finds.append(("P-FACT-UNREACHED",
-                                  f"{mpn}: value assert reached NO board ref "
-                                  f"(lcsc {p['lcsc'] or 'undeclared'}) — an "
-                                  f"assertion that grades nothing is not a "
-                                  f"pass"))
+                if bom_p is None:
+                    miss(f"{mpn}: value assert has no fab BOM to read a "
+                         f"Comment from under {root} — the artifact it grades "
+                         f"is written at stage 7 (an assertion that grades "
+                         f"nothing is not a pass)")
                     continue
+                if not refs:
+                    miss(f"value assert: {why_no_ref(mpn, p)}")
+                    continue
+                graded += 1
                 for r in refs:
                     if strmode:
                         seen = str(ref_comment.get(r) or "").strip()
@@ -329,11 +438,27 @@ def grade(root, parts_dir, strict=False):
                                   f"{mpn}: msl assert has no `level:`"))
                     continue
                 if not otext:
+                    # ORDER PAPERWORK THAT DOES NOT EXIST YET IS NOT A
+                    # VIOLATED FACT. This was a hard P-FACT fail either way,
+                    # which failed every board at the placement gate for a
+                    # document stage 7 writes — the mirror image of the
+                    # zero-denominator bug in the same file: a verdict the run
+                    # had not earned, pointing the wrong way. A target that
+                    # HAS a fab BOM and no paperwork is the real defect (that
+                    # is a release), so the two are told apart by the BOM.
+                    if bom_p is None:
+                        miss(f"{mpn}: declares MSL {lvl} and the target has no "
+                             f"order paperwork at all yet (no fab BOM either) "
+                             f"— the MSL obligation is graded on the RELEASE, "
+                             f"at stage 7")
+                        continue
+                    graded += 1
                     finds.append((
                         "P-FACT", f"{mpn}: declares MSL {lvl} but the target "
                         f"has NO order paperwork to state it in "
                         f"(ORDER_README.md / MANIFEST.txt)"))
                     continue
+                graded += 1
                 if not re.search(rf"MSL\s*-?\s*{re.escape(lvl)}\b", otext,
                                  re.I):
                     finds.append((
@@ -352,15 +477,13 @@ def grade(root, parts_dir, strict=False):
                                   f"be negative|positive, got {want!r}"))
                     continue
                 if netp is None:
-                    finds.append(("P-FACT-UNREACHED",
-                                  f"{mpn}: pad1_net_polarity declared but no "
-                                  f"exported netlist found under {root}"))
+                    miss(f"{mpn}: pad1_net_polarity declared but no "
+                         f"exported netlist found under {root}")
                     continue
                 if not refs:
-                    finds.append(("P-FACT-UNREACHED",
-                                  f"{mpn}: pad1_net_polarity reached NO board "
-                                  f"ref (lcsc {p['lcsc'] or 'undeclared'})"))
+                    miss(f"pad1_net_polarity: {why_no_ref(mpn, p)}")
                     continue
+                graded += 1
                 for r in refs:
                     net = pad1.get(r)
                     if net is None:
@@ -378,7 +501,8 @@ def grade(root, parts_dir, strict=False):
                             f"electrical check can see it"))
                 continue
 
-    return finds, graded, len(parts), total
+    return (finds, {"graded": graded, "unreached": unreached,
+                    "refmap": refmap_label}, len(parts), total)
 
 
 def main(argv=None):
@@ -406,15 +530,18 @@ def main(argv=None):
         return 0
 
     try:
-        finds, graded, declaring, total = grade(root, pd, args.strict)
+        finds, cov, declaring, total = grade(root, pd, args.strict)
     except ConfigError as e:
         print(f"P-FACT LOAD ERROR: {e}")
         return 2
 
     hard = [f for f in finds if f[0] == "P-FACT"]
     soft = [f for f in finds if f[0] != "P-FACT"]
+    graded, unre = cov["graded"], cov["unreached"]
     print(f"P-FACT: {declaring}/{total} part.yaml declare an `asserts:` block; "
-          f"{graded} assertion(s) graded against {root}")
+          f"{graded}/{graded + unre} assertion(s) REACHED A COMPARISON against "
+          f"{root} ({unre} unreached; refdes<->LCSC read from "
+          f"{cov['refmap'] or 'NOTHING'})")
     for fid, text in finds:
         print(f"  {fid}: {text}")
     if hard or (args.strict and soft):
@@ -427,8 +554,26 @@ def main(argv=None):
               "state that let 'PAD 1 IS NEGATIVE', 'keep off the "
               "JLC-assembly BOM', 'no copper under the opto' and 'MSL 3' all "
               "become defects while written down correctly.")
-    else:
-        print("P-FACT OK")
+        return 0
+    if graded == 0 and unre > 0:
+        # A ZERO DENOMINATOR IS A FAIL, NEVER AN OK (canon M-COVER). Measured
+        # on pluto-rx2-8way before this: 16 assertions, 16 unreached, `P-FACT
+        # OK`, exit 0 — the exact shape of jlc_twin exiting 0 on 11 unverified
+        # parts. It is NOT gated on --strict: `--strict` decides whether a
+        # PARTIAL denominator blocks, and there is nothing partial about zero.
+        # Guarded on `unre > 0` and not on `graded == 0` alone: a part that
+        # declares ONLY a DEFERRED kind (`keepout_region`) has no gradeable
+        # assertion to have a denominator over, and it already reports itself
+        # by name and blocks under --strict. Failing that would be the same
+        # error in the other direction.
+        print(f"P-FACT GRADED NOTHING: {declaring} part.yaml declare "
+              f"{unre} assertion(s) and NOT ONE of them reached a comparison "
+              f"against {root}. A gate with no denominator cannot report OK "
+              f"(canon M-COVER); every reason is listed above.")
+        return 1
+    print(f"P-FACT OK — {graded}/{graded + unre} assertions graded"
+          + (f", {unre} UNREACHED and listed above (a partial denominator: "
+             f"use --strict to make it block)" if unre else ""))
     return 0
 
 

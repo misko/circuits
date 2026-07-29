@@ -31,6 +31,7 @@ minimum: `t_facts_reach_the_refs` proves an assertion that reaches no ref is
 reported rather than passing, and `t_deferred_is_named` proves the ONE kind
 this checker cannot yet grade says so out loud instead of going quiet.
 """
+import json
 import sys
 from pathlib import Path
 
@@ -118,7 +119,8 @@ def t_clean():
         netlist=netlist_of({"GND": ["J1"]}))
     r = must_pass(pfact(d), "P-FACT on an agreeing release")
     contains(r.out, "P-FACT OK", "clean verdict")
-    contains(r.out, "1 assertion(s) graded", "says how much it actually graded")
+    contains(r.out, "1/1 assertion(s) REACHED A COMPARISON",
+             "says how much it actually graded, over the total declared")
 
 
 @test("P-FACT says out loud when NOTHING is declared, rather than passing "
@@ -287,9 +289,15 @@ def t_value_literal_is_exact():
                  [("PE42482A-X", "U_SW1", "QFN-20", "PE42482A-X", "C7654321")])
     r = must_pass(pfact(ok), "P-FACT on the matching literal")
     check("P-FACT-CONFIG" not in r.out, f"config noise on a good part:\n{r.out}")
-    # leading/trailing whitespace is the ONE thing normalised away
+    # leading/trailing whitespace is the ONE thing normalised away.
+    # THE LCSC HERE USED TO READ `C7` (2026-07-29): the part declares C7654321,
+    # so the code matched no BOM row, the assertion reached NOTHING, and this
+    # fixture passed only because the pre-fix gate exited 0 over a zero
+    # denominator. The test was green and vacuous — the defect under test,
+    # inside the test for it. Found by the M-COVER fix making it RED.
     sp = release({"PE42482A-X": RF_SWITCH},
-                 [("  PE42482A-X  ", "U_SW1", "QFN-20", "PE42482A-X", "C7")])
+                 [("  PE42482A-X  ", "U_SW1", "QFN-20", "PE42482A-X",
+                   "C7654321")])
     must_pass(pfact(sp), "P-FACT on a whitespace-padded Comment")
     for near in ("pe42482a-x", "PE42482AX", "PE42482A X"):
         bad = release({"PE42482A-X": RF_SWITCH},
@@ -329,6 +337,117 @@ def t_facts_reach_the_refs():
     r = pfact(d, "--strict")
     must_fail(r, "P-FACT strict on an unreached assertion", "UNREACHED")
     contains(r.out, "grades nothing", "says why an unreached assert is not a pass")
+
+
+@test("P-FACT REFUSES to print OK over a ZERO denominator — 16 declared, 16 "
+      "unreached, `P-FACT OK`, exit 0", kind="known_bad")
+def t_zero_denominator_is_a_fail():
+    """MEASURED ON pluto-rx2-8way, 2026-07-29, stage 5, verbatim:
+
+        P-FACT: 14/15 part.yaml declare an `asserts:` block;
+                16 assertion(s) graded against projects/pluto-rx2-8way
+          P-FACT-UNREACHED: ... (x16, every single assertion)
+        P-FACT OK                                            <- exit 0
+
+    `graded` was incremented on ENTRY to the assertion loop, before anything
+    was compared, so the number that was supposed to BE the coverage proof
+    counted the misses. That is `jlc_twin` exiting 0 on 11 unverified parts
+    with a different label (tests/README, CLAUDE.md), and canon M-COVER names
+    the rule it breaks: A ZERO DENOMINATOR IS A FAIL.
+
+    The fixture is the smallest form of it: one part whose LCSC matches nothing
+    the BOM carries, so its single assertion cannot reach a comparison. NOT
+    run with --strict — `--strict` decides whether a PARTIAL denominator
+    blocks, and there is nothing partial about zero.
+
+    RED-VERIFIED 2026-07-29 (git-swap, tests/README step 3): with git HEAD's
+    part_facts_check.py swapped back in, this fixture prints
+    `P-FACT: 1/1 part.yaml declare an `asserts:` block; 1 assertion(s) graded`
+    then the UNREACHED line then `P-FACT OK`, and exits 0 — this test fails
+    there with `P-FACT over a zero denominator SHOULD HAVE FAILED but exited
+    0`. Restored, it exits 1 on `P-FACT GRADED NOTHING`.
+    """
+    y = WD_OK.replace("C7719", "C_NOT_ON_THIS_BOARD")
+    d = release({"TPS3823-33DBVR": y},
+                [("10k", "R1", "R_0603", "OTHER", "C1")])
+    r = must_fail(pfact(d), "P-FACT over a zero denominator",
+                  "P-FACT GRADED NOTHING")
+    contains(r.out, "0/1 assertion(s) REACHED A COMPARISON",
+             "the header states the denominator it earned")
+    contains(r.out, "M-COVER", "cites the canon it would otherwise break")
+    not_contains(r.out, "P-FACT OK", "must not also claim OK")
+    # THE ADJACENT PROPERTY: one assertion that DOES reach still passes, so
+    # this is a denominator check and not a blanket refusal.
+    ok = release({"TPS3823-33DBVR": WD_OK},
+                 [("1k", "R_WDPETPD", "R_0402", "TPS3823-33DBVR", "C7719")])
+    r2 = must_pass(pfact(ok), "P-FACT with a real denominator")
+    contains(r2.out, "1/1 assertion(s) REACHED", "and it says so")
+
+
+@test("P-FACT resolves refdes BEFORE stage 7 — the netlist-graded polarity "
+      "assert stops being UNREACHED at the placement gate", kind="known_bad")
+def t_entry_refmap_reaches_polarity():
+    """ADR-0007 M-ENTRY: grade a fact where it ENTERS the pipeline, not where
+    it SHOWS. P-FACT resolved every refdes through the FAB BOM, which stage 7
+    writes — so at stage 5 `pad1_net_polarity` was reported UNREACHED even
+    though the netlist it grades against had been on disk since stage 4. The
+    XT60 class is a PLACEMENT-time defect; discovering it at the order gate is
+    discovering it too late.
+
+    The fixture has NO fab/ at all and carries the refdes<->LCSC relation only
+    in 03_tscircuit/build/circuit.json, exactly as both pluto boards do at
+    stage 5. The polarity assert must reach its comparison and FAIL on the
+    reversed net.
+
+    RED-VERIFIED 2026-07-29 by deleting the `load_entry_refmap` fallback (the
+    pre-fix behaviour): the run reports
+    `P-FACT-UNREACHED: XT60PW-M: pad1_net_polarity reached NO board ref` and
+    exits 0, so this test fails with `SHOULD HAVE FAILED but exited 0`.
+    MEASURED on the real board: pluto-rx2-8way went from 16 graded / 16
+    unreached / OK to 2 of 16 REACHED — the KT-0603R LED and the SMBJ6.0A TVS
+    polarity asserts, both graded off `03_tscircuit/build/circuit.json`.
+    """
+    d = tmpdir("pfact_entry_")
+    (d / "02_parts" / "XT60PW-M").mkdir(parents=True)
+    (d / "02_parts" / "XT60PW-M" / "part.yaml").write_text(XT60_OK)
+    (d / "06_build" / "netlists").mkdir(parents=True)
+    (d / "06_build" / "netlists" / "b.net").write_text(
+        netlist_of({"VBAT": ["J1"]}))
+    (d / "03_tscircuit" / "build").mkdir(parents=True)
+    (d / "03_tscircuit" / "build" / "circuit.json").write_text(json.dumps([
+        {"type": "source_component", "name": "J1",
+         "supplier_part_numbers": {"jlcpcb": ["C98732"]}}]))
+    r = must_fail(pfact(d), "P-FACT on a pre-stage-7 project", "P-FACT")
+    contains(r.out, "circuit.json",
+             "names the artifact the refdes map came from")
+    contains(r.out, "J1", "names the ref it reached")
+    contains(r.out, "XT60 CLASS", "and grades the fact, not the stage")
+
+
+@test("P-FACT does not fail a pre-order project for paperwork stage 7 writes")
+def t_msl_before_the_release_is_unreached():
+    """The mirror image of the zero-denominator bug, in the same file: `msl`
+    with no ORDER_README was a HARD P-FACT violation, so any project declaring
+    an MSL part failed at every stage before its release existed. A document
+    that has not been written yet is not a violated fact — it is an ungraded
+    one, and the two verdicts send an author to different places. A target that
+    HAS a fab BOM and no paperwork is still the real defect
+    (t_msl_absent_from_paperwork above), which is what tells them apart."""
+    y = ("mpn: XU316-1024-TQ128-I24\ntype: soc\n"
+         "asserts:\n"
+         "  - assert: msl\n    level: 3\n    floor_life_h: 168\n"
+         "    why: \"consigned part; J-STD-033D bake if the bag is open "
+         ">168h below 30C/60% RH\"\n"
+         "sourcing: {lcsc: C6938291}\n")
+    d = tmpdir("pfact_msl_")
+    (d / "02_parts" / "XU316-1024-TQ128-I24").mkdir(parents=True)
+    (d / "02_parts" / "XU316-1024-TQ128-I24" / "part.yaml").write_text(y)
+    r = pfact(d)
+    contains(r.out, "P-FACT-UNREACHED", "an ungraded fact, not a violated one")
+    contains(r.out, "stage 7", "says where it WILL be graded")
+    not_contains(r.out, "P-FACT: XU316", "not reported as a violated fact")
+    # and with nothing gradeable at all it still refuses to say OK
+    must_fail(r, "P-FACT with a zero denominator", "GRADED NOTHING")
 
 
 @test("P-FACT NAMES the one kind it cannot yet grade instead of going quiet",

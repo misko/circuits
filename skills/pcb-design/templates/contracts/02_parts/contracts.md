@@ -166,18 +166,67 @@ layout:                     # REQUIRED for ICs + power/sense parts (P-LAYOUT).
   source: "TI SLVSDG8B Sec.11 + EVM SLVUAP7A: pass FET + sense R + VBUS caps
     HARD against the power-stage pin edge; Kelvin-sense back to the chip"
   reviewed: "2026-07-14"
-  keep_short:               # nets whose pad-span P-ADJ measures on the board.
+  keep_short:               # P-ADJ measures THE ANCHOR PIN to its NEAREST
+                            # QUALIFYING PARTNER — not the net's worst pad pair
+                            # (changed 2026-07-29). The anchor is a pad of THIS
+                            # part; the partner is the nearest pad on the same
+                            # net belonging to another footprint; the graded
+                            # number is the worst anchor pin's distance, and
+                            # the report NAMES THE PAIR it graded. Rationale:
+                            # a datasheet sentence is about a PIN ("100 nF
+                            # close to EACH IOVDD pin"), and the whole-net
+                            # maximum made a budget score WORSE when a
+                            # correctly-placed bulk cap was added to the net.
+                            # Measured: pluto-cal-switch RP2040:3V3 read
+                            # 72.96mm against 4mm on the whole net (it is a
+                            # poured rail crossing the board) and 2.60mm
+                            # (U_MCU.26 -> C_IO3.1) on the anchor.
     - {net: RSNS,  max_span_mm: 5, why: "Kelvin sense R adjacent to ISNS/VPWR"}
     - {net: PDSRC, max_span_mm: 5, why: "pass-FET source common node at chip"}
+    # - {net: DVDD, max_span_mm: 10, anchor_pins: [45], why: "..."}
+                            # `max_span_mm` is a pad-CENTRE span, in mm.
+                            # `anchor_pins:` (optional) names the pin numbers
+                            # the datasheet sentence is about, when it is about
+                            # one pair; omitted, every pad of this part on the
+                            # net is an anchor and the worst one is graded.
                             # `net:` MUST be a NET NAME ON THIS BOARD carrying
-                            # >= 2 pads. A name copied out of the datasheet's
-                            # reference design, a renamed net, or prose like
-                            # "V+ decoupler (pin 8)" resolves to nothing, and
-                            # P-ADJ-UNREACHED FAILS it by name: a budget
-                            # nothing evaluates is not a pass. Measured
-                            # 2026-07-28 before that gate existed: 61 of 119
-                            # budgets fleet-wide (51%) were graded by NOTHING.
-  # adjacency: [...]        # optional refdes-pair form; notes: free-text rules
+                            # >= 2 pads, ONE OF WHICH IS THIS PART'S. A name
+                            # copied out of the datasheet's reference design, a
+                            # renamed net, a node split by a series element
+                            # (RP2040's USB_DP becomes USB_DP_MCU after the
+                            # 27R), or prose like "V+ decoupler (pin 8)"
+                            # resolves to nothing, and P-ADJ-UNREACHED FAILS it
+                            # by name: a budget nothing evaluates is not a
+                            # pass. Measured 2026-07-28 before that gate
+                            # existed: 61 of 119 budgets fleet-wide (51%) were
+                            # graded by NOTHING; measured again 2026-07-29 with
+                            # the anchor rule, 7 MORE (4 on pluto-cal-switch —
+                            # KH-SMA-KE-Z SW1_ANT/SW2_ANT and RP2040
+                            # USB_DP/USB_DM — and 3 on pluto-rx2-8way) were
+                            # being graded off pads belonging to OTHER parts
+                            # entirely.
+  adjacency:                # REFDES-PAIR budgets, graded as P-ADJ-PAIR (a
+                            # SEPARATE row from P-ADJ since 2026-07-29,
+                            # because a P-ADJ waiver's evidence is a list of
+                            # measured keep_short spans and must not absorb a
+                            # different class — same reason as
+                            # P-ADJ-UNREACHED). Read by NOTHING before that
+                            # date: the field was in this contract and in the
+                            # part.yaml files and no gate opened it, which
+                            # reads as covered and is worse than absent.
+    - {refdes: [U_ESD, J_USB], max_mm: 2.0, why: "ST DocID11265 sec 2.2: 6 nH
+        per 10 mm turns a 17 V clamp into 305 V, so this is a clamp-voltage
+        term and not tidiness"}
+                            # `max_mm` is the COPPER GAP — pad EDGE to pad
+                            # edge, i.e. the track length the nH/mm arithmetic
+                            # applies to — measured on the worst net the two
+                            # parts share. POURED nets are excluded and said
+                            # to be: a plane joins two parts without a track,
+                            # so a pad gap does not measure it (that is stitch
+                            # / R-THERM work). A pair sharing no un-poured net,
+                            # or naming a refdes absent from the board, is
+                            # P-ADJ-UNREACHED.
+  # notes: [...]            # free-text rules for the half no gate can grade
 layout_refs:                # REQUIRED for every HARD part (dense escapes,
                             # switching power, >0.5A analog, RF): the LAYOUT
                             # PRECEDENT SEARCH record — the routed references
@@ -339,15 +388,24 @@ the board's placement HONOURS it:
 - Audit: `policy_audit.py` **P-LAYOUT** fails an in-scope part (multi-pin active,
   or `type:` matching fet/mosfet/current_sense/shunt/crystal/oscillator/inductor)
   that has no `layout:` block with a `source:` citation + a keep_short/adjacency
-  budget. **P-ADJ** measures each `layout.keep_short` net's pad-span on the board
-  and flags any that exceeds its `max_span_mm` (the datasheet's "keep it local"
-  rule made mechanical) — warn+waiver: a real over-span must be re-placed or
-  dispositioned in `policy_waivers.yaml` with the measured span + why.
-  **P-ADJ-UNREACHED** is a SEPARATE row and is NOT waivable by a P-ADJ waiver:
-  it fails any budget whose `net:` does not resolve to a 2+-pad net here. The
-  split is deliberate — a P-ADJ waiver's evidence is a set of MEASURED spans,
-  and letting it also cover budgets that were never measured is exactly the
-  waiver-widening canon M4 forbids.
+  budget. **P-ADJ** measures each `layout.keep_short` budget from THE ANCHOR PIN
+  (a pad of the declaring part on that net) to its NEAREST QUALIFYING PARTNER
+  (the nearest pad on the same net on another footprint), worst anchor wins, and
+  names the pair — the datasheet's "keep it local" rule made mechanical, at the
+  granularity the sentence has. It is NOT the whole net's worst pad pair: that
+  metric made a budget score WORSE when a correctly-placed bulk capacitor was
+  added, so it could not guide placement (changed 2026-07-29; the usb-hub-3s-v2
+  RSNS incident still FAILS, 7.34mm U1.19 -> Q6.5 against 5mm).
+  **P-ADJ-PAIR** grades `layout.adjacency` refdes pairs on the copper GAP
+  between them. **P-ADJ-UNREACHED** covers both kinds.
+  Both are SEPARATE rows and NEITHER is waivable by a P-ADJ waiver:
+  P-ADJ-UNREACHED fails any budget that does not resolve to a measurable pair
+  here (no such net, fewer than 2 pads, no pad of the declaring part, no shared
+  un-poured net, a refdes not on the board). The split is deliberate — a P-ADJ
+  waiver's evidence is a set of MEASURED spans, and letting it also cover
+  budgets that were never measured, or a different budget KIND, is exactly the
+  waiver-widening canon M4 forbids. Any of the three reporting `PASS` over ZERO
+  measured budgets is itself a FAIL (canon M-COVER).
 - The Layout read is the independent human half: escape/pinout can be right while
   the part is still placed wrong (usb-hub-3s-v2 TPS25740A). P-ADJ is the machine
   half — it caught RSNS span 11.5mm > 5mm on that exact board.

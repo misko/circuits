@@ -350,21 +350,118 @@ def main():
         else:
             rows.append(("P-LAYOUT", "N-A", "no in-scope (IC / power-sense) parts"))
 
-        # P-ADJ: board net-spans vs each layout keep_short budget
+        # P-ADJ: board placement vs each layout budget — keep_short AND
+        # adjacency.
+        #
+        # TWO DEFECTS FIXED HERE 2026-07-29, found independently by two board
+        # agents from opposite directions, and they are the same defect: the
+        # gate reported a verdict it had not earned.
+        #
+        # (a) IT MEASURED THE WRONG DISTANCE. The span was the MAXIMUM PAD PAIR
+        # OVER THE WHOLE NET, which is not what a `keep_short` sentence means.
+        # A datasheet decoupling sentence is about a PIN and its NEAREST
+        # QUALIFYING PARTNER ("100 nF close to EACH IOVDD pin", "1 uF close to
+        # VREG_VOUT"), so the number that grades it is the anchor pin's
+        # distance to the nearest pad that serves it. The whole-net maximum has
+        # a property that by itself disqualifies it as a placement metric:
+        # ADDING A CORRECTLY-PLACED BULK CAPACITOR MAKES THE BUDGET SCORE
+        # WORSE, because the new pad extends the net's span. Measured:
+        #   * pluto-cal-switch RP2040:3V3 reported 72.96mm against 4mm — 3V3 is
+        #     a poured rail crossing the board. The ANCHOR metric on the same
+        #     44 budgets is 44/44 PASS, worst 2.60mm (U_MCU.26 -> C_IO3.1).
+        #   * pluto-rx2-8way RP2040:DVDD_1V1 reported 13.167mm against 10mm off
+        #     a 6-pad net. The anchor metric says 8.79mm (U_MCU.23 ->
+        #     C_MCU7.1): inside the budget, and it REPORTS the tight pair
+        #     instead of burying it under a board-scale number.
+        # It does NOT soften the incident P-ADJ was built for: usb-hub-3s-v2's
+        # TPS25740A RSNS still FAILS, 7.34mm (U1.19 -> Q6.5) against 5mm, where
+        # the whole-net figure was 10.18mm. And ABM8-272-T3's `GND <= 3mm` on
+        # pluto-rx2-8way still FAILS — 3.23mm (Y_XTAL.4 -> C_XTAL1.2) instead
+        # of 67.24mm, which was the board's DIAGONAL and not the crystal's
+        # anything. A budget nobody can act on is not enforcement.
+        # THE ANCHOR IS STATED, ALWAYS (the PASS detail names the graded pair):
+        # an unstated anchor is a hidden assumption. `anchor_pins:` lets the
+        # author name the pin(s) explicitly when the sentence is about one pair.
+        #
+        # (b) IT NEVER READ `layout.adjacency` AT ALL. Refdes-pair budgets were
+        # in the schema, in the part.yaml files, and graded by NOTHING — while
+        # LOOKING covered, which is worse than an absent field. The live
+        # example, with its number: USBLC6-2SC6 requires U_ESD within 2.0mm of
+        # J_USB because ST DocID11265 sec 2.2 turns 6nH per 10mm into a 17V
+        # clamp firing at 305V; pluto-rx2-8way's floorplan sat at ~8mm and no
+        # gate objected, so the board's agent had to hand-measure it.
+        # An adjacency budget is graded as the COPPER GAP between the two
+        # parts' pads on each shared net (pad edge to pad edge = the track
+        # length the 6nH/10mm arithmetic applies to), worst shared net wins.
+        # POURED nets are excluded from that measurement and said to be: two
+        # parts on a plane are joined BY THE PLANE, and a pad-gap does not
+        # measure a pour connection (it is R-THERM/stitch work).
         if board:
-            netpads = {}
+            zone_nets = {z.GetNetname() for z in board.Zones()
+                         if z.GetNetname()}
+            fp_by_id, fp_by_ref, netpads = {}, {}, {}
             for f in board.GetFootprints():
+                fp_by_id.setdefault(f.GetFPIDAsString(), []).append(f)
+                fp_by_ref[f.GetReference()] = f
                 for p in f.Pads():
                     n = p.GetNetname()
                     if n:
-                        netpads.setdefault(n, []).append(
-                            (MM(p.GetPosition().x), MM(p.GetPosition().y)))
-            viol, unreached, graded = [], [], 0
+                        netpads.setdefault(n, []).append((p, f))
+
+            def _span(p1, p2):
+                """Pad-CENTRE to pad-centre, mm — the `max_span_mm` measure."""
+                a = p1.GetPosition()
+                b = p2.GetPosition()
+                return math.hypot(MM(a.x - b.x), MM(a.y - b.y))
+
+            def _gap(p1, p2):
+                """Pad-EDGE to pad-edge, mm — the `max_mm` adjacency measure,
+                i.e. how much copper must actually be run between the two.
+                Axis-aligned pad boxes; KiCad's pad bbox is rotation-aware.
+                CROSS-CHECKED against a hand measurement made by a different
+                agent with a different tool (canon M1): this returns 1.689mm
+                for J_USB.A6 -> U_ESD.1 on pluto-rx2-8way, the same 1.689 that
+                board's floorplan records for D+/D-."""
+                b1, b2 = p1.GetBoundingBox(), p2.GetBoundingBox()
+                dx = max(0, b1.GetLeft() - b2.GetRight(),
+                         b2.GetLeft() - b1.GetRight())
+                dy = max(0, b1.GetTop() - b2.GetBottom(),
+                         b2.GetTop() - b1.GetBottom())
+                return MM(int(math.hypot(dx, dy)))
+
+            def _ref(p, f):
+                return f"{f.GetReference()}.{p.GetNumber()}"
+
+            # graded_ks / graded_adj are SEPARATE ROWS, for the reason
+            # P-ADJ-UNREACHED is a separate row: both pluto boards already hold
+            # a P-ADJ waiver whose evidence is a list of MEASURED keep_short
+            # spans, and adjacency findings are a different class. Folding them
+            # in would have let rx2's waiver absorb two brand-new violations
+            # (U_LDO~C_LDO 4.88mm of 3, U_LDO~C_LDI 10.78mm of 3) in total
+            # silence on their first run — canon M4's inherited-defect pattern,
+            # measured, not hypothesised.
+            unreached, graded_ks, graded_adj = [], [], []
+            viol_ks, viol_adj = [], []
+            n_ks = n_adj = 0
             for py in part_yamls:
                 y = yaml.safe_load(Path(py).read_text(encoding="utf-8-sig")) or {}
-                for ks in ((y.get("layout") or {}).get("keep_short") or []):
+                lay = y.get("layout") or {}
+                pname = Path(py).parent.name
+                # THE DECLARING PART'S FOOTPRINTS, resolved by footprint id —
+                # the only refdes<->part relation a part.yaml carries. Where an
+                # id is shared (two 0402 resistor MPNs, two YAT attenuator
+                # values), the intersection with the budgeted NET disambiguates
+                # it: only R_USBP is on USB_DP_MCU. Identity is by REFDES, not
+                # by object, so nothing depends on SWIG proxy lifetimes.
+                own = fp_by_id.get(str(y.get("footprint")), [])
+                own_refs = {f.GetReference() for f in own}
+
+                # ---------------- keep_short: pin -> nearest partner ---------
+                for ks in (lay.get("keep_short") or []):
+                    n_ks += 1
                     net, mx = ks.get("net"), float(ks.get("max_span_mm", 6))
                     pts = netpads.get(net) or []
+                    want = [str(p) for p in (ks.get("anchor_pins") or [])]
                     if len(pts) < 2:
                         # ---- UNREACHED, not skipped (canon M-COVER) --------
                         # A declared budget whose net carries fewer than two
@@ -379,23 +476,151 @@ def main():
                         # already reports its unreached assertions this way;
                         # this is the same rule.
                         unreached.append(
-                            f"{Path(py).parent.name}: keep_short net "
+                            f"{pname}: keep_short net "
                             f"{net!r} has {len(pts)} pad(s) on this board "
                             f"(needs 2) — budget {mx}mm graded NOTHING")
                         continue
-                    graded += 1
-                    span = max(math.hypot(a[0] - b[0], a[1] - b[1])
-                               for a in pts for b in pts)
-                    if span > mx + 1e-6:
-                        viol.append(f"{net} span {span:.1f}mm > {mx}mm "
-                                    f"({ks.get('why', '')})")
-            tot_ks = graded + len(unreached)
-            grade("P-ADJ", not viol,
-                  f"board honours every layout keep_short net-span budget "
-                  f"({graded}/{tot_ks} budgets reached)",
-                  f"datasheet layout budgets exceeded: {viol[:5]} — re-place "
-                  f"per the part's layout: block (targets HARD against the "
-                  f"chip), or waive with the measured span + why (P-ADJ)")
+                    if not own:
+                        unreached.append(
+                            f"{pname}: keep_short net {net!r} — the declaring "
+                            f"part's footprint {y.get('footprint')!r} is on no "
+                            f"footprint of this board, so the ANCHOR PIN "
+                            f"cannot be resolved; budget {mx}mm graded NOTHING")
+                        continue
+                    anchors = [(p, f) for p, f in pts
+                               if f.GetReference() in own_refs
+                               and (not want or str(p.GetNumber()) in want)]
+                    if not anchors:
+                        # M-ENTRY: the budget names a net the declaring part
+                        # does not touch. Real and common — a series element
+                        # splits the node (RP2040's USB_DP is USB_DP_MCU after
+                        # the 27R; ABM8's XOUT is the crystal side of R_XTAL) —
+                        # and the whole-net metric graded it anyway, off pads
+                        # belonging to entirely different parts.
+                        unreached.append(
+                            f"{pname}: keep_short net {net!r} — "
+                            f"{[f.GetReference() for f in own]} carries "
+                            f"{'no pad ' + str(want) if want else 'NO pad'} on "
+                            f"it, so the budget's own part is not in it; "
+                            f"budget {mx}mm graded NOTHING")
+                        continue
+                    worst = None
+                    for p, f in anchors:
+                        cand = [(q, g) for q, g in pts
+                                if g.GetReference() != f.GetReference()]
+                        if not cand:
+                            continue
+                        # key=, not a tuple: a tie would otherwise fall
+                        # through to comparing SWIG pad objects and raise.
+                        q, g = min(cand, key=lambda t: _span(p, t[0]))
+                        d = _span(p, q)
+                        if worst is None or d > worst[0]:
+                            worst = (d, _ref(p, f), _ref(q, g))
+                    if worst is None:
+                        unreached.append(
+                            f"{pname}: keep_short net {net!r} has pads ONLY on "
+                            f"the declaring part "
+                            f"({[f.GetReference() for f in own]}) — there is no "
+                            f"partner pin to be near; budget {mx}mm graded "
+                            f"NOTHING")
+                        continue
+                    d, a_ref, b_ref = worst
+                    label = (f"{pname}:{net} {a_ref}->{b_ref} {d:.2f}mm of "
+                             f"{mx}mm")
+                    graded_ks.append((mx - d, label))
+                    if d > mx + 1e-6:
+                        viol_ks.append(f"{label} EXCEEDED "
+                                       f"({str(ks.get('why', ''))[:60]})")
+
+                # ---------------- adjacency: refdes pair -> copper gap -------
+                for ad in (lay.get("adjacency") or []):
+                    n_adj += 1
+                    pair = ad.get("refdes") or [ad.get("a"), ad.get("b")]
+                    pair = [str(r) for r in pair if r]
+                    mx = ad.get("max_mm", ad.get("max_span_mm"))
+                    if len(pair) != 2 or mx is None:
+                        unreached.append(
+                            f"{pname}: adjacency {ad!r} names "
+                            f"{len(pair)} refdes and "
+                            f"{'no' if mx is None else 'a'} limit — an "
+                            f"adjacency budget needs exactly two refdes and a "
+                            f"max_mm; graded NOTHING")
+                        continue
+                    mx = float(mx)
+                    absent = [r for r in pair if r not in fp_by_ref]
+                    if absent:
+                        unreached.append(
+                            f"{pname}: adjacency {pair[0]}/{pair[1]} — "
+                            f"{absent} is on no footprint of this board "
+                            f"(renamed, or copied from the reference design); "
+                            f"budget {mx}mm graded NOTHING")
+                        continue
+                    fa, fb = fp_by_ref[pair[0]], fp_by_ref[pair[1]]
+                    pa = [p for p in fa.Pads() if p.GetNetname()]
+                    pb = [p for p in fb.Pads() if p.GetNetname()]
+                    shared = ({p.GetNetname() for p in pa}
+                              & {p.GetNetname() for p in pb})
+                    poured = sorted(shared & zone_nets)
+                    live = sorted(shared - zone_nets)
+                    if not live:
+                        unreached.append(
+                            f"{pname}: adjacency {pair[0]}/{pair[1]} — "
+                            + (f"their only shared net(s) {poured} carry a "
+                               f"pour, and a pad gap does not measure a pour "
+                               f"connection (stitch/R-THERM work)"
+                               if poured else
+                               f"they share no net, so there is no copper "
+                               f"whose length this budget bounds")
+                            + f"; budget {mx}mm graded NOTHING")
+                        continue
+                    worst = None
+                    for net in live:
+                        pairs = [(x, z) for x in pa
+                                 if x.GetNetname() == net
+                                 for z in pb if z.GetNetname() == net]
+                        p, q = min(pairs, key=lambda t: _gap(*t))
+                        d = _gap(p, q)
+                        if worst is None or d > worst[0]:
+                            worst = (d, net, _ref(p, fa), _ref(q, fb))
+                    d, net, a_ref, b_ref = worst
+                    label = (f"{pname}:{pair[0]}~{pair[1]} on {net} "
+                             f"{a_ref}->{b_ref} gap {d:.2f}mm of {mx}mm")
+                    graded_adj.append((mx - d, label))
+                    if d > mx + 1e-6:
+                        viol_adj.append(f"{label} EXCEEDED "
+                                        f"({str(ad.get('why', ''))[:60]})")
+
+            tot = len(graded_ks) + len(graded_adj) + len(unreached)
+
+            def _adj_row(cid, kind, declared, graded_, viol_):
+                """One measured-budget row. A ZERO DENOMINATOR IS A FAIL, NEVER
+                A PASS (canon M-COVER): with every budget unreached the old code
+                printed `PASS | 0/N budgets reached`, which is the shape this
+                whole family of defects is named after. Nothing DECLARED is
+                N-A — a different statement, and an honest one."""
+                if not declared:
+                    rows.append((cid, "N-A",
+                                 f"no layout.{kind} budgets declared in "
+                                 f"02_parts"))
+                    return
+                tightest = min(graded_)[1] if graded_ else "nothing"
+                grade(cid, bool(graded_) and not viol_,
+                      f"every MEASURABLE layout.{kind} budget is honoured — "
+                      f"{len(graded_)}/{declared} declared budgets graded; "
+                      f"tightest margin: {tightest}",
+                      (f"datasheet layout.{kind} budgets exceeded: "
+                       f"{viol_[:5]} ({len(viol_)}/{len(graded_)} graded) — "
+                       f"re-place per the part's layout: block (targets HARD "
+                       f"against the chip), or waive with the measured pair + "
+                       f"why ({cid})"
+                       if viol_ else
+                       f"{cid} GRADED NOTHING: 0 of {declared} declared "
+                       f"{kind} budgets were measurable, so this row has no "
+                       f"denominator (canon M-COVER) — see P-ADJ-UNREACHED "
+                       f"for each"))
+
+            _adj_row("P-ADJ", "keep_short", n_ks, graded_ks, viol_ks)
+            _adj_row("P-ADJ-PAIR", "adjacency", n_adj, graded_adj, viol_adj)
             # ---- ITS OWN ROW, deliberately, not folded into P-ADJ ----------
             # Both boards that carry keep_short budgets already hold a P-ADJ
             # waiver, and each names THREE measured span violations as its
@@ -405,18 +630,22 @@ def main():
             # past its evidence is canon M4's inherited-defect pattern, and it
             # is the failure this gate exists to stop, not to reproduce.
             grade("P-ADJ-UNREACHED", not unreached,
-                  f"every declared keep_short budget resolved to a net with "
-                  f">=2 pads ({graded}/{tot_ks})",
+                  f"every declared layout budget resolved to something this "
+                  f"board can be measured against "
+                  f"({len(graded_ks) + len(graded_adj)}/{tot})",
                   f"budgets DECLARED but graded by NOTHING: {unreached[:5]} "
-                  f"({len(unreached)}/{tot_ks}) — the net name does not name a "
-                  f"2+-pad net on this board (renamed, or copied from the "
-                  f"datasheet's reference design). Fix the name or drop the "
-                  f"budget; a budget nothing evaluates is not a pass")
+                  f"({len(unreached)}/{tot}) — the net/refdes does not name "
+                  f"a measurable pair on this board (renamed, split by a "
+                  f"series element, or copied from the datasheet's reference "
+                  f"design). Fix the name, name the pins with anchor_pins:, or "
+                  f"drop the budget; a budget nothing evaluates is not a pass")
         else:
             rows.append(("P-ADJ", "N-A", "no board"))
+            rows.append(("P-ADJ-PAIR", "N-A", "no board"))
     else:
         rows.append(("P-LAYOUT", "N-A", "no 02_parts entries"))
         rows.append(("P-ADJ", "N-A", "no 02_parts entries"))
+        rows.append(("P-ADJ-PAIR", "N-A", "no 02_parts entries"))
 
     # S-OCCL: schematic text occlusions — global-label plates vs each other
     # and vs symbol Reference/Value property texts (approx bboxes; the same
@@ -559,26 +788,100 @@ def main():
         # `_` is now an accepted separator. `FB1` (ferrite) and `FID1`
         # (fiducial) still do NOT match, because neither a digit nor an
         # underscore follows their prefix letter — checked, not assumed.
+        #
+        # AND IT GRADED PRESENCE, NOT OWNERSHIP (fixed 2026-07-29). "Some silk
+        # text is within 8mm of J_RX2" is not the property P5 wants; the
+        # property is that the label belongs to THAT part rather than to its
+        # neighbour, and a label nearer the wrong connector is worse than no
+        # label at all — it actively misdirects the person plugging the cable
+        # in. Three lenses on three boards found labels on the wrong part
+        # while this check said PASS. The measured instance, from
+        # pluto-rx2-8way's own floorplan header: the legend "RX2 -> PLUTO RX2"
+        # sat 7.29mm from J_ANT1 and 7.85mm from J_RX2 — nearer the ANTENNA
+        # jack than the SDR input it names, on the one pair of ports whose
+        # confusion feeds an SDR receiver with an antenna. Presence passed it.
+        # So each family member must have at least one nearby text that is
+        # NEARER to it than to any other member of the same family, and the
+        # row reports the LEAD in mm (how much nearer), because a 0.1mm lead is
+        # a coin toss dressed as a pass.
         pat = re.compile(cfg.get("silk_fn_refs", r"^(J|F|TP)([0-9]|_)"))
         rad = float(cfg.get("silk_fn_radius_mm", 8.0))
-        texts = [(MM(t.GetPosition().x), MM(t.GetPosition().y))
+        texts = [(MM(t.GetPosition().x), MM(t.GetPosition().y),
+                  t.GetShownText(True, 0) if hasattr(t, "GetShownText")
+                  else t.GetText())
                  for t in board.GetDrawings()
                  if t.GetClass() == "PCB_TEXT" and t.GetLayer() in SILKS]
-        unlabeled = []
+        fam = []
         for f in board.GetFootprints():
-            r = f.GetReference()
-            if not pat.match(r):
+            if not pat.match(f.GetReference()):
                 continue
-            fx, fy = MM(f.GetPosition().x), MM(f.GetPosition().y)
             bb = f.GetBoundingBox(False, False)
             # search radius scales with the part: big connectors get their
             # label near an edge of the body, not the centroid
-            eff = rad + math.hypot(MM(bb.GetWidth()), MM(bb.GetHeight())) / 2
-            if not any(math.hypot(tx - fx, ty - fy) < eff for tx, ty in texts):
+            fam.append((f.GetReference(),
+                        MM(f.GetPosition().x), MM(f.GetPosition().y),
+                        rad + math.hypot(MM(bb.GetWidth()),
+                                         MM(bb.GetHeight())) / 2))
+        unlabeled, misowned, leads = [], [], []
+        for r, fx, fy, eff in fam:
+            near = [(math.hypot(tx - fx, ty - fy), tx, ty, txt)
+                    for tx, ty, txt in texts
+                    if math.hypot(tx - fx, ty - fy) < eff]
+            if not near:
                 unlabeled.append(r)
+                continue
+            best = None      # (lead, dist, text) over texts THIS part owns
+            stolen = []
+            for d, tx, ty, txt in sorted(near):
+                rival = sorted((math.hypot(tx - ox, ty - oy), orf)
+                               for orf, ox, oy, _e in fam if orf != r)
+                # a one-member family owns everything nearby by default; the
+                # lead is capped so the report carries a number and not `inf`
+                rd, rref = rival[0] if rival else (d + 99.9, "no rival")
+                if rd < d:
+                    stolen.append(f"{r}: silk {txt[:22]!r} is {d:.2f}mm from "
+                                  f"{r} but {rd:.2f}mm from {rref}")
+                elif best is None or (rd - d) > best[0]:
+                    best = (rd - d, d, txt)
+            if best is None:
+                misowned.append(stolen[0] if stolen else
+                                f"{r}: no owned silk text")
+            else:
+                leads.append((best[0], f"{r} owns {best[2][:22]!r} by "
+                                       f"{best[0]:.2f}mm"))
+        thinnest = min(leads)[1] if leads else "nothing"
         grade("P-SILK-FN", not unlabeled,
-              "every connector/fuse/TP has functional silk nearby",
-              f"no functional silk text within {rad}mm of: {unlabeled[:10]}")
+              f"every connector/fuse/TP has functional silk nearby — "
+              f"{len(fam)} in the {pat.pattern!r} family graded",
+              f"no functional silk text within {rad}mm(+body) of: "
+              f"{unlabeled[:10]} ({len(unlabeled)}/{len(fam)})")
+        # ---- OWNERSHIP IS ITS OWN ROW, for P-ADJ-UNREACHED's reason --------
+        # FOUR boards in this fleet hold a P-SILK-FN waiver (cooksense live,
+        # plus lipo3s-tsc / usb-power-3s / xt60-usb-supply-rerun archived), and
+        # every one of them is evidenced on PRESENCE — "these refs carry no
+        # separate legend, here is why". Ownership is a different class, and
+        # measured on the fleet 2026-07-29 it is not a small one: 55 misowned
+        # labels across 11 of 23 boards, including 12 on cooksense's interposer
+        # and 5 on cooksense itself. Reporting them under P-SILK-FN would have
+        # let those four waivers swallow the lot on the first run — canon M4's
+        # inherited-defect pattern, which is what the P-ADJ-UNREACHED split
+        # exists to prevent. It is also separately WAIVABLE on purpose: a
+        # single legend deliberately covering a BANK ("PTC" over ten fuses on
+        # crow-array-central) is a real authoring choice, and it needs to say so
+        # with its measurement rather than be silently graded green.
+        if fam:
+            grade("P-SILK-OWN", not misowned,
+                  f"every {pat.pattern!r} part's nearest legend is ITS OWN — "
+                  f"{len(leads)}/{len(fam)} own a label; thinnest ownership "
+                  f"lead: {thinnest}",
+                  f"LABEL ON THE WRONG PART ({len(misowned)}/{len(fam)}): "
+                  f"{misowned[:6]} — a legend nearer another {pat.pattern!r} "
+                  f"part misdirects whoever plugs the cable in. MOVE it (do "
+                  f"not add a second), or waive with the measured pair of "
+                  f"distances + why it is one legend for a bank")
+        else:
+            rows.append(("P-SILK-OWN", "N-A",
+                         f"no {pat.pattern!r} parts on this board"))
 
         cu = board.GetCopperLayerCount()
         if cu >= 4:
@@ -680,7 +983,8 @@ def main():
             rows.append(("R-THERM", "N-A",
                          "2-layer: no internal plane to sink into"))
     else:
-        for cid in ("P-SILK-REF", "P-SILK-FN", "P-PLANE", "R-PLANE",
+        for cid in ("P-SILK-REF", "P-SILK-FN", "P-SILK-OWN", "P-PLANE",
+                    "R-PLANE",
                     "R-POUR", "R-THERM"):
             rows.append((cid, "N-A", "no board"))
 
