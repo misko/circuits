@@ -201,6 +201,11 @@ components:
   - R_TH1
   - R_TH2
   - R_WDOKPD
+  # v1.7 P0-B: 10k in series into U_EXP.8 ONLY, so one I2C write can no longer
+  # win the WD_OK contention (MCP23017 GPB7 drives 25 mA against U_WD.1's
+  # specified 1.2 mA). Contention falls to 0.323 mA and WD_OK <= 0.114 V,
+  # against RESET V_IL 0.660 V and LVC V_IL 0.800 V.
+  - R_WDOKSER
   - R_WDPETPD
   - TP_3V3
   - TP_5VKR

@@ -467,8 +467,21 @@ prep:
       # note in floorplan.yaml: that keepout cannot be written until the isolated
       # connectors have a legal home.
       iso: [CONTACTOR_C, CONTACTOR_E, CONTACTOR_LOOP]
+      # INT_ALERT PROMOTED from `sig: rest` (2026-07-28, MEASURED), and it belongs
+      # here by this group's OWN definition three lines up — "J_PI to the 595s /
+      # watchdog / EXPANDER". INT_ALERT is J_PI.13 <-> U_EXP.20, the MCP23017
+      # interrupt to the Pi; it was in `rest` by omission, not by a decision.
+      # WHY IT HAD TO MOVE: the v1.7 reroute left it the board's ONLY unconnected
+      # net — 0 copper items, ~34 mm unrouted — and that is the `sig` wave's known
+      # last-net signature, which this file already records ("the 74-net sig wave
+      # still left exactly 1 net stranded per chain (a DIFFERENT net...)").
+      # IT IS NOT A HARD BLOCK, and that is measured rather than hoped: the SEALED
+      # v1.6 board routes this same net with 19 copper items. So the net is
+      # routable and the fix is to stop asking the most-congested wave to place it
+      # last. Same remedy, same justification, as the ESTOP_RAW/MODE_RAW/DOOR_RAW,
+      # DECU_G1_RAW/DECD_G1_RAW and ESTOP_NI/MODE_NI/DOOR_NI promotions above.
       pi: [HOST_AUTH, WD_PET, MCU_RELAY_ENABLE, KEY_CLOCK, KEY_LATCH,
-           KEY_RESET_N, KEY_DATA]
+           KEY_RESET_N, KEY_DATA, INT_ALERT]
       # keypad-iso domain: routes WITHIN the north band (User.3 keepout open north)
       keypad: [KP_U1, KP_U2, KP_U3, KP_U4, KP_U5, KP_U6, KP_D1, KP_D2, KP_D3,
                KP_D4, U_SEL_BUS, D_SEL_BUS, RKEY_MID, RSTOP_MID]
@@ -768,8 +781,23 @@ stitch:
       # centre, the nearest of 160 sites where BOTH the via site and the whole
       # stub path are clear — and a via there. This is the U_EFUSE.4 pattern
       # (segments, not vias), applied to a plane pad the pour could not reach.
+      # WIDTH 0.25 -> 0.30 (2026-07-28). 0.25 was inherited from the U_EFUSE.4
+      # stub pattern, but that one is on 5V_RPP, which carries an EVIDENCED
+      # scoped floor (`efuse_padentry`) precisely because a 0.5 mm-pitch WSON
+      # pad entry cannot take 0.5 mm. 3V3 has no such exception: it is PWR_3V3,
+      # whose rule `PWR_3V3_width` floors at 0.300, so 0.25 fails DRC by
+      # 0.05 mm at (65.862,78.950) — measured, 1 violation.
+      # WIDENING IS THE RIGHT FIX HERE, NOT A WAIVER, AND THE ROOM WAS MEASURED
+      # RATHER THAN ASSUMED (the 160-site scan that chose this spot was run at
+      # 0.25, so it did not answer this): nearest FOREIGN F.Cu copper to the stub
+      # centreline is 0.6157 mm (TC_POS track; then TC_CS_N at 0.6350 and its
+      # U_TC.9 pad at 0.6411). At 0.30 the centreline-to-edge gap is ~0.466 mm
+      # against a 0.13 mm DRU floor — 3.6x margin, and 0.30 still sits inside the
+      # MAX31856's 0.400 mm-wide pad with 0.05 mm each side. Copying the 5V_RPP
+      # waiver onto a net that does not need it would have been an inherited
+      # defect (canon M4).
       - {net: 3V3, pin: U_TC.8,
-         segments: [{layer: F.Cu, width: 0.25, pts: [[65.8625, 78.950], [66.162, 78.900]]}],
+         segments: [{layer: F.Cu, width: 0.30, pts: [[65.8625, 78.950], [66.162, 78.900]]}],
          vias: [[66.162, 78.900]]}
       - {net: 3V3, pin: U_LATCHB.5,   vias: [[182.838, 73.350]]}
       - {net: GND, pin: R_RAENRHEPD.2, vias: [[128.365, 91.605]]}   # RE-DERIVED on the promoted race-3 chain (task#21, 2026-07-25): the old y91.350 site was blocked. MEASURED over the whole pad on a 0.02mm grid with the pass's own primitive (pcb_toolkit.via_site_ok, via 0.25/0.15, clearance 0.13): 225 of 300 on-pad points legal, and this one survives a via-growth sweep to 0.69mm — 0.22mm of margin beyond the clearance floor, the best on the pad. No blocking copper within 0.45mm on either layer.

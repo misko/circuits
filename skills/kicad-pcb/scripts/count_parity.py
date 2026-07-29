@@ -67,8 +67,47 @@ def listing(items, cap=8):
     return f"{items[:cap]} ... +{len(items) - cap} more, {len(items)} TOTAL"
 
 
+def pick(paths, want, kind):
+    """Choose ONE artifact, and refuse to guess on a multi-board project.
+
+    THE DEFECT THIS REPLACES (measured 2026-07-28, smc0985-cooksense): every
+    caller site did `paths[0]` on an UNSORTED glob. On the fleet's one
+    multi-board project that silently graded `interposer.kicad_pcb`,
+    `interposer.kicad_sch` and `interposer.net` against COOKSENSE's manifest and
+    reported `S-COUNT FAIL: 0/4` — 3 of the 4 "disagreements" were the tool
+    reading a different board, not the board disagreeing with itself. `--board`
+    was accepted on the command line and silently ignored, because this script
+    never parsed anything past argv[1].
+
+    Silence is the part that had to go. An unsorted `[0]` is not even
+    deterministic between runs, so a green result could not be trusted either.
+    """
+    paths = sorted(paths)
+    if not paths:
+        return None
+    if want:
+        hit = [p for p in paths if Path(p).stem == want]
+        if not hit:
+            sys.exit(f"count_parity: --board {want!r} matches no {kind}; "
+                     f"have {[Path(p).stem for p in paths]}")
+        return hit[0]
+    if len(paths) > 1:
+        sys.exit(f"count_parity: {len(paths)} {kind} artifacts and no --board: "
+                 f"{[Path(p).stem for p in paths]}. This project builds more "
+                 f"than one board; name the one to grade with --board <stem>. "
+                 f"(Refusing to pick one silently — that is the defect this "
+                 f"check exists to catch.)")
+    return paths[0]
+
+
 def main():
     proj = Path(sys.argv[1]).resolve()
+    want = ""
+    if "--board" in sys.argv:
+        i = sys.argv.index("--board")
+        if i + 1 >= len(sys.argv):
+            sys.exit("count_parity: --board needs a board stem")
+        want = sys.argv[i + 1]
     ts = proj / "03_tscircuit"
     sources = {}
     origin = {}          # source kind -> the PATH it was actually read from
@@ -90,32 +129,32 @@ def main():
             origin["circuit.json"] = str(cj)
             break
 
-    schs = glob.glob(str(ts / "kicad" / "*.kicad_sch"))
-    if schs:
-        txt = Path(schs[0]).read_text()
+    sch = pick(glob.glob(str(ts / "kicad" / "*.kicad_sch")), want, "kicad_sch")
+    if sch:
+        txt = Path(sch).read_text()
         refs = set()
         for m in re.finditer(
                 r'\(symbol \(lib_id[^\n]*\n.{0,1200}?\(property "Reference" "([^"]+)"',
                 txt, re.S):
             refs.add(m.group(1))
         sources["kicad_sch"] = keep(refs)
-        origin["kicad_sch"] = schs[0]
+        origin["kicad_sch"] = sch
 
-    boards = glob.glob(str(proj / "04_kicad" / "*.kicad_pcb"))
-    if boards:
-        txt = Path(boards[0]).read_text(errors="replace")
+    board = pick(glob.glob(str(proj / "04_kicad" / "*.kicad_pcb")), want, "board")
+    if board:
+        txt = Path(board).read_text(errors="replace")
         refs = set(re.findall(
             r'\(property "Reference" "([^"]+)"', txt))
         sources["board"] = keep(refs)
-        origin["board"] = boards[0]
+        origin["board"] = board
 
-    nets = (glob.glob(str(proj / "06_build" / "netlists" / "*.net"))
-            + glob.glob(str(proj / "06_build" / "*.net")))
-    if nets:
-        txt = Path(nets[0]).read_text(errors="replace")
+    net = pick(glob.glob(str(proj / "06_build" / "netlists" / "*.net"))
+               + glob.glob(str(proj / "06_build" / "*.net")), want, "netlist")
+    if net:
+        txt = Path(net).read_text(errors="replace")
         sources["netlist"] = keep(set(re.findall(
             r'\(comp\s+\(ref "?([^")\s]+)', txt)))
-        origin["netlist"] = nets[0]
+        origin["netlist"] = net
 
     # G-INPUT: name every artifact actually read, by PATH. A glob that picked
     # the wrong one of several files is invisible otherwise.

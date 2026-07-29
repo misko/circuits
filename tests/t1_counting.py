@@ -163,5 +163,81 @@ def t_pre_names_padmap():
     contains(r.out, "1/1", "carries an N/M denominator")
 
 
+def two_board_project():
+    """A project that builds TWO boards, like smc0985-cooksense. The manifest
+    describes board A; board B is a DIFFERENT, disjoint set of refdes."""
+    d = project()                                    # manifest/cj/sch/board = REFS
+    ts = d / "03_tscircuit"
+    other = ["X9", "Y9"]
+    (ts / "kicad" / "other.kicad_sch").write_text(sch_text(other))
+    (d / "04_kicad" / "other.kicad_pcb").write_text("".join(
+        f'(footprint (property "Reference" "{r}"))\n' for r in other))
+    return d
+
+
+@test("count_parity REFUSES to guess a board when the project builds two",
+      kind="known_bad")
+def t_multiboard_ambiguity_is_refused():
+    """THE INCIDENT (2026-07-28, smc0985-cooksense v1.7): every artifact was
+    chosen with `paths[0]` off an UNSORTED glob, and `--board` was accepted on
+    the command line and silently IGNORED — the script never parsed past
+    argv[1]. So S-COUNT graded `interposer.kicad_pcb`, `interposer.kicad_sch`
+    and `interposer.net` against COOKSENSE's manifest and reported
+    `S-COUNT FAIL: 0/4`. Three of those four "disagreements" were the tool
+    reading a different board.
+
+    Both halves were bad: a WRONG red here would have sent someone hunting 234
+    phantom refdes, and an unsorted `[0]` is not deterministic between runs, so
+    a GREEN could not have been trusted either.
+
+    RED-VERIFIED 2026-07-28 by git-swapping the pre-fix count_parity.py back in.
+    Stated precisely, because the obvious guess is wrong: pre-fix it does NOT
+    exit 0 here. It grades one board against the other's manifest, so it exits 1
+    with a phantom symmetric difference — a red for entirely the wrong reason.
+    This test therefore fails pre-fix on the `--board` assertion, not on
+    must_fail: `tells the caller how to disambiguate does not contain '--board'`.
+    That distinction is the whole point — the old failure mode was a CONFIDENT
+    WRONG RED, which is worse than a green, and `must_fail` alone cannot tell
+    the two apart.
+    """
+    d = two_board_project()
+    r = must_fail(run([KPY, COUNT, d]), "count_parity on a 2-board project")
+    contains(r.out, "--board", "tells the caller how to disambiguate")
+    for stem in ("board", "other"):
+        contains(r.out, stem, f"names candidate {stem!r} rather than picking one")
+
+
+@test("count_parity --board selects that board, and the OTHER board's refdes "
+      "never enter the comparison")
+def t_board_selects():
+    """The positive half: with --board named, every source resolves to the SAME
+    board and the disjoint second board is invisible. Without this the guard
+    above could be satisfied by a tool that simply always refuses."""
+    d = two_board_project()
+    r = must_pass(run([KPY, COUNT, d, "--board", "board"]),
+                  "count_parity --board board")
+    contains(r.out, "4/4", "all four sources agree once the board is named")
+    check("X9" not in r.out and "Y9" not in r.out,
+          f"the other board's refdes leaked into the comparison:\n{r.out}")
+
+
+@test("count_parity FAILS a --board that matches nothing, naming what exists",
+      kind="known_bad")
+def t_board_typo_is_refused():
+    """A typo must not silently fall back to `[0]` — that would reintroduce the
+    defect through the door marked 'convenience'.
+
+    RED-VERIFIED 2026-07-28 (git-swap): pre-fix the flag is ignored entirely, so
+    the run is indistinguishable from the no-flag case — it exits 1 from the
+    wrong-board mismatch while never quoting the name it failed to match. The
+    test goes red on `contains('nosuchboard')`, which is the assertion that
+    separates 'refused the typo' from 'happened to fail anyway'."""
+    d = two_board_project()
+    r = must_fail(run([KPY, COUNT, d, "--board", "nosuchboard"]),
+                  "count_parity with a bogus --board")
+    contains(r.out, "nosuchboard", "quotes the name it could not match")
+    contains(r.out, "board", "lists the stems that DO exist")
+
+
 if __name__ == "__main__":
     sys.exit(main())
