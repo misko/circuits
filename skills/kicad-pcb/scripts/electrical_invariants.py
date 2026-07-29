@@ -462,7 +462,10 @@ def load_invariants(path):
     data = yaml.safe_load(raw)
     if data is None:
         return []
+    doc_supplies = {}
     if isinstance(data, dict):
+        doc_supplies = {str(k): float(v)
+                        for k, v in (data.get("supplies") or {}).items()}
         invs = data.get("invariants")
         if invs is None:
             raise LoadError("electrical_invariants.yaml has no top-level "
@@ -475,7 +478,8 @@ def load_invariants(path):
     if not isinstance(invs, list):
         raise LoadError("'invariants:' must be a list")
 
-    kinds = {"pin_on_net", "series_chain", "net_has_part", "part_value"}
+    kinds = {"pin_on_net", "series_chain", "net_has_part", "part_value",
+             "node_level"}          # node_level: ADR-0007
     for i, inv in enumerate(invs):
         if not isinstance(inv, dict):
             raise LoadError(f"invariant #{i} is not a mapping")
@@ -492,6 +496,8 @@ def load_invariants(path):
             raise LoadError(f"invariant #{i} (assert={kind}, adr={inv['adr']}) "
                             f"is missing a substantive 'why:'")
         inv["_adr"] = _norm_adr(inv["adr"])
+        inv["_supplies"] = doc_supplies          # ADR-0007 node_level
+        inv.setdefault("_parts_dir", None)
         if kind == "pin_on_net":
             for f in ("pin", "net"):
                 if not inv.get(f):
@@ -527,6 +533,32 @@ def load_invariants(path):
             if "tolerance_pct" in inv and "equals" not in inv:
                 raise LoadError(f"invariant #{i} part_value: tolerance_pct is "
                                 f"only meaningful with equals:")
+        elif kind == "node_level":
+            # ADR-0007. The kind that asserts the OUTCOME rather than the
+            # mechanism: E-INV once passed 136/136 while asserting that a
+            # divider's RESISTORS EXISTED, on a node sitting at 0.833 V against
+            # a 2.640 V threshold. Existence was true; the claim was dead.
+            for f in ("net", "receiver", "must_be"):
+                if not inv.get(f):
+                    raise LoadError(f"invariant #{i} node_level missing '{f}:'")
+            if inv["must_be"] not in ("logic_high", "logic_low"):
+                raise LoadError(f"invariant #{i} node_level must_be must be "
+                                f"'logic_high' or 'logic_low', got "
+                                f"{inv['must_be']!r}")
+            ds = inv.get("driver_state", "released")
+            if ds not in ("released", "contended"):
+                raise LoadError(f"invariant #{i} node_level driver_state must "
+                                f"be 'released' or 'contended', got {ds!r}")
+            if ds == "contended":
+                for f in ("aggressor", "defender"):
+                    if not inv.get(f):
+                        raise LoadError(
+                            f"invariant #{i} node_level driver_state:contended "
+                            f"needs '{f}:' — a contention verdict that does not "
+                            f"name BOTH drivers is not reproducible")
+            if "." not in str(inv["receiver"]):
+                raise LoadError(f"invariant #{i} node_level receiver must be "
+                                f"REF.PIN, got {inv['receiver']!r}")
     return invs
 
 
@@ -666,11 +698,192 @@ _GRADERS = {
 }
 
 
+
+# ---------------------------------------------------------------- node_level
+# ADR-0007. Grade the LEVEL a node actually reaches against the threshold of the
+# pin that reads it. This is NOT SPICE and must not be read as one: it resolves
+# a series-resistive path to each rail from DATASHEET CORNER values and answers
+# "is this level GUARANTEED by the published limits", which is the question the
+# three findings that motivated it all turned on. Where a fact is missing it
+# reports UNREACHED rather than assuming one (canon M-COVER).
+
+def _load_part_electrical(parts_dir):
+    """LCSC code -> the dossier's `electrical:` block. The netlist's `value`
+    field carries the LCSC on this pipeline, and `sourcing.lcsc` in the dossier
+    is the other half of the join."""
+    out = {}
+    if not parts_dir or not Path(parts_dir).is_dir() or yaml is None:
+        return out
+    for py in sorted(Path(parts_dir).glob("*/part.yaml")):
+        try:
+            d = yaml.safe_load(py.read_text()) or {}
+        except Exception:
+            continue
+        el = d.get("electrical")
+        if not el:
+            continue
+        codes = []
+        src = d.get("sourcing") or {}
+        if src.get("lcsc"):
+            codes.append(str(src["lcsc"]))
+        for a in (src.get("alternates") or []):
+            codes.append(str(a))
+        for c in codes:
+            out[c] = {"mpn": d.get("mpn", py.parent.name), "el": el}
+    return out
+
+
+def _pin_facts(elec, code, pin):
+    """Facts for one pin: explicit entry, else the part's defaults."""
+    ent = elec.get(code)
+    if not ent:
+        return None, None
+    el = ent["el"]
+    pins = {str(k): v for k, v in (el.get("pins") or {}).items()}
+    facts = dict(el.get("defaults") or {})
+    facts.update(pins.get(str(pin)) or {})
+    return ent["mpn"], facts
+
+
+def _resistive_path(nl, start_net, target_nets, elec, max_depth=6):
+    """Sum series resistance from `start_net` to the nearest of `target_nets`,
+    walking ONLY through 2-pin parts that carry a decodable value. Returns
+    (ohms, path) or (None, reason). Refuses on branching rather than guessing —
+    a wrong number here would be worse than no number."""
+    seen = {start_net}
+    frontier = [(start_net, 0.0, [])]
+    for _ in range(max_depth):
+        nxt = []
+        for net, acc, path in frontier:
+            for (ref, pin, _f) in nl.pins_of_net.get(net, []):
+                pins = nl.part_pins.get(ref) or {}
+                if len(pins) != 2:
+                    continue
+                # RESISTORS ONLY. The first run of this walker traversed
+                # `CE1=220u` — a 220 uF bulk capacitor — because parse_si
+                # happily decodes "220u" and CE1 is a 2-pin part, and it
+                # reported a confident WRONG path. A DC series path may only
+                # go through resistance.
+                if refdes_prefix(ref) not in TYPE_PREFIX["resistor"]:
+                    continue
+                val = parse_si(nl.part_value.get(ref, ""))
+                if val is None:
+                    continue
+                other = [p for p in pins if str(p) != str(pin)]
+                if len(other) != 1:
+                    continue
+                onet = pins[other[0]].get("net")
+                if not onet or onet in seen:
+                    continue
+                if onet in target_nets:
+                    return acc + val, path + [f"{ref}={fmt_si(val)}"]
+                seen.add(onet)
+                nxt.append((onet, acc + val, path + [f"{ref}={fmt_si(val)}"]))
+        frontier = nxt
+        if not frontier:
+            break
+    return None, "no series-resistive path found within depth %d" % max_depth
+
+
+def _grade_node_level(inv, nl, parts_dir=None, supplies=None):
+    adr = inv["_adr"]
+    net = str(inv["net"])
+    recv = str(inv["receiver"])
+    rref, _, rpin = recv.partition(".")
+    want = inv["must_be"]
+    ds = inv.get("driver_state", "released")
+    supplies = supplies or {}
+
+    if net not in nl.pins_of_net:
+        return (f"node_level (ADR {adr}): net {net!r} is not in the netlist")
+    if (rref, rpin) not in nl.net_of_pin:
+        return (f"node_level (ADR {adr}): receiver {recv} is not in the netlist")
+    if nl.net_of_pin[(rref, rpin)] != net:
+        return (f"node_level (ADR {adr}): receiver {recv} is on net "
+                f"{nl.net_of_pin[(rref, rpin)]!r}, not the asserted {net!r}")
+
+    elec = _load_part_electrical(parts_dir)
+    rcode = nl.part_value.get(rref, "")
+    rmpn, rf = _pin_facts(elec, rcode, rpin)
+    if not rf or ("v_ih_min" not in rf and "v_ih_min_frac_vdd" not in rf):
+        return (f"UNREACHED node_level (ADR {adr}): receiver {recv} "
+                f"(code {rcode!r}) declares no input thresholds — add an "
+                f"`electrical:` block to its 02_parts dossier. Reported "
+                f"UNREACHED, not passed (canon M-COVER)")
+
+    vdd = float(rf.get("vdd", supplies.get(rf.get("vdd_net", "3V3"), 3.3)))
+    vih = float(rf["v_ih_min"]) if "v_ih_min" in rf else vdd * float(rf["v_ih_min_frac_vdd"])
+    vil = float(rf["v_il_max"]) if "v_il_max" in rf else vdd * float(rf.get("v_il_max_frac_vdd", 0.2))
+
+    if ds == "released":
+        gnd = {n for n in nl.pins_of_net if n.upper() in ("GND", "AGND", "DGND")}
+        rails = {n: v for n, v in supplies.items() if n in nl.pins_of_net}
+        if not rails:
+            return (f"UNREACHED node_level (ADR {adr}): no supply rail voltages "
+                    f"declared — add `supplies:` to the invariants file")
+        r_dn, p_dn = _resistive_path(nl, net, gnd, elec)
+        best = None
+        for rail, vsup in rails.items():
+            r_up, p_up = _resistive_path(nl, net, {rail}, elec)
+            if isinstance(r_up, float) and (best is None or r_up < best[0]):
+                best = (r_up, rail, float(vsup), p_up)
+        if best is None:
+            return (f"UNREACHED node_level (ADR {adr}): no series-RESISTIVE "
+                    f"path from {net!r} to any declared rail. A DC path may "
+                    f"not run through a capacitor or an inductor, so this is "
+                    f"refused rather than guessed")
+        r_up, rail, vsup, p_up = best
+        if isinstance(r_dn, float):
+            v = vsup * r_dn / (r_up + r_dn)
+            detail = (f"{vsup:.3f} V via {rail} through {fmt_si(r_up)} "
+                      f"[{' + '.join(p_up)}] over {fmt_si(r_dn)} "
+                      f"[{' + '.join(p_dn)}] -> {v:.3f} V")
+        else:
+            # No resistive path to GND: with every open-drain driver released
+            # the node is simply pulled to the rail. This is the ordinary
+            # pull-up case and must NOT be reported as unresolvable.
+            v = vsup
+            detail = (f"{vsup:.3f} V via {rail} through {fmt_si(r_up)} "
+                      f"[{' + '.join(p_up)}], no resistive path to GND "
+                      f"-> pulled to the rail, {v:.3f} V")
+    else:
+        acode = nl.part_value.get(str(inv["aggressor"]).split(".")[0], "")
+        dcode = nl.part_value.get(str(inv["defender"]).split(".")[0], "")
+        _, af = _pin_facts(elec, acode, str(inv["aggressor"]).partition(".")[2])
+        _, df = _pin_facts(elec, dcode, str(inv["defender"]).partition(".")[2])
+        if not af or not df or "r_on_ohm_max" not in (af or {}) or "r_on_ohm_max" not in (df or {}):
+            return (f"UNREACHED node_level (ADR {adr}): contention needs "
+                    f"`r_on_ohm_max` on BOTH {inv['aggressor']} and "
+                    f"{inv['defender']}; one or both dossiers lack it")
+        ra, rd = float(af["r_on_ohm_max"]), float(df["r_on_ohm_max"])
+        vsup = float(af.get("vdd", vdd))
+        v = vsup * rd / (ra + rd)
+        detail = (f"aggressor {inv['aggressor']} r_on<={fmt_si(ra)} vs defender "
+                  f"{inv['defender']} r_on<={fmt_si(rd)} at {vsup:.3f} V "
+                  f"-> {v:.3f} V")
+
+    ok = (v >= vih) if want == "logic_high" else (v <= vil)
+    if ok:
+        return None
+    thr = f"V_IH(min) {vih:.3f} V" if want == "logic_high" else f"V_IL(max) {vil:.3f} V"
+    return (f"node_level (ADR {adr}): {net} reads {v:.3f} V at {recv}, "
+            f"required {want.replace('_', ' ')} against {thr} — {detail}. "
+            f"{inv.get('why', '')[:70]}")
+
+
+_GRADERS["node_level"] = _grade_node_level     # ADR-0007; registered here
+# because the dict literal above is defined before the grader body.
+
+
 def check_invariants(nl, invs):
     """Grade all invariants; return list of failure strings (empty = all pass)."""
     fails = []
     for inv in invs:
-        f = _GRADERS[inv["assert"]](inv, nl)
+        g = _GRADERS[inv["assert"]]
+        if inv["assert"] == "node_level":
+            f = g(inv, nl, inv.get("_parts_dir"), inv.get("_supplies"))
+        else:
+            f = g(inv, nl)
         if f:
             fails.append(f)
     return fails
@@ -848,6 +1061,9 @@ def main(argv=None):
     except LoadError as e:
         print(f"E-INV LOAD ERROR: {e}")
         return 2
+    for _iv in invs:                       # ADR-0007: dossiers hold the facts
+        if _iv.get("_parts_dir") is None:
+            _iv["_parts_dir"] = str(Path(proj) / "02_parts")
     if not invs:
         print("E-INV N-A: electrical_invariants.yaml has no invariants")
         return 0

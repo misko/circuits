@@ -668,5 +668,129 @@ def t_adr_coverage_denominator():
              "names the artifact it graded (G-INPUT)")
 
 
+
+# ==================================== node_level (E-INV, ADR-0007, 2026-07-29)
+# THE INCIDENT, and it is mine. cooksense v1.7 added a divider to take U_EXP.1
+# off a 5 V node, sized as if EFUSE_FLT_N were a stiff 5 V source. It is
+# OPEN-DRAIN behind R_PG = 100k, so the real chain is 100k + 10k over 22k and
+# the pin sat at 0.833 V against a 2.640 V threshold: the eFuse fault readback
+# was DEAD. E-INV passed 136/136 throughout, because the assertions said the
+# divider RESISTORS EXISTED at the right values. Existence was true; the claim
+# the divider was written to guarantee was false.
+#
+# `node_level` asserts the OUTCOME instead: the level the node actually reaches,
+# against the threshold of the pin that reads it.
+
+def _nl_comps(nets, values):
+    """netlist() + the (comp ...) value records node_level needs."""
+    body = netlist(nets)
+    comps = "".join(f'(comp (ref "{r}") (value "{v}"))' for r, v in values.items())
+    return body.replace("(nets ", "(components " + comps + ") (nets ", 1)
+
+
+def _parts(d, code, el):
+    pd = d / "02_parts" / "PART"
+    pd.mkdir(parents=True, exist_ok=True)
+    (pd / "part.yaml").write_text(
+        "mpn: PART\nsourcing:\n  lcsc: %s\n%s" % (code, el))
+
+
+# EFUSE_FLT_N --R_PG 100k--> V5   and  --R_T 10k--> TAP --R_B 22k--> GND
+# U_RX.1 reads TAP.
+NL_NETS = {
+    "V5":       [("R_PG", "2", "p2")],
+    "EFUSE_N":  [("R_PG", "1", "p1"), ("R_T", "1", "p1")],
+    "TAP":      [("R_T", "2", "p2"), ("R_B", "1", "p1"), ("U_RX", "1", "GPB0")],
+    "GND":      [("R_B", "2", "p2")],
+}
+NL_EL = """electrical:
+  vdd: 3.3
+  pins:
+    "1": {kind: input, v_ih_min_frac_vdd: 0.8, v_il_max_frac_vdd: 0.2}
+"""
+NL_INV = """\
+supplies: {V5: 5.0}
+invariants:
+  - assert: node_level
+    net: TAP
+    receiver: U_RX.1
+    driver_state: released
+    must_be: logic_high
+    adr: "0007"
+    why: "the readback must reach a valid logic high or the flag is dead"
+"""
+
+
+def _nl_project(values, el=NL_EL):
+    d = project(net_text=_nl_comps(NL_NETS, values), inv_text=NL_INV)
+    _parts(d, "CRX", el)
+    return d
+
+
+@test("E-INV node_level FAILS THE INCIDENT: a divider behind a 100k pull-up "
+      "reads 0.833 V against a 2.640 V threshold", kind="known_bad")
+def t_node_level_incident():
+    """RED-VERIFIED: this is the exact network cooksense v1.7 shipped, and the
+    three part_value/pin_on_net assertions that shipped beside it all PASS on
+    it — which is why the defect survived to a pre-seal review battery."""
+    d = _nl_project({"R_PG": "100k", "R_T": "10k", "R_B": "22k", "U_RX": "CRX"})
+    r = must_fail(einv(d), "node_level on the shipped divider")
+    contains(r.out, "0.833", "reports the level it computed")
+    contains(r.out, "2.640", "reports the threshold it graded against")
+    contains(r.out, "R_PG=100k", "names the pull-up that makes the chain 132k")
+
+
+@test("E-INV node_level PASSES the recommended fix: pull-up on 3V3, no divider")
+def t_node_level_fixed():
+    """The other half of discrimination. A check that only ever fails ranks
+    nothing: moving the pull-up to a 3.3 V rail and deleting the divider puts
+    the pin at the rail, and node_level must say so."""
+    nets = {"V3": [("R_PG", "2", "p2")],
+            "TAP": [("R_PG", "1", "p1"), ("U_RX", "1", "GPB0")],
+            "GND": [("R_B", "2", "p2"), ("R_B", "1", "p1")]}
+    inv = NL_INV.replace("supplies: {V5: 5.0}", "supplies: {V3: 3.3}")
+    d = project(net_text=_nl_comps(nets, {"R_PG": "100k", "R_B": "1k",
+                                          "U_RX": "CRX"}), inv_text=inv)
+    _parts(d, "CRX", NL_EL)
+    must_pass(einv(d), "node_level on the recommended fix")
+
+
+@test("E-INV node_level REFUSES to reach a rail through a CAPACITOR",
+      kind="known_bad")
+def t_node_level_no_cap_path():
+    """MY OWN BUG, caught on the first real run against cooksense and fixtured
+    so it cannot come back. The walker traversed `CE1=220u` — a 220 uF bulk
+    capacitor — because parse_si decodes "220u" and CE1 is a 2-pin part, and it
+    printed a CONFIDENT WRONG PATH (2.500 V via R_FLTDIVB + CE1). A DC series
+    path may only run through resistance.
+
+    Here the ONLY route to a rail is through C_UP, so the honest verdict is
+    UNREACHED. Pre-fix the walker crosses the cap and computes a level, which
+    is the failure this fixture pins: not a wrong number, but ANY number."""
+    nets = {"V5":  [("C_UP", "2", "p2")],
+            "TAP": [("C_UP", "1", "p1"), ("R_B", "1", "p1"), ("U_RX", "1", "GPB0")],
+            "GND": [("R_B", "2", "p2")]}
+    d = project(net_text=_nl_comps(nets, {"C_UP": "220u", "R_B": "22k",
+                                          "U_RX": "CRX"}), inv_text=NL_INV)
+    _parts(d, "CRX", NL_EL)
+    r = must_fail(einv(d), "node_level with only a capacitive path to a rail")
+    contains(r.out, "UNREACHED", "refuses rather than crossing the capacitor")
+    check("C_UP" not in r.out,
+          f"the capacitor must not appear in a DC path:\n{r.out}")
+
+
+@test("E-INV node_level reports UNREACHED when the receiver declares no "
+      "thresholds — it does not assume one", kind="known_bad")
+def t_node_level_unreached():
+    """canon M-COVER. A missing datasheet fact must be NAMED, not defaulted:
+    a check that invents a threshold is worse than one that admits it cannot
+    grade."""
+    d = _nl_project({"R_PG": "100k", "R_T": "10k", "R_B": "22k", "U_RX": "CRX"},
+                    el="")                      # dossier with no electrical:
+    r = must_fail(einv(d), "node_level with no receiver thresholds")
+    contains(r.out, "UNREACHED", "says it could not grade")
+    contains(r.out, "electrical", "names the block that would fix it")
+
+
 if __name__ == "__main__":
     sys.exit(main())

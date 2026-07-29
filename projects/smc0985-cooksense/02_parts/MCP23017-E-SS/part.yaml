@@ -83,3 +83,16 @@ sourcing:
     C47023 = MCP23017-E/SO (SOIC-28W, 1.27mm pitch): same die and pinout but needs a
     SOIC-28W footprint swap (and eases the 0.65mm escape wall). The SPI MCP23S17 is
     NOT a substitute — pins 11-14 (CS/SCK/SI/SO) differ from the I2C part."
+
+# ADR-0007 — executable electrical facts. Prose in a dossier cannot be graded;
+# these are the numbers `node_level` resolves a logic level against.
+electrical:
+  defaults: {drive: push_pull, r_on_ohm_max: 233}   # V_OH >= VDD-0.7 at -3.0 mA (DS20001952C D090)
+  vdd: 3.3
+  pins:
+    "1":  {kind: input, v_ih_min_frac_vdd: 0.8, v_il_max_frac_vdd: 0.2}   # GPB0
+    "2":  {kind: io, v_ih_min_frac_vdd: 0.8, v_il_max_frac_vdd: 0.2}
+    "3":  {kind: io, v_ih_min_frac_vdd: 0.8, v_il_max_frac_vdd: 0.2}
+    "4":  {kind: io, v_ih_min_frac_vdd: 0.8, v_il_max_frac_vdd: 0.2}
+    "5":  {kind: io, v_ih_min_frac_vdd: 0.8, v_il_max_frac_vdd: 0.2}
+    "6":  {kind: io, v_ih_min_frac_vdd: 0.8, v_il_max_frac_vdd: 0.2}

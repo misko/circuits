@@ -1,3 +1,5 @@
+supplies: {5V_PROTECTED: 5.0, N3V3: 3.3}
+
 # cooksense ELECTRICAL-INVARIANTS (canon E-INV, phase E1 = netlist-only).
 #
 # Design INTENT made EXECUTABLE against the exported netlist. Every other gate proves
@@ -838,3 +840,14 @@ invariants:
     net: EFUSE_FLT_N
     adr: "0001"
     why: "and the TEST POINT stays on the RAW node, deliberately. Moving TP_PGOOD onto the divided tap would make a probe read 3.4 V for a healthy 5 V flag and 0 V for a fault — the same two states, at levels that match neither the eFuse datasheet nor the ORDER_README bring-up table. The instrument must see the real node"
+
+  - assert: node_level
+    net: EFUSE_FLT_DIV
+    receiver: U_EXP.1
+    driver_state: released
+    must_be: logic_high
+    adr: "0022"
+    why: >-
+      With the eFuse released, U_EXP.1 must read a valid logic HIGH or the
+      power-good readback is dead. The v1.7 divider was sized as if
+      EFUSE_FLT_N were a stiff 5 V source; it is open-drain behind R_PG 100k.

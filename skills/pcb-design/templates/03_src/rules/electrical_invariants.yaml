@@ -109,6 +109,19 @@ label_survival: {}
 #             "7": "P5VA_{n}", "8": GND}
 #      unconnected: ["9", "10", "11", "12"]
 
+# node_level (ADR-0007) — assert the OUTCOME, not the mechanism. Needs the
+# supplies map above and an `electrical:` block on the RECEIVER's dossier.
+#
+# supplies: {5V_PROTECTED: 5.0, N3V3: 3.3}
+#
+#  - assert: node_level
+#    net: EFUSE_FLT_DIV
+#    receiver: U_EXP.1          # the pin whose thresholds decide the verdict
+#    driver_state: released     # open-drain drivers OFF; or `contended`
+#    must_be: logic_high        # + aggressor:/defender: when contended
+#    adr: "0022"
+#    why: "the readback must reach a valid logic high or the flag is dead"
+
 # DEFERRED to E2 (geometric — need footprint/geometry, not just the netlist):
 #   clamp_le_rating  — a clamp/TVS standoff <= the rail it protects
 #   kelvin_within    — a sense pair within N mm of the element it senses
