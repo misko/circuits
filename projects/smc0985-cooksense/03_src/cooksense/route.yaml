@@ -243,6 +243,19 @@ prep:
       # cluster already uses and none of those refused.
       - {x0: 121.96, y0: 90.95, x1: 123.06, y1: 92.05, layer: User.2} # R_REARMPU.2 3V3@122.51,91.50 (REARM_N pad1@121.49 W)
       - {x0: 56.93, y0: 59.45, x1: 58.03, y1: 60.55, layer: User.2}   # C_DVDT  GND@57.48 via site (EF_DVDT@56.52 W)
+      # v1.7 SEAL PASS (2026-07-28). The reroute that carries R_WDOKSER stranded
+      # FOUR plane pads — GND at R_AND2PD.2 / R_MODEPD.2, 3V3 at R_FAULTPU.2 /
+      # U_LATCHA.5 — the same TRAPPED class as every group above, and the same
+      # remedy: reserve the via site so ANY re-race leaves it clear, then bond it
+      # deterministically in seed_stubs. All four sites were MEASURED on the
+      # post-stitch board with the pass's own primitive (pcb_toolkit.via_site_ok,
+      # via 0.25/0.15, clearance 0.13) over a 21x21 0.03mm on-pad grid: 135 / 125 /
+      # 284 / 183 legal points respectively, and the site taken is the one nearest
+      # the pad centre in each case (three ARE the centre).
+      - {x0: 169.25, y0: 70.11, x1: 170.35, y1: 71.21, layer: User.2}  # R_AND2PD.2  GND@169.800,70.660
+      - {x0: 191.20, y0: 63.35, x1: 192.30, y1: 64.45, layer: User.2}  # R_MODEPD.2  GND@191.750,63.900
+      - {x0: 168.84, y0: 75.40, x1: 169.94, y1: 76.50, layer: User.2}  # R_FAULTPU.2 3V3@169.390,75.950
+      - {x0: 170.29, y0: 72.80, x1: 171.39, y1: 73.90, layer: User.2}  # U_LATCHA.5  3V3@170.838,73.350
       - {x0: 182.47, y0: 69.9, x1: 184.33, y1: 71, layer: User.2} # C_AND3  3V3@183.02 + GND@183.98 (both plane; tight y)
       - {x0: 160.17, y0: 81.65, x1: 162.01, y1: 82.75, layer: User.2} # C_OENAND 3V3@160.72 + GND@161.68 (both plane; whole-cap; re-race future-proof; rect interior clear — SR_OE_N y81.3 N + HOST_AUTH y82.9 S channels open)
       # NEW-v1.2 TRAPPED plane-bond via RESERVATIONS (D-BACK, task#21, 2026-07-24).
@@ -542,6 +555,38 @@ route:
     no_stub_layer_swap: true
     keepout: true
     keepout_layer: User.2
+    # 0.15 -> 0.18 (v1.7 SEAL PASS, 2026-07-28, MEASURED). KRT routed to its
+    # 0.15mm target and TWO INDEPENDENT RACES, six candidates, all landed the
+    # SAME 0.1191mm cross-net gap: ADC_CH4's B.Cu diagonal (58.410,84.9687) ->
+    # (58.021,85.358) against the TH_CAM_A B.Cu stub (59.300,85.400) ->
+    # (58.500,85.400) into R_SER0.1, in the dense MCP3208 filter field. 0.1191 is
+    # BELOW the Default netclass rule (0.1200) and the gate is 0, not "0 real".
+    # The offset is systematic — KRT's own model measured 0.15 where kicad-cli
+    # measures 0.1191, i.e. ~0.031mm optimistic on a 45-degree crossing — so the
+    # fix is to give the router that much headroom rather than re-race a lottery
+    # that has now come up the same way six times. At 0.18 the same artefact
+    # lands at ~0.149. This is the router's SEARCH clearance, not a fab or
+    # netclass floor: nets.yaml still declares 0.12 and DRC still grades 0.12.
+    #
+    # AND 0.18 WAS TOO MUCH, MEASURED (same day, one race): at 0.18 the copper
+    # violations went to ZERO on all three candidates and FIVE routed nets went
+    # UNCONNECTED on all three — the router bought the margin out of coverage.
+    # The shortfall being repaired is 0.0009 mm (0.1191 vs 0.1200), so 0.16 is
+    # the right size of lever: it adds 0.010 mm of headroom, eleven times the
+    # miss, and perturbs the search by a third of what 0.18 did.
+    #   0.15 -> 0 unconnected, 1 clearance at 0.1191   (six candidates, two races)
+    #   0.16 -> 0 clearance,   3 unconnected           (5V_PROTECTED, 5V_RPP, RAIL_EN_B)
+    #   0.18 -> 0 clearance,   5 unconnected           (three candidates)
+    #
+    # AND 0.16 GLOBALLY WAS STILL THE WRONG SHAPE OF FIX. Raising the efuse/pwr/
+    # sig wave effort (ripup 50->120 / none->80 / 120->170) did NOT recover the
+    # three nets, so the cost is structural, not budgetary — and NONE of the three
+    # nets it costs is in the wave that has the problem. The clearance miss is
+    # entirely inside the `analog` wave (TH_CAM_A and ADC_CH4 are both its nets),
+    # so the headroom belongs THERE and nowhere else: `common.clearance` returns to
+    # 0.15, where six candidates over two races routed with ZERO unconnected, and
+    # the `analog` wave alone carries `clearance: 0.16` (KRT takes a per-wave
+    # --clearance). pwr/efuse/sig never see the tighter search.
     clearance: 0.15
   waves:
     # iso FIRST: three short nets in the SE corner that need a 2.0mm moat from
@@ -550,22 +595,44 @@ route:
     # the ISO_CONTACTOR netclass floor, not a preference.
     - {name: iso, group: iso, track_width: 0.3, board_edge_clearance: 0.35,
        max_iterations: 200000, keepout_layer: User.4}
-    - {name: efuse, group: efuse, track_width: 0.2, max_iterations: 800000,
-       max_ripup: 50}
+    # effort RAISED (v1.7 SEAL PASS, 2026-07-28, MEASURED): at the new 0.16 search
+    # clearance this wave left `5V_RPP` one ratsnest short on all three
+    # candidates — the same "ran out of ripup budget on the last net" signature
+    # the sig wave showed at task#21, not a hard block. 50 -> 120 / 0.8M -> 1.5M.
+    - {name: efuse, group: efuse, track_width: 0.2, max_iterations: 1500000,
+       max_ripup: 120}
     - {name: safety, group: safety, track_width: 0.2,
        max_iterations: 600000, max_ripup: 40}
     - {name: pi, group: pi, track_width: 0.2, max_iterations: 600000}
     - {name: keypad, group: keypad, track_width: 0.3, keepout_layer: User.3,
        board_edge_clearance: 0.35, max_iterations: 400000}   # sel-bus rails cross the inter-reed slots (y30.5) -> keep 0.35mm
     - {name: coil, group: coil, track_width: 0.4, board_edge_clearance: 0.35, max_iterations: 500000}   # coil rail/drops pass the slots (y37.5) -> keep 0.35mm
-    - {name: pwr,  group: pwr,  max_iterations: 500000}
+    # effort RAISED + a ripup budget ADDED (v1.7 SEAL PASS, 2026-07-28, MEASURED):
+    # this wave had NO max_ripup at all, so it could not back out of a bad
+    # ordering. At 0.16 it left `5V_PROTECTED` one ratsnest short on all three
+    # candidates.
+    - {name: pwr,  group: pwr,  max_iterations: 1200000, max_ripup: 80}
     # analog comparator nets FIRST-served among the sensor field (task#21): route
     # before the sig wave so TH_CAM_A/B/TCAM_THRESH claim channels through the
     # dense SW cluster before SDA/SCL/ADC/TC fill it. track 0.25 (sig class).
     # ripup 120 -> 160 (task#21): the wave grew 19 -> 27 nets when the ADC/TC SPI
     # bus joined it, and it now carries the two hardest escape fields on the board.
+    # clearance 0.16 ON THIS WAVE ONLY (v1.7 SEAL PASS, 2026-07-28, MEASURED).
+    # TH_CAM_A and ADC_CH4 are both analog-wave nets and their 0.1191 mm crossing
+    # (0.0009 mm under the 0.1200 Default rule) is the board's only copper
+    # violation. KRT routed it to its own 0.15 target, i.e. its model is ~0.031 mm
+    # optimistic on a 45-degree crossing; 0.16 gives 0.010 mm of headroom, eleven
+    # times the miss. Applying it globally cost three routed nets in OTHER waves
+    # (see common.clearance above) — this is the same fix without that bill.
+    # ripup 160 -> 230 (v1.7 SEAL PASS, second measurement): with the per-wave
+    # 0.16 clearance the copper violation went to ZERO on all three candidates and
+    # the wave landed ONE net short — `TH_PORT_B`, the same one on all three. That
+    # is the last-net budget signature, inside the wave whose search just got
+    # tighter, so the budget is the thing to raise. (Raising it on the OTHER waves
+    # at a global 0.16 did nothing, which is how we know this one is different.)
     - {name: analog, group: analog, track_width: 0.25, board_edge_clearance: 0.35,
-       max_iterations: 1500000, max_probe_iterations: 100000, max_ripup: 160}
+       clearance: 0.16,
+       max_iterations: 2000000, max_probe_iterations: 150000, max_ripup: 230}
     # board_edge_clearance added to sig (v1.2, 2026-07-24, MEASURED): SDA_B ran
     # ON the south edge (y101.9 vs edge y102, 0.00mm DRC edge clearance x3) —
     # the prep edge_band did not stop the sig wave.
@@ -575,7 +642,7 @@ route:
     # last net, not a hard block; ~24 chains never reached 0). More ripup +
     # iterations lets it clear the final net.
     - {name: sig, group: sig, track_width: 0.25, board_edge_clearance: 0.35,
-       max_iterations: 1500000, max_probe_iterations: 100000, max_ripup: 120}
+       max_iterations: 1500000, max_probe_iterations: 100000, max_ripup: 170}   # 120 -> 170 (v1.7 SEAL PASS): at 0.16 the wave left RAIL_EN_B one ratsnest short on all three candidates — the identical last-net signature that 120 was chosen to cure at 0.15
   # Promoted converged chain (canon M3): 0 routed-net unconnected, 0-crossing
   # topology. `import` uses this when there is no fresh 06_build FINAL marker, so
   # `rebuild_all.sh --reuse-route` (and a fresh clone / CI) is DETERMINISTIC.
@@ -684,6 +751,26 @@ stitch:
       # at 0.370 — centred in the only free window, y[86.18,86.52].
       - {net: 3V3, pin: R_BID1.2,     vias: [[122.510, 86.420]]}
       - {net: 3V3, pin: R_REARMPU.2,  vias: [[122.510, 91.500]]}
+      # v1.7 SEAL PASS (2026-07-28) — the four pads the R_WDOKSER reroute stranded.
+      # Paired one-for-one with the reservation rects above. Sites measured on the
+      # post-stitch board with pcb_toolkit.via_site_ok (0.25/0.15, clearance 0.13);
+      # the growth margin quoted is how far the via could grow before the site
+      # stops being legal, i.e. how much slack the site has beyond the floor.
+      - {net: GND, pin: R_AND2PD.2,   vias: [[169.800, 70.660]]}   # 135 legal on-pad sites, pad centre, growth 0.25
+      - {net: GND, pin: R_MODEPD.2,   vias: [[191.750, 63.900]]}   # 125 legal, 0.030 off centre, growth 0.27
+      - {net: 3V3, pin: R_FAULTPU.2,  vias: [[169.390, 75.950]]}   # 284 legal, pad centre, growth 0.87
+      - {net: 3V3, pin: U_LATCHA.5,   vias: [[170.838, 73.350]]}   # 183 legal, pad centre, growth 0.61 (SOIC-6 pad 1.02x0.35)
+      # U_TC.8 (3V3) — a STUB, not a via-in-pad, and the difference is measured.
+      # The MAX31856's 1.475 x 0.400 mm pad has **ZERO** legal on-pad via sites
+      # (scanned 25x25 at 0.02 mm with via_site_ok at 0.25/0.15/0.13): a 0.25 via
+      # plus its clearance does not fit inside a 0.400 mm-wide pad. So the bond is
+      # a 0.25 mm F.Cu segment east to (66.162, 78.900) — 0.304 mm off the pad
+      # centre, the nearest of 160 sites where BOTH the via site and the whole
+      # stub path are clear — and a via there. This is the U_EFUSE.4 pattern
+      # (segments, not vias), applied to a plane pad the pour could not reach.
+      - {net: 3V3, pin: U_TC.8,
+         segments: [{layer: F.Cu, width: 0.25, pts: [[65.8625, 78.950], [66.162, 78.900]]}],
+         vias: [[66.162, 78.900]]}
       - {net: 3V3, pin: U_LATCHB.5,   vias: [[182.838, 73.350]]}
       - {net: GND, pin: R_RAENRHEPD.2, vias: [[128.365, 91.605]]}   # RE-DERIVED on the promoted race-3 chain (task#21, 2026-07-25): the old y91.350 site was blocked. MEASURED over the whole pad on a 0.02mm grid with the pass's own primitive (pcb_toolkit.via_site_ok, via 0.25/0.15, clearance 0.13): 225 of 300 on-pad points legal, and this one survives a via-growth sweep to 0.69mm — 0.22mm of margin beyond the clearance floor, the best on the pad. No blocking copper within 0.45mm on either layer.
       # C_OENAND.1 (3V3) stub RE-DERIVED + RESTORED (task#21 adjudication, 2026-07-24).

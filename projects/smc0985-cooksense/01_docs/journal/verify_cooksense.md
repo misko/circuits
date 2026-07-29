@@ -543,3 +543,149 @@ mrepro_method_trap: a `.kicad_pcb` copied to a scratch dir WITHOUT its `.kicad_p
 - next: re-race and re-stitch from the anchored placement, then re-measure. If
   the plane-pad opens survive, they get User.2 reservations + seed_stubs per the
   precedent in route.yaml, not a re-race lottery.
+
+## 2026-07-28 — iterate 4 (the clearance is NOT a race lottery — six candidates, one identical gap)
+
+- did: re-DRC'd after anchoring, then measured the residuals instead of re-racing
+  at them.
+- result: **1 violation / 4 unconnected / 0 parity** (was 1 / 6 / 3 — the
+  anchoring closed two of the opens and the schematic refresh closed parity).
+  **THE CLEARANCE IS DETERMINISTIC AND THAT IS THE FINDING.** Two INDEPENDENT
+  KRT races, three candidates each, **all six** landed the SAME 0.1191 mm
+  cross-net gap at the SAME coordinates: `ADC_CH4` B.Cu (58.410, 84.9687) ->
+  (58.021, 85.358) against the `TH_CAM_A` B.Cu stub (59.300, 85.400) ->
+  (58.500, 85.400) running into `R_SER0.1`, in the dense MCP3208 filter field.
+  Re-derived independently with a segment-to-segment scan over both nets: min
+  edge gap **0.1191 mm** — the same number kicad-cli reports, against a 0.1200 mm
+  Default rule. **On the v1.6/v1.7-staging board the same two nets are 0.8500 mm
+  apart**, so this is not a placement pinch that has always been there; it is
+  this route's own artefact, and it is reproducible.
+  **ROOT CAUSE, MEASURED: the router's clearance model is ~0.031 mm optimistic
+  on a 45-degree crossing.** KRT was routing to a 0.15 mm target and produced
+  0.1191. So a re-race is a lottery that has now come up the same way six times,
+  and the fix is headroom: `route.common.clearance` **0.15 -> 0.18**, at which
+  the same artefact lands at ~0.149. **This is the router's SEARCH clearance, not
+  a fab or netclass floor** — nets.yaml still declares 0.12 and DRC still grades
+  0.12, so the change cannot launder a real violation.
+  **THE FOUR OPENS ARE THE TRAPPED-PLANE-PAD CLASS, and they get the remedy
+  route.yaml already uses twenty times**: `R_AND2PD.2` / `R_MODEPD.2` (GND) and
+  `R_FAULTPU.2` / `U_LATCHA.5` (3V3). Each got a User.2 reservation rect so ANY
+  re-race leaves the site clear, plus a deterministic seed_stub via-in-pad.
+  **Sites MEASURED, not guessed**, with the pass's own primitive
+  (`pcb_toolkit.via_site_ok`, via 0.25/0.15, clearance 0.13) over a 21x21 0.03 mm
+  on-pad grid: 135 / 125 / 284 / 183 legal points respectively; the site taken is
+  the one nearest the pad centre in each case (three ARE the centre), and each
+  survives a via-growth sweep to 0.25 / 0.27 / 0.87 / 0.61 mm. seed_stubs 61 -> 65.
+- next: third full reroute with both changes, then re-measure. If the gap
+  survives 0.18 the next lever is placement, not the router.
+
+## 2026-07-28 — iterate 5 (0.18 bought the clearance and PAID for it in coverage)
+
+- did: ran the third reroute at `route.common.clearance` 0.18 and measured the
+  race before letting the 25-minute stitch run on it.
+- result: **0.18 IS TOO MUCH, and the measurement is clean:** all three
+  candidates came back **0 copper violations / 5 UNCONNECTED routed nets**
+  (previously, at 0.15, six candidates over two races were all **0 unconnected /
+  1 clearance**). The router bought the margin out of coverage. The stitch was
+  KILLED rather than run — a 25-minute pour pass on a chain with five open
+  signal nets measures nothing, and the killed run's `*.stitch_state.json` was
+  removed (the tracked-copy trap this repo has hit before).
+  **THE LEVER IS THE WRONG SIZE, NOT THE WRONG LEVER.** The shortfall being
+  repaired is **0.0009 mm** (0.1191 against 0.1200). 0.18 adds 0.030 mm — 33x
+  the miss. **0.16** adds 0.010 mm, eleven times the miss, and perturbs the
+  search by a third as much. Both data points are recorded in route.yaml next to
+  the value so the next reader does not re-run either experiment:
+      0.15 -> 0 unconnected, 1 clearance at 0.1191   (six candidates, two races)
+      0.18 -> 0 clearance,   5 unconnected           (three candidates)
+  **CONCURRENCY, deliberately:** the TOPOLOGY red-team lens and the fresh-context
+  PIN review were launched against the FINAL NETLIST while the board re-routes.
+  Neither grades copper and the reroute cannot change the netlist, so their
+  verdicts are valid for the board that comes out — and it takes ~40 minutes of
+  wall clock off the critical path. The LAYOUT and RENDER lenses wait for final
+  copper, because they DO grade it.
+- next: fourth reroute at 0.16. If it lands 0 unconnected AND 0 violations, the
+  chain gets promoted and the battery runs. If it splits the difference again,
+  the next lever is PLACEMENT in the MCP3208 filter field, not the router.
+
+## 2026-07-28 — iterate 6 (the clearance/coverage trade is 1:3, so stop pulling that lever)
+
+- did: measured the router at three search clearances instead of guessing, and
+  NAMED the nets each setting costs.
+- result: **THE TRADE CURVE, all on three candidates per point:**
+      0.15 -> 0 unconnected, 1 clearance at 0.1191 mm   (six candidates, two races)
+      0.16 -> 0 clearance,   3 unconnected
+      0.18 -> 0 clearance,   5 unconnected
+  Buying 0.0009 mm of clearance costs three routed nets. That is not a clearance
+  problem any more, it is an EFFORT problem — so the three opens at 0.16 were
+  NAMED rather than treated as noise: **`5V_PROTECTED` x1 (pwr wave),
+  `5V_RPP` x1 (efuse wave), `RAIL_EN_B` x1 (sig wave)**, one ratsnest each, on
+  ALL THREE candidates. That is the exact "ran out of ripup budget on the last
+  net" signature this file already records from task#21 — a different net per
+  race would be a hard block; the same one net per wave is a budget.
+  **THE `pwr` WAVE HAD NO `max_ripup` AT ALL**, so it could not back out of a bad
+  ordering. Fixed at source with the lever the route journal already harvested:
+  efuse 50 -> 120 ripup / 0.8M -> 1.5M iterations; pwr NO-BUDGET -> 80 ripup /
+  0.5M -> 1.2M iterations; sig 120 -> 170 ripup. Search clearance stays at 0.16.
+  Both dirty stitches were KILLED before running (25 minutes each on a chain that
+  cannot reach 0) and their `*.stitch_state.json` removed each time.
+- next: fifth reroute. The race result is the early read — if it lands 0/0 the
+  stitch is worth its 25 minutes; if it does not, the next lever is PLACEMENT in
+  the MCP3208 filter field and this stops being a routing problem.
+
+## 2026-07-28 — iterate 7 (put the headroom in the wave that has the problem)
+
+- did: raised the efuse/pwr/sig wave effort and re-raced at 0.16; measured; then
+  changed the SHAPE of the fix rather than its size again.
+- result: **MORE EFFORT DID NOT RECOVER THE THREE NETS.** efuse ripup 50 -> 120
+  and 0.8M -> 1.5M iterations, pwr from NO ripup budget at all to 80 and 0.5M ->
+  1.2M, sig 120 -> 170: all three candidates still came back **0 violations /
+  3 unconnected**, the same `5V_PROTECTED` / `5V_RPP` / `RAIL_EN_B`. So the cost
+  of a 0.16 global search clearance is STRUCTURAL, not budgetary, and the raised
+  budgets stay (they cost nothing and the pwr wave having no ripup budget at all
+  was a latent defect either way).
+  **AND NONE OF THE THREE NETS IT COSTS IS IN THE WAVE THAT HAS THE PROBLEM.**
+  `TH_CAM_A` and `ADC_CH4` are BOTH `analog`-wave nets. KRT takes a **per-wave
+  `--clearance`** (`_KRT_FLAGMAP` in route_and_stitch_generic), so the headroom
+  belongs on that wave and nowhere else: `route.common.clearance` returns to
+  **0.15** — where six candidates over two races routed with ZERO unconnected —
+  and the `analog` wave alone carries **`clearance: 0.16`**. pwr/efuse/sig never
+  see the tighter search. Same 0.010 mm of headroom on the crossing that misses
+  by 0.0009 mm, without the three-net bill.
+  **ALSO RECORDED, because it is a fact about this tree and not about the
+  board:** a CONCURRENT AGENT working other boards swept this board's
+  in-progress files into its own commit `d91dfb8` ("archive the four superseded
+  boards"), including a MID-REBUILD `04_kicad/cooksense.kicad_pcb` and a stray
+  `cooksense.kicad_pcb.kicad_pro` droppings file. Nothing was lost and no sealed
+  release was touched (cooksense's `07_releases/` is intact and v1.6 is still
+  live), but the seal's own source commit S must therefore also DELETE that
+  stray, and a pathspec-scoped commit is only half the discipline — the other
+  half is not sweeping `git add -A` across a tree someone else is mid-build in.
+- next: sixth reroute, per-wave clearance. Early read is the race verdict.
+
+## 2026-07-28 — iterate 8 (per-wave clearance CLEARED the copper violation; two opens left, both named)
+
+- did: re-raced with `clearance: 0.16` on the `analog` wave ONLY and
+  `common.clearance` back at 0.15, then ran the stitch and the full gate.
+- result: **DRC 0 violations / 0 schematic parity / 2 unconnected.** The copper
+  violation that survived six candidates over two races is **GONE** — the
+  headroom went into the wave that owned both offending nets and cost the other
+  waves nothing. Race: **0 violations / 1 unconnected on all three candidates**
+  (vs 3 at a global 0.16, and 1 clearance at a global 0.15).
+  The two survivors, both MEASURED and both named rather than counted:
+  * **`TH_PORT_B`**, `R_REF5.2` (51.710, 80.600) to a track at (60.600, 84.200) —
+    the ONE routed-net open, the SAME net on all three candidates. That is the
+    last-net budget signature INSIDE the wave whose search just got tighter, so
+    the budget is the lever: analog ripup **160 -> 230**, iterations 1.5M -> 2.0M,
+    probe 100k -> 150k. (The same lever did nothing on efuse/pwr/sig at a global
+    0.16, which is how this one is known to be different.)
+  * **`3V3` at `U_TC.8`** (65.8625, 78.950) against the C_TCAV.1 stub via at
+    (63.220, 80.900) — a plane pad the pour could not reach. **It gets a STUB,
+    not a via-in-pad, and the difference is measured: the MAX31856's
+    1.475 x 0.400 mm pad has ZERO legal on-pad via sites** (25x25 scan at 0.02 mm
+    with `via_site_ok` 0.25/0.15/0.13 — a 0.25 via plus clearance does not fit
+    inside a 0.400 mm pad). So: a 0.25 mm F.Cu segment east to (66.162, 78.900),
+    the nearest of **160** sites where BOTH the via site AND the whole stub path
+    are clear, plus a via there. The `U_EFUSE.4` `segments:` pattern applied to a
+    plane pad. seed_stubs 65 -> 66.
+- next: seventh reroute. If it lands 0/0/0 the chain is promoted and the battery
+  runs.
