@@ -9,7 +9,7 @@ datasheet:
   fetched: 2026-07-23           # PDF adopted from projects/crow-mic-pod-v2 —
                                 # provenance stated in the verification note below
 package: SOT-553 (5-lead, TI package code DRL)
-footprint: pluto_cal_switch:SOT-553
+footprint: Package_TO_SOT_SMD:SOT-553
 escape:
   style: leaded
   pitch: 0.5
@@ -33,6 +33,20 @@ limits:
   esd_iec61000_4_2: "+/-25kV contact, +/-30kV air-gap"
   ta_op: "-40C to 125C"
 gotchas:
+  - "FOOTPRINT ADOPTED FROM THE KiCad STOCK LIBRARY AFTER A MEASURED
+     COMPARISON AGAINST TI'S OWN LAND DRAWING (2026-07-28) -- and the drawing
+     had to be RENDERED and read, because the pdftotext layout is ambiguous
+     about which feature (1.48) measures. SLLSEG9C DRL0005A 'LAND PATTERN
+     EXAMPLE' (drawing 4220753/E, 11/2024): 5X (0.67) pad length, 5X (0.3) pad
+     width, 2X (0.5) pitch, (1) pin1-pin3 span, and (1.48) is the COLUMN
+     CENTRE-TO-CENTRE (its arrows terminate on the pads' centrelines, not
+     their outer edges) => pad centres at x = +/-0.74. KiCad
+     Package_TO_SOT_SMD:SOT-553 is 0.675 x 0.35 at x +/-0.7125, pitch 0.5.
+     DELTA: centre position -0.0275 mm per side, pad width +0.05 mm, pad
+     length +0.005 mm, pitch identical. Within 0.03 mm on every datum --
+     adopted. (Read (1.48) as an outer-edge span instead and you get pad
+     centres at +/-0.405, a 0.31 mm/side error that would have looked like a
+     KiCad defect.)"
   - "V_RWM IS 5.5 V AND THE HEADER'S DECLARED CEILING IS 5.0 V (ADR-0008). That
      is 0.5 V of margin on a user-wired, UNKEYED entry, and it is the whole
      reason this part fits: it does NOT protect against somebody landing 12 V on

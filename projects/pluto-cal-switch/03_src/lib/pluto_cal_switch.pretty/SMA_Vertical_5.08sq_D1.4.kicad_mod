@@ -1,0 +1,278 @@
+(footprint "SMA_Vertical_5.08sq_D1.4"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "SMA jack, vertical THT square flange, 5-D1.4 mm holes on a 5.08x5.08 mm square (Kinghelm KH-SMA-KE-Z / C504007, drawing sheet 2-2 'PCB layout'; depth reserve BWSMA-KE-Z001 / C496549 on the identical pattern). Drills are D1.4 NOT the KiCad Wurth pattern's 1.5/1.7 - ADR-0007: a 0.9 mm square post has a 1.273 mm diagonal, so D1.3 leaves 0.014 mm and D1.4 leaves 0.064 mm. Pad 1 carries a 0.75 mm local clearance = the >=D3.5 mm bottom-plane antipad (ADR-0007 RULE 1, ~9 dB of return loss at 6 GHz over the D2.6 minimum-DRC opening); pads 2-5 carry none so the top pour stays continuous to the ground posts (RULE 4).")
+	(tags "SMA jack RF coaxial THT 5.08 KH-SMA-KE-Z C504007")
+	(attr through_hole)
+	(property "Reference" "REF**"
+		(at 0 -4.6 0)
+		(layer "F.SilkS")
+		(uuid "")
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "VAL**"
+		(at 0 4.6 0)
+		(layer "F.Fab")
+		(uuid "")
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(hide yes)
+		(layer "F.Fab")
+		(uuid "")
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(hide yes)
+		(layer "F.Fab")
+		(uuid "")
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" thru_hole circle
+		(at 0 0)
+		(size 2.0 2.0)
+		(drill 1.4)
+		(layers "*.Cu" "*.Mask")
+		(clearance 0.75)
+		(remove_unused_layers no)
+		(uuid "")
+	)
+	(pad "2" thru_hole circle
+		(at -2.54 -2.54)
+		(size 2.0 2.0)
+		(drill 1.4)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "")
+	)
+	(pad "3" thru_hole circle
+		(at 2.54 -2.54)
+		(size 2.0 2.0)
+		(drill 1.4)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "")
+	)
+	(pad "4" thru_hole circle
+		(at 2.54 2.54)
+		(size 2.0 2.0)
+		(drill 1.4)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "")
+	)
+	(pad "5" thru_hole circle
+		(at -2.54 2.54)
+		(size 2.0 2.0)
+		(drill 1.4)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "")
+	)
+	(fp_line
+		(start -3.25 -3.25)
+		(end 3.25 -3.25)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "")
+	)
+	(fp_line
+		(start 3.25 -3.25)
+		(end 3.25 3.25)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "")
+	)
+	(fp_line
+		(start 3.25 3.25)
+		(end -3.25 3.25)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "")
+	)
+	(fp_line
+		(start -3.25 3.25)
+		(end -3.25 -3.25)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "")
+	)
+	(fp_circle
+		(center 0 0)
+		(end 3.1 0)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill none)
+		(layer "F.Fab")
+		(uuid "")
+	)
+	(fp_line
+		(start -3.8 -3.8)
+		(end -3.8 -2.6)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "")
+	)
+	(fp_line
+		(start -3.8 -3.8)
+		(end -2.6 -3.8)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "")
+	)
+	(fp_line
+		(start -3.8 3.8)
+		(end -3.8 2.6)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "")
+	)
+	(fp_line
+		(start -3.8 3.8)
+		(end -2.6 3.8)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "")
+	)
+	(fp_line
+		(start 3.8 -3.8)
+		(end 3.8 -2.6)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "")
+	)
+	(fp_line
+		(start 3.8 -3.8)
+		(end 2.6 -3.8)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "")
+	)
+	(fp_line
+		(start 3.8 3.8)
+		(end 3.8 2.6)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "")
+	)
+	(fp_line
+		(start 3.8 3.8)
+		(end 2.6 3.8)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "")
+	)
+	(fp_line
+		(start -3.9 -3.9)
+		(end 3.9 -3.9)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "")
+	)
+	(fp_line
+		(start 3.9 -3.9)
+		(end 3.9 3.9)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "")
+	)
+	(fp_line
+		(start 3.9 3.9)
+		(end -3.9 3.9)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "")
+	)
+	(fp_line
+		(start -3.9 3.9)
+		(end -3.9 -3.9)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "")
+		(effects
+			(font
+				(size 0.7 0.7)
+				(thickness 0.1)
+			)
+		)
+	)
+)

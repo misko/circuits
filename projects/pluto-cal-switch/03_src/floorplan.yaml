@@ -3,39 +3,99 @@
 # board-specific generation Python: this file IS the placement source.
 #
 # =============================================================================
-# STATE 2026-07-28: IDENTITY ONLY. NO PLACEMENT IS AUTHORED YET.
+# THE ORGANISING IDEA: CONGRUENCE, NOT JUST MIRRORING
 # =============================================================================
-# The schematic gate is a DECLARED HANDOFF BOUNDARY (skills/pcb-design/SKILL.md).
-# Stage 4 finished there; placement and routing are the NEXT session's work.
+# ARCHITECTURE sec.10.1 asks for two things that fight on a CHIRAL package:
+# the two loopback arms must be MIRROR-SYMMETRIC about the splitter axis, and
+# the arm pads must sit at the SAME rotation (a mirrored chip turns
+# solder-fillet asymmetry into phase error, ~2 deg at 6 GHz per 0.1 nH).
 #
-# WHY THIS FILE WAS TOUCHED AT ALL AT STAGE 4, when placement is not stage 4's
-# job: it was still carrying the cook-loadcell TEMPLATE VERBATIM — `project.name:
-# cook_loadcell`, a 55x45 two-layer outline, and 29 anchors/seeds for a load-cell
-# board. `03_src/rebuild_reuse.sh` derives the BOARD NAME from `project.name`
-# here, and `generate_board_generic.py` writes to `project.output`. Left as it
-# was, a rebuild would have quietly emitted `04_kicad/cook_loadcell.kicad_pcb`
-# from this board's netlist. The foreign values are therefore PURGED and the
-# identity is set; the placement is left EMPTY, which is an honest "not authored"
-# rather than a wrong answer that looks like an answer.
+# Both hold at once IFF each arm is a STRAIGHT HORIZONTAL RUN: a horizontal
+# line at y=45.75 is the mirror image of one at y=64.25 about y=55.0 AND a pure
+# TRANSLATION of it, so every part on arm 2 is arm 1's part moved +18.5 mm in y
+# at an IDENTICAL rotation. That is why the arms here are straight lines and not
+# a routed shape: it is the only geometry on which both requirements are the
+# same requirement.
 #
-# WHAT STAGE 5 MUST DO HERE, and the constraints are already derived — they are
-# not open questions:
-#   * ARCHITECTURE sec.10 lists eight critical geometries. The three that drive
-#     the floorplan: LOOP_ARM1/LOOP_ARM2 mirror-symmetric about the splitter
-#     axis (identical bend-for-bend, same layer, no vias, arm attenuators at
-#     IDENTICAL — not mirrored — rotation); inter-arm separation >= 3x dielectric
-#     height plus a via fence; and RP2040 + micro-USB at the far end from all
-#     five SMA jacks.
-#   * DETAIL_DESIGN sec.2 gives the target segment lengths the loss budget
-#     assumes (TX jack -> PAD_A1 10 mm, the PAD_A1 five-chip cascade 4 x 3 mm,
-#     PAD_A1 -> vertex 22 mm, vertex -> arm pad 8 mm x2, arm pad -> switch
-#     8 mm x2, switch -> RX jack 5 mm x2, switch -> antenna jack 20 mm x2).
-#   * 03_src/lib/pluto_cal_switch.pretty/ MUST EXIST FIRST. Nine non-stock land
-#     patterns are named by 02_parts and none is authored yet; without them
-#     generate_board_generic has nothing to place.
-#   * fab tier is jlc_4layer_advanced (rules/nets.yaml), forced independently
-#     twice: the BGS12WN6 pin-2 ground via AT the 0.25 mm land, and the RP2040
-#     QFN-56 0.40 mm escape.
+# The translation extends past the arms. U_SW1/U_SW2, J_SMA_RX1/2,
+# C_DCBLK1/2, J_SMA_ANT1/2 and every switch-support passive are the SAME
+# +18.5 mm translation, so RX_PLUTO1 == RX_PLUTO2 and SW1_ANT == SW2_ANT by
+# construction, not by a routing negotiation. (RX_PLUTO1/2 being identical is
+# itself a keep_short in 02_parts/KH-SMA-KE-Z: that pair is INSIDE the D4
+# arm-to-arm comparison, so an asymmetry there is indistinguishable from an arm
+# mismatch.)
+#
+# THE ONE PLACE CHIRALITY STILL BITES, and how it is paid: BGS12WN6's RF2 pad
+# is 0.4 mm off the package centreline (Figure 2: RF1/GND/RF2 share one column).
+# Both switches are therefore placed with their BODY offset +0.2 mm off the arm
+# line so that the RF2 PAD - not the body centre - lands exactly on it. The arm
+# copper is then two identical straight segments; the offset is absorbed by the
+# part, which is where an asymmetry is harmless.
+#
+# =============================================================================
+# THE GEOMETRY, WITH THE NUMBER EACH ONE IS ANSWERING
+# =============================================================================
+#   axis            y = 55.0                     the splitter mirror axis
+#   arm 1 / arm 2   y = 45.75 / 64.25            18.5 mm apart
+#   splitter vertex x = 64.0                     LOOP_SPLIT node
+#
+# INTER-ARM SEPARATION (ARCHITECTURE sec.10.2, >= 3x dielectric height plus a
+# via fence): 18.5 mm against a 0.6312 mm floor - 29x. The two arms NEVER run
+# parallel closer than that, because the only other arm copper is the pair of
+# vertical drops from the vertex, which are COLLINEAR (both on x = 64.0), not
+# parallel. Two parallel 50-ohm microstrips on 0.21 mm prepreg couple at
+# -25..-35 dB over a few mm at 6 GHz, at or above the 30 dB the arm pads buy;
+# this floorplan makes that number unreachable rather than merely legal.
+#
+# SPLITTER TRIANGLE INSIDE lambda_g/20 = 1.4 mm (sec.10.3): R_DELTA1 and
+# R_DELTA2 are 1.76 mm apart centre-to-centre (the closest their 0402
+# courtyards allow), so the shared LOOP_SPLIT node is 0.86 mm of copper and each
+# ACTIVE leg - node half + chip - is 0.43 + 0.90 = 1.33 mm < 1.40. R_DELTA3 is the
+# INACTIVE leg (zero current under symmetric excitation) and is placed OFF the
+# feed line, to the LEFT at x = 62.4, so the LOOP_SPLIT run from PAD_A1 does not
+# have to cross it.
+#
+# SEGMENT LENGTHS vs DETAIL_DESIGN sec.2 (targets, not measurements - N4 says
+# they are re-derived after placement, and the deviation is a documentation
+# refresh, never a spec risk: ADR-0016 credits ALL interconnect at ZERO, so a
+# shorter run cannot lower the guaranteed floor):
+#   TX jack -> PAD_A1A in       10.00 mm   target 10   (exact)
+#   PAD_A1 cascade, 4 gaps       3.00 mm   target  3   (exact, x4)
+#   PAD_A1E out -> vertex        8.00 mm   target 22   SHORTENED, see below
+#   vertex -> arm pad in         8.00 mm   target  8   (exact, both arms)
+#   arm pad internal             1.13 mm   unbudgeted  (inside the 8+8)
+#   arm pad out -> switch RF2    8.00 mm   target  8   (exact, both arms)
+#   switch RFin -> RX jack       9.00 mm   target  5   see below
+#   switch RF1 -> ANT jack      20.00 mm   target 20   (exact, both arms)
+#   TOTAL TX jack -> each RX    51.13 mm   target 65
+# The 22 mm PAD_A1E->vertex was a consequence of the RETIRED ADR-0006 geometry
+# ("the splitter is on the mirror axis BETWEEN the two RX ports; TX enters from
+# the side") - three Pluto-facing ports pinned to a foreign edge pitch. ADR-0015
+# deleted that constraint, so the number no longer answers anything; 8 mm is
+# kept because it is what the A1E launch and the delta need, and 14 mm of board
+# is not spent to reproduce a dead datum. The 5 mm switch->RX-jack target grew
+# to 9 mm because the SMA flange is 6.5 mm square: at 5 mm the jack's ground
+# pads land 0.8 mm from the switch courtyard and there is nowhere for the CTRL
+# and VDD bypass that the SAME datasheet demands within 4 mm of their pins
+# (02_parts/BGS12WN6 layout.keep_short). 9 mm is inside RX_PLUTOn's own 15 mm
+# keep_short budget, and it is 9 mm on BOTH channels.
+#
+# TX->RX PHYSICAL ISOLATION, the number the pad chain cannot buy: 45.2 mm from
+# the TX jack (95.88, 55.0) to J_SMA_RX1 (50.65, 55.15), over an unbroken L2.
+#
+# RP2040 + micro-USB AT THE FAR END (sec.10.5): the digital block is the
+# TOP-RIGHT corner, x 88..131 / y 21..44, and the calibration path is the axis
+# and the two arms, y 45.75..64.25. The parts are ordered INSIDE the block by
+# how noisy they are - QSPI/flash/crystal hard against the TOP edge (y 22..27,
+# the farthest copper on the board from the calibration path), USB entry and
+# power below them, the header at the right edge. Measured minimum distances
+# are printed by 03_src/audit_board.py (A-RFSEP) and are a GATE, not a hope.
+#
+# REFERENCE PLANE CONTINUOUS UNDER THE SPLITTER (sec.10.4): there are NO
+# keepouts on this board at all, and In1.Cu carries one GND zone over the whole
+# outline. The only interruptions in L2 are the five SMA antipads, which are
+# ADR-0007 RULE 1 (>= D3.5 opening) and live in the FOOTPRINT as pad 1's
+# 0.75 mm local clearance - a launch feature, not a plane split.
 # =============================================================================
 
 project:
@@ -45,29 +105,208 @@ project:
   parts_dir: 02_parts
 
 board:
-  # PLACEHOLDER outline, NOT a decision. It matches the envelope the tsx
-  # <board> declares so tscircuit can render; the real outline is stage 5's and
-  # is driven by the five SMA jacks' wrench access (ADR-0015: they sit on OUR
-  # pitch, chosen for the RF and for a spanner, not on a foreign edge pitch).
-  outline: {x0: 20.0, y0: 20.0, x1: 90.0, y1: 75.0}
+  # 112 x 62 mm. The width is set by the RF chain end to end (ANT jack pads at
+  # x=26.7 to TX jack pads at x=99.4) plus the digital block; the height by the
+  # 18.5 mm arm separation plus the two RX jacks hanging 9 mm below their
+  # switches. Nothing here is an enclosure dimension: ARCHITECTURE sec.11 leaves
+  # the enclosure unstated and assumes a bare board with mounting holes.
+  outline: {x0: 20.0, y0: 20.0, x1: 132.0, y1: 80.0}
   edge_width: 0.1
   layers: 4              # JLC04161H-7628 — L1 RF / L2 SOLID GND / L3 pours / L4 GND
-  # mounting_holes: OWED. ARCHITECTURE sec.11 says a bare board with mounting
-  # holes and a stiffener is advisable — five connectors with three cables
-  # hanging off them is a lever-arm problem. Declared absent, not forgotten.
+  # ARCHITECTURE sec.11: "Five connectors on a bare board with three cables
+  # hanging off them is a lever-arm question... Mounting holes and a stiffener
+  # remain advisable." They are no longer OWED - four M3 (D3.2) at the corners,
+  # inset 4 mm, each clear of every pad field.
+  mounting_holes:
+    footprint: MountingHole:MountingHole_3.2mm_M3
+    refdes_prefix: H
+    at: [[24.0, 24.0], [128.0, 24.0], [24.0, 76.0], [128.0, 76.0]]
 
 libraries:
   - /usr/share/kicad/footprints
-  # - 03_src/lib/pluto_cal_switch.pretty   # OWED — stage 5
+  - {lib: pluto_cal_switch, path: 03_src/lib/pluto_cal_switch.pretty}
 
+# =============================================================================
+# PLACEMENT
+# =============================================================================
+# EVERY part is ANCHORED. There are no seeds and no region patterns, and that is
+# a decision, not thoroughness for its own sake: golden rule 7 / D-ADJ says
+# region placement is electrically BLIND, and on this board the blind failures
+# are not routing failures - they are a 1 nF that did not reach a VCTRL pin
+# (the control line becomes a resonator, ARCHITECTURE sec.10.6) and an arm whose
+# parts drifted 0.2 mm out of congruence (the published D4 delta stops being a
+# property of the board and becomes a property of the legalizer).
 placement:
-  anchors: {}   # NOT AUTHORED — stage 5. See the banner above.
-  seeds: {}     # NOT AUTHORED — stage 5.
+  require_anchor: true
+  regions:
+    # named rectangles, consumed by the In2.Cu 3V3 zone below. `rf` is declared
+    # so the audit and any future zone can name it rather than repeating the
+    # numbers; nothing is PLACED by region on this board (see the note above).
+    digital: [88.0, 21.0, 131.0, 54.0]
+    rf:      [21.0, 41.0,  101.0, 79.0]
+  legalize:
+    enable: true
+    clearance: 0.25
+    edge_margin: 0.6
+    hole_keepout: 0.6
+  # NO `pin:` allowlist, which means ANCHORED IMPLIES PINNED for all 73 parts.
+  # That is the point: every anchor here answers a datasheet adjacency or an
+  # ARCHITECTURE sec.10 geometry, so a legalizer nudge is not a rescue, it is a
+  # silent edit to a derived number. Any overlap comes back as a LOUD
+  # P-COLLIDE PINNED-LAP that must be fixed HERE, in the source.
+
+  anchors:
+    # ---------------------------------------------------------------- RF: axis
+    # PAD_A1, the 25.8 dB pre-split cascade (ADR-0016). Five MCLP chips, RF
+    # flowing RIGHT->LEFT, all at rot 90 so pad 2 (RF-IN) faces +x and pad 5
+    # (RF-OUT) faces -x. 3.00 mm centre pitch = DETAIL_DESIGN sec.2's "4 x 3 mm
+    # between the five chips", which leaves 1.126 mm of 50-ohm line between
+    # adjacent lands and 0.10 mm between adjacent courtyards.
+    J_SMA_TX:    [93.38, 55.00,  0]
+    U_PAD_A1A:   [82.44, 55.00, 90]   # YAT-10A+  TX_PLUTO   -> PAD_A1_1
+    U_PAD_A1B:   [79.44, 55.00, 90]   # YAT-10A+  PAD_A1_1   -> PAD_A1_2
+    U_PAD_A1C:   [76.44, 55.00, 90]   # YAT-2A+   PAD_A1_2   -> PAD_A1_3
+    U_PAD_A1D:   [73.44, 55.00, 90]   # YAT-2A+   PAD_A1_3   -> PAD_A1_4
+    U_PAD_A1E:   [70.44, 55.00, 90]   # YAT-2A+   PAD_A1_4   -> LOOP_SPLIT
+
+    # ------------------------------------------------------- RF: the delta
+    # R_DELTA1/2 are the two ACTIVE legs and are placed as close to each other
+    # as an 0402 courtyard allows (1.76 mm), which is what keeps each active leg
+    # at 1.23 mm against the 1.40 mm lambda_g/20 ceiling. Their rotations are
+    # 90/270 - MIRRORED, and that is safe where the arm pads' is not: a
+    # 2-terminal chip is 180-degree symmetric, so mirroring places IDENTICAL
+    # copper and only renumbers the pads. It is used here deliberately, to make
+    # the delta geometrically symmetric about y=55.0.
+    R_DELTA1:    [64.00, 54.12, 90]   # LOOP_SPLIT (pad1, +y) -> LOOP_ARM1 (pad2, -y)
+    R_DELTA2:    [64.00, 55.88,270]   # LOOP_SPLIT (pad1, -y) -> LOOP_ARM2 (pad2, +y)
+    R_DELTA3:    [62.40, 55.00,270]   # LOOP_ARM1 <-> LOOP_ARM2, the INACTIVE leg,
+                                      # parked LEFT of the vertex so the
+                                      # LOOP_SPLIT feed from PAD_A1E never
+                                      # crosses it
+
+    # ------------------------------------------- RF: arm 1 (y = 45.75) and
+    # ------------------------------------------- arm 2 (y = 64.25 == +18.5)
+    # Read these two blocks as one: every arm-2 line is its arm-1 line with
+    # +18.5 added to y and NOTHING else changed. That is the D4 guarantee
+    # expressed as arithmetic.
+    U_PAD_A2A1:  [63.063, 47.75, 90]  # YAT-10A+  LOOP_ARM1    -> PAD_A2A_1
+    U_PAD_A2A2:  [59.990, 47.75, 90]  # YAT-2A+   PAD_A2A_1    -> LOOP_ARM1_SW
+    U_SW1:       [50.650, 47.95, 90]  # body +0.2 so RF2 (pad 1) lands ON y=45.75
+    J_SMA_RX1:   [50.650, 57.15,  0]  # 9.00 mm below SW1.RFin
+    C_DCBLK1:    [44.000, 47.75,  0]  # 1 nF C0G, ANTENNA PORT ONLY (ADR-0005)
+    J_SMA_ANT1:  [30.250, 47.75,  0]  # 20.00 mm from SW1.RF1
+
+    U_PAD_A2B1:  [63.063, 62.25, 90]
+    U_PAD_A2B2:  [59.990, 62.25, 90]
+    U_SW2:       [50.650, 62.45, 90]
+    J_SMA_RX2:   [50.650, 71.65,  0]
+    C_DCBLK2:    [44.000, 62.25,  0]
+    J_SMA_ANT2:  [30.250, 62.25,  0]
+
+    # ------------------------------- switch support: bypass AT the pin (D-ADJ)
+    # BGS12WN6 has no application schematic at all; what the datasheet DOES
+    # record (Table 6 fn 2) is that Infineon's own measurement board carried
+    # 1 nF VDD-GND and 1 nF VCTRL-GND, i.e. the published harmonic/IMD numbers
+    # were taken in this configuration. The series 1k + shunt 1 nF is also what
+    # makes the shared control net RF-DEAD: at 1.5 GHz - lambda/4 of a 25 mm
+    # control stub on this stackup, mid-band - the 1 nF is ~0.1 ohm plus j2.4.
+    # Every one of these is inside the part's own 4 mm keep_short.
+    C_SW1A:      [48.30, 49.90,  0]   # 100 nF at VDD (pad 4, 50.25/46.15) 2.6 mm
+    C_SW1B:      [48.30, 51.60,  0]   # 1 nF   at VDD                      4.0 mm
+    C_CTRL1:     [52.60, 49.60, 90]   # 1 nF   at CTRL (pad 6, 51.05/46.15) 2.2 mm
+    R_CTRL_PD1:  [54.00, 49.60, 90]   # 10k pull-down: the ONLY thing holding
+                                      # ANTENNA mode when IOVDD = 0 V and USB is
+                                      # unplugged (ADR-0001)
+    R_CTRL1:     [52.60, 51.80, 90]   # 1k series, RF_CTRL -> RF_CTRL_SW1
+
+    C_SW2A:      [48.30, 64.40,  0]
+    C_SW2B:      [48.30, 66.10,  0]
+    C_CTRL2:     [52.60, 64.10, 90]
+    R_CTRL_PD2:  [54.00, 64.10, 90]
+    R_CTRL2:     [52.60, 66.30, 90]
+
+    FB2:         [57.00, 55.00, 90]   # 600R@100MHz, 3V3 -> 3V3_SW, on the axis
+                                      # side of both switches so the two 3V3_SW
+                                      # runs are equal and neither parallels an arm
+
+    # =========================================================== DIGITAL BLOCK
+    # x 88..131, y 21..52, ordered by NOISE: the QSPI bus and the crystal hug
+    # the TOP edge (farthest copper from the calibration path), the USB pair and
+    # its ESD next, then the power entry, then the header at the right edge.
+    # ARCHITECTURE sec.10.5 asks for exactly this ordering - the QSPI bus is
+    # "this board's only continuous in-band spur source" (harmonics past 6 GHz).
+    U_MCU:       [110.00, 38.00,  0]  # QFN-56: QSPI on N-left, USB on N-right,
+                                      # XIN/XOUT on S, RF_CTRL on W (facing the
+                                      # RF section), HDR_CTRL_ADC on E
+    U_FLASH:     [107.00, 29.30,  0]  # SOIC-8 208-mil directly over the QSPI pads
+    R_BOOT:      [99.00,  27.40,  0]  # 1k QSPI_CSN->USB_BOOT, AT THE FLASH
+                                      # (Raspberry Pi hardware-design sec.2.2 p.9)
+    C_FLASH:     [113.30, 27.50, 90]  # 100 nF at flash pin 8
+    SW_BOOT:     [93.50,  30.50,  0]  # the long USB_BOOT leg is a DC node; the
+                                      # QSPI half stays 1k-isolated at the flash
+    Y1:          [110.00, 45.00, 90]  # 12 MHz, pads 2/4 (case) to L2 at the pad
+    R_XTAL:      [110.00, 48.60,  0]  # 1k damping on XOUT (ABM8 ESR 50R max)
+    C_XIN:       [113.50, 46.50,  0]  # 15 pF, derived 2 x (CL 10 - 3 stray)
+    C_XOUT:      [106.50, 45.50,  0]
+
+    J_USB:       [118.00, 21.65,  0]  # mouth flush with the TOP board edge
+    U_ESD:       [117.00, 28.00,  0]  # USBLC6-2SC6 IMMEDIATELY at the connector,
+                                      # upstream of everything on D+/D- (ST
+                                      # sec.2.3: track from connector to device
+                                      # as short as possible)
+    R_USBP:      [114.00, 31.60, 90]  # 27R series "close to the chip"
+    R_USBM:      [115.80, 31.60, 90]
+    C_USBV:      [106.50, 33.00,  0]  # 100 nF at USB_VDD
+
+    # power entry: VBUS -> F1 (PPTC) -> FB1 (600R) -> bulk -> LDO -> 3V3.
+    # Four SERIES elements on the USB entry, not three - VBUS_PF is the node
+    # BETWEEN the polyfuse and the ferrite (ARCHITECTURE sec.9).
+    F1:          [126.50, 32.00, 90]  # 500 mA hold: protects the HOST, not us
+    FB1:         [126.50, 37.50, 90]
+    C_VBUS:      [122.50, 37.50, 90]  # 4.7 uF - total VBUS bulk is CAPPED at
+    C_VBUSH:     [119.80, 37.50, 90]  # 6.8 uF against USB 2.0 sec.7.2.4.1's
+                                      # 10 uF inrush ceiling. Do NOT add "one
+                                      # more 10 uF" (ADR-0009)
+    U_LDO:       [126.50, 42.50,  0]  # ME6211C33M5G-N, CE tied to VIN
+    C_LDOI:      [122.00, 42.50,  0]  # 1 uF CIN at the VIN pin
+    C_LDOO:      [130.00, 42.50, 90]  # 1 uF CL at the VOUT pin
+
+    # RP2040 rail decoupling: one 100 nF within a few mm of EACH supply pin
+    # group, plus the two 1 uF the internal regulator needs.
+    C_IO1:       [103.90, 35.40, 90]  # W side, pad 1
+    C_IO2:       [103.90, 38.60, 90]  # W side, pad 10
+    C_IO3:       [103.90, 41.80, 90]  # S side, pad 22
+    C_IO4:       [116.40, 43.80, 90]  # S side, pad 26
+    C_IO5:       [116.40, 36.00, 90]  # E side, pad 33
+    C_IO6:       [116.40, 41.20, 90]  # E side, pad 42
+    C_ADCV:      [116.40, 38.60, 90]  # ADC_AVDD, beside HDR_CTRL_ADC's pin 40
+    C_VREGI:     [106.50, 43.20,  0]  # 1 uF at VREG_VIN (pad 23 area)
+    C_VREGO:     [113.20, 43.20,  0]  # 1 uF at VREG_VOUT (pads 45/50)
+    C_DV1:       [112.50, 33.00,  0]  # 100 nF DVDD
+    C_DV2:       [109.50, 33.00,  0]  # 100 nF DVDD
+
+    # GPIO header: the SECOND, UNKEYED entry and the realistic miswire path
+    # (ADR-0009). Series R + TVS on both lines; the divider is what lets one
+    # ADC pin read 1.8 / 3.3 / 5.0 V logic with no translator (ADR-0008).
+    J_HDR:       [128.00, 52.00,  0]  # pads run +y: GND / CTRL / STATE / GND
+    U_HDR_ESD:   [123.00, 52.00,  0]  # TPD2E2U06 at the connector (TI sec.10.1)
+    R_HDR_S:     [119.50, 52.00,  0]  # 2.2k series into the divider
+    R_HDR_G:     [119.50, 54.50,  0]  # 3.3k to GND: ratio 2.5, AND the pull-down
+                                      # that makes an UNCONNECTED header read 0 V
+                                      # = antenna mode
+    R_HDR_O:     [122.50, 55.00,  0]  # 1k series out of HDR_STATE_GPIO
+
+    # status LEDs at the top edge, beside the USB, where a user looks
+    D_LED_PWR:   [91.00,  22.50,  0]
+    R_LED1:      [94.50,  22.50,  0]
+    D_LED_MODE:  [91.00,  25.20,  0]
+    R_LED2:      [94.50,  25.20,  0]
 
 design_rules:
-  # jlc_4layer_advanced floors (ADR-0010). These are the TIER's numbers, and
-  # they are the one part of this file that is already a decision: the tier was
-  # chosen at stage 3 and rules/nets.yaml declares it.
+  # jlc_4layer_advanced floors (ADR-0010). The tier was forced independently
+  # TWICE: the BGS12WN6 pin-2 ground via AT the 0.25 mm land (a standard-tier
+  # 0.45 mm via leaves 0.050 mm to pins 1 and 3, under the 0.127 floor), and the
+  # RP2040 QFN-56 0.40 mm escape.
   track_min_width: 0.127
   min_clearance: 0.127
   via_min_annulus: 0.05
@@ -80,26 +319,98 @@ design_rules:
   solder_mask_expansion: 0.0
 
 zones:
-  # L2 IS ONE UNBROKEN GROUND PLANE AND THAT IS THE SINGLE MOST IMPORTANT RULE
-  # ON THIS BOARD (ARCHITECTURE sec.8): no split, no routing channel and no
-  # keepout under any RF trace, under the splitter, under either attenuator, or
-  # under the USB differential pair. The USB requirement and the RF requirement
-  # are the SAME requirement here, not competing ones.
+  # L2 (In1.Cu) IS ONE UNBROKEN GROUND PLANE AND THAT IS THE SINGLE MOST
+  # IMPORTANT RULE ON THIS BOARD (ARCHITECTURE sec.8): no split, no routing
+  # channel and no keepout under any RF trace, under the splitter, under either
+  # attenuator, or under the USB differential pair. The USB requirement
+  # ("a solid, uninterrupted area of ground copper, stretching the entire length
+  # of the track", RP2040 hardware-design sec.2.4.1 p.11) and the RF requirement
+  # are the SAME requirement here, not competing ones. `keepouts:` is absent
+  # from this file on purpose.
   - {net: GND, layers: [In1.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: solid}
   - {net: GND, layers: [In2.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: solid}
+  # L3 (In2.Cu) is "3V3/5V pours + digital routing" per ARCHITECTURE sec.7. The
+  # 3V3 pour is SCOPED to the digital block and rides at priority 2 so it nests
+  # inside the board-wide In2 GND rather than fighting it; it never reaches the
+  # RF region, where In2's job is to be the layer RF_CTRL hides under
+  # (sec.10.6: RF_CTRL runs on an inner layer UNDER ground between the two
+  # switches, and never parallel to a loopback arm).
+  - {net: 3V3, layers: [In2.Cu], region: digital, priority: 2, min_thickness: 0.3, clearance: 0.3, connect: solid}
   - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal}
 
 silk:
   min_text_height: 0.6
   refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQ"}
-  # captions: OWED — stage 5. Three are already REQUIRED rather than optional:
-  #   * every SMA port's function (ANT1 / ANT2 / RX1 / RX2 / TX). Five identical
-  #     jacks on our own pitch means NOTHING PHYSICAL distinguishes them, and
-  #     plugging a cable into the wrong one is silent.
-  #   * the header's 5.0 V CEILING and its pin order (GND / CTRL / STATE / GND).
-  #     A user cannot infer a ceiling from a bare 4-pin header (ADR-0008).
-  #   * which LED is PWR and which is LOOPBACK — they are the same red device.
+  captions:
+    # FIVE IDENTICAL JACKS ON OUR OWN PITCH MEANS NOTHING PHYSICAL
+    # DISTINGUISHES THEM, and plugging a cable into the wrong one is SILENT -
+    # the board still assembles, still passes DRC, and quietly measures the
+    # wrong path. These five captions are not decoration.
+    - {text: "ANT1", at: [30.25, 43.20], size: 1.2}
+    - {text: "ANT2", at: [30.25, 57.70], size: 1.2}
+    - {text: "RX1", at: [43.00, 57.15], size: 1.2}
+    - {text: "RX2", at: [43.00, 71.65], size: 1.2}
+    - {text: "TX", at: [93.38, 50.20], size: 1.2}
+    - {text: "70 MHz - 6 GHz  50R  >=40 dB TX->RX", at: [76.00, 77.50], size: 1.0}
+    # A user cannot infer a ceiling from a bare 4-pin header (ADR-0008), and the
+    # header is the one UNKEYED entry on the board.
+    - {text: "HDR 5.0V MAX", at: [128.00, 43.00], size: 0.8}
+    - {text: "G", at: [125.40, 46.00], size: 0.7}
+    - {text: "CTRL", at: [124.60, 48.54], size: 0.7}
+    - {text: "STATE", at: [124.20, 51.08], size: 0.7}
+    - {text: "G", at: [125.40, 53.62], size: 0.7}
+    # The two LEDs are the SAME red device; only silk tells them apart.
+    - {text: "PWR", at: [94.60, 23.00], size: 0.8}
+    - {text: "LOOP", at: [94.20, 26.00], size: 0.8}
+    - {text: "OFF = ANTENNA", at: [104.00, 43.60], size: 0.8}
 
-# asserts: OWED — stage 5 (pad_net polarity asserts). Note the NETLIST half of
-# this board's polarity intent is already machine-checked and GREEN:
-# rules/electrical_invariants.yaml, 40/40 at the schematic gate 2026-07-28.
+asserts:
+  # POLARITY IS A FACT, NOT A CONVENTION TO GUESS (03_src contract, hard rule 5):
+  # a generic 1/2 symbol lets the author wire a part backwards and NO electrical
+  # check can see it, because the netlist is self-consistent either way. These
+  # assertions are graded against the netlist at generation time and they fail
+  # the build, not a review.
+  pad_net:
+    # the RF chain's direction of travel, end to end
+    - {ref: U_PAD_A1A,  pad: "2", net: TX_PLUTO}      # pad 2 = RF-IN
+    - {ref: U_PAD_A1E,  pad: "5", net: LOOP_SPLIT}    # pad 5 = RF-OUT
+    - {ref: U_PAD_A2A1, pad: "2", net: LOOP_ARM1}
+    - {ref: U_PAD_A2A2, pad: "5", net: LOOP_ARM1_SW}
+    - {ref: U_PAD_A2B1, pad: "2", net: LOOP_ARM2}
+    - {ref: U_PAD_A2B2, pad: "5", net: LOOP_ARM2_SW}
+    # THE SAFE-STATE ASSERTION. BGS12WN6 Table 12: CTRL=0 -> RFIN-RF1.
+    # RF1 MUST be the antenna and RF2 MUST be the loopback arm, or power-on
+    # lands in LOOPBACK instead of ANTENNA and ADR-0001's whole silicon
+    # argument inverts. Swapping these two nets is invisible to ERC.
+    - {ref: U_SW1, pad: "3", net: SW1_ANT}            # RF1 = antenna
+    - {ref: U_SW1, pad: "1", net: LOOP_ARM1_SW}       # RF2 = loopback
+    - {ref: U_SW1, pad: "5", net: RX_PLUTO1}          # RFIN = the RX port
+    - {ref: U_SW2, pad: "3", net: SW2_ANT}
+    - {ref: U_SW2, pad: "1", net: LOOP_ARM2_SW}
+    - {ref: U_SW2, pad: "5", net: RX_PLUTO2}
+    # the SMA centre pin is pad 1 on all five; pads 2-5 are the ground posts
+    - {ref: J_SMA_TX,   pad: "1", net: TX_PLUTO}
+    - {ref: J_SMA_RX1,  pad: "1", net: RX_PLUTO1}
+    - {ref: J_SMA_RX2,  pad: "1", net: RX_PLUTO2}
+    - {ref: J_SMA_ANT1, pad: "1", net: RX_ANT1}
+    - {ref: J_SMA_ANT2, pad: "1", net: RX_ANT2}
+    # the DC block sits on the ANTENNA side of the switch, never in the
+    # calibration path (ADR-0005): pad 1 faces the jack, pad 2 the switch
+    - {ref: C_DCBLK1, pad: "1", net: RX_ANT1}
+    - {ref: C_DCBLK2, pad: "2", net: SW2_ANT}
+    # USB: VBUS is pad 1 and GND is pad 5. This map is INFERRED from the USB
+    # Micro-B standard, NOT printed on the XKB drawing (02_parts gotcha), so it
+    # is asserted HERE as well as owed to the stage-7 pin review - if the
+    # footprint ever numbers pin 1 at the other end, VBUS and GND swap and the
+    # board dies on first plug-in.
+    - {ref: J_USB, pad: "1", net: VBUS}
+    - {ref: J_USB, pad: "5", net: GND}
+    # LED cathode: KiCad puts the cathode on pad 1, and both LEDs are the same
+    # red device driven through a 680R to GND, so a reversed part is DARK, not
+    # loud.
+    - {ref: D_LED_PWR,  pad: "1", net: LED_PWR_K}
+    - {ref: D_LED_MODE, pad: "1", net: LED_MODE_K}
+  pad_order:
+    # the header's pin ORDER is a documented user interface (ADR-0008 sec.3),
+    # and the silk above prints it; assert the copper agrees.
+    - {ref: J_HDR, pads: ["1", "2", "3", "4"], axis: "+y"}

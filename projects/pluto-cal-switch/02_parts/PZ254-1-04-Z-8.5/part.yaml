@@ -12,7 +12,7 @@ datasheet:
   sha256: "n/a — no manufacturer PDF is vendored; see verified:"
   fetched: 2026-07-28
 package: 1x4P 2.54 mm straight through-hole pin header, 6 mm pin, 2.5 mm body
-footprint: pluto_cal_switch:PinHeader_1x04_P2.54mm_Vertical
+footprint: Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical
 escape:
   style: connector
   pitch: 2.54
@@ -30,6 +30,15 @@ limits:
   temp_op: "-40 to +105 C"
   pitch: 2.54 mm
 gotchas:
+  - "FOOTPRINT ADOPTED FROM THE KiCad STOCK LIBRARY, AND HERE IS THE
+     COMPARISON (2026-07-28). KiCad
+     Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical is 4 x D1.0 mm
+     PTH with 1.7 mm pads on 2.54 mm pitch, pad 1 rectangular. Against the
+     commodity 0.64 mm SQUARE post this part uses, a D1.0 hole leaves (1.0 -
+     0.905 diagonal)/2 = 0.048 mm radial -- the standard 2.54 mm header fit.
+     No vendor land drawing exists for this SKU (verified: records that there
+     is no pin map to read either); the pitch, hole and pad are the industry
+     pattern, not an inference specific to this part."
   - "THE GROUND-FLANKED ORDER IS LOAD-BEARING, NOT COSMETIC. ADR-0009 calls
      this header the board's SECOND, UNKEYED entry and the realistic miswire
      path. Pins 1 and 4 are GND so that a connector inserted one position off

@@ -1,0 +1,271 @@
+(footprint "USB_Micro-B_XKB_U254-051T"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "USB Micro-B receptacle, XKB U254-051T-4BH83-S1S (C319160): 5 SMT signal pads + 4 SMT shell pads + 2 PLATED OVAL PCB-LEG slots + 2 locating-boss NPTH. Geometry from XKB drawing U254-05XX-4BH83-XXS Rev A0 'RECOMMENDED P.C.B. LAYOUT / TOP VIEW (+/-0.05)'. THE ANCHORS ARE OVAL PLATED SLOTS (1.00x1.70 pad / 0.70x1.20 hole), NOT round drills and NOT NPTH - if they degrade to round or unplated the whole mechanical-retention reason for choosing this part evaporates; check the drill/slot report before release. DEVIATION: the outer shell pads are 1.60 wide (vendor 2.10), inner edge |x|=2.55 (vendor 2.05), because the vendor's own D0.40 boss at |x|=2.00 overlaps its own pad; the 8.30 mm outer span is unchanged. MOUTH FACES -Y (derived, not printed - the drawing has no PCB-EDGE datum). Shell and legs are ALL pad 6 and tie DIRECTLY to GND, no R/C isolation.")
+	(tags "USB micro-B receptacle XKB U254-051T C319160 oval slot plated")
+	(attr through_hole)
+	(property "Reference" "REF**"
+		(at 0 -3.4 0)
+		(layer "F.SilkS")
+		(uuid "")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "VAL**"
+		(at 0 5.6 0)
+		(layer "F.Fab")
+		(uuid "")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(hide yes)
+		(layer "F.Fab")
+		(uuid "")
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(hide yes)
+		(layer "F.Fab")
+		(uuid "")
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" smd rect
+		(at -1.3 0.675)
+		(size 0.4 1.35)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(uuid "")
+	)
+	(pad "2" smd rect
+		(at -0.65 0.675)
+		(size 0.4 1.35)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(uuid "")
+	)
+	(pad "3" smd rect
+		(at 0.0 0.675)
+		(size 0.4 1.35)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(uuid "")
+	)
+	(pad "4" smd rect
+		(at 0.65 0.675)
+		(size 0.4 1.35)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(uuid "")
+	)
+	(pad "5" smd rect
+		(at 1.3 0.675)
+		(size 0.4 1.35)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(uuid "")
+	)
+	(pad "6" smd rect
+		(at -3.35 0.8)
+		(size 1.6 1.6)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(uuid "")
+	)
+	(pad "6" smd rect
+		(at 3.35 0.8)
+		(size 1.6 1.6)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(uuid "")
+	)
+	(pad "6" smd rect
+		(at -1.2 3.34)
+		(size 1.9 1.9)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(uuid "")
+	)
+	(pad "6" smd rect
+		(at 1.2 3.34)
+		(size 1.9 1.9)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(uuid "")
+	)
+	(pad "6" thru_hole oval
+		(at -2.825 3.37)
+		(size 1.0 1.7)
+		(drill oval 0.70 1.20)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "")
+	)
+	(pad "6" thru_hole oval
+		(at 2.825 3.37)
+		(size 1.0 1.7)
+		(drill oval 0.70 1.20)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "")
+	)
+	(pad "" np_thru_hole circle
+		(at -2.0 1.0)
+		(size 0.55 0.55)
+		(drill 0.55)
+		(layers "F&B.Cu" "*.Mask")
+		(uuid "")
+	)
+	(pad "" np_thru_hole circle
+		(at 2.0 1.0)
+		(size 0.55 0.55)
+		(drill 0.55)
+		(layers "F&B.Cu" "*.Mask")
+		(uuid "")
+	)
+	(fp_line
+		(start -3.98 -1.6)
+		(end 3.98 -1.6)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "")
+	)
+	(fp_line
+		(start 3.98 -1.6)
+		(end 3.98 3.9)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "")
+	)
+	(fp_line
+		(start 3.98 3.9)
+		(end -3.98 3.9)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "")
+	)
+	(fp_line
+		(start -3.98 3.9)
+		(end -3.98 -1.6)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "")
+	)
+	(fp_line
+		(start -3.98 -1.6)
+		(end 3.98 -1.6)
+		(stroke
+			(width 0.15)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "")
+	)
+	(fp_line
+		(start -4.2 -1.6)
+		(end -4.2 -0.3)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "")
+	)
+	(fp_line
+		(start 4.2 -1.6)
+		(end 4.2 -0.3)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "")
+	)
+	(fp_circle
+		(center -2.05 -0.3)
+		(end -1.9899999999999998 -0.3)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill solid)
+		(layer "F.SilkS")
+		(uuid "")
+	)
+	(fp_line
+		(start -4.45 -1.60)
+		(end 4.45 -1.60)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "")
+	)
+	(fp_line
+		(start 4.45 -1.60)
+		(end 4.45 4.5)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "")
+	)
+	(fp_line
+		(start 4.45 4.5)
+		(end -4.45 4.5)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "")
+	)
+	(fp_line
+		(start -4.45 4.5)
+		(end -4.45 -1.60)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 1.6 0)
+		(layer "F.Fab")
+		(uuid "")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.1)
+			)
+		)
+	)
+)

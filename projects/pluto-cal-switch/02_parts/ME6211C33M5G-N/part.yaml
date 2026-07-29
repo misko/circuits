@@ -23,7 +23,7 @@ datasheet:
   fetched: 2026-07-27
   pages: 20
 package: SOT-23-5
-footprint: pluto_cal_switch:SOT-23-5
+footprint: Package_TO_SOT_SMD:SOT-23-5
 escape:
   style: leaded
   pitch: 0.95
@@ -45,6 +45,16 @@ limits:
   pd_sot23: 300 mW                            # no ambient stated; assume Ta=25 C
   cin_cout_required: 1 uF each                # Fig 2 typical application, p.2
 gotchas:
+  - "FOOTPRINT ADOPTED FROM THE KiCad STOCK LIBRARY, AND HERE IS THE
+     COMPARISON (2026-07-28). ME6211 V14 p.17 publishes the SOT23-5 PACKAGE
+     OUTLINE ONLY and NO land pattern: D 2.7-3.10, E 2.2-3.2, E1 1.30-1.80, e
+     0.95 REF, e1 1.90 REF, b 0.2-0.5, L 0.10-0.60. KiCad
+     Package_TO_SOT_SMD:SOT-23-5 lands 1.325 x 0.60 at x +/-1.1375, y
+     0/+/-0.95: pitch 0.95 and pin1-pin3 span 1.90 match e and e1 EXACTLY, and
+     against the nominal outline (E 2.70, E1 1.55, b 0.35) the land gives toe
+     +0.45, heel -0.30 (under the body, as IPC intends for SOT) and side
+     fillet +0.125. Comparison is outline-vs-IPC because Micro One publishes
+     no land."
   - "CE FLOATING IS UNDEFINED. Figure 2 'ME6211C series' typical application
      (p.2) shows CE tied to the VIN node, and the datasheet NEVER states whether
      the C series has an internal pull-up or pull-down. Leave CE floating and

@@ -1,0 +1,180 @@
+(footprint "C_0402_1005Metric_RF"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "RF-MINIMUM-AREA 0402 (1005 metric) land for CL05C102JB5NNNC (1 nF C0G antenna-port DC block, C307441). IPC-7351B LEAST (density level C): pad 0.46 x 0.51 mm at x=+/-0.45, gap 0.44 mm - NOT the IPC-NOMINAL 0.54 x 0.64 at +/-0.51 that KiCad's stock Capacitor_SMD:C_0402_1005Metric carries. -32% pad area = -0.0206 pF of shunt capacitance to the L2 plane per pad on the 0.2104 mm 7628 prepreg (638 vs 415 ohm at 6 GHz against a 50 ohm line). Use ONLY on parts that sit in the 50 ohm path; every other 0402 on this board uses the stock nominal land.")
+	(tags "C 0402 1005 metric RF minimum area IPC least")
+	(attr smd)
+	(property "Reference" "REF**"
+		(at 0 -1.16 0)
+		(layer "F.SilkS")
+		(uuid "")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "VAL**"
+		(at 0 1.16 0)
+		(layer "F.Fab")
+		(uuid "")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(hide yes)
+		(layer "F.Fab")
+		(uuid "")
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(hide yes)
+		(layer "F.Fab")
+		(uuid "")
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" smd roundrect
+		(at -0.45 0)
+		(size 0.46 0.51)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(roundrect_rratio 0.25)
+		(uuid "")
+	)
+	(pad "2" smd roundrect
+		(at 0.45 0)
+		(size 0.46 0.51)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(roundrect_rratio 0.25)
+		(uuid "")
+	)
+	(fp_line
+		(start -0.5 -0.25)
+		(end 0.5 -0.25)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "")
+	)
+	(fp_line
+		(start 0.5 -0.25)
+		(end 0.5 0.25)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "")
+	)
+	(fp_line
+		(start 0.5 0.25)
+		(end -0.5 0.25)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "")
+	)
+	(fp_line
+		(start -0.5 0.25)
+		(end -0.5 -0.25)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "")
+	)
+	(fp_line
+		(start -0.17 -0.36)
+		(end 0.17 -0.36)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "")
+	)
+	(fp_line
+		(start -0.17 0.36)
+		(end 0.17 0.36)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "")
+	)
+	(fp_line
+		(start -0.78 -0.48)
+		(end 0.78 -0.48)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "")
+	)
+	(fp_line
+		(start 0.78 -0.48)
+		(end 0.78 0.48)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "")
+	)
+	(fp_line
+		(start 0.78 0.48)
+		(end -0.78 0.48)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "")
+	)
+	(fp_line
+		(start -0.78 0.48)
+		(end -0.78 -0.48)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "")
+		(effects
+			(font
+				(size 0.3 0.3)
+				(thickness 0.1)
+			)
+		)
+	)
+)

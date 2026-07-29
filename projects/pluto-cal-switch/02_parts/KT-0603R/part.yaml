@@ -8,7 +8,7 @@ datasheet:
   sha256: "n/a — no manufacturer PDF is vendored; see verified:"
   fetched: 2026-07-28
 package: 0603 (1608 metric), 1.6 x 0.8 mm, 2 terminals
-footprint: pluto_cal_switch:LED_0603_1608Metric
+footprint: LED_SMD:LED_0603_1608Metric
 escape:
   style: passive
   pitch: 0.8
@@ -23,6 +23,14 @@ limits:
   viewing_angle: 120 deg
   temp_op: "-40 to +85 C"
 gotchas:
+  - "FOOTPRINT ADOPTED FROM THE KiCad STOCK LIBRARY, WITH THE COMPARISON
+     DECLARED PARTIAL (2026-07-28). No manufacturer PDF is vendored for this
+     SKU (see datasheet:/verified:), so NO vendor land drawing was compared --
+     the adoption rests on the 1608-metric chip envelope in the LCSC record
+     (1.6 x 0.8 mm) and KiCad's IPC-7351 nominal land (0.875 x 0.95 at
+     +/-0.7875), which is the same land the 22 stock 0402/0805 passives on
+     this board already use. Closing gate: jlc_twin PAD-GEOM at stage 7
+     against JLC's own model for C2286."
   - "THE 680 ohm SERIES VALUE WAS DERIVED AGAINST Vf = 2.0 V (DETAIL_DESIGN
      sec.9: (3.3 - 2.0)/2 mA = 650 ohm -> E24 680 ohm => 1.9 mA). This part's Vf
      window is 1.8-2.4 V, so the real current runs 1.32-2.21 mA across the

@@ -9,7 +9,7 @@ datasheet:
   fetched: 2026-07-28
   pages: 3
 package: SMD3225-4P, 3.2 x 2.5 x 0.8 mm ceramic seam-sealed, 4 pads
-footprint: pluto_cal_switch:Crystal_SMD_3225-4Pin_3.2x2.5mm
+footprint: Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm
 escape:
   style: passive
   pitch: 1.2                   # pad centre-to-centre across the 3.2 mm axis
@@ -36,6 +36,16 @@ limits:
   msl: 1                                  # "Hermetically Sealed and not
                                           # Moisture Sensitive - MSL = 1"
 gotchas:
+  - "FOOTPRINT ADOPTED FROM THE KiCad STOCK LIBRARY, AND HERE IS THE
+     COMPARISON (2026-07-28). Abracon drawing #456603 Rev B p.(4) 'Mechanical
+     Dimensions' publishes the PACKAGE ONLY and NO recommended land: body 3.2
+     +/-0.20 x 2.5 +/-0.20, terminals 1.2 +/-0.10 (X) x 0.70 +/-0.10 (Y), X
+     gap 0.9 +/-0.10 and Y gap 0.80 +/-0.10, i.e. terminal centres (+/-1.05,
+     +/-0.75). KiCad Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm lands 1.40 x 1.20
+     at (+/-1.10, +/-0.85): it covers each terminal with heel/toe +0.05/+0.15
+     in X and +0.15/+0.35 in Y, and leaves 0.80 mm (X) / 0.50 mm (Y) between
+     pads. The comparison is package-outline-vs-IPC because the vendor
+     publishes no land -- stated, not papered over."
   - "THIS PART EXISTS TO CLOSE ADR-0012's DEFERRED CRYSTAL ITEM BY RESOLUTION
      (a), NOT (b). ADR-0012 stated Raspberry Pi's own limits as CL = 10 pF and
      ESR <= 50 ohm (hardware-design-with-rp2040 sec.2.3 p.10, Table 1 sec.2.3.1

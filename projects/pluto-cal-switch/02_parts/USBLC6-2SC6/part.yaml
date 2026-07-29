@@ -9,7 +9,7 @@ datasheet:
   fetched: 2026-07-28
   pages: 14
 package: SOT-23-6L
-footprint: pluto_cal_switch:SOT-23-6
+footprint: Package_TO_SOT_SMD:SOT-23-6
 escape:
   style: leaded
   pitch: 0.95
@@ -37,6 +37,15 @@ limits:
   vpp_esd: "15 kV air / 15 kV contact (IEC 61000-4-2)"   # Table 1
   tj: "-40 to +125 C"                            # Table 1
 gotchas:
+  - "FOOTPRINT ADOPTED FROM THE KiCad STOCK LIBRARY, AND HERE IS THE
+     COMPARISON (2026-07-28). ST USBLC6-2 Rev 5 publishes NO recommended land
+     pattern -- its Figure 18 'USBLC6-2 PCB layout considerations' (p.9) is a
+     schematic-level connection sketch, not a land drawing, and it must not be
+     cited as one. SOT-23-6 is the TO-236 body with six 0.95 mm-pitch leads,
+     so KiCad Package_TO_SOT_SMD:SOT-23-6 (1.325 x 0.60 at x +/-1.1375, y
+     0/+/-0.95) is the same IPC-nominal geometry adopted for the ME6211's
+     SOT-23-5, with the sixth lead added. Comparison is outline-vs-IPC; no
+     vendor land exists."
   - "PIN-MAP DEVIATION CLOSED 2026-07-28. This entry was `pins: {}` / `verified:
      OWED` because the cached file was an HTML error page saved with a .pdf
      extension. A VALID ST PDF (Doc ID 11265 Rev 5, sha256 8ba7ab...) was

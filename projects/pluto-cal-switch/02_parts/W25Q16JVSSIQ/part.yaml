@@ -11,7 +11,7 @@ datasheet:
   pages: 75
 package: SOIC-8 208mil        # ordering decode sec.12, printed p.71: the "SS"
                               # field of W25Q16JV-SS-IQ = "8-pin SOIC 208-mil"
-footprint: pluto_cal_switch:SOIC-8_5.23x5.23mm_P1.27mm
+footprint: Package_SO:SOIC-8_5.3x5.3mm_P1.27mm
 escape:
   style: leaded
   pitch: 1.27
@@ -33,6 +33,20 @@ limits:
   clock_max: "133 MHz"                 # sec.1
   interface: "standard SPI / Dual SPI / Quad SPI (IO0..IO3)"
 gotchas:
+  - "FOOTPRINT ADOPTED FROM THE KiCad STOCK LIBRARY UNDER A DIFFERENT NAME,
+     AND HERE IS THE COMPARISON (2026-07-28). Winbond Rev H sec.11.3 '8-Pin
+     SOIC 208-mil (Package Code SS)': e 1.27 BSC, H (lead span)
+     7.70/7.90/8.10, b 0.35/0.42/0.48, L 0.50/0.65/0.80, D1 = E1
+     5.13/5.23/5.33 (body), D = E 5.18/5.28/5.38 (with flash). KiCad
+     Package_SO:SOIC-8_5.3x5.3mm_P1.27mm -- whose own descr reads 'JEITA/EIAJ
+     ED-7311-19 variation 08-001-BBA and Atmel/Microchip, 208 mils width' --
+     lands 1.625 x 0.65 at x +/-3.5875, y +/-1.905/+/-0.635: pitch 1.27 EXACT,
+     pad span 2.775..4.400 against a nominal lead foot of 3.30..3.95 (heel
+     +0.525, toe +0.450), side fillet +0.115 on b nominal. THE NAME DIFFERS
+     FROM THE part.yaml's ORIGINAL 'SOIC-8_5.23x5.23mm_P1.27mm' ONLY IN WHICH
+     BODY NUMBER IT QUOTES (KiCad rounds the with-flash D/E 5.28 to 5.3;
+     Winbond's 5.23 is D1/E1); the land is driven by H and e, which are
+     identical."
   - "PIN-MAP DEVIATION CLOSED 2026-07-28. This entry was `pins: {}` /
      `verified: OWED` at the end of stage 3. The Winbond PDF was fetched
      (sha256 81af3f...), Figure 1a read, and the PDF vendored here."

@@ -9,7 +9,7 @@ datasheet:
   fetched: 2026-07-27
   pages: 642
 package: QFN-56, 7x7 mm, 0.40 mm pitch, centre thermal/ground pad
-footprint: pluto_cal_switch:QFN-56_7x7_P0.4_RP2040
+footprint: Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm
 escape:
   style: qfn
   pitch: 0.4
@@ -86,6 +86,19 @@ limits:
   iiovdd_max: 50 mA summed across all GPIO+QSPI
   msl_bare_device: 1                          # sec 5.4, PDF p612
 gotchas:
+  - "FOOTPRINT ADOPTED FROM THE KiCad STOCK LIBRARY AND IT IS AN EXACT MATCH
+     -- COMPARED DATUM BY DATUM AGAINST FIGURE 167 'Recommended PCB Footprint'
+     (PDF p609 / printed p608), RENDERED AND READ (2026-07-28). Figure 167:
+     pad 0.875 x 0.200, pitch 0.400, land inner edge at 3.000 and outer at
+     3.875 from centre (overall 7.75), per-row outer span 5.40, corner offset
+     1.175, EP 3.20 x 3.20. KiCad
+     Package_DFN_QFN:QFN-56-1EP_7x7mm_P0.4mm_EP3.2x3.2mm: pads 0.875 x 0.200
+     at +/-3.4375 (inner 3.000, outer 3.875), pitch 0.400, pad 1 at -2.600 and
+     pad 14 at +2.600 (5.20 centre-to-centre, 5.40 outer), pad 57 = EP 3.20 x
+     3.20 with pad_prop_heatsink, plus four 1.29 x 1.29 F.Paste windows (65%
+     EP coverage). Every datum agrees to 0.000 mm; KiCad's own descr cites
+     this datasheet. Do NOT take the EP4x4 or EP5.6x5.6 variants -- Figure 167
+     says 3.20."
   - "THE POWER-ON GPIO STATE IS THE REASON THIS PART IS HERE (ADR-0001), and it
      is documented THREE independent ways: PADS_BANK0 resets PDE=1 / PUE=0
      (Table 341, sec 2.19.6.3, p.301); SIO GPIO_OE resets to 0x00000000 so

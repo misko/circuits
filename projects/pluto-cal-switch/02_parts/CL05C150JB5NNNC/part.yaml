@@ -9,7 +9,7 @@ datasheet:
     the parametrics below are the JLCPCB catalog record, cited in verified:"
   fetched: 2026-07-28
 package: 0402 (1005 metric), 2 terminals
-footprint: pluto_cal_switch:C_0402_1005Metric
+footprint: Capacitor_SMD:C_0402_1005Metric
 escape:
   style: passive
   pitch: 0.5
@@ -24,6 +24,16 @@ limits:
   dielectric: "C0G / NP0"
   voltage: 50 V
 gotchas:
+  - "FOOTPRINT ADOPTED FROM THE KiCad STOCK LIBRARY, WITH THE COMPARISON
+     DECLARED PARTIAL (2026-07-28). No manufacturer PDF is vendored for this
+     series-sheet passive, so NO vendor land drawing was compared -- the
+     adoption rests on the 1005-metric chip envelope (1.00 x 0.50 mm, 0.25 mm
+     termination band) and KiCad's IPC-7351 NOMINAL land, which the 32 other
+     stock 0402/0805 passives on this board already use. NOTE THE DELIBERATE
+     SPLIT: parts that sit in the 50 ohm RF path do NOT use this land -- they
+     use the project's own pluto_cal_switch:{R,C}_0402_1005Metric_RF (IPC
+     LEAST, -32% pad area, -0.0206 pF of shunt C per pad on the 0.2104 mm
+     prepreg). This part is not in that path."
   - "TWO PER BOARD — the 12 MHz crystal's load capacitors (C_XIN / C_XOUT).
      THE VALUE IS DERIVED FROM THE CRYSTAL, NOT COPIED FROM THE PICO:
      CL = (C1.C2)/(C1+C2) + Cstray with the ABM8-272-T3's CL = 10 pF and

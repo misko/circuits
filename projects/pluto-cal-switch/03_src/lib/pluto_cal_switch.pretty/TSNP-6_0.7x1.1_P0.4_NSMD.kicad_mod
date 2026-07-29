@@ -1,0 +1,235 @@
+(footprint "TSNP-6_0.7x1.1_P0.4_NSMD"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "Infineon PG-TSNP-6 (0.7 x 1.1 x 0.37 mm leadless, 0.40 mm pitch both axes) - BGS12WN6 C534203, and the pin-, truth-table- and LAND-identical BGS12P2L6 C3312945. Land from BGS12WN6 Rev 2.9 Figure 5 'Footprint recommendation': NSMD, six 0.25x0.25 mm lands on a 0.40x0.40 mm grid, a SINGLE solder-mask opening over all six (the 0.15 mm land-to-land gap is below JLCPCB's 0.2 mm mask-dam minimum, so per-pad openings are unmanufacturable), and 6 circular D0.25 stencil apertures. Pin map from Figure 2 (TOP VIEW): left col 4/5/6, right col 3/2/1. PIN-2 GROUND VIA MUST ESCAPE OUTWARD (ARCHITECTURE sec.10.7): a 0.45 mm standard-tier via at the 0.25 mm land leaves 0.050 mm to pins 1 and 3, under the 0.127 mm floor - this part is why the board is jlc_4layer_advanced (0.25/0.15 vias fit, 0.150 mm clear).")
+	(tags "TSNP-6 PG-TSNP-6-10 DFN RF SPDT Infineon BGS12WN6 BGS12P2L6 NSMD")
+	(attr smd)
+	(property "Reference" "REF**"
+		(at 0 -1.25 0)
+		(layer "F.SilkS")
+		(uuid "")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "VAL**"
+		(at 0 1.25 0)
+		(layer "F.Fab")
+		(uuid "")
+		(effects
+			(font
+				(size 0.6 0.6)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(hide yes)
+		(layer "F.Fab")
+		(uuid "")
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(hide yes)
+		(layer "F.Fab")
+		(uuid "")
+		(effects
+			(font
+				(size 1.0 1.0)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "4" smd rect
+		(at -0.2 -0.4)
+		(size 0.25 0.25)
+		(layers "F.Cu")
+		(uuid "")
+	)
+	(pad "5" smd rect
+		(at -0.2 0.0)
+		(size 0.25 0.25)
+		(layers "F.Cu")
+		(uuid "")
+	)
+	(pad "6" smd rect
+		(at -0.2 0.4)
+		(size 0.25 0.25)
+		(layers "F.Cu")
+		(uuid "")
+	)
+	(pad "3" smd rect
+		(at 0.2 -0.4)
+		(size 0.25 0.25)
+		(layers "F.Cu")
+		(uuid "")
+	)
+	(pad "2" smd rect
+		(at 0.2 0.0)
+		(size 0.25 0.25)
+		(layers "F.Cu")
+		(uuid "")
+	)
+	(pad "1" smd rect
+		(at 0.2 0.4)
+		(size 0.25 0.25)
+		(layers "F.Cu")
+		(uuid "")
+	)
+	(pad "" smd rect
+		(at 0 0)
+		(size 0.8 1.2)
+		(layers "F.Mask")
+		(uuid "")
+	)
+	(pad "" smd circle
+		(at -0.2 -0.4)
+		(size 0.25 0.25)
+		(layers "F.Paste")
+		(uuid "")
+	)
+	(pad "" smd circle
+		(at -0.2 0.0)
+		(size 0.25 0.25)
+		(layers "F.Paste")
+		(uuid "")
+	)
+	(pad "" smd circle
+		(at -0.2 0.4)
+		(size 0.25 0.25)
+		(layers "F.Paste")
+		(uuid "")
+	)
+	(pad "" smd circle
+		(at 0.2 -0.4)
+		(size 0.25 0.25)
+		(layers "F.Paste")
+		(uuid "")
+	)
+	(pad "" smd circle
+		(at 0.2 0.0)
+		(size 0.25 0.25)
+		(layers "F.Paste")
+		(uuid "")
+	)
+	(pad "" smd circle
+		(at 0.2 0.4)
+		(size 0.25 0.25)
+		(layers "F.Paste")
+		(uuid "")
+	)
+	(fp_line
+		(start -0.35 -0.55)
+		(end 0.35 -0.55)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "")
+	)
+	(fp_line
+		(start 0.35 -0.55)
+		(end 0.35 0.55)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "")
+	)
+	(fp_line
+		(start 0.35 0.55)
+		(end -0.35 0.55)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "")
+	)
+	(fp_line
+		(start -0.35 0.55)
+		(end -0.35 -0.55)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "")
+	)
+	(fp_circle
+		(center 0.55 0.75)
+		(end 0.61 0.75)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill solid)
+		(layer "F.SilkS")
+		(uuid "")
+	)
+	(fp_line
+		(start -0.75 -0.85)
+		(end 0.75 -0.85)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "")
+	)
+	(fp_line
+		(start 0.75 -0.85)
+		(end 0.75 0.85)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "")
+	)
+	(fp_line
+		(start 0.75 0.85)
+		(end -0.75 0.85)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "")
+	)
+	(fp_line
+		(start -0.75 0.85)
+		(end -0.75 -0.85)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "")
+		(effects
+			(font
+				(size 0.4 0.4)
+				(thickness 0.1)
+			)
+		)
+	)
+)
