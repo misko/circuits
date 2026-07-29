@@ -548,7 +548,18 @@ def main():
               "all refdes on visible silk",
               f"{len(missing)} refdes not on silk: {missing[:8]}")
 
-        pat = re.compile(cfg.get("silk_fn_refs", r"^(J|F|TP)[0-9]"))
+        # `^(J|F|TP)[0-9]` required a DIGIT immediately after the prefix, so on
+        # every board in this fleet that names touchpoints `J_DOOR` / `TP_ESTOP`
+        # rather than `J1` / `TP1`, P-SILK-FN graded almost NOTHING and reported
+        # PASS. MEASURED on cooksense 2026-07-28: 36 human touchpoints (13
+        # connectors, 12 test points, mounting holes, 1 fuse) and the pattern
+        # matched exactly ONE — `F1`. A gate that grades 1 of 36 and can only
+        # pass is the `jlc_twin`-exited-0-on-11-unverified-parts class named in
+        # CLAUDE.md, and it is what let a connector-labelling P0 through green.
+        # `_` is now an accepted separator. `FB1` (ferrite) and `FID1`
+        # (fiducial) still do NOT match, because neither a digit nor an
+        # underscore follows their prefix letter — checked, not assumed.
+        pat = re.compile(cfg.get("silk_fn_refs", r"^(J|F|TP)([0-9]|_)"))
         rad = float(cfg.get("silk_fn_radius_mm", 8.0))
         texts = [(MM(t.GetPosition().x), MM(t.GetPosition().y))
                  for t in board.GetDrawings()
