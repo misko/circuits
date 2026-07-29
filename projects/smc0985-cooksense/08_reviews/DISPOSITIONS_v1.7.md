@@ -8,9 +8,16 @@ FOUR independent zero-context lenses, launched concurrently, input CURATED
 | topology / protection / ratings | **DO-NOT-ORDER** (P0-1) |
 | render | **DO-NOT-ORDER** (P0-A, P0-B) |
 | layout / thermal / PI | **DO-NOT-ORDER** (P1-b; no P0) |
-| pin review | **PASS** — 20 parts, no mirror, no mis-mapped pin, 4 QUESTIONs |
+| pin review (FRESH LENS) | **FAIL** — 1 blocking pin-map FAIL x12 instances, 1 blocking electrical |
 
-**SEAL BLOCKED. v1.7 is NOT sealed. cooksense-v1.6-2026-07-27 remains LIVE.**
+**SEAL BLOCKED. v1.7 is NOT sealed. cooksense-v1.6-2026-07-27 remains LIVE — BUT SEE PIN-P0, WHICH IMPLICATES v1.0-v1.6 TOO.**
+
+**CORRECTION, recorded rather than quietly edited:** the first cut of this file
+said "pin review PASS". That was the main loop misreading
+`2026-07-28_v1.7_pin-review_changed-and-safety-chain.md` — a DIFFERENT review,
+committed earlier in `9a02c52` against an earlier v1.7 state — as the output of
+this session's fresh lens. The fresh lens returned **FAIL**. Both files are kept;
+neither supersedes the other.
 
 ## Blocking
 
@@ -20,6 +27,9 @@ FOUR independent zero-context lenses, launched concurrently, input CURATED
 | **RENDER P0-A** | J_ESTOP / J_DOOR inter-mateable C189896, labels discriminate by **0.069 mm**; `D_DOOR` (h 0.60, 33% taller) sits 0.353 mm from the E-STOP connector and 6.411 mm from its own diode. | **ACCEPTED — FIX REQUIRED.** Silk-only, respin-only. Extend `fix_silk_placement.py` to enforce label OWNERSHIP, not just void avoidance. |
 | **RENDER P0-B** | `P-SILK-FN` matched `^(J|F|TP)[0-9]` -> exactly ONE ref (`F1`) of 35 touchpoints. The only machine gate on connector silk could not fail. | **FIXED 2026-07-28** in `skills/kicad-pcb/scripts/policy_audit.py`, default now `^(J|F|TP)([0-9]\|_)`. Measured: cooksense 1->31, interposer 0->23, pluto-rx2-8way 0->12, pluto-cal-switch 1->8, crow-rc-v2 30->32. Now FAILS on unlabeled test points — a real finding it could never previously report. Known-bad fixture OWED. |
 | **LAYOUT P1-b** | `J_ISOLOOP` (the NOT-SELV connector) silk label printed 0.353 mm OUTSIDE its own courtyard and fully inside `J_RH_EXHAUST`'s; 4.900 mm to own pads vs 1.412 mm to the neighbour's — a 3.5x inversion. | **ACCEPTED — FIX REQUIRED.** Same silk pass as P0-A. **INDEPENDENTLY FOUND BY TWO LENSES** with no shared method (render measured 0.314 vs 0.373 mm from the other direction). |
+
+| **PIN P0 (VERIFIED BY THE MAIN LOOP)** | The 12 DIP05 reed relays' footprint has 4 pads on DIP 1/7/8/14, but datasheet p.3 sub-figure **12** shows **EIGHT** leads with **1<->14 one contact node** and **7<->8 the other**, coil on the INNER pins. Netlist confirms: pad1=`5V_KEY_RELAY` and pad4=`U_SEL_BUS` are the SAME internal node; pad2=`COIL_U1_N` and pad3=`KP_U1` likewise. So `5V_KEY_RELAY` is hard-shorted to the select bus, every ULN2803 output is shorted to its keypad line, **the coil has no holes at all**, and the array is non-functional. The 1.5 kVDC coil/contact isolation boundary cited to ADR-0002 does not exist in pinout 12 — the split runs along the long axis, not between rows. | **ACCEPTED — FIX REQUIRED, and it is NOT v1.7-scoped.** The footprint predates v1.7 and ships in **sealed v1.0-v1.6**. Re-author against sub-figure 12 (8 pads), re-derive the isolation geometry, re-run placement/route. `part.yaml`'s prose matches sub-figure **13**, the 4-lead variant — the wrong sub-figure was read. |
+| **PIN P0-b** | `U_EXP` pin 1 (GPB0) idles at **5.0 V** into a 3.3 V part (abs-max 3.6 V): `EFUSE_FLT_N` is pulled up to `5V_PROTECTED` through `R_PG` 100k. ~14 uA of continuous injection into 3V3. | **ACCEPTED — FIX REQUIRED.** Divider, or move the pull-up to 3V3. |
 
 ## Recorded, not blocking
 
