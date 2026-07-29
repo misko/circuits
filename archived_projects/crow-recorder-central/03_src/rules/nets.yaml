@@ -1,0 +1,109 @@
+# crow-recorder-central net architecture — source of truth for netclasses +
+# DRU floors. generate_rules.py emits these into 04_kicad/*.kicad_pro and
+# .kicad_dru. Defined BEFORE routing (kicad-pcb golden rule 3 / canon R1).
+#
+# 6-layer JLC SMALL-VIA tier (ADR-0008 layers + ADR-0009 vias, D-TIER
+# ADR-0012): the XU316 TQFP-128 0.4mm via-in-pad escape needs 0.30/0.15
+# vias — ADR-0008's "no small-via option" claim did not survive DRC.
+# Stackup F/In1 GND/In2/In3/In4 GND/B; power = floored tracks on the 4
+# signal layers (D15); GND = In1+In4 planes + pours + stitch.
+
+fab_tier: jlc_6layer_smallvia
+
+classes:
+  PWR5:
+    intent: >
+      5V trunk: entry -> PTC -> TVS -> reverse FET -> rail. Worst case
+      ~1.2A (both bucks + 6 pods + one beeper). Trunk rides an In2.Cu
+      island + F.Cu pours at the entry; 0.5mm floor (~1.5A external
+      layer) is the tap backstop, not the trunk sizing.
+    nets: [5V_IN, 5V_P, 5V]
+    current: 1.2A
+    min_width: 0.5mm
+    routing: In2 island for distribution; F.Cu pour entry->FET
+    verify: DRC floor + R-POUR
+
+  RAIL:
+    intent: >
+      Regulated rails 3V3 (<=400mA), 0V9 (<=800mA), 1V8 (<=100mA), 3V3A
+      (<=60mA) + the buck switch nodes BK1_SW/BK2_SW (1.5A-class
+      converters, pours at the parts). Distribution on In2 islands;
+      0.4mm floor (~1A external) backstops every tap.
+    nets: [3V3, 0V9, 1V8, BK1_SW, BK2_SW]
+    current: 0.8A max (0V9)
+    min_width: 0.4mm
+    routing: In2 islands; SW nodes tight F.Cu pours at the bucks
+    verify: DRC floor + R-POUR + R-THERM
+
+  ARAIL:
+    intent: >
+      3V3A analog rail (D20): AVDD to both PCM1865 (~31mA typ x2 = 60mA);
+      0.2mm floor (~0.6A external) is ample and lets the ADC AVDD taps
+      escape the TSSOP pin field (0.4mm boxed 2 pins). Trunk 23mm at 0.4
+      from the XC6227 stays wide from the router; floor is the tap backstop.
+    nets: [3V3A]
+    current: 0.06A
+    min_width: 0.2mm
+    routing: analog LDO -> both ADC AVDD; keep off the switching corridors
+    verify: DRC floor
+
+  PORTPWR:
+    intent: >
+      Per-port cable feeds after their PTCs (audio 5V ~6mA, beep 5V
+      150mA burst) + the switched beeper returns into the FET drains.
+      0.4mm = >6x ampacity margin on the 150mA beep path; keeps the
+      return-loop copper stout (brief: crosstalk risk lives here).
+    nets: ["5V_AUD1", "5V_AUD2", "5V_AUD3", "5V_AUD4", "5V_AUD5",
+           "5V_AUD6", "5V_AUD7", "5V_AUD8",
+           "BEEP_5V1", "BEEP_5V2", "BEEP_5V3", "BEEP_5V4", "BEEP_5V5",
+           "BEEP_5V6", "BEEP_5V7", "BEEP_5V8",
+           "BEEP_RET1", "BEEP_RET2", "BEEP_RET3", "BEEP_RET4",
+           "BEEP_RET5", "BEEP_RET6", "BEEP_RET7", "BEEP_RET8"]
+    current: 0.15A
+    min_width: 0.4mm
+    routing: >
+      north-edge corridor only (jack row): feed and return adjacent,
+      never entering the analog band (audit separation check)
+    verify: DRC floor + audit I-SEP
+
+  CLK:
+    intent: >
+      MCLK tree (source, buffered A/B branches), BCLK, LRCK, both TDM
+      data lines. Series-terminated at sources, routed wave-1 over the
+      continuous In1 GND (R-PLANE region), stubs minimized.
+    nets: [MCLK_SRC, MCLK_A0, MCLK_B0, MCLK_A, MCLK_B, BCLK, LRCK,
+           DATA1, DATA2]
+    current: signal
+    min_width: 0.15mm  # D17: fab floor; XU316 escapes neck to 0.15 (0.2 nominal)
+    routing: wave 1 with USB; F.Cu preferred, minimal via count
+    verify: DRC floor + audit clock-length spread check
+
+  USB:
+    intent: >
+      USB-HS pair, ~90R differential target on JLC7628 outer layer over
+      In1 GND. Pair is deliberately SHORT (connector adjacent to the
+      XU316 USB corner); 0.25mm width floor = the impedance geometry.
+    nets: [USB_DP, USB_DM]
+    current: signal
+    min_width: 0.15mm  # D17: fab floor; escape necks to 0.15 (0.25 nominal for ~90R)
+    routing: wave 0, F.Cu only, no vias, matched within 1mm (audit)
+    verify: DRC floor + audit USB checks
+
+  AUDIO:
+    intent: >
+      Balanced pairs from the jacks and the coupled ADC input nets +
+      injection taps. Diff legs adjacent, over continuous GND, away
+      from beeper corridor (placement-enforced).
+    nets: ["AUD_P1", "AUD_N1", "AUD_P2", "AUD_N2", "AUD_P3", "AUD_N3",
+           "AUD_P4", "AUD_N4", "AUD_P5", "AUD_N5", "AUD_P6", "AUD_N6",
+           "AUD_P7", "AUD_N7", "AUD_P8", "AUD_N8",
+           "AIN_P1", "AIN_N1", "AIN_P2", "AIN_N2", "AIN_P3", "AIN_N3",
+           "AIN_P4", "AIN_N4", "AIN_P5", "AIN_N5", "AIN_P6", "AIN_N6",
+           "AIN_P7", "AIN_N7", "AIN_P8", "AIN_N8", "INJ", "INJ_C"]
+    current: signal
+    min_width: 0.15mm  # D17: fab floor (0.2 nominal)
+    routing: pairs adjacent F.Cu; ADC-side stubs short
+    verify: DRC floor + audit separation
+
+# Default 0.15mm: QSPI, I2C, GPIO/beeper gates, straps, VBUS sense,
+# debug. GND is not routed: In1 plane + F/B pours + stitch vias.

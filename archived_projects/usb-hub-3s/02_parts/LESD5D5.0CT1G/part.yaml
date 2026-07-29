@@ -1,0 +1,13 @@
+mpn: LESD5D5.0CT1G
+manufacturer: Leiditech
+type: esd_diode_bidirectional
+datasheet: {doc_id: LESD5D, revision: series-sheet, url: "https://www.lcsc.com/product-detail/C5246195.html", sha256: null, fetched: 2026-07-21}
+package: SOD-523
+footprint: Diode_SMD:D_SOD-523
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-21}
+pins:
+  1: {name: IO, note: "BIDIRECTIONAL - orientation electrically irrelevant; pad1 -> data line by convention"}
+  2: {name: IO2}
+limits: {vrwm: 5V, esd: 8kV-contact}
+verified: "2-pad bidirectional (no polarity) - 2026-07-21 (README deviation)"
+sourcing: {lcsc: C5246195, alternates: [C41399463], note: "C-port DPC/DMC clamps (rail-independent)"}

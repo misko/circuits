@@ -1,0 +1,3 @@
+# TSNAME  CANONICAL  (converter also auto-strips a single leading N guard)
+N5VA 5VA
+N5VC 5VC

@@ -1,0 +1,101 @@
+mpn: PCM1865DBTR
+manufacturer: Texas Instruments
+type: audio_adc_4ch_192khz
+datasheet:
+  doc_id: SLAS831
+  revision: SLAS831D (March 2014, revised March 2018; TI re-render Jul 2025 packaging addendum, electricals unchanged)
+  url: https://www.ti.com/lit/ds/symlink/pcm1865.pdf
+  sha256: 4aadcbcaa50a77c61b81a8ab471def4031f5e6ae9398b5b4d068dd3d81ab3239
+  fetched: 2026-07-17
+package: DBT (TSSOP-30, 4.3-4.5 x 7.75-7.85 mm body, 0.5 mm pitch, MO-153, DBT0030A)
+footprint: Package_SO:TSSOP-30_4.4x7.8mm_P0.5mm   # verified vs DBT0030A drawing: 4.4x7.8 nom body, 0.5 pitch, 6.4 lead span
+pins:                       # from figure "DBT Package: PCM1862, PCM1863, PCM1864, and PCM1865 — 30-Pin TSSOP, Top View", p.10
+  1: VINL2/VIN1M            # analog in 2 L (or diff M of input 1)
+  2: VINR2/VIN2M            # analog in 2 R (or diff M of input 2)
+  3: VINL1/VIN1P            # analog in 1 L (or diff P of input 1)
+  4: VINR1/VIN2P            # analog in 1 R (or diff P of input 2)
+  5: MICBIAS                # microphone bias output
+  6: VREF                   # ref decouple, ~0.5*AVDD; 1uF to AGND
+  7: AGND
+  8: AVDD                   # 3.3V analog; 0.1uF + 10uF to AGND
+  9: XO                     # crystal oscillator output (leave open if no XTAL)
+  10: XI                    # crystal in or 1.8-V CMOS master clock in (abs max 2.1V!)
+  11: LDO                   # internal 1.8V LDO decouple OUT, or external 1.8V IN to bypass; 0.1uF + 10uF to DGND
+  12: DGND
+  13: DVDD                  # 3.3V digital supply; 0.1uF + 10uF to DGND (core 1.8V made by internal LDO on pin 11)
+  14: IOVDD                 # I/O supply, 1.8V or 3.3V
+  15: SCKI                  # CMOS-level (3.3V) master clock input — the normal MCLK pin
+  16: LRCK                  # frame clock I/O (50k pulldown, Schmitt)
+  17: BCK                   # bit clock I/O (50k pulldown, Schmitt)
+  18: DOUT                  # audio data out (table says "Analog output" — datasheet typo; it is the digital audio output)
+  19: GPIO3/INTC
+  20: GPIO2/INTB/DMCLK
+  21: GPIO1/INTA/DMIN
+  22: MISO/GPIO0/DMIN2      # SPI MISO; in I2C mode GPIO0 (DMIN2 only on 1864/1865)
+  23: MOSI/SDA              # SPI MOSI / I2C SDA
+  24: MC/SCL                # SPI SCK / I2C SCL
+  25: MS/AD                 # SPI /CS; in I2C mode = ADDRESS select pin
+  26: MD0                   # control method select: low or NC = I2C, high = SPI
+  27: VINL4/VIN4M
+  28: VINR4/VIN3M
+  29: VINL3/VIN4P
+  30: VINR3/VIN3P
+limits:
+  avdd: 3.0-3.6V (3.3 nom), abs max 3.9V
+  dvdd: 3.0-3.6V (3.3 nom), abs max 3.9V   # core 1.8V from internal LDO
+  iovdd: 1.62-1.98V or 3.0-3.6V, abs max 3.9V
+  xi_abs_max: 2.1V to DGND    # XI is a 1.8-V input even when everything else is 3.3V
+  vin_analog_abs: -1.7 to +5.0V to AGND
+  xtal: 15-35MHz on XI/XO
+  ta: -40 to +125C, tj_max 150C
+  i2c_addr: "7-bit 0x4A (AD low) / 0x4B (AD high); datasheet writes them 8-bit as 0x94/0x96 (Table 23, 6 MSBs fixed 1001 01)"
+gotchas:
+  - "Control mode: MD0 (pin 26) low/NC = I2C, high = SPI; I2C address set by MS/AD (pin 25): low = 0x94/0x4A, high = 0x96/0x4B — two PCM1865 share one bus by strapping AD differently"
+  - "NO reset pin and no brownout detector — power-on reset only; software reset = write 0xFE to Page 0 register 0x00. Sleep/standby are register-controlled (energysense), not a pin"
+  - "Two different MCLK inputs: SCKI (pin 15) is the 3.3-V CMOS master clock input; XI (pin 10) is a 1.8-V input / crystal — driving XI with a 3.3-V clock violates its 2.1-V abs max. For a shared 24.576MHz 3.3V MCLK use SCKI and leave XI grounded/XO open"
+  - "DVDD is a 3.3V SUPPLY, not the core rail: internal LDO makes 1.8V on the LDO pin (11) — needs its own 0.1uF+10uF to DGND; may instead be fed 1.8V externally to bypass the LDO (required trick for lowest power / all-1.8V IOVDD TDM setups)"
+  - "Pin 18 DOUT is typed 'Analog output' in the Pin Functions table — known datasheet typo, it is the digital audio data output"
+  - "Differential inputs pair across the package: VIN1P/VIN1M = pins 3/1, VIN2P/VIN2M = 4/2, VIN3P/VIN3M = 30/28, VIN4P/VIN4M = 29/27 — P and M of one channel are NOT adjacent pins"
+  - "TDM: 'DOUT2 not available in TDM mode'; dual-device TDM chaining is documented (two PCM1865 on one TDM bus, offset via TX_TDM_OFFSET); LRCK/BCK have internal 50k pulldowns"
+  - "DMIN2 option on pin 22 exists only on PCM1864/PCM1865"
+verified: "pin map read from figure 'DBT Package: PCM1862, PCM1863, PCM1864, and PCM1865 — 30-Pin TSSOP (Top View)', p.10, cross-checked against 'Pin Functions: PCM1862...PCM1865' table p.11, SLAS831D; package dims from DBT0030A outline drawing (4220214/B, p.142) — 2026-07-17"
+sourcing: {lcsc: C181312, alternates: [], note: 'exact MPN, JLC expand lib; 1683 stock 2026-07-17'}
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: leaded, pitch: 0.5, escapes_worst_side: 15, tier_required: jlc_4layer_advanced, checked: escape_check}
+# ^ TSSOP-30 dense side (15 pins used/side): 0.5 - 0.3 drill = 0.2 < 0.5 hole-to-hole
+#   at standard tiers (ADR-0008-class wall). Board carries it at jlc_6layer_smallvia
+#   (rank 4 >= required rank 2, ADR-0012).
+layout:
+  source: >-
+    TI PCM1865 datasheet SLAS831D (2018-03) section 12 'Layout' (12.1 Layout
+    Guidelines p.84 / 12.2 Layout Example p.85) + per-pin decoupling table:
+    VREF(pin6) 1uF; AVDD(pin8) 0.1uF+10uF; LDO(pin11) 0.1uF+10uF; DVDD(pin13)
+    0.1uF+10uF, all to the nearest ground.
+  keep_short:
+    - {net: AIN_P1, max_span_mm: 12, why: "analog ADC input kept local to the ADC (measured 3.4mm)"}
+    - {net: AIN_N1, max_span_mm: 12, why: "analog ADC input (measured 1.3mm)"}
+    - {net: AIN_P2, max_span_mm: 12, why: "measured 4.2mm"}
+    - {net: AIN_N2, max_span_mm: 12, why: "measured 7.2mm"}
+    - {net: AIN_P3, max_span_mm: 12, why: "measured 2.5mm"}
+    - {net: AIN_N3, max_span_mm: 12, why: "measured 1.5mm"}
+    - {net: AIN_P4, max_span_mm: 12, why: "measured 96.0mm — OVER budget: ch4 taps R80 far across the board (redteam L3); waived, deferred to v1.1 board"}
+    - {net: AIN_N4, max_span_mm: 12, why: "measured 1.5mm"}
+    - {net: AIN_P5, max_span_mm: 12, why: "measured 3.4mm"}
+    - {net: AIN_N5, max_span_mm: 12, why: "measured 1.3mm"}
+    - {net: AIN_P6, max_span_mm: 12, why: "measured 4.2mm"}
+    - {net: AIN_N6, max_span_mm: 12, why: "measured 7.2mm"}
+    - {net: AIN_P7, max_span_mm: 12, why: "measured 2.5mm"}
+    - {net: AIN_N7, max_span_mm: 12, why: "measured 1.5mm"}
+    - {net: AIN_P8, max_span_mm: 12, why: "measured 63.6mm — OVER budget: ch8 taps R81 far across the board (redteam L3); waived, deferred to v1.1 board"}
+    - {net: AIN_N8, max_span_mm: 12, why: "measured 1.4mm"}
+    - {net: VREF_A, max_span_mm: 16, why: "VREF(pin6) 1uF decoupler close to the pin (measured 13.9mm)"}
+    - {net: VREF_B, max_span_mm: 16, why: "second ADC VREF cap close (measured 13.9mm)"}
+    - {net: LDO_A,  max_span_mm: 16, why: "internal-LDO(pin11) 0.1+10uF decoupler close (measured 13.7mm)"}
+    - {net: LDO_B,  max_span_mm: 16, why: "second ADC LDO decoupler close (measured 13.7mm)"}
+  notes: >-
+    AVDD(pin8) on the quiet analog rail 3V3A (XC6227 LDO), DVDD(pin13) on the
+    3V3 digital buck rail (mixed-signal split, ADR-0006). Channels 4 and 8 tap
+    R80/R81 far across the 176mm board, so AIN_P4 (96mm) and AIN_P8 (63.6mm)
+    exceed the 12mm keep-short — the single-ended analog antenna redteam L3
+    flagged; fix (re-place R80/R81 local, or drop the tap) deferred to v1.1 board.

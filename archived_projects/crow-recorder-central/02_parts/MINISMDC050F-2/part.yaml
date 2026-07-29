@@ -1,0 +1,43 @@
+mpn: MINISMDC050F-2
+manufacturer: Littelfuse (PolySwitch line ex-TE Connectivity/Raychem; TE internal RF1403-000)
+type: ptc_resettable_fuse
+datasheet:
+  doc_id: PolySwitch Resettable Devices Surface-Mount Catalog Datasheet
+  revision: "(c)2016 Littelfuse catalog edition"
+  url: https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/7082/Littelfuse_PTC_FEMTOSMD_Catalog_Datasheet.pdf.pdf
+  sha256: 0fc5394d92a1d1ba83a4343da54c9136cc7db11730edc8c347565286c2e28b48
+  fetched: 2026-07-17
+package: "1812 (4532 metric): L 4.37-4.73mm, W 3.07-3.41mm, T 0.25-0.95mm (Table S4 p.12, size code S2)"
+footprint: Fuse:Fuse_1812_4532Metric   # Fuse_1812_4532Metric_Pad1.30x3.40mm_HandSolder also available
+pins:                       # 2-pad passive, non-polarized (figure-cite exempt)
+  1: A
+  2: B
+limits:
+  i_hold: "0.50A at 20C (0.48A at 25C)"
+  i_trip: 1.00A
+  vmax: 24V
+  imax: 100A
+  pd_typ: 0.80W
+  time_to_trip: "0.15s typ at 8A, 20C (Table S3)"
+  r_min: 0.15R
+  r_1max_post_trip: 1.00R          # resistance 1h after trip
+  derating: "hold current 0.45A at 40C, 0.43A at 50C, 0.35A at 60C, 0.30A at 70C, 0.23A at 85C (Table S2 p.5)"
+  temp: -40 to +85C
+gotchas:
+  - "Post-trip / post-reflow resistance rises: budget 0.15-1.0R in the 5V path per port — at 0.4A that is up to 0.4V drop worst-case; pods must tolerate 4.6V"
+  - "IH is specced at 20C and derates hard: at 50C ambient inside an enclosure hold is only 0.43A — keep per-port steady draw <=0.3A for margin"
+  - "24V max: fine on 5V rail; interrupt rating 100A far above anything a 5V 5A brick can do"
+  - "Not a fuse — trips in ~0.15s at 8A but takes seconds near 2x IH; ESD/short protection strategy must not rely on it for fast events"
+verified: "electricals from Table S3 'Electrical Characteristics' p.8 (miniSMDC row: 0.50/1.00/24/100/0.80/8.00-0.15/0.15/1.00/S2), derating from Table S2 p.5, dimensions from Table S4 p.12, Littelfuse (c)2016 SMD catalog — 2026-07-17"
+sourcing:
+  lcsc: C2649901
+  alternates: [C262023, C12558]
+  note: >-
+    IN JLC catalog: C2649901 exact Littelfuse MPN, extended, 34,501 stock, $0.115
+    (2026-07-17) — no substitution needed. Alternates recorded per brief, do NOT
+    swap silently: C262023 TLC-MSMD050 (TLC Electronic, 4,109 stock, $0.059) and
+    C12558 SMD1812P050TF (RUILON, 1,429 stock, $0.096), both 1812 0.5A-hold PTCs;
+    re-verify hold/trip/derating from their own datasheets before any substitution.
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: passive, pitch: 4.0, tier_required: jlc_2layer_default, checked: escape_check}

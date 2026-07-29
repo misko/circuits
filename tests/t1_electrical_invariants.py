@@ -26,8 +26,8 @@ from harness import (KPY, ROOT, SCRIPTS, check, contains, main,  # noqa: E402
 EINV = SCRIPTS / "electrical_invariants.py"
 
 # The real sealed v1.0 netlist — read-only evidence, never written.
-V10_NET = (ROOT / "projects" / "usb-hub-3s" / "07_releases" /
-           "v1.0-2026-07-21" / "source" / "usb_hub_3s.net")
+V10_NET = (ROOT / "archived_projects" / "usb-hub-3s" / "07_releases" /
+           "v1.0-2026-07-21" / "source" / "usb_hub_3s.net")   # ARCHIVED 2026-07-28
 
 
 # --------------------------------------------------------------- fixtures

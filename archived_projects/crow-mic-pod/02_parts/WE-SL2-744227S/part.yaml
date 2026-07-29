@@ -1,0 +1,31 @@
+mpn: 744227S
+manufacturer: Wuerth Elektronik (WE-SL2 series) — footprint-only, NOT POPULATED
+type: common_mode_choke
+value: 'CM choke DNP'
+package: 'WE-SL2 (5.1x5.1mm SMT, 4 pads)'
+footprint: Inductor_SMD:L_CommonMode_Wuerth_WE-SL2
+pins: {1: 'A_IN', 2: 'B_IN', 3: 'B_OUT', 4: 'A_OUT'}  # windings 1-4 (line A) and 2-3 (line B) per the 744227S Schematic figure p.1; land pattern p.1: 1 TL, 2 BL, 3 BR, 4 TR = KiCad WE-SL2 pad frame
+datasheet: {doc_id: 744227S, revision: 009.003 2023-04-12, url: 'https://www.we-online.com/components/products/datasheet/744227S.pdf', sha256: 3ff18dc2812f13f1f8f6555c92699b2d4c0f6b6620bdbaceabb4a70f289c4c52, fetched: null}
+verified: 'pin map read from datasheet page 1 (Schematic figure: dotted windings 1-4 and 2-3; Recommended Land Pattern: 1 TL, 2 BL, 3 BR, 4 TR), rev 009.003 2023-04-12 — matches the KiCad WE-SL2 pad frame; DNP reserve (A3), 0R bypass R13 bridges 1-4, R14 bridges 2-3'
+sourcing:
+  lcsc: none
+  note: 'DNP - uncoded on purpose'
+escape: {style: leaded, pitch: 2.0, tier_required: jlc_2layer_default, checked: escape_check}
+
+# Datasheet LAYOUT-section compliance (P-LAYOUT). Adopted-forward backfill 2026-07-22.
+# NOTE: this part is DNP (footprint reserve) — 0R R13/R14 bridge the winding pads.
+layout:
+  source: "Wuerth 744227S datasheet rev 009.003 (2023-04-12): the datasheet publishes a
+    Recommended Land Pattern + electricals only — NO prose Layout-Guidelines section for a
+    passive SMT common-mode line filter. General CM-choke practice governs: place the choke
+    directly in the differential pair path with the two lines symmetric and the stubs short,
+    so common-mode rejection is not spoiled by an asymmetric or long approach."
+  reviewed: "2026-07-22 — datasheet reviewed end-to-end; confirmed land pattern + electricals only, no Layout section exists for this passive"
+  adjacency:
+    - "L1 sits in-line in the AUDIO_P/AUDIO_N pair between the J1 entry (+D1 ESD) and the R13/R14 bridges / downstream input Rs — a common-mode choke belongs IN the pair path"
+  notes: "L1 is DNP (A3 reserve): 0R R13 bridges pins 1-4 (AUDIO_P<->AUD_P_I) and R14 bridges
+    2-3 (AUDIO_N<->AUD_N_I), so the pair passes straight through when the choke is not fitted;
+    populate only if field EMI demands it. No datasheet keep_short net-span budget exists
+    (Wuerth gives a land pattern, not a span); the real constraint is PAIR SYMMETRY, which is
+    tracked by R-LEN (v1.0 internal-side stubs AUD_P_I/AUD_N_I are 12.2/13.0mm, symmetric to
+    ~0.8mm). Recorded as adjacency + notes rather than an invented budget."

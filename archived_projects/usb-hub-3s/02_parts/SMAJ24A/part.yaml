@@ -1,0 +1,13 @@
+mpn: SMAJ24A
+manufacturer: Littelfuse
+type: tvs_diode
+datasheet: {doc_id: SMAJ, revision: series-sheet, url: "https://www.lcsc.com/product-detail/C148222.html", sha256: null, fetched: 2026-07-21}
+package: SMA (DO-214AC)
+footprint: Diode_SMD:D_SMA
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-21}
+pins:
+  1: {name: K, note: "v1.1 dual use: D3 = VBUSC TVS (standoff 24V > 21V PPS max; SURGE-GRADE only, ADR 0009) and D7 = LX1 clamp (output half-bridge, node <= 21V; ADR 0007). Cathode(1) -> node, anode(2) -> GND"}
+  2: {name: A}
+limits: {standoff: 24V, vbr_min: 26.7V, vbr_max: 29.5V, vclamp_max: 38.9V, ipp: 10.3A, power: 400W_10_1000us}
+verified: "2-pad polarized; KiCad pad1=cathode - 2026-07-21 (README deviation). Littelfuse SMAJ table row: VR 24.0 / VBR 26.70-29.50 @1mA / VC 38.9 @ Ipp 10.3A - quoted by the 2026-07-21 sourcing spike (v1.1, X3 clamp-corner record)"
+sourcing: {lcsc: C148222, alternates: [C113962], note: ""}

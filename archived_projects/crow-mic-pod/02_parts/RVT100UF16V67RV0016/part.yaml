@@ -1,0 +1,21 @@
+mpn: RVT100UF16V67RV0016      # exact KNSCHA number, confirmed on LCSC page + spec sheet header
+manufacturer: KNSCHA
+type: cap_aluminum_electrolytic
+datasheet:
+  doc_id: RVT-series-spec
+  revision: undated             # KNSCHA 'Specification for approval', no rev field; pinned by sha256
+  url: https://datasheet.lcsc.com/datasheet/pdf/8c49e8bd16b39be69adf5fe39a667c1c.pdf
+  sha256: 372e864fd71143b2b02721d61c6511c60586db619ad4cfbf91edf270c4e7410e
+  fetched: 2026-07-17
+package: SMD V-chip 6.3 x 5.4mm
+footprint: Capacitor_SMD:CP_Elec_6.3x5.4
+pins:
+  1: {name: '+', note: 'POSITIVE. KiCad CP_Elec convention: pad 1 = anode, marked + on silk/fab'}
+  2: {name: '-', note: 'NEGATIVE. Can-top BLACK STRIPE half marks the NEGATIVE side; the beveled base corner is the positive side'}
+limits: {voltage: 16V, temp: '-55C..+105C', life: '2000h@105C', ripple: '93mA@120Hz', tolerance: '+/-20%'}
+gotchas:
+  - "POLARITY: body marking shows NEGATIVE (black half-circle on can top); footprint pad 1 is POSITIVE - do not map the marked side to pad 1"
+  - "Reversed electrolytic on a rail vents; the netlist is self-consistent either way, only this part fact catches it"
+verified: "MPN from LCSC C2887276 page + spec header 'RVT100UF16V67RV0016'; negative-marking convention from spec Marking section; drawing marks 正极 (positive) at base bevel - 2026-07-17"
+sourcing: {lcsc: C2887276, alternates: [C970684], note: 'extended; 622k stock 2026-07-17; 100uF/16V on 5V rail = 3.2x derating'}
+escape: {style: leaded, pitch: 2.5, tier_required: jlc_2layer_default, checked: escape_check}

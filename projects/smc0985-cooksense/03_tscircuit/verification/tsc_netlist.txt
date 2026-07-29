@@ -6,7 +6,7 @@ COMPONENTS:
  - U_EFUSE: dfn8
  - C_DVDT: 1nF 0402 capacitor
  - R_OVT: 100kΩ res0402 resistor
- - R_OVB: 15kΩ res0402 resistor
+ - R_OVB: 26.1kΩ res0402 resistor
  - R_ILM: 1.2kΩ res0402 resistor
  - R_PG: 100kΩ res0402 resistor
  - D_TVS: D_TVS, source_component
@@ -180,6 +180,7 @@ COMPONENTS:
  - J_ISOLOOP: pinrow4
  - U_EXP: ssop28
  - C_EXP: 100nF 0402 capacitor
+ - R_WDOKSER: 10kΩ res0402 resistor
  - R_RAENAPD: 100kΩ res0402 resistor
  - R_RAENBPD: 100kΩ res0402 resistor
  - R_RAENRHAPD: 100kΩ res0402 resistor
@@ -711,6 +712,10 @@ NET: DOOR_OK
   - U_SCHM 6Y
   - R_DOOROKPD pin1
 
+NET: WD_OK_EXP
+  - R_WDOKSER pin2
+  - U_EXP GPB7
+
 NET: CONTACTOR_REQ
   - R_CTRREQPD pin1
   - U_EXP GPA4
@@ -1232,8 +1237,8 @@ NET: KEY_RELAY_ALLOWED
 
 NET: WD_OK
   - TP_WDOK pin1
+  - R_WDOKSER pin1
   - U_EXP RESET_N
-  - U_EXP GPB7
   - U_CAND1 A
   - U_ONESHOT R2_N
   - U_WD RESET_N
@@ -1368,7 +1373,7 @@ R_OVT (100kΩ res0402)
 - pin1(anode, pos, left): NETS(N5V_RPP)
 - pin2(cathode, neg, right): NETS(EF_OVLO)
 
-R_OVB (15kΩ res0402)
+R_OVB (26.1kΩ res0402)
 - pin1(anode, pos, left): NETS(EF_OVLO)
 - pin2(cathode, neg, right): NETS(GND)
 
@@ -2309,7 +2314,7 @@ U_EXP
 - pin5(GPB4): NETS(TEMP_OK)
 - pin6(GPB5): NETS(FAULT)
 - pin7(GPB6): NETS(TC_FAULT_N)
-- pin8(GPB7): NETS(WD_OK)
+- pin8(GPB7): NETS(WD_OK_EXP)
 - pin9(VDD): NETS(N3V3)
 - pin10(VSS): NETS(GND)
 - pin11(NC): NETS(U_EXP_NC)
@@ -2334,6 +2339,10 @@ U_EXP
 C_EXP (100nF 0402)
 - pin1(pos, anode, left): NETS(N3V3)
 - pin2(neg, cathode, right): NETS(GND)
+
+R_WDOKSER (10kΩ res0402)
+- pin1(anode, pos, left): NETS(WD_OK)
+- pin2(cathode, neg, right): NETS(WD_OK_EXP)
 
 R_RAENAPD (100kΩ res0402)
 - pin1(anode, pos, left): NETS(RAIL_EN_A)

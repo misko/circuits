@@ -1,0 +1,91 @@
+# usb-hub-3s — electrical invariants (v1.1, born from review X1: the D1
+# reverse-polarity defeat passed every internal gate because every artifact
+# was consistently wrong together — no gate owned the TOPOLOGY INTENT).
+#
+# Format: assertions about the NETLIST (ref.pad -> net), the checkable core
+# of the protection chain. A checker is coming (candidate canon id S-INV);
+# until it lands, this file is the reviewed statement of intent and the
+# red-team's diff target. Keep entries MINIMAL and load-bearing: each row
+# is here because getting it wrong is a fire, a crowbar, or a dead chip.
+
+invariants:
+  # --- reverse-polarity / input protection chain (ADR 0001 as amended) ---
+  - id: INV-D1-PLACEMENT
+    why: >
+      D1 (unidirectional SMBJ15A) must clamp VIN — the PROTECTED side of Q1
+      — not VBAT_F. On VBAT_F a reversed pack forward-biases it into a
+      crowbar through F1 (v1.0 defect X1/X29; v1.1 chose non-destructive
+      reversal).
+    asserts:
+      - {ref: D1, pad: 1, net: VIN}    # cathode
+      - {ref: D1, pad: 2, net: GND}    # anode
+  - id: INV-Q1-ORIENTATION
+    why: >
+      Reverse-polarity P-FET: drain must face the battery (VBAT_F), source
+      the load (VIN); body diode conducts battery->load at first contact,
+      blocks on reversal.
+    asserts:
+      - {ref: Q1, pad: 5, net: VBAT_F}  # drain tab
+      - {ref: Q1, pad: 1, net: VIN}     # source
+  - id: INV-FUSE-FIRST
+    why: the fuse must be the FIRST series element after the connector.
+    asserts:
+      - {ref: F1, pad: 1, net: VBAT}
+      - {ref: F1, pad: 2, net: VBAT_F}
+      - {ref: J1, pad: 2, net: VBAT}
+      - {ref: J1, pad: 1, net: GND}
+  - id: INV-D5-VGS-CLAMP
+    why: zener clamps Q1 Vgs (abs ±20 V) during input clamp events.
+    asserts:
+      - {ref: D5, pad: 1, net: VIN}     # cathode at source
+      - {ref: D5, pad: 2, net: RPP_G}   # anode at gate
+
+  # --- LX clamp coordination (ADR 0007) ---
+  - id: INV-LX-TVS
+    why: >
+      Per-node LX clamps, cathode to the switch node: D6 on LX2 (input
+      half-bridge, rings above VIN<=12.6V), D7 on LX1 (output half-bridge,
+      rings above VOUT<=21V). Values are coordinated in ADR 0007; the
+      invariant is direction + node.
+    asserts:
+      - {ref: D6, pad: 1, net: LX2}
+      - {ref: D6, pad: 2, net: GND}
+      - {ref: D7, pad: 1, net: LX1}
+      - {ref: D7, pad: 2, net: GND}
+
+  # --- gate-drive tuning slots (X4: promised, absent in v1.0) ---
+  - id: INV-GATE-R
+    why: each PD bridge gate is driven THROUGH its 0603 slot, never direct.
+    asserts:
+      - {ref: R28, pad: 1, net: HG2}
+      - {ref: R28, pad: 2, net: QG4}
+      - {ref: Q4, pad: 4, net: QG4}
+      - {ref: R29, pad: 1, net: LG2}
+      - {ref: R29, pad: 2, net: QG5}
+      - {ref: Q5, pad: 4, net: QG5}
+      - {ref: R30, pad: 1, net: HG1}
+      - {ref: R30, pad: 2, net: QG6}
+      - {ref: Q6, pad: 4, net: QG6}
+      - {ref: R31, pad: 1, net: LG1}
+      - {ref: R31, pad: 2, net: QG7}
+      - {ref: Q7, pad: 4, net: QG7}
+
+  # --- bridge-rail HF decoupling exists (X18: v1.0 had NO caps on either) ---
+  - id: INV-BRIDGE-RAIL-CAPS
+    why: >
+      The HF hot loops close through ceramics ON the bridge rails
+      (VIN_S/VOUT_PDS), keeping the 5mOhm shunts outside the HF loop.
+    asserts:
+      - {ref: C46, pad: 1, net: VIN_S}
+      - {ref: C47, pad: 1, net: VIN_S}
+      - {ref: C48, pad: 1, net: VIN_S}
+      - {ref: C49, pad: 1, net: VOUT_PDS}
+      - {ref: C50, pad: 1, net: VOUT_PDS}
+      - {ref: C51, pad: 1, net: VOUT_PDS}
+
+  # --- TVS on the C port: direction (value governed by ADR 0009) ---
+  - id: INV-D3-DIRECTION
+    why: VBUSC surge clamp, cathode to the bus.
+    asserts:
+      - {ref: D3, pad: 1, net: VBUSC}
+      - {ref: D3, pad: 2, net: GND}

@@ -1,0 +1,136 @@
+# crow-mic-pod floorplan — replaces the 486-line hand-written
+# 03_src/generate_board.py.
+#   /usr/bin/python3 ../../skills/kicad-pcb/scripts/generate_board_generic.py \
+#       03_src/floorplan.yaml
+# 94.5x44.5 2-layer = the Hammond 1551WY MAXIMUM P.C. BOARD: concave R6.25
+# corner cutouts clear the #4 lid-screw bosses; four holes on the 75x35 boss
+# pattern inset (9.75, 4.75).
+
+project:
+  name: crow_mic_pod
+  netlist: 06_build/netlists/crow_mic_pod.net
+  output: 06_build/proof/crow_mic_pod.kicad_pcb
+  parts_dir: 02_parts
+
+board:
+  outline: {x0: 50.0, y0: 50.0, w: 94.5, h: 44.5}
+  corner_cut: 6.25          # concave quarter-arc corner cutouts
+  edge_width: 0.15
+  layers: 2
+  mounting_holes:
+    footprint: MountingHole:MountingHole_2.7mm_M2.5   # Ø2.7 for #2 self-tappers
+    at: [[59.75, 54.75], [134.75, 54.75], [59.75, 89.75], [134.75, 89.75]]
+
+libraries:
+  - /usr/share/kicad/footprints
+  - {lib: pod, path: 03_src/lib/pod.pretty}
+
+placement:
+  require_anchor: true      # every part must be deliberately located
+  # anchored, but only these are immovable — passives float to the legalizer
+  pin: ["J*", "U*", "BZ*", "TP*"]
+  anchors:
+    # RJ45: the MATING FACE is on the SNAP-POST side (local -y). rot 90 =>
+    # face WEST toward the gland wall; LED tails mark the REAR.
+    J1: [78.0, 71.0, 90]
+    D1: [88.0, 68.5, 0]        # entry ESD near J1 contact tails 1/2
+    TP6: [65.5, 52.8, 0]
+    R15: [70.5, 52.8, 0]       # shield-bond reserve, north strip
+    TP1: [75.0, 52.8, 0]
+    TP2: [80.5, 52.8, 0]
+    R12: [63.0, 79.0, 0]       # beeper block SW (opposite end from the mic)
+    BZ1: [72.0, 84.0, 0]
+    D2: [81.0, 81.0, 0]
+    D3: [81.0, 86.0, 0]
+    R1: [86.0, 88.5, 0]        # 5VF filter, south-center
+    C1: [92.5, 88.5, 0]
+    C2: [98.5, 88.5, 0]
+    U1: [102.0, 66.0, 0]       # amplifier center-east
+    C6: [107.5, 61.5, 0]
+    C7: [96.0, 59.5, 0]
+    R6: [98.5, 77.5, 0]
+    R7: [105.0, 77.5, 0]
+    R8: [98.5, 81.0, 0]
+    R9: [105.0, 81.0, 0]
+    C3: [104.0, 70.5, 0]       # mic conditioning close to +IN_A
+    R3: [104.0, 74.0, 0]
+    R2: [124.0, 66.0, 0]
+    J2: [139.5, 70.5, 0]       # mic wire pads, far east
+    R4: [114.0, 84.0, 0]       # midpoint reference SE
+    R5: [120.5, 84.0, 0]
+    C4: [114.0, 87.5, 0]
+    C5: [120.5, 87.5, 0]
+    TP3: [126.5, 85.5, 0]
+    R10: [96.0, 63.0, 0]       # output isolation + choke reserve
+    R11: [96.0, 66.5, 0]
+    L1: [92.0, 64.0, 0]
+    R13: [92.0, 60.0, 0]
+    R14: [92.0, 68.0, 0]
+    TP4: [103.0, 88.5, 0]      # rail TPs
+    TP5: [108.5, 88.5, 0]
+  patterns:
+    - match: "TP*"
+      attrs: [exclude_from_bom]
+    # J1 GND tails: SOLID zone connection on both layers — the B.Cu plane's
+    # thermal spokes starve in the dense tail field (v1.1: zone-to-zone
+    # unconnected + 0.10mm connection_width), and the jack is hand-soldered.
+    - match: "J1"
+      pad_overrides:
+        - {on_net: GND, zone_connection: full}
+  legalize: {enable: true, clearance: 0.3, edge_margin: 0.8, hole_keepout: 2.4, ring_max: 30}
+
+design_rules:
+  track_min_width: 0.127
+  min_clearance: 0.127
+  via_min_annulus: 0.05
+  hole_clearance: 0.25
+  hole_to_hole: 0.5
+  copper_edge_clearance: 0.2
+  via_min_size: 0.45
+  min_through_drill: 0.3
+
+zones:
+  # F.Cu solid (2-layer thermal starvation), B.Cu thermal = THE return plane
+  - {net: GND, layers: [F.Cu], priority: 0, connect: full}
+  - {net: GND, layers: [B.Cu], priority: 0, connect: thermal}
+
+silk:
+  min_text_height: 0.6
+  caption_nudge: false      # captions are hand-placed and verified in review
+  refdes: {size: 0.6, min_size: 0.6, fab_copy: true, clearance: 0.16, priority_prefixes: "UJDB"}
+  # flyback/TVS polarity is load-bearing (ADR-0002); the D_SMA bar alone
+  # graded too subtle in review.
+  polarity_marks:
+    - {ref: D2, pad: 1, text: K}
+    - {ref: D3, pad: 1, text: K}
+  captions:
+    - ["NOT ETHERNET - CUSTOM 5V PINOUT", 118.0, 51.6, 1.1]
+    - ["NOT ETHERNET", 61.0, 58.2, 0.8]
+    - ["RJ45: 1 AUD+ 2 AUD-", 62.8, 64.2, 0.65]
+    - ["3 5V-BEEP 6 BEEP-RET", 62.8, 66.2, 0.65]
+    - ["4/7 5V  5/8 GND", 62.8, 68.2, 0.65]
+    - ["CUSTOM 5V PINOUT", 62.8, 70.4, 0.65]
+    - ["BEEPER", 72.0, 78.5, 0.7]
+    - ["FLYBACK", 84.0, 78.4, 0.6]
+    - ["TVS DNP", 80.8, 90.2, 0.6]
+    - ["MIC PADS", 139.5, 66.2, 0.7]
+    - ["MIC+", 135.8, 70.5, 0.6]
+    - ["MIC-", 135.8, 73.04, 0.6]
+    - ["SHIELD", 65.5, 54.7, 0.6]
+    - ["AUD+", 75.0, 54.7, 0.6]
+    - ["AUD-", 80.5, 54.7, 0.6]
+    - ["2V5", 126.5, 87.6, 0.6]
+    - ["5V", 103.0, 90.6, 0.6]
+    - ["GND", 108.5, 90.6, 0.6]
+    - ["crow-mic-pod v1.0", 100.0, 92.8, 0.9]
+
+asserts:
+  pad_net:
+    - {ref: C1, pad: 1, net: 5VF}
+    - {ref: D2, pad: 1, net: BZ_P}
+    - {ref: D3, pad: 1, net: BZ_P}
+    - {ref: BZ1, pad: 1, net: BZ_P}
+  pad_order:
+    - {ref: BZ1, pads: [1, 2], axis: y}    # pad1 (+) north of pad2
+    - {ref: BZ1, pads: [1, 3], axis: x}    # ...and west of pad3 => top-left
+    - {ref: J2, pads: [1, 2], axis: y}     # pin1 (MIC+) north

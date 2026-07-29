@@ -1,0 +1,13 @@
+mpn: SMAJ15A
+manufacturer: Littelfuse
+type: tvs_diode
+datasheet: {doc_id: SMAJ, revision: series-sheet, url: "https://www.lcsc.com/product-detail/C148216.html", sha256: null, fetched: 2026-07-21}
+package: SMA (DO-214AC)
+footprint: Diode_SMD:D_SMA
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: 2-pad passive}
+pins:
+  1: {name: K, note: "v1.1 D6 = LX2 clamp (input half-bridge, node <= VIN 12.6V): cathode(1) -> LX2, anode(2) -> GND (ADR 0007)"}
+  2: {name: A}
+limits: {standoff: 15V, vbr_min: 16.7V, vbr_max: 18.5V, vclamp_max: 24.4V, ipp: 16.4A, power: 400W_10_1000us}
+verified: "Littelfuse SMAJ series table row SMAJ15A: VR 15.0 / VBR 16.70-18.50 @1mA / VC 24.4 @ Ipp 16.4A - quoted by the 2026-07-21 sourcing spike from the LCSC-served Littelfuse DS, cross-checked against a second copy"
+sourcing: {lcsc: C148216, alternates: [], note: "stock 15445 on 2026-07-21; genuine Littelfuse"}

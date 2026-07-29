@@ -1,0 +1,188 @@
+# usb-hub-3s net architecture — netclasses + DRU floors source.
+# fab_tier is the COST CEILING decided at commission (ADR 0005): the 5A-PD
+# SoC (IP6559-C, QFN-48 0.5mm) is INFEASIBLE below jlc_4layer_advanced
+# (escape_check 2026-07-21). ORDER_README must carry the tier line.
+fab_tier: jlc_4layer_advanced
+
+classes:
+  SWITCH_NODE:
+    intent: >
+      High-dV/dt converter switch nodes: the buck SW and the buck-boost
+      LX pair. Trunk current rides the F.Cu priority-2 pour islands
+      (floorplan.yaml); the 1.0mm floor is the backstop for any routed
+      segment. Keep loop area minimal; snubbers + TVS sit on these nets.
+    nets: [SW_A, LX1, LX2]
+    current: "7-15 A pulsed"
+    min_width: 1.0mm
+    clearance: 0.127mm
+    routing: pours (floorplan islands); KRT only for short joins
+    verify: DRC floor + R-THERM
+
+  PWR_IN:
+    intent: >
+      Battery input trunk: XT60 -> fuse -> P-FET -> VIN. Worst case
+      ~15.5 A at 9.0 V. Trunk = F.Cu patches + the SOLID In2 VIN plane;
+      0.8mm floor is the backstop for short routed stubs.
+    nets: [VBAT, VBAT_F, VIN, VIN_S]
+    current: "15.5 A worst case"
+    min_width: 0.8mm
+    clearance: 0.127mm
+    routing: pours + In2 plane; pad_rescue vias drop VIN pads to In2
+    verify: DRC floor
+
+  PWR_RAIL:
+    intent: >
+      Converter output trunks: 5VA (7 A) and the PD converter output pair
+      (5 A). Pour-fed (floorplan islands); floor is the backstop.
+    nets: [5VA, VOUT_PD, VOUT_PDS]
+    current: "7 A / 5 A"
+    min_width: 0.8mm
+    clearance: 0.127mm
+    routing: pours
+    verify: DRC floor
+
+  VBUS:
+    intent: >
+      Port power: three limited USB-A VBUS nets (3 A limit each) and the
+      USB-C VBUS (5 A at up to 20 V). Pour-fed; floor backstop.
+    nets: [VBUSA1, VBUSA2, VBUSA3, VBUSC]
+    current: "3 A / 5 A"
+    min_width: 0.8mm
+    clearance: 0.127mm
+    routing: pours
+    verify: DRC floor
+
+  GATE:
+    intent: >
+      Gate drives + bootstraps for the 7 power FETs (LM5116 HO/LO/HB;
+      IP6559 HG/LG/BST pairs, path-FET gate). Amps of pulse current,
+      short runs. 0.4mm floor.
+    nets: [HO_A, LO_A, BOOT_A, HG1, HG2, LG1, LG2, QG4, QG5, QG6, QG7,
+           BST1, BST2, PATH_G]
+    current: "gate pulses (~2 A pk)"
+    min_width: 0.3mm
+    clearance: 0.09mm
+    routing: KRT (short, same-layer preferred)
+    verify: DRC floor
+
+  SENSE:
+    intent: >
+      Kelvin/current-sense and control analog: IP6559 CSP/CSN pairs +
+      their filters, LM5116 CS/CSG kelvin, FB/COMP/RAMP/RT/SS, ILIM taps,
+      UVLO/EN dividers. Route as pairs off the shunt ENDS (IP6559 DS p.18
+      rule 5); never share trunk copper.
+    nets: [SNS_IN_P, SNS_IN_N, SNS_OUT_P, SNS_OUT_N, CS_A, CSF_A, CSGF_A,
+           FB_A, COMP_A, CMZ_A, RAMP_A, RT_A, SS_A, UVLO_A, EN_A,
+           ILIM1, ILIM2, ILIM3, EN_PD, PDO_CFG, VOUT2_SNS, RPP_G,
+           SNB1, SNB2]
+    current: "<50 mA"
+    min_width: 0.2mm
+    clearance: 0.09mm
+    routing: KRT
+    verify: DRC floor + pin review
+
+  USB_DATA:
+    intent: >
+      Port data/CC: DCP advertisement lines (TPS2513), C-port D+/D- and
+      CC1/CC2 (PD BMC). Short, paired, ESD at the connector.
+    nets: [DP_A1, DM_A1, DP_A2, DM_A2, DP_A3, DM_A3, DPC, DMC, CC1, CC2]
+    current: signal
+    min_width: 0.19mm  # KRT emits 199.8um for a 0.2 request (nanometer-exact dru trap)
+    clearance: 0.09mm
+    routing: KRT
+    verify: DRC floor + render review
+
+  AUX_5V:
+    intent: >
+      Low-current 5V-class auxiliaries: Vconn feed + switch nodes, chip
+      LDO outputs. Up to ~0.5 A.
+    nets: [VCONN5V, VCONN_G1, VCONN_G2, EMK1, EMK2, VCC5V, VCCIO, VCC_A]
+    current: "<0.5 A"
+    min_width: 0.24mm   # KRT floor-grades widths (a 0.2498 artifact tripped 0.25)
+    clearance: 0.09mm
+    routing: KRT
+    verify: DRC floor
+
+  NC_PADS:
+    intent: >
+      Sanctioned no-connect pads (NC-flagged pins). The class exists so NC
+      pads grade at the advanced-tier clearance instead of the Default
+      class's 0.2 (signal vias legally sit 0.13-0.15 from them).
+    nets: ["unconnected-*"]
+    current: none
+    min_width: 0.2mm
+    clearance: 0.09mm
+    routing: none (no copper)
+    verify: S4 no_connect flags
+
+  GND_RET:
+    intent: >
+      GND return: pours + In1 plane + stitch vias own the copper; the class
+      exists so GND copper grades at the advanced-tier clearance (0.09)
+      instead of the Default class's 0.2 (KRT routes signal vias at
+      0.1-0.135 next to GND stitch copper).
+    nets: [GND]
+    current: "return (planes)"
+    min_width: 0.25mm
+    clearance: 0.09mm
+    routing: pours + stitch
+    verify: DRC unconnected gate
+
+scoped_floors:
+  - zone: pd_sense
+    nets: [LX1, LX2, VOUT_PD, VOUT_PDS, VIN, VIN_S]
+    min_width: 0.19
+    why: >
+      The 13-15A LX/VOUT_PD/VIN trunks in the PD stage ride the F.Cu
+      priority-2 pour islands + the In2 plane (floorplan.yaml); the thin
+      tracks inside pd_sense are the QFN pin escapes (0.28mm pads cannot
+      take 1.0mm attach), the VIO/VOUTI/CSN1 kelvin sense chain, and
+      plane-drop stubs. Measured 2026-07-21: without the scope the class
+      floors flag every LX escape; the pours carry the current
+      (usb-power-3s SW_TAP precedent).
+  - zone: sw_sense
+    nets: [SW_A, 5VA]
+    min_width: 0.3
+    why: >
+      The 7A SW_A trunk is the F.Cu pour island between Q2/Q3/L2; the
+      0.4-0.5mm tracks inside sw_sense are the LM5116 SW-pin sense +
+      bootstrap return taps (U2.20 -> C18.2 -> pour) and the 5VA
+      VOUT-sense run (pour -> R2.1/U2.10 FB divider), not the power path.
+  - zone: pd_sense
+    nets: [HG1, HG2, LG1, LG2, QG4, QG5, QG6, QG7, BST1, BST2, PATH_G]
+    min_width: 0.19
+    why: >
+      KRT emits sub-nominal pad-attach tapers (0.1998mm x 0.14mm) at the
+      QFN pin faces; the gates' nominal runs are 0.3mm and the taper sits
+      on the 0.28mm pad face itself - not an ampacity path. Measured
+      2026-07-21: GATE_width x2 at exactly 0.1998/0.14mm.
+  - zone: vconn_feed
+    nets: [5VA]
+    min_width: 0.4
+    why: >
+      The 7A 5VA trunk is the 5VA pour polygon; the 0.5mm tap inside
+      vconn_feed only feeds the Vconn source diode D2 (<0.5A e-marker
+      supply, IP6559 DS Fig.9).
+  - zone: port_bond
+    nets: [VBUSA1, VBUSA2, VBUSA3]
+    min_width: 0.25
+    why: >
+      The 3A port trunks are the F.Cu VBUSA pour patches; the thin tracks
+      inside port_bond are island-bonding stubs (USBLC6 VBUS-pin pockets
+      sliced off by the port data routing - measured islands 2026-07-21),
+      not the power path.
+  - zone: j5_bond
+    nets: [VBUSC]
+    min_width: 0.19
+    why: >
+      The 6A VBUSC trunk is the F.Cu pour; J5 pads A4/B9 sit in a fill pocket
+      enclosed by the CC/data tap stubs (measured island x 111.2-111.9,
+      2026-07-21). The thin track here is the pocket's island bonder carrying
+      only the A4/B9 pin share (<=1.5A, ~4mm), not the trunk.
+  - zone: vbat_therm
+    nets: [VBAT_F]
+    min_width: 0.3
+    why: >
+      The 1.1mm B.Cu stub joining the two Q1-drain thermal vias lies wholly
+      inside the VBAT_F B.Cu pour (both vias land in it); it carries only
+      the via-pair share, not the 20A battery trunk (which is the pour).

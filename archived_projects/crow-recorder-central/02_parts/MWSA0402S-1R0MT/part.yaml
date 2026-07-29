@@ -1,0 +1,44 @@
+mpn: MWSA0402S-1R0MT
+manufacturer: Sunlord
+type: inductor_power_shielded    # molded metal-composite, closed magnetic circuit
+datasheet:
+  doc_id: MWSA-S series catalog
+  revision: Revised 2023/09/13
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2310251550_Sunlord-MWSA0402S-1R0MT_C408332.pdf
+  sha256: ac99aaf872412413ea5524b442c491541db1a4bd100d3fb6f5a7c18a5d89ae18
+  fetched: 2026-07-17
+package: MWSA0402S, 4.2x4.4x1.8mm molded SMD (A=4.2+/-0.25, B=4.4+/-0.35, C=1.8+/-0.2)
+footprint: Inductor_SMD:L_Sunlord_MWSA0402S
+pins:                       # 2-pad passive, non-polarized
+  1: "1"
+  2: "2"
+limits:
+  inductance: 1.0uH +/-20% (100kHz, 1V)
+  dcr_max: 27mOhm
+  isat_max_rated: 5.60A     # "Saturation Current Max." column (7.00A typ), MWSA0402S table p.3
+  irms_max_rated: 5.40A     # "Heat Rating Current Max." column (6.00A typ)
+  temp_range: -40 to +125C including self-heating
+selection_rationale:
+  - "AP61102 datasheet (DS42004 p.17) recommends 1.0-1.5uH, DCR<50mOhm, Isat > Ipeak (1A load + 0.25A ripple/2 ~ 1.15A; HS current limit 2.5A typ)"
+  - "Margins: Irms 5.4A >= 2x converter rating; Isat 5.6A >= 2.5A requirement — large margin, inductance holds up at current limit"
+  - "No JLC BASIC shielded power inductor was found in the 1uH/>=2.5A class (all queried Sunlord SWPA/MWSA parts report 'expand'); chose the extended part with the deepest stock instead"
+gotchas:
+  - "Land pattern from catalog p.2 (MWSA0402S row): pad I=1.5mm wide x H=2.5mm long, gap J=2.2mm — KiCad L_Sunlord_MWSA0402S has pads 1.5x2.5 at +/-1.85mm (gap 2.2mm): exact match, no custom footprint needed"
+  - "Do not confuse with SWPA4030S1R0MT (wire-wound, 4.0x4.0x3.0mm, different footprint) — same value, different series and body"
+  - "Non-polarized, but keep the marking side up for AOI consistency"
+verified: "value/DCR/Isat/Irms read from MWSA0402S Series specifications table, catalog page 3; dimensions and land pattern from SHAPE AND DIMENSIONS table, page 2 (page images rendered) — 2-pad passive, pinout-exempt — 2026-07-17"
+sourcing: {lcsc: C408332, alternates: [], note: 'extended; exact MPN; 25440 stock 2026-07-17; qty 2 per board (3.3V and 0.9V bucks)'}
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: passive, pitch: 3.4, tier_required: jlc_2layer_default, checked: escape_check}
+layout:
+  source: >-
+    Sunlord MWSA0402S catalog (2023-09). Molded shielded power inductor (1uH),
+    x2 for the 3.3V and 0.9V AP61102 bucks. Placement rule inherited from the
+    AP61102 datasheet DS42004 'PCB Layout' rule 3: place the inductor as close
+    to SW as possible.
+  notes: >-
+    Place hard against the buck SW pin — BK1_SW / BK2_SW measured 4.5mm both
+    (within the AP61102 SW keep_short 8mm budget). Closed magnetic circuit
+    (shielded) so radiated coupling is low, but SW-node copper is minimized.
+    keep_short lives on the AP61102 part (SW nets) to avoid a duplicate measure.

@@ -1,0 +1,147 @@
+# usb-hub-3s-v2 net architecture — netclasses + DRU floors source.
+#
+# fab_tier is the COST CEILING decided at commission, REVISED at D-ESC (ADR-0011).
+# Commission targeted STANDARD (v1's advanced was forced by the IP6559 buck-boost
+# QFN-48, now gone). BUT the D-SPEC sourcing spike's 5A-capable PD SOURCE
+# controller (TPS25740A) is a 4-sided VQFN-24 0.5mm — escape_check grades it
+# jlc_4layer_advanced (via-in-pad; the outward-only rescue is dual-row-only).
+# The 5A PD *requirement* forces the fine-pitch QFN, not over-engineering. Every
+# OTHER multi-pin part is leaded/DFN at >=0.5mm and escapes at standard. If the
+# user accepts 5V/3A (plain-Rp, no PD chip), the board drops to STANDARD — the
+# 3A-vs-5A / standard-vs-advanced tension is flagged in BRIEF T3 + ADR-0011.
+fab_tier: jlc_4layer_advanced
+
+classes:
+  SWITCH_NODE:
+    intent: >
+      The two buck switch nodes SW_A / SW_C (HS drain -> inductor). High dV/dt;
+      trunk current rides the F.Cu pour islands, the floor is the backstop for
+      any routed segment. Keep loop area minimal.
+    nets: [SW_A, SW_C]
+    current: "7 A pulsed"
+    min_width: 0.6mm   # switch current rides the F.Cu SW pour island; the only
+                       # routed SW track is the LM5116 SW-pin driver-return stub
+    clearance: 0.15mm
+    routing: pours (floorplan islands); KRT only for short joins
+    verify: DRC floor + R-THERM
+
+  PWR_IN:
+    intent: >
+      Battery input trunk: XT60 -> fuse -> reverse-polarity P-FET -> VIN, then
+      fanned to BOTH buck inputs. Worst case ~7 A at 9.0 V (E-TOPO derived:
+      55 W / 0.9 / 9 V = 6.8 A). Trunk = F.Cu pour + In2 VIN plane; the floor
+      backstops short routed stubs. (v1 carried 15.5 A here for the buck-boost.)
+    nets: [VBAT, VBAT_F, VIN]
+    current: "7 A worst case"
+    min_width: 0.6mm
+    clearance: 0.15mm
+    routing: pours + In2 plane; pad_rescue vias drop VIN pads to In2
+    verify: DRC floor
+
+  PWR_RAIL:
+    intent: >
+      Buck output trunks: 5VA (6 A) and 5VC (5 A). Pour-fed (floorplan
+      islands); floor is the backstop.
+    nets: [5VA, 5VC]   # authored net.N5VA/net.N5VC; converter strips the N guard
+    current: "6 A / 5 A"
+    min_width: 0.4mm   # POUR-carried power; the only routed 5VA/5VC tracks are
+                       # Kelvin VOUT/FB sense stubs (no current) -> 0.4 backstop
+    clearance: 0.15mm
+    routing: pours
+    verify: DRC floor
+
+  VBUS:
+    intent: >
+      Port power: three limited USB-A VBUS nets (2 A cont / 2.5 A burst limit
+      each) and the USB-C VBUS (5 A at 5 V). Pour-fed; floor backstop.
+    nets: [VBUSA1, VBUSA2, VBUSA3, VBUSC]
+    current: "2.5 A / 5 A"
+    min_width: 0.5mm
+    clearance: 0.15mm
+    routing: pours
+    verify: DRC floor
+
+  GATE:
+    intent: >
+      Gate drives + bootstraps for the 4 buck FETs (LM5116 HO/LO/HB pairs, both
+      bucks). Amps of pulse current, short runs.
+    nets: [HO_A, LO_A, BOOT_A, HO_C, LO_C, BOOT_C]
+    current: "gate pulses (~2 A pk)"
+    min_width: 0.3mm
+    clearance: 0.12mm
+    routing: KRT (short, same-layer preferred)
+    verify: DRC floor
+
+  SENSE:
+    intent: >
+      Kelvin current-sense + control analog for both bucks: CS/CSG kelvin,
+      FB/COMP/RAMP/RT/SS, UVLO/EN dividers. Route sense as pairs off the shunt
+      ends; never share trunk copper.
+    nets: [CS_A, CSF_A, CSGF_A, FB_A, COMP_A, CMZ_A, RAMP_A, RT_A, SS_A,
+           UVLO_A, EN_A, VCC_A,
+           CS_C, CSF_C, CSGF_C, FB_C, COMP_C, CMZ_C, RAMP_C, RT_C, SS_C,
+           UVLO_C, EN_C, VCC_C]
+    current: "<50 mA"
+    min_width: 0.2mm
+    clearance: 0.12mm
+    routing: KRT
+    verify: DRC floor + pin review
+
+  USB_DATA:
+    intent: >
+      Port data / CC: DCP advertisement lines (TPS2513), C-port D+/D- and
+      CC1/CC2 (PD BMC). Short, paired, ESD at the connector.
+    nets: [DP_A1, DM_A1, DP_A2, DM_A2, DP_A3, DM_A3, DPC, DMC, CC1, CC2]
+    current: signal
+    min_width: 0.15mm   # J5 USB-C 0.5mm-pitch escapes need 0.15 (KRT waves still 0.2)
+    clearance: 0.12mm
+    routing: KRT
+    verify: DRC floor + render review
+
+  AUX_5V:
+    intent: >
+      Low-current 5 V-class auxiliaries around the PD source controller: Vconn
+      feed / switch nodes, CC config, chip LDO decoupling. Up to ~0.5 A. Exact
+      net list finalized after the PD-controller sourcing spike (ADR-0004-v2).
+    nets: [VCONN, VCC_PD, EN_PD]
+    current: "<0.5 A"
+    min_width: 0.24mm   # KRT floor-grades widths (0.2498 artifact trips 0.25)
+    clearance: 0.12mm
+    routing: KRT
+    verify: DRC floor
+
+  PD_NET:
+    intent: >
+      PD source-controller path + config/bias nets not otherwise classed. RSNS/
+      PDSRC carry the 5 A path (pour-fed, floor is backstop); the rest are low-
+      current config/sense. Graded at the tier clearance so the dense PD-cell
+      escapes are legal (else they inherit Default 0.2 and false-fail).
+    nets: [HIPWR, PSEL, VAUX, DVDD, VTX, DSCG_N, GDNG, PDGATE, RSNS, PDSRC]
+    current: "5 A path (RSNS/PDSRC, poured) / <0.1 A config"
+    min_width: 0.2mm
+    clearance: 0.13mm
+    routing: KRT + taps + pours
+    verify: DRC floor
+
+  NC_PADS:
+    intent: >
+      Sanctioned no-connect pads (NC-flagged pins). Grades NC pads at the class
+      clearance instead of Default's 0.2.
+    nets: ["unconnected-*"]
+    current: none
+    min_width: 0.2mm
+    clearance: 0.12mm
+    routing: none (no copper)
+    verify: S4 no_connect flags
+
+  GND_RET:
+    intent: >
+      GND return: pours + In1 plane + stitch vias own the copper; the class
+      grades GND copper at the tier clearance so signal vias route legally next
+      to GND stitch copper.
+    nets: [GND]
+    current: "return (planes)"
+    min_width: 0.25mm
+    clearance: 0.12mm
+    routing: pours + stitch
+    verify: DRC unconnected gate

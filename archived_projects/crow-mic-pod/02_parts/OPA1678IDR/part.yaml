@@ -1,0 +1,61 @@
+mpn: OPA1678IDR
+manufacturer: Texas Instruments
+type: opamp_dual_audio
+datasheet:
+  doc_id: SBOS855
+  revision: SBOS855E (Dec 2022)
+  url: https://www.ti.com/lit/ds/symlink/opa1678.pdf
+  sha256: 4072daad4ebc4ec9a74ba6547d721b05db8d0cfc12924bda79e828271aeaec3b
+  fetched: 2026-07-18
+package: D (SOIC-8, 3.9x4.9mm body, 1.27mm pitch)
+footprint: Package_SO:SOIC-8_3.9x4.9mm_P1.27mm
+pins:                       # from Figure 5-3 "OPA1678: D Package, 8-Pin SOIC (Top View)", p.4
+  1: OUT_A                  # Output, channel A
+  2: -IN_A                  # Inverting input A
+  3: +IN_A                  # Non-inverting input A
+  4: V-                     # Negative supply (GND here, single 5V supply)
+  5: +IN_B                  # Non-inverting input B
+  6: -IN_B                  # Inverting input B
+  7: OUT_B                  # Output, channel B
+  8: V+                     # Positive supply (5V here)
+limits:
+  vs_abs_max: 40V           # (V+)-(V-) abs max, Section 6.1
+  vs_operating: 4.5-36V     # single supply 4.5 to 36V (±2.25 to ±18)
+  vin_range: "(V-)-0.5V to (V+)+0.5V abs max; CM to within ~2V of either rail typical"
+  iq_per_ch: 2mA            # typ 2mA/ch, 2.5mA max -> ~4mA for the dual at 25C
+  gbw: 16MHz
+  noise: 4.5nV/rtHz at 1kHz
+  thd_n: 0.0001% (1kHz, 3Vrms)
+  output_swing: "~(V-)+0.4V to (V+)-0.4V at 10k load (RRO, not RRI)"
+  tj_range: -40 to +85C
+gotchas:
+  - "NOT rail-to-rail input: CM range stops ~2V below V+ on a 5V supply — inputs biased at 2.5V midpoint stay legal, but do not run inputs near 5V"
+  - "Output swings within ~0.4V of the rails at light load: on 5V supply usable swing ~0.5-4.5V, plenty for ~1Vpp mic signals around 2.5V"
+  - "Stable at gain >= 1: both the 1.5V/V stage and the unity inverter are fine"
+  - "Bias current ~10pA typ (FET input): 100k input bias resistor adds negligible offset"
+verified: "pin map read from datasheet Figure 5-3 'OPA1678: D Package, 8-Pin SOIC (Top View)', page 4, SBOS855E — 2026-07-18"
+sourcing: {lcsc: C192421, alternates: [], note: 'extended; exact MPN; 4990 stock 2026-07-18; $0.92'}
+escape: {style: leaded, pitch: 1.27, tier_required: jlc_2layer_default, checked: escape_check}
+
+# Datasheet LAYOUT-section compliance (P-LAYOUT / P-ADJ) — the THIRD datasheet
+# read after verified: (pinout) and escape: (package). Adopted-forward backfill
+# 2026-07-22 for sealed v1.0 (P-LAYOUT did not exist at seal).
+layout:
+  source: "TI SBOS855E Sec.8.4.1 Layout Guidelines + Sec.8.4.2 Layout Example (p.25-26)
+    and Sec.8.3 Power Supply Recommendations: place a low-ESR 0.1uF bypass from V+ to
+    GND as close to the device pins as possible (single-supply -> one V+ bypass);
+    keep the feedback network RF/RG close to the inverting input to minimize parasitic
+    capacitance on that node; keep input traces as short as possible and route them
+    away from the supply/output traces."
+  reviewed: "2026-07-22 — Layout section read (supersedes the earlier pinout-only read)"
+  keep_short:                       # P-ADJ measures these net pad-spans on the board
+    - {net: FB_A, max_span_mm: 8, why: "ch-A feedback network R6/R7 close to -IN_A (U1.2): SBOS855E 8.4.1 minimize parasitic C on the inverting node"}
+    - {net: FB_B, max_span_mm: 8, why: "ch-B feedback network R8/R9 close to -IN_B (U1.6): same rule, second channel"}
+  adjacency:
+    - "C6, C7 (0.1uF V+ bypass) hard against U1.8 (V+): 8.3/8.4.1 low-ESR bypass as close to the device as possible"
+  notes: "Single 5V supply -> one V+ bypass path per 8.4.2. Non-inverting input node
+    AIN (U1.3) kept short (8.2mm on v1.0) and away from output/supply traces. On sealed
+    v1.0 FB_A/FB_B measure 13.0/15.2mm — over the 8mm compact-cluster target but
+    audio-band-negligible (16MHz GBW; a ~13mm 0.2mm trace adds ~1pF, a pole far above
+    the audio band and the loop crossover); dispositioned in policy_waivers.yaml (P-ADJ),
+    consistent with red-team L4 (op-amp loop waived audio-band-negligible)."

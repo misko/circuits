@@ -26,11 +26,6 @@
 (rule "scoped_efuse_padentry"
   (condition "A.insideArea('efuse_padentry') && (A.NetName == '5V_RPP' || A.NetName == '5V_PROTECTED')")
   (constraint track_width (min 0.25mm)))
-(rule "keypad_isolation_6mm"
-  # brief section 4/7 + ADR-0001: the keypad contact domain shares no GND with SELV logic and must hold >=6mm creepage
-  (condition "A.NetClass == 'KEYPAD_ISO' && B.NetClass != 'KEYPAD_ISO' && B.NetName != ''")
-  (constraint clearance (min 6.0mm)))
-(rule "opto_isolation_2mm"
-  # IEC 60664-1 basic insulation, 30V working, pollution degree 3 (steam-carrying cooking appliance), material group IIIa
-  (condition "A.NetClass == 'ISO_CONTACTOR' && B.NetClass != 'ISO_CONTACTOR' && B.NetName != ''")
-  (constraint clearance (min 2.0mm)))
+(rule pad_rescue_stubs
+  (condition "A.insideArea('pad_rescue_stubs') && (A.NetName == 'GND' || A.NetName == '3V3')")
+  (constraint track_width (min 0.300mm)))

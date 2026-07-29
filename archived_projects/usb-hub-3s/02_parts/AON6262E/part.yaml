@@ -1,0 +1,35 @@
+mpn: AON6262E
+manufacturer: Alpha & Omega Semiconductor
+type: nfet_power
+datasheet:
+  doc_id: AON6262E
+  revision: aosmd.com current 2026-07 (p.1 "60V N-Channel AlphaSGT")
+  url: https://www.aosmd.com/res/datasheets/AON6262E.pdf
+  sha256: ff82d6bf286ab3de15346be2ec367c980bc5c6fdadb60d6c276f836ce4a32232
+  fetched: 2026-07-21
+package: DFN 5x6-8L
+footprint: Package_SO:PowerPAK_SO-8_Single
+escape:
+  style: qfn  # DFN/SON no-lead ring escapes as 'qfn' (checker vocabulary)
+  pitch: 1.27
+  tier_required: jlc_2layer_default
+  checked: same land-pattern class as AON6354 (escape_check 2026-07-21, coarse-pitch power DFN)
+pins:
+  1: S
+  2: S
+  3: S
+  4: G
+  5: {name: D, note: "datasheet numbers drains 5-8; KiCad PowerPAK_SO-8_Single names ALL drain pads '5' (same convention verified for AON6354) - symbol pin 5 = D"}
+limits: {vds: 60V, vgs: "±20V", id_25C: 40A, rds_10V: 6.2mOhm_max, rds_4V5: 8.5mOhm_max, rds_4V5_typ: 6.2mOhm, qg_4V5_typ: 15nC, ciss: 1650pF, vspike_10us: 72V, eas: 79mJ}
+gotchas:
+  - "v1.1 replacement for AON6354 on Q4-Q8 (ADR 0007): 60V closes the
+     clamp-above-FET-rating defect (X3) - SMAJ24A vclamp_max 38.9V x1.54
+     margin, even legacy SMAJ30A 48.4V x1.24"
+  - "logic-level: Rds specified at 4.5V (8.5 max/6.2 typ) - required for
+     IP6559 ~5V VCC5V gate drive; conduction ~0.5W higher per always-on FET
+     vs AON6354 at the 100W/9V corner (thermal math in ADR 0008)"
+  - "gate is ESD-protected (HBM class 2) per DS p.1"
+verified: "pin map read from DFN5x6 top/bottom-view figure, AON6262E DS p.1 - 2026-07-21 (this session, PDF text-layer extraction)"
+sourcing: {lcsc: C431185, alternates: [C55112142], note: "stock 3277 LCSC / 3414 JLC on 2026-07-21; 5 pcs/board; alt is AON6262E-JSM clone - verify clone DS before substituting"}
+layout_refs:
+  - "IP6559 V1.4 sec.13 hot-loop rules govern placement of the 4 H-bridge units"

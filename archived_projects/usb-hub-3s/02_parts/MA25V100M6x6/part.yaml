@@ -1,0 +1,13 @@
+mpn: MA25V100M6x6
+manufacturer: jieerrui
+type: polymer_capacitor
+datasheet: {doc_id: MA-series, revision: series-sheet, url: "https://www.lcsc.com/product-detail/C46550465.html", sha256: null, fetched: 2026-07-21}
+package: SMD D6.3xL6
+footprint: Capacitor_SMD:CP_Elec_6.3x7.7
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-21}
+pins:
+  1: {name: "+", note: "POLARIZED: pad1=positive -> VOUT_PD; pad2 -> GND (floorplan assert)"}
+  2: {name: "-"}
+limits: {C: 100uF, v: 25V}
+verified: "2-pad polarized; CP_Elec pad1=+ convention - 2026-07-21 (README deviation)"
+sourcing: {lcsc: C46550465, alternates: [C19270705], note: "25V >= 21V PPS max + margin"}

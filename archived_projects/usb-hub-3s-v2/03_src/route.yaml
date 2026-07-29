@@ -1,0 +1,168 @@
+# usb-hub-3s-v2 route + stitch — input for route_and_stitch_generic.py
+#
+# Power is POUR/PLANE-owned and EXCLUDED from KRT: GND (In1 plane + outer pours
+# + stitch), VIN (In2 plane + local F.Cu pools + pad_rescue drops), and the
+# regional F.Cu/B.Cu pours 5VA/5VC/VBUSA*/VBUSC/SW*/CS*/RSNS/PDSRC. KRT routes
+# only the SIGNAL nets: gate drives + bootstraps, buck control/sense, PD config,
+# USB data/CC. Pour-fed sense/power pins that sit outside their pour get a
+# collision-checked TAP. The v2 win (4 self-contained cells, no shared hot loop)
+# should keep this far below v1's congestion.
+
+project:
+  name: usb_hub_3s_v2
+  board: 04_kicad/usb_hub_3s_v2.kicad_pcb
+  build_dir: 06_build/route
+
+prep:
+  out: r0.kicad_pcb
+  keepouts:
+    layers: [User.2]
+    mounting_holes: {radius: 3.0}
+    edge_band: 0.7
+
+  waves:
+    exclude: ["GND", "VBAT", "VBAT_F", "VIN", "5VA", "5VC",
+              "VBUSA1", "VBUSA2", "VBUSA3", "VBUSC",
+              "SW_A", "SW_C", "CS_A", "CS_C", "RSNS", "PDSRC",
+              # J5 USB-C corner: CC + interleaved D+/D- edge pads defeat KRT
+              # (v1 finding) -> deterministic taps own them (see taps:).
+              "CC1", "CC2", "DPC", "DMC",
+              "unconnected-*"]
+    groups:
+      # hardest first: FET gate drives + bootstraps (both bucks) + PD gate
+      gate: [HO_A, LO_A, BOOT_A, HO_C, LO_C, BOOT_C, PDGATE, GDNG]
+      # buck control/sense (both bucks) + VCC local decouple
+      sense: [FB_A, COMP_A, CMZ_A, RAMP_A, RT_A, SS_A, UVLO_A, EN_A, CSF_A, CSGF_A, VCC_A,
+              FB_C, COMP_C, CMZ_C, RAMP_C, RT_C, SS_C, UVLO_C, EN_C, CSF_C, CSGF_C, VCC_C]
+      # PD source config straps + bias
+      pdaux: [HIPWR, PSEL, VAUX, DVDD, VTX, DSCG_N]
+      # USB-A data + current-limit
+      dataa: [DP_A1, DM_A1, DP_A2, DM_A2, DP_A3, DM_A3, ILIM1, ILIM2, ILIM3]
+      sig: rest
+
+route:
+  # Promoted KRT chain (canon M3): the deterministic signal-route result. When
+  # no fresh build/FINAL marker exists, `import` uses this. Re-run `route` (KRT)
+  # only if PD-cell pins that carry KRT-routed signals move; then re-promote.
+  final: 03_src/route/final_chain.kicad_pcb
+  krt: ~/gits/KiCadRoutingTools
+  common:
+    layers: [F.Cu, B.Cu]
+    fab_tier: advanced
+    via_size: 0.3
+    via_drill: 0.15
+    no_stub_layer_swap: true
+    keepout: true
+    keepout_layer: User.2
+    clearance: 0.18
+  waves:
+    - {name: gate,  group: gate,  track_width: 0.3, clearance: 0.15,
+       via_size: 0.25, via_drill: 0.15, max_iterations: 500000}
+    - {name: sense, group: sense, track_width: 0.2, clearance: 0.15,
+       via_size: 0.25, via_drill: 0.15, max_iterations: 500000}
+    - {name: pdaux, group: pdaux, track_width: 0.2, clearance: 0.15,
+       via_size: 0.25, via_drill: 0.15, max_iterations: 500000}
+    - {name: dataa, group: dataa, track_width: 0.2, clearance: 0.15,
+       via_size: 0.25, via_drill: 0.15, max_iterations: 500000}
+    - {name: sig,   group: sig,   track_width: 0.2, clearance: 0.15,
+       via_size: 0.25, via_drill: 0.15,
+       max_iterations: 800000, max_probe_iterations: 60000, max_ripup: 30}
+
+taps:
+  clearance: 0.13   # USB_DATA class allows 0.12; the J5 0.5mm-pitch escapes need it
+  via: {size: 0.25, drill: 0.15}   # POFV-class (advanced tier)
+  connections:
+    # --- 5VA / 5VC output-sense taps (FB divider top + VOUT sense pin) ---
+    # PWR_RAIL floor is 0.6mm -> these pour-connection stubs must be 0.6 too.
+    - {net: 5VA, from: U2.10, to: [95.0, 42.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu}   # [90,40] was inside SW_A island -> via landed on SW copper (dangling); [95,42] is clean 5VA
+    - {net: 5VA, from: R3.1,  to: [98.0, 46.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu}
+    - {net: 5VC, from: U11.10, to: [95.0, 76.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu}   # [90,74] was inside SW_C island -> dangling via; [95,76] is clean 5VC
+    - {net: 5VC, from: R12.1,  to: [96.0, 80.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu}
+    # --- PD power pins -> islands (short escapes off the QFN north edge) ---
+    # U1.20(5VC)/U1.19(RSNS) tap to the shunt; U1.21(VBUSC monitor) is boxed in
+    # -> dropped straight to the B.Cu VBUSC bridge by stitch.pad_rescue (below).
+    # STUB layer MUST be the pad's layer (F.Cu) so via_hop drops a via-in-pad AT
+    # the QFN pad; layer:B.Cu made strategy-1 draw a B.Cu track at the pad XY that
+    # never bonded the F.Cu pad (dangling). hop_layer B.Cu carries the run.
+    - {net: 5VC,   from: U1.20, to: C44.1, width: 0.4, layer: F.Cu, hop_layer: B.Cu}
+    - {net: 5VC,   from: C44.1, to: [101.0, 94.0], width: 0.4, layer: F.Cu, hop_layer: B.Cu}  # C44 sits east of the 5VC pour foot (x103) -> bond it (and U1.20) into the pour
+    - {net: RSNS,  from: U1.19, to: Q6.5,  width: 0.3, layer: F.Cu, hop_layer: B.Cu}
+    # --- chip pins that sit outside their pour island -> bond to the island ---
+    - {net: SW_A,  from: U2.20,  to: [79.0, 34.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}
+    - {net: SW_A,  from: C7.2,   to: [81.0, 34.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}  # deeper in SW island, y34 clears Q2.5 VIN pads so 0.6 fits (was [79,31] -> joinpath fell back to 0.2 -> track_width)
+    - {net: SW_C,  from: U11.20, to: [79.0, 74.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}
+    - {net: SW_C,  from: C22.2,  to: [81.0, 72.0], width: 0.6, layer: F.Cu, hop_layer: B.Cu}  # deeper in SW_C island so 0.6 fits (mirror of C7.2 fix; [79,69] -> joinpath fell to 0.2)
+    # PD QFN north-edge escapes: pins 21 VBUSC / 23 PDSRC are WEST pins whose nets
+    # sit EAST (crossing the RSNS/5VC west escapes). Stub on the pad layer (F.Cu)
+    # so via_hop drops a via-in-pad AT the QFN pad, then thread B.Cu east. Order:
+    # PDSRC first (shorter, Q6-constrained), then VBUSC (longer run to bulk).
+    # PD QFN north-edge EAST escapes (FET row moved to y88 -> clear F.Cu channel
+    # y91-96). 21 VBUSC / 23 PDSRC are west pins whose nets sit east; they escape
+    # EAST on F.Cu while 19 RSNS / 20 5VC go west on B.Cu -> no same-layer crossing.
+    # via_hop drops a via-in-pad at the QFN pad; F.Cu stub, F.Cu run through channel.
+    # STILL STUCK: KRT fills the widened channel with GDNG/DSCG_N/PDGATE (pins 22/24
+    # + FET gate) before taps run, and the 0.5mm-pitch via-in-pad sites collide.
+    # - {net: PDSRC, from: U1.23, to: [109.7, 92.3], width: 0.2, layer: F.Cu, hop_layer: B.Cu}
+    # - {net: VBUSC, from: U1.21, to: [110.6, 93.7], width: 0.2, layer: F.Cu, hop_layer: B.Cu}
+    # --- TPS2557 OUT2(pin7) bond to OUT1(pin6) (pour can't thread 0.65mm gap) ---
+    - {net: VBUSA1, from: U3.7, to: U3.6, width: 0.5, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VBUSA2, from: U4.7, to: U4.6, width: 0.5, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VBUSA3, from: U5.7, to: U5.6, width: 0.5, layer: F.Cu, hop_layer: B.Cu}
+    # TPS2557 OUT (x~109) -> its VBUSAn pour (starts x118): the OUT pins sit WEST
+    # of the pour, so bond OUT1 across to a point inside the pour/connector rail.
+    - {net: VBUSA1, from: U3.6, to: [123.0, 34.0], width: 0.5, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VBUSA2, from: U4.6, to: [123.0, 56.0], width: 0.5, layer: F.Cu, hop_layer: B.Cu}
+    - {net: VBUSA3, from: U5.6, to: [123.0, 78.0], width: 0.5, layer: F.Cu, hop_layer: B.Cu}
+    # --- J5 USB-C CC + data escape (deterministic; KRT cannot thread these) ---
+    # HARD in-chip pass-through joins FIRST (route the U12 3-4 / 1-6 south channel
+    # while it is empty), then the J5-edge legs. CC1/CC2 split onto opposite layers.
+    - {net: DMC, from: U12.3, to: U12.4, width: 0.2, layer: F.Cu, hop_layer: B.Cu}
+    - {net: DPC, from: U12.1, to: U12.6, width: 0.2, layer: F.Cu, hop_layer: B.Cu}
+    - {net: DMC, from: U12.4, to: R27.2, width: 0.2, layer: F.Cu, hop_layer: B.Cu}
+    - {net: DPC, from: U12.6, to: R27.1, width: 0.2, layer: F.Cu, hop_layer: B.Cu}
+    # CC first (longest run around U1) — before the J5 data legs crowd the corner
+    - {net: CC1, from: U1.2,  to: J5.A5, width: 0.15, layer: F.Cu, hop_layer: B.Cu}
+    # CC2 guided through a waypoint in the clear U1<->J5 channel (the direct
+    # U1.3->J5.B5 run is order-fragile; the midpoint pins the path).
+    - {net: CC2, from: U1.3,   to: [116.0, 101.5], width: 0.15, layer: F.Cu, hop_layer: B.Cu}
+    - {net: CC2, from: J5.B5,  to: [116.0, 101.5], width: 0.15, layer: F.Cu, hop_layer: B.Cu}
+    # J5 data legs: interleaved DPC/DMC at the edge (W->E: B7 DMC, A6 DPC, A7 DMC,
+    # B6 DPC) must split across two layers. STUB on the pad layer (F.Cu) so via_hop
+    # drops the bonding via; the A-pair claims F.Cu first, the crossing B-pair is
+    # forced onto the B.Cu hop by the collision checker.
+    - {net: DPC, from: J5.A6, to: U12.6, width: 0.15, layer: F.Cu, hop_layer: B.Cu}
+    - {net: DMC, from: J5.A7, to: U12.4, width: 0.15, layer: F.Cu, hop_layer: B.Cu}
+    - {net: DPC, from: J5.B6, to: U12.6, width: 0.15, layer: F.Cu, hop_layer: B.Cu}
+    - {net: DMC, from: J5.B7, to: U12.4, width: 0.15, layer: F.Cu, hop_layer: B.Cu}
+
+stitch:
+  clearance: 0.15
+  via: {size: 0.35, drill: 0.15, spacing: 0.85, pth_margin: 0.3}
+  keepin: {inset: 0.8}
+  passes: [dedupe_vias, normalize_vias, drop_micro_fragments, drop_dangling,
+           split_t_junctions, reload, hole_to_hole, pad_rescue, stub_fallback,
+           astar_fallback, stitch_grid, fill, island_rescue, dedupe_vias,
+           hole_to_hole, fill, prune_stitch_dangling, gate]
+  dedupe_vias: {radius: 0.28, metric: box}
+  normalize_vias: {below_width: 0.24, size: 0.35, drill: 0.15}
+  drop_micro_fragments: {max_length: 0.16, require_free_end: true}
+  drop_dangling: {max_length: 1.0, tol: 0.05, sweeps: 4}
+  split_t_junctions: {tol: 0.05}
+  hole_to_hole: {min_gap: 0.25, mode: nudge, prefer_keep: [GND]}
+  pad_rescue:
+    nets:
+      - {net: GND, layer: In1.Cu}
+      - {net: VIN, layer: In2.Cu}
+    via_in_pad: true
+    served_within: 1.6
+    rings: [0.75, 0.95, 1.2, 1.6, 2.1, 2.7]
+    stub_width: 0.3
+    require: none
+  stub_fallback: {net: GND, min_dist: 0.2, max_dist: 8.0, width: 0.3}
+  astar_fallback: {net: GND, width: 0.25, window: 3.0, attempts: 3}
+  stitch_grid:
+    net: GND
+    x: [24, 146, 8]
+    y: [24, 108, 8]
+  island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu], require: all}
+  prune_stitch_dangling: {tol: 0.05, min_layers: 2}

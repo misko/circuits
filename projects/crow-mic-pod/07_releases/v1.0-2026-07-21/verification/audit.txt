@@ -1,3 +1,0 @@
-I8 AIN routed length 12.5mm
-pads audited across 36 footprints
-AUDIT: PASS (0 fails, 0 warns)

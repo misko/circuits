@@ -91,8 +91,34 @@ export default () => (
         pin5: "net.N5V_PROTECTED", pin6: "net.EFUSE_FLT_N", pin7: "net.EF_ILM", pin8: "net.GND",
       }} />
     <capacitor name="C_DVDT" capacitance="1nF" footprint="0402" connections={{ pin1: "net.EF_DVDT", pin2: "net.GND" }} />
-    <resistor name="R_OVT" resistance="100k" footprint="0402" connections={{ pin1: "net.N5V_RPP", pin2: "net.EF_OVLO" }} />
-    <resistor name="R_OVB" resistance="15k" footprint="0402" connections={{ pin1: "net.EF_OVLO", pin2: "net.GND" }} />
+    {/* ---- v1.7: THE OVLO DIVIDER. THIS IS A SAFETY SETPOINT AND BOTH LEGS ARE CODE-PINNED. ----
+        v1.2-v1.6 shipped 100k/15k, and so did the BLOCKED v1.7 staging archive: ratio
+        0.130435, which against SLVSE57C's V_OVLO(R)
+        1.13/1.20/1.27 V puts the cutoff at 9.200 V NOMINAL (8.49-9.99 V worst case) on a
+        rail feeding thirteen DIP05-1A72-12L coils rated 7.5 V MAX and D_TVS SMBJ5.0A whose
+        V_BR STARTS at 6.40 V — at 9.996 V the 600 W transient part passes ~6.6 A / 66 W as a
+        DC regulator. Both v1.7 red-team lenses found it independently; both their proposed
+        fixes were REFUTED (22k tops out at 7.159 V, above the TVS; 57.6k nuisance-trips at
+        the then-declared vin_max 5.5 V).
+        WHAT UNBLOCKED IT IS A SPEC, NOT A RESISTOR: ADR-0021 makes the supply a SPECIFIED
+        4.85-5.25 V. At 5.25 V a divider exists; at 5.5 V none does once the +-100 ppm/C TCR
+        term is carried.
+        100k / 26.1k = k_nom 0.206979 -> trip 5.798 V NOMINAL, inside the 5.5-6 V that
+        02_parts/TPS259573DSGR, ARCHITECTURE.md:41 and BRIEF §3.5 all state. WORST CASE over
+        -20..+70 C with +-0.5% parts, +-100 ppm/C TCR and SLVSE57C's I_EN +-0.1 uA (2.07 mV
+        on the 20.698k source):
+          EARLIEST possible trip  5.3682 V  (spec max 5.25  -> +118 mV, cannot nuisance-trip)
+          LATEST guaranteed trip  6.2394 V  (SMBJ5.0A V_BR min 6.40 -> +161 mV at 25 C;
+                                             at -20 C the TVS's own +0.041 %/C moves V_BR min
+                                             to 6.2819 -> +43 mV; DIP05 coil 7.5 -> +1261 mV)
+          TVS conduction at the latest trip: 7.5 mA / 47 mW at 25 C, 9.3 mA / 58 mW at -20 C.
+        +-1% parts still clear every HARD limit (earliest 5.3260, latest 6.2893, TVS <= 64 mW)
+        but lose the -20 C strict-V_BR form by 7 mV, so BOTH legs are +-0.5% and both are
+        code-pinned: an auto-picked code is a snapshot, and this one sets a protection
+        threshold. C270658 / C407739 are the SAME UNI-ROYAL family the board already uses,
+        one tolerance grade tighter. Stock read live 2026-07-28: 9643 / 227. */}
+    <resistor name="R_OVT" resistance="100k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C270658"] }} connections={{ pin1: "net.N5V_RPP", pin2: "net.EF_OVLO" }} />
+    <resistor name="R_OVB" resistance="26.1k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C407739"] }} connections={{ pin1: "net.EF_OVLO", pin2: "net.GND" }} />
     <resistor name="R_ILM" resistance="1.2k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C138040"] }} connections={{ pin1: "net.EF_ILM", pin2: "net.GND" }} />
     <resistor name="R_PG" resistance="100k" footprint="0402" connections={{ pin1: "net.EFUSE_FLT_N", pin2: "net.N5V_PROTECTED" }} />
     {/* SMBJ5.0A TVS: cathode to protected rail, anode GND (pad1=K per part.yaml) */}
@@ -861,7 +887,7 @@ export default () => (
       pinLabels={{ pin1: "GPB0", pin2: "GPB1", pin3: "GPB2", pin4: "GPB3", pin5: "GPB4", pin6: "GPB5", pin7: "GPB6", pin8: "GPB7", pin9: "VDD", pin10: "VSS", pin11: "NC", pin12: "SCL", pin13: "SDA", pin14: "NC", pin15: "A0", pin16: "A1", pin17: "A2", pin18: "RESET_N", pin19: "INTB", pin20: "INTA", pin21: "GPA0", pin22: "GPA1", pin23: "GPA2", pin24: "GPA3", pin25: "GPA4", pin26: "GPA5", pin27: "GPA6", pin28: "GPA7" }}
       connections={{
         pin1: "net.EFUSE_FLT_N", pin2: "net.MODE_AUTO_HW", pin3: "net.ESTOP_OK", pin4: "net.DOOR_OK",
-        pin5: "net.TEMP_OK", pin6: "net.FAULT", pin7: "net.TC_FAULT_N", pin8: "net.WD_OK",
+        pin5: "net.TEMP_OK", pin6: "net.FAULT", pin7: "net.TC_FAULT_N",
         pin9: "net.N3V3", pin10: "net.GND", pin12: "net.I2C_SCL", pin13: "net.I2C_SDA",
         pin15: "net.GND", pin16: "net.GND", pin17: "net.GND", pin18: "net.WD_OK",
         pin19: "net.EXP_INTB", pin20: "net.INT_ALERT",
@@ -869,6 +895,42 @@ export default () => (
         pin25: "net.CONTACTOR_REQ", pin26: "net.REARM_N", pin27: "net.BOARD_ID0", pin28: "net.BOARD_ID1",
       }} />
     <capacitor name="C_EXP" capacitance="100nF" footprint="0402" connections={{ pin1: "net.N3V3", pin2: "net.GND" }} />
+    {/* ---- v1.7 (ADR-0020 §Correction): GPB7 IS ISOLATED FROM WD_OK BY 10k. ----------
+        v1.7 put THREE things on WD_OK: U_WD.1 (TPS3823 RESET_N, push-pull, V_OL specified
+        only to I_OL = 1.2 mA and abs-max +-5 mA), U_EXP.18 (RESET_N, the ADR-0020 fix), and
+        U_EXP.8 (GPB7, a BIDIRECTIONAL MCP23017 I/O rated 25 mA). One I2C write —
+        `IODIRB.7=0, OLATB.7=1` — therefore drove the board's MOST-CONSUMED PERMISSION HIGH
+        against a supervisor output no datasheet bounds at that current, removing the
+        watchdog term from U_AND1.3 (coil rail), U_CAND1.1 (contactor), U_FAULTAND.1 (fault
+        latch) and U_OENAND.2 ('595 output-enable) AT ONCE. And it was SELF-SUSTAINING: the
+        only thing that stops the drive is the expander's own RESET, which needs the node
+        below V_IL = 0.2*VDD = 0.660 V (DS20001952C D031).
+        R_WDOKSER puts 10k between GPB7 and the net. U_EXP.18 and all five gate inputs stay
+        on the RAW net, so ADR-0020's reset path is untouched and R_WDOKPD is still WD_OK's
+        only default. ARITHMETIC: TPS3823-33 V_OL <= 0.4 V at I_OL 1.2 mA (SLVS165O §6.5)
+        => guaranteed sink impedance <= 333.3 ohm; 3.3 V through 9.90k (10k -1%) into
+        333.3||100k = 332.2 ohm gives WD_OK <= 0.107 V, +7 mV for 21 uA of aggregate input
+        leakage (4 x LVC +-5 uA + MCP23017 +-1 uA) = <= 0.114 V — against 0.660 V (MCP RESET)
+        and 0.800 V (LVC V_IL): margins 546 mV and 686 mV. Contention current 0.323 mA = 27%
+        of the V_OL spec point and 6.5% of the +-5 mA abs max. THE FIX RESTORES ADR-0020
+        DECISION B: the forced-high node now falls below the reset threshold, the expander IS
+        reset, GPB7 returns to an input, and the drive ends.
+        NOT CLAIMED: the GPB7-readback degeneracy (ORDER_README §7a-3) is NOT repaired by
+        this resistor — U_EXP.18 still sits on WD_OK, so the expander is in reset exactly
+        when WD_OK reads 0. Use the IODIR-readback replacement §7a-3 specifies.
+
+        AUTHORING NOTE, AND IT IS A TOOL LIMIT, NOT A DESIGN CHOICE: GPB7 is wired
+        as a DIRECT PIN REFERENCE (`U_EXP.pin8`) plus the net name, instead of
+        being re-homed inside U_EXP's own `connections` map. Both spellings give
+        the identical netlist. The map spelling makes tscircuit 0.0.2112's
+        schematic matchpack solver FAIL HARD ("PackSolver2 failed: null", 22343
+        iterations) and emit NO circuit.json at all — bisected 2026-07-28 across
+        11 variants: adding the resistor alone is fine, adding the net alone is
+        fine, and moving U_EXP.8 off WD_OK by ANY route (to the new net, to
+        EFUSE_FLT_N, to 3V3) fails deterministically. The direct-pin form is what
+        the solver's own debug calls `hasDirectConnections`, and it converges.
+        DO NOT "tidy" this back into the pinLabels map. */}
+    <resistor name="R_WDOKSER" resistance="10k" footprint="0402" supplierPartNumbers={{ jlcpcb: ["C60490"] }} connections={{ pin1: "net.WD_OK", pin2: ["U_EXP.pin8", "net.WD_OK_EXP"] }} />
     {/* v1.7 (ADR-0020 decision B): pin18 (RESET_N) was on net.EXP_RST_N = {R_EXPRST.1,
         U_EXP.18} — A NET WITH NO DRIVER. Nothing on this board could reset the expander, so
         its registers held until 3V3 dropped and a held-low REARM_N survived EVERY Pi reboot.
@@ -878,6 +940,14 @@ export default () => (
         NO LONGER PERSIST ACROSS A WATCHDOG TIMEOUT — the exact worry ADR-0011 section 8
         wrote down and could only mitigate ("a Pi that dies ... the MCP23017 keeps its
         CONTACTOR_REQ latch").
+        THAT SENTENCE WAS FALSE FOR ONE REVISION AND IT IS RECORDED, NOT EDITED AWAY. As
+        first written (staging archive cooksense-v1.7-BLOCKED-2026-07-28) the claim was
+        falsified IN ITS OWN CASE: U_EXP.8 (GPB7, 25 mA,
+        bidirectional) sat on the SAME net, so `IODIRB.7=0, OLATB.7=1` held WD_OK high, the
+        reset never asserted, and the outputs persisted exactly as before. It is true as SEALED
+        because R_WDOKSER (10k, above) bounds that drive to 0.323 mA and the node to 0.114 V,
+        below the 0.660 V reset threshold. The reset path is what makes the claim; the series
+        resistor is what makes the reset path reachable.
         R_EXPRST IS DELETED, AND THAT IS REQUIRED, NOT TIDYING: left in place its 10k pull-UP
         would land on WD_OK — a pull toward PERMISSIVE on the board's most-consumed
         permission — and beat ADR-0019's R_WDOKPD outright (3.3*100/110 = 3.0V). WD_OK's

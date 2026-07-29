@@ -523,6 +523,26 @@ placement:
     # WD_OK and beaten R_WDOKPD's 100k pull-DOWN (3.3*100/110 = 3.0V).
     R_BID0:   [125.0, 84.0]
     R_BID1:   [122.0, 86.5]
+    # v1.7 seal pass (ADR-0020 §Correction): R_WDOKSER, the 10k that isolates
+    # GPB7 from WD_OK, ANCHORED 3.5mm due WEST of the pin it protects
+    # (U_EXP pad 8 sits at (136.500, 82.325) on the SSOP's west edge).
+    # It is anchored for TWO measured reasons, not for tidiness:
+    #  (a) LEFT FLOATING IT LANDED AT (112.400, 69.500) — 24 mm from U_EXP.8,
+    #      across the board. The part works there, but a series isolator 24 mm
+    #      from the pin it isolates is a review finding waiting to happen, and
+    #      P-LAYOUT/I-PROX grade local passives against their IC.
+    #  (b) IT DISPLACED A ROUTED NEIGHBOUR. The legalizer RIPPLES (the
+    #      2026-07-24 C_WD/R_MR incident, and again at v1.7 when eleven new
+    #      pull-downs re-solved EIGHT untouched floaters): adding this one
+    #      floater moved TP_3V3 (111.500,70.000) -> (109.000,67.000), 3.905 mm,
+    #      for no reason but occupancy. TP_3V3 is therefore PINNED at the
+    #      coordinate v1.6/v1.7-staging shipped, which restores the placement
+    #      delta to EXACTLY what this revision changed: one added part.
+    # x133.0 is clear: U_EXP's courtyard starts at x135.275 (1.33 mm to the
+    # 0402's east edge) and the nearest other body is C_STOPINV at x129.94.
+    # It stays OUT of U_EXP's SOUTH escape corridor (x135.3..144.7).
+    R_WDOKSER: [133.0, 82.325]
+    TP_3V3:    [111.5, 70.0]
     C_ULNB:   [186.0, 67.5]     # I-PROX to U_ULNB (184,59) = 8.7 <= 9.0
     # ---- v1.2 STOP-preemption cluster (old U_SR2 spot + one-shot flank) ----
     U_STOPINV: [126.0, 73.0]    # 1G00 inverter: STOP_REQ -> STOP_REQ_N

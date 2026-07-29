@@ -641,3 +641,52 @@ invariants:
     adr: "0011"
     why: "U_COMP's bypass must sit on the rail U_COMP actually runs from. It was left on 5V_PROTECTED when the part moved, so it bypassed nothing. SLCS136V sec.8 p.12: supply variation 'cause temporary fluctuations in the comparator's input common mode range' — and the open-detect threshold is referenced to this same rail, so this 100nF is a safety component, not hygiene"
 
+
+  # ===== ADR-0021 — THE OV CUTOFF SETPOINT. TWO NUMBERS, AND NOTHING ELSE ON
+  # ===== THIS BOARD CAN SEE THEM. ===========================================
+  # v1.2-v1.6 and the BLOCKED v1.7 staging shipped R_OVT 100k / R_OVB 15k, and
+  # EVERY topology assert on this divider was green the whole time: the divider
+  # existed, both legs were on the right nets, the tap reached pin 2. What was
+  # wrong was arithmetic — ratio 0.130435 x V_OVLO(R) 1.20 V = a 9.200 V cutoff
+  # (8.492-9.933 worst case) on a rail feeding thirteen 7.5 V reed coils and a
+  # TVS whose V_BR starts at 6.40 V. BOTH v1.7 red-team lenses found it and
+  # NEITHER of their fixes was correct. A value assert is the only kind of gate
+  # that can see this class.
+  - assert: part_value
+    part: R_OVT
+    equals: "100k"
+    adr: "0021"
+    why: "OV cutoff = V_OVLO(R) x (R_OVT + R_OVB)/R_OVB (SLVSE57C EC table, ENABLE/OVERVOLTAGE LOCKOUT (EN/OVLO) - TPS2595x3: 1.13 / 1.20 / 1.27 V rising). With 26.1k below, 100k gives 5.798 V NOMINAL and, worst case over -20..+70 C with +-0.5% legs, +-100 ppm/C TCR and I_EN +-0.1 uA across the 20.698k source, CANNOT trip below 5.3682 V (+118 mV over the ADR-0021 supply ceiling 5.25) and HAS tripped by 6.2394 V (+161 mV under the SMBJ5.0A V_BR min 6.40 at 25 C, +43 mV under the 6.2819 V that the TVS's own +0.041 %/C gives at -20 C, +1261 mV under the DIP05 coil's 7.5 V max). Both legs are ALSO code-pinned in the tsx (C270658 +-0.5%) because an auto-picked passive code is a catalog snapshot and this one sets a protection threshold"
+  - assert: part_value
+    part: R_OVB
+    equals: "26.1k"
+    adr: "0021"
+    why: "THE LEG THAT WAS WRONG. At 15k the cutoff was 9.200 V nominal / 9.996 V worst case, where the SMBJ5.0A passes ~6.6 A and dissipates ~66 W — a 600 W TRANSIENT part asked to be a DC regulator — and every DIP05 coil is 2.5 V over its 7.5 V maximum. Both previously proposed values are REFUTED and must not return: 22k gives a 7.223 V latest trip (above the TVS) and 57.6k-on-the-top-leg nuisance-trips inside the old 5.5 V envelope. At 26.1k the TVS conducts at most 7.5 mA / 47 mW (25 C) or 9.3 mA / 58 mW (-20 C) before the eFuse cuts off, from Littelfuse's own two published points (I_R 800 uA at V_R 5.00 V, I_T 10 mA at V_BR 6.40 V). NOTE that this value is only admissible BECAUSE the supply is specified 4.85-5.25 V: at a 5.5 V ceiling no divider satisfies both bounds once TCR is carried"
+  - assert: series_chain
+    chain: [5V_RPP, R_OVT, EF_OVLO, R_OVB, GND]
+    adr: "0021"
+    why: "the divider is ACROSS the reverse-protected input with its tap at U_EFUSE.2 (EN/OVLO). This is the topology half of the setpoint: a 'simplification' that re-homes R_OVT to 5V_PROTECTED (the eFuse OUTPUT) would make the sense node collapse the instant the FET turns off, converting a clean hysteretic cutoff into an oscillator, and the two part_value asserts above would stay green through it"
+
+  # ===== ADR-0020 §CORRECTION — GPB7 IS ISOLATED FROM WD_OK BY 10k ===========
+  # The v1.7 P0 that this revision's OWN previous fix created: ADR-0020 moved
+  # U_EXP.18 (RESET_N) onto WD_OK, where U_EXP.8 (GPB7, a BIDIRECTIONAL 25 mA
+  # MCP23017 I/O) already sat beside U_WD.1 (TPS3823 RESET_N, specified only to
+  # I_OL 1.2 mA). One I2C write (IODIRB.7=0, OLATB.7=1) then held the board's
+  # most-consumed permission HIGH, and because the ONLY thing that stops the
+  # drive is the expander's own RESET — which needs <0.660 V — the defeat was
+  # SELF-SUSTAINING until the 3V3 rail dropped.
+  - assert: part_value
+    part: R_WDOKSER
+    equals: "10k"
+    adr: "0020"
+    why: "THE ENTIRE BOUND IS THIS NUMBER. At 0 ohm (or a 0R link 'because it is only a readback') the P0 returns and every topology assert stays green. TPS3823-33 V_OL <= 0.4 V at I_OL = 1.2 mA (SLVS165O 6.5) => guaranteed sink impedance <= 333.3 ohm; GPB7 at 3.3 V through 9.90k (10k at -1%) into 333.3||100k = 332.2 ohm holds WD_OK at 0.107 V, 0.114 V once 21 uA of aggregate input leakage (4 x SN74LVC +-5 uA + MCP23017 +-1 uA) is added — against MCP23017 RESET V_IL = 0.2*VDD = 0.660 V (DS20001952C D031) and SN74LVC V_IL = 0.800 V: margins 546 mV and 686 mV. Contention current 0.323 mA = 27% of the V_OL spec point and 6.5% of the +-5 mA abs max. THIS IS WHAT MAKES ADR-0020 DECISION B TRUE: the forced-high node now falls below the reset threshold, the expander IS reset, GPB7 returns to an input, and the drive ends"
+  - assert: pin_on_net
+    pin: "U_EXP.8"                     # MCP23017 pad8 = GPB7 (watchdog readback)
+    net: WD_OK_EXP
+    adr: "0020"
+    why: "GPB7 sits on the FAR side of R_WDOKSER and NOWHERE ELSE. This is the assert that catches the 'simplification' that deletes the resistor and reunites the two nets: R_WDOKSER would still measure 10k on the BOM, R_WDOKPD would still be 100k, U_EXP.18 would still be on WD_OK, and the self-sustaining watchdog defeat would be back"
+  - assert: pin_on_net
+    pin: "R_WDOKSER.1"
+    net: WD_OK
+    adr: "0020"
+    why: "and the other end is on the RAW net, so the resistor is genuinely IN SERIES between GPB7 and the permission rather than a stub hanging off either side. Direction matters here for the same reason it mattered on R_WDPETPD: both pins named = the topology cannot be quietly re-drawn"

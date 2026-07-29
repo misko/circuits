@@ -1,0 +1,66 @@
+mpn: TPD4EUSB30DQAR
+manufacturer: Texas Instruments
+type: esd_protection_array_4ch
+datasheet:
+  doc_id: SLVSAC2
+  revision: SLVSAC2G (Rev G, June 2021)
+  url: https://www.ti.com/lit/ds/symlink/tpd4eusb30.pdf
+  sha256: a2c0dd845043a5bbfe610f673879c29e38649544385dea51dbe0a4c49df39136
+  fetched: 2026-07-17
+package: DQA (USON-10), 2.5x1.0mm body, 0.55mm max height, 0.5mm pitch, 5 pads per long side
+footprint: Package_SON:USON-10_2.5x1.0mm_P0.5mm   # near-match, see gotchas for deltas vs TI DQA0010A land pattern
+pins:                       # from Figure 5-2 "DQA Package 10-Pin USON Top View" + Table 5-1 Pin Functions, p.3
+  1: D1+                    # left column top
+  2: D1-
+  3: GND
+  4: D2+
+  5: D2-                    # left column bottom
+  6: {name: NC, note: "right column bottom; 'not normally connected' - opposite pad 5, may carry the through-routed D2- trace"}
+  7: {name: NC, note: "opposite pad 4 (D2+)"}
+  8: GND                    # right column, opposite pad 3
+  9: {name: NC, note: "opposite pad 2 (D1-)"}
+  10: {name: NC, note: "right column top; opposite pad 1 (D1+)"}
+flow_through: >-
+  Channel arrangement is flow-through: the two protected pairs sit at the package ends
+  (D1 pair = pads 1,2; D2 pair = pads 4,5) with GND in the middle (3,8), and every signal pad
+  faces an internally-unconnected N.C. pad across the 1.0mm body (1<->10, 2<->9, 4<->7, 5<->6).
+  Route each differential trace straight under the part, entering on the signal pad and exiting
+  over the opposing NC pad — no stubs, pairs stay intact. Supports traces up to 15 mil (layout sec. 10.1).
+limits:
+  vrwm: 5.5V (D+/D- pins, working voltage)
+  io_abs_max: 6V
+  vbr_min: 7V at 1mA
+  vclamp: 8V at 1A
+  cio_gnd: 0.8pF typ (DQA)
+  cio_io: 0.05pF typ
+  rdyn: 0.6 Ohm
+  iec61000_4_2: 8kV contact / 9kV air (D+/D- pins)
+  iec61000_4_5_surge: 5A / 45W (8/20us)
+  ta_range: -40 to +85C
+gotchas:
+  - "Unidirectional array, 0-5.5V signals only: fine for USB 2.0 HS pairs and USB 3.0 SS pairs; not for rails above 5.5V"
+  - "Place as close to the USB connector as possible, protected traces straight, no sharp corners (sec. 10.1)"
+  - "NC pads are internally floating — connecting them to the through-trace is allowed and is the intended flow-through routing; do NOT ground them"
+  - "KiCad USON-10_2.5x1.0mm_P0.5mm vs TI DQA0010A land example: KiCad pads 0.3x0.55mm, row centers +/-0.385 (outer span 1.32); TI example 0.2x0.565mm, outer span ~1.4, row sep 0.835. Pitch matches; KiCad pads are 0.1mm wider (0.2mm air gap at 0.5mm pitch still OK for JLC) and reach 0.04mm less outward. Usable as-is; for strict IPC compliance derive a custom pad from the DQA0010A drawing"
+  - "Two GND pads (3 and 8) — via both to the ground plane, they carry the ESD strike"
+  - "Many LCSC hits are third-party clones (BORN/Leiditech/MSKSEMI '-N'/'-TP' suffixes) — C90627 is the genuine TI part"
+verified: "pin map read from datasheet Figure 5-2 'DQA Package 10-Pin USON Top View' and Table 5-1 Pin Functions, page 3 (page image rendered), SLVSAC2G — 2026-07-17"
+sourcing: {lcsc: C90627, alternates: [], note: 'extended; exact MPN, genuine TI; 6873 stock 2026-07-17'}
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: qfn, pitch: 0.5, escapes_worst_side: 5, tier_required: jlc_4layer_advanced, checked: escape_check}
+# ^ USON-10 @ 0.5mm: dogbone ring infeasible below via-in-pad tiers (0.45 + 0.127 >
+#   0.5); the outward-only-local conditional does NOT apply honestly (USB nets are
+#   flow-through, not terminated in adjacent passives) -> unconditional tier declared.
+#   Board carries it at jlc_6layer_smallvia (rank 4 >= 2, ADR-0012).
+layout:
+  source: >-
+    TI TPD4EUSB30 datasheet SLVSAC2G (2021-06) section 10 'Layout' (10.1 Layout
+    Guidelines p.11): place the device close to the USB connector and keep the
+    stub off the high-speed pair as short as possible.
+  notes: >-
+    D10 sits between the USB-C receptacle J12 and the XU316 USB PHY, hard against
+    the connector, minimal stub. redteam L1 flags that the v1.0 USB_DP/DM HS pair
+    layer-hops F.Cu/B.Cu/In2 through vias (breaks the 90ohm intra-pair coupling
+    for ~10mm) — a LAYER-CONTINUITY defect P-ADJ's pad-span model does not see;
+    dispositioned P1 next-rev (re-route F.Cu-only, no vias), deferred to v1.1 board.

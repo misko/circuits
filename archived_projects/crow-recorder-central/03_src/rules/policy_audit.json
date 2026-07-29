@@ -1,0 +1,9 @@
+{
+  "_note": "crow-recorder-central (4-layer): In1.Cu is the solid GND reference plane (P-PLANE auto-checks in1_tracks==0). Power routes on F/In2/B as floored tracks (D15), so no named R-PLANE regions are configured. silk_fn covers J/F/TP; route_pro_glob points at the promoted route-input pro for R-RULES.",
+  "plane_regions": [],
+  "silk_fn_refs": "^(J|F|TP)[0-9]",
+  "silk_fn_radius_mm": 9.0,
+  "route_pro_glob": "06_build/route/r0.kicad_pro",
+  "therm_pad_area_mm2": 4.0,
+  "therm_min_vias": 2
+}

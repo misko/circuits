@@ -1,0 +1,46 @@
+mpn: TYPE-C-31-M-12A
+manufacturer: Korean Hroparts Elec (HRO)
+type: usb_c_receptacle
+datasheet:
+  doc_id: TYPE-C-31-M-12A
+  revision: LCSC sheet 2026-07 (1p drawing)
+  url: https://www.lcsc.com/product-detail/C5337088.html
+  sha256: fd8a23ee5f8bad1c98f53d3269d70d727d342216a4de7abc438f099b21ca62f5
+  fetched: 2026-07-21
+package: USB-C 16P SMT pins + 4 TH shell legs, horizontal
+footprint: usb_hub_3s:TYPE-C-31-M-12_EdgeTrim
+escape:
+  style: connector
+  pitch: 0.5
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-21
+pins:
+  A1: GND
+  A4: VBUS
+  A5: CC1
+  A6: DP
+  A7: DM
+  A8: SBU1
+  A9: VBUS
+  A12: GND
+  B1: GND
+  B4: VBUS
+  B5: CC2
+  B6: DP
+  B7: DM
+  B8: SBU2
+  B9: VBUS
+  B12: GND
+  SH: {name: SHIELD, tie: GND, note: "4 TH shell legs, pad name SH in KiCad fp"}
+limits: {current_vbus: "5A across 4 VBUS pins (HRO rating, ledger)", voltage: 20V}
+gotchas:
+  - "ALPHANUMERIC pads (A1..B12, SH): tscircuit DROPS the part SILENTLY -
+     run tsx_preflight + count_parity gates; map pads in parity_padmap.txt
+     BEFORE first tsci build (ledger S-COUNT incident 2026-07-21)"
+  - "A6/B6 (DP) and A7/B7 (DM) are separate pads on this 16P footprint -
+     tie both to the port data nets"
+  - "SBU1/SBU2 float with no_connect flags (16P part has no SBU function here)"
+  - "MODEL-REG on jlc_twin is a known false-alarm class for this connector
+     (asymmetric mouth); JLC's own .kicad_mod rot is authoritative (jlc SKILL)"
+verified: "pad map per HRO TYPE-C-31-M-12 datasheet pinout table + package drawing p.1 (16P: A1..A12/B1..B12 dual-row, 4 shell tabs); KiCad footprint pad names (A1..B12,SH) cross-checked against the drawing - 2026-07-21; ledger designed-in usb-pwr-hub-3s"
+sourcing: {lcsc: C5337088, alternates: [], note: "stock 1355 on 2026-07-21"}

@@ -45,10 +45,15 @@ CROW_BOARD = (RELEASES / "crow-recorder-central-v2/04_kicad"
 USB_V15 = RELEASES / "usb-hub-3s-v3/07_releases/v1.5-2026-07-25"
 USB_V18 = RELEASES / "usb-hub-3s-v3/07_releases/v1.8-2026-07-26"
 USB_BOARD = (RELEASES / "usb-hub-3s-v3/04_kicad/usb_hub_3s_v2.kicad_pcb")
+#: ARCHIVED 2026-07-28 — superseded by their -v2/-v3 successors and moved to
+#: archived_projects/, which the archive contract keeps precisely so boards can
+#: go on serving as FROZEN regression fixtures. These two are fixtures; the
+#: sealed releases are immutable, so only the path moved.
+ARCHIVED = ROOT / "archived_projects"
 #: the release that ships NO MPN column at all
-HUB_V10 = RELEASES / "usb-hub-3s/07_releases/v1.0-2026-07-21"
+HUB_V10 = ARCHIVED / "usb-hub-3s/07_releases/v1.0-2026-07-21"
 #: the one sealed BOM that passes all three checks today
-CLEAN_REL = RELEASES / "crow-mic-pod/07_releases/v1.0-2026-07-21"
+CLEAN_REL = ARCHIVED / "crow-mic-pod/07_releases/v1.0-2026-07-21"
 
 
 def bom_csv(path, rows, bom_marker=False, header="Comment,Designator,"

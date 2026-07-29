@@ -1,5 +1,0 @@
-{
-  "name": "crow-mic-pod-tscircuit",
-  "main": "src/crow_mic_pod.tsx",
-  "dependencies": {}
-}

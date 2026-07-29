@@ -98,8 +98,13 @@ def t_v18_identical_planes_are_caught():
     contains(r.out, "0 G36 REGIONS", "identity ALONE is not the finding")
 
 
-CRC_V1 = ROOT / "projects/crow-recorder-central/07_releases/v1.0-2026-07-22"
-UH_V1 = ROOT / "projects/usb-hub-3s/07_releases/v1.0-2026-07-21"
+# ARCHIVED 2026-07-28. Both boards were superseded by their -v2/-v3 successors
+# and moved to archived_projects/ — which is exactly what that tree is for:
+# "completed/retired boards ... also serve as FROZEN regression fixtures".
+# These two ARE fixtures, so the move updates the path and nothing else; the
+# sealed releases they point at are immutable and unchanged.
+CRC_V1 = ROOT / "archived_projects/crow-recorder-central/07_releases/v1.0-2026-07-22"
+UH_V1 = ROOT / "archived_projects/usb-hub-3s/07_releases/v1.0-2026-07-21"
 
 
 @test("fpay_symmetric_planes_are_not_a_lost_pour")

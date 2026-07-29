@@ -118,6 +118,91 @@ is recorded as an open item rather than taken here.
 
 - `pin_on_net` `U_LATCHB.1` = `REARM_PULSE_N` — the latch's /R is the PULSE,
   never the raw line. This is the whole fix in one assert.
+
+---
+
+## CORRECTION, 2026-07-28 — DECISION B'S HEADLINE CLAIM WAS FALSE IN ITS OWN CASE
+
+*Appended, not edited. Decision B above stands exactly as it was written; this
+section records that it was wrong, why, and what makes it true. The claim is
+kept verbatim because a decision that quietly loses its false sentence teaches
+nobody anything.*
+
+**The claim.** Decision B ends: *"the expander's outputs cannot persist across a
+watchdog timeout or a brown-out."*
+
+**It was false the moment this ADR landed, and this ADR is what made it false.**
+The v1.7 red-team topology lens found it; the lead confirmed it from the
+netlist; it was a **P0** and it blocked the seal.
+
+`WD_OK` carries THREE things, and Decision B only counted two:
+
+| node | what it is | drive |
+|---|---|---|
+| `U_WD.1` | TPS3823-33 `RESET_N` — the intended driver | push-pull, `V_OL` specified only at `I_OL` = 1.2 mA, abs-max ±5 mA (SLVS165O §6.5, §6.2) |
+| `U_EXP.18` | MCP23017 `RESET_N` — what Decision B added | input, ~1 µA |
+| **`U_EXP.8`** | **MCP23017 GPB7 — a BIDIRECTIONAL I/O rated 25 mA** | **output when the host writes `IODIRB.7 = 0`** |
+
+One I²C write — `IODIRB.7 = 0, OLATB.7 = 1` — therefore drives the board's
+most-consumed permission HIGH against a supervisor output that no datasheet
+bounds at that current. The watchdog term vanishes from `U_AND1.3` (coil rail),
+`U_CAND1.1` (contactor), `U_FAULTAND.1` (fault latch) and `U_OENAND.2` ('595
+output-enable) **at once**.
+
+**And it is SELF-SUSTAINING, which is the part that makes it a P0 rather than a
+P1.** The only mechanism that can stop the drive is the expander's own RESET —
+which Decision B had just wired to this very net. RESET asserts only below
+`V_IL` = 0.2 × V_DD = **0.660 V** (DS20001952C D031). If the contention leaves
+the node above 0.660 V, the expander is never reset, GPB7 keeps driving, and
+`WD_OK` stays permissive **until the 3V3 rail is removed**. Decision B put the
+reset on the one net whose defeat disables the reset.
+
+**v1.6 did not have this defect and v1.7 introduced it**, measured on both
+netlists: in v1.6 `U_EXP.18` sat on `EXP_RST_N`, a driverless net. The defect is
+not that GPB7 shares `WD_OK` (it always did — that is the watchdog readback);
+it is that Decision B then made the *recovery path* depend on the same node.
+
+**THE FIX — `R_WDOKSER`, 10 kΩ (C60490, an existing BOM line), in series to
+`U_EXP.8` AND NOTHING ELSE.** `U_EXP.18` and all five gate inputs stay on the
+RAW net, so Decision B's reset path is untouched, and `R_WDOKPD` (100 kΩ down)
+remains `WD_OK`'s only default.
+
+    TPS3823-33 V_OL <= 0.4 V at I_OL = 1.2 mA   =>  guaranteed sink R <= 333.3 ohm
+    GPB7 at 3.3 V through 9.90k (10k, -1%) into 333.3 || 100k = 332.2 ohm
+      V(WD_OK) = 3.3 x 332.2 / (9900 + 332.2)                     =  0.107 V
+      + 21 uA of aggregate input leakage (4 x LVC +-5 uA, MCP +-1 uA) x 332.2
+                                                                  =  0.114 V
+
+| threshold | value | margin |
+|---|---|---|
+| MCP23017 `RESET` `V_IL` = 0.2 × V_DD (DS20001952C D031) | 0.660 V | **546 mV** |
+| SN74LVC1G11 / 1G00 `V_IL` at V_CC 2.7–3.6 V (SCES487I) | 0.800 V | **686 mV** |
+
+Contention current = 3.3/10232 = **0.323 mA**: 27 % of the `V_OL` spec point and
+6.5 % of the ±5 mA abs max. **So the forced-high node now falls below the reset
+threshold, the expander IS reset, GPB7 returns to an input (IODIR POR =
+`0xFF`), and the drive ends. Decision B's claim is true as of the sealed v1.7 —
+because of this resistor, not because of the wiring alone.**
+
+**What this correction does NOT claim.** (a) The reverse case — the host driving
+GPB7 *low* — is bounded only by a `V_OH` spec taken at 30 µA, so no worst-case
+node voltage can be computed from the datasheet. It is left as an unbounded but
+**fail-safe** direction: it pulls `WD_OK` toward RESTRICTIVE for all five
+consumers, and if it reaches 0.660 V it resets the expander and self-clears.
+(b) The **degenerate GPB7 readback** (ORDER_README §7a-3, raised independently
+by the v1.7 pin review) is **NOT repaired**: `U_EXP.18` still sits on `WD_OK`,
+so the expander is in reset exactly when `WD_OK` reads 0. Use the `IODIR`-readback
+replacement §7a-3 specifies. An earlier disposition said this fix "repairs the
+readback for free"; it does not, and that sentence is withdrawn here.
+
+## Invariants emitted by this correction
+
+- `part_value` `R_WDOKSER` = `10k` — the whole bound is this number. At 0 Ω the
+  P0 returns with every topology assert still green.
+- `pin_on_net` `U_EXP.8` = `WD_OK_EXP` — GPB7 is on the FAR side of the
+  resistor; a "simplification" that reunites the nets restores the defect.
+- `pin_on_net` `U_EXP.18` = `WD_OK` (already present, ADR-0020) — the reset must
+  stay on the RAW net or the fix defeats itself.
 - `pin_on_net` `U_ONESHOT.9` = `REARM_N` and `U_ONESHOT.12` = `REARM_PULSE_N` —
   the edge-detect is wired through section 2 and not bypassed.
 - `pin_on_net` `U_ONESHOT.11` = `WD_OK` — the reset-hold that makes the

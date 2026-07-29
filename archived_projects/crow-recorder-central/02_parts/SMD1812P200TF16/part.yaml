@@ -1,0 +1,32 @@
+mpn: SMD1812P200TF16
+manufacturer: RUILON (Shenzhen Ruilongyuan Electronics)
+type: polyfuse_ptc_resettable
+datasheet:
+  doc_id: SP-PTC-008
+  revision: "A6 (2025-04-01)"   # series datasheet, SMD1812 Series
+  url: https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2304140030_RUILON-Shenzhen-Ruilongyuan-Elec-SMD1812P200TF16_C20812.pdf
+  sha256: 0b6867088b48aa3601efb9d8e99dd38e167a44e8fa359de87f591d4f54ffb195
+  fetched: 2026-07-17
+package: 1812 (4532 metric)
+footprint: Fuse:Fuse_1812_4532Metric
+pins:                       # non-polarized two-terminal chip
+  1: {name: "1", note: "no polarity"}
+  2: {name: "2", note: "no polarity"}
+limits:
+  i_hold: "2.0A @ 25C (derates: 2.88A @ -40C ... 0.80A @ 85C)"
+  i_trip: "4.0A @ 25C"
+  v_max: 16VDC
+  i_max_fault: 35A
+  time_to_trip: "2s max @ 8A"
+  pd_tripped: "0.8W typ"
+  r_initial: "0.02R min pre-trip; 0.1R max one hour post-reflow (R1max)"
+  t_ambient: "-40 to +85C; tripped-state surface up to 125C"
+gotchas:
+  - "Ihold 2A is at 25C still air — at 60C ambient it is only 1.45A; check against real load"
+  - "Post-trip / post-reflow resistance up to 0.1R — budget the drop at 2A (0.2V)"
+  - "Vmax 16V: fine on 12V, do NOT use on 24V rails (that's the TF/24 variant)"
+verified: "electrical row read from 'Performance Specification' table p.4 (SMD1812P200TF16: marking R200, 2/4A, 16V, 8A-2s, 35A, 0.02/0.1R) and Thermal Derating Chart p.6, RUILON SMD1812 Series SP-PTC-008 ver A6 2025-04-01 — 2026-07-17"
+sourcing: {lcsc: C20812}
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: passive, pitch: 4.0, tier_required: jlc_2layer_default, checked: escape_check}

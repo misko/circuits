@@ -356,3 +356,190 @@ mrepro_method_trap: a `.kicad_pcb` copied to a scratch dir WITHOUT its `.kicad_p
   readback -- that restores the driverless EXP_RST_N the ADR exists to close;
   isolate GPB7 instead. Do not put 680R on J_MODE.3 with the RT-03 fix (1.543 V,
   below V_GS(th) max -- it would brick the coil rail).
+
+## 2026-07-28 — start (v1.7 UNBLOCK: the user has decided BOTH P0s)
+
+- did: read the beacon, the DISPOSITIONS ledger, the four v1.7 verdicts, ADR-0020,
+  `power_tree.yaml`, `07_releases/contracts.md` and `git show 9a02c52 / 7f2fcbd`;
+  then re-derived both P0 setpoints from PRIMARY documents before touching source.
+  USER DECISIONS carried in: (A) the supply becomes a SPECIFIED **4.85-5.25 V**
+  commission fact, not a mitigation note, propagated to every home; (B) a **10 k**
+  series resistor on `U_EXP.8` ONLY, plus an honest correction of ADR-0020.
+- result: FOUR primary-source results, all reproduced by arithmetic in this entry's
+  scratch script.
+  **1. THE PREVIOUS PASS'S "NO +-1% DIVIDER FITS" CLAIM IS HALF WRONG, AND THE
+  HALF THAT IS WRONG IS THE ALGEBRA.** The admissible window at `vin_max` 5.5 was
+  computed correctly (k in (0.198437, 0.205455) = 1.0354x). The +-1% SPREAD was
+  not: it was taken as (1.01/0.99)^2 = 1.0408x, which is the spread of a RATIO OF
+  TWO INDEPENDENT RESISTORS. A DIVIDER's k = RB/(RT+RB) has RB in BOTH numerator
+  and denominator, so its spread is (1.01/0.99)*(1.01r+0.99)/(0.99r+1.01) =
+  **1.0322x** at r = 3.83. A +-1% divider therefore DID fit at 5.5 V on tolerance
+  alone. It does NOT fit once the +-100 ppm/C TCR term (+-0.45% over -20..+70 C) is
+  carried: earliest trip falls to 5.326 V, below the old 5.5 V ceiling. **The
+  conclusion was right; the stated reason was not** — and the real reason is a term
+  neither lens carried.
+  **2. THE OV DIVIDER THAT FITS AT 5.25 V: `R_OVT` 100k UNCHANGED, `R_OVB` 15k ->
+  26.1k, BOTH LEGS +-0.5%.** k_nom 0.206979 -> trip **5.798 V nominal**, inside the
+  5.5-6 V intent three documents state. Worst case over -20..+70 C with +-0.5%
+  +-100 ppm/C and SLVSE57C's `I_EN` +-0.1 uA (2.07 mV on a 20.698 k source):
+  EARLIEST possible trip **5.3682 V** (spec max 5.25 -> **+118 mV**), LATEST
+  guaranteed trip **6.2394 V** (SMBJ5.0A V_BR min 6.40 -> **+161 mV**; at -20 C the
+  TVS's own +0.041 %/C moves V_BR min to 6.2819 -> still **+43 mV**; DIP05 coil
+  7.5 V max -> **+1261 mV**). TVS conduction at the latest trip, from the two
+  published points (I_R 800 uA @ 5.00 V, I_T 10 mA @ V_BR): **7.5 mA / 47 mW** at
+  25 C, 9.3 mA / 58 mW at -20 C. As built (100k/15k) the same arithmetic gives
+  9.996 V latest and **6.6 A / 66 W** through the TVS — that is the P0.
+  **3. E-TOPO, RE-DERIVED, PASSES — AND THE "59 mV" WAS NEVER IN ORDER_README S7.**
+  It is in the v1.6 `redteam_adversarial.md` (Sec.E part 3) and CHANGELOG:465. Its
+  terms: 4.850 V at `J_PWR` minus an **ESTIMATED 92 mV** of series drop (F1 ~34 +
+  Q_REV ~38 + eFuse ~20 mV at ~0.45 A), none of which had a cited maximum. I
+  replaced all three with CITED maxima — Bourns MF-MSMF Series R1Max **70 mOhm**,
+  AOS AO3401A R_DS(on) max **60 mOhm** @V_GS -4.5 V scaled by the datasheet's OWN
+  hot ratio (50->75 mOhm 25->125 C = 1.50x) to **73.5 mOhm** at 70 C, TI SLVSE57C
+  R_ON max **47 mOhm** (-40..85 C) — total **190.5 mOhm**, and at a 0.50 A
+  whole-board worst case that is **95.2 mV**, not 92. So V(5V_PROTECTED) = 4.7547 V,
+  headroom 1355.7 mV vs the cited 1300 mV dropout -> **PASS by 55.7 mV** (and still
+  +36.7 mV at 0.60 A). PD falls to 614.7 mW / 51% because `vin_max` drops 5.5->5.25.
+  **4. P0-B, THE 10k, WITH NUMBERS.** TPS3823-33 V_OL <= 0.4 V at I_OL 1.2 mA
+  (SLVS165O 6.5) => guaranteed sink impedance <= 333.3 Ohm. GPB7 at 3.3 V through
+  9.90 k (10k -1%) into 333.3||100k = 332.2 Ohm gives **WD_OK <= 0.114 V** incl.
+  21 uA of aggregate input leakage, against MCP23017 RESET V_IL 0.2*VDD =
+  **0.660 V** and LVC V_IL **0.800 V** — margins 546 mV and 686 mV, and the
+  contention current is 0.323 mA = 27% of the spec point and 6.5% of the +-5 mA
+  abs max. Un-resisted, GPB7 sources up to 25 mA into an output specified to
+  1.2 mA: no datasheet predicts the node, and the loop needs <0.66 V to break.
+- next: apply in source only — `power_tree.yaml`, BRIEF fact-lock, tsx (R_OVB
+  value+code, R_OVT code, new `R_WDOKSER`), ADR-0020 correction + a new ADR for the
+  supply spec, floorplan (J_MODE / D_COILEN refdes out of the east notch, J_DOOR
+  label re-anchored), E-INV asserts RED-verified. Then full rebuild, DRC, full gate
+  battery, full review battery. A P0 blocks again.
+
+## 2026-07-28 — iterate 1 (source applied; TWO TOOL WALLS hit and both are MEASURED)
+
+- did: applied every source change for both P0s + the supply spec, then rebuilt
+  tsx -> circuit.json -> kicad_sch -> netlist -> board.
+- result: **TWO TOOL FAILURES, neither a design problem, both bisected rather
+  than worked around blind.**
+  **(1) tscircuit's schematic pack solver DIES if `U_EXP.8` leaves `WD_OK`.**
+  `tsci build` throws `Matchpack layout solver failed: PackSolver2 failed: null`
+  after 22343 iterations and emits NO circuit.json at all, so the whole chain
+  stops. BISECTED over 11 variants of the same file: committed tsx PASSES; +the
+  OVLO value/code change PASSES; +a new resistor with NO new net PASSES; +a new
+  net carrying only the resistor PASSES; and moving `U_EXP.8` off `WD_OK` by ANY
+  route FAILS deterministically — to the new net, to `EFUSE_FLT_N`, to `3V3`,
+  with or without a test point on the new net, with or without `TP_WDOK`, with
+  the resistor declared in either block and with its pins either way round.
+  **THE FIX IS A SPELLING, NOT A COMPROMISE:** wiring GPB7 as a DIRECT PIN
+  REFERENCE — `<resistor ... connections={{ pin1: "net.WD_OK", pin2:
+  ["U_EXP.pin8", "net.WD_OK_EXP"] }} />` — converges, and the solver's own debug
+  names the distinction (`hasDirectConnections` vs `hasNetConnections`). The
+  exported netlist is identical either way. Recorded verbatim at the call site so
+  nobody "tidies" it back into the pinLabels map.
+  **(2) THE CONVERTER'S LAYOUT MODE SHORTS A SAFETY NET TO 3V3, AND ITS OWN
+  CROSS-NET GUARD DID NOT FIRE.** With the new netlist,
+  `circuit_json_to_kicad_sch.py --mode layout` (the default) reported "4 segs
+  dropped as cross-net" and then produced a netlist with **NO net `AND1` AT
+  ALL**: its three nodes — `R_AND1PD.1`, `U_AND1.4` (the AND gate's OUTPUT) and
+  `U_AND3.1` — appear inside `3V3`, a 79-node rail. `AND1 = MODE_AUTO_HW .
+  WD_OK . ESTOP_OK`, so **three of the seven `KEY_RELAY_ALLOWED` terms would have
+  been permanently TRUE.** `--mode grid` gives 193 nets with `AND1` = the correct
+  3 nodes and `3V3` = 76. The board has always been built from grid (the guard
+  fell back to it on the pre-change input, on `['SHIELD_DRAIN','TH_CAM_A']`), so
+  this is the same output obtained deterministically instead of by luck.
+  Same family as fd76c6d. REPORTED to skills/, not patched.
+  **BOTH ARE NOW COMMITTED SOURCE, not a chat note:** new
+  `03_src/cooksense/rebuild_schematic.sh` drives the schematic stage, forces
+  `--mode grid`, and ends with a SAFETY-CHAIN SPOT-CHECK that asserts the node
+  COUNT of 11 named nets (`AND1`, `AND2`, `KEY_RELAY_ALLOWED`, `CTR_SAFE`,
+  `FAULT_SET_N`, `FAULT_LATCH_CLEAR`, `WD_OK`, `WD_OK_EXP`, `EF_OVLO`,
+  `COIL_EN`, `COIL_EN_IN`) and exits 1 on any disagreement — the gate that would
+  have caught this class. First run: **193 nets, spot-check 11/11, ERC 0 errors
+  / 648 warnings.**
+  **SILK: the notch/ownership repair is also source.** New
+  `03_src/cooksense/fix_silk_placement.py`, wired into `rebuild_all.sh` as step
+  1b. It takes the TRUE Edge_Cuts polygon (`GetBoardPolygonOutlines`, 8 outline
+  points + 12 slot holes) instead of the generator's outer-frame rectangle, and
+  re-places any refdes whose bbox+0.25 mm is not wholly on the board. On the
+  pre-rebuild board it moved 4: `D_COILEN` and `J_MODE` out of the notch, and
+  `J_DOOR`/`J_ESTOP` for OWNERSHIP. Ownership is graded on CENTRE distance with a
+  1.5 mm lead, and the threshold is set FROM a full sweep, not chosen: the best
+  lead the board affords is +2.353 mm (J_DOOR), +1.742 (J_ESTOP), +10.784
+  (J_MODE). **`J_ISOLOOP` is NOT in the list and the omission is measured:** all
+  31 legal positions for it score a NEGATIVE lead (best -2.955 mm) because the
+  only clear silk band lies west of J_ISOLOOP and south of J_RH_EXHAUST — and it
+  is a KF350 screw terminal that cannot be cross-plugged with a GH pod anyway, so
+  its designator is not a mitigation for anything. Recorded as residual, not
+  "fixed" by moving a label and calling it better.
+- next: DRC on the rerouted board, promote the chain, then the full gate battery.
+
+## 2026-07-28 — iterate 2 (the two numbers the user asked for, both MEASURED)
+
+- did: ran the two gates the P0 decisions were supposed to unblock, against the
+  regenerated netlist and the new `power_tree.yaml`, before the board finished
+  re-routing (neither depends on copper).
+- result: **E-TOPO PASSES — the first green E-TOPO on this board since the gate
+  learned LINEAR on 2026-07-27.** Verbatim:
+  `E-TOPO OK: 1/1 rail(s) topology-correct ... rail '3V3' LINEAR (AMS1117-3.3):
+  headroom 1355 mV (Vin_min 4.754 - Vout_max 3.399) vs dropout 1300 mV; PD 615 mW
+  ((Vin_max 5.25 - Vout_min 3.201) x 0.3 A) vs rating 1200 mW (51%) -> PASS`,
+  exit 0. It carries two OVER-BUILT ADVISORIES (2 A trunk / 2 A fuse vs a derived
+  0.3 A need) which are advisory-only and were masked while the rail FAILED —
+  they are correct and intentional: the derived need counts only the graded 3V3
+  rail, not the 0.15 A coil rail or the 0.02 A STOP rail that share the trunk.
+  **THE "59 mV" IS TRACED AND REPLACED.** It is NOT in ORDER_README section 7 —
+  it is in the v1.6 `redteam_adversarial.md` section E part 3, echoed at
+  CHANGELOG:465. Its terms were 4.850 V minus an ESTIMATED 92 mV of series drop
+  (F1 ~34 + Q_REV ~38 + eFuse ~20 mV at ~0.45 A), and **not one of the three had a
+  cited maximum anywhere in this tree**. All three now do, and their datasheets
+  are COMMITTED to 02_parts/ (Bourns MF-MSMF Series, AOS AO3401A Rev3.1,
+  Littelfuse SMBJ Series — the last one so the TVS number the P0 turns on is
+  citable at all): F1 R1Max **70.0 mOhm**, Q_REV **73.5 mOhm** (60 mOhm max at
+  V_GS -4.5 V/25 C scaled by the datasheet's OWN 50->75 mOhm 25->125 C ratio,
+  interpolated to 70 C), eFuse **47.0 mOhm** = **190.5 mOhm**. At 0.50 A that is
+  **95.2 mV, not 92**, so V(5V_PROTECTED) = 4.7548 -> declared 4.754.
+  **E-INV 115/115 (was 109) and E-ADR 9/9 (was 8/8) — ADR-0021 closes its own
+  loop.** SIX new invariants, and ALL SIX RED-VERIFIED this pass, each mutation
+  being the specific defect the assert exists to catch, each restored to md5
+  `aa1115d218b9dee5d67fc3aa2ffefa55`: R_OVB 26.1k->15k (the P0 value itself),
+  R_OVT 100k->57.6k (the refuted lens proposal), the OVLO series_chain re-homed
+  from 5V_RPP to 5V_PROTECTED (the eFuse OUTPUT — which would turn a hysteretic
+  cutoff into an oscillator while both value asserts stay green), R_WDOKSER
+  10k->0 (the "it is only a readback" 0R link), U_EXP.8 back on the raw WD_OK
+  (the P0 restored), and R_WDOKSER.1 moved to WD_OK_EXP (the resistor becomes a
+  stub). All six exit 1 and NAME the invariant; all six restore to 115/115.
+- next: DRC on the rerouted board, promote the chain, full battery, four lenses.
+
+## 2026-07-28 — iterate 3 (first reroute measured DIRTY; the cause is the legalizer, not the router)
+
+- did: DRC'd the first full reroute, diffed the placement against the BLOCKED
+  v1.7 board, and fixed the cause rather than re-racing at it.
+- result: **DRC 1 violation / 6 unconnected / 3 parity.** The 3 parity items were
+  a stale `04_kicad/cooksense.kicad_sch` (the converter writes to
+  `03_tscircuit/kicad/`); refreshed -> **parity 0**, and the other two stand:
+  * 1 clearance, `TH_CAM_A` vs `ADC_CH4` on B.Cu, **0.1191 mm against a
+    0.1200 mm Default rule** — cross-net, 0.9 um short, above the fab floor but
+    the gate is 0, not "0 real".
+  * 6 unconnected, all pad-or-via <-> pour: GND at `U_WD.2`, `R_AND2PD.2`,
+    `R_MODEPD.2`; 3V3 fragmented around `R_FAULTPU.2` / `U_LATCHA.5` /
+    `C_AND2.1`. Exactly the plane-pad class route.yaml's reservations +
+    seed_stubs exist for.
+  **THE PLACEMENT DIFF IS ONE PART, AND THAT ONE PART MOVED A NEIGHBOUR.**
+  Measured against `git HEAD:04_kicad/cooksense.kicad_pcb`: 239 -> 240
+  footprints, **added `R_WDOKSER`, removed none, and exactly ONE part moved** —
+  `TP_3V3` (111.500,70.000) -> (109.000,67.000), **3.905 mm**. Same ripple the
+  route commit already recorded twice (C_WD/R_MR 2026-07-24; eight floaters
+  re-solved when the eleven ADR-0019 pull-downs landed).
+  **AND THE NEW PART ITSELF LANDED 24 mm FROM THE PIN IT PROTECTS.** Left
+  floating, `R_WDOKSER` legalized to (112.400, 69.500) while `U_EXP` pad 8 sits
+  at (136.500, 82.325). It would function there — 1 uA through 10k — but a
+  series ISOLATOR 24 mm from the pin it isolates is a finding, and it is what
+  displaced TP_3V3.
+  **FIX AT SOURCE, BOTH IN ONE EDIT:** `R_WDOKSER` ANCHORED at (133.0, 82.325),
+  3.5 mm due west of U_EXP.8, in measured-clear space (U_EXP courtyard starts at
+  x135.275 = 1.33 mm to the 0402's east edge; nearest other body C_STOPINV ends
+  at x129.94; OUT of U_EXP's south escape corridor x135.3..144.7). `TP_3V3`
+  PINNED at the coordinate v1.6 and the v1.7 staging shipped. **The placement
+  delta is now EXACTLY what this revision changed: one added part.**
+- next: re-race and re-stitch from the anchored placement, then re-measure. If
+  the plane-pad opens survive, they get User.2 reservations + seed_stubs per the
+  precedent in route.yaml, not a re-race lottery.

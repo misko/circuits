@@ -1,0 +1,46 @@
+mpn: FA-238 24.0000MD30X-W5   # directory name uses '-' for the space; this exact string is orderable at Digi-Key (SER4069CT-ND listing 5259755) and LCSC C2650433
+manufacturer: Seiko Epson
+type: crystal_24mhz_3225
+datasheet:
+  doc_id: FA-238_en (Epson brief sheet, FA-238V/FA-238/TSX-3225 combined)
+  revision: "2025 edition (c) Seiko Epson 2025 — brief sheet carries no doc rev number"
+  url: https://download.epsondevice.com/td/pdf/brief/FA-238_en.pdf
+  sha256: 734e53bcda0093bbb7e1290ec36d65c3cbad17d2535e61c133b021b74fe00956
+  fetched: 2026-07-17
+package: SMD 3225, 3.2±0.1 x 2.5±0.1 x 0.7 max mm, 4 pads
+footprint: Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm   # standard 3225-4pad; Epson rec pads 1.4x1.2 at 2.2/1.6 grid, KiCad pads 1.4x1.2 at 2.2x1.7 centers — matches
+pins:                       # from 'Internal connection (TOP VIEW)' figure + FA-238 external-dimensions drawing, brief sheet p.1
+  1: XTAL1                  # crystal terminal (bottom-left in top view, pin-1 corner mark)
+  2: {name: GND, note: "connected to metal cover — connect to ground"}
+  3: XTAL2                  # crystal terminal (diagonal from pin 1)
+  4: {name: GND, note: "connected to metal cover — connect to ground"}
+limits:
+  freq: 24.000000MHz fundamental (FA-238 family 16-50MHz)
+  cl: 12pF                  # the MD30X-W5 spec code = CL 12pF, +-30ppm tolerance, +-30ppm stability (per Digi-Key listing of this exact code; Epson brief lists CL as 'please specify' 7pF-inf)
+  esr: 60 ohm max           # Epson Table 1, 20MHz <= f < 25MHz
+  drive_level: 200uW max (10uW recommended)
+  f_tol_25c: +-30ppm
+  f_temp: +-30ppm -20 to +70C
+  t_use: -40 to +85C
+  aging: +-5ppm/year max
+gotchas:
+  - "CL = 12pF for THIS spec code (MD30X-W5), not 10pF or 18pF — Epson does not publish the code table in the brief; every distributor listing of the code must be checked. Digi-Key 5259755 confirms 24MHz/12pF/+-30ppm. Load caps: C_ext ~= 2*(CL - Cstray) ~= 2x18pF with ~3pF stray"
+  - "Terminals 1 and 3 (diagonal) are the crystal; 2 and 4 are the CASE/cover — ground them. Swapping to an adjacent-pin assumption (1-2 crystal) shorts the crystal to the grounded can"
+  - "The alternate brief-string 'FA-238 24.0000MB-C3' (LCSC C2650453) is the 10pF +-50ppm variant — do not mix the two codes on one BOM"
+  - "Drive level 200uW max, 10uW recommended — size the series resistor for the XU316 oscillator accordingly"
+verified: "pad map read from 'Internal connection (TOP VIEW)' figure and FA-238 external-dimensions drawing (pads #1 bottom-left, #2 bottom-right, #3 top-right, #4 top-left), Epson brief sheet FA-238_en.pdf p.1, 2025 ed.; CL/tolerance of the MD30X-W5 code cross-checked against Digi-Key product 5259755 — 2026-07-17"
+sourcing: {lcsc: C2650433, alternates: [C2650453], note: 'exact spec code; JLC stock 0 (global-sourcing/special order) 2026-07-17; Digi-Key 28284 stock same date at $0.44/1 — plan Digi-Key or JLC global sourcing for this line'}
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: passive, pitch: 2.2, tier_required: jlc_2layer_default, checked: escape_check}   # 3225 4-pad, 2.2mm pad-center grid
+layout:
+  source: >-
+    Epson FA-238 brief (fa-238_brief_en_2025.pdf) + oscillator layout per XMOS
+    XU316 datasheet v2.0.0 Figure 9. Digi-Key hand-solder FALLBACK for the BOM
+    crystal X322524MOB4SI (ADR-0014) — identical 3225 4-pad land + identical
+    XIN/XOUT keep-short constraint.
+  notes: >-
+    Same placement rule as X322524MOB4SI: crystal + 18pF load caps as a compact
+    ground-guarded island hard against the XU316 XIN(pin34)/XOUT(pin33) pins,
+    minimal loop, clear of switching nodes. See X322524MOB4SI keep_short (XIN
+    <=18mm measured 16.7, XTAL2 <=18mm measured 6.6) — same Y1 nets.

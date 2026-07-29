@@ -59,18 +59,75 @@ source_type: external_5v_selv
 # ds1117 (2009-08 RoHS, 8pp), the datasheet 02_parts/AMS1117-3.3 already names.
 # A copy is in-tree at archived_projects/ble-bus-bar/02_parts/AMS1117-3.3/
 # ds1117_2009-08_RoHS.pdf — page numbers below are that PDF's.
+# ##########################################################################
+# v1.7, 2026-07-28 — THE SUPPLY ENVELOPE IS NOW A COMMISSION FACT: 4.85-5.25 V.
+#
+# Every 4.5 / 5.5 in this file was the OLD envelope and is GONE. Until v1.7 the
+# brief commissioned "5V SELV >=2A" with NO tolerance, and that one omission
+# produced BOTH of this board's unresolved electrical defects: E-TOPO's 199 mV
+# dropout shortfall (graded at a 4.500 V corner nobody was allowed to buy —
+# ORDER_README §0 already forbade it) and the eFuse OVLO P0 (at vin_max 5.5 V NO
+# divider satisfies both the no-nuisance-trip bound and the TVS-standoff bound
+# once resistor TCR is carried). The user's ruling, 2026-07-28: the tight range
+# is the SPEC, not a mitigation. ADR-0021.
+#
+#   J_PWR input, SPECIFIED AND MANDATORY:   4.850 V .. 5.250 V
+#
+# Each rail below carries the envelope AT ITS OWN NODE, which for 3V3 is NOT
+# J_PWR: 5V_PROTECTED sits behind F1 + Q_REV + U_EFUSE. The v1.6 adversarial
+# audit's finding was exactly that "hold >= 4.85 V" is written at the wrong
+# node; the answer is to DERIVE the LDO input from the J_PWR spec with CITED
+# series resistances rather than assert it.
+# ##########################################################################
 rails:
   - name: 3V3
     converter: AMS1117-3.3     # 02_parts/AMS1117-3.3, type: ldo_3v3_1a -> LINEAR
-    # INPUT ENVELOPE — UNCHANGED from what this file has declared since v1.2, and
-    # deliberately not moved. 5V_PROTECTED is the eFuse output; the eFuse itself
-    # operates 2.7-18V (02_parts/TPS259573DSGR limits) so it imposes NO floor
-    # above 4.5, and the brief commissions only "5V SELV >=2A" with no tolerance.
-    # 4.5 is therefore the board's honest low corner, and it is the number that
-    # makes the DROPOUT line below fail. Raising it to 4.75 would make E-TOPO
-    # pass with 51 mV to spare; that would be fitting a number to a gate.
-    vin_min: 4.5
-    vin_max: 5.5
+    # INPUT ENVELOPE — DERIVED, at the LDO's OWN input node (5V_PROTECTED), from
+    # the ADR-0021 J_PWR spec minus the worst-case series drop. Every resistance
+    # is a datasheet MAXIMUM. The v1.6 audit's 92 mV was an ESTIMATE with no
+    # cited term in it (F1 ~34 + Q_REV ~38 + eFuse ~20 mV at ~0.45 A); these are
+    # the cited replacements and they come out slightly HIGHER, not lower.
+    #
+    #   F1      MF-MSMF200/16X   70.0 mOhm  Bourns "MF-MSMF Series - PTC
+    #                                       Resettable Fuses", Electrical
+    #                                       Characteristics table, R1Max column
+    #                                       (RMin 0.020 / R1Max 0.070). R1Max is
+    #                                       the post-trip/post-reflow maximum —
+    #                                       the honest worst case for a PPTC.
+    #   Q_REV   AO3401A          73.5 mOhm  AOS AO3401A Rev3.1 EC table: RDS(on)
+    #                                       max 60 mOhm at VGS=-4.5 V / 25 C,
+    #                                       scaled by that table's OWN hot ratio
+    #                                       (VGS=-10 V row: 50 mOhm max at 25 C
+    #                                       -> 75 mOhm max at TJ=125 C = 1.50x),
+    #                                       interpolated to a 70 C junction:
+    #                                       1 + 0.5*45/100 = 1.225. VGS here is
+    #                                       -(5V_FUSED) ~ -4.8 V so the -4.5 V
+    #                                       row is the conservative one to use.
+    #   U_EFUSE TPS259573        47.0 mOhm  TI SLVSE57C EC table "ON-RESISTANCE
+    #                                       (IN - OUT)", RON MAX, VIN 4-18 V,
+    #                                       TJ -40..85 C (the -40..125 C row is
+    #                                       53 mOhm and costs 3 mV more).
+    #                                       ----------
+    #                                       190.5 mOhm
+    #
+    # WORST-CASE SIMULTANEOUS BOARD CURRENT = 0.50 A: 0.30 A of 3V3 logic (this
+    # rail's own iout_max_A) + 0.15 A coil rail + 0.02 A 5V_STOP (both declared
+    # under linear_rails: below) + ~1.3 mA of D_TVS leakage at 5.25 V, rounded
+    # up. The 2.0 A on 5V_PROTECTED is the eFuse's BUDGET, not a simultaneous
+    # draw. Drop = 0.50 x 0.1905 = 95.2 mV, so
+    #
+    #   vin_min = 4.850 - 0.0952 = 4.7548  ->  declared 4.754 (rounded DOWN)
+    #
+    # and the DROPOUT line that has FAILED since v1.5 now reads
+    #   headroom = 4.754 - 3.399 = 1355 mV  vs  dropout 1300 mV  -> PASS +55 mV
+    # It still passes at 0.60 A (+37 mV) and with the eFuse's 125 C row (+53 mV),
+    # so the verdict does not hinge on the one interpolated term (Q_REV).
+    # vin_max is 5.250 with NO drop subtracted: the drop is a load term and the
+    # high corner is the unloaded one. The dropout figure itself is STILL OWED
+    # at this rail's real 0.3 A (see dropout_mv below) and the bring-up
+    # measurement that retires it is unchanged.
+    vin_min: 4.754
+    vin_max: 5.25
     # OUTPUT ENVELOPE — CITED. ds1117 p.2, ELECTRICAL CHARACTERISTICS, "Output
     # Voltage" row, device AMS1117-3.3, condition VIN = 4.8V. The BOLDFACE figures
     # are the ones that "apply over the full operating temperature range" (the
@@ -106,17 +163,25 @@ rails:
     # document and another die's curve is the adjacent-property error.
     #
     # The number declared is the ONLY CITED one, at 2.67x this rail's load. It is
-    # conservative by an UNQUANTIFIED margin, and it FAILS:
-    #   headroom = 4.500 - 3.399 = 1101 mV  vs  dropout 1300 mV  -> short 199 mV
-    # An invented 0.3 A figure would clear it. That is exactly what this file will
-    # not do.
+    # conservative by an UNQUANTIFIED margin. Under the OLD 4.5 V envelope it
+    # FAILED — headroom 4.500 - 3.399 = 1101 mV vs 1300 mV, short 199 mV — and the
+    # file refused to invent a 0.3 A figure to clear it. IT IS STILL NOT INVENTED.
+    # What changed in v1.7 is the SUPPLY, not the number: with vin_min DERIVED at
+    # 4.754 V from the ADR-0021 J_PWR spec (see the input-envelope block above),
+    #   headroom = 4.754 - 3.399 = 1355 mV  vs  dropout 1300 mV  -> PASS by 55 mV
+    # on the fully-stacked worst case (lowest sanctioned supply x highest-trimmed
+    # LDO x a 0.8 A dropout figure applied at 0.3 A x every series R at its max).
+    # The OWED bench measurement below is STILL owed and still worth taking: it is
+    # the only thing that turns a 55 mV pass into a known margin.
     dropout_mv: 1300
     # DISSIPATION — CITED. ds1117 p.3, Note 2: "the maximum power dissipation of
     # **1.2 W for SOT-223**, 2.2W for TO-252 and 780mW for 8-Lead SOIC". U_LDO is
     # the SOT-223 (02_parts/AMS1117-3.3 package). Not derated further: the tab is
     # VOUT and is flooded with 3V3 copper (that part.yaml's layout `notes`), which
     # is the mounting Table 1 (p.5) characterises at 55-65 C/W.
-    #   PD = (5.500 - 3.201) x 0.3 = 690 mW  vs  1200 mW  -> 57%, PASS
+    #   PD = (5.250 - 3.201) x 0.3 = 615 mW  vs  1200 mW  -> 51%, PASS
+    # (was 690 mW / 57% at the old 5.5 V ceiling: tightening the supply spec buys
+    # 75 mW of LDO dissipation as well as the dropout margin.)
     pdiss_max_mw: 1200
 
 # Documentation-only (ignored by power_topology.py). Each linear rail's envelope.
@@ -126,28 +191,36 @@ rails:
 linear_rails:
   - name: 5V_PROTECTED
     kind: protection_pass          # eFuse pass-through (no conversion)
-    vin_min: 4.5
-    vin_max: 5.5                    # nominal 5V SELV; eFuse OVLO cutoff set ~5.5-6V (R_OVT/R_OVB)
-    vout_min: 4.5
-    vout_max: 5.5
+    vin_min: 4.85                   # ADR-0021 J_PWR spec, AT the connector
+    vin_max: 5.25                   # ADR-0021 J_PWR spec, AT the connector
+    vout_min: 4.754                 # = vin_min - 95.2 mV of worst-case F1+Q_REV+eFuse
+    vout_max: 5.25                  # unloaded: the series drop is a load term
+    ovlo_trip_V: 5.798              # R_OVT 100k / R_OVB 26.1k against SLVSE57C V_OVLO(R)
+                                    # 1.20 V typ. WORST CASE over -20..+70 C with +-0.5%
+                                    # legs, +-100 ppm/C TCR and I_EN +-0.1 uA: cannot trip
+                                    # below 5.3682 V (+118 mV over the 5.25 spec ceiling),
+                                    # HAS tripped by 6.2394 V (SMBJ5.0A V_BR min 6.40 at
+                                    # 25 C / 6.2819 at -20 C; DIP05 coil max 7.5 V).
+                                    # v1.2-v1.6 and the BLOCKED v1.7 staging carried
+                                    # 100k/15k = 9.200 V nominal, ABOVE BOTH. ADR-0021.
     iout_max_A: 2.0                # whole-board worst: 12 reed coils ~120mA + logic + sensors
     element: TPS259573DSGR         # eFuse (efuse_ovlo) — current-limit + OVLO cutoff, NOT a converter
     note: "5V SELV in -> polyfuse F1 -> reverse-pol P-FET Q_REV -> eFuse -> 5V_PROTECTED"
   - name: 5V_KEY_RELAY
     kind: gated_load_switch         # AND-chain-gated high-side P-FET (AO3401A Q_COIL)
-    vin_min: 4.5
-    vin_max: 5.5
-    vout_min: 4.5
-    vout_max: 5.5
+    vin_min: 4.754                  # = 5V_PROTECTED vout_min (ADR-0021 derived)
+    vin_max: 5.25
+    vout_min: 4.74                  # - Q_COIL RDS(on) 73.5 mOhm x 0.15 A = 11 mV
+    vout_max: 5.25
     iout_max_A: 0.15               # reed coils ~120mA worst (only 1U+1D+PRESS energised at once)
     element: AO3401A
     note: "5V_PROTECTED -> Q_COIL (gated by the safety AND-chain) -> reed-coil rail"
   - name: 5V_STOP
     kind: always_available_link     # v1.2 (ADR-0011 §4): 0R link, deliberately UNGATED
-    vin_min: 4.5
-    vin_max: 5.5
-    vout_min: 4.5
-    vout_max: 5.5
+    vin_min: 4.754                  # = 5V_PROTECTED vout_min (ADR-0021 derived)
+    vin_max: 5.25
+    vout_min: 4.754                 # 0R link
+    vout_max: 5.25
     iout_max_A: 0.02               # one DIP05 reed coil (~10mA) + margin
     element: R_STOPRAIL (0R)
     note: "5V_PROTECTED -> R_STOPRAIL -> 5V_STOP: K_STOP's coil rail, present whenever

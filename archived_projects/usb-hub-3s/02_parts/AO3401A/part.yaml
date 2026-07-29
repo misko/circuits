@@ -1,0 +1,23 @@
+mpn: AO3401A
+manufacturer: Alpha & Omega Semiconductor
+type: pfet_small_signal
+datasheet:
+  doc_id: AO3401A
+  revision: Rev3.1 Dec2023
+  url: https://www.lcsc.com/product-detail/C15127.html
+  sha256: 0d8e3261ae280e007b5837fff60c55142f2d92af71edc4d02aee6f7a760a785c
+  fetched: 2026-07-21
+package: SOT-23
+footprint: Package_TO_SOT_SMD:SOT-23
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: escape_check 2026-07-21}
+pins:
+  1: G
+  2: S
+  3: D
+limits: {vds: -30V, vgs: "±12V", id: -4A, rds_2V5: 85mOhm_max}
+gotchas:
+  - "Vconn high-side switch (Q9/Q11): S=VCONN5V, D=CCx, gate 10k pull-up to
+     VCONN5V, pulled low by 2N7002 (IP6559 Fig.9)"
+  - "Vgs abs ±12V - gate never sees more than 5V here"
+verified: "pin map read from SOT23 top/bottom view figure, AO3401A Rev3.1 p.1 - 2026-07-21"
+sourcing: {lcsc: C15127, alternates: [C347476], note: "JLC BASIC part; stock 399k on 2026-07-21"}

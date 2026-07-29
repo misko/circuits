@@ -1,0 +1,9 @@
+{
+  "plane_regions": [
+    {"layer": "B.Cu", "ref": "U1", "radius_mm": 8, "max_len_mm": 30},
+    {"layer": "B.Cu", "ref": "C3", "radius_mm": 5, "max_len_mm": 15}
+  ],
+  "silk_fn_refs": "^(J|F|TP)[0-9]",
+  "silk_fn_radius_mm": 8.0,
+  "route_pro_glob": "06_build/route/r0.kicad_pro"
+}

@@ -1,0 +1,46 @@
+mpn: USB4105-GF-A
+manufacturer: GCT
+type: connector_usb_c
+datasheet:
+  doc_id: USB4105
+  revision: drawing (gct.co usb4105.pdf)
+  url: https://gct.co/connector/usb4105
+  sha256: fb331fbabee8392ed2937ed757c1610cb0f174b84625147c0b580a18eea8c0e5
+  fetched: 2026-07-16
+package: USB-C 16P power-only, top-mount hybrid
+footprint: Connector_USB:USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal
+pins:
+  A4/A9/B4/B9: 'VBUS (all four carry current)'
+  A1/A12/B1/B12: 'GND'
+  A5: 'CC1'
+  B5: 'CC2'
+  A6/B6: 'D+'
+  A7/B7: 'D-'
+  A8/B8: 'SBU NC'
+  S1: 'SHIELD'
+limits: '5A/contact-pair rated; 6A across 4 VBUS pins ok'
+gotchas:
+  - 'THIS project is a SINK (UFP): Rd 5.1k pulldown on CC1 AND CC2 (one each, separate resistors — do not common them)'
+  - 'SELF-POWERED UAC2 device: system power comes from the external 5V barrel/screw-terminal input, NOT from VBUS. VBUS is used ONLY for host-presence detect via a resistor divider to an XU316 GPIO — do not feed VBUS into the 5V rail, and size the divider so the GPIO stays safe at VBUS = 5.5V'
+  - 'Self-powered devices must not back-drive VBUS; with VBUS only on a high-impedance divider this is satisfied by construction'
+  - 'Brief specifies MPN USB4105-GF-A-060: the -060 suffix is a tape-and-reel packaging code for the SAME connector; electrically/mechanically identical to USB4105-GF-A'
+verified: 'pad names from SPF footprint use (2026-07); drawing PDF fetched+committed 2026-07-16 (folder copied from crowsync-recorder 2026-07-17)'
+sourcing:
+  lcsc: C3020560
+  alternates: [C3025063]
+  note: >-
+    C3020560 = USB4105-GF-A, confirmed still exact match, 4,489 stock, $1.05
+    (2026-07-17). C3025063 = USB4105-GF-A-060 (the brief's exact MPN, tape
+    suffix), 520 stock, $1.07 — same part, either code assembles correctly.
+
+# D-ESC escape feasibility (escape_check v2, 2026-07-21, ADR-0012 tier context)
+escape: {style: connector, pitch: 0.5, tier_required: jlc_2layer_default, checked: escape_check}
+layout:
+  source: >-
+    GCT USB4105 receptacle drawing. USB-C (USB2.0) receptacle — mechanical /
+    board-edge; CC Rd + ESD placed local; electrically layout-agnostic.
+  notes: >-
+    Board-edge, mate outward. CC1/CC2 5.1k Rd (R31/R32) to GND placed local
+    (Type-C sink presentation, E-INV asserts). VBUS filter local; the HS pair
+    runs to the TPD4EUSB30 (D10) ESD then the XU316 PHY — that pair's layer
+    continuity is the D10/L1 concern (see TPD4EUSB30). No P-ADJ keep_short.

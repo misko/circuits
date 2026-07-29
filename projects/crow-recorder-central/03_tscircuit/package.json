@@ -1,5 +1,0 @@
-{
-  "name": "crow-recorder-central-tscircuit",
-  "main": "src/crow_recorder_central.tsx",
-  "dependencies": {}
-}

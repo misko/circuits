@@ -2,11 +2,33 @@ mpn: MF-MSMF200L-2
 manufacturer: BOURNS
 type: polyfuse_2a_16v
 datasheet:
-  url: https://www.lcsc.com/product-detail/C89650.html
-  fetched: 2026-07-19
+  # SERIES sheet — the Bourns MF-MSMF family document. The catalog MPN carries an
+  # 'L' packaging/marking letter; the ELECTRICAL row is MF-MSMF200/16X (16 V), and
+  # every MF-MSMF200 variant in the table shares RMin 0.020 / R1Max 0.070.
+  # Committed 2026-07-28 (v1.7): this dossier previously held only an LCSC URL, so
+  # the series resistance E-TOPO's dropout headroom depends on had NO cited value
+  # and the v1.6 adversarial audit had to ESTIMATE it (~34 mV at ~0.45 A).
+  url: https://www.bourns.com/docs/product-datasheets/mfmsmf.pdf
+  local: BOURNS-MF-MSMF-SERIES.pdf
+  sha256: a84b990157dd1d755b5c7a413156ddf8792a3a95cff56f09a95d10754e9e49ed
+  fetched: 2026-07-28
+  lcsc_url: https://www.lcsc.com/product-detail/C89650.html
 package: 1812
 footprint: Fuse:Fuse_1812_4532Metric
-verified: "2/3-pad commodity; polarity/pad-1 asserted in board generator + audit I9"
+limits:
+  vmax: "16 V"
+  imax: "100 A fault current"
+  ihold: "2.00 A at 23 C"
+  itrip: "3.50 A at 23 C. NOTE: the ADR-0001 note said 'Itrip 4A'; the committed series table says 3.50 A for every MF-MSMF200 variant. The TABLE governs."
+  r_min: "0.020 ohm at 23 C"
+  r1_max: "0.070 ohm - the MAXIMUM resistance one hour after a trip/reflow event. THIS is the worst case for a series-drop budget, not RMin."
+  tripped_power: "1.0 W typ dissipation at 23 C while held tripped"
+  ihold_vs_temp: "hold-current derating table, MF-MSMF200/16X row: 2.58 A at -40 C / 2.41 at -20 / 2.18 at 0 / 2.00 at 23 / 1.75 at 40 / 1.68 at 50 / 1.48 at 60 / 1.43 at 70 / 1.25 at 85 C"
+gotchas:
+  - "R1Max 70 mOhm IS AN E-TOPO TERM ON THIS BOARD. F1 is in series with the whole 5 V input, so it is one of three resistances between J_PWR and the AMS1117's input (with Q_REV 73.5 mOhm hot and U_EFUSE 47 mOhm max = 190.5 mOhm total). At the ADR-0021 worst case of 0.50 A that is 95.2 mV, and the LDO's dropout headroom is only 55 mV wide - so a substituted polyfuse with a higher R1Max eats that margin directly. Do NOT swap to a higher-resistance PPTC without re-running power_topology.py."
+  - "I_hold DERATES with ambient and the 2.0 A on the label is a 23 C number: 1.43 A at 70 C. Against a whole-board worst case of ~0.50 A that is still 2.9x, but the derating is what the margin is measured against, not the headline."
+  - "R1Max is a POST-TRIP number and it does not return to RMin: a board that has tripped once carries the higher series resistance permanently-ish. Budgeting with RMin 0.020 would understate the drop by 25 mV at 0.50 A."
+verified: "MF-MSMF200/16X row (Vmax 16 / Imax 100 / Ihold 2.00 / Itrip 3.50 / RMin 0.020 / R1Max 0.070 / tripped power 1.0 W) and the hold-vs-temperature row read from the committed Bourns MF-MSMF Series datasheet, 2026-07-28; 2/3-pad commodity, polarity N-A, pad-1 asserted in board generator + audit I9"
 sourcing:
   lcsc: C89650
-  note: "6286 stock. F1: Ihold 2A, Itrip 4A, 16V (ADR-0001)."
+  note: "6286 stock. F1 input polyfuse (ADR-0001)."

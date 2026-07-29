@@ -55,6 +55,19 @@ run_generate_rules () {
 echo "== 1/7 generate_board (placement, track-free) =="
 $PY "$S/generate_board_generic.py" "$FP"
 
+# v1.7 (render review R-02/R-04). generate_board's refdes de-collider tests
+# `_in_frame()` — the OUTER frame rectangle — so it happily prints a designator
+# INTO a milled notch, and it takes the first free slot on an offset ladder, so a
+# designator can end up nearer a neighbouring connector than its own part. It put
+# J_MODE's and D_COILEN's refdes inside the east notch (they would not exist on
+# the fabricated board) and J_DOOR's 2.80 mm from J_ESTOP against 2.87 mm from
+# J_DOOR. `silk_edge_clearance` is the DRC rule for the first one and this board
+# deliberately sets it to `ignore`, so nothing caught either. Both are GENERIC
+# generator defects and both are reported upstream; this pass is the board's own
+# deterministic repair until the generator learns about voids and ownership.
+echo "== 1b/7 fix_silk_placement (refdes out of milled voids + label ownership) =="
+$PY "$PROJ/03_src/cooksense/fix_silk_placement.py" "$PROJ"
+
 echo "== 2/7 generate_rules (netclasses BEFORE route -- canon R1; shadow) =="
 run_generate_rules
 

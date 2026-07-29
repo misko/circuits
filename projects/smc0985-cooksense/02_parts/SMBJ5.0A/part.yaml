@@ -2,16 +2,36 @@ mpn: SMBJ5.0A
 manufacturer: MDD
 type: tvs_unidir_5v
 datasheet:
-  url: https://www.lcsc.com/product-detail/C113974.html
-  fetched: 2026-07-19
+  # SERIES sheet — one document covers every SMBJ stand-off in both
+  # directionalities, so the figures below are the SMBJ5.0A row of that table.
+  # Committed 2026-07-28 (v1.7): until then this dossier carried ONLY an LCSC
+  # product URL, and the eFuse OVLO P0 turned on a number (V_BR min) that this
+  # tree could not cite. It can now.
+  url: https://www.littelfuse.com/products/tvs-diodes/surface-mount/smbj
+  local: LITTELFUSE-SMBJ-SERIES-v4-2025-07-04.pdf
+  sha256: d7df155be4b1f612085401e8c946f065e284d65a0e7de22b9225a7b73946e51b
+  fetched: 2026-07-28
+  lcsc_url: https://www.lcsc.com/product-detail/C113974.html
 package: SMB(DO-214AA)
 footprint: Diode_SMD:D_SMB
 pins:
   1: K
   2: A
+# Littelfuse SMBJ Series table, SMBJ5.0A row (uni-directional; the bi-directional
+# sibling is SMBJ5.0CA — the 'C', PRESENT OR ABSENT, is the ONLY thing in the MPN
+# that distinguishes them, and 'A' is merely the 5% V_BR tolerance).
+limits:
+  vrwm: "5.0 V stand-off (V_R) - Littelfuse's own glossary: 'maximum voltage that can be applied to the TVS WITHOUT OPERATION'"
+  vbr: "6.40 V min / 7.00 V max at I_T = 10 mA"
+  vc: "9.2 V clamping at I_PP = 65.3 A (600 W, 10/1000 us)"
+  ir: "800 uA max reverse leakage AT V_R = 5.0 V"
+  tc_vbr: "+0.041 %/C temperature coefficient of V_BR -> V_BR min falls to 6.2819 V at -20 C and 6.0975 V at -40 C"
 gotchas:
   - "unidirectional TVS: pad 1 = CATHODE to +5VP, anode to GND"
-verified: "2/3-pad commodity; polarity/pad-1 asserted in board generator + audit I9"
+  - "*** THIS PART IS OPERATED ABOVE ITS RATED STAND-OFF VOLTAGE ON THIS BOARD, AND THAT IS A DECLARED GAP, NOT AN OVERSIGHT (ADR-0021). *** V_R is 5.0 V; the ADR-0021 supply ceiling is 5.25 V. Littelfuse publishes two leakage points (I_R 800 uA at 5.00 V, I_T 10 mA at V_BR 6.40 V); the exponential fit between them, k = ln(10/0.8)/1.40 = 1.804 /V, gives ~1.26 mA at 5.25 V and ~1.97 mA at the OLD 5.5 V ceiling - so tightening the supply spec IMPROVED this by ~36% without resolving it. 1.26 mA is not damaging (6.6 mW) but it is UNBOUNDED at temperature: 800 uA is a 25 C number and the vendor publishes no leakage-vs-temperature curve, so a part above its stand-off at 25 C has no published behaviour at 70 C. THE FIX IS SMBJ6.0A (V_R 6.0, V_BR min 6.67 -> ~47 uA at 5.25 V, 27x better), whose cost is V_C 9.2 -> 10.3 V: that must be re-checked against the AMS1117 and TPS259573 abs-max ratings before the swap. Same finding, same arithmetic, already paid for on pluto-rx2-8way (its 02_parts/SMBJ6.0A/part.yaml D-SPEC finding)."
+  - "V_BR MIN 6.40 V IS THE BINDING NUMBER FOR THE eFUSE OVLO SETPOINT, not the 9.2 V clamping voltage. The clamp figure describes a 10/1000 us surge; a SUSTAINED over-voltage the eFuse fails to cut off makes this 600 W TRANSIENT part a DC regulator. At the v1.2-v1.6 OVLO setting (9.200 V nominal, 9.996 V worst case) the fit above gives ~6.6 A / 66 W through an SMB. At the ADR-0021 setting the worst-case LATEST trip is 6.2394 V and the TVS passes at most 7.5 mA / 47 mW (25 C) or 9.3 mA / 58 mW (-20 C, where the +0.041 %/C coefficient has lowered V_BR min to 6.2819 V)."
+  - "DIRECTIONALITY IS A CATALOG FACT AND THE MPN STRING WILL NOT TELL YOU: the fleet has already seen an LCSC row listed 'Bidirectional TVS' under a bare uni-directional MPN string. A bidirectional part here never clamps in the reverse direction and never conducts as a forward diode, so the board powers up normally and has NO clamp. Verify the DIRECTION column of the catalog row, not the MPN."
+verified: "SMBJ5.0A row (V_R 5.0 / V_BR 6.40-7.00 @ I_T 10 mA / V_C 9.2 @ I_PP 65.3 A / I_R 800 uA @ V_R / TC 0.041 %/C) read from the committed Littelfuse SMBJ Series table, 2026-07-28; pad1=K/pad2=A is the 2/3-pad commodity convention asserted in the board generator + audit I9"
 sourcing:
   lcsc: C113974
-  note: "246k stock. D2 5VP clamp."
+  note: "246k stock. D_TVS 5VP clamp. Do NOT substitute a 'CA' (bi-directional) part - see gotchas."

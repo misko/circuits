@@ -330,7 +330,15 @@ def t_the_whole_fleet_resolves():
     in -v2, a project whose .kicad_pcb stem does NOT match its directory
     (usb-hub-3s-v3 builds `usb_hub_3s_v2.kicad_pcb`), and one two-board
     project. All of them are resolved here, read-only, with a denominator."""
-    projects = sorted(p for p in (ROOT / "projects").glob("*") if p.is_dir())
+    # BOTH TREES, since 2026-07-28. The coverage claim above names `crow-mic-pod`
+    # and `usb-hub-3s` as the bare-name shapes — and those are exactly the boards
+    # archived that day. Grading `projects/` alone would have quietly dropped the
+    # shapes this test exists to cover while still printing a denominator, which
+    # is the failure mode M-COVER is about. The archive contract grades archived
+    # boards "honestly (adopted-forward), same as active projects", so they
+    # belong in the denominator too.
+    projects = sorted(p for tree in ("projects", "archived_projects")
+                      for p in (ROOT / tree).glob("*") if p.is_dir())
     resolved = with_rels = 0
     for p in projects:
         idx = ri.index(p)                       # raises if unattributable

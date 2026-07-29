@@ -38,14 +38,23 @@ plus a passive coupon-gated keypad interposer. Full source: BRIEF.md
         CookSense from SWITCHED rails — phantom-power rule N1)
 
 ## Power
-5V SELV in (Micro-Fit, fuse + reverse-pol + OV/eFuse + TVS + bulk +
+5V SELV in — **SPECIFIED 4.85-5.25 V at J_PWR under load (ADR-0021); this
+is a COMMISSION FACT, not advice, and the board is not qualified outside
+it** — (Micro-Fit, fuse + reverse-pol + OV/eFuse + TVS + bulk +
 power-good) -> 5V_PROTECTED -> gated 5V_KEY_RELAY rail (AND-chain)
 AND (v1.2) -> 5V_STOP (0R link, UNGATED): K_STOP's always-available
 coil rail — the STOP relay survives the faults that kill the key rail
 (ADR-0011 §4; see power_tree.yaml);
+OV cutoff setpoint: R_OVT 100k / R_OVB 26.1k (both +-0.5%) against
+SLVSE57C V_OVLO(R) => **5.798 V nominal**, worst case cannot trip below
+5.3682 V and HAS tripped by 6.2394 V (ADR-0021). v1.2-v1.6 carried
+100k/15k = 9.200 V, above both the SMBJ5.0A's 6.40 V V_BR min and the
+DIP05 coil's 7.5 V max — the v1.7 P0;
 3V3 rails LINEAR (AMS1117-class + per-sensor switched high-side) —
-NO switching converter on the board => E-TOPO N-A (all-linear; total
-budget ~<1A: 12 reed coils ~120mA worst + logic + sensors). Pi header
+NO switching converter on the board; since 2026-07-27 E-TOPO GRADES the
+all-linear rail rather than skipping it (dropout + dissipation), and with
+the ADR-0021 envelope it PASSES: headroom 1355 mV vs 1300, PD 615 mW /
+51% (total budget ~<1A: 12 reed coils ~120mA worst + logic + sensors). Pi header
 5V/3V3 are NC/sense only; no backfeed either direction (Ioff buffers).
 
 ## Safety model (ADR-0002, hardened v1.2 by ADR-0011)

@@ -1,0 +1,185 @@
+# crow-mic-pod — electrical invariants (E-INV / E-ADR, phase E1 netlist kinds).
+#
+# AUTHORED 2026-07-22 during the ADOPTED-FORWARD re-audit of sealed release
+# v1.0-2026-07-21 against the CURRENT skill gates (E-INV/E-ADR/E-TOPO did not
+# exist at seal time). This file makes the pod's protection/pinout intent —
+# ADR-0001 (input protection), ADR-0002 (beeper clamp), ADR-0004 (RJ45
+# termination + shield bond) — executable against the exported netlist
+# (06_build/netlists/crow_mic_pod.net), the same class of gate that would have
+# caught the usb-hub-3s v1.0 D1 reverse-polarity defect (every artifact
+# agreed; only intent-vs-netlist disagreed).
+#
+# The sealed v1.0 board is IMMUTABLE — this file is a NEW audit artifact, not
+# a retro-fill of the release. Graded against 06_build/netlists/*.net, which
+# regenerates from the same 04_kicad/crow_mic_pod.kicad_sch the release
+# source/ copy was cut from (unchanged since seal).
+
+invariants:
+  # --- ADR-0001: ESD entry protection, D1 across AUDIO_P/AUDIO_N to GND,
+  # placed AT the cable entry (before the 68R isolation resistors / op-amp).
+  # This is the pod's D1-class check: TPD2E2U06DRLR is a 5-pin bidirectional-
+  # looking part where a channel-vs-GND swap is exactly the kind of mistake
+  # that passes ERC/DRC/parity while being electrically wrong.
+  - assert: pin_on_net
+    pin: "D1.3"
+    net: AUDIO_P
+    adr: "0001"
+    why: >
+      D1 channel IO1 must clamp AUDIO_P (pin numbering per TPD2E2U06DRLR
+      part.yaml, DRL package pin-5 figure). A swapped channel silently
+      clamps the wrong line while ERC/parity stay green (the D1 class).
+  - assert: pin_on_net
+    pin: "D1.5"
+    net: AUDIO_N
+    adr: "0001"
+    why: D1 channel IO2 must clamp AUDIO_N (the other balanced-pair leg).
+  - assert: pin_on_net
+    pin: "D1.4"
+    net: GND
+    adr: "0001"
+    why: >
+      D1's GND pin must return to board GND — both ESD channels clamp
+      AUDIO_P/AUDIO_N referenced to GND, not to a floating or wrong rail.
+  - assert: series_chain
+    chain: [AUDIO_P, D1, GND]
+    through: {D1: [3, 4]}
+    adr: "0001"
+    why: >
+      D1 must bridge AUDIO_P to GND (shunt clamp topology) — confirms D1 is
+      wired as a clamp across the line, not merely touching the right nets
+      on unrelated pins.
+  - assert: series_chain
+    chain: [AUDIO_N, D1, GND]
+    through: {D1: [5, 4]}
+    adr: "0001"
+    why: D1 must bridge AUDIO_N to GND (shunt clamp topology, second channel).
+
+  # --- ADR-0004(a): RJ45 contact map is the interop contract with the
+  # central board (T568B pin n = pod net n, contact-for-contact per the
+  # central's sealed D28 map). A wrong contact here is a silent cross-wire
+  # to the central board that no single-board gate would ever catch.
+  - assert: pin_on_net
+    pin: "J1.1"
+    net: AUDIO_P
+    adr: "0004"
+    why: "RJ45 contact 1 = AUDIO_P per ADR-0004 net-mapping table."
+  - assert: pin_on_net
+    pin: "J1.2"
+    net: AUDIO_N
+    adr: "0004"
+    why: "RJ45 contact 2 = AUDIO_N per ADR-0004 net-mapping table."
+  - assert: pin_on_net
+    pin: "J1.3"
+    net: BEEP_5V
+    adr: "0004"
+    why: "RJ45 contact 3 = BEEP_5V (beeper feed) per ADR-0004."
+  - assert: pin_on_net
+    pin: "J1.4"
+    net: "5V"
+    adr: "0004"
+    why: "RJ45 contact 4 = +5V_AUDIO feed per ADR-0004 (paired with contact 7)."
+  - assert: pin_on_net
+    pin: "J1.5"
+    net: GND
+    adr: "0004"
+    why: "RJ45 contact 5 = GND_AUDIO return per ADR-0004 (paired with contact 8)."
+  - assert: pin_on_net
+    pin: "J1.6"
+    net: BEEP_RET
+    adr: "0004"
+    why: "RJ45 contact 6 = BEEP_RET (switched return) per ADR-0004."
+  - assert: pin_on_net
+    pin: "J1.7"
+    net: "5V"
+    adr: "0004"
+    why: "RJ45 contact 7 = +5V_AUDIO feed per ADR-0004 (paired with contact 4)."
+  - assert: pin_on_net
+    pin: "J1.8"
+    net: GND
+    adr: "0004"
+    why: "RJ45 contact 8 = GND_AUDIO return per ADR-0004 (paired with contact 5)."
+
+  # --- ADR-0002: beeper flyback clamp, D2 populated in parallel with BZ1
+  # across BZ_P/BEEP_RET, cathode-to-supply (pad1=K=BZ_P) so it blocks during
+  # normal ON-time and freewheels the coil kick when the central low-side
+  # switch opens. A reversed D2 would forward-bias every switch cycle
+  # (crowbar the +5V_BEEP feed) while looking identical on ERC/DRC.
+  - assert: pin_on_net
+    pin: "D2.1"
+    net: BZ_P
+    adr: "0002"
+    why: >
+      D2 (SS14) cathode (pad1=K) must sit on BZ_P (supply side) so the diode
+      is REVERSE-biased while the central switch is ON; reversed, it
+      crowbars +5V_BEEP every cycle instead of clamping the open-switch kick.
+  - assert: pin_on_net
+    pin: "D2.2"
+    net: BEEP_RET
+    adr: "0002"
+    why: "D2 anode (pad2=A) at the switched node BEEP_RET (flyback return path)."
+  - assert: pin_on_net
+    pin: "D3.1"
+    net: BZ_P
+    adr: "0002"
+    why: >
+      D3 (SMAJ6.0A TVS, DNP alternate footprint) must share D2's orientation
+      (cathode at BZ_P) so a future populate-swap cannot invert clamp
+      polarity relative to the documented matrix.
+  - assert: pin_on_net
+    pin: "D3.2"
+    net: BEEP_RET
+    adr: "0002"
+    why: "D3 anode at BEEP_RET, matching D2's orientation (ADR-0002 swap matrix)."
+  - assert: net_has_part
+    net: BZ_P
+    part_type: diode
+    min: 2
+    adr: "0002"
+    why: >
+      Both clamp footprints (D2 flyback + D3 TVS alternate) must be present
+      on the BZ_P rail even though only one is populated at ship time — the
+      dual-footprint swap-in-place design (ADR-0002) depends on both sharing
+      the same pads/orientation.
+  - assert: series_chain
+    chain: [BEEP_5V, R12, BZ_P]
+    adr: "0002"
+    why: >
+      R12 (0R series pad, ADR-0002's "swap point for a series resistor") must
+      sit in the +5V_BEEP leg between the RJ45 feed and the clamp/transducer
+      node, not bypassed.
+
+  # --- ADR-0004(b): shield bond stays a DELIBERATE RESERVE (D7) — pod-side
+  # SHIELD floats by default (R15 DNP), never accidentally hard-bonded to
+  # GND on this board, since the central end owns the single-point star
+  # bond and a second bond here would create a ground loop.
+  - assert: pin_on_net
+    pin: "R15.1"
+    net: SHIELD
+    adr: "0004"
+    why: "R15 (DNP 0R shield-bond reserve) must sit on SHIELD, not GND directly."
+  - assert: pin_on_net
+    pin: "R15.2"
+    net: GND
+    adr: "0004"
+    why: >
+      R15's other pad must be GND — confirms R15 is the SHIELD-to-GND bond
+      jumper (populate to bond), not wired to an unrelated net.
+  - assert: pin_on_net
+    pin: "J1.SH"
+    net: SHIELD
+    adr: "0004"
+    why: "RJ45 shield tails land on the dedicated SHIELD net, not bare GND."
+
+  # --- ARCHITECTURE.md mic-bias chain: capsule bias sourced from 5VF through
+  # R2, AC-coupled onward through C3 to the amp input — not the raw 5V rail
+  # (5VF vs 5V matters: 5VF is the filtered/bias-only node per ARCHITECTURE).
+  - assert: series_chain
+    chain: ["5VF", R2, MIC]
+    adr: "0000"
+    why: >
+      Mic bias resistor R2 must bridge 5VF (filtered bias rail) to MIC (the
+      capsule node) — ARCHITECTURE.md's bias path. Cited to ADR-0000, which
+      names "de-risks the analog cell (mic bias, balanced driver, beeper
+      clamp)" as this board's explicit reason for going first; no dedicated
+      mic-bias ADR exists (a gap noted in the re-grade report — the math
+      lives in ARCHITECTURE.md/DETAIL_DESIGN.md with no ADR of its own).
